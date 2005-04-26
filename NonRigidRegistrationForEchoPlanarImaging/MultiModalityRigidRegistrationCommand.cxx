@@ -15,6 +15,8 @@
 
 =========================================================================*/
 
+// This program performs rigid registration of multi-modality images
+// using a multi-resolution approach.
 
 #include "MultiModalityRigidRegistration.h"
 #include "CommandIterationUpdate.h"
