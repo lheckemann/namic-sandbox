@@ -20,4 +20,7 @@ ADD_EXECUTABLE(MultiModalityRigidRegistration
 
 TARGET_LINK_LIBRARIES(MultiModalityRigidRegistration ITKIO ITKCommon ITKNumerics)
 
+ADD_EXECUTABLE(DicomSeriesReadImageWrite DicomSeriesReadImageWrite.cxx )
+TARGET_LINK_LIBRARIES(DicomSeriesReadImageWrite ITKIO ITKCommon ITKNumerics)
+
 
