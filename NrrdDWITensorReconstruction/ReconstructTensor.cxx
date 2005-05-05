@@ -160,7 +160,7 @@ int main(int ac, char* av[])
     return EXIT_FAILURE;
     }
   
-  vnl_matrix<double> Coeff(nMeasurement, nMeasurement);
+  vnl_matrix<double> Coeff(nMeasurement, 6);
   for (int m = 0; m < nMeasurement; m++)
     {
     Coeff[m][0] =     DiffusionVectors[m][0] * DiffusionVectors[m][0];
