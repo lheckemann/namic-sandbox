@@ -1,0 +1,11 @@
+PROJECT(NormalizedCut)
+
+FIND_PACKAGE(ITK)
+IF(ITK_FOUND)
+        INCLUDE(${ITK_USE_FILE})
+ELSE(ITK_FOUND)
+        MESSAGE(FATAL_ERROR "Could not find ITK")
+ENDIF(ITK_FOUND)
+ADD_EXECUTABLE(ncutfib ncutfib.cxx)
+
+TARGET_LINK_LIBRARIES(ncutfib ITKCommon ITKIO ITKNumerics)
