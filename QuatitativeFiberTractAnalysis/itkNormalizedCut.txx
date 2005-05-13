@@ -37,33 +37,45 @@ Evaluate()
 {
   const int r = m_AffinityMatrix.rows();
   m_Classes.resize(r,0);
-
-  // Setup a full mask
-  //std::vector<unsigned int> indicies(r);
   
-  //std::generate_n(indicies.begin(),r,Functors::linear_sequence<unsigned int>());
+  // Use -1 as a flag for classes that we dont know the cut value
+  // for 
+  m_CutValue.resize(r,-1);
 
-  std::cout << "Split: 0" << std::endl;
+  // Split into two clusters
   Recursive2WayCut(0,1);
-//  Recursive2WayCut(1,2);
+
+  // For any additional cluster to be cut find the most unstable
+  // cluster by looking at an attempted cut of each
   for(unsigned int c = 2; c < m_NumberOfClusters; ++c)
     {
     double minCut;
     unsigned int minGroup;
-    minCut = Recursive2WayCutTest(0,1);
-    minGroup = 0;
-    std::cout  << "Test(" << 0 << "): " << minCut << std::endl;
-    for(unsigned int i = 1; i <= c-1; ++i)
+    minCut = std::numeric_limits<double>::max();
+    minGroup = std::numeric_limits<unsigned int>::max();
+
+    // Find the most unstable cluster
+    for(unsigned int i = 0; i <= c-1; ++i)
       {
-      TElementType test = Recursive2WayCutTest(i,c);
-      std::cout  << "Test(" << i << "): " << test << std::endl;
+
+      TElementType test;
+      if(m_CutValue[i] < 0) 
+        {
+        test = Recursive2WayCutTest(i,c);
+        m_CutValue[i] = test;
+        }
+      else
+        {
+        test = m_CutValue[i];
+        }
       if(test < minCut)
         {
         minCut = test;
         minGroup = i;
         }
       }
-    std::cout << "Split: " << minGroup << std::endl;
+
+    m_CutValue[minGroup] = -1;
     Recursive2WayCut(minGroup,c);
     }
   
@@ -78,7 +90,7 @@ CutValue(const Array2D<TElementType>& D,
 {
   const int r = W.rows();
 
-  // Form D, W
+  // Compute ncut by 
   TElementType topA = 0;
   TElementType bottomA = 0;
   TElementType topB = 0;
@@ -105,7 +117,6 @@ NormalizedCut<TElementType>::
 Recursive2WayCutBase(const std::vector<int>& indicies) const
 {
   const int r = indicies.size();
-  std::cout << "R: " << r << std::endl;
   AffinityMatrixType W(r,r);
   AffinityMatrixType D(r,r);
 
@@ -125,48 +136,34 @@ Recursive2WayCutBase(const std::vector<int>& indicies) const
     D(i,i) = sum;
     }
 
-
+  // Solve the generalized eigensystem of (D-W)y = \lambda Dy.  This a
+  // relaxed version of the normalized cut problem
   vnl_generalized_eigensystem eigsys(D - W,D);
           
-  // The normalized cut is approximated by the sign of the 2nd smalled
-  // eigenvector
+  // The second smallest eigenvector gives the partitioning of the data
   vnl_vector<TElementType> continuous_cut(eigsys.V.get_column(1));
   //std::cout << eigsys::n << std::endl;
 
-  std::cout << "End Eigensystem" << std::endl;
-
-  // Slow way of doing things, should do a linear time median finding
-//   std::nth_element(sorted.begin(),sorted.begin()+(sorted.size() / 2),sorted.end());
-//   TElementType median = sorted[sorted.size() / 2];
-
-  // Check l evenly spaces splitting points to see which produces the
-  // best cut
-//   const int l = 10;
-//   std::vector<std::vector<unsigned int> > trialSplits(l);
-  
-
-  //Splitting on median
+  // Comput the mean
   TElementType mean  = 0;
-  TElementType max = -1000.0;
-  TElementType min = 1000.0;
+//   TElementType max = -1000.0;
+//   TElementType min = 1000.0;
   for(unsigned int i = 0; i < r; ++i)
     {
     mean += continuous_cut[i];
-#ifdef _MSC_VER
-    min = std::_cpp_min(min,continuous_cut[i]);
-    max = std::_cpp_max(max,continuous_cut[i]);
-#else
-    min = std::min(min,continuous_cut[i]);
-    max = std::max(max,continuous_cut[i]);
-#endif
+// #ifdef _MSC_VER
+//     min = std::_cpp_min(min,continuous_cut[i]);
+//     max = std::_cpp_max(max,continuous_cut[i]);
+// #else
+//     min = std::min(min,continuous_cut[i]);
+//     max = std::max(max,continuous_cut[i]);
+// #endif
     }
   mean /= r;
 
-  std::cout << "Mean: " << mean << std::endl;
-//   std::cout << "Min: " << min << std::endl;
-//   std::cout << "Max: " << max << std::endl;
-
-
+  // Try to perform the splitting at zero and at the mean
+  // of the vector
+  // TODO: sample more possible splittings
   std::vector<bool> discrete_cutZero(r,false);
   std::vector<bool> discrete_cutMean(r,false);
   for(unsigned int i = 0; i < r; ++i)
@@ -183,13 +180,11 @@ Recursive2WayCutBase(const std::vector<int>& indicies) const
       }
     }
 
+  // Choose the zero or the mean splitting depeneding on which
+  // produces the better value of the Normalized Cut
   TElementType mCut = this->CutValue(D,W,discrete_cutMean);
   TElementType zCut = this->CutValue(D,W,discrete_cutZero);
 //   TElementType cCut = this->CutValue(indicies,discrete_cutC);
-
-   std::cout << "Ncut(0): " << zCut << std::endl;
-   std::cout << "Ncut(" << mean << "): " << mCut << std::endl;
-//   std::cout << "Ncut(" << -.0001 * (max - min) << "): " << cCut << std::endl;
 
    if(mCut <= zCut){ return discrete_cutMean;}
    else{ return discrete_cutZero;}
@@ -224,7 +219,27 @@ Recursive2WayCutTest(unsigned int classe, unsigned int newClass) const
       if (m_Classes[i] == classe) {indicies.push_back(i);}
     }
   
-//  return this->CutValue(indicies,this->Recursive2WayCutBase(indicies));
+  const int r = indicies.size();
+  AffinityMatrixType W(r,r);
+  AffinityMatrixType D(r,r);
+
+  D.fill(0);
+
+  // Compute the D, W matrices from the indicies and the stored affinity
+  // matrix, W is the masked affinity matrix.  D is a diagonal matrix
+  // where the value on the diagonal at i,i is the sum of row i in W
+  for(int i = 0; i != indicies.size(); ++i)
+    {
+    TElementType sum = 0;
+    for(int j = 0; j != indicies.size(); ++j)
+      {
+      W(i,j) = m_AffinityMatrix(indicies[i],indicies[j]);
+      sum += W(i,j);
+      }
+    D(i,i) = sum;
+    }
+
+  return this->CutValue(D,W,this->Recursive2WayCutBase(indicies));
 }
 
 } // itk::

@@ -75,10 +75,8 @@ class ITK_EXPORT NormalizedCut : public Object
   /** Number of cuts */
   unsigned int m_NumberOfClusters;
   
-  /** Holder for resulting eigenvector */
-  //ArrayType m_ContinuousEigenVectors;
   std::vector<unsigned int> m_Classes;
-//  std::vector<TElementType> cutValues;
+  std::vector<TElementType> m_CutValue;
 
 };
 
