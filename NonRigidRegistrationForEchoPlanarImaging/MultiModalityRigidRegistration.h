@@ -70,10 +70,15 @@ public:
                            InternalImageType >    MovingNormalizeFilterType;
 
   typedef itk::ImageFileWriter< InternalImageType > ResampledNormalizedWriter;                           
+  typedef itk::ImageFileWriter< MovingImageType >   ResampledWriter;                           
 
   typedef itk::ResampleImageFilter< 
                            InternalImageType, 
                            InternalImageType >    ResampleFilterType;
+
+  typedef itk::ResampleImageFilter< 
+                           MovingImageType, 
+                           MovingImageType >    ResampleNativeFilterType;
   
   typedef itk::VersorRigid3DTransform< double >   TransformType;
  
@@ -84,6 +89,9 @@ public:
   typedef itk::LinearInterpolateImageFunction< 
                                 InternalImageType,
                                 double             > LinearInterpolatorType;
+  typedef itk::LinearInterpolateImageFunction< 
+                                MovingImageType,
+                                double    > NativeLinearInterpolatorType;
 
   typedef itk::NearestNeighborInterpolateImageFunction< 
                                 InternalImageType,
@@ -162,15 +170,18 @@ private:
 
   ResampleFilterType::Pointer           m_FixedResampler;
   ResampleFilterType::Pointer           m_MovingResampler;
+  ResampleNativeFilterType::Pointer     m_MovingNativeResampler;
 
   ResampledNormalizedWriter::Pointer    m_FixedWriter;
   ResampledNormalizedWriter::Pointer    m_MovingWriter;
+  ResampledWriter::Pointer              m_MovingNativeWriter;
 
   TransformType::Pointer                m_Transform;
   OptimizerType::Pointer                m_Optimizer;
 
   LinearInterpolatorType::Pointer       m_LinearInterpolator;
   NearestInterpolatorType::Pointer      m_NearestInterpolator;
+  NativeLinearInterpolatorType::Pointer m_NativeLinearInterpolator;
 
   MetricType::Pointer                   m_Metric;
 

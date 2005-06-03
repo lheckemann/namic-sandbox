@@ -13,12 +13,14 @@ MultiModalityRigidRegistration
 
   m_FixedWriter         = ResampledNormalizedWriter::New();
   m_MovingWriter        = ResampledNormalizedWriter::New();
+  m_MovingNativeWriter  = ResampledWriter::New();
 
   m_Metric              = MetricType::New();
   m_Transform           = TransformType::New();
   m_Optimizer           = OptimizerType::New();
   m_LinearInterpolator  = LinearInterpolatorType::New();
   m_NearestInterpolator = NearestInterpolatorType::New();
+  m_NativeLinearInterpolator = NativeLinearInterpolatorType::New();
 
   m_RegistrationMethod  = RegistrationType::New();
 
@@ -43,6 +45,7 @@ MultiModalityRigidRegistration
   // Filters for sub-resolultion levels
   m_FixedResampler  = ResampleFilterType::New();
   m_MovingResampler = ResampleFilterType::New();
+  m_MovingNativeResampler = ResampleNativeFilterType::New();
 
   m_FixedMask = SpatialObjectMaskType::New();
   m_MovingMask = SpatialObjectMaskType::New();
@@ -52,6 +55,7 @@ MultiModalityRigidRegistration
   
   m_FixedWriter->SetInput(  m_FixedResampler->GetOutput()  );
   m_MovingWriter->SetInput( m_MovingResampler->GetOutput() );
+  m_MovingNativeWriter->SetInput( m_MovingNativeResampler->GetOutput() );
 
   // Insert scale factor for multiresolution.
   m_LevelFactor.push_back( 4 );
@@ -59,7 +63,7 @@ MultiModalityRigidRegistration
   m_LevelFactor.push_back( 1 );
 
   m_Level = 0;
-  m_ReportTimers = false;
+  m_ReportTimers = true;
 
   m_QualityLevel = Low;  // Fast registration.
 }
@@ -129,6 +133,7 @@ MultiModalityRigidRegistration
 {
   m_MovingImage = image;
   m_MovingNormalizer->SetInput( m_MovingImage );
+  m_MovingNativeResampler->SetInput( m_MovingImage );
 }
 
 
@@ -172,7 +177,7 @@ MultiModalityRigidRegistration
   m_FixedResampler->UpdateLargestPossibleRegion();
 
   ::itk::OStringStream fixedFileName;
-  fixedFileName << "fixed" << factor << ".mhd";
+  fixedFileName << "fixed" << factor << ".nrrd";
   m_FixedWriter->SetFileName( fixedFileName.str().c_str() );
   m_FixedWriter->Update();
 
@@ -200,11 +205,24 @@ MultiModalityRigidRegistration
   m_MovingResampler->UpdateLargestPossibleRegion();
 
   ::itk::OStringStream movingFileName;
-  movingFileName << "moving" << factor << ".mhd";
+  movingFileName << "moving" << factor << ".nrrd";
   m_MovingWriter->SetFileName( movingFileName.str().c_str() );
   m_MovingWriter->Update();
 
   m_RegistrationMethod->SetMovingImage( m_MovingResampler->GetOutput() );
+
+  m_MovingNativeResampler->SetOutputSpacing( spacing );
+  m_MovingNativeResampler->SetOutputOrigin( m_MovingImage->GetOrigin() );
+  m_MovingNativeResampler->SetSize( size );
+  m_MovingNativeResampler->SetOutputStartIndex( region.GetIndex() );
+  m_MovingNativeResampler->SetTransform( itk::IdentityTransform<double>::New() );
+
+  m_MovingNativeResampler->UpdateLargestPossibleRegion();
+
+  ::itk::OStringStream movingNativeFileName;
+  movingNativeFileName << "movingNative" << factor << ".nrrd";
+  m_MovingNativeWriter->SetFileName( movingNativeFileName.str().c_str() );
+  m_MovingNativeWriter->Update();
 
 
   region = m_FixedResampler->GetOutput()->GetBufferedRegion();
