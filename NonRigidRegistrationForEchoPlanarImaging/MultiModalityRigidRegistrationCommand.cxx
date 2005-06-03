@@ -103,6 +103,7 @@ int main( int argc, char *argv[] )
   registration->SetFixedImage(    fixedImageReader->GetOutput()  );
   registration->SetMovingImage(   movingImageReader->GetOutput() );
 
+  registration->ReportTimersOn();
 
 
   // Initialize the Transform
