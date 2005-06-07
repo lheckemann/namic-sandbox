@@ -29,9 +29,9 @@ namespace Statistics{
  * The Evaluate method returns density value for the input measurement vector
  */
 
-template< class TMeasurementVector >
+template< class TMeasurementVector, class THistogram >
 class ITK_EXPORT HistogramDensityFunction :
-    public MembershipFunction< TMeasurementVector >
+    public MembershipFunction< TMeasurementVector, THistogram >
 {
 public:
   /** Standard class typedefs */
@@ -40,18 +40,28 @@ public:
   typedef SmartPointer<Self> Pointer;
   typedef SmartPointer<const Self> ConstPointer;
 
+  /** Types related to the Histogram */
+  typedef THistogram                       HistogramType;
+  typedef HistogramType::ConstPointer      HistogramConstPointer;
+
   /** Strandard macros */
   itkTypeMacro(HistogramDensityFunction, MembershipFunction);
 
   /** Method to get probability of an instance. The return value is the
    * value of the density function, not probability. */
   virtual double Evaluate(const TMeasurementVector &measurement) const;
-  
+ 
+  /**  Set/Get the historgram */
+  itkSetObjectMacro( Histogram, HistogramType );  
+  itkGetConstObjectMacro( Histogram, HistogramType );  
+ 
 protected:
   HistogramDensityFunction(void);
   virtual ~HistogramDensityFunction(void);
 
   void PrintSelf(std::ostream& os, Indent indent) const;
+
+  HistogramConstPointer      m_Histogram;
 
 } ; // end of class
 

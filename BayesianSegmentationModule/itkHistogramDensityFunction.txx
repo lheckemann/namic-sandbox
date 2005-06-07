@@ -48,8 +48,11 @@ inline double
 HistogramDensityFunction< TMeasurementVector >
 ::Evaluate(const MeasurementVectorType &measurement) const
 { 
-   double probability = 0.0;
-   return probability;
+  unsigned int bin = 0;
+  const double frequency = m_Histogram->GetFrequency( bin );
+  const double totalFrequency = m_Histogram->GetTotalFrequency();
+  const double probability = frequency / totalFrequency;
+  return probability;
 }
   
 
