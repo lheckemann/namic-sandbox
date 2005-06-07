@@ -17,9 +17,6 @@ ADD_EXECUTABLE(BayesianSegmentationModule
   Histogram.cxx 
   )
 
-TARGET_LINK_LIBRARIES(BayesianSegmentationModule ITKIO ITKCommon ITKNumerics)
-
-ADD_EXECUTABLE(DicomSeriesReadImageWrite DicomSeriesReadImageWrite.cxx )
-TARGET_LINK_LIBRARIES(DicomSeriesReadImageWrite ITKIO ITKCommon ITKNumerics)
+TARGET_LINK_LIBRARIES(BayesianSegmentationModule ITKStatistics ITKIO ITKCommon ITKNumerics)
 
 
