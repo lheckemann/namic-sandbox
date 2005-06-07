@@ -116,13 +116,12 @@ int main( int argc, char * argv [] )
 
   typedef itk::FixedArray< double, 1 > MeasurementVectorType;
 
-  typedef itk::HistogramDensityFunction<
-                            MeasurementVectorType,
-                            HistogramType > 
-                                    HistogramDensityFunctionType;
+  typedef itk::Statistics::HistogramDensityFunction< 
+                                    MeasurementVectorType, 
+                                    HistogramType > HistogramDensityFunctionType;
     
   HistogramDensityFunctionType::Pointer membershipFunction = 
-                          HistogramDensityFunctionType::New();
+                                              HistogramDensityFunctionType::New();
 
 
   

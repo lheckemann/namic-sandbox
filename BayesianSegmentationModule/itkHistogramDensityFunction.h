@@ -17,7 +17,7 @@
 #ifndef __itkHistogramDensityFunction_h
 #define __itkHistogramDensityFunction_h
 
-#include "itkMembershipFunction.h"
+#include "itkDensityFunction.h"
 
 namespace itk{ 
 namespace Statistics{
@@ -31,21 +31,24 @@ namespace Statistics{
 
 template< class TMeasurementVector, class THistogram >
 class ITK_EXPORT HistogramDensityFunction :
-    public MembershipFunction< TMeasurementVector, THistogram >
+    public DensityFunction< TMeasurementVector >
 {
 public:
   /** Standard class typedefs */
   typedef HistogramDensityFunction Self;
-  typedef MembershipFunction< TMeasurementVector > Superclass ;
+  typedef DensityFunction< TMeasurementVector > Superclass ;
   typedef SmartPointer<Self> Pointer;
   typedef SmartPointer<const Self> ConstPointer;
 
   /** Types related to the Histogram */
-  typedef THistogram                       HistogramType;
-  typedef HistogramType::ConstPointer      HistogramConstPointer;
+  typedef THistogram                             HistogramType;
+  typedef typename HistogramType::ConstPointer   HistogramConstPointer;
 
-  /** Strandard macros */
-  itkTypeMacro(HistogramDensityFunction, MembershipFunction);
+  /** Standard macros */
+  itkTypeMacro(HistogramDensityFunction, DensityFunction);
+  itkNewMacro(Self);
+
+  typedef TMeasurementVector MeasurementVectorType;
 
   /** Method to get probability of an instance. The return value is the
    * value of the density function, not probability. */
@@ -67,6 +70,10 @@ protected:
 
 } // end of namespace Statistics
 } // end namespace itk
+
+#ifndef ITK_MANUAL_INSTANTIATION
+#include "itkHistogramDensityFunction.txx"
+#endif
 
 #endif
 
