@@ -71,7 +71,7 @@ int main( int argc, char * argv [] )
   typedef JoinFilterType::OutputImageType                         JoinImageType;
 
 
-  JoinImageType::Pointer joinFilter = JoinImageType::New();
+  JoinFilterType::Pointer joinFilter = JoinFilterType::New();
 
   joinFilter->SetInput1( reader1->GetOutput() );
   joinFilter->SetInput2( reader2->GetOutput() );
