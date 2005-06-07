@@ -22,30 +22,30 @@
 namespace itk{ 
 namespace Statistics{
 
-template < class TMeasurementVector >
-HistogramDensityFunction< TMeasurementVector >
+template < class TMeasurementVector, class THistogram >
+HistogramDensityFunction< TMeasurementVector, THistogram >
 ::HistogramDensityFunction()
 {
 }
 
-template < class TMeasurementVector >
-HistogramDensityFunction< TMeasurementVector >
+template < class TMeasurementVector, class THistogram >
+HistogramDensityFunction< TMeasurementVector, THistogram >
 ::~HistogramDensityFunction()
 {
 }
 
-template < class TMeasurementVector >
+template < class TMeasurementVector, class THistogram >
 void  
-HistogramDensityFunction< TMeasurementVector >
+HistogramDensityFunction< TMeasurementVector, THistogram >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
 }
 
 
-template < class TMeasurementVector >
+template < class TMeasurementVector, class THistogram >
 inline double
-HistogramDensityFunction< TMeasurementVector >
+HistogramDensityFunction< TMeasurementVector, THistogram >
 ::Evaluate(const MeasurementVectorType &measurement) const
 { 
   unsigned int bin = 0;
