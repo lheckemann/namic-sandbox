@@ -23,6 +23,7 @@
 #include "itkImage.h"
 #include "itkJoinImageFilter.h"
 #include "itkImageFileReader.h"
+#include "itkHistogramDensityFunction.h"
 
 
 
@@ -113,6 +114,18 @@ int main( int argc, char * argv [] )
       }
     }
 
+  typedef itk::FixedArray< double, 1 > MeasurementVectorType;
+
+  typedef itk::HistogramDensityFunction<
+                            MeasurementVectorType,
+                            HistogramType > 
+                                    HistogramDensityFunctionType;
+    
+  HistogramDensityFunctionType::Pointer membershipFunction = 
+                          HistogramDensityFunctionType::New();
+
+
+  
   return 0;
   
 }
