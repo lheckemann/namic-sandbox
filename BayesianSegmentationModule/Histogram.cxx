@@ -71,6 +71,11 @@ int main( int argc, char * argv [] )
   typedef JoinFilterType::OutputImageType                         JoinImageType;
 
 
+  JoinImageType::Pointer joinFilter = JoinImageType::New();
+
+  joinFilter->SetInput1( reader1->GetOutput() );
+  joinFilter->SetInput2( reader2->GetOutput() );
+
   typedef itk::Statistics::ImageToHistogramGenerator< 
                             JoinImageType >   HistogramGeneratorType;
 
@@ -87,7 +92,7 @@ int main( int argc, char * argv [] )
 
   histogramGenerator->SetNumberOfBins( size );
   histogramGenerator->SetMarginalScale( 10.0 );
-  histogramGenerator->SetInput(  reader->GetOutput()  );
+  histogramGenerator->SetInput(  joinFilter->GetOutput()  );
   histogramGenerator->Compute();
 
 
@@ -97,14 +102,15 @@ int main( int argc, char * argv [] )
 
   std::cout << "Histogram size " << histogramSize << std::endl;
 
-  channel = 1;  // a particular label
-
-  std::cout << "Histogram of the green component" << std::endl;
-
-  for( unsigned int bin=0; bin < histogramSize; bin++ )
+  for(unsigned int label = 1; label < size[1]; label++ )
     {
-    std::cout << "bin = " << bin << " frequency = ";
-    std::cout << histogram->GetFrequency( bin, channel ) << std::endl;
+    // a particular label
+    std::cout << "Histogram of label = " << label << std::endl;
+    for( unsigned int bin=0; bin < histogramSize; bin++ )
+      {
+      std::cout << "bin = " << bin << " frequency = ";
+      std::cout << histogram->GetFrequency( bin, label ) << std::endl;
+      }
     }
 
   return 0;
