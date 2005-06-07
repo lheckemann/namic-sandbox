@@ -21,12 +21,10 @@
 
 #include "itkImageToHistogramGenerator.h"
 #include "itkImage.h"
-#include "itkRGBPixel.h"
-
-
-
-
+#include "itkJoinImageFilter.h"
 #include "itkImageFileReader.h"
+
+
 
 int main( int argc, char * argv [] )
 {
@@ -34,33 +32,31 @@ int main( int argc, char * argv [] )
   if( argc < 2 )
     {
     std::cerr << "Missing command line arguments" << std::endl;
-    std::cerr << "Usage :  ImageHistogram1  inputRGBImageFileName " << std::endl;
+    std::cerr << "Usage :  Histogram  inputImageFileName intputLabelImageFileName" << std::endl;
     return -1;
     }
 
 
 
 
-  typedef unsigned char                         PixelComponentType;
-
-  typedef itk::RGBPixel< PixelComponentType >   RGBPixelType;
+  typedef unsigned short                        PixelType;
 
   const unsigned int                            Dimension = 2;
 
-  typedef itk::Image< RGBPixelType, Dimension > RGBImageType;
+  typedef itk::Image< PixelType, Dimension >    InputImageType;
 
+  typedef itk::ImageFileReader< InputImageType >  ReaderType;
 
+  ReaderType::Pointer reader1 = ReaderType::New();
+  ReaderType::Pointer reader2 = ReaderType::New();
 
-
-  typedef itk::ImageFileReader< RGBImageType >  ReaderType;
-
-  ReaderType::Pointer reader = ReaderType::New();
-
-  reader->SetFileName( argv[1] );
+  reader1->SetFileName( argv[1] );
+  reader2->SetFileName( argv[2] );
 
   try
     {
-    reader->Update();
+    reader1->Update();
+    reader2->Update();
     }
   catch( itk::ExceptionObject & excp )
     {
@@ -70,93 +66,38 @@ int main( int argc, char * argv [] )
     }
 
 
+  typedef itk::JoinImageFilter< InputImageType, InputImageType >  JoinFilterType;
+
+  typedef JoinFilterType::OutputImageType                         JoinImageType;
 
 
   typedef itk::Statistics::ImageToHistogramGenerator< 
-                            RGBImageType >   HistogramGeneratorType;
+                            JoinImageType >   HistogramGeneratorType;
 
   HistogramGeneratorType::Pointer histogramGenerator = 
                                              HistogramGeneratorType::New();
-
-
-
 
 
   typedef HistogramGeneratorType::SizeType   SizeType;
 
   SizeType size;
 
-  size[0] = 255;        // number of bins for the Red   channel
-  size[1] =   1;        // number of bins for the Green channel
-  size[2] =   1;        // number of bins for the Blue  channel
+  size[0] = 255;        // number of bins for the gray levels
+  size[1] =   4;        // number of bins for the labels = number of labels
 
   histogramGenerator->SetNumberOfBins( size );
-
-
-
-
-
   histogramGenerator->SetMarginalScale( 10.0 );
-
-
-
-
-
   histogramGenerator->SetInput(  reader->GetOutput()  );
-
   histogramGenerator->Compute();
 
 
-
-
-
   typedef HistogramGeneratorType::HistogramType  HistogramType;
-
   const HistogramType * histogram = histogramGenerator->GetOutput();
-
-
-
-
-
-
   const unsigned int histogramSize = histogram->Size();
 
   std::cout << "Histogram size " << histogramSize << std::endl;
 
-
-
-
-
-
-  unsigned int channel = 0;  // red channel
-
-  std::cout << "Histogram of the red component" << std::endl;
-
-  for( unsigned int bin=0; bin < histogramSize; bin++ )
-    {
-    std::cout << "bin = " << bin << " frequency = ";
-    std::cout << histogram->GetFrequency( bin, channel ) << std::endl;
-    }
-
-
-
-
-
-
-  size[0] =   1;  // number of bins for the Red   channel
-  size[1] = 255;  // number of bins for the Green channel
-  size[2] =   1;  // number of bins for the Blue  channel
-
-  histogramGenerator->SetNumberOfBins( size );
-  
-  histogramGenerator->Compute();
-
-
-
-
-
-
-  channel = 1;  // green channel
+  channel = 1;  // a particular label
 
   std::cout << "Histogram of the green component" << std::endl;
 
@@ -165,35 +106,6 @@ int main( int argc, char * argv [] )
     std::cout << "bin = " << bin << " frequency = ";
     std::cout << histogram->GetFrequency( bin, channel ) << std::endl;
     }
-
-
-
-
-  
-
-
-  size[0] =   1;  // number of bins for the Red   channel
-  size[1] =   1;  // number of bins for the Green channel
-  size[2] = 255;  // number of bins for the Blue  channel
-
-  histogramGenerator->SetNumberOfBins( size );
-  
-  histogramGenerator->Compute();
-
-
-
-
-
-  channel = 2;  // blue channel
-
-  std::cout << "Histogram of the blue component" << std::endl;
-
-  for( unsigned int bin=0; bin < histogramSize; bin++ )
-    {
-    std::cout << "bin = " << bin << " frequency = ";
-    std::cout << histogram->GetFrequency( bin, channel ) << std::endl;
-    }
-
 
   return 0;
   
