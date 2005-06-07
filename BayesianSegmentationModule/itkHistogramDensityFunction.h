@@ -23,8 +23,8 @@ namespace itk{
 namespace Statistics{
 
 /** \class HistogramDensityFunction
- * \brief HistogramDensityFunction class defines common interfaces for 
- * density functions.
+ * \brief HistogramDensityFunction class estimate a probability density
+ * function from the data of a histogram.
  *
  * The Evaluate method returns density value for the input measurement vector
  */
@@ -36,23 +36,23 @@ class ITK_EXPORT HistogramDensityFunction :
 public:
   /** Standard class typedefs */
   typedef HistogramDensityFunction Self;
-  typedef MembershipFunctionBase< TMeasurementVector > Superclass ;
+  typedef MembershipFunction< TMeasurementVector > Superclass ;
   typedef SmartPointer<Self> Pointer;
   typedef SmartPointer<const Self> ConstPointer;
 
   /** Strandard macros */
-  itkTypeMacro(HistogramDensityFunction, MembershipFunctionBase);
+  itkTypeMacro(HistogramDensityFunction, MembershipFunction);
 
   /** Method to get probability of an instance. The return value is the
    * value of the density function, not probability. */
   virtual double Evaluate(const TMeasurementVector &measurement) const;
   
 protected:
-  HistogramDensityFunction(void) {}
-  virtual ~HistogramDensityFunction(void) {}
+  HistogramDensityFunction(void);
+  virtual ~HistogramDensityFunction(void);
 
-  void PrintSelf(std::ostream& os, Indent indent) const
-  { Superclass::PrintSelf(os,indent) ; }
+  void PrintSelf(std::ostream& os, Indent indent) const;
+
 } ; // end of class
 
 } // end of namespace Statistics
