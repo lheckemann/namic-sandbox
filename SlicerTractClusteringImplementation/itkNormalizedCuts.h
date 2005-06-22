@@ -79,6 +79,9 @@ class  NormalizedCuts : public ProcessObject
   itkTypeMacro(NormalizedCuts, ProcessObject);
   itkNewMacro(Self);
 
+  typedef itk::Image<float,3>   ImageType;
+
+
   // Description
   // Compute the output.  Call this after setting the InputWeightMatrix.
   // This code does 6 main steps.
@@ -93,18 +96,21 @@ class  NormalizedCuts : public ProcessObject
   // 
   void ComputeClusters();
 
-  // Description
-  // Use the matrix format provided by vnl for the input similarity matrix
-  //BTX
-  typedef itk::Matrix<double,N,N> InputType;
   // TEST we want this specified at run time!
   const static int InternalNumberOfEigenvectors = 2;
+
+  /** Use the Matrix for the input similarity matrix */
+  typedef itk::Matrix<double,
+                InternalNumberOfEigenvectors,
+                InternalNumberOfEigenvectors> InputMatrixType;
+
+  typedef itk::Vector<double,
+                InternalNumberOfEigenvectors> EigenVectorType;
 
   typedef itk::Vector< double, InternalNumberOfEigenvectors > EmbedVectorType;
   typedef itk::Statistics::ListSample< EmbedVectorType > EmbedSampleType;
   typedef itk::Statistics::SampleClassifier< EmbedSampleType > OutputClassifierType;
 
-  //ETX
 
   /**
    * Set input to this class.  This matrix should be NxN, where N
@@ -133,56 +139,49 @@ class  NormalizedCuts : public ProcessObject
   // itkSetMacro(NumberOfEigenvectors,int); 
   itkGetMacro(NumberOfEigenvectors,int);
 
-  // Description
-  // Get the intermediate computations of this class as images 
-  // for visualization
+  /** Get the intermediate computations of this class as images 
+      for visualization */
   const ImageType * GetNormalizedWeightMatrixImage() const;
   const ImageType * GetEigenvectorsImage() const;
 
-  // Description
-  // Normalized cuts normalization of embedding vectors
+  /** Normalized cuts normalization of embedding vectors */
   void SetEmbeddingNormalizationToRowSum()
     {
       this->SetEmbeddingNormalization(ROW_SUM);
     };
 
-  // Description
-  // Spectral clustering normalization of embedding vectors
+  /** Spectral clustering normalization of embedding vectors */
   void SetEmbeddingNormalizationToLengthOne()
     {
       this->SetEmbeddingNormalization(LENGTH_ONE);
     };
 
-  // Description
-  // No normalization of embedding vectors
+  /** No normalization of embedding vectors */
   void SetEmbeddingNormalizationToNone()
     {
       this->SetEmbeddingNormalization(NONE);
     };
 
-  // Description
-  // Return type of embedding normalization
-  vtkGetMacro(EmbeddingNormalization,int);
+  /** Return type of embedding normalization */
+  itkGetMacro(EmbeddingNormalization,int);
 
-  // Description
-  // Make a vtk image to visualize contents of a vnl matrix
-  vtkImageData *ConvertVNLMatrixToVTKImage(InputType *matrix);
+  /** Make an itk image to visualize contents of a vnl matrix */
+  ImageType *ConvertVNLMatrixToVTKImage(InputMatrixType *matrix);
 
-  // Description
-  // Write embedding vector coordinates to output file embed.txt 
-  // (useful to visualize embedding vectors using external code)
-  vtkSetMacro(SaveEmbeddingVectors, int);
-  vtkGetMacro(SaveEmbeddingVectors, int);
-  vtkBooleanMacro(SaveEmbeddingVectors, int);
+  /** Write embedding vector coordinates to output file embed.txt 
+      (useful to visualize embedding vectors using external code) */
+  itkSetMacro(SaveEmbeddingVectors, int);
+  itkGetMacro(SaveEmbeddingVectors, int);
+  itkBooleanMacro(SaveEmbeddingVectors);
 
  protected:
   NormalizedCuts();
   ~NormalizedCuts() {};
 
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, Indent indent);
 
-  InputType *InputWeightMatrix;
-  vnl_symmetric_eigensystem<double> *EigenSystem;
+  InputMatrixType *InputWeightMatrix;
+  SymmetricEigenAnalysis<InputMatrixType,> *EigenSystem;
   OutputClassifierType::Pointer OutputClassifier;
 
   int NumberOfClusters;
@@ -194,11 +193,11 @@ class  NormalizedCuts : public ProcessObject
 
   itkSetMacro(EmbeddingNormalization,int);
 
-  vtkImageData *NormalizedWeightMatrixImage;
-  vtkImageData *EigenvectorsImage;
-  // functions for vtkCxxSetObjectMacro:
-  virtual void SetNormalizedWeightMatrixImage(vtkImageData *);
-  virtual void SetEigenvectorsImage(vtkImageData *);
+  ImageType::Pointer NormalizedWeightMatrixImage;
+  ImageType::Pointer EigenvectorsImage;
+
+  virtual void SetNormalizedWeightMatrixImage(const ImageType *);
+  virtual void SetEigenvectorsImage(const ImageType *);
 
  private:
 
