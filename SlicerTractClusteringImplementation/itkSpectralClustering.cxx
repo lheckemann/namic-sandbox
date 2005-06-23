@@ -35,7 +35,7 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 
 =========================================================================auto=*/
-#include "vtkNormalizedCuts.h"
+#include "vtkSpectralClustering.h"
 
 // for vtk objects we use here
 #include "vtkObjectFactory.h"
@@ -54,14 +54,14 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #include <ctime>
 
 
-vtkCxxRevisionMacro(vtkNormalizedCuts, "$Revision: 1.15 $");
-vtkStandardNewMacro(vtkNormalizedCuts);
+vtkCxxRevisionMacro(vtkSpectralClustering, "$Revision: 1.15 $");
+vtkStandardNewMacro(vtkSpectralClustering);
 
-vtkCxxSetObjectMacro(vtkNormalizedCuts,NormalizedWeightMatrixImage, 
+vtkCxxSetObjectMacro(vtkSpectralClustering,NormalizedWeightMatrixImage, 
                      vtkImageData);
-vtkCxxSetObjectMacro(vtkNormalizedCuts,EigenvectorsImage, vtkImageData);
+vtkCxxSetObjectMacro(vtkSpectralClustering,EigenvectorsImage, vtkImageData);
 
-vtkNormalizedCuts::vtkNormalizedCuts()
+vtkSpectralClustering::vtkSpectralClustering()
 {
   this->NumberOfClusters = 2;
   this->NumberOfEigenvectors = this->InternalNumberOfEigenvectors;
@@ -74,7 +74,7 @@ vtkNormalizedCuts::vtkNormalizedCuts()
   this->SaveEmbeddingVectors = 0;
 }
 
-void vtkNormalizedCuts::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSpectralClustering::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
@@ -85,7 +85,7 @@ void vtkNormalizedCuts::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 
-void vtkNormalizedCuts::ComputeClusters()
+void vtkSpectralClustering::ComputeClusters()
 {
   // test we have input
   if (this->InputWeightMatrix == NULL)
@@ -579,7 +579,7 @@ void vtkNormalizedCuts::ComputeClusters()
 
 
 
-vtkImageData * vtkNormalizedCuts::GetNormalizedWeightMatrixImage()
+vtkImageData * vtkSpectralClustering::GetNormalizedWeightMatrixImage()
 {
   if (this->NormalizedWeightMatrixImage == NULL)
     {
@@ -588,7 +588,7 @@ vtkImageData * vtkNormalizedCuts::GetNormalizedWeightMatrixImage()
   return(this->NormalizedWeightMatrixImage);
 }
 
-vtkImageData * vtkNormalizedCuts::GetEigenvectorsImage()
+vtkImageData * vtkSpectralClustering::GetEigenvectorsImage()
 {
   if (this->EigenvectorsImage == NULL)
     {
@@ -597,7 +597,7 @@ vtkImageData * vtkNormalizedCuts::GetEigenvectorsImage()
   return (this->EigenvectorsImage);
 }
 
-vtkImageData *vtkNormalizedCuts::ConvertVNLMatrixToVTKImage(InputType *matrix)
+vtkImageData *vtkSpectralClustering::ConvertVNLMatrixToVTKImage(InputType *matrix)
 {
   vtkImageData *image = vtkImageData::New();
 

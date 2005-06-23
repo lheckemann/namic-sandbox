@@ -35,8 +35,8 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 
 =========================================================================auto=*/
-#ifndef __itkNormalizedCuts_h
-#define __itkNormalizedCuts_h
+#ifndef __itkSpectralClustering_h
+#define __itkSpectralClustering_h
 
 
 // ITK objects
@@ -48,7 +48,7 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 namespace itk {
 
-/** \class NormalizedCuts
+/** \class SpectralClustering
  *
  * \brief Normalized Cuts Clustering Algorithm.
  *
@@ -66,17 +66,17 @@ namespace itk {
  */
 
 
-class  NormalizedCuts : public ProcessObject
+class  SpectralClustering : public ProcessObject
 {
  public:
   /** Standard class typedefs */
-  typedef NormalizedCuts     Self;
+  typedef SpectralClustering     Self;
   typedef ProcessObject      Superclass ;
   typedef SmartPointer<Self> Pointer;
   typedef SmartPointer<const Self> ConstPointer;
 
   /** Standard macros */
-  itkTypeMacro(NormalizedCuts, ProcessObject);
+  itkTypeMacro(SpectralClustering, ProcessObject);
   itkNewMacro(Self);
 
   typedef itk::Image<float,3>   ImageType;
@@ -175,8 +175,8 @@ class  NormalizedCuts : public ProcessObject
   itkBooleanMacro(SaveEmbeddingVectors);
 
  protected:
-  NormalizedCuts();
-  ~NormalizedCuts() {};
+  SpectralClustering();
+  ~SpectralClustering() {};
 
   void PrintSelf(ostream& os, Indent indent);
 
@@ -201,8 +201,8 @@ class  NormalizedCuts : public ProcessObject
 
  private:
 
-   NormalizedCuts(const NormalizedCuts&); // Not implemented.
-   void operator=(const NormalizedCuts&); // Not implemented.
+   SpectralClustering(const SpectralClustering&); // Not implemented.
+   void operator=(const SpectralClustering&); // Not implemented.
 };
 
 }
