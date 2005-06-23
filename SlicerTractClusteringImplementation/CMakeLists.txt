@@ -16,6 +16,8 @@ ENDIF(VTK_FOUND)
 
 
 ADD_EXECUTABLE(testCluster testCluster.cxx vtkNormalizedCuts.cxx)
+TARGET_LINK_LIBRARIES(testCluster ITKCommon ITKNumerics vtkCommon vtkIO vtkImaging vtkFiltering)
 
-TARGET_LINK_LIBRARIES(testCluster ITKCommon ITKNumerics VTKCommon VTKIO VTKImaging VTKFiltering)
+ADD_EXECUTABLE(itkKdTreeBasedKmeansEstimatorTest itkKdTreeBasedKmeansEstimatorTest.cxx )
+TARGET_LINK_LIBRARIES(itkKdTreeBasedKmeansEstimatorTest ITKCommon ITKNumerics ITKStatistics)
 
