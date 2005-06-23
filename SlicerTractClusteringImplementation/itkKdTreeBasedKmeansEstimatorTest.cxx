@@ -17,7 +17,6 @@
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
 #endif
-#include "itkWin32Header.h"
 
 #include <fstream>
 
@@ -26,10 +25,9 @@
 #include "itkImage.h"
 #include "itkImageRegionIteratorWithIndex.h"
 
-#include "vnl/vnl_matrix.h"
-
 #include "itkPointSetToListAdaptor.h"
 #include "itkSubsample.h"
+#include "itkListSample.h"
 #include "itkKdTree.h"
 #include "itkEuclideanDistance.h"
 #include "itkWeightedCentroidKdTreeGenerator.h"
@@ -47,11 +45,14 @@ int main(int argc, char* argv[] )
     }
 
   unsigned int i, j ;
-  char* dataFileName = argv[1] ;
+  const char* dataFileName = argv[1] ;
+
   int dataSize = 2000 ;
   int bucketSize = 10 ;
-  typedef itk::FixedArray< double, 2 > MeanType ;
+
   double minStandardDeviation =28.54746 ;
+
+  typedef itk::Array< double > ArrayType;
 
   itk::Array< double > trueMeans(4) ;
   trueMeans[0] = 99.261 ;
@@ -66,37 +67,24 @@ int main(int argc, char* argv[] )
   initialMeans[3] = 180.0 ;
   int maximumIteration = 200 ;
 
-  /* Loading point data */
-  typedef itk::PointSet< double, 2 > PointSetType ;
-  PointSetType::Pointer pointSet = PointSetType::New() ;
-  PointSetType::PointsContainerPointer pointsContainer = 
-    PointSetType::PointsContainer::New() ;
-  pointsContainer->Reserve(dataSize) ;
-  pointSet->SetPoints(pointsContainer.GetPointer()) ;
+  const unsigned int PointDimension = 3;
 
-  PointSetType::PointsContainerIterator p_iter = pointsContainer->Begin() ;
-  PointSetType::PointType point ;
   double temp ;
   std::ifstream dataStream(dataFileName) ;
-  while (p_iter != pointsContainer->End())
+  while ( !dataStream.eof() )
     {
-      for ( i = 0 ; i < PointSetType::PointDimension ; i++)
-        {
-          dataStream >> temp ;
-          point[i] = temp ;
-        }
-      p_iter.Value() = point ;
-      ++p_iter ;
+    for ( i = 0 ; i < PointDimension ; i++)
+      {
+      dataStream >> temp ;
+      }
     }
 
   dataStream.close() ;
   
   /* Importing the point set to the sample */
-  typedef stat::PointSetToListAdaptor< PointSetType >
-    DataSampleType;
+  typedef itk::Statistics::ListSample< ArrayType >  DataSampleType;
 
-  DataSampleType::Pointer sample =
-    DataSampleType::New() ;
+  DataSampleType::Pointer sample = DataSampleType::New() ;
   
   sample->SetPointSet(pointSet);
 
