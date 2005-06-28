@@ -59,9 +59,6 @@ public:
         out[count++] = in[k]*in[l];
         }
       }
-if (out[0]!=0)
-{ std::cout << out << std::endl;
-  std::cout << in << std::endl; }
     return out;
   }
 private:
