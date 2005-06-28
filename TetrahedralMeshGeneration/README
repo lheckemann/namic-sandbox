@@ -1,0 +1,25 @@
+This directory is maintained by 
+
+Andriy Fedorov, College of William and Mary/BWH
+
+The two current classes in the development are (more detailes are available 
+in the source files):
+
+1) BinaryMaskTo3DAdaptiveMeshFilter
+  Creates adaptive tetrahedralization of the input binary mask using the
+  refinement algorithm described by Neil Molino (Standford University, 2004). 
+
+  WARNING: predicates.c is copyrighted by Jonathan Shewchuk, the source code
+  is available here: http://www-2.cs.cmu.edu/~quake/robust.html
+  This code is not likely to be a part of ITK. Before the code is released, I
+  have to implement something way simpler to break the dependency.
+
+  WARNING: the current version of the driver test makes use of VTK
+  UnstructuredGridWriter. The second class developed within this project
+  should eliminate this dependency, but this is not the highest priority right
+  now. 
+
+2) VTKUnstructuredGridMeshWriter
+  Takes the ITK Mesh as input, and saves it in the VTK format. This class is
+  not really something finished, but rather quick to have something to save
+  the resulting VTK mesh in a file without having the dependency on VTK.
