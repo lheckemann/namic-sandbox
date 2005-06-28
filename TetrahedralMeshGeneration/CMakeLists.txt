@@ -10,6 +10,7 @@ ELSE(ITK_FOUND)
           "Cannot build without ITK.  Please set ITK_DIR.")
 ENDIF(ITK_FOUND)
 
+# The VTK ties will be cut eventually...
 FIND_PACKAGE(VTK)
 IF(VTK_FOUND)
   INCLUDE(${VTK_USE_FILE})
@@ -25,7 +26,11 @@ SET(NAMIC_SANDBOX_HOME "/scratch/papers/NAMICSandBox/TetrahedralMeshGeneration")
 
 INCLUDE_DIRECTORIES(${NAMIC_SANDBOX_HOME}/BinaryMaskTo3DAdaptiveMeshFilter/Code)
 INCLUDE_DIRECTORIES(${NAMIC_SANDBOX_HOME}/VTKUnstructuredGridMeshWriter/Code)
+INCLUDE_DIRECTORIES(${NAMIC_SANDBOX_HOME}/External)
+# This directory will NOT be a part of ITK, its functionality will be
+# reimplemented in a much simpler way within the mesher class
+INCLUDE_DIRECTORIES(${NAMIC_SANDBOX_HOME}/External)
 
-ADD_EXECUTABLE(driver ${NAMIC_SANDBOX_HOME}/Tests/driver.cxx itkBinaryMaskTo3DAdaptiveMeshFilter.txx predicates.c)
+ADD_EXECUTABLE(mesher-driver ${NAMIC_SANDBOX_HOME}/BinaryMaskTo3DAdaptiveMeshFilter/Tests/mesher-driver.cxx ${NAMIC_SANDBOX_HOME}/External/predicates.c)
 
-TARGET_LINK_LIBRARIES(driver ITKCommon ITKIO vtkIO vtkGraphics)
+TARGET_LINK_LIBRARIES(mesher-driver ITKCommon ITKIO vtkIO vtkGraphics)
