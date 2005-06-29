@@ -31,7 +31,7 @@ int main(int argc, char** argv){
     assert(0);
   };
   mesher->SetInput(reader->GetOutput());
-  mesher->SetNResolutions(3);
+  mesher->SetNResolutions(atoi(argv[3]));
   mesher->AddSubdivisionTest(MySubdivTest);
   mesher->SetInputImagePrefix(std::string(argv[1]));
   try{

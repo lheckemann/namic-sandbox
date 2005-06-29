@@ -754,8 +754,8 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
               //    cout<<"cpt: "<<compteurtest<<": eigen values too important: "<<
               //      eivalue[0]<<","<<eivalue[1]<<","<<eivalue[2]<<endl;
 
-              if ((abs(eivalue[0])+abs(eivalue[1])+abs(eivalue[2]))>curvaturemax)
-                curvaturemax = abs(eivalue[0])+abs(eivalue[1])+abs(eivalue[2]);
+              if ((fabs(eivalue[0])+fabs(eivalue[1])+fabs(eivalue[2]))>curvaturemax)
+                curvaturemax = fabs(eivalue[0])+fabs(eivalue[1])+fabs(eivalue[2]);
 
               }// if(m_DistImage->GetPixel(pIndex) == 1)
           //#######################################################################################
@@ -899,8 +899,8 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
               //    cout<<"cpt: "<<compteurtest<<": eigen values too important: "<<
               //      eivalue[0]<<","<<eivalue[1]<<","<<eivalue[2]<<endl;
 
-              if ((abs(eivalue[0])+abs(eivalue[1])+abs(eivalue[2]))>curvaturemax)
-                curvaturemax = abs(eivalue[0])+abs(eivalue[1])+abs(eivalue[2]);
+              if ((fabs(eivalue[0])+fabs(eivalue[1])+fabs(eivalue[2]))>curvaturemax)
+                curvaturemax = fabs(eivalue[0])+fabs(eivalue[1])+fabs(eivalue[2]);
 
               }// if(m_DistImage->GetPixel(pIndex) == 1)
 
@@ -1051,8 +1051,8 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
               //    cout<<"cpt: "<<compteurtest<<": eigen values too important: "<<
               //      eivalue[0]<<","<<eivalue[1]<<","<<eivalue[2]<<endl;
 
-              if ((abs(eivalue[0])+abs(eivalue[1])+abs(eivalue[2]))>curvaturemax)
-                curvaturemax = abs(eivalue[0])+abs(eivalue[1])+abs(eivalue[2]);
+              if ((fabs(eivalue[0])+fabs(eivalue[1])+fabs(eivalue[2]))>curvaturemax)
+                curvaturemax = (float)fabs(eivalue[0])+fabs(eivalue[1])+fabs(eivalue[2]);
 
               }// if(m_DistImage->GetPixel(pIndex) == 1)
           CurvImage->SetPixel(pIndex,curvaturemax);
@@ -1438,9 +1438,9 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 
   RGMVertex_ptr *BCC, *iBCC;
 
-  dsi = (int) this->m_dimX/this->m_BCCSpacing + 1;
-  dsj = (int) this->m_dimY/this->m_BCCSpacing + 1;
-  dsk = (int) this->m_dimZ/this->m_BCCSpacing + 1;
+  dsi = (int) (this->m_dimX/this->m_BCCSpacing + 1);
+  dsj = (int) (this->m_dimY/this->m_BCCSpacing + 1);
+  dsk = (int) (this->m_dimZ/this->m_BCCSpacing + 1);
 
   BCC = new RGMVertex_ptr[(dsi+1)*(dsj+1)*(dsk+1)];
   iBCC = new RGMVertex_ptr[dsi*dsj*dsk];
