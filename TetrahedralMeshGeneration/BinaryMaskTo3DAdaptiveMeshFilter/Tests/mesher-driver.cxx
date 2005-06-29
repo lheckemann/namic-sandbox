@@ -14,6 +14,12 @@ typedef itk::Image<PixelType,3> ImageType;
 typedef itk::BinaryMaskTo3DAdaptiveMeshFilter<ImageType,MeshType> MeshFilterType1;
 typedef itk::ImageFileReader<ImageType> ImageReaderType;
 
+bool MySubdivTest(double *v0, double *v1, double *v2, double *v3,
+  MeshFilterType1 *mptr){
+  // e.g., subdivision test based on voxel intensity
+  return false;
+}
+
 int main(int argc, char** argv){
   assert(argc>1);
   MeshFilterType1::Pointer mesher = MeshFilterType1::New();
@@ -26,6 +32,7 @@ int main(int argc, char** argv){
   };
   mesher->SetInput(reader->GetOutput());
   mesher->SetNResolutions(3);
+  mesher->AddSubdivisionTest(MySubdivTest);
   mesher->SetInputImagePrefix(std::string(argv[1]));
   try{
     mesher->Update();

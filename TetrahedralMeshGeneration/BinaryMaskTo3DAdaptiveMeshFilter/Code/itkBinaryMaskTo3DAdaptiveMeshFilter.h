@@ -135,6 +135,11 @@ public:
   /** Type definition for the classified image index type. */
   typedef typename InputImageType::IndexType       InputImageIndexType;
   typedef ImageRegionConstIterator<InputImageType> InputImageIterator;
+
+  /** Type definition of the subdivision test function */
+  typedef bool (SubdivisionTestFunctionType)(double* v0, double* v1,
+    double* v2, double* v3, Self*);
+  typedef SubdivisionTestFunctionType* SubdivisionTestFunctionPointer;
   
   // Subdivision criteria
   itkSetMacro(SubdivInclusion, bool);
@@ -150,6 +155,7 @@ public:
   /** accept the input image */
   virtual void SetInput( const InputImageType * inputImage );
 
+  void AddSubdivisionTest(SubdivisionTestFunctionPointer);
 
 protected:
   // Internal data structures
@@ -256,6 +262,7 @@ protected:
 
   void GenerateData();
   virtual void GenerateOutputInformation(){}; // do nothing
+
   
 private:
   BinaryMaskTo3DAdaptiveMeshFilter(const Self&); //purposely not implemented
@@ -294,6 +301,7 @@ private:
   std::list<RGMTetra_ptr> m_Tetras;     // (quick&dirty)
   std::list<RGMTetra_ptr> m_PendingTetras;
   std::map<std::pair<RGMVertex_ptr,RGMVertex_ptr>,RGMEdge_ptr,ltVertexPair> m_TmpEdgeMap;
+  std::list<SubdivisionTestFunctionPointer> m_SubdivisionCriteria;
   
   InternalImageType::Pointer m_CurvatureImage;
   InternalImageType::Pointer m_DistanceImage;
@@ -350,6 +358,7 @@ private:
   void FinalizeGreenTetra(RGMTetra_ptr);
   void SplitEdge(RGMEdge_ptr);
   RGMEdge_ptr GetPutTmpEdge(RGMVertex_ptr, RGMVertex_ptr);
+  
 };
 
 } // end namespace itk

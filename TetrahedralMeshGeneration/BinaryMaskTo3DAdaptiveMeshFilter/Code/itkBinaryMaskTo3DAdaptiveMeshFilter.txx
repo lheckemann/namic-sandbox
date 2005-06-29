@@ -134,41 +134,6 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 //  this->InitializeLUT();
   this->CreateMesh();
 
-  // Prepare the output
-  std::map<RGMVertex_ptr,unsigned long> vertex2id;
-  typename OutputMeshType::Pointer output_mesh = this->GetOutput();
-  for(typename std::list<RGMTetra_ptr>::iterator tI=m_Tetras.begin();
-    tI!=m_Tetras.end();tI++){
-    RGMVertex_ptr thisT_nodes[4];
-    unsigned long thisT_point_ids[4];
-    
-    thisT_nodes[0] = (*tI)->edges[0]->nodes[0];
-    thisT_nodes[1] = (*tI)->edges[0]->nodes[1];
-    thisT_nodes[2] = (*tI)->edges[1]->nodes[0];
-    thisT_nodes[3] = (*tI)->edges[1]->nodes[1];
-
-    for(i=0;i<4;i++){
-      if(vertex2id.find(thisT_nodes[i])==vertex2id.end()){
-        OPointType new_point;
-        new_point[0] = thisT_nodes[i]->coords[0];
-        new_point[1] = thisT_nodes[i]->coords[1];
-        new_point[2] = thisT_nodes[i]->coords[2];
-
-        output_mesh->SetPoint(m_NumberOfPoints, new_point);
-        vertex2id[thisT_nodes[i]] = m_NumberOfPoints;
-        m_NumberOfPoints++;
-      }
-      thisT_point_ids[i] = vertex2id[thisT_nodes[i]];
-    }
-    
-    TetCellAutoPointer newTet;
-    newTet.TakeOwnership(new TetCell);
-    newTet->SetPointIds(thisT_point_ids);
-    output_mesh->SetCell(m_NumberOfTets, newTet);
-    output_mesh->SetCellData(m_NumberOfTets, 
-      (typename OMeshTraits::CellPixelType) 0.0);
-    m_NumberOfTets++;
-  }
 
   // Do the refinement using the specified subdivision 
   // criteria and the number of resolutions
@@ -206,7 +171,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
     std::cout << red_tetras_cnt << " tets were Red-subdivided, "  << std::endl;
 
     // Enforce conformancy of the tetras neighbouring to 
-    // the Red-subdivided ones. Subdivisions rey incur new ones, that's why
+    // the Red-subdivided ones. Subdivisions may incur new ones, that's why
     // there are two loops. TODO(?): bound the complexity of Red-Green
     // subdivision procedure.
     while(new_edges_split){
@@ -329,6 +294,43 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
     }
     CurrentRes++;
   } // while(CurrentRes<m_NResolutions)
+  
+  // Prepare the output
+  std::map<RGMVertex_ptr,unsigned long> vertex2id;
+  typename OutputMeshType::Pointer output_mesh = this->GetOutput();
+  for(typename std::list<RGMTetra_ptr>::iterator tI=m_Tetras.begin();
+    tI!=m_Tetras.end();tI++){
+    RGMVertex_ptr thisT_nodes[4];
+    unsigned long thisT_point_ids[4];
+    
+    thisT_nodes[0] = (*tI)->edges[0]->nodes[0];
+    thisT_nodes[1] = (*tI)->edges[0]->nodes[1];
+    thisT_nodes[2] = (*tI)->edges[1]->nodes[0];
+    thisT_nodes[3] = (*tI)->edges[1]->nodes[1];
+
+    for(i=0;i<4;i++){
+      if(vertex2id.find(thisT_nodes[i])==vertex2id.end()){
+        OPointType new_point;
+        new_point[0] = thisT_nodes[i]->coords[0];
+        new_point[1] = thisT_nodes[i]->coords[1];
+        new_point[2] = thisT_nodes[i]->coords[2];
+
+        output_mesh->SetPoint(m_NumberOfPoints, new_point);
+        vertex2id[thisT_nodes[i]] = m_NumberOfPoints;
+        m_NumberOfPoints++;
+      }
+      thisT_point_ids[i] = vertex2id[thisT_nodes[i]];
+    }
+    
+    TetCellAutoPointer newTet;
+    newTet.TakeOwnership(new TetCell);
+    newTet->SetPointIds(thisT_point_ids);
+    output_mesh->SetCell(m_NumberOfTets, newTet);
+    output_mesh->SetCellData(m_NumberOfTets, 
+      (typename OMeshTraits::CellPixelType) 0.0);
+    m_NumberOfTets++;
+  }
+
   // TODO: memory deallocation
 }
 
@@ -2862,6 +2864,13 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
     InsertEdge(thisE->nodes[0], thisE->midv);
   thisE->children[1] = 
     InsertEdge(thisE->midv, thisE->nodes[1]);
+}
+
+template<class TInputImage, class TOutputMesh>
+void
+BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
+::AddSubdivisionTest(SubdivisionTestFunctionPointer f){
+  m_SubdivisionCriteria.push_back(f);
 }
 
 } /** end namespace itk. */
