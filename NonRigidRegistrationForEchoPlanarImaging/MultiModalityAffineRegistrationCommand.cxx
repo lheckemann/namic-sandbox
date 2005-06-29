@@ -18,7 +18,7 @@
 // This program performs rigid registration of multi-modality images
 // using a multi-resolution approach.
 
-#include "MultiModalityRigidRegistration.h"
+#include "MultiModalityAffineRegistration.h"
 #include "CommandIterationUpdate.h"
 
 #include "itkImageFileReader.h"
@@ -53,7 +53,7 @@ int main( int argc, char *argv[] )
   TimerType timer;
 
 
-  typedef itk::MultiModalityRigidRegistration     RegistrationType;
+  typedef itk::MultiModalityAffineRegistration     RegistrationType;
   typedef RegistrationType::FixedImageType        FixedImageType;  
   typedef RegistrationType::MovingImageType       MovingImageType;  
 

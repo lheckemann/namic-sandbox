@@ -31,8 +31,8 @@ protected:
     plotfile.close();
     }
 public:
-  typedef   itk::VersorRigid3DTransformOptimizer         OptimizerType;
-  typedef   const OptimizerType   *           OptimizerPointer;
+  typedef   itk::RegularStepGradientDescentOptimizer  OptimizerType;
+  typedef   const OptimizerType   *                   OptimizerPointer;
 
   void Execute(itk::Object *caller, const itk::EventObject & event)
     {

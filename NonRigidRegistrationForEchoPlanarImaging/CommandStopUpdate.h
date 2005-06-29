@@ -3,7 +3,7 @@
 #define __CommandStopUpdate_h_
 
 #include "itkCommand.h"
-#include "itkVersorRigid3DTransformOptimizer.h"
+#include "itkRegularStepGradientDescentOptimizer.h"
 
 
 
@@ -20,8 +20,8 @@ public:
 protected:
   CommandStopUpdate() {};
 public:
-  typedef   itk::VersorRigid3DTransformOptimizer         OptimizerType;
-  typedef   const OptimizerType   *           OptimizerPointer;
+  typedef   itk::RegularStepGradientDescentOptimizer  OptimizerType;
+  typedef   const OptimizerType*                      OptimizerPointer;
 
   void Execute(itk::Object *caller, const itk::EventObject & event)
     {

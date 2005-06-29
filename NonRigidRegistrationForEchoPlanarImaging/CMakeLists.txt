@@ -18,9 +18,18 @@ ADD_EXECUTABLE(MultiModalityRigidRegistration
   MultiModalityRigidRegistrationCommand.cxx 
   )
 
+ADD_EXECUTABLE(MultiModalityAffineRegistration 
+  MultiModalityAffineRegistration.cxx 
+  MultiModalityAffineRegistrationCommand.cxx 
+  )
+
 TARGET_LINK_LIBRARIES(MultiModalityRigidRegistration ITKIO ITKCommon ITKNumerics)
+TARGET_LINK_LIBRARIES(MultiModalityAffineRegistration ITKIO ITKCommon ITKNumerics)
 
 ADD_EXECUTABLE(DicomSeriesReadImageWrite DicomSeriesReadImageWrite.cxx )
 TARGET_LINK_LIBRARIES(DicomSeriesReadImageWrite ITKIO ITKCommon ITKNumerics)
+
+ADD_EXECUTABLE(OrientImageFilter OrientImageFilter.cxx )
+TARGET_LINK_LIBRARIES(OrientImageFilter ITKIO ITKCommon)
 
 
