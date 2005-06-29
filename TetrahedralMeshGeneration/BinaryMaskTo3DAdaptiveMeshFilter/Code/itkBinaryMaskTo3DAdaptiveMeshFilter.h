@@ -142,15 +142,17 @@ public:
   typedef SubdivisionTestFunctionType* SubdivisionTestFunctionPointer;
   
   // Subdivision criteria
-  itkSetMacro(SubdivInclusion, bool);
-  itkSetMacro(SubdivCurvature, bool);
+  /** TODO: documentation for all public types/macros */
+  itkSetMacro(SubdivInclusion, bool); // NAME: SubdivideBoundaryTetra
+  itkSetMacro(SubdivCurvature, bool); // NAME: SubdivideCurvatureTetra
   // Do we need to keep the elements outside of the object?
-  itkSetMacro(KeepOutside, bool);
-  itkSetMacro(NResolutions, unsigned);
-  itkSetMacro(InputImagePrefix, std::string);
+  itkSetMacro(KeepOutside, bool); // NAME: KeepOutisdeTetra
+  itkSetMacro(NResolutions, unsigned); // NAME: MaxSubdivisionLevel
+  // TODO: document debug feature
+  itkSetMacro(InputImagePrefix, std::string); // 
 
   itkGetMacro(NumberOfPoints, unsigned);
-  itkGetMacro(NumberOfTets, unsigned);
+  itkGetMacro(NumberOfTets, unsigned); // NAME: NumberOfTetras
 
   /** accept the input image */
   virtual void SetInput( const InputImageType * inputImage );
@@ -300,6 +302,7 @@ private:
   std::list<RGMEdge_ptr> m_Edges;       // I keep them for memory deallocation.
   std::list<RGMTetra_ptr> m_Tetras;     // (quick&dirty)
   std::list<RGMTetra_ptr> m_PendingTetras;
+  std::set<RGMVertex_ptr> m_OutOfEnvelopeVertices;
   std::map<std::pair<RGMVertex_ptr,RGMVertex_ptr>,RGMEdge_ptr,ltVertexPair> m_TmpEdgeMap;
   std::list<SubdivisionTestFunctionPointer> m_SubdivisionCriteria;
   
@@ -362,7 +365,7 @@ private:
   void FinalizeGreenTetra(RGMTetra_ptr);
   void SplitEdge(RGMEdge_ptr);
   RGMEdge_ptr GetPutTmpEdge(RGMVertex_ptr, RGMVertex_ptr);
-  
+  void FindEnvelopedVertices(float edge_inside);
 };
 
 } // end namespace itk
@@ -372,3 +375,11 @@ private:
 #endif
 
 #endif
+
+/*
+ * TODO: pass displacements associated with the candidate mesh as point
+ * attributes in the ITK Mesh. 
+ *
+ * Look at VTK LaplacianSmoothingFilter, and make deformation framework
+ * similar (# of iter, convergence criteria, scale factor).
+ */

@@ -318,6 +318,69 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
     CurrentRes++;
   } // while(CurrentRes<m_NResolutions)
   
+  // Discard the tetrahedra which are outside the object surface
+  if(!m_KeepOutside){
+    unsigned total_tets = m_Tetras.size();
+    for(i=0;i<total_tets;i++){
+      RGMTetra_ptr curT;
+      RGMVertex_ptr vertices[4];
+      bool have_inside_verts = false;
+      
+      curT = m_Tetras.front();
+      m_Tetras.pop_front();
+      vertices[0] = curT->edges[0]->nodes[0];
+      vertices[1] = curT->edges[0]->nodes[1];
+      vertices[2] = curT->edges[1]->nodes[0];
+      vertices[3] = curT->edges[1]->nodes[1];
+      
+      for(j=0;j<4;j++){
+        if(DistanceAtPoint(vertices[j]->coords)<=0.0){
+          have_inside_verts = true;
+          break;
+        }
+      }
+      
+      if(!have_inside_verts){
+        if(!curT->parent)
+          RemoveTetra(curT);
+        else
+          RemoveTetraAllocated(curT);
+      } else {
+        m_Tetras.push_back(curT);
+      }
+      
+      // Prepare the surface for deformation. Here we use the heuristic
+      // described by Molino: first, the set of enveloped vertices is
+      // selected, so that each of the vertices has all of the incident edges
+      // at least 25% inside the surface. Next all of the tetrhedra that do
+      // not have at least one of the enveloped vertices are removed. There
+      // is additional step to make sure the surface is manifold, but this is
+      // in the TODO list.
+      
+      FindEnvelopedVertices();
+
+      // Now all of the tetrahedra which do not contain any of the enveloped
+      // vertices are discarded
+      for(typename stl::list<RGMTetra_ptr>::iterator tI=m_Tetras.begin();
+        tI!=m_Tetras.end();tI++){
+        RGMTetra_ptr curT;
+        int i, out_of_env_cnt = 0;
+        RGMVertex_ptr vertices[4];
+
+        curT = *tI;
+        vertices[0] = curT->edges[0]->nodes[0];
+        vertices[1] = curT->edges[0]->nodes[1];
+        vertices[2] = curT->edges[1]->nodes[0];
+        vertices[3] = curT->edges[1]->nodes[1];
+        for(i=0;i<4;i++)
+          if(m_OutOfEnvelopeVertices.find(vertices[i])!=
+            m_OutOfEnvelopeVertices.end())
+            out_of_env_cnt++;
+        
+      }
+    }
+  }
+  
   // Prepare the output
   std::map<RGMVertex_ptr,unsigned long> vertex2id;
   typename OutputMeshType::Pointer output_mesh = this->GetOutput();
@@ -1210,8 +1273,11 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
   input_index[2] = coords[2];
   if(m_Interpolator->IsInsideBuffer(input_index))
     return (float)m_Interpolator->EvaluateAtContinuousIndex(input_index);
-  else
+  else {
+    std::cerr << "DistaceAtPoint(): Point [" << coords[0] << ", " << coords[1] << ", " 
+      << coords[2] << "] is outside the image boundaries" << std::endl;
     assert(0);
+  }
   return 0;
 }
 
@@ -2906,6 +2972,60 @@ void
 BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 ::AddSubdivisionTest(SubdivisionTestFunctionPointer f){
   m_SubdivisionCriteria.push_back(f);
+}
+
+/* This function takes the number between 0 and 1, which specifies what part
+ * of the edge has to be inside the surface. By default, at least 25% of all 
+ * edges incident to a vertex have to be inside the object to be enveloped.*/
+template<class TInputImage, class TOutputMesh>
+void
+BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
+::FindEnvelopedVertices(float percent_inside = 0.25){
+  int i, j;
+  for(typename std::list<RGMTetra_ptr>::iterator tI=m_Tetras.begin();
+    tI!=m_Tetras.end();tI++){
+    RGMTetra_ptr curT;
+    //double *vertices[4];
+
+    curT = *tI;
+    /*
+    vertices[0] = &curT->edges[0]->nodes[0]->coords[0];
+    vertices[0] = &curT->edges[0]->nodes[0]->coords[1];
+    vertices[0] = &curT->edges[1]->nodes[1]->coords[0];
+    vertices[0] = &curT->edges[1]->nodes[1]->coords[1];
+     */
+    for(i=0;i<6;i++){
+      float dist0, dist1;
+      double divpoint[3];
+
+      dist0 = DistanceAtPoint(curT->edges[i]->nodes[0]->coords);
+      dist1 = DistanceAtPoint(curT->edges[i]->nodes[1]->coords);
+      if( (dist0<0 && dist1<0) ||
+        (dist0>0 && dist1>0) )
+        continue;
+
+      RGMVertex_ptr vp0, vp1;
+      if(dist0<0){
+        vp0 = curT->edges[i]->nodes[0];
+        vp1 = curT->edges[i]->nodes[1];
+      } else {
+        vp0 = curT->edges[i]->nodes[1];
+        vp1 = curT->edges[i]->nodes[0];
+      }
+
+      divpoint[0] = percent_inside*vp0->coords[0] + 
+        percent_inside*vp1->coords[0];
+      divpoint[1] = percent_inside*vp0->coords[1] + 
+        percent_inside*vp1->coords[1];
+      divpoint[2] = percent_inside*vp0->coords[2] + 
+        percent_inside*vp1->coords[2];
+
+      if(DistanceAtPoint(divpoint)>0.0)
+        // The vertex is not sufficiently inside the surface.
+        m_OutOfEnvelopeVertices.insert(vp0);
+      m_OutOfEvelopeVertices.insert(vp1);
+    }
+  }
 }
 
 } /** end namespace itk. */
