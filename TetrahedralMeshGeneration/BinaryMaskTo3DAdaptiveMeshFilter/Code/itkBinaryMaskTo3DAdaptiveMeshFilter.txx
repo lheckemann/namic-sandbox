@@ -168,6 +168,12 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
       }
     } // while(prev_level_size)
 
+    // --> DEBUG
+    for(typename std::list<RGMTetra_ptr>::iterator tI=m_PendingTetras.begin();
+      tI!=m_PendingTetras.end();tI++){
+      unsigned char conf = GetTetraEdgeConf(*tI);
+    }
+    // <-- DEBUG
     std::cout << red_tetras_cnt << " tets were Red-subdivided, "  << std::endl;
 
     // Enforce conformancy of the tetras neighbouring to 
@@ -184,11 +190,11 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
       m_PendingTetras.clear();
       
       prev_level_size = prev_level_tetras.size();
-      while(prev_level_size--){
+      while(prev_level_tetras.size()){//prev_level_size--){
         RGMTetra_ptr curT;
         unsigned split_edges_ids[6], split_edges_total;
         RGMEdge_ptr split_edges[6];
-
+        
         curT = prev_level_tetras.front();
         prev_level_tetras.pop_front();
 
@@ -209,12 +215,23 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
           for(i=0;i<6;i++)
             if(curT_parent->edges[i]->midv)
               parent_edges_split++;
+          
           parent_child_cnt = curT_parent->num_greens;
           
           child_edges_split = 0;
-          for(i=0;i<parent_child_cnt;i++)
+          for(i=0;i<parent_child_cnt;i++){
+            if(&(curT_parent->greens[i])!=curT){
+              typename std::list<RGMTetra_ptr>::iterator gtlI =
+                find(prev_level_tetras.begin(), 
+                  prev_level_tetras.end(),
+                  &(curT_parent->greens[i]));
+              if(gtlI==prev_level_tetras.end())
+                assert(0);
+              prev_level_tetras.erase(gtlI);
+            }
             child_edges_split += GetTetraEdgeConf(&(curT_parent->greens[i]));
-            
+          }
+          
           if(child_edges_split){
             if(curT_parent->num_greens == 4){
               for(i=1;i<=5;i+=2){
