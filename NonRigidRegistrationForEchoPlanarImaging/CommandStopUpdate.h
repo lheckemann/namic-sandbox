@@ -3,7 +3,7 @@
 #define __CommandStopUpdate_h_
 
 #include "itkCommand.h"
-#include "itkRegularStepGradientDescentOptimizer.h"
+#include "itkRegularStepGradientDescentBaseOptimizer.h"
 
 
 
@@ -20,7 +20,7 @@ public:
 protected:
   CommandStopUpdate() {};
 public:
-  typedef   itk::RegularStepGradientDescentOptimizer  OptimizerType;
+  typedef   itk::RegularStepGradientDescentBaseOptimizer  OptimizerType;
   typedef   const OptimizerType*                      OptimizerPointer;
 
   void Execute(itk::Object *caller, const itk::EventObject & event)

@@ -35,7 +35,7 @@ int main( int argc, char* argv[] )
     }
 
 
-  typedef itk::Image<signed short,3>            ImageType;
+  typedef itk::Image<signed short,3>                     ImageType;
   typedef itk::ImageSeriesReader< ImageType >     ReaderType;
 
 

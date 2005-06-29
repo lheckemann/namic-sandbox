@@ -31,7 +31,7 @@ protected:
     plotfile.close();
     }
 public:
-  typedef   itk::RegularStepGradientDescentOptimizer  OptimizerType;
+  typedef   itk::RegularStepGradientDescentBaseOptimizer  OptimizerType;
   typedef   const OptimizerType   *                   OptimizerPointer;
 
   void Execute(itk::Object *caller, const itk::EventObject & event)
