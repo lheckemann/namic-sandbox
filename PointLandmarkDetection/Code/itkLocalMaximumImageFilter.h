@@ -27,12 +27,13 @@
 namespace itk
 {
 /** \class LocalMaximumImageFilter
- * \brief Calculates the Local Maximum values and puts them in a point-set.
+ * \brief Calculates the Local Maximum values and puts them in a point-set/ mesh.
  *
- * Computes an image where a given pixel is the mean value of the
- * the pixels in a neighborhood about the corresponding input pixel.
+ * This filter assumes a pixel must be larger or equal all of it's neighbors to be a maximum.
+ * The neighborhood size can be set by setting the Radius. The second parameter is a threshold.
+ * Only maxima above the threshold are selected.
  *
- * A mean filter is one of the family of linear filters.
+ * TODO: allow user to set which information should be saved in the point-set (i.e. index or physical point, data)
  *
  * \sa Image
  * \sa Neighborhood
@@ -83,6 +84,10 @@ public:
   typedef typename OutputMeshType::PixelType OutputPixelType;
 
 
+//  typedef Image< OutputPixelType, ImageDimension >  OutputImageType;
+
+
+
   typedef typename InputImageType::SizeType InputSizeType;
   typedef typename InputImageType::IndexType InputIndexType;
 
@@ -109,16 +114,8 @@ public:
   /** Get the radius of the neighborhood used to compute the mean */
   itkGetConstReferenceMacro(Threshold, InputPixelType);
 
-  /** Set the radius of the neighborhood used to compute the mean. */
- // itkSetMacro(Threshold2, InputPixelType);
-  /** Get the radius of the neighborhood used to compute the mean */
- // itkGetConstReferenceMacro(Threshold2, InputPixelType);
-
   /** accept the input image */
   void SetInput( const InputImageType * inputImage );
-
-  /** accept the input image */
-//  void SetInput2( const InputImageType * inputImage );
 
   /** Some typedefs associated with the output mesh. */
   void GenerateOutputInformation(void);
@@ -148,17 +145,14 @@ protected:
    * \sa ImageToImageFilter::ThreadedGenerateData(),
    *     ImageToImageFilter::GenerateData() */
   void  GenerateData ();
-
+  //void ThreadedGenerateData(const InputImageRegionType & outputRegionForThread, int threadId);
 
 private:
   LocalMaximumImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  inline bool IsLocalMaximum( const InputIndexType ind, const InputPixelType maximum, const InputImageType * image);
-
   InputSizeType m_Radius;
   InputPixelType m_Threshold;
-//  InputPixelType m_Threshold2;
 
   InputImagePointer m_BinaryImage;
 };

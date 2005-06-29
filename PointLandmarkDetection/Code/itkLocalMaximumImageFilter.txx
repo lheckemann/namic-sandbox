@@ -24,6 +24,8 @@
 #include "itkImageRegionIterator.h"
 #include "itkNeighborhoodAlgorithm.h"
 #include "itkZeroFluxNeumannBoundaryCondition.h"
+#include "itkConstantBoundaryCondition.h"
+
 #include "itkOffset.h"
 #include "itkProgressReporter.h"
 
@@ -44,9 +46,8 @@ LocalMaximumImageFilter< TInputImage, TOutputMesh>
   PointDataContainerPointer  pointData  = PointDataContainer::New();
   OutputMeshPointer mesh = this->GetOutput();
   mesh->SetPointData( pointData.GetPointer() );
-
-  this->SetNumberOfRequiredOutputs( 1 );
 /*
+  this->SetNumberOfRequiredOutputs( 2 );
   this->SetNthOutput( 0, this->MakeOutput( 0 ) );
   this->SetNthOutput( 1, this->MakeOutput( 1 ) );
 */
@@ -55,8 +56,7 @@ LocalMaximumImageFilter< TInputImage, TOutputMesh>
   m_BinaryImage = InputImageType::New();
 
   this->m_Radius.Fill(1);
-  this->m_Threshold = 1.275;
-//  this->m_Threshold2 = 0.5;
+  this->m_Threshold = 0.005;
 
 }
 
@@ -129,20 +129,6 @@ LocalMaximumImageFilter< TInputImage, TOutputMesh>
 
 }
 
-/*
-template <class TInputImage, class TOutputMesh>
-void
-LocalMaximumImageFilter< TInputImage, TOutputMesh>
-::SetInput2( const InputImageType * inputImage )
-{
-
-  // This const_cast is needed due to the lack of
-  // const-correctness in the ProcessObject.
-  this->SetNthInput( 1,
-            const_cast< InputImageType * >( inputImage ) );
-
-}
-*/
 
 
 
@@ -153,125 +139,92 @@ LocalMaximumImageFilter< TInputImage, TOutputMesh>
 ::GenerateData()
 {
 
-
-
+std::cout << "starting generate data" << std::endl;
   OutputMeshPointer           mesh      = this->GetOutput();
-  InputImageConstPointer      image     = this->GetInput(0);
-//  InputImageConstPointer      image2     = this->GetInput(1);
+  InputImageConstPointer      input     = this->GetInput(0);
 
-  m_BinaryImage->SetRegions( image->GetLargestPossibleRegion() );
-  m_BinaryImage->CopyInformation( image );
+  m_BinaryImage->SetRegions( input->GetLargestPossibleRegion() );
+  m_BinaryImage->CopyInformation( input );
   m_BinaryImage->Allocate();
 
   PointsContainerPointer      points    = PointsContainer::New();
   PointDataContainerPointer   pointData = PointDataContainer::New();
 
-  OutputImageIterator it2( m_BinaryImage, image->GetRequestedRegion() );
+  //Set background value for binary local maxima image
+  OutputImageIterator it2( m_BinaryImage, input->GetRequestedRegion() );
   for (it2.GoToBegin(); !it2.IsAtEnd(); ++it2)
-  {
-  it2.Set(0);
-  }
-
-
-
-  int numberofwindows[InputImageDimension];
-  InputSizeType regionSize;
-  InputIndexType regionIndex;
-    for (int k = 0; k<InputImageDimension; k++)
-      {
-      regionSize[k] = 2*m_Radius[k] + 1;
-      regionIndex[k] = m_Radius[k];
-      numberofwindows[k] = (image->GetRequestedRegion().GetSize()[k])/regionSize[k];
-      }
-  InputImageRegionType activeRegion;
-    activeRegion.SetSize( regionSize );
-    activeRegion.SetIndex( regionIndex );
-
-
-
-
-
-  if (InputImageDimension==2)
     {
-    for (int k=0; k<numberofwindows[0]; k++)
+    it2.Set(0);
+    }
+
+
+  unsigned int i;
+  ConstantBoundaryCondition<InputImageType> cbc;
+  cbc.SetConstant( NumericTraits<InputPixelType>::NonpositiveMin() );
+
+  ConstNeighborhoodIterator<InputImageType> bit;
+  ImageRegionIterator<InputImageType> it;
+
+
+  // Find the data-set boundary "faces"
+  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType faceList;
+  NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType> bC;
+  faceList = bC(input, input->GetRequestedRegion(), m_Radius);
+
+  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType::iterator fit;
+
+  // support progress methods/callbacks
+  //ProgressReporter progress(this, threadId, outputRegionForThread.GetNumberOfPixels());
+
+
+  // Process each of the boundary faces.  These are N-d regions which border
+  // the edge of the buffer.
+
+  for (fit=faceList.begin(); fit != faceList.end(); ++fit)
+    {
+    bit = ConstNeighborhoodIterator<InputImageType>(m_Radius,
+                                                    input, *fit);
+    unsigned int neighborhoodSize = bit.Size();
+    it = ImageRegionIterator<InputImageType>(m_BinaryImage, *fit);
+    bit.OverrideBoundaryCondition(&cbc);
+    bit.GoToBegin();
+
+    while ( ! bit.IsAtEnd() )
       {
-      for (int j = 0; j<numberofwindows[1]; j++)
+      bool isMaximum = true;
+      InputPixelType centerValue = bit.GetCenterPixel();  //NumericTraits<InputRealType>::NonpositiveMin();
+      for (i = 0; i < neighborhoodSize; ++i)
         {
-  regionIndex[0] = regionSize[0]*k;
-  regionIndex[1] = regionSize[1]*j;
-  activeRegion.SetIndex( regionIndex );
-
-
-        InputImageIterator  it(image, activeRegion);
-  PointType point;
-  InputPixelType maximum = NumericTraits<InputPixelType>::min();
-  InputIndexType maxIndex;
-  for (it.GoToBegin(); !it.IsAtEnd(); ++it)
+        InputPixelType tmp = bit.GetPixel(i);
+  // select only maxima that are larger than their neighborhood. If equal, discard as maximum ??.
+  // Is this a good decision?
+  // how to compare with center???
+  if (tmp > centerValue)
     {
-    if (it.Get() > maximum)
-      {
-      maximum = it.Get();
-      maxIndex = it.GetIndex();
-      image->TransformIndexToPhysicalPoint( maxIndex , point );
-      }
+    isMaximum = false;
+    break;
     }
-  if (maximum>m_Threshold)
-    {
-    if (IsLocalMaximum(maxIndex,maximum,image))
-     {
-     m_BinaryImage->SetPixel(maxIndex, 255.0);
-     points->push_back( point );
-     pointData->push_back( maximum );
-     }
-    }
-  }
-      }
-    }
-  else
-    {
+        }
 
-
-    for (int k=0; k<numberofwindows[0]; k++)
-      {
-      for (int j = 0; j<numberofwindows[1]; j++)
+      // get the mean value
+      std::cout << isMaximum << "  " << centerValue << std::endl;
+      if (isMaximum & (centerValue>m_Threshold))
         {
-      for (int l = 0; l<numberofwindows[2]; l++)
-        {
-  regionIndex[0] = regionSize[0]*k;
-  regionIndex[1] = regionSize[1]*j;
-  regionIndex[2] = regionSize[2]*l;
-  activeRegion.SetIndex( regionIndex );
+        InputIndexType maxIndex = it.GetIndex();
+        PointType point;
+        input->TransformIndexToPhysicalPoint( maxIndex , point );
 
+        it.Set( static_cast<OutputPixelType>(centerValue) );
+        points->push_back( point );
+        pointData->push_back( centerValue );
+        }
 
-        InputImageIterator  it(image, activeRegion);
-  PointType point;
-  it.GoToBegin();
-  InputPixelType maximum = it.Value();
-  InputIndexType maxIndex;
-  for (; !it.IsAtEnd(); ++it)
-    {
-    if (it.Value() >= maximum)
-      {
-      maximum  = it.Value();
-      maxIndex = it.GetIndex();
-      image->TransformIndexToPhysicalPoint( maxIndex , point );
+      ++bit;
+      ++it;
+      //progress.CompletedPixel();
       }
     }
 
-  if (maximum > m_Threshold)
-    {
-
-    if (IsLocalMaximum(maxIndex,maximum,image))
-      {
-      m_BinaryImage->SetPixel(maxIndex, 255.0);
-      points->push_back( point );
-      pointData->push_back( maximum );
-      }
-    }
-  }
-      }
-    }
-  }
 
 
   mesh->SetPoints( points );
@@ -283,38 +236,6 @@ LocalMaximumImageFilter< TInputImage, TOutputMesh>
   mesh->SetBufferedRegion( mesh->GetRequestedRegion() );
 
 
-}
-
-
-/**
- * is local Maximum
- */
-template <class TInputImage, class TOutputMesh>
-inline bool
-LocalMaximumImageFilter< TInputImage, TOutputMesh>
-::IsLocalMaximum( const InputIndexType ind, const InputPixelType maximum, const InputImageType * image)
-{
-  InputImageRegionType neighborhood;
-  InputSizeType size;
-  InputIndexType ind2;
-  for (unsigned int k=0; k<InputImageDimension; k++)
-   {
-   ind2[k]=ind[k]-1;
-   size[k]=1;
-   }
-  neighborhood.SetIndex( ind2 );
-  neighborhood.SetSize( size );
-
-  InputImageIterator  it(image, neighborhood);
-
-  for (it.GoToBegin(); !it.IsAtEnd(); ++it)
-  {
-  if (it.Get() > maximum)
-    {
-    return false;
-    }
-  }
-  return true;
 }
 
 /**
