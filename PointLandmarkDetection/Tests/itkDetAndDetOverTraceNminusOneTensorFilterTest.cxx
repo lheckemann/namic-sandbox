@@ -22,7 +22,7 @@
 
 
 #include <itkImage.h>
-#include <itkDiadicProductOfGradientRecursiveGaussianImageFilter.h>
+#include <itkHessianRecursiveGaussianImageFilter.h>
 #include <itkImageRegionIteratorWithIndex.h>
 
 
@@ -32,15 +32,16 @@
 #include "itkDetOverTraceNminusOneTensorToImageFilter.h"
 
 
-
-int itkDetAndDetOverTraceNFilterTest(int, char* [] )
+//int main( int argc, char *argv[] )
+int itkDetAndDetOverTraceNminusOneTensorFilterTest(int, char* [] )
 {
 
   // Define the dimension of the images
   const unsigned int myDimension = 3;
+  typedef float PixelType;
 
   // Declare the types of the images
-  typedef itk::Image<float, myDimension>           myImageType;
+  typedef itk::Image<PixelType, myDimension>           myImageType;
 
   // Declare the type of the index to access images
   typedef itk::Index<myDimension>             myIndexType;
@@ -108,7 +109,7 @@ int itkDetAndDetOverTraceNFilterTest(int, char* [] )
     }
 
   // Declare the type for the
-  typedef itk::DiadicProductOfGradientRecursiveGaussianImageFilter<
+  typedef itk::HessianRecursiveGaussianImageFilter<
                                             myImageType >  myFilterType;
 
   typedef myFilterType::OutputImageType myDiadicProductOfGradientImageType;
@@ -131,18 +132,18 @@ int itkDetAndDetOverTraceNFilterTest(int, char* [] )
 
   //Run the various SymmetricSecondRankTensor type filters on the calculated image
 
-  typedef itk::DetTensorToImageFilter<myDiadicProductOfGradientImageType,myImageType>  myDetImageFilterType;
+  typedef itk::DetTensorToImageFilter<myDiadicProductOfGradientImageType,myImageType>                    myDetImageFilterType;
 
-  typedef itk::DetOverTraceNTensorToImageFilter<myDiadicProductOfGradientImageType,myImageType>  myDetOverTraceImageFilterType;
+  typedef itk::DetOverTraceNTensorToImageFilter<myDiadicProductOfGradientImageType,myImageType>          myDetOverTraceImageFilterType;
 
   typedef itk::DetOverTraceNminusOneTensorToImageFilter<myDiadicProductOfGradientImageType,myImageType>  myDetOverTraceNminusOneImageFilterType;
 
 
-  myDetImageFilterType::Pointer  myfilter1 = myDetImageFilterType::New();
+  myDetImageFilterType::Pointer                    myfilter1 = myDetImageFilterType::New();
 
-  myDetOverTraceImageFilterType::Pointer  myfilter2 = myDetOverTraceImageFilterType::New();
+  myDetOverTraceImageFilterType::Pointer           myfilter2 = myDetOverTraceImageFilterType::New();
 
-  myDetImageFilmyDetOverTraceNminusOneImageFilterTypeterType::Pointer  myfilter3 = myDetOverTraceNminusOneImageFilterType::New();
+  myDetOverTraceNminusOneImageFilterType::Pointer  myfilter3 = myDetOverTraceNminusOneImageFilterType::New();
 
 
 
@@ -162,9 +163,9 @@ int itkDetAndDetOverTraceNFilterTest(int, char* [] )
   // Create an iterator for going through the output image
   myOutputIteratorType itg1( outputImage1,
                             outputImage1->GetRequestedRegion() );
-  myOutputIteratorType itg1( outputImage2,
-                            outputImage2->GetRequestedRegion() );
-  myOutputIteratorType itg1( outputImage3,
+  myOutputIteratorType itg2( outputImage2,
+                           outputImage2->GetRequestedRegion() );
+  myOutputIteratorType itg3( outputImage3,
                             outputImage3->GetRequestedRegion() );
 
   //  Print the content of the result image

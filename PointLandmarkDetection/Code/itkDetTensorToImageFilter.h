@@ -35,17 +35,18 @@ namespace itk
  * 
  * \ingroup IntensityImageFilters  Multithreaded
  *
- *  The input SymmetricSecondRankTensor follows the following convention:
- *
- * 2D: 0 1    3D: 0 1 2
- *     1 2        1 3 4
- *                2 4 5
- * Determinant:
- *   2D: 0*2-1*1        3D: 0*(3*5-4*4) - 1(1*5-2*4) + 2(1*4-2*3)
- * 
- * Trace:
- *   2D: 0 + 2          3D: 0 + 3 + 5
  */
+  /** The input SymmetricSecondRankTensor follows the following convention:
+
+      2D: 0 1      3D: 0 1 2
+          1 2          1 3 4
+                       2 4 5
+      Determinant:
+      2D: 0*2-1*1  3D: 0*(3*5-4*4) - 1(1*5-2*4) + 2(1*4-2*3)
+
+      Trace:
+      2D: 0 + 2   3D: 0 + 3 + 5
+  */
 
 namespace Function {  
 template< class TValueType>
@@ -76,13 +77,13 @@ template <class TInputImage, class TOutputImage>
 class ITK_EXPORT DetTensorToImageFilter :
     public
 UnaryFunctorImageFilter<TInputImage,TOutputImage,
-                        Function::Det<typename TOutputImage::PixelType>   >
+                        Function::Det<typename TInputImage::PixelType::ValueType>   >
 {
 public:
   /** Standard class typedefs. */
   typedef DetTensorToImageFilter  Self;
-  typedef UnaryFunctorImageFilter<TInputImage,TOutputImage, 
-                                  Function::Det< typename TOutputImage::PixelType> >  Superclass;
+  typedef UnaryFunctorImageFilter<TInputImage,TOutputImage,
+                                  Function::Det< typename TInputImage::PixelType::ValueType> >  Superclass;
   typedef SmartPointer<Self>   Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
 

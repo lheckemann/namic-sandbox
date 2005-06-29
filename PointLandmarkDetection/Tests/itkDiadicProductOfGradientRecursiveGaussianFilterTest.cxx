@@ -14,6 +14,7 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
+
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
 #endif
@@ -27,6 +28,7 @@
 
 
 int itkDiadicProductOfGradientRecursiveGaussianFilterTest(int, char* [] )
+//int main( int argc, char *argv[] )
 {
 
   // Define the dimension of the images
@@ -140,7 +142,7 @@ int itkDiadicProductOfGradientRecursiveGaussianFilterTest(int, char* [] )
   itg.GoToBegin();
   while( !itg.IsAtEnd() )
     {
-    std::cout << itg.Get();
+    std::cout << itg.Get() << std::endl;
     ++itg;
     }
 
