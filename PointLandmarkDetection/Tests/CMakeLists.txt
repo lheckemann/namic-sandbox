@@ -1,28 +1,22 @@
 # This project is designed to be built outside the Insight source tree.
 PROJECT(blockmatching)
 
-# Find ITK.
-FIND_PACKAGE(ITK)
-IF(ITK_FOUND)
-  INCLUDE(${ITK_USE_FILE})
-ELSE(ITK_FOUND)
-  MESSAGE(FATAL_ERROR
-          "Cannot build without ITK.  Please set ITK_DIR.")
-ENDIF(ITK_FOUND)
-
-
 INCLUDE_DIRECTORIES(
-  ${CMAKE_CURRENT_BINARY_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  /home/blloyd/Kitware/Apps/cvsClasses/
-  /home/blloyd/Kitware/Apps/MyClasses/
-)
+  ${PointLandmarkDetection_SOURCE_DIR}/Code
+  ${PointLandmarkDetection_SOURCE_DIR}/Tests
+  )
 
 
-ADD_EXECUTABLE(blockmatching itkDetAndDetOverTraceNminusOneTensorFilterTest.cxx)
-
-TARGET_LINK_LIBRARIES(blockmatching
+FOREACH(test 
+    itkDetAndDetOverTraceNminusOneTensorFilterTest
+    itkDiadicProductOfGradientRecursiveGaussianFilterTest
+    itkOuterProductImageFilterTest
+    )
+  ADD_EXECUTABLE(${test} ${test}.cxx)
+  TARGET_LINK_LIBRARIES(${test}
     ITKCommon
     ITKIO
     ITKBasicFilters
     ITKNumerics )
+  ADD_TEST(${test} "${EXECUTABLE_OUTPUT_PATH}/${test}")
+ENDFOREACH(test)
