@@ -131,7 +131,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 {
   unsigned i, CurrentRes = 0;
   this->Initialize();
-//  this->InitializeLUT();
+
   this->CreateMesh();
 
 
@@ -139,6 +139,14 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
   // criteria and the number of resolutions
   CurrentRes = 1;
   while(CurrentRes<m_NResolutions){
+    
+    // --> DEBUG
+    for(typename std::list<RGMTetra_ptr>::iterator tI=m_Tetras.begin();
+      tI!=m_Tetras.end();tI++){
+      unsigned char conf = GetTetraEdgeConf(*tI);
+    }
+    // <-- DEBUG
+
     std::cout << "Creating resolution " << CurrentRes << std::endl;
     std::cout << "Input: " << m_Tetras.size() << " tets" << std::endl;
     // Copy all tetrahedra to a temporary list
@@ -149,11 +157,9 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
     m_Tetras.clear();
     
     // Subdivide RED tetras (based on user criteria)
-    unsigned prev_level_size = 
-      prev_level_tetras.size();
     bool new_edges_split = false;
     unsigned red_tetras_cnt = 0;
-    while(prev_level_size--){
+    while(prev_level_tetras.size()){
       RGMTetra_ptr curT;
 
       curT = prev_level_tetras.front();
@@ -168,13 +174,13 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
       }
     } // while(prev_level_size)
 
+    std::cout << red_tetras_cnt << " tets were Red-subdivided, "  << std::endl;
     // --> DEBUG
     for(typename std::list<RGMTetra_ptr>::iterator tI=m_PendingTetras.begin();
       tI!=m_PendingTetras.end();tI++){
       unsigned char conf = GetTetraEdgeConf(*tI);
     }
     // <-- DEBUG
-    std::cout << red_tetras_cnt << " tets were Red-subdivided, "  << std::endl;
 
     // Enforce conformancy of the tetras neighbouring to 
     // the Red-subdivided ones. Subdivisions may incur new ones, that's why
@@ -189,7 +195,6 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
       copy(m_PendingTetras.begin(), m_PendingTetras.end(), pltI);
       m_PendingTetras.clear();
       
-      prev_level_size = prev_level_tetras.size();
       while(prev_level_tetras.size()){//prev_level_size--){
         RGMTetra_ptr curT;
         unsigned split_edges_ids[6], split_edges_total;
@@ -292,8 +297,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 
     // Here we know that no new split edges will be introduced, and we can
     // finalize the subdivisions of Green tetrahedra.
-    unsigned pending_tetra_cnt = m_PendingTetras.size();
-    while(pending_tetra_cnt--){
+    while(m_PendingTetras.size()){
       RGMTetra_ptr curT;
 
       curT = m_PendingTetras.front();
@@ -304,11 +308,13 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
         FinalizeGreenTetra(curT);
     } // while(pending_tetra_cnt)
     // FIXME: shouldn't it be empty here?
+    /*
     pending_tetra_cnt = m_PendingTetras.size();
     while(pending_tetra_cnt--){
       m_Tetras.push_back(m_PendingTetras.front());
       m_PendingTetras.pop_front();
     }
+    */
     CurrentRes++;
   } // while(CurrentRes<m_NResolutions)
   
@@ -1877,9 +1883,21 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
   if(m_SubdivInclusion)
     if(SubdivInclusionTest(thisT))
       return true;
+ 
+  for(typename std::list<SubdivisionTestFunctionPointer>::iterator
+    scI=m_SubdivisionCriteria.begin();
+    scI!=m_SubdivisionCriteria.end();
+    scI++)
+    if((*scI)(thisT->edges[0]->nodes[0]->coords, 
+        thisT->edges[0]->nodes[1]->coords,
+        thisT->edges[1]->nodes[0]->coords, 
+        thisT->edges[1]->nodes[1]->coords, this))
+      return true;
+  
   if(m_SubdivCurvature)
     if(SubdivCurvatureTest(thisT))
       return true;
+
   return false;
 }
 

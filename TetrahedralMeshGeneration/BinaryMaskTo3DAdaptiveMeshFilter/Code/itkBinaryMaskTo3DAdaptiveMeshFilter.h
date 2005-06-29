@@ -339,6 +339,10 @@ private:
   float DistanceBwPoints(double *coord0, double* coord1);
   bool SubdivInclusionTest(RGMTetra_ptr);
   bool SubdivCurvatureTest(RGMTetra_ptr);
+  /*
+  bool SubdivInclusionTestFunction(double*, double*, double*, double*, Self*);
+  bool SubdivCurvatureTestFunction(double*, double*, double*, double*, Self*);
+  */
   bool IsTetraOutside(RGMTetra_ptr);
 
   RGMVertex_ptr InsertVertex(double, double, double);
