@@ -81,7 +81,7 @@ int main( int argc, char * argv[] )
   //  Software Guide : EndLatex 
 
   // Software Guide : BeginCodeSnippet
-  typedef   unsigned short  PixelType;
+  typedef   signed short  PixelType;
 
   typedef itk::Image< PixelType,  3 >   ImageType;
   // Software Guide : EndCodeSnippet
