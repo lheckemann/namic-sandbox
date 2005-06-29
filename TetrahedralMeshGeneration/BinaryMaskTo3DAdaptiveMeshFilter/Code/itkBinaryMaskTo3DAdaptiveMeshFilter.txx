@@ -129,7 +129,7 @@ void
 BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 ::GenerateData()
 {
-  unsigned i, CurrentRes = 0;
+  unsigned i, j, CurrentRes = 0;
   this->Initialize();
 
   this->CreateMesh();
@@ -165,7 +165,12 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
       curT = prev_level_tetras.front();
       prev_level_tetras.pop_front();
       
+
       if(TetraUnderrefined(curT)){
+        if(curT->parent || curT->level!=CurrentRes-1){
+          m_PendingTetras.push_back(curT);
+          continue;
+        }
         new_edges_split = true;
         red_tetras_cnt++;
         FinalizeRedTetra(curT);
@@ -318,6 +323,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
     CurrentRes++;
   } // while(CurrentRes<m_NResolutions)
   
+    /*
   // Discard the tetrahedra which are outside the object surface
   if(!m_KeepOutside){
     unsigned total_tets = m_Tetras.size();
@@ -361,7 +367,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 
       // Now all of the tetrahedra which do not contain any of the enveloped
       // vertices are discarded
-      for(typename stl::list<RGMTetra_ptr>::iterator tI=m_Tetras.begin();
+      for(typename std::list<RGMTetra_ptr>::iterator tI=m_Tetras.begin();
         tI!=m_Tetras.end();tI++){
         RGMTetra_ptr curT;
         int i, out_of_env_cnt = 0;
@@ -380,7 +386,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
       }
     }
   }
-  
+  */
   // Prepare the output
   std::map<RGMVertex_ptr,unsigned long> vertex2id;
   typename OutputMeshType::Pointer output_mesh = this->GetOutput();
@@ -426,6 +432,8 @@ bool
 BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 ::Initialize()
 {
+  bool read_failed = false;
+  
   if(this->GetNumberOfInputs() < 1){
     std::cout << "BinaryMaskTo3DAdaptiveMeshFilter : Binary mask not set" << std::endl;
     return false;
@@ -442,54 +450,85 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
   
   // Compute the distance image
   //  1. Cast the input image to the internal format
-  typename CastFilterType::Pointer cast_filter =
-    CastFilterType::New();
-  cast_filter->SetInput(m_InputImage);
-  cast_filter->Update();
-  std::cout << "Image casted" << std::endl;
+  
+  read_failed = false;
+  if(m_InputImagePrefix.size()){
+    // try to read the distance image
+    InternalImageReaderType::Pointer reader = InternalImageReaderType::New();
+    reader->SetFileName((std::string("/tmp/")+m_InputImagePrefix+"Resampled.mha").c_str());
+    try{
+      reader->Update();
+      this->m_InputImage = reader->GetOutput();
+    }catch(ExceptionObject &e){
+      // oh well, have to regenerate
+      read_failed = true;
+    }
+  }
+  if(!m_InputImagePrefix.size() || read_failed){
+    if(m_InputImagePrefix.size()){
+      typename CastFilterType::Pointer cast_filter =
+        CastFilterType::New();
+      cast_filter->SetInput(m_InputImage);
+      cast_filter->Update();
+      std::cout << "Image casted" << std::endl;
 
-  //  2. Resample the input image to unit sized voxels
-  typename ResamplerType::Pointer resampler = 
-    ResamplerType::New();
-  IdentityTransformType::Pointer transform =
-    IdentityTransformType::New();
-  typename InputImageType::SpacingType input_spacing =
-    m_InputImage->GetSpacing();
-  typename InputImageType::SpacingType output_spacing;
+      //  2. Resample the input image to unit sized voxels
+      typename ResamplerType::Pointer resampler = 
+        ResamplerType::New();
+      IdentityTransformType::Pointer transform =
+        IdentityTransformType::New();
+      typename InputImageType::SpacingType input_spacing =
+        m_InputImage->GetSpacing();
+      typename InputImageType::SpacingType output_spacing;
+      typename InputImageType::SizeType input_size =
+        m_InputImage->GetLargestPossibleRegion().GetSize();
+      typename InputImageType::SizeType output_size;
+      typename InterpolatorType::Pointer interpolator = 
+        InterpolatorType::New();
+      //  typename InputImageType::SizeType::SizeValueType InputSizeValueType;
+
+
+      output_spacing[0] = 1.0;
+      output_spacing[1] = 1.0;
+      output_spacing[2] = 1.0;
+
+      output_size[0] = static_cast<typename InputImageType::SizeType::SizeValueType>
+        (ceil((double)input_size[0]*input_spacing[0]));
+      output_size[1] = static_cast<typename InputImageType::SizeType::SizeValueType>
+        (ceil((double)input_size[1]*input_spacing[1]));
+      output_size[2] = static_cast<typename InputImageType::SizeType::SizeValueType>
+        (ceil((double)input_size[2]*input_spacing[2]));
+
+      transform->SetIdentity();
+      resampler->SetTransform(transform);
+      resampler->SetInterpolator(interpolator);
+      resampler->SetOutputSpacing(output_spacing);
+      resampler->SetOutputOrigin(m_InputImage->GetOrigin());
+      resampler->SetSize(output_size);
+      resampler->SetInput(cast_filter->GetOutput());
+      resampler->Update();
+      std::cout << "Image resampled" << std::endl;
+
+      this->m_InputImage = resampler->GetOutput();
+
+      InternalImageWriterType::Pointer writer = 
+        InternalImageWriterType::New();
+      writer->SetFileName((std::string("/tmp/")+m_InputImagePrefix+"Resampled.mha").c_str());
+      writer->SetInput(this->m_InputImage);
+      try{
+        writer->Update();
+      }catch(ExceptionObject &eo){
+        // this should not disrupt the overall execution
+      }
+    }
+  }
+  
   typename InputImageType::SizeType input_size =
-    m_InputImage->GetLargestPossibleRegion().GetSize();
-  typename InputImageType::SizeType output_size;
-  typename InterpolatorType::Pointer interpolator = 
-    InterpolatorType::New();
-//  typename InputImageType::SizeType::SizeValueType InputSizeValueType;
+    this->m_InputImage->GetLargestPossibleRegion().GetSize();
   
-  
-  output_spacing[0] = 1.0;
-  output_spacing[1] = 1.0;
-  output_spacing[2] = 1.0;
-  
-  output_size[0] = static_cast<typename InputImageType::SizeType::SizeValueType>
-    (ceil((double)input_size[0]*input_spacing[0]));
-  output_size[1] = static_cast<typename InputImageType::SizeType::SizeValueType>
-    (ceil((double)input_size[1]*input_spacing[1]));
-  output_size[2] = static_cast<typename InputImageType::SizeType::SizeValueType>
-    (ceil((double)input_size[2]*input_spacing[2]));
-
-  transform->SetIdentity();
-  resampler->SetTransform(transform);
-  resampler->SetInterpolator(interpolator);
-  resampler->SetOutputSpacing(output_spacing);
-  resampler->SetOutputOrigin(m_InputImage->GetOrigin());
-  resampler->SetSize(output_size);
-  resampler->SetInput(cast_filter->GetOutput());
-  resampler->Update();
-  std::cout << "Image resampled" << std::endl;
- 
-  this->m_InputImage = resampler->GetOutput();
-  
-  this->m_dimX = output_size[0];
-  this->m_dimY = output_size[1];
-  this->m_dimZ = output_size[2];
+  this->m_dimX = input_size[0];
+  this->m_dimY = input_size[1];
+  this->m_dimZ = input_size[2];
 
   m_InputOrigin = m_InputImage->GetOrigin();
 
@@ -499,7 +538,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
    * that we will try to read the previously saved results instead of
    * regenerating the data
    */
-  bool read_failed = false;
+  read_failed = false;
   if(m_InputImagePrefix.size()){
     // try to read the distance image
     InternalImageReaderType::Pointer reader = InternalImageReaderType::New();
@@ -3023,7 +3062,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
       if(DistanceAtPoint(divpoint)>0.0)
         // The vertex is not sufficiently inside the surface.
         m_OutOfEnvelopeVertices.insert(vp0);
-      m_OutOfEvelopeVertices.insert(vp1);
+      m_OutOfEnvelopeVertices.insert(vp1);
     }
   }
 }
