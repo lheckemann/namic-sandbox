@@ -37,7 +37,7 @@ int main( int argc, char *argv[] )
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
     std::cerr << " fixedImageFilename  movingImageFilename "; 
-    std::cerr << " transformFile  interpolationType defaultPixelValue";
+    std::cerr << " transformFile  interpolationType defaultPixelValue outputImageFilename";
     std::cerr << std::endl;
     std::cerr << "interpolationType = [0=NearestNeigbor,1=Linear,2=BSpline,3=Sinc]" << std::endl;
     return 1;
@@ -256,7 +256,8 @@ int main( int argc, char *argv[] )
 
   imageWriter->SetInput( resampler->GetOutput() );
 
-  imageWriter->SetFileName( "ResampledMovingImage.mhd" );
+  const char * outputImageFilename = argv[6];
+  imageWriter->SetFileName( outputImageFilename );
 
   try
     {

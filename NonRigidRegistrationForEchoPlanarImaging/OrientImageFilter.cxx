@@ -120,7 +120,7 @@ int main( int argc, char * argv[] )
   itk::ExposeMetaData<itk::SpatialOrientation::ValidCoordinateOrientationFlags>
     (reader->GetOutput()->GetMetaDataDictionary(),itk::ITK_CoordinateOrientation,fileOrientation);
   filter->SetGivenCoordinateOrientation(fileOrientation);
-  filter->SetDesiredCoordinateOrientation(itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RSA);
+  filter->SetDesiredCoordinateOrientation(itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RIP);
 
   // Software Guide : EndCodeSnippet
 
