@@ -32,8 +32,8 @@
 #include "itkDetOverTraceNminusOneTensorToImageFilter.h"
 
 
-//int main( int argc, char *argv[] )
-int itkDetAndDetOverTraceNminusOneTensorFilterTest(int, char* [] )
+int main( int argc, char *argv[] )
+//int itkDetAndDetOverTraceNminusOneTensorFilterTest(int, char* [] )
 {
 
   // Define the dimension of the images

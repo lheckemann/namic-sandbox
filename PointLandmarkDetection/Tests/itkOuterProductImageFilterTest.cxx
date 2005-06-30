@@ -29,7 +29,8 @@
 #include <itkOuterProductImageFilter.h>
 #include <itkImageRegionIteratorWithIndex.h>
 
-int itkOuterProductImageFilterTest(int, char* [] )
+//int itkOuterProductImageFilterTest(int, char* [] )
+int main( int argc, char ** argv)
 {
 
   // Define the dimension of the images

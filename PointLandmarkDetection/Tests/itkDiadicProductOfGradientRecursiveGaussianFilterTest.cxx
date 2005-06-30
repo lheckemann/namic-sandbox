@@ -27,8 +27,8 @@
 #include <itkImageRegionIteratorWithIndex.h>
 
 
-int itkDiadicProductOfGradientRecursiveGaussianFilterTest(int, char* [] )
-//int main( int argc, char *argv[] )
+//int itkDiadicProductOfGradientRecursiveGaussianFilterTest(int, char* [] )
+int main( int argc, char *argv[] )
 {
 
   // Define the dimension of the images
