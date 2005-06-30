@@ -8,7 +8,7 @@ INCLUDE_DIRECTORIES(
 
 
 FOREACH(test 
-    itkDetAndDetOverTraceNminusOneTensorFilterTest
+    itkTensorUnitaryFunctionImageFiltersTest
     itkDiadicProductOfGradientRecursiveGaussianFilterTest
     itkOuterProductImageFilterTest
     )
