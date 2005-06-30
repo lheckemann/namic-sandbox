@@ -4,7 +4,8 @@
   Language:  C++
   Date:      $Date: 2005/06/07 18:10:25 $
   Version:   $Revision: 1.1 $
-
+  Authors:   Xiadong Tao
+             Casey Goodlett
 
   This software is distributed WITHOUT ANY WARRANTY; without even 
   the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
@@ -67,6 +68,9 @@ int main(int argc,char* argv[])
       double* coordinates = points->GetPoint(j);
       DTIPointType pt;
       pt.SetPosition(coordinates[0],coordinates[1],coordinates[2]);
+      pt.AddField("r",0.5);
+      // Need to set tensor matrix with data from vtk
+
       pointsToAdd.push_back(pt);
       }
     dtiTube->SetPoints(pointsToAdd);
