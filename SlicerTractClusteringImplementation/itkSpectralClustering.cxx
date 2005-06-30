@@ -35,10 +35,7 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 
 =========================================================================auto=*/
-#include "vtkSpectralClustering.h"
-
-// for vtk objects we use here
-#include "vtkObjectFactory.h"
+#include "itkSpectralClustering.h"
 
 // ITK objects
 #include "itkWeightedCentroidKdTreeGenerator.h"
@@ -47,52 +44,92 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #include "itkExceptionObject.h"
 
 // for debug output/visualization of features
-#include "vtkImageData.h"
+//#include "itkImage.h"
 
 // for random k-means init
 #include <cstdlib>
 #include <ctime>
 
+namespace itk {
 
-vtkCxxRevisionMacro(vtkSpectralClustering, "$Revision: 1.15 $");
-vtkStandardNewMacro(vtkSpectralClustering);
-
-vtkCxxSetObjectMacro(vtkSpectralClustering,NormalizedWeightMatrixImage, 
-                     vtkImageData);
-vtkCxxSetObjectMacro(vtkSpectralClustering,EigenvectorsImage, vtkImageData);
-
-vtkSpectralClustering::vtkSpectralClustering()
+SpectralClustering::SpectralClustering()
 {
-  this->NumberOfClusters = 2;
-  this->NumberOfEigenvectors = this->InternalNumberOfEigenvectors;
-  this->EmbeddingNormalization = ROW_SUM;
+  m_NumberOfClusters = 2;
+  m_NumberOfEigenvectors = InternalNumberOfEigenvectors;
+  m_EmbeddingNormalization = ROW_SUM;
 
-  this->NormalizedWeightMatrixImage = NULL;
-  this->EigenvectorsImage = NULL;
-  this->EigenSystem = NULL;
+  m_NormalizedWeightMatrix = MatrixType(1,1);
 
-  this->SaveEmbeddingVectors = 0;
+  m_EigenSystem = NULL;
+  m_NormalizedWeightMatrixImage = NULL;
+  m_EigenvectorsImage = NULL;
+
+  m_SaveEmbeddingVectors = 0;
+
+  // Create the output. We use static_cast<> here because we know the default
+  // output must be of type OutputClassifierDataObjectType
+  OutputClassifierDataObjectType::Pointer output
+    = static_cast<OutputClassifierDataObjectType*>(this->MakeOutput(0).GetPointer()); 
+  this->ProcessObject::SetNumberOfRequiredOutputs(1);
+  this->ProcessObject::SetNthOutput(0, output.GetPointer());
 }
 
-void vtkSpectralClustering::PrintSelf(ostream& os, vtkIndent indent)
+DataObject::Pointer
+SpectralClustering
+::MakeOutput(unsigned int)
+{
+  OutputClassifierDataObjectType::Pointer dataobject = OutputClassifierDataObjectType::New();
+  OutputClassifierType::Pointer classifier = OutputClassifierType::New();
+  dataobject->Set( classifier );
+
+  return static_cast<DataObject*>(dataobject.GetPointer());
+}
+
+void
+SpectralClustering
+::SetNumberOfClusters(int num)
+{
+  if (num != m_NumberOfClusters)
+    {
+      m_NumberOfClusters = num;
+      this->Modified();
+      //m_NumberOfClustersMTime = 
+    }
+}
+
+void SpectralClustering::PrintSelf(std::ostream& os, Indent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-  os << indent << "InputWeightMatrix: " << this->InputWeightMatrix << "\n";
-  os << indent << "NumberOfClusters: " << this->NumberOfClusters << "\n";
-  os << indent << "NumberOfEigenvectors: " << this->NumberOfEigenvectors << "\n";
+  os << indent << "NumberOfClusters: " << m_NumberOfClusters << "\n";
+  os << indent << "NumberOfEigenvectors: " << m_NumberOfEigenvectors << "\n";
+  os << indent << "m_EmbeddingNormalization: " << m_EmbeddingNormalization << "\n";
+  os << indent << "m_SaveEmbeddingVectors: " << m_SaveEmbeddingVectors << "\n";
+
+  os << indent << "(temporary) InternalNumberOfEigenvectors: " << InternalNumberOfEigenvectors << "\n";
+  os << indent << "(temporary) InternalWeightVectorLength: " << InternalWeightVectorLength << "\n";
 
 }
 
 
-void vtkSpectralClustering::ComputeClusters()
+void SpectralClustering::ComputeClusters()
 {
   // test we have input
-  if (this->InputWeightMatrix == NULL)
+  if (this->GetInput() == 0)
     {
-      vtkDebugMacro("You must set the InputWeightMatrix before using this class.");
-      return;
+      itkExceptionMacro("You must set the input (weight matrix in list sample form) before using this class.");
     }
+
+  const InputListSampleType *input = this->GetInput()->Get();
+
+  int numberOfItemsToCluster = input->Size();
+
+  if (numberOfItemsToCluster != InternalWeightVectorLength)
+    {
+      itkExceptionMacro("Number of items to cluster must be " << InternalWeightVectorLength << " until run time vector length can be made variable.");
+
+    }
+
 
   // -------------------------------------------------
   // Step 1: Normalize the weight matrix.
@@ -113,55 +150,53 @@ void vtkSpectralClustering::ComputeClusters()
   // first compute normalization factors by summing rows
   typedef vnl_vector<double> VectorType;
   // create vector initialized to zero
-  VectorType rowWeightSum(this->InputWeightMatrix->rows(),0);
+  VectorType rowWeightSum(numberOfItemsToCluster,0);
   int idx1, idx2;
-  idx1=0;
-  while (idx1 < this->InputWeightMatrix->rows())
+  WeightVectorType wv;
+  for (idx1 = 0; idx1 < numberOfItemsToCluster; idx1++)
     {
-      idx2=0;
-      while (idx2 < this->InputWeightMatrix->cols())
+      // find next input vector (corresponds to row of matrix)
+      wv = input->GetMeasurementVector(idx1);
+
+      for (idx2 = 0; idx2 < numberOfItemsToCluster; idx2++)
         {
           // sum the row
-          rowWeightSum[idx1] += (*this->InputWeightMatrix)[idx1][idx2];
+          rowWeightSum[idx1] += wv[idx2];
           // TEST to turn off normalization 
           // rowWeightSum[idx1] =1;
-          idx2++;
+
         }
+
       // take square root of final row sum
       rowWeightSum[idx1] = sqrt(rowWeightSum[idx1]);
-      vtkDebugMacro("row " << idx1 << " sum: " << rowWeightSum[idx1]);
-      idx1++;
+      itkDebugMacro("row " << idx1 << " sum: " << rowWeightSum[idx1]);
+
     }
 
-  // Delete any old output image from previous inputs
-  if (this->NormalizedWeightMatrixImage) 
-    {
-      this->NormalizedWeightMatrixImage->Delete();
-      this->NormalizedWeightMatrixImage = NULL;
-    }
+  // Initialize the VNL matrix
+  m_NormalizedWeightMatrix = MatrixType(numberOfItemsToCluster,numberOfItemsToCluster);
 
   // Iterate over the matrix to perform normalization.
-  idx1=0;
-  while (idx1 < this->InputWeightMatrix->rows())
+  // This step stores normalized input data (from list sample) into vnl matrix format.
+  for (idx1 = 0; idx1 < numberOfItemsToCluster; idx1++)
     {
-      idx2=0;
-      while (idx2 < this->InputWeightMatrix->cols())
+      // find next input vector (place into row of matrix)
+      wv = input->GetMeasurementVector(idx1);
+
+      for (idx2 = 0; idx2 < numberOfItemsToCluster; idx2++)
         {
-          (*this->InputWeightMatrix)[idx1][idx2] = 
-            ((*this->InputWeightMatrix)[idx1][idx2])/
-            (rowWeightSum[idx1]*rowWeightSum[idx2]);
+          (m_NormalizedWeightMatrix)[idx1][idx2] = 
+            (wv[idx2])/(rowWeightSum[idx1]*rowWeightSum[idx2]);
       
-          idx2++;
         }
-      idx1++;
     }
 
   // Test the matrix is finite (not NaN or Inf), otherwise can have
   // an error in eigensystem computation
-  if (!this->InputWeightMatrix->is_finite())
+  if (!m_NormalizedWeightMatrix.is_finite())
     {    
       // Exit here with an error
-      vtkErrorMacro("Normalized input weight matrix not finite (Nan or Inf)");
+      itkExceptionMacro("Normalized input weight matrix not finite (Nan or Inf)");
       return;
     }
 
@@ -170,25 +205,19 @@ void vtkSpectralClustering::ComputeClusters()
   // ----------------------------------------------------------------
 
   // Get rid of old values
-  if ( this->EigenSystem )
+  if ( m_EigenSystem )
     {
-      delete this->EigenSystem;
-    }
-  if (this->EigenvectorsImage) 
-    {
-      this->EigenvectorsImage->Delete();
-      this->EigenvectorsImage = NULL;
+      delete m_EigenSystem;
     }
 
   // Calculate eigenvectors
-  this->EigenSystem = 
-    new vnl_symmetric_eigensystem<double> (*this->InputWeightMatrix);
+  m_EigenSystem = new EigenSystemType (m_NormalizedWeightMatrix);
 
 
-  vtkDebugMacro("Eigenvector matrix: " << this->EigenSystem->V << 
-                " Eigenvalues: " << this->EigenSystem->D);
+  itkDebugMacro("Eigenvector matrix: " << m_EigenSystem->V << 
+                " Eigenvalues: " << m_EigenSystem->D);
 
-  vtkDebugMacro("Eigenvalues: " << this->EigenSystem->D);
+  itkDebugMacro("Eigenvalues: " << m_EigenSystem->D);
 
 
   // ----------------------------------------------------------------------
@@ -204,8 +233,8 @@ void vtkSpectralClustering::ComputeClusters()
   EmbedSampleType::Pointer embedding = EmbedSampleType::New();
   
   // write to disk if requested
-  ofstream fileEmbed;
-  if (this->SaveEmbeddingVectors)
+  std::ofstream fileEmbed;
+  if (m_SaveEmbeddingVectors)
     {
       fileEmbed.open("embed.txt");
     }
@@ -213,7 +242,7 @@ void vtkSpectralClustering::ComputeClusters()
   idx1=0;
   // outer loop over rows of eigenvector matrix, to
   // pick out all entries for one tract
-  while (idx1 < this->EigenSystem->V.rows())
+  while (idx1 < m_EigenSystem->V.rows())
     {    
       idx2=0;
 
@@ -224,23 +253,23 @@ void vtkSpectralClustering::ComputeClusters()
       // TEST embed vector length (number of evectors) needs to be specified at run time.
       // TEST put formula here
       double length = 0;
-      while (idx2 < this->InternalNumberOfEigenvectors)
+      while (idx2 < m_NumberOfEigenvectors)
         {
           // this was wrong.
-          //ev[idx2]=(this->EigenSystem->V[idx1][idx2+1])/rowWeightSum[idx1];
+          //ev[idx2]=(m_EigenSystem->V[idx1][idx2+1])/rowWeightSum[idx1];
           // This included the constant major eigenvector 
-          //ev[idx2]=(this->EigenSystem->V[idx1][this->EigenSystem->V.cols()-idx2-1]);
+          //ev[idx2]=(m_EigenSystem->V[idx1][m_EigenSystem->V.cols()-idx2-1]);
 
           // This is correct.
-          ev[idx2]=(this->EigenSystem->V[idx1][this->EigenSystem->V.cols()-idx2-2]);
+          ev[idx2]=(m_EigenSystem->V[idx1][m_EigenSystem->V.cols()-idx2-2]);
 
           // Take into account user-specified normalization method
-          if (this->EmbeddingNormalization == LENGTH_ONE)
+          if (m_EmbeddingNormalization == LENGTH_ONE)
             {
               // general spectral clustering normalization
               length += ev[idx2]*ev[idx2];
             }
-          if (this->EmbeddingNormalization == ROW_SUM)
+          if (m_EmbeddingNormalization == ROW_SUM)
             {
               // corresponds to normalized cuts
               ev[idx2]=ev[idx2]/rowWeightSum[idx1];
@@ -251,28 +280,28 @@ void vtkSpectralClustering::ComputeClusters()
         }
       
       // If the embedding normalization is by length, normalize now
-      if (this->EmbeddingNormalization == LENGTH_ONE)
+      if (m_EmbeddingNormalization == LENGTH_ONE)
         {
           length = sqrt(length);
           if (length == 0)
             {
-              vtkErrorMacro("0-length embedding vector %d" << idx1);
+              itkExceptionMacro("0-length embedding vector %d" << idx1);
               length = 1;
             }
-          for (idx2 = 0; idx2 < this->InternalNumberOfEigenvectors; idx2++)
+          for (idx2 = 0; idx2 < m_NumberOfEigenvectors; idx2++)
             {
               ev[idx2]=ev[idx2]/length;
             }
         }
 
       // write to disk if requested
-      if (this->SaveEmbeddingVectors)
+      if (m_SaveEmbeddingVectors)
         {
-          for (idx2 = 0; idx2 < this->InternalNumberOfEigenvectors; idx2++)
+          for (idx2 = 0; idx2 < m_NumberOfEigenvectors; idx2++)
             {
               fileEmbed << ev[idx2] << " ";
             }
-          fileEmbed << endl;
+          fileEmbed << std::endl;
         }
 
       // put the embedding vector for this tract onto the sample list
@@ -281,7 +310,7 @@ void vtkSpectralClustering::ComputeClusters()
     }
 
   // write to disk if requested
-  if (this->SaveEmbeddingVectors)
+  if (m_SaveEmbeddingVectors)
     fileEmbed.close();
 
 
@@ -308,11 +337,11 @@ void vtkSpectralClustering::ComputeClusters()
     treeGenerator->Update();
   }
   catch (itk::ExceptionObject &e) {
-    vtkErrorMacro("Error in tree generation: " << e);
+    itkExceptionMacro("Error in tree generation: " << e);
     return;
   }
   catch (...) {
-    vtkErrorMacro("Error in tree generation");
+    itkExceptionMacro("Error in tree generation");
     return;
   }
 
@@ -324,8 +353,7 @@ void vtkSpectralClustering::ComputeClusters()
 
   // In the parameters vector, the vectors for each of the means are 
   // concatenated.  So array size is vector_length*number_of_vector_means.
-  int numberOfClusters=this->NumberOfClusters;
-  EstimatorType::ParametersType initialMeans(this->InternalNumberOfEigenvectors*numberOfClusters);
+  EstimatorType::ParametersType initialMeans(m_NumberOfEigenvectors*m_NumberOfClusters);
 
 
   // Now we try to choose evenly-spaced initial centroids for k-means
@@ -338,7 +366,7 @@ void vtkSpectralClustering::ComputeClusters()
   EmbedSampleType::Pointer testCentroids = EmbedSampleType::New();
   EmbedVectorType cent;
 
-  for (idx1 = 0; idx1 < numberOfClusters; idx1 ++)
+  for (idx1 = 0; idx1 < m_NumberOfClusters; idx1 ++)
     {
       // Init means with randomly selected sample member vectors.
       // index is random number between 0 and number of vectors-1.
@@ -379,7 +407,7 @@ void vtkSpectralClustering::ComputeClusters()
                   // separation between centroids => dot product.
                   double dot = 0;
                   for (int idxComp = 0; 
-                       idxComp < this->InternalNumberOfEigenvectors; idxComp++)
+                       idxComp < m_NumberOfEigenvectors; idxComp++)
                     {                  
                       dot += ev[idxComp]*cent[idxComp];
                     }
@@ -416,14 +444,14 @@ void vtkSpectralClustering::ComputeClusters()
 
   int meanIdx = 0;
   // loop over final ordered centroid list
-  for (idx1 = 0; idx1 < numberOfClusters; idx1 ++)
+  for (idx1 = 0; idx1 < m_NumberOfClusters; idx1 ++)
     {
       // find next one in final ordered centroid list
       ev = centroids->GetMeasurementVector(idx1);
 
       // Put the centroid into the strange format for input to 
       // the estimator
-      for (idx2 = 0; idx2 < this->InternalNumberOfEigenvectors; idx2++)
+      for (idx2 = 0; idx2 < m_NumberOfEigenvectors; idx2++)
         {
           initialMeans[meanIdx] = ev[idx2];
           meanIdx++;
@@ -432,7 +460,7 @@ void vtkSpectralClustering::ComputeClusters()
 
   // Now back to standard itk k-means 
   estimator->SetParameters( initialMeans );
-  vtkDebugMacro("estimator params: " << estimator->GetParameters());
+  itkDebugMacro("estimator params: " << estimator->GetParameters());
   estimator->SetKdTree( treeGenerator->GetOutput() );
   estimator->SetMaximumIteration( 200 );
   //estimator->SetMaximumIteration( 1000 );
@@ -442,33 +470,33 @@ void vtkSpectralClustering::ComputeClusters()
     estimator->StartOptimization();
   }
   catch (itk::ExceptionObject &e) {
-    vtkErrorMacro("Error in cluster estimation: " << e);
+    itkExceptionMacro("Error in cluster estimation: " << e);
     return;
   }
   catch (...) {
-    vtkErrorMacro("Error in cluster estimation");
+    itkExceptionMacro("Error in cluster estimation");
     return;
   }
 
   EstimatorType::ParametersType estimatedMeans = estimator->GetParameters();
-  vtkDebugMacro("Final estimator params: " << estimator->GetParameters());
+  itkDebugMacro("Final estimator params: " << estimator->GetParameters());
   for ( unsigned int i = 0 ; i < 2 ; ++i )
     {
       std::cout << "cluster[" << i << "] " << std::endl;
       std::cout << "    estimated mean : " << estimatedMeans[i] << std::endl;
       
-      vtkDebugMacro("cluster[" << i << "] ");
-      vtkDebugMacro("    estimated mean : " << estimatedMeans[i]);
+      itkDebugMacro("cluster[" << i << "] ");
+      itkDebugMacro("    estimated mean : " << estimatedMeans[i]);
     }
 
   // Copy the final centroids into a format we can understand
   meanIdx = 0;
   centroids->Clear();
   // loop over final centroid list
-  for (idx1 = 0; idx1 < numberOfClusters; idx1 ++)
+  for (idx1 = 0; idx1 < m_NumberOfClusters; idx1 ++)
     {
       // Get the centroid out of the strange format from the estimator
-      for (idx2 = 0; idx2 < this->InternalNumberOfEigenvectors; idx2++)
+      for (idx2 = 0; idx2 < m_NumberOfEigenvectors; idx2++)
         {
           ev[idx2] = estimatedMeans[meanIdx];
           meanIdx++;
@@ -486,10 +514,10 @@ void vtkSpectralClustering::ComputeClusters()
   // to their first component (so output class labels can be sorted
   // according to the second eigenvector of the normalized laplacian)
   std::vector< double > firstComp;
-  firstComp.resize( numberOfClusters );
+  firstComp.resize( m_NumberOfClusters );
 
   // first get all the first components
-  for (idx1 = 0; idx1 < numberOfClusters; idx1 ++)
+  for (idx1 = 0; idx1 < m_NumberOfClusters; idx1 ++)
     {
       ev = centroids->GetMeasurementVector(idx1);
       firstComp[idx1] = ev[0];
@@ -497,13 +525,13 @@ void vtkSpectralClustering::ComputeClusters()
 
   // now order the centroids to make the class label list
   std::vector< unsigned int > classLabels;
-  classLabels.resize( numberOfClusters );
+  classLabels.resize( m_NumberOfClusters );
   int label = 0;
-  for (idx1 = 0; idx1 < numberOfClusters; idx1 ++)
+  for (idx1 = 0; idx1 < m_NumberOfClusters; idx1 ++)
     {
       double minComp = firstComp[0];
       int minIdx = 0;
-      for (idx2 = 0; idx2 < numberOfClusters; idx2 ++)
+      for (idx2 = 0; idx2 < m_NumberOfClusters; idx2 ++)
         {
           if (firstComp[idx2] < minComp)
             {
@@ -512,7 +540,7 @@ void vtkSpectralClustering::ComputeClusters()
             }
         }
       // remove the min so we find the next-largest next time
-      firstComp[minIdx] = VTK_DOUBLE_MAX;
+      firstComp[minIdx] = NumericTraits<double>::max();
       // give this centroid the next class label
       classLabels[minIdx] = label;
       label++;
@@ -527,28 +555,28 @@ void vtkSpectralClustering::ComputeClusters()
   typedef itk::MinimumDecisionRule DecisionRuleType;
   DecisionRuleType::Pointer decisionRule = DecisionRuleType::New();
   
-  // this smart pointer will deallocate anything old it may have
-  // pointed to, so this line is okay.
-  this->OutputClassifier = OutputClassifierType::New();
+  // 
+  OutputClassifierDataObjectType *outputDataObject = this->GetOutput();
+  OutputClassifierType *output = outputDataObject->Get();
 
-  //this->OutputClassifier->DebugOn();
+  //output->DebugOn();
 
-  this->OutputClassifier->SetDecisionRule( (itk::DecisionRuleBase::Pointer) decisionRule);
-  this->OutputClassifier->SetSample( embedding );
+  output->SetDecisionRule( (itk::DecisionRuleBase::Pointer) decisionRule);
+  output->SetSample( embedding );
   // need to keep this object around, increment its reference count
   // otherwise it is deleted but the classifier is still around, 
   // and we need to fully use the classifier later.
   embedding->Register();
   //embedding->DebugOn();
-  this->OutputClassifier->SetNumberOfClasses( numberOfClusters );
+  output->SetNumberOfClasses( m_NumberOfClusters );
   // label according to second eigenvector ordering
-  this->OutputClassifier->SetMembershipFunctionClassLabels( classLabels );
+  output->SetMembershipFunctionClassLabels( classLabels );
 
 
   std::vector< MembershipFunctionType::Pointer > membershipFunctions;
   MembershipFunctionType::OriginType origin;
   int index = 0;
-  for ( unsigned int i = 0 ; i < numberOfClusters ; i++ ) 
+  for ( unsigned int i = 0 ; i < m_NumberOfClusters ; i++ ) 
     {
       membershipFunctions.push_back( MembershipFunctionType::New() );
       for ( unsigned int j = 0 ; j < EmbedSampleType::MeasurementVectorSize ; j++ )
@@ -557,68 +585,70 @@ void vtkSpectralClustering::ComputeClusters()
         }
       membershipFunctions[i]->SetOrigin( origin );
 
-      vtkDebugMacro("origin " << i << " " << membershipFunctions[i]->GetOrigin());
+      itkDebugMacro("origin " << i << " " << membershipFunctions[i]->GetOrigin());
 
-      this->OutputClassifier->AddMembershipFunction( membershipFunctions[i].GetPointer() );
+      output->AddMembershipFunction( membershipFunctions[i].GetPointer() );
     }
 
   try {
-    this->OutputClassifier->Update();
+    output->Update();
   }
   catch (itk::ExceptionObject &e) {
-    vtkErrorMacro("Error in update of output classifier: " << e);
+    itkExceptionMacro("Error in update of output classifier: " << e);
     return;
   }
   catch (...) {
-    vtkErrorMacro("Error in update of output classifier");
+    itkExceptionMacro("Error in update of output classifier");
     return;
   }
-  //this->OutputClassifier->GetOutput()->DebugOn();
+  //output->GetOutput()->DebugOn();
 
 }
 
 
 
-vtkImageData * vtkSpectralClustering::GetNormalizedWeightMatrixImage()
-{
-  if (this->NormalizedWeightMatrixImage == NULL)
-    {
-      this->SetNormalizedWeightMatrixImage(this->ConvertVNLMatrixToVTKImage(this->InputWeightMatrix));
-    }
-  return(this->NormalizedWeightMatrixImage);
-}
+// ImageData * SpectralClustering::GetNormalizedWeightMatrixImage()
+// {
+//   if (this->NormalizedWeightMatrixImage == NULL)
+//     {
+//       this->SetNormalizedWeightMatrixImage(this->ConvertVNLMatrixToImage(m_NormalizedWeightMatrix));
+//     }
+//   return(this->NormalizedWeightMatrixImage);
+// }
 
-vtkImageData * vtkSpectralClustering::GetEigenvectorsImage()
-{
-  if (this->EigenvectorsImage == NULL)
-    {
-      this->SetEigenvectorsImage(this->ConvertVNLMatrixToVTKImage(&(this->EigenSystem->V)));
-    }
-  return (this->EigenvectorsImage);
-}
+// ImageData * SpectralClustering::GetEigenvectorsImage()
+// {
+//   if (this->EigenvectorsImage == NULL)
+//     {
+//       this->SetEigenvectorsImage(this->ConvertVNLMatrixToImage(&(m_EigenSystem->V)));
+//     }
+//   return (this->EigenvectorsImage);
+// }
 
-vtkImageData *vtkSpectralClustering::ConvertVNLMatrixToVTKImage(InputType *matrix)
-{
-  vtkImageData *image = vtkImageData::New();
+// ImageData *SpectralClustering::ConvertVNLMatrixToImage(InputType *matrix)
+// {
+//   ImageData *image = ImageData::New();
 
-  if (matrix != NULL)
-    {
-      int rows = matrix->rows();
-      int cols = matrix->cols();
-      image->SetDimensions(cols,rows,1);
-      image->SetScalarTypeToDouble();
-      image->AllocateScalars();
-      double *imageArray = (double *) image->GetScalarPointer();
+//   if (matrix != NULL)
+//     {
+//       int rows = matrix->rows();
+//       int cols = matrix->cols();
+//       image->SetDimensions(cols,rows,1);
+//       image->SetScalarTypeToDouble();
+//       image->AllocateScalars();
+//       double *imageArray = (double *) image->GetScalarPointer();
       
-      for (int idx1 = rows-1; idx1 >= 0; idx1--)
-        {
-          for (int idx2 = 0; idx2 < cols; idx2++)
-            {
-              *imageArray = (*matrix)[idx1][idx2];
-              imageArray++;
-            }
-        }
-    }
+//       for (int idx1 = rows-1; idx1 >= 0; idx1--)
+//         {
+//           for (int idx2 = 0; idx2 < cols; idx2++)
+//             {
+//               *imageArray = (*matrix)[idx1][idx2];
+//               imageArray++;
+//             }
+//         }
+//     }
 
-  return(image);
-}
+//   return(image);
+// }
+
+} // end of namespace itk

@@ -43,8 +43,13 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #include "itkListSample.h"
 #include "itkVector.h"
 #include "itkSampleClassifier.h"
-#include "itkProcessObjects.h"
-#include "itkSymmetricEigenAnalysis.h"
+#include "itkProcessObject.h"
+#include "itkImage.h"
+#include "itkDataObjectDecorator.h"
+
+// vnl numerics lib 
+#include "vnl/vnl_matrix.h"
+#include "vnl/algo/vnl_symmetric_eigensystem.h"
 
 namespace itk {
 
@@ -79,8 +84,10 @@ class  SpectralClustering : public ProcessObject
   itkTypeMacro(SpectralClustering, ProcessObject);
   itkNewMacro(Self);
 
-  typedef itk::Image<float,3>   ImageType;
+  typedef Image<float,2>   ImageType;
 
+  /** Smart Pointer type to a DataObject. */
+  typedef DataObject::Pointer DataObjectPointer;
 
   // Description
   // Compute the output.  Call this after setting the InputWeightMatrix.
@@ -97,46 +104,81 @@ class  SpectralClustering : public ProcessObject
   void ComputeClusters();
 
   // TEST we want this specified at run time!
-  const static int InternalNumberOfEigenvectors = 2;
+  itkStaticConstMacro(InternalNumberOfEigenvectors, unsigned int, 2);
 
-  /** Use the Matrix for the input similarity matrix */
-  typedef itk::Matrix<double,
-                InternalNumberOfEigenvectors,
-                InternalNumberOfEigenvectors> InputMatrixType;
+  /*
+   *
+   */
+  typedef Vector< double, 
+      itkGetStaticConstMacro(InternalNumberOfEigenvectors) > EmbedVectorType;
+  typedef Statistics::ListSample< EmbedVectorType > EmbedSampleType;
+  typedef Statistics::SampleClassifier< EmbedSampleType > OutputClassifierType;
 
-  typedef itk::Vector<double,
-                InternalNumberOfEigenvectors> EigenVectorType;
+ /**
+  * DataObject type for the output classifier
+  */
+ typedef DataObjectDecorator<OutputClassifierType> OutputClassifierDataObjectType;
 
-  typedef itk::Vector< double, InternalNumberOfEigenvectors > EmbedVectorType;
-  typedef itk::Statistics::ListSample< EmbedVectorType > EmbedSampleType;
-  typedef itk::Statistics::SampleClassifier< EmbedSampleType > OutputClassifierType;
 
+ /**
+  * Vector length of each input data similarity measurement.  Will be
+  * changed to a runtime value.
+  */
+ itkStaticConstMacro(InternalWeightVectorLength, unsigned int, 21);
+
+ /**
+  * Vector type for input data similarity measurement
+  */
+ typedef Vector<double,itkGetStaticConstMacro(InternalWeightVectorLength)> 
+     WeightVectorType;
+
+ /**
+  * Sample type for the entire set of input vectors
+  */
+ typedef Statistics::ListSample<WeightVectorType> InputListSampleType;
+
+ /**
+  * DataObject type to allow the sample to be passed through the pipeline.
+  */
+ typedef DataObjectDecorator<InputListSampleType> InputListSampleDataObjectType;
 
   /**
-   * Set input to this class.  This matrix should be NxN, where N
-   * is the number of items we want to cluster.  Entries should be 
-   * similarity values (not distances).
+   * Set the similarity measurements to be clustered.  The data size
+   * should be NxM. N is the number of items we want to cluster
+   * (number of samples).  M is the number of weights (similarity
+   * values) per item.  Currently M must equal N.
    */
-  itkSetConstMacro( InputWeightMatrix, InputMatrixType );
-  itkGetConstMacro( InputWeightMatrix, InputMatrixType );
-  
+  virtual void SetInput( const InputListSampleDataObjectType *input)
+   { 
+     this->ProcessObject::SetNthInput(0, 
+                              const_cast< InputListSampleDataObjectType * >( input ) );
+   }
+
+ /** 
+  * Get the entire similarity measurements that is being clustered.
+  */
+  const InputListSampleDataObjectType* GetInput(void)
+   {
+     return static_cast<InputListSampleDataObjectType*>(this->ProcessObject::GetInput(0));
+   }
 
   /**
    * Description
    * Get the classifier which is output from this class
    */
-  OutputClassifierType::Pointer GetOutputClassifier() 
+  OutputClassifierDataObjectType* GetOutput() 
     {
-      return this->OutputClassifier;
+      return static_cast<OutputClassifierDataObjectType*>
+        (this->ProcessObject::GetOutput(0));
     }
 
   /** Number of clusters to output */
-  itkSetMacro(NumberOfClusters,int);
+  void SetNumberOfClusters(int);
   itkGetMacro(NumberOfClusters,int);
 
   /** Number of eigenvectors to use in the embedding */
   // TEST not currently implemented due to fixed-length itk vector!
-  // itkSetMacro(NumberOfEigenvectors,int); 
+  itkSetMacro(NumberOfEigenvectors,int); 
   itkGetMacro(NumberOfEigenvectors,int);
 
   /** Get the intermediate computations of this class as images 
@@ -166,43 +208,64 @@ class  SpectralClustering : public ProcessObject
   itkGetMacro(EmbeddingNormalization,int);
 
   /** Make an itk image to visualize contents of a vnl matrix */
-  ImageType *ConvertVNLMatrixToVTKImage(InputMatrixType *matrix);
+ //ImageType *ConvertVNLMatrixToVTKImage(InputMatrixType *matrix);
 
   /** Write embedding vector coordinates to output file embed.txt 
       (useful to visualize embedding vectors using external code) */
-  itkSetMacro(SaveEmbeddingVectors, int);
-  itkGetMacro(SaveEmbeddingVectors, int);
+  itkSetMacro(SaveEmbeddingVectors, bool);
+  itkGetMacro(SaveEmbeddingVectors, bool);
   itkBooleanMacro(SaveEmbeddingVectors);
+
+  /** Make a DataObject of the correct type to used as the specified
+   * output.  Every ProcessObject subclass must be able to create a
+   * DataObject that can be used as a specified output. This method
+   * is automatically called when DataObject::DisconnectPipeline() is
+   * called.  DataObject::DisconnectPipeline, disconnects a data object
+   * from being an output of its current source.  When the data object
+   * is disconnected, the ProcessObject needs to construct a replacement
+   * output data object so that the ProcessObject is in a valid state.
+   * So DataObject::DisconnectPipeline eventually calls
+   * ProcessObject::MakeOutput. Note that MakeOutput always returns a
+   * itkSmartPointer to a DataObject. ImageSource and MeshSource override
+   * this method to create the correct type of image and mesh respectively.
+   * If a filter has multiple outputs of different types, then that
+   * filter must provide an implementation of MakeOutput(). */
+  virtual DataObjectPointer MakeOutput(unsigned int idx);
 
  protected:
   SpectralClustering();
   ~SpectralClustering() {};
 
-  void PrintSelf(ostream& os, Indent indent);
+  void PrintSelf(std::ostream& os, Indent indent);
 
-  InputMatrixType *InputWeightMatrix;
-  SymmetricEigenAnalysis<InputMatrixType,> *EigenSystem;
-  OutputClassifierType::Pointer OutputClassifier;
+  typedef vnl_matrix<double> MatrixType;
+  MatrixType m_NormalizedWeightMatrix;
 
-  int NumberOfClusters;
-  int NumberOfEigenvectors;
-  int EmbeddingNormalization;
-  int SaveEmbeddingVectors;
+  typedef vnl_symmetric_eigensystem<double> EigenSystemType;
+  EigenSystemType *m_EigenSystem;
+
+  int m_NumberOfClusters;
+  int m_NumberOfEigenvectors;
+  int m_EmbeddingNormalization;
+  bool m_SaveEmbeddingVectors;
 
   enum EmbeddingNormalizationType { NONE, ROW_SUM, LENGTH_ONE } ;
 
   itkSetMacro(EmbeddingNormalization,int);
 
-  ImageType::Pointer NormalizedWeightMatrixImage;
-  ImageType::Pointer EigenvectorsImage;
+  ImageType::Pointer m_NormalizedWeightMatrixImage;
+  ImageType::Pointer m_EigenvectorsImage;
 
-  virtual void SetNormalizedWeightMatrixImage(const ImageType *);
-  virtual void SetEigenvectorsImage(const ImageType *);
+ //virtual void SetNormalizedWeightMatrixImage(const ImageType *);
+ //virtual void SetEigenvectorsImage(const ImageType *);
 
  private:
 
    SpectralClustering(const SpectralClustering&); // Not implemented.
    void operator=(const SpectralClustering&); // Not implemented.
+
+   unsigned long m_NumberOfClustersMTime;
+   unsigned long m_NumberOfEigenVectorsMTime;
 };
 
 }

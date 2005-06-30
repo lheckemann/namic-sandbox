@@ -15,8 +15,8 @@ ELSE(VTK_FOUND)
 ENDIF(VTK_FOUND)
 
 
-ADD_EXECUTABLE(testCluster testCluster.cxx vtkNormalizedCuts.cxx)
-TARGET_LINK_LIBRARIES(testCluster ITKCommon ITKNumerics vtkCommon vtkIO vtkImaging vtkFiltering)
+ADD_EXECUTABLE(testCluster itkSpectralClustering.cxx testITKCluster.cxx)
+TARGET_LINK_LIBRARIES(testCluster ITKCommon ITKNumerics ITKAlgorithms vtkCommon vtkIO vtkImaging vtkFiltering)
 
 #ADD_EXECUTABLE(itkKdTreeBasedKmeansEstimatorTest itkKdTreeBasedKmeansEstimatorTest.cxx )
 #TARGET_LINK_LIBRARIES(itkKdTreeBasedKmeansEstimatorTest ITKCommon ITKNumerics ITKStatistics)
