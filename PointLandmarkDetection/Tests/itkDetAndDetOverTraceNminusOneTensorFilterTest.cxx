@@ -1,17 +1,7 @@
 /*=========================================================================
 
-  Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkDetAndDetOverTraceNFilterTest.cxx,v $
-  Language:  C++
-  Date:      $Date: 2005/05/07 17:22:40 $
-  Version:   $Revision: 1.2 $
-
-  Copyright (c) Insight Software Consortium. All rights reserved.
-  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notices for more information.
+ author: Bryn Lloyd, Computational Radiology Laboratory, Brigham and Womans Hospital
+   date: 06/30/2005
 
 =========================================================================*/
 #if defined(_MSC_VER)
@@ -27,9 +17,9 @@
 
 
 //#include "itkHarrisTensorToImageFilter.h"
-#include "itkDetTensorToImageFilter.h"
-#include "itkDetOverTraceNTensorToImageFilter.h"
-#include "itkDetOverTraceNminusOneTensorToImageFilter.h"
+#include "itkDeterminantImageFilter.h"
+#include "itkDeterminantOverTraceNImageFilter.h"
+#include "itkDeterminantOverTraceNminusOneImageFilter.h"
 
 
 int main( int argc, char *argv[] )
@@ -132,11 +122,11 @@ int main( int argc, char *argv[] )
 
   //Run the various SymmetricSecondRankTensor type filters on the calculated image
 
-  typedef itk::DetTensorToImageFilter<myDiadicProductOfGradientImageType,myImageType>                    myDetImageFilterType;
+  typedef itk::DeterminantImageFilter<myDiadicProductOfGradientImageType,myImageType>                    myDetImageFilterType;
 
-  typedef itk::DetOverTraceNTensorToImageFilter<myDiadicProductOfGradientImageType,myImageType>          myDetOverTraceImageFilterType;
+  typedef itk::DeterminantOverTraceNImageFilter<myDiadicProductOfGradientImageType,myImageType>          myDetOverTraceImageFilterType;
 
-  typedef itk::DetOverTraceNminusOneTensorToImageFilter<myDiadicProductOfGradientImageType,myImageType>  myDetOverTraceNminusOneImageFilterType;
+  typedef itk::DeterminantOverTraceNminusOneImageFilter<myDiadicProductOfGradientImageType,myImageType>  myDetOverTraceNminusOneImageFilterType;
 
 
   myDetImageFilterType::Pointer                    myfilter1 = myDetImageFilterType::New();
