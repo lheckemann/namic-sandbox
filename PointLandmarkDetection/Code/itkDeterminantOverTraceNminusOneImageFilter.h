@@ -4,8 +4,8 @@ author: Bryn Lloyd, Computational Radiology Laborotory (CRL), Brigham and Womans
   date: 06/30/2005
 
 =========================================================================*/
-#ifndef __itkDetOverTraceNminusOneTensorToImageFilter_h
-#define __itkDetOverTraceNminusOneTensorToImageFilter_h
+#ifndef __itkDeterminantOverTraceNminusOneImageFilter_h
+#define __itkDeterminantOverTraceNminusOneImageFilter_h
 
 #include "itkUnaryFunctorImageFilter.h"
 #include "itkSymmetricSecondRankTensor.h"
@@ -18,7 +18,7 @@ author: Bryn Lloyd, Computational Radiology Laborotory (CRL), Brigham and Womans
 namespace itk
 {
 
-/** \class DetOverTraceNminusOneTensorToImageFilter
+/** \class DeterminantOverTraceNminusOneImageFilter
  * \brief Computes the det/trace^N from the symmetric second rank tensor
  *  pixel-wise, where N is the image Dimension.
  *
@@ -66,14 +66,14 @@ private:
 
 }
 template <class TInputImage, class TOutputImage>
-class ITK_EXPORT DetOverTraceNminusOneTensorToImageFilter :
+class ITK_EXPORT DeterminantOverTraceNminusOneImageFilter :
     public
 UnaryFunctorImageFilter<TInputImage,TOutputImage,
                         Function::DetOverTraceNminusOne<typename TInputImage::PixelType::ValueType >  >
 {
 public:
   /** Standard class typedefs. */
-  typedef DetOverTraceNminusOneTensorToImageFilter  Self;
+  typedef DeterminantOverTraceNminusOneImageFilter  Self;
   typedef UnaryFunctorImageFilter<TInputImage,TOutputImage, 
                                   Function::DetOverTraceNminusOne< typename TInputImage::PixelType::ValueType > >  Superclass;
   typedef SmartPointer<Self>   Pointer;
@@ -83,11 +83,11 @@ public:
   itkNewMacro(Self);
   
 protected:
-  DetOverTraceNminusOneTensorToImageFilter() {}
-  virtual ~DetOverTraceNminusOneTensorToImageFilter() {}
+  DeterminantOverTraceNminusOneImageFilter() {}
+  virtual ~DeterminantOverTraceNminusOneImageFilter() {}
 
 private:
-  DetOverTraceNminusOneTensorToImageFilter(const Self&); //purposely not implemented
+  DeterminantOverTraceNminusOneImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
 

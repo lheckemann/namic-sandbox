@@ -5,8 +5,8 @@ author: Bryn Lloyd, Computational Radiology Laborotory (CRL), Brigham and Womans
   date: 06/30/2005
 
 =========================================================================*/
-#ifndef __itkDetOverTraceNTensorToImageFilter_h
-#define __itkDetOverTraceNTensorToImageFilter_h
+#ifndef __itkDeterminantOverTraceNImageFilter_h
+#define __itkDeterminantOverTraceNImageFilter_h
 
 #include "itkUnaryFunctorImageFilter.h"
 #include "itkSymmetricSecondRankTensor.h"
@@ -19,7 +19,7 @@ author: Bryn Lloyd, Computational Radiology Laborotory (CRL), Brigham and Womans
 namespace itk
 {
 
-/** \class DetOverTraceNTensorToImageFilter
+/** \class DeterminantOverTraceNImageFilter
  * \brief Computes the det/trace^N from the symmetric second rank tensor
  *  pixel-wise, where N is the image Dimension.
  *
@@ -67,14 +67,14 @@ private:
 
 }
 template <class TInputImage, class TOutputImage>
-class ITK_EXPORT DetOverTraceNTensorToImageFilter :
+class ITK_EXPORT DeterminantOverTraceNImageFilter :
     public
 UnaryFunctorImageFilter<TInputImage,TOutputImage,
                         Function::DetOverTraceN<typename TInputImage::PixelType::ValueType>   >
 {
 public:
   /** Standard class typedefs. */
-  typedef DetOverTraceNTensorToImageFilter  Self;
+  typedef DeterminantOverTraceNImageFilter  Self;
   typedef UnaryFunctorImageFilter<TInputImage,TOutputImage, 
                                   Function::DetOverTraceN< typename TInputImage::PixelType::ValueType> >  Superclass;
   typedef SmartPointer<Self>   Pointer;
@@ -84,11 +84,11 @@ public:
   itkNewMacro(Self);
   
 protected:
-  DetOverTraceNTensorToImageFilter() {}
-  virtual ~DetOverTraceNTensorToImageFilter() {}
+  DeterminantOverTraceNImageFilter() {}
+  virtual ~DeterminantOverTraceNImageFilter() {}
 
 private:
-  DetOverTraceNTensorToImageFilter(const Self&); //purposely not implemented
+  DeterminantOverTraceNImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
 

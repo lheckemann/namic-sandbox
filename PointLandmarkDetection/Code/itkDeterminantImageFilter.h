@@ -4,8 +4,8 @@ author: Bryn Lloyd, Computational Radiology Laborotory (CRL), Brigham and Womans
   date: 06/30/2005
 
 =========================================================================*/
-#ifndef __itkDetTensorToImageFilter_h
-#define __itkDetTensorToImageFilter_h
+#ifndef __itkDeterminantImageFilter_h
+#define __itkDeterminantImageFilter_h
 
 #include "itkUnaryFunctorImageFilter.h"
 #include "itkSymmetricSecondRankTensor.h"
@@ -64,14 +64,14 @@ private:
 
 }
 template <class TInputImage, class TOutputImage>
-class ITK_EXPORT DetTensorToImageFilter :
+class ITK_EXPORT DeterminantImageFilter :
     public
 UnaryFunctorImageFilter<TInputImage,TOutputImage,
                         Function::Det<typename TInputImage::PixelType::ValueType>   >
 {
 public:
   /** Standard class typedefs. */
-  typedef DetTensorToImageFilter  Self;
+  typedef DeterminantImageFilter  Self;
   typedef UnaryFunctorImageFilter<TInputImage,TOutputImage,
                                   Function::Det< typename TInputImage::PixelType::ValueType> >  Superclass;
   typedef SmartPointer<Self>   Pointer;
@@ -81,11 +81,11 @@ public:
   itkNewMacro(Self);
   
 protected:
-  DetTensorToImageFilter() {}
-  virtual ~DetTensorToImageFilter() {}
+  DeterminantImageFilter() {}
+  virtual ~DeterminantImageFilter() {}
 
 private:
-  DetTensorToImageFilter(const Self&); //purposely not implemented
+  DeterminantImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
 
