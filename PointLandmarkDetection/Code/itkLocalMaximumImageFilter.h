@@ -1,17 +1,8 @@
 /*=========================================================================
 
-  Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkLocalMaximumImageFilter.h,v $
-  Language:  C++
-  Date:      $Date: 2003/09/10 14:28:51 $
-  Version:   $Revision: 1.4 $
 
-  Copyright (c) Insight Software Consortium. All rights reserved.
-  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notices for more information.
+author: Bryn Lloyd, Computational Radiology Laborotory (CRL), Brigham and Womans
+  date: 06/30/2005
 
 =========================================================================*/
 #ifndef __itkLocalMaximumImageFilter_h
@@ -34,6 +25,7 @@ namespace itk
  * Only maxima above the threshold are selected.
  *
  * TODO: allow user to set which information should be saved in the point-set (i.e. index or physical point, data)
+ *
  *
  * \sa Image
  * \sa Neighborhood

@@ -1,4 +1,4 @@
-SET(sources
-  itkNumericTraitsTensorPixel.cxx)
+#SET(sources
+#  itkNumericTraitsTensorPixel.cxx)
 
-ADD_LIBRARY(itkPointLandmarkDetection ${sources})
+#ADD_LIBRARY(itkPointLandmarkDetection ${sources})

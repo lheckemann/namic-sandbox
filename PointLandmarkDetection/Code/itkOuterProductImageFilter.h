@@ -1,17 +1,7 @@
 /*=========================================================================
 
-  Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkDiadicProductOverTraceNTensorToImageFilter.h,v $
-  Language:  C++
-  Date:      $Date: 2003/09/10 14:28:47 $
-  Version:   $Revision: 1.16 $
-
-  Copyright (c) Insight Software Consortium. All rights reserved.
-  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for DiadicProductails.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notices for more information.
+author: Bryn Lloyd, Computational Radiology Laborotory (CRL), Brigham and Womans
+  date: 06/30/2005
 
 =========================================================================*/
 #ifndef __itkOuterProductImageFilter_h
