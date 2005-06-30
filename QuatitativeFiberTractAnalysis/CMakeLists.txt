@@ -20,3 +20,5 @@ TARGET_LINK_LIBRARIES(Fib2VTK ITKCommon ITKNumerics ITKNrrdIO ITKIO
 vtkIO vtkCommon vtkImaging vtkFiltering)
 TARGET_LINK_LIBRARIES(VTK2Fib ITKCommon ITKNumerics ITKNrrdIO ITKIO
 vtkIO vtkCommon vtkImaging vtkFiltering)
+
+INSTALL_TARGETS(/bin ncutfib Fib2VTK VTK2Fib)
