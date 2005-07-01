@@ -14,10 +14,6 @@ ELSE(VTK_FOUND)
         MESSAGE(FATAL_ERROR "Could not find VTK")
 ENDIF(VTK_FOUND)
 
+SUBDIRS(Code Testing)
 
-ADD_EXECUTABLE(testCluster itkSpectralClustering.cxx testITKCluster.cxx)
-TARGET_LINK_LIBRARIES(testCluster ITKCommon ITKNumerics ITKAlgorithms vtkCommon vtkIO vtkImaging vtkFiltering)
-
-#ADD_EXECUTABLE(itkKdTreeBasedKmeansEstimatorTest itkKdTreeBasedKmeansEstimatorTest.cxx )
-#TARGET_LINK_LIBRARIES(itkKdTreeBasedKmeansEstimatorTest ITKCommon ITKNumerics ITKStatistics)
 
