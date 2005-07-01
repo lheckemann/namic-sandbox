@@ -16,7 +16,7 @@
 #include "itkDefaultStaticMeshTraits.h"
 #include "itkImageRegionConstIterator.h"
 
-#include "itkDanielssonDistanceMapImageFilter.h"
+#include "itkSignedDanielssonDistanceMapImageFilter.h"
 #include "itkRecursiveGaussianImageFilter.h"
 #include "itkSymmetricEigenSystem.h"
 #include "itkInterpolateImageFilter.h"
@@ -276,7 +276,7 @@ private:
   typedef InternalImageType::IndexType InternalImageIndexType;
   typedef InternalImageType::PointType InternalImagePointType;
   typedef CastImageFilter<InputImageType,InternalImageType> CastFilterType;
-  typedef DanielssonDistanceMapImageFilter<InternalImageType,InternalImageType> DistanceFilterType;
+  typedef SignedDanielssonDistanceMapImageFilter<InternalImageType,InternalImageType> DistanceFilterType;
   typedef LinearInterpolateImageFunction<InternalImageType,double> InterpolatorType;
   typedef RecursiveGaussianImageFilter<InternalImageType,InternalImageType> RGFType;
   typedef ResampleImageFilter<InternalImageType,InternalImageType> ResamplerType;

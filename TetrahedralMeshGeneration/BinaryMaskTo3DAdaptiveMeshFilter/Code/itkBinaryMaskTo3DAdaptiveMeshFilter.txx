@@ -365,14 +365,24 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
   // is additional step to make sure the surface is manifold, but this is
   // in the TODO list.
       
-  /*
   std::cout << "Finding enveloped vertices...";
   FindEnvelopedVertices();
+  std::set<RGMVertex_ptr> all_vertices;
+  for(typename std::list<RGMTetra_ptr>::iterator tI=m_Tetras.begin();
+    tI!=m_Tetras.end();tI++){
+    RGMTetra_ptr curT = *tI;
+    all_vertices.insert(curT->edges[0]->nodes[0]);
+    all_vertices.insert(curT->edges[0]->nodes[1]);
+    all_vertices.insert(curT->edges[1]->nodes[0]);
+    all_vertices.insert(curT->edges[1]->nodes[1]);
+  }
+  
   std::cout << "OK" << std::endl;
-  std::cout << "Total vertices: " << m_Vertices.size() << std::endl;
+  std::cout << "Total vertices: " << all_vertices.size() << std::endl;
   std::cout << "Out of envelope vertices: " << m_OutOfEnvelopeVertices.size() << std::endl;
   std::cout << "Finding enveloped tetrahedra... (out of " << m_Tetras.size() << " total) ";
-
+  
+  
   // Now all of the tetrahedra which do not contain any of the enveloped
   // vertices are discarded
   int num_tetras = m_Tetras.size();
@@ -390,16 +400,18 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
     vertices[2] = curT->edges[1]->nodes[0];
     vertices[3] = curT->edges[1]->nodes[1];
     
-    for(i=0;i<4;i++)
+    out_of_env_cnt = 0;
+    for(i=0;i<4;i++){
       if(m_OutOfEnvelopeVertices.find(vertices[i])!=
         m_OutOfEnvelopeVertices.end())
         out_of_env_cnt++;
+    }
 
     if(out_of_env_cnt>3)
       num_discarded++;
-    else
+    else {
       m_Tetras.push_back(curT);
-      */
+    }
     /*
       {
       if(!curT->parent)
@@ -408,10 +420,10 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
         RemoveTetraAllocated(curT);
     } else 
       m_Tetras.push_back(curT);
-      *//*
+      */
   }
 
-  std::cout << num_discarded << " tets have been discarded" << std::endl;*/
+  std::cout << num_discarded << " tets have been discarded" << std::endl;
   // Prepare the output
   std::map<RGMVertex_ptr,unsigned long> vertex2id;
   typename OutputMeshType::Pointer output_mesh = this->GetOutput();
@@ -1331,18 +1343,19 @@ float
 BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 ::DistanceAtPoint(double *coords){
   typename InterpolatorType::ContinuousIndexType input_index;
+  float distance = 0;
 
   input_index[0] = coords[0];
   input_index[1] = coords[1];
   input_index[2] = coords[2];
   if(m_Interpolator->IsInsideBuffer(input_index))
-    return (float)m_Interpolator->EvaluateAtContinuousIndex(input_index);
+    distance = (float)m_Interpolator->EvaluateAtContinuousIndex(input_index);
   else {
     std::cerr << "DistanceAtPoint(): Point [" << coords[0] << ", " << coords[1] << ", " 
       << coords[2] << "] is outside the image boundaries" << std::endl;
     assert(0);
   }
-  return 0;
+  return distance;
 }
 
 /* Computes the distance between two points in space */
@@ -3067,7 +3080,15 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 
       if(dist0<0 && dist1<0)
         continue;
+      
+      if(dist0>0 && dist1>0){
+        m_OutOfEnvelopeVertices.insert(curT->edges[i]->nodes[0]);
+        m_OutOfEnvelopeVertices.insert(curT->edges[i]->nodes[1]);
+        continue;
+      }
 
+
+      //assert(dist0*dist1<0);
       RGMVertex_ptr vp0, vp1;
       if(dist0<0.0){
         vp0 = curT->edges[i]->nodes[0];
@@ -3077,11 +3098,6 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
         vp1 = curT->edges[i]->nodes[0];
       }
       
-      if(dist0>0 && dist1>0){
-        m_OutOfEnvelopeVertices.insert(vp0);
-        m_OutOfEnvelopeVertices.insert(vp1);
-        continue;
-      }
 
 
       divpoint[0] = percent_inside*vp0->coords[0] + 
@@ -3095,6 +3111,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
         // The vertex is not sufficiently inside the surface.
         m_OutOfEnvelopeVertices.insert(vp0);
       m_OutOfEnvelopeVertices.insert(vp1);
+//      return;
     }
   }
 }
