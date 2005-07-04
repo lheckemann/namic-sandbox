@@ -13,6 +13,7 @@
 #define _itkBinaryMaskTo3DAdaptiveMeshFilter_txx
 
 #include "itkBinaryMaskTo3DAdaptiveMeshFilter.h"
+#include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkNumericTraits.h"
 
 namespace itk
@@ -520,8 +521,10 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
       typename InputImageType::SizeType input_size =
         m_InputImage->GetLargestPossibleRegion().GetSize();
       typename InputImageType::SizeType output_size;
-      typename InterpolatorType::Pointer interpolator = 
-        InterpolatorType::New();
+      typedef NearestNeighborInterpolateImageFunction<InternalImageType,double>
+        ResampleInterpolatorType;
+      typename ResampleInterpolatorType::Pointer resample_interpolator = 
+        ResampleInterpolatorType::New();
       //  typename InputImageType::SizeType::SizeValueType InputSizeValueType;
 
 
@@ -538,7 +541,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 
       transform->SetIdentity();
       resampler->SetTransform(transform);
-      resampler->SetInterpolator(interpolator);
+      resampler->SetInterpolator(resample_interpolator);
       resampler->SetOutputSpacing(output_spacing);
       resampler->SetOutputOrigin(m_InputImage->GetOrigin());
       resampler->SetSize(output_size);

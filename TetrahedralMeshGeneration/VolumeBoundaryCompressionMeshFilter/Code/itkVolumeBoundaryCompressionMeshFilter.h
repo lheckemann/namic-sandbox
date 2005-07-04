@@ -1,0 +1,211 @@
+/*=========================================================================
+ 
+  Copyright (c) 2005 Andriy Fedorov,
+  College of William and Mary, VA and 
+  Surgical Planning Lab, Harvard Medical School
+
+=========================================================================*/
+#ifndef __itkVolumeBoundaryCompressionMeshFilter_h
+#define __itkVolumeBoundaryCompressionMeshFilter_h
+
+#include "itkImage.h"
+#include "itkMesh.h"
+#include "itkMeshToMeshFilter.h"
+#include "itkVector.h"
+#include "itkCellInterface.h"
+#include "itkTetrahedronCell.h"
+#include "itkCovariantVector.h"
+#include "itkDefaultStaticMeshTraits.h"
+#include "itkImageRegionConstIterator.h"
+
+#include "itkFEM.h"
+#include "itkFEMSolver.h"
+#include "itkFEMLinearSystemWrappers.h"
+
+#include "itkSignedDanielssonDistanceMapImageFilter.h"
+#include "itkInterpolateImageFilter.h"
+#include "itkLinearInterpolateImageFunction.h"
+#include "itkResampleImageFilter.h"
+#include "itkIdentityTransform.h"
+#include "itkCastImageFilter.h"
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
+
+#include <string>
+#include <list>
+#include <map>
+
+namespace itk
+{
+
+/** \class itkVolumeBoundaryCompressionMeshFilter
+ * 
+ * 
+ * \par
+ * This class takes a 3D tetrahedral mesh and binary mask of an object, and
+ * tries to adjust the geometry of the mesh by moving the boundary nodes which
+ * are not aligned to the boundary using the FEM deformation model.
+ *
+ * \par
+ * The displacements for the boundary nodes are found from the signed distance
+ * function calculated from the binary input image. These displacements define
+ * the boundary condition for the finite element  model.
+ * 
+ * We start from a Body-Centered Cubic (BCC) lattice, with the initial BCC
+ * spacing defined (TODO: use Medial Axis to detect the smallest feature size and
+ * chose the spacing appropriately). Next selected tetrahedra are subdivided
+ * (based on user-specified criteria). Neighbouring tetrahedra that have to be
+ * subdivided to enforce the conformant mesh. The process is repeated up to the
+ * user-specified number of resolutions.
+ * 
+ * \par PARAMETERS
+ * 
+ *
+ * \par REFERENCE
+ *
+ * Molino, N., Bridson, R., Teran, J., and Fedkiw, R. "A crystalline, red green 
+ * strategy for meshing highly deformable objects with tetrahedra". 12th International 
+ * Meshing Roundtable, Sandia National Laboratories, pp.103-114, Sept. 2003.
+ * 
+ * \par INPUT
+ * The input should be a 3D binary image and a 3D tetrahedral mesh.
+ *
+ *  */
+  
+//#ifndef ITK_EXPLICIT_INSTANTIATION
+//template class Image<unsigned short,3>;
+//#endif
+
+template <class TInputMesh, class TOutputMesh, class TInputImage>
+class ITK_EXPORT VolumeBoundaryCompressionMeshFilter : public MeshToMeshFilter<TInputMesh,TOutputMesh>
+{
+public:
+  /** Standard "Self" typedef. */
+  typedef VolumeBoundaryCompressionMeshFilter         Self;
+  typedef MeshToMeshFilter<TInputMesh,TOutputMesh>  Superclass;
+  typedef SmartPointer<Self>  Pointer;
+  typedef SmartPointer<const Self>  ConstPointer;
+
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);  
+
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(VolumeBoundaryCompressionMeshFilter, MeshToMeshFilter);
+
+  /** Hold on to the type information specified by the template parameters. */
+  typedef TOutputMesh OutputMeshType;
+  typedef typename OutputMeshType::MeshTraits   OMeshTraits;
+  typedef typename OutputMeshType::CellTraits   OCellTraits;
+  typedef typename OutputMeshType::PointType    OPointType;
+  typedef typename OutputMeshType::CellType     OCellType;
+  typedef typename OMeshTraits::PixelType       OPixelType;
+  
+  typedef TInputMesh InputMeshType;
+  typedef typename InputMeshType::MeshTraits   IMeshTraits;
+  typedef typename InputMeshType::CellTraits   ICellTraits;
+  typedef typename InputMeshType::PointType    IPointType;
+  typedef typename InputMeshType::CellType     ICellType;
+  typedef typename IMeshTraits::PixelType       IPixelType;
+
+  /** Define tetrahedral cell type */
+  typedef CellInterface<IPixelType, ICellTraits> TCellInterface;
+  typedef TetrahedronCell<TCellInterface> TetCell;
+  typedef typename TetCell::CellAutoPointer TetCellAutoPointer;
+
+  /** Some convenient typedefs. */
+  typedef typename OutputMeshType::Pointer OutputMeshPointer;
+  typedef typename OutputMeshType::CellTraits CellTraits;
+  typedef typename OutputMeshType::PointsContainerPointer PointsContainerPointer;
+  typedef typename OutputMeshType::PointsContainer   PointsContainer;
+  typedef typename OutputMeshType::CellsContainerPointer CellsContainerPointer;
+  typedef typename OutputMeshType::CellsContainer   CellsContainer;
+  typedef CovariantVector<double, 2>     doubleVector;
+  typedef CovariantVector<int, 2>        intVector;
+  
+  /** Define the triangular cell types which forms the surface of the model
+   * and will be used in FEM application. */
+  typedef CellInterface<OPixelType, CellTraits>  TCellInterface;
+  typedef TriangleCell<TCellInterface> TriCell;
+  typedef typename TriCell::SelfAutoPointer TriCellAutoPointer;
+
+  /** Input Image Type Definition. */
+  typedef TInputImage InputImageType;
+  typedef typename InputImageType::Pointer         InputImagePointer;
+     
+  /** Type definition for the classified image index type. */
+  typedef typename InputImageType::IndexType       InputImageIndexType;
+  typedef ImageRegionConstIterator<InputImageType> InputImageIterator;
+
+  /** Type definition of the subdivision test function */
+  typedef bool (SubdivisionTestFunctionType)(double* v0, double* v1,
+    double* v2, double* v3, Self*);
+  typedef SubdivisionTestFunctionType* SubdivisionTestFunctionPointer;
+  
+  // TODO: document debug feature
+  itkSetMacro(InputImagePrefix, std::string); // 
+
+  itkGetMacro(NumberOfPoints, unsigned);
+  itkGetMacro(NumberOfTets, unsigned); // NAME: NumberOfTetras
+
+  /** accept the input image */
+  virtual void SetInput( const InputImageType * inputImage );
+  virtual void SetInput( const InputMeshType * inputMesh );
+
+protected:
+  
+  VolumeBoundaryCompressionMeshFilter();
+  ~VolumeBoundaryCompressionMeshFilter();
+    
+  void PrintSelf(std::ostream& os, Indent indent) const;
+
+  void GenerateData();
+  virtual void GenerateOutputInformation(){}; // do nothing
+
+  
+private:
+  VolumeBoundaryCompressionMeshFilter(const Self&); //purposely not implemented
+  void operator=(const Self&); //purposely not implemented
+
+  typedef float InternalPixelType;
+  typedef Image<InternalPixelType,3> InternalImageType;
+  typedef InternalImageType::SizeType InternalImageSizeType;
+  typedef InternalImageType::IndexType InternalImageIndexType;
+  typedef InternalImageType::PointType InternalImagePointType;
+  typedef CastImageFilter<InputImageType,InternalImageType> CastFilterType;
+  typedef SignedDanielssonDistanceMapImageFilter<InternalImageType,InternalImageType> DistanceFilterType;
+  typedef LinearInterpolateImageFunction<InternalImageType,double> InterpolatorType;
+  typedef RecursiveGaussianImageFilter<InternalImageType,InternalImageType> RGFType;
+  typedef ResampleImageFilter<InternalImageType,InternalImageType> ResamplerType;
+  typedef IdentityTransform<double,3> IdentityTransformType;
+
+  typedef ImageFileReader<InternalImageType> InternalImageReaderType;
+  typedef ImageFileWriter<InternalImageType> InternalImageWriterType;
+  
+  double m_dimX, m_dimY, m_dimZ;
+  
+  InternalImageType::Pointer m_DistanceImage;
+  typename InterpolatorType::Pointer m_Interpolator;
+  // the following is the resampled to unit voxel input mask
+  InternalImageType::Pointer m_InputImage;
+  InternalImageSizeType m_InputSize;
+  InternalImagePointType m_InputOrigin;
+  
+  std::string m_InputImagePrefix;
+
+  unsigned long m_NumberOfPoints;
+  unsigned long m_NumberOfTets;
+
+  bool Initialize();
+
+  // Utility functions
+  float DistanceAtPoint(double* coords);
+  float DistanceBwPoints(double *coord0, double* coord1);
+};
+
+} // end namespace itk
+
+#ifndef ITK_MANUAL_INSTANTIATION
+#include "itkVolumeBoundaryCompressionMeshFilter.txx"
+#endif
+
+#endif

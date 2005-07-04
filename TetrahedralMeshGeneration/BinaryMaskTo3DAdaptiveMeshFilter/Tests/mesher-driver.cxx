@@ -1,5 +1,6 @@
 //#include "itkBinaryMask3DMeshSource.h"
 #include "itkBinaryMaskTo3DAdaptiveMeshFilter.h"
+#include "itkVolumeBoundaryCompressionMeshFilter.h"
 #include "itkImageFileReader.h"
 #include "vtkUnstructuredGrid.h"
 #include "vtkUnstructuredGridWriter.h"
@@ -12,6 +13,7 @@ typedef MeshUtil<MeshType> MeshUtilType;
 typedef itk::Image<PixelType,3> ImageType;
 //typedef itk::BinaryMask3DMeshSource<ImageType,MeshType> MeshFilterType;
 typedef itk::BinaryMaskTo3DAdaptiveMeshFilter<ImageType,MeshType> MeshFilterType1;
+typedef itk::VolumeBoundaryCompressionMeshFilter<MeshType,MeshType,ImageType> CompressionFilterType;
 typedef itk::ImageFileReader<ImageType> ImageReaderType;
 
 bool MySubdivTest(double *v0, double *v1, double *v2, double *v3,
@@ -24,6 +26,8 @@ int main(int argc, char** argv){
   assert(argc>1);
   MeshFilterType1::Pointer mesher = MeshFilterType1::New();
   ImageReaderType::Pointer reader = ImageReaderType::New();
+  CompressionFilterType::Pointer compressor = CompressionFilterType::New();
+  
   reader->SetFileName(argv[2]);
   try{
     reader->Update();
@@ -62,5 +66,14 @@ int main(int argc, char** argv){
   vtk_tetra_mesh_writer->SetFileName((std::string("/tmp/")+argv[1]+".vtk").c_str());
   vtk_tetra_mesh_writer->SetInput(vtk_tetra_mesh);
   vtk_tetra_mesh_writer->Update();
+
+  compressor->SetInput(mesher->GetOutput());
+  compressor->SetInput(reader->GetOutput());
+  try{
+    compressor->Update();
+  } catch(itk::ExceptionObject &e){
+    std::cerr << "Failed to update the compressor: " << e << std::endl;
+  }
+
   return 0;
 }

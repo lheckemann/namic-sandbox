@@ -23,3 +23,7 @@ in the source files):
   Takes the ITK Mesh as input, and saves it in the VTK format. This class is
   not really something finished, but rather quick to have something to save
   the resulting VTK mesh in a file without having the dependency on VTK.
+
+3) VolumeBoundaryCompressionMeshFilter
+  Takes the mesh topology and aligns it with the boundary defined by the
+  binary image
