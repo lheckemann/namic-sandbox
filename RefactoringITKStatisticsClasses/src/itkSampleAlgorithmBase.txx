@@ -25,6 +25,7 @@ namespace Statistics{
 template< class TInputSample >
 SampleAlgorithmBase< TInputSample >
 ::SampleAlgorithmBase()
+    : m_MeasurementVectorSize( 0 )
 {
   m_InputSample = 0;
 }
@@ -40,11 +41,13 @@ SampleAlgorithmBase< TInputSample >
   if ( m_InputSample.IsNotNull() )
     {
     os << m_InputSample << std::endl;
+    os << indent << "MeasurementVectorSize: " << m_MeasurementVectorSize << std::endl;
     }
   else
     {
     os << "not set." << std::endl ;
     }
+
 }
 
 

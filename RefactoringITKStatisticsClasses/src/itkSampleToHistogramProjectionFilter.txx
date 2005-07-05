@@ -105,6 +105,12 @@ void
 SampleToHistogramProjectionFilter< TInputSample, THistogramMeasurement >
 ::SetMean(MeanType* mean)
 {
+  if( this->m_MeasurementVectorSize && 
+      ( mean->size() != this->m_MeasurementVectorSize ) )
+    {
+    itkExceptionMacro( << "Size of measurement vectors in the sample must be the same as the size of the mean." );
+    }
+  
   if ( m_Mean != mean )
     {
     m_Mean = mean ;
@@ -145,6 +151,12 @@ void
 SampleToHistogramProjectionFilter< TInputSample, THistogramMeasurement >
 ::SetProjectionAxis(ArrayType* axis)
 { 
+  if( this->m_MeasurementVectorSize && 
+      ( axis->GetSize() != this->m_MeasurementVectorSize ) )
+    {
+    itkExceptionMacro( << "Size of measurement vectors in the sample must be the same as the size of the projection axis." );
+    }
+  
   if ( m_ProjectionAxis != axis )
     {
     m_ProjectionAxis = axis ;
@@ -243,6 +255,16 @@ void
 SampleToHistogramProjectionFilter< TInputSample, THistogramMeasurement >
 ::GenerateData()
 {
+  // Assert at run time that the given mean and ProjectionAxis have the same length as 
+  // measurement vectors in the sample and that the size is non-zero.
+  if( !(this->m_MeasurementVectorSize) || 
+      ( m_Mean->size() != this->m_MeasurementVectorSize )
+      ( m_ProjectionAxis->GetSize() != this->m_MeasurementVectorSize ) )
+    {
+    itkExceptionMacro( << "Size of measurement vectors in the sample must be the same as the size of the mean and the ProjectionAxis.");
+    }
+  
+  
   typename HistogramType::Iterator h_iter = m_Histogram->Begin() ;
   typename HistogramType::Iterator h_last = m_Histogram->End() ;
   while (h_iter != h_last)
@@ -283,7 +305,7 @@ SampleToHistogramProjectionFilter< TInputSample, THistogramMeasurement >
     squaredDistance = 0.0 ;
     dotProduct = 0.0 ;
     frequency = s_iter.GetFrequency() ;
-    for (dimension = 0 ; dimension < MeasurementVectorSize ; dimension++)
+    for (dimension = 0 ; dimension < this->m_MeasurementVectorSize ; dimension++)
       {
       coordinateDistance = 
         tempMeasurementVector[dimension] - (*m_Mean)[dimension] ;

@@ -29,15 +29,11 @@ namespace itk{
   namespace Statistics{
   
 /** \class SampleAlgorithmBase
- * \brief calculates sample mean
- *
- * You plug in the target sample data using SetSample method. Then call
- * the GenerateData method to run the alogithm.
- *
- * The return value that the GetOutput method 
- * \f$ = \frac{1}{n}\sum^{n}_{i=1} \f$ where \f$n\f$ is the
- * number of measurement vectors in the target 
- *
+ * \brief This class is a base class for algorithms that operate on Sample
+ * data. The class is templated over the SampleType, which it takes as
+ * input using the SetInputSample() method. Derived classes that operate
+ * or calculate statistics on this input sample data and can access it
+ * using the GetInputSample() method.
  */
 
 template< class TInputSample >
@@ -63,9 +59,17 @@ public:
     if ( m_InputSample != sample )
       {
         m_InputSample = sample ;
+        m_MeasurementVectorSize = m_InputSample->GetMeasurementVectorSize();
         this->Modified() ;
       }
   }
+
+
+  /** Get Macro to get the length of a measurement vector. This is equal to 
+   * the length of each measurement vector contained in the samples that are
+   * plugged in as input to this class. GetMeasurementVectorSize() will return 
+   * zero until the SetInputSample() method has been called */
+  itkGetMacro( MeasurementVectorSize, unsigned int );
 
   const TInputSample * GetInputSample() const
   { return m_InputSample.GetPointer() ; }
@@ -85,6 +89,9 @@ protected:
   virtual void GenerateData() ;
 
 private:
+  /** Length of each measurement vector */
+  unsigned int m_MeasurementVectorSize;
+  
   /** Target sample data pointer */
   typename TInputSample::ConstPointer m_InputSample ;
 } ; // end of class

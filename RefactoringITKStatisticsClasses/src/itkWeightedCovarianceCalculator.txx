@@ -63,6 +63,12 @@ WeightedCovarianceCalculator< TSample >
 
     m_Mean = mean ;
     this->Modified() ;
+    
+    if( this->m_this->m_MeasurementVectorSize && 
+       ( m_Mean->GetSize() != this->m_this->m_MeasurementVectorSize ) )
+      {
+      itkExceptionMacro( << "Size of measurement vectors in the sample must be the same as the size of the mean vector." );
+      }
     }
 }
 
@@ -118,7 +124,17 @@ void
 WeightedCovarianceCalculator< TSample >
 ::ComputeCovarianceWithGivenMean()
 {
-  m_Output->GetVnlMatrix().fill(0.0) ;
+  // Assert at run time that the given mean has the same length as 
+  // measurement vectors in the sample and that the size is non-zero.
+  if( !(this->m_this->m_MeasurementVectorSize) || 
+      ( m_Mean->GetSize() != this->m_this->m_MeasurementVectorSize ) )
+    {
+    itkExceptionMacro( << "Size of measurement vectors in the sample must be the same as the size of the mean vector." );
+    }
+
+  m_Output.set_size( this->m_MeasurementVectorSize, this->m_MeasurementVectorSize );
+  m_Output.fill(0.0) ;
+  
   double weight;
   double sumWeight = 0.0 ;
   double sumSquaredWeight = 0.0 ;
@@ -139,16 +155,16 @@ WeightedCovarianceCalculator< TSample >
       weight = iter.GetFrequency() * m_WeightFunction->Evaluate(measurements) ;
       sumWeight += weight ;
       sumSquaredWeight += weight * weight ;
-      for (i = 0 ; i < MeasurementVectorSize ; i++)
+      for (i = 0 ; i < this->m_this->m_MeasurementVectorSize ; i++)
         {
         diff[i] = measurements[i] - (*m_Mean)[i] ;
         }
           
-      for ( row = 0; row < MeasurementVectorSize ; row++)
+      for ( row = 0; row < this->m_this->m_MeasurementVectorSize ; row++)
         {
         for ( col = 0; col < row + 1 ; col++)
           {
-          m_Output->GetVnlMatrix()(row,col) += 
+          m_Output(row,col) += 
             weight * diff[row] * diff[col] ;
           }
         }
@@ -163,16 +179,16 @@ WeightedCovarianceCalculator< TSample >
       weight = iter.GetFrequency() * (*m_Weights)[measurementVectorIndex] ;
       sumWeight += weight ;
       sumSquaredWeight += weight * weight ;
-      for (i = 0 ; i < MeasurementVectorSize ; i++)
+      for (i = 0 ; i < this->m_this->m_MeasurementVectorSize ; i++)
         {
         diff[i] = measurements[i] - (*m_Mean)[i] ;
         }
           
-      for ( row = 0; row < MeasurementVectorSize ; row++)
+      for ( row = 0; row < this->m_this->m_MeasurementVectorSize ; row++)
         {
         for ( col = 0; col < row + 1 ; col++)
           {
-          m_Output->GetVnlMatrix()(row,col) += 
+          m_Output(row,col) += 
             weight * diff[row] * diff[col] ;
           }
         }
@@ -182,16 +198,16 @@ WeightedCovarianceCalculator< TSample >
     } // end of if-else
 
   // fills the upper triangle using the lower triangle  
-  for (row = 1 ; row < MeasurementVectorSize ; row++)
+  for (row = 1 ; row < this->m_this->m_MeasurementVectorSize ; row++)
     {
     for (col = 0 ; col < row ; col++)
       {
-      m_Output->GetVnlMatrix()(col, row) = 
-        m_Output->GetVnlMatrix()(row, col) ;
+      m_Output(col, row) = 
+        m_Output(row, col) ;
       } 
     }
   
-  m_Output->GetVnlMatrix() /= 
+  m_Output /= 
     (sumWeight - (sumSquaredWeight / sumWeight) )  ;
 }
 
@@ -200,8 +216,11 @@ void
 WeightedCovarianceCalculator< TSample >
 ::ComputeCovarianceWithoutGivenMean()
 {
-  m_Output->GetVnlMatrix().fill(0.0) ;
+  m_Output.set_size( this->m_MeasurementVectorSize, this->m_MeasurementVectorSize );
+  m_Output.fill(0.0) ;
+  m_InternalMean->SetSize( this->m_MeasurementVectorSize );
   m_InternalMean->Fill(0.0) ;
+  
   double weight;
   double tempWeight ;
   double sumWeight = 0.0 ;
@@ -224,24 +243,24 @@ WeightedCovarianceCalculator< TSample >
         iter.GetFrequency() * m_WeightFunction->Evaluate(measurements) ;
       sumWeight += weight ;
       sumSquaredWeight += weight * weight ;
-      for (i = 0 ; i < MeasurementVectorSize ; i++)
+      for (i = 0 ; i < this->m_MeasurementVectorSize ; i++)
         {
         diff[i] = measurements[i] - (*m_InternalMean)[i] ;
         }
           
       // updates the mean vector
       tempWeight = weight / sumWeight ;
-      for ( i = 0 ; i < MeasurementVectorSize ; ++i )
+      for ( i = 0 ; i < this->m_MeasurementVectorSize ; ++i )
         {
         (*m_InternalMean)[i] += tempWeight * diff[i] ;
         }
 
       tempWeight = tempWeight * ( sumWeight - weight ) ;
-      for ( row = 0; row < MeasurementVectorSize ; row++)
+      for ( row = 0; row < this->m_MeasurementVectorSize ; row++)
         {
         for ( col = 0; col < row + 1 ; col++)
           {
-          m_Output->GetVnlMatrix()(row,col) += 
+          m_Output(row,col) += 
             tempWeight * diff[row] * diff[col] ;
           }
         }
@@ -256,24 +275,24 @@ WeightedCovarianceCalculator< TSample >
       sumWeight += weight ;
       measurements = iter.GetMeasurementVector() ;
       sumSquaredWeight += weight * weight ;
-      for (i = 0 ; i < MeasurementVectorSize ; i++)
+      for (i = 0 ; i < this->m_MeasurementVectorSize ; i++)
         {
         diff[i] = measurements[i] - (*m_InternalMean)[i] ;
         }
           
       // updates the mean vector
       tempWeight = weight / sumWeight ;
-      for ( i = 0 ; i < MeasurementVectorSize ; ++i )
+      for ( i = 0 ; i < this->m_MeasurementVectorSize ; ++i )
         {
         (*m_InternalMean)[i] += tempWeight * diff[i] ;
         }
 
       tempWeight = tempWeight * ( sumWeight - weight ) ;
-      for ( row = 0; row < MeasurementVectorSize ; row++)
+      for ( row = 0; row < this->m_MeasurementVectorSize ; row++)
         {
         for ( col = 0; col < row + 1 ; col++)
           {
-          m_Output->GetVnlMatrix()(row,col) += 
+          m_Output(row,col) += 
             tempWeight * diff[row] * diff[col] ;
           }
         }
@@ -283,16 +302,16 @@ WeightedCovarianceCalculator< TSample >
     }
 
   // fills the upper triangle using the lower triangle  
-  for (row = 1 ; row < MeasurementVectorSize ; row++)
+  for (row = 1 ; row < this->m_MeasurementVectorSize ; row++)
     {
     for (col = 0 ; col < row ; col++)
       {
-      m_Output->GetVnlMatrix()(col, row) = 
-        m_Output->GetVnlMatrix()(row, col) ;
+      m_Output(col, row) = 
+        m_Output(row, col) ;
       } 
     }
 
-  m_Output->GetVnlMatrix() /= 
+  m_Output /= 
     (sumWeight - (sumSquaredWeight / sumWeight) )  ;
 }
 

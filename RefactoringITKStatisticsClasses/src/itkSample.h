@@ -78,9 +78,18 @@ public:
    * sequential id for each measurement vector in a Sample subclass.*/ 
   typedef unsigned long InstanceIdentifier ;
 
-  /** Length of the MeasurementVector */
-  itkStaticConstMacro( MeasurementVectorSize, unsigned int,
-                       TMeasurementVector::Length ) ;
+
+  /** REMOVED: THE StaticConstMacro for this method has been removed to 
+   * allow the measurement vector length to be specified at run time.
+   *
+   * Please use the Set/Get macros to access the MeasurementVectorLength
+   * instead. 
+   *
+   * NOTE: This means that you will no longer be able to get the 
+   * MeasurementVectorLength as a static const member any more.
+   */
+
+  
 
   /** Get the size of the sample (number of measurements) */
   virtual unsigned int Size() const = 0 ;
@@ -98,6 +107,11 @@ public:
     = 0 ;
 
   
+  /** Set/Get macros for the length of the measurement vector */
+  itkSetMacro( MeasurementVectorSize, unsigned int );
+  itkGetMacro( MeasurementVectorSize, unsigned int );
+
+  
 protected:
   Sample() {}
   virtual ~Sample() {}
@@ -106,10 +120,13 @@ protected:
     Superclass::PrintSelf(os,indent);
   }
 
+
   
 private:
   Sample(const Self&) ; //purposely not implemented
   void operator=(const Self&) ; //purposely not implemented
+
+  unsigned int m_MeasurementVectorSize;
 } ; // end of class
 
 } // end of namespace Statistics 

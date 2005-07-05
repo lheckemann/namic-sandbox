@@ -59,9 +59,22 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self) ;
 
+  /** REMOVED: THE StaticConstMacro for this method has been removed to 
+   * allow the measurement vector length to be specified at run time.
+   *
+   * Please use the Get macros to access the MeasurementVectorLength
+   * instead. Note that GetMeasurementVectorSize() will return 0 unless
+   * you have plugged in the input sample using the SetInputSample() 
+   * method
+   *
+   * NOTE: This means that you will no longer be able to get the 
+   * MeasurementVectorLength as a static const member any more.
+   */
+   //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+   //                    TInputSample::MeasurementVectorSize) ;
   /** Typedefs from input sample */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      TInputSample::MeasurementVectorSize) ;
+
+
   typedef typename TInputSample::MeasurementType MeasurementType ;
   typedef typename TInputSample::MeasurementVectorType MeasurementVectorType ;
 
@@ -87,10 +100,15 @@ public:
   typedef WeightedCovarianceCalculator< ResampledSampleType > 
   CovarianceCalculatorType ;
 
-  /** Default projection axis calculator type*/
-  typedef SymmetricEigenSystem< double, 
-                                itkGetStaticConstMacro(MeasurementVectorSize) >
-  ProjectionAxisCalculatorType ;
+  /** Default projection axis calculator type
+   * NOTE: Eigen analysis is done with itk::SymmetricEigenAnalysis. We do not
+   * need the MeasurementVectorSize as a template parameter to use this class.*/
+  typedef Array< double > EigenValuesArrayType;
+  typedef SymmetricEigenAnalysis< ProjectionAxisArrayType, EigenValuesArrayType >
+          ProjectionAxisCalculatorType;
+  //typedef SymmetricEigenSystem< double, 
+  //                              itkGetStaticConstMacro(MeasurementVectorSize) >
+  //ProjectionAxisCalculatorType ;
 
   /** Gets the size of parameters which consists of mean
    * and standard deviation */

@@ -119,6 +119,13 @@ public:
   WeightArrayType* GetWeights() ;
 
   virtual void Update() ;
+  
+  /** Get Macro to get the length of a measurement vector. This is equal to 
+   * the length of each measurement vector contained in the samples that are
+   * plugged in as input to this class. GetMeasurementVectorSize() will return 
+   * zero until the SetSample() method has been called */
+  itkGetMacro( MeasurementVectorSize, unsigned int );
+
 
 protected:
   MixtureModelComponentBase() ;
@@ -137,6 +144,9 @@ protected:
   virtual void GenerateData() ;
 
 private:
+  /** Length of each measurement vectors */
+  unsigned int m_MeasurementVectorSize;
+  
   /** target sample data pointer */
   const TSample* m_Sample ;
 

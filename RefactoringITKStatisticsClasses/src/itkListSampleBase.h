@@ -60,11 +60,17 @@ public:
    * results. */
   typedef std::vector< InstanceIdentifier > SearchResultVectorType ;
 
-  /** Length of each measurement */
+  /** Set/Get macros for the length of the measurement vector 
+   * Note that the old API has been removed .. TODO.. add blah
   itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+                      Superclass::MeasurementVectorSize);
+  */
+   /** Length of each measurement 
+   itkStaticConstMacro(MeasurementVectorSize, unsigned int,
                       TMeasurementVector::Length);
+  */
 
-
+  
   /** Search for measurements within the specified radius of a search
    * point. A vector of InstanceIdentifiers is returned. */
   inline void Search(MeasurementVectorType center, double radius, 
@@ -81,7 +87,6 @@ public:
     double coordinateDistance ;
     
     MeasurementVectorType tempVector ;
-    unsigned int length = MeasurementVectorType::Length ;
     
     squaredRadius = radius * radius ;
     
@@ -90,7 +95,7 @@ public:
       {
       distance = 0.0 ;
       tempVector = this->GetMeasurementVector( id ) ;
-      for (j = 0 ; j < length && distance < squaredRadius ; j++)
+      for (j = 0 ; j < m_MeasurementVectorSize && distance < squaredRadius ; j++)
         {
         coordinateDistance = (double)tempVector[j] - center[j] ;
         if (vnl_math_abs(coordinateDistance) > radius )
@@ -99,7 +104,7 @@ public:
           }
         }
       
-      for (j = 0 ; j < length && distance < squaredRadius ; j++)
+      for (j = 0 ; j < m_MeasurementVectorSize && distance < squaredRadius ; j++)
         {
         coordinateDistance = (double)tempVector[j] - center[j] ;
         distance += coordinateDistance * coordinateDistance ;
@@ -119,6 +124,7 @@ protected:
 private:
   ListSampleBase(const Self&) ; //purposely not implemented
   void operator=(const Self&) ; //purposely not implemented
+
 };
 
 } // end of namespace Statistics 

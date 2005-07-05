@@ -120,7 +120,18 @@ public:
   itkStaticConstMacro(MeasurementVectorSize, 
                       unsigned int, 
                       ImageJointDomainTraitsType::Dimension) ;
+  virtual void SetMeasurementVectorSize( unsigned int )
+    {
+    // Measurement vector size for this class is fixed as the pixel's 
+    // dimension. This method should have no effect
+    itkWarningMacro( << "This method does nothing! The MeasurementVectorSize is " << MeasurementVectorSize );
+    }
 
+ unsigned int GetMeasurementVectorSize()
+   {
+   return MeasurementVectorSize;
+   } 
+ 
   /** typedefs for Measurement vector, measurement, 
    * Instance Identifier, frequency, size, size element value */
   typedef typename Superclass::FrequencyType FrequencyType ;

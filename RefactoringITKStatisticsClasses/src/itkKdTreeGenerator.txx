@@ -27,6 +27,7 @@ KdTreeGenerator< TSample >
   m_SourceSample = 0 ;
   m_BucketSize = 16 ;
   m_Subsample = SubsampleType::New() ;
+  m_MeasurementVectorSize = 0;
 }
 
 template< class TSample >
@@ -57,6 +58,7 @@ KdTreeGenerator< TSample >
   m_SourceSample = sample ;
   m_Subsample->SetSample(sample) ;
   m_Subsample->InitializeWithAllInstances() ;
+  m_MeasurementVectorSize = sample->GetMeasurementVectorSize();
 }
 
 
@@ -88,7 +90,7 @@ KdTreeGenerator< TSample >
   MeasurementVectorType lowerBound ;
   MeasurementVectorType upperBound ;
 
-  for(unsigned int d = 0 ; d < MeasurementVectorSize ; d++)
+  for(unsigned int d = 0 ; d < m_MeasurementVectorSize ; d++)
     {
     lowerBound[d] = NumericTraits< MeasurementType >::NonpositiveMin() ;
     upperBound[d] = NumericTraits< MeasurementType >::max() ;
@@ -127,7 +129,7 @@ KdTreeGenerator< TSample >
                                           m_TempMean) ;
 
   maxSpread = NumericTraits< MeasurementType >::NonpositiveMin() ;
-  for (i = 0 ; i < MeasurementVectorSize ; i++)
+  for (i = 0 ; i < m_MeasurementVectorSize ; i++)
     {
     spread = m_TempUpperBound[i] - m_TempLowerBound[i] ;
     if (spread >= maxSpread)

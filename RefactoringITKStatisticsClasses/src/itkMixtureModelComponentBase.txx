@@ -25,6 +25,7 @@ namespace Statistics{
 template< class TSample >
 MixtureModelComponentBase< TSample >
 ::MixtureModelComponentBase()
+    : m_MeasurementVectorSize( 0 )
 {
   m_Sample = 0 ;
   m_MembershipFunction = 0 ;
@@ -91,6 +92,7 @@ MixtureModelComponentBase< TSample >
 ::SetSample(const TSample* sample)
 {
   m_Sample = sample ;
+  this->m_MeasurementVectorSize = m_Sample->GetMeasurementVectorSize();
   this->CreateWeightArray() ;
 } 
 

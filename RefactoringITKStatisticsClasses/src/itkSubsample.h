@@ -53,8 +53,9 @@ public:
   typedef MeasurementVectorType ValueType ;
 
   /** MeasurementVectorSize constant from super class */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      TSample::MeasurementVectorSize);
+  //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+  //                    TSample::MeasurementVectorSize);
+  
 
   /** Type of the storage for instances that belong to the class 
    * represented by a Subsample object. A Subsample object stores

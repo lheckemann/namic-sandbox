@@ -23,6 +23,7 @@
 #include "itkFunctionBase.h"
 #include "itkNeighborhoodSampler.h"
 #include "itkSampleToHistogramProjectionFilter.h"
+#include "vnl/vnl_matrix.h"
 
 namespace itk{ 
 namespace Statistics{
@@ -93,10 +94,22 @@ public:
   /** TInputSample type alias */
   typedef TInputSample InputSampleType ;
 
-  /** Vector length constant */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      TInputSample::MeasurementVectorSize) ;
+  
+  /** REMOVED: THE StaticConstMacro for this method has been removed to 
+   * allow the measurement vector length to be specified at run time.
+   *
+   * Please use the Get macros to access the MeasurementVectorLength
+   * instead. Note that GetMeasurementVectorSize() will return 0 unless
+   * you have plugged in the input sample using the SetInputSample() 
+   * method
+   *
+   * NOTE: This means that you will no longer be able to get the 
+   * MeasurementVectorLength as a static const member any more.
+   */
+   //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+   //                    TInputSample::MeasurementVectorSize) ;
 
+  
   /** Typedefs from the TInputSample */
   typedef typename TInputSample::MeasurementType MeasurementType ;
   typedef typename TInputSample::MeasurementVectorType MeasurementVectorType ;
@@ -113,17 +126,22 @@ public:
   typedef Array< double > ParametersType ;
 
   /** Type of the center position for the hyperspherical neighborhood
-   *  sampling */
-  typedef FixedArray< double, 
-                      itkGetStaticConstMacro(MeasurementVectorSize) > 
-  CenterType ;
+   *  sampling. NOTE: The typedef for CenterType was changed from 
+   *  itk::FixedArray to itk::Array. */
+  typedef Array< double >      CenterType;
+  //typedef FixedArray< double, 
+  //                    itkGetStaticConstMacro(MeasurementVectorSize) > 
+  //CenterType ;
 
   /** Type of the radius of the hyperspherical neighborhood sampling */
   typedef double RadiusType ;
 
-  /** Type of the mean of the distribution */
-  typedef Vector< double, itkGetStaticConstMacro(MeasurementVectorSize) > 
-  MeanType ;
+  /** Type of the mean of the distribution 
+   * NOTE: The typedef for the MeanType has changed from
+   * itk::Vector to itk::Array. */
+  typedef Array< double >      MeanType;
+  //typedef Vector< double, itkGetStaticConstMacro(MeasurementVectorSize) > MeanType ;
+
 
   /** Type of standard deviation of the distribution */
   typedef double StandardDeviationType ;
@@ -232,6 +250,12 @@ public:
   /** Gest the parameters of this component */
   virtual ParametersType GetFullParameters() const = 0 ;
 
+  /** Get Macro to get the length of a measurement vector. This is equal to 
+   * the length of each measurement vector contained in the samples that are
+   * plugged in as input to this class. GetMeasurementVectorSize() will return 
+   * zero until the SetInputSample() method has been called */
+  itkGetMacro( MeasurementVectorSize, unsigned int );
+  
 protected:
   GoodnessOfFitComponentBase() ;
   virtual ~GoodnessOfFitComponentBase() ;
@@ -244,15 +268,20 @@ protected:
   typedef SampleToHistogramProjectionFilter< ResampledSampleType, float > 
   ProjectorType ;
 
+  
   /** projection axis array type. The type of output from 
    * CalculateProjectionAxis(). The number of projection axis are fixed 
-   * equal to the number of components of a measurement vector*/
-  typedef FixedArray< double, 
-                      itkGetStaticConstMacro(MeasurementVectorSize) > 
-  ProjectionAxisType ;
-  typedef FixedArray< ProjectionAxisType, 
-                      itkGetStaticConstMacro(MeasurementVectorSize) > 
-  ProjectionAxisArrayType;
+   * equal to the number of components of a measurement vector. 
+   * NOTE: The typedef for ProjectionAxisArrayType has changed from 
+   * has changed from itk::FixedArray to vnl_matrix. */
+  typedef vnl_matrix< double > ProjectionAxisArrayType;
+  //typedef FixedArray< double, 
+  //                    itkGetStaticConstMacro(MeasurementVectorSize) > 
+  //ProjectionAxisType ;
+  //typedef FixedArray< ProjectionAxisType, 
+  //                    itkGetStaticConstMacro(MeasurementVectorSize) > 
+  //ProjectionAxisArrayType;
+
 
   ProjectionAxisArrayType* GetProjectionAxes()
   { return &m_ProjectionAxes ; }
@@ -265,6 +294,9 @@ protected:
   virtual void CreateEquiProbableBins() ;
 
 private:
+  /** Length of each measurement vector */
+  unsigned int m_MeasurementVectorSize;
+
   const TInputSample* m_InputSample ;
   ParametersType m_Parameters ;
 

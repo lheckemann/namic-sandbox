@@ -27,7 +27,7 @@ KdTreeNonterminalNode< TSample >
 ::KdTreeNonterminalNode(unsigned int partitionDimension,
                         MeasurementType partitionValue,
                         Superclass* left,
-                        Superclass* right)
+                        Superclass* right) 
 {
   m_PartitionDimension = partitionDimension ;
   m_PartitionValue = partitionValue ;
@@ -59,11 +59,9 @@ KdTreeWeightedCentroidNonterminalNode< TSample >
   m_Left = left ;
   m_Right = right ;
   m_WeightedCentroid = centroid ;
+  m_MeasurementVectorSize = centroid.GetSize();
 
-  for (unsigned int i = 0 ; i < TSample::MeasurementVectorSize ; i++)
-    {
-    m_Centroid[i] = m_WeightedCentroid[i] / double(size) ;
-    }
+  m_Centroid = m_WeightedCentroid / double(size) ;
 
   m_Size = size ;
 }
@@ -169,6 +167,7 @@ KdTree< TSample >
 ::SetSample(const TSample* sample)
 {
   m_Sample = sample ;
+  this->m_MeasurementVectorSize = m_Sample->GetMeasurementVectorSize();
 }
 
 template< class TSample >
@@ -196,7 +195,7 @@ KdTree< TSample >
   MeasurementVectorType lowerBound ;
   MeasurementVectorType upperBound ;
 
-  for (unsigned int d = 0 ; d < MeasurementVectorSize ; d++)
+  for (unsigned int d = 0 ; d < m_MeasurementVectorSize ; d++)
     {
     lowerBound[d] = NumericTraits< MeasurementType >::NonpositiveMin() ;
     upperBound[d] = NumericTraits< MeasurementType >::max() ;
@@ -322,7 +321,7 @@ KdTree< TSample >
   MeasurementVectorType lowerBound ;
   MeasurementVectorType upperBound ;
 
-  for (unsigned int d = 0 ; d < MeasurementVectorSize ; d++)
+  for (unsigned int d = 0 ; d < this->m_MeasurementVectorSize ; d++)
     {
     lowerBound[d] = NumericTraits< MeasurementType >::NonpositiveMin() ;
     upperBound[d] = NumericTraits< MeasurementType >::max() ;
@@ -448,7 +447,7 @@ KdTree< TSample >
                    double radius) const
 {
   unsigned int dimension ;
-  for (dimension = 0 ; dimension < MeasurementVectorSize ; dimension++)
+  for (dimension = 0 ; dimension < this->m_MeasurementVectorSize ; dimension++)
     {
     if ((m_DistanceMetric->Evaluate(query[dimension] ,
                                     lowerBound[dimension]) <= 
@@ -475,7 +474,7 @@ KdTree< TSample >
   double temp ;
   unsigned int dimension ;
   double squaredSearchRadius = radius * radius ;
-  for (dimension = 0  ; dimension < MeasurementVectorSize ; dimension++)
+  for (dimension = 0  ; dimension < m_MeasurementVectorSize ; dimension++)
     {
 
     if (query[dimension] <= lowerBound[dimension])
@@ -544,6 +543,7 @@ KdTree< TSample >
   std::cout << "             weighted centroid = " 
             << centroid ;
   std::cout << "             size = " << node->Size()<< std::endl ;
+  std::cout << "MeasurementVectorSize: " << m_MeasurementVectorSize << std::endl;
  
   PrintTree(node->Left(), level, partitionDimension) ;
   PrintTree(node->Right(), level, partitionDimension) ;

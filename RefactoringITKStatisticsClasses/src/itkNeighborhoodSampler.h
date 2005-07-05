@@ -21,7 +21,7 @@
 #include "itkObject.h"
 #include "itkSample.h"
 #include "itkSubsample.h"
-#include "itkFixedArray.h"
+#include "vnl/vnl_vector.h"
 #include "itkSampleAlgorithmBase.h"
 
 namespace itk{ 
@@ -56,9 +56,23 @@ public:
   /** MeasurementVector typedef support */ 
   typedef TSample SampleType ;
 
+
+  /** REMOVED: THE StaticConstMacro for this method has been removed to 
+   * allow the measurement vector length to be specified at run time.
+   *
+   * Please use the Get macros to access the MeasurementVectorLength
+   * instead. Note that GetMeasurementVectorSize() will return 0 unless
+   * you have plugged in the input sample using the SetInputSample() 
+   * method
+   *
+   * NOTE: This means that you will no longer be able to get the 
+   * MeasurementVectorLength as a static const member any more.
+   */
+  //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+  //                    TSample::MeasurementVectorSize) ;
+
+  
   /** Enums and typedefs from the TSample */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int, 
-                      TSample::MeasurementVectorSize) ;
   typedef typename TSample::MeasurementVectorType MeasurementVectorType ;
   typedef typename TSample::MeasurementType MeasurementType ;
   typedef typename TSample::FrequencyType FrequencyType ;
@@ -74,11 +88,18 @@ public:
   typedef double RadiusType ;
 
   /** Type of the array of the radii */ 
-  typedef FixedArray< double, itkGetStaticConstMacro(MeasurementVectorSize) > CenterType ;
+  typedef vnl_vector< double > CenterType;
+  //typedef FixedArray< double, itkGetStaticConstMacro(MeasurementVectorSize) > CenterType ;
 
   /** Sets the center of the spherical kernel */
   void SetCenter(CenterType* center)
   {
+    if( this->m_MeasurementVectorSize && 
+      ( center->size() != this->m_MeasurementVectorSize ) )
+      {
+      itkExceptionMacro( << "Size of measurement vectors in the sample must be the same as the size of the center." );
+      }
+    
     if ( m_Center != center )
       {
         m_Center = center ;

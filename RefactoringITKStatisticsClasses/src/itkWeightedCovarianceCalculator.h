@@ -17,8 +17,8 @@
 #ifndef __itkWeightedCovarianceCalculator_h
 #define __itkWeightedCovarianceCalculator_h
 
-#include "itkVector.h"
-#include "itkMatrix.h"
+#include "itkArray.h"
+#include "vnl/vnl_matrix.h"
 #include "itkSampleAlgorithmBase.h"
 
 namespace itk{ 
@@ -46,8 +46,21 @@ public:
   itkTypeMacro(WeightedCovarianceCalculator, SampleAlgorithmBase);
   itkNewMacro(Self) ;
 
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      TSample::MeasurementVectorSize);
+  
+  /** REMOVED: THE StaticConstMacro for this method has been removed to 
+   * allow the measurement vector length to be specified at run time.
+   *
+   * Please use the Get macros to access the MeasurementVectorLength
+   * instead. Note that GetMeasurementVectorSize() will return 0 unless
+   * you have plugged in the input sample using the SetInputSample() 
+   * method
+   *
+   * NOTE: This means that you will no longer be able to get the 
+   * MeasurementVectorLength as a static const member any more.
+   */
+  //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+  //                    TSample::MeasurementVectorSize) ;
+
 
   /** Measurement vector typedef */
   typedef typename TSample::MeasurementVectorType MeasurementVectorType ;
@@ -55,15 +68,22 @@ public:
   /** Weight calculation function typedef */
   typedef FunctionBase< MeasurementVectorType, double > WeightFunctionType ;
 
-  /** covarince matrix (output) typedef */
-  typedef Matrix< double,
-                  itkGetStaticConstMacro(MeasurementVectorSize),
-                  itkGetStaticConstMacro(MeasurementVectorSize) > 
-          OutputType ;
+  /** covarince matrix (output) typedef 
+   * NOTE: The typedef for this matrix has changed from itk::Matrix to vnl_matrix. */
+  typedef vnl_matrix< double > OutputType;
+  //typedef Matrix< double,
+  //                itkGetStaticConstMacro(MeasurementVectorSize),
+  //                itkGetStaticConstMacro(MeasurementVectorSize) > 
+  //        OutputType ;
+  // TODO Create a class itk::VariableSizeMatrix with an API close to itk::Matrix
+  
 
-  /** Mean (input) typedef */
-  typedef Vector< double, itkGetStaticConstMacro(MeasurementVectorSize) >
-          MeanType ;
+  /** Mean (input) typedef. NOTE: The typedef for the MeanType has changed from
+   * itk::Vector to itk::Array. */
+  typedef Array< double >      MeanType;
+  //typedef Vector< double, itkGetStaticConstMacro(MeasurementVectorSize) >
+  //        MeanType ;
+  // TODO Create a class itk::VariableLengthVector to keep API such as GetVnlVector() consistent
 
   /** Array typedef for weights */
   typedef Array< double > WeightArrayType ;

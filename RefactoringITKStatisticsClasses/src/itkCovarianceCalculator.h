@@ -20,8 +20,8 @@
 
 #include "itkSampleAlgorithmBase.h"
 
-#include "itkVector.h"
-#include "itkMatrix.h"
+#include "itkArray.h"
+#include "vnl/vnl_matrix.h"
 
 namespace itk{ 
 namespace Statistics{
@@ -56,12 +56,28 @@ public:
   itkTypeMacro(CovarianceCalculator, Object);
   itkNewMacro(Self) ;
   
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      TSample::MeasurementVectorSize) ;
+  /** REMOVED: THE StaticConstMacro for this method has been removed to 
+   * allow the measurement vector length to be specified at run time.
+   *
+   * Please use the Get macros to access the MeasurementVectorLength
+   * instead. Note that GetMeasurementVectorSize() will return 0 unless
+   * you have plugged in the input sample using the SetInputSample() 
+   * method
+   *
+   * NOTE: This means that you will no longer be able to get the 
+   * MeasurementVectorLength as a static const member any more.
+   */
+  //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+  //                    TSample::MeasurementVectorSize) ;
+
 
   /** Typedef for the mean output */
-  typedef Vector< double, itkGetStaticConstMacro(MeasurementVectorSize) > MeanType ;
-  typedef Matrix< double, itkGetStaticConstMacro(MeasurementVectorSize), itkGetStaticConstMacro(MeasurementVectorSize) > OutputType ;
+  typedef Array< double >      MeanType;
+  typedef vnl_matrix< double > OutputType;
+  // TODO Create a class itk::VariableLengthVector to keep API such as GetVnlVector() consistent
+  // TODO Create a class itk::VariableSizeMatrix ................
+  //typedef Vector< double, itkGetStaticConstMacro(MeasurementVectorSize) > MeanType ;
+  //typedef Matrix< double, itkGetStaticConstMacro(MeasurementVectorSize), itkGetStaticConstMacro(MeasurementVectorSize) > OutputType ;
 
   /** Stores the sample pointer */
   void SetMean(MeanType* mean) ;
@@ -90,9 +106,9 @@ protected:
   void ComputeCovarianceWithoutGivenMean() ;
 
 private:
-  OutputType m_Output ;
   MeanType* m_Mean ;
   MeanType* m_InternalMean ;
+  OutputType m_Output ;
 } ; // end of class
     
 } // end of namespace Statistics 

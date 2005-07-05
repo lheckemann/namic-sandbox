@@ -63,12 +63,14 @@ struct KdTreeNode
   typedef typename TSample::MeasurementType MeasurementType ;
   
   /** Measurement vector length */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      TSample::MeasurementVectorSize) ;
+  //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+  //                    TSample::MeasurementVectorSize) ;
+
 
   /** Centroid type */
-  typedef FixedArray< double, 
-                      itkGetStaticConstMacro(MeasurementVectorSize) > CentroidType ;
+  //typedef FixedArray< double, 
+  //                    itkGetStaticConstMacro(MeasurementVectorSize) > CentroidType ;
+  typedef Array< double > CentroidType;
   
   /** Instance identifier type (index value type for the measurement
    * vector in a sample */
@@ -215,6 +217,8 @@ struct KdTreeWeightedCentroidNonterminalNode: public KdTreeNode< TSample >
   void GetParameters(unsigned int &partitionDimension, 
                      MeasurementType &partitionValue) const ;
 
+  itkGetMacro( MeasurementVectorSize, unsigned int );
+
   Superclass* Left() 
   { return m_Left ; }
 
@@ -243,6 +247,7 @@ struct KdTreeWeightedCentroidNonterminalNode: public KdTreeNode< TSample >
   void AddInstanceIdentifier(InstanceIdentifier) {}
 
 private:
+  unsigned int m_MeasurementVectorSize;
   unsigned int m_PartitionDimension ;
   MeasurementType m_PartitionValue ;
   CentroidType m_WeightedCentroid ;
@@ -364,8 +369,10 @@ public:
   typedef typename TSample::FrequencyType FrequencyType ;
 
   /** Length of the measurement vector. k in the k-d tree */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int, 
-                      TSample::MeasurementVectorSize) ;
+  //itkStaticConstMacro(MeasurementVectorSize, unsigned int, 
+  //                    TSample::MeasurementVectorSize) ;
+  itkGetMacro( MeasurementVectorSize, unsigned int );
+
 
   /** DistanceMetric type for the distance calculation and comparison */
   typedef EuclideanDistance< MeasurementVectorType > DistanceMetricType ;
@@ -630,6 +637,9 @@ private:
 
   /** Temporary neighbor */
   mutable NeighborType m_TempNeighbor ;
+
+  /** Measurement vector size */
+  unsigned int m_MeasurementVectorSize;
 } ; // end of class
 
 } // end of namespace Statistics

@@ -24,7 +24,7 @@ template< class TSample >
 SampleSelectiveMeanShiftBlurringFilter< TSample >
 ::SampleSelectiveMeanShiftBlurringFilter()
 {
-  m_ComponentSelections.Fill( true ) ;
+  m_ComponentSelections = 0;
 }
 
 template< class TSample >
@@ -49,9 +49,16 @@ inline void
 SampleSelectiveMeanShiftBlurringFilter< TSample >
 ::SetComponentSelections(ComponentSelectionsType selections)
 {
+  if( this->m_MeasurementVectorSize && 
+      ( selections.GetSize() != this->m_MeasurementVectorSize ) )
+    {
+    itkExceptionMacro( << "Size of measurement vectors in the sample must be the same as the size of the component selections array." );
+    }
+
   if ( m_ComponentSelections != selections )
     {
     m_ComponentSelections = selections ;
+    this->Modified();
     }
 }
 
@@ -60,6 +67,20 @@ inline void
 SampleSelectiveMeanShiftBlurringFilter< TSample >
 ::GenerateData() 
 {
+  // Assert at run time that the given mean has the same length as 
+  // measurement vectors in the sample and that the size is non-zero.
+  if( !m_ComponentSelections )
+    {
+    m_ComponentSelections.SetSize( this->m_MeasurementVectorSize );
+    m_ComponentSelections.Fill( true );
+    }
+  else if( !(this->m_MeasurementVectorSize) || 
+      ( m_ComponentSelections->GetSize() != this->m_MeasurementVectorSize ) )
+    {
+    itkExceptionMacro( << "Size of measurement vectors in the sample must be the same as the size of the component selections array." );
+    }
+  
+  
   MeasurementVectorType queryPoint ;
   MeasurementVectorType modePoint ;
   MeasurementVectorType finalPoint ;
@@ -74,7 +95,7 @@ SampleSelectiveMeanShiftBlurringFilter< TSample >
     {
     queryPoint = iter.GetMeasurementVector() ;
     modePoint = modeSeeker->Evolve( queryPoint ) ;
-    for ( unsigned int i = 0 ; i < MeasurementVectorSize ; ++i )
+    for ( unsigned int i = 0 ; i < this->m_MeasurementVectorSize ; ++i )
       {
       if ( m_ComponentSelections[i] )
         {

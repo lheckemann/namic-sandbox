@@ -80,8 +80,19 @@ public:
   typedef typename Superclass::SubsamplePointer SubsamplePointer ;
   typedef typename Superclass::KdTreeType KdTreeType ;
   typedef typename Superclass::KdTreeNodeType KdTreeNodeType ;
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      TSample::MeasurementVectorSize);
+
+
+  /** REMOVED: THE StaticConstMacro for this method has been removed to 
+   * allow the measurement vector length to be specified at run time.
+   *
+   * Please use the Get macros to access the MeasurementVectorLength
+   * instead. 
+   *
+   * NOTE: This means that you will no longer be able to get the 
+   * MeasurementVectorLength as a static const member any more.
+   */
+   //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+   //                   TSample::MeasurementVectorSize);
 
 protected:
   /** Constructor */

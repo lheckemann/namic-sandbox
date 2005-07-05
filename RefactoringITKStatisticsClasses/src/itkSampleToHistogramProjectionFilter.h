@@ -21,11 +21,10 @@
 #include "itkObject.h"
 #include "itkSample.h"
 #include "itkSubsample.h"
-#include "itkFixedArray.h"
 #include "itkHistogram.h"
 #include "itkFunctionBase.h"
 #include "itkSampleAlgorithmBase.h"
-#include "itkVector.h"
+#include "vnl/vnl_vector.h"
 
 namespace itk{ 
 namespace Statistics{
@@ -61,9 +60,24 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self) ;
 
+
+  /** REMOVED: THE StaticConstMacro for this method has been removed to 
+   * allow the measurement vector length to be specified at run time.
+   *
+   * Please use the Get macros to access the MeasurementVectorLength
+   * instead. Note that GetMeasurementVectorSize() will return 0 unless
+   * you have plugged in the input sample using the SetInputSample() 
+   * method
+   *
+   * NOTE: This means that you will no longer be able to get the 
+   * MeasurementVectorLength as a static const member any more.
+   */
+  //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+  //                    TInputSample::MeasurementVectorSize) ;
+
+
+  
   /** Enums and typedefs from the TInputSample */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int, 
-                      TInputSample::MeasurementVectorSize) ;
   typedef typename TInputSample::MeasurementVectorType MeasurementVectorType ;
   typedef typename TInputSample::MeasurementType MeasurementType ;
   typedef typename TInputSample::FrequencyType FrequencyType ;
@@ -72,13 +86,19 @@ public:
   /** typedefs from the superclass */
   typedef typename Superclass::InputSampleType InputSampleType ;
 
-  /** 1D array typedef */
-  typedef FixedArray< double, 
-                      itkGetStaticConstMacro(MeasurementVectorSize) > ArrayType ;
+  /** 1D array typedef 
+   * NOTE: The typedef was recently changed from a FixedArray to Array */
+  typedef   Array< double > ArrayType;
+  //typedef FixedArray< double, 
+  //                    itkGetStaticConstMacro(MeasurementVectorSize) > ArrayType ;
 
-  /** The center of the histogram */
-  typedef Vector< double, 
-                  itkGetStaticConstMacro(MeasurementVectorSize) > MeanType ;
+  /** The center of the histogram
+   * NOTE: The API for MeanType was recently changed from itk::Vector to vnl_vector 
+   * TODO: Create class itk::VariableLengthVector that has an API consistent
+   * with itk::Vector */
+  //typedef Vector< double, 
+  //                itkGetStaticConstMacro(MeasurementVectorSize) > MeanType ;
+  typedef vnl_vector< double > MeanType;
 
   /** Type of the output object */
   typedef Histogram< THistogramMeasurement, 1 > HistogramType ;

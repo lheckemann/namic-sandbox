@@ -78,9 +78,20 @@ public:
   /** typedef alias for the source data container */ 
   typedef typename TSample::MeasurementVectorType MeasurementVectorType ;
   typedef typename TSample::MeasurementType MeasurementType ;
-  
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      TSample::MeasurementVectorSize);
+
+
+  /** REMOVED: THE StaticConstMacro for this method has been removed to 
+   * allow the measurement vector length to be specified at run time.
+   *
+   * Please use the Get macros to access the MeasurementVectorLength
+   * instead. 
+   *
+   * NOTE: This means that you will no longer be able to get the 
+   * MeasurementVectorLength as a static const member any more.
+   */
+   //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+   //                   TSample::MeasurementVectorSize);
+
 
   /** Typedef for the k-d tree */
   typedef KdTree< TSample > KdTreeType ;
@@ -121,6 +132,10 @@ public:
   /** The number of measurement vectors in an object of this class. */
   unsigned int TotalInstance ;
 
+  /** Get macro to get the length of the measurement vectors that are being
+   * held in the 'sample' that is passed to this class */
+  itkGetMacro( MeasurementVectorSize, unsigned int );
+   
 protected:
   /** Constructor */
   KdTreeGenerator() ;
@@ -176,6 +191,9 @@ private:
 
   /** Temporary mean for the TreeGenerationLoop */
   MeasurementVectorType m_TempMean ;
+
+  /** Length of a measurement vector */
+  unsigned int m_MeasurementVectorSize;
 } ; // end of class
 
 } // end of namespace Statistics 

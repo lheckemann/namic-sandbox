@@ -72,8 +72,8 @@ public:
   //    typedef typename TSample::SizeValueType SizeValueType ;
   
   /** MeasurementVectorSize enum from super class */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      TSample::MeasurementVectorSize);
+  //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+  //                    TSample::MeasurementVectorSize);
   
   /** vector of unique class labels that will be used for mapping internal
    * continuous class label with real class labels */

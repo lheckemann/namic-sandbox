@@ -69,10 +69,14 @@ public:
    * vector) */
   typedef MeasurementVectorType ValueType ;
 
-  /** Length of the measurement vector */
+
+  /** Set/Get macros for the length of the measurement vector 
+   * Note that the old API has been removed .. TODO.. add blah
   itkStaticConstMacro(MeasurementVectorSize, unsigned int,
                       Superclass::MeasurementVectorSize);
-
+  */
+    
+  
   /** internal data container type */
   typedef std::vector< MeasurementVectorType > InternalDataContainerType ;
 
@@ -285,11 +289,13 @@ protected:
   virtual ~ListSample() {}
   void PrintSelf(std::ostream& os, Indent indent) const; 
   
+
 private:
   ListSample(const Self&) ; //purposely not implemented
   void operator=(const Self&) ; //purposely not implemented
 
   InternalDataContainerType m_InternalContainer ;
+
 };
 
 } // end of namespace Statistics 

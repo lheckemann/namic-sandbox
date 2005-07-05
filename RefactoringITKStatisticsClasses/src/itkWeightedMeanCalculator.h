@@ -22,7 +22,7 @@
 #include <vnl/vnl_matrix.h>
 
 #include "itkArray.h"
-#include "itkVector.h"
+#include "vnl/vnl_vector.h"
 #include "itkFunctionBase.h"
 #include "itkSampleAlgorithmBase.h"
 
@@ -34,7 +34,7 @@ namespace Statistics{
  * associated weight value
  *
  * To run this algorithm, you have plug in the target sample data 
- * using SetInpuSample method and provides weight by an array or function.
+ * using SetInputSample method and provides weight by an array or function.
  *. Then call the Update method to run the alogithm.
  *
  * \sa MeanCalculator SampleAlgorithmBase
@@ -55,12 +55,31 @@ public:
   itkTypeMacro(WeightedMeanCalculator, SampleAlgorithmBase);
   itkNewMacro(Self) ;
   
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      TSample::MeasurementVectorSize);
+  
+  /** REMOVED: THE StaticConstMacro for this method has been removed to 
+   * allow the measurement vector length to be specified at run time.
+   *
+   * Please use the Get macros to access the MeasurementVectorLength
+   * instead. Note that GetMeasurementVectorSize() will return 0 unless
+   * you have plugged in the input sample using the SetInputSample() 
+   * method
+   *
+   * NOTE: This means that you will no longer be able to get the 
+   * MeasurementVectorLength as a static const member any more.
+   */
+  //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+  //                    TSample::MeasurementVectorSize) ;
+  
 
   typedef typename TSample::MeasurementVectorType MeasurementVectorType ;
 
-  /** Mean (output) typedef */
+  /** Typedef for the mean output. NOTE: the typedef has changed from 
+   * itk::Vector to vnl_vector */
+  // 
+  //typedef Vector< double,
+  //                itkGetStaticConstMacro(MeasurementVectorSize) > OutputType ;
+  // TODO Create class itk::VariableLengthVector to keep API such as GetVnlVector() consistent
+  typedef vnl_vector< double > OutputType;
   typedef Vector< double, itkGetStaticConstMacro(MeasurementVectorSize) > OutputType ;
   
   /** Array typedef for weights */
