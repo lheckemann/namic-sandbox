@@ -461,6 +461,10 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
     m_NumberOfTets++;
   }
 
+  // Prevent useless re-execution of the filter (as described in
+  // BinaryMask3DMeshSource)
+  this->GetOutput()->SetBufferedRegion(this->GetOutput()->GetRequestedRegion());
+
   // TODO: memory deallocation
 }
 

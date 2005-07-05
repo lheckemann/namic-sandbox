@@ -67,7 +67,10 @@ int main(int argc, char** argv){
   vtk_tetra_mesh_writer->SetInput(vtk_tetra_mesh);
   vtk_tetra_mesh_writer->Update();
 
-  compressor->SetInput(mesher->GetOutput());
+  std::cout << "Initializing compressor..." << std::endl;
+
+  compressor->SetInput(tetra_mesh);
+  compressor->SetInputImagePrefix(std::string(argv[1]));
   compressor->SetInput(reader->GetOutput());
   try{
     compressor->Update();

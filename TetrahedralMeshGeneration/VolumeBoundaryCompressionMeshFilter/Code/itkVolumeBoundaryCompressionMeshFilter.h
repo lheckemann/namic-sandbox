@@ -34,6 +34,7 @@
 #include <string>
 #include <list>
 #include <map>
+#include <vector>
 
 namespace itk
 {
@@ -128,6 +129,14 @@ public:
   typedef TriangleCell<TCellInterface> TriCell;
   typedef typename TriCell::SelfAutoPointer TriCellAutoPointer;
 
+  typedef typename TInputMesh::PointsContainer InputPointsContainer;
+  typedef typename TOutputMesh::PointsContainer OutputPointsContainer;
+  typedef typename TInputMesh::PointsContainerPointer InputPointsContainerPointer;
+  typedef typename TOutputMesh::PointsContainerPointer OutputPointsContainerPointer;
+  
+  typedef typename TInputMesh::CellsContainer::ConstIterator InputCellsContainerIterator;
+  typedef TetrahedronCell<ICellType> InputTetrahedronType;
+
   /** Input Image Type Definition. */
   typedef TInputImage InputImageType;
   typedef typename InputImageType::Pointer         InputImagePointer;
@@ -163,6 +172,54 @@ protected:
 
   
 private:
+
+  class TetFace{
+  public:
+    TetFace(unsigned int v0, unsigned int v1, unsigned int v2){
+      if(v0<v1)
+        if(v1<v2){
+          nodes[0] = v0; nodes[1] = v1; nodes[2] = v2;
+        } else {
+          if(v2<v0){
+            nodes[0] = v2; nodes[1] = v0; nodes[2] = v1;
+          } else {
+            nodes[0] = v0; nodes[1] = v2; nodes[2] = v1;
+          }
+        }
+      else
+        if(v0<v2){
+          nodes[0] = v1; nodes[1] = v0; nodes[2] = v2;
+        } else {
+          if(v1<v2){
+            nodes[0] = v1; nodes[1] = v2; nodes[2] = v0;
+          } else {
+            nodes[0] = v2; nodes[1] = v1; nodes[2] = v0;
+          }
+        }
+    }
+    
+    ~TetFace(){};
+    
+    bool operator==(const TetFace &f) const{
+      return ((f.nodes[0]==this->nodes[0]) && (f.nodes[1]==this->nodes[1]) &&
+        (f.nodes[2]==this->nodes[2]));
+    }
+    
+    bool operator<(const TetFace &face1) const{
+      if(this->nodes[0]<face1.nodes[0]) 
+        return true;
+      if(face1.nodes[0]<this->nodes[0])
+        return false;
+      if(this->nodes[1]<face1.nodes[1])
+        return true;
+      if(face1.nodes[1]<this->nodes[1])
+        return false;
+      return this->nodes[2]<face1.nodes[2];
+    }
+
+    unsigned int nodes[3];
+  };
+    
   VolumeBoundaryCompressionMeshFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
@@ -189,8 +246,13 @@ private:
   InternalImageType::Pointer m_InputImage;
   InternalImageSizeType m_InputSize;
   InternalImagePointType m_InputOrigin;
+
+  typename InputMeshType::Pointer m_InputMesh;
+  typename OutputMeshType::Pointer m_OutputMesh;
   
   std::string m_InputImagePrefix;
+
+  std::vector<unsigned int> m_SurfaceVertices;
 
   unsigned long m_NumberOfPoints;
   unsigned long m_NumberOfTets;
