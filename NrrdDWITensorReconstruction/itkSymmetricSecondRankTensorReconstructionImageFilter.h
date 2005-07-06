@@ -44,7 +44,8 @@ public:
 
   typedef TGradientImagePixelType                  GradientPixelType;
 
-  typedef TTensorPixelType                         TensorPixelType;
+  typedef SymmetricSecondRankTensor< 
+          TTensorPixelType, ImageDimension >       TensorPixelType;
 
   /** Reference image data, S_0. This image is aquired in teh absence 
    * of a diffusion sensitizing field gradient */
@@ -57,6 +58,8 @@ public:
   typedef Image< GradientPixelType,ImageDimension> GradientImageType;
 
   /** Holds the tensor basis coefficients G_k */
+  typedef vnl_matrix_fixed< double, 6, 6 >         TensorBasisMatrixType;
+  
   typedef vnl_matrix< double >                     CoefficientMatrixType;
 
   /** Holds each magnetic field gradient used to acquire one DWImage */
@@ -100,6 +103,11 @@ public:
     return m_GradientDirectionContainer->ElementAt( idx+1 );
     }
 
+
+
+  void BeforeThreadedGenerateData();
+  void AfterThreadedGenerateData();
+  void ThreadedGenerateData( const RegionType &outputRegionForThread, int threadId )
   
 protected:
   SymmetricSecondRankTensorReconstructionImageFilter();
@@ -110,7 +118,11 @@ protected:
 private:
   
   /* Tensor basis coeffs */
-  CoefficientMatrixType                             m_TensorBasisCoeffs;
+  TensorBasisMatrixType                             m_TensorBasis;
+  
+  CoefficientMatrixType                             m_Coeffs;
+
+  
 
   GradientDirectionContainerType::Pointer           m_GradientDirectionContainer;
 
