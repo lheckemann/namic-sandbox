@@ -57,6 +57,8 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
 
   Initialize();
 
+  Deform();
+
   // at the end, transfer the connectivity and other unmodified data from the
   // input to the output mesh (copied from TransformMeshFilter)
   m_OutputMesh->SetPointData(m_InputMesh->GetPointData());
@@ -286,13 +288,63 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     }
   }
   
-  i = 0;
-  m_SurfaceVertices.resize(surfaceVerticesSet.size());
-  for(std::set<unsigned int>::iterator vsI=surfaceVerticesSet.begin();
-    vsI!=surfaceVerticesSet.end();vsI++,i++)
-    m_SurfaceVertices[i] = *vsI;
-  
+  std::insert_iterator<std::vector<unsigned int> >
+    viI(m_SurfaceVertices, m_SurfaceVertices.begin());
+  copy(surfaceVerticesSet.begin(), surfaceVerticesSet.end(), viI);
+  surfaceVerticesSet.clear();
   std::cout << m_SurfaceVertices.size() << " surface vertices found" << std::endl;
+
+  // Initialize the solver
+  m_Solver.load.clear();
+  m_Solver.el.clear();
+  m_Solver.node.clear();
+  
+
+  unsigned int GNcounter;
+  // Create nodes
+  std::cout << "Initializing the solver with nodes..." << std::endl;
+  InputPointsContainerIterator inPointsI =
+    m_InputMesh->GetPoints()->Begin();
+  GNcounter = 0;
+  while(inPointsI != m_InputMesh->GetPoints()->End()){
+    typename TInputMesh::PointType curPoint;
+    fem::Node::Pointer newNode;
+    curPoint = inPointsI.Value();
+    /*
+    std::cout << curPoint[0] << " " << curPoint[1] << " " << curPoint[2] << std::endl;
+    ++inPointsI;
+    */
+    newNode = 
+      new fem::Node(curPoint[0], curPoint[1], curPoint[2]);
+    newNode->GN = GNcounter;
+    m_Solver.node.push_back(fem::FEMP<fem::Node>(newNode));
+    GNcounter++;
+    ++inPointsI;
+  }
+
+  // Create elements 
+  std::cout << "Initializing solver with elements..." << std::endl;
+  GNcounter = 0;
+  InputCellsContainerIterator inCellsI =
+    m_InputMesh->GetCells()->Begin();
+  fem::Element3DC0LinearTetrahedronMembrane e0;
+  while(inCellsI != m_InputMesh->GetCells()->End()){
+    InputTetrahedronType *curMeshTet;
+    typename InputTetrahedronType::PointIdIterator ptI;
+    fem::Element3DC0LinearTetrahedron::Pointer newFEMTet;
+    
+    curMeshTet = 
+      dynamic_cast<InputTetrahedronType*>(inCellsI.Value());
+    newFEMTet = 
+      dynamic_cast<fem::Element3DC0LinearTetrahedron*>(e0.Clone());
+    ptI = curMeshTet->PointIdsBegin();
+    for(i=0;i<4;i++)
+      newFEMTet->SetNode(i, m_Solver.node.Find((unsigned int)*ptI++));
+    newFEMTet->GN = GNcounter;
+    m_Solver.el.push_back(fem::FEMP<fem::Element>(newFEMTet));
+    GNcounter++;
+    ++inCellsI;
+  }
 }
 
 /** PrintSelf */
@@ -351,6 +403,14 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
 ::DistanceBwPoints(double *c0, double *c1){
   return sqrt((c0[0]-c1[0])*(c0[0]-c1[0])+(c0[1]-c1[1])*(c0[1]-c1[1])+
     (c0[2]-c1[2])*(c0[2]-c1[2]));
+}
+
+/* Apply deformation (gradually) to the candidate mesh */
+template<class TInputMesh, class TOutputMesh, class TInputImage>
+void
+VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
+::Deform(){
+
 }
 
 } /** end namespace itk. */

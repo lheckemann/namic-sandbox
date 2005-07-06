@@ -133,6 +133,7 @@ public:
   typedef typename TOutputMesh::PointsContainer OutputPointsContainer;
   typedef typename TInputMesh::PointsContainerPointer InputPointsContainerPointer;
   typedef typename TOutputMesh::PointsContainerPointer OutputPointsContainerPointer;
+  typedef typename TInputMesh::PointsContainer::ConstIterator InputPointsContainerIterator;
   
   typedef typename TInputMesh::CellsContainer::ConstIterator InputCellsContainerIterator;
   typedef TetrahedronCell<ICellType> InputTetrahedronType;
@@ -151,7 +152,8 @@ public:
   typedef SubdivisionTestFunctionType* SubdivisionTestFunctionPointer;
   
   // TODO: document debug feature
-  itkSetMacro(InputImagePrefix, std::string); // 
+  itkSetMacro(InputImagePrefix, std::string); 
+  itkSetMacro(LinearSystemWrapperType, std::string);
 
   itkGetMacro(NumberOfPoints, unsigned);
   itkGetMacro(NumberOfTets, unsigned); // NAME: NumberOfTetras
@@ -257,8 +259,13 @@ private:
   unsigned long m_NumberOfPoints;
   unsigned long m_NumberOfTets;
 
-  bool Initialize();
+  // Solver
+  fem::Solver m_Solver;
+  std::string m_LinearSystemWrapperType;
+  
 
+  bool Initialize();
+  void Deform();
   // Utility functions
   float DistanceAtPoint(double* coords);
   float DistanceBwPoints(double *coord0, double* coord1);
