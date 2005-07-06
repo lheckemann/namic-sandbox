@@ -5,7 +5,9 @@ void
 TensorStatistics<T, dimension>
 ::ComputeMean(const TensorListPointerType tensorList, TensorType & mean) const
 {
-  TangentType tangent(0.0);
+  TangentType tangent(0.0), initialTangent;
+  T lastNormSquared, normSquared, initialNormSquared;
+  T currStepSize = stepSize;
   int i;
 
   if(tensorList->Size() == 0)
@@ -17,16 +19,30 @@ TensorStatistics<T, dimension>
     tangent += tensGeometry->LogMap(mean, tensorList->ElementAt(i));
 
   tangent = tangent * (1.0 / ((T) tensorList->Size()));
+  initialTangent = tangent;
 
-  while(tensGeometry->NormSquared(mean, tangent) >= EPSILON)
+  initialNormSquared = tensGeometry->NormSquared(mean, tangent);
+  lastNormSquared = initialNormSquared;
+  while(lastNormSquared >= EPSILON)
   {
-    mean = tensGeometry->ExpMap(mean, tangent);
+    mean = tensGeometry->ExpMap(mean, tangent * currStepSize);
 
     tangent.Fill(0.0);
     for(i = 0; i < tensorList->Size(); i++)
       tangent += tensGeometry->LogMap(mean, tensorList->ElementAt(i));
 
     tangent = tangent * (1.0 / ((T) tensorList->Size()));
+
+    normSquared = tensGeometry->NormSquared(mean, tangent);
+    if(normSquared >= lastNormSquared)
+    {
+      currStepSize *= 0.5;
+      mean = tensorList->ElementAt(0);
+      lastNormSquared = initialNormSquared;
+      tangent = initialTangent;
+    }
+    else
+      lastNormSquared = normSquared;
   }
 }
 
