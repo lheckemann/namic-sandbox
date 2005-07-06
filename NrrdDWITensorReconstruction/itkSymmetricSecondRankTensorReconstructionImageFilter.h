@@ -66,6 +66,40 @@ public:
   typedef VectorContainer< unsigned int, 
           GradientDirectionType >                  GradientDirectionContainerType;
   
+
+  /** Set method to add a gradient direction and its corresponding image. */
+  void AddGradientImage( const GradientDirectionType &, const GradientImageType *image);
+
+  /** Set method to set the reference image. */
+  void SetReferenceImage( const ReferenceImageType *referenceImage )
+    {
+    this->ProcessObject::SetNthInput( 0, referenceImage );
+    }
+    
+  /** Get reference image */
+  virtual ReferenceImageType * GetReferenceImage() const 
+  { return ( static_cast< ReferenceImageType *>(this->ProcessObject::GetInput(0)) ); }
+
+  /** Return the gradient image. idx is 0 based */
+  virtual GradientImageType * GetGradientImage( unsigned int idx ) const
+  {
+    if( idx >= m_NumberOfGradientDirections )
+      {
+      return NULL;
+      }
+    return ( static_cast< GradientImageType *>(this->ProcessObject::GetInput(idx+1)) ); 
+  }
+
+  /** Return the gradient direction. idx is 0 based */
+  virtual GradientDirectionType * GetGradientDirection( unsigned int idx) const
+    {
+    if( idx >= m_NumberOfGradientDirections )
+      {
+      return NULL;
+      }
+    return m_GradientDirectionContainer->ElementAt( idx+1 );
+    }
+
   
 protected:
   SymmetricSecondRankTensorReconstructionImageFilter();
@@ -78,7 +112,7 @@ private:
   /* Tensor basis coeffs */
   CoefficientMatrixType                             m_TensorBasisCoeffs;
 
-  GradientDirectionContainerType                    m_GradientDirectionContainer;
+  GradientDirectionContainerType::Pointer           m_GradientDirectionContainer;
 
   /** Number of gradient measurements */
   unsigned int                                      m_NumberOfGradientDirections;

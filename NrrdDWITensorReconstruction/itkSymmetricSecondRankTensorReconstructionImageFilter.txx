@@ -28,6 +28,11 @@ SymmetricSecondRankTensorReconstructionImageFilter< TReferenceImagePixelType,
 ::SymmetricSecondRankTensorReconstructionImageFilter()
 {
   this->SetNumberOfRequiredInputs( 6 ); // At least 6 inputs are necessary
+
+  m_GradientDirectionContainer = GradientDirectionContainerType::New();
+
+  m_NumberOfGradientDirections = 0;
+ 
 }
 
 
@@ -59,6 +64,7 @@ void SymmetricSecondRankTensorReconstructionImageFilter< TReferenceImagePixelTyp
   TGradientImagePixelType, TTensorPixelType >
 ::AfterThreadedGenerateData()
 {
+
 }
 
 
@@ -68,6 +74,22 @@ void SymmetricSecondRankTensorReconstructionImageFilter< TReferenceImagePixelTyp
   TGradientImagePixelType, TTensorPixelType >
 ::ThreadedGenerateData()
 {
+}
+
+
+template< class TReferenceImagePixelType, 
+          class TGradientImagePixelType, class TTensorPixelType >
+void SymmetricSecondRankTensorReconstructionImageFilter< TReferenceImagePixelType,
+  TGradientImagePixelType, TTensorPixelType >
+::AddGradientImage( const GradientDirectionType &gradientDirection, 
+                        const GradientImageType *gradientImage )
+{
+  m_GradientDirectionContainer->InsertElement( 
+              m_NumberOfGradientDirections, gradientDirection );
+  ++m_NumberOfGradientDirections;
+  this->ProcessObject::SetNthInput( m_NumberOfGradientDirections, 
+      const_cast< GradientImageType* >(gradientImage) );
+  
 }
 
 
