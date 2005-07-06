@@ -25,10 +25,10 @@ SymmetricSpaceTensorGeometry<T, dimension>
     diagInv[i][i] = (1.0 / diag[i][i]);
   }
 
-  g = eigenVectors.GetVnlMatrix() * diag.GetVnlMatrix();
+  g = eigenVectors.GetTranspose() * diag.GetVnlMatrix();
   gTrans = g.transpose();
 
-  gInv = diagInv.GetVnlMatrix() * eigenVectors.GetTranspose();
+  gInv = diagInv.GetVnlMatrix() * eigenVectors.GetVnlMatrix();
   gInvTrans = gInv.transpose();
 
   TensorToMatrix(v, vMatrix);
@@ -65,8 +65,8 @@ SymmetricSpaceTensorGeometry<T, dimension>
     diagInv[i][i] = 1.0 / diag[i][i];
   }
 
-  g = eigenVectors.GetVnlMatrix() * diag.GetVnlMatrix();
-  gInv = diagInv.GetVnlMatrix() * eigenVectors.GetTranspose();
+  g = eigenVectors.GetTranspose() * diag.GetVnlMatrix();
+  gInv = diagInv.GetVnlMatrix() * eigenVectors.GetVnlMatrix();
 
   TensorToMatrix(v, vMatrix);
 
@@ -78,8 +78,8 @@ SymmetricSpaceTensorGeometry<T, dimension>
   for(i = 0; i < dimension; i++)
     diag[i][i] = exp(eigenValues[i]);
 
-  result = (g * eigenVectors.GetVnlMatrix() * diag.GetVnlMatrix() * 
-            eigenVectors.GetTranspose() * g.transpose());
+  result = (g * eigenVectors.GetTranspose() * diag.GetVnlMatrix() * 
+            eigenVectors.GetVnlMatrix() * g.transpose());
 
   MatrixToTensor(result, tensor);
   return tensor;
@@ -114,8 +114,8 @@ SymmetricSpaceTensorGeometry<T, dimension>
 
   TensorToMatrix(p, pMatrix);
 
-  g = eigenVectors.GetVnlMatrix() * diag.GetVnlMatrix();
-  gInv = diagInv.GetVnlMatrix() * eigenVectors.GetTranspose();
+  g = eigenVectors.GetTranspose() * diag.GetVnlMatrix();
+  gInv = diagInv.GetVnlMatrix() * eigenVectors.GetVnlMatrix();
 
   y = gInv * pMatrix.GetVnlMatrix() * gInv.transpose();
 
@@ -125,8 +125,8 @@ SymmetricSpaceTensorGeometry<T, dimension>
   for(i = 0; i < dimension; i++)
     diag[i][i] = log(eigenValues[i]);
 
-  result = (g * eigenVectors.GetVnlMatrix() * diag.GetVnlMatrix() * 
-            eigenVectors.GetTranspose() * g.transpose());
+  result = (g * eigenVectors.GetTranspose() * diag.GetVnlMatrix() * 
+            eigenVectors.GetVnlMatrix() * g.transpose());
 
   MatrixToTensor(result, tensor);
   return tensor;
@@ -152,9 +152,9 @@ SymmetricSpaceTensorGeometry<T, dimension>
 
     for(i = 0; i < dimension; i++)
     {
-      tempVal = eigenVectors[i][0];
-      eigenVectors[i][0] = eigenVectors[i][1];
-      eigenVectors[i][1] = tempVal;
+      tempVal = eigenVectors[0][i];
+      eigenVectors[0][i] = eigenVectors[1][i];
+      eigenVectors[1][i] = tempVal;
     }
   }
 }
