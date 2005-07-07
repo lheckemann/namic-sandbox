@@ -366,6 +366,7 @@ private:
   void SplitEdge(RGMEdge_ptr);
   RGMEdge_ptr GetPutTmpEdge(RGMVertex_ptr, RGMVertex_ptr);
   void FindEnvelopedVertices(float edge_inside);
+  void EnforceOrientation();
 };
 
 } // end namespace itk

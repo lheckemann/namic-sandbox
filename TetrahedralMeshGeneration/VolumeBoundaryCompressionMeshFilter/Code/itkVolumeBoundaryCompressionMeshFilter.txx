@@ -91,7 +91,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
 
   // Compute the distance image
   //  1. Cast the input image to the internal format
-  
+  // TODO: make sure the input image is binary!
   bool read_failed = false;
   if(m_InputImagePrefix.size()){
     // try to read the distance image
@@ -281,6 +281,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
       TetFace thisFace = (*face2cntI).first;
       for(j=0;j<3;j++)
         surfaceVerticesSet.insert(thisFace.nodes[j]);
+      m_SurfaceFaces.push_back(thisFace);
       break;}
     case 2: break;
     case 0:
@@ -292,13 +293,19 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     viI(m_SurfaceVertices, m_SurfaceVertices.begin());
   copy(surfaceVerticesSet.begin(), surfaceVerticesSet.end(), viI);
   surfaceVerticesSet.clear();
+  
+  i = 0;
+  for(std::vector<unsigned int>::iterator vI=m_SurfaceVertices.begin();
+    vI!=m_SurfaceVertices.end();vI++,i++)
+    m_SurfaceVertex2Pos[*vI] = i;
+  
   std::cout << m_SurfaceVertices.size() << " surface vertices found" << std::endl;
+  std::cout << m_SurfaceFaces.size() << " surface faces found" << std::endl;
 
   // Initialize the solver
   m_Solver.load.clear();
   m_Solver.el.clear();
   m_Solver.node.clear();
-  
 
   unsigned int GNcounter;
   // Create nodes
@@ -321,6 +328,18 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     GNcounter++;
     ++inPointsI;
   }
+  
+  // Initialize the material properties
+  fem::MaterialLinearElasticity::Pointer material;
+  material = fem::MaterialLinearElasticity::New();
+  material->GN = 0;
+  material->E = 10000;
+  material->A = 1.0;
+  material->h = 1.0;
+  material->I = 1.0;
+  material->nu = 0.45;
+  material->RhoC = 1.0;
+  m_Solver.mat.push_back(fem::FEMP<fem::Material>(material));
 
   // Create elements 
   std::cout << "Initializing solver with elements..." << std::endl;
@@ -340,11 +359,17 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     ptI = curMeshTet->PointIdsBegin();
     for(i=0;i<4;i++)
       newFEMTet->SetNode(i, m_Solver.node.Find((unsigned int)*ptI++));
+    // all of the elements have the same material assigned
+    newFEMTet->SetMaterial(m_Solver.mat.Find(0));
     newFEMTet->GN = GNcounter;
     m_Solver.el.push_back(fem::FEMP<fem::Element>(newFEMTet));
     GNcounter++;
     ++inCellsI;
   }
+
+  // the set of nodes, elements, and materials of the slver will not change during the
+  // deformation. Loads will be changing between timesteps (most likely)
+  
 }
 
 /** PrintSelf */
@@ -410,7 +435,62 @@ template<class TInputMesh, class TOutputMesh, class TInputImage>
 void
 VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
 ::Deform(){
+  // Initialize the BC loads. The displacement direction is defined by normals
+  // to tetrahedra faces, and then it is scaled by signed distance to the
+  // surface.
+  unsigned int i, j;
+  unsigned int max_iter = 1;
+  double *U;
+  
+  U = new double [m_SurfaceVertices.size()*3];
+  bzero((void*)U, m_SurfaceVertices.size()*3*sizeof(double));
+  for(i=0;i<max_iter;i++){
+    // Calculate the displacement unit vectors for all surface vertices
+    for(typename std::vector<TetFace>::iterator fI=m_SurfaceFaces.begin();
+      fI!=m_SurfaceFaces.end();fI++){
+      TetFace thisFace;
 
+      thisFace = *fI;
+      for(j=0;j<3;j++){
+        double v[3][3];
+        double Fd[3];
+        double Fdl, Fl;
+
+        /*
+        fem::FEMP<fem::Node> curNode;
+        curNode = dynamic_cast<fem::FEMP<fem::Node> >
+          m_Solver.node.Find(thisFace.nodes[j]);
+        */
+        
+        v[0][0] = m_Solver.node.Find(thisFace.nodes[j])->GetCoordinates()[0];
+        /*
+//        v[0][1] = curNode.GetCoordinates()[1];
+//        v[0][2] = curNode.GetCoordinates()[2];
+//        memcpy(&v[0][0], &vertices[(*fI).nodes[i]*3], sizeof(double)*3);
+        for(j=1;j<3;j++)
+          for(k=0;k<3;k++)
+            v[j][k] =  vertices[(*fI).nodes[(i+j)%3]*3+k] - v[0][k];
+
+        Fd[0] = (v[1][1]*v[2][2] - v[1][2]*v[2][1]);
+        Fd[1] = (v[1][2]*v[2][0] - v[1][0]*v[2][2]);
+        Fd[2] = (v[1][0]*v[2][1] - v[1][1]*v[2][0]);
+        Fdl = sqrtf(Fd[0]*Fd[0]+Fd[1]*Fd[1]+Fd[2]*Fd[2]);
+
+        assert(Fdl);
+
+        unsigned thisV_id = correspond[(*fI).nodes[i]];
+        if(thisV_id>=n_surface_vertices){
+          std::cout << "Vertex id is " << thisV_id << std::endl;
+          assert(0);
+        }
+        bc->Displacements[thisV_id*3] += Fd[0];
+        bc->Displacements[thisV_id*3+1] += Fd[1];
+        bc->Displacements[thisV_id*3+2] += Fd[2];
+        */
+      }
+    }
+  }
+  delete [] U;
 }
 
 } /** end namespace itk. */

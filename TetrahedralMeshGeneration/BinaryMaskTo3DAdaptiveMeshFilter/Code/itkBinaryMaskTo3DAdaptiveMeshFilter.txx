@@ -425,7 +425,8 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
   }
 
   std::cout << num_discarded << " tets have been discarded" << std::endl;
-  // Prepare the output
+  // Prepare the output, make sure that all terahedra are oriented
+  // consistently
   std::map<RGMVertex_ptr,unsigned long> vertex2id;
   typename OutputMeshType::Pointer output_mesh = this->GetOutput();
   for(typename std::list<RGMTetra_ptr>::iterator tI=m_Tetras.begin();
@@ -433,8 +434,17 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
     RGMVertex_ptr thisT_nodes[4];
     unsigned long thisT_point_ids[4];
     
-    thisT_nodes[0] = (*tI)->edges[0]->nodes[0];
-    thisT_nodes[1] = (*tI)->edges[0]->nodes[1];
+    if(orient3d((*tI)->edges[0]->nodes[0]->coords, 
+        (*tI)->edges[0]->nodes[0]->coords, 
+        (*tI)->edges[0]->nodes[0]->coords, 
+        (*tI)->edges[0]->nodes[0]->coords)>0){
+      thisT_nodes[0] = (*tI)->edges[0]->nodes[0];
+      thisT_nodes[1] = (*tI)->edges[0]->nodes[1];
+    } else {
+      thisT_nodes[1] = (*tI)->edges[0]->nodes[0];
+      thisT_nodes[0] = (*tI)->edges[0]->nodes[1];
+    }
+    
     thisT_nodes[2] = (*tI)->edges[1]->nodes[0];
     thisT_nodes[3] = (*tI)->edges[1]->nodes[1];
 

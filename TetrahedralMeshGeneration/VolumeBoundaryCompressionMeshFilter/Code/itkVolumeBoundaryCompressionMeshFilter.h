@@ -177,6 +177,7 @@ private:
 
   class TetFace{
   public:
+    TetFace(){};
     TetFace(unsigned int v0, unsigned int v1, unsigned int v2){
       if(v0<v1)
         if(v1<v2){
@@ -255,6 +256,8 @@ private:
   std::string m_InputImagePrefix;
 
   std::vector<unsigned int> m_SurfaceVertices;
+  std::map<unsigned int,unsigned int> m_SurfaceVertex2Pos;
+  std::vector<TetFace> m_SurfaceFaces;
 
   unsigned long m_NumberOfPoints;
   unsigned long m_NumberOfTets;
