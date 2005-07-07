@@ -14,14 +14,13 @@ ENDIF(ITK_FOUND)
 ADD_EXECUTABLE(ncutfib ncutfib.cxx)
 ADD_EXECUTABLE(Fib2VTK Fib2VTK.cxx)
 ADD_EXECUTABLE(VTK2Fib VTK2Fib.cxx)
-
+ADD_EXECUTABLE(Slicer2Fib Slicer2Fib.cxx)
 ADD_EXECUTABLE(NrrdReorient NrrdReorient.cxx)
 
 TARGET_LINK_LIBRARIES(NrrdReorient ITKCommon ITKNumerics ITKNrrdIO ITKIO vtkIO vtkCommon vtkImaging vtkFiltering)
 TARGET_LINK_LIBRARIES(ncutfib ITKCommon ITKIO ITKNumerics)
-TARGET_LINK_LIBRARIES(Fib2VTK ITKCommon ITKNumerics ITKNrrdIO ITKIO
-vtkIO vtkCommon vtkImaging vtkFiltering)
-TARGET_LINK_LIBRARIES(VTK2Fib ITKCommon ITKNumerics ITKNrrdIO ITKIO
-vtkIO vtkCommon vtkImaging vtkFiltering)
+TARGET_LINK_LIBRARIES(Fib2VTK ITKCommon ITKNumerics ITKNrrdIO ITKIO vtkIO vtkCommon vtkImaging vtkFiltering)
+TARGET_LINK_LIBRARIES(VTK2Fib ITKCommon ITKNumerics ITKNrrdIO ITKIO vtkIO vtkCommon vtkImaging vtkFiltering)
+TARGET_LINK_LIBRARIES(Slicer2Fib ITKCommon ITKNumerics ITKNrrdIO ITKIO vtkIO vtkCommon vtkImaging vtkFiltering)
 
-INSTALL_TARGETS(/bin ncutfib Fib2VTK VTK2Fib NrrdReorient)
+INSTALL_TARGETS(/bin ncutfib Fib2VTK VTK2Fib Slicer2Fib NrrdReorient)
