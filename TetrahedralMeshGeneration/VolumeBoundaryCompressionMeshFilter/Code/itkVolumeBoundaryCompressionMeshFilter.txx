@@ -528,7 +528,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     unsigned int curVertexID;
 
     curVertexID = m_SurfaceVertices[i];
-    std::cout << "Vertex " << curVertexID << std::endl;
+//    std::cout << "Vertex " << curVertexID << std::endl;
     length = sqrtf(U[i*3]*U[i*3] + U[i*3+1]*U[i*3+1] +
       U[i*3+2]*U[i*3+2]);
 
@@ -581,6 +581,25 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   std::cout << "Total surface vertices: " << m_SurfaceVertices.size() << std::endl;
   
   delete [] U;
+
+  // Run the solver!
+  m_Solver.GenerateGFN();
+  fem::LinearSystemWrapperVNL lsw_vnl;
+  fem::LinearSystemWrapperItpack lsw_itpack;
+  m_Solver.SetLinearSystemWrapper(&lsw_itpack);
+  try{
+    std::cout << "AssembleK()..." << std::endl;
+    m_Solver.AssembleK();
+    std::cout << "DecomposeK()..." << std::endl;
+    m_Solver.DecomposeK();
+    std::cout << "AssembleF()..." << std::endl;
+    m_Solver.AssembleF();
+    std::cout << "Solve!!!..." << std::endl;
+    m_Solver.Solve();
+  }catch(ExceptionObject &e){
+    std::cout << "Exception " << e << std::endl;
+    assert(0);
+  }
 }
 
 } /** end namespace itk. */
