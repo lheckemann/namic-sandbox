@@ -257,6 +257,7 @@ private:
 
   std::vector<unsigned int> m_SurfaceVertices;
   std::map<unsigned int,unsigned int> m_SurfaceVertex2Pos;
+  std::map<void*,unsigned int> m_SurfaceNode2Pos;
   std::vector<TetFace> m_SurfaceFaces;
 
   unsigned long m_NumberOfPoints;

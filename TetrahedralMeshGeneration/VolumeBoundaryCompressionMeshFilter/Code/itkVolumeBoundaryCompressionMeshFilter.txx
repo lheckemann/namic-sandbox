@@ -215,6 +215,10 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     }
   }
 
+  // Initialize the interpolator
+  m_Interpolator = InterpolatorType::New();
+  m_Interpolator->SetInputImage(m_DistanceImage);
+
   // Mesh input/output initialization
 
   this->m_InputMesh = 
@@ -296,8 +300,9 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   
   i = 0;
   for(std::vector<unsigned int>::iterator vI=m_SurfaceVertices.begin();
-    vI!=m_SurfaceVertices.end();vI++,i++)
+    vI!=m_SurfaceVertices.end();vI++,i++){
     m_SurfaceVertex2Pos[*vI] = i;
+  }
   
   std::cout << m_SurfaceVertices.size() << " surface vertices found" << std::endl;
   std::cout << m_SurfaceFaces.size() << " surface faces found" << std::endl;
@@ -328,6 +333,17 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     GNcounter++;
     ++inPointsI;
   }
+
+  // Initialize the node to position within surface nodes vector map
+  for(std::vector<unsigned int>::iterator vI=m_SurfaceVertices.begin();vI!=m_SurfaceVertices.end();vI++)
+    try{
+      m_SurfaceNode2Pos[(void*)m_Solver.node.Find(*vI)] = *vI;
+    } catch(ExceptionObject &e){
+      std::cout << "Node " << *vI << " not found: " << e << std::endl;
+      assert(0);
+    }
+
+    
   
   // Initialize the material properties
   fem::MaterialLinearElasticity::Pointer material;
@@ -358,7 +374,13 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
       dynamic_cast<fem::Element3DC0LinearTetrahedron*>(e0.Clone());
     ptI = curMeshTet->PointIdsBegin();
     for(i=0;i<4;i++)
-      newFEMTet->SetNode(i, m_Solver.node.Find((unsigned int)*ptI++));
+      try{
+        newFEMTet->SetNode(i, m_Solver.node.Find((unsigned int)*ptI++));
+      } catch(ExceptionObject &e){
+        std::cout << "Node not found: " << e << std::endl;
+        assert(0);
+      }
+
     // all of the elements have the same material assigned
     newFEMTet->SetMaterial(m_Solver.mat.Find(0));
     newFEMTet->GN = GNcounter;
@@ -438,13 +460,18 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   // Initialize the BC loads. The displacement direction is defined by normals
   // to tetrahedra faces, and then it is scaled by signed distance to the
   // surface.
-  unsigned int i, j;
+  unsigned int i, j, k, l;
+  unsigned int curVertexPos;
   unsigned int max_iter = 1;
   double *U;
   
   U = new double [m_SurfaceVertices.size()*3];
   bzero((void*)U, m_SurfaceVertices.size()*3*sizeof(double));
+  
   for(i=0;i<max_iter;i++){
+
+    std::cout << "Initializing loads..." << std::endl;
+
     // Calculate the displacement unit vectors for all surface vertices
     for(typename std::vector<TetFace>::iterator fI=m_SurfaceFaces.begin();
       fI!=m_SurfaceFaces.end();fI++){
@@ -462,34 +489,97 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
           m_Solver.node.Find(thisFace.nodes[j]);
         */
         
-        v[0][0] = m_Solver.node.Find(thisFace.nodes[j])->GetCoordinates()[0];
-        /*
-//        v[0][1] = curNode.GetCoordinates()[1];
-//        v[0][2] = curNode.GetCoordinates()[2];
-//        memcpy(&v[0][0], &vertices[(*fI).nodes[i]*3], sizeof(double)*3);
-        for(j=1;j<3;j++)
-          for(k=0;k<3;k++)
-            v[j][k] =  vertices[(*fI).nodes[(i+j)%3]*3+k] - v[0][k];
+        try{
+          v[0][0] = m_Solver.node.Find(thisFace.nodes[j])->GetCoordinates()[0];
+          v[0][1] = m_Solver.node.Find(thisFace.nodes[j])->GetCoordinates()[1];
+          v[0][2] = m_Solver.node.Find(thisFace.nodes[j])->GetCoordinates()[2];
+        } catch(ExceptionObject &e){
+          std::cout << "Node not found: " << e << std::endl;
+          assert(0);
+        }
+      
+        for(k=1;k<3;k++)
+          for(l=0;l<3;l++)
+            try{
+              v[k][l] =  
+                m_Solver.node.Find(thisFace.nodes[(j+k)%3])->GetCoordinates()[l] - v[0][l];
+            } catch(ExceptionObject &e){
+              std::cout << "Node not found: " << e << std::endl;
+              assert(0);
+            }
 
         Fd[0] = (v[1][1]*v[2][2] - v[1][2]*v[2][1]);
         Fd[1] = (v[1][2]*v[2][0] - v[1][0]*v[2][2]);
         Fd[2] = (v[1][0]*v[2][1] - v[1][1]*v[2][0]);
         Fdl = sqrtf(Fd[0]*Fd[0]+Fd[1]*Fd[1]+Fd[2]*Fd[2]);
-
         assert(Fdl);
 
-        unsigned thisV_id = correspond[(*fI).nodes[i]];
-        if(thisV_id>=n_surface_vertices){
-          std::cout << "Vertex id is " << thisV_id << std::endl;
-          assert(0);
-        }
-        bc->Displacements[thisV_id*3] += Fd[0];
-        bc->Displacements[thisV_id*3+1] += Fd[1];
-        bc->Displacements[thisV_id*3+2] += Fd[2];
-        */
+        curVertexPos = m_SurfaceVertex2Pos[thisFace.nodes[j]];
+        for(k=0;k<3;k++)
+          U[curVertexPos*3+k] = Fd[k];
       }
     }
   }
+  
+  // Scale each of the vectors based on the distance to the surface
+  for(i=0;i<m_SurfaceVertices.size();i++){
+    float distance, length;
+    double coords[3];
+    unsigned int curVertexID;
+
+    curVertexID = m_SurfaceVertices[i];
+    std::cout << "Vertex " << curVertexID << std::endl;
+    length = sqrtf(U[i*3]*U[i*3] + U[i*3+1]*U[i*3+1] +
+      U[i*3+2]*U[i*3+2]);
+
+    for(j=0;j<3;j++)
+      try{
+        coords[j] = 
+          m_Solver.node.Find(curVertexID)->GetCoordinates()[j];
+      } catch(ExceptionObject &e){
+        std::cout << "Node not found: " << e << std::endl;
+        assert(0);
+      }
+    
+    distance = DistanceAtPoint(coords);
+    // the image is unit-spaced
+    for(j=0;j<3;j++)
+      U[i*3+j] *= (distance/length);
+  }
+
+  // Initialize BC loads for the displaced vertices
+  // Go thru all the elements, for each element check each vertex if it is one
+  // of the surface vertices initialize the load appropriately
+  m_Solver.load.clear();
+  for(fem::Element::ArrayType::iterator 
+    e = m_Solver.el.begin();e!=m_Solver.el.end();e++){
+    unsigned int curVertexPos;
+    assert((*e)->GetNumberOfDegreesOfFreedom() == 12);
+    for(i=0;i<4;i++){
+      std::map<void*,unsigned int>::iterator nodeI;
+
+      nodeI = m_SurfaceNode2Pos.find((void*)(*e)->GetNode(i));
+      if(nodeI != m_SurfaceNode2Pos.end()){
+        curVertexPos = (*nodeI).second;
+
+        for(j=0;j<3;j++){
+          fem::LoadBC::Pointer newLoad;
+          newLoad = fem::LoadBC::New();
+          newLoad->m_element = *e;
+          newLoad->m_dof = i*3+j;
+          newLoad->m_value = U[curVertexPos*3+j];
+          m_Solver.load.push_back(fem::FEMP<fem::Load>(newLoad));
+        } // for (each degree of freedom for a node)
+      } // if (a node is on the surface
+    } // for (all nodes of a terahedron)
+  } // for (all elements of the mesh)
+  
+  std::cout << "Solver initialized" << std::endl;
+  std::cout << "Total nodes: " << m_Solver.node.size() << std::endl;
+  std::cout << "Total elements: " << m_Solver.el.size() << std::endl;
+  std::cout << "Total loads: " << m_Solver.load.size() << std::endl;
+  std::cout << "Total surface vertices: " << m_SurfaceVertices.size() << std::endl;
+  
   delete [] U;
 }
 
