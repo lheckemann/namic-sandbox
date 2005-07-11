@@ -63,7 +63,8 @@ int main(int argc, char** argv){
     MeshUtilType::meshToUnstructuredGrid(tetra_mesh);
   vtkUnstructuredGridWriter *vtk_tetra_mesh_writer =
     vtkUnstructuredGridWriter::New();
-  vtk_tetra_mesh_writer->SetFileName((std::string("/tmp/")+argv[1]+".vtk").c_str());
+
+  vtk_tetra_mesh_writer->SetFileName((std::string("/tmp/")+argv[1]+"-original.vtk").c_str());
   vtk_tetra_mesh_writer->SetInput(vtk_tetra_mesh);
   vtk_tetra_mesh_writer->Update();
 
@@ -77,6 +78,13 @@ int main(int argc, char** argv){
   } catch(itk::ExceptionObject &e){
     std::cerr << "Failed to update the compressor: " << e << std::endl;
   }
+  
+  vtkUnstructuredGrid* vtk_deformed_tetra_mesh =
+    MeshUtilType::meshToUnstructuredGrid(compressor->GetOutput());
+  
+  vtk_tetra_mesh_writer->SetFileName((std::string("/tmp/")+argv[1]+"-deformed.vtk").c_str());
+  vtk_tetra_mesh_writer->SetInput(vtk_deformed_tetra_mesh);
+  vtk_tetra_mesh_writer->Update();
 
   return 0;
 }

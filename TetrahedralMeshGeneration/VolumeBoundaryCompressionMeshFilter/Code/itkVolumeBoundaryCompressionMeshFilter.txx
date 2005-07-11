@@ -57,6 +57,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
 
   Initialize();
 
+  // Only nodal coordinates will change after the deformation
   Deform();
 
   // at the end, transfer the connectivity and other unmodified data from the
@@ -335,9 +336,10 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   }
 
   // Initialize the node to position within surface nodes vector map
-  for(std::vector<unsigned int>::iterator vI=m_SurfaceVertices.begin();vI!=m_SurfaceVertices.end();vI++)
+  i = 0;
+  for(std::vector<unsigned int>::iterator vI=m_SurfaceVertices.begin();vI!=m_SurfaceVertices.end();vI++,i++)
     try{
-      m_SurfaceNode2Pos[(void*)m_Solver.node.Find(*vI)] = *vI;
+      m_SurfaceNode2Pos[(void*)m_Solver.node.Find(*vI)] = i;
     } catch(ExceptionObject &e){
       std::cout << "Node " << *vI << " not found: " << e << std::endl;
       assert(0);
@@ -464,7 +466,10 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   unsigned int curVertexPos;
   unsigned int max_iter = 1;
   double *U;
+  std::ofstream outfile;
   
+  
+
   U = new double [m_SurfaceVertices.size()*3];
   bzero((void*)U, m_SurfaceVertices.size()*3*sizeof(double));
   
@@ -522,6 +527,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   }
   
   // Scale each of the vectors based on the distance to the surface
+  float max_displacement = 0, displacement;
   for(i=0;i<m_SurfaceVertices.size();i++){
     float distance, length;
     double coords[3];
@@ -542,15 +548,24 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
       }
     
     distance = DistanceAtPoint(coords);
+  //  std::cout << "Distance at point: " << distance << std::endl;
     // the image is unit-spaced
-    for(j=0;j<3;j++)
+    displacement = 0;
+    for(j=0;j<3;j++){
       U[i*3+j] *= (distance/length);
+      displacement += U[i*3+j]*U[i*3+j];
+      if(displacement>max_displacement)
+        max_displacement = displacement;
+    }
   }
-
+  std::cout << "Max displacement is " << sqrtf(max_displacement) << std::endl;
+  
   // Initialize BC loads for the displaced vertices
   // Go thru all the elements, for each element check each vertex if it is one
   // of the surface vertices initialize the load appropriately
   m_Solver.load.clear();
+  unsigned thisGN = 0;
+  std::set<void*> initialized_nodes;
   for(fem::Element::ArrayType::iterator 
     e = m_Solver.el.begin();e!=m_Solver.el.end();e++){
     unsigned int curVertexPos;
@@ -561,16 +576,26 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
       nodeI = m_SurfaceNode2Pos.find((void*)(*e)->GetNode(i));
       if(nodeI != m_SurfaceNode2Pos.end()){
         curVertexPos = (*nodeI).second;
-
-        for(j=0;j<3;j++){
-          fem::LoadBC::Pointer newLoad;
-          newLoad = fem::LoadBC::New();
-          newLoad->m_element = *e;
-          newLoad->m_dof = i*3+j;
-          newLoad->m_value = U[curVertexPos*3+j];
-          m_Solver.load.push_back(fem::FEMP<fem::Load>(newLoad));
-        } // for (each degree of freedom for a node)
-      } // if (a node is on the surface
+        assert(curVertexPos < m_SurfaceVertices.size());
+        if(initialized_nodes.find((void*)(*e)->GetNode(i)) ==
+          initialized_nodes.end()){
+          initialized_nodes.insert((void*)(*e)->GetNode(i));
+          for(j=0;j<3;j++){
+            fem::LoadBC::Pointer newLoad;
+            newLoad = fem::LoadBC::New();
+            newLoad->m_element = *e;
+            newLoad->m_dof = i*3+j;
+            newLoad->m_value.set_size(1);
+            newLoad->m_value = U[curVertexPos*3+j];
+            if(fabs((double)U[curVertexPos*3+j]==0))
+              newLoad->m_value = 0.0;
+          //  std::cout << newLoad->m_value << std::endl;
+            newLoad->GN = thisGN;
+            m_Solver.load.push_back(fem::FEMP<fem::Load>(newLoad));
+            thisGN++;
+          } // for (each degree of freedom for a node)
+        } // if the node has not been visited yet
+      } // if (a node is on the surface)
     } // for (all nodes of a terahedron)
   } // for (all elements of the mesh)
   
@@ -581,12 +606,18 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   std::cout << "Total surface vertices: " << m_SurfaceVertices.size() << std::endl;
   
   delete [] U;
+  
+  outfile.open("/tmp/solver_before.dat");
+  m_Solver.Write(outfile);
+  outfile.close();
 
   // Run the solver!
   m_Solver.GenerateGFN();
   fem::LinearSystemWrapperVNL lsw_vnl;
   fem::LinearSystemWrapperItpack lsw_itpack;
-  m_Solver.SetLinearSystemWrapper(&lsw_itpack);
+  fem::LinearSystemWrapperDenseVNL lsw_dvnl;
+  lsw_itpack.SetMaximumNonZeroValuesInMatrix(200000);
+  m_Solver.SetLinearSystemWrapper(&lsw_vnl);
   try{
     std::cout << "AssembleK()..." << std::endl;
     m_Solver.AssembleK();
@@ -600,6 +631,40 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     std::cout << "Exception " << e << std::endl;
     assert(0);
   }
+
+  // Update the output mesh nodal coordinates
+  i = 0;
+  max_displacement = 0;
+  for(fem::Solver::NodeArray::iterator n=m_Solver.node.begin();
+    n!=m_Solver.node.end();n++){
+    typename OutputMeshType::PointType newPoint;
+
+    newPoint[0] = (*n)->GetCoordinates()[0];
+    newPoint[1] = (*n)->GetCoordinates()[1];
+    newPoint[2] = (*n)->GetCoordinates()[2];
+
+    std::cout << newPoint << "-->";
+//    std::cout << "[ ";
+    displacement = 0;
+    for(unsigned int d=0, dof;(dof=(*n)->GetDegreeOfFreedom(d))!=fem::Element::InvalidDegreeOfFreedomID; d++){
+      newPoint[d] += m_Solver.GetSolution(dof);
+      displacement += newPoint[d]*newPoint[d];
+//      std::cout << m_Solver.GetSolution(dof) << " ";
+    }
+//    std::cout << "]" << std::endl;
+    if(displacement>max_displacement)
+      max_displacement = displacement;
+    std::cout << newPoint << std::endl;
+    this->GetOutput()->SetPoint(i, newPoint);
+    i++;
+  }
+  std::cout << "Max solution displacement is " << sqrtf(max_displacement) << std::endl;
+  
+  outfile.open("/tmp/solver_after.dat");
+  m_Solver.Write(outfile);
+  outfile.close();
+
+  this->GetOutput()->SetBufferedRegion(this->GetOutput()->GetRequestedRegion());
 }
 
 } /** end namespace itk. */
