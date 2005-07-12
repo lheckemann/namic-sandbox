@@ -16,11 +16,13 @@ ADD_EXECUTABLE(Fib2VTK Fib2VTK.cxx)
 ADD_EXECUTABLE(VTK2Fib VTK2Fib.cxx)
 ADD_EXECUTABLE(Slicer2Fib Slicer2Fib.cxx)
 ADD_EXECUTABLE(NrrdReorient NrrdReorient.cxx)
+ADD_EXECUTABLE(Dartmouth2nrrd Dartmouth2nrrd.cxx)
 
 TARGET_LINK_LIBRARIES(NrrdReorient ITKCommon ITKNumerics ITKNrrdIO ITKIO vtkIO vtkCommon vtkImaging vtkFiltering)
 TARGET_LINK_LIBRARIES(ncutfib ITKCommon ITKIO ITKNumerics)
 TARGET_LINK_LIBRARIES(Fib2VTK ITKCommon ITKNumerics ITKNrrdIO ITKIO vtkIO vtkCommon vtkImaging vtkFiltering)
 TARGET_LINK_LIBRARIES(VTK2Fib ITKCommon ITKNumerics ITKNrrdIO ITKIO vtkIO vtkCommon vtkImaging vtkFiltering)
 TARGET_LINK_LIBRARIES(Slicer2Fib ITKCommon ITKNumerics ITKNrrdIO ITKIO vtkIO vtkCommon vtkImaging vtkFiltering)
+TARGET_LINK_LIBRARIES(Dartmouth2nrrd ITKCommon ITKNumerics ITKNrrdIO ITKIO)
 
 INSTALL_TARGETS(/bin ncutfib Fib2VTK VTK2Fib Slicer2Fib NrrdReorient)
