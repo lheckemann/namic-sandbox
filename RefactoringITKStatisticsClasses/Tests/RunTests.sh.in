@@ -16,7 +16,7 @@
 #./itkStatisticsTests itkListSampleToHistogramGeneratorTest
 #./itkStatisticsTests itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest
 #./itkStatisticsTests itkMeanCalculatorTest
-#./itkStatisticsTests itkMembershipSampleTest
+./itkStatisticsTests itkMembershipSampleTest
 #./itkStatisticsTests itkNeighborhoodSamplerTest
 #./itkStatisticsTests itkMembershipSampleGeneratorTest
 #./itkStatisticsTests itkSampleClassifierTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat

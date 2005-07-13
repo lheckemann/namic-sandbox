@@ -31,7 +31,7 @@ ADD_TEST(itkListSampleTest ${STATISTICS_TESTS} itkListSampleTest 4)
 #ADD_TEST(itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest ${STATISTICS_TESTS} 
 #         itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest)
 #ADD_TEST(itkMeanCalculatorTest ${STATISTICS_TESTS} itkMeanCalculatorTest)
-#ADD_TEST(itkMembershipSampleTest ${STATISTICS_TESTS} itkMembershipSampleTest)
+ADD_TEST(itkMembershipSampleTest ${STATISTICS_TESTS} itkMembershipSampleTest)
 #ADD_TEST(itkNeighborhoodSamplerTest ${STATISTICS_TESTS} itkNeighborhoodSamplerTest)
 #ADD_TEST(itkMembershipSampleGeneratorTest ${STATISTICS_TESTS} itkMembershipSampleGeneratorTest)
 #
@@ -72,7 +72,7 @@ itkListSampleTest.cxx
 #itkListSampleToHistogramGeneratorTest.cxx
 #itkMeanCalculatorTest.cxx
 #itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest.cxx
-#itkMembershipSampleTest.cxx
+itkMembershipSampleTest.cxx
 #itkMembershipSampleGeneratorTest.cxx
 #itkNeighborhoodSamplerTest.cxx
 #itkSampleClassifierTest.cxx
