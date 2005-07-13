@@ -219,6 +219,10 @@ MultiModalityRigidRegistration
 
   m_MovingNativeResampler->UpdateLargestPossibleRegion();
 
+  // TODO - test
+  //m_MovingNativeWriter->SetInput( m_MovingImage );
+
+
   ::itk::OStringStream movingNativeFileName;
   movingNativeFileName << "movingNative" << factor << ".nrrd";
   m_MovingNativeWriter->SetFileName( movingNativeFileName.str().c_str() );

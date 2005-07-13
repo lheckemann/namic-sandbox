@@ -46,6 +46,14 @@ int main( int argc, char *argv[] )
     }
   
   std::cout << "argc = " << argc << std::endl;
+
+  std::cout << "\n\nhit return to continue... " << std::endl;
+  char buffer[BUFSIZ];
+  fgets (buffer, BUFSIZ, stdin);
+  //std::string s; 
+  //std::cin >> s;
+
+  
    
   try {
 

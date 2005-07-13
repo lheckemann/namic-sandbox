@@ -4,6 +4,7 @@
 
 
 #include "itkImage.h"
+#include "itkOrientedImage.h"
 #include "itkImageRegistrationMethod.h"
 #include "itkNormalizeImageFilter.h"
 #include "itkResampleImageFilter.h"
@@ -53,13 +54,13 @@ public:
   typedef  signed short        MovingPixelType;
   typedef  float               InternalPixelType;
   
-  typedef itk::Image< FixedPixelType,    Dimension >  FixedImageType;
-  typedef itk::Image< MovingPixelType,   Dimension >  MovingImageType;
-  typedef itk::Image< InternalPixelType, Dimension >  InternalImageType;
+  typedef itk::OrientedImage< FixedPixelType,    Dimension >  FixedImageType;
+  typedef itk::OrientedImage< MovingPixelType,   Dimension >  MovingImageType;
+  typedef itk::OrientedImage< InternalPixelType, Dimension >  InternalImageType;
 
   typedef  unsigned char       MaskPixelType;
 
-  typedef itk::Image< MaskPixelType, Dimension >  MaskImageType;
+  typedef itk::OrientedImage< MaskPixelType, Dimension >  MaskImageType;
 
   typedef itk::NormalizeImageFilter< 
                            FixedImageType,
