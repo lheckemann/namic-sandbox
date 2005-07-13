@@ -78,6 +78,8 @@ public:
    * sequential id for each measurement vector in a Sample subclass.*/ 
   typedef unsigned long InstanceIdentifier ;
 
+  /** Typedef for the length of each measurement vector */
+  typedef unsigned int  MeasurementVectorSizeType;
 
   /** REMOVED: THE StaticConstMacro for this method has been removed to 
    * allow the measurement vector length to be specified at run time.
@@ -96,7 +98,8 @@ public:
 
   /** Get the measurement associated with a particular
    * InstanceIdentifier. */
-  virtual const MeasurementVectorType & GetMeasurementVector(const InstanceIdentifier &id) const = 0 ;
+  virtual const MeasurementVectorType & 
+    GetMeasurementVector(const InstanceIdentifier &id) const = 0 ;
 
   /** Get the frequency of a measurement specified by instance
    * identifier. */
@@ -109,11 +112,11 @@ public:
   
   /** Set/Get macros for the length of the measurement vector */
   itkSetMacro( MeasurementVectorSize, unsigned int );
-  itkGetMacro( MeasurementVectorSize, unsigned int );
+  itkGetConstMacro( MeasurementVectorSize, unsigned int );
 
   
 protected:
-  Sample() {}
+  Sample():m_MeasurementVectorSize( 0 ) {}
   virtual ~Sample() {}
   void PrintSelf(std::ostream& os, Indent indent) const
   {
