@@ -95,7 +95,7 @@ public:
       {
       distance = 0.0 ;
       tempVector = this->GetMeasurementVector( id ) ;
-      for (j = 0 ; j < m_MeasurementVectorSize && distance < squaredRadius ; j++)
+      for (j = 0 ; j < this->GetMeasurementVectorSize() && distance < squaredRadius ; j++)
         {
         coordinateDistance = (double)tempVector[j] - center[j] ;
         if (vnl_math_abs(coordinateDistance) > radius )
@@ -104,7 +104,7 @@ public:
           }
         }
       
-      for (j = 0 ; j < m_MeasurementVectorSize && distance < squaredRadius ; j++)
+      for (j = 0 ; j < this->GetMeasurementVectorSize() && distance < squaredRadius ; j++)
         {
         coordinateDistance = (double)tempVector[j] - center[j] ;
         distance += coordinateDistance * coordinateDistance ;
