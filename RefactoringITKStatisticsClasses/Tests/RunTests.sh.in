@@ -27,7 +27,7 @@
 #./itkStatisticsTests itkScalarImageToHistogramGeneratorTest
 #./itkStatisticsTests itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest
 #./itkStatisticsTests itkSelectiveSubsampleGeneratorTest
-#./itkStatisticsTests itkSubsampleTest
+./itkStatisticsTests itkSubsampleTest
 #./itkStatisticsTests itkWeightedMeanCalculatorTest
 #./itkStatisticsTests itkWeightedCovarianceCalculatorTest  
 ./itkStatisticsTests itkVariableDimensionHistogramTest

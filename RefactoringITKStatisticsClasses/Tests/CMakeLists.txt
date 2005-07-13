@@ -46,7 +46,7 @@ ADD_TEST(itkListSampleTest ${STATISTICS_TESTS} itkListSampleTest 4)
 #ADD_TEST(itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest ${STATISTICS_TESTS} itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest)
 #ADD_TEST(itkSelectiveSubsampleGeneratorTest ${STATISTICS_TESTS} 
 #                                            itkSelectiveSubsampleGeneratorTest)
-#ADD_TEST(itkSubsampleTest ${STATISTICS_TESTS} itkSubsampleTest)
+ADD_TEST(itkSubsampleTest ${STATISTICS_TESTS} itkSubsampleTest)
 #ADD_TEST(itkWeightedMeanCalculatorTest ${STATISTICS_TESTS} itkWeightedMeanCalculatorTest)
 #ADD_TEST(itkWeightedCovarianceCalculatorTest ${STATISTICS_TESTS} 
 #         itkWeightedCovarianceCalculatorTest)
@@ -83,7 +83,7 @@ itkListSampleTest.cxx
 #itkScalarImageToHistogramGeneratorTest.cxx
 #itkScalarImageTextureCalculatorTest.cxx
 #itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest.cxx
-#itkSubsampleTest.cxx
+itkSubsampleTest.cxx
 #itkWeightedMeanCalculatorTest.cxx
 #itkWeightedCovarianceCalculatorTest.cxx
 )
