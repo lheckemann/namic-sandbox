@@ -103,7 +103,7 @@ public:
     itkWarningMacro( << "This method does nothing! The MeasurementVectorSize is " << MeasurementVectorSize );
     }
 
- unsigned int GetMeasurementVectorSize()
+ unsigned int GetMeasurementVectorSize() const
    {
    return MeasurementVectorSize;
    } 
