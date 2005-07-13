@@ -37,12 +37,25 @@ template< class TMeasurement,
 void VariableDimensionHistogram<TMeasurement,  TFrequencyContainer>
 ::SetMeasurementVectorSize( unsigned int s )
 {
+  if( s == this->GetMeasurementVectorSize() )
+    {
+    return;
+    }
+  
+  if( (m_OffsetTable.Size()           != 0) ||
+      (m_Size.Size()                  != 0) ||
+      (m_TempIndex.Size()             != 0) ||
+      (m_TempMeasurementVector.Size() != 0))
+    { 
+    itkWarningMacro( << "Destructively resizing paramters of the histogram" );
+    }
   Superclass::SetMeasurementVectorSize( s );
   m_OffsetTable.SetSize( s + 1 );
   m_OffsetTable.Fill( 0 );
   m_Size.SetSize( s );
   m_TempIndex.SetSize( s );
   m_TempMeasurementVector.SetSize( s );
+  this->Modified();
 }
 
 
