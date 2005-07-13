@@ -129,7 +129,7 @@ private:
   Sample(const Self&) ; //purposely not implemented
   void operator=(const Self&) ; //purposely not implemented
 
-  unsigned int m_MeasurementVectorSize;
+  MeasurementVectorSizeType m_MeasurementVectorSize;
 } ; // end of class
 
 } // end of namespace Statistics 
