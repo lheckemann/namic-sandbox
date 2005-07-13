@@ -11,7 +11,7 @@
 #./itkStatisticsTests itkImageToHistogramGeneratorTest
 #./itkStatisticsTests itkKdTreeBasedKmeansEstimatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat
 #./itkStatisticsTests itkKdTreeGeneratorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat
-#./itkStatisticsTests itkListSampleTest
+./itkStatisticsTests itkListSampleTest 4
 #./itkStatisticsTests itkListSampleToHistogramFilterTest
 #./itkStatisticsTests itkListSampleToHistogramGeneratorTest
 #./itkStatisticsTests itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest
