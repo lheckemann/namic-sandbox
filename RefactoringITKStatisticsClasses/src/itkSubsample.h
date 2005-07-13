@@ -52,7 +52,16 @@ public:
   typedef typename TSample::FrequencyType FrequencyType ;
   typedef MeasurementVectorType ValueType ;
 
-  /** MeasurementVectorSize constant from super class */
+  /** MeasurementVectorSize constant from super class 
+   * REMOVED: THE StaticConstMacro for this method has been removed to 
+   * allow the measurement vector length to be specified at run time.
+   *
+   * Please use the Set/Get macros to access the MeasurementVectorLength
+   * instead. 
+   *
+   * NOTE: This means that you will no longer be able to get the 
+   * MeasurementVectorLength as a static const member any more.
+   */
   //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
   //                    TSample::MeasurementVectorSize);
   
@@ -65,7 +74,10 @@ public:
 
   /** Plug in the actual sample data */
   void SetSample(const TSample* sample)
-  { m_Sample = sample ; }
+    { 
+    m_Sample = sample ; 
+    this->SetMeasurementVectorSize( m_Sample->GetMeasurementVectorSize() );
+    }
 
   const TSample* GetSample() const
   { return m_Sample ; } 
