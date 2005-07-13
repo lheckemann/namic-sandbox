@@ -71,7 +71,16 @@ public:
   //    typedef typename TSample::SizeType SizeType ;
   //    typedef typename TSample::SizeValueType SizeValueType ;
   
-  /** MeasurementVectorSize enum from super class */
+  /** MeasurementVectorSize enum from super class 
+   * REMOVED: THE StaticConstMacro for this method has been removed to 
+   * allow the measurement vector length to be specified at run time.
+   *
+   * Please use the Set/Get macros to access the MeasurementVectorLength
+   * instead. 
+   *
+   * NOTE: This means that you will no longer be able to get the 
+   * MeasurementVectorLength as a static const member any more.
+   */
   //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
   //                    TSample::MeasurementVectorSize);
   
