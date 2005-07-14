@@ -25,7 +25,7 @@
 
 int itkKdTreeGeneratorTest(int, char* [])
 {
-  typedef itk::Vector< float, 2 > MeasurementVectorType ;
+  typedef itk::Array< float > MeasurementVectorType ;
 
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType ;
   
@@ -34,7 +34,7 @@ int itkKdTreeGeneratorTest(int, char* [])
   SampleType::Pointer sample = SampleType::New() ;
   sample->SetMeasurementVectorSize( measurementVectorSize );
 
-  MeasurementVectorType mv ;
+  MeasurementVectorType mv( measurementVectorSize ) ;
   for (unsigned int i = 0 ; i < 1000 ; ++i )
     {
     mv[0] = (float) i ;
@@ -80,7 +80,7 @@ int itkKdTreeGeneratorTest(int, char* [])
   std::cout << "Address of the right chile of the root node = "
             << root->Right() << std::endl ;
 
-  MeasurementVectorType queryPoint ;
+  MeasurementVectorType queryPoint( measurementVectorSize ) ;
   queryPoint[0] = 10.0 ;
   queryPoint[1] = 7.0 ;
 
