@@ -18,6 +18,7 @@
 #define __itkHistogramDensityFunction_h
 
 #include "itkDensityFunction.h"
+#include "itkArray.h"
 
 namespace itk{ 
 namespace Statistics{
@@ -43,19 +44,21 @@ public:
   /** Types related to the Histogram */
   typedef THistogram                             HistogramType;
   typedef typename HistogramType::ConstPointer   HistogramConstPointer;
+  typedef typename HistogramType::SizeType       HistogramSizeType;
 
   /** Standard macros */
   itkTypeMacro(HistogramDensityFunction, DensityFunction);
   itkNewMacro(Self);
 
   typedef TMeasurementVector MeasurementVectorType;
+  typedef THistogram HistogramType;
 
   /** Method to get probability of an instance. The return value is the
    * value of the density function, not probability. */
-  virtual double Evaluate(const TMeasurementVector &measurement) const;
+  virtual double Evaluate(const MeasurementVectorType &measurement) const;
+  virtual void SetHistogram(const HistogramType * histogram);
  
   /**  Set/Get the historgram */
-  itkSetObjectMacro( Histogram, HistogramType );  
   itkGetConstObjectMacro( Histogram, HistogramType );  
  
 protected:
@@ -64,7 +67,10 @@ protected:
 
   void PrintSelf(std::ostream& os, Indent indent) const;
 
+  typedef Array< unsigned long > ArrayType;
+
   HistogramConstPointer      m_Histogram;
+  ArrayType                  m_FrequencyPerLabel;
 
 } ; // end of class
 
