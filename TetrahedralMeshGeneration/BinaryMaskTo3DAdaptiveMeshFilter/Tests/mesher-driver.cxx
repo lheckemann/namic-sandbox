@@ -7,6 +7,14 @@
 #include "MeshUtil.h"
 #include <assert.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif 
+#include <petsc.h>
+#ifdef __cplusplus
+}
+#endif
+
 typedef unsigned short PixelType;
 typedef itk::Mesh<PixelType,3> MeshType;
 typedef MeshUtil<MeshType> MeshUtilType;
@@ -24,6 +32,10 @@ bool MySubdivTest(double *v0, double *v1, double *v2, double *v3,
 
 int main(int argc, char** argv){
   assert(argc>1);
+
+
+  PetscInitialize(&argc, &argv, (char*)0, "");
+  
   MeshFilterType1::Pointer mesher = MeshFilterType1::New();
   ImageReaderType::Pointer reader = ImageReaderType::New();
   CompressionFilterType::Pointer compressor = CompressionFilterType::New();

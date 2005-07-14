@@ -88,7 +88,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   }
 
   InputImagePointer m_InputImage =
-    static_cast<const InputImageType*>(this->ProcessObject::GetInput(1));
+    static_cast<InputImageType*>(this->ProcessObject::GetInput(1));
 
   // Compute the distance image
   //  1. Cast the input image to the internal format
@@ -223,7 +223,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   // Mesh input/output initialization
 
   this->m_InputMesh = 
-    static_cast<const InputMeshType*>(this->ProcessObject::GetInput(0));
+    static_cast<InputMeshType*>(this->ProcessObject::GetInput(0));
   this->m_OutputMesh = this->GetOutput();
   
   if(!m_InputMesh)

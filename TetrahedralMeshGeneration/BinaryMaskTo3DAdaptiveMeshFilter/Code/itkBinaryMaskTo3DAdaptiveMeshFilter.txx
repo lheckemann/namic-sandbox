@@ -500,7 +500,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
   
   // Set the input image
   InputImagePointer m_InputImage = 
-    static_cast<const InputImageType*>(this->ProcessObject::GetInput(0));
+    static_cast<InputImageType*>(this->ProcessObject::GetInput(0));
   
   // Compute the distance image
   //  1. Cast the input image to the internal format
