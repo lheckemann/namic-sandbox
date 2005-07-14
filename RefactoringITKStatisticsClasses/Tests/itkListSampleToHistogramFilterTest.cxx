@@ -55,7 +55,7 @@ int itkListSampleToHistogramFilterTest( int, char* [] )
   // bound, n-dimensional upper bound)} method.
 
   typedef float HistogramMeasurementType ;
-  typedef itk::Statistics::Histogram< HistogramMeasurementType, 2 >
+  typedef itk::Statistics::Histogram< HistogramMeasurementType, MeasurementVectorLength >
     HistogramType ;
   HistogramType::Pointer histogram = HistogramType::New() ;
 
