@@ -28,7 +28,11 @@ int itkKdTreeGeneratorTest(int, char* [])
   typedef itk::Vector< float, 2 > MeasurementVectorType ;
 
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType ;
+  
+  const SampleType::MeasurementVectorSizeType measurementVectorSize = 2;
+  
   SampleType::Pointer sample = SampleType::New() ;
+  sample->SetMeasurementVectorSize( measurementVectorSize );
 
   MeasurementVectorType mv ;
   for (unsigned int i = 0 ; i < 1000 ; ++i )
@@ -82,8 +86,8 @@ int itkKdTreeGeneratorTest(int, char* [])
 
   typedef itk::Statistics::EuclideanDistance< MeasurementVectorType > DistanceMetricType ;
   DistanceMetricType::Pointer distanceMetric = DistanceMetricType::New() ;
-  DistanceMetricType::OriginType origin ;
-  for ( unsigned int i = 0 ; i < MeasurementVectorType::Length ; ++i )
+  DistanceMetricType::OriginType origin( measurementVectorSize );
+  for ( unsigned int i = 0 ; i < measurementVectorSize; ++i )
     {
     origin[i] = queryPoint[i] ;
     }
