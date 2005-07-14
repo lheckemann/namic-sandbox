@@ -6,7 +6,7 @@ INCLUDE_DIRECTORIES( BEFORE ${CHANGED_STATISTICS_SOURCES} )
 
 #ADD_TEST(itkStatisticsPrintTest ${STATISTICS_TESTS} itkStatisticsPrintTest)
 ADD_TEST(itkStatisticsAlgorithmTest ${STATISTICS_TESTS} itkStatisticsAlgorithmTest)
-#ADD_TEST(itkCovarianceCalculatorTest ${STATISTICS_TESTS} itkCovarianceCalculatorTest)
+ADD_TEST(itkCovarianceCalculatorTest ${STATISTICS_TESTS} itkCovarianceCalculatorTest)
 #ADD_TEST(itkDenseFrequencyContainerTest ${STATISTICS_TESTS} itkDenseFrequencyContainerTest)
 #ADD_TEST(itkExpectationMaximizationMixtureModelEstimatorTest 
 #         ${STATISTICS_TESTS} 
@@ -30,7 +30,7 @@ ADD_TEST(itkListSampleTest ${STATISTICS_TESTS} itkListSampleTest 4)
 #ADD_TEST(itkListSampleToHistogramGeneratorTest ${STATISTICS_TESTS} itkListSampleToHistogramGeneratorTest)
 #ADD_TEST(itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest ${STATISTICS_TESTS} 
 #         itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest)
-#ADD_TEST(itkMeanCalculatorTest ${STATISTICS_TESTS} itkMeanCalculatorTest)
+ADD_TEST(itkMeanCalculatorTest ${STATISTICS_TESTS} itkMeanCalculatorTest)
 ADD_TEST(itkMembershipSampleTest ${STATISTICS_TESTS} itkMembershipSampleTest)
 #ADD_TEST(itkNeighborhoodSamplerTest ${STATISTICS_TESTS} itkNeighborhoodSamplerTest)
 #ADD_TEST(itkMembershipSampleGeneratorTest ${STATISTICS_TESTS} itkMembershipSampleGeneratorTest)
@@ -55,7 +55,7 @@ ADD_TEST(itkSubsampleTest ${STATISTICS_TESTS} itkSubsampleTest)
 SET(Statistics_SRCS
 #itkStatisticsPrintTest.cxx
 itkStatisticsAlgorithmTest.cxx
-#itkCovarianceCalculatorTest.cxx
+itkCovarianceCalculatorTest.cxx
 #itkDenseFrequencyContainerTest.cxx
 #itkExpectationMaximizationMixtureModelEstimatorTest.cxx
 #itkGoodnessOfFitMixtureModelCostFunctionTest.cxx
@@ -70,7 +70,7 @@ itkKdTreeGeneratorTest.cxx
 itkListSampleTest.cxx
 #itkListSampleToHistogramFilterTest.cxx
 #itkListSampleToHistogramGeneratorTest.cxx
-#itkMeanCalculatorTest.cxx
+itkMeanCalculatorTest.cxx
 #itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest.cxx
 itkMembershipSampleTest.cxx
 #itkMembershipSampleGeneratorTest.cxx

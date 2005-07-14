@@ -27,7 +27,7 @@
 void RegisterTests()
 {
 //  REGISTER_TEST(itkStatisticsPrintTest);
-//  REGISTER_TEST(itkCovarianceCalculatorTest);
+  REGISTER_TEST(itkCovarianceCalculatorTest);
 //  REGISTER_TEST(itkDenseFrequencyContainerTest);
 //  REGISTER_TEST(itkExpectationMaximizationMixtureModelEstimatorTest);
 //  REGISTER_TEST(itkGoodnessOfFitMixtureModelCostFunctionTest);
@@ -44,7 +44,7 @@ void RegisterTests()
 //  REGISTER_TEST(itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest);
   REGISTER_TEST(itkMembershipSampleTest);
 //  REGISTER_TEST(itkMembershipSampleGeneratorTest);
-//  REGISTER_TEST(itkMeanCalculatorTest);
+  REGISTER_TEST(itkMeanCalculatorTest);
 //  REGISTER_TEST(itkNeighborhoodSamplerTest) ;
 //  REGISTER_TEST(itkSampleClassifierTest) ;
 //  REGISTER_TEST(itkSampleClassifierWithMaskTest) ;
