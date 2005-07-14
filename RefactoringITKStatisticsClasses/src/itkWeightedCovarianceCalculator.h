@@ -18,7 +18,7 @@
 #define __itkWeightedCovarianceCalculator_h
 
 #include "itkArray.h"
-#include "vnl/vnl_matrix.h"
+#include "itkVariableSizeMatrix.h"
 #include "itkSampleAlgorithmBase.h"
 
 namespace itk{ 
@@ -46,6 +46,9 @@ public:
   itkTypeMacro(WeightedCovarianceCalculator, SampleAlgorithmBase);
   itkNewMacro(Self) ;
 
+  /** Length of a measurement vector */
+  typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
+  
   
   /** REMOVED: THE StaticConstMacro for this method has been removed to 
    * allow the measurement vector length to be specified at run time.
@@ -68,14 +71,12 @@ public:
   /** Weight calculation function typedef */
   typedef FunctionBase< MeasurementVectorType, double > WeightFunctionType ;
 
-  /** covarince matrix (output) typedef 
-   * NOTE: The typedef for this matrix has changed from itk::Matrix to vnl_matrix. */
-  typedef vnl_matrix< double > OutputType;
+  /** covarince matrix (output) typedef */
+  typedef VariableSizeMatrix< double > OutputType;
   //typedef Matrix< double,
   //                itkGetStaticConstMacro(MeasurementVectorSize),
   //                itkGetStaticConstMacro(MeasurementVectorSize) > 
   //        OutputType ;
-  // TODO Create a class itk::VariableSizeMatrix with an API close to itk::Matrix
   
 
   /** Mean (input) typedef. NOTE: The typedef for the MeanType has changed from
@@ -83,7 +84,6 @@ public:
   typedef Array< double >      MeanType;
   //typedef Vector< double, itkGetStaticConstMacro(MeasurementVectorSize) >
   //        MeanType ;
-  // TODO Create a class itk::VariableLengthVector to keep API such as GetVnlVector() consistent
 
   /** Array typedef for weights */
   typedef Array< double > WeightArrayType ;
@@ -94,9 +94,8 @@ public:
   /** Gets the weights array */
   WeightArrayType* GetWeights() ;
 
-  /** Sets the wiehts using an function
-   * the function should have a method, 
-   * Evaluate(MeasurementVectorType&) */
+  /** Sets the weights using an function the function should have a method, 
+   * Evaluate(MeasurementVectorType&).  */
   void SetWeightFunction(WeightFunctionType* func) ;
 
   /** Gets the weight function */

@@ -64,8 +64,8 @@ WeightedCovarianceCalculator< TSample >
     m_Mean = mean ;
     this->Modified() ;
     
-    if( this->m_this->m_MeasurementVectorSize && 
-       ( m_Mean->GetSize() != this->m_this->m_MeasurementVectorSize ) )
+    if( this->GetMeasurementVectorSize() && m_Mean && 
+       ( m_Mean->Size() != this->GetMeasurementVectorSize() ) )
       {
       itkExceptionMacro( << "Size of measurement vectors in the sample must be the same as the size of the mean vector." );
       }
@@ -92,6 +92,20 @@ void
 WeightedCovarianceCalculator< TSample >
 ::SetWeights(WeightArrayType* array)
 {
+  const MeasurementVectorSizeType measurementVectorSize = 
+      this->GetMeasurementVectorSize();
+  if( measurementVectorSize )
+    {
+    if( array.Size() != measurementVectorSize) 
+      {
+      itkExceptionMacro( << "Weights to the covariancecalculator must have the "
+         << "same length as that of a measurement vector.");
+      }
+    }
+  else
+    {
+    this->SetMeasurementVectorSize( array.Size() );
+    }
   m_Weights = array ;
 }
 
@@ -126,14 +140,16 @@ WeightedCovarianceCalculator< TSample >
 {
   // Assert at run time that the given mean has the same length as 
   // measurement vectors in the sample and that the size is non-zero.
-  if( !(this->m_this->m_MeasurementVectorSize) || 
-      ( m_Mean->GetSize() != this->m_this->m_MeasurementVectorSize ) )
+  const MeasurementVectorSizeType measurementVectorSize = 
+    this->GetMeasurementVectorSize();
+  if( !measurementVectorSize || 
+      ( m_Mean->GetSize() != measurementVectorSize ) )
     {
     itkExceptionMacro( << "Size of measurement vectors in the sample must be the same as the size of the mean vector." );
     }
-
-  m_Output.set_size( this->m_MeasurementVectorSize, this->m_MeasurementVectorSize );
-  m_Output.fill(0.0) ;
+  
+  m_Output->SetSize( measurementVectorSize, measurementVectorSize );
+  m_Output->Fill(0.0) ;
   
   double weight;
   double sumWeight = 0.0 ;
@@ -143,9 +159,10 @@ WeightedCovarianceCalculator< TSample >
   unsigned int i ;
   typename TSample::ConstIterator iter = this->GetInputSample()->Begin() ; 
   typename TSample::ConstIterator end = this->GetInputSample()->End() ;
-  MeanType diff ;
+  MeanType diff( measurementVectorSize ) ;
   typename TSample::MeasurementVectorType measurements ;
   int measurementVectorIndex = 0 ;
+  
   // fills the lower triangle and the diagonal cells in the covariance matrix
   if (m_WeightFunction != 0) 
     {
@@ -155,16 +172,16 @@ WeightedCovarianceCalculator< TSample >
       weight = iter.GetFrequency() * m_WeightFunction->Evaluate(measurements) ;
       sumWeight += weight ;
       sumSquaredWeight += weight * weight ;
-      for (i = 0 ; i < this->m_this->m_MeasurementVectorSize ; i++)
+      for (i = 0 ; i < measurementVectorSize ; i++)
         {
         diff[i] = measurements[i] - (*m_Mean)[i] ;
         }
           
-      for ( row = 0; row < this->m_this->m_MeasurementVectorSize ; row++)
+      for ( row = 0; row < measurementVectorSize ; row++)
         {
         for ( col = 0; col < row + 1 ; col++)
           {
-          m_Output(row,col) += 
+          (*m_Output)(row,col) += 
             weight * diff[row] * diff[col] ;
           }
         }
@@ -179,16 +196,16 @@ WeightedCovarianceCalculator< TSample >
       weight = iter.GetFrequency() * (*m_Weights)[measurementVectorIndex] ;
       sumWeight += weight ;
       sumSquaredWeight += weight * weight ;
-      for (i = 0 ; i < this->m_this->m_MeasurementVectorSize ; i++)
+      for (i = 0 ; i < measurementVectorSize ; i++)
         {
         diff[i] = measurements[i] - (*m_Mean)[i] ;
         }
           
-      for ( row = 0; row < this->m_this->m_MeasurementVectorSize ; row++)
+      for ( row = 0; row < measurementVectorSize ; row++)
         {
         for ( col = 0; col < row + 1 ; col++)
           {
-          m_Output(row,col) += 
+          (*m_Output)(row,col) += 
             weight * diff[row] * diff[col] ;
           }
         }
@@ -198,16 +215,16 @@ WeightedCovarianceCalculator< TSample >
     } // end of if-else
 
   // fills the upper triangle using the lower triangle  
-  for (row = 1 ; row < this->m_this->m_MeasurementVectorSize ; row++)
+  for (row = 1 ; row < measurementVectorSize ; row++)
     {
     for (col = 0 ; col < row ; col++)
       {
-      m_Output(col, row) = 
-        m_Output(row, col) ;
+      (*m_Output)(col, row) = 
+        (*m_Output)(row, col) ;
       } 
     }
   
-  m_Output /= 
+  (*m_Output) /= 
     (sumWeight - (sumSquaredWeight / sumWeight) )  ;
 }
 
@@ -216,9 +233,12 @@ void
 WeightedCovarianceCalculator< TSample >
 ::ComputeCovarianceWithoutGivenMean()
 {
-  m_Output.set_size( this->m_MeasurementVectorSize, this->m_MeasurementVectorSize );
-  m_Output.fill(0.0) ;
-  m_InternalMean->SetSize( this->m_MeasurementVectorSize );
+  const MeasurementVectorSizeType measurementVectorSize = 
+    this->GetMeasurementVectorSize();
+  m_Output = new OutputType();
+  m_Output->SetSize( measurementVectorSize, measurementVectorSize );
+  m_Output->Fill(0.0) ;
+  m_InternalMean = new MeanType( measurementVectorSize );
   m_InternalMean->Fill(0.0) ;
   
   double weight;
@@ -230,9 +250,10 @@ WeightedCovarianceCalculator< TSample >
   unsigned int i ;
   typename TSample::ConstIterator iter = this->GetInputSample()->Begin() ; 
   typename TSample::ConstIterator end = this->GetInputSample()->End() ;
-  MeanType diff ;
+  MeanType diff( measurementVectorSize ) ;
   typename TSample::MeasurementVectorType measurements ;
   int measurementVectorIndex = 0 ;
+  
   // fills the lower triangle and the diagonal cells in the covariance matrix
   if (m_WeightFunction != 0) 
     {
@@ -243,24 +264,24 @@ WeightedCovarianceCalculator< TSample >
         iter.GetFrequency() * m_WeightFunction->Evaluate(measurements) ;
       sumWeight += weight ;
       sumSquaredWeight += weight * weight ;
-      for (i = 0 ; i < this->m_MeasurementVectorSize ; i++)
+      for (i = 0 ; i < measurementVectorSize ; i++)
         {
         diff[i] = measurements[i] - (*m_InternalMean)[i] ;
         }
           
       // updates the mean vector
       tempWeight = weight / sumWeight ;
-      for ( i = 0 ; i < this->m_MeasurementVectorSize ; ++i )
+      for ( i = 0 ; i < measurementVectorSize ; ++i )
         {
         (*m_InternalMean)[i] += tempWeight * diff[i] ;
         }
 
       tempWeight = tempWeight * ( sumWeight - weight ) ;
-      for ( row = 0; row < this->m_MeasurementVectorSize ; row++)
+      for ( row = 0; row < measurementVectorSize ; row++)
         {
         for ( col = 0; col < row + 1 ; col++)
           {
-          m_Output(row,col) += 
+          (*m_Output)(row,col) += 
             tempWeight * diff[row] * diff[col] ;
           }
         }
@@ -275,24 +296,24 @@ WeightedCovarianceCalculator< TSample >
       sumWeight += weight ;
       measurements = iter.GetMeasurementVector() ;
       sumSquaredWeight += weight * weight ;
-      for (i = 0 ; i < this->m_MeasurementVectorSize ; i++)
+      for (i = 0 ; i < measurementVectorSize ; i++)
         {
         diff[i] = measurements[i] - (*m_InternalMean)[i] ;
         }
           
       // updates the mean vector
       tempWeight = weight / sumWeight ;
-      for ( i = 0 ; i < this->m_MeasurementVectorSize ; ++i )
+      for ( i = 0 ; i < measurementVectorSize ; ++i )
         {
         (*m_InternalMean)[i] += tempWeight * diff[i] ;
         }
 
       tempWeight = tempWeight * ( sumWeight - weight ) ;
-      for ( row = 0; row < this->m_MeasurementVectorSize ; row++)
+      for ( row = 0; row < measurementVectorSize ; row++)
         {
         for ( col = 0; col < row + 1 ; col++)
           {
-          m_Output(row,col) += 
+          (*m_Output)(row,col) += 
             tempWeight * diff[row] * diff[col] ;
           }
         }
@@ -302,16 +323,16 @@ WeightedCovarianceCalculator< TSample >
     }
 
   // fills the upper triangle using the lower triangle  
-  for (row = 1 ; row < this->m_MeasurementVectorSize ; row++)
+  for (row = 1 ; row < measurementVectorSize ; row++)
     {
     for (col = 0 ; col < row ; col++)
       {
-      m_Output(col, row) = 
-        m_Output(row, col) ;
+      (*m_Output)(col, row) = 
+        (*m_Output)(row, col) ;
       } 
     }
 
-  m_Output /= 
+  (*m_Output) /= 
     (sumWeight - (sumSquaredWeight / sumWeight) )  ;
 }
 
@@ -320,9 +341,15 @@ void
 WeightedCovarianceCalculator< TSample >
 ::GenerateData() 
 {
-  if ( m_Mean == 0 )
+  const MeasurementVectorSizeType measurementVectorSize = 
+    this->GetMeasurementVectorSize();
+  if( measurementVectorSize == 0 )
     {
-    m_InternalMean = new MeanType() ;
+    itkExceptionMacro( << "Measurement vector size must be set. Use SetMeasurementVectorSize( .. )");
+    }
+
+   if ( m_Mean == 0 )
+    {
     this->ComputeCovarianceWithoutGivenMean() ;
     }
   else

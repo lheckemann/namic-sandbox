@@ -22,7 +22,6 @@
 #include <vnl/vnl_matrix.h>
 
 #include "itkArray.h"
-#include "vnl/vnl_vector.h"
 #include "itkFunctionBase.h"
 #include "itkSampleAlgorithmBase.h"
 
@@ -55,6 +54,8 @@ public:
   itkTypeMacro(WeightedMeanCalculator, SampleAlgorithmBase);
   itkNewMacro(Self) ;
   
+  /** Length of a measurement vector */
+  typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
   
   /** REMOVED: THE StaticConstMacro for this method has been removed to 
    * allow the measurement vector length to be specified at run time.
@@ -78,9 +79,7 @@ public:
   // 
   //typedef Vector< double,
   //                itkGetStaticConstMacro(MeasurementVectorSize) > OutputType ;
-  // TODO Create class itk::VariableLengthVector to keep API such as GetVnlVector() consistent
-  typedef vnl_vector< double > OutputType;
-  typedef Vector< double, itkGetStaticConstMacro(MeasurementVectorSize) > OutputType ;
+  typedef Array< double > OutputType;
   
   /** Array typedef for weights */
   typedef Array< double > WeightArrayType ;

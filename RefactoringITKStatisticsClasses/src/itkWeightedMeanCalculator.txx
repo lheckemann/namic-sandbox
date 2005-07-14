@@ -98,7 +98,14 @@ void
 WeightedMeanCalculator< TSample >
 ::GenerateData() 
 {
-  m_Output.set_size( this->m_MeasurementVectorSize );
+  const MeasurementVectorSizeType measurementVectorSize 
+                        = this->GetMeasurementVectorSize();
+  if( measurementVectorSize == 0 )
+    {
+    itkExceptionMacro(<< "MeasurementVectorSize not set" );
+    }
+  
+  m_Output.SetSize( measurementVectorSize );
   m_Output.Fill(0.0) ;
 
   typename TSample::ConstIterator iter = this->GetInputSample()->Begin() ;
@@ -117,7 +124,7 @@ WeightedMeanCalculator< TSample >
       weight = 
         iter.GetFrequency() * m_WeightFunction->Evaluate(measurements) ;
       totalWeight += weight ;
-      for (dim = 0 ; dim < this->m_MeasurementVectorSize ; dim++)
+      for (dim = 0 ; dim < measurementVectorSize ; dim++)
         {
         m_Output[dim] += measurements[dim] * weight ;
         }
@@ -132,7 +139,7 @@ WeightedMeanCalculator< TSample >
       measurements = iter.GetMeasurementVector() ;
       weight = iter.GetFrequency() * (*m_Weights)[measurementVectorIndex] ;
       totalWeight += weight ;
-      for (dim = 0 ; dim < this->m_MeasurementVectorSize ; dim++)
+      for (dim = 0 ; dim < measurementVectorSize ; dim++)
         {
         m_Output[dim] += measurements[dim] * weight ;
         }
