@@ -19,6 +19,7 @@
 
 #include "itkStatisticsAlgorithm.h"
 #include "itkNumericTraits.h"
+#include "itkArray.h"
 
 namespace itk{
 namespace Statistics{
@@ -145,13 +146,27 @@ FindSampleBoundAndMean(const TSubsample* sample,
 {    
   typedef typename TSubsample::MeasurementType MeasurementType ;
   typedef typename TSubsample::MeasurementVectorType MeasurementVectorType ;
+  typedef typename TSubsample::MeasurementVectorSizeType MeasurementVectorSizeType;
 
-  enum { Dimension = TSubsample::MeasurementVectorSize } ;
+  const MeasurementVectorSizeType Dimension = sample->GetMeasurementVectorSize();
+  if( Dimension == 0 )
+    {
+    itkGenericExceptionMacro( 
+        << "Length of a sample's measurement vector hasn't been set.");
+    }
+  // Sanity check
+  if( (mean.Size() != Dimension) ||
+      (max.Size()  != Dimension) ||
+      (min.Size()  != Dimension))
+    {
+    itkGenericExceptionMacro( << "subsamples must have the same length.");
+    }
+      
 
-  FixedArray< double, Dimension > sum ;
+  Array< double > sum( Dimension ) ;
 
-  unsigned int dimension ;
-  MeasurementVectorType temp ;
+  MeasurementVectorSizeType dimension ;
+  MeasurementVectorType temp( Dimension ) ;
 
   min = max = temp = sample->GetMeasurementVectorByIndex(beginIndex) ;
   double frequencySum = sample->GetFrequencyByIndex(beginIndex) ;
