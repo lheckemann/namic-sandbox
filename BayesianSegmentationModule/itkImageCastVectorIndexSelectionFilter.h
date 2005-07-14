@@ -100,8 +100,15 @@ public:
     }
   unsigned int GetIndex(void) const { return this->GetFunctor().GetIndex(); }
   
-virtual void ThreadedGenerateData( const OutputImageRegionType &outputRegionForThread,
-                        int threadId);
+  typedef typename Superclass::OutputImageRegionType  OutputImageRegionType;
+  typedef typename Superclass::InputImagePointer      InputImagePointer;
+  typedef typename Superclass::OutputImagePointer     OutputImagePointer;
+  typedef typename Superclass::InputImageRegionType   InputImageRegionType;
+
+    
+  virtual void ThreadedGenerateData( 
+                      const OutputImageRegionType &outputRegionForThread,
+                      int threadId);
 
 protected:
   ImageCastVectorIndexSelectionFilter() {}
