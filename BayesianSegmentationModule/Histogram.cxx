@@ -104,7 +104,7 @@ int main( int argc, char * argv [] )
     }
   catch( itk::ExceptionObject & excp )
     {
-    std::cerr << "Problem encoutered while writing image file : "
+    std::cerr << "Problem encountered while writing image file : "
       << argv[3] << std::endl;
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;
@@ -314,6 +314,7 @@ int main( int argc, char * argv [] )
       {
       posteriorArrayPixel[i] = membershipArrayPixel[i] * priorArrayPixel[i];
       }
+// DEBUGGING std::cout << itrPriorImage.GetIndex() << " = " <<  posteriorArrayPixel << std::endl;
     itrPosteriorImage.Set( posteriorArrayPixel );
     ++itrDataImage;
     ++itrPriorImage;
@@ -337,8 +338,7 @@ int main( int argc, char * argv [] )
       posteriorArrayPixel[i] = posteriorArrayPixel[i] / tempSum;
       }
     itrPosteriorImage.Set( posteriorArrayPixel );
-    ++itrDataImage;
-    ++itrPriorImage;
+    std::cout << itrPosteriorImage.GetIndex() << " = " <<  itrPosteriorImage.Get() << std::endl;
     ++itrPosteriorImage;
     }
 
@@ -390,6 +390,7 @@ int main( int argc, char * argv [] )
   for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
     {
     indexVectorToScalarAdaptor->SetIndex( i );
+
     indexScalarToVectorAdaptor->SetIndex( i );
     indexScalarToVectorAdaptor->Update();
     }

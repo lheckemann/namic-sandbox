@@ -152,7 +152,8 @@ ImageCastVectorIndexSelectionFilter<TInputImage,TOutputImage>
   while( !inputIt.IsAtEnd() ) 
     {
     B =  outputIt.Get();
-    B[ index ] = inputIt.Get();
+    std::cout << "size = " << B.size() << std::endl;
+//    B[ index ] = inputIt.Get();
     outputIt.Set( B );
     ++inputIt;
     ++outputIt;
