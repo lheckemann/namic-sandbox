@@ -203,6 +203,9 @@ struct KdTreeWeightedCentroidNonterminalNode: public KdTreeNode< TSample >
   typedef typename Superclass::CentroidType CentroidType ;
   typedef typename Superclass::InstanceIdentifier InstanceIdentifier ;
 
+  /** Typedef for the length of each measurement vector */
+  typedef unsigned int  MeasurementVectorSizeType;
+
   KdTreeWeightedCentroidNonterminalNode(unsigned int partitionDimension,
                                          MeasurementType partitionValue,
                                          Superclass* left,
@@ -247,7 +250,7 @@ struct KdTreeWeightedCentroidNonterminalNode: public KdTreeNode< TSample >
   void AddInstanceIdentifier(InstanceIdentifier) {}
 
 private:
-  unsigned int m_MeasurementVectorSize;
+  MeasurementVectorSizeType m_MeasurementVectorSize;
   unsigned int m_PartitionDimension ;
   MeasurementType m_PartitionValue ;
   CentroidType m_WeightedCentroid ;
@@ -368,11 +371,16 @@ public:
   typedef typename TSample::InstanceIdentifier InstanceIdentifier ;
   typedef typename TSample::FrequencyType FrequencyType ;
 
-  /** Length of the measurement vector. k in the k-d tree */
+  typedef unsigned int                    MeasurementVectorSizeType;
+
+  /** REMOVED: Length of the measurement vector. k in the k-d tree. This
+   * static const macro has been removed. The length of the measurement
+   * vector is no longer obtained from the template parameter. It is 
+   * instead obtained by querying the 'sample', set using the SetSample method. 
+   */
   //itkStaticConstMacro(MeasurementVectorSize, unsigned int, 
   //                    TSample::MeasurementVectorSize) ;
-  itkGetMacro( MeasurementVectorSize, unsigned int );
-
+  itkGetConstMacro( MeasurementVectorSize, MeasurementVectorSizeType );
 
   /** DistanceMetric type for the distance calculation and comparison */
   typedef EuclideanDistance< MeasurementVectorType > DistanceMetricType ;
@@ -639,7 +647,7 @@ private:
   mutable NeighborType m_TempNeighbor ;
 
   /** Measurement vector size */
-  unsigned int m_MeasurementVectorSize;
+  MeasurementVectorSizeType m_MeasurementVectorSize;
 } ; // end of class
 
 } // end of namespace Statistics

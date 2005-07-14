@@ -128,6 +128,8 @@ KdTree< TSample >
     {
     os << "not set." << std::endl ;
     }
+  os << indent << "MeasurementVectorSize: " << 
+            m_MeasurementVectorSize << std::endl;
 }
 
 template< class TSample >
@@ -168,6 +170,9 @@ KdTree< TSample >
 {
   m_Sample = sample ;
   this->m_MeasurementVectorSize = m_Sample->GetMeasurementVectorSize();
+  this->m_DistanceMetric->SetMeasurementVectorSize( 
+                      this->m_MeasurementVectorSize );
+  this->Modified();
 }
 
 template< class TSample >
@@ -543,7 +548,6 @@ KdTree< TSample >
   std::cout << "             weighted centroid = " 
             << centroid ;
   std::cout << "             size = " << node->Size()<< std::endl ;
-  std::cout << "MeasurementVectorSize: " << m_MeasurementVectorSize << std::endl;
  
   PrintTree(node->Left(), level, partitionDimension) ;
   PrintTree(node->Right(), level, partitionDimension) ;

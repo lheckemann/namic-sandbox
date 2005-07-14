@@ -79,9 +79,14 @@ public:
   typedef typename TSample::MeasurementVectorType MeasurementVectorType ;
   typedef typename TSample::MeasurementType MeasurementType ;
 
+  /** Typedef for the length of each measurement vector */
+  typedef unsigned int  MeasurementVectorSizeType;
 
   /** REMOVED: THE StaticConstMacro for this method has been removed to 
-   * allow the measurement vector length to be specified at run time.
+   * allow the measurement vector length to be specified at run time. The 
+   * length of the measurement vectors are now obtained by querying the sample
+   * which is set using the SetSample method, instead of obtaining it from the 
+   * template parameter.
    *
    * Please use the Get macros to access the MeasurementVectorLength
    * instead. 
@@ -193,7 +198,7 @@ private:
   MeasurementVectorType m_TempMean ;
 
   /** Length of a measurement vector */
-  unsigned int m_MeasurementVectorSize;
+  MeasurementVectorSizeType m_MeasurementVectorSize;
 } ; // end of class
 
 } // end of namespace Statistics 
