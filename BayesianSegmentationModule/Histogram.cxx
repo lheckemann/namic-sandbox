@@ -364,10 +364,15 @@ int main( int argc, char * argv [] )
   ImageCastVectorIndexSelectionFilterType::Pointer indexScalarToVectorAdaptor =
                             ImageCastVectorIndexSelectionFilterType::New();
   
-  indexScalarToVectorAdaptor->GetOutput()->SetRegions( posteriors->GetLargestPossibleRegion() );
+  indexScalarToVectorAdaptor->GetOutput()->SetRegions( imageRegion );
   indexScalarToVectorAdaptor->GetOutput()->GetPixelContainer()->SetImportPointer( 
                                                           posteriors->GetBufferPointer(),
+                                                          imageRegion.GetNumberOfPixels(),
                                                           false );
+
+  std::cout << "posteriors GetBufferPointer() = " <<
+    posteriors->GetBufferPointer() << std::endl;
+
   indexScalarToVectorAdaptor->GetOutput()->Allocate();
 
   std::cout << "After passing the posteriors to the ScalarToVector filter" << std::endl;
@@ -398,7 +403,6 @@ int main( int argc, char * argv [] )
   for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
     {
     indexVectorToScalarAdaptor->SetIndex( i );
-
     indexScalarToVectorAdaptor->SetIndex( i );
     indexScalarToVectorAdaptor->Update();
     }
