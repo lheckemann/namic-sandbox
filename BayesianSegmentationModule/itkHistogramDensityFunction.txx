@@ -44,6 +44,17 @@ HistogramDensityFunction< TMeasurementVector, THistogram >
 
 
 template < class TMeasurementVector, class THistogram >
+void
+HistogramDensityFunction< TMeasurementVector, THistogram >
+::SetHistogram(const HistogramType * histogram)
+{ 
+  m_Histogram = histogram;
+  
+  HistogramSizeType size = histogram->GetSize();
+  m_FrequencyPerLabel = ArrayType( size[1] );
+}
+
+template < class TMeasurementVector, class THistogram >
 inline double
 HistogramDensityFunction< TMeasurementVector, THistogram >
 ::Evaluate(const MeasurementVectorType &measurement) const
