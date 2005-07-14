@@ -72,6 +72,15 @@ void
 CovarianceCalculator< TSample >
 ::SetMean(MeanType* mean)
 {
+  const MeasurementVectorSizeType measurementVectorSize = 
+    this->GetMeasurementVectorSize();
+
+  if( measurementVectorSize && 
+      ( m_Mean->GetSize() != measurementVectorSize ) )
+    {
+    itkExceptionMacro( << "Size of measurement vectors in the sample must be the same as the size of the mean vector." );
+    }
+  
   if ( m_InternalMean != mean && m_InternalMean != 0 )
     {
     delete m_InternalMean ;
@@ -79,11 +88,6 @@ CovarianceCalculator< TSample >
     }
   m_Mean = mean ;
 
-  if( this->m_MeasurementVectorSize && 
-      ( m_Mean->GetSize() != this->m_MeasurementVectorSize ) )
-    {
-    itkExceptionMacro( << "Size of measurement vectors in the sample must be the same as the size of the mean vector." );
-    }
 } 
 
 template< class TSample >
@@ -116,14 +120,16 @@ CovarianceCalculator< TSample >
 {
   // Assert at run time that the given mean has the same length as 
   // measurement vectors in the sample and that the size is non-zero.
-  if( !(this->m_MeasurementVectorSize) || 
-      ( m_Mean->GetSize() != this->m_MeasurementVectorSize ) )
+  const MeasurementVectorSizeType measurementVectorSize = 
+    this->GetMeasurementVectorSize();
+  if( !measurementVectorSize || 
+      ( m_Mean->GetSize() != measurementVectorSize ) )
     {
     itkExceptionMacro( << "Size of measurement vectors in the sample must be the same as the size of the mean vector." );
     }
   
-  m_Output.set_size( this->m_MeasurementVectorSize, this->m_MeasurementVectorSize );
-  m_Output.fill(0.0) ;
+  m_Output.SetSize( measurementVectorSize, measurementVectorSize );
+  m_Output.Fill(0.0) ;
   double frequency ;
   double totalFrequency = 0.0 ;
 
@@ -132,18 +138,19 @@ CovarianceCalculator< TSample >
   typename TSample::ConstIterator iter = this->GetInputSample()->Begin() ;
   typename TSample::ConstIterator end = this->GetInputSample()->End() ;
   MeanType diff ;
-  typename TSample::MeasurementVectorType measurements ;
+  typename TSample::MeasurementVectorType measurements;
+
   // fills the lower triangle and the diagonal cells in the covariance matrix
   while (iter != end)
     {
     frequency = iter.GetFrequency() ;
     totalFrequency += frequency ;
     measurements = iter.GetMeasurementVector() ;
-    for (i = 0 ; i < this->m_MeasurementVectorSize ; i++)
+    for (i = 0 ; i < measurementVectorSize ; i++)
       {
       diff[i] = measurements[i] - (*m_Mean)[i] ;
       }
-    for ( row = 0; row < this->m_MeasurementVectorSize ; row++)
+    for ( row = 0; row < measurementVectorSize ; row++)
       {
       for ( col = 0; col < row + 1 ; col++)
         {
@@ -154,7 +161,7 @@ CovarianceCalculator< TSample >
     }
 
   // fills the upper triangle using the lower triangle  
-  for (row = 1 ; row < this->m_MeasurementVectorSize ; row++)
+  for (row = 1 ; row < measurementVectorSize ; row++)
     {
     for (col = 0 ; col < row ; col++)
       {
@@ -171,9 +178,11 @@ inline void
 CovarianceCalculator< TSample >
 ::ComputeCovarianceWithoutGivenMean() 
 {
-  m_Output.set_size( this->m_MeasurementVectorSize, this->m_MeasurementVectorSize );
-  m_Output.fill(0.0) ;
-  m_InternalMean->SetSize( this->m_MeasurementVectorSize );
+  const MeasurementVectorSizeType measurementVectorSize = 
+    this->GetMeasurementVectorSize();
+  m_Output.SetSize( measurementVectorSize, measurementVectorSize );
+  m_Output.Fill(0.0) ;
+  m_InternalMean->SetSize( measurementVectorSize );
   m_InternalMean->Fill(0.0) ;
 
   double frequency ;
@@ -183,29 +192,30 @@ CovarianceCalculator< TSample >
   unsigned int i ;
   typename TSample::ConstIterator iter = this->GetInputSample()->Begin() ;
   typename TSample::ConstIterator end = this->GetInputSample()->End() ;
-  MeanType diff ;
-  typename TSample::MeasurementVectorType measurements ;
+  MeanType diff( measurementVectorSize ) ;
+  typename TSample::MeasurementVectorType measurements;
+  //
   // fills the lower triangle and the diagonal cells in the covariance matrix
   while (iter != end)
     {
     frequency = iter.GetFrequency() ;
     totalFrequency += frequency ;
     measurements = iter.GetMeasurementVector() ;
-    for ( i = 0 ; i < this->m_MeasurementVectorSize ; ++i )
+    for ( i = 0 ; i < measurementVectorSize ; ++i )
       {
       diff[i] = measurements[i] - (*m_InternalMean)[i] ;
       }
 
     // updates the mean vector
     double tempWeight = frequency / totalFrequency ;
-    for ( i = 0 ; i < this->m_MeasurementVectorSize ; ++i )
+    for ( i = 0 ; i < measurementVectorSize ; ++i )
       {
       (*m_InternalMean)[i] += tempWeight * diff[i] ;
       }
 
     // updates the covariance matrix
     tempWeight = tempWeight * ( totalFrequency - frequency ) ;
-    for ( row = 0; row < this->m_MeasurementVectorSize ; row++ )
+    for ( row = 0; row < measurementVectorSize ; row++ )
       {
       for ( col = 0; col < row + 1 ; col++)
         {
@@ -217,7 +227,7 @@ CovarianceCalculator< TSample >
     }
 
   // fills the upper triangle using the lower triangle  
-  for (row = 1 ; row < this->m_MeasurementVectorSize ; row++)
+  for (row = 1 ; row < measurementVectorSize ; row++)
     {
     for (col = 0 ; col < row ; col++)
       {
@@ -234,14 +244,15 @@ inline void
 CovarianceCalculator< TSample >
 ::GenerateData() 
 {
-  if( this->m_MeasurementVectorSize == 0 )
+  const MeasurementVectorSizeType measurementVectorSize = 
+    this->GetMeasurementVectorSize();
+  if( measurementVectorSize == 0 )
     {
     itkExceptionMacro( << "Measurement vector size must be set. Use SetMeasurementVectorSize( .. )");
     }
 
   if ( m_Mean == 0 )
     {
-    m_InternalMean = new MeanType() ;
     this->ComputeCovarianceWithoutGivenMean() ;
     }
   else

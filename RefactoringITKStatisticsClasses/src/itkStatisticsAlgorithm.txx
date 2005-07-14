@@ -106,10 +106,23 @@ inline void FindSampleBound(const TSample* ,
                             typename TSample::MeasurementVectorType &min,
                             typename TSample::MeasurementVectorType &max)
 {    
-  enum { Dimension = TSample::MeasurementVectorSize } ;
+  typedef typename TSample::MeasurementVectorSizeType MeasurementVectorSizeType;
 
-  unsigned int dimension ;
-  typename TSample::MeasurementVectorType temp ;
+  const MeasurementVectorSizeType dimension = sample->GetMeasurementVectorSize();
+  if( Dimension == 0 )
+    {
+    itkGenericExceptionMacro( 
+        << "Length of a sample's measurement vector hasn't been set.");
+    }
+  // Sanity check
+  if( (max.Size()  != Dimension) ||
+      (min.Size()  != Dimension))
+    {
+    itkGenericExceptionMacro( << "subsamples must have the same length.");
+    }
+      
+
+  typename TSample::MeasurementVectorType temp( dimension ) ;
 
   min = max = temp = begin.GetMeasurementVector() ;
   while (true)

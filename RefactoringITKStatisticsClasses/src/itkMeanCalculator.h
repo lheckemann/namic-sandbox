@@ -20,7 +20,7 @@
 
 #include "itkSampleAlgorithmBase.h"
 
-#include "vnl/vnl_vector.h"
+#include "itkArray.h"
 
 namespace itk{ 
   namespace Statistics{
@@ -44,13 +44,16 @@ class MeanCalculator :
 public:
   /**Standard class typedefs. */
   typedef MeanCalculator Self;
-  typedef Object Superclass ;
+  typedef SampleAlgorithmBase< TSample >  Superclass ;
   typedef SmartPointer<Self> Pointer;
   typedef SmartPointer<const Self> ConstPointer;
 
   /**Standard Macros */
-  itkTypeMacro(MeanCalculator, Object);
+  itkTypeMacro(MeanCalculator, SampleAlgorithmBase);
   itkNewMacro(Self) ;
+
+  /** Length of a measurement vector */
+  typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
   
   /** REMOVED: THE StaticConstMacro for this method has been removed to 
    * allow the measurement vector length to be specified at run time.
@@ -67,12 +70,11 @@ public:
   //                    TSample::MeasurementVectorSize) ;
   
   /** Typedef for the mean output. NOTE: the typedef has changed from 
-   * itk::Vector to vnl_vector */
+   * itk::Vector to Array*/
   // 
   //typedef Vector< double,
   //                itkGetStaticConstMacro(MeasurementVectorSize) > OutputType ;
-  // TODO Create class itk::VariableLengthVector to keep API such as GetVnlVector() consistent
-  typedef vnl_vector< double > OutputType;
+  typedef Array< double > OutputType;
 
   /** Returns the mean vector */
   OutputType* GetOutput() ;

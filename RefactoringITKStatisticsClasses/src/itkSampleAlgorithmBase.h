@@ -50,6 +50,9 @@ public:
   itkTypeMacro(SampleAlgorithmBase, Object);
   itkNewMacro(Self) ;
   
+  /** Length of a measurement vector */
+  typedef unsigned int MeasurementVectorSizeType;
+
   /** Sample typedefs alias */
   typedef TInputSample InputSampleType ;
 
@@ -90,7 +93,7 @@ protected:
 
 private:
   /** Length of each measurement vector */
-  unsigned int m_MeasurementVectorSize;
+  MeasurementVectorSizeType m_MeasurementVectorSize;
   
   /** Target sample data pointer */
   typename TInputSample::ConstPointer m_InputSample ;

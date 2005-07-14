@@ -21,7 +21,7 @@
 #include "itkSampleAlgorithmBase.h"
 
 #include "itkArray.h"
-#include "vnl/vnl_matrix.h"
+#include "itkVariableSizeMatrix.h"
 
 namespace itk{ 
 namespace Statistics{
@@ -48,13 +48,16 @@ class CovarianceCalculator :
 public:
   /** Standard class typedefs. */
   typedef CovarianceCalculator Self;
-  typedef Object Superclass ;
+  typedef SampleAlgorithmBase< TSample > Superclass ;
   typedef SmartPointer<Self> Pointer;
   typedef SmartPointer<const Self> ConstPointer;
 
   /** Standard Macros */
-  itkTypeMacro(CovarianceCalculator, Object);
+  itkTypeMacro(CovarianceCalculator, SampleAlgorithmBase);
   itkNewMacro(Self) ;
+  
+  /** Length of a measurement vector */
+  typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
   
   /** REMOVED: THE StaticConstMacro for this method has been removed to 
    * allow the measurement vector length to be specified at run time.
@@ -73,9 +76,9 @@ public:
 
   /** Typedef for the mean output */
   typedef Array< double >      MeanType;
-  typedef vnl_matrix< double > OutputType;
-  // TODO Create a class itk::VariableLengthVector to keep API such as GetVnlVector() consistent
-  // TODO Create a class itk::VariableSizeMatrix ................
+
+  /** Typedef for Covariance output */
+  typedef VariableSizeMatrix< double > OutputType;
   //typedef Vector< double, itkGetStaticConstMacro(MeasurementVectorSize) > MeanType ;
   //typedef Matrix< double, itkGetStaticConstMacro(MeasurementVectorSize), itkGetStaticConstMacro(MeasurementVectorSize) > OutputType ;
 
