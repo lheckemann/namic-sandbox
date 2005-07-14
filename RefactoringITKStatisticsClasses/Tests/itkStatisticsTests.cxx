@@ -32,14 +32,14 @@ void RegisterTests()
 //  REGISTER_TEST(itkExpectationMaximizationMixtureModelEstimatorTest);
 //  REGISTER_TEST(itkGoodnessOfFitMixtureModelCostFunctionTest);
 //  REGISTER_TEST(itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest);
-//  REGISTER_TEST(itkHistogramTest);
+  REGISTER_TEST(itkHistogramTest);
 //  REGISTER_TEST(itkImageToListAdaptorTest);
 //  REGISTER_TEST(itkImageToCooccurrenceListAdaptorTest);
 //  REGISTER_TEST(itkImageToHistogramGeneratorTest);
 //  REGISTER_TEST(itkKdTreeBasedKmeansEstimatorTest);
   REGISTER_TEST(itkKdTreeGeneratorTest);
   REGISTER_TEST(itkListSampleTest);
-//  REGISTER_TEST(itkListSampleToHistogramFilterTest);
+  REGISTER_TEST(itkListSampleToHistogramFilterTest);
 //  REGISTER_TEST(itkListSampleToHistogramGeneratorTest);
 //  REGISTER_TEST(itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest);
   REGISTER_TEST(itkMembershipSampleTest);
@@ -57,7 +57,7 @@ void RegisterTests()
   REGISTER_TEST(itkStatisticsAlgorithmTest);
   REGISTER_TEST(itkSubsampleTest);
   REGISTER_TEST( itkVariableDimensionHistogramTest );
-//  REGISTER_TEST(itkWeightedMeanCalculatorTest);
+  REGISTER_TEST(itkWeightedMeanCalculatorTest);
   REGISTER_TEST(itkWeightedCovarianceCalculatorTest);
 }
 
