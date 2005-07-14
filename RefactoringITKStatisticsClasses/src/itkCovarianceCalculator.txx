@@ -75,12 +75,16 @@ CovarianceCalculator< TSample >
   const MeasurementVectorSizeType measurementVectorSize = 
     this->GetMeasurementVectorSize();
 
-  m_Mean = new MeanType( measurementVectorSize );
-
   if ( m_InternalMean != mean && m_InternalMean != 0 )
     {
     delete m_InternalMean ;
     m_InternalMean = 0 ;
+    }
+  
+  if( this->GetMeasurementVectorSize() && m_Mean && 
+       ( m_Mean->Size() != this->GetMeasurementVectorSize() ) )
+    {
+    itkExceptionMacro( << "Size of measurement vectors in the sample must be the same as the size of the mean vector." );
     }
   m_Mean = mean ;
 
