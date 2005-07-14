@@ -23,8 +23,8 @@ ADD_TEST(itkVariableDimensionHistogramTest ${STATISTICS_TESTS} itkVariableDimens
 #ADD_TEST(itkImageToHistogramGeneratorTest ${STATISTICS_TESTS} itkImageToHistogramGeneratorTest)
 #ADD_TEST(itkKdTreeBasedKmeansEstimatorTest ${STATISTICS_TESTS} 
 #         itkKdTreeBasedKmeansEstimatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
-#ADD_TEST(itkKdTreeGeneratorTest ${STATISTICS_TESTS} 
-#         itkKdTreeGeneratorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
+ADD_TEST(itkKdTreeGeneratorTest ${STATISTICS_TESTS} 
+         itkKdTreeGeneratorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
 ADD_TEST(itkListSampleTest ${STATISTICS_TESTS} itkListSampleTest 4)
 #ADD_TEST(itkListSampleToHistogramFilterTest ${STATISTICS_TESTS} itkListSampleToHistogramFilterTest)
 #ADD_TEST(itkListSampleToHistogramGeneratorTest ${STATISTICS_TESTS} itkListSampleToHistogramGeneratorTest)
@@ -45,7 +45,7 @@ ADD_TEST(itkMembershipSampleTest ${STATISTICS_TESTS} itkMembershipSampleTest)
 #ADD_TEST(itkScalarImageToHistogramGeneratorTest ${STATISTICS_TESTS} itkScalarImageToHistogramGeneratorTest)
 #ADD_TEST(itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest ${STATISTICS_TESTS} itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest)
 #ADD_TEST(itkSelectiveSubsampleGeneratorTest ${STATISTICS_TESTS} 
-#                                            itkSelectiveSubsampleGeneratorTest)
+#                                           itkSelectiveSubsampleGeneratorTest)
 ADD_TEST(itkSubsampleTest ${STATISTICS_TESTS} itkSubsampleTest)
 #ADD_TEST(itkWeightedMeanCalculatorTest ${STATISTICS_TESTS} itkWeightedMeanCalculatorTest)
 #ADD_TEST(itkWeightedCovarianceCalculatorTest ${STATISTICS_TESTS} 
@@ -66,7 +66,7 @@ itkVariableDimensionHistogramTest.cxx
 #itkImageToCooccurrenceListAdaptorTest.cxx
 #itkImageToHistogramGeneratorTest.cxx
 #itkKdTreeBasedKmeansEstimatorTest.cxx
-#itkKdTreeGeneratorTest.cxx
+itkKdTreeGeneratorTest.cxx
 itkListSampleTest.cxx
 #itkListSampleToHistogramFilterTest.cxx
 #itkListSampleToHistogramGeneratorTest.cxx
