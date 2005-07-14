@@ -33,7 +33,8 @@ int itkCovarianceCalculatorTest(int, char* [] )
   std::string whereFail = "" ;
 
   // Now generate an image
-  enum { MeasurementVectorSize = 1 } ;
+  const unsigned int MeasurementVectorSize = 1;
+  
   typedef float MeasurementType ;
   typedef itk::FixedArray< MeasurementType, MeasurementVectorSize > 
     MeasurementVectorType ;
@@ -55,7 +56,8 @@ int itkCovarianceCalculatorTest(int, char* [] )
   ImageIterator iter(image, region) ;
 
   unsigned int count = 0 ;
-  MeasurementVectorType temp ;
+  MeasurementVectorType temp;
+
   // fill the image
   while (!iter.IsAtEnd())
     {
@@ -71,6 +73,7 @@ int itkCovarianceCalculatorTest(int, char* [] )
 
   ImageToListAdaptorType::Pointer sample = ImageToListAdaptorType::New() ;
   sample->SetImage(image) ;
+  sample->SetMeasurementVectorSize( MeasurementVectorSize );
 
   typedef itk::Statistics::MeanCalculator< ImageToListAdaptorType > 
     MeanCalculatorType ;
