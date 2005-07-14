@@ -338,7 +338,7 @@ int main( int argc, char * argv [] )
       posteriorArrayPixel[i] = posteriorArrayPixel[i] / tempSum;
       }
     itrPosteriorImage.Set( posteriorArrayPixel );
-    std::cout << itrPosteriorImage.GetIndex() << " = " <<  itrPosteriorImage.Get() << std::endl;
+ // DEBUGGING   std::cout << itrPosteriorImage.GetIndex() << " = " <<  itrPosteriorImage.Get() << std::endl;
     ++itrPosteriorImage;
     }
 
@@ -369,6 +369,14 @@ int main( int argc, char * argv [] )
                                                           posteriors->GetBufferPointer(),
                                                           false );
   indexScalarToVectorAdaptor->GetOutput()->Allocate();
+
+  std::cout << "After passing the posteriors to the ScalarToVector filter" << std::endl;
+  itrPosteriorImage.GoToBegin();
+  while( !itrPosteriorImage.IsAtEnd() )
+    {
+    std::cout << itrPosteriorImage.GetIndex() << " = " <<  itrPosteriorImage.Get() << std::endl;
+    ++itrPosteriorImage;
+    }
 
 
   // SMOOTH POSTERIORS
