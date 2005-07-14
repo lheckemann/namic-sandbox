@@ -132,11 +132,17 @@ ImageCastVectorIndexSelectionFilter<TInputImage,TOutputImage>
   InputImagePointer  inputPtr = this->GetInput();
   OutputImagePointer outputPtr = this->GetOutput(0);
   
+  inputPtr->Print( std::cout );
+  outputPtr->Print( std::cout );
+
   // Define the portion of the input to walk for this thread, using
   // the CallCopyOutputRegionToInputRegion method allows for the input
   // and output images to be different dimensions
   InputImageRegionType inputRegionForThread;
   this->CallCopyOutputRegionToInputRegion(inputRegionForThread, outputRegionForThread);
+
+  std::cout << "input  Region " << inputRegionForThread << std::endl;
+  std::cout << "output Region " << outputRegionForThread << std::endl;
 
   // Define the iterators
   ImageRegionConstIterator<TInputImage>  inputIt(inputPtr, inputRegionForThread);
@@ -151,8 +157,9 @@ ImageCastVectorIndexSelectionFilter<TInputImage,TOutputImage>
   const unsigned int index = this->GetFunctor().GetIndex();   
   while( !inputIt.IsAtEnd() ) 
     {
-    B =  outputIt.Get();
-    B[ index ] = inputIt.Get();
+    std::cout <<   outputIt.Get() << std::endl;
+//    B =  outputIt.Get();
+//    B[ index ] = inputIt.Get();
     outputIt.Set( B );
     ++inputIt;
     ++outputIt;

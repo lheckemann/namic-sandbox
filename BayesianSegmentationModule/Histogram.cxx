@@ -200,7 +200,18 @@ int main( int argc, char * argv [] )
     {
     priorArrayPixel[i] = (double)1 / numberOfClasses;
     }
-  priors->FillBuffer( priorArrayPixel );
+
+  typedef itk::ImageRegionIterator< PriorImageType > PriorsIteratorType;
+
+  PriorsIteratorType priorsItr( priors, priors->GetBufferedRegion() );
+
+  priorsItr.GoToBegin();
+
+  while( !priorsItr.IsAtEnd() )
+    {
+    priorsItr.Set( priorArrayPixel );
+    ++priorsItr;
+    }
 
 
   // CREATE GAUSSIAN DENSITY FUNCTION
@@ -276,6 +287,7 @@ int main( int argc, char * argv [] )
     {
     posteriorArrayPixel[i] = 0.0;
     }
+
   posteriors->FillBuffer( posteriorArrayPixel );
 
   MembershipImageIteratorType itrPosteriorImage( posteriors, imageRegion );
