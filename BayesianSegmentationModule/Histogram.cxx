@@ -201,16 +201,12 @@ int main( int argc, char * argv [] )
     priorArrayPixel[i] = (double)1 / numberOfClasses;
     }
 
-  typedef itk::ImageRegionIterator< PriorImageType > PriorsIteratorType;
+  itrPriorImage.GoToBegin();
 
-  PriorsIteratorType priorsItr( priors, priors->GetBufferedRegion() );
-
-  priorsItr.GoToBegin();
-
-  while( !priorsItr.IsAtEnd() )
+  while( !itrPriorImage.IsAtEnd() )
     {
-    priorsItr.Set( priorArrayPixel );
-    ++priorsItr;
+    itrPriorImage.Set( priorArrayPixel );
+    ++itrPriorImage;
     }
 
 
@@ -241,14 +237,22 @@ int main( int argc, char * argv [] )
   data->SetSpacing( readerRawData->GetOutput()->GetSpacing() );
   data->Allocate();
 
+  MembershipImageIteratorType itrDataImage( data, imageRegion );
+  itrDataImage.GoToBegin();
+
   MembershipArrayPixelType membershipArrayPixel( numberOfClasses );
   for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
     {
     membershipArrayPixel[i] = 0.0;
     }
-  data->FillBuffer( membershipArrayPixel );
 
-  MembershipImageIteratorType itrDataImage( data, imageRegion );
+  while( !itrDataImage.IsAtEnd() )
+    {
+    itrDataImage.Set( membershipArrayPixel );
+    ++itrDataImage;
+    }
+
+
   MeasurementVectorType mv;
 
   itrDataImage.GoToBegin();
@@ -288,9 +292,16 @@ int main( int argc, char * argv [] )
     posteriorArrayPixel[i] = 0.0;
     }
 
-  posteriors->FillBuffer( posteriorArrayPixel );
 
-  MembershipImageIteratorType itrPosteriorImage( posteriors, imageRegion );
+  PosteriorImageIteratorType itrPosteriorImage( posteriors, imageRegion );
+
+  itrPosteriorImage.GoToBegin();
+  while( !itrPosteriorImage.IsAtEnd() )
+    {
+    itrPosteriorImage.Set( posteriorArrayPixel );
+    ++itrPosteriorImage;
+    }
+
 
   itrDataImage.GoToBegin();
   itrPriorImage.GoToBegin();
