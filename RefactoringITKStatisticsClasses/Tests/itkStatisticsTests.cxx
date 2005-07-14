@@ -58,6 +58,6 @@ void RegisterTests()
   REGISTER_TEST(itkSubsampleTest);
   REGISTER_TEST( itkVariableDimensionHistogramTest );
 //  REGISTER_TEST(itkWeightedMeanCalculatorTest);
-//  REGISTER_TEST(itkWeightedCovarianceCalculatorTest);
+  REGISTER_TEST(itkWeightedCovarianceCalculatorTest);
 }
 

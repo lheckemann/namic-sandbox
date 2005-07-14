@@ -73,7 +73,6 @@ int itkCovarianceCalculatorTest(int, char* [] )
 
   ImageToListAdaptorType::Pointer sample = ImageToListAdaptorType::New() ;
   sample->SetImage(image) ;
-  sample->SetMeasurementVectorSize( MeasurementVectorSize );
 
   typedef itk::Statistics::MeanCalculator< ImageToListAdaptorType > 
     MeanCalculatorType ;

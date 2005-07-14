@@ -29,5 +29,5 @@
 #./itkStatisticsTests itkSelectiveSubsampleGeneratorTest
 ./itkStatisticsTests itkSubsampleTest
 #./itkStatisticsTests itkWeightedMeanCalculatorTest
-#./itkStatisticsTests itkWeightedCovarianceCalculatorTest  
+./itkStatisticsTests itkWeightedCovarianceCalculatorTest  
 ./itkStatisticsTests itkVariableDimensionHistogramTest

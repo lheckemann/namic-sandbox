@@ -48,8 +48,8 @@ ADD_TEST(itkMembershipSampleTest ${STATISTICS_TESTS} itkMembershipSampleTest)
 #                                           itkSelectiveSubsampleGeneratorTest)
 ADD_TEST(itkSubsampleTest ${STATISTICS_TESTS} itkSubsampleTest)
 #ADD_TEST(itkWeightedMeanCalculatorTest ${STATISTICS_TESTS} itkWeightedMeanCalculatorTest)
-#ADD_TEST(itkWeightedCovarianceCalculatorTest ${STATISTICS_TESTS} 
-#         itkWeightedCovarianceCalculatorTest)
+ADD_TEST(itkWeightedCovarianceCalculatorTest ${STATISTICS_TESTS} 
+         itkWeightedCovarianceCalculatorTest)
 
 
 SET(Statistics_SRCS
@@ -85,7 +85,7 @@ itkMembershipSampleTest.cxx
 #itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest.cxx
 itkSubsampleTest.cxx
 #itkWeightedMeanCalculatorTest.cxx
-#itkWeightedCovarianceCalculatorTest.cxx
+itkWeightedCovarianceCalculatorTest.cxx
 )
 
 ADD_EXECUTABLE(itkStatisticsTests itkStatisticsTests.cxx ${Statistics_SRCS})
