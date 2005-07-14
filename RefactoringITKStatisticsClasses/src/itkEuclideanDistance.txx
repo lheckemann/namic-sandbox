@@ -26,9 +26,14 @@ inline double
 EuclideanDistance< TVector >
 ::Evaluate(const TVector &x1, const TVector &x2) const
 {
+  if( x1.Size() != x2.Size() )
+    {
+    itkExceptionMacro( << "Vector lengths must be equal." );
+    }
+  
   double temp, distance = NumericTraits< double >::Zero ;
   
-  for(unsigned int i = 0 ; i < VectorLength ; i++ )
+  for(unsigned int i = 0 ; i < x1.Size(); i++ )
     {
     temp = x1[i] - x2[i] ;
     distance += temp * temp ;
@@ -43,9 +48,20 @@ inline double
 EuclideanDistance< TVector >
 ::Evaluate(const TVector &x) const
 {
+  MeasurementVectorSizeType 
+    measurementVectorSize = this->GetMeasurementVectorSize();
+  if(measurementVectorSize == 0) 
+    {
+    itkExceptionMacro( << "Please set the MeasurementVectorSize first" );
+    }
+  if( measurementVectorSize != m_Origin.Size() )
+    {
+    itkExceptionMacro( << "Origin and input vector have different lengths" );
+    }
+  
   double temp, distance = NumericTraits< double >::Zero ;
   
-  for(unsigned int i = 0 ; i < VectorLength ; i++ )
+  for(unsigned int i = 0 ; i < measurementVectorSize ; i++ )
     {
     temp = this->GetOrigin()[i] - x[i] ;
     distance += temp * temp ;
@@ -68,10 +84,21 @@ inline bool
 EuclideanDistance< TVector >
 ::IsWithinRange(const TVector &x, const double radius) const 
 {
+  MeasurementVectorSizeType 
+    measurementVectorSize = this->GetMeasurementVectorSize();
+  if(measurementVectorSize == 0) 
+    {
+    itkExceptionMacro( << "Please set the MeasurementVectorSize first" );
+    }
+  if( measurementVectorSize != m_Origin )
+    {
+    itkExceptionMacro( << "Origin and input vector have different lengths" );
+    }
+  
   double squaredRadius = radius * radius ;
   double sum = NumericTraits< double >::Zero ;
   double temp ;
-  for ( unsigned int i = VectorLength ; i > 0 ; --i )
+  for ( unsigned int i = measurementVectorSize ; i > 0 ; --i )
     {
     temp = this->Evaluate( this->GetOrigin()[i-1], x[i-1] ) ;
     sum += temp * temp ;
