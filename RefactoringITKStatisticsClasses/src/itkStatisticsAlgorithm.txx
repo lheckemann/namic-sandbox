@@ -100,7 +100,7 @@ inline TValue MedianOfThree(const TValue a,
 }
 
 template< class TSample >
-inline void FindSampleBound(const TSample* ,
+inline void FindSampleBound(const TSample* sample,
                             typename TSample::ConstIterator begin,
                             typename TSample::ConstIterator end,
                             typename TSample::MeasurementVectorType &min,
@@ -108,7 +108,7 @@ inline void FindSampleBound(const TSample* ,
 {    
   typedef typename TSample::MeasurementVectorSizeType MeasurementVectorSizeType;
 
-  const MeasurementVectorSizeType dimension = sample->GetMeasurementVectorSize();
+  const MeasurementVectorSizeType Dimension = sample->GetMeasurementVectorSize();
   if( Dimension == 0 )
     {
     itkGenericExceptionMacro( 
@@ -122,12 +122,12 @@ inline void FindSampleBound(const TSample* ,
     }
       
 
-  typename TSample::MeasurementVectorType temp( dimension ) ;
+  typename TSample::MeasurementVectorType temp;
 
   min = max = temp = begin.GetMeasurementVector() ;
   while (true)
     {
-    for (dimension= 0 ; dimension < Dimension ; dimension++) 
+    for (unsigned int dimension= 0 ; dimension < Dimension ; dimension++) 
       {
       if ( temp[dimension] < min[dimension]) 
         {
