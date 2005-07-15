@@ -29,10 +29,14 @@ int itkSelectiveSubsampleGeneratorTest( int, char* [] )
   // measurement vectors in tht \code{ListSample} object.
   // Software Guide : EndLatex
 
+  const unsigned int MeasurementVectorSize = 3;
   typedef itk::Vector< float, 3 > MeasurementVectorType ;
-  typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType ;
-  SampleType::Pointer sample = SampleType::New() ;
-  MeasurementVectorType mv ;
+  typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
+  
+  SampleType::Pointer sample = SampleType::New();
+  sample->SetMeasurementVectorSize( MeasurementVectorSize );
+  
+  MeasurementVectorType mv(MeasurementVectorSize);
   mv[0] = 1.0 ;
   mv[1] = 2.0 ;
   mv[2] = 4.0 ;
@@ -54,7 +58,9 @@ int itkSelectiveSubsampleGeneratorTest( int, char* [] )
   typedef itk::Statistics::ListSample< ClassMaskVectorType > 
     ClassMaskSampleType ;
   ClassMaskSampleType::Pointer mask = ClassMaskSampleType::New() ;
-  ClassMaskVectorType m ;
+  mask->SetMeasurementVectorSize( 1 );
+  
+  ClassMaskVectorType m(1);
   m[0] = 0 ;
   mask->PushBack( m ) ;
   m[0] = 1 ;
