@@ -40,7 +40,7 @@ void RegisterTests()
   REGISTER_TEST(itkKdTreeGeneratorTest);
   REGISTER_TEST(itkListSampleTest);
   REGISTER_TEST(itkListSampleToHistogramFilterTest);
-//  REGISTER_TEST(itkListSampleToHistogramGeneratorTest);
+  REGISTER_TEST(itkListSampleToHistogramGeneratorTest);
 //  REGISTER_TEST(itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest);
   REGISTER_TEST(itkMembershipSampleTest);
 //  REGISTER_TEST(itkMembershipSampleGeneratorTest);

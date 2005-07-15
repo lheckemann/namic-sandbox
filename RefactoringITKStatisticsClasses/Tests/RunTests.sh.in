@@ -13,7 +13,7 @@
 ./itkStatisticsTests itkKdTreeGeneratorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat
 ./itkStatisticsTests itkListSampleTest 4
 ./itkStatisticsTests itkListSampleToHistogramFilterTest
-#./itkStatisticsTests itkListSampleToHistogramGeneratorTest
+./itkStatisticsTests itkListSampleToHistogramGeneratorTest
 #./itkStatisticsTests itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest
 ./itkStatisticsTests itkMeanCalculatorTest
 ./itkStatisticsTests itkMembershipSampleTest
