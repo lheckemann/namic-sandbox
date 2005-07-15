@@ -17,8 +17,8 @@
 #ifndef __itkGaussianDensityFunction_h
 #define __itkGaussianDensityFunction_h
 
-#include "vnl/vnl_vector.h"
-#include "vnl/vnl_matrix.h"
+#include "itkArray.h"
+#include "itkVariableSizeMatrix.h"
 #include "vnl/algo/vnl_matrix_inverse.h"
 #include "vnl/algo/vnl_determinant.h"
 #include "vnl/vnl_math.h"
@@ -60,25 +60,40 @@ public:
   /** Typedef alias for the measurement vectors */
   typedef TMeasurementVector MeasurementVectorType ;
 
-  /** Dimension of the each individual pixel vector. */
-  itkStaticConstMacro(VectorDimension, unsigned int,
-                      TMeasurementVector::Length);
+  /** Length of each measurement vector */
+  typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
+  
+  /** REMOVED: Dimension of the each individual pixel vector. */
+  //itkStaticConstMacro(VectorDimension, unsigned int,
+  //                    TMeasurementVector::Length);
 
   /** Type of the mean vector */
-  typedef Vector< double, itkGetStaticConstMacro(VectorDimension) > MeanType ;
+  typedef Array< double > MeanType;
   
   /** Type of the covariance matrix */
-  typedef Matrix< double, itkGetStaticConstMacro(VectorDimension), 
-                  itkGetStaticConstMacro(VectorDimension) > CovarianceType ;
+  typedef VariableSizeMatrix< double > CovarianceType;
 
   /** Sets the mean */
   void SetMean( const MeanType * mean )
   {
-    if ( m_Mean != mean) 
+  if( this->GetMeasurementVectorSize() )
+    {
+    if( mean->size() != this->GetMeasurementVectorSize() )
       {
-      m_Mean = mean ;
-      this->Modified() ;
+      itkExceptionMacro( << "Size of measurement vectors in the sample must be"
+         << " the same as the size of the mean." );
       }
+    }
+  else
+    {
+    this->SetMeasurementVectorSize( mean->Size() );
+    }
+
+  if ( m_Mean != mean) 
+    {
+    m_Mean = mean ;
+    this->Modified() ;
+    }
   }
   
   /** Gets the mean */
