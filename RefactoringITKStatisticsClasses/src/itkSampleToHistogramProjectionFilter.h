@@ -24,7 +24,7 @@
 #include "itkHistogram.h"
 #include "itkFunctionBase.h"
 #include "itkSampleAlgorithmBase.h"
-#include "vnl/vnl_vector.h"
+#include "itkArray.h"
 
 namespace itk{ 
 namespace Statistics{
@@ -85,6 +85,7 @@ public:
 
   /** typedefs from the superclass */
   typedef typename Superclass::InputSampleType InputSampleType ;
+  typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
 
   /** 1D array typedef 
    * NOTE: The typedef was recently changed from a FixedArray to Array */
@@ -92,13 +93,10 @@ public:
   //typedef FixedArray< double, 
   //                    itkGetStaticConstMacro(MeasurementVectorSize) > ArrayType ;
 
-  /** The center of the histogram
-   * NOTE: The API for MeanType was recently changed from itk::Vector to vnl_vector 
-   * TODO: Create class itk::VariableLengthVector that has an API consistent
-   * with itk::Vector */
+  /** The center of the histogram */
   //typedef Vector< double, 
   //                itkGetStaticConstMacro(MeasurementVectorSize) > MeanType ;
-  typedef vnl_vector< double > MeanType;
+  typedef Array< double > MeanType;
 
   /** Type of the output object */
   typedef Histogram< THistogramMeasurement, 1 > HistogramType ;
