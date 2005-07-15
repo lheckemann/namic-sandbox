@@ -52,6 +52,10 @@ namespace Statistics{
  * (bin interval) / 100 ( = marginal scale). 
  *
  * The result historam has equi-size bins along each axe.
+ *
+ * The class is templated over the list sample, the frequency measurement 
+ * precision, the length of each measurement vector and optionally over the
+ * type of frequency container.
  * 
  * NOTE: The second template argument, THistogramMeasurement should be
  * float-point type (float or double). 
@@ -60,6 +64,7 @@ namespace Statistics{
  */
 template< class TListSample, 
           class THistogramMeasurement,  
+          unsigned int TMeasurementVectorLength,
           class TFrequencyContainer = DenseFrequencyContainer< float > >
 class ITK_EXPORT ListSampleToHistogramGenerator :
     public Object
@@ -79,7 +84,7 @@ public:
 
   /** the number of components in a measurement vector */
   itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      TListSample::MeasurementVectorSize);
+                      TMeasurementVectorLength);
 
   typedef Histogram< THistogramMeasurement, 
                      itkGetStaticConstMacro(MeasurementVectorSize),
@@ -90,7 +95,17 @@ public:
 
   /** plug in the ListSample object */
   void SetListSample(const TListSample* list)
-  { m_List = list ; }
+    { 
+    // Throw exception if the length of measurement vectors in the list is not
+    // equal to the dimension of the histogram.
+    if( list->GetMeasurementVectorSize() != MeasurementVectorSize )
+      {
+      itkExceptionMacro(<< "Length of measurement vectors in the list sample is "
+        << list->GetMeasurementVectorSize() << " but histogram dimension is "
+        << MeasurementVectorSize);
+      }
+    m_List = list ; 
+    }
 
   void SetMarginalScale(float scale)
   { m_MarginalScale = scale ; }

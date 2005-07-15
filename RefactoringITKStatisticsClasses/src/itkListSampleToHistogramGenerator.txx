@@ -24,9 +24,11 @@ namespace Statistics{
 
 template< class TListSample, 
           class THistogramMeasurement, 
+          unsigned int TMeasurementVectorLength,
           class TFrequencyContainer >
 ListSampleToHistogramGenerator< TListSample, 
                                 THistogramMeasurement, 
+                                TMeasurementVectorLength,
                                 TFrequencyContainer>
 ::ListSampleToHistogramGenerator()
 {
@@ -41,10 +43,12 @@ ListSampleToHistogramGenerator< TListSample,
 
 template< class TListSample, 
           class THistogramMeasurement, 
+          unsigned int TMeasurementVectorLength,
           class TFrequencyContainer >
 void
 ListSampleToHistogramGenerator< TListSample, 
                                 THistogramMeasurement, 
+                                TMeasurementVectorLength,
                                 TFrequencyContainer>
 ::GenerateData()
 {
@@ -61,7 +65,7 @@ ListSampleToHistogramGenerator< TListSample,
     
     float margin ;
 
-    for ( unsigned int i = 0 ; i < TListSample::MeasurementVectorSize ; i++ )
+    for ( unsigned int i = 0 ; i < MeasurementVectorSize ; i++ )
       {
       if ( !NumericTraits< THistogramMeasurement >::is_integer )
         {
@@ -135,10 +139,12 @@ ListSampleToHistogramGenerator< TListSample,
 
 template< class TListSample, 
           class THistogramMeasurement, 
+          unsigned int TMeasurementVectorLength,
           class TFrequencyContainer >
 void
 ListSampleToHistogramGenerator< TListSample, 
                                 THistogramMeasurement, 
+                                TMeasurementVectorLength,
                                 TFrequencyContainer>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
