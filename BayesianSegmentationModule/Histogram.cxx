@@ -314,7 +314,6 @@ int main( int argc, char * argv [] )
       {
       posteriorArrayPixel[i] = membershipArrayPixel[i] * priorArrayPixel[i];
       }
-// DEBUGGING std::cout << itrPriorImage.GetIndex() << " = " <<  posteriorArrayPixel << std::endl;
     itrPosteriorImage.Set( posteriorArrayPixel );
     ++itrDataImage;
     ++itrPriorImage;
@@ -338,7 +337,6 @@ int main( int argc, char * argv [] )
       posteriorArrayPixel[i] = posteriorArrayPixel[i] / tempSum;
       }
     itrPosteriorImage.Set( posteriorArrayPixel );
- // DEBUGGING   std::cout << itrPosteriorImage.GetIndex() << " = " <<  itrPosteriorImage.Get() << std::endl;
     ++itrPosteriorImage;
     }
 
@@ -370,18 +368,8 @@ int main( int argc, char * argv [] )
                                                           imageRegion.GetNumberOfPixels(),
                                                           false );
 
-  std::cout << "posteriors GetBufferPointer() = " <<
-    posteriors->GetBufferPointer() << std::endl;
-
   indexScalarToVectorAdaptor->GetOutput()->Allocate();
 
-  std::cout << "After passing the posteriors to the ScalarToVector filter" << std::endl;
-  itrPosteriorImage.GoToBegin();
-  while( !itrPosteriorImage.IsAtEnd() )
-    {
-    std::cout << itrPosteriorImage.GetIndex() << " = " <<  itrPosteriorImage.Get() << std::endl;
-    ++itrPosteriorImage;
-    }
 
 
   // SMOOTH POSTERIORS
@@ -501,7 +489,6 @@ int main( int argc, char * argv [] )
   while( itr != end )
     {
     const FrequencyType frequency = itr.GetFrequency();
-    //std::cout << frequency << std::endl;
     ++itr;
     }
 

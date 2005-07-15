@@ -147,15 +147,12 @@ ImageCastVectorIndexSelectionFilter<TInputImage,TOutputImage>
   inputIt.GoToBegin();
   outputIt.GoToBegin();
 
-  std::cout << "Debugging output from ImageCastVectorIndexSelectionFilter " << std::endl;
-
   typename TOutputImage::PixelType B;
   const unsigned int index = this->GetFunctor().GetIndex();   
   while( !inputIt.IsAtEnd() ) 
     {
     B =  outputIt.Get();
-    std::cout << outputIt.GetIndex() << " = " << outputIt.Get() << std::endl;
-//    B[ index ] = inputIt.Get();
+    B[ index ] = inputIt.Get();
     outputIt.Set( B );
     ++inputIt;
     ++outputIt;
