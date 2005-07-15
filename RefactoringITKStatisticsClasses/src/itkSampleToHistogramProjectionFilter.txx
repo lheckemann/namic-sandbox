@@ -107,7 +107,7 @@ SampleToHistogramProjectionFilter< TInputSample, THistogramMeasurement >
 {
   if( this->GetMeasurementVectorSize() )
     {
-    if( mean->size() != this->GetMeasurementVectorSize() )
+    if( mean->Size() != this->GetMeasurementVectorSize() )
       {
       itkExceptionMacro( << "Size of measurement vectors in the sample must be"
          << " the same as the size of the mean." );
@@ -115,7 +115,7 @@ SampleToHistogramProjectionFilter< TInputSample, THistogramMeasurement >
     }
   else
     {
-    this->SetMeasurementVectorSize( mean->size() );
+    this->SetMeasurementVectorSize( mean->Size() );
     }
 
   
