@@ -38,9 +38,8 @@ int itkNeighborhoodSamplerTest(int , char* [])
   typedef stat::ListSample< MeasurementVectorType > SampleType ;
 
   SampleType::Pointer sample = SampleType::New() ;
+  sample->SetMeasurementVectorSize( NO_OF_DIMENSIONS );
 
-  MeasurementVectorType center ;
-  center.Fill(0.0) ;
   
   double radius = 1.0 ;
 
@@ -83,6 +82,9 @@ int itkNeighborhoodSamplerTest(int , char* [])
   
   SamplerType::Pointer sampler = SamplerType::New() ;
 
+  SamplerType::CenterType center( NO_OF_DIMENSIONS );
+  center.Fill(0.0) ;
+  
   sampler->SetInputSample(sample) ;
   sampler->SetCenter(&center) ;
   sampler->SetRadius(&radius) ;
