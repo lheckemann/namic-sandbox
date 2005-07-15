@@ -21,7 +21,7 @@
 #include "itkObject.h"
 #include "itkSample.h"
 #include "itkSubsample.h"
-#include "vnl/vnl_vector.h"
+#include "itkArray.h"
 #include "itkSampleAlgorithmBase.h"
 
 namespace itk{ 
@@ -88,22 +88,24 @@ public:
   typedef double RadiusType ;
 
   /** Type of the array of the radii */ 
-  typedef vnl_vector< double > CenterType;
+  typedef Array< double > CenterType;
   //typedef FixedArray< double, itkGetStaticConstMacro(MeasurementVectorSize) > CenterType ;
 
   /** Sets the center of the spherical kernel */
   void SetCenter(CenterType* center)
   {
-    if( this->m_MeasurementVectorSize && 
-      ( center->size() != this->m_MeasurementVectorSize ) )
+    if( this->GetMeasurementVectorSize() && 
+      ( center->Size() != this->GetMeasurementVectorSize() ) )
       {
-      itkExceptionMacro( << "Size of measurement vectors in the sample must be the same as the size of the center." );
+      itkExceptionMacro( << "Size of measurement vectors in the sample is: " <<
+         this->GetMeasurementVectorSize() << " but size of center is: " <<
+         center->Size() );
       }
     
     if ( m_Center != center )
       {
-        m_Center = center ;
-        this->Modified() ;
+      m_Center = center ;
+      this->Modified() ;
       }
   }
 
