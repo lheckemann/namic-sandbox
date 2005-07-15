@@ -44,8 +44,8 @@ ADD_TEST(itkMembershipSampleGeneratorTest ${STATISTICS_TESTS} itkMembershipSampl
 #ADD_TEST(itkScalarImageTextureCalculatorTest ${STATISTICS_TESTS} itkScalarImageTextureCalculatorTest)
 #ADD_TEST(itkScalarImageToHistogramGeneratorTest ${STATISTICS_TESTS} itkScalarImageToHistogramGeneratorTest)
 #ADD_TEST(itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest ${STATISTICS_TESTS} itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest)
-#ADD_TEST(itkSelectiveSubsampleGeneratorTest ${STATISTICS_TESTS} 
-#                                           itkSelectiveSubsampleGeneratorTest)
+ADD_TEST(itkSelectiveSubsampleGeneratorTest ${STATISTICS_TESTS} 
+                                           itkSelectiveSubsampleGeneratorTest)
 ADD_TEST(itkSubsampleTest ${STATISTICS_TESTS} itkSubsampleTest)
 ADD_TEST(itkWeightedMeanCalculatorTest ${STATISTICS_TESTS} itkWeightedMeanCalculatorTest)
 ADD_TEST(itkWeightedCovarianceCalculatorTest ${STATISTICS_TESTS} 
@@ -79,7 +79,7 @@ itkNeighborhoodSamplerTest.cxx
 #itkSampleClassifierWithMaskTest.cxx
 #itkSampleMeanShiftClusteringFilterTest.cxx
 #itkSampleSelectiveMeanShiftBlurringFilterTest.cxx
-#itkSelectiveSubsampleGeneratorTest.cxx
+itkSelectiveSubsampleGeneratorTest.cxx
 #itkScalarImageToHistogramGeneratorTest.cxx
 #itkScalarImageTextureCalculatorTest.cxx
 #itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest.cxx
