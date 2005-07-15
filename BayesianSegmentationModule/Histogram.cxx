@@ -40,7 +40,7 @@ int main( int argc, char * argv [] )
   if( argc < 4 )
     {
     std::cerr << "Missing command line arguments" << std::endl;
-    std::cerr << "Usage : Histogram inputImageFileName inputLabelImageFileName kmeansLabelmapFileName initialLabelmapFileName" << std::endl;
+    std::cerr << "Usage : Histogram inputImageFileName inputLabelImageFileName kmeansLabelmapFileName labelmapFileName" << std::endl;
     return -1;
     }
 
@@ -70,7 +70,8 @@ int main( int argc, char * argv [] )
     }
 
   // when moving to filter, change to GetRequestedRegion()
-  InputImageType::RegionType imageRegion = readerRawData->GetOutput()->GetLargestPossibleRegion();
+  InputImageType::RegionType imageRegion =
+    readerRawData->GetOutput()->GetLargestPossibleRegion();
 
   // K-MEANS CLASSIFICATION
   typedef itk::ScalarImageKmeansImageFilter< InputImageType > KMeansFilterType;
@@ -372,13 +373,13 @@ int main( int argc, char * argv [] )
 
 
 
-  // SMOOTH POSTERIORS
+  // SETUP SMOOTHING FUNCTION
   typedef itk::CurvatureAnisotropicDiffusionImageFilter<
                             ScalarPosteriorImageType, 
                             ScalarPosteriorImageType > SmoothingFilterType;
   
   float timeStep = 0.1;
-  int numberOfIterations = 5;
+  int numberOfIterations = 1;
   
   SmoothingFilterType::Pointer smoothingFilter = SmoothingFilterType::New();
   smoothingFilter->SetInput( indexVectorToScalarAdaptor->GetOutput() );
@@ -388,13 +389,34 @@ int main( int argc, char * argv [] )
   indexVectorToScalarAdaptor->SetInput( posteriors );
   indexScalarToVectorAdaptor->SetInput( smoothingFilter->GetOutput() );
                       
-  for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
+  // PERFORM ITERATIVE SMOOTHING AND RENORMALIZATION OF POSTERIORS
+  int numberOfSmoothingIterations = 10;
+  for ( unsigned int iSmoothing = 0; iSmoothing < numberOfSmoothingIterations; ++iSmoothing )
     {
-    indexVectorToScalarAdaptor->SetIndex( i );
-    indexScalarToVectorAdaptor->SetIndex( i );
-    indexScalarToVectorAdaptor->Update();
-    }
+    for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
+      {
+      indexVectorToScalarAdaptor->SetIndex( i );
+      indexScalarToVectorAdaptor->SetIndex( i );
+      indexScalarToVectorAdaptor->Update();
+      }
 
+    itrPosteriorImage.GoToBegin();
+    while ( !itrPosteriorImage.IsAtEnd() )
+      {
+      posteriorArrayPixel = itrPosteriorImage.Get();
+      tempSum = 0;
+      for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
+        {
+        tempSum = tempSum + posteriorArrayPixel[i];
+        }
+      for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
+        {
+        posteriorArrayPixel[i] = posteriorArrayPixel[i] / tempSum;
+        }
+      itrPosteriorImage.Set( posteriorArrayPixel );
+      ++itrPosteriorImage;
+      }
+    }
 
   // APPLY MAXIMUM A POSTERIORI RULE
   // setup rest of decision rule
@@ -413,12 +435,12 @@ int main( int argc, char * argv [] )
 
   itrLabelImage.GoToBegin();
   itrPosteriorImage.GoToBegin();
-  std::vector< double > temporaryHolder;  // show this to Luis
+  std::vector< double > temporaryHolder(numberOfClasses);  // show this to Luis
   while ( !itrLabelImage.IsAtEnd() )
     {
     for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
       {
-      temporaryHolder.push_back( itrPosteriorImage.Get()[i] );
+      temporaryHolder[i] = ( itrPosteriorImage.Get()[i] );
       }
     itrLabelImage.Set( decisionRule->Evaluate( temporaryHolder ) );
     ++itrLabelImage;
@@ -426,27 +448,6 @@ int main( int argc, char * argv [] )
     }
   
   
-  // WRITE INITIAL LABELMAP TO FILE
-  typedef itk::ImageFileWriter< LabelOutputImageType > LabelWriterType; 
-
-  LabelWriterType::Pointer labelWriter = LabelWriterType::New();
-
-  const char * initialLabelmapFileName = argv[4];
-  labelWriter->SetInput( labels );
-  labelWriter->SetFileName( initialLabelmapFileName );
-  try
-    {
-    labelWriter->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << "Problem encoutered while writing image file : "
-      << argv[4] << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
-
-
   // JOIN IMAGE AND LABEL MAP
   typedef itk::JoinImageFilter< InputImageType, InputImageType > JoinFilterType;
   typedef JoinFilterType::OutputImageType JoinImageType;
@@ -469,7 +470,7 @@ int main( int argc, char * argv [] )
   SizeType size;
 
   size[0] = 256; // number of bins for the gray levels
-  size[1] = 4; // number of bins for the labels = number of labels
+  size[1] = numberOfClasses; // number of bins for the labels = number of labels
   histogramGenerator->SetNumberOfBins( size );
   histogramGenerator->SetMarginalScale( 10.0 );
   histogramGenerator->SetInput( joinFilter->GetOutput() );
@@ -507,6 +508,27 @@ int main( int argc, char * argv [] )
     HistogramDensityFunctionType::New();
 
   membershipFunction->SetHistogram( histogram );
+
+
+  // WRITE LABELMAP TO FILE
+  typedef itk::ImageFileWriter< LabelOutputImageType > LabelWriterType; 
+
+  LabelWriterType::Pointer labelWriter = LabelWriterType::New();
+
+  const char * labelmapFileName = argv[4];
+  labelWriter->SetInput( labels );
+  labelWriter->SetFileName( labelmapFileName );
+  try
+    {
+    labelWriter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Problem encoutered while writing image file : "
+      << argv[4] << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
 
   return 0;
   }
