@@ -37,10 +37,10 @@ PURPOSE. See the above copyright notices for more information.
 int main( int argc, char * argv [] )
   {
 
-  if( argc < 4 )
+  if( argc < 3 )
     {
     std::cerr << "Missing command line arguments" << std::endl;
-    std::cerr << "Usage : Histogram inputImageFileName inputLabelImageFileName kmeansLabelmapFileName labelmapFileName" << std::endl;
+    std::cerr << "Usage : Histogram inputImageFileName kmeansLabelmapFileName labelmapFileName" << std::endl;
     return -1;
     }
 
@@ -52,19 +52,16 @@ int main( int argc, char * argv [] )
   typedef itk::ImageFileReader< InputImageType > ReaderType;
 
   ReaderType::Pointer readerRawData = ReaderType::New();
-  ReaderType::Pointer readerLabels = ReaderType::New();
 
   readerRawData->SetFileName( argv[1] );
-  readerLabels->SetFileName( argv[2] );
   try
     {
     readerRawData->Update();
-    readerLabels->Update();
     }
   catch( itk::ExceptionObject & excp )
     {
     std::cerr << "Problem encoutered while reading image file : "
-      << argv[1] << " " << argv[2] << std::endl;
+      << argv[1] << std::endl;
     std::cerr << excp << std::endl;
     return -1;
     }
@@ -96,7 +93,7 @@ int main( int argc, char * argv [] )
 
   KMeansWriterType::Pointer kmeansWriter = KMeansWriterType::New();
 
-  const char * kmeansLabelmapFileName = argv[3];
+  const char * kmeansLabelmapFileName = argv[2];
   kmeansWriter->SetInput( kmeansFilter->GetOutput() );
   kmeansWriter->SetFileName( kmeansLabelmapFileName );
   try
@@ -106,7 +103,7 @@ int main( int argc, char * argv [] )
   catch( itk::ExceptionObject & excp )
     {
     std::cerr << "Problem encountered while writing image file : "
-      << argv[3] << std::endl;
+      << argv[2] << std::endl;
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;
     }
@@ -455,7 +452,7 @@ int main( int argc, char * argv [] )
   JoinFilterType::Pointer joinFilter = JoinFilterType::New();
 
   joinFilter->SetInput1( readerRawData->GetOutput() );
-  joinFilter->SetInput2( readerLabels->GetOutput() );
+  joinFilter->SetInput2( labels );
   joinFilter->Update();
 
 
@@ -515,7 +512,7 @@ int main( int argc, char * argv [] )
 
   LabelWriterType::Pointer labelWriter = LabelWriterType::New();
 
-  const char * labelmapFileName = argv[4];
+  const char * labelmapFileName = argv[3];
   labelWriter->SetInput( labels );
   labelWriter->SetFileName( labelmapFileName );
   try
@@ -525,7 +522,7 @@ int main( int argc, char * argv [] )
   catch( itk::ExceptionObject & excp )
     {
     std::cerr << "Problem encoutered while writing image file : "
-      << argv[4] << std::endl;
+      << argv[3] << std::endl;
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;
     }
