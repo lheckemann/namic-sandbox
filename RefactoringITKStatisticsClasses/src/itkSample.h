@@ -24,6 +24,7 @@
 #include "itkSize.h"
 #include "itkObject.h"
 #include "itkFixedArray.h"
+#include "itkMeasurementVectorTraits.h"
 
 namespace itk{ 
 namespace Statistics{
