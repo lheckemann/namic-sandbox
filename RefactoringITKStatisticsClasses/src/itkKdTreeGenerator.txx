@@ -61,9 +61,12 @@ KdTreeGenerator< TSample >
   m_Subsample->SetSample(sample) ;
   m_Subsample->InitializeWithAllInstances() ;
   m_MeasurementVectorSize = sample->GetMeasurementVectorSize();
-  m_TempLowerBound.SetSize( m_MeasurementVectorSize );
-  m_TempUpperBound.SetSize( m_MeasurementVectorSize );
-  m_TempMean.SetSize( m_MeasurementVectorSize );
+  m_TempLowerBound = MeasurementVectorTraits< MeasurementVectorType >::SetSize( 
+                                                  m_MeasurementVectorSize );
+  m_TempUpperBound = MeasurementVectorTraits< MeasurementVectorType >::SetSize( 
+                                                  m_MeasurementVectorSize );
+  m_TempMean       = MeasurementVectorTraits< MeasurementVectorType >::SetSize( 
+                                                  m_MeasurementVectorSize );
 }
 
 
