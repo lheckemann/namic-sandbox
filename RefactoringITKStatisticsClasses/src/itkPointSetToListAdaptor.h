@@ -220,7 +220,8 @@ public:
   }
   
 protected:
-  PointSetToListAdaptor() ;
+  PointSetToListAdaptor(); 
+  
   virtual ~PointSetToListAdaptor() {}
   void PrintSelf(std::ostream& os, Indent indent) const;  
 
