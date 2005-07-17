@@ -80,11 +80,20 @@ public:
   typedef typename TKdTree::InstanceIdentifier InstanceIdentifier ;
   typedef typename TKdTree::SampleType SampleType ;
   typedef typename KdTreeNodeType::CentroidType CentroidType ;
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      TKdTree::MeasurementVectorSize);
+  
+
+  /** REMOVED: Measurement vector length. The static const method to access the
+   * length of a measurement vector has been removed. The measurement vector 
+   * length is now queried from the KdTree whose means are to be estimated. */
+  //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+  //                    TKdTree::MeasurementVectorSize);
+  
+  /** Typedef for the length of a measurement vector */
+  typedef unsigned int MeasurementVectorSizeType;
+                      
   /**  Parameters type.
    *  It defines a position in the optimization search space. */
-  typedef FixedArray< double, itkGetStaticConstMacro(MeasurementVectorSize) > ParameterType ;
+  typedef Array< double > ParameterType ;
   typedef std::vector< ParameterType > InternalParametersType;
   typedef Array< double > ParametersType;
 
@@ -107,7 +116,10 @@ public:
   
   /** Set/Get the pointer to the KdTree */
   void SetKdTree(TKdTree* tree) 
-  { m_KdTree = tree ; }
+    { 
+    m_KdTree = tree ; 
+    m_MeasurementVectorSize = tree->GetMeasurementVectorSize();
+    }
 
   TKdTree* GetKdTree() 
   { return m_KdTree.GetPointer() ; }
@@ -191,7 +203,7 @@ protected:
         {
           if (m_Candidates[i].Size > 0)
             {
-              for (j = 0 ; j < MeasurementVectorSize ; j++)
+              for (j = 0 ; j < m_MeasurementVectorSize ; j++)
                 {
                   m_Candidates[i].Centroid[j] = 
                     m_Candidates[i].WeightedCentroid[j] / 
@@ -250,7 +262,7 @@ protected:
   void GetPoint(ParameterType &point, 
                 MeasurementVectorType measurements)
   {
-    for (unsigned int i = 0 ; i < MeasurementVectorSize ; i++)
+    for (unsigned int i = 0 ; i < m_MeasurementVectorSize ; i++)
       {
         point[i] = measurements[i] ;
       }
@@ -259,7 +271,7 @@ protected:
   void PrintPoint(ParameterType &point)
   {
     std::cout << "[ " ;
-    for (unsigned int i = 0 ; i < MeasurementVectorSize ; i++)
+    for (unsigned int i = 0 ; i < m_MeasurementVectorSize ; i++)
       {
         std::cout << point[i] << " " ;
       }
@@ -291,6 +303,7 @@ private:
   bool m_UseClusterLabels ;
   bool m_GenerateClusterLabels ;
   ClusterLabelsType m_ClusterLabels ;
+  MeasurementVectorSizeType m_MeasurementVectorSize;
 } ; // end of class
 
 } // end of namespace Statistics

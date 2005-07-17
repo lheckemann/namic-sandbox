@@ -62,7 +62,8 @@ struct KdTreeNode
   /** Measurement type, not the measurement vector type */
   typedef typename TSample::MeasurementType MeasurementType ;
   
-  /** Measurement vector length */
+  /** REMOVED: Measurement vector length. The static const method to access the
+   * length of a measurement vector has been removed.  */
   //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
   //                    TSample::MeasurementVectorSize) ;
 
