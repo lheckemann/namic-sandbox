@@ -63,7 +63,12 @@ protected:
   virtual ~DensityFunction(void) {}
 
   void PrintSelf(std::ostream& os, Indent indent) const
-  { Superclass::PrintSelf(os,indent) ; }
+    { 
+    Superclass::PrintSelf(os,indent); 
+    
+    os << indent << "MeasurementVectorSize: " 
+      << m_MeasurementVectorSize << std::endl;
+    }
 
 private:
   MeasurementVectorSizeType m_MeasurementVectorSize;
