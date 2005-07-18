@@ -7,6 +7,7 @@
 #include "itkFixedArray.h"
 #include "itkSample.h"
 #include "vnl/vnl_vector_fixed.h"
+#include "itkPoint.h"
 
 
 namespace itk
@@ -62,7 +63,6 @@ class MeasurementVectorTraits {
 public:
   typedef T    MeasurementVectorType;
   static  T    SetSize( unsigned int );
-
   static unsigned int GetSize( const MeasurementVectorType * );
 };
 
@@ -212,6 +212,31 @@ public:
       itkGenericExceptionMacro( << "MeasurementVector is NULL" );
       }
     return m->size();
+    }
+};
+
+template<class TValueType, unsigned int TLength>
+class MeasurementVectorTraits< Point< TValueType, TLength > >
+{
+public:
+  typedef TValueType ValueType;
+  itkStaticConstMacro( MeasurementVectorLength, unsigned int, TLength );
+  typedef Point< ValueType, MeasurementVectorLength > MeasurementVectorType;
+  
+  static MeasurementVectorType SetSize( unsigned int s )
+    {
+    if( s != MeasurementVectorLength )
+      {
+      itkGenericExceptionMacro( << "Cannot set the size of a Point of length " 
+          << MeasurementVectorLength << " to " << s );
+      }
+    MeasurementVectorType m;
+    return m;
+    }
+
+  static unsigned int GetSize( const MeasurementVectorType *m )
+    {
+    return MeasurementVectorLength;
     }
 };
 
