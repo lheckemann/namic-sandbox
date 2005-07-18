@@ -84,6 +84,7 @@ public:
   typedef Matrix< RealValueType, MeasurementVectorLength, 
                                  MeasurementVectorLength > RealMatrixType;
   typedef Vector< RealValueType, MeasurementVectorLength > MeanType;
+  typedef Vector< RealValueType, MeasurementVectorLength > OriginType;
   
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -123,6 +124,7 @@ public:
   typedef Array< RealValueType >       RealMeasurementVectorType;
   typedef VariableSizeMatrix< double > RealMatrixType;
   typedef RealMeasurementVectorType    MeanType;
+  typedef RealMeasurementVectorType    OriginType;
 
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -164,8 +166,9 @@ public:
           MeasurementVectorLength > RealMeasurementVectorType;
   typedef Matrix< RealValueType, MeasurementVectorLength, 
                                  MeasurementVectorLength > RealMatrixType;
-  typedef RealMeasurementVectorType  MeanType;
-  typedef Vector< ValueType, MeasurementVectorLength > MeasurementVectorType;
+  typedef RealMeasurementVectorType                        MeanType;
+  typedef RealMeasurementVectorType                        OriginType;
+  typedef Vector< ValueType, MeasurementVectorLength >     MeasurementVectorType;
 
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -205,6 +208,7 @@ public:
   typedef vnl_vector< RealValueType >  RealMeasurementVectorType;
   typedef VariableSizeMatrix< double > RealMatrixType;
   typedef RealMeasurementVectorType    MeanType;
+  typedef RealMeasurementVectorType    OriginType;
 
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -248,7 +252,9 @@ public:
           MeasurementVectorLength > RealMeasurementVectorType;
   typedef Matrix< RealValueType, MeasurementVectorLength, 
                                  MeasurementVectorLength > RealMatrixType;
-  typedef RealMeasurementVectorType    MeanType;
+  typedef RealMeasurementVectorType                        MeanType;
+  typedef Vector< RealValueType, MeasurementVectorLength > OriginType;
+  
   
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -288,6 +294,7 @@ public:
   typedef std::vector< RealValueType > RealMeasurementVectorType;
   typedef VariableSizeMatrix< double > RealMatrixType;
   typedef RealMeasurementVectorType    MeanType;
+  typedef RealMeasurementVectorType    OriginType;
 
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -328,7 +335,8 @@ public:
   typedef Point< RealValueType, MeasurementVectorLength > RealMeasurementVectorType;
   typedef Matrix< RealValueType, MeasurementVectorLength, 
                                  MeasurementVectorLength > RealMatrixType;
-  typedef Vector< ValueType, MeasurementVectorLength>      MeanType;
+  typedef Vector< RealValueType, MeasurementVectorLength>  MeanType;
+  typedef Vector< RealValueType, MeasurementVectorLength>  OriginType;
   
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -369,7 +377,8 @@ public:
   typedef RGBPixel< RealValueType > RealMeasurementVectorType;
   typedef Matrix< RealValueType, MeasurementVectorLength, 
                                  MeasurementVectorLength > RealMatrixType;
-  typedef Vector< ValueType, MeasurementVectorLength >     MeanType;
+  typedef Vector< RealValueType, MeasurementVectorLength > MeanType;
+  typedef Vector< RealValueType, MeasurementVectorLength > OriginType;
   
   static MeasurementVectorType SetSize( unsigned int s )
     {
