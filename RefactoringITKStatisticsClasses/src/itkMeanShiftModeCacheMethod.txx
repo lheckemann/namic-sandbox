@@ -98,6 +98,13 @@ MeanShiftModeCacheMethod< TMeasurementVector >
 ::SetMeasurementVector(MeasurementVectorType& source, 
                        MeasurementVectorType& target)
 {
+  if( MeasurementVectorTraits< MeasurementVectorType >::GetSize( &source )
+   != MeasurementVectorTraits< MeasurementVectorType >::GetSize( &target ) )
+    {
+    itkExceptionMacro( "Map container must be used with MeasurementVectors "
+        << "of the same size." );
+    }
+
   if ( this->IsFull() )
     {
     return false ;
