@@ -13,8 +13,8 @@ ADD_TEST(itkDenseFrequencyContainerTest ${STATISTICS_TESTS} itkDenseFrequencyCon
 #         itkExpectationMaximizationMixtureModelEstimatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
 #ADD_TEST(itkGoodnessOfFitMixtureModelCostFunctionTest ${STATISTICS_TESTS} 
 #         itkGoodnessOfFitMixtureModelCostFunctionTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
-#ADD_TEST(itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest ${STATISTICS_TESTS} 
-#         itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
+ADD_TEST(itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest ${STATISTICS_TESTS} 
+         itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
 ADD_TEST(itkHistogramTest ${STATISTICS_TESTS} itkHistogramTest)
 ADD_TEST(itkVariableDimensionHistogramTest ${STATISTICS_TESTS} itkVariableDimensionHistogramTest)
 ADD_TEST(itkImageToListAdaptorTest ${STATISTICS_TESTS} itkImageToListAdaptorTest)
@@ -28,8 +28,8 @@ ADD_TEST(itkKdTreeGeneratorTest ${STATISTICS_TESTS}
 ADD_TEST(itkListSampleTest ${STATISTICS_TESTS} itkListSampleTest 4)
 ADD_TEST(itkListSampleToHistogramFilterTest ${STATISTICS_TESTS} itkListSampleToHistogramFilterTest)
 ADD_TEST(itkListSampleToHistogramGeneratorTest ${STATISTICS_TESTS} itkListSampleToHistogramGeneratorTest)
-#ADD_TEST(itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest ${STATISTICS_TESTS} 
-#         itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest)
+ADD_TEST(itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest ${STATISTICS_TESTS} 
+         itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest)
 ADD_TEST(itkMeanCalculatorTest ${STATISTICS_TESTS} itkMeanCalculatorTest)
 ADD_TEST(itkMembershipSampleTest ${STATISTICS_TESTS} itkMembershipSampleTest)
 ADD_TEST(itkNeighborhoodSamplerTest ${STATISTICS_TESTS} itkNeighborhoodSamplerTest)
@@ -59,7 +59,7 @@ itkCovarianceCalculatorTest.cxx
 itkDenseFrequencyContainerTest.cxx
 #itkExpectationMaximizationMixtureModelEstimatorTest.cxx
 #itkGoodnessOfFitMixtureModelCostFunctionTest.cxx
-#itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest.cxx 
+itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest.cxx 
 itkHistogramTest.cxx
 itkVariableDimensionHistogramTest.cxx
 itkImageToListAdaptorTest.cxx
@@ -71,7 +71,7 @@ itkListSampleTest.cxx
 itkListSampleToHistogramFilterTest.cxx
 itkListSampleToHistogramGeneratorTest.cxx
 itkMeanCalculatorTest.cxx
-#itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest.cxx
+itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest.cxx
 itkMembershipSampleTest.cxx
 itkMembershipSampleGeneratorTest.cxx
 itkNeighborhoodSamplerTest.cxx
