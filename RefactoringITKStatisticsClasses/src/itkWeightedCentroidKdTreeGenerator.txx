@@ -57,13 +57,15 @@ WeightedCentroidKdTreeGenerator< TSample >
 
   // calculates the weighted centroid which is the vector sum
   // of all the associated instances.
-  typename KdTreeNodeType::CentroidType weightedCentroid ;
-  MeasurementVectorType tempVector ;
+  typename KdTreeNodeType::CentroidType weightedCentroid = MeasurementVectorTraits< 
+    typename KdTreeNodeType::CentroidType >::SetSize( this->GetMeasurementVectorSize() );
+  MeasurementVectorType tempVector = MeasurementVectorTraits< MeasurementVectorType 
+    >::SetSize( this->GetMeasurementVectorSize() );
   weightedCentroid.Fill(NumericTraits< MeasurementType >::Zero) ;
   for (i = beginIndex ; i < endIndex ; i++)
     {
     tempVector = subsample->GetMeasurementVectorByIndex(i) ;
-    for(j = 0 ; j < (int)this->m_MeasurementVectorSize ; j++)
+    for(j = 0 ; j < (int)this->GetMeasurementVectorSize(); j++)
       {
       weightedCentroid[j] += tempVector[j] ;
       }
@@ -76,7 +78,7 @@ WeightedCentroidKdTreeGenerator< TSample >
                                           m_TempMean) ;
 
   maxSpread = NumericTraits< MeasurementType >::NonpositiveMin() ;
-  for (i = 0 ; i < (int)this->m_MeasurementVectorSize ; i++)
+  for (i = 0 ; i < (int)this->GetMeasurementVectorSize(); i++)
     {
     spread = m_TempUpperBound[i] - m_TempLowerBound[i] ;
     if (spread >= maxSpread)
