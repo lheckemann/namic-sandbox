@@ -95,8 +95,10 @@ KdTreeGenerator< TSample >
     m_Tree->SetBucketSize(m_BucketSize) ;
     }
 
-  MeasurementVectorType lowerBound( m_MeasurementVectorSize ) ;
-  MeasurementVectorType upperBound( m_MeasurementVectorSize ) ;
+  MeasurementVectorType lowerBound = MeasurementVectorTraits< 
+    MeasurementVectorType >::SetSize( this->m_MeasurementVectorSize );
+  MeasurementVectorType upperBound = MeasurementVectorTraits< 
+    MeasurementVectorType >::SetSize( this->m_MeasurementVectorSize );
 
   for(unsigned int d = 0 ; d < m_MeasurementVectorSize ; d++)
     {
