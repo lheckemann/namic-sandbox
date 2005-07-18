@@ -25,9 +25,10 @@ namespace Statistics{
 template< class TInputSample >
 SampleAlgorithmBase< TInputSample >
 ::SampleAlgorithmBase()
-    : m_MeasurementVectorSize( 0 )
 {
   m_InputSample = 0;
+  m_MeasurementVectorSize = MeasurementVectorTraits< 
+                             MeasurementVectorType >::GetSize();
 }
 
 template< class TInputSample >

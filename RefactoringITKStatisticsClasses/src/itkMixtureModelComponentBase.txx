@@ -25,13 +25,14 @@ namespace Statistics{
 template< class TSample >
 MixtureModelComponentBase< TSample >
 ::MixtureModelComponentBase()
-    : m_MeasurementVectorSize( 0 )
 {
   m_Sample = 0 ;
   m_MembershipFunction = 0 ;
   m_Weights = 0 ;
   m_MinimalParametersChange = 1.0e-06 ;
   m_ParametersModified = true ;
+  m_MeasurementVectorSize = MeasurementVectorTraits< 
+                             MeasurementVectorType >::GetSize();
 }
 
 template< class TSample >

@@ -61,7 +61,12 @@ KdTreeWeightedCentroidNonterminalNode< TSample >
   m_WeightedCentroid = centroid ;
   m_MeasurementVectorSize = MeasurementVectorTraits< CentroidType >::GetSize( 
                                                                   &centroid );
-  m_Centroid = m_WeightedCentroid / double(size) ;
+  m_Centroid = MeasurementVectorTraits< CentroidType >::SetSize( 
+                                       m_MeasurementVectorSize );
+  for( unsigned int i=0; i < m_MeasurementVectorSize; i++ )
+    { 
+    m_Centroid[i] = m_WeightedCentroid[i] / double(size);
+    }
 
   m_Size = size ;
 }
@@ -87,6 +92,9 @@ KdTree< TSample >
   m_Sample = 0 ;
   m_Root = 0 ;
   m_BucketSize = 16 ;
+  m_MeasurementVectorSize = MeasurementVectorTraits< 
+                            MeasurementVectorType >::GetSize();
+  m_DistanceMetric->SetMeasurementVectorSize( m_MeasurementVectorSize );
 }
 
 template< class TSample >

@@ -54,7 +54,8 @@ public:
   typedef unsigned int MeasurementVectorSizeType;
 
   /** Sample typedefs alias */
-  typedef TInputSample InputSampleType ;
+  typedef TInputSample                                    InputSampleType;
+  typedef typename InputSampleType::MeasurementVectorType MeasurementVectorType;
 
   /** Stores the sample pointer */
   void SetInputSample( const TInputSample * sample ) 

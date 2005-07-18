@@ -94,7 +94,8 @@ public:
                       
   /**  Parameters type.
    *  It defines a position in the optimization search space. */
-  typedef Array< double > ParameterType ;
+  typedef typename MeasurementVectorTraits< 
+          MeasurementVectorType >::RealMeasurementVectorType ParameterType;
   typedef std::vector< ParameterType > InternalParametersType;
   typedef Array< double > ParametersType;
 
@@ -177,13 +178,14 @@ protected:
     void SetCentroids(InternalParametersType& centroids)
     {
       this->m_MeasurementVectorSize = MeasurementVectorTraits< 
-                          ParametersType >::GetSize( &(centroids[0]) );
+                          ParameterType >::GetSize( &(centroids[0]) );
       m_Candidates.resize(centroids.size()) ;
       for (unsigned int i = 0 ; i < centroids.size() ; i++)
         {
           Candidate candidate ;
           candidate.Centroid = centroids[i] ;
-          candidate.WeightedCentroid = MeasurementVectorTraits< CentroidType >::SetSize( m_MeasurementVectorSize );
+          candidate.WeightedCentroid = MeasurementVectorTraits< 
+             CentroidType >::SetSize( m_MeasurementVectorSize );
           candidate.WeightedCentroid.Fill(0.0) ;
           candidate.Size = 0 ;
           m_Candidates[i] = candidate ;

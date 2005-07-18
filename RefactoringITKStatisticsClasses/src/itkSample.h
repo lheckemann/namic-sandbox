@@ -118,7 +118,12 @@ public:
 
   
 protected:
-  Sample():m_MeasurementVectorSize( 0 ) {}
+  Sample()
+    {
+    m_MeasurementVectorSize = MeasurementVectorTraits< 
+                               MeasurementVectorType >::GetSize();
+    }
+
   virtual ~Sample() {}
   void PrintSelf(std::ostream& os, Indent indent) const
   {
