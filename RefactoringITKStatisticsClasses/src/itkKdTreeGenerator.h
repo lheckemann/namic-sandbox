@@ -139,7 +139,7 @@ public:
 
   /** Get macro to get the length of the measurement vectors that are being
    * held in the 'sample' that is passed to this class */
-  itkGetMacro( MeasurementVectorSize, unsigned int );
+  itkGetConstMacro( MeasurementVectorSize, unsigned int );
    
 protected:
   /** Constructor */
