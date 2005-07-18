@@ -144,9 +144,9 @@ int main( int argc, char * argv [] )
       (sumsOfSquares[i] / classCount[i]) - ((sums[i] * sums[i]) / (classCount[i] * classCount[i]));
 
     // print means and covariances
-    std::cout << "cluster[" << i << "] ";
-    std::cout << " estimated mean : " << estimatedMeans[i] << std::endl;
-    std::cout << " estimated covariance : " << estimatedCovariances[i] << std::endl;
+    std::cout << "cluster[" << i << "]-- " << std::endl;
+    std::cout << "  estimated mean : " << estimatedMeans[i] << std::endl;
+    std::cout << "  estimated covariance : " << estimatedCovariances[i] << std::endl;
     }
 
 
@@ -392,14 +392,9 @@ int main( int argc, char * argv [] )
 
   itrLabelImage.GoToBegin();
   itrPosteriorImage.GoToBegin();
-  std::vector< double > temporaryHolder(nClasses);  // show this to Luis
   while ( !itrLabelImage.IsAtEnd() )
     {
-    for ( unsigned int i = 0; i < nClasses; ++i )
-      {
-      temporaryHolder[i] = ( itrPosteriorImage.Get()[i] );
-      }
-    itrLabelImage.Set( decisionRule->Evaluate( temporaryHolder ) );
+    itrLabelImage.Set( decisionRule->Evaluate( itrPosteriorImage.Get() ) );
     ++itrLabelImage;
     ++itrPosteriorImage;
     }
@@ -419,35 +414,35 @@ int main( int argc, char * argv [] )
   // GENERATE HISTOGRAM FROM RAW DATA AND LABEL MAP
   typedef itk::Statistics::ImageToHistogramGenerator<
                                      JoinImageType > HistogramGeneratorType;
-  typedef HistogramGeneratorType::SizeType           SizeType;
   typedef HistogramGeneratorType::HistogramType      HistogramType;
+  typedef HistogramGeneratorType::SizeType           SizeType;
   typedef HistogramType::FrequencyType               FrequencyType;
 
   HistogramGeneratorType::Pointer histogramGenerator =
                                      HistogramGeneratorType::New();
-  SizeType size;
+  const HistogramType * histogram = histogramGenerator->GetOutput();
+  SizeType histogramSize;
+  FrequencyType frequency;
+  HistogramType::ConstIterator itrHistogram = histogram->Begin();
+  HistogramType::ConstIterator endHistogram = histogram->End();
 
-  size[0] = 256; // number of bins for the gray levels
-  size[1] = nClasses; // number of bins for the labels = number of labels
-  histogramGenerator->SetNumberOfBins( size );
+  histogramSize[0] = 256;      // number of bins for the gray levels
+  histogramSize[1] = nClasses; // number of bins for the labels = number of labels
+  histogramGenerator->SetNumberOfBins( histogramSize );
   histogramGenerator->SetMarginalScale( 10.0 );
   histogramGenerator->SetInput( joinFilter->GetOutput() );
   histogramGenerator->Compute();
 
-  const HistogramType * histogram = histogramGenerator->GetOutput();
-  SizeType histogramSize = histogram->GetSize();
-
-  std::cout << "Histogram row size " << histogramSize[0] << std::endl;
-  std::cout << "Histogram column size " << histogramSize[1] << std::endl;
-
-  HistogramType::ConstIterator itr = histogram->Begin();
-  HistogramType::ConstIterator end = histogram->End();
-  while( itr != end )
+  int counter = 0;
+  while( itrHistogram != endHistogram )
     {
-    const FrequencyType frequency = itr.GetFrequency();
-    ++itr;
+    frequency = itrHistogram.GetFrequency();
+    ++itrHistogram;
+    std::cout << frequency << std::endl;
+    ++counter;
     }
 
+  std::cout << "The counter reads: " << counter << std::endl;
   std::cout << histogram->GetFrequency( 0, 1 ) << std::endl;
   std::cout << histogram->GetFrequency( 1, 1 ) << std::endl;
   std::cout << histogram->GetFrequency( 2, 1 ) << std::endl;
