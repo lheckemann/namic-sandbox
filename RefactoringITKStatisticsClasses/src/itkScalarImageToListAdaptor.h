@@ -92,7 +92,7 @@ public:
   typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
   typedef MeasurementVectorType ValueType ;
 
-  virtual void SetMeasurementVectorSize( unsigned int s )
+  virtual void SetMeasurementVectorSize( unsigned int s ) const
     {
     // Measurement vector size for this class is fixed as the pixel's 
     // dimension. This method should have no effect
