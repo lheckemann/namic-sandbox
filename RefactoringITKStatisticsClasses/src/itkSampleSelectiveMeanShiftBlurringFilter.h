@@ -39,7 +39,7 @@ namespace Statistics{
  * components of the selection vector whose flag value is true will be
  * blurred.
  * 
- * \sa MeanModeSeekerBase, SampleMeanShiftBlurringFilter
+ * \sa MeanShiftModeSeekerBase, SampleMeanShiftBlurringFilter
  */
 
 template< class TSample >
@@ -75,11 +75,9 @@ public:
 
  
 
-  /** Typedef for selecting components to be blurred .. 
-   * NOTE: The typedef was recently changed from a FixedArray to Array */
-  typedef Array< bool > ComponentSelectionsType; 
-  //typedef FixedArray< bool, itkGetStaticConstMacro(MeasurementVectorSize) >
-  //ComponentSelectionsType ;
+  /** Typedef for selecting components to be blurred .. */
+  typedef typename MeasurementVectorTraits< MeasurementVectorType 
+    >::BooleanArrayType                            ComponentSelectionsType; 
 
 
   /** Set/Gets the vector of flags that indicate which components
