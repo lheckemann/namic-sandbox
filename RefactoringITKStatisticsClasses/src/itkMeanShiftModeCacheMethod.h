@@ -21,6 +21,7 @@
 #include <map>
 #include "itkMacro.h"
 #include "itkObject.h"
+#include "itkMeasurementVectorTraits.h"
 
 namespace itk{ 
 namespace Statistics{
@@ -63,16 +64,26 @@ public:
   
   typedef TMeasurementVector MeasurementVectorType ;
 
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int, 
-                      MeasurementVectorType::Length) ;
+  /** DEPRECATED: The static const macro will be deprecated in a future version.
+   * Please use GetMeasurementVectorSize() instead. This constant returns the 
+   * length of a measurement vector for FixedArrays, Vectors and other fixed 
+   * containers and zero for dynamically resizable containers. The true value for 
+   * dynamically resizable containers will be obtained from the 
+   * GetMeasurementVectorSize() call. 
+   */
+  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
+
 
   struct LessMeasurementVector
   {
     bool operator()(const MeasurementVectorType& mv1, 
                     const MeasurementVectorType& mv2) const
     {
+      // It is assumed that mv1 and mv2 are of the same length. For efficieny,
+      // no checking is performed here.
       for ( unsigned int i = 0 ; 
-            i < itkGetStaticConstMacro( MeasurementVectorSize ) ;
+            i < MeasurementVectorTraits< MeasurementVectorType >::GetSize( &mv1 );
             ++i )
         {
         if (mv1[i] < mv2[i])
