@@ -97,12 +97,13 @@ public:
     {
     // Measurement vector size for this class is fixed as the pixel's 
     // dimension. This method should have no effect
-    itkWarningMacro( << "This method does nothing! The MeasurementVectorSize is " << MeasurementVectorSize );
+    itkWarningMacro( << "This method does nothing! The MeasurementVectorSize is " 
+        << MeasurementVectorSize );
     }
 
  unsigned int GetMeasurementVectorSize()
    {
-   return MeasurementVectorSize;
+   return Superclass::MeasurementVectorSize;
    } 
   
 
