@@ -8,6 +8,7 @@
 #include "itkSample.h"
 #include "vnl/vnl_vector_fixed.h"
 #include "itkPoint.h"
+#include "itkRGBPixel.h"
 
 
 namespace itk
@@ -239,6 +240,32 @@ public:
     return MeasurementVectorLength;
     }
 };
+
+template<class TValueType >
+class MeasurementVectorTraits< RGBPixel<TValueType > >
+{
+public:
+  typedef TValueType ValueType;
+  itkStaticConstMacro( MeasurementVectorLength, unsigned int, 3 );
+  typedef RGBPixel< ValueType > MeasurementVectorType;
+  
+  static MeasurementVectorType SetSize( unsigned int s )
+    {
+    if( s != MeasurementVectorLength )
+      {
+      itkGenericExceptionMacro( << "Cannot set the size of an RGBPixel of length " 
+          << MeasurementVectorLength << " to " << s );
+      }
+    MeasurementVectorType m;
+    return m;
+    }
+
+  static unsigned int GetSize( const MeasurementVectorType *m )
+    {
+    return MeasurementVectorLength;
+    }
+};
+
 
 } // __itkMeasurementVectorTraits_h
 
