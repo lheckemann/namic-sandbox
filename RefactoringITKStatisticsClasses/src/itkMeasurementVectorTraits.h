@@ -84,6 +84,7 @@ public:
                                  MeasurementVectorLength > RealMatrixType;
   typedef Vector< RealValueType, MeasurementVectorLength > MeanType;
   typedef Vector< RealValueType, MeasurementVectorLength > OriginType;
+  typedef FixedArray< bool,      MeasurementVectorLength > BooleanArrayType;
 
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -124,6 +125,7 @@ public:
   typedef VariableSizeMatrix< double > RealMatrixType;
   typedef RealMeasurementVectorType    MeanType;
   typedef RealMeasurementVectorType    OriginType;
+  typedef Array< bool >                BooleanArrayType;
   itkStaticConstMacro( MeasurementVectorLength, unsigned int, 0 );
 
   static MeasurementVectorType SetSize( unsigned int s )
@@ -169,6 +171,7 @@ public:
   typedef RealMeasurementVectorType                        MeanType;
   typedef RealMeasurementVectorType                        OriginType;
   typedef Vector< ValueType, MeasurementVectorLength >     MeasurementVectorType;
+  typedef FixedArray< bool,  MeasurementVectorLength >     BooleanArrayType;
 
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -209,6 +212,7 @@ public:
   typedef VariableSizeMatrix< double > RealMatrixType;
   typedef RealMeasurementVectorType    MeanType;
   typedef RealMeasurementVectorType    OriginType;
+  typedef Array< bool >                BooleanArrayType;
   itkStaticConstMacro( MeasurementVectorLength, unsigned int, 0 );
 
   static MeasurementVectorType SetSize( unsigned int s )
@@ -255,6 +259,7 @@ public:
                                  MeasurementVectorLength > RealMatrixType;
   typedef RealMeasurementVectorType                        MeanType;
   typedef Vector< RealValueType, MeasurementVectorLength > OriginType;
+  typedef FixedArray< bool,      MeasurementVectorLength > BooleanArrayType;
   
   
   static MeasurementVectorType SetSize( unsigned int s )
@@ -296,6 +301,7 @@ public:
   typedef VariableSizeMatrix< double > RealMatrixType;
   typedef RealMeasurementVectorType    MeanType;
   typedef RealMeasurementVectorType    OriginType;
+  typedef Array< bool >                BooleanArrayType;
   itkStaticConstMacro( MeasurementVectorLength, unsigned int, 0 );
 
   static MeasurementVectorType SetSize( unsigned int s )
@@ -339,6 +345,7 @@ public:
                                  MeasurementVectorLength > RealMatrixType;
   typedef Vector< RealValueType, MeasurementVectorLength>  MeanType;
   typedef Vector< RealValueType, MeasurementVectorLength>  OriginType;
+  typedef FixedArray< bool,      MeasurementVectorLength > BooleanArrayType;
   
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -381,6 +388,7 @@ public:
                                  MeasurementVectorLength > RealMatrixType;
   typedef Vector< RealValueType, MeasurementVectorLength > MeanType;
   typedef Vector< RealValueType, MeasurementVectorLength > OriginType;
+  typedef FixedArray< bool,      MeasurementVectorLength > BooleanArrayType;
   
   static MeasurementVectorType SetSize( unsigned int s )
     {
