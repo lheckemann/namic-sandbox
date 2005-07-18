@@ -53,17 +53,18 @@ public:
   /** OriginType typedef */
   typedef typename Superclass::OriginType  OriginType;
 
-   /** REMOVED: THE StaticConstMacro for the length of a measurement vector
-    *  has been removed to allow the measurement vector length to be specified 
-    *  at run time.
-    *
-    * Please use the Set/Get macros to access the MeasurementVectorLength
-    * instead. 
-    *
-    * NOTE: This means that you will no longer be able to get the 
-    * MeasurementVectorLength as a static const member any more.
-    */
-  //itkStaticConstMacro(VectorLength, unsigned int, TVector::Length); 
+  /** Measurement vector type typedef */
+  typedef typename Superclass::MeasurementVectorType MeasurementVectorType;
+  
+  /** DEPRECATED: The static const macro will be deprecated in a future version.
+   * Please use GetMeasurementVectorSize() instead. This constant returns the 
+   * length of a measurement vector for FixedArrays, Vectors and other fixed 
+   * containers and zero for dynamically resizable containers. The true value for 
+   * dynamically resizable containers will be obtained from the 
+   * GetMeasurementVectorSize() call. 
+   */
+  itkStaticConstMacro(VectorLength, unsigned int,
+     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
 
   /** Run-time type information (and related methods). */
   itkTypeMacro(EuclideanDistance, DistanceMetric);

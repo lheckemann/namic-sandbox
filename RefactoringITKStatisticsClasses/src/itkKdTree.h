@@ -62,12 +62,6 @@ struct KdTreeNode
   /** Measurement type, not the measurement vector type */
   typedef typename TSample::MeasurementType MeasurementType ;
   
-  /** REMOVED: Measurement vector length. The static const method to access the
-   * length of a measurement vector has been removed.  */
-  //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-  //                    TSample::MeasurementVectorSize) ;
-
-
   /** Centroid type */
   //typedef FixedArray< double, 
   //                    itkGetStaticConstMacro(MeasurementVectorSize) > CentroidType ;
@@ -75,6 +69,16 @@ struct KdTreeNode
   typedef typename MeasurementVectorTraits< 
           MeasurementVectorType >::RealMeasurementVectorType CentroidType;
   
+   /** DEPRECATED: The static const macro will be deprecated in a future version.
+   * Please use GetMeasurementVectorSize() instead. This constant returns the 
+   * length of a measurement vector for FixedArrays, Vectors and other fixed 
+   * containers and zero for dynamically resizable containers. The true value for 
+   * dynamically resizable containers will be obtained from the 
+   * GetMeasurementVectorSize() call. 
+   */
+  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
+
   /** Instance identifier type (index value type for the measurement
    * vector in a sample */
   typedef typename TSample::InstanceIdentifier InstanceIdentifier ;
@@ -380,13 +384,15 @@ public:
 
   typedef unsigned int                    MeasurementVectorSizeType;
 
-  /** REMOVED: Length of the measurement vector. k in the k-d tree. This
-   * static const macro has been removed. The length of the measurement
-   * vector is no longer obtained from the template parameter. It is 
-   * instead obtained by querying the 'sample', set using the SetSample method. 
+  /** DEPRECATED: The static const macro will be deprecated in a future version.
+   * Please use GetMeasurementVectorSize() instead. This constant returns the 
+   * length of a measurement vector for FixedArrays, Vectors and other fixed 
+   * containers and zero for dynamically resizable containers. The true value for 
+   * dynamically resizable containers will be obtained from the 
+   * GetMeasurementVectorSize() call. 
    */
-  //itkStaticConstMacro(MeasurementVectorSize, unsigned int, 
-  //                    TSample::MeasurementVectorSize) ;
+  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
   itkGetConstMacro( MeasurementVectorSize, MeasurementVectorSizeType );
 
   /** DistanceMetric type for the distance calculation and comparison */

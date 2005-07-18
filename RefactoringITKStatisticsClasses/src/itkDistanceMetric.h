@@ -51,22 +51,21 @@ public:
   typedef DistanceMetric Self;
   typedef MembershipFunctionBase< TVector > Superclass;
 
-  /** REMOVED: THE StaticConstMacro for this method has been removed to 
-   * allow the measurement vector length to be specified at run time.
-   *
-   * Please use the Set/Get macros to access the MeasurementVectorLength
-   * instead. 
-   *
-   * NOTE: This means that you will no longer be able to get the 
-   * MeasurementVectorLength as a static const member any more.
-   */
-  //itkStaticConstMacro(VectorLength, unsigned int, TVector::Length);
-  
   /** Typedef for the length of each measurement vector */
   typedef unsigned int  MeasurementVectorSizeType;
 
   /** Typedef for the measurement vector */
   typedef TVector       MeasurementVectorType;
+
+  /** DEPRECATED: The static const macro will be deprecated in a future version.
+   * Please use GetMeasurementVectorSize() instead. This constant returns the 
+   * length of a measurement vector for FixedArrays, Vectors and other fixed 
+   * containers and zero for dynamically resizable containers. The true value for 
+   * dynamically resizable containers will be obtained from the 
+   * GetMeasurementVectorSize() call. 
+   */
+  itkStaticConstMacro(VectorLength, unsigned int,
+     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
 
   /** Set/Get Macro to set the length of each measurement vector. */
   virtual void SetMeasurementVectorSize( MeasurementVectorSizeType );

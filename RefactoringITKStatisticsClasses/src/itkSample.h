@@ -83,15 +83,15 @@ public:
   /** Typedef for the length of each measurement vector */
   typedef unsigned int  MeasurementVectorSizeType;
 
-  /** REMOVED: THE StaticConstMacro for this method has been removed to 
-   * allow the measurement vector length to be specified at run time.
-   *
-   * Please use the Set/Get macros to access the MeasurementVectorLength
-   * instead. 
-   *
-   * NOTE: This means that you will no longer be able to get the 
-   * MeasurementVectorLength as a static const member any more.
+  /** DEPRECATED: The static const macro will be deprecated in a future version.
+   * Please use GetMeasurementVectorSize() instead. This returns the length
+   * of a measurement vector for FixedArrays, Vectors and other fixed containers
+   * and zero for dynamically resizable containers. The true value for 
+   * dynamically resizable containers will be obtained from the 
+   * GetMeasurementVectorSize() call. 
    */
+  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
 
   
 

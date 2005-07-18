@@ -57,26 +57,21 @@ public:
   typedef TSample SampleType ;
 
 
-  /** REMOVED: THE StaticConstMacro for this method has been removed to 
-   * allow the measurement vector length to be specified at run time.
-   *
-   * Please use the Get macros to access the MeasurementVectorLength
-   * instead. Note that GetMeasurementVectorSize() will return 0 unless
-   * you have plugged in the input sample using the SetInputSample() 
-   * method
-   *
-   * NOTE: This means that you will no longer be able to get the 
-   * MeasurementVectorLength as a static const member any more.
-   */
-  //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-  //                    TSample::MeasurementVectorSize) ;
-
-  
   /** Enums and typedefs from the TSample */
   typedef typename TSample::MeasurementVectorType MeasurementVectorType ;
   typedef typename TSample::MeasurementType MeasurementType ;
   typedef typename TSample::FrequencyType FrequencyType ;
   typedef typename TSample::InstanceIdentifier InstanceIdentifier ;
+
+  /** DEPRECATED: The static const macro will be deprecated in a future version.
+   * Please use GetMeasurementVectorSize() instead. This constant returns the 
+   * length of a measurement vector for FixedArrays, Vectors and other fixed 
+   * containers and zero for dynamically resizable containers. The true value for 
+   * dynamically resizable containers will be obtained from the 
+   * GetMeasurementVectorSize() call. 
+   */
+  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
 
   /** typedefs from the superclass */
   typedef typename Superclass::InputSampleType InputSampleType ;

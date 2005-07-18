@@ -82,13 +82,17 @@ public:
   typedef typename TKdTree::SampleType SampleType ;
   typedef typename KdTreeNodeType::CentroidType CentroidType ;
   
+  /** DEPRECATED: The static const macro will be deprecated in a future version.
+   * Please use GetMeasurementVectorSize() instead. This constant returns the 
+   * length of a measurement vector for FixedArrays, Vectors and other fixed 
+   * containers and zero for dynamically resizable containers. The true value for 
+   * dynamically resizable containers will be obtained from the 
+   * GetMeasurementVectorSize() call. 
+   */
+  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
 
-  /** REMOVED: Measurement vector length. The static const method to access the
-   * length of a measurement vector has been removed. The measurement vector 
-   * length is now queried from the KdTree whose means are to be estimated. */
-  //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-  //                    TKdTree::MeasurementVectorSize);
-  
+
   /** Typedef for the length of a measurement vector */
   typedef unsigned int MeasurementVectorSizeType;
                       

@@ -70,12 +70,16 @@ public:
   typedef MeasurementVectorType ValueType ;
 
 
-  /** Set/Get macros for the length of the measurement vector 
-   * Note that the old API has been removed .. TODO.. add blah
+  /** DEPRECATED: The static const macro will be deprecated in a future version.
+   * Please use GetMeasurementVectorSize() instead. This constant returns the 
+   * length of a measurement vector for FixedArrays, Vectors and other fixed 
+   * containers and zero for dynamically resizable containers. The true value for 
+   * dynamically resizable containers will be obtained from the 
+   * GetMeasurementVectorSize() call. 
+   */
   itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      Superclass::MeasurementVectorSize);
-  */
-    
+     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
+
   
   /** internal data container type */
   typedef std::vector< MeasurementVectorType > InternalDataContainerType ;

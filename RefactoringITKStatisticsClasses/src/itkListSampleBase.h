@@ -60,15 +60,11 @@ public:
    * results. */
   typedef std::vector< InstanceIdentifier > SearchResultVectorType ;
 
-  /** Set/Get macros for the length of the measurement vector 
-   * Note that the old API has been removed .. TODO.. add blah
+  /** DEPRECATED: Length of each measurement. Please use GetMeasurementVectorSize()
+   * instead. */
   itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      Superclass::MeasurementVectorSize);
-  */
-   /** Length of each measurement 
-   itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      TMeasurementVector::Length);
-  */
+     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
+  
 
   
   /** Search for measurements within the specified radius of a search

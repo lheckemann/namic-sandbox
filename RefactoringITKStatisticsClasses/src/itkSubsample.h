@@ -52,19 +52,16 @@ public:
   typedef typename TSample::FrequencyType FrequencyType ;
   typedef MeasurementVectorType ValueType ;
 
-  /** MeasurementVectorSize constant from super class 
-   * REMOVED: THE StaticConstMacro for this method has been removed to 
-   * allow the measurement vector length to be specified at run time.
-   *
-   * Please use the Set/Get macros to access the MeasurementVectorLength
-   * instead. 
-   *
-   * NOTE: This means that you will no longer be able to get the 
-   * MeasurementVectorLength as a static const member any more.
+  /** DEPRECATED: The static const macro will be deprecated in a future version.
+   * Please use GetMeasurementVectorSize() instead. This returns the length
+   * of a measurement vector for FixedArrays, Vectors and other fixed containers
+   * and zero for dynamically resizable containers. The true value for 
+   * dynamically resizable containers will be obtained from the 
+   * GetMeasurementVectorSize() call. 
    */
-  //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-  //                    TSample::MeasurementVectorSize);
-  
+  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
+
 
   /** Type of the storage for instances that belong to the class 
    * represented by a Subsample object. A Subsample object stores

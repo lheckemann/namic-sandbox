@@ -63,9 +63,15 @@ public:
   /** Length of each measurement vector */
   typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
   
-  /** REMOVED: Dimension of the each individual pixel vector. */
-  //itkStaticConstMacro(VectorDimension, unsigned int,
-  //                    TMeasurementVector::Length);
+  /** DEPRECATED: The static const macro will be deprecated in a future version.
+   * Please use GetMeasurementVectorSize() instead. This constant returns the 
+   * length of a measurement vector for FixedArrays, Vectors and other fixed 
+   * containers and zero for dynamically resizable containers. The true value for 
+   * dynamically resizable containers will be obtained from the 
+   * GetMeasurementVectorSize() call. 
+   */
+  itkStaticConstMacro(VectorDimension, unsigned int,
+     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
 
   /** Type of the mean vector */
   typedef MeasurementVectorTraits< 

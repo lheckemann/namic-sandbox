@@ -62,19 +62,15 @@ public:
   /** Measurement vector type */
   typedef typename Superclass::MeasurementVectorType MeasurementVectorType;
   
-  /** REMOVED: THE StaticConstMacro for this method has been removed to 
-   * allow the measurement vector length to be specified at run time.
-   *
-   * Please use the Get macros to access the MeasurementVectorLength
-   * instead. Note that GetMeasurementVectorSize() will return 0 unless
-   * you have plugged in the input sample using the SetInputSample() 
-   * method
-   *
-   * NOTE: This means that you will no longer be able to get the 
-   * MeasurementVectorLength as a static const member any more.
+  /** DEPRECATED: The static const macro will be deprecated in a future version.
+   * Please use GetMeasurementVectorSize() instead. This constant returns the 
+   * length of a measurement vector for FixedArrays, Vectors and other fixed 
+   * containers and zero for dynamically resizable containers. The true value for 
+   * dynamically resizable containers will be obtained from the 
+   * GetMeasurementVectorSize() call. 
    */
-  //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-  //                    TSample::MeasurementVectorSize) ;
+  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
 
 
   /** Typedef for the mean output */
