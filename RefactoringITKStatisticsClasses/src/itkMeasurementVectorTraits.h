@@ -9,6 +9,8 @@
 #include "vnl/vnl_vector_fixed.h"
 #include "itkPoint.h"
 #include "itkRGBPixel.h"
+#include "itkMatrix.h"
+#include "itkVariableSizeMatrix.h"
 
 
 namespace itk
@@ -65,6 +67,7 @@ public:
   typedef T    MeasurementVectorType;
   static  T    SetSize( unsigned int );
   static unsigned int GetSize( const MeasurementVectorType * );
+  static unsigned int GetSize();
 };
 
 template<class TValueType, unsigned int TLength>
@@ -72,9 +75,14 @@ class MeasurementVectorTraits<FixedArray<TValueType, TLength > >
 {
 public:
   typedef TValueType ValueType;
+  typedef double     RealValueType;
   itkStaticConstMacro( MeasurementVectorLength, unsigned int, TLength );
   typedef FixedArray< ValueType, MeasurementVectorLength > 
                                         MeasurementVectorType;
+  typedef FixedArray< RealValueType, 
+          MeasurementVectorLength > RealMeasurementVectorType;
+  typedef Matrix< RealValueType, MeasurementVectorLength, 
+                                 MeasurementVectorLength > RealMatrixType;
   
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -91,6 +99,11 @@ public:
     {
     return MeasurementVectorLength;
     }
+
+  static unsigned int GetSize()
+    {
+    return MeasurementVectorLength;
+    }
 };
 
 template< class TValueType >
@@ -98,7 +111,10 @@ class MeasurementVectorTraits< Array< TValueType > >
 {
 public:
   typedef TValueType ValueType;
+  typedef double     RealValueType;
   typedef Array< ValueType > MeasurementVectorType;
+  typedef Array< RealValueType > RealMeasurementVectorType;
+  typedef VariableSizeMatrix< double > RealMatrixType;
 
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -114,6 +130,11 @@ public:
       }
     return m->Size();
     }
+
+  static unsigned int GetSize()
+    {
+    return 0;
+    }
 };
 
 
@@ -122,7 +143,12 @@ class MeasurementVectorTraits< Vector< TValueType, TLength > >
 {
 public:
   typedef TValueType ValueType;
+  typedef double     RealValueType;
   itkStaticConstMacro( MeasurementVectorLength, unsigned int, TLength );
+  typedef Vector< RealValueType, 
+          MeasurementVectorLength > RealMeasurementVectorType;
+  typedef Matrix< RealValueType, MeasurementVectorLength, 
+                                 MeasurementVectorLength > RealMatrixType;
   
   typedef Vector< ValueType, MeasurementVectorLength > MeasurementVectorType;
 
@@ -141,6 +167,11 @@ public:
     {
     return MeasurementVectorLength; 
     }
+
+  static unsigned int GetSize()
+    {
+    return MeasurementVectorLength;
+    }
 };
 
 template< class TValueType >
@@ -148,7 +179,10 @@ class MeasurementVectorTraits< vnl_vector< TValueType > >
 {
 public:
   typedef TValueType ValueType;
+  typedef double     RealValueType;
   typedef vnl_vector< ValueType > MeasurementVectorType;
+  typedef vnl_vector< RealValueType > RealMeasurementVectorType;
+  typedef VariableSizeMatrix< double > RealMatrixType;
 
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -164,6 +198,11 @@ public:
       }
     return m->size();
     }
+
+  static unsigned int GetSize()
+    {
+    return 0;
+    }
 };
 
 
@@ -172,9 +211,14 @@ class MeasurementVectorTraits< vnl_vector_fixed<TValueType, TLength > >
 {
 public:
   typedef TValueType ValueType;
+  typedef double     RealValueType;
   itkStaticConstMacro( MeasurementVectorLength, unsigned int, TLength );
   typedef vnl_vector_fixed< ValueType, MeasurementVectorLength > 
                                         MeasurementVectorType;
+  typedef vnl_vector_fixed< RealValueType, 
+          MeasurementVectorLength > RealMeasurementVectorType;
+  typedef Matrix< RealValueType, MeasurementVectorLength, 
+                                 MeasurementVectorLength > RealMatrixType;
   
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -191,6 +235,11 @@ public:
     {
     return MeasurementVectorLength; 
     }
+
+  static unsigned int GetSize()
+    {
+    return MeasurementVectorLength;
+    }
 };
 
 template< class TValueType >
@@ -198,7 +247,10 @@ class MeasurementVectorTraits< std::vector< TValueType > >
 {
 public:
   typedef TValueType ValueType;
+  typedef double     RealValueType;
   typedef std::vector< ValueType > MeasurementVectorType;
+  typedef std::vector< RealValueType > RealMeasurementVectorType;
+  typedef VariableSizeMatrix< double > RealMatrixType;
 
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -214,6 +266,11 @@ public:
       }
     return m->size();
     }
+
+  static unsigned int GetSize()
+    {
+    return 0;
+    }
 };
 
 template<class TValueType, unsigned int TLength>
@@ -221,8 +278,12 @@ class MeasurementVectorTraits< Point< TValueType, TLength > >
 {
 public:
   typedef TValueType ValueType;
+  typedef double     RealValueType;
   itkStaticConstMacro( MeasurementVectorLength, unsigned int, TLength );
   typedef Point< ValueType, MeasurementVectorLength > MeasurementVectorType;
+  typedef Point< RealValueType, MeasurementVectorLength > RealMeasurementVectorType;
+  typedef Matrix< RealValueType, MeasurementVectorLength, 
+                                 MeasurementVectorLength > RealMatrixType;
   
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -239,6 +300,11 @@ public:
     {
     return MeasurementVectorLength;
     }
+
+  static unsigned int GetSize()
+    {
+    return 0;
+    }
 };
 
 template<class TValueType >
@@ -246,8 +312,12 @@ class MeasurementVectorTraits< RGBPixel<TValueType > >
 {
 public:
   typedef TValueType ValueType;
+  typedef double     RealValueType;
   itkStaticConstMacro( MeasurementVectorLength, unsigned int, 3 );
   typedef RGBPixel< ValueType > MeasurementVectorType;
+  typedef RGBPixel< RealValueType > RealMeasurementVectorType;
+  typedef Matrix< RealValueType, MeasurementVectorLength, 
+                                 MeasurementVectorLength > RealMatrixType;
   
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -261,6 +331,11 @@ public:
     }
 
   static unsigned int GetSize( const MeasurementVectorType *m )
+    {
+    return MeasurementVectorLength;
+    }
+
+  static unsigned int GetSize()
     {
     return MeasurementVectorLength;
     }
