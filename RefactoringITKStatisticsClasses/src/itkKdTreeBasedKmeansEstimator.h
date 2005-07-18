@@ -21,6 +21,7 @@
 #include "itk_hash_map.h"
 
 #include "itkObject.h"
+#include "itkMeasurementVectorTraits.h"
 
 namespace itk {
 namespace Statistics {
@@ -119,6 +120,9 @@ public:
     { 
     m_KdTree = tree ; 
     m_MeasurementVectorSize = tree->GetMeasurementVectorSize();
+    m_DistanceMetric->SetMeasurementVectorSize( m_MeasurementVectorSize );
+    m_TempVertex = MeasurementVectorTraits< ParameterType >::SetSize( 
+                                              m_MeasurementVectorSize );
     }
 
   TKdTree* GetKdTree() 
@@ -172,11 +176,14 @@ protected:
      * At each iteration, this should be called before filtering*/
     void SetCentroids(InternalParametersType& centroids)
     {
+      this->m_MeasurementVectorSize = MeasurementVectorTraits< 
+                          ParametersType >::GetSize( &(centroids[0]) );
       m_Candidates.resize(centroids.size()) ;
       for (unsigned int i = 0 ; i < centroids.size() ; i++)
         {
           Candidate candidate ;
           candidate.Centroid = centroids[i] ;
+          candidate.WeightedCentroid = MeasurementVectorTraits< CentroidType >::SetSize( m_MeasurementVectorSize );
           candidate.WeightedCentroid.Fill(0.0) ;
           candidate.Size = 0 ;
           m_Candidates[i] = candidate ;
@@ -203,7 +210,7 @@ protected:
         {
           if (m_Candidates[i].Size > 0)
             {
-              for (j = 0 ; j < m_MeasurementVectorSize ; j++)
+              for (j = 0 ; j < m_MeasurementVectorSize; j++)
                 {
                   m_Candidates[i].Centroid[j] = 
                     m_Candidates[i].WeightedCentroid[j] / 
@@ -221,6 +228,9 @@ protected:
   private:
     /** internal storage for the candidates */
     std::vector< Candidate > m_Candidates ;
+
+    /** Length of each measurement vector */
+    MeasurementVectorSizeType m_MeasurementVectorSize;
   } ; // end of class
 
   /** gets the sum of squared difference between the previous position
