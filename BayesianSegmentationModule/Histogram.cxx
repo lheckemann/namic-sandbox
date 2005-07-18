@@ -100,12 +100,6 @@ int main( int argc, char * argv [] )
 
   nClasses = estimatedMeans.Size();
 
-  for ( unsigned int i = 0 ; i < nClasses ; ++i )
-    {
-    std::cout << "cluster[" << i << "] ";
-    std::cout << " estimated mean : " << estimatedMeans[i] << std::endl;
-    }
-
 
   // FIND VARIANCES
   typedef KMeansFilterType::OutputImageType                 KMeansImageType;
@@ -122,7 +116,7 @@ int main( int argc, char * argv [] )
   CovarianceArrayType classCount( nClasses );
 
   // initialize arrays
-  for ( unsigned int i = 0 ; i < nClasses ; ++i )
+  for ( unsigned int i = 0; i < nClasses; ++i )
     {
     sumsOfSquares[i] = 0;
     sums[i] = 0;
@@ -144,11 +138,14 @@ int main( int argc, char * argv [] )
     }
 
   // calculate the variance
-  for ( unsigned int i = 0 ; i < nClasses ; ++i )
+  for ( unsigned int i = 0; i < nClasses; ++i )
     {
     estimatedCovariances[i] =
       (sumsOfSquares[i] / classCount[i]) - ((sums[i] * sums[i]) / (classCount[i] * classCount[i]));
+
+    // print means and covariances
     std::cout << "cluster[" << i << "] ";
+    std::cout << " estimated mean : " << estimatedMeans[i] << std::endl;
     std::cout << " estimated covariance : " << estimatedCovariances[i] << std::endl;
     }
 
@@ -164,16 +161,14 @@ int main( int argc, char * argv [] )
   priors->SetOrigin( imageOrigin );
   priors->SetSpacing( imageSpacing );
   priors->Allocate(); 
+  PriorArrayPixelType priorArrayPixel( nClasses );
   PriorImageIteratorType itrPriorImage( priors, imageRegion );
 
-  PriorArrayPixelType priorArrayPixel( nClasses );
-  for ( unsigned int i = 0 ; i < nClasses ; ++i )
+  for ( unsigned int i = 0; i < nClasses; ++i )
     {
     priorArrayPixel[i] = (double)1 / nClasses;
     }
-
   itrPriorImage.GoToBegin();
-
   while( !itrPriorImage.IsAtEnd() )
     {
     itrPriorImage.Set( priorArrayPixel );
@@ -191,7 +186,7 @@ int main( int argc, char * argv [] )
   MembershipFunctionType::MeanType                          meanEstimators;
   MembershipFunctionType::CovarianceType                    covarianceEstimators;
 
-  for ( unsigned int i = 0 ; i < nClasses ; ++i )
+  for ( unsigned int i = 0; i < nClasses; ++i )
     {
     membershipFunctions.push_back( MembershipFunctionType::New() );
     }
@@ -205,25 +200,22 @@ int main( int argc, char * argv [] )
 
   MembershipImagePointer data = MembershipImageType::New();
   data->SetRegions( imageRegion );
-  data->SetOrigin( readerRawData->GetOutput()->GetOrigin() );
-  data->SetSpacing( readerRawData->GetOutput()->GetSpacing() );
+  data->SetOrigin( imageOrigin );
+  data->SetSpacing( imageSpacing );
   data->Allocate();
-
-  MembershipImageIteratorType itrDataImage( data, imageRegion );
-  itrDataImage.GoToBegin();
-
   MembershipArrayPixelType membershipArrayPixel( nClasses );
-  for ( unsigned int i = 0 ; i < nClasses ; ++i )
+  MembershipImageIteratorType itrDataImage( data, imageRegion );
+
+  for ( unsigned int i = 0; i < nClasses; ++i )
     {
     membershipArrayPixel[i] = 0.0;
     }
-
+  itrDataImage.GoToBegin();
   while( !itrDataImage.IsAtEnd() )
     {
     itrDataImage.Set( membershipArrayPixel );
     ++itrDataImage;
     }
-
 
   MeasurementVectorType mv;
 
@@ -232,7 +224,7 @@ int main( int argc, char * argv [] )
   while ( !itrDataImage.IsAtEnd() )
     {
     mv.Fill( itrRawDataImage.Get() );
-    for ( unsigned int i = 0 ; i < nClasses ; i++ )
+    for ( unsigned int i = 0; i < nClasses; i++ )
       {
       meanEstimators.Fill( estimatedMeans[i] );
       covarianceEstimators.Fill( estimatedCovariances[i] );
@@ -254,26 +246,22 @@ int main( int argc, char * argv [] )
 
   PosteriorImagePointer posteriors = PosteriorImageType::New();
   posteriors->SetRegions( imageRegion );
-  posteriors->SetOrigin( readerRawData->GetOutput()->GetOrigin() );
-  posteriors->SetSpacing( readerRawData->GetOutput()->GetSpacing() );
+  posteriors->SetOrigin( imageOrigin );
+  posteriors->SetSpacing( imageSpacing );
   posteriors->Allocate();
-
   PosteriorArrayPixelType posteriorArrayPixel( nClasses );
-  for ( unsigned int i = 0 ; i < nClasses ; ++i )
+  PosteriorImageIteratorType itrPosteriorImage( posteriors, imageRegion );
+
+  for ( unsigned int i = 0; i < nClasses; ++i )
     {
     posteriorArrayPixel[i] = 0.0;
     }
-
-
-  PosteriorImageIteratorType itrPosteriorImage( posteriors, imageRegion );
-
   itrPosteriorImage.GoToBegin();
   while( !itrPosteriorImage.IsAtEnd() )
     {
     itrPosteriorImage.Set( posteriorArrayPixel );
     ++itrPosteriorImage;
     }
-
 
   itrDataImage.GoToBegin();
   itrPriorImage.GoToBegin();
@@ -282,7 +270,7 @@ int main( int argc, char * argv [] )
     {
     priorArrayPixel = itrPriorImage.Get();
     membershipArrayPixel = itrDataImage.Get();
-    for ( unsigned int i = 0 ; i < nClasses; ++i )
+    for ( unsigned int i = 0; i < nClasses; ++i )
       {
       posteriorArrayPixel[i] = membershipArrayPixel[i] * priorArrayPixel[i];
       }
@@ -294,19 +282,19 @@ int main( int argc, char * argv [] )
 
 
   // RENORMALIZE POSTERIORS
-  float tempSum;
+  float renormSum;
   itrPosteriorImage.GoToBegin();
   while ( !itrPosteriorImage.IsAtEnd() )
     {
     posteriorArrayPixel = itrPosteriorImage.Get();
-    tempSum = 0;
-    for ( unsigned int i = 0 ; i < nClasses ; ++i )
+    renormSum = 0;
+    for ( unsigned int i = 0; i < nClasses; ++i )
       {
-      tempSum = tempSum + posteriorArrayPixel[i];
+      renormSum = renormSum + posteriorArrayPixel[i];
       }
-    for ( unsigned int i = 0 ; i < nClasses ; ++i )
+    for ( unsigned int i = 0; i < nClasses; ++i )
       {
-      posteriorArrayPixel[i] = posteriorArrayPixel[i] / tempSum;
+      posteriorArrayPixel[i] = posteriorArrayPixel[i] / renormSum;
       }
     itrPosteriorImage.Set( posteriorArrayPixel );
     ++itrPosteriorImage;
@@ -339,18 +327,15 @@ int main( int argc, char * argv [] )
                                                           posteriors->GetBufferPointer(),
                                                           imageRegion.GetNumberOfPixels(),
                                                           false );
-
   indexScalarToVectorAdaptor->GetOutput()->Allocate();
 
 
-
   // SETUP SMOOTHING FUNCTION
+  float timeStep = 0.1;    // USER VARIABLE (DEFAULT = 0.1)
+  int nIterations = 1;     // always leave this at 1.
   typedef itk::CurvatureAnisotropicDiffusionImageFilter<
                             ScalarPosteriorImageType, 
                             ScalarPosteriorImageType > SmoothingFilterType;
-  
-  float timeStep = 0.1;
-  int nIterations = 1;
   
   SmoothingFilterType::Pointer smoothingFilter = SmoothingFilterType::New();
   smoothingFilter->SetInput( indexVectorToScalarAdaptor->GetOutput() );
@@ -359,12 +344,13 @@ int main( int argc, char * argv [] )
   smoothingFilter->SetConductanceParameter( 3.0 );
   indexVectorToScalarAdaptor->SetInput( posteriors );
   indexScalarToVectorAdaptor->SetInput( smoothingFilter->GetOutput() );
+
                       
   // PERFORM ITERATIVE SMOOTHING AND RENORMALIZATION OF POSTERIORS
-  int nSmoothingIterations = 10;
+  int nSmoothingIterations = 10;  // USER VARIABLE (DEFAULT = 10)
   for ( unsigned int iSmoothing = 0; iSmoothing < nSmoothingIterations; ++iSmoothing )
     {
-    for ( unsigned int i = 0 ; i < nClasses ; ++i )
+    for ( unsigned int i = 0; i < nClasses; ++i )
       {
       indexVectorToScalarAdaptor->SetIndex( i );
       indexScalarToVectorAdaptor->SetIndex( i );
@@ -375,19 +361,20 @@ int main( int argc, char * argv [] )
     while ( !itrPosteriorImage.IsAtEnd() )
       {
       posteriorArrayPixel = itrPosteriorImage.Get();
-      tempSum = 0;
-      for ( unsigned int i = 0 ; i < nClasses ; ++i )
+      renormSum = 0;
+      for ( unsigned int i = 0; i < nClasses; ++i )
         {
-        tempSum = tempSum + posteriorArrayPixel[i];
+        renormSum = renormSum + posteriorArrayPixel[i];
         }
-      for ( unsigned int i = 0 ; i < nClasses ; ++i )
+      for ( unsigned int i = 0; i < nClasses; ++i )
         {
-        posteriorArrayPixel[i] = posteriorArrayPixel[i] / tempSum;
+        posteriorArrayPixel[i] = posteriorArrayPixel[i] / renormSum;
         }
       itrPosteriorImage.Set( posteriorArrayPixel );
       ++itrPosteriorImage;
       }
     }
+
 
   // APPLY MAXIMUM A POSTERIORI RULE
   // setup rest of decision rule
@@ -397,11 +384,10 @@ int main( int argc, char * argv [] )
 
   LabelOutputImageType::Pointer labels = LabelOutputImageType::New();
   labels->SetRegions( imageRegion );
-  labels->SetOrigin( readerRawData->GetOutput()->GetOrigin() );
-  labels->SetSpacing( readerRawData->GetOutput()->GetSpacing() );
+  labels->SetOrigin( imageOrigin );
+  labels->SetSpacing( imageSpacing );
   labels->Allocate();
   LabelImageIteratorType itrLabelImage( labels, imageRegion );
-
   DecisionRuleType::Pointer decisionRule = DecisionRuleType::New();
 
   itrLabelImage.GoToBegin();
@@ -409,7 +395,7 @@ int main( int argc, char * argv [] )
   std::vector< double > temporaryHolder(nClasses);  // show this to Luis
   while ( !itrLabelImage.IsAtEnd() )
     {
-    for ( unsigned int i = 0 ; i < nClasses ; ++i )
+    for ( unsigned int i = 0; i < nClasses; ++i )
       {
       temporaryHolder[i] = ( itrPosteriorImage.Get()[i] );
       }
@@ -432,12 +418,13 @@ int main( int argc, char * argv [] )
 
   // GENERATE HISTOGRAM FROM RAW DATA AND LABEL MAP
   typedef itk::Statistics::ImageToHistogramGenerator<
-    JoinImageType > HistogramGeneratorType;
-  typedef HistogramGeneratorType::SizeType SizeType;
-  typedef HistogramGeneratorType::HistogramType HistogramType;
+                                     JoinImageType > HistogramGeneratorType;
+  typedef HistogramGeneratorType::SizeType           SizeType;
+  typedef HistogramGeneratorType::HistogramType      HistogramType;
+  typedef HistogramType::FrequencyType               FrequencyType;
 
   HistogramGeneratorType::Pointer histogramGenerator =
-    HistogramGeneratorType::New();
+                                     HistogramGeneratorType::New();
   SizeType size;
 
   size[0] = 256; // number of bins for the gray levels
@@ -455,9 +442,6 @@ int main( int argc, char * argv [] )
 
   HistogramType::ConstIterator itr = histogram->Begin();
   HistogramType::ConstIterator end = histogram->End();
-
-  typedef HistogramType::FrequencyType FrequencyType;
-
   while( itr != end )
     {
     const FrequencyType frequency = itr.GetFrequency();
@@ -472,22 +456,22 @@ int main( int argc, char * argv [] )
 
   // MEMBERSHIP FUNCTION
   typedef itk::Statistics::HistogramDensityFunction<
-    MeasurementVectorType,
-    HistogramType > HistogramDensityFunctionType;
+                                      MeasurementVectorType,
+                                      HistogramType > HistogramDensityFunctionType;
 
   HistogramDensityFunctionType::Pointer membershipFunction =
-    HistogramDensityFunctionType::New();
+                                      HistogramDensityFunctionType::New();
 
   membershipFunction->SetHistogram( histogram );
-
   std::cout << membershipFunction << std::endl; // DEBUGGING
 
+
   // WRITE LABELMAP TO FILE
+  const char * labelmapFileName = argv[2];
   typedef itk::ImageFileWriter< LabelOutputImageType > LabelWriterType; 
 
   LabelWriterType::Pointer labelWriter = LabelWriterType::New();
 
-  const char * labelmapFileName = argv[2];
   labelWriter->SetInput( labels );
   labelWriter->SetFileName( labelmapFileName );
   try
