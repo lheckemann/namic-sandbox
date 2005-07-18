@@ -27,7 +27,7 @@ KdTreeGenerator< TSample >
   m_SourceSample = 0 ;
   m_BucketSize = 16 ;
   m_Subsample = SubsampleType::New() ;
-  m_MeasurementVectorSize = 0;
+  m_MeasurementVectorSize = MeasurementVectorTraits< MeasurementVectorType >::GetSize();
 }
 
 template< class TSample >
