@@ -35,10 +35,10 @@ ADD_TEST(itkMembershipSampleTest ${STATISTICS_TESTS} itkMembershipSampleTest)
 ADD_TEST(itkNeighborhoodSamplerTest ${STATISTICS_TESTS} itkNeighborhoodSamplerTest)
 ADD_TEST(itkMembershipSampleGeneratorTest ${STATISTICS_TESTS} itkMembershipSampleGeneratorTest)
 #
-#ADD_TEST(itkSampleClassifierTest ${STATISTICS_TESTS} 
-#         itkSampleClassifierTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
-#ADD_TEST(itkSampleClassifierWithMaskTest ${STATISTICS_TESTS} 
-#         itkSampleClassifierWithMaskTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
+ADD_TEST(itkSampleClassifierTest ${STATISTICS_TESTS} 
+         itkSampleClassifierTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
+ADD_TEST(itkSampleClassifierWithMaskTest ${STATISTICS_TESTS} 
+         itkSampleClassifierWithMaskTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
 #ADD_TEST(itkSampleMeanShiftClusteringFilterTest ${STATISTICS_TESTS}                itkSampleMeanShiftClusteringFilterTest ${ITK_DATA_ROOT}/Input/sf4.png)
 #ADD_TEST(itkSampleSelectiveMeanShiftBlurringFilterTest ${STATISTICS_TESTS}                itkSampleSelectiveMeanShiftBlurringFilterTest ${ITK_DATA_ROOT}/Input/sf4.png)
 #ADD_TEST(itkScalarImageTextureCalculatorTest ${STATISTICS_TESTS} itkScalarImageTextureCalculatorTest)
@@ -75,8 +75,8 @@ itkMeanCalculatorTest.cxx
 itkMembershipSampleTest.cxx
 itkMembershipSampleGeneratorTest.cxx
 itkNeighborhoodSamplerTest.cxx
-#itkSampleClassifierTest.cxx
-#itkSampleClassifierWithMaskTest.cxx
+itkSampleClassifierTest.cxx
+itkSampleClassifierWithMaskTest.cxx
 #itkSampleMeanShiftClusteringFilterTest.cxx
 #itkSampleSelectiveMeanShiftBlurringFilterTest.cxx
 itkSelectiveSubsampleGeneratorTest.cxx
