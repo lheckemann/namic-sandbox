@@ -96,7 +96,7 @@ public:
   itkStaticConstMacro(MeasurementVectorSize, unsigned int,
                       PixelTraitsType::Dimension);
   
-  virtual void SetMeasurementVectorSize( unsigned int s )
+  virtual void SetMeasurementVectorSize( const unsigned int s ) const
     {
     // Measurement vector size for this class is fixed as the pixel's 
     // dimension. This method should throw an exception if the user tries to 
@@ -107,11 +107,9 @@ public:
           << " from the pixel dimension is: " << MeasurementVectorSize << " but you "
           << "are setting it to " << s);
       }
-          
-    Superclass::SetMeasurementVectorSize( s );
     }
 
- unsigned int GetMeasurementVectorSize() const
+ unsigned int GetMeasurementVectorSize() const 
    {
    return MeasurementVectorSize;
    } 
