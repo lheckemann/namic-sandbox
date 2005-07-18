@@ -12,7 +12,7 @@ IF( NOT ITK_SOURCE_DIR )
   MESSAGE(FATAL_ERROR "ITK source directory is not set")
 ENDIF( NOT ITK_SOURCE_DIR )
 
-SET( ITK_DATA_ROOT "${ITK_SOURCE_DIR}/Testing/Data/Input" )
+SET( ITK_DATA_ROOT "${ITK_SOURCE_DIR}/Testing/Data" )
 
  
 
