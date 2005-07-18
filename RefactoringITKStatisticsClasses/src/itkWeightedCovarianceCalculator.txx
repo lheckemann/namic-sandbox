@@ -65,9 +65,11 @@ WeightedCovarianceCalculator< TSample >
     this->Modified() ;
     
     if( this->GetMeasurementVectorSize() && m_Mean && 
-       ( m_Mean->Size() != this->GetMeasurementVectorSize() ) )
+       ( MeasurementVectorTraits< MeanType >::GetSize(m_Mean) 
+         != this->GetMeasurementVectorSize() ) )
       {
-      itkExceptionMacro( << "Size of measurement vectors in the sample must be the same as the size of the mean vector." );
+      itkExceptionMacro( << "Size of measurement vectors in the sample must be "
+          << "the same as the size of the mean vector." );
       }
     }
 }
@@ -237,9 +239,11 @@ WeightedCovarianceCalculator< TSample >
 {
   const MeasurementVectorSizeType measurementVectorSize = 
     this->GetMeasurementVectorSize();
+  m_Output = new OutputType();
   *m_Output = MeasurementVectorTraits< MeasurementVectorType >::RealMatrix(
                  measurementVectorSize, measurementVectorSize );
   m_Output->Fill(0.0) ;
+  m_InternalMean = new MeanType(); 
   (*m_InternalMean) = MeasurementVectorTraits< MeanType >::SetSize( 
                                                   measurementVectorSize );
   m_InternalMean->Fill(0.0) ;

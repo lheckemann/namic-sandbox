@@ -185,6 +185,7 @@ CovarianceCalculator< TSample >
   m_Output = MeasurementVectorTraits< MeasurementVectorType >::RealMatrix(
                  measurementVectorSize, measurementVectorSize );
   m_Output.Fill(0.0) ;
+  m_InternalMean = new MeanType();
   (*m_InternalMean) = MeasurementVectorTraits< MeanType >::SetSize( 
                                                   measurementVectorSize );
   m_InternalMean->Fill(0.0) ;
