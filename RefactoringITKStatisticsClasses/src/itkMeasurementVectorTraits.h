@@ -74,18 +74,17 @@ template<class TValueType, unsigned int TLength>
 class MeasurementVectorTraits<FixedArray<TValueType, TLength > >
 {
 public:
-  typedef TValueType ValueType;
-  typedef double     RealValueType;
   itkStaticConstMacro( MeasurementVectorLength, unsigned int, TLength );
-  typedef FixedArray< ValueType, MeasurementVectorLength > 
-                                        MeasurementVectorType;
+  typedef TValueType                                       ValueType;
+  typedef double                                           RealValueType;
+  typedef FixedArray< ValueType, MeasurementVectorLength > MeasurementVectorType;
   typedef FixedArray< RealValueType, 
-          MeasurementVectorLength > RealMeasurementVectorType;
+                                 MeasurementVectorLength > RealMeasurementVectorType;
   typedef Matrix< RealValueType, MeasurementVectorLength, 
                                  MeasurementVectorLength > RealMatrixType;
   typedef Vector< RealValueType, MeasurementVectorLength > MeanType;
   typedef Vector< RealValueType, MeasurementVectorLength > OriginType;
-  
+
   static MeasurementVectorType SetSize( unsigned int s )
     {
     if( s != MeasurementVectorLength )
@@ -125,6 +124,7 @@ public:
   typedef VariableSizeMatrix< double > RealMatrixType;
   typedef RealMeasurementVectorType    MeanType;
   typedef RealMeasurementVectorType    OriginType;
+  itkStaticConstMacro( MeasurementVectorLength, unsigned int, 0 );
 
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -209,6 +209,7 @@ public:
   typedef VariableSizeMatrix< double > RealMatrixType;
   typedef RealMeasurementVectorType    MeanType;
   typedef RealMeasurementVectorType    OriginType;
+  itkStaticConstMacro( MeasurementVectorLength, unsigned int, 0 );
 
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -295,6 +296,7 @@ public:
   typedef VariableSizeMatrix< double > RealMatrixType;
   typedef RealMeasurementVectorType    MeanType;
   typedef RealMeasurementVectorType    OriginType;
+  itkStaticConstMacro( MeasurementVectorLength, unsigned int, 0 );
 
   static MeasurementVectorType SetSize( unsigned int s )
     {
