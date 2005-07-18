@@ -120,17 +120,24 @@ public:
   itkStaticConstMacro(MeasurementVectorSize, 
                       unsigned int, 
                       ImageJointDomainTraitsType::Dimension) ;
-  virtual void SetMeasurementVectorSize( unsigned int )
+  
+  typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
+
+  virtual void SetMeasurementVectorSize( unsigned int s ) 
     {
     // Measurement vector size for this class is fixed as the pixel's 
     // dimension. This method should have no effect
-    itkWarningMacro( << "This method does nothing! The MeasurementVectorSize is " << MeasurementVectorSize );
+    if( s != MeasurementVectorSize )
+      {
+      itkExceptionMacro( << "Cannot set measurement vector size of "
+          << " JointDomainImageToListAdaptor to " << s );
+      }
     }
 
- unsigned int GetMeasurementVectorSize()
-   {
-   return MeasurementVectorSize;
-   } 
+  MeasurementVectorSizeType GetMeasurementVectorSize() const
+    {
+    return MeasurementVectorSize;
+    } 
  
   /** typedefs for Measurement vector, measurement, 
    * Instance Identifier, frequency, size, size element value */
