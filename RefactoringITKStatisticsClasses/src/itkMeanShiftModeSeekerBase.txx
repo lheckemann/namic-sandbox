@@ -94,8 +94,11 @@ typename MeanShiftModeSeekerBase< TSample >::MeasurementVectorType
 MeanShiftModeSeekerBase< TSample >
 ::Evolve(MeasurementVectorType instance)
 {
+  MeasurementVectorSizeType measurementVectorLength = 
+    MeasurementVectorTraits< MeasurementVectorType >::GetSize( &instance );
   MeasurementVectorType queryPoint = instance ;
-  MeasurementVectorType newPoint ;
+  MeasurementVectorType newPoint = MeasurementVectorTraits< 
+    MeasurementVectorType >::SetSize( measurementVectorLength );
   MeasurementVectorType previousPoint = queryPoint ;
 
   unsigned int currentIteration = 0 ;
