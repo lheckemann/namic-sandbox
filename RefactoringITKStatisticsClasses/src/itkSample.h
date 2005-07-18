@@ -70,7 +70,8 @@ public:
 
   /** ValueType of a measurement (ValueType of a component of the
    * MeasurementVector */ 
-  typedef typename TMeasurementVector::ValueType MeasurementType ;
+  typedef typename MeasurementVectorTraits< MeasurementVectorType >::ValueType 
+                                                      MeasurementType;
 
   /** Frequency value type*/
   typedef float FrequencyType ;
@@ -112,8 +113,8 @@ public:
 
   
   /** Set/Get macros for the length of the measurement vector */
-  itkSetMacro( MeasurementVectorSize, unsigned int );
-  itkGetConstMacro( MeasurementVectorSize, unsigned int );
+  itkSetMacro( MeasurementVectorSize, MeasurementVectorSizeType);
+  itkGetConstMacro( MeasurementVectorSize, MeasurementVectorSizeType );
 
   
 protected:
