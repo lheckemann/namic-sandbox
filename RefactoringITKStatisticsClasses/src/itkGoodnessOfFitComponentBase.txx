@@ -26,7 +26,6 @@ namespace Statistics{
 template< class TInputSample >
 GoodnessOfFitComponentBase< TInputSample >
 ::GoodnessOfFitComponentBase()
-  : m_MeasurementVectorSize( 0 )
 {
   m_InputSample = 0 ;
   m_Resampler = ResamplerType::New() ;
@@ -51,6 +50,8 @@ GoodnessOfFitComponentBase< TInputSample >
   tempAxis.Fill(0.0) ;
   m_ProjectionAxes.Fill(tempAxis) ;
   m_TotalObservedScale = 0.0 ;
+  m_MeasurementVectorSize = MeasurementVectorTraits< 
+                             MeasurementVectorType >::GetSize();
 }
 
 template< class TInputSample >
@@ -70,7 +71,8 @@ GoodnessOfFitComponentBase< TInputSample >
   if ( m_InputSample != 0 )
     {
      os << m_InputSample << std::endl;
-     os << indent << "Length of each measurement vector: " << m_MeasurementVectorSize << std::endl;
+     os << indent << "Length of each measurement vector: " 
+                  << m_MeasurementVectorSize << std::endl;
     }
   else
     {
