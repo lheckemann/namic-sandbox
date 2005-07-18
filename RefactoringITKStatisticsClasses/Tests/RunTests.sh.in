@@ -8,7 +8,7 @@
 ./itkStatisticsTests itkHistogramTest
 ./itkStatisticsTests itkImageToListAdaptorTest
 #./itkStatisticsTests itkImageToCooccurrenceListAdaptorTest ${ITK_DATA_ROOT}/Input/HeadMRVolume.mhd
-#./itkStatisticsTests itkImageToHistogramGeneratorTest
+./itkStatisticsTests itkImageToHistogramGeneratorTest
 ./itkStatisticsTests itkKdTreeBasedKmeansEstimatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat
 ./itkStatisticsTests itkKdTreeGeneratorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat
 ./itkStatisticsTests itkListSampleTest 4
@@ -24,7 +24,7 @@
 #./itkStatisticsTests itkSampleMeanShiftClusteringFilterTest ${ITK_DATA_ROOT}/Input/sf4.png
 #./itkStatisticsTests itkSampleSelectiveMeanShiftBlurringFilterTest ${ITK_DATA_ROOT}/Input/sf4.png
 #./itkStatisticsTests itkScalarImageTextureCalculatorTest
-#./itkStatisticsTests itkScalarImageToHistogramGeneratorTest
+./itkStatisticsTests itkScalarImageToHistogramGeneratorTest
 #./itkStatisticsTests itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest
 ./itkStatisticsTests itkSelectiveSubsampleGeneratorTest
 ./itkStatisticsTests itkSubsampleTest

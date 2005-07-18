@@ -20,7 +20,7 @@ ADD_TEST(itkVariableDimensionHistogramTest ${STATISTICS_TESTS} itkVariableDimens
 ADD_TEST(itkImageToListAdaptorTest ${STATISTICS_TESTS} itkImageToListAdaptorTest)
 #ADD_TEST(itkImageToCooccurrenceListAdaptorTest ${STATISTICS_TESTS} 
 #         itkImageToCooccurrenceListAdaptorTest ${ITK_DATA_ROOT}/Input/HeadMRVolume.mhd)
-#ADD_TEST(itkImageToHistogramGeneratorTest ${STATISTICS_TESTS} itkImageToHistogramGeneratorTest)
+ADD_TEST(itkImageToHistogramGeneratorTest ${STATISTICS_TESTS} itkImageToHistogramGeneratorTest)
 ADD_TEST(itkKdTreeBasedKmeansEstimatorTest ${STATISTICS_TESTS} 
          itkKdTreeBasedKmeansEstimatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
 ADD_TEST(itkKdTreeGeneratorTest ${STATISTICS_TESTS} 
@@ -42,7 +42,7 @@ ADD_TEST(itkMembershipSampleGeneratorTest ${STATISTICS_TESTS} itkMembershipSampl
 #ADD_TEST(itkSampleMeanShiftClusteringFilterTest ${STATISTICS_TESTS}                itkSampleMeanShiftClusteringFilterTest ${ITK_DATA_ROOT}/Input/sf4.png)
 #ADD_TEST(itkSampleSelectiveMeanShiftBlurringFilterTest ${STATISTICS_TESTS}                itkSampleSelectiveMeanShiftBlurringFilterTest ${ITK_DATA_ROOT}/Input/sf4.png)
 #ADD_TEST(itkScalarImageTextureCalculatorTest ${STATISTICS_TESTS} itkScalarImageTextureCalculatorTest)
-#ADD_TEST(itkScalarImageToHistogramGeneratorTest ${STATISTICS_TESTS} itkScalarImageToHistogramGeneratorTest)
+ADD_TEST(itkScalarImageToHistogramGeneratorTest ${STATISTICS_TESTS} itkScalarImageToHistogramGeneratorTest)
 #ADD_TEST(itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest ${STATISTICS_TESTS} itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest)
 ADD_TEST(itkSelectiveSubsampleGeneratorTest ${STATISTICS_TESTS} 
                                            itkSelectiveSubsampleGeneratorTest)
@@ -64,7 +64,7 @@ itkHistogramTest.cxx
 itkVariableDimensionHistogramTest.cxx
 itkImageToListAdaptorTest.cxx
 #itkImageToCooccurrenceListAdaptorTest.cxx
-#itkImageToHistogramGeneratorTest.cxx
+itkImageToHistogramGeneratorTest.cxx
 itkKdTreeBasedKmeansEstimatorTest.cxx
 itkKdTreeGeneratorTest.cxx
 itkListSampleTest.cxx
@@ -80,7 +80,7 @@ itkNeighborhoodSamplerTest.cxx
 #itkSampleMeanShiftClusteringFilterTest.cxx
 #itkSampleSelectiveMeanShiftBlurringFilterTest.cxx
 itkSelectiveSubsampleGeneratorTest.cxx
-#itkScalarImageToHistogramGeneratorTest.cxx
+itkScalarImageToHistogramGeneratorTest.cxx
 #itkScalarImageTextureCalculatorTest.cxx
 #itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest.cxx
 itkSubsampleTest.cxx

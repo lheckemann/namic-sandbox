@@ -35,7 +35,7 @@ void RegisterTests()
   REGISTER_TEST(itkHistogramTest);
   REGISTER_TEST(itkImageToListAdaptorTest);
 //  REGISTER_TEST(itkImageToCooccurrenceListAdaptorTest);
-//  REGISTER_TEST(itkImageToHistogramGeneratorTest);
+  REGISTER_TEST(itkImageToHistogramGeneratorTest);
   REGISTER_TEST(itkKdTreeBasedKmeansEstimatorTest);
   REGISTER_TEST(itkKdTreeGeneratorTest);
   REGISTER_TEST(itkListSampleTest);
@@ -51,7 +51,7 @@ void RegisterTests()
 //  REGISTER_TEST(itkSampleMeanShiftClusteringFilterTest) ;
 //  REGISTER_TEST(itkSampleSelectiveMeanShiftBlurringFilterTest) ;
   REGISTER_TEST(itkSelectiveSubsampleGeneratorTest) ;
-//  REGISTER_TEST(itkScalarImageToHistogramGeneratorTest);
+  REGISTER_TEST(itkScalarImageToHistogramGeneratorTest);
 //  REGISTER_TEST(itkScalarImageTextureCalculatorTest);
 //  REGISTER_TEST(itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest);
   REGISTER_TEST(itkStatisticsAlgorithmTest);
