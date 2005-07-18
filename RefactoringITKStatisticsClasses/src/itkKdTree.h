@@ -221,7 +221,11 @@ struct KdTreeWeightedCentroidNonterminalNode: public KdTreeNode< TSample >
   void GetParameters(unsigned int &partitionDimension, 
                      MeasurementType &partitionValue) const ;
 
-  itkGetMacro( MeasurementVectorSize, unsigned int );
+  /** Return the length of of Measurement vector held in the nodes */
+  const MeasurementVectorSizeType GetMeasurementVectorSize() const
+    {
+    return m_MeasurementVectorSize;
+    }
 
   Superclass* Left() 
   { return m_Left ; }
