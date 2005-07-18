@@ -62,8 +62,9 @@ public:
   typedef typename NumericTraits< ValueType >::RealType   ValueRealType;
 
   typedef itk::Statistics::ListSampleToHistogramGenerator< 
-                                                AdaptorType, 
-                                                ValueRealType
+                         AdaptorType, 
+                         ValueRealType,
+                         AdaptorType::MeasurementVectorSize
                                                           > GeneratorType;
 
   typedef typename GeneratorType::Pointer                   GeneratorPointer;
