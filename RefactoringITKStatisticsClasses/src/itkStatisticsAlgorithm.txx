@@ -179,7 +179,8 @@ FindSampleBoundAndMean(const TSubsample* sample,
   Array< double > sum( Dimension ) ;
 
   MeasurementVectorSizeType dimension ;
-  MeasurementVectorType temp( Dimension ) ;
+  MeasurementVectorType temp = MeasurementVectorTraits< 
+              MeasurementVectorType >::SetSize( Dimension ) ;
 
   min = max = temp = sample->GetMeasurementVectorByIndex(beginIndex) ;
   double frequencySum = sample->GetFrequencyByIndex(beginIndex) ;
