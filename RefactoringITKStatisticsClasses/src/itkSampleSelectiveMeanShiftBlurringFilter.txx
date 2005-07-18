@@ -24,7 +24,10 @@ template< class TSample >
 SampleSelectiveMeanShiftBlurringFilter< TSample >
 ::SampleSelectiveMeanShiftBlurringFilter()
 {
-  m_ComponentSelections = 0;
+  m_ComponentSelections = MeasurementVectorTraits< ComponentSelectionsType 
+    >::SetSize( MeasurementVectorTraits< ComponentSelectionsType 
+        >::GetSize( &m_ComponentSelections ));
+  m_ComponentSelections.Fill( true );
 }
 
 template< class TSample >
@@ -71,7 +74,8 @@ SampleSelectiveMeanShiftBlurringFilter< TSample >
 {
   // Assert at run time that the given mean has the same length as 
   // measurement vectors in the sample and that the size is non-zero.
-  if( m_ComponentSelections == NULL )
+  if( MeasurementVectorTraits< ComponentSelectionsType 
+                      >::GetSize( &m_ComponentSelections ))
     {
     m_ComponentSelections = MeasurementVectorTraits< ComponentSelectionsType 
       >::SetSize( this->GetMeasurementVectorSize() );
