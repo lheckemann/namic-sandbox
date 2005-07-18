@@ -40,7 +40,7 @@ int main( int argc, char * argv [] )
   if( argc < 3 )
     {
     std::cerr << "Missing command line arguments" << std::endl;
-    std::cerr << "Usage : Histogram inputImageFileName kmeansLabelmapFileName labelmapFileName" << std::endl;
+    std::cerr << "Parameters:  rawDataFileName outputFileName nClasses" << std::endl;
     return -1;
     }
 
@@ -48,73 +48,59 @@ int main( int argc, char * argv [] )
   // READIN IMAGE FROM FILE
   typedef unsigned short PixelType;
   const unsigned int Dimension = 2;
-  typedef itk::Image< PixelType, Dimension > InputImageType;
-  typedef itk::ImageFileReader< InputImageType > ReaderType;
+  typedef itk::Image< PixelType, Dimension > RawDataImageType;
+  typedef itk::ImageFileReader< RawDataImageType > RawDataReaderType;
 
-  ReaderType::Pointer readerRawData = ReaderType::New();
+  RawDataReaderType::Pointer readerRawData = RawDataReaderType::New();
 
   readerRawData->SetFileName( argv[1] );
+
   try
     {
     readerRawData->Update();
     }
   catch( itk::ExceptionObject & excp )
     {
-    std::cerr << "Problem encoutered while reading image file : "
+    std::cerr << "Problem encoutered while reading raw data file : "
       << argv[1] << std::endl;
     std::cerr << excp << std::endl;
     return -1;
     }
 
+
+  // SETUP GENERAL IMAGE PARAMETERS
   // when moving to filter, change to GetRequestedRegion()
-  InputImageType::RegionType imageRegion =
+  RawDataImageType::RegionType imageRegion =
     readerRawData->GetOutput()->GetLargestPossibleRegion();
+  RawDataImageType::SizeType imageSizeType = imageRegion.GetSize();
+  const RawDataImageType::PointType& imageOrigin = readerRawData->GetOutput()->GetOrigin();
+  RawDataImageType::SpacingType imageSpacing = readerRawData->GetOutput()->GetSpacing();
+
 
   // K-MEANS CLASSIFICATION
-  typedef itk::ScalarImageKmeansImageFilter< InputImageType > KMeansFilterType;
+  unsigned int nClasses = atoi( argv[3] );
+  const unsigned int useNonContiguousLabels = false;
+  typedef itk::ScalarImageKmeansImageFilter< RawDataImageType > KMeansFilterType;
 
   KMeansFilterType::Pointer kmeansFilter = KMeansFilterType::New();
-  const unsigned int numberOfInitialClasses = 4;
-  const unsigned int useNonContiguousLabels = false;
 
   kmeansFilter->SetInput( readerRawData->GetOutput() );
   kmeansFilter->SetUseNonContiguousLabels( useNonContiguousLabels );
 
-  for( unsigned k=0; k < numberOfInitialClasses; k++ )
+  for( unsigned k=0; k < nClasses; k++ )
     {
     const double userProvidedInitialMean = k;
     kmeansFilter->AddClassWithInitialMean( userProvidedInitialMean );
     }
-
-
-  // WRITE KMEANS LABELMAP TO FILE
-  typedef KMeansFilterType::OutputImageType KMeansOutputImageType;
-  typedef itk::ImageFileWriter< KMeansOutputImageType > KMeansWriterType;
-
-  KMeansWriterType::Pointer kmeansWriter = KMeansWriterType::New();
-
-  const char * kmeansLabelmapFileName = argv[2];
-  kmeansWriter->SetInput( kmeansFilter->GetOutput() );
-  kmeansWriter->SetFileName( kmeansLabelmapFileName );
-  try
-    {
-    kmeansWriter->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << "Problem encountered while writing image file : "
-      << argv[2] << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
+  kmeansFilter->Update();
 
 
   // GET THE FINAL KMEANS
   KMeansFilterType::ParametersType estimatedMeans = kmeansFilter->GetFinalMeans();
 
-  const unsigned int numberOfClasses = estimatedMeans.Size();
+  nClasses = estimatedMeans.Size();
 
-  for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
+  for ( unsigned int i = 0 ; i < nClasses ; ++i )
     {
     std::cout << "cluster[" << i << "] ";
     std::cout << " estimated mean : " << estimatedMeans[i] << std::endl;
@@ -122,81 +108,68 @@ int main( int argc, char * argv [] )
 
 
   // FIND VARIANCES
-  typedef itk::ImageRegionConstIterator< InputImageType > ConstImageIteratorType;
-  typedef itk::ImageRegionConstIterator< KMeansOutputImageType > ConstLabelIteratorType;
-  typedef itk::Array< double > CovarianceArrayType;
+  typedef KMeansFilterType::OutputImageType                 KMeansImageType;
+  typedef itk::ImageRegionConstIterator< RawDataImageType > ConstRawDataIteratorType;
+  typedef itk::ImageRegionConstIterator< KMeansImageType >  ConstKMeansIteratorType;
+  typedef itk::Array< double >                              CovarianceArrayType;
 
-  InputImageType::RegionType inputRegion;
-  KMeansOutputImageType::RegionType kmeansOutputRegion;
+  ConstRawDataIteratorType itrRawDataImage( readerRawData->GetOutput(), imageRegion );
+  ConstKMeansIteratorType itrKMeansImage( kmeansFilter->GetOutput(), imageRegion );
 
-  InputImageType::SizeType imageSizeType = imageRegion.GetSize();
-  KMeansOutputImageType::SizeType labelSizeType =
-    kmeansFilter->GetOutput()->GetLargestPossibleRegion().GetSize();
-
-  inputRegion.SetSize( imageSizeType );
-  kmeansOutputRegion.SetSize( labelSizeType );
-
-  ConstImageIteratorType itrInputImage( readerRawData->GetOutput(), inputRegion );
-  ConstLabelIteratorType itrLabelMap( kmeansFilter->GetOutput(), kmeansOutputRegion );
-
-  CovarianceArrayType sumsOfSquares( numberOfClasses );
-  CovarianceArrayType sums( numberOfClasses );
-  CovarianceArrayType estimatedCovariances( numberOfClasses );
-  CovarianceArrayType count( numberOfClasses );
-
-  itrInputImage.GoToBegin();
-  itrLabelMap.GoToBegin();
+  CovarianceArrayType sumsOfSquares( nClasses );
+  CovarianceArrayType sums( nClasses );
+  CovarianceArrayType estimatedCovariances( nClasses );
+  CovarianceArrayType classCount( nClasses );
 
   // initialize arrays
-  for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
+  for ( unsigned int i = 0 ; i < nClasses ; ++i )
     {
     sumsOfSquares[i] = 0;
     sums[i] = 0;
-    count[i] = 0;
+    classCount[i] = 0;
     }
 
   // index into image volume using labels. find sumsOfSquares and sums.
-  while( !itrInputImage.IsAtEnd() )
+  itrRawDataImage.GoToBegin();
+  itrKMeansImage.GoToBegin();
+  while( !itrRawDataImage.IsAtEnd() )
     {
-    sumsOfSquares[(int)itrLabelMap.Get()] = sumsOfSquares[(int)itrLabelMap.Get()] +
-      itrInputImage.Get() * itrInputImage.Get();
-    sums[(int)itrLabelMap.Get()] = sums[(int)itrLabelMap.Get()] +
-      itrInputImage.Get();
-    count[(int)itrLabelMap.Get()] = count[(int)itrLabelMap.Get()] + 1;
-    ++itrInputImage;
-    ++itrLabelMap;
+    sumsOfSquares[(int)itrKMeansImage.Get()] = sumsOfSquares[(int)itrKMeansImage.Get()] +
+      itrRawDataImage.Get() * itrRawDataImage.Get();
+    sums[(int)itrKMeansImage.Get()] = sums[(int)itrKMeansImage.Get()] +
+      itrRawDataImage.Get();
+    classCount[(int)itrKMeansImage.Get()] = classCount[(int)itrKMeansImage.Get()] + 1;
+    ++itrRawDataImage;
+    ++itrKMeansImage;
     }
 
   // calculate the variance
-  for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
+  for ( unsigned int i = 0 ; i < nClasses ; ++i )
     {
     estimatedCovariances[i] =
-      (sumsOfSquares[i] / count[i]) - ((sums[i] * sums[i]) / (count[i] * count[i]));
+      (sumsOfSquares[i] / classCount[i]) - ((sums[i] * sums[i]) / (classCount[i] * classCount[i]));
     std::cout << "cluster[" << i << "] ";
-    std::cout << " estimated covariance : " << estimatedCovariances[i]
-      << "---sumsOfSquares: " << sumsOfSquares[i]
-      << "---sums: " << sums[i]
-      << "---count: " << count[i] << std::endl;
+    std::cout << " estimated covariance : " << estimatedCovariances[i] << std::endl;
     }
 
 
   // INITIALIZE PRIORS
-  typedef itk::Array< double >                         PriorArrayPixelType;
+  typedef itk::Array< double >                          PriorArrayPixelType;
   typedef itk::Image< PriorArrayPixelType, Dimension >  PriorImageType;
   typedef PriorImageType::Pointer                       PriorImagePointer;
   typedef itk::ImageRegionIterator< PriorImageType >    PriorImageIteratorType;
 
   PriorImagePointer priors = PriorImageType::New();
   priors->SetRegions( imageRegion );
-  priors->SetOrigin( readerRawData->GetOutput()->GetOrigin() );
-  priors->SetSpacing( readerRawData->GetOutput()->GetSpacing() );
+  priors->SetOrigin( imageOrigin );
+  priors->SetSpacing( imageSpacing );
   priors->Allocate(); 
   PriorImageIteratorType itrPriorImage( priors, imageRegion );
 
-  PriorArrayPixelType priorArrayPixel( numberOfClasses );
-  for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
+  PriorArrayPixelType priorArrayPixel( nClasses );
+  for ( unsigned int i = 0 ; i < nClasses ; ++i )
     {
-    priorArrayPixel[i] = (double)1 / numberOfClasses;
+    priorArrayPixel[i] = (double)1 / nClasses;
     }
 
   itrPriorImage.GoToBegin();
@@ -209,22 +182,23 @@ int main( int argc, char * argv [] )
 
 
   // CREATE GAUSSIAN DENSITY FUNCTION
-  typedef itk::Vector< double, 1 >        MeasurementVectorType;
+  typedef itk::Vector< double, 1 >                          MeasurementVectorType;
   typedef itk::Statistics::GaussianDensityFunction< MeasurementVectorType >
-                                          MembershipFunctionType;
-  typedef MembershipFunctionType::Pointer MembershipFunctionPointer;
+                                                            MembershipFunctionType;
+  typedef MembershipFunctionType::Pointer                   MembershipFunctionPointer;
 
-  std::vector< MembershipFunctionPointer > membershipFunctions;
-  MembershipFunctionType::MeanType meanEstimators;
-  MembershipFunctionType::CovarianceType covarianceEstimators;
-  for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
+  std::vector< MembershipFunctionPointer >                  membershipFunctions;
+  MembershipFunctionType::MeanType                          meanEstimators;
+  MembershipFunctionType::CovarianceType                    covarianceEstimators;
+
+  for ( unsigned int i = 0 ; i < nClasses ; ++i )
     {
     membershipFunctions.push_back( MembershipFunctionType::New() );
     }
 
 
   // GENERATE DATA IMAGE
-  typedef itk::Array< double >                             MembershipArrayPixelType;
+  typedef itk::Array< double >                              MembershipArrayPixelType;
   typedef itk::Image< MembershipArrayPixelType, Dimension > MembershipImageType;
   typedef MembershipImageType::Pointer                      MembershipImagePointer;
   typedef itk::ImageRegionIterator< MembershipImageType >   MembershipImageIteratorType;
@@ -238,8 +212,8 @@ int main( int argc, char * argv [] )
   MembershipImageIteratorType itrDataImage( data, imageRegion );
   itrDataImage.GoToBegin();
 
-  MembershipArrayPixelType membershipArrayPixel( numberOfClasses );
-  for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
+  MembershipArrayPixelType membershipArrayPixel( nClasses );
+  for ( unsigned int i = 0 ; i < nClasses ; ++i )
     {
     membershipArrayPixel[i] = 0.0;
     }
@@ -254,11 +228,11 @@ int main( int argc, char * argv [] )
   MeasurementVectorType mv;
 
   itrDataImage.GoToBegin();
-  itrInputImage.GoToBegin();
+  itrRawDataImage.GoToBegin();
   while ( !itrDataImage.IsAtEnd() )
     {
-    mv.Fill( itrInputImage.Get() );
-    for ( unsigned int i = 0 ; i < numberOfClasses ; i++ )
+    mv.Fill( itrRawDataImage.Get() );
+    for ( unsigned int i = 0 ; i < nClasses ; i++ )
       {
       meanEstimators.Fill( estimatedMeans[i] );
       covarianceEstimators.Fill( estimatedCovariances[i] );
@@ -267,7 +241,7 @@ int main( int argc, char * argv [] )
       membershipArrayPixel[i] = membershipFunctions[i]->Evaluate( mv );
       }
     itrDataImage.Set( membershipArrayPixel );
-    ++itrInputImage;
+    ++itrRawDataImage;
     ++itrDataImage;
     }
 
@@ -284,8 +258,8 @@ int main( int argc, char * argv [] )
   posteriors->SetSpacing( readerRawData->GetOutput()->GetSpacing() );
   posteriors->Allocate();
 
-  PosteriorArrayPixelType posteriorArrayPixel( numberOfClasses );
-  for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
+  PosteriorArrayPixelType posteriorArrayPixel( nClasses );
+  for ( unsigned int i = 0 ; i < nClasses ; ++i )
     {
     posteriorArrayPixel[i] = 0.0;
     }
@@ -308,7 +282,7 @@ int main( int argc, char * argv [] )
     {
     priorArrayPixel = itrPriorImage.Get();
     membershipArrayPixel = itrDataImage.Get();
-    for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
+    for ( unsigned int i = 0 ; i < nClasses; ++i )
       {
       posteriorArrayPixel[i] = membershipArrayPixel[i] * priorArrayPixel[i];
       }
@@ -326,11 +300,11 @@ int main( int argc, char * argv [] )
     {
     posteriorArrayPixel = itrPosteriorImage.Get();
     tempSum = 0;
-    for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
+    for ( unsigned int i = 0 ; i < nClasses ; ++i )
       {
       tempSum = tempSum + posteriorArrayPixel[i];
       }
-    for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
+    for ( unsigned int i = 0 ; i < nClasses ; ++i )
       {
       posteriorArrayPixel[i] = posteriorArrayPixel[i] / tempSum;
       }
@@ -376,21 +350,21 @@ int main( int argc, char * argv [] )
                             ScalarPosteriorImageType > SmoothingFilterType;
   
   float timeStep = 0.1;
-  int numberOfIterations = 1;
+  int nIterations = 1;
   
   SmoothingFilterType::Pointer smoothingFilter = SmoothingFilterType::New();
   smoothingFilter->SetInput( indexVectorToScalarAdaptor->GetOutput() );
-  smoothingFilter->SetNumberOfIterations( numberOfIterations );
+  smoothingFilter->SetNumberOfIterations( nIterations );
   smoothingFilter->SetTimeStep( timeStep );
   smoothingFilter->SetConductanceParameter( 3.0 );
   indexVectorToScalarAdaptor->SetInput( posteriors );
   indexScalarToVectorAdaptor->SetInput( smoothingFilter->GetOutput() );
                       
   // PERFORM ITERATIVE SMOOTHING AND RENORMALIZATION OF POSTERIORS
-  int numberOfSmoothingIterations = 10;
-  for ( unsigned int iSmoothing = 0; iSmoothing < numberOfSmoothingIterations; ++iSmoothing )
+  int nSmoothingIterations = 10;
+  for ( unsigned int iSmoothing = 0; iSmoothing < nSmoothingIterations; ++iSmoothing )
     {
-    for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
+    for ( unsigned int i = 0 ; i < nClasses ; ++i )
       {
       indexVectorToScalarAdaptor->SetIndex( i );
       indexScalarToVectorAdaptor->SetIndex( i );
@@ -402,11 +376,11 @@ int main( int argc, char * argv [] )
       {
       posteriorArrayPixel = itrPosteriorImage.Get();
       tempSum = 0;
-      for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
+      for ( unsigned int i = 0 ; i < nClasses ; ++i )
         {
         tempSum = tempSum + posteriorArrayPixel[i];
         }
-      for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
+      for ( unsigned int i = 0 ; i < nClasses ; ++i )
         {
         posteriorArrayPixel[i] = posteriorArrayPixel[i] / tempSum;
         }
@@ -432,10 +406,10 @@ int main( int argc, char * argv [] )
 
   itrLabelImage.GoToBegin();
   itrPosteriorImage.GoToBegin();
-  std::vector< double > temporaryHolder(numberOfClasses);  // show this to Luis
+  std::vector< double > temporaryHolder(nClasses);  // show this to Luis
   while ( !itrLabelImage.IsAtEnd() )
     {
-    for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
+    for ( unsigned int i = 0 ; i < nClasses ; ++i )
       {
       temporaryHolder[i] = ( itrPosteriorImage.Get()[i] );
       }
@@ -446,7 +420,7 @@ int main( int argc, char * argv [] )
   
   
   // JOIN IMAGE AND LABEL MAP
-  typedef itk::JoinImageFilter< InputImageType, InputImageType > JoinFilterType;
+  typedef itk::JoinImageFilter< RawDataImageType, RawDataImageType > JoinFilterType;
   typedef JoinFilterType::OutputImageType JoinImageType;
 
   JoinFilterType::Pointer joinFilter = JoinFilterType::New();
@@ -467,7 +441,7 @@ int main( int argc, char * argv [] )
   SizeType size;
 
   size[0] = 256; // number of bins for the gray levels
-  size[1] = numberOfClasses; // number of bins for the labels = number of labels
+  size[1] = nClasses; // number of bins for the labels = number of labels
   histogramGenerator->SetNumberOfBins( size );
   histogramGenerator->SetMarginalScale( 10.0 );
   histogramGenerator->SetInput( joinFilter->GetOutput() );
@@ -506,13 +480,14 @@ int main( int argc, char * argv [] )
 
   membershipFunction->SetHistogram( histogram );
 
+  std::cout << membershipFunction << std::endl; // DEBUGGING
 
   // WRITE LABELMAP TO FILE
   typedef itk::ImageFileWriter< LabelOutputImageType > LabelWriterType; 
 
   LabelWriterType::Pointer labelWriter = LabelWriterType::New();
 
-  const char * labelmapFileName = argv[3];
+  const char * labelmapFileName = argv[2];
   labelWriter->SetInput( labels );
   labelWriter->SetFileName( labelmapFileName );
   try
@@ -522,7 +497,7 @@ int main( int argc, char * argv [] )
   catch( itk::ExceptionObject & excp )
     {
     std::cerr << "Problem encoutered while writing image file : "
-      << argv[3] << std::endl;
+      << argv[2] << std::endl;
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;
     }
