@@ -33,7 +33,7 @@ EuclideanDistance< TVector >
   
   double temp, distance = NumericTraits< double >::Zero ;
   
-  for(unsigned int i = 0 ; i < x1.Size(); i++ )
+  for(unsigned int i = 0 ; i < MeasurementVectorTraits< TVector >::GetSize( &x1 ); i++ )
     {
     temp = x1[i] - x2[i] ;
     distance += temp * temp ;
@@ -54,7 +54,8 @@ EuclideanDistance< TVector >
     {
     itkExceptionMacro( << "Please set the MeasurementVectorSize first" );
     }
-  if( measurementVectorSize != m_Origin.Size() )
+  if( measurementVectorSize != 
+      MeasurementVectorTraits< OriginType >::GetSize( &m_Origin ) )
     {
     itkExceptionMacro( << "Origin and input vector have different lengths" );
     }
