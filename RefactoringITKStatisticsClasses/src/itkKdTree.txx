@@ -59,8 +59,8 @@ KdTreeWeightedCentroidNonterminalNode< TSample >
   m_Left = left ;
   m_Right = right ;
   m_WeightedCentroid = centroid ;
-  m_MeasurementVectorSize = centroid.GetSize();
-
+  m_MeasurementVectorSize = MeasurementVectorTraits< CentroidType >::GetSize( 
+                                                                  &centroid );
   m_Centroid = m_WeightedCentroid / double(size) ;
 
   m_Size = size ;
@@ -197,8 +197,10 @@ KdTree< TSample >
 
   m_NearestNeighbors.resize(k) ;
 
-  MeasurementVectorType lowerBound( m_MeasurementVectorSize ) ;
-  MeasurementVectorType upperBound( m_MeasurementVectorSize ) ;
+  MeasurementVectorType lowerBound = MeasurementVectorTraits< 
+    MeasurementVectorType >::SetSize( this->m_MeasurementVectorSize );
+  MeasurementVectorType upperBound = MeasurementVectorTraits< 
+    MeasurementVectorType >::SetSize( this->m_MeasurementVectorSize );
 
   for (unsigned int d = 0 ; d < m_MeasurementVectorSize ; d++)
     {
@@ -323,8 +325,10 @@ KdTree< TSample >
 ::Search(MeasurementVectorType &query, double radius,
          InstanceIdentifierVectorType& result) const
 {
-  MeasurementVectorType lowerBound( m_MeasurementVectorSize ) ;
-  MeasurementVectorType upperBound( m_MeasurementVectorSize ) ;
+  MeasurementVectorType lowerBound = MeasurementVectorTraits< 
+    MeasurementVectorType >::SetSize( this->m_MeasurementVectorSize );
+  MeasurementVectorType upperBound = MeasurementVectorTraits< 
+    MeasurementVectorType >::SetSize( this->m_MeasurementVectorSize );
 
   for (unsigned int d = 0 ; d < this->m_MeasurementVectorSize ; d++)
     {
