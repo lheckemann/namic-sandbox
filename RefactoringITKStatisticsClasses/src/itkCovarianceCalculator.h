@@ -58,6 +58,9 @@ public:
   
   /** Length of a measurement vector */
   typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
+
+  /** Measurement vector type */
+  typedef typename Superclass::MeasurementVectorType MeasurementVectorType;
   
   /** REMOVED: THE StaticConstMacro for this method has been removed to 
    * allow the measurement vector length to be specified at run time.
@@ -75,10 +78,11 @@ public:
 
 
   /** Typedef for the mean output */
-  typedef Array< double >      MeanType;
+  typedef typename MeasurementVectorTraits< MeasurementVectorType >::MeanType MeanType;
 
   /** Typedef for Covariance output */
-  typedef VariableSizeMatrix< double > OutputType;
+  typedef typename MeasurementVectorTraits< MeasurementVectorType >::RealMatrixType OutputType;
+  
   //typedef Vector< double, itkGetStaticConstMacro(MeasurementVectorSize) > MeanType ;
   //typedef Matrix< double, itkGetStaticConstMacro(MeasurementVectorSize), itkGetStaticConstMacro(MeasurementVectorSize) > OutputType ;
 
