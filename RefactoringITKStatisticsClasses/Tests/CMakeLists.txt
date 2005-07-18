@@ -18,8 +18,8 @@ ADD_TEST(itkDenseFrequencyContainerTest ${STATISTICS_TESTS} itkDenseFrequencyCon
 ADD_TEST(itkHistogramTest ${STATISTICS_TESTS} itkHistogramTest)
 ADD_TEST(itkVariableDimensionHistogramTest ${STATISTICS_TESTS} itkVariableDimensionHistogramTest)
 ADD_TEST(itkImageToListAdaptorTest ${STATISTICS_TESTS} itkImageToListAdaptorTest)
-#ADD_TEST(itkImageToCooccurrenceListAdaptorTest ${STATISTICS_TESTS} 
-#         itkImageToCooccurrenceListAdaptorTest ${ITK_DATA_ROOT}/Input/HeadMRVolume.mhd)
+ADD_TEST(itkImageToCooccurrenceListAdaptorTest ${STATISTICS_TESTS} 
+         itkImageToCooccurrenceListAdaptorTest ${ITK_DATA_ROOT}/Input/HeadMRVolume.mhd)
 ADD_TEST(itkImageToHistogramGeneratorTest ${STATISTICS_TESTS} itkImageToHistogramGeneratorTest)
 ADD_TEST(itkKdTreeBasedKmeansEstimatorTest ${STATISTICS_TESTS} 
          itkKdTreeBasedKmeansEstimatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
@@ -63,7 +63,7 @@ itkDenseFrequencyContainerTest.cxx
 itkHistogramTest.cxx
 itkVariableDimensionHistogramTest.cxx
 itkImageToListAdaptorTest.cxx
-#itkImageToCooccurrenceListAdaptorTest.cxx
+itkImageToCooccurrenceListAdaptorTest.cxx
 itkImageToHistogramGeneratorTest.cxx
 itkKdTreeBasedKmeansEstimatorTest.cxx
 itkKdTreeGeneratorTest.cxx
