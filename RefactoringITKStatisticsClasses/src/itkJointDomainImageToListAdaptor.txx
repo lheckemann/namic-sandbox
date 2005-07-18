@@ -27,6 +27,7 @@ JointDomainImageToListAdaptor< TImage >
 ::JointDomainImageToListAdaptor()
 {
   m_NormalizationFactors.Fill( 1.0f ) ;
+  Superclass::SetMeasurementVectorSize( MeasurementVectorSize );
 }
 
 template < class TImage >
