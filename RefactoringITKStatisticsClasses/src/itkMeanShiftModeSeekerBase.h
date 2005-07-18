@@ -64,13 +64,21 @@ public:
   /** Standard Macros */
   itkTypeMacro(MeanShiftModeSeekerBase, Object);
   
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      TSample::MeasurementVectorSize) ;
-
   /** Typedefs from the TSample template argument */
   typedef typename TSample::MeasurementVectorType MeasurementVectorType ;
+  typedef typename TSample::MeasurementVectorSizeType MeasurementVectorSizeType ;
   typedef typename TSample::MeasurementType MeasurementType ;
   typedef typename TSample::InstanceIdentifier InstanceIdentifier ;
+
+  /** DEPRECATED: The static const macro will be deprecated in a future version.
+   * Please use GetMeasurementVectorSize() instead. This constant returns the 
+   * length of a measurement vector for FixedArrays, Vectors and other fixed 
+   * containers and zero for dynamically resizable containers. The true value for 
+   * dynamically resizable containers will be obtained from the 
+   * GetMeasurementVectorSize() call. 
+   */
+  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
 
   typedef std::vector< InstanceIdentifier > SearchResultVectorType ;
   typedef MeanShiftModeCacheMethod< MeasurementVectorType > CacheMethodType ;
