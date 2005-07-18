@@ -83,6 +83,15 @@ public:
   /** the number of components in a measurement vector */
   itkStaticConstMacro(MeasurementVectorSize, unsigned int, 1);
   
+
+  /** Superclass typedefs for Measurement vector, measurement, 
+   * Instance Identifier, frequency, size, size element value */
+  typedef typename Superclass::FrequencyType FrequencyType ;
+  typedef typename Superclass::MeasurementType MeasurementType ;
+  typedef typename Superclass::InstanceIdentifier InstanceIdentifier ;
+  typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
+  typedef MeasurementVectorType ValueType ;
+
   virtual void SetMeasurementVectorSize( unsigned int s )
     {
     // Measurement vector size for this class is fixed as the pixel's 
@@ -95,18 +104,11 @@ public:
     }
 
   /** Length of each measurement vector = 1 */
-  unsigned int GetMeasurementVectorSize() const
+  MeasurementVectorSizeType GetMeasurementVectorSize() const
     {
     return MeasurementVectorSize;
     } 
  
-  /** Superclass typedefs for Measurement vector, measurement, 
-   * Instance Identifier, frequency, size, size element value */
-  typedef typename Superclass::FrequencyType FrequencyType ;
-  typedef typename Superclass::MeasurementType MeasurementType ;
-  typedef typename Superclass::InstanceIdentifier InstanceIdentifier ;
-  typedef MeasurementVectorType ValueType ;
-
   const MeasurementVectorType & GetMeasurementVector(const InstanceIdentifier &id) const;
 
 protected:

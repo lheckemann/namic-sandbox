@@ -26,6 +26,7 @@ ScalarImageToListAdaptor< TImage >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
+  Superclass::SetMeasurementVectorSize( MeasurementVectorSize );
 }
 
 template < class TImage >
