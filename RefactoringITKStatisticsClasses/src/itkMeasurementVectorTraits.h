@@ -83,6 +83,7 @@ public:
           MeasurementVectorLength > RealMeasurementVectorType;
   typedef Matrix< RealValueType, MeasurementVectorLength, 
                                  MeasurementVectorLength > RealMatrixType;
+  typedef Vector< RealValueType, MeasurementVectorLength > MeanType;
   
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -104,17 +105,24 @@ public:
     {
     return MeasurementVectorLength;
     }
+
+  static RealMatrixType RealMatrix( unsigned int r, unsigned int c )
+    {
+    RealMatrixType m;
+    return m;
+    }
 };
 
 template< class TValueType >
 class MeasurementVectorTraits< Array< TValueType > >
 {
 public:
-  typedef TValueType ValueType;
-  typedef double     RealValueType;
-  typedef Array< ValueType > MeasurementVectorType;
-  typedef Array< RealValueType > RealMeasurementVectorType;
+  typedef TValueType                   ValueType;
+  typedef double                       RealValueType;
+  typedef Array< ValueType >           MeasurementVectorType;
+  typedef Array< RealValueType >       RealMeasurementVectorType;
   typedef VariableSizeMatrix< double > RealMatrixType;
+  typedef RealMeasurementVectorType    MeanType;
 
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -135,6 +143,13 @@ public:
     {
     return 0;
     }
+
+  static RealMatrixType RealMatrix( unsigned int r, unsigned int c )
+    {
+    RealMatrixType m;
+    m.SetSize( r, c );
+    return m;
+    }
 };
 
 
@@ -149,7 +164,7 @@ public:
           MeasurementVectorLength > RealMeasurementVectorType;
   typedef Matrix< RealValueType, MeasurementVectorLength, 
                                  MeasurementVectorLength > RealMatrixType;
-  
+  typedef RealMeasurementVectorType  MeanType;
   typedef Vector< ValueType, MeasurementVectorLength > MeasurementVectorType;
 
   static MeasurementVectorType SetSize( unsigned int s )
@@ -172,17 +187,24 @@ public:
     {
     return MeasurementVectorLength;
     }
+
+  static RealMatrixType RealMatrix( unsigned int r, unsigned int c )
+    {
+    RealMatrixType m;
+    return m;
+    }
 };
 
 template< class TValueType >
 class MeasurementVectorTraits< vnl_vector< TValueType > >
 {
 public:
-  typedef TValueType ValueType;
-  typedef double     RealValueType;
-  typedef vnl_vector< ValueType > MeasurementVectorType;
-  typedef vnl_vector< RealValueType > RealMeasurementVectorType;
+  typedef TValueType                   ValueType;
+  typedef double                       RealValueType;
+  typedef vnl_vector< ValueType >      MeasurementVectorType;
+  typedef vnl_vector< RealValueType >  RealMeasurementVectorType;
   typedef VariableSizeMatrix< double > RealMatrixType;
+  typedef RealMeasurementVectorType    MeanType;
 
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -203,6 +225,13 @@ public:
     {
     return 0;
     }
+
+  static RealMatrixType RealMatrix( unsigned int r, unsigned int c )
+    {
+    RealMatrixType m;
+    m.SetSize( r, c );
+    return m;
+    }
 };
 
 
@@ -219,6 +248,7 @@ public:
           MeasurementVectorLength > RealMeasurementVectorType;
   typedef Matrix< RealValueType, MeasurementVectorLength, 
                                  MeasurementVectorLength > RealMatrixType;
+  typedef RealMeasurementVectorType    MeanType;
   
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -240,6 +270,12 @@ public:
     {
     return MeasurementVectorLength;
     }
+
+  static RealMatrixType RealMatrix( unsigned int r, unsigned int c )
+    {
+    RealMatrixType m;
+    return m;
+    }
 };
 
 template< class TValueType >
@@ -251,6 +287,7 @@ public:
   typedef std::vector< ValueType > MeasurementVectorType;
   typedef std::vector< RealValueType > RealMeasurementVectorType;
   typedef VariableSizeMatrix< double > RealMatrixType;
+  typedef RealMeasurementVectorType    MeanType;
 
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -271,6 +308,13 @@ public:
     {
     return 0;
     }
+
+  static RealMatrixType RealMatrix( unsigned int r, unsigned int c )
+    {
+    RealMatrixType m;
+    m.SetSize( r, c );
+    return m;
+    }
 };
 
 template<class TValueType, unsigned int TLength>
@@ -284,6 +328,7 @@ public:
   typedef Point< RealValueType, MeasurementVectorLength > RealMeasurementVectorType;
   typedef Matrix< RealValueType, MeasurementVectorLength, 
                                  MeasurementVectorLength > RealMatrixType;
+  typedef Vector< ValueType, MeasurementVectorLength>      MeanType;
   
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -305,6 +350,12 @@ public:
     {
     return 0;
     }
+
+  static RealMatrixType RealMatrix( unsigned int r, unsigned int c )
+    {
+    RealMatrixType m;
+    return m;
+    }
 };
 
 template<class TValueType >
@@ -318,6 +369,7 @@ public:
   typedef RGBPixel< RealValueType > RealMeasurementVectorType;
   typedef Matrix< RealValueType, MeasurementVectorLength, 
                                  MeasurementVectorLength > RealMatrixType;
+  typedef Vector< ValueType, MeasurementVectorLength >     MeanType;
   
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -338,6 +390,12 @@ public:
   static unsigned int GetSize()
     {
     return MeasurementVectorLength;
+    }
+
+  static RealMatrixType RealMatrix( unsigned int r, unsigned int c )
+    {
+    RealMatrixType m;
+    return m;
     }
 };
 
