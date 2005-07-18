@@ -82,17 +82,23 @@ public:
   
   /** the number of components in a measurement vector */
   itkStaticConstMacro(MeasurementVectorSize, unsigned int, 1);
-  virtual void SetMeasurementVectorSize( unsigned int )
+  
+  virtual void SetMeasurementVectorSize( unsigned int s )
     {
     // Measurement vector size for this class is fixed as the pixel's 
     // dimension. This method should have no effect
-    itkWarningMacro( << "This method does nothing! The MeasurementVectorSize is " << MeasurementVectorSize );
+    if( s!=1 )
+      {
+      itkExceptionMacro( << "Cannot set measurement vector size of "
+          << " ScalarImageToListAdaptor to " << s );
+      }
     }
 
- unsigned int GetMeasurementVectorSize()
-   {
-   return MeasurementVectorSize;
-   } 
+  /** Length of each measurement vector = 1 */
+  unsigned int GetMeasurementVectorSize() const
+    {
+    return MeasurementVectorSize;
+    } 
  
   /** Superclass typedefs for Measurement vector, measurement, 
    * Instance Identifier, frequency, size, size element value */
