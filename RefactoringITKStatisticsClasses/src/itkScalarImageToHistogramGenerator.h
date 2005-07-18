@@ -50,8 +50,9 @@ public:
   typedef typename ImageType::PixelType                   PixelType;
 
   typedef itk::Statistics::ListSampleToHistogramGenerator< 
-                                                AdaptorType, 
-                                                PixelType
+                                  AdaptorType, 
+                                  PixelType,
+                                  AdaptorType::MeasurementVectorSize
                                                           > GeneratorType;
 
   typedef typename GeneratorType::Pointer                   GeneratorPointer;
