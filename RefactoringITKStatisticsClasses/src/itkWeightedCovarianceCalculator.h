@@ -71,20 +71,12 @@ public:
   /** Weight calculation function typedef */
   typedef FunctionBase< MeasurementVectorType, double > WeightFunctionType ;
 
-  /** covarince matrix (output) typedef */
-  typedef VariableSizeMatrix< double > OutputType;
-  //typedef Matrix< double,
-  //                itkGetStaticConstMacro(MeasurementVectorSize),
-  //                itkGetStaticConstMacro(MeasurementVectorSize) > 
-  //        OutputType ;
+  /** Typedef for the mean output */
+  typedef typename MeasurementVectorTraits< MeasurementVectorType >::MeanType MeanType;
+
+  /** Typedef for Covariance output */
+  typedef typename MeasurementVectorTraits< MeasurementVectorType >::RealMatrixType OutputType;
   
-
-  /** Mean (input) typedef. NOTE: The typedef for the MeanType has changed from
-   * itk::Vector to itk::Array. */
-  typedef Array< double >      MeanType;
-  //typedef Vector< double, itkGetStaticConstMacro(MeasurementVectorSize) >
-  //        MeanType ;
-
   /** Array typedef for weights */
   typedef Array< double > WeightArrayType ;
 

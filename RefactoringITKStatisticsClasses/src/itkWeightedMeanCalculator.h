@@ -74,12 +74,9 @@ public:
 
   typedef typename TSample::MeasurementVectorType MeasurementVectorType ;
 
-  /** Typedef for the mean output. NOTE: the typedef has changed from 
-   * itk::Vector to vnl_vector */
-  // 
-  //typedef Vector< double,
-  //                itkGetStaticConstMacro(MeasurementVectorSize) > OutputType ;
-  typedef Array< double > OutputType;
+  /** Typedef for the mean output */
+  typedef typename MeasurementVectorTraits< 
+                    MeasurementVectorType >::MeanType OutputType;
   
   /** Array typedef for weights */
   typedef Array< double > WeightArrayType ;

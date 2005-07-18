@@ -54,6 +54,9 @@ public:
 
   /** Length of a measurement vector */
   typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
+
+  /** Measurement vector type */
+  typedef typename Superclass::MeasurementVectorType MeasurementVectorType;
   
   /** REMOVED: THE StaticConstMacro for this method has been removed to 
    * allow the measurement vector length to be specified at run time.
@@ -69,12 +72,11 @@ public:
   //itkStaticConstMacro(MeasurementVectorSize, unsigned int,
   //                    TSample::MeasurementVectorSize) ;
   
-  /** Typedef for the mean output. NOTE: the typedef has changed from 
-   * itk::Vector to Array*/
-  // 
+  /** Typedef for the mean output */
+  typedef typename MeasurementVectorTraits< 
+                    MeasurementVectorType >::MeanType OutputType;
   //typedef Vector< double,
   //                itkGetStaticConstMacro(MeasurementVectorSize) > OutputType ;
-  typedef Array< double > OutputType;
 
   /** Returns the mean vector */
   OutputType* GetOutput() ;
