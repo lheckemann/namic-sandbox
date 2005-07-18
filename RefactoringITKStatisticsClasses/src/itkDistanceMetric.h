@@ -76,7 +76,9 @@ public:
   /** Run-time type information (and related methods). */
   itkTypeMacro(DistanceMetric, MembershipFunctionBase);
 
-  typedef TVector OriginType ;
+  /** OriginType typedef */
+  typedef typename MeasurementVectorTraits< 
+           MeasurementVectorType >::OriginType OriginType ;
 
   /** Sets the origin point that will be used for the single point 
    * version Evaluate() function. This function is necessary part of
