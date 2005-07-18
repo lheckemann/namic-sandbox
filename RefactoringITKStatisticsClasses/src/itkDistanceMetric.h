@@ -19,6 +19,7 @@
 
 #include "itkMembershipFunctionBase.h"
 #include "itkArray.h"
+#include "itkMeasurementVectorTraits.h"
 
 namespace itk{ 
 namespace Statistics{
@@ -40,10 +41,6 @@ namespace Statistics{
  * 
  * The class can be templated over any container that holds data elements. The 
  * containter is expected to provide access to its elements with the [] operator.
- * It must also implement a Size() that returns the length of the container.
- * It must also contain a typedef "ValueType" that defines the data-type held
- * by the container.
- * (In other words it will support itk::Vector, FixedArray, Array ).
  */
 
 template< class TVector >
@@ -76,7 +73,7 @@ public:
   /** Run-time type information (and related methods). */
   itkTypeMacro(DistanceMetric, MembershipFunctionBase);
 
-  typedef Array< double > OriginType ;
+  typedef TVector OriginType ;
 
   /** Sets the origin point that will be used for the single point 
    * version Evaluate() function. This function is necessary part of

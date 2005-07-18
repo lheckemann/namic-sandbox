@@ -29,7 +29,8 @@ DistanceMetric< TVector >
 {
   if( this->m_MeasurementVectorSize != 0 )
     {  
-    if( x.Size() != this->m_MeasurementVectorSize )
+    if( MeasurementVectorTraits< OriginType >::GetSize( &x )
+                             != this->m_MeasurementVectorSize )
       {
       itkExceptionMacro( << "Size of the origin must be same as the length of"
           << " each measurement vector.");
@@ -38,7 +39,7 @@ DistanceMetric< TVector >
   else
     {
     m_Origin = x ;
-    m_MeasurementVectorSize = x.Size();
+    m_MeasurementVectorSize = MeasurementVectorTraits< OriginType >::GetSize( &x );
     this->Modified();
     }
 }
@@ -59,7 +60,7 @@ DistanceMetric< TVector >
     itkWarningMacro( << "Destructively resizing paramters of the DistanceMetric." );
     }
   m_MeasurementVectorSize = s;
-  m_Origin.SetSize( s );
+  m_Origin = MeasurementVectorTraits< OriginType >::SetSize( s );
   this->Modified();
 }  
 
@@ -71,6 +72,7 @@ DistanceMetric< TVector >
 {
   Superclass::PrintSelf(os,indent);
   os << indent << "Origin: " << m_Origin << std::endl;
+  os << indent << "MeasurementVectorSize: " << m_MeasurementVectorSize << std::endl;
   
 }
 } // end of namespace Statistics 
