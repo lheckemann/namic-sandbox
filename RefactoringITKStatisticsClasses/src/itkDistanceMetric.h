@@ -65,6 +65,9 @@ public:
   /** Typedef for the length of each measurement vector */
   typedef unsigned int  MeasurementVectorSizeType;
 
+  /** Typedef for the measurement vector */
+  typedef TVector       MeasurementVectorType;
+
   /** Set/Get Macro to set the length of each measurement vector. */
   virtual void SetMeasurementVectorSize( MeasurementVectorSizeType );
   itkGetConstMacro( MeasurementVectorSize, MeasurementVectorSizeType ); 
@@ -89,7 +92,12 @@ public:
   virtual double Evaluate(const TVector &x1, const TVector &x2) const = 0 ;
   
 protected:
-  DistanceMetric(): m_MeasurementVectorSize( 0 ) {}
+  DistanceMetric() 
+    {
+    m_MeasurementVectorSize = MeasurementVectorTraits< 
+                               MeasurementVectorType >::GetSize();
+    }
+
   virtual ~DistanceMetric() {}
   void PrintSelf(std::ostream& os, Indent indent) const;
 

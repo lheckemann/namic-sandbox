@@ -71,7 +71,9 @@ struct KdTreeNode
   /** Centroid type */
   //typedef FixedArray< double, 
   //                    itkGetStaticConstMacro(MeasurementVectorSize) > CentroidType ;
-  typedef Array< double > CentroidType;
+  typedef typename TSample::MeasurementVectorType MeasurementVectorType;
+  typedef typename MeasurementVectorTraits< 
+          MeasurementVectorType >::RealMeasurementVectorType CentroidType;
   
   /** Instance identifier type (index value type for the measurement
    * vector in a sample */
