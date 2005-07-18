@@ -17,7 +17,7 @@ ADD_TEST(itkDenseFrequencyContainerTest ${STATISTICS_TESTS} itkDenseFrequencyCon
 #         itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
 ADD_TEST(itkHistogramTest ${STATISTICS_TESTS} itkHistogramTest)
 ADD_TEST(itkVariableDimensionHistogramTest ${STATISTICS_TESTS} itkVariableDimensionHistogramTest)
-#ADD_TEST(itkImageToListAdaptorTest ${STATISTICS_TESTS} itkImageToListAdaptorTest)
+ADD_TEST(itkImageToListAdaptorTest ${STATISTICS_TESTS} itkImageToListAdaptorTest)
 #ADD_TEST(itkImageToCooccurrenceListAdaptorTest ${STATISTICS_TESTS} 
 #         itkImageToCooccurrenceListAdaptorTest ${ITK_DATA_ROOT}/Input/HeadMRVolume.mhd)
 #ADD_TEST(itkImageToHistogramGeneratorTest ${STATISTICS_TESTS} itkImageToHistogramGeneratorTest)
@@ -62,7 +62,7 @@ itkDenseFrequencyContainerTest.cxx
 #itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest.cxx 
 itkHistogramTest.cxx
 itkVariableDimensionHistogramTest.cxx
-#itkImageToListAdaptorTest.cxx
+itkImageToListAdaptorTest.cxx
 #itkImageToCooccurrenceListAdaptorTest.cxx
 #itkImageToHistogramGeneratorTest.cxx
 itkKdTreeBasedKmeansEstimatorTest.cxx
