@@ -160,7 +160,8 @@ KdTreeBasedKmeansEstimator< TKdTree >
   unsigned int i, j ;
   typename TKdTree::InstanceIdentifier tempId ;
   int closest ;
-  ParameterType individualPoint ;
+  ParameterType individualPoint = MeasurementVectorTraits< ParameterType 
+    >::SetSize( this->m_MeasurementVectorSize );
   
   if ( node->IsTerminal() )
     {
@@ -194,14 +195,16 @@ KdTreeBasedKmeansEstimator< TKdTree >
     {
     CentroidType centroid ; 
     CentroidType weightedCentroid ;
-    ParameterType closestPosition ;
+    ParameterType closestPosition;
     node->GetWeightedCentroid(weightedCentroid) ;
     node->GetCentroid(centroid) ;
+
 
     closest = 
       this->GetClosestCandidate(centroid, validIndexes) ;
     closestPosition = m_CandidateVector[closest].Centroid ;
     std::vector< int >::iterator iter = validIndexes.begin() ;
+
     while (iter != validIndexes.end())
       {
       if (*iter != closest &&
@@ -218,6 +221,7 @@ KdTreeBasedKmeansEstimator< TKdTree >
         ++iter ;
         }
       }
+    
 
     if (validIndexes.size() == 1)
       {
@@ -337,8 +341,10 @@ KdTreeBasedKmeansEstimator< TKdTree >
 ::StartOptimization()
 {
   unsigned int i ;
-  MeasurementVectorType lowerBound ;
-  MeasurementVectorType upperBound ;
+  MeasurementVectorType lowerBound = MeasurementVectorTraits< 
+    MeasurementVectorType >::SetSize( this->m_MeasurementVectorSize );
+  MeasurementVectorType upperBound = MeasurementVectorTraits< 
+    MeasurementVectorType >::SetSize( this->m_MeasurementVectorSize );
 
   FindSampleBound<SampleType>(m_KdTree->GetSample(),
                               m_KdTree->GetSample()->Begin(), 
@@ -347,9 +353,22 @@ KdTreeBasedKmeansEstimator< TKdTree >
                               upperBound) ;
 
   InternalParametersType previousPosition ;
-  previousPosition.resize(m_Parameters.size() / m_MeasurementVectorSize) ;
+  //previousPosition.resize(m_Parameters.size() / m_MeasurementVectorSize) ;
   InternalParametersType currentPosition ;
-  currentPosition.resize(m_Parameters.size() / m_MeasurementVectorSize) ;
+  //currentPosition.resize(m_Parameters.size() / m_MeasurementVectorSize) ;
+
+  
+  for( i=0; i< m_Parameters.size()/ m_MeasurementVectorSize; i++ )
+    {
+    ParameterType m = MeasurementVectorTraits< 
+      ParameterType >::SetSize( m_MeasurementVectorSize );
+    ParameterType m1 = MeasurementVectorTraits< 
+      ParameterType >::SetSize( m_MeasurementVectorSize );
+    previousPosition.push_back( m );
+    currentPosition.push_back( m1 );
+    }
+
+  
   this->CopyParameters(m_Parameters, currentPosition) ;
   m_CurrentIteration = 0 ;
   std::vector< int > validIndexes ;
