@@ -24,12 +24,12 @@ namespace Statistics{
 
 template< class TListSample, 
           class THistogramMeasurement, 
-          unsigned int TMeasurementVectorLength,
-          class TFrequencyContainer >
+          class TFrequencyContainer,
+          unsigned int TMeasurementVectorLength >
 ListSampleToHistogramGenerator< TListSample, 
                                 THistogramMeasurement, 
-                                TMeasurementVectorLength,
-                                TFrequencyContainer>
+                                TFrequencyContainer,
+                                TMeasurementVectorLength >
 ::ListSampleToHistogramGenerator()
 {
   m_Sizes.Fill(0) ;
@@ -43,13 +43,13 @@ ListSampleToHistogramGenerator< TListSample,
 
 template< class TListSample, 
           class THistogramMeasurement, 
-          unsigned int TMeasurementVectorLength,
-          class TFrequencyContainer >
+          class TFrequencyContainer,
+          unsigned int TMeasurementVectorLength >
 void
 ListSampleToHistogramGenerator< TListSample, 
                                 THistogramMeasurement, 
-                                TMeasurementVectorLength,
-                                TFrequencyContainer>
+                                TFrequencyContainer,
+                                TMeasurementVectorLength >
 ::GenerateData()
 {
   typename TListSample::MeasurementVectorType lower;
@@ -139,13 +139,13 @@ ListSampleToHistogramGenerator< TListSample,
 
 template< class TListSample, 
           class THistogramMeasurement, 
-          unsigned int TMeasurementVectorLength,
-          class TFrequencyContainer >
+          class TFrequencyContainer,
+          unsigned int TMeasurementVectorLength >
 void
 ListSampleToHistogramGenerator< TListSample, 
                                 THistogramMeasurement, 
-                                TMeasurementVectorLength,
-                                TFrequencyContainer>
+                                TFrequencyContainer,
+                                TMeasurementVectorLength >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
