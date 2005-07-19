@@ -84,14 +84,15 @@ public:
 
   /** 1D array typedef 
    * NOTE: The typedef was recently changed from a FixedArray to Array */
-  typedef   Array< double > ArrayType;
+  typedef typename MeasurementVectorTraits< 
+                    MeasurementVectorType >::RealArrayType ArrayType;
   //typedef FixedArray< double, 
   //                    itkGetStaticConstMacro(MeasurementVectorSize) > ArrayType ;
 
   /** The center of the histogram */
   //typedef Vector< double, 
   //                itkGetStaticConstMacro(MeasurementVectorSize) > MeanType ;
-  typedef Array< double > MeanType;
+  typedef typename MeasurementVectorTraits< MeasurementVectorType >::MeanType  MeanType;
 
   /** Type of the output object */
   typedef Histogram< THistogramMeasurement, 1 > HistogramType ;
