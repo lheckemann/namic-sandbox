@@ -31,33 +31,29 @@ namespace itk
  * \code
  * typename SampleType:: MeasurementVectorType m_MeasurementVector 
  * = MeasurementVectorTraits< typename 
- *    SampleType::MeasurementVectorType >::SetSize( m_InputSample ) );
+ *    SampleType::MeasurementVectorType >::SetSize( s ) );
  * \endcode
  *
- * This creates \c m_MeasurementVector of a length that is the length of the 
- * measurement vectors contained in \c m_InputSample. If \c MeasurementVectorType
- * is a \c FixedArray, it will throw an exception if the measurement vectors in 
- * \c m_InputSample do not have the same length as the \c FixedArray. 
- *        Below, we set the create measurement vectors that copy the contents of 
- * the vector passed in.
+ * This will create a measurement vector of length s if it is a FixedArray or 
+ * a vnl_vector_fixed, itkVector etc.. If not it returns an array of length 0
+ * for the appropriate type. Other useful typedefs are defined to get the 
+ * length of the vector, for the MeanType, RealType for compuatations etc
  *
- * \code 
- * MeasurementVectorType m_MeasurementVector = MeasurementVectorTraits< 
- *                        MeasurementVectorType >::Create( m_StdVector );
- * MeasurementVectorType m_MeasurementVector = MeasurementVectorTraits<  
- *                        MeasurementVectorType >::Create( m_Array );
- * MeasurementVectorType m_MeasurementVector = MeasurementVectorTraits<  
- *                        MeasurementVectorType >::Create( m_FixedArray );
+ * To get the length of a measurement vector, the user would
+ *
+ * \code
+ * MeasurementVectorTraits< MeasurementVectorType >::GetSize( &mv )
  * \endcode
  * 
- * 
- * Traits should be used to set the measurement vector size as an iVar of the 
- * class as below. This does the appropriate sanity checks.
- * 
- * \code 
- * this->SetMeasurementVectorSize( MeasurementVectorTraits< 
- *                        MeasurementVectorType >::Size( 4 ) );
+ * This calls the appropriate functions for the MeasurementVectorType to return
+ * the size of the measurement vector mv.
+ *
+ * \code
+ * MeasurementVectorTraits< MeasurementVectorType >::GetSize()
  * \endcode
+ *
+ * This returns the length of MeasurementVectorType, which will be the true
+ * length of a FixedArray, Vector, vnl_vector_fixed, Point etc and 0 otherwise
  * 
  * \ingroup Statistics 
  */
