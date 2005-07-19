@@ -8,11 +8,11 @@ INCLUDE_DIRECTORIES( BEFORE ${CHANGED_STATISTICS_SOURCES} )
 ADD_TEST(itkStatisticsAlgorithmTest ${STATISTICS_TESTS} itkStatisticsAlgorithmTest)
 ADD_TEST(itkCovarianceCalculatorTest ${STATISTICS_TESTS} itkCovarianceCalculatorTest)
 ADD_TEST(itkDenseFrequencyContainerTest ${STATISTICS_TESTS} itkDenseFrequencyContainerTest)
-#ADD_TEST(itkExpectationMaximizationMixtureModelEstimatorTest 
-#         ${STATISTICS_TESTS} 
-#         itkExpectationMaximizationMixtureModelEstimatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
-#ADD_TEST(itkGoodnessOfFitMixtureModelCostFunctionTest ${STATISTICS_TESTS} 
-#         itkGoodnessOfFitMixtureModelCostFunctionTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
+ADD_TEST(itkExpectationMaximizationMixtureModelEstimatorTest 
+         ${STATISTICS_TESTS} 
+         itkExpectationMaximizationMixtureModelEstimatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
+ADD_TEST(itkGoodnessOfFitMixtureModelCostFunctionTest ${STATISTICS_TESTS} 
+         itkGoodnessOfFitMixtureModelCostFunctionTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
 ADD_TEST(itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest ${STATISTICS_TESTS} 
          itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
 ADD_TEST(itkHistogramTest ${STATISTICS_TESTS} itkHistogramTest)
@@ -34,7 +34,7 @@ ADD_TEST(itkMeanCalculatorTest ${STATISTICS_TESTS} itkMeanCalculatorTest)
 ADD_TEST(itkMembershipSampleTest ${STATISTICS_TESTS} itkMembershipSampleTest)
 ADD_TEST(itkNeighborhoodSamplerTest ${STATISTICS_TESTS} itkNeighborhoodSamplerTest)
 ADD_TEST(itkMembershipSampleGeneratorTest ${STATISTICS_TESTS} itkMembershipSampleGeneratorTest)
-#
+
 ADD_TEST(itkSampleClassifierTest ${STATISTICS_TESTS} 
          itkSampleClassifierTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
 ADD_TEST(itkSampleClassifierWithMaskTest ${STATISTICS_TESTS} 
@@ -57,8 +57,8 @@ SET(Statistics_SRCS
 itkStatisticsAlgorithmTest.cxx
 itkCovarianceCalculatorTest.cxx
 itkDenseFrequencyContainerTest.cxx
-#itkExpectationMaximizationMixtureModelEstimatorTest.cxx
-#itkGoodnessOfFitMixtureModelCostFunctionTest.cxx
+itkExpectationMaximizationMixtureModelEstimatorTest.cxx
+itkGoodnessOfFitMixtureModelCostFunctionTest.cxx
 itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest.cxx 
 itkHistogramTest.cxx
 itkVariableDimensionHistogramTest.cxx
