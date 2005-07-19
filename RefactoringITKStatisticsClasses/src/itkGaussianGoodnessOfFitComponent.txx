@@ -34,7 +34,7 @@ GaussianGoodnessOfFitComponent< TInputSample >
   m_StandardDeviation = 0.0 ;
   m_Radius = 0.0 ;
 
-  m_NumberOfParameters = (unsigned int)(this->m_MeasurementVectorSize + 1) ;
+  m_NumberOfParameters = (unsigned int)(MeasurementVectorSize + 1) ;
 
   m_ProbabilityDensityFunction = ProbabilityDensityFunctionType::New() ;
   m_ProbabilityDensityFunction->SetMean(&m_Mean) ;
@@ -89,7 +89,7 @@ GaussianGoodnessOfFitComponent< TInputSample >
   bool changed = false ;
 
   unsigned int i = 0 ;
-  while ( i < this->m_MeasurementVectorSize )
+  while ( i < MeasurementVectorSize )
     {
     if ( m_Mean[i] != parameters[i] )
       {
@@ -171,9 +171,9 @@ GaussianGoodnessOfFitComponent< TInputSample >
   ProjectionAxisArrayType* from =
     m_ProjectionAxisCalculator->GetEigenVectors() ;
 
-  for ( i = 0 ; i < this->m_MeasurementVectorSize ; i++ )
+  for ( i = 0 ; i < MeasurementVectorSize ; i++ )
     {
-    for (j = 0 ; j < this->m_MeasurementVectorSize ; j++)
+    for (j = 0 ; j < MeasurementVectorSize ; j++)
       {
       (*to)[i][j] = (*from)[i][j] ;
       }
@@ -184,7 +184,7 @@ GaussianGoodnessOfFitComponent< TInputSample >
 
   m_LongestAxisIndex = 0 ;
   m_LargestEigenValue = NumericTraits< double >::NonpositiveMin() ;
-  for ( i = 0 ; i < this->m_MeasurementVectorSize ; i++ )
+  for ( i = 0 ; i < MeasurementVectorSize ; i++ )
     {
     if ( (*eigenValues)[i] > m_LargestEigenValue )
       {
@@ -244,9 +244,9 @@ GaussianGoodnessOfFitComponent< TInputSample >
 {
   unsigned int i, j ;
   os << m_Mean ;
-  for( i = 0 ; i < this->m_MeasurementVectorSize ; i++)
+  for( i = 0 ; i < MeasurementVectorSize ; i++)
     {
-    for( j = 0 ; j < this->m_MeasurementVectorSize ; j++)
+    for( j = 0 ; j < MeasurementVectorSize ; j++)
       {
       os << " " << m_Covariance.GetVnlMatrix().get(i,j) ;
       }
@@ -259,20 +259,20 @@ typename GaussianGoodnessOfFitComponent< TInputSample >::ParametersType
 GaussianGoodnessOfFitComponent< TInputSample >
 ::GetFullParameters() const
 {
-  ParametersType params(this->m_MeasurementVectorSize + 
-                        this->m_MeasurementVectorSize * this->m_MeasurementVectorSize) ;
+  ParametersType params(MeasurementVectorSize + 
+                        MeasurementVectorSize * MeasurementVectorSize) ;
 
   unsigned int index = 0 ;
-  while ( index < this->m_MeasurementVectorSize )
+  while ( index < MeasurementVectorSize )
     {
     params[index] = m_Mean[index] ;
     ++index ;
     }
 
   unsigned int i, j ;
-  for( i = 0 ; i < this->m_MeasurementVectorSize ; i++)
+  for( i = 0 ; i < MeasurementVectorSize ; i++)
     {
-    for( j = 0 ; j < this->m_MeasurementVectorSize ; j++)
+    for( j = 0 ; j < MeasurementVectorSize ; j++)
       {
       params[index] = m_Covariance.GetVnlMatrix().get(i,j) ;
       ++index ;

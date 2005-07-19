@@ -55,6 +55,7 @@ public:
 
   /** Typedefs from the superclass */
   typedef typename Superclass::MeasurementVectorType MeasurementVectorType ;
+  typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType ;
   typedef typename Superclass::MembershipFunctionType MembershipFunctionType ;
   typedef typename Superclass::WeightArrayType WeightArrayType ;
   typedef typename Superclass::ParametersType ParametersType ;

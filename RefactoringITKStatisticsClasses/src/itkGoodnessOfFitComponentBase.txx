@@ -50,8 +50,6 @@ GoodnessOfFitComponentBase< TInputSample >
   tempAxis.Fill(0.0) ;
   m_ProjectionAxes.Fill(tempAxis) ;
   m_TotalObservedScale = 0.0 ;
-  m_MeasurementVectorSize = MeasurementVectorTraits< 
-                             MeasurementVectorType >::GetSize();
 }
 
 template< class TInputSample >
@@ -71,8 +69,6 @@ GoodnessOfFitComponentBase< TInputSample >
   if ( m_InputSample != 0 )
     {
      os << m_InputSample << std::endl;
-     os << indent << "Length of each measurement vector: " 
-                  << m_MeasurementVectorSize << std::endl;
     }
   else
     {
@@ -133,14 +129,6 @@ GoodnessOfFitComponentBase< TInputSample >
   if ( m_InputSample != sample )
     {
     m_InputSample = sample ;
-
-    // Get length of measurement vector from the sample and set the 
-    // length of the arrays.
-    this->m_MeasurementVectorSize = m_InputSample->GetMeasurementVectorSize();
-    this->m_ProjectionAxes.set_size( 
-        this->m_MeasurementVectorSize, this->m_MeasurementVectorSize );
-    m_ProjectionAxes.fill(0.0) ;
-    
     m_Resampler->SetInputSample(m_InputSample) ;
     this->Modified() ;
     }

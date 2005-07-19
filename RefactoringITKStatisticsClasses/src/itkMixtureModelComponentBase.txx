@@ -31,8 +31,6 @@ MixtureModelComponentBase< TSample >
   m_Weights = 0 ;
   m_MinimalParametersChange = 1.0e-06 ;
   m_ParametersModified = true ;
-  m_MeasurementVectorSize = MeasurementVectorTraits< 
-                             MeasurementVectorType >::GetSize();
 }
 
 template< class TSample >
@@ -93,7 +91,6 @@ MixtureModelComponentBase< TSample >
 ::SetSample(const TSample* sample)
 {
   m_Sample = sample ;
-  this->m_MeasurementVectorSize = m_Sample->GetMeasurementVectorSize();
   this->CreateWeightArray() ;
 } 
 

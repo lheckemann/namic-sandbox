@@ -67,6 +67,8 @@ GaussianMixtureModelComponent< TSample >
   WeightArrayType* weights = this->GetWeights() ;
   m_MeanEstimator->SetWeights(weights) ;
   m_CovarianceEstimator->SetWeights(weights) ;
+  m_GaussianDensityFunction->SetMeasurementVectorSize( 
+                  sample->GetMeasurementVectorSize() );
 }
 
 template< class TSample >
@@ -81,7 +83,10 @@ GaussianMixtureModelComponent< TSample >
 
   bool changed = false ;
 
-  for ( i = 0 ; i < this->m_MeasurementVectorSize ; i++)
+  MeasurementVectorSizeType measurementVectorSize = 
+          this->GetSample()->GetMeasurementVectorSize();
+
+  for ( i = 0 ; i < measurementVectorSize ; i++)
     {
     if ( m_Mean[i] != parameters[paramIndex] )
       {
@@ -91,9 +96,9 @@ GaussianMixtureModelComponent< TSample >
     ++paramIndex ;
     }
 
-  for ( i = 0 ; i < this->m_MeasurementVectorSize ; i++ )
+  for ( i = 0 ; i < measurementVectorSize ; i++ )
     {
-    for ( j = 0 ; j < this->m_MeasurementVectorSize ; j++ )
+    for ( j = 0 ; j < measurementVectorSize; j++ )
       {
       if ( m_Covariance.GetVnlMatrix().get(i, j) != 
            parameters[paramIndex] )
@@ -121,16 +126,18 @@ GaussianMixtureModelComponent< TSample >
 
   double temp ;
   double changes = 0.0 ;
-
-  for ( i = 0 ; i < this->m_MeasurementVectorSize ; i++)
+  MeasurementVectorSizeType measurementVectorSize = 
+          this->GetSample()->GetMeasurementVectorSize();
+  
+  for ( i = 0 ; i < measurementVectorSize ; i++)
     {
     temp = m_Mean[i] - meanEstimate[i] ;
     changes += temp * temp ;
     }
 
-  for ( i = 0 ; i < this->m_MeasurementVectorSize ; i++ )
+  for ( i = 0 ; i < measurementVectorSize ; i++ )
     {
-    for ( j = 0 ; j < this->m_MeasurementVectorSize ; j++ )
+    for ( j = 0 ; j < measurementVectorSize ; j++ )
       {
       temp = m_Covariance.GetVnlMatrix().get(i, j) - 
         covEstimate.GetVnlMatrix().get(i, j) ;
@@ -147,6 +154,9 @@ void
 GaussianMixtureModelComponent< TSample >
 ::GenerateData()
 {
+  MeasurementVectorSizeType measurementVectorSize = 
+          this->GetSample()->GetMeasurementVectorSize();
+  
   this->AreParametersModified(false) ;
 
   m_MeanEstimator->Update() ;
@@ -159,7 +169,7 @@ GaussianMixtureModelComponent< TSample >
   int paramIndex  = 0 ;
 
   MeanType meanEstimate = *(m_MeanEstimator->GetOutput()) ;
-  for ( i = 0 ; i <this->m_MeasurementVectorSize ; i++)
+  for ( i = 0 ; i < measurementVectorSize ; i++)
     {
     temp = m_Mean[i] - meanEstimate[i] ;
     changes = temp * temp ;
@@ -174,7 +184,7 @@ GaussianMixtureModelComponent< TSample >
   if ( changed )
     {
     m_Mean = *(m_MeanEstimator->GetOutput()) ;
-    for ( i = 0 ; i <this->m_MeasurementVectorSize ; i++)
+    for ( i = 0 ; i < measurementVectorSize ; i++)
       {
       parameters[paramIndex] = meanEstimate[i];
       ++paramIndex ;
@@ -183,15 +193,15 @@ GaussianMixtureModelComponent< TSample >
     }
   else
     {
-    paramIndex =this->m_MeasurementVectorSize ;
+    paramIndex = measurementVectorSize ;
     }
 
   m_CovarianceEstimator->Update() ;
   CovarianceType covEstimate = *(m_CovarianceEstimator->GetOutput()) ;
   changed = false ;
-  for ( i = 0 ; i <this->m_MeasurementVectorSize ; i++ )
+  for ( i = 0 ; i < measurementVectorSize ; i++ )
     {
-    for ( j = 0 ; j <this->m_MeasurementVectorSize ; j++ )
+    for ( j = 0 ; j < measurementVectorSize ; j++ )
       {
       temp = m_Covariance.GetVnlMatrix().get(i, j) - 
         covEstimate.GetVnlMatrix().get(i, j) ;
@@ -207,9 +217,9 @@ GaussianMixtureModelComponent< TSample >
   if ( changed )
     {
     m_Covariance = *(m_CovarianceEstimator->GetOutput()) ;
-    for ( i = 0 ; i <this->m_MeasurementVectorSize ; i++ )
+    for ( i = 0 ; i < measurementVectorSize ; i++ )
       {
-      for ( j = 0 ; j <this->m_MeasurementVectorSize ; j++ )
+      for ( j = 0 ; j < measurementVectorSize ; j++ )
         {
         parameters[paramIndex] = covEstimate.GetVnlMatrix().get(i, j) ;
         ++paramIndex ;

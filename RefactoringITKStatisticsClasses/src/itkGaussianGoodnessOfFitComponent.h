@@ -59,19 +59,11 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self) ;
 
-
+  /** Typedefs from input sample */
+  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+                      TInputSample::MeasurementVectorSize) ;
   typedef typename TInputSample::MeasurementType MeasurementType ;
   typedef typename TInputSample::MeasurementVectorType MeasurementVectorType ;
-
-  /** DEPRECATED: The static const macro will be deprecated in a future version.
-   * Please use GetMeasurementVectorSize() instead. This constant returns the 
-   * length of a measurement vector for FixedArrays, Vectors and other fixed 
-   * containers and zero for dynamically resizable containers. The true value for 
-   * dynamically resizable containers will be obtained from the 
-   * GetMeasurementVectorSize() call. 
-   */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
 
   /** Typedefs from Superclass */
   typedef typename Superclass::CenterType CenterType ;
@@ -95,15 +87,10 @@ public:
   typedef WeightedCovarianceCalculator< ResampledSampleType > 
   CovarianceCalculatorType ;
 
-  /** Default projection axis calculator type
-   * NOTE: Eigen analysis is done with itk::SymmetricEigenAnalysis. We do not
-   * need the MeasurementVectorSize as a template parameter to use this class.*/
-  typedef Array< double > EigenValuesArrayType;
-  typedef SymmetricEigenAnalysis< ProjectionAxisArrayType, EigenValuesArrayType >
-          ProjectionAxisCalculatorType;
-  //typedef SymmetricEigenSystem< double, 
-  //                              itkGetStaticConstMacro(MeasurementVectorSize) >
-  //ProjectionAxisCalculatorType ;
+  /** Default projection axis calculator type*/
+  typedef SymmetricEigenSystem< double, 
+                                itkGetStaticConstMacro(MeasurementVectorSize) >
+  ProjectionAxisCalculatorType ;
 
   /** Gets the size of parameters which consists of mean
    * and standard deviation */
