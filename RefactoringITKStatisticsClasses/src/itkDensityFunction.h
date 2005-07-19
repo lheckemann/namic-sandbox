@@ -18,6 +18,7 @@
 #define __itkDensityFunction_h
 
 #include "itkMembershipFunctionBase.h"
+#include "itkMeasurementVectorTraits.h"
 
 namespace itk{ 
 namespace Statistics{
