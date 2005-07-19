@@ -67,13 +67,13 @@ GaussianDensityFunction< TMeasurementVector >
 ::SetCovariance(const CovarianceType* cov)
 {
   // Sanity check
-  if( cov->Rows() != cov->Cols() )
+  if( cov->GetVnlMatrix().rows() != cov->GetVnlMatrix().cols() )
     {
     itkExceptionMacro( << "Covariance matrix must be square" );
     }
   if( this->GetMeasurementVectorSize() )
     {
-    if( cov->Rows() != this->GetMeasurementVectorSize() )
+    if( cov->GetVnlMatrix().rows() != this->GetMeasurementVectorSize() )
       {
       itkExceptionMacro( << "Length of measurement vectors in the sample must be"
          << " the same as the size of the covariance." );
@@ -81,7 +81,7 @@ GaussianDensityFunction< TMeasurementVector >
     }
   else
     {
-    this->SetMeasurementVectorSize( cov->Rows() );
+    this->SetMeasurementVectorSize( cov->GetVnlMatrix().rows() );
     }
 
   m_Covariance = cov;
@@ -99,7 +99,7 @@ GaussianDensityFunction< TMeasurementVector >
       
     // calculate coefficient C of multivariate gaussian
     m_PreFactor = 1.0 / (sqrt(det) * 
-                         pow(sqrt(2.0 * vnl_math::pi), double(measurementVectorSize))) ;
+                         pow(sqrt(2.0 * vnl_math::pi), double(this->GetMeasurementVectorSize()))) ;
     }
 }
 
