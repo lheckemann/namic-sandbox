@@ -73,7 +73,8 @@ public:
    * the length of each measurement vector contained in the samples that are
    * plugged in as input to this class. GetMeasurementVectorSize() will return 
    * zero until the SetInputSample() method has been called */
-  itkGetConstMacro( MeasurementVectorSize, unsigned int );
+  itkGetConstMacro( MeasurementVectorSize, MeasurementVectorSizeType );
+  itkSetMacro( MeasurementVectorSize, MeasurementVectorSizeType )
 
   const TInputSample * GetInputSample() const
   { return m_InputSample.GetPointer() ; }
