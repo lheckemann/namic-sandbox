@@ -74,19 +74,19 @@ public:
      MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
 
   /** Type of the mean vector */
-  typedef MeasurementVectorTraits< 
-    MeasurementVectorType >::RealMeasurementVectorType MeanType;
+  typedef typename MeasurementVectorTraits< 
+    MeasurementVectorType >::MeanType                   MeanType;
   
   /** Type of the covariance matrix */
-  typedef MeasurementVectorTraits< 
-         MeasurementVectorType >::RealMatrixType CovarianceType;
+  typedef typename MeasurementVectorTraits< 
+         MeasurementVectorType >::RealMatrixType        CovarianceType;
 
   /** Sets the mean */
   void SetMean( const MeanType * mean )
   {
   if( this->GetMeasurementVectorSize() )
     {
-    if( MeasurementVectorTraits< MeasurementVectorType >::GetSize(mean) 
+    if( MeasurementVectorTraits< MeanType >::GetSize(mean) 
                                     != this->GetMeasurementVectorSize() )
       {
       itkExceptionMacro( << "Size of measurement vectors in the sample must be"

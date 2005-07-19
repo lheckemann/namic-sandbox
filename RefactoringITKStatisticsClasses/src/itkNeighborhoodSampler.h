@@ -83,7 +83,8 @@ public:
   typedef double RadiusType ;
 
   /** Type of the array of the radii */ 
-  typedef Array< double > CenterType;
+  typedef typename MeasurementVectorTraits< MeasurementVectorType 
+                                 >::RealArrayType                 CenterType;
   //typedef FixedArray< double, itkGetStaticConstMacro(MeasurementVectorSize) > CenterType ;
 
   /** Sets the center of the spherical kernel */
