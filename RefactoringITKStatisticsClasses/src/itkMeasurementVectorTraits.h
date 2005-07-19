@@ -11,6 +11,7 @@
 #include "itkRGBPixel.h"
 #include "itkMatrix.h"
 #include "itkVariableSizeMatrix.h"
+#include "itkNumericTraits.h"
 
 
 namespace itk
@@ -85,6 +86,7 @@ public:
   typedef Vector< RealValueType, MeasurementVectorLength > MeanType;
   typedef Vector< RealValueType, MeasurementVectorLength > OriginType;
   typedef FixedArray< bool,      MeasurementVectorLength > BooleanArrayType;
+  typedef FixedArray< RealValueType, MeasurementVectorLength > RealArrayType;
 
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -94,6 +96,7 @@ public:
           << MeasurementVectorLength << " to " << s );
       }
     MeasurementVectorType m;
+    m.Fill( NumericTraits< ValueType >::Zero );
     return m;
     }
 
@@ -126,6 +129,7 @@ public:
   typedef RealMeasurementVectorType    MeanType;
   typedef RealMeasurementVectorType    OriginType;
   typedef Array< bool >                BooleanArrayType;
+  typedef Array< RealValueType >       RealArrayType;
   itkStaticConstMacro( MeasurementVectorLength, unsigned int, 0 );
 
   static MeasurementVectorType SetSize( unsigned int s )
@@ -172,6 +176,7 @@ public:
   typedef RealMeasurementVectorType                        OriginType;
   typedef Vector< ValueType, MeasurementVectorLength >     MeasurementVectorType;
   typedef FixedArray< bool,  MeasurementVectorLength >     BooleanArrayType;
+  typedef FixedArray< RealValueType, MeasurementVectorLength > RealArrayType;
 
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -181,6 +186,7 @@ public:
           << MeasurementVectorLength << " to " << s );
       }
     MeasurementVectorType m;
+    m.Fill( NumericTraits< ValueType >::Zero );
     return m;
     }
 
@@ -213,6 +219,7 @@ public:
   typedef RealMeasurementVectorType    MeanType;
   typedef RealMeasurementVectorType    OriginType;
   typedef Array< bool >                BooleanArrayType;
+  typedef Array< RealValueType >       RealArrayType;
   itkStaticConstMacro( MeasurementVectorLength, unsigned int, 0 );
 
   static MeasurementVectorType SetSize( unsigned int s )
@@ -260,6 +267,7 @@ public:
   typedef RealMeasurementVectorType                        MeanType;
   typedef Vector< RealValueType, MeasurementVectorLength > OriginType;
   typedef FixedArray< bool,      MeasurementVectorLength > BooleanArrayType;
+  typedef FixedArray< RealValueType, MeasurementVectorLength > RealArrayType;
   
   
   static MeasurementVectorType SetSize( unsigned int s )
@@ -302,6 +310,7 @@ public:
   typedef RealMeasurementVectorType    MeanType;
   typedef RealMeasurementVectorType    OriginType;
   typedef Array< bool >                BooleanArrayType;
+  typedef Array< RealValueType >       RealArrayType;
   itkStaticConstMacro( MeasurementVectorLength, unsigned int, 0 );
 
   static MeasurementVectorType SetSize( unsigned int s )
@@ -346,6 +355,7 @@ public:
   typedef Vector< RealValueType, MeasurementVectorLength>  MeanType;
   typedef Vector< RealValueType, MeasurementVectorLength>  OriginType;
   typedef FixedArray< bool,      MeasurementVectorLength > BooleanArrayType;
+  typedef FixedArray< RealValueType, MeasurementVectorLength > RealArrayType;
   
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -355,6 +365,10 @@ public:
           << MeasurementVectorLength << " to " << s );
       }
     MeasurementVectorType m;
+    for( unsigned int i=0; i< MeasurementVectorLength; i++ )
+      {
+      m[i] = NumericTraits< ValueType >::Zero;
+      }
     return m;
     }
 
@@ -389,6 +403,7 @@ public:
   typedef Vector< RealValueType, MeasurementVectorLength > MeanType;
   typedef Vector< RealValueType, MeasurementVectorLength > OriginType;
   typedef FixedArray< bool,      MeasurementVectorLength > BooleanArrayType;
+  typedef FixedArray< RealValueType, MeasurementVectorLength > RealArrayType;
   
   static MeasurementVectorType SetSize( unsigned int s )
     {
@@ -398,6 +413,7 @@ public:
           << MeasurementVectorLength << " to " << s );
       }
     MeasurementVectorType m;
+    m.Fill( NumericTraits< ValueType >::Zero );
     return m;
     }
 
