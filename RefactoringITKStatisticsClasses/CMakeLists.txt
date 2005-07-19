@@ -19,3 +19,4 @@ SET( ITK_DATA_ROOT "${ITK_SOURCE_DIR}/Testing/Data" )
 
 SUBDIRS( src )
 SUBDIRS( Tests )
+SUBDIRS( Examples )
