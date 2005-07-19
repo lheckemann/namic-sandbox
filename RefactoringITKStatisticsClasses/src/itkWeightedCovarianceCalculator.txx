@@ -94,20 +94,6 @@ void
 WeightedCovarianceCalculator< TSample >
 ::SetWeights(WeightArrayType* array)
 {
-  const MeasurementVectorSizeType measurementVectorSize = 
-      this->GetMeasurementVectorSize();
-  if( measurementVectorSize )
-    {
-    if( array.Size() != measurementVectorSize) 
-      {
-      itkExceptionMacro( << "Weights to the covariancecalculator must have the "
-         << "same length as that of a measurement vector.");
-      }
-    }
-  else
-    {
-    this->SetMeasurementVectorSize( array.Size() );
-    }
   m_Weights = array ;
 }
 
