@@ -64,8 +64,8 @@ namespace Statistics{
  */
 template< class TListSample, 
           class THistogramMeasurement,  
-          unsigned int TMeasurementVectorLength,
-          class TFrequencyContainer = DenseFrequencyContainer< float > >
+          class TFrequencyContainer = DenseFrequencyContainer< float >, 
+          unsigned int TMeasurementVectorLength = TListSample::MeasurementVectorSize >
 class ITK_EXPORT ListSampleToHistogramGenerator :
     public Object
 {
@@ -83,8 +83,8 @@ public:
   itkNewMacro(Self) ;
 
   /** the number of components in a measurement vector */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      TMeasurementVectorLength);
+  itkStaticConstMacro(MeasurementVectorSize, unsigned int, MeasurementVectorTraits< 
+      typename TListSample::MeasurementVectorType >::MeasurementVectorLength);
 
   typedef Histogram< THistogramMeasurement, 
                      itkGetStaticConstMacro(MeasurementVectorSize),
@@ -98,11 +98,9 @@ public:
     { 
     // Throw exception if the length of measurement vectors in the list is not
     // equal to the dimension of the histogram.
-    if( list->GetMeasurementVectorSize() != MeasurementVectorSize )
+    if( !MeasurementVectorSize )
       {
-      itkExceptionMacro(<< "Length of measurement vectors in the list sample is "
-        << list->GetMeasurementVectorSize() << " but histogram dimension is "
-        << MeasurementVectorSize);
+      itkExceptionMacro(<< "This class generates a histogram of fixed length.");
       }
     m_List = list ; 
     }
