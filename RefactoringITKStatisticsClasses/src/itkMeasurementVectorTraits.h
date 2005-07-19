@@ -1,3 +1,19 @@
+/*=========================================================================
+
+  Program:   Insight Segmentation & Registration Toolkit
+  Module:    $RCSfile: itkMeanCalculator.txx,v $
+  Language:  C++
+  Date:      $Date: 2003/12/15 01:00:46 $
+  Version:   $Revision: 1.14 $
+
+  Copyright (c) Insight Software Consortium. All rights reserved.
+  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
+
+     This software is distributed WITHOUT ANY WARRANTY; without even 
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+     PURPOSE.  See the above copyright notices for more information.
+
+=========================================================================*/
 #ifndef __itkMeasurementVectorTraits_h
 #define __itkMeasurementVectorTraits_h
 
@@ -5,7 +21,6 @@
 #include "itkArray.h"
 #include "itkVector.h"
 #include "itkFixedArray.h"
-#include "itkSample.h"
 #include "vnl/vnl_vector_fixed.h"
 #include "itkPoint.h"
 #include "itkRGBPixel.h"
