@@ -4,7 +4,7 @@ SET( CHANGED_STATISTICS_SOURCES "${ReworkStatistics_SOURCE_DIR}/src" )
 
 INCLUDE_DIRECTORIES( BEFORE ${CHANGED_STATISTICS_SOURCES} )
 
-#ADD_TEST(itkStatisticsPrintTest ${STATISTICS_TESTS} itkStatisticsPrintTest)
+ADD_TEST(itkStatisticsPrintTest ${STATISTICS_TESTS} itkStatisticsPrintTest)
 ADD_TEST(itkStatisticsAlgorithmTest ${STATISTICS_TESTS} itkStatisticsAlgorithmTest)
 ADD_TEST(itkCovarianceCalculatorTest ${STATISTICS_TESTS} itkCovarianceCalculatorTest)
 ADD_TEST(itkDenseFrequencyContainerTest ${STATISTICS_TESTS} itkDenseFrequencyContainerTest)
@@ -53,7 +53,7 @@ ADD_TEST(itkWeightedCovarianceCalculatorTest ${STATISTICS_TESTS}
 
 
 SET(Statistics_SRCS
-#itkStatisticsPrintTest.cxx
+itkStatisticsPrintTest.cxx
 itkStatisticsAlgorithmTest.cxx
 itkCovarianceCalculatorTest.cxx
 itkDenseFrequencyContainerTest.cxx

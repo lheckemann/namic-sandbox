@@ -1,5 +1,5 @@
-#./itkStatisticsTests itkStatisticsPrintTest  
-#./itkStatisticsTests itkStatisticsAlgorithmTest
+./itkStatisticsTests itkStatisticsPrintTest  
+./itkStatisticsTests itkStatisticsAlgorithmTest
 ./itkStatisticsTests itkCovarianceCalculatorTest  itkCovarianceCalculatorTest
 ./itkStatisticsTests itkDenseFrequencyContainerTest  itkDenseFrequencyContainerTest
 ./itkStatisticsTests itkExpectationMaximizationMixtureModelEstimatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat

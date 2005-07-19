@@ -26,7 +26,7 @@
 
 void RegisterTests()
 {
-//  REGISTER_TEST(itkStatisticsPrintTest);
+  REGISTER_TEST(itkStatisticsPrintTest);
   REGISTER_TEST(itkCovarianceCalculatorTest);
   REGISTER_TEST(itkDenseFrequencyContainerTest);
   REGISTER_TEST(itkExpectationMaximizationMixtureModelEstimatorTest);
