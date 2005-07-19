@@ -24,6 +24,7 @@
 #include "itkMacro.h"
 #include "itkObjectFactory.h"
 #include "itkObject.h"
+#include "itkMeasurementVectorTraits.h"
 
 namespace itk{ 
   namespace Statistics{
