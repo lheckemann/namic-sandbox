@@ -57,14 +57,20 @@ public:
                Object);
   itkNewMacro(Self) ;
 
-  /** Length constant */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      TSample::MeasurementVectorSize);
-
   /** TSample template argument related typedefs */
   typedef typename TSample::MeasurementType MeasurementType ;
   typedef typename TSample::MeasurementVectorType MeasurementVectorType ;
 
+  /** DEPRECATED: The static const macro will be deprecated in a future version.
+   * Please use GetMeasurementVectorSize() instead. This returns the length
+   * of a measurement vector for FixedArrays, Vectors and other fixed containers
+   * and zero for dynamically resizable containers. The true value for 
+   * dynamically resizable containers will be obtained from the 
+   * GetMeasurementVectorSize() call. 
+   */
+  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
+  
   /** Type of the mixture model component base class*/
   typedef MixtureModelComponentBase< TSample > ComponentType ;
 
