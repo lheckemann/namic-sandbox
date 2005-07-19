@@ -11,6 +11,7 @@
 extern "C" {
 #endif 
 #include <petsc.h>
+#include <petscksp.h>
 #ifdef __cplusplus
 }
 #endif
@@ -30,12 +31,15 @@ bool MySubdivTest(double *v0, double *v1, double *v2, double *v3,
   return false;
 }
 
+
 int main(int argc, char** argv){
   assert(argc>1);
-
-
-  PetscInitialize(&argc, &argv, (char*)0, "");
   
+  PetscInitialize(NULL, NULL, (char*)0, "");
+  KSP ksp;
+  PC pc;
+  KSPCreate(PETSC_COMM_WORLD, &ksp);
+
   MeshFilterType1::Pointer mesher = MeshFilterType1::New();
   ImageReaderType::Pointer reader = ImageReaderType::New();
   CompressionFilterType::Pointer compressor = CompressionFilterType::New();

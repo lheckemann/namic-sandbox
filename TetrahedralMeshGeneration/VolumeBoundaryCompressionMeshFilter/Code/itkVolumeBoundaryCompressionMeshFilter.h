@@ -36,6 +36,21 @@
 #include <map>
 #include <vector>
 
+#define USE_PETSC 1
+
+#ifdef USE_PETSC
+#include "tetra_mesh.h"
+#ifdef __cplusplus
+extern "C"{
+#endif // __cplusplus
+#include <petsc.h>
+#include <petscksp.h>
+#ifdef __cplusplus
+}
+#endif // __cplusplus
+#endif // USE_PETSC
+
+
 namespace itk
 {
 
@@ -267,6 +282,10 @@ private:
   fem::Solver m_Solver;
   std::string m_LinearSystemWrapperType;
   
+#if USE_PETSC
+  PETScDeformWrapper petsc_mesh;
+//  struct tetra_mesh* m_ft_mesh;
+#endif // USE_PETSC
 
   bool Initialize();
   void Deform();
