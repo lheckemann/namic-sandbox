@@ -37,7 +37,7 @@
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-
+#include "itkVersorRigid3DTransform.h"
 
 
 
@@ -141,7 +141,9 @@ int main( int argc, char * argv[] )
 // Software Guide : EndLatex 
 
 // Software Guide : BeginCodeSnippet
-  typedef itk::TranslationTransform< double, Dimension >  TransformType;
+  //typedef itk::TranslationTransform< double, Dimension >  TransformType;
+
+  typedef itk::VersorRigid3DTransform< double > TransformType;
 
   TransformType::Pointer transform = TransformType::New();
 
@@ -210,27 +212,68 @@ metric->SetNumberOfHistogramBins( atoi(argv[3]) );
 // Software Guide : EndLatex 
 
 // Software Guide : BeginCodeSnippet
-  MetricType::TransformParametersType displacement( Dimension );
 
-  const int rangex = 50;
-  const int rangey = 50;
-  const int rangez = 50;
+ 
+  MetricType::TransformParametersType displacement( 2*Dimension );
+
+  
+  //  const double  rax = 0.52; //~30 degree
+  //  const double  ray = 0.52; //~30 degrre
+  //  const double  raz = 0.52; //~30 degree
+ 
+
+  const double  rax = 0.52; //~30 degree
+  const double  ray = 0.52; //~30 degrre
+  const double  raz = 0.52; //~30 degree
 
 
-  for( int dx = -rangex; dx <= rangex; dx++ )
+  const int rangex = 45;
+  const int rangey = 45;
+  const int rangez = 45;
+
+  
+   
+ for( double ax = -rax; ax <= rax; ax+=0.03 )//~4 degree = 0.05
     {
-    for( int dy = -rangey; dy <= rangey; dy++ )
+    for( double ay = -ray; ay <= ray; ay+=0.03 )
       {
-      for ( int dz = -rangez; dz <= rangez; dz++ )
+      for ( double az = -raz; az <= raz; az+=0.03 )
         {
-         displacement[0] = dx;
-         displacement[1] = dy;
-         displacement[2] = dz;
-         const double value = metric->GetValue( displacement );
-         std::cout << dx << "   "  << dy <<  "   " << dz << "   " << value << std::endl;
-        }
-      }
-    }
+           for( int dx = -rangex; dx <= rangex; dx+=5 )
+                { 
+                for( int dy = -rangey; dy <= rangey; dy+=5 )
+                {
+                   for ( int dz = -rangez; dz <= rangez; dz+=5 )
+                     {
+                    displacement[0] = ax ;
+                    displacement[1] = ay;
+                    displacement[2] = az;
+                    displacement[3] = dx;
+                    displacement[4] = dy;
+                    displacement[5] = dz;
+                    
+                     double value;  
+                     try 
+                       {
+                        value = metric->GetValue( displacement );
+                       }
+                        catch( itk::ExceptionObject & excep )
+                       {         
+                        // std::cerr << "Exception catched !" << std::endl;
+                        //std::cerr << excep << std::endl;
+                        //return -1;
+                       }
+                        // const double value = metric->GetValue( displacement );
+                        //const double value = metric->GetValue( transform );
+                        std::cout  << ax << "   "  << ay <<  "   " << az << "   " << dx << "   "  << dy <<  "   " << dz << "   " << value << std::endl;
+ }
+ }
+ }
+} }
+  }
+
+  
+
 // Software Guide : EndCodeSnippet
 
 
