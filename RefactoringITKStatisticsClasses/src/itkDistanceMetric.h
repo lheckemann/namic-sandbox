@@ -19,7 +19,6 @@
 
 #include "itkMembershipFunctionBase.h"
 #include "itkArray.h"
-#include "itkMeasurementVectorTraits.h"
 
 namespace itk{ 
 namespace Statistics{
@@ -41,6 +40,17 @@ namespace Statistics{
  * 
  * The class can be templated over any container that holds data elements. The 
  * containter is expected to provide access to its elements with the [] operator.
+ * It must also implement a Size() that returns the length of the container.
+ * It must also contain a typedef "ValueType" that defines the data-type held
+ * by the container.
+ * (In other words it will support itk::Vector, FixedArray, Array ).
+ *
+ * <b>Recent API changes:</b>
+ * The static const macro to get the length of a measurement vector,
+ * \c MeasurementVectorSize  has been removed to allow the length of a measurement
+ * vector to be specified at run time. Please use the function 
+ * GetMeasurementVectorSize() instead. \c OriginType typedef has been changed 
+ * from Vector to Array.
  */
 
 template< class TVector >
@@ -54,30 +64,14 @@ public:
   /** Typedef for the length of each measurement vector */
   typedef unsigned int  MeasurementVectorSizeType;
 
-  /** Typedef for the measurement vector */
-  typedef TVector       MeasurementVectorType;
-
-  /** DEPRECATED: The static const macro will be deprecated in a future version.
-   * Please use GetMeasurementVectorSize() instead. This constant returns the 
-   * length of a measurement vector for FixedArrays, Vectors and other fixed 
-   * containers and zero for dynamically resizable containers. The true value for 
-   * dynamically resizable containers will be obtained from the 
-   * GetMeasurementVectorSize() call. 
-   */
-  itkStaticConstMacro(VectorLength, unsigned int,
-     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
-
   /** Set/Get Macro to set the length of each measurement vector. */
   virtual void SetMeasurementVectorSize( MeasurementVectorSizeType );
   itkGetConstMacro( MeasurementVectorSize, MeasurementVectorSizeType ); 
   
-  
   /** Run-time type information (and related methods). */
   itkTypeMacro(DistanceMetric, MembershipFunctionBase);
 
-  /** OriginType typedef */
-  typedef typename MeasurementVectorTraits< 
-           MeasurementVectorType >::OriginType OriginType ;
+  typedef Array< double > OriginType ;
 
   /** Sets the origin point that will be used for the single point 
    * version Evaluate() function. This function is necessary part of
@@ -93,17 +87,13 @@ public:
   virtual double Evaluate(const TVector &x1, const TVector &x2) const = 0 ;
   
 protected:
-  DistanceMetric() 
-    {
-    m_MeasurementVectorSize = MeasurementVectorTraits< 
-                               MeasurementVectorType >::GetSize();
-    }
-
+  DistanceMetric() { m_MeasurementVectorSize = 0; }
   virtual ~DistanceMetric() {}
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   OriginType m_Origin ;
 
+private:
   MeasurementVectorSizeType m_MeasurementVectorSize;
   
 } ; // end of class

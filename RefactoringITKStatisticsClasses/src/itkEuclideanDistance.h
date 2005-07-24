@@ -35,6 +35,17 @@ namespace Statistics{
  *
  * The class can be templated over any container that holds data elements. The 
  * containter is expected to provide access to its elements with the [] operator.
+ * It must also implement a Size() that returns the length of the container.
+ * It must also contain a typedef "ValueType" that defines the data-type held
+ * by the container.
+ * (In other words it will support itk::Vector, FixedArray, Array ).
+ * 
+ * <b>Recent API changes:</b>
+ * The static const macro to get the length of a measurement vector,
+ * \c VectorLength  has been removed to allow the length of a measurement
+ * vector to be specified at run time. Please use the function 
+ * GetMeasurementVectorSize() instead.
+ *
  */
 template< class TVector >
 class ITK_EXPORT EuclideanDistance : 
@@ -46,25 +57,7 @@ public:
   typedef DistanceMetric< TVector > Superclass;
   typedef SmartPointer< Self > Pointer ; 
   typedef SmartPointer<const Self> ConstPointer;
-
-  /** Measurement Vector Type typedef */
   typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
-  
-  /** OriginType typedef */
-  typedef typename Superclass::OriginType  OriginType;
-
-  /** Measurement vector type typedef */
-  typedef typename Superclass::MeasurementVectorType MeasurementVectorType;
-  
-  /** DEPRECATED: The static const macro will be deprecated in a future version.
-   * Please use GetMeasurementVectorSize() instead. This constant returns the 
-   * length of a measurement vector for FixedArrays, Vectors and other fixed 
-   * containers and zero for dynamically resizable containers. The true value for 
-   * dynamically resizable containers will be obtained from the 
-   * GetMeasurementVectorSize() call. 
-   */
-  itkStaticConstMacro(VectorLength, unsigned int,
-     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
 
   /** Run-time type information (and related methods). */
   itkTypeMacro(EuclideanDistance, DistanceMetric);
@@ -73,7 +66,7 @@ public:
   itkNewMacro(Self) ;
 
   /** Type of the component of a vector */
-  typedef typename MeasurementVectorTraits< TVector >::ValueType  ValueType;
+  typedef typename TVector::ValueType ValueType ;
 
   /** Gets the distance between the origin and x */
   double Evaluate(const TVector &x) const ;

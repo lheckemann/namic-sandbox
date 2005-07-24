@@ -19,7 +19,6 @@
 
 #include "itkStatisticsAlgorithm.h"
 #include "itkNumericTraits.h"
-#include "itkArray.h"
 
 namespace itk{
 namespace Statistics{
@@ -100,7 +99,7 @@ inline TValue MedianOfThree(const TValue a,
 }
 
 template< class TSample >
-inline void FindSampleBound(const TSample* sample,
+inline void FindSampleBound(const TSample* ,
                             typename TSample::ConstIterator begin,
                             typename TSample::ConstIterator end,
                             typename TSample::MeasurementVectorType &min,
@@ -115,19 +114,18 @@ inline void FindSampleBound(const TSample* sample,
         << "Length of a sample's measurement vector hasn't been set.");
     }
   // Sanity check
-  if( (max.Size()  != Dimension) ||
-      (min.Size()  != Dimension))
-    {
-    itkGenericExceptionMacro( << "subsamples must have the same length.");
-    }
-      
+  MeasurementVectorTraits::Assert( max, Dimension, 
+          "Length mismatch StatisticsAlgorithm::FindSampleBound");
+  MeasurementVectorTraits::Assert( min, Dimension, 
+          "Length mismatch StatisticsAlgorithm::FindSampleBound");
 
-  typename TSample::MeasurementVectorType temp;
+  unsigned int dimension;
+  typename TSample::MeasurementVectorType temp ;
 
   min = max = temp = begin.GetMeasurementVector() ;
   while (true)
     {
-    for (unsigned int dimension= 0 ; dimension < Dimension ; dimension++) 
+    for (dimension= 0 ; dimension < Dimension ; dimension++) 
       {
       if ( temp[dimension] < min[dimension]) 
         {
@@ -159,8 +157,8 @@ FindSampleBoundAndMean(const TSubsample* sample,
 {    
   typedef typename TSubsample::MeasurementType MeasurementType ;
   typedef typename TSubsample::MeasurementVectorType MeasurementVectorType ;
-  typedef typename TSubsample::MeasurementVectorSizeType MeasurementVectorSizeType;
 
+  typedef typename TSubsample::MeasurementVectorSizeType MeasurementVectorSizeType;  
   const MeasurementVectorSizeType Dimension = sample->GetMeasurementVectorSize();
   if( Dimension == 0 )
     {
@@ -168,19 +166,18 @@ FindSampleBoundAndMean(const TSubsample* sample,
         << "Length of a sample's measurement vector hasn't been set.");
     }
   // Sanity check
-  if( (mean.Size() != Dimension) ||
-      (max.Size()  != Dimension) ||
-      (min.Size()  != Dimension))
-    {
-    itkGenericExceptionMacro( << "subsamples must have the same length.");
-    }
-      
+  MeasurementVectorTraits::Assert( mean, Dimension, 
+          "Length mismatch StatisticsAlgorithm::FindSampleBoundAndMean");
+  MeasurementVectorTraits::Assert( max, Dimension, 
+          "Length mismatch StatisticsAlgorithm::FindSampleBoundAndMean");
+  MeasurementVectorTraits::Assert( min, Dimension, 
+          "Length mismatch StatisticsAlgorithm::FindSampleBoundAndMean");
 
   Array< double > sum( Dimension ) ;
 
   MeasurementVectorSizeType dimension ;
-  MeasurementVectorType temp = MeasurementVectorTraits< 
-              MeasurementVectorType >::SetSize( Dimension ) ;
+  MeasurementVectorType temp;
+  MeasurementVectorTraits::SetLength( temp, Dimension );  
 
   min = max = temp = sample->GetMeasurementVectorByIndex(beginIndex) ;
   double frequencySum = sample->GetFrequencyByIndex(beginIndex) ;
