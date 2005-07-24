@@ -17,7 +17,7 @@
 #ifndef _itkHistogram_txx
 #define _itkHistogram_txx
 
-#include "itkHistogram.h"
+#include "itkVariableDimensionHistogram.h"
 #include "itkNumericTraits.h"
 
 namespace itk{ 
@@ -84,13 +84,13 @@ void
 VariableDimensionHistogram<TMeasurement,  TFrequencyContainer>
 ::Initialize(const SizeType &size)
 {
-  if( size.Size() == 0 )
+  MeasurementVectorSizeType s = 
+    MeasurementVectorTraits::Assert( size, this->GetMeasurementVectorSize(),
+      "Size mismatch in VariableDimensionHistogram::Initialize(const SizeType &size)");
+  if( s )
     {
-    itkExceptionMacro( << "Cannot initialize with 0 size." );
+    this->SetMeasurementVectorSize( size.Size() );
     }
-  
-  // Destructively set all sizes..
-  SetMeasurementVectorSize( size.Size() );
   
   m_Size = size ;
   
@@ -148,12 +148,10 @@ VariableDimensionHistogram<TMeasurement,  TFrequencyContainer>
   // same length.
   const MeasurementVectorSizeType measurementVectorSize = 
                                       this->GetMeasurementVectorSize();
-  if( (lowerBound.Size() != measurementVectorSize)
-   || (upperBound.Size() != measurementVectorSize) )
-    {
-    itkExceptionMacro( << "bounds passed using the initialize call" 
-        << " must have the same length as the dimension as the histogram");
-    }
+  MeasurementVectorTraits::Assert( lowerBound, measurementVectorSize, 
+      "Length mismatch: VariableDimensionHistogram::Initialize( , )");
+  MeasurementVectorTraits::Assert( upperBound, measurementVectorSize, 
+      "Length mismatch: VariableDimensionHistogram::Initialize( , )");
     
   float interval;
   for ( unsigned int i = 0 ; i < measurementVectorSize; i++)
@@ -187,16 +185,10 @@ bool VariableDimensionHistogram<TMeasurement,  TFrequencyContainer>
   // Sanity check.. see if index is of the same length as MeasurementVectorSize;
   const MeasurementVectorSizeType measurementVectorSize = 
                                       this->GetMeasurementVectorSize();
-  if( index.Size() != measurementVectorSize )
-    {
-    itkExceptionMacro( << 
-        "Index length does not match number of dimensions in histogram" );
-    }
-  if( measurement.Size() != measurementVectorSize )
-    {
-    itkExceptionMacro( << 
-        "MeasurementVector length does not match number of dimensions in histogram" );
-    }
+  MeasurementVectorTraits::Assert( index, measurementVectorSize,
+  "Length mismatch: VariableDimensionHistogram::GetIndex(MeasurementVectorType, IndexType)");
+  MeasurementVectorTraits::Assert( measurement, measurementVectorSize,
+  "Length mismatch: VariableDimensionHistogram::GetIndex(MeasurementVectorType, IndexType)");
   
   
   // now using something similar to binary search to find
@@ -286,11 +278,8 @@ VariableDimensionHistogram<TMeasurement,  TFrequencyContainer>
 ::IsIndexOutOfBounds(const IndexType &index) const
 {
   // Sanity check.. see if index is of the same length as MeasurementVectorSize;
-  if( index.Size() != this->GetMeasurementVectorSize() )
-    {
-    itkExceptionMacro( << 
-        "Index length does not match number of dimensions in histogram" );
-    }
+  MeasurementVectorTraits::Assert( index, this->GetMeasurementVectorSize(),
+  "Length mismatch: VariableDimensionHistogram::GetIndex(MeasurementVectorType, IndexType)");
   
   for (unsigned int dim = 0 ; dim < this->GetMeasurementVectorSize() ; dim++)
     {
@@ -310,11 +299,8 @@ VariableDimensionHistogram<TMeasurement,  TFrequencyContainer>
 ::GetInstanceIdentifier(const IndexType &index) const
 {
   // Sanity check.. see if index is of the same length as MeasurementVectorSize;
-  if( index.Size() != this->GetMeasurementVectorSize() )
-    {
-    itkExceptionMacro( << 
-        "Index length does not match number of dimensions in histogram" );
-    }
+  MeasurementVectorTraits::Assert( index, this->GetMeasurementVectorSize(),
+  "Length mismatch: VariableDimensionHistogram::GetIndex(MeasurementVectorType, IndexType)");
   
   InstanceIdentifier id = 0 ;
   for (int i= GetMeasurementVectorSize() - 1 ; i > 0 ; i-- )
@@ -400,11 +386,8 @@ VariableDimensionHistogram< TMeasurement,  TFrequencyContainer >
   // Sanity check.. see if index is of the same length as MeasurementVectorSize;
   const MeasurementVectorSizeType measurementVectorSize = 
                                       this->GetMeasurementVectorSize();
-  if( measurement.Size() != measurementVectorSize )
-    {
-    itkExceptionMacro( << 
-        "MeasurementVector length does not match number of dimensions in histogram" );
-    }
+  MeasurementVectorTraits::Assert( measurement, measurementVectorSize,
+  "Length mismatch: VariableDimensionHistogram::GetIndex(MeasurementVectorType, IndexType)");
 
   for ( int i = 0; i < measurementVectorSize; i++ )
     {
@@ -423,11 +406,8 @@ VariableDimensionHistogram<TMeasurement,  TFrequencyContainer>
   // Sanity check.. see if index is of the same length as MeasurementVectorSize;
   const MeasurementVectorSizeType measurementVectorSize = 
                                       this->GetMeasurementVectorSize();
-  if( measurement.Size() != measurementVectorSize )
-    {
-    itkExceptionMacro( << 
-        "MeasurementVector length does not match number of dimensions in histogram" );
-    }
+  MeasurementVectorTraits::Assert( measurement, measurementVectorSize,
+  "Length mismatch: VariableDimensionHistogram::GetIndex(MeasurementVectorType, IndexType)");
 
   for ( int i=0; i < measurementVectorSize; i++ )
     {
@@ -445,11 +425,8 @@ VariableDimensionHistogram< TMeasurement,  TFrequencyContainer >
 ::GetHistogramMinFromIndex(const IndexType &index) 
 {
   // Sanity check.. see if index is of the same length as MeasurementVectorSize;
-  if( index.Size() != this->GetMeasurementVectorSize() )
-    {
-    itkExceptionMacro( << 
-        "Index length does not match number of dimensions in histogram" );
-    }
+  MeasurementVectorTraits::Assert( index, this->GetMeasurementVectorSize(),
+  "Length mismatch: VariableDimensionHistogram::GetIndex(MeasurementVectorType, IndexType)");
   
   for ( int i=0; i < this->GetMeasurementVectorSize(); i++ )
     {
@@ -466,12 +443,10 @@ VariableDimensionHistogram< TMeasurement,  TFrequencyContainer >
 ::GetHistogramMaxFromIndex(const IndexType &index) 
 {
   // Sanity check.. see if index is of the same length as MeasurementVectorSize;
-  if( index.Size() != this->GetMeasurementVectorSize() )
-    {
-    itkExceptionMacro( << 
-        "Index length does not match number of dimensions in histogram" );
-    }
-   for ( int i=0; i < this->GetMeasurementVectorSize(); i++ )
+  MeasurementVectorTraits::Assert( index, this->GetMeasurementVectorSize(),
+  "Length mismatch: VariableDimensionHistogram::GetIndex(MeasurementVectorType, IndexType)");
+  
+  for ( int i=0; i < this->GetMeasurementVectorSize(); i++ )
     {
     m_TempMeasurementVector[i] = this->GetBinMax(i, index[i]) ;
     }
@@ -486,11 +461,9 @@ VariableDimensionHistogram< TMeasurement,  TFrequencyContainer >
 ::GetMeasurementVector(const IndexType &index) const
 {
   // Sanity check.. see if index is of the same length as MeasurementVectorSize;
-  if( index.Size() != this->GetMeasurementVectorSize() )
-    {
-    itkExceptionMacro( << 
-        "Index length does not match number of dimensions in histogram" );
-    }
+  MeasurementVectorTraits::Assert( index, this->GetMeasurementVectorSize(),
+  "Length mismatch: VariableDimensionHistogram::GetIndex(MeasurementVectorType, IndexType)");
+  
   for ( unsigned int i = 0; i < this->GetMeasurementVectorSize(); i++)
     {
     MeasurementType value = (m_Min[i][index[i]] + m_Max[i][index[i]]);
@@ -532,11 +505,9 @@ VariableDimensionHistogram< TMeasurement,  TFrequencyContainer >
 ::SetFrequency(const IndexType &index, const FrequencyType value) 
 {
   // Sanity check.. see if index is of the same length as MeasurementVectorSize;
-  if( index.Size() != this->GetMeasurementVectorSize() )
-    {
-    itkExceptionMacro( << 
-        "Index length does not match number of dimensions in histogram" );
-    }
+  MeasurementVectorTraits::Assert( index, this->GetMeasurementVectorSize(),
+  "Length mismatch: VariableDimensionHistogram::GetIndex(MeasurementVectorType, IndexType)");
+  
   return this->SetFrequency( this->GetInstanceIdentifier(index), value) ;
 }
   
@@ -549,11 +520,8 @@ VariableDimensionHistogram< TMeasurement,  TFrequencyContainer >
   // Sanity check.. see if index is of the same length as MeasurementVectorSize;
   const MeasurementVectorSizeType measurementVectorSize = 
                                       this->GetMeasurementVectorSize();
-  if( measurement.Size() != measurementVectorSize )
-    {
-    itkExceptionMacro( << 
-        "MeasurementVector length does not match number of dimensions in histogram" );
-    }
+  MeasurementVectorTraits::Assert( measurement, this->GetMeasurementVectorSize(),
+  "Length mismatch: VariableDimensionHistogram::SetFrequency");
 
   return this->SetFrequency( this->GetInstanceIdentifier(GetIndex(measurement)), value) ;
 }
@@ -565,11 +533,9 @@ VariableDimensionHistogram< TMeasurement,  TFrequencyContainer >
 ::IncreaseFrequency(const IndexType &index, const FrequencyType value)
 {
   // Sanity check.. see if index is of the same length as MeasurementVectorSize;
-  if( index.Size() != this->GetMeasurementVectorSize() )
-    {
-    itkExceptionMacro( << 
-        "Index length does not match number of dimensions in histogram" );
-    }
+  MeasurementVectorTraits::Assert( index, this->GetMeasurementVectorSize(),
+  "Length mismatch: VariableDimensionHistogram::GetIndex(MeasurementVectorType, IndexType)");
+  
   const bool result = 
       this->IncreaseFrequency( this->GetInstanceIdentifier(index), value) ;
   return result;
@@ -584,11 +550,8 @@ VariableDimensionHistogram< TMeasurement,  TFrequencyContainer >
   // Sanity check.. see if index is of the same length as MeasurementVectorSize;
   const MeasurementVectorSizeType measurementVectorSize = 
                                       this->GetMeasurementVectorSize();
-  if( measurement.Size() != measurementVectorSize )
-    {
-    itkExceptionMacro( << 
-        "MeasurementVector length does not match number of dimensions in histogram" );
-    }
+  MeasurementVectorTraits::Assert( measurement, this->GetMeasurementVectorSize(),
+  "Length mismatch: VariableDimensionHistogram::IncreaseFrequency");
 
   IndexType index( measurementVectorSize );
   this->GetIndex( measurement, index );
@@ -604,13 +567,10 @@ inline typename VariableDimensionHistogram< TMeasurement,
 VariableDimensionHistogram< TMeasurement,  TFrequencyContainer >
 ::GetFrequency(const IndexType &index) const
 {
-  // Sanity check.. see if index is of the same length as MeasurementVectorSize;
-  if( index.Size() != this->GetMeasurementVectorSize() )
-    {
-    itkExceptionMacro( << 
-        "Index length does not match number of dimensions in histogram" );
-    }
-   return ( this->GetFrequency( this->GetInstanceIdentifier(index)) ) ;
+  MeasurementVectorTraits::Assert( index, this->GetMeasurementVectorSize(),
+  "Length mismatch: VariableDimensionHistogram::GetFrequency");
+  
+  return ( this->GetFrequency( this->GetInstanceIdentifier(index)) ) ;
 }
 
 template< class TMeasurement,  
