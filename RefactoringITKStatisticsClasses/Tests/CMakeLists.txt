@@ -26,8 +26,8 @@ ADD_TEST(itkKdTreeBasedKmeansEstimatorTest ${STATISTICS_TESTS}
 ADD_TEST(itkKdTreeGeneratorTest ${STATISTICS_TESTS} 
          itkKdTreeGeneratorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
 ADD_TEST(itkListSampleTest ${STATISTICS_TESTS} itkListSampleTest 4)
-#ADD_TEST(itkListSampleToHistogramFilterTest ${STATISTICS_TESTS} itkListSampleToHistogramFilterTest)
-#ADD_TEST(itkListSampleToHistogramGeneratorTest ${STATISTICS_TESTS} itkListSampleToHistogramGeneratorTest)
+ADD_TEST(itkListSampleToHistogramFilterTest ${STATISTICS_TESTS} itkListSampleToHistogramFilterTest)
+ADD_TEST(itkListSampleToHistogramGeneratorTest ${STATISTICS_TESTS} itkListSampleToHistogramGeneratorTest)
 #ADD_TEST(itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest ${STATISTICS_TESTS} 
 #         itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest)
 ADD_TEST(itkMeanCalculatorTest ${STATISTICS_TESTS} itkMeanCalculatorTest)
@@ -68,8 +68,8 @@ itkImageToCooccurrenceListAdaptorTest.cxx
 itkKdTreeBasedKmeansEstimatorTest.cxx
 itkKdTreeGeneratorTest.cxx
 itkListSampleTest.cxx
-#itkListSampleToHistogramFilterTest.cxx
-#itkListSampleToHistogramGeneratorTest.cxx
+itkListSampleToHistogramFilterTest.cxx
+itkListSampleToHistogramGeneratorTest.cxx
 itkMeanCalculatorTest.cxx
 #itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest.cxx
 itkMembershipSampleTest.cxx
