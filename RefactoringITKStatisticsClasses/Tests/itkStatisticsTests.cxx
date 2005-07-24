@@ -36,7 +36,7 @@ void RegisterTests()
   REGISTER_TEST(itkImageToListAdaptorTest);
   REGISTER_TEST(itkImageToCooccurrenceListAdaptorTest);
 //  REGISTER_TEST(itkImageToHistogramGeneratorTest);
-//  REGISTER_TEST(itkKdTreeBasedKmeansEstimatorTest);
+  REGISTER_TEST(itkKdTreeBasedKmeansEstimatorTest);
   REGISTER_TEST(itkKdTreeGeneratorTest);
   REGISTER_TEST(itkListSampleTest);
 //  REGISTER_TEST(itkListSampleToHistogramFilterTest);
