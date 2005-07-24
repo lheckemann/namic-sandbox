@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkVariableSizeMatrix.txx,v $
   Language:  C++
-  Date:      $Date: 2005/04/20 00:39:56 $
-  Version:   $Revision: 1.19 $
+  Date:      $Date: 2005/07/21 17:48:24 $
+  Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -37,17 +37,17 @@ Array<T>
 VariableSizeMatrix<T>
 ::operator*( const Array<T> & vect ) const
 {
-  if( vect.Size() != num_rows )
+  if( vect.Size() != m_Rows )
     {
-    itkExceptionMacro( << "Matrix with " << num_cols << " columns cannot be "
+    itkExceptionMacro( << "Matrix with " << m_Cols << " columns cannot be "
         << "multiplied with array of length: " << vect.Size() );
     }
   
-  Vector<T,NRows> result;
-  for( unsigned int r=0; r<this->num_rows; r++) 
+  Array<T> result(m_Rows);
+  for( unsigned int r=0; r<this->m_Rows; r++) 
     {
     T sum = NumericTraits<T>::Zero;   
-    for( unsigned int c=0; c< this->num_cols; c++ ) 
+    for( unsigned int c=0; c< this->m_Cols; c++ ) 
       {
       sum += m_Matrix(r,c) * vect[c];
       }
@@ -81,18 +81,18 @@ VariableSizeMatrix<T>
 VariableSizeMatrix<T>
 ::operator+( const Self & matrix ) const
 {
-  if( (matrix.rows() != this->num_rows) ||
-      (matrix.cols() != this->num_cols))
+  if( (matrix.rows() != this->m_Rows) ||
+      (matrix.cols() != this->m_Cols))
     { 
     itkExceptionMacro( << "Matrix with size (" << matrix.rows() << "," << 
       matrix.cols() << ") cannot be subtracted from matrix with size (" <<
-      this->num_rows << "," << this->num_cols );
+      this->m_Rows << "," << this->m_Cols );
     }
   
   Self result;
-  for( unsigned int r=0; r< this->num_rows; r++) 
+  for( unsigned int r=0; r< this->m_Rows; r++) 
     {
-    for( unsigned int c=0; c< this->num_cols; c++ ) 
+    for( unsigned int c=0; c< this->m_Cols; c++ ) 
       {
       result.m_Matrix(r,c) = m_Matrix(r,c) + matrix.m_Matrix(r,c);
       }
@@ -110,17 +110,17 @@ const VariableSizeMatrix<T> &
 VariableSizeMatrix<T>
 ::operator+=( const Self & matrix ) 
 {
-  if( (matrix.rows() != this->num_rows) ||
-      (matrix.cols() != this->num_cols))
+  if( (matrix.rows() != this->m_Rows) ||
+      (matrix.cols() != this->m_Cols))
     { 
     itkExceptionMacro( << "Matrix with size (" << matrix.rows() << "," << 
       matrix.cols() << ") cannot be subtracted from matrix with size (" <<
-      this->num_rows << "," << this->num_cols );
+      this->m_Rows << "," << this->m_Cols );
     }
   
-  for( unsigned int r=0; r<this->num_rows; r++) 
+  for( unsigned int r=0; r<this->m_Rows; r++) 
     {
-    for( unsigned int c=0; c<this->num_cols; c++ ) 
+    for( unsigned int c=0; c<this->m_Cols; c++ ) 
       {
       m_Matrix(r,c) += matrix.m_Matrix(r,c);
       }
@@ -139,18 +139,18 @@ VariableSizeMatrix<T>
 VariableSizeMatrix<T>
 ::operator-( const Self & matrix ) const
 {
-  if( (matrix.rows() != this->num_rows) ||
-      (matrix.cols() != this->num_cols))
+  if( (matrix.rows() != this->m_Rows) ||
+      (matrix.cols() != this->m_Cols))
     { 
     itkExceptionMacro( << "Matrix with size (" << matrix.rows() << "," << 
       matrix.cols() << ") cannot be subtracted from matrix with size (" <<
-      this->num_rows << "," << this->num_cols );
+      this->m_Rows << "," << this->m_Cols );
     }
   
   Self result;
-  for( unsigned int r=0; r<this->num_rows; r++) 
+  for( unsigned int r=0; r<this->m_Rows; r++) 
     {
-    for( unsigned int c=0; c<this->num_cols; c++ ) 
+    for( unsigned int c=0; c<this->m_Cols; c++ ) 
       {
       result.m_Matrix(r,c) = m_Matrix(r,c) - matrix.m_Matrix(r,c);
       }
@@ -168,17 +168,17 @@ const VariableSizeMatrix<T> &
 VariableSizeMatrix<T>
 ::operator-=( const Self & matrix ) 
 {
-  if( (matrix.rows() != this->num_rows) ||
-      (matrix.cols() != this->num_cols))
+  if( (matrix.rows() != this->m_Rows) ||
+      (matrix.cols() != this->m_Cols))
     { 
     itkExceptionMacro( << "Matrix with size (" << matrix.rows() << "," << 
       matrix.cols() << ") cannot be subtracted from matrix with size (" <<
-      this->num_rows << "," << this->num_cols );
+      this->m_Rows << "," << this->m_Cols );
     }
   
-  for( unsigned int r=0; r<this->num_rows; r++) 
+  for( unsigned int r=0; r<this->m_Rows; r++) 
     {
-    for( unsigned int c=0; c<this->num_cols; c++ ) 
+    for( unsigned int c=0; c<this->m_Cols; c++ ) 
       {
       m_Matrix(r,c) -= matrix.m_Matrix(r,c);
       }
@@ -270,16 +270,16 @@ bool
 VariableSizeMatrix<T>
 ::operator==( const Self & matrix )
 {
-  if( (matrix.rows() != this->num_rows) ||
-      (matrix.cols() != this->num_cols))
+  if( (matrix.rows() != this->m_Rows) ||
+      (matrix.cols() != this->m_Cols))
     { 
     return false;
     }
   bool equal = true;
   
-  for( unsigned int r=0; r<this->num_rows; r++) 
+  for( unsigned int r=0; r<this->m_Rows; r++) 
     {
-    for( unsigned int c=0; c<this->num_cols; c++ ) 
+    for( unsigned int c=0; c<this->m_Cols; c++ ) 
       {
       if (m_Matrix(r,c) != matrix.m_Matrix(r,c))
         {

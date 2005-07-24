@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkVariableSizeMatrix.h,v $
   Language:  C++
-  Date:      $Date: 2005/05/16 00:51:22 $
-  Version:   $Revision: 1.19 $
+  Date:      $Date: 2005/07/21 17:48:24 $
+  Version:   $Revision: 1.2 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -163,6 +163,8 @@ public:
  
 private:
   InternalMatrixType     m_Matrix;
+  unsigned int m_Rows;   // Number of rows
+  unsigned int m_Cols;   // Number of columns
 
 };
 
