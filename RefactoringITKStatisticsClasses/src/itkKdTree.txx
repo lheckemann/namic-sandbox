@@ -59,14 +59,9 @@ KdTreeWeightedCentroidNonterminalNode< TSample >
   m_Left = left ;
   m_Right = right ;
   m_WeightedCentroid = centroid ;
-  m_MeasurementVectorSize = MeasurementVectorTraits< CentroidType >::GetSize( 
-                                                                  &centroid );
-  m_Centroid = MeasurementVectorTraits< CentroidType >::SetSize( 
-                                       m_MeasurementVectorSize );
-  for( unsigned int i=0; i < m_MeasurementVectorSize; i++ )
-    { 
-    m_Centroid[i] = m_WeightedCentroid[i] / double(size);
-    }
+  m_MeasurementVectorSize = MeasurementVectorTraits::GetLength( centroid );
+
+  m_Centroid = m_WeightedCentroid / double(size) ;
 
   m_Size = size ;
 }
@@ -92,9 +87,6 @@ KdTree< TSample >
   m_Sample = 0 ;
   m_Root = 0 ;
   m_BucketSize = 16 ;
-  m_MeasurementVectorSize = MeasurementVectorTraits< 
-                            MeasurementVectorType >::GetSize();
-  m_DistanceMetric->SetMeasurementVectorSize( m_MeasurementVectorSize );
 }
 
 template< class TSample >
@@ -205,10 +197,8 @@ KdTree< TSample >
 
   m_NearestNeighbors.resize(k) ;
 
-  MeasurementVectorType lowerBound = MeasurementVectorTraits< 
-    MeasurementVectorType >::SetSize( this->m_MeasurementVectorSize );
-  MeasurementVectorType upperBound = MeasurementVectorTraits< 
-    MeasurementVectorType >::SetSize( this->m_MeasurementVectorSize );
+  MeasurementVectorType lowerBound( m_MeasurementVectorSize ) ;
+  MeasurementVectorType upperBound( m_MeasurementVectorSize ) ;
 
   for (unsigned int d = 0 ; d < m_MeasurementVectorSize ; d++)
     {
@@ -333,10 +323,8 @@ KdTree< TSample >
 ::Search(MeasurementVectorType &query, double radius,
          InstanceIdentifierVectorType& result) const
 {
-  MeasurementVectorType lowerBound = MeasurementVectorTraits< 
-    MeasurementVectorType >::SetSize( this->m_MeasurementVectorSize );
-  MeasurementVectorType upperBound = MeasurementVectorTraits< 
-    MeasurementVectorType >::SetSize( this->m_MeasurementVectorSize );
+  MeasurementVectorType lowerBound( m_MeasurementVectorSize ) ;
+  MeasurementVectorType upperBound( m_MeasurementVectorSize ) ;
 
   for (unsigned int d = 0 ; d < this->m_MeasurementVectorSize ; d++)
     {

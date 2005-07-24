@@ -54,6 +54,12 @@ namespace Statistics{
  * (SetBucketSize method) and the input sample (SetSample method). The
  * Update method will run this generator. To get the resulting KdTree
  * object, call the GetOutput method.
+ 
+ * <b>Recent API changes:</b>
+ * The static const macro to get the length of a measurement vector,
+ * 'MeasurementVectorSize'  has been removed to allow the length of a measurement
+ * vector to be specified at run time. It is now obtained from the sample set
+ * as input. You may query this length using the function GetMeasurementVectorSize().
  * 
  * \sa KdTree, KdTreeNode, KdTreeNonterminalNode, KdTreeTerminalNode,
  * WeightedCentroidKdTreeGenerator
@@ -81,17 +87,6 @@ public:
 
   /** Typedef for the length of each measurement vector */
   typedef unsigned int  MeasurementVectorSizeType;
-
-  /** DEPRECATED: The static const macro will be deprecated in a future version.
-   * Please use GetMeasurementVectorSize() instead. This constant returns the 
-   * length of a measurement vector for FixedArrays, Vectors and other fixed 
-   * containers and zero for dynamically resizable containers. The true value for 
-   * dynamically resizable containers will be obtained from the 
-   * GetMeasurementVectorSize() call. 
-   */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
-
 
   /** Typedef for the k-d tree */
   typedef KdTree< TSample > KdTreeType ;
