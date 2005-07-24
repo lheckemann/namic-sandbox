@@ -201,6 +201,7 @@ struct KdTreeWeightedCentroidNonterminalNode: public KdTreeNode< TSample >
   typedef typename Superclass::MeasurementType MeasurementType ;
   typedef typename Superclass::CentroidType CentroidType ;
   typedef typename Superclass::InstanceIdentifier InstanceIdentifier ;
+  typedef typename TSample::MeasurementVectorSizeType MeasurementVectorSizeType;
 
   /** Typedef for the length of each measurement vector */
   typedef unsigned int  MeasurementVectorSizeType;
@@ -219,7 +220,11 @@ struct KdTreeWeightedCentroidNonterminalNode: public KdTreeNode< TSample >
   void GetParameters(unsigned int &partitionDimension, 
                      MeasurementType &partitionValue) const ;
 
-  itkGetMacro( MeasurementVectorSize, unsigned int );
+  /** Return the length of a measurement vector */
+  MeasurementVectorSizeType GetMeasurementVectorSize() const
+    {
+    return m_MeasurementVectorSize;
+    }
 
   Superclass* Left() 
   { return m_Left ; }
