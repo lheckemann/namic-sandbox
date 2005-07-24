@@ -160,8 +160,8 @@ KdTreeBasedKmeansEstimator< TKdTree >
   unsigned int i, j ;
   typename TKdTree::InstanceIdentifier tempId ;
   int closest ;
-  ParameterType individualPoint = MeasurementVectorTraits< ParameterType 
-    >::SetSize( this->m_MeasurementVectorSize );
+  ParameterType individualPoint;
+  MeasurementVectorTraits::SetLength( individualPoint, this->m_MeasurementVectorSize );
   
   if ( node->IsTerminal() )
     {
@@ -341,10 +341,10 @@ KdTreeBasedKmeansEstimator< TKdTree >
 ::StartOptimization()
 {
   unsigned int i ;
-  MeasurementVectorType lowerBound = MeasurementVectorTraits< 
-    MeasurementVectorType >::SetSize( this->m_MeasurementVectorSize );
-  MeasurementVectorType upperBound = MeasurementVectorTraits< 
-    MeasurementVectorType >::SetSize( this->m_MeasurementVectorSize );
+  MeasurementVectorType lowerBound;
+  MeasurementVectorType upperBound; 
+  MeasurementVectorTraits::SetLength( lowerBound, this->m_MeasurementVectorSize );
+  MeasurementVectorTraits::SetLength( upperBound, this->m_MeasurementVectorSize );
 
   FindSampleBound<SampleType>(m_KdTree->GetSample(),
                               m_KdTree->GetSample()->Begin(), 
@@ -360,10 +360,10 @@ KdTreeBasedKmeansEstimator< TKdTree >
   
   for( i=0; i< m_Parameters.size()/ m_MeasurementVectorSize; i++ )
     {
-    ParameterType m = MeasurementVectorTraits< 
-      ParameterType >::SetSize( m_MeasurementVectorSize );
-    ParameterType m1 = MeasurementVectorTraits< 
-      ParameterType >::SetSize( m_MeasurementVectorSize );
+    ParameterType m;
+    ParameterType m1;
+    MeasurementVectorTraits::SetLength(m, m_MeasurementVectorSize );
+    MeasurementVectorTraits::SetLength(m1, m_MeasurementVectorSize );
     previousPosition.push_back( m );
     currentPosition.push_back( m1 );
     }
