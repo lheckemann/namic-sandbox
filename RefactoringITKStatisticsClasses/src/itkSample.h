@@ -50,7 +50,7 @@ namespace Statistics{
  * build the histogram but to the "bin" in which a number of original
  * measurements were "accumulated".
  *
- * Recent API changes:
+ * <b>Recent API changes:</b>
  * The static const macro to get the length of a measurement vector,
  * 'MeasurementVectorSize'  has been removed to allow the length of a measurement
  * vector to be specified at run time. Please use the function 
