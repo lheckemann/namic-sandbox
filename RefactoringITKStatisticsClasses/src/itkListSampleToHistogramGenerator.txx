@@ -24,11 +24,13 @@ namespace Statistics{
 
 template< class TListSample, 
           class THistogramMeasurement, 
-          class TFrequencyContainer >
+          class TFrequencyContainer,
+          unsigned int TMeasurementVectorLength >
 ListSampleToHistogramGenerator< TListSample, 
                                 THistogramMeasurement, 
-                                TFrequencyContainer >
-::ListSampleToHistogramGenerator() :m_List( 0 )
+                                TFrequencyContainer,
+                                TMeasurementVectorLength >
+::ListSampleToHistogramGenerator()
 {
   m_Sizes.Fill(0) ;
   m_Histogram = HistogramType::New() ;
@@ -41,20 +43,17 @@ ListSampleToHistogramGenerator< TListSample,
 
 template< class TListSample, 
           class THistogramMeasurement, 
-          class TFrequencyContainer >
+          class TFrequencyContainer,
+          unsigned int TMeasurementVectorLength >
 void
 ListSampleToHistogramGenerator< TListSample, 
                                 THistogramMeasurement, 
-                                TFrequencyContainer >
+                                TFrequencyContainer,
+                                TMeasurementVectorLength >
 ::GenerateData()
 {
-  const typename TListSample::MeasurementVectorSizeType 
-    measurementVectorSize = m_List->GetMeasurementVectorSize();
-  
-  typename TListSample::MeasurementVectorType lower = MeasurementVectorTraits< 
-    ListSampleMeasurementVectorType >::SetSize( measurementVectorSize );
-  typename TListSample::MeasurementVectorType upper = MeasurementVectorTraits<
-    ListSampleMeasurementVectorType >::SetSize( measurementVectorSize );
+  typename TListSample::MeasurementVectorType lower;
+  typename TListSample::MeasurementVectorType upper;
 
   typename HistogramType::MeasurementVectorType h_upper  = m_HistogramMax;
   typename HistogramType::MeasurementVectorType h_lower = m_HistogramMin;
@@ -113,10 +112,7 @@ ListSampleToHistogramGenerator< TListSample,
   typename TListSample::ConstIterator last = m_List->End() ;
   typename HistogramType::IndexType index ;
   typename TListSample::MeasurementVectorType lvector ;
-  typename HistogramType::MeasurementVectorType hvector = MeasurementVectorTraits< 
-    typename HistogramType::MeasurementVectorType >::SetSize( 
-                                      measurementVectorSize );
-  
+  typename HistogramType::MeasurementVectorType hvector ;
   unsigned int i;
   while (iter != last)
     {
@@ -143,11 +139,13 @@ ListSampleToHistogramGenerator< TListSample,
 
 template< class TListSample, 
           class THistogramMeasurement, 
-          class TFrequencyContainer >
+          class TFrequencyContainer,
+          unsigned int TMeasurementVectorLength >
 void
 ListSampleToHistogramGenerator< TListSample, 
                                 THistogramMeasurement, 
-                                TFrequencyContainer >
+                                TFrequencyContainer,
+                                TMeasurementVectorLength >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
