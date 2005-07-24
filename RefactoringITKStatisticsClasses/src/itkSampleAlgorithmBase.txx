@@ -27,8 +27,7 @@ SampleAlgorithmBase< TInputSample >
 ::SampleAlgorithmBase()
 {
   m_InputSample = 0;
-  m_MeasurementVectorSize = MeasurementVectorTraits< 
-                             MeasurementVectorType >::GetSize();
+  m_MeasurementVectorSize = 0;
 }
 
 template< class TInputSample >

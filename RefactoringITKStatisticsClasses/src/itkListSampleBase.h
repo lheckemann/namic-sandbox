@@ -34,7 +34,12 @@ namespace Statistics{
  * ListSampleBase does not allow the user to specify the frequency of
  * a measurement directly.  The GetFrequency() methods returns 1 if
  * the measurement exists in the list, 0 otherwise.
- *
+ * 
+ * Recent API changes:
+ * The static const macro to get the length of a measurement vector,
+ * 'MeasurementVectorSize'  has been removed to allow the length of a measurement
+ * vector to be specified at run time. Please use the function 
+ * GetMeasurementVectorSize() instead.
  *
  *\sa Sample, Histogram
  */
@@ -60,13 +65,6 @@ public:
    * results. */
   typedef std::vector< InstanceIdentifier > SearchResultVectorType ;
 
-  /** DEPRECATED: Length of each measurement. Please use GetMeasurementVectorSize()
-   * instead. */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
-  
-
-  
   /** Search for measurements within the specified radius of a search
    * point. A vector of InstanceIdentifiers is returned. */
   inline void Search(MeasurementVectorType center, double radius, 
@@ -116,6 +114,11 @@ public:
 protected:
   ListSampleBase() {}
   virtual ~ListSampleBase() {}
+  void PrintSelf(std::ostream& os, Indent indent) const
+    {
+    Superclass::PrintSelf(os,indent);
+    }
+
   
 private:
   ListSampleBase(const Self&) ; //purposely not implemented

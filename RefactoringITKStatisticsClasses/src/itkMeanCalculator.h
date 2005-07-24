@@ -34,7 +34,13 @@ namespace itk{
  * The return value that the GetOutput method 
  * \f$ = \frac{1}{n}\sum^{n}_{i=1}x_{i}\f$ where \f$n\f$ is the
  * number of measurement vectors in the target 
- *
+ * 
+ * Recent API changes:
+ * The static const macro to get the length of a measurement vector,
+ * 'MeasurementVectorSize'  has been removed to allow the length of a measurement
+ * vector to be specified at run time. It is now obtained from the input sample.
+ * Please use the function GetMeasurementVectorSize() to obtain the length. 
+ * The mean output is an Array rather than a Vector.
  */
 
 template< class TSample >
@@ -58,21 +64,8 @@ public:
   /** Measurement vector type */
   typedef typename Superclass::MeasurementVectorType MeasurementVectorType;
   
-   /** DEPRECATED: The static const macro will be deprecated in a future version.
-   * Please use GetMeasurementVectorSize() instead. This constant returns the 
-   * length of a measurement vector for FixedArrays, Vectors and other fixed 
-   * containers and zero for dynamically resizable containers. The true value for 
-   * dynamically resizable containers will be obtained from the 
-   * GetMeasurementVectorSize() call. 
-   */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
- 
   /** Typedef for the mean output */
-  typedef typename MeasurementVectorTraits< 
-                    MeasurementVectorType >::MeanType OutputType;
-  //typedef Vector< double,
-  //                itkGetStaticConstMacro(MeasurementVectorSize) > OutputType ;
+  typedef Array< double >           OutputType;
 
   /** Returns the mean vector */
   OutputType* GetOutput() ;

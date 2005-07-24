@@ -50,6 +50,12 @@ namespace Statistics{
  * build the histogram but to the "bin" in which a number of original
  * measurements were "accumulated".
  *
+ * Recent API changes:
+ * The static const macro to get the length of a measurement vector,
+ * 'MeasurementVectorSize'  has been removed to allow the length of a measurement
+ * vector to be specified at run time. Please use the function 
+ * GetMeasurementVectorSize() instead.
+ *
  */
 
 template < class TMeasurementVector >
@@ -70,8 +76,7 @@ public:
 
   /** ValueType of a measurement (ValueType of a component of the
    * MeasurementVector */ 
-  typedef typename MeasurementVectorTraits< MeasurementVectorType >::ValueType 
-                                                      MeasurementType;
+  typedef typename MeasurementVectorType::ValueType   MeasurementType;
 
   /** Frequency value type*/
   typedef float FrequencyType ;
@@ -82,18 +87,6 @@ public:
 
   /** Typedef for the length of each measurement vector */
   typedef unsigned int  MeasurementVectorSizeType;
-
-  /** DEPRECATED: The static const macro will be deprecated in a future version.
-   * Please use GetMeasurementVectorSize() instead. This returns the length
-   * of a measurement vector for FixedArrays, Vectors and other fixed containers
-   * and zero for dynamically resizable containers. The true value for 
-   * dynamically resizable containers will be obtained from the 
-   * GetMeasurementVectorSize() call. 
-   */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
-
-  
 
   /** Get the size of the sample (number of measurements) */
   virtual unsigned int Size() const = 0 ;
@@ -113,15 +106,25 @@ public:
 
   
   /** Set/Get macros for the length of the measurement vector */
-  itkSetMacro( MeasurementVectorSize, MeasurementVectorSizeType);
+  virtual void SetMeasurementVectorSize( const MeasurementVectorSizeType s )
+    {
+    MeasurementVectorType m;
+    MeasurementVectorSizeType defaultLength = MeasurementVectorTraits::GetLength( m );
+    if( (defaultLength != 0) && (s!=defaultLength) )
+      {
+      return; // Do not do anything.
+      //itkExceptionMacro( << "Cannot instantiate a sample with a fixed length "
+      // << "container and resize it later. Create it with itk::Array if you like.");
+      }
+    this->m_MeasurementVectorSize = s;
+    }
   itkGetConstMacro( MeasurementVectorSize, MeasurementVectorSizeType );
 
   
 protected:
   Sample()
     {
-    m_MeasurementVectorSize = MeasurementVectorTraits< 
-                               MeasurementVectorType >::GetSize();
+    m_MeasurementVectorSize = 0;
     }
 
   virtual ~Sample() {}

@@ -105,9 +105,7 @@ WeightedMeanCalculator< TSample >
     itkExceptionMacro(<< "MeasurementVectorSize not set" );
     }
   
-  m_Output = MeasurementVectorTraits< OutputType >::SetSize( 
-                                     measurementVectorSize );
-  m_Output.Fill(0.0) ;
+  MeasurementVectorTraits::SetLength( m_Output, measurementVectorSize );
 
   typename TSample::ConstIterator iter = this->GetInputSample()->Begin() ;
   typename TSample::ConstIterator end = this->GetInputSample()->End() ;

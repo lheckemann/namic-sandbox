@@ -56,8 +56,7 @@ MeanCalculator< TSample >
 
   const MeasurementVectorSizeType measurementVectorSize 
                         = this->GetMeasurementVectorSize();
-  m_Output = MeasurementVectorTraits< OutputType >::SetSize( 
-                                                measurementVectorSize );
+  MeasurementVectorTraits::SetLength( m_Output, measurementVectorSize );
 
   while (iter != end)
     {

@@ -35,7 +35,14 @@ namespace Statistics{
  * To run this algorithm, you have plug in the target sample data 
  * using SetInputSample method and provides weight by an array or function.
  *. Then call the Update method to run the alogithm.
- *
+ * 
+ * Recent API changes:
+ * The static const macro to get the length of a measurement vector,
+ * 'MeasurementVectorSize'  has been removed to allow the length of a measurement
+ * vector to be specified at run time. It is now obtained from the input sample.
+ * Please use the function GetMeasurementVectorSize() to obtain the length. 
+ * The mean output is an Array rather than a Vector.
+
  * \sa MeanCalculator SampleAlgorithmBase
  */
 
@@ -59,19 +66,8 @@ public:
   
   typedef typename TSample::MeasurementVectorType MeasurementVectorType ;
 
-  /** DEPRECATED: The static const macro will be deprecated in a future version.
-   * Please use GetMeasurementVectorSize() instead. This constant returns the 
-   * length of a measurement vector for FixedArrays, Vectors and other fixed 
-   * containers and zero for dynamically resizable containers. The true value for 
-   * dynamically resizable containers will be obtained from the 
-   * GetMeasurementVectorSize() call. 
-   */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
-
   /** Typedef for the mean output */
-  typedef typename MeasurementVectorTraits< 
-                    MeasurementVectorType >::MeanType OutputType;
+  typedef Array< double >           OutputType;
   
   /** Array typedef for weights */
   typedef Array< double > WeightArrayType ;

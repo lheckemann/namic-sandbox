@@ -45,6 +45,12 @@ namespace Statistics{
  * This class is templated over the type of the basic sample. To use all
  * the method, you should first plug in a basic type sample using the
  * SetSample method
+ * 
+ * Recent API changes:
+ * The static const macro to get the length of a measurement vector,
+ * 'MeasurementVectorSize'  has been removed to allow the length of a measurement
+ * vector to be specified at run time. Please use the function 
+ * GetMeasurementVectorSize() instead.
  */
   
 template< class TSample >
@@ -69,16 +75,6 @@ public:
   typedef typename TSample::InstanceIdentifier InstanceIdentifier;
   typedef typename TSample::FrequencyType FrequencyType ;
   
-  /** DEPRECATED: The static const macro will be deprecated in a future version.
-   * Please use GetMeasurementVectorSize() instead. This returns the length
-   * of a measurement vector for FixedArrays, Vectors and other fixed containers
-   * and zero for dynamically resizable containers. The true value for 
-   * dynamically resizable containers will be obtained from the 
-   * GetMeasurementVectorSize() call. 
-   */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
-
   
   /** vector of unique class labels that will be used for mapping internal
    * continuous class label with real class labels */

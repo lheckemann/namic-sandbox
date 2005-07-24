@@ -53,26 +53,27 @@ void
 WeightedCovarianceCalculator< TSample >
 ::SetMean(MeanType* mean)
 {
-  if ( m_Mean != mean )
-    {
-    if ( m_InternalMean != mean && m_InternalMean != 0 )
-      {
-      delete m_InternalMean ;
-      m_InternalMean = 0 ;
-      }
+  const MeasurementVectorSizeType measurementVectorSize = 
+    this->GetMeasurementVectorSize();
 
-    m_Mean = mean ;
-    this->Modified() ;
-    
-    if( this->GetMeasurementVectorSize() && m_Mean && 
-       ( MeasurementVectorTraits< MeanType >::GetSize(m_Mean) 
-         != this->GetMeasurementVectorSize() ) )
-      {
-      itkExceptionMacro( << "Size of measurement vectors in the sample must be "
-          << "the same as the size of the mean vector." );
-      }
+  if ( m_InternalMean != mean && m_InternalMean != 0 )
+    {
+    delete m_InternalMean ;
+    m_InternalMean = 0 ;
     }
+  
+  if( mean )
+    {
+    const MeasurementVectorSizeType measurementVectorLength = 
+      MeasurementVectorTraits::Assert( mean, measurementVectorSize,
+      "Length mismatch: CovarianceCalculator::SetMean" );
+    if( measurementVectorLength )
+      { this->SetMeasurementVectorSize( measurementVectorLength ); }
+    }
+
+  m_Mean = mean ;
 }
+
 
 template< class TSample >
 typename WeightedCovarianceCalculator< TSample >::MeanType*
@@ -128,16 +129,13 @@ WeightedCovarianceCalculator< TSample >
 {
   // Assert at run time that the given mean has the same length as 
   // measurement vectors in the sample and that the size is non-zero.
-  const MeasurementVectorSizeType measurementVectorSize = 
-    this->GetMeasurementVectorSize();
-  if( !measurementVectorSize || ( MeasurementVectorTraits< MeanType >::GetSize( 
-                                            m_Mean ) != measurementVectorSize ) )
-    {
-    itkExceptionMacro( << "Size of measurement vectors in the sample must be the same as the size of the mean vector." );
-    }
+  MeasurementVectorTraits::Assert( m_Mean, this->GetMeasurementVectorSize(),
+    "Length mismatch: CovarianceCalculator::ComputeCovarianceWithGivenMean");
+  const MeasurementVectorSizeType measurementVectorSize =
+                                        this->GetMeasurementVectorSize();
   
-  *m_Output = MeasurementVectorTraits< MeasurementVectorType >::RealMatrix(
-                 measurementVectorSize, measurementVectorSize );
+  m_Output = new OutputType();
+  m_Output->SetSize( measurementVectorSize, measurementVectorSize );
   m_Output->Fill(0.0) ;
   
   double weight;
@@ -148,8 +146,7 @@ WeightedCovarianceCalculator< TSample >
   unsigned int i ;
   typename TSample::ConstIterator iter = this->GetInputSample()->Begin() ; 
   typename TSample::ConstIterator end = this->GetInputSample()->End() ;
-  MeanType diff = MeasurementVectorTraits< MeanType >::SetSize( 
-                                        measurementVectorSize );
+  MeanType diff( measurementVectorSize );
   typename TSample::MeasurementVectorType measurements ;
   int measurementVectorIndex = 0 ;
   
@@ -226,12 +223,9 @@ WeightedCovarianceCalculator< TSample >
   const MeasurementVectorSizeType measurementVectorSize = 
     this->GetMeasurementVectorSize();
   m_Output = new OutputType();
-  *m_Output = MeasurementVectorTraits< MeasurementVectorType >::RealMatrix(
-                 measurementVectorSize, measurementVectorSize );
+  m_Output->SetSize( measurementVectorSize, measurementVectorSize );
   m_Output->Fill(0.0) ;
-  m_InternalMean = new MeanType(); 
-  (*m_InternalMean) = MeasurementVectorTraits< MeanType >::SetSize( 
-                                                  measurementVectorSize );
+  m_InternalMean = new MeanType(measurementVectorSize);
   m_InternalMean->Fill(0.0) ;
   
   double weight;
@@ -243,8 +237,7 @@ WeightedCovarianceCalculator< TSample >
   unsigned int i ;
   typename TSample::ConstIterator iter = this->GetInputSample()->Begin() ; 
   typename TSample::ConstIterator end = this->GetInputSample()->End() ;
-  MeanType diff = MeasurementVectorTraits< MeanType >::SetSize( 
-                                        measurementVectorSize );
+  MeanType diff( measurementVectorSize );
   typename TSample::MeasurementVectorType measurements ;
   int measurementVectorIndex = 0 ;
   
