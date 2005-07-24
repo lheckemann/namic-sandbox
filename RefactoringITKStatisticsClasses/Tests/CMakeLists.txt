@@ -15,7 +15,7 @@ ADD_TEST(itkDenseFrequencyContainerTest ${STATISTICS_TESTS} itkDenseFrequencyCon
 #         itkGoodnessOfFitMixtureModelCostFunctionTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
 #ADD_TEST(itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest ${STATISTICS_TESTS} 
 #         itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
-#ADD_TEST(itkHistogramTest ${STATISTICS_TESTS} itkHistogramTest 3)
+ADD_TEST(itkHistogramTest ${STATISTICS_TESTS} itkHistogramTest)
 ADD_TEST(itkVariableDimensionHistogramTest ${STATISTICS_TESTS} itkVariableDimensionHistogramTest)
 ADD_TEST(itkImageToListAdaptorTest ${STATISTICS_TESTS} itkImageToListAdaptorTest)
 ADD_TEST(itkImageToCooccurrenceListAdaptorTest ${STATISTICS_TESTS} 
@@ -60,7 +60,7 @@ itkDenseFrequencyContainerTest.cxx
 #itkExpectationMaximizationMixtureModelEstimatorTest.cxx
 #itkGoodnessOfFitMixtureModelCostFunctionTest.cxx
 #itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest.cxx 
-#itkHistogramTest.cxx
+itkHistogramTest.cxx
 itkVariableDimensionHistogramTest.cxx
 itkImageToListAdaptorTest.cxx
 itkImageToCooccurrenceListAdaptorTest.cxx

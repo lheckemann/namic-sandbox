@@ -5,7 +5,7 @@
 #./itkStatisticsTests itkExpectationMaximizationMixtureModelEstimatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat
 #./itkStatisticsTests itkGoodnessOfFitMixtureModelCostFunctionTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat
 #./itkStatisticsTests itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat
-#./itkStatisticsTests itkHistogramTest 3
+./itkStatisticsTests itkHistogramTest 
 ./itkStatisticsTests itkImageToListAdaptorTest
 ./itkStatisticsTests itkImageToCooccurrenceListAdaptorTest ${ITK_DATA_ROOT}/Input/HeadMRVolume.mhd
 #./itkStatisticsTests itkImageToHistogramGeneratorTest

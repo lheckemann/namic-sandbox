@@ -32,7 +32,7 @@ void RegisterTests()
 //  REGISTER_TEST(itkExpectationMaximizationMixtureModelEstimatorTest);
 //  REGISTER_TEST(itkGoodnessOfFitMixtureModelCostFunctionTest);
 //  REGISTER_TEST(itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest);
-//  REGISTER_TEST(itkHistogramTest);
+  REGISTER_TEST(itkHistogramTest);
   REGISTER_TEST(itkImageToListAdaptorTest);
   REGISTER_TEST(itkImageToCooccurrenceListAdaptorTest);
 //  REGISTER_TEST(itkImageToHistogramGeneratorTest);
