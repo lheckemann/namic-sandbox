@@ -52,8 +52,14 @@ namespace Statistics {
  * Note: There is a second implementation of k-means algorithm in ITK under the
  * While the Kd tree based implementation is more time efficient, the  GLA/LBG 
  * based algorithm is more memory efficient.
- * \sa ImageKmeansModelEstimator
  *
+ * <b>Recent API changes:</b>
+ * The static const macro to get the length of a measurement vector,
+ * \c MeasurementVectorSize  has been removed to allow the length of a measurement
+ * vector to be specified at run time. It is now obtained from the KdTree set
+ * as input. You may query this length using the function GetMeasurementVectorSize().
+ *
+ * \sa ImageKmeansModelEstimator
  * \sa WeightedCentroidKdTreeGenerator, KdTree
  */
 
@@ -82,24 +88,13 @@ public:
   typedef typename TKdTree::SampleType SampleType ;
   typedef typename KdTreeNodeType::CentroidType CentroidType ;
   
-  /** DEPRECATED: The static const macro will be deprecated in a future version.
-   * Please use GetMeasurementVectorSize() instead. This constant returns the 
-   * length of a measurement vector for FixedArrays, Vectors and other fixed 
-   * containers and zero for dynamically resizable containers. The true value for 
-   * dynamically resizable containers will be obtained from the 
-   * GetMeasurementVectorSize() call. 
-   */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
-
 
   /** Typedef for the length of a measurement vector */
   typedef unsigned int MeasurementVectorSizeType;
                       
   /**  Parameters type.
    *  It defines a position in the optimization search space. */
-  typedef typename MeasurementVectorTraits< 
-          MeasurementVectorType >::RealMeasurementVectorType ParameterType;
+  typedef Array< double > ParameterType ;
   typedef std::vector< ParameterType > InternalParametersType;
   typedef Array< double > ParametersType;
 
@@ -119,19 +114,21 @@ public:
    * of changes in centroid postions after one iteration */
   itkSetMacro( CentroidPositionChangesThreshold, double );   
   itkGetConstReferenceMacro( CentroidPositionChangesThreshold, double );   
-  
+
   /** Set/Get the pointer to the KdTree */
   void SetKdTree(TKdTree* tree) 
     { 
     m_KdTree = tree ; 
     m_MeasurementVectorSize = tree->GetMeasurementVectorSize();
     m_DistanceMetric->SetMeasurementVectorSize( m_MeasurementVectorSize );
-    m_TempVertex = MeasurementVectorTraits< ParameterType >::SetSize( 
-                                              m_MeasurementVectorSize );
+    MeasurementVectorTraits::SetLength( m_TempVertex, m_MeasurementVectorSize );
     }
 
   TKdTree* GetKdTree() 
   { return m_KdTree.GetPointer() ; }
+
+  /** Get the length of measurement vectors in the KdTree */
+  itkGetConstReferenceMacro( MeasurementVectorSize, MeasurementVectorSizeType );
 
   itkGetConstReferenceMacro( CurrentIteration, int) ;
   itkGetConstReferenceMacro( CentroidPositionChanges, double) ;
@@ -181,15 +178,13 @@ protected:
      * At each iteration, this should be called before filtering*/
     void SetCentroids(InternalParametersType& centroids)
     {
-      this->m_MeasurementVectorSize = MeasurementVectorTraits< 
-                          ParameterType >::GetSize( &(centroids[0]) );
+      this->m_MeasurementVectorSize = MeasurementVectorTraits::GetLength( centroids[0] );
       m_Candidates.resize(centroids.size()) ;
       for (unsigned int i = 0 ; i < centroids.size() ; i++)
         {
           Candidate candidate ;
           candidate.Centroid = centroids[i] ;
-          candidate.WeightedCentroid = MeasurementVectorTraits< 
-             CentroidType >::SetSize( m_MeasurementVectorSize );
+          MeasurementVectorTraits::SetLength( candidate.WeightedCentroid, m_MeasurementVectorSize );
           candidate.WeightedCentroid.Fill(0.0) ;
           candidate.Size = 0 ;
           m_Candidates[i] = candidate ;
