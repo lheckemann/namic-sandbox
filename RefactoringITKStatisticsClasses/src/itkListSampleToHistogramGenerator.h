@@ -53,18 +53,20 @@ namespace Statistics{
  *
  * The result historam has equi-size bins along each axe.
  *
+ * NOTE: The second template argument, THistogramMeasurement should be
+ * float-point type (float or double). 
+ *
+ * <b> Recent API changes </b>
  * The class is templated over the list sample, the frequency measurement 
  * precision, the length of each measurement vector and optionally over the
  * type of frequency container.
  * 
- * NOTE: The second template argument, THistogramMeasurement should be
- * float-point type (float or double). 
- *
  * \sa Histogram, ListSampleBase, FindSampleBound 
  */
 template< class TListSample, 
           class THistogramMeasurement,  
-          class TFrequencyContainer = DenseFrequencyContainer< float > >
+          class TFrequencyContainer = DenseFrequencyContainer< float >, 
+          unsigned int TMeasurementVectorLength = 1 >
 class ITK_EXPORT ListSampleToHistogramGenerator :
     public Object
 {
@@ -82,8 +84,8 @@ public:
   itkNewMacro(Self) ;
 
   /** the number of components in a measurement vector */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int, MeasurementVectorTraits< 
-      typename TListSample::MeasurementVectorType >::MeasurementVectorLength);
+  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
+                      TMeasurementVectorLength);
 
   typedef Histogram< THistogramMeasurement, 
                      itkGetStaticConstMacro(MeasurementVectorSize),
@@ -91,53 +93,26 @@ public:
 
   typedef typename HistogramType::SizeType HistogramSizeType ;
   typedef typename HistogramType::MeasurementVectorType  MeasurementVectorType;
-  typedef typename HistogramType::MeasurementVectorSizeType MeasurementVectorSizeType;
-
-  /** Measurement vector typedef for measurement vectors in the list sample */
-  typedef typename TListSample::MeasurementVectorType    ListSampleMeasurementVectorType;
 
   /** plug in the ListSample object */
   void SetListSample(const TListSample* list)
     { 
     // Throw exception if the length of measurement vectors in the list is not
-    // equal to the length of the container if fixed.
-    if( (MeasurementVectorSize && 
-          (list->GetMeasurementVectorSize() != MeasurementVectorSize )) ||
-        (list->GetMeasurementVectorSize() == 0) )
+    // equal to the dimension of the histogram.
+    if( list->GetMeasurementVectorSize() != MeasurementVectorSize )
       {
-      itkExceptionMacro( << "Mismatch in ListSample measurement vector size and "
-        << "container length over which ListSampleToHistogramGenerator is instantiated");
+      itkExceptionMacro(<< "Length of measurement vectors in the list sample is "
+        << list->GetMeasurementVectorSize() << " but histogram dimension is "
+        << MeasurementVectorSize);
       }
     m_List = list ; 
-    m_Histogram->SetMeasurementVectorSize( list->GetMeasurementVectorSize() );
     }
 
   void SetMarginalScale(float scale)
   { m_MarginalScale = scale ; }
 
   void SetNumberOfBins(HistogramSizeType sizes)
-    { 
-    // Sanity check.. Check to see that container 'sizes' has the same
-    // length as the length of measurement vectors in the list sample. And the
-    // same length as the container over which the list sample is instantiated,
-    // if fixed.
-    MeasurementVectorSizeType l = MeasurementVectorTraits< HistogramSizeType >::GetSize();
-    if( !l )    // changeable at run time.
-      {
-      MeasurementVectorSizeType s = MeasurementVectorTraits< HistogramSizeType 
-                                      >::GetSize( &sizes );
-      if( !m_Histogram->GetMeasurementVectorSize() )
-        {
-        m_Histogram->SetMeasurementVectorSize( s );
-        }
-      else if( m_Histogram->GetMeasurementVectorSize() != s )
-        {
-        itkExceptionMacro( << "MeasurementVectorSize mismatch in SetNumberOfBins");
-        }
-      }
-    
-    m_Sizes = sizes ; 
-    }
+  { m_Sizes = sizes ; }
 
   const HistogramType* GetOutput() const
   { return m_Histogram ; }
@@ -152,17 +127,18 @@ public:
     {
     m_HistogramMin = histogramMin;
     m_AutoMinMax = false;
-
-    // Sanity check.. Check to see that container m_HistogramMax has the same
+    
+    // Sanity check.. Check to see that container m_HistogramMin has the same
     // length as the length of measurement vectors in the list sample. And the
     // same length as the container over which the list sample is instantiated,
     // if fixed.
-    unsigned int l = MeasurementVectorTraits< MeasurementVectorType >::GetSize(
-                                                             & m_HistogramMin );
-    if( (MeasurementVectorSize && (l != MeasurementVectorSize )) ||
-        (m_List && (l != m_List->GetMeasurementVectorSize()) )      )
+    MeasurementVectorTraits::Assert(m_HistogramMin, MeasurementVectorSize, 
+        "Length Mismatch: ListSampleToHistogramGenerator::SetHistogramMin");
+    if( m_List )
       {
-      itkExceptionMacro( << "MeasurementVectorSize mismatch in SetHistogramMin");
+      MeasurementVectorTraits::Assert(m_List->GetMeasurementVectorSize(), 
+        MeasurementVectorSize, 
+        "Length Mismatch: ListSampleToHistogramGenerator::SetHistogramMin");
       }
     }
 
@@ -170,17 +146,18 @@ public:
     {
     m_HistogramMax = histogramMax;
     m_AutoMinMax = false;
-
+    
     // Sanity check.. Check to see that container m_HistogramMax has the same
     // length as the length of measurement vectors in the list sample. And the
     // same length as the container over which the list sample is instantiated,
     // if fixed.
-    unsigned int l = MeasurementVectorTraits< MeasurementVectorType >::GetSize(
-                                                             & m_HistogramMax );
-    if( (MeasurementVectorSize && (l != MeasurementVectorSize )) ||
-        (m_List && (l != m_List->GetMeasurementVectorSize()) )      )
+    MeasurementVectorTraits::Assert(m_HistogramMax, MeasurementVectorSize, 
+        "Length Mismatch: ListSampleToHistogramGenerator::SetHistogramMin");
+    if( m_List )
       {
-      itkExceptionMacro( << "MeasurementVectorSize mismatch in SetHistogramMax");
+      MeasurementVectorTraits::Assert(m_List->GetMeasurementVectorSize(), 
+        MeasurementVectorSize, 
+        "Length Mismatch: ListSampleToHistogramGenerator::SetHistogramMin");
       }
     }
 
