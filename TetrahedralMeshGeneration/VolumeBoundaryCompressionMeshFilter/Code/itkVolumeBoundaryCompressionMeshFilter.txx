@@ -14,6 +14,16 @@
 #include "itkCellInterface.h"
 #include <set>
 
+#ifdef USE_PETSC 
+#define DEF_E 100000.0
+#define DEF_NU 0.45
+#endif // USE_PETSc
+
+extern "C"{
+float exactinit();
+double orient3d(double*, double*, double*, double*);
+}
+
 namespace itk
 {
 
@@ -241,12 +251,12 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   // Walk through the input mesh, extract surface vertices
   typename std::map<TetFace,unsigned int> face2cnt;
   typename std::map<TetFace,unsigned int>::iterator face2cntI;
-  unsigned int i, j;
-  const unsigned int tet_face_LUT[12] = 
-    { 0, 1, 2,
-      0, 1, 3,
-      0, 2, 3,
-      1, 2, 3 };
+  unsigned int i, j, k;
+  const unsigned int tet_face_LUT[16] = 
+    { 0, 1, 2, 3,
+      0, 1, 3, 2,
+      0, 2, 3, 1,
+      1, 2, 3, 0 };
   InputCellsContainerIterator cellIterator;
   
   cellIterator = m_InputMesh->GetCells()->Begin();
@@ -265,9 +275,10 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     for(i=0;i<4;i++)
       face_points[i] = *ptI++;
     for(i=0;i<4;i++){
-      TetFace thisFace(face_points[tet_face_LUT[i*3]], 
-        face_points[tet_face_LUT[i*3+1]],
-        face_points[tet_face_LUT[i*3+2]]);
+      TetFace thisFace(face_points[tet_face_LUT[i*4]], 
+        face_points[tet_face_LUT[i*4+1]],
+        face_points[tet_face_LUT[i*4+2]],
+        face_points[tet_face_LUT[i*4+3]]);
       face2cntI = face2cnt.find(thisFace);
       if(face2cntI != face2cnt.end())
         face2cnt[thisFace]++;
@@ -293,11 +304,12 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     default:assert(0);
     }
   }
-  
+        
   std::insert_iterator<std::vector<unsigned int> >
     viI(m_SurfaceVertices, m_SurfaceVertices.begin());
   copy(surfaceVerticesSet.begin(), surfaceVerticesSet.end(), viI);
   surfaceVerticesSet.clear();
+  std::sort(m_SurfaceVertices.begin(), m_SurfaceVertices.end());
   
   i = 0;
   for(std::vector<unsigned int>::iterator vI=m_SurfaceVertices.begin();
@@ -307,36 +319,56 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   
   std::cout << m_SurfaceVertices.size() << " surface vertices found" << std::endl;
   std::cout << m_SurfaceFaces.size() << " surface faces found" << std::endl;
+  
+  InputPointsContainerIterator inPointsI;
+  InputCellsContainerIterator inCellsI;
 
 #if USE_PETSC
-  /*
-  m_ft_mesh = ::create_tetra_mesh(0,0,0,0,0);
+  // Initialize PETSc
+  i = PetscInitialize(NULL, NULL, (char*)0, "");
+  MPI_Comm_size(PETSC_COMM_WORLD, &m_PETScWrapper.numprocs);
+  MPI_Comm_rank(PETSC_COMM_WORLD, &m_PETScWrapper.myid);
+  assert(m_PETScWrapper.numprocs==1);
+  
+  PETScDeformWrapper::tetra_mesh* mesh_ptr;
+  m_PETScWrapper.m_Mesh = m_PETScWrapper.create_tetra_mesh(0,0,0,0,0);
+  mesh_ptr = m_PETScWrapper.m_Mesh;
+  
   for(i=0;i<3;i++)
-    m_ft_mesh->vertices[i] = new float[m_InputMesh->GetPoints()->Size()];
-  InputPointsContainerIterator inPointsI =
-    m_InputMesh->GetPoints()->Begin();
+    mesh_ptr->vertices[i] = new float[m_InputMesh->GetPoints()->Size()];
+
+  
+  inPointsI = m_InputMesh->GetPoints()->Begin();
+  i = 0;
   while(inPointsI!=m_InputMesh->GetPoints()->End()){
     typename TInputMesh::PointType curPoint;
     curPoint = inPointsI.Value();
-    m_ft_mesh->vertices[0][i] = curPoint[0];
-    m_ft_mesh->vertices[1][i] = curPoint[1];
-    m_ft_mesh->vertices[2][i] = curPoint[2];
+    mesh_ptr->vertices[0][i] = curPoint[0];
+    mesh_ptr->vertices[1][i] = curPoint[1];
+    mesh_ptr->vertices[2][i] = curPoint[2];
+    inPointsI++;
+    i++;
   }
-  m_ft_mesh->bb[0][0] = 0;
-  m_ft_mesh->bb[0][1] = 0;
-  m_ft_mesh->bb[0][2] = 0;
-  m_ft_mesh->bb[1][0] = this->m_dimX;
-  m_ft_mesh->bb[1][1] = this->m_dimY;
-  m_ft_mesh->bb[1][2] = this->m_dimZ;
-  m_ft_mesh->vox_size[0] = 1.0;
-  m_ft_mesh->vox_size[1] = 1.0;
-  m_ft_mesh->vox_size[2] = 1.0;
+  std::cout << "PETSc initialized" << std::endl;
+  
+  mesh_ptr->bb[0][0] = 0;
+  mesh_ptr->bb[0][1] = 0;
+  mesh_ptr->bb[0][2] = 0;
+  mesh_ptr->bb[1][0] = this->m_dimX;
+  mesh_ptr->bb[1][1] = this->m_dimY;
+  mesh_ptr->bb[1][2] = this->m_dimZ;
+  mesh_ptr->vox_size[0] = 1.0;
+  mesh_ptr->vox_size[1] = 1.0;
+  mesh_ptr->vox_size[2] = 1.0;
 
-  m_ft_mesh->nvertices = m_InputMesh->GetPoints()->Size();
-  m_ft_mesh->ncells = m_InputMesh->GetCells()->Size();
+  mesh_ptr->nvertices = m_InputMesh->GetPoints()->Size();
+  mesh_ptr->ncells = m_InputMesh->GetCells()->Size();
+  mesh_ptr->cell = new (PETScDeformWrapper::cell*)[mesh_ptr->ncells];
+  
+  std::cout << "PETSc mesh points initialized" << std::endl;
 
-  InputCellsContainerIterator inCellsI =
-    m_InputMesh->GetCells()->Begin();
+  inCellsI = m_InputMesh->GetCells()->Begin();
+  std::cout << "Initializing cells" << std::endl;
   i = 0;
   while(inCellsI != m_InputMesh->GetCells()->End()){
     InputTetrahedronType *curMeshTet;
@@ -344,19 +376,21 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     
     curMeshTet =
       dynamic_cast<InputTetrahedronType*>(inCellsI.Value());
-    m_ft_mesh->cell[i] = new struct cell;
+    mesh_ptr->cell[i] = new PETScDeformWrapper::cell;
     ptI = curMeshTet->PointIdsBegin();
     for(j=0;j<4;j++)
-      m_ft_mesh->cell[i]->vert[j] = *ptI++;
+      mesh_ptr->cell[i]->vert[j] = *ptI++;
     for(j=0;j<4;j++)
-      m_ft_mesh->cell[i]->face[j] = 0;//(int)NULL;
-    m_ft_mesh->cell[i]->label = 0;//(int)NULL;
+      mesh_ptr->cell[i]->face[j] = 0;//(int)NULL;
+    mesh_ptr->cell[i]->label = 0;//(int)NULL;
     i++;
+    inCellsI++;
   }
-  */
-  
+  std::cout << "Initialization of the PETSc wrapper complete!" << std::endl;
+
+
     
-#else // USE_PETSC
+#endif // USE_PETSC
     
   // Initialize the solver
   m_Solver.load.clear();
@@ -366,7 +400,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   unsigned int GNcounter;
   // Create nodes
   std::cout << "Initializing the solver with nodes..." << std::endl;
-  InputPointsContainerIterator inPointsI =
+  inPointsI =
     m_InputMesh->GetPoints()->Begin();
   GNcounter = 0;
   while(inPointsI != m_InputMesh->GetPoints()->End()){
@@ -412,7 +446,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   // Create elements 
   std::cout << "Initializing solver with elements..." << std::endl;
   GNcounter = 0;
-  InputCellsContainerIterator inCellsI =
+  inCellsI =
     m_InputMesh->GetCells()->Begin();
   fem::Element3DC0LinearTetrahedronMembrane e0;
   while(inCellsI != m_InputMesh->GetCells()->End()){
@@ -440,10 +474,28 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     GNcounter++;
     ++inCellsI;
   }
-
-#endif // USE_PETSC
   
-  // the set of nodes, elements, and materials of the slver will not change during the
+  std::cout << "Checking faces' orientation..." << std::endl;
+  // Checking orientation
+  for(i=0;i<m_SurfaceFaces.size();i++){
+    TetFace thisFace = m_SurfaceFaces[i];
+    double vertices[4][3];
+    for(j=0;j<3;j++)
+      for(k=0;k<3;k++)
+        vertices[j][k] = m_Solver.node.Find(thisFace.nodes[j])->GetCoordinates()[k];  
+    for(k=0;k<3;k++)
+      vertices[3][k] = m_Solver.node.Find(thisFace.fourth)->GetCoordinates()[k];
+    if(orient3d(&vertices[0][0], &vertices[1][0], &vertices[2][0], &vertices[3][0])>0){
+      unsigned tmp_vertex = thisFace.nodes[0];
+      thisFace.nodes[0] = thisFace.nodes[1];
+      thisFace.nodes[1] = tmp_vertex;
+      m_SurfaceFaces[i] = thisFace;
+    }
+  }
+
+//#endif // USE_PETSC
+  
+  // the set of nodes, elements, and materials of the solver will not change during the
   // deformation. Loads will be changing between timesteps (most likely)
   
 }
@@ -481,6 +533,18 @@ template<class TInputMesh, class TOutputMesh, class TInputImage>
 float
 VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh, TInputImage>
 ::DistanceAtPoint(double *coords){
+
+#ifdef MODEL_SPHERE
+  double center[3];
+  double radius = 30;
+  center[0] = 50.5;
+  center[1] = 50.5;
+  center[2] = 50.5;
+  return sqrt((center[0]-coords[0])*(center[0]-coords[0]) + 
+    (center[1]-coords[1])*(center[1]-coords[1]) + 
+    (center[2]-coords[2])*(center[2]-coords[2])) - radius;
+#endif // MODEL_SPHERE
+  
   typename InterpolatorType::ContinuousIndexType input_index;
   float distance = 0;
 
@@ -514,20 +578,20 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   // Initialize the BC loads. The displacement direction is defined by normals
   // to tetrahedra faces, and then it is scaled by signed distance to the
   // surface.
-  unsigned int i, j, k, l;
+  unsigned int i, j, k, l, curIter;
   unsigned int curVertexPos;
   unsigned int max_iter = 1;
   double *U;
   std::ofstream outfile;
   
   
-
   U = new double [m_SurfaceVertices.size()*3];
   bzero((void*)U, m_SurfaceVertices.size()*3*sizeof(double));
   
-  for(i=0;i<max_iter;i++){
+  for(curIter=0;curIter<max_iter;curIter++){
 
     std::cout << "Initializing loads..." << std::endl;
+    std::cout << "Total faces: " << m_SurfaceFaces.size() << std::endl;
 
     // Calculate the displacement unit vectors for all surface vertices
     for(typename std::vector<TetFace>::iterator fI=m_SurfaceFaces.begin();
@@ -535,7 +599,8 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
       TetFace thisFace;
 
       thisFace = *fI;
-      for(j=0;j<3;j++){
+//      std::cout << "Face " << thisFace.nodes[0] << " " << thisFace.nodes[1] << " " << thisFace.nodes[2] << std::endl;
+      for(i=0;i<3;i++){
         double v[3][3];
         double Fd[3];
         double Fdl, Fl;
@@ -545,25 +610,19 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
         curNode = dynamic_cast<fem::FEMP<fem::Node> >
           m_Solver.node.Find(thisFace.nodes[j]);
         */
-        
-        try{
-          v[0][0] = m_Solver.node.Find(thisFace.nodes[j])->GetCoordinates()[0];
-          v[0][1] = m_Solver.node.Find(thisFace.nodes[j])->GetCoordinates()[1];
-          v[0][2] = m_Solver.node.Find(thisFace.nodes[j])->GetCoordinates()[2];
-        } catch(ExceptionObject &e){
-          std::cout << "Node not found: " << e << std::endl;
-          assert(0);
-        }
+        v[0][0] = m_Solver.node.Find(thisFace.nodes[i])->GetCoordinates()[0];
+        v[0][1] = m_Solver.node.Find(thisFace.nodes[i])->GetCoordinates()[1];
+        v[0][2] = m_Solver.node.Find(thisFace.nodes[i])->GetCoordinates()[2];
+        /*
+        v[0][0] = m_PETScWrapper.m_Mesh->vertices[0][thisFace.nodes[i]];
+        v[0][1] = m_PETScWrapper.m_Mesh->vertices[1][thisFace.nodes[i]];
+        v[0][2] = m_PETScWrapper.m_Mesh->vertices[2][thisFace.nodes[i]];
+        */
       
-        for(k=1;k<3;k++)
-          for(l=0;l<3;l++)
-            try{
-              v[k][l] =  
-                m_Solver.node.Find(thisFace.nodes[(j+k)%3])->GetCoordinates()[l] - v[0][l];
-            } catch(ExceptionObject &e){
-              std::cout << "Node not found: " << e << std::endl;
-              assert(0);
-            }
+        for(j=1;j<3;j++)
+          for(k=0;k<3;k++)
+            v[j][k] = //m_PETScWrapper.m_Mesh->vertices[k][thisFace.nodes[(j+i)%3]] - v[0][k]; 
+                m_Solver.node.Find(thisFace.nodes[(j+i)%3])->GetCoordinates()[k] - v[0][k];
 
         Fd[0] = (v[1][1]*v[2][2] - v[1][2]*v[2][1]);
         Fd[1] = (v[1][2]*v[2][0] - v[1][0]*v[2][2]);
@@ -571,12 +630,33 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
         Fdl = sqrtf(Fd[0]*Fd[0]+Fd[1]*Fd[1]+Fd[2]*Fd[2]);
         assert(Fdl);
 
-        curVertexPos = m_SurfaceVertex2Pos[thisFace.nodes[j]];
-        for(k=0;k<3;k++)
-          U[curVertexPos*3+k] = Fd[k];
+        assert(m_SurfaceVertex2Pos.find(thisFace.nodes[i])!=
+          m_SurfaceVertex2Pos.end());
+        curVertexPos = m_SurfaceVertex2Pos[thisFace.nodes[i]];
+        U[curVertexPos*3] += Fd[0];
+        U[curVertexPos*3+1] += Fd[1];
+        U[curVertexPos*3+2] += Fd[2];
+        
+        /*
+        if(curVertexPos==10){
+          std::cout << "Vertex " << m_SurfaceVertices[curVertexPos] << ", face (" << thisFace.nodes[0] << " " << thisFace.nodes[1] << " " << thisFace.nodes[2] << ") " << ", vector " << Fd[0] << "," << Fd[1] << "," << Fd[2] << std::endl;
+          for(j=0;j<3;j++){
+            for(k=0;k<3;k++)
+              std::cout << v[j][k] << " ";
+            std::cout << std::endl;
+          }
+        }
+        */
+//        for(k=0;k<3;k++)
+//          U[curVertexPos*3+k] += Fd[k];
       }
     }
   }
+  
+  /*
+  for(i=0;i<m_SurfaceVertices.size();i++)
+    std::cout << i << ": " << U[i*3] << " " << U[i*3+1] << " " << U[i*3+2] << std::endl;
+    */
   
   // Scale each of the vectors based on the distance to the surface
   float max_displacement = 0, displacement;
@@ -609,14 +689,18 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
       if(displacement>max_displacement)
         max_displacement = displacement;
     }
+//    std::cout << m_SurfaceVertices[i] << "=== Displacement: " << U[i*3] << " " << U[i*3+1] << " " << U[i*3+2] << "(point " << 
+//      m_Solver.node.Find(m_SurfaceVertices[i])->GetCoordinates()[0] << " " <<
+//      m_Solver.node.Find(m_SurfaceVertices[i])->GetCoordinates()[1] << " " <<
+//      m_Solver.node.Find(m_SurfaceVertices[i])->GetCoordinates()[2] << ")" << std::endl;
   }
   std::cout << "Max displacement is " << sqrtf(max_displacement) << std::endl;
 
 #if USE_PETSC
-  /*
-  IndDispList* bc;
-  bc = new IndDispList;
-  bzero(bc, sizeof(IndDispList));
+  
+  PETScDeformWrapper::IndDispList* bc;
+  bc = new PETScDeformWrapper::IndDispList;
+  bzero(bc, sizeof(PETScDeformWrapper::IndDispList));
   int *all_Indices = new int[3*m_SurfaceVertices.size()];
   double *all_Displacements = new double[3*m_SurfaceVertices.size()];
   int all_NIndices = 0;
@@ -624,21 +708,53 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   double *iter_Displacements;
   int iter_NIndices = 0;
   
+  std::cout << "Initializing BC loads for PETSc deformation..." << std::endl;
   for(i=0;i<m_SurfaceVertices.size();i++){
     for(j=0;j<3;j++){
-      all_Indices[all_NIndices] = m_SurfaceVertices[i]+j;
+      all_Indices[all_NIndices] = 3*m_SurfaceVertices[i]+j;
       all_NIndices++;
     }
   }
  
-  m_ft_mesh = ::add_edge_info_tetra_mesh(m_ft_mesh);
+  m_PETScWrapper.m_Mesh = m_PETScWrapper.add_edge_info_tetra_mesh(m_PETScWrapper.m_Mesh);
   int iter = 0;
   bool stop = false;
   double min_edge_len;
-//  for(iter;!stop && iter<10;iter++){
-//    ::ftDeform(m_ft_mesh, bc, NULL, 10, 10);
-//  }
-*/
+
+  for(iter;!stop && iter<1;iter++){
+    double len = 0, max_len=0;
+    unsigned displaced_verts = 0;
+    bc->Indices = all_Indices;
+    bc->Displacements = all_Displacements;
+    bc->NIndices = all_NIndices;
+    bzero(bc->Displacements, 3*m_SurfaceVertices.size()*sizeof(double));
+    for(i=0;i<m_SurfaceVertices.size();i++){
+      bc->Displacements[i*3] = U[i*3];
+      bc->Displacements[i*3+1] = U[i*3+1];
+      bc->Displacements[i*3+2] = U[i*3+2];
+      len = sqrt(U[i*3]*U[i*3]+U[i*3+1]*U[i*3+1]+U[i*3+2]*U[i*3+2]);
+      if(len>0)
+        displaced_verts++;
+      if(len>max_len)
+        max_len = len;
+    }
+    std::cout << "Before the PETSc deformation...";
+    std::cout << displaced_verts << " vertices will be moved. Max is " << max_len << std::endl;
+    m_PETScWrapper.Deform(m_PETScWrapper.m_Mesh, bc, NULL, DEF_E, DEF_NU);
+    std::cout << "done" << std::endl;
+  }
+  
+  // Update the nodal coordinates of the output mesh
+  for(i=0;i<this->GetOutput()->GetPoints()->size();i++){
+    typename OutputMeshType::PointType newPoint;
+
+    newPoint[0] = m_PETScWrapper.m_Mesh->x[i];
+    newPoint[1] = m_PETScWrapper.m_Mesh->y[i];
+    newPoint[2] = m_PETScWrapper.m_Mesh->z[i];
+    this->GetOutput()->SetPoint(i, newPoint);
+  }
+  
+  
 
 #else // USE_PETSC (use itkFEM)
   

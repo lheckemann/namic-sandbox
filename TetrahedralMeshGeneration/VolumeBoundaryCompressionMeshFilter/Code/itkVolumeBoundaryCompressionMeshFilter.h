@@ -193,7 +193,8 @@ private:
   class TetFace{
   public:
     TetFace(){};
-    TetFace(unsigned int v0, unsigned int v1, unsigned int v2){
+    TetFace(unsigned int v0, unsigned int v1, unsigned int v2, unsigned int v3){
+      fourth = v3;
       if(v0<v1)
         if(v1<v2){
           nodes[0] = v0; nodes[1] = v1; nodes[2] = v2;
@@ -236,6 +237,7 @@ private:
     }
 
     unsigned int nodes[3];
+    unsigned int fourth;
   };
     
   VolumeBoundaryCompressionMeshFilter(const Self&); //purposely not implemented
@@ -283,7 +285,7 @@ private:
   std::string m_LinearSystemWrapperType;
   
 #if USE_PETSC
-  PETScDeformWrapper petsc_mesh;
+  PETScDeformWrapper m_PETScWrapper;
 //  struct tetra_mesh* m_ft_mesh;
 #endif // USE_PETSC
 

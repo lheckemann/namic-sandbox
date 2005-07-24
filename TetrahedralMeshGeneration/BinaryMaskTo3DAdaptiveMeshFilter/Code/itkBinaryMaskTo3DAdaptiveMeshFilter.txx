@@ -683,30 +683,6 @@ template<class TInputImage, class TOutputMesh>
 void
 BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 ::PrepareCurvatureImage(){
-  /*
-  //pre: a distance map where -1 is the border of the object. No zero is allowed
-  //post: a curvature map. If not an edge, place -1
- 
-  std::string curv_image_name(name_prefix);
-  curv_image_name.insert(name_prefix.size(), "CurvImg.mhd");
-
-  std::ifstream curv_file(curv_image_name.c_str());
-  if(curv_file.is_open()){
-    InternalImageReaderType::Pointer curv_image_reader = 
-      InternalImageReaderType::New();
-    curv_image_reader->SetFileName(curv_image_name.c_str());
-    try{
-      curv_image_reader->Update();
-    } catch(itk::ExceptionObject &e) {
-      std::cout << "Failed to read curvature image!" << std::endl;
-    }
-    CurvImage = curv_image_reader->GetOutput();
-    return;
-  }
-
-  //temporary to help the compilation
-  std::cout << "beginning the creation of the curvature image" << std::endl;
-  */
 
   //creation of the curvature image
   InternalImageType::Pointer CurvImage = InternalImageType::New(); //doit etre de type Image<float,3>
@@ -727,22 +703,6 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 
 
   std::cout << "computing the Gaussian filtering of the distance map" << std::endl;
-    /*RGFType::New();
-  rgfi->SetInput(m_DistanceImage);
-  rgfi->SetSigma(1);
-  rgfi->Update();*/
-  
-  /*
-  // Save the RG filter result (RGF is the same as first derivative?..)
-  std::string rgf_result_name(name_prefix);
-  rgf_result_name.insert(name_prefix.size(), "RGF.mhd");
-
-  typedef itk::ImageFileWriter< InternalImageType > LabelImageWriterType;
-  LabelImageWriterType::Pointer writer = LabelImageWriterType::New();
-  writer->SetFileName(rgf_result_name.c_str());
-  writer->SetInput(rgfi->GetOutput());
-  writer->Update();
-  */
 
   int okk;
   std::cout << "computing the curvature of the distance map" << std::endl;
@@ -1239,18 +1199,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
           CurvImage->SetPixel(pIndex,curvaturemax);
           }//else
         }//end triple for: lz,ly,lx;
-  //temporary to help the compilation
-  //typedef itk::ImageFileWriter< DistImageType > LabelImageWriterType;
   std::cout << "Curvature computation finished" << std::endl;
-  
-
-  /*
-  InternalImageWriterType::Pointer writerc = InternalImageWriterType::New();
-  writerc->SetFileName(curv_image_name.c_str());
-  writerc->SetInput(CurvImage);
-  writerc->Update();
-  */
-
   m_CurvatureImage = CurvImage;
 }
 
@@ -1361,6 +1310,18 @@ template<class TInputImage, class TOutputMesh>
 float
 BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 ::DistanceAtPoint(double *coords){
+
+#ifdef MODEL_SPHERE
+  double center[3];
+  double radius = 30;
+  center[0] = 50.5;
+  center[1] = 50.5;
+  center[2] = 50.5;
+  return sqrt((center[0]-coords[0])*(center[0]-coords[0]) + 
+    (center[1]-coords[1])*(center[1]-coords[1]) + 
+    (center[2]-coords[2])*(center[2]-coords[2])) - radius;
+#endif // MODEL_SPHERE
+
   typename InterpolatorType::ContinuousIndexType input_index;
   float distance = 0;
 
