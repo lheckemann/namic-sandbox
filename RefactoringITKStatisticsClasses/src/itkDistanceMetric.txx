@@ -35,12 +35,9 @@ DistanceMetric< TVector >
           << " each measurement vector.");
       }
     }
-  else
-    {
-    m_Origin = x ;
-    m_MeasurementVectorSize = x.Size();
-    this->Modified();
-    }
+  m_Origin = x ;
+  m_MeasurementVectorSize = x.Size();
+  this->Modified();
 }
 
 
