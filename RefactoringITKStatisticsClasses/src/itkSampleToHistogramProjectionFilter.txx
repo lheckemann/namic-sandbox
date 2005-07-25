@@ -107,7 +107,7 @@ SampleToHistogramProjectionFilter< TInputSample, THistogramMeasurement >
 {
   if( this->GetMeasurementVectorSize() )
     {
-    if( mean->Size() != this->GetMeasurementVectorSize() )
+    if( mean->size() != this->GetMeasurementVectorSize() )
       {
       itkExceptionMacro( << "Size of measurement vectors in the sample must be"
          << " the same as the size of the mean." );
@@ -115,7 +115,7 @@ SampleToHistogramProjectionFilter< TInputSample, THistogramMeasurement >
     }
   else
     {
-    this->SetMeasurementVectorSize( mean->Size() );
+    this->SetMeasurementVectorSize( mean->size() );
     }
 
   
@@ -161,8 +161,7 @@ SampleToHistogramProjectionFilter< TInputSample, THistogramMeasurement >
 { 
   if( this->GetMeasurementVectorSize() )
     {
-    if( MeasurementVectorTraits< ArrayType >::GetSize( axis ) 
-                        != this->GetMeasurementVectorSize() )
+    if( axis->GetSize() != this->GetMeasurementVectorSize() )
       {
       itkExceptionMacro( << "Size of measurement vectors in the sample must be"
          << " the same as the size of the projection axis." );
@@ -170,7 +169,7 @@ SampleToHistogramProjectionFilter< TInputSample, THistogramMeasurement >
     }
   else
     {
-    this->SetMeasurementVectorSize( MeasurementVectorTraits< ArrayType >::GetSize( axis ) );
+    this->SetMeasurementVectorSize( axis->GetSize() );
     }
   
   if ( m_ProjectionAxis != axis )
@@ -276,10 +275,8 @@ SampleToHistogramProjectionFilter< TInputSample, THistogramMeasurement >
   const MeasurementVectorSizeType measurementVectorSize = 
                             this->GetMeasurementVectorSize();
   if( !measurementVectorSize || 
-      ( MeasurementVectorTraits< MeanType >::GetSize( m_Mean ) 
-                                    != measurementVectorSize ) ||
-      ( MeasurementVectorTraits< ArrayType >::GetSize( m_ProjectionAxis ) 
-                                             != measurementVectorSize ) )
+      ( MeasurementVectorTraits::GetLength( m_Mean ) != measurementVectorSize ) ||
+      ( m_ProjectionAxis->Size() != measurementVectorSize ) )
     {
     itkExceptionMacro( << "Size of measurement vectors in the sample must be "
         << "the same as the size of the mean and the ProjectionAxis.");
