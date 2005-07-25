@@ -73,8 +73,8 @@ itkListSampleToHistogramGeneratorTest.cxx
 itkMeanCalculatorTest.cxx
 #itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest.cxx
 itkMembershipSampleTest.cxx
-#itkMembershipSampleGeneratorTest.cxx
-#itkNeighborhoodSamplerTest.cxx
+itkMembershipSampleGeneratorTest.cxx
+itkNeighborhoodSamplerTest.cxx
 #itkSampleClassifierTest.cxx
 #itkSampleClassifierWithMaskTest.cxx
 #itkSampleMeanShiftClusteringFilterTest.cxx
