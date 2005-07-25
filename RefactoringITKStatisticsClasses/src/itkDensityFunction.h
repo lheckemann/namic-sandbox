@@ -27,7 +27,9 @@ namespace Statistics{
  * \brief DensityFunction class defines common interfaces for 
  * density functions.
  *
- * The Evaluate method returns density value for the input measurement vector
+ * The Evaluate method returns density value for the input measurement vector.
+ * The length of the measurement vector must be set using 
+ * \c SetMeasurementVectorSize() before using the class.
  */
 
 template< class TMeasurementVector >
@@ -60,7 +62,7 @@ public:
   itkGetConstMacro( MeasurementVectorSize, MeasurementVectorSizeType );
   
 protected:
-  DensityFunction(void) {}
+  DensityFunction(void): m_MeasurementVectorSize( 0 ) {}
   virtual ~DensityFunction(void) {}
 
   void PrintSelf(std::ostream& os, Indent indent) const
