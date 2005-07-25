@@ -28,6 +28,7 @@
 #include "itkVariableSizeMatrix.h"
 #include "itkNumericTraits.h"
 #include "itkSize.h"
+#include <vector>
 
 
 namespace itk
@@ -80,6 +81,18 @@ public:
     m->Fill( NumericTraits< TValueType >::Zero );
     }
 
+  template< class TValueType >
+  static void SetLength( std::vector< TValueType > & m, const unsigned int s )
+    {
+    m.resize( s );
+    }
+  
+  template< class TValueType >
+  static void SetLength( std::vector< TValueType > * m, const unsigned int s )
+    {
+    m->resize( s );
+    }
+
 
   template< class TValueType, unsigned int TLength > 
   static const MeasurementVectorLength 
@@ -100,6 +113,16 @@ public:
   static const MeasurementVectorLength
                GetLength( const Array< TValueType > *m )
     {return m->GetSize(); }
+
+  template< class TValueType >
+  static const MeasurementVectorLength
+               GetLength( const std::vector< TValueType > &m )
+    {return m.size(); }
+  
+  template< class TValueType >
+  static const MeasurementVectorLength
+               GetLength( const std::vector< TValueType > *m )
+    {return m->size(); }
 
 
   template< class TValueType1, unsigned int TLength, class TValueType2 >
@@ -199,7 +222,36 @@ public:
     return 0;
     }
    
-};
+  template< class TValueType >
+  static MeasurementVectorLength Assert( const std::vector< TValueType > &a, 
+              const MeasurementVectorLength l, const char *errMsg="Length Mismatch")
+    {
+    if( ((l!=0) && (a.size()!=l)) || (a.size()==0) )
+      {
+      itkGenericExceptionMacro( << errMsg );
+      }
+    else if( l == 0 )
+      {
+      return a.size();
+      }
+    return 0;
+    }
+  
+  template< class TValueType >
+  static MeasurementVectorLength Assert( const std::vector< TValueType > *a, 
+              const MeasurementVectorLength l, const char *errMsg="Length Mismatch")
+    {
+    if( ((l!=0) && (a->size()!=l)) || (a->size()==0) )
+      {
+      itkGenericExceptionMacro( << errMsg );
+      }
+    else if( l == 0 )
+      {
+      return a->size();
+      }
+    return 0;
+    }
+ };
 
 } // namespace itk
 
