@@ -65,8 +65,19 @@ int main()
 
   // Software Guide : BeginLatex
   //
+  // The length of the measurement vectors in the density function, in this
+  // case a vector of length 2, is specified using the 
+  // \code{SetMeasurementVectorSize()} method.
+  // Software Guide : EndLatex 
+  
+  // Software Guide : BeginCodeSnippet
+  densityFunction->SetMeasurementVectorSize( 2 );
+  // Software Guide : EndCodeSnippet
+  
+  // Software Guide : BeginLatex
+  //
   // We create the two distribution parameters and set them. The mean is
-  // [0, 0], and the covariance matrix is:
+  // [0, 0], and the covariance matrix is a 2 x 2 matrix:
   // \[
   // \begin{pmatrix}
   // 4 & 0 \cr
@@ -79,10 +90,11 @@ int main()
   // Software Guide : EndLatex 
 
   // Software Guide : BeginCodeSnippet
-  DensityFunctionType::MeanType mean;
+  DensityFunctionType::MeanType mean( 2 );
   mean.Fill( 0.0 );
 
   DensityFunctionType::CovarianceType cov;
+  cov.SetSize( 2, 2 );
   cov.SetIdentity();
   cov *= 4;
 
