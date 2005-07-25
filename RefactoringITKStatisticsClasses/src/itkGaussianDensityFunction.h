@@ -39,6 +39,15 @@ namespace Statistics{
  * calculations ignored. if the measurement vector to be evaluated is equal to
  * the mean, then the Evaluate method will return maximum value of
  * double and return 0 for others 
+ * 
+ * <b>Recent API changes:</b>
+ * The static const macro to get the length of a measurement vector,
+ * \c MeasurementVectorSize  has been removed to allow the length of a measurement
+ * vector to be specified at run time. It is now obtained at run time from the
+ * sample set as input. Please use the function 
+ * GetMeasurementVectorSize() to get the length. The typedef for the Mean has 
+ * changed from FixedArray to Array. The typedef for the covariance matrix
+ * has changed from Matrix to VariableSizeMatrix.
  *
  */
 
@@ -63,35 +72,19 @@ public:
   /** Length of each measurement vector */
   typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
   
-  /** DEPRECATED: The static const macro will be deprecated in a future version.
-   * Please use GetMeasurementVectorSize() instead. This constant returns the 
-   * length of a measurement vector for FixedArrays, Vectors and other fixed 
-   * containers and zero for dynamically resizable containers. The true value for 
-   * dynamically resizable containers will be obtained from the 
-   * GetMeasurementVectorSize() call. 
-   */
-  itkStaticConstMacro(VectorDimension, unsigned int,
-     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
-
   /** Type of the mean vector */
-  typedef typename MeasurementVectorTraits< 
-    MeasurementVectorType >::MeanType                   MeanType;
+  typedef Array< double >                               MeanType;
   
   /** Type of the covariance matrix */
-  typedef typename MeasurementVectorTraits< 
-         MeasurementVectorType >::RealMatrixType        CovarianceType;
+  typedef VariableSizeMatrix< double >                  CovarianceType;
 
   /** Sets the mean */
   void SetMean( const MeanType * mean )
   {
   if( this->GetMeasurementVectorSize() )
     {
-    if( MeasurementVectorTraits< MeanType >::GetSize(mean) 
-                                    != this->GetMeasurementVectorSize() )
-      {
-      itkExceptionMacro( << "Size of measurement vectors in the sample must be"
-         << " the same as the size of the mean." );
-      }
+    MeasurementVectorTraits::Assert(mean, this->GetMeasurementVectorSize(),
+      "Size of measurement vectors in the sample must the same as the size of the mean." );
     }
   else
     {
