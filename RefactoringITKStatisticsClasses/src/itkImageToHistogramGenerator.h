@@ -64,7 +64,8 @@ public:
   typedef itk::Statistics::ListSampleToHistogramGenerator< 
                          AdaptorType, 
                          ValueRealType,
-                         DenseFrequencyContainer< float > > GeneratorType;
+                         DenseFrequencyContainer< float >,
+                         AdaptorType::MeasurementVectorSize > GeneratorType;
 
   typedef typename GeneratorType::Pointer                   GeneratorPointer;
 
