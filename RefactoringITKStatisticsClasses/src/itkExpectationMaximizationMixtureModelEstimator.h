@@ -39,6 +39,13 @@ namespace Statistics{
  * required. The EM procedure terminates when the current iteration
  * reaches the maximum iteration or the model parameters converge.
  *
+ * <b>Recent API changes:</b>
+ * The static const macro to get the length of a measurement vector,
+ * \c MeasurementVectorSize  has been removed to allow the length of a measurement
+ * vector to be specified at run time. It is now obtained at run time from the
+ * sample set as input. Please use the function 
+ * GetMeasurementVectorSize() to get the length.
+ * 
  * \sa MixtureModelComponentBase, GaussianMixtureModelComponent
  */
 
@@ -61,16 +68,6 @@ public:
   typedef typename TSample::MeasurementType MeasurementType ;
   typedef typename TSample::MeasurementVectorType MeasurementVectorType ;
 
-  /** DEPRECATED: The static const macro will be deprecated in a future version.
-   * Please use GetMeasurementVectorSize() instead. This returns the length
-   * of a measurement vector for FixedArrays, Vectors and other fixed containers
-   * and zero for dynamically resizable containers. The true value for 
-   * dynamically resizable containers will be obtained from the 
-   * GetMeasurementVectorSize() call. 
-   */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
-  
   /** Type of the mixture model component base class*/
   typedef MixtureModelComponentBase< TSample > ComponentType ;
 
