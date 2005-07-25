@@ -86,6 +86,12 @@ int main()
   // Software Guide : EndLatex 
 
   // Software Guide : BeginCodeSnippet
+  // The Distance metric does not know about the length of the measurement vectors.
+  // We must set it explicitly using the \code{SetMeasurementVectorSize()} method.
+  // Software Guide : EndCodeSnippet
+  distanceMetric->SetMeasurementVectorSize( 2 );
+
+  // Software Guide : BeginCodeSnippet
   DistanceMetricType::OriginType originPoint( 2 );
   MeasurementVectorType queryPointA( 2 );
   MeasurementVectorType queryPointB( 2 );
