@@ -84,7 +84,7 @@ public:
   if( this->GetMeasurementVectorSize() )
     {
     MeasurementVectorTraits::Assert(mean, this->GetMeasurementVectorSize(),
-      "Size of measurement vectors in the sample must the same as the size of the mean." );
+      "GaussianDensityFunction::SetMean Size of measurement vectors in the sample must the same as the size of the mean." );
     }
   else
     {
