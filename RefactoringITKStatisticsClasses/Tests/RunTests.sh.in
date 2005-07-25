@@ -23,9 +23,9 @@
 ./itkStatisticsTests itkSampleClassifierWithMaskTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat
 ./itkStatisticsTests itkSampleMeanShiftClusteringFilterTest ${ITK_DATA_ROOT}/Input/sf4.png
 ./itkStatisticsTests itkSampleSelectiveMeanShiftBlurringFilterTest ${ITK_DATA_ROOT}/Input/sf4.png
-#./itkStatisticsTests itkScalarImageTextureCalculatorTest
+./itkStatisticsTests itkScalarImageTextureCalculatorTest
 ./itkStatisticsTests itkScalarImageToHistogramGeneratorTest
-#./itkStatisticsTests itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest
+./itkStatisticsTests itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest
 ./itkStatisticsTests itkSelectiveSubsampleGeneratorTest
 ./itkStatisticsTests itkSubsampleTest
 ./itkStatisticsTests itkWeightedMeanCalculatorTest

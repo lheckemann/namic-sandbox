@@ -52,8 +52,8 @@ void RegisterTests()
   REGISTER_TEST(itkSampleSelectiveMeanShiftBlurringFilterTest) ;
   REGISTER_TEST(itkSelectiveSubsampleGeneratorTest) ;
   REGISTER_TEST(itkScalarImageToHistogramGeneratorTest);
-//  REGISTER_TEST(itkScalarImageTextureCalculatorTest);
-//  REGISTER_TEST(itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest);
+  REGISTER_TEST(itkScalarImageTextureCalculatorTest);
+  REGISTER_TEST(itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest);
 //  REGISTER_TEST(itkStatisticsAlgorithmTest);
   REGISTER_TEST(itkSubsampleTest);
   REGISTER_TEST( itkVariableDimensionHistogramTest );
