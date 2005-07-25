@@ -46,6 +46,12 @@ namespace Statistics{
  * setting it to 0 or leave it alone after instantiating this class), the
  * evolving process runs until it converges.
  *
+ * <b>Recent API changes:</b>
+ * The static const macro to get the length of a measurement vector,
+ * \c MeasurementVectorSize  has been removed to allow the length of a measurement
+ * vector to be specified at run time. It is now obtained at run time from the
+ * sample set as input. 
+ *
  * \sa MeanShiftModeCacheMethod, SampleMeanShiftBlurringFilter,
  * SampleSelectiveMeanShiftBlurringFilter, SampleMeanShiftClusteringFilter
  */
@@ -70,16 +76,6 @@ public:
   typedef typename TSample::MeasurementType MeasurementType ;
   typedef typename TSample::InstanceIdentifier InstanceIdentifier ;
 
-  /** DEPRECATED: The static const macro will be deprecated in a future version.
-   * Please use GetMeasurementVectorSize() instead. This constant returns the 
-   * length of a measurement vector for FixedArrays, Vectors and other fixed 
-   * containers and zero for dynamically resizable containers. The true value for 
-   * dynamically resizable containers will be obtained from the 
-   * GetMeasurementVectorSize() call. 
-   */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
-
   typedef std::vector< InstanceIdentifier > SearchResultVectorType ;
   typedef MeanShiftModeCacheMethod< MeasurementVectorType > CacheMethodType ;
 
@@ -101,6 +97,19 @@ public:
 
   /** Returns the covariance matrix of the target sample data */ 
   MeasurementVectorType Evolve(MeasurementVectorType instance) ;
+
+  /** Get the length of a measurement vector */
+  virtual MeasurementVectorSizeType GetMeasurementVectorSize() const
+    {
+    if( m_InputSample.GetPointer() )
+      {
+      return m_InputSample.GetPointer()->GetMeasurementVectorSize();
+      }
+    else
+      {
+      return 0;
+      }
+    }
 
 protected:
   MeanShiftModeSeekerBase() ;
