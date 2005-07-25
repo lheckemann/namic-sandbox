@@ -4,7 +4,7 @@
 ./itkStatisticsTests itkDenseFrequencyContainerTest  itkDenseFrequencyContainerTest
 #./itkStatisticsTests itkExpectationMaximizationMixtureModelEstimatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat
 #./itkStatisticsTests itkGoodnessOfFitMixtureModelCostFunctionTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat
-#./itkStatisticsTests itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat
+./itkStatisticsTests itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat
 ./itkStatisticsTests itkHistogramTest 
 ./itkStatisticsTests itkImageToListAdaptorTest
 ./itkStatisticsTests itkImageToCooccurrenceListAdaptorTest ${ITK_DATA_ROOT}/Input/HeadMRVolume.mhd
@@ -14,7 +14,7 @@
 ./itkStatisticsTests itkListSampleTest 4
 ./itkStatisticsTests itkListSampleToHistogramFilterTest
 ./itkStatisticsTests itkListSampleToHistogramGeneratorTest
-#./itkStatisticsTests itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest
+./itkStatisticsTests itkMaskedScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest
 ./itkStatisticsTests itkMeanCalculatorTest
 ./itkStatisticsTests itkMembershipSampleTest
 ./itkStatisticsTests itkNeighborhoodSamplerTest
@@ -24,7 +24,7 @@
 ./itkStatisticsTests itkSampleMeanShiftClusteringFilterTest ${ITK_DATA_ROOT}/Input/sf4.png
 ./itkStatisticsTests itkSampleSelectiveMeanShiftBlurringFilterTest ${ITK_DATA_ROOT}/Input/sf4.png
 #./itkStatisticsTests itkScalarImageTextureCalculatorTest
-#./itkStatisticsTests itkScalarImageToHistogramGeneratorTest
+./itkStatisticsTests itkScalarImageToHistogramGeneratorTest
 #./itkStatisticsTests itkScalarImageToGreyLevelCooccurrenceMatrixGeneratorTest
 ./itkStatisticsTests itkSelectiveSubsampleGeneratorTest
 ./itkStatisticsTests itkSubsampleTest
