@@ -29,8 +29,6 @@ GaussianDensityFunction< TMeasurementVector >
   m_Mean = 0 ;
   m_Covariance = 0 ;
   m_PreFactor = 0.0 ;
-  this->SetMeasurementVectorSize( MeasurementVectorTraits< 
-      MeasurementVectorType >::GetSize() );
 }
 
 template < class TMeasurementVector >
@@ -121,10 +119,10 @@ GaussianDensityFunction< TMeasurementVector >
 
   const MeasurementVectorSizeType measurementVectorSize = 
                           this->GetMeasurementVectorSize();
-  MeanType tempVector = MeasurementVectorTraits< 
-          MeanType >::SetSize( measurementVectorSize );
-  MeanType tempVector2 = MeasurementVectorTraits< 
-          MeanType >::SetSize( measurementVectorSize );
+  MeanType tempVector;
+  MeasurementVectorTraits::SetLength( tempVector, measurementVectorSize );
+  MeanType tempVector2;
+  MeasurementVectorTraits::SetLength( tempVector2, measurementVectorSize );
 
   if ( !m_IsCovarianceZero )
     {
