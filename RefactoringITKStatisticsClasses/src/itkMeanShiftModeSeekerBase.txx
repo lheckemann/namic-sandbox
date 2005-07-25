@@ -94,11 +94,15 @@ typename MeanShiftModeSeekerBase< TSample >::MeasurementVectorType
 MeanShiftModeSeekerBase< TSample >
 ::Evolve(MeasurementVectorType instance)
 {
-  MeasurementVectorSizeType measurementVectorLength = 
-    MeasurementVectorTraits< MeasurementVectorType >::GetSize( &instance );
+  if( m_InputSample->GetMeasurementVectorSize() )
+    {
+    MeasurementVectorTraits::Assert( instance, 
+      m_InputSample->GetMeasurementVectorSize(), 
+      "Length mismatch: MeanShiftModeSeekerBase::Evolve" );
+    }
+
   MeasurementVectorType queryPoint = instance ;
-  MeasurementVectorType newPoint = MeasurementVectorTraits< 
-    MeasurementVectorType >::SetSize( measurementVectorLength );
+  MeasurementVectorType newPoint;
   MeasurementVectorType previousPoint = queryPoint ;
 
   unsigned int currentIteration = 0 ;
