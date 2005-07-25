@@ -55,6 +55,7 @@ int itkSelectiveSubsampleGeneratorTest( int, char* [] )
   typedef itk::Statistics::ListSample< ClassMaskVectorType > 
     ClassMaskSampleType ;
   ClassMaskSampleType::Pointer mask = ClassMaskSampleType::New() ;
+  mask->SetMeasurementVectorSize( 1 );
   ClassMaskVectorType m ;
   m[0] = 0 ;
   mask->PushBack( m ) ;
