@@ -4,15 +4,15 @@ SET( CHANGED_STATISTICS_SOURCES "${ReworkStatistics_SOURCE_DIR}/src" )
 
 INCLUDE_DIRECTORIES( BEFORE ${CHANGED_STATISTICS_SOURCES} )
 
-#ADD_TEST(itkStatisticsPrintTest ${STATISTICS_TESTS} itkStatisticsPrintTest)
-#ADD_TEST(itkStatisticsAlgorithmTest ${STATISTICS_TESTS} itkStatisticsAlgorithmTest)
+ADD_TEST(itkStatisticsPrintTest ${STATISTICS_TESTS} itkStatisticsPrintTest)
+ADD_TEST(itkStatisticsAlgorithmTest ${STATISTICS_TESTS} itkStatisticsAlgorithmTest)
 ADD_TEST(itkCovarianceCalculatorTest ${STATISTICS_TESTS} itkCovarianceCalculatorTest)
 ADD_TEST(itkDenseFrequencyContainerTest ${STATISTICS_TESTS} itkDenseFrequencyContainerTest)
 ADD_TEST(itkExpectationMaximizationMixtureModelEstimatorTest 
          ${STATISTICS_TESTS} 
          itkExpectationMaximizationMixtureModelEstimatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
-#ADD_TEST(itkGoodnessOfFitMixtureModelCostFunctionTest ${STATISTICS_TESTS} 
-#         itkGoodnessOfFitMixtureModelCostFunctionTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
+ADD_TEST(itkGoodnessOfFitMixtureModelCostFunctionTest ${STATISTICS_TESTS} 
+         itkGoodnessOfFitMixtureModelCostFunctionTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
 ADD_TEST(itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest ${STATISTICS_TESTS} 
          itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
 ADD_TEST(itkHistogramTest ${STATISTICS_TESTS} itkHistogramTest)
@@ -53,12 +53,12 @@ ADD_TEST(itkWeightedCovarianceCalculatorTest ${STATISTICS_TESTS}
 
 
 SET(Statistics_SRCS
-#itkStatisticsPrintTest.cxx
-#itkStatisticsAlgorithmTest.cxx
+itkStatisticsPrintTest.cxx
+itkStatisticsAlgorithmTest.cxx
 itkCovarianceCalculatorTest.cxx
 itkDenseFrequencyContainerTest.cxx
 itkExpectationMaximizationMixtureModelEstimatorTest.cxx
-#itkGoodnessOfFitMixtureModelCostFunctionTest.cxx
+itkGoodnessOfFitMixtureModelCostFunctionTest.cxx
 itkGreyLevelCooccurrenceMatrixTextureCoefficientsCalculatorTest.cxx 
 itkHistogramTest.cxx
 itkVariableDimensionHistogramTest.cxx
