@@ -47,6 +47,12 @@ namespace itk{
  * Except for the modifications mentioned above, the basic behavior and
  * methods are identical to those of SampleClassifier.
  * 
+ * <b>Recent API changes:</b>
+ * The static const macro to get the length of a measurement vector,
+ * \c MeasurementVectorSize  has been removed to allow the length of a measurement
+ * vector to be specified at run time. Please use the function 
+ * GetMeasurementVectorSize() instead.
+ *
  * \sa SampleClassifier
  */
 
@@ -75,17 +81,6 @@ public:
   typedef typename TSample::MeasurementVectorType MeasurementVectorType ;
 
   
-  /** DEPRECATED: The static const macro will be deprecated in a future version.
-   * Please use GetMeasurementVectorSize() instead. This constant returns the 
-   * length of a measurement vector for FixedArrays, Vectors and other fixed 
-   * containers and zero for dynamically resizable containers. The true value for 
-   * dynamically resizable containers will be obtained from the 
-   * GetMeasurementVectorSize() call. 
-   */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
-
-
   /** typedefs from Superclass */
   typedef typename Superclass::MembershipFunctionPointerVector 
     MembershipFunctionPointerVector ;
