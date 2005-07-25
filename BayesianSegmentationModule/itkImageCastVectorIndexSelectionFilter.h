@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkImageCastVectorIndexSelectionFilter.h,v $
   Language:  C++
-  Date:      $Date: 2003/10/30 21:49:25 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2005/07/25 21:49:25 $
+  Version:   $Revision: 1.0 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.

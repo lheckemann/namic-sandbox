@@ -30,8 +30,8 @@ PURPOSE. See the above copyright notices for more information.
 #include "itkImageCastVectorIndexSelectionFilter.h"
 #include "itkCurvatureAnisotropicDiffusionImageFilter.h"
 #include "itkMaximumDecisionRule.h"
-#include "itkHistogramDensityFunction.h"
 #include "itkImageToHistogramGenerator.h"
+#include "itkHistogramDensityFunction.h"
 #include "itkImageFileWriter.h" 
     
 int main( int argc, char * argv [] )

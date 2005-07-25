@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkHistogramDensityFunction.txx,v $
   Language:  C++
-  Date:      $Date: 2003/12/15 01:00:46 $
-  Version:   $Revision: 1.20 $
+  Date:      $Date: 2005/07/25 01:00:46 $
+  Version:   $Revision: 1.0 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
