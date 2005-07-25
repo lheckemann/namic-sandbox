@@ -19,8 +19,8 @@
 ./itkStatisticsTests itkMembershipSampleTest
 ./itkStatisticsTests itkNeighborhoodSamplerTest
 ./itkStatisticsTests itkMembershipSampleGeneratorTest
-#./itkStatisticsTests itkSampleClassifierTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat
-#./itkStatisticsTests itkSampleClassifierWithMaskTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat
+./itkStatisticsTests itkSampleClassifierTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat
+./itkStatisticsTests itkSampleClassifierWithMaskTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat
 #./itkStatisticsTests itkSampleMeanShiftClusteringFilterTest ${ITK_DATA_ROOT}/Input/sf4.png
 #./itkStatisticsTests itkSampleSelectiveMeanShiftBlurringFilterTest ${ITK_DATA_ROOT}/Input/sf4.png
 #./itkStatisticsTests itkScalarImageTextureCalculatorTest
