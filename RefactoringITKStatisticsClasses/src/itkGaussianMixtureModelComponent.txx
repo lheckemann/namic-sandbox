@@ -29,13 +29,9 @@ template< class TSample >
 GaussianMixtureModelComponent< TSample >
 ::GaussianMixtureModelComponent()
 {
-  m_Mean.Fill(NumericTraits< double >::NonpositiveMin()) ;
   m_MeanEstimator = MeanEstimatorType::New() ;
-  m_Covariance.Fill(NumericTraits< double >::NonpositiveMin()) ;
   m_CovarianceEstimator = CovarianceEstimatorType::New() ;
-  m_CovarianceEstimator->SetMean(&m_Mean) ;
   m_GaussianDensityFunction = NativeMembershipFunctionType::New() ;
-  m_GaussianDensityFunction->SetMean(&m_Mean) ;
   this->SetMembershipFunction((MembershipFunctionType*)
                               m_GaussianDensityFunction.GetPointer()) ;
 }
@@ -67,8 +63,16 @@ GaussianMixtureModelComponent< TSample >
   WeightArrayType* weights = this->GetWeights() ;
   m_MeanEstimator->SetWeights(weights) ;
   m_CovarianceEstimator->SetWeights(weights) ;
+  const MeasurementVectorSizeType measurementVectorLength = 
+            sample->GetMeasurementVectorSize();
   m_GaussianDensityFunction->SetMeasurementVectorSize( 
-                  sample->GetMeasurementVectorSize() );
+                                    measurementVectorLength );
+  MeasurementVectorTraits::SetLength( m_Mean, measurementVectorLength );
+  m_Covariance.SetSize( measurementVectorLength, measurementVectorLength );
+  m_Mean.Fill(NumericTraits< double >::NonpositiveMin()) ;
+  m_Covariance.Fill(NumericTraits< double >::NonpositiveMin()) ;
+  m_CovarianceEstimator->SetMean(&m_Mean) ;
+  m_GaussianDensityFunction->SetMean(&m_Mean) ;
 }
 
 template< class TSample >
