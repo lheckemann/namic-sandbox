@@ -19,6 +19,7 @@
 
 #include "itkNumericTraits.h"
 #include "itkDistanceMetric.h"
+#include "itkMeasurementVectorTraits.h"
 
 namespace itk{ 
 namespace Statistics{
