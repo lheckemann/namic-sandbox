@@ -20,6 +20,7 @@
 
 #include "itkSampleMeanShiftBlurringFilter.h"
 #include "itkArray.h"
+#include <vector>
 
 namespace itk{ 
 namespace Statistics{
@@ -39,7 +40,15 @@ namespace Statistics{
  * components of the selection vector whose flag value is true will be
  * blurred.
  * 
- * \sa MeanShiftModeSeekerBase, SampleMeanShiftBlurringFilter
+ * <b>Recent API changes:</b>
+ * The static const macro to get the length of a measurement vector,
+ * \c MeasurementVectorSize  has been removed to allow the length of a measurement
+ * vector to be specified at run time. Please use the function 
+ * GetMeasurementVectorSize() instead. It is now obtained at run time from the
+ * sample set as input. The typedef for \c ComponentSelectionsType
+ * has changed from FixedArray to \c std::vector.
+ *
+ * \sa MeanModeSeekerBase, SampleMeanShiftBlurringFilter
  */
 
 template< class TSample >
@@ -63,22 +72,9 @@ public:
   typedef typename Superclass::MeanShiftModeSeekerType 
   MeanShiftModeSeekerType ;
   
-   /** DEPRECATED: The static const macro will be deprecated in a future version.
-   * Please use GetMeasurementVectorSize() instead. This constant returns the 
-   * length of a measurement vector for FixedArrays, Vectors and other fixed 
-   * containers and zero for dynamically resizable containers. The true value for 
-   * dynamically resizable containers will be obtained from the 
-   * GetMeasurementVectorSize() call. 
-   */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
 
- 
-
-  /** Typedef for selecting components to be blurred .. */
-  typedef typename MeasurementVectorTraits< MeasurementVectorType 
-    >::BooleanArrayType                            ComponentSelectionsType; 
-
+  /** Typedef for selecting components to be blurred */
+  typedef std::vector< bool > ComponentSelectionsType; 
 
   /** Set/Gets the vector of flags that indicate which components
    * are selected for blurring */
