@@ -35,6 +35,13 @@ namespace Statistics{
  * hyper-sphere that is defined by a center and a radius. To set
  * the center, use SetCenter method, and to set radius, use SetRadius
  * method. The distance metric is Euclidean one.
+ * 
+ * <b>Recent API changes:</b>
+ * The static const macro to get the length of a measurement vector,
+ * \c MeasurementVectorSize  has been removed to allow the length of a measurement
+ * vector to be specified at run time. Please use the function 
+ * GetMeasurementVectorSize() to get the length. The typedef for \c CenterType
+ * has changed from FixedArray to Array
  */
 
 template < class TSample >
@@ -63,16 +70,6 @@ public:
   typedef typename TSample::FrequencyType FrequencyType ;
   typedef typename TSample::InstanceIdentifier InstanceIdentifier ;
 
-  /** DEPRECATED: The static const macro will be deprecated in a future version.
-   * Please use GetMeasurementVectorSize() instead. This constant returns the 
-   * length of a measurement vector for FixedArrays, Vectors and other fixed 
-   * containers and zero for dynamically resizable containers. The true value for 
-   * dynamically resizable containers will be obtained from the 
-   * GetMeasurementVectorSize() call. 
-   */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-     MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength);
-
   /** typedefs from the superclass */
   typedef typename Superclass::InputSampleType InputSampleType ;
 
@@ -83,9 +80,7 @@ public:
   typedef double RadiusType ;
 
   /** Type of the array of the radii */ 
-  typedef typename MeasurementVectorTraits< MeasurementVectorType 
-                                 >::RealArrayType                 CenterType;
-  //typedef FixedArray< double, itkGetStaticConstMacro(MeasurementVectorSize) > CenterType ;
+  typedef Array< double > CenterType;
 
   /** Sets the center of the spherical kernel */
   void SetCenter(CenterType* center)
