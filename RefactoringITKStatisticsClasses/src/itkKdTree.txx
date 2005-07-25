@@ -197,9 +197,11 @@ KdTree< TSample >
 
   m_NearestNeighbors.resize(k) ;
 
-  MeasurementVectorType lowerBound( m_MeasurementVectorSize ) ;
-  MeasurementVectorType upperBound( m_MeasurementVectorSize ) ;
-
+  MeasurementVectorType lowerBound;
+  MeasurementVectorType upperBound;
+  MeasurementVectorTraits::SetLength( lowerBound, m_MeasurementVectorSize );
+  MeasurementVectorTraits::SetLength( upperBound, m_MeasurementVectorSize );
+  
   for (unsigned int d = 0 ; d < m_MeasurementVectorSize ; d++)
     {
     lowerBound[d] = NumericTraits< MeasurementType >::NonpositiveMin() ;
@@ -323,9 +325,11 @@ KdTree< TSample >
 ::Search(MeasurementVectorType &query, double radius,
          InstanceIdentifierVectorType& result) const
 {
-  MeasurementVectorType lowerBound( m_MeasurementVectorSize ) ;
-  MeasurementVectorType upperBound( m_MeasurementVectorSize ) ;
-
+  MeasurementVectorType lowerBound;
+  MeasurementVectorType upperBound;
+  MeasurementVectorTraits::SetLength( lowerBound, m_MeasurementVectorSize );
+  MeasurementVectorTraits::SetLength( upperBound, m_MeasurementVectorSize );
+  
   for (unsigned int d = 0 ; d < this->m_MeasurementVectorSize ; d++)
     {
     lowerBound[d] = NumericTraits< MeasurementType >::NonpositiveMin() ;
