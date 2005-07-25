@@ -24,10 +24,6 @@ template< class TSample >
 SampleSelectiveMeanShiftBlurringFilter< TSample >
 ::SampleSelectiveMeanShiftBlurringFilter()
 {
-  m_ComponentSelections = MeasurementVectorTraits< ComponentSelectionsType 
-    >::SetSize( MeasurementVectorTraits< ComponentSelectionsType 
-        >::GetSize( &m_ComponentSelections ));
-  m_ComponentSelections.Fill( true );
 }
 
 template< class TSample >
@@ -43,8 +39,13 @@ SampleSelectiveMeanShiftBlurringFilter< TSample >
 {
   Superclass::PrintSelf(os,indent);
   
-  os << indent << "Component selections: " 
-     << m_ComponentSelections << std::endl ;
+  os << indent << "Component selections:  [";
+  for( unsigned int i=0; i< MeasurementVectorTraits::GetLength( 
+                                            m_ComponentSelections ); i++ )
+    {
+    os << m_ComponentSelections[i] << " " << std::endl;
+    }
+  os << "]" << std::endl;
 }
 
 template< class TSample >
@@ -52,14 +53,12 @@ inline void
 SampleSelectiveMeanShiftBlurringFilter< TSample >
 ::SetComponentSelections(ComponentSelectionsType selections)
 {
-  if( this->GetMeasurementVectorSize() && 
-    ( MeasurementVectorTraits< ComponentSelectionsType >::GetSize( 
-             &selections ) != this->GetMeasurementVectorSize() ) )
+  if( this->GetMeasurementVectorSize() )
     {
-    itkExceptionMacro( << "Size of measurement vectors in the sample must "
-        << "be the same as the size of the component selections array." );
+    MeasurementVectorTraits::Assert( selections, this->GetMeasurementVectorSize(),
+    "Size of measurement vectors in the sample must be the same as the size of the component selections array.");
     }
-
+  
   if ( m_ComponentSelections != selections )
     {
     m_ComponentSelections = selections ;
@@ -74,15 +73,17 @@ SampleSelectiveMeanShiftBlurringFilter< TSample >
 {
   // Assert at run time that the given mean has the same length as 
   // measurement vectors in the sample and that the size is non-zero.
-  if( MeasurementVectorTraits< ComponentSelectionsType 
-                      >::GetSize( &m_ComponentSelections ))
+  if( MeasurementVectorTraits::GetLength(m_ComponentSelections ))
     {
-    m_ComponentSelections = MeasurementVectorTraits< ComponentSelectionsType 
-      >::SetSize( this->GetMeasurementVectorSize() );
-    m_ComponentSelections.Fill( true );
+    MeasurementVectorTraits::SetLength( m_ComponentSelections, 
+                              this->GetMeasurementVectorSize() );
+    for( unsigned int i=0; i< this->GetMeasurementVectorSize(); i++ )
+      {
+      m_ComponentSelections[i] = true;
+      }
     }
   else if( !(this->GetMeasurementVectorSize() ) || 
-      ( m_ComponentSelections.Size() != this->GetMeasurementVectorSize() ) )
+      ( m_ComponentSelections.size() != this->GetMeasurementVectorSize() ) )
     {
     itkExceptionMacro( << "Size of measurement vectors in the sample must be "
         << "the same as the size of the component selections array." );
@@ -91,8 +92,8 @@ SampleSelectiveMeanShiftBlurringFilter< TSample >
   
   MeasurementVectorType queryPoint ;
   MeasurementVectorType modePoint ;
-  MeasurementVectorType finalPoint = MeasurementVectorTraits< MeasurementVectorType 
-    >::SetSize( this->GetMeasurementVectorSize() );
+  MeasurementVectorType finalPoint;
+  MeasurementVectorTraits::SetLength( finalPoint, this->GetMeasurementVectorSize() );
 
   typename Superclass::InputSampleType::ConstIterator iter = this->GetInputSample()->Begin() ;
   typename Superclass::InputSampleType::ConstIterator end = this->GetInputSample()->End() ;
