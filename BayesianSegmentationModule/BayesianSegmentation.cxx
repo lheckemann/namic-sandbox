@@ -425,8 +425,6 @@ int main( int argc, char * argv [] )
   const HistogramType * histogram = histogramGenerator->GetOutput();
   SizeType histogramSize;
   FrequencyType frequency;
-  HistogramType::ConstIterator itrHistogram = histogram->Begin();
-  HistogramType::ConstIterator endHistogram = histogram->End();
 
   histogramSize[0] = 256;      // number of bins for the gray levels
   histogramSize[1] = nClasses; // number of bins for the labels = number of labels
@@ -435,7 +433,14 @@ int main( int argc, char * argv [] )
   histogramGenerator->SetInput( joinFilter->GetOutput() );
   histogramGenerator->Compute();
 
+  HistogramType::ConstIterator itrHistogram = histogram->Begin();
+  HistogramType::ConstIterator endHistogram = histogram->End();
+
   int counter = 0;
+
+  std::cout << "begin = " <<  itrHistogram.GetInstanceIdentifier() << std::endl;
+  std::cout << "end   = " <<  endHistogram.GetInstanceIdentifier() << std::endl;
+
   while( itrHistogram != endHistogram )
     {
     frequency = itrHistogram.GetFrequency();
