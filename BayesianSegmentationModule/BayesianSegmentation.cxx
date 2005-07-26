@@ -402,6 +402,7 @@ int main( int argc, char * argv [] )
   
   
   // JOIN IMAGE AND LABEL MAP
+  int nStatRefineIterations = 1;  // USER VARIABLE (DEFAULT = 1)
   typedef itk::JoinImageFilter< RawDataImageType, RawDataImageType > JoinFilterType;
   typedef JoinFilterType::OutputImageType JoinImageType;
 
@@ -442,12 +443,12 @@ int main( int argc, char * argv [] )
     std::cout << frequency << std::endl;
     ++counter;
     }
+  std::cout << "The counter (measuring iteration through the histogram) reads: " << counter << std::endl;
 
-  std::cout << "The counter reads: " << counter << std::endl;
-  std::cout << histogram->GetFrequency( 0, 1 ) << std::endl;
-  std::cout << histogram->GetFrequency( 1, 1 ) << std::endl;
-  std::cout << histogram->GetFrequency( 2, 1 ) << std::endl;
-  std::cout << histogram->GetFrequency( 3, 1 ) << std::endl;
+  for ( unsigned int i = 0; i < nClasses; ++i )
+    {
+    std::cout << histogram->GetFrequency( i, 1 ) << std::endl;
+    }
 
 
   // MEMBERSHIP FUNCTION
