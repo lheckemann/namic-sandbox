@@ -58,9 +58,13 @@ public:
   virtual double Evaluate(const MeasurementVectorType &measurement) const;
   virtual void SetHistogram(const HistogramType * histogram);
  
-  /**  Set/Get the historgram */
+  /**  Set/Get the histogram */
   itkGetConstObjectMacro( Histogram, HistogramType );  
  
+  /** Set/Get the class number to use from the multi-dimensional Histogram */
+  itkSetMacro( Class, unsigned int );
+  itkGetMacro( Class, unsigned int );
+  
 protected:
   HistogramDensityFunction(void);
   virtual ~HistogramDensityFunction(void);
@@ -71,6 +75,8 @@ protected:
 
   HistogramConstPointer      m_Histogram;
   ArrayType                  m_FrequencyPerLabel;
+
+  unsigned int               m_Class;
 
 } ; // end of class
 

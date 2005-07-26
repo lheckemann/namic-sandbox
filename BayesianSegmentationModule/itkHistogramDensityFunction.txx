@@ -26,6 +26,7 @@ template < class TMeasurementVector, class THistogram >
 HistogramDensityFunction< TMeasurementVector, THistogram >
 ::HistogramDensityFunction()
 {
+  m_Class = 0;
 }
 
 template < class TMeasurementVector, class THistogram >
@@ -59,8 +60,15 @@ inline double
 HistogramDensityFunction< TMeasurementVector, THistogram >
 ::Evaluate(const MeasurementVectorType &measurement) const
 { 
-  unsigned int bin = 0;
-  const double frequency = m_Histogram->GetFrequency( bin );
+  typedef typename THistogram::MeasurementVectorType HistogramMeasurementVectorType;
+  typedef typename THistogram::IndexType             HistogramIndexType;
+
+  HistogramMeasurementVectorType m;
+  m[0] = measurement[0];
+  m[1] = m_Class;
+  
+  HistogramIndexType index = m_Histogram->GetIndex( m );
+  const double frequency = m_Histogram->GetFrequency( index );
   const double totalFrequency = m_Histogram->GetTotalFrequency();
   const double probability = frequency / totalFrequency;
   return probability;
