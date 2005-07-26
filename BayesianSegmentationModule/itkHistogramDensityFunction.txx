@@ -69,7 +69,11 @@ HistogramDensityFunction< TMeasurementVector, THistogram >
   
   HistogramIndexType index = m_Histogram->GetIndex( m );
   const double frequency = m_Histogram->GetFrequency( index );
-  const double totalFrequency = m_Histogram->GetTotalFrequency();
+
+  // REMEMBER AFTER THE STATISTICS FRAMEWORK IS REFACTORED, THE NUMBER "1"
+  // IN THE FOLLOWING LINE SHOULD BE CHANGED FOR : length-1 of the measurement
+  // vector.
+  const double totalFrequency = m_Histogram->GetFrequency( m_Class, 1 );
   const double probability = frequency / totalFrequency;
   return probability;
 }
