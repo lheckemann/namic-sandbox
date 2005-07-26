@@ -1,6 +1,31 @@
 This directory is maintained by 
 
 Andriy Fedorov, College of William and Mary/BWH
+Please send questions, bugs or comments to fedorov AT bwh DOT harvard DOT edu
+
+This is a research code, and is under development. 
+
+The code requires PETSc and MPI to be installed prior to compiling the
+software. Please do that, and change the CMakeLists.txt file appropriately to
+reflect the paths specific to your system. The code has been compiled and
+tested with PETSc 2.3.0 configured with --download-f-blas-lapack=1, and with
+LAM MPI v7.1. The ITK FEM deformation code is #defined because of the
+unresolved problems in the package at the time the MICCAI Open source workshop
+deadline has been approaching.
+
+The datasets are located in the Data directory. Once you have the system set
+up, you can compile the main driver code, mesher-driver. You can run the test
+case as follows:
+
+ bin/mesher-driver sphere Data/sphere.mhd 2
+
+This will save the resulting 2 level resolution volume mesh in 
+/tmp/sphere-deformed.vtk. Please email questions or comments
+
+Please check the NAMIC SandBox regularly as the code will be updated until its
+transition to the stable ITK tree.
+
+-----------------------------------------------------------------------------
 
 The two current classes in the development are (more detailes are available 
 in the source files):
