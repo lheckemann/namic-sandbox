@@ -37,10 +37,10 @@ PURPOSE. See the above copyright notices for more information.
 int main( int argc, char * argv [] )
   {
 
-  if( argc < 3 )
+  if( argc < 2 )
     {
     std::cerr << "Missing command line arguments" << std::endl;
-    std::cerr << "Parameters: rawDataFileName outputFileName nClasses" << std::endl;
+    std::cerr << "Parameters: rawDataFileName nClasses" << std::endl;
     return -1;
     }
 
@@ -78,7 +78,7 @@ int main( int argc, char * argv [] )
 
 
   // K-MEANS CLASSIFICATION
-  unsigned int nClasses = atoi( argv[3] );
+  unsigned int nClasses = atoi( argv[2] );
   const unsigned int useNonContiguousLabels = false;
   typedef itk::ScalarImageKmeansImageFilter< RawDataImageType > KMeansFilterType;
 
@@ -416,8 +416,31 @@ std::cout << "Label image in initial section " << itrLabelImage.Get() << std::en
 std::cout << "Posteriors after decision rule in initial section " << itrPosteriorImage.Get() << std::endl; //debugging
 
 
+  // SETUP FILE WRITER
+  typedef itk::ImageFileWriter< LabelOutputImageType > LabelWriterType;
+
+  LabelWriterType::Pointer labelWriter = LabelWriterType::New();
+
+
+  // WRITE LABELMAP TO FILE
+  char * labelmapFileName = "z://src/BayesianSegmentationModule/labelsInitial.png";
+  labelWriter->SetInput( labels );
+  labelWriter->SetFileName( labelmapFileName );
+  try
+    {
+    labelWriter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Problem encoutered while writing image file : "
+      << argv[2] << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
   // SETUP ITERATIVE STATISTICAL REFINEMENT
-  int nStatRefineIterations = 1; // USER VARIABLE (DEFAULT = 1)
+  int nStatRefineIterations = 4; // USER VARIABLE (DEFAULT = 1)
 
   // SETUP JOIN IMAGE FILTER
   typedef itk::JoinImageFilter< RawDataImageType, RawDataImageType > JoinFilterType;
@@ -485,12 +508,13 @@ std::cout << "Posteriors after decision rule in initial section " << itrPosterio
       mv.Fill( itrRawDataImage.Get() );
       for ( unsigned int i = 0; i < nClasses; i++ )
         {
-        histogramMembershipFunction->SetClass( itrLabelImage.Get() );
+        histogramMembershipFunction->SetClass( i );
         membershipArrayPixel[i] = histogramMembershipFunction->Evaluate( mv );
         }
       itrDataImage.Set( membershipArrayPixel );
       ++itrLabelImage;
       ++itrRawDataImage;
+//std::cout << "Data in statistical loop " << itrDataImage.Get() << std::endl; //debugging
       ++itrDataImage;
       }
 --itrLabelImage;
@@ -589,11 +613,7 @@ std::cout << "Labels after decision rule in statistical loop " << itrLabelImage.
 
 
   // WRITE LABELMAP TO FILE
-  const char * labelmapFileName = argv[2];
-  typedef itk::ImageFileWriter< LabelOutputImageType > LabelWriterType;
-
-  LabelWriterType::Pointer labelWriter = LabelWriterType::New();
-
+  labelmapFileName = "z://src/BayesianSegmentationModule/labelsFinal.png";
   labelWriter->SetInput( labels );
   labelWriter->SetFileName( labelmapFileName );
   try
