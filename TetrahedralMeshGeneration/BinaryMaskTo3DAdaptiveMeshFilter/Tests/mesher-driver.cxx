@@ -116,10 +116,12 @@ int main(int argc, char** argv){
   std::vector<MeshType::PointType> mesh_out_points;
   i = 0; pos = 0;
   inPointsI = mesh_in->GetPoints()->Begin();
+  unsigned cut_plane;
+  cut_plane = (reader->GetOutput())->GetLargestPossibleRegion().GetSize()[0]/2;
   while(inPointsI != mesh_in->GetPoints()->End()){
     MeshType::PointType curPoint;
     curPoint = inPointsI.Value();
-    if(curPoint[0]>=115){
+    if(curPoint[0]>=cut_plane){
       id2pos[i] = pos;
       pos++;
       mesh_out_points.push_back(curPoint);
