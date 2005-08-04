@@ -49,6 +49,54 @@ TensorStatistics<T, dimension>
 template<class T, unsigned int dimension>
 void
 TensorStatistics<T, dimension>
+::ComputeWeightedAve(const ScalarListPointerType weightList,
+                     const TensorListPointerType tensorList,
+                     TensorType & weightedAve) const
+{
+  TangentType tangent(0.0), initialTangent;
+  T lastNormSquared, normSquared, initialNormSquared;
+  T currStepSize = stepSize;
+  int i;
+
+  if(tensorList->Size() == 0 ||
+     tensorList->Size() != weightList->Size())
+    return;
+
+  weightedAve = tensorList->ElementAt(0);
+
+  for(i = 0; i < tensorList->Size(); i++)
+    tangent += weightList->ElementAt(i) *
+      tensGeometry->LogMap(weightedAve, tensorList->ElementAt(i));
+
+  initialTangent = tangent;
+
+  initialNormSquared = tensGeometry->NormSquared(weightedAve, tangent);
+  lastNormSquared = initialNormSquared;
+  while(lastNormSquared >= EPSILON)
+  {
+    weightedAve = tensGeometry->ExpMap(weightedAve, tangent * currStepSize);
+
+    tangent.Fill(0.0);
+    for(i = 0; i < tensorList->Size(); i++)
+      tangent += weightList->ElementAt(i) *
+        tensGeometry->LogMap(weightedAve, tensorList->ElementAt(i));
+
+    normSquared = tensGeometry->NormSquared(weightedAve, tangent);
+    if(normSquared >= lastNormSquared)
+    {
+      currStepSize *= 0.5;
+      weightedAve = tensorList->ElementAt(0);
+      lastNormSquared = initialNormSquared;
+      tangent = initialTangent;
+    }
+    else
+      lastNormSquared = normSquared;
+  }
+}
+
+template<class T, unsigned int dimension>
+void
+TensorStatistics<T, dimension>
 ::ComputeMeanAndCovariance(const TensorListPointerType tensorList,
                            TensorType & mean,
                            CovarianceType & covariance) const
