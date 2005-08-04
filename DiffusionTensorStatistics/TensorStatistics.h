@@ -32,6 +32,9 @@ public:
   typedef itk::VectorContainer<unsigned int, TensorType> TensorListType;
   typedef typename TensorListType::Pointer TensorListPointerType;
 
+  typedef itk::VectorContainer<unsigned int, T> ScalarListType;
+  typedef typename ScalarListType::Pointer ScalarListPointerType;
+
   typedef itk::SymmetricSecondRankTensor<T, dimension * (dimension + 1) / 2>
     CovarianceType;
   typedef typename CovarianceType::EigenValuesArrayType PGAVariancesArrayType;
@@ -46,6 +49,10 @@ public:
 
   void ComputeMean(const TensorListPointerType tensorList,
                    TensorType & mean) const;
+
+  void ComputeWeightedAve(const ScalarListPointerType weightList,
+                          const TensorListPointerType tensorList,
+                          TensorType & weightedAve) const;
 
   void ComputeMeanAndCovariance(const TensorListPointerType tensorList,
                                 TensorType & mean,
