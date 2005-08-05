@@ -18,6 +18,8 @@ ADD_EXECUTABLE(Slicer2Fib Slicer2Fib.cxx)
 ADD_EXECUTABLE(NrrdReorient NrrdReorient.cxx)
 ADD_EXECUTABLE(Dartmouth2nrrd Dartmouth2nrrd.cxx)
 
+INCLUDE_DIRECTORIES(${NormalizedCut_SOURCE_DIR}/../DiffusionTensorStatistics)
+
 TARGET_LINK_LIBRARIES(NrrdReorient ITKCommon ITKNumerics ITKNrrdIO ITKIO vtkIO vtkCommon vtkImaging vtkFiltering)
 TARGET_LINK_LIBRARIES(ncutfib ITKCommon ITKIO ITKNumerics)
 TARGET_LINK_LIBRARIES(Fib2VTK ITKCommon ITKNumerics ITKNrrdIO ITKIO vtkIO vtkCommon vtkImaging vtkFiltering)
