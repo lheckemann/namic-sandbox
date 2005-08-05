@@ -18,7 +18,7 @@ namespace itk {
  * For now this class uses a generalized eigensolver on a user-defined affinity matrix.  Future work
  * should use sparse solvers to decrease runtime.
  *
- * This is based on the work by Shi & Malik.
+ * This algorithm is based on the work by Shi & Malik.
  */
 template<class TElementType>
 class ITK_EXPORT NormalizedCut : public Object
@@ -44,13 +44,17 @@ class ITK_EXPORT NormalizedCut : public Object
   itkSetMacro(NumberOfClusters, unsigned int);
   itkGetMacro(NumberOfClusters, unsigned int);
 
+  /** Set the affinity matrix.
+   * Sets the affintiy matrix for the clustering algorithm.
+   */
   void SetAffinityMatrix(const AffinityMatrixType & am) {m_AffinityMatrix = am;}
-
-//  itkGetMacro(Classes, Array<unsigned int>);
+  /** Get reference to the clustering indicies.  The vector returned
+   * by this class is of length == # rows in affinity matrix.  Each entry
+   * is the class 0 <= a[i] < NumberOfClusters.*/
   std::vector<unsigned int>& GetClasses() {return m_Classes;}
   const std::vector<unsigned int>& GetClasses() const {return m_Classes;}
 
-  /** Method to cause the data to be generated */
+  /** Method to cause the data to be generated. */
   void Evaluate();
   
  protected:
