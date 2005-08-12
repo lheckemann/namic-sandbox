@@ -18,7 +18,7 @@ ELSE(VTK_FOUND)
           "Cannot build without VTK.  Please set VTK_DIR.")
 ENDIF(VTK_FOUND)
 
-SET(PETSC_DIR /usr/local/petsc-2.3.0)
+SET(PETSC_DIR /home/scratch/fedorov/local/petsc-2.3.0)
 SET(PETSC_ARCH linux-gnu)
 SET(X11_DIR /usr/X11R6)
 SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}" CACHE INTERNAL "")
