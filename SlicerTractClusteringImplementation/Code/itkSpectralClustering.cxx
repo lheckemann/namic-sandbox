@@ -56,7 +56,7 @@ namespace itk {
 SpectralClustering::SpectralClustering()
 {
   m_NumberOfClusters = 2;
-  m_NumberOfEigenvectors = InternalNumberOfEigenvectors;
+  m_NumberOfEigenvectors = 2;
   m_EmbeddingNormalization = ROW_SUM;
 
   m_NormalizedWeightMatrix = MatrixType(1,1);
@@ -106,8 +106,6 @@ void SpectralClustering::PrintSelf(std::ostream& os, Indent indent)
   os << indent << "NumberOfEigenvectors: " << m_NumberOfEigenvectors << "\n";
   os << indent << "m_EmbeddingNormalization: " << m_EmbeddingNormalization << "\n";
   os << indent << "m_SaveEmbeddingVectors: " << m_SaveEmbeddingVectors << "\n";
-
-  os << indent << "(temporary) InternalNumberOfEigenvectors: " << InternalNumberOfEigenvectors << "\n";
 
 }
 
@@ -228,10 +226,9 @@ void SpectralClustering::ComputeClusters()
   // Create new feature vectors using the eigenvector embedding.
   // eigenvectors are sorted with smoothest (major) last. 
   // TEST must have more than this many tracts for the code to run
-  // TEST We need to let user specify embedding vector length!
-  // TEST this is a problem, now we must specify vector length at compile time.
-  EmbedVectorType ev;
+  EmbedVectorType ev ( m_NumberOfEigenvectors );
   EmbedSampleType::Pointer embedding = EmbedSampleType::New();
+  embedding->SetMeasurementVectorSize( m_NumberOfEigenvectors );
   
   // write to disk if requested
   std::ofstream fileEmbed;
@@ -310,7 +307,6 @@ void SpectralClustering::ComputeClusters()
       idx1++;
     }
 
-  embedding->SetMeasurementVectorSize( m_NumberOfEigenvectors );
 
   // write to disk if requested
   if (m_SaveEmbeddingVectors)
@@ -329,7 +325,20 @@ void SpectralClustering::ComputeClusters()
     TreeGeneratorType;
   TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
 
-  treeGenerator->SetSample( embedding );
+  std::cout << "tree gen sample size " << treeGenerator->GetMeasurementVectorSize() << std::endl;
+  try {
+    treeGenerator->SetSample( embedding );
+    std::cout << "tree gen sample size " << treeGenerator->GetMeasurementVectorSize() << std::endl;
+  }
+  catch (itk::ExceptionObject &e) {
+    itkExceptionMacro("Error in setting sample for tree: " << e);
+    return;
+  }
+  catch (...) {
+    itkExceptionMacro("Error in setting sample for tree");
+    return;
+  }
+
   // This is the number of items that can go into a leaf node.
   // it seems not to work with 1
   // TEST what is relation of bucket size to min cluster size?
@@ -371,7 +380,7 @@ void SpectralClustering::ComputeClusters()
   centroids->SetMeasurementVectorSize( embedding->GetMeasurementVectorSize() );
   testCentroids->SetMeasurementVectorSize( embedding->GetMeasurementVectorSize() );
   
-  EmbedVectorType cent;
+  EmbedVectorType cent( embedding->GetMeasurementVectorSize() );
 
   for (idx1 = 0; idx1 < m_NumberOfClusters; idx1 ++)
     {
@@ -569,7 +578,15 @@ void SpectralClustering::ComputeClusters()
   //output->DebugOn();
 
   output->SetDecisionRule( (itk::DecisionRuleBase::Pointer) decisionRule);
-  output->SetSample( embedding );
+  try 
+    {
+      output->SetSample( embedding );
+    }
+  catch (itk::ExceptionObject &e) {
+    itkExceptionMacro("Error in setting sample: " << e);
+    return;
+  }
+
   // need to keep this object around, increment its reference count
   // otherwise it is deleted but the classifier is still around, 
   // and we need to fully use the classifier later.

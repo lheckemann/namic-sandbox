@@ -52,6 +52,7 @@ int main(int argc, char* argv[])
   weightList->SetMeasurementVectorSize( weightVectorLength );
 
   int numberOfClusters = 3;
+  int numberOfEigenvectors = 2;
   int clusterSize = numberOfItemsToCluster/numberOfClusters;
   int clusterIdx = 1;
   std::ofstream fileInputClusters;
@@ -88,6 +89,8 @@ int main(int argc, char* argv[])
   itk::SpectralClustering::Pointer spectralCluster = itk::SpectralClustering::New();
   spectralCluster->SetInput(weightListWrapper);
   spectralCluster->SetNumberOfClusters(numberOfClusters);
+  spectralCluster->SetNumberOfEigenvectors(numberOfEigenvectors);
+
   // For debug/test, this outputs the embedding vectors in a file (embed.txt)
   spectralCluster->SaveEmbeddingVectorsOn();
 

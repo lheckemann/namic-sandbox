@@ -103,14 +103,11 @@ class  SpectralClustering : public ProcessObject
   // 
   void ComputeClusters();
 
-  // TEST we want this specified at run time!
-  itkStaticConstMacro(InternalNumberOfEigenvectors, unsigned int, 2);
 
   /*
    *
    */
-  typedef Vector< double, 
-      itkGetStaticConstMacro(InternalNumberOfEigenvectors) > EmbedVectorType;
+  typedef Array< double > EmbedVectorType;
   typedef Statistics::ListSample< EmbedVectorType > EmbedSampleType;
   typedef Statistics::SampleClassifier< EmbedSampleType > OutputClassifierType;
 
@@ -173,7 +170,6 @@ class  SpectralClustering : public ProcessObject
   itkGetMacro(NumberOfClusters,int);
 
   /** Number of eigenvectors to use in the embedding */
-  // TEST not currently implemented due to fixed-length itk vector!
   itkSetMacro(NumberOfEigenvectors,int); 
   itkGetMacro(NumberOfEigenvectors,int);
 
