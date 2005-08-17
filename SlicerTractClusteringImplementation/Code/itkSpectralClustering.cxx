@@ -310,6 +310,8 @@ void SpectralClustering::ComputeClusters()
       idx1++;
     }
 
+  embedding->SetMeasurementVectorSize( m_NumberOfEigenvectors );
+
   // write to disk if requested
   if (m_SaveEmbeddingVectors)
     fileEmbed.close();
@@ -365,6 +367,10 @@ void SpectralClustering::ComputeClusters()
   // keep track of chosen initial centroids
   EmbedSampleType::Pointer centroids = EmbedSampleType::New();
   EmbedSampleType::Pointer testCentroids = EmbedSampleType::New();
+
+  centroids->SetMeasurementVectorSize( embedding->GetMeasurementVectorSize() );
+  testCentroids->SetMeasurementVectorSize( embedding->GetMeasurementVectorSize() );
+  
   EmbedVectorType cent;
 
   for (idx1 = 0; idx1 < m_NumberOfClusters; idx1 ++)
@@ -575,7 +581,8 @@ void SpectralClustering::ComputeClusters()
 
 
   std::vector< MembershipFunctionType::Pointer > membershipFunctions;
-  MembershipFunctionType::OriginType origin;
+
+  MembershipFunctionType::OriginType origin( embedding->GetMeasurementVectorSize() ) ;
   int index = 0;
   for ( unsigned int i = 0 ; i < m_NumberOfClusters ; i++ ) 
     {
