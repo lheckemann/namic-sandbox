@@ -108,7 +108,6 @@ void SpectralClustering::PrintSelf(std::ostream& os, Indent indent)
   os << indent << "m_SaveEmbeddingVectors: " << m_SaveEmbeddingVectors << "\n";
 
   os << indent << "(temporary) InternalNumberOfEigenvectors: " << InternalNumberOfEigenvectors << "\n";
-  os << indent << "(temporary) InternalWeightVectorLength: " << InternalWeightVectorLength << "\n";
 
 }
 
@@ -125,10 +124,11 @@ void SpectralClustering::ComputeClusters()
 
   int numberOfItemsToCluster = input->Size();
 
-  if (numberOfItemsToCluster != InternalWeightVectorLength)
+  // Make sure the input represents a square matrix (list sample items
+  // must have length equal to number of items to cluster).
+  if (input->GetMeasurementVectorSize() != numberOfItemsToCluster)
     {
-      itkExceptionMacro("Number of items to cluster must be " << InternalWeightVectorLength << " until run time vector length can be made variable.");
-
+      itkExceptionMacro("Weight vector lengths must be equal to number of items to cluster");
     }
 
 

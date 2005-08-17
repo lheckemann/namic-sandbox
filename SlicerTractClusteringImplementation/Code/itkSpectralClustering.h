@@ -120,20 +120,16 @@ class  SpectralClustering : public ProcessObject
  typedef DataObjectDecorator<OutputClassifierType> OutputClassifierDataObjectType;
 
 
- /**
-  * Vector length of each input data similarity measurement.  Will be
-  * changed to a runtime value.
-  */
- itkStaticConstMacro(InternalWeightVectorLength, unsigned int, 21);
 
  /**
   * Vector type for input data similarity measurement
   */
- typedef Vector<double,itkGetStaticConstMacro(InternalWeightVectorLength)> 
-     WeightVectorType;
+ typedef Array< double > WeightVectorType;
 
  /**
-  * Sample type for the entire set of input vectors
+  * Sample type for the entire set of input vectors.  The user must
+  * set its MeasurementVectorLength which must correspond to the number
+  * of items to cluster.
   */
  typedef Statistics::ListSample<WeightVectorType> InputListSampleType;
 

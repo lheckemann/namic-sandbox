@@ -33,10 +33,10 @@ int main(int argc, char* argv[])
   // run time vector length specification.
   int numberOfItemsToCluster = 21;
 
-  // Length of each input weight vector will also change 
-  // with run time vector length specification
+  // Length of each input weight vector is the same as the number 
+  // of items to cluster, since weights compare each item to every other.
   typedef itk::SpectralClustering::WeightVectorType WeightVectorType;
-  int weightVectorLength = WeightVectorType::Length;
+  int weightVectorLength = numberOfItemsToCluster;
 
   // now make a simulated perfect input list (matrix), block diagonal
   // within-cluster similarity = 1 and all other entries = 0;
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
       fileInputClusters << clusterIdx << std::endl;
 
       // new weight vector for each row of the matrix
-      WeightVectorType wv;
+      WeightVectorType wv( weightVectorLength );
 
       for (int col = 0; col < weightVectorLength; col++)
         {
