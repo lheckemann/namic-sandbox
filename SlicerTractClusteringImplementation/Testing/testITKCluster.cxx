@@ -48,6 +48,9 @@ int main(int argc, char* argv[])
 
   weightListWrapper->Set(weightList);
 
+  // Explicitly set the length: (length of a measurement vector in the sample)
+  weightList->SetMeasurementVectorSize( weightVectorLength );
+
   int numberOfClusters = 3;
   int clusterSize = numberOfItemsToCluster/numberOfClusters;
   int clusterIdx = 1;
@@ -92,10 +95,10 @@ int main(int argc, char* argv[])
   try 
     {
     spectralCluster->ComputeClusters();
-  }
+    }
   catch (itk::ExceptionObject &e)
     {
-      std::cout << e;
+    std::cout << e;
     }
   catch (...)
     {
