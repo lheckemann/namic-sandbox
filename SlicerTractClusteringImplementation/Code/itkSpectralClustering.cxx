@@ -45,6 +45,7 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 // for debug output/visualization of features
 //#include "itkImage.h"
+#include <fstream>
 
 // for random k-means init
 #include <cstdlib>
@@ -579,7 +580,7 @@ void SpectralClustering::ComputeClusters()
   for ( unsigned int i = 0 ; i < m_NumberOfClusters ; i++ ) 
     {
       membershipFunctions.push_back( MembershipFunctionType::New() );
-      for ( unsigned int j = 0 ; j < EmbedSampleType::MeasurementVectorSize ; j++ )
+      for ( unsigned int j = 0 ; j < origin.Size() ; j++ )
         {
           origin[j] = estimatedMeans[index++];
         }

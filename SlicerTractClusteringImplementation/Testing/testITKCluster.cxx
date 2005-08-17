@@ -12,6 +12,7 @@
 // Apparently it is not written to the directory where I run the file.)
 //
 
+#include <fstream>
 #include <iostream>
 #include "itkSpectralClustering.h"
 
