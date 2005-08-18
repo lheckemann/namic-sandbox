@@ -135,6 +135,18 @@ class  SpectralClustering : public ProcessObject
   */
  typedef DataObjectDecorator<InputListSampleType> InputListSampleDataObjectType;
 
+ /** 
+  * Overloaded SetInput method that takes a list sample as input and wraps
+  * it into a data object decorator so it can be shoved down the pipeline
+  */
+ virtual void SetInput( const ListSampleType *input )
+ {
+   typename InputListSampleDataObjectType::Pointer dataobject = 
+     InputListSampleDataObjectType::New();
+   dataobject->SetInput( const_cast< InputListSampleDataObjectType * >( input ));
+   this->ProcessObject::SetNthInput( 0, dataobject );
+ }
+ 
   /**
    * Set the similarity measurements to be clustered.  The data size
    * should be NxM. N is the number of items we want to cluster
