@@ -130,9 +130,61 @@ int main(int argc, char** argv){
     inPointsI++;
   }
   
+  // Save the mesh in .vol INRIA format
+  std::cout << "Saving the mesh in INRIA format..." << std::endl;
+  std::ofstream inria_mesh((std::string("/tmp/")+std::string(argv[1])+".vol").c_str());
+  inria_mesh << "#VERSION 1.0" << std::endl << std::endl;
+  inria_mesh << "#VERTEX " << mesh_in->GetPoints()->Size() << std::endl;
+  inPointsI = mesh_in->GetPoints()->Begin();
+  while(inPointsI != mesh_in->GetPoints()->End()){
+    MeshType::PointType curPoint;
+    curPoint = inPointsI.Value();
+    inria_mesh << curPoint[0] << " " << curPoint[1] << " " << curPoint[2] << std::endl;
+    inPointsI++;
+  }
+  inria_mesh << std::endl;
+
+  MeshType::PointsContainer::ConstIterator curPointI;
+  inPointsI = mesh_in->GetPoints()->Begin();
+  inria_mesh << "#TETRAHEDRON " << mesh_in->GetCells()->Size() << std::endl;
   inCellsI = mesh_in->GetCells()->Begin();
   typedef itk::TetrahedronCell<MeshType::CellType> TetrahedronType;
   std::vector<TetrahedronType*> mesh_out_tets;
+  while(inCellsI != mesh_in->GetCells()->End()){
+    TetrahedronType *curTet;
+    TetrahedronType::PointIdIterator ptI;
+    unsigned points_in = 0;
+    double cvertices[4][3];
+    curTet = dynamic_cast<TetrahedronType*>(inCellsI.Value());
+    ptI = curTet->PointIdsBegin();
+    unsigned long point_ids[4];
+    for(i=0;i<4;i++){
+      curPointI = mesh_in->GetPoints()->Begin();
+      for(int p=0;p<*ptI;p++)
+        curPointI++;
+      MeshType::PointType curPoint;
+      curPoint = curPointI.Value();
+      point_ids[i] = *ptI;
+      cvertices[i][0] = curPoint[0];
+      cvertices[i][1] = curPoint[1];
+      cvertices[i][2] = curPoint[2];
+      ptI++;
+    }
+    
+    if(orient3d(&cvertices[0][0], &cvertices[1][0], &cvertices[2][0], 
+       &cvertices[3][0])>0){
+      inria_mesh << point_ids[1] << " " << point_ids[0] << " " << point_ids[2] << " " << point_ids[3] << std::endl;
+    } else {
+      inria_mesh << point_ids[0] << " " << point_ids[1] << " " << point_ids[2] << " " << point_ids[3] << std::endl;
+    }
+
+    inCellsI++;
+  }
+
+  inria_mesh.close();
+
+  inCellsI = mesh_in->GetCells()->Begin();
+  typedef itk::TetrahedronCell<MeshType::CellType> TetrahedronType;
   while(inCellsI != mesh_in->GetCells()->End()){
     TetrahedronType *curTet;
     TetrahedronType::PointIdIterator ptI;
