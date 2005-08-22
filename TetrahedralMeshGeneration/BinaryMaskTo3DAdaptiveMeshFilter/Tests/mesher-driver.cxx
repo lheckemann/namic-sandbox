@@ -9,12 +9,19 @@
 #include <assert.h>
 #include "itkTetrahedronCell.h"
 #include "itkAutomaticTopologyMeshSource.h"
+#include <fstream>
+#include <string>
+#include <getopt.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif 
 #include <petsc.h>
 #include <petscksp.h>
+
+float exactinit();
+double orient3d(double*, double*, double*, double*);
+
 #ifdef __cplusplus
 }
 #endif
@@ -35,29 +42,128 @@ bool MySubdivTest(double *v0, double *v1, double *v2, double *v3,
   return false;
 }
 
+void print_help(){
+  std::cout << "Usage:" << std::endl;
+  std::cout << "--inria-output=<name>   will save the final mesh in INRIA .vol format in <name>" << std::endl;
+  std::cout << "--vtk-output=<name>     will save the final mesh in ASCII VTK format in <name>" << std::endl;
+  std::cout << "--input-image=<name>    REQUIRED specifies the input binary image <name>" << std::endl;
+  std::cout << "--resolution=<number>   REQUIRED specifies the number of resolutions" << std::endl;
+  std::cout << "--tmp-name=<name>       REQUIRED specifies the name for temporary data saved in /tmp (to speed up the computation; use different for each dataset)" << std::endl;
+  std::cout << "--bcc-spacing=<number>  will set the spacing for the initial BCC lattice; by default it is equal to 1/10th of the smallest dimension of the image" << std::endl;
+}
+
+
+static int verbose_flag = 0;
+char *inria_fname = NULL, *vtk_fname = NULL, 
+     *input_image = NULL, *tmp_name = NULL,
+     *tmp_fname = NULL;
+unsigned resolution = 0, save_cut = 0, bcc_spacing = 10;
 
 int main(int argc, char** argv){
-  assert(argc>1);
+  
+  while(1){
+    static struct option long_options[] =
+      {
+      /* These options set a flag. */
+        {"verbose", no_argument, &verbose_flag, 1},
+        /* These options don't set a flag.
+           We distinguish them by their indices. */
+        {"inria-output", optional_argument, 0, 'a'},
+        {"vtk-output", optional_argument, 0, 'b'},
+        {"input-image", required_argument, 0, 'c'},
+        {"resolution", required_argument, 0, 'd'},
+        {"save-cut", optional_argument, 0, 'e'},
+        {"tmp-name", required_argument, 0, 'f'},
+        {"help", optional_argument, 0, 'g'},
+        {"bcc-spacing", optional_argument, 0, 'h'},
+        {0, 0, 0, 0}
+      };
+    /* getopt_long stores the option index here. */
+    int option_index = 0;
+
+    int c = getopt_long (argc, argv, "a:b:c:d:",
+      long_options, &option_index);
+
+    /* Detect the end of the options. */
+    if (c == -1)
+      break;
+
+    switch (c)
+      {
+    case 0:
+      /* If this option set a flag, do nothing else now. */
+      if (long_options[option_index].flag != 0)
+        break;
+      printf ("option %s", long_options[option_index].name);
+      if (optarg)
+        printf (" with arg %s", optarg);
+      printf ("\n");
+      break;
+
+    case 'a':
+      inria_fname = optarg;
+      break;
+
+    case 'b':
+      vtk_fname = optarg;
+      break;
+
+    case 'c':
+      input_image = optarg;
+      break;
+
+    case 'd':
+      resolution = atoi(optarg);
+      break;
+
+    case 'e':
+      save_cut = atoi(optarg);
+      break;
+
+    case 'f':
+      tmp_fname = optarg;
+      break;
+
+    case 'g':
+      print_help();
+      exit(0);
+      break;
+
+    case 'h':
+      bcc_spacing = atoi(optarg);
+      break;
+
+    case '?':
+      /* getopt_long already printed an error message. */
+      break;
+
+    default:
+      abort ();
+      }
+  }
+
+  if(!tmp_fname || !resolution || !input_image){
+    print_help();
+    exit(0);
+  }
   
   PetscInitialize(NULL, NULL, (char*)0, "");
-  KSP ksp;
-  PC pc;
-  KSPCreate(PETSC_COMM_WORLD, &ksp);
 
   MeshFilterType1::Pointer mesher = MeshFilterType1::New();
   ImageReaderType::Pointer reader = ImageReaderType::New();
   CompressionFilterType::Pointer compressor = CompressionFilterType::New();
   
-  reader->SetFileName(argv[2]);
+  reader->SetFileName(input_image);
   try{
     reader->Update();
   }catch(itk::ExceptionObject &e){
     assert(0);
   };
   mesher->SetInput(reader->GetOutput());
-  mesher->SetNResolutions(atoi(argv[3]));
+  mesher->SetNResolutions(resolution);
   mesher->AddSubdivisionTest(MySubdivTest);
-  mesher->SetInputImagePrefix(std::string(argv[1]));
+  mesher->SetBCCSpacing(bcc_spacing);
+  mesher->SetInputImagePrefix(tmp_fname);
   try{
     mesher->Update();
   }catch(itk::ExceptionObject &e){
@@ -77,21 +183,23 @@ int main(int argc, char** argv){
 
   std::cout << "Number of points: " << mesher->GetNumberOfPoints() <<
     ", number of tets: " << mesher->GetNumberOfTets() << std::endl;
-
+  
   MeshUtilType meshutil;
   vtkUnstructuredGrid* vtk_tetra_mesh =
     MeshUtilType::meshToUnstructuredGrid(tetra_mesh);
   vtkUnstructuredGridWriter *vtk_tetra_mesh_writer =
     vtkUnstructuredGridWriter::New();
 
-  vtk_tetra_mesh_writer->SetFileName((std::string("/tmp/")+argv[1]+"-original.vtk").c_str());
-  vtk_tetra_mesh_writer->SetInput(vtk_tetra_mesh);
-  vtk_tetra_mesh_writer->Update();
-
+  if(vtk_fname){
+    vtk_tetra_mesh_writer->SetFileName((std::string(vtk_fname)+".original.vtk").c_str());
+    vtk_tetra_mesh_writer->SetInput(vtk_tetra_mesh);
+    vtk_tetra_mesh_writer->Update();
+  }
+  
   std::cout << "Initializing compressor..." << std::endl;
 
   compressor->SetInput(tetra_mesh);
-  compressor->SetInputImagePrefix(std::string(argv[1]));
+  compressor->SetInputImagePrefix(tmp_fname);
   compressor->SetInput(reader->GetOutput());
   try{
     compressor->Update();
@@ -102,9 +210,11 @@ int main(int argc, char** argv){
   vtkUnstructuredGrid* vtk_deformed_tetra_mesh =
     MeshUtilType::meshToUnstructuredGrid(compressor->GetOutput());
   
-  vtk_tetra_mesh_writer->SetFileName((std::string("/tmp/")+argv[1]+"-deformed.vtk").c_str());
-  vtk_tetra_mesh_writer->SetInput(vtk_deformed_tetra_mesh);
-  vtk_tetra_mesh_writer->Update();
+  if(vtk_fname){
+    vtk_tetra_mesh_writer->SetFileName(vtk_fname);
+    vtk_tetra_mesh_writer->SetInput(vtk_deformed_tetra_mesh);
+    vtk_tetra_mesh_writer->Update();
+  }
 
   // Save the cut across the mesh along one of the axis
   MeshType::PointsContainer::ConstIterator inPointsI;
@@ -131,58 +241,61 @@ int main(int argc, char** argv){
   }
   
   // Save the mesh in .vol INRIA format
-  std::cout << "Saving the mesh in INRIA format..." << std::endl;
-  std::ofstream inria_mesh((std::string("/tmp/")+std::string(argv[1])+".vol").c_str());
-  inria_mesh << "#VERSION 1.0" << std::endl << std::endl;
-  inria_mesh << "#VERTEX " << mesh_in->GetPoints()->Size() << std::endl;
-  inPointsI = mesh_in->GetPoints()->Begin();
-  while(inPointsI != mesh_in->GetPoints()->End()){
-    MeshType::PointType curPoint;
-    curPoint = inPointsI.Value();
-    inria_mesh << curPoint[0] << " " << curPoint[1] << " " << curPoint[2] << std::endl;
-    inPointsI++;
-  }
-  inria_mesh << std::endl;
-
-  MeshType::PointsContainer::ConstIterator curPointI;
-  inPointsI = mesh_in->GetPoints()->Begin();
-  inria_mesh << "#TETRAHEDRON " << mesh_in->GetCells()->Size() << std::endl;
-  inCellsI = mesh_in->GetCells()->Begin();
-  typedef itk::TetrahedronCell<MeshType::CellType> TetrahedronType;
-  std::vector<TetrahedronType*> mesh_out_tets;
-  while(inCellsI != mesh_in->GetCells()->End()){
-    TetrahedronType *curTet;
-    TetrahedronType::PointIdIterator ptI;
-    unsigned points_in = 0;
-    double cvertices[4][3];
-    curTet = dynamic_cast<TetrahedronType*>(inCellsI.Value());
-    ptI = curTet->PointIdsBegin();
-    unsigned long point_ids[4];
-    for(i=0;i<4;i++){
-      curPointI = mesh_in->GetPoints()->Begin();
-      for(int p=0;p<*ptI;p++)
-        curPointI++;
+  if(inria_fname){
+    std::cout << "Saving the mesh in INRIA format..." << std::endl;
+    std::ofstream inria_mesh(inria_fname);
+    inria_mesh << "#VERSION 1.0" << std::endl << std::endl;
+    inria_mesh << "#VERTEX " << mesh_in->GetPoints()->Size() << std::endl;
+    inPointsI = mesh_in->GetPoints()->Begin();
+    while(inPointsI != mesh_in->GetPoints()->End()){
       MeshType::PointType curPoint;
-      curPoint = curPointI.Value();
-      point_ids[i] = *ptI;
-      cvertices[i][0] = curPoint[0];
-      cvertices[i][1] = curPoint[1];
-      cvertices[i][2] = curPoint[2];
-      ptI++;
+      curPoint = inPointsI.Value();
+      inria_mesh << curPoint[0] << " " << curPoint[1] << " " << curPoint[2] << std::endl;
+      inPointsI++;
     }
-    
-    if(orient3d(&cvertices[0][0], &cvertices[1][0], &cvertices[2][0], 
-       &cvertices[3][0])>0){
-      inria_mesh << point_ids[1] << " " << point_ids[0] << " " << point_ids[2] << " " << point_ids[3] << std::endl;
-    } else {
-      inria_mesh << point_ids[0] << " " << point_ids[1] << " " << point_ids[2] << " " << point_ids[3] << std::endl;
+    inria_mesh << std::endl;
+
+    MeshType::PointsContainer::ConstIterator curPointI;
+    inPointsI = mesh_in->GetPoints()->Begin();
+    inria_mesh << "#TETRAHEDRON " << mesh_in->GetCells()->Size() << std::endl;
+    inCellsI = mesh_in->GetCells()->Begin();
+    typedef itk::TetrahedronCell<MeshType::CellType> TetrahedronType;
+    std::vector<TetrahedronType*> mesh_out_tets;
+    while(inCellsI != mesh_in->GetCells()->End()){
+      TetrahedronType *curTet;
+      TetrahedronType::PointIdIterator ptI;
+      unsigned points_in = 0;
+      double cvertices[4][3];
+      curTet = dynamic_cast<TetrahedronType*>(inCellsI.Value());
+      ptI = curTet->PointIdsBegin();
+      unsigned long point_ids[4];
+      for(i=0;i<4;i++){
+        curPointI = mesh_in->GetPoints()->Begin();
+        for(int p=0;p<*ptI;p++)
+          curPointI++;
+        MeshType::PointType curPoint;
+        curPoint = curPointI.Value();
+        point_ids[i] = *ptI;
+        cvertices[i][0] = curPoint[0];
+        cvertices[i][1] = curPoint[1];
+        cvertices[i][2] = curPoint[2];
+        ptI++;
+      }
+
+      if(orient3d(&cvertices[0][0], &cvertices[1][0], &cvertices[2][0], 
+          &cvertices[3][0])>0){
+        inria_mesh << point_ids[1] << " " << point_ids[0] << " " << point_ids[2] << " " << point_ids[3] << std::endl;
+      } else {
+        inria_mesh << point_ids[0] << " " << point_ids[1] << " " << point_ids[2] << " " << point_ids[3] << std::endl;
+      }
+
+      inCellsI++;
     }
 
-    inCellsI++;
+    inria_mesh.close();
   }
 
-  inria_mesh.close();
-
+  /*
   inCellsI = mesh_in->GetCells()->Begin();
   typedef itk::TetrahedronCell<MeshType::CellType> TetrahedronType;
   while(inCellsI != mesh_in->GetCells()->End()){
@@ -226,6 +339,6 @@ int main(int argc, char** argv){
   vtk_tetra_mesh_writer->SetFileName((std::string("/tmp/")+argv[1]+"-deformed-cut.vtk").c_str());
   vtk_tetra_mesh_writer->SetInput(vtk_cut_tetra_mesh);
   vtk_tetra_mesh_writer->Update();
-
+  */
   return 0;
 }

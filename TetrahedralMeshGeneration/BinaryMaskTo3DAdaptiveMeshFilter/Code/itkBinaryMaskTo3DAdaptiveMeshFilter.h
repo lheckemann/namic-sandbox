@@ -150,6 +150,10 @@ public:
   itkSetMacro(NResolutions, unsigned); // NAME: MaxSubdivisionLevel
   // TODO: document debug feature
   itkSetMacro(InputImagePrefix, std::string); // 
+  // this variable defines the spacing of the initial BCC lattice. By default,
+  // it is equal to 10, which means that the spacing will be 1/10th of the
+  // smallest dimension of the image
+  itkSetMacro(BCCSpacing, unsigned);
 
   itkGetMacro(NumberOfPoints, unsigned);
   itkGetMacro(NumberOfTets, unsigned); // NAME: NumberOfTetras

@@ -23,14 +23,15 @@ The datasets are located in the Data directory. Once you have the system set
 up, you can compile the main driver code, mesher-driver. You can run the test
 case as follows:
 
- mpirun bin/mesher-driver sphere Data/sphere.mhd 2
+ bin/mesher-driver --tmp-name=sphere --input-image=./Data/sphere.mhd --resolution=2 --vtk-output=./sphere-mesh.vtk
 
 Remember to boot LAM by using the "lamboot" command prior to running the
 experiments. The code does not support multiple processor execution, don't
 use something like "-np 2" with mpirun.
 
 This will save the resulting 2 level resolution volume mesh in 
-/tmp/sphere-deformed.vtk. Please email questions or comments
+./sphere-mesh.vtk. Please email questions or comments to fedorov AT cs DOT wm
+DOT edu
 
 Please check the NAMIC SandBox regularly as the code will be updated until its
 transition to the stable ITK tree.

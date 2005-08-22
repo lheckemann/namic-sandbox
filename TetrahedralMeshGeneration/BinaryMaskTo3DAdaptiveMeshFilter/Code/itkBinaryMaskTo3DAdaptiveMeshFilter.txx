@@ -31,6 +31,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
   m_NResolutions = 1;
   m_NumberOfPoints = 0;
   m_NumberOfTets = 0;
+  m_BCCSpacing = 10;
 
   m_ThirdFaceEdgeLT[0] = -1;
   m_ThirdFaceEdgeLT[1] = -1;
@@ -1805,7 +1806,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
   double spacing;
   spacing = fmin(m_dimX, m_dimY);
   spacing = fmin(spacing, m_dimZ);
-  return spacing/10.0;
+  return spacing/m_BCCSpacing;
 }
 
 /* Inserts a vertex */
