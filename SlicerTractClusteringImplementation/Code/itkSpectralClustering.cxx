@@ -66,6 +66,7 @@ SpectralClustering::SpectralClustering()
   m_EigenvectorsImage = NULL;
 
   m_SaveEmbeddingVectors = 0;
+  m_SaveEigenvectors = 0;
 
   // Create the output. We use static_cast<> here because we know the default
   // output must be of type OutputClassifierDataObjectType
@@ -199,6 +200,7 @@ void SpectralClustering::ComputeClusters()
       return;
     }
 
+
   // ----------------------------------------------------------------
   // Step 2: Compute the eigensystem of the normalized weight matrix.
   // ----------------------------------------------------------------
@@ -218,6 +220,31 @@ void SpectralClustering::ComputeClusters()
 
   itkDebugMacro("Eigenvalues: " << m_EigenSystem->D);
 
+
+  // write to disk if requested
+  std::ofstream fileEigenvectors;
+  std::ofstream fileEigenvalues;
+  if (m_SaveEigenvectors)
+    {
+      fileEigenvectors.open("eigenvectors.txt");
+      fileEigenvalues.open("eigenvalues.txt");
+
+      for (idx1 = 0; idx1 <  m_EigenSystem->V.rows(); idx1++)
+        {
+          
+          fileEigenvalues <<   m_EigenSystem->D[idx1] << " ";
+
+          for (idx2 = 0; idx2 <  m_EigenSystem->V.cols(); idx2++)
+            {
+              fileEigenvectors <<   m_EigenSystem->V[idx1][idx2] << " ";
+            }
+
+          fileEigenvectors <<  std::endl;
+        }
+
+      fileEigenvectors.close();
+      fileEigenvalues.close();
+    }
 
   // ----------------------------------------------------------------------
   // Step 3: Compute embedding vectors from rows of the eigenvector matrix.

@@ -139,13 +139,13 @@ class  SpectralClustering : public ProcessObject
   * Overloaded SetInput method that takes a list sample as input and wraps
   * it into a data object decorator so it can be shoved down the pipeline
   */
- virtual void SetInput( const ListSampleType *input )
+ /*virtual void SetInput( const ListSampleType *input )
  {
    typename InputListSampleDataObjectType::Pointer dataobject = 
      InputListSampleDataObjectType::New();
    dataobject->SetInput( const_cast< InputListSampleDataObjectType * >( input ));
    this->ProcessObject::SetNthInput( 0, dataobject );
- }
+   }*/
  
   /**
    * Set the similarity measurements to be clustered.  The data size
@@ -220,6 +220,12 @@ class  SpectralClustering : public ProcessObject
   itkGetMacro(SaveEmbeddingVectors, bool);
   itkBooleanMacro(SaveEmbeddingVectors);
 
+ /** Write eigenvectors output file eigenvectors.txt */
+  itkSetMacro(SaveEigenvectors, bool);
+  itkGetMacro(SaveEigenvectors, bool);
+  itkBooleanMacro(SaveEigenvectors);
+
+
   /** Make a DataObject of the correct type to used as the specified
    * output.  Every ProcessObject subclass must be able to create a
    * DataObject that can be used as a specified output. This method
@@ -252,6 +258,7 @@ class  SpectralClustering : public ProcessObject
   int m_NumberOfEigenvectors;
   int m_EmbeddingNormalization;
   bool m_SaveEmbeddingVectors;
+  bool m_SaveEigenvectors;
 
   enum EmbeddingNormalizationType { NONE, ROW_SUM, LENGTH_ONE } ;
 
