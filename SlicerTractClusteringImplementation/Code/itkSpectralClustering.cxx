@@ -390,7 +390,7 @@ void SpectralClustering::ComputeClusters()
   typedef itk::Statistics::KdTreeBasedKmeansEstimator<TreeType> EstimatorType;
   EstimatorType::Pointer estimator = EstimatorType::New();
 
-  // In the parameters vector, the vectors for each of the means are 
+  // In the parameters vector, the vectors for each of the means (centroids) are 
   // concatenated.  So array size is vector_length*number_of_vector_means.
   EstimatorType::ParametersType initialMeans(m_NumberOfEigenvectors*m_NumberOfClusters);
 
@@ -400,20 +400,23 @@ void SpectralClustering::ComputeClusters()
   // the literature, is it helpful with our data?
   std::srand ( static_cast<unsigned>(time(0)) );
   int sampleIdx;
-  // keep track of chosen initial centroids
-  EmbedSampleType::Pointer centroids = EmbedSampleType::New();
-  EmbedSampleType::Pointer testCentroids = EmbedSampleType::New();
 
+  // Store chosen initial centroids
+  EmbedSampleType::Pointer centroids = EmbedSampleType::New();
   centroids->SetMeasurementVectorSize( embedding->GetMeasurementVectorSize() );
-  testCentroids->SetMeasurementVectorSize( embedding->GetMeasurementVectorSize() );
-  
+
+  // Store individual centroid (already chosen)
   EmbedVectorType cent( embedding->GetMeasurementVectorSize() );
 
+  // Loop over number of centroids to pick
   for (idx1 = 0; idx1 < m_NumberOfClusters; idx1 ++)
     {
       // Init means with randomly selected sample member vectors.
       // index is random number between 0 and number of vectors-1.
       sampleIdx = std::rand()%embedding->Size();
+
+      // Choose the first centroid if idx1==0, else it's the first of
+      // the group of possible centroids.
       ev = embedding->GetMeasurementVector(sampleIdx);
 
       // To aim for evenly spread centroids in the embedding space,
@@ -430,8 +433,12 @@ void SpectralClustering::ComputeClusters()
           // and reverts to original random selection only
           //const int numTestCentroids = 1;
           
-          // measure how good each centroid is (want least similar to others)
+          // store how good each centroid is (want least similar to others)
           double similarity[numTestCentroids];
+
+          // Store temporary centroids during selection process
+          EmbedSampleType::Pointer testCentroids = EmbedSampleType::New();
+          testCentroids->SetMeasurementVectorSize( embedding->GetMeasurementVectorSize() );
 
           // choose several centroids and measure their quality
           for (int idxChoice = 0; idxChoice < numTestCentroids; idxChoice++)
@@ -454,12 +461,14 @@ void SpectralClustering::ComputeClusters()
                     {                  
                       dot += ev[idxComp]*cent[idxComp];
                     }
+                  itkDebugMacro("dot: " << dot);
                   // we want approx 90 degrees apart, so we
                   // want dot products close to 0 => use abs of dot
                   // product, then we can do min later.
                   similarity[idxChoice] += fabs(dot);
                   
                 }
+              itkDebugMacro("idx: " << idxChoice << " total dot: " << similarity[idxChoice] << "ev: " << ev);
 
               // get the next centroid to test
               sampleIdx = std::rand()%embedding->Size();
@@ -477,6 +486,7 @@ void SpectralClustering::ComputeClusters()
                   ev = testCentroids->GetMeasurementVector(idxChoice);
                 }
             }          
+          itkDebugMacro("chosen similarity: " << minSimilarity << " values: " << ev);
         }
 
 
