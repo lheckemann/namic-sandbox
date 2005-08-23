@@ -4,6 +4,7 @@
 // Creates ideal sample input and runs clustering.
 // Produces 3 text files:
 //   inputClusters.txt   (input cluster indices)
+//   inputMatrix.txt   (input similarity matrix)
 //   embed.txt           (embedding vectors)
 //   outputClusters.txt  (output cluster indices)
 // Also outputs the normalized weight matrix as an image.
@@ -57,6 +58,8 @@ int main(int argc, char* argv[])
   int clusterIdx = 1;
   std::ofstream fileInputClusters;
   fileInputClusters.open("inputClusters.txt");
+  std::ofstream fileInputMatrix;
+  fileInputMatrix.open("inputMatrix.txt");
 
   for (int row = 0; row < numberOfItemsToCluster; row++)
     {
@@ -72,15 +75,24 @@ int main(int argc, char* argv[])
       for (int col = 0; col < weightVectorLength; col++)
         {
           wv[col] = 0;
-          if (col < clusterIdx*clusterSize)
+          if (col < clusterIdx*clusterSize && col >= (clusterIdx-1)*clusterSize)
             {
               wv[col] = 1;
             }
+
+          wv[col] = wv[col] + 0.1;
+
+          // output matrix values to disk
+          fileInputMatrix << wv[col] << " ";
         }
+
+      // output matrix values to disk (newline at end of row)
+      fileInputMatrix << std::endl;
 
       weightList->PushBack(wv);
     }
   fileInputClusters.close();
+  fileInputMatrix.close();
 
 
 
@@ -93,6 +105,10 @@ int main(int argc, char* argv[])
 
   // For debug/test, this outputs the embedding vectors in a file (embed.txt)
   spectralCluster->SaveEmbeddingVectorsOn();
+  spectralCluster->SaveEigenvectorsOn();
+
+  spectralCluster->DebugOn();
+  spectralCluster->SetEmbeddingNormalizationToNone();
 
   // CHANGE to do update method
   try 
@@ -129,7 +145,7 @@ int main(int argc, char* argv[])
   int idx = 0;
   while ( iter != membershipSample->End() )
     {
-      std::cout <<"index = " << idx << "class label = " << iter.GetClassLabel() << std::endl;
+      std::cout <<"index = " << idx << "   class label = " << iter.GetClassLabel() << std::endl;
       fileOutputClusters << iter.GetClassLabel() << std::endl;
       idx++;
       ++iter;
