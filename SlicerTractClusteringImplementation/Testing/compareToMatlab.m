@@ -55,3 +55,9 @@ figure; imagesc(embed); title('Embedding from c++'); colorbar;
 figure; imagesc(embedMatlab); title('Embedding from matlab'); colorbar;
 
 
+% plot in 2D 
+figure;plot(embed(:,1),embed(:,2),'*'); 
+title('Embedding from c++');
+figure;plot(embedMatlab(:,1),embedMatlab(:,2),'*'); 
+title('Embedding from matlab');
+
