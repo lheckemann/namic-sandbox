@@ -106,14 +106,15 @@ int main(int argc, char* argv[])
   spectralCluster->Print( std::cout );
   std::cout << *(spectralCluster->GetInput()->Get()) << std::endl;
   std::cout << spectralCluster->GetOutputClusters() << std::endl;
+  itk::SpectralClustering::OutputType output = spectralCluster->GetOutputClusters();
 
   std::ofstream fileOutputClusters;
   fileOutputClusters.open("outputClusters.txt");
 
   for (int row = 0; row < numberOfItemsToCluster; row++)
     {
-      //std::cout <<"index = " << row << "   class label = " << *(spectralCluster->GetOutputClusters())[row] << std::endl;
-      //fileOutputClusters << iter.GetClassLabel() << std::endl;
+      std::cout <<"index = " << row << "   class label = " << output[row] << std::endl;
+      fileOutputClusters << output[row] << std::endl;
     }
   fileOutputClusters.close();
 

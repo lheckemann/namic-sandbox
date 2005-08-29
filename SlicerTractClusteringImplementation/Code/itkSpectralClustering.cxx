@@ -641,7 +641,7 @@ void SpectralClustering::GenerateData()
   int idx = 0;
   while ( iter != membershipSample->End() )
     {
-      std::cout <<"index = " << idx << "   class label = " << iter.GetClassLabel() << std::endl;
+      //itkDebugMacro("index = " << idx << "   class label = " << iter.GetClassLabel());
       outputArray[idx] = iter.GetClassLabel();
       idx++;
       ++iter;
