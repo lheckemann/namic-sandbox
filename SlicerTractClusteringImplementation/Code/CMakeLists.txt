@@ -1,4 +1,4 @@
 
+ADD_LIBRARY (SlicerClustering itkSpectralClustering.cxx)
 
-ADD_LIBRARY (SpectralClustering itkSpectralClustering.cxx)
 

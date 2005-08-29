@@ -1,4 +1,4 @@
-PROJECT(SpectralClustering)
+PROJECT(SlicerClustering)
 
 FIND_PACKAGE(ITK)
 IF(ITK_FOUND)
