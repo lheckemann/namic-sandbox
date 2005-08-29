@@ -14,6 +14,10 @@ ELSE(VTK_FOUND)
         MESSAGE(FATAL_ERROR "Could not find VTK")
 ENDIF(VTK_FOUND)
 
-SUBDIRS(Code Testing)
+# include the superclass from its Sandbox directory
+INCLUDE_DIRECTORIES( 
+  ${SpectralClustering_SOURCE_DIR}
+  )
 
+SUBDIRS(Code Testing)
 

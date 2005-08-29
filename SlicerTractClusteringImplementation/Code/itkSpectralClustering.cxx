@@ -55,7 +55,6 @@ namespace itk {
 
 SpectralClustering::SpectralClustering()
 {
-  m_NumberOfClusters = 2;
   m_NumberOfEigenvectors = 2;
   m_EmbeddingNormalization = ROW_SUM;
 
@@ -68,66 +67,38 @@ SpectralClustering::SpectralClustering()
   m_SaveEmbeddingVectors = 0;
   m_SaveEigenvectors = 0;
 
-  // Create the output. We use static_cast<> here because we know the default
-  // output must be of type OutputClassifierDataObjectType
-  OutputClassifierDataObjectType::Pointer output
-    = static_cast<OutputClassifierDataObjectType*>(this->MakeOutput(0).GetPointer()); 
-  this->ProcessObject::SetNumberOfRequiredOutputs(1);
-  this->ProcessObject::SetNthOutput(0, output.GetPointer());
-}
-
-DataObject::Pointer
-SpectralClustering
-::MakeOutput(unsigned int)
-{
-  OutputClassifierDataObjectType::Pointer dataobject = OutputClassifierDataObjectType::New();
-  OutputClassifierType::Pointer classifier = OutputClassifierType::New();
-  dataobject->Set( classifier );
-
-  return static_cast<DataObject*>(dataobject.GetPointer());
-}
-
-void
-SpectralClustering
-::SetNumberOfClusters(int num)
-{
-  if (num != m_NumberOfClusters)
-    {
-      m_NumberOfClusters = num;
-      this->Modified();
-      //m_NumberOfClustersMTime = 
-    }
 }
 
 void SpectralClustering::PrintSelf(std::ostream& os, Indent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
-  os << indent << "NumberOfClusters: " << m_NumberOfClusters << "\n";
   os << indent << "NumberOfEigenvectors: " << m_NumberOfEigenvectors << "\n";
-  os << indent << "m_EmbeddingNormalization: " << m_EmbeddingNormalization << "\n";
-  os << indent << "m_SaveEmbeddingVectors: " << m_SaveEmbeddingVectors << "\n";
+  os << indent << "EmbeddingNormalization: " << m_EmbeddingNormalization << "\n";
+  os << indent << "SaveEmbeddingVectors: " << m_SaveEmbeddingVectors << "\n";
 
 }
 
 
-void SpectralClustering::ComputeClusters()
+void SpectralClustering::GenerateData()
 {
   // test we have input
   if (this->GetInput() == 0)
     {
-      itkExceptionMacro("You must set the input (weight matrix in list sample form) before using this class.");
+      itkExceptionMacro("You must set the input AffinityMatrix before using this class.");
     }
+  
+  //const AffinityMatrixType *input = this->GetInput()->Get();
+  AffinityMatrixType *input = this->GetInput()->Get();
 
-  const InputListSampleType *input = this->GetInput()->Get();
-
-  int numberOfItemsToCluster = input->Size();
+  unsigned int numberOfItemsToCluster = input->Rows();
+  unsigned int numberOfClusters = this->GetNumberOfClusters();
 
   // Make sure the input represents a square matrix (list sample items
   // must have length equal to number of items to cluster).
-  if (input->GetMeasurementVectorSize() != numberOfItemsToCluster)
+  if (input->Cols() != numberOfItemsToCluster)
     {
-      itkExceptionMacro("Weight vector lengths must be equal to number of items to cluster");
+      itkExceptionMacro("Input AffinityMatrix must be square");
     }
 
 
@@ -151,25 +122,21 @@ void SpectralClustering::ComputeClusters()
   typedef vnl_vector<double> VectorType;
   // create vector initialized to zero
   VectorType rowWeightSum(numberOfItemsToCluster,0);
-  int idx1, idx2;
-  WeightVectorType wv;
-  for (idx1 = 0; idx1 < numberOfItemsToCluster; idx1++)
+  int row, col;
+  for (row = 0; row < numberOfItemsToCluster; row++)
     {
-      // find next input vector (corresponds to row of matrix)
-      wv = input->GetMeasurementVector(idx1);
-
-      for (idx2 = 0; idx2 < numberOfItemsToCluster; idx2++)
+      for (col = 0; col < numberOfItemsToCluster; col++)
         {
           // sum the row
-          rowWeightSum[idx1] += wv[idx2];
+          rowWeightSum[row] += (*input)(row,col);
           // TEST to turn off normalization 
-          // rowWeightSum[idx1] =1;
+          // rowWeightSum[row] =1;
 
         }
 
       // take square root of final row sum
-      rowWeightSum[idx1] = sqrt(rowWeightSum[idx1]);
-      itkDebugMacro("row " << idx1 << " sum: " << rowWeightSum[idx1]);
+      rowWeightSum[row] = sqrt(rowWeightSum[row]);
+      itkDebugMacro("row " << row << " sum: " << rowWeightSum[row]);
 
     }
 
@@ -178,15 +145,12 @@ void SpectralClustering::ComputeClusters()
 
   // Iterate over the matrix to perform normalization.
   // This step stores normalized input data (from list sample) into vnl matrix format.
-  for (idx1 = 0; idx1 < numberOfItemsToCluster; idx1++)
+  for (row = 0; row < numberOfItemsToCluster; row++)
     {
-      // find next input vector (place into row of matrix)
-      wv = input->GetMeasurementVector(idx1);
-
-      for (idx2 = 0; idx2 < numberOfItemsToCluster; idx2++)
+      for (col = 0; col < numberOfItemsToCluster; col++)
         {
-          (m_NormalizedWeightMatrix)[idx1][idx2] = 
-            (wv[idx2])/(rowWeightSum[idx1]*rowWeightSum[idx2]);
+          (m_NormalizedWeightMatrix)[row][col] = 
+            ((*input)(row,col))/(rowWeightSum[row]*rowWeightSum[col]);
       
         }
     }
@@ -229,14 +193,14 @@ void SpectralClustering::ComputeClusters()
       fileEigenvectors.open("eigenvectors.txt");
       fileEigenvalues.open("eigenvalues.txt");
 
-      for (idx1 = 0; idx1 <  m_EigenSystem->V.rows(); idx1++)
+      for (row = 0; row <  m_EigenSystem->V.rows(); row++)
         {
           
-          fileEigenvalues <<   m_EigenSystem->D[idx1] << " ";
+          fileEigenvalues <<   m_EigenSystem->D[row] << " ";
 
-          for (idx2 = 0; idx2 <  m_EigenSystem->V.cols(); idx2++)
+          for (col = 0; col <  m_EigenSystem->V.cols(); col++)
             {
-              fileEigenvectors <<   m_EigenSystem->V[idx1][idx2] << " ";
+              fileEigenvectors <<   m_EigenSystem->V[row][col] << " ";
             }
 
           fileEigenvectors <<  std::endl;
@@ -253,7 +217,9 @@ void SpectralClustering::ComputeClusters()
   // Create new feature vectors using the eigenvector embedding.
   // eigenvectors are sorted with smoothest (major) last. 
   // TEST must have more than this many tracts for the code to run
+  typedef Array< double > EmbedVectorType;
   EmbedVectorType ev ( m_NumberOfEigenvectors );
+  typedef Statistics::ListSample< EmbedVectorType > EmbedSampleType;
   EmbedSampleType::Pointer embedding = EmbedSampleType::New();
   embedding->SetMeasurementVectorSize( m_NumberOfEigenvectors );
   
@@ -264,44 +230,43 @@ void SpectralClustering::ComputeClusters()
       fileEmbed.open("embed.txt");
     }
 
-  idx1=0;
+  row=0;
   // outer loop over rows of eigenvector matrix, to
   // pick out all entries for one tract
-  while (idx1 < m_EigenSystem->V.rows())
+  while (row < m_EigenSystem->V.rows())
     {    
-      idx2=0;
+      col=0;
 
       // inner loop over columns of eigenvector matrix
       // place entries for this tract into an itk vector
       // skip first eigenvector (first column) because approx. constant.
       // use as many eigenvectors (columns) as necessary.
-      // TEST embed vector length (number of evectors) needs to be specified at run time.
       // TEST put formula here
       double length = 0;
-      while (idx2 < m_NumberOfEigenvectors)
+      while (col < m_NumberOfEigenvectors)
         {
           // this was wrong.
-          //ev[idx2]=(m_EigenSystem->V[idx1][idx2+1])/rowWeightSum[idx1];
+          //ev[col]=(m_EigenSystem->V[row][col+1])/rowWeightSum[row];
           // This included the constant major eigenvector 
-          //ev[idx2]=(m_EigenSystem->V[idx1][m_EigenSystem->V.cols()-idx2-1]);
+          //ev[col]=(m_EigenSystem->V[row][m_EigenSystem->V.cols()-col-1]);
 
           // This is correct.
-          ev[idx2]=(m_EigenSystem->V[idx1][m_EigenSystem->V.cols()-idx2-2]);
+          ev[col]=(m_EigenSystem->V[row][m_EigenSystem->V.cols()-col-2]);
 
           // Take into account user-specified normalization method
           if (m_EmbeddingNormalization == LENGTH_ONE)
             {
               // general spectral clustering normalization
-              length += ev[idx2]*ev[idx2];
+              length += ev[col]*ev[col];
             }
           if (m_EmbeddingNormalization == ROW_SUM)
             {
               // corresponds to normalized cuts
-              ev[idx2]=ev[idx2]/rowWeightSum[idx1];
+              ev[col]=ev[col]/rowWeightSum[row];
             }
           // else don't normalize
 
-          idx2++;
+          col++;
         }
       
       // If the embedding normalization is by length, normalize now
@@ -310,28 +275,28 @@ void SpectralClustering::ComputeClusters()
           length = sqrt(length);
           if (length == 0)
             {
-              itkExceptionMacro("0-length embedding vector %d" << idx1);
+              itkExceptionMacro("0-length embedding vector %d" << row);
               length = 1;
             }
-          for (idx2 = 0; idx2 < m_NumberOfEigenvectors; idx2++)
+          for (col = 0; col < m_NumberOfEigenvectors; col++)
             {
-              ev[idx2]=ev[idx2]/length;
+              ev[col]=ev[col]/length;
             }
         }
 
       // write to disk if requested
       if (m_SaveEmbeddingVectors)
         {
-          for (idx2 = 0; idx2 < m_NumberOfEigenvectors; idx2++)
+          for (col = 0; col < m_NumberOfEigenvectors; col++)
             {
-              fileEmbed << ev[idx2] << " ";
+              fileEmbed << ev[col] << " ";
             }
           fileEmbed << std::endl;
         }
 
       // put the embedding vector for this tract onto the sample list
       embedding->PushBack( ev );      
-      idx1++;
+      row++;
     }
 
 
@@ -392,7 +357,7 @@ void SpectralClustering::ComputeClusters()
 
   // In the parameters vector, the vectors for each of the means (centroids) are 
   // concatenated.  So array size is vector_length*number_of_vector_means.
-  EstimatorType::ParametersType initialMeans(m_NumberOfEigenvectors*m_NumberOfClusters);
+  EstimatorType::ParametersType initialMeans(m_NumberOfEigenvectors*numberOfClusters);
 
 
   // Now we try to choose evenly-spaced initial centroids for k-means
@@ -409,13 +374,13 @@ void SpectralClustering::ComputeClusters()
   EmbedVectorType cent( embedding->GetMeasurementVectorSize() );
 
   // Loop over number of centroids to pick
-  for (idx1 = 0; idx1 < m_NumberOfClusters; idx1 ++)
+  for (row = 0; row < numberOfClusters; row ++)
     {
       // Init means with randomly selected sample member vectors.
       // index is random number between 0 and number of vectors-1.
       sampleIdx = std::rand()%embedding->Size();
 
-      // Choose the first centroid if idx1==0, else it's the first of
+      // Choose the first centroid if row==0, else it's the first of
       // the group of possible centroids.
       ev = embedding->GetMeasurementVector(sampleIdx);
 
@@ -426,7 +391,7 @@ void SpectralClustering::ComputeClusters()
       // potential centroids, and just compare to already-chosen
       // centroids.  keep the new centroid that is furthest from the
       // already-chosen centroids.
-      if (idx1 != 0)
+      if (row != 0)
         {
           const int numTestCentroids = 5;
           // TEST this line turns off the attempt to select good centroids
@@ -447,7 +412,7 @@ void SpectralClustering::ComputeClusters()
               similarity[idxChoice] = 0;
               
               // measure against centroids chosen so far
-              for (int idxCentroid = 0; idxCentroid < idx1; idxCentroid++)
+              for (int idxCentroid = 0; idxCentroid < row; idxCentroid++)
                 {
                   cent = centroids->GetMeasurementVector(idxCentroid);
 
@@ -497,16 +462,16 @@ void SpectralClustering::ComputeClusters()
 
   int meanIdx = 0;
   // loop over final ordered centroid list
-  for (idx1 = 0; idx1 < m_NumberOfClusters; idx1 ++)
+  for (row = 0; row < numberOfClusters; row ++)
     {
       // find next one in final ordered centroid list
-      ev = centroids->GetMeasurementVector(idx1);
+      ev = centroids->GetMeasurementVector(row);
 
       // Put the centroid into the strange format for input to 
       // the estimator
-      for (idx2 = 0; idx2 < m_NumberOfEigenvectors; idx2++)
+      for (col = 0; col < m_NumberOfEigenvectors; col++)
         {
-          initialMeans[meanIdx] = ev[idx2];
+          initialMeans[meanIdx] = ev[col];
           meanIdx++;
         }
     }  
@@ -546,12 +511,12 @@ void SpectralClustering::ComputeClusters()
   meanIdx = 0;
   centroids->Clear();
   // loop over final centroid list
-  for (idx1 = 0; idx1 < m_NumberOfClusters; idx1 ++)
+  for (row = 0; row < numberOfClusters; row ++)
     {
       // Get the centroid out of the strange format from the estimator
-      for (idx2 = 0; idx2 < m_NumberOfEigenvectors; idx2++)
+      for (col = 0; col < m_NumberOfEigenvectors; col++)
         {
-          ev[idx2] = estimatedMeans[meanIdx];
+          ev[col] = estimatedMeans[meanIdx];
           meanIdx++;
         }
 
@@ -567,29 +532,29 @@ void SpectralClustering::ComputeClusters()
   // to their first component (so output class labels can be sorted
   // according to the second eigenvector of the normalized laplacian)
   std::vector< double > firstComp;
-  firstComp.resize( m_NumberOfClusters );
+  firstComp.resize( numberOfClusters );
 
   // first get all the first components
-  for (idx1 = 0; idx1 < m_NumberOfClusters; idx1 ++)
+  for (row = 0; row < numberOfClusters; row ++)
     {
-      ev = centroids->GetMeasurementVector(idx1);
-      firstComp[idx1] = ev[0];
+      ev = centroids->GetMeasurementVector(row);
+      firstComp[row] = ev[0];
     }
 
   // now order the centroids to make the class label list
   std::vector< unsigned int > classLabels;
-  classLabels.resize( m_NumberOfClusters );
+  classLabels.resize( numberOfClusters );
   int label = 0;
-  for (idx1 = 0; idx1 < m_NumberOfClusters; idx1 ++)
+  for (row = 0; row < numberOfClusters; row ++)
     {
       double minComp = firstComp[0];
       int minIdx = 0;
-      for (idx2 = 0; idx2 < m_NumberOfClusters; idx2 ++)
+      for (col = 0; col < numberOfClusters; col ++)
         {
-          if (firstComp[idx2] < minComp)
+          if (firstComp[col] < minComp)
             {
-              minComp = firstComp[idx2];
-              minIdx = idx2;
+              minComp = firstComp[col];
+              minIdx = col;
             }
         }
       // remove the min so we find the next-largest next time
@@ -608,9 +573,10 @@ void SpectralClustering::ComputeClusters()
   typedef itk::MinimumDecisionRule DecisionRuleType;
   DecisionRuleType::Pointer decisionRule = DecisionRuleType::New();
   
-  // 
-  OutputClassifierDataObjectType *outputDataObject = this->GetOutput();
-  OutputClassifierType *output = outputDataObject->Get();
+  // Make a classifier object to decide which points belong 
+  // to which centroid
+  typedef Statistics::SampleClassifier< EmbedSampleType > OutputClassifierType;
+  OutputClassifierType::Pointer output = OutputClassifierType::New();
 
   //output->DebugOn();
 
@@ -624,12 +590,8 @@ void SpectralClustering::ComputeClusters()
     return;
   }
 
-  // need to keep this object around, increment its reference count
-  // otherwise it is deleted but the classifier is still around, 
-  // and we need to fully use the classifier later.
-  embedding->Register();
   //embedding->DebugOn();
-  output->SetNumberOfClasses( m_NumberOfClusters );
+  output->SetNumberOfClasses( numberOfClusters );
   // label according to second eigenvector ordering
   output->SetMembershipFunctionClassLabels( classLabels );
 
@@ -638,7 +600,7 @@ void SpectralClustering::ComputeClusters()
 
   MembershipFunctionType::OriginType origin( embedding->GetMeasurementVectorSize() ) ;
   int index = 0;
-  for ( unsigned int i = 0 ; i < m_NumberOfClusters ; i++ ) 
+  for ( unsigned int i = 0 ; i < numberOfClusters ; i++ ) 
     {
       membershipFunctions.push_back( MembershipFunctionType::New() );
       for ( unsigned int j = 0 ; j < origin.Size() ; j++ )
@@ -663,8 +625,29 @@ void SpectralClustering::ComputeClusters()
     itkExceptionMacro("Error in update of output classifier");
     return;
   }
+
   //output->GetOutput()->DebugOn();
 
+
+  // Now copy the class information into our output array
+  // Iterate over all class labels and save the info
+  OutputClassifierType::OutputType *membershipSample = output->GetOutput();
+  OutputClassifierType::OutputType::ConstIterator iter = 
+    membershipSample->Begin();
+
+  OutputType outputArray = this->GetOutputArray();
+
+
+  int idx = 0;
+  while ( iter != membershipSample->End() )
+    {
+      std::cout <<"index = " << idx << "   class label = " << iter.GetClassLabel() << std::endl;
+      outputArray[idx] = iter.GetClassLabel();
+      idx++;
+      ++iter;
+    }
+
+    
 }
 
 
@@ -700,11 +683,11 @@ void SpectralClustering::ComputeClusters()
 //       image->AllocateScalars();
 //       double *imageArray = (double *) image->GetScalarPointer();
       
-//       for (int idx1 = rows-1; idx1 >= 0; idx1--)
+//       for (int row = rows-1; row >= 0; row--)
 //         {
-//           for (int idx2 = 0; idx2 < cols; idx2++)
+//           for (int col = 0; col < cols; col++)
 //             {
-//               *imageArray = (*matrix)[idx1][idx2];
+//               *imageArray = (*matrix)[row][col];
 //               imageArray++;
 //             }
 //         }
