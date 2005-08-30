@@ -635,18 +635,14 @@ void SpectralClustering::GenerateData()
   OutputClassifierType::OutputType::ConstIterator iter = 
     membershipSample->Begin();
 
-  OutputType outputArray = this->GetOutputArray();
-
-
   int idx = 0;
   while ( iter != membershipSample->End() )
     {
       //itkDebugMacro("index = " << idx << "   class label = " << iter.GetClassLabel());
-      outputArray[idx] = iter.GetClassLabel();
+      (this->GetOutputArray())[idx] = iter.GetClassLabel();
       idx++;
       ++iter;
     }
-
     
 }
 
