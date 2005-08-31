@@ -69,13 +69,15 @@ SpectralClustering::SpectralClustering()
 
 }
 
-void SpectralClustering::PrintSelf(std::ostream& os, Indent indent)
+void SpectralClustering
+::PrintSelf(std::ostream& os, Indent indent) const
 {
-  this->Superclass::PrintSelf(os,indent);
+  Superclass::PrintSelf(os,indent);
 
-  os << indent << "NumberOfEigenvectors: " << m_NumberOfEigenvectors << "\n";
-  os << indent << "EmbeddingNormalization: " << m_EmbeddingNormalization << "\n";
-  os << indent << "SaveEmbeddingVectors: " << m_SaveEmbeddingVectors << "\n";
+  os << indent << "Number of eigenvectors (embedding vector length): "
+     << m_NumberOfEigenvectors << std::endl;
+  os << indent << "Embedding vector normalization method: " << m_EmbeddingNormalization << std::endl;
+  os << indent << "Save embedding vectors to file: " << m_SaveEmbeddingVectors << std::endl;
 
 }
 

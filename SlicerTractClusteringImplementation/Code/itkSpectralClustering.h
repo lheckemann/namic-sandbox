@@ -103,8 +103,8 @@ class  SpectralClustering : public AffinityClustering
   void GenerateData();
 
   /** Number of eigenvectors to use in the embedding */
-  itkSetMacro(NumberOfEigenvectors,int); 
-  itkGetMacro(NumberOfEigenvectors,int);
+  itkSetMacro(NumberOfEigenvectors,unsigned int); 
+  itkGetMacro(NumberOfEigenvectors,unsigned int);
 
   /** Get the intermediate computations of this class as images 
       for visualization */
@@ -150,7 +150,7 @@ class  SpectralClustering : public AffinityClustering
   SpectralClustering();
   ~SpectralClustering() {};
 
-  void PrintSelf(std::ostream& os, Indent indent);
+  void PrintSelf(std::ostream& os, Indent indent) const;
 
   typedef vnl_matrix<double> MatrixType;
   MatrixType m_NormalizedWeightMatrix;
@@ -158,7 +158,7 @@ class  SpectralClustering : public AffinityClustering
   typedef vnl_symmetric_eigensystem<double> EigenSystemType;
   EigenSystemType *m_EigenSystem;
 
-  int m_NumberOfEigenvectors;
+  unsigned int m_NumberOfEigenvectors;
   int m_EmbeddingNormalization;
   bool m_SaveEmbeddingVectors;
   bool m_SaveEigenvectors;
