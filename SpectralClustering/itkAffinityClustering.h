@@ -76,14 +76,14 @@ public:
   typedef SimpleDataObjectDecorator< OutputType > OutputObjectType;
 
   /** Set method for the affinity matrix */
-  virtual void SetInput( const AffinityMatrixType *affinityMatrix );
+  virtual void SetInput( const AffinityMatrixType &affinityMatrix );
 
   /** Overloaded Set method for the affinity matrix in case it is released in
    * a data object decorator from another filter */
   virtual void SetInput( const InputAffinityMatrixObjectType *affinityMatrixObject );
   
   /** Get the affinity matrix set as input */
-  const AffinityMatrixType *GetAffinityMatrix();
+  const AffinityMatrixType &GetAffinityMatrix();
 
   /** Get the output cluster. Const method for the user */
   const OutputType GetOutputClusters();
@@ -108,7 +108,7 @@ protected:
   ~AffinityClustering();
 
   /** To be provided by derived classes */
-  virtual void GenerateData() {};
+  virtual void GenerateData() { std::cout << "sdfs" << std::endl;};
 
   /** Get the output via reference, so the derived classes can access the output
    * array, resize it or fill in contents */
