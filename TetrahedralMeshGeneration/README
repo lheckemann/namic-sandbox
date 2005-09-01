@@ -15,6 +15,11 @@ LAM MPI v7.1. The ITK FEM deformation code is #defined because of the
 unresolved problems in the package at the time the MICCAI Open source workshop
 deadline has been approaching.
 
+INSTALLATION TIPS: (1) copy ${PETSC_DIR}/bmake/${PETSC_ARCH}/petscconf.h to
+${PETSC_DIR}/include; (2) configure LAM MPI with --without-mpi2cpp flags.
+I know there should be better ways to address the compilation errors you get
+if you don't do these two items. If you figure those out, please let me know.
+
 The code also uses CVS releases of ITK and VTK. You will have to configure
 those libraries with mpicc and mpiCC for C and C++ compilers which you will
 have after installing MPI

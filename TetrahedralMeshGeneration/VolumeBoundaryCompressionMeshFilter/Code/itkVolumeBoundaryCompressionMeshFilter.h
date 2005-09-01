@@ -257,6 +257,10 @@ private:
 
   typedef ImageFileReader<InternalImageType> InternalImageReaderType;
   typedef ImageFileWriter<InternalImageType> InternalImageWriterType;
+
+  typedef Mesh<InternalPixelType,3> SurfaceMeshType;
+  typedef SurfaceMeshType::CellType SurfaceMeshCellType;
+  typedef TriangleCell<SurfaceMeshCellType> SurfaceTriType;
   
   double m_dimX, m_dimY, m_dimZ;
   
@@ -267,6 +271,7 @@ private:
   InternalImageSizeType m_InputSize;
   InternalImagePointType m_InputOrigin;
 
+pmetric modeling for navigation during image guided neurosurgery
   typename InputMeshType::Pointer m_InputMesh;
   typename OutputMeshType::Pointer m_OutputMesh;
   
@@ -283,6 +288,9 @@ private:
   // Solver
   fem::Solver m_Solver;
   std::string m_LinearSystemWrapperType;
+  
+  // Surface triangular mesh (when available)
+  SurfaceMeshType::Pointer m_SurfaceMesh;
   
 #if USE_PETSC
   PETScDeformWrapper m_PETScWrapper;
