@@ -47,11 +47,12 @@ AffinityClustering
 
 /** Set the input affinity matrix */
 void AffinityClustering
-::SetInput( const AffinityMatrixType *affinityMatrix )
+::SetInput( const AffinityMatrixType * affinityMatrix )
 {
   // If input is the same return
+  
   if ((this->GetNumberOfInputs() > 0) 
-      && (this->GetAffinityMatrix() == affinityMatrix))
+      && (*(this->GetAffinityMatrix()) == *affinityMatrix))
     {
     return;
     }
@@ -60,7 +61,7 @@ void AffinityClustering
     InputAffinityMatrixObjectType::New();
   
   // Process object is not const-correct so the const_cast is required here
-  affinityMatrixObject->Set( const_cast< AffinityMatrixType * >(affinityMatrix) );
+  affinityMatrixObject->Set( *affinityMatrix );
   
   this->ProcessObject::SetNthInput(0,  affinityMatrixObject  );
   
@@ -96,7 +97,8 @@ const AffinityClustering::AffinityMatrixType *AffinityClustering
   
   const InputAffinityMatrixObjectType *affinityMatrixObject = static_cast<
     const InputAffinityMatrixObjectType * >(this->ProcessObject::GetInput(0) );
-  return( affinityMatrixObject->Get() ); 
+  return( &((static_cast< const InputAffinityMatrixObjectType * >(
+                                 this->ProcessObject::GetInput(0) ))->Get()) ); 
 } 
 
 const AffinityClustering::InputAffinityMatrixObjectType * AffinityClustering
@@ -120,7 +122,7 @@ unsigned int AffinityClustering
     }
   
   return (static_cast< InputAffinityMatrixObjectType *>(
-        this->ProcessObject::GetInput(0)))->Get()->Rows();
+        this->ProcessObject::GetInput(0)))->Get().Rows();
 }
 
 unsigned int AffinityClustering
@@ -132,7 +134,7 @@ unsigned int AffinityClustering
     }
   
   return (static_cast< InputAffinityMatrixObjectType *>(
-        this->ProcessObject::GetInput(0)))->Get()->Cols();
+        this->ProcessObject::GetInput(0)))->Get().Cols();
 }
 
 const AffinityClustering::OutputType AffinityClustering

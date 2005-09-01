@@ -68,7 +68,7 @@ public:
   
   /** Since VariableSizeMatrix are not dataobjects, we use the decorator to push
    *  them down the pipeline */ 
-  typedef SimpleDataObjectDecorator< AffinityMatrixType * > InputAffinityMatrixObjectType;
+  typedef SimpleDataObjectDecorator< AffinityMatrixType > InputAffinityMatrixObjectType;
 
   /** OutputType returned by the filter, this is an Array decorated with a 
    * SimpleDataObjectDecorator, so it can be pushed down the pipeline. You could

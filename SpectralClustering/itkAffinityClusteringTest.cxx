@@ -13,7 +13,7 @@ int main()
   filter->SetInput( affinityMatrix );
   
   filter->Print( std::cout );
-  std::cout << *(filter->GetInput()->Get()) << std::endl;
+  std::cout << (filter->GetInput()->Get()) << std::endl;
   std::cout << filter->GetOutputClusters() << std::endl;
 
   return EXIT_SUCCESS;
