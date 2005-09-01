@@ -108,7 +108,7 @@ protected:
   ~AffinityClustering();
 
   /** To be provided by derived classes */
-  virtual void GenerateData() { std::cout << "sdfs" << std::endl;};
+  virtual void GenerateData() {};
 
   /** Get the output via reference, so the derived classes can access the output
    * array, resize it or fill in contents */
