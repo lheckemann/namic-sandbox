@@ -49,18 +49,17 @@ AffinityClustering
 void AffinityClustering
 ::SetInput( const AffinityMatrixType &affinityMatrix )
 {
-  // If input is the same return
-  
-  if ((this->GetNumberOfInputs() > 0) 
-      && ((this->GetAffinityMatrix()) == affinityMatrix))
+  InputAffinityMatrixObjectType::Pointer affinityMatrixObject;
+  if( this->GetNumberOfInputs() == 0 )
     {
-    return;
+    affinityMatrixObject = InputAffinityMatrixObjectType::New();
     }
-
-  InputAffinityMatrixObjectType::Pointer affinityMatrixObject = 
-    InputAffinityMatrixObjectType::New();
+  else
+    {
+    affinityMatrixObject = static_cast< 
+      const InputAffinityMatrixObjectType * >(this->ProcessObject::GetInput(0));
+    }
   
-  // Process object is not const-correct so the const_cast is required here
   affinityMatrixObject->Set( affinityMatrix );
   
   this->ProcessObject::SetNthInput(0,  affinityMatrixObject  );
