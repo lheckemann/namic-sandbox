@@ -78,11 +78,40 @@ BayesianClassifierImageFilter<TInputImage, TOutputImage>
 {
   DecisionRuleType::Pointer decisionRule = DecisionRuleType::New();  
 
-  if( m_MembershipFunctions.size() == 0 )
+  const unsigned int numberOfClasses = m_MembershipFunctions.size();
+  if( numberOfClasses == 0 )
     {
     itkExceptionMacro("No membership functions have been set up. Please call AddMembershipFunction() first");
     return;
     }
+
+
+  const InputImage * inputImage = this->GetInput();
+
+  typename InputImageType::RegionType   imageRegion  = inputImage->GetBufferedRegion();
+  typename InputImageType::SpacingType  imageSpacing = inputImage->GetSpacing();
+  typename InputImageType::PointType    imageOrigin  = inputImage->GetOrigin();
+
+  PosteriorImagePointer posteriors = PosteriorImageType::New();
+  posteriors->SetRegions( imageRegion );
+  posteriors->SetSpacing( imageSpacing );
+  posteriors->SetOrigin( imageOrigin );
+  posteriors->SetVectorLength( numberOfClasses );
+  posteriors->Allocate();
+
+  PriorImagePointer priors = PriorImageType::New();
+  priors->SetRegions( imageRegion );
+  priors->SetSpacing( imageSpacing );
+  priors->SetOrigin( imageOrigin );
+  priors->SetVectorLength( numberOfClasses );
+  priors->Allocate();
+
+  MembershipImagePointer data = MembershipImageType::New();
+  data->SetRegions( imageRegion );
+  data->SetOrigin( imageOrigin );
+  data->SetSpacing( imageSpacing );
+  data->SetVectorLength( numberOfClasses );
+  data->Allocate();
 
   typedef ImageRegionConstIterator< InputImageType >  ItertatorType;
 

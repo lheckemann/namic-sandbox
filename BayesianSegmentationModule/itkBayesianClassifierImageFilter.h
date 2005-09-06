@@ -17,9 +17,10 @@
 #ifndef __itkBayesianClassifierImageFilter_h
 #define __itkBayesianClassifierImageFilter_h
 
+#include "itkVectorImage.h"
 #include "itkImageToImageFilter.h"
 #include "itkMaximumRatioDecisionRule.h"
-#include "itkGaussianDensityFunction.h"
+#include "itkDensityFunction.h"
 
 namespace itk
 {
@@ -60,6 +61,31 @@ public:
   /** Run-time type information (and related methods). */
   itkTypeMacro(BayesianClassifierImageFilter, ImageToImageFilter);
 
+  /** Image Type and Pixel type for the images representing the membership of a
+   *  pixel to a particular class. This image has arrays as pixels, the number of 
+   *  elements in the array is the same as the number of classes to be used.    */
+  typedef itk::VectorImage< double, Dimension >      MembershipImageType;
+  typedef typename MembershipImageType::PixelType    MembershipPixelType;
+  typedef typename MembershipImageType::Pointer      MembershipImagePointer;
+
+  /** Image Type and Pixel type for the images representing the Prior
+   * probability of a pixel belonging to  a particular class. This image has
+   * arrays as pixels, the number of elements in the array is the same as the
+   * number of classes to be used.  */
+  typedef itk::VectorImage< double, Dimension >      PriorImageType;
+  typedef typename PriorImageType::PixelType         PriorPixelType;
+  typedef typename PriorImageType::Pointer           PriorImagePointer;
+
+  /** Image Type and Pixel type for the images representing the Posterior
+   * probability of a pixel belonging to  a particular class. This image has
+   * arrays as pixels, the number of elements in the array is the same as the
+   * number of classes to be used.  */
+  typedef itk::VectorImage< double, Dimension >      PosteriorImageType;
+  typedef typename PosteriorImageType::PixelType     PosteriorPixelType;
+  typedef typename PosteriorImageType::Pointer       PosteriorImagePointer;
+
+  typedef itk::ImageRegionIterator< MembershipImageType > MembershipImageIteratorType;
+
   /** Pixel types. */
   typedef typename TInputImage::PixelType  InputPixelType;
   typedef typename TOutputImage::PixelType OutputPixelType;
@@ -71,10 +97,11 @@ public:
   /** Type of the Measurement */
   typedef InputPixelType   MeasurementVectorType;
 
-  /** Type of the Gaussian density functions */
-  typedef Statistics::GaussianDensityFunction< MeasurementVectorType > 
-                                                              MembershipFunctionType;
-  typedef typename MembershipFunctionType::ConstPointer       MembershipFunctionConstPointer;
+  /** Type of the density functions */
+  typedef Statistics::DensityFunction< MeasurementVectorType 
+                                              > MembershipFunctionType;
+  typedef typename MembershipFunctionType::ConstPointer       
+                                                MembershipFunctionConstPointer;
 
   /** Membership function container */
   typedef std::vector< MembershipFunctionConstPointer >       MembershipFunctionContainer;
@@ -83,7 +110,7 @@ public:
   typedef MaximumRatioDecisionRule                            DecisionRuleType;
 
   
-  /** Add a membership function to the filter. This is expected to be a Gaussian */
+  /** Add a membership function to the filter. */
   void AddMembershipFunction( const MembershipFunctionType * newFunction );
 
 
