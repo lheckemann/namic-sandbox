@@ -37,15 +37,19 @@ PURPOSE. See the above copyright notices for more information.
 int main( int argc, char * argv [] )
   {
 
-  if( argc < 2 )
+  if( argc < 8 )
     {
     std::cerr << "Missing command line arguments" << std::endl;
-    std::cerr << "Parameters: rawDataFileName nClasses" << std::endl;
+    std::cerr << "Parameters: inputFileName outputFileName nSmoothingIterations nClasses" << std::endl;
     return -1;
     }
 
-  int nSmoothingIterations = 1; // USER VARIABLE (DEFAULT = 10)
-  int nStatRefineIterations = 1; // USER VARIABLE (DEFAULT = 1)
+  char * rawDataFileName = argv[1];
+  char * labelMapFileName = argv[2];
+  int nSmoothingIterations = argv[3]; // USER VARIABLE (DEFAULT = 10)
+  unsigned int nClasses = argv[4];
+  float timeStep = 0.1; // USER VARIABLE (DEFAULT = 0.1)
+  float conductance = 3.0; // USER VARIABLE (DEFAULT = 3.0)
 
   // READIN IMAGE FROM FILE
   typedef unsigned short PixelType;
@@ -55,7 +59,7 @@ int main( int argc, char * argv [] )
 
   RawDataReaderType::Pointer readerRawData = RawDataReaderType::New();
 
-  readerRawData->SetFileName( argv[1] );
+  readerRawData->SetFileName( rawDataFileName );
 
   try
     {
@@ -80,7 +84,6 @@ int main( int argc, char * argv [] )
 
 
   // K-MEANS CLASSIFICATION
-  unsigned int nClasses = atoi( argv[2] );
   const unsigned int useNonContiguousLabels = false;
   typedef itk::ScalarImageKmeansImageFilter< RawDataImageType > KMeansFilterType;
 
@@ -144,7 +147,10 @@ int main( int argc, char * argv [] )
     {
     estimatedCovariances[i] =
       (sumsOfSquares[i] / classCount[i]) - ((sums[i] * sums[i]) / (classCount[i] * classCount[i]));
-
+    if ( estimatedCovariances[i] < 0.0000001 )
+      {
+      estimatedCovariances[i] = 0.0000001;
+      };
     // print means and covariances
     std::cout << "cluster[" << i << "]-- " << std::endl;
     std::cout << " estimated mean : " << estimatedMeans[i] << std::endl;
@@ -343,8 +349,6 @@ std::cout << "After renormalizing in initial section " << itrPosteriorImage.Get(
 
   // SETUP SMOOTHING FUNCTION
   int nIterations = 1; // always leave this at 1.
-  float timeStep = 0.1; // USER VARIABLE (DEFAULT = 0.1)
-  float conductance = 3.0; // USER VARIABLE (DEFAULT = 3.0)
   typedef itk::CurvatureAnisotropicDiffusionImageFilter<
     ScalarPosteriorImageType,
     ScalarPosteriorImageType > SmoothingFilterType;
@@ -424,9 +428,8 @@ std::cout << "Posteriors after decision rule in initial section " << itrPosterio
 
 
   // WRITE LABELMAP TO FILE
-  char * labelmapFileName = "z://src/BayesianSegmentationModule/labelsInitial.png";
   labelWriter->SetInput( labels );
-  labelWriter->SetFileName( labelmapFileName );
+  labelWriter->SetFileName( labelMapFileName );
   try
     {
     labelWriter->Update();
@@ -438,195 +441,5 @@ std::cout << "Posteriors after decision rule in initial section " << itrPosterio
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;
     }
-
-
-  // SETUP ITERATIVE STATISTICAL REFINEMENT
-
-  // SETUP JOIN IMAGE FILTER
-  typedef itk::JoinImageFilter< RawDataImageType, RawDataImageType > JoinFilterType;
-  typedef JoinFilterType::OutputImageType JoinImageType;
-
-  JoinFilterType::Pointer joinFilter = JoinFilterType::New();
-
-  // SETUP IMAGE TO HISTOGRAM GENERATOR
-  typedef itk::Statistics::ImageToHistogramGenerator<
-    JoinImageType >
-    HistogramGeneratorType;
-  typedef HistogramGeneratorType::HistogramType HistogramType;
-  typedef HistogramGeneratorType::SizeType HistogramSizeType;
-
-  HistogramGeneratorType::Pointer histogramGenerator =
-    HistogramGeneratorType::New();
-  const HistogramType * histogram;
-  HistogramSizeType histogramSize;
-  HistogramType::ConstIterator itrHistogram;
-  HistogramType::ConstIterator endHistogram;
-
-  // SETUP HISTOGRAM DENSITY FUNCTIONS
-  typedef itk::Statistics::HistogramDensityFunction<
-    MeasurementVectorType,
-    HistogramType >
-    HistogramMembershipFunctionType;
-  typedef HistogramMembershipFunctionType::Pointer HistogramMembershipFunctionPointer;
-
-  HistogramMembershipFunctionPointer histogramMembershipFunction;
-
-  histogramMembershipFunction = HistogramMembershipFunctionType::New();
-
-
-  // BEGIN ITERATIVE STATISTICAL REFINEMENT
-  for ( unsigned int j = 0; j < nStatRefineIterations; ++j )
-    {
-    // JOIN IMAGE AND LABEL MAP
-    joinFilter->SetInput1( readerRawData->GetOutput() );
-    joinFilter->SetInput2( labels );
-    joinFilter->Update();
-
-
-    // GENERATE HISTOGRAM FROM RAW DATA AND LABEL MAP
-    histogram = histogramGenerator->GetOutput();
-    histogramSize[0] = 256; // number of bins for the gray levels
-    histogramSize[1] = nClasses; // number of bins for the labels = number of labels
-    histogramGenerator->SetNumberOfBins( histogramSize );
-    histogramGenerator->SetMarginalScale( 10.0 );
-    histogramGenerator->SetInput( joinFilter->GetOutput() );
-    histogramGenerator->Compute();
-    itrHistogram = histogram->Begin();
-    endHistogram = histogram->End();
-
-
-    // CREATE HISTOGRAM MEMBERSHIP FUNCTIONS
-    histogramMembershipFunction->SetHistogram( histogram );
-
-
-    // GENERATE HISTOGRAM DATA IMAGE
-    itrDataImage.GoToBegin();
-    itrRawDataImage.GoToBegin();
-    itrLabelImage.GoToBegin();
-    while ( !itrDataImage.IsAtEnd() )
-      {
-      mv.Fill( itrRawDataImage.Get() );
-      for ( unsigned int i = 0; i < nClasses; i++ )
-        {
-        histogramMembershipFunction->SetClass( i );
-        membershipArrayPixel[i] = histogramMembershipFunction->Evaluate( mv );
-        }
-      itrDataImage.Set( membershipArrayPixel );
-      ++itrLabelImage;
-      ++itrRawDataImage;
-//std::cout << "Data in statistical loop " << itrDataImage.Get() << std::endl; //debugging
-      ++itrDataImage;
-      }
---itrLabelImage;
-std::cout << "Label image in statistical loop " << itrLabelImage.Get() << std::endl; //debugging
---itrRawDataImage;
-std::cout << "RawData image in statistical loop " << itrRawDataImage.Get() << std::endl; //debugging
---itrDataImage;
-std::cout << "Data terms in statistical loop " << itrDataImage.Get() << std::endl; //debugging
-
-
-    // GENERATE POSTERIORS BY APPLYING BAYES' RULE
-    itrDataImage.GoToBegin();
-    itrPosteriorImage.GoToBegin();
-    while ( !itrPosteriorImage.IsAtEnd() )
-      {
-      posteriorArrayPixel = itrPosteriorImage.Get();
-      membershipArrayPixel = itrDataImage.Get();
-      for ( unsigned int i = 0; i < nClasses; ++i )
-        {
-        posteriorArrayPixel[i] = membershipArrayPixel[i] * posteriorArrayPixel[i];
-        }
-      itrPosteriorImage.Set( posteriorArrayPixel );
-      ++itrDataImage;
-      ++itrPosteriorImage;
-      }
---itrPosteriorImage;
-std::cout << "Posterior image in statistical loop " << itrPosteriorImage.Get() << std::endl; //debugging
-
-
-    // RENORMALIZE POSTERIORS
-    itrPosteriorImage.GoToBegin();
-    while ( !itrPosteriorImage.IsAtEnd() )
-      {
-      posteriorArrayPixel = itrPosteriorImage.Get();
-      renormSum = 0;
-      for ( unsigned int i = 0; i < nClasses; ++i )
-        {
-        renormSum = renormSum + posteriorArrayPixel[i];
-        }
-      for ( unsigned int i = 0; i < nClasses; ++i )
-        {
-        posteriorArrayPixel[i] = posteriorArrayPixel[i] / renormSum;
-        }
-      itrPosteriorImage.Set( posteriorArrayPixel );
-      ++itrPosteriorImage;
-      }
---itrPosteriorImage;
-std::cout << "Posteriors after renomalize in statistical loop " << itrPosteriorImage.Get() << std::endl; //debugging
-
-
-    // PERFORM ITERATIVE SMOOTHING AND RENORMALIZATION OF POSTERIORS
-    for ( unsigned int iSmoothing = 0; iSmoothing < nSmoothingIterations; ++iSmoothing )
-      {
-      for ( unsigned int i = 0; i < nClasses; ++i )
-        {
-        indexVectorToScalarAdaptor->SetIndex( i );
-        indexScalarToVectorAdaptor->SetIndex( i );
-        indexScalarToVectorAdaptor->Update();
-        }
-
-      itrPosteriorImage.GoToBegin();
-      while ( !itrPosteriorImage.IsAtEnd() )
-        {
-        posteriorArrayPixel = itrPosteriorImage.Get();
-        renormSum = 0;
-        for ( unsigned int i = 0; i < nClasses; ++i )
-          {
-          renormSum = renormSum + posteriorArrayPixel[i];
-          }
-        for ( unsigned int i = 0; i < nClasses; ++i )
-          {
-          posteriorArrayPixel[i] = posteriorArrayPixel[i] / renormSum;
-          }
-        itrPosteriorImage.Set( posteriorArrayPixel );
-        ++itrPosteriorImage;
-        }
-      }
---itrPosteriorImage;
-std::cout << "Posteriors after smoothing in statistical loop " << itrPosteriorImage.Get() << std::endl; //debugging
-
-
-    // APPLY MAXIMUM A POSTERIORI RULE
-    itrLabelImage.GoToBegin();
-    itrPosteriorImage.GoToBegin();
-    while ( !itrLabelImage.IsAtEnd() )
-      {
-      itrLabelImage.Set( decisionRule->Evaluate( itrPosteriorImage.Get() ) );
-      ++itrLabelImage;
-      ++itrPosteriorImage;
-      }
---itrPosteriorImage;
-std::cout << "Posteriors after decision rule in statistical loop " << itrPosteriorImage.Get() << std::endl; //debugging
---itrLabelImage;
-std::cout << "Labels after decision rule in statistical loop " << itrLabelImage.Get() << std::endl; //debugging
-    }
-
-
-  // WRITE LABELMAP TO FILE
-  labelmapFileName = "z://src/BayesianSegmentationModule/labelsFinal.png";
-  labelWriter->SetInput( labels );
-  labelWriter->SetFileName( labelmapFileName );
-  try
-    {
-    labelWriter->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << "Problem encoutered while writing image file : "
-      << argv[2] << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
-
   return 0;
   }
