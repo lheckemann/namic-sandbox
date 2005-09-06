@@ -56,8 +56,10 @@ void AffinityClustering
     }
   else
     {
-    affinityMatrixObject = static_cast< 
+    const InputAffinityMatrixObjectType * currentAffinityMatrixObject = dynamic_cast< 
       const InputAffinityMatrixObjectType * >(this->ProcessObject::GetInput(0));
+    affinityMatrixObject = const_cast< InputAffinityMatrixObjectType * >(
+                                                  currentAffinityMatrixObject );
     }
   
   affinityMatrixObject->Set( affinityMatrix );
@@ -86,7 +88,7 @@ void AffinityClustering
   this->GetOutputArray().SetSize( this->GetNumberOfRowsInAffinityMatrix() );
 }
 
-const AffinityClustering::AffinityMatrixType &AffinityClustering
+AffinityClustering::AffinityMatrixType &AffinityClustering
 ::GetAffinityMatrix() 
 {
   if (this->GetNumberOfInputs() < 1)
@@ -94,8 +96,10 @@ const AffinityClustering::AffinityMatrixType &AffinityClustering
     itkExceptionMacro( << "Affinity matrix not set" );
     }
   
-  return( ((static_cast< const InputAffinityMatrixObjectType * >(
-                                 this->ProcessObject::GetInput(0) ))->Get()) ); 
+  const InputAffinityMatrixObjectType *object = 
+    static_cast< const InputAffinityMatrixObjectType * >(
+                                 this->ProcessObject::GetInput(0) );
+  return( (const_cast< InputAffinityMatrixObjectType *>(object))->Get() ); 
 } 
 
 const AffinityClustering::InputAffinityMatrixObjectType * AffinityClustering

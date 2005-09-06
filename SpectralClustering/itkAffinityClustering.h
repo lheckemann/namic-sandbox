@@ -82,8 +82,14 @@ public:
    * a data object decorator from another filter */
   virtual void SetInput( const InputAffinityMatrixObjectType *affinityMatrixObject );
   
-  /** Get the affinity matrix set as input */
-  const AffinityMatrixType &GetAffinityMatrix();
+  /** Get the affinity matrix set as input. Returned via reference. Affinity 
+   * matrices can be large and we do not want to return them by value and spend
+   * resources copying them. To be syntactically correct, this function should be
+   * const AffinityMatrixType &GetAffinityMatrix() const; 
+   * For some reason, the itkSimpleDataObjectDecorator.h has a function that returns
+   * by value and should be replaced by an equivalent one that returns the reference.
+   * I am convinced that it is a bug. We will wait until JimMiller confirms this. */
+  AffinityMatrixType &GetAffinityMatrix();
 
   /** Get the output cluster. Const method for the user */
   const OutputType GetOutputClusters();
