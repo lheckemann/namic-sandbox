@@ -91,14 +91,18 @@ void SpectralClustering::GenerateData()
     }
   
   //const AffinityMatrixType *input = this->GetInput()->Get();
-  AffinityMatrixType *input = this->GetInput()->Get();
+  AffinityMatrixType input = this->GetAffinityMatrix();
 
-  unsigned int numberOfItemsToCluster = input->Rows();
+  unsigned int numberOfItemsToCluster = input.Rows();
   unsigned int numberOfClusters = this->GetNumberOfClusters();
+
+
+  itkDebugMacro( "Number of items: " << numberOfItemsToCluster << 
+                 " number of clusters: " << numberOfClusters);
 
   // Make sure the input represents a square matrix (list sample items
   // must have length equal to number of items to cluster).
-  if (input->Cols() != numberOfItemsToCluster)
+  if (input.Cols() != numberOfItemsToCluster)
     {
       itkExceptionMacro("Input AffinityMatrix must be square");
     }
@@ -130,7 +134,7 @@ void SpectralClustering::GenerateData()
       for (col = 0; col < numberOfItemsToCluster; col++)
         {
           // sum the row
-          rowWeightSum[row] += (*input)(row,col);
+          rowWeightSum[row] += input(row,col);
           // TEST to turn off normalization 
           // rowWeightSum[row] =1;
 
@@ -152,7 +156,7 @@ void SpectralClustering::GenerateData()
       for (col = 0; col < numberOfItemsToCluster; col++)
         {
           (m_NormalizedWeightMatrix)[row][col] = 
-            ((*input)(row,col))/(rowWeightSum[row]*rowWeightSum[col]);
+            (input(row,col))/(rowWeightSum[row]*rowWeightSum[col]);
       
         }
     }
@@ -319,10 +323,8 @@ void SpectralClustering::GenerateData()
     TreeGeneratorType;
   TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
 
-  std::cout << "tree gen sample size " << treeGenerator->GetMeasurementVectorSize() << std::endl;
   try {
     treeGenerator->SetSample( embedding );
-    std::cout << "tree gen sample size " << treeGenerator->GetMeasurementVectorSize() << std::endl;
   }
   catch (itk::ExceptionObject &e) {
     itkExceptionMacro("Error in setting sample for tree: " << e);
@@ -442,7 +444,7 @@ void SpectralClustering::GenerateData()
               ev = embedding->GetMeasurementVector(sampleIdx);
             }
           
-          // now find the best one with the minimim similarity to others
+          // now find the best one with the minimum similarity to others
           double minSimilarity = similarity[0];
           ev = testCentroids->GetMeasurementVector(0);
           for (int idxChoice = 1; idxChoice < numTestCentroids; idxChoice++)
@@ -500,14 +502,6 @@ void SpectralClustering::GenerateData()
 
   EstimatorType::ParametersType estimatedMeans = estimator->GetParameters();
   itkDebugMacro("Final estimator params: " << estimator->GetParameters());
-  for ( unsigned int i = 0 ; i < 2 ; ++i )
-    {
-      std::cout << "cluster[" << i << "] " << std::endl;
-      std::cout << "    estimated mean : " << estimatedMeans[i] << std::endl;
-      
-      itkDebugMacro("cluster[" << i << "] ");
-      itkDebugMacro("    estimated mean : " << estimatedMeans[i]);
-    }
 
   // Copy the final centroids into a format we can understand
   meanIdx = 0;
@@ -636,6 +630,8 @@ void SpectralClustering::GenerateData()
   OutputClassifierType::OutputType *membershipSample = output->GetOutput();
   OutputClassifierType::OutputType::ConstIterator iter = 
     membershipSample->Begin();
+
+  itkDebugMacro( "output array size: " << (this->GetOutputArray()).Size());
 
   int idx = 0;
   while ( iter != membershipSample->End() )

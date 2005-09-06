@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
   itk::SpectralClustering::Pointer spectralCluster = itk::SpectralClustering::New();
   spectralCluster->DebugOn();
 
-  spectralCluster->SetInput( & affinityMatrix );
+  spectralCluster->SetInput( affinityMatrix );
   spectralCluster->SetNumberOfClusters(numberOfClusters);
   spectralCluster->SetNumberOfEigenvectors(numberOfEigenvectors);
 
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
   // Now print/save the input and output
   // -----------------------
   spectralCluster->Print( std::cout );
-  std::cout << *(spectralCluster->GetInput()->Get()) << std::endl;
+  std::cout << spectralCluster->GetInput()->Get() << std::endl;
   std::cout << spectralCluster->GetOutputClusters() << std::endl;
   itk::SpectralClustering::OutputType output = spectralCluster->GetOutputClusters();
 
