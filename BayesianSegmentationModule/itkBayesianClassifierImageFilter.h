@@ -21,6 +21,8 @@
 #include "itkImageToImageFilter.h"
 #include "itkMaximumRatioDecisionRule.h"
 #include "itkDensityFunction.h"
+#include "itkImageRegionIterator.h"
+
 
 namespace itk
 {
@@ -61,10 +63,18 @@ public:
   /** Run-time type information (and related methods). */
   itkTypeMacro(BayesianClassifierImageFilter, ImageToImageFilter);
 
+  /** Input and Output image types */
+  typedef typename Superclass::InputImageType   InputImageType;
+  typedef typename Superclass::OutputImageType  OutputImageType;
+
+  /** Dimension of the input image */
+  itkStaticConstMacro( Dimension, unsigned int, 
+                       itk::GetImageDimension< InputImageType >::ImageDimension );
+
   /** Image Type and Pixel type for the images representing the membership of a
    *  pixel to a particular class. This image has arrays as pixels, the number of 
    *  elements in the array is the same as the number of classes to be used.    */
-  typedef itk::VectorImage< double, Dimension >      MembershipImageType;
+  typedef VectorImage< double, Dimension >           MembershipImageType;
   typedef typename MembershipImageType::PixelType    MembershipPixelType;
   typedef typename MembershipImageType::Pointer      MembershipImagePointer;
 
@@ -90,9 +100,6 @@ public:
   typedef typename TInputImage::PixelType  InputPixelType;
   typedef typename TOutputImage::PixelType OutputPixelType;
   
-  /** Input and Output image types */
-  typedef typename Superclass::InputImageType   InputImageType;
-  typedef typename Superclass::OutputImageType  OutputImageType;
 
   /** Type of the Measurement */
   typedef InputPixelType   MeasurementVectorType;

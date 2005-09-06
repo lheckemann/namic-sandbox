@@ -22,6 +22,7 @@
 #include "itkImage.h"
 #include "itkImageFileWriter.h"
 #include "itkImageFileReader.h"
+#include "itkGaussianDensityFunction.h"
 
 
 //int itkBayesianClassifierImageFilterTest(int argc, char* argv[] )
@@ -69,8 +70,9 @@ int main(int argc, char* argv[] )
 
   filter->SetInput( reader->GetOutput() );
 
+  typedef ClassifierFilterType::MeasurementVectorType MeasurementVectorType;
 
-  typedef ClassifierFilterType::MembershipFunctionType    MembershipFunctionType;
+  typedef itk::Statistics::GaussianDensityFunction< MeasurementVectorType >    MembershipFunctionType;
 
   MembershipFunctionType::Pointer gaussian1 =  MembershipFunctionType::New();
   MembershipFunctionType::Pointer gaussian2 =  MembershipFunctionType::New();

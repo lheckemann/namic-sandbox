@@ -86,7 +86,7 @@ BayesianClassifierImageFilter<TInputImage, TOutputImage>
     }
 
 
-  const InputImage * inputImage = this->GetInput();
+  const InputImageType * inputImage = this->GetInput();
 
   typename InputImageType::RegionType   imageRegion  = inputImage->GetBufferedRegion();
   typename InputImageType::SpacingType  imageSpacing = inputImage->GetSpacing();
