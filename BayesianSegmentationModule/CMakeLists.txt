@@ -20,3 +20,9 @@ ADD_EXECUTABLE(BayesianSegmentationModule
 TARGET_LINK_LIBRARIES(BayesianSegmentationModule ITKStatistics ITKIO ITKCommon ITKNumerics)
 
 
+ADD_EXECUTABLE(itkBayesianClassifierImageFilterTest 
+  itkBayesianClassifierImageFilterTest.cxx 
+  )
+TARGET_LINK_LIBRARIES(itkBayesianClassifierImageFilterTest ITKStatistics ITKIO ITKCommon ITKNumerics)
+
+

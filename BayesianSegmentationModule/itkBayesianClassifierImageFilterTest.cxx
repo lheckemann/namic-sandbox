@@ -24,7 +24,8 @@
 #include "itkImageFileReader.h"
 
 
-int itkBayesianClassifierImageFilterTest(int argc, char* argv[] )
+//int itkBayesianClassifierImageFilterTest(int argc, char* argv[] )
+int main(int argc, char* argv[] )
 {
 
   if( argc < 4 ) 
