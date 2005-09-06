@@ -41,6 +41,7 @@ SUBDIRS(
   DiffusionTensorImaging 
   NonRigidRegistrationForEchoPlanarImaging
   SlicerTractClusteringImplementation
+  SpectralClustering
   )
 
 # Add the testing directories
