@@ -75,7 +75,7 @@ void AffinityClustering
 {
   // If input is the same return
   if ((this->GetNumberOfInputs() > 0) 
-      && (this->ProcessObject::GetInput(0) == affinityMatrixObject))
+       && (this->ProcessObject::GetInput(0) == (itk::DataObject *)affinityMatrixObject))
     {
     return;
     }
