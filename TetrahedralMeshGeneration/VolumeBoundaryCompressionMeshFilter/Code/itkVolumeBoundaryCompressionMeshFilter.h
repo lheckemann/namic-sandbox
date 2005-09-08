@@ -271,7 +271,6 @@ private:
   InternalImageSizeType m_InputSize;
   InternalImagePointType m_InputOrigin;
 
-pmetric modeling for navigation during image guided neurosurgery
   typename InputMeshType::Pointer m_InputMesh;
   typename OutputMeshType::Pointer m_OutputMesh;
   
