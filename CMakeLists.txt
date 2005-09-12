@@ -40,8 +40,8 @@ ENDIF (USE_VTK_FILE)
 SUBDIRS(
   DiffusionTensorImaging 
   NonRigidRegistrationForEchoPlanarImaging
-  SlicerTractClusteringImplementation
   SpectralClustering
+  SlicerTractClusteringImplementation
   )
 
 # Add the testing directories
