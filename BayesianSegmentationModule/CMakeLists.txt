@@ -1,4 +1,3 @@
-
 PROJECT(BayesianSegmentationModule)
 
 FIND_PACKAGE(ITK)

@@ -37,7 +37,7 @@ PURPOSE. See the above copyright notices for more information.
 int main( int argc, char * argv [] )
   {
 
-  if( argc < 8 )
+  if( argc < 4 )
     {
     std::cerr << "Missing command line arguments" << std::endl;
     std::cerr << "Parameters: inputFileName outputFileName nSmoothingIterations nClasses" << std::endl;

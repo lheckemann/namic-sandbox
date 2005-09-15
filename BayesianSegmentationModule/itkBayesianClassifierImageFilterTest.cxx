@@ -29,50 +29,55 @@
 int main(int argc, char* argv[] )
 {
 
-  if( argc < 4 ) 
+  if( argc < 3 ) 
     { 
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << "  inputImageFile outputImageFile numberOfClasses" << std::endl;
     return EXIT_FAILURE;
     }
 
+  // INPUT PARAMETERS
+  char * rawDataFileName = argv[1];
+  char * labelMapFileName = argv[2];
+  float timeStep = 0.1; // USER VARIABLE (DEFAULT = 0.1)
+  
+
+  // SETUP READER
+  const unsigned int Dimension = 2;
   typedef unsigned char InputComponentType;
   typedef itk::Vector<InputComponentType, 3> InputPixelType;
-
-  typedef unsigned long OutputPixelType;
-
-
-  const unsigned int Dimension = 2;
-
   typedef itk::Image< InputPixelType, Dimension >    InputImageType;
-  typedef itk::Image< OutputPixelType, Dimension >   OutputImageType;
-
-
   typedef itk::ImageFileReader< InputImageType >     ReaderType;
-  typedef itk::ImageFileWriter< OutputImageType >    WriterType;
 
   ReaderType::Pointer reader = ReaderType::New();
+  reader->SetFileName( rawDataFileName );
+
+
+  // SETUP WRITER
+  typedef unsigned long OutputPixelType;
+  typedef itk::Image< OutputPixelType, Dimension >   OutputImageType;
+  typedef itk::ImageFileWriter< OutputImageType >    WriterType;
+
   WriterType::Pointer writer = WriterType::New();
-
-  reader->SetFileName( argv[1] );
-  writer->SetFileName( argv[2] );
-
-  //const unsigned int numberOfClasses = atoi( argv[3] );
+  writer->SetFileName( labelMapFileName );
 
 
-
+  // SETUP FILTER
   typedef itk::BayesianClassifierImageFilter< 
                                  InputImageType,
                                  OutputImageType >  ClassifierFilterType;
 
-
   ClassifierFilterType::Pointer filter = ClassifierFilterType::New();
-
   filter->SetInput( reader->GetOutput() );
 
-  typedef ClassifierFilterType::MeasurementVectorType MeasurementVectorType;
 
-  typedef itk::Statistics::GaussianDensityFunction< MeasurementVectorType >    MembershipFunctionType;
+  // SET FILTER'S PRIOR PARAMETERS
+  // do nothing here to default to uniform priors
+
+  // SET FILTER'S DATA PARAMETERS
+  typedef ClassifierFilterType::MeasurementVectorType MeasurementVectorType;
+  typedef itk::Statistics::GaussianDensityFunction<
+                                 MeasurementVectorType >    MembershipFunctionType;
 
   MembershipFunctionType::Pointer gaussian1 =  MembershipFunctionType::New();
   MembershipFunctionType::Pointer gaussian2 =  MembershipFunctionType::New();
@@ -84,15 +89,33 @@ int main(int argc, char* argv[] )
   filter->AddMembershipFunction( gaussian3 );
   filter->AddMembershipFunction( gaussian4 );
 
+
+  // SET FILTER'S SMOOTHING PARAMETERS
+  // do nothing here to use default smoothing parameters
+
+  // EXECUTE THE FILTER
   filter->Update();
 
 
+  // WRITE LABELMAP TO FILE
+  // need to write GetOutput method
+//   writer->SetInput( filter->GetOutput() );
+//   writer->SetFileName( labelMapFileName );
+//   try
+//     {
+//     writer->Update();
+//     }
+//   catch( itk::ExceptionObject & excp )
+//     {
+//     std::cerr << "Problem encoutered while writing image file : "
+//       << argv[2] << std::endl;
+//     std::cerr << excp << std::endl;
+//     return EXIT_FAILURE;
+//     }
 
+
+  // TESTING PRINT
   filter->Print( std::cout );
-
-
-
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
-
 }

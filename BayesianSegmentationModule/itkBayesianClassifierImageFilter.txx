@@ -81,7 +81,7 @@ BayesianClassifierImageFilter<TInputImage, TOutputImage>
   const unsigned int numberOfClasses = m_MembershipFunctions.size();
   if( numberOfClasses == 0 )
     {
-    itkExceptionMacro("No membership functions have been set up. Please call AddMembershipFunction() first");
+    itkExceptionMacro("No membership functions have been set up.  Please call AddMembershipFunction() first");
     return;
     }
 
