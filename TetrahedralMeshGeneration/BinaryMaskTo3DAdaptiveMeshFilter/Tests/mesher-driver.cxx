@@ -50,6 +50,7 @@ void print_help(){
   std::cout << "--resolution=<number>   REQUIRED specifies the number of resolutions" << std::endl;
   std::cout << "--tmp-name=<name>       REQUIRED specifies the name for temporary data saved in /tmp (to speed up the computation; use different for each dataset)" << std::endl;
   std::cout << "--bcc-spacing=<number>  will set the spacing for the initial BCC lattice; by default it is equal to 1/10th of the smallest dimension of the image" << std::endl;
+  std::cout << "--iterations=<number>   specifies the number of iterations to use during the surface compression" << std::endl;
 }
 
 
@@ -57,7 +58,7 @@ static int verbose_flag = 0;
 char *inria_fname = NULL, *vtk_fname = NULL, 
      *input_image = NULL, *tmp_name = NULL,
      *tmp_fname = NULL;
-unsigned resolution = 0, save_cut = 0, bcc_spacing = 10;
+unsigned resolution = 0, save_cut = 0, bcc_spacing = 10, iterations = 3;
 
 int main(int argc, char** argv){
   
@@ -76,6 +77,7 @@ int main(int argc, char** argv){
         {"tmp-name", required_argument, 0, 'f'},
         {"help", optional_argument, 0, 'g'},
         {"bcc-spacing", optional_argument, 0, 'h'},
+        {"iterations", optional_argument, 0, 'i'},
         {0, 0, 0, 0}
       };
     /* getopt_long stores the option index here. */
@@ -133,6 +135,10 @@ int main(int argc, char** argv){
       bcc_spacing = atoi(optarg);
       break;
 
+    case 'i':
+      iterations = atoi(optarg);
+      break;
+
     case '?':
       /* getopt_long already printed an error message. */
       break;
@@ -171,6 +177,8 @@ int main(int argc, char** argv){
   }
 
   MeshType::Pointer tetra_mesh = mesher->GetOutput();
+  
+  
   typedef MeshType::CellsContainer::ConstIterator CellIterator;
   typedef MeshType::CellType CellType;
   CellIterator cellIterator = tetra_mesh->GetCells()->Begin();
@@ -189,18 +197,20 @@ int main(int argc, char** argv){
     MeshUtilType::meshToUnstructuredGrid(tetra_mesh);
   vtkUnstructuredGridWriter *vtk_tetra_mesh_writer =
     vtkUnstructuredGridWriter::New();
-
+  /*
   if(vtk_fname){
     vtk_tetra_mesh_writer->SetFileName((std::string(vtk_fname)+".original.vtk").c_str());
     vtk_tetra_mesh_writer->SetInput(vtk_tetra_mesh);
     vtk_tetra_mesh_writer->Update();
   }
-  
+  */
+
   std::cout << "Initializing compressor..." << std::endl;
 
   compressor->SetInput(tetra_mesh);
   compressor->SetInputImagePrefix(tmp_fname);
   compressor->SetInput(reader->GetOutput());
+  compressor->SetCompressionIterations(iterations);
   try{
     compressor->Update();
   } catch(itk::ExceptionObject &e){
