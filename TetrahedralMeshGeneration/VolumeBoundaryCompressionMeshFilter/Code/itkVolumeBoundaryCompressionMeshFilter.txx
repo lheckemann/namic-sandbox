@@ -100,6 +100,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   InputImagePointer m_InputImage =
     static_cast<InputImageType*>(this->ProcessObject::GetInput(1));
 
+  std::cout << "Distance image..." << std::endl;
   // Compute the distance image
   //  1. Cast the input image to the internal format
   // TODO: make sure the input image is binary!
@@ -231,7 +232,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   m_Interpolator->SetInputImage(m_DistanceImage);
 
   // Mesh input/output initialization
-
+  std::cout << "Mesh initialization..." << std::endl;
   this->m_InputMesh = 
     static_cast<InputMeshType*>(this->ProcessObject::GetInput(0));
   this->m_OutputMesh = this->GetOutput();
@@ -249,6 +250,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   outPoints->Squeeze();
   
   // Walk through the input mesh, extract surface vertices
+  std::cout << "Extracting surface vertices..." << std::endl;
   typename std::map<TetFace,unsigned int> face2cnt;
   typename std::map<TetFace,unsigned int>::iterator face2cntI;
   unsigned int i, j, k;
@@ -584,12 +586,73 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   double *U;
   std::ofstream outfile;
   
-  
+  std::cout << "Deformation" << std::endl;
+
+  PETScDeformWrapper::IndDispList* bc;
+  bc = new PETScDeformWrapper::IndDispList;
+ 
   U = new double [m_SurfaceVertices.size()*3];
   bzero((void*)U, m_SurfaceVertices.size()*3*sizeof(double));
-  
-  for(curIter=0;curIter<max_iter;curIter++){
 
+  
+  int *all_Indices = new int[3*m_SurfaceVertices.size()];
+  double *all_Displacements = new double[3*m_SurfaceVertices.size()];
+  int all_NIndices = 0;
+  
+  int *iter_Indices = NULL;
+  double *iter_Displacements = NULL;
+  int iter_NIndices = 0;
+  
+  std::cout << "Total surface vertices: " << m_SurfaceVertices.size() << std::endl;
+  for(i=0;i<m_SurfaceVertices.size();i++){
+    for(j=0;j<3;j++){
+      all_Indices[all_NIndices] = 3*m_SurfaceVertices[i]+j;
+      all_NIndices++;
+    }
+  }
+
+  bool stop = false;
+  
+  double *nodes_coords = new double[3*m_InputMesh->GetPoints()->Size()];
+  
+  /*
+  for(i=0;i<m_InputMesh->GetPoints()->Size();i++){
+    nodes_coords[i*3] = m_Solver.node.Find(i)->GetCoordinates()[0];
+    nodes_coords[i*3+1] = m_Solver.node.Find(i)->GetCoordinates()[1];
+    nodes_coords[i*3+2] = m_Solver.node.Find(i)->GetCoordinates()[2];
+  }*/
+  
+  InputPointsContainerIterator inPointsI;
+  inPointsI = m_InputMesh->GetPoints()->Begin();
+  i=0;
+  
+  while(inPointsI != m_InputMesh->GetPoints()->End()){
+    typename TInputMesh::PointType curPoint;
+    typename OutputMeshType::PointType newPoint;
+    curPoint = inPointsI.Value();
+    newPoint[0] = curPoint[0];
+    newPoint[1] = curPoint[1];
+    newPoint[2] = curPoint[2];
+    this->GetOutput()->SetPoint(i, newPoint);
+    inPointsI++;
+    i++;
+  }
+  i=0;
+  inPointsI = this->GetOutput()->GetPoints()->Begin();
+  while(inPointsI != this->GetOutput()->GetPoints()->End()){
+    typename TInputMesh::PointType curPoint;
+    curPoint = inPointsI.Value();
+    nodes_coords[i*3] = curPoint[0];
+    nodes_coords[i*3+1] = curPoint[1];
+    nodes_coords[i*3+2] = curPoint[2];
+    inPointsI++;
+    i++;
+  }
+  
+  for(curIter=0;!stop && curIter< m_CompressionIterations;curIter++){
+
+    std::cout << "Iteration " << curIter << std::endl;
+    stop = true;
     std::cout << "Initializing loads..." << std::endl;
     std::cout << "Total faces: " << m_SurfaceFaces.size() << std::endl;
 
@@ -605,24 +668,38 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
         double Fd[3];
         double Fdl, Fl;
 
+        
         /*
-        fem::FEMP<fem::Node> curNode;
-        curNode = dynamic_cast<fem::FEMP<fem::Node> >
-          m_Solver.node.Find(thisFace.nodes[j]);
-        */
+        std::cout << m_Solver.node.Find(thisFace.nodes[i])->GetCoordinates()[0] << ", ";
+        std::cout << m_Solver.node.Find(thisFace.nodes[i])->GetCoordinates()[1] << ", ";
+        std::cout << m_Solver.node.Find(thisFace.nodes[i])->GetCoordinates()[2] << std::endl;
+        
+        std::cout << "----> " << nodes_coords[3*thisFace.nodes[i]] << ", ";
+        std::cout << nodes_coords[3*thisFace.nodes[i]+1] << ", ";
+        std::cout << nodes_coords[3*thisFace.nodes[i]+2] << std::endl;
+
+
         v[0][0] = m_Solver.node.Find(thisFace.nodes[i])->GetCoordinates()[0];
         v[0][1] = m_Solver.node.Find(thisFace.nodes[i])->GetCoordinates()[1];
         v[0][2] = m_Solver.node.Find(thisFace.nodes[i])->GetCoordinates()[2];
-        /*
+        
+        */
         v[0][0] = m_PETScWrapper.m_Mesh->vertices[0][thisFace.nodes[i]];
         v[0][1] = m_PETScWrapper.m_Mesh->vertices[1][thisFace.nodes[i]];
         v[0][2] = m_PETScWrapper.m_Mesh->vertices[2][thisFace.nodes[i]];
+        
+        /*
+        v[0][0] = nodes_coords[3*i];
+        v[0][1] = nodes_coords[3*i+1];
+        v[0][2] = nodes_coords[3*i+2];
         */
       
         for(j=1;j<3;j++)
           for(k=0;k<3;k++)
             v[j][k] = //m_PETScWrapper.m_Mesh->vertices[k][thisFace.nodes[(j+i)%3]] - v[0][k]; 
-                m_Solver.node.Find(thisFace.nodes[(j+i)%3])->GetCoordinates()[k] - v[0][k];
+                      //m_Solver.node.Find(thisFace.nodes[(j+i)%3])->GetCoordinates()[k] - v[0][k];
+                      m_PETScWrapper.m_Mesh->vertices[k][thisFace.nodes[(j+i)%3]] - v[0][k];
+                      //nodes_coords[3*(thisFace.nodes[(j+i)%3])+k] - v[0][k];
 
         Fd[0] = (v[1][1]*v[2][2] - v[1][2]*v[2][1]);
         Fd[1] = (v[1][2]*v[2][0] - v[1][0]*v[2][2]);
@@ -636,229 +713,265 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
         U[curVertexPos*3] += Fd[0];
         U[curVertexPos*3+1] += Fd[1];
         U[curVertexPos*3+2] += Fd[2];
-        
         /*
-        if(curVertexPos==10){
-          std::cout << "Vertex " << m_SurfaceVertices[curVertexPos] << ", face (" << thisFace.nodes[0] << " " << thisFace.nodes[1] << " " << thisFace.nodes[2] << ") " << ", vector " << Fd[0] << "," << Fd[1] << "," << Fd[2] << std::endl;
-          for(j=0;j<3;j++){
-            for(k=0;k<3;k++)
-              std::cout << v[j][k] << " ";
-            std::cout << std::endl;
-          }
-        }
+        all_Displacements[curVertexPos*3] = U[curVertexPos*3];
+        all_Displacements[curVertexPos*3+1] = U[curVertexPos*3+1];
+        all_Displacements[curVertexPos*3+2] = U[curVertexPos*3+2];
         */
-//        for(k=0;k<3;k++)
-//          U[curVertexPos*3+k] += Fd[k];
       }
     }
-  }
   
-  /*
-  for(i=0;i<m_SurfaceVertices.size();i++)
-    std::cout << i << ": " << U[i*3] << " " << U[i*3+1] << " " << U[i*3+2] << std::endl;
-    */
-  
-  // Scale each of the vectors based on the distance to the surface
-  float max_displacement = 0, displacement;
-  for(i=0;i<m_SurfaceVertices.size();i++){
-    float distance, length;
-    double coords[3];
-    unsigned int curVertexID;
+ 
+    // Scale each of the vectors based on the distance to the surface
+    float max_displacement = 0, displacement;
+    std::vector<int> nonzero_displ;
+    for(i=0;i<m_SurfaceVertices.size();i++){
+      float distance, length;
+      double coords[3];
+      unsigned int curVertexID;
 
-    curVertexID = m_SurfaceVertices[i];
-//    std::cout << "Vertex " << curVertexID << std::endl;
-    length = sqrtf(U[i*3]*U[i*3] + U[i*3+1]*U[i*3+1] +
-      U[i*3+2]*U[i*3+2]);
+      curVertexID = m_SurfaceVertices[i];
+      //    std::cout << "Vertex " << curVertexID << std::endl;
+      length = sqrtf(U[i*3]*U[i*3] + U[i*3+1]*U[i*3+1] +
+        U[i*3+2]*U[i*3+2]);
 
-    for(j=0;j<3;j++)
-      try{
-        coords[j] = 
-          m_Solver.node.Find(curVertexID)->GetCoordinates()[j];
-      } catch(ExceptionObject &e){
-        std::cout << "Node not found: " << e << std::endl;
-        assert(0);
+      for(j=0;j<3;j++)
+        try{
+          coords[j] = 
+            //m_Solver.node.Find(curVertexID)->GetCoordinates()[j];
+            m_PETScWrapper.m_Mesh->vertices[j][curVertexID];
+        } catch(ExceptionObject &e){
+          std::cout << "Node not found: " << e << std::endl;
+          assert(0);
+        }
+
+      distance = DistanceAtPoint(coords);
+      if(distance!=0){
+        stop = false;
+        nonzero_displ.push_back(i);
+        iter_NIndices++;
       }
-    
-    distance = DistanceAtPoint(coords);
-  //  std::cout << "Distance at point: " << distance << std::endl;
-    // the image is unit-spaced
-    displacement = 0;
-    for(j=0;j<3;j++){
-      U[i*3+j] *= (distance/length);
-      displacement += U[i*3+j]*U[i*3+j];
-      if(displacement>max_displacement)
-        max_displacement = displacement;
+
+      // std::cout << "Distance at point: " << distance << std::endl;
+      // the image is unit-spaced
+      displacement = 0;
+      for(j=0;j<3;j++){
+        U[i*3+j] *= (distance/length);
+        displacement += U[i*3+j]*U[i*3+j];
+        if(displacement>max_displacement)
+          max_displacement = displacement;
+      }
+      //all_Displacements[i*3+j] = U[i*3+j];
     }
-//    std::cout << m_SurfaceVertices[i] << "=== Displacement: " << U[i*3] << " " << U[i*3+1] << " " << U[i*3+2] << "(point " << 
-//      m_Solver.node.Find(m_SurfaceVertices[i])->GetCoordinates()[0] << " " <<
-//      m_Solver.node.Find(m_SurfaceVertices[i])->GetCoordinates()[1] << " " <<
-//      m_Solver.node.Find(m_SurfaceVertices[i])->GetCoordinates()[2] << ")" << std::endl;
-  }
-  std::cout << "Max displacement is " << sqrtf(max_displacement) << std::endl;
+
+    iter_NIndices *= 3;
+    iter_Indices = new int[iter_NIndices];
+    iter_Displacements = new double[iter_NIndices];
+
+    i = 0;
+    for(std::vector<int>::iterator lI=nonzero_displ.begin();
+      lI!=nonzero_displ.end();lI++,i++){
+      for(j=0;j<3;j++){
+        iter_Indices[i*3+j] = 3*m_SurfaceVertices[(*lI)]+j;
+        iter_Displacements[i*3+j] = U[3*(*lI)+j];
+      }
+    }
+
+    std::cout << "Max displacement is " << sqrtf(max_displacement) << std::endl;
 
 #if USE_PETSC
-  
-  PETScDeformWrapper::IndDispList* bc;
-  bc = new PETScDeformWrapper::IndDispList;
-  bzero(bc, sizeof(PETScDeformWrapper::IndDispList));
-  int *all_Indices = new int[3*m_SurfaceVertices.size()];
-  double *all_Displacements = new double[3*m_SurfaceVertices.size()];
-  int all_NIndices = 0;
-  int *iter_Indices;
-  double *iter_Displacements;
-  int iter_NIndices = 0;
-  
-  std::cout << "Initializing BC loads for PETSc deformation..." << std::endl;
-  for(i=0;i<m_SurfaceVertices.size();i++){
-    for(j=0;j<3;j++){
-      all_Indices[all_NIndices] = 3*m_SurfaceVertices[i]+j;
-      all_NIndices++;
-    }
-  }
- 
-  m_PETScWrapper.m_Mesh = m_PETScWrapper.add_edge_info_tetra_mesh(m_PETScWrapper.m_Mesh);
-  int iter = 0;
-  bool stop = false;
-  double min_edge_len;
 
-  for(iter;!stop && iter<1;iter++){
+    bzero(bc, sizeof(PETScDeformWrapper::IndDispList));
+    /*
+    int *all_Indices = new int[3*m_SurfaceVertices.size()];
+    double *all_Displacements = new double[3*m_SurfaceVertices.size()];
+    int all_NIndices = 0;
+    int *iter_Indices;
+    double *iter_Displacements;
+    int iter_NIndices = 0;
+     */
+
+    m_PETScWrapper.m_Mesh = 
+      m_PETScWrapper.add_edge_info_tetra_mesh(m_PETScWrapper.m_Mesh);
+    int iter = 0;
+    double min_edge_len;
+
+    //  for(iter;!stop && iter<1;iter++){
     double len = 0, max_len=0;
     unsigned displaced_verts = 0;
-    bc->Indices = all_Indices;
-    bc->Displacements = all_Displacements;
-    bc->NIndices = all_NIndices;
+    bc->Indices = iter_Indices;
+    bc->Displacements = iter_Displacements;
+    bc->NIndices = iter_NIndices;
+    /*
     bzero(bc->Displacements, 3*m_SurfaceVertices.size()*sizeof(double));
+
     for(i=0;i<m_SurfaceVertices.size();i++){
-      bc->Displacements[i*3] = U[i*3];
-      bc->Displacements[i*3+1] = U[i*3+1];
-      bc->Displacements[i*3+2] = U[i*3+2];
-      len = sqrt(U[i*3]*U[i*3]+U[i*3+1]*U[i*3+1]+U[i*3+2]*U[i*3+2]);
-      if(len>0)
-        displaced_verts++;
-      if(len>max_len)
-        max_len = len;
-    }
+    bc->Displacements[i*3] = U[i*3];
+    bc->Displacements[i*3+1] = U[i*3+1];
+    bc->Displacements[i*3+2] = U[i*3+2];
+    len = sqrt(U[i*3]*U[i*3]+U[i*3+1]*U[i*3+1]+U[i*3+2]*U[i*3+2]);
+    if(len>0)
+    displaced_verts++;
+    if(len>max_len)
+    max_len = len;
+    }*/
+
     std::cout << "Before the PETSc deformation...";
-    std::cout << displaced_verts << " vertices will be moved. Max is " << max_len << std::endl;
+    std::cout << bc->NIndices/3 << " vertices will be moved. Max is " 
+      << max_len << std::endl;
     m_PETScWrapper.Deform(m_PETScWrapper.m_Mesh, bc, NULL, DEF_E, DEF_NU);
     std::cout << "done" << std::endl;
-  }
-  
-  // Update the nodal coordinates of the output mesh
-  for(i=0;i<this->GetOutput()->GetPoints()->size();i++){
-    typename OutputMeshType::PointType newPoint;
+    delete [] iter_Displacements;
+    delete [] iter_Indices;
+    iter_NIndices = 0;
+    
+    /*
+    for(fem::Solver::NodeArray::iterator n=m_Solver.node.begin();
+      n!=m_Solver.node.end();n++){
+      typename OutputMeshType::PointType newPoint;
 
-    newPoint[0] = m_PETScWrapper.m_Mesh->x[i];
-    newPoint[1] = m_PETScWrapper.m_Mesh->y[i];
-    newPoint[2] = m_PETScWrapper.m_Mesh->z[i];
-    this->GetOutput()->SetPoint(i, newPoint);
-  }
-  
-  
+      newPoint[0] = (*n)->GetCoordinates()[0];
+      newPoint[1] = (*n)->GetCoordinates()[1];
+      newPoint[2] = (*n)->GetCoordinates()[2];
+
+//      std::cout << newPoint << "-->";
+      //    std::cout << "[ ";
+      displacement = 0;
+      for(unsigned int d=0, dof;(dof=(*n)->GetDegreeOfFreedom(d))!=fem::Element::InvalidDegreeOfFreedomID; d++){
+        newPoint[d] += m_Solver.GetSolution(dof);
+        displacement += newPoint[d]*newPoint[d];
+        //      std::cout << m_Solver.GetSolution(dof) << " ";
+      }
+      //    std::cout << "]" << std::endl;
+      if(displacement>max_displacement)
+        max_displacement = displacement;
+//      std::cout << newPoint << std::endl;
+      this->GetOutput()->SetPoint(i, newPoint);
+      i++;
+    }*/
+
+    // Update the nodal coordinates of the output mesh
+//    for(i=0;i<this->GetOutput()->GetPoints()->size();i++){
+    for(i=0;i<m_InputMesh->GetPoints()->size();i++){
+      typename OutputMeshType::PointType newPoint;
+    
+      newPoint[0] = m_PETScWrapper.m_Mesh->x[i];
+      newPoint[1] = m_PETScWrapper.m_Mesh->y[i];
+      newPoint[2] = m_PETScWrapper.m_Mesh->z[i];
+      this->GetOutput()->SetPoint(i, newPoint);
+    }
 
 #else // USE_PETSC (use itkFEM)
-  
-  // Initialize BC loads for the displaced vertices
-  // Go thru all the elements, for each element check each vertex if it is one
-  // of the surface vertices initialize the load appropriately
-  m_Solver.load.clear();
-  unsigned thisGN = 0;
-  std::set<void*> initialized_nodes;
-  for(fem::Element::ArrayType::iterator 
-    e = m_Solver.el.begin();e!=m_Solver.el.end();e++){
-    unsigned int curVertexPos;
-    assert((*e)->GetNumberOfDegreesOfFreedom() == 12);
-    for(i=0;i<4;i++){
-      std::map<void*,unsigned int>::iterator nodeI;
 
-      nodeI = m_SurfaceNode2Pos.find((void*)(*e)->GetNode(i));
-      if(nodeI != m_SurfaceNode2Pos.end()){
-        curVertexPos = (*nodeI).second;
-        assert(curVertexPos < m_SurfaceVertices.size());
-        if(initialized_nodes.find((void*)(*e)->GetNode(i)) ==
-          initialized_nodes.end()){
-          initialized_nodes.insert((void*)(*e)->GetNode(i));
-          for(j=0;j<3;j++){
-            fem::LoadBC::Pointer newLoad;
-            newLoad = fem::LoadBC::New();
-            newLoad->m_element = *e;
-            newLoad->m_dof = i*3+j;
-            newLoad->m_value.set_size(1);
-            newLoad->m_value = U[curVertexPos*3+j];
-            if(fabs((double)U[curVertexPos*3+j]==0))
-              newLoad->m_value = 0.0;
-          //  std::cout << newLoad->m_value << std::endl;
-            newLoad->GN = thisGN;
-            m_Solver.load.push_back(fem::FEMP<fem::Load>(newLoad));
-            thisGN++;
-          } // for (each degree of freedom for a node)
-        } // if the node has not been visited yet
-      } // if (a node is on the surface)
-    } // for (all nodes of a terahedron)
-  } // for (all elements of the mesh)
-  
-  std::cout << "Solver initialized" << std::endl;
-  std::cout << "Total nodes: " << m_Solver.node.size() << std::endl;
-  std::cout << "Total elements: " << m_Solver.el.size() << std::endl;
-  std::cout << "Total loads: " << m_Solver.load.size() << std::endl;
-  std::cout << "Total surface vertices: " << m_SurfaceVertices.size() << std::endl;
+    // Initialize BC loads for the displaced vertices
+    // Go thru all the elements, for each element check each vertex if it is one
+    // of the surface vertices initialize the load appropriately
+    m_Solver.load.clear();
+    unsigned thisGN = 0;
+    std::set<void*> initialized_nodes;
+    for(fem::Element::ArrayType::iterator 
+      e = m_Solver.el.begin();e!=m_Solver.el.end();e++){
+      unsigned int curVertexPos;
+      assert((*e)->GetNumberOfDegreesOfFreedom() == 12);
+      for(i=0;i<4;i++){
+        std::map<void*,unsigned int>::iterator nodeI;
+
+        nodeI = m_SurfaceNode2Pos.find((void*)(*e)->GetNode(i));
+        if(nodeI != m_SurfaceNode2Pos.end()){
+          curVertexPos = (*nodeI).second;
+          assert(curVertexPos < m_SurfaceVertices.size());
+          if(initialized_nodes.find((void*)(*e)->GetNode(i)) ==
+            initialized_nodes.end()){
+            initialized_nodes.insert((void*)(*e)->GetNode(i));
+            for(j=0;j<3;j++){
+              fem::LoadBC::Pointer newLoad;
+              newLoad = fem::LoadBC::New();
+              newLoad->m_element = *e;
+              newLoad->m_dof = i*3+j;
+              newLoad->m_value.set_size(1);
+              newLoad->m_value = U[curVertexPos*3+j];
+              if(fabs((double)U[curVertexPos*3+j]==0))
+                newLoad->m_value = 0.0;
+              //  std::cout << newLoad->m_value << std::endl;
+              newLoad->GN = thisGN;
+              m_Solver.load.push_back(fem::FEMP<fem::Load>(newLoad));
+              thisGN++;
+            } // for (each degree of freedom for a node)
+          } // if the node has not been visited yet
+        } // if (a node is on the surface)
+      } // for (all nodes of a terahedron)
+    } // for (all elements of the mesh)
+
+    std::cout << "Solver initialized" << std::endl;
+    std::cout << "Total nodes: " << m_Solver.node.size() << std::endl;
+    std::cout << "Total elements: " << m_Solver.el.size() << std::endl;
+    std::cout << "Total loads: " << m_Solver.load.size() << std::endl;
+    std::cout << "Total surface vertices: " << m_SurfaceVertices.size() << std::endl;
+
+
+    outfile.open("/tmp/solver_before.dat");
+    m_Solver.Write(outfile);
+    outfile.close();
+
+    // Run the solver!
+    m_Solver.GenerateGFN();
+    fem::LinearSystemWrapperVNL lsw_vnl;
+    fem::LinearSystemWrapperItpack lsw_itpack;
+    fem::LinearSystemWrapperDenseVNL lsw_dvnl;
+    lsw_itpack.SetMaximumNonZeroValuesInMatrix(200000);
+    m_Solver.SetLinearSystemWrapper(&lsw_vnl);
+    try{
+      std::cout << "AssembleK()..." << std::endl;
+      m_Solver.AssembleK();
+      std::cout << "DecomposeK()..." << std::endl;
+      m_Solver.DecomposeK();
+      std::cout << "AssembleF()..." << std::endl;
+      m_Solver.AssembleF();
+      std::cout << "Solve!!!..." << std::endl;
+      m_Solver.Solve();
+    }catch(ExceptionObject &e){
+      std::cout << "Exception " << e << std::endl;
+      assert(0);
+    }
+
+    // Update the output mesh nodal coordinates
+    i = 0;
+    max_displacement = 0;
+    for(fem::Solver::NodeArray::iterator n=m_Solver.node.begin();
+      n!=m_Solver.node.end();n++){
+      typename OutputMeshType::PointType newPoint;
+
+      newPoint[0] = (*n)->GetCoordinates()[0];
+      newPoint[1] = (*n)->GetCoordinates()[1];
+      newPoint[2] = (*n)->GetCoordinates()[2];
+
+      std::cout << newPoint << "-->";
+      //    std::cout << "[ ";
+      displacement = 0;
+      for(unsigned int d=0, dof;(dof=(*n)->GetDegreeOfFreedom(d))!=fem::Element::InvalidDegreeOfFreedomID; d++){
+        newPoint[d] += m_Solver.GetSolution(dof);
+        displacement += newPoint[d]*newPoint[d];
+        //      std::cout << m_Solver.GetSolution(dof) << " ";
+      }
+      //    std::cout << "]" << std::endl;
+      if(displacement>max_displacement)
+        max_displacement = displacement;
+      std::cout << newPoint << std::endl;
+      this->GetOutput()->SetPoint(i, newPoint);
+      i++;
+    }
+#endif // USE_PETSC
+    std::cout << "Max solution displacement is " << sqrtf(max_displacement) << std::endl;
+  }
   
   delete [] U;
+  delete bc;
+  delete [] nodes_coords;
   
-  outfile.open("/tmp/solver_before.dat");
-  m_Solver.Write(outfile);
-  outfile.close();
-
-  // Run the solver!
-  m_Solver.GenerateGFN();
-  fem::LinearSystemWrapperVNL lsw_vnl;
-  fem::LinearSystemWrapperItpack lsw_itpack;
-  fem::LinearSystemWrapperDenseVNL lsw_dvnl;
-  lsw_itpack.SetMaximumNonZeroValuesInMatrix(200000);
-  m_Solver.SetLinearSystemWrapper(&lsw_vnl);
-  try{
-    std::cout << "AssembleK()..." << std::endl;
-    m_Solver.AssembleK();
-    std::cout << "DecomposeK()..." << std::endl;
-    m_Solver.DecomposeK();
-    std::cout << "AssembleF()..." << std::endl;
-    m_Solver.AssembleF();
-    std::cout << "Solve!!!..." << std::endl;
-    m_Solver.Solve();
-  }catch(ExceptionObject &e){
-    std::cout << "Exception " << e << std::endl;
-    assert(0);
-  }
-
-  // Update the output mesh nodal coordinates
-  i = 0;
-  max_displacement = 0;
-  for(fem::Solver::NodeArray::iterator n=m_Solver.node.begin();
-    n!=m_Solver.node.end();n++){
-    typename OutputMeshType::PointType newPoint;
-
-    newPoint[0] = (*n)->GetCoordinates()[0];
-    newPoint[1] = (*n)->GetCoordinates()[1];
-    newPoint[2] = (*n)->GetCoordinates()[2];
-
-    std::cout << newPoint << "-->";
-//    std::cout << "[ ";
-    displacement = 0;
-    for(unsigned int d=0, dof;(dof=(*n)->GetDegreeOfFreedom(d))!=fem::Element::InvalidDegreeOfFreedomID; d++){
-      newPoint[d] += m_Solver.GetSolution(dof);
-      displacement += newPoint[d]*newPoint[d];
-//      std::cout << m_Solver.GetSolution(dof) << " ";
-    }
-//    std::cout << "]" << std::endl;
-    if(displacement>max_displacement)
-      max_displacement = displacement;
-    std::cout << newPoint << std::endl;
-    this->GetOutput()->SetPoint(i, newPoint);
-    i++;
-  }
-#endif // USE_PETSC
+  delete [] all_Indices;
+  delete [] all_Displacements;
   
-  std::cout << "Max solution displacement is " << sqrtf(max_displacement) << std::endl;
+  
   
   outfile.open("/tmp/solver_after.dat");
   m_Solver.Write(outfile);
