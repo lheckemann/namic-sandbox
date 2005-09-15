@@ -169,6 +169,7 @@ public:
   // TODO: document debug feature
   itkSetMacro(InputImagePrefix, std::string); 
   itkSetMacro(LinearSystemWrapperType, std::string);
+  itkSetMacro(CompressionIterations, unsigned);
 
   itkGetMacro(NumberOfPoints, unsigned);
   itkGetMacro(NumberOfTets, unsigned); // NAME: NumberOfTetras
@@ -275,6 +276,7 @@ private:
   typename OutputMeshType::Pointer m_OutputMesh;
   
   std::string m_InputImagePrefix;
+  unsigned m_CompressionIterations;
 
   std::vector<unsigned int> m_SurfaceVertices;
   std::map<unsigned int,unsigned int> m_SurfaceVertex2Pos;
