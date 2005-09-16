@@ -13,6 +13,14 @@
 #include <string>
 #include <getopt.h>
 
+// M.E.S.H.
+#include <xalloc.h>
+#include <model_analysis.h>
+#include <compute_error.h>
+#include <model_in.h>
+#include <geomutils.h>
+// ---
+
 #ifdef __cplusplus
 extern "C" {
 #endif 
@@ -51,13 +59,14 @@ void print_help(){
   std::cout << "--tmp-name=<name>       REQUIRED specifies the name for temporary data saved in /tmp (to speed up the computation; use different for each dataset)" << std::endl;
   std::cout << "--bcc-spacing=<number>  will set the spacing for the initial BCC lattice; by default it is equal to 1/10th of the smallest dimension of the image" << std::endl;
   std::cout << "--iterations=<number>   specifies the number of iterations to use during the surface compression" << std::endl;
+  std::cout << "--tri-surface=<name>    specifies .raw file describing triangular surface of the object" << std::endl;
 }
 
 
 static int verbose_flag = 0;
 char *inria_fname = NULL, *vtk_fname = NULL, 
      *input_image = NULL, *tmp_name = NULL,
-     *tmp_fname = NULL;
+     *tmp_fname = NULL, *surf_fname = NULL;
 unsigned resolution = 0, save_cut = 0, bcc_spacing = 10, iterations = 3;
 
 int main(int argc, char** argv){
@@ -78,12 +87,13 @@ int main(int argc, char** argv){
         {"help", optional_argument, 0, 'g'},
         {"bcc-spacing", optional_argument, 0, 'h'},
         {"iterations", optional_argument, 0, 'i'},
+        {"tri-surface", optional_argument, 0, 'j'},
         {0, 0, 0, 0}
       };
     /* getopt_long stores the option index here. */
     int option_index = 0;
 
-    int c = getopt_long (argc, argv, "a:b:c:d:",
+    int c = getopt_long (argc, argv, "a:b:c:d:e:f:g:h:i:j:",
       long_options, &option_index);
 
     /* Detect the end of the options. */
@@ -138,6 +148,9 @@ int main(int argc, char** argv){
     case 'i':
       iterations = atoi(optarg);
       break;
+
+    case 'j':
+      surf_fname = optarg;
 
     case '?':
       /* getopt_long already printed an error message. */
@@ -207,6 +220,21 @@ int main(int argc, char** argv){
 
   std::cout << "Initializing compressor..." << std::endl;
 
+  if(surf_fname){
+    struct model_error mesh_model;
+    struct model_info *mesh_info;
+    double bbox_diag;
+    
+    memset(&mesh_model, 0, sizeof(mesh_model));
+    
+    surface_mesh = (struct model_info*) xa_malloc(sizeof(*mesh_info));
+    mesh_model->mesh = read_model_file(surf_fname);
+    bbox_diag = dist_v(mesh_model->mesh->bBox[0], mesh_model->mesh->bBox[1]);
+    analyze_model(mesh_model->mesh, mesh_info, 0, false, NULL, NULL);
+    mesh_model->info = mesh_info;
+
+  }
+  
   compressor->SetInput(tetra_mesh);
   compressor->SetInputImagePrefix(tmp_fname);
   compressor->SetInput(reader->GetOutput());

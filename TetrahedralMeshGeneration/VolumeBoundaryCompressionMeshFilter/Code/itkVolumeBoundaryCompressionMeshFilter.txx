@@ -584,6 +584,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   unsigned int curVertexPos;
   unsigned int max_iter = 1;
   double *U;
+  double length;
   std::ofstream outfile;
   
   std::cout << "Deformation" << std::endl;
@@ -592,7 +593,6 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   bc = new PETScDeformWrapper::IndDispList;
  
   U = new double [m_SurfaceVertices.size()*3];
-  bzero((void*)U, m_SurfaceVertices.size()*3*sizeof(double));
 
   
   int *all_Indices = new int[3*m_SurfaceVertices.size()];
@@ -656,56 +656,107 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     std::cout << "Initializing loads..." << std::endl;
     std::cout << "Total faces: " << m_SurfaceFaces.size() << std::endl;
 
+    bzero((void*)U, 3*m_SurfaceVertices.size()*sizeof(double));
+    
+    double *all_normals = new double[m_SurfaceFaces.size()*3];
+    unsigned normal_id = 0;
+    
     // Calculate the displacement unit vectors for all surface vertices
     for(typename std::vector<TetFace>::iterator fI=m_SurfaceFaces.begin();
-      fI!=m_SurfaceFaces.end();fI++){
+      fI!=m_SurfaceFaces.end();fI++,normal_id++){
       TetFace thisFace;
 
       thisFace = *fI;
+      
+      /*
+      double vertices[4][3];
+      int jj,kk;
+      for(jj=0;jj<3;jj++)
+        for(kk=0;kk<3;kk++)
+          vertices[jj][kk] = m_PETScWrapper.m_Mesh->vertices[kk][thisFace.nodes[jj]];  
+      for(kk=0;kk<3;kk++)
+        vertices[3][kk] = m_PETScWrapper.m_Mesh->vertices[kk][thisFace.fourth];
+      assert(orient3d(&vertices[0][0], &vertices[1][0], &vertices[2][0], &vertices[3][0])<0);
+      */
+
+      double a[3], b[3], normal[3];
+      a[0] = m_PETScWrapper.m_Mesh->vertices[0][thisFace.nodes[2]] 
+        - m_PETScWrapper.m_Mesh->vertices[0][thisFace.nodes[1]];
+      a[1] = m_PETScWrapper.m_Mesh->vertices[1][thisFace.nodes[2]] 
+        - m_PETScWrapper.m_Mesh->vertices[1][thisFace.nodes[1]];
+      a[2] = m_PETScWrapper.m_Mesh->vertices[2][thisFace.nodes[2]] 
+        - m_PETScWrapper.m_Mesh->vertices[2][thisFace.nodes[1]];
+      
+      b[0] = m_PETScWrapper.m_Mesh->vertices[0][thisFace.nodes[0]] 
+        - m_PETScWrapper.m_Mesh->vertices[0][thisFace.nodes[1]];
+      b[1] = m_PETScWrapper.m_Mesh->vertices[1][thisFace.nodes[0]] 
+        - m_PETScWrapper.m_Mesh->vertices[1][thisFace.nodes[1]];
+      b[2] = m_PETScWrapper.m_Mesh->vertices[2][thisFace.nodes[0]] 
+        - m_PETScWrapper.m_Mesh->vertices[2][thisFace.nodes[1]];
+     
+      normal[0] = (a[1]*b[2]-a[2]*b[1])*1000.0;
+      normal[1] = (a[2]*b[0]-a[0]*b[2])*1000.0;
+      normal[2] = (a[0]*b[1]-a[1]*b[0])*1000.0;
+     
+      length = 
+        sqrt(normal[0]*normal[0]+normal[1]*normal[1]+normal[2]*normal[2]);
+     
+      normal[0] /= length;
+      normal[1] /= length;
+      normal[2] /= length;
+      
+      all_normals[3*normal_id] = normal[0];
+      all_normals[3*normal_id+1] = normal[1];
+      all_normals[3*normal_id+2] = normal[2];
+ 
+      if(!length){
+        std::cout << "Zero length normal: lack of precision!?!?..." << std::endl;
+        std::cout << "Failed normal: " << normal[0] << " " << normal[1] << " " << normal[2] << std::endl;
+        std::cout << "Vector a: " << a[0] << "," << a[1] << "," << a[2] << std::endl;
+        std::cout << "Vector b: " << b[0] << "," << b[1] << "," << b[2] << std::endl;
+        /*
+        std::cout << "Face: " 
+          << "(" << m_PETScWrapper.m_Mesh->vertices[0][thisFace.nodes[0]] << ", "
+          << m_PETScWrapper.m_Mesh->vertices[1][thisFace.nodes[0]] << ", "
+          << m_PETScWrapper.m_Mesh->vertices[2][thisFace.nodes[0]] << "),"
+          << "(" << m_PETScWrapper.m_Mesh->vertices[0][thisFace.nodes[1]] << ", "
+          << m_PETScWrapper.m_Mesh->vertices[1][thisFace.nodes[1]] << ", "
+          << m_PETScWrapper.m_Mesh->vertices[2][thisFace.nodes[1]] << "),"
+          << "(" << m_PETScWrapper.m_Mesh->vertices[0][thisFace.nodes[2]] << ", "
+          << m_PETScWrapper.m_Mesh->vertices[1][thisFace.nodes[2]] << ", "
+          << m_PETScWrapper.m_Mesh->vertices[2][thisFace.nodes[2]] << ")," 
+          << " length: " << length << std::endl;
+        */
+        assert(0);
+      }
+      
+      for(j=0;j<3;j++)
+        for(k=0;k<3;k++)
+          U[3*m_SurfaceVertex2Pos[thisFace.nodes[j]]+k] +=
+            normal[k];
+      
+      /*
 //      std::cout << "Face " << thisFace.nodes[0] << " " << thisFace.nodes[1] << " " << thisFace.nodes[2] << std::endl;
       for(i=0;i<3;i++){
         double v[3][3];
         double Fd[3];
         double Fdl, Fl;
-
         
-        /*
-        std::cout << m_Solver.node.Find(thisFace.nodes[i])->GetCoordinates()[0] << ", ";
-        std::cout << m_Solver.node.Find(thisFace.nodes[i])->GetCoordinates()[1] << ", ";
-        std::cout << m_Solver.node.Find(thisFace.nodes[i])->GetCoordinates()[2] << std::endl;
-        
-        std::cout << "----> " << nodes_coords[3*thisFace.nodes[i]] << ", ";
-        std::cout << nodes_coords[3*thisFace.nodes[i]+1] << ", ";
-        std::cout << nodes_coords[3*thisFace.nodes[i]+2] << std::endl;
-
-
-        v[0][0] = m_Solver.node.Find(thisFace.nodes[i])->GetCoordinates()[0];
-        v[0][1] = m_Solver.node.Find(thisFace.nodes[i])->GetCoordinates()[1];
-        v[0][2] = m_Solver.node.Find(thisFace.nodes[i])->GetCoordinates()[2];
-        
-        */
         v[0][0] = m_PETScWrapper.m_Mesh->vertices[0][thisFace.nodes[i]];
         v[0][1] = m_PETScWrapper.m_Mesh->vertices[1][thisFace.nodes[i]];
         v[0][2] = m_PETScWrapper.m_Mesh->vertices[2][thisFace.nodes[i]];
         
-        /*
-        v[0][0] = nodes_coords[3*i];
-        v[0][1] = nodes_coords[3*i+1];
-        v[0][2] = nodes_coords[3*i+2];
-        */
-      
         for(j=1;j<3;j++)
           for(k=0;k<3;k++)
-            v[j][k] = //m_PETScWrapper.m_Mesh->vertices[k][thisFace.nodes[(j+i)%3]] - v[0][k]; 
-                      //m_Solver.node.Find(thisFace.nodes[(j+i)%3])->GetCoordinates()[k] - v[0][k];
-                      m_PETScWrapper.m_Mesh->vertices[k][thisFace.nodes[(j+i)%3]] - v[0][k];
-                      //nodes_coords[3*(thisFace.nodes[(j+i)%3])+k] - v[0][k];
-
+            v[j][k] = m_PETScWrapper.m_Mesh->vertices[k][thisFace.nodes[(j+i)%3]] - v[0][k];
+        
         Fd[0] = (v[1][1]*v[2][2] - v[1][2]*v[2][1]);
         Fd[1] = (v[1][2]*v[2][0] - v[1][0]*v[2][2]);
         Fd[2] = (v[1][0]*v[2][1] - v[1][1]*v[2][0]);
         Fdl = sqrtf(Fd[0]*Fd[0]+Fd[1]*Fd[1]+Fd[2]*Fd[2]);
         assert(Fdl);
+        for(j=0;j<3;j++)
+          Fd[j] /= Fdl;
 
         assert(m_SurfaceVertex2Pos.find(thisFace.nodes[i])!=
           m_SurfaceVertex2Pos.end());
@@ -713,15 +764,24 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
         U[curVertexPos*3] += Fd[0];
         U[curVertexPos*3+1] += Fd[1];
         U[curVertexPos*3+2] += Fd[2];
-        /*
-        all_Displacements[curVertexPos*3] = U[curVertexPos*3];
-        all_Displacements[curVertexPos*3+1] = U[curVertexPos*3+1];
-        all_Displacements[curVertexPos*3+2] = U[curVertexPos*3+2];
-        */
       }
+      */
     }
+
+    /*
+    // normalize the vertex normals
+    for(j=0;j<m_SurfaceVertices.size();j++){
+      double length = sqrt(U[3*j]*U[3*j]+U[3*j+1]*U[3*j+1]+U[3*j+2]*U[3*j+2]);
+      if(!length){
+        std::cout << "Failed normal: " << U[3*j] << " " 
+          << U[3*j+1] << " " << U[3*j+2] << std::endl;
+        assert(0);
+      }
+      U[3*j] /= length;
+      U[3*j+1] /= length;
+      U[3*j+2] /= length;
+    }*/
   
- 
     // Scale each of the vectors based on the distance to the surface
     float max_displacement = 0, displacement;
     std::vector<int> nonzero_displ;
@@ -734,11 +794,11 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
       //    std::cout << "Vertex " << curVertexID << std::endl;
       length = sqrtf(U[i*3]*U[i*3] + U[i*3+1]*U[i*3+1] +
         U[i*3+2]*U[i*3+2]);
+      assert(length);
 
       for(j=0;j<3;j++)
         try{
           coords[j] = 
-            //m_Solver.node.Find(curVertexID)->GetCoordinates()[j];
             m_PETScWrapper.m_Mesh->vertices[j][curVertexID];
         } catch(ExceptionObject &e){
           std::cout << "Node not found: " << e << std::endl;
@@ -750,19 +810,21 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
         stop = false;
         nonzero_displ.push_back(i);
         iter_NIndices++;
+      //  std::cout << distance << " ";
       }
 
-      // std::cout << "Distance at point: " << distance << std::endl;
       // the image is unit-spaced
       displacement = 0;
       for(j=0;j<3;j++){
         U[i*3+j] *= (distance/length);
         displacement += U[i*3+j]*U[i*3+j];
-        if(displacement>max_displacement)
-          max_displacement = displacement;
       }
-      //all_Displacements[i*3+j] = U[i*3+j];
+      //std::cout << distance << "$" << length << "#" << sqrt(displacement) << " ";
+      if(displacement>max_displacement)
+        max_displacement = sqrt(displacement);
     }
+
+    std::cout << std::endl;
 
     iter_NIndices *= 3;
     iter_Indices = new int[iter_NIndices];

@@ -27,12 +27,13 @@ INCLUDE_DIRECTORIES(${TetrahedralMeshGeneration_SOURCE_DIR}/BinaryMaskTo3DAdapti
                     ${TetrahedralMeshGeneration_SOURCE_DIR}/VTKUnstructuredGridMeshWriter/Code
                     ${TetrahedralMeshGeneration_SOURCE_DIR}/VolumeBoundaryCompressionMeshFilter/Code
                     ${TetrahedralMeshGeneration_SOURCE_DIR}/External # should be removed later
+                    ${TetrahedralMeshGeneration_SOURCE_DIR}/Mesh-1.13
                     ${PETSC_DIR}/include
                    )
-LINK_DIRECTORIES(${PETSC_DIR}/lib/${PETSC_ARCH} ${X11_DIR}/lib ${PETSC_DIR}/externalpackages/fblaslapack/${PETSC_ARCH})
+LINK_DIRECTORIES(${PETSC_DIR}/lib/${PETSC_ARCH} ${X11_DIR}/lib ${PETSC_DIR}/externalpackages/fblaslapack/${PETSC_ARCH} ${TetrahedralMeshGeneration_SOURCE_DIR}/Mesh-1.13/obj)
                    
 FOREACH(test mesher-driver)
       ADD_EXECUTABLE(${test} ${TetrahedralMeshGeneration_SOURCE_DIR}/BinaryMaskTo3DAdaptiveMeshFilter/Tests/${test}.cxx ${TetrahedralMeshGeneration_SOURCE_DIR}/External/predicates.c ${TetrahedralMeshGeneration_SOURCE_DIR}/VolumeBoundaryCompressionMeshFilter/Code/tetra_mesh.cxx)
-      TARGET_LINK_LIBRARIES(${test} ITKCommon ITKIO vtkIO vtkGraphics ITKFEM petscksp petscmat petscvec X11 petscsnes petscts nsl rt lamf77mpi util petsc fblas flapack fblas nsl rt util dl lamf77mpi g2c m lam gcc_s)
+      TARGET_LINK_LIBRARIES(${test} ITKCommon ITKIO vtkIO vtkGraphics ITKFEM petscksp petscmat petscvec X11 petscsnes petscts nsl rt lamf77mpi util petsc fblas flapack fblas nsl rt util dl lamf77mpi g2c m lam gcc_s mesh)
       ADD_TEST(${test} "${EXECUTABLE_OUTPUT_PATH}/${test}" "sphere" "${TetrahedralMeshGeneration_SOURCE_DIR}/Data/sphere.mhd" "2")
 ENDFOREACH(test)

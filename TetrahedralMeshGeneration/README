@@ -22,7 +22,10 @@ if you don't do these two items. If you figure those out, please let me know.
 
 The code also uses CVS releases of ITK and VTK. You will have to configure
 those libraries with mpicc and mpiCC for C and C++ compilers which you will
-have after installing MPI
+have after installing MPI.
+
+The code also uses MESH software for computing distance from point to
+triangular surface. It is available at http://mesh.berlios.de/
 
 The datasets are located in the Data directory. Once you have the system set
 up, you can compile the main driver code, mesher-driver. You can run the test
