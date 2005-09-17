@@ -29,23 +29,23 @@
 int main(int argc, char* argv[] )
 {
 
-  if( argc < 3 ) 
+  if( argc < 2 ) 
     { 
     std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << "  inputImageFile outputImageFile numberOfClasses" << std::endl;
+    std::cerr << argv[0] << " inputImageFile outputImageFile" << std::endl;
     return EXIT_FAILURE;
     }
 
   // INPUT PARAMETERS
   char * rawDataFileName = argv[1];
   char * labelMapFileName = argv[2];
-  float timeStep = 0.1; // USER VARIABLE (DEFAULT = 0.1)
+  unsigned int numberOfClasses = 3;
   
 
   // SETUP READER
   const unsigned int Dimension = 2;
   typedef unsigned char InputComponentType;
-  typedef itk::Vector<InputComponentType, 3> InputPixelType;
+  typedef itk::Vector<InputComponentType, 3>         InputPixelType;
   typedef itk::Image< InputPixelType, Dimension >    InputImageType;
   typedef itk::ImageFileReader< InputImageType >     ReaderType;
 
@@ -53,16 +53,9 @@ int main(int argc, char* argv[] )
   reader->SetFileName( rawDataFileName );
 
 
-  // SETUP WRITER
+  // SETUP FILTER
   typedef unsigned long OutputPixelType;
   typedef itk::Image< OutputPixelType, Dimension >   OutputImageType;
-  typedef itk::ImageFileWriter< OutputImageType >    WriterType;
-
-  WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName( labelMapFileName );
-
-
-  // SETUP FILTER
   typedef itk::BayesianClassifierImageFilter< 
                                  InputImageType,
                                  OutputImageType >  ClassifierFilterType;
@@ -71,30 +64,61 @@ int main(int argc, char* argv[] )
   filter->SetInput( reader->GetOutput() );
 
 
+  // INITIALIZE FILTER
+  // call an initializer class here to setup prior and data terms
+
+
   // SET FILTER'S PRIOR PARAMETERS
   // do nothing here to default to uniform priors
+  // otherwise set the priors to some user provided values
 
-  // SET FILTER'S DATA PARAMETERS
-  typedef ClassifierFilterType::MeasurementVectorType MeasurementVectorType;
+
+  // CREATE GAUSSIAN MEMBERSHIP FUNCTIONS
+  typedef ClassifierFilterType::MeasurementVectorType     MeasurementVectorType;
   typedef itk::Statistics::GaussianDensityFunction<
-                                 MeasurementVectorType >    MembershipFunctionType;
+                                 MeasurementVectorType >  MembershipFunctionType;
+  typedef MembershipFunctionType::Pointer                 MembershipFunctionPointer;
+  typedef itk::Array< double >                            ArrayType; // temp
+  
+  std::vector< MembershipFunctionPointer > membershipFunctions;
+  MembershipFunctionType::MeanType         meanEstimators;
+  MembershipFunctionType::CovarianceType   covarianceEstimators;
+  ArrayType                                estimatedMeans( numberOfClasses); // temp
+  ArrayType                                estimatedCovariances( numberOfClasses ); // temp
 
-  MembershipFunctionType::Pointer gaussian1 =  MembershipFunctionType::New();
-  MembershipFunctionType::Pointer gaussian2 =  MembershipFunctionType::New();
-  MembershipFunctionType::Pointer gaussian3 =  MembershipFunctionType::New();
-  MembershipFunctionType::Pointer gaussian4 =  MembershipFunctionType::New();
+  for ( unsigned int i = 0; i < numberOfClasses; ++i )
+    {
+    estimatedMeans[i] = 255*i / numberOfClasses; // temp
+    estimatedCovariances[i] = 100; // temp
+    meanEstimators.Fill( estimatedMeans[i] );
+    covarianceEstimators.Fill( estimatedCovariances[i] );
+    membershipFunctions.push_back( MembershipFunctionType::New() );
+    membershipFunctions[i]->SetMean( &meanEstimators );
+    membershipFunctions[i]->SetCovariance( &covarianceEstimators );
+    }
 
-  filter->AddMembershipFunction( gaussian1 );
-  filter->AddMembershipFunction( gaussian2 );
-  filter->AddMembershipFunction( gaussian3 );
-  filter->AddMembershipFunction( gaussian4 );
+
+  // SET FILTER'S MEMBERSHIP FUNCTIONS
+  for ( unsigned int i = 0; i < numberOfClasses; ++i )
+    {
+    filter->AddMembershipFunction( membershipFunctions[i] );
+    }
 
 
   // SET FILTER'S SMOOTHING PARAMETERS
   // do nothing here to use default smoothing parameters
+  // otherwise set the smoothing parameters
+
 
   // EXECUTE THE FILTER
   filter->Update();
+
+
+  // SETUP WRITER
+  typedef itk::ImageFileWriter< OutputImageType >    WriterType;
+
+  WriterType::Pointer writer = WriterType::New();
+  writer->SetFileName( labelMapFileName );
 
 
   // WRITE LABELMAP TO FILE

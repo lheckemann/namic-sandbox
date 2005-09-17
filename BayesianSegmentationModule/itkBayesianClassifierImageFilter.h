@@ -22,7 +22,7 @@
 #include "itkMaximumRatioDecisionRule.h"
 #include "itkDensityFunction.h"
 #include "itkImageRegionIterator.h"
-
+#include "itkImageRegionConstIterator.h"
 
 namespace itk
 {
@@ -63,63 +63,64 @@ public:
   /** Run-time type information (and related methods). */
   itkTypeMacro(BayesianClassifierImageFilter, ImageToImageFilter);
 
-  /** Input and Output image types */
-  typedef typename Superclass::InputImageType   InputImageType;
-  typedef typename Superclass::OutputImageType  OutputImageType;
-
   /** Dimension of the input image */
   itkStaticConstMacro( Dimension, unsigned int, 
                        itk::GetImageDimension< InputImageType >::ImageDimension );
 
-  /** Image Type and Pixel type for the images representing the membership of a
-   *  pixel to a particular class. This image has arrays as pixels, the number of 
-   *  elements in the array is the same as the number of classes to be used.    */
-  typedef VectorImage< double, Dimension >           MembershipImageType;
-  typedef typename MembershipImageType::PixelType    MembershipPixelType;
-  typedef typename MembershipImageType::Pointer      MembershipImagePointer;
+  /** Input and Output image types */
+  typedef typename Superclass::InputImageType   InputImageType;
+  typedef typename Superclass::OutputImageType  OutputImageType;
+
+  /** Input and Output image iterators */
+  typedef itk::ImageRegionConstIterator< InputImageType > InputImageIteratorType;
+  typedef itk::ImageRegionIterator< OutputImageType >     OutputImageIteratorType;
+
+  /** Pixel types. */
+  typedef typename TInputImage::PixelType  InputPixelType;
+  typedef typename TOutputImage::PixelType OutputPixelType;
 
   /** Image Type and Pixel type for the images representing the Prior
    * probability of a pixel belonging to  a particular class. This image has
    * arrays as pixels, the number of elements in the array is the same as the
    * number of classes to be used.  */
-  typedef itk::VectorImage< double, Dimension >      PriorImageType;
-  typedef typename PriorImageType::PixelType         PriorPixelType;
-  typedef typename PriorImageType::Pointer           PriorImagePointer;
+  typedef itk::VectorImage< double, Dimension >           PriorImageType;
+  typedef typename PriorImageType::PixelType              PriorPixelType;
+  typedef typename PriorImageType::Pointer                PriorImagePointer;
+  typedef itk::ImageRegionIterator< PriorImageType >      PriorImageIteratorType;
+
+  /** Image Type and Pixel type for the images representing the membership of a
+   *  pixel to a particular class. This image has arrays as pixels, the number of 
+   *  elements in the array is the same as the number of classes to be used.    */
+  typedef VectorImage< double, Dimension >                MembershipImageType;
+  typedef typename MembershipImageType::PixelType         MembershipPixelType;
+  typedef typename MembershipImageType::Pointer           MembershipImagePointer;
+  typedef itk::ImageRegionIterator< MembershipImageType > MembershipImageIteratorType;
 
   /** Image Type and Pixel type for the images representing the Posterior
    * probability of a pixel belonging to  a particular class. This image has
    * arrays as pixels, the number of elements in the array is the same as the
    * number of classes to be used.  */
-  typedef itk::VectorImage< double, Dimension >      PosteriorImageType;
-  typedef typename PosteriorImageType::PixelType     PosteriorPixelType;
-  typedef typename PosteriorImageType::Pointer       PosteriorImagePointer;
-
-  typedef itk::ImageRegionIterator< MembershipImageType > MembershipImageIteratorType;
-
-  /** Pixel types. */
-  typedef typename TInputImage::PixelType  InputPixelType;
-  typedef typename TOutputImage::PixelType OutputPixelType;
-  
+  typedef itk::VectorImage< double, Dimension >           PosteriorImageType;
+  typedef typename PosteriorImageType::PixelType          PosteriorPixelType;
+  typedef typename PosteriorImageType::Pointer            PosteriorImagePointer;
+  typedef itk::ImageRegionIterator< PosteriorImageType >  PosteriorImageIteratorType;
 
   /** Type of the Measurement */
   typedef InputPixelType   MeasurementVectorType;
 
   /** Type of the density functions */
   typedef Statistics::DensityFunction< MeasurementVectorType 
-                                              > MembershipFunctionType;
-  typedef typename MembershipFunctionType::ConstPointer       
-                                                MembershipFunctionConstPointer;
+                                                        > MembershipFunctionType;
+  typedef typename MembershipFunctionType::ConstPointer   MembershipFunctionConstPointer;
 
   /** Membership function container */
-  typedef std::vector< MembershipFunctionConstPointer >       MembershipFunctionContainer;
+  typedef std::vector< MembershipFunctionConstPointer >   MembershipFunctionContainer;
 
   /** Decision rule to use for defining the label */
-  typedef MaximumRatioDecisionRule                            DecisionRuleType;
+  typedef MaximumRatioDecisionRule                        DecisionRuleType;
 
-  
   /** Add a membership function to the filter. */
   void AddMembershipFunction( const MembershipFunctionType * newFunction );
-
 
 protected:
   BayesianClassifierImageFilter();

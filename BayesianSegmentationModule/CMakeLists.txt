@@ -13,7 +13,7 @@ INCLUDE_DIRECTORIES(
   )
 
 ADD_EXECUTABLE(BayesianSegmentationModule 
-  BayesianSegmentation.cxx 
+  KnowledgeBasedSegmentation.cxx 
   )
 
 TARGET_LINK_LIBRARIES(BayesianSegmentationModule ITKStatistics ITKIO ITKCommon ITKNumerics)

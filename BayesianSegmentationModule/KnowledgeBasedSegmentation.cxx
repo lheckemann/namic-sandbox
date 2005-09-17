@@ -1,7 +1,7 @@
 /*=========================================================================
 
 Program: Insight Segmentation & Registration Toolkit
-Module: $RCSfile: BayesianSegmentation.cxx,v $
+Module: $RCSfile: KnowledgeBasedSegmentation.cxx,v $
 Language: C++
 Date: $Date: 2005/07/25 20:12:37 $
 Version: $Revision: 1.0 $
@@ -30,8 +30,6 @@ PURPOSE. See the above copyright notices for more information.
 #include "itkImageCastVectorIndexSelectionFilter.h"
 #include "itkCurvatureAnisotropicDiffusionImageFilter.h"
 #include "itkMaximumDecisionRule.h"
-#include "itkImageToHistogramGenerator.h"
-#include "itkHistogramDensityFunction.h"
 #include "itkImageFileWriter.h"
 
 int main( int argc, char * argv [] )
@@ -46,8 +44,8 @@ int main( int argc, char * argv [] )
 
   char * rawDataFileName = argv[1];
   char * labelMapFileName = argv[2];
-  int nSmoothingIterations = argv[3]; // USER VARIABLE (DEFAULT = 10)
-  unsigned int nClasses = argv[4];
+  int nSmoothingIterations = atoi( argv[3] ); // USER VARIABLE (DEFAULT = 10)
+  unsigned int nClasses = atoi ( argv[4] ); // USER VARIABLE (DEFAULT = 2)
   float timeStep = 0.1; // USER VARIABLE (DEFAULT = 0.1)
   float conductance = 3.0; // USER VARIABLE (DEFAULT = 3.0)
 
@@ -187,9 +185,9 @@ std::cout << "Prior image in initial section " << itrPriorImage.Get() << std::en
 
 
   // CREATE GAUSSIAN MEMBERSHIP FUNCTIONS
-  typedef itk::Vector< double, 1 > MeasurementVectorType;
+  typedef itk::Vector< double, 1 >                MeasurementVectorType;
   typedef itk::Statistics::GaussianDensityFunction< MeasurementVectorType >
-    GaussianMembershipFunctionType;
+                                                  GaussianMembershipFunctionType;
   typedef GaussianMembershipFunctionType::Pointer GaussianMembershipFunctionPointer;
 
   std::vector< GaussianMembershipFunctionPointer > gaussianMembershipFunctions;
