@@ -521,18 +521,43 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   // data structures
   if(m_SurfaceFileName.size()){
     int rcode;
-    double cell_sz;
     dvertex_t bbox_max;
     
     memset(&surf_error, 0, sizeof(surf_error));
-    surf_model = surf_error.mesh;
     
     surf_info = (struct model_info*) xa_malloc(sizeof(*surf_info));
     rcode = read_fmodel(&surf_model, surf_fname, MESH_FF_AUTO, 1);
+    surf_error.mesh = surf_model;
     std::cout << "Surface model read..." << std::endl;
     analyze_model(surf_model, surf_info, 0, false, NULL, NULL);
     std::cout << "... analyzed" << std::endl;
     surf_error.info = surf_info;
+    
+    fprintf(stdout,"\n                      Model information\n"
+      "     (degenerate faces ignored for manifold/closed info)\n\n");
+    fprintf(stdout,"Number of vertices:      %i\n",
+      surf_model->num_vert);
+    fprintf(stdout,"Number of triangles:     %i\n",
+      surf_error.mesh->num_faces);
+    fprintf(stdout,"Degenerate triangles:    %i\n",
+      surf_info->n_degenerate);
+    fprintf(stdout,"BoundingBox diagonal:    (%f,%f,%f) (%f,%f,%f)\n",
+      surf_error.mesh->bBox[0].x, 
+      surf_error.mesh->bBox[0].y, 
+      surf_error.mesh->bBox[0].z, 
+      surf_error.mesh->bBox[1].x,
+      surf_error.mesh->bBox[1].y,
+      surf_error.mesh->bBox[1].z);
+    fprintf(stdout,"Number of disjoint parts: %i\n",
+      surf_info->n_disjoint_parts);
+    fprintf(stdout,"Manifold:                %s\n",
+      (surf_info->manifold ? "yes" : "no")); 
+    fprintf(stdout,"Originally oriented:     %s\n",
+      (surf_info->orig_oriented ? "yes" : "no"));
+    fprintf(stdout,"Orientable:              %s\n",
+      (surf_info->orientable ? "yes" : "no"));
+    fprintf(stdout,"Closed:                  %s\n",
+      (surf_info->closed ? "yes" : "no"));
     
     bbox_min.x = surf_model->bBox[0].x;
     bbox_min.y = surf_model->bBox[0].y;
@@ -547,8 +572,9 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     prev_d = 0;
 
     tl = model_to_triangle_list(surf_model);
-    std::cout << "Triangule list created..." << std::endl;
+    std::cout << "Triangle list created..." << std::endl;
     cell_sz = get_cell_size(tl, &bbox_min, &bbox_max, &grid_sz);
+    std::cout << "Cell size is >>>>> " << cell_sz << "<<<<<" << std::endl;
     dcl = (dist_cell_lists*) xa_calloc(grid_sz.x*grid_sz.y*grid_sz.z, sizeof(*dcl));
     dcl_buf = NULL;
     dcl_buf_sz = 0;
@@ -603,7 +629,23 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh, TInputImage>
   std::cout << "Computing distance at point (" << coords[0] << "," 
     << coords[1] << "," << coords[2] << ")" << std::endl;
   */
-  float distance = 0;
+  float distance = 0, // distance from the distance map
+        dist_surf = 0;    // distance from the tri surface
+  
+  typename InterpolatorType::ContinuousIndexType input_index;
+
+  input_index[0] = coords[0];
+  input_index[1] = coords[1];
+  input_index[2] = coords[2];
+  if(m_Interpolator->IsInsideBuffer(input_index))
+    distance = (float)m_Interpolator->EvaluateAtContinuousIndex(input_index);
+  else {
+    std::cerr << "DistanceAtPoint(): Point [" 
+                                     << coords[0] << ", " << coords[1] << ", " 
+                                       << coords[2] << "] is outside the image boundaries" 
+                                       << std::endl;
+    assert(0);
+  }
 
 #ifdef MODEL_SPHERE
   double center[3];
@@ -622,34 +664,35 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh, TInputImage>
     thisVertex.x = coords[0];
     thisVertex.y = coords[1];
     thisVertex.z = coords[2];
-
-    std::cout << "Calling dist_pt_surf(coords, " << tl->n_triangles << ", " 
-      << fic->n_cells << "/" << fic->n_ne_cells << ", (" << grid_sz.x << "," << grid_sz.y << ","
-      << grid_sz.z << "), ("
-      << cell_sz << "), (" << bbox_min.x << "," << bbox_min.y << ","
-      << bbox_min.z << "), " << dcl->n_dists << ", ..., " << dcl_buf_sz
+    /*
+    std::cout << "Calling dist_pt_surf( (" 
+      << coords[0] << "," << coords[1] << "," 
+        << coords[2] << "), "
+      << tl->n_triangles << ", " 
+      << fic->n_cells << "/" 
+      << fic->n_ne_cells << ", grid_size=(" 
+      << grid_sz.x << "," << grid_sz.y << ","
+      << grid_sz.z << "), cell_size="
+      << cell_sz << ", " 
+      << bbox_min.x << "," << bbox_min.y << ","
+      << bbox_min.z << "), " 
+      << dcl->n_dists << ", ..., " << dcl_buf_sz
       << "))" << std::endl;
-    distance = dist_pt_surf(thisVertex, tl, fic, grid_sz, cell_sz, bbox_min,
+    */
+    dist_surf = dist_pt_surf(thisVertex, tl, fic, 
+      grid_sz, cell_sz, bbox_min,
       dcl, &prev_p, prev_d, &dcl_buf, &dcl_buf_sz);
-    
+    /*
+    std::cout << "Distance from tri surface: " << dist_surf << std::endl;
+    */
     prev_p = thisVertex;
     prev_d = distance;
-  } else {
-    typename InterpolatorType::ContinuousIndexType input_index;
+    if(distance<0)
+      distance = -1.0*dist_surf;
+    else
+      distance = dist_surf;
+  } 
 
-    input_index[0] = coords[0];
-    input_index[1] = coords[1];
-    input_index[2] = coords[2];
-    if(m_Interpolator->IsInsideBuffer(input_index))
-      distance = (float)m_Interpolator->EvaluateAtContinuousIndex(input_index);
-    else {
-      std::cerr << "DistanceAtPoint(): Point [" 
-                << coords[0] << ", " << coords[1] << ", " 
-                << coords[2] << "] is outside the image boundaries" 
-                << std::endl;
-      assert(0);
-    }
-  }
   return distance;
 }
 
@@ -739,7 +782,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     i++;
   }
   
-  m_CompressionIterations = 10;
+  //m_CompressionIterations = 10;
   for(curIter=0;!stop && curIter< m_CompressionIterations;curIter++){
 
     std::cout << "Iteration " << curIter << std::endl;
