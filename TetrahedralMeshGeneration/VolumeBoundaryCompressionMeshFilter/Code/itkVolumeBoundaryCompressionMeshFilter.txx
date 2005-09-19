@@ -739,6 +739,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     i++;
   }
   
+  m_CompressionIterations = 10;
   for(curIter=0;!stop && curIter< m_CompressionIterations;curIter++){
 
     std::cout << "Iteration " << curIter << std::endl;
@@ -896,6 +897,8 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
         }
 
       distance = DistanceAtPoint(coords);
+      if(curIter<5)
+        distance = 0.3*distance;
       if(distance!=0){
         stop = false;
         nonzero_displ.push_back(i);
