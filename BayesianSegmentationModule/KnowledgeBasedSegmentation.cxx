@@ -3,7 +3,7 @@
 Program: Insight Segmentation & Registration Toolkit
 Module: $RCSfile: KnowledgeBasedSegmentation.cxx,v $
 Language: C++
-Date: $Date: 2005/07/25 20:12:37 $
+Date: $Date: 2005/09/17 20:12:37 $
 Version: $Revision: 1.0 $
 
 Copyright (c) Insight Software Consortium. All rights reserved.
@@ -33,7 +33,7 @@ PURPOSE. See the above copyright notices for more information.
 #include "itkImageFileWriter.h"
 
 int main( int argc, char * argv [] )
-  {
+{
 
   if( argc < 4 )
     {
@@ -66,7 +66,7 @@ int main( int argc, char * argv [] )
   catch( itk::ExceptionObject & excp )
     {
     std::cerr << "Problem encoutered while reading raw data file : "
-      << argv[1] << std::endl;
+              << argv[1] << std::endl;
     std::cerr << excp << std::endl;
     return -1;
     }
@@ -180,14 +180,19 @@ int main( int argc, char * argv [] )
     itrPriorImage.Set( priorArrayPixel );
     ++itrPriorImage;
     }
---itrPriorImage;
-std::cout << "Prior image in initial section " << itrPriorImage.Get() << std::endl; //debugging
 
+/* DEBUGGING */
+  for (unsigned int i = 0; i < 15000; ++i ) // temp
+    {
+    --itrPriorImage;
+    }
+  std::cout << "Prior image in initial section " << itrPriorImage.Get() << std::endl; //debugging
+/* END DEBUGGING */
 
   // CREATE GAUSSIAN MEMBERSHIP FUNCTIONS
   typedef itk::Vector< double, 1 >                MeasurementVectorType;
   typedef itk::Statistics::GaussianDensityFunction< MeasurementVectorType >
-                                                  GaussianMembershipFunctionType;
+    GaussianMembershipFunctionType;
   typedef GaussianMembershipFunctionType::Pointer GaussianMembershipFunctionPointer;
 
   std::vector< GaussianMembershipFunctionPointer > gaussianMembershipFunctions;
@@ -244,10 +249,15 @@ std::cout << "Prior image in initial section " << itrPriorImage.Get() << std::en
     ++itrRawDataImage;
     ++itrDataImage;
     }
---itrRawDataImage;
-std::cout << "RawData image in initial section " << itrRawDataImage.Get() << std::endl; //debugging
---itrDataImage;
-std::cout << "Data image in initial section " << itrDataImage.Get() << std::endl; //debugging
+/* DEBUGGING */
+  for (unsigned int i = 0; i < 15000; ++i ) // temp
+    {
+    --itrRawDataImage; 
+    --itrDataImage;
+    }
+  std::cout << "RawData image in initial section " << itrRawDataImage.Get() << std::endl; //debugging
+  std::cout << "Data image in initial section " << itrDataImage.Get() << std::endl; //debugging
+/* END DEBUGGING */
 
 
   // GENERATE POSTERIORS BY APPLYING BAYES' RULE
@@ -291,8 +301,14 @@ std::cout << "Data image in initial section " << itrDataImage.Get() << std::endl
     ++itrPriorImage;
     ++itrPosteriorImage;
     }
---itrPosteriorImage;
-std::cout << "Initial Posteriors " << itrPosteriorImage.Get() << std::endl; //debugging
+/* DEBUGGING */
+  for (unsigned int i = 0; i < 15000; ++i ) // temp
+    {
+    --itrPosteriorImage;
+    }
+  std::cout << "Initial Posteriors " << itrPosteriorImage.Get() << std::endl; //debugging
+/* END DEBUGGING */
+
 
   // RENORMALIZE POSTERIORS
   float renormSum;
@@ -312,8 +328,13 @@ std::cout << "Initial Posteriors " << itrPosteriorImage.Get() << std::endl; //de
     itrPosteriorImage.Set( posteriorArrayPixel );
     ++itrPosteriorImage;
     }
---itrPosteriorImage;
-std::cout << "After renormalizing in initial section " << itrPosteriorImage.Get() << std::endl; //debugging
+/* DEBUGGING */
+  for (unsigned int i = 0; i < 15000; ++i ) // temp
+    {
+    --itrPosteriorImage;
+    }
+  std::cout << "After renormalizing in initial section " << itrPosteriorImage.Get() << std::endl; //debugging
+/* END DEBUGGING */
 
 
   // IMAGE ADAPTOR: VECTOR TO SCALAR IMAGE
@@ -387,8 +408,13 @@ std::cout << "After renormalizing in initial section " << itrPosteriorImage.Get(
       ++itrPosteriorImage;
       }
     }
---itrPosteriorImage;
-std::cout << "Posteriors after smoothing in initial section " << itrPosteriorImage.Get() << std::endl; //debugging
+/* DEBUGGING */
+  for (unsigned int i = 0; i < 15000; ++i ) // temp
+    {
+    --itrPosteriorImage;
+    }
+  std::cout << "Posteriors after smoothing in initial section " << itrPosteriorImage.Get() << std::endl; //debugging
+/* END DEBUGGING */
 
 
   // APPLY MAXIMUM A POSTERIORI RULE
@@ -413,10 +439,15 @@ std::cout << "Posteriors after smoothing in initial section " << itrPosteriorIma
     ++itrLabelImage;
     ++itrPosteriorImage;
     }
---itrLabelImage;
-std::cout << "Label image in initial section " << itrLabelImage.Get() << std::endl; //debugging
---itrPosteriorImage;
-std::cout << "Posteriors after decision rule in initial section " << itrPosteriorImage.Get() << std::endl; //debugging
+/* DEBUGGING */
+  for (unsigned int i = 0; i < 15000; ++i ) // temp
+    {
+    --itrLabelImage;
+    --itrPosteriorImage;
+    }
+  std::cout << "Label image in initial section " << itrLabelImage.Get() << std::endl; //debugging
+  std::cout << "Posteriors after decision rule in initial section " << itrPosteriorImage.Get() << std::endl; //debugging
+/* END DEBUGGING */
 
 
   // SETUP FILE WRITER
@@ -435,9 +466,9 @@ std::cout << "Posteriors after decision rule in initial section " << itrPosterio
   catch( itk::ExceptionObject & excp )
     {
     std::cerr << "Problem encoutered while writing image file : "
-      << argv[2] << std::endl;
+              << argv[2] << std::endl;
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;
     }
   return 0;
-  }
+}
