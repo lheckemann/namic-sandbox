@@ -220,21 +220,8 @@ int main(int argc, char** argv){
 
   std::cout << "Initializing compressor..." << std::endl;
 
-  if(surf_fname){
-    struct model_error mesh_model;
-    struct model_info *mesh_info;
-    double bbox_diag;
-    
-    memset(&mesh_model, 0, sizeof(mesh_model));
-    
-    surface_mesh = (struct model_info*) xa_malloc(sizeof(*mesh_info));
-    mesh_model->mesh = read_model_file(surf_fname);
-    bbox_diag = dist_v(mesh_model->mesh->bBox[0], mesh_model->mesh->bBox[1]);
-    analyze_model(mesh_model->mesh, mesh_info, 0, false, NULL, NULL);
-    mesh_model->info = mesh_info;
-
-  }
-  
+  if(surf_fname)
+    compressor->SetSurfaceFileName(surf_fname);
   compressor->SetInput(tetra_mesh);
   compressor->SetInputImagePrefix(tmp_fname);
   compressor->SetInput(reader->GetOutput());

@@ -24,6 +24,19 @@ float exactinit();
 double orient3d(double*, double*, double*, double*);
 }
 
+/*
+void init_triangle(const vertex_t* a, const vertex_t* b, const vertex_t* c,
+  struct triangle_info* t);
+struct triangle_list* model_to_triangle_list(const struct model* m);
+struct t_in_cell_list* triangles_in_cells(const struct triangle_list*,
+  struct size3d, double, dvertex_t);
+double get_cell_size(const struct triangle_list*, const dvertex_t*, const dvertex_t*,
+  struct size3d*);
+double dist_pt_surface(dvertex_t, const struct triangle_list*, const struct t_in_cell_list*,
+  struct size3d, double, dvertex_t, struct dist_cell_lists*, const dvertex_t*, double,
+  int**, int*);
+*/
+
 namespace itk
 {
 
@@ -79,6 +92,15 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   for(unsigned int dim=0;dim<3;dim++) // only 3D is handled
     m_OutputMesh->SetBoundaryAssignments(dim,
       m_InputMesh->GetBoundaryAssignments(dim));
+
+  // free the mesh data
+  if(m_SurfaceFileName.size()){
+    if(surf_error.mesh)
+      __free_raw_model(surf_error.mesh);
+    free(surf_error.verror);
+    free(surf_error.info);
+    free_face_error(surf_error.fe);
+  }
 }
 
 /** Initialize the class fields */
@@ -495,6 +517,47 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     }
   }
 
+  // If the triangular surface mesh is provided, read it in and initialize
+  // data structures
+  if(m_SurfaceFileName.size()){
+    int rcode;
+    double cell_sz;
+    dvertex_t bbox_max;
+    
+    memset(&surf_error, 0, sizeof(surf_error));
+    surf_model = surf_error.mesh;
+    
+    surf_info = (struct model_info*) xa_malloc(sizeof(*surf_info));
+    rcode = read_fmodel(&surf_model, surf_fname, MESH_FF_AUTO, 1);
+    std::cout << "Surface model read..." << std::endl;
+    analyze_model(surf_model, surf_info, 0, false, NULL, NULL);
+    std::cout << "... analyzed" << std::endl;
+    surf_error.info = surf_info;
+    
+    bbox_min.x = surf_model->bBox[0].x;
+    bbox_min.y = surf_model->bBox[0].y;
+    bbox_min.z = surf_model->bBox[0].z;
+    bbox_max.x = surf_model->bBox[1].x;
+    bbox_max.y = surf_model->bBox[1].y;
+    bbox_max.z = surf_model->bBox[1].z;
+
+    prev_p.x = 0;
+    prev_p.y = 0;
+    prev_p.z = 0;
+    prev_d = 0;
+
+    tl = model_to_triangle_list(surf_model);
+    std::cout << "Triangule list created..." << std::endl;
+    cell_sz = get_cell_size(tl, &bbox_min, &bbox_max, &grid_sz);
+    dcl = (dist_cell_lists*) xa_calloc(grid_sz.x*grid_sz.y*grid_sz.z, sizeof(*dcl));
+    dcl_buf = NULL;
+    dcl_buf_sz = 0;
+
+    fic = triangles_in_cells(tl, grid_sz, cell_sz, bbox_min);
+    surf_error.fe = (face_error*) xa_realloc(surf_error.fe, surf_model->num_faces*sizeof(*(surf_error.fe)));
+    std::cout << "Initialization of the surface is complete" << std::endl;
+  }
+  
 //#endif // USE_PETSC
   
   // the set of nodes, elements, and materials of the solver will not change during the
@@ -536,6 +599,12 @@ float
 VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh, TInputImage>
 ::DistanceAtPoint(double *coords){
 
+  /*
+  std::cout << "Computing distance at point (" << coords[0] << "," 
+    << coords[1] << "," << coords[2] << ")" << std::endl;
+  */
+  float distance = 0;
+
 #ifdef MODEL_SPHERE
   double center[3];
   double radius = 30;
@@ -547,18 +616,39 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh, TInputImage>
     (center[2]-coords[2])*(center[2]-coords[2])) - radius;
 #endif // MODEL_SPHERE
   
-  typename InterpolatorType::ContinuousIndexType input_index;
-  float distance = 0;
+  if(m_SurfaceFileName.size()){
+    dvertex_t thisVertex;
+    
+    thisVertex.x = coords[0];
+    thisVertex.y = coords[1];
+    thisVertex.z = coords[2];
 
-  input_index[0] = coords[0];
-  input_index[1] = coords[1];
-  input_index[2] = coords[2];
-  if(m_Interpolator->IsInsideBuffer(input_index))
-    distance = (float)m_Interpolator->EvaluateAtContinuousIndex(input_index);
-  else {
-    std::cerr << "DistanceAtPoint(): Point [" << coords[0] << ", " << coords[1] << ", " 
-      << coords[2] << "] is outside the image boundaries" << std::endl;
-    assert(0);
+    std::cout << "Calling dist_pt_surf(coords, " << tl->n_triangles << ", " 
+      << fic->n_cells << "/" << fic->n_ne_cells << ", (" << grid_sz.x << "," << grid_sz.y << ","
+      << grid_sz.z << "), ("
+      << cell_sz << "), (" << bbox_min.x << "," << bbox_min.y << ","
+      << bbox_min.z << "), " << dcl->n_dists << ", ..., " << dcl_buf_sz
+      << "))" << std::endl;
+    distance = dist_pt_surf(thisVertex, tl, fic, grid_sz, cell_sz, bbox_min,
+      dcl, &prev_p, prev_d, &dcl_buf, &dcl_buf_sz);
+    
+    prev_p = thisVertex;
+    prev_d = distance;
+  } else {
+    typename InterpolatorType::ContinuousIndexType input_index;
+
+    input_index[0] = coords[0];
+    input_index[1] = coords[1];
+    input_index[2] = coords[2];
+    if(m_Interpolator->IsInsideBuffer(input_index))
+      distance = (float)m_Interpolator->EvaluateAtContinuousIndex(input_index);
+    else {
+      std::cerr << "DistanceAtPoint(): Point [" 
+                << coords[0] << ", " << coords[1] << ", " 
+                << coords[2] << "] is outside the image boundaries" 
+                << std::endl;
+      assert(0);
+    }
   }
   return distance;
 }
@@ -1041,6 +1131,141 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
 
   this->GetOutput()->SetBufferedRegion(this->GetOutput()->GetRequestedRegion());
 }
+
+#if 0
+template<class TInputMesh, class TOutputMesh, class TInputImage>
+void
+VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
+::init_triangle(const vertex_t* a, const vertex_t* b, 
+  const vertex_t* c, struct triangle_info* t){
+  dvertex_t dv_a,dv_b,dv_c;
+  dvertex_t ab,ac,bc;
+  double ab_len_sqr,ac_len_sqr,bc_len_sqr;
+  double n_len;
+
+  /* Convert float vertices to double */
+  vertex_f2d_dv(a,&dv_a);
+  vertex_f2d_dv(b,&dv_b);
+  vertex_f2d_dv(c,&dv_c);
+  /* Get the vertices in the proper ordering (the orientation is not
+   * changed). AB should be the longest side. */
+  __substract_v(dv_b,dv_a,ab);
+  __substract_v(dv_c,dv_a,ac);
+  __substract_v(dv_c,dv_b,bc);
+  ab_len_sqr = __norm2_v(ab);
+  ac_len_sqr = __norm2_v(ac);
+  bc_len_sqr = __norm2_v(bc);
+  if (ab_len_sqr <= ac_len_sqr) {
+    if (ac_len_sqr <= bc_len_sqr) { /* BC longest side => A to C */
+      t->c = dv_a;
+      t->a = dv_b;
+      t->b = dv_c;
+      t->ab = bc;
+      t->ca = ab;
+      t->cb = ac;
+      t->ab_len_sqr = bc_len_sqr;
+      t->ca_len_sqr = ab_len_sqr;
+      t->cb_len_sqr = ac_len_sqr;
+    } else { /* AC longest side => B to C */
+      t->b = dv_a;
+      t->c = dv_b;
+      t->a = dv_c;
+      __neg_v(ac,t->ab);
+      t->ca = bc;
+      __neg_v(ab,t->cb);
+      t->ab_len_sqr = ac_len_sqr;
+      t->ca_len_sqr = bc_len_sqr;
+      t->cb_len_sqr = ab_len_sqr;
+    }
+  } else {
+    if (ab_len_sqr <= bc_len_sqr) { /* BC longest side => A to C */
+      t->c = dv_a;
+      t->a = dv_b;
+      t->b = dv_c;
+      t->ab = bc;
+      t->ca = ab;
+      t->cb = ac;
+      t->ab_len_sqr = bc_len_sqr;
+      t->ca_len_sqr = ab_len_sqr;
+      t->cb_len_sqr = ac_len_sqr;
+    } else { /* AB longest side => C remains C */
+      t->a = dv_a;
+      t->b = dv_b;
+      t->c = dv_c;
+      t->ab = ab;
+      __neg_v(ac,t->ca);
+      __neg_v(bc,t->cb);
+      t->ab_len_sqr = ab_len_sqr;
+      t->ca_len_sqr = ac_len_sqr;
+      t->cb_len_sqr = bc_len_sqr;
+    }
+  }
+  if (t->ab_len_sqr < DBL_MIN*DMARGIN) {
+    t->ab.x = 0;
+    t->ab.y = 0;
+    t->ab.z = 0;
+    t->cb = t->ab;
+    t->ca = t->ab;
+    t->ab_len_sqr = 0;
+    t->ca_len_sqr = 0;
+    t->cb_len_sqr = 0;
+  }
+  /* Get side lengths */
+  t->ab_1_len_sqr = 1/t->ab_len_sqr;
+  t->ca_1_len_sqr = 1/t->ca_len_sqr;
+  t->cb_1_len_sqr = 1/t->cb_len_sqr;
+  /* Get the triangle normal (normalized) */
+  __crossprod_dv(t->ca,t->ab,t->normal);
+  n_len = __norm_v(t->normal);
+  if (n_len < DBL_MIN*DMARGIN) {
+    t->normal.x = 0;
+    t->normal.y = 0;
+    t->normal.z = 0;
+    t->s_area = 0;
+  } else {
+    __prod_dv(1/n_len,t->normal,t->normal);
+    t->s_area = n_len*0.5;
+  }
+  /* Get planes trough sides */
+  __crossprod_dv(t->ab,t->normal,t->nhsab);
+  __crossprod_dv(t->normal,t->cb,t->nhsbc);
+  __crossprod_dv(t->ca,t->normal,t->nhsca);
+  /* Get constants for plane equations */
+  t->chsab = __scalprod_v(t->a,t->nhsab);
+  t->chsca = __scalprod_v(t->a,t->nhsca);
+  t->chsbc = __scalprod_v(t->b,t->nhsbc);
+  /* Miscellaneous fields */
+  t->obtuse_at_c = (t->ab_len_sqr > t->ca_len_sqr+t->cb_len_sqr);
+  t->a_n = __scalprod_v(t->a,t->normal);
+}
+
+template<class TInputMesh, class TOutputMesh, class TInputImage>
+struct triangle_list* 
+VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
+::model_to_triangle_list(const struct model* m){
+  int i,n;
+  struct triangle_list *tl;
+  struct triangle_info *triags;
+  face_t *face_i;
+
+  /* Initialize and allocate storage */
+  n = m->num_faces;
+  tl = xa_malloc(sizeof(*tl));
+  tl->n_triangles = n;
+  triags = xa_malloc(sizeof(*tl->triangles)*n);
+  tl->triangles = triags;
+  tl->area = 0;
+
+  /* Convert triangles and update global data */
+  for (i=0; i<n; i++) {
+    face_i = &(m->faces[i]);
+    init_triangle(&(m->vertices[face_i->f0]),&(m->vertices[face_i->f1]),
+                  &(m->vertices[face_i->f2]),&(triags[i]));
+    tl->area += triags[i].s_area;
+  }
+  return tl;
+}
+#endif // 0
 
 } /** end namespace itk. */
 

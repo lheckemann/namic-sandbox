@@ -31,6 +31,14 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 
+// M.E.S.H.
+#include <xalloc.h>
+#include <model_analysis.h>
+#include <compute_error.h>
+#include <model_in.h>
+#include <geomutils.h>
+#include <mesh_run.h>
+
 #include <string>
 #include <list>
 #include <map>
@@ -49,7 +57,6 @@ extern "C"{
 }
 #endif // __cplusplus
 #endif // USE_PETSC
-
 
 namespace itk
 {
@@ -170,6 +177,7 @@ public:
   itkSetMacro(InputImagePrefix, std::string); 
   itkSetMacro(LinearSystemWrapperType, std::string);
   itkSetMacro(CompressionIterations, unsigned);
+  itkSetMacro(SurfaceFileName, std::string);
 
   itkGetMacro(NumberOfPoints, unsigned);
   itkGetMacro(NumberOfTets, unsigned); // NAME: NumberOfTetras
@@ -276,6 +284,7 @@ private:
   typename OutputMeshType::Pointer m_OutputMesh;
   
   std::string m_InputImagePrefix;
+  std::string m_SurfaceFileName;
   unsigned m_CompressionIterations;
 
   std::vector<unsigned int> m_SurfaceVertices;
@@ -285,6 +294,22 @@ private:
 
   unsigned long m_NumberOfPoints;
   unsigned long m_NumberOfTets;
+
+  // Triangular surface (M.E.S.H. data structures)
+  struct model_error surf_error;
+  struct model_info* surf_info;
+  struct model *surf_model;
+  dvertex_t bbox_min;
+  struct triangle_list *tl;
+  struct t_in_cell_list *fic;
+//  struct sample_list ts;
+  double cell_sz;
+  struct size3d grid_sz;
+  struct dist_cell_lists *dcl;
+  int *dcl_buf;
+  int dcl_buf_sz;
+  dvertex_t prev_p;
+  double prev_d;
 
   // Solver
   fem::Solver m_Solver;
@@ -303,6 +328,13 @@ private:
   // Utility functions
   float DistanceAtPoint(double* coords);
   float DistanceBwPoints(double *coord0, double* coord1);
+
+  /*
+  // These are static in M.E.S.H....
+  void init_triangle(const vertex_t*, const vertex_t*, 
+    const vertex_t*, struct triangle_info*);
+  struct triangle_list* model_to_triangle_list(const struct model*);
+  */
 };
 
 } // end namespace itk

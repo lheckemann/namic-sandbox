@@ -23,7 +23,7 @@
 #include <itkSphereMeshSource.h> 
 #include <itkTransformMeshFilter.h>
 #include <itkTranslationTransform.h>
-#include <itkMinimumMaximumImageCalculator.h>
+//#include <itkMinimumMaximumImageCalculator.h>
 
 #include <vtkActor.h>
 #include <vtkCellArray.h>
