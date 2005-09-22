@@ -44,9 +44,12 @@ int main(int argc, char* argv[] )
 
   // SETUP READER
   const unsigned int Dimension = 2;
-  typedef unsigned char InputComponentType;
-  typedef itk::Vector<InputComponentType, 3>         InputPixelType;
-  typedef itk::Image< InputPixelType, Dimension >    InputImageType;
+  typedef unsigned short InputPixelType;
+  typedef itk::Image< InputPixelType, Dimension > InputImageType;
+//   const unsigned int Dimension = 2;
+//   typedef unsigned char InputComponentType;
+//   typedef itk::Vector<InputComponentType, 3>         InputPixelType;
+//   typedef itk::Image< InputPixelType, Dimension >    InputImageType;
   typedef itk::ImageFileReader< InputImageType >     ReaderType;
 
   ReaderType::Pointer reader = ReaderType::New();

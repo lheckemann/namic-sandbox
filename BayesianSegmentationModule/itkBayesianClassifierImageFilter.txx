@@ -78,11 +78,10 @@ BayesianClassifierImageFilter<TInputImage, TOutputImage>
 {
   // SETUP INPUT IMAGE
   const InputImageType * inputImage = this->GetInput();
-
   typename InputImageType::RegionType   imageRegion  = inputImage->GetBufferedRegion();
   typename InputImageType::SpacingType  imageSpacing = inputImage->GetSpacing();
   typename InputImageType::PointType    imageOrigin  = inputImage->GetOrigin();
-  InputImageIteratorType itrInputImage( inputImage, imageRegion );
+  InputImageIteratorType                itrInputImage( inputImage, imageRegion );
 
 
   // SETUP GENERAL PARAMETERS
@@ -118,7 +117,7 @@ BayesianClassifierImageFilter<TInputImage, TOutputImage>
 std::cout << "Prior image in initial section " << itrPriorImage.Get() << std::endl; //debugging
 
 
-  // GENERATE GAUSSIAN DATA IMAGE
+  // GENERATE MEMBERSHIP DATA IMAGE
   MembershipImagePointer data = MembershipImageType::New();
   data->SetRegions( imageRegion );
   data->SetOrigin( imageOrigin );
@@ -147,7 +146,7 @@ std::cout << "Prior image in initial section " << itrPriorImage.Get() << std::en
     mv.Fill( itrInputImage.Get() );
     for ( unsigned int i = 0; i < numberOfClasses; i++ )
       {
-      membershipPixel[i] = MembershipFunctions[i]->Evaluate( mv );
+      membershipPixel[i] = m_MembershipFunctions[i]->Evaluate( mv );
       }
     itrDataImage.Set( membershipPixel );
     ++itrInputImage;
