@@ -39,11 +39,18 @@ public:
   itkNewMacro( AttributeMeshVTKRenderMethod3D );
   itkTypeMacro( AttributeMeshVTKRenderMethod3D, SurfaceMeshVTKRenderMethod3D );
   
+  enum colorMode {P_VALUE, DISTANCE_MAP} ;
 
   AttributeMeshVTKRenderMethod3D();
   virtual ~AttributeMeshVTKRenderMethod3D();
+
+  void ChangeColorMode (enum colorMode newMode) ;
+  void ChangePValueSettings ( float t, float h0, float h1, float h2 ) ;
 protected:
   void Update () ;
+private:
+  enum colorMode m_ColorSchemeType ;
+  class ColorScheme *m_ColorScheme ;
   };
 }
 

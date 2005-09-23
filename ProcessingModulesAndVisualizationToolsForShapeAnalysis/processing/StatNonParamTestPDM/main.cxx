@@ -22,7 +22,7 @@ using namespace std;
 
 void
 load_MeshList_file(char * filename, int &numSubjects, int &numFeatures,
-           int * &groupLabel, double * &featureValue) 
+           int * &groupLabel, double * &featureValue, char * outbase) 
 {
   const int MAXLINE  = 5000; 
   static char line [ MAXLINE ];
@@ -95,10 +95,11 @@ load_MeshList_file(char * filename, int &numSubjects, int &numFeatures,
   datafile.close();
 
   // Read the meshes
+  MeshType::Pointer surfaceMesh = MeshType::New();
+  MeshSpatialObjectType::Pointer  SOMesh;
+  MeshReaderType::Pointer reader = MeshReaderType::New();
+  PointsContainerPointer points;
   for (int index = 0; index < numSubjects; index++) {
-    MeshType::Pointer surfaceMesh = MeshType::New();
-    MeshReaderType::Pointer reader = MeshReaderType::New();
-    PointsContainerPointer points;
     try
       {
        reader->SetFileName(meshFileName[index].c_str());
@@ -108,7 +109,7 @@ load_MeshList_file(char * filename, int &numSubjects, int &numFeatures,
     
        MeshReaderType::SceneType::ObjectListType::iterator it = objList->begin();
        itk::SpatialObject<3> * curObj = *it;
-       MeshSpatialObjectType::Pointer  SOMesh = dynamic_cast<MeshSpatialObjectType*> (curObj);
+       SOMesh = dynamic_cast<MeshSpatialObjectType*> (curObj);
        surfaceMesh = SOMesh->GetMesh();
        points = surfaceMesh->GetPoints();
 
@@ -153,6 +154,64 @@ load_MeshList_file(char * filename, int &numSubjects, int &numFeatures,
   }
   cout << "data has been relabeled: " <<  preLabelA << " --> " << GROUP_A_LABEL
        << " ; " << preLabelB << " --> " << GROUP_B_LABEL << endl;
+
+  // compute and save averages
+  static double * meanA = new double [numFeatures];
+  static double * meanB = new double [numFeatures];
+  int numSubjA = 0;
+  int numSubjB = 0;
+  for (int feat = 0; feat < numFeatures; feat++) {
+    meanA[feat] = 0;
+    meanB[feat] = 0;
+  }
+  for (int subj = 0; subj < numSubjects; subj++) {
+    int subjIndex = subj * numFeatures;
+    if (groupLabel[subj] == GROUP_A_LABEL) {
+      numSubjA++;
+      for (int feat = 0; feat < numFeatures; feat++) {
+    meanA[feat] = meanA[feat] + featureValue[subjIndex + feat];
+      }
+    } else if (groupLabel[subj] == GROUP_B_LABEL) {
+      numSubjB++;
+      for (int feat = 0; feat < numFeatures; feat++) {
+    meanB[feat] = meanB[feat] + featureValue[subjIndex + feat];
+      }
+    } else {
+      std::cerr << " group label " << groupLabel[subj] << " does not exist" << std::endl;
+    }
+  }
+  for (int feat = 0; feat < numFeatures; feat++) {
+    meanA[feat] = meanA[feat] / numSubjA;
+    meanB[feat] = meanB[feat] / numSubjB;
+  }
+  // adapt the last loaded mesh
+  surfaceMesh = SOMesh->GetMesh();
+  PointsContainerPointer pointsA = PointsContainer::New();
+  PointsContainerPointer pointsB = PointsContainer::New();
+    
+  PointType curPoint;
+  for (unsigned int i = 0; i < points->Size(); i++) {
+    double vert[3];
+    vert[0] = meanA[i*3 + 0]; vert[1] = meanA[i*3 + 1]; vert[2] = meanA[i*3 + 2];
+    pointsA->InsertElement(i, PointType(vert));
+    vert[0] = meanB[i*3 + 0]; vert[1] = meanB[i*3 + 1]; vert[2] = meanB[i*3 + 2];
+    pointsB->InsertElement(i, PointType(vert));
+  }
+  surfaceMesh->SetPoints(pointsA); 
+  SOMesh->SetMesh(surfaceMesh);
+  MeshWriterType::Pointer writer = MeshWriterType::New();
+  writer->SetInput(SOMesh);
+  string FilenameA(outbase);
+  FilenameA = FilenameA + string("_meanA.meta");
+  writer->SetFileName(FilenameA.c_str());
+  writer->Update();
+  surfaceMesh->SetPoints(pointsB); 
+  SOMesh->SetMesh(surfaceMesh);
+  writer->SetInput(SOMesh);
+  string FilenameB(outbase);
+  FilenameB = FilenameB + string("_meanB.meta");
+  writer->SetFileName(FilenameB.c_str());
+  writer->Update();
 }
 
 void
@@ -372,7 +431,7 @@ int main (int argc, const char ** argv)
   } else {
     // load the surfListInput
     vector3DDataFlag = true;
-    load_MeshList_file(infile,numSubjects,numFeatures,groupLabel,featureValue);
+    load_MeshList_file(infile,numSubjects,numFeatures,groupLabel,featureValue, outbase);
   }
 
   if (logOn) {

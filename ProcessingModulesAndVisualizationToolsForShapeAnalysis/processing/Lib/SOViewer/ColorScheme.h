@@ -17,11 +17,16 @@
 class ColorScheme  
 {
 public:
-  static void MakeDistanceMap (vtkPolyDataMapper *mapper, double min, double max);
-  static void MakeSignificanceFunction(vtkPolyDataMapper *mapper);
-  static void MakeSignificanceMap(vtkPolyDataMapper *mapper);
+  void MakeDistanceMap (vtkPolyDataMapper *mapper);
+  void MakeSignificanceFunction(vtkPolyDataMapper *mapper);
+  void MakeSignificanceMap(vtkPolyDataMapper *mapper);
+  void SignificanceSettings ( float t, float h0, float h1, float h2 ) ;
   ColorScheme();
   virtual ~ColorScheme();
+  
+private:
+  float pValueThreshold, pValueHue0, pValueHue1, pValueHue2 ;
+  void HSV2RGB ( float hue, double &r, double &g, double &b ) ;
 
 };
 

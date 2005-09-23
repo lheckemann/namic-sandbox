@@ -1,7 +1,10 @@
 
-NeuroLib_USE_ITK()
-NeuroLib_USE_SHAPE()
-NeuroLib_USE_SPARSEMATRIXLIB()
+#For Optimizer
+IF(WIN32)
+  ADD_DEFINITIONS("-DCOMPLEX=std::complex<double>")
+ELSE(WIN32)
+  ADD_DEFINITIONS('-DCOMPLEX=std::complex<double>')
+ENDIF(WIN32)
 
 SET(ShapeAlgorithms_SRCS
  SphericalHarmonicMeshSource.cxx TSurfaceNet.cxx TVoxelVolume.cxx

@@ -1,7 +1,4 @@
 
-NeuroLib_USE_ITK() 
-NeuroLib_USE_SHAPE()
-
 ADD_EXECUTABLE( GenParaMesh  GenParaMesh.cxx)
 
 TARGET_LINK_LIBRARIES( GenParaMesh ${ITK_LIBRARIES})

@@ -1,0 +1,4 @@
+
+PROJECT(ShapeAnalysisTools)
+
+SUBDIRS(processing)

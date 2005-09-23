@@ -1,16 +1,15 @@
-NeuroLib_USE_ITK()
-NeuroLib_USE_VTK()
 
-LINK_LIBRARIES(
- ${ITK_LIBRARIES}
-)
+
 
 SUBDIRS(
-        IO
-        SpatialObject
-        Numerics
-        Algorithms
-   SOViewer
-        #Filters
+            IO
+            SpatialObject
+            Numerics
+            Algorithms
+       Optimizer
 )
+
+IF (USE_SOV)
+  SUBDIRS(SOViewer)
+ENDIF(USE_SOV)
 

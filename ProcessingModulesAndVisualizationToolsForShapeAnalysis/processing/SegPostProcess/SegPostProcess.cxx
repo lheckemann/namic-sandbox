@@ -56,7 +56,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include <itkMetaImageIO.h>
 
 
-#include "argio.hh"
+#include "argio.h"
 #include "ccl.h"
 
 using namespace itk;
@@ -75,19 +75,19 @@ int main(int argc, const char* argv[])
       ipExistsArgument(argv,"-usage"))
     {
       cout << "usage: " << argv[0] << " --- v 2.0" << endl
-      << "       infile [options]" << endl << endl 
-      << " -o        Outputfile" << endl
-      << " -Gauss    Do Gaussian filtering " << endl
-      << " -var        variance of Gauss filter in all 3 dimensions" << endl
-      << " -NoLS     Don't do LevelSet based smoothing (guaranteed to be within a single voxel)" << endl
-      << " -RMS <float>    target RMS error for LS smoothing" << endl
-      << " -iter <float>   number of Iterations for LS smoothing" << endl
-      << " -label val  First extract this label before processing" << endl
-      << " -isotropic  Scale first to isotropic pixel dimensions" << endl
-      << " -space sx,sy,sz  Enforced spacing in x,y and z direction before any processing" << endl
-      << " -asymClose  perform an asymmetric closing operations (dilation with block, erosion with star structuring element)" << endl
-      << " -noCCL      do not perform a connected component labeling and threshold for the largest part" << endl
-      << " -v          verbose mode" << endl;
+          << "       infile [options]" << endl << endl 
+          << " -o        Outputfile" << endl
+          << " -Gauss    Do Gaussian filtering " << endl
+          << " -var        variance of Gauss filter in all 3 dimensions" << endl
+          << " -NoLS     Don't do LevelSet based smoothing (guaranteed to be within a single voxel)" << endl
+          << " -RMS <float>    target RMS error for LS smoothing" << endl
+          << " -iter <float>   number of Iterations for LS smoothing" << endl
+          << " -label val  First extract this label before processing" << endl
+          << " -isotropic  Scale first to isotropic pixel dimensions" << endl
+          << " -space sx,sy,sz  Enforced spacing in x,y and z direction before any processing" << endl
+          << " -asymClose  perform an asymmetric closing operations (dilation with block, erosion with star structuring element)" << endl
+          << " -noCCL      do not perform a connected component labeling and threshold for the largest part" << endl
+          << " -v          verbose mode" << endl;
       exit(0) ;
     }
 
@@ -400,42 +400,42 @@ int main(int argc, const char* argv[])
       
       if (debug) cout << "Closing 2 " << endl;
       if (asymCloseOn) {
-   StructuringElementType structuringElement;
-   AsymStructuringElementType asymStructuringElement;
-   dilateFilterType::Pointer dilateFilter = dilateFilterType::New();  
-   erodeAsymFilterType::Pointer erodeFilter = erodeAsymFilterType::New();  
-   
-   dilateFilter->SetInput(binTreshFilter->GetOutput());
-   erodeFilter->SetInput(dilateFilter->GetOutput());
-   dilateFilter->SetDilateValue (LABEL_VAL);
-   erodeFilter->SetErodeValue (LABEL_VAL);
-   structuringElement.SetRadius( elemSize );  // 3x3x3 structuring element
-   asymStructuringElement.SetRadius( elemSize );
-   asymStructuringElement.CreateStructuringElement( );
-   structuringElement.CreateStructuringElement( );
-   dilateFilter->SetKernel( structuringElement );
-   erodeFilter->SetKernel( asymStructuringElement );
-   
-   erodeFilter->Update();
-   
-   procImage = erodeFilter->GetOutput();
+       StructuringElementType structuringElement;
+       AsymStructuringElementType asymStructuringElement;
+       dilateFilterType::Pointer dilateFilter = dilateFilterType::New();  
+       erodeAsymFilterType::Pointer erodeFilter = erodeAsymFilterType::New();  
+       
+       dilateFilter->SetInput(binTreshFilter->GetOutput());
+       erodeFilter->SetInput(dilateFilter->GetOutput());
+       dilateFilter->SetDilateValue (LABEL_VAL);
+       erodeFilter->SetErodeValue (LABEL_VAL);
+       structuringElement.SetRadius( elemSize );  // 3x3x3 structuring element
+       asymStructuringElement.SetRadius( elemSize );
+       asymStructuringElement.CreateStructuringElement( );
+       structuringElement.CreateStructuringElement( );
+       dilateFilter->SetKernel( structuringElement );
+       erodeFilter->SetKernel( asymStructuringElement );
+       
+       erodeFilter->Update();
+       
+       procImage = erodeFilter->GetOutput();
       } else {
-   StructuringElementType structuringElement;
-   dilateFilterType::Pointer dilateFilter = dilateFilterType::New();  
-   erodeFilterType::Pointer erodeFilter = erodeFilterType::New();  
-   
-   dilateFilter->SetInput(binTreshFilter->GetOutput());
-   erodeFilter->SetInput(dilateFilter->GetOutput());
-   dilateFilter->SetDilateValue (LABEL_VAL);
-   erodeFilter->SetErodeValue (LABEL_VAL);
-   structuringElement.SetRadius( elemSize );  // 3x3x3 structuring element
-   structuringElement.CreateStructuringElement( );
-   dilateFilter->SetKernel( structuringElement );
-   erodeFilter->SetKernel( structuringElement );
-   
-   erodeFilter->Update();
-   
-   procImage = erodeFilter->GetOutput();
+       StructuringElementType structuringElement;
+       dilateFilterType::Pointer dilateFilter = dilateFilterType::New();  
+       erodeFilterType::Pointer erodeFilter = erodeFilterType::New();  
+       
+       dilateFilter->SetInput(binTreshFilter->GetOutput());
+       erodeFilter->SetInput(dilateFilter->GetOutput());
+       dilateFilter->SetDilateValue (LABEL_VAL);
+       erodeFilter->SetErodeValue (LABEL_VAL);
+       structuringElement.SetRadius( elemSize );  // 3x3x3 structuring element
+       structuringElement.CreateStructuringElement( );
+       dilateFilter->SetKernel( structuringElement );
+       erodeFilter->SetKernel( structuringElement );
+       
+       erodeFilter->Update();
+       
+       procImage = erodeFilter->GetOutput();
       }
     }
 
@@ -540,64 +540,64 @@ NoDiagConnect (unsigned char *image, int *dim)
 
     for (int i = 1; i < dimz - 1; i++) {
       for (int j = 1; j < dimy - 1; j++) {
-   for (int k = 1; k < dimz - 1; k++) {
-     unsigned char val = image[i + j * dimx + k * dy];
-     if (val != 0) {
-       // x,y 
-       if ((image[i-1+j*dx+k*dy] == 0) && (image[i+(j-1)*dx+k*dy] == 0) && (image[i-1+(j-1)*dx+k*dy] != 0)) {
-         correctionNeeded = true;
-         image[i-1+j*dx+k*dy] = val;
+       for (int k = 1; k < dimz - 1; k++) {
+         unsigned char val = image[i + j * dimx + k * dy];
+         if (val != 0) {
+           // x,y 
+           if ((image[i-1+j*dx+k*dy] == 0) && (image[i+(j-1)*dx+k*dy] == 0) && (image[i-1+(j-1)*dx+k*dy] != 0)) {
+             correctionNeeded = true;
+             image[i-1+j*dx+k*dy] = val;
+           }
+           if ((image[i+1+j*dx+k*dy] == 0) && (image[i+(j+1)*dx+k*dy] == 0) && (image[i+1+(j+1)*dx+k*dy] != 0)) {
+             correctionNeeded = true;
+             image[i+1+j*dx+k*dy] = val;
+           }
+           if ((image[i+1+j*dx+k*dy] == 0) && (image[i+(j-1)*dx+k*dy] == 0) && (image[i+1+(j-1)*dx+k*dy] != 0)) {
+             correctionNeeded = true;
+             image[i+1+j*dx+k*dy] = val;
+           }
+           if ((image[i-1+j*dx+k*dy] == 0) && (image[i+(j+1)*dx+k*dy] == 0) && (image[i-1+(j+1)*dx+k*dy] != 0)) {
+             correctionNeeded = true;
+             image[i-1+j*dx+k*dy] = val;
+           }
+           
+           // xz
+           if ((image[i-1+j*dx+k*dy] == 0) && (image[i+j*dx+(k-1)*dy] == 0) && (image[i-1+j*dx+(k-1)*dy] != 0)) {
+             correctionNeeded = true;
+             image[i-1+j*dx+k*dy] = val;
+           }
+           if ((image[i+1+j*dx+k*dy] == 0) && (image[i+j*dx+(k+1)*dy] == 0) && (image[i+1+j*dx+(k+1)*dy] != 0)) {
+             correctionNeeded = true;
+             image[i+1+j*dx+k*dy] = val;
+           }
+           if ((image[i+1+j*dx+k*dy] == 0) && (image[i+j*dx+(k-1)*dy] == 0) && (image[i+1+j*dx+(k-1)*dy] != 0)) {
+             correctionNeeded = true;
+             image[i+1+j*dx+k*dy] = val;
+           }
+           if ((image[i-1+j*dx+k*dy] == 0) && (image[i+j*dx+(k+1)*dy] == 0) && (image[i-1+j*dx+(k+1)*dy] != 0)) {
+             correctionNeeded = true;
+             image[i-1+j*dx+k*dy] = val;
+           }
+           
+           // yz
+           if ((image[i+(j-1)*dx+k*dy] == 0) && (image[i+j*dx+(k-1)*dy] == 0) && (image[i+(j-1)*dx+(k-1)*dy] != 0)) {
+             correctionNeeded = true;
+             image[i+(j-1)*dx+k*dy] = val;
+           }
+           if ((image[i+(j+1)*dx+k*dy] == 0) && (image[i+j*dx+(k+1)*dy] == 0) && (image[i+(j+1)*dx+(k+1)*dy] != 0)) {
+             correctionNeeded = true;
+             image[i+(j+1)*dx+k*dy] = val;
+           }
+           if ((image[i+(j+1)*dx+k*dy] == 0) && (image[i+j*dx+(k-1)*dy] == 0) && (image[i+(j+1)*dx+(k-1)*dy] != 0)) {
+             correctionNeeded = true;
+             image[i+(j+1)*dx+k*dy] = val;
+           }
+           if ((image[i+(j-1)*dx+k*dy] == 0) && (image[i+j*dx+(k+1)*dy] == 0) && (image[i+(j-1)*dx+(k+1)*dy] != 0)) {
+             correctionNeeded = true;
+             image[i+(j-1)*dx+k*dy] = val;
+           }
+         }
        }
-       if ((image[i+1+j*dx+k*dy] == 0) && (image[i+(j+1)*dx+k*dy] == 0) && (image[i+1+(j+1)*dx+k*dy] != 0)) {
-         correctionNeeded = true;
-         image[i+1+j*dx+k*dy] = val;
-       }
-       if ((image[i+1+j*dx+k*dy] == 0) && (image[i+(j-1)*dx+k*dy] == 0) && (image[i+1+(j-1)*dx+k*dy] != 0)) {
-         correctionNeeded = true;
-         image[i+1+j*dx+k*dy] = val;
-       }
-       if ((image[i-1+j*dx+k*dy] == 0) && (image[i+(j+1)*dx+k*dy] == 0) && (image[i-1+(j+1)*dx+k*dy] != 0)) {
-         correctionNeeded = true;
-         image[i-1+j*dx+k*dy] = val;
-       }
-       
-       // xz
-       if ((image[i-1+j*dx+k*dy] == 0) && (image[i+j*dx+(k-1)*dy] == 0) && (image[i-1+j*dx+(k-1)*dy] != 0)) {
-         correctionNeeded = true;
-         image[i-1+j*dx+k*dy] = val;
-       }
-       if ((image[i+1+j*dx+k*dy] == 0) && (image[i+j*dx+(k+1)*dy] == 0) && (image[i+1+j*dx+(k+1)*dy] != 0)) {
-         correctionNeeded = true;
-         image[i+1+j*dx+k*dy] = val;
-       }
-       if ((image[i+1+j*dx+k*dy] == 0) && (image[i+j*dx+(k-1)*dy] == 0) && (image[i+1+j*dx+(k-1)*dy] != 0)) {
-         correctionNeeded = true;
-         image[i+1+j*dx+k*dy] = val;
-       }
-       if ((image[i-1+j*dx+k*dy] == 0) && (image[i+j*dx+(k+1)*dy] == 0) && (image[i-1+j*dx+(k+1)*dy] != 0)) {
-         correctionNeeded = true;
-         image[i-1+j*dx+k*dy] = val;
-       }
-       
-       // yz
-       if ((image[i+(j-1)*dx+k*dy] == 0) && (image[i+j*dx+(k-1)*dy] == 0) && (image[i+(j-1)*dx+(k-1)*dy] != 0)) {
-         correctionNeeded = true;
-         image[i+(j-1)*dx+k*dy] = val;
-       }
-       if ((image[i+(j+1)*dx+k*dy] == 0) && (image[i+j*dx+(k+1)*dy] == 0) && (image[i+(j+1)*dx+(k+1)*dy] != 0)) {
-         correctionNeeded = true;
-         image[i+(j+1)*dx+k*dy] = val;
-       }
-       if ((image[i+(j+1)*dx+k*dy] == 0) && (image[i+j*dx+(k-1)*dy] == 0) && (image[i+(j+1)*dx+(k-1)*dy] != 0)) {
-         correctionNeeded = true;
-         image[i+(j+1)*dx+k*dy] = val;
-       }
-       if ((image[i+(j-1)*dx+k*dy] == 0) && (image[i+j*dx+(k+1)*dy] == 0) && (image[i+(j-1)*dx+(k+1)*dy] != 0)) {
-         correctionNeeded = true;
-         image[i+(j-1)*dx+k*dy] = val;
-       }
-     }
-   }
       }
     }
   }
@@ -614,12 +614,12 @@ static void clear_edge(unsigned char *image, int *dims, int clear_label)
   for (int z = 0; z < dims[2]; z++) {
     for (int y = 0; y < dims[1]; y++) {
       if ( (y == 0) || (y == dims[1]-1) ||
-      (z == 0) || (z == dims[2]-1) ) { // draw whole plane
-   for (int x = 0; x < dims[0] ; x++) 
-     image[x +  size_line * y + size_plane * z] = clear_label;
+          (z == 0) || (z == dims[2]-1) ) { // draw whole plane
+       for (int x = 0; x < dims[0] ; x++) 
+         image[x +  size_line * y + size_plane * z] = clear_label;
       } else { // draw edges of x
-   image[0 +  size_line * y + size_plane * z] = clear_label;
-   image[size_line - 1 +  size_line * y + size_plane * z] = clear_label;
+       image[0 +  size_line * y + size_plane * z] = clear_label;
+       image[size_line - 1 +  size_line * y + size_plane * z] = clear_label;
       }
     }
   }
@@ -645,12 +645,12 @@ draw_fill_inside_image(unsigned char *image, int *dims, int new_label)
   for (int z = 0; z < dims[2]; z++) {
     for (int y = 0; y < dims[1]; y++) {
       if ( (y == 0) || (y == dims[1]-1) ||
-      (z == 0) || (z == dims[2]-1) ) { // draw whole plane
-   for (int x = 0; x < dims[0] ; x++) 
-     image[x +  size_line * y + size_plane * z] = label;
+          (z == 0) || (z == dims[2]-1) ) { // draw whole plane
+       for (int x = 0; x < dims[0] ; x++) 
+         image[x +  size_line * y + size_plane * z] = label;
       } else { // draw edges of x
-   image[0 +  size_line * y + size_plane * z] = label;
-   image[size_line - 1 +  size_line * y + size_plane * z] = label;
+       image[0 +  size_line * y + size_plane * z] = label;
+       image[size_line - 1 +  size_line * y + size_plane * z] = label;
       }
     }
   }
@@ -659,14 +659,14 @@ draw_fill_inside_image(unsigned char *image, int *dims, int new_label)
   for (int z = 1; z < dims[2]-1; z++) {
     for (int y = 1; y < dims[1]-1; y++) {
       for (int x = 1; x < dims[0]-1; x++) {
-   int index = x +  size_line * y + size_plane * z;
-   if (image[index] == background &&    // check past neighborhood
-       (image[index - 1] == label || 
-        image[index + size_line] == label || 
-        image[index - size_plane] == label 
-        )) {
-     image[index] = label;
-   }
+       int index = x +  size_line * y + size_plane * z;
+       if (image[index] == background &&    // check past neighborhood
+           (image[index - 1] == label || 
+            image[index + size_line] == label || 
+            image[index - size_plane] == label 
+            )) {
+         image[index] = label;
+       }
       }
     }
   }
@@ -675,14 +675,14 @@ draw_fill_inside_image(unsigned char *image, int *dims, int new_label)
   for (int z = dims[2]-2; z > 0; z--) {
     for (int y = dims[1]-2; y > 0; y--) {
       for (int x = dims[0]-2; x > 0; x--) {
-   int index = x +  size_line * y + size_plane * z;
-   if (image[index] == background &&    // check past neighborhood
-       (image[index + 1] == label || 
-        image[index + size_line] == label || 
-        image[index + size_plane] == label 
-        )) {
-     image[index] = label;
-   }
+       int index = x +  size_line * y + size_plane * z;
+       if (image[index] == background &&    // check past neighborhood
+           (image[index + 1] == label || 
+            image[index + size_line] == label || 
+            image[index + size_plane] == label 
+            )) {
+         image[index] = label;
+       }
       }
     }
   }

@@ -1,7 +1,0 @@
-
-NeuroLib_USE_ITK() 
-NeuroLib_USE_SHAPE()
-
-ADD_EXECUTABLE( MetaToIV  MetaToIV.cxx)
-
-TARGET_LINK_LIBRARIES( MetaToIV ${ITK_LIBRARIES})

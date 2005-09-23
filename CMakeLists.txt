@@ -42,6 +42,7 @@ SUBDIRS(
   NonRigidRegistrationForEchoPlanarImaging
   SpectralClustering
   SlicerTractClusteringImplementation
+  ProcessingModulesAndVisualizationToolsForShapeAnalysis
   )
 
 # Add the testing directories

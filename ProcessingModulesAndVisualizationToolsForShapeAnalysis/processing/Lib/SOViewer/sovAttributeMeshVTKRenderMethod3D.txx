@@ -24,12 +24,24 @@ AttributeMeshVTKRenderMethod3D<TMesh, TAttributeType>
   this->AddSupportedType("MeshSpatialObject");
   this->AddSupportedType("AttributeMeshSpatialObject");
   this->m_PixelType = typeid(PixelType).name();
+
+  m_ColorSchemeType = P_VALUE ;
+  m_ColorScheme = new ColorScheme ;
+  
 }
 
 template < class TMesh, class TAttributeType>
 AttributeMeshVTKRenderMethod3D<TMesh, TAttributeType>
 ::~AttributeMeshVTKRenderMethod3D()
 {
+    delete ( m_ColorScheme ) ;
+}
+
+template < class TMesh, class TAttributeType>
+void AttributeMeshVTKRenderMethod3D<TMesh, TAttributeType>
+::ChangeColorMode (enum colorMode newMode) 
+{
+    m_ColorSchemeType = newMode ;   
 }
 
 template < class TMesh, class TAttributeType>
@@ -118,7 +130,15 @@ AttributeMeshVTKRenderMethod3D<TMesh, TAttributeType>
 
     pointMapper->SetInput(lsf->GetOutput());
     //ColorScheme::MakeDistanceMap (pointMapper, 0, 1) ;
-    ColorScheme::MakeSignificanceMap (pointMapper) ;
+    if ( m_ColorSchemeType == P_VALUE )
+    {
+        m_ColorScheme->MakeSignificanceMap (pointMapper) ;
+    }
+    else
+    {
+        m_ColorScheme->MakeDistanceMap (pointMapper) ;
+    }
+
     meshActor->SetMapper(pointMapper);
     
 
@@ -159,5 +179,11 @@ AttributeMeshVTKRenderMethod3D<TMesh, TAttributeType>
 }
 
 
+template < class TMesh, class TAttributeType>
+void AttributeMeshVTKRenderMethod3D<TMesh, TAttributeType>
+::ChangePValueSettings ( float t, float h0, float h1, float h2 ) 
+{
+    m_ColorScheme->SignificanceSettings ( t, h0, h1, h2 ) ;
 }
 
+}
