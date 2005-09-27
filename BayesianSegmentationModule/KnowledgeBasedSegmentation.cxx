@@ -199,6 +199,8 @@ int main( int argc, char * argv [] )
   GaussianMembershipFunctionType::MeanType meanEstimators;
   GaussianMembershipFunctionType::CovarianceType covarianceEstimators;
 
+  covarianceEstimators.SetSize( 1, 1 );
+
   for ( unsigned int i = 0; i < nClasses; ++i )
     {
     gaussianMembershipFunctions.push_back( GaussianMembershipFunctionType::New() );
