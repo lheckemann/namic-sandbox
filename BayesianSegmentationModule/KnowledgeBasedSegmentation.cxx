@@ -196,7 +196,7 @@ int main( int argc, char * argv [] )
   typedef GaussianMembershipFunctionType::Pointer GaussianMembershipFunctionPointer;
 
   std::vector< GaussianMembershipFunctionPointer > gaussianMembershipFunctions;
-  GaussianMembershipFunctionType::MeanType meanEstimators;
+  GaussianMembershipFunctionType::MeanType meanEstimators( 1 );
   GaussianMembershipFunctionType::CovarianceType covarianceEstimators;
 
   covarianceEstimators.SetSize( 1, 1 );
