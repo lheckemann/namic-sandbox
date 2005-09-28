@@ -30,24 +30,25 @@ PURPOSE. See the above copyright notices for more information.
 #include "itkImageCastVectorIndexSelectionFilter.h"
 #include "itkCurvatureAnisotropicDiffusionImageFilter.h"
 #include "itkMaximumDecisionRule.h"
+#include "itkRescaleIntensityImageFilter.h"
 #include "itkImageFileWriter.h"
 
 int main( int argc, char * argv [] )
 {
 
-  if( argc < 4 )
+  if( argc < 2 )
     {
     std::cerr << "Missing command line arguments" << std::endl;
-    std::cerr << "Parameters: inputFileName outputFileName nSmoothingIterations nClasses" << std::endl;
+    std::cerr << "Parameters: inputFileName outputFileName" << std::endl;
     return -1;
     }
 
   char * rawDataFileName = argv[1];
   char * labelMapFileName = argv[2];
-  int nSmoothingIterations = atoi( argv[3] ); // USER VARIABLE (DEFAULT = 10)
-  unsigned int nClasses = atoi ( argv[4] ); // USER VARIABLE (DEFAULT = 2)
-  float timeStep = 0.1; // USER VARIABLE (DEFAULT = 0.1)
-  float conductance = 3.0; // USER VARIABLE (DEFAULT = 3.0)
+  int nSmoothingIterations = 5;
+  unsigned int nClasses = 3;
+  float timeStep = 0.1;
+  float conductance = 3.0;
 
   // READIN IMAGE FROM FILE
   typedef unsigned short PixelType;
@@ -181,13 +182,6 @@ int main( int argc, char * argv [] )
     ++itrPriorImage;
     }
 
-/* DEBUGGING */
-  for (unsigned int i = 0; i < 15000; ++i ) // temp
-    {
-    --itrPriorImage;
-    }
-  std::cout << "Prior image in initial section " << itrPriorImage.Get() << std::endl; //debugging
-/* END DEBUGGING */
 
   // CREATE GAUSSIAN MEMBERSHIP FUNCTIONS
   typedef itk::Vector< double, 1 >                MeasurementVectorType;
@@ -198,7 +192,6 @@ int main( int argc, char * argv [] )
   std::vector< GaussianMembershipFunctionPointer > gaussianMembershipFunctions;
   GaussianMembershipFunctionType::MeanType meanEstimators( 1 );
   GaussianMembershipFunctionType::CovarianceType covarianceEstimators;
-
   covarianceEstimators.SetSize( 1, 1 );
 
   for ( unsigned int i = 0; i < nClasses; ++i )
@@ -251,15 +244,6 @@ int main( int argc, char * argv [] )
     ++itrRawDataImage;
     ++itrDataImage;
     }
-/* DEBUGGING */
-  for (unsigned int i = 0; i < 15000; ++i ) // temp
-    {
-    --itrRawDataImage; 
-    --itrDataImage;
-    }
-  std::cout << "RawData image in initial section " << itrRawDataImage.Get() << std::endl; //debugging
-  std::cout << "Data image in initial section " << itrDataImage.Get() << std::endl; //debugging
-/* END DEBUGGING */
 
 
   // GENERATE POSTERIORS BY APPLYING BAYES' RULE
@@ -303,13 +287,6 @@ int main( int argc, char * argv [] )
     ++itrPriorImage;
     ++itrPosteriorImage;
     }
-/* DEBUGGING */
-  for (unsigned int i = 0; i < 15000; ++i ) // temp
-    {
-    --itrPosteriorImage;
-    }
-  std::cout << "Initial Posteriors " << itrPosteriorImage.Get() << std::endl; //debugging
-/* END DEBUGGING */
 
 
   // RENORMALIZE POSTERIORS
@@ -330,13 +307,6 @@ int main( int argc, char * argv [] )
     itrPosteriorImage.Set( posteriorArrayPixel );
     ++itrPosteriorImage;
     }
-/* DEBUGGING */
-  for (unsigned int i = 0; i < 15000; ++i ) // temp
-    {
-    --itrPosteriorImage;
-    }
-  std::cout << "After renormalizing in initial section " << itrPosteriorImage.Get() << std::endl; //debugging
-/* END DEBUGGING */
 
 
   // IMAGE ADAPTOR: VECTOR TO SCALAR IMAGE
@@ -410,13 +380,6 @@ int main( int argc, char * argv [] )
       ++itrPosteriorImage;
       }
     }
-/* DEBUGGING */
-  for (unsigned int i = 0; i < 15000; ++i ) // temp
-    {
-    --itrPosteriorImage;
-    }
-  std::cout << "Posteriors after smoothing in initial section " << itrPosteriorImage.Get() << std::endl; //debugging
-/* END DEBUGGING */
 
 
   // APPLY MAXIMUM A POSTERIORI RULE
@@ -441,16 +404,17 @@ int main( int argc, char * argv [] )
     ++itrLabelImage;
     ++itrPosteriorImage;
     }
-/* DEBUGGING */
-  for (unsigned int i = 0; i < 15000; ++i ) // temp
-    {
-    --itrLabelImage;
-    --itrPosteriorImage;
-    }
-  std::cout << "Label image in initial section " << itrLabelImage.Get() << std::endl; //debugging
-  std::cout << "Posteriors after decision rule in initial section " << itrPosteriorImage.Get() << std::endl; //debugging
-/* END DEBUGGING */
 
+
+  // RESCALE IMAGE FOR VIEWING
+  typedef itk::RescaleIntensityImageFilter< LabelOutputImageType,
+                                            LabelOutputImageType >    RescaleFilterType;
+
+  RescaleFilterType::Pointer rescaleFilter = RescaleFilterType::New();
+
+  rescaleFilter->SetOutputMinimum( 0 );
+  rescaleFilter->SetOutputMaximum( 255 );
+  rescaleFilter->SetInput( labels );
 
   // SETUP FILE WRITER
   typedef itk::ImageFileWriter< LabelOutputImageType > LabelWriterType;
@@ -459,7 +423,7 @@ int main( int argc, char * argv [] )
 
 
   // WRITE LABELMAP TO FILE
-  labelWriter->SetInput( labels );
+  labelWriter->SetInput( rescaleFilter->GetOutput() );
   labelWriter->SetFileName( labelMapFileName );
   try
     {

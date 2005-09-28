@@ -19,7 +19,7 @@
 
 #include "itkVectorImage.h"
 #include "itkImageToImageFilter.h"
-#include "itkMaximumRatioDecisionRule.h"
+#include "itkMaximumDecisionRule.h"
 #include "itkDensityFunction.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"
@@ -106,7 +106,7 @@ public:
   typedef itk::ImageRegionIterator< PosteriorImageType >  PosteriorImageIteratorType;
 
   /** Type of the Measurement */
-  typedef InputPixelType   MeasurementVectorType;
+  typedef itk::Vector< double, 1 >                        MeasurementVectorType;
 
   /** Type of the density functions */
   typedef Statistics::DensityFunction< MeasurementVectorType 
@@ -117,7 +117,7 @@ public:
   typedef std::vector< MembershipFunctionConstPointer >   MembershipFunctionContainer;
 
   /** Decision rule to use for defining the label */
-  typedef MaximumRatioDecisionRule                        DecisionRuleType;
+  typedef itk::MaximumDecisionRule                        DecisionRuleType;
 
   /** Add a membership function to the filter. */
   void AddMembershipFunction( const MembershipFunctionType * newFunction );

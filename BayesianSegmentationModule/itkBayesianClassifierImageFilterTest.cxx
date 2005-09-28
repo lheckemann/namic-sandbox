@@ -46,10 +46,6 @@ int main(int argc, char* argv[] )
   const unsigned int Dimension = 2;
   typedef unsigned short InputPixelType;
   typedef itk::Image< InputPixelType, Dimension > InputImageType;
-//   const unsigned int Dimension = 2;
-//   typedef unsigned char InputComponentType;
-//   typedef itk::Vector<InputComponentType, 3>         InputPixelType;
-//   typedef itk::Image< InputPixelType, Dimension >    InputImageType;
   typedef itk::ImageFileReader< InputImageType >     ReaderType;
 
   ReaderType::Pointer reader = ReaderType::New();
@@ -58,10 +54,10 @@ int main(int argc, char* argv[] )
 
   // SETUP FILTER
   typedef unsigned long OutputPixelType;
-  typedef itk::Image< OutputPixelType, Dimension >   OutputImageType;
+  typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
   typedef itk::BayesianClassifierImageFilter< 
                                  InputImageType,
-                                 OutputImageType >  ClassifierFilterType;
+                                 OutputImageType > ClassifierFilterType;
 
   ClassifierFilterType::Pointer filter = ClassifierFilterType::New();
   filter->SetInput( reader->GetOutput() );
@@ -84,9 +80,10 @@ int main(int argc, char* argv[] )
   typedef itk::Array< double >                            ArrayType; // temp
   
   std::vector< MembershipFunctionPointer > membershipFunctions;
-  MembershipFunctionType::MeanType         meanEstimators;
+  MembershipFunctionType::MeanType         meanEstimators( 1 );
   MembershipFunctionType::CovarianceType   covarianceEstimators;
-  ArrayType                                estimatedMeans( numberOfClasses); // temp
+  covarianceEstimators.SetSize( 1, 1 );
+  ArrayType                                estimatedMeans( numberOfClasses ); // temp
   ArrayType                                estimatedCovariances( numberOfClasses ); // temp
 
   for ( unsigned int i = 0; i < numberOfClasses; ++i )
@@ -126,19 +123,19 @@ int main(int argc, char* argv[] )
 
   // WRITE LABELMAP TO FILE
   // need to write GetOutput method
-//   writer->SetInput( filter->GetOutput() );
-//   writer->SetFileName( labelMapFileName );
-//   try
-//     {
-//     writer->Update();
-//     }
-//   catch( itk::ExceptionObject & excp )
-//     {
-//     std::cerr << "Problem encoutered while writing image file : "
-//       << argv[2] << std::endl;
-//     std::cerr << excp << std::endl;
-//     return EXIT_FAILURE;
-//     }
+  writer->SetInput( filter->GetOutput() );
+  writer->SetFileName( labelMapFileName );
+  try
+    {
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Problem encoutered while writing image file : "
+      << argv[2] << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
 
 
   // TESTING PRINT
