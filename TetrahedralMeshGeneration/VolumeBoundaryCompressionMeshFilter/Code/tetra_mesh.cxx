@@ -886,9 +886,9 @@ struct PETScDeformWrapper::tetra_mesh *PETScDeformWrapper::add_edge_info_tetra_m
     if(vertex_connectivity[mesh_out->edge[i*2+1]]>max_vertex_degree)
       max_vertex_degree = vertex_connectivity[mesh_out->edge[i*2+1]];
   }
+  /*
   fprintf(stderr, "Minimum edge length: %f\n", min_edge_length);
   fprintf(stderr, "Maximum vertex degree: %i\n", max_vertex_degree);
-  /*
   if(!myid)
     fprintf(stderr,"Amount of edges in this structure : %d; max vertex degree: %i\n",
      mesh_out->nedges, max_vertex_degree);

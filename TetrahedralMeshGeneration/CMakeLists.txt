@@ -25,7 +25,7 @@ SET(MESH_DIR ${TetrahedralMeshGeneration_SOURCE_DIR}/Mesh-1.13-mod)
 SET(PETSC_ARCH linux_gnu)
 SET(X11_DIR /usr/X11R6)
 SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_CURRENT_BINARY_DIR}" CACHE INTERNAL "")
-SET(CMAKE_CXX_FLAGS "-g -v")
+SET(CMAKE_CXX_FLAGS "-g -Wno-deprecated")
 
 INCLUDE_DIRECTORIES(${TetrahedralMeshGeneration_SOURCE_DIR}/BinaryMaskTo3DAdaptiveMeshFilter/Code
                     ${TetrahedralMeshGeneration_SOURCE_DIR}/VTKUnstructuredGridMeshWriter/Code

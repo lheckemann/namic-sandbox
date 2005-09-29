@@ -131,7 +131,7 @@ void
 BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 ::GenerateData()
 {
-  unsigned i, j, CurrentRes = 0;
+  unsigned i, j;//, CurrentRes = 0;
   this->Initialize();
 
   this->CreateMesh();
@@ -139,8 +139,8 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 
   // Do the refinement using the specified subdivision 
   // criteria and the number of resolutions
-  CurrentRes = 1;
-  while(CurrentRes<m_NResolutions){
+  m_CurrentResol = 1;
+  while(m_CurrentResol<m_NResolutions){
     
     // --> DEBUG
     for(typename std::list<RGMTetra_ptr>::iterator tI=m_Tetras.begin();
@@ -149,7 +149,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
     }
     // <-- DEBUG
 
-    std::cout << "Creating resolution " << CurrentRes << std::endl;
+    std::cout << "Creating resolution " << m_CurrentResol << std::endl;
     std::cout << "Input: " << m_Tetras.size() << " tets" << std::endl;
     // Copy all tetrahedra to a temporary list
     std::list<RGMTetra_ptr> prev_level_tetras;
@@ -169,7 +169,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
       
 
       if(TetraUnderrefined(curT)){
-        if(curT->parent || curT->level!=CurrentRes-1){
+        if(curT->parent || curT->level!=m_CurrentResol-1){
           m_PendingTetras.push_back(curT);
           continue;
         }
@@ -314,15 +314,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
       else
         FinalizeGreenTetra(curT);
     } // while(pending_tetra_cnt)
-    // FIXME: shouldn't it be empty here?
-    /*
-    pending_tetra_cnt = m_PendingTetras.size();
-    while(pending_tetra_cnt--){
-      m_Tetras.push_back(m_PendingTetras.front());
-      m_PendingTetras.pop_front();
-    }
-    */
-    CurrentRes++;
+    m_CurrentResol++;
   } // while(CurrentRes<m_NResolutions)
   
     
@@ -369,6 +361,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
       
   std::cout << "Finding enveloped vertices...";
   FindEnvelopedVertices();
+  
   std::set<RGMVertex_ptr> all_vertices;
   for(typename std::list<RGMTetra_ptr>::iterator tI=m_Tetras.begin();
     tI!=m_Tetras.end();tI++){
@@ -397,6 +390,10 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
     curT = m_Tetras.front();
     m_Tetras.pop_front();
     
+    // DEBUG -->
+    assert(!curT->greens);
+    // <--
+     
     vertices[0] = curT->edges[0]->nodes[0];
     vertices[1] = curT->edges[0]->nodes[1];
     vertices[2] = curT->edges[1]->nodes[0];
@@ -1220,12 +1217,6 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
   typename InputImageType::ConstPointer m_InputImage = 
     static_cast<const InputImageType * >(this->ProcessObject::GetInput(0) );
 
-  /*
-  InputImageSizeType inputImageSize = m_InputImage->GetBufferedRegion().GetSize();
-  m_ImageWidth  = inputImageSize[0];
-  m_ImageHeight = inputImageSize[1];
-  m_ImageDepth  = inputImageSize[2];
-  */
   this->CreateBCC();
   std::cout << "BCC created" << std::endl;
 
@@ -1323,8 +1314,8 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
     (center[2]-coords[2])*(center[2]-coords[2])) - radius;
 #endif // MODEL_SPHERE
 
-  typename InterpolatorType::ContinuousIndexType input_index;
   float distance = 0;
+  typename InterpolatorType::ContinuousIndexType input_index;
 
   input_index[0] = coords[0];
   input_index[1] = coords[1];
@@ -3040,18 +3031,13 @@ void
 BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 ::FindEnvelopedVertices(float percent_inside = 0.5){
   int i, j;
+  
   for(typename std::list<RGMTetra_ptr>::iterator tI=m_Tetras.begin();
     tI!=m_Tetras.end();tI++){
     RGMTetra_ptr curT;
     //double *vertices[4];
 
     curT = *tI;
-    /*
-    vertices[0] = &curT->edges[0]->nodes[0]->coords[0];
-    vertices[0] = &curT->edges[0]->nodes[0]->coords[1];
-    vertices[0] = &curT->edges[1]->nodes[1]->coords[0];
-    vertices[0] = &curT->edges[1]->nodes[1]->coords[1];
-     */
     for(i=0;i<6;i++){
       float dist0, dist1;
       double divpoint[3];
@@ -3059,15 +3045,15 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
       dist0 = DistanceAtPoint(curT->edges[i]->nodes[0]->coords);
       dist1 = DistanceAtPoint(curT->edges[i]->nodes[1]->coords);
 
-      if(dist0<0 && dist1<0)
+      if(dist0<0 && dist1<0){
         continue;
+      }
       
       if(dist0>0 && dist1>0){
         m_OutOfEnvelopeVertices.insert(curT->edges[i]->nodes[0]);
         m_OutOfEnvelopeVertices.insert(curT->edges[i]->nodes[1]);
         continue;
       }
-
 
       //assert(dist0*dist1<0);
       RGMVertex_ptr vp0, vp1;
@@ -3106,4 +3092,39 @@ template<class TInputImage, class TOutputMesh>
 TYPE
 BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 */
+/*
+  // DEBUG
+  // Save enveloped vertices
+    {
+      int i;
+      std::ofstream foutenv("outofenvelope_verts1.vtk");
 
+      foutenv << "# vtk DataFile Version 3.0" << std::endl;
+      foutenv << "vtk output" << std::endl << "ASCII" << std::endl;
+      foutenv << "DATASET UNSTRUCTURED_GRID" << std::endl;
+      foutenv << "POINTS " << m_OutOfEnvelopeVertices.size() << " float" << std::endl;
+
+      for(typename std::set<RGMVertex_ptr>::iterator
+        mI=m_OutOfEnvelopeVertices.begin();mI!=m_OutOfEnvelopeVertices.end();mI++){
+        foutenv << (*mI)->coords[0] << " " << (*mI)->coords[1] << " " << (*mI)->coords[2] << std::endl;
+      }
+      
+      foutenv << std::endl << "CELLS " << m_OutOfEnvelopeVertices.size() 
+        << " " << m_OutOfEnvelopeVertices.size()*2 << std::endl;
+
+      for(i=0;i<m_OutOfEnvelopeVertices.size();i++)
+        foutenv << "1 " << i << std::endl;
+
+      foutenv << std::endl << "CELL_TYPES " << m_OutOfEnvelopeVertices.size() << std::endl;
+      for(i=0;i<m_OutOfEnvelopeVertices.size();i++)
+        foutenv << "1" << std::endl;
+      foutenv << std::endl << "FIELD FieldData 1" << std::endl;
+      foutenv << "distVals 1 " << m_OutOfEnvelopeVertices.size() << " float" << std::endl;
+      for(typename std::set<RGMVertex_ptr>::iterator sI=m_OutOfEnvelopeVertices.begin();
+        sI!=m_OutOfEnvelopeVertices.end();sI++){
+        float dist = DistanceAtPoint((*sI)->coords);
+        foutenv << dist << std::endl;
+      }
+      foutenv.close();
+  }
+*/

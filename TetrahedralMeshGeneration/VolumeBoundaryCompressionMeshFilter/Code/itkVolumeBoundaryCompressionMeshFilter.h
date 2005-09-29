@@ -175,7 +175,9 @@ public:
   
   // TODO: document debug feature
   itkSetMacro(InputImagePrefix, std::string); 
+#ifndef USE_PETSC
   itkSetMacro(LinearSystemWrapperType, std::string);
+#endif
   itkSetMacro(CompressionIterations, unsigned);
   itkSetMacro(SurfaceFileName, std::string);
 
@@ -311,9 +313,6 @@ private:
   dvertex_t prev_p;
   double prev_d;
 
-  // Solver
-  fem::Solver m_Solver;
-  std::string m_LinearSystemWrapperType;
   
   // Surface triangular mesh (when available)
   SurfaceMeshType::Pointer m_SurfaceMesh;
@@ -321,7 +320,12 @@ private:
 #if USE_PETSC
   PETScDeformWrapper m_PETScWrapper;
 //  struct tetra_mesh* m_ft_mesh;
+#else // USE_PETSC
+  // Solver
+  fem::Solver m_Solver;
+  std::string m_LinearSystemWrapperType;
 #endif // USE_PETSC
+
 
   bool Initialize();
   void Deform();
