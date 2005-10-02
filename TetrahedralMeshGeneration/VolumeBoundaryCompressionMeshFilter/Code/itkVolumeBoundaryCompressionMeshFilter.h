@@ -332,6 +332,8 @@ private:
   // Utility functions
   float DistanceAtPoint(double* coords);
   float DistanceBwPoints(double *coord0, double* coord1);
+  // -1 if negative, +1 if positive, 0 if inconsistent
+  int  GetMeshOrientation();
 
   /*
   // These are static in M.E.S.H....

@@ -71,7 +71,8 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   // at the end, transfer the connectivity and other unmodified data from the
   // input to the output mesh (copied from TransformMeshFilter)
   m_OutputMesh->SetPointData(m_InputMesh->GetPointData());
-  m_OutputMesh->SetPoints(m_InputMesh->GetPoints());
+  Deform();
+  //m_OutputMesh->SetPoints(m_InputMesh->GetPoints());
   m_OutputMesh->SetCellLinks(m_InputMesh->GetCellLinks());
   m_OutputMesh->SetCells(m_InputMesh->GetCells());
   m_OutputMesh->SetCellData(m_InputMesh->GetCellData());
@@ -80,7 +81,6 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
       m_InputMesh->GetBoundaryAssignments(dim));
 
   // Only nodal coordinates will change after the deformation
-  Deform();
 
 
   // free the mesh data
@@ -366,70 +366,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     inPointsI++;
     i++;
   }
-  std::cout << "PETSc initialized" << std::endl;
-  
-  std::cout << "Checking faces' orientation..." << std::endl;
-  // Checking orientation
-  for(i=0;i<m_SurfaceFaces.size();i++){
-    TetFace thisFace = m_SurfaceFaces[i];
-    double vertices[4][3];
-    for(j=0;j<3;j++)
-      for(k=0;k<3;k++)
-        vertices[j][k] = m_PETScWrapper.m_Mesh->vertices[k][thisFace.nodes[j]];  
-    for(k=0;k<3;k++)
-      vertices[3][k] = m_PETScWrapper.m_Mesh->vertices[k][thisFace.fourth];
-    if(orient3d(&vertices[0][0], &vertices[1][0], &vertices[2][0], &vertices[3][0])>0){
-      unsigned tmp_vertex = thisFace.nodes[0];
-      thisFace.nodes[0] = thisFace.nodes[1];
-      thisFace.nodes[1] = tmp_vertex;
-      m_SurfaceFaces[i] = thisFace;
-    }
-  }
-
-     // DEBUG
-    // Save the surface
-
-    {
-      std::ofstream fsurf("undeformed_surf.raw");
-      fsurf << m_SurfaceVertices.size() << " " << m_SurfaceFaces.size() << std::endl;
-      for(j=0;j<m_SurfaceVertices.size();j++)
-        fsurf << m_PETScWrapper.m_Mesh->vertices[0][m_SurfaceVertices[j]] << " "
-          << m_PETScWrapper.m_Mesh->vertices[1][m_SurfaceVertices[j]] << " "
-          << m_PETScWrapper.m_Mesh->vertices[2][m_SurfaceVertices[j]] << std::endl;
-      for(typename std::vector<TetFace>::iterator fI=m_SurfaceFaces.begin();
-        fI!=m_SurfaceFaces.end();fI++){
-        TetFace thisFace = *fI;
-        fsurf << m_SurfaceVertex2Pos[thisFace.nodes[0]] << " " 
-          << m_SurfaceVertex2Pos[thisFace.nodes[1]] << " " 
-          << m_SurfaceVertex2Pos[thisFace.nodes[2]] << std::endl;
-      }
-      fsurf.close();
-    }
-  
-    /*
-    {
-      std::ofstream fsurf("undeformed_surf.vtk");
-      fsurf << "# vtk DataFile Version 3.0" << std::endl;
-      fsurf << "vtk output" << std::endl << "ASCII" << std::endl << "DATASET POLYDATA" << std::endl;
-      fsurf << "POINTS " << m_SurfaceVertices.size() << " float" << std::endl;
-//      fsurf << m_SurfaceVertices.size() << " " << m_SurfaceFaces.size() << std::endl;
-      for(j=0;j<m_SurfaceVertices.size();j++)
-        fsurf << m_PETScWrapper.m_Mesh->vertices[0][m_SurfaceVertices[j]] << " "
-          << m_PETScWrapper.m_Mesh->vertices[1][m_SurfaceVertices[j]] << " "
-          << m_PETScWrapper.m_Mesh->vertices[2][m_SurfaceVertices[j]] << std::endl;
-      fsurf << std::endl;
-      fsurf << "POLYGONS " << m_SurfaceFaces.size() << " " << m_SurfaceFaces.size()*4 << std::endl;
-      for(typename std::vector<TetFace>::iterator fI=m_SurfaceFaces.begin();
-        fI!=m_SurfaceFaces.end();fI++){
-        TetFace thisFace = *fI;
-        fsurf << "3 " << m_SurfaceVertex2Pos[thisFace.nodes[0]] << " " 
-          << m_SurfaceVertex2Pos[thisFace.nodes[1]] << " " 
-          << m_SurfaceVertex2Pos[thisFace.nodes[2]] << std::endl;
-      }
-      fsurf.close();
-    }
-    */
-
+   
   mesh_ptr->bb[0][0] = 0;
   mesh_ptr->bb[0][1] = 0;
   mesh_ptr->bb[0][2] = 0;
@@ -467,6 +404,44 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   }
   std::cout << "Initialization of the PETSc wrapper complete!" << std::endl;
 
+  std::cout << "Checking faces' orientation..." << std::endl;
+  // Checking orientation
+  for(i=0;i<m_SurfaceFaces.size();i++){
+    TetFace thisFace = m_SurfaceFaces[i];
+    double vertices[4][3];
+    for(j=0;j<3;j++)
+      for(k=0;k<3;k++)
+        vertices[j][k] = m_PETScWrapper.m_Mesh->vertices[k][thisFace.nodes[j]];  
+    for(k=0;k<3;k++)
+      vertices[3][k] = m_PETScWrapper.m_Mesh->vertices[k][thisFace.fourth];
+    if(orient3d(&vertices[0][0], &vertices[1][0], &vertices[2][0], &vertices[3][0])>0){
+      unsigned tmp_vertex = thisFace.nodes[0];
+      thisFace.nodes[0] = thisFace.nodes[1];
+      thisFace.nodes[1] = tmp_vertex;
+      m_SurfaceFaces[i] = thisFace;
+    }
+  }
+
+     // DEBUG
+    // Save the surface
+/*
+    {
+      std::ofstream fsurf("undeformed_surf.raw");
+      fsurf << m_SurfaceVertices.size() << " " << m_SurfaceFaces.size() << std::endl;
+      for(j=0;j<m_SurfaceVertices.size();j++)
+        fsurf << m_PETScWrapper.m_Mesh->vertices[0][m_SurfaceVertices[j]] << " "
+          << m_PETScWrapper.m_Mesh->vertices[1][m_SurfaceVertices[j]] << " "
+          << m_PETScWrapper.m_Mesh->vertices[2][m_SurfaceVertices[j]] << std::endl;
+      for(typename std::vector<TetFace>::iterator fI=m_SurfaceFaces.begin();
+        fI!=m_SurfaceFaces.end();fI++){
+        TetFace thisFace = *fI;
+        fsurf << m_SurfaceVertex2Pos[thisFace.nodes[0]] << " " 
+          << m_SurfaceVertex2Pos[thisFace.nodes[1]] << " " 
+          << m_SurfaceVertex2Pos[thisFace.nodes[2]] << std::endl;
+      }
+      fsurf.close();
+    }
+*/
 
     
 #else // do not USE_PETSC, use FEM ITK Solver
@@ -725,6 +700,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   double *U;
   double length;
   std::ofstream outfile;
+  int mesh_orientation, init_mesh_orientation;
   
   std::cout << "Deformation" << std::endl;
 
@@ -752,7 +728,10 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   }
 
   bool stop = false;
-  
+ 
+  init_mesh_orientation = GetMeshOrientation();
+  std::cout << "Initial mesh orientation is " << init_mesh_orientation << std::endl;
+
   //m_CompressionIterations = 10;
   for(curIter=0;!stop && curIter< m_CompressionIterations;curIter++){
     // iteration stats
@@ -894,7 +873,11 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
       }
     }
 
-    std::cout << "Iter               " << curIter << "              " << max_distance << std::endl;
+    mesh_orientation = GetMeshOrientation();
+    std::cout << "Iter               " << curIter << "              " << max_distance << ", orient: " << mesh_orientation << std::endl;
+    if(mesh_orientation!=init_mesh_orientation){
+      std::cerr << "WARNING: Mesh orientation changed. Mesh contains flipped elements (i.e., throw it away, unless the initial mesh was not oriented)" << std::endl;
+    }
 
 #if USE_PETSC
 
@@ -1043,6 +1026,41 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
 #endif
 
   this->GetOutput()->SetBufferedRegion(this->GetOutput()->GetRequestedRegion());
+}
+
+template<class TInputMesh, class TOutputMesh, class TInputImage>
+int
+VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
+::GetMeshOrientation(){
+  // TODO: if start using ITKFEM, will have to fix this...
+  int i, j, orientation = -1;
+  PETScDeformWrapper::tetra_mesh* mesh_ptr;
+
+  mesh_ptr = m_PETScWrapper.m_Mesh;
+  for(i=0;i<mesh_ptr->ncells;i++){
+    double coords[4][3];
+    int thisTorient;
+    for(j=0;j<4;j++){
+      coords[j][0] = 
+        mesh_ptr->vertices[0][mesh_ptr->cell[i]->vert[j]];
+      coords[j][1] = 
+        mesh_ptr->vertices[1][mesh_ptr->cell[i]->vert[j]];
+      coords[j][2] = 
+        mesh_ptr->vertices[2][mesh_ptr->cell[i]->vert[j]];
+    }
+    if(orient3d(&coords[0][0], &coords[1][0], &coords[2][0],
+        &coords[3][0])>0){
+      thisTorient = 1;
+    } else {
+      thisTorient = -1;
+    }
+    if(i==0)
+      orientation = thisTorient;
+    else
+      if(orientation!=thisTorient)
+        orientation = 0;
+  }
+  return orientation;
 }
 
 } /** end namespace itk. */

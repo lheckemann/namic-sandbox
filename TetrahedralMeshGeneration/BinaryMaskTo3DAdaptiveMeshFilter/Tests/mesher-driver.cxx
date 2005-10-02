@@ -267,16 +267,22 @@ int main(int argc, char** argv){
   
   // Save the mesh in .vol INRIA format
   if(inria_fname){
+    double* coords = new double[mesh_in->GetPoints()->Size()*3];
     std::cout << "Saving the mesh in INRIA format..." << std::endl;
     std::ofstream inria_mesh(inria_fname);
     inria_mesh << "#VERSION 1.0" << std::endl << std::endl;
     inria_mesh << "#VERTEX " << mesh_in->GetPoints()->Size() << std::endl;
     inPointsI = mesh_in->GetPoints()->Begin();
+    i = 0;
     while(inPointsI != mesh_in->GetPoints()->End()){
       MeshType::PointType curPoint;
       curPoint = inPointsI.Value();
       inria_mesh << curPoint[0] << " " << curPoint[1] << " " << curPoint[2] << std::endl;
+      coords[3*i] = curPoint[0];
+      coords[3*i+1] = curPoint[1];
+      coords[3*i+2] = curPoint[2];
       inPointsI++;
+      i++;
     }
     inria_mesh << std::endl;
 
@@ -290,30 +296,13 @@ int main(int argc, char** argv){
       TetrahedronType *curTet;
       TetrahedronType::PointIdIterator ptI;
       unsigned points_in = 0;
-      double cvertices[4][3];
       curTet = dynamic_cast<TetrahedronType*>(inCellsI.Value());
       ptI = curTet->PointIdsBegin();
-      unsigned long point_ids[4];
-      for(i=0;i<4;i++){
-        curPointI = mesh_in->GetPoints()->Begin();
-        for(int p=0;p<*ptI;p++)
-          curPointI++;
-        MeshType::PointType curPoint;
-        curPoint = curPointI.Value();
-        point_ids[i] = *ptI;
-        cvertices[i][0] = curPoint[0];
-        cvertices[i][1] = curPoint[1];
-        cvertices[i][2] = curPoint[2];
-        ptI++;
-      }
-
-      if(orient3d(&cvertices[0][0], &cvertices[1][0], &cvertices[2][0], 
-          &cvertices[3][0])>0){
-        inria_mesh << point_ids[1] << " " << point_ids[0] << " " << point_ids[2] << " " << point_ids[3] << std::endl;
-      } else {
-        inria_mesh << point_ids[0] << " " << point_ids[1] << " " << point_ids[2] << " " << point_ids[3] << std::endl;
-      }
-
+      unsigned point_ids[4];
+      for(i=0;i<4;i++)
+        point_ids[i] = *ptI++;
+      
+      inria_mesh << point_ids[0] << " " << point_ids[1] << " " << point_ids[2] << " " << point_ids[3] << std::endl;
       inCellsI++;
     }
 

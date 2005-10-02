@@ -434,10 +434,11 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
     
     /* orient3d() returns a negative value if the first three points appear in
      * counterclockwise order when viewed from the 4th point */
-    if(orient3d((*tI)->edges[0]->nodes[0]->coords, 
+    if(orient3d(
         (*tI)->edges[0]->nodes[0]->coords, 
-        (*tI)->edges[0]->nodes[0]->coords, 
-        (*tI)->edges[0]->nodes[0]->coords)<0){
+        (*tI)->edges[0]->nodes[1]->coords, 
+        (*tI)->edges[1]->nodes[0]->coords, 
+        (*tI)->edges[1]->nodes[1]->coords)<0){
       thisT_nodes[0] = (*tI)->edges[0]->nodes[0];
       thisT_nodes[1] = (*tI)->edges[0]->nodes[1];
     } else {
