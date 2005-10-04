@@ -95,12 +95,6 @@ int main(int argc, char* argv[] )
     membershipFunctions.push_back( MembershipFunctionType::New() );
     membershipFunctions[i]->SetMean( &meanEstimators );
     membershipFunctions[i]->SetCovariance( &covarianceEstimators );
-    }
-
-
-  // SET FILTER'S MEMBERSHIP FUNCTIONS
-  for ( unsigned int i = 0; i < numberOfClasses; ++i )
-    {
     filter->AddMembershipFunction( membershipFunctions[i] );
     }
 
@@ -108,10 +102,6 @@ int main(int argc, char* argv[] )
   // SET FILTER'S SMOOTHING PARAMETERS
   // do nothing here to use default smoothing parameters
   // otherwise set the smoothing parameters
-
-
-  // EXECUTE THE FILTER
-  filter->Update();
 
 
   // SETUP WRITER
