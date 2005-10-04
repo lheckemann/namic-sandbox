@@ -76,6 +76,7 @@ void
 BayesianClassifierImageFilter<TInputImage, TOutputImage>
 ::GenerateData()
 {
+
   // SETUP INPUT IMAGE
   const InputImageType * inputImage = this->GetInput();
   typename InputImageType::RegionType   imageRegion  = inputImage->GetBufferedRegion();
@@ -143,7 +144,8 @@ std::cout << "Prior image in initial section " << itrPriorImage.Get() << std::en
   itrInputImage.GoToBegin();
   while ( !itrDataImage.IsAtEnd() )
     {
-    mv.Fill( itrInputImage.Get() );
+    mv = itrInputImage.Get();
+std::cout << "mv = " << mv << std::endl; //debugging
     for ( unsigned int i = 0; i < numberOfClasses; i++ )
       {
       membershipPixel[i] = m_MembershipFunctions[i]->Evaluate( mv );

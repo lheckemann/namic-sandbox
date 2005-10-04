@@ -74,8 +74,8 @@ int main(int argc, char* argv[] )
 
   // CREATE GAUSSIAN MEMBERSHIP FUNCTIONS
   typedef ClassifierFilterType::MeasurementVectorType     MeasurementVectorType;
-  typedef itk::Statistics::GaussianDensityFunction<
-                                 MeasurementVectorType >  MembershipFunctionType;
+  typedef itk::Statistics::GaussianDensityFunction< MeasurementVectorType >
+                                                          MembershipFunctionType;
   typedef MembershipFunctionType::Pointer                 MembershipFunctionPointer;
   typedef itk::Array< double >                            ArrayType; // temp
   

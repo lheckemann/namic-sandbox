@@ -186,7 +186,7 @@ int main( int argc, char * argv [] )
   // CREATE GAUSSIAN MEMBERSHIP FUNCTIONS
   typedef itk::Vector< double, 1 >                MeasurementVectorType;
   typedef itk::Statistics::GaussianDensityFunction< MeasurementVectorType >
-    GaussianMembershipFunctionType;
+                                                  GaussianMembershipFunctionType;
   typedef GaussianMembershipFunctionType::Pointer GaussianMembershipFunctionPointer;
 
   std::vector< GaussianMembershipFunctionPointer > gaussianMembershipFunctions;
