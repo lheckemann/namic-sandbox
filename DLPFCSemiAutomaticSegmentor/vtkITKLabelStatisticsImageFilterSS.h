@@ -118,7 +118,3 @@ vtkCxxRevisionMacro(vtkITKLabelStatisticsImageFilterSS, "$Revision: 1.10 $");
 vtkStandardNewMacro(vtkITKLabelStatisticsImageFilterSS);
 
 #endif
-
-
-
-
