@@ -23,6 +23,7 @@
 #include "itkImageFileWriter.h"
 #include "itkImageFileReader.h"
 #include "itkGaussianDensityFunction.h"
+#include "itkVectorContainer.h"
 
 
 //int itkBayesianClassifierImageFilterTest(int argc, char* argv[] )
@@ -80,21 +81,37 @@ int main(int argc, char* argv[] )
   typedef itk::Array< double >                            ArrayType; // temp
   
   std::vector< MembershipFunctionPointer > membershipFunctions;
-  MembershipFunctionType::MeanType         meanEstimators( 1 );
-  MembershipFunctionType::CovarianceType   covarianceEstimators;
-  covarianceEstimators.SetSize( 1, 1 );
+  typedef itk::VectorContainer< unsigned long, MembershipFunctionType::MeanType* > 
+    MeanEstimatorsContainerType;
+  typedef itk::VectorContainer< unsigned long, MembershipFunctionType::CovarianceType* > 
+    CovarianceEstimatorsContainerType;
+  MeanEstimatorsContainerType::Pointer meanEstimatorsContainer = MeanEstimatorsContainerType::New();
+  CovarianceEstimatorsContainerType::Pointer covarianceEstimatorsContainer = CovarianceEstimatorsContainerType::New();
+  meanEstimatorsContainer->Reserve( numberOfClasses );
+  covarianceEstimatorsContainer->Reserve( numberOfClasses );
   ArrayType                                estimatedMeans( numberOfClasses ); // temp
   ArrayType                                estimatedCovariances( numberOfClasses ); // temp
 
   for ( unsigned int i = 0; i < numberOfClasses; ++i )
     {
-    estimatedMeans[i] = 255*i / numberOfClasses; // temp
+    estimatedMeans[i] = 255*(i) / numberOfClasses; // temp
     estimatedCovariances[i] = 100; // temp
-    meanEstimators.Fill( estimatedMeans[i] );
-    covarianceEstimators.Fill( estimatedCovariances[i] );
+    
+    meanEstimatorsContainer->InsertElement( i, new MembershipFunctionType::MeanType(1) );
+    covarianceEstimatorsContainer->InsertElement( i, new MembershipFunctionType::CovarianceType() );
+    MembershipFunctionType::MeanType*       meanEstimators
+      = const_cast< MembershipFunctionType::MeanType * >(meanEstimatorsContainer->GetElement(i));
+    MembershipFunctionType::CovarianceType* covarianceEstimators
+      = const_cast< MembershipFunctionType::CovarianceType * >(covarianceEstimatorsContainer->GetElement(i));
+    meanEstimators->SetSize(1);
+    covarianceEstimators->SetSize( 1, 1 );
+
+    meanEstimators->Fill( estimatedMeans[i] );
+    covarianceEstimators->Fill( estimatedCovariances[i] );
+    
     membershipFunctions.push_back( MembershipFunctionType::New() );
-    membershipFunctions[i]->SetMean( &meanEstimators );
-    membershipFunctions[i]->SetCovariance( &covarianceEstimators );
+    membershipFunctions[i]->SetMean( meanEstimatorsContainer->GetElement( i ) );
+    membershipFunctions[i]->SetCovariance( covarianceEstimatorsContainer->GetElement( i ) );
     filter->AddMembershipFunction( membershipFunctions[i] );
     }
 
@@ -127,7 +144,19 @@ int main(int argc, char* argv[] )
     return EXIT_FAILURE;
     }
 
-
+  
+  for ( unsigned int i = 0; i < numberOfClasses; ++i )
+    {
+    MembershipFunctionType::MeanType*       meanEstimators
+      = const_cast< MembershipFunctionType::MeanType * >(meanEstimatorsContainer->GetElement(i));
+    MembershipFunctionType::CovarianceType* covarianceEstimators
+      = const_cast< MembershipFunctionType::CovarianceType * >(covarianceEstimatorsContainer->GetElement(i));
+    delete meanEstimators;
+    delete covarianceEstimators;
+    meanEstimatorsContainer->DeleteIndex(i);
+    covarianceEstimatorsContainer->DeleteIndex(i);
+    }
+ 
   // TESTING PRINT
   filter->Print( std::cout );
   std::cout << "Test passed." << std::endl;
