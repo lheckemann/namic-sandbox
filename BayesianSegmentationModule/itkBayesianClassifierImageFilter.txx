@@ -201,7 +201,7 @@ std::cout << "Initial Posteriors " << itrPosteriorImage.Get() << std::endl; //de
 
 
   // APPLY MAXIMUM A POSTERIORI RULE
-  OutputImageType::Pointer labels = OutputImageType::New();
+  typename OutputImageType::Pointer labels = OutputImageType::New();
   labels->SetRegions( imageRegion );
   labels->SetOrigin( imageOrigin );
   labels->SetSpacing( imageSpacing );
