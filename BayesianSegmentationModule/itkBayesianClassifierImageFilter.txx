@@ -33,7 +33,6 @@ template <class TInputImage, class TOutputImage>
 BayesianClassifierImageFilter<TInputImage, TOutputImage>
 ::BayesianClassifierImageFilter()
 {
-
 }
 
 
@@ -114,8 +113,13 @@ BayesianClassifierImageFilter<TInputImage, TOutputImage>
     itrPriorImage.Set( priorPixel );
     ++itrPriorImage;
     }
---itrPriorImage;
+/* DEBUGGING */
+for ( unsigned int i = 0; i < 21639; ++i)
+  {
+  --itrPriorImage;
+  }
 std::cout << "Prior image in initial section " << itrPriorImage.Get() << std::endl; //debugging
+/* DEBUGGING */
 
 
   // GENERATE MEMBERSHIP DATA IMAGE
@@ -153,10 +157,15 @@ std::cout << "Prior image in initial section " << itrPriorImage.Get() << std::en
     ++itrInputImage;
     ++itrDataImage;
     }
---itrInputImage;
+/* DEBUGGING */
+for ( unsigned int i = 0; i < 21639; ++i)
+  {
+  --itrInputImage;
+  --itrDataImage;
+  }
 std::cout << "Input image in initial section " << itrInputImage.Get() << std::endl; //debugging
---itrDataImage;
 std::cout << "Data image in initial section " << itrDataImage.Get() << std::endl; //debugging
+/* DEBUGGING */
 
 
   // GENERATE POSTERIORS BY APPLYING BAYES' RULE
@@ -196,16 +205,21 @@ std::cout << "Data image in initial section " << itrDataImage.Get() << std::endl
     ++itrPriorImage;
     ++itrPosteriorImage;
     }
---itrPosteriorImage;
+/* DEBUGGING */
+for ( unsigned int i = 0; i < 21639; ++i)
+  {
+  --itrPosteriorImage;
+  }
 std::cout << "Initial Posteriors " << itrPosteriorImage.Get() << std::endl; //debugging
+/* DEBUGGING */
 
 
   // APPLY MAXIMUM A POSTERIORI RULE
-  typename OutputImageType::Pointer labels = OutputImageType::New();
-  labels->SetRegions( imageRegion );
-  labels->SetOrigin( imageOrigin );
-  labels->SetSpacing( imageSpacing );
-  labels->Allocate();
+  this->GetOutput()->SetRegions( imageRegion );
+  this->GetOutput()->SetSpacing( imageSpacing );
+  this->GetOutput()->SetOrigin( imageOrigin );
+  AllocateOutputs();
+  OutputImageType::Pointer labels = this->GetOutput();
   OutputImageIteratorType itrLabelImage( labels, imageRegion );
   DecisionRuleType::Pointer decisionRule = DecisionRuleType::New();
 
@@ -217,10 +231,15 @@ std::cout << "Initial Posteriors " << itrPosteriorImage.Get() << std::endl; //de
     ++itrLabelImage;
     ++itrPosteriorImage;
     }
---itrLabelImage;
+/* DEBUGGING */
+for ( unsigned int i = 0; i < 21639; ++i)
+  {
+  --itrLabelImage;
+  --itrPosteriorImage;
+  }
 std::cout << "Label image in initial section " << itrLabelImage.Get() << std::endl; //debugging
---itrPosteriorImage;
 std::cout << "Posteriors after decision rule in initial section " << itrPosteriorImage.Get() << std::endl; //debugging
+/* DEBUGGING */
 }
 } // end namespace itk
 

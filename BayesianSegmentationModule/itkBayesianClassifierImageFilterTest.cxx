@@ -79,18 +79,20 @@ int main(int argc, char* argv[] )
                                                           MembershipFunctionType;
   typedef MembershipFunctionType::Pointer                 MembershipFunctionPointer;
   typedef itk::Array< double >                            ArrayType; // temp
-  
-  std::vector< MembershipFunctionPointer > membershipFunctions;
+  std::vector< MembershipFunctionPointer >   membershipFunctions;
   typedef itk::VectorContainer< unsigned long, MembershipFunctionType::MeanType* > 
-    MeanEstimatorsContainerType;
+                                             MeanEstimatorsContainerType;
   typedef itk::VectorContainer< unsigned long, MembershipFunctionType::CovarianceType* > 
-    CovarianceEstimatorsContainerType;
-  MeanEstimatorsContainerType::Pointer meanEstimatorsContainer = MeanEstimatorsContainerType::New();
-  CovarianceEstimatorsContainerType::Pointer covarianceEstimatorsContainer = CovarianceEstimatorsContainerType::New();
+                                             CovarianceEstimatorsContainerType;
+  MeanEstimatorsContainerType::Pointer       meanEstimatorsContainer =
+                                               MeanEstimatorsContainerType::New();
+  CovarianceEstimatorsContainerType::Pointer covarianceEstimatorsContainer =
+                                               CovarianceEstimatorsContainerType::New();
+
   meanEstimatorsContainer->Reserve( numberOfClasses );
   covarianceEstimatorsContainer->Reserve( numberOfClasses );
-  ArrayType                                estimatedMeans( numberOfClasses ); // temp
-  ArrayType                                estimatedCovariances( numberOfClasses ); // temp
+  ArrayType                                    estimatedMeans( numberOfClasses ); // temp
+  ArrayType                                    estimatedCovariances( numberOfClasses ); // temp
 
   for ( unsigned int i = 0; i < numberOfClasses; ++i )
     {
@@ -98,17 +100,19 @@ int main(int argc, char* argv[] )
     estimatedCovariances[i] = 100; // temp
     
     meanEstimatorsContainer->InsertElement( i, new MembershipFunctionType::MeanType(1) );
-    covarianceEstimatorsContainer->InsertElement( i, new MembershipFunctionType::CovarianceType() );
-    MembershipFunctionType::MeanType*       meanEstimators
-      = const_cast< MembershipFunctionType::MeanType * >(meanEstimatorsContainer->GetElement(i));
-    MembershipFunctionType::CovarianceType* covarianceEstimators
-      = const_cast< MembershipFunctionType::CovarianceType * >(covarianceEstimatorsContainer->GetElement(i));
+    covarianceEstimatorsContainer->
+                             InsertElement( i, new MembershipFunctionType::CovarianceType() );
+    MembershipFunctionType::MeanType*       meanEstimators = 
+                                      const_cast< MembershipFunctionType::MeanType * >
+                                      (meanEstimatorsContainer->GetElement(i));
+    MembershipFunctionType::CovarianceType* covarianceEstimators = 
+                                      const_cast< MembershipFunctionType::CovarianceType * >
+                                      (covarianceEstimatorsContainer->GetElement(i));
     meanEstimators->SetSize(1);
     covarianceEstimators->SetSize( 1, 1 );
 
     meanEstimators->Fill( estimatedMeans[i] );
     covarianceEstimators->Fill( estimatedCovariances[i] );
-    
     membershipFunctions.push_back( MembershipFunctionType::New() );
     membershipFunctions[i]->SetMean( meanEstimatorsContainer->GetElement( i ) );
     membershipFunctions[i]->SetCovariance( covarianceEstimatorsContainer->GetElement( i ) );
@@ -147,10 +151,12 @@ int main(int argc, char* argv[] )
   
   for ( unsigned int i = 0; i < numberOfClasses; ++i )
     {
-    MembershipFunctionType::MeanType*       meanEstimators
-      = const_cast< MembershipFunctionType::MeanType * >(meanEstimatorsContainer->GetElement(i));
-    MembershipFunctionType::CovarianceType* covarianceEstimators
-      = const_cast< MembershipFunctionType::CovarianceType * >(covarianceEstimatorsContainer->GetElement(i));
+    MembershipFunctionType::MeanType*       meanEstimators =
+      const_cast< MembershipFunctionType::MeanType * >
+      (meanEstimatorsContainer->GetElement(i));
+    MembershipFunctionType::CovarianceType* covarianceEstimators =
+      const_cast< MembershipFunctionType::CovarianceType * >
+      (covarianceEstimatorsContainer->GetElement(i));
     delete meanEstimators;
     delete covarianceEstimators;
     meanEstimatorsContainer->DeleteIndex(i);
