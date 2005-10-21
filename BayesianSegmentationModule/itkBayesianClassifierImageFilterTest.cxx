@@ -18,14 +18,13 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkBayesianClassifierInitializationImageFilter.h"
-#include "itkBayesianClassifierImageFilter.h"
 #include "itkImage.h"
-#include "itkImageFileWriter.h"
 #include "itkImageFileReader.h"
 #include "itkGaussianDensityFunction.h"
 #include "itkVectorContainer.h"
-
+#include "itkBayesianClassifierInitializationImageFilter.h"
+#include "itkBayesianClassifierImageFilter.h"
+#include "itkImageFileWriter.h"
 
 //int itkBayesianClassifierImageFilterTest(int argc, char* argv[] )
 int main(int argc, char* argv[] )
@@ -38,13 +37,11 @@ int main(int argc, char* argv[] )
     return EXIT_FAILURE;
     }
 
-  // INPUT PARAMETERS
+  // input parameters
   char * rawDataFileName = argv[1];
   char * labelMapFileName = argv[2];
-  unsigned int numberOfClasses = 3;
-  
 
-  // SETUP READER
+  // setup reader
   const unsigned int Dimension = 2;
   typedef unsigned short InputPixelType;
   typedef itk::Image< InputPixelType, Dimension > InputImageType;
@@ -53,20 +50,28 @@ int main(int argc, char* argv[] )
   ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( rawDataFileName );
 
-
-  // SETUP FILTER
-  typedef unsigned long OutputPixelType;
+  // setup filters
+  typedef unsigned short OutputPixelType;
   typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
-  typedef itk::BayesianClassifierImageFilter< 
+  typedef itk::BayesianClassifierInitializationImageFilter<
                                  InputImageType,
-                                 OutputImageType > ClassifierFilterType;
+                                 OutputImageType > InitializationFilterType;
 
-  ClassifierFilterType::Pointer filter = ClassifierFilterType::New();
+  InitializationFilterType::Pointer filter = InitializationFilterType::New();
   filter->SetInput( reader->GetOutput() );
+
+  filter->Update();
+
+//   typedef itk::BayesianClassifierImageFilter< 
+//                                  InputImageType,
+//                                  OutputImageType > ClassifierFilterType;
+
+//   ClassifierFilterType::Pointer filter = ClassifierFilterType::New();
+//   filter->SetInput( reader->GetOutput() );
 
 
   // INITIALIZE FILTER
-  // call an initializer class here to setup prior and data terms
+  // set number of classes here
 
 
   // SET FILTER'S PRIOR PARAMETERS
@@ -75,50 +80,50 @@ int main(int argc, char* argv[] )
 
 
   // CREATE GAUSSIAN MEMBERSHIP FUNCTIONS
-  typedef ClassifierFilterType::MeasurementVectorType     MeasurementVectorType;
-  typedef itk::Statistics::GaussianDensityFunction< MeasurementVectorType >
-                                                          MembershipFunctionType;
-  typedef MembershipFunctionType::Pointer                 MembershipFunctionPointer;
-  typedef itk::Array< double >                            ArrayType; // temp
-  std::vector< MembershipFunctionPointer >   membershipFunctions;
-  typedef itk::VectorContainer< unsigned long, MembershipFunctionType::MeanType* > 
-                                             MeanEstimatorsContainerType;
-  typedef itk::VectorContainer< unsigned long, MembershipFunctionType::CovarianceType* > 
-                                             CovarianceEstimatorsContainerType;
-  MeanEstimatorsContainerType::Pointer       meanEstimatorsContainer =
-                                               MeanEstimatorsContainerType::New();
-  CovarianceEstimatorsContainerType::Pointer covarianceEstimatorsContainer =
-                                               CovarianceEstimatorsContainerType::New();
+//   typedef ClassifierFilterType::MeasurementVectorType     MeasurementVectorType;
+//   typedef itk::Statistics::GaussianDensityFunction< MeasurementVectorType >
+//                                                           MembershipFunctionType;
+//   typedef MembershipFunctionType::Pointer                 MembershipFunctionPointer;
+//   typedef itk::Array< double >                            ArrayType; // temp
+//   std::vector< MembershipFunctionPointer >   membershipFunctions;
+//   typedef itk::VectorContainer< unsigned long, MembershipFunctionType::MeanType* > 
+//                                              MeanEstimatorsContainerType;
+//   typedef itk::VectorContainer< unsigned long, MembershipFunctionType::CovarianceType* > 
+//                                              CovarianceEstimatorsContainerType;
+//   MeanEstimatorsContainerType::Pointer       meanEstimatorsContainer =
+//                                                MeanEstimatorsContainerType::New();
+//   CovarianceEstimatorsContainerType::Pointer covarianceEstimatorsContainer =
+//                                                CovarianceEstimatorsContainerType::New();
 
-  meanEstimatorsContainer->Reserve( numberOfClasses );
-  covarianceEstimatorsContainer->Reserve( numberOfClasses );
-  ArrayType                                    estimatedMeans( numberOfClasses ); // temp
-  ArrayType                                    estimatedCovariances( numberOfClasses ); // temp
+//   meanEstimatorsContainer->Reserve( numberOfClasses );
+//   covarianceEstimatorsContainer->Reserve( numberOfClasses );
+//   ArrayType                                    estimatedMeans( numberOfClasses ); // temp
+//   ArrayType                                    estimatedCovariances( numberOfClasses ); // temp
 
-  for ( unsigned int i = 0; i < numberOfClasses; ++i )
-    {
-    estimatedMeans[i] = 255*(i) / numberOfClasses; // temp
-    estimatedCovariances[i] = 100; // temp
+//   for ( unsigned int i = 0; i < numberOfClasses; ++i )
+//     {
+//     estimatedMeans[i] = 255*(i) / numberOfClasses; // temp
+//     estimatedCovariances[i] = 100; // temp
     
-    meanEstimatorsContainer->InsertElement( i, new MembershipFunctionType::MeanType(1) );
-    covarianceEstimatorsContainer->
-                             InsertElement( i, new MembershipFunctionType::CovarianceType() );
-    MembershipFunctionType::MeanType*       meanEstimators = 
-                                      const_cast< MembershipFunctionType::MeanType * >
-                                      (meanEstimatorsContainer->GetElement(i));
-    MembershipFunctionType::CovarianceType* covarianceEstimators = 
-                                      const_cast< MembershipFunctionType::CovarianceType * >
-                                      (covarianceEstimatorsContainer->GetElement(i));
-    meanEstimators->SetSize(1);
-    covarianceEstimators->SetSize( 1, 1 );
+//     meanEstimatorsContainer->InsertElement( i, new MembershipFunctionType::MeanType(1) );
+//     covarianceEstimatorsContainer->
+//                              InsertElement( i, new MembershipFunctionType::CovarianceType() );
+//     MembershipFunctionType::MeanType*       meanEstimators = 
+//                                       const_cast< MembershipFunctionType::MeanType * >
+//                                       (meanEstimatorsContainer->GetElement(i));
+//     MembershipFunctionType::CovarianceType* covarianceEstimators = 
+//                                       const_cast< MembershipFunctionType::CovarianceType * >
+//                                       (covarianceEstimatorsContainer->GetElement(i));
+//     meanEstimators->SetSize(1);
+//     covarianceEstimators->SetSize( 1, 1 );
 
-    meanEstimators->Fill( estimatedMeans[i] );
-    covarianceEstimators->Fill( estimatedCovariances[i] );
-    membershipFunctions.push_back( MembershipFunctionType::New() );
-    membershipFunctions[i]->SetMean( meanEstimatorsContainer->GetElement( i ) );
-    membershipFunctions[i]->SetCovariance( covarianceEstimatorsContainer->GetElement( i ) );
-    filter->AddMembershipFunction( membershipFunctions[i] );
-    }
+//     meanEstimators->Fill( estimatedMeans[i] );
+//     covarianceEstimators->Fill( estimatedCovariances[i] );
+//     membershipFunctions.push_back( MembershipFunctionType::New() );
+//     membershipFunctions[i]->SetMean( meanEstimatorsContainer->GetElement( i ) );
+//     membershipFunctions[i]->SetCovariance( covarianceEstimatorsContainer->GetElement( i ) );
+//     filter->AddMembershipFunction( membershipFunctions[i] );
+//     }
 
 
   // SET FILTER'S SMOOTHING PARAMETERS
@@ -127,42 +132,42 @@ int main(int argc, char* argv[] )
 
 
   // SETUP WRITER
-  typedef itk::ImageFileWriter< OutputImageType >    WriterType;
+//   typedef itk::ImageFileWriter< OutputImageType >    WriterType;
 
-  WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName( labelMapFileName );
+//   WriterType::Pointer writer = WriterType::New();
+//   writer->SetFileName( labelMapFileName );
 
 
-  // WRITE LABELMAP TO FILE
-  // need to write GetOutput method
-  writer->SetInput( filter->GetOutput() );
-  writer->SetFileName( labelMapFileName );
-  try
-    {
-    writer->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << "Problem encoutered while writing image file : "
-      << argv[2] << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
+//   // WRITE LABELMAP TO FILE
+//   // need to write GetOutput method
+//   writer->SetInput( filter->GetOutput() );
+//   writer->SetFileName( labelMapFileName );
+//   try
+//     {
+//     writer->Update();
+//     }
+//   catch( itk::ExceptionObject & excp )
+//     {
+//     std::cerr << "Problem encoutered while writing image file : "
+//       << argv[2] << std::endl;
+//     std::cerr << excp << std::endl;
+//     return EXIT_FAILURE;
+//     }
 
   
-  for ( unsigned int i = 0; i < numberOfClasses; ++i )
-    {
-    MembershipFunctionType::MeanType*       meanEstimators =
-      const_cast< MembershipFunctionType::MeanType * >
-      (meanEstimatorsContainer->GetElement(i));
-    MembershipFunctionType::CovarianceType* covarianceEstimators =
-      const_cast< MembershipFunctionType::CovarianceType * >
-      (covarianceEstimatorsContainer->GetElement(i));
-    delete meanEstimators;
-    delete covarianceEstimators;
-    meanEstimatorsContainer->DeleteIndex(i);
-    covarianceEstimatorsContainer->DeleteIndex(i);
-    }
+//   for ( unsigned int i = 0; i < numberOfClasses; ++i )
+//     {
+//     MembershipFunctionType::MeanType*       meanEstimators =
+//       const_cast< MembershipFunctionType::MeanType * >
+//       (meanEstimatorsContainer->GetElement(i));
+//     MembershipFunctionType::CovarianceType* covarianceEstimators =
+//       const_cast< MembershipFunctionType::CovarianceType * >
+//       (covarianceEstimatorsContainer->GetElement(i));
+//     delete meanEstimators;
+//     delete covarianceEstimators;
+//     meanEstimatorsContainer->DeleteIndex(i);
+//     covarianceEstimatorsContainer->DeleteIndex(i);
+//     }
  
   // TESTING PRINT
   filter->Print( std::cout );

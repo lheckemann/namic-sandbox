@@ -19,10 +19,11 @@
 
 #include "itkVectorImage.h"
 #include "itkImageToImageFilter.h"
-#include "itkMaximumDecisionRule.h"
-#include "itkDensityFunction.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"
+#include "itkScalarImageKmeansImageFilter.h"
+#include "itkDensityFunction.h"
+#include "itkMaximumDecisionRule.h"
 
 namespace itk
 {
@@ -73,11 +74,11 @@ public:
 
   /** Input and Output image iterators */
   typedef itk::ImageRegionConstIterator< InputImageType > InputImageIteratorType;
-  typedef itk::ImageRegionIterator< OutputImageType >     OutputImageIteratorType;
+//  typedef itk::ImageRegionIterator< OutputImageType >     OutputImageIteratorType;
 
   /** Pixel types. */
   typedef typename TInputImage::PixelType  InputPixelType;
-  typedef typename TOutputImage::PixelType OutputPixelType;
+//  typedef typename TOutputImage::PixelType OutputPixelType;
 
   /** Image Type and Pixel type for the images representing the Prior
    * probability of a pixel belonging to  a particular class. This image has
@@ -96,45 +97,40 @@ public:
   typedef typename MembershipImageType::Pointer           MembershipImagePointer;
   typedef itk::ImageRegionIterator< MembershipImageType > MembershipImageIteratorType;
 
-  /** Image Type and Pixel type for the images representing the Posterior
-   * probability of a pixel belonging to  a particular class. This image has
-   * arrays as pixels, the number of elements in the array is the same as the
-   * number of classes to be used.  */
-  typedef itk::VectorImage< double, Dimension >           PosteriorImageType;
-  typedef typename PosteriorImageType::PixelType          PosteriorPixelType;
-  typedef typename PosteriorImageType::Pointer            PosteriorImagePointer;
-  typedef itk::ImageRegionIterator< PosteriorImageType >  PosteriorImageIteratorType;
+  /** Types for the Kmeans Classification **/
+  typedef itk::ScalarImageKmeansImageFilter< InputImageType > KMeansFilterType;
+  typedef typename KMeansFilterType::OutputImageType          KMeansImageType;
+  typedef itk::ImageRegionConstIterator< InputImageType >     ConstInputIteratorType;
+  typedef itk::ImageRegionConstIterator< KMeansImageType >    ConstKMeansIteratorType;
+  typedef itk::Array< double >                                CovarianceArrayType;
 
   /** Type of the Measurement */
   typedef itk::Vector< double, 1 >                        MeasurementVectorType;
 
   /** Type of the density functions */
-  typedef Statistics::DensityFunction< MeasurementVectorType 
-                                                        > MembershipFunctionType;
-  typedef typename MembershipFunctionType::ConstPointer   MembershipFunctionConstPointer;
+  typedef Statistics::GaussianDensityFunction< MeasurementVectorType >
+                                                          MembershipFunctionType;
+  typedef typename MembershipFunctionType::Pointer        MembershipFunctionPointer;
+  typedef itk::VectorContainer< unsigned short, MembershipFunctionType::MeanType* > 
+                                                          MeanEstimatorsContainerType;
+  typedef itk::VectorContainer< unsigned short, MembershipFunctionType::CovarianceType* > 
+                                                          CovarianceEstimatorsContainerType;
 
   /** Membership function container */
-  typedef std::vector< MembershipFunctionConstPointer >   MembershipFunctionContainer;
-
-  /** Decision rule to use for defining the label */
-  typedef itk::MaximumDecisionRule                        DecisionRuleType;
-
-  /** Add a membership function to the filter. */
-  void AddMembershipFunction( const MembershipFunctionType * newFunction );
+  typedef std::vector< MembershipFunctionPointer >        MembershipFunctionContainer;
 
 protected:
   BayesianClassifierInitializationImageFilter();
   virtual ~BayesianClassifierInitializationImageFilter() {}
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-  /** Here is where the classification is computed.*/
+  /** Here is where the prior and membership probability vector images are created.*/
   virtual void GenerateData();
 
 private:
   BayesianClassifierInitializationImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  MembershipFunctionContainer     m_MembershipFunctions;  
 };
 
 } // end namespace itk
