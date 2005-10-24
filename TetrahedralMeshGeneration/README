@@ -60,18 +60,14 @@ The code also uses MESH software for computing distance from point to
 triangular surface. It is available at http://mesh.berlios.de/
 
 The datasets are located in the Data directory. Once you have the system set
-up, you can compile the main driver code, mesher-driver. You can run the test
-case as follows:
+up, you can compile the main driver code, mesher-driver. 
 
- bin/mesher-driver --tmp-name=sphere --input-image=./Data/sphere.mhd --resolution=2 --vtk-output=./sphere-mesh.vtk
+In order to learn about the command line options of mesher-driver run
+"mesher-driver --help".
 
 Remember to boot LAM by using the "lamboot" command prior to running the
 experiments. The code does not support multiple processor execution, don't
 use something like "-np 2" with mpirun.
-
-This will save the resulting 2 level resolution volume mesh in 
-./sphere-mesh.vtk. Please email questions or comments to fedorov AT cs DOT wm
-DOT edu
 
 Please check the NAMIC SandBox regularly as the code will be updated until its
 transition to the stable ITK tree.
@@ -95,11 +91,8 @@ in the source files):
   should eliminate this dependency, but this is not the highest priority right
   now. 
 
-2) VTKUnstructuredGridMeshWriter
-  Takes the ITK Mesh as input, and saves it in the VTK format. This class is
-  not really something finished, but rather quick to have something to save
-  the resulting VTK mesh in a file without having the dependency on VTK.
-
-3) VolumeBoundaryCompressionMeshFilter
+2) VolumeBoundaryCompressionMeshFilter
   Takes the mesh topology and aligns it with the boundary defined by the
   binary image
+
+The other classes are supporting.
