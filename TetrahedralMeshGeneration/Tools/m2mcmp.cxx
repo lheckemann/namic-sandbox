@@ -26,6 +26,9 @@
  *
  *     NB: the binary image is assumed to be in MET_USHORT format. Change and
  *     recompile the code if necessary.
+ *
+ *  PROBLEM: because of the precision (I think) the voxels along the element
+ *  faces are not labeled correctly, thus the resulting metric is not precise.
  */
 
 #include "itkTetrahedralMeshReader.h"
@@ -84,6 +87,11 @@ int main(int argc, char **argv){
   ImageWriterType::Pointer image_writer =
     ImageWriterType::New();
 
+  if(argc<4){
+    std::cerr << "Three arguments required: (1) binary image," <<
+      "(2) mesh #1, (3) mesh #2." << std::endl;
+    return -1;
+  }
  
   exactinit();
 
@@ -376,12 +384,12 @@ void GetImageFromMesh(ImageType* image_in, MeshType* mesh_in, ImageType* mesh1im
     ImageType::RegionType voxelBBregion;
     ImageType::RegionType::IndexType rStart;
     ImageType::RegionType::SizeType rSize;
-    rStart[0] = ibb1[0]-30; // being a paranoid
-    rStart[1] = ibb1[1]-30;
-    rStart[2] = ibb1[2]-30;
-    rSize[0] = ibb2[0] - ibb1[0] + 30;
-    rSize[1] = ibb2[1] - ibb1[1] + 30;
-    rSize[2] = ibb2[2] - ibb1[2] + 30;
+    rStart[0] = ibb1[0]-3; // being a paranoid
+    rStart[1] = ibb1[1]-3;
+    rStart[2] = ibb1[2]-3;
+    rSize[0] = ibb2[0] - ibb1[0] + 3;
+    rSize[1] = ibb2[1] - ibb1[1] + 3;
+    rSize[2] = ibb2[2] - ibb1[2] + 3;
     voxelBBregion.SetSize(rSize);
     voxelBBregion.SetIndex(rStart);
     // Iterate through the voxels within the bounding box
