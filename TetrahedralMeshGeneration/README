@@ -5,23 +5,33 @@ Please send questions, bugs or comments to fedorov AT bwh DOT harvard DOT edu
 
 This is a research code, and is under development.
 
-THIS SOFTWARE CANNOT BE USED FOR ANY COMMERCIAL PURPOSE!!!
+Please see Copyright.txt for copyright on this code. This software uses
+external open source packages which may be protected by different copyrights.
+Please check each package separately.
 
 -----------------------------------------------------------------------------
 
 This software depends on and requires the following packages to be installed
 prior to compilation of the code:
 
- * LAM MPI v7.*   Available at http://www.lam-mpi.org/7.1/download.php\
-     -- the following packages should be configured and compiled with mpiCC of the
+ * LAM MPI v7.*   Available at http://www.lam-mpi.org/7.1/download.php
+ 
+ -- the following packages should be configured and compiled with mpiCC of the
      previously installed LAM MPI
  * PETSc 2.3.0    Available at http://www-unix.mcs.anl.gov/petsc/petsc-2/download/index.html
  * CVS VTK        Available at http://vtk.org/get-software.php
  * CVS ITK        Available at http://itk.org/HTML/Download.php
- * M.E.S.H        Available at http://mesh.berlios.de
+ 
+ * M.E.S.H.       Available at http://mesh.berlios.de
    (the original code has been slightly modified; see README in Mesh-1.3.1-mod
    for instructions)
-     -- the following are external packages that are downloaded and will be 
+ * GRUMMP mesh optimization software
+                  Available at http://tetra.mech.ubc.ca/GRUMMP/
+                  The code will compile if you don't have GRUMMP installed,
+                  but you will not be able to use the optimization-based
+                  compression mode
+                  
+ -- the following are external packages that are downloaded and will be 
      compiled automatically
  * Jonathan Shewchuk geometric predicates
                   Available at http://www.cs.cmu.edu/~quake/robust.html

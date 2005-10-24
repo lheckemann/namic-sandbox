@@ -100,6 +100,7 @@ public:
   itkTypeMacro(BinaryMaskTo3DAdaptiveMeshFilter, ImageToMeshFilter);
 
   /** Hold on to the type information specified by the template parameters. */
+  typedef TInputImage InputImageType;
   typedef TOutputMesh OutputMeshType;
   typedef typename OutputMeshType::MeshTraits   OMeshTraits;
   typedef typename OutputMeshType::CellTraits   OCellTraits;
@@ -150,6 +151,7 @@ public:
   itkSetMacro(NResolutions, unsigned); // NAME: MaxSubdivisionLevel
   // TODO: document debug feature
   itkSetMacro(InputImagePrefix, std::string); // 
+  itkSetMacro(TmpDirectory, std::string);
   // this variable defines the spacing of the initial BCC lattice. By default,
   // it is equal to 10, which means that the spacing will be 1/10th of the
   // smallest dimension of the image
@@ -315,7 +317,8 @@ private:
   InternalImageType::Pointer m_DistanceDerivativeImage;
   typename InterpolatorType::Pointer m_Interpolator;
   // the following is the resampled to unit voxel input mask
-  InternalImageType::Pointer m_InputImage;
+  typename InputImageType::Pointer m_InputImage;
+  InternalImageType::Pointer m_ReadyInputImage;
   InternalImageSizeType m_InputSize;
   InternalImagePointType m_InputOrigin;
   
@@ -328,18 +331,23 @@ private:
   unsigned m_NResolutions;
   unsigned m_CurrentResol;
   std::string m_InputImagePrefix;
+  std::string m_TmpDirectory;
 
   unsigned long m_NumberOfPoints;
   unsigned long m_NumberOfTets;
 
   bool Initialize();
   double FindBCCSpacing();
-  void PrepareCurvatureImage();
   void CreateMesh();
   void CreateBCC();
   bool TetraUnderrefined(RGMTetra_ptr);
   unsigned char GetTetraEdgeConf(RGMTetra_ptr);
   unsigned char GetTetraEdgeOrient(RGMTetra_ptr);
+
+  void PrepareInputImage();
+  void PrepareDerivativeImage();
+  void PrepareDistanceImage();
+  void PrepareCurvatureImage();
 
   // Utility functions
   float DistanceAtPoint(double* coords);

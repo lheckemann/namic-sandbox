@@ -60,6 +60,7 @@ void print_help(){
   std::cout << "--bcc-spacing=<number>  will set the spacing for the initial BCC lattice; by default it is equal to 1/10th of the smallest dimension of the image" << std::endl;
   std::cout << "--iterations=<number>   specifies the number of iterations to use during the surface compression" << std::endl;
   std::cout << "--tri-surface=<name>    specifies .raw file describing triangular surface of the object" << std::endl;
+  std::cout << "--compression-method=<number> specifies which boundary compression method to use. Allowed values: 0 (default, physics-based FEM compression) and 1 (swapping/smoothing optimization using GRUMMP)" << std::endl;
 }
 
 
@@ -67,7 +68,7 @@ static int verbose_flag = 0;
 char *inria_fname = NULL, *vtk_fname = NULL, 
      *input_image = NULL, *tmp_name = NULL,
      *tmp_fname = NULL, *surf_fname = NULL;
-unsigned resolution = 0, save_cut = 0, bcc_spacing = 10, iterations = 3;
+unsigned resolution = 0, save_cut = 0, bcc_spacing = 10, iterations = 3, compression_method = 0;
 
 int main(int argc, char** argv){
   
@@ -88,12 +89,13 @@ int main(int argc, char** argv){
         {"bcc-spacing", optional_argument, 0, 'h'},
         {"iterations", optional_argument, 0, 'i'},
         {"tri-surface", optional_argument, 0, 'j'},
+        {"compression-method", optional_argument, 0, 'k'},
         {0, 0, 0, 0}
       };
     /* getopt_long stores the option index here. */
     int option_index = 0;
 
-    int c = getopt_long (argc, argv, "a:b:c:d:e:f:g:h:i:j:",
+    int c = getopt_long (argc, argv, "a:b:c:d:e:f:g:h:i:j:k:",
       long_options, &option_index);
 
     /* Detect the end of the options. */
@@ -151,6 +153,11 @@ int main(int argc, char** argv){
 
     case 'j':
       surf_fname = optarg;
+      break;
+
+    case 'k':
+      compression_method = atoi(optarg);
+      break;
 
     case '?':
       /* getopt_long already printed an error message. */
@@ -226,6 +233,15 @@ int main(int argc, char** argv){
   compressor->SetInputImagePrefix(tmp_fname);
   compressor->SetInput(reader->GetOutput());
   compressor->SetCompressionIterations(iterations);
+  if(compression_method == 0)
+    compressor->SetCompressionMethod(CompressionFilterType::FEM_COMPRESSION);
+  else if(compression_method == 1)
+    compressor->SetCompressionMethod(CompressionFilterType::OPTIMIZATION_COMPRESSION);
+  else {
+    std::cerr << "Unknown compression method specified!" << std::endl;
+    assert(0);
+  }
+
   try{
     compressor->Update();
   } catch(itk::ExceptionObject &e){

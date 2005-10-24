@@ -32,6 +32,8 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
   m_NumberOfPoints = 0;
   m_NumberOfTets = 0;
   m_BCCSpacing = 10;
+  m_TmpDirectory = "";
+  m_InputImagePrefix = "";
 
   m_ThirdFaceEdgeLT[0] = -1;
   m_ThirdFaceEdgeLT[1] = -1;
@@ -487,10 +489,8 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
 {
   bool read_failed = false;
   
-  if(this->GetNumberOfInputs() < 1){
-    std::cout << "BinaryMaskTo3DAdaptiveMeshFilter : Binary mask not set" << std::endl;
-    return false;
-  }
+  if(this->GetNumberOfInputs() < 1)
+    itkExceptionMacro(<<"Input image missing");
   
   std::cout << "Initializing..." << std::endl;
   
@@ -498,177 +498,98 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
   m_Interpolator = InterpolatorType::New();
   
   // Set the input image
-  InputImagePointer m_InputImage = 
-    static_cast<InputImageType*>(this->ProcessObject::GetInput(0));
+  this->m_InputImage = static_cast<InputImageType*>(this->ProcessObject::GetInput(0));
   
   // Compute the distance image
   //  1. Cast the input image to the internal format
   
-  read_failed = false;
+  // Read in all required images, if they are available
   if(m_InputImagePrefix.size()){
-    // try to read the distance image
-    InternalImageReaderType::Pointer reader = InternalImageReaderType::New();
-    reader->SetFileName((std::string("/tmp/")+m_InputImagePrefix+"Resampled.mha").c_str());
+
+    // (1) resampled to unit-voxel input image
     try{
+      InternalImageReaderType::Pointer reader = InternalImageReaderType::New();
+      reader->SetFileName((m_TmpDirectory+m_InputImagePrefix+"Ready.mhd").c_str());
       reader->Update();
-      this->m_InputImage = reader->GetOutput();
+      this->m_ReadyInputImage = reader->GetOutput();
     }catch(ExceptionObject &e){
-      // oh well, have to regenerate
-      read_failed = true;
-    }
-  }
-  if(!m_InputImagePrefix.size() || read_failed){
-    if(m_InputImagePrefix.size()){
-      typename CastFilterType::Pointer cast_filter =
-        CastFilterType::New();
-      cast_filter->SetInput(m_InputImage);
-      cast_filter->Update();
-      std::cout << "Image casted" << std::endl;
-
-      //  2. Resample the input image to unit sized voxels
-      typename ResamplerType::Pointer resampler = 
-        ResamplerType::New();
-      IdentityTransformType::Pointer transform =
-        IdentityTransformType::New();
-      typename InputImageType::SpacingType input_spacing =
-        m_InputImage->GetSpacing();
-      typename InputImageType::SpacingType output_spacing;
-      typename InputImageType::SizeType input_size =
-        m_InputImage->GetLargestPossibleRegion().GetSize();
-      typename InputImageType::SizeType output_size;
-      typedef NearestNeighborInterpolateImageFunction<InternalImageType,double>
-        ResampleInterpolatorType;
-      typename ResampleInterpolatorType::Pointer resample_interpolator = 
-        ResampleInterpolatorType::New();
-      //  typename InputImageType::SizeType::SizeValueType InputSizeValueType;
-
-
-      output_spacing[0] = 1.0;
-      output_spacing[1] = 1.0;
-      output_spacing[2] = 1.0;
-
-      output_size[0] = static_cast<typename InputImageType::SizeType::SizeValueType>
-        (ceil((double)input_size[0]*input_spacing[0]));
-      output_size[1] = static_cast<typename InputImageType::SizeType::SizeValueType>
-        (ceil((double)input_size[1]*input_spacing[1]));
-      output_size[2] = static_cast<typename InputImageType::SizeType::SizeValueType>
-        (ceil((double)input_size[2]*input_spacing[2]));
-
-      transform->SetIdentity();
-      resampler->SetTransform(transform);
-      resampler->SetInterpolator(resample_interpolator);
-      resampler->SetOutputSpacing(output_spacing);
-      resampler->SetOutputOrigin(m_InputImage->GetOrigin());
-      resampler->SetSize(output_size);
-      resampler->SetInput(cast_filter->GetOutput());
-      resampler->Update();
-      std::cout << "Image resampled" << std::endl;
-
-      this->m_InputImage = resampler->GetOutput();
-
-      InternalImageWriterType::Pointer writer = 
-        InternalImageWriterType::New();
-      writer->SetFileName((std::string("/tmp/")+m_InputImagePrefix+"Resampled.mha").c_str());
-      writer->SetInput(this->m_InputImage);
+      InternalImageWriterType::Pointer writer = InternalImageWriterType::New();
+      PrepareInputImage();
+      writer->SetFileName((m_TmpDirectory+m_InputImagePrefix+"Ready.mhd").c_str());
+      writer->SetInput(this->m_ReadyInputImage);
       try{
         writer->Update();
       }catch(ExceptionObject &eo){
         // this should not disrupt the overall execution
       }
     }
+    // (2) Distance transform of the input image
+    try{
+      InternalImageReaderType::Pointer reader = InternalImageReaderType::New();
+      reader->SetFileName((m_TmpDirectory+m_InputImagePrefix+"DT.mhd").c_str());
+      reader->Update();
+      m_DistanceImage = reader->GetOutput();
+    } catch(ExceptionObject &e){
+      InternalImageWriterType::Pointer writer = InternalImageWriterType::New();
+      PrepareDistanceImage();
+      writer->SetFileName((m_TmpDirectory+m_InputImagePrefix+"DT.mhd").c_str());
+      writer->SetInput(m_DistanceImage);
+      try{
+        writer->Update();
+      } catch(ExceptionObject &e){
+      }
+    }
+    // (3) derivative image
+    try{
+      InternalImageReaderType::Pointer reader = InternalImageReaderType::New();
+      reader->SetFileName((m_TmpDirectory+m_InputImagePrefix+"RG.mhd").c_str());
+      reader->Update();
+      m_DistanceDerivativeImage = reader->GetOutput();
+    } catch(ExceptionObject &e){
+      InternalImageWriterType::Pointer writer = InternalImageWriterType::New();
+      PrepareDerivativeImage();
+      writer->SetFileName((m_TmpDirectory+m_InputImagePrefix+"RG.mhd").c_str());
+      writer->SetInput(m_DistanceDerivativeImage);
+      try{
+        writer->Update();
+      } catch(ExceptionObject &e){
+      }
+    }
+    // (4) curvature image
+    try{
+      InternalImageReaderType::Pointer reader = InternalImageReaderType::New();
+      reader->SetFileName((m_TmpDirectory+m_InputImagePrefix+"Curv.mhd").c_str());
+      reader->Update();
+      m_CurvatureImage = reader->GetOutput();
+    } catch(ExceptionObject &e){
+      InternalImageWriterType::Pointer writer = InternalImageWriterType::New();
+      PrepareCurvatureImage();
+      writer->SetFileName((m_TmpDirectory+m_InputImagePrefix+"Curv.mhd").c_str());
+      writer->SetInput(m_CurvatureImage);
+      try{
+        writer->Update();
+      } catch(ExceptionObject &e){
+      }
+    }
+    assert(m_DistanceImage!=m_CurvatureImage);
+  } else {
+    PrepareInputImage();
+    PrepareDistanceImage();
+    PrepareDerivativeImage();
+    PrepareCurvatureImage();
   }
   
-  typename InputImageType::SizeType input_size =
-    this->m_InputImage->GetLargestPossibleRegion().GetSize();
-  
+  typename InternalImageType::SizeType input_size =
+    this->m_ReadyInputImage->GetLargestPossibleRegion().GetSize();
   this->m_dimX = input_size[0];
   this->m_dimY = input_size[1];
   this->m_dimZ = input_size[2];
 
   m_InputOrigin = m_InputImage->GetOrigin();
 
-  //  3. Compute the distance transform on the resampled image
-  /* Distance and RGF are the slowest computation components. If the user
-   * specifies filename, results of these filters will be saved, and before
-   * that we will try to read the previously saved results instead of
-   * regenerating the data
-   */
-  read_failed = false;
-  if(m_InputImagePrefix.size()){
-    // try to read the distance image
-    InternalImageReaderType::Pointer reader = InternalImageReaderType::New();
-    reader->SetFileName((std::string("/tmp/")+m_InputImagePrefix+"Dist.mha").c_str());
-    try{
-      reader->Update();
-      m_DistanceImage = reader->GetOutput();
-    }catch(ExceptionObject &e){
-      // oh well, have to regenerate
-      read_failed = true;
-    }
-  }
-  if(!m_InputImagePrefix.size() || read_failed){
-    DistanceFilterType::Pointer distance_filter =
-      DistanceFilterType::New();
-    distance_filter->SetInput(this->m_InputImage);
-    distance_filter->Update();
-    m_DistanceImage = distance_filter->GetOutput();
-    std::cout << "Distance computed" << std::endl;
-    if(m_InputImagePrefix.size()){
-      InternalImageWriterType::Pointer writer = 
-        InternalImageWriterType::New();
-      writer->SetFileName((std::string("/tmp/")+m_InputImagePrefix+"Dist.mha").c_str());
-      writer->SetInput(m_DistanceImage);
-      try{
-        writer->Update();
-      }catch(ExceptionObject &eo){
-        // this should not disrupt the overall execution
-      }
-    }
-  }
-  
-  // 4. Apply the RG filter
-  read_failed = false;
-  if(m_InputImagePrefix.size()){
-    // try to read the RGF image
-    InternalImageReaderType::Pointer reader = InternalImageReaderType::New();
-    reader->SetFileName((std::string("/tmp/")+m_InputImagePrefix+"RGF.mha").c_str());
-    try{
-      reader->Update();
-      m_DistanceDerivativeImage = reader->GetOutput();
-    }catch(ExceptionObject &e){
-      // oh well, have to regenerate
-      read_failed = true;
-    }
-  }
-
-  if(!m_InputImagePrefix.size() || read_failed){
-    RGFType::Pointer rg_filter =
-      RGFType::New();
-    rg_filter->SetInput(this->m_DistanceImage);
-    rg_filter->SetSigma(1);
-    rg_filter->Update();
-    m_DistanceDerivativeImage = rg_filter->GetOutput();
-    std::cout << "Image derivative computed" << std::endl;
-    if(m_InputImagePrefix.size()){
-      InternalImageWriterType::Pointer writer = 
-        InternalImageWriterType::New();
-      writer->SetFileName((std::string("/tmp/")+m_InputImagePrefix+"RGF.mha").c_str());
-      writer->SetInput(m_DistanceDerivativeImage);
-      try{
-        writer->Update();
-      }catch(ExceptionObject &eo){
-        // this should not disrupt the overall execution
-      }
-    }
-  }
-
-  // Compute the curvature image
-  PrepareCurvatureImage();
-  std::cout << "Curvature computed" << std::endl;
-
   // Initialize the interpolator
   m_Interpolator->SetInputImage(m_DistanceImage);
-
+  
   // Find out the appropriate value of the BCC spacing
   m_BCCSpacing = FindBCCSpacing();
   std::cout << "Initialization done" << std::endl;
@@ -728,6 +649,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
   EigenValueType eivalue;
   MatrixType *systemMatrix = new MatrixType;
 
+  // for each voxel in the distance image
   for(int lz=0;lz<size[2];lz++)
     for(int ly=0;ly<size[1];ly++) 
       for(int lx=0;lx<size[0];lx++){
@@ -735,7 +657,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
         pIndex[0] = lx; pIndex[1] = ly; pIndex[2] = lz;
 
         DisGetPixel = m_DistanceImage->GetPixel(pIndex);
-        if ((DisGetPixel != -1)&&(DisGetPixel != 1)) 
+        if ((DisGetPixel != -1)&&(DisGetPixel != 1))  // consider only surface pixels
           CurvImage->SetPixel(pIndex,-1);
         else{
           compteurtest++;
@@ -749,8 +671,7 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
             okk=0;
           if(okk)
             if(((DisGetPixel==-1)&&(m_DistanceImage->GetPixel(pIndex2) == 1))||
-              ((DisGetPixel==1)&&(m_DistanceImage->GetPixel(pIndex2) == -1)))
-              {
+              ((DisGetPixel==1)&&(m_DistanceImage->GetPixel(pIndex2) == -1))){
               if (lx>0) xm = -1; else xm = 0;
               if (lx<(size[0]-1)) xp = 1; else xp = 0;
               if (ly>0) ym = -1; else ym = 0;
@@ -3079,9 +3000,79 @@ BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
         // The vertex is not sufficiently inside the surface.
         m_OutOfEnvelopeVertices.insert(vp0);
       m_OutOfEnvelopeVertices.insert(vp1);
-//      return;
     }
   }
+}
+
+template<class TInputImage, class TOutputMesh>
+void
+BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
+::PrepareInputImage(){
+  typename CastFilterType::Pointer cast_filter = CastFilterType::New();
+  typename ResamplerType::Pointer resampler = ResamplerType::New();
+  IdentityTransformType::Pointer transform = IdentityTransformType::New();
+  typename InputImageType::SpacingType input_spacing = 
+    this->m_InputImage->GetSpacing();
+  typename InputImageType::SpacingType output_spacing;
+  typename InputImageType::SizeType input_size =
+    this->m_InputImage->GetLargestPossibleRegion().GetSize();
+  typename InputImageType::SizeType output_size;
+  typedef NearestNeighborInterpolateImageFunction<InternalImageType, double>
+    ResampleInterpolatorType;
+  typename ResampleInterpolatorType::Pointer resample_interpolator = 
+    ResampleInterpolatorType::New();
+
+  // 1) Cast the input to the internal image type
+  cast_filter->SetInput(this->m_InputImage);
+  cast_filter->Update();
+
+  // 2) Resample the input image to unit sized voxels
+  output_spacing[0] = 1.0;
+  output_spacing[1] = 1.0;
+  output_spacing[2] = 1.0;
+
+  output_size[0] = static_cast<typename InputImageType::SizeType::SizeValueType>
+    (ceil((double)input_size[0]*input_spacing[0]));
+  output_size[1] = static_cast<typename InputImageType::SizeType::SizeValueType>
+    (ceil((double)input_size[1]*input_spacing[1]));
+  output_size[2] = static_cast<typename InputImageType::SizeType::SizeValueType>
+    (ceil((double)input_size[2]*input_spacing[2]));
+
+  transform->SetIdentity();
+  resampler->SetTransform(transform);
+  resampler->SetInterpolator(resample_interpolator);
+  resampler->SetOutputSpacing(output_spacing);
+  resampler->SetOutputOrigin(this->m_InputImage->GetOrigin());
+  resampler->SetSize(output_size);
+  resampler->SetInput(cast_filter->GetOutput());
+  resampler->Update();
+
+  this->m_ReadyInputImage = resampler->GetOutput();
+  std::cout << "Input image ready" << std::endl;
+}
+
+template<class TInputImage, class TOutputMesh>
+void
+BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
+::PrepareDistanceImage(){
+  DistanceFilterType::Pointer distance_filter =
+      DistanceFilterType::New();
+  distance_filter->SetInput(this->m_ReadyInputImage);
+  distance_filter->Update();
+  this->m_DistanceImage = distance_filter->GetOutput();
+  std::cout << "Distance image ready" << std::endl;
+}
+
+template<class TInputImage, class TOutputMesh>
+void
+BinaryMaskTo3DAdaptiveMeshFilter<TInputImage,TOutputMesh>
+::PrepareDerivativeImage(){
+  RGFType::Pointer rg_filter = RGFType::New();
+  rg_filter->SetInput(this->m_DistanceImage);
+  rg_filter->SetSigma(1);
+  rg_filter->Update();
+  m_DistanceDerivativeImage = rg_filter->GetOutput();
+  std::cout << "InputImageReady" << std::endl;
 }
 
 } /** end namespace itk. */

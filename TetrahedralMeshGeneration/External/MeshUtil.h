@@ -12,6 +12,9 @@
  * Computational Radiology Lab, Surgical Planning Lab, Harvard Med School
  */
 
+#ifndef __MeshUtil_h
+#define __MeshUtil_h
+
 #include <itkMesh.h>
 #include <itkLineCell.h>
 #include <itkTriangleCell.h>
@@ -190,6 +193,105 @@ class MeshUtil
 
 public:
 
+  static typename MeshType::Pointer meshFromUnstructuredGrid(vtkUnstructuredGrid* grid, 
+    typename MeshType::Pointer output_mesh)
+  {    // Create a new mesh
+    typename MeshType::Pointer output;
+    if(output_mesh)
+      output = output_mesh;
+    else
+      output = MeshType::New();
+    output->SetCellsAllocationMethod( MeshType::CellsAllocatedDynamicallyCellByCell );  
+
+    typedef typename MeshType::CellDataContainer MeshCellDataContainerType;
+
+    output->SetCellData(MeshCellDataContainerType::New());
+
+    // Get the points from vtk
+    vtkPoints* vtkpoints = grid->GetPoints();
+    int numPoints = grid->GetNumberOfPoints();
+
+    // Create a compatible point container for the mesh
+    // the mesh is created with a null points container
+    // MeshType::PointsContainer::Pointer points = 
+    //   MeshType::PointsContainer::New();
+    // // Resize the point container to be able to fit the vtk points
+    // points->Reserve(numPoints);
+    // // Set the point container on the mesh
+    //output->SetPoints(points);
+    for(int i =0; i < numPoints; i++)
+    {
+      typename MeshType::PixelType* apoint = (typename MeshType::PixelType*) vtkpoints->GetPoint(i);
+      typename MeshType::PointType p;
+      p[0] = vtkpoints->GetPoint(i)[0];
+      p[1] = vtkpoints->GetPoint(i)[1];
+      p[2] = vtkpoints->GetPoint(i)[2];
+      output->SetPoint( i, p );
+    }
+
+    vtkCellArray* vtkcells = grid->GetCells();
+    // extract the cell id's from the vtkUnstructuredGrid
+    int numcells = vtkcells->GetNumberOfCells();
+    int* vtkCellTypes = new int[numcells];
+    int cellId =0;
+    for(; cellId < numcells; cellId++)
+    {
+      vtkCellTypes[cellId] = grid->GetCellType(cellId);
+    }
+
+    // cells->Reserve(numcells);
+    vtkIdType npts;
+    vtkIdType* pts;
+    cellId = 0;
+
+    typedef typename MeshType::MeshTraits   OMeshTraits;
+    typedef typename OMeshTraits::PixelType       OPixelType; 
+    typedef typename MeshType::CellTraits CellTraits;
+    typedef typename itk::CellInterface<OPixelType, CellTraits>   CellInterfaceType;
+    typedef typename itk::TriangleCell<CellInterfaceType>     TriCellType;
+    typedef typename TriCellType::CellAutoPointer TriCellPointer;
+    typedef typename itk::TetrahedronCell<CellInterfaceType> TetCellType;
+    typedef typename TetCellType::CellAutoPointer TetCellPointer;
+
+    TetCellPointer newCell;
+
+    for(vtkcells->InitTraversal(); vtkcells->GetNextCell(npts, pts); cellId++)
+    {
+      switch(vtkCellTypes[cellId])
+      {
+      case VTK_TETRA:
+        {
+          newCell.TakeOwnership(new TetCellType);
+          newCell->SetPointIds((unsigned long*)pts);
+          output->SetCell(cellId, newCell);
+          output->SetCellData(cellId, (typename MeshType::PixelType)3);
+          break;
+        }
+        
+      case VTK_TRIANGLE:
+      case VTK_QUAD:
+      case VTK_EMPTY_CELL:
+      case VTK_VERTEX:
+      case VTK_POLY_VERTEX:
+      case VTK_LINE:
+      case VTK_POLY_LINE:
+      case VTK_TRIANGLE_STRIP:
+      case VTK_POLYGON:
+      case VTK_PIXEL:
+      case VTK_VOXEL:
+      case VTK_HEXAHEDRON:
+      case VTK_WEDGE:
+      case VTK_PYRAMID:
+      case VTK_PARAMETRIC_CURVE:
+      case VTK_PARAMETRIC_SURFACE:
+      default:
+        std::cerr << "Warning unhandled cell type " 
+          << vtkCellTypes[cellId] << std::endl;
+      }
+    }
+    //output->Print(std::cout);
+    return output;
+}
 
   /*!
   create an itkMesh object from a vtkPolyData
@@ -558,4 +660,4 @@ public:
 
 };
 
-
+#endif // __MeshUtil_h

@@ -264,58 +264,141 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
 template<class TInputMesh, class TOutputMesh, class TInputImage>
 bool
 VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
-::Initialize(){
+::Initialize()
+{
   unsigned i, j, k;
   // TODO: make sure all branches are tested (when no prefix is provided)
   std::cout << "Initializing the compression filter" << std::endl;
 
-  this->m_InputImage =
+  InputImagePointer m_InputImage =
     static_cast<InputImageType*>(this->ProcessObject::GetInput(1));
 
+  std::cout << "Distance image..." << std::endl;
+  // Compute the distance image
+  //  1. Cast the input image to the internal format
+  // TODO: make sure the input image is binary!
+  bool read_failed = false;
   if(m_InputImagePrefix.size()){
+    // try to read the distance image
+    InternalImageReaderType::Pointer reader = InternalImageReaderType::New();
+    reader->SetFileName((std::string("/tmp/")+m_InputImagePrefix+"Resampled.mha").c_str());
     try{
-      InternalImageReaderType::Pointer reader = InternalImageReaderType::New();
-      reader->SetFileName((m_TmpDirectory+m_InputImagePrefix+"Ready.mhd").c_str());
       reader->Update();
-      this->m_ReadyInputImage = reader->GetOutput();
-    } catch(ExceptionObject &e){
-      InternalImageWriterType::Pointer writer = InternalImageWriterType::New();
-      PrepareInputImage();
-      writer->SetFileName((m_TmpDirectory+m_InputImagePrefix+"Ready.mhd").c_str());
-      writer->SetInput(this->m_ReadyInputImage);
-      try{
-        writer->Update();
-      } catch(ExceptionObject &e){
-      }
+      this->m_InputImage = reader->GetOutput();
+    }catch(ExceptionObject &e){
+      // oh well, have to regenerate
+      read_failed = true;
     }
-    try{
-      InternalImageReaderType::Pointer reader = InternalImageReaderType::New();
-      reader->SetFileName((m_TmpDirectory+m_InputImagePrefix+"DT.mhd").c_str());
-      reader->Update();
-      this->m_DistanceImage = reader->GetOutput();
-    } catch(ExceptionObject &e){
-      InternalImageWriterType::Pointer writer = InternalImageWriterType::New();
-      PrepareInputImage();
-      PrepareDistanceImage();
-      writer->SetFileName((m_TmpDirectory+m_InputImagePrefix+"DT.mhd").c_str());
-      writer->SetInput(m_DistanceImage);
-      try{
-        writer->Update();
-      } catch(ExceptionObject &e){
-      }
-    }
-  } else {
-    PrepareInputImage();
-    PrepareDistanceImage();
   }
- 
-  typename InternalImageType::SizeType input_size =
-    this->m_ReadyInputImage->GetLargestPossibleRegion().GetSize();
+
+  if(!m_InputImagePrefix.size() || read_failed){
+    if(m_InputImagePrefix.size()){
+      typename CastFilterType::Pointer cast_filter =
+        CastFilterType::New();
+      cast_filter->SetInput(m_InputImage);
+      cast_filter->Update();
+      std::cout << "Image casted" << std::endl;
+
+      //  2. Resample the input image to unit sized voxels
+      typename ResamplerType::Pointer resampler = 
+        ResamplerType::New();
+      IdentityTransformType::Pointer transform =
+        IdentityTransformType::New();
+      typename InputImageType::SpacingType input_spacing =
+        m_InputImage->GetSpacing();
+      typename InputImageType::SpacingType output_spacing;
+      typename InputImageType::SizeType input_size =
+        m_InputImage->GetLargestPossibleRegion().GetSize();
+      typename InputImageType::SizeType output_size;
+      typedef NearestNeighborInterpolateImageFunction<InternalImageType,double>
+        ResampleInterpolatorType;
+      typename ResampleInterpolatorType::Pointer resample_interpolator = 
+        ResampleInterpolatorType::New();
+      //  typename InputImageType::SizeType::SizeValueType InputSizeValueType;
+
+
+      output_spacing[0] = 1.0;
+      output_spacing[1] = 1.0;
+      output_spacing[2] = 1.0;
+
+      output_size[0] = static_cast<typename InputImageType::SizeType::SizeValueType>
+        (ceil((double)input_size[0]*input_spacing[0]));
+      output_size[1] = static_cast<typename InputImageType::SizeType::SizeValueType>
+        (ceil((double)input_size[1]*input_spacing[1]));
+      output_size[2] = static_cast<typename InputImageType::SizeType::SizeValueType>
+        (ceil((double)input_size[2]*input_spacing[2]));
+
+      transform->SetIdentity();
+      resampler->SetTransform(transform);
+      resampler->SetInterpolator(resample_interpolator);
+      resampler->SetOutputSpacing(output_spacing);
+      resampler->SetOutputOrigin(m_InputImage->GetOrigin());
+      resampler->SetSize(output_size);
+      resampler->SetInput(cast_filter->GetOutput());
+      resampler->Update();
+      std::cout << "Image resampled" << std::endl;
+
+      this->m_InputImage = resampler->GetOutput();
+
+      InternalImageWriterType::Pointer writer = 
+        InternalImageWriterType::New();
+      writer->SetFileName((std::string("/tmp/")+m_InputImagePrefix+"Resampled.mha").c_str());
+      writer->SetInput(this->m_InputImage);
+      try{
+        writer->Update();
+      }catch(ExceptionObject &eo){
+        // this should not disrupt the overall execution
+      }
+    }
+  }
+  
+  typename InputImageType::SizeType input_size =
+    this->m_InputImage->GetLargestPossibleRegion().GetSize();
+  
   this->m_dimX = input_size[0];
   this->m_dimY = input_size[1];
   this->m_dimZ = input_size[2];
 
   m_InputOrigin = m_InputImage->GetOrigin();
+
+  //  3. Compute the distance transform on the resampled image
+  // Distance and RGF are the slowest computation components. If the user
+  // specifies filename, results of these filters will be saved, and before
+  // that we will try to read the previously saved results instead of
+  // regenerating the data
+  //
+  read_failed = false;
+  if(m_InputImagePrefix.size()){
+    // try to read the distance image
+    InternalImageReaderType::Pointer reader = InternalImageReaderType::New();
+    reader->SetFileName((std::string("/tmp/")+m_InputImagePrefix+"Dist.mha").c_str());
+    try{
+      reader->Update();
+      m_DistanceImage = reader->GetOutput();
+    }catch(ExceptionObject &e){
+      // oh well, have to regenerate
+      read_failed = true;
+    }
+  }
+  if(!m_InputImagePrefix.size() || read_failed){
+    DistanceFilterType::Pointer distance_filter =
+      DistanceFilterType::New();
+    distance_filter->SetInput(this->m_InputImage);
+    distance_filter->Update();
+    m_DistanceImage = distance_filter->GetOutput();
+    std::cout << "Distance computed" << std::endl;
+    if(m_InputImagePrefix.size()){
+      InternalImageWriterType::Pointer writer = 
+        InternalImageWriterType::New();
+      writer->SetFileName((std::string("/tmp/")+m_InputImagePrefix+"Dist.mha").c_str());
+      writer->SetInput(m_DistanceImage);
+      try{
+        writer->Update();
+      }catch(ExceptionObject &eo){
+        // this should not disrupt the overall execution
+      }
+    }
+  }
 
   // Initialize the interpolator
   m_Interpolator = InterpolatorType::New();
@@ -324,9 +407,79 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   // Mesh input/output initialization
   std::cout << "Mesh initialization..." << std::endl;
  
+
+  /*
+  // Walk through the input mesh, extract surface vertices
+  std::cout << "Extracting surface vertices..." << std::endl;
+  typename std::map<TetFace,unsigned int> face2cnt;
+  typename std::map<TetFace,unsigned int>::iterator face2cntI;
+  unsigned int i, j, k;
+  const unsigned int tet_face_LUT[16] = 
+    { 0, 1, 2, 3,
+      0, 1, 3, 2,
+      0, 2, 3, 1,
+      1, 2, 3, 0 };
+  InputCellsContainerIterator cellIterator;
+  
+  cellIterator = m_InputMesh->GetCells()->Begin();
+  
+  while(cellIterator != m_InputMesh->GetCells()->End()){
+    ICellType *curCell;
+    InputTetrahedronType *curTet;
+    
+    curCell = cellIterator.Value();
+    if(curCell->GetType() != ICellType::TETRAHEDRON_CELL)
+      itkExceptionMacro(<<"Input mesh should be tetrahedral");
+    curTet = dynamic_cast<InputTetrahedronType *>(curCell);
+
+    typename InputTetrahedronType::PointIdIterator ptI = curTet->PointIdsBegin();
+    unsigned int face_points[4];
+    for(i=0;i<4;i++)
+      face_points[i] = *ptI++;
+    for(i=0;i<4;i++){
+      TetFace thisFace(face_points[tet_face_LUT[i*4]], 
+        face_points[tet_face_LUT[i*4+1]],
+        face_points[tet_face_LUT[i*4+2]],
+        face_points[tet_face_LUT[i*4+3]]);
+      face2cntI = face2cnt.find(thisFace);
+      if(face2cntI != face2cnt.end())
+        face2cnt[thisFace]++;
+      else
+        face2cnt[thisFace] = 1;
+    }
+    cellIterator++;
+  }
+
+  // TODO: add surface manifold test!
+  
+  std::set<unsigned int> surfaceVerticesSet;
+  for(face2cntI=face2cnt.begin();face2cntI!=face2cnt.end();
+    face2cntI++){
+    unsigned int j;
+    switch((*face2cntI).second){
+    case 1:{
+      TetFace thisFace = (*face2cntI).first;
+      for(j=0;j<3;j++)
+        surfaceVerticesSet.insert(thisFace.nodes[j]);
+      m_SurfaceFaces.push_back(thisFace);
+      break;}
+    case 2: break;
+    case 0:
+    default:assert(0);
+    }
+  }
+        
+  std::insert_iterator<std::vector<unsigned int> >
+    viI(m_SurfaceVertices, m_SurfaceVertices.begin());
+  copy(surfaceVerticesSet.begin(), surfaceVerticesSet.end(), viI);
+  surfaceVerticesSet.clear();
+  std::sort(m_SurfaceVertices.begin(), m_SurfaceVertices.end());
+  */
+  
   // Allocate space for surface displacements
   m_SurfaceDisplacements = new double[m_SurfaceVertices.size()*3];
   bzero(m_SurfaceDisplacements, sizeof(double)*m_SurfaceVertices.size()*3);
+ 
   
   InputPointsContainerIterator inPointsI;
   InputCellsContainerIterator inCellsI;
@@ -669,34 +822,6 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh, TInputImage>
   return distance;
 }
 
-/* Returns the interpolated value of distance at the specified coordinate.
- * Will perform the inside test.
- */
-template<class TInputMesh, class TOutputMesh, class TInputImage>
-float
-VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh, TInputImage>
-::DistanceAtPointVoxel(double *coords){
-  float distance = 0, // distance from the distance map
-        dist_surf = 0;    // distance from the tri surface
-  
-  typename InternalImageType::IndexType index;
-  typename InternalImageType::PointType point;
-
-  point[0] = coords[0];
-  point[1] = coords[1];
-  point[2] = coords[2];
-  if(m_DistanceImage->TransformPhysicalPointToIndex(point, index))
-    distance = (float)m_DistanceImage->GetPixel(index);
-  else {
-    std::cerr << "DistanceAtPoint(): Point [" 
-                                     << coords[0] << ", " << coords[1] << ", " 
-                                       << coords[2] << "] is outside the image boundaries" 
-                                       << std::endl;
-    assert(0);
-  }
-  return distance;
-}
-
 /* Computes the distance between two points in space */
 template<class TInputMesh, class TOutputMesh, class TInputImage>
 float
@@ -753,10 +878,9 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     typename TetrahedralMeshWriter<OutputMeshType>::Pointer
       grummp_writer = TetrahedralMeshWriter<OutputMeshType>::New();
     std::ostringstream fname_stream;
-    fname_stream << m_TmpDirectory << "/" << m_InputImagePrefix << "-i" << i << ".vmesh";
+    fname_stream << m_InputImagePrefix << "-i" << i << ".vmesh";
     grummp_writer->SetInput(m_OutputMesh);
     grummp_writer->SetFileName(fname_stream.str().c_str());
-    std::cout << "Saving GRUMMP mesh into " << fname_stream.str().c_str() << std::endl;
     try{
       grummp_writer->Update();
     }catch(ExceptionObject &e){
@@ -765,8 +889,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     }
 
     std::ostringstream cmd_stream;
-    cmd_stream << "meshopt3d -i " << m_TmpDirectory << "/" << 
-      m_InputImagePrefix << "-i";
+    cmd_stream << "meshopt3d -i " << m_InputImagePrefix << "-i";
     cmd_stream << i << " >& /dev/null"; // -Omf5 for smoothing only
     std::cout << "Running GRUMMP......";
     system(cmd_stream.str().c_str());
@@ -809,8 +932,6 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     }
     std::cout << "Max distance: " << max_dist << std::endl;
     if(max_dist<=m_MaxError)
-      break;
-    if(MaxSurfaceVoxelDistance()<=1.0)
       break;
   }
 }
@@ -1304,33 +1425,6 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
 }
 
 template<class TInputMesh, class TOutputMesh, class TInputImage>
-float
-VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
-::MaxSurfaceVoxelDistance(){
-  // Surface vertex displacement is defined by the vertex normal scaled by the
-  // distance to the 0th level set
-  
-  unsigned i, j, normal_id=0;
-  float discr_dist_max = 0;
-  for(i=0;i<m_SurfaceVertices.size();i++){
-    double dist, len;
-    double pointCoords[3];
-    unsigned globalVertexID;
-    typename OutputMeshType::PointType surfacePoint;
-
-    globalVertexID = m_SurfaceVertices[i];
-    m_OutputMesh->GetPoint(globalVertexID, &surfacePoint);
-    pointCoords[0] = surfacePoint[0];
-    pointCoords[1] = surfacePoint[1];
-    pointCoords[2] = surfacePoint[2];
-    dist = DistanceAtPointVoxel(pointCoords);
-    if(dist>discr_dist_max)
-      discr_dist_max = dist;
-  }
-  return discr_dist_max;
-}
-
-template<class TInputMesh, class TOutputMesh, class TInputImage>
 void
 VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
 ::UpdateSurfaceDisplacements(){
@@ -1371,7 +1465,6 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   }
   
   // now scale the normals by distance value at the surface vertex
-  double discr_dist_max = 0;
   for(i=0;i<m_SurfaceVertices.size();i++){
     double dist, len;
     double pointCoords[3];
@@ -1390,11 +1483,7 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
     m_SurfaceDisplacements[3*i] *= dist/len;
     m_SurfaceDisplacements[3*i+1] *= dist/len;
     m_SurfaceDisplacements[3*i+2] *= dist/len;
-    dist = DistanceAtPointVoxel(pointCoords);
-    if(dist>discr_dist_max)
-      discr_dist_max = dist;
   }
-  std::cout << "After update: max discrete distance is " << discr_dist_max << std::endl;
 }
 
 /* Orient consistently all tetrahedra of the mesh */
@@ -1451,63 +1540,6 @@ VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
   }
 }
 
-template<class TInputMesh, class TOutputMesh, class TInputImage>
-void
-VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
-::PrepareInputImage(){
-  typename CastFilterType::Pointer cast_filter = CastFilterType::New();
-  typename ResamplerType::Pointer resampler = ResamplerType::New();
-  IdentityTransformType::Pointer transform = IdentityTransformType::New();
-  typename InputImageType::SpacingType input_spacing = m_InputImage->GetSpacing();
-  typename InputImageType::SpacingType output_spacing;
-  typename InputImageType::SizeType input_size =
-    m_InputImage->GetLargestPossibleRegion().GetSize();
-  typename InputImageType::SizeType output_size;
-  typedef NearestNeighborInterpolateImageFunction<InternalImageType,double>
-    ResampleInterpolatorType;
-  typename ResampleInterpolatorType::Pointer resample_interpolator = 
-    ResampleInterpolatorType::New();
-
-  // 1) Cast the input to the internal image type
-  cast_filter->SetInput(m_InputImage);
-  cast_filter->Update();
-
-  // 2) Resample the input image to unit sized voxels
-  output_spacing[0] = 1.0;
-  output_spacing[1] = 1.0;
-  output_spacing[2] = 1.0;
-
-  output_size[0] = static_cast<typename InputImageType::SizeType::SizeValueType>
-    (ceil((double)input_size[0]*input_spacing[0]));
-  output_size[1] = static_cast<typename InputImageType::SizeType::SizeValueType>
-    (ceil((double)input_size[1]*input_spacing[1]));
-  output_size[2] = static_cast<typename InputImageType::SizeType::SizeValueType>
-    (ceil((double)input_size[2]*input_spacing[2]));
-
-  transform->SetIdentity();
-  resampler->SetTransform(transform);
-  resampler->SetInterpolator(resample_interpolator);
-  resampler->SetOutputSpacing(output_spacing);
-  resampler->SetOutputOrigin(m_InputImage->GetOrigin());
-  resampler->SetSize(output_size);
-  resampler->SetInput(cast_filter->GetOutput());
-  resampler->Update();
-
-  this->m_ReadyInputImage = resampler->GetOutput();
-  std::cout << "Input image ready" << std::endl;
-}
-
-template<class TInputMesh, class TOutputMesh, class TInputImage>
-void
-VolumeBoundaryCompressionMeshFilter<TInputMesh,TOutputMesh,TInputImage>
-::PrepareDistanceImage(){
-  DistanceFilterType::Pointer distance_filter =
-      DistanceFilterType::New();
-  distance_filter->SetInput(this->m_ReadyInputImage);
-  distance_filter->Update();
-  this->m_DistanceImage = distance_filter->GetOutput();
-  std::cout << "Distance image ready" << std::endl;
-}
 } /** end namespace itk. */
 
 #endif

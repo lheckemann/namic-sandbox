@@ -159,6 +159,7 @@ public:
   
   typedef typename TInputMesh::CellsContainer::ConstIterator InputCellsContainerIterator;
   typedef TetrahedronCell<ICellType> InputTetrahedronType;
+  typedef TetrahedronCell<OCellType> OutputTetrahedronType;
 
   /** Input Image Type Definition. */
   typedef TInputImage InputImageType;
@@ -175,6 +176,10 @@ public:
   
   // TODO: document debug feature
   itkSetMacro(InputImagePrefix, std::string); 
+  itkSetMacro(TmpDirectory, std::string);
+
+  itkSetMacro(CompressionMethod, int);
+
 #ifndef USE_PETSC
   itkSetMacro(LinearSystemWrapperType, std::string);
 #endif
@@ -183,6 +188,10 @@ public:
 
   itkGetMacro(NumberOfPoints, unsigned);
   itkGetMacro(NumberOfTets, unsigned); // NAME: NumberOfTetras
+  itkSetMacro(MaxError, float);
+
+  static const int OPTIMIZATION_COMPRESSION = 0;
+  static const int FEM_COMPRESSION = 1;
 
   /** accept the input image */
   virtual void SetInput( const InputImageType * inputImage );
@@ -278,18 +287,25 @@ private:
   InternalImageType::Pointer m_DistanceImage;
   typename InterpolatorType::Pointer m_Interpolator;
   // the following is the resampled to unit voxel input mask
-  InternalImageType::Pointer m_InputImage;
+  typename InputImageType::Pointer m_InputImage;
+  InternalImageType::Pointer m_ReadyInputImage;
   InternalImageSizeType m_InputSize;
   InternalImagePointType m_InputOrigin;
 
   typename InputMeshType::Pointer m_InputMesh;
   typename OutputMeshType::Pointer m_OutputMesh;
   
+  
   std::string m_InputImagePrefix;
+  std::string m_TmpDirectory;
+  int m_CompressionMethod;
+
   std::string m_SurfaceFileName;
   unsigned m_CompressionIterations;
+  float m_MaxError;
 
   std::vector<unsigned int> m_SurfaceVertices;
+  double* m_SurfaceDisplacements;
   std::map<unsigned int,unsigned int> m_SurfaceVertex2Pos;
   std::map<void*,unsigned int> m_SurfaceNode2Pos;
   std::vector<TetFace> m_SurfaceFaces;
@@ -328,12 +344,21 @@ private:
 
 
   bool Initialize();
-  void Deform();
+  void PrepareInputImage();
+  void PrepareDistanceImage();
+  void Deform();      // compress with physical model
+  void Optimize();    // compress using geom. optimization (GRUMMP)
+  void UpdateSurfaceDisplacements();
+  float MaxSurfaceVoxelDistance();
+  void UpdateSurfaceVerticesAndFaces();
+  void OrientMesh(OutputMeshType*,bool);
   // Utility functions
   float DistanceAtPoint(double* coords);
+  float DistanceAtPointVoxel(double* coords);
   float DistanceBwPoints(double *coord0, double* coord1);
   // -1 if negative, +1 if positive, 0 if inconsistent
   int  GetMeshOrientation();
+  int  GetMeshOrientation(const OutputMeshType*);
 
   /*
   // These are static in M.E.S.H....
