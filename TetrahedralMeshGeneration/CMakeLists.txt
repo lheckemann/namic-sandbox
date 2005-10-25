@@ -47,7 +47,7 @@ LINK_DIRECTORIES(${PETSC_DIR}/lib/${PETSC_ARCH} ${X11_DIR}/lib ${PETSC_DIR}/exte
 #      ADD_TEST(${test} "${EXECUTABLE_OUTPUT_PATH}/${test}" "sphere" "${TetrahedralMeshGeneration_SOURCE_DIR}/Data/sphere.mhd" "2")
 #ENDFOREACH(test)
 
-FOREACH(test mesher-driver mesher-reader mesher-cutter mesh2image vol2raw vtksurf2raw m2mcmp)
+FOREACH(test mesher-driver mesher-reader mesher-cutter mesh2image vol2raw vtksurf2raw m2mcmp meshqual-driver)
       ADD_EXECUTABLE(${test} ${TetrahedralMeshGeneration_SOURCE_DIR}/Tools/${test}.cxx ${TetrahedralMeshGeneration_SOURCE_DIR}/External/predicates.c ${TetrahedralMeshGeneration_SOURCE_DIR}/VolumeBoundaryCompressionMeshFilter/Code/tetra_mesh.cxx)
       TARGET_LINK_LIBRARIES(${test} ITKCommon ITKIO vtkIO vtkGraphics ITKFEM petscksp petscmat petscvec X11 petscsnes petscts nsl rt lamf77mpi util petsc fblas flapack fblas nsl rt util dl lamf77mpi g2c m lam gcc_s mesh z)
       ADD_TEST(${test} "${EXECUTABLE_OUTPUT_PATH}/${test}" "sphere" "${TetrahedralMeshGeneration_SOURCE_DIR}/Data/sphere.mhd" "2")
