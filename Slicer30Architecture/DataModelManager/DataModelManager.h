@@ -1,3 +1,20 @@
+/*=========================================================================
+
+Program: Insight Segmentation & Registration Toolkit
+Module: $RCSfile: KnowledgeBasedSegmentation.cxx,v $
+Language: C++
+Date: $Date: 2005/09/17 20:12:37 $
+Version: $Revision: 1.0 $
+
+Copyright (c) Insight Software Consortium. All rights reserved.
+See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
+
+This software is distributed WITHOUT ANY WARRANTY; without even
+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE. See the above copyright notices for more information.
+
+=========================================================================*/
+
 /** This is a draft prototype of the DataModelManager to be used as the core element of Slicer 3.0 */ 
 
 #include <string> 
@@ -16,10 +33,10 @@ public:
   typedef std::string   NodeNameType;
 
   /** Base Type for Transform hierarchy */
-  typedef itk::Transform   NodeNameType;
+  typedef ::itk::Transform   NodeNameType;
 
   /** Base Type for Image hierarchy */
-  typedef itk::ImageBase<3>   NodeNameType;
+  typedef ::itk::ImageBase<3>   NodeNameType;
 
   /** Request to add a name with a node */
   void RequestAddNode( const NodeNameType & nodeName );
@@ -38,6 +55,9 @@ public:
   /** Request Transform between named nodes */
   void RequestGetTransformBetweenNodes( const NodeNameType & nodeName,
                                         const NodeNameType & nodeName )
+
+  DataModelManager();
+  ~DataModelManager();
 
 private:
 
