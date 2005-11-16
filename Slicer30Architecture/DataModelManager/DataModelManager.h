@@ -15,14 +15,24 @@ PURPOSE. See the above copyright notices for more information.
 
 =========================================================================*/
 
-/** This is a draft prototype of the DataModelManager to be used as the core element of Slicer 3.0 */ 
 
 #include <string> 
+
 #include "itkTransform.h" 
 #include "itkImageBase.h" 
+#include "itkObject.h" 
 
 namespace Slicer
 {
+
+/** \brief This is a draft prototype of the DataModelManager to be used as the core element of Slicer 3.0 
+     
+     \class DataModelManager  This class provides services for finding data
+elements that were loaded from a MRML data structure. It also provides services
+for computing Transform paths between nodes.
+
+
+*/
 
 class DataModelManager
 {
@@ -32,11 +42,15 @@ public:
   /** Type for naming the nodes */
   typedef std::string   NodeNameType;
 
+  /** Type for naming the elements */
+  typedef std::string   ElementNameType;
+
   /** Base Type for Transform hierarchy */
-  typedef ::itk::Transform   NodeNameType;
+  typedef ::itk::TransformBase   TransformType;
 
   /** Base Type for Image hierarchy */
-  typedef ::itk::ImageBase<3>   NodeNameType;
+//  typedef ::itk::ImageBase<3>   ImageType;
+  typedef int   ImageType;
 
   /** Request to add a name with a node */
   void RequestAddNode( const NodeNameType & nodeName );
@@ -47,16 +61,19 @@ public:
                                   const TransformType * transform );
 
   /** Request attaching a dataset with a name to a named node */
-  void RequestAddTransformToNode( const NodeNameType & nodeName,
+  void RequestAddImageToNode(     const NodeNameType & nodeName,
                                   const ElementNameType & name,
                                   const ImageType * transform );
 
 
   /** Request Transform between named nodes */
   void RequestGetTransformBetweenNodes( const NodeNameType & nodeName,
-                                        const NodeNameType & nodeName )
+                                        const NodeNameType & nodeName );
 
+  /** Constructor */
   DataModelManager();
+
+  /** Destructor */
   ~DataModelManager();
 
 private:

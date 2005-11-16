@@ -46,9 +46,9 @@ RequestAddTransformToNode( const NodeNameType & ,
 
 void 
 DataModelManager::
-RequestAddTransformToNode( const NodeNameType & ,
-                           const ElementNameType & ,
-                           const ImageType * )
+RequestAddImageToNode( const NodeNameType & ,
+                       const ElementNameType & ,
+                       const ImageType * )
 {
 }
 
