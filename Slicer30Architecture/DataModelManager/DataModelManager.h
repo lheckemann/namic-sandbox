@@ -22,6 +22,9 @@ PURPOSE. See the above copyright notices for more information.
 #include "itkImageBase.h" 
 #include "itkObject.h" 
 
+#include <time.h>
+#include <pthread.h>
+
 namespace Slicer
 {
 
@@ -49,8 +52,9 @@ public:
   typedef ::itk::TransformBase   TransformType;
 
   /** Base Type for Image hierarchy */
-//  typedef ::itk::ImageBase<3>   ImageType;
-  typedef int   ImageType;
+  typedef ::itk::ImageBase<3>   ImageType;
+
+  typedef pthread_t               ThreadType;
 
   /** Request to add a name with a node */
   void RequestAddNode( const NodeNameType & nodeName );
@@ -76,12 +80,14 @@ public:
   /** Destructor */
   ~DataModelManager();
 
+   static void * StartRunning(void *arg);
+
 private:
 
   /** Send Transform between two nodes in the payload of an Event */
   void SendTransformBetweenNodes() const;
 
-
+  ThreadType   m_Thread;
 
 };
 

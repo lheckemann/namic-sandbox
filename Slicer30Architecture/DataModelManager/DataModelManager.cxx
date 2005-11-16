@@ -22,10 +22,12 @@ namespace Slicer
 
 DataModelManager::DataModelManager()
 {
+  pthread_create (&m_Thread, NULL, StartRunning, 0);
 }
 
 DataModelManager::~DataModelManager()
 {
+//pthread_delete ( m_Thread);
 }
 
 
@@ -62,4 +64,31 @@ RequestGetTransformBetweenNodes( const NodeNameType & ,
 }
 
 
+
+void * 
+DataModelManager::
+StartRunning(void *arg)
+{
+  struct sched_param p;
+  p . sched_priority = 1;
+  pthread_setschedparam (pthread_self(), SCHED_FIFO, &p);
+
+//    pthread_make_periodic (pthread_self(), 1, 500000000);
+
+  while (1) 
+    {
+//     pthread_wait ();
+    printf("I'm here; my arg is %x\n", (unsigned) arg);
+    }
+  return 0;
 }
+
+
+
+
+
+}  // end of Slicer namespace 
+
+
+
+
