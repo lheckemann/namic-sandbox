@@ -18,44 +18,69 @@
 #define __itkBayesianClassifierInitializationImageFilter_h
 
 #include "itkVectorImage.h"
+#include "itkVectorContainer.h"
 #include "itkImageToImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"
-#include "itkScalarImageKmeansImageFilter.h"
 #include "itkDensityFunction.h"
-#include "itkMaximumDecisionRule.h"
 
 namespace itk
 {
   
 /** \class BayesianClassifierInitializationImageFilter
  *
- * \brief This filter will perform Bayesian Classification on an image.
+ * \brief This filter is intended to be used as a helper class to 
+ * initialize the BayesianClassifierImageFilter. The goal of this filter 
+ * is to generate a membership image that indicates the membership of each 
+ * pixel to each class. These membership images are fed as input to the 
+ * bayesian classfier filter.  
  *
- * [add detailed documentation]
- * 
- * This filter is templated over the input image type
- * and the output image type.
- * 
- * The filter expect both images to have the same number of dimensions.
+ * \par Parameters
+ * Number of classes: This defines the number of classes, which will determine
+ * the number of membership images that will be generated. The user must specify
+ * this.
  *
+ * Membership functions: The user can optionally plugin in any membership function. 
+ * The number of membership functions plugged in should be the
+ * same as the number of classes. If the user does not supply membership 
+ * functions, the filter will generate membership functions for you. These
+ * functions are Gaussian density functions centered around 'n' pixel intensity 
+ * values, \f[I_k\f]. These 'n' values are obtained by running K-means on the 
+ * image. In other words, the default behaviour of the filter is to generate
+ * gaussian mixture model for the input image.
+ *
+ *
+ * \par Inputs and Outputs
+ * The filter takes a scalar Image as input and generates a VectorImage, each
+ * component \f[c\f] of which represents memberships of each pixel to the 
+ * class \f[c\f]
+ * 
+ * This filter is templated over the input image type and the data type used
+ * to represent the probabilities (defaults to float).
+ * 
  * \author John Melonakos, Georgia Tech
  *
  * \ingroup IntensityImageFilters  Multithreaded
  */
-
-
-template <class TInputImage, class TOutputImage>
+template< class TInputImage, class TProbabilityPrecisionType=float >
 class ITK_EXPORT BayesianClassifierInitializationImageFilter :
     public
-ImageToImageFilter<TInputImage,TOutputImage>
+ImageToImageFilter<TInputImage, VectorImage< TProbabilityPrecisionType, 
+                  ::itk::GetImageDimension< TInputImage >::ImageDimension > >
 {
 public:
   /** Standard class typedefs. */
   typedef BayesianClassifierInitializationImageFilter  Self;
-  typedef ImageToImageFilter<TInputImage,TOutputImage
-  >  Superclass;
-  typedef SmartPointer<Self>   Pointer;
+  typedef TInputImage                                  InputImageType;
+  typedef TProbabilityPrecisionType                    ProbabilityPrecisionType;
+  
+  /** Dimension of the input image */
+  itkStaticConstMacro( Dimension, unsigned int, 
+                     ::itk::GetImageDimension< InputImageType >::ImageDimension );
+
+  typedef VectorImage< ProbabilityPrecisionType, Dimension > OutputImageType;
+  typedef ImageToImageFilter< InputImageType, OutputImageType >  Superclass;
+  typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
 
   /** Method for creation through the object factory. */
@@ -64,65 +89,62 @@ public:
   /** Run-time type information (and related methods). */
   itkTypeMacro(BayesianClassifierInitializationImageFilter, ImageToImageFilter);
 
-  /** Input and Output image types */
-  typedef typename Superclass::InputImageType   InputImageType;
-  typedef typename Superclass::OutputImageType  OutputImageType;
-  
-  /** Dimension of the input image */
-  itkStaticConstMacro( Dimension, unsigned int, 
-                       itk::GetImageDimension< InputImageType >::ImageDimension );
-
-  /** Input and Output image iterators */
-  typedef itk::ImageRegionConstIterator< InputImageType > InputImageIteratorType;
-//  typedef itk::ImageRegionIterator< OutputImageType >     OutputImageIteratorType;
+  /** Input image iterators */
+  typedef ImageRegionConstIterator< InputImageType > InputImageIteratorType;
 
   /** Pixel types. */
-  typedef typename TInputImage::PixelType  InputPixelType;
-//  typedef typename TOutputImage::PixelType OutputPixelType;
-
-  /** Image Type and Pixel type for the images representing the Prior
-   * probability of a pixel belonging to  a particular class. This image has
-   * arrays as pixels, the number of elements in the array is the same as the
-   * number of classes to be used.  */
-  typedef itk::VectorImage< double, Dimension >           PriorImageType;
-  typedef typename PriorImageType::PixelType              PriorPixelType;
-  typedef typename PriorImageType::Pointer                PriorImagePointer;
-  typedef itk::ImageRegionIterator< PriorImageType >      PriorImageIteratorType;
+  typedef typename InputImageType::PixelType  InputPixelType;
+  typedef typename OutputImageType::PixelType OutputPixelType;
 
   /** Image Type and Pixel type for the images representing the membership of a
    *  pixel to a particular class. This image has arrays as pixels, the number of 
    *  elements in the array is the same as the number of classes to be used.    */
-  typedef VectorImage< double, Dimension >                MembershipImageType;
+  typedef VectorImage< ProbabilityPrecisionType, Dimension >  
+                                                          MembershipImageType;
   typedef typename MembershipImageType::PixelType         MembershipPixelType;
   typedef typename MembershipImageType::Pointer           MembershipImagePointer;
-  typedef itk::ImageRegionIterator< MembershipImageType > MembershipImageIteratorType;
-
-  /** Types for the Kmeans Classification **/
-  typedef itk::ScalarImageKmeansImageFilter< InputImageType > KMeansFilterType;
-  typedef typename KMeansFilterType::OutputImageType          KMeansImageType;
-  typedef itk::ImageRegionConstIterator< InputImageType >     ConstInputIteratorType;
-  typedef itk::ImageRegionConstIterator< KMeansImageType >    ConstKMeansIteratorType;
-  typedef itk::Array< double >                                CovarianceArrayType;
+  typedef ImageRegionIterator< MembershipImageType >      MembershipImageIteratorType;
 
   /** Type of the Measurement */
-  typedef itk::Vector< double, 1 >                        MeasurementVectorType;
+  typedef Vector< InputPixelType, 1 >                     MeasurementVectorType;
 
   /** Type of the density functions */
-  typedef Statistics::GaussianDensityFunction< MeasurementVectorType >
-                                                          MembershipFunctionType;
-  typedef typename MembershipFunctionType::Pointer        MembershipFunctionPointer;
-  typedef itk::VectorContainer< unsigned short, MembershipFunctionType::MeanType* > 
-                                                          MeanEstimatorsContainerType;
-  typedef itk::VectorContainer< unsigned short, MembershipFunctionType::CovarianceType* > 
-                                                          CovarianceEstimatorsContainerType;
+  typedef Statistics::DensityFunction< MeasurementVectorType >
+                                                        MembershipFunctionType;
+  typedef typename MembershipFunctionType::Pointer      MembershipFunctionPointer;
 
   /** Membership function container */
-  typedef std::vector< MembershipFunctionPointer >        MembershipFunctionContainer;
+  typedef VectorContainer< unsigned int, 
+       MembershipFunctionPointer >  MembershipFunctionContainerType;
+  typedef typename MembershipFunctionContainerType::Pointer         
+                                    MembershipFunctionContainerPointer;
+  
+  /** Method to set/get the density functions. Here you can set a vector 
+   * container of density functions. If no density functions are specified,
+   * the filter will create ones for you. These default density functions
+   * are gaussian density functions centered around the K-means of the 
+   * input image.  */
+  virtual void SetMembershipFunction( MembershipFunctionContainerType 
+                                                * densityFunctionContainer );
+  itkGetObjectMacro(  MembershipFunctionContainer, MembershipFunctionContainerType );
+
+  /** Set/Get methods for the number of classes. The user must supply this. */
+  itkSetMacro( NumberOfClasses, unsigned int );
+  itkGetMacro( NumberOfClasses, unsigned int );
+
+  virtual void GenerateOutputInformation(); 
 
 protected:
   BayesianClassifierInitializationImageFilter();
   virtual ~BayesianClassifierInitializationImageFilter() {}
   void PrintSelf(std::ostream& os, Indent indent) const;
+
+  /** Initialize the membership functions. This will be called only if the membership 
+   * function hasn't already been set. This method initializes membership functions
+   * using gaussian density functions centered around the means computed using 
+   * Kmeans.
+   */
+  virtual void InitializeMembershipFunctions();
 
   /** Here is where the prior and membership probability vector images are created.*/
   virtual void GenerateData();
@@ -131,6 +153,9 @@ private:
   BayesianClassifierInitializationImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
+  bool                      m_UserSuppliesMembershipFunctions;
+  unsigned int              m_NumberOfClasses;
+  typename MembershipFunctionContainerType::Pointer m_MembershipFunctionContainer;
 };
 
 } // end namespace itk
