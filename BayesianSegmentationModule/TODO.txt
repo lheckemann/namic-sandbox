@@ -1,0 +1,2 @@
+1. Add functionality to the ScalarImageKmeansImageFilter to be able to support arbitrarily shaped masks
+
