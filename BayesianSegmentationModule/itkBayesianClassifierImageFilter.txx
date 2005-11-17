@@ -72,15 +72,17 @@ BayesianClassifierImageFilter<TInputVectorImage, TLabelType,
 {
 
   // SETUP INPUT IMAGE
-  const InputImageType * inputImage = this->GetInput();
-  typename InputImageType::RegionType   imageRegion  = inputImage->GetBufferedRegion();
-  typename InputImageType::SpacingType  imageSpacing = inputImage->GetSpacing();
-  typename InputImageType::PointType    imageOrigin  = inputImage->GetOrigin();
-  InputImageIteratorType                itrInputImage( inputImage, imageRegion );
+  const InputImageType * membershipImage = this->GetInput();
+
+  typename InputImageType::RegionType   imageRegion  = membershipImage->GetBufferedRegion();
+  typename InputImageType::SpacingType  imageSpacing = membershipImage->GetSpacing();
+  typename InputImageType::PointType    imageOrigin  = membershipImage->GetOrigin();
+
+  InputImageIteratorType                itrMembershipImage( membershipImage, imageRegion );
 
 
   // SETUP GENERAL PARAMETERS
-  const unsigned int numberOfClasses = inputImage->GetVectorLength();
+  const unsigned int numberOfClasses = membershipImage->GetVectorLength();
 
   if( numberOfClasses == 0 )
     {
@@ -88,63 +90,41 @@ BayesianClassifierImageFilter<TInputVectorImage, TLabelType,
     return;
     }
 
+  if( m_UserProvidedPriors )
+    {
+    if( m_UserProvidedSmoothingFilter )
+      {
+      this->ComputeWithPriorsWithSmoothing();
+      }
+    else
+      {
+      this->ComputeWithPriorsNoSmoothing();
+      }
+    }
+  else
+    {
+    if( m_UserProvidedSmoothingFilter )
+      {
+      this->ComputeNoPriorsWithSmoothing();
+      }
+    else
+      {
+      this->ComputeNoPriorsNoSmoothing();
+      }
+    }
+
 #if 0
-  // INITIALIZE PRIORS TO DEFAULT UNIFORMITY
-  PriorImagePointer priors = PriorImageType::New();
-  priors->SetRegions( imageRegion );
-  priors->SetSpacing( imageSpacing );
-  priors->SetOrigin( imageOrigin );
-  priors->SetVectorLength( numberOfClasses );
-  priors->Allocate();
-  PriorImageIteratorType itrPriorImage( priors, imageRegion );
-  PriorPixelType priorPixel( numberOfClasses );
-
-  for ( unsigned int i = 0; i < numberOfClasses; ++i )
-    {
-    priorPixel[i] = (double)1 / numberOfClasses;
-    }
-  itrPriorImage.GoToBegin();
-  while( !itrPriorImage.IsAtEnd() )
-    {
-    itrPriorImage.Set( priorPixel );
-    ++itrPriorImage;
-    }
-/* DEBUGGING */
-for ( unsigned int i = 0; i < 21639; ++i)
-  {
-  --itrPriorImage;
-  }
-std::cout << "Prior image in initial section " << itrPriorImage.Get() << std::endl; //debugging
-/* DEBUGGING */
-
 
   // GENERATE MEMBERSHIP DATA IMAGE
-  MembershipImagePointer data = MembershipImageType::New();
-  data->SetRegions( imageRegion );
-  data->SetOrigin( imageOrigin );
-  data->SetSpacing( imageSpacing );
-  data->SetVectorLength( numberOfClasses );
-  data->Allocate();
-  MembershipImageIteratorType itrDataImage( data, imageRegion );
+  MembershipImageIteratorType itrDataImage( inputImage, imageRegion );
   MembershipPixelType membershipPixel( numberOfClasses );
   MeasurementVectorType mv;
   
-  for ( unsigned int i = 0; i < numberOfClasses; ++i )
-    {
-    membershipPixel[i] = 0.0;
-    }
   itrDataImage.GoToBegin();
-  while( !itrDataImage.IsAtEnd() )
-    {
-    itrDataImage.Set( membershipPixel );
-    ++itrDataImage;
-    }
-
-  itrDataImage.GoToBegin();
-  itrInputImage.GoToBegin();
+  MembershipputImage.GoToBegin();
   while ( !itrDataImage.IsAtEnd() )
     {
-    mv = itrInputImage.Get();
+    mv = MembershipputImage.Get();
     for ( unsigned int i = 0; i < numberOfClasses; i++ )
       {
       membershipPixel[i] = m_MembershipFunctions[i]->Evaluate( mv );
@@ -239,6 +219,58 @@ std::cout << "Posteriors after decision rule in initial section " << itrPosterio
 
 #endif
 }
+
+/**
+ * Compute the labeled map with no priors and no smoothing
+ */
+template < class TInputVectorImage, class TLabelType, 
+           class TPosteriorPrecisionType, class TPriorPrecisionType >
+void 
+BayesianClassifierImageFilter<TInputVectorImage, TLabelType, 
+                              TPosteriorPrecisionType, TPriorPrecisionType >
+::ComputeNoPriorsNoSmoothing()
+{
+}
+
+
+/**
+ * Compute the labeled map with priors and no smoothing
+ */
+template < class TInputVectorImage, class TLabelType, 
+           class TPosteriorPrecisionType, class TPriorPrecisionType >
+void 
+BayesianClassifierImageFilter<TInputVectorImage, TLabelType, 
+                              TPosteriorPrecisionType, TPriorPrecisionType >
+::ComputeWithPriorsNoSmoothing()
+{
+}
+
+
+/**
+ * Compute the labeled map with no priors and with smoothing
+ */
+template < class TInputVectorImage, class TLabelType, 
+           class TPosteriorPrecisionType, class TPriorPrecisionType >
+void 
+BayesianClassifierImageFilter<TInputVectorImage, TLabelType, 
+                              TPosteriorPrecisionType, TPriorPrecisionType >
+::ComputeNoPriorsWithSmoothing()
+{
+}
+
+
+/**
+ * Compute the labeled map with priors and with smoothing
+ */
+template < class TInputVectorImage, class TLabelType, 
+           class TPosteriorPrecisionType, class TPriorPrecisionType >
+void 
+BayesianClassifierImageFilter<TInputVectorImage, TLabelType, 
+                              TPosteriorPrecisionType, TPriorPrecisionType >
+::ComputeWithPriorsWithSmoothing()
+{
+}
+
 
 } // end namespace itk
 

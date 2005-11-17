@@ -133,6 +133,12 @@ protected:
   virtual void GenerateData();
 
 
+  /** Methods for computing the labeled map for all combinations of conditions */
+  virtual void ComputeNoPriorsNoSmoothing();
+  virtual void ComputeWithPriorsNoSmoothing();
+  virtual void ComputeNoPriorsWithSmoothing();
+  virtual void ComputeWithPriorsWithSmoothing();
+
 private:
 
   BayesianClassifierImageFilter(const Self&); //purposely not implemented
