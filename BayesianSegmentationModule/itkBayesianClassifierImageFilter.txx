@@ -27,52 +27,47 @@ namespace itk
 {
 
 /**
- *
+ *  Constructor
  */
-template <class TInputImage, class TOutputImage>
-BayesianClassifierImageFilter<TInputImage, TOutputImage>
+template < class TInputVectorImage, class TLabelType, 
+           class TPosteriorPrecisionType, class TPriorPrecisionType >
+BayesianClassifierImageFilter<TInputVectorImage, TLabelType, 
+                              TPosteriorPrecisionType, TPriorPrecisionType >
 ::BayesianClassifierImageFilter()
 {
+   m_UserProvidedPriors = false;
+   m_UserProvidedSmoothingFilter = false;
 }
 
 
-/**
- * Add a membership function
- */
-template <class TInputImage, class TOutputImage>
-void
-BayesianClassifierImageFilter<TInputImage, TOutputImage>
-::AddMembershipFunction( const MembershipFunctionType * newFunction )
-{
-   MembershipFunctionConstPointer functionSmartPointer = newFunction;
-   m_MembershipFunctions.push_back( functionSmartPointer );
-}
 
 
 /**
- *
+ *  Print Self Method
  */
-template <class TInputImage, class TOutputImage>
+template < class TInputVectorImage, class TLabelType, 
+           class TPosteriorPrecisionType, class TPriorPrecisionType >
 void 
-BayesianClassifierImageFilter<TInputImage, TOutputImage>
+BayesianClassifierImageFilter<TInputVectorImage, TLabelType, 
+                              TPosteriorPrecisionType, TPriorPrecisionType >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
 
-  os << indent << "Number of membership functions = " << m_MembershipFunctions.size() << std::endl;
-  for( unsigned int i=0; i< m_MembershipFunctions.size(); i++)
-    {
-    os << indent << m_MembershipFunctions[i].GetPointer() << std::endl;
-    }
+  os << indent << "User provided priors =  " << m_UserProvidedPriors << std::endl;
+  os << indent << "User provided smooting filter =  " << m_UserProvidedSmoothingFilter << std::endl;
+  os << indent << "Smooting filter pointer =  " << m_SmoothingFilter.GetPointer() << std::endl;
 
 }
 
 /**
- *
+ * Generate Data method is where the classification (and smoothing) is performed.
  */
-template <class TInputImage, class TOutputImage>
+template < class TInputVectorImage, class TLabelType, 
+           class TPosteriorPrecisionType, class TPriorPrecisionType >
 void 
-BayesianClassifierImageFilter<TInputImage, TOutputImage>
+BayesianClassifierImageFilter<TInputVectorImage, TLabelType, 
+                              TPosteriorPrecisionType, TPriorPrecisionType >
 ::GenerateData()
 {
 
@@ -85,14 +80,15 @@ BayesianClassifierImageFilter<TInputImage, TOutputImage>
 
 
   // SETUP GENERAL PARAMETERS
-  const unsigned int numberOfClasses = m_MembershipFunctions.size();
+  const unsigned int numberOfClasses = inputImage->GetVectorLength();
+
   if( numberOfClasses == 0 )
     {
-    itkExceptionMacro("No membership functions have been set up.  Please call AddMembershipFunction() first");
+    itkExceptionMacro("The number of components in the input Membership image is Zero !");
     return;
     }
 
-
+#if 0
   // INITIALIZE PRIORS TO DEFAULT UNIFORMITY
   PriorImagePointer priors = PriorImageType::New();
   priors->SetRegions( imageRegion );
@@ -240,7 +236,10 @@ for ( unsigned int i = 0; i < 21639; ++i)
 std::cout << "Label image in initial section " << itrLabelImage.Get() << std::endl; //debugging
 std::cout << "Posteriors after decision rule in initial section " << itrPosteriorImage.Get() << std::endl; //debugging
 /* DEBUGGING */
+
+#endif
 }
+
 } // end namespace itk
 
 #endif

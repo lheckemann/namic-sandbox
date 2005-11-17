@@ -20,9 +20,6 @@
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
-#include "itkGaussianDensityFunction.h"
-#include "itkVectorContainer.h"
-#include "itkBayesianClassifierInitializationImageFilter.h"
 #include "itkBayesianClassifierImageFilter.h"
 #include "itkImageFileWriter.h"
 
@@ -30,7 +27,7 @@
 int main(int argc, char* argv[] )
 {
 
-  if( argc < 2 ) 
+  if( argc < 3 ) 
     { 
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << " inputImageFile outputImageFile" << std::endl;
@@ -38,35 +35,32 @@ int main(int argc, char* argv[] )
     }
 
   // input parameters
-  char * rawDataFileName = argv[1];
-  char * labelMapFileName = argv[2];
+  const char * membershipImageFileName  = argv[1];
+  const char * labelMapImageFileName    = argv[2];
 
   // setup reader
   const unsigned int Dimension = 2;
-  typedef unsigned short InputPixelType;
-  typedef itk::Image< InputPixelType, Dimension > InputImageType;
-  typedef itk::ImageFileReader< InputImageType >     ReaderType;
+  typedef float InputPixelType;
+  typedef itk::VectorImage< InputPixelType, Dimension > InputImageType;
+  typedef itk::ImageFileReader< 
+                     InputImageType, 
+                     itk::DefaultConvertPixelTraits<InputPixelType> >  ReaderType;
 
   ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName( rawDataFileName );
+  reader->SetFileName( membershipImageFileName );
 
-  // setup filters
-  typedef unsigned short OutputPixelType;
-  typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
-  typedef itk::BayesianClassifierInitializationImageFilter<
-                                 InputImageType,
-                                 OutputImageType > InitializationFilterType;
+  typedef unsigned char  LabelType;
+  typedef float          PriorType;
+  typedef float          PosteriorType;
 
-  InitializationFilterType::Pointer filter = InitializationFilterType::New();
-  filter->SetInput( reader->GetOutput() );
+/*
+  typedef itk::BayesianClassifierImageFilter< 
+                              InputImageType,LabelType,
+                              PosteriorType,PriorType >   ClassifierFilterType;
 
-  filter->Update();
+  ClassifierFilterType::Pointer filter = ClassifierFilterType::New();
 
-//   typedef itk::BayesianClassifierImageFilter< 
-//                                  InputImageType,
-//                                  OutputImageType > ClassifierFilterType;
-
-//   ClassifierFilterType::Pointer filter = ClassifierFilterType::New();
+*/
 //   filter->SetInput( reader->GetOutput() );
 
 
@@ -170,7 +164,9 @@ int main(int argc, char* argv[] )
 //     }
  
   // TESTING PRINT
-  filter->Print( std::cout );
+  // filter->Print( std::cout );
   std::cout << "Test passed." << std::endl;
+
   return EXIT_SUCCESS;
+
 }
