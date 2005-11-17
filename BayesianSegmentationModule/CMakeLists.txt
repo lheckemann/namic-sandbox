@@ -24,4 +24,10 @@ ADD_EXECUTABLE(itkBayesianClassifierImageFilterTest
   )
 TARGET_LINK_LIBRARIES(itkBayesianClassifierImageFilterTest ITKStatistics ITKIO ITKCommon ITKNumerics)
 
+# test for the bayesian classfier initializer
+ADD_EXECUTABLE(itkBayesianClassifierInitializationImageFilterTest
+  itkBayesianClassifierInitializationImageFilterTest.cxx
+  )
+TARGET_LINK_LIBRARIES(itkBayesianClassifierInitializationImageFilterTest ITKStatistics ITKIO ITKCommon ITKNumerics)
+
 
