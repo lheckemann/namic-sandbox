@@ -1,2 +1,7 @@
-1. Add functionality to the ScalarImageKmeansImageFilter to be able to support arbitrarily shaped masks
+Prioritized Bayesian Classification Project:
 
+1) Classifier Filter
+2) Initialization Filter
+3) MaskedImageToListGenerator
+4) VTK Wrapping
+5) Addition of More Density Functions (Uniform, Poisson, Lognormal)
