@@ -119,15 +119,10 @@ KullbackLeiblerDivergenceImageToImageMetric<TFixedImage,TMovingImage>
           }
         }
 
-      if( sumMoving < epsilon )
+      if( sumProduct > NumericTraits< RealType >::ZeroValue() )
         {
+        measure += sumProduct - log( sumMoving );
         }
-
-      if( sumProduct < epsilon )
-        {
-        }
-      
-      measure += sumProduct - log( sumMoving );
 
       }
 
