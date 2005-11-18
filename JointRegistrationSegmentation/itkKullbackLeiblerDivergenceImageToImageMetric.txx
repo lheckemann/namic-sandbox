@@ -101,7 +101,7 @@ KullbackLeiblerDivergenceImageToImageMetric<TFixedImage,TMovingImage>
         sumProduct += log( movingValue[i] ) * fixedValue[i]; 
         }
 
-      measure += sumProduct - log( sum );
+      measure += sumProduct - log( sumMoving );
       }
 
     ++ti;
