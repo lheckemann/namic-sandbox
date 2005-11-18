@@ -12,7 +12,7 @@ INCLUDE_DIRECTORIES(
   ${JointRegistrationSegmentation_SOURCE_DIR}
   )
 
-ADD_EXECUTABLE(RegistrationTest
+ADD_EXECUTABLE(ImageRegistrationTest
   ImageRegistrationTest.cxx 
   )
 
