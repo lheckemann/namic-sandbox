@@ -64,6 +64,9 @@ KullbackLeiblerDivergenceImageToImageMetric<TFixedImage,TMovingImage>
 
   this->SetTransformParameters( parameters );
 
+  const RealType epsilon = NumericTraits< RealType >::min();
+  const RealType logEpsilon = log( epsilon );
+
   while(!ti.IsAtEnd())
     {
 
@@ -97,11 +100,35 @@ KullbackLeiblerDivergenceImageToImageMetric<TFixedImage,TMovingImage>
 
       for( unsigned int i = 0; i < numberOfClasses; i++)
         {
-        sumMoving  += movingValue[i]
-        sumProduct += log( movingValue[i] ) * fixedValue[i]; 
+        if( fixedValue[i] > epsilon )
+          {
+          if( movingValue[i] > epsilon )
+            {
+            sumMoving  += movingValue[i]
+            sumProduct += log( movingValue[i] ) * fixedValue[i]; 
+            }
+          else
+            {
+            sumMoving  += epsilon;
+            sumProduct += logEpsilon * fixedValue[i]; 
+            }
+          }
+        else
+          {
+          sumMoving  += epsilon;
+          }
         }
 
+      if( sumMoving < epsilon )
+        {
+        }
+
+      if( sumProduct < epsilon )
+        {
+        }
+      
       measure += sumProduct - log( sumMoving );
+
       }
 
     ++ti;
