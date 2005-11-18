@@ -91,8 +91,12 @@ KullbackLeiblerDivergenceImageToImageMetric<TFixedImage,TMovingImage>
       const RealType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
       const RealType fixedValue   = ti.Get();
       this->m_NumberOfPixelsCounted++;
-      const RealType diff = movingValue - fixedValue; 
-      measure += diff * diff; 
+      for( unsigned int i = 0; i < numberOfClasses; i++)
+        {
+        sumLog += log( movingValue[i] );
+        const RealType product = movingValue[i] * fixedValue[i]; 
+        }
+      measure += product / sumLog;
       }
 
     ++ti;
