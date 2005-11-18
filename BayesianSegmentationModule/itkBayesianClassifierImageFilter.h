@@ -43,12 +43,12 @@ namespace itk
  */
 
 
-template < class TInputVectorImage, class TLabelType=unsigned char, 
-           class TPosteriorPrecisionType=double, class TPriorPrecisionType=double >
+template < class TInputVectorImage, class TLabelsType=unsigned char, 
+           class TPosteriorsPrecisionType=double, class TPriorsPrecisionType=double >
 class ITK_EXPORT BayesianClassifierImageFilter :
     public ImageToImageFilter< 
               TInputVectorImage,
-              VectorImage< TLabelType, 
+              VectorImage< TLabelsType, 
                            ::itk::GetImageDimension< TInputVectorImage >::ImageDimension > >
 {
 public:
@@ -56,7 +56,7 @@ public:
   typedef BayesianClassifierImageFilter                    Self;
   typedef ImageToImageFilter< 
               TInputVectorImage,
-              VectorImage< TLabelType, 
+              VectorImage< TLabelsType, 
                            ::itk::GetImageDimension< 
                                  TInputVectorImage >::ImageDimension > > Superclass;
   typedef SmartPointer<Self>   Pointer;
@@ -69,8 +69,11 @@ public:
   itkTypeMacro( BayesianClassifierImageFilter, ImageToImageFilter );
 
   /** Input and Output image types */
-  typedef typename Superclass::InputImageType   InputImageType;
-  typedef typename Superclass::OutputImageType  OutputImageType;
+  typedef typename Superclass::InputImageType        InputImageType;
+  typedef typename Superclass::OutputImageType       OutputImageType;
+  typedef typename InputImageType::ConstPointer      InputImagePointer;
+  typedef typename OutputImageType::Pointer          OutputImagePointer;
+  typedef typename InputImageType::RegionType        ImageRegionType;
   
   /** Dimension of the input image */
   itkStaticConstMacro( Dimension, unsigned int, 
@@ -88,11 +91,11 @@ public:
    * probability of a pixel belonging to  a particular class. This image has
    * arrays as pixels, the number of elements in the array is the same as the
    * number of classes to be used.  */
-  typedef VectorImage< TPriorPrecisionType, 
-                            Dimension >                   PriorImageType;
-  typedef typename PriorImageType::PixelType              PriorPixelType;
-  typedef typename PriorImageType::Pointer                PriorImagePointer;
-  typedef ImageRegionIterator< PriorImageType >      PriorImageIteratorType;
+  typedef VectorImage< TPriorsPrecisionType, 
+                             Dimension >                  PriorsImageType;
+  typedef typename PriorsImageType::PixelType             PriorsPixelType;
+  typedef typename PriorsImageType::Pointer               PriorsImagePointer;
+  typedef ImageRegionConstIterator< PriorsImageType >     PriorsImageIteratorType;
 
   /** Image Type and Pixel type for the images representing the membership of a
    *  pixel to a particular class. This image has arrays as pixels, the number of 
@@ -100,26 +103,27 @@ public:
   typedef TInputVectorImage                               MembershipImageType;
   typedef typename MembershipImageType::PixelType         MembershipPixelType;
   typedef typename MembershipImageType::Pointer           MembershipImagePointer;
-  typedef ImageRegionIterator< MembershipImageType > MembershipImageIteratorType;
+  typedef ImageRegionConstIterator< MembershipImageType > MembershipImageIteratorType;
 
   /** Image Type and Pixel type for the images representing the Posterior
    * probability of a pixel belonging to  a particular class. This image has
    * arrays as pixels, the number of elements in the array is the same as the
    * number of classes to be used.  */
-  typedef VectorImage< TPosteriorPrecisionType, 
-                            Dimension >                   PosteriorImageType;
-  typedef typename PosteriorImageType::PixelType          PosteriorPixelType;
-  typedef typename PosteriorImageType::Pointer            PosteriorImagePointer;
-  typedef ImageRegionIterator< PosteriorImageType >  PosteriorImageIteratorType;
+  typedef VectorImage< TPosteriorsPrecisionType, 
+                             Dimension >                  PosteriorsImageType;
+  typedef typename PosteriorsImageType::PixelType         PosteriorsPixelType;
+  typedef typename PosteriorsImageType::Pointer           PosteriorsImagePointer;
+  typedef ImageRegionIterator< PosteriorsImageType >      PosteriorsImageIteratorType;
 
   /** Decision rule to use for defining the label */
-  typedef MaximumDecisionRule                        DecisionRuleType;
+  typedef MaximumDecisionRule                             DecisionRuleType;
+  typedef DecisionRuleType::Pointer                       DecisionRulePointer;
 
 
   /** Optional Smoothing filter that will be applied to the Posteriors */
   typedef ImageToImageFilter< 
-                       PosteriorImageType, 
-                       PosteriorImageType >               SmoothingFilterType;
+                       PosteriorsImageType, 
+                       PosteriorsImageType >              SmoothingFilterType;
   typedef typename SmoothingFilterType::Pointer           SmoothingFilterPointer;
 
 
@@ -132,12 +136,14 @@ protected:
   /** Here is where the classification is computed.*/
   virtual void GenerateData();
 
+  /** Allocate Memory for the Output.*/
+  virtual void AllocateOutputs();
+
 
   /** Methods for computing the labeled map for all combinations of conditions */
-  virtual void ComputeNoPriorsNoSmoothing();
-  virtual void ComputeWithPriorsNoSmoothing();
-  virtual void ComputeNoPriorsWithSmoothing();
-  virtual void ComputeWithPriorsWithSmoothing();
+  virtual void ComputeBayesRule();
+  virtual void NormalizeAndSmoothPosteriors();
+  virtual void ClassifyBasedOnPosteriors();
 
 private:
 
