@@ -124,7 +124,7 @@ public:
    * the filter will create ones for you. These default density functions
    * are gaussian density functions centered around the K-means of the 
    * input image.  */
-  virtual void SetMembershipFunction( MembershipFunctionContainerType 
+  virtual void SetMembershipFunctions( MembershipFunctionContainerType 
                                                 * densityFunctionContainer );
   itkGetObjectMacro(  MembershipFunctionContainer, MembershipFunctionContainerType );
 

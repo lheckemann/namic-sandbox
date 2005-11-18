@@ -257,7 +257,7 @@ BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionTy
 template <class TInputImage, class TProbabilityPrecisionType>
 void 
 BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionType>
-::SetMembershipFunction( MembershipFunctionContainerType *membershipFunction )
+::SetMembershipFunctions( MembershipFunctionContainerType *membershipFunction )
 {
   if( m_NumberOfClasses )
     {
