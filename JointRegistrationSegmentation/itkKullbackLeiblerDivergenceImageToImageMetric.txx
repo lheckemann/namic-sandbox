@@ -92,14 +92,16 @@ KullbackLeiblerDivergenceImageToImageMetric<TFixedImage,TMovingImage>
       const RealType fixedValue   = ti.Get();
       this->m_NumberOfPixelsCounted++;
 
-      RealType product = NumericTraits< RealType >::ZeroValue();
+      RealType sumProduct = NumericTraits< RealType >::ZeroValue();
+      RealType sumMoving  = NumericTraits< RealType >::ZeroValue();
+
       for( unsigned int i = 0; i < numberOfClasses; i++)
         {
-        const RealType logMovingValue = log( movingValue[i] );
-        sumLog  += logMovingValue;
-        product += logMovingValue * fixedValue[i]; 
+        sumMoving  += movingValue[i]
+        sumProduct += log( movingValue[i] ) * fixedValue[i]; 
         }
-      measure += product / sumLog;
+
+      measure += sumProduct - log( sum );
       }
 
     ++ti;
