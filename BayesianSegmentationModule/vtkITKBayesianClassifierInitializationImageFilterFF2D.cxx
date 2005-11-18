@@ -1,0 +1,6 @@
+#ifndef __vtkITKBayesianClassifierInitializationImageFilterFF2D__cxx
+#define __vtkITKBayesianClassifierInitializationImageFilterFF2D__cxx
+
+#include "vtkITKBayesianClassifierInitializationImageFilterFF2D.h"
+
+#endif
