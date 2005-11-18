@@ -115,7 +115,7 @@ KullbackLeiblerDivergenceImageToImageMetric<TFixedImage,TMovingImage>
           }
         else
           {
-          sumMoving  += epsilon;
+          sumMoving  += movingValue[i];
           }
         }
 
