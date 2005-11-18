@@ -93,8 +93,8 @@ int main(int argc, char *argv[])
                      extractedComponentImage->GetLargestPossibleRegion() );
     
     const unsigned int componentToExtract = atoi( argv[4] );
-    cit.Begin();
-    it.Begin();
+    cit.GoToBegin();
+    it.GoToBegin();
     while( !cit.IsAtEnd() )
       {
       it.Set(cit.Get()[componentToExtract]);

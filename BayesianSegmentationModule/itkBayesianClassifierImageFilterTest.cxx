@@ -22,6 +22,7 @@
 #include "itkImageFileReader.h"
 #include "itkBayesianClassifierImageFilter.h"
 #include "itkImageFileWriter.h"
+#include "itkGradientAnisotropicDiffusionImageFilter.h"
 
 //int itkBayesianClassifierImageFilterTest(int argc, char* argv[] )
 int main(int argc, char* argv[] )
@@ -30,7 +31,7 @@ int main(int argc, char* argv[] )
   if( argc < 3 ) 
     { 
     std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << " inputImageFile outputImageFile" << std::endl;
+    std::cerr << argv[0] << " inputImageFile outputImageFile [smoothingIterations]" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -63,6 +64,19 @@ int main(int argc, char* argv[] )
 
   filter->SetInput( reader->GetOutput() );
 
+  if( argv[3] )
+    {
+    filter->SetNumberOfSmoothingIterations( atoi( argv[3] ));
+    typedef ClassifierFilterType::ExtractedComponentImageType ExtractedComponentImageType;
+    typedef itk::GradientAnisotropicDiffusionImageFilter<
+      ExtractedComponentImageType, ExtractedComponentImageType >  SmoothingFilterType;
+    SmoothingFilterType::Pointer smoother = SmoothingFilterType::New();
+    smoother->SetNumberOfIterations( 1 );
+    smoother->SetTimeStep( 0.125 );
+    smoother->SetConductanceParameter( 3 );  
+    filter->SetSmoothingFilter( smoother );
+    }
+    
 
 
   // SET FILTER'S PRIOR PARAMETERS
@@ -98,7 +112,7 @@ int main(int argc, char* argv[] )
     }
   catch( itk::ExceptionObject & excp )
     {
-    std::cerr << "Exception catched : " << std::endl;
+    std::cerr << "Exception caught: " << std::endl;
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;
     }

@@ -47,16 +47,15 @@ template < class TInputVectorImage, class TLabelsType=unsigned char,
            class TPosteriorsPrecisionType=double, class TPriorsPrecisionType=double >
 class ITK_EXPORT BayesianClassifierImageFilter :
     public ImageToImageFilter< 
-              TInputVectorImage,
-              VectorImage< TLabelsType, 
-                           ::itk::GetImageDimension< TInputVectorImage >::ImageDimension > >
+              TInputVectorImage, Image< TLabelsType, 
+              ::itk::GetImageDimension< TInputVectorImage >::ImageDimension > >
 {
 public:
   /** Standard class typedefs. */
   typedef BayesianClassifierImageFilter                    Self;
   typedef ImageToImageFilter< 
               TInputVectorImage,
-              VectorImage< TLabelsType, 
+              Image< TLabelsType, 
                            ::itk::GetImageDimension< 
                                  TInputVectorImage >::ImageDimension > > Superclass;
   typedef SmartPointer<Self>   Pointer;
@@ -119,14 +118,25 @@ public:
   typedef MaximumDecisionRule                             DecisionRuleType;
   typedef DecisionRuleType::Pointer                       DecisionRulePointer;
 
-
+  /** An image from a single component of the Posterior */
+  typedef itk::Image< TPosteriorsPrecisionType, Dimension > 
+                                                          ExtractedComponentImageType;
+  
   /** Optional Smoothing filter that will be applied to the Posteriors */
   typedef ImageToImageFilter< 
-                       PosteriorsImageType, 
-                       PosteriorsImageType >              SmoothingFilterType;
+                   ExtractedComponentImageType, 
+                   ExtractedComponentImageType  >         SmoothingFilterType;
   typedef typename SmoothingFilterType::Pointer           SmoothingFilterPointer;
 
+  /** Set/ Get macros for the smoothing filter that may optionally be applied
+   * to the posterior image */
+  void SetSmoothingFilter( SmoothingFilterType * );
+  itkGetMacro( SmoothingFilter, SmoothingFilterPointer );
 
+  /** Number of iterations to apply the smoothing filter */
+  itkSetMacro( NumberOfSmoothingIterations, unsigned int );
+  itkGetMacro( NumberOfSmoothingIterations, unsigned int );
+  
 protected:
 
   BayesianClassifierImageFilter();
@@ -144,6 +154,7 @@ protected:
   virtual void ComputeBayesRule();
   virtual void NormalizeAndSmoothPosteriors();
   virtual void ClassifyBasedOnPosteriors();
+  PosteriorsImageType *GetPosteriorImage();
 
 private:
 
@@ -158,6 +169,9 @@ private:
 
   /** Pointer to optional Smoothing filter */
   SmoothingFilterPointer  m_SmoothingFilter;
+
+  /** Number of iterations to apply the smoothing filter */
+  unsigned int m_NumberOfSmoothingIterations;
 
 };
 
