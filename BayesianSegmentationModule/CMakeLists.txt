@@ -12,19 +12,13 @@ INCLUDE_DIRECTORIES(
   ${BayesianSegmentationModule_SOURCE_DIR}
   )
 
-ADD_EXECUTABLE(BayesianSegmentationModule 
-  KnowledgeBasedSegmentation.cxx 
-  )
-
-TARGET_LINK_LIBRARIES(BayesianSegmentationModule ITKStatistics ITKIO ITKCommon ITKNumerics)
-
-
+# Test for the Bayesian Classifier
 ADD_EXECUTABLE(itkBayesianClassifierImageFilterTest 
   itkBayesianClassifierImageFilterTest.cxx 
   )
 TARGET_LINK_LIBRARIES(itkBayesianClassifierImageFilterTest ITKStatistics ITKIO ITKCommon ITKNumerics)
 
-# test for the bayesian classfier initializer
+# Test for the Bayesian Classifier Initialization
 ADD_EXECUTABLE(itkBayesianClassifierInitializationImageFilterTest
   itkBayesianClassifierInitializationImageFilterTest.cxx
   )
