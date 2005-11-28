@@ -125,13 +125,12 @@ BayesianClassifierImageFilter<TInputVectorImage, TLabelsType,
                               TPosteriorsPrecisionType, TPriorsPrecisionType >
 ::AllocateOutputs()
 {
-  this->Superclass::AllocateOutputs();
-
   const InputImageType * membershipImage = this->GetInput();
 
   this->GetOutput()->SetRegions( membershipImage->GetBufferedRegion() );
   this->GetOutput()->SetSpacing( membershipImage->GetSpacing() );
   this->GetOutput()->SetOrigin(  membershipImage->GetOrigin() );
+  this->GetOutput()->Allocate();
 
   // The first output is the Image of Labels, 
   // The second output is the image of Posteriors.
