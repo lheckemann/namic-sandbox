@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkBayesianClassifierInitializationImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2005/03/14 21:47:51 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2005/12/01 20:39:26 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -49,18 +49,21 @@ namespace itk
  * image. In other words, the default behaviour of the filter is to generate
  * gaussian mixture model for the input image.
  *
- *
  * \par Inputs and Outputs
  * The filter takes a scalar Image as input and generates a VectorImage, each
  * component \f[c\f] of which represents memberships of each pixel to the 
  * class \f[c\f]
  * 
+ * \par Template parameters
  * This filter is templated over the input image type and the data type used
  * to represent the probabilities (defaults to float).
  * 
  * \author John Melonakos, Georgia Tech
  *
- * \ingroup IntensityImageFilters  Multithreaded
+ * \sa BayesianClassifierImageFilter
+ * \sa VectorImage
+ * 
+ * \ingroup ClassificationFilters 
  */
 template< class TInputImage, class TProbabilityPrecisionType=float >
 class ITK_EXPORT BayesianClassifierInitializationImageFilter :

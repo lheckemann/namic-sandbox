@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkBayesianClassifierInitializationImageFilter.txx,v $
   Language:  C++
-  Date:      $Date: 2005/03/08 20:29:20 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2005/12/01 20:39:26 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.

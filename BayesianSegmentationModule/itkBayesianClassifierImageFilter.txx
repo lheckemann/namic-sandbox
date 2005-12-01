@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkBayesianClassifierImageFilter.txx,v $
   Language:  C++
-  Date:      $Date: 2005/03/08 20:29:20 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2005/12/01 20:36:45 $
+  Version:   $Revision: 1.3 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -62,6 +62,7 @@ BayesianClassifierImageFilter<TInputVectorImage, TLabelsType,
   os << indent << "User provided priors =  " << m_UserProvidedPriors << std::endl;
   os << indent << "User provided smooting filter =  " << m_UserProvidedSmoothingFilter << std::endl;
   os << indent << "Smooting filter pointer =  " << m_SmoothingFilter.GetPointer() << std::endl;
+  os << indent << "Number of smoothing iterations =  " << m_NumberOfSmoothingIterations << std::endl;
 
 }
 
