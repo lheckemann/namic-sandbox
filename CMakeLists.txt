@@ -43,6 +43,7 @@ SUBDIRS(
   SpectralClustering
   SlicerTractClusteringImplementation
   ProcessingModulesAndVisualizationToolsForShapeAnalysis
+  Distributions
   )
 
 # Add the testing directories
