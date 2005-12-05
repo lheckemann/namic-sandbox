@@ -56,7 +56,7 @@ int main(int, char* [] )
   std::cout << "Tolerance used for test: ";
   std::cout.width(20);
   std::cout.precision(15);
-  std::cout << std::left << tol << std::endl;
+  std::cout <<  tol << std::endl;
   distributionFunction->SetDegreesOfFreedom( 1 );
   for (i = 0; i <= 5; ++i)
     {
@@ -68,18 +68,18 @@ int main(int, char* [] )
 
     std::cout << "Chi-Square cdf at ";
     std::cout.width(2);
-    std::cout << std::right << x << " with ";
+    std::cout <<  x << " with ";
     std::cout.width(2);
-    std::cout << std::right << distributionFunction->GetDegreesOfFreedom()
+    std::cout <<  distributionFunction->GetDegreesOfFreedom()
               << " degrees of freedom = ";
     std::cout.width(20);
-    std::cout << std::left << value
+    std::cout <<  value
               << ", expected value = ";
     std::cout.width(20);
-    std::cout << std::left << expected1[i]
+    std::cout <<  expected1[i]
               << ", error = ";
     std::cout.width(22);
-    std::cout << std::left << diff;
+    std::cout <<  diff;
     if (diff < tol)
       {
       std::cout << ", Passed." << std::endl;
@@ -97,7 +97,7 @@ int main(int, char* [] )
   std::cout << "Tolerance used for test: ";
   std::cout.width(20);
   std::cout.precision(15);
-  std::cout << std::left << tol << std::endl;
+  std::cout <<  tol << std::endl;
   for (i = 0; i <= 5; ++i)
     {
 
@@ -107,18 +107,18 @@ int main(int, char* [] )
 
     std::cout << "Chi-Square cdf at ";
     std::cout.width(20);
-    std::cout << std::right << expected1[i] << " with ";
+    std::cout <<  expected1[i] << " with ";
     std::cout.width(2);
-    std::cout << std::right << distributionFunction->GetDegreesOfFreedom()
+    std::cout <<  distributionFunction->GetDegreesOfFreedom()
               << " degrees of freedom = ";
     std::cout.width(22);
-    std::cout << std::left << value
+    std::cout <<  value
               << ", expected value = ";
     std::cout.width(22);
-    std::cout << std::left << double(i)
+    std::cout <<  double(i)
               << ", error = ";
     std::cout.width(22);
-    std::cout << std::left << diff;
+    std::cout <<  diff;
     if (diff < tol)
       {
       std::cout << ", Passed." << std::endl;
@@ -155,7 +155,7 @@ int main(int, char* [] )
   std::cout << "Tolerance used for test: ";
   std::cout.width(20);
   std::cout.precision(15);
-  std::cout << std::left << tol << std::endl;
+  std::cout <<  tol << std::endl;
   distributionFunction->SetDegreesOfFreedom( 11 );
   for (i = 0; i <= 10; ++i)
     {
@@ -167,18 +167,18 @@ int main(int, char* [] )
 
     std::cout << "Chi-Square cdf at ";
     std::cout.width(2);
-    std::cout << std::right << x << " with ";
+    std::cout <<  x << " with ";
     std::cout.width(2);
-    std::cout << std::right << distributionFunction->GetDegreesOfFreedom()
+    std::cout <<  distributionFunction->GetDegreesOfFreedom()
               << " degrees of freedom = ";
     std::cout.width(20);
-    std::cout << std::left << value
+    std::cout <<  value
               << ", expected value = ";
     std::cout.width(20);
-    std::cout << std::left << expected11[i]
+    std::cout <<  expected11[i]
               << ", error = ";
     std::cout.width(22);
-    std::cout << std::left << diff;
+    std::cout <<  diff;
     if (diff < tol)
       {
       std::cout << ", Passed." << std::endl;
@@ -196,7 +196,7 @@ int main(int, char* [] )
   std::cout << "Tolerance used for test: ";
   std::cout.width(20);
   std::cout.precision(15);
-  std::cout << std::left << tol << std::endl;
+  std::cout <<  tol << std::endl;
   for (i = 0; i <= 10; ++i)
     {
 
@@ -206,18 +206,18 @@ int main(int, char* [] )
 
     std::cout << "Chi-Square cdf at ";
     std::cout.width(20);
-    std::cout << std::right << expected11[i] << " with ";
+    std::cout <<  expected11[i] << " with ";
     std::cout.width(2);
-    std::cout << std::right << distributionFunction->GetDegreesOfFreedom()
+    std::cout <<  distributionFunction->GetDegreesOfFreedom()
               << " degrees of freedom = ";
     std::cout.width(22);
-    std::cout << std::left << value
+    std::cout <<  value
               << ", expected value = ";
     std::cout.width(22);
-    std::cout << std::left << double(2*i)
+    std::cout <<  double(2*i)
               << ", error = ";
     std::cout.width(22);
-    std::cout << std::left << diff;
+    std::cout <<  diff;
     if (diff < tol)
       {
       std::cout << ", Passed." << std::endl;
@@ -248,7 +248,7 @@ int main(int, char* [] )
   std::cout << "Tolerance used for test: ";
   std::cout.width(20);
   std::cout.precision(15);
-  std::cout << std::left << tol << std::endl;
+  std::cout <<  tol << std::endl;
   distributionFunction->SetDegreesOfFreedom( 100 );
   for (i = 0; i <= 5; ++i)
     {
@@ -260,18 +260,18 @@ int main(int, char* [] )
 
     std::cout << "Chi-Square cdf at ";
     std::cout.width(2);
-    std::cout << std::right << x << " with ";
+    std::cout <<  x << " with ";
     std::cout.width(2);
-    std::cout << std::right << distributionFunction->GetDegreesOfFreedom()
+    std::cout <<  distributionFunction->GetDegreesOfFreedom()
               << " degrees of freedom = ";
     std::cout.width(20);
-    std::cout << std::left << value
+    std::cout <<  value
               << ", expected value = ";
     std::cout.width(20);
-    std::cout << std::left << expected100[i]
+    std::cout <<  expected100[i]
               << ", error = ";
     std::cout.width(22);
-    std::cout << std::left << diff;
+    std::cout <<  diff;
     if (diff < tol)
       {
       std::cout << ", Passed." << std::endl;
@@ -289,7 +289,7 @@ int main(int, char* [] )
   std::cout << "Tolerance used for test: ";
   std::cout.width(20);
   std::cout.precision(15);
-  std::cout << std::left << tol << std::endl;
+  std::cout <<  tol << std::endl;
   for (i = 0; i <= 5; ++i)
     {
 
@@ -299,18 +299,18 @@ int main(int, char* [] )
 
     std::cout << "Chi-Square cdf at ";
     std::cout.width(20);
-    std::cout << std::right << expected100[i] << " with ";
+    std::cout <<  expected100[i] << " with ";
     std::cout.width(2);
-    std::cout << std::right << distributionFunction->GetDegreesOfFreedom()
+    std::cout <<  distributionFunction->GetDegreesOfFreedom()
               << " degrees of freedom = ";
     std::cout.width(22);
-    std::cout << std::left << value
+    std::cout <<  value
               << ", expected value = ";
     std::cout.width(22);
-    std::cout << std::left << double(50+20*i)
+    std::cout <<  double(50+20*i)
               << ", error = ";
     std::cout.width(22);
-    std::cout << std::left << diff;
+    std::cout <<  diff;
     if (diff < tol)
       {
       std::cout << ", Passed." << std::endl;

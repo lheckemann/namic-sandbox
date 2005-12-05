@@ -41,7 +41,7 @@ int main(int, char* [] )
   std::cout << "Tolerance used for test: ";
   std::cout.width(22);
   std::cout.precision(15);
-  std::cout << std::left << tol << std::endl;
+  std::cout <<  tol << std::endl;
   std::cout << std::endl;
 
   // expected values for Gaussian cdf with mean 0 and variance 1 at
@@ -69,15 +69,15 @@ int main(int, char* [] )
 
     std::cout << "Gaussian cdf at ";
     std::cout.width(2);
-    std::cout << std::right << x << " = ";
+    std::cout <<  x << " = ";
     std::cout.width(22);
-    std::cout << std::left << value
+    std::cout <<  value
               << ", expected value = ";
     std::cout.width(22);
-    std::cout << std::left << expected1[i+5]
+    std::cout <<  expected1[i+5]
               << ", error = ";
     std::cout.width(22);
-    std::cout << std::left << diff;
+    std::cout <<  diff;
     if (diff < tol)
       {
       std::cout << ", Passed." << std::endl;
@@ -100,15 +100,15 @@ int main(int, char* [] )
 
     std::cout << "Inverse Gaussian cdf at ";
     std::cout.width(22);
-    std::cout << std::left << expected1[i+5] << " = ";
+    std::cout <<  expected1[i+5] << " = ";
     std::cout.width(22);
-    std::cout << std::left << value
+    std::cout <<  value
               << ", expected value = ";
     std::cout.width(22);
-    std::cout << std::right << double(i)
+    std::cout <<  double(i)
               << ", error = ";
     std::cout.width(22);
-    std::cout << std::left << diff;
+    std::cout <<  diff;
     if (diff < tol)
       {
       std::cout << ", Passed." << std::endl;
@@ -154,15 +154,15 @@ int main(int, char* [] )
 
     std::cout << "Gaussian cdf at ";
     std::cout.width(2);
-    std::cout << std::right << x << " = ";
+    std::cout <<  x << " = ";
     std::cout.width(22);
-    std::cout << std::left << value
+    std::cout <<  value
               << ", expected value = ";
     std::cout.width(22);
-    std::cout << std::left << expected2[i+5]
+    std::cout <<  expected2[i+5]
               << ", error = ";
     std::cout.width(22);
-    std::cout << std::left << diff;
+    std::cout <<  diff;
     if (diff < tol)
       {
       std::cout << ", Passed." << std::endl;
@@ -185,15 +185,15 @@ int main(int, char* [] )
 
     std::cout << "Inverse Gaussian cdf at ";
     std::cout.width(22);
-    std::cout << std::left << expected2[i+5] << " = ";
+    std::cout <<  expected2[i+5] << " = ";
     std::cout.width(22);
-    std::cout << std::left << value
+    std::cout <<  value
               << ", expected value = ";
     std::cout.width(22);
-    std::cout << std::right << double(i)
+    std::cout <<  double(i)
               << ", error = ";
     std::cout.width(22);
-    std::cout << std::left << diff;
+    std::cout <<  diff;
     if (diff < tol)
       {
       std::cout << ", Passed." << std::endl;
