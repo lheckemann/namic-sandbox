@@ -8,6 +8,20 @@
 
 \documentclass{InsightArticle}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  hyperref should be the last package to be loaded.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage[dvips,
+bookmarks,
+bookmarksopen,
+backref,
+colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
+]{hyperref}
+
+
 %  This is a template for short or medium-size Insight-related documents, 
 % mostly notably the series of HOWTOs, but it can be used for any
 % document you like.   
@@ -59,6 +73,16 @@ You have to ask?  It's the only thing to do to your sprockets!
 
 Insight is an excellent language from which to spammify your sprockets
 since you can do it on any platform.
+
+For example, here is some Insight code that illustrates our point
+
+\small
+\begin{verbatim}
+typedef itk::Image< unsigned char, 3 > ImageType;
+
+ImageType::Pointer image = ImageType::New();
+\end{verbatim}
+\normalsize
 
 
 \section{Software Requirements}
