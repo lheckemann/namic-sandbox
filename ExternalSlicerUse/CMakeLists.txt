@@ -1,0 +1,8 @@
+PROJECT(MySlicerTest)
+
+FIND_PACKAGE(SlicerBase REQUIRED)
+INCLUDE("${SLICERBASE_USE_FILE}")
+
+ADD_EXECUTABLE(mySlicerTest mySlicerTest.cxx)
+TARGET_LINK_LIBRARIES(mySlicerTest vtkSlicerBase)
+
