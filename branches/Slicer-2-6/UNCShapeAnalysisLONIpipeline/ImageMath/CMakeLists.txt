@@ -1,0 +1,6 @@
+
+NeuroLib_USE_ITK()
+
+ADD_EXECUTABLE( ImageMath ImageMath.cxx)
+
+TARGET_LINK_LIBRARIES( ImageMath ${ITK_LIBRARIES} )

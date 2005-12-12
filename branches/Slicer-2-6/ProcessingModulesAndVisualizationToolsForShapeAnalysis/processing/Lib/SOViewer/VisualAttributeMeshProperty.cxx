@@ -1,0 +1,19 @@
+// VisualAttributeMeshProperty.txx: implementation of the VisualAttributeMeshProperty class.
+//
+//////////////////////////////////////////////////////////////////////
+
+#include "VisualAttributeMeshProperty.h"
+
+//////////////////////////////////////////////////////////////////////
+// Construction/Destruction
+//////////////////////////////////////////////////////////////////////
+
+VisualAttributeMeshProperty::VisualAttributeMeshProperty()
+{
+
+}
+
+VisualAttributeMeshProperty::~VisualAttributeMeshProperty()
+{
+
+}
