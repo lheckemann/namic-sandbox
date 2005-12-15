@@ -49,6 +49,7 @@ ADD_LIBRARY(Distributions
   d_int.c
   d_mod.c
  )
+TARGET_LINK_LIBRARIES(Distributions ITKCommon)
 
 ADD_TEST(itkChiSquareDistributionTest ${EXECUTABLE_OUTPUT_PATH}/itkChiSquareDistributionTest itkChiSquareDistributionTest)
 ADD_TEST(itkGaussianDistributionTest ${EXECUTABLE_OUTPUT_PATH}/itkGaussianDistributionTest itkGaussianDistributionTest)
