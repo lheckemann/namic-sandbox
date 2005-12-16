@@ -38,11 +38,8 @@ ENDIF (USE_VTK_FILE)
 
 # The NAMICSandBox Library and any Utilities that it requires
 SUBDIRS(
-  DiffusionTensorImaging 
-  NonRigidRegistrationForEchoPlanarImaging
   SpectralClustering
   SlicerTractClusteringImplementation
-  ProcessingModulesAndVisualizationToolsForShapeAnalysis
   Distributions
   )
 
