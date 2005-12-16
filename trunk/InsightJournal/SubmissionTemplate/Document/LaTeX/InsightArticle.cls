@@ -69,6 +69,18 @@
 % need to do one of these....
 \newcommand{\itk@doHorizontalRule}{\rule{\textwidth}{1pt}}
 
+% Define command to make reference to on-line Doxygen documentation
+\newcommand{\doxygen}[1]{
+\href{http://www.itk.org/Doxygen/html/classitk_1_1#1.html}{\code{itk::#1}}}  
+
+% Define command to make reference to on-line Doxygen documentation
+\newcommand{\subdoxygen}[2]{
+\href{http://www.itk.org/Doxygen/html/classitk_1_1#1_1_1#2.html}{\code{itk::#1::#2}}}  
+
+% Define command for the standard comment introducing classes with similar functionalities
+\newcommand{\relatedClasses}{
+\textbf{The following classes provide similar functionality:}}
+
 
 % Change the title page to look a bit better, and fit in with the
 % fncychap ``Bjarne'' style a bit better.
