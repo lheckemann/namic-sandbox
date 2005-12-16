@@ -60,7 +60,7 @@
 % This gives us all the Insight-specific markup that we really want.
 % This should come last.  Do not change this.
 %
-\RequirePackage{Insight}
+\RequirePackage{InsightJournal}
 
 % support for module synopsis sections:
 \newcommand{\itk@ModSynopsisFilename}{\jobname.syn}
