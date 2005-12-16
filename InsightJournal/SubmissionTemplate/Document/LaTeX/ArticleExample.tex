@@ -22,9 +22,8 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 ]{hyperref}
 
 
-%  This is a template for short or medium-size Insight-related documents, 
-% mostly notably the series of HOWTOs, but it can be used for any
-% document you like.   
+%  This is a template for Papers to the Insight Journal. 
+%  It is comparable to a technical report format.
 
 % The title should be descriptive enough for people to be able to find
 % the relevant document. 
@@ -52,29 +51,69 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 % scope of the document.
 \begin{abstract}
 \noindent
-This document describes how to spammify sprockets.  It is a useful
-example of a Insight HOWTO document.  It is not dependent on any
-particular sprocket implementation, and includes a Insight-based
-implementation in the \module{sprunkit} module.
+This document describes a new algorithm implemented using the Insight Toolkit
+ITK \url{www.itk.org}.  The code of the algorithm is written following the 
+ITK CodingStyle as described in the directory
+
+\code{Insight/Documentation/Style.pdf}
+
+This paper is accompanied with the source code, input data, parameters and
+output data that the authors used for validating the algorithm described in
+this paper. This adheres to the fundamental principle that scientific
+publications must facilitate reproducibility of the reported results.
 \end{abstract}
 
 \tableofcontents
 
-Spammifying sprockets from Insight is both fun and entertaining.
-Applying the techniques described here, you can also fill your hard
-disk quite effectively.
+Using filters from the Insight Toolkit, we develop an algorithm for detecting
+and tracking thje movement of solar spots. As it is widely known, celestial
+objects such as the sun are ethereal and perfect, and therefore can not harbor
+artifacts such as spots. However, observations performed with our open source
+telescope have revealed the presence of such spots. The spots seems to continuously change positions on the solar surface. 
 
-\section{What is Sprocket Spammification?}
+Automatic detection and tracking of the solar spot movements are of fundamental
+importance for allowing the authors to dedicate more time to perfectioning
+optical instruments and less time to the supervised acquisition of reliable
+data.
 
-You have to ask?  It's the only thing to do to your sprockets!
+The reader should be warned that direct observation of the sun without proper
+equipment may result in personal injury, loss of vision and burned brains.
+
+\section{Principles of Solar Spot Detection}
+
+Solar spots can be classified as the darkest objects present on an image of the
+solar surface. Algorithms such as watersheds, statistical classification and
+mathematical morphology are suitable for automatically detecting these features
+in images of the solar surface.
 
 
-\section{Why Use Insight?}
+\section{Why Image Processing Papers must include Source Code, Images and Parameters }
 
-Insight is an excellent language from which to spammify your sprockets
-since you can do it on any platform.
+Modern Image Processing is most of the time performed with computers. An
+attempt to replicate the results of an algorithm described in a paper entails
+to reimplement the algorithm into source code. This task is far from trivial
+and consumes months of work. The final result can not be guarranted to be
+equivalent to the actual code that was used for testing the algorithm when the
+paper was written, and therefore it cannot be considered a baseline for
+comparing the algoritm with other algorithms availble to the reader.
 
-For example, here is some Insight code that illustrates our point
+Papers to the Insight Journal are written in the spirit of facilitating and
+encouraging readers to perform replication of work. In this sense, the Insight
+Journal is compliant with essential concepts of the scientific method.
+
+Since the code is included with the paper, less time has to be spent in
+describing the code, and more time can be used for describing how to use the
+algorithm in particular types of images.
+
+For questions on the basis of the scientific method the reader is refered to
+\cite{Popper2002,Popper1971}.
+
+
+
+\section{Pointing to other material}
+
+The format of this LaTeX file, allows authors to include code snippets, like
+the following
 
 \small
 \begin{verbatim}
@@ -84,6 +123,17 @@ ImageType::Pointer image = ImageType::New();
 \end{verbatim}
 \normalsize
 
+and to cite the online documentation of the Insitght Toolkit, for example, the
+link to the doxygen documentation of the ImageToImageFilter
+
+\doxygen{ImageToImageFilter}
+
+LaTeX macros are also available for typesetting code in familiar courier fonts.
+Like the following method of an ITK class.
+
+\code{SetNumberOfIterations()}
+
+
 
 \section{Software Requirements}
 
@@ -92,13 +142,15 @@ You need to have the following software installed:
 % The {itemize} environment uses a bullet for each \item.  If you want the 
 % \item's numbered, use the {enumerate} environment instead.
 \begin{itemize}
-  \item  Insight 1.9.
-  \item  Some sprocket definition files.
-  \item  At least one sprocket system implementation.
+  \item  Insight Toolkit 2.4.
+  \item  CMake 2.2
 \end{itemize}
 
-Note that the \module{sprunkit} is provided with this package and
-implements ActiveSprockets in Insight.
+Note that other versions of the Insight Toolkit are also available in the
+testing framework of the Insight Journal. Please refere to the following page
+for details
+
+\url{http://www.insightsoftwareconsortium.org/wiki/index.php/IJ-Testing-Environment}
 
 
 % The preceding sections will have been written in a gentler,
@@ -127,6 +179,16 @@ To create an appendix in a Insight HOWTO document, ....
 
 Just add another \section{}, but don't say \appendix again.
 \end{verbatim}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Insert the bibliography using BibTeX
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\bibliographystyle{plain}
+\bibliography{Insight}
 
 
 \end{document}
