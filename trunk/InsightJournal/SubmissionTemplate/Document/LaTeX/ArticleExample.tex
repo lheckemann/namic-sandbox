@@ -8,6 +8,7 @@
 
 \documentclass{InsightArticle}
 
+\usepackage[dvips]{graphicx}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -181,6 +182,25 @@ To create an appendix in a Insight HOWTO document, ....
 
 Just add another \section{}, but don't say \appendix again.
 \end{verbatim}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%  Example on how to insert a figure
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}
+\center
+\includegraphics[width=0.8\textwidth]{RegistrationComponentsDiagram.eps}
+\itkcaption[Registration Framework Components]{The basic components of the
+registration framework are two input images, a transform, a metric, an
+interpolator and an optimizer.}
+\label{fig:RegistrationComponents}
+\end{figure}
+
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
