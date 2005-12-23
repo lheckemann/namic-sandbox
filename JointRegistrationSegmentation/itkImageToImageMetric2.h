@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImageToImageMetric.h,v $
+  Module:    $RCSfile: itkImageToImageMetric2.h,v $
   Language:  C++
   Date:      $Date: 2004/12/21 22:47:26 $
   Version:   $Revision: 1.22 $
@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkImageToImageMetric_h
-#define __itkImageToImageMetric_h
+#ifndef __itkImageToImageMetric2_h
+#define __itkImageToImageMetric2_h
 
 #include "itkImageBase.h"
 #include "itkTransform.h"
@@ -27,7 +27,7 @@
 namespace itk
 {
   
-/** \class ImageToImageMetric
+/** \class ImageToImageMetric2
  * \brief Computes similarity between regions of two images.
  *
  * This Class is templated over the type of the two input images.
@@ -47,11 +47,11 @@ namespace itk
  */
 
 template <class TFixedImage,  class TMovingImage> 
-class ITK_EXPORT ImageToImageMetric : public SingleValuedCostFunction 
+class ITK_EXPORT ImageToImageMetric2 : public SingleValuedCostFunction 
 {
 public:
   /** Standard class typedefs. */
-  typedef ImageToImageMetric              Self;
+  typedef ImageToImageMetric2              Self;
   typedef SingleValuedCostFunction        Superclass;
   typedef SmartPointer<Self>              Pointer;
   typedef SmartPointer<const Self>        ConstPointer;
@@ -60,7 +60,7 @@ public:
   typedef Superclass::ParametersValueType CoordinateRepresentationType;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageToImageMetric, SingleValuedCostFunction);
+  itkTypeMacro(ImageToImageMetric2, SingleValuedCostFunction);
 
   /**  Type of the moving Image. */
   typedef TMovingImage                               MovingImageType;
@@ -89,6 +89,9 @@ public:
   typedef typename TransformType::ParametersType     TransformParametersType;
   typedef typename TransformType::JacobianType       TransformJacobianType;
 
+  /** Type used for numerical computations */
+  typedef typename NumericTraits<MovingImagePixelType>::RealType RealType;
+  
   /**  Type of the Interpolator Base class */
   typedef InterpolateImageFunction<
     MovingImageType,
@@ -176,8 +179,8 @@ public:
   virtual void Initialize(void) throw ( ExceptionObject );
 
 protected:
-  ImageToImageMetric();
-  virtual ~ImageToImageMetric() {};
+  ImageToImageMetric2();
+  virtual ~ImageToImageMetric2() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   mutable unsigned long       m_NumberOfPixelsCounted;
@@ -192,7 +195,7 @@ protected:
   mutable MovingImageMaskPointer  m_MovingImageMask;
 
 private:
-  ImageToImageMetric(const Self&); //purposely not implemented
+  ImageToImageMetric2(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
   
   FixedImageRegionType        m_FixedImageRegion;  
@@ -203,7 +206,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkImageToImageMetric.txx"
+#include "itkImageToImageMetric2.txx"
 #endif
 
 #endif

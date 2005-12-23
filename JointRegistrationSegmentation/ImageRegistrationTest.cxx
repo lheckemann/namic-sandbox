@@ -41,16 +41,11 @@
 //  Software Guide : EndCommandLineArgs
 
 
-#include "itkImageRegistrationMethod.h"
+#include "itkImageRegistrationMethod2.h"
 #include "itkKullbackLeiblerDivergenceImageToImageMetric.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkRegularStepGradientDescentOptimizer.h"
-#include "itkImage.h"
-
-
-#include "itkCenteredTransformInitializer.h"
-
-
+#include "itkVectorImage.h"
 
 
 #include "itkAffineTransform.h"
@@ -58,11 +53,6 @@
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-
-#include "itkResampleImageFilter.h"
-#include "itkCastImageFilter.h"
-#include "itkSubtractImageFilter.h"
-#include "itkRescaleIntensityImageFilter.h"
 
 
 //
@@ -133,8 +123,8 @@ int main( int argc, char *argv[] )
   const    unsigned int    Dimension = 2;
   typedef  float           PixelType;
 
-  typedef itk::Image< PixelType, Dimension >  FixedImageType;
-  typedef itk::Image< PixelType, Dimension >  MovingImageType;
+  typedef itk::VectorImage< PixelType, Dimension >  FixedImageType;
+  typedef itk::VectorImage< PixelType, Dimension >  MovingImageType;
 
 
 
@@ -150,7 +140,7 @@ int main( int argc, char *argv[] )
   typedef itk:: LinearInterpolateImageFunction< 
                                     MovingImageType,
                                     double          >    InterpolatorType;
-  typedef itk::ImageRegistrationMethod< 
+  typedef itk::ImageRegistrationMethod2< 
                                     FixedImageType, 
                                     MovingImageType >    RegistrationType;
 
@@ -166,6 +156,9 @@ int main( int argc, char *argv[] )
 
 
   TransformType::Pointer  transform = TransformType::New();
+
+  transform->SetIdentity();
+ 
   registration->SetTransform( transform );
 
 
@@ -184,18 +177,6 @@ int main( int argc, char *argv[] )
   registration->SetFixedImageRegion( 
      fixedImageReader->GetOutput()->GetBufferedRegion() );
 
-
-
-  typedef itk::CenteredTransformInitializer< 
-                                    TransformType, 
-                                    FixedImageType, 
-                                    MovingImageType >  TransformInitializerType;
-  TransformInitializerType::Pointer initializer = TransformInitializerType::New();
-  initializer->SetTransform(   transform );
-  initializer->SetFixedImage(  fixedImageReader->GetOutput() );
-  initializer->SetMovingImage( movingImageReader->GetOutput() );
-  initializer->MomentsOn();
-  initializer->InitializeTransform();
 
 
 
@@ -311,103 +292,6 @@ int main( int argc, char *argv[] )
   std::cout << " Scale 2         = " << svd.W(1)                 << std::endl;
   std::cout << " Angle (degrees) = " << angle * 45.0 / atan(1.0) << std::endl;
   
-
-
-
-  //  The following code is used to dump output images to files.
-  //  They illustrate the final results of the registration.
-  //  We will resample the moving image and write out the difference image
-  //  before and after registration. We will also rescale the intensities of the
-  //  difference images, so that they look better!
-  typedef itk::ResampleImageFilter< 
-                            MovingImageType, 
-                            FixedImageType >    ResampleFilterType;
-
-  TransformType::Pointer finalTransform = TransformType::New();
-
-  finalTransform->SetCenter( transform->GetCenter() );
-  finalTransform->SetParameters( finalParameters );
-
-  ResampleFilterType::Pointer resampler = ResampleFilterType::New();
-
-  resampler->SetTransform( finalTransform );
-  resampler->SetInput( movingImageReader->GetOutput() );
-
-  FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
-
-  resampler->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
-  resampler->SetOutputOrigin(  fixedImage->GetOrigin() );
-  resampler->SetOutputSpacing( fixedImage->GetSpacing() );
-  resampler->SetDefaultPixelValue( 100 );
-  
-  typedef  unsigned char  OutputPixelType;
-
-  typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
-  
-  typedef itk::CastImageFilter< 
-                        FixedImageType,
-                        OutputImageType > CastFilterType;
-                    
-  typedef itk::ImageFileWriter< OutputImageType >  WriterType;
-
-
-  WriterType::Pointer      writer =  WriterType::New();
-  CastFilterType::Pointer  caster =  CastFilterType::New();
-
-
-  writer->SetFileName( argv[3] );
-
-
-  caster->SetInput( resampler->GetOutput() );
-  writer->SetInput( caster->GetOutput()   );
-  writer->Update();
-
-
-  typedef itk::SubtractImageFilter< 
-                                  FixedImageType, 
-                                  FixedImageType, 
-                                  FixedImageType > DifferenceFilterType;
-
-  DifferenceFilterType::Pointer difference = DifferenceFilterType::New();
-
-  difference->SetInput1( fixedImageReader->GetOutput() );
-  difference->SetInput2( resampler->GetOutput() );
-
-  WriterType::Pointer writer2 = WriterType::New();
-  
-  typedef itk::RescaleIntensityImageFilter< 
-                                  FixedImageType, 
-                                  OutputImageType >   RescalerType;
-
-  RescalerType::Pointer intensityRescaler = RescalerType::New();
-
-  intensityRescaler->SetInput( difference->GetOutput() );
-  intensityRescaler->SetOutputMinimum(   0 );
-  intensityRescaler->SetOutputMaximum( 255 );
-  
-  writer2->SetInput( intensityRescaler->GetOutput() );  
-  resampler->SetDefaultPixelValue( 1 );
-  
-  // Compute the difference image between the 
-  // fixed and resampled moving image.
-  if( argc > 5 )
-    {
-    writer2->SetFileName( argv[5] );
-    writer2->Update();
-    }
-
-
-  typedef itk::IdentityTransform< double, Dimension > IdentityTransformType;
-  IdentityTransformType::Pointer identity = IdentityTransformType::New();
-
-  // Compute the difference image between the 
-  // fixed and moving image before registration.
-  if( argc > 4 )
-    {
-    resampler->SetTransform( identity );
-    writer2->SetFileName( argv[4] );
-    writer2->Update();
-    }
 
 
   return 0;
