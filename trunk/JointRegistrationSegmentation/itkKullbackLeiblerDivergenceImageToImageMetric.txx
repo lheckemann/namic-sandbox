@@ -51,6 +51,8 @@ KullbackLeiblerDivergenceImageToImageMetric<TFixedImage,TMovingImage>
     itkExceptionMacro( << "Fixed image has not been assigned" );
     }
 
+  const unsigned int numberOfClasses = fixedImage->GetVectorLength();
+
   typedef  itk::ImageRegionConstIteratorWithIndex<FixedImageType> FixedIteratorType;
 
 
@@ -81,9 +83,11 @@ KullbackLeiblerDivergenceImageToImageMetric<TFixedImage,TMovingImage>
       continue;
       }
 
-    typename Superclass::OutputPointType transformedPoint = this->m_Transform->TransformPoint( inputPoint );
+    typename Superclass::OutputPointType transformedPoint = 
+                    this->m_Transform->TransformPoint( inputPoint );
 
-    if( this->m_MovingImageMask && !this->m_MovingImageMask->IsInside( transformedPoint ) )
+    if(  this->m_MovingImageMask && 
+        !this->m_MovingImageMask->IsInside( transformedPoint ) )
       {
       ++ti;
       continue;
@@ -104,7 +108,7 @@ KullbackLeiblerDivergenceImageToImageMetric<TFixedImage,TMovingImage>
           {
           if( movingValue[i] > epsilon )
             {
-            sumMoving  += movingValue[i]
+            sumMoving  += movingValue[i];
             sumProduct += log( movingValue[i] ) * fixedValue[i]; 
             }
           else
