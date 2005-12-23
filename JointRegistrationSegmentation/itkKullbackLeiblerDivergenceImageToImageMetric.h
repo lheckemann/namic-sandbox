@@ -60,7 +60,6 @@ public:
 
  
   /** Types transferred from the base class */
-  typedef typename Superclass::RealType                 RealType;
   typedef typename Superclass::TransformType            TransformType;
   typedef typename Superclass::TransformPointer         TransformPointer;
   typedef typename Superclass::TransformParametersType  TransformParametersType;
@@ -74,8 +73,16 @@ public:
   typedef typename Superclass::MovingImageConstPointer  MovingImageConstPointer;
 
 
+  /** Get the derivatives of the match measure. */
+  void GetDerivative( const TransformParametersType & parameters,
+                      DerivativeType & derivative ) const;
+
   /**  Get the value for single valued optimizers. */
   MeasureType GetValue( const TransformParametersType & parameters ) const;
+
+  /**  Get value and derivatives for multiple valued optimizers. */
+  void GetValueAndDerivative( const TransformParametersType & parameters,
+                              MeasureType& Value, DerivativeType& Derivative ) const;
 
 
 protected:

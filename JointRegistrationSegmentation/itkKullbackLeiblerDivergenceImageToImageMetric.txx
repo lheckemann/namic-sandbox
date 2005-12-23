@@ -19,6 +19,7 @@
 
 #include "itkKullbackLeiblerDivergenceImageToImageMetric.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
+#include "itkNumericTraits.h"
 
 namespace itk
 {
@@ -66,8 +67,13 @@ KullbackLeiblerDivergenceImageToImageMetric<TFixedImage,TMovingImage>
 
   this->SetTransformParameters( parameters );
 
-  const RealType epsilon = NumericTraits< RealType >::min();
-  const RealType logEpsilon = log( epsilon );
+  typedef typename Superclass::MovingImagePixelType     MovingImagePixelType;
+
+  typedef typename NumericTraits< MovingImagePixelType >::RealType         RealType;
+  typedef typename NumericTraits< MovingImagePixelType >::ScalarRealType   ScalarRealType;
+
+  const ScalarRealType epsilon = NumericTraits< ScalarRealType >::min();
+  const ScalarRealType logEpsilon = log( epsilon );
 
   while(!ti.IsAtEnd())
     {
@@ -99,8 +105,8 @@ KullbackLeiblerDivergenceImageToImageMetric<TFixedImage,TMovingImage>
       const RealType fixedValue   = ti.Get();
       this->m_NumberOfPixelsCounted++;
 
-      RealType sumProduct = NumericTraits< RealType >::ZeroValue();
-      RealType sumMoving  = NumericTraits< RealType >::ZeroValue();
+      ScalarRealType sumProduct = NumericTraits< ScalarRealType >::ZeroValue();
+      ScalarRealType sumMoving  = NumericTraits< ScalarRealType >::ZeroValue();
 
       for( unsigned int i = 0; i < numberOfClasses; i++)
         {
@@ -144,6 +150,30 @@ KullbackLeiblerDivergenceImageToImageMetric<TFixedImage,TMovingImage>
 
   return measure;
 
+}
+
+
+/*
+ * Get the Derivative Measure
+ */
+template < class TFixedImage, class TMovingImage> 
+void
+KullbackLeiblerDivergenceImageToImageMetric<TFixedImage,TMovingImage>
+::GetDerivative( const TransformParametersType & parameters,
+                 DerivativeType & derivative  ) const
+{
+}
+
+
+/*
+ * Get both the match Measure and theDerivative Measure 
+ */
+template <class TFixedImage, class TMovingImage> 
+void
+KullbackLeiblerDivergenceImageToImageMetric<TFixedImage,TMovingImage>
+::GetValueAndDerivative(const TransformParametersType & parameters, 
+                        MeasureType & value, DerivativeType  & derivative) const
+{
 }
 
 
