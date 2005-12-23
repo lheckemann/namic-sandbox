@@ -112,15 +112,23 @@ int main( int argc, char *argv[] )
 
 
   typedef itk::RegularStepGradientDescentOptimizer       OptimizerType;
-  typedef itk::KullbackLeiblerDivergenceImageToImageMetric< 
-                                    FixedImageType, 
-                                    MovingImageType >    MetricType;
+
+   
   typedef itk::NearestNeighborInterpolateImageFunction< 
                                     MovingImageType,
                                     double          >    InterpolatorType;
+
   typedef itk::ImageRegistrationMethod2< 
                                     FixedImageType, 
                                     MovingImageType >    RegistrationType;
+
+
+
+  typedef itk::KullbackLeiblerDivergenceImageToImageMetric< 
+                                    FixedImageType, 
+                                    MovingImageType >    MetricType;
+
+
 
   MetricType::Pointer         metric        = MetricType::New();
   OptimizerType::Pointer      optimizer     = OptimizerType::New();
@@ -139,17 +147,22 @@ int main( int argc, char *argv[] )
  
   registration->SetTransform( transform );
 
+  typedef itk::DefaultConvertPixelTraits< PixelType >  ConvertType;
 
-  typedef itk::ImageFileReader< FixedImageType  > FixedImageReaderType;
-  typedef itk::ImageFileReader< MovingImageType > MovingImageReaderType;
+  typedef itk::ImageFileReader< FixedImageType,  ConvertType > FixedImageReaderType;
+  typedef itk::ImageFileReader< MovingImageType, ConvertType > MovingImageReaderType;
+  
+
   FixedImageReaderType::Pointer  fixedImageReader  = FixedImageReaderType::New();
   MovingImageReaderType::Pointer movingImageReader = MovingImageReaderType::New();
+  
+
   fixedImageReader->SetFileName(  argv[1] );
   movingImageReader->SetFileName( argv[2] );
-
-
+  
   registration->SetFixedImage(    fixedImageReader->GetOutput()    );
   registration->SetMovingImage(   movingImageReader->GetOutput()   );
+
   fixedImageReader->Update();
 
   registration->SetFixedImageRegion( 
@@ -270,7 +283,6 @@ int main( int argc, char *argv[] )
   std::cout << " Scale 2         = " << svd.W(1)                 << std::endl;
   std::cout << " Angle (degrees) = " << angle * 45.0 / atan(1.0) << std::endl;
   
-
 
   return 0;
 }
