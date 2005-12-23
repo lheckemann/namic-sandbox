@@ -89,13 +89,11 @@ public:
   typedef typename TransformType::ParametersType     TransformParametersType;
   typedef typename TransformType::JacobianType       TransformJacobianType;
 
-  /** Type used for numerical computations */
-  typedef typename NumericTraits<MovingImagePixelType>::RealType RealType;
   
   /**  Type of the Interpolator Base class */
   typedef InterpolateImageFunction<
-    MovingImageType,
-    CoordinateRepresentationType > InterpolatorType;
+                      MovingImageType,
+                      CoordinateRepresentationType > InterpolatorType;
 
 
   /** Type of the Interpolator Pointer */
