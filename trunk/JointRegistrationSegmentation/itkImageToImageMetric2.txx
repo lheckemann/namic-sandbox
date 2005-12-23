@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImageToImageMetric.txx,v $
+  Module:    $RCSfile: itkImageToImageMetric2.txx,v $
   Language:  C++
   Date:      $Date: 2004/12/22 03:05:02 $
   Version:   $Revision: 1.25 $
@@ -14,11 +14,11 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkImageToImageMetric_txx
-#define _itkImageToImageMetric_txx
+#ifndef _itkImageToImageMetric2_txx
+#define _itkImageToImageMetric2_txx
 
 
-#include "itkImageToImageMetric.h"
+#include "itkImageToImageMetric2.h"
 
 
 namespace itk
@@ -28,8 +28,8 @@ namespace itk
  * Constructor
  */
 template <class TFixedImage, class TMovingImage> 
-ImageToImageMetric<TFixedImage,TMovingImage>
-::ImageToImageMetric()
+ImageToImageMetric2<TFixedImage,TMovingImage>
+::ImageToImageMetric2()
 {
   m_FixedImage    = 0; // has to be provided by the user.
   m_MovingImage   = 0; // has to be provided by the user.
@@ -44,7 +44,7 @@ ImageToImageMetric<TFixedImage,TMovingImage>
  */
 template <class TFixedImage, class TMovingImage> 
 void
-ImageToImageMetric<TFixedImage,TMovingImage>
+ImageToImageMetric2<TFixedImage,TMovingImage>
 ::SetTransformParameters( const ParametersType & parameters ) const
 {
   if( !m_Transform )
@@ -61,7 +61,7 @@ ImageToImageMetric<TFixedImage,TMovingImage>
  */
 template <class TFixedImage, class TMovingImage> 
 void
-ImageToImageMetric<TFixedImage,TMovingImage>
+ImageToImageMetric2<TFixedImage,TMovingImage>
 ::Initialize(void) throw ( ExceptionObject )
 {
 
@@ -121,7 +121,7 @@ ImageToImageMetric<TFixedImage,TMovingImage>
  */
 template <class TFixedImage, class TMovingImage> 
 void
-ImageToImageMetric<TFixedImage,TMovingImage>
+ImageToImageMetric2<TFixedImage,TMovingImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf( os, indent );

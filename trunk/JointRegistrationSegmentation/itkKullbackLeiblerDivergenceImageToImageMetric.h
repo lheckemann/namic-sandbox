@@ -17,7 +17,7 @@
 #ifndef __itkKullbackLeiblerDivergenceImageToImageMetric_h
 #define __itkKullbackLeiblerDivergenceImageToImageMetric_h
 
-#include "itkImageToImageMetric.h"
+#include "itkImageToImageMetric2.h"
 #include "itkCovariantVector.h"
 #include "itkPoint.h"
 
@@ -41,13 +41,13 @@ namespace itk
  */
 template < class TFixedImage, class TMovingImage > 
 class ITK_EXPORT KullbackLeiblerDivergenceImageToImageMetric : 
-    public ImageToImageMetric< TFixedImage, TMovingImage>
+    public ImageToImageMetric2< TFixedImage, TMovingImage>
 {
 public:
 
   /** Standard class typedefs. */
   typedef KullbackLeiblerDivergenceImageToImageMetric    Self;
-  typedef ImageToImageMetric<TFixedImage, TMovingImage >  Superclass;
+  typedef ImageToImageMetric2<TFixedImage, TMovingImage >  Superclass;
 
   typedef SmartPointer<Self>         Pointer;
   typedef SmartPointer<const Self>   ConstPointer;
@@ -56,7 +56,7 @@ public:
   itkNewMacro(Self);
  
   /** Run-time type information (and related methods). */
-  itkTypeMacro(KullbackLeiblerDivergenceImageToImageMetric, ImageToImageMetric);
+  itkTypeMacro(KullbackLeiblerDivergenceImageToImageMetric, ImageToImageMetric2);
 
  
   /** Types transferred from the base class */
@@ -65,7 +65,6 @@ public:
   typedef typename Superclass::TransformPointer         TransformPointer;
   typedef typename Superclass::TransformParametersType  TransformParametersType;
   typedef typename Superclass::TransformJacobianType    TransformJacobianType;
-  typedef typename Superclass::GradientPixelType        GradientPixelType;
 
   typedef typename Superclass::MeasureType              MeasureType;
   typedef typename Superclass::DerivativeType           DerivativeType;
@@ -75,16 +74,9 @@ public:
   typedef typename Superclass::MovingImageConstPointer  MovingImageConstPointer;
 
 
-  /** Get the derivatives of the match measure. */
-  void GetDerivative( const TransformParametersType & parameters,
-                      DerivativeType & derivative ) const;
-
   /**  Get the value for single valued optimizers. */
   MeasureType GetValue( const TransformParametersType & parameters ) const;
 
-  /**  Get value and derivatives for multiple valued optimizers. */
-  void GetValueAndDerivative( const TransformParametersType & parameters,
-                              MeasureType& Value, DerivativeType& Derivative ) const;
 
 protected:
   KullbackLeiblerDivergenceImageToImageMetric();
