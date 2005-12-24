@@ -23,11 +23,9 @@
 #include "itkKullbackLeiblerDivergenceImageToImageMetric.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkRegularStepGradientDescentOptimizer.h"
+#include "itkCenteredTransformGeometricInitializer.h"
 #include "itkVectorImage.h"
-
-
 #include "itkAffineTransform.h"
-
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -143,9 +141,16 @@ int main( int argc, char *argv[] )
 
   TransformType::Pointer  transform = TransformType::New();
 
-  transform->SetIdentity();
- 
-  registration->SetTransform( transform );
+  typedef itk::CenteredTransformGeometricInitializer< 
+                                    TransformType, 
+                                    FixedImageType, 
+                                    MovingImageType 
+                                                 >  TransformInitializerType;
+
+  TransformInitializerType::Pointer initializer = 
+                                          TransformInitializerType::New();
+
+
 
   typedef itk::DefaultConvertPixelTraits< PixelType >  ConvertType;
 
@@ -168,6 +173,14 @@ int main( int argc, char *argv[] )
   registration->SetFixedImageRegion( 
      fixedImageReader->GetOutput()->GetBufferedRegion() );
 
+
+  initializer->SetTransform(   transform );
+  initializer->SetFixedImage(  fixedImageReader->GetOutput() );
+  initializer->SetMovingImage( movingImageReader->GetOutput() );
+
+  initializer->InitializeTransform();
+
+  registration->SetTransform( transform );
 
 
 
