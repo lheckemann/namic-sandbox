@@ -47,3 +47,4 @@ ADD_LIBRARY(sqlite ${SQLite_Sources})
 INSTALL_TARGETS(/lib/ sqlite )
 INSTALL_FILES(/include/sqlite "(\\.h)$")
 
+SET(SQLite_LIBRARY sqlite)
