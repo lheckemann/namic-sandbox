@@ -6,7 +6,7 @@ SET( SQLite_Sources
   attach.c
   auth.c
   btree.c
-  build.c
+  buildparsing.c
   callback.c
   complete.c
   date.c
