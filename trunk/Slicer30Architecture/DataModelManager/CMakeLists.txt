@@ -7,18 +7,15 @@ ELSE (USE_ITK_FILE)
   MESSAGE( FATAL_ERROR "This application requires ITK. One of these components is missing. Please verify configuration")
 ENDIF (USE_ITK_FILE)
 
-
 SUBDIRS(SQLite)
-
-FIND_LIBRARY(SQLITE_LIBRARY  
-   NAMES sqlite 
-   PATHS ${HOME}/local/lib  /usr/local/lib 
-   DOC "SQLite Library"
-)
 
 INCLUDE_DIRECTORIES( 
   ${DataModelManager_SOURCE_DIR}
   ${SQLite_SOURCE_DIR}
+  )
+
+LINK_DIRECTORIES( 
+  ${SQLite_BINARY_DIR} 
   )
 
 ADD_EXECUTABLE(DataModelManagerTest
@@ -26,7 +23,8 @@ ADD_EXECUTABLE(DataModelManagerTest
   DataModelManager.cxx 
   )
 
+
 TARGET_LINK_LIBRARIES( DataModelManagerTest 
-  ITKStatistics ITKIO ITKCommon ITKNumerics ${SQLITE_LIBRARY})
+  ITKStatistics ITKIO ITKCommon ITKNumerics ${SQLite_LIBRARY})
 
 
