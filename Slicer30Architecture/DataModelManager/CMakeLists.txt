@@ -10,8 +10,15 @@ ENDIF (USE_ITK_FILE)
 
 SUBDIRS(SQLite)
 
+FIND_LIBRARY(SQLITE_LIBRARY  
+   NAMES sqlite 
+   PATHS ${HOME}/local/lib  /usr/local/lib 
+   DOC "SQLite Library"
+)
+
 INCLUDE_DIRECTORIES( 
   ${DataModelManager_SOURCE_DIR}
+  ${SQLite_SOURCE_DIR}
   )
 
 ADD_EXECUTABLE(DataModelManagerTest
@@ -20,6 +27,6 @@ ADD_EXECUTABLE(DataModelManagerTest
   )
 
 TARGET_LINK_LIBRARIES( DataModelManagerTest 
-  ITKStatistics ITKIO ITKCommon ITKNumerics)
+  ITKStatistics ITKIO ITKCommon ITKNumerics ${SQLITE_LIBRARY})
 
 
