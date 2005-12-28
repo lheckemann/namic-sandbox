@@ -48,3 +48,4 @@ INSTALL_TARGETS(/lib/ sqlite )
 INSTALL_FILES(/include/sqlite "(\\.h)$")
 
 SET(SQLite_LIBRARY sqlite)
+
