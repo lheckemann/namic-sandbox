@@ -24,6 +24,7 @@ PURPOSE. See the above copyright notices for more information.
 
 #include <time.h>
 #include <pthread.h>
+#include <sqlite3.h>
 
 namespace Slicer
 {
@@ -87,7 +88,11 @@ private:
   /** Send Transform between two nodes in the payload of an Event */
   void SendTransformBetweenNodes() const;
 
+  /** Treade */
   ThreadType   m_Thread;
+
+  /** Pointer to the SQLite DataBase */
+  sqlite3 *    m_DataBase;
 
 };
 

@@ -23,10 +23,22 @@ namespace Slicer
 DataModelManager::DataModelManager()
 {
   pthread_create (&m_Thread, NULL, StartRunning, 0);
+
+  m_DataBase = NULL;
+
+  const int status = sqlite3_open("Slicer3", & m_DataBase);
+
+  if( status )
+    {
+    std::cerr << "Can't open database: " << sqlite3_errmsg( m_DataBase ) << std::endl;
+    sqlite3_close( m_DataBase );
+  }
+
 }
 
 DataModelManager::~DataModelManager()
 {
+  sqlite3_close( m_DataBase );
 //pthread_delete ( m_Thread);
 }
 
