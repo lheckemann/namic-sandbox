@@ -1,4 +1,4 @@
-PROJECT(SQLITE)
+PROJECT(SQLite)
 
 SET( SQLite_Sources 
   alter.c
