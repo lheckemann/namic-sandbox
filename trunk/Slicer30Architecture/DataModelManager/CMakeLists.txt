@@ -15,15 +15,18 @@ ELSE (USE_ITK_FILE)
   MESSAGE( FATAL_ERROR "This application requires ITK. One of these components is missing. Please verify configuration")
 ENDIF (USE_ITK_FILE)
 
-SUBDIRS(SQLite)
+SUBDIRS(SQLite MetaKit)
 
 INCLUDE_DIRECTORIES( 
   ${DataModelManager_SOURCE_DIR}
   ${SQLite_SOURCE_DIR}
+  ${MetaKit_SOURCE_DIR/src}
+  ${MetaKit_SOURCE_DIR/include}
   )
 
 LINK_DIRECTORIES( 
   ${SQLite_BINARY_DIR} 
+  ${MetaKit_BINARY_DIR} 
   ${LIBRARY_OUTPUT_PATH}
   )
 
@@ -34,6 +37,6 @@ ADD_EXECUTABLE(DataModelManagerTest
 
 
 TARGET_LINK_LIBRARIES( DataModelManagerTest 
-  ITKStatistics ITKIO ITKCommon ITKNumerics sqlite)
+  ITKStatistics ITKIO ITKCommon ITKNumerics sqlite MetaKit)
 
 
