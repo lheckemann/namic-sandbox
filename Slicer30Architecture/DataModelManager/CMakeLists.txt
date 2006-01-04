@@ -20,8 +20,12 @@ SUBDIRS(SQLite MetaKit)
 INCLUDE_DIRECTORIES( 
   ${DataModelManager_SOURCE_DIR}
   ${SQLite_SOURCE_DIR}
+  ${MetaKit_SOURCE_DIR}
   ${MetaKit_SOURCE_DIR/src}
   ${MetaKit_SOURCE_DIR/include}
+  ${DataModelManager_SOURCE_DIR}/MetaKit
+  ${DataModelManager_SOURCE_DIR}/MetaKit/src
+  ${DataModelManager_SOURCE_DIR}/MetaKit/include
   )
 
 LINK_DIRECTORIES( 

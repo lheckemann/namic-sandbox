@@ -24,7 +24,12 @@ PURPOSE. See the above copyright notices for more information.
 
 #include <time.h>
 #include <pthread.h>
-#include <sqlite3.h>
+
+// Headers if we use SQLite as SQL database manager
+#include "sqlite3.h"
+
+// Headers to include if we use MetaKit as SQL database manager.
+#include "mk4.h"
 
 namespace Slicer
 {
@@ -91,9 +96,13 @@ private:
   /** Treade */
   ThreadType   m_Thread;
 
+  
   /** Pointer to the SQLite DataBase */
   sqlite3 *    m_DataBase;
 
+  
+  /** Pointer to MetaKit storage class */
+  c4_Storage * m_MetaKitStorage;
 };
 
 
