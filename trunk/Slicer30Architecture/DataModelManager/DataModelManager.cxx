@@ -24,7 +24,11 @@ DataModelManager::DataModelManager()
 {
   pthread_create (&m_Thread, NULL, StartRunning, 0);
 
+
+  /** Initializing SQLite */
+  
   m_DataBase = NULL;
+
 
   const int status = sqlite3_open("Slicer3", & m_DataBase);
 
@@ -34,12 +38,24 @@ DataModelManager::DataModelManager()
     sqlite3_close( m_DataBase );
   }
 
+
+
+  /** Initializing MetaKit */
+  
+  m_MetaKitStorage = NULL;
+  
+  m_MetaKitStorage = new c4_Storage("Slicer3.dat",true);
+
 }
 
 DataModelManager::~DataModelManager()
 {
   sqlite3_close( m_DataBase );
+  
 //pthread_delete ( m_Thread);
+
+  m_MetaKitStorage->Commit();
+  delete m_MetaKitStorage;
 }
 
 
