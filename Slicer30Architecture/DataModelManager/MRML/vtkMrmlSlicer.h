@@ -11,23 +11,11 @@
   Version:   $Revision: 1.42.2.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlSlicer - main core of the 3D Slicer
-// .SECTION Description
-// Handles layers of images for the 3 slices, and everything related to 
-// their display.  (i.e. reformatting, orientation, cursor, filtering)
-// Handles drawing before the points are applied.
-// Does math w.r.t. reformat matrices, etc.
-//
-// Don't change this file without permission from slicer@ai.mit.edu.  It
-// is intended to be general enough so developers don't need to hack it.
-//
 
 #ifndef __vtkMrmlSlicer_h
 #define __vtkMrmlSlicer_h
 
-//#include <fstream.h>
 #include <stdlib.h>
-//#include <iostream.h>
 
 #include "vtkCamera.h"
 #include "vtkImageReformatIJK.h"
@@ -51,34 +39,11 @@
 #include "vtkVoidArray.h"
 
 #include "vtkSlicer.h"
-#define NUM_SLICES 3
 
 #ifndef vtkFloatingPointType
 #define vtkFloatingPointType float
 #endif
 
-// Orient
-
-#define MRML_SLICER_ORIENT_AXIAL        0
-#define MRML_SLICER_ORIENT_SAGITTAL     1
-#define MRML_SLICER_ORIENT_CORONAL      2
-#define MRML_SLICER_ORIENT_INPLANE      3
-#define MRML_SLICER_ORIENT_INPLANE90    4
-#define MRML_SLICER_ORIENT_INPLANENEG90 5
-#define MRML_SLICER_ORIENT_NEW_ORIENT         6
-#define MRML_SLICER_ORIENT_REFORMAT_AXIAL    7
-#define MRML_SLICER_ORIENT_REFORMAT_SAGITTAL 8
-#define MRML_SLICER_ORIENT_REFORMAT_CORONAL  9
-#define MRML_SLICER_ORIENT_PERP         10
-#define MRML_SLICER_ORIENT_ORIGSLICE    11
-#define MRML_SLICER_ORIENT_AXISLICE     12
-#define MRML_SLICER_ORIENT_SAGSLICE     13
-#define MRML_SLICER_ORIENT_CORSLICE    14
-#define MRML_SLICER_ORIENT_AXISAGCOR   15
-#define MRML_SLICER_ORIENT_ORTHO       16
-#define MRML_SLICER_ORIENT_SLICES      17
-#define MRML_SLICER_ORIENT_REFORMAT_AXISAGCOR   18
-#define MRML_SLICER_NUM_ORIENT         19
 
 class VTK_SLICER_BASE_EXPORT vtkMrmlSlicer : public vtkObject 
 {
@@ -95,29 +60,16 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlSlicer : public vtkObject
   // Description:
   // Overlay is merged fore, back, and label images, for display
   // in slice window s (where s is 0, 1, or 2)
-
-  // >> AT 11/09/01
-  //vtkImageData *GetOutput(int s) {
-  //  this->Update(); return this->Overlay[s]->GetOutput();};
-  vtkImageData *GetOutput(int s) {
-    this->Update(); return this->Overlay3DView[s]->GetOutput();}
-  // << AT 11/09/01
+  vtkImageData *GetOutput(int s);
 
   // Description:
   // Cursor is the moving cross-hair for over slice s
-  vtkImageData *GetCursor(int s) {
-    this->Update(); return this->Cursor[s]->GetOutput();};
+  vtkImageData *GetCursor(int s) ;
 
   // Description:
   // Active output is either the contour just drawn or the regular
   // overlay image, depending on the slice it is for.
-  vtkImageData *GetActiveOutput(int s) {
-    this->Update();
-    if (this->ActiveSlice == s) 
-      return this->PolyDraw->GetOutput();
-    else 
-      return this->Overlay[s]->GetOutput();
-  };
+  vtkImageData *GetActiveOutput(int s) ;
 
   // Description:
   // The active slice is the one last touched by the user.
@@ -134,13 +86,13 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlSlicer : public vtkObject
   // Zoom factor
   void SetZoom(int s, vtkFloatingPointType mag);
   void SetZoom(vtkFloatingPointType mag);
-  vtkFloatingPointType GetZoom(int s) {return this->Zoom[s]->GetMagnification();};
-  // >> AT 11/07/01
+  vtkFloatingPointType GetZoom(int s) ;
+ 
   void SetZoomNew(int s, vtkFloatingPointType mag);
   void SetZoomNew(vtkFloatingPointType mag);
-  vtkFloatingPointType GetZoomNew(int s) {return this->BackReformat[s]->GetZoom();}
+  vtkFloatingPointType GetZoomNew(int s);
   void SetOriginShift(int s, vtkFloatingPointType sx, vtkFloatingPointType sy);
-  // << AT 11/07/11
+
 
   // Description:
   // Zoom center
@@ -153,25 +105,20 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlSlicer : public vtkObject
   // Description:
   // Zoom auto center
   void SetZoomAutoCenter(int s, int yes);
-  int GetZoomAutoCenter(int s) {return this->Zoom[s]->GetAutoCenter();};
+  int GetZoomAutoCenter(int s) ;
 
   // Description:
   // Double slice size outputs 512x512 images for larger display
   // (instead of 256x256)
 
-  // >> AT 02/16/01 3/26/01
-  //  void SetDouble(int s, int yes) {
-  // this->DoubleSliceSize[s] = yes; this->BuildLowerTime.Modified();};
+
   // Should be moved to vtkMrmlSlicer.cxx
   void SetDouble(int s, int yes); 
   
   vtkSetMacro(DrawDoubleApproach,int);
   vtkGetMacro(DrawDoubleApproach,int);
   
-
-  // << AT 02/16/01 3/26/01
-
-  int GetDouble(int s) {return this->DoubleSliceSize[s];};
+  int GetDouble(int s) ;
 
   //Deep Copy Method
   void DeepCopy(vtkMrmlSlicer *src);
@@ -181,15 +128,12 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlSlicer : public vtkObject
   void SetShowCursor(int vis);
   void SetNumHashes(int hashes);
   void SetCursorColor(vtkFloatingPointType red, vtkFloatingPointType green, vtkFloatingPointType blue);
-  void SetCursorPosition(int s, int x, int y) {
-  this->Cursor[s]->SetCursor(x, y);};
+  void SetCursorPosition(int s, int x, int y) ;
   
   // turn on or off the cross hair intersection - if off there's a gap
     void SetCursorIntersect(int flag);
-    void SetCursorIntersect(int s, int flag) {
-        this->Cursor[s]->SetIntersectCross(flag); } ;
-    int GetCursorIntersect(int s) {
-        return this->Cursor[s]->GetIntersectCross(); };
+    void SetCursorIntersect(int s, int flag)  ;
+    int GetCursorIntersect(int s) ;
 
   // Description:
   // Field of view for slices.  Also used for reformatting...
@@ -238,9 +182,9 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlSlicer : public vtkObject
   void SetBackVolume( int s, vtkMrmlDataVolume *vol);
   void SetForeVolume( int s, vtkMrmlDataVolume *vol);
   void SetLabelVolume(int s, vtkMrmlDataVolume *vol);
-  vtkMrmlDataVolume* GetBackVolume( int s) {return this->BackVolume[s];};
-  vtkMrmlDataVolume* GetForeVolume( int s) {return this->ForeVolume[s];};
-  vtkMrmlDataVolume* GetLabelVolume(int s) {return this->LabelVolume[s];};
+  vtkMrmlDataVolume* GetBackVolume( int s) ;
+  vtkMrmlDataVolume* GetForeVolume( int s) ;
+  vtkMrmlDataVolume* GetLabelVolume(int s) ;
 
 
   //--------- Slice reformatting, orientation, point conversion  -----------//
@@ -251,31 +195,27 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlSlicer : public vtkObject
   void SetOrient(int s, int orient);
   void SetOrientString(char *str);
   void SetOrientString(int s, char *str);
-  int GetOrient(int s) {return this->Orient[s];};
+  int GetOrient(int s) ;
   char *GetOrientString(int s);
-  char *GetOrientList() {return
-"Axial Sagittal Coronal InPlane InPlane90 InPlaneNeg90 Perp OrigSlice AxiSlice SagSlice CorSlice ReformatAxial ReformatSagittal ReformatCoronal NewOrient";};
+  char *GetOrientList() ;
 
   // Description:
   // Slice Offset
-  vtkFloatingPointType GetOffsetRangeLow(int s) {
-    return this->OffsetRange[s][this->Orient[s]][0];};
-  vtkFloatingPointType GetOffsetRangeHigh(int s) {
-    return this->OffsetRange[s][this->Orient[s]][1];};
+  vtkFloatingPointType GetOffsetRangeLow(int s) ;
+  vtkFloatingPointType GetOffsetRangeHigh(int s) ;
   void SetOffset(int s, vtkFloatingPointType offset);
   void InitOffset(int s, char *str, vtkFloatingPointType offset);
-  vtkFloatingPointType GetOffset(int s) {return this->Offset[s][this->Orient[s]];};
-  vtkFloatingPointType GetOffset(int s, char *str) {return 
-      this->Offset[s][ConvertStringToOrient(str)];};
+  vtkFloatingPointType GetOffset(int s) ;
+  vtkFloatingPointType GetOffset(int s, char *str) ;
 
   // Description:
   // Matrix
-  vtkMatrix4x4 *GetReformatMatrix(int s) {return this->ReformatMatrix[s];};
+  vtkMatrix4x4 *GetReformatMatrix(int s) ;
   void ComputeNTPFromCamera(vtkCamera *camera);
   void SetDirectNTP(vtkFloatingPointType nx, vtkFloatingPointType ny, vtkFloatingPointType nz,
     vtkFloatingPointType tx, vtkFloatingPointType ty, vtkFloatingPointType tz, vtkFloatingPointType px, vtkFloatingPointType py, vtkFloatingPointType pz);
-  void SetDriver(int s, int d) {this->Driver[s] = d; this->Modified();};
-  int GetDriver(int s) {return this->Driver[s];};
+  void SetDriver(int s, int d) ;
+  int GetDriver(int s) ;
   double *GetP(int s);
   double *GetT(int s);
   double *GetN(int s);
@@ -313,8 +253,8 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlSlicer : public vtkObject
   // LastFilter is of type vtkImageSource, a superclass of 
   // both vtkImageToImage and vtkMultipleInput filters.
   void SetLastFilter(int s, vtkImageSource *filter);
-  vtkImageToImageFilter* GetFirstFilter(int s) {return this->FirstFilter[s];};
-  vtkImageSource* GetLastFilter(int s) {return this->LastFilter[s];};
+  vtkImageToImageFilter* GetFirstFilter(int s) ;
+  vtkImageSource* GetLastFilter(int s) ;
 
   // Description:
   // Whether to apply pipeline defined by first, last filter
@@ -360,9 +300,7 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlSlicer : public vtkObject
   // Get the reformatted slice from this volume.  The volume
   // must have been added first.  Currently this reformats
   // along with the active slice in the Slicer.
-  vtkImageData *GetReformatOutputFromVolume(vtkMrmlDataVolume *v) {
-    return this->GetVolumeReformatter(v)->GetOutput();
-  };
+  vtkImageData *GetReformatOutputFromVolume(vtkMrmlDataVolume *v) ;
   
   // Description:
   // Set reformat matrix same as that of this slice
@@ -379,358 +317,103 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlSlicer : public vtkObject
   // Mainly Drawing is interaction with the vtkImageDrawROI object
   // PolyDraw.
   //
-  void DrawSetColor(vtkFloatingPointType r, vtkFloatingPointType g, vtkFloatingPointType b) {
-      this->PolyDraw->SetPointColor(r, g, b);
-      this->PolyDraw->SetLineColor(r, g, b);};
-  void DrawSelectAll() {
-    this->PolyDraw->SelectAllPoints();};
-  void DrawDeselectAll() {
-    this->PolyDraw->DeselectAllPoints();};
-  void DrawDeleteSelected() {
-    this->PolyDraw->DeleteSelectedPoints();};
-  void DrawDeleteAll() {
-    this->PolyDraw->DeleteAllPoints();};
-  void DrawInsert(int x, int y) {
-    this->PolyDraw->InsertPoint(x, y);};
-  void DrawShowPoints(int s) {
-    if (s) this->PolyDraw->SetPointRadius(1); 
-    else this->PolyDraw->SetPointRadius(0);};
-  void DrawSetRadius(int r) {
-    this->PolyDraw->SetPointRadius(r); };
-  int DrawGetRadius() {
-    return this->PolyDraw->GetPointRadius(); };
-  void DrawInsertPoint(int x, int y) {
-    this->PolyDraw->InsertAfterSelectedPoint(x, y);};
-  void DrawMoveInit(int x, int y) {
-      this->DrawX = x; this->DrawY = y;};
-  void DrawMove(int x, int y) {
-    this->PolyDraw->MoveSelectedPoints(x-this->DrawX, y-this->DrawY);
-    this->DrawX = x; this->DrawY = y;};
-  int DrawGetNumPoints() {
-    return this->PolyDraw->GetNumPoints();};
-  int DrawGetNumSelectedPoints() {
-    return this->PolyDraw->GetNumSelectedPoints();};
-  void DrawStartSelectBox(int x, int y) {
-    this->PolyDraw->StartSelectBox(x, y);};
-  void DrawDragSelectBox(int x, int y) {
-    this->PolyDraw->DragSelectBox(x, y);};
-  void DrawEndSelectBox(int x, int y) {
-    this->PolyDraw->EndSelectBox(x, y);};
-  vtkPoints* DrawGetPoints() {
-    return this->PolyDraw->GetPoints();}
-  vtkPoints* DrawGetPointsInterpolated(int density) {
-    return this->PolyDraw->GetPointsInterpolated(density);}
+  void DrawSetColor(vtkFloatingPointType r, vtkFloatingPointType g, vtkFloatingPointType b) ;
+  void DrawSelectAll() ;
+  void DrawDeselectAll() ;
+  void DrawDeleteSelected() ;
+  void DrawDeleteAll() ;
+  void DrawInsert(int x, int y) ;
+  void DrawShowPoints(int s) ;
+  void DrawSetRadius(int r) ;
+  int DrawGetRadius() ;
+  void DrawInsertPoint(int x, int y) ;
+  void DrawMoveInit(int x, int y) ;
+  void DrawMove(int x, int y) ;
+  int DrawGetNumPoints() ;
+  int DrawGetNumSelectedPoints() ;
+  void DrawStartSelectBox(int x, int y) ;
+  void DrawDragSelectBox(int x, int y) ;
+  void DrawEndSelectBox(int x, int y) ;
+  vtkPoints* DrawGetPoints() 
+  vtkPoints* DrawGetPointsInterpolated(int density) 
   void DrawComputeIjkPoints();
   void DrawComputeIjkPointsInterpolated(int density);
   void DrawComputeIjkPointsInterpolated(int window, int s, int p);
   vtkGetObjectMacro(DrawIjkPoints, vtkPoints);
-  void DrawSetShapeToPolygon() {this->PolyDraw->SetShapeToPolygon();};
-  void DrawSetShapeToLines() {this->PolyDraw->SetShapeToLines();};
-  void DrawSetShapeToPoints() {this->PolyDraw->SetShapeToPoints();};
-  char* GetShapeString() {return this->PolyDraw->GetShapeString();};
-  //>> AT 01/17/01 01/19/01 02/19/01
-  void DrawSetSelectedPointColor(vtkFloatingPointType r, vtkFloatingPointType g, vtkFloatingPointType b)
-    {
-      this->PolyDraw->SetSelectedPointColor(r, g, b);
-    }
-  void DrawSetShapeToCrosses() { this->PolyDraw->SetShapeToCrosses(); }
-  void DrawSetShapeToBoxes() { this->PolyDraw->SetShapeToBoxes(); }
-  void DrawSelectPoint(int x, int y) { this->PolyDraw->SelectPoint(x, y); }
-  void DrawDeselectPoint(int x, int y) { this->PolyDraw->DeselectPoint(x, y); }
+  void DrawSetShapeToPolygon() ;
+  void DrawSetShapeToLines() ;
+  void DrawSetShapeToPoints() ;
+  char* GetShapeString() ;
+
+  void DrawSetSelectedPointColor(vtkFloatingPointType r, vtkFloatingPointType g, vtkFloatingPointType b);
+  void DrawSetShapeToCrosses() ;
+  void DrawSetShapeToBoxes() ;
+  void DrawSelectPoint(int x, int y) 
+  void DrawDeselectPoint(int x, int y) 
   // (CTJ) To detect whether mouse (x,y) is "near" selected points
   int DrawIsNearSelected(int x, int y)
-  {return this->PolyDraw->IsNearSelected(x, y);}
-  void DrawSetClosed(int closed)
-  { this->PolyDraw->SetClosed(closed); }
-  void DrawSetHideSpline(int hide)
-  { this->PolyDraw->SetHideSpline(hide); }
+  
+  void DrawSetClosed(int closed);
+  
+  void DrawSetHideSpline(int hide);
+  
 
-  void DrawSetStartMethod(void (*f)(void *), void *arg)
-    {
-#if !(VTK_MAJOR_VERSION ==4 && VTK_MINOR_VERSION > 2)
-      this->PolyDraw->SetStartMethod(f, arg);
-#endif
-    }
-  void DrawSetStartMethodArgDelete(void (*f)(void *))
-    {
-#if !(VTK_MAJOR_VERSION ==4 && VTK_MINOR_VERSION > 2)
-      this->PolyDraw->SetStartMethodArgDelete(f);
-#endif
-    }
+  void DrawSetStartMethod(void (*f)(void *), void *arg);
+  void DrawSetStartMethodArgDelete(void (*f)(void *));
 
-  vtkPoints* CopyGetPoints()
-  {
-      return this->CopyPoly;
-  };
-
-  void CopySetDrawPoints()
-  {
-      int n = this->DrawGetNumPoints();
-      if (n < 1) return;
-      this->CopyPoly->Reset();
-      vtkPoints *polygon = this->DrawGetPoints();
-      vtkFloatingPointType *rasPt;
-      for (int i = 0; i < n; i++)
-      {
-          rasPt = polygon->GetPoint(i);
-          this->CopyPoly->InsertNextPoint(rasPt[0], rasPt[1], rasPt[2]);
-      }
-  };
+  vtkPoints* CopyGetPoints();
+  
+  void CopySetDrawPoints();
 
   // ---- Stack of polygons ---- //
-  void StackSetPolygon(int window, int s, int d)
-  {
-    switch (window)
-    {
-      case 0: AxiPolyStack->SetPolygon(this->PolyDraw->GetPoints(), s, d);
-              break;
-      case 1: SagPolyStack->SetPolygon(this->PolyDraw->GetPoints(), s, d);
-              break;
-      case 2: CorPolyStack->SetPolygon(this->PolyDraw->GetPoints(), s, d);
-              break;
-    }
-  };
+  void StackSetPolygon(int window, int s, int d);
 
-  vtkPoints* StackGetPoints(int window, int s)
-  {
-    switch (window)
-    {
-      case 0: return this->AxiPolyStack->GetPoints(s);
-              break;
-      case 1: return this->SagPolyStack->GetPoints(s);
-              break;
-      case 2: return this->CorPolyStack->GetPoints(s);
-              break;
-    }
-  };
+  vtkPoints* StackGetPoints(int window, int s);
 
-  vtkPoints* StackGetPoints(int window, int s, int p)
-  {
-    switch (window)
-    {
-      case 0: return this->AxiPolyStack->GetPoints(s, p);
-              break;
-      case 1: return this->SagPolyStack->GetPoints(s, p);
-              break;
-      case 2: return this->CorPolyStack->GetPoints(s, p);
-              break;
-    }
-  };
+  vtkPoints* StackGetPoints(int window, int s, int p);
 
-  void StackSetPolygon(int window, int s, int p, int d, int closed, int preshape, int label)
-  {
-    switch (window)
-    {
-      case 0: AxiPolyStack->SetPolygon(this->PolyDraw->GetPoints(), s, p, d, closed, preshape, label);
-              break;
-      case 1: SagPolyStack->SetPolygon(this->PolyDraw->GetPoints(), s, p, d, closed, preshape, label);
-              break;
-      case 2: CorPolyStack->SetPolygon(this->PolyDraw->GetPoints(), s, p, d, closed, preshape, label);
-              break;
-    }
-  };
+  void StackSetPolygon(int window, int s, int p, int d, int closed, int preshape, int label);
 
-  vtkPoints* RasStackSetPolygon(int window, int s, int p, int d, int closed, int preshape, int label)
-  {
-      vtkPoints *polygon = this->PolyDraw->GetPoints();
-      vtkFloatingPointType *screenPt;
-      int as = this->GetActiveSlice();
-      int n = polygon->GetNumberOfPoints();
-      vtkFloatingPointType rasPt[3];
+  vtkPoints* RasStackSetPolygon(int window, int s, int p, int d, int closed, int preshape, int label);
 
-      rasPts->Reset();
-      for (int i = 0; i < n; i++)
-      {
-          screenPt = polygon->GetPoint(i);
-          this->SetReformatPoint(as, (int)(screenPt[0]), (int)(screenPt[1]));
-          this->GetWldPoint(rasPt);
-          rasPts->InsertNextPoint((vtkFloatingPointType)(rasPt[0]),
-                                  (vtkFloatingPointType)(rasPt[1]),
-                                  (vtkFloatingPointType)(rasPt[2]));
-      }
-      switch (window)
-      {
-          case 0: AxiRasPolyStack->SetPolygon(rasPts, s, p, d, closed, preshape, label);
-                  break;
-          case 1: SagRasPolyStack->SetPolygon(rasPts, s, p, d, closed, preshape, label);
-                  break;
-          case 2: CorRasPolyStack->SetPolygon(rasPts, s, p, d, closed, preshape, label);
-                  break;
-      }
-      return this->rasPts;
-  };
+  void StackRemovePolygon(int window, int s, int p);
 
-  void StackRemovePolygon(int window, int s, int p)
-  {
-      switch (window)
-      {
-          case 0: this->AxiPolyStack->RemovePolygon(s, p);
-                  break;
-          case 1: this->SagPolyStack->RemovePolygon(s, p);
-                  break;
-          case 2: this->CorPolyStack->RemovePolygon(s, p);
-                  break;
-      }
-  };
+  void RasStackRemovePolygon(int window, int s, int p);
 
-  void RasStackRemovePolygon(int window, int s, int p)
-  {
-      switch (window)
-      {
-          case 0: this->AxiRasPolyStack->RemovePolygon(s, p);
-                  break;
-          case 1: this->SagRasPolyStack->RemovePolygon(s, p);
-                  break;
-          case 2: this->CorRasPolyStack->RemovePolygon(s, p);
-                  break;
-      }
-  };
+  int StackGetNumberOfPoints(int window, int s);
 
-  int StackGetNumberOfPoints(int window, int s)
-  {
-      switch (window)
-      {
-          case 0: return this->AxiPolyStack->GetNumberOfPoints(s);
-                  break;
-          case 1: return this->SagPolyStack->GetNumberOfPoints(s);
-                  break;
-          case 2: return this->CorPolyStack->GetNumberOfPoints(s);
-                  break;
-      }
-  };
+  int StackGetInsertPosition(int window, int s);
 
-  int StackGetInsertPosition(int window, int s)
-  {
-      switch (window)
-      {
-          case 0: return this->AxiPolyStack->ListGetInsertPosition(s);
-                  break;
-          case 1: return this->SagPolyStack->ListGetInsertPosition(s);
-                  break;
-          case 2: return this->CorPolyStack->ListGetInsertPosition(s);
-                  break;
-      }
-  };
+  int StackGetNextInsertPosition(int window, int s, int p);
 
-  int StackGetNextInsertPosition(int window, int s, int p)
-  {
-      switch (window)
-      {
-          case 0: return this->AxiPolyStack->ListGetNextInsertPosition(s, p);
-                  break;
-          case 1: return this->SagPolyStack->ListGetNextInsertPosition(s, p);
-                  break;
-          case 2: return this->CorPolyStack->ListGetNextInsertPosition(s, p);
-                  break;
-      }
-  };
+  int StackGetRetrievePosition(int window, int s);
 
-  int StackGetRetrievePosition(int window, int s)
-  {
-      switch (window)
-      {
-          case 0: return this->AxiPolyStack->ListGetRetrievePosition(s);
-                  break;
-          case 1: return this->SagPolyStack->ListGetRetrievePosition(s);
-                  break;
-          case 2: return this->CorPolyStack->ListGetRetrievePosition(s);
-                  break;
-      }
-  };
+  int StackGetNextRetrievePosition(int window, int s, int p);
 
-  int StackGetNextRetrievePosition(int window, int s, int p)
-  {
-      switch (window)
-      {
-          case 0: return this->AxiPolyStack->ListGetNextRetrievePosition(s, p);
-                  break;
-          case 1: return this->SagPolyStack->ListGetNextRetrievePosition(s, p);
-                  break;
-          case 2: return this->CorPolyStack->ListGetNextRetrievePosition(s, p);
-                  break;
-      }
-  };
+  int StackGetPreshape(int window, int s, int p);
 
-  int StackGetPreshape(int window, int s, int p)
-  {
-      switch (window)
-      {
-          case 0: return this->AxiPolyStack->GetPreshape(s, p);
-                  break;
-          case 1: return this->SagPolyStack->GetPreshape(s, p);
-                  break;
-          case 2: return this->CorPolyStack->GetPreshape(s, p);
-                  break;
-      }
-  };
+  int StackGetLabel(int window, int s, int p);
 
-  int StackGetLabel(int window, int s, int p)
-  {
-      switch (window)
-      {
-          case 0: return this->AxiPolyStack->GetLabel(s, p);
-                  break;
-          case 1: return this->SagPolyStack->GetLabel(s, p);
-                  break;
-          case 2: return this->CorPolyStack->GetLabel(s, p);
-                  break;
-      }
-  };
+  int StackGetNumApplyable(int window, int s);
 
-  int StackGetNumApplyable(int window, int s)
-  {
-      switch (window)
-      {
-          case 0: return this->AxiPolyStack->GetNumApplyable(s);
-                  break;
-          case 1: return this->SagPolyStack->GetNumApplyable(s);
-                  break;
-          case 2: return this->CorPolyStack->GetNumApplyable(s);
-                  break;
-      }
-  };
+  int StackGetApplyable(int window, int s, int q);
 
-  int StackGetApplyable(int window, int s, int q)
-  {
-      switch (window)
-      {
-          case 0: return this->AxiPolyStack->GetApplyable(s, q);
-                  break;
-          case 1: return this->SagPolyStack->GetApplyable(s, q);
-                  break;
-          case 2: return this->CorPolyStack->GetApplyable(s, q);
-                  break;
-      }
-  };
-
-  void StackClear(int window)
-  {
-      switch (window)
-      {
-          case 0: this->AxiPolyStack->Clear();
-                  break;
-          case 1: this->SagPolyStack->Clear();
-                  break;
-          case 2: this->CorPolyStack->Clear();
-                  break;
-      }
-  };
+  void StackClear(int window);
 
   // Necessary for calculating the ROI windowsize
   // TO DO: Add check for s
-  int GetBackReformatResolution(int s) { return this->BackReformat[s]->GetResolution();}
-  vtkImageDrawROI *GetImageDrawROI() { return this->PolyDraw; }
-  //<< AT 01/17/01 01/19/01 02/19/01
+  int GetBackReformatResolution(int s);
+  vtkImageDrawROI *GetImageDrawROI();
 
-  // << AT 11/02/01
-  vtkImageReformat *GetBackReformat(int s) { return this->BackReformat[s]; }
-  // << AT 11/02/01
+
+  vtkImageReformat *GetBackReformat(int s);
+
 
   //Hanifa
-  vtkImageReformat *GetForeReformat(int s) { return this->ForeReformat[s]; }
-  vtkImageReformat *GetBackReformat3DView(int s) {return this->BackReformat3DView[s];}
-  vtkImageReformat *GetForeReformat3DView(int s) {return this->ForeReformat3DView[s];}
-  vtkImageReformat *GetLabelReformat3DView(int s) {return this->LabelReformat3DView[s];}
+  vtkImageReformat *GetForeReformat(int s);
+  vtkImageReformat *GetBackReformat3DView(int s);
+  vtkImageReformat *GetForeReformat3DView(int s);
+  vtkImageReformat *GetLabelReformat3DView(int s); 
 
   // Description:
   // Update any part of this class that needs it.
@@ -740,152 +423,19 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlSlicer : public vtkObject
 
   // Description:
   // 
-  void ReformatModified() {this->BuildUpperTime.Modified();};
+  void ReformatModified() ;
 
-    // Description:
-    // return the version number of the compiler
-   int GetCompilerVersion();
-    // Description:
-    // return the name of the compiler
-    char *GetCompilerName();
-
-    // Description:
-    // return the vtk version
-    char *GetVTKVersion();
-    
-protected:
-  vtkMrmlSlicer();
-  ~vtkMrmlSlicer();
-  vtkMrmlSlicer(const vtkMrmlSlicer&) {};
-  void operator=(const vtkMrmlSlicer&) {};
-
-  void ComputeOffsetRange();
-  void ComputeOffsetRangeIJK(int s);
-  vtkMrmlDataVolume* GetIJKVolume(int s);
-  vtkImageReformat* GetIJKReformat(int s);
-  int IsOrientIJK(int s);
-  void BuildLower(int s);
-  void BuildUpper(int s);
-  int ConvertStringToOrient(char *str);
-  char* ConvertOrientToString(int orient);
-  void ComputeReformatMatrix(int s);
-  void ComputeReformatMatrixIJK(int s, vtkFloatingPointType offset, vtkMatrix4x4 *ref);
-  vtkFloatingPointType GetOffsetForComputation(int s);
-  void SetOffsetRange(int s, int orient, int min, int max, int *modified);
-
-  int ActiveSlice;
-  int DoubleSliceSize[NUM_SLICES];
-  vtkFloatingPointType FieldOfView;
-  vtkFloatingPointType ForeOpacity;
-  int ForeFade;
-
-  double CamN[3];
-  double CamT[3];
-  double CamP[3];
-  double DirN[3];
-  double DirT[3];
-  double DirP[3];
-  double NewOrientN[NUM_SLICES][3];
-  double NewOrientT[NUM_SLICES][3];
-  double NewOrientP[NUM_SLICES][3];
-  double ReformatAxialN[3];
-  double ReformatAxialT[3];
-  double ReformatSagittalN[3];
-  double ReformatSagittalT[3];
-  double ReformatCoronalN[3];
-  double ReformatCoronalT[3];
-  
-  int Driver[NUM_SLICES];
-  vtkFloatingPointType OffsetRange[NUM_SLICES][MRML_SLICER_NUM_ORIENT][2];
-  int Orient[NUM_SLICES];
-  vtkFloatingPointType Offset[NUM_SLICES][MRML_SLICER_NUM_ORIENT];
-
-  vtkImageReformat     *BackReformat[NUM_SLICES];
-  vtkImageReformat     *ForeReformat[NUM_SLICES];
-  vtkImageReformat     *LabelReformat[NUM_SLICES];
-  vtkImageMapToColors  *BackMapper[NUM_SLICES];
-  vtkImageMapToColors  *ForeMapper[NUM_SLICES];
-  vtkImageMapToColors  *LabelMapper[NUM_SLICES];
-  vtkImageOverlay      *Overlay[NUM_SLICES];
-  // >> AT 11/09/01
-  vtkImageReformat     *BackReformat3DView[NUM_SLICES];
-  vtkImageReformat     *ForeReformat3DView[NUM_SLICES];
-  vtkImageReformat     *LabelReformat3DView[NUM_SLICES];
-  vtkImageMapToColors  *BackMapper3DView[NUM_SLICES];
-  vtkImageMapToColors  *ForeMapper3DView[NUM_SLICES];
-  vtkImageMapToColors  *LabelMapper3DView[NUM_SLICES];
-  vtkImageOverlay      *Overlay3DView[NUM_SLICES];
-  // << AT 11/09/01
-  vtkMrmlDataVolume        *BackVolume[NUM_SLICES];
-  vtkMrmlDataVolume        *ForeVolume[NUM_SLICES];
-  vtkMrmlDataVolume        *LabelVolume[NUM_SLICES];
-  vtkMatrix4x4         *ReformatMatrix[NUM_SLICES];
-  vtkImageLabelOutline *LabelOutline[NUM_SLICES];
-  // >> AT 11/09/01
-  vtkImageLabelOutline *LabelOutline3DView[NUM_SLICES];
-  // << AT 11/09/01
-  vtkImageCrossHair2D  *Cursor[NUM_SLICES];
-  vtkImageZoom2D       *Zoom[NUM_SLICES];
-  vtkImageDouble2D     *Double[NUM_SLICES];
-  vtkImageDrawROI      *PolyDraw;
-  vtkStackOfPolygons *AxiPolyStack;
-  vtkStackOfPolygons *AxiRasPolyStack;
-  vtkStackOfPolygons *SagPolyStack;
-  vtkStackOfPolygons *SagRasPolyStack;
-  vtkStackOfPolygons *CorPolyStack;
-  vtkStackOfPolygons *CorRasPolyStack;
-  vtkPoints            *rasPts; // temporary RAS version of PolyDraw
-  vtkPoints            *CopyPoly;
-  vtkImageReformatIJK  *ReformatIJK;
-  vtkMrmlDataVolume        *NoneVolume;
-  vtkMrmlVolumeNode    *NoneNode;
-
-  // Colors
-  vtkIndirectLookupTable *LabelIndirectLUT;
-
-  vtkImageToImageFilter *FirstFilter[NUM_SLICES];
-  vtkImageSource *LastFilter[NUM_SLICES];
-  int BackFilter;
-  int ForeFilter;
-  int FilterActive;
-  int FilterOverlay;
-
-  // DAVE need a better way
-  vtkFloatingPointType ZoomCenter0[2];
-  vtkFloatingPointType ZoomCenter1[2];
-  vtkFloatingPointType ZoomCenter2[2];
-
-  // Point
-  vtkFloatingPointType WldPoint[3];
-  vtkFloatingPointType IjkPoint[3];
-  int ReformatPoint[2];
-  int Seed[3];
-  int Seed2D[3];
-  int DisplayMethod;
-
-  // Draw
-  vtkPoints *DrawIjkPoints;
-  int DrawX;
-  int DrawY;
-
-  // >> AT 3/26/01
-  int DrawDoubleApproach;
-  // << AT 3/26/01
-
-  vtkTimeStamp UpdateTime;
-  vtkTimeStamp BuildLowerTime;
-  vtkTimeStamp BuildUpperTime;
-
-  // Additional Reformatting capabilities
-  vtkVoidArray *VolumeReformatters;
-  vtkCollection *VolumesToReformat;
-  vtkImageReformat *GetVolumeReformatter(vtkMrmlDataVolume *v);
-  void VolumeReformattersModified();
-  int MaxNumberOfVolumesToReformat;
   // Description:
-  // set field of view in al reformatters when slicer's FOV updates
-  void VolumeReformattersSetFieldOfView(vtkFloatingPointType fov);
+  // return the version number of the compiler
+ int GetCompilerVersion();
+  // Description:
+  // return the name of the compiler
+  char *GetCompilerName();
 
+  // Description:
+  // return the vtk version
+  char *GetVTKVersion();
+    
     
 };
 

@@ -11,21 +11,11 @@
   Version:   $Revision: 1.14.2.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlDataVolume - Object used in the slicer to perform
-// everything related to the access and display of image data (volumes).
-// .SECTION Description
-// Used in conjunction with a vtkMrmlDataVolumeNode (which neatly describes
-// display settings, file locations, etc.).  Essentially, the MRML 
-// node gives the high level description of what this class should 
-// actually do with the ImageData.
-// 
 
 #ifndef __vtkMrmlDataVolume_h
 #define __vtkMrmlDataVolume_h
 
-//#include <fstream.h>
 #include <stdlib.h>
-//#include <iostream.h>
 
 #include "vtkMrmlData.h"
 
@@ -93,7 +83,7 @@ public:
 
   // Description:
   // Set Histogram attributes
-  void SetHistogramHeight(int h) {this->HistPlot->SetHeight(h);};
+  void SetHistogramHeight(int h) ;
   void SetHistogramWidth(int w);
   vtkSetVector3Macro(HistogramColor, vtkFloatingPointType);
 
@@ -101,12 +91,12 @@ public:
   // Get Histogram plot (an image)
   vtkImageData *GetHistogramPlot();
 
-  int GetBimodalThreshold() {return this->Bimodal->GetThreshold();};
+  int GetBimodalThreshold() ;
 
   // Description:
   // Assumes GetHistogramPlot has already been called
-  int MapBinToScalar(int b) {return this->HistPlot->MapBinToScalar(b);};
-  int MapScalarToBin(int s) {return this->HistPlot->MapScalarToBin(s);};
+  int MapBinToScalar(int b) ;
+  int MapScalarToBin(int s) ;
   
   // Description:
   // Set/Get window/level/threshold slider range
@@ -119,111 +109,14 @@ public:
   vtkBooleanMacro(RangeAuto, int);
 
   void StackSetPolygon(int window, vtkPoints *poly, int s, int p, int d,
-                       int closed, int preshape, int label)
-  {
-    switch (window)
-    {
-      case 0: this->AxiPolyStack->SetPolygon(poly, s, p, d, closed, preshape,
-                                             label);
-              break;
-      case 1: this->SagPolyStack->SetPolygon(poly, s, p, d, closed, preshape,
-                                             label);
-              break;
-      case 2: this->CorPolyStack->SetPolygon(poly, s, p, d, closed, preshape,
-                                             label);
-              break;
-    }
-  };
-  void StackRemovePolygon(int window, int s, int p)
-  {
-    switch (window)
-    {
-      case 0: this->AxiPolyStack->RemovePolygon(s, p);
-              break;
-      case 1: this->SagPolyStack->RemovePolygon(s, p);
-              break;
-      case 2: this->CorPolyStack->RemovePolygon(s, p);
-              break;
-    }
-  };
+                       int closed, int preshape, int label);
+  
+  void StackRemovePolygon(int window, int s, int p);
 
-  void RasStackRemovePolygon(int window, int s, int p)
-  {
-    switch (window)
-    {
-      case 0: this->AxiRasPolyStack->RemovePolygon(s, p);
-              break;
-      case 1: this->SagRasPolyStack->RemovePolygon(s, p);
-              break;
-      case 2: this->CorRasPolyStack->RemovePolygon(s, p);
-              break;
-    }
-  };
+  void RasStackRemovePolygon(int window, int s, int p);
+
   void RasStackSetPolygon(int window, vtkPoints *rasPoly, int s, int p, int d,
-                          int closed, int preshape, int label)
-  {
-    switch (window)
-    {
-      case 0: this->AxiRasPolyStack->SetPolygon(rasPoly, s, p, d, closed,
-                                                preshape, label);
-              break;
-      case 1: this->SagRasPolyStack->SetPolygon(rasPoly, s, p, d, closed,
-                                                preshape, label);
-              break;
-      case 2: this->CorRasPolyStack->SetPolygon(rasPoly, s, p, d, closed,
-                                                preshape, label);
-              break;
-    }
-  };
-
-protected:
-  vtkMrmlDataVolume();
-  ~vtkMrmlDataVolume();
-  vtkMrmlDataVolume(const vtkMrmlDataVolume&) {};
-  void operator=(const vtkMrmlDataVolume&) {};
-
-  // Description: 
-  // If Data has not be created, create it.
-  void CheckMrmlNode();
-  void UpdateWindowLevelThreshold();
-  void CheckImageData();
-
-  vtkFloatingPointType RangeLow;
-  vtkFloatingPointType RangeHigh;
-  int RangeAuto;
-  vtkFloatingPointType HistogramColor[3];
-
-  vtkImageData *ImageData;
-  vtkStackOfPolygons *AxiPolyStack;
-  vtkStackOfPolygons *AxiRasPolyStack;
-  vtkStackOfPolygons *SagPolyStack;
-  vtkStackOfPolygons *SagRasPolyStack;
-  vtkStackOfPolygons *CorPolyStack;
-  vtkStackOfPolygons *CorRasPolyStack;
-  vtkPoints *Samples;
-  vtkImageAccumulateDiscrete *Accumulate;
-  vtkImageBimodalAnalysis *Bimodal;
-  vtkImageResize *Resize;
-  vtkImagePlot *HistPlot;
-
-// Description:
-// Take information from the VtkMrmlNode and put it in the appropriate reader.
-void DicomReaderSetup(vtkImageDICOMReader *dcmreader,
-                      vtkMrmlVolumeNode *node,
-                      int ext[6]);
-void NonDicomReaderSetup(vtkImageReader *dcmreader,
-                         vtkMrmlVolumeNode *node,
-                         int ext[6]);
-
-// Description:
-// Do all the reading.
-// Return the vtkImageSource already updated
-// used by this->Read() and this->ReRead()
- vtkImageSource *ReaderHelper();
-
- // hook for developers to add any kind of volume reading
- vtkMrmlDataVolumeReadWrite *ReadWrite;
-
+                          int closed, int preshape, int label);
 
 };
 

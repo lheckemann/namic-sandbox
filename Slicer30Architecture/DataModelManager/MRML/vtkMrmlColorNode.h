@@ -11,24 +11,12 @@
   Version:   $Revision: 1.18.8.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlColorNode - MRML node for representing colors.
-// .SECTION Description
-// Color nodes define colors by describing not only the actual color 
-// value, but also its name and a list of label values.  One attribute of 
-// model nodes is the name of its color.  When the 3D Slicer displays 
-// label maps, it colors each voxel by looking up the color associated 
-// with that label value. Thus, when label maps are displayed on 
-// reformatted slices, their colors automatically match the corresponding 
-// surface models in the 3D view.
- 
+
 
 #ifndef __vtkMrmlColorNode_h
 #define __vtkMrmlColorNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
-#include "vtkSlicer.h"
 
 class VTK_SLICER_BASE_EXPORT vtkMrmlColorNode : public vtkMrmlNode
 {
@@ -83,23 +71,6 @@ public:
   vtkGetStringMacro(Labels);
   vtkSetStringMacro(Labels);
 
-protected:
-  vtkMrmlColorNode();
-  ~vtkMrmlColorNode();
-  vtkMrmlColorNode(const vtkMrmlColorNode&) {};
-  void operator=(const vtkMrmlColorNode&) {};
-
-  // Strings
-  char *Labels;
-
-  // Numbers
-  vtkFloatingPointType Ambient;
-  vtkFloatingPointType Diffuse;
-  vtkFloatingPointType Specular;
-  int Power;
-
-  // Arrays
-  vtkFloatingPointType DiffuseColor[3];
 };
 
 #endif
