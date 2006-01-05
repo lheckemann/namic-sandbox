@@ -18,52 +18,35 @@
 00011 <span class="comment">  Version:   $Revision: 1.16.16.1 $</span>
 00012 <span class="comment"></span>
 00013 <span class="comment">=========================================================================auto=*/</span>
-00014 <span class="comment">// .NAME vtkMrmlTransformNode - MRML node for representing a transform.</span>
-00015 <span class="comment">// .SECTION Description</span>
-00016 <span class="comment">// A Transform is not a node with attributes, but a construct for </span>
-00017 <span class="comment">// building MRML files.  A Transform encapsulates the Matrix nodes inside it </span>
-00018 <span class="comment">// such that they are invisible to nodes outside the Transform.  </span>
-00019 
-00020 <span class="preprocessor">#ifndef __vtkMrmlTransformNode_h</span>
-00021 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlTransformNode_h</span>
-00022 <span class="preprocessor"></span>
-00023 <span class="comment">//#include &lt;iostream.h&gt;</span>
-00024 <span class="comment">//#include &lt;fstream.h&gt;</span>
-00025 <span class="preprocessor">#include "<a class="code" href="vtkMrmlNode_8h.html">vtkMrmlNode.h</a>"</span>
-00026 <span class="preprocessor">#include "vtkMatrix4x4.h"</span>
-00027 <span class="preprocessor">#include "vtkTransform.h"</span>
-00028 <span class="preprocessor">#include "vtkSlicer.h"</span>
-00029 
-<a name="l00030"></a><a class="code" href="classvtkMrmlTransformNode.html">00030</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlTransformNode.html">vtkMrmlTransformNode</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>
-00031 {
-00032 <span class="keyword">public</span>:
-00033   <span class="keyword">static</span> <a class="code" href="classvtkMrmlTransformNode.html">vtkMrmlTransformNode</a> *<a class="code" href="classvtkMrmlNode.html#vtkMrmlNodee0">New</a>();
-00034   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea21">vtkTypeMacro</a>(<a class="code" href="classvtkMrmlTransformNode.html">vtkMrmlTransformNode</a>,<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>);
-00035   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
-00036   
-00037   <span class="comment">//--------------------------------------------------------------------------</span>
-00038   <span class="comment">// Utility Functions</span>
-00039   <span class="comment">//--------------------------------------------------------------------------</span>
-00040 
-00041   <span class="comment">// Description:</span>
-00042   <span class="comment">// Write the node's attributes to a MRML file in XML format</span>
-00043   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea16">Write</a>(ofstream&amp; of, <span class="keywordtype">int</span> indent);
-00044 
-00045   <span class="comment">// Description:</span>
-00046   <span class="comment">// Copy the node's attributes to this object</span>
-00047   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea3">Copy</a>(<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a> *node);
-00048 
-00049 <span class="keyword">protected</span>:
-00050   <a class="code" href="classvtkMrmlTransformNode.html">vtkMrmlTransformNode</a>();
-00051   ~<a class="code" href="classvtkMrmlTransformNode.html">vtkMrmlTransformNode</a>();
-<a name="l00052"></a><a class="code" href="classvtkMrmlTransformNode.html#vtkMrmlTransformNodeb2">00052</a>   <a class="code" href="classvtkMrmlTransformNode.html">vtkMrmlTransformNode</a>(<span class="keyword">const</span> <a class="code" href="classvtkMrmlTransformNode.html">vtkMrmlTransformNode</a>&amp;) {};
-<a name="l00053"></a><a class="code" href="classvtkMrmlTransformNode.html#vtkMrmlTransformNodeb3">00053</a>   <span class="keywordtype">void</span> operator=(<span class="keyword">const</span> <a class="code" href="classvtkMrmlTransformNode.html">vtkMrmlTransformNode</a>&amp;) {};
-00054 
-00055 };
-00056 
-00057 <span class="preprocessor">#endif</span>
-00058 <span class="preprocessor"></span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 20:25:48 2006 for MRML by&nbsp;
+00014 
+00015 <span class="preprocessor">#ifndef __vtkMrmlTransformNode_h</span>
+00016 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlTransformNode_h</span>
+00017 <span class="preprocessor"></span>
+00018 <span class="preprocessor">#include "<a class="code" href="vtkMrmlNode_8h.html">vtkMrmlNode.h</a>"</span>
+00019 <span class="preprocessor">#include "vtkMatrix4x4.h"</span>
+00020 <span class="preprocessor">#include "vtkTransform.h"</span>
+00021 <span class="preprocessor">#include "vtkSlicer.h"</span>
+00022 
+<a name="l00023"></a><a class="code" href="classvtkMrmlTransformNode.html">00023</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlTransformNode.html">vtkMrmlTransformNode</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>
+00024 {
+00025 <span class="keyword">public</span>:
+00026   <span class="keyword">static</span> <a class="code" href="classvtkMrmlTransformNode.html">vtkMrmlTransformNode</a> *<a class="code" href="classvtkMrmlNode.html#vtkMrmlNodee0">New</a>();
+00027   vtkTypeMacro(<a class="code" href="classvtkMrmlTransformNode.html">vtkMrmlTransformNode</a>,<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>);
+00028   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
+00029   
+00030   <span class="comment">// Description:</span>
+00031   <span class="comment">// Write the node's attributes to a MRML file in XML format</span>
+00032   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea16">Write</a>(ofstream&amp; of, <span class="keywordtype">int</span> indent);
+00033 
+00034   <span class="comment">// Description:</span>
+00035   <span class="comment">// Copy the node's attributes to this object</span>
+00036   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea3">Copy</a>(<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a> *node);
+00037 
+00038 };
+00039 
+00040 <span class="preprocessor">#endif</span>
+00041 <span class="preprocessor"></span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 21:57:58 2006 for MRML by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

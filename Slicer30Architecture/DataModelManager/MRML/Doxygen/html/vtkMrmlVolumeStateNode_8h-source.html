@@ -18,94 +18,70 @@
 00011 <span class="comment">  Version:   $Revision: 1.6.16.1 $</span>
 00012 <span class="comment"></span>
 00013 <span class="comment">=========================================================================auto=*/</span>
-00014 <span class="comment">// .NAME vtkMrmlVolumeStateNode - MRML node to save volume options.</span>
-00015 <span class="comment">// .SECTION Description</span>
-00016 <span class="comment">// Volume State nodes save options of a referenced volume node. Options are</span>
-00017 <span class="comment">// things like the LUT, opacity and if the volume is faded.</span>
-00018 
-00019 <span class="preprocessor">#ifndef __vtkMrmlVolumeStateNode_h</span>
-00020 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlVolumeStateNode_h</span>
-00021 <span class="preprocessor"></span>
-00022 <span class="comment">//#include &lt;iostream.h&gt;</span>
-00023 <span class="comment">//#include &lt;fstream.h&gt;</span>
-00024 <span class="preprocessor">#include "<a class="code" href="vtkMrmlNode_8h.html">vtkMrmlNode.h</a>"</span>
-00025 <span class="preprocessor">#include "vtkSlicer.h"</span>
-00026 
-00027 
-<a name="l00028"></a><a class="code" href="classvtkMrmlVolumeStateNode.html">00028</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlVolumeStateNode.html">vtkMrmlVolumeStateNode</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>
-00029 {
-00030 <span class="keyword">public</span>:
-00031   <span class="keyword">static</span> <a class="code" href="classvtkMrmlVolumeStateNode.html">vtkMrmlVolumeStateNode</a> *<a class="code" href="classvtkMrmlNode.html#vtkMrmlNodee0">New</a>();
-00032   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea21">vtkTypeMacro</a>(<a class="code" href="classvtkMrmlVolumeStateNode.html">vtkMrmlVolumeStateNode</a>,<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>);
-00033   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
-00034   
-00035   <span class="comment">//--------------------------------------------------------------------------</span>
-00036   <span class="comment">// Utility Functions</span>
-00037   <span class="comment">//--------------------------------------------------------------------------</span>
-00038 
-00039   <span class="comment">// Description:</span>
-00040   <span class="comment">// Write the node's attributes to a MRML file in XML format</span>
-00041   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea16">Write</a>(ofstream&amp; of, <span class="keywordtype">int</span> indent);
-00042 
-00043   <span class="comment">// Description:</span>
-00044   <span class="comment">// Copy the node's attributes to this object</span>
-00045   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea3">Copy</a>(<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a> *node);
-00046 
-00047   <span class="comment">// Description:</span>
-00048   <span class="comment">// ID of the referenced volume</span>
-00049   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea26">vtkSetStringMacro</a>(VolumeRefID);
-00050   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea29">vtkGetStringMacro</a>(VolumeRefID);
-00051 
-00052   <span class="comment">// Description:</span>
-00053   <span class="comment">// Color look up table</span>
-00054   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea26">vtkSetStringMacro</a>(ColorLUT);
-00055   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea29">vtkGetStringMacro</a>(ColorLUT);
+00014 
+00015 <span class="preprocessor">#ifndef __vtkMrmlVolumeStateNode_h</span>
+00016 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlVolumeStateNode_h</span>
+00017 <span class="preprocessor"></span>
+00018 <span class="preprocessor">#include "<a class="code" href="vtkMrmlNode_8h.html">vtkMrmlNode.h</a>"</span>
+00019 <span class="preprocessor">#include "vtkSlicer.h"</span>
+00020 
+00021 
+<a name="l00022"></a><a class="code" href="classvtkMrmlVolumeStateNode.html">00022</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlVolumeStateNode.html">vtkMrmlVolumeStateNode</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>
+00023 {
+00024 <span class="keyword">public</span>:
+00025   <span class="keyword">static</span> <a class="code" href="classvtkMrmlVolumeStateNode.html">vtkMrmlVolumeStateNode</a> *<a class="code" href="classvtkMrmlNode.html#vtkMrmlNodee0">New</a>();
+00026   vtkTypeMacro(<a class="code" href="classvtkMrmlVolumeStateNode.html">vtkMrmlVolumeStateNode</a>,<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>);
+00027   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
+00028   
+00029   <span class="comment">//--------------------------------------------------------------------------</span>
+00030   <span class="comment">// Utility Functions</span>
+00031   <span class="comment">//--------------------------------------------------------------------------</span>
+00032 
+00033   <span class="comment">// Description:</span>
+00034   <span class="comment">// Write the node's attributes to a MRML file in XML format</span>
+00035   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea16">Write</a>(ofstream&amp; of, <span class="keywordtype">int</span> indent);
+00036 
+00037   <span class="comment">// Description:</span>
+00038   <span class="comment">// Copy the node's attributes to this object</span>
+00039   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea3">Copy</a>(<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a> *node);
+00040 
+00041   <span class="comment">// Description:</span>
+00042   <span class="comment">// ID of the referenced volume</span>
+00043   vtkSetStringMacro(VolumeRefID);
+00044   vtkGetStringMacro(VolumeRefID);
+00045 
+00046   <span class="comment">// Description:</span>
+00047   <span class="comment">// Color look up table</span>
+00048   vtkSetStringMacro(ColorLUT);
+00049   vtkGetStringMacro(ColorLUT);
+00050 
+00051   <span class="comment">// Description:</span>
+00052   <span class="comment">// Is the volume shown in the foreground?</span>
+<a name="l00053"></a><a class="code" href="classvtkMrmlVolumeStateNode.html#vtkMrmlVolumeStateNodeo0">00053</a>   vtkBooleanMacro(Foreground,<span class="keywordtype">int</span>);
+00054   vtkSetMacro(Foreground,<span class="keywordtype">int</span>);
+00055   vtkGetMacro(Foreground,<span class="keywordtype">int</span>);
 00056 
 00057   <span class="comment">// Description:</span>
-00058   <span class="comment">// Is the volume shown in the foreground?</span>
-00059   vtkBooleanMacro(Foreground,<span class="keywordtype">int</span>);
-00060   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(Foreground,<span class="keywordtype">int</span>);
-00061   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(Foreground,<span class="keywordtype">int</span>);
+00058   <span class="comment">// Is the volume shown in the background?</span>
+<a name="l00059"></a><a class="code" href="classvtkMrmlVolumeStateNode.html#vtkMrmlVolumeStateNodeo1">00059</a>   vtkBooleanMacro(Background,<span class="keywordtype">int</span>);
+00060   vtkSetMacro(Background,<span class="keywordtype">int</span>);
+00061   vtkGetMacro(Background,<span class="keywordtype">int</span>);
 00062 
 00063   <span class="comment">// Description:</span>
-00064   <span class="comment">// Is the volume shown in the background?</span>
-00065   vtkBooleanMacro(Background,<span class="keywordtype">int</span>);
-00066   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(Background,<span class="keywordtype">int</span>);
-00067   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(Background,<span class="keywordtype">int</span>);
-00068 
+00064   <span class="comment">// Is the volume faded?</span>
+<a name="l00065"></a><a class="code" href="classvtkMrmlVolumeStateNode.html#vtkMrmlVolumeStateNodeo2">00065</a>   vtkBooleanMacro(Fade,<span class="keywordtype">int</span>);
+00066   vtkSetMacro(Fade,<span class="keywordtype">int</span>);
+00067   vtkGetMacro(Fade,<span class="keywordtype">int</span>);
+00068   
 00069   <span class="comment">// Description:</span>
-00070   <span class="comment">// Is the volume faded?</span>
-00071   vtkBooleanMacro(Fade,<span class="keywordtype">int</span>);
-00072   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(Fade,<span class="keywordtype">int</span>);
-00073   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(Fade,<span class="keywordtype">int</span>);
-00074   
-00075   <span class="comment">// Description:</span>
-00076   <span class="comment">// Opacity of the volume</span>
-00077   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(Opacity,<span class="keywordtype">float</span>);
-00078   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(Opacity,<span class="keywordtype">float</span>);
-00079  
-00080 <span class="keyword">protected</span>:
-00081   <a class="code" href="classvtkMrmlVolumeStateNode.html">vtkMrmlVolumeStateNode</a>();
-00082   ~<a class="code" href="classvtkMrmlVolumeStateNode.html">vtkMrmlVolumeStateNode</a>();
-<a name="l00083"></a><a class="code" href="classvtkMrmlVolumeStateNode.html#vtkMrmlVolumeStateNodeb2">00083</a>   <a class="code" href="classvtkMrmlVolumeStateNode.html">vtkMrmlVolumeStateNode</a>(<span class="keyword">const</span> <a class="code" href="classvtkMrmlVolumeStateNode.html">vtkMrmlVolumeStateNode</a>&amp;) {};
-<a name="l00084"></a><a class="code" href="classvtkMrmlVolumeStateNode.html#vtkMrmlVolumeStateNodep0">00084</a>   <span class="keywordtype">void</span> operator=(<span class="keyword">const</span> <a class="code" href="classvtkMrmlVolumeStateNode.html">vtkMrmlVolumeStateNode</a>&amp;) {};
-00085 
-00086   <span class="comment">// Strings</span>
-00087   <span class="keywordtype">char</span> *VolumeRefID;
-<a name="l00088"></a><a class="code" href="classvtkMrmlVolumeStateNode.html#vtkMrmlVolumeStateNodep1">00088</a>   <span class="keywordtype">char</span> *ColorLUT;
-00089   
-00090   <span class="comment">// Booleans</span>
-<a name="l00091"></a><a class="code" href="classvtkMrmlVolumeStateNode.html#vtkMrmlVolumeStateNodep2">00091</a>   <span class="keywordtype">int</span> Foreground;
-<a name="l00092"></a><a class="code" href="classvtkMrmlVolumeStateNode.html#vtkMrmlVolumeStateNodep3">00092</a>   <span class="keywordtype">int</span> Background;
-<a name="l00093"></a><a class="code" href="classvtkMrmlVolumeStateNode.html#vtkMrmlVolumeStateNodep4">00093</a>   <span class="keywordtype">int</span> Fade;
-00094   
-00095   <span class="comment">// Numbers</span>
-<a name="l00096"></a><a class="code" href="classvtkMrmlVolumeStateNode.html#vtkMrmlVolumeStateNodep5">00096</a>   <span class="keywordtype">float</span> Opacity;
-00097 
-00098 };
-00099 
-00100 <span class="preprocessor">#endif</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 20:25:48 2006 for MRML by&nbsp;
+00070   <span class="comment">// Opacity of the volume</span>
+00071   vtkSetMacro(Opacity,<span class="keywordtype">float</span>);
+00072   vtkGetMacro(Opacity,<span class="keywordtype">float</span>);
+00073  
+00074 };
+00075 
+00076 <span class="preprocessor">#endif</span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 21:57:58 2006 for MRML by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

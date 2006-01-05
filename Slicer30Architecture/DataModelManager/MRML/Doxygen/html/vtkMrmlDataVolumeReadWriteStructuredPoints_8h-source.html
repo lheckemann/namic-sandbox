@@ -18,57 +18,40 @@
 00011 <span class="comment">  Version:   $Revision: 1.4.16.1 $</span>
 00012 <span class="comment"></span>
 00013 <span class="comment">=========================================================================auto=*/</span>
-00014 <span class="comment">// .NAME vtkMrmlDataVolumeReadWriteStructuredPoints - </span>
-00015 <span class="comment">// .SECTION Description</span>
-00016 <span class="comment">// This sub-object is specific to each</span>
-00017 <span class="comment">// type of volume that needs to be read in.  This can be used</span>
-00018 <span class="comment">// to clean up the special cases which handle</span>
-00019 <span class="comment">// volumes of various types, such as dicom, header, etc.  In</span>
-00020 <span class="comment">// future these things can be moved here.  Each read/write </span>
-00021 <span class="comment">// sub-object corresponds to a vtkMrmlVolumeReadWriteNode subclass.</span>
-00022 <span class="comment">// These subclasses write any needed info in the MRML file.</span>
-00023 <span class="comment">//</span>
-00024 
-00025 <span class="preprocessor">#ifndef __vtkMrmlDataVolumeReadWriteStructuredPoints_h</span>
-00026 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlDataVolumeReadWriteStructuredPoints_h</span>
-00027 <span class="preprocessor"></span>
-00028 <span class="preprocessor">#include "vtkObject.h"</span>
-00029 <span class="preprocessor">#include "vtkSlicer.h"</span>
-00030 <span class="preprocessor">#include "<a class="code" href="vtkMrmlVolumeNode_8h.html">vtkMrmlVolumeNode.h</a>"</span>
-00031 <span class="preprocessor">#include "vtkStructuredPoints.h"</span>
-00032 <span class="preprocessor">#include "<a class="code" href="vtkMrmlDataVolumeReadWrite_8h.html">vtkMrmlDataVolumeReadWrite.h</a>"</span>
-00033 
-<a name="l00034"></a><a class="code" href="classvtkMrmlDataVolumeReadWriteStructuredPoints.html">00034</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlDataVolumeReadWriteStructuredPoints.html">vtkMrmlDataVolumeReadWriteStructuredPoints</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlDataVolumeReadWrite.html">vtkMrmlDataVolumeReadWrite</a> 
-00035 {
-00036   <span class="keyword">public</span>:
-00037   <span class="keyword">static</span> <a class="code" href="classvtkMrmlDataVolumeReadWriteStructuredPoints.html">vtkMrmlDataVolumeReadWriteStructuredPoints</a> *<a class="code" href="classvtkMrmlDataVolumeReadWrite.html#vtkMrmlDataVolumeReadWritee0">New</a>();
-00038   <a class="code" href="classvtkMrmlDataVolumeReadWrite.html#vtkMrmlDataVolumeReadWriteStructuredPointsa6">vtkTypeMacro</a>(<a class="code" href="classvtkMrmlDataVolumeReadWriteStructuredPoints.html">vtkMrmlDataVolumeReadWriteStructuredPoints</a>,<a class="code" href="classvtkMrmlDataVolumeReadWrite.html">vtkMrmlDataVolumeReadWrite</a>);
-00039   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlDataVolumeReadWrite.html#vtkMrmlDataVolumeReadWritea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
-00040   
-00041   <span class="comment">// Return code indicates success (1) or error (0)</span>
-00042   <span class="keywordtype">int</span> <a class="code" href="classvtkMrmlDataVolumeReadWrite.html#vtkMrmlDataVolumeReadWritea2">Read</a>(<a class="code" href="classvtkMrmlVolumeNode.html">vtkMrmlVolumeNode</a> *node, vtkImageSource **output);
-00043   <span class="keywordtype">int</span> <a class="code" href="classvtkMrmlDataVolumeReadWrite.html#vtkMrmlDataVolumeReadWritea3">Write</a>(<a class="code" href="classvtkMrmlVolumeNode.html">vtkMrmlVolumeNode</a> *node, vtkImageData *input);
-00044 
-00045   <span class="comment">//--------------------------------------------------------------------------</span>
-00046   <span class="comment">// Specifics for reading/writing each type of volume data</span>
-00047   <span class="comment">//--------------------------------------------------------------------------</span>
-00048 
-00049   <span class="comment">// Subclasses must fill these in.</span>
-00050   vtkSetStringMacro(FileName);
-00051   vtkGetStringMacro(FileName);
-00052 
-00053 <span class="keyword">protected</span>:
-00054   <a class="code" href="classvtkMrmlDataVolumeReadWriteStructuredPoints.html">vtkMrmlDataVolumeReadWriteStructuredPoints</a>();
-00055   ~<a class="code" href="classvtkMrmlDataVolumeReadWriteStructuredPoints.html">vtkMrmlDataVolumeReadWriteStructuredPoints</a>();
-<a name="l00056"></a><a class="code" href="classvtkMrmlDataVolumeReadWriteStructuredPoints.html#vtkMrmlDataVolumeReadWriteStructuredPointsb2">00056</a>   <a class="code" href="classvtkMrmlDataVolumeReadWriteStructuredPoints.html">vtkMrmlDataVolumeReadWriteStructuredPoints</a>(<span class="keyword">const</span> <a class="code" href="classvtkMrmlDataVolumeReadWriteStructuredPoints.html">vtkMrmlDataVolumeReadWriteStructuredPoints</a>&amp;) {};
-<a name="l00057"></a><a class="code" href="classvtkMrmlDataVolumeReadWriteStructuredPoints.html#vtkMrmlDataVolumeReadWriteStructuredPointsb3">00057</a>   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlDataVolumeReadWrite.html#vtkMrmlDataVolumeReadWriteb3">operator=</a>(<span class="keyword">const</span> <a class="code" href="classvtkMrmlDataVolumeReadWriteStructuredPoints.html">vtkMrmlDataVolumeReadWriteStructuredPoints</a>&amp;) {};
-00058 
-00059   <span class="keywordtype">char</span> *FileName;
-00060 
-00061 };
-00062 
-00063 <span class="preprocessor">#endif</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 20:25:47 2006 for MRML by&nbsp;
+00014 
+00015 <span class="preprocessor">#ifndef __vtkMrmlDataVolumeReadWriteStructuredPoints_h</span>
+00016 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlDataVolumeReadWriteStructuredPoints_h</span>
+00017 <span class="preprocessor"></span>
+00018 <span class="preprocessor">#include "vtkObject.h"</span>
+00019 <span class="preprocessor">#include "vtkSlicer.h"</span>
+00020 <span class="preprocessor">#include "<a class="code" href="vtkMrmlVolumeNode_8h.html">vtkMrmlVolumeNode.h</a>"</span>
+00021 <span class="preprocessor">#include "vtkStructuredPoints.h"</span>
+00022 <span class="preprocessor">#include "<a class="code" href="vtkMrmlDataVolumeReadWrite_8h.html">vtkMrmlDataVolumeReadWrite.h</a>"</span>
+00023 
+<a name="l00024"></a><a class="code" href="classvtkMrmlDataVolumeReadWriteStructuredPoints.html">00024</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlDataVolumeReadWriteStructuredPoints.html">vtkMrmlDataVolumeReadWriteStructuredPoints</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlDataVolumeReadWrite.html">vtkMrmlDataVolumeReadWrite</a> 
+00025 {
+00026   <span class="keyword">public</span>:
+00027   <span class="keyword">static</span> <a class="code" href="classvtkMrmlDataVolumeReadWriteStructuredPoints.html">vtkMrmlDataVolumeReadWriteStructuredPoints</a> *<a class="code" href="classvtkMrmlDataVolumeReadWrite.html#vtkMrmlDataVolumeReadWritee0">New</a>();
+00028   vtkTypeMacro(<a class="code" href="classvtkMrmlDataVolumeReadWriteStructuredPoints.html">vtkMrmlDataVolumeReadWriteStructuredPoints</a>,<a class="code" href="classvtkMrmlDataVolumeReadWrite.html">vtkMrmlDataVolumeReadWrite</a>);
+00029   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlDataVolumeReadWrite.html#vtkMrmlDataVolumeReadWritea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
+00030   
+00031   <span class="comment">// Return code indicates success (1) or error (0)</span>
+00032   <span class="keywordtype">int</span> <a class="code" href="classvtkMrmlDataVolumeReadWrite.html#vtkMrmlDataVolumeReadWritea2">Read</a>(<a class="code" href="classvtkMrmlVolumeNode.html">vtkMrmlVolumeNode</a> *node, vtkImageSource **output);
+00033   <span class="keywordtype">int</span> <a class="code" href="classvtkMrmlDataVolumeReadWrite.html#vtkMrmlDataVolumeReadWritea3">Write</a>(<a class="code" href="classvtkMrmlVolumeNode.html">vtkMrmlVolumeNode</a> *node, vtkImageData *input);
+00034 
+00035   <span class="comment">//--------------------------------------------------------------------------</span>
+00036   <span class="comment">// Specifics for reading/writing each type of volume data</span>
+00037   <span class="comment">//--------------------------------------------------------------------------</span>
+00038 
+00039   <span class="comment">// Subclasses must fill these in.</span>
+00040   vtkSetStringMacro(FileName);
+00041   vtkGetStringMacro(FileName);
+00042 
+00043 
+00044 };
+00045 
+00046 <span class="preprocessor">#endif</span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 21:57:58 2006 for MRML by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

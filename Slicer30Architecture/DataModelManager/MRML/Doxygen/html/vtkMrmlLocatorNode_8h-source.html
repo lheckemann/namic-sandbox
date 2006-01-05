@@ -18,96 +18,73 @@
 00011 <span class="comment">  Version:   $Revision: 1.5.16.1 $</span>
 00012 <span class="comment"></span>
 00013 <span class="comment">=========================================================================auto=*/</span>
-00014 <span class="comment">// .NAME vtkMrmlLocatorNode - describes locator properties.</span>
-00015 <span class="comment">// .SECTION Description</span>
-00016 <span class="comment">// Locator nodes describe the different options of the locator inside Slicer.</span>
-00017 
-00018 <span class="preprocessor">#ifndef __vtkMrmlLocatorNode_h</span>
-00019 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlLocatorNode_h</span>
-00020 <span class="preprocessor"></span>
-00021 <span class="comment">//#include &lt;iostream.h&gt;</span>
-00022 <span class="comment">//#include &lt;fstream.h&gt;</span>
-00023 <span class="preprocessor">#include "<a class="code" href="vtkMrmlNode_8h.html">vtkMrmlNode.h</a>"</span>
-00024 <span class="preprocessor">#include "vtkSlicer.h"</span>
-00025 
-00026 
-<a name="l00027"></a><a class="code" href="classvtkMrmlLocatorNode.html">00027</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlLocatorNode.html">vtkMrmlLocatorNode</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>
-00028 {
-00029 <span class="keyword">public</span>:
-00030   <span class="keyword">static</span> <a class="code" href="classvtkMrmlLocatorNode.html">vtkMrmlLocatorNode</a> *<a class="code" href="classvtkMrmlNode.html#vtkMrmlNodee0">New</a>();
-00031   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea21">vtkTypeMacro</a>(<a class="code" href="classvtkMrmlLocatorNode.html">vtkMrmlLocatorNode</a>,<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>);
-00032   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
-00033   
-00034   <span class="comment">//--------------------------------------------------------------------------</span>
-00035   <span class="comment">// Utility Functions</span>
-00036   <span class="comment">//--------------------------------------------------------------------------</span>
-00037 
-00038   <span class="comment">// Description:</span>
-00039   <span class="comment">// Write the node's attributes to a MRML file in XML format</span>
-00040   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea16">Write</a>(ofstream&amp; of, <span class="keywordtype">int</span> indent);
-00041 
-00042   <span class="comment">// Description:</span>
-00043   <span class="comment">// Copy the node's attributes to this object</span>
-00044   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea3">Copy</a>(<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a> *node);
-00045 
-00046   <span class="comment">// Description:</span>
-00047   <span class="comment">// Who or what is driving the locator?</span>
-00048   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea26">vtkSetStringMacro</a>(Driver);
-00049   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea29">vtkGetStringMacro</a>(Driver);
+00014 <span class="preprocessor">#ifndef __vtkMrmlLocatorNode_h</span>
+00015 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlLocatorNode_h</span>
+00016 <span class="preprocessor"></span>
+00017 <span class="preprocessor">#include "<a class="code" href="vtkMrmlNode_8h.html">vtkMrmlNode.h</a>"</span>
+00018 <span class="preprocessor">#include "vtkSlicer.h"</span>
+00019 
+00020 
+<a name="l00021"></a><a class="code" href="classvtkMrmlLocatorNode.html">00021</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlLocatorNode.html">vtkMrmlLocatorNode</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>
+00022 {
+00023 <span class="keyword">public</span>:
+00024   <span class="keyword">static</span> <a class="code" href="classvtkMrmlLocatorNode.html">vtkMrmlLocatorNode</a> *<a class="code" href="classvtkMrmlNode.html#vtkMrmlNodee0">New</a>();
+00025   vtkTypeMacro(<a class="code" href="classvtkMrmlLocatorNode.html">vtkMrmlLocatorNode</a>,<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>);
+00026   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
+00027   
+00028   <span class="comment">//--------------------------------------------------------------------------</span>
+00029   <span class="comment">// Utility Functions</span>
+00030   <span class="comment">//--------------------------------------------------------------------------</span>
+00031 
+00032   <span class="comment">// Description:</span>
+00033   <span class="comment">// Write the node's attributes to a MRML file in XML format</span>
+00034   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea16">Write</a>(ofstream&amp; of, <span class="keywordtype">int</span> indent);
+00035 
+00036   <span class="comment">// Description:</span>
+00037   <span class="comment">// Copy the node's attributes to this object</span>
+00038   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea3">Copy</a>(<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a> *node);
+00039 
+00040   <span class="comment">// Description:</span>
+00041   <span class="comment">// Who or what is driving the locator?</span>
+00042   vtkSetStringMacro(Driver);
+00043   vtkGetStringMacro(Driver);
+00044   
+00045   <span class="comment">// Description:</span>
+00046   <span class="comment">// Is the locator visible?</span>
+<a name="l00047"></a><a class="code" href="classvtkMrmlLocatorNode.html#vtkMrmlLocatorNodeo0">00047</a>   vtkBooleanMacro(Visibility,<span class="keywordtype">int</span>);
+00048   vtkSetMacro(Visibility,<span class="keywordtype">int</span>);
+00049   vtkGetMacro(Visibility,<span class="keywordtype">int</span>);
 00050   
 00051   <span class="comment">// Description:</span>
-00052   <span class="comment">// Is the locator visible?</span>
-00053   vtkBooleanMacro(Visibility,<span class="keywordtype">int</span>);
-00054   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(Visibility,<span class="keywordtype">int</span>);
-00055   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(Visibility,<span class="keywordtype">int</span>);
+00052   <span class="comment">// Is the transverse visible?</span>
+<a name="l00053"></a><a class="code" href="classvtkMrmlLocatorNode.html#vtkMrmlLocatorNodeo1">00053</a>   vtkBooleanMacro(TransverseVisibility,<span class="keywordtype">int</span>);
+00054   vtkSetMacro(TransverseVisibility,<span class="keywordtype">int</span>);
+00055   vtkGetMacro(TransverseVisibility,<span class="keywordtype">int</span>);
 00056   
 00057   <span class="comment">// Description:</span>
-00058   <span class="comment">// Is the transverse visible?</span>
-00059   vtkBooleanMacro(TransverseVisibility,<span class="keywordtype">int</span>);
-00060   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(TransverseVisibility,<span class="keywordtype">int</span>);
-00061   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(TransverseVisibility,<span class="keywordtype">int</span>);
-00062   
-00063   <span class="comment">// Description:</span>
-00064   <span class="comment">// Length of the normal</span>
-00065   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(NormalLen,<span class="keywordtype">int</span>);
-00066   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(NormalLen,<span class="keywordtype">int</span>);
-00067   
-00068   <span class="comment">// Description:</span>
-00069   <span class="comment">// Lenght of the transverse</span>
-00070   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(TransverseLen,<span class="keywordtype">int</span>);
-00071   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(TransverseLen,<span class="keywordtype">int</span>);
-00072   
-00073   <span class="comment">// Description:</span>
-00074   <span class="comment">// Radius</span>
-00075   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(Radius,<span class="keywordtype">float</span>);
-00076   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(Radius,<span class="keywordtype">float</span>);
-00077   
-00078   <span class="comment">// Description:</span>
-00079   <span class="comment">// Locator color</span>
-00080   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea26">vtkSetStringMacro</a>(DiffuseColor);
-00081   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea29">vtkGetStringMacro</a>(DiffuseColor);
-00082 
-00083  
-00084 <span class="keyword">protected</span>:
-00085   <a class="code" href="classvtkMrmlLocatorNode.html">vtkMrmlLocatorNode</a>();
-00086   ~<a class="code" href="classvtkMrmlLocatorNode.html">vtkMrmlLocatorNode</a>();
-<a name="l00087"></a><a class="code" href="classvtkMrmlLocatorNode.html#vtkMrmlLocatorNodeb2">00087</a>   <a class="code" href="classvtkMrmlLocatorNode.html">vtkMrmlLocatorNode</a>(<span class="keyword">const</span> <a class="code" href="classvtkMrmlLocatorNode.html">vtkMrmlLocatorNode</a>&amp;) {};
-<a name="l00088"></a><a class="code" href="classvtkMrmlLocatorNode.html#vtkMrmlLocatorNodeb3">00088</a>   <span class="keywordtype">void</span> operator=(<span class="keyword">const</span> <a class="code" href="classvtkMrmlLocatorNode.html">vtkMrmlLocatorNode</a>&amp;) {};
-00089 
-00090   <span class="comment">// Strings</span>
-00091   <span class="keywordtype">char</span> *Driver;
-<a name="l00092"></a><a class="code" href="classvtkMrmlLocatorNode.html#vtkMrmlLocatorNodep1">00092</a>   <span class="keywordtype">char</span> *DiffuseColor;
-00093 
-00094   <span class="comment">// Numbers</span>
-<a name="l00095"></a><a class="code" href="classvtkMrmlLocatorNode.html#vtkMrmlLocatorNodep2">00095</a>   <span class="keywordtype">int</span> Visibility;
-<a name="l00096"></a><a class="code" href="classvtkMrmlLocatorNode.html#vtkMrmlLocatorNodep3">00096</a>   <span class="keywordtype">int</span> TransverseVisibility;
-<a name="l00097"></a><a class="code" href="classvtkMrmlLocatorNode.html#vtkMrmlLocatorNodep4">00097</a>   <span class="keywordtype">int</span> NormalLen;
-<a name="l00098"></a><a class="code" href="classvtkMrmlLocatorNode.html#vtkMrmlLocatorNodep5">00098</a>   <span class="keywordtype">int</span> TransverseLen;
-<a name="l00099"></a><a class="code" href="classvtkMrmlLocatorNode.html#vtkMrmlLocatorNodep6">00099</a>   <span class="keywordtype">float</span> Radius;
-00100 };
-00101 
-00102 <span class="preprocessor">#endif</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 20:25:47 2006 for MRML by&nbsp;
+00058   <span class="comment">// Length of the normal</span>
+00059   vtkSetMacro(NormalLen,<span class="keywordtype">int</span>);
+00060   vtkGetMacro(NormalLen,<span class="keywordtype">int</span>);
+00061   
+00062   <span class="comment">// Description:</span>
+00063   <span class="comment">// Lenght of the transverse</span>
+00064   vtkSetMacro(TransverseLen,<span class="keywordtype">int</span>);
+00065   vtkGetMacro(TransverseLen,<span class="keywordtype">int</span>);
+00066   
+00067   <span class="comment">// Description:</span>
+00068   <span class="comment">// Radius</span>
+00069   vtkSetMacro(Radius,<span class="keywordtype">float</span>);
+00070   vtkGetMacro(Radius,<span class="keywordtype">float</span>);
+00071   
+00072   <span class="comment">// Description:</span>
+00073   <span class="comment">// Locator color</span>
+00074   vtkSetStringMacro(DiffuseColor);
+00075   vtkGetStringMacro(DiffuseColor);
+00076 
+00077 };
+00078 
+00079 <span class="preprocessor">#endif</span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 21:57:58 2006 for MRML by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

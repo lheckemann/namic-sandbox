@@ -18,105 +18,79 @@
 00011 <span class="comment">  Version:   $Revision: 1.5.16.1 $</span>
 00012 <span class="comment"></span>
 00013 <span class="comment">=========================================================================auto=*/</span>
-00014 <span class="comment">// .NAME vtkMrmlModelStateNode - MRML node to represent the properties of a model.</span>
-00015 <span class="comment">// .SECTION Description</span>
-00016 <span class="comment">// ModelState nodes save the properties of a model inside a Slicer scene. They</span>
-00017 <span class="comment">// can also be used for model groups.</span>
-00018 
-00019 <span class="preprocessor">#ifndef __vtkMrmlModelStateNode_h</span>
-00020 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlModelStateNode_h</span>
-00021 <span class="preprocessor"></span>
-00022 <span class="comment">//#include &lt;iostream.h&gt;</span>
-00023 <span class="comment">//#include &lt;fstream.h&gt;</span>
-00024 <span class="preprocessor">#include "<a class="code" href="vtkMrmlNode_8h.html">vtkMrmlNode.h</a>"</span>
-00025 <span class="preprocessor">#include "vtkSlicer.h"</span>
-00026 
-00027 
-<a name="l00028"></a><a class="code" href="classvtkMrmlModelStateNode.html">00028</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlModelStateNode.html">vtkMrmlModelStateNode</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>
-00029 {
-00030 <span class="keyword">public</span>:
-00031   <span class="keyword">static</span> <a class="code" href="classvtkMrmlModelStateNode.html">vtkMrmlModelStateNode</a> *<a class="code" href="classvtkMrmlNode.html#vtkMrmlNodee0">New</a>();
-00032   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea21">vtkTypeMacro</a>(<a class="code" href="classvtkMrmlModelStateNode.html">vtkMrmlModelStateNode</a>,<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>);
-00033   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
-00034   
-00035   <span class="comment">//--------------------------------------------------------------------------</span>
-00036   <span class="comment">// Utility Functions</span>
-00037   <span class="comment">//--------------------------------------------------------------------------</span>
-00038 
-00039   <span class="comment">// Description:</span>
-00040   <span class="comment">// Write the node's attributes to a MRML file in XML format</span>
-00041   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea16">Write</a>(ofstream&amp; of, <span class="keywordtype">int</span> indent);
-00042 
-00043   <span class="comment">// Description:</span>
-00044   <span class="comment">// Copy the node's attributes to this object</span>
-00045   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea3">Copy</a>(<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a> *node);
-00046 
-00047   <span class="comment">// Description:</span>
-00048   <span class="comment">// ID of the referenced model</span>
-00049   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea26">vtkSetStringMacro</a>(ModelRefID);
-00050   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea29">vtkGetStringMacro</a>(ModelRefID);
+00014 
+00015 <span class="preprocessor">#ifndef __vtkMrmlModelStateNode_h</span>
+00016 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlModelStateNode_h</span>
+00017 <span class="preprocessor"></span>
+00018 <span class="preprocessor">#include "<a class="code" href="vtkMrmlNode_8h.html">vtkMrmlNode.h</a>"</span>
+00019 <span class="preprocessor">#include "vtkSlicer.h"</span>
+00020 
+00021 
+<a name="l00022"></a><a class="code" href="classvtkMrmlModelStateNode.html">00022</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlModelStateNode.html">vtkMrmlModelStateNode</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>
+00023 {
+00024 <span class="keyword">public</span>:
+00025   <span class="keyword">static</span> <a class="code" href="classvtkMrmlModelStateNode.html">vtkMrmlModelStateNode</a> *<a class="code" href="classvtkMrmlNode.html#vtkMrmlNodee0">New</a>();
+00026   vtkTypeMacro(<a class="code" href="classvtkMrmlModelStateNode.html">vtkMrmlModelStateNode</a>,<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>);
+00027   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
+00028   
+00029   <span class="comment">//--------------------------------------------------------------------------</span>
+00030   <span class="comment">// Utility Functions</span>
+00031   <span class="comment">//--------------------------------------------------------------------------</span>
+00032 
+00033   <span class="comment">// Description:</span>
+00034   <span class="comment">// Write the node's attributes to a MRML file in XML format</span>
+00035   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea16">Write</a>(ofstream&amp; of, <span class="keywordtype">int</span> indent);
+00036 
+00037   <span class="comment">// Description:</span>
+00038   <span class="comment">// Copy the node's attributes to this object</span>
+00039   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea3">Copy</a>(<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a> *node);
+00040 
+00041   <span class="comment">// Description:</span>
+00042   <span class="comment">// ID of the referenced model</span>
+00043   vtkSetStringMacro(ModelRefID);
+00044   vtkGetStringMacro(ModelRefID);
+00045   
+00046   <span class="comment">// Description:</span>
+00047   <span class="comment">// Visibility</span>
+<a name="l00048"></a><a class="code" href="classvtkMrmlModelStateNode.html#vtkMrmlModelStateNodeo0">00048</a>   vtkBooleanMacro(Visible,<span class="keywordtype">int</span>);
+00049   vtkSetMacro(Visible,<span class="keywordtype">int</span>);
+00050   vtkGetMacro(Visible,<span class="keywordtype">int</span>);
 00051   
 00052   <span class="comment">// Description:</span>
-00053   <span class="comment">// Visibility</span>
-00054   vtkBooleanMacro(Visible,<span class="keywordtype">int</span>);
-00055   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(Visible,<span class="keywordtype">int</span>);
-00056   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(Visible,<span class="keywordtype">int</span>);
-00057   
-00058   <span class="comment">// Description:</span>
-00059   <span class="comment">// Visibility of the opacity slider</span>
-00060   <span class="comment">// This is not used in Slicer, but only saved to maintain compatibility</span>
-00061   <span class="comment">// with SPLViz</span>
-00062   vtkBooleanMacro(SliderVisible,<span class="keywordtype">int</span>);
-00063   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(SliderVisible,<span class="keywordtype">int</span>);
-00064   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(SliderVisible,<span class="keywordtype">int</span>);
+00053   <span class="comment">// Visibility of the opacity slider</span>
+00054   <span class="comment">// This is not used in Slicer, but only saved to maintain compatibility</span>
+00055   <span class="comment">// with SPLViz</span>
+<a name="l00056"></a><a class="code" href="classvtkMrmlModelStateNode.html#vtkMrmlModelStateNodeo1">00056</a>   vtkBooleanMacro(SliderVisible,<span class="keywordtype">int</span>);
+00057   vtkSetMacro(SliderVisible,<span class="keywordtype">int</span>);
+00058   vtkGetMacro(SliderVisible,<span class="keywordtype">int</span>);
+00059   
+00060   <span class="comment">// Description:</span>
+00061   <span class="comment">// Visibility of the children (for model groups)</span>
+<a name="l00062"></a><a class="code" href="classvtkMrmlModelStateNode.html#vtkMrmlModelStateNodeo2">00062</a>   vtkBooleanMacro(SonsVisible,<span class="keywordtype">int</span>);
+00063   vtkSetMacro(SonsVisible,<span class="keywordtype">int</span>);
+00064   vtkGetMacro(SonsVisible,<span class="keywordtype">int</span>);
 00065   
 00066   <span class="comment">// Description:</span>
-00067   <span class="comment">// Visibility of the children (for model groups)</span>
-00068   vtkBooleanMacro(SonsVisible,<span class="keywordtype">int</span>);
-00069   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(SonsVisible,<span class="keywordtype">int</span>);
-00070   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(SonsVisible,<span class="keywordtype">int</span>);
-00071   
-00072   <span class="comment">// Description:</span>
-00073   <span class="comment">// Opacity</span>
-00074   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(Opacity,<span class="keywordtype">float</span>);
-00075   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(Opacity,<span class="keywordtype">float</span>);
-00076 
+00067   <span class="comment">// Opacity</span>
+00068   vtkSetMacro(Opacity,<span class="keywordtype">float</span>);
+00069   vtkGetMacro(Opacity,<span class="keywordtype">float</span>);
+00070 
+00071   <span class="comment">// Description:</span>
+00072   <span class="comment">// Is clipping active?</span>
+<a name="l00073"></a><a class="code" href="classvtkMrmlModelStateNode.html#vtkMrmlModelStateNodeo3">00073</a>   vtkBooleanMacro(Clipping,<span class="keywordtype">int</span>);
+00074   vtkSetMacro(Clipping,<span class="keywordtype">int</span>);
+00075   vtkGetMacro(Clipping,<span class="keywordtype">int</span>);
+00076   
 00077   <span class="comment">// Description:</span>
-00078   <span class="comment">// Is clipping active?</span>
-00079   vtkBooleanMacro(Clipping,<span class="keywordtype">int</span>);
-00080   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(Clipping,<span class="keywordtype">int</span>);
-00081   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(Clipping,<span class="keywordtype">int</span>);
+00078   <span class="comment">// Is backface culling active?</span>
+<a name="l00079"></a><a class="code" href="classvtkMrmlModelStateNode.html#vtkMrmlModelStateNodeo4">00079</a>   vtkBooleanMacro(BackfaceCulling,<span class="keywordtype">int</span>);
+00080   vtkSetMacro(BackfaceCulling,<span class="keywordtype">int</span>);
+00081   vtkGetMacro(BackfaceCulling,<span class="keywordtype">int</span>); 
 00082   
-00083   <span class="comment">// Description:</span>
-00084   <span class="comment">// Is backface culling active?</span>
-00085   vtkBooleanMacro(BackfaceCulling,<span class="keywordtype">int</span>);
-00086   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(BackfaceCulling,<span class="keywordtype">int</span>);
-00087   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(BackfaceCulling,<span class="keywordtype">int</span>); 
-00088   
-00089   
-00090 <span class="keyword">protected</span>:
-00091   <a class="code" href="classvtkMrmlModelStateNode.html">vtkMrmlModelStateNode</a>();
-00092   ~<a class="code" href="classvtkMrmlModelStateNode.html">vtkMrmlModelStateNode</a>();
-<a name="l00093"></a><a class="code" href="classvtkMrmlModelStateNode.html#vtkMrmlModelStateNodeb2">00093</a>   <a class="code" href="classvtkMrmlModelStateNode.html">vtkMrmlModelStateNode</a>(<span class="keyword">const</span> <a class="code" href="classvtkMrmlModelStateNode.html">vtkMrmlModelStateNode</a>&amp;) {};
-<a name="l00094"></a><a class="code" href="classvtkMrmlModelStateNode.html#vtkMrmlModelStateNodeb3">00094</a>   <span class="keywordtype">void</span> operator=(<span class="keyword">const</span> <a class="code" href="classvtkMrmlModelStateNode.html">vtkMrmlModelStateNode</a>&amp;) {};
-00095 
-00096   <span class="comment">// Strings</span>
-00097   <span class="keywordtype">char</span> *ModelRefID;
-00098   
-00099   <span class="comment">// Numbers</span>
-<a name="l00100"></a><a class="code" href="classvtkMrmlModelStateNode.html#vtkMrmlModelStateNodep1">00100</a>   <span class="keywordtype">float</span> Opacity;
-00101   
-00102   <span class="comment">// Booleans</span>
-<a name="l00103"></a><a class="code" href="classvtkMrmlModelStateNode.html#vtkMrmlModelStateNodep2">00103</a>   <span class="keywordtype">int</span> Visible;
-<a name="l00104"></a><a class="code" href="classvtkMrmlModelStateNode.html#vtkMrmlModelStateNodep3">00104</a>   <span class="keywordtype">int</span> SonsVisible;
-<a name="l00105"></a><a class="code" href="classvtkMrmlModelStateNode.html#vtkMrmlModelStateNodep4">00105</a>   <span class="keywordtype">int</span> SliderVisible;
-<a name="l00106"></a><a class="code" href="classvtkMrmlModelStateNode.html#vtkMrmlModelStateNodep5">00106</a>   <span class="keywordtype">int</span> Clipping;
-<a name="l00107"></a><a class="code" href="classvtkMrmlModelStateNode.html#vtkMrmlModelStateNodep6">00107</a>   <span class="keywordtype">int</span> BackfaceCulling;
-00108 
-00109 };
-00110 
-00111 <span class="preprocessor">#endif</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 20:25:47 2006 for MRML by&nbsp;
+00083  };
+00084 
+00085 <span class="preprocessor">#endif</span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 21:57:58 2006 for MRML by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

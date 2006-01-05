@@ -18,63 +18,46 @@
 00011 <span class="comment">  Version:   $Revision: 1.5.16.1 $</span>
 00012 <span class="comment"></span>
 00013 <span class="comment">=========================================================================auto=*/</span>
-00014 <span class="comment">// .NAME vtkMrmlHierarchyNode - MRML node to represent an anatomical hierarchy.</span>
-00015 <span class="comment">// .SECTION Description</span>
-00016 <span class="comment">// Hierarchy nodes begin the descriptions of anatomical model hierarchies.</span>
-00017 <span class="comment">// The hierarchy descriptions have to be followed by EndHierarchy nodes.</span>
-00018 
-00019 <span class="preprocessor">#ifndef __vtkMrmlHierarchyNode_h</span>
-00020 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlHierarchyNode_h</span>
-00021 <span class="preprocessor"></span>
-00022 <span class="comment">//#include &lt;iostream.h&gt;</span>
-00023 <span class="comment">//#include &lt;fstream.h&gt;</span>
-00024 <span class="preprocessor">#include "<a class="code" href="vtkMrmlNode_8h.html">vtkMrmlNode.h</a>"</span>
-00025 
-00026 
-<a name="l00027"></a><a class="code" href="classvtkMrmlHierarchyNode.html">00027</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlHierarchyNode.html">vtkMrmlHierarchyNode</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>
-00028 {
-00029 <span class="keyword">public</span>:
-00030   <span class="keyword">static</span> <a class="code" href="classvtkMrmlHierarchyNode.html">vtkMrmlHierarchyNode</a> *<a class="code" href="classvtkMrmlNode.html#vtkMrmlNodee0">New</a>();
-00031   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea21">vtkTypeMacro</a>(<a class="code" href="classvtkMrmlHierarchyNode.html">vtkMrmlHierarchyNode</a>,<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>);
-00032   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
-00033   
-00034   <span class="comment">//--------------------------------------------------------------------------</span>
-00035   <span class="comment">// Utility Functions</span>
-00036   <span class="comment">//--------------------------------------------------------------------------</span>
-00037 
-00038   <span class="comment">// Description:</span>
-00039   <span class="comment">// Write the node's attributes to a MRML file in XML format</span>
-00040   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea16">Write</a>(ofstream&amp; of, <span class="keywordtype">int</span> indent);
-00041 
-00042   <span class="comment">// Description:</span>
-00043   <span class="comment">// Copy the node's attributes to this object</span>
-00044   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea3">Copy</a>(<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a> *node);
-00045 
-00046   <span class="comment">// Description:</span>
-00047   <span class="comment">// Hierarchy ID</span>
-00048   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea26">vtkSetStringMacro</a>(HierarchyID);
-00049   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea29">vtkGetStringMacro</a>(HierarchyID);
-00050 
-00051   <span class="comment">// Description:</span>
-00052   <span class="comment">// Hierarchy type</span>
-00053   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea26">vtkSetStringMacro</a>(Type);
-00054   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea29">vtkGetStringMacro</a>(Type);
-00055 
-00056  
-00057 <span class="keyword">protected</span>:
-00058   <a class="code" href="classvtkMrmlHierarchyNode.html">vtkMrmlHierarchyNode</a>();
-00059   ~<a class="code" href="classvtkMrmlHierarchyNode.html">vtkMrmlHierarchyNode</a>();
-<a name="l00060"></a><a class="code" href="classvtkMrmlHierarchyNode.html#vtkMrmlHierarchyNodeb2">00060</a>   <a class="code" href="classvtkMrmlHierarchyNode.html">vtkMrmlHierarchyNode</a>(<span class="keyword">const</span> <a class="code" href="classvtkMrmlHierarchyNode.html">vtkMrmlHierarchyNode</a>&amp;) {};
-<a name="l00061"></a><a class="code" href="classvtkMrmlHierarchyNode.html#vtkMrmlHierarchyNodeb3">00061</a>   <span class="keywordtype">void</span> operator=(<span class="keyword">const</span> <a class="code" href="classvtkMrmlHierarchyNode.html">vtkMrmlHierarchyNode</a>&amp;) {};
-00062 
-00063   <span class="comment">// Strings</span>
-00064   <span class="keywordtype">char</span> *HierarchyID;
-<a name="l00065"></a><a class="code" href="classvtkMrmlHierarchyNode.html#vtkMrmlHierarchyNodep1">00065</a>   <span class="keywordtype">char</span> *Type;
-00066 
-00067 };
-00068 
-00069 <span class="preprocessor">#endif</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 20:25:47 2006 for MRML by&nbsp;
+00014 
+00015 <span class="preprocessor">#ifndef __vtkMrmlHierarchyNode_h</span>
+00016 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlHierarchyNode_h</span>
+00017 <span class="preprocessor"></span>
+00018 <span class="preprocessor">#include "<a class="code" href="vtkMrmlNode_8h.html">vtkMrmlNode.h</a>"</span>
+00019 
+00020 
+<a name="l00021"></a><a class="code" href="classvtkMrmlHierarchyNode.html">00021</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlHierarchyNode.html">vtkMrmlHierarchyNode</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>
+00022 {
+00023 <span class="keyword">public</span>:
+00024   <span class="keyword">static</span> <a class="code" href="classvtkMrmlHierarchyNode.html">vtkMrmlHierarchyNode</a> *<a class="code" href="classvtkMrmlNode.html#vtkMrmlNodee0">New</a>();
+00025   vtkTypeMacro(<a class="code" href="classvtkMrmlHierarchyNode.html">vtkMrmlHierarchyNode</a>,<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>);
+00026   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
+00027   
+00028   <span class="comment">//--------------------------------------------------------------------------</span>
+00029   <span class="comment">// Utility Functions</span>
+00030   <span class="comment">//--------------------------------------------------------------------------</span>
+00031 
+00032   <span class="comment">// Description:</span>
+00033   <span class="comment">// Write the node's attributes to a MRML file in XML format</span>
+00034   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea16">Write</a>(ofstream&amp; of, <span class="keywordtype">int</span> indent);
+00035 
+00036   <span class="comment">// Description:</span>
+00037   <span class="comment">// Copy the node's attributes to this object</span>
+00038   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea3">Copy</a>(<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a> *node);
+00039 
+00040   <span class="comment">// Description:</span>
+00041   <span class="comment">// Hierarchy ID</span>
+00042   vtkSetStringMacro(HierarchyID);
+00043   vtkGetStringMacro(HierarchyID);
+00044 
+00045   <span class="comment">// Description:</span>
+00046   <span class="comment">// Hierarchy type</span>
+00047   vtkSetStringMacro(Type);
+00048   vtkGetStringMacro(Type);
+00049 
+00050 };
+00051 
+00052 <span class="preprocessor">#endif</span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 21:57:58 2006 for MRML by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

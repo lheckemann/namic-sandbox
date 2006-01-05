@@ -1,3 +1,2 @@
 base referer
-rect $classvtkMrmlData.html 7,9 205,611
-rect $classvtkMrmlDataVolumeReadWrite.html 229,214 461,406
+rect $classvtkMrmlData.html 10,7 200,450
