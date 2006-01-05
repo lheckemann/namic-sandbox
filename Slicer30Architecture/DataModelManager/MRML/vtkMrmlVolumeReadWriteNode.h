@@ -11,16 +11,6 @@
   Version:   $Revision: 1.3.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlVolumeReadWriteNode - 
-// .SECTION Description
-// This sub-node should contain information specific to each
-// type of volume that needs to be read in.  This can be used
-// to clean up the special cases in this file which handle
-// volumes of various types, such as dicom, header, etc.  In
-// future these things can be moved to the sub-node specific for that
-// type of volume.  The sub-nodes here that describe specific volume
-// types each correspond to an implementation of the reader/writer,
-// which can be found in a vtkMrmlDataVolumeReadWrite subclass.
 
 #ifndef __vtkMrmlVolumeReadWriteNode_h
 #define __vtkMrmlVolumeReadWriteNode_h
@@ -58,14 +48,6 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlVolumeReadWriteNode : public vtkMrmlNode
 
   // Subclasses will add more here to handle their types of volume
 
-protected:
-  vtkMrmlVolumeReadWriteNode();
-  ~vtkMrmlVolumeReadWriteNode();
-  vtkMrmlVolumeReadWriteNode(const vtkMrmlVolumeReadWriteNode&) {};
-  void operator=(const vtkMrmlVolumeReadWriteNode&) {};
-
-  vtkSetStringMacro(ReaderType);
-  char *ReaderType;
 };
 
 #endif

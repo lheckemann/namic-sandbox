@@ -11,16 +11,10 @@
   Version:   $Revision: 1.5.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlModelStateNode - MRML node to represent the properties of a model.
-// .SECTION Description
-// ModelState nodes save the properties of a model inside a Slicer scene. They
-// can also be used for model groups.
 
 #ifndef __vtkMrmlModelStateNode_h
 #define __vtkMrmlModelStateNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkSlicer.h"
 
@@ -86,26 +80,6 @@ public:
   vtkSetMacro(BackfaceCulling,int);
   vtkGetMacro(BackfaceCulling,int); 
   
-  
-protected:
-  vtkMrmlModelStateNode();
-  ~vtkMrmlModelStateNode();
-  vtkMrmlModelStateNode(const vtkMrmlModelStateNode&) {};
-  void operator=(const vtkMrmlModelStateNode&) {};
-
-  // Strings
-  char *ModelRefID;
-  
-  // Numbers
-  float Opacity;
-  
-  // Booleans
-  int Visible;
-  int SonsVisible;
-  int SliderVisible;
-  int Clipping;
-  int BackfaceCulling;
-
-};
+ };
 
 #endif

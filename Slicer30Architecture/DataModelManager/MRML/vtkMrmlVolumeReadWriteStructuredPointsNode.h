@@ -11,16 +11,6 @@
   Version:   $Revision: 1.4.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlVolumeReadWriteStructuredPointsNode - 
-// .SECTION Description
-// This sub-node should contain information specific to each
-// type of volume that needs to be read in.  This can be used
-// to clean up the special cases in this file which handle
-// volumes of various types, such as dicom, header, etc.  In
-// future these things can be moved to the sub-node specific for that
-// type of volume.  The sub-nodes here that describe specific volume
-// types each correspond to an implementation of the reader/writer,
-// which can be found in a vtkMrmlDataVolumeReadWrite subclass.
 
 #ifndef __vtkMrmlVolumeReadWriteStructuredPointsNode_h
 #define __vtkMrmlVolumeReadWriteStructuredPointsNode_h
@@ -52,12 +42,6 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlVolumeReadWriteStructuredPointsNode : public
   //--------------------------------------------------------------------------
 
   // Subclasses will add more here to handle their types of volume
-
-protected:
-  vtkMrmlVolumeReadWriteStructuredPointsNode();
-  ~vtkMrmlVolumeReadWriteStructuredPointsNode();
-  vtkMrmlVolumeReadWriteStructuredPointsNode(const vtkMrmlVolumeReadWriteStructuredPointsNode&) {};
-  void operator=(const vtkMrmlVolumeReadWriteStructuredPointsNode&) {};
 
 };
 

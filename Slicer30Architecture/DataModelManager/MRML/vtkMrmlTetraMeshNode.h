@@ -11,21 +11,10 @@
   Version:   $Revision: 1.8.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlTetraMeshNode - MRML node for representing a TetraMesh.
-// .SECTION Description
-// TetraMesh nodes describe data sets that can be thought of as stacks of 2D 
-// images that form a 3D TetraMesh.  TetraMesh nodes describe where the images 
-// are stored on disk, how to render the data (window and level), and how 
-// to read the files.  This information is extracted from the image 
-// headers (if they exist) at the time the MRML file is generated.  
-// Consequently, MRML files isolate MRML browsers from understanding how 
-// to read the myriad of file formats for medical data. 
 
 #ifndef __vtkMrmlTetraMeshNode_h
 #define __vtkMrmlTetraMeshNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
@@ -123,37 +112,6 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlTetraMeshNode : public vtkMrmlNode
   vtkSetMacro(VectorSkip, unsigned short);
   vtkGetMacro(VectorSkip, unsigned short);
 
-protected:
-  vtkMrmlTetraMeshNode();
-  ~vtkMrmlTetraMeshNode();
-  vtkMrmlTetraMeshNode(const vtkMrmlTetraMeshNode&) {};
-  void operator=(const vtkMrmlTetraMeshNode&) {};
-
-  void ComputeRasToIjk(vtkMatrix4x4 *matRotate, 
-    float ox, float oy, float oz);
-
-  // Strings
-  char *TetraMeshID;
-  char *FileName;
-  char *LUTName;
-
-  float Opacity;
-  unsigned short Clipping;
-  
-  // Numbers
-  unsigned short DisplaySurfaces;
-  unsigned short   SurfacesUseCellData;
-  unsigned short   SurfacesSmoothNormals;
-  unsigned short DisplayEdges;
-  unsigned short DisplayNodes;
-  float            NodeScaling;
-  unsigned short   NodeSkip;
-  unsigned short DisplayScalars;
-  float            ScalarScaling;
-  unsigned short   ScalarSkip;
-  unsigned short DisplayVectors;
-  float            VectorScaling;
-  unsigned short   VectorSkip;
 };
 
 #endif

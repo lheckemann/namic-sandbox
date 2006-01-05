@@ -11,18 +11,10 @@
   Version:   $Revision: 1.24.2.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlModelNode - MRML node to represent a 3D surface model.
-// .SECTION Description
-// Model nodes describe polygonal data.  They indicate where the model is 
-// stored on disk, and how to render it (color, opacity, etc).  Models 
-// are assumed to have been constructed with the orientation and voxel 
-// dimensions of the original segmented volume.
 
 #ifndef __vtkMrmlModelNode_h
 #define __vtkMrmlModelNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
@@ -130,55 +122,21 @@ public:
   void SetRasToWld(vtkMatrix4x4 *reg);
   vtkGetObjectMacro(RasToWld, vtkMatrix4x4);
 
-    // Description:
-    // Numerical ID of the color lookup table to use for rendering the overlay
-    // for this model
-    vtkGetStringMacro(LUTName);
-    vtkSetStringMacro(LUTName);
+  // Description:
+  // Numerical ID of the color lookup table to use for rendering the overlay
+  // for this model
+  vtkGetStringMacro(LUTName);
+  vtkSetStringMacro(LUTName);
 
-    // Scalar overlay file list
+  // Scalar overlay file list
 
-    // Description:
-    // number of scalar file names
-    int GetNumberOfScalarFileNames();
-    void AddScalarFileName(char *);
-    const char *GetScalarFileName(int idx);
-    void DeleteScalarFileNames();
-    
-protected:
-  vtkMrmlModelNode();
-  ~vtkMrmlModelNode();
-  vtkMrmlModelNode(const vtkMrmlModelNode&) {};
-  void operator=(const vtkMrmlModelNode&) {};
-
-  // Strings
-  char *ModelID;
-  char *FileName;
-  char *FullFileName;
-  char *Color;
-    char *LUTName;
-    
-  // Numbers
-  float Opacity;
-
-  // Booleans
-  int Visibility;
-  int Clipping;
-  int BackfaceCulling;
-  int ScalarVisibility;
-  int VectorVisibility;
-  int TensorVisibility;
-
-  // Arrays
-  vtkFloatingPointType ScalarRange[2];
-
-  vtkMatrix4x4 *RasToWld;
-
-    // Scalar overlay
-//BTX
-    // use a vector to hold the scalar file names
-    std::vector<std::string>ScalarFileNamesVec;
-//ETX
+  // Description:
+  // number of scalar file names
+  int GetNumberOfScalarFileNames();
+  void AddScalarFileName(char *);
+  const char *GetScalarFileName(int idx);
+  void DeleteScalarFileNames();
+  
 };
 
 #endif

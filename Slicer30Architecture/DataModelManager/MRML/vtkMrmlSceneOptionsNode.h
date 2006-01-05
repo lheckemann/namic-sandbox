@@ -11,15 +11,10 @@
   Version:   $Revision: 1.6.8.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlSceneOptionsNode - MRML node to represent the scene options
-// .SECTION Description
-// SceneOptions node describe general properties of MRML scenes.
 
 #ifndef __vtkMrmlSceneOptionsNode_h
 #define __vtkMrmlSceneOptionsNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkSlicer.h"
 
@@ -73,15 +68,15 @@ public:
   vtkSetStringMacro(ViewBgColor);
   vtkGetStringMacro(ViewBgColor);
 
-    // Description:
-    // Resolution of the texture
-    vtkSetStringMacro(ViewTextureResolution);
-    vtkGetStringMacro(ViewTextureResolution);
-    
-    // Description:
-    // Interpolate the slices On or Off
-    vtkSetStringMacro(ViewTextureInterpolation);
-    vtkGetStringMacro(ViewTextureInterpolation);
+  // Description:
+  // Resolution of the texture
+  vtkSetStringMacro(ViewTextureResolution);
+  vtkGetStringMacro(ViewTextureResolution);
+  
+  // Description:
+  // Interpolate the slices On or Off
+  vtkSetStringMacro(ViewTextureInterpolation);
+  vtkGetStringMacro(ViewTextureInterpolation);
   
   // Description:
   // Show 3D axes?
@@ -161,38 +156,6 @@ public:
   vtkSetMacro(DICOMPreviewHighestValue,int);
   vtkGetMacro(DICOMPreviewHighestValue,int);
  
-protected:
-  vtkMrmlSceneOptionsNode();
-  ~vtkMrmlSceneOptionsNode();
-  vtkMrmlSceneOptionsNode(const vtkMrmlSceneOptionsNode&) {};
-  void operator=(const vtkMrmlSceneOptionsNode&) {};
-
-  // Strings
-  char *ViewUp;
-  char *Position;
-  char *FocalPoint;
-  char *ClippingRange;
-  char *ViewMode;
-  char *ViewBgColor;
-  char *DICOMStartDir;
-  char *FileNameSortParam;
-  char *DICOMDataDictFile;
-    char *ViewTextureResolution;
-    char *ViewTextureInterpolation;
-    
-  // Booleans and Numbers
-  int ShowAxes;
-  int ShowBox;
-  int ShowAnnotations;
-  int ShowSliceBounds;
-  int ShowLetters;
-  int ShowCross;
-  int ShowHashes;
-  int ShowMouse;
-  int DICOMPreviewWidth;
-  int DICOMPreviewHeight;
-  int DICOMPreviewHighestValue;
-
 };
 
 #endif

@@ -11,17 +11,10 @@
   Version:   $Revision: 1.16.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlTransformNode - MRML node for representing a transform.
-// .SECTION Description
-// A Transform is not a node with attributes, but a construct for 
-// building MRML files.  A Transform encapsulates the Matrix nodes inside it 
-// such that they are invisible to nodes outside the Transform.  
 
 #ifndef __vtkMrmlTransformNode_h
 #define __vtkMrmlTransformNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
@@ -34,10 +27,6 @@ public:
   vtkTypeMacro(vtkMrmlTransformNode,vtkMrmlNode);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  //--------------------------------------------------------------------------
-  // Utility Functions
-  //--------------------------------------------------------------------------
-
   // Description:
   // Write the node's attributes to a MRML file in XML format
   void Write(ofstream& of, int indent);
@@ -45,12 +34,6 @@ public:
   // Description:
   // Copy the node's attributes to this object
   void Copy(vtkMrmlNode *node);
-
-protected:
-  vtkMrmlTransformNode();
-  ~vtkMrmlTransformNode();
-  vtkMrmlTransformNode(const vtkMrmlTransformNode&) {};
-  void operator=(const vtkMrmlTransformNode&) {};
 
 };
 
