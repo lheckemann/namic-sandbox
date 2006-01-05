@@ -11,17 +11,10 @@
   Version:   $Revision: 1.6.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlCrossSectionNode - MRML node to represent the properties of a cross section
-// .SECTION Description
-// CrossSection node describe the properties of the three slices that are
-// displayed on the screen. Therefore, the position of a cross section must
-// currently be 0, 1 or 2.
 
 #ifndef __vtkMrmlCrossSectionNode_h
 #define __vtkMrmlCrossSectionNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkSlicer.h"
 
@@ -109,32 +102,6 @@ public:
   vtkSetMacro(ClipState,int);
   vtkGetMacro(ClipState,int);
  
-protected:
-  vtkMrmlCrossSectionNode();
-  ~vtkMrmlCrossSectionNode();
-  vtkMrmlCrossSectionNode(const vtkMrmlCrossSectionNode&) {};
-  void operator=(const vtkMrmlCrossSectionNode&) {};
-
-  // Strings
-  char *Direction;
-  char *BackVolRefID;
-  char *ForeVolRefID;
-  char *LabelVolRefID;
-  char *ClipType; // Union or Intersection
-  
-  // Numbers
-  int Position;
-  int SliceSlider;
-  int RotatorX;
-  int RotatorY;
-  float Zoom;
-  
-  // Booleans
-  int InModel;
-
-  // int flag - 0, 1, 2
-  int ClipState;
-
 };
 
 #endif

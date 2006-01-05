@@ -11,15 +11,10 @@
   Version:   $Revision: 1.10.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlEndFiducialsNode - represents the end of a vtkMrmlFiducialsNode.
-// .SECTION Description
-// Just a place holder in a vtkMrmlTree
 
 #ifndef __vtkMrmlEndFiducialsNode_h
 #define __vtkMrmlEndFiducialsNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
@@ -43,12 +38,6 @@ public:
   // Description:
   // Copy the node's attributes to this object
   void Copy(vtkMrmlNode *node);
-
-protected:
-  vtkMrmlEndFiducialsNode();
-  ~vtkMrmlEndFiducialsNode();
-  vtkMrmlEndFiducialsNode(const vtkMrmlEndFiducialsNode&) {};
-  void operator=(const vtkMrmlEndFiducialsNode&) {};
 
 };
 

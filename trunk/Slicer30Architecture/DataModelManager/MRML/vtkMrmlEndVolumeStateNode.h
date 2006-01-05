@@ -11,15 +11,10 @@
   Version:   $Revision: 1.5.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlEndVolumeStateNode - represents the end of a vtkMrmlVolumeStateNode.
-// .SECTION Description
-// Just a place holder in a vtkMrmlTree
 
 #ifndef __vtkMrmlEndVolumeStateNode_h
 #define __vtkMrmlEndVolumeStateNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkSlicer.h"
 
@@ -42,11 +37,6 @@ public:
   // Copy the node's attributes to this object
   void Copy(vtkMrmlNode *node);
 
-protected:
-  vtkMrmlEndVolumeStateNode();
-  ~vtkMrmlEndVolumeStateNode();
-  vtkMrmlEndVolumeStateNode(const vtkMrmlEndVolumeStateNode&) {};
-  void operator=(const vtkMrmlEndVolumeStateNode&) {};
 
 };
 

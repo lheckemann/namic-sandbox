@@ -11,19 +11,10 @@
   Version:   $Revision: 1.11.12.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlLandmarkNode - MRML node to represent transformation matrices.
-// .SECTION Description
-// The output of a rigid-body registration is a rotation and translation 
-// expressed mathematically as a transformation matrix.  These transforms 
-// can be inserted into MRML files as Landmark nodes.  Each matrix 
-// affects volumes and models that appear below it in the MRML file.  
-// Multiple matrices can be concatenated together. 
 
 #ifndef __vtkMrmlLandmarkNode_h
 #define __vtkMrmlLandmarkNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkSlicer.h"
 
@@ -61,15 +52,6 @@ public:
   vtkSetMacro(PathPosition, int);
   vtkGetMacro(PathPosition, int);
 
-protected:
-  vtkMrmlLandmarkNode();
-  ~vtkMrmlLandmarkNode();
-  vtkMrmlLandmarkNode(const vtkMrmlLandmarkNode&) {};
-  void operator=(const vtkMrmlLandmarkNode&) {};
-
-  float XYZ[3];
-  float FXYZ[3];
-  int PathPosition;
 };
 
 #endif

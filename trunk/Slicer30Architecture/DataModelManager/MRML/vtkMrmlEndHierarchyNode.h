@@ -11,15 +11,10 @@
   Version:   $Revision: 1.5.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlEndHierarchyNode - represents the end of a vtkMrmlHierarchyNode.
-// .SECTION Description
-// Just a place holder in a vtkMrmlTree
 
 #ifndef __vtkMrmlEndHierarchyNode_h
 #define __vtkMrmlEndHierarchyNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkSlicer.h"
 
@@ -41,12 +36,6 @@ public:
   // Description:
   // Copy the node's attributes to this object
   void Copy(vtkMrmlNode *node);
-
-protected:
-  vtkMrmlEndHierarchyNode();
-  ~vtkMrmlEndHierarchyNode();
-  vtkMrmlEndHierarchyNode(const vtkMrmlEndHierarchyNode&) {};
-  void operator=(const vtkMrmlEndHierarchyNode&) {};
 
 };
 

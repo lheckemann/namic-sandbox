@@ -11,19 +11,10 @@
   Version:   $Revision: 1.16.14.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlMatrixNode - MRML node to represent transformation matrices.
-// .SECTION Description
-// The output of a rigid-body registration is a rotation and translation 
-// expressed mathematically as a transformation matrix.  These transforms 
-// can be inserted into MRML files as Matrix nodes.  Each matrix 
-// affects volumes and models that appear below it in the MRML file.  
-// Multiple matrices can be concatenated together. 
 
 #ifndef __vtkMrmlMatrixNode_h
 #define __vtkMrmlMatrixNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkMatrix4x4.h"
 #include "vtkSlicer.h"
@@ -47,22 +38,17 @@ public:
 
   // Description:
   // Rotate around each axis: x,y, and z in degrees
-  void Scale(float x, float y, float z) {
-    this->Transform->Scale(x, y, z);};
+  void Scale(float x, float y, float z) ;
 
   // Description:
   // Rotate around each axis: x,y, and z in degrees
-  void RotateX(float d) {
-    this->Transform->RotateX(d);};
-  void RotateY(float d) {
-    this->Transform->RotateY(d);};
-  void RotateZ(float d) {
-    this->Transform->RotateZ(d);};
+  void RotateX(float d) ;
+  void RotateY(float d) ;
+  void RotateZ(float d) ;
 
   // Description:
   // Rotate around each axis: x,y, and z in degrees
-  void Translate(float x, float y, float z) {
-    this->Transform->Translate(x, y, z);};
+  void Translate(float x, float y, float z) ;
 
   //--------------------------------------------------------------------------
   // Utility Functions
@@ -77,13 +63,6 @@ public:
   vtkGetObjectMacro(Transform, vtkTransform);
   vtkSetObjectMacro(Transform, vtkTransform);
 
-protected:
-  vtkMrmlMatrixNode();
-  ~vtkMrmlMatrixNode();
-  vtkMrmlMatrixNode(const vtkMrmlMatrixNode&) {};
-  void operator=(const vtkMrmlMatrixNode&) {};
-
-  vtkTransform *Transform;
 };
 
 #endif

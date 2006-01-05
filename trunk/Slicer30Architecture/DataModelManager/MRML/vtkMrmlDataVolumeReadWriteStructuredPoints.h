@@ -11,16 +11,6 @@
   Version:   $Revision: 1.4.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlDataVolumeReadWriteStructuredPoints - 
-// .SECTION Description
-// This sub-object is specific to each
-// type of volume that needs to be read in.  This can be used
-// to clean up the special cases which handle
-// volumes of various types, such as dicom, header, etc.  In
-// future these things can be moved here.  Each read/write 
-// sub-object corresponds to a vtkMrmlVolumeReadWriteNode subclass.
-// These subclasses write any needed info in the MRML file.
-//
 
 #ifndef __vtkMrmlDataVolumeReadWriteStructuredPoints_h
 #define __vtkMrmlDataVolumeReadWriteStructuredPoints_h
@@ -50,13 +40,6 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlDataVolumeReadWriteStructuredPoints : public
   vtkSetStringMacro(FileName);
   vtkGetStringMacro(FileName);
 
-protected:
-  vtkMrmlDataVolumeReadWriteStructuredPoints();
-  ~vtkMrmlDataVolumeReadWriteStructuredPoints();
-  vtkMrmlDataVolumeReadWriteStructuredPoints(const vtkMrmlDataVolumeReadWriteStructuredPoints&) {};
-  void operator=(const vtkMrmlDataVolumeReadWriteStructuredPoints&) {};
-
-  char *FileName;
 
 };
 

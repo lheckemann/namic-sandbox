@@ -11,15 +11,10 @@
   Version:   $Revision: 1.5.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlEndScenesNode - represents the end of a vtkMrmlScenesNode.
-// .SECTION Description
-// Just a place holder in a vtkMrmlTree
 
 #ifndef __vtkMrmlEndScenesNode_h
 #define __vtkMrmlEndScenesNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkSlicer.h"
 
@@ -41,12 +36,6 @@ public:
   // Description:
   // Copy the node's attributes to this object
   void Copy(vtkMrmlNode *node);
-
-protected:
-  vtkMrmlEndScenesNode();
-  ~vtkMrmlEndScenesNode();
-  vtkMrmlEndScenesNode(const vtkMrmlEndScenesNode&) {};
-  void operator=(const vtkMrmlEndScenesNode&) {};
 
 };
 
