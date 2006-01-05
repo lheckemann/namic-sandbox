@@ -173,12 +173,73 @@ PERLMOD_MAKEVAR_PREFIX =
 # Configuration options related to the preprocessor   
 #---------------------------------------------------------------------------
 ENABLE_PREPROCESSING   = YES
-MACRO_EXPANSION        = NO
-EXPAND_ONLY_PREDEF     = NO
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
 SEARCH_INCLUDES        = YES
 INCLUDE_PATH           = 
 INCLUDE_FILE_PATTERNS  = 
-PREDEFINED             = 
+PREDEFINED             = "vtkNotUsed(x)="\
+                         "vtkSetMacro(name,type)=\
+                            virtual void Set##name (type _arg);"\
+                         "vtkGetMacro(name,type)= \
+                            virtual type Get##name ();" \
+                         "vtkNewMacro(type)= \
+                            static Pointer New();" \
+                         "vtkTypeMacro(thisClass,superclass)= \
+                            virtual const char *GetNameOfClass() const;"\
+                         "vtkSetStringMacro(name)= \
+                            virtual void Set##name (const char* _arg);" \
+                         "vtkGetStringMacro(name)= \
+                            virtual const char* Get##name () const;" \
+                         "vtkSetClampMacro(name,type,min,max)= \
+                            virtual void Set##name (type _arg);" \
+                         "vtkSetObjectMacro(name,type)= \
+                            virtual void Set##name (type* _arg);" \
+                         "vtkGetObjectMacro(name,type)= \
+                            virtual type* Get##name ();" \
+                         "vtkBooleanMacro(name)= \
+                            virtual void name##On (); \
+                            virtual void name##Off ();" \
+                         "vtkSetVector2Macro(name,type)= \
+                            virtual void Set##name (type _arg1, type _arg2) \
+                            virtual void Set##name (type _arg[2]);" \
+                         "vtkGetVector2Macro(name,type)= \
+                            virtual type* Get##name () const; \
+                            virtual void Get##name (type& _arg1, type& _arg2) const; \
+                            virtual void Get##name (type _arg[2]) const;" \
+                         "vtkSetVector3Macro(name,type)= \
+                            virtual void Set##name (type _arg1, type _arg2, type _arg3) \
+                            virtual void Set##name (type _arg[3]);" \
+                         "vtkGetVector3Macro(name,type)= \
+                            virtual type* Get##name () const; \
+                            virtual void Get##name (type& _arg1, type& _arg2, type& _arg3) const; \
+                            virtual void Get##name (type _arg[3]) const;" \
+                         "vtkSetVector4Macro(name,type)= \
+                            virtual void Set##name (type _arg1, type _arg2, type _arg3, type _arg4) \
+                            virtual void Set##name (type _arg[4]);" \
+                         "vtkGetVector4Macro(name,type)= \
+                            virtual type* Get##name () const; \
+                            virtual void Get##name (type& _arg1, type& _arg2, type& _arg3, type& _arg4) const; \
+                            virtual void Get##name (type _arg[4]) const;" \
+                         "vtkSetVector6Macro(name,type)= \
+                            virtual void Set##name (type _arg1, type _arg2, type _arg3, type _arg4, type _arg5, type _arg6) \
+                            virtual void Set##name (type _arg[6]);" \
+                         "vtkGetVector6Macro(name,type)= \
+                            virtual type* Get##name () const; \
+                            virtual void Get##name (type& _arg1, type& _arg2, type& _arg3, type& _arg4, type& _arg5, type& _arg6) const; \
+                            virtual void Get##name (type _arg[6]) const;" \
+                         "vtkSetVectorMacro(name,type,count)= \
+                            virtual void Set##name(type data[]);" \
+                         "vtkGetVectorMacro(name,type,count)= \
+                            virtual type* Get##name () const;" \
+                         "vtkNewMacro(type)= \
+                            static Pointer New();" \
+                         "vtkTypeMacro(thisClass,superclass)= \
+                            virtual const char *GetNameOfClass() const;" \
+                         "vtkEventMacro(thisClass,superclass)= \
+                            class thisClass : public superclass {};" 
+
+
 EXPAND_AS_DEFINED      = 
 SKIP_FUNCTION_MACROS   = YES
 #---------------------------------------------------------------------------
