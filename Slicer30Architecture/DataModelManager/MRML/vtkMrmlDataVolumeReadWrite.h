@@ -11,16 +11,6 @@
   Version:   $Revision: 1.3.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlDataVolumeReadWrite - 
-// .SECTION Description
-// This sub-object is specific to each
-// type of volume that needs to be read in.  This can be used
-// to clean up the special cases which handle
-// volumes of various types, such as dicom, header, etc.  In
-// future these things can be moved here.  Each read/write 
-// sub-object corresponds to a vtkMrmlVolumeReadWriteNode subclass.
-// These subclasses write any needed info in the MRML file.
-//
 
 #ifndef __vtkMrmlDataVolumeReadWrite_h
 #define __vtkMrmlDataVolumeReadWrite_h
@@ -47,11 +37,6 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlDataVolumeReadWrite : public vtkObject
 
   // Subclasses must fill these in.
 
-protected:
-  vtkMrmlDataVolumeReadWrite();
-  ~vtkMrmlDataVolumeReadWrite();
-  vtkMrmlDataVolumeReadWrite(const vtkMrmlDataVolumeReadWrite&) {};
-  void operator=(const vtkMrmlDataVolumeReadWrite&) {};
 };
 
 #endif

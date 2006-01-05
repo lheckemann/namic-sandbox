@@ -11,16 +11,10 @@
   Version:   $Revision: 1.5.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlModelGroupNode - MRML node to represent a model group.
-// .SECTION Description
-// Model groups appear inside model hierarchies to group models that belong
-// together. Model groups are followed by EndModelGroup nodes.
 
 #ifndef __vtkMrmlModelGroupNode_h
 #define __vtkMrmlModelGroupNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkSlicer.h"
 
@@ -71,23 +65,6 @@ public:
   vtkSetMacro(Expansion, int);
   vtkGetMacro(Expansion, int);
    
-protected:
-  vtkMrmlModelGroupNode();
-  ~vtkMrmlModelGroupNode();
-  vtkMrmlModelGroupNode(const vtkMrmlModelGroupNode&) {};
-  void operator=(const vtkMrmlModelGroupNode&) {};
-
-  // Strings
-  char *ModelGroupID;
-  char *Color;
-  
-  // Numbers
-  float Opacity;
-  
-  // Booleans
-  int Visibility;
-  int Expansion;
-
 };
 
 #endif

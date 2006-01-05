@@ -11,16 +11,10 @@
   Version:   $Revision: 1.5.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlHierarchyNode - MRML node to represent an anatomical hierarchy.
-// .SECTION Description
-// Hierarchy nodes begin the descriptions of anatomical model hierarchies.
-// The hierarchy descriptions have to be followed by EndHierarchy nodes.
 
 #ifndef __vtkMrmlHierarchyNode_h
 #define __vtkMrmlHierarchyNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 
 
@@ -52,17 +46,6 @@ public:
   // Hierarchy type
   vtkSetStringMacro(Type);
   vtkGetStringMacro(Type);
-
- 
-protected:
-  vtkMrmlHierarchyNode();
-  ~vtkMrmlHierarchyNode();
-  vtkMrmlHierarchyNode(const vtkMrmlHierarchyNode&) {};
-  void operator=(const vtkMrmlHierarchyNode&) {};
-
-  // Strings
-  char *HierarchyID;
-  char *Type;
 
 };
 

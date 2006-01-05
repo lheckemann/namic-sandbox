@@ -11,15 +11,10 @@
   Version:   $Revision: 1.10.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlEndPathNode - represents the end of a vtkMrmlPathNode.
-// .SECTION Description
-// Just a place holder in a vtkMrmlTree
 
 #ifndef __vtkMrmlEndPathNode_h
 #define __vtkMrmlEndPathNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
@@ -43,12 +38,6 @@ public:
   // Description:
   // Copy the node's attributes to this object
   void Copy(vtkMrmlNode *node);
-
-protected:
-  vtkMrmlEndPathNode();
-  ~vtkMrmlEndPathNode();
-  vtkMrmlEndPathNode(const vtkMrmlEndPathNode&) {};
-  void operator=(const vtkMrmlEndPathNode&) {};
 
 };
 

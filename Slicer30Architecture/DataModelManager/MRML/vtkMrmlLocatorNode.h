@@ -11,15 +11,9 @@
   Version:   $Revision: 1.5.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlLocatorNode - describes locator properties.
-// .SECTION Description
-// Locator nodes describe the different options of the locator inside Slicer.
-
 #ifndef __vtkMrmlLocatorNode_h
 #define __vtkMrmlLocatorNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkSlicer.h"
 
@@ -80,23 +74,6 @@ public:
   vtkSetStringMacro(DiffuseColor);
   vtkGetStringMacro(DiffuseColor);
 
- 
-protected:
-  vtkMrmlLocatorNode();
-  ~vtkMrmlLocatorNode();
-  vtkMrmlLocatorNode(const vtkMrmlLocatorNode&) {};
-  void operator=(const vtkMrmlLocatorNode&) {};
-
-  // Strings
-  char *Driver;
-  char *DiffuseColor;
-
-  // Numbers
-  int Visibility;
-  int TransverseVisibility;
-  int NormalLen;
-  int TransverseLen;
-  float Radius;
 };
 
 #endif
