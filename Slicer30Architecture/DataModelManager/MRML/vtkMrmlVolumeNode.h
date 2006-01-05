@@ -11,21 +11,10 @@
   Version:   $Revision: 1.40.2.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlVolumeNode - MRML node for representing a volume (image stack).
-// .SECTION Description
-// Volume nodes describe data sets that can be thought of as stacks of 2D 
-// images that form a 3D volume.  Volume nodes describe where the images 
-// are stored on disk, how to render the data (window and level), and how 
-// to read the files.  This information is extracted from the image 
-// headers (if they exist) at the time the MRML file is generated.  
-// Consequently, MRML files isolate MRML browsers from understanding how 
-// to read the myriad of file formats for medical data. 
 
 #ifndef __vtkMrmlVolumeNode_h
 #define __vtkMrmlVolumeNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
@@ -35,10 +24,6 @@
 #ifndef vtkFloatingPointType
 #define vtkFloatingPointType float
 #endif
-
-// found this the hard way: this had been a 'magic number' that allowed
-// the user to run off the end of the array with no error checking -- tsk tsk.
-#define DICOM_FILE_LIMIT 10000
 
 
 class VTK_SLICER_BASE_EXPORT vtkMrmlVolumeNode : public vtkMrmlNode
@@ -133,25 +118,18 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlVolumeNode : public vtkMrmlNode
   vtkSetMacro(ScalarType, int);
   vtkGetMacro(ScalarType, int);
   void SetScalarTypeToUnsignedChar() 
-    {this->SetScalarType(VTK_UNSIGNED_CHAR);};
+    ;
   void SetScalarTypeToChar() 
-    {this->SetScalarType(VTK_CHAR);};
-  void SetScalarTypeToShort() {
-    this->SetScalarType(VTK_SHORT);};
+    ;
+  void SetScalarTypeToShort() ;
   void SetScalarTypeToUnsignedShort() 
-    {this->SetScalarType(VTK_UNSIGNED_SHORT);};
-  void SetScalarTypeToInt() {
-    this->SetScalarType(VTK_INT);};
-  void SetScalarTypeToUnsignedInt() {
-    this->SetScalarType(VTK_UNSIGNED_INT);};
-  void SetScalarTypeToLong() {
-    this->SetScalarType(VTK_LONG);};
-  void SetScalarTypeToUnsignedLong() {
-    this->SetScalarType(VTK_UNSIGNED_LONG);};
-  void SetScalarTypeToFloat() {
-    this->SetScalarType(VTK_FLOAT);};
-  void SetScalarTypeToDouble() {
-    this->SetScalarType(VTK_DOUBLE);};
+    ;
+  void SetScalarTypeToInt() ;
+  void SetScalarTypeToUnsignedInt() ;
+  void SetScalarTypeToLong() ;
+  void SetScalarTypeToUnsignedLong() ;
+  void SetScalarTypeToFloat() ;
+  void SetScalarTypeToDouble() ;
   char* GetScalarTypeAsString();
   
   // Description:
@@ -276,9 +254,7 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlVolumeNode : public vtkMrmlNode
 
   int ComputeRasToIjkFromCorners(vtkFloatingPointType *fc, vtkFloatingPointType *ftl, vtkFloatingPointType *ftr, 
                                  vtkFloatingPointType *fbr, vtkFloatingPointType *lc, vtkFloatingPointType *ltl)
-  {
-    return ComputeRasToIjkFromCorners( fc,  ftl,  ftr, fbr,  lc,  ltl, 0.5);
-  };
+  ;
 
   int ComputeRasToIjkFromCorners(
     vtkFloatingPointType fcR,  vtkFloatingPointType fcA,  vtkFloatingPointType fcS,
@@ -286,15 +262,7 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlVolumeNode : public vtkMrmlNode
     vtkFloatingPointType ftrR, vtkFloatingPointType ftrA, vtkFloatingPointType ftrS, 
     vtkFloatingPointType fbrR, vtkFloatingPointType fbrA, vtkFloatingPointType fbrS, 
     vtkFloatingPointType lcR,  vtkFloatingPointType lcA,  vtkFloatingPointType lcS, 
-    vtkFloatingPointType ltlR, vtkFloatingPointType ltlA, vtkFloatingPointType ltlS) {
-    vtkFloatingPointType fc[3], ftl[3], ftr[3], fbr[3], lc[3], ltl[3];
-    fc[0]=fcR; fc[1]=fcA; fc[2]=fcS;
-    ftl[0]=ftlR; ftl[1]=ftlA; ftl[2]=ftlS;
-    ftr[0]=ftrR; ftr[1]=ftrA; ftr[2]=ftrS;
-    fbr[0]=fbrR; fbr[1]=fbrA; fbr[2]=fbrS;
-    lc[0]=lcR; lc[1]=lcA; lc[2]=lcS;
-    ltl[0]=ltlR; ltl[1]=ltlA; ltl[2]=ltlS;
-    return(this->ComputeRasToIjkFromCorners(fc, ftl, ftr, fbr, lc, ltl));};
+    vtkFloatingPointType ltlR, vtkFloatingPointType ltlA, vtkFloatingPointType ltlS) ;
 
 int ComputeRasToIjkFromCorners(
     vtkFloatingPointType fcR,  vtkFloatingPointType fcA,  vtkFloatingPointType fcS,
@@ -303,15 +271,7 @@ int ComputeRasToIjkFromCorners(
     vtkFloatingPointType fbrR, vtkFloatingPointType fbrA, vtkFloatingPointType fbrS, 
     vtkFloatingPointType lcR,  vtkFloatingPointType lcA,  vtkFloatingPointType lcS, 
     vtkFloatingPointType ltlR, vtkFloatingPointType ltlA, vtkFloatingPointType ltlS,
-    vtkFloatingPointType zoffset) {
-    vtkFloatingPointType fc[3], ftl[3], ftr[3], fbr[3], lc[3], ltl[3];
-    fc[0]=fcR; fc[1]=fcA; fc[2]=fcS;
-    ftl[0]=ftlR; ftl[1]=ftlA; ftl[2]=ftlS;
-    ftr[0]=ftrR; ftr[1]=ftrA; ftr[2]=ftrS;
-    fbr[0]=fbrR; fbr[1]=fbrA; fbr[2]=fbrS;
-    lc[0]=lcR; lc[1]=lcA; lc[2]=lcS;
-    ltl[0]=ltlR; ltl[1]=ltlA; ltl[2]=ltlS;
-    return(this->ComputeRasToIjkFromCorners(fc, ftl, ftr, fbr, lc, ltl, zoffset));};
+    vtkFloatingPointType zoffset) ;
 
   // Description:
   // The matrix that transforms a point in RAS space to IJK space. 
@@ -371,82 +331,21 @@ int ComputeRasToIjkFromCorners(
   vtkGetObjectMacro(RasToIjk, vtkMatrix4x4);
   vtkGetObjectMacro(Position, vtkMatrix4x4);
 
-  // Added by Attila Tanacs 10/10/2000 1/4/02
-
   // DICOMFileList
-  int GetNumberOfDICOMFiles() { return DICOMFiles; }
+  int GetNumberOfDICOMFiles();
   void AddDICOMFileName(char *);
   char *GetDICOMFileName(int idx);
   void SetDICOMFileName(int idx, char *str);
   void DeleteDICOMFileNames();
-  char **GetDICOMFileNamesPointer() { return DICOMFileList;}
+  char **GetDICOMFileNamesPointer();
 
-  int GetNumberOfDICOMMultiFrameOffsets() {return DICOMMultiFrameOffsets;}
+  int GetNumberOfDICOMMultiFrameOffsets();
   void AddDICOMMultiFrameOffset(int offset);
   int GetDICOMMultiFrameOffset(int idx);
   void DeleteDICOMMultiFrameOffsets();
-  int *GetDICOMMultiFrameOffsetPointer() {return DICOMMultiFrameOffsetList;}
+  int *GetDICOMMultiFrameOffsetPointer();
   // End
   
-protected:
-  vtkMrmlVolumeNode();
-  ~vtkMrmlVolumeNode();
-  vtkMrmlVolumeNode(const vtkMrmlVolumeNode&) {};
-  void operator=(const vtkMrmlVolumeNode&) {};
-
-  // Strings
-  char *VolumeID;
-  char *FilePattern;
-  char *FilePrefix;
-  char *FullPrefix;
-  char *FileType;
-  char *RasToIjkMatrix;
-  char *RasToVtkMatrix;
-  char *PositionMatrix;
-  char *LUTName;
-  char *ScanOrder;
-
-  // Numbers
-  vtkFloatingPointType Tilt;
-  int ScalarType;
-  int NumScalars;
-  vtkFloatingPointType Window;
-  vtkFloatingPointType Level;
-  vtkFloatingPointType UpperThreshold;
-  vtkFloatingPointType LowerThreshold;
-
-  // odonnell.  Fixes for diffusion tensor image data
-  int FrequencyPhaseSwap;
-
-  // Arrays
-  vtkFloatingPointType Spacing[3];
-  int ImageRange[2];
-  int Dimensions[2];
-
-  // Booleans
-  int UseRasToVtkMatrix;
-  int LabelMap;
-  int LittleEndian;
-  int Interpolate;
-  int AutoWindowLevel;
-  int ApplyThreshold;
-  int AutoThreshold;
-
-  vtkMatrix4x4 *WldToIjk;
-  vtkMatrix4x4 *RasToWld;
-  vtkMatrix4x4 *RasToIjk;
-  vtkMatrix4x4 *Position;
-
-  // Added by Attila Tanacs 10/10/2000 1/4/02
-  int DICOMFiles;
-  char **DICOMFileList;
-
-  int DICOMMultiFrameOffsets;
-  int *DICOMMultiFrameOffsetList;
-  // End
-  
-  // odonnell, 07/2002
-  vtkMrmlVolumeReadWriteNode *ReadWriteNode;
 };
 
 #endif
