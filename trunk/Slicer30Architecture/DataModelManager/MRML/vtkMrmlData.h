@@ -11,27 +11,10 @@
   Version:   $Revision: 1.11.2.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlData - Abstract Object used in the slicer to perform
-// everything related to the access and display of data.
-// .SECTION Description
-// Used in conjunction with a vtkMrmlNode (which neatly describes
-// display settings, file locations, etc.).  Essentially, the MRML 
-// node gives the high level description of what this class should 
-// actually do with the data
-// 
-
-// NEED TO:
-// make vtkMrmlNode.h:: Copy constructor to be virtual.
-//                   :: Destructor needs to be virtual.
-// 
-// GetMTime to be virtual
 
 #ifndef __vtkMrmlData_h
 #define __vtkMrmlData_h
 
-//#include <fstream.h>
-#include <stdlib.h>
-//#include <iostream.h>
 
 #include "vtkProcessObject.h"
 #include "vtkIndirectLookupTable.h"
@@ -40,10 +23,10 @@
 #include "vtkImageData.h"
 #include "vtkSlicer.h"
 
-class vtkCallbackCommand;
 
 //----------------------------------------------------------------------------
-class VTK_SLICER_BASE_EXPORT vtkMrmlData : public vtkProcessObject {
+class VTK_SLICER_BASE_EXPORT vtkMrmlData : public vtkProcessObject 
+{
   public:
     static vtkMrmlData *New();
 
@@ -75,7 +58,6 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlData : public vtkProcessObject {
   // All subclasses MUST call vtkMRMLData::Update and vtkMRMLData::GetMTime
   virtual void Update();
   virtual unsigned long int GetMTime();
-//  virtual vtkObject* GetOutput();
   vtkDataObject *GetOutput();
 
   //
@@ -115,49 +97,17 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlData : public vtkProcessObject {
 
   // Description:
   // Set LookupTable
-  void SetLookupTable(vtkLookupTable *lut) {
-      this->IndirectLUT->SetLookupTable(lut);};
-  vtkLookupTable *GetLookupTable() {
-    return this->IndirectLUT->GetLookupTable();};
+  void SetLookupTable(vtkLookupTable *lut) ;
+  vtkLookupTable *GetLookupTable() ;
 
   // Description:
   // Enable or disable FMRI mapping 
-  void EnableFMRIMapping(int yes) {
-      this->IndirectLUT->SetFMRIMapping(yes);};
+  void EnableFMRIMapping(int yes) ;
 
   // Description:
   // For internal use during Read/Write
   vtkGetObjectMacro(ProcessObject, vtkProcessObject);
 
-protected:
-  vtkMrmlData();
-  // The virtual descructor is critical!!
-  virtual ~vtkMrmlData();
-
-  vtkMrmlData(const vtkMrmlData&) {};
-  void operator=(const vtkMrmlData&) {};
-
-
-  // Description: 
-  // MUST be implemented by lower functions
-  // If MrmlNode is None, create it.
-  virtual void CheckMrmlNode();
-
-  vtkMrmlNode *MrmlNode;
-  void CheckLabelIndirectLUT();
-
-  int UseLabelIndirectLUT;
-  vtkIndirectLookupTable *IndirectLUT;
-  vtkIndirectLookupTable *LabelIndirectLUT;
-
-  int NeedToWrite;
-  vtkProcessObject *ProcessObject;
-  
-  // Callback registered with the ProgressObserver.
-  static void ProgressCallbackFunction(vtkObject*, unsigned long, void*,
-                                       void*);
-  // The observer to report progress from the internal writer.
-  vtkCallbackCommand* ProgressObserver;  
 };
 
 #endif

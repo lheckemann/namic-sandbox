@@ -11,21 +11,11 @@
   Version:   $Revision: 1.5.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlDataTetraMesh - Object used in the slicer to perform
-// everything related to the access and display of image data (volumes).
-// .SECTION Description
-// Used in conjunction with a vtkMrmlDataTetraMeshNode (which neatly describes
-// display settings, file locations, etc.).  Essentially, the MRML 
-// node gives the high level description of what this class should 
-// actually do with the ImageData.
-// 
 
 #ifndef __vtkMrmlDataTetraMesh_h
 #define __vtkMrmlDataTetraMesh_h
 
-//#include <fstream.h>
 #include <stdlib.h>
-//#include <iostream.h>
 
 #include "vtkMrmlData.h"
 
@@ -58,17 +48,6 @@ public:
   int Read();
   int Write();
 
-protected:
-  vtkMrmlDataTetraMesh();
-  ~vtkMrmlDataTetraMesh();
-  vtkMrmlDataTetraMesh(const vtkMrmlDataTetraMesh&) {};
-  void operator=(const vtkMrmlDataTetraMesh&) {};
-
-  // Description: 
-  // If Data has not be created, create it.
-  void CheckMrmlNode();
-
-  vtkUnstructuredGrid *TheMesh;
 };
 
 #endif
