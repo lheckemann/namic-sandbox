@@ -18,84 +18,63 @@
 00011 <span class="comment">  Version:   $Revision: 1.16.14.1 $</span>
 00012 <span class="comment"></span>
 00013 <span class="comment">=========================================================================auto=*/</span>
-00014 <span class="comment">// .NAME vtkMrmlMatrixNode - MRML node to represent transformation matrices.</span>
-00015 <span class="comment">// .SECTION Description</span>
-00016 <span class="comment">// The output of a rigid-body registration is a rotation and translation </span>
-00017 <span class="comment">// expressed mathematically as a transformation matrix.  These transforms </span>
-00018 <span class="comment">// can be inserted into MRML files as Matrix nodes.  Each matrix </span>
-00019 <span class="comment">// affects volumes and models that appear below it in the MRML file.  </span>
-00020 <span class="comment">// Multiple matrices can be concatenated together. </span>
+00014 
+00015 <span class="preprocessor">#ifndef __vtkMrmlMatrixNode_h</span>
+00016 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlMatrixNode_h</span>
+00017 <span class="preprocessor"></span>
+00018 <span class="preprocessor">#include "<a class="code" href="vtkMrmlNode_8h.html">vtkMrmlNode.h</a>"</span>
+00019 <span class="preprocessor">#include "vtkMatrix4x4.h"</span>
+00020 <span class="preprocessor">#include "vtkSlicer.h"</span>
 00021 
-00022 <span class="preprocessor">#ifndef __vtkMrmlMatrixNode_h</span>
-00023 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlMatrixNode_h</span>
-00024 <span class="preprocessor"></span>
-00025 <span class="comment">//#include &lt;iostream.h&gt;</span>
-00026 <span class="comment">//#include &lt;fstream.h&gt;</span>
-00027 <span class="preprocessor">#include "<a class="code" href="vtkMrmlNode_8h.html">vtkMrmlNode.h</a>"</span>
-00028 <span class="preprocessor">#include "vtkMatrix4x4.h"</span>
-00029 <span class="preprocessor">#include "vtkSlicer.h"</span>
-00030 
-<a name="l00031"></a><a class="code" href="classvtkMrmlMatrixNode.html">00031</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlMatrixNode.html">vtkMrmlMatrixNode</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>
-00032 {
-00033 <span class="keyword">public</span>:
-00034   <span class="keyword">static</span> <a class="code" href="classvtkMrmlMatrixNode.html">vtkMrmlMatrixNode</a> *<a class="code" href="classvtkMrmlNode.html#vtkMrmlNodee0">New</a>();
-00035   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea21">vtkTypeMacro</a>(<a class="code" href="classvtkMrmlMatrixNode.html">vtkMrmlMatrixNode</a>,<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>);
-00036   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
-00037   
-00038   <span class="comment">// Description:</span>
-00039   <span class="comment">// Write the node's attributes to a MRML file in XML format</span>
-00040   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea16">Write</a>(ofstream&amp; of, <span class="keywordtype">int</span> indent);
-00041 
-00042   <span class="comment">// Description:</span>
-00043   <span class="comment">// 16 numbers that form a 4x4 matrix. The matrix is multiplied by a </span>
-00044   <span class="comment">// point (M*P) to compute the transformed point</span>
-00045   <span class="keywordtype">void</span> SetMatrix(<span class="keywordtype">char</span> *str);
-00046   <span class="keywordtype">char</span> *GetMatrix();
-00047 
-00048   <span class="comment">// Description:</span>
-00049   <span class="comment">// Rotate around each axis: x,y, and z in degrees</span>
-<a name="l00050"></a><a class="code" href="classvtkMrmlMatrixNode.html#vtkMrmlMatrixNodea5">00050</a>   <span class="keywordtype">void</span> Scale(<span class="keywordtype">float</span> x, <span class="keywordtype">float</span> y, <span class="keywordtype">float</span> z) {
-00051     this-&gt;Transform-&gt;Scale(x, y, z);};
+<a name="l00022"></a><a class="code" href="classvtkMrmlMatrixNode.html">00022</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlMatrixNode.html">vtkMrmlMatrixNode</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>
+00023 {
+00024 <span class="keyword">public</span>:
+00025   <span class="keyword">static</span> <a class="code" href="classvtkMrmlMatrixNode.html">vtkMrmlMatrixNode</a> *<a class="code" href="classvtkMrmlNode.html#vtkMrmlNodee0">New</a>();
+00026   vtkTypeMacro(<a class="code" href="classvtkMrmlMatrixNode.html">vtkMrmlMatrixNode</a>,<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>);
+00027   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
+00028   
+00029   <span class="comment">// Description:</span>
+00030   <span class="comment">// Write the node's attributes to a MRML file in XML format</span>
+00031   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea16">Write</a>(ofstream&amp; of, <span class="keywordtype">int</span> indent);
+00032 
+00033   <span class="comment">// Description:</span>
+00034   <span class="comment">// 16 numbers that form a 4x4 matrix. The matrix is multiplied by a </span>
+00035   <span class="comment">// point (M*P) to compute the transformed point</span>
+00036   <span class="keywordtype">void</span> SetMatrix(<span class="keywordtype">char</span> *str);
+00037   <span class="keywordtype">char</span> *GetMatrix();
+00038 
+00039   <span class="comment">// Description:</span>
+00040   <span class="comment">// Rotate around each axis: x,y, and z in degrees</span>
+00041   <span class="keywordtype">void</span> Scale(<span class="keywordtype">float</span> x, <span class="keywordtype">float</span> y, <span class="keywordtype">float</span> z) ;
+00042 
+00043   <span class="comment">// Description:</span>
+00044   <span class="comment">// Rotate around each axis: x,y, and z in degrees</span>
+00045   <span class="keywordtype">void</span> RotateX(<span class="keywordtype">float</span> d) ;
+00046   <span class="keywordtype">void</span> RotateY(<span class="keywordtype">float</span> d) ;
+00047   <span class="keywordtype">void</span> RotateZ(<span class="keywordtype">float</span> d) ;
+00048 
+00049   <span class="comment">// Description:</span>
+00050   <span class="comment">// Rotate around each axis: x,y, and z in degrees</span>
+00051   <span class="keywordtype">void</span> Translate(<span class="keywordtype">float</span> x, <span class="keywordtype">float</span> y, <span class="keywordtype">float</span> z) ;
 00052 
-00053   <span class="comment">// Description:</span>
-00054   <span class="comment">// Rotate around each axis: x,y, and z in degrees</span>
-<a name="l00055"></a><a class="code" href="classvtkMrmlMatrixNode.html#vtkMrmlMatrixNodea6">00055</a>   <span class="keywordtype">void</span> RotateX(<span class="keywordtype">float</span> d) {
-00056     this-&gt;Transform-&gt;RotateX(d);};
-<a name="l00057"></a><a class="code" href="classvtkMrmlMatrixNode.html#vtkMrmlMatrixNodea7">00057</a>   <span class="keywordtype">void</span> RotateY(<span class="keywordtype">float</span> d) {
-00058     this-&gt;Transform-&gt;RotateY(d);};
-<a name="l00059"></a><a class="code" href="classvtkMrmlMatrixNode.html#vtkMrmlMatrixNodea8">00059</a>   <span class="keywordtype">void</span> RotateZ(<span class="keywordtype">float</span> d) {
-00060     this-&gt;Transform-&gt;RotateZ(d);};
-00061 
-00062   <span class="comment">// Description:</span>
-00063   <span class="comment">// Rotate around each axis: x,y, and z in degrees</span>
-<a name="l00064"></a><a class="code" href="classvtkMrmlMatrixNode.html#vtkMrmlMatrixNodea9">00064</a>   <span class="keywordtype">void</span> Translate(<span class="keywordtype">float</span> x, <span class="keywordtype">float</span> y, <span class="keywordtype">float</span> z) {
-00065     this-&gt;Transform-&gt;Translate(x, y, z);};
-00066 
-00067   <span class="comment">//--------------------------------------------------------------------------</span>
-00068   <span class="comment">// Utility Functions</span>
-00069   <span class="comment">//--------------------------------------------------------------------------</span>
-00070 
-00071   <span class="comment">// Description:</span>
-00072   <span class="comment">// Copy the node's attributes to this object</span>
-00073   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea3">Copy</a>(<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a> *node);
-00074 
-00075   <span class="comment">// Description:</span>
-00076   <span class="comment">// Get/Set for Matrix</span>
-00077   vtkGetObjectMacro(Transform, vtkTransform);
-00078   vtkSetObjectMacro(Transform, vtkTransform);
-00079 
-00080 <span class="keyword">protected</span>:
-00081   <a class="code" href="classvtkMrmlMatrixNode.html">vtkMrmlMatrixNode</a>();
-00082   ~<a class="code" href="classvtkMrmlMatrixNode.html">vtkMrmlMatrixNode</a>();
-<a name="l00083"></a><a class="code" href="classvtkMrmlMatrixNode.html#vtkMrmlMatrixNodeb2">00083</a>   <a class="code" href="classvtkMrmlMatrixNode.html">vtkMrmlMatrixNode</a>(<span class="keyword">const</span> <a class="code" href="classvtkMrmlMatrixNode.html">vtkMrmlMatrixNode</a>&amp;) {};
-<a name="l00084"></a><a class="code" href="classvtkMrmlMatrixNode.html#vtkMrmlMatrixNodep0">00084</a>   <span class="keywordtype">void</span> operator=(<span class="keyword">const</span> <a class="code" href="classvtkMrmlMatrixNode.html">vtkMrmlMatrixNode</a>&amp;) {};
-00085 
-00086   vtkTransform *Transform;
-00087 };
-00088 
-00089 <span class="preprocessor">#endif</span>
-00090 <span class="preprocessor"></span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 20:25:47 2006 for MRML by&nbsp;
+00053   <span class="comment">//--------------------------------------------------------------------------</span>
+00054   <span class="comment">// Utility Functions</span>
+00055   <span class="comment">//--------------------------------------------------------------------------</span>
+00056 
+00057   <span class="comment">// Description:</span>
+00058   <span class="comment">// Copy the node's attributes to this object</span>
+00059   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea3">Copy</a>(<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a> *node);
+00060 
+00061   <span class="comment">// Description:</span>
+00062   <span class="comment">// Get/Set for Matrix</span>
+00063   vtkGetObjectMacro(Transform, vtkTransform);
+00064   vtkSetObjectMacro(Transform, vtkTransform);
+00065 
+00066 };
+00067 
+00068 <span class="preprocessor">#endif</span>
+00069 <span class="preprocessor"></span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 21:57:58 2006 for MRML by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

@@ -18,70 +18,52 @@
 00011 <span class="comment">  Version:   $Revision: 1.11.12.1 $</span>
 00012 <span class="comment"></span>
 00013 <span class="comment">=========================================================================auto=*/</span>
-00014 <span class="comment">// .NAME vtkMrmlLandmarkNode - MRML node to represent transformation matrices.</span>
-00015 <span class="comment">// .SECTION Description</span>
-00016 <span class="comment">// The output of a rigid-body registration is a rotation and translation </span>
-00017 <span class="comment">// expressed mathematically as a transformation matrix.  These transforms </span>
-00018 <span class="comment">// can be inserted into MRML files as Landmark nodes.  Each matrix </span>
-00019 <span class="comment">// affects volumes and models that appear below it in the MRML file.  </span>
-00020 <span class="comment">// Multiple matrices can be concatenated together. </span>
-00021 
-00022 <span class="preprocessor">#ifndef __vtkMrmlLandmarkNode_h</span>
-00023 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlLandmarkNode_h</span>
-00024 <span class="preprocessor"></span>
-00025 <span class="comment">//#include &lt;iostream.h&gt;</span>
-00026 <span class="comment">//#include &lt;fstream.h&gt;</span>
-00027 <span class="preprocessor">#include "<a class="code" href="vtkMrmlNode_8h.html">vtkMrmlNode.h</a>"</span>
-00028 <span class="preprocessor">#include "vtkSlicer.h"</span>
-00029 
-<a name="l00030"></a><a class="code" href="classvtkMrmlLandmarkNode.html">00030</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlLandmarkNode.html">vtkMrmlLandmarkNode</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>
-00031 {
-00032 <span class="keyword">public</span>:
-00033   <span class="keyword">static</span> <a class="code" href="classvtkMrmlLandmarkNode.html">vtkMrmlLandmarkNode</a> *<a class="code" href="classvtkMrmlNode.html#vtkMrmlNodee0">New</a>();
-00034   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea21">vtkTypeMacro</a>(<a class="code" href="classvtkMrmlLandmarkNode.html">vtkMrmlLandmarkNode</a>,<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>);
-00035   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
-00036   
-00037   <span class="comment">// Description:</span>
-00038   <span class="comment">// Write the node's attributes to a MRML file in XML format</span>
-00039   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea16">Write</a>(ofstream&amp; of, <span class="keywordtype">int</span> indent);
-00040 
-00041   <span class="comment">//--------------------------------------------------------------------------</span>
-00042   <span class="comment">// Utility Functions</span>
-00043   <span class="comment">//--------------------------------------------------------------------------</span>
+00014 
+00015 <span class="preprocessor">#ifndef __vtkMrmlLandmarkNode_h</span>
+00016 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlLandmarkNode_h</span>
+00017 <span class="preprocessor"></span>
+00018 <span class="preprocessor">#include "<a class="code" href="vtkMrmlNode_8h.html">vtkMrmlNode.h</a>"</span>
+00019 <span class="preprocessor">#include "vtkSlicer.h"</span>
+00020 
+<a name="l00021"></a><a class="code" href="classvtkMrmlLandmarkNode.html">00021</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlLandmarkNode.html">vtkMrmlLandmarkNode</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>
+00022 {
+00023 <span class="keyword">public</span>:
+00024   <span class="keyword">static</span> <a class="code" href="classvtkMrmlLandmarkNode.html">vtkMrmlLandmarkNode</a> *<a class="code" href="classvtkMrmlNode.html#vtkMrmlNodee0">New</a>();
+00025   vtkTypeMacro(<a class="code" href="classvtkMrmlLandmarkNode.html">vtkMrmlLandmarkNode</a>,<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>);
+00026   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
+00027   
+00028   <span class="comment">// Description:</span>
+00029   <span class="comment">// Write the node's attributes to a MRML file in XML format</span>
+00030   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea16">Write</a>(ofstream&amp; of, <span class="keywordtype">int</span> indent);
+00031 
+00032   <span class="comment">//--------------------------------------------------------------------------</span>
+00033   <span class="comment">// Utility Functions</span>
+00034   <span class="comment">//--------------------------------------------------------------------------</span>
+00035 
+00036   <span class="comment">// Description:</span>
+00037   <span class="comment">// Copy the node's attributes to this object</span>
+00038   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea3">Copy</a>(<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a> *node);
+00039 
+00040   <span class="comment">// Description:</span>
+00041   <span class="comment">// Get/Set for Landmark</span>
+00042   vtkSetVector3Macro(XYZ,<span class="keywordtype">float</span>);
+00043   vtkGetVectorMacro(XYZ,<span class="keywordtype">float</span>,3);
 00044 
 00045   <span class="comment">// Description:</span>
-00046   <span class="comment">// Copy the node's attributes to this object</span>
-00047   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea3">Copy</a>(<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a> *node);
-00048 
-00049   <span class="comment">// Description:</span>
-00050   <span class="comment">// Get/Set for Landmark</span>
-00051   vtkSetVector3Macro(XYZ,<span class="keywordtype">float</span>);
-00052   vtkGetVectorMacro(XYZ,<span class="keywordtype">float</span>,3);
-00053 
-00054   <span class="comment">// Description:</span>
-00055   <span class="comment">// Get/Set for Landmark</span>
-00056   vtkSetVector3Macro(FXYZ,<span class="keywordtype">float</span>);
-00057   vtkGetVectorMacro(FXYZ,<span class="keywordtype">float</span>,3);
-00058 
-00059   <span class="comment">// Description:</span>
-00060   <span class="comment">// Position of the landmark along the path</span>
-00061   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(PathPosition, <span class="keywordtype">int</span>);
-00062   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(PathPosition, <span class="keywordtype">int</span>);
-00063 
-00064 <span class="keyword">protected</span>:
-00065   <a class="code" href="classvtkMrmlLandmarkNode.html">vtkMrmlLandmarkNode</a>();
-00066   ~<a class="code" href="classvtkMrmlLandmarkNode.html">vtkMrmlLandmarkNode</a>();
-<a name="l00067"></a><a class="code" href="classvtkMrmlLandmarkNode.html#vtkMrmlLandmarkNodeb2">00067</a>   <a class="code" href="classvtkMrmlLandmarkNode.html">vtkMrmlLandmarkNode</a>(<span class="keyword">const</span> <a class="code" href="classvtkMrmlLandmarkNode.html">vtkMrmlLandmarkNode</a>&amp;) {};
-<a name="l00068"></a><a class="code" href="classvtkMrmlLandmarkNode.html#vtkMrmlLandmarkNodep0">00068</a>   <span class="keywordtype">void</span> operator=(<span class="keyword">const</span> <a class="code" href="classvtkMrmlLandmarkNode.html">vtkMrmlLandmarkNode</a>&amp;) {};
-00069 
-00070   <span class="keywordtype">float</span> XYZ[3];
-<a name="l00071"></a><a class="code" href="classvtkMrmlLandmarkNode.html#vtkMrmlLandmarkNodep1">00071</a>   <span class="keywordtype">float</span> FXYZ[3];
-<a name="l00072"></a><a class="code" href="classvtkMrmlLandmarkNode.html#vtkMrmlLandmarkNodep2">00072</a>   <span class="keywordtype">int</span> PathPosition;
-00073 };
-00074 
-00075 <span class="preprocessor">#endif</span>
-00076 <span class="preprocessor"></span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 20:25:47 2006 for MRML by&nbsp;
+00046   <span class="comment">// Get/Set for Landmark</span>
+00047   vtkSetVector3Macro(FXYZ,<span class="keywordtype">float</span>);
+00048   vtkGetVectorMacro(FXYZ,<span class="keywordtype">float</span>,3);
+00049 
+00050   <span class="comment">// Description:</span>
+00051   <span class="comment">// Position of the landmark along the path</span>
+00052   vtkSetMacro(PathPosition, <span class="keywordtype">int</span>);
+00053   vtkGetMacro(PathPosition, <span class="keywordtype">int</span>);
+00054 
+00055 };
+00056 
+00057 <span class="preprocessor">#endif</span>
+00058 <span class="preprocessor"></span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 21:57:58 2006 for MRML by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

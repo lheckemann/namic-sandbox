@@ -18,88 +18,67 @@
 00011 <span class="comment">  Version:   $Revision: 1.15.12.1 $</span>
 00012 <span class="comment"></span>
 00013 <span class="comment">=========================================================================auto=*/</span>
-00014 <span class="comment">// .NAME vtkMrmlFiducialsNode - MRML node for representing a</span>
-00015 <span class="comment">// constellation of vtkMrmlPoints.</span>
-00016 <span class="comment">// .SECTION Description</span>
-00017 <span class="comment">// A Fiducials is container for a constellation of vtkMrmlPoints</span>
-00018 
-00019 <span class="preprocessor">#ifndef __vtkMrmlFiducialsNode_h</span>
-00020 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlFiducialsNode_h</span>
-00021 <span class="preprocessor"></span>
-00022 <span class="comment">//#include &lt;iostream.h&gt;</span>
-00023 <span class="comment">//#include &lt;fstream.h&gt;</span>
-00024 <span class="preprocessor">#include "<a class="code" href="vtkMrmlNode_8h.html">vtkMrmlNode.h</a>"</span>
-00025 <span class="preprocessor">#include "vtkMatrix4x4.h"</span>
-00026 <span class="preprocessor">#include "vtkTransform.h"</span>
-00027 <span class="preprocessor">#include "vtkSlicer.h"</span>
-00028 
-<a name="l00029"></a><a class="code" href="classvtkMrmlFiducialsNode.html">00029</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlFiducialsNode.html">vtkMrmlFiducialsNode</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>
-00030 {
-00031 <span class="keyword">public</span>:
-00032   <span class="keyword">static</span> <a class="code" href="classvtkMrmlFiducialsNode.html">vtkMrmlFiducialsNode</a> *<a class="code" href="classvtkMrmlNode.html#vtkMrmlNodee0">New</a>();
-00033   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea21">vtkTypeMacro</a>(<a class="code" href="classvtkMrmlFiducialsNode.html">vtkMrmlFiducialsNode</a>,<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>);
-00034   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
-00035   
-00036   <span class="comment">//--------------------------------------------------------------------------</span>
-00037   <span class="comment">// Utility Functions</span>
-00038   <span class="comment">//--------------------------------------------------------------------------</span>
-00039 
-00040   <span class="comment">// Description:</span>
-00041   <span class="comment">// Write the node's attributes to a MRML file in XML format</span>
-00042   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea16">Write</a>(ofstream&amp; of, <span class="keywordtype">int</span> indent);
-00043 
-00044   <span class="comment">// Description:</span>
-00045   <span class="comment">// Copy the node's attributes to this object</span>
-00046   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea3">Copy</a>(<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a> *node);
+00014 <span class="preprocessor">#ifndef __vtkMrmlFiducialsNode_h</span>
+00015 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlFiducialsNode_h</span>
+00016 <span class="preprocessor"></span>
+00017 <span class="preprocessor">#include "<a class="code" href="vtkMrmlNode_8h.html">vtkMrmlNode.h</a>"</span>
+00018 <span class="preprocessor">#include "vtkMatrix4x4.h"</span>
+00019 <span class="preprocessor">#include "vtkTransform.h"</span>
+00020 <span class="preprocessor">#include "vtkSlicer.h"</span>
+00021 
+<a name="l00022"></a><a class="code" href="classvtkMrmlFiducialsNode.html">00022</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlFiducialsNode.html">vtkMrmlFiducialsNode</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>
+00023 {
+00024 <span class="keyword">public</span>:
+00025   <span class="keyword">static</span> <a class="code" href="classvtkMrmlFiducialsNode.html">vtkMrmlFiducialsNode</a> *<a class="code" href="classvtkMrmlNode.html#vtkMrmlNodee0">New</a>();
+00026   vtkTypeMacro(<a class="code" href="classvtkMrmlFiducialsNode.html">vtkMrmlFiducialsNode</a>,<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>);
+00027   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
+00028   
+00029   <span class="comment">//--------------------------------------------------------------------------</span>
+00030   <span class="comment">// Utility Functions</span>
+00031   <span class="comment">//--------------------------------------------------------------------------</span>
+00032 
+00033   <span class="comment">// Description:</span>
+00034   <span class="comment">// Write the node's attributes to a MRML file in XML format</span>
+00035   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea16">Write</a>(ofstream&amp; of, <span class="keywordtype">int</span> indent);
+00036 
+00037   <span class="comment">// Description:</span>
+00038   <span class="comment">// Copy the node's attributes to this object</span>
+00039   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea3">Copy</a>(<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a> *node);
+00040 
+00041 
+00042   <span class="comment">// Description:</span>
+00043   <span class="comment">// Get/Set for Symbol size</span>
+00044   vtkSetMacro(SymbolSize,<span class="keywordtype">float</span>);
+00045   vtkGetMacro(SymbolSize,<span class="keywordtype">float</span>);
+00046 
 00047 
-00048 
-00049   <span class="comment">// Description:</span>
-00050   <span class="comment">// Get/Set for Symbol size</span>
-00051   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(SymbolSize,<span class="keywordtype">float</span>);
-00052   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(SymbolSize,<span class="keywordtype">float</span>);
-00053 
-00054 
-00055   <span class="comment">// Description:</span>
-00056   <span class="comment">// Get/Set for Symbol size</span>
-00057   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(Visibility,<span class="keywordtype">int</span>);
-00058   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(Visibility,<span class="keywordtype">int</span>);
-00059 
-00060   <span class="comment">// Description:</span>
-00061   <span class="comment">// Get/Set for Text size</span>
-00062   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea23">vtkSetMacro</a>(TextSize,<span class="keywordtype">float</span>);
-00063   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea24">vtkGetMacro</a>(TextSize,<span class="keywordtype">float</span>);
-00064 
-00065   <span class="comment">// Description:</span>
-00066   <span class="comment">// Get/Set for Glyph and Text color</span>
-00067   vtkSetVector3Macro(Color,<span class="keywordtype">float</span>);
-00068   vtkGetVectorMacro(Color,<span class="keywordtype">float</span>,3);
+00048   <span class="comment">// Description:</span>
+00049   <span class="comment">// Get/Set for Symbol size</span>
+00050   vtkSetMacro(Visibility,<span class="keywordtype">int</span>);
+00051   vtkGetMacro(Visibility,<span class="keywordtype">int</span>);
+00052 
+00053   <span class="comment">// Description:</span>
+00054   <span class="comment">// Get/Set for Text size</span>
+00055   vtkSetMacro(TextSize,<span class="keywordtype">float</span>);
+00056   vtkGetMacro(TextSize,<span class="keywordtype">float</span>);
+00057 
+00058   <span class="comment">// Description:</span>
+00059   <span class="comment">// Get/Set for Glyph and Text color</span>
+00060   vtkSetVector3Macro(Color,<span class="keywordtype">float</span>);
+00061   vtkGetVectorMacro(Color,<span class="keywordtype">float</span>,3);
+00062 
+00063   vtkSetStringMacro(Type);
+00064   vtkGetStringMacro(Type);
+00065 
+00066   <span class="keywordtype">void</span> SetTypeToEndoscopic();
+00067   <span class="keywordtype">void</span> SetTypeToMeasurement();
+00068   <span class="keywordtype">void</span> SetTypeToDefault();
 00069 
-00070   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea26">vtkSetStringMacro</a>(Type);
-00071   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea29">vtkGetStringMacro</a>(Type);
-00072 
-00073 <span class="keywordtype">void</span> SetTypeToEndoscopic();
-00074 <span class="keywordtype">void</span> SetTypeToMeasurement();
-00075 <span class="keywordtype">void</span> SetTypeToDefault();
-00076 
-00077 
-00078 
-00079 <span class="keyword">protected</span>:
-00080   <a class="code" href="classvtkMrmlFiducialsNode.html">vtkMrmlFiducialsNode</a>();
-00081   ~<a class="code" href="classvtkMrmlFiducialsNode.html">vtkMrmlFiducialsNode</a>();
-<a name="l00082"></a><a class="code" href="classvtkMrmlFiducialsNode.html#vtkMrmlFiducialsNodeb2">00082</a>   <a class="code" href="classvtkMrmlFiducialsNode.html">vtkMrmlFiducialsNode</a>(<span class="keyword">const</span> <a class="code" href="classvtkMrmlFiducialsNode.html">vtkMrmlFiducialsNode</a>&amp;) {};
-<a name="l00083"></a><a class="code" href="classvtkMrmlFiducialsNode.html#vtkMrmlFiducialsNodep0">00083</a>   <span class="keywordtype">void</span> operator=(<span class="keyword">const</span> <a class="code" href="classvtkMrmlFiducialsNode.html">vtkMrmlFiducialsNode</a>&amp;) {};
-00084 
-00085 <span class="keywordtype">float</span> SymbolSize;
-<a name="l00086"></a><a class="code" href="classvtkMrmlFiducialsNode.html#vtkMrmlFiducialsNodep1">00086</a> <span class="keywordtype">float</span> TextSize;
-<a name="l00087"></a><a class="code" href="classvtkMrmlFiducialsNode.html#vtkMrmlFiducialsNodep2">00087</a> <span class="keywordtype">int</span> Visibility;
-<a name="l00088"></a><a class="code" href="classvtkMrmlFiducialsNode.html#vtkMrmlFiducialsNodep3">00088</a> <span class="keywordtype">float</span> Color[3];
-<a name="l00089"></a><a class="code" href="classvtkMrmlFiducialsNode.html#vtkMrmlFiducialsNodep4">00089</a> <span class="keywordtype">char</span>  *Type;
-00090 
-00091 };
-00092 
-00093 <span class="preprocessor">#endif</span>
-00094 <span class="preprocessor"></span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 20:25:47 2006 for MRML by&nbsp;
+00070 };
+00071 
+00072 <span class="preprocessor">#endif</span>
+00073 <span class="preprocessor"></span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 21:57:58 2006 for MRML by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

@@ -18,58 +18,42 @@
 00011 <span class="comment">  Version:   $Revision: 1.6.16.1 $</span>
 00012 <span class="comment"></span>
 00013 <span class="comment">=========================================================================auto=*/</span>
-00014 <span class="comment">// .NAME vtkMrmlModelRefNode - MRML node to represent a reference to a model.</span>
-00015 <span class="comment">// .SECTION Description</span>
-00016 <span class="comment">// ModelRef nodes refer to model nodes. They define where a model should be</span>
-00017 <span class="comment">// placed in the hierarchy.</span>
-00018 
-00019 <span class="preprocessor">#ifndef __vtkMrmlModelRefNode_h</span>
-00020 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlModelRefNode_h</span>
-00021 <span class="preprocessor"></span>
-00022 <span class="comment">//#include &lt;iostream.h&gt;</span>
-00023 <span class="comment">//#include &lt;fstream.h&gt;</span>
-00024 <span class="preprocessor">#include "<a class="code" href="vtkMrmlNode_8h.html">vtkMrmlNode.h</a>"</span>
-00025 <span class="preprocessor">#include "vtkSlicer.h"</span>
-00026 
-00027 
-<a name="l00028"></a><a class="code" href="classvtkMrmlModelRefNode.html">00028</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlModelRefNode.html">vtkMrmlModelRefNode</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>
-00029 {
-00030 <span class="keyword">public</span>:
-00031   <span class="keyword">static</span> <a class="code" href="classvtkMrmlModelRefNode.html">vtkMrmlModelRefNode</a> *<a class="code" href="classvtkMrmlNode.html#vtkMrmlNodee0">New</a>();
-00032   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea21">vtkTypeMacro</a>(<a class="code" href="classvtkMrmlModelRefNode.html">vtkMrmlModelRefNode</a>,<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>);
-00033   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
-00034   
-00035   <span class="comment">//--------------------------------------------------------------------------</span>
-00036   <span class="comment">// Utility Functions</span>
-00037   <span class="comment">//--------------------------------------------------------------------------</span>
-00038 
-00039   <span class="comment">// Description:</span>
-00040   <span class="comment">// Write the node's attributes to a MRML file in XML format</span>
-00041   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea16">Write</a>(ofstream&amp; of, <span class="keywordtype">int</span> indent);
-00042 
-00043   <span class="comment">// Description:</span>
-00044   <span class="comment">// Copy the node's attributes to this object</span>
-00045   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea3">Copy</a>(<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a> *node);
-00046 
-00047   <span class="comment">// Description:</span>
-00048   <span class="comment">// ID of the referenced model</span>
-00049   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea26">vtkSetStringMacro</a>(ModelRefID);
-00050   <a class="code" href="classvtkMrmlNode.html#vtkMrmlWindowLevelNodea29">vtkGetStringMacro</a>(ModelRefID);
-00051 
-00052  
-00053 <span class="keyword">protected</span>:
-00054   <a class="code" href="classvtkMrmlModelRefNode.html">vtkMrmlModelRefNode</a>();
-00055   ~<a class="code" href="classvtkMrmlModelRefNode.html">vtkMrmlModelRefNode</a>();
-<a name="l00056"></a><a class="code" href="classvtkMrmlModelRefNode.html#vtkMrmlModelRefNodeb2">00056</a>   <a class="code" href="classvtkMrmlModelRefNode.html">vtkMrmlModelRefNode</a>(<span class="keyword">const</span> <a class="code" href="classvtkMrmlModelRefNode.html">vtkMrmlModelRefNode</a>&amp;) {};
-<a name="l00057"></a><a class="code" href="classvtkMrmlModelRefNode.html#vtkMrmlModelRefNodeb3">00057</a>   <span class="keywordtype">void</span> operator=(<span class="keyword">const</span> <a class="code" href="classvtkMrmlModelRefNode.html">vtkMrmlModelRefNode</a>&amp;) {};
-00058 
-00059   <span class="comment">// Strings</span>
-00060   <span class="keywordtype">char</span> *ModelRefID;
-00061 
-00062 };
-00063 
-00064 <span class="preprocessor">#endif</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 20:25:47 2006 for MRML by&nbsp;
+00014 
+00015 <span class="preprocessor">#ifndef __vtkMrmlModelRefNode_h</span>
+00016 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlModelRefNode_h</span>
+00017 <span class="preprocessor"></span>
+00018 <span class="preprocessor">#include "<a class="code" href="vtkMrmlNode_8h.html">vtkMrmlNode.h</a>"</span>
+00019 <span class="preprocessor">#include "vtkSlicer.h"</span>
+00020 
+00021 
+<a name="l00022"></a><a class="code" href="classvtkMrmlModelRefNode.html">00022</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlModelRefNode.html">vtkMrmlModelRefNode</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>
+00023 {
+00024 <span class="keyword">public</span>:
+00025   <span class="keyword">static</span> <a class="code" href="classvtkMrmlModelRefNode.html">vtkMrmlModelRefNode</a> *<a class="code" href="classvtkMrmlNode.html#vtkMrmlNodee0">New</a>();
+00026   vtkTypeMacro(<a class="code" href="classvtkMrmlModelRefNode.html">vtkMrmlModelRefNode</a>,<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a>);
+00027   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
+00028   
+00029   <span class="comment">//--------------------------------------------------------------------------</span>
+00030   <span class="comment">// Utility Functions</span>
+00031   <span class="comment">//--------------------------------------------------------------------------</span>
+00032 
+00033   <span class="comment">// Description:</span>
+00034   <span class="comment">// Write the node's attributes to a MRML file in XML format</span>
+00035   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea16">Write</a>(ofstream&amp; of, <span class="keywordtype">int</span> indent);
+00036 
+00037   <span class="comment">// Description:</span>
+00038   <span class="comment">// Copy the node's attributes to this object</span>
+00039   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlNode.html#vtkMrmlNodea3">Copy</a>(<a class="code" href="classvtkMrmlNode.html">vtkMrmlNode</a> *node);
+00040 
+00041   <span class="comment">// Description:</span>
+00042   <span class="comment">// ID of the referenced model</span>
+00043   vtkSetStringMacro(ModelRefID);
+00044   vtkGetStringMacro(ModelRefID);
+00045 
+00046 };
+00047 
+00048 <span class="preprocessor">#endif</span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 21:57:58 2006 for MRML by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>

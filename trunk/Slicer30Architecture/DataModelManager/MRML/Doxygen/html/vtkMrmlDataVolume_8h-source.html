@@ -18,224 +18,117 @@
 00011 <span class="comment">  Version:   $Revision: 1.14.2.1 $</span>
 00012 <span class="comment"></span>
 00013 <span class="comment">=========================================================================auto=*/</span>
-00014 <span class="comment">// .NAME vtkMrmlDataVolume - Object used in the slicer to perform</span>
-00015 <span class="comment">// everything related to the access and display of image data (volumes).</span>
-00016 <span class="comment">// .SECTION Description</span>
-00017 <span class="comment">// Used in conjunction with a vtkMrmlDataVolumeNode (which neatly describes</span>
-00018 <span class="comment">// display settings, file locations, etc.).  Essentially, the MRML </span>
-00019 <span class="comment">// node gives the high level description of what this class should </span>
-00020 <span class="comment">// actually do with the ImageData.</span>
-00021 <span class="comment">// </span>
-00022 
-00023 <span class="preprocessor">#ifndef __vtkMrmlDataVolume_h</span>
-00024 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlDataVolume_h</span>
-00025 <span class="preprocessor"></span>
-00026 <span class="comment">//#include &lt;fstream.h&gt;</span>
-00027 <span class="preprocessor">#include &lt;stdlib.h&gt;</span>
-00028 <span class="comment">//#include &lt;iostream.h&gt;</span>
-00029 
-00030 <span class="preprocessor">#include "<a class="code" href="vtkMrmlData_8h.html">vtkMrmlData.h</a>"</span>
-00031 
-00032 <span class="preprocessor">#include "<a class="code" href="vtkMrmlVolumeNode_8h.html">vtkMrmlVolumeNode.h</a>"</span>
-00033 <span class="preprocessor">#include "vtkImageAccumulateDiscrete.h"</span>
-00034 <span class="preprocessor">#include "vtkImageBimodalAnalysis.h"</span>
-00035 <span class="preprocessor">#include "vtkImageResize.h"</span>
-00036 <span class="preprocessor">#include "vtkImagePlot.h"</span>
-00037 <span class="preprocessor">#include "vtkImageData.h"</span>
-00038 <span class="preprocessor">#include "vtkStackOfPolygons.h"</span>
-00039 <span class="preprocessor">#include "vtkSlicer.h"</span>
-00040 <span class="preprocessor">#include "<a class="code" href="vtkMrmlDataVolumeReadWrite_8h.html">vtkMrmlDataVolumeReadWrite.h</a>"</span>
-00041 <span class="preprocessor">#include "vtkPTSWriter.h"</span>
-00042 
-00043 <span class="preprocessor">#ifndef vtkFloatingPointType</span>
-00044 <span class="preprocessor"></span><span class="preprocessor">#define vtkFloatingPointType float</span>
-00045 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
-00046 <span class="preprocessor"></span>
-00047 <span class="keyword">class </span>vtkImageDICOMReader;
-00048 <span class="keyword">class </span>vtkImageReader;
-00049 
-00050 <span class="comment">//----------------------------------------------------------------------------</span>
-<a name="l00051"></a><a class="code" href="classvtkMrmlDataVolume.html">00051</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlDataVolume.html">vtkMrmlDataVolume</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlData.html">vtkMrmlData</a>
-00052 {
-00053 <span class="keyword">public</span>:
-00054   <span class="keyword">static</span> <a class="code" href="classvtkMrmlDataVolume.html">vtkMrmlDataVolume</a> *<a class="code" href="classvtkMrmlData.html#vtkMrmlDatae0">New</a>();
-00055   <a class="code" href="classvtkMrmlData.html#vtkMrmlDataVolumea31">vtkTypeMacro</a>(<a class="code" href="classvtkMrmlDataVolume.html">vtkMrmlDataVolume</a>,<a class="code" href="classvtkMrmlData.html">vtkMrmlData</a>);
-00056   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlData.html#vtkMrmlDataa1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
-00057   
-00058   <span class="comment">// Description:</span>
-00059   <span class="comment">// Provides opportunity to insure internal consistency before access. </span>
-00060   <span class="comment">// Transfers all ivars from MrmlNode to internal VTK objects</span>
-00061   <span class="comment">// Also causes ImageData's source (if any) to update itself.</span>
-00062   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlData.html#vtkMrmlDataa5">Update</a>();
-00063   <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">int</span> <a class="code" href="classvtkMrmlData.html#vtkMrmlDataa6">GetMTime</a>();
-00064 
-00065   <span class="comment">// Description:</span>
-00066   <span class="comment">// Set the image data</span>
-00067   <span class="comment">// Use GetOutput to get the image data.</span>
-00068   <a class="code" href="classvtkMrmlData.html#vtkMrmlDataVolumea32">vtkSetObjectMacro</a>(ImageData, vtkImageData);
-00069   vtkImageData* <a class="code" href="classvtkMrmlData.html#vtkMrmlDataa7">GetOutput</a>();
-00070   <span class="keywordtype">char</span>* GetOutputPointer(<span class="keywordtype">int</span> zslice);
-00071 
-00072   <span class="comment">// Description:</span>
-00073   <span class="comment">// Read/Write image </span>
-00074   <span class="keywordtype">int</span> <a class="code" href="classvtkMrmlData.html#vtkMrmlDataa8">Read</a>();
-00075   <span class="keywordtype">int</span> <a class="code" href="classvtkMrmlData.html#vtkMrmlDataa9">Write</a>();
-00076   <span class="keywordtype">int</span> WritePTS(<span class="keywordtype">char</span> *filename);
-00077   <span class="keywordtype">int</span> WritePTSFromStack(<span class="keywordtype">int</span> window, <span class="keywordtype">char</span> *filename,
-00078                         vtkMatrix4x4 *RasToIjkMatrix,
-00079                         <span class="keywordtype">char</span> *order, <span class="keywordtype">int</span> activeSlice);
-00080 
-00081   <span class="comment">//--------------------------------------------------------------------------</span>
-00082   <span class="comment">// Read/Write volume data contained by this object.</span>
-00083   <span class="comment">// This sub-object is specific to each</span>
-00084   <span class="comment">// type of volume that needs to be read in.  This can be used</span>
-00085   <span class="comment">// to clean up the special cases which handle</span>
-00086   <span class="comment">// volumes of various types, such as dicom, header, etc.  In</span>
-00087   <span class="comment">// future these things can be moved here.  Each read/write </span>
-00088   <span class="comment">// sub-object corresponds to a vtkMrmlVolumeReadWriteNode subclass.</span>
-00089   <span class="comment">// These subclasses write any needed info in the MRML file.</span>
-00090   <span class="comment">//--------------------------------------------------------------------------</span>
-00091   <a class="code" href="classvtkMrmlData.html#vtkMrmlDataVolumea32">vtkSetObjectMacro</a>(ReadWrite,<a class="code" href="classvtkMrmlDataVolumeReadWrite.html">vtkMrmlDataVolumeReadWrite</a>);
-00092   <a class="code" href="classvtkMrmlData.html#vtkMrmlDataVolumea34">vtkGetObjectMacro</a>(ReadWrite,<a class="code" href="classvtkMrmlDataVolumeReadWrite.html">vtkMrmlDataVolumeReadWrite</a>);
+00014 
+00015 <span class="preprocessor">#ifndef __vtkMrmlDataVolume_h</span>
+00016 <span class="preprocessor"></span><span class="preprocessor">#define __vtkMrmlDataVolume_h</span>
+00017 <span class="preprocessor"></span>
+00018 <span class="preprocessor">#include &lt;stdlib.h&gt;</span>
+00019 
+00020 <span class="preprocessor">#include "<a class="code" href="vtkMrmlData_8h.html">vtkMrmlData.h</a>"</span>
+00021 
+00022 <span class="preprocessor">#include "<a class="code" href="vtkMrmlVolumeNode_8h.html">vtkMrmlVolumeNode.h</a>"</span>
+00023 <span class="preprocessor">#include "vtkImageAccumulateDiscrete.h"</span>
+00024 <span class="preprocessor">#include "vtkImageBimodalAnalysis.h"</span>
+00025 <span class="preprocessor">#include "vtkImageResize.h"</span>
+00026 <span class="preprocessor">#include "vtkImagePlot.h"</span>
+00027 <span class="preprocessor">#include "vtkImageData.h"</span>
+00028 <span class="preprocessor">#include "vtkStackOfPolygons.h"</span>
+00029 <span class="preprocessor">#include "vtkSlicer.h"</span>
+00030 <span class="preprocessor">#include "<a class="code" href="vtkMrmlDataVolumeReadWrite_8h.html">vtkMrmlDataVolumeReadWrite.h</a>"</span>
+00031 <span class="preprocessor">#include "vtkPTSWriter.h"</span>
+00032 
+00033 <span class="preprocessor">#ifndef vtkFloatingPointType</span>
+00034 <span class="preprocessor"></span><span class="preprocessor">#define vtkFloatingPointType float</span>
+00035 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
+00036 <span class="preprocessor"></span>
+00037 <span class="keyword">class </span>vtkImageDICOMReader;
+00038 <span class="keyword">class </span>vtkImageReader;
+00039 
+00040 <span class="comment">//----------------------------------------------------------------------------</span>
+<a name="l00041"></a><a class="code" href="classvtkMrmlDataVolume.html">00041</a> <span class="keyword">class </span>VTK_SLICER_BASE_EXPORT <a class="code" href="classvtkMrmlDataVolume.html">vtkMrmlDataVolume</a> : <span class="keyword">public</span> <a class="code" href="classvtkMrmlData.html">vtkMrmlData</a>
+00042 {
+00043 <span class="keyword">public</span>:
+00044   <span class="keyword">static</span> <a class="code" href="classvtkMrmlDataVolume.html">vtkMrmlDataVolume</a> *<a class="code" href="classvtkMrmlData.html#vtkMrmlDatae0">New</a>();
+00045   vtkTypeMacro(<a class="code" href="classvtkMrmlDataVolume.html">vtkMrmlDataVolume</a>,<a class="code" href="classvtkMrmlData.html">vtkMrmlData</a>);
+00046   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlData.html#vtkMrmlDataa1">PrintSelf</a>(ostream&amp; os, vtkIndent indent);
+00047   
+00048   <span class="comment">// Description:</span>
+00049   <span class="comment">// Provides opportunity to insure internal consistency before access. </span>
+00050   <span class="comment">// Transfers all ivars from MrmlNode to internal VTK objects</span>
+00051   <span class="comment">// Also causes ImageData's source (if any) to update itself.</span>
+00052   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlData.html#vtkMrmlDataa5">Update</a>();
+00053   <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">int</span> <a class="code" href="classvtkMrmlData.html#vtkMrmlDataa6">GetMTime</a>();
+00054 
+00055   <span class="comment">// Description:</span>
+00056   <span class="comment">// Set the image data</span>
+00057   <span class="comment">// Use GetOutput to get the image data.</span>
+00058   vtkSetObjectMacro(ImageData, vtkImageData);
+00059   vtkImageData* <a class="code" href="classvtkMrmlData.html#vtkMrmlDataa7">GetOutput</a>();
+00060   <span class="keywordtype">char</span>* GetOutputPointer(<span class="keywordtype">int</span> zslice);
+00061 
+00062   <span class="comment">// Description:</span>
+00063   <span class="comment">// Read/Write image </span>
+00064   <span class="keywordtype">int</span> <a class="code" href="classvtkMrmlData.html#vtkMrmlDataa8">Read</a>();
+00065   <span class="keywordtype">int</span> <a class="code" href="classvtkMrmlData.html#vtkMrmlDataa9">Write</a>();
+00066   <span class="keywordtype">int</span> WritePTS(<span class="keywordtype">char</span> *filename);
+00067   <span class="keywordtype">int</span> WritePTSFromStack(<span class="keywordtype">int</span> window, <span class="keywordtype">char</span> *filename,
+00068                         vtkMatrix4x4 *RasToIjkMatrix,
+00069                         <span class="keywordtype">char</span> *order, <span class="keywordtype">int</span> activeSlice);
+00070 
+00071   <span class="comment">//--------------------------------------------------------------------------</span>
+00072   <span class="comment">// Read/Write volume data contained by this object.</span>
+00073   <span class="comment">// This sub-object is specific to each</span>
+00074   <span class="comment">// type of volume that needs to be read in.  This can be used</span>
+00075   <span class="comment">// to clean up the special cases which handle</span>
+00076   <span class="comment">// volumes of various types, such as dicom, header, etc.  In</span>
+00077   <span class="comment">// future these things can be moved here.  Each read/write </span>
+00078   <span class="comment">// sub-object corresponds to a vtkMrmlVolumeReadWriteNode subclass.</span>
+00079   <span class="comment">// These subclasses write any needed info in the MRML file.</span>
+00080   <span class="comment">//--------------------------------------------------------------------------</span>
+00081   vtkSetObjectMacro(ReadWrite,<a class="code" href="classvtkMrmlDataVolumeReadWrite.html">vtkMrmlDataVolumeReadWrite</a>);
+00082   vtkGetObjectMacro(ReadWrite,<a class="code" href="classvtkMrmlDataVolumeReadWrite.html">vtkMrmlDataVolumeReadWrite</a>);
+00083 
+00084   <span class="comment">// Description:</span>
+00085   <span class="comment">// Set Histogram attributes</span>
+00086   <span class="keywordtype">void</span> SetHistogramHeight(<span class="keywordtype">int</span> h) ;
+00087   <span class="keywordtype">void</span> SetHistogramWidth(<span class="keywordtype">int</span> w);
+00088   vtkSetVector3Macro(HistogramColor, <a class="code" href="vtkMrmlVolumeNode_8h.html#a0">vtkFloatingPointType</a>);
+00089 
+00090   <span class="comment">// Description:</span>
+00091   <span class="comment">// Get Histogram plot (an image)</span>
+00092   vtkImageData *GetHistogramPlot();
 00093 
-00094   <span class="comment">// Description:</span>
-00095   <span class="comment">// Set Histogram attributes</span>
-<a name="l00096"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumea13">00096</a>   <span class="keywordtype">void</span> SetHistogramHeight(<span class="keywordtype">int</span> h) {this-&gt;HistPlot-&gt;SetHeight(h);};
-00097   <span class="keywordtype">void</span> SetHistogramWidth(<span class="keywordtype">int</span> w);
-00098   vtkSetVector3Macro(HistogramColor, <a class="code" href="vtkMrmlVolumeNode_8h.html#a0">vtkFloatingPointType</a>);
-00099 
-00100   <span class="comment">// Description:</span>
-00101   <span class="comment">// Get Histogram plot (an image)</span>
-00102   vtkImageData *GetHistogramPlot();
-00103 
-<a name="l00104"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumea17">00104</a>   <span class="keywordtype">int</span> GetBimodalThreshold() {<span class="keywordflow">return</span> this-&gt;Bimodal-&gt;GetThreshold();};
-00105 
-00106   <span class="comment">// Description:</span>
-00107   <span class="comment">// Assumes GetHistogramPlot has already been called</span>
-<a name="l00108"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumea18">00108</a>   <span class="keywordtype">int</span> MapBinToScalar(<span class="keywordtype">int</span> b) {<span class="keywordflow">return</span> this-&gt;HistPlot-&gt;MapBinToScalar(b);};
-<a name="l00109"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumea19">00109</a>   <span class="keywordtype">int</span> MapScalarToBin(<span class="keywordtype">int</span> s) {<span class="keywordflow">return</span> this-&gt;HistPlot-&gt;MapScalarToBin(s);};
-00110   
-00111   <span class="comment">// Description:</span>
-00112   <span class="comment">// Set/Get window/level/threshold slider range</span>
-00113   <a class="code" href="classvtkMrmlData.html#vtkMrmlDataVolumea40">vtkGetMacro</a>(RangeLow,  <a class="code" href="vtkMrmlVolumeNode_8h.html#a0">vtkFloatingPointType</a>);
-00114   <a class="code" href="classvtkMrmlData.html#vtkMrmlDataVolumea40">vtkGetMacro</a>(RangeHigh, <a class="code" href="vtkMrmlVolumeNode_8h.html#a0">vtkFloatingPointType</a>);
-00115   <a class="code" href="classvtkMrmlData.html#vtkMrmlDataVolumea38">vtkSetMacro</a>(RangeLow,  <a class="code" href="vtkMrmlVolumeNode_8h.html#a0">vtkFloatingPointType</a>);
-00116   <a class="code" href="classvtkMrmlData.html#vtkMrmlDataVolumea38">vtkSetMacro</a>(RangeHigh, <a class="code" href="vtkMrmlVolumeNode_8h.html#a0">vtkFloatingPointType</a>);
-00117   <a class="code" href="classvtkMrmlData.html#vtkMrmlDataVolumea40">vtkGetMacro</a>(RangeAuto, <span class="keywordtype">int</span>);
-00118   <a class="code" href="classvtkMrmlData.html#vtkMrmlDataVolumea38">vtkSetMacro</a>(RangeAuto, <span class="keywordtype">int</span>);
-00119   <a class="code" href="classvtkMrmlData.html#vtkMrmlDataVolumea42">vtkBooleanMacro</a>(RangeAuto, <span class="keywordtype">int</span>);
+00094   <span class="keywordtype">int</span> GetBimodalThreshold() ;
+00095 
+00096   <span class="comment">// Description:</span>
+00097   <span class="comment">// Assumes GetHistogramPlot has already been called</span>
+00098   <span class="keywordtype">int</span> MapBinToScalar(<span class="keywordtype">int</span> b) ;
+00099   <span class="keywordtype">int</span> MapScalarToBin(<span class="keywordtype">int</span> s) ;
+00100   
+00101   <span class="comment">// Description:</span>
+00102   <span class="comment">// Set/Get window/level/threshold slider range</span>
+00103   vtkGetMacro(RangeLow,  <a class="code" href="vtkMrmlVolumeNode_8h.html#a0">vtkFloatingPointType</a>);
+00104   vtkGetMacro(RangeHigh, <a class="code" href="vtkMrmlVolumeNode_8h.html#a0">vtkFloatingPointType</a>);
+00105   vtkSetMacro(RangeLow,  <a class="code" href="vtkMrmlVolumeNode_8h.html#a0">vtkFloatingPointType</a>);
+00106   vtkSetMacro(RangeHigh, <a class="code" href="vtkMrmlVolumeNode_8h.html#a0">vtkFloatingPointType</a>);
+00107   vtkGetMacro(RangeAuto, <span class="keywordtype">int</span>);
+00108   vtkSetMacro(RangeAuto, <span class="keywordtype">int</span>);
+<a name="l00109"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumeo0">00109</a>   vtkBooleanMacro(RangeAuto, <span class="keywordtype">int</span>);
+00110 
+00111   <span class="keywordtype">void</span> StackSetPolygon(<span class="keywordtype">int</span> window, vtkPoints *poly, <span class="keywordtype">int</span> s, <span class="keywordtype">int</span> p, <span class="keywordtype">int</span> d,
+00112                        <span class="keywordtype">int</span> closed, <span class="keywordtype">int</span> preshape, <span class="keywordtype">int</span> label);
+00113   
+00114   <span class="keywordtype">void</span> StackRemovePolygon(<span class="keywordtype">int</span> window, <span class="keywordtype">int</span> s, <span class="keywordtype">int</span> p);
+00115 
+00116   <span class="keywordtype">void</span> RasStackRemovePolygon(<span class="keywordtype">int</span> window, <span class="keywordtype">int</span> s, <span class="keywordtype">int</span> p);
+00117 
+00118   <span class="keywordtype">void</span> RasStackSetPolygon(<span class="keywordtype">int</span> window, vtkPoints *rasPoly, <span class="keywordtype">int</span> s, <span class="keywordtype">int</span> p, <span class="keywordtype">int</span> d,
+00119                           <span class="keywordtype">int</span> closed, <span class="keywordtype">int</span> preshape, <span class="keywordtype">int</span> label);
 00120 
-<a name="l00121"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumea27">00121</a>   <span class="keywordtype">void</span> StackSetPolygon(<span class="keywordtype">int</span> window, vtkPoints *poly, <span class="keywordtype">int</span> s, <span class="keywordtype">int</span> p, <span class="keywordtype">int</span> d,
-00122                        <span class="keywordtype">int</span> closed, <span class="keywordtype">int</span> preshape, <span class="keywordtype">int</span> label)
-00123   {
-00124     <span class="keywordflow">switch</span> (window)
-00125     {
-00126       <span class="keywordflow">case</span> 0: this-&gt;AxiPolyStack-&gt;SetPolygon(poly, s, p, d, closed, preshape,
-00127                                              label);
-00128               <span class="keywordflow">break</span>;
-00129       <span class="keywordflow">case</span> 1: this-&gt;SagPolyStack-&gt;SetPolygon(poly, s, p, d, closed, preshape,
-00130                                              label);
-00131               <span class="keywordflow">break</span>;
-00132       <span class="keywordflow">case</span> 2: this-&gt;CorPolyStack-&gt;SetPolygon(poly, s, p, d, closed, preshape,
-00133                                              label);
-00134               <span class="keywordflow">break</span>;
-00135     }
-00136   };
-<a name="l00137"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumea28">00137</a>   <span class="keywordtype">void</span> StackRemovePolygon(<span class="keywordtype">int</span> window, <span class="keywordtype">int</span> s, <span class="keywordtype">int</span> p)
-00138   {
-00139     <span class="keywordflow">switch</span> (window)
-00140     {
-00141       <span class="keywordflow">case</span> 0: this-&gt;AxiPolyStack-&gt;RemovePolygon(s, p);
-00142               <span class="keywordflow">break</span>;
-00143       <span class="keywordflow">case</span> 1: this-&gt;SagPolyStack-&gt;RemovePolygon(s, p);
-00144               <span class="keywordflow">break</span>;
-00145       <span class="keywordflow">case</span> 2: this-&gt;CorPolyStack-&gt;RemovePolygon(s, p);
-00146               <span class="keywordflow">break</span>;
-00147     }
-00148   };
-00149 
-<a name="l00150"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumea29">00150</a>   <span class="keywordtype">void</span> RasStackRemovePolygon(<span class="keywordtype">int</span> window, <span class="keywordtype">int</span> s, <span class="keywordtype">int</span> p)
-00151   {
-00152     <span class="keywordflow">switch</span> (window)
-00153     {
-00154       <span class="keywordflow">case</span> 0: this-&gt;AxiRasPolyStack-&gt;RemovePolygon(s, p);
-00155               <span class="keywordflow">break</span>;
-00156       <span class="keywordflow">case</span> 1: this-&gt;SagRasPolyStack-&gt;RemovePolygon(s, p);
-00157               <span class="keywordflow">break</span>;
-00158       <span class="keywordflow">case</span> 2: this-&gt;CorRasPolyStack-&gt;RemovePolygon(s, p);
-00159               <span class="keywordflow">break</span>;
-00160     }
-00161   };
-<a name="l00162"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumea30">00162</a>   <span class="keywordtype">void</span> RasStackSetPolygon(<span class="keywordtype">int</span> window, vtkPoints *rasPoly, <span class="keywordtype">int</span> s, <span class="keywordtype">int</span> p, <span class="keywordtype">int</span> d,
-00163                           <span class="keywordtype">int</span> closed, <span class="keywordtype">int</span> preshape, <span class="keywordtype">int</span> label)
-00164   {
-00165     <span class="keywordflow">switch</span> (window)
-00166     {
-00167       <span class="keywordflow">case</span> 0: this-&gt;AxiRasPolyStack-&gt;SetPolygon(rasPoly, s, p, d, closed,
-00168                                                 preshape, label);
-00169               <span class="keywordflow">break</span>;
-00170       <span class="keywordflow">case</span> 1: this-&gt;SagRasPolyStack-&gt;SetPolygon(rasPoly, s, p, d, closed,
-00171                                                 preshape, label);
-00172               <span class="keywordflow">break</span>;
-00173       <span class="keywordflow">case</span> 2: this-&gt;CorRasPolyStack-&gt;SetPolygon(rasPoly, s, p, d, closed,
-00174                                                 preshape, label);
-00175               <span class="keywordflow">break</span>;
-00176     }
-00177   };
-00178 
-00179 <span class="keyword">protected</span>:
-00180   <a class="code" href="classvtkMrmlDataVolume.html">vtkMrmlDataVolume</a>();
-00181   ~<a class="code" href="classvtkMrmlDataVolume.html">vtkMrmlDataVolume</a>();
-<a name="l00182"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumeb2">00182</a>   <a class="code" href="classvtkMrmlDataVolume.html">vtkMrmlDataVolume</a>(<span class="keyword">const</span> <a class="code" href="classvtkMrmlDataVolume.html">vtkMrmlDataVolume</a>&amp;) {};
-<a name="l00183"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumeb3">00183</a>   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlData.html#vtkMrmlDatab3">operator=</a>(<span class="keyword">const</span> <a class="code" href="classvtkMrmlDataVolume.html">vtkMrmlDataVolume</a>&amp;) {};
-00184 
-00185   <span class="comment">// Description: </span>
-00186   <span class="comment">// If Data has not be created, create it.</span>
-00187   <span class="keywordtype">void</span> <a class="code" href="classvtkMrmlData.html#vtkMrmlDatab4">CheckMrmlNode</a>();
-00188   <span class="keywordtype">void</span> UpdateWindowLevelThreshold();
-00189   <span class="keywordtype">void</span> CheckImageData();
-00190 
-<a name="l00191"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumep0">00191</a>   <a class="code" href="vtkMrmlVolumeNode_8h.html#a0">vtkFloatingPointType</a> RangeLow;
-<a name="l00192"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumep1">00192</a>   <a class="code" href="vtkMrmlVolumeNode_8h.html#a0">vtkFloatingPointType</a> RangeHigh;
-<a name="l00193"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumep2">00193</a>   <span class="keywordtype">int</span> RangeAuto;
-<a name="l00194"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumep3">00194</a>   <a class="code" href="vtkMrmlVolumeNode_8h.html#a0">vtkFloatingPointType</a> HistogramColor[3];
-00195 
-<a name="l00196"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumep4">00196</a>   vtkImageData *ImageData;
-<a name="l00197"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumep5">00197</a>   vtkStackOfPolygons *AxiPolyStack;
-<a name="l00198"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumep6">00198</a>   vtkStackOfPolygons *AxiRasPolyStack;
-<a name="l00199"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumep7">00199</a>   vtkStackOfPolygons *SagPolyStack;
-<a name="l00200"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumep8">00200</a>   vtkStackOfPolygons *SagRasPolyStack;
-<a name="l00201"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumep9">00201</a>   vtkStackOfPolygons *CorPolyStack;
-<a name="l00202"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumep10">00202</a>   vtkStackOfPolygons *CorRasPolyStack;
-<a name="l00203"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumep11">00203</a>   vtkPoints *Samples;
-<a name="l00204"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumep12">00204</a>   vtkImageAccumulateDiscrete *Accumulate;
-<a name="l00205"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumep13">00205</a>   vtkImageBimodalAnalysis *Bimodal;
-<a name="l00206"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumep14">00206</a>   vtkImageResize *Resize;
-<a name="l00207"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumep15">00207</a>   vtkImagePlot *HistPlot;
-00208 
-00209 <span class="comment">// Description:</span>
-00210 <span class="comment">// Take information from the VtkMrmlNode and put it in the appropriate reader.</span>
-00211 <span class="keywordtype">void</span> DicomReaderSetup(vtkImageDICOMReader *dcmreader,
-00212                       <a class="code" href="classvtkMrmlVolumeNode.html">vtkMrmlVolumeNode</a> *node,
-00213                       <span class="keywordtype">int</span> ext[6]);
-00214 <span class="keywordtype">void</span> NonDicomReaderSetup(vtkImageReader *dcmreader,
-00215                          <a class="code" href="classvtkMrmlVolumeNode.html">vtkMrmlVolumeNode</a> *node,
-00216                          <span class="keywordtype">int</span> ext[6]);
-00217 
-00218 <span class="comment">// Description:</span>
-00219 <span class="comment">// Do all the reading.</span>
-00220 <span class="comment">// Return the vtkImageSource already updated</span>
-00221 <span class="comment">// used by this-&gt;Read() and this-&gt;ReRead()</span>
-00222  vtkImageSource *ReaderHelper();
-00223 
-00224  <span class="comment">// hook for developers to add any kind of volume reading</span>
-<a name="l00225"></a><a class="code" href="classvtkMrmlDataVolume.html#vtkMrmlDataVolumep16">00225</a>  <a class="code" href="classvtkMrmlDataVolumeReadWrite.html">vtkMrmlDataVolumeReadWrite</a> *ReadWrite;
-00226 
-00227 
-00228 };
-00229 
-00230 <span class="preprocessor">#endif</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 20:25:47 2006 for MRML by&nbsp;
+00121 };
+00122 
+00123 <span class="preprocessor">#endif</span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 4 21:57:57 2006 for MRML by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.2 </small></address>
 </body>
