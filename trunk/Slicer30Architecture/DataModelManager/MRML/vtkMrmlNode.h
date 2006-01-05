@@ -11,19 +11,9 @@
   Version:   $Revision: 1.21.12.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlNode - Abstract Superclass for all specific types of MRML nodes.
-// .SECTION Description
-// This node encapsulates the functionality common to all types of MRML nodes.
-// This includes member variables for ID, Description, and Options,
-// as well as member functions to Copy() and Write().
 
 #ifndef __vtkMrmlNode_h
 #define __vtkMrmlNode_h
-
-#include "vtkObject.h"
-#include "vtkMatrix4x4.h"
-#include "vtkTransform.h"
-#include "vtkSlicer.h"
 
 class VTK_SLICER_BASE_EXPORT vtkMrmlNode : public vtkObject
 {
@@ -88,25 +78,6 @@ class VTK_SLICER_BASE_EXPORT vtkMrmlNode : public vtkObject
   // This is a virtual function that all subclasses must overload.
   virtual void Write(ofstream& of, int indent);
 
-protected:
-
-  vtkSetMacro(Indent, int);
-  vtkMrmlNode();
-  // critical to have a virtual descructor!
-  virtual ~vtkMrmlNode();
-  vtkMrmlNode(const vtkMrmlNode&) {};
-  void operator=(const vtkMrmlNode&) {};
-
-  // Description:
-  // Only for internal use by the GetTitle function
-  vtkSetStringMacro(Title);
-
-  int ID;
-  int Indent;
-  char *Description;
-  char *Options;
-  char *Name;
-  char *Title;
 };
 
 #endif
