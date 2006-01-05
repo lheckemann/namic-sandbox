@@ -11,16 +11,10 @@
   Version:   $Revision: 1.6.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlModelRefNode - MRML node to represent a reference to a model.
-// .SECTION Description
-// ModelRef nodes refer to model nodes. They define where a model should be
-// placed in the hierarchy.
 
 #ifndef __vtkMrmlModelRefNode_h
 #define __vtkMrmlModelRefNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkSlicer.h"
 
@@ -48,16 +42,6 @@ public:
   // ID of the referenced model
   vtkSetStringMacro(ModelRefID);
   vtkGetStringMacro(ModelRefID);
-
- 
-protected:
-  vtkMrmlModelRefNode();
-  ~vtkMrmlModelRefNode();
-  vtkMrmlModelRefNode(const vtkMrmlModelRefNode&) {};
-  void operator=(const vtkMrmlModelRefNode&) {};
-
-  // Strings
-  char *ModelRefID;
 
 };
 

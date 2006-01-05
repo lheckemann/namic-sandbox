@@ -11,17 +11,10 @@
   Version:   $Revision: 1.5.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlScenesNode - MRML node to represent a saved scene
-// .SECTION Description
-// Scenes contain a bunch of MRML nodes that describe a specific view saved
-// by the user. The Scenes node itself only contains a scene language (for
-// future use) and the name of the scene.
 
 #ifndef __vtkMrmlScenesNode_h
 #define __vtkMrmlScenesNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkSlicer.h"
 
@@ -50,15 +43,6 @@ public:
   vtkSetStringMacro(Lang);
   vtkGetStringMacro(Lang);
  
-protected:
-  vtkMrmlScenesNode();
-  ~vtkMrmlScenesNode();
-  vtkMrmlScenesNode(const vtkMrmlScenesNode&) {};
-  void operator=(const vtkMrmlScenesNode&) {};
-
-  // Strings
-  char *Lang;
-
 };
 
 #endif
