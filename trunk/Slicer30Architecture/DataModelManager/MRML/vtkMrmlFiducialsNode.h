@@ -11,16 +11,9 @@
   Version:   $Revision: 1.15.12.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlFiducialsNode - MRML node for representing a
-// constellation of vtkMrmlPoints.
-// .SECTION Description
-// A Fiducials is container for a constellation of vtkMrmlPoints
-
 #ifndef __vtkMrmlFiducialsNode_h
 #define __vtkMrmlFiducialsNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
@@ -70,23 +63,9 @@ public:
   vtkSetStringMacro(Type);
   vtkGetStringMacro(Type);
 
-void SetTypeToEndoscopic();
-void SetTypeToMeasurement();
-void SetTypeToDefault();
-
-
-
-protected:
-  vtkMrmlFiducialsNode();
-  ~vtkMrmlFiducialsNode();
-  vtkMrmlFiducialsNode(const vtkMrmlFiducialsNode&) {};
-  void operator=(const vtkMrmlFiducialsNode&) {};
-
-float SymbolSize;
-float TextSize;
-int Visibility;
-float Color[3];
-char  *Type;
+  void SetTypeToEndoscopic();
+  void SetTypeToMeasurement();
+  void SetTypeToDefault();
 
 };
 

@@ -11,16 +11,10 @@
   Version:   $Revision: 1.6.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlVolumeStateNode - MRML node to save volume options.
-// .SECTION Description
-// Volume State nodes save options of a referenced volume node. Options are
-// things like the LUT, opacity and if the volume is faded.
 
 #ifndef __vtkMrmlVolumeStateNode_h
 #define __vtkMrmlVolumeStateNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkSlicer.h"
 
@@ -77,24 +71,6 @@ public:
   vtkSetMacro(Opacity,float);
   vtkGetMacro(Opacity,float);
  
-protected:
-  vtkMrmlVolumeStateNode();
-  ~vtkMrmlVolumeStateNode();
-  vtkMrmlVolumeStateNode(const vtkMrmlVolumeStateNode&) {};
-  void operator=(const vtkMrmlVolumeStateNode&) {};
-
-  // Strings
-  char *VolumeRefID;
-  char *ColorLUT;
-  
-  // Booleans
-  int Foreground;
-  int Background;
-  int Fade;
-  
-  // Numbers
-  float Opacity;
-
 };
 
 #endif

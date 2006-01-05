@@ -11,15 +11,10 @@
   Version:   $Revision: 1.5.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlWindowLevelNode - MRML node to represent the properties of 
-// the window levels
-// .SECTION Description
 
 #ifndef __vtkMrmlWindowLevelNode_h
 #define __vtkMrmlWindowLevelNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkSlicer.h"
 
@@ -77,25 +72,6 @@ public:
   vtkSetMacro(AutoThreshold,int);
   vtkGetMacro(AutoThreshold,int);
 
-  
- 
-protected:
-  vtkMrmlWindowLevelNode();
-  ~vtkMrmlWindowLevelNode();
-  vtkMrmlWindowLevelNode(const vtkMrmlWindowLevelNode&) {};
-  void operator=(const vtkMrmlWindowLevelNode&) {};
-
-  // Numbers
-  int Window;
-  int Level;
-  int LowerThreshold;
-  int UpperThreshold;
-  
-  // Booleans
-  int AutoWindowLevel;
-  int ApplyThreshold;
-  int AutoThreshold;
-  
 };
 
 #endif

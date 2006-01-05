@@ -11,15 +11,10 @@
   Version:   $Revision: 1.11.16.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlPathNode - MRML node to represent a path.
-// .SECTION Description
-//
 
 #ifndef __vtkMrmlPathNode_h
 #define __vtkMrmlPathNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkSlicer.h"
 
@@ -34,45 +29,9 @@ public:
   // Write the node's attributes to a MRML file in XML format
   void Write(ofstream& of, int indent);
 
-  //--------------------------------------------------------------------------
-  // Utility Functions
-  //--------------------------------------------------------------------------
-
   // Description:
   // Copy the node's attributes to this object
   void Copy(vtkMrmlNode *node);
-
-
-  // Description:
-  // Name of the Camera Path (cPath) color, which is defined by a Color node in a MRML file
- //  vtkSetStringMacro(cPathColor);
- // vtkGetStringMacro(cPathColor);
-
-  // Description:
-  // Name of the Focal Point Path (fPath) color, which is defined by a Color node in a MRML file
-  // vtkSetStringMacro(fPathColor);
-  // vtkGetStringMacro(fPathColor);
-
-  // Description:
-  // Name of the Camera Landmarks (cLand) color, which is defined by a Color node in a MRML file
-  // vtkSetStringMacro(cLandColor);
-  // vtkGetStringMacro(cLandColor);
-
-  // Description:
-  // Name of the Focal Point Landmarks (fPath) color, which is defined by a Color node in a MRML file
-  // vtkSetStringMacro(fLandColor);
-  // vtkGetStringMacro(fLandColor);
-
-protected:
-  vtkMrmlPathNode();
-  ~vtkMrmlPathNode();
-  vtkMrmlPathNode(const vtkMrmlPathNode&) {};
-  void operator=(const vtkMrmlPathNode&) {};
-
-//  char *cPathColor;
-//  char *fPathColor;
-//  char *cLandColor;
-//  char *fLandColor;
 
 };
 

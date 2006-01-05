@@ -11,15 +11,10 @@
   Version:   $Revision: 1.14.2.1 $
 
 =========================================================================auto=*/
-// .NAME vtkMrmlPointNode - MRML node to represent points.
-// .SECTION Description
-//
 
 #ifndef __vtkMrmlPointNode_h
 #define __vtkMrmlPointNode_h
 
-//#include <iostream.h>
-//#include <fstream.h>
 #include "vtkMrmlNode.h"
 #include "vtkSlicer.h"
 
@@ -67,21 +62,6 @@ public:
   vtkSetMacro(Index,int);
   vtkGetMacro(Index,int);
 
-protected:
-  vtkMrmlPointNode();
-  ~vtkMrmlPointNode();
-  vtkMrmlPointNode(const vtkMrmlPointNode&) {};
-  void operator=(const vtkMrmlPointNode&) {};
-
-  int Index;
-  float XYZ[3];
-  float FXYZ[3];
-  float OrientationWXYZ[4];
-
-    // Description:
-    // a 2d point associated with the 3d one, for rendering on slice windows
-    // x, y, slice number, and the slice offset
-    float XYSO[4];
 };
 
 #endif
