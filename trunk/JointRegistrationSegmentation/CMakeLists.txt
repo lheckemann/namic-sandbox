@@ -22,3 +22,24 @@ ADD_EXECUTABLE(ImageRegistrationTest
 TARGET_LINK_LIBRARIES(ImageRegistrationTest ITKStatistics ITKIO ITKCommon ITKNumerics)
 
 
+
+
+
+ADD_EXECUTABLE(itkExpectationMaximizationImageClassificationTest
+  itkExpectationMaximizationImageClassificationTest.cxx 
+  )
+
+TARGET_LINK_LIBRARIES(itkExpectationMaximizationImageClassificationTest ITKStatistics ITKIO ITKCommon ITKNumerics)
+
+
+
+
+
+
+ADD_EXECUTABLE(itkMRIInhomogeneityEstimatorTest
+  itkMRIInhomogeneityEstimatorTest.cxx 
+  )
+
+TARGET_LINK_LIBRARIES(itkMRIInhomogeneityEstimatorTest ITKStatistics ITKIO ITKCommon ITKNumerics)
+
+
