@@ -63,8 +63,10 @@ public:
                        ::itk::GetImageDimension< InputImageType >::ImageDimension );
 
   typedef VectorImage< float, ImageDimension >         MembershipImageType;
+  typedef VectorImage< float, ImageDimension >         PriorsImageType;
 
   typedef typename MembershipImageType::Pointer        MembershipImagePointer;
+  typedef typename PriorsImageType::Pointer            PriorsImagePointer;
 
   typedef typename  InputImageType::PixelType          MeasurementVectorType;
 
@@ -124,7 +126,11 @@ private:
 
   ComponentsContainerType                     m_Components;
   
+
   MembershipImagePointer                      m_WeightsImage;
+
+  // this is the resampled atlas.
+  PriorsImagePointer                          m_PriorImage;  
 
   typename InputImageType::ConstPointer       m_InputImage;
 
