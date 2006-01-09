@@ -44,3 +44,15 @@ TARGET_LINK_LIBRARIES( DataModelManagerTest
   ITKStatistics ITKIO ITKCommon ITKNumerics sqlite MetaKit)
 
 
+
+ADD_EXECUTABLE( mrmlTests
+  mrmlTests.cxx 
+  mrmlTree.cxx
+  )
+
+
+# Very important, this test MUST not depend 
+# on any other libraries such as VTK and ITK.
+TARGET_LINK_LIBRARIES( mrmlTests )  
+
+
