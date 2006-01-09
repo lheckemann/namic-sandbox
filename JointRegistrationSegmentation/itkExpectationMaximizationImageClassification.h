@@ -17,7 +17,7 @@
 #ifndef __itkExpectationMaximizationAlgorithm_h
 #define __itkExpectationMaximizationAlgorithm_h
 
-#include "itkGaussianDensityFunction.h"
+#include "itkGaussianMixtureModelComponent.h"
 #include "itkSample.h"
 #include "itkExpectationMaximizationMixtureModelEstimator.h"
 #include "itkVectorImage.h"
@@ -38,21 +38,19 @@ namespace Statistics {
  
 template < class TImageType >
 class ExpectationMaximizationImageClassification : 
-   public ExpectationMaximizationMixtureModelEstimator< 
-                    Sample< typename TImageType::PixelType > >
+   public Object
 {
 
 public:
 
   typedef ExpectationMaximizationImageClassification             Self;
-  typedef ExpectationMaximizationMixtureModelEstimator< 
-                  Sample< typename TImageType::PixelType > >     Superclass;
+  typedef Object                                                 Superclass;
   typedef SmartPointer< Self >                                   Pointer;
   typedef SmartPointer< const Self >                             ConstPointer;
 
   itkNewMacro( Self );
 
-  itkTypeMacro( ExpectationMaximizationImageClassification, ExpectationMaximizationMixtureModelEstimator );
+  itkTypeMacro( ExpectationMaximizationImageClassification, Object );
 
 
 public:
@@ -68,12 +66,15 @@ public:
 
   typedef typename  InputImageType::PixelType          MeasurementVectorType;
 
-  typedef Statistics::GaussianDensityFunction< 
-                           MeasurementVectorType >     GaussianMembershipFunctionType;
+  typedef Sample< MeasurementVectorType >              SampleType;
 
-  typedef typename GaussianMembershipFunctionType::Pointer  GaussianMembershipFunctionPointer;
+  typedef GaussianDensityFunction< MeasurementVectorType >  GaussianDensityFunctionType;
 
+  typedef typename GaussianDensityFunctionType::Pointer  GaussianDensityFunctionPointer;
 
+ 
+  /**  Add a Gaussian density function to the list of Density functions to use.  */
+  void AddGaussianComponent( const GaussianDensityFunctionType * gaussian );
 
 protected:
 
@@ -81,6 +82,14 @@ protected:
 
   ~ExpectationMaximizationImageClassification();
 
+
+  /** This method compute the update of parameters to be estimated based on the
+    * weights and the list of samples (observations) */
+  void ComputeMaximization();
+ 
+  /** This method updates the weights (or posteriors) based on the current
+   * parameters and the collection of samples (observations). */
+  void ComputeExpectation();
 
 
 private:
