@@ -53,7 +53,52 @@ ExpectationMaximizationImageClassification< TImageType >
 
 
 
-  
+
+template < class TImageType >
+void
+ExpectationMaximizationImageClassification< TImageType >
+::Update()
+{
+   this->GenerateData();
+}
+
+
+
+
+template < class TImageType >
+void
+ExpectationMaximizationImageClassification< TImageType >
+::GenerateData()
+{
+   this->ComputeExpectation();
+   this->ComputeMaximization();
+}
+
+
+
+ 
+
+template < class TImageType >
+void
+ExpectationMaximizationImageClassification< TImageType >
+::ComputeMaximization()
+{
+}
+
+
+ 
+
+template < class TImageType >
+void
+ExpectationMaximizationImageClassification< TImageType >
+::ComputeExpectation()
+{
+}
+
+
+
+
+ 
   
 
 }
