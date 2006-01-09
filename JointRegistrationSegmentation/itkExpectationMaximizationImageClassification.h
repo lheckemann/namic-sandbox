@@ -76,6 +76,11 @@ public:
   /**  Add a Gaussian density function to the list of Density functions to use.  */
   void AddGaussianComponent( const GaussianDensityFunctionType * gaussian );
 
+
+  /** This method triggers the computation of the estimation */
+  void Update();
+
+
 protected:
 
   ExpectationMaximizationImageClassification();
@@ -91,6 +96,9 @@ protected:
    * parameters and the collection of samples (observations). */
   void ComputeExpectation();
 
+
+  /** This method performs the actual computation of the classification */
+  void GenerateData();
 
 private:
 

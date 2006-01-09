@@ -61,10 +61,26 @@ int main( int argc, char *argv[] )
   ClassifierType::Pointer   EMClassifier = ClassifierType::New();
 
 
+  typedef  ClassifierType::GaussianDensityFunctionType      GaussianDensityFunctionType;
+
+
+  GaussianDensityFunctionType::Pointer  gaussian1  = GaussianDensityFunctionType::New();
+  GaussianDensityFunctionType::Pointer  gaussian2  = GaussianDensityFunctionType::New();
+  GaussianDensityFunctionType::Pointer  gaussian3  = GaussianDensityFunctionType::New();
+  GaussianDensityFunctionType::Pointer  gaussian4  = GaussianDensityFunctionType::New();
+
+  
+  EMClassifier->AddGaussianComponent( gaussian1 );
+  EMClassifier->AddGaussianComponent( gaussian2 );
+  EMClassifier->AddGaussianComponent( gaussian3 );
+  EMClassifier->AddGaussianComponent( gaussian4 );
+
+
 
   try 
     { 
 
+    EMClassifier->Update();
     // Invoke from here the execution of the classification.
 
     } 
