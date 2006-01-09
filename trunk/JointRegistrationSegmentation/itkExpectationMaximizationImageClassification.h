@@ -21,6 +21,8 @@
 #include "itkSample.h"
 #include "itkExpectationMaximizationMixtureModelEstimator.h"
 #include "itkVectorImage.h"
+#include <vector>
+
 
 namespace itk {
 
@@ -70,7 +72,7 @@ public:
 
   typedef GaussianDensityFunction< MeasurementVectorType >  GaussianDensityFunctionType;
 
-  typedef typename GaussianDensityFunctionType::Pointer  GaussianDensityFunctionPointer;
+  typedef typename GaussianDensityFunctionType::ConstPointer  GaussianDensityFunctionPointer;
 
  
   /**  Add a Gaussian density function to the list of Density functions to use.  */
@@ -79,6 +81,11 @@ public:
 
   /** This method triggers the computation of the estimation */
   void Update();
+
+
+  /** Set the input image to be classified. This image may be a vector image
+   * with multiple-components */
+  void SetInput( const InputImageType * image );
 
 
 protected:
@@ -100,12 +107,26 @@ protected:
   /** This method performs the actual computation of the classification */
   void GenerateData();
 
+
+  /** Initialize the allocation of the Weights image */
+  void InitializeWeightsImage();
+
 private:
 
   ExpectationMaximizationImageClassification(const Self&) ; //purposely not implemented
 
   void operator=(const Self&) ; //purposely not implemented
 
+
+
+  /** Container that holds the list of Gaussian distributions for each one of the Structures. */
+  typedef std::vector< GaussianDensityFunctionPointer >     ComponentsContainerType;
+
+  ComponentsContainerType                     m_Components;
+  
+  MembershipImagePointer                      m_WeightsImage;
+
+  typename InputImageType::ConstPointer       m_InputImage;
 
 };
 

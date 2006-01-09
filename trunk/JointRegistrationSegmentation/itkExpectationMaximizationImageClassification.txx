@@ -46,8 +46,7 @@ void
 ExpectationMaximizationImageClassification< TImageType >
 ::AddGaussianComponent( const GaussianDensityFunctionType * gaussian )
 {
-
-
+   //m_Components.push_back( gaussian );
 }
 
 
@@ -93,17 +92,44 @@ void
 ExpectationMaximizationImageClassification< TImageType >
 ::ComputeExpectation()
 {
-}
 
+
+}
 
 
 
  
-  
 
+template < class TImageType >
+void
+ExpectationMaximizationImageClassification< TImageType >
+::InitializeWeightsImage()
+{
+   m_WeightsImage = MembershipImageType::New();
+
+   m_WeightsImage->CopyInformation( m_InputImage );
+
+   m_WeightsImage->Allocate();
 }
 
+
+
+ 
+
+template < class TImageType >
+void
+ExpectationMaximizationImageClassification< TImageType >
+::SetInput( const InputImageType * inputImage )
+{
+   m_InputImage = inputImage;
 }
+
+
+
+
+} // end namespace Statistics
+
+} // end namespace itk
 
 
 #endif
