@@ -18,6 +18,7 @@
 #define __itkExpectationMaximizationAlgorithm_txx
 
 #include "itkExpectationMaximizationImageClassification.h"
+#include "itkImageRegionIterator.h"
 
 namespace itk {
 
@@ -93,6 +94,26 @@ ExpectationMaximizationImageClassification< TImageType >
 ::ComputeExpectation()
 {
 
+   typedef itk::ImageRegionIterator< MembershipImageType >     WeightsIterator;
+   typedef itk::ImageRegionConstIterator< InputImageType >     InputImageIterator;
+   typedef itk::ImageRegionConstIterator< PriorsImageType >    PriorsImageIterator;
+
+   
+   WeightsIterator     witr( m_WeightsImage, m_WeightsImage->GetBufferedRegion() );
+   InputImageIterator  iitr( m_InputImage,   m_InputImage->GetBufferedRegion()   );
+   PriorsImageIterator pitr( m_PriorImage,   m_PriorImage->GetBufferedRegion()   );
+
+   witr.GoToBegin();
+   iitr.GoToBegin();
+   pitr.GoToBegin();
+   
+   while( witr.IsAtEnd() )
+     {
+     iitr.Get();
+     ++witr;
+     ++iitr;
+     ++pitr;
+     }
 
 }
 
