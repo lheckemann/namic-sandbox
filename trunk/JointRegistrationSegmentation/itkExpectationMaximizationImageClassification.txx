@@ -39,6 +39,23 @@ ExpectationMaximizationImageClassification< TImageType >
 }
 
 
+
+
+template < class TImageType >
+void
+ExpectationMaximizationImageClassification< TImageType >
+::AddGaussianComponent( const GaussianDensityFunctionType * gaussian )
+{
+
+
+}
+
+
+
+
+  
+  
+
 }
 
 }
