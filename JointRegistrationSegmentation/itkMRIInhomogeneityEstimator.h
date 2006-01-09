@@ -18,6 +18,8 @@
 #define __itkMRIInhomogeneityEstimator_h
 
 #include "itkGaussianDensityFunction.h"
+#include "itkVectorImage.h"
+#include "itkVectorContainer.h"
 
 namespace itk {
 
@@ -37,7 +39,7 @@ namespace itk {
  */ 
  
 template < class TInputImage >
-class itk::MRIInhomogeneityEstimator< TInputImage > : public Object
+class MRIInhomogeneityEstimator : public Object
 {
 
 public:
@@ -48,9 +50,9 @@ public:
   typedef InputImageType                               OutputImageType;
 
   itkStaticConstMacro( ImageDimension, unsigned int, 
-                       ::itk::GetImageDimension< InputImageType >::ImageDimension )
+                       ::itk::GetImageDimension< InputImageType >::ImageDimension );
 
-  typedef VectorImage< floats, ImageDimension >        MembershipImageType;
+  typedef VectorImage< float, ImageDimension >         MembershipImageType;
 
   typedef typename MembershipImageType::Pointer        MembershipImagePointer;
 
@@ -62,11 +64,46 @@ public:
   typedef typename GaussianMembershipFunctionType::Pointer  GaussianMembershipFunctionPointer;
 
   typedef VectorContainer< 
-                   GaussianMembershipFunctionPointer >      StructureIntensityDistributionType;
+             unsigned int, 
+             GaussianMembershipFunctionPointer >      StructureIntensityDistributionType;
+
+
+public:
+
+  typedef MRIInhomogeneityEstimator                   Self;
+  typedef Object                                      Superclass;
+  typedef SmartPointer< Self >                        Pointer;
+  typedef SmartPointer< const Self >                  ConstPointer;
+
+  itkNewMacro( Self );
+
+  itkTypeMacro( MRIInhomogeneityEstimator, Object );
+
+
+protected:
+
+  MRIInhomogeneityEstimator();
+
+  ~MRIInhomogeneityEstimator();
+
+
+
+private:
+
+  MRIInhomogeneityEstimator(const Self&) ; //purposely not implemented
+
+  void operator=(const Self&) ; //purposely not implemented
+
 
 };
 
 }
+
+#ifndef ITK_MANUAL_INSTANTIATION
+#include "itkMRIInhomogeneityEstimator.txx"
+#endif
+
+
 
 #endif
 
