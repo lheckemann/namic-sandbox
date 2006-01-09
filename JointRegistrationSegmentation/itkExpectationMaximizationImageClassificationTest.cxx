@@ -41,10 +41,10 @@ int main( int argc, char *argv[] )
   const    unsigned int    Dimension = 2;
   typedef  float           PixelType;
 
-  typedef itk::VectorImage< PixelType, Dimension >  ImageType;
+  typedef itk::VectorImage< PixelType, Dimension >  InputImageType;
 
 
-  typedef itk::ImageFileReader< ImageType >     ImageReaderType;
+  typedef itk::ImageFileReader< InputImageType >     ImageReaderType;
 
   ImageReaderType::Pointer  reader  = ImageReaderType::New();
   
@@ -52,11 +52,10 @@ int main( int argc, char *argv[] )
   
   reader->Update();
 
-  reader->GetOutput();   
 
 
 
-  typedef itk::Statistics::ExpectationMaximizationImageClassification< ImageType >   ClassifierType;
+  typedef itk::Statistics::ExpectationMaximizationImageClassification< InputImageType >   ClassifierType;
 
   ClassifierType::Pointer   EMClassifier = ClassifierType::New();
 
@@ -75,6 +74,8 @@ int main( int argc, char *argv[] )
   EMClassifier->AddGaussianComponent( gaussian3 );
   EMClassifier->AddGaussianComponent( gaussian4 );
 
+
+  EMClassifier->SetInput( reader->GetOutput() );
 
 
   try 
