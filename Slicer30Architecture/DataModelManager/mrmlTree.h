@@ -38,9 +38,6 @@ public:
   /** Type for naming the nodes */
   typedef std::string   NodeNameType;
 
-  /** Request to add a name with a node */
-  void RequestAddNode( const NodeNameType & nodeName );
-
   /** Request attaching a data type with a name to a named node */
   void RequestAddNode( const NodeNameType & nodeName,
                        const NodeNameType & parentNodeName );
