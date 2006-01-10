@@ -1,0 +1,5 @@
+#ifndef _vtkITKBayesianClassifierImageFilter_txx
+#define _vtkITKBayesianClassifierImageFilter_txx
+#include "vtkITKBayesianClassifierImageFilter.h"
+#endif
+
