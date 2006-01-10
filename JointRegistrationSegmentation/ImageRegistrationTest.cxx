@@ -14,22 +14,44 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
+// 
+// This code attempts to register two multi-component images, each representing
+// probabilistic memberships to some class. The multi-component images are
+// represented by two itk::VectorImage (s). The VectorLength of the image is 
+// equal to the number of classes. 
+//
+// The example is intended for registration of an atlas (with probabilistic 
+// class memberships) to a segmentation (also possibly probabilistic).
+//
+// The example uses the usual components of the registration framework, namely
+// an optimizer, transform, metric and interpolator. The metric used is the
+// KullbackLeiblerDivergenceImageToImageMetric, which computes distances
+// between two classes (represented by VectorImages). Note that the metric does
+// not evalueate derivatives. The optimizer is an Amoeba optimizer, which uses 
+// a Neadler-Mead simplex to converge on a solution. (Note that the amoeba does
+// not need evaluation of derivatives to converge on a solution). The transform
+// is a VersorRigid3DTransform (rotations + translations).
+//
+// The code requires as parameters two input VectorImages (fixed and moving).
+// The pixel type of the images is assumed to be float and dimension assumed to
+// be 3D.
+// 
+// A CenteredTransformGeometricInitializer is used to align the geometric centers
+// of the images prior to registration.
+// 
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
 #endif
 
-
 #include "itkImageRegistrationMethod2.h"
 #include "itkKullbackLeiblerDivergenceImageToImageMetric.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
-#include "itkRegularStepGradientDescentOptimizer.h"
+#include "itkAmoebaOptimizer.h"
 #include "itkCenteredTransformGeometricInitializer.h"
 #include "itkVectorImage.h"
-#include "itkAffineTransform.h"
-
+#include "itkVersorRigid3DTransform.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-
 
 //
 //  The following piece of code implements an observer
@@ -46,7 +68,7 @@ public:
 protected:
   CommandIterationUpdate() {};
 public:
-  typedef itk::RegularStepGradientDescentOptimizer     OptimizerType;
+  typedef itk::AmoebaOptimizer         OptimizerType;
   typedef   const OptimizerType   *    OptimizerPointer;
 
   void Execute(itk::Object *caller, const itk::EventObject & event)
@@ -62,22 +84,9 @@ public:
       {
       return;
       }
-      std::cout << optimizer->GetCurrentIteration() << "   ";
-      std::cout << optimizer->GetValue() << "   ";
-      std::cout << optimizer->GetCurrentPosition();
-     
-      // Print the angle for the trace plot
-      vnl_matrix<double> p(2, 2);
-      p[0][0] = (double) optimizer->GetCurrentPosition()[0];
-      p[0][1] = (double) optimizer->GetCurrentPosition()[1];
-      p[1][0] = (double) optimizer->GetCurrentPosition()[2];
-      p[1][1] = (double) optimizer->GetCurrentPosition()[3];
-      vnl_svd<double> svd(p);
-      vnl_matrix<double> r(2, 2);
-      r = svd.U() * vnl_transpose(svd.V());
-      double angle = asin(r[1][0]);
-      std::cout << " AffineAngle: " << angle * 45.0 / atan(1.0) << std::endl;
-    }
+      std::cout << optimizer->GetCachedValue() << "   ";
+      std::cout << optimizer->GetCachedCurrentPosition() << std::endl;
+  }
 };
 
 
@@ -88,30 +97,17 @@ int main( int argc, char *argv[] )
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
     std::cerr << "   fixedImageFile  movingImageFile " << std::endl;
-    std::cerr << "   outputImagefile  [differenceBeforeRegistration] " << std::endl;
-    std::cerr << "   [differenceAfterRegistration] " << std::endl;
-    std::cerr << "   [stepLength] [maxNumberOfIterations] "<< std::endl;
+    std::cerr << "   [maxNumberOfIterations] "<< std::endl;
     return 1;
     }
 
-
-
-  const    unsigned int    Dimension = 2;
+  const    unsigned int    Dimension = 3;
   typedef  float           PixelType;
 
   typedef itk::VectorImage< PixelType, Dimension >  FixedImageType;
   typedef itk::VectorImage< PixelType, Dimension >  MovingImageType;
-
-
-
-  typedef itk::AffineTransform< 
-                                  double, 
-                                  Dimension  >     TransformType;
-
-
-  typedef itk::RegularStepGradientDescentOptimizer       OptimizerType;
-
-   
+  typedef itk::VersorRigid3DTransform< double >     TransformType;
+  typedef itk::AmoebaOptimizer                      OptimizerType;
   typedef itk::NearestNeighborInterpolateImageFunction< 
                                     MovingImageType,
                                     double          >    InterpolatorType;
@@ -120,13 +116,9 @@ int main( int argc, char *argv[] )
                                     FixedImageType, 
                                     MovingImageType >    RegistrationType;
 
-
-
   typedef itk::KullbackLeiblerDivergenceImageToImageMetric< 
                                     FixedImageType, 
                                     MovingImageType >    MetricType;
-
-
 
   MetricType::Pointer         metric        = MetricType::New();
   OptimizerType::Pointer      optimizer     = OptimizerType::New();
@@ -136,8 +128,6 @@ int main( int argc, char *argv[] )
   registration->SetMetric(        metric        );
   registration->SetOptimizer(     optimizer     );
   registration->SetInterpolator(  interpolator  );
-
-
 
   TransformType::Pointer  transform = TransformType::New();
 
@@ -150,17 +140,10 @@ int main( int argc, char *argv[] )
   TransformInitializerType::Pointer initializer = 
                                           TransformInitializerType::New();
 
-
-
-  typedef itk::DefaultConvertPixelTraits< PixelType >  ConvertType;
-
-  typedef itk::ImageFileReader< FixedImageType,  ConvertType > FixedImageReaderType;
-  typedef itk::ImageFileReader< MovingImageType, ConvertType > MovingImageReaderType;
-  
-
+  typedef itk::ImageFileReader< FixedImageType > FixedImageReaderType;
+  typedef itk::ImageFileReader< MovingImageType > MovingImageReaderType;
   FixedImageReaderType::Pointer  fixedImageReader  = FixedImageReaderType::New();
   MovingImageReaderType::Pointer movingImageReader = MovingImageReaderType::New();
-  
 
   fixedImageReader->SetFileName(  argv[1] );
   movingImageReader->SetFileName( argv[2] );
@@ -173,7 +156,6 @@ int main( int argc, char *argv[] )
   registration->SetFixedImageRegion( 
      fixedImageReader->GetOutput()->GetBufferedRegion() );
 
-
   initializer->SetTransform(   transform );
   initializer->SetFixedImage(  fixedImageReader->GetOutput() );
   initializer->SetMovingImage( movingImageReader->GetOutput() );
@@ -181,21 +163,10 @@ int main( int argc, char *argv[] )
   initializer->InitializeTransform();
 
   registration->SetTransform( transform );
-
-
-
   registration->SetInitialTransformParameters( 
                                  transform->GetParameters() );
 
-
-
-
-  double translationScale = 1.0 / 1000.0;
-  if( argc > 8 )
-    {
-    translationScale = atof( argv[8] );
-    }
-
+  double translationScale = 1.0 / 10.0;
 
   typedef OptimizerType::ScalesType       OptimizerScalesType;
   OptimizerScalesType optimizerScales( transform->GetNumberOfParameters() );
@@ -203,48 +174,34 @@ int main( int argc, char *argv[] )
   optimizerScales[0] =  1.0;
   optimizerScales[1] =  1.0;
   optimizerScales[2] =  1.0;
-  optimizerScales[3] =  1.0;
+  optimizerScales[3] =  translationScale;
   optimizerScales[4] =  translationScale;
   optimizerScales[5] =  translationScale;
 
   optimizer->SetScales( optimizerScales );
-
-
+  optimizer->SetParametersConvergenceTolerance( 0.00001 ); // reasonable defaults
+  optimizer->SetFunctionConvergenceTolerance( 0.0001 );
 
   double steplength = 0.1;
 
-  if( argc > 6 )
+  unsigned int maxNumberOfIterations = 1500;
+
+  if( argc > 3 )
     {
-    steplength = atof( argv[6] );
+    maxNumberOfIterations = atoi( argv[3] );
     }
 
-
-  unsigned int maxNumberOfIterations = 300;
-
-  if( argc > 7 )
-    {
-    maxNumberOfIterations = atoi( argv[7] );
-    }
-
-
-  optimizer->SetMaximumStepLength( steplength ); 
-  optimizer->SetMinimumStepLength( 0.0001 );
-  optimizer->SetNumberOfIterations( maxNumberOfIterations );
-
-
-
+  optimizer->SetMaximumNumberOfIterations( maxNumberOfIterations );
   optimizer->MinimizeOn();
-
 
   // Create the Command observer and register it with the optimizer.
   //
   CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
   optimizer->AddObserver( itk::IterationEvent(), observer );
 
-
-
   try 
     { 
+    std::cout << "Starting registration " << std::endl;
     registration->StartRegistration(); 
     } 
   catch( itk::ExceptionObject & err ) 
@@ -254,49 +211,32 @@ int main( int argc, char *argv[] )
     return -1;
     } 
 
-
-
   OptimizerType::ParametersType finalParameters = 
                     registration->GetLastTransformParameters();
 
-  const double finalRotationCenterX = transform->GetCenter()[0];
-  const double finalRotationCenterY = transform->GetCenter()[1];
-  const double finalTranslationX    = finalParameters[4];
-  const double finalTranslationY    = finalParameters[5];
+  // set some output information,
+  char results[1024];
+  typedef TransformType::VersorType VersorType;
+  VersorType versor = transform->GetVersor();
+  TransformType::OffsetType offset = transform->GetOffset();
+  typedef VersorType::VectorType   AxisType;
+  AxisType axis = versor.GetAxis();
 
-  const unsigned int numberOfIterations = optimizer->GetCurrentIteration();
-  const double bestValue = optimizer->GetValue();
+  sprintf(results,"Translation: %g %g %g\nRotation Axis %f %f %f %f\nOffset: %g %g %g", 
+          finalParameters[3],
+          finalParameters[4],
+          finalParameters[5],
+          axis[0],
+          axis[1],
+          axis[2],
+          versor.GetAngle(),
+          offset[0],
+          offset[1],
+          offset[2]
+          );
 
-
-  // Print out results
-  //
-  std::cout << "Result = " << std::endl;
-  std::cout << " Center X      = " << finalRotationCenterX  << std::endl;
-  std::cout << " Center Y      = " << finalRotationCenterY  << std::endl;
-  std::cout << " Translation X = " << finalTranslationX  << std::endl;
-  std::cout << " Translation Y = " << finalTranslationY  << std::endl;
-  std::cout << " Iterations    = " << numberOfIterations << std::endl;
-  std::cout << " Metric value  = " << bestValue          << std::endl;
+  std::cout << results << std::endl;
   
-  //Compute the rotation angle and scaling from SVD of the matrix
-  // \todo Find a way to figure out if the scales are along X or along Y.
-  // VNL returns the eigenvalues ordered from largest to smallest.
-  
-  vnl_matrix<double> p(2, 2);
-  p[0][0] = (double) finalParameters[0];
-  p[0][1] = (double) finalParameters[1];
-  p[1][0] = (double) finalParameters[2];
-  p[1][1] = (double) finalParameters[3];
-  vnl_svd<double> svd(p);
-  vnl_matrix<double> r(2, 2);
-  r = svd.U() * vnl_transpose(svd.V());
-  double angle = asin(r[1][0]);
-  
-  std::cout << " Scale 1         = " << svd.W(0)                 << std::endl;
-  std::cout << " Scale 2         = " << svd.W(1)                 << std::endl;
-  std::cout << " Angle (degrees) = " << angle * 45.0 / atan(1.0) << std::endl;
-  
-
-  return 0;
+  return EXIT_SUCCESS;
 }
 
