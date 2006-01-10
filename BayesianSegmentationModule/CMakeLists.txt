@@ -29,4 +29,9 @@ ADD_EXECUTABLE(itkBayesianClassificationImageFilterTest
   )
 TARGET_LINK_LIBRARIES(itkBayesianClassificationImageFilterTest ITKStatistics ITKIO ITKCommon)
 
+# test for Filter that generates a list sample with masking capabilities
+ADD_EXECUTABLE(itkImageToListGeneratorTest
+  itkImageToListGeneratorTest.cxx
+  )
+TARGET_LINK_LIBRARIES(itkImageToListGeneratorTest ITKStatistics ITKCommon)
 
