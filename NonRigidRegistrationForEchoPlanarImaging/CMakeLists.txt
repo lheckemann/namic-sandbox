@@ -35,4 +35,5 @@ TARGET_LINK_LIBRARIES(OrientImageFilter ITKIO ITKCommon)
 ADD_EXECUTABLE(ImageResamplingCommand ImageResamplingCommand.cxx )
 TARGET_LINK_LIBRARIES(ImageResamplingCommand ITKIO ITKCommon)
 
-
+ADD_EXECUTABLE(BSplineRegistration BSplineRegistration.cxx)
+TARGET_LINK_LIBRARIES(BSplineRegistration ITKCommon ITKNumerics ITKIO ITKBasicFilters ITKStatistics)

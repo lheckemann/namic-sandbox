@@ -65,9 +65,6 @@ public:
         case OptimizerType::ImageNotAvailable:
           std::cout << "ImageNotAvailable" << std::endl; 
           break;
-        case OptimizerType::SamplesNotAvailable:
-          std::cout << "SamplesNotAvailable" << std::endl; 
-          break;
         case OptimizerType::MaximumNumberOfIterations:
           std::cout << "MaximumNumberOfIterations" << std::endl; 
           break;
