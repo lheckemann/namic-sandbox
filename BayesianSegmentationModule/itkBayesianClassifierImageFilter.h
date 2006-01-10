@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkBayesianClassifierImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2005/12/01 20:36:45 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2005/12/09 17:15:01 $
+  Version:   $Revision: 1.10 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -36,6 +36,7 @@ namespace itk
  * BayesianClassifierInitializationImageFilter. You may use that filter to
  * generate the membership images or specify your own.
  *
+ * \par
  * The output of the filter is a label map (an image of unsigned char's is the
  * default.) with pixel values indicating the classes they correspond to. Pixels 
  * with intensity 0 belong to the 0th class, 1 belong to the 1st class etc.... 
@@ -52,6 +53,7 @@ namespace itk
  * the number of classes.
  * Posterior membership of a pixel = Prior * Membership
  *
+ * \par
  * The filter optionally accepts a smoothing filter and number of iterations
  * associated with the smoothing filter.
  * The philosophy is that the filter allows you to iteratively
@@ -65,9 +67,13 @@ namespace itk
  *
  * \author John Melonakos, Georgia Tech
  *
+  * \note
+ * This work is part of the National Alliance for Medical Image Computing 
+ * (NAMIC), funded by the National Institutes of Health through the NIH Roadmap
+ * for Medical Research, Grant U54 EB005149.
+ * 
  * \sa VectorImage
  * \sa BayesianClassifierInitializationImageFilter
- * 
  * \ingroup ClassificationFilters 
  */
 template < class TInputVectorImage, class TLabelsType=unsigned char, 
@@ -96,15 +102,17 @@ public:
 
   /** Input and Output image types */
   typedef typename Superclass::InputImageType        InputImageType;
-  typedef typename Superclass::OutputImageType       OutputImageType;
-  typedef typename InputImageType::ConstPointer      InputImagePointer;
-  typedef typename OutputImageType::Pointer          OutputImagePointer;
-  typedef typename InputImageType::RegionType        ImageRegionType;
-  
+ 
   /** Dimension of the input image */
   itkStaticConstMacro( Dimension, unsigned int, 
                        ::itk::GetImageDimension< InputImageType >::ImageDimension );
 
+  typedef Image< TLabelsType, 
+          itkGetStaticConstMacro(Dimension) >        OutputImageType;
+  typedef typename InputImageType::ConstPointer      InputImagePointer;
+  typedef typename OutputImageType::Pointer          OutputImagePointer;
+  typedef typename InputImageType::RegionType        ImageRegionType;
+  
   /** Input and Output image iterators */
   typedef ImageRegionConstIterator< InputImageType > InputImageIteratorType;
   typedef ImageRegionIterator< OutputImageType >     OutputImageIteratorType;
@@ -118,7 +126,7 @@ public:
    * arrays as pixels, the number of elements in the array is the same as the
    * number of classes to be used.  */
   typedef VectorImage< TPriorsPrecisionType, 
-                             Dimension >                  PriorsImageType;
+     itkGetStaticConstMacro(Dimension) >                  PriorsImageType;
   typedef typename PriorsImageType::PixelType             PriorsPixelType;
   typedef typename PriorsImageType::Pointer               PriorsImagePointer;
   typedef ImageRegionConstIterator< PriorsImageType >     PriorsImageIteratorType;
@@ -136,7 +144,7 @@ public:
    * arrays as pixels, the number of elements in the array is the same as the
    * number of classes to be used.  */
   typedef VectorImage< TPosteriorsPrecisionType, 
-                             Dimension >                  PosteriorsImageType;
+     itkGetStaticConstMacro(Dimension) >                  PosteriorsImageType;
   typedef typename PosteriorsImageType::PixelType         PosteriorsPixelType;
   typedef typename PosteriorsImageType::Pointer           PosteriorsImagePointer;
   typedef ImageRegionIterator< PosteriorsImageType >      PosteriorsImageIteratorType;
@@ -146,8 +154,8 @@ public:
   typedef DecisionRuleType::Pointer                       DecisionRulePointer;
 
   /** An image from a single component of the Posterior */
-  typedef itk::Image< TPosteriorsPrecisionType, Dimension > 
-                                                          ExtractedComponentImageType;
+  typedef itk::Image< TPosteriorsPrecisionType, 
+       itkGetStaticConstMacro(Dimension) >                ExtractedComponentImageType;
   
   /** Optional Smoothing filter that will be applied to the Posteriors */
   typedef ImageToImageFilter< 

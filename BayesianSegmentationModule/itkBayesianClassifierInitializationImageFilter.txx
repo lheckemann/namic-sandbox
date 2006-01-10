@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkBayesianClassifierInitializationImageFilter.txx,v $
   Language:  C++
-  Date:      $Date: 2005/12/01 20:39:26 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2005/12/05 01:07:32 $
+  Version:   $Revision: 1.5 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -79,17 +79,17 @@ BayesianClassifierInitializationImageFilter<TInputImage,
 {
   // Typedefs for the KMeans filter, Covariance calculator...
   typedef ScalarImageKmeansImageFilter< InputImageType > KMeansFilterType;
-  typedef typename KMeansFilterType::OutputImageType    KMeansOutputImageType;
-  typedef ImageRegionConstIterator< typename 
-                  KMeansFilterType::OutputImageType > ConstKMeansIteratorType;
+  typedef typename KMeansFilterType::OutputImageType  KMeansOutputImageType;
+  typedef ImageRegionConstIterator< 
+                  KMeansOutputImageType >             ConstKMeansIteratorType;
   typedef Array< double >                             CovarianceArrayType;
   typedef Array< double >                             ClassCountArrayType;
   typedef Statistics::GaussianDensityFunction< 
           MeasurementVectorType >                     GaussianMembershipFunctionType;
-  typedef VectorContainer< unsigned short, typename 
-    GaussianMembershipFunctionType::MeanType* >         MeanEstimatorsContainerType;
-  typedef VectorContainer< unsigned short, typename 
-    GaussianMembershipFunctionType::CovarianceType* >   CovarianceEstimatorsContainerType;
+  typedef VectorContainer< unsigned short, ITK_TYPENAME 
+    GaussianMembershipFunctionType::MeanType* >       MeanEstimatorsContainerType;
+  typedef VectorContainer< unsigned short, ITK_TYPENAME 
+    GaussianMembershipFunctionType::CovarianceType* > CovarianceEstimatorsContainerType;
 
   
   // Run k means to get the means from the input image
@@ -99,6 +99,7 @@ BayesianClassifierInitializationImageFilter<TInputImage,
 
   for( unsigned k=0; k < m_NumberOfClasses; k++ )
     {
+    //const double userProvidedInitialMean = 255*((double)k)/m_NumberOfClasses;  
     const double userProvidedInitialMean = k;  
     //TODO: Choose more reasonable defaults for specifying the initial means
     //to the KMeans filter. We could also add this as an option of the filter.
@@ -185,10 +186,10 @@ BayesianClassifierInitializationImageFilter<TInputImage,
     covarianceEstimatorsContainer->
       InsertElement( i, new typename GaussianMembershipFunctionType::CovarianceType() );
     typename GaussianMembershipFunctionType::MeanType*       meanEstimators = 
-             const_cast< typename GaussianMembershipFunctionType::MeanType * >
+             const_cast< ITK_TYPENAME GaussianMembershipFunctionType::MeanType * >
                            (meanEstimatorsContainer->GetElement(i));
     typename GaussianMembershipFunctionType::CovarianceType* covarianceEstimators = 
-              const_cast< typename GaussianMembershipFunctionType::CovarianceType * >
+              const_cast< ITK_TYPENAME GaussianMembershipFunctionType::CovarianceType * >
               (covarianceEstimatorsContainer->GetElement(i));
     meanEstimators->SetSize(1);
     covarianceEstimators->SetSize( 1, 1 );
@@ -242,7 +243,7 @@ BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionTy
   itrInputImage.GoToBegin();
   while ( !itrMembershipImage.IsAtEnd() )
     {
-    mv = itrInputImage.Get();
+    mv[0] = itrInputImage.Get();
     for ( unsigned int i = 0; i < m_NumberOfClasses; i++ )
       {
       membershipPixel[i] = (m_MembershipFunctionContainer->GetElement(i))->Evaluate( mv );
