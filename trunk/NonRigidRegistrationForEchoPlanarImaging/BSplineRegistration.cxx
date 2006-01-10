@@ -39,6 +39,7 @@
 #include "itkMattesMutualInformationImageToImageMetric.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkImage.h"
+#include "itkOrientedImage.h"
 #include "itkSquareImageFilter.h"
 #include "itkMeanSquaresImageToImageMetric.h"
 #include "itkImageRegionIteratorWithIndex.h"
@@ -132,8 +133,8 @@ int main( int argc, char *argv[] )
   const    unsigned int    ImageDimension = 2;
   typedef  unsigned short    PixelType;
 
-  typedef itk::Image< PixelType, ImageDimension >  FixedImageType;
-  typedef itk::Image< PixelType, ImageDimension >  MovingImageType;
+  typedef itk::OrientedImage< PixelType, ImageDimension >  FixedImageType;
+  typedef itk::OrientedImage< PixelType, ImageDimension >  MovingImageType;
 
 
   //  Software Guide : BeginLatex
@@ -162,7 +163,7 @@ int main( int argc, char *argv[] )
   typedef itk::LBFGSBOptimizer       OptimizerType;
 
 
-  typedef itk::MeanSquaresImageToImageMetric< 
+  typedef itk::MattesMutualInformationImageToImageMetric< 
                                     FixedImageType, 
                                     MovingImageType >    MetricType;
 
@@ -334,11 +335,11 @@ int main( int argc, char *argv[] )
   //  Software Guide : EndLatex 
 
   // Software Guide : BeginCodeSnippet
-  //metric->SetNumberOfHistogramBins( 50 );
+  metric->SetNumberOfHistogramBins( 50 );
 
-  //const unsigned int numberOfSamples = fixedRegion.GetNumberOfPixels() / 10;
+  const unsigned int numberOfSamples = fixedRegion.GetNumberOfPixels() / 100;
 
-  //metric->SetNumberOfSpatialSamples( numberOfSamples );
+  metric->SetNumberOfSpatialSamples( numberOfSamples );
   // Software Guide : EndCodeSnippet
  
 
@@ -363,7 +364,7 @@ int main( int argc, char *argv[] )
   // set up fixed image mask
   typedef itk::ImageMaskSpatialObject< ImageDimension >   MaskType;
   MaskType::Pointer  spatialObjectMask = MaskType::New();
-  typedef itk::Image< unsigned char, ImageDimension >   ImageMaskType;
+  typedef itk::OrientedImage< unsigned char, ImageDimension >   ImageMaskType;
   ImageMaskType::Pointer fixedImageMask = ImageMaskType::New();
   fixedImageMask->CopyInformation( fixedImage );
   fixedImageMask->SetRegions(fixedImageMask->GetLargestPossibleRegion());
@@ -385,7 +386,7 @@ int main( int argc, char *argv[] )
       }
     }
   spatialObjectMask->SetImage( fixedImageMask );
-  metric->SetFixedImageMask( spatialObjectMask );
+  //metric->SetFixedImageMask( spatialObjectMask );
 
 
   std::cout << std::endl << "Starting Registration" << std::endl;
@@ -434,7 +435,7 @@ int main( int argc, char *argv[] )
   
   typedef  unsigned short  OutputPixelType;
 
-  typedef itk::Image< OutputPixelType, ImageDimension > OutputImageType;
+  typedef itk::OrientedImage< OutputPixelType, ImageDimension > OutputImageType;
   
   typedef itk::CastImageFilter< 
                         FixedImageType,
@@ -532,7 +533,7 @@ int main( int argc, char *argv[] )
     {
 
     typedef itk::Vector< float, ImageDimension >  VectorType;
-    typedef itk::Image< VectorType, ImageDimension >  DeformationFieldType;
+    typedef itk::OrientedImage< VectorType, ImageDimension >  DeformationFieldType;
 
     DeformationFieldType::Pointer field = DeformationFieldType::New();
     field->SetRegions( fixedRegion );
