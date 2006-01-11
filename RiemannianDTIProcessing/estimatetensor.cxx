@@ -40,15 +40,16 @@ void print_vnl_vector(const GradientType &a)
 int main(int argc, const char* argv[])
 {
   if(argc < 2) {
-    //std::cerr << "Usage: " << std::endl;
-    return -1;
+    std::cout << "Usage: " argv[0] << " <output file> <grad file> <baseline> <gradient files>"  << std::endl;
+    return 0;
     
   }
 
-  const char** remainingNames = argv + 3;
-  const int numNames = argc - 3;
-  const char* gradientFileName = argv[1];
-  const char* baselineFileName = argv[2];
+  const char** remainingNames = argv + 4;
+  const int numNames = argc - 4;
+  const char* outputFileName = argv[1];
+  const char* gradientFileName = argv[2];
+  const char* baselineFileName = argv[3];
 
   std::list<std::string> fileNames;
   std::list<GradientType > gradients;
@@ -128,7 +129,7 @@ int main(int argc, const char* argv[])
   try{
     std::cout << "Writing Tensor Field" << std::endl;
     TensorFileWriterType::Pointer tensorWriter = TensorFileWriterType::New();
-    tensorWriter->SetFileName("output.nrrd");
+    tensorWriter->SetFileName(outputFileName);
     tensorWriter->SetInput(diffusionEstimator->GetOutput());
     tensorWriter->Update();
     
