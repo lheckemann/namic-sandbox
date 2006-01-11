@@ -45,9 +45,11 @@ ExpectationMaximizationImageClassification< TImageType >
 template < class TImageType >
 void
 ExpectationMaximizationImageClassification< TImageType >
-::AddGaussianComponent( const GaussianDensityFunctionType * gaussian )
+::AddGaussianComponent( const GaussianDensityFunctionType * gaussian,
+                        ProportionType proportion )
 {
-   //m_Components.push_back( gaussian );
+   m_Components.push_back( gaussian );
+   m_Proportions.push_back( proportion );
 }
 
 
