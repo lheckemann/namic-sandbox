@@ -112,31 +112,24 @@ ExpectationMaximizationImageClassification< TImageType >
    
   while( witr.IsAtEnd() )
     {
-    index = ti.GetIndex();
+    index = witr.GetIndex();
     
-    typename Superclass::InputPointType inputPoint;
-    fixedImage->TransformIndexToPhysicalPoint( index, inputPoint );
-
-    if( !this->m_FixedImageMask->IsInside( inputPoint ) )
-      {
-      ++ti;
-      continue;
-      }
+    typename WeightsImageType::PointType inputPoint;
+    m_WeightsImage->TransformIndexToPhysicalPoint( index, inputPoint );
 
     typename Superclass::OutputPointType transformedPoint = 
                     this->m_Transform->TransformPoint( inputPoint );
 
     if( !this->m_PriorImage->IsInside( transformedPoint ) )
       {
-      ++ti;
-      continue;
-      }
 
-    if( this->m_Interpolator->IsInsideBuffer( transformedPoint ) )
-      {
-      const RealType priors  = this->m_Interpolator->Evaluate( transformedPoint );
-      citr.Get();
-      witr.Set();
+      if( this->m_Interpolator->IsInsideBuffer( transformedPoint ) )
+        {
+        const RealType priors  = this->m_Interpolator->Evaluate( transformedPoint );
+        citr.Get();
+        witr.Set();
+        }
+
       }
 
     ++witr;

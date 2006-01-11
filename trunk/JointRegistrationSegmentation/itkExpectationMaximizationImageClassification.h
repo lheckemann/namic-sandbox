@@ -21,6 +21,7 @@
 #include "itkSample.h"
 #include "itkExpectationMaximizationMixtureModelEstimator.h"
 #include "itkVectorImage.h"
+#include "itkTransfor.h"
 #include <vector>
 
 
@@ -165,8 +166,10 @@ private:
   typename CorrectedImageType::Pointer       m_CorrectedImage;
 
 
-  unsigned long                               m_MaximumNumberOfIterations;
+  unsigned long                              m_MaximumNumberOfIterations;
 
+
+   typename TransformType::Pointer           m_Transform;
 };
 
 }
