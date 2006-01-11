@@ -6,13 +6,13 @@
   or http://www.slicer.org/copyright/copyright.txt for details.
 
   Program:   3D Slicer
-  Module:    $RCSfile: vtkImageSulciExtractor.cxx,v $
+  Module:    $RCSfile: vtkImageBrainThumbSegmentation.cxx,v $
   Date:      $Date: 2006/01/06 17:56:39 $
   Version:   $Revision: 1.10 $
 
 =========================================================================auto=*/
 #include "vtkPointData.h"
-#include "vtkImageSulciExtractor.h"
+#include "vtkImageBrainThumbSegmentation.h"
 #include <math.h>
 #include <stdlib.h>
 #include "vtkIntArray.h"
@@ -24,16 +24,16 @@
 
 
 //----------------------------------------------------------------------------
-vtkImageSulciExtractor* vtkImageSulciExtractor::New()
+vtkImageBrainThumbSegmentation* vtkImageBrainThumbSegmentation::New()
 {
   // First try to create the object from the vtkObjectFactory
-  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkImageSulciExtractor");
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkImageBrainThumbSegmentation");
   if(ret)
     {
-    return (vtkImageSulciExtractor*)ret;
+    return (vtkImageBrainThumbSegmentation*)ret;
     }
   // If the factory was unable to create the object, then create it here.
-  return new vtkImageSulciExtractor;
+  return new vtkImageBrainThumbSegmentation;
 }
 
 
@@ -42,7 +42,7 @@ vtkImageSulciExtractor* vtkImageSulciExtractor::New()
 
 //----------------------------------------------------------------------------
 // Constructor sets default values
-vtkImageSulciExtractor::vtkImageSulciExtractor()
+vtkImageBrainThumbSegmentation::vtkImageBrainThumbSegmentation()
 {
   //printf("initialize");
   this->SourceID = 0;
@@ -70,7 +70,7 @@ vtkImageSulciExtractor::vtkImageSulciExtractor()
 }
 
 
-vtkImageSulciExtractor::~vtkImageSulciExtractor()
+vtkImageBrainThumbSegmentation::~vtkImageBrainThumbSegmentation()
 {
 
   //printf("in delete");
@@ -96,7 +96,7 @@ vtkImageSulciExtractor::~vtkImageSulciExtractor()
   
 }
 
-unsigned long vtkImageSulciExtractor::GetMTime()
+unsigned long vtkImageBrainThumbSegmentation::GetMTime()
 {
   unsigned long mTime=this->MTime.GetMTime();
   
@@ -104,7 +104,7 @@ unsigned long vtkImageSulciExtractor::GetMTime()
 }
 
 
-void vtkImageSulciExtractor::init(vtkImageData *inData)
+void vtkImageBrainThumbSegmentation::init(vtkImageData *inData)
 {
 
 
@@ -158,7 +158,7 @@ void vtkImageSulciExtractor::init(vtkImageData *inData)
   //Heapsize = 0;
 }
 
-void vtkImageSulciExtractor::DeleteGraph()
+void vtkImageBrainThumbSegmentation::DeleteGraph()
 {
   
   /*const int npoints = this->GetNumberOfInputPoints();
@@ -175,7 +175,7 @@ void vtkImageSulciExtractor::DeleteGraph()
     this->Neighbors = NULL;
   */
 }
-void vtkImageSulciExtractor::CreateGraph(vtkImageData *inData) {
+void vtkImageBrainThumbSegmentation::CreateGraph(vtkImageData *inData) {
 
   
   //DeleteGraph();
@@ -227,7 +227,7 @@ void vtkImageSulciExtractor::CreateGraph(vtkImageData *inData) {
 }
 
 
-void vtkImageSulciExtractor::RunSulciExtractor(vtkDataArray *scalars,int startv, int endv)
+void vtkImageBrainThumbSegmentation::RunBrainThumbSegmentation(vtkDataArray *scalars,int startv, int endv)
 {
   
   int i, u, v;
@@ -307,7 +307,7 @@ void vtkImageSulciExtractor::RunSulciExtractor(vtkDataArray *scalars,int startv,
   this->Visited->Delete();
 }
 
-void vtkImageSulciExtractor::InitSingleSource(int startv)
+void vtkImageBrainThumbSegmentation::InitSingleSource(int startv)
 {
   for (int v = 0; v < this->GetNumberOfInputPoints(); v++)
     {
@@ -324,7 +324,7 @@ void vtkImageSulciExtractor::InitSingleSource(int startv)
 }
 
 
-void vtkImageSulciExtractor::FindNeighbors(vtkIdList *list,int id, vtkDataArray *scalars) {
+void vtkImageBrainThumbSegmentation::FindNeighbors(vtkIdList *list,int id, vtkDataArray *scalars) {
   
   // find i, j, k for that node
   int *dim = GetInput()->GetDimensions();
@@ -352,7 +352,7 @@ void vtkImageSulciExtractor::FindNeighbors(vtkIdList *list,int id, vtkDataArray 
 
 // The edge cost function should be implemented as a callback function to
 // allow more advanced weighting
-float vtkImageSulciExtractor::EdgeCost(vtkDataArray *scalars, int u, int v)
+float vtkImageBrainThumbSegmentation::EdgeCost(vtkDataArray *scalars, int u, int v)
 {
   
   float w;
@@ -375,7 +375,7 @@ float vtkImageSulciExtractor::EdgeCost(vtkDataArray *scalars, int u, int v)
   return w;
 }
 
-void vtkImageSulciExtractor::BuildShortestPath(int start,int end)
+void vtkImageBrainThumbSegmentation::BuildShortestPath(int start,int end)
 {
   
   int v = end;
@@ -390,15 +390,15 @@ void vtkImageSulciExtractor::BuildShortestPath(int start,int end)
 
 // ITERATOR PART 
 
-void vtkImageSulciExtractor::InitTraversePath(){
+void vtkImageBrainThumbSegmentation::InitTraversePath(){
   this->PathPointer = -1;
 }
 
-int vtkImageSulciExtractor::GetNumberOfPathNodes(){
+int vtkImageBrainThumbSegmentation::GetNumberOfPathNodes(){
   return this->ShortestPathIdList->GetNumberOfIds();
 }
 
-int vtkImageSulciExtractor::GetNextPathNode(){
+int vtkImageBrainThumbSegmentation::GetNextPathNode(){
   this->PathPointer = this->PathPointer + 1;
   
   if(this->PathPointer < this->GetNumberOfPathNodes()) {
@@ -410,7 +410,7 @@ int vtkImageSulciExtractor::GetNextPathNode(){
 }
 
 // find closest scalar to id that is non-zero
-int vtkImageSulciExtractor::findClosestPointInGraph(vtkDataArray *scalars,int id,int dim0,int dim1, int dim2) {
+int vtkImageBrainThumbSegmentation::findClosestPointInGraph(vtkDataArray *scalars,int id,int dim0,int dim1, int dim2) {
 
   
   int kFactor = dim0 * dim1;
@@ -491,7 +491,7 @@ int vtkImageSulciExtractor::findClosestPointInGraph(vtkDataArray *scalars,int id
 //----------------------------------------------------------------------------
 // This templated function executes the filter for any type of data.
 template <class T>
-static void vtkImageSulciExtractorExecute(vtkImageSulciExtractor *self,
+static void vtkImageBrainThumbSegmentationExecute(vtkImageBrainThumbSegmentation *self,
                    vtkImageData *inData, T *inPtr,
                    vtkImageData *outData, int *outPtr)
 {
@@ -528,7 +528,7 @@ static void vtkImageSulciExtractorExecute(vtkImageSulciExtractor *self,
   }
       
   //printf("************* before run dijkstra ");
-  self->RunSulciExtractor(scalars,self->GetSourceID(),self->GetSinkID());
+  self->RunBrainThumbSegmentation(scalars,self->GetSourceID(),self->GetSinkID());
   //printf("************* before build shortest path");
   self->BuildShortestPath(self->GetSourceID(),self->GetSinkID());
   //printf("************** DONE ***************");
@@ -541,7 +541,7 @@ static void vtkImageSulciExtractorExecute(vtkImageSulciExtractor *self,
 // It just executes a switch statement to call the correct function for
 // the Datas data types.
 // -- sp 2002-09-05 updated for vtk4
-void vtkImageSulciExtractor::ExecuteData(vtkDataObject *)
+void vtkImageBrainThumbSegmentation::ExecuteData(vtkDataObject *)
 {
   void *inPtr;
   void *outPtr;
@@ -569,7 +569,7 @@ void vtkImageSulciExtractor::ExecuteData(vtkDataObject *)
   
   switch (inData->GetScalarType())
     {
-    vtkTemplateMacro5(vtkImageSulciExtractorExecute, this, 
+    vtkTemplateMacro5(vtkImageBrainThumbSegmentationExecute, this, 
                       inData, (VTK_TT *)(inPtr), 
                       outData, (int *)(outPtr));
     default:
@@ -579,7 +579,7 @@ void vtkImageSulciExtractor::ExecuteData(vtkDataObject *)
 }
 
 
-void vtkImageSulciExtractor::PrintSelf(ostream& os, vtkIndent indent)
+void vtkImageBrainThumbSegmentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkImageToImageFilter::PrintSelf(os,indent);
 
@@ -592,7 +592,7 @@ void vtkImageSulciExtractor::PrintSelf(ostream& os, vtkIndent indent)
 
 
 /*
-void vtkImageSulciExtractor::Heapify(int i)
+void vtkImageBrainThumbSegmentation::Heapify(int i)
 {
         // left node
         int l = i * 2;
@@ -631,7 +631,7 @@ void vtkImageSulciExtractor::Heapify(int i)
 
 // Insert vertex v. Weight is given in d(v)
 // H has indices 1..n
-void vtkImageSulciExtractor::HeapInsert(int v)
+void vtkImageBrainThumbSegmentation::HeapInsert(int v)
 {
         if (Heapsize >= this->Heap->GetNumberOfTuples()-1)
                 return;
@@ -650,7 +650,7 @@ void vtkImageSulciExtractor::HeapInsert(int v)
         this->p->SetValue(v, i);
 }
 
-int vtkImageSulciExtractor::HeapExtractMin()
+int vtkImageBrainThumbSegmentation::HeapExtractMin()
 {
         if (Heapsize == 0)
                 return -1;
@@ -667,7 +667,7 @@ int vtkImageSulciExtractor::HeapExtractMin()
         return minv;
 }
 
-void vtkImageSulciExtractor::HeapDecreaseKey(int v)
+void vtkImageBrainThumbSegmentation::HeapDecreaseKey(int v)
 {
         // where in H is vertex v
         int i = this->p->GetValue(v);

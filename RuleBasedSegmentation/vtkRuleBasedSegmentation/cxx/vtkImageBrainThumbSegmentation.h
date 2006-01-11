@@ -6,20 +6,20 @@
   or http://www.slicer.org/copyright/copyright.txt for details.
 
   Program:   3D Slicer
-  Module:    $RCSfile: vtkImageSulciExtractor.h,v $
+  Module:    $RCSfile: vtkImageBrainThumbSegmentation.h,v $
   Date:      $Date: 2006/01/06 17:56:40 $
   Version:   $Revision: 1.5 $
 
 =========================================================================auto=*/
 
-// .NAME vtkImageSulciExtractor - Run SulciExtractor's algorithm where nodes are points
+// .NAME vtkImageBrainThumbSegmentation - Run BrainThumbSegmentation's algorithm where nodes are points
 //  and edge values are scalars
 // .SECTION Description
-// vtkImageSulciExtractor - 
+// vtkImageBrainThumbSegmentation - 
 
 
-#ifndef __vtkImageSulciExtractor_h
-#define __vtkImageSulciExtractor_h
+#ifndef __vtkImageBrainThumbSegmentation_h
+#define __vtkImageBrainThumbSegmentation_h
 
 #include "vtkIntArray.h"
 #include "vtkFloatArray.h"
@@ -30,11 +30,11 @@
 #include "vtkSlicer.h"
 
 
-class VTK_SLICER_BASE_EXPORT vtkImageSulciExtractor : public vtkImageToImageFilter
+class VTK_SLICER_BASE_EXPORT vtkImageBrainThumbSegmentation : public vtkImageToImageFilter
 {
   public:
-  static vtkImageSulciExtractor *New();
-  vtkTypeMacro(vtkImageSulciExtractor,vtkImageToImageFilter);
+  static vtkImageBrainThumbSegmentation *New();
+  vtkTypeMacro(vtkImageBrainThumbSegmentation,vtkImageToImageFilter);
   void PrintSelf(ostream& os, vtkIndent indent);
   
   // Description
@@ -117,7 +117,7 @@ class VTK_SLICER_BASE_EXPORT vtkImageSulciExtractor : public vtkImageToImageFilt
   
   void InitSingleSource(int startv);
   // Calculate shortest path from vertex startv to vertex endv
-  void RunSulciExtractor(vtkDataArray *scalars,int source, int sink);
+  void RunBrainThumbSegmentation(vtkDataArray *scalars,int source, int sink);
   // Relax edge u,v with weight w
   //void Relax(int u, int v, float w);
   // edge cost
@@ -188,10 +188,10 @@ class VTK_SLICER_BASE_EXPORT vtkImageSulciExtractor : public vtkImageToImageFilt
   int StopWhenEndReached;
 
 protected:
- vtkImageSulciExtractor();
- ~vtkImageSulciExtractor();
- vtkImageSulciExtractor(const vtkImageSulciExtractor&) {};
- void operator=(const vtkImageSulciExtractor&) {};
+ vtkImageBrainThumbSegmentation();
+ ~vtkImageBrainThumbSegmentation();
+ vtkImageBrainThumbSegmentation(const vtkImageBrainThumbSegmentation&) {};
+ void operator=(const vtkImageBrainThumbSegmentation&) {};
  
  //void Execute(vtkImageData *inData, vtkImageData *outData);
  void ExecuteData(vtkDataObject *);
