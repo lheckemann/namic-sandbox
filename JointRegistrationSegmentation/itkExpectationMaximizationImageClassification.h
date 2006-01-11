@@ -62,10 +62,10 @@ public:
   itkStaticConstMacro( ImageDimension, unsigned int, 
                        ::itk::GetImageDimension< InputImageType >::ImageDimension );
 
-  typedef VectorImage< float, ImageDimension >         MembershipImageType;
+  typedef VectorImage< float, ImageDimension >         WeightsImageType;
   typedef VectorImage< float, ImageDimension >         PriorsImageType;
 
-  typedef typename MembershipImageType::Pointer        MembershipImagePointer;
+  typedef typename WeightsImageType::Pointer           WeightsImagePointer;
   typedef typename PriorsImageType::Pointer            PriorsImagePointer;
 
   typedef typename  InputImageType::PixelType          MeasurementVectorType;
@@ -127,7 +127,7 @@ private:
   ComponentsContainerType                     m_Components;
   
 
-  MembershipImagePointer                      m_WeightsImage;
+  WeightsImagePointer                      m_WeightsImage;
 
   // this is the resampled atlas.
   PriorsImagePointer                          m_PriorImage;  

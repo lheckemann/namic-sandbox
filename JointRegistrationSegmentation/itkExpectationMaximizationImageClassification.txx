@@ -94,7 +94,7 @@ ExpectationMaximizationImageClassification< TImageType >
 ::ComputeExpectation()
 {
 
-   typedef itk::ImageRegionIterator< MembershipImageType >     WeightsIterator;
+   typedef itk::ImageRegionIterator< WeightsImageType >     WeightsIterator;
    typedef itk::ImageRegionConstIterator< InputImageType >     InputImageIterator;
    typedef itk::ImageRegionConstIterator< PriorsImageType >    PriorsImageIterator;
 
@@ -126,7 +126,7 @@ void
 ExpectationMaximizationImageClassification< TImageType >
 ::InitializeWeightsImage()
 {
-   m_WeightsImage = MembershipImageType::New();
+   m_WeightsImage = WeightsImageType::New();
 
    m_WeightsImage->CopyInformation( m_InputImage );
 
