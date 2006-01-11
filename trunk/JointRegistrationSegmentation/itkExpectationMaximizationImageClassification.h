@@ -78,12 +78,12 @@ public:
 
   typedef double   ProportionType;
 
-  typedef std::vector< ProportionType >    ProportionsContainer;
-
  
-  /**  Add a Gaussian density function to the list of Density functions to use.  */
-  void AddGaussianComponent( const GaussianDensityFunctionType * gaussian,
-                             ProportionType proportion );
+
+  /**  Add a density function to the list of Density functions to use.  */
+  void AddIntensityDistributionDensity( 
+                  const GaussianDensityFunctionType * gaussian,
+                  ProportionType proportion );
 
 
 
@@ -128,18 +128,24 @@ private:
 
 
   /** Container that holds the list of Gaussian distributions for each one of the Structures. */
-  typedef std::vector< GaussianDensityFunctionPointer >     ComponentsContainerType;
+  typedef std::vector< GaussianDensityFunctionPointer 
+                                        >     IntensityDistributionContainerType;
 
-  ComponentsContainerType                     m_Components;
+
+  typedef std::vector< ProportionType >       ProportionsContainerType;
+
+
+  IntensityDistributionContainerType          m_ClassIntensityDistribution;
   
 
   WeightsImagePointer                         m_WeightsImage;
 
 
-  ProportionsContainer                        m_Proportions;
+  ProportionsContainerType                    m_ClassProportions;
 
   // this is the resampled atlas.
-  PriorsImagePointer                          m_PriorImage;  
+  PriorsImagePointer                          m_ClassPriorImage;  
+
 
   typename InputImageType::ConstPointer       m_InputImage;
 
