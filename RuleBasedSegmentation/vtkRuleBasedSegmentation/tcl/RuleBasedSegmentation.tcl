@@ -784,7 +784,7 @@ proc RuleBasedSegmentationApplyBayesian {} {
 global RuleBasedSegmentation Volume
 
 
-set RuleBasedSegmentation(filter) CurvatureAnisotropicDiffusionImageFilter
+set RuleBasedSegmentation(filter) vtkITKBayesianClassificationImageFilter  
 set filter $RuleBasedSegmentation(filter)
 
 set RuleBasedSegmentation($filter,params) SetConductanceParameter 

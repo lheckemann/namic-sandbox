@@ -20,6 +20,7 @@
 
 
 #include "itkBayesianClassificationImageFilter.h"
+#include "vtkITKImageToImageFilterFUC.h"
 
 class VTK_EXPORT vtkITKBayesianClassifierImageFilter 
                               : public vtkITKImageToImageFilterFUC
@@ -58,8 +59,7 @@ protected:
   typedef itk::BayesianClassifierImageFilter<
      Superclass::InputImageType, 
      Superclass::OutputImageType>                  ImageFilterType;
-  vtkITKBayesianClassifierImageFilter() 
-                    : Superclass ( ImageFilterType::New() ){};
+  vtkITKBayesianClassifierImageFilter() { Superclass( ImageFilterType::New() ) };
   ~vtkITKBayesianClassificationImageFilter() {};
   ImageFilterType* GetImageFilterPointer() 
     { 
