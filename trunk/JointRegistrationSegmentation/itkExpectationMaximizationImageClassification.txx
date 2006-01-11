@@ -73,8 +73,12 @@ void
 ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
 ::GenerateData()
 {
+  unsigned long int i = 0;
+  while( i < m_MaximumNumberOfIterations )
+   {
    this->ComputeExpectation();
    this->ComputeMaximization();
+   }
 }
 
 

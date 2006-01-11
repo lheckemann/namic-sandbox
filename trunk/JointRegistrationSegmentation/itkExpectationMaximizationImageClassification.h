@@ -17,9 +17,7 @@
 #ifndef __itkExpectationMaximizationAlgorithm_h
 #define __itkExpectationMaximizationAlgorithm_h
 
-#include "itkGaussianMixtureModelComponent.h"
-#include "itkSample.h"
-#include "itkExpectationMaximizationMixtureModelEstimator.h"
+#include "itkGaussianDensityFunction.h"
 #include "itkVectorImage.h"
 #include "itkTransformBase.h"
 #include <vector>
@@ -64,7 +62,8 @@ public:
                        ::itk::GetImageDimension< InputImageType >::ImageDimension );
 
   typedef VectorImage< float, ImageDimension >         WeightsImageType;
-  typedef VectorImage< float, ImageDimension >         PriorsImageType;
+  typedef VectorImage< PriorPixelType, 
+                       ImageDimension >                PriorsImageType;
 
   typedef TCorrectionPrecisionType                     CorrectedValueType;
 
@@ -75,8 +74,6 @@ public:
   typedef typename PriorsImageType::Pointer            PriorsImagePointer;
 
   typedef typename  InputImageType::PixelType          MeasurementVectorType;
-
-  typedef Sample< MeasurementVectorType >              SampleType;
 
   typedef GaussianDensityFunction< MeasurementVectorType >  GaussianDensityFunctionType;
 
@@ -129,8 +126,10 @@ protected:
   void GenerateData();
 
 
-  /** Initialize the allocation of the Weights image */
-  void InitializeWeightsImage();
+  /** Initialize the allocation of the Weights image Initialize the corrected
+ * image and the weights. Throws exceptions is something goes wrong */
+  void Initialize();
+
 
 private:
 
@@ -180,7 +179,6 @@ private:
 #ifndef ITK_MANUAL_INSTANTIATION
 #include "itkExpectationMaximizationImageClassification.txx"
 #endif
-
 
 
 #endif
