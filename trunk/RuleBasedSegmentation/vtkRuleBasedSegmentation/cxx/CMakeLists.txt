@@ -3,28 +3,28 @@
 #
 #
 
-SET (LOCAL_LIBRARY_BASENAME vtkTransformVolume)
+SET (LOCAL_LIBRARY_BASENAME vtkRuleBasedSegmentation)
 
-INCLUDE (${VTKTRANSFORMVOLUME_SOURCE_DIR}/cxx/CMakeListsLocal.txt)
+INCLUDE (${VTKRULEBASEDSEGMENTATION_SOURCE_DIR}/cxx/CMakeListsLocal.txt)
 
 # --------------------------------------------------------------------------
 # You probably do not need to modify anything below this line
 
 #
-# Create the vtkTransformVolume C++ library
+# Create the vtkRuleBasedSegmentation C++ library
 #
 # (Doesn't work here because of a CMake bug)
-# ADD_LIBRARY (vtkTransformVolume LOCAL_MODULE_SRCS)
+# ADD_LIBRARY (vtkRuleBasedSegmentation LOCAL_MODULE_SRCS)
 
 #
-# Create the vtkTransformVolume Tcl library
+# Create the vtkRuleBasedSegmentation Tcl library
 #
 
-IF (VTK_WRAP_TCL AND VTKTRANSFORMVOLUME_WRAP_TCL)
+IF (VTK_WRAP_TCL AND VTKRULEBASEDSEGMENTATION_WRAP_TCL)
 
-  VTK_WRAP_TCL (vtkTransformVolumeTCL TransformVolumeTCL_SRCS LOCAL_MODULE_SRCS)
-  ADD_LIBRARY (vtkTransformVolumeTCL TransformVolumeTCL_SRCS)
-  TARGET_LINK_LIBRARIES (vtkTransformVolumeTCL 
+  VTK_WRAP_TCL (vtkRuleBasedSegmentationTCL TransformVolumeTCL_SRCS LOCAL_MODULE_SRCS)
+  ADD_LIBRARY (vtkRuleBasedSegmentationTCL TransformVolumeTCL_SRCS)
+  TARGET_LINK_LIBRARIES (vtkRuleBasedSegmentationTCL 
                          vtkIOTCL 
                          vtkGraphicsTCL 
                          vtkImagingTCL 
@@ -32,39 +32,39 @@ IF (VTK_WRAP_TCL AND VTKTRANSFORMVOLUME_WRAP_TCL)
                          vtkCommonTCL
                          ${TCL_LIBRARY})
   IF (VTK_USE_HYBRID)
-    TARGET_LINK_LIBRARIES (vtkTransformVolumeTCL vtkHybridTCL)
+    TARGET_LINK_LIBRARIES (vtkRuleBasedSegmentationTCL vtkHybridTCL)
   ENDIF (VTK_USE_HYBRID)
 
   IF (VTK_USE_PARALLEL)
-    TARGET_LINK_LIBRARIES (vtkTransformVolumeTCL vtkParallelTCL)
+    TARGET_LINK_LIBRARIES (vtkRuleBasedSegmentationTCL vtkParallelTCL)
   ENDIF (VTK_USE_PARALLEL)
 
   IF (VTK_USE_PATENTED)
-    TARGET_LINK_LIBRARIES (vtkTransformVolumeTCL vtkPatentedTCL)
+    TARGET_LINK_LIBRARIES (vtkRuleBasedSegmentationTCL vtkPatentedTCL)
   ENDIF (VTK_USE_PATENTED)
 
   IF (VTK_USE_RENDERING)
-    TARGET_LINK_LIBRARIES (vtkTransformVolumeTCL vtkRenderingTCL)
+    TARGET_LINK_LIBRARIES (vtkRuleBasedSegmentationTCL vtkRenderingTCL)
   ENDIF (VTK_USE_RENDERING)
 
-ENDIF (VTK_WRAP_TCL AND VTKTRANSFORMVOLUME_WRAP_TCL)
+ENDIF (VTK_WRAP_TCL AND VTKRULEBASEDSEGMENTATION_WRAP_TCL)
 
 #
-# Create the vtkTransformVolume Python library
+# Create the vtkRuleBasedSegmentation Python library
 #
 
-IF (VTK_WRAP_PYTHON AND VTKTRANSFORMVOLUME_WRAP_PYTHON)
+IF (VTK_WRAP_PYTHON AND VTKRULEBASEDSEGMENTATION_WRAP_PYTHON)
 
-  VTK_WRAP_PYTHON (vtkTransformVolumePython TransformVolumePython_SRCS LOCAL_MODULE_SRCS)
+  VTK_WRAP_PYTHON (vtkRuleBasedSegmentationPython TransformVolumePython_SRCS LOCAL_MODULE_SRCS)
 
   IF (APPLE)
-    ADD_LIBRARY (vtkTransformVolumePython MODULE TransformVolumePython_SRCS)
+    ADD_LIBRARY (vtkRuleBasedSegmentationPython MODULE TransformVolumePython_SRCS)
   ELSE (APPLE)
-    ADD_LIBRARY (vtkTransformVolumePython SHARED TransformVolumePython_SRCS)
+    ADD_LIBRARY (vtkRuleBasedSegmentationPython SHARED TransformVolumePython_SRCS)
   ENDIF (APPLE)
 
   IF (WIN32)
-    TARGET_LINK_LIBRARIES (vtkTransformVolumePython 
+    TARGET_LINK_LIBRARIES (vtkRuleBasedSegmentationPython 
                            vtkIOPython
                            vtkGraphicsPython
                            vtkImagingPython
@@ -73,7 +73,7 @@ IF (VTK_WRAP_PYTHON AND VTKTRANSFORMVOLUME_WRAP_PYTHON)
                            debug ${PYTHON_DEBUG_LIBRARY} 
                            optimized ${PYTHON_LIBRARY})
   ELSE (WIN32)
-    TARGET_LINK_LIBRARIES (vtkTransformVolumePython 
+    TARGET_LINK_LIBRARIES (vtkRuleBasedSegmentationPython 
                            vtkIOPython
                            vtkGraphicsPython
                            vtkImagingPython
@@ -83,61 +83,61 @@ IF (VTK_WRAP_PYTHON AND VTKTRANSFORMVOLUME_WRAP_PYTHON)
   ENDIF (WIN32)
 
   IF (VTK_USE_HYBRID)
-    TARGET_LINK_LIBRARIES (vtkTransformVolumePython vtkHybridPython)
+    TARGET_LINK_LIBRARIES (vtkRuleBasedSegmentationPython vtkHybridPython)
   ENDIF (VTK_USE_HYBRID)
 
   IF (VTK_USE_PARALLEL)
-    TARGET_LINK_LIBRARIES (vtkTransformVolumePython vtkParallelPython)
+    TARGET_LINK_LIBRARIES (vtkRuleBasedSegmentationPython vtkParallelPython)
   ENDIF (VTK_USE_PARALLEL)
 
   IF (VTK_USE_PATENTED)
-    TARGET_LINK_LIBRARIES (vtkTransformVolumePython vtkPatentedPython)
+    TARGET_LINK_LIBRARIES (vtkRuleBasedSegmentationPython vtkPatentedPython)
   ENDIF (VTK_USE_PATENTED)
 
   IF (VTK_USE_RENDERING)
-    TARGET_LINK_LIBRARIES (vtkTransformVolumePython vtkRenderingPython)
+    TARGET_LINK_LIBRARIES (vtkRuleBasedSegmentationPython vtkRenderingPython)
   ENDIF (VTK_USE_RENDERING)
 
-ENDIF (VTK_WRAP_PYTHON AND VTKTRANSFORMVOLUME_WRAP_PYTHON)
+ENDIF (VTK_WRAP_PYTHON AND VTKRULEBASEDSEGMENTATION_WRAP_PYTHON)
 
 #
-# Create the vtkTransformVolume Java library
+# Create the vtkRuleBasedSegmentation Java library
 #
 
-IF (VTK_WRAP_JAVA AND VTKTRANSFORMVOLUME_WRAP_JAVA)
+IF (VTK_WRAP_JAVA AND VTKRULEBASEDSEGMENTATION_WRAP_JAVA)
 
-  VTK_WRAP_JAVA (vtkTransformVolumeJava TransformVolumeJava_SRCS LOCAL_MODULE_SRCS)
-  ADD_LIBRARY (vtkTransformVolumeJava SHARED TransformVolumeJava_SRCS)
-  TARGET_LINK_LIBRARIES (vtkTransformVolumeJava 
+  VTK_WRAP_JAVA (vtkRuleBasedSegmentationJava TransformVolumeJava_SRCS LOCAL_MODULE_SRCS)
+  ADD_LIBRARY (vtkRuleBasedSegmentationJava SHARED TransformVolumeJava_SRCS)
+  TARGET_LINK_LIBRARIES (vtkRuleBasedSegmentationJava 
                          vtkIOJava
                          vtkGraphicsJava
                          vtkImagingJava 
                          vtkFilteringJava
                          vtkCommonJava)
   IF (VTK_USE_HYBRID)
-    TARGET_LINK_LIBRARIES (vtkTransformVolumeJava vtkHybridJava)
+    TARGET_LINK_LIBRARIES (vtkRuleBasedSegmentationJava vtkHybridJava)
   ENDIF (VTK_USE_HYBRID)
 
   IF (VTK_USE_PARALLEL)
-    TARGET_LINK_LIBRARIES (vtkTransformVolumeJava vtkParallelJava)
+    TARGET_LINK_LIBRARIES (vtkRuleBasedSegmentationJava vtkParallelJava)
   ENDIF (VTK_USE_PARALLEL)
 
   IF (VTK_USE_PATENTED)
-    TARGET_LINK_LIBRARIES (vtkTransformVolumeJava vtkPatentedJava)
+    TARGET_LINK_LIBRARIES (vtkRuleBasedSegmentationJava vtkPatentedJava)
   ENDIF (VTK_USE_PATENTED)
 
   IF (VTK_USE_RENDERING)
-    TARGET_LINK_LIBRARIES (vtkTransformVolumeJava vtkRenderingJava)
+    TARGET_LINK_LIBRARIES (vtkRuleBasedSegmentationJava vtkRenderingJava)
   ENDIF (VTK_USE_RENDERING)
 
-ENDIF (VTK_WRAP_JAVA AND VTKTRANSFORMVOLUME_WRAP_JAVA)
+ENDIF (VTK_WRAP_JAVA AND VTKRULEBASEDSEGMENTATION_WRAP_JAVA)
 
 #
 # Link to VTK and local
 #
 
 LINK_LIBRARIES (
-  vtkTransformVolume
+  vtkRuleBasedSegmentation
   vtkIO
   vtkGraphics
   vtkImaging 
