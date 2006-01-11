@@ -25,7 +25,7 @@ namespace itk {
 namespace Statistics {
 
 
-template < class TImageType >
+template < class TImageType, class TCorrectionPrecisionType >
 ExpectationMaximizationImageClassification< TImageType >
 ::ExpectationMaximizationImageClassification()
 {
@@ -33,7 +33,7 @@ ExpectationMaximizationImageClassification< TImageType >
 
 
 
-template < class TImageType >
+template < class TImageType, class TCorrectionPrecisionType >
 ExpectationMaximizationImageClassification< TImageType >
 ::~ExpectationMaximizationImageClassification()
 {
@@ -42,7 +42,7 @@ ExpectationMaximizationImageClassification< TImageType >
 
 
 
-template < class TImageType >
+template < class TImageType, class TCorrectionPrecisionType >
 void
 ExpectationMaximizationImageClassification< TImageType >
 ::AddIntensityDistributionDensity( 
@@ -57,7 +57,7 @@ ExpectationMaximizationImageClassification< TImageType >
 
 
 
-template < class TImageType >
+template < class TImageType, class TCorrectionPrecisionType >
 void
 ExpectationMaximizationImageClassification< TImageType >
 ::Update()
@@ -68,7 +68,7 @@ ExpectationMaximizationImageClassification< TImageType >
 
 
 
-template < class TImageType >
+template < class TImageType, class TCorrectionPrecisionType >
 void
 ExpectationMaximizationImageClassification< TImageType >
 ::GenerateData()
@@ -81,7 +81,7 @@ ExpectationMaximizationImageClassification< TImageType >
 
  
 
-template < class TImageType >
+template < class TImageType, class TCorrectionPrecisionType >
 void
 ExpectationMaximizationImageClassification< TImageType >
 ::ComputeMaximization()
@@ -91,32 +91,58 @@ ExpectationMaximizationImageClassification< TImageType >
 
  
 
-template < class TImageType >
+template < class TImageType, class TCorrectionPrecisionType >
 void
 ExpectationMaximizationImageClassification< TImageType >
 ::ComputeExpectation()
 {
 
-   typedef itk::ImageRegionIterator< WeightsImageType >        WeightsIterator;
-   typedef itk::ImageRegionConstIterator< PriorsImageType >    PriorsImageIterator;
-   typedef itk::ImageRegionConstIterator< CorrectedImageType > CorrectedImageIterator;
+  typedef itk::ImageRegionIterator< WeightsImageType >        WeightsIterator;
+  typedef itk::ImageRegionConstIterator< PriorsImageType >    PriorsImageIterator;
+  typedef itk::ImageRegionConstIterator< CorrectedImageType > CorrectedImageIterator;
 
    
-   WeightsIterator        witr( m_WeightsImage, m_WeightsImage->GetBufferedRegion() );
-   PriorsImageIterator    pitr( m_PriorImage,   m_PriorImage->GetBufferedRegion()   );
-   CorrectedImageIterator citr( m_CorrectedImage, m_CorrectedImage->GetBufferedRegion()   );
+  WeightsIterator        witr( m_WeightsImage, m_WeightsImage->GetBufferedRegion() );
+  PriorsImageIterator    pitr( m_PriorImage,   m_PriorImage->GetBufferedRegion()   );
+  CorrectedImageIterator citr( m_CorrectedImage, m_CorrectedImage->GetBufferedRegion()   );
 
-   witr.GoToBegin();
-   pitr.GoToBegin();
-   citr.GoToBegin();
+  witr.GoToBegin();
+  pitr.GoToBegin();
+  citr.GoToBegin();
    
-   while( witr.IsAtEnd() )
-     {
-     citr.Get();
-     ++witr;
-     ++pitr;
-     ++citr;
-     }
+  while( witr.IsAtEnd() )
+    {
+    index = ti.GetIndex();
+    
+    typename Superclass::InputPointType inputPoint;
+    fixedImage->TransformIndexToPhysicalPoint( index, inputPoint );
+
+    if( !this->m_FixedImageMask->IsInside( inputPoint ) )
+      {
+      ++ti;
+      continue;
+      }
+
+    typename Superclass::OutputPointType transformedPoint = 
+                    this->m_Transform->TransformPoint( inputPoint );
+
+    if( !this->m_PriorImage->IsInside( transformedPoint ) )
+      {
+      ++ti;
+      continue;
+      }
+
+    if( this->m_Interpolator->IsInsideBuffer( transformedPoint ) )
+      {
+      const RealType priors  = this->m_Interpolator->Evaluate( transformedPoint );
+      citr.Get();
+      witr.Set();
+      }
+
+    ++witr;
+    ++pitr;
+    ++citr;
+    }
 
 }
 
@@ -124,7 +150,7 @@ ExpectationMaximizationImageClassification< TImageType >
 
  
 
-template < class TImageType >
+template < class TImageType, class TCorrectionPrecisionType >
 void
 ExpectationMaximizationImageClassification< TImageType >
 ::InitializeWeightsImage()
@@ -140,7 +166,7 @@ ExpectationMaximizationImageClassification< TImageType >
 
  
 
-template < class TImageType >
+template < class TImageType, class TCorrectionPrecisionType >
 void
 ExpectationMaximizationImageClassification< TImageType >
 ::SetInput( const InputImageType * inputImage )
@@ -151,7 +177,7 @@ ExpectationMaximizationImageClassification< TImageType >
 
  
 
-template < class TImageType >
+template < class TImageType, class TCorrectionPrecisionType >
 void
 ExpectationMaximizationImageClassification< TImageType >
 ::SetClassPrior( const PriorsImageType * priorImage )
