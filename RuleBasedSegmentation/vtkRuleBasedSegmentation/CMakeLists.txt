@@ -2,11 +2,11 @@
 # Set the project name.
 #
 
-# MY -> TRANSFORMVOLUME
-# my -> TransformVolume
+# MY -> RULEBASEDSEGMENTATION
+# my -> RuleBasedSegmentation
 
 
-PROJECT (RULEBASEDSEGMENTATION)
+PROJECT (VTKRULEBASEDSEGMENTATION)
 
 #
 # Assume everything is set up correctly for build.
@@ -15,13 +15,13 @@ PROJECT (RULEBASEDSEGMENTATION)
 # In that case, the build won't be done.
 #
 
-SET (RULEBASEDSEGMENTATION_CAN_BUILD 1)
+SET (VTKRULEBASEDSEGMENTATION_CAN_BUILD 1)
 
 #
 # Load CMake commands that you probably should not modify.
 #
 
-INCLUDE (${RULEBASEDSEGMENTATION_SOURCE_DIR}/CMakeOptions.cmake)
+INCLUDE (${VTKRULEBASEDSEGMENTATION_SOURCE_DIR}/CMakeOptions.cmake)
 
 #
 # find the slicer version - you can either set default here, or 
@@ -48,7 +48,7 @@ SET (VTKSLICERBASE_BUILD_LIB CACHE PATH
 # If everything is OK, then go into the sub directories and build.
 #
 
-IF (RULEBASEDSEGMENTATION_CAN_BUILD)
+IF (VTKRULEBASEDSEGMENTATION_CAN_BUILD)
 
   #
   # Here is where you can list the sub-directories holding your local 
@@ -65,7 +65,7 @@ IF (RULEBASEDSEGMENTATION_CAN_BUILD)
   # You can put your include path(s) here
   #
 
-  INCLUDE_DIRECTORIES (${RULEBASEDSEGMENTATION_SOURCE_DIR}/cxx)
+  INCLUDE_DIRECTORIES (${VTKRULEBASEDSEGMENTATION_SOURCE_DIR}/cxx)
 
   #
   # Build examples too ?
@@ -84,10 +84,10 @@ IF (RULEBASEDSEGMENTATION_CAN_BUILD)
   #
 
   CONFIGURE_FILE(
-    ${RULEBASEDSEGMENTATION_SOURCE_DIR}/RULEBASEDSEGMENTATIONConfigure.h.cin 
-    ${RULEBASEDSEGMENTATION_BINARY_DIR}/RULEBASEDSEGMENTATIONConfigure.h
+    ${VTKRULEBASEDSEGMENTATION_SOURCE_DIR}/vtkRuleBasedSegmentationConfigure.h.cin 
+    ${VTKRULEBASEDSEGMENTATION_BINARY_DIR}/vtkRuleBasedSegmentationConfigure.h
   )
 
-  INCLUDE_DIRECTORIES(${RULEBASEDSEGMENTATION_BINARY_DIR})
+  INCLUDE_DIRECTORIES(${VTKRULEBASEDSEGMENTATION_BINARY_DIR})
 
-ENDIF (RULEBASEDSEGMENTATION_CAN_BUILD)
+ENDIF (VTKRULEBASEDSEGMENTATION_CAN_BUILD)
