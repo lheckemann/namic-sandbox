@@ -96,6 +96,13 @@ public:
   void SetInput( const InputImageType * image );
 
 
+  /** Set the image of priors. This is equivalent to an atlas. */
+  void SetClassPrior( const PriorsImageType * image );
+
+
+   /** Set number of Iterations */
+   itkSetMacro( MaximumNumberOfIterations, unsigned long );
+
 protected:
 
   ExpectationMaximizationImageClassification();
@@ -149,6 +156,8 @@ private:
 
   typename InputImageType::ConstPointer       m_InputImage;
 
+
+  unsigned long                               m_MaximumNumberOfIterations;
 };
 
 }
