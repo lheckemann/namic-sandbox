@@ -49,8 +49,8 @@ ExpectationMaximizationImageClassification< TImageType >
               const GaussianDensityFunctionType * gaussian,
               ProportionType proportion )
 {
-   m_Components.push_back( gaussian );
-   m_Proportions.push_back( proportion );
+   m_ClassIntensityDistributions.push_back( gaussian );
+   m_ClassProportions.push_back( proportion );
 }
 
 
@@ -97,25 +97,25 @@ ExpectationMaximizationImageClassification< TImageType >
 ::ComputeExpectation()
 {
 
-   typedef itk::ImageRegionIterator< WeightsImageType >     WeightsIterator;
-   typedef itk::ImageRegionConstIterator< InputImageType >     InputImageIterator;
+   typedef itk::ImageRegionIterator< WeightsImageType >        WeightsIterator;
    typedef itk::ImageRegionConstIterator< PriorsImageType >    PriorsImageIterator;
+   typedef itk::ImageRegionConstIterator< CorrectedImageType > CorrectedImageIterator;
 
    
-   WeightsIterator     witr( m_WeightsImage, m_WeightsImage->GetBufferedRegion() );
-   InputImageIterator  iitr( m_InputImage,   m_InputImage->GetBufferedRegion()   );
-   PriorsImageIterator pitr( m_PriorImage,   m_PriorImage->GetBufferedRegion()   );
+   WeightsIterator        witr( m_WeightsImage, m_WeightsImage->GetBufferedRegion() );
+   PriorsImageIterator    pitr( m_PriorImage,   m_PriorImage->GetBufferedRegion()   );
+   CorrectedImageIterator citr( m_CorrectedImage, m_CorrectedImage->GetBufferedRegion()   );
 
    witr.GoToBegin();
-   iitr.GoToBegin();
    pitr.GoToBegin();
+   citr.GoToBegin();
    
    while( witr.IsAtEnd() )
      {
-     iitr.Get();
+     citr.Get();
      ++witr;
-     ++iitr;
      ++pitr;
+     ++citr;
      }
 
 }

@@ -38,7 +38,7 @@ namespace Statistics {
  *
  */ 
  
-template < class TImageType >
+template < class TImageType, class TCorrectionPrecisionType=float >
 class ExpectationMaximizationImageClassification : 
    public Object
 {
@@ -64,6 +64,11 @@ public:
 
   typedef VectorImage< float, ImageDimension >         WeightsImageType;
   typedef VectorImage< float, ImageDimension >         PriorsImageType;
+
+  typedef TCorrectionPrecisionType                     CorrectedValueType;
+
+  typedef VectorImage< CorrectedValueType, 
+                       ImageDimension >                CorrectedImageType;
 
   typedef typename WeightsImageType::Pointer           WeightsImagePointer;
   typedef typename PriorsImageType::Pointer            PriorsImagePointer;
@@ -142,7 +147,7 @@ private:
   typedef std::vector< ProportionType >       ProportionsContainerType;
 
 
-  IntensityDistributionContainerType          m_ClassIntensityDistribution;
+  IntensityDistributionContainerType          m_ClassIntensityDistributions;
   
 
   WeightsImagePointer                         m_WeightsImage;
@@ -157,7 +162,11 @@ private:
   typename InputImageType::ConstPointer       m_InputImage;
 
 
+  typename CorrectedImageType::Pointer       m_CorrectedImage;
+
+
   unsigned long                               m_MaximumNumberOfIterations;
+
 };
 
 }
