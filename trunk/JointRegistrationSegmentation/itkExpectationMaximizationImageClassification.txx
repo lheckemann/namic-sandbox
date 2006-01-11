@@ -26,7 +26,7 @@ namespace Statistics {
 
 
 template < class TImageType, class TCorrectionPrecisionType >
-ExpectationMaximizationImageClassification< TImageType >
+ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
 ::ExpectationMaximizationImageClassification()
 {
 }
@@ -34,7 +34,7 @@ ExpectationMaximizationImageClassification< TImageType >
 
 
 template < class TImageType, class TCorrectionPrecisionType >
-ExpectationMaximizationImageClassification< TImageType >
+ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
 ::~ExpectationMaximizationImageClassification()
 {
 }
@@ -44,7 +44,7 @@ ExpectationMaximizationImageClassification< TImageType >
 
 template < class TImageType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType >
+ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
 ::AddIntensityDistributionDensity( 
               const GaussianDensityFunctionType * gaussian,
               ProportionType proportion )
@@ -59,7 +59,7 @@ ExpectationMaximizationImageClassification< TImageType >
 
 template < class TImageType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType >
+ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
 ::Update()
 {
    this->GenerateData();
@@ -70,7 +70,7 @@ ExpectationMaximizationImageClassification< TImageType >
 
 template < class TImageType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType >
+ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
 ::GenerateData()
 {
    this->ComputeExpectation();
@@ -83,7 +83,7 @@ ExpectationMaximizationImageClassification< TImageType >
 
 template < class TImageType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType >
+ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
 ::ComputeMaximization()
 {
 }
@@ -93,7 +93,7 @@ ExpectationMaximizationImageClassification< TImageType >
 
 template < class TImageType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType >
+ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
 ::ComputeExpectation()
 {
 
@@ -103,11 +103,9 @@ ExpectationMaximizationImageClassification< TImageType >
 
    
   WeightsIterator        witr( m_WeightsImage, m_WeightsImage->GetBufferedRegion() );
-  PriorsImageIterator    pitr( m_PriorImage,   m_PriorImage->GetBufferedRegion()   );
   CorrectedImageIterator citr( m_CorrectedImage, m_CorrectedImage->GetBufferedRegion()   );
 
   witr.GoToBegin();
-  pitr.GoToBegin();
   citr.GoToBegin();
    
   while( witr.IsAtEnd() )
@@ -128,7 +126,6 @@ ExpectationMaximizationImageClassification< TImageType >
       }
 
     ++witr;
-    ++pitr;
     ++citr;
     }
 
@@ -140,7 +137,7 @@ ExpectationMaximizationImageClassification< TImageType >
 
 template < class TImageType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType >
+ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
 ::InitializeWeightsImage()
 {
    m_WeightsImage = WeightsImageType::New();
@@ -156,7 +153,7 @@ ExpectationMaximizationImageClassification< TImageType >
 
 template < class TImageType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType >
+ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
 ::SetInput( const InputImageType * inputImage )
 {
    m_InputImage = inputImage;
@@ -167,7 +164,7 @@ ExpectationMaximizationImageClassification< TImageType >
 
 template < class TImageType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType >
+ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
 ::SetClassPrior( const PriorsImageType * priorImage )
 {
    m_ClassPriorImage = priorImage;
