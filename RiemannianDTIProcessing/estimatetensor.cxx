@@ -40,7 +40,7 @@ void print_vnl_vector(const GradientType &a)
 int main(int argc, const char* argv[])
 {
   if(argc < 2) {
-    std::cout << "Usage: " argv[0] << " <output file> <grad file> <baseline> <gradient files>"  << std::endl;
+    std::cout << "Usage: "  << argv[0] << " <output file> <grad file> <baseline> <gradient files>"  << std::endl;
     return 0;
     
   }
