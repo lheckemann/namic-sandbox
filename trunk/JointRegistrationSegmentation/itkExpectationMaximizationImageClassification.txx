@@ -25,16 +25,16 @@ namespace itk {
 namespace Statistics {
 
 
-template < class TImageType, class TCorrectionPrecisionType >
-ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
+template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::ExpectationMaximizationImageClassification()
 {
 }
 
 
 
-template < class TImageType, class TCorrectionPrecisionType >
-ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
+template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::~ExpectationMaximizationImageClassification()
 {
 }
@@ -42,9 +42,9 @@ ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType
 
 
 
-template < class TImageType, class TCorrectionPrecisionType >
+template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::AddIntensityDistributionDensity( 
               const GaussianDensityFunctionType * gaussian,
               ProportionType proportion )
@@ -57,9 +57,9 @@ ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType
 
 
 
-template < class TImageType, class TCorrectionPrecisionType >
+template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::Update()
 {
    this->GenerateData();
@@ -68,9 +68,9 @@ ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType
 
 
 
-template < class TImageType, class TCorrectionPrecisionType >
+template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::GenerateData()
 {
   unsigned long int i = 0;
@@ -85,9 +85,9 @@ ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType
 
  
 
-template < class TImageType, class TCorrectionPrecisionType >
+template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::ComputeMaximization()
 {
 }
@@ -95,9 +95,9 @@ ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType
 
  
 
-template < class TImageType, class TCorrectionPrecisionType >
+template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::ComputeExpectation()
 {
 
@@ -112,6 +112,10 @@ ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType
   witr.GoToBegin();
   citr.GoToBegin();
    
+  typedef typename WeightsImageType::IndexType  WeightsIndexType;
+
+  WeightsIndexType index;
+
   while( witr.IsAtEnd() )
     {
     index = witr.GetIndex();
@@ -124,7 +128,7 @@ ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType
 
     if( this->m_Interpolator->IsInsideBuffer( transformedPoint ) )
       {
-      const RealType priors  = this->m_Interpolator->Evaluate( transformedPoint );
+      const PriorPixelType prior  = this->m_Interpolator->Evaluate( transformedPoint );
       citr.Get();
       witr.Set();
       }
@@ -139,10 +143,10 @@ ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType
 
  
 
-template < class TImageType, class TCorrectionPrecisionType >
+template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
-::InitializeWeightsImage()
+ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
+::Initialize()
 {
    m_WeightsImage = WeightsImageType::New();
 
@@ -155,9 +159,9 @@ ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType
 
  
 
-template < class TImageType, class TCorrectionPrecisionType >
+template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::SetInput( const InputImageType * inputImage )
 {
    m_InputImage = inputImage;
@@ -166,9 +170,9 @@ ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType
 
  
 
-template < class TImageType, class TCorrectionPrecisionType >
+template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType, TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::SetClassPrior( const PriorsImageType * priorImage )
 {
    m_ClassPriorImage = priorImage;

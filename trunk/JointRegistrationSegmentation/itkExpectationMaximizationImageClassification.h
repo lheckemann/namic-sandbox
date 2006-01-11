@@ -19,7 +19,8 @@
 
 #include "itkGaussianDensityFunction.h"
 #include "itkVectorImage.h"
-#include "itkTransformBase.h"
+#include "itkTransform.h"
+#include "itkNearestNeighborInterpolateImageFunction.h"
 #include <vector>
 
 
@@ -37,7 +38,7 @@ namespace Statistics {
  *
  */ 
  
-template < class TImageType, class TCorrectionPrecisionType=float >
+template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType=float >
 class ExpectationMaximizationImageClassification : 
    public Object
 {
@@ -62,6 +63,9 @@ public:
                        ::itk::GetImageDimension< InputImageType >::ImageDimension );
 
   typedef VectorImage< float, ImageDimension >         WeightsImageType;
+
+  typedef TPriorPixelComponentType                     PriorPixelType;
+
   typedef VectorImage< PriorPixelType, 
                        ImageDimension >                PriorsImageType;
 
@@ -131,6 +135,19 @@ protected:
   void Initialize();
 
 
+  typedef   Transform<double, ImageDimension, ImageDimension >   TransformType;
+
+  typedef   typename TransformType::Pointer       TransformPointer;
+
+
+  typedef   NearestNeighborInterpolateImageFunction< 
+                                            MovingImageType,
+                                            double          
+                                                    >    InterpolatorType;
+
+  typedef   typename  InterpolatorType::Pointer           InterpolatorPointer;
+
+    
 private:
 
   ExpectationMaximizationImageClassification(const Self&) ; //purposely not implemented
@@ -168,7 +185,9 @@ private:
   unsigned long                              m_MaximumNumberOfIterations;
 
 
-  typename TransformBase::Pointer            m_Transform;
+  TransformPointer                           m_Transform;
+
+  InterpolatorPointer                        m_Interpolator;
 
 };
 

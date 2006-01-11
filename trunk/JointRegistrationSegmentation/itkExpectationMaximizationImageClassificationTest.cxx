@@ -53,9 +53,14 @@ int main( int argc, char *argv[] )
   reader->Update();
 
 
+  typedef float PriorsPixelComponentType;
+  typedef float WeightsPixelComponentType;
 
-
-  typedef itk::Statistics::ExpectationMaximizationImageClassification< InputImageType >   ClassifierType;
+  typedef itk::Statistics::ExpectationMaximizationImageClassification< 
+                                                           InputImageType, 
+                                                           PriorsPixelComponentType,
+                                                           WeightsPixelComponentType
+                                                                        >   ClassifierType;
 
   ClassifierType::Pointer   EMClassifier = ClassifierType::New();
 
@@ -68,11 +73,15 @@ int main( int argc, char *argv[] )
   GaussianDensityFunctionType::Pointer  gaussian3  = GaussianDensityFunctionType::New();
   GaussianDensityFunctionType::Pointer  gaussian4  = GaussianDensityFunctionType::New();
 
+  const double proportionClass1 = 0.4;
+  const double proportionClass2 = 0.8;
+  const double proportionClass3 = 0.9;
+  const double proportionClass4 = 0.3;
   
-  EMClassifier->AddGaussianComponent( gaussian1 );
-  EMClassifier->AddGaussianComponent( gaussian2 );
-  EMClassifier->AddGaussianComponent( gaussian3 );
-  EMClassifier->AddGaussianComponent( gaussian4 );
+  EMClassifier->AddIntensityDistributionDensity( gaussian1, proportionClass1 );
+  EMClassifier->AddIntensityDistributionDensity( gaussian2, proportionClass2 );
+  EMClassifier->AddIntensityDistributionDensity( gaussian3, proportionClass3 );
+  EMClassifier->AddIntensityDistributionDensity( gaussian4, proportionClass4 );
 
 
   EMClassifier->SetInput( reader->GetOutput() );
