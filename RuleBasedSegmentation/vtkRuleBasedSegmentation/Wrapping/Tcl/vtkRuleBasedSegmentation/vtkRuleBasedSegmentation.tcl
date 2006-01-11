@@ -5,8 +5,8 @@ package require vtk
 # library is uniquely available through this module
 #
 
-#if {[info commands vtkRuleBasedSegmentation] != "" ||
-#    [::vtk::load_component vtkRuleBasedSegmentationTCL] == ""} {
+if {[info commands vtkRuleBasedSegmentation] != "" ||
+    [::vtk::load_component vtkRuleBasedSegmentationTCL] == ""} {
     global PACKAGE_DIR_VTKRuleBasedSegmentation
     package provide vtkRuleBasedSegmentation 1.0
 
@@ -17,4 +17,4 @@ package require vtk
     # called by the Slicer Base code
     global Module
     lappend Module(customModules) RuleBasedSegmentation
-#}
+}
