@@ -76,9 +76,15 @@ public:
 
   typedef typename GaussianDensityFunctionType::ConstPointer  GaussianDensityFunctionPointer;
 
+  typedef double   ProportionType;
+
+  typedef std::vector< ProportionType >    ProportionsContainer;
+
  
   /**  Add a Gaussian density function to the list of Density functions to use.  */
-  void AddGaussianComponent( const GaussianDensityFunctionType * gaussian );
+  void AddGaussianComponent( const GaussianDensityFunctionType * gaussian,
+                             ProportionType proportion );
+
 
 
   /** This method triggers the computation of the estimation */
@@ -127,7 +133,10 @@ private:
   ComponentsContainerType                     m_Components;
   
 
-  WeightsImagePointer                      m_WeightsImage;
+  WeightsImagePointer                         m_WeightsImage;
+
+
+  ProportionsContainer                        m_Proportions;
 
   // this is the resampled atlas.
   PriorsImagePointer                          m_PriorImage;  
