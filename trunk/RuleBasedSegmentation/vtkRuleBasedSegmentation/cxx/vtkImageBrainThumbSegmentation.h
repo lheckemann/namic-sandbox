@@ -12,8 +12,7 @@
 
 =========================================================================auto=*/
 
-// .NAME vtkImageBrainThumbSegmentation - Run BrainThumbSegmentation's algorithm where nodes are points
-//  and edge values are scalars
+// .NAME vtkImageBrainThumbSegmentation - Segment brain "Thumbs" from imagery using the Fast Marching algorithm.
 // .SECTION Description
 // vtkImageBrainThumbSegmentation - 
 
@@ -37,104 +36,27 @@ class VTK_SLICER_BASE_EXPORT vtkImageBrainThumbSegmentation : public vtkImageToI
   vtkTypeMacro(vtkImageBrainThumbSegmentation,vtkImageToImageFilter);
   void PrintSelf(ostream& os, vtkIndent indent);
   
-  // Description
-  // the source point
-  vtkSetMacro(SourceID,int);
-  vtkGetMacro(SourceID,int);
+  // Seed points and input data do not need anything here???
 
-  // Description
-  // the sink point
-  vtkSetMacro(SinkID,int);
-  vtkGetMacro(SinkID,int);
-
+  // what is this?
   vtkGetObjectMacro(Parent,vtkIntArray);
 
-  
-  // Description
-  // the boundary scalars
-  vtkSetObjectMacro(BoundaryScalars,vtkDataArray);
-  vtkGetObjectMacro(BoundaryScalars,vtkDataArray);
+  // TODO: add Set/Get Macro for SeedPointList
 
-  // Description
-  // the number of points of the input
-  vtkSetMacro(NumberOfInputPoints,int);
-  vtkGetMacro(NumberOfInputPoints,int);
-  
-  // Description
-  // the number of nodes in the graph
-  vtkSetMacro(NumberOfGraphNodes,int);
-  vtkGetMacro(NumberOfGraphNodes,int);
-  
-  // Description:
-  // The point ids (of the input image) on the shortest path
-  vtkGetObjectMacro(ShortestPathIdList, vtkIdList);
-  
-  // Description:
-  // Get the summed weight for all vertices
-  //vtkGetObjectMacro(CumulativeWeightFromSource, vtkFloatArray);
-   
-  // Description:
-  vtkSetMacro(UseInverseDistance,int);
-  vtkGetMacro(UseInverseDistance,int);
-  
-  // Description:
-  vtkSetMacro(UseInverseSquaredDistance,int);
-  vtkGetMacro(UseInverseSquaredDistance,int);
-
-  // Description:
-  vtkSetMacro(UseInverseExponentialDistance,int);
-  vtkGetMacro(UseInverseExponentialDistance,int);
-
-  // Description:
-  vtkSetMacro(UseSquaredDistance,int);
-  vtkGetMacro(UseSquaredDistance,int);
-
-      
-  // Description:
-  unsigned long GetMTime();
-  
-  // path operations
-  void InitTraversePath();
-  int GetNextPathNode();
-  int GetNumberOfPathNodes();
-  
-
+  // is this the input data??
   void init(vtkImageData *inData);
   
-  // GRAPH
-  
-  // build a graph description of the image where nodes are points with
-  // a non-zero value
-  void CreateGraph(vtkImageData *inData);
-  void DeleteGraph();
-  void FindNeighbors(vtkIdList *list,int id, vtkDataArray *scalars); 
-  // given the id of a point in the image, return the id of the closest point 
-  // that belongs to the graph if the original point does not
-  int findClosestPointInGraph(vtkDataArray *scalars,int id,int dim0,int dim1, int dim2); 
-  
 
-  // ALGO
+  // ALGORITHM
   
   void InitSingleSource(int startv);
+
   // Calculate shortest path from vertex startv to vertex endv
   void RunBrainThumbSegmentation(vtkDataArray *scalars,int source, int sink);
-  // Relax edge u,v with weight w
-  //void Relax(int u, int v, float w);
+
   // edge cost
   float EdgeCost(vtkDataArray *scalars, int u, int v);
   void BuildShortestPath(int start,int end);
-  
-  // HEAP
-
-  // structure the heap
-  //void Heapify(int i);
-  // insert vertex v in heap. Weight is in d(v)
-  //void HeapInsert(int v);
-  // extract vertex with min d(v)
-  //int HeapExtractMin();
-  // Update heap when key d(v) has been decreased
-  //void HeapDecreaseKey(int v);
-        
   
   // VARIABLES
   
@@ -149,7 +71,6 @@ class VTK_SLICER_BASE_EXPORT vtkImageBrainThumbSegmentation : public vtkImageToI
 
   // the number of points if the graph
   int NumberOfInputPoints;
-  int NumberOfGraphNodes;
 
   int UseInverseDistance;
   int UseInverseSquaredDistance;
@@ -176,12 +97,6 @@ class VTK_SLICER_BASE_EXPORT vtkImageBrainThumbSegmentation : public vtkImageToI
   // f is the set of vertices wich has not a shortest path yet but has a path
   // ie. the front set (f(v) == 1 means that vertex v is in f)
   //vtkIntArray *f;
-  // the priority queue (a binary heap) with vertex indices
-  //vtkIntArray *Heap;
-  // p(v) the position of v in H (p and H are kindoff inverses)
-  //vtkIntArray *p;  
-  // The real number of elements in Heap != Heap.size()
-  //int Heapsize;
  
   int PathPointer;
   //vtkImageData* CachedImage;
@@ -202,8 +117,3 @@ protected:
 };
 
 #endif
-
-
-
-
-
