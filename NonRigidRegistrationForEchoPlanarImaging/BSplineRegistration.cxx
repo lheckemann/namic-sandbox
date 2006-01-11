@@ -130,7 +130,7 @@ int main( int argc, char *argv[] )
     return 1;
     }
   
-  const    unsigned int    ImageDimension = 2;
+  const    unsigned int    ImageDimension = 3;
   typedef  unsigned short    PixelType;
 
   typedef itk::OrientedImage< PixelType, ImageDimension >  FixedImageType;
@@ -354,7 +354,7 @@ int main( int argc, char *argv[] )
   //  Software Guide : EndLatex 
 
   // Software Guide : BeginCodeSnippet
-//  metric->ReinitializeSeed( 76926294 );
+  metric->ReinitializeSeed( 76926294 );
   // Software Guide : EndCodeSnippet
 
 
