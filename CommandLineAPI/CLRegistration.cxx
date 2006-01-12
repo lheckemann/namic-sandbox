@@ -465,7 +465,7 @@ int main ( int argc, const char* argv[] )
   catch( itk::ExceptionObject & err )
     {
     msg.str(""); msg << "Error Reading Fixed image: " << err;
-    logger->Error ( msg.str() );
+    logger->Write ( itk::LoggerBase::CRITICAL, msg.str() );
     return EXIT_FAILURE;
     }
 
@@ -478,7 +478,7 @@ int main ( int argc, const char* argv[] )
   catch( itk::ExceptionObject & err )
     {
     msg.str(""); msg << "Error Reading Moving image: " << err;
-    logger->Error ( msg.str() );
+    logger->Write ( itk::LoggerBase::CRITICAL, msg.str() );
     return EXIT_FAILURE;
     }
 
@@ -537,18 +537,18 @@ int main ( int argc, const char* argv[] )
   try
     {
     registration->StartRegistration();     
-    logger->Info ( "Registration finished" );
+    logger->Write ( itk::LoggerBase::INFO, "Registration finished" );
     } 
   catch( itk::ExceptionObject & err )
     {
     msg.str(""); msg << err;
-    logger->Error ( msg.str() );
+    logger->Write ( itk::LoggerBase::CRITICAL, msg.str() );
 
     exit ( EXIT_FAILURE );
     } 
   catch ( ... )
     {
-    logger->Fatal ( "Something bad!!!" );
+    logger->Write ( itk::LoggerBase::FATAL, "Something bad!!!" );
     exit ( EXIT_FAILURE );
     }
 
@@ -561,6 +561,10 @@ int main ( int argc, const char* argv[] )
   Resample->SetInput ( moving ); 
   transform->SetParameters ( registration->GetLastTransformParameters() );
 
+  fixed->Print ( std::cout );
+  moving->Print ( std::cout );
+  transform->Print ( std::cout );
+  
   Resample->SetTransform ( transform );
   Resample->SetInterpolator ( Interpolator );
   Resample->SetOutputParametersFromImage ( fixed );
@@ -573,7 +577,7 @@ int main ( int argc, const char* argv[] )
     cerr << err << endl;
     exit ( EXIT_FAILURE );
   }
-
+  
   exit ( EXIT_SUCCESS );
 }
   
