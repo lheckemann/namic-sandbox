@@ -30,6 +30,8 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 ::ExpectationMaximizationImageClassification()
 {
    this->m_Interpolator = InterpolatorType::New();
+   this->m_ClassProportions = ProportionsContainerType::New();
+   this->m_ClassIntensityDistributions = IntensityDistributionContainerType::New();
 }
 
 
@@ -50,8 +52,12 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
               const GaussianDensityFunctionType * gaussian,
               ProportionType proportion )
 {
-   this->m_ClassIntensityDistributions.push_back( gaussian );
-   this->m_ClassProportions.push_back( proportion );
+   this->m_ClassIntensityDistributions->InsertElement( 
+            this->m_ClassIntensityDistributions->Size(), gaussian );
+            
+   this->m_ClassProportions->InsertElement( 
+            this->m_ClassProportions->Size(), proportion );
+
 }
 
 
@@ -173,8 +179,10 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
       const CorrectedPixelType correctedInputPixel = citr.Get();
       for( unsigned int i=0; i<numberOfClasses; i++)
         {
-        weights[i] = prior[i] * this->m_ClassProportions[i] *
-                     this->m_ClassIntensityDistributions[i]->Evaluate( 
+        weights[i] = 
+              prior[i] * 
+              this->m_ClassProportions->GetElement(i) *
+              this->m_ClassIntensityDistributions->GetElement(i)->Evaluate( 
                                                           correctedInputPixel );
         }
       witr.Set( weights );
@@ -226,12 +234,12 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
    //   Checking that the number of intensity distribution match 
    //   the number of components of the priors image.
    //
-   if( this->m_ClassIntensityDistributions.size() != numberOfClasses )
+   if( this->m_ClassIntensityDistributions->Size() != numberOfClasses )
      { 
      itkExceptionMacro("Number of provided Intensity Distributions does not match the number of components in the priors");
      }
 
-   if( this->m_ClassProportions.size() != numberOfClasses )
+   if( this->m_ClassProportions->Size() != numberOfClasses )
      { 
      itkExceptionMacro("Number of classes proportions does not match the number of components in the priors");
      }
@@ -307,6 +315,19 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
      ++citr;
      }
  
+
+
+ 
+    //
+    // Setup the registration Module...
+    //
+
+
+
+    
+    //
+    // Setup the Image Inhomogeneity Correction Module...
+    //
 
 
 }

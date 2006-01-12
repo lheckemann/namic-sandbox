@@ -21,7 +21,7 @@
 #include "itkVectorImage.h"
 #include "itkTransform.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
-#include <vector>
+#include "itkVectorContainer.h"
 
 
 namespace itk {
@@ -174,20 +174,26 @@ private:
 
 
   /** Container that holds the list of Gaussian distributions for each one of the Structures. */
-  typedef std::vector< GaussianDensityFunctionPointer 
+  typedef VectorContainer< unsigned int, 
+                           GaussianDensityFunctionPointer 
                                         >     IntensityDistributionContainerType;
 
+  typedef typename IntensityDistributionContainerType::Pointer 
+                                              IntensityDistributionContainerPointer;
 
-  typedef std::vector< ProportionType >       ProportionsContainerType;
+  typedef VectorContainer< unsigned int,
+                           ProportionType >   ProportionsContainerType;
+
+  typedef typename ProportionsContainerType::Pointer  ProportionsContainerPointer;
 
 
-  IntensityDistributionContainerType          m_ClassIntensityDistributions;
+  IntensityDistributionContainerPointer       m_ClassIntensityDistributions;
   
 
   WeightsImagePointer                         m_WeightsImage;
 
 
-  ProportionsContainerType                    m_ClassProportions;
+  ProportionsContainerPointer                 m_ClassProportions;
 
   // this is the resampled atlas.
   PriorsImagePointer                          m_ClassPriorImage;  
@@ -207,6 +213,7 @@ private:
 
   TransformPointer                            m_Transform;
 
+  
   InterpolatorPointer                         m_Interpolator;
 
 };
