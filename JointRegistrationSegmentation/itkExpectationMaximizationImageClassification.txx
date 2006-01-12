@@ -75,13 +75,12 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 ::GenerateData()
 {
   unsigned long int i = 0;
+  this->InitializeExpectationMaximization();
 
-  this->ComputeExpectation();
-   
   while( i < m_MaximumNumberOfIterations-1 )
    {
-   this->ComputeMaximization();
    this->ComputeExpectation();
+   this->ComputeMaximization();
    }
 
   this->ComputeLabelMap();
