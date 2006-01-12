@@ -75,11 +75,16 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 ::GenerateData()
 {
   unsigned long int i = 0;
-  while( i < m_MaximumNumberOfIterations )
+
+  this->ComputeExpectation();
+   
+  while( i < m_MaximumNumberOfIterations-1 )
    {
-   this->ComputeExpectation();
    this->ComputeMaximization();
+   this->ComputeExpectation();
    }
+
+  this->ComputeLabelMap();
 }
 
 
@@ -120,22 +125,30 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
 ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
+::ComputeLabelMap()
+{
+}
+
+ 
+template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
+void
+ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::ComputeExpectation()
 {
 
   typedef itk::ImageRegionIterator< WeightsImageType >        WeightsIterator;
   typedef itk::ImageRegionConstIterator< PriorsImageType >    PriorsImageIterator;
-  typedef itk::ImageRegionConstIterator< CorrectedImageType > CorrectedImageIterator;
+  typedef itk::ImageRegionConstIterator< LogImageType >       CorrectedImageIterator;
    
   WeightsIterator        witr( m_WeightsImage,   m_WeightsImage->GetBufferedRegion() );
-  CorrectedImageIterator citr( m_CorrectedImage, m_CorrectedImage->GetBufferedRegion() );
+  CorrectedImageIterator citr( m_CorrectedLogImage, m_CorrectedLogImage->GetBufferedRegion() );
 
   witr.GoToBegin();
   citr.GoToBegin();
    
   typedef typename WeightsImageType::IndexType    WeightsIndexType;
   typedef typename WeightsImageType::PixelType    WeightsPixelType;
-  typedef typename CorrectedImageType::PixelType  CorrectedPixelType;
+  typedef typename LogImageType::PixelType        CorrectedPixelType;
 
   WeightsIndexType index;
   WeightsPixelType weights;
