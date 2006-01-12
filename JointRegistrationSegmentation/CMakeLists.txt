@@ -33,12 +33,20 @@ TARGET_LINK_LIBRARIES(itkExpectationMaximizationImageClassificationTest ITKStati
 
 
 
+ADD_EXECUTABLE(itkJointRegistrationSegmentationAlgorithmTest
+  itkJointRegistrationSegmentationAlgorithmTest.cxx 
+  )
+
+TARGET_LINK_LIBRARIES(itkJointRegistrationSegmentationAlgorithmTest ITKStatistics ITKIO ITKCommon ITKNumerics)
+
+
+
 
 
 
 ADD_EXECUTABLE(itkMRIInhomogeneityEstimatorTest
-  itkMRIInhomogeneityEstimatorTest.cxx 
-  )
+ itkMRIInhomogeneityEstimatorTest.cxx 
+ )
 
 TARGET_LINK_LIBRARIES(itkMRIInhomogeneityEstimatorTest ITKStatistics ITKIO ITKCommon ITKNumerics)
 
