@@ -29,6 +29,7 @@ template < class TImageType, class TPriorPixelComponentType, class TCorrectionPr
 ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::ExpectationMaximizationImageClassification()
 {
+   m_Interpolator = InterpolatorType::New();
 }
 
 
@@ -90,8 +91,29 @@ void
 ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::ComputeMaximization()
 {
+  this->ComputeRegistrationBetweenPriorsAndWeights();
+  this->ComputeInhomogeneityCorrection();
 }
 
+
+  
+
+template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
+void
+ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
+::ComputeRegistrationBetweenPriorsAndWeights()
+{
+}
+
+ 
+  
+
+template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
+void
+ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
+::ComputeInhomogeneityCorrection()
+{
+}
 
  
 
@@ -159,6 +181,22 @@ void
 ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::Initialize()
 {
+
+   if( !m_InputImage )
+     {
+     itkExceptionMacro("Input image has not been connected. Please use SetInput()");
+     }
+
+   if( !m_Transform )
+     {
+     itkExceptionMacro("Transform has not been connected");
+     }
+
+   if( !m_ClassPriorImage )
+     {
+     itkExceptionMacro("Priors image has not been connected. Please use SetClassPrior()");
+     }
+
    m_WeightsImage = WeightsImageType::New();
 
    m_WeightsImage->CopyInformation( m_InputImage );
