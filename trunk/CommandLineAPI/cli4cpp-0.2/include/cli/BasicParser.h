@@ -23,7 +23,7 @@
 #ifndef _basic_parser_h_included
 #define  _basic_parser_h_included
 
-#include <boost/shared_ptr.hpp>
+// #include <boost/shared_ptr.hpp>
 
 #include "Options.h"
 #include "CommandLine.h"
