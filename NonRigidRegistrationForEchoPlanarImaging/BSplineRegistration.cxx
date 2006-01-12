@@ -33,13 +33,12 @@
 // \index{itk::LBFGSBOptimizer}
 //
 //
-// Software Guide : EndLatex 
+// Software Guide : EndLatex
 
 #include "itkImageRegistrationMethod.h"
 #include "itkMattesMutualInformationImageToImageMetric.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkImage.h"
-#include "itkOrientedImage.h"
 #include "itkSquareImageFilter.h"
 #include "itkMeanSquaresImageToImageMetric.h"
 #include "itkImageRegionIteratorWithIndex.h"
@@ -81,6 +80,10 @@
 
 #include "itkImageMaskSpatialObject.h"
 
+
+#include "itkTextOutput.h"
+
+
 //  The following section of code implements a Command observer
 //  used to monitor the evolution of the registration process.
 //
@@ -120,6 +123,9 @@ public:
 
 int main( int argc, char *argv[] )
 {
+  itk::OutputWindow::SetInstance(itk::TextOutput::New().GetPointer() );
+  itk::Object::SetGlobalWarningDisplay(true);
+
   if( argc < 5 )
     {
     std::cerr << "Missing Parameters " << std::endl;
@@ -129,12 +135,12 @@ int main( int argc, char *argv[] )
     std::cerr << " [deformationField] ";
     return 1;
     }
-  
-  const    unsigned int    ImageDimension = 3;
-  typedef  unsigned short    PixelType;
 
-  typedef itk::OrientedImage< PixelType, ImageDimension >  FixedImageType;
-  typedef itk::OrientedImage< PixelType, ImageDimension >  MovingImageType;
+  const    unsigned int    ImageDimension = 3;
+  typedef  signed short    PixelType;
+
+  typedef itk::Image< PixelType, ImageDimension >  FixedImageType;
+  typedef itk::Image< PixelType, ImageDimension >  MovingImageType;
 
 
   //  Software Guide : BeginLatex
@@ -160,7 +166,7 @@ int main( int argc, char *argv[] )
   // Software Guide : EndCodeSnippet
 
 
-  typedef itk::LBFGSBOptimizer       OptimizerType;
+  typedef itk::LBFGSBOptimizer                          OptimizerType;
 
 
   typedef itk::MattesMutualInformationImageToImageMetric< 
@@ -292,9 +298,6 @@ int main( int argc, char *argv[] )
   registration->SetInitialTransformParameters( transform->GetParameters() );
   // Software Guide : EndCodeSnippet
 
- // std::cout << "Intial Parameters = " << std::endl;
-  //  std::cout << transform->GetParameters() << std::endl;
-
   //  Software Guide : BeginLatex
   //  
   //  Next we set the parameters of the LBFGSB Optimizer. 
@@ -303,6 +306,7 @@ int main( int argc, char *argv[] )
 
 
   // Software Guide : BeginCodeSnippet
+
   OptimizerType::BoundSelectionType boundSelect( transform->GetNumberOfParameters() );
   OptimizerType::BoundValueType upperBound( transform->GetNumberOfParameters() );
   OptimizerType::BoundValueType lowerBound( transform->GetNumberOfParameters() );
@@ -316,10 +320,11 @@ int main( int argc, char *argv[] )
   optimizer->SetLowerBound( lowerBound );
 
   optimizer->SetCostFunctionConvergenceFactor( 1e+7 );
-  optimizer->SetProjectedGradientTolerance( 1e-4 );
-  optimizer->SetMaximumNumberOfIterations( 500 );
+  optimizer->SetMaximumNumberOfIterations( 25 );
   optimizer->SetMaximumNumberOfEvaluations( 500 );
   optimizer->SetMaximumNumberOfCorrections( 12 );
+  optimizer->SetProjectedGradientTolerance( 1.5e-5 );
+
   // Software Guide : EndCodeSnippet
 
   // Create the Command observer and register it with the optimizer.
@@ -337,7 +342,7 @@ int main( int argc, char *argv[] )
   // Software Guide : BeginCodeSnippet
   metric->SetNumberOfHistogramBins( 50 );
 
-  const unsigned int numberOfSamples = fixedRegion.GetNumberOfPixels() / 100;
+  const unsigned int numberOfSamples = fixedRegion.GetNumberOfPixels() / 80;
 
   metric->SetNumberOfSpatialSamples( numberOfSamples );
   // Software Guide : EndCodeSnippet
@@ -364,7 +369,7 @@ int main( int argc, char *argv[] )
   // set up fixed image mask
   typedef itk::ImageMaskSpatialObject< ImageDimension >   MaskType;
   MaskType::Pointer  spatialObjectMask = MaskType::New();
-  typedef itk::OrientedImage< unsigned char, ImageDimension >   ImageMaskType;
+  typedef itk::Image< unsigned char, ImageDimension >   ImageMaskType;
   ImageMaskType::Pointer fixedImageMask = ImageMaskType::New();
   fixedImageMask->CopyInformation( fixedImage );
   fixedImageMask->SetRegions(fixedImageMask->GetLargestPossibleRegion());
@@ -433,12 +438,12 @@ int main( int argc, char *argv[] )
   resample->SetOutputSpacing( fixedImage->GetSpacing() );
   resample->SetDefaultPixelValue( 100 );
   
-  typedef  unsigned short  OutputPixelType;
+  typedef signed short  OutputPixelType;
 
-  typedef itk::OrientedImage< OutputPixelType, ImageDimension > OutputImageType;
+  typedef itk::Image< OutputPixelType, ImageDimension > OutputImageType;
   
   typedef itk::CastImageFilter< 
-                        FixedImageType,
+                        MovingImageType,
                         OutputImageType > CastFilterType;
                     
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;
@@ -533,7 +538,7 @@ int main( int argc, char *argv[] )
     {
 
     typedef itk::Vector< float, ImageDimension >  VectorType;
-    typedef itk::OrientedImage< VectorType, ImageDimension >  DeformationFieldType;
+    typedef itk::Image< VectorType, ImageDimension >  DeformationFieldType;
 
     DeformationFieldType::Pointer field = DeformationFieldType::New();
     field->SetRegions( fixedRegion );
