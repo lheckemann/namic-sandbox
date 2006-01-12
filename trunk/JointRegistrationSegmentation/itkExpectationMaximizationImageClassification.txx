@@ -215,9 +215,7 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
    m_WeightsImage = WeightsImageType::New();
 
    m_WeightsImage->CopyInformation( m_InputImage );
-
    m_WeightsImage->SetVectorLength( m_ClassPriorImage->GetVectorLength() ); 
-
    m_WeightsImage->Allocate();
 
 
@@ -243,9 +241,12 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
      }
  
 
+   //
    // Compute the Log ( pixel + 1 )
+   //
 
    m_LogInputImage->CopyInformation( m_InputImage );
+   m_LogInputImage->SetVectorLength( m_InputImage->GetVectorLength() );
    m_LogInputImage->Allocate();
    
    typedef itk::ImageRegionIterator< LogImageType >    LogImageIterator;
@@ -270,11 +271,26 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
      }
  
 
-
+   //
    //  Copy the log image into the Corrected Log image.
+   //
    m_CorrectedLogImage->CopyInformation( m_LogInputImage );
+   m_CorrectedLogImage->SetVectorLength( m_LogInputImage->GetVectorLength() );
    m_CorrectedLogImage->Allocate();
    
+   LogImageIterator citr( m_CorrectedLogImage, m_CorrectedLogImage->GetBufferedRegion() );
+
+   litr.GoToBegin();
+   citr.GoToBegin();
+
+   while( litr.IsAtEnd() )
+     {
+     citr.Set( litr.Get() );
+     ++litr;
+     ++citr;
+     }
+ 
+
 
 }
 
