@@ -74,7 +74,7 @@ public:
   typedef TCorrectionPrecisionType                     CorrectedValueType;
 
   typedef VectorImage< CorrectedValueType, 
-                       ImageDimension >                CorrectedImageType;
+                       ImageDimension >                LogImageType;
 
   typedef typename WeightsImageType::Pointer           WeightsImagePointer;
   typedef typename PriorsImageType::Pointer            PriorsImagePointer;
@@ -129,6 +129,9 @@ protected:
 
   /** Compute the correction for the inhomogeneity field. */
   void ComputeInhomogeneityCorrection();
+
+  /** Compute the label map resulting from the Weights */
+  void ComputeLabelMap();
 
   /** Initialize the allocation of the Weights image Initialize the corrected
    *  image and the weights. Throws exceptions is something goes wrong */
@@ -186,16 +189,19 @@ private:
 
   typename InputImageType::ConstPointer       m_InputImage;
 
-
-  typename CorrectedImageType::Pointer       m_CorrectedImage;
-
-
-  unsigned long                              m_MaximumNumberOfIterations;
+  
+  typename LogImageType::ConstPointer         m_LogInputImage;
 
 
-  TransformPointer                           m_Transform;
+  typename LogImageType::Pointer              m_CorrectedLogImage;
 
-  InterpolatorPointer                        m_Interpolator;
+
+  unsigned long                               m_MaximumNumberOfIterations;
+
+
+  TransformPointer                            m_Transform;
+
+  InterpolatorPointer                         m_Interpolator;
 
 };
 
