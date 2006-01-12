@@ -104,19 +104,21 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
   typedef itk::ImageRegionIterator< WeightsImageType >        WeightsIterator;
   typedef itk::ImageRegionConstIterator< PriorsImageType >    PriorsImageIterator;
   typedef itk::ImageRegionConstIterator< CorrectedImageType > CorrectedImageIterator;
-
    
-  WeightsIterator        witr( m_WeightsImage, m_WeightsImage->GetBufferedRegion() );
-  CorrectedImageIterator citr( m_CorrectedImage, m_CorrectedImage->GetBufferedRegion()   );
+  WeightsIterator        witr( m_WeightsImage,   m_WeightsImage->GetBufferedRegion() );
+  CorrectedImageIterator citr( m_CorrectedImage, m_CorrectedImage->GetBufferedRegion() );
 
   witr.GoToBegin();
   citr.GoToBegin();
    
-  typedef typename WeightsImageType::IndexType  WeightsIndexType;
-  typedef typename WeightsImageType::PixelType  WeightsPixelType;
+  typedef typename WeightsImageType::IndexType    WeightsIndexType;
+  typedef typename WeightsImageType::PixelType    WeightsPixelType;
+  typedef typename CorrectedImageType::PixelType  CorrectedPixelType;
 
   WeightsIndexType index;
   WeightsPixelType weights;
+
+  const unsigned int numberOfClasses = m_ClassPriorImage->GetVectorLength();
 
   while( witr.IsAtEnd() )
     {
@@ -130,8 +132,15 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 
     if( this->m_Interpolator->IsInsideBuffer( transformedPoint ) )
       {
-      const PriorsPixelType prior  = this->m_Interpolator->Evaluate( transformedPoint );
-      citr.Get();
+      const PriorsPixelType prior  = 
+             this->m_Interpolator->Evaluate( transformedPoint );
+      const CorrectedPixelType correctedInputPixel = citr.Get();
+      for( unsigned int i=0; i<numberOfClasses; i++)
+        {
+        weights[i] = prior[i] * m_ClassProportions[i] *
+                     m_ClassIntensityDistributions[i]->Evaluate( 
+                                                          correctedInputPixel );
+        }
       witr.Set( weights );
       }
 
