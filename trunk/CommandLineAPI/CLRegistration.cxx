@@ -274,7 +274,7 @@ int main ( int argc, const char* argv[] )
       exit ( EXIT_SUCCESS );
       }
 
-    HistogramBins = atoi ( cl.getOptionValue ( "c", "30" ).c_str() );
+    HistogramBins = atoi ( cl.getOptionValue ( "b", "30" ).c_str() );
     RandomSeed = atoi ( cl.getOptionValue ( "d", "1234567" ).c_str() );
     GradientMagnitudeTolerance = atof ( cl.getOptionValue ( "g", "0.0001" ).c_str() );
     Iterations = Parse<unsigned int> ( cl.getOptionValue ( "i", "200" ) );
