@@ -74,8 +74,10 @@ void
 ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::GenerateData()
 {
+
+  this->Initialize();
+
   unsigned long int i = 0;
-  this->InitializeExpectationMaximization();
 
   while( i < m_MaximumNumberOfIterations-1 )
    {
@@ -85,6 +87,7 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
   this->ComputeExpectation();
   this->ComputeLabelMap();
 }
+
 
 
 
@@ -213,7 +216,66 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 
    m_WeightsImage->CopyInformation( m_InputImage );
 
+   m_WeightsImage->SetVectorLength( m_ClassPriorImage->GetVectorLength() ); 
+
    m_WeightsImage->Allocate();
+
+
+   // Check the input image for negative values
+   typedef itk::ImageRegionConstIterator< InputImageType >    InputImageIterator;
+   
+   InputImageIterator  iitr( m_InputImage,   m_InputImage->GetBufferedRegion() );
+
+   const unsigned int numberOfComponents = m_InputImage->GetVectorLength();
+
+   iitr.GoToBegin();
+   while( iitr.IsAtEnd() )
+     {
+     InputPixelType pixel = iitr.Get();
+     for(unsigned int i=0; i<numberOfComponents; i++)
+       {
+       if( pixel[i] < 0 )
+         {
+         itkExceptionMacro("Input image contains negative values");
+         }
+       }
+     ++iitr;
+     }
+ 
+
+   // Compute the Log ( pixel + 1 )
+
+   m_LogInputImage->CopyInformation( m_InputImage );
+   m_LogInputImage->Allocate();
+   
+   typedef itk::ImageRegionConstIterator< LogImageType >    LogImageIterator;
+
+   LogImageIterator litr( m_LogInputImage, m_LogInputImage->GetBufferedRegion() );
+
+   iitr.GoToBegin();
+   litr.GoToBegin();
+
+   LogPixelType logPixel;
+   
+   while( iitr.IsAtEnd() )
+     {
+     InputPixelType pixel = iitr.Get();
+     for(unsigned int i=0; i<numberOfComponents; i++)
+       {
+       logPixel[i] = log( pixel[i] + 1.0 );
+       }
+     litr.Set( logPixel );
+     ++litr;
+     ++iitr;
+     }
+ 
+
+
+   //  Copy the log image into the Corrected Log image.
+   m_CorrectedLogImage->CopyInformation( m_LogInputImage );
+   m_CorrectedLogImage->Allocate();
+   
+
 }
 
 

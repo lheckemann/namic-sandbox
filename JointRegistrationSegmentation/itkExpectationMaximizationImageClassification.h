@@ -76,10 +76,13 @@ public:
   typedef VectorImage< CorrectedValueType, 
                        ImageDimension >                LogImageType;
 
+  typedef typename LogImageType::PixelType             LogPixelType;
+
   typedef typename WeightsImageType::Pointer           WeightsImagePointer;
   typedef typename PriorsImageType::Pointer            PriorsImagePointer;
 
-  typedef typename  InputImageType::PixelType          MeasurementVectorType;
+  typedef typename  InputImageType::PixelType          InputPixelType;
+  typedef           InputPixelType                     MeasurementVectorType;
 
   typedef GaussianDensityFunction< MeasurementVectorType >  GaussianDensityFunctionType;
 
