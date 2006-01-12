@@ -30,6 +30,8 @@ MRIInhomogeneityEstimator< TInputImage >
     m_NumberOfClasses( 0 ),
     m_StructureIntensityDistributionContainer( NULL )
 {
+  this->SetNumberOfRequiredInputs(2);
+  this->SetNumberOfRequiredOutputs(1);
 }
 
 template < class TInputImage >
@@ -41,9 +43,34 @@ MRIInhomogeneityEstimator< TInputImage >
 template < class TInputImage >
 void
 MRIInhomogeneityEstimator< TInputImage >
+::SetWeightsImage(const WeightsImageType* image) 
+{ 
+  // Process object is not const-correct so the const_cast is required here
+  this->ProcessObject::SetNthInput(1, 
+                                   const_cast< WeightsImageType* >( image ) );
+}
+
+template < class TInputImage >
+const MRIInhomogeneityEstimator< class TInputImage >::WeightsImageType*
+MRIInhomogeneityEstimator< TInputImage >
+::GetWeightsImage() const
+{
+  if (this->GetNumberOfInputs() < 2)
+    {
+    return 0;
+    }
+  
+  return static_cast<const WeightsImageType * >
+    (this->ProcessObject::GetInput(1) );
+}
+
+template < class TInputImage >
+void
+MRIInhomogeneityEstimator< TInputImage >
 ::GenerateData()
 {
-  if (!this->GetInput()) 
+  InputImageType *input = this->GetInput();
+  if (input) 
     {
     return;
     }
@@ -55,6 +82,25 @@ MRIInhomogeneityEstimator< TInputImage >
     itkExceptionMacro( << "Number of channels in input must be equal to number "
         << "of gaussian functions supplied");
     }
+
+  this->m_NumberOfClasses = this->m_StructureIntensityDistributionContainer->Size();
+
+  typedef itk::ImageRegionConstIterator< InputImageType > ConstIteratorType;
+
+  // Iterator over the input image 
+  ConstIteratorType cit( input, input->GetBufferedRegion() );
+  cit.GoToBegin();
+  
+  for (unsigned int classIdx = 0; classIdx < this->m_NumberOfClasses; classIdx++)
+    {
+    while (!cit.IsAtEnd())
+      {
+      (cit.Get() - m_StructureIntensityDistributionContainer->GetElement(i)->GetMean());
+      }
+    }
+      
+    }
+  
 
 }
 
@@ -75,6 +121,8 @@ void
 MRIInhomogeneityEstimator< TInputImage >
 ::InitializeStructureIntensityDistributions()
 {
+  // TODO: Initialize the gaussians from KMeans or something...
+  //
   // Typedefs for the KMeans filter, Covariance calculator...
   typedef ScalarImageKmeansImageFilter< InputImageType > KMeansFilterType;
   typedef typename KMeansFilterType::OutputImageType  KMeansOutputImageType;

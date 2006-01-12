@@ -75,6 +75,13 @@ public:
   typedef typename StructureIntensityDistributionContainerType::Pointer         
                                     StructureIntensityDistributionContainerPointer;
  
+  
+  /** The weights image is an image of floats of the same dimension and size 
+   * and number of components as the input image. This is the image estimate
+   * obtained from the E step */
+  virtual void SetWeightsImage( const WeightsImageType * );
+  const WeightsImageType * GetWeightsImage() const;
+
   /** Method to set/get the density functions. Here you can set a vector 
    * container of density functions. If no density functions are specified,
    * the filter will create ones for you. These default density functions
