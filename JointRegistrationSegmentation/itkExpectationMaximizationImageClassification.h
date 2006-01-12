@@ -108,7 +108,10 @@ public:
   void SetInput( const InputImageType * image );
 
 
-  /** Set the image of priors. This is equivalent to an atlas. */
+  /** Set the image of priors. This is equivalent to an atlas.    */
+  /*  The method assumes that the first class prior defines       */
+  /*  the background.                                             */ 
+
   void SetClassPrior( const PriorsImageType * image );
 
 
