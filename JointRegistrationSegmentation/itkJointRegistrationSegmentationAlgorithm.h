@@ -17,18 +17,16 @@
 #ifndef __itkJointRegistrationSegmentationAlgorithm_h
 #define __itkJointRegistrationSegmentationAlgorithm_h
 
-#include "itkGaussianDensityFunction.h"
-#include "itkVectorImage.h"
-#include "itkTransform.h"
-#include "itkNearestNeighborInterpolateImageFunction.h"
-#include "itkVectorContainer.h"
+
+
+#include "itkExpectationMaximizationImageClassification.h"
 
 
 namespace itk {
 
 namespace Statistics {
 
-/** \brief  Generic implementation of the Expectation Maximization  Algorithm.
+/** \brief  Specific implementation of the Expectation Maximization  Algorithm.
  *
  *  \class JointRegistrationSegmentationAlgorithm is the base class for the family of
  *  Expectation and Maximization algorithms. This class provides the
@@ -40,19 +38,24 @@ namespace Statistics {
  
 template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType=float >
 class JointRegistrationSegmentationAlgorithm : 
-   public Object
+   public ExpectationMaximizationImageClassification< TImageType, 
+                                                      TPriorPixelComponentType, 
+                                                      TCorrectionPrecisionType >
 {
 
 public:
 
   typedef JointRegistrationSegmentationAlgorithm             Self;
-  typedef Object                                                 Superclass;
+  typedef ExpectationMaximizationImageClassification< 
+                              TImageType, 
+                              TPriorPixelComponentType, 
+                              TCorrectionPrecisionType >         Superclass;
   typedef SmartPointer< Self >                                   Pointer;
   typedef SmartPointer< const Self >                             ConstPointer;
 
   itkNewMacro( Self );
 
-  itkTypeMacro( JointRegistrationSegmentationAlgorithm, Object );
+  itkTypeMacro( JointRegistrationSegmentationAlgorithm, ExpectationMaximizationImageClassification );
 
 
 public:
