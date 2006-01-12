@@ -91,7 +91,6 @@ int main( int argc, char *argv[] )
     { 
 
     EMClassifier->Update();
-    // Invoke from here the execution of the classification.
 
     } 
   catch( itk::ExceptionObject & err ) 

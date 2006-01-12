@@ -214,9 +214,28 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 
    m_WeightsImage = WeightsImageType::New();
 
+   const unsigned int numberOfClasses =  m_ClassPriorImage->GetVectorLength();
+
    m_WeightsImage->CopyInformation( m_InputImage );
-   m_WeightsImage->SetVectorLength( m_ClassPriorImage->GetVectorLength() ); 
+   m_WeightsImage->SetVectorLength(); 
    m_WeightsImage->Allocate();
+
+
+   //
+   //   Checking that the number of intensity distribution match 
+   //   the number of components of the priors image.
+   //
+   if( m_ClassIntensityDistributions.size() != numberOfClasses )
+     { 
+     itkExceptionMacro("Number of provided Intensity Distributions does not
+     match the number of components in the priors");
+     }
+
+   if( m_ClassProportions.size() != numberOfClasses )
+     { 
+     itkExceptionMacro("Number of classes proportions does not
+     match the number of components in the priors");
+     }
 
 
    // Check the input image for negative values
