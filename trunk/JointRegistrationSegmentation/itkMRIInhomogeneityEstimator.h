@@ -79,8 +79,8 @@ public:
   /** The weights image is an image of floats of the same dimension and size 
    * and number of components as the input image. This is the image estimate
    * obtained from the E step */
-  virtual void SetWeightsImage( const WeightsImageType * );
-  const WeightsImageType * GetWeightsImage() const;
+  virtual void SetMembershipImage( const MembershipImageType * );
+  const MembershipImageType * GetMembershipImage() const;
 
   /** Method to set/get the density functions. Here you can set a vector 
    * container of density functions. If no density functions are specified,

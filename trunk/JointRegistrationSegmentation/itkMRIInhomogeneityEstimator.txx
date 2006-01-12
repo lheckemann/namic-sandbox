@@ -43,24 +43,24 @@ MRIInhomogeneityEstimator< TInputImage >
 template < class TInputImage >
 void
 MRIInhomogeneityEstimator< TInputImage >
-::SetWeightsImage(const WeightsImageType* image) 
+::SetMembershipImage(const MembershipImageType* image) 
 { 
   // Process object is not const-correct so the const_cast is required here
   this->ProcessObject::SetNthInput(1, 
-                                   const_cast< WeightsImageType* >( image ) );
+                                   const_cast< MembershipImageType* >( image ) );
 }
 
 template < class TInputImage >
-const MRIInhomogeneityEstimator< class TInputImage >::WeightsImageType*
+const MRIInhomogeneityEstimator< class TInputImage >::MembershipImageType*
 MRIInhomogeneityEstimator< TInputImage >
-::GetWeightsImage() const
+::GetMembershipImage() const
 {
   if (this->GetNumberOfInputs() < 2)
     {
     return 0;
     }
   
-  return static_cast<const WeightsImageType * >
+  return static_cast<const MembershipImageType * >
     (this->ProcessObject::GetInput(1) );
 }
 
@@ -70,14 +70,18 @@ MRIInhomogeneityEstimator< TInputImage >
 ::GenerateData()
 {
   InputImageType *input = this->GetInput();
-  if (input) 
+  MembershipImageType *weights = this->GetMembershipImage();
+  
+  if (!input || !weights) 
     {
     return;
     }
   
   if (this->m_StructureIntensityDistributionContainer && 
-      this->m_StructureIntensityDistributionContainer->Size() !=
-        this->GetInput()->GetVectorLength() )
+      (this->m_StructureIntensityDistributionContainer->Size() !=
+        this->GetInput()->GetVectorLength() 
+       || this->m_StructureIntensityDistributionContainer->Size() !=
+        this->GetMembershipImage()->GetVectorLength() ))
     {
     itkExceptionMacro( << "Number of channels in input must be equal to number "
         << "of gaussian functions supplied");
@@ -85,22 +89,36 @@ MRIInhomogeneityEstimator< TInputImage >
 
   this->m_NumberOfClasses = this->m_StructureIntensityDistributionContainer->Size();
 
-  typedef itk::ImageRegionConstIterator< InputImageType > ConstIteratorType;
+  typedef itk::ImageRegionConstIterator< InputImageType > ConstInputIteratorType;
+  typedef itk::ImageRegionConstIterator< MembershipImageType > ConstMembershipIteratorType;
+  typedef itk::ImageRegionConstIterator< OutputImageType > OutputImageIteratorType;
 
   // Iterator over the input image 
-  ConstIteratorType cit( input, input->GetBufferedRegion() );
-  cit.GoToBegin();
+  ConstInputIteratorType  cIit( input, input->GetBufferedRegion() );
+  ConstMembershipIteratorType cWit( weights, weights->GetBufferedRegion() );
+  OutputImageIteratorType cOit( output, output->GetBufferedRegion() );
   
-  for (unsigned int classIdx = 0; classIdx < this->m_NumberOfClasses; classIdx++)
+  cIit.GoToBegin();
+  cWit.GoToBegin();
+  cOit.GoToBegin();
+  
+  while (!cIit.IsAtEnd())
     {
-    while (!cit.IsAtEnd())
+    MembershipImageType::PixelType membershipPixel = cWit.Get();
+    InputImageType::PixelType inputPixel = cIit.Get();
+    
+    for (unsigned int classIdx = 0; classIdx < this->m_NumberOfClasses; classIdx++)
       {
-      (cit.Get() - m_StructureIntensityDistributionContainer->GetElement(i)->GetMean());
+      cOit.Set(membershipPixel * 
+       m_StructureIntensityDistributionContainer->GetElement(
+         classIdx)->GetCovariance() * (inputPixel - 
+           m_StructureIntensityDistributionContainer->GetElement(classIdx)->GetMean()));
       }
+    ++cOit;
+    ++cWit;
+    ++cIit;
     }
       
-    }
-  
 
 }
 
