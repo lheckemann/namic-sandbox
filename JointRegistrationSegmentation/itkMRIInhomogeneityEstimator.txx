@@ -102,6 +102,19 @@ MRIInhomogeneityEstimator< TInputImage >
   cWit.GoToBegin();
   cOit.GoToBegin();
   
+  typedef VectorContainer< 
+    unsigned int, GaussianMembershipFunctionType::CovarianceType 
+                      >    InverseCovarianceContainerType;
+  InverseCovarianceContainerType::Pointer inverseCovarianceContainer = 
+     InverseCovarianceContainerType::New();
+  StructureIntensityDistributionContainerType inverseCovarianceContainer( 
+                                                 this->m_NumberOfClasses );
+  for (unsigned int i=0; i<this->m_NumberOfClasses; i++)
+    {
+    inverseCovarianceContainer->InsertElement( i, 
+      m_StructureIntensityDistributionContainer->GetElement(i)->GetCovariance()->GetInverse());
+    }
+
   while (!cIit.IsAtEnd())
     {
     MembershipImageType::PixelType membershipPixel = cWit.Get();
@@ -109,8 +122,8 @@ MRIInhomogeneityEstimator< TInputImage >
     
     for (unsigned int classIdx = 0; classIdx < this->m_NumberOfClasses; classIdx++)
       {
-      cOit.Set(membershipPixel * 
-       m_StructureIntensityDistributionContainer->GetElement(
+      cOit.Set(membershipPixel[classIdx] * 
+       inverseCovarianceContainer->GetElement(
          classIdx)->GetCovariance() * (inputPixel - 
            m_StructureIntensityDistributionContainer->GetElement(classIdx)->GetMean()));
       }
@@ -118,8 +131,6 @@ MRIInhomogeneityEstimator< TInputImage >
     ++cWit;
     ++cIit;
     }
-      
-
 }
 
 template < class TInputImage >
