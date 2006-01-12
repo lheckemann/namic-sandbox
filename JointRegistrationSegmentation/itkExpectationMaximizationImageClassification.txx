@@ -248,7 +248,7 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
    m_LogInputImage->CopyInformation( m_InputImage );
    m_LogInputImage->Allocate();
    
-   typedef itk::ImageRegionConstIterator< LogImageType >    LogImageIterator;
+   typedef itk::ImageRegionIterator< LogImageType >    LogImageIterator;
 
    LogImageIterator litr( m_LogInputImage, m_LogInputImage->GetBufferedRegion() );
 
