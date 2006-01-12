@@ -64,10 +64,12 @@ public:
 
   typedef VectorImage< float, ImageDimension >         WeightsImageType;
 
-  typedef TPriorPixelComponentType                     PriorPixelType;
+  typedef TPriorPixelComponentType                     PriorPixelComponentType;
 
-  typedef VectorImage< PriorPixelType, 
+  typedef VectorImage< PriorPixelComponentType, 
                        ImageDimension >                PriorsImageType;
+
+  typedef typename PriorsImageType::PixelType          PriorsPixelType;
 
   typedef TCorrectionPrecisionType                     CorrectedValueType;
 
@@ -141,9 +143,8 @@ protected:
 
 
   typedef   NearestNeighborInterpolateImageFunction< 
-                                            MovingImageType,
-                                            double          
-                                                    >    InterpolatorType;
+                                            PriorsImageType,
+                                            double >      InterpolatorType;
 
   typedef   typename  InterpolatorType::Pointer           InterpolatorPointer;
 

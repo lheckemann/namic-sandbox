@@ -113,8 +113,10 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
   citr.GoToBegin();
    
   typedef typename WeightsImageType::IndexType  WeightsIndexType;
+  typedef typename WeightsImageType::PixelType  WeightsPixelType;
 
   WeightsIndexType index;
+  WeightsPixelType weights;
 
   while( witr.IsAtEnd() )
     {
@@ -128,9 +130,9 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 
     if( this->m_Interpolator->IsInsideBuffer( transformedPoint ) )
       {
-      const PriorPixelType prior  = this->m_Interpolator->Evaluate( transformedPoint );
+      const PriorsPixelType prior  = this->m_Interpolator->Evaluate( transformedPoint );
       citr.Get();
-      witr.Set();
+      witr.Set( weights );
       }
 
     ++witr;
