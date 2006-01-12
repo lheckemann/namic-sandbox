@@ -109,34 +109,41 @@ public:
   void SetClassPrior( const PriorsImageType * image );
 
 
-   /** Set number of Iterations */
-   itkSetMacro( MaximumNumberOfIterations, unsigned long );
+  /** Set number of Iterations */
+  itkSetMacro( MaximumNumberOfIterations, unsigned long );
+
 
 protected:
 
+  /** Constructor */
   ExpectationMaximizationImageClassification();
 
+  /** Destructor */
   ~ExpectationMaximizationImageClassification();
-
-
-  /** This method compute the update of parameters to be estimated based on the
-    * weights and the list of samples (observations) */
-  void ComputeMaximization();
- 
-  /** This method updates the weights (or posteriors) based on the current
-   * parameters and the collection of samples (observations). */
-  void ComputeExpectation();
-
 
   /** This method performs the actual computation of the classification */
   void GenerateData();
 
+  /** Register the current weights image with the Class Priors image. */
+  void ComputeRegistrationBetweenPriorsAndWeights();
+
+  /** Compute the correction for the inhomogeneity field. */
+  void ComputeInhomogeneityCorrection();
 
   /** Initialize the allocation of the Weights image Initialize the corrected
- * image and the weights. Throws exceptions is something goes wrong */
+   *  image and the weights. Throws exceptions is something goes wrong */
   void Initialize();
 
+  /** This method compute the update of parameters to be estimated based on the
+   *  weights and the list of samples (observations) */
+  void ComputeMaximization();
+ 
+  /** This method updates the weights (or posteriors) based on the current
+   *  parameters and the collection of samples (observations). */
+  void ComputeExpectation();
 
+
+  /** Base class of a generic transform */
   typedef   Transform<double, ImageDimension, ImageDimension >   TransformType;
 
   typedef   typename TransformType::Pointer       TransformPointer;
