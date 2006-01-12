@@ -193,7 +193,7 @@ private:
   typename InputImageType::ConstPointer       m_InputImage;
 
   
-  typename LogImageType::ConstPointer         m_LogInputImage;
+  typename LogImageType::Pointer              m_LogInputImage;
 
 
   typename LogImageType::Pointer              m_CorrectedLogImage;
