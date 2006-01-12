@@ -55,8 +55,9 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #include "vtkITKImageToImageFilterFUC.h"
 #include "itkBayesianClassificationImageFilter.h"
 #include "vtkObjectFactory.h"
+#include "vtkRuleBasedSegmentationConfigure.h"
 
-class VTK_EXPORT vtkITKBayesianClassifierImageFilter : public vtkITKImageToImageFilterFUC
+class VTK_RULEBASEDSEGMENTATION_EXPORT vtkITKBayesianClassifierImageFilter : public vtkITKImageToImageFilterFUC
 {
  public:
   static vtkITKBayesianClassifierImageFilter *New();

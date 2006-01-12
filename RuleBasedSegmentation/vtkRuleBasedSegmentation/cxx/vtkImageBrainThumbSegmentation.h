@@ -26,10 +26,10 @@
 #include "vtkImageData.h"
 #include "vtkImageToImageFilter.h"
 #include "vtkPriorityQueue.h"
-#include "vtkSlicer.h"
+#include "vtkRuleBasedSegmentationConfigure.h"
 
 
-class VTK_SLICER_BASE_EXPORT vtkImageBrainThumbSegmentation : public vtkImageToImageFilter
+class VTK_RULEBASEDSEGMENTATION_EXPORT vtkImageBrainThumbSegmentation : public vtkImageToImageFilter
 {
 public:
   static vtkImageBrainThumbSegmentation *New();
@@ -41,17 +41,20 @@ public:
   vtkSetObjectMacro(SeedPointList,vtkIntArray);
   vtkGetObjectMacro(SeedPointList,vtkIntArray);
 
+  vtkSetMacro(numberOfStructures,int);
+  vtkGetMacro(numberOfStructures,int);
+
 protected:
-  // This contains the seed points
+  // This contains the seed points inputted by the user
   vtkIntArray *SeedPointList;
 
-  //
-  vtkImageData *inDataSlice;
+  // This is the number of structures
+  int numberOfStructures;
 
-  //
-  vtkImageData *thumbMaskTemp;
-
-  void InitSlice( vtkImageData* slice , unsigned int value );
+  void InitIntSlice( vtkImageData *slice , int value );
+  void InitFloatSlice( vtkImageData *slice , float value );
+  void ExtractSlice( vtkImageData *inData, vtkImageData *inDataSlice , int iSlice );
+  void ComputeCosts( vtkImageData *inDataSlice, vtkImageData *costsSlice );
   void FindNeighbors(vtkIdList *list,int id, vtkDataArray *scalars);
 
   vtkImageBrainThumbSegmentation();
