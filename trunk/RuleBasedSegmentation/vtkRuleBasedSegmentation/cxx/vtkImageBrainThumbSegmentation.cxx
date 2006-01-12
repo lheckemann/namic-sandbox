@@ -11,7 +11,6 @@
   Version:   $Revision: 1.10 $
 
 =========================================================================auto=*/
-#include "vtkImageBrainThumbSegmentation.h"
 #include "vtkIntArray.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
@@ -19,6 +18,7 @@
 #include "vtkVersion.h"
 #include <math.h>
 #include <stdlib.h>
+#include "vtkImageBrainThumbSegmentation.h"
 
 
 //----------------------------------------------------------------------------
@@ -47,12 +47,73 @@ vtkImageBrainThumbSegmentation::~vtkImageBrainThumbSegmentation()
 }
 
 
-void vtkImageBrainThumbSegmentation::InitSlice( vtkImageData* slice , unsigned int value )
+void vtkImageBrainThumbSegmentation::InitIntSlice( vtkImageData *slice , int value )
 {
+  int *dim = slice->GetDimensions();
+  vtkDataArray *scalars = slice->GetPointData()->GetScalars();
+  int id = 0;
+  
+  for (int j = 0; j <dim[1]; j++) {
+  for (int i = 0; i <dim[0]; i++) {
+  id = (j*dim[0]) + i;
+  scalars->SetTuple1(id, value);
+  }
+  }
 }
 
-void vtkImageBrainThumbSegmentation::FindNeighbors(vtkIdList *list,int id, vtkDataArray *scalars) {
+
+void vtkImageBrainThumbSegmentation::InitFloatSlice( vtkImageData *slice , float value )
+{
+  int *dim = slice->GetDimensions();
+  vtkDataArray *scalars = slice->GetPointData()->GetScalars();
+  int id = 0;
   
+  for (int j = 0; j <dim[1]; j++) {
+  for (int i = 0; i <dim[0]; i++) {
+  id = (j*dim[0]) + i;
+  scalars->SetTuple1(id, value);
+  }
+  }
+}
+
+
+void vtkImageBrainThumbSegmentation::ExtractSlice( vtkImageData *inData, vtkImageData *inDataSlice , int iSlice )
+{
+  int *dim = inDataSlice->GetDimensions();
+  vtkDataArray *inDataScalars = inData->GetPointData()->GetScalars();
+  vtkDataArray *inDataSliceScalars = inDataSlice->GetPointData()->GetScalars();
+  int inDataId = 0;
+  int inDataSliceId = 0;
+    
+  for (int j = 0; j <dim[1]; j++) {
+  for (int i = 0; i <dim[0]; i++) {
+  inDataId = iSlice*(dim[1]*dim[0]) + j*dim[0] + i;
+  inDataSliceId = j*dim[0] + i;
+  inDataSliceScalars->SetTuple1( inDataSliceId, inDataScalars->GetTuple1( inDataId ) );
+  }
+  }
+}
+
+
+void vtkImageBrainThumbSegmentation::ComputeCosts( vtkImageData *inDataSlice, vtkImageData *costsSlice )
+{
+  int *dim = inDataSlice->GetDimensions();
+  vtkDataArray *inDataSliceScalars = inDataSlice->GetPointData()->GetScalars();
+  vtkDataArray *costsSliceScalars = costsSlice->GetPointData()->GetScalars();
+  int inDataSliceId = 0;
+  int costsSliceId = 0;
+  
+  for (int j = 0; j <dim[1]; j++) {
+  for (int i = 0; i <dim[0]; i++) {
+  int id = j*dim[0] + i;
+  costsSliceScalars->SetTuple1( id, pow(inDataSliceScalars->GetTuple1( id ), 6 ) );
+  }
+  }
+}
+
+
+void vtkImageBrainThumbSegmentation::FindNeighbors(vtkIdList *list,int id, vtkDataArray *scalars)
+{
   // find i, j, k for that node
   int *dim = GetInput()->GetDimensions();
   int numPts = dim[0] * dim[1] * dim[2];
@@ -84,22 +145,59 @@ void vtkImageBrainThumbSegmentation::FindNeighbors(vtkIdList *list,int id, vtkDa
 
 void vtkImageBrainThumbSegmentation::ExecuteData(vtkDataObject *)
 {
-  float *inPtr;
-  float *outPtr;
+//  float *inPtr;
+//  float *outPtr;
+//  inPtr = (float *)inData->GetScalarPointerForExtent(inExt);
+//  outPtr = (float *)outData->GetScalarPointerForExtent(outExt);
   
+  // Setup Input and Output
   vtkImageData *inData = this->GetInput();
+
+  int inExt[6], outExt[6];
+  this->ComputeInputUpdateExtent(inExt, outExt);
+
   vtkImageData *outData = this->GetOutput();
   outData->SetExtent(outData->GetWholeExtent());
   outData->AllocateScalars();
-
-  int inExt[6], outExt[6];
-
   outData->GetExtent(outExt);
-  this->ComputeInputUpdateExtent(inExt, outExt);
-  inPtr = inData->GetScalarPointerForExtent(inExt);
-  outPtr = outData->GetScalarPointerForExtent(outExt);
   
+  // Setup general variables
+  int *dim = inData->GetDimensions();
 
+  // inDataSlice holds the input on one slice
+  vtkImageData *inDataSlice = vtkImageData::New();
+  inDataSlice->SetDimensions(dim[1], dim[2], 0);
+  inDataSlice->SetScalarTypeToFloat();
+  inDataSlice->AllocateScalars();
+  InitFloatSlice( inDataSlice , 0.0 );
+
+  // thumbMaskSlice holds the thumb mask on one slice
+  vtkImageData *thumbMaskSlice = vtkImageData::New();
+  thumbMaskSlice->SetDimensions(dim[1], dim[2], 0);
+  thumbMaskSlice->SetScalarTypeToInt();
+  thumbMaskSlice->AllocateScalars();
+
+  // costsSlice holds the cost function on one slice
+  vtkImageData *costsSlice = vtkImageData::New();
+  costsSlice->SetDimensions(dim[1], dim[2], 0);
+  costsSlice->SetScalarTypeToFloat();
+  costsSlice->AllocateScalars();
+  InitFloatSlice( costsSlice , 0.0 );
+
+  // Iterate through each slice
+  for( int iSlice = 0; iSlice < dim[2]; iSlice++ )
+    {
+    // Initialize this slice iteration
+    ExtractSlice( inData, inDataSlice, iSlice );
+    InitIntSlice( thumbMaskSlice , 0 );
+    ComputeCosts( inDataSlice, costsSlice );
+
+    // Iterate through each structure
+    for( int iStructure = 0; iStructure < numberOfStructures; iStructure++ )
+      {
+      }
+    }
+    
   // Components turned into x, y and z
   if (this->GetInput()->GetNumberOfScalarComponents() > 1)
     {
@@ -108,10 +206,10 @@ void vtkImageBrainThumbSegmentation::ExecuteData(vtkDataObject *)
     }
   
   
-  if (inData->GetScalarType() != VTK_SCALAR_TYPE_FLOAT)
+  if (inData->GetScalarType() != VTK_FLOAT)
     {
-      vtkErrorMacro(<< "Error: DataType should be float.");
-      return;
+    vtkErrorMacro(<< "Error: DataType should be float.");
+    return;
     }
 }
 

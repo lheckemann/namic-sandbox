@@ -49,9 +49,9 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #include "itkVTKImageExport.h"
 #include "itkVTKImageImport.h"
 #include "vtkITKUtility.h"
+#include "vtkRuleBasedSegmentationConfigure.h"
 
-
-class VTK_EXPORT vtkITKImageToImageFilterFUC : public vtkITKImageToImageFilter
+class VTK_RULEBASEDSEGMENTATION_EXPORT vtkITKImageToImageFilterFUC : public vtkITKImageToImageFilter
 {
 public:
   vtkTypeMacro(vtkITKImageToImageFilterFUC,vtkITKImageToImageFilter);
