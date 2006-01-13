@@ -68,18 +68,7 @@ void
 ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::GenerateData()
 {
-
-  this->Initialize();
-
-  unsigned long int i = 0;
-
-  while( i < this->m_MaximumNumberOfIterations-1 )
-   {
-   this->ComputeExpectation();
-   this->ComputeMaximization();
-    i++;
-   }
-  this->ComputeExpectation();
+  this->Superclass::GenerateData();
   this->ComputeLabelMap();
 }
 
@@ -96,7 +85,18 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 }
 
 
-  
+ 
+ 
+template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
+bool
+ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
+::Converge() const
+{
+
+}
+
+
+ 
 template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
 ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
