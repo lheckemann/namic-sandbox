@@ -29,6 +29,8 @@ template <typename TObservationsZ, typename TUnobservedDataY, typename TParamete
 ExpectationMaximizationMethod
 ::ExpectationMaximizationMethod()
 {
+  m_MaximumNumberOfIterations = 1;
+  
   this->ProcessObject::SetNthOutput( 0, ParametersType::New().GetPointer() );
   this->ProcessObject::SetNthOutput( 1, UnobservedDataType::New().GetPointer() );
 }
