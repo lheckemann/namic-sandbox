@@ -23,6 +23,7 @@
 #include "itkTransform.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 
+#include "itkVectorAtlasRegistrationMethod.h"
 
 
 namespace itk {
