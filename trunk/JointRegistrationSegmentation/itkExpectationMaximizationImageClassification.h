@@ -99,10 +99,6 @@ public:
 
 
 
-  /** This method triggers the computation of the estimation */
-  void Update();
-
-
   /** Set the input image to be classified. This image may be a vector image
    * with multiple-components */
   void SetInput( const InputImageType * image );

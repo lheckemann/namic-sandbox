@@ -66,17 +66,6 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
 ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
-::Update()
-{
-   this->GenerateData();
-}
-
-
-
-
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
-void
-ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::GenerateData()
 {
 
