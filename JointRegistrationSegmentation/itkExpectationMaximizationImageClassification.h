@@ -36,7 +36,13 @@ namespace Statistics {
  *
  */ 
  
-template < class TImageType, 
+  //
+  // TParametersTheta ==> struct {will be the inhomogeneity correction + transform parameters for registration}.
+  //
+  // TUnobserveredVariablesYPosteriorImageType ===>> WeightsImage
+  //
+  //
+template < class TObservationsZImageType, 
            class TPriorPixelComponentType, 
            class TCorrectionPrecisionType=float >
 class ExpectationMaximizationImageClassification : 
@@ -46,7 +52,7 @@ class ExpectationMaximizationImageClassification :
 public:
 
   typedef ExpectationMaximizationImageClassification             Self;
-  typedef ProcessObject                                                 Superclass;
+  typedef ProcessObject                                          Superclass;
   typedef SmartPointer< Self >                                   Pointer;
   typedef SmartPointer< const Self >                             ConstPointer;
 
