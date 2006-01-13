@@ -71,7 +71,7 @@ ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersThet
   
   if( observations && observations != currentObservations )
     {
-    //this->ProcessObject::SetNthInput( 0, const_cast< ObservationsType * >( observations ) );
+    this->ProcessObject::SetNthInput( 0, const_cast< ObservationsType * >( observations ) );
     this->Modified();
     }
 }

@@ -37,6 +37,11 @@ namespace itk
  * The outputs of the method are the parameters of the model and the
  * posterior probabilities of the unobserved variables.
  *
+ * It is expected that the template arguments of this class will be
+ * types deriving from itk::DataObject. If you want to use types that
+ * do not derive from DataObject, it is possible to wrap them using
+ * the DataObjectDecorator.
+ *
  * The algorithm is based on the chapter by R. Neal and G. Hinton: "A
  * View of the EM Algorithm that Justifies Incremental, Sparse, and
  * other Variants" in M. I. Jordan, Learning in Graphical Models,
