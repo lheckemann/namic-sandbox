@@ -80,19 +80,6 @@ ExpectationMaximizationMethod
 }
 
 
-/**
- *
- */
-template <typename TObservationsZ, typename TUnobservedDataY, typename TParametersTheta>
-void
-ExpectationMaximizationMethod
-::ComputeExpection()
-{
-  // loop through all the indices of the observed data to calculate
-  // the posterior probability of the unobserved variables based on
-  // the parameters and the observed data.
-}
-
 
 } // end namespace itk
 
