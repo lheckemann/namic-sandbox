@@ -81,13 +81,14 @@ public:
    */
   void SetObservations(const ObservationsType *observations);
 
+
   /**
    * Get the observations for the problem. The observations are
    * typically referred to as $Z$.
    */
-  const ObservationsType* GetObservations() const
-    { return this->GeInput(); }
+  const ObservationsType* GetObservations() const;
 
+  
   /**
    * Get the current set of parameters. THe parameters are typically
    * referred to as $\theta$.
