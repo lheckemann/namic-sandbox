@@ -170,7 +170,7 @@ private:
 }
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkExpectationMaximizationImageClassification.txx"
+#include "itkExpectationMaximizationImageClassificationWithPriors.txx"
 #endif
 
 
