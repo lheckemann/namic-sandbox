@@ -19,8 +19,6 @@
 
 #include "itkGaussianDensityFunction.h"
 #include "itkVectorImage.h"
-#include "itkTransform.h"
-#include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkVectorContainer.h"
 
 
@@ -38,7 +36,9 @@ namespace Statistics {
  *
  */ 
  
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType=float >
+template < class TImageType, 
+           class TPriorPixelComponentType, 
+           class TCorrectionPrecisionType=float >
 class ExpectationMaximizationImageClassification : 
    public Object
 {
@@ -130,12 +130,6 @@ protected:
   /** This method performs the actual computation of the classification */
   void GenerateData();
 
-  /** Register the current weights image with the Class Priors image. */
-  void ComputeRegistrationBetweenPriorsAndWeights();
-
-  /** Compute the correction for the inhomogeneity field. */
-  void ComputeInhomogeneityCorrection();
-
   /** Compute the label map resulting from the Weights */
   void ComputeLabelMap();
 
@@ -150,19 +144,6 @@ protected:
   /** This method updates the weights (or posteriors) based on the current
    *  parameters and the collection of samples (observations). */
   void ComputeExpectation();
-
-
-  /** Base class of a generic transform */
-  typedef   Transform<double, ImageDimension, ImageDimension >   TransformType;
-
-  typedef   typename TransformType::Pointer       TransformPointer;
-
-
-  typedef   NearestNeighborInterpolateImageFunction< 
-                                            PriorsImageType,
-                                            double >      InterpolatorType;
-
-  typedef   typename  InterpolatorType::Pointer           InterpolatorPointer;
 
     
 private:
@@ -202,19 +183,8 @@ private:
   typename InputImageType::ConstPointer       m_InputImage;
 
   
-  typename LogImageType::Pointer              m_LogInputImage;
-
-
-  typename LogImageType::Pointer              m_CorrectedLogImage;
-
-
   unsigned long                               m_MaximumNumberOfIterations;
 
-
-  TransformPointer                            m_Transform;
-
-  
-  InterpolatorPointer                         m_Interpolator;
 
 };
 
