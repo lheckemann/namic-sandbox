@@ -31,17 +31,21 @@ namespace itk
  * variables $Y$, and finding the maximum likelihood estimate for the
  * parameters of a model of $Y$ and $Z$ based on the observations $Z$.
  *
- * THe outputs of the method are the parameters of the model and the
+ * The outputs of the method are the parameters of the model and the
  * posterior probabilities of the unobserved variables.
  *
+ * The algorithm is based on the chapter by R. Neal and G. Hinton: 
+ * "A View of the EM Algorithm that Justifies Incremental, Sparse, and other Variants"
+ * in M. I. Jordan, Learning in Graphical Models, Kluwer, 1998. 
+ * The article can be downloaded from citeseer.ist.psu.edu/neal98view.html
  */
-template <typename TObservationsZ, typename TUnobservedVariablesY, typename TParametersTheta >
+template <typename TObservationsZ, typename TUnobservedVariablesYPosterior, typename TParametersTheta >
 class ITK_EXPORT ExpectationMaximizationMethod : public ProcessObject 
 {
 public:
-  typedef TObservationsZ   ObservationsType;
-  typedef TUnobserveredY   UnobservedDataType;
-  typedef TParametersTheta ParametersType;
+  typedef TObservationsZ                    ObservationsType;
+  typedef TUnobserveredVariablesYPosterior  UnobservedVariablesPosteriorType;
+  typedef TParametersTheta                  ParametersType;
 
   /**
    * Set the observations for the problem.
@@ -78,7 +82,7 @@ public:
    * identifier) then the output corresponds to the expected value of
    * the unobserved data.
    */
-  const UnobservedVariablesType *GetUnobservedVariablesPosterior() const
+  const  UnobservedVariablesPosteriorType *GetUnobservedVariablesPosterior() const
     { return this->GetOutput(1); };
   
 
