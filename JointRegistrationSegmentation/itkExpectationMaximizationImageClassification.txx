@@ -77,6 +77,7 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
    {
    this->ComputeExpectation();
    this->ComputeMaximization();
+    i++;
    }
   this->ComputeExpectation();
   this->ComputeLabelMap();
