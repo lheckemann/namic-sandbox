@@ -40,7 +40,7 @@ namespace itk {
  * field, the tissue class and noise.
  */ 
  
-template < class TInputImage >
+template < class TInputImage, class TInhomogeneityPrecisionType = float >
 class MRIInhomogeneityEstimator : public ImageToImageFilter 
 {
 public:
@@ -58,7 +58,7 @@ public:
   itkStaticConstMacro( ImageDimension, unsigned int, 
                        ::itk::GetImageDimension< InputImageType >::ImageDimension );
 
-  typedef VectorImage< float, ImageDimension >         MembershipImageType;
+  typedef VectorImage< TInhomogeneityPrecisionType, ImageDimension >         MembershipImageType;
 
   typedef typename MembershipImageType::Pointer        MembershipImagePointer;
 
@@ -75,7 +75,8 @@ public:
   typedef typename StructureIntensityDistributionContainerType::Pointer         
                                     StructureIntensityDistributionContainerPointer;
  
-  
+  typedef GaussianMembershipFunctionType::CovarianceType CovarianceMatrixType;
+
   /** The weights image is an image of floats of the same dimension and size 
    * and number of components as the input image. This is the image estimate
    * obtained from the E step */
@@ -106,6 +107,8 @@ public:
 
   virtual void GenerateData();
 
+  virtual void AllocateImageOfInverseCovariances();
+
 protected:
   MRIInhomogeneityEstimator();
   ~MRIInhomogeneityEstimator();
@@ -117,6 +120,11 @@ private:
   typename StructureIntensityDistributionContainerPointer 
                    m_StructureIntensityDistributionContainer;
   unsigned int m_NumberOfClasses;
+
+  typedef itk::Image< CovarianceMatrixType, 
+                      ImageDimension > InverseCovarianceImageType;
+                                                           
+  InverseCovarianceImageType::Pointer  m_InverseCovarianceImage;
 
 };
 
