@@ -39,7 +39,7 @@
 #include "itkMattesMutualInformationImageToImageMetric.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkImage.h"
-#include "itkSquareImageFilter.h"
+#include "itkShiftScaleImageFilter.h"
 #include "itkMeanSquaresImageToImageMetric.h"
 #include "itkImageRegionIteratorWithIndex.h"
 
@@ -77,6 +77,7 @@
 #include "itkResampleImageFilter.h"
 #include "itkCastImageFilter.h"
 #include "itkSquaredDifferenceImageFilter.h"
+#include "itkCheckerBoardImageFilter.h"
 
 #include "itkImageMaskSpatialObject.h"
 
@@ -130,9 +131,8 @@ int main( int argc, char *argv[] )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " fixedImageFile  movingImageFile outputImagefile  maskThreshold";
-    std::cerr << " [differenceOutputfile] [differenceBeforeRegistration] ";
-    std::cerr << " [deformationField] ";
+    std::cerr << " fixedImageFile  movingImageFile outputImagefile maskThreshold";
+    std::cerr << " [checkerboardOutputfile] [deformationField] " << std::endl;
     return 1;
     }
 
@@ -311,19 +311,19 @@ int main( int argc, char *argv[] )
   OptimizerType::BoundValueType upperBound( transform->GetNumberOfParameters() );
   OptimizerType::BoundValueType lowerBound( transform->GetNumberOfParameters() );
 
-  boundSelect.Fill( 0 );
-  upperBound.Fill( 0.0 );
-  lowerBound.Fill( 0.0 );
+  boundSelect.Fill( 1 );
+  upperBound.Fill( 4 );
+  lowerBound.Fill( -4 );
 
   optimizer->SetBoundSelection( boundSelect );
   optimizer->SetUpperBound( upperBound );
   optimizer->SetLowerBound( lowerBound );
 
   optimizer->SetCostFunctionConvergenceFactor( 1e+7 );
-  optimizer->SetMaximumNumberOfIterations( 25 );
+  optimizer->SetMaximumNumberOfIterations( 30 );
   optimizer->SetMaximumNumberOfEvaluations( 500 );
   optimizer->SetMaximumNumberOfCorrections( 12 );
-  optimizer->SetProjectedGradientTolerance( 1.5e-5 );
+  optimizer->SetProjectedGradientTolerance( 1e-5 );
 
   // Software Guide : EndCodeSnippet
 
@@ -473,68 +473,48 @@ int main( int argc, char *argv[] )
  
 
 
-  typedef itk::SquaredDifferenceImageFilter< 
-                                  FixedImageType, 
-                                  FixedImageType, 
-                                  OutputImageType > DifferenceFilterType;
-
-  DifferenceFilterType::Pointer difference = DifferenceFilterType::New();
-
-  WriterType::Pointer writer2 = WriterType::New();
-  
-
-  // Compute the difference image between the 
-  // fixed and resampled moving image.
-  typedef itk::SquareImageFilter< OutputImageType,
-                                  OutputImageType  >  SqrtFilterType;
-  SqrtFilterType::Pointer sqrtFilter = SqrtFilterType::New();
-  writer2->SetInput( sqrtFilter->GetOutput() );  
-
   if( argc >= 6 )
     {
-    difference->SetInput1( fixedImageReader->GetOutput() );
-    difference->SetInput2( resample->GetOutput() );
-    sqrtFilter->SetInput( difference->GetOutput() ); 
-    writer2->SetFileName( argv[5] );
-    try
-      {
-      writer2->Update();
-      }
-    catch( itk::ExceptionObject & err ) 
-      { 
-      std::cerr << "ExceptionObject caught !" << std::endl; 
-      std::cerr << err << std::endl; 
-      return -1;
-      } 
-    }
+      // Compute the checkerboard image between the fixed and resampled moving image.
 
+      typedef itk::ShiftScaleImageFilter< OutputImageType, OutputImageType > ScaleFilterType;
+      typedef itk::CheckerBoardImageFilter< OutputImageType > CheckerBoardFilterType;
+      typedef CheckerBoardFilterType::PatternArrayType CheckerBoardPatternArrayType;
 
-  // Compute the difference image between the 
-  // fixed and moving image before registration.
-  if( argc >= 7 )
-    {
-    writer2->SetFileName( argv[6] );
-    difference->SetInput1( fixedImageReader->GetOutput() );
-    difference->SetInput2( movingImageReader->GetOutput() );
-    sqrtFilter->SetInput( difference->GetOutput() ); 
+      ScaleFilterType::Pointer scaleFilter = ScaleFilterType::New();
+      CheckerBoardFilterType::Pointer checkerboard = CheckerBoardFilterType::New();
+      WriterType::Pointer checkerboardWriter = WriterType::New();
+      CheckerBoardPatternArrayType pattern;
 
-    try
-      {
-      writer2->Update();
-      }
-    catch( itk::ExceptionObject & err ) 
-      { 
-      std::cerr << "ExceptionObject caught !" << std::endl; 
-      std::cerr << err << std::endl; 
-      return -1;
-      } 
+      scaleFilter->SetScale(20.0);
+      scaleFilter->SetInput(fixedImage);
+
+      pattern[0] = fixedImage->GetLargestPossibleRegion().GetSize()[0] / 10;
+      pattern[1] = fixedImage->GetLargestPossibleRegion().GetSize()[1] / 10;
+      pattern[2] = fixedImage->GetLargestPossibleRegion().GetSize()[2] / 10;
+
+      checkerboard->SetCheckerPattern(pattern);
+      checkerboard->SetInput1( scaleFilter->GetOutput() );
+      checkerboard->SetInput2( caster->GetOutput() );
+      checkerboardWriter->SetInput( checkerboard->GetOutput() );
+      checkerboardWriter->SetFileName( argv[5] );
+      try
+        {
+          checkerboardWriter->Update();
+        }
+      catch( itk::ExceptionObject & err ) 
+        { 
+          std::cerr << "ExceptionObject caught !" << std::endl; 
+          std::cerr << err << std::endl; 
+          return -1;
+        } 
     }
 
 
 
   // Generate the explicit deformation field resulting from 
   // the registration.
-  if( argc >= 8 )
+  if( argc >= 7 )
     {
 
     typedef itk::Vector< float, ImageDimension >  VectorType;
@@ -575,7 +555,7 @@ int main( int argc, char *argv[] )
 
     fieldWriter->SetInput( field );
 
-    fieldWriter->SetFileName( argv[7] );
+    fieldWriter->SetFileName( argv[6] );
     try
       {
       fieldWriter->Update();
