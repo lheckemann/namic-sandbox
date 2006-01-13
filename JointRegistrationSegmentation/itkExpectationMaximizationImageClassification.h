@@ -20,6 +20,7 @@
 #include "itkGaussianDensityFunction.h"
 #include "itkVectorImage.h"
 #include "itkVectorContainer.h"
+#include "itkProcessObject.h"
 
 
 namespace itk {
@@ -63,7 +64,7 @@ public:
 
 public:
 
-  typedef TImageType                                   InputImageType;
+  typedef TObservationsZImageType                      InputImageType;
 
   itkStaticConstMacro( ImageDimension, unsigned int, 
                        ::itk::GetImageDimension< InputImageType >::ImageDimension );
@@ -147,7 +148,12 @@ protected:
    *  parameters and the collection of samples (observations). */
   void ComputeExpectation();
 
-    
+   /** This method evaluates whether the maximization has converged or not.
+   *  Along with the number of iterations it defines the stopping criteria
+   *  for the entire Expectation/Maximization method. */
+  bool Converge() const;
+
+   
 private:
 
   ExpectationMaximizationImageClassification(const Self&) ; //purposely not implemented

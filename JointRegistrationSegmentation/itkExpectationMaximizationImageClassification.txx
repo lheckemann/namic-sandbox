@@ -25,8 +25,8 @@ namespace itk {
 namespace Statistics {
 
 
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
-ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
+template < class TObservationsZImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::ExpectationMaximizationImageClassification()
 {
    this->m_ClassProportions = ProportionsContainerType::New();
@@ -35,8 +35,8 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 
 
 
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
-ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
+template < class TObservationsZImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::~ExpectationMaximizationImageClassification()
 {
 }
@@ -44,9 +44,9 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 
 
 
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
+template < class TObservationsZImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::AddIntensityDistributionDensity( 
               const GaussianDensityFunctionType * gaussian,
               ProportionType proportion )
@@ -63,9 +63,9 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 
 
 
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
+template < class TObservationsZImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::GenerateData()
 {
   this->Superclass::GenerateData();
@@ -76,9 +76,9 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 
 
  
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
+template < class TObservationsZImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::ComputeMaximization()
 {
 
@@ -87,9 +87,9 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 
  
  
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
+template < class TObservationsZImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 bool
-ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::Converge() const
 {
 
@@ -97,17 +97,17 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 
 
  
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
+template < class TObservationsZImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::ComputeLabelMap()
 {
 }
 
  
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
+template < class TObservationsZImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::ComputeExpectation()
 {
 }
@@ -116,9 +116,9 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 
  
 
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
+template < class TObservationsZImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::Initialize()
 {
 
@@ -161,9 +161,9 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 
  
 
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
+template < class TObservationsZImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::SetInput( const InputImageType * inputImage )
 {
    this->m_InputImage = inputImage;
@@ -172,9 +172,9 @@ ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType
 
  
 
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
+template < class TObservationsZImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
 void
-ExpectationMaximizationImageClassification< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
 ::SetClassPrior( const PriorsImageType * priorImage )
 {
    this->m_ClassPriorImage = priorImage;
