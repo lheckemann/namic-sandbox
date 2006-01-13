@@ -44,8 +44,7 @@ namespace Statistics {
   //
   //
 template < class TObservationsZImageType, 
-           class TPriorPixelComponentType, 
-           class TCorrectionPrecisionType=float >
+           class TPriorPixelComponentType >
 class ExpectationMaximizationImageClassification : 
    public ProcessObject
 {
@@ -77,13 +76,6 @@ public:
                        ImageDimension >                PriorsImageType;
 
   typedef typename PriorsImageType::PixelType          PriorsPixelType;
-
-  typedef TCorrectionPrecisionType                     CorrectedValueType;
-
-  typedef VectorImage< CorrectedValueType, 
-                       ImageDimension >                LogImageType;
-
-  typedef typename LogImageType::PixelType             LogPixelType;
 
   typedef typename WeightsImageType::Pointer           WeightsImagePointer;
   typedef typename PriorsImageType::Pointer            PriorsImagePointer;
