@@ -105,6 +105,9 @@ void
 ExpectationMaximizationImageClassification< TObservationsZImageType >
 ::Initialize()
 {
+
+   this->Superclass::Initialize();
+   
    this->m_InputImage = dynamic_cast< const InputImageType *>( this->GetObservations() );
 
    if( !this->m_InputImage )
