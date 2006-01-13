@@ -84,7 +84,7 @@ int main( int argc, char *argv[] )
   EMClassifier->AddIntensityDistributionDensity( gaussian4, proportionClass4 );
 
 
-  EMClassifier->SetInput( reader->GetOutput() );
+  EMClassifier->SetObservations( reader->GetOutput() );
 
 
   try 
