@@ -17,6 +17,9 @@
 #ifndef __itkExpectationMaximizationMethod_h
 #define __itkExpectationMaximizationMethod_h
 
+#include "itkProcessObject.h"
+
+
 namespace itk
 {
 
@@ -52,7 +55,7 @@ class ITK_EXPORT ExpectationMaximizationMethod : public ProcessObject
 {
 public:
   typedef TObservationsZ                    ObservationsType;
-  typedef TUnobserveredVariablesYPosterior  UnobservedVariablesPosteriorType;
+  typedef TUnobservedVariablesYPosterior    UnobservedVariablesPosteriorType;
   typedef TParametersTheta                  ParametersType;
 
   /**
@@ -62,7 +65,7 @@ public:
     {
       if (observations && observations != this->GetInput(0).GetPointer() )
         {
-        this->ProcessObject::SetNthInput(0, const_cast< ObservationType*>(observations));
+        this->ProcessObject::SetNthInput(0, const_cast< ObservationsType*>(observations));
         this->Modified();
         }
     }
@@ -120,8 +123,8 @@ public:
 
   /** Set the maximum of iterations. This is part of the termination
    * criterion. */
-  itkSetMacro(MaximumNumberOfIterations, long);
-  itkGetMacro(MaximimNumberOfIterations, long);
+  itkSetMacro(MaximumNumberOfIterations, unsigned long);
+  itkGetMacro(MaximimNumberOfIterations, unsigned long);
 
   /**
    * Convergence criteria
@@ -141,7 +144,7 @@ private:
   ExpectationMaximizationMethod(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  long m_MaximimNumberOfIterations;
+  unsigned long m_MaximumNumberOfIterations;
 };
 
 

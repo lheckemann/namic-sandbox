@@ -25,14 +25,14 @@ namespace itk
 /*
  * Constructor
  */
-template <typename TObservationsZ, typename TUnobservedDataY, typename TParametersThesta>
-ExpectationMaximizationMethod
+template <typename TObservationsZ, typename TUnobservedDataY, typename TParametersTheta>
+ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersTheta >
 ::ExpectationMaximizationMethod()
 {
   m_MaximumNumberOfIterations = 1;
   
   this->ProcessObject::SetNthOutput( 0, ParametersType::New().GetPointer() );
-  this->ProcessObject::SetNthOutput( 1, UnobservedDataType::New().GetPointer() );
+  this->ProcessObject::SetNthOutput( 1, UnobservedVariablesPosteriorType::New().GetPointer() );
 }
 
 /**
@@ -40,7 +40,7 @@ ExpectationMaximizationMethod
  */
 template <typename TObservationsZ, typename TUnobservedDataY, typename TParametersTheta>
 DataObject::Pointer
-ExpectationMaximizationMethod
+ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersTheta >
 ::MakeOutput(unsigned int output)
 {
   if (output == 0)
@@ -49,7 +49,7 @@ ExpectationMaximizationMethod
     }
   else if (output == 1)
     {
-    return static_cast<DataObject*>(UnobservedDataType::New().GetPointer());
+    return static_cast<DataObject*>(UnobservedVariablesPosteriorType::New().GetPointer());
     }
   else
     {
@@ -62,23 +62,27 @@ ExpectationMaximizationMethod
  */
 template <typename TObservationsZ, typename TUnobservedDataY, typename TParametersTheta>
 void
-ExpectationMaximizationMethod
+ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersTheta >
 ::GenerateData()
 {
+
+  //
   // Give the subclass a chance to initialize the parameters and
   // perform any other initialization
+  //
   this->Initialize();
 
-  long iteration = 0;
+  unsigned long iteration = 0;
 
   this->ComputeExpectation();
-  while( !this->Converged() && iteration < m_MaximumIterations)
-   {
-   this->ComputeMaximization();
-   this->ComputeExpectation();
 
-   ++iteration;
-   }
+  while( !this->Converged() && iteration < m_MaximumNumberOfIterations )
+    {
+    this->ComputeMaximization();
+    this->ComputeExpectation();
+ 
+    ++iteration;
+    }
 }
 
 
