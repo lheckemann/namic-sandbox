@@ -40,19 +40,19 @@ template < class TImageType,
            class TPriorPixelComponentType, 
            class TCorrectionPrecisionType=float >
 class ExpectationMaximizationImageClassification : 
-   public Object
+   public ProcessObject
 {
 
 public:
 
   typedef ExpectationMaximizationImageClassification             Self;
-  typedef Object                                                 Superclass;
+  typedef ProcessObject                                                 Superclass;
   typedef SmartPointer< Self >                                   Pointer;
   typedef SmartPointer< const Self >                             ConstPointer;
 
   itkNewMacro( Self );
 
-  itkTypeMacro( ExpectationMaximizationImageClassification, Object );
+  itkTypeMacro( ExpectationMaximizationImageClassification, ProcessObject );
 
 
 public:
