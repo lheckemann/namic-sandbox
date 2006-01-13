@@ -77,6 +77,19 @@ ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersThet
 }
 
 
+/**
+ *  Retrieve the parameters
+ */ 
+template <typename TObservationsZ, typename TUnobservedDataY, typename TParametersTheta>
+const typename ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersTheta >::ParametersType *
+ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersTheta >
+::GetParameters() const
+{
+  const DataObject * tt = this->GetOutput(0);
+  const ParametersType * pp = dynamic_cast< const ParametersType * >( tt );  
+  return pp; 
+}
+
 
 
 /**

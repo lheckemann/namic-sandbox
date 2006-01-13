@@ -152,7 +152,7 @@ int main( int argc, char *argv[] )
   //  Retrieve the results
   //
   //ParametersThetaType::ConstPointer parameters = emMethod->GetParameters();
-//  emMethod->GetParameters();
+  emMethod->GetParameters();
   
 //  UnobservedVariablesType::ConstPointer unobservedVariables = 
 //                                                 emMethod->GetUnobservedVariablesPosterior();
