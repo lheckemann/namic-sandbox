@@ -54,21 +54,32 @@ template <typename TObservationsZ, typename TUnobservedVariablesYPosterior, type
 class ITK_EXPORT ExpectationMaximizationMethod : public ProcessObject 
 {
 public:
+  
   typedef TObservationsZ                    ObservationsType;
   typedef TUnobservedVariablesYPosterior    UnobservedVariablesPosteriorType;
   typedef TParametersTheta                  ParametersType;
 
+  typedef ExpectationMaximizationMethod     Self;
+  typedef ProcessObject                     Superclass;
+  typedef SmartPointer< Self >              Pointer;
+  typedef SmartPointer< const Self >        ConstPointer;
+
+
+  //
+  // No itkNewMacro() because this class is abstract
+  // 
+
+
+  itkTypeMacro( ExpectationMaximizationMethod, ProcessObject );
+
+
+
+public:
+
   /**
    * Set the observations for the problem.
    */
-  void SetObservations(const ObservationsType *observations)
-    {
-      if (observations && observations != this->GetInput(0).GetPointer() )
-        {
-        this->ProcessObject::SetNthInput(0, const_cast< ObservationsType*>(observations));
-        this->Modified();
-        }
-    }
+  void SetObservations(const ObservationsType *observations);
 
   /**
    * Get the observations for the problem. The observations are
@@ -103,6 +114,14 @@ public:
    */
   virtual DataObjectPointer MakeOutput(unsigned int idx);
 
+  /** Set the maximum of iterations. This is part of the termination
+   * criterion. */
+  itkSetMacro( MaximumNumberOfIterations, unsigned long );
+  itkGetMacro( MaximumNumberOfIterations, unsigned long );
+
+
+protected:
+
   /**
    * Perform the E-Step. The E-Step computes the posterior
    * probability of the unobserved variables using the observations
@@ -121,16 +140,19 @@ public:
    */
   virtual void ComputeMaximization() = 0;
 
-  /** Set the maximum of iterations. This is part of the termination
-   * criterion. */
-  itkSetMacro(MaximumNumberOfIterations, unsigned long);
-  itkGetMacro(MaximimNumberOfIterations, unsigned long);
-
   /**
    * Convergence criteria
    */
-  virtual bool Converged() = 0;
+  virtual bool Converged() const = 0;
   
+
+  /**
+   * Method to be overloaded by derived classes that need to perform
+   * initializations before entering the iteration loop in GenerateData().
+   */
+  virtual void Initialize();
+ 
+
 protected:
   ExpectationMaximizationMethod();
   virtual ~ExpectationMaximizationMethod() {};

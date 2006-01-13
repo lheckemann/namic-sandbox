@@ -57,8 +57,43 @@ ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersThet
     }
 }
 
+
 /**
- * MakeOutput
+ *  Connect the observations as input.
+ */ 
+template <typename TObservationsZ, typename TUnobservedDataY, typename TParametersTheta>
+void
+ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersTheta >
+::SetObservations( const ObservationsType *observations )
+{
+  const ObservationsType * currentObservations = 
+                dynamic_cast< const ObservationsType * >( this->GetInput(0) );
+  
+  if( observations && observations != currentObservations )
+    {
+    //this->ProcessObject::SetNthInput( 0, const_cast< ObservationsType * >( observations ) );
+    this->Modified();
+    }
+}
+
+
+
+
+/**
+ * Initialize before entering the iteration loop in GenerateData().
+ */
+template <typename TObservationsZ, typename TUnobservedDataY, typename TParametersTheta>
+void
+ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersTheta >
+::Initialize()
+{
+  // This method is intended for being overloaded by any class that requires 
+  // to do some initialization before starting the iterations in GenerateData().
+}
+
+
+/**
+ * GenerateData
  */
 template <typename TObservationsZ, typename TUnobservedDataY, typename TParametersTheta>
 void
@@ -85,6 +120,19 @@ ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersThet
     }
 }
 
+
+/**
+ * PrintSelf
+ */
+template <typename TObservationsZ, typename TUnobservedDataY, typename TParametersTheta>
+void
+ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersTheta >
+::PrintSelf(std::ostream& os, Indent indent) const
+{
+  this->Superclass::PrintSelf(os,indent);
+  
+  os << indent << "Maximum number of iterations: " << m_MaximumNumberOfIterations << std::endl;
+}
 
 
 } // end namespace itk
