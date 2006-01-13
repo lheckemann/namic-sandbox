@@ -103,8 +103,7 @@ public:
    * identifier) then the output corresponds to the expected value of
    * the unobserved data.
    */
-  const  UnobservedVariablesPosteriorType *GetUnobservedVariablesPosterior() const
-    { return this->GetOutput(1); };
+  const  UnobservedVariablesPosteriorType *GetUnobservedVariablesPosterior() const;
   
 
   /**

@@ -85,10 +85,27 @@ const typename ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, 
 ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersTheta >
 ::GetParameters() const
 {
-  const DataObject * tt = this->GetOutput(0);
+  const DataObject     * tt = this->GetOutput(0);
   const ParametersType * pp = dynamic_cast< const ParametersType * >( tt );  
   return pp; 
 }
+
+
+
+/**
+ *  Retrieve the parameters
+ */ 
+template <typename TObservationsZ, typename TUnobservedDataY, typename TParametersTheta>
+const typename ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersTheta >::UnobservedVariablesPosteriorType *
+ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersTheta >
+::GetUnobservedVariablesPosterior() const
+{
+  const DataObject     * tt = this->GetOutput(1);
+  const UnobservedVariablesPosteriorType * pp = 
+              dynamic_cast< const UnobservedVariablesPosteriorType * >( tt );  
+  return pp; 
+}
+
 
 
 
