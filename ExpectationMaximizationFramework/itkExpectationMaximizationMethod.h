@@ -92,8 +92,7 @@ public:
    * Get the current set of parameters. THe parameters are typically
    * referred to as $\theta$.
    */
-  const ParametersType *GetParameters() const
-    { return this->GetOutput(0); }
+  const ParametersType *GetParameters() const;
 
 
   /**
