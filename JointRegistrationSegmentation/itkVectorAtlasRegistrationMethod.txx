@@ -43,7 +43,18 @@ VectorAtlasRegistrationMethod< TFixedImageType, TMovingImage >
 }
 
 
-  
+   
+
+template < class TFixedImageType, class TMovingImage >
+void
+VectorAtlasRegistrationMethod< TFixedImageType, TMovingImage >
+::GenerateData()
+{
+  this->Initialize();
+  this->ComputeRegistration();
+}
+
+ 
   
 
 template < class TFixedImageType, class TMovingImage >
@@ -66,8 +77,8 @@ VectorAtlasRegistrationMethod< TFixedImageType, TMovingImage >
   typename TransformInitializerType::Pointer initializer = 
                                           TransformInitializerType::New();
 
-  this->m_Registration->SetFixedImage(    this->m_FixedImage->GetOutput()    );
-  this->m_Registration->SetMovingImage(   this->m_MovingImage->GetOutput()   );
+  this->m_Registration->SetFixedImage(  this->m_FixedImage  );
+  this->m_Registration->SetMovingImage( this->m_MovingImage );
 
 
   this->m_Registration->SetFixedImageRegion( 
@@ -80,7 +91,7 @@ VectorAtlasRegistrationMethod< TFixedImageType, TMovingImage >
 
   initializer->InitializeTransform();
 
-  this->m_Registration->SetTransform( this->m_Transform );
+  this->m_Registration->SetTransform( this->m_Transform.GetPointer() );
 
   this->m_Registration->SetInitialTransformParameters( 
                                  this->m_Transform->GetParameters() );
@@ -129,7 +140,7 @@ VectorAtlasRegistrationMethod< TFixedImageType, TMovingImage >
     { 
     std::cerr << "ExceptionObject caught !" << std::endl; 
     std::cerr << err << std::endl; 
-    return -1;
+    return;
     } 
 
   // THIS IS JUST FOR DEBUGGING
