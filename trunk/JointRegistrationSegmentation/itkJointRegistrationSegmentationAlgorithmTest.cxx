@@ -38,7 +38,7 @@ int main( int argc, char *argv[] )
     }
 
 
-  const    unsigned int    Dimension = 2;
+  const    unsigned int    Dimension = 3;
   typedef  float           PixelType;
 
   typedef itk::VectorImage< PixelType, Dimension >  InputImageType;
@@ -89,9 +89,7 @@ int main( int argc, char *argv[] )
 
   try 
     { 
-
     EMClassifier->Update();
-
     } 
   catch( itk::ExceptionObject & err ) 
     { 
