@@ -16,12 +16,14 @@ ELSE(ITK_FOUND)
 ENDIF(ITK_FOUND)
 
 
+
+
 ADD_EXECUTABLE(ImageRegistrationTest
   ImageRegistrationTest.cxx 
   )
 
-TARGET_LINK_LIBRARIES(ImageRegistrationTest ITKStatistics ITKIO ITKCommon ITKNumerics)
-
+TARGET_LINK_LIBRARIES(ImageRegistrationTest 
+      ITKStatistics ITKIO ITKCommon ITKNumerics)
 
 
 
@@ -37,7 +39,7 @@ TARGET_LINK_LIBRARIES(itkExpectationMaximizationImageClassificationTest
 
 
 ADD_EXECUTABLE(itkExpectationMaximizationImageClassificationWithPriorsTest
-               itkExpectationMaximizationImageClassificationWithPriorsTest.cxx 
+  itkExpectationMaximizationImageClassificationWithPriorsTest.cxx 
   )
 
 TARGET_LINK_LIBRARIES(itkExpectationMaximizationImageClassificationWithPriorsTest 
@@ -51,7 +53,8 @@ ADD_EXECUTABLE(itkJointRegistrationSegmentationAlgorithmTest
   itkJointRegistrationSegmentationAlgorithmTest.cxx 
   )
 
-TARGET_LINK_LIBRARIES(itkJointRegistrationSegmentationAlgorithmTest ITKStatistics ITKIO ITKCommon ITKNumerics)
+TARGET_LINK_LIBRARIES(itkJointRegistrationSegmentationAlgorithmTest 
+        ITKStatistics ITKIO ITKCommon ITKNumerics)
 
 
 
@@ -60,6 +63,7 @@ ADD_EXECUTABLE(itkMRIInhomogeneityEstimatorTest
 itkMRIInhomogeneityEstimatorTest.cxx 
 )
 
-TARGET_LINK_LIBRARIES(itkMRIInhomogeneityEstimatorTest ITKStatistics ITKIO ITKCommon ITKNumerics)
+TARGET_LINK_LIBRARIES(itkMRIInhomogeneityEstimatorTest 
+        ITKStatistics ITKIO ITKCommon ITKNumerics)
 
 
