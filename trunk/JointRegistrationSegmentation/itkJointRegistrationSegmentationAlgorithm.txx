@@ -162,7 +162,7 @@ JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TC
 
    this->m_WeightsImage = WeightsImageType::New();
 
-   this->m_WeightsImage->CopyInformation( this->m_InputImage );
+   this->m_WeightsImage->CopyInformation( this->GetObservations() );
    this->m_WeightsImage->SetVectorLength( numberOfClasses ); 
    this->m_WeightsImage->Allocate();
 
@@ -170,9 +170,11 @@ JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TC
    // Check the input image for negative values
    typedef itk::ImageRegionConstIterator< InputImageType >    InputImageIterator;
    
-   InputImageIterator  iitr( this->m_InputImage,   this->m_InputImage->GetBufferedRegion() );
+   const InputImageType * inputImage = this->GetObservations();
 
-   const unsigned int numberOfComponents = this->m_InputImage->GetVectorLength();
+   InputImageIterator  iitr( inputImage,   inputImage->GetBufferedRegion() );
+
+   const unsigned int numberOfComponents = inputImage->GetVectorLength();
 
    iitr.GoToBegin();
    while( iitr.IsAtEnd() )
@@ -192,8 +194,8 @@ JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TC
    //
    // Compute the Log ( pixel + 1 )
    //
-   this->m_LogInputImage->CopyInformation( this->m_InputImage );
-   this->m_LogInputImage->SetVectorLength( this->m_InputImage->GetVectorLength() );
+   this->m_LogInputImage->CopyInformation( inputImage );
+   this->m_LogInputImage->SetVectorLength( inputImage->GetVectorLength() );
    this->m_LogInputImage->Allocate();
    
    typedef itk::ImageRegionIterator< LogImageType >    LogImageIterator;
