@@ -19,7 +19,7 @@
 #endif
 
 
-#include "itkExpectationMaximizationImageClassification.h"
+#include "itkExpectationMaximizationImageClassificationWithPriors.h"
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -52,12 +52,33 @@ int main( int argc, char *argv[] )
   
   reader->Update();
 
+  typedef itk::VectorImage< float, Dimension >   PriorsImageType;
 
-  typedef itk::Statistics::ExpectationMaximizationImageClassification< 
-                                                         InputImageType 
+  typedef itk::Statistics::ExpectationMaximizationImageClassificationWithPriors< 
+                                                         InputImageType,
+                                                         PriorsImageType 
                                                                         >   ClassifierType;
 
   ClassifierType::Pointer   EMClassifier = ClassifierType::New();
+
+
+  typedef  ClassifierType::GaussianDensityFunctionType      GaussianDensityFunctionType;
+
+
+  GaussianDensityFunctionType::Pointer  gaussian1  = GaussianDensityFunctionType::New();
+  GaussianDensityFunctionType::Pointer  gaussian2  = GaussianDensityFunctionType::New();
+  GaussianDensityFunctionType::Pointer  gaussian3  = GaussianDensityFunctionType::New();
+  GaussianDensityFunctionType::Pointer  gaussian4  = GaussianDensityFunctionType::New();
+
+  const double proportionClass1 = 0.4;
+  const double proportionClass2 = 0.8;
+  const double proportionClass3 = 0.9;
+  const double proportionClass4 = 0.3;
+  
+  EMClassifier->AddIntensityDistributionDensity( gaussian1, proportionClass1 );
+  EMClassifier->AddIntensityDistributionDensity( gaussian2, proportionClass2 );
+  EMClassifier->AddIntensityDistributionDensity( gaussian3, proportionClass3 );
+  EMClassifier->AddIntensityDistributionDensity( gaussian4, proportionClass4 );
 
 
   EMClassifier->SetObservations( reader->GetOutput() );

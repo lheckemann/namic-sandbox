@@ -19,7 +19,7 @@
 
 
 
-#include "itkExpectationMaximizationImageClassification.h"
+#include "itkExpectationMaximizationImageClassificationWithPriors.h"
 #include "itkTransform.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 
@@ -42,14 +42,14 @@ namespace Statistics {
  
 template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType=float >
 class JointRegistrationSegmentationAlgorithm : 
-   public ExpectationMaximizationImageClassification< TImageType, 
+   public ExpectationMaximizationImageClassificationWithPriors< TImageType, 
                                                       TPriorPixelComponentType >
 {
 
 public:
 
   typedef JointRegistrationSegmentationAlgorithm                 Self;
-  typedef ExpectationMaximizationImageClassification< 
+  typedef ExpectationMaximizationImageClassificationWithPriors< 
                               TImageType, 
                               TPriorPixelComponentType >         Superclass;
   typedef SmartPointer< Self >                                   Pointer;
@@ -57,7 +57,7 @@ public:
 
   itkNewMacro( Self );
 
-  itkTypeMacro( JointRegistrationSegmentationAlgorithm, ExpectationMaximizationImageClassification );
+  itkTypeMacro( JointRegistrationSegmentationAlgorithm, ExpectationMaximizationImageClassificationWithPriors );
 
 
 public:
@@ -67,12 +67,9 @@ public:
   itkStaticConstMacro( ImageDimension, unsigned int, 
                        ::itk::GetImageDimension< InputImageType >::ImageDimension );
 
-  typedef typename Superclass::WeightsImageType           WeightsImageType;
-
   typedef typename Superclass::PriorPixelComponentType    PriorPixelComponentType;
   typedef typename Superclass::PriorsImageType            PriorsImageType;
   typedef typename Superclass::PriorsPixelType            PriorsPixelType;
-  typedef typename Superclass::WeightsImagePointer        WeightsImagePointer;
   typedef typename Superclass::PriorsImagePointer         PriorsImagePointer;
   typedef typename Superclass::InputPixelType             InputPixelType;
   typedef typename Superclass::MeasurementVectorType      MeasurementVectorType;
@@ -130,18 +127,24 @@ protected:
   typedef   typename  InterpolatorType::Pointer           InterpolatorPointer;
 
 
+   
+private:
+
+  JointRegistrationSegmentationAlgorithm(const Self&) ; //purposely not implemented
+
+  void operator=(const Self&) ; //purposely not implemented
+
+  typedef VectorImage< float, ImageDimension >         WeightsImageType;
+  typedef typename WeightsImageType::Pointer           WeightsImagePointer;
+
   typedef   VectorAtlasRegistrationMethod< 
                                  WeightsImageType,
                                  PriorsImageType    >     RegistrationMethodType;
 
   typedef typename RegistrationMethodType::Pointer        RegistrationMethodPointer;
 
-    
-private:
-
-  JointRegistrationSegmentationAlgorithm(const Self&) ; //purposely not implemented
-
-  void operator=(const Self&) ; //purposely not implemented
+ 
+  WeightsImagePointer                         m_WeightsImage;
 
 
   typename LogImageType::Pointer              m_LogInputImage;

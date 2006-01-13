@@ -14,13 +14,14 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkExpectationMaximizationAlgorithm_h
-#define __itkExpectationMaximizationAlgorithm_h
+#ifndef __itkExpectationMaximizationImageClassification_h
+#define __itkExpectationMaximizationImageClassification_h
 
 #include "itkGaussianDensityFunction.h"
 #include "itkVectorImage.h"
 #include "itkVectorContainer.h"
-#include "itkProcessObject.h"
+#include "itkExpectationMaximizationMethod.h"
+#include "itkSimpleDataObjectDecorator.h"
 
 
 namespace itk {
@@ -43,16 +44,24 @@ namespace Statistics {
   // TUnobserveredVariablesYPosteriorImageType ===>> WeightsImage
   //
   //
-template < class TObservationsZImageType, 
-           class TPriorPixelComponentType >
+template < class TObservationsZImageType >
 class ExpectationMaximizationImageClassification : 
-   public ProcessObject
+   public ExpectationMaximizationMethod< 
+                                TObservationsZImageType, 
+                                VectorImage< float, 3 >, 
+                                SimpleDataObjectDecorator< Array< double > > >
 {
 
 public:
 
   typedef ExpectationMaximizationImageClassification             Self;
-  typedef ProcessObject                                          Superclass;
+
+  typedef ExpectationMaximizationMethod< 
+                            TObservationsZImageType, 
+                            VectorImage< float, 3 >, 
+                            SimpleDataObjectDecorator< Array< double > >
+                                      >                         Superclass;
+  
   typedef SmartPointer< Self >                                   Pointer;
   typedef SmartPointer< const Self >                             ConstPointer;
 
@@ -64,54 +73,6 @@ public:
 public:
 
   typedef TObservationsZImageType                      InputImageType;
-
-  itkStaticConstMacro( ImageDimension, unsigned int, 
-                       ::itk::GetImageDimension< InputImageType >::ImageDimension );
-
-  typedef VectorImage< float, ImageDimension >         WeightsImageType;
-
-  typedef TPriorPixelComponentType                     PriorPixelComponentType;
-
-  typedef VectorImage< PriorPixelComponentType, 
-                       ImageDimension >                PriorsImageType;
-
-  typedef typename PriorsImageType::PixelType          PriorsPixelType;
-
-  typedef typename WeightsImageType::Pointer           WeightsImagePointer;
-  typedef typename PriorsImageType::Pointer            PriorsImagePointer;
-
-  typedef typename  InputImageType::PixelType          InputPixelType;
-  typedef           InputPixelType                     MeasurementVectorType;
-
-  typedef GaussianDensityFunction< MeasurementVectorType >  GaussianDensityFunctionType;
-
-  typedef typename GaussianDensityFunctionType::ConstPointer  GaussianDensityFunctionPointer;
-
-  typedef double   ProportionType;
-
- 
-
-  /**  Add a density function to the list of Density functions to use.  */
-  void AddIntensityDistributionDensity( 
-                  const GaussianDensityFunctionType * gaussian,
-                  ProportionType proportion );
-
-
-
-  /** Set the input image to be classified. This image may be a vector image
-   * with multiple-components */
-  void SetInput( const InputImageType * image );
-
-
-  /** Set the image of priors. This is equivalent to an atlas.    */
-  /*  The method assumes that the first class prior defines       */
-  /*  the background.                                             */ 
-
-  void SetClassPrior( const PriorsImageType * image );
-
-
-  /** Set number of Iterations */
-  itkSetMacro( MaximumNumberOfIterations, unsigned long );
 
 
 protected:
@@ -132,19 +93,29 @@ protected:
    *  image and the weights. Throws exceptions is something goes wrong */
   void Initialize();
 
-  /** This method compute the update of parameters to be estimated based on the
-   *  weights and the list of samples (observations) */
-  void ComputeMaximization();
+  /**
+   * Perform the E-Step. The E-Step computes the posterior
+   * probability of the unobserved variables using the observations
+   * and the current estimated parameters.
+   *
+   * This will modify output 1.
+   */
+  virtual void ComputeExpectation();
+  
+  /**
+   * Perform the M-Step. The M-Step computes the maximum likelhood
+   * estimate of the parameters using the observations and the
+   * estimated unobserved variables.
+   *
+   * This will modify output 0.
+   */
+  virtual void ComputeMaximization();
+
+  /**
+   * Convergence criteria
+   */
+  virtual bool Converged() const;
  
-  /** This method updates the weights (or posteriors) based on the current
-   *  parameters and the collection of samples (observations). */
-  void ComputeExpectation();
-
-   /** This method evaluates whether the maximization has converged or not.
-   *  Along with the number of iterations it defines the stopping criteria
-   *  for the entire Expectation/Maximization method. */
-  bool Converge() const;
-
    
 private:
 
@@ -152,40 +123,9 @@ private:
 
   void operator=(const Self&) ; //purposely not implemented
 
-
-
-  /** Container that holds the list of Gaussian distributions for each one of the Structures. */
-  typedef VectorContainer< unsigned int, 
-                           GaussianDensityFunctionPointer 
-                                        >     IntensityDistributionContainerType;
-
-  typedef typename IntensityDistributionContainerType::Pointer 
-                                              IntensityDistributionContainerPointer;
-
-  typedef VectorContainer< unsigned int,
-                           ProportionType >   ProportionsContainerType;
-
-  typedef typename ProportionsContainerType::Pointer  ProportionsContainerPointer;
-
-
-  IntensityDistributionContainerPointer       m_ClassIntensityDistributions;
-  
-
-  WeightsImagePointer                         m_WeightsImage;
-
-
-  ProportionsContainerPointer                 m_ClassProportions;
-
-  // this is the resampled atlas.
-  PriorsImagePointer                          m_ClassPriorImage;  
-
-
   typename InputImageType::ConstPointer       m_InputImage;
 
   
-  unsigned long                               m_MaximumNumberOfIterations;
-
-
 };
 
 }
