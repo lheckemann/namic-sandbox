@@ -34,10 +34,18 @@ namespace itk
  * The outputs of the method are the parameters of the model and the
  * posterior probabilities of the unobserved variables.
  *
- * The algorithm is based on the chapter by R. Neal and G. Hinton: 
- * "A View of the EM Algorithm that Justifies Incremental, Sparse, and other Variants"
- * in M. I. Jordan, Learning in Graphical Models, Kluwer, 1998. 
- * The article can be downloaded from citeseer.ist.psu.edu/neal98view.html
+ * The algorithm is based on the chapter by R. Neal and G. Hinton: "A
+ * View of the EM Algorithm that Justifies Incremental, Sparse, and
+ * other Variants" in M. I. Jordan, Learning in Graphical Models,
+ * Kluwer, 1998.  The article can be downloaded from
+ * citeseer.ist.psu.edu/neal98view.html
+ *
+ * \note This work is part of the National Alliance for Medical Image
+ * Computing (NAMIC), funded by the National Institutes of Health
+ * through the NIH Roadmap for Medical Research, Grant U54 EB005149.
+ * Information on the National Centers for Biomedical Computing
+ * can be obtained from http://nihroadmap.nih.gov/bioinformatics.  
+ * 
  */
 template <typename TObservationsZ, typename TUnobservedVariablesYPosterior, typename TParametersTheta >
 class ITK_EXPORT ExpectationMaximizationMethod : public ProcessObject 
