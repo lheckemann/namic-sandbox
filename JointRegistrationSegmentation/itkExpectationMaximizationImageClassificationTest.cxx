@@ -54,12 +54,10 @@ int main( int argc, char *argv[] )
 
 
   typedef float PriorsPixelComponentType;
-  typedef float WeightsPixelComponentType;
 
   typedef itk::Statistics::ExpectationMaximizationImageClassification< 
-                                                           InputImageType, 
-                                                           PriorsPixelComponentType,
-                                                           WeightsPixelComponentType
+                                                         InputImageType, 
+                                                         PriorsPixelComponentType
                                                                         >   ClassifierType;
 
   ClassifierType::Pointer   EMClassifier = ClassifierType::New();

@@ -43,17 +43,15 @@ namespace Statistics {
 template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType=float >
 class JointRegistrationSegmentationAlgorithm : 
    public ExpectationMaximizationImageClassification< TImageType, 
-                                                      TPriorPixelComponentType, 
-                                                      TCorrectionPrecisionType >
+                                                      TPriorPixelComponentType >
 {
 
 public:
 
-  typedef JointRegistrationSegmentationAlgorithm             Self;
+  typedef JointRegistrationSegmentationAlgorithm                 Self;
   typedef ExpectationMaximizationImageClassification< 
                               TImageType, 
-                              TPriorPixelComponentType, 
-                              TCorrectionPrecisionType >         Superclass;
+                              TPriorPixelComponentType >         Superclass;
   typedef SmartPointer< Self >                                   Pointer;
   typedef SmartPointer< const Self >                             ConstPointer;
 
@@ -69,22 +67,27 @@ public:
   itkStaticConstMacro( ImageDimension, unsigned int, 
                        ::itk::GetImageDimension< InputImageType >::ImageDimension );
 
-  typedef typename Superclass::WeightsImageType        WeightsImageType;
+  typedef typename Superclass::WeightsImageType           WeightsImageType;
 
-  typedef typename Superclass::PriorPixelComponentType PriorPixelComponentType;
-  typedef typename Superclass::PriorsImageType         PriorsImageType;
-  typedef typename Superclass::PriorsPixelType         PriorsPixelType;
-  typedef typename Superclass::CorrectedValueType      CorrectedValueType;
-  typedef typename Superclass::LogImageType            LogImageType;
-  typedef typename Superclass::LogPixelType            LogPixelType;
-  typedef typename Superclass::WeightsImagePointer     WeightsImagePointer;
-  typedef typename Superclass::PriorsImagePointer      PriorsImagePointer;
-  typedef typename Superclass::InputPixelType          InputPixelType;
-  typedef typename Superclass::MeasurementVectorType   MeasurementVectorType;
-  typedef typename Superclass::GaussianDensityFunctionType GaussianDensityFunctionType;
-  typedef typename Superclass::GaussianDensityFunctionPointer GaussianDensityFunctionPointer;
+  typedef typename Superclass::PriorPixelComponentType    PriorPixelComponentType;
+  typedef typename Superclass::PriorsImageType            PriorsImageType;
+  typedef typename Superclass::PriorsPixelType            PriorsPixelType;
+  typedef typename Superclass::WeightsImagePointer        WeightsImagePointer;
+  typedef typename Superclass::PriorsImagePointer         PriorsImagePointer;
+  typedef typename Superclass::InputPixelType             InputPixelType;
+  typedef typename Superclass::MeasurementVectorType      MeasurementVectorType;
+  typedef typename Superclass::GaussianDensityFunctionType      GaussianDensityFunctionType;
+  typedef typename Superclass::GaussianDensityFunctionPointer   GaussianDensityFunctionPointer;
 
   typedef typename Superclass::ProportionType          ProportionType;
+
+  typedef TCorrectionPrecisionType                     CorrectedValueType;
+
+  typedef VectorImage< CorrectedValueType, 
+                       ImageDimension >                LogImageType;
+
+  typedef typename LogImageType::PixelType             LogPixelType;
+
 
 
 protected:
