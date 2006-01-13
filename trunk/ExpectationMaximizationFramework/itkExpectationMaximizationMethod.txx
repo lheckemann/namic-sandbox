@@ -108,6 +108,18 @@ ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersThet
 
 
 
+/**
+ *  Retrieve the Observations
+ */ 
+template <typename TObservationsZ, typename TUnobservedDataY, typename TParametersTheta>
+const typename ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersTheta >::ObservationsType *
+ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersTheta >
+::GetObservations() const
+{ 
+   return this->GeInput(); 
+}
+
+
 
 /**
  * Initialize before entering the iteration loop in GenerateData().
