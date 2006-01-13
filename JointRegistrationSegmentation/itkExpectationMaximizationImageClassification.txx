@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkExpectationMaximizationAlgorithm_txx
-#define __itkExpectationMaximizationAlgorithm_txx
+#ifndef __itkExpectationMaximizationImageClassification_txx
+#define __itkExpectationMaximizationImageClassification_txx
 
 #include "itkExpectationMaximizationImageClassification.h"
 #include "itkImageRegionIterator.h"
