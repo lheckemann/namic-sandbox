@@ -66,8 +66,7 @@ void
 ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersTheta >
 ::SetObservations( const ObservationsType *observations )
 {
-  const ObservationsType * currentObservations = 
-                dynamic_cast< const ObservationsType * >( this->GetInput(0) );
+  const ObservationsType * currentObservations = this->GetObservations();
   
   if( observations && observations != currentObservations )
     {
@@ -116,7 +115,9 @@ const typename ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, 
 ExpectationMaximizationMethod< TObservationsZ, TUnobservedDataY, TParametersTheta >
 ::GetObservations() const
 { 
-   return this->GeInput(); 
+  const ObservationsType * currentObservations = 
+                dynamic_cast< const ObservationsType * >( this->GetInput(0) );
+   return currentObservations;
 }
 
 
