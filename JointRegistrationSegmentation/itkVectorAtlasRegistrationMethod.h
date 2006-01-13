@@ -60,23 +60,35 @@ public:
 
   typedef TFixedImage                               FixedImageType;
   typedef TMovingImage                              MovingImageType;
+  typedef VersorRigid3DTransform< double >          TransformType;
+
+  /** Set/Get the Fixed image. */
+  void SetFixedImage( const FixedImageType * fixedImage );
+  itkGetConstObjectMacro( FixedImage, FixedImageType ); 
+
+  /** Set/Get the Moving image. */
+  void SetMovingImage( const MovingImageType * movingImage );
+  itkGetConstObjectMacro( MovingImage, MovingImageType );
+
+  /** Get the transform. This is the result of the regisration only if invoked
+   * after calling Update() */
+  itkGetConstObjectMacro( Transform, TransformType );
 
 
 protected:
 
-  typedef itk::VersorRigid3DTransform< double >     TransformType;
   
-  typedef itk::AmoebaOptimizer                      OptimizerType;
+  typedef AmoebaOptimizer                      OptimizerType;
 
-  typedef itk::NearestNeighborInterpolateImageFunction< 
+  typedef NearestNeighborInterpolateImageFunction< 
                                     MovingImageType,
                                     double          >    InterpolatorType;
 
-  typedef itk::ImageRegistrationMethod2< 
+  typedef ImageRegistrationMethod2< 
                                     FixedImageType, 
                                     MovingImageType >    RegistrationType;
 
-  typedef itk::KullbackLeiblerDivergenceImageToImageMetric< 
+  typedef KullbackLeiblerDivergenceImageToImageMetric< 
                                     FixedImageType, 
                                     MovingImageType >    MetricType;
 
@@ -109,6 +121,8 @@ private:
   typename InterpolatorType::Pointer     m_Interpolator;
   typename RegistrationType::Pointer     m_Registration;
   typename TransformType::Pointer        m_Transform;
+  typename FixedImageType::Pointer       m_FixedImage;
+  typename MovingImageType::Pointer      m_MovingImage;
 
 };
 

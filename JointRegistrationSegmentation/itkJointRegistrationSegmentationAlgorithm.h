@@ -126,6 +126,13 @@ protected:
 
   typedef   typename  InterpolatorType::Pointer           InterpolatorPointer;
 
+
+  typedef   VectorAtlasRegistrationMethod< 
+                                 WeightsImageType,
+                                 PriorsImageType    >     RegistrationMethodType;
+
+  typedef typename RegistrationMethodType::Pointer        RegistrationMethodPointer;
+
     
 private:
 
@@ -144,6 +151,9 @@ private:
 
   
   InterpolatorPointer                         m_Interpolator;
+
+
+  RegistrationMethodPointer                   m_RegistrationMethod;
 
 };
 
