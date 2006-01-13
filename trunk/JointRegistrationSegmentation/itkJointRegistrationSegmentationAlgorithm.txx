@@ -105,7 +105,7 @@ JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TC
   WeightsIndexType index;
   WeightsPixelType weights;
 
-  const unsigned int numberOfClasses = this->m_ClassPriorImage->GetVectorLength();
+  const unsigned int numberOfClasses = this->GetNumberOfClasses();
 
   while( witr.IsAtEnd() )
     {
