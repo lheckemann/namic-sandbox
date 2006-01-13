@@ -30,8 +30,6 @@ JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TC
 ::JointRegistrationSegmentationAlgorithm()
 {
    this->m_Interpolator = InterpolatorType::New();
-   this->m_ClassProportions = ProportionsContainerType::New();
-   this->m_ClassIntensityDistributions = IntensityDistributionContainerType::New();
 }
 
 
@@ -41,60 +39,6 @@ JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TC
 ::~JointRegistrationSegmentationAlgorithm()
 {
 }
-
-
-
-
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
-void
-JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
-::AddIntensityDistributionDensity( 
-              const GaussianDensityFunctionType * gaussian,
-              ProportionType proportion )
-{
-   this->m_ClassIntensityDistributions->InsertElement( 
-            this->m_ClassIntensityDistributions->Size(), gaussian );
-            
-   this->m_ClassProportions->InsertElement( 
-            this->m_ClassProportions->Size(), proportion );
-
-}
-
-
-
-
-
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
-void
-JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
-::Update()
-{
-   this->GenerateData();
-}
-
-
-
-
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
-void
-JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
-::GenerateData()
-{
-
-  this->Initialize();
-
-  unsigned long int i = 0;
-
-  while( i < this->m_MaximumNumberOfIterations-1 )
-   {
-   this->ComputeExpectation();
-   this->ComputeMaximization();
-   }
-  this->ComputeExpectation();
-  this->ComputeLabelMap();
-}
-
-
 
 
  
@@ -128,14 +72,6 @@ JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TC
 {
 }
 
- 
-
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
-void
-JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
-::ComputeLabelMap()
-{
-}
 
  
 template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
@@ -204,45 +140,16 @@ JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TC
 ::Initialize()
 {
 
-   if( !this->m_InputImage )
-     {
-     itkExceptionMacro("Input image has not been connected. Please use SetInput()");
-     }
+   this->Superclass::Initialize();
 
    if( !this->m_Transform )
      {
      itkExceptionMacro("Transform has not been connected");
      }
 
-   if( !this->m_ClassPriorImage )
-     {
-     itkExceptionMacro("Priors image has not been connected. Please use SetClassPrior()");
-     }
-
    this->m_Interpolator->SetInputImage( this->m_ClassPriorImage );
 
-   this->m_WeightsImage = WeightsImageType::New();
-
    const unsigned int numberOfClasses =  this->m_ClassPriorImage->GetVectorLength();
-
-   this->m_WeightsImage->CopyInformation( this->m_InputImage );
-   this->m_WeightsImage->SetVectorLength( numberOfClasses ); 
-   this->m_WeightsImage->Allocate();
-
-
-   //
-   //   Checking that the number of intensity distribution match 
-   //   the number of components of the priors image.
-   //
-   if( this->m_ClassIntensityDistributions->Size() != numberOfClasses )
-     { 
-     itkExceptionMacro("Number of provided Intensity Distributions does not match the number of components in the priors");
-     }
-
-   if( this->m_ClassProportions->Size() != numberOfClasses )
-     { 
-     itkExceptionMacro("Number of classes proportions does not match the number of components in the priors");
-     }
 
 
    // Check the input image for negative values
@@ -329,32 +236,7 @@ JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TC
     // Setup the Image Inhomogeneity Correction Module...
     //
 
-
 }
-
-
-
- 
-
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
-void
-JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
-::SetInput( const InputImageType * inputImage )
-{
-   this->m_InputImage = inputImage;
-}
-
-
- 
-
-template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType >
-void
-JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TCorrectionPrecisionType >
-::SetClassPrior( const PriorsImageType * priorImage )
-{
-   this->m_ClassPriorImage = priorImage;
-}
-
 
 
 
