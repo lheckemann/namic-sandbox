@@ -4,6 +4,7 @@ PROJECT(JointRegistrationSegmentation)
 # first from this subdirectory instead of ITKs.
 INCLUDE_DIRECTORIES( 
   ${JointRegistrationSegmentation_SOURCE_DIR}
+  ${JointRegistrationSegmentation_SOURCE_DIR}/../ExpectationMaximizationFramework
   )
 
 
@@ -29,7 +30,20 @@ ADD_EXECUTABLE(itkExpectationMaximizationImageClassificationTest
   itkExpectationMaximizationImageClassificationTest.cxx 
   )
 
-TARGET_LINK_LIBRARIES(itkExpectationMaximizationImageClassificationTest ITKStatistics ITKIO ITKCommon ITKNumerics)
+TARGET_LINK_LIBRARIES(itkExpectationMaximizationImageClassificationTest 
+      ITKStatistics ITKIO ITKCommon ITKNumerics)
+
+
+
+
+ADD_EXECUTABLE(itkExpectationMaximizationImageClassificationWithPriorsTest
+               itkExpectationMaximizationImageClassificationWithPriorsTest.cxx 
+  )
+
+TARGET_LINK_LIBRARIES(itkExpectationMaximizationImageClassificationWithPriorsTest 
+       ITKStatistics ITKIO ITKCommon ITKNumerics)
+
+
 
 
 
@@ -42,11 +56,9 @@ TARGET_LINK_LIBRARIES(itkJointRegistrationSegmentationAlgorithmTest ITKStatistic
 
 
 
-
-
 ADD_EXECUTABLE(itkMRIInhomogeneityEstimatorTest
- itkMRIInhomogeneityEstimatorTest.cxx 
- )
+itkMRIInhomogeneityEstimatorTest.cxx 
+)
 
 TARGET_LINK_LIBRARIES(itkMRIInhomogeneityEstimatorTest ITKStatistics ITKIO ITKCommon ITKNumerics)
 

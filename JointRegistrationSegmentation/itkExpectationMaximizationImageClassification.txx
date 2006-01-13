@@ -25,18 +25,16 @@ namespace itk {
 namespace Statistics {
 
 
-template < class TObservationsZImageType, class TPriorPixelComponentType >
-ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType >
+template < class TObservationsZImageType >
+ExpectationMaximizationImageClassification< TObservationsZImageType >
 ::ExpectationMaximizationImageClassification()
 {
-   this->m_ClassProportions = ProportionsContainerType::New();
-   this->m_ClassIntensityDistributions = IntensityDistributionContainerType::New();
 }
 
 
 
-template < class TObservationsZImageType, class TPriorPixelComponentType >
-ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType >
+template < class TObservationsZImageType >
+ExpectationMaximizationImageClassification< TObservationsZImageType >
 ::~ExpectationMaximizationImageClassification()
 {
 }
@@ -44,28 +42,10 @@ ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixel
 
 
 
-template < class TObservationsZImageType, class TPriorPixelComponentType >
+
+template < class TObservationsZImageType >
 void
-ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType >
-::AddIntensityDistributionDensity( 
-              const GaussianDensityFunctionType * gaussian,
-              ProportionType proportion )
-{
-   this->m_ClassIntensityDistributions->InsertElement( 
-            this->m_ClassIntensityDistributions->Size(), gaussian );
-            
-   this->m_ClassProportions->InsertElement( 
-            this->m_ClassProportions->Size(), proportion );
-
-}
-
-
-
-
-
-template < class TObservationsZImageType, class TPriorPixelComponentType >
-void
-ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType >
+ExpectationMaximizationImageClassification< TObservationsZImageType >
 ::GenerateData()
 {
   this->Superclass::GenerateData();
@@ -74,110 +54,64 @@ ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixel
 
 
 
-
  
-template < class TObservationsZImageType, class TPriorPixelComponentType >
+template < class TObservationsZImageType >
 void
-ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType >
-::ComputeMaximization()
-{
-
-}
-
-
- 
- 
-template < class TObservationsZImageType, class TPriorPixelComponentType >
-bool
-ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType >
-::Converge() const
-{
-
-}
-
-
- 
-template < class TObservationsZImageType, class TPriorPixelComponentType >
-void
-ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType >
+ExpectationMaximizationImageClassification< TObservationsZImageType >
 ::ComputeLabelMap()
 {
 }
 
  
-template < class TObservationsZImageType, class TPriorPixelComponentType >
+ 
+ 
+template < class TObservationsZImageType >
 void
-ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType >
-::ComputeExpectation()
+ExpectationMaximizationImageClassification< TObservationsZImageType >
+::ComputeMaximization()
 {
+  // This method is intended to be overloaded in a derived class 
 }
 
+  
+ 
+ 
+template < class TObservationsZImageType >
+void
+ExpectationMaximizationImageClassification< TObservationsZImageType >
+::ComputeExpectation()
+{
+  // This method is intended to be overloaded in a derived class 
+}
 
+ 
+ 
+ 
+template < class TObservationsZImageType >
+bool
+ExpectationMaximizationImageClassification< TObservationsZImageType >
+::Converged() const
+{
+  // This method is intended to be overloaded in a derived class 
+}
 
  
 
-template < class TObservationsZImageType, class TPriorPixelComponentType >
+
+
+
+template < class TObservationsZImageType >
 void
-ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType >
+ExpectationMaximizationImageClassification< TObservationsZImageType >
 ::Initialize()
 {
+   this->m_InputImage = dynamic_cast< const InputImageType *>( this->GetObservations() );
 
    if( !this->m_InputImage )
      {
      itkExceptionMacro("Input image has not been connected. Please use SetInput()");
      }
 
-   if( !this->m_ClassPriorImage )
-     {
-     itkExceptionMacro("Priors image has not been connected. Please use SetClassPrior()");
-     }
-
-   this->m_WeightsImage = WeightsImageType::New();
-
-   const unsigned int numberOfClasses =  this->m_ClassPriorImage->GetVectorLength();
-
-   this->m_WeightsImage->CopyInformation( this->m_InputImage );
-   this->m_WeightsImage->SetVectorLength( numberOfClasses ); 
-   this->m_WeightsImage->Allocate();
-
-
-   //
-   //   Checking that the number of intensity distribution match 
-   //   the number of components of the priors image.
-   //
-   if( this->m_ClassIntensityDistributions->Size() != numberOfClasses )
-     { 
-     itkExceptionMacro("Number of provided Intensity Distributions does not match the number of components in the priors");
-     }
-
-   if( this->m_ClassProportions->Size() != numberOfClasses )
-     { 
-     itkExceptionMacro("Number of classes proportions does not match the number of components in the priors");
-     }
-
-}
-
-
-
- 
-
-template < class TObservationsZImageType, class TPriorPixelComponentType >
-void
-ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType >
-::SetInput( const InputImageType * inputImage )
-{
-   this->m_InputImage = inputImage;
-}
-
-
- 
-
-template < class TObservationsZImageType, class TPriorPixelComponentType >
-void
-ExpectationMaximizationImageClassification< TObservationsZImageType, TPriorPixelComponentType >
-::SetClassPrior( const PriorsImageType * priorImage )
-{
-   this->m_ClassPriorImage = priorImage;
 }
 
 

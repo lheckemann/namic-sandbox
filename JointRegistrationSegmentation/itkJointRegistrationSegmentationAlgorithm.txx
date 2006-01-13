@@ -160,6 +160,12 @@ JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TC
 
    const unsigned int numberOfClasses =  this->m_ClassPriorImage->GetVectorLength();
 
+   this->m_WeightsImage = WeightsImageType::New();
+
+   this->m_WeightsImage->CopyInformation( this->m_InputImage );
+   this->m_WeightsImage->SetVectorLength( numberOfClasses ); 
+   this->m_WeightsImage->Allocate();
+
 
    // Check the input image for negative values
    typedef itk::ImageRegionConstIterator< InputImageType >    InputImageIterator;
