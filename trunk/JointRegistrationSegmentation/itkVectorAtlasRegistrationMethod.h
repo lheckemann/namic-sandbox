@@ -63,11 +63,11 @@ public:
   typedef VersorRigid3DTransform< double >          TransformType;
 
   /** Set/Get the Fixed image. */
-  void SetFixedImage( const FixedImageType * fixedImage );
+  itkSetConstObjectMacro( FixedImage, FixedImageType );
   itkGetConstObjectMacro( FixedImage, FixedImageType ); 
 
   /** Set/Get the Moving image. */
-  void SetMovingImage( const MovingImageType * movingImage );
+  itkSetConstObjectMacro( MovingImage, MovingImageType );
   itkGetConstObjectMacro( MovingImage, MovingImageType );
 
   /** Get the transform. This is the result of the regisration only if invoked
@@ -119,13 +119,13 @@ private:
   void operator=(const Self&) ; //purposely not implemented
 
 
-  typename MetricType::Pointer           m_Metric;
-  typename OptimizerType::Pointer        m_Optimizer;
-  typename InterpolatorType::Pointer     m_Interpolator;
-  typename RegistrationType::Pointer     m_Registration;
-  typename TransformType::Pointer        m_Transform;
-  typename FixedImageType::Pointer       m_FixedImage;
-  typename MovingImageType::Pointer      m_MovingImage;
+  typename MetricType::Pointer                m_Metric;
+  typename OptimizerType::Pointer             m_Optimizer;
+  typename InterpolatorType::Pointer          m_Interpolator;
+  typename RegistrationType::Pointer          m_Registration;
+  typename TransformType::Pointer             m_Transform;
+  typename FixedImageType::ConstPointer       m_FixedImage;
+  typename MovingImageType::ConstPointer      m_MovingImage;
 
 };
 
