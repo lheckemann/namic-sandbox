@@ -97,8 +97,12 @@ public:
   /** Set the image of priors. This is equivalent to an atlas.    */
   /*  The method assumes that the first class prior defines       */
   /*  the background.                                             */ 
-
   void SetClassPrior( const PriorsImageType * image );
+
+
+  /** Get the number of classes that are expected by the priors 
+   */
+  unsigned int GetNumberOfClasses() const;
 
 
 protected:
@@ -133,13 +137,6 @@ protected:
   bool Converged() const;
 
    
-private:
-
-  ExpectationMaximizationImageClassificationWithPriors(const Self&) ; //purposely not implemented
-
-  void operator=(const Self&) ; //purposely not implemented
-
-
 
   /** Container that holds the list of Gaussian distributions for each one of the Structures. */
   typedef VectorContainer< unsigned int, 
@@ -162,6 +159,15 @@ private:
 
   // this is the resampled atlas.
   PriorsImagePointer                          m_ClassPriorImage;  
+
+
+private:
+
+  ExpectationMaximizationImageClassificationWithPriors(const Self&) ; //purposely not implemented
+
+  void operator=(const Self&) ; //purposely not implemented
+
+
 
 };
 

@@ -113,6 +113,19 @@ ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, T
 }
 
 
+ 
+
+
+template < class TObservationsZImageType, class TPriorPixelComponentType >
+unsigned int
+ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TPriorPixelComponentType >
+::GetNumberOfClasses() const
+{
+   const unsigned int numberOfClasses =  this->m_ClassPriorImage->GetVectorLength();
+   return numberOfClasses;
+}
+
+
 
  
 
@@ -122,10 +135,7 @@ ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, T
 ::Initialize()
 {
 
-   if( !this->m_InputImage )
-     {
-     itkExceptionMacro("Input image has not been connected. Please use SetInput()");
-     }
+   this->Superclass::Initialize();
 
    if( !this->m_ClassPriorImage )
      {
@@ -152,16 +162,6 @@ ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, T
 }
 
 
-
- 
-
-template < class TObservationsZImageType, class TPriorPixelComponentType >
-void
-ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TPriorPixelComponentType >
-::SetInput( const InputImageType * inputImage )
-{
-   this->m_InputImage = inputImage;
-}
 
 
  

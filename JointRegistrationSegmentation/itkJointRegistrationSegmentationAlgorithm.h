@@ -117,7 +117,7 @@ protected:
   /** Base class of a generic transform */
   typedef   Transform<double, ImageDimension, ImageDimension >   TransformType;
 
-  typedef   typename TransformType::Pointer       TransformPointer;
+  typedef   typename TransformType::ConstPointer       TransformPointer;
 
 
   typedef   NearestNeighborInterpolateImageFunction< 
