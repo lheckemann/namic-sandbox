@@ -39,10 +39,10 @@ RequestAddNode( const NodeNameType & ,
 
 
 
-void 
+void
 Tree::
-RequestGetTransformBetweenNodes( const NodeNameType & ,
-                                 const NodeNameType & )
+RequestTransformCollectionBetweenNodes( const NodeNameType & ,
+                                        const NodeNameType & )
 {
 }
 
