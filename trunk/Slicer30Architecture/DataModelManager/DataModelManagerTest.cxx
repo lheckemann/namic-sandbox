@@ -34,6 +34,5 @@ int main( int argc , char * argv [] )
   manager.RequestAddNode( nodeName1 );
 
   return 0;
-
 }
 
