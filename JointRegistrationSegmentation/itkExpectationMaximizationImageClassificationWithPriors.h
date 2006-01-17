@@ -71,7 +71,7 @@ public:
 
   typedef typename PriorsImageType::PixelType          PriorsPixelType;
 
-  typedef typename PriorsImageType::Pointer            PriorsImagePointer;
+  typedef typename PriorsImageType::ConstPointer       PriorsImagePointer;
 
   typedef typename  InputImageType::PixelType          InputPixelType;
   typedef           InputPixelType                     MeasurementVectorType;
@@ -93,7 +93,7 @@ public:
   /** Set the image of priors. This is equivalent to an atlas.    */
   /*  The method assumes that the first class prior defines       */
   /*  the background.                                             */ 
-  void SetClassPrior( const PriorsImageType * image );
+  void SetClassPriors( const PriorsImageType * image );
 
 
   /** Get the number of classes that are expected by the priors 

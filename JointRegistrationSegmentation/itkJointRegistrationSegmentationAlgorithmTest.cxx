@@ -29,11 +29,11 @@
 int main( int argc, char *argv[] )
 {
 
-  if( argc < 3 )
+  if( argc < 4 )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << "   inputImageFile  numberOfIterations" << std::endl;
+    std::cerr << "   inputImageFile inputImagePriors numberOfIterations" << std::endl;
     return 1;
     }
 
@@ -46,13 +46,22 @@ int main( int argc, char *argv[] )
 
   typedef itk::ImageFileReader< InputImageType >     ImageReaderType;
 
-  ImageReaderType::Pointer  reader  = ImageReaderType::New();
+  ImageReaderType::Pointer  readerInput  = ImageReaderType::New();
   
-  reader->SetFileName(  argv[1] );
+  readerInput->SetFileName(  argv[1] );
   
-  reader->Update();
+  readerInput->Update();
 
 
+  ImageReaderType::Pointer  readerPriors  = ImageReaderType::New();
+  
+  readerPriors->SetFileName(  argv[2] );
+  
+  readerPriors->Update();
+
+
+
+  
   typedef float PriorsPixelComponentType;
   typedef float WeightsPixelComponentType;
 
@@ -84,8 +93,10 @@ int main( int argc, char *argv[] )
   EMClassifier->AddIntensityDistributionDensity( gaussian4, proportionClass4 );
 
 
-  EMClassifier->SetObservations( reader->GetOutput() );
+  EMClassifier->SetObservations( readerInput->GetOutput()  );
+  EMClassifier->SetClassPriors(  readerPriors->GetOutput() );
 
+  EMClassifier->SetMaximumNumberOfIterations( atoi( argv[3] ) );
 
   try 
     { 
