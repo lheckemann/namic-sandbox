@@ -109,9 +109,10 @@ ExpectationMaximizationImageClassification< TObservationsZImageType >
 
    this->Superclass::Initialize();
    
-   this->m_InputImage = dynamic_cast< const InputImageType *>( this->GetObservations() );
+   const InputImageType * inputImage = 
+            dynamic_cast< const InputImageType *>( this->GetObservations() );
 
-   if( !this->m_InputImage )
+   if( !inputImage )
      {
      itkExceptionMacro("Input image has not been connected. Please use SetInput()");
      }

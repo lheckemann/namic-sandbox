@@ -127,8 +127,6 @@ private:
 
   void operator=(const Self&) ; //purposely not implemented
 
-  typename InputImageType::ConstPointer       m_InputImage;
-
   
 };
 
