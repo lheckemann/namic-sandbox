@@ -139,7 +139,7 @@ ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, T
 
    if( !this->m_ClassPriorImage )
      {
-     itkExceptionMacro("Priors image has not been connected. Please use SetClassPrior()");
+     itkExceptionMacro("Priors image has not been connected. Please use SetClassPriors()");
      }
 
 
@@ -169,7 +169,7 @@ ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, T
 template < class TObservationsZImageType, class TPriorPixelComponentType >
 void
 ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TPriorPixelComponentType >
-::SetClassPrior( const PriorsImageType * priorImage )
+::SetClassPriors( const PriorsImageType * priorImage )
 {
    this->m_ClassPriorImage = priorImage;
 }
