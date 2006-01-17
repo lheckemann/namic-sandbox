@@ -162,6 +162,7 @@ JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TC
    this->m_WeightsImage = WeightsImageType::New();
 
    this->m_WeightsImage->CopyInformation( this->GetObservations() );
+   this->m_WeightsImage->SetRegions( this->m_WeightsImage->GetLargestPossibleRegion() );
    this->m_WeightsImage->SetVectorLength( numberOfClasses ); 
    this->m_WeightsImage->Allocate();
 
@@ -193,7 +194,9 @@ JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TC
    //
    // Compute the Log ( pixel + 1 )
    //
+   this->m_LogInputImage = LogImageType::New();
    this->m_LogInputImage->CopyInformation( inputImage );
+   this->m_LogInputImage->SetRegions( this->m_LogInputImage->GetLargestPossibleRegion() );
    this->m_LogInputImage->SetVectorLength( inputImage->GetVectorLength() );
    this->m_LogInputImage->Allocate();
    
@@ -222,10 +225,13 @@ JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TC
    //
    //  Copy the log image into the Corrected Log image.
    //
+   this->m_CorrectedLogImage = LogImageType::New();
    this->m_CorrectedLogImage->CopyInformation( this->m_LogInputImage );
+   this->m_CorrectedLogImage->SetRegions( this->m_CorrectedLogImage->GetLargestPossibleRegion() );
    this->m_CorrectedLogImage->SetVectorLength( this->m_LogInputImage->GetVectorLength() );
    this->m_CorrectedLogImage->Allocate();
    
+
    LogImageIterator citr( this->m_CorrectedLogImage, this->m_CorrectedLogImage->GetBufferedRegion() );
 
    litr.GoToBegin();
