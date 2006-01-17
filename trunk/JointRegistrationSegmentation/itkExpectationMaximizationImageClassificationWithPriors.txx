@@ -92,6 +92,7 @@ ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, T
 ::Converged() const
 {
    // This method is inteded to be overloaded in a derived class
+   return false;
 }
 
 
