@@ -114,6 +114,10 @@ protected:
 
   typedef SimpleMemberCommand< Self >        ObserverType; 
     
+
+  void IterationUpdate();
+
+  
 private:
 
   VectorAtlasRegistrationMethod(const Self&) ; //purposely not implemented
@@ -128,6 +132,8 @@ private:
   typename TransformType::Pointer             m_Transform;
   typename FixedImageType::ConstPointer       m_FixedImage;
   typename MovingImageType::ConstPointer      m_MovingImage;
+
+  typename ObserverType::Pointer              m_Observer;
 
 };
 

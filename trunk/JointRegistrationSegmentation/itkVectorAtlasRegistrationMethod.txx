@@ -32,6 +32,11 @@ VectorAtlasRegistrationMethod< TFixedImageType, TMovingImage >
    this->m_Interpolator  = InterpolatorType::New();
    this->m_Transform     = TransformType::New();
    this->m_Registration  = RegistrationType::New();
+
+   this->m_Observer      = ObserverType::New();
+
+   this->m_Observer->SetCallbackFunction( this, & Self::IterationUpdate );
+
 }
 
 
@@ -43,14 +48,23 @@ VectorAtlasRegistrationMethod< TFixedImageType, TMovingImage >
 }
 
 
-   
+  
+
+template < class TFixedImageType, class TMovingImage >
+void
+VectorAtlasRegistrationMethod< TFixedImageType, TMovingImage >
+::IterationUpdate()
+{
+   std::cout << this->m_Optimizer->GetValue() << "   ";
+   std::cout << this->m_Optimizer->GetCurrentPosition() << std::endl;
+}
+  
 
 template < class TFixedImageType, class TMovingImage >
 void
 VectorAtlasRegistrationMethod< TFixedImageType, TMovingImage >
 ::GenerateData()
 {
-  std::cout << "VectorAtlasRegistrationMethod::GenerateData()" << std::endl;
   this->Initialize();
   this->ComputeRegistration();
 }
@@ -120,6 +134,8 @@ VectorAtlasRegistrationMethod< TFixedImageType, TMovingImage >
 
   this->m_Optimizer->MinimizeOn();
 
+  this->m_Optimizer->AddObserver( IterationEvent(), this->m_Observer );
+
 }
 
 
@@ -132,11 +148,8 @@ VectorAtlasRegistrationMethod< TFixedImageType, TMovingImage >
 ::ComputeRegistration()
 {
 
-  std::cout << "VectorAtlasRegistrationMethod::ComputeRegistration()" << std::endl;
-
   try 
     { 
-    std::cout << "Starting registration " << std::endl;
     this->m_Registration->StartRegistration(); 
     } 
   catch( itk::ExceptionObject & err ) 
