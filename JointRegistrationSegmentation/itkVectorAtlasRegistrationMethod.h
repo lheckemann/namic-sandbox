@@ -73,7 +73,11 @@ public:
   /** Get the transform. This is the result of the regisration only if invoked
    * after calling Update() */
   itkGetConstObjectMacro( Transform, TransformType );
-  
+ 
+  /** Method for computing the registration. This is invoked from the
+   * superclass when the user calls Update() */
+  void GenerateData();
+
 protected:
 
   
@@ -97,10 +101,6 @@ protected:
 
   /** Destructor */
   ~VectorAtlasRegistrationMethod();
-
-  /** Method for computing the registration. This is invoked from the
-   * superclass when the user calls Update() */
-  void GenerateData();
 
   /** Initialize the allocation of the Weights image Initialize the corrected
    *  image and the weights. Throws exceptions is something goes wrong */
