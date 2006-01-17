@@ -134,14 +134,14 @@ private:
 
   void operator=(const Self&) ; //purposely not implemented
 
-  typedef VectorImage< float, ImageDimension >         WeightsImageType;
-  typedef typename WeightsImageType::Pointer           WeightsImagePointer;
+  typedef typename Superclass::WeightsImageType          WeightsImageType;
+  typedef typename WeightsImageType::Pointer             WeightsImagePointer;
 
   typedef   VectorAtlasRegistrationMethod< 
                                  WeightsImageType,
-                                 PriorsImageType    >     RegistrationMethodType;
+                                 PriorsImageType    >    RegistrationMethodType;
 
-  typedef typename RegistrationMethodType::Pointer        RegistrationMethodPointer;
+  typedef typename RegistrationMethodType::Pointer       RegistrationMethodPointer;
 
  
   WeightsImagePointer                         m_WeightsImage;

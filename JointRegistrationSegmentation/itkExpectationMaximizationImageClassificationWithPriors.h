@@ -33,12 +33,6 @@ namespace Statistics {
  *
  */ 
  
-  //
-  // TParametersTheta ==> struct {will be the inhomogeneity correction + transform parameters for registration}.
-  //
-  // TUnobserveredVariablesYPosteriorImageType ===>> WeightsImage
-  //
-  //
 template < class TObservationsZImageType, 
            class TPriorPixelComponentType >
 class ExpectationMaximizationImageClassificationWithPriors : 
@@ -63,6 +57,8 @@ public:
 public:
 
   typedef typename Superclass::InputImageType                  InputImageType;
+
+  typedef typename Superclass::WeightsImageType                WeightsImageType;
 
   itkStaticConstMacro( ImageDimension, unsigned int, 
                        ::itk::GetImageDimension< InputImageType >::ImageDimension );
