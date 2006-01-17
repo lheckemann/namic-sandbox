@@ -66,10 +66,12 @@ JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TC
    this->m_RegistrationMethod->SetFixedImage(  this->m_WeightsImage    );
    this->m_RegistrationMethod->SetMovingImage( this->m_ClassPriorImage );
 
-   this->m_RegistrationMethod->Update();
+   this->m_RegistrationMethod->GenerateData();
 
    this->m_Transform = this->m_RegistrationMethod->GetTransform();
    
+   std::cout << "Received Transform" << std::endl;
+   this->m_Transform->Print( std::cout );
 }
 
  
