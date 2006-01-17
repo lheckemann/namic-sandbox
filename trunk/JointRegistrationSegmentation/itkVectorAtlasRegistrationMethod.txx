@@ -50,6 +50,7 @@ void
 VectorAtlasRegistrationMethod< TFixedImageType, TMovingImage >
 ::GenerateData()
 {
+  std::cout << "VectorAtlasRegistrationMethod::GenerateData()" << std::endl;
   this->Initialize();
   this->ComputeRegistration();
 }
@@ -130,6 +131,8 @@ void
 VectorAtlasRegistrationMethod< TFixedImageType, TMovingImage >
 ::ComputeRegistration()
 {
+
+  std::cout << "VectorAtlasRegistrationMethod::ComputeRegistration()" << std::endl;
 
   try 
     { 
