@@ -19,6 +19,7 @@
 
 #include "itkJointRegistrationSegmentationAlgorithm.h"
 #include "itkImageRegionIterator.h"
+#include "itkIdentityTransform.h"
 
 namespace itk {
 
@@ -151,10 +152,8 @@ JointRegistrationSegmentationAlgorithm< TImageType, TPriorPixelComponentType, TC
 
    this->Superclass::Initialize();
 
-   if( !this->m_Transform )
-     {
-     itkExceptionMacro("Transform has not been connected");
-     }
+   typedef IdentityTransform<double,ImageDimension>  InitialTransformType;
+   this->m_Transform = InitialTransformType::New();
 
    this->m_Interpolator->SetInputImage( this->m_ClassPriorImage );
 
