@@ -47,9 +47,10 @@ namespace Statistics {
 template < class TObservationsZImageType >
 class ExpectationMaximizationImageClassification : 
    public ExpectationMaximizationMethod< 
-                                TObservationsZImageType, 
-                                VectorImage< float, 3 >, 
-                                SimpleDataObjectDecorator< Array< double > > >
+              TObservationsZImageType, 
+              VectorImage< float, 
+                           GetImageDimension< TObservationsZImageType >::ImageDimension >, 
+              SimpleDataObjectDecorator< Array< double > > >
 {
 
 public:
@@ -57,10 +58,11 @@ public:
   typedef ExpectationMaximizationImageClassification             Self;
 
   typedef ExpectationMaximizationMethod< 
-                            TObservationsZImageType, 
-                            VectorImage< float, 3 >, 
-                            SimpleDataObjectDecorator< Array< double > >
-                                      >                         Superclass;
+              TObservationsZImageType, 
+              VectorImage< float, 
+                           GetImageDimension< TObservationsZImageType >::ImageDimension >, 
+              SimpleDataObjectDecorator< Array< double > >
+                                                            >    Superclass;
   
   typedef SmartPointer< Self >                                   Pointer;
   typedef SmartPointer< const Self >                             ConstPointer;
@@ -72,8 +74,10 @@ public:
 
 public:
 
-  typedef TObservationsZImageType                      InputImageType;
+  typedef TObservationsZImageType                       InputImageType;
 
+  typedef typename Superclass::UnobservedVariablesPosteriorType  
+                                                        WeightsImageType;
 
 protected:
 
