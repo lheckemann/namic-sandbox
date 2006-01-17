@@ -164,7 +164,7 @@ protected:
 
   
   /** Method invoked by the pipeline in order to trigger the EM algorithm */
-  void  GenerateData ();
+  virtual void  GenerateData ();
   
 private:
   ExpectationMaximizationMethod(const Self&); //purposely not implemented
