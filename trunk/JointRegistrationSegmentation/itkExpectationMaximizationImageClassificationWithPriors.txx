@@ -69,7 +69,6 @@ ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, T
 ::GenerateData()
 {
   this->Superclass::GenerateData();
-  this->ComputeLabelMap();
 }
 
 
