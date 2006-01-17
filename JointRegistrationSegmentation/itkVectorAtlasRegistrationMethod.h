@@ -25,6 +25,7 @@
 #include "itkCenteredTransformGeometricInitializer.h"
 #include "itkVectorImage.h"
 #include "itkVersorRigid3DTransform.h"
+#include "itkCommand.h"
 
 
 namespace itk {
@@ -111,6 +112,7 @@ protected:
   void ComputeRegistration();
 
 
+  typedef SimpleMemberCommand< Self >        ObserverType; 
     
 private:
 
