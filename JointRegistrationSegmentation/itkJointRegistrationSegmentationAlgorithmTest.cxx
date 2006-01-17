@@ -77,16 +77,19 @@ int main( int argc, char *argv[] )
   typedef  ClassifierType::GaussianDensityFunctionType      GaussianDensityFunctionType;
 
 
+  GaussianDensityFunctionType::Pointer  gaussian0  = GaussianDensityFunctionType::New();
   GaussianDensityFunctionType::Pointer  gaussian1  = GaussianDensityFunctionType::New();
   GaussianDensityFunctionType::Pointer  gaussian2  = GaussianDensityFunctionType::New();
   GaussianDensityFunctionType::Pointer  gaussian3  = GaussianDensityFunctionType::New();
   GaussianDensityFunctionType::Pointer  gaussian4  = GaussianDensityFunctionType::New();
 
+  const double proportionClass0 = 0.4;
   const double proportionClass1 = 0.4;
   const double proportionClass2 = 0.8;
   const double proportionClass3 = 0.9;
   const double proportionClass4 = 0.3;
   
+  EMClassifier->AddIntensityDistributionDensity( gaussian0, proportionClass0 );
   EMClassifier->AddIntensityDistributionDensity( gaussian1, proportionClass1 );
   EMClassifier->AddIntensityDistributionDensity( gaussian2, proportionClass2 );
   EMClassifier->AddIntensityDistributionDensity( gaussian3, proportionClass3 );
