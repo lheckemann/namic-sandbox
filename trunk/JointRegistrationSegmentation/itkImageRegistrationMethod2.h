@@ -197,7 +197,7 @@ protected:
 
   /** Method invoked by the pipeline in order to trigger the computation of 
    * the registration. */
-  void  GenerateData ();
+  virtual void  GenerateData ();
 
   /** Provides derived classes with the ability to set this private var */
   itkSetMacro( LastTransformParameters, ParametersType );
