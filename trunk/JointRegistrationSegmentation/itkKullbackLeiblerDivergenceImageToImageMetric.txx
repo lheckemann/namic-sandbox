@@ -148,6 +148,8 @@ KullbackLeiblerDivergenceImageToImageMetric<TFixedImage,TMovingImage>
     measure /= this->m_NumberOfPixelsCounted;
     }
 
+  itkDebugMacro("Measure = " << measure );
+  
   return measure;
 
 }
