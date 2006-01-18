@@ -35,7 +35,7 @@ namespace igstk
     base Communication class.
 */
 
-class Communication  : public Object
+class IGSTK_EXPORT Communication  : public Object
 {
  
 public: 

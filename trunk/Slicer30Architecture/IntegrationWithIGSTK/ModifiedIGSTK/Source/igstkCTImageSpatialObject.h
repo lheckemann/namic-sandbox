@@ -38,7 +38,7 @@ namespace igstk
  *  \ingroup Object
  */
 
-class CTImageSpatialObject : 
+class IGSTK_EXPORT CTImageSpatialObject : 
       public ImageSpatialObject< signed short, 3 >
 {
 

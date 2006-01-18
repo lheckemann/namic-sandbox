@@ -43,7 +43,7 @@ namespace igstk
  *
  * \ingroup Logging
  */
-class VTKLoggerOutput : public vtkOutputWindow 
+class IGSTK_EXPORT VTKLoggerOutput : public vtkOutputWindow 
 {
 public:
   /** Standard class typedefs. */

@@ -44,7 +44,7 @@ namespace igstk
  *
  * \ingroup Readers
  */
-class TubeReader : public SpatialObjectReader<3>
+class IGSTK_EXPORT TubeReader : public SpatialObjectReader<3>
 {
 
 public:

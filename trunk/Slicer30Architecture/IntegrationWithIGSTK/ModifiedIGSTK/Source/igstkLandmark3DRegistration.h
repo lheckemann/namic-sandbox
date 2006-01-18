@@ -46,7 +46,7 @@ namespace igstk
  * \ingroup Registration 
  */
 
-class Landmark3DRegistration : public Object
+class IGSTK_EXPORT Landmark3DRegistration : public Object
 {
 
 public:

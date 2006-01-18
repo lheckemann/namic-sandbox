@@ -36,7 +36,7 @@ namespace igstk
  * \ingroup SerialCommunication
  */
 
-class SerialCommunicationSimulator : public SerialCommunication
+class IGSTK_EXPORT SerialCommunicationSimulator : public SerialCommunication
 {
 public:
 

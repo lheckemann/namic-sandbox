@@ -36,7 +36,7 @@ namespace igstk
   *
   */
 
-class PolarisTracker : public Tracker
+class IGSTK_EXPORT PolarisTracker : public Tracker
 {
 public:
 

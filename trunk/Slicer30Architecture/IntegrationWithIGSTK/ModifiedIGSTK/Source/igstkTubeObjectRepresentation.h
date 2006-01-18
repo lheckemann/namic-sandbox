@@ -38,7 +38,7 @@ namespace igstk
  * \ingroup ObjectRepresentation
  */
 
-class TubeObjectRepresentation 
+class IGSTK_EXPORT TubeObjectRepresentation 
 : public ObjectRepresentation
 {
 

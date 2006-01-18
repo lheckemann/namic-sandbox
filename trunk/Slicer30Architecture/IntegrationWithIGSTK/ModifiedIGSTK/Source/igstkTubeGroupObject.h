@@ -35,7 +35,7 @@ namespace igstk
  * \inTubeGroup Object
  */
 
-class TubeGroupObject 
+class IGSTK_EXPORT TubeGroupObject 
 : public GroupObject
 {
 

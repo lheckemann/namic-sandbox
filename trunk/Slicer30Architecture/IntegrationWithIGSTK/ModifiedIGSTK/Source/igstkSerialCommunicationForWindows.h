@@ -39,7 +39,7 @@ namespace igstk
  * \ingroup SerialCommunication
  */
 
-class SerialCommunicationForWindows : public SerialCommunication
+class IGSTK_EXPORT SerialCommunicationForWindows : public SerialCommunication
 {
 public:
 

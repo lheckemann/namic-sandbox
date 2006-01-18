@@ -42,7 +42,7 @@ namespace igstk
  * \ingroup ObjectRepresentation
  */
 
-class EllipsoidObjectRepresentation 
+class IGSTK_EXPORT EllipsoidObjectRepresentation 
 : public ObjectRepresentation
 {
 

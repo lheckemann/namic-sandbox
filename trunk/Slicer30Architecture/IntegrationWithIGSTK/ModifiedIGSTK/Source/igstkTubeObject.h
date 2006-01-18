@@ -34,7 +34,7 @@ namespace igstk
  * \ingroup Object
  */
 
-class TubeObject 
+class IGSTK_EXPORT TubeObject 
 : public SpatialObject
 {
 

@@ -42,7 +42,7 @@ namespace igstk
 
 */
 
-class Token
+class IGSTK_EXPORT Token
 {
 
 

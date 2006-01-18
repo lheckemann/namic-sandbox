@@ -22,6 +22,7 @@
 #include <iostream>
 #include <fstream>
 #include <set>
+#include "igstkMacros.h"
 
 namespace igstk
 {
@@ -32,7 +33,7 @@ namespace igstk
     std::set<> of std::ostream.
 */
 
-class MultipleOutput : virtual public std::streambuf
+class IGSTK_EXPORT MultipleOutput : virtual public std::streambuf
 {
 
 public:

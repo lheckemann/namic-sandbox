@@ -32,7 +32,7 @@ namespace igstk
  * \ingroup Readers
  */
 
-class MRImageReader : 
+class IGSTK_EXPORT MRImageReader : 
          public DICOMImageReader< MRImageSpatialObject >
 {
 

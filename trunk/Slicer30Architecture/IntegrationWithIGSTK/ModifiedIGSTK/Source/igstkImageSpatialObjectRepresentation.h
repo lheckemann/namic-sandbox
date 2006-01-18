@@ -42,7 +42,7 @@ namespace Friends
  * access to the ITK or VTK layers of these two classes.
  *
  */
-class ImageSpatialObjectRepresentationToImageSpatialObject
+class IGSTK_EXPORT ImageSpatialObjectRepresentationToImageSpatialObject
 {
   public:
     template < class TSpatialObjectRepresentation, class TImageSpatialObject >

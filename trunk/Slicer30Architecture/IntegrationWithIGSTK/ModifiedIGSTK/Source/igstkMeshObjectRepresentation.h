@@ -37,7 +37,7 @@ namespace igstk
  * \ingroup ObjectRepresentation
  */
 
-class MeshObjectRepresentation 
+class IGSTK_EXPORT MeshObjectRepresentation 
 : public ObjectRepresentation
 {
 

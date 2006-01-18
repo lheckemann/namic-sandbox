@@ -23,6 +23,7 @@
 #include <itkObject.h>
 #include <vector>
 #include <string>
+#include "igstkMacros.h"
 
 namespace igstk 
 {
@@ -37,7 +38,7 @@ namespace igstk
  *
  **/
 
-class BinaryData
+class IGSTK_EXPORT BinaryData
 {
 public:
 

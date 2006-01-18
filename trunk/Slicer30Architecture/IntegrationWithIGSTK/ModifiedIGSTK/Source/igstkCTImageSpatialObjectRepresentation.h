@@ -30,7 +30,7 @@ namespace igstk
  * \ingroup Spatial object representation
  */
 
-class CTImageSpatialObjectRepresentation : 
+class IGSTK_EXPORT CTImageSpatialObjectRepresentation : 
          public ImageSpatialObjectRepresentation< CTImageSpatialObject >
 {
 

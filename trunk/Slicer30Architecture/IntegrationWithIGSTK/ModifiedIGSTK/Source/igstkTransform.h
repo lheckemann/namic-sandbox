@@ -58,7 +58,7 @@ namespace igstk
 
 
 
-class Transform
+class IGSTK_EXPORT Transform
 {
 public:
 

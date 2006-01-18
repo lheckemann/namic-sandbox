@@ -31,7 +31,7 @@ namespace igstk
   * an Polaris tool.
 */
 
-class PolarisTrackerTool : public TrackerTool
+class IGSTK_EXPORT PolarisTrackerTool : public TrackerTool
 {
 public:
 

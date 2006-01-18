@@ -20,6 +20,21 @@
 #include "itkLogger.h"
 #include "itkCommand.h"
 
+
+// IGSTK_EXPORT can not be used
+#include "igstkConfigure.h"
+
+#if (defined(_WIN32) || defined(WIN32)) && !defined(IGSTKSTATIC) 
+# ifdef IGSTK_EXPORTS
+#  define IGSTK_EXPORT __declspec(dllexport)
+# else
+#  define IGSTK_EXPORT __declspec(dllimport)
+# endif  /* IGSTK_EXPORT */
+#else
+/* unix needs nothing */
+#define IGSTK_EXPORT 
+#endif
+
 /**
   \file igstkMacros.h defines standard system-wide macros, constants, and other 
   common parameters in the IGstk Library. It includes the Get, Set and

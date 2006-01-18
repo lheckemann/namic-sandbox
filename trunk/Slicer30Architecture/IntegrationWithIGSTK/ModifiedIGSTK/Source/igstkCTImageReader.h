@@ -32,7 +32,7 @@ namespace igstk
  * \ingroup Readers
  */
 
-class CTImageReader : 
+class IGSTK_EXPORT CTImageReader : 
          public DICOMImageReader< CTImageSpatialObject >
 {
 

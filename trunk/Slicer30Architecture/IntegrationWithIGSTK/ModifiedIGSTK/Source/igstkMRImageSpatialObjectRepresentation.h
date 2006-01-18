@@ -29,7 +29,7 @@ namespace igstk
  * \ingroup Spatial object representation
  */
 
-class MRImageSpatialObjectRepresentation : 
+class IGSTK_EXPORT MRImageSpatialObjectRepresentation : 
          public ImageSpatialObjectRepresentation< MRImageSpatialObject >
 {
 
