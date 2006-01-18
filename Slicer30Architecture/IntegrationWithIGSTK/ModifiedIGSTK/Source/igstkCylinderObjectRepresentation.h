@@ -41,7 +41,7 @@ namespace igstk
  * \ingroup ObjectRepresentation
  */
 
-class CylinderObjectRepresentation 
+class IGSTK_EXPORT CylinderObjectRepresentation 
 : public ObjectRepresentation
 {
 

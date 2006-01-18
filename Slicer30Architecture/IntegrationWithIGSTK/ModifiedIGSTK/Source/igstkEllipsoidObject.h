@@ -34,7 +34,7 @@ namespace igstk
  * \ingroup Object
  */
 
-class EllipsoidObject 
+class IGSTK_EXPORT EllipsoidObject 
 : public SpatialObject
 {
 

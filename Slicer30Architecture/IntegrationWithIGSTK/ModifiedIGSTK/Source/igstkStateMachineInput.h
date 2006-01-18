@@ -51,7 +51,7 @@ namespace igstk
 */
 
 template< class T >
-class StateMachineInput : public Token
+class IGSTK_EXPORT StateMachineInput : public Token
 {
 
 

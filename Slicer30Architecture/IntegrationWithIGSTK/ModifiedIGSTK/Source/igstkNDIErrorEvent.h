@@ -34,7 +34,7 @@ namespace igstk
  *  device.
  */
 
-class NDIErrorEvent : public IGSTKEvent 
+class IGSTK_EXPORT NDIErrorEvent : public IGSTKEvent 
 {
 
 public: 

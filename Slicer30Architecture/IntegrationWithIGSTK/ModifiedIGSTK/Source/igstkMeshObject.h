@@ -41,7 +41,7 @@ namespace igstk
  * \ingroup Object
  */
 
-class MeshObject 
+class IGSTK_EXPORT MeshObject 
 : public SpatialObject
 {
 

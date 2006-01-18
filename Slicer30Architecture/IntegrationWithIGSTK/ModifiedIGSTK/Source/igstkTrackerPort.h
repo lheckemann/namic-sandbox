@@ -32,7 +32,7 @@ namespace igstk
     the tracker port, and a vector of all tracker tools
     connected to the port.
 */
-class TrackerPort : public Object
+class IGSTK_EXPORT TrackerPort : public Object
 {
 
 public:

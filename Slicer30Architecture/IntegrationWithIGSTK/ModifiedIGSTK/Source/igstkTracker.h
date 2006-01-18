@@ -57,7 +57,7 @@ namespace igstk
  *
  */
 
-class Tracker : public Object
+class IGSTK_EXPORT Tracker : public Object
 {
 
 public:

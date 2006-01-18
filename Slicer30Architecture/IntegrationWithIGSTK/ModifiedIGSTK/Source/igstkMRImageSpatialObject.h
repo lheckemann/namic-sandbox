@@ -38,7 +38,7 @@ namespace igstk
  * \ingroup Object
  */
 
-class MRImageSpatialObject : 
+class IGSTK_EXPORT MRImageSpatialObject : 
       public ImageSpatialObject< unsigned short, 3 >
 {
 

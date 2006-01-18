@@ -36,7 +36,7 @@ namespace igstk
  *
  */
 
-class Object  : public ::itk::Object
+class IGSTK_EXPORT Object  : public ::itk::Object
 {
  
 public: 

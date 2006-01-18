@@ -28,6 +28,8 @@
 
 #include <fstream>
 
+#include "igstkConfigure.h"
+
 #include "igstkCylinderObjectRepresentation.h"
 #include "igstkEllipsoidObjectRepresentation.h"
 #include "igstkEllipsoidObject.h"
@@ -200,10 +202,11 @@ int main( int argc, char * argv [] )
 
 
   // Exporting Abstract classes by creating derived surrogates for them.
+#ifdef IGSTK_BUILD_SHARED_LIBS
   igstkTestExportStateMachine1( igstk::SpatialObjectSurrogate, outputDirectory, skipLoops );
   igstkTestExportStateMachine1( igstk::ImageSpatialObjectSurrogate , outputDirectory, skipLoops );
   igstkTestExportStateMachine1( igstk::DICOMImageReaderSurrogate, outputDirectory, skipLoops );
-
+#endif
 
 
   // Export the state diagrams for the Serial Communication classes according

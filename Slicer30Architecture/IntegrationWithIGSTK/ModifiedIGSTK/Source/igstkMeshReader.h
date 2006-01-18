@@ -42,7 +42,7 @@ namespace igstk
  *
  * \ingroup Readers
  */
-class MeshReader : public SpatialObjectReader<3,float>
+class IGSTK_EXPORT MeshReader : public SpatialObjectReader<3,float>
 {
 
 public:

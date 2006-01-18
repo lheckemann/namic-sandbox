@@ -45,7 +45,7 @@ namespace igstk
  *
  */
 
-class PulseGenerator  : public Object
+class IGSTK_EXPORT PulseGenerator  : public Object
 {
  
 public: 

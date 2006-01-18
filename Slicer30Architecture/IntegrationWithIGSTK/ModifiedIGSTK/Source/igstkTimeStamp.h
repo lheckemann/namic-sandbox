@@ -24,6 +24,7 @@
 #include <iostream>
 #include <itkLightObject.h>
 #include "itkWin32Header.h"
+#include "igstkMacros.h"
 
 
 namespace igstk 
@@ -55,7 +56,7 @@ namespace igstk
  * 
  **/
 
-class TimeStamp
+class IGSTK_EXPORT TimeStamp
 {
 
 public:

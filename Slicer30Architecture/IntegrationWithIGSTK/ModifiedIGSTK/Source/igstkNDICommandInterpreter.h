@@ -26,7 +26,7 @@ namespace igstk
 {
 
 
-class NDICommandInterpreter : public Object
+class IGSTK_EXPORT NDICommandInterpreter : public Object
 {
 /** \class NDICommandInterpreter
     \brief Mediate between a Tracker and its Communication object.

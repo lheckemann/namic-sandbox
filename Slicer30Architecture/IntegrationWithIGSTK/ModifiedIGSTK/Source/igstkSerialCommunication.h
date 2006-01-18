@@ -51,7 +51,7 @@ namespace igstk
  * \ingroup Communication
  */
 
-class SerialCommunication : public Communication
+class IGSTK_EXPORT SerialCommunication : public Communication
 {
 public:
 

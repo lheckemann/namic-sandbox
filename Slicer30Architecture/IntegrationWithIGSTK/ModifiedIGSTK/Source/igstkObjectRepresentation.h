@@ -51,7 +51,7 @@ class View;
  *
  * \ingroup Object
  */
-class ObjectRepresentation 
+class IGSTK_EXPORT ObjectRepresentation 
   : public Object
 {
 

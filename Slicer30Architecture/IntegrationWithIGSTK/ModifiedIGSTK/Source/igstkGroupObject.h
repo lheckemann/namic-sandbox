@@ -35,7 +35,7 @@ namespace igstk
  * \ingroup Object
  */
 
-class GroupObject 
+class IGSTK_EXPORT GroupObject 
 : public SpatialObject
 {
 

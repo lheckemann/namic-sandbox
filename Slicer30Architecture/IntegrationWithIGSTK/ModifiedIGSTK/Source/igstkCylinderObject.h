@@ -33,7 +33,7 @@ namespace igstk
  * \ingroup Object
  */
 
-class CylinderObject 
+class IGSTK_EXPORT CylinderObject 
 : public SpatialObject
 {
 

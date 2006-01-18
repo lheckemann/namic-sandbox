@@ -34,7 +34,7 @@ namespace igstk
 */
 
 
-class AuroraTracker : public Tracker
+class IGSTK_EXPORT AuroraTracker : public Tracker
 {
 public:
 
