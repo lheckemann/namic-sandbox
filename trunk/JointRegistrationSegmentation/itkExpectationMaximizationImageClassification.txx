@@ -25,16 +25,16 @@ namespace itk {
 namespace Statistics {
 
 
-template < class TObservationsZImageType >
-ExpectationMaximizationImageClassification< TObservationsZImageType >
+template < class TObservationsZImageType, class TParametersTheta >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TParametersTheta >
 ::ExpectationMaximizationImageClassification()
 {
 }
 
 
 
-template < class TObservationsZImageType >
-ExpectationMaximizationImageClassification< TObservationsZImageType >
+template < class TObservationsZImageType, class TParametersTheta >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TParametersTheta >
 ::~ExpectationMaximizationImageClassification()
 {
 }
@@ -43,9 +43,9 @@ ExpectationMaximizationImageClassification< TObservationsZImageType >
 
 
 
-template < class TObservationsZImageType >
+template < class TObservationsZImageType, class TParametersTheta >
 void
-ExpectationMaximizationImageClassification< TObservationsZImageType >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TParametersTheta >
 ::GenerateData()
 {
   this->Superclass::GenerateData();
@@ -55,9 +55,9 @@ ExpectationMaximizationImageClassification< TObservationsZImageType >
 
 
  
-template < class TObservationsZImageType >
+template < class TObservationsZImageType, class TParametersTheta >
 void
-ExpectationMaximizationImageClassification< TObservationsZImageType >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TParametersTheta >
 ::ComputeLabelMap()
 {
 }
@@ -65,9 +65,9 @@ ExpectationMaximizationImageClassification< TObservationsZImageType >
  
  
  
-template < class TObservationsZImageType >
+template < class TObservationsZImageType, class TParametersTheta >
 void
-ExpectationMaximizationImageClassification< TObservationsZImageType >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TParametersTheta >
 ::ComputeMaximization()
 {
   // This method is intended to be overloaded in a derived class 
@@ -76,9 +76,9 @@ ExpectationMaximizationImageClassification< TObservationsZImageType >
   
  
  
-template < class TObservationsZImageType >
+template < class TObservationsZImageType, class TParametersTheta >
 void
-ExpectationMaximizationImageClassification< TObservationsZImageType >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TParametersTheta >
 ::ComputeExpectation()
 {
   // This method is intended to be overloaded in a derived class 
@@ -87,9 +87,9 @@ ExpectationMaximizationImageClassification< TObservationsZImageType >
  
  
  
-template < class TObservationsZImageType >
+template < class TObservationsZImageType, class TParametersTheta >
 bool
-ExpectationMaximizationImageClassification< TObservationsZImageType >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TParametersTheta >
 ::Converged() const
 {
   // This method is intended to be overloaded in a derived class 
@@ -101,9 +101,9 @@ ExpectationMaximizationImageClassification< TObservationsZImageType >
 
 
 
-template < class TObservationsZImageType >
+template < class TObservationsZImageType, class TParametersTheta >
 void
-ExpectationMaximizationImageClassification< TObservationsZImageType >
+ExpectationMaximizationImageClassification< TObservationsZImageType, TParametersTheta >
 ::Initialize()
 {
 

@@ -40,9 +40,20 @@ namespace Statistics {
  *
  */ 
  
+class RegistrationParameters 
+{
+  // This class will represent the parameters of the Registration
+  public:
+    RegistrationParameters() {};
+    ~RegistrationParameters() {};
+    bool operator!=( const RegistrationParameters & ) { return true; }
+};
+ 
+
 template < class TImageType, class TPriorPixelComponentType, class TCorrectionPrecisionType=float >
 class JointRegistrationSegmentationAlgorithm : 
    public ExpectationMaximizationImageClassificationWithPriors< TImageType, 
+                             SimpleDataObjectDecorator< RegistrationParameters >,
                                                       TPriorPixelComponentType >
 {
 
@@ -51,6 +62,7 @@ public:
   typedef JointRegistrationSegmentationAlgorithm                 Self;
   typedef ExpectationMaximizationImageClassificationWithPriors< 
                               TImageType, 
+                             SimpleDataObjectDecorator< RegistrationParameters >,
                               TPriorPixelComponentType >         Superclass;
   typedef SmartPointer< Self >                                   Pointer;
   typedef SmartPointer< const Self >                             ConstPointer;
