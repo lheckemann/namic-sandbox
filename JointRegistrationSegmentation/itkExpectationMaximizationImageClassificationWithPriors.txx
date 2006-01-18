@@ -25,8 +25,8 @@ namespace itk {
 namespace Statistics {
 
 
-template < class TObservationsZImageType, class TPriorPixelComponentType >
-ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TPriorPixelComponentType >
+template < class TObservationsZImageType, class TParametersTheta, class TPriorPixelComponentType >
+ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TParametersTheta, TPriorPixelComponentType >
 ::ExpectationMaximizationImageClassificationWithPriors()
 {
    this->m_ClassProportions = ProportionsContainerType::New();
@@ -35,8 +35,8 @@ ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, T
 
 
 
-template < class TObservationsZImageType, class TPriorPixelComponentType >
-ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TPriorPixelComponentType >
+template < class TObservationsZImageType, class TParametersTheta, class TPriorPixelComponentType >
+ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TParametersTheta, TPriorPixelComponentType >
 ::~ExpectationMaximizationImageClassificationWithPriors()
 {
 }
@@ -44,9 +44,9 @@ ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, T
 
 
 
-template < class TObservationsZImageType, class TPriorPixelComponentType >
+template < class TObservationsZImageType, class TParametersTheta, class TPriorPixelComponentType >
 void
-ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TPriorPixelComponentType >
+ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TParametersTheta, TPriorPixelComponentType >
 ::AddIntensityDistributionDensity( 
               const GaussianDensityFunctionType * gaussian,
               ProportionType proportion )
@@ -63,9 +63,9 @@ ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, T
 
 
 
-template < class TObservationsZImageType, class TPriorPixelComponentType >
+template < class TObservationsZImageType, class TParametersTheta, class TPriorPixelComponentType >
 void
-ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TPriorPixelComponentType >
+ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TParametersTheta, TPriorPixelComponentType >
 ::GenerateData()
 {
   this->Superclass::GenerateData();
@@ -75,9 +75,9 @@ ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, T
 
 
  
-template < class TObservationsZImageType, class TPriorPixelComponentType >
+template < class TObservationsZImageType, class TParametersTheta, class TPriorPixelComponentType >
 void
-ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TPriorPixelComponentType >
+ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TParametersTheta, TPriorPixelComponentType >
 ::ComputeMaximization()
 {
    // This method is inteded to be overloaded in a derived class
@@ -86,9 +86,9 @@ ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, T
 
  
  
-template < class TObservationsZImageType, class TPriorPixelComponentType >
+template < class TObservationsZImageType, class TParametersTheta, class TPriorPixelComponentType >
 bool
-ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TPriorPixelComponentType >
+ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TParametersTheta, TPriorPixelComponentType >
 ::Converged() const
 {
    // This method is inteded to be overloaded in a derived class
@@ -97,17 +97,17 @@ ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, T
 
 
  
-template < class TObservationsZImageType, class TPriorPixelComponentType >
+template < class TObservationsZImageType, class TParametersTheta, class TPriorPixelComponentType >
 void
-ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TPriorPixelComponentType >
+ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TParametersTheta, TPriorPixelComponentType >
 ::ComputeLabelMap()
 {
 }
 
  
-template < class TObservationsZImageType, class TPriorPixelComponentType >
+template < class TObservationsZImageType, class TParametersTheta, class TPriorPixelComponentType >
 void
-ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TPriorPixelComponentType >
+ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TParametersTheta, TPriorPixelComponentType >
 ::ComputeExpectation()
 {
 }
@@ -116,9 +116,9 @@ ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, T
  
 
 
-template < class TObservationsZImageType, class TPriorPixelComponentType >
+template < class TObservationsZImageType, class TParametersTheta, class TPriorPixelComponentType >
 unsigned int
-ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TPriorPixelComponentType >
+ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TParametersTheta, TPriorPixelComponentType >
 ::GetNumberOfClasses() const
 {
    const unsigned int numberOfClasses =  this->m_ClassPriorImage->GetVectorLength();
@@ -129,9 +129,9 @@ ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, T
 
  
 
-template < class TObservationsZImageType, class TPriorPixelComponentType >
+template < class TObservationsZImageType, class TParametersTheta, class TPriorPixelComponentType >
 void
-ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TPriorPixelComponentType >
+ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TParametersTheta, TPriorPixelComponentType >
 ::Initialize()
 {
 
@@ -166,9 +166,9 @@ ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, T
 
  
 
-template < class TObservationsZImageType, class TPriorPixelComponentType >
+template < class TObservationsZImageType, class TParametersTheta, class TPriorPixelComponentType >
 void
-ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TPriorPixelComponentType >
+ExpectationMaximizationImageClassificationWithPriors< TObservationsZImageType, TParametersTheta, TPriorPixelComponentType >
 ::SetClassPriors( const PriorsImageType * priorImage )
 {
    this->m_ClassPriorImage = priorImage;

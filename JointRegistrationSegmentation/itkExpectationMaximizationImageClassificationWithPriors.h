@@ -34,17 +34,20 @@ namespace Statistics {
  */ 
  
 template < class TObservationsZImageType, 
-           class TPriorPixelComponentType >
+           class TParametersTheta = SimpleDataObjectDecorator< Array< double > >,
+           class TPriorPixelComponentType=float >
 class ExpectationMaximizationImageClassificationWithPriors : 
-   public ExpectationMaximizationImageClassification< TObservationsZImageType > 
+   public ExpectationMaximizationImageClassification< TObservationsZImageType,
+                                                      TParametersTheta > 
 {
 
 public:
 
-  typedef ExpectationMaximizationImageClassificationWithPriors             Self;
+  typedef ExpectationMaximizationImageClassificationWithPriors   Self;
 
   typedef ExpectationMaximizationImageClassification< 
-                                       TObservationsZImageType >           Superclass;
+                                       TObservationsZImageType,
+                                       TParametersTheta >        Superclass;
   
   typedef SmartPointer< Self >                                   Pointer;
   typedef SmartPointer< const Self >                             ConstPointer;
