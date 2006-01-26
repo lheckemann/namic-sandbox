@@ -3,9 +3,9 @@
 Program: Insight Segmentation & Registration Toolkit
 Module: $RCSfile: KnowledgeBasedSegmentation.cxx,v $
 Language: C++
-Date: $Date: 2005/09/17 20:12:37 $
+Date: $Date$
 Version: $Revision: 1.0 $
-$Id: Adjuster.cxx 4571 2005-09-16 08:02:58Z spitzak $
+$Id$
 
 Copyright (c) Insight Software Consortium. All rights reserved.
 See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
