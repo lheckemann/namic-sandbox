@@ -18,6 +18,8 @@
 #define __itkMRIInhomogeneityEstimator_txx
 
 #include "itkMRIInhomogeneityEstimator.h"
+#include "itkImageRegionConstIterator.h"
+#include "itkImageRegionIterator.h"
 
 namespace itk {
 
@@ -52,7 +54,7 @@ MRIInhomogeneityEstimator< TInputImage, TInhomogeneityPrecisionType >
 }
 
 template < class TInputImage, class TInhomogeneityPrecisionType >
-const MRIInhomogeneityEstimator< TInputImage, TInhomogeneityPrecisionType >
+const typename MRIInhomogeneityEstimator< TInputImage, TInhomogeneityPrecisionType >
 ::MembershipImageType*
 MRIInhomogeneityEstimator< TInputImage, TInhomogeneityPrecisionType >
 ::GetMembershipImage() const
@@ -102,13 +104,13 @@ MRIInhomogeneityEstimator< TInputImage, TInhomogeneityPrecisionType >
 
   this->AllocateOutputs();
 
-  typedef itk::ImageRegionConstIterator< 
-                              InputImageType > ConstInputIteratorType;
-  typedef itk::ImageRegionConstIterator< 
-                              MembershipImageType > ConstMembershipIteratorType
-  typedef itk::ImageRegionConstIterator< 
-                              OutputImageType > OutputImageIteratorType;
-  typedef itk::ImageRegionConstIterator< 
+  typedef ImageRegionConstIterator< 
+                         InputImageType > ConstInputIteratorType;
+  typedef ImageRegionConstIterator< 
+                         MembershipImageType > ConstMembershipIteratorType;
+  typedef ImageRegionConstIterator< 
+                         OutputImageType > OutputImageIteratorType;
+  typedef ImageRegionIterator< 
                    InverseCovarianceImageType > InverseCovarianceImageIteratorType;
 
   // Iterator over the input image 
@@ -119,10 +121,9 @@ MRIInhomogeneityEstimator< TInputImage, TInhomogeneityPrecisionType >
  
   typedef VectorContainer< 
     unsigned int, CovarianceMatrixType >    InverseCovarianceContainerType;
-  InverseCovarianceContainerType::Pointer inverseCovarianceContainer = 
+  typename InverseCovarianceContainerType::Pointer inverseCovarianceContainer = 
      InverseCovarianceContainerType::New();
-  StructureIntensityDistributionContainerType inverseCovarianceContainer( 
-                                                 this->m_NumberOfClasses );
+  inverseCovarianceContainer->Reserve( this->m_NumberOfClasses );
   
   // Precompute the inverses of the covariances of the Gaussian density 
   // functions
@@ -149,8 +150,8 @@ MRIInhomogeneityEstimator< TInputImage, TInhomogeneityPrecisionType >
   // Iterate over the multi-component MR image
   while (!cIit.IsAtEnd())
     {
-    MembershipImageType::PixelType membershipPixel = cWit.Get();
-    InputImageType::PixelType inputPixel = cIit.Get();
+    typename MembershipImageType::PixelType membershipPixel = cWit.Get();
+    typename InputImageType::PixelType inputPixel = cIit.Get();
     
     // For each class ...
     for (unsigned int classIdx = 0; classIdx < this->m_NumberOfClasses; classIdx++)
@@ -168,19 +169,6 @@ MRIInhomogeneityEstimator< TInputImage, TInhomogeneityPrecisionType >
     ++cIit;
     }
 
-
-    for (int l=0; l< NumberOfStructures; l++) {
-      for (int m=0; m< NumInputImages; m++) {  
-        for (int n=0; n< NumInputImages; n++) {
-          temp =  *w_m[l] * float(InverseLogCov[l][m][n]);
-          r_m[m](i,k,j)     += temp * ((*InputVector)[n] - float(LogMu[l][n]));
-          if (n <= m) iv_m(m,n,i,k,j) += temp;
-        }
-      }
-      
-      w_m[l]++;
-    }
- 
 }
 
 template < class TInputImage, class TInhomogeneityPrecisionType >
@@ -196,7 +184,7 @@ MRIInhomogeneityEstimator< TInputImage, TInhomogeneityPrecisionType >
   this->m_InverseCovarianceImage = InverseCovarianceImageType::New(); 
   this->m_InverseCovarianceImage->CopyInformation( this->GetInput() );
   this->m_InverseCovarianceImage->Allocate();
-  InverseCovarianceImageType::PixelType p( 
+  typename InverseCovarianceImageType::PixelType p( 
     this->GetInput()->GetVectorLength(), this->GetInput()->GetVectorLength());
   p->Fill( 0.0 );
   this->m_InverseCovarianceImage->FillBuffer(p);
@@ -206,7 +194,7 @@ MRIInhomogeneityEstimator< TInputImage, TInhomogeneityPrecisionType >
 template < class TInputImage, class TInhomogeneityPrecisionType >
 void
 MRIInhomogeneityEstimator< TInputImage, TInhomogeneityPrecisionType >
-::SetIntensityDistributions( StructureIntensityDistributionType 
+::SetIntensityDistributions( StructureIntensityDistributionContainerType 
                                                 * densityFunctionContainer )
 {
   this->m_NumberOfClasses = densityFunctionContainer->Size();
