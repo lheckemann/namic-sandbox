@@ -20,6 +20,7 @@
 #include "itkGaussianDensityFunction.h"
 #include "itkVectorImage.h"
 #include "itkVectorContainer.h"
+#include "itkImageToImageFilter.h"
 
 namespace itk {
 
@@ -41,11 +42,13 @@ namespace itk {
  */ 
  
 template < class TInputImage, class TInhomogeneityPrecisionType = float >
-class MRIInhomogeneityEstimator : public ImageToImageFilter 
+class MRIInhomogeneityEstimator : 
+  public ImageToImageFilter< TInputImage, TInputImage >
 {
 public:
   typedef MRIInhomogeneityEstimator                   Self;
-  typedef ImageToImageFilter                          Superclass;
+  typedef ImageToImageFilter< TInputImage, 
+                              TInputImage >           Superclass;
   typedef SmartPointer< Self >                        Pointer;
   typedef SmartPointer< const Self >                  ConstPointer;
 
@@ -75,7 +78,7 @@ public:
   typedef typename StructureIntensityDistributionContainerType::Pointer         
                                     StructureIntensityDistributionContainerPointer;
  
-  typedef GaussianMembershipFunctionType::CovarianceType CovarianceMatrixType;
+  typedef typename GaussianMembershipFunctionType::CovarianceType CovarianceMatrixType;
 
   /** The weights image is an image of floats of the same dimension and size 
    * and number of components as the input image. This is the image estimate
@@ -88,7 +91,7 @@ public:
    * the filter will create ones for you. These default density functions
    * are gaussian density functions centered around the K-means of the 
    * input image.  */
-  virtual void SetIntensityDistributions( StructureIntensityDistributionType 
+  virtual void SetIntensityDistributions( StructureIntensityDistributionContainerType
                                                 * densityFunctionContainer );
   itkGetObjectMacro( StructureIntensityDistributionContainer, 
                 StructureIntensityDistributionContainerPointer );
@@ -117,14 +120,14 @@ private:
   MRIInhomogeneityEstimator(const Self&) ; //purposely not implemented
   void operator=(const Self&) ; //purposely not implemented
 
-  typename StructureIntensityDistributionContainerPointer 
+  StructureIntensityDistributionContainerPointer 
                    m_StructureIntensityDistributionContainer;
   unsigned int m_NumberOfClasses;
 
   typedef itk::Image< CovarianceMatrixType, 
                       ImageDimension > InverseCovarianceImageType;
                                                            
-  InverseCovarianceImageType::Pointer  m_InverseCovarianceImage;
+  typename InverseCovarianceImageType::Pointer  m_InverseCovarianceImage;
 
 };
 
