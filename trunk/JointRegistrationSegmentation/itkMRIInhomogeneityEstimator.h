@@ -39,6 +39,20 @@ namespace itk {
  * MRI image, the statistical distribution of each tissue type can be represented as
  * a gaussian. Given this assumption, an EM algorithm is used to estimate the bias
  * field, the tissue class and noise.
+ *
+ * This class would fit in an EM framework, where the goal would be to 
+ * 1. E - Estimate the weights given an estimated bias field
+ * 2. M - Estimate the bias field given estimates of the weights.. (this class would
+ * do step 2).
+ *
+ * From http://people.csail.mit.edu/welg/papers/adaptive1996.pdf
+ * 
+ * Equation (16): 
+ *  Bias field estimate = H . R
+ * 
+ * H = is a linear low pass filter.
+ * R = mean residual
+ * 
  */ 
  
 template < class TInputImage, class TInhomogeneityPrecisionType = float >

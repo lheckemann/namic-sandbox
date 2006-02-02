@@ -134,10 +134,14 @@ MRIInhomogeneityEstimator< TInputImage, TInhomogeneityPrecisionType >
                           i)->GetCovariance()->GetInverse());
     }
 
-  // Allocate an image of smoothed inverse covariances
+  // Allocate an image of smoothed inverse covariances. This is needed to 
+  // estimate H, which will be used to calculate the bias field.
+  //
+  // This image will store the weighted inverse covariances of each pixel in 
+  // the image. 
   this->AllocateImageOfInverseCovariances();
-  // Store the weighted inverse covariances of each pixel in this image. 
 
+  
   InverseCovarianceImageIteratorType cInvCovIt( 
       this->m_InverseCovarianceImage, 
       this->InverseCovarianceImage->GetLargestPossibleRegion() );
@@ -169,6 +173,8 @@ MRIInhomogeneityEstimator< TInputImage, TInhomogeneityPrecisionType >
     ++cIit;
     }
 
+  // TODO: Estimate H from the mean covariance of the tissue class intensities.
+  // Multiply with residual to get the bias field.
 }
 
 template < class TInputImage, class TInhomogeneityPrecisionType >
