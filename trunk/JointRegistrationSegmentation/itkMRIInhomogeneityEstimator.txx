@@ -138,7 +138,9 @@ MRIInhomogeneityEstimator< TInputImage, TInhomogeneityPrecisionType >
   // estimate H, which will be used to calculate the bias field.
   //
   // This image will store the weighted inverse covariances of each pixel in 
-  // the image. 
+  // the image. This image will have as many pixels as the input image. Each
+  // pixel in this image is a covariance matrix of size m x m where m is the 
+  // number of MRI images. 
   this->AllocateImageOfInverseCovariances();
 
   
@@ -173,6 +175,9 @@ MRIInhomogeneityEstimator< TInputImage, TInhomogeneityPrecisionType >
     ++cIit;
     }
 
+  
+
+  
   // TODO: Estimate H from the mean covariance of the tissue class intensities.
   // Multiply with residual to get the bias field.
 }
