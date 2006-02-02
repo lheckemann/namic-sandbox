@@ -154,16 +154,29 @@ MRIInhomogeneityEstimator< TInputImage, TInhomogeneityPrecisionType >
   cInvCovIt.GoToBegin();
   
   // Iterate over the multi-component MR image
+  // 
+  // For now its simple without any smoothing.. 
+  //
   while (!cIit.IsAtEnd())
     {
     typename MembershipImageType::PixelType membershipPixel = cWit.Get();
     typename InputImageType::PixelType inputPixel = cIit.Get();
     
     // For each class ...
+    //
+    // Inverse covariance image = SUM over classes [( inverse_covariance of 
+    // each class ) weighted by membership for that class at this pixel]
+    // 
+    // Output = membershipPixel[classIdx] * 
+    //      inverse_covariance_matrix for that class [mxm matrix] * 
+    //      ( input_Pixel (1xm) - mean of the distribution set for this class (1xm) )
+    //
     for (unsigned int classIdx = 0; classIdx < this->m_NumberOfClasses; classIdx++)
       {
+        
       cInvCovIt.Set( cInvCovIt.Get() + inverseCovarianceContainer->GetElement(
          classIdx)->GetCovariance() * membershipPixel[classIdx] ); 
+      
       cOit.Set(membershipPixel[classIdx] * 
        inverseCovarianceContainer->GetElement(
          classIdx)->GetCovariance() * (inputPixel - 
