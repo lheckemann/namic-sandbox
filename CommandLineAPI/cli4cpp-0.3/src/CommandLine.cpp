@@ -37,6 +37,7 @@ class CommandLine::Implementation {
             return remainingArgs_;
         }
         std::string getOptionValue(const char* const option) const;
+        std::string getOptionValue(const char* const option, const char* const defaultValue) const;
         bool hasOption(const char option) const;
         const Options::Vector& operator()() const {
             return options_;
@@ -66,6 +67,16 @@ bool CommandLine::Implementation::hasOption(const char option) const {
     return rc;
 }
 
+  std::string CommandLine::Implementation::getOptionValue(const char* const option, const char* const defaultValue) const {
+    if ( hasOption ( option[0] ) )
+      {
+      return getOptionValue ( option );
+      }
+    else
+      {
+      return std::string ( defaultValue );
+      }
+  }
 std::string CommandLine::Implementation::getOptionValue(const char* const option) const {
     std::string rc;
     for(Options::Vector::const_iterator iterator = options_.begin();
@@ -131,6 +142,10 @@ std::string CommandLine::getOptionValue(const char* const option) const {
     return impl_->getOptionValue(option);
 }
 
+  std::string CommandLine::getOptionValue(const char* const option, const char* const defaultValue ) const {
+    return impl_->getOptionValue(option, defaultValue);
+}
+
 const Options::Vector& CommandLine::operator()() const {
     return (*impl_)();
 }
@@ -152,4 +167,3 @@ void CommandLine:: addArg(const std::string& arg) {
 }
 
 }
-

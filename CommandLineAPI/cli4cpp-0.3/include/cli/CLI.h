@@ -29,5 +29,6 @@
 #include "CommandLine.h"
 #include "BasicParser.h"
 #include "HelpFormatter.h"
+#include "JSONHelpFormatter.h"
 
 #endif // #ifndef _CLI_h_included
