@@ -70,6 +70,7 @@ class CommandLine {
          * that we're searching for
          */
         std::string getOptionValue(const char* const option) const;
+        std::string getOptionValue(const char* const option, const char* const defaultValue) const;
 
         /**
          * Return a vector of all detected options

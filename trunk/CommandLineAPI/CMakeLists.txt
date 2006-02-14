@@ -9,14 +9,16 @@ ENDIF ( ITK_FOUND )
 
 INCLUDE_DIRECTORIES (
                     "${CLRegistration_SOURCE_DIR}/tclap/include"
-                    "${CLRegistration_SOURCE_DIR}/cli4cpp-0.2/include" )
+                    "${CLRegistration_SOURCE_DIR}/cli4cpp-0.3/include" )
 
 SET ( SOURCE CLRegistration.cxx 
-cli4cpp-0.2/src/BasicParser.cpp
-cli4cpp-0.2/src/CommandLine.cpp
-cli4cpp-0.2/src/HelpFormatter.cpp
-cli4cpp-0.2/src/Option.cpp
-cli4cpp-0.2/src/Options.cpp
+cli4cpp-0.3/src/BasicParser.cpp
+cli4cpp-0.3/src/Parser.cpp
+cli4cpp-0.3/src/CommandLine.cpp
+cli4cpp-0.3/src/HelpFormatter.cpp
+cli4cpp-0.3/src/JSONHelpFormatter.cpp
+cli4cpp-0.3/src/Option.cpp
+cli4cpp-0.3/src/Options.cpp
 )
 
 ADD_EXECUTABLE ( CLRegistration ${SOURCE})

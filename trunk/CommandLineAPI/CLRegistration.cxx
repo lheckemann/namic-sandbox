@@ -263,14 +263,23 @@ int main ( int argc, const char* argv[] )
     msg.str ( "" ); msg << "Display help message and exit";
     options.addOption("h", "help", false, msg.str().c_str() );
 
+    msg.str ( "" ); msg << "Format JSON description of the parameters";
+    options.addOption("j", "json", false, msg.str().c_str() );
+
     CLI::BasicParser parser;
     CLI::CommandLine cl( parser.parse(options, argc, argv) );
 
     // print help
+    if ( cl.hasOption('j') )
+      {
+      CLI::JSONHelpFormatter formatter;
+      formatter.printJSONHelp ( "registration", "CLRegistration", "Register two volumes", "CLRegistration", options);
+      exit ( EXIT_SUCCESS );
+      }
     if ( cl.hasOption('h') )
       {
       CLI::HelpFormatter formatter;
-      formatter.printHelp("CLRegistration", options);
+      formatter.printHelp ( "Register two volumes", options);
       exit ( EXIT_SUCCESS );
       }
 
