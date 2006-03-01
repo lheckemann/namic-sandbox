@@ -18,7 +18,7 @@
 #include <itkOrientedImage.h>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
-
+#include "XMLHelp.h"
 
 #define USE_TCLAP 0
 #define USE_CLI 1
@@ -266,10 +266,18 @@ int main ( int argc, const char* argv[] )
     msg.str ( "" ); msg << "Format JSON description of the parameters";
     options.addOption("j", "json", false, msg.str().c_str() );
 
+    msg.str ( "" ); msg << "Format XML description of the parameters";
+    options.addOption("x", "xml", false, msg.str().c_str() );
+
     CLI::BasicParser parser;
     CLI::CommandLine cl( parser.parse(options, argc, argv) );
 
     // print help
+    if ( cl.hasOption('x') )
+      {
+      std::cout << XMLHelp << std::endl;
+      exit ( EXIT_SUCCESS );
+      }
     if ( cl.hasOption('j') )
       {
       CLI::JSONHelpFormatter formatter;
@@ -531,11 +539,17 @@ int main ( int argc, const char* argv[] )
   // Initialize the transform
   TransformType::InputPointType center;
   Volume::RegionType::SizeType s = fixed->GetLargestPossibleRegion().GetSize();
+  // Find the center
+  Volume::IndexType centerIndex;
   for ( unsigned j = 0; j < 3; j++ )
     {
-    center[j] = (s[j]-1) * fixed->GetSpacing()[j] / 2.0;
+    centerIndex[j] = (long) ( (s[j]-1) / 2.0 );
     }
+  fixed->TransformIndexToPhysicalPoint ( centerIndex, center );
+  msg.str(""); msg << "Index: " << centerIndex << " to point: " << center;
+  logger->Write ( itk::LoggerBase::INFO, msg.str() );
   transform->SetCenter ( center );
+  transform->SetIdentity();
   registration->SetInitialTransformParameters ( transform->GetParameters() );
 
 
