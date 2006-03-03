@@ -12,7 +12,7 @@
 
 =========================================================================auto=*/
 #include "mrmlLightObject.h"
-#include "mrmlObjectFactory.h"
+//#include "mrmlObjectFactory.h"
 #include "mrmlFastMutexLock.h"
 
 #include <list>

@@ -40,7 +40,7 @@ namespace mrml
  * \ingroup DataAccess
  */
 template <class TObjectType>
-class MRML_EXPORT SmartPointer 
+class mrmlCommon_EXPORT SmartPointer 
 {
 public:
   typedef TObjectType ObjectType;

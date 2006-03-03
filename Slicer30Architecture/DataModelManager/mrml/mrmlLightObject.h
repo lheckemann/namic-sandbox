@@ -38,7 +38,7 @@ namespace mrml
  *
  * \sa TODO
  */
-class MRML_EXPORT LightObject 
+class mrmlCommon_EXPORT LightObject 
 {
 public:
   /** Standard clas typedefs. */
