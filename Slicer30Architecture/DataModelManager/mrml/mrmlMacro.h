@@ -501,14 +501,16 @@ private:
  * mrmlExceptionMacro(<< "this is error info" << this->SomeVariable); */
 #define mrmlExceptionMacro(x) 
 
-//#define mrmlExceptionMacro(x) \
-//  { \
-//  ::mrml::OStringStream message; \
-//  message << "mrml::ERROR: " << this->GetNameOfClass() \
-//          << "(" << this << "): " x; \
-//  ::mrml::ExceptionObject e_(__FILE__, __LINE__, message.str().c_str(),mrml_LOCATION); \
-//  throw e_; /* Explicit naming to work around Intel compiler bug.  */ \
-//  }
+#if 0
+#define mrmlExceptionMacro(x) \
+  { \
+  ::mrml::OStringStream message; \
+  message << "mrml::ERROR: " << this->GetNameOfClass() \
+          << "(" << this << "): " x; \
+  ::mrml::ExceptionObject e_(__FILE__, __LINE__, message.str().c_str(),mrml_LOCATION); \
+  throw e_; /* Explicit naming to work around Intel compiler bug.  */ \
+  }
+#endif
 
 #define mrmlGenericExceptionMacro(x) \
   { \
