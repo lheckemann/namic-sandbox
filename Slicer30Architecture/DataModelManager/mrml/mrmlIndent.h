@@ -61,7 +61,7 @@ public:
   Indent GetNextIndent();
 
   /** Print out the indentation. Basically output a bunch of spaces.  */
-  friend ITKCommon_EXPORT std::ostream& operator<<(std::ostream& os, const Indent& o); 
+  friend mrmlCommon_EXPORT std::ostream& operator<<(std::ostream& os, const Indent& o); 
 
 private:
   int m_Indent;

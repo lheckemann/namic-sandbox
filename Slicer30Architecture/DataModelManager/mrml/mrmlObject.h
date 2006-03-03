@@ -21,7 +21,7 @@
 #define __mrmlObject_h
 
 #include "mrmlLightObject.h"
-//#include "mrmlEventObject.h"
+#include "mrmlEventObject.h"
 //#include "mrmlMetaDataDictionary.h"
 
 namespace mrml
@@ -41,7 +41,7 @@ class Command;
  * \ingroup MRMLSystemObjects
  * \ingroup DataRepresentation
  */
-class MRMLCommon_EXPORT Object: public LightObject
+class mrmlCommon_EXPORT Object: public LightObject
 {
 public:
   /** Smart pointer typedef support. */
@@ -138,17 +138,17 @@ public:
    * \return A reference to this objects MetaDataDictionary.
    * \warning This reference may be changed.
    */
-  MetaDataDictionary & GetMetaDataDictionary(void);
-
-  /**
-   * \return A constant reference to this objects MetaDataDictionary.
-   */
-  const MetaDataDictionary & GetMetaDataDictionary(void) const;
-
-  /**
-   * \return Set the MetaDataDictionary
-   */
-  void SetMetaDataDictionary(const MetaDataDictionary & rhs);
+//  MetaDataDictionary & GetMetaDataDictionary(void);
+//
+//  /**
+//   * \return A constant reference to this objects MetaDataDictionary.
+//   */
+//  const MetaDataDictionary & GetMetaDataDictionary(void) const;
+//
+//  /**
+//   * \return Set the MetaDataDictionary
+//   */
+//  void SetMetaDataDictionary(const MetaDataDictionary & rhs);
 
 
 protected:
@@ -186,7 +186,7 @@ private:
   * @see mrml::MetaDataObject
   * This is only allocated if used.
   */
-  mutable MetaDataDictionary * m_MetaDataDictionary;
+  //mutable MetaDataDictionary * m_MetaDataDictionary;
 };
 
 } // end namespace mrml

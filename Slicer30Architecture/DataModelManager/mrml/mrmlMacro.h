@@ -499,14 +499,16 @@ private:
 /** The exception macro is used to print error information (i.e., usually 
  * a condition that results in program failure). Example usage looks like:
  * mrmlExceptionMacro(<< "this is error info" << this->SomeVariable); */
-#define mrmlExceptionMacro(x) \
-  { \
-  ::mrml::OStringStream message; \
-  message << "mrml::ERROR: " << this->GetNameOfClass() \
-          << "(" << this << "): " x; \
-  ::mrml::ExceptionObject e_(__FILE__, __LINE__, message.str().c_str(),mrml_LOCATION); \
-  throw e_; /* Explicit naming to work around Intel compiler bug.  */ \
-  }
+#define mrmlExceptionMacro(x) 
+
+//#define mrmlExceptionMacro(x) \
+//  { \
+//  ::mrml::OStringStream message; \
+//  message << "mrml::ERROR: " << this->GetNameOfClass() \
+//          << "(" << this << "): " x; \
+//  ::mrml::ExceptionObject e_(__FILE__, __LINE__, message.str().c_str(),mrml_LOCATION); \
+//  throw e_; /* Explicit naming to work around Intel compiler bug.  */ \
+//  }
 
 #define mrmlGenericExceptionMacro(x) \
   { \
