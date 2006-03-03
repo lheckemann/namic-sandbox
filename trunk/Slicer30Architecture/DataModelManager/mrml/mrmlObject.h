@@ -21,8 +21,8 @@
 #define __mrmlObject_h
 
 #include "mrmlLightObject.h"
-#include "mrmlEventObject.h"
-#include "mrmlMetaDataDictionary.h"
+//#include "mrmlEventObject.h"
+//#include "mrmlMetaDataDictionary.h"
 
 namespace mrml
 {
