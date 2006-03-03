@@ -33,7 +33,7 @@ namespace mrml
  * implements reference counting and the API for object printing.
  * It can be used as a lightweight base class in preference to Object.
  * (LightObject does not support callbacks or modified time as Object
- * does.) All ITK objects should be a subclass of LightObject or Object
+ * does.) All MRML objects should be a subclass of LightObject or Object
  * with few exceptions (due to performance concerns).
  *
  * \sa TODO
