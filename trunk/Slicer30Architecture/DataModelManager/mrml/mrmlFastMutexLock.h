@@ -22,7 +22,7 @@
 
 #include "mrmlObject.h"
 #include "mrmlSimpleFastMutexLock.h"
-//#include "mrmlObjectFactory.h"
+#include "mrmlObjectFactory.h"
 
 namespace mrml
 {
@@ -48,7 +48,7 @@ namespace mrml
  *
  * \ingroup OSSystemObjects
  */
-class ITKCommon_EXPORT FastMutexLock : public Object
+class mrmlCommon_EXPORT FastMutexLock : public Object
 {
 public:
   /** Standard class typedefs. */

@@ -499,8 +499,8 @@ Object
 ::Object():
   LightObject(),
   m_Debug(false),
-  m_SubjectImplementation(NULL),
-  m_MetaDataDictionary(NULL)
+  m_SubjectImplementation(NULL)
+  //m_MetaDataDictionary(NULL)
 {
   this->Modified();
 }
@@ -511,7 +511,7 @@ Object
 {
   mrmlDebugMacro(<< "Destructing!");
   delete m_SubjectImplementation;
-  delete m_MetaDataDictionary;//Deleteing a NULL pointer does nothing.
+//  delete m_MetaDataDictionary;//Deleteing a NULL pointer does nothing.
 }
 
 
@@ -534,37 +534,37 @@ Object
     }
 }
 
-MetaDataDictionary &
-Object
-::GetMetaDataDictionary(void)
-{
-  if(m_MetaDataDictionary==NULL)
-    {
-    m_MetaDataDictionary=new MetaDataDictionary;
-    }
-  return *m_MetaDataDictionary;
-}
-
-const MetaDataDictionary &
-Object
-::GetMetaDataDictionary(void) const
-{
-  if(m_MetaDataDictionary==NULL)
-    {
-    m_MetaDataDictionary=new MetaDataDictionary;
-    }
-  return *m_MetaDataDictionary;
-}
-
-void
-Object
-::SetMetaDataDictionary(const MetaDataDictionary & rhs)
-{
-  if(m_MetaDataDictionary==NULL)
-    {
-    m_MetaDataDictionary=new MetaDataDictionary;
-    }
-  *m_MetaDataDictionary=rhs;
-}
+//MetaDataDictionary &
+//Object
+//::GetMetaDataDictionary(void)
+//{
+//  if(m_MetaDataDictionary==NULL)
+//    {
+//    m_MetaDataDictionary=new MetaDataDictionary;
+//    }
+//  return *m_MetaDataDictionary;
+//}
+//
+//const MetaDataDictionary &
+//Object
+//::GetMetaDataDictionary(void) const
+//{
+//  if(m_MetaDataDictionary==NULL)
+//    {
+//    m_MetaDataDictionary=new MetaDataDictionary;
+//    }
+//  return *m_MetaDataDictionary;
+//}
+//
+//void
+//Object
+//::SetMetaDataDictionary(const MetaDataDictionary & rhs)
+//{
+//  if(m_MetaDataDictionary==NULL)
+//    {
+//    m_MetaDataDictionary=new MetaDataDictionary;
+//    }
+//  *m_MetaDataDictionary=rhs;
+//}
 
 } // end namespace mrml
