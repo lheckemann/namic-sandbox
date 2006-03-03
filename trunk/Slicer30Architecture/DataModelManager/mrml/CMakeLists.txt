@@ -5,9 +5,15 @@ INCLUDE_DIRECTORIES(
   )
 
 SET(MRML_SRCS
+  mrmlCommand.cxx
+  mrmlEventObject.cxx
+  mrmlFastMutexLock.cxx
+  mrmlIndent.cxx
   mrmlLightObject.cxx
   mrmlObject.cxx
+  #mrmlObjectFactoryBase.cxx
   mrmlSimpleFastMutexLock.cxx
+  mrmlTimeStamp.cxx
   )
 
 INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
@@ -17,3 +23,4 @@ CONFIGURE_FILE(${MRML_SOURCE_DIR}/mrmlConfigure.h.in
                ${MRML_BINARY_DIR}/mrmlConfigure.h)
 
 ADD_LIBRARY(mrml ${MRML_SRCS})
+
