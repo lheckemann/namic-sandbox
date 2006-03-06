@@ -6,12 +6,6 @@
   Date:      $Date: 2003/09/10 14:29:19 $
   Version:   $Revision: 1.35 $
 
-  Copyright (c) Insight Software Consortium. All rights reserved.
-  See ITKCopyright.txt or http://www.mrml.org/HTML/Copyright.htm for details.
-
-  Portions of this code are covered under the VTK copyright.
-  See VTKCopyright.txt or http://www.kitware.com/VTKCopyright.htm for details.
-
      This software is distributed WITHOUT ANY WARRANTY; without even 
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
      PURPOSE.  See the above copyright notices for more information.
@@ -22,6 +16,8 @@
 
 #include "mrmlObject.h"
 #include "mrmlCreateObjectFunction.h"
+#include <mrmlsys/DynamicLoader.hxx>
+
 #include <list>
 #include <vector>
 
@@ -34,15 +30,15 @@ namespace mrml
  * ObjectFactoryBase contains a static method CreateInstance() that is
  * used to create mrml objects from the list of registerd ObjectFactoryBase
  * sub-classes.  The first time CreateInstance() is called, all dll's or
- * shared libraries in the environment variable ITK_AUTOLOAD_PATH are loaded
+ * shared libraries in the environment variable MRML_AUTOLOAD_PATH are loaded
  * into the current process.  The C function mrmlLoad is called on each dll.
  * mrmlLoad should return an instance of the factory sub-class implemented in
- * the shared library. ITK_AUTOLOAD_PATH is an environment variable
+ * the shared library. MRML_AUTOLOAD_PATH is an environment variable
  * containing a colon separated (semi-colon on win32) list of paths.
  *
- * This can be use to overide the creation of any object in ITK. 
+ * This can be use to overide the creation of any object in MRML.
  *
- * \ingroup ITKSystemObjects
+ * \ingroup SystemObjects
  */
 
 class OverRideMap;
@@ -61,18 +57,18 @@ public:
 
   /** Create and return an instance of the named mrml object.
    * Each loaded ObjectFactoryBase will be asked in the order
-   * the factory was in the ITK_AUTOLOAD_PATH.  After the
+   * the factory was in the MRML_AUTOLOAD_PATH.  After the
    * first factory returns the object no other factories are asked. */
   static LightObject::Pointer CreateInstance(const char* mrmlclassname);
 
   /** Create and return all possible instances of the named mrml object.
    * Each loaded ObjectFactoryBase will be asked in the order
-   * the factory was in the ITK_AUTOLOAD_PATH.  All created objects
+   * the factory was in the MRML_AUTOLOAD_PATH.  All created objects
    * will be returned in the list. */
   static std::list<LightObject::Pointer>
   CreateAllInstance(const char* mrmlclassname);
   
-  /** Re-check the ITK_AUTOLOAD_PATH for new factory libraries.
+  /** Re-check the MRML_AUTOLOAD_PATH for new factory libraries.
    * This calls UnRegisterAll before re-loading. */
   static void ReHash(); 
 
@@ -90,11 +86,11 @@ public:
   static std::list<ObjectFactoryBase*> GetRegisteredFactories();
 
   /** All sub-classes of ObjectFactoryBase should must return the version of 
-   * ITK they were built with.  This should be implemented with the macro
-   * ITK_SOURCE_VERSION and NOT a call to Version::GetITKSourceVersion.
+   * MRML they were built with.  This should be implemented with the macro
+   * MRML_SOURCE_VERSION and NOT a call to Version::GetMRMLSourceVersion.
    * As the version needs to be compiled into the file as a string constant.
    * This is critical to determine possible incompatible dynamic factory loads. */
-  virtual const char* GetITKSourceVersion(void) const = 0;
+  virtual const char* GetMRMLSourceVersion(void) const = 0;
 
   /** Return a descriptive string describing the factory. */
   virtual const char* GetDescription(void) const = 0;
@@ -169,7 +165,7 @@ private:
   /** Register default factories which are not loaded at run time. */
   static void RegisterDefaults();
 
-  /** Load dynamic factories from the ITK_AUTOLOAD_PATH */
+  /** Load dynamic factories from the MRML_AUTOLOAD_PATH */
   static void LoadDynamicFactories();
 
   /** Load all dynamic libraries in the given path */
@@ -180,7 +176,7 @@ private:
   
   /** Member variables for a factory set by the base class
    * at load or register time */
-  void* m_LibraryHandle;
+  mrmlsys::LibHandle m_LibraryHandle;
   unsigned long m_LibraryDate;
   std::string m_LibraryPath;
   };

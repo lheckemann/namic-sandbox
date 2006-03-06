@@ -398,8 +398,9 @@ extern mrmlCommon_EXPORT void OutputWindowDisplayDebugText(const char*);
 /** This macro is used to print debug (or other information). They are
  * also used to catch errors, etc. Example usage looks like:
  * mrmlDebugMacro(<< "this is debug info" << this->SomeVariable); */
-#if defined(mrml_LEAN_AND_MEAN) || defined(__BORLANDC__)
+//#if defined(mrml_LEAN_AND_MEAN) || defined(__BORLANDC__)
 #define mrmlDebugMacro(x)
+/*
 #else
 #define mrmlDebugMacro(x) \
   { if (this->GetDebug() && ::mrml::Object::GetGlobalWarningDisplay())   \
@@ -410,7 +411,7 @@ extern mrmlCommon_EXPORT void OutputWindowDisplayDebugText(const char*);
       ::mrml::OutputWindowDisplayDebugText(mrmlmsg.str().c_str());} \
 }
 #endif
-
+*/
 
 /** This macro is used to print warning information (i.e., unusual circumstance
  * but not necessarily fatal.) Example usage looks like:
