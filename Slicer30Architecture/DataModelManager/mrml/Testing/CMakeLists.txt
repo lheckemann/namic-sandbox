@@ -1,6 +1,6 @@
 # Define the tests
 SET(TESTS_SRCS
-  testInstance.cxx
+  testInstance
   )
 
 # Add the include paths
