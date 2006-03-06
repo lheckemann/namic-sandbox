@@ -12,7 +12,6 @@ Version:   $Revision: 1.4 $
 
 =========================================================================auto=*/
 #include "mrmlNode.h"
-//#include "vtkObjectFactory.h"
 
 namespace mrml
 {
