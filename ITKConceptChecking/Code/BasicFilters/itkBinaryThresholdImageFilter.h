@@ -156,12 +156,14 @@ public:
   virtual InputPixelObjectType *GetLowerThresholdInput();
   virtual const InputPixelObjectType *GetLowerThresholdInput() const;
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(OutputEqualityComparableCheck,
                   (Concept::EqualityComparable<OutputPixelType>));
   itkConceptMacro(PixelTypeComparable,
                   (Concept::Comparable<InputPixelType>));
   /** End concept checking */
+#endif
 
 protected:
   BinaryThresholdImageFilter();

@@ -109,10 +109,12 @@ public:
     this->SetOperator(t);
   }
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<InputImageDimension, MaskImageDimension>));
   /** End concept checking */
+#endif
 
 protected:
   NormalizedCorrelationImageFilter() {}

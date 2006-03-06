@@ -116,6 +116,7 @@ public:
   itkGetConstReferenceMacro(FullyConnected, bool);
   itkBooleanMacro(FullyConnected);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputConvertibleToOutputCheck,
     (Concept::Convertible<MarkerImagePixelType, OutputImagePixelType>));
@@ -124,6 +125,7 @@ public:
   itkConceptMacro(OutputComparableCheck,
     (Concept::Comparable<OutputImagePixelType>));
   /** End concept checking */
+#endif
 
 protected:
   ReconstructionByDilationImageFilter();

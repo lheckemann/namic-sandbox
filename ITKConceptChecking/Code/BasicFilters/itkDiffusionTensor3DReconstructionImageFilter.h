@@ -238,6 +238,7 @@ public:
 #endif
   itkGetConstReferenceMacro( BValue, TTensorPixelType);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(ReferenceEqualityComparableCheck,
     (Concept::EqualityComparable<ReferencePixelType>));
@@ -248,6 +249,7 @@ public:
   itkConceptMacro(DoubleConvertibleToTensorCheck,
     (Concept::Convertible<double, TensorPixelType>));
   /** End concept checking */
+#endif
 
 protected:
   DiffusionTensor3DReconstructionImageFilter();

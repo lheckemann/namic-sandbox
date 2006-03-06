@@ -144,10 +144,12 @@ public:
   itkSetMacro(SweepAngle,float);
   itkGetMacro(SweepAngle,float);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(IntConvertibleToOutputCheck,
     (Concept::Convertible<int, typename TOutputPixelType>));
   /** End concept checking */
+#endif
 
 protected:
 

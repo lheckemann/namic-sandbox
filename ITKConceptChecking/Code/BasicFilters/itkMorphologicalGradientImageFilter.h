@@ -92,6 +92,7 @@ public:
   /** Get the kernel (structuring element). */
   itkGetConstReferenceMacro(Kernel, KernelType);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(SameDimensionCheck1,
     (Concept::SameDimension<InputImageDimension, KernelDimension>));
@@ -104,6 +105,7 @@ public:
   itkConceptMacro(InputConvertibleToOutputCheck,
     (Concept::Convertible<InputImagePixelType, OutputImagePixelType>));
   /** End concept checking */
+#endif
 
 protected:
   MorphologicalGradientImageFilter();

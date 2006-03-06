@@ -133,8 +133,14 @@ public:
   typedef std::vector<InputPixelType> ThresholdVector;
 
   /** The input and output pixel types must support comparison operators. */
-  itkConceptMacro(PixelTypeComparable, (Concept::Comparable<InputPixelType>));
-  itkConceptMacro(OutputPixelTypeComparable, (Concept::Comparable<OutputPixelType>));
+#ifdef ITK_USE_CONCEPT_CHECKING
+  /** Begin concept checking */
+  itkConceptMacro(PixelTypeComparable,
+                  (Concept::Comparable<InputPixelType>));
+  itkConceptMacro(OutputPixelTypeComparable,
+                  (Concept::Comparable<OutputPixelType>));
+  /** End concept checking */
+#endif
 
   /** Set the vector of thresholds. */
   void SetThresholds( const ThresholdVector & thresholds )

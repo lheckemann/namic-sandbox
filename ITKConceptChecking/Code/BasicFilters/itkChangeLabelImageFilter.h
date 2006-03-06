@@ -147,12 +147,14 @@ public:
   /** Clears the entire change map */
   void ClearChangeMap( );
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputConvertibleToOutputCheck,
                   (Concept::Convertible<InputPixelType, OutputPixelType>));
   itkConceptMacro(PixelTypeComparable,
                   (Concept::Comparable<InputPixelType>));
   /** End concept checking */
+#endif
 
 protected:
   ChangeLabelImageFilter();

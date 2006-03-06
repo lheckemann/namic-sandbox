@@ -84,6 +84,7 @@ public:
   itkStaticConstMacro(KernelDimension, unsigned int,
                       TKernel::NeighborhoodDimension);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputConvertibleToOutputCheck,
     (Concept::Convertible<PixelType, typename TOutputImage::PixelType>));
@@ -92,6 +93,7 @@ public:
   itkConceptMacro(SameDimensionCheck2,
     (Concept::SameDimension<InputImageDimension, KernelDimension>));
   /** End concept checking */
+#endif
 
 protected:
   GrayscaleDilateImageFilter();

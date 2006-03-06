@@ -129,6 +129,7 @@ public:
     m_MaximumError.Fill(v);
   }
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(OutputEqualityComparableCheck,
     (Concept::EqualityComparable<OutputImagePixelType>));
@@ -137,6 +138,7 @@ public:
   itkConceptMacro(SameTypeCheck,
     (Concept::SameType<InputImagePixelType, OutputImagePixelType>));
   /** End concept checking */
+#endif
 
 protected:
   ZeroCrossingBasedEdgeDetectionImageFilter()

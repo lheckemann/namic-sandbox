@@ -192,10 +192,12 @@ public:
   /** Get vector field of distances. */
   VectorImageType * GetVectorDistanceMap(void);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(IntConvertibleToInputCheck,
                   (Concept::Convertible<int, PixelType>));
   /** End concept checking */
+#endif
 
 protected:
   SignedDanielssonDistanceMapImageFilter();

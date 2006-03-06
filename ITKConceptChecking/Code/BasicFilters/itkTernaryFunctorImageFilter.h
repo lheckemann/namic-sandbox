@@ -109,6 +109,7 @@ public:
   itkStaticConstMacro(OuputImageDimension, unsigned int,
                       TOutputImage::ImageDimension);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(SameDimensionCheck1,
     (Concept::SameDimension<Input1ImageDimension, Input2ImageDimension>));
@@ -117,6 +118,7 @@ public:
   itkConceptMacro(SameDimensionCheck3,
     (Concept::SameDimension<Input1ImageDimension, OutputImageDimension>));
   /** End concept checking */
+#endif
 
 protected:
   TernaryFunctorImageFilter();

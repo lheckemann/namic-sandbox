@@ -84,6 +84,7 @@ public:
   itkStaticConstMacro(KernelDimension, unsigned int,
                       TKernel::NeighborhoodDimension);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(SameTypeCheck,
     (Concept::SameType<PixelType, typename TOutputImage::PixelType>));
@@ -94,6 +95,7 @@ public:
   itkConceptMacro(InputLessThanComparableCheck,
     (Concept::LessThanComparable<PixelType>));
   /** End concept checking */
+#endif
 
 protected:
   GrayscaleMorphologicalOpeningImageFilter();

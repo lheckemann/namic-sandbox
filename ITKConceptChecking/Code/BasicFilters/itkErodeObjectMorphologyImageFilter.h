@@ -80,10 +80,12 @@ public:
   /** Get the value to be assigned to eroded pixels */
   itkGetMacro(BackgroundValue, PixelType);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputEqualityComparable,
                   (Concept::EqualityComparable<PixelType>));
   /** End concept checking */
+#endif
 
 protected:
   ErodeObjectMorphologyImageFilter();

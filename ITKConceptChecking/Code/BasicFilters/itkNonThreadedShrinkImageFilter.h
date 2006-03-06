@@ -100,6 +100,7 @@ public:
    * * \sa ProcessObject::GenerateInputRequestedRegion() */
   virtual void GenerateInputRequestedRegion();
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputConvertibleToOutputCheck,
     (Concept::Convertible<typename TInputImage::PixelType,
@@ -107,6 +108,7 @@ public:
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<ImageDimension, OutputImageDimension>));
   /** End concept checking */
+#endif
 
 protected:
   NonThreadedShrinkImageFilter();

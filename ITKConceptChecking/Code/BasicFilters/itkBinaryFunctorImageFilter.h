@@ -100,6 +100,7 @@ public:
   itkStaticConstMacro(
     OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(SameDimensionCheck1,
     (Concept::SameDimension<itkGetStaticConstMacro(InputImage1Dimension),
@@ -108,6 +109,7 @@ public:
     (Concept::SameDimension<itkGetStaticConstMacro(InputImage1Dimension),
                             itkGetStaticConstMacro(OutputImageDimension)>));
   /** End concept checking */
+#endif
 
 protected:
   BinaryFunctorImageFilter();

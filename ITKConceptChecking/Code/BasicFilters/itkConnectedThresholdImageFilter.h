@@ -120,6 +120,7 @@ public:
   itkStaticConstMacro(OutputImageDimension, unsigned int,
                       TOutputImage::ImageDimension);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(OutputEqualityComparableCheck,
     (Concept::EqualityComparable<OutputImagePixelType>));
@@ -132,6 +133,7 @@ public:
   itkConceptMacro(IntConvertibleToInputCheck,
     (Concept::Convertible<int, InputImagePixelType>));
   /** End concept checking */
+#endif
 
 protected:
   ConnectedThresholdImageFilter();

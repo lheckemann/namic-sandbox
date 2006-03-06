@@ -161,6 +161,7 @@ public:
   /** Get vector field of distances. */
   VectorImageType * GetVectorDistanceMap(void);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
@@ -174,6 +175,7 @@ public:
     (Concept::Convertible<typename TInputImage::PixelType,
                           typename TOutputImage::PixelType>));
   /** End concept checking */
+#endif
 
 protected:
   DanielssonDistanceMapImageFilter();

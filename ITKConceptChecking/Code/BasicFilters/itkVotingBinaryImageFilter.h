@@ -103,6 +103,7 @@ public:
    * \sa ImageToImageFilter::GenerateInputRequestedRegion() */
   virtual void GenerateInputRequestedRegion() throw(InvalidRequestedRegionError);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputEqualityComparableCheck,
     (Concept::EqualityComparable<InputPixelType>));
@@ -113,6 +114,7 @@ public:
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
   /** End concept checking */
+#endif
 
 protected:
   VotingBinaryImageFilter();

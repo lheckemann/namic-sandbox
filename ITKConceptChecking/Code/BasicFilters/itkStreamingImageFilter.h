@@ -99,12 +99,14 @@ public:
    * update some more, execute some more, etc. */
   virtual void UpdateOutputData(DataObject *output);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
   itkConceptMacro(InputConvertibleToOutputCheck,
     (Concept::Convertible<InputImagePixelType, OutputImagePixelType>));
   /** End concept checking */
+#endif
 
 protected:
   StreamingImageFilter();

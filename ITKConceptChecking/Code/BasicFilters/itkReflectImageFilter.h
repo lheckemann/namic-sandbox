@@ -66,12 +66,14 @@ public:
   itkStaticConstMacro(OutputImageDimension, unsigned int,
                       TOutputImage::ImageDimension);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
   itkConceptMacro(InputConvertibleToOutputCheck,
     (Concept::Convertible<InputImagePixelType, OutputImagePixelType>));
   /** End concept checking */
+#endif
 
 protected:
   ReflectImageFilter();

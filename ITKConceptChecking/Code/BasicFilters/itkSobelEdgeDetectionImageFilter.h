@@ -98,10 +98,12 @@ public:
    */
   virtual void GenerateInputRequestedRegion() throw(InvalidRequestedRegionError);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<InputImageDimension, ImageDimension>));
   /** End concept checking */
+#endif
 
 protected:
   SobelEdgeDetectionImageFilter() {}

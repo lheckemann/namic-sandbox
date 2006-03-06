@@ -199,6 +199,7 @@ public:
         }
     }
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputEqualityComparableCheck,
     (Concept::EqualityComparable<InputPixelType>));
@@ -211,6 +212,7 @@ public:
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<InputImageDimension, ImageDimension>));
   /** End concept checking */
+#endif
 
 protected:
 

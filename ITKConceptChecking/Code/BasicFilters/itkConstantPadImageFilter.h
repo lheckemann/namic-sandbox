@@ -76,6 +76,7 @@ public:
   itkSetMacro(Constant, OutputImagePixelType);
   itkGetMacro(Constant, OutputImagePixelType);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(OutputEqualityComparableCheck,
     (Concept::EqualityComparable<OutputImagePixelType>));
@@ -84,6 +85,7 @@ public:
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<ImageDimension, OutputImageDimension>));
   /** End concept checking */
+#endif
 
 protected:
   ConstantPadImageFilter();

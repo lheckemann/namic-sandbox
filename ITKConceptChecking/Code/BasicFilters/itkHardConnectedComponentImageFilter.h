@@ -100,6 +100,7 @@ public:
   void SetObjectSeed( const IndexType &seed)
   {m_Seeds.push_front(seed);} 
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<InputImageDimension, ImageDimension>));
@@ -112,6 +113,7 @@ public:
   itkConceptMacro(UnsignedCharConvertibleToOutputCheck,
     (Concept::Convertible<unsigned char, OutputPixelType>));
   /** End concept checking */
+#endif
 
 protected:
   HardConnectedComponentImageFilter() {}

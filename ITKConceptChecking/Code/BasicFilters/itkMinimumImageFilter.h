@@ -79,6 +79,7 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(Input1ConvertibleToInput2Check,
     (Concept::Convertible<typename TInputImage1::PixelType,
@@ -87,6 +88,7 @@ public:
     (Concept::Convertible<typename TInputImage2::PixelType,
                           typename TOutputImage::PixelType>));
   /** End concept checking */
+#endif
 
 protected:
   MinimumImageFilter() {}
