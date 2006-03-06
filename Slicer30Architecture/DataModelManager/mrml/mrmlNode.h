@@ -33,11 +33,9 @@ public:
   typedef SmartPointer< Self > Pointer;
   typedef SmartPointer< const Self > ConstPointer;
 
-  /** Method for defining the name of the class */
+  // Description:
+  // Method for defining the name of the class
   mrmlTypeMacro(Node, Object);
-
-  /** Method for creation through the object factory */
-  //mrmlNewMacro(Self);
 
   // Description:
   // Create instance of the default node. Like New only virtual
