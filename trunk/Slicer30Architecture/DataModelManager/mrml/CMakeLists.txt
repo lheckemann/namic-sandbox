@@ -24,3 +24,14 @@ CONFIGURE_FILE(${MRML_SOURCE_DIR}/mrmlConfigure.h.in
 
 ADD_LIBRARY(mrml ${MRML_SRCS})
 
+#-----------------------------------------------------------------------------
+# Add the testing directories
+OPTION(BUILD_TESTING "Build testing." ON)
+
+IF(BUILD_TESTING)
+  ENABLE_TESTING()
+  INCLUDE (${CMAKE_ROOT}/Modules/Dart.cmake)
+  MARK_AS_ADVANCED(DART_ROOT)
+  SUBDIRS(Testing)
+ENDIF(BUILD_TESTING)
+
