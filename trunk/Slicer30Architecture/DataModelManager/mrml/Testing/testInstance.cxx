@@ -3,8 +3,12 @@
 int testInstance(int , char *[])
 {
   // Declare a pointer
-  mrml::Object::Pointer *o;
-  o->Print(std::cout);
+  mrml::Object::Pointer o;
+  // code should seg fault:
+  //o->Print();
+
+  mrml::Object::Pointer oo = mrml::Object::New();
+  oo->Print();
 
   return 0;
 }

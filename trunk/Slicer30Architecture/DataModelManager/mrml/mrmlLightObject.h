@@ -76,7 +76,7 @@ public:
 #endif 
   
   /** Cause the object to print itself out. */
-  void Print(std::ostream& os, Indent indent=0) const;
+  void Print(std::ostream& os = std::cout, Indent indent=0) const;
 
   /** Increase the reference count (mark as used by another object).  */
   virtual void Register() const;
@@ -113,8 +113,6 @@ protected:
 private:
   LightObject(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
-  
-  
 };
 
 } // end namespace mrml

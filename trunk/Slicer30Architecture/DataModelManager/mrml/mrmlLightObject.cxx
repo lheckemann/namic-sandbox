@@ -18,6 +18,10 @@
 #include <list>
 #include <memory>
 
+#if __GNUC__ > 3 || ( __GNUC__ == 3 && __GNUC_MINOR__ > 0 )
+#  include <cxxabi.h>
+#endif
+
 namespace mrml
 {
 
@@ -145,6 +149,31 @@ LightObject::~LightObject()
     }
 }
 
+std::string UnmangledName(const char* mangledName)
+{
+  std::string result;
+// Better name demangling for gcc
+#if __GNUC__ > 3 || ( __GNUC__ == 3 && __GNUC_MINOR__ > 0 )
+  int status;
+  char * unmangled = abi::__cxa_demangle(mangledName,0,0,&status);
+
+  // Handle failure
+  if(status == 0)
+    {
+    result = unmangled;
+    free(unmangled);
+    }
+  else
+    {
+    result = mangledName;
+    }
+#else
+  // handle other compilers?
+  result = mangledName;
+#endif
+
+  return result;
+}
 
 /**
  * Chaining method to print an object's instance variables, as well as
@@ -152,7 +181,7 @@ LightObject::~LightObject()
  */
 void LightObject::PrintSelf(std::ostream& os, Indent indent) const
 {
-  os << indent << "RTTI typeinfo:   " << typeid( *this ).name() << std::endl;
+  os << indent << "RTTI typeinfo:   " << UnmangledName(typeid( *this ).name()) << std::endl;
   os << indent << "Reference Count: " << m_ReferenceCount << std::endl;
 }
 
