@@ -153,6 +153,7 @@ public:
   typedef typename InputImageType::SizeType InputSizeType;
 
   /** Input and output images must be the same dimension. */
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(ImageDimensionCheck,
       (Concept::SameDimension<itkGetStaticConstMacro(InputImageDimension),
@@ -166,6 +167,7 @@ public:
                               itkGetStaticConstMacro(InputImageDimension)>));
 #endif
   /** End concept checking */
+#endif
 
   /** Set kernel (structuring element).*/
   void SetKernel( const KernelType& kernel );

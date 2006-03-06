@@ -94,6 +94,7 @@ public:
   virtual InputPixelType GetDistanceThreshold()
     {return (this->GetFunctor().GetDistanceThreshold());}
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputEqualityComparableCheck,
                   (Concept::EqualityComparable<InputPixelType>));
@@ -102,6 +103,7 @@ public:
   itkConceptMacro(MaskEqualityComparableCheck,
                   (Concept::EqualityComparable<MaskPixelType>));
   /** End concept checking */
+#endif
 
 protected:
   ScalarConnectedComponentImageFilter() {};

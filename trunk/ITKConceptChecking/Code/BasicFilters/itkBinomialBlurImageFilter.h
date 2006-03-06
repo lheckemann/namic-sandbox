@@ -84,6 +84,7 @@ public:
    * filter needs a border of "Repetitions" pixels. */
   void GenerateInputRequestedRegion();
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<itkGetStaticConstMacro(NDimensions),
@@ -93,6 +94,7 @@ public:
   itkConceptMacro(DoubleConvertibleToOutputCheck,
     (Concept::Convertible<double, PixelType>));
   /** End concept checking */
+#endif
 
 protected:
   BinomialBlurImageFilter();

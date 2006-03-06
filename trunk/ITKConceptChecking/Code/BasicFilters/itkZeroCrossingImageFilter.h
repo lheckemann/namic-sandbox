@@ -106,6 +106,7 @@ public:
   itkSetMacro(BackgroundValue, OutputImagePixelType);
   itkGetMacro(BackgroundValue, OutputImagePixelType);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(OutputEqualityComparableCheck,
     (Concept::EqualityComparable<OutputImagePixelType>));
@@ -114,6 +115,7 @@ public:
   itkConceptMacro(InputComparableCheck,
      (Concept::Comparable<InputImagePixelType>));
   /** End concept checking */
+#endif
 
 protected:
   ZeroCrossingImageFilter()

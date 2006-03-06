@@ -129,6 +129,7 @@ public:
     this->Modified();
   }
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<InputImageDimension, ImageDimension>));
@@ -145,6 +146,7 @@ public:
   itkConceptMacro(UnsignedLongConvertibleToOutputCheck,
     (Concept::Convertible<unsigned long, OutputPixelType>));
   /** End concept checking */
+#endif
 
 protected:
   ConnectedComponentFunctorImageFilter() {}

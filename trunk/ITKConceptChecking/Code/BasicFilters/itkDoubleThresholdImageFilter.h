@@ -123,12 +123,14 @@ public:
   itkGetConstReferenceMacro(FullyConnected, bool);
   itkBooleanMacro(FullyConnected);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(OutputEqualityComparableCheck,
                   (Concept::EqualityComparable<OutputPixelType>));
   itkConceptMacro(PixelTypeComparable,
                   (Concept::Comparable<InputPixelType>));
   /** End concept checking */
+#endif
 
 protected:
   DoubleThresholdImageFilter();

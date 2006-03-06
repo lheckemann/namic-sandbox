@@ -82,6 +82,7 @@ public:
   /* Generate Data */
   void GenerateData(void);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<NDimensions, NOutputDimensions>));
@@ -92,6 +93,7 @@ public:
   itkConceptMacro(InputConvertibleToOutputCheck,
     (Concept::Convertible<InputImagePixelType, OutputImagePixelType>));
   /** End concept checking */
+#endif
 
 protected:
   PolylineMask2DImageFilter();

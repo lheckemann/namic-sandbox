@@ -89,10 +89,12 @@ public:
   void SetInverseOutput(OutputImageType *output)
   { this->SetNthOutput(1, output); };
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(ComparableCheck,
                   (Concept::Comparable<PixelType>));
   /** Begin concept checking */
+#endif
 
 protected:
   TwoOutputExampleImageFilter();

@@ -131,10 +131,12 @@ public:
   void Initialize(double setUniqueAxis, double setSymmetricAxes, unsigned int numberOfBins,
                   unsigned int splatMethod, unsigned int spaceDimension);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(SourceConvertibleToDoubleCheck,
     (Concept::Convertible<typename TSourceImage::PixelType, double>));
   /** End concept checking */
+#endif
 
 protected:
   BloxBoundaryPointImageToBloxBoundaryProfileImageFilter();

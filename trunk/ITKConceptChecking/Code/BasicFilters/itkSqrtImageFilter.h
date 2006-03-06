@@ -69,12 +69,14 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputConvertibleToDoubleCheck,
                   (Concept::Convertible<InputImagePixelType, double>));
   itkConceptMacro(DoubleConvertibleToOutputCheck,
                   (Concept::Convertible<double, OutputImagePixelType>));
   /** End concept checking */
+#endif
 
 protected:
   SqrtImageFilter() {}

@@ -239,6 +239,7 @@ public:
    * \sa ProcessObject::GenerateOutputInformaton() */
   virtual void GenerateOutputInformation();
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputConvertibleToOutput,
     (Concept::Convertible<InputImagePixelType, OutputImagePixelType>));
@@ -247,6 +248,7 @@ public:
   itkConceptMacro(DimensionShouldBe3,
     (Concept::SameDimension<itkGetStaticConstMacro(InputImageDimension),3>));
   /** End concept checking */
+#endif
 
 protected:
   OrientImageFilter();

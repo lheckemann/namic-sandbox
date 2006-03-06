@@ -70,10 +70,12 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputMultiplicativeOperatorsCheck,
     (Concept::MultiplicativeOperators<typename TInputImage::PixelType::value_type>));
   /** End concept checking */
+#endif
 
 protected:
   ComplexToModulusImageFilter() {}

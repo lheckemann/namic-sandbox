@@ -111,12 +111,14 @@ public:
   virtual void GenerateInputRequestedRegion();
   virtual void EnlargeOutputRequestedRegion(DataObject *output); 
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputConvertibleToOutputCheck,
     (Concept::Convertible<InputImageType::PixelType, OutputImageType::PixelType>));
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<ImageDimension, OutputImageDimension>));
   /** End concept checking */
+#endif
 
 protected:
   ShrinkImageFilter();

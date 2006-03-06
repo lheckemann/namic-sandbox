@@ -94,10 +94,12 @@ public:
    * output. */
   virtual DataObjectPointer MakeOutput(unsigned int idx);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(LessThanComparableCheck,
                   (Concept::LessThanComparable<PixelType>));
   /** End concept checking */
+#endif
 
 protected:
   MinimumMaximumImageFilter();

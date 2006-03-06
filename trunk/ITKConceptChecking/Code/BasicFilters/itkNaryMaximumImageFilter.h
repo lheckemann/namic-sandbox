@@ -111,6 +111,7 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
+#ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputConvertibleToOutputCheck,
     (Concept::Convertible<typename TInputImage::PixelType,
@@ -118,6 +119,7 @@ public:
   itkConceptMacro(InputLessThanComparableCheck,
     (Concept::Comparable<typename TInputImage::PixelType>));
   /** End concept checking */
+#endif
 
 protected:
   NaryMaximumImageFilter() {}
