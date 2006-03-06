@@ -17,18 +17,16 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#if defined(_MSC_VER)
-#pragma warning ( disable : 4786 )
-#endif
-
 #include "mrmlObjectFactoryBase.h"
-#include "mrmlDynamicLoader.h"
-#include "mrmlDirectory.h"
+//#include "mrmlDynamicLoader.h"
+//#include "mrmlDirectory.h"
 #include "mrmlVersion.h"
-#include <stdlib.h>
-#include <ctype.h>
-#include <algorithm>
+
+//#include <stdlib.h>
+//#include <ctype.h>
+//#include <algorithm>
 #include <map>
+#include <mrmlsys/Directory.hxx>
 
 namespace
 {
@@ -196,15 +194,15 @@ ObjectFactoryBase
    * follow PATH conventions
    */
 #ifdef _WIN32
-  char PathSeparator = ';';
+  const char pathSeparator = ';';
 #else
-  char PathSeparator = ':';
+  const char pathSeparator = ':';
 #endif
   
   std::string LoadPath;
-  if (getenv("ITK_AUTOLOAD_PATH"))
+  if (getenv("MRML_AUTOLOAD_PATH"))
     {
-    LoadPath = getenv("ITK_AUTOLOAD_PATH");
+    LoadPath = getenv("MRML_AUTOLOAD_PATH");
     }
   else
     {
@@ -221,9 +219,9 @@ ObjectFactoryBase
     {
     StartSeparatorPosition = EndSeparatorPosition;
     /**
-     * find PathSeparator in LoadPath
+     * find pathSeparator in LoadPath
      */
-    EndSeparatorPosition = LoadPath.find(PathSeparator, 
+    EndSeparatorPosition = LoadPath.find(pathSeparator, 
                                          StartSeparatorPosition);
     if(EndSeparatorPosition == std::string::npos)
       {
@@ -277,7 +275,7 @@ CreateFullPath(const char* path, const char* file)
  * A file scope typedef to make the cast code to the load
  * function cleaner to read.
  */
-typedef ObjectFactoryBase* (* ITK_LOAD_FUNCTION)();
+typedef ObjectFactoryBase* (* MRML_LOAD_FUNCTION)();
 
 
 /**
@@ -290,7 +288,7 @@ inline bool
 NameIsSharedLibrary(const char* name)
 {
   std::string sname = name;
-  if ( sname.find(DynamicLoader::LibExtension()) != std::string::npos )
+  if ( sname.find(mrmlsys::DynamicLoader::LibExtension()) != std::string::npos )
     {
     return true;
     }
@@ -305,8 +303,8 @@ void
 ObjectFactoryBase
 ::LoadLibrariesInPath(const char* path)
 {
-  Directory::Pointer dir = Directory::New();
-  if ( !dir->Load(path) )
+  mrmlsys::Directory dir; // = mrmlsys::Directory::New();
+  if ( !dir.Load(path) )
     {
     return;
     }
@@ -314,9 +312,9 @@ ObjectFactoryBase
   /**
    * Attempt to load each file in the directory as a shared library
    */
-  for ( unsigned int i = 0; i < dir->GetNumberOfFiles(); i++ )
+  for ( unsigned int i = 0; i < dir.GetNumberOfFiles(); i++ )
     {
-    const char* file = dir->GetFile(i);
+    const char* file = dir.GetFile(i);
     /**
      * try to make sure the file has at least the extension
      * for a shared library in it.
@@ -324,14 +322,14 @@ ObjectFactoryBase
     if ( NameIsSharedLibrary(file) )
       {
       std::string fullpath = CreateFullPath(path, file);
-      LibHandle lib = DynamicLoader::OpenLibrary(fullpath.c_str());
+      mrmlsys::LibHandle lib = mrmlsys::DynamicLoader::OpenLibrary(fullpath.c_str());
       if ( lib )
         {
         /**
          * Look for the symbol mrmlLoad in the library
          */
-        ITK_LOAD_FUNCTION loadfunction
-          = (ITK_LOAD_FUNCTION)DynamicLoader::GetSymbolAddress(lib, "mrmlLoad");
+        MRML_LOAD_FUNCTION loadfunction
+          = (MRML_LOAD_FUNCTION)mrmlsys::DynamicLoader::GetSymbolAddress(lib, "mrmlLoad");
         /**
          * if the symbol is found call it to create the factory
          * from the library
@@ -342,7 +340,7 @@ ObjectFactoryBase
           /**
            * initialize class members if load worked
            */
-          newfactory->m_LibraryHandle = (void*)lib;
+          newfactory->m_LibraryHandle = lib;
           newfactory->m_LibraryPath = fullpath;
           newfactory->m_LibraryDate = 0; // unused for now...
           ObjectFactoryBase::RegisterFactory(newfactory);
@@ -354,7 +352,7 @@ ObjectFactoryBase
 
 
 /**
- * Recheck the ITK_AUTOLOAD_PATH for new libraries
+ * Recheck the MRML_AUTOLOAD_PATH for new libraries
  */
 void 
 ObjectFactoryBase
@@ -384,7 +382,7 @@ ObjectFactoryBase
 {
   if(m_LibraryHandle)
     {
-    DynamicLoader::CloseLibrary((LibHandle)m_LibraryHandle);
+    mrmlsys::DynamicLoader::CloseLibrary(m_LibraryHandle);
     }
   m_OverrideMap->erase(m_OverrideMap->begin(), m_OverrideMap->end());
   delete m_OverrideMap;
@@ -400,16 +398,17 @@ ObjectFactoryBase
 {
   if ( factory->m_LibraryHandle == 0 )
     {
-    const char* nonDynamicName = "Non-Dynamicly loaded factory";
+    const char nonDynamicName[] = "Non-Dynamicly loaded factory";
     factory->m_LibraryPath = nonDynamicName;
     }
-  if ( strcmp(factory->GetITKSourceVersion(), 
-              Version::GetITKSourceVersion()) != 0 )
+  if ( strcmp(factory->GetMRMLSourceVersion(), 
+              Version::GetMRMLSourceVersion()) != 0 )
     {
-    mrmlGenericOutputMacro(<< "Possible incompatible factory load:" 
-                          << "\nRunning mrml version :\n" << Version::GetITKSourceVersion() 
-                          << "\nLoaded factory version:\n" << factory->GetITKSourceVersion()
-                          << "\nLoading factory:\n" << factory->m_LibraryPath << "\n");
+    abort();
+    //mrmlGenericOutputMacro(<< "Possible incompatible factory load:" 
+    //                      << "\nRunning mrml version :\n" <<  Version::GetMRMLSourceVersion() 
+    //                      << "\nLoaded factory version:\n" << factory->GetMRMLSourceVersion()
+    //                      << "\nLoading factory:\n" << factory->m_LibraryPath << "\n");
     }
 
   ObjectFactoryBase::Initialize();
