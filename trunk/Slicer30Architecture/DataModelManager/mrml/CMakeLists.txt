@@ -22,6 +22,8 @@ SET(MRML_SRCS
   mrmlSimpleFastMutexLock.cxx
   mrmlTimeStamp.cxx
   #DynamicLoader.cxx
+  #MRMLModelNode.cxx
+  mrmlNode.cxx
   )
 
 INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)

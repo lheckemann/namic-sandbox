@@ -139,9 +139,9 @@ namespace mrml
   virtual void Set##name (const type _arg) \
   { \
     mrmlDebugMacro("setting " #name " to " << _arg); \
-    if (this->m_##name != _arg) \
+    if (this->name != _arg) \
       { \
-      this->m_##name = _arg; \
+      this->name = _arg; \
       this->Modified(); \
       } \
   } 
@@ -150,8 +150,8 @@ namespace mrml
 #define mrmlGetMacro(name,type) \
   virtual type Get##name () \
   { \
-    mrmlDebugMacro("returning " << #name " of " << this->m_##name ); \
-    return this->m_##name; \
+    mrmlDebugMacro("returning " << #name " of " << this->name ); \
+    return this->name; \
   }
 
 /** Get built-in type.  Creates member Get"name"() (e.g., GetVisibility());
@@ -160,8 +160,8 @@ namespace mrml
 #define mrmlGetConstMacro(name,type) \
   virtual type Get##name () const \
   { \
-    mrmlDebugMacro("returning " << #name " of " << this->m_##name ); \
-    return this->m_##name; \
+    mrmlDebugMacro("returning " << #name " of " << this->name ); \
+    return this->name; \
   }
 
 /** Get built-in type.  Creates member Get"name"() (e.g., GetVisibility());
@@ -181,16 +181,19 @@ namespace mrml
 #define mrmlSetStringMacro(name) \
   virtual void Set##name (const char* _arg) \
   { \
-    if ( _arg && (_arg == this->m_##name) ) { return;} \
-    if (_arg) \
-      { \
-      this->m_##name = _arg;\
-      } \
-     else \
-      { \
-      this->m_##name = ""; \
-      } \
-    this->Modified(); \
+  if ( this->name == NULL && _arg == NULL) { return;} \
+  if ( this->name && _arg && (!strcmp(this->name,_arg))) { return;} \
+  if (this->name) { delete [] this->name; } \
+  if (_arg) \
+    { \
+    this->name = new char[strlen(_arg)+1]; \
+    strcpy(this->name,_arg); \
+    } \
+   else \
+    { \
+    this->name = NULL; \
+    } \
+  this->Modified(); \
   } 
 
 
@@ -200,7 +203,7 @@ namespace mrml
 #define mrmlGetStringMacro(name) \
   virtual const char* Get##name () const \
   { \
-    return this->m_##name.c_str(); \
+    return this->name; \
   } 
 
 /** Set built-in type where value is constrained between min/max limits.
