@@ -99,7 +99,7 @@ public:
   /** End concept checking */
 #endif
 
-protected:
+xprotected:
   MaximumImageFilter() {}
   virtual ~MaximumImageFilter() {}
 
@@ -109,7 +109,7 @@ private:
 
 };
 
-} // end namespace itk
+} // end namespace ikt
 
 
 #endif
