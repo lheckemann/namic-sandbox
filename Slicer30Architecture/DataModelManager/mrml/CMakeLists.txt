@@ -11,6 +11,11 @@ INCLUDE_DIRECTORIES(
   ${MRML_BINARY_DIR}
   )
 
+#-----------------------------------------------------------------------------
+# ITK build configuration options.
+OPTION(BUILD_SHARED_LIBS "Build MRML with shared libraries." OFF)
+SET(MRML_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+
 SET(MRML_SRCS
   mrmlCommand.cxx
   mrmlEventObject.cxx
