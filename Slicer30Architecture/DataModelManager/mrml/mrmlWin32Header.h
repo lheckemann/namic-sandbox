@@ -85,7 +85,7 @@
 // mrml_EXPORT can not be used
 #define mrml_EXPORT
 
-#if (defined(_WIN32) || defined(WIN32)) && !defined(mrmlSTATIC) 
+#if (defined(_WIN32) || defined(WIN32)) && !defined(MRMLSTATIC) 
 # ifdef mrmlCommon_EXPORTS
 #  define mrmlCommon_EXPORT __declspec(dllexport)
 # else
