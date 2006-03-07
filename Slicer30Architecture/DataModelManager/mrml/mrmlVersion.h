@@ -44,7 +44,7 @@ namespace mrml
  * \ingroup MRMLSystemObjects
  */
 
-class mrmlCommon_EXPORT Version : public Object 
+class MRMLCommon_EXPORT Version : public Object 
 {
 public:
   /** Standard class typedefs. */

@@ -43,7 +43,7 @@ namespace mrml
 
 class OverRideMap;
 
-class mrmlCommon_EXPORT ObjectFactoryBase : public Object
+class MRMLCommon_EXPORT ObjectFactoryBase : public Object
 {
 public:  
   /** Standard class typedefs. */

@@ -71,7 +71,7 @@ typedef int FastMutexType;
  */
 
 // Critical Section object that is not a mrmlObject.
-class mrmlCommon_EXPORT SimpleFastMutexLock
+class MRMLCommon_EXPORT SimpleFastMutexLock
 {
 public:
   /** Standard class typedefs.  */

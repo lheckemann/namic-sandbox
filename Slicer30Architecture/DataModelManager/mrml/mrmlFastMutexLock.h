@@ -48,7 +48,7 @@ namespace mrml
  *
  * \ingroup OSSystemObjects
  */
-class mrmlCommon_EXPORT FastMutexLock : public Object
+class MRMLCommon_EXPORT FastMutexLock : public Object
 {
 public:
   /** Standard class typedefs. */

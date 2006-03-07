@@ -41,7 +41,7 @@ class Command;
  * \ingroup MRMLSystemObjects
  * \ingroup DataRepresentation
  */
-class mrmlCommon_EXPORT Object: public LightObject
+class MRMLCommon_EXPORT Object: public LightObject
 {
 public:
   /** Smart pointer typedef support. */

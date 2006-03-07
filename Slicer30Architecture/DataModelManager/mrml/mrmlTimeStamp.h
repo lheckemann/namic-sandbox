@@ -36,7 +36,7 @@ namespace mrml
  *
  * \ingroup ITKSystemObjects
  */
-class mrmlCommon_EXPORT TimeStamp 
+class MRMLCommon_EXPORT TimeStamp 
 {
 public:
   /** Standard class typedefs. */
