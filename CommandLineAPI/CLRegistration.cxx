@@ -18,6 +18,7 @@
 #include <itkOrientedImage.h>
 #include <itkImageFileReader.h>
 #include <itkImageFileWriter.h>
+#include "JSONHelp.h"
 #include "XMLHelp.h"
 
 #define USE_TCLAP 0
@@ -281,7 +282,8 @@ int main ( int argc, const char* argv[] )
     if ( cl.hasOption('j') )
       {
       CLI::JSONHelpFormatter formatter;
-      formatter.printJSONHelp ( "registration", "CLRegistration", "Register two volumes", "CLRegistration", options);
+      // formatter.printJSONHelp ( "registration", "CLRegistration", "Register two volumes", "CLRegistration", options);
+      std::cout << JSONHelp;
       exit ( EXIT_SUCCESS );
       }
     if ( cl.hasOption('h') )
