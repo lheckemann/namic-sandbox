@@ -31,7 +31,7 @@
 #endif
  
 #if defined(_WIN32) && !defined(MRML_USE_PTHREADS)
-#include "mrmlWindows.h"
+#include <windows.h>
 #endif
 
 namespace mrml
