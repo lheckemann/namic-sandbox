@@ -25,7 +25,7 @@
 
 namespace mrml
 {
-class mrmlCommon_EXPORT Node : public Object
+class MRMLCommon_EXPORT Node : public Object
 {
 public:
   typedef Node Self;

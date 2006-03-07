@@ -38,7 +38,7 @@ namespace mrml
  * \ingroup OSSystemObjects
  */
 
-class mrmlCommon_EXPORT Indent
+class MRMLCommon_EXPORT Indent
 {
 public:
   /** Standard class typedefs. */
@@ -61,7 +61,7 @@ public:
   Indent GetNextIndent();
 
   /** Print out the indentation. Basically output a bunch of spaces.  */
-  friend mrmlCommon_EXPORT std::ostream& operator<<(std::ostream& os, const Indent& o); 
+  friend MRMLCommon_EXPORT std::ostream& operator<<(std::ostream& os, const Indent& o); 
 
 private:
   int m_Indent;

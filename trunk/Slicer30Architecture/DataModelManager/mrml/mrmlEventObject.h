@@ -55,7 +55,7 @@ namespace mrml
  *
  * \ingroup ITKSystemObjects 
  */
-class mrmlCommon_EXPORT EventObject
+class MRMLCommon_EXPORT EventObject
 {
 public:
   /** Constructor and copy constructor.  Note that these functions will be

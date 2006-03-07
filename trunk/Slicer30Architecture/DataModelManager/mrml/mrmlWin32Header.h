@@ -74,26 +74,26 @@
 // typename keyword in default template arguments is not accepted by
 // MSVC.  This macro should only be used in such places.
 # if !defined(CABLE_CONFIGURATION) && (_MSC_VER < 1310)
-#  define mrml_TYPENAME
+#  define MRML_TYPENAME
 # else
-#  define mrml_TYPENAME typename
+#  define MRML_TYPENAME typename
 # endif
 #else
-# define mrml_TYPENAME typename
+# define MRML_TYPENAME typename
 #endif
 
-// mrml_EXPORT can not be used
-#define mrml_EXPORT
+// MRML_EXPORT can not be used
+#define MRML_EXPORT
 
 #if (defined(_WIN32) || defined(WIN32)) && !defined(MRMLSTATIC) 
-# ifdef mrmlCommon_EXPORTS
-#  define mrmlCommon_EXPORT __declspec(dllexport)
+# ifdef MRMLCommon_EXPORTS
+#  define MRMLCommon_EXPORT __declspec(dllexport)
 # else
-#  define mrmlCommon_EXPORT __declspec(dllimport)
-# endif  /* mrmlCommon_EXPORT */
+#  define MRMLCommon_EXPORT __declspec(dllimport)
+# endif  /* MRMLCommon_EXPORT */
 #else
 /* unix needs nothing */
-#define mrmlCommon_EXPORT 
+#define MRMLCommon_EXPORT 
 #endif
 
 

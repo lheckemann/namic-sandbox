@@ -37,7 +37,7 @@ namespace mrml
  */
   
 // The superclass that all commands should be subclasses of
-class mrmlCommon_EXPORT Command : public Object
+class MRMLCommon_EXPORT Command : public Object
 {
 public:
   /** Standard class typedefs. */

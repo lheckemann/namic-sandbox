@@ -391,11 +391,11 @@ namespace mrml
  * OutputWindow::GetInstance()->DisplayText();
  * This is to avoid Object #include of OutputWindow
  * while OutputWindow #includes Object. */
-extern mrmlCommon_EXPORT void OutputWindowDisplayText(const char*);
-extern mrmlCommon_EXPORT void OutputWindowDisplayErrorText(const char*);
-extern mrmlCommon_EXPORT void OutputWindowDisplayWarningText(const char*);
-extern mrmlCommon_EXPORT void OutputWindowDisplayGenericOutputText(const char*);
-extern mrmlCommon_EXPORT void OutputWindowDisplayDebugText(const char*);
+extern MRMLCommon_EXPORT void OutputWindowDisplayText(const char*);
+extern MRMLCommon_EXPORT void OutputWindowDisplayErrorText(const char*);
+extern MRMLCommon_EXPORT void OutputWindowDisplayWarningText(const char*);
+extern MRMLCommon_EXPORT void OutputWindowDisplayGenericOutputText(const char*);
+extern MRMLCommon_EXPORT void OutputWindowDisplayDebugText(const char*);
 } // end namespace mrml
 
 /** This macro is used to print debug (or other information). They are
