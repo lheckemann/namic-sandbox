@@ -80,13 +80,13 @@
 # endif
 #else
 # define MRML_TYPENAME typename
-#endif
+#endif //defined(_MSC_VER)
 
 // MRML_EXPORT can not be used
 #define MRML_EXPORT
 
 #if (defined(_WIN32) || defined(WIN32)) && !defined(MRMLSTATIC) 
-# ifdef MRMLCommon_EXPORTS
+# ifdef mrml_EXPORTS
 #  define MRMLCommon_EXPORT __declspec(dllexport)
 # else
 #  define MRMLCommon_EXPORT __declspec(dllimport)
