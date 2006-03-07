@@ -41,14 +41,14 @@ namespace mrml
  * particular kinds of events produced by a specific mrml::Object. This 
  * mechanism decouples classes among them.
  *
- * As oppossed to mrml::Exception, mrml::EventObject does not represent error 
+ * As opposed to mrml::Exception, mrml::EventObject does not represent error 
  * states, but simply flow of information allowing to trigger actions 
- * as a consecuence of changes occurring in state on some mrml::Objects.
+ * as a consequence of changes occurring in state on some mrml::Objects.
  *
  * mrml::EventObject carries information in its own type, it relies on the 
  * appropiate use of the RTTI (Run Time Type Information).
  *
- * A set of standard EventObjects is defined near the end of mrmlIndent.h.
+ * A set of standard EventObjects is defined near the end of mrmlEventObject.h.
  *
  * \sa mrml::Command
  * \sa mrml::ExceptionObject
@@ -141,12 +141,12 @@ mrmlEventMacro( ProgressEvent      , AnyEvent );
 mrmlEventMacro( ExitEvent          , AnyEvent );
 mrmlEventMacro( AbortEvent         , AnyEvent );
 mrmlEventMacro( ModifiedEvent      , AnyEvent );
-mrmlEventMacro( InitializeEvent     , AnyEvent );
+mrmlEventMacro( InitializeEvent    , AnyEvent );
 mrmlEventMacro( IterationEvent     , AnyEvent );
 mrmlEventMacro( PickEvent          , AnyEvent );
-mrmlEventMacro( StartPickEvent     , PickEvent   );
-mrmlEventMacro( EndPickEvent       , PickEvent   );
-mrmlEventMacro( AbortCheckEvent    , PickEvent   );
+mrmlEventMacro( StartPickEvent     , PickEvent );
+mrmlEventMacro( EndPickEvent       , PickEvent );
+mrmlEventMacro( AbortCheckEvent    , PickEvent );
 mrmlEventMacro( FunctionEvaluationIterationEvent, IterationEvent );
 mrmlEventMacro( GradientEvaluationIterationEvent, IterationEvent );
 mrmlEventMacro( FunctionAndGradientEvaluationIterationEvent, IterationEvent );
