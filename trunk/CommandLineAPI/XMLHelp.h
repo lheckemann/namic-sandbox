@@ -1,12 +1,17 @@
 #define XMLHelp "" \
 "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" \
 "<executable>\n" \
-"  <class>registration</class>\n" \
-"  <name>NAMIC sample registration</name>\n" \
+"  <category>registration</category>\n" \
+"  <title>NAMIC sample registration</title>\n" \
 "  <description>Registers two images together using a rigid transform and MI</description>\n" \
+"  <version>1.0</version>\n" \
+"  <documentationurl></documentationurl>\n" \
+"  <license></license>\n" \
+"  <contributor>Daniel Blezek</contributor>\n" \
 "\n" \
-"  <parameters name=\"Registration Parameters\">\n" \
-"\n" \
+"  <parameters>\n" \
+"    <label>Registration Parameters</label>\n" \
+"    <description>Parameters used for registration</description>\n" \
 "    <integer>\n" \
 "      <flag>b</flag>\n" \
 "      <longflag>histogrambins</longflag>\n" \
@@ -63,7 +68,9 @@
 "    </double>\n" \
 "  </parameters>\n" \
 "\n" \
-"  <parameters name=\"IO\">\n" \
+"  <parameters>\n" \
+"    <label>IO</label>\n" \
+"    <description>Input/output parameters</description>\n" \
 "    <image>\n" \
 "      <name>Fixed</name>\n" \
 "      <label>Fixed Image</label>\n" \
