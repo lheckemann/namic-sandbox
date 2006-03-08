@@ -37,18 +37,6 @@ TEST_BIG_ENDIAN(CMAKE_WORDS_BIGENDIAN)
 CONFIGURE_FILE(${MRML_SOURCE_DIR}/mrmlConfigure.h.in 
                ${MRML_BINARY_DIR}/mrmlConfigure.h)
 
-
-#-----------------------------------------------------------------------------
-# Add the testing directories
-OPTION(BUILD_TESTING "Build testing." ON)
-
-IF(BUILD_TESTING)
-  ENABLE_TESTING()
-  INCLUDE (${CMAKE_ROOT}/Modules/Dart.cmake)
-  MARK_AS_ADVANCED(DART_ROOT)
-  SUBDIRS(Testing)
-ENDIF(BUILD_TESTING)
-
 #-----------------------------------------------------------------------------
 # Create the kwsys library for MRML
 SET(KWSYS_NAMESPACE mrmlsys)
@@ -67,6 +55,18 @@ SUBDIRS(kwsys)
 ADD_LIBRARY(mrml ${MRML_SRCS})
 TARGET_LINK_LIBRARIES(mrml mrmlsys)
 IF(UNIX)
-  TARGET_LINK_LIBRARIES(mrml -ldl)
+  TARGET_LINK_LIBRARIES(mrml dl)
 ENDIF(UNIX)
+
+#-----------------------------------------------------------------------------
+# Add the testing directories
+OPTION(BUILD_TESTING "Build testing." ON)
+
+IF(BUILD_TESTING)
+  ENABLE_TESTING()
+  INCLUDE (${CMAKE_ROOT}/Modules/Dart.cmake)
+  MARK_AS_ADVANCED(DART_ROOT)
+  SUBDIRS(Testing)
+ENDIF(BUILD_TESTING)
+
 
