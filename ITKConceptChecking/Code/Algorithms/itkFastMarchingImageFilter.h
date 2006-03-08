@@ -146,7 +146,7 @@ public:
   itkStaticConstMacro(SetDimension, unsigned int,
                       LevelSetType::SetDimension);
   itkStaticConstMacro(SpeedImageDimension, unsigned int,
-                      SpeedImageTypeType::ImageDimension);
+                      SpeedImageType::ImageDimension);
 
   /** Index typedef support. */
   typedef Index<itkGetStaticConstMacro(SetDimension)> IndexType;
