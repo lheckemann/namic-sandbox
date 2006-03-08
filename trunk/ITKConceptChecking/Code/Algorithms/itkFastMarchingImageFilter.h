@@ -263,8 +263,8 @@ public:
     (Concept::SameDimension<SetDimension, SpeedImageDimension>));
   itkConceptMacro(SpeedConvertibleToDoubleCheck,
     (Concept::Convertible<typename TSpeedImage::PixelType, double>));
-  itkConceptMacro(DoubleConvertibleToSpeedCheck,
-    (Concept::Convertible<double, typename TSpeedImage::PixelType>));
+  itkConceptMacro(DoubleConvertibleToLevelSetCheck,
+    (Concept::Convertible<double, PixelType>));
   /** End concept checking */
 #endif
 
