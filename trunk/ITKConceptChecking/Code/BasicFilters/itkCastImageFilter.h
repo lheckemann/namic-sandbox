@@ -92,8 +92,8 @@ public:
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputConvertibleToOutputCheck,
-    (Concept::Convertible<TInputImage::PixelType,
-                          TOutputImage::PixelType>));
+    (Concept::Convertible<typename TInputImage::PixelType,
+                          typename TOutputImage::PixelType>));
   /** End concept checking */
 #endif
 
