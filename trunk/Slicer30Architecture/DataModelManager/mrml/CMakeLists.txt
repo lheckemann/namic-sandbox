@@ -29,6 +29,7 @@ SET(MRML_SRCS
   #DynamicLoader.cxx
   #MRMLModelNode.cxx
   mrmlNode.cxx
+  mrmlDataObject.cxx
   )
 
 INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
