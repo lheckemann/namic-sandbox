@@ -99,9 +99,9 @@ public:
   itkConceptMacro(InputEqualityComparableCheck,
                   (Concept::EqualityComparable<InputPixelType>));
   itkConceptMacro(OutputEqualityComparableCheck,
-                  (Concept::EqualityComparable<OutputPixelType>));
+                  (Concept::EqualityComparable<typename TOutputImage::PixelType>));
   itkConceptMacro(MaskEqualityComparableCheck,
-                  (Concept::EqualityComparable<MaskPixelType>));
+                  (Concept::EqualityComparable<typename TMaskImage::PixelType>));
   /** End concept checking */
 #endif
 

@@ -114,7 +114,7 @@ public:
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputConvertibleToOutputCheck,
-    (Concept::Convertible<InputImageType::PixelType, OutputImageType::PixelType>));
+    (Concept::Convertible<typename TInputImage::PixelType, typename TOutputImage::PixelType>));
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<ImageDimension, OutputImageDimension>));
   /** End concept checking */

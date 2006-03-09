@@ -95,7 +95,7 @@ public:
   itkConceptMacro(InputConvertibleToOutputCheck,
     (Concept::Convertible<PixelType, typename TOutputImage::PixelType>));
   itkConceptMacro(KernelConvertibleToInputCheck,
-    (Concept::Convertible<KernelType::PixelType, PixelType>));
+    (Concept::Convertible<typename TKernel::PixelType, PixelType>));
   itkConceptMacro(InputAdditiveOperatorsCheck,
     (Concept::AdditiveOperators<PixelType>));
   /** End concept checking */
