@@ -29,7 +29,8 @@ SET(MRML_SRCS
   #DynamicLoader.cxx
   #MRMLModelNode.cxx
   mrmlNode.cxx
-  mrmlDataObject.cxx
+  #mrmlDataObject.cxx
+  mrmlTree.cxx
   )
 
 INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
@@ -70,4 +71,4 @@ IF(BUILD_TESTING)
   SUBDIRS(Testing)
 ENDIF(BUILD_TESTING)
 
-
+SUBDIRS(Examples)

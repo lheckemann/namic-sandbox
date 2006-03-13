@@ -1,9 +1,11 @@
-#include "mrml.h"
-#include "vtkmrml.h"
+/* Simple example to show typical use of mrml -> vtkmrml -> vtk -> vtkmrml -> mrml 
+ * transitions */
 
-main ()
+#include "mrmlTree.h"
+//#include "vtkmrml.h"
+
+int main (int /*argc*/, char * /*argv*/[])
 {
-
   // get mrml tree
   mrml::Tree *mrml = mrml::Tree::New();
   mrml->Connect("file://data.xml");
@@ -36,10 +38,6 @@ main ()
   // save new file
   mrml->Save("file://data1.xml");
 
-  igs->Delete();
-
-  mrml->Delete(); // Do we need this? vtk style or smartPointers?
-  inData->Delete(); // Do we need this? vtk style or smartPointers?
-  outData->Delete(); // Do we need this? vtk style or smartPointers?
-  volNodeOut->Delete(); // Do we need this? vtk style or smartPointers?
+  // Smart pointer don't need to be deleted
+  return 0;
 }

@@ -107,8 +107,7 @@ public:
   
 protected:
   Node();
-  // critical to have a virtual destructor!
-  virtual ~Node();
+  ~Node();
 
   /** Print the object information in a stream. */
   void PrintSelf(std::ostream& os, Indent indent) const;
