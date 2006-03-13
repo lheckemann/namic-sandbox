@@ -158,7 +158,8 @@ public:
   itkConceptMacro(ImageDimensionCheck,
       (Concept::SameDimension<itkGetStaticConstMacro(InputImageDimension),
                               itkGetStaticConstMacro(OutputImageDimension)>));
-
+  itkConceptMacro(InputHasNumericTraitsCheck,
+    (Concept::HasNumericTraits<InputPixelType>));
 // Cannot get this to work with gcc compiler
 #if 0
   /** Input and structuring element must be the same dimnesion. */
