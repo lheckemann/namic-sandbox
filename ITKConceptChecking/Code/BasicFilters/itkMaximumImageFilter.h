@@ -99,7 +99,7 @@ public:
   /** End concept checking */
 #endif
 
-xprotected:
+protected:
   MaximumImageFilter() {}
   virtual ~MaximumImageFilter() {}
 
