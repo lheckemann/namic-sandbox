@@ -196,6 +196,8 @@ public:
   /** Begin concept checking */
   itkConceptMacro(IntConvertibleToInputCheck,
                   (Concept::Convertible<int, PixelType>));
+  itkConceptMacro(InputHasNumericTraitsCheck,
+                  (Concept::HasNumericTraits<PixelType>));
   /** End concept checking */
 #endif
 

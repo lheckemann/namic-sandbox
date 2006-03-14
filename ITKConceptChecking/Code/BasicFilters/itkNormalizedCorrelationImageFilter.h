@@ -113,6 +113,10 @@ public:
   /** Begin concept checking */
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<InputImageDimension, MaskImageDimension>));
+  itkConceptMacro(OutputHasNumericTraitsCheck,
+    (Concept::HasNumericTraits<OutputPixelType>));
+  itkConceptMacro(OperatorHasNumericTraitsCheck,
+    (Concept::HasNumericTraits<OperatorValueType>));
   /** End concept checking */
 #endif
 

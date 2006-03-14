@@ -110,6 +110,8 @@ public:
   /** Begin concept checking */
   itkConceptMacro(InputConvertibleToOutputCheck,
     (Concept::Convertible<InputPixelType, OutputValueType>));
+  itkConceptMacro(OutputHasNumericTraitsCheck,
+    (Concept::HasNumericTraits<OutputValueType>));
   /** End concept checking */
 #endif
 
