@@ -119,6 +119,35 @@ namespace mrml
       } \
   } 
 
+#define mrmlCxxSetObjectMacro(class,name,type)   \
+void class::Set##name (type* _arg)              \
+  {                                             \
+  mrmlSetObjectBodyMacro(name,type,_arg);        \
+  }
+//
+// This macro defines a body of set object macro. It can be used either in 
+// the header file mrmlSetObjectMacro or in the implementation one
+// mrmlSetObjectMacro. It sets the pointer to object; uses mrmlObject 
+// reference counting methodology. Creates method 
+// Set"name"() (e.g., SetPoints()).
+//
+#define mrmlSetObjectBodyMacro(name,type,args)                   \
+  {                                                             \
+  mrmlDebugMacro(<< this->GetClassName() << " (" << this         \
+                << "): setting " << #name " to " << args );     \
+  if (this->name != args)                                       \
+    {                                                           \
+    type* tempSGMacroVar = this->name;                          \
+    this->name = args;                                          \
+    if (this->name != NULL) { this->name->Register(); }     \
+    if (tempSGMacroVar != NULL)                                 \
+      {                                                         \
+      tempSGMacroVar->UnRegister();                         \
+      }                                                         \
+    this->Modified();                                           \
+    }                                                           \
+  }
+
 
 /** Get an input. This defines the Get"name"Input() method */
 #define mrmlGetInputMacro(name, type, number) \
@@ -206,6 +235,39 @@ namespace mrml
     return this->name; \
   } 
 
+#define mrmlSetVector2Macro(name,type) \
+virtual void Set##name (type _arg1, type _arg2) \
+  { \
+  mrmlDebugMacro(<< this->GetClassName() << " (" << this << "): setting " << #name " to (" << _arg1 << "," << _arg2 << ")"); \
+  if ((this->name[0] != _arg1)||(this->name[1] != _arg2)) \
+    { \
+    this->name[0] = _arg1; \
+    this->name[1] = _arg2; \
+    this->Modified(); \
+    } \
+  }; \
+void Set##name (type _arg[2]) \
+  { \
+  this->Set##name (_arg[0], _arg[1]); \
+  } 
+
+#define mrmlGetVector2Macro(name,type) \
+virtual type *Get##name () \
+{ \
+  mrmlDebugMacro(<< this->GetClassName() << " (" << this << "): returning " << #name " pointer " << this->name); \
+  return this->name; \
+} \
+virtual void Get##name (type &_arg1, type &_arg2) \
+  { \
+    _arg1 = this->name[0]; \
+    _arg2 = this->name[1]; \
+  mrmlDebugMacro(<< this->GetClassName() << " (" << this << "): returning " << #name " = (" << _arg1 << "," << _arg2 << ")"); \
+  }; \
+virtual void Get##name (type _arg[2]) \
+  { \
+  this->Get##name (_arg[0], _arg[1]);\
+  } 
+
 /** Set built-in type where value is constrained between min/max limits.
  * Create member Set"name"() (e.q., SetRadius()). #defines are 
  * convienience for clamping open-ended values. */
@@ -228,9 +290,9 @@ namespace mrml
   virtual void Set##name (type* _arg) \
   { \
     mrmlDebugMacro("setting " << #name " to " << _arg ); \
-    if (this->m_##name != _arg) \
+    if (this->name != _arg) \
       { \
-      this->m_##name = _arg; \
+      this->name = _arg; \
       this->Modified(); \
       } \
   } 
@@ -240,8 +302,8 @@ namespace mrml
 #define mrmlGetObjectMacro(name,type) \
   virtual type * Get##name () \
   { \
-    mrmlDebugMacro("returning " #name " address " << this->m_##name ); \
-    return this->m_##name.GetPointer(); \
+    mrmlDebugMacro("returning " #name " address " << this->name ); \
+    return this->name; \
   } 
 
 /** Set const pointer to object; uses Object reference counting methodology.
@@ -280,9 +342,9 @@ namespace mrml
 
 /** Create members "name"On() and "name"Off() (e.g., DebugOn() DebugOff()).
  * Set method must be defined to use this macro. */
-#define mrmlBooleanMacro(name) \
-  virtual void name##On () { this->Set##name(true);} \
-  virtual void name##Off () { this->Set##name(false);}
+#define mrmlBooleanMacro(name,type) \
+  virtual void name##On () { this->Set##name((type)1);} \
+  virtual void name##Off () { this->Set##name((type)0);}
 
 /** General set vector macro creates a single method that copies specified
  * number of values into object.
@@ -305,6 +367,39 @@ namespace mrml
   virtual type *Get##name () const \
   { \
     return this->m_##name; \
+  } 
+#define mrmlSetVector3Macro(name,type) \
+virtual void Set##name (type _arg1, type _arg2, type _arg3) \
+  { \
+  mrmlDebugMacro(<< this->GetClassName() << " (" << this << "): setting " << #name " to (" << _arg1 << "," << _arg2 << "," << _arg3 << ")"); \
+  if ((this->name[0] != _arg1)||(this->name[1] != _arg2)||(this->name[2] != _arg3)) \
+    { \
+    this->name[0] = _arg1; \
+    this->name[1] = _arg2; \
+    this->name[2] = _arg3; \
+    this->Modified(); \
+    } \
+  }; \
+virtual void Set##name (type _arg[3]) \
+  { \
+  this->Set##name (_arg[0], _arg[1], _arg[2]);\
+  } 
+#define mrmlGetVector3Macro(name,type) \
+virtual type *Get##name () \
+{ \
+  mrmlDebugMacro(<< this->GetClassName() << " (" << this << "): returning " << #name " pointer " << this->name); \
+  return this->name; \
+} \
+virtual void Get##name (type &_arg1, type &_arg2, type &_arg3) \
+  { \
+    _arg1 = this->name[0]; \
+    _arg2 = this->name[1]; \
+    _arg3 = this->name[2]; \
+  mrmlDebugMacro(<< this->GetClassName() << " (" << this << "): returning " << #name " = (" << _arg1 << "," << _arg2 << "," << _arg3 << ")"); \
+  }; \
+virtual void Get##name (type _arg[3]) \
+  { \
+  this->Get##name (_arg[0], _arg[1], _arg[2]);\
   } 
 
 /** Define two object creation methods.  The first method, New(),
@@ -402,6 +497,7 @@ extern MRMLCommon_EXPORT void OutputWindowDisplayDebugText(const char*);
  * also used to catch errors, etc. Example usage looks like:
  * mrmlDebugMacro(<< "this is debug info" << this->SomeVariable); */
 //#if defined(mrml_LEAN_AND_MEAN) || defined(__BORLANDC__)
+#define mrmlErrorMacro(x)
 #define mrmlDebugMacro(x)
 /*
 #else
