@@ -118,6 +118,8 @@ public:
                           typename TOutputImage::PixelType>));
   itkConceptMacro(InputLessThanComparableCheck,
     (Concept::Comparable<typename TInputImage::PixelType>));
+  itkConceptMacro(InputHasNumericTraitsCheck,
+    (Concept::HasNumericTraits<typename TInputImage::PixelType>));
   /** End concept checking */
 #endif
 
