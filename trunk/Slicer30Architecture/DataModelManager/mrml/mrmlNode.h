@@ -25,6 +25,7 @@
 
 namespace mrml
 {
+class Scene;
 class MRMLCommon_EXPORT Node : public Object
 {
 public:
@@ -34,13 +35,7 @@ public:
   typedef SmartPointer< const Self > ConstPointer;
 
   // Description:
-  // Method for defining the name of the class
-  mrmlTypeMacro(Node, Object);
-
-  // Description:
-  // Create instance of the default node. Like New only virtual
-  // NOTE: Subclasses should implement this method
-  virtual Node* CreateNodeInstance() = 0;
+  mrmlTypeMacro(Self, Superclass);
 
   // Description:
   // Set node attributes
@@ -49,36 +44,37 @@ public:
   virtual void ReadXMLAttributes(const char** atts);
 
   // Description:
+  // Set dependencies between this node and the parent node
+  // when parsing XML file
+  virtual void ProcessParentNode(Node *parentNode) {};
+
+  // Description:
+  // Set dependencies between this node and a child node
+  // when parsing XML file
+  virtual void ProcessChildNode(Node *childNode) {};
+
+  // Description:
+  // Updates other nodes in the scene depending on this node
+  // This method is called automatically by XML parser after all nodes are created
+  virtual void UpdateScene(Scene *scene) {};
+
+  // Description:
   // Write this node's information to a MRML file in XML format.
   // NOTE: Subclasses should implement this method
   // NOTE: Call this method in the subclass impementation
-  virtual void WriteXML(std::ostream& of, int indent);
-  
-  // Read data for the node
-  // NOTE: Subclasses should implement this method
-  virtual void ReadData() = 0;
-  
-  // Write data for the node
-  // NOTE: Subclasses should implement this method
-  virtual void WriteData() = 0;
+  virtual void WriteXML(std::ostream& of, Indent ind);
 
   // Description:
   // Copy everything from another node of the same type.
   // NOTE: Subclasses should implement this method
   // NOTE: Call this method in the subclass impementation
-  virtual void Copy(Node *node);
+  void Copy(Node *node);
 
   // Description:
   // Get node XML tag name (like Volume, Model)
   // NOTE: Subclasses should implement this method
   virtual const char* GetNodeTagName() = 0;
-  
-  // Description:
-  // Set/Get a numerical ID for the calling program to use to keep track
-  // of its various node objects.
-  mrmlSetMacro(ID, unsigned int);
-  mrmlGetMacro(ID, unsigned int);
-  
+
   // Description:
   // Text description of this node, to be set by the user
   mrmlSetStringMacro(Description);
@@ -88,37 +84,36 @@ public:
   // Root directory of MRML scene
   mrmlSetStringMacro(SceneRootDir);
   mrmlGetStringMacro(SceneRootDir);
-  
+
   // Description:
   // Name of this node, to be set by the user
   mrmlSetStringMacro(Name);
   mrmlGetStringMacro(Name);
-  
-  
-  // Description:
-  // Name of space in which this node lives
-  mrmlSetStringMacro(SpaceName);
-  mrmlGetStringMacro(SpaceName);
+
 
   // Description:
   // Node's effect on indentation when displaying the
   // contents of a MRML file. (0, +1, -1)
   mrmlGetMacro(Indentation, int);
-  
+
+  // Description:
+  // ID use by other nodes to reference this node in XML
+  mrmlSetStringMacro(ID);
+  mrmlGetStringMacro(ID);
+
 protected:
   Node();
   ~Node();
 
   /** Print the object information in a stream. */
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  virtual void PrintSelf(std::ostream& os, Indent indent) const;
 
   mrmlSetMacro(Indentation, int);
-  
-  unsigned int ID;
+
   char *Description;
   char *SceneRootDir;
   char *Name;
-  char *SpaceName;
+  char *ID;
   int Indentation;
 
 private:

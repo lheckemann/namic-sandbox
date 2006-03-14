@@ -4,8 +4,11 @@ PROJECT(MRML)
 SET(MRML_VERSION_MAJOR 0)
 SET(MRML_VERSION_MINOR 0)
 SET(MRML_VERSION_PATCH 1)
-SET(MRML_VERSION 
+SET(MRML_VERSION
     "${MRML_VERSION_MAJOR}.${MRML_VERSION_MINOR}.${MRML_VERSION_PATCH}")
+
+FIND_PACKAGE(VTK REQUIRED)
+INCLUDE(${USE_VTK_FILE})
 
 INCLUDE_DIRECTORIES(
   ${MRML_BINARY_DIR}
@@ -29,14 +32,21 @@ SET(MRML_SRCS
   #DynamicLoader.cxx
   #MRMLModelNode.cxx
   mrmlNode.cxx
+  mrmlModelNode.cxx
+  mrmlModelStorageNode.cxx
+  mrmlVolumeNode.cxx
+  mrmlStorageNode.cxx
+  mrmlScene.cxx
+  mrmlParser.cxx
+  mrmlVolumeArchetypeStorageNode.cxx
   #mrmlDataObject.cxx
-  mrmlTree.cxx
+  #mrmlTree.cxx
   )
 
 INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
 TEST_BIG_ENDIAN(CMAKE_WORDS_BIGENDIAN)
 
-CONFIGURE_FILE(${MRML_SOURCE_DIR}/mrmlConfigure.h.in 
+CONFIGURE_FILE(${MRML_SOURCE_DIR}/mrmlConfigure.h.in
                ${MRML_BINARY_DIR}/mrmlConfigure.h)
 
 #-----------------------------------------------------------------------------
@@ -56,6 +66,7 @@ SUBDIRS(kwsys)
 
 ADD_LIBRARY(mrml ${MRML_SRCS})
 TARGET_LINK_LIBRARIES(mrml mrmlsys)
+TARGET_LINK_LIBRARIES(mrml vtkIO)
 IF(UNIX)
   TARGET_LINK_LIBRARIES(mrml dl)
 ENDIF(UNIX)
@@ -71,4 +82,5 @@ IF(BUILD_TESTING)
   SUBDIRS(Testing)
 ENDIF(BUILD_TESTING)
 
-SUBDIRS(Examples)
+#SUBDIRS(Examples)
+SUBDIRS(vtkmrml)

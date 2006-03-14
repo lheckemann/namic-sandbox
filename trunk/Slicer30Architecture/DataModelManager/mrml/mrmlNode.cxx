@@ -18,8 +18,8 @@ namespace mrml
 //------------------------------------------------------------------------------
 Node::Node()
 {
-  this->ID = 0;
-  
+  this->ID = NULL;
+
   // By default nodes have no effect on indentation
   this->Indentation = 0;
 
@@ -32,7 +32,6 @@ Node::Node()
   this->Name = NULL;
   this->SetName("");
 
-  this->SpaceName = NULL;
   this->SceneRootDir = NULL;
 }
 
@@ -40,18 +39,19 @@ Node::Node()
 Node::~Node()
 {
   this->SetDescription(NULL);
-  this->SetSpaceName(NULL);
   this->SetName(NULL);
+  this->SetID(NULL);
 }
 
 //----------------------------------------------------------------------------
 void Node::Copy(Node *node)
 {
   this->SetDescription(node->GetDescription());
-  this->SetSpaceName(node->GetSpaceName());
   std::string buf = node->GetName();
   buf += "1";
   this->SetName(buf.c_str());
+  this->SetID(node->GetID());
+  //TODO create unique id
 }
 
 //----------------------------------------------------------------------------
@@ -69,9 +69,9 @@ void Node::PrintSelf(std::ostream& os, Indent indent) const
 }
 
 //----------------------------------------------------------------------------
-void Node::WriteXML(std::ostream& of, int nIndent)
+void Node::WriteXML(std::ostream& of, Indent ind)
 {
-  //mrmlErrorMacro("NOT IMPLEMENTED YET");
+  mrmlErrorMacro("NOT IMPLEMENTED YET");
 }
 
 //----------------------------------------------------------------------------
@@ -82,16 +82,16 @@ void Node::ReadXMLAttributes(const char** atts)
   while (*atts != NULL) {
     attName = *(atts++);
     attValue = *(atts++);
-    if (!strcmp(attName, "Name")) {
+    if (!strcmp(attName, "ID")) {
+      this->SetID(attValue);
+    }
+    else if (!strcmp(attName, "Name")) {
       this->SetName(attValue);
     }
     else if (!strcmp(attName, "Description")) {
       this->SetDescription(attValue);
     }
-    else if (!strcmp(attName, "SpaceName")) {
-      this->SetSpaceName(attValue);
-    }
-  } 
+  }
   return;
 }
 
