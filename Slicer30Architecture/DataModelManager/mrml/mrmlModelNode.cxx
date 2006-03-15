@@ -10,38 +10,40 @@
 
 =========================================================================auto=*/
 #include "mrmlModelNode.h"
-#include "vtkPolyData.h"
+#include "mrmlModel.h"
 
 namespace mrml
 {
-class Model : public Object
+
+class ModelNodeInternals
 {
 public:
-  Model() {
-    this->PolyData = NULL;
-    this->SetPolyData( vtkPolyData::New() );
+  ModelNodeInternals()
+    {
+    this->PolyData = Model::New();
     }
-  ~Model() {
-    this->PolyData->Delete();
+  ~ModelNodeInternals()
+    {
     }
-  mrmlSetObjectMacro(PolyData, vtkPolyData);
-  mrmlGetObjectMacro(PolyData, vtkPolyData);
-
-protected:
-  /** Print the object information in a stream. */
-  virtual void PrintSelf(std::ostream& os, Indent indent) const {
-    this->Superclass::PrintSelf(os,indent);
-    }
-
-private:
-  vtkPolyData *PolyData;
+  typedef Model::Pointer ModelPointerType;
+  ModelPointerType PolyData;
 };
 
-mrmlCxxSetObjectMacro(ModelNode,PolyData,Model);
+//----------------------------------------------------------------------------
+Model* ModelNode::GetModel() const
+{
+  return this->Internal->PolyData.GetPointer();
+}
+//----------------------------------------------------------------------------
+void ModelNode::SetModel(Model* m)
+{
+  this->Internal->PolyData = m;
+}
+
 //----------------------------------------------------------------------------
 ModelNode::ModelNode()
 {
-  this->PolyData = new Model;
+  this->Internal = new ModelNodeInternals;
 
   // Strings
   this->Color = NULL;
@@ -68,7 +70,7 @@ ModelNode::ModelNode()
 ModelNode::~ModelNode()
 {
   this->SetColor(NULL);
-  delete this->PolyData;
+  delete this->Internal;
 }
 
 //----------------------------------------------------------------------------
@@ -206,7 +208,7 @@ void ModelNode::Copy(ModelNode *node)
   this->SetScalarVisibility(node->ScalarVisibility);
   this->SetBackfaceCulling(node->BackfaceCulling);
   this->SetClipping(node->Clipping);
-  this->SetPolyData(node->PolyData);
+  this->SetModel(node->GetModel());
 }
 
 //----------------------------------------------------------------------------
@@ -229,8 +231,8 @@ void ModelNode::PrintSelf(std::ostream& os, Indent indent) const
     os << indent << ", " << this->ScalarRange[idx];
   }
   os << "\nPoly Data:\n";
-  if (this->PolyData) {
-    this->PolyData->Print(os, indent.GetNextIndent());
+  if (this->GetModel()) {
+    this->GetModel()->Print(os, indent.GetNextIndent());
   }
 
 }

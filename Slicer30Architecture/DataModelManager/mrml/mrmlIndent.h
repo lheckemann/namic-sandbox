@@ -29,7 +29,7 @@ namespace mrml
 /** \class Indent
  * \brief Control indentation during Print() invocation.
  *
- * Indent is used to control indentation during the chaining print 
+ * Indent is used to control indentation during the chaining print
  * process. This way nested objects can correctly indent themselves.
  * This class works with the print methods defined in Object (i.e.,
  * the public method Print() and the protected methods PrintSelf(),
@@ -46,7 +46,7 @@ public:
 
   /** Method for creation through the object factory. */
   static Self* New();
-  
+
   /** Destroy this instance. */
   void Delete() {delete this;}
 
@@ -56,7 +56,7 @@ public:
   /** Return the name of the class. */
   static const char *GetNameOfClass() {return "Indent";}
 
-  /** Determine the next indentation level. Keep indenting by two until the 
+  /** Determine the next indentation level. Keep indenting by two until the
    * a maximum of forty spaces is reached.  */
   Indent GetNextIndent();
 
@@ -68,5 +68,5 @@ private:
 };
 
 } // end namespace mrml
-  
+
 #endif

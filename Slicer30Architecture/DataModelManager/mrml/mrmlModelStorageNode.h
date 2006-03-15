@@ -47,7 +47,7 @@ public:
   // Set dependencies between this node and the parent node
   // when parsing XML file
   virtual void ProcessParentNode(Node *parentNode);
-  
+
   // Description:
   // Read data and set it in the referenced node
   // NOTE: Subclasses should implement this method

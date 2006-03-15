@@ -23,6 +23,7 @@
 namespace mrml
 {
 class Model;
+class ModelNodeInternals;
 class MRMLCommon_EXPORT ModelNode : public Node
 {
 public:
@@ -113,8 +114,8 @@ public:
   mrmlSetMacro(LUTName,int);
 
   // Used to be the vtkPolyData accessors:
-  virtual Model* GetPolyData();
-  virtual void SetPolyData(Model*);
+  Model* GetModel() const;
+  void SetModel(Model*);
 
 protected:
   ModelNode();
@@ -124,7 +125,8 @@ protected:
   virtual void PrintSelf(std::ostream& os, Indent indent) const;
 
   // Data
-  Model *PolyData;
+  //Now in ModelNodelInternals;
+  //Model *PolyData;
 
   // Strings
   char *Color;
@@ -147,6 +149,8 @@ protected:
 private:
   ModelNode(const ModelNode&);
   void operator=(const ModelNode&);
+
+  ModelNodeInternals *Internal;
 };
 } // end namespace mrml
 #endif
