@@ -20,13 +20,13 @@
 #include "mrmlIndent.h"
 #include "mrmlObjectFactory.h"
 
-#define ITK_STD_INDENT 2
-#define ITK_NUMBER_OF_BLANKS 40
+#define MRML_STD_INDENT 2
+#define MRML_NUMBER_OF_BLANKS 40
 
 namespace mrml
 {
 
-static const char blanks[ITK_NUMBER_OF_BLANKS+1] =
+static const char blanks[MRML_NUMBER_OF_BLANKS+1] =
 "                                        ";
 
 /**
@@ -48,10 +48,10 @@ Indent
 Indent
 ::GetNextIndent()
 {
-  int indent = m_Indent + ITK_STD_INDENT;
-  if ( indent > ITK_NUMBER_OF_BLANKS )
+  int indent = m_Indent + MRML_STD_INDENT;
+  if ( indent > MRML_NUMBER_OF_BLANKS )
     {
-    indent = ITK_NUMBER_OF_BLANKS;
+    indent = MRML_NUMBER_OF_BLANKS;
     }
   return indent;
 }
@@ -62,7 +62,7 @@ Indent
 std::ostream& 
 operator<<(std::ostream& os, const Indent& ind)
 {
-  os << blanks + (ITK_NUMBER_OF_BLANKS-ind.m_Indent) ;
+  os << blanks + (MRML_NUMBER_OF_BLANKS-ind.m_Indent) ;
   return os;
 }
 

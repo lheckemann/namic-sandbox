@@ -52,7 +52,7 @@ public:
 
   // Description:
   // Get node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName() {return "Model";};
+  virtual const char* GetNodeTagName() { return "Model"; }
 
   // Description:
   // Name of the model's color, which is defined by a Color node in a MRML file
@@ -113,7 +113,7 @@ public:
   mrmlSetMacro(LUTName,int);
 
   // Used to be the vtkPolyData accessors:
-  mrmlGetObjectMacro(PolyData, Model);
+  virtual Model* GetPolyData();
   virtual void SetPolyData(Model*);
 
 protected:
