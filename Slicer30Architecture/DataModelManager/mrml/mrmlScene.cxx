@@ -17,8 +17,7 @@ Version:   $Revision: 1.11 $
 
 #include <mrmlsys/SystemTools.hxx>
 #include <mrmlsys/stl/string>
-
-#include "vtkCollection.h"
+#include <fstream>
 
 namespace mrml
 {
@@ -142,7 +141,7 @@ int Scene::Commit(const char* url)
   }
 
   Node *node;
-  ofstream file;
+  std::ofstream file;
   int indent=0, deltaIndent;
 
   // Open file
@@ -501,7 +500,7 @@ void Scene::InsertBeforeNode(Node *item, Node *n)
 }
 
 //------------------------------------------------------------------------------
-void Scene::PrintSelf(ostream& os, Indent indent) const
+void Scene::PrintSelf(std::ostream& os, Indent indent) const
 {
   this->Superclass::PrintSelf(os,indent);
   std::list<std::string> classes = this->GetNodeClassesList();

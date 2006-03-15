@@ -34,6 +34,7 @@ public:
 protected:
   Transform() {};
   ~Transform() {};
+
 private:
   Transform(const Transform&); //purposely not implemented
   void operator=(const Transform&); //purposely not implemented
