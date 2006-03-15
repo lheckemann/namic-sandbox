@@ -28,9 +28,10 @@
 
 namespace mrml
 {
-class StorageNode;
 class Scene;
+class StorageNode;
 class Image;
+class VolumeNodeInternals;
 class MRMLCommon_EXPORT VolumeNode : public Node
 {
 public:
@@ -224,11 +225,11 @@ public:
   mrmlSetStringMacro(DisplayNodeID);
   mrmlGetStringMacro(DisplayNodeID);
 
-  mrmlGetObjectMacro(Storage, StorageNode);
-  mrmlSetObjectMacro(Storage, StorageNode);
+  StorageNode* GetStorage() const;
+  void SetStorage(StorageNode*);
 
-  mrmlGetObjectMacro(ImageData, Image);
-  mrmlSetObjectMacro(ImageData, Image);
+  Image* GetImageData() const;
+  void SetImageData(Image*);
 
 
 protected:
@@ -269,13 +270,15 @@ protected:
   char *StorageNodeID;
   char *DisplayNodeID;
 
-  StorageNode        *Storage;
-  //typedef Image::Pointer ImagePointer;
-  Image              *ImageData;
+  // Moved into VolumeNodeInternals
+  //StorageNode        *Storage;
+  //Image              *ImageData;
 
 private:
   VolumeNode(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
+
+  VolumeNodeInternals *Internal;
 };
 
 } // end namespace mrml

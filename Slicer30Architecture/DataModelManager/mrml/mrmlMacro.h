@@ -119,6 +119,35 @@ namespace mrml
       } \
   } 
 
+#define mrmlCxxSetPointerMacro(class,name,type) \
+void class::Set##name (type* _arg)              \
+  {                                             \
+  mrmlSetPointerBodyMacro(name,type,_arg);      \
+  }
+//
+// This macro defines a body of set object macro. It can be used either in 
+// the header file mrmlSetObjectMacro or in the implementation one
+// mrmlSetObjectMacro. It sets the pointer to object; uses mrmlObject 
+// reference counting methodology. Creates method 
+// Set"name"() (e.g., SetPoints()).
+//
+#define mrmlSetPointerBodyMacro(name,type,args)                 \
+  {                                                             \
+  mrmlDebugMacro(<< this->GetNameOfClass() << " (" << this      \
+                << "): setting " << #name " to " << args );     \
+  if (this->Internal->name != args)                             \
+    {                                                           \
+    type* tempSGMacroVar = this->name;                          \
+    this->name = args;                                          \
+    if (this->name != NULL) { this->name->Register(); }     \
+    if (tempSGMacroVar != NULL)                                 \
+      {                                                         \
+      tempSGMacroVar->UnRegister();                         \
+      }                                                         \
+    this->Modified();                                           \
+    }                                                           \
+  }
+
 #define mrmlCxxSetObjectMacro(class,name,type)   \
 void class::Set##name (type* _arg)              \
   {                                             \
@@ -305,6 +334,11 @@ virtual void Get##name (type _arg[2]) \
     mrmlDebugMacro("returning " #name " address " << this->name ); \
     return this->name; \
   } 
+
+/** Get a smart pointer to an object.  Creates the member 
+ * Get"name"() (e.g., GetPoints()). */
+#define mrmlGetPointerMacro(name,type) \
+  virtual type * Get##name ();
 
 /** Set const pointer to object; uses Object reference counting methodology.
  * Creates method Set"name"() (e.g., SetPoints()). Note that using

@@ -406,18 +406,18 @@ Collection* Scene::GetNodesByClassByName(const char* className, const char* name
 }
 
 //------------------------------------------------------------------------------
-int  Scene::GetTransformBetweenNodes(Node *node1,
-                                            Node *node2, 
-                                            Transform *xform)
+int Scene::GetTransformBetweenNodes(Node *node1,
+                                    Node *node2,
+                                    Transform *xform)
 {
   mrmlErrorMacro("NOT IMPLEMENTEED YET");
   return 1;
 }
 
 //------------------------------------------------------------------------------
-int Scene::GetTransformBetweenSpaces( const char *space1, 
-                                             const char *space2, 
-                                             Transform *xform )
+int Scene::GetTransformBetweenSpaces( const char *space1,
+                                      const char *space2,
+                                      Transform *xform )
 {
   mrmlErrorMacro("NOT IMPLEMENTEED YET");
   return 1;
