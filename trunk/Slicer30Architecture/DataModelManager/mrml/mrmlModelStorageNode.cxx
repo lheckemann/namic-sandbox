@@ -104,9 +104,9 @@ void ModelStorageNode::ReadData(Node *refNode)
 
   ModelNode *modelNode = dynamic_cast <ModelNode *> (refNode);
 
-  if (modelNode->GetPolyData()) {
+  if (modelNode->GetModel()) {
     //modelNode->GetPolyData()->Delete();
-    modelNode->SetPolyData (NULL);
+    modelNode->SetModel(NULL);
   }
 
   std::string fullName;
@@ -128,7 +128,7 @@ void ModelStorageNode::ReadData(Node *refNode)
     mrmlErrorMacro("ModelNode: no file extention specified");
   }
   std::string extention = name.substr(loc);
-  
+
   if ( extention == std::string(".g")) {
     vtkBYUReader *reader = vtkBYUReader::New();
     reader->SetGeometryFileName(fullName.c_str());
