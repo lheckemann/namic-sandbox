@@ -15,33 +15,49 @@ Version:   $Revision: 1.12 $
 #include "mrmlVolumeNode.h"
 #include "mrmlStorageNode.h"
 #include "mrmlScene.h"
+#include "mrmlImage.h"
 
 namespace mrml
 {
-class Image : public Object
+// PIMPL
+class VolumeNodeInternals
 {
 public:
-  typedef Image Self;
-  typedef Object Superclass;
-  typedef SmartPointer< Self > Pointer;
-  typedef SmartPointer< const Self > ConstPointer;
+  VolumeNodeInternals()
+    {
+    this->ImageData = Image::New();
+    this->Storage   = NULL;
+    }
+  ~VolumeNodeInternals() {}
+  typedef StorageNode::Pointer StorageNodeType;
+  typedef Image::Pointer ImagePointerType;
 
-  /** Method for defining the name of the class */
-  mrmlTypeMacro(Self, Superclass);
-
-  /** Method for creation through the object factory */
-  mrmlNewMacro(Self);
-protected:
-  Image() {};
-  ~Image() {};
-private:
-  Image(const Image&);
-  void operator=(const Image&);
+  StorageNodeType        Storage;
+  ImagePointerType       ImageData;
 };
+// TODO write a vtkCxxSetSmartPointerMacro
+StorageNode* VolumeNode::GetStorage() const
+{
+  return this->Internal->Storage.GetPointer();
+}
+void VolumeNode::SetStorage(StorageNode* sn)
+{
+  this->Internal->Storage = sn;
+}
+
+Image* VolumeNode::GetImageData() const
+{
+  return this->Internal->ImageData.GetPointer();
+}
+void VolumeNode::SetImageData(Image* i)
+{
+  this->Internal->ImageData = i;
+}
 
 //----------------------------------------------------------------------------
 VolumeNode::VolumeNode()
 {
+  this->Internal = new VolumeNodeInternals;
   // Strings
   this->LUTName = NULL;
   this->ScanOrder = NULL;
@@ -75,13 +91,12 @@ VolumeNode::VolumeNode()
   // Data
   this->StorageNodeID = NULL;
   this->DisplayNodeID = NULL;
-  this->ImageData = Image::New();
-  this->Storage = NULL;
 }
 
 //----------------------------------------------------------------------------
 VolumeNode::~VolumeNode()
 {
+  delete this->Internal;
   if (this->LUTName)
     {
       delete [] this->LUTName;
@@ -103,16 +118,6 @@ VolumeNode::~VolumeNode()
     {
       delete [] this->DisplayNodeID;
       this->DisplayNodeID = NULL;
-    }
-
-  if (this->ImageData)
-    {
-    /*ImageData->Delete()*/;
-    }
-
-  if (this->Storage)
-    {
-    /*this->Storage->Delete();*/
     }
 }
 
@@ -234,11 +239,11 @@ void VolumeNode::Copy(VolumeNode *node)
   for(int i=0; i<9; i++) {
     this->IjkToRasDirections[i] = node->IjkToRasDirections[i];
   }
-  if (this->ImageData) {
-    this->SetImageData(node->ImageData);
+  if (this->GetImageData()) {
+    this->SetImageData(node->GetImageData());
   }
-  if (this->Storage) {
-    this->SetStorage(node->Storage);
+  if (this->GetStorage()) {
+    this->SetStorage(node->GetStorage());
   }
   this->SetStorageNodeID(node->StorageNodeID);
   this->SetDisplayNodeID(node->DisplayNodeID);
@@ -294,9 +299,9 @@ void VolumeNode::PrintSelf(std::ostream& os, Indent indent) const
   os << indent << "DisplayNodeID: " <<
     (this->DisplayNodeID ? this->DisplayNodeID : "(none)") << "\n";
 
-  if (this->ImageData != NULL) {
+  if (this->GetImageData() != NULL) {
     os << indent << "ImageData:\n";
-    this->ImageData->Print(os, indent.GetNextIndent());
+    this->GetImageData()->Print(os, indent.GetNextIndent());
   }
 }
 
