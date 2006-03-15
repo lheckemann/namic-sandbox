@@ -42,6 +42,7 @@ public:
 
   // Description:
   mrmlTypeMacro(Self, Superclass);
+  mrmlNewMacro(Self);
 
   // Description:
   // Set node attributes

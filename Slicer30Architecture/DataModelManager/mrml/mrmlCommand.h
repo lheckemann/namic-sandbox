@@ -41,13 +41,13 @@ class MRMLCommon_EXPORT Command : public Object
 {
 public:
   /** Standard class typedefs. */
-  typedef Command         Self;
+  typedef Command Self;
   typedef Object Superclass;
   typedef SmartPointer<Self>  Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
   
   /** Run-time type information (and related methods). */
-  mrmlTypeMacro(Command,Object);
+  mrmlTypeMacro(Self,Superclass);
   
   /** Abstract method that defines the action to be taken by the command. */
   virtual void Execute(Object *caller, const EventObject & event ) = 0;

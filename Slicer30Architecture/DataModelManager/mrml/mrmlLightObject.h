@@ -6,7 +6,7 @@
   or http://www.slicer.org/copyright/copyright.txt for details.
 
   Program:   3D Slicer
-  Module:    $RCSfile: vtkSlicerBase.h,v $
+  Module:    $RCSfile: mrmlLightObject.h,v $
   Date:      $Date: 2006/01/06 17:56:51 $
   Version:   $Revision: 1.6 $
 
@@ -25,10 +25,10 @@
 
 namespace mrml
 {
-  
+
 /** \class LightObject
  * \brief Light weight base class for most mrml classes.
- * 
+ *
  * LightObject is the highest level base class for most mrml objects. It
  * implements reference counting and the API for object printing.
  * It can be used as a lightweight base class in preference to Object.
@@ -38,14 +38,14 @@ namespace mrml
  *
  * \sa TODO
  */
-class MRMLCommon_EXPORT LightObject 
+class MRMLCommon_EXPORT LightObject
 {
 public:
   /** Standard clas typedefs. */
   typedef LightObject         Self;
   typedef SmartPointer<Self>  Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
-  
+
   /** Method for creation through the object factory. */
   static Pointer New();
 
@@ -64,7 +64,7 @@ public:
   /** Return the name of this class as a string. Used by the object factory
    * (implemented in New()) to instantiate objects of a named type. Also
    * used for debugging and other output information.  */
-  virtual const char *GetNameOfClass() const 
+  virtual const char *GetNameOfClass() const
     {return "LightObject";}
 
 #ifdef _WIN32
@@ -73,8 +73,8 @@ public:
   void* operator new[](size_t);
   void operator delete(void*);
   void operator delete[](void*, size_t);
-#endif 
-  
+#endif
+
   /** Cause the object to print itself out. */
   void Print(std::ostream& os = std::cout, Indent indent=0) const;
 
@@ -85,7 +85,7 @@ public:
   virtual void UnRegister() const;
 
   /** Gets the reference count on this object. */
-  virtual int GetReferenceCount() const 
+  virtual int GetReferenceCount() const
     {return m_ReferenceCount;}
 
   /** Sets the reference count on this object. This is a dangerous
@@ -94,7 +94,7 @@ public:
 
 protected:
   LightObject():m_ReferenceCount(1) {}
-  virtual ~LightObject(); 
+  virtual ~LightObject();
 
   /** Methods invoked by Print() to print information about the object
    * including superclasses. Typically not called by the user (use Print()
@@ -103,7 +103,7 @@ protected:
   virtual void PrintSelf(std::ostream& os, Indent indent) const;
   virtual void PrintHeader(std::ostream& os, Indent indent) const;
   virtual void PrintTrailer(std::ostream& os, Indent indent) const;
-  
+
   /** Number of uses of this object by other objects. */
   mutable int m_ReferenceCount;
 

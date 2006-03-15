@@ -90,6 +90,7 @@ protected:
   virtual void PrintTrailer(std::ostream& os, Indent indent) const;
    
   EventObject(const EventObject&){};
+
 private:
   typedef  EventObject * EventFactoryFunction();
   void operator=(const EventObject&);

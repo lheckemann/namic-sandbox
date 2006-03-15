@@ -13,11 +13,12 @@ Version:   $Revision: 1.12 $
 =========================================================================auto=*/
 
 #include "mrmlObject.h"
-#include "vtkPolyData.h"
+#include "mrmlObjectFactory.h"
 
 namespace mrml
 {
 
+class ModelInternals;
 class Model : public Object
 {
 public:
@@ -30,15 +31,8 @@ public:
   mrmlTypeMacro(Self, Superclass);
   mrmlNewMacro(Self);
 
-  Model() {
-    this->PolyData = NULL;
-    this->SetPolyData( vtkPolyData::New() );
-    }
-  ~Model() {
-    this->PolyData->Delete();
-    }
-  mrmlSetObjectMacro(PolyData, vtkPolyData);
-  mrmlGetObjectMacro(PolyData, vtkPolyData);
+  Model();
+  ~Model();
 
 protected:
   /** Print the object information in a stream. */
@@ -47,7 +41,7 @@ protected:
     }
 
 private:
-  vtkPolyData *PolyData;
+  ModelInternals *Internal;
 };
 
 } // end namespace mrml

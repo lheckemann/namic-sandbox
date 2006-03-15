@@ -44,11 +44,11 @@ LightObject::Pointer LightObject::CreateAnother() const
 }
 
 /**
- * Delete a mrml object. This method should always be used to delete an object 
+ * Delete a mrml object. This method should always be used to delete an object
  * when the new operator was used to create it. Using the C++ delete method
  * will not work with reference counting.
  */
-void LightObject::Delete() 
+void LightObject::Delete()
 {
   this->UnRegister();
 }
@@ -77,7 +77,7 @@ void LightObject::operator delete[](void* m, size_t)
 {
   delete [] (char*)m;
 }
-#endif 
+#endif
 
 
 /**
@@ -87,7 +87,7 @@ void LightObject::operator delete[](void* m, size_t)
  */
 void LightObject::Print(std::ostream& os, Indent indent) const
 {
-  this->PrintHeader(os, indent); 
+  this->PrintHeader(os, indent);
   this->PrintSelf(os, indent.GetNextIndent());
   this->PrintTrailer(os, indent);
 }
@@ -112,7 +112,7 @@ void LightObject::UnRegister() const
   m_ReferenceCountLock.Lock();
   m_ReferenceCount--;
   m_ReferenceCountLock.Unlock();
-  
+
   // ReferenceCount in now unlocked.  We may have a race condition
   // to delete the object.
   if ( m_ReferenceCount <= 0)
@@ -137,7 +137,7 @@ void LightObject::SetReferenceCount(int ref)
     }
 }
 
-LightObject::~LightObject() 
+LightObject::~LightObject()
 {
   /**
    * warn user if reference counting is on and the object is being referenced
@@ -145,7 +145,8 @@ LightObject::~LightObject()
    */
   if ( m_ReferenceCount > 0)
     {
-    mrmlExceptionMacro(<< "Trying to delete object with non-zero reference count.");
+    mrmlExceptionMacro(<<
+      "Trying to delete object with non-zero reference count.");
     }
 }
 
@@ -181,7 +182,8 @@ std::string UnmangledName(const char* mangledName)
  */
 void LightObject::PrintSelf(std::ostream& os, Indent indent) const
 {
-  os << indent << "RTTI typeinfo:   " << UnmangledName(typeid( *this ).name()) << std::endl;
+  os << indent << "RTTI typeinfo:   "
+    << UnmangledName(typeid( *this ).name()) << std::endl;
   os << indent << "Reference Count: " << m_ReferenceCount << std::endl;
 }
 
@@ -198,7 +200,7 @@ void LightObject::PrintHeader(std::ostream& os, Indent indent) const
 /**
  * Define a default print trailer for all objects.
  */
-void LightObject::PrintTrailer(std::ostream& mrmlNotUsed(os), Indent mrmlNotUsed(indent)) const
+void LightObject::PrintTrailer(std::ostream& /*os*/, Indent /*indent*/) const
 {
 }
 

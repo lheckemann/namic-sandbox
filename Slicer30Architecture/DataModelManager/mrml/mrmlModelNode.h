@@ -33,7 +33,9 @@ public:
   typedef SmartPointer< const Self > ConstPointer;
 
   // Description:
-  mrmlTypeMacro(Node, Object);
+  mrmlTypeMacro(Self, Superclass);
+
+  mrmlNewMacro(Self);
 
   //--------------------------------------------------------------------------
   // MRMLNode methods
