@@ -48,6 +48,7 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #define __mrmlScene_h
 
 #include "mrmlObject.h"
+#include "mrmlObjectFactory.h"
 #include <list>
 #include <string>
 
@@ -67,6 +68,7 @@ public:
 
   // Description:
   mrmlTypeMacro(Self, Superclass);
+  mrmlNewMacro(Self);
 
   // Filename should be file://path/file.xml
   mrmlSetStringMacro(URL);

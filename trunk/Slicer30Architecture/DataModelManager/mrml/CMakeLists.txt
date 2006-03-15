@@ -21,6 +21,7 @@ SET(MRML_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 
 SET(MRML_SRCS
   mrmlCommand.cxx
+  mrmlModel.cxx
   mrmlEventObject.cxx
   mrmlFastMutexLock.cxx
   mrmlIndent.cxx
