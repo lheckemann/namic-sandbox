@@ -3,7 +3,7 @@ INCLUDE(${USE_VTK_FILE})
 
 # vtkmrml lib
 SET(VTKMRML_SRCS
-  vtkmrmlVolumeData.cxx
+  #vtkmrmlImage.cxx
   )
 
 # Add the include paths
