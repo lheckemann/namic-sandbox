@@ -3,7 +3,7 @@
 #include "mrmlCreateObjectFunction.h"
 #include "mrmlEventObject.h"
 #include "mrmlFastMutexLock.h"
-#include "mrmlImage.h"
+#include "mrmlVolume.h"
 #include "mrmlIndent.h"
 #include "mrmlLightObject.h"
 #include "mrmlMacro.h"
@@ -35,7 +35,7 @@ int testInstance(int , char *[])
   oo->Print();
 
   mrml::FastMutexLock::Pointer p2 = mrml::FastMutexLock::New();
-  mrml::Image::Pointer p3 = mrml::Image::New();
+  mrml::Volume::Pointer p3 = mrml::Volume::New();
   mrml::LightObject::Pointer p5 = mrml::LightObject::New();
   mrml::Model::Pointer p6 = mrml::Model::New();
   mrml::ModelNode::Pointer p7 = mrml::ModelNode::New();
