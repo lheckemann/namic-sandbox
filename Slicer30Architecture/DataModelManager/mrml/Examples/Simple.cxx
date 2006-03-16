@@ -20,6 +20,7 @@ int main (int argc, char *argv[])
   //std::cerr << "URL:" << url << std::endl;
   mrml->SetURL(url);
   mrml->Connect();
+  mrml->Print(std::cout);
 
   // get input image in vtk format
   mrml::Node *node = mrml->GetNthNode(0); // GetNthVolume

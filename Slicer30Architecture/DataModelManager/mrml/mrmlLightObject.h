@@ -56,11 +56,6 @@ public:
    * base class. */
   virtual Pointer CreateAnother() const;
 
-  /** Delete an mrml object.  This method should always be used to delete an
-   * object when the new operator was used to create it. Using the C
-   *  delete method will not work with reference counting.  */
-  virtual void Delete();
-
   /** Return the name of this class as a string. Used by the object factory
    * (implemented in New()) to instantiate objects of a named type. Also
    * used for debugging and other output information.  */
@@ -95,6 +90,11 @@ public:
 protected:
   LightObject():m_ReferenceCount(1) {}
   virtual ~LightObject();
+
+  /** Delete an mrml object.  This method should always be used to delete an
+   * object when the new operator was used to create it. Using the C
+   *  delete method will not work with reference counting.  */
+  void Delete();
 
   /** Methods invoked by Print() to print information about the object
    * including superclasses. Typically not called by the user (use Print()

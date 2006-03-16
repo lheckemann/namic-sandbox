@@ -68,7 +68,7 @@ void Parser::StartElement(const char* tagName, const char** atts)
     return;
   }
 
-  Node* node = this->Internal->MRMLScene->CreateNodeByClass( className );
+  Node::Pointer node = this->Internal->MRMLScene->CreateNodeByClass( className );
 
   node->ReadXMLAttributes(atts);
 
@@ -86,8 +86,6 @@ void Parser::StartElement(const char* tagName, const char** atts)
   nodeStack.push(node);
 
   this->Internal->MRMLScene->AddNode(node);
-
-  node->Delete();
 }
 
 //-----------------------------------------------------------------------------
