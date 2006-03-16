@@ -60,6 +60,8 @@ public:
   /** Begin concept checking */
   itkConceptMacro(OutputHasNumericTraitsCheck,
     (Concept::HasNumericTraits<typename OutputImagePixelType::ValueType>));
+  itkConceptMacro(OutputHasPixelTraitsCheck,
+    (Concept::HasPixelTraits<OutputImagePixelType>));
   /** End concept checking */
 #endif
 

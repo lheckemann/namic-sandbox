@@ -92,6 +92,8 @@ public:
      (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
   itkConceptMacro(SameDimensionCheck2,
     (Concept::SameDimension<InputImageDimension, KernelDimension>));
+  itkConceptMacro(InputGreaterThanComparableCheck,
+    (Concept::GreaterThanComparable<PixelType>));
   /** End concept checking */
 #endif
 
