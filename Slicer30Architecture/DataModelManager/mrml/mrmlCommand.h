@@ -29,13 +29,13 @@ namespace mrml
  *
  * Command is an implementation of the command design pattern that is used
  * in callbacks (such as StartMethod(), ProgressMethod(), and EndMethod()) in
- * ITK. mrmlObject implements a Subject/Observer pattern. When a subject 
- * needs to notify a observer, it does so using a mrmlCommand.  The Execute 
+ * ITK. mrmlObject implements a Subject/Observer pattern. When a subject
+ * needs to notify a observer, it does so using a mrmlCommand.  The Execute
  * method is called to run the command.
  *
  * \ingroup ITKSystemObjects
  */
-  
+
 // The superclass that all commands should be subclasses of
 class MRMLCommon_EXPORT Command : public Object
 {
@@ -45,15 +45,15 @@ public:
   typedef Object Superclass;
   typedef SmartPointer<Self>  Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
-  
+
   /** Run-time type information (and related methods). */
   mrmlTypeMacro(Self,Superclass);
-  
+
   /** Abstract method that defines the action to be taken by the command. */
   virtual void Execute(Object *caller, const EventObject & event ) = 0;
 
   /** Abstract method that defines the action to be taken by the command.
-   * This variant is expected to be used when requests comes from a 
+   * This variant is expected to be used when requests comes from a
    * const Object */
   virtual void Execute(const Object *caller, const EventObject & event ) = 0;
 
