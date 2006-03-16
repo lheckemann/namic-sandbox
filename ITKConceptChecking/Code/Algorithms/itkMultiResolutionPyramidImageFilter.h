@@ -202,6 +202,8 @@ public:
   /** Begin concept checking */
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<ImageDimension, OutputImageDimension>));
+  itkConceptMacro(OutputHasNumericTraitsCheck,
+    (Concept::HasNumericTraits<typename TOutputImage::PixelType>));
   /** End concept checking */
 #endif
 protected:
