@@ -15,7 +15,7 @@ Version:   $Revision: 1.12 $
 #include "mrmlVolumeNode.h"
 #include "mrmlStorageNode.h"
 #include "mrmlScene.h"
-#include "mrmlImage.h"
+#include "mrmlVolume.h"
 
 namespace mrml
 {
@@ -25,15 +25,15 @@ class VolumeNodeInternals
 public:
   VolumeNodeInternals()
     {
-    this->ImageData = Image::New();
+    this->VolumeData = Volume::New();
     this->Storage   = NULL;
     }
   ~VolumeNodeInternals() {}
   typedef StorageNode::Pointer StorageNodeType;
-  typedef Image::Pointer ImagePointerType;
+  typedef Volume::Pointer VolumePointerType;
 
   StorageNodeType        Storage;
-  ImagePointerType       ImageData;
+  VolumePointerType       VolumeData;
 };
 // TODO write a vtkCxxSetSmartPointerMacro
 StorageNode* VolumeNode::GetStorage() const
@@ -45,13 +45,13 @@ void VolumeNode::SetStorage(StorageNode* sn)
   this->Internal->Storage = sn;
 }
 
-Image* VolumeNode::GetImageData() const
+Volume* VolumeNode::GetVolume() const
 {
-  return this->Internal->ImageData.GetPointer();
+  return this->Internal->VolumeData.GetPointer();
 }
-void VolumeNode::SetImageData(Image* i)
+void VolumeNode::SetVolume(Volume* i)
 {
-  this->Internal->ImageData = i;
+  this->Internal->VolumeData = i;
 }
 
 //----------------------------------------------------------------------------
@@ -239,8 +239,8 @@ void VolumeNode::Copy(VolumeNode *node)
   for(int i=0; i<9; i++) {
     this->IjkToRasDirections[i] = node->IjkToRasDirections[i];
   }
-  if (this->GetImageData()) {
-    this->SetImageData(node->GetImageData());
+  if (this->GetVolume()) {
+    this->SetVolume(node->GetVolume());
   }
   if (this->GetStorage()) {
     this->SetStorage(node->GetStorage());
@@ -299,9 +299,9 @@ void VolumeNode::PrintSelf(std::ostream& os, Indent indent) const
   os << indent << "DisplayNodeID: " <<
     (this->DisplayNodeID ? this->DisplayNodeID : "(none)") << "\n";
 
-  if (this->GetImageData() != NULL) {
-    os << indent << "ImageData:\n";
-    this->GetImageData()->Print(os, indent.GetNextIndent());
+  if (this->GetVolume() != NULL) {
+    os << indent << "VolumeData:\n";
+    this->GetVolume()->Print(os, indent.GetNextIndent());
   }
 }
 

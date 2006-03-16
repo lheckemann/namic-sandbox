@@ -6,9 +6,10 @@ SET(EXAMPLES_SRCS
 # Add the include paths
 INCLUDE_DIRECTORIES(
   ${MRML_SOURCE_DIR}
+  ${MRML_SOURCE_DIR}/vtkmrml
   )
 
 ADD_EXECUTABLE(Simple Simple.cxx)
-TARGET_LINK_LIBRARIES(Simple vtkmrml)
+TARGET_LINK_LIBRARIES(Simple vtkmrml mrml vtkImaging)
 
 

@@ -1,19 +1,26 @@
 /* Simple example to show typical use of mrml -> vtkmrml -> vtk -> vtkmrml -> mrml 
  * transitions */
 
-#include "mrmlTree.h"
-//#include "vtkmrml.h"
+#include "mrmlVolumeNode.h"
+#include "mrmlVolume.h"
+#include "mrmlScene.h"
+#include "vtkmrmlVolume.h"
+#include "vtkImageGaussianSmooth.h"
+#include "vtkImageData.h"
 
 int main (int /*argc*/, char * /*argv*/[])
 {
   // get mrml tree
-  mrml::Tree *mrml = mrml::Tree::New();
-  mrml->Connect("file://data.xml");
+  mrml::Scene *mrml = mrml::Scene::New();
+  mrml->SetURL("file://data.xml");
+  mrml->Connect();
 
   // get input image in vtk format
-  mrml::VolumeNode *volNode = mrml->GetNthVolume(0);
+  mrml::Node *node = mrml->GetNthNode(0); // GetNthVolume
 
-  vtkmrml::VolumeData *inData = vtkmrml::VolumeData::New();
+  mrml::vtkVolume *inData = mrml::vtkVolume::New();
+
+  mrml::VolumeNode *volNode = dynamic_cast<mrml::VolumeNode*>(node);
 
   inData->SetSourceNode(volNode);
   vtkImageData *imgData = inData->GetImageData(); // converts data from internal format to vtk
@@ -26,17 +33,17 @@ int main (int /*argc*/, char * /*argv*/[])
   // put output volume in a new mrml volume node
   mrml::VolumeNode *volNodeOut = mrml::VolumeNode::New();
 
-  vtkmrml::VolumeData *outData = vtkmrml::VolumeData::New();
+  mrml::vtkVolume *outData = mrml::vtkVolume::New();
 
   outData->SetTargetNode(volNodeOut);
   outData->SetSourceImage(igs->GetOutput()); 
-  outData->Update();   // converts data fom vtkImage into internal format
+  //outData->Update();   // converts data fom vtkImageData into internal format
 
   // add node to the mrml tree
-  mrml->AddNode(vol);
+  mrml->AddNode(volNodeOut);
 
   // save new file
-  mrml->Save("file://data1.xml");
+  mrml->Commit("file://data1.xml");
 
   // Smart pointer don't need to be deleted
   return 0;

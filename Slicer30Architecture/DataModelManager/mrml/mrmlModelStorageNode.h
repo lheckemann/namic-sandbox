@@ -13,13 +13,13 @@
 =========================================================================auto=*/
 // .NAME ModelStorageNode - MRML node for representing a volume (image stack).
 // .SECTION Description
-// Storage nodes describe data sets that can be thought of as stacks of 2D 
-// images that form a 3D volume.  Storage nodes describe where the images 
-// are stored on disk, how to render the data (window and level), and how 
-// to read the files.  This information is extracted from the image 
-// headers (if they exist) at the time the MRML file is generated.  
-// Consequently, MRML files isolate MRML browsers from understanding how 
-// to read the myriad of file formats for medical data. 
+// Storage nodes describe data sets that can be thought of as stacks of 2D
+// images that form a 3D volume.  Storage nodes describe where the images
+// are stored on disk, how to render the data (window and level), and how
+// to read the files.  This information is extracted from the image
+// headers (if they exist) at the time the MRML file is generated.
+// Consequently, MRML files isolate MRML browsers from understanding how
+// to read the myriad of file formats for medical data.
 
 #ifndef __mrmlModelStorageNode_h
 #define __mrmlModelStorageNode_h
@@ -69,7 +69,7 @@ public:
 
   // Description:
   // Get node XML tag name (like Storage, Model)
-  virtual const char* GetNodeTagName()  { return "ModelStorage"; };
+  virtual const char* GetNodeTagName() { return "ModelStorage"; };
 
   // Description:
   // A file name or one name in a series

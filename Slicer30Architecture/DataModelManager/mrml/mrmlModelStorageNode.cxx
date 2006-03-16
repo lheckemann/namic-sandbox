@@ -17,7 +17,7 @@ Version:   $Revision: 1.1 $
 
 #include "vtkMatrix4x4.h"
 
-#include "vtkBYUReader.h" 
+#include "vtkBYUReader.h"
 #include "vtkPolyDataReader.h"
 #include "vtkSTLReader.h"
 //TODO: read in a free surfer file
@@ -142,16 +142,16 @@ void ModelStorageNode::ReadData(Node *refNode)
     reader->Update();
     //modelNode->SetPolyData(reader->GetOutput());
     abort();
-  }  
+  }
   else if ( extention == std::string(".orig") ||
-            extention == std::string(".inflated") || 
+            extention == std::string(".inflated") ||
             extention == std::string(".pial") ) {
     //TODO: read in a free surfer file
     //vtkFSSurfaceReader *reader = vtkFSSurfaceReader::New();
     //reader->SetFileName(fullName.c_str());
     //reader->Update();
     //modelNode->SetPolyData(reader->GetOutput());
-  }  
+  }
   else if (extention == std::string(".stl")) {
     vtkSTLReader *reader = vtkSTLReader::New();
     reader->SetFileName(fullName.c_str());
