@@ -83,5 +83,5 @@ IF(BUILD_TESTING)
   SUBDIRS(Testing)
 ENDIF(BUILD_TESTING)
 
-#SUBDIRS(Examples)
 SUBDIRS(vtkmrml)
+SUBDIRS(Examples)

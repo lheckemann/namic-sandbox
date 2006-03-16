@@ -12,17 +12,22 @@ Version:   $Revision: 1.12 $
 
 =========================================================================auto=*/
 
-#include "mrmlImage.h"
+#ifndef __vtkmrmlVolume_h
+#define __vtkmrmlVolume_h
+
+#include "mrmlVolume.h"
 #include "mrmlObjectFactory.h"
 
+class vtkImageData;
 namespace mrml
 {
 
-class vtkImage : public Image
+class VolumeNode;
+class vtkVolume : public Volume
 {
 public:
-  typedef vtkImage Self;
-  typedef Image Superclass;
+  typedef vtkVolume Self;
+  typedef Volume Superclass;
   typedef SmartPointer< Self > Pointer;
   typedef SmartPointer< const Self > ConstPointer;
 
@@ -32,13 +37,20 @@ public:
   /** Method for creation through the object factory */
   mrmlNewMacro(Self);
 
+  void SetSourceNode(VolumeNode* node);
+  vtkImageData* GetImageData();
+
+  void SetTargetNode(VolumeNode* node);
+  void SetSourceImage(vtkImageData* );
+
 protected:
-  vtkImage();
-  ~vtkImage();
+  vtkVolume();
+  ~vtkVolume();
 
 private:
-  vtkImage(const Self&); //purposely not implemented
+  vtkVolume(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 };
 
 } // end namespace mrml
+#endif

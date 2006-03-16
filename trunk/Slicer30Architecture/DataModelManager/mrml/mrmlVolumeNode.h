@@ -30,7 +30,7 @@ namespace mrml
 {
 class Scene;
 class StorageNode;
-class Image;
+class Volume;
 class VolumeNodeInternals;
 class MRMLCommon_EXPORT VolumeNode : public Node
 {
@@ -229,8 +229,8 @@ public:
   StorageNode* GetStorage() const;
   void SetStorage(StorageNode*);
 
-  Image* GetImageData() const;
-  void SetImageData(Image*);
+  Volume* GetVolume() const;
+  void SetVolume(Volume*);
 
 
 protected:

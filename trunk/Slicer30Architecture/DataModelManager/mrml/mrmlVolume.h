@@ -11,16 +11,19 @@ Date:      $Date: 2006/03/03 22:26:41 $
 Version:   $Revision: 1.12 $
 
 =========================================================================auto=*/
+#ifndef __mrmlVolume_h
+#define __mrmlVolume_h
 
 #include "mrmlObject.h"
+#include "mrmlObjectFactory.h"
 
 namespace mrml
 {
 
-class Image : public Object
+class Volume : public Object
 {
 public:
-  typedef Image Self;
+  typedef Volume Self;
   typedef Object Superclass;
   typedef SmartPointer< Self > Pointer;
   typedef SmartPointer< const Self > ConstPointer;
@@ -32,12 +35,13 @@ public:
   mrmlNewMacro(Self);
 
 protected:
-  Image() {};
-  ~Image() {};
+  Volume() {};
+  ~Volume() {};
 
 private:
-  Image(const Image&); //purposely not implemented
-  void operator=(const Image&); //purposely not implemented
+  Volume(const Self&); //purposely not implemented
+  void operator=(const Self&); //purposely not implemented
 };
 
 } // end namespace mrml
+#endif

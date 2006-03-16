@@ -99,9 +99,9 @@ void VolumeArchetypeStorageNode::ReadData(Node *refNode)
 
   VolumeNode *volNode = dynamic_cast <VolumeNode *> (refNode);
 
-  if (volNode->GetImageData()) {
+  if (volNode->GetVolume()) {
     //volNode->GetImageData()->Delete();
-    volNode->SetImageData (NULL);
+    volNode->SetVolume(NULL);
   }
 
   std::string fullName;
