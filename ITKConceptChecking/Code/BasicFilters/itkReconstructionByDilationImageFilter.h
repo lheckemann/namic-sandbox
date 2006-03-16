@@ -124,6 +124,8 @@ public:
     (Concept::SameDimension<MarkerImageDimension, OutputImageDimension>));
   itkConceptMacro(OutputComparableCheck,
     (Concept::Comparable<OutputImagePixelType>));
+  itkConceptMacro(InputGreaterThanComparableCheck,
+    (Concept::GreaterThanComparable<MarkerImagePixelType>));
   /** End concept checking */
 #endif
 

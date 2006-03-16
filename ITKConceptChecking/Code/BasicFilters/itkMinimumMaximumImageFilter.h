@@ -98,6 +98,8 @@ public:
   /** Begin concept checking */
   itkConceptMacro(LessThanComparableCheck,
                   (Concept::LessThanComparable<PixelType>));
+  itkConceptMacro(GreaterThanComparableCheck,
+                  (Concept::GreaterThanComparable<PixelType>));
   /** End concept checking */
 #endif
 

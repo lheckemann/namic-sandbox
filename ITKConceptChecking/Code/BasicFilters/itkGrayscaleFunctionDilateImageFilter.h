@@ -98,6 +98,8 @@ public:
     (Concept::Convertible<typename TKernel::PixelType, PixelType>));
   itkConceptMacro(InputAdditiveOperatorsCheck,
     (Concept::AdditiveOperators<PixelType>));
+  itkConceptMacro(InputGreaterThanComparableCheck,
+    (Concept::GreaterThanComparable<PixelType>));
   /** End concept checking */
 #endif
 

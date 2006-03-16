@@ -230,10 +230,14 @@ public:
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
-  itkConceptMacro(Input1HasNumericTraitsCheck,
-    (Concept::HasNumericTraits<typename TInputImage1::PixelType::ValueType>));
-  itkConceptMacro(Input2HasNumericTraitsCheck,
-    (Concept::HasNumericTraits<typename TInputImage2::PixelType::ValueType>));
+//  itkConceptMacro(Input1HasNumericTraitsCheck,
+//    (Concept::HasNumericTraits<typename TInputImage1::PixelType::ValueType>));
+//  itkConceptMacro(Input2HasNumericTraitsCheck,
+//    (Concept::HasNumericTraits<typename TInputImage2::PixelType::ValueType>));
+  itkConceptMacro(Input1HasPixelTraitsCheck,
+                  (Concept::HasPixelTraits<typename TInputImage1::PixelType>));
+  itkConceptMacro(Input2HasPixelTraitsCheck,
+                  (Concept::HasPixelTraits<typename TInputImage2::PixelType>));
   /** End concept checking */
 #endif
 

@@ -84,6 +84,8 @@ public:
     (Concept::AdditiveOperators<InputImagePixelType>));
   itkConceptMacro(InputConvertibleToOutputCheck,
     (Concept::Convertible<InputImagePixelType, OutputImagePixelType>));
+  itkConceptMacro(InputGreaterThanComparableCheck,
+    (Concept::GreaterThanComparable<InputImagePixelType>));
   /** End concept checking */
 #endif
 

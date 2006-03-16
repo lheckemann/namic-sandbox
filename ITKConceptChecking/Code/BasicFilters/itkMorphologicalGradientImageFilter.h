@@ -100,6 +100,8 @@ public:
     (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
   itkConceptMacro(InputLessThanComparableCheck,
     (Concept::LessThanComparable<InputImagePixelType>));
+  itkConceptMacro(InputGreaterThanComparableCheck,
+    (Concept::GreaterThanComparable<InputImagePixelType>));
   itkConceptMacro(InputAdditiveOperatorsCheck,
     (Concept::AdditiveOperators<InputImagePixelType>));
   itkConceptMacro(InputConvertibleToOutputCheck,
