@@ -39,7 +39,7 @@ public:
     return this->Collection.size();
   }
   CollectionElement GetItemAsObject (int i) {
-    if( i >= 0 && i <= (int)this->Collection.size() ) {
+    if( i >= 0 && i < (int)this->Collection.size() ) {
       ObjectsList::const_iterator it = this->Collection.begin();
       for(int j=0; j<i; ++j, ++it);
       return *it;
@@ -100,7 +100,7 @@ const char* Scene::GetClassNameByTag(const char *tagName)
 }
 
 //------------------------------------------------------------------------------
-void Scene::AddNode(Node *n) 
+void Scene::AddNode(Node *n)
 {
   //TODO convert URL to Root directory
   mrmlsys_stl::string root = mrmlsys::SystemTools::GetParentDirectory(this->GetURL());   
@@ -117,7 +117,7 @@ int Scene::Connect()
   }
   this->Internal->RemoveAllItems();
   Parser::Pointer parser = Parser::New();
-  parser->SetMRMLScene(this);
+  parser->SetScene(this);
   parser->SetFileName(URL);
   parser->Parse();
   /*parser->Delete();*/
@@ -172,11 +172,11 @@ int Scene::Commit(const char* url)
     }
 
     node->WriteXML(file, indent);
-    
+
     if ( deltaIndent > 0 ) {
       indent += 2;
     }
-    
+
     ++it; //elem = elem->Next;
   }
 
@@ -370,7 +370,7 @@ Collection* Scene::GetNodesByClassByID(const char* className, const char* id)
 
   while (elem != NULL) {
     node = (Node*)elem->Item;
-    if (node->GetID() && !strcmp(node->GetID(), id) 
+    if (node->GetID() && !strcmp(node->GetID(), id)
       && strcmp(elem->Item->GetClassName(), className) == 0) {
       nodes->AddItem(node);
     }
@@ -444,7 +444,7 @@ void Scene::InsertAfterNode(Node *item, Node *n)
     if (elem->Item == item) {
       newElem->Next = elem->Next;
       elem->Next = newElem;
-      
+
       if (this->Bottom == elem) {
         this->Bottom = newElem;
       }
@@ -509,7 +509,7 @@ void Scene::PrintSelf(std::ostream& os, Indent indent) const
   // Iterate through list and output each element.
   for (iter = classes.begin(); iter != classes.end(); ++iter) {
     const std::string &className = *iter;
-    os << indent << "Number Of Nodes for class " << className.c_str() << " : " 
+    os << indent << "Number Of Nodes for class " << className.c_str() << " : "
       << this->GetNumberOfNodesByClass(className.c_str()) << "\n";
   }
 }

@@ -14,7 +14,7 @@ Version:   $Revision: 1.7 $
 #include "mrmlParser.h"
 #include "mrmlNode.h"
 #include "mrmlScene.h"
-#include "vtkXMLParser.h"
+#include "mrmlXMLParser.h"
 
 #include <mrmlsys/stl/stack>
 
@@ -25,30 +25,34 @@ class ParserInternals
 public:
   typedef std::stack< Node *> NodeStackType;
   ParserInternals() {
-    this->Parser = vtkXMLParser::New();
+    this->MRMLScene = Scene::New();
     }
   ~ParserInternals() {
-    this->Parser->Delete();
-  }
-  NodeStackType NodeStack;
-  void SetFileName(const char* filename) {
-    this->Parser->SetFileName(filename);
     }
-  void Parse() {
-    this->Parser->Parse();
-  }
-private:
-  vtkXMLParser *Parser;
+  NodeStackType NodeStack;
+  Scene::Pointer MRMLScene;
 };
+
+Scene *Parser::GetScene()
+{
+  return this->Internal->MRMLScene.GetPointer();
+}
+
+void Parser::SetScene(Scene *s)
+{
+  this->Internal->MRMLScene = s;
+}
 
 //------------------------------------------------------------------------------
 Parser::Parser()
 {
+  this->FileName = 0;
   this->Internal = new ParserInternals;
 }
 //------------------------------------------------------------------------------
 Parser::~Parser()
 {
+  this->SetFileName(0);
   delete this->Internal;
 }
 
@@ -58,18 +62,18 @@ void Parser::StartElement(const char* tagName, const char** atts)
   if (!strcmp(tagName, "MRML")) {
     return;
   }
-  const char* className = this->MRMLScene->GetClassNameByTag(tagName);
+  const char* className = this->Internal->MRMLScene->GetClassNameByTag(tagName);
 
   if (className == NULL) {
     return;
   }
 
-  Node* node = this->MRMLScene->CreateNodeByClass( className );
+  Node* node = this->Internal->MRMLScene->CreateNodeByClass( className );
 
   node->ReadXMLAttributes(atts);
 
   if (node->GetID() == NULL) {
-    node->SetID(this->MRMLScene->GetUniqueIDByClass(className));
+    node->SetID(this->Internal->MRMLScene->GetUniqueIDByClass(className));
   }
 
   ParserInternals::NodeStackType nodeStack = this->Internal->NodeStack;
@@ -81,7 +85,7 @@ void Parser::StartElement(const char* tagName, const char** atts)
 
   nodeStack.push(node);
 
-  this->MRMLScene->AddNode(node);
+  this->Internal->MRMLScene->AddNode(node);
 
   node->Delete();
 }
@@ -95,21 +99,16 @@ void Parser::EndElement (const char *name)
   }
   this->Internal->NodeStack.pop();
 }
+
+//-----------------------------------------------------------------------------
+void Parser::Parse()
+{
+  this->ParseFile(this->FileName);
+}
 //-----------------------------------------------------------------------------
 void Parser::PrintSelf(std::ostream& os, Indent indent) const
 {
   this->Superclass::PrintSelf(os,indent);
-}
-
-//-----------------------------------------------------------------------------
-void Parser::SetFileName(const char *filename)
-{
-  this->Internal->SetFileName(filename);
-}
-//-----------------------------------------------------------------------------
-void Parser::Parse()
-{
-  this->Internal->Parse();
 }
 
 } // end namespace mrml

@@ -42,14 +42,13 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #ifndef __mrmlParser_h
 #define __mrmlParser_h
 
-#include "mrmlObject.h"
-#include "mrmlObjectFactory.h"
+#include "mrmlXMLParser.h"
 
 namespace mrml
 {
-class ParserInternals;
 class Scene;
-class MRMLCommon_EXPORT Parser : public Object
+class ParserInternals;
+class MRMLCommon_EXPORT Parser : public XMLParser
 {
 public:
   typedef Parser Self;
@@ -63,12 +62,12 @@ public:
   /** Method for creation through the object factory */
   mrmlNewMacro(Self);
 
-  mrmlGetObjectMacro(MRMLScene, Scene);
-  mrmlSetObjectMacro(MRMLScene, Scene);
+  Scene *GetScene();
+  void SetScene(Scene *s);
 
-  void SetFileName(const char *filename);
+  mrmlSetStringMacro(FileName);
   void Parse();
-  
+
 protected:
   Parser();
   ~Parser();
@@ -82,8 +81,8 @@ protected:
 private:
   Parser(const Parser&); //purposely not implemented
   void operator=(const Parser&); //purposely not implemented
-  
-  Scene* MRMLScene;
+
+  char* FileName;
   ParserInternals *Internal;
 };
 

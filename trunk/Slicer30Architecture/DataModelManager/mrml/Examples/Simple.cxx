@@ -8,17 +8,23 @@
 #include "vtkImageGaussianSmooth.h"
 #include "vtkImageData.h"
 
-int main (int /*argc*/, char * /*argv*/[])
+int main (int argc, char *argv[])
 {
+  const char *url = "file://data.xml";
+  if( argc > 1 )
+    {
+    url = argv[1];
+    }
   // get mrml tree
-  mrml::Scene *mrml = mrml::Scene::New();
-  mrml->SetURL("file://data.xml");
+  mrml::Scene::Pointer mrml = mrml::Scene::New();
+  //std::cerr << "URL:" << url << std::endl;
+  mrml->SetURL(url);
   mrml->Connect();
 
   // get input image in vtk format
   mrml::Node *node = mrml->GetNthNode(0); // GetNthVolume
 
-  mrml::vtkVolume *inData = mrml::vtkVolume::New();
+  mrml::vtkVolume::Pointer inData = mrml::vtkVolume::New();
 
   mrml::VolumeNode *volNode = dynamic_cast<mrml::VolumeNode*>(node);
 
@@ -31,9 +37,9 @@ int main (int /*argc*/, char * /*argv*/[])
   igs->GetOutput()->Update();
 
   // put output volume in a new mrml volume node
-  mrml::VolumeNode *volNodeOut = mrml::VolumeNode::New();
+  mrml::VolumeNode::Pointer volNodeOut = mrml::VolumeNode::New();
 
-  mrml::vtkVolume *outData = mrml::vtkVolume::New();
+  mrml::vtkVolume::Pointer outData = mrml::vtkVolume::New();
 
   outData->SetTargetNode(volNodeOut);
   outData->SetSourceImage(igs->GetOutput()); 
@@ -43,8 +49,10 @@ int main (int /*argc*/, char * /*argv*/[])
   mrml->AddNode(volNodeOut);
 
   // save new file
-  mrml->Commit("file://data1.xml");
+  //mrml->Commit("file://data1.xml");
+  mrml->Commit("data1.xml");
 
+  igs->Delete();
   // Smart pointer don't need to be deleted
   return 0;
 }

@@ -42,6 +42,7 @@ SET(MRML_SRCS
   mrmlVolumeArchetypeStorageNode.cxx
   #mrmlDataObject.cxx
   #mrmlTree.cxx
+  mrmlXMLParser.cxx
   )
 
 INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
@@ -66,7 +67,7 @@ SET(KWSYS_HEADER_ROOT ${MRML_BINARY_DIR})
 SUBDIRS(kwsys)
 
 ADD_LIBRARY(mrml ${MRML_SRCS})
-TARGET_LINK_LIBRARIES(mrml mrmlsys)
+TARGET_LINK_LIBRARIES(mrml mrmlsys expat)
 TARGET_LINK_LIBRARIES(mrml vtkIO)
 IF(UNIX)
   TARGET_LINK_LIBRARIES(mrml dl)
