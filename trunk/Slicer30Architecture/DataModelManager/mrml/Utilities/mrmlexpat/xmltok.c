@@ -3,7 +3,7 @@ Copyright (c) 1998, 1999 Thai Open Source Software Center Ltd
 See the file COPYING for copying permission.
 */
 
-#include <vtkexpat/expatConfig.h>
+#include <mrmlexpat/expatConfig.h>
 
 #include "xmltok.h"
 #include "nametab.h"
@@ -79,22 +79,22 @@ We need 8 bits to index into pages, 3 bits to add to that index and
 static
 int isNever(const ENCODING *enc, const char *p)
 {
-  vtkExpatUnused(enc);
-  vtkExpatUnused(p);
+  mrmlExpatUnused(enc);
+  mrmlExpatUnused(p);
   return 0;
 }
 
 static
 int utf8_isName2(const ENCODING *enc, const char *p)
 {
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(enc);
   return UTF8_GET_NAMING2(namePages, (const unsigned char *)p);
 }
 
 static
 int utf8_isName3(const ENCODING *enc, const char *p)
 {
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(enc);
   return UTF8_GET_NAMING3(namePages, (const unsigned char *)p);
 }
 
@@ -103,14 +103,14 @@ int utf8_isName3(const ENCODING *enc, const char *p)
 static
 int utf8_isNmstrt2(const ENCODING *enc, const char *p)
 {
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(enc);
   return UTF8_GET_NAMING2(nmstrtPages, (const unsigned char *)p);
 }
 
 static
 int utf8_isNmstrt3(const ENCODING *enc, const char *p)
 {
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(enc);
   return UTF8_GET_NAMING3(nmstrtPages, (const unsigned char *)p);
 }
 
@@ -121,14 +121,14 @@ int utf8_isNmstrt3(const ENCODING *enc, const char *p)
 static
 int utf8_isInvalid3(const ENCODING *enc, const char *p)
 {
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(enc);
   return UTF8_INVALID3((const unsigned char *)p);
 }
 
 static
 int utf8_isInvalid4(const ENCODING *enc, const char *p)
 {
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(enc);
   return UTF8_INVALID4((const unsigned char *)p);
 }
 
@@ -282,7 +282,7 @@ void utf8_toUtf8(const ENCODING *enc,
 {
   char *to;
   const char *from;
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(enc);
   if (fromLim - *fromP > toLim - *toP) {
     /* Avoid copying partial characters. */
     for (fromLim = *fromP + (toLim - *toP); fromLim > *fromP; fromLim--)
@@ -385,7 +385,7 @@ void latin1_toUtf8(const ENCODING *enc,
                    const char **fromP, const char *fromLim,
                    char **toP, const char *toLim)
 {
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(enc);
   for (;;) {
     unsigned char c;
     if (*fromP == fromLim)
@@ -411,7 +411,7 @@ void latin1_toUtf16(const ENCODING *enc,
                     const char **fromP, const char *fromLim,
                     unsigned short **toP, const unsigned short *toLim)
 {
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(enc);
   while (*fromP != fromLim && *toP != toLim)
     *(*toP)++ = (unsigned char)*(*fromP)++;
 }
@@ -445,7 +445,7 @@ void ascii_toUtf8(const ENCODING *enc,
                   const char **fromP, const char *fromLim,
                   char **toP, const char *toLim)
 {
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(enc);
   while (*fromP != fromLim && *toP != toLim)
     *(*toP)++ = *(*fromP)++;
 }
@@ -499,7 +499,7 @@ void E ## toUtf8(const ENCODING *enc, \
                  char **toP, const char *toLim) \
 { \
   const char *from; \
-  vtkExpatUnused(enc);\
+  mrmlExpatUnused(enc);\
   for (from = *fromP; from != fromLim; from += 2) { \
     int plane; \
     unsigned char lo2; \
@@ -562,7 +562,7 @@ void E ## toUtf16(const ENCODING *enc, \
                   const char **fromP, const char *fromLim, \
                   unsigned short **toP, const unsigned short *toLim) \
 { \
-  vtkExpatUnused(enc);\
+  mrmlExpatUnused(enc);\
   /* Avoid copying first half only of surrogate */ \
   if (fromLim - *fromP > ((toLim - *toP) << 1) \
       && (GET_HI(fromLim - 2) & 0xF8) == 0xD8) \
@@ -896,7 +896,7 @@ static
 void initUpdatePosition(const ENCODING *enc, const char *ptr,
                         const char *end, POSITION *pos)
 {
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(enc);
   normal_updatePosition(&utf8_encoding.enc, ptr, end, pos);
 }
 

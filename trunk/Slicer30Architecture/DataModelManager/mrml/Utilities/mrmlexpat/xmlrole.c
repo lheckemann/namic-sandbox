@@ -4,14 +4,14 @@ See the file COPYING for copying permission.
 */
 
 static char RCSId[]
-  = "$Header: /cvsroot/ParaView/ParaView/VTK/Utilities/vtkexpat/xmlrole.c,v 1.1 2004/04/28 15:49:22 king Exp $";
-const char* vtk_expat_GetXMLRole_RCSId()
+  = "$Header: /cvsroot/ParaView/ParaView/VTK/Utilities/mrmlexpat/xmlrole.c,v 1.1 2004/04/28 15:49:22 king Exp $";
+const char* mrml_expat_GetXMLRole_RCSId()
 {
   /* Avoid warning about unused static without removing RCSId from original. */
   return RCSId;
 }
 
-#include <vtkexpat/expatConfig.h>
+#include <mrmlexpat/expatConfig.h>
 
 #include "xmlrole.h"
 #include "ascii.h"
@@ -159,9 +159,9 @@ int prolog2(PROLOG_STATE *state,
             const char *end,
             const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -182,9 +182,9 @@ int doctype0(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -233,9 +233,9 @@ int doctype2(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -253,9 +253,9 @@ int doctype3(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -273,9 +273,9 @@ int doctype4(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -296,9 +296,9 @@ int doctype5(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -415,9 +415,9 @@ int entity0(PROLOG_STATE *state,
             const char *end,
             const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -438,9 +438,9 @@ int entity1(PROLOG_STATE *state,
             const char *end,
             const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -485,9 +485,9 @@ int entity3(PROLOG_STATE *state,
             const char *end,
             const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -506,9 +506,9 @@ int entity4(PROLOG_STATE *state,
             const char *end,
             const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -549,9 +549,9 @@ int entity6(PROLOG_STATE *state,
             const char *end,
             const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -596,9 +596,9 @@ int entity8(PROLOG_STATE *state,
             const char *end,
             const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -616,9 +616,9 @@ int entity9(PROLOG_STATE *state,
             const char *end,
             const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -636,9 +636,9 @@ int notation0(PROLOG_STATE *state,
               const char *end,
               const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -680,9 +680,9 @@ int notation2(PROLOG_STATE *state,
               const char *end,
               const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -700,9 +700,9 @@ int notation3(PROLOG_STATE *state,
               const char *end,
               const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -720,9 +720,9 @@ int notation4(PROLOG_STATE *state,
               const char *end,
               const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -743,9 +743,9 @@ int attlist0(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -764,9 +764,9 @@ int attlist1(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -788,9 +788,9 @@ int attlist2(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -832,9 +832,9 @@ int attlist3(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -854,9 +854,9 @@ int attlist4(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -877,9 +877,9 @@ int attlist5(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -898,9 +898,9 @@ int attlist6(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -918,9 +918,9 @@ int attlist7(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -942,9 +942,9 @@ int attlist8(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -985,9 +985,9 @@ int attlist9(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -1005,9 +1005,9 @@ int element0(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -1026,9 +1026,9 @@ int element1(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -1057,9 +1057,9 @@ int element2(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -1100,9 +1100,9 @@ int element3(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -1126,9 +1126,9 @@ int element4(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -1147,9 +1147,9 @@ int element5(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -1170,9 +1170,9 @@ int element6(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -1203,9 +1203,9 @@ int element7(PROLOG_STATE *state,
              const char *end,
              const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -1248,9 +1248,9 @@ int condSect0(PROLOG_STATE *state,
               const char *end,
               const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -1275,9 +1275,9 @@ int condSect1(PROLOG_STATE *state,
               const char *end,
               const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -1296,9 +1296,9 @@ int condSect2(PROLOG_STATE *state,
               const char *end,
               const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -1318,9 +1318,9 @@ int declClose(PROLOG_STATE *state,
               const char *end,
               const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_PROLOG_S:
     return XML_ROLE_NONE;
@@ -1340,9 +1340,9 @@ int ignore(PROLOG_STATE *state,
            const char *end,
            const ENCODING *enc)
 {
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   switch (tok) {
   case XML_TOK_DECL_CLOSE:
     state->handler = internalSubset;
@@ -1361,11 +1361,11 @@ int error(PROLOG_STATE *state,
           const char *end,
           const ENCODING *enc)
 {
-  vtkExpatUnused(state);
-  vtkExpatUnused(tok);
-  vtkExpatUnused(ptr);
-  vtkExpatUnused(end);
-  vtkExpatUnused(enc);
+  mrmlExpatUnused(state);
+  mrmlExpatUnused(tok);
+  mrmlExpatUnused(ptr);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(enc);
   return XML_ROLE_NONE;
 }
 

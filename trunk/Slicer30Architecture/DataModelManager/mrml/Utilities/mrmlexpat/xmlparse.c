@@ -3,7 +3,7 @@ Copyright (c) 1998, 1999, 2000 Thai Open Source Software Center Ltd
 See the file COPYING for copying permission.
 */
 
-#include <vtkexpat/expatConfig.h>
+#include <mrmlexpat/expatConfig.h>
 #include "expat.h"
 
 #include <stddef.h>
@@ -3338,9 +3338,9 @@ enum XML_Error errorProcessor(XML_Parser parser,
                               const char *end,
                               const char **nextPtr)
 {
-  vtkExpatUnused(s);
-  vtkExpatUnused(end);
-  vtkExpatUnused(nextPtr);
+  mrmlExpatUnused(s);
+  mrmlExpatUnused(end);
+  mrmlExpatUnused(nextPtr);
   return errorCode;
 }
 
@@ -4149,7 +4149,7 @@ static int copyEntityTable(HASH_TABLE *newTable,
   HASH_TABLE_ITER iter;
   const XML_Char *cachedOldBase = 0;
   const XML_Char *cachedNewBase = 0;
-  vtkExpatUnused(parser);
+  mrmlExpatUnused(parser);
 
   hashTableIterInit(&iter, oldTable);
 

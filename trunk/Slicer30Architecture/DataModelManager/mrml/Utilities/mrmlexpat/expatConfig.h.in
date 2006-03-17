@@ -1,4 +1,4 @@
-#include "vtk_expat_mangle.h"
+#include "mrml_expat_mangle.h"
 #if defined(_WIN32) || defined(WIN32)
 
 #define WIN32_LEAN_AND_MEAN
@@ -40,4 +40,4 @@
 
 #define VERSION "1.95.2"
 
-#define vtkExpatUnused(x) (void)x
+#define mrmlExpatUnused(x) (void)x
