@@ -2,6 +2,7 @@
 SET(TESTS_SRCS
   testInstance
   TestAllMrml
+  TestCollection
   )
 
 # Add the include paths
