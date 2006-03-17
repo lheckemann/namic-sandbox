@@ -42,7 +42,7 @@
       <longflag>iterations</longflag>
       <description>Comma separated list of iterations must have the same number of elements as learning rate</description>
       <label>Iterations</label>
-      <default>200,100</default>
+      <default>100,100,100,200</default>
     </string>
 
     <string>
@@ -50,7 +50,7 @@
       <longflag>learningrate</longflag>
       <description>Comma separated list of learning rates must have the same number of elements as iterations</description>
       <label>Learning Rates</label>
-      <default>0.05,0.005</default>
+      <default>0.005,0.001,0.0005,0.0002</default>
     </string>
     
     <double>
