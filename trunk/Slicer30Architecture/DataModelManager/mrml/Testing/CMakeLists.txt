@@ -1,6 +1,7 @@
 # Define the tests
 SET(TESTS_SRCS
   testInstance
+  TestAllMrml
   )
 
 # Add the include paths
