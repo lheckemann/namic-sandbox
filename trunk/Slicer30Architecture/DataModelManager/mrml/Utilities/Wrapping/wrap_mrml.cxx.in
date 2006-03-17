@@ -1,13 +1,13 @@
-#include <vj/vj@VJ_CLASS@.h>
+#include <mrml@MRML_CLASS@.h>
 
 #ifdef CABLE_CONFIGURATION
 namespace _cable_
 {
-  const char* const group = "vj@VJ_CLASS@";
+  const char* const group = "mrml@MRML_CLASS@";
   namespace wrappers
   {
-    typedef vj::@VJ_CLASS@ vj@VJ_CLASS@;
-    typedef vj::@VJ_CLASS@::Pointer::SmartPointer vj@VJ_CLASS@_Pointer;
+    typedef mrml::@MRML_CLASS@ mrml@MRML_CLASS@;
+    typedef mrml::@MRML_CLASS@::Pointer::SmartPointer mrml@MRML_CLASS@_Pointer;
   }
 }
 #endif

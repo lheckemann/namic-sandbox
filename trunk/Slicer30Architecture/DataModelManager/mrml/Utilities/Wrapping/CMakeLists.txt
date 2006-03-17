@@ -36,11 +36,11 @@ SET(MRML_WRAP_SRCS wrap_MRMLTcl)
 
 FOREACH(c ${MRML_WRAP_CLASSES})
   SET(MRML_CLASS ${c})
-  CONFIGURE_FILE(${WrapMRML_SOURCE_DIR}/wrap_vj.cxx.in
-                 ${WrapMRML_BINARY_DIR}/wrap_vj${c}.cxx @ONLY IMMEDIATE)
-  CONFIGURE_FILE(${WrapMRML_SOURCE_DIR}/wrap_vj.i.in
-                 ${WrapMRML_BINARY_DIR}/wrap_vj${c}.i @ONLY IMMEDIATE)
-  SET(MRML_WRAP_SRCS ${MRML_WRAP_SRCS} wrap_vj${c})
+  CONFIGURE_FILE(${WrapMRML_SOURCE_DIR}/wrap_mrml.cxx.in
+                 ${WrapMRML_BINARY_DIR}/wrap_mrml${c}.cxx @ONLY IMMEDIATE)
+  CONFIGURE_FILE(${WrapMRML_SOURCE_DIR}/wrap_mrml.i.in
+                 ${WrapMRML_BINARY_DIR}/wrap_mrml${c}.i @ONLY IMMEDIATE)
+  SET(MRML_WRAP_SRCS ${MRML_WRAP_SRCS}  wrap_mrml${c})
 ENDFOREACH(c)
 CONFIGURE_FILE(${WrapMRML_SOURCE_DIR}/wrap_MRMLTcl.cxx
                ${WrapMRML_BINARY_DIR}/wrap_MRMLTcl.cxx @ONLY IMMEDIATE)
@@ -92,15 +92,15 @@ FOREACH(src ${MRML_WRAP_SRCS})
   # ${src} values that also appear in MRML_WRAP_CLASSES
   # here... The intent is to depend on headers that
   # follow the naming convention:
-  #   ${MRML_SOURCE_DIR}/vj/vj${class_name}.h
+  #   ${MRML_SOURCE_DIR}/mrml${class_name}.h
   #
   SET(primary_header "")
   IF(NOT "${src}" MATCHES "^wrap_MRMLTcl$")
-    STRING(REGEX REPLACE "wrap_vj(.*)$" "\\1" class_name "${src}")
+    STRING(REGEX REPLACE "wrap_mrml(.*)$" "\\1" class_name "${src}")
     IF("${class_name}" MATCHES "^$")
       MESSAGE(SEND_ERROR "Could not extract class_name from src='${src}'...")
     ELSE("${class_name}" MATCHES "^$")
-      SET(primary_header "${MRML_SOURCE_DIR}/vj/vj${class_name}.h")
+      SET(primary_header "${MRML_SOURCE_DIR}/mrml${class_name}.h")
       IF(NOT EXISTS "${primary_header}")
         MESSAGE(SEND_ERROR "Can't establish wrapper dependency. Header file '${primary_header}' doesn't exist...")
       ENDIF(NOT EXISTS "${primary_header}")
@@ -156,7 +156,7 @@ FOREACH(src ${MRML_WRAP_SRCS})
          -tcl -pkgversion "${MRML_VERSION_STRING}"
          -c++ ${WrapMRML_BINARY_DIR}/${src}.xml
     DEPENDS ${MRML_IDX_FILES} ${WrapMRML_BINARY_DIR}/${src}.xml
-            ${CableSwig_cswig_EXE} ${MRML_BINARY_DIR}/vj/vjConfigure.h
+            ${CableSwig_cswig_EXE} ${MRML_BINARY_DIR}/mrmlConfigure.h
     )
 ENDFOREACH(src)
 
