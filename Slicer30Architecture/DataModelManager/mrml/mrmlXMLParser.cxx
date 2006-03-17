@@ -1,6 +1,6 @@
 #include "mrmlXMLParser.h"
 
-#include "expat.h"
+#include "mrmlexpat/expat.h"
 #include <ctype.h>
 #include <fstream>
 #include <iostream>
