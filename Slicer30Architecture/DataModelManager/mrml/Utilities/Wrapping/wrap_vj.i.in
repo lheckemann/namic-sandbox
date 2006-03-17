@@ -1,0 +1,12 @@
+%typemap(in) int create@VJ_CLASS@ {
+long tempi;
+$1 = 0;
+Tcl_GetLongFromObj(interp,$input,&tempi);
+Tcl_SetObjResult(interp, SWIG_NewInstanceObj((void *) tempi, SWIGTYPE_p_vj__@VJ_CLASS@,0));
+}
+
+%inline %{
+void vjCreatePointer@VJ_CLASS@(int create@VJ_CLASS@)
+{
+}
+%}
