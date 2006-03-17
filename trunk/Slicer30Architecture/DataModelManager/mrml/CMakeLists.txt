@@ -12,6 +12,9 @@ INCLUDE(${USE_VTK_FILE})
 
 INCLUDE_DIRECTORIES(
   ${MRML_BINARY_DIR}
+  ${MRML_SOURCE_DIR}/Utilities
+  # For building expat...
+  ${MRML_BINARY_DIR}/Utilities
   )
 
 #-----------------------------------------------------------------------------
@@ -67,7 +70,7 @@ SET(KWSYS_HEADER_ROOT ${MRML_BINARY_DIR})
 SUBDIRS(kwsys)
 
 ADD_LIBRARY(mrml ${MRML_SRCS})
-TARGET_LINK_LIBRARIES(mrml mrmlsys expat)
+TARGET_LINK_LIBRARIES(mrml mrmlsys mrmlexpat)
 TARGET_LINK_LIBRARIES(mrml vtkIO)
 IF(UNIX)
   TARGET_LINK_LIBRARIES(mrml dl)
@@ -86,3 +89,4 @@ ENDIF(BUILD_TESTING)
 
 SUBDIRS(vtkmrml)
 SUBDIRS(Examples)
+SUBDIRS(Utilities)
