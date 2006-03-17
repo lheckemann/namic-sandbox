@@ -1,4 +1,4 @@
-#include "vtk_expat_mangle.h"
+#include "mrml_expat_mangle.h"
 /*
 Copyright (c) 1998, 1999, 2000 Thai Open Source Software Center Ltd
 See the file COPYING for copying permission.
@@ -9,10 +9,10 @@ See the file COPYING for copying permission.
 
 #include <stdlib.h>
 
-#include <vtkexpat/expatDllConfig.h>
+#include <mrmlexpat/expatDllConfig.h>
 
 #if defined(_WIN32) && !defined(VTK_EXPAT_STATIC)
-#  if defined(vtkexpat_EXPORTS)
+#  if defined(mrmlexpat_EXPORTS)
 #    define XMLPARSEAPI(type) __declspec( dllexport ) type __cdecl
 #  else
 #    define XMLPARSEAPI(type) __declspec( dllimport ) type __cdecl
