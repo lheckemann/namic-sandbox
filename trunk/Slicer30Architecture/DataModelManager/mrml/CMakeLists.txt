@@ -46,6 +46,7 @@ SET(MRML_SRCS
   #mrmlDataObject.cxx
   #mrmlTree.cxx
   mrmlXMLParser.cxx
+  mrmlCollection.cxx
   )
 
 INCLUDE (${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
