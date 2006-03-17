@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkAbsImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2006/01/23 17:55:46 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2006/03/13 15:54:33 $
+  Version:   $Revision: 1.5 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -74,6 +74,8 @@ public:
   itkConceptMacro(ConvertibleCheck,
     (Concept::Convertible<typename TInputImage::PixelType,
                           typename TOutputImage::PixelType>));
+  itkConceptMacro(InputSignedCheck,
+    (Concept::Signed<typename TInputImage::PixelType>));
   /** End concept checking */
 #endif
 
