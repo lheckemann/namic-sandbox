@@ -11,7 +11,6 @@ Date:      $Date: 2006/03/03 22:26:41 $
 Version:   $Revision: 1.12 $
 
 =========================================================================auto=*/
-
 #ifndef __vtkmrmlVolume_h
 #define __vtkmrmlVolume_h
 
@@ -21,8 +20,8 @@ Version:   $Revision: 1.12 $
 class vtkImageData;
 namespace mrml
 {
-
 class VolumeNode;
+class vtkVolumeInternals;
 class vtkVolume : public Volume
 {
 public:
@@ -50,7 +49,9 @@ protected:
 private:
   vtkVolume(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
-};
 
+  vtkVolumeInternals *Internal;
+};
 } // end namespace mrml
 #endif
+
