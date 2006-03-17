@@ -11,6 +11,8 @@ Date:      $Date: 2006/03/03 22:26:41 $
 Version:   $Revision: 1.12 $
 
 =========================================================================auto=*/
+#ifndef __mrmlModel_h
+#define __mrmlModel_h
 
 #include "mrmlObject.h"
 #include "mrmlObjectFactory.h"
@@ -45,3 +47,5 @@ private:
 };
 
 } // end namespace mrml
+
+#endif

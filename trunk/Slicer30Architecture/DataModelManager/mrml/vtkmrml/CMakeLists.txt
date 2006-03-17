@@ -3,6 +3,7 @@ INCLUDE(${USE_VTK_FILE})
 
 # vtkmrml lib
 SET(VTKMRML_SRCS
+  vtkmrmlModel.cxx
   vtkmrmlVolume.cxx
   )
 

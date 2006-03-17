@@ -1,14 +1,15 @@
 /*=auto=========================================================================
 
-  Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH) All Rights Reserved.
+  Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH)
+  All Rights Reserved.
 
   See Doc/copyright/copyright.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
 
   Program:   MRML
-  Module:    $RCSfile: mrmlNode.h,v $
-  Date:      $Date: 2006/02/11 17:20:11 $
-  Version:   $Revision: 1.9 $
+  Module:    $URL$
+  Date:      $Date$
+  Version:   $Rev$
 
 =========================================================================auto=*/
 // .NAME mrmlNode - Abstract Superclass for all specific types of MRML nodes.
