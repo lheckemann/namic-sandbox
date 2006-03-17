@@ -293,11 +293,11 @@ int main ( int argc, const char* argv[] )
       exit ( EXIT_SUCCESS );
       }
 
-    HistogramBins = atoi ( cl.getOptionValue ( "b", "30" ).c_str() );
+    HistogramBins = atoi ( cl.getOptionValue ( "b", "35" ).c_str() );
     RandomSeed = atoi ( cl.getOptionValue ( "d", "1234567" ).c_str() );
     GradientMagnitudeTolerance = atof ( cl.getOptionValue ( "g", "0.0001" ).c_str() );
-    Iterations = Parse<unsigned int> ( cl.getOptionValue ( "i", "200" ) );
-    LearningRate = Parse<double> ( cl.getOptionValue ( "l", "0.05" ) );
+    Iterations = Parse<unsigned int> ( cl.getOptionValue ( "i", "100,100,100,200" ) );
+    LearningRate = Parse<double> ( cl.getOptionValue ( "l", "0.005,0.001,0.0005,0.0002" ) );
     SpatialSamples = atoi ( cl.getOptionValue ( "s", "10000" ).c_str() );
     TranslationScale = atof ( cl.getOptionValue ( "t", "100.0" ).c_str() );
     DoInitializeTransform = cl.hasOption('u');
@@ -466,9 +466,6 @@ int main ( int argc, const char* argv[] )
             << "movingImageFileName: " << movingImageFileName << std::endl
             << "resampledImageFileName: " << resampledImageFileName << std::endl
             << std::endl;
-  typedef itk::ImageFileWriter<Volume> WriterType;
-  WriterType::Pointer resampled = WriterType::New();
-  resampled->SetFileName ( resampledImageFileName.c_str() );
 
   Volume::Pointer fixed, moving;
   typedef itk::ImageFileReader<Volume> FileReaderType;
@@ -503,6 +500,41 @@ int main ( int argc, const char* argv[] )
 
   fixed = FixedReader->GetOutput();
   moving = MovingReader->GetOutput();
+
+
+  Volume::DirectionType dir;
+  dir.SetIdentity();
+  // dir[0][0] = -1;
+  // fixed->SetDirection(dir);
+  // moving->SetDirection(dir);
+
+  
+  msg.str("");
+  msg << "Fixed Image: \n";
+  fixed->Print ( msg );
+  logger->Write ( itk::LoggerBase::INFO, msg.str() );
+  
+  msg.str("");
+  msg << "Moving Image: \n";
+  moving->Print ( msg );
+  logger->Write ( itk::LoggerBase::INFO, msg.str() );
+
+
+  Volume::PointType pt1, pt2;
+  Volume::IndexType idx, idx1, idx2;
+  pt1[0] = 100; pt1[1] = 120; pt1[2] = 30;
+  fixed->TransformPhysicalPointToIndex ( pt1, idx );
+  fixed->TransformIndexToPhysicalPoint ( idx, pt2 );
+  msg.str(""); msg << "Round trip Difference: " << pt1 << " to " << pt2;
+  logger->Write ( itk::LoggerBase::INFO, msg.str() );
+
+  idx1[0] = 100; idx1[1] = 138; idx1[2] = 34;
+  fixed->TransformIndexToPhysicalPoint ( idx1, pt1 );
+  fixed->TransformPhysicalPointToIndex ( pt1, idx2 );
+  msg.str(""); msg << "Round trip Difference: " << idx1 << " to " << idx2;
+  logger->Write ( itk::LoggerBase::INFO, msg.str() );
+  
+  
   
   typedef itk::QuaternionRigidTransform< double > TransformType;
   typedef itk::QuaternionRigidTransformGradientDescentOptimizer OptimizerType;
@@ -547,11 +579,67 @@ int main ( int argc, const char* argv[] )
     {
     centerIndex[j] = (long) ( (s[j]-1) / 2.0 );
     }
+  
   fixed->TransformIndexToPhysicalPoint ( centerIndex, center );
+
+  if (1)
+    {
+    Volume::RegionType::SizeType s = fixed->GetLargestPossibleRegion().GetSize();
+    Volume::IndexType idx = fixed->GetLargestPossibleRegion().GetIndex();
+    
+    msg.str ( "" ); msg << "Largest Possible Region Size: " << s;
+    // logger->info ( msg.str() );
+    logger->Write ( itk::LoggerBase::INFO, msg.str() );
+
+    msg.str ( "" ); msg << "Largest Possible Region index: " << idx;
+    // logger->info ( msg.str() );
+    logger->Write ( itk::LoggerBase::INFO, msg.str() );
+
+    // lower corner
+    Volume::PointType pt0;
+    fixed->TransformIndexToPhysicalPoint(idx, pt0);  
+
+    // upper corner
+    for ( unsigned int i = 0; i < 3; i++)
+      {
+      idx[i] += (s[i]-1);
+      }
+    Volume::PointType pt1;
+    fixed->TransformIndexToPhysicalPoint(idx, pt1);
+
+    msg.str ( "" ); msg << "Center: ";
+    for ( int i = 0; i < 3; i++ )
+      {
+      center[i] = ( pt0[i] + pt1[i] ) / 2.0;
+      msg << center[i] << " ";
+      }
+    //logger->info ( msg.str() );
+    logger->Write ( itk::LoggerBase::INFO, msg.str() );
+    }
+
+
+  
   msg.str(""); msg << "Index: " << centerIndex << " to point: " << center;
   logger->Write ( itk::LoggerBase::INFO, msg.str() );
-  transform->SetCenter ( center );
   transform->SetIdentity();
+  transform->SetCenter ( center );
+  msg.str(""); msg << "Transform: "; transform->Print ( msg );
+  logger->Write ( itk::LoggerBase::INFO, msg.str() );
+
+  TransformType::OutputPointType out;
+  Volume::IndexType outIdx;
+  out = transform->TransformPoint ( center );
+  moving->TransformPhysicalPointToIndex ( out, outIdx );
+
+  msg.str(""); msg << "To moving space: " << out << " index: " << outIdx;
+  logger->Write ( itk::LoggerBase::INFO, msg.str() );
+  
+
+  
+  msg.str(""); msg << "Transform: "; transform->Print ( msg );
+  logger->Write ( itk::LoggerBase::INFO, msg.str() );
+  
+  
   registration->SetInitialTransformParameters ( transform->GetParameters() );
 
 
@@ -583,21 +671,31 @@ int main ( int argc, const char* argv[] )
   typedef itk::LinearInterpolateImageFunction<Volume, double> ResampleInterpolatorType;
   ResampleInterpolatorType::Pointer Interpolator = ResampleInterpolatorType::New();
 
-  Resample->SetInput ( moving ); 
   transform->SetParameters ( registration->GetLastTransformParameters() );
 
+  out = transform->TransformPoint ( center );
+  moving->TransformPhysicalPointToIndex ( out, outIdx );
+
+  msg.str(""); msg << "After Registration: To moving space: " << out << " index: " << outIdx;
+  logger->Write ( itk::LoggerBase::INFO, msg.str() );
+  
+  
   fixed->Print ( std::cout );
   moving->Print ( std::cout );
   transform->Print ( std::cout );
   
+  Resample->SetInput ( moving ); 
   Resample->SetTransform ( transform );
   Resample->SetInterpolator ( Interpolator );
   Resample->SetOutputParametersFromImage ( fixed );
   
   Resample->Update();
-  resampled->SetInput ( Resample->GetOutput() );
+  typedef itk::ImageFileWriter<Volume> WriterType;
+  WriterType::Pointer ResampledWriter = WriterType::New();
+  ResampledWriter->SetFileName ( resampledImageFileName.c_str() );
+  ResampledWriter->SetInput ( Resample->GetOutput() );
   try {
-    resampled->Write();
+    ResampledWriter->Write();
   } catch( itk::ExceptionObject & err ) { 
     cerr << err << endl;
     exit ( EXIT_FAILURE );
