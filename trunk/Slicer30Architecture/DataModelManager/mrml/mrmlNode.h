@@ -1,4 +1,4 @@
-/*=auto=========================================================================
+/*=auto========================================================================
 
   Portions (c) Copyright 2005 Brigham and Women's Hospital (BWH)
   All Rights Reserved.
@@ -11,7 +11,7 @@
   Date:      $Date$
   Version:   $Rev$
 
-=========================================================================auto=*/
+========================================================================auto=*/
 // .NAME mrmlNode - Abstract Superclass for all specific types of MRML nodes.
 // .SECTION Description
 // This node encapsulates the functionality common to all types of MRML nodes.
