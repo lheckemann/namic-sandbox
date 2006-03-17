@@ -562,58 +562,6 @@ extern MRMLCommon_EXPORT void OutputWindowDisplayDebugText(const char*);
 }
 #endif
 
-namespace mrml
-{
-
-/**
- * mrml::OStringStream wrapper to hide differences between
- * std::ostringstream and the old ostrstream.  Necessary for
- * portability.
- */
-#if !defined(mrml_NO_ANSI_STRING_STREAM)
-class OStringStream: public std::ostringstream
-{
-public:
-  OStringStream() {}
-private:
-  OStringStream(const OStringStream&);
-  void operator=(const OStringStream&);
-};
-#else
-namespace OStringStreamDetail
-{
-  class Cleanup
-  {
-  public:
-    Cleanup(std::ostrstream& ostr): m_OStrStream(ostr) {}
-    ~Cleanup() { m_OStrStream.rdbuf()->freeze(0); }
-    static void IgnoreUnusedVariable(const Cleanup&) {}
-  protected:
-    std::ostrstream& m_OStrStream;
-  };
-}//namespace OStringStreamDetail
-
-class OStringStream: public std::ostrstream
-{
-public:
-  typedef std::ostrstream Superclass;
-  OStringStream() {}
-  std::string str()
-    {
-      OStringStreamDetail::Cleanup cleanup(*this);
-      OStringStreamDetail::Cleanup::IgnoreUnusedVariable(cleanup);
-      int pcount = this->pcount();
-      const char* ptr = this->Superclass::str();
-      return std::string(ptr?ptr:"", pcount);
-    }
-private:
-  OStringStream(const OStringStream&);
-  void operator=(const OStringStream&);
-};
-#endif
-
-}//namespace mrml
-
 #if defined(mrml_CPP_FUNCTION)
   #if defined(__BORLANDC__)
     #define mrml_LOCATION __FUNC__
