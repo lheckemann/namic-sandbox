@@ -18,7 +18,7 @@ namespace mrml
  *
  * Superclass for all XML parsers.
  */
-class XMLParser : public Object
+class MRMLCommon_EXPORT XMLParser : public Object
 {
 public:
   XMLParser();

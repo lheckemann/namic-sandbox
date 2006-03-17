@@ -20,7 +20,7 @@ Version:   $Revision: 1.12 $
 namespace mrml
 {
 
-class Volume : public Object
+class MRMLCommon_EXPORT Volume : public Object
 {
 public:
   typedef Volume Self;

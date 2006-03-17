@@ -17,7 +17,7 @@ Version:   $Revision: 1.12 $
 namespace mrml
 {
 
-class Transform : public Object
+class MRMLCommon_EXPORT Transform : public Object
 {
 public:
   typedef Transform Self;
