@@ -19,7 +19,7 @@ namespace mrml
 {
 
 class ModelInternals;
-class Model : public Object
+class MRMLCommon_EXPORT Model : public Object
 {
 public:
   typedef Model Self;
