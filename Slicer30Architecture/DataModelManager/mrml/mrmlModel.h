@@ -20,7 +20,6 @@ Version:   $Revision: 1.12 $
 namespace mrml
 {
 
-class ModelInternals;
 class MRMLCommon_EXPORT Model : public Object
 {
 public:
@@ -33,17 +32,16 @@ public:
   mrmlTypeMacro(Self, Superclass);
   mrmlNewMacro(Self);
 
+protected:
   Model();
   ~Model();
 
-protected:
   /** Print the object information in a stream. */
   virtual void PrintSelf(std::ostream& os, Indent indent) const {
     this->Superclass::PrintSelf(os,indent);
     }
 
 private:
-  ModelInternals *Internal;
 };
 
 } // end namespace mrml
