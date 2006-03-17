@@ -1,0 +1,43 @@
+# Visual Journal (VJ) Tcl package configuration.
+
+namespace eval vj {
+  #
+  # This procedure will help configure other VJ Tcl packages.
+  # Call it with:
+  #   package = the name of the package
+  #   version = the version number of the package
+  #
+  proc ConfigureTclPackage {libName version} {
+    set libPrefix "@CMAKE_SHARED_LIBRARY_PREFIX@"
+    set libPath "@VJ_CSWIG_PACKAGE_DIR@"
+    set libExt [info sharedlibextension]
+    set libFile [file join $libPath "$libPrefix$libName$libExt"]
+    set package [string tolower $libName]
+
+    package ifneeded $package $version "
+      namespace eval ::vj::loader {
+        set curDir \[pwd\]
+        cd {$libPath}
+        if {\[catch { load \"$libFile\" } errorMessage \]} { puts \$errorMessage }
+        cd \$curDir
+     }
+    "
+  }
+
+  # Procedure to drive configuration of all packages.
+  proc ConfigureVjTclPackages {version} {
+    # Configure VJ Tcl packages.
+    ConfigureTclPackage VJTcl $version
+
+    package ifneeded VisualJournal $version "
+      package require vjtcl $version
+      package provide VisualJournal $version
+    "
+  }
+
+  # Make sure the procedure can be called.
+  namespace export ConfigureVjTclPackages
+}
+
+# Configure packages with version @VJ_VERSION_STRING@.
+vj::ConfigureVjTclPackages @VJ_VERSION_STRING@
