@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkShrinkImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2006/02/01 19:44:24 $
-  Version:   $Revision: 1.40 $
+  Date:      $Date: 2006/03/19 04:36:56 $
+  Version:   $Revision: 1.41 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -33,7 +33,7 @@ namespace itk
  * in each dimension. The algorithm implemented is a simple subsample. 
  * The output image size in each dimension is given by:
  *
- * outputSize[j] = max( floor(inputSize[j]/shrinkFactor[j]), 1 ); 
+ * outputSize[j] = max( vcl_floor(inputSize[j]/shrinkFactor[j]), 1 ); 
  *
  * Since this filter produces an image which is a different resolution 
  * and with different pixel spacing than its input image, 

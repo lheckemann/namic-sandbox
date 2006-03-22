@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkEdgePotentialImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2006/01/23 17:55:48 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2006/03/19 04:36:56 $
+  Version:   $Revision: 1.8 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -51,7 +51,7 @@ public:
   }
   inline TOutput operator()( const TInput & A )
   {
-    return static_cast<TOutput>( exp( -1.0 * A.GetNorm() ) );
+    return static_cast<TOutput>( vcl_exp(-1.0 * A.GetNorm() ) );
   }
 };
 }
