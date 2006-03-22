@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkGrayscaleErodeImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2004/04/30 21:02:03 $
-  Version:   $Revision: 1.17 $
+  Date:      $Date: 2006/03/17 14:22:27 $
+  Version:   $Revision: 1.18 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -92,6 +92,8 @@ public:
     (Concept::SameDimension<InputImageDimension, KernelDimension>));
   itkConceptMacro(InputLessThanComparableCheck,
     (Concept::LessThanComparable<PixelType>));
+  itkConceptMacro(KernelGreaterThanIntCheck,
+    (Concept::GreaterThanComparable<typename TKernel::PixelType, int>));
   /** End concept checking */
 #endif
 

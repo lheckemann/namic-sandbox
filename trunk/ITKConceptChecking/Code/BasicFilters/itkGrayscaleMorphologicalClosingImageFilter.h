@@ -95,6 +95,8 @@ public:
     (Concept::LessThanComparable<PixelType>));
   itkConceptMacro(InputGreaterThanComparableCheck,
     (Concept::GreaterThanComparable<PixelType>));
+  itkConceptMacro(KernelGreaterThanIntCheck,
+    (Concept::GreaterThanComparable<typename TKernel::PixelType, int>));
   /** End concept checking */
 #endif
 
