@@ -31,21 +31,29 @@ ENDIF(NOT KWUtilities_INSTALL_LIB_DIR)
 
 SET(MRML_WRAP_CLASSES
   Object
+  Collection
   )
 
 SET(MRML_WRAP_SRCS wrap_MRMLTcl)
 
+# Construct the list of groups (cf. wrapMRMLTcl.cxx.in)
 FOREACH(c ${MRML_WRAP_CLASSES})
   SET(MRML_CLASS ${c})
+  SET(MRML_WRAP_CLASSES_GROUP "${MRML_WRAP_CLASSES_GROUP}\n    ${c},")
   CONFIGURE_FILE(${WrapMRML_SOURCE_DIR}/wrap_mrml.cxx.in
                  ${WrapMRML_BINARY_DIR}/wrap_mrml${c}.cxx @ONLY IMMEDIATE)
   CONFIGURE_FILE(${WrapMRML_SOURCE_DIR}/wrap_mrml.i.in
                  ${WrapMRML_BINARY_DIR}/wrap_mrml${c}.i @ONLY IMMEDIATE)
   SET(MRML_WRAP_SRCS ${MRML_WRAP_SRCS}  wrap_mrml${c})
 ENDFOREACH(c)
-CONFIGURE_FILE(${WrapMRML_SOURCE_DIR}/wrap_MRMLTcl.cxx
+# Finish the groups with a NULL
+SET(MRML_WRAP_CLASSES_GROUP "${MRML_WRAP_CLASSES_GROUP}\n    NULL")
+
+# Configure file that contains the list of wrapped objects:
+CONFIGURE_FILE(${WrapMRML_SOURCE_DIR}/wrap_MRMLTcl.cxx.in
                ${WrapMRML_BINARY_DIR}/wrap_MRMLTcl.cxx @ONLY IMMEDIATE)
 
+# Simply copy file:
 CONFIGURE_FILE(${WrapMRML_SOURCE_DIR}/wrap_MRMLTcl.i
                ${WrapMRML_BINARY_DIR}/wrap_MRMLTcl.i @ONLY IMMEDIATE)
 
