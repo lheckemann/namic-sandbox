@@ -199,8 +199,9 @@ struct Assignable
   itkConceptConstraintsMacro();
 };
 
-/** Concept requiring T to have operators < and <=.  (BOOST) */
-template <typename T>
+/** Concept requiring T1 to have operators < and <= with a right-hand operator
+    of type T2.  (BOOST) */
+template <typename T1, typename T2=T1>
 struct LessThanComparable
 {
   struct Constraints
@@ -210,14 +211,16 @@ struct LessThanComparable
       Detail::RequireBooleanExpression(a < b);
       Detail::RequireBooleanExpression(a <= b);
       }
-    T a, b;
+    T1 a;
+    T2 b;
   };
   
   itkConceptConstraintsMacro();
 };
 
-/** Concept requiring T to have operators > and >=.  (BOOST) */
-template <typename T>
+/** Concept requiring T1 to have operators > and >= with a right-hand operator
+    of type T2.  (BOOST) */
+template <typename T1, typename T2=T1>
 struct GreaterThanComparable
 {
   struct Constraints
@@ -227,14 +230,16 @@ struct GreaterThanComparable
       Detail::RequireBooleanExpression(a > b);
       Detail::RequireBooleanExpression(a >= b);
       }
-    T a, b;
+    T1 a;
+    T2 b;
   };
   
   itkConceptConstraintsMacro();
 };
 
-/** Concept requiring T to have operators == and != (BOOST) */
-template <typename T>
+/** Concept requiring T1 to have operators == and != with a right-hand operator
+    of type T2.  (BOOST) */
+template <typename T1, typename T2=T1>
 struct EqualityComparable
 {
   struct Constraints
@@ -244,14 +249,16 @@ struct EqualityComparable
       Detail::RequireBooleanExpression(a == b);
       Detail::RequireBooleanExpression(a != b);
       }
-    T a, b;
+    T1 a;
+    T2 b;
   };
   
   itkConceptConstraintsMacro();
 };
 
-/** Concept requiring T to have operators <, >, <=, >=, ==, !=. (BOOST) */
-template <typename T>
+/** Concept requiring T1 to have operators <, >, <=, >=, ==, != with a
+    right-hand operator of type T2. (BOOST) */
+template <typename T1, typename T2=T1>
 struct Comparable
 {
   struct Constraints
@@ -265,61 +272,98 @@ struct Comparable
       Detail::RequireBooleanExpression(a == b);
       Detail::RequireBooleanExpression(a != b);
       }
-    T a, b;
+    T1 a;
+    T2 b;
   };
   
   itkConceptConstraintsMacro();
 };
 
-/** Concept requiring T to have operators +, -, +=, -=. */
-template <typename T>
+/** Concept requiring T1 to have operators +, -, +=, -= in the form 
+    T1 op T2 = T3.  */
+template <typename T1, typename T2=T1, typename T3=T1>
 struct AdditiveOperators
 {
   struct Constraints
   {
     void constraints()
       {
-      a = b + b;
-      a = b - b;
-      a += b;
-      a -= b;
-      const_constraints(b);
-      }
-    void const_constraints(const T& c)
-      {
-      a = c + c;
-      a = c - c;
+      a = b + c;
+      a = b - c;
       a += c;
       a -= c;
+      const_constraints(b, c);
       }
-    T a, b;
+    void const_constraints(const T1& d, const T2& e)
+      {
+      a = d + e;
+      a = d - e;
+      a += e;
+      a -= e;
+      }
+    T3 a;
+    T1 b;
+    T2 c;
   };
   
   itkConceptConstraintsMacro();
 };
 
-/** Concept requiring T to have operators *, /, *=, /=. */
-template <typename T>
+/** Concept requiring T to have operators *, /, *=, /= in the form
+    T1 op T2 = T3. */
+template <typename T1, typename T2=T1, typename T3=T1>
 struct MultiplicativeOperators
 {
   struct Constraints
   {
     void constraints()
       {
-      a = b * b;
-      a = b / b;
-      a *= b;
-      a /= b;
-      const_constraints(b);
-      }
-    void const_constraints(const T& c)
-      {
-      a = c * c;
-      a = c / c;
+      a = b * c;
+      a = b / c;
       a *= c;
       a /= c;
+      const_constraints(b, c);
       }
-    T a, b;
+    void const_constraints(const T1& d, const T2& e)
+      {
+      a = d * e;
+      a = e / e;
+      a *= e;
+      a /= e;
+      }
+    T3 a;
+    T1 b;
+    T2 c;
+  };
+  
+  itkConceptConstraintsMacro();
+};
+
+/** Concept requiring T1 to have operators & and | in the form 
+    T1 op T2 = T3.  */
+template <typename T1, typename T2=T1, typename T3=T1>
+struct LogicalOperators
+{
+  struct Constraints
+  {
+    void constraints()
+      {
+      a = b & c;
+      a = b | c;
+      a &= c;
+      a |= c;
+      const_constraints(b, c);
+      }
+    void const_constraints(const T1& d, const T2& e)
+      {
+      a = d & e;
+      a = d | e;
+      a &= e;
+      a |= e;
+      }
+    T3 a;
+    T1 b;
+    T2 c;
   };
   
   itkConceptConstraintsMacro();
