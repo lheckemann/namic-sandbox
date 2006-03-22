@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkErodeObjectMorphologyImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2005/01/16 15:10:52 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2006/03/17 14:22:26 $
+  Version:   $Revision: 1.6 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -100,6 +100,11 @@ public:
     (Concept::Convertible<PixelType, typename TOutputImage::PixelType>));
   itkConceptMacro(IntConvertibleToOutputCheck,
     (Concept::Convertible<int, typename TOutputImage::PixelType>));
+  itkConceptMacro(OutputInputEqualityComparableCheck,
+    (Concept::EqualityComparable<typename TOutputImage::PixelType,
+                                 PixelType>));
+  itkConceptMacro(KernelGreaterThanIntCheck,
+    (Concept::GreaterThanComparable<typename TKernel::PixelType, int>));
   /** End concept checking */
 #endif
 
