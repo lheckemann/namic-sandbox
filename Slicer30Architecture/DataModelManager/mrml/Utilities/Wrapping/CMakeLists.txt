@@ -39,7 +39,7 @@ SET(MRML_WRAP_SRCS wrap_MRMLTcl)
 # Construct the list of groups (cf. wrapMRMLTcl.cxx.in)
 FOREACH(c ${MRML_WRAP_CLASSES})
   SET(MRML_CLASS ${c})
-  SET(MRML_WRAP_CLASSES_GROUP "${MRML_WRAP_CLASSES_GROUP}\n    ${c},")
+  SET(MRML_WRAP_CLASSES_GROUP "${MRML_WRAP_CLASSES_GROUP}\n    mrml${c},")
   CONFIGURE_FILE(${WrapMRML_SOURCE_DIR}/wrap_mrml.cxx.in
                  ${WrapMRML_BINARY_DIR}/wrap_mrml${c}.cxx @ONLY IMMEDIATE)
   CONFIGURE_FILE(${WrapMRML_SOURCE_DIR}/wrap_mrml.i.in
