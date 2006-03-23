@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkCurvatureFlowImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2003/10/07 16:42:27 $
-  Version:   $Revision: 1.34 $
+  Date:      $Date: 2006/03/23 15:26:09 $
+  Version:   $Revision: 1.35 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -138,11 +138,19 @@ public:
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(DoubleConvertibleToOutputCheck,
-                  (Concept::Convertible<double, PixelType>));
+    (Concept::Convertible<double, PixelType>));
   itkConceptMacro(OutputConvertibleToDoubleCheck,
-                  (Concept::Convertible<PixelType, double>));
+    (Concept::Convertible<PixelType, double>));
   itkConceptMacro(OutputMultiplicativeOperatorsCheck,
-                  (Concept::MultiplicativeOperators<PixelType>));
+    (Concept::MultiplicativeOperators<PixelType>));
+  itkConceptMacro(DoubleOutputMultiplicativeOperatorsCheck,
+    (Concept::MultiplicativeOperators<double, PixelType, PixelType>));
+  itkConceptMacro(IntOutputMultiplicativeOperatorsCheck,
+    (Concept::MultiplicativeOperators<int, PixelType, PixelType>));
+  itkConceptMacro(OutputLessThanDoubleCheck,
+    (Concept::LessThanComparable<PixelType, double>));
+  itkConceptMacro(OutputDoubleAdditiveOperatorsCheck,
+    (Concept::AdditiveOperators<PixelType, double>));
   /** End concept checking */
 #endif
 

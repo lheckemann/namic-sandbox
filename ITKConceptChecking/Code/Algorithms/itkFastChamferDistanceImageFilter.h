@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkFastChamferDistanceImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2003/09/10 14:28:30 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2006/03/23 15:26:09 $
+  Version:   $Revision: 1.5 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -147,6 +147,16 @@ public:
     (Concept::Convertible<float, PixelType>));
   itkConceptMacro(PixelTypeConvertibleToFloatCheck,
     (Concept::Convertible<PixelType, float>));
+  itkConceptMacro(PixelTypeGreaterThanFloatCheck,
+    (Concept::GreaterThanComparable<PixelType, float>));
+  itkConceptMacro(PixelTypeLessThanFloatCheck,
+    (Concept::LessThanComparable<PixelType, float>));
+  itkConceptMacro(PixelTypeFloatAdditiveOperatorsCheck,
+    (Concept::AdditiveOperators<PixelType, float, float>));
+  itkConceptMacro(FloatGreaterThanPixelTypeCheck,
+    (Concept::GreaterThanComparable<float, PixelType>));
+  itkConceptMacro(FloatLessThanPixelTypeCheck,
+    (Concept::LessThanComparable<float, PixelType>));
   /** End concept checking */
 #endif
 
