@@ -13,8 +13,8 @@
 "    <label>Registration Parameters</label>\n" \
 "    <description>Parameters used for registration</description>\n" \
 "    <integer>\n" \
-"      <flag>b</flag>\n" \
-"      <longflag>histogrambins</longflag>\n" \
+"      <flag>-b</flag>\n" \
+"      <longflag>--histogrambins</longflag>\n" \
 "      <description>Number of histogram bins to use for Mattes Mutual Information</description>\n" \
 "      <label>Histogram Bins</label>\n" \
 "      <default>30</default>\n" \
@@ -26,8 +26,8 @@
 "    </integer>\n" \
 "\n" \
 "    <integer>\n" \
-"      <flag>s</flag>\n" \
-"      <longflag>spatialsamples</longflag>\n" \
+"      <flag>-s</flag>\n" \
+"      <longflag>--spatialsamples</longflag>\n" \
 "      <description>Number of spatial samples to use in estimating Mattes Mutual Information</description>\n" \
 "      <label>Spatial Samples</label>\n" \
 "      <default>10000</default>\n" \
@@ -39,24 +39,24 @@
 "    </integer>\n" \
 "\n" \
 "    <string>\n" \
-"      <flag>i</flag>\n" \
-"      <longflag>iterations</longflag>\n" \
+"      <flag>-i</flag>\n" \
+"      <longflag>--iterations</longflag>\n" \
 "      <description>Comma separated list of iterations must have the same number of elements as learning rate</description>\n" \
 "      <label>Iterations</label>\n" \
 "      <default>100,100,100,200</default>\n" \
 "    </string>\n" \
 "\n" \
 "    <string>\n" \
-"      <flag>l</flag>\n" \
-"      <longflag>learningrate</longflag>\n" \
+"      <flag>-l</flag>\n" \
+"      <longflag>--learningrate</longflag>\n" \
 "      <description>Comma separated list of learning rates must have the same number of elements as iterations</description>\n" \
 "      <label>Learning Rates</label>\n" \
 "      <default>0.005,0.001,0.0005,0.0002</default>\n" \
 "    </string>\n" \
 "    \n" \
 "    <double>\n" \
-"      <longflag>translationscale</longflag>\n" \
-"      <flag>t</flag>\n" \
+"      <longflag>--translationscale</longflag>\n" \
+"      <flag>-t</flag>\n" \
 "      <description>Relative scale of translations to rotations, i.e. a value of 100 means 10mm = 1 degree</description>\n" \
 "      <label>Translation scaling</label>\n" \
 "      <default>100.0</default>\n" \
