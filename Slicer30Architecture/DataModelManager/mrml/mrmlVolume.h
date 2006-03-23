@@ -23,13 +23,8 @@ namespace mrml
 class MRMLCommon_EXPORT Volume : public Object
 {
 public:
-  typedef Volume Self;
-  typedef Object Superclass;
-  typedef SmartPointer< Self > Pointer;
-  typedef SmartPointer< const Self > ConstPointer;
-
   /** Method for defining the name of the class */
-  mrmlTypeMacro(Self, Superclass);
+  mrmlTypeMacro(Volume, Object);
 
   /** Method for creation through the object factory */
   mrmlNewMacro(Self);

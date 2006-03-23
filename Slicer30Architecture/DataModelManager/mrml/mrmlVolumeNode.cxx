@@ -77,7 +77,7 @@ VolumeNode::VolumeNode()
   this->LowerThreshold = 0; //FIXME: VTK_SHORT_MIN;
   this->UpperThreshold = 0; //FIXME: VTK_SHORT_MAX;
 
-  memset(this->FileDimensions,0,2*sizeof(int));
+  memset(this->FileDimensions,0,3*sizeof(int));
   memset(this->FileSpacing,0,3*sizeof(double));
 
   // ScanOrder can never be NULL

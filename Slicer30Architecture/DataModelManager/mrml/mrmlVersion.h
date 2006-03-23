@@ -47,17 +47,11 @@ namespace mrml
 class MRMLCommon_EXPORT Version : public Object 
 {
 public:
-  /** Standard class typedefs. */
-  typedef Version             Self;
-  typedef Object  Superclass;
-  typedef SmartPointer<Self>  Pointer;
-  typedef SmartPointer<const Self>  ConstPointer;
-  
-  /** Method for creation through the object factory. */
-  mrmlNewMacro(Self);  
-
   /** Standard part of every mrml Object. */
   mrmlTypeMacro(Version,Object);
+
+  /** Method for creation through the object factory. */
+  mrmlNewMacro(Self);  
 
   /** Return the version of mrml this object is a part of.
    * A variety of methods are included. GetMRMLSourceVersion returns a string

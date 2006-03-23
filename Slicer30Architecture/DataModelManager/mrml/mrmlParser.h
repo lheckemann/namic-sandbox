@@ -51,13 +51,8 @@ class ParserInternals;
 class MRMLCommon_EXPORT Parser : public XMLParser
 {
 public:
-  typedef Parser Self;
-  typedef Object Superclass;
-  typedef SmartPointer< Self > Pointer;
-  typedef SmartPointer< const Self > ConstPointer;
-
   /** Method for defining the name of the class */
-  mrmlTypeMacro(Self, Superclass);
+  mrmlTypeMacro(Parser, XMLParser);
 
   /** Method for creation through the object factory */
   mrmlNewMacro(Self);

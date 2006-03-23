@@ -17,6 +17,11 @@ INCLUDE_DIRECTORIES(
   ${MRML_BINARY_DIR}/Utilities
   )
 
+SET (LIBRARY_OUTPUT_PATH ${MRML_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all libraries.")
+SET (EXECUTABLE_OUTPUT_PATH ${MRML_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all executables.")
+MARK_AS_ADVANCED(LIBRARY_OUTPUT_PATH EXECUTABLE_OUTPUT_PATH)
+
+
 #-----------------------------------------------------------------------------
 # ITK build configuration options.
 OPTION(BUILD_SHARED_LIBS "Build MRML with shared libraries." OFF)

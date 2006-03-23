@@ -30,13 +30,8 @@ class Scene;
 class MRMLCommon_EXPORT Node : public Object
 {
 public:
-  typedef Node Self;
-  typedef Object Superclass;
-  typedef SmartPointer< Self > Pointer;
-  typedef SmartPointer< const Self > ConstPointer;
-
   // Description:
-  mrmlTypeMacro(Self, Superclass);
+  mrmlTypeMacro(Node, Object);
 
   // Description:
   // Set node attributes

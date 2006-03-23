@@ -51,17 +51,11 @@ namespace mrml
 class MRMLCommon_EXPORT FastMutexLock : public Object
 {
 public:
-  /** Standard class typedefs. */
-  typedef FastMutexLock       Self;
-  typedef Object  Superclass;
-  typedef SmartPointer<Self>  Pointer;
-  typedef SmartPointer<const Self>  ConstPointer;
-  
-  /** Method for creation. */
-  mrmlNewMacro(Self);
-
   /** Run-time type information. */
   mrmlTypeMacro(FastMutexLock,Object);
+
+  /** Method for creation. */
+  mrmlNewMacro(Self);
 
   /** Lock the mrmlFastMutexLock. */
   void Lock();

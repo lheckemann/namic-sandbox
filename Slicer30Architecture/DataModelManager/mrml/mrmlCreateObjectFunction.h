@@ -25,7 +25,7 @@ namespace mrml
 /** \class CreateObjectFunctionBase
  * \brief Define API for object creation callback functions.
  *
- * \ingroup ITKSystemObjects
+ * \ingroup SystemObjects
  */
 class CreateObjectFunctionBase: public Object
 {

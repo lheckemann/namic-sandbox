@@ -31,13 +31,8 @@ namespace mrml
 class MRMLCommon_EXPORT VolumeArchetypeStorageNode : public StorageNode
 {
 public:
-  typedef VolumeArchetypeStorageNode Self;
-  typedef StorageNode Superclass;
-  typedef SmartPointer< Self > Pointer;
-  typedef SmartPointer< const Self > ConstPointer;
-
   // Description:
-  mrmlTypeMacro(Self, Superclass);
+  mrmlTypeMacro(VolumeArchetypeStorageNode, StorageNode);
   mrmlNewMacro(Self);
 
   // Description:

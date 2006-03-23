@@ -22,7 +22,6 @@
 
 #include "mrmlLightObject.h"
 #include "mrmlEventObject.h"
-//#include "mrmlMetaDataDictionary.h"
 
 namespace mrml
 {
@@ -44,12 +43,9 @@ class Command;
 class MRMLCommon_EXPORT Object: public LightObject
 {
 public:
-  /** Smart pointer typedef support. */
-  typedef Object              Self;
-  typedef LightObject  Superclass;
-  typedef SmartPointer<Self>  Pointer;
-  typedef SmartPointer<const Self>  ConstPointer;
-  
+  /** Standard part of all mrml objects. */
+  mrmlTypeMacro(Object, LightObject);
+
   /** Method for creation through the object factory. */
   static Pointer New();
 
@@ -59,9 +55,6 @@ public:
    * This is useful in cases where an object has been cast back to a
    * base class. */
   virtual LightObject::Pointer CreateAnother() const;
-
-  /** Standard part of all mrml objects. */
-  mrmlTypeMacro(Object, LightObject);
 
   /** Turn debugging output on.  */
   virtual void DebugOn() const;

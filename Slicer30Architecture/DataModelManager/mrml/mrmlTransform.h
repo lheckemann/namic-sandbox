@@ -20,13 +20,8 @@ namespace mrml
 class MRMLCommon_EXPORT Transform : public Object
 {
 public:
-  typedef Transform Self;
-  typedef Object Superclass;
-  typedef SmartPointer< Self > Pointer;
-  typedef SmartPointer< const Self > ConstPointer;
-
   /** Method for defining the name of the class */
-  mrmlTypeMacro(Self, Superclass);
+  mrmlTypeMacro(Transform, Object);
 
   /** Method for creation through the object factory */
   mrmlNewMacro(Self);

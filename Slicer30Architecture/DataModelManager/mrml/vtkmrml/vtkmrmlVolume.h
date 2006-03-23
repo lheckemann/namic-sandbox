@@ -25,13 +25,8 @@ class vtkVolumeInternals;
 class vtkVolume : public Volume
 {
 public:
-  typedef vtkVolume Self;
-  typedef Volume Superclass;
-  typedef SmartPointer< Self > Pointer;
-  typedef SmartPointer< const Self > ConstPointer;
-
   /** Method for defining the name of the class */
-  mrmlTypeMacro(Self, Superclass);
+  mrmlTypeMacro(vtkVolume, Volume);
 
   /** Method for creation through the object factory */
   mrmlNewMacro(Self);

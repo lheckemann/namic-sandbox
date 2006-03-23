@@ -31,13 +31,8 @@ namespace mrml
 class MRMLCommon_EXPORT StorageNode : public Node
 {
 public:
-  typedef StorageNode Self;
-  typedef Node Superclass;
-  typedef SmartPointer< Self > Pointer;
-  typedef SmartPointer< const Self > ConstPointer;
-
   // Description:
-  mrmlTypeMacro(Self, Superclass);
+  mrmlTypeMacro(StorageNode, Node);
 
   // Description:
   // Set node attributes

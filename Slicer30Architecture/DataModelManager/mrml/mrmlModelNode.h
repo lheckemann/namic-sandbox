@@ -27,13 +27,8 @@ class ModelNodeInternals;
 class MRMLCommon_EXPORT ModelNode : public Node
 {
 public:
-  typedef ModelNode Self;
-  typedef Node Superclass;
-  typedef SmartPointer< Self > Pointer;
-  typedef SmartPointer< const Self > ConstPointer;
-
   // Description:
-  mrmlTypeMacro(Self, Superclass);
+  mrmlTypeMacro(ModelNode, Node);
 
   mrmlNewMacro(Self);
 
