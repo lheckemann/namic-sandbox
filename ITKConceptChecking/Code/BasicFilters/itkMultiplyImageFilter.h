@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMinimumImageFilter.h,v $
+  Module:    $RCSfile: itkMultiplyImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2006/03/16 13:35:01 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2006/01/23 17:55:48 $
+  Version:   $Revision: 1.22 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -14,61 +14,58 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkMinimumImageFilter_h
-#define __itkMinimumImageFilter_h
+#ifndef __itkMultiplyImageFilter_h
+#define __itkMultiplyImageFilter_h
 
 #include "itkBinaryFunctorImageFilter.h"
 
 namespace itk
 {
   
-/** \class MinimumImageFilter
- * \brief Implements a pixel-wise operator Min(a,b) between two images.
- *
- * The pixel values of the output image are the minimum between the 
- * corresponding pixels of the two input images.
+/** \class MultiplyImageFilter
+ * \brief Implements an operator for pixel-wise multiplication of two images.
  *
  * This class is parametrized over the types of the two 
  * input images and the type of the output image. 
  * Numeric conversions (castings) are done by the C++ defaults.
-+ * 
+ * 
  * \ingroup IntensityImageFilters  Multithreaded
  */
 namespace Function {  
 
 template< class TInput1, class TInput2, class TOutput>
-class Minimum
+class Mult
 {
 public:
-  Minimum() {}
-  ~Minimum() {}
-  bool operator!=( const Minimum & ) const
+  Mult() {}
+  ~Mult() {}
+  bool operator!=( const Mult & ) const
   {
     return false;
   }
-  bool operator==( const Minimum & other ) const
+  bool operator==( const Mult & other ) const
   {
     return !(*this != other);
   }
   inline TOutput operator()( const TInput1 & A, const TInput2 & B)
-  { return static_cast<TOutput>( (A < B)? A : B ); }
+  { return (TOutput)(A * B); }
 }; 
 }
 
 template <class TInputImage1, class TInputImage2, class TOutputImage>
-class ITK_EXPORT MinimumImageFilter :
+class ITK_EXPORT MultiplyImageFilter :
     public
 BinaryFunctorImageFilter<TInputImage1,TInputImage2,TOutputImage, 
-                         Function::Minimum< 
+                         Function::Mult< 
   typename TInputImage1::PixelType, 
   typename TInputImage2::PixelType,
   typename TOutputImage::PixelType>   >
 {
 public:
   /** Standard class typedefs. */
-  typedef MinimumImageFilter  Self;
+  typedef MultiplyImageFilter  Self;
   typedef BinaryFunctorImageFilter<TInputImage1,TInputImage2,TOutputImage, 
-                                   Function::Minimum< 
+                                   Function::Mult< 
     typename TInputImage1::PixelType, 
     typename TInputImage2::PixelType,
     typename TOutputImage::PixelType>   
@@ -81,24 +78,19 @@ public:
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
-  itkConceptMacro(Input1ConvertibleToInput2Check,
-    (Concept::Convertible<typename TInputImage1::PixelType,
-                          typename TInputImage2::PixelType>));
-  itkConceptMacro(Input2ConvertibleToOutputCheck,
-    (Concept::Convertible<typename TInputImage2::PixelType,
-                          typename TOutputImage::PixelType>));
-  itkConceptMacro(Input1LessThanInput2Check,
-    (Concept::LessThanComparable<typename TInputImage1::PixelType,
-                                 typename TInputImage2::PixelType>));
+  itkConceptMacro(Input1Input2OutputMultiplicativeOperatorsCheck,
+    (Concept::MultiplicativeOperators<typename TInputImage1::PixelType,
+                                      typename TInputImage2::PixelType,
+                                      typename TOutputImage::PixelType>));
   /** End concept checking */
 #endif
 
 protected:
-  MinimumImageFilter() {}
-  virtual ~MinimumImageFilter() {}
+  MultiplyImageFilter() {}
+  virtual ~MultiplyImageFilter() {}
 
 private:
-  MinimumImageFilter(const Self&); //purposely not implemented
+  MultiplyImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
 };

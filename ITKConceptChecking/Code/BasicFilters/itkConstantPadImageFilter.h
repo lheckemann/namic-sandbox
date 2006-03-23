@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkConstantPadImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2005/04/27 12:54:56 $
-  Version:   $Revision: 1.15 $
+  Date:      $Date: 2006/03/17 14:22:26 $
+  Version:   $Revision: 1.16 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -84,6 +84,8 @@ public:
     (Concept::Convertible<InputImagePixelType, OutputImagePixelType>));
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<ImageDimension, OutputImageDimension>));
+  itkConceptMacro(OutputOStreamWritableCheck,
+    (Concept::OStreamWritable<OutputImagePixelType>));
   /** End concept checking */
 #endif
 

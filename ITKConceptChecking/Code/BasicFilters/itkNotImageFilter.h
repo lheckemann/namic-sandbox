@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkNotImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2006/01/23 17:55:48 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2006/03/14 13:50:12 $
+  Version:   $Revision: 1.4 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -95,6 +95,8 @@ public:
   itkConceptMacro(InputConvertibleToOutputCheck,
     (Concept::Convertible<typename TInputImage::PixelType,
                           typename TOutputImage::PixelType>));
+  itkConceptMacro(InputNotOperatorCheck,
+    (Concept::NotOperator<typename TInputImage::PixelType>));
   /** End concept checking */
 #endif
 

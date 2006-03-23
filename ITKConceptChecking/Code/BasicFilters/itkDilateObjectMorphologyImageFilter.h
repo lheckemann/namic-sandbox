@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkErodeObjectMorphologyImageFilter.h,v $
+  Module:    $RCSfile: itkDilateObjectMorphologyImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2006/03/17 14:22:26 $
-  Version:   $Revision: 1.6 $
+  Date:      $Date: 2005/01/16 15:10:52 $
+  Version:   $Revision: 1.5 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -14,39 +14,39 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkErodeObjectMorphologyImageFilter_h
-#define __itkErodeObjectMorphologyImageFilter_h
+#ifndef __itkDilateObjectMorphologyImageFilter_h
+#define __itkDilateObjectMorphologyImageFilter_h
 
 #include "itkObjectMorphologyImageFilter.h"
 
 namespace itk {
 
-/** \class ErodeObjectMorphologyImageFilter
- * \brief Erosion of an object in an image
+/** \class DilateObjectMorphologyImageFilter
+ * \brief dilation of an object in an image
  *
- * Erosion of an image using binary morphology. 
+ * Dilate an image using binary morphology. 
  * Pixel values matching the object value are considered the 
- * "object" and all other pixels are "background". This is useful
+ * "foreground" and all other pixels are "background". This is useful
  * in processing mask images containing only one object.
  *
- * If the pixel covered by the center of the kernel has the pixel value
- * ObjectValue and the pixel is adjacent to a non-object valued pixel, then
+ * If a pixel's value is equal to the object
+ * value and the pixel is adjacent to a non-object valued pixel, then
  * the kernel is centered on the object-value pixel and neighboring 
- * pixels covered by the kernel are assigned the background value.  
+ * pixels covered by the kernel are assigned the object value.  
  * The structuring element is assumed to be composed of binary values
  * (zero or one). 
  *
- * \sa ObjectMorphologyImageFilter, BinaryFunctionErodeImageFilter
- * \sa BinaryErodeImageFilter
+ * \sa ObjectMorphologyImageFilter, ErodeObjectMorphologyImageFilter
+ * \sa BinaryDilateImageFilter
  * \ingroup ImageEnhancement MathematicalMorphologyImageFilters
  */
 template<class TInputImage, class TOutputImage, class TKernel>
-class ITK_EXPORT ErodeObjectMorphologyImageFilter : 
+class ITK_EXPORT DilateObjectMorphologyImageFilter : 
     public ObjectMorphologyImageFilter<TInputImage, TOutputImage, TKernel>
 {
 public:
   /** Standard class typedefs. */
-  typedef ErodeObjectMorphologyImageFilter Self;
+  typedef DilateObjectMorphologyImageFilter Self;
   typedef ObjectMorphologyImageFilter<TInputImage, TOutputImage, TKernel>
   Superclass;
   typedef SmartPointer<Self>        Pointer;
@@ -56,29 +56,22 @@ public:
   itkNewMacro(Self);  
 
   /** Runtime information support */
-  itkTypeMacro(ErodeObjectMorphologyImageFilter, ObjectMorphologyImageFilter);
-  
-  /** Declaration of Pixel Type */
+  itkTypeMacro(DilateObjectMorphologyImageFilter, ObjectMorphologyImageFilter);
+
+  /** duplicates from base class to avoid compiler warnings */
   typedef typename Superclass::PixelType PixelType;
 
-  /** Kernel typedef */
+  /** duplicates from base class to avoid compiler warnings */
   typedef TKernel KernelType;
-  
-  /** Kernel (structuring element) iterator */
-  typedef typename KernelType::ConstIterator KernelIteratorType ;
- 
+
+  /** duplicates from base class to avoid compiler warnings */
+  typedef typename KernelType::ConstIterator KernelIteratorType;
+
+  /** duplicates from base class to avoid compiler warnings */
   typedef NeighborhoodIterator<TOutputImage> OutputNeighborhoodIteratorType ;
 
-  /** Default boundary condition type */
   typedef typename Superclass::DefaultBoundaryConditionType 
-                                             DefaultBoundaryConditionType;
-
-
-  /** Set the value to be assigned to eroded pixels */
-  itkSetMacro(BackgroundValue, PixelType);
-
-  /** Get the value to be assigned to eroded pixels */
-  itkGetMacro(BackgroundValue, PixelType);
+                                             DefaultBoundaryConditionType ;
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -88,33 +81,32 @@ public:
 #endif
 
 protected:
-  ErodeObjectMorphologyImageFilter();
-  ~ErodeObjectMorphologyImageFilter() {};
+  DilateObjectMorphologyImageFilter();
+  ~DilateObjectMorphologyImageFilter() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   /** Apply the kernel to the neighborhood given.
    *
    * All values in neighborhood covered by the kernel will be set to the
-   * background value.  */
+   * object value.  */
   void Evaluate(OutputNeighborhoodIteratorType &nit,
                 const KernelType &kernel);
 
 private:
-  ErodeObjectMorphologyImageFilter(const Self&); //purposely not implemented
+  DilateObjectMorphologyImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  PixelType m_BackgroundValue;
+  // Default boundary condition for dilation filter, defaults to
+  // NumericTraits<PixelType>::NonpositiveMin()
+  DefaultBoundaryConditionType m_DilateBoundaryCondition;
 
-  // Default boundary condition for erosion filter, defaults to
-  // NumericTraits<PixelType>::max()
-  DefaultBoundaryConditionType m_ErodeBoundaryCondition;
 
 } ; // end of class
 
 } // end namespace itk
   
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkErodeObjectMorphologyImageFilter.txx"
+#include "itkDilateObjectMorphologyImageFilter.txx"
 #endif
 
 #endif

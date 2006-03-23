@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkBinaryMedianImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2003/09/10 14:28:44 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2006/03/16 13:35:01 $
+  Version:   $Revision: 1.4 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -114,6 +114,8 @@ public:
                           typename TOutputImage::PixelType>));
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
+  itkConceptMacro(InputOStreamWritableCheck,
+    (Concept::OStreamWritable<typename TInputImage::PixelType>));
   /** End concept checking */
 #endif
 

@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkBinaryThresholdImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2006/01/15 04:28:35 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2006/03/13 15:54:34 $
+  Version:   $Revision: 1.9 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -160,8 +160,12 @@ public:
   /** Begin concept checking */
   itkConceptMacro(OutputEqualityComparableCheck,
                   (Concept::EqualityComparable<OutputPixelType>));
-  itkConceptMacro(PixelTypeComparable,
+  itkConceptMacro(InputPixelTypeComparable,
                   (Concept::Comparable<InputPixelType>));
+  itkConceptMacro(InputOStreamWritableCheck,
+                  (Concept::OStreamWritable<InputPixelType>));
+  itkConceptMacro(OutputOStreamWritableCheck,
+                  (Concept::OStreamWritable<OutputPixelType>));
   /** End concept checking */
 #endif
 
