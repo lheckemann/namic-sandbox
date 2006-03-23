@@ -112,6 +112,8 @@ public:
     (Concept::EqualityComparable<OutputPixelType>));
   itkConceptMacro(UnsignedCharConvertibleToOutputCheck,
     (Concept::Convertible<unsigned char, OutputPixelType>));
+  itkConceptMacro(OutputIncrementDecrementOperatorsCheck,
+    (Concept::IncrementDecrementOperators<OutputPixelType>));
   /** End concept checking */
 #endif
 

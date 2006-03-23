@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkConnectedThresholdImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2005/06/15 03:57:23 $
-  Version:   $Revision: 1.15 $
+  Date:      $Date: 2006/03/17 14:22:25 $
+  Version:   $Revision: 1.16 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -132,6 +132,8 @@ public:
     (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
   itkConceptMacro(IntConvertibleToInputCheck,
     (Concept::Convertible<int, InputImagePixelType>));
+  itkConceptMacro(OutputOStreamWritableCheck,
+    (Concept::OStreamWritable<OutputImagePixelType>));
   /** End concept checking */
 #endif
 

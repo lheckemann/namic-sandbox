@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMinimumImageFilter.h,v $
+  Module:    $RCSfile: itkSubtractImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2006/03/16 13:35:01 $
-  Version:   $Revision: 1.7 $
+  Date:      $Date: 2006/01/23 17:55:48 $
+  Version:   $Revision: 1.24 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -14,92 +14,86 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkMinimumImageFilter_h
-#define __itkMinimumImageFilter_h
+#ifndef __itkSubtractImageFilter_h
+#define __itkSubtractImageFilter_h
 
 #include "itkBinaryFunctorImageFilter.h"
 
 namespace itk
 {
   
-/** \class MinimumImageFilter
- * \brief Implements a pixel-wise operator Min(a,b) between two images.
+/** \class SubtractImageFilter
+ * \brief Implements an operator for pixel-wise subtraction of two images.
  *
- * The pixel values of the output image are the minimum between the 
- * corresponding pixels of the two input images.
- *
+ * Output = Input1 - Input2.
+ * 
  * This class is parametrized over the types of the two 
  * input images and the type of the output image. 
  * Numeric conversions (castings) are done by the C++ defaults.
-+ * 
- * \ingroup IntensityImageFilters  Multithreaded
+ *
+ * \ingroup IntensityImageFilters Multithreaded
  */
 namespace Function {  
-
+  
 template< class TInput1, class TInput2, class TOutput>
-class Minimum
+class Sub2
 {
 public:
-  Minimum() {}
-  ~Minimum() {}
-  bool operator!=( const Minimum & ) const
+  Sub2() {}
+  ~Sub2() {}
+  bool operator!=( const Sub2 & ) const
   {
     return false;
   }
-  bool operator==( const Minimum & other ) const
+  bool operator==( const Sub2 & other ) const
   {
     return !(*this != other);
   }
   inline TOutput operator()( const TInput1 & A, const TInput2 & B)
-  { return static_cast<TOutput>( (A < B)? A : B ); }
+  { return (TOutput)(A - B); }
 }; 
 }
 
 template <class TInputImage1, class TInputImage2, class TOutputImage>
-class ITK_EXPORT MinimumImageFilter :
+class ITK_EXPORT SubtractImageFilter :
     public
 BinaryFunctorImageFilter<TInputImage1,TInputImage2,TOutputImage, 
-                         Function::Minimum< 
+                         Function::Sub2< 
   typename TInputImage1::PixelType, 
   typename TInputImage2::PixelType,
   typename TOutputImage::PixelType>   >
 {
 public:
   /** Standard class typedefs. */
-  typedef MinimumImageFilter  Self;
+  typedef SubtractImageFilter  Self;
   typedef BinaryFunctorImageFilter<TInputImage1,TInputImage2,TOutputImage, 
-                                   Function::Minimum< 
-    typename TInputImage1::PixelType, 
-    typename TInputImage2::PixelType,
-    typename TOutputImage::PixelType>   
-  > Superclass;
+                                   Function::Sub2< typename TInputImage1::PixelType, 
+                                                   typename TInputImage2::PixelType,
+                                                   typename TOutputImage::PixelType> >  Superclass;
   typedef SmartPointer<Self>   Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
+
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
-  itkConceptMacro(Input1ConvertibleToInput2Check,
-    (Concept::Convertible<typename TInputImage1::PixelType,
-                          typename TInputImage2::PixelType>));
-  itkConceptMacro(Input2ConvertibleToOutputCheck,
-    (Concept::Convertible<typename TInputImage2::PixelType,
-                          typename TOutputImage::PixelType>));
-  itkConceptMacro(Input1LessThanInput2Check,
-    (Concept::LessThanComparable<typename TInputImage1::PixelType,
-                                 typename TInputImage2::PixelType>));
+  itkConceptMacro(Input1Input2OutputAdditiveOperatorsCheck,
+    (Concept::AdditiveOperators<typename TInputImage1::PixelType,
+                                typename TInputImage2::PixelType,
+                                typename TOutputImage::PixelType>));
   /** End concept checking */
 #endif
 
 protected:
-  MinimumImageFilter() {}
-  virtual ~MinimumImageFilter() {}
+  SubtractImageFilter() {}
+  virtual ~SubtractImageFilter() {}
 
 private:
-  MinimumImageFilter(const Self&); //purposely not implemented
+  SubtractImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
+
 
 };
 

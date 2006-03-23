@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkConnectedComponentFunctorImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2005/12/13 16:59:38 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2006/03/17 14:22:25 $
+  Version:   $Revision: 1.3 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -145,6 +145,8 @@ public:
     (Concept::Convertible<OutputPixelType, long>));
   itkConceptMacro(UnsignedLongConvertibleToOutputCheck,
     (Concept::Convertible<unsigned long, OutputPixelType>));
+  itkConceptMacro(OutputIncrementDecrementOperatorsCheck,
+    (Concept::IncrementDecrementOperators<OutputPixelType>));
   /** End concept checking */
 #endif
 

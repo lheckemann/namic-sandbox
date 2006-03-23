@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkScalarConnectedComponentImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2006/01/15 04:28:36 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2006/03/22 16:26:45 $
+  Version:   $Revision: 1.4 $
 
      This software is distributed WITHOUT ANY WARRANTY; without even 
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
@@ -97,11 +97,13 @@ public:
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputEqualityComparableCheck,
-                  (Concept::EqualityComparable<InputPixelType>));
+    (Concept::EqualityComparable<InputPixelType>));
   itkConceptMacro(OutputEqualityComparableCheck,
-                  (Concept::EqualityComparable<typename TOutputImage::PixelType>));
+    (Concept::EqualityComparable<typename TOutputImage::PixelType>));
   itkConceptMacro(MaskEqualityComparableCheck,
-                  (Concept::EqualityComparable<typename TMaskImage::PixelType>));
+    (Concept::EqualityComparable<typename TMaskImage::PixelType>));
+  itkConceptMacro(OutputIncrementDecrementOperatorsCheck,
+    (Concept::IncrementDecrementOperators<typename TOutputImage::PixelType>));
   /** End concept checking */
 #endif
 
