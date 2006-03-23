@@ -14,6 +14,7 @@ Version:   $Revision: 1.11 $
 #include "mrmlScene.h"
 #include "mrmlParser.h"
 #include "mrmlNode.h"
+#include "mrmlObjectFactory.h"
 
 #include <mrmlsys/SystemTools.hxx>
 #include <mrmlsys/stl/string>
@@ -57,7 +58,7 @@ public:
     }
   std::map< std::string, int> UniqueIDByClass;
   std::vector< std::string > UniqueIDs;
-  std::vector< Node* > RegisteredNodeClasses;
+  std::vector< Node::Pointer > RegisteredNodeClasses;
   std::vector< std::string > RegisteredNodeTags;
 private:
   //vtkCollection *Collection;
@@ -555,7 +556,24 @@ const char* Scene::GetUniqueIDByClass(const char* className)
 //------------------------------------------------------------------------------
 Node* Scene::CreateNodeByClass(const char* className)
 {
-  return NULL;
+  Node* node;
+  for (unsigned int i=0; i<this->Internal->RegisteredNodeClasses.size(); i++) {
+    if (!strcmp(this->Internal->RegisteredNodeClasses[i]->GetNameOfClass(), className)) {
+      LightObject *o = this->Internal->RegisteredNodeClasses[i]->CreateAnother();
+      if(o) {
+        node = static_cast<Node *>(o);
+      }
+      break;
+    }
+  }
+  // non-registered nodes can have a registered factory
+  if (node == NULL) {
+    LightObject* ret = ObjectFactoryBase::CreateInstance(className); 
+    if(ret) {
+      node = static_cast<Node *>(ret);
+    }
+  }
+  return node;
 }
 
 //------------------------------------------------------------------------------

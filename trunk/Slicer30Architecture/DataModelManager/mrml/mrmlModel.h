@@ -23,13 +23,8 @@ namespace mrml
 class MRMLCommon_EXPORT Model : public Object
 {
 public:
-  typedef Model Self;
-  typedef Object Superclass;
-  typedef SmartPointer< Self > Pointer;
-  typedef SmartPointer< const Self > ConstPointer;
-
   // Description:
-  mrmlTypeMacro(Self, Superclass);
+  mrmlTypeMacro(Model, Object);
   mrmlNewMacro(Self);
 
 protected:

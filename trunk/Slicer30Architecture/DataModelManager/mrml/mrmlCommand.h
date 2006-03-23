@@ -22,7 +22,7 @@
 
 
 namespace mrml
-{
+{ 
 
 /** \class Command
  * \brief superclass for callback/observer methods
@@ -40,14 +40,8 @@ namespace mrml
 class MRMLCommon_EXPORT Command : public Object
 {
 public:
-  /** Standard class typedefs. */
-  typedef Command Self;
-  typedef Object Superclass;
-  typedef SmartPointer<Self>  Pointer;
-  typedef SmartPointer<const Self>  ConstPointer;
-
   /** Run-time type information (and related methods). */
-  mrmlTypeMacro(Self,Superclass);
+  mrmlTypeMacro(Command,Object);
 
   /** Abstract method that defines the action to be taken by the command. */
   virtual void Execute(Object *caller, const EventObject & event ) = 0;
@@ -85,16 +79,12 @@ public:
   typedef  void (T::*TMemberFunctionPointer)(Object*, const EventObject &);
   typedef  void (T::*TConstMemberFunctionPointer)(const Object*, const EventObject &);
     
-  /** Standard class typedefs. */
-  typedef MemberCommand         Self;
-  typedef SmartPointer<Self>  Pointer;
-  
-  /** Method for creation through the object factory. */
-  mrmlNewMacro(Self);
-  
   /** Run-time type information (and related methods). */
   mrmlTypeMacro(MemberCommand,Command);
 
+  /** Method for creation through the object factory. */
+  mrmlNewMacro(Self);
+  
   /**  Set the callback function along with the object that it will
    *  be invoked on. */
   void SetCallbackFunction(T* object,  
@@ -157,16 +147,12 @@ public:
   /** pointer to a member function that takes a Object* and the event */
   typedef  void (T::*TMemberFunctionPointer)(const EventObject &);
   
-  /** Standard class typedefs. */
-  typedef ReceptorMemberCommand         Self;
-  typedef SmartPointer<Self>  Pointer;
-  
-  /** Method for creation through the object factory. */
-  mrmlNewMacro(Self);
-  
   /** Run-time type information (and related methods). */
   mrmlTypeMacro(ReceptorMemberCommand,Command);
 
+  /** Method for creation through the object factory. */
+  mrmlNewMacro(Self);
+  
   /**  Set the callback function along with the object that it will
    *  be invoked on. */
   void SetCallbackFunction(T* object,  
@@ -221,10 +207,6 @@ class SimpleMemberCommand : public Command
 public:
   /** A method callback. */
   typedef  void (T::*TMemberFunctionPointer)(); 
-  
-  /** Standard class typedefs. */
-  typedef SimpleMemberCommand         Self;
-  typedef SmartPointer<Self>  Pointer;
   
   /** Run-time type information (and related methods). */
   mrmlTypeMacro(SimpleMemberCommand,Command);
@@ -284,10 +266,6 @@ public:
   /** A const member method callback. */
   typedef  void (T::*TMemberFunctionPointer)() const; 
 
-  /** Standard class typedefs. */
-  typedef SimpleConstMemberCommand         Self;
-  typedef SmartPointer<Self>  Pointer;
-  
   /** Run-time type information (and related methods). */
   mrmlTypeMacro(SimpleConstMemberCommand,Command);
 
@@ -349,10 +327,6 @@ public:
   typedef  void (*FunctionPointer)(Object*, const EventObject &, void*);
   typedef  void (*ConstFunctionPointer)(const Object*, const EventObject &, void*);
   typedef  void (*DeleteDataFunctionPointer)(void*);
-  
-  /** Standard class typedefs. */
-  typedef CStyleCommand         Self;
-  typedef SmartPointer<Self>  Pointer;
   
   /** Run-time type information (and related methods). */
   mrmlTypeMacro(CStyleCommand,Command);

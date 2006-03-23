@@ -46,12 +46,6 @@ class OverRideMap;
 class MRMLCommon_EXPORT ObjectFactoryBase : public Object
 {
 public:  
-  /** Standard class typedefs. */
-  typedef ObjectFactoryBase   Self;
-  typedef Object  Superclass;
-  typedef SmartPointer<Self>  Pointer;
-  typedef SmartPointer<const Self>  ConstPointer;
-  
   /** Run-time type information (and related methods). */
   mrmlTypeMacro(ObjectFactoryBase, Object);
 

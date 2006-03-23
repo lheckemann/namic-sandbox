@@ -508,8 +508,11 @@ virtual LightObject::Pointer CreateAnother(void) const \
 /** Macro used to add standard methods to all classes, mainly type
  * information. */
 #define mrmlTypeMacro(thisClass,superclass) \
-    virtual const char *GetNameOfClass() const \
-        {return #thisClass;} 
+  typedef thisClass Self; \
+  typedef superclass Superclass; \
+  typedef SmartPointer< Self > Pointer; \
+  typedef SmartPointer< const Self > ConstPointer; \
+  virtual const char *GetNameOfClass() const {return #thisClass;} 
 
 
 namespace mrml

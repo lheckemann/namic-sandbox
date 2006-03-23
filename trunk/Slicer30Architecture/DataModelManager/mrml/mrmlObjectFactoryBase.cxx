@@ -18,13 +18,8 @@
 
 =========================================================================*/
 #include "mrmlObjectFactoryBase.h"
-//#include "mrmlDynamicLoader.h"
-//#include "mrmlDirectory.h"
 #include "mrmlVersion.h"
 
-//#include <stdlib.h>
-//#include <ctype.h>
-//#include <algorithm>
 #include <map>
 #include <mrmlsys/Directory.hxx>
 
@@ -43,7 +38,7 @@ public:
   }  
 };
 static CleanUpObjectFactory CleanUpObjectFactoryGlobal;
-}
+} // end namespace
 
 
 
@@ -404,7 +399,7 @@ ObjectFactoryBase
   if ( strcmp(factory->GetMRMLSourceVersion(), 
               Version::GetMRMLSourceVersion()) != 0 )
     {
-    abort();
+    abort(); // FIXME
     //mrmlGenericOutputMacro(<< "Possible incompatible factory load:" 
     //                      << "\nRunning mrml version :\n" <<  Version::GetMRMLSourceVersion() 
     //                      << "\nLoaded factory version:\n" << factory->GetMRMLSourceVersion()
@@ -429,7 +424,7 @@ ObjectFactoryBase
   os << indent << "Factory DLL path: " << m_LibraryPath.c_str() << "\n";
   os << indent << "Factory description: " << this->GetDescription() << std::endl;
 
-  int num = static_cast<int>( m_OverrideMap->size() );
+  OverRideMap::size_type num = m_OverrideMap->size();
   os << indent << "Factory overides " << num << " classes:" << std::endl;
 
   indent = indent.GetNextIndent();

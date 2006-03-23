@@ -24,6 +24,7 @@ int main (int argc, char *argv[])
 
   // get input image in vtk format
   mrml::Node *node = mrml->GetNthNode(0); // GetNthVolume
+  node->Print(std::cout);
   mrml::VolumeNode *volNode = dynamic_cast<mrml::VolumeNode*>(node);
 
   mrml::vtkVolume::Pointer inData = mrml::vtkVolume::New();

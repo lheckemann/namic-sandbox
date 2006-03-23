@@ -57,7 +57,7 @@ void Collection::AddItem(Item i)
 }
 
 //------------------------------------------------------------------------------
-void Collection::RemoveAllItems()
+void Collection::Clear() //RemoveAllItems()
 {
   this->Internal->Collection.clear();
 }
@@ -74,6 +74,23 @@ void Collection::RemoveItem (unsigned long i)
   for( ; c < i; ++it, ++c);
   this->Internal->Collection.erase(it);
   assert( this->Internal->Collection.size() == size-1 );
+}
+
+//------------------------------------------------------------------------------
+unsigned long Collection::IsItemPresent(Item item)
+{
+  unsigned long r;
+  CollectionInternals::ObjectsList::iterator it = this->Internal->Collection.begin();
+  CollectionInternals::ObjectsList::iterator end = this->Internal->Collection.end();
+  while( it != end && *it != item)
+    {
+    ++it;
+    ++r;
+    }
+  if( it != end )
+    return r;
+
+  return (unsigned long)-1;
 }
 
 //------------------------------------------------------------------------------

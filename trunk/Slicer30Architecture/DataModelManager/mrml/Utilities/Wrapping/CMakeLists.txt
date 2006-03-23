@@ -1,7 +1,7 @@
 PROJECT(WrapMRML)
 
 FIND_PACKAGE(CableSwig REQUIRED)
-FIND_PACKAGE(TCL)
+FIND_PACKAGE(TCL REQUIRED)
 INCLUDE_DIRECTORIES(${MRML_SOURCE_DIR})
 INCLUDE_DIRECTORIES(${TCL_INCLUDE_PATH})
 INCLUDE_DIRECTORIES(${VTK_INCLUDE_DIRS} ${VTK_SOURCE_DIR})
@@ -72,7 +72,14 @@ IF(MRML_BUILD_UTILITY_LIBS)
     OUTPUT ${WrapMRML_BINARY_DIR}/swigrunTcl.cxx
     COMMAND ${CableSwig_cswig_EXE}
     ARGS -runtime -o ${WrapMRML_BINARY_DIR}/swigrunTcl.cxx -tcl
-    -c++ ${WrapMRML_BINARY_DIR}/swigrun.xml
+         -c++ ${WrapMRML_BINARY_DIR}/swigrun.xml
+    DEPENDS ${CableSwig_cswig_EXE} ${WrapMRML_BINARY_DIR}/swigrun.xml
+    )
+  ADD_CUSTOM_COMMAND(
+    OUTPUT ${WrapMRML_BINARY_DIR}/swigrunPython.cxx
+    COMMAND ${CableSwig_cswig_EXE}
+    ARGS -runtime -o ${WrapMRML_BINARY_DIR}/swigrunPython.cxx -python
+         -c++ ${WrapMRML_BINARY_DIR}/swigrun.xml
     DEPENDS ${CableSwig_cswig_EXE} ${WrapMRML_BINARY_DIR}/swigrun.xml
     )
 
@@ -85,9 +92,12 @@ IF(MRML_BUILD_UTILITY_LIBS)
     TARGET_LINK_LIBRARIES(SwigRuntimeTcl ${TCL_LIBRARY})
   ENDIF(TCL_LIBRARY_DEBUG)
 
+  ADD_LIBRARY(SwigRuntimePython ${WrapMRML_BINARY_DIR}/swigrunPython.cxx)
+
   IF(NOT KWUtilities_INSTALL_NO_RUNTIME)
     IF(BUILD_SHARED_LIBS)
-      INSTALL_TARGETS(${KWUtilities_INSTALL_LIB_DIR} RUNTIME_DIRECTORY ${KWUtilities_INSTALL_BIN_DIR} SwigRuntimeTcl)
+      INSTALL_TARGETS(${KWUtilities_INSTALL_LIB_DIR} RUNTIME_DIRECTORY
+        ${KWUtilities_INSTALL_BIN_DIR} SwigRuntimeTcl)
     ENDIF(BUILD_SHARED_LIBS)
   ENDIF(NOT KWUtilities_INSTALL_NO_RUNTIME)
 ENDIF(MRML_BUILD_UTILITY_LIBS)
@@ -136,7 +146,7 @@ FOREACH(src ${MRML_WRAP_SRCS})
   ADD_CUSTOM_COMMAND(
     OUTPUT ${WrapMRML_BINARY_DIR}/${src}.idx
     COMMAND ${CableSwig_cableidx_EXE}
-    ARGS \"${WrapMRML_BINARY_DIR}/${src}.xml\" \"${WrapMRML_BINARY_DIR}/${src}.idx\"
+    ARGS ${WrapMRML_BINARY_DIR}/${src}.xml ${WrapMRML_BINARY_DIR}/${src}.idx
     DEPENDS ${WrapMRML_BINARY_DIR}/${src}.xml
     )
 ENDFOREACH(src)
@@ -159,7 +169,7 @@ FOREACH(src ${MRML_WRAP_SRCS})
     COMMAND ${CableSwig_cswig_EXE}
     ARGS -I${CableSwig_DEFAULT_LIB}
          -I${CableSwig_DEFAULT_LIB}/tcl
-         -l\"${WrapMRML_BINARY_DIR}/${src}.i\"
+         -l${WrapMRML_BINARY_DIR}/${src}.i
          -noruntime -Cindex ${WrapMRML_BINARY_DIR}/master.idx ${IGNORE_WARNINGS}
          #-depend ${Bin}/${InputXml}.depend
          -o ${WrapMRML_BINARY_DIR}/${src}Tcl.cxx
@@ -176,7 +186,8 @@ TARGET_LINK_LIBRARIES(MRMLTcl mrml SwigRuntimeTcl)
 
 IF(NOT KWUtilities_INSTALL_NO_RUNTIME)
   IF(BUILD_SHARED_LIBS)
-    INSTALL_TARGETS(${KWUtilities_INSTALL_LIB_DIR} RUNTIME_DIRECTORY ${KWUtilities_INSTALL_BIN_DIR} MRMLTcl)
+    INSTALL_TARGETS(${KWUtilities_INSTALL_LIB_DIR} RUNTIME_DIRECTORY
+      ${KWUtilities_INSTALL_BIN_DIR} MRMLTcl)
   ENDIF(BUILD_SHARED_LIBS)
 ENDIF(NOT KWUtilities_INSTALL_NO_RUNTIME)
 
@@ -203,3 +214,4 @@ SET(MRML_CSWIG_PACKAGE_DIR "[file dirname [file dirname [info script]]]")
 CONFIGURE_FILE(${WrapMRML_SOURCE_DIR}/pkgIndex.tcl.in
                ${WrapMRML_BINARY_DIR}/InstallOnly/Hide/pkgIndex.tcl
                @ONLY IMMEDIATE)
+

@@ -48,7 +48,9 @@ int XMLParser::ParseFile(const char* file)
 
   mrmlsys_ios::ostringstream str;
   str << ifs.rdbuf();
-  return this->ParseString(str.str().c_str());
+  return this->InitializeParser() &&
+    this->ParseChunk(str.str().c_str(), str.str().size()) &&
+    this->CleanupParser();
 }
 
 //----------------------------------------------------------------------------
@@ -74,7 +76,7 @@ int XMLParser::InitializeParser()
 }
 
 //----------------------------------------------------------------------------
-int XMLParser::ParseChunk(const char* inputString, unsigned int length)
+int XMLParser::ParseChunk(const char* inputString, unsigned long length)
 {
   if ( !this->Parser )
     {
@@ -119,7 +121,7 @@ int XMLParser::CleanupParser()
 }
 
 //----------------------------------------------------------------------------
-int XMLParser::ParseBuffer(const char* buffer, unsigned int count)
+int XMLParser::ParseBuffer(const char* buffer, unsigned long count)
 {
   // Pass the buffer to the expat XML parser.
   if(!XML_Parse(static_cast<XML_Parser>(this->Parser), buffer, count, 0))

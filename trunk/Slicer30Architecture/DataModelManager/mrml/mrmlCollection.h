@@ -26,25 +26,25 @@ class CollectionInternals;
 class MRMLCommon_EXPORT Collection : public Object
 {
 public:
-  typedef Collection Self;
-  typedef Object Superclass;
-  typedef SmartPointer< Self > Pointer;
-  typedef SmartPointer< const Self > ConstPointer;
-
   // Description:
-  mrmlTypeMacro(Self, Superclass);
+  mrmlTypeMacro(Collection, Object);
   mrmlNewMacro(Self);
 
   typedef Object* Item;
   void AddItem(Item elem);
   void RemoveItem (unsigned long i);
-  void RemoveAllItems();
+  void Clear(); //RemoveAllItems();
 
   // Not garantee to be o(log(n)) in all std::list implementation
   unsigned long GetNumberOfItems();
   bool IsEmpty();
   Object* GetItemAsObject (unsigned long i);
 
+  unsigned long IsItemPresent(Item it);
+  /*
+   * Item Begin() const;
+   * Item GetNextItem() const;
+   */
 protected:
   Collection();
   ~Collection();

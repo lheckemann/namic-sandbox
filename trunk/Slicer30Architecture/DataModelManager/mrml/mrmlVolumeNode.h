@@ -35,13 +35,8 @@ class VolumeNodeInternals;
 class MRMLCommon_EXPORT VolumeNode : public Node
 {
 public:
-  typedef VolumeNode Self;
-  typedef Node Superclass;
-  typedef SmartPointer< Self > Pointer;
-  typedef SmartPointer< const Self > ConstPointer;
-
   // Description:
-  mrmlTypeMacro(Self, Superclass);
+  mrmlTypeMacro(VolumeNode, Node);
   mrmlNewMacro(Self);
 
   // Description:

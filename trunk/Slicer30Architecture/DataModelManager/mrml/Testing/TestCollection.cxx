@@ -1,6 +1,6 @@
 #include "mrmlCollection.h"
 
-int TestCollection(int argc, char *argv[])
+int TestCollection(int /*argc*/, char * /*argv*/[])
 {
   mrml::Collection::Pointer c = mrml::Collection::New();
   c->Print();
@@ -23,7 +23,7 @@ int TestCollection(int argc, char *argv[])
   if( nItems != 1 )
     return 1;
 
-  c->RemoveAllItems();
+  c->Clear(); //RemoveAllItems();
 
   nItems = c->GetNumberOfItems();
   if( nItems != 0 || !c->IsEmpty() )

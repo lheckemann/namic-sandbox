@@ -38,7 +38,7 @@ public:
    * errors, CleanupParser will report them.
    */
   virtual int InitializeParser();
-  virtual int ParseChunk(const char* inputString, unsigned int length);
+  virtual int ParseChunk(const char* inputString, unsigned long length);
   virtual int CleanupParser();
 
 protected:
@@ -81,7 +81,7 @@ protected:
   static int IsSpace(char c);  
   
   //! Send the given buffer to the XML parser.
-  virtual int ParseBuffer(const char* buffer, unsigned int count);
+  virtual int ParseBuffer(const char* buffer, unsigned long count);
   
   //! Send the given c-style string to the XML parser.
   int ParseBuffer(const char* buffer);

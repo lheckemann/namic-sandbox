@@ -22,13 +22,9 @@ namespace mrml
 class MRMLCommon_EXPORT vtkModel : public Model
 {
 public:
-  typedef vtkModel Self;
-  typedef Model Superclass;
-  typedef SmartPointer< Self > Pointer;
-  typedef SmartPointer< const Self > ConstPointer;
-
   // Description:
-  mrmlTypeMacro(Self, Superclass);
+  mrmlTypeMacro(vtkModel, Model);
+
   mrmlNewMacro(Self);
 
   vtkPolyData* GetPolyData();

@@ -61,13 +61,9 @@ class SceneInternals;
 class MRMLCommon_EXPORT Scene : public Object
 {
 public:
-  typedef Scene Self;
-  typedef Object Superclass;
-  typedef SmartPointer< Self > Pointer;
-  typedef SmartPointer< const Self > ConstPointer;
-
   // Description:
-  mrmlTypeMacro(Self, Superclass);
+  mrmlTypeMacro(Scene, Object);
+
   mrmlNewMacro(Self);
 
   // Filename should be file://path/file.xml
