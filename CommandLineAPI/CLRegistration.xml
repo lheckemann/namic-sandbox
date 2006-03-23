@@ -12,8 +12,8 @@
     <label>Registration Parameters</label>
     <description>Parameters used for registration</description>
     <integer>
-      <flag>b</flag>
-      <longflag>histogrambins</longflag>
+      <flag>-b</flag>
+      <longflag>--histogrambins</longflag>
       <description>Number of histogram bins to use for Mattes Mutual Information</description>
       <label>Histogram Bins</label>
       <default>30</default>
@@ -25,8 +25,8 @@
     </integer>
 
     <integer>
-      <flag>s</flag>
-      <longflag>spatialsamples</longflag>
+      <flag>-s</flag>
+      <longflag>--spatialsamples</longflag>
       <description>Number of spatial samples to use in estimating Mattes Mutual Information</description>
       <label>Spatial Samples</label>
       <default>10000</default>
@@ -38,24 +38,24 @@
     </integer>
 
     <string>
-      <flag>i</flag>
-      <longflag>iterations</longflag>
+      <flag>-i</flag>
+      <longflag>--iterations</longflag>
       <description>Comma separated list of iterations must have the same number of elements as learning rate</description>
       <label>Iterations</label>
       <default>100,100,100,200</default>
     </string>
 
     <string>
-      <flag>l</flag>
-      <longflag>learningrate</longflag>
+      <flag>-l</flag>
+      <longflag>--learningrate</longflag>
       <description>Comma separated list of learning rates must have the same number of elements as iterations</description>
       <label>Learning Rates</label>
       <default>0.005,0.001,0.0005,0.0002</default>
     </string>
     
     <double>
-      <longflag>translationscale</longflag>
-      <flag>t</flag>
+      <longflag>--translationscale</longflag>
+      <flag>-t</flag>
       <description>Relative scale of translations to rotations, i.e. a value of 100 means 10mm = 1 degree</description>
       <label>Translation scaling</label>
       <default>100.0</default>
