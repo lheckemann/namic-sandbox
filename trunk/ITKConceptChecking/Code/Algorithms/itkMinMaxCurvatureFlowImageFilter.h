@@ -120,6 +120,17 @@ public:
     (Concept::LessThanComparable<typename TOutputImage::PixelType>));
   itkConceptMacro(LongConvertibleToOutputCheck,
     (Concept::Convertible<long, typename TOutputImage::PixelType>));
+  itkConceptMacro(OutputDoubleComparableCheck,
+    (Concept::Comparable<typename TOutputImage::PixelType, double>));
+  itkConceptMacro(OutputDoubleMultiplicativeOperatorsCheck,
+    (Concept::MultiplicativeOperators<typename TOutputImage::PixelType,
+                                      double>));
+  itkConceptMacro(OutputGreaterThanUnsignedLongCheck,
+    (Concept::GreaterThanComparable<typename TOutputImage::PixelType,
+                                    unsigned long>));
+  itkConceptMacro(UnsignedLongOutputAditiveOperatorsCheck,
+    (Concept::AdditiveOperators<unsigned long,
+                                typename TOutputImage::PixelType>));
   /** End concept checking */
 #endif
 

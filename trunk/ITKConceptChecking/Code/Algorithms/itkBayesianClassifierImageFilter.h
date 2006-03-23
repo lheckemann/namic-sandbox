@@ -186,6 +186,9 @@ public:
     (Concept::HasNumericTraits<typename TPosteriorsPrecisionType>));
   itkConceptMacro(PriorsHasNumericTraitsCheck,
     (Concept::HasNumericTraits<typename TPriorsPrecisionType>));
+//  itkConceptMacro(InputPriorsPosteriorsMultiplicativeOperatorsCheck,
+//    (Concept::MultiplicativeOperators<typename InputPixelType::ValueType,
+//                                      PriorsPixelType, PosteriorsPixelType>));
   /** End concept checking */
 #endif
 

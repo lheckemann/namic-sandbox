@@ -153,6 +153,8 @@ public:
     (Concept::HasNumericTraits<InputPixelType>));
   itkConceptMacro(ProbabilityHasNumericTraitsCheck,
     (Concept::HasNumericTraits<typename TProbabilityPrecisionType>));
+  itkConceptMacro(DoublePlusInputCheck,
+    (Concept::AdditiveOperators<double, InputPixelType>));
   /** End concept checking */
 #endif
 

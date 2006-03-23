@@ -149,6 +149,10 @@ public:
     (Concept::Convertible<InputPixelType, unsigned int>));
   itkConceptMacro(IntConvertibleToOutputPixelType,
     (Concept::Convertible<int, OutputPixelType>));
+  itkConceptMacro(InputPlusIntCheck,
+    (Concept::AdditiveOperators<InputPixelType, int>));
+  itkConceptMacro(InputIncrementDecrementOperatorsCheck,
+    (Concept::IncrementDecrementOperators<InputPixelType>));
   /** End concept checking */
 #endif
 
