@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkTileImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2004/07/12 15:44:13 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2006/03/23 15:24:22 $
+  Version:   $Revision: 1.3 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -111,6 +111,8 @@ public:
                   (Concept::EqualityComparable<OutputPixelType>));
   itkConceptMacro(SameTypeCheck,
                   (Concept::SameType<InputPixelType, OutputPixelType>));
+  itkConceptMacro(OutputOStreamWritableCheck,
+                  (Concept::OStreamWritable<OutputPixelType>));
   /** End concept checking */
 #endif
 

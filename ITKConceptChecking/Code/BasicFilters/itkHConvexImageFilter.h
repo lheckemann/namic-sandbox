@@ -107,8 +107,8 @@ public:
     (Concept::EqualityComparable<InputImagePixelType>));
   itkConceptMacro(IntConvertibleToInputCheck,
     (Concept::Convertible<int, InputImagePixelType>));
-  itkConceptMacro(InputOStreamConvertibleCheck,
-    (Concept::OStreamConvertible<InputImagePixelType>));
+  itkConceptMacro(InputOStreamWritableCheck,
+    (Concept::OStreamWritable<InputImagePixelType>));
   /** End concept checking */
 #endif
 

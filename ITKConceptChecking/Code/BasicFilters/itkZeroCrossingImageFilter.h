@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkZeroCrossingImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2003/09/10 14:29:00 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2006/03/23 15:24:22 $
+  Version:   $Revision: 1.11 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -113,7 +113,9 @@ public:
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<ImageDimension, OutputImageDimension>));
   itkConceptMacro(InputComparableCheck,
-     (Concept::Comparable<InputImagePixelType>));
+    (Concept::Comparable<InputImagePixelType>));
+  itkConceptMacro(OutputOStreamWritableCheck,
+    (Concept::OStreamWritable<OutputImagePixelType>));
   /** End concept checking */
 #endif
 

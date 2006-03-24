@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkTwoOutputExampleImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2003/09/10 14:28:58 $
-  Version:   $Revision: 1.8 $
+  Date:      $Date: 2006/03/23 15:24:22 $
+  Version:   $Revision: 1.9 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -93,6 +93,8 @@ public:
   /** Begin concept checking */
   itkConceptMacro(ComparableCheck,
                   (Concept::Comparable<PixelType>));
+  itkConceptMacro(OStreamWritableCheck,
+                  (Concept::OStreamWritable<PixelType>));
   /** Begin concept checking */
 #endif
 
