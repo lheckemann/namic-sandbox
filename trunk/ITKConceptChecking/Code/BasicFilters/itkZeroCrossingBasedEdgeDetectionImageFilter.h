@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkZeroCrossingBasedEdgeDetectionImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2003/12/08 02:38:31 $
-  Version:   $Revision: 1.13 $
+  Date:      $Date: 2006/03/23 15:24:22 $
+  Version:   $Revision: 1.14 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -137,6 +137,8 @@ public:
     (Concept::SameDimension<ImageDimension, OutputImageDimension>));
   itkConceptMacro(SameTypeCheck,
     (Concept::SameType<InputImagePixelType, OutputImagePixelType>));
+  itkConceptMacro(OutputOStreamWritableCheck,
+    (Concept::OStreamWritable<OutputImagePixelType>));
   /** End concept checking */
 #endif
 

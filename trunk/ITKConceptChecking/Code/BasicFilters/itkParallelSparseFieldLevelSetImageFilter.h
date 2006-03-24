@@ -3,8 +3,8 @@
 Program:   Insight Segmentation & Registration Toolkit
 Module:    $RCSfile: itkParallelSparseFieldLevelSetImageFilter.h,v $
 Language:  C++
-Date:      $Date: 2004/01/07 02:17:59 $
-Version:   $Revision: 1.13 $
+Date:      $Date: 2006/03/22 16:26:43 $
+Version:   $Revision: 1.14 $
 
 Copyright (c) Insight Software Consortium. All rights reserved.
 See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -328,6 +328,8 @@ public:
                   (Concept::EqualityComparable<PixelType>));
   itkConceptMacro(DoubleConvertibleToOutputCheck,
                   (Concept::Convertible<double, PixelType>));
+  itkConceptMacro(OutputOStreamWritableCheck,
+                  (Concept::OStreamWritable<PixelType>));
   /** End concept checking */
 #endif
 

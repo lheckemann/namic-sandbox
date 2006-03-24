@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkVotingBinaryIterativeHoleFillingImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2005/12/09 13:27:54 $
-  Version:   $Revision: 1.2 $
+  Date:      $Date: 2006/03/23 15:24:22 $
+  Version:   $Revision: 1.3 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -134,6 +134,8 @@ public:
   /** Begin concept checking */
   itkConceptMacro(InputEqualityComparableCheck,
     (Concept::EqualityComparable<InputPixelType>));
+  itkConceptMacro(InputOStreamWritableeCheck,
+    (Concept::OStreamWritable<InputPixelType>));
   /** End concept checking */
 #endif
 

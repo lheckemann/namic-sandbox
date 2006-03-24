@@ -143,6 +143,8 @@ public:
     (Concept::EqualityComparable<OutputImagePixelType>));
   itkConceptMacro(InputHasNumericTraitsCheck,
     (Concept::HasNumericTraits<typename InputImagePixelType::ValueType>));
+  itkConceptMacro(OutputOStreamWritableCheck,
+    (Concept::OStreamWritable<OutputImagePixelType>));
   /** End concept checking */
 #endif
 

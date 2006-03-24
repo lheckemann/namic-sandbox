@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkVotingBinaryImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2004/11/21 02:29:10 $
-  Version:   $Revision: 1.4 $
+  Date:      $Date: 2006/03/23 15:24:22 $
+  Version:   $Revision: 1.5 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -113,6 +113,8 @@ public:
     (Concept::Convertible<InputPixelType, OutputPixelType>));
   itkConceptMacro(SameDimensionCheck,
     (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
+  itkConceptMacro(InputOStreamWritableCheck,
+    (Concept::OStreamWritable<InputPixelType>));
   /** End concept checking */
 #endif
 

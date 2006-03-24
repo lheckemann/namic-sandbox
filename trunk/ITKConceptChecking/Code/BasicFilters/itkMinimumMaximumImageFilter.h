@@ -100,6 +100,8 @@ public:
                   (Concept::LessThanComparable<PixelType>));
   itkConceptMacro(GreaterThanComparableCheck,
                   (Concept::GreaterThanComparable<PixelType>));
+  itkConceptMacro(OStreamWritableCheck,
+                  (Concept::OStreamWritable<PixelType>));
   /** End concept checking */
 #endif
 
