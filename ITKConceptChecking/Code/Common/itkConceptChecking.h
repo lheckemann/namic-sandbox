@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkConceptChecking.h,v $
   Language:  C++
-  Date:      $Date: 2006/03/14 15:43:55 $
-  Version:   $Revision: 1.16 $
+  Date:      $Date: 2006/03/24 16:01:27 $
+  Version:   $Revision: 1.17 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -339,7 +339,7 @@ struct MultiplicativeOperators
   itkConceptConstraintsMacro();
 };
 
-/** Concept requiring T1 to have operators & and | in the form 
+/** Concept requiring T1 to have operators &, |, and ^ in the form 
     T1 op T2 = T3.  */
 template <typename T1, typename T2=T1, typename T3=T1>
 struct LogicalOperators
@@ -350,20 +350,75 @@ struct LogicalOperators
       {
       a = b & c;
       a = b | c;
+      a = b ^ c;
       a &= c;
       a |= c;
+      a ^= c;
       const_constraints(b, c);
       }
     void const_constraints(const T1& d, const T2& e)
       {
       a = d & e;
       a = d | e;
+      a = d ^ e;
       a &= e;
       a |= e;
+      a ^= e;
       }
     T3 a;
     T1 b;
     T2 c;
+  };
+  
+  itkConceptConstraintsMacro();
+};
+
+/** Concept requiring T to have operator !.  */
+template <typename T>
+struct NotOperator
+{
+  struct Constraints
+  {
+    void constraints()
+      {
+      a = !a;
+      }
+    T a;
+  };
+  
+  itkConceptConstraintsMacro();
+};
+
+/** Concept requiring T to have operators ++ and --.  */
+template <typename T>
+struct IncrementDecrementOperators
+{
+  struct Constraints
+  {
+    void constraints()
+      {
+        a++;
+        a--;
+        ++a;
+        --a;
+      }
+    T a;
+  };
+  
+  itkConceptConstraintsMacro();
+};
+
+/** Concept requiring T to be writable to an ostream.  */
+template <typename T>
+struct OStreamWritable
+{
+  struct Constraints
+  {
+    void constraints()
+      {
+        std::cout << a;
+      }
+    T a;
   };
   
   itkConceptConstraintsMacro();
@@ -489,9 +544,11 @@ struct SameDimensionOrMinusOne
 {
   struct Constraints
   {
-    void f( Detail::UniqueType_unsigned_int<  D1 >  ) {};
-    void f( Detail::UniqueType_unsigned_int< D1-1 > ) {};
+    typedef Detail::UniqueType_unsigned_int< D1 > Type1;
+    typedef Detail::UniqueType_unsigned_int< D1-1 > Type2;
 
+    void f( Type1 ) {}
+    void f( Type2, int = 0 ) {}
 
     void constraints()
       {
