@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkFastMarchingImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2005/04/17 18:40:58 $
-  Version:   $Revision: 1.33 $
+  Date:      $Date: 2006/03/23 15:26:09 $
+  Version:   $Revision: 1.34 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -265,6 +265,8 @@ public:
     (Concept::Convertible<typename TSpeedImage::PixelType, double>));
   itkConceptMacro(DoubleConvertibleToLevelSetCheck,
     (Concept::Convertible<double, PixelType>));
+  itkConceptMacro(LevelSetOStreamWritableCheck,
+    (Concept::OStreamWritable<PixelType>));
   /** End concept checking */
 #endif
 

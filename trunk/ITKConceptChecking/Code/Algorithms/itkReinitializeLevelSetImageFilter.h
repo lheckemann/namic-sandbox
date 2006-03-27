@@ -124,6 +124,8 @@ public:
   /** Begin concept checking */
   itkConceptMacro(LevelSetDoubleAdditiveOperatorsCheck,
                   (Concept::AdditiveOperators<PixelType, double>));
+  itkConceptMacro(LevelSetOStreamWritableCheck,
+                  (Concept::OStreamWritable<PixelType>));
   /** End concept checking */
 #endif
 
