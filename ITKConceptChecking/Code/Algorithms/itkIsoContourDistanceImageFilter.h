@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkIsoContourDistanceImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2003/09/10 14:28:33 $
-  Version:   $Revision: 1.5 $
+  Date:      $Date: 2006/03/23 15:26:10 $
+  Version:   $Revision: 1.6 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -134,6 +134,10 @@ public:
     (Concept::Convertible<InputPixelType, PixelType>));
   itkConceptMacro(OutputAdditiveOperatorsCheck,
     (Concept::AdditiveOperators<PixelType>));
+  itkConceptMacro(InputOStreamWritableCheck,
+    (Concept::OStreamWritable<InputPixelType>));
+  itkConceptMacro(OutputOStreamWritableCheck,
+    (Concept::OStreamWritable<PixelType>));
   /** End concept checking */
 #endif
 

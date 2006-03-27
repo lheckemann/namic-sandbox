@@ -153,6 +153,8 @@ public:
     (Concept::AdditiveOperators<InputPixelType, int>));
   itkConceptMacro(InputIncrementDecrementOperatorsCheck,
     (Concept::IncrementDecrementOperators<InputPixelType>));
+  itkConceptMacro(OutputOStreamWritableCheck,
+    (Concept::OStreamWritable<OutputPixelType>));
   /** End concept checking */
 #endif
 

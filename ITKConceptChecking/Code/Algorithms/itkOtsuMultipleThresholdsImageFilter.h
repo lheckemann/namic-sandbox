@@ -109,6 +109,8 @@ public:
   /** Begin concept checking */
   itkConceptMacro(OutputComparableCheck,
     (Concept::Comparable<OutputPixelType>));
+  itkConceptMacro(OutputOStreamWritableCheck,
+    (Concept::OStreamWritable<OutputPixelType>));
   /** End concept checking */
 #endif
 
