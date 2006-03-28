@@ -68,6 +68,13 @@ SpectralClustering::SpectralClustering()
   m_SaveEigenvectors = 0;
 
 }
+SpectralClustering::~SpectralClustering()
+{
+  if ( m_EigenSystem )
+    {
+      delete m_EigenSystem;
+    }
+}
 
 void SpectralClustering
 ::PrintSelf(std::ostream& os, Indent indent) const
