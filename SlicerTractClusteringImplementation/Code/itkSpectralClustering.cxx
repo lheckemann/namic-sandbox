@@ -135,7 +135,7 @@ void SpectralClustering::GenerateData()
   typedef vnl_vector<double> VectorType;
   // create vector initialized to zero
   VectorType rowWeightSum(numberOfItemsToCluster,0);
-  int row, col;
+  unsigned int row, col;
   for (row = 0; row < numberOfItemsToCluster; row++)
     {
       for (col = 0; col < numberOfItemsToCluster; col++)
@@ -423,7 +423,7 @@ void SpectralClustering::GenerateData()
               similarity[idxChoice] = 0;
               
               // measure against centroids chosen so far
-              for (int idxCentroid = 0; idxCentroid < row; idxCentroid++)
+              for (unsigned int idxCentroid = 0; idxCentroid < row; idxCentroid++)
                 {
                   cent = centroids->GetMeasurementVector(idxCentroid);
 
@@ -432,7 +432,7 @@ void SpectralClustering::GenerateData()
                   // the surface of a sphere so we want angular
                   // separation between centroids => dot product.
                   double dot = 0;
-                  for (int idxComp = 0; 
+                  for (unsigned int idxComp = 0; 
                        idxComp < m_NumberOfEigenvectors; idxComp++)
                     {                  
                       dot += ev[idxComp]*cent[idxComp];
