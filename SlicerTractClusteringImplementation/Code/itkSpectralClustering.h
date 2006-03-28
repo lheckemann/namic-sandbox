@@ -148,7 +148,7 @@ class  SpectralClustering : public AffinityClustering
 
  protected:
   SpectralClustering();
-  ~SpectralClustering() {};
+  ~SpectralClustering();
 
   void PrintSelf(std::ostream& os, Indent indent) const;
 
