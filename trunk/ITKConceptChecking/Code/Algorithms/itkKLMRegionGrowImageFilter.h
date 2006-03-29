@@ -237,18 +237,6 @@ public:
   /** Type definition for the output image iterators.  */
   typedef ImageRegionIterator< TOutputImage >   OutputImageIterator;
 
-  /** The dimensions of the input image must equal those of the
-      output image. */
-  itkConceptMacro(SameDimension,
-    (Concept::SameDimension<itkGetStaticConstMacro(InputImageDimension),itkGetStaticConstMacro(OutputImageDimension)>));
-
-#if THIS_CONCEPT_FAILS_ON_GCC
-  /** The input pixel type must be the same as that of the output
-      image. */
-  itkConceptMacro(SameVectorDimension,
-    (Concept::SameDimension<itkGetStaticConstMacro(InputImageVectorDimension),itkGetStaticConstMacro(OutputImageVectorDimension)>));
-#endif
-
   /** type definition for the region label type. */
   typedef typename KLMSegmentationRegion::RegionLabelType RegionLabelType;
 
@@ -303,6 +291,16 @@ public:
   /** Begin concept checking */
   itkConceptMacro(InputHasNumericTraitsCheck,
     (Concept::HasNumericTraits<typename InputImagePixelType::ValueType>));
+  itkConceptMacro(SameDimension,
+    (Concept::SameDimension<itkGetStaticConstMacro(InputImageDimension),
+                            itkGetStaticConstMacro(OutputImageDimension)>));
+#if THIS_CONCEPT_FAILS_ON_GCC
+  /** The input pixel type must be the same as that of the output
+      image. */
+  itkConceptMacro(SameVectorDimension,
+    (Concept::SameDimension<itkGetStaticConstMacro(InputImageVectorDimension),
+                            itkGetStaticConstMacro(OutputImageVectorDimension)>));
+#endif
   /** End concept checking */
 #endif
 

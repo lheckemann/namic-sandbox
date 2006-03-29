@@ -122,9 +122,9 @@ public:
     (Concept::Convertible<long, typename TOutputImage::PixelType>));
   itkConceptMacro(OutputDoubleComparableCheck,
     (Concept::Comparable<typename TOutputImage::PixelType, double>));
-  itkConceptMacro(OutputDoubleMultiplicativeOperatorsCheck,
-    (Concept::MultiplicativeOperators<typename TOutputImage::PixelType,
-                                      double>));
+  itkConceptMacro(OutputDoubleMultiplyAndAssignOperatorCheck,
+    (Concept::MultiplyAndAssignOperator<typename TOutputImage::PixelType,
+                                        double>));
   itkConceptMacro(OutputGreaterThanUnsignedLongCheck,
     (Concept::GreaterThanComparable<typename TOutputImage::PixelType,
                                     unsigned long>));

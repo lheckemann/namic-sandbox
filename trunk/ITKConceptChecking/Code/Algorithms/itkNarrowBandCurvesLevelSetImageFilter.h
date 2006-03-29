@@ -135,7 +135,7 @@ public:
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(OutputHasNumericTraitsCheck,
-    (Concept::HasNumericTraits<typename TOutputPixelType>));
+    (Concept::HasNumericTraits<TOutputPixelType>));
   /** End concept checking */
 #endif
 

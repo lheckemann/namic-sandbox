@@ -175,20 +175,20 @@ public:
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(UnsignedIntConvertibleToLabelsCheck,
-    (Concept::Convertible<unsigned int, typename TLabelsType>));
+    (Concept::Convertible<unsigned int, TLabelsType>));
   itkConceptMacro(PosteriorsAdditiveOperatorsCheck,
-    (Concept::AdditiveOperators<typename TPosteriorsPrecisionType>));
+    (Concept::AdditiveOperators<TPosteriorsPrecisionType>));
   itkConceptMacro(IntConvertibleToPosteriorsCheck,
-    (Concept::Convertible<int, typename TPosteriorsPrecisionType>));
+    (Concept::Convertible<int, TPosteriorsPrecisionType>));
   itkConceptMacro(InputHasNumericTraitsCheck,
     (Concept::HasNumericTraits<typename InputPixelType::ValueType>));
   itkConceptMacro(PosteriorsHasNumericTraitsCheck,
-    (Concept::HasNumericTraits<typename TPosteriorsPrecisionType>));
+    (Concept::HasNumericTraits<TPosteriorsPrecisionType>));
   itkConceptMacro(PriorsHasNumericTraitsCheck,
-    (Concept::HasNumericTraits<typename TPriorsPrecisionType>));
-//  itkConceptMacro(InputPriorsPosteriorsMultiplicativeOperatorsCheck,
-//    (Concept::MultiplicativeOperators<typename InputPixelType::ValueType,
-//                                      PriorsPixelType, PosteriorsPixelType>));
+    (Concept::HasNumericTraits<TPriorsPrecisionType>));
+  itkConceptMacro(InputPriorsPosteriorsMultiplyOperatorCheck,
+    (Concept::MultiplyOperator<typename InputPixelType::ValueType,
+                               PriorsPixelType, PosteriorsPixelType>));
   /** End concept checking */
 #endif
 
