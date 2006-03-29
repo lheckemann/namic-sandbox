@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkNeighborhoodOperatorImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2005/05/13 17:15:34 $
-  Version:   $Revision: 1.31 $
+  Date:      $Date: 2006/03/22 16:26:42 $
+  Version:   $Revision: 1.32 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -135,8 +135,8 @@ public:
     (Concept::Convertible<OperatorValueType, OutputPixelType>));
   itkConceptMacro(InputConvertibleToOperatorCheck,
     (Concept::Convertible<InputPixelType, OperatorValueType>));
-  itkConceptMacro(OperatorMultiplicativeOperatorsCheck,
-    (Concept::MultiplicativeOperators<OperatorValueType>));
+  itkConceptMacro(OperatorMultiplyOperatorCheck,
+    (Concept::MultiplyOperator<OperatorValueType>));
   itkConceptMacro(OperatorAdditiveOperatorsCheck,
     (Concept::AdditiveOperators<OperatorValueType>));
   /** End concept checking */

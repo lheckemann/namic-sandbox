@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkComplexToModulusImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2006/01/23 17:55:47 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2006/03/19 04:36:56 $
+  Version:   $Revision: 1.5 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -45,7 +45,7 @@ public:
     return !(*this != other);
   }
   inline TOutput operator()( const TInput & A )
-  { return (TOutput)( sqrt( A.real() * A.real() + 
+  { return (TOutput)( vcl_sqrt(A.real() * A.real() + 
                             A.imag() * A.imag() ) ); }
 }; 
 }
@@ -72,8 +72,8 @@ public:
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
-  itkConceptMacro(InputMultiplicativeOperatorsCheck,
-    (Concept::MultiplicativeOperators<typename TInputImage::PixelType::value_type>));
+  itkConceptMacro(InputMultiplyOperatorCheck,
+    (Concept::MultiplyOperator<typename TInputImage::PixelType::value_type>));
   /** End concept checking */
 #endif
 

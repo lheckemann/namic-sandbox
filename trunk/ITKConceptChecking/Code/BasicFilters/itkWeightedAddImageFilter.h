@@ -130,6 +130,12 @@ public:
   /** Begin concept checking */
   itkConceptMacro(Input1HasNumericTraitsCheck,
     (Concept::HasNumericTraits<typename TInputImage1::PixelType>));
+  itkConceptMacro(Input1RealTypeMultiplyCheck,
+    (Concept::MultiplyOperator<typename TInputImage1::PixelType,
+                               RealType, RealType>));
+  itkConceptMacro(Input2RealTypeMultiplyCheck,
+    (Concept::MultiplyOperator<typename TInputImage2::PixelType,
+                               RealType, RealType>));
   /** End concept checking */
 #endif
 

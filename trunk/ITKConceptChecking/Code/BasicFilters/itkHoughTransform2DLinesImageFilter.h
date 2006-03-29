@@ -146,11 +146,11 @@ public:
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(IntConvertibleToOutputCheck,
-    (Concept::Convertible<int, typename TOutputPixelType>));
+    (Concept::Convertible<int, TOutputPixelType>));
   itkConceptMacro(InputGreaterThanFloatCheck,
     (Concept::GreaterThanComparable<PixelType, float>));
   itkConceptMacro(OutputPlusIntCheck,
-    (Concept::AdditiveOperators<typename TOutputPixelType, int>));
+    (Concept::AdditiveOperators<TOutputPixelType, int>));
   /** End concept checking */
 #endif
 

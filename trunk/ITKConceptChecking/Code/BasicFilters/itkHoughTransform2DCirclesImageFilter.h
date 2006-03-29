@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkHoughTransform2DCirclesImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2006/03/22 16:26:37 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2006/03/28 15:38:52 $
+  Version:   $Revision: 1.10 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -147,13 +147,13 @@ public:
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(IntConvertibleToOutputCheck,
-    (Concept::Convertible<int, typename TOutputPixelType>));
+    (Concept::Convertible<int, TOutputPixelType>));
   itkConceptMacro(InputGreaterThanDoubleCheck,
     (Concept::GreaterThanComparable<PixelType, double>));
   itkConceptMacro(OutputPlusIntCheck,
-    (Concept::AdditiveOperators<typename TOutputPixelType, int>));
+    (Concept::AdditiveOperators<TOutputPixelType, int>));
   itkConceptMacro(OutputDividedByIntCheck,
-    (Concept::MultiplicativeOperators<typename TOutputPixelType, int>));
+    (Concept::DivisionOperators<TOutputPixelType, int>));
   /** End concept checking */
 #endif
 

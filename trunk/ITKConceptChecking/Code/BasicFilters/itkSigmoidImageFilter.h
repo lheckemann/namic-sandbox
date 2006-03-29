@@ -180,7 +180,7 @@ public:
   itkConceptMacro(DoubleConvertibleToOutputCheck,
     (Concept::Convertible<double, OutputPixelType>));
   itkConceptMacro(OutputTimesDoubleCheck,
-    (Concept::MultiplicativeOperators<OutputPixelType, double>));
+    (Concept::MultiplyOperator<OutputPixelType, double>));
   itkConceptMacro(OutputDoubleAdditiveOperatorsCheck,
     (Concept::AdditiveOperators<OutputPixelType, OutputPixelType, double>));
   /** End concept checking */
