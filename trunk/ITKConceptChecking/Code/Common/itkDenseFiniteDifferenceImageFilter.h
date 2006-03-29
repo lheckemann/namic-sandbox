@@ -99,7 +99,7 @@ public:
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(OutputTimesDoubleCheck,
-    (Concept::MultiplicativeOperators<PixelType, double>));
+    (Concept::MultiplyOperator<PixelType, double>));
   itkConceptMacro(OutputAdditiveOperatorsCheck,
     (Concept::AdditiveOperators<PixelType>));
   itkConceptMacro(InputConvertibleToOutputCheck,
