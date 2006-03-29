@@ -247,8 +247,8 @@ public:
     (Concept::EqualityComparable<ScalarType>));
   itkConceptMacro(InputAdditiveOperatorsCheck,
     (Concept::AdditiveOperators<ScalarType>));
-  itkConceptMacro(DoubleInputMultiplicativeOperatorsCheck,
-    (Concept::MultiplicativeOperators<double, ScalarType, ScalarType>));
+  itkConceptMacro(DoubleInputMultiplyOperatorCheck,
+    (Concept::MultiplyOperator<double, ScalarType, ScalarType>));
   itkConceptMacro(InputLessThanComparableCheck,
     (Concept::LessThanComparable<ScalarType>));
   /** End concept checking */

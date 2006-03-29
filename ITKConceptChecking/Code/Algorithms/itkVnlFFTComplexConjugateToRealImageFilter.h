@@ -53,8 +53,8 @@ public:
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
-  itkConceptMacro(PixelUnsignedIntMultiplicativeOperatorsCheck,
-    (Concept::MultiplicativeOperators<typename TPixel, unsigned int>));
+  itkConceptMacro(PixelUnsignedIntDivisionOperatorsCheck,
+    (Concept::DivisionOperators<TPixel, unsigned int>));
   /** End concept checking */
 #endif
 

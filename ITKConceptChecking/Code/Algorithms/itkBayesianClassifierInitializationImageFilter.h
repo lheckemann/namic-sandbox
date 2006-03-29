@@ -145,14 +145,14 @@ public:
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
-  itkConceptMacro(InputMultiplicativeOperatorsCheck,
-    (Concept::MultiplicativeOperators<InputPixelType>));
+  itkConceptMacro(InputMultiplyOperatorCheck,
+    (Concept::MultiplyOperator<InputPixelType>));
   itkConceptMacro(DoubleConvertibleToProbabilityCheck,
-    (Concept::Convertible<double, typename TProbabilityPrecisionType>));
+    (Concept::Convertible<double, TProbabilityPrecisionType>));
   itkConceptMacro(InputHasNumericTraitsCheck,
     (Concept::HasNumericTraits<InputPixelType>));
   itkConceptMacro(ProbabilityHasNumericTraitsCheck,
-    (Concept::HasNumericTraits<typename TProbabilityPrecisionType>));
+    (Concept::HasNumericTraits<TProbabilityPrecisionType>));
   itkConceptMacro(DoublePlusInputCheck,
     (Concept::AdditiveOperators<double, InputPixelType>));
   /** End concept checking */

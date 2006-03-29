@@ -141,12 +141,12 @@ public:
     (Concept::Convertible<double, PixelType>));
   itkConceptMacro(OutputConvertibleToDoubleCheck,
     (Concept::Convertible<PixelType, double>));
-  itkConceptMacro(OutputMultiplicativeOperatorsCheck,
-    (Concept::MultiplicativeOperators<PixelType>));
-  itkConceptMacro(DoubleOutputMultiplicativeOperatorsCheck,
-    (Concept::MultiplicativeOperators<double, PixelType, PixelType>));
-  itkConceptMacro(IntOutputMultiplicativeOperatorsCheck,
-    (Concept::MultiplicativeOperators<int, PixelType, PixelType>));
+  itkConceptMacro(OutputDivisionOperatorsCheck,
+    (Concept::DivisionOperators<PixelType>));
+  itkConceptMacro(DoubleOutputMultiplyOperatorCheck,
+    (Concept::MultiplyOperator<double, PixelType, PixelType>));
+  itkConceptMacro(IntOutputMultiplyOperatorCheck,
+    (Concept::MultiplyOperator<int, PixelType, PixelType>));
   itkConceptMacro(OutputLessThanDoubleCheck,
     (Concept::LessThanComparable<PixelType, double>));
   itkConceptMacro(OutputDoubleAdditiveOperatorsCheck,
