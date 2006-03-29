@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkDivideImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2006/03/16 13:35:00 $
-  Version:   $Revision: 1.9 $
+  Date:      $Date: 2006/03/27 17:01:07 $
+  Version:   $Revision: 1.10 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -100,10 +100,10 @@ public:
   /** Begin concept checking */
   itkConceptMacro(IntConvertibleToInput2Check,
     (Concept::Convertible<int, typename TInputImage2::PixelType>));
-  itkConceptMacro(Input1Input2OutputMultiplicativeOperatorsCheck,
-    (Concept::MultiplicativeOperators<typename TInputImage1::PixelType,
-                                      typename TInputImage2::PixelType,
-                                      typename TOutputImage::PixelType>));
+  itkConceptMacro(Input1Input2OutputDivisionOperatorsCheck,
+    (Concept::DivisionOperators<typename TInputImage1::PixelType,
+                                typename TInputImage2::PixelType,
+                                typename TOutputImage::PixelType>));
   /** End concept checking */
 #endif
 

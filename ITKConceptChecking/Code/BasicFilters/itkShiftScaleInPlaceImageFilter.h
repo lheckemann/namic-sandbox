@@ -101,6 +101,10 @@ public:
   /** Begin concept checking */
   itkConceptMacro(InputHasNumericTraitsCheck,
                   (Concept::HasNumericTraits<InputImagePixelType>));
+  itkConceptMacro(InputPlusRealTypeCheck,
+                  (Concept::AdditiveOperators<InputImagePixelType, RealType, RealType>));
+  itkConceptMacro(RealTypeMultiplyOperatorCheck,
+                  (Concept::MultiplyOperator<RealType>));
   /** End concept checking */
 #endif
 

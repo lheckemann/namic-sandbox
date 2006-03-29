@@ -75,6 +75,8 @@ public:
   /** Begin concept checking */
   itkConceptMacro(InputHasNumericTraitsCheck,
                   (Concept::HasNumericTraits<typename TInputImage::PixelType>));
+  itkConceptMacro(RealTypeMultiplyOperatorCheck,
+                  (Concept::MultiplyOperator<typename NumericTraits<TInput>::RealType>));
   /** End concept checking */
 #endif
 
