@@ -1,9 +1,4 @@
-/* This is simple demonstration of how to use expat. This program
-   reads an XML document from standard input and writes a line with
-   the name of each element to standard output indenting child
-   elements by one tab stop more than their parent element.
-   It must be used with Expat compiled for UTF-8 output.
-*/
+/* Generate command line processing code from an xml description */
 
 #include <stdlib.h>
 #include <fstream>
@@ -12,17 +7,6 @@
 #include <vector>
 
 #include "GenerateCLP.h"
-
-#ifdef XML_LARGE_SIZE
-#if defined(XML_USE_MSC_EXTENSIONS) && _MSC_VER < 1400
-#define XML_FMT_INT_MOD "I64"
-#else
-#define XML_FMT_INT_MOD "ll"
-#endif
-#else
-#define XML_FMT_INT_MOD "l"
-#endif
-
 
 class CommandLineArg
 {
@@ -56,14 +40,18 @@ public:
   }
 };
 
-static CommandLineArg *current;
-
-static std::string lastTag;
-static std::string description;
-static std::vector<CommandLineArg> allArgs;
-static bool debug = false;
-
-void GenerateTCLAP(std::ofstream &);
+class ParserState
+{
+public:
+  std::vector<CommandLineArg> m_AllArgs;
+  std::string m_LastTag;
+  std::string m_Description;
+  CommandLineArg *m_Current;
+  bool m_Debug;
+  ParserState():m_Debug(false){};
+};
+  
+void GenerateTCLAP(std::ofstream &, ParserState &);
 void GenerateXML(std::ofstream &, std::string);
 
 void
@@ -81,10 +69,11 @@ s = s.substr(0, s.find_last_not_of(extraneousChars)+1);
 static void
 startElement(void *userData, const char *name, const char **atts)
 {
-  CommandLineArg *arg = current;
-  if (debug) std::cout << name << std::endl;
+  ParserState *ps = reinterpret_cast<ParserState *>(userData);
+  CommandLineArg *arg = ps->m_Current;
+  if (ps->m_Debug) std::cout << name << std::endl;
 
-  lastTag.clear();
+  ps->m_LastTag.clear();
 
   if (strcmp(name, "integer") == 0)
     {
@@ -134,73 +123,74 @@ startElement(void *userData, const char *name, const char **atts)
     arg = new CommandLineArg;
     arg->m_Type = "std::string";
     }
-  current = arg;
+  ps->m_Current = arg;
 }
 
 static void
-endElement(void *c, const char *name)
+endElement(void *userData, const char *name)
 {
-  CommandLineArg *arg = current;
+  ParserState *ps = reinterpret_cast<ParserState *>(userData);
+  CommandLineArg *arg = ps->m_Current;
 
   if (strcmp(name, "integer") == 0)
     {
-    allArgs.push_back(*arg);
-    current = 0;
+    ps->m_AllArgs.push_back(*arg);
+    ps->m_Current = 0;
     }
   else if (strcmp(name, "float") == 0)
     {
-    allArgs.push_back(*arg);
-    current = 0;
+    ps->m_AllArgs.push_back(*arg);
+    ps->m_Current = 0;
     }
   else if (strcmp(name, "double") == 0)
     {
-    allArgs.push_back(*arg);
-    current = 0;
+    ps->m_AllArgs.push_back(*arg);
+    ps->m_Current = 0;
     }
   else if (strcmp(name, "string") == 0)
     {
-    allArgs.push_back(*arg);
-    current = 0;
+    ps->m_AllArgs.push_back(*arg);
+    ps->m_Current = 0;
     }
   else if (strcmp(name, "boolean") == 0)
     {
-    allArgs.push_back(*arg);
-    current = 0;
+    ps->m_AllArgs.push_back(*arg);
+    ps->m_Current = 0;
     }
   else if (strcmp(name, "filename") == 0)
     {
-    allArgs.push_back(*arg);
-    current = 0;
+    ps->m_AllArgs.push_back(*arg);
+    ps->m_Current = 0;
     }
   else if (strcmp(name, "integer-vector") == 0)
     {
-    allArgs.push_back(*arg);
-    current = 0;
+    ps->m_AllArgs.push_back(*arg);
+    ps->m_Current = 0;
     }
   else if (strcmp(name, "float-vector") == 0)
     {
-    allArgs.push_back(*arg);
-    current = 0;
+    ps->m_AllArgs.push_back(*arg);
+    ps->m_Current = 0;
     }
   else if (strcmp(name, "double-vector") == 0)
     {
-    allArgs.push_back(*arg);
-    current = 0;
+    ps->m_AllArgs.push_back(*arg);
+    ps->m_Current = 0;
     }
   else if (strcmp(name, "flag") == 0)
     {
-    arg->m_ShortFlag = lastTag;
+    arg->m_ShortFlag = ps->m_LastTag;
     trimLeading(arg->m_ShortFlag);
     trimTrailing(arg->m_ShortFlag);
     }
   else if (strcmp(name, "longflag") == 0)
     {
-    arg->m_LongFlag = lastTag;
+    arg->m_LongFlag = ps->m_LastTag;
     trimLeading(arg->m_LongFlag);
     trimTrailing(arg->m_LongFlag);
     if (arg->m_Variable.empty())
       {
-      arg->m_Variable = std::string(lastTag);
+      arg->m_Variable = std::string(ps->m_LastTag);
       trimLeading(arg->m_Variable);
       trimTrailing(arg->m_Variable);
       trimLeading(arg->m_Variable,"-");
@@ -208,8 +198,8 @@ endElement(void *c, const char *name)
     }
   else if (strcmp(name, "name") == 0)
     {
-    if (debug) std::cout << "--------------------" << lastTag << std::endl;
-    arg->m_Variable = std::string(lastTag);
+    if (ps->m_Debug) std::cout << "--------------------" << ps->m_LastTag << std::endl;
+    arg->m_Variable = std::string(ps->m_LastTag);
     trimLeading(arg->m_Variable);
     trimTrailing(arg->m_Variable);
     }
@@ -217,23 +207,23 @@ endElement(void *c, const char *name)
     {
     if (arg)
       {
-      arg->m_Description = lastTag;
+      arg->m_Description = ps->m_LastTag;
       trimLeading(arg->m_Description);
       trimTrailing(arg->m_Description);
       }
     else
       {
-      if (description.empty())
+      if (ps->m_Description.empty())
         {
-        description = lastTag;
-        trimLeading(description);
-        trimTrailing(description);
+        ps->m_Description = ps->m_LastTag;
+        trimLeading(ps->m_Description);
+        trimTrailing(ps->m_Description);
         }
       }
     }
   else if (strcmp(name, "default") == 0)
     {
-    arg->m_Default = lastTag;
+    arg->m_Default = ps->m_LastTag;
     trimLeading(arg->m_Default);
     trimTrailing(arg->m_Default);
     }
@@ -242,11 +232,12 @@ endElement(void *c, const char *name)
 static void
 charData(void *userData, const char *s, int len)
 {
+  ParserState *ps = reinterpret_cast<ParserState *>(userData);
   if (len)
     {
     std::string str(s,len);
-    lastTag += str;
-    if (debug) std::cout << "|" << str << "|" << std::endl;
+    ps->m_LastTag += str;
+    if (ps->m_Debug) std::cout << "|" << str << "|" << std::endl;
     }
 }
 
@@ -255,12 +246,14 @@ main(int argc, char *argv[])
 {
 #include "GenerateCLP.hxx"
 
+  ParserState parserState;
+
   XML_Parser parser = XML_ParserCreate(NULL);
   int done;
   int depth = 0;
-  current = 0;
+  parserState.m_Current = 0;
 
-  XML_SetUserData(parser, static_cast<void *>(current));
+  XML_SetUserData(parser, static_cast<void *>(&parserState));
   XML_SetElementHandler(parser, startElement, endElement);
   XML_SetCharacterDataHandler(parser, charData);
   std::ifstream fin(InputXML.c_str(),std::ios::in);
@@ -281,7 +274,7 @@ main(int argc, char *argv[])
     done = true;
     if (XML_Parse(parser, XML, len, done) == 0) {
       fprintf(stderr,
-              "%s at line %" XML_FMT_INT_MOD "u\n",
+              "%s at line %d\n",
               XML_ErrorString(XML_GetErrorCode(parser)),
               XML_GetCurrentLineNumber(parser));
       return 1;
@@ -291,11 +284,11 @@ main(int argc, char *argv[])
   XML_ParserFree(parser);
 
 // Print each command line arg
-  std::cerr << "Found " << allArgs.size() << " command line arguments" << std::endl;
+  std::cerr << "Found " << parserState.m_AllArgs.size() << " command line arguments" << std::endl;
 // Do the hard stuff
   std::ofstream sout(OutputCxx.c_str(),std::ios::out);
   GenerateXML(sout, InputXML);
-  GenerateTCLAP(sout);
+  GenerateTCLAP(sout, parserState);
 
   return (EXIT_SUCCESS);
 }
@@ -333,7 +326,7 @@ void GenerateXML(std::ofstream &sout, std::string XMLFile)
 
 }
 
-void GenerateTCLAP(std::ofstream &sout)
+void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
 {
 
   // Add a swtich argument to produce xml output
@@ -343,22 +336,22 @@ void GenerateTCLAP(std::ofstream &sout)
   xmlSwitch.m_LongFlag = "--xml";
   xmlSwitch.m_Description = "Produce xml description of command line arguments";
   xmlSwitch.m_Default = "false";
-  allArgs.push_back (xmlSwitch);
+  ps.m_AllArgs.push_back (xmlSwitch);
   
   // First pass generates argument declarations
-  for (unsigned int i = 0; i < allArgs.size(); i++)
+  for (unsigned int i = 0; i < ps.m_AllArgs.size(); i++)
     {
-    if (allArgs[i].NeedsQuotes())
+    if (ps.m_AllArgs[i].NeedsQuotes())
       {
       sout << "    "
            << "std::string"
            << " "
-           << allArgs[i].m_Variable;
-      if (allArgs[i].NeedsTemp())
+           << ps.m_AllArgs[i].m_Variable;
+      if (ps.m_AllArgs[i].NeedsTemp())
         {
         sout << "Temp";
         }
-      if (allArgs[i].m_Default.empty())
+      if (ps.m_AllArgs[i].m_Default.empty())
         {    
         sout << ";"
              << std::endl;
@@ -367,17 +360,17 @@ void GenerateTCLAP(std::ofstream &sout)
         {
         sout << " = "
              << "\""
-             << allArgs[i].m_Default
+             << ps.m_AllArgs[i].m_Default
              << "\""
              << ";"
              << std::endl;
         }
-      if (allArgs[i].NeedsTemp())
+      if (ps.m_AllArgs[i].NeedsTemp())
         {
         sout << "    "
-             << allArgs[i].m_Type
+             << ps.m_AllArgs[i].m_Type
              << " "
-             << allArgs[i].m_Variable
+             << ps.m_AllArgs[i].m_Variable
              << ";"
              << std::endl;
         }
@@ -385,10 +378,10 @@ void GenerateTCLAP(std::ofstream &sout)
     else
       {
       sout << "    "
-           << allArgs[i].m_Type
+           << ps.m_AllArgs[i].m_Type
            << " "
-           << allArgs[i].m_Variable;
-      if (allArgs[i].m_Default.empty())
+           << ps.m_AllArgs[i].m_Variable;
+      if (ps.m_AllArgs[i].m_Default.empty())
         {    
         sout << ";"
              << std::endl;
@@ -396,7 +389,7 @@ void GenerateTCLAP(std::ofstream &sout)
       else
         {
         sout << " = "
-             << allArgs[i].m_Default
+             << ps.m_AllArgs[i].m_Default
              << ";"
              << std::endl;
         }
@@ -407,18 +400,18 @@ void GenerateTCLAP(std::ofstream &sout)
   sout << "  {" << std::endl;
   sout << "    TCLAP::CmdLine commandLine (" << std::endl;
   sout << "      argv[0]," << std::endl;
-  sout << "      " << "\"" << description << "\"," << std::endl;
+  sout << "      " << "\"" << ps.m_Description << "\"," << std::endl;
   sout << "      " << "\"$Revision: $\" );" << std::endl << std::endl;
   sout << "    itk::OStringStream msg;" << std::endl;
 
   // Second pass generates argument declarations
-  for (unsigned int i = 0; i < allArgs.size(); i++)
+  for (unsigned int i = 0; i < ps.m_AllArgs.size(); i++)
     {
     sout << "    msg.str(\"\");";
     sout << "msg << "
          << "\""
-         << allArgs[i].m_Description;
-    if (allArgs[i].m_Default.empty())
+         << ps.m_AllArgs[i].m_Description;
+    if (ps.m_AllArgs[i].m_Default.empty())
       {
       sout << "\";";
       }
@@ -426,8 +419,8 @@ void GenerateTCLAP(std::ofstream &sout)
       {
       sout << " (default: \" "
            << "<< "
-           << allArgs[i].m_Variable;
-      if (allArgs[i].NeedsTemp())
+           << ps.m_AllArgs[i].m_Variable;
+      if (ps.m_AllArgs[i].NeedsTemp())
         {
         sout << "Temp";
         }
@@ -437,37 +430,37 @@ void GenerateTCLAP(std::ofstream &sout)
            << std::endl;
       }
 
-    if (allArgs[i].m_Type == "bool")
+    if (ps.m_AllArgs[i].m_Type == "bool")
       {
       sout << "    TCLAP::SwitchArg "
-           << allArgs[i].m_Variable
+           << ps.m_AllArgs[i].m_Variable
            << "Arg" << "(\""
-           << allArgs[i].m_ShortFlag.replace(0,1,"")
+           << ps.m_AllArgs[i].m_ShortFlag.replace(0,1,"")
            << "\", \"" 
-           << allArgs[i].m_LongFlag.replace(0,2,"")
+           << ps.m_AllArgs[i].m_LongFlag.replace(0,2,"")
            << "\", msg.str(), "
-           << allArgs[i].m_Default.empty()
+           << ps.m_AllArgs[i].m_Default.empty()
            << ", "
            << "commandLine);"
            << std::endl << std::endl;
       }
     else
       {
-      if (allArgs[i].m_ShortFlag.empty() && allArgs[i].m_LongFlag.empty())
+      if (ps.m_AllArgs[i].m_ShortFlag.empty() && ps.m_AllArgs[i].m_LongFlag.empty())
         {
         sout << "    TCLAP::UnlabeledValueArg<";
-        sout << allArgs[i].m_Type;
+        sout << ps.m_AllArgs[i].m_Type;
         sout << "> "
-             << allArgs[i].m_Variable
+             << ps.m_AllArgs[i].m_Variable
              << "Arg" << "(\""
-             << allArgs[i].m_Variable
+             << ps.m_AllArgs[i].m_Variable
              << "\", msg.str(), "
-             << allArgs[i].m_Default.empty()
+             << ps.m_AllArgs[i].m_Default.empty()
              << ", "
-             << allArgs[i].m_Variable;
+             << ps.m_AllArgs[i].m_Variable;
         sout << ", "
              << "\""
-             << allArgs[i].m_Type
+             << ps.m_AllArgs[i].m_Type
              << "\""
              << ", "
              << "commandLine);"
@@ -476,31 +469,31 @@ void GenerateTCLAP(std::ofstream &sout)
       else
         {
         sout << "    TCLAP::ValueArg<";
-        if (allArgs[i].NeedsTemp())
+        if (ps.m_AllArgs[i].NeedsTemp())
           {
           sout << "std::string";
           }
         else
           {
-          sout << allArgs[i].m_Type;
+          sout << ps.m_AllArgs[i].m_Type;
           }
         sout << "> "
-             << allArgs[i].m_Variable
+             << ps.m_AllArgs[i].m_Variable
              << "Arg" << "(\""
-             << allArgs[i].m_ShortFlag.replace(0,1,"")
+             << ps.m_AllArgs[i].m_ShortFlag.replace(0,1,"")
              << "\", \"" 
-             << allArgs[i].m_LongFlag.replace(0,2,"")
+             << ps.m_AllArgs[i].m_LongFlag.replace(0,2,"")
              << "\", msg.str(), "
-             << allArgs[i].m_Default.empty()
+             << ps.m_AllArgs[i].m_Default.empty()
              << ", "
-             << allArgs[i].m_Variable;
-        if (allArgs[i].NeedsTemp())
+             << ps.m_AllArgs[i].m_Variable;
+        if (ps.m_AllArgs[i].NeedsTemp())
           {
           sout << "Temp";
           }
         sout << ", "
              << "\""
-             << allArgs[i].m_Type
+             << ps.m_AllArgs[i].m_Type
              << "\""
              << ", "
              << "commandLine);"
@@ -511,24 +504,24 @@ void GenerateTCLAP(std::ofstream &sout)
   sout << "    commandLine.parse ( argc, (char**) argv );" << std::endl;
   
   // Third pass generates access to arguments
-  for (unsigned int i = 0; i < allArgs.size(); i++)
+  for (unsigned int i = 0; i < ps.m_AllArgs.size(); i++)
     {
     sout << "    "
-         << allArgs[i].m_Variable;
-    if (allArgs[i].NeedsTemp())
+         << ps.m_AllArgs[i].m_Variable;
+    if (ps.m_AllArgs[i].NeedsTemp())
       {
       sout << "Temp";
       }
     sout << " = "
-         << allArgs[i].m_Variable
+         << ps.m_AllArgs[i].m_Variable
          << "Arg.getValue();"
          << std::endl;
     }
 
 // Finally, for any arrays, split the strings into words
-  for (unsigned int i = 0; i < allArgs.size(); i++)
+  for (unsigned int i = 0; i < ps.m_AllArgs.size(); i++)
     {
-    if (allArgs[i].NeedsTemp())
+    if (ps.m_AllArgs[i].NeedsTemp())
       {
       sout << "      {" << std::endl;
       sout << "      std::vector<std::string> words;"
@@ -536,7 +529,7 @@ void GenerateTCLAP(std::ofstream &sout)
       sout << "      std::string sep(\",\");"
            << std::endl;
       sout << "      splitString(" 
-           << allArgs[i].m_Variable
+           << ps.m_AllArgs[i].m_Variable
            << "Temp"
            << ", "
            << "sep, "
@@ -547,8 +540,8 @@ void GenerateTCLAP(std::ofstream &sout)
       sout << "        {"
            << std::endl;
       sout << "        " 
-           << allArgs[i].m_Variable << ".push_back("
-           << allArgs[i].m_StringToType
+           << ps.m_AllArgs[i].m_Variable << ".push_back("
+           << ps.m_AllArgs[i].m_StringToType
            << "(words[j].c_str()));"
            << std::endl;
       sout << "        }"
