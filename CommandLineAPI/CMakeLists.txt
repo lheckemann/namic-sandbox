@@ -21,6 +21,9 @@ cli4cpp-0.3/src/Option.cpp
 cli4cpp-0.3/src/Options.cpp
 )
 
-ADD_EXECUTABLE ( CLRegistration ${SOURCE})
-TARGET_LINK_LIBRARIES ( CLRegistration ITKIO ITKCommon ITKBasicFilters ITKAlgorithms ITKNumerics ITKStatistics)
+SET ( GENERATECLP_SOURCE GenerateCLP.cxx
+)
+
+ADD_EXECUTABLE ( GenerateCLP ${GENERATECLP_SOURCE})
+TARGET_LINK_LIBRARIES ( GenerateCLP ITKEXPAT)
 
