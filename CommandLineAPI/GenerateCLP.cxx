@@ -5,16 +5,13 @@
    It must be used with Expat compiled for UTF-8 output.
 */
 
-#include <itkMacro.h>
 #include <stdlib.h>
-#include <iostream>
 #include <fstream>
 #include "expat.h"
 #include <string>
 #include <vector>
-#include <algorithm>
 
-#include "tclap/CmdLine.h"
+#include "GenerateCLP.h"
 
 #ifdef XML_LARGE_SIZE
 #if defined(XML_USE_MSC_EXTENSIONS) && _MSC_VER < 1400
@@ -68,23 +65,6 @@ static bool debug = false;
 
 void GenerateTCLAP(std::ofstream &);
 void GenerateXML(std::ofstream &, std::string);
-
-void
-splitString (std::string &text,
-             std::string &separators,
-             std::vector<std::string> &words)
-{
-  int n = text.length();
-  int start, stop;
-  start = text.find_first_not_of(separators);
-  while ((start >= 0) && (start < n))
-    {
-    stop = text.find_first_of(separators, start);
-    if ((stop < 0) || (stop > n)) stop = n;
-    words.push_back(text.substr(start, stop - start));
-    start = text.find_first_not_of(separators, stop+1);
-    }
-}
 
 void
 trimLeading(std::string& s, char* extraneousChars = " \t\n")
@@ -273,7 +253,7 @@ charData(void *userData, const char *s, int len)
 int
 main(int argc, char *argv[])
 {
-#include "GenerateCLP.h"
+#include "GenerateCLP.hxx"
 
   XML_Parser parser = XML_ParserCreate(NULL);
   int done;
