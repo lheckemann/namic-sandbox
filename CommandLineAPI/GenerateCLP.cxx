@@ -244,7 +244,7 @@ charData(void *userData, const char *s, int len)
 int
 main(int argc, char *argv[])
 {
-#include "GenerateCLP.hxx"
+#include "GenerateCLP.clp"
 
   ParserState parserState;
 
