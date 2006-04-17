@@ -45,6 +45,7 @@ class UnlabeledValueArg : public ValueArg<T>
 
   // If compiler has two stage name lookup (as gcc >= 3.4 does)
   // this is requried to prevent undef. symbols
+#ifndef __BORLANDC__
   using ValueArg<T>::_ignoreable;
   using ValueArg<T>::_hasBlanks;
   using ValueArg<T>::_extractValue;
@@ -53,7 +54,7 @@ class UnlabeledValueArg : public ValueArg<T>
   using ValueArg<T>::_description;
   using ValueArg<T>::_alreadySet;
   using ValueArg<T>::toString;
-
+#endif
   public:
 
     /**
