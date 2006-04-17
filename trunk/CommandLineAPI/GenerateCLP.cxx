@@ -1,6 +1,7 @@
 /* Generate command line processing code from an xml description */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <fstream>
 #include "expat.h"
 #include <string>
