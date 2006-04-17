@@ -21,15 +21,15 @@
 #include "JSONHelp.h"
 #include "XMLHelp.h"
 
-#define USE_TCLAP 0
-#define USE_CLI 1
+#define USE_TCLAP 1
+#define USE_CLI 0
 #define USE_KWSYS 0
 #define USE_METACOMMAND 0
 
 
 #include "cli/CLI.h"
 #include "tclap/CmdLine.h"
-using namespace TCLAP;
+
 #include <metaCommand.h>
 
 #if USE_KWSYS
@@ -177,59 +177,7 @@ int main ( int argc, const char* argv[] )
 
 
 #if USE_TCLAP
-  // This is the TCLAP version
-  try
-    {
-    CmdLine cl ( "CLRegistration",
-                 "CLRegistration registers 2 signed short volumes",
-                 "$Revision: $" );
-    
-    msg.str ( "" ); msg << "Number of histogram bins (default: " << HistogramBins << ")";
-    ValueArg<int> HistogramBinsArg ( "b", "histogrambins", msg.str(), false, HistogramBins, "integer", cl );
-    
-    msg.str ( "" ); msg << "Random seed (default: " << RandomSeed << ")";
-    ValueArg<int> RandomSeedArg ( "d", "randomseed", msg.str(), false, RandomSeed, "int", cl );
-
-    msg.str ( "" ); msg << "GradientMagnitudeTolerance (default: " << GradientMagnitudeTolerance << ")";
-    ValueArg<double> GradToleranceArg ( "g", "gradtolerance", msg.str(), false, GradientMagnitudeTolerance, "double", cl );
-
-    msg.str ( "" ); msg << "Number of iterations seperated by commas, e.g. 100,200,300 (default: " << Iterations[0] << ")";
-    ValueArg<string> IterationsArg ( "i", "iterations", msg.str(), false, "100,100", "int[,int]", cl );
-
-    msg.str ( "" ); msg << "Learning rate (default: " << LearningRate[0] << ")";
-    ValueArg<string> LearningRateArg ( "l", "learningrate", msg.str(), false, "0.05,0.005", "double[,double]", cl );
-
-    msg.str ( "" ); msg << "Number of spatial samples (default: " << SpatialSamples << ")";
-    ValueArg<int> SpatialSamplesArg ( "s", "spatialsamples", msg.str(), false, SpatialSamples, "int", cl );
-
-    msg.str ( "" ); msg << "Translation scaling for optimizer (default: " << TranslationScale << ")";
-    ValueArg<float> TranslationScaleArg ( "t", "translationscale", msg.str(), false, TranslationScale, "float", cl );
-
-    msg.str ( "" ); msg << "Calculate initial transform (default: " << DoInitializeTransform << ")";   
-    SwitchArg DoInitializeTransformArg ( "u", "noinitializetransform", msg.str(), DoInitializeTransform, cl );
-    
-    UnlabeledValueArg<string> FixedImageArg ( "fixed", "Fixed image filename", true, "", "filename", cl );
-    UnlabeledValueArg<string> MovingImageArg ( "moving", "Moving image filename", true, "", "filename", cl );
-    UnlabeledValueArg<string> ResampledImageArg ( "resampled", "Resampled image filename", true, "", "filename", cl );
-    cl.parse ( argc, (char**) argv );
-    
-    HistogramBins = HistogramBinsArg.getValue();
-    DoInitializeTransform = DoInitializeTransformArg.getValue();
-    Iterations = Parse<unsigned int> ( IterationsArg.getValue() );
-    LearningRate = Parse<double> ( LearningRateArg.getValue() );
-    RandomSeed = RandomSeedArg.getValue();
-    SpatialSamples = SpatialSamplesArg.getValue();
-    TranslationScale = TranslationScaleArg.getValue();
-    GradientMagnitudeTolerance = GradToleranceArg.getValue();
-
-    fixedImageFileName = FixedImageArg.getValue();
-    movingImageFileName = MovingImageArg.getValue();
-    resampledImageFileName = ResampledImageArg.getValue();
-    
-  } catch ( ArgException e ) {
-    cerr << "error: " << e.error() << " for arg " << e.argId() << endl;
-    exit ( EXIT_FAILURE );
-  }
+#include "CLRegistration.clp"
 #endif
 
 #if USE_CLI

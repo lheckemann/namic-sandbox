@@ -124,6 +124,11 @@ startElement(void *userData, const char *name, const char **atts)
     arg = new CommandLineArg;
     arg->m_Type = "std::string";
     }
+  else if (strcmp(name, "image") == 0)
+    {
+    arg = new CommandLineArg;
+    arg->m_Type = "std::string";
+    }
   ps->m_Current = arg;
 }
 
@@ -159,6 +164,11 @@ endElement(void *userData, const char *name)
     ps->m_Current = 0;
     }
   else if (strcmp(name, "filename") == 0)
+    {
+    ps->m_AllArgs.push_back(*arg);
+    ps->m_Current = 0;
+    }
+  else if (strcmp(name, "image") == 0)
     {
     ps->m_AllArgs.push_back(*arg);
     ps->m_Current = 0;
