@@ -1,11 +1,8 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include "GenerateCLP.h"
+#include "CLPExample1.clp"
 
 int main (int argc, char *argv[])
 {
-#include "CLPExample1.clp"
+  PARSE_ARGS;
   return 0;
 }
+

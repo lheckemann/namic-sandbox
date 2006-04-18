@@ -14,6 +14,7 @@
 #include <iostream>
 
 #include "GenerateCLP.h"
+#include "CLRegistration.clp"
 #include <itkCommand.h>
 #include <itkImage.h>
 #include <itkOrientedImage.h>
@@ -126,7 +127,7 @@ class ScheduleCommand : public itk::Command
   }
 };
         
-void Split(const char* str, const char* delim, std::vector<std::string>& lines)
+ void Split(const char* str, const char* delim, std::vector<std::string>& lines)
 {
   std::string data(str);
   std::string::size_type lpos = 0;
@@ -178,7 +179,7 @@ int main ( int argc, const char* argv[] )
 
 
 #if USE_TCLAP
-#include "CLRegistration.clp"
+PARSE_ARGS;
 #endif
 
 #if USE_CLI
