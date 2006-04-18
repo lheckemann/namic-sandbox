@@ -12,6 +12,7 @@
     <label>Registration Parameters</label>
     <description>Parameters used for registration</description>
     <integer>
+      <name>HistogramBins</name>
       <flag>-b</flag>
       <longflag>--histogrambins</longflag>
       <description>Number of histogram bins to use for Mattes Mutual Information</description>
@@ -25,6 +26,7 @@
     </integer>
 
     <integer>
+      <name>SpatialSamples</name>
       <flag>-s</flag>
       <longflag>--spatialsamples</longflag>
       <description>Number of spatial samples to use in estimating Mattes Mutual Information</description>
@@ -37,23 +39,26 @@
       </constraints>
     </integer>
 
-    <string>
+    <integer-vector>
+      <name>Iterations</name>
       <flag>-i</flag>
       <longflag>--iterations</longflag>
       <description>Comma separated list of iterations must have the same number of elements as learning rate</description>
       <label>Iterations</label>
       <default>100,100,100,200</default>
-    </string>
+    </integer-vector>
 
-    <string>
+    <double-vector>
+      <name>LearningRates</name>
       <flag>-l</flag>
       <longflag>--learningrate</longflag>
       <description>Comma separated list of learning rates must have the same number of elements as iterations</description>
       <label>Learning Rates</label>
       <default>0.005,0.001,0.0005,0.0002</default>
-    </string>
+    </double-vector>
     
     <double>
+      <name>TranslateScale</name>
       <longflag>--translationscale</longflag>
       <flag>-t</flag>
       <description>Relative scale of translations to rotations, i.e. a value of 100 means 10mm = 1 degree</description>
@@ -71,21 +76,21 @@
     <label>IO</label>
     <description>Input/output parameters</description>
     <image>
-      <name>Fixed</name>
+      <name>fixedImageFileName</name>
       <label>Fixed Image</label>
       <channel>input</channel>
       <index>0</index>
       <description>Fixed image to register to</description>
     </image>
     <image>
-      <name>Moving</name>
+      <name>movingImageFileName</name>
       <label>Moving Image</label>
       <channel>input</channel>
       <index>1</index>
       <description>Moving image</description>
     </image>
     <image>
-      <name>Output</name>
+      <name>resampledImageFileName</name>
       <label>Output Volume</label>
       <channel>output</channel>
       <index>2</index>

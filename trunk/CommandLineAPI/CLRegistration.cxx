@@ -13,6 +13,7 @@
 
 #include <iostream>
 
+#include "GenerateCLP.h"
 #include <itkCommand.h>
 #include <itkImage.h>
 #include <itkOrientedImage.h>
@@ -66,25 +67,33 @@ class ScheduleCommand : public itk::Command
   /** Run-time type information (and related methods). */
   itkTypeMacro(ScheduleCommand,itk::Command);
 
-  void SetLearningRates ( itk::Array<double> LearningRates ) {
-    this->m_LearningRates = LearningRates;
+  void SetLearningRates ( std::vector<double> &LearningRates ) {
+    this->m_LearningRates.resize(0);
+    for (size_t i = 0; i < LearningRates.size(); i++)
+      {
+      this->m_LearningRates.push_back(LearningRates[i]);
+      }
   }
-  void SetNumberOfIterations ( itk::Array<unsigned int> NumberOfIterations ) {
-    this->m_NumberOfIterations = NumberOfIterations;
-    this->m_NextChange = NumberOfIterations.GetElement ( 0 );
+  void SetNumberOfIterations ( std::vector<int> &NumberOfIterations ) {
+    this->m_NumberOfIterations.resize(0);
+    for (size_t i = 0; i < NumberOfIterations.size(); i++)
+      {
+      this->m_NumberOfIterations.push_back(NumberOfIterations[i]);
+      }
+    this->m_NextChange = NumberOfIterations[0];
   }
-  void SetSchedule ( itk::Array<unsigned int> NumberOfIterations, itk::Array<double> LearningRates )
+  void SetSchedule ( std::vector<int> &NumberOfIterations, std::vector<double> &LearningRates )
   {
-    this->m_NumberOfIterations = NumberOfIterations;
-    this->m_LearningRates = LearningRates;
+    this->SetNumberOfIterations(NumberOfIterations);
+    this->SetLearningRates(LearningRates);
   }
   void DoExecute ( itk::GradientDescentOptimizer* optimizer ) 
   {
-    if ( m_Schedule < m_NumberOfIterations.GetNumberOfElements()-1 ) {
-      if ( optimizer->GetCurrentIteration() >= this->m_NumberOfIterations.GetElement ( m_Schedule ) ) {
+    if ( m_Schedule < m_NumberOfIterations.size()-1 ) {
+      if ( optimizer->GetCurrentIteration() >= this->m_NumberOfIterations[ m_Schedule ]) {
         m_Schedule++;
-        optimizer->SetLearningRate ( this->m_LearningRates.GetElement ( m_Schedule ) );
-        this->m_NextChange = this->m_NumberOfIterations.GetElement ( m_Schedule );
+        optimizer->SetLearningRate ( this->m_LearningRates[m_Schedule] );
+        this->m_NextChange = this->m_NumberOfIterations[m_Schedule];
         // std::cout << "Iteration: " << optimizer->GetCurrentIteration() << " LearningRate: " << optimizer->GetLearningRate() << std::endl;
       }
     }
@@ -104,8 +113,8 @@ class ScheduleCommand : public itk::Command
     }
   }
  protected:
-  itk::Array<unsigned int> m_NumberOfIterations;
-  itk::Array<double> m_LearningRates;
+  std::vector<unsigned int> m_NumberOfIterations;
+  std::vector<double> m_LearningRates;
   unsigned int m_Schedule;
   unsigned int m_NextChange;
   ScheduleCommand()
@@ -162,18 +171,10 @@ int main ( int argc, const char* argv[] )
   logger->AddLogOutput ( coutput );
 
   bool DoInitializeTransform = true;
-  int HistogramBins = 30;
   int RandomSeed = 1234567;
-  int SpatialSamples = 10000;
   float TranslationScale = 100.0;
-  itk::Array<unsigned int> Iterations(1);
-  Iterations[0] = 200;
-  itk::Array<double> LearningRate(1);
-  LearningRate[0] = 0.05;
+  std::vector<double> LearningRate;
   double GradientMagnitudeTolerance = 1e-5;
-  string fixedImageFileName;
-  string movingImageFileName;
-  string resampledImageFileName;
 
 
 #if USE_TCLAP
@@ -405,8 +406,8 @@ int main ( int argc, const char* argv[] )
             << "HistogramBins: " << HistogramBins << std::endl
             << "RandomSeed: " << RandomSeed << std::endl
             << "GradientMagnitudeTolerance: " << GradientMagnitudeTolerance << std::endl
-            << "Iterations: " << Iterations << std::endl
-            << "LearningRate: " << LearningRate << std::endl
+//            << "Iterations: " << Iterations << std::endl
+//            << "LearningRate: " << LearningRate << std::endl
             << "SpatialSamples: " << SpatialSamples << std::endl
             << "TranslationScale: " << TranslationScale << std::endl
             << "DoInitializeTransform: " << DoInitializeTransform << std::endl
@@ -505,7 +506,12 @@ int main ( int argc, const char* argv[] )
 
   ScheduleCommand::Pointer Schedule = ScheduleCommand::New();
   Schedule->SetSchedule ( Iterations, LearningRate );
-  optimizer->SetNumberOfIterations ( Iterations.sum() );
+  int sum = 0;
+  for (size_t i = 0; i < Iterations.size(); i++)
+    {
+    sum += Iterations[i];
+    }
+  optimizer->SetNumberOfIterations ( sum );
   optimizer->SetLearningRate ( LearningRate[0] );
   optimizer->AddObserver ( itk::IterationEvent(), Schedule );
   typedef OptimizerType::ScalesType OptimizerScalesType;
