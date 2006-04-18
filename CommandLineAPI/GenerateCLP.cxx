@@ -52,8 +52,10 @@ public:
   ParserState():m_Debug(false){};
 };
   
-void GenerateTCLAP(std::ofstream &, ParserState &);
+void GeneratePre(std::ofstream &);
+void GeneratePost(std::ofstream &);
 void GenerateXML(std::ofstream &, std::string);
+void GenerateTCLAP(std::ofstream &, ParserState &);
 void GenerateEchoArgs(std::ofstream &, ParserState &);
 
 void
@@ -299,21 +301,55 @@ main(int argc, char *argv[])
   std::cerr << "Found " << parserState.m_AllArgs.size() << " command line arguments" << std::endl;
 // Do the hard stuff
   std::ofstream sout(OutputCxx.c_str(),std::ios::out);
+  GeneratePre(sout);
   GenerateXML(sout, InputXML);
   GenerateTCLAP(sout, parserState);
   GenerateEchoArgs(sout, parserState);
+  GeneratePost(sout);
 
   return (EXIT_SUCCESS);
 }
 
+void GeneratePre(std::ofstream &sout)
+{
+  sout << "#include <stdio.h>" << std::endl;
+  sout << "#include <string.h>" << std::endl;
+  sout << "#include <stdlib.h>" << std::endl;
+  sout << "" << std::endl;
+  sout << "#include <iostream>" << std::endl;
+  sout << "#include \"tclap/CmdLine.h\"" << std::endl;
+  sout << "#include <itksys/ios/sstream>" << std::endl;
+  sout << "" << std::endl;
+  sout << "void" << std::endl;
+  sout << "splitString (std::string &text," << std::endl;
+  sout << "             std::string &separators," << std::endl;
+  sout << "             std::vector<std::string> &words)" << std::endl;
+  sout << "{" << std::endl;
+  sout << "  int n = text.length();" << std::endl;
+  sout << "  int start, stop;" << std::endl;
+  sout << "  start = text.find_first_not_of(separators);" << std::endl;
+  sout << "  while ((start >= 0) && (start < n))" << std::endl;
+  sout << "    {" << std::endl;
+  sout << "    stop = text.find_first_of(separators, start);" << std::endl;
+  sout << "    if ((stop < 0) || (stop > n)) stop = n;" << std::endl;
+  sout << "    words.push_back(text.substr(start, stop - start));" << std::endl;
+  sout << "    start = text.find_first_not_of(separators, stop+1);" << 
+    std::endl;
+  sout << "    }" << std::endl;
+  sout << "}" << std::endl;
+
+}
+
 void GenerateXML(std::ofstream &sout, std::string XMLFile)
 {
+  std::string EOL(" \\");
   char linec[2048];
   std::ifstream fin(XMLFile.c_str(),std::ios::in);
 
+  sout << "#define GENERATE_XML \\" << std::endl;
   // Generate special section to produce xml description
-  sout << "  if (argc >= 2 && (strcmp(argv[1],\"--xml\") == 0))" << std::endl;
-  sout << "    {" << std::endl;
+  sout << "  if (argc >= 2 && (strcmp(argv[1],\"--xml\") == 0))" << EOL << std::endl;
+  sout << "    {" << EOL << std::endl;
 
   while (!fin.eof())
     {
@@ -332,18 +368,21 @@ void GenerateXML(std::ofstream &sout, std::string XMLFile)
         cleanLine += line[j];
         }
       }
-    sout << "std::cout << \"" << cleanLine << "\" << std::endl;" << std::endl;
+    sout << "std::cout << \"" << cleanLine << "\" << std::endl;" << EOL << std::endl;
     }
-  sout << "    return EXIT_SUCCESS;" << std::endl;
+  sout << "    return EXIT_SUCCESS;" << EOL << std::endl;
   sout << "    }" << std::endl;
 
 }
 
 void GenerateEchoArgs(std::ofstream &sout, ParserState &ps)
 {
-  sout << "if (echoSwitch)" << std::endl;
-  sout << "{" << std::endl;
-  sout << "std::cout << \"Command Line Arguments\" << std::endl;" << std::endl;
+  std::string EOL(" \\");
+  sout << "#define GENERATE_ECHOARGS \\" << std::endl;
+
+  sout << "if (echoSwitch)" << EOL << std::endl;
+  sout << "{" << EOL << std::endl;
+  sout << "std::cout << \"Command Line Arguments\" << std::endl;" << EOL << std::endl;
   for (unsigned int i = 0; i < ps.m_AllArgs.size(); i++)
     {
     if (ps.m_AllArgs[i].NeedsTemp())
@@ -352,22 +391,22 @@ void GenerateEchoArgs(std::ofstream &sout, ParserState &ps)
            << "\"    "
            << ps.m_AllArgs[i].m_Variable
            << ": \";"
-           << std::endl;
+           << EOL << std::endl;
       sout << "for (unsigned int _i =0; _i < "
            << ps.m_AllArgs[i].m_Variable
            << ".size(); _i++)"
-           << std::endl;
+           << EOL << std::endl;
       sout << "{"
-           << std::endl;
+           << EOL << std::endl;
       sout << "std::cout << "
            << ps.m_AllArgs[i].m_Variable
            << "[_i]"
            << " << \", \";"
-           << std::endl;
+           << EOL << std::endl;
       sout << "}"
-           << std::endl;
+           << EOL << std::endl;
       sout << "std::cout <<std::endl;"
-           << std::endl;
+           << EOL << std::endl;
 
       }
     else
@@ -378,7 +417,7 @@ void GenerateEchoArgs(std::ofstream &sout, ParserState &ps)
            << ": \" << "
            << ps.m_AllArgs[i].m_Variable
            << " << std::endl;"
-           << std::endl;
+           << EOL << std::endl;
       }
     }
   sout << "}" << std::endl;
@@ -386,6 +425,9 @@ void GenerateEchoArgs(std::ofstream &sout, ParserState &ps)
 
 void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
 {
+
+  std::string EOL(" \\");
+  sout << "#define GENERATE_TCLAP \\" << std::endl;
 
   // Add a switch argument to echo command line arguments
   CommandLineArg echoSwitch;
@@ -421,7 +463,7 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
       if (ps.m_AllArgs[i].m_Default.empty())
         {    
         sout << ";"
-             << std::endl;
+             << EOL << std::endl;
         }
       else
         {
@@ -430,7 +472,7 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
              << ps.m_AllArgs[i].m_Default
              << "\""
              << ";"
-             << std::endl;
+             << EOL << std::endl;
         }
       if (ps.m_AllArgs[i].NeedsTemp())
         {
@@ -439,7 +481,7 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
              << " "
              << ps.m_AllArgs[i].m_Variable
              << ";"
-             << std::endl;
+             << EOL << std::endl;
         }
       }
     else
@@ -451,25 +493,25 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
       if (ps.m_AllArgs[i].m_Default.empty())
         {    
         sout << ";"
-             << std::endl;
+             << EOL << std::endl;
         }
       else
         {
         sout << " = "
              << ps.m_AllArgs[i].m_Default
              << ";"
-             << std::endl;
+             << EOL << std::endl;
         }
       }
     }
 
-  sout << "try" << std::endl;
-  sout << "  {" << std::endl;
-  sout << "    TCLAP::CmdLine commandLine (" << std::endl;
-  sout << "      argv[0]," << std::endl;
-  sout << "      " << "\"" << ps.m_Description << "\"," << std::endl;
-  sout << "      " << "\"$Revision: $\" );" << std::endl << std::endl;
-  sout << "    itk::OStringStream msg;" << std::endl;
+  sout << "try" << EOL << std::endl;
+  sout << "  {" << EOL << std::endl;
+  sout << "    TCLAP::CmdLine commandLine (" << EOL << std::endl;
+  sout << "      argv[0]," << EOL << std::endl;
+  sout << "      " << "\"" << ps.m_Description << "\"," << EOL << std::endl;
+  sout << "      " << "\"$Revision: $\" );" << EOL << std::endl << EOL << std::endl;
+  sout << "      itksys_ios::ostringstream msg;" << EOL << std::endl;
 
   // Second pass generates argument declarations
   for (unsigned int i = 0; i < ps.m_AllArgs.size(); i++)
@@ -494,7 +536,7 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
       sout << " << "
            << "\")"
            << "\";"
-           << std::endl;
+           << EOL << std::endl;
       }
 
     if (ps.m_AllArgs[i].m_Type == "bool")
@@ -509,7 +551,7 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
            << ps.m_AllArgs[i].m_Default.empty()
            << ", "
            << "commandLine);"
-           << std::endl << std::endl;
+           << EOL << std::endl << EOL << std::endl;
       }
     else
       {
@@ -531,7 +573,7 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
              << "\""
              << ", "
              << "commandLine);"
-             << std::endl << std::endl;
+             << EOL << std::endl << EOL << std::endl;
         }
       else
         {
@@ -564,11 +606,11 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
              << "\""
              << ", "
              << "commandLine);"
-             << std::endl << std::endl;
+             << EOL << std::endl << EOL << std::endl;
         }
       }
     }
-  sout << "    commandLine.parse ( argc, (char**) argv );" << std::endl;
+  sout << "    commandLine.parse ( argc, (char**) argv );" << EOL << std::endl;
   
   // Third pass generates access to arguments
   for (unsigned int i = 0; i < ps.m_AllArgs.size(); i++)
@@ -582,7 +624,7 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
     sout << " = "
          << ps.m_AllArgs[i].m_Variable
          << "Arg.getValue();"
-         << std::endl;
+         << EOL << std::endl;
     }
 
 // Finally, for any arrays, split the strings into words
@@ -590,40 +632,44 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
     {
     if (ps.m_AllArgs[i].NeedsTemp())
       {
-      sout << "      {" << std::endl;
+      sout << "      {" << EOL << std::endl;
       sout << "      std::vector<std::string> words;"
-           << std::endl;
+           << EOL << std::endl;
       sout << "      std::string sep(\",\");"
-           << std::endl;
+           << EOL << std::endl;
       sout << "      splitString(" 
            << ps.m_AllArgs[i].m_Variable
            << "Temp"
            << ", "
            << "sep, "
            << "words);"
-           << std::endl;
+           << EOL << std::endl;
       sout << "      for (unsigned int j = 0; j < words.size(); j++)"
-           << std::endl;
+           << EOL << std::endl;
       sout << "        {"
-           << std::endl;
+           << EOL << std::endl;
       sout << "        " 
            << ps.m_AllArgs[i].m_Variable << ".push_back("
            << ps.m_AllArgs[i].m_StringToType
            << "(words[j].c_str()));"
-           << std::endl;
+           << EOL << std::endl;
       sout << "        }"
-           << std::endl;
+           << EOL << std::endl;
       sout << "      }"
-           << std::endl;
+           << EOL << std::endl;
       }
     }
 
   // Wrapup the block and generate the catch block
-  sout << "  }" << std::endl;
-  sout << "catch ( TCLAP::ArgException e )" << std::endl;
-  sout << "  {" << std::endl;
-  sout << "  std::cerr << \"error: \" << e.error() << \" for arg \" << e.argId() << std::endl;" << std::endl;
-  sout << "  exit ( EXIT_FAILURE );" << std::endl;
+  sout << "  }" << EOL << std::endl;
+  sout << "catch ( TCLAP::ArgException e )" << EOL << std::endl;
+  sout << "  {" << EOL << std::endl;
+  sout << "  std::cerr << \"error: \" << e.error() << \" for arg \" << e.argId() << std::endl;" << EOL << std::endl;
+  sout << "  exit ( EXIT_FAILURE );" << EOL << std::endl;
   sout << "    }" << std::endl;
 }
 
+void GeneratePost(std::ofstream &sout)
+{
+  sout << "#define PARSE_ARGS GENERATE_XML;GENERATE_TCLAP;GENERATE_ECHOARGS" << std::endl;
+}
