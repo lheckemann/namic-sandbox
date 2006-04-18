@@ -46,6 +46,7 @@ std::cout << "" << std::endl;
     bool UseTCLAP = true;
     std::string InputXML;
     std::string OutputCxx;
+    bool echoSwitch = false;
     bool xmlSwitch = false;
 try
   {
@@ -54,13 +55,16 @@ try
       "Generates C++ code that will parse command lines",
       "$Revision: $" );
 
-    itk::OStringStream msg;
+      itksys_ios::ostringstream msg;
     msg.str("");msg << "Generate TCLAP Code (default: " << UseTCLAP << ")";
     TCLAP::SwitchArg UseTCLAPArg("", "TCLAP", msg.str(), 0, commandLine);
 
     msg.str("");msg << "XML description of interface";    TCLAP::UnlabeledValueArg<std::string> InputXMLArg("InputXML", msg.str(), 1, InputXML, "std::string", commandLine);
 
     msg.str("");msg << "C++ Code to process command line arguments";    TCLAP::UnlabeledValueArg<std::string> OutputCxxArg("OutputCxx", msg.str(), 1, OutputCxx, "std::string", commandLine);
+
+    msg.str("");msg << "Echo the command line arguments (default: " << echoSwitch << ")";
+    TCLAP::SwitchArg echoSwitchArg("", "echo", msg.str(), 0, commandLine);
 
     msg.str("");msg << "Produce xml description of command line arguments (default: " << xmlSwitch << ")";
     TCLAP::SwitchArg xmlSwitchArg("", "xml", msg.str(), 0, commandLine);
@@ -69,6 +73,7 @@ try
     UseTCLAP = UseTCLAPArg.getValue();
     InputXML = InputXMLArg.getValue();
     OutputCxx = OutputCxxArg.getValue();
+    echoSwitch = echoSwitchArg.getValue();
     xmlSwitch = xmlSwitchArg.getValue();
   }
 catch ( TCLAP::ArgException e )
@@ -76,3 +81,12 @@ catch ( TCLAP::ArgException e )
   std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
   exit ( EXIT_FAILURE );
     }
+if (echoSwitch)
+{
+std::cout << "Command Line Arguments" << std::endl;
+std::cout << "    UseTCLAP: " << UseTCLAP << std::endl;
+std::cout << "    InputXML: " << InputXML << std::endl;
+std::cout << "    OutputCxx: " << OutputCxx << std::endl;
+std::cout << "    echoSwitch: " << echoSwitch << std::endl;
+std::cout << "    xmlSwitch: " << xmlSwitch << std::endl;
+}
