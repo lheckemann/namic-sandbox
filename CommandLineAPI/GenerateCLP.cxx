@@ -54,6 +54,7 @@ public:
   
 void GenerateTCLAP(std::ofstream &, ParserState &);
 void GenerateXML(std::ofstream &, std::string);
+void GenerateEchoArgs(std::ofstream &, ParserState &);
 
 void
 trimLeading(std::string& s, char* extraneousChars = " \t\n")
@@ -300,6 +301,7 @@ main(int argc, char *argv[])
   std::ofstream sout(OutputCxx.c_str(),std::ios::out);
   GenerateXML(sout, InputXML);
   GenerateTCLAP(sout, parserState);
+  GenerateEchoArgs(sout, parserState);
 
   return (EXIT_SUCCESS);
 }
@@ -337,10 +339,64 @@ void GenerateXML(std::ofstream &sout, std::string XMLFile)
 
 }
 
+void GenerateEchoArgs(std::ofstream &sout, ParserState &ps)
+{
+  sout << "if (echoSwitch)" << std::endl;
+  sout << "{" << std::endl;
+  sout << "std::cout << \"Command Line Arguments\" << std::endl;" << std::endl;
+  for (unsigned int i = 0; i < ps.m_AllArgs.size(); i++)
+    {
+    if (ps.m_AllArgs[i].NeedsTemp())
+      {
+      sout << "std::cout << "
+           << "\"    "
+           << ps.m_AllArgs[i].m_Variable
+           << ": \";"
+           << std::endl;
+      sout << "for (unsigned int _i =0; _i < "
+           << ps.m_AllArgs[i].m_Variable
+           << ".size(); _i++)"
+           << std::endl;
+      sout << "{"
+           << std::endl;
+      sout << "std::cout << "
+           << ps.m_AllArgs[i].m_Variable
+           << "[_i]"
+           << " << \", \";"
+           << std::endl;
+      sout << "}"
+           << std::endl;
+      sout << "std::cout <<std::endl;"
+           << std::endl;
+
+      }
+    else
+      {
+      sout << "std::cout << "
+           << "\"    "
+           << ps.m_AllArgs[i].m_Variable
+           << ": \" << "
+           << ps.m_AllArgs[i].m_Variable
+           << " << std::endl;"
+           << std::endl;
+      }
+    }
+  sout << "}" << std::endl;
+}
+
 void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
 {
 
-  // Add a swtich argument to produce xml output
+  // Add a switch argument to echo command line arguments
+  CommandLineArg echoSwitch;
+  echoSwitch.m_Type = "bool";
+  echoSwitch.m_Variable = "echoSwitch";
+  echoSwitch.m_LongFlag = "--echo";
+  echoSwitch.m_Description = "Echo the command line arguments";
+  echoSwitch.m_Default = "false";
+  ps.m_AllArgs.push_back (echoSwitch);
+
+  // Add a switch argument to produce xml output
   CommandLineArg xmlSwitch;
   xmlSwitch.m_Type = "bool";
   xmlSwitch.m_Variable = "xmlSwitch";
