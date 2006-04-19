@@ -8,11 +8,47 @@
   Program:   GenerateCLP
   Module:    $URL$
   Date:      $Date$
-  Version:   $Revision: 1.6 $
+  Version:   $Revision$
 
 =========================================================================*/
 
-/* Generate command line processing code from an xml description */
+/* Generate command line processing code from an xml description
+   Usage: GenerateCLP input_xml_file output_include_file
+
+   This program generates source code that processes command line
+   arguments. The arguments are described in an xml file. The output
+   include file defines a macro PARSE_ARGS. This macro generates the
+   declarations for each command line argument and generates code to
+   parse the command line. In addition to user specified coammnd line
+   arguments, cod eto echo the xml file and code to print the command
+   line arguments is also generated.
+
+   Typical usage is:
+   GenerateCLP foo.xml fooCLP.h
+
+   foo.cxx contains:
+   #include fooCLP.h
+   int main (int argc, char *argv[])
+   {
+     PARSE_ARGS;
+         .
+         . Code to implement foo
+         .
+   }
+
+   This first version of the code uses the TCLAP Templated C++ Command
+   Line Parser (http://tclap.sourceforge.net). TCLAP is attractive
+   because it is implemented entirely in header files. Other command line
+   parsing may be supported in the future.
+
+  GenerateCLP uses the expat XML parser (http://expat.sourceforge.net)
+  to process the XML file.
+
+  The generated C++ code relies on the kwsys library
+  (http://www.cmake.org) to provide a portable implementaion of string
+  streams.
+*/
+
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -23,55 +59,85 @@
 
 #include "GenerateCLP.h"
 
+/*
+CommandLineArg: A class to hold data parsed from the xml argument
+descriptions.
+*/
 class CommandLineArg
 {
 public:
-  std::string m_Variable;
-  std::string m_Container;
-  std::string m_ShortFlag;
-  std::string m_LongFlag;
-  std::string m_Description;
-  std::string m_Label;
-  std::string m_Default;
-  std::string m_Type;
-  std::string m_StringToType;
-  std::string m_Channel;
-  unsigned int m_Index;
+  std::string m_Variable;        /* The name of the C++ variable */
+  std::string m_ShortFlag;       /* The short flag for the argument */
+  std::string m_LongFlag;        /* The long flag for the arugment */
+  std::string m_Description;     /* A description for the argument */
+  std::string m_Default;         /* The defaulf for the argument */
+  std::string m_CxxType;         /* The C++ type for the argument */
+  std::string m_StringToType;    /* The function to convert the string */
+                                 /* to the C++ type. */
   CommandLineArg()
   {
   }
+
+  /* Comma separated arguments need a temporary variable to store the
+   * string
+   */
   bool NeedsTemp()
   {
-    return (m_Type == "std::vector<int>" ||
-            m_Type == "std::vector<float>" ||
-            m_Type == "std::vector<double>");
+    return (m_CxxType == "std::vector<int>" ||
+            m_CxxType == "std::vector<float>" ||
+            m_CxxType == "std::vector<double>");
   }
+  /* Some types need quotes in the initialization. */
   bool NeedsQuotes()
   {
-    return (m_Type == "std::vector<int>" ||
-            m_Type == "std::vector<float>" ||
-            m_Type == "std::vector<double>" ||
-            m_Type == "std::string");
+    return (m_CxxType == "std::vector<int>" ||
+            m_CxxType == "std::vector<float>" ||
+            m_CxxType == "std::vector<double>" ||
+            m_CxxType == "std::string");
   }
 };
 
+/* ParserState: A class to keep state information for the parser. This
+ * is passed to the expat code as user data.
+ */
 class ParserState
 {
 public:
-  std::vector<CommandLineArg> m_AllArgs;
-  std::string m_LastTag;
-  std::string m_Description;
-  CommandLineArg *m_Current;
-  bool m_Debug;
+  std::vector<CommandLineArg> m_AllArgs; /* A vector of command line */
+                                         /* arguments */
+  std::string m_LastTag;                 /* The last tag processed by */
+                                         /* expat */
+  std::string m_Description;             /* Global descripton */
+  CommandLineArg *m_Current;             /* The current command line */
+                                         /* argument */
+  bool m_Debug;                          /* Debug flag */
   ParserState():m_Debug(false){};
 };
   
+/* Generate the preamble to the code. This includes the required
+ * include files and code to process comma separated arguments.
+ */
 void GeneratePre(std::ofstream &, int, char *[]);
+
+/* Generate the last statements. This defines the PARSE_ARGS macro */
 void GeneratePost(std::ofstream &);
+
+/* Generate the code that echos the XML file that describes the
+ * command line arguments.
+ */
 void GenerateXML(std::ofstream &, std::string);
+
+/* Generate the code that uses TCLAP to parse the command line
+ * arguments.
+ */
 void GenerateTCLAP(std::ofstream &, ParserState &);
+
+/* Generate code to echo the command line arguments and their values. */
 void GenerateEchoArgs(std::ofstream &, ParserState &);
 
+/*********************
+ * Utility procedures to trim leading and trailing characters
+ *********************/
 void
 trimLeading(std::string& s, char* extraneousChars = " \t\n")
 {
@@ -84,6 +150,10 @@ trimTrailing(std::string& s, char* extraneousChars = " \t\n")
 s = s.substr(0, s.find_last_not_of(extraneousChars)+1);
 }
 
+
+/***************************
+ * expat callbacks to process the XML
+ ***************************/
 static void
 startElement(void *userData, const char *name, const char **atts)
 {
@@ -96,55 +166,55 @@ startElement(void *userData, const char *name, const char **atts)
   if (strcmp(name, "integer") == 0)
     {
     arg = new CommandLineArg;
-    arg->m_Type = "int";
+    arg->m_CxxType = "int";
     }
   else if (strcmp(name, "float") == 0)
     {
     arg = new CommandLineArg;
-    arg->m_Type = "float";
+    arg->m_CxxType = "float";
     }
   else if (strcmp(name, "double") == 0)
     {
     arg = new CommandLineArg;
-    arg->m_Type = "double";
+    arg->m_CxxType = "double";
     }
   else if (strcmp(name, "string") == 0)
     {
     arg = new CommandLineArg;
-    arg->m_Type = "std::string";
+    arg->m_CxxType = "std::string";
     }
   else if (strcmp(name, "boolean") == 0)
     {
     arg = new CommandLineArg;
-    arg->m_Type = "bool";
+    arg->m_CxxType = "bool";
     }
   else if (strcmp(name, "integer-vector") == 0)
     {
     arg = new CommandLineArg;
-    arg->m_Type = "std::vector<int>";
+    arg->m_CxxType = "std::vector<int>";
     arg->m_StringToType = "atoi";
     }
   else if (strcmp(name, "float-vector") == 0)
     {
     arg = new CommandLineArg;
-    arg->m_Type = "std::vector<float>";
+    arg->m_CxxType = "std::vector<float>";
     arg->m_StringToType = "atof";
     }
   else if (strcmp(name, "double-vector") == 0)
     {
     arg = new CommandLineArg;
-    arg->m_Type = "std::vector<double>";
+    arg->m_CxxType = "std::vector<double>";
     arg->m_StringToType = "atof";
     }
   else if (strcmp(name, "filename") == 0)
     {
     arg = new CommandLineArg;
-    arg->m_Type = "std::string";
+    arg->m_CxxType = "std::string";
     }
   else if (strcmp(name, "image") == 0)
     {
     arg = new CommandLineArg;
-    arg->m_Type = "std::string";
+    arg->m_CxxType = "std::string";
     }
   ps->m_Current = arg;
 }
@@ -453,7 +523,7 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
 
   // Add a switch argument to echo command line arguments
   CommandLineArg echoSwitch;
-  echoSwitch.m_Type = "bool";
+  echoSwitch.m_CxxType = "bool";
   echoSwitch.m_Variable = "echoSwitch";
   echoSwitch.m_LongFlag = "--echo";
   echoSwitch.m_Description = "Echo the command line arguments";
@@ -462,7 +532,7 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
 
   // Add a switch argument to produce xml output
   CommandLineArg xmlSwitch;
-  xmlSwitch.m_Type = "bool";
+  xmlSwitch.m_CxxType = "bool";
   xmlSwitch.m_Variable = "xmlSwitch";
   xmlSwitch.m_LongFlag = "--xml";
   xmlSwitch.m_Description = "Produce xml description of command line arguments";
@@ -499,7 +569,7 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
       if (ps.m_AllArgs[i].NeedsTemp())
         {
         sout << "    "
-             << ps.m_AllArgs[i].m_Type
+             << ps.m_AllArgs[i].m_CxxType
              << " "
              << ps.m_AllArgs[i].m_Variable
              << ";"
@@ -509,7 +579,7 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
     else
       {
       sout << "    "
-           << ps.m_AllArgs[i].m_Type
+           << ps.m_AllArgs[i].m_CxxType
            << " "
            << ps.m_AllArgs[i].m_Variable;
       if (ps.m_AllArgs[i].m_Default.empty())
@@ -532,7 +602,7 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
   sout << "    TCLAP::CmdLine commandLine (" << EOL << std::endl;
   sout << "      argv[0]," << EOL << std::endl;
   sout << "      " << "\"" << ps.m_Description << "\"," << EOL << std::endl;
-  sout << "      " << "\"$Revision: $\" );" << EOL << std::endl << EOL << std::endl;
+  sout << "      " << "\"$Revision$\" );" << EOL << std::endl << EOL << std::endl;
   sout << "      itksys_ios::ostringstream msg;" << EOL << std::endl;
 
   // Second pass generates argument declarations
@@ -561,7 +631,7 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
            << EOL << std::endl;
       }
 
-    if (ps.m_AllArgs[i].m_Type == "bool")
+    if (ps.m_AllArgs[i].m_CxxType == "bool")
       {
       sout << "    TCLAP::SwitchArg "
            << ps.m_AllArgs[i].m_Variable
@@ -580,7 +650,7 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
       if (ps.m_AllArgs[i].m_ShortFlag.empty() && ps.m_AllArgs[i].m_LongFlag.empty())
         {
         sout << "    TCLAP::UnlabeledValueArg<";
-        sout << ps.m_AllArgs[i].m_Type;
+        sout << ps.m_AllArgs[i].m_CxxType;
         sout << "> "
              << ps.m_AllArgs[i].m_Variable
              << "Arg" << "(\""
@@ -591,7 +661,7 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
              << ps.m_AllArgs[i].m_Variable;
         sout << ", "
              << "\""
-             << ps.m_AllArgs[i].m_Type
+             << ps.m_AllArgs[i].m_CxxType
              << "\""
              << ", "
              << "commandLine);"
@@ -606,7 +676,7 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
           }
         else
           {
-          sout << ps.m_AllArgs[i].m_Type;
+          sout << ps.m_AllArgs[i].m_CxxType;
           }
         sout << "> "
              << ps.m_AllArgs[i].m_Variable
@@ -624,7 +694,7 @@ void GenerateTCLAP(std::ofstream &sout, ParserState &ps)
           }
         sout << ", "
              << "\""
-             << ps.m_AllArgs[i].m_Type
+             << ps.m_AllArgs[i].m_CxxType
              << "\""
              << ", "
              << "commandLine);"
