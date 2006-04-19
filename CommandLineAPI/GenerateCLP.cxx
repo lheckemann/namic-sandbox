@@ -6,8 +6,8 @@
   or http://www.slicer.org/copyright/copyright.txt for details.
 
   Program:   GenerateCLP
-  Module:    $RCSfile: vtkSlicerBase.h,v $
-  Date:      $Date: 2006/01/06 17:56:51 $
+  Module:    $URL$
+  Date:      $Date$
   Version:   $Revision: 1.6 $
 
 =========================================================================*/
