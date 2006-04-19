@@ -57,14 +57,14 @@
       <default>100,100,100,200</default>
     </integer-vector>
 
-    <double-vector>
+    <float-vector>
       <name>LearningRate</name>
       <flag>-l</flag>
       <longflag>--learningrate</longflag>
       <description>Comma separated list of learning rates must have the same number of elements as iterations</description>
       <label>Learning Rates</label>
       <default>0.005,0.001,0.0005,0.0002</default>
-    </double-vector>
+    </float-vector>
     
     <double>
       <name>TranslationScale</name>

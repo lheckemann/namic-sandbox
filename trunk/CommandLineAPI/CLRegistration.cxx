@@ -13,8 +13,7 @@
 
 #include <iostream>
 
-#include "GenerateCLP.h"
-#include "CLRegistration.clp"
+#include "CLRegistrationCLP.h"
 #include <itkCommand.h>
 #include <itkImage.h>
 #include <itkOrientedImage.h>

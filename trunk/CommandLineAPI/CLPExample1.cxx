@@ -1,4 +1,4 @@
-#include "CLPExample1.clp"
+#include "CLPExample1CLP.h"
 
 int main (int argc, char *argv[])
 {
