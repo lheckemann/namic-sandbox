@@ -299,7 +299,7 @@ bool UnlabeledValueArg<T>::processArg(int *i, std::vector<std::string>& args)
  * Overriding shortID for specific output.
  */
 template<class T>
-std::string UnlabeledValueArg<T>::shortID(const std::string& val) const
+std::string UnlabeledValueArg<T>::shortID(const std::string&) const
 {
   std::string id = "<" + _typeDesc + ">";
 
@@ -310,7 +310,7 @@ std::string UnlabeledValueArg<T>::shortID(const std::string& val) const
  * Overriding longID for specific output.
  */
 template<class T>
-std::string UnlabeledValueArg<T>::longID(const std::string& val) const
+std::string UnlabeledValueArg<T>::longID(const std::string&) const
 {
   // Ideally we would like to be able to use RTTI to return the name
   // of the type required for this argument.  However, g++ at least, 
