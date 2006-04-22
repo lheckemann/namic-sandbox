@@ -1,4 +1,4 @@
-#include "SLicer3CLP.h"
+#include "Slicer3ExampleCLP.h"
 
 int main (int argc, char *argv[])
 {
