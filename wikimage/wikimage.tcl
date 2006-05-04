@@ -56,7 +56,10 @@ proc get_password {} {
 
     if { [catch "package require Tk"] } {
         puts -nonewline "password: " ; flush stdout
+        catch "exec stty -echo" ;# turn off echo if possible
         gets stdin pw
+        catch "exec stty echo"
+        puts ""
     } else {
         wm withdraw .
         catch "destroy .pw"
