@@ -106,8 +106,6 @@ int main( int argc, char *argv[] )
 {
   itk::OutputWindow::SetInstance(itk::TextOutput::New().GetPointer() );
   itk::Object::SetGlobalWarningDisplay( true );
-
-  char *maskThreshold = "1"; //TODO: add command line arg
   
   std::string fixedImageFileName;
   std::string movingImageFileName;
@@ -201,8 +199,16 @@ int main( int argc, char *argv[] )
   MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
 
   registration->SetFixedImage( fixedImage );
-  registration->SetMovingImage( movingImageReader->GetOutput() );
+  registration->SetMovingImage( movingImage );
 
+
+  // HACK: FSL maps from voxel coordinates to physical coordinates
+  // differently than ITK. FSL just does index * spacing, whereas
+  // ITK does index * spacing + origin. Here we explicitly set origin
+  // to 0, 0, 0 to account for this. The original val is saved for writing
+  // out in the resampled output image.
+  // TODO: apply this as a change in the bulkTransform rather than mucking
+  // with origins which could have unintended consequences in ITK filters.
   fixedImageReader->Update();
   movingImageReader->Update();
 
@@ -212,19 +218,23 @@ int main( int argc, char *argv[] )
   fixedImage->SetOrigin( zeroOrigin );
   movingImage->SetOrigin( zeroOrigin );
   
-
+  // TODO: figure out difference between registration's fixed image region
+  // and metric's fixed img region. this is a holdover from ITK example
   FixedImageType::RegionType fixedRegion = fixedImage->GetBufferedRegion();
-  
   registration->SetFixedImageRegion( fixedRegion );
 
   typedef TransformType::RegionType RegionType;
   RegionType bsplineRegion;
-  RegionType::SizeType   gridSizeOnImage;
-  RegionType::SizeType   gridBorderSize;
-  RegionType::SizeType   totalGridSize;
+  RegionType::SizeType gridSizeOnImage;
+  RegionType::SizeType gridBorderSize;
+  RegionType::SizeType totalGridSize;
 
+
+  // BSpline transform consists of a grid of nodes. Set the dimensions here.
   gridSizeOnImage.Fill( 12 );
-  gridBorderSize.Fill( 3 );    // Border for spline order = 3 ( 1 lower, 2 upper )
+
+  // TODO: figure out more details on how grid border is used
+  gridBorderSize.Fill( 3 ); // Border for spline order = 3 ( 1 lower, 2 upper )
   totalGridSize = gridSizeOnImage + gridBorderSize;
 
   bsplineRegion.SetSize( totalGridSize );
@@ -232,42 +242,46 @@ int main( int argc, char *argv[] )
   typedef TransformType::SpacingType SpacingType;
   SpacingType spacing = fixedImage->GetSpacing();
 
+  // TODO: does this play well with bulkTransform origin = 0,0,0 hack?
   typedef TransformType::OriginType OriginType;
   OriginType origin = fixedImage->GetOrigin();
 
   FixedImageType::SizeType fixedImageSize = fixedRegion.GetSize();
 
+  // TODO: update. unchanged from example code.
   for(unsigned int r=0; r < ImageDimension; r++) {
     spacing[ r ] *= floor( static_cast< double >( fixedImageSize[r] - 1 ) / 
                            static_cast< double >( gridSizeOnImage[r] - 1 ) );
-    origin[r] -= spacing[ r ]; 
+    origin[ r ] -= spacing[ r ]; 
   }
 
   transform->SetGridSpacing( spacing );
   transform->SetGridOrigin( origin );
   transform->SetGridRegion( bsplineRegion );
   
-
   typedef TransformType::ParametersType ParametersType;
-
   const unsigned int numberOfParameters =
                transform->GetNumberOfParameters();
-  
-  ParametersType parameters( numberOfParameters );
 
+  // bspline transform had 3 parameters per grid point, each indicating
+  // the deformation offset in the corresponding dimension
+  ParametersType parameters( numberOfParameters );
   parameters.Fill( 0.0 );
 
   transform->SetParameters( parameters );
   registration->SetInitialTransformParameters( transform->GetParameters() );
 
+
   OptimizerType::BoundSelectionType boundSelect( transform->GetNumberOfParameters() );
   OptimizerType::BoundValueType upperBound( transform->GetNumberOfParameters() );
   OptimizerType::BoundValueType lowerBound( transform->GetNumberOfParameters() );
 
-  boundSelect.Fill( 1 );
-  upperBound.Fill( 10 );
-  lowerBound.Fill( -10 );
+  boundSelect.Fill( 2 );
+  upperBound.Fill( 4 );
+  lowerBound.Fill( -4 );
 
+  // set boundary condition for each variable of the transform
+  // 2 = lower bound and upper bound used
   optimizer->SetBoundSelection( boundSelect );
   optimizer->SetUpperBound( upperBound );
   optimizer->SetLowerBound( lowerBound );
@@ -282,15 +296,21 @@ int main( int argc, char *argv[] )
   optimizer->AddObserver( itk::IterationEvent(), observer );
 
   metric->SetNumberOfHistogramBins( 50 );
+
+  // TODO: update to use region defined by mask boundaries
   const unsigned int numberOfSamples = fixedRegion.GetNumberOfPixels() / 80;
   metric->SetNumberOfSpatialSamples( numberOfSamples );
+
+  // TODO: randomize seed selection?
   metric->ReinitializeSeed( 76926294 );
 
 
+  // initialize bulk transform to be identity, or read it in from user
+  // supplied file. file must be ascii format output by FSL registration
+  // tools.
   typedef itk::AffineTransform< CoordinateRepType, SpaceDimension >
           BulkTransformType;
 
-  // bulk transform is initialized to identity
   BulkTransformType::Pointer bulkTransform = BulkTransformType::New();
 
   if( bulkTransformFileName != "" ) {
@@ -337,13 +357,15 @@ int main( int argc, char *argv[] )
   }   
 
 
-  // set up fixed image mask
 
+  // set up fixed image mask
   typedef itk::Image< unsigned char, ImageDimension > MaskImageType;
   typedef itk::ResampleImageFilter< 
                             MovingImageType, 
                             FixedImageType > MaskResampleFilterType;
 
+  // mask will be limited to intersection of fixed image and moving image
+  // when mapped together using initial bulk transform
   MaskResampleFilterType::Pointer maskResample = MaskResampleFilterType::New();
 
   maskResample->SetTransform( bulkTransform );
@@ -351,14 +373,6 @@ int main( int argc, char *argv[] )
   maskResample->SetDefaultPixelValue( -1 );
   maskResample->SetReferenceImage( fixedImage );
   maskResample->UseReferenceImageOn();
-  // not using a reference image. would use fixedImage, but it has
-  // the wrong PixelType. instead, copyinformation from it on the output
-  //maskResample->Update();
-  //maskResample->GetOutput()->CopyInformation( fixedImage );
-
-  //maskResample->Update();
-  //FixedImageType::Pointer maskInput = maskResample->GetOutput();
-  //maskInput->SetOrigin( zeroOrigin );
 
   typedef itk::BinaryThresholdImageFilter< FixedImageType, MaskImageType >
           BinarizeFilterType;
@@ -432,14 +446,12 @@ int main( int argc, char *argv[] )
     return -1;
   }
   
-  
-  OptimizerType::ParametersType finalParameters = 
-    registration->GetLastTransformParameters();
-
-
   // Report the time taken by the registration
   collector.Report();
+  
 
+  OptimizerType::ParametersType finalParameters =
+    registration->GetLastTransformParameters();
   transform->SetParameters( finalParameters );
 
 
@@ -475,7 +487,7 @@ int main( int argc, char *argv[] )
 
 
   caster->SetInput( resample->GetOutput() );
-  writer->SetInput( caster->GetOutput()   );
+  writer->SetInput( caster->GetOutput() );
 
 
   try {
@@ -495,42 +507,38 @@ int main( int argc, char *argv[] )
   maskWriter->Update();
 
 
-  if( checkerboardImageFileName != "" )
-    {
-      // Compute the checkerboard image between the fixed and resampled moving image.
+  // Compute the checkerboard image between the fixed and resampled moving image.
+  if( checkerboardImageFileName != "" ) {
+    typedef itk::ShiftScaleImageFilter< OutputImageType, OutputImageType > ScaleFilterType;
+    typedef itk::CheckerBoardImageFilter< OutputImageType > CheckerBoardFilterType;
+    typedef CheckerBoardFilterType::PatternArrayType CheckerBoardPatternArrayType;
 
-      typedef itk::ShiftScaleImageFilter< OutputImageType, OutputImageType > ScaleFilterType;
-      typedef itk::CheckerBoardImageFilter< OutputImageType > CheckerBoardFilterType;
-      typedef CheckerBoardFilterType::PatternArrayType CheckerBoardPatternArrayType;
+    ScaleFilterType::Pointer scaleFilter = ScaleFilterType::New();
+    CheckerBoardFilterType::Pointer checkerboard = CheckerBoardFilterType::New();
+    WriterType::Pointer checkerboardWriter = WriterType::New();
+    CheckerBoardPatternArrayType pattern;
 
-      ScaleFilterType::Pointer scaleFilter = ScaleFilterType::New();
-      CheckerBoardFilterType::Pointer checkerboard = CheckerBoardFilterType::New();
-      WriterType::Pointer checkerboardWriter = WriterType::New();
-      CheckerBoardPatternArrayType pattern;
+    scaleFilter->SetScale(20.0);
+    scaleFilter->SetInput(fixedImage);
 
-      scaleFilter->SetScale(20.0);
-      scaleFilter->SetInput(fixedImage);
+    pattern[0] = fixedImage->GetLargestPossibleRegion().GetSize()[0] / 10;
+    pattern[1] = fixedImage->GetLargestPossibleRegion().GetSize()[1] / 10;
+    pattern[2] = fixedImage->GetLargestPossibleRegion().GetSize()[2] / 10;
 
-      pattern[0] = fixedImage->GetLargestPossibleRegion().GetSize()[0] / 10;
-      pattern[1] = fixedImage->GetLargestPossibleRegion().GetSize()[1] / 10;
-      pattern[2] = fixedImage->GetLargestPossibleRegion().GetSize()[2] / 10;
-
-      checkerboard->SetCheckerPattern(pattern);
-      checkerboard->SetInput1( scaleFilter->GetOutput() );
-      checkerboard->SetInput2( caster->GetOutput() );
-      checkerboardWriter->SetInput( checkerboard->GetOutput() );
-      checkerboardWriter->SetFileName( checkerboardImageFileName.c_str() );
-      try
-        {
-          checkerboardWriter->Update();
-        }
-      catch( itk::ExceptionObject & err ) 
-        { 
-          std::cerr << "ExceptionObject caught !" << std::endl; 
-          std::cerr << err << std::endl; 
-          return -1;
-        } 
+    checkerboard->SetCheckerPattern(pattern);
+    checkerboard->SetInput1( scaleFilter->GetOutput() );
+    checkerboard->SetInput2( caster->GetOutput() );
+    checkerboardWriter->SetInput( checkerboard->GetOutput() );
+    checkerboardWriter->SetFileName( checkerboardImageFileName.c_str() );
+    try {
+      checkerboardWriter->Update();
     }
+    catch( itk::ExceptionObject & err ) { 
+      std::cerr << "ExceptionObject caught !" << std::endl; 
+      std::cerr << err << std::endl; 
+      return -1;
+    }
+  }
 
   return 0;
 }
