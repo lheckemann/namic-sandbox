@@ -41,6 +41,7 @@ SUBDIRS(
   SpectralClustering
   SlicerTractClusteringImplementation
   Distributions
+  SlicerIO
   )
 
 # Add the testing directories
