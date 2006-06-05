@@ -1,5 +1,7 @@
 /*
-  The following code is basically copied from this website http://wiki.tcl.tk/12975
+  The following code is basically copied from 
+  Robert Seeger (RHS) at 
+  this website http://wiki.tcl.tk/12975
 */
 
 
