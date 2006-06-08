@@ -11,6 +11,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include  <errno.h>
+#include <string.h>
 
 
 #define ERR_STRLEN 128
@@ -25,11 +26,7 @@
 /* Should be define a SIZE_LONG_DOUBLE for modifier 'L'? */
 #define SIZE_POINTER SIZE_XINT /* %p Pointer: same as hex "0x" + 16 chars */
 
-#ifndef __GNUC__
-#define  __attribute__(x)
-#endif
-
-#define max(x,y) (x < y ? y : x)
+#define bigger(x,y) (x < y ? y : x)
 
 
 
@@ -94,59 +91,59 @@ int vaFormatStringLength(const char *format, va_list ap)
 
             switch(*ptr) {
                 case 'd':
-                    total += max(minsize, SIZE_INT) - 2;
+                    total += bigger(minsize, SIZE_INT) - 2;
                     va_arg(ap, int);
                     break;
                 case 'u':
-                    total += max(minsize, SIZE_UINT) - 2;
+                    total += bigger(minsize, SIZE_UINT) - 2;
                     va_arg(ap, int);
                     break;
                 case 'i':
-                    total += max(minsize, SIZE_IINT) - 2;
+                    total += bigger(minsize, SIZE_IINT) - 2;
                     va_arg(ap, int);
                     break;
 #ifdef _MSC_VER
                 case 'I':
-                    total += max(minsize, SIZE_IINT) - 2;
+                    total += bigger(minsize, SIZE_IINT) - 2;
                     va_arg(ap, __int64);
                     break;
 #endif
                 case 'o':
-                    total += max(minsize, SIZE_OINT) - 2;
+                    total += bigger(minsize, SIZE_OINT) - 2;
                     va_arg(ap, int);
                     break;
                 case 'x':
                 case 'X':
-                    total += max(minsize, SIZE_XINT) - 2;
+                    total += bigger(minsize, SIZE_XINT) - 2;
                     va_arg(ap, int);
                     break;
                 case 'c':
-                    total += max(minsize, SIZE_CHAR) - 2;
+                    total += bigger(minsize, SIZE_CHAR) - 2;
                     va_arg(ap, int);
                     break;
                 case 's':
                     tmp = (char *)va_arg(ap, char *);
-                    total += max(minsize, strlen(tmp)) -2;
+                    total += bigger(minsize, strlen(tmp)) -2;
                     break;
                 case 'f':
-                    total += max(minsize, SIZE_DOUBLE) - 2;
+                    total += bigger(minsize, SIZE_DOUBLE) - 2;
                     va_arg(ap, double);
                     break;
                 case 'e':
                 case 'E':
                     /* This is a cheat, we come up with a better size */
-                    total += max(minsize, SIZE_DOUBLE) - 2;
+                    total += bigger(minsize, SIZE_DOUBLE) - 2;
                     va_arg(ap, double);
                     break;
                 case 'g':
                 case 'G':
                     /* This is a cheat, we come up with a better size */
-                    total += max(minsize, SIZE_DOUBLE) - 2;
+                    total += bigger(minsize, SIZE_DOUBLE) - 2;
                     va_arg(ap, double);
                     break;
                 case 'p':
                     /* This is a cheat, we come up with a better size */
-                    total += max(minsize, SIZE_POINTER) - 2;
+                    total += bigger(minsize, SIZE_POINTER) - 2;
                     va_arg(ap, void *);
                     break;
             }
