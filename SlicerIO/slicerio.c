@@ -14,10 +14,12 @@
 
 
 #include "slicerio.h"
+#include "utilities.h"
 
 #include <stdlib.h>
 #include  <errno.h>
 #include <stdarg.h>
+#include <string.h>
 
 
 #define ERR_STRLEN 128
@@ -27,7 +29,8 @@
 #undef stdout
 #undef stderr
 
-#ifdef __unix__
+/* For SunOS */
+#if defined(__unix__) && defined(__sun__)
 #if defined(__STDC__)
 extern __FILE   __iob[_NFILE];
 #define stdin   (&__iob[0])
@@ -39,10 +42,27 @@ extern __FILE    _iob[_NFILE];
 #define    stdout    (&_iob[1])
 #define    stderr    (&_iob[2])
 #endif    /* __STDC__ */
-#else
+#endif
+
+/* For linux */
+#if defined(__linux__)
 #define stdin stdin
 #define stdout stdout
 #define stderr stderr
+#endif
+
+/* For Mac */
+#if defined(__MACH__)
+#define stdin   (&__sF[0])
+#define stdout  (&__sF[1])
+#define stderr  (&__sF[2])
+#endif
+
+/* For Windows */
+#if defined(__WIN32__)
+#define stdin  (&_iob[0])
+#define stdout (&_iob[1])
+#define stderr (&_iob[2])
 #endif
 
 
@@ -86,7 +106,7 @@ slicerStream *slicerFopen(const char *filename, const char *mode)
     if (filename && *filename == '|') /* Here is a socket io */
     {
         int argc, code;
-        char **argv;
+        const char **argv;
         int flags;
         Tcl_Interp *interp;
         Tcl_Channel channel;
@@ -192,11 +212,20 @@ int slicerFclose(slicerStream *stream)
         return ret;
     }
 
-    if (stream->interp == NULL) /* regular file */
+    if (stream->interp == NULL) 
     {
-        ret = fclose((FILE *)stream->option.file);
+        switch (stream->type)
+        {
+        case SLICER_FILE:   /* regular file */
+            ret = fclose((FILE *)stream->option.file);
+            free(stream);
+            break;
+        default:
+            ret = 0;
+            break;
+        } 
     }
-    else  /* socket */
+    else  /* command pipe */
     {
         ret = Tcl_Close(stream->interp, stream->option.channel);
         if (ret != TCL_OK) 
@@ -206,9 +235,9 @@ int slicerFclose(slicerStream *stream)
             fprintf(stderr, "%s\n", err);
         }
         Tcl_DeleteInterp(stream->interp);
+        free(stream);
     }
 
-    free(stream);
     return ret;
 }
 #define fclose slicerFclose
@@ -591,7 +620,7 @@ int slicerFseek(slicerStream *stream, long offset, int whence)
     }
     else  /* command pipe */
     {
-        retVal = Tcl_Seek(stream->option.channel,(Tcl_WideInt)offset, whence);
+        retVal = Tcl_Seek(stream->option.channel, offset, whence);
         if (retVal == -1)
         {
             sprintf(err, "%s: %s", me, Tcl_ErrnoMsg(Tcl_GetErrno()));
