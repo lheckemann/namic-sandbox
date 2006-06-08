@@ -25,7 +25,7 @@ extern "C" {
 
 
 /* Utility functions */
-int formatStringLength(const char *format, ...) __attribute__((format(printf, 1, 2)));
+int formatStringLength(const char *format, ...);
 int vaFormatStringLength(const char *format, va_list ap);
 
 
