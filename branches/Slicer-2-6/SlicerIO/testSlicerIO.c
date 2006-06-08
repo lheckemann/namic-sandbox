@@ -14,6 +14,7 @@
 
 
 #include "slicerio.h"
+#include <string.h>
 
 int main(int argc, char **argv)
 {
@@ -458,7 +459,7 @@ int main(int argc, char **argv)
     printf("Case 2: feof to stdin (use control-d to finish input)\n");
     while (!feof(stdin))
     {
-        gets(buffer);
+        fgets(buffer, 1024, stdin);
         printf("%s\n", buffer);
     }
     printf("\n");
