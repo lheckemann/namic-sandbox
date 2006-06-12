@@ -1,3 +1,5 @@
+// This is the header file for the Conformal Flattenning mapping
+
 // Disable warning for long symbol names in this file only
 #ifdef _MSC_VER
 #pragma warning ( disable : 4786 )
