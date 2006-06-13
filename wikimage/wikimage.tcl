@@ -11,18 +11,18 @@ proc Usage { {msg ""} } {
     set msg "$msg\nusage: wikimage \[options\] <image_filename>"
     set msg "$msg\n  <image_filename> is the file to upload"
     set msg "$msg\n  \[options\] is one of the following:"
-    set msg "$msg\n   -u --user : wiki user name"
+    set msg "$msg\n   -u --user : wiki user name (default is env USER)"
     set msg "$msg\n   -p --password : wiki login password"
-    set msg "$msg\n   --url : url of the wiki"
-    set msg "$msg\n   -c --cookie-jar : file to save your cookies"
+    set msg "$msg\n   --url : url of the wiki (default wiki.na-mic.org)"
+    set msg "$msg\n   -c --cookie-jar : file to save your cookies (default 'mycookies')"
     set msg "$msg\n   --help : prints this message and exits"
     puts stderr $msg
 }
 
-set ::WIKIMAGE(url) ""
-set ::WIKIMAGE(user) ""
+set ::WIKIMAGE(url) "http://wiki.na-mic.org"
+set ::WIKIMAGE(user) $::env(USER)
 set ::WIKIMAGE(password) ""
-set ::WIKIMAGE(cookie-jar) ""
+set ::WIKIMAGE(cookie-jar) "mycookies"
 
 set strippedargs ""
 set argc [llength $argv]
@@ -83,13 +83,15 @@ for {set i 0} {$i < $argc} {incr i} {
         }
     }
 }
+
 set argv $strippedargs
 set argc [llength $argv]
 
 if {$argc != 1 } {
-    Usage
+    Usage "Only one file at a time supported"
     exit 1
 }
+
 set ::WIKIMAGE(filename) $argv
 
 #
@@ -128,11 +130,13 @@ proc login_test {} {
     return $res
 }
 
+
+
 proc upload_test {} {
 
 
-# Note: the following syntax works to upload a file to the wiki if you copy the cookie information
-# from firefox - not clear yet how to get curl to login itself and save the info
+  # Note: the following syntax works to upload a file to the wiki if you copy the cookie information
+  # from firefox use the regular upload command for 
 
     exec curl \
         --cookie NAMICNewWikiDBUserID=3 \
@@ -146,6 +150,9 @@ proc upload_test {} {
         > c:/tmp/ff.html ; c:/Program\ Files/Mozilla\ Firefox/firefox.exe file://c:/tmp/ff.html
 
 }
+
+
+
 
 proc login {} {
 
@@ -175,8 +182,8 @@ proc upload {} {
     set imagename [file tail $::WIKIMAGE(filename)]
 
     exec curl \
-        --cookie-jar mycookies \
-        --form wpUploadFile=@$filename \
+        --cookie-jar $::WIKIMAGE(cookie-jar) \
+        --form wpUploadFile=@$::WIKIMAGE(filename) \
         --form wpDestFile=$imagename \
         --form wpUpload="Upload File" \
         $::WIKIMAGE(url)/index.php/Special:Upload \
