@@ -8,9 +8,11 @@ exec wish "$0" ${1+"$@"}
 proc Usage { {msg ""} } {
     global SLICER
     
-    set msg "$msg\nusage: wikimage \[options\] <image_filename>"
+    set msg "$msg\nusage: wikimage \[options\] <image_filename> <caption>"
     set msg "$msg\n  <image_filename> is the file to upload"
     set msg "$msg\n  \[options\] is one of the following:"
+    set msg "$msg\n   --gallery : wiki page where image link should be added"
+    set msg "$msg\n   --thumb-size : size of gallery thumbnail (default 150px)"
     set msg "$msg\n   -u --user : wiki user name (default is env USER)"
     set msg "$msg\n   -p --password : wiki login password"
     set msg "$msg\n   --url : url of the wiki (default wiki.na-mic.org)"
@@ -19,10 +21,13 @@ proc Usage { {msg ""} } {
     puts stderr $msg
 }
 
+set ::WIKIMAGE(gallery) ""
+set ::WIKIMAGE(thumb-size) ""
 set ::WIKIMAGE(url) "http://wiki.na-mic.org"
 set ::WIKIMAGE(user) $::env(USER)
 set ::WIKIMAGE(password) ""
 set ::WIKIMAGE(cookie-jar) "mycookies"
+set ::WIKIMAGE(caption) "No caption"
 
 set strippedargs ""
 set argc [llength $argv]
@@ -30,9 +35,21 @@ set argc [llength $argv]
 for {set i 0} {$i < $argc} {incr i} {
     set a [lindex $argv $i]
     switch -glob -- $a {
-        "--clean" -
-        "-f" {
-            set ::WIKIMAGE(clean) "true"
+        "--gallery" {
+            incr i ;# skip this argument
+            if { $i == $argc } {
+                Usage "missing argument for $a\n"
+            } else {
+                set ::WIKIMAGE(gallery) [lindex $argv $i]
+            }
+        }
+        "--thumb-size" {
+            incr i ;# skip this argument
+            if { $i == $argc } {
+                Usage "missing argument for $a\n"
+            } else {
+                set ::WIKIMAGE(thumb-size) [lindex $argv $i]
+            }
         }
         "--url" {
             incr i ;# skip this argument
@@ -87,13 +104,11 @@ for {set i 0} {$i < $argc} {incr i} {
 set argv $strippedargs
 set argc [llength $argv]
 
-if {$argc != 1 } {
-    Usage "Only one file at a time supported"
-    exit 1
-}
-
-set ::WIKIMAGE(filename) $argv
+set ::WIKIMAGE(filename) [lindex $argv 0]
 set ::WIKIMAGE(imagename) [file tail $::WIKIMAGE(filename)]
+if { $argc > 1 } {
+  set ::WIKIMAGE(caption) [lrange $argv 1 end]
+}
 
 #
 #####################################################################
@@ -154,7 +169,17 @@ proc upload {} {
         --form wpUploadFile=@$::WIKIMAGE(filename) \
         --form wpDestFile=$::WIKIMAGE(imagename) \
         --form wpUpload="Upload File" \
+        --form wpUploadDescription="$::WIKIMAGE(caption)" \
         > c:/tmp/ff.html ; c:/Program\ Files/Mozilla\ Firefox/firefox.exe file://c:/tmp/ff.html
+}
+
+proc add_gallery_link {} {
+
+  set ret [catch "exec curl --url $::WIKIMAGE(url)/$::WIKIMAGE(gallery)&action=edit" res]
+
+http://wiki.na-mic.org/Wiki/index.php?title=Slicer3:VisualBlog&action=edit
+  [[image:mbirn_sedona_MondayMorning.jpg|thumb|300px]]
+
 }
 
 
@@ -199,6 +224,8 @@ if { [check_file_exists] } {
 login 
 
 upload
+
+add_gallery_link
 
 exit
 
