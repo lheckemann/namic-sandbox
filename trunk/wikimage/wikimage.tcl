@@ -93,6 +93,7 @@ if {$argc != 1 } {
 }
 
 set ::WIKIMAGE(filename) $argv
+set ::WIKIMAGE(imagename) [file tail $::WIKIMAGE(filename)]
 
 #
 #####################################################################
@@ -104,55 +105,6 @@ set ::WIKIMAGE(filename) $argv
 # some handy info 
 # http://curl.haxx.se/docs/httpscripting.html
 #
-
-proc login_test {} {
-
-    set pw [get_password]
-
-    set cmd "exec curl --verbose --cookie-jar mycookies  \
-                --form wpName=pieper  \
-                --form wpPassword=$pw \
-                http://wiki.ncigt.org/IGT/index.php/Special:Userlogin \
-                --form wpLoginattempt=\"Log in\" "
-
-    set ret [catch $cmd res]
-
-    if { $ret && $::errorCode != "NONE" } {
-        error $::errorCode
-    }
-
-    set ret [catch "exec curl --cookie mycookies http://wiki.ncigt.org/IGT/index.php/Main_Page" res]
-
-    if { $ret && $::errorCode != "NONE" } {
-        error $::errorCode
-    }
-
-    return $res
-}
-
-
-
-proc upload_test {} {
-
-
-  # Note: the following syntax works to upload a file to the wiki if you copy the cookie information
-  # from firefox use the regular upload command for 
-
-    exec curl \
-        --cookie NAMICNewWikiDBUserID=3 \
-        --cookie NAMICNewWikiDBUserName=Pieper \
-        --cookie NAMICNewWikiDBToken=99930421212693660455417595135040 \
-        --cookie NAMICNewWikiDB_session=9d8f4623b11f1e5563550664d0780d48 \
-        --form wpUploadFile=@c:/pieper/bwh/birn-grant-work/mbirn-sedona-2006/mbirn_sedona_MondayMorning.jpg \
-        --form wpDestFile=mbirn_sedona_MondayMorning.jpg \
-        --form wpUpload="Upload File" \
-        http://www.na-mic.org/Wiki/index.php/Special:Upload \
-        > c:/tmp/ff.html ; c:/Program\ Files/Mozilla\ Firefox/firefox.exe file://c:/tmp/ff.html
-
-}
-
-
-
 
 proc login {} {
 
@@ -174,19 +126,34 @@ proc login {} {
         error $::errorCode
     }
 
+    set fp [open c:/tmp/login.html "w"]
+    puts $fp $res
+    close $fp
+
     return $res
+}
+
+proc check_file_exists {} {
+
+
+    set ret [catch "exec curl --url $::WIKIMAGE(url)/$::WIKIMAGE(imagename)" res]
+
+    if { [string first "No file by this name exists" $res] == 1 } {
+      return 0
+    } else {
+      return 1
+    }
 }
 
 proc upload {} {
 
-    set imagename [file tail $::WIKIMAGE(filename)]
-
     exec curl \
-        --cookie-jar $::WIKIMAGE(cookie-jar) \
+        --basic \
+        --url $::WIKIMAGE(url)/index.php/Special:Upload \
+        --cookie $::WIKIMAGE(cookie-jar) \
         --form wpUploadFile=@$::WIKIMAGE(filename) \
-        --form wpDestFile=$imagename \
+        --form wpDestFile=$::WIKIMAGE(imagename) \
         --form wpUpload="Upload File" \
-        $::WIKIMAGE(url)/index.php/Special:Upload \
         > c:/tmp/ff.html ; c:/Program\ Files/Mozilla\ Firefox/firefox.exe file://c:/tmp/ff.html
 }
 
@@ -223,6 +190,11 @@ proc get_password {} {
 #
 # actual application
 # - relies on the WIKIMAGE global array for parameters
+
+if { [check_file_exists] } {
+  puts stderr "Sorry, $::WIKIMAGE(imagename) already exists on $WIKIMAGE(url)"
+  exit -1
+}
 
 login 
 
