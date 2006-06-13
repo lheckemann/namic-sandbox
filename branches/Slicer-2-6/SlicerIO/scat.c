@@ -15,6 +15,7 @@
 
 #include "slicerio.h"
 
+#include <string.h> // strcmp
 
 void writeFile(FILE *in, FILE *out)
 {
