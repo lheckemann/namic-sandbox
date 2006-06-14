@@ -213,7 +213,7 @@ vtkPolyData* ITKMeshToVtkPolyData(MeshType::Pointer mesh)
       PointIdIterator pntIdEnd = cellptr->PointIdsEnd();
       vtkIdList* pts = vtkIdList::New();
 
-      for (int it1 = 0; pntIdIter != pntIdEnd; ++it1, ++pntIdIter)
+      for (; pntIdIter != pntIdEnd; ++pntIdIter)
         {
           pts->InsertNextId( *pntIdIter );
           //          std::cout<<"           "<<tempCell[it1]<<std::endl;

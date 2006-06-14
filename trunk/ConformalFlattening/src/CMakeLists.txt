@@ -6,7 +6,11 @@ SET(a "conformalFlatteningITK.out")
 PROJECT(${f})
 INCLUDE_REGULAR_EXPRESSION("^.*$")
 
-SET(VTK_DIR ${VTK_BINARY_DIR})
+#SET(VTK_DIR ${VTK_BINARY_DIR})
+
+#this is the setting on ygao's computer...
+SET(VTK_DIR /u4/home/gth818n/usr/local/lib/vtk-5.0)
+SET(ITK_DIR /u4/home/gth818n/usr/local/lib/InsightToolkit)
 
 SET(TEMP ${ITK_BINARY_DIR}/Testing/Temporary)
 
