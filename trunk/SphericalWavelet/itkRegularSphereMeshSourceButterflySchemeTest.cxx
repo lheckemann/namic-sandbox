@@ -21,12 +21,12 @@
 
 
 #include "itkMesh.h"
-#include "itkRegularSphereMeshSource.h"
+#include "itkRegularSphereMeshSourceButterflyScheme.h"
 #include "itkDefaultStaticMeshTraits.h"
 
 #include <iostream>
 
-int itkRegularSphereMeshSourceTest(int, char* [] )
+int itkRegularSphereMeshSourceButterfulSchemeTest(int, char* [] )
 {
 
   typedef itk::Mesh<float, 3>   MeshType;
