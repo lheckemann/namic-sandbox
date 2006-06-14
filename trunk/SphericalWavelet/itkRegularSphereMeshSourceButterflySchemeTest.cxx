@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkRegularSphereMeshSourceTest.cxx,v $
+  Module:    $RCSfile: itkRegularSphereMeshSourceButterflySchemeTest.cxx,v $
   Language:  C++
   Date:      $Date: 2004/04/19 11:15:18 $
   Version:   $Revision: 1.2 $
@@ -31,7 +31,7 @@ int itkRegularSphereMeshSourceButterfulSchemeTest(int, char* [] )
 
   typedef itk::Mesh<float, 3>   MeshType;
 
-  typedef itk::RegularSphereMeshSource< MeshType >  SphereMeshSourceType;
+  typedef itk::RegularSphereMeshSourceButterflyScheme< MeshType >  SphereMeshSourceType;
 
   SphereMeshSourceType::Pointer  mySphereMeshSource = SphereMeshSourceType::New();
 
@@ -66,7 +66,7 @@ int itkRegularSphereMeshSourceButterfulSchemeTest(int, char* [] )
 
   PointType  pt;
 
-  std::cout << "Testing itk::RegularSphereMeshSource "<< std::endl;
+  std::cout << "Testing itk::RegularSphereMeshSourceButterflyScheme "<< std::endl;
 
   for(unsigned int i=0; i<myMesh->GetNumberOfPoints(); i++) 
     {

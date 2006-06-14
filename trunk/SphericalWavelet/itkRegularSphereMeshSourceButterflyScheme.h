@@ -22,8 +22,8 @@
 #include "itkTriangleCell.h"
 #include "itkMapContainer.h"
 
-//namespace itk
-//{
+namespace itk
+{
 
 /** \class RegularSphereMeshSourceButterflyScheme
  * \brief 
@@ -118,7 +118,7 @@ private:
 
 
 
-//} // end namespace itk
+} // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #include "itkRegularSphereMeshSourceButterflyScheme.txx"
