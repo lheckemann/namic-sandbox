@@ -29,37 +29,48 @@
 // implementation of class theFunc
 theFunc::theFunc(vnl_matrix<double> const& A, 
                  vnl_vector<double> const& b)  
-  :_A(&A), _b(&b), _dim(b.size()), vnl_cost_function(b.size()) {
+  :_A(&A), _b(&b), _dim(b.size()), vnl_cost_function(b.size()), _sparse(false) {
 
   if (A.rows() != b.size())
         assert(!"The # of rows in A must be the same as the length of b!");    
-  _sparse = false;
 }
 
 // overload construction function for sparse matrix A
 theFunc::theFunc(vnl_sparse_matrix<double> const& A, 
                  vnl_vector<double> const& b)  
-  :_Asparse(&A), _b(&b), _dim(b.size()), vnl_cost_function(b.size()) {
+  :_Asparse(&A), _b(&b), _dim(b.size()), vnl_cost_function(b.size()), _sparse(true) {
 
   if (A.rows() != b.size())
         assert(!"The # of rows in A must be the same as the length of b!");    
-
-  _sparse = true;
 }
 
 
 
 double theFunc::f(vnl_vector<double> const& x) {  
-  if (_sparse == true) {
-    double r = 0.5*inner_product(x*(*_A),x)-inner_product((*_b),x);
+  double r;
+  if (_sparse == false) {
+    r = 0.5*inner_product(x*(*_A),x)-inner_product((*_b),x);
   }
+  else if (_sparse == true) {
+    vnl_vector<double> tmp;
+    _Asparse -> pre_mult(x, tmp);
+     r = 0.5*inner_product(tmp,x)-inner_product((*_b),x);
+  }
+
   return r;
 }
 
 
 void theFunc::gradf(vnl_vector<double> const& x, 
                             vnl_vector<double> & g) {
-  g = (*_A)*x - (*_b);
+  if (_sparse == false) {
+    g = (*_A)*x - (*_b);
+  }
+  else if (_sparse == true) {
+    vnl_vector<double> tmp;
+    _Asparse -> mult(x, tmp);
+    g = tmp - (*_b);
+  }
 }
 
 // implementation of class theFunc
@@ -71,6 +82,11 @@ void theFunc::gradf(vnl_vector<double> const& x,
 // implementation of class linearEqnSolver
 
 linearEqnSolver::linearEqnSolver(vnl_matrix<double> const& A, 
+                                 vnl_vector<double> const& b)
+  :_f(A, b), _cg(_f) {}
+
+// overload construction function for sparse matrix
+linearEqnSolver::linearEqnSolver(vnl_sparse_matrix<double> const& A, 
                                  vnl_vector<double> const& b)
   :_f(A, b), _cg(_f) {}
 
