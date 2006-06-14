@@ -71,7 +71,8 @@ typedef MeshType::CellType CellType;
 typedef MeshType::CellsContainer::ConstIterator CellIterator;
 
 typedef CellType::PointIdIterator PointIdIterator;
-typedef RegularSphereMeshSourceButterflyScheme<MeshType> SphereSource;
+typedef itk::RegularSphereMeshSourceButterflyScheme<MeshType> SphereSource;
+//typedef itk::RegularSphereMeshSource<MeshType> SphereSource;
 
 
 //functions definition:

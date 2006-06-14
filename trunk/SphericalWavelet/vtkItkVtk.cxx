@@ -19,8 +19,7 @@ int main( int argc, char * argv [] )
   //Begin convert from ITKMesh to vtkPolyData
 
  
- 
- typedef  RegularSphereMeshSourceButterflyScheme<
+
  SphereSource::Pointer mySphereSource = SphereSource::New();
 
  MeshType::PointType center;
