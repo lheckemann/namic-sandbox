@@ -15,4 +15,4 @@ IF (VTK_FOUND)
 ENDIF(VTK_FOUND) 
 
 ADD_EXECUTABLE(${a} ${f}.cxx)
-TARGET_LINK_LIBRARIES(${a} ITKAlgorithms ITKCommon ITKBasicFilters ITKIO ITKFEM)
+TARGET_LINK_LIBRARIES(${a} vtkRendering vtkIO ITKCommon ITKBasicFilters ITKIO ITKFEM ITKStatistics ITKAlgorithms)
