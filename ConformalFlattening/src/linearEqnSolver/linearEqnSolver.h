@@ -26,11 +26,16 @@
 #include <vnl/vnl_cost_function.h>
 #include <vnl/vnl_math.h>
 
+#include <vnl/vnl_sparse_matrix.h>
+
 #include <vnl/algo/vnl_conjugate_gradient.h>
 
 class theFunc : public vnl_cost_function {
  public:  
   theFunc(vnl_matrix<double> const& A, 
+          vnl_vector<double> const& b);
+
+  theFunc(vnl_sparse_matrix<double> const& A, 
           vnl_vector<double> const& b);
 
   double f(vnl_vector<double> const& x);
@@ -40,6 +45,7 @@ class theFunc : public vnl_cost_function {
 
  private:
   vnl_matrix<double> const* _A;
+  vnl_sparse_matrix<double> const* _Asparse;
   vnl_vector<double> const* _b;
   unsigned int _dim;
 };
@@ -50,10 +56,14 @@ class linearEqnSolver {
   linearEqnSolver(vnl_matrix<double> const& A, 
                   vnl_vector<double> const& b);
 
+  linearEqnSolver(vnl_sparse_matrix<double> const& A, 
+                  vnl_vector<double> const& b);
+
   vnl_vector<double> solve();
 
  private:
   theFunc _f;
   vnl_conjugate_gradient _cg;
+  bool _sparse;
 };
 

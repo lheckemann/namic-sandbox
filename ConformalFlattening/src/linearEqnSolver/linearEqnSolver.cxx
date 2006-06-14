@@ -33,11 +33,26 @@ theFunc::theFunc(vnl_matrix<double> const& A,
 
   if (A.rows() != b.size())
         assert(!"The # of rows in A must be the same as the length of b!");    
+  _sparse = false;
+}
+
+// overload construction function for sparse matrix A
+theFunc::theFunc(vnl_sparse_matrix<double> const& A, 
+                 vnl_vector<double> const& b)  
+  :_Asparse(&A), _b(&b), _dim(b.size()), vnl_cost_function(b.size()) {
+
+  if (A.rows() != b.size())
+        assert(!"The # of rows in A must be the same as the length of b!");    
+
+  _sparse = true;
 }
 
 
+
 double theFunc::f(vnl_vector<double> const& x) {  
-  double r = 0.5*inner_product(x*(*_A),x)-inner_product((*_b),x);
+  if (_sparse == true) {
+    double r = 0.5*inner_product(x*(*_A),x)-inner_product((*_b),x);
+  }
   return r;
 }
 
