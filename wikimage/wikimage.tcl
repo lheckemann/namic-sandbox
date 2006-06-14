@@ -12,7 +12,7 @@ proc Usage { {msg ""} } {
     set msg "$msg\n  <image_filename> is the file to upload"
     set msg "$msg\n  \[options\] is one of the following:"
     set msg "$msg\n   --gallery : wiki page where image link should be added"
-    set msg "$msg\n   --thumb-size : size of gallery thumbnail (default 150px)"
+    set msg "$msg\n   --thumb-size : size of gallery thumbnail (default 200px)"
     set msg "$msg\n   -u --user : wiki user name (default is env USER)"
     set msg "$msg\n   -p --password : wiki login password"
     set msg "$msg\n   --url : url of the wiki (default wiki.na-mic.org)"
@@ -21,7 +21,7 @@ proc Usage { {msg ""} } {
     puts stderr $msg
 }
 
-set ::WIKIMAGE(gallery) ""
+set ::WIKIMAGE(gallery) "Slicer3:VisualBlog"
 set ::WIKIMAGE(thumb-size) ""
 set ::WIKIMAGE(url) "http://wiki.na-mic.org"
 set ::WIKIMAGE(user) $::env(USER)
@@ -153,7 +153,7 @@ proc check_file_exists {} {
 
     set ret [catch "exec curl --url $::WIKIMAGE(url)/$::WIKIMAGE(imagename)" res]
 
-    if { [string first "No file by this name exists" $res] == 1 } {
+    if { [string first "No file by this name exists" $res] == -1 } {
       return 0
     } else {
       return 1
@@ -162,24 +162,73 @@ proc check_file_exists {} {
 
 proc upload {} {
 
-    exec curl \
+    catch "exec curl \
         --basic \
         --url $::WIKIMAGE(url)/index.php/Special:Upload \
         --cookie $::WIKIMAGE(cookie-jar) \
         --form wpUploadFile=@$::WIKIMAGE(filename) \
         --form wpDestFile=$::WIKIMAGE(imagename) \
-        --form wpUpload="Upload File" \
-        --form wpUploadDescription="$::WIKIMAGE(caption)" \
-        > c:/tmp/ff.html ; c:/Program\ Files/Mozilla\ Firefox/firefox.exe file://c:/tmp/ff.html
+        --form wpUpload=\"Upload File\" \
+        --form wpUploadDescription=\"$::WIKIMAGE(caption)\" "
 }
 
 proc add_gallery_link {} {
 
   set ret [catch "exec curl --url $::WIKIMAGE(url)/$::WIKIMAGE(gallery)&action=edit" res]
 
-http://wiki.na-mic.org/Wiki/index.php?title=Slicer3:VisualBlog&action=edit
-  [[image:mbirn_sedona_MondayMorning.jpg|thumb|300px]]
 
+  #
+  # get the current page contents
+  #
+  set ret [catch "exec curl --cookie mycookies --url $::WIKIMAGE(url)/Wiki/index.php?title=$::WIKIMAGE(gallery)&action=edit" res]
+
+  #
+  # find the time and the token
+  #
+  set fingerend [string first "name=\"wpEdittime\"" $res]
+  set fingerstart [string last "value" $res $fingerend]
+  set valuetext [string range $res $fingerstart $fingerend]
+  set fingerstart [expr [string first "\"" $valuetext] + 1]
+  set fingerend [expr [string last "\"" $valuetext] - 1]
+  set Edittime [string range $valuetext $fingerstart $fingerend]
+  puts "edittime is $Edittime"
+
+  set fingerend [string first "name=\"wpEditToken\"" $res]
+  set fingerstart [string last "value" $res $fingerend]
+  set valuetext [string range $res $fingerstart $fingerend]
+  set fingerstart [expr [string first "\"" $valuetext] + 1]
+  set fingerend [expr [string last "\"" $valuetext] - 1]
+  set EditToken [string range $valuetext $fingerstart $fingerend]
+  puts "EditToken is $EditToken"
+
+  #
+  # find the actual text on the page
+  #
+  set finger [string first "<textarea" $res]
+  set pagetext [string range $res $finger end]
+  set finger [string first ">" $pagetext]
+  set pagetext [string range $pagetext [expr 1+$finger] end]
+  set finger [string first "</textarea>" $pagetext]
+  set pagetext [string range $pagetext 0 [expr $finger-1] ]
+
+
+  set uploadtime [clock format [clock seconds] -format "%A, %B %d, %Y at %l:%M%p"]
+
+  set imagetext "=== Image by $::env(USER) on $uploadtime ===\n"
+  append imagetext "\[\[image:$::WIKIMAGE(imagename) | thumb | 200px\]\]\n"
+  append imagetext "$::WIKIMAGE(caption) \n"
+
+  set pagetext "$imagetext\n$pagetext"
+
+  #
+  # submit the new text, but put it through stdin of curl so we don't need
+  # to worry about shell quoting
+  #
+  set fp [open "| curl --silent --cookie mycookies -F wpTextbox1=<- -F wpSave=Save%20page -F wpEdittime=$Edittime -F wpEditToken=$EditToken --url $::WIKIMAGE(url)/Wiki/index.php?title=$::WIKIMAGE(gallery)\\&action=submit" "w"]
+
+  puts $fp $pagetext
+
+  close $fp
 }
 
 
