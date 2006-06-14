@@ -312,43 +312,36 @@ void getMatrixD(MeshType::Pointer mesh, vnl_matrix<vtkFloatingPointType> &D) {
       {
         pointCell[ *pntIdIter ].push_back(itCell);
         cellPoint[itCell][itPntInCell] = *pntIdIter;
-        std::cout<<"cell "<<itCell<<" contains point "<< *pntIdIter<<std::endl;
       }
-    std::cout<<"end of one cell"<<std::endl;
   }
 
 
-  std::cout<<std::endl;
-  std::cout<<std::endl;
-  std::cout<<std::endl;
-  std::cout<<std::endl;
+//   std::cout<<std::endl;
+//   std::cout<<std::endl;
+//   std::cout<<std::endl;
+//   std::cout<<std::endl;
 
-  for (int it = 0; it < numOfPoints; ++it) {
-    std::cout<<"point# "<<it<<" :"
-             <<"       X: "<<pointXYZ[it][0]
-             <<"       Y: "<<pointXYZ[it][1]
-             <<"       Z: "<<pointXYZ[it][2]<<std::endl;
-  }
-
-
-
-  for (int it = 0; it < numOfPoints; ++it) {
-    std::cout<<"point# "<<it<<" is contained by"<<pointCell[it].size()<<" cells:"<<std::endl;
-    for (std::vector<int>::const_iterator vi = pointCell[it].begin();
-         vi != pointCell[it].end();
-         ++vi) {
-      std::cout<<*vi<<"     ";      
-    }
-    std::cout<<std::endl;
-  }
-
-
-  for (int it = 0; it < numOfCells; ++it) {
-    std::cout<<"cell# "<<it<<" has points:"
-             <<cellPoint[it][0]
-             <<cellPoint[it][1]
-             <<cellPoint[it][2]<<std::endl;
-  }
+//   for (int it = 0; it < numOfPoints; ++it) {
+//     std::cout<<"point# "<<it<<" :"
+//              <<"       X: "<<pointXYZ[it][0]
+//              <<"       Y: "<<pointXYZ[it][1]
+//              <<"       Z: "<<pointXYZ[it][2]<<std::endl;
+//   }
+//   for (int it = 0; it < numOfPoints; ++it) {
+//     std::cout<<"point# "<<it<<" is contained by"<<pointCell[it].size()<<" cells:"<<std::endl;
+//     for (std::vector<int>::const_iterator vi = pointCell[it].begin();
+//          vi != pointCell[it].end();
+//          ++vi) {
+//       std::cout<<*vi<<"     ";      
+//     }
+//     std::cout<<std::endl;
+//   }
+//   for (int it = 0; it < numOfCells; ++it) {
+//     std::cout<<"cell# "<<it<<" has points: "
+//              <<cellPoint[it][0]<<"  "
+//              <<cellPoint[it][1]<<"  "
+//              <<cellPoint[it][2]<<std::endl;
+//   }
 
 
 
