@@ -11,15 +11,17 @@ int main( int argc, char * argv [] )
 //       return -1;
 //     }
 
-  vtkPolyData *polyData = readDataToPolyData( "../../../data/cube.vtk" );//argv[1] );
+  vtkPolyData *polyData = readDataToPolyData( "../../../data/nice.vtk" );//argv[1] );
   
   //Begin convert from vtkPolyData to ITKMesh
   MeshType::Pointer  mesh = vtkPolyDataToITKMesh(polyData);
 
   vnl_matrix<vtkFloatingPointType> D(mesh->GetNumberOfPoints(),
                                      mesh->GetNumberOfPoints(),
-                                     0);
+                                     0);  
   getMatrixD( mesh, D );
+
+  //  std::cout<<D.size()<<std::endl;
 
   //   //Begin convert from ITKMesh to vtkPolyData
   //   vtkPolyData* newPolyData = ITKMeshToVtkPolyData(mesh);
@@ -315,6 +317,17 @@ void getMatrixD(MeshType::Pointer mesh, vnl_matrix<vtkFloatingPointType> &D) {
       }
   }
 
+  
+  // Now we're going to calculate matrix D element by element.
+  for (int itRow = 0; itRow < numOfPoints; ++itRow) {
+    for (int itCol = itRow+1; itCol < numOfPoints; ++itCol) { 
+      // D is symmetric, only need to compute half
+      // Diagonal values are calculated from all off-diagonal values.
+      // i.e. computed after this for-loop for itCol
+      
+    }
+  }
+
 
 //   std::cout<<std::endl;
 //   std::cout<<std::endl;
@@ -327,8 +340,9 @@ void getMatrixD(MeshType::Pointer mesh, vnl_matrix<vtkFloatingPointType> &D) {
 //              <<"       Y: "<<pointXYZ[it][1]
 //              <<"       Z: "<<pointXYZ[it][2]<<std::endl;
 //   }
+
 //   for (int it = 0; it < numOfPoints; ++it) {
-//     std::cout<<"point# "<<it<<" is contained by"<<pointCell[it].size()<<" cells:"<<std::endl;
+//     std::cout<<"point# "<<it<<" is contained by    "<<pointCell[it].size()<<"   cells:"<<std::endl;
 //     for (std::vector<int>::const_iterator vi = pointCell[it].begin();
 //          vi != pointCell[it].end();
 //          ++vi) {
@@ -336,6 +350,7 @@ void getMatrixD(MeshType::Pointer mesh, vnl_matrix<vtkFloatingPointType> &D) {
 //     }
 //     std::cout<<std::endl;
 //   }
+
 //   for (int it = 0; it < numOfCells; ++it) {
 //     std::cout<<"cell# "<<it<<" has points: "
 //              <<cellPoint[it][0]<<"  "
