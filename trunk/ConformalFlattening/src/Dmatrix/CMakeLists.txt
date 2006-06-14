@@ -7,6 +7,9 @@ SET(CMAKE_BUILD_TYPE "Debug")
 PROJECT(${f})
 INCLUDE_REGULAR_EXPRESSION("^.*$")
 
+
+#SET(VTK_DIR ${VTK_BINARY_DIR}) #this doesn't work one ygao's computer...
+
 #setting on ygao's laptop
 SET(ITK_DIR /usr/local/lib/InsightToolkit)
 SET(VTK_DIR /usr/local/lib/vtk-5.0)
