@@ -1,4 +1,4 @@
-SET(f "itkRegularSphereMeshSourceButterflySchemeTest")
+SET(f "vtkItkVtk")
 SET(a "a.out")
 
 PROJECT(${f})
