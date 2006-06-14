@@ -48,6 +48,7 @@ class theFunc : public vnl_cost_function {
   vnl_sparse_matrix<double> const* _Asparse;
   vnl_vector<double> const* _b;
   unsigned int _dim;
+  bool _sparse;
 };
 
 
@@ -64,6 +65,5 @@ class linearEqnSolver {
  private:
   theFunc _f;
   vnl_conjugate_gradient _cg;
-  bool _sparse;
 };
 
