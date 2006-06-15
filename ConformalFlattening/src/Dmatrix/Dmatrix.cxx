@@ -25,13 +25,15 @@ int main( int argc, char * argv [] )
 
   std::cerr<<(clock() - time)/CLOCKS_PER_SEC<<std::endl;
 
-  //print out matrix D...
-  //   for (int itRow = 0; itRow<D.rows(); ++itRow ) {
-  //     for (int itCol = 0; itCol<D.columns(); ++itCol ) {
-  //       std::cerr<<D(itRow, itCol)<<"  ";
+  //   //  ------------------------------------------------------------
+  //   //  print out matrix D...
+  //     for (int itRow = 0; itRow<D.rows(); ++itRow ) {
+  //       for (int itCol = 0; itCol<D.columns(); ++itCol ) {
+  //         std::cerr<<D(itRow, itCol)<<"\t\t";
+  //       }
+  //       std::cerr<<std::endl;
   //     }
-  //     std::cerr<<std::endl;
-  //   }
+  //   //------------------------------------------------------------
 
   //  std::cout<<D.size()<<std::endl;
 
@@ -293,8 +295,6 @@ void getMatrixD(MeshType::Pointer mesh, vnl_sparse_matrix<vtkFloatingPointType> 
     pointXYZ[it][0] = pnt[0];
     pointXYZ[it][1] = pnt[1];
     pointXYZ[it][2] = pnt[2];
-
-    //    std::cout<<pnt[0];
   }
 
   // 2. store the relationship from point to cell, i.e. for each
@@ -330,82 +330,128 @@ void getMatrixD(MeshType::Pointer mesh, vnl_sparse_matrix<vtkFloatingPointType> 
   }
 
 
-//   /////////////////////////////////////////////////////////////////////////
-//   // print out the result
-//   std::cout<<std::endl;
-//   std::cout<<std::endl;
-//   std::cout<<std::endl;
-//   std::cout<<std::endl;
+  //   //--------------------------------------------------------------
+  //   // print out the result
+  //   std::cout<<std::endl;
+  //   std::cout<<std::endl;
+  //   std::cout<<std::endl;
+  //   std::cout<<std::endl;
 
-//   for (int it = 0; it < numOfPoints; ++it) {
-//     std::cout<<"point# "<<it<<" :"
-//              <<"       X: "<<pointXYZ[it][0]
-//              <<"       Y: "<<pointXYZ[it][1]
-//              <<"       Z: "<<pointXYZ[it][2]<<std::endl;
-//   }
+  //   for (int it = 0; it < numOfPoints; ++it) {
+  //     std::cout<<"point# "<<it<<" :"
+  //              <<"       X: "<<pointXYZ[it][0]
+  //              <<"       Y: "<<pointXYZ[it][1]
+  //              <<"       Z: "<<pointXYZ[it][2]<<std::endl;
+  //   }
 
-//   for (int it = 0; it < numOfPoints; ++it) {
-//     std::cout<<"point# "<<it<<" is contained by    "<<pointCell[it].size()<<"   cells:"<<std::endl;
-//     for (std::vector<int>::const_iterator vi = pointCell[it].begin();
-//          vi != pointCell[it].end();
-//          ++vi) {
-//       std::cout<<*vi<<"     ";      
-//     }
-//     std::cout<<std::endl;
-//   }
+  //   for (int it = 0; it < numOfPoints; ++it) {
+  //     std::cout<<"point# "<<it<<" is contained by    "<<pointCell[it].size()<<"   cells:"<<std::endl;
+  //     for (std::vector<int>::const_iterator vi = pointCell[it].begin();
+  //          vi != pointCell[it].end();
+  //          ++vi) {
+  //       std::cout<<*vi<<"     ";      
+  //     }
+  //     std::cout<<std::endl;
+  //   }
 
-//   for (int it = 0; it < numOfCells; ++it) {
-//     std::cout<<"cell# "<<it<<" has points: "
-//              <<cellPoint[it][0]<<"  "
-//              <<cellPoint[it][1]<<"  "
-//              <<cellPoint[it][2]<<std::endl;
-//   }
-//   //---------------------------------------------------------------
+  //   for (int it = 0; it < numOfCells; ++it) {
+  //     std::cout<<"cell# "<<it<<" has points: "
+  //              <<cellPoint[it][0]<<"  "
+  //              <<cellPoint[it][1]<<"  "
+  //              <<cellPoint[it][2]<<std::endl;
+  //   }
+  //   //---------------------------------------------------------------
 
 
-  
-  // Now we're going to calculate matrix D element by element.
-  for (int itRow = 0; itRow < numOfPoints; ++itRow) {
-    double digValue = 0;
-    for (int itCol = 0; itCol < numOfPoints; ++itCol) { 
-      // D is symmetric, only need to compute half
-      // Diagonal values are calculated from all off-diagonal values.
-      // i.e. computed after this for-loop for itCol
-      if (itRow >= itCol) {
-        digValue += D(itRow, itCol);
-        continue;
-      }
+  // 1. Iterate point P from 0 to the last point in the mesh. 
+  // 2. For each P, find its neighbors, each neighbor must:
+  //    1) has at least two triangles containing P and itself ---not the boundary.
+  //    2) has larger pointId, to avoid re-calculation.
+  // 3. For each of P's neighbors, Q, calculate R, S
+  // 4. Write the value in matrix.
+  std::vector< std::vector<int> >::iterator itP, itPEnd = pointCell.end();
+  int idP = 0;
+  for ( itP = pointCell.begin(); itP != itPEnd; ++itP, ++idP) {
+    std::vector<int> neighborOfP;
+    // for each point P, traverse all cells containing it.
+    std::vector<int>::iterator itCell = (*itP).begin();
+    std::vector<int>::iterator itCellEnd = (*itP).end();
 
-      std::vector<int> cellsP(pointCell[itRow]), cellsQ(pointCell[itCol]);
-      std::vector<int> cells(cellsP.size() + cellsQ.size());
+    for (; itCell != itCellEnd; ++itCell) {
+      // for each cell containing P, store the point with larger point Id.
+      // only three points, don't use for-loop to save time.
+      if ( cellPoint[*itCell][0] > idP ) 
+        neighborOfP.push_back(cellPoint[*itCell][0]);
+      if ( cellPoint[*itCell][1] > idP ) 
+        neighborOfP.push_back(cellPoint[*itCell][1]);
+      if ( cellPoint[*itCell][2] > idP ) 
+        neighborOfP.push_back(cellPoint[*itCell][2]);
+    }// ok, now all neighbors of P is stored in neighborOfP;
+    
+    sort(neighborOfP.begin(), neighborOfP.end());
+    std::vector<int>::iterator it;
+    it = unique(neighborOfP.begin(), neighborOfP.end());
+    neighborOfP.erase(it, neighborOfP.end());
+
+    //-----------------------------------------------
+    // print out the neighbors
+    //     std::vector<int>::iterator itNeighbor = neighborOfP.begin();
+    //     std::vector<int>::iterator itNeighborEnd = neighborOfP.end();
+    //     std::cerr<<"The neighbors of "<<idP<<" are: ";
+    //     for (; itNeighbor != itNeighborEnd; ++itNeighbor) {
+    //       std::cerr<<*itNeighbor<<" , ";
+    //     }
+    //     std::cerr<<std::endl;
+    // ----------------------------------------------------
+
+    // next, from P to each neighbor...
+    // note: itP and itQ point at different type of vectors...
+    // *itP is a vector containing a list of points Ids
+    // idP is the point Id of P
+    // *itQ is the point Id of Q (so idP and *itQ are same type)
+    std::vector<int>::iterator itQ, itQEnd = neighborOfP.end();
+    for ( itQ = neighborOfP.begin(); itQ != itQEnd; ++itQ) {
+      // first check whether PQ is a boundary edge:
+      std::vector<int> cellsContainingP(*itP), cellsContainingQ(pointCell[*itQ]);
+      std::vector<int> cells(cellsContainingP.size() + cellsContainingQ.size());
       std::vector<int>::iterator itv, endIter;
 
-      sort(cellsP.begin(), cellsP.end());
-      sort(cellsQ.begin(), cellsQ.end());
+      sort(cellsContainingP.begin(), cellsContainingP.end());
+      sort(cellsContainingQ.begin(), cellsContainingQ.end());
 
-      endIter = set_intersection(cellsP.begin(), cellsP.end(),
-                                 cellsQ.begin(), cellsQ.end(),
+      endIter = set_intersection(cellsContainingP.begin(), cellsContainingP.end(),
+                                 cellsContainingQ.begin(), cellsContainingQ.end(),
                                  cells.begin());
       cells.erase(endIter, cells.end());
-      
-      if (cells.size() != 2) continue; 
+      if (cells.size() != 2) continue;
       // If P and Q are not shared by two triangles, i.e. 1: are not
       // connected by and edge, or, 2: are on the surface boundary
       // thus only shared by one triangle. then skip.  However, in
       // this paper the surface is closed thus there is not boundary.
-      
-      // Next we look for point S and R:
-      // S:
-      int itS, itR; // the number of point S and R;
-      for (int it = 0; it<3; ++it) {
-        if (cellPoint[cells[0]][it] != itRow && cellPoint[cells[0]][it] != itCol) 
+
+      // If passed test above, then P and Q are two valid points.
+      // i.e. PQ is a valid edge.  i.e. cells now contain two int's,
+      // which are the Id of the triangles containing P and Q
+
+
+      //       //------------------------------------------------------------
+      //       //print out valid edge
+      //       std::cerr<<idP<<" and "<<*itQ<<" are two valid points"<<std::endl;
+      //       std::cerr<<(endIter == cells.end())<<std::endl;
+      //       //-----------------------------------------------------------
+
+
+      // Next we extract R and S from cells
+      int itS, itR; // the Id of point S and R;
+      for (int it = 0; it < 3; ++it) {
+        if (cellPoint[cells[0]][it] != idP && cellPoint[cells[0]][it] != *itQ) 
           itS = cellPoint[cells[0]][it];
-        if (cellPoint[cells[1]][it] != itRow && cellPoint[cells[1]][it] != itCol) 
+        if (cellPoint[cells[1]][it] != idP && cellPoint[cells[1]][it] != *itQ) 
           itR = cellPoint[cells[1]][it];
       }
 
-      std::vector<double> P(pointXYZ[itRow]), 
-        Q(pointXYZ[itCol]), 
+      std::vector<double> P(pointXYZ[idP]), 
+        Q(pointXYZ[*itQ]), 
         R(pointXYZ[itR]),
         S(pointXYZ[itS]);
 
@@ -426,22 +472,14 @@ void getMatrixD(MeshType::Pointer mesh, vnl_sparse_matrix<vtkFloatingPointType> 
       double cosR = RPRQinnerProd / (RPnorm * RQnorm);
       double ctgS = cosS/sqrt(1-cosS*cosS), ctgR = cosR/sqrt(1-cosR*cosR);
 
-      D(itRow, itCol) = -0.5*(ctgS + ctgR);
-      D(itCol, itRow) = -0.5*(ctgS + ctgR); // symmetric
-      
-      digValue += -0.5*(ctgS + ctgR);            
-      //       ///////////////////////////////////////////////////////
-      //       // print out the result
-      //       std::cerr<<"P: "<<itRow<<"       Q: "<<itCol<<std::endl;
-      //       std::cerr<<"The two cells containing them are: ";
-      //       for (itv = cells.begin(); itv != cells.end(); ++itv) {
-      //         std::cerr<<*itv<<"    ";
-      //       }
-      //       std::cerr<<"ctg(S) is: "<< ctgS <<"       ctg(R) is: "<<ctgR<<std::endl;
-      //       // -------------------------------------------------
-    }
-    D(itRow, itRow) = -digValue;
-  }
+      D(idP, *itQ) = -0.5*(ctgS + ctgR);
+      D(idP, idP) += 0.5*(ctgS + ctgR); 
+      // add to the diagonal element of this line.
 
+      D(*itQ, idP) = -0.5*(ctgS + ctgR); // symmetric
+      D(*itQ, *itQ) += 0.5*(ctgS + ctgR); 
+      // add to the diagonal element of this line.
+    }
+  }
   return; 
 }
