@@ -1,4 +1,4 @@
-SET(f "Dmatrix")
+SET(f "Db")
 SET(a "a.out")
 
 #SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
