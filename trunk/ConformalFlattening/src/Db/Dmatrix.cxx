@@ -13,27 +13,30 @@ int main( int argc, char * argv [] )
   //       return -1;
   //     }
 
-  vtkPolyData *polyData = readDataToPolyData( "../../../data/nice.vtk" );//argv[1] );
+  vtkPolyData *polyData = readDataToPolyData( "../../../data/cube.vtk" );//argv[1] );
   
   //Begin convert from vtkPolyData to ITKMesh
   MeshType::Pointer  mesh = vtkPolyDataToITKMesh(polyData);
 
   vnl_sparse_matrix<vtkFloatingPointType> D(mesh->GetNumberOfPoints(),
                                             mesh->GetNumberOfPoints());
+  vnl_vector<vtkFloatingPointType> bR(mesh->GetNumberOfPoints(), 0);
+  vnl_vector<vtkFloatingPointType> bI(mesh->GetNumberOfPoints(), 0);
 
-  getMatrixD( mesh, D );
+  getDb( mesh, D , bR, bI);
 
   std::cerr<<(clock() - time)/CLOCKS_PER_SEC<<std::endl;
 
-  //   //  ------------------------------------------------------------
-  //   //  print out matrix D...
-  //     for (int itRow = 0; itRow<D.rows(); ++itRow ) {
-  //       for (int itCol = 0; itCol<D.columns(); ++itCol ) {
-  //         std::cerr<<D(itRow, itCol)<<"\t\t";
-  //       }
-  //       std::cerr<<std::endl;
-  //     }
-  //   //------------------------------------------------------------
+//     //  ------------------------------------------------------------
+//     //  print out matrix D and b
+//       for (int itRow = 0; itRow<D.rows(); ++itRow ) {
+//         for (int itCol = 0; itCol<D.columns(); ++itCol ) {
+//           std::cerr<<D(itRow, itCol)<<"\t\t";
+//         }
+//         std::cerr<<" b "<<bR(itRow)<<" + i"<<bI(itRow);
+//         std::cerr<<std::endl;
+//       }
+//     //------------------------------------------------------------
 
   //  std::cout<<D.size()<<std::endl;
 
@@ -279,7 +282,10 @@ void Display(vtkPolyData* polyData)
 
 
 
-void getMatrixD(MeshType::Pointer mesh, vnl_sparse_matrix<vtkFloatingPointType> &D) {
+void getDb(MeshType::Pointer mesh, 
+                vnl_sparse_matrix<vtkFloatingPointType> &D,
+                vnl_vector<vtkFloatingPointType> &bR,
+                vnl_vector<vtkFloatingPointType> &bI) {
 
   int numOfPoints = mesh->GetNumberOfPoints();
   int numOfCells = mesh->GetNumberOfCells();
@@ -481,5 +487,40 @@ void getMatrixD(MeshType::Pointer mesh, vnl_sparse_matrix<vtkFloatingPointType> 
       // add to the diagonal element of this line.
     }
   }
+
+  // compute b = bR + i*bI separately
+  std::vector<double> A( pointXYZ[0] ), B( pointXYZ[1] ), C( pointXYZ[2] );
+  double ABnorm, CA_BAip; // the inner product of vector C-A and B-A;
+  ABnorm = (A[0] - B[0]) * (A[0] - B[0])
+    + (A[1] - B[1]) * (A[1] - B[1])
+    + (A[2] - B[2]) * (A[2] - B[2]);
+
+  CA_BAip = (C[0] - A[0]) * (B[0] - A[0])
+    + (C[1] - A[1]) * (B[1] - A[1])
+    + (C[2] - A[2]) * (B[2] - A[2]);
+
+  double theta = CA_BAip / ABnorm; 
+  // Here ABnorm is actually the square of AB's norm, which is what we
+  // want. So don't bother square the square root.
+  
+  ABnorm = sqrt(ABnorm); // This is real norm of vector AB.
+
+  std::vector<double> E(3);
+  for (int it = 0; it < 3; ++it) 
+    E[it] = A[it] + theta*(B[it] - A[it]);
+
+  double CEnorm;
+  CEnorm = (C[0] - E[0]) * (C[0] - E[0])
+    + (C[1] - E[1]) * (C[1] - E[1])
+    + (C[2] - E[2]) * (C[2] - E[2]);
+  CEnorm = sqrt(CEnorm); // This is real norm of vector CE.
+
+  bR(0) = -1 / ABnorm;
+  bR(1) = 1 / ABnorm;
+
+  bR(0) = (1-theta)/ CEnorm;
+  bR(1) = theta/ CEnorm;
+  bR(2) = -1 / CEnorm;
+  
   return; 
 }

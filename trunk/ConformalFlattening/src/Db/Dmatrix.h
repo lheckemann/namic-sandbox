@@ -89,4 +89,7 @@ vtkPolyData* readDataToPolyData(char* fName);
 vtkPolyData* ITKMeshToVtkPolyData(MeshType::Pointer mesh);
 void Display(vtkPolyData* polyData);
 
-void getMatrixD(MeshType::Pointer mesh, vnl_sparse_matrix<vtkFloatingPointType> &D);
+void getDb(MeshType::Pointer mesh, 
+           vnl_sparse_matrix<vtkFloatingPointType> &D,
+           vnl_vector<vtkFloatingPointType> &bR,
+           vnl_vector<vtkFloatingPointType> &bI);
