@@ -4,22 +4,34 @@
 int main( int argc, char * argv [] )
 {
 
-//   if( argc < 2 )
-//     {
-//       std::cerr << "Missing arguments" << std::endl;
-//       std::cerr << "Usage: vtkPolyDataToITKMesh   vtkPolyDataInputFile" << std::endl;
-//       return -1;
-//     }
+  clock_t time = clock();
+
+  //   if( argc < 2 )
+  //     {
+  //       std::cerr << "Missing arguments" << std::endl;
+  //       std::cerr << "Usage: vtkPolyDataToITKMesh   vtkPolyDataInputFile" << std::endl;
+  //       return -1;
+  //     }
 
   vtkPolyData *polyData = readDataToPolyData( "../../../data/nice.vtk" );//argv[1] );
   
   //Begin convert from vtkPolyData to ITKMesh
   MeshType::Pointer  mesh = vtkPolyDataToITKMesh(polyData);
 
-  vnl_matrix<vtkFloatingPointType> D(mesh->GetNumberOfPoints(),
-                                     mesh->GetNumberOfPoints(),
-                                     0);  
+  vnl_sparse_matrix<vtkFloatingPointType> D(mesh->GetNumberOfPoints(),
+                                            mesh->GetNumberOfPoints());
+
   getMatrixD( mesh, D );
+
+  std::cerr<<(clock() - time)/CLOCKS_PER_SEC<<std::endl;
+
+  //print out matrix D...
+  //   for (int itRow = 0; itRow<D.rows(); ++itRow ) {
+  //     for (int itCol = 0; itCol<D.columns(); ++itCol ) {
+  //       std::cerr<<D(itRow, itCol)<<"  ";
+  //     }
+  //     std::cerr<<std::endl;
+  //   }
 
   //  std::cout<<D.size()<<std::endl;
 
@@ -265,7 +277,7 @@ void Display(vtkPolyData* polyData)
 
 
 
-void getMatrixD(MeshType::Pointer mesh, vnl_matrix<vtkFloatingPointType> &D) {
+void getMatrixD(MeshType::Pointer mesh, vnl_sparse_matrix<vtkFloatingPointType> &D) {
 
   int numOfPoints = mesh->GetNumberOfPoints();
   int numOfCells = mesh->GetNumberOfCells();
@@ -317,18 +329,9 @@ void getMatrixD(MeshType::Pointer mesh, vnl_matrix<vtkFloatingPointType> &D) {
       }
   }
 
-  
-  // Now we're going to calculate matrix D element by element.
-  for (int itRow = 0; itRow < numOfPoints; ++itRow) {
-    for (int itCol = itRow+1; itCol < numOfPoints; ++itCol) { 
-      // D is symmetric, only need to compute half
-      // Diagonal values are calculated from all off-diagonal values.
-      // i.e. computed after this for-loop for itCol
-      
-    }
-  }
 
-
+//   /////////////////////////////////////////////////////////////////////////
+//   // print out the result
 //   std::cout<<std::endl;
 //   std::cout<<std::endl;
 //   std::cout<<std::endl;
@@ -357,8 +360,88 @@ void getMatrixD(MeshType::Pointer mesh, vnl_matrix<vtkFloatingPointType> &D) {
 //              <<cellPoint[it][1]<<"  "
 //              <<cellPoint[it][2]<<std::endl;
 //   }
+//   //---------------------------------------------------------------
 
 
+  
+  // Now we're going to calculate matrix D element by element.
+  for (int itRow = 0; itRow < numOfPoints; ++itRow) {
+    double digValue = 0;
+    for (int itCol = 0; itCol < numOfPoints; ++itCol) { 
+      // D is symmetric, only need to compute half
+      // Diagonal values are calculated from all off-diagonal values.
+      // i.e. computed after this for-loop for itCol
+      if (itRow >= itCol) {
+        digValue += D(itRow, itCol);
+        continue;
+      }
+
+      std::vector<int> cellsP(pointCell[itRow]), cellsQ(pointCell[itCol]);
+      std::vector<int> cells(cellsP.size() + cellsQ.size());
+      std::vector<int>::iterator itv, endIter;
+
+      sort(cellsP.begin(), cellsP.end());
+      sort(cellsQ.begin(), cellsQ.end());
+
+      endIter = set_intersection(cellsP.begin(), cellsP.end(),
+                                 cellsQ.begin(), cellsQ.end(),
+                                 cells.begin());
+      cells.erase(endIter, cells.end());
+      
+      if (cells.size() != 2) continue; 
+      // If P and Q are not shared by two triangles, i.e. 1: are not
+      // connected by and edge, or, 2: are on the surface boundary
+      // thus only shared by one triangle. then skip.  However, in
+      // this paper the surface is closed thus there is not boundary.
+      
+      // Next we look for point S and R:
+      // S:
+      int itS, itR; // the number of point S and R;
+      for (int it = 0; it<3; ++it) {
+        if (cellPoint[cells[0]][it] != itRow && cellPoint[cells[0]][it] != itCol) 
+          itS = cellPoint[cells[0]][it];
+        if (cellPoint[cells[1]][it] != itRow && cellPoint[cells[1]][it] != itCol) 
+          itR = cellPoint[cells[1]][it];
+      }
+
+      std::vector<double> P(pointXYZ[itRow]), 
+        Q(pointXYZ[itCol]), 
+        R(pointXYZ[itR]),
+        S(pointXYZ[itS]);
+
+      std::vector<double> SP(3), SQ(3), RP(3), RQ(3);
+      double SPnorm = 0, SQnorm = 0, RPnorm = 0, RQnorm = 0, SPSQinnerProd = 0, RPRQinnerProd = 0;
+      for (int it = 0; it<3; ++it) {
+        SP[it] = P[it] - S[it]; SPnorm += SP[it]*SP[it];
+        SQ[it] = Q[it] - S[it]; SQnorm += SQ[it]*SQ[it]; SPSQinnerProd += SP[it]*SQ[it];
+        RP[it] = P[it] - R[it]; RPnorm += RP[it]*RP[it];
+        RQ[it] = Q[it] - R[it]; RQnorm += RQ[it]*RQ[it]; RPRQinnerProd += RP[it]*RQ[it];
+      }
+      SPnorm = sqrt(SPnorm);
+      SQnorm = sqrt(SQnorm);
+      RPnorm = sqrt(RPnorm);
+      RQnorm = sqrt(RQnorm);
+
+      double cosS = SPSQinnerProd / (SPnorm * SQnorm); 
+      double cosR = RPRQinnerProd / (RPnorm * RQnorm);
+      double ctgS = cosS/sqrt(1-cosS*cosS), ctgR = cosR/sqrt(1-cosR*cosR);
+
+      D(itRow, itCol) = -0.5*(ctgS + ctgR);
+      D(itCol, itRow) = -0.5*(ctgS + ctgR); // symmetric
+      
+      digValue += -0.5*(ctgS + ctgR);            
+      //       ///////////////////////////////////////////////////////
+      //       // print out the result
+      //       std::cerr<<"P: "<<itRow<<"       Q: "<<itCol<<std::endl;
+      //       std::cerr<<"The two cells containing them are: ";
+      //       for (itv = cells.begin(); itv != cells.end(); ++itv) {
+      //         std::cerr<<*itv<<"    ";
+      //       }
+      //       std::cerr<<"ctg(S) is: "<< ctgS <<"       ctg(R) is: "<<ctgR<<std::endl;
+      //       // -------------------------------------------------
+    }
+    D(itRow, itRow) = -digValue;
+  }
 
   return; 
 }

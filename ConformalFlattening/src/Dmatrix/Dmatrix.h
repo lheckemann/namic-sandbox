@@ -12,6 +12,8 @@
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
+#include <ctime>
 
 //
 // ITK Headers
@@ -40,6 +42,8 @@
 #include <vcl_iostream.h>
 #include <vnl/vnl_cost_function.h>
 #include <vnl/vnl_math.h>
+
+#include <vnl/vnl_sparse_matrix.h>
 
 #include <vnl/algo/vnl_conjugate_gradient.h>
 
@@ -85,4 +89,4 @@ vtkPolyData* readDataToPolyData(char* fName);
 vtkPolyData* ITKMeshToVtkPolyData(MeshType::Pointer mesh);
 void Display(vtkPolyData* polyData);
 
-void getMatrixD(MeshType::Pointer mesh, vnl_matrix<vtkFloatingPointType> &D);
+void getMatrixD(MeshType::Pointer mesh, vnl_sparse_matrix<vtkFloatingPointType> &D);
