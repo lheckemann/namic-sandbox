@@ -13,7 +13,8 @@ int main( int argc, char * argv [] )
     }
 
   vtkPolyData *polyData = readDataToPolyData( argv[1] );
-  
+
+  //  Display(polyData);  
   //Begin convert from vtkPolyData to ITKMesh
   MeshType::Pointer  mesh = vtkPolyDataToITKMesh(polyData);
 
@@ -296,7 +297,7 @@ MeshType::Pointer mapping(MeshType::Pointer mesh) {
       *itZ = 2*r2/(1+r2) - 1;
       
             vtkFloatingPointType apoint[3] = {*itX, *itY, *itZ};//zI(p), 0};
-     //  vtkFloatingPointType apoint[3] = {zR(it), zI(it), 0};
+            //       vtkFloatingPointType apoint[3] = {zR(it), zI(it), 0};
     
 //       std::cerr<<"zR: "<<zR(it)<<"    zI: "<<zI(it)<<std::endl;
 //       std::cerr<<"x: "<<*itX<<"    y: "<<*itY<<"    z: "<<*itZ<<"   r2: "<<r2<<std::endl;
@@ -530,7 +531,9 @@ void getDb(MeshType::Pointer mesh,
   } // itP
 
   // compute b = bR + i*bI separately
-  std::vector<double> A( pointXYZ[0] ), B( pointXYZ[1] ), C( pointXYZ[2] );
+  std::vector<double> A( pointXYZ[ cellPoint[0][0] ] ), 
+    B( pointXYZ[ cellPoint[0][1] ] ), 
+    C( pointXYZ[ cellPoint[0][2] ] );
   double ABnorm, CA_BAip; // the inner product of vector C-A and B-A;
   ABnorm = (A[0] - B[0]) * (A[0] - B[0])
     + (A[1] - B[1]) * (A[1] - B[1])
