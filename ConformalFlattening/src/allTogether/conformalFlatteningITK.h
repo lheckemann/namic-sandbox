@@ -14,9 +14,11 @@
 //  only containes triangle strips and triangles.
 //
 //
+
 #include <iostream>
-
-
+#include <vector>
+#include <algorithm>
+#include <ctime>
 
 //
 // ITK Headers
@@ -24,8 +26,6 @@
 #include "itkMesh.h"
 #include "itkLineCell.h"
 #include "itkTriangleCell.h"
-
-
 
 //
 // VTK headers
@@ -40,6 +40,17 @@
 #include "vtkRenderWindow.h"
 #include "vtkActor.h"
 #include "vtkRenderWindowInteractor.h"
+
+//
+// vnl headers
+//
+#include <vcl_iostream.h>
+#include <vnl/vnl_cost_function.h>
+#include <vnl/vnl_math.h>
+
+#include <vnl/vnl_sparse_matrix.h>
+
+#include <vnl/algo/vnl_conjugate_gradient.h>
 
 
 

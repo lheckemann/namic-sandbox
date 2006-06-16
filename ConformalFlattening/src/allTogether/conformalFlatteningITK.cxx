@@ -1,4 +1,5 @@
 #include "conformalFlatteningITK.h"
+#include "linearEqnSolver.h"
 
 
 int main( int argc, char * argv [] )
@@ -266,26 +267,67 @@ void Display(vtkPolyData* polyData)
 
 MeshType::Pointer mapping(MeshType::Pointer mesh) {
   
-  vnl_sparse_matrix<vtkFloatingPointType> D(mesh->GetNumberOfPoints(),
-                                            mesh->GetNumberOfPoints());
-  vnl_vector<vtkFloatingPointType> bR(mesh->GetNumberOfPoints(), 0);
-  vnl_vector<vtkFloatingPointType> bI(mesh->GetNumberOfPoints(), 0);
+  const unsigned int numberOfPoints = mesh->GetNumberOfPoints();
+  vnl_sparse_matrix<vtkFloatingPointType> D(numberOfPoints,
+                                            numberOfPoints);
+  vnl_vector<vtkFloatingPointType> bR(numberOfPoints, 0);
+  vnl_vector<vtkFloatingPointType> bI(numberOfPoints, 0);
 
   getDb( mesh, D , bR, bI);
   
-  
+    
+  linearEqnSolver lesR(D, bR);
+  vnl_vector<double> zR = lesR.solve();  
 
+  linearEqnSolver lesI(D, bI);
+  vnl_vector<double> zI = lesI.solve();
+
+  std::vector<double> x(numberOfPoints), y(numberOfPoints), z(numberOfPoints);
+  std::vector<double>::iterator 
+    itX = x.begin(), 
+    itY = y.begin(), 
+    itZ = z.begin(), 
+    itXend = x.end();
   
-  MeshType::Pointer newMesh = MeshType::New();
-  return newMesh;
+    for (int it = 0; itX != itXend; ++itX, ++itY, ++itZ, ++it) {
+      double r2 = zR(it)*zR(it) + zI(it)*zI(it);
+      *itX = 2*zR(it)/(1+r2);
+      *itY = 2*zI(it)/(1+r2);
+      *itZ = 2*r2/(1+r2) - 1;
+      
+      //      vtkFloatingPointType apoint[3] = {*itX, *itY, *itZ};//zI(p), 0};
+      vtkFloatingPointType apoint[3] = {zR(it), zI(it), 0};
+      //      vtkFloatingPointType apoint[3] = {*itX, *itY, *itZ};//zI(p), 0};
+    
+//       std::cerr<<"zR: "<<zR(it)<<"    zI: "<<zI(it)<<std::endl;
+//       std::cerr<<"x: "<<*itX<<"    y: "<<*itY<<"    z: "<<*itZ<<"   r2: "<<r2<<std::endl;
+      mesh->SetPoint( it, MeshType::PointType( apoint ));
+    }
+  //  MeshType::Pointer newMesh = MeshType::New();
+
+  //
+  // set new point position, leaving the triangles' relation unchanged
+  //
+  
+  //  mesh->GetPoints()->Reserve( numberOfPoints );
+  
+//   for(unsigned int p =0; p < numberOfPoints; p++)
+//     {
+
+//       //      vtkFloatingPointType * apoint = vtkpoints->GetPoint( p );
+      
+    
+//     }  
+  
+  return mesh;
 }
 
 
 
 void getDb(MeshType::Pointer mesh, 
-                vnl_sparse_matrix<vtkFloatingPointType> &D,
-                vnl_vector<vtkFloatingPointType> &bR,
-                vnl_vector<vtkFloatingPointType> &bI) {
+           vnl_sparse_matrix<vtkFloatingPointType> &D,
+           vnl_vector<vtkFloatingPointType> &bR,
+           vnl_vector<vtkFloatingPointType> &bI) {
 
   int numOfPoints = mesh->GetNumberOfPoints();
   int numOfCells = mesh->GetNumberOfCells();
