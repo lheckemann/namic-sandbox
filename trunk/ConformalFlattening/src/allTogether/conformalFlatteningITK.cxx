@@ -295,9 +295,8 @@ MeshType::Pointer mapping(MeshType::Pointer mesh) {
       *itY = 2*zI(it)/(1+r2);
       *itZ = 2*r2/(1+r2) - 1;
       
-      //      vtkFloatingPointType apoint[3] = {*itX, *itY, *itZ};//zI(p), 0};
-      vtkFloatingPointType apoint[3] = {zR(it), zI(it), 0};
-      //      vtkFloatingPointType apoint[3] = {*itX, *itY, *itZ};//zI(p), 0};
+            vtkFloatingPointType apoint[3] = {*itX, *itY, *itZ};//zI(p), 0};
+     //  vtkFloatingPointType apoint[3] = {zR(it), zI(it), 0};
     
 //       std::cerr<<"zR: "<<zR(it)<<"    zI: "<<zI(it)<<std::endl;
 //       std::cerr<<"x: "<<*itX<<"    y: "<<*itY<<"    z: "<<*itZ<<"   r2: "<<r2<<std::endl;
@@ -454,7 +453,7 @@ void getDb(MeshType::Pointer mesh,
 
     // next, from P to each neighbor...
     // note: itP and itQ point at different type of vectors...
-    // *itP is a vector containing a list of points Ids
+    // *itP is a vector containing a list of cell Ids, all of which contains point P
     // idP is the point Id of P
     // *itQ is the point Id of Q (so idP and *itQ are same type)
     std::vector<int>::iterator itQ, itQEnd = neighborOfP.end();
@@ -510,7 +509,7 @@ void getDb(MeshType::Pointer mesh,
         SQ[it] = Q[it] - S[it]; SQnorm += SQ[it]*SQ[it]; SPSQinnerProd += SP[it]*SQ[it];
         RP[it] = P[it] - R[it]; RPnorm += RP[it]*RP[it];
         RQ[it] = Q[it] - R[it]; RQnorm += RQ[it]*RQ[it]; RPRQinnerProd += RP[it]*RQ[it];
-      }
+      } //it
       SPnorm = sqrt(SPnorm);
       SQnorm = sqrt(SQnorm);
       RPnorm = sqrt(RPnorm);
@@ -527,8 +526,8 @@ void getDb(MeshType::Pointer mesh,
       D(*itQ, idP) = -0.5*(ctgS + ctgR); // symmetric
       D(*itQ, *itQ) += 0.5*(ctgS + ctgR); 
       // add to the diagonal element of this line.
-    }
-  }
+    } // itQ
+  } // itP
 
   // compute b = bR + i*bI separately
   std::vector<double> A( pointXYZ[0] ), B( pointXYZ[1] ), C( pointXYZ[2] );
