@@ -6,10 +6,9 @@
 // the solution of partial differential equations, those properties of
 // A hold.
 
-// .Mechanism
-// However, the symmetry and positive define properties are not
-// checked within this but left for the user. Basicall, this class
-// optimizes the function y=\frac{1}{2}(x^T)*A*x - (b^T)*x.
+// .Mechanism However, the symmetry and positive define properties are
+// not checked within this but left for the user. Basically, this
+// class optimizes the function y=\frac{1}{2}(x^T)*A*x - (b^T)*x.
 
 // The above function is defined by the class theFunc which is derived
 // from the vnl_cost_function.

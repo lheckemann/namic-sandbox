@@ -13,8 +13,8 @@ INCLUDE_REGULAR_EXPRESSION("^.*$")
 #SET(ITK_DIR /u4/home/gth818n/usr/local/lib/InsightToolkit)
 
 #setting on ygao's laptop
-SET(ITK_DIR /usr/local/lib/InsightToolkit)
-SET(VTK_DIR /usr/local/lib/vtk-5.0)
+#SET(ITK_DIR /usr/local/lib/InsightToolkit)
+#SET(VTK_DIR /usr/local/lib/vtk-5.0)
 
 
 SET(TEMP ${ITK_BINARY_DIR}/Testing/Temporary)
