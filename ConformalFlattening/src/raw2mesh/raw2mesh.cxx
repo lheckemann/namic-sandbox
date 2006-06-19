@@ -2,12 +2,15 @@
 
 #include <iostream>
 #include <fstream>
+#include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkRelabelComponentImageFilter.h"
 #include "itkLabelStatisticsImageFilter.h"
 #include "itkImageFileWriter.h"
 #include "itkBinaryThresholdImageFilter.h"
+#include "itkBinaryMask3DMeshSource.h"
+#include "itkMesh.h"
 
 int main(int argc, char *argv[])
 {
@@ -81,7 +84,7 @@ int main(int argc, char *argv[])
   relabelWriter->Update();
   relabelWriter = 0;
 
-  /* Extract the Largest Component (ignore all others) */
+  /* Extract the Largest Connected Component (ignore all others) */
   typedef itk::BinaryThresholdImageFilter< InputImageType, InputImageType > BinaryThresholdFilterType;
   BinaryThresholdFilterType::Pointer binaryThresholdFilter = BinaryThresholdFilterType::New();
   binaryThresholdFilter->SetInput( relabelFilter->GetOutput() );
@@ -91,5 +94,26 @@ int main(int argc, char *argv[])
   binaryThresholdFilter->SetUpperThreshold( 1 );
   binaryThresholdFilter->Update();
 
+  /* Generate an ITK Mesh from the Largest Connected Component */
+  /* NOTE: Can probably skip the binary threshold image filter */
+  typedef itk::Mesh<double> MeshType;
+  typedef itk::BinaryMask3DMeshSource< InputImageType, MeshType > MeshSourceType;
+  MeshSourceType::Pointer meshSource = MeshSourceType::New();
+  const InputImageType::PixelType objectValue = static_cast<InputImageType::PixelType>( 1 );
+  meshSource->SetObjectValue( objectValue );
+  meshSource->SetInput( binaryThresholdFilter->GetOutput() );
+  try
+    {
+    meshSource->Update();
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << "Exception thrown during Update() on meshSource " << std::endl;
+    std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+  std::cerr << "Nodes = " << meshSource->GetNumberOfNodes() << std::endl;
+  std::cerr << "Cells = " << meshSource->GetNumberOfCells() << std::endl;
+  
   return 1;
 }
