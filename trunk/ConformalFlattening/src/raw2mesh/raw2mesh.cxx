@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
   typedef itk::ConnectedComponentImageFilter< InputImageType, InputImageType > ConnectedComponentType;
   ConnectedComponentType::Pointer connectedComponentFilter = ConnectedComponentType::New();
   connectedComponentFilter->SetInput( reader->GetOutput() );
-  connectedComponentFilter->SetFullyConnected( 1 );
+  connectedComponentFilter->SetFullyConnected( 0 );
   std::cerr << "  GetFullyConnected = " << connectedComponentFilter->GetFullyConnected() << std::endl;
 
   /* Relabel Filter */
@@ -115,5 +115,21 @@ int main(int argc, char *argv[])
   std::cerr << "Nodes = " << meshSource->GetNumberOfNodes() << std::endl;
   std::cerr << "Cells = " << meshSource->GetNumberOfCells() << std::endl;
   
+//  POSSIBLY CAN USE THIS CODE TO WRITE THE MESH TO FILE
+//   /* Create the Mesh Spatial Object */
+//   MeshSpatialObjectType::Pointer meshSO = MeshSpatialObjectType::New();
+//   meshSO->SetMesh(mesh);
+//   meshSO->SetId(3);
+//   std::cout<<"[PASSED]"<<std::endl;
+
+//   /* Writing the Mesh to File */
+//   std::cout<<"Testing Writing MeshSpatialObject: ";
+//   typedef itk::SpatialObjectWriter<3,float,MeshTrait> WriterType;
+//   WriterType::Pointer writer = WriterType::New();
+//   writer->SetInput(meshSO);
+//   writer->SetFileName("metamesh.txt");
+//   writer->Update();
+//   std::cout<<"[PASSED]"<<std::endl;
+
   return 1;
 }
