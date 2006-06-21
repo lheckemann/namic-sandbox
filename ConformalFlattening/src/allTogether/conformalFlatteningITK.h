@@ -41,6 +41,12 @@
 #include "vtkActor.h"
 #include "vtkRenderWindowInteractor.h"
 
+#include "vtkCurvatures.h"
+#include "vtkLookupTable.h"
+#include "vtkPointData.h"
+#include "vtkPolyDataNormals.h"
+
+
 //
 // vnl headers
 //
