@@ -14,6 +14,17 @@ int main( int argc, char * argv [] )
 
   vtkPolyData *polyData = readDataToPolyData( argv[1] );
 
+
+  // Set the color for the mesh according to local mean/gaussian
+  // curvature.
+  vtkCurvatures* curv1 = vtkCurvatures::New();
+  curv1->SetInput(polyData);
+  //  curv1->SetCurvatureTypeToGaussian();
+  curv1->SetCurvatureTypeToMean();
+
+  Display(curv1->GetOutput());
+
+
   //  Display(polyData);  
   //Begin convert from vtkPolyData to ITKMesh
   MeshType::Pointer  mesh = vtkPolyDataToITKMesh(polyData);
@@ -24,7 +35,12 @@ int main( int argc, char * argv [] )
   vtkPolyData* newPolyData = ITKMeshToVtkPolyData(newMesh);
 
   //Display the new polydata
+
+  newPolyData->GetPointData()->SetScalars(curv1->GetOutput()->GetPointData()->GetScalars());
+  
   Display(newPolyData);
+
+
   
 //   std::cout << "Mesh  " << std::endl;
 //   std::cout << "Number of Points =   " << mesh->GetNumberOfPoints() << std::endl;
@@ -237,8 +253,32 @@ vtkPolyData* ITKMeshToVtkPolyData(MeshType::Pointer mesh)
 
 void Display(vtkPolyData* polyData)
 {
+
+  vtkPolyDataNormals* norm = vtkPolyDataNormals::New();
+  norm->SetInput(polyData);
+  norm->SetFeatureAngle(45);
+
+
   vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
-  mapper->SetInput(polyData);
+  mapper->SetInput(norm->GetOutput());
+
+  vtkLookupTable* lut1 = vtkLookupTable::New();
+  lut1->SetNumberOfColors(256);
+//   lut1->SetHueRange(0.2, 0); //0:red, 0.2: yellow, 0.7: blue, 1:red again.
+//   lut1->SetSaturationRange(0.2, 1.0);
+//   lut1->SetValueRange(1.0, 0.3);
+
+  lut1->SetHueRange(0.15, 1.0); //0:red, 0.2: yellow, 0.7: blue, 1:red again.
+  lut1->SetSaturationRange(1.0, 1.0);
+
+
+
+  lut1->SetAlphaRange(1.0, 1.0);
+  lut1->SetRange(-20, 20); //-20: left value above, 20: right value above
+
+  mapper->SetLookupTable(lut1);
+  mapper->SetUseLookupTableScalarRange(1);
+
 
   vtkActor* actor = vtkActor::New();
   actor->SetMapper(mapper);
