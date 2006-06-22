@@ -11,6 +11,9 @@
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkBinaryMask3DMeshSource.h"
 #include "itkMesh.h"
+#include "itkMeshSpatialObject.h"
+#include "itkSpatialObjectWriter.h"
+#include <itkDefaultDynamicMeshTraits.h>
 
 int main(int argc, char *argv[])
 {
@@ -115,21 +118,22 @@ int main(int argc, char *argv[])
   std::cerr << "Nodes = " << meshSource->GetNumberOfNodes() << std::endl;
   std::cerr << "Cells = " << meshSource->GetNumberOfCells() << std::endl;
   
-//  POSSIBLY CAN USE THIS CODE TO WRITE THE MESH TO FILE
-//   /* Create the Mesh Spatial Object */
-//   MeshSpatialObjectType::Pointer meshSO = MeshSpatialObjectType::New();
-//   meshSO->SetMesh(mesh);
-//   meshSO->SetId(3);
-//   std::cout<<"[PASSED]"<<std::endl;
+  /* Create the Mesh Spatial Object */
+  typedef itk::MeshSpatialObject<MeshType> MeshSpatialObjectType;
+  MeshSpatialObjectType::Pointer meshSO = MeshSpatialObjectType::New();
+  meshSO->SetMesh(meshSource->GetOutput());
+  meshSO->SetId(3);
+  std::cout<<"[PASSED]"<<std::endl;
 
-//   /* Writing the Mesh to File */
-//   std::cout<<"Testing Writing MeshSpatialObject: ";
-//   typedef itk::SpatialObjectWriter<3,float,MeshTrait> WriterType;
-//   WriterType::Pointer writer = WriterType::New();
-//   writer->SetInput(meshSO);
-//   writer->SetFileName("metamesh.txt");
-//   writer->Update();
-//   std::cout<<"[PASSED]"<<std::endl;
+  /* Writing the Mesh to File */
+  std::cout<<"Testing Writing MeshSpatialObject: ";
+  typedef itk::DefaultDynamicMeshTraits< float , 3, 3 > MeshTrait;
+  typedef itk::SpatialObjectWriter<3,float,MeshTrait> SOWriterType;
+  SOWriterType::Pointer soWriter = SOWriterType::New();
+  soWriter->SetInput(meshSO);
+  soWriter->SetFileName("metamesh.vtk");
+  soWriter->Update();
+  std::cout<<"[PASSED]"<<std::endl;
 
   return 1;
 }

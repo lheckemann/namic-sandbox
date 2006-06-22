@@ -1,11 +1,10 @@
-PROJECT(conformalFlatteningITK)
+PROJECT(vtkItkVtk)
 
 # Include this directory before the ITK_DIR. If we are going to make changes
 # to the bayesian filters, we want the file in the sandbox to be picked up 
 # prior to the one in ITK.
 INCLUDE_DIRECTORIES( 
-  ${conformalFlatteningITK_SOURCE_DIR}
-  ${InsightApplications_Source_DIR}/Auxiliary/vtk/
+  ${vtkItkVtk_SOURCE_DIR}
   )
 
 FIND_PACKAGE(ITK)
@@ -23,6 +22,5 @@ ELSE(VTK_FOUND)
 ENDIF(VTK_FOUND)
 
 # Add the executable
-ADD_LIBRARY(linearEqnSolver linearEqnSolver.cxx) 
-ADD_EXECUTABLE(conformalFlatteningITK conformalFlatteningITK.cxx)
-TARGET_LINK_LIBRARIES(conformalFlatteningITK linearEqnSolver vtkRendering vtkIO ITKCommon ITKBasicFilters ITKIO itkvnl)
+ADD_EXECUTABLE(vtkItkVtk vtkItkVtk.cxx )
+TARGET_LINK_LIBRARIES(vtkItkVtk vtkRendering vtkIO ITKCommon ITKBasicFilters ITKIO)
