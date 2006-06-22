@@ -335,14 +335,14 @@ MeshType::Pointer mapping(MeshType::Pointer mesh) {
       *itX = 2*zR(it)/(1+r2);
       *itY = 2*zI(it)/(1+r2);
       *itZ = 2*r2/(1+r2) - 1;
-      
-            vtkFloatingPointType apoint[3] = {*itX, *itY, *itZ};//zI(p), 0};
-            //       vtkFloatingPointType apoint[3] = {zR(it), zI(it), 0};
-    
+
+     vtkFloatingPointType apoint[3] = {*itX, *itY, *itZ};
+     //vtkFloatingPointType apoint[3] = {zR(it), zI(it), 0};
+     //      vtkFloatingPointType apoint[3] = {pointXYZ[it][0], pointXYZ[it][1], 0};    
 //       std::cerr<<"zR: "<<zR(it)<<"    zI: "<<zI(it)<<std::endl;
 //       std::cerr<<"x: "<<*itX<<"    y: "<<*itY<<"    z: "<<*itZ<<"   r2: "<<r2<<std::endl;
       mesh->SetPoint( it, MeshType::PointType( apoint ));
-    }
+    } // for it
   //  MeshType::Pointer newMesh = MeshType::New();
 
   //
@@ -599,12 +599,12 @@ void getDb(MeshType::Pointer mesh,
     + (C[2] - E[2]) * (C[2] - E[2]);
   CEnorm = sqrt(CEnorm); // This is real norm of vector CE.
 
-  bR(0) = -1 / ABnorm;
-  bR(1) = 1 / ABnorm;
+  bR(cellPoint[0][0]) = -1 / ABnorm;
+  bR(cellPoint[0][1]) = 1 / ABnorm;
 
-  bI(0) = (1-theta)/ CEnorm;
-  bI(1) = theta/ CEnorm;
-  bI(2) = -1 / CEnorm;
+  bI(cellPoint[0][0]) = (1-theta)/ CEnorm;
+  bI(cellPoint[0][1]) = theta/ CEnorm;
+  bI(cellPoint[0][2]) = -1 / CEnorm;
   
   return; 
 }
