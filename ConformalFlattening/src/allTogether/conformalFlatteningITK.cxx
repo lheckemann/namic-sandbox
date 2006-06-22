@@ -1,7 +1,6 @@
 #include "conformalFlatteningITK.h"
 #include "linearEqnSolver.h"
 
-
 int main( int argc, char * argv [] )
 {
 
