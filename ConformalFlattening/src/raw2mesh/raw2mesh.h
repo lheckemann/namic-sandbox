@@ -55,6 +55,9 @@ typedef itk::BinaryThresholdImageFilter< InputImageType, InputImageType > Binary
 const unsigned int pointDimension   = 3;
 const unsigned int maxCellDimension = 3;
 
+typedef itk::Point<vtkFloatingPointType, pointDimension> ItkPoint;
+
+
 typedef itk::DefaultStaticMeshTraits< 
   vtkFloatingPointType, 
   pointDimension,
@@ -67,7 +70,14 @@ typedef itk::Mesh<
   pointDimension,
   MeshTraits >                  MeshType;
 
+typedef MeshType::PointsContainer::ConstIterator PointIterator;
+typedef MeshType::CellType CellType;
+typedef MeshType::CellsContainer::ConstIterator CellIterator;
+typedef CellType::PointIdIterator PointIdIterator;
+
 typedef itk::BinaryMask3DMeshSource< InputImageType, MeshType > MeshSourceType;
+
+
 
 // FUNCTIONS
 vtkPolyData* ITKMeshToVtkPolyData(MeshType::Pointer mesh);
