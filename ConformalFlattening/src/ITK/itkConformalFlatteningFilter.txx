@@ -30,8 +30,7 @@ namespace itk
    */
   template <class TInputMesh, class TOutputMesh>
   ConformalFlatteningFilter<TInputMesh,TOutputMesh>
-  ::ConformalFlatteningFilter()
-  {
+  ::ConformalFlatteningFilter() {
     //  m_Transform = TransformType::New();
   }
 
@@ -119,18 +118,18 @@ namespace itk
   mapping( OutputMeshPointer mesh) {
 
     const unsigned int numberOfPoints = mesh->GetNumberOfPoints();
-    vnl_sparse_matrix<vtkFloatingPointType> D(numberOfPoints, numberOfPoints);
-    vnl_vector<vtkFloatingPointType> bR(numberOfPoints, 0);
-    vnl_vector<vtkFloatingPointType> bI(numberOfPoints, 0);
+    vnl_sparse_matrix<typename TInputMesh::CoordRepType> D(numberOfPoints, numberOfPoints);
+    vnl_vector<typename TInputMesh::CoordRepType> bR(numberOfPoints, 0);
+    vnl_vector<typename TInputMesh::CoordRepType> bI(numberOfPoints, 0);
 
     getDb( mesh, D , bR, bI);
   
     
-    linearEqnSolver lesR(D, bR);
-    vnl_vector<double> zR = lesR.solve();  
+    //    linearEqnSolver lesR(D, bR);
+    vnl_vector<double> zR = solveLinearEq(D, bR);//lesR.solve();  
 
-    linearEqnSolver lesI(D, bI);
-    vnl_vector<double> zI = lesI.solve();
+    //    linearEqnSolver lesI(D, bI);
+    vnl_vector<double> zI = solveLinearEq(D, bI);//lesI.solve();
 
     std::vector<double> x(numberOfPoints), y(numberOfPoints), z(numberOfPoints);
     std::vector<double>::iterator 
@@ -145,12 +144,14 @@ namespace itk
       *itY = 2*zI(it)/(1+r2);
       *itZ = 2*r2/(1+r2) - 1;
 
-      vtkFloatingPointType apoint[3] = {*itX, *itY, *itZ};
-      //vtkFloatingPointType apoint[3] = {zR(it), zI(it), 0};
-      //      vtkFloatingPointType apoint[3] = {pointXYZ[it][0], pointXYZ[it][1], 0};    
+      typename TInputMesh::CoordRepType apoint[3] = {*itX, *itY, *itZ};
+      //typename TInputMesh::CoordRepType apoint[3] = {zR(it), zI(it), 0};
+      //      typename TInputMesh::CoordRepType apoint[3] = {pointXYZ[it][0], pointXYZ[it][1], 0};    
       //       std::cerr<<"zR: "<<zR(it)<<"    zI: "<<zI(it)<<std::endl;
       //       std::cerr<<"x: "<<*itX<<"    y: "<<*itY<<"    z: "<<*itZ<<"   r2: "<<r2<<std::endl;
-      mesh->SetPoint( it, MeshType::PointType( apoint ));
+
+      //      mesh->SetPoint( it, MeshType::PointType( apoint ));
+      mesh->SetPoint( it,typename TOutputMesh::PointType( apoint ));
     } // for it
     //  MeshType::Pointer newMesh = MeshType::New();
 
@@ -163,7 +164,7 @@ namespace itk
     //   for(unsigned int p =0; p < numberOfPoints; p++)
     //     {
 
-    //       //      vtkFloatingPointType * apoint = vtkpoints->GetPoint( p );
+    //       //       typename TInputMesh::CoordRepType* apoint = vtkpoints->GetPoint( p );
       
     
     //     }  
@@ -174,20 +175,20 @@ namespace itk
   void
   ConformalFlatteningFilter<TInputMesh,TOutputMesh>::
   getDb(OutputMeshPointer mesh, 
-        vnl_sparse_matrix<float> &D,
-        vnl_vector<float> &bR,
-        vnl_vector<float> &bI) {
+        vnl_sparse_matrix<typename TInputMesh::CoordRepType> &D,
+        vnl_vector<typename TInputMesh::CoordRepType> &bR,
+        vnl_vector<typename TInputMesh::CoordRepType> &bI) {
   
     int numOfPoints = mesh->GetNumberOfPoints();
     int numOfCells = mesh->GetNumberOfCells();
 
     // 1. store the points coordinates: pointXYZ
-    std::vector< std::vector<double> > pointXYZ( numOfPoints, std::vector<double>(3, 0) );
+    std::vector< std::vector<typename TInputMesh::CoordRepType> > pointXYZ( numOfPoints, std::vector<typename TInputMesh::CoordRepType>(3, 0) );
 
     PointIterator pntIterator = mesh->GetPoints()->Begin();
 
     for ( int it = 0; it < numOfPoints; ++it, ++pntIterator) {
-      ItkPoint pnt = pntIterator.Value();
+      PointType pnt = pntIterator.Value();
     
       pointXYZ[it][0] = pnt[0];
       pointXYZ[it][1] = pnt[1];
@@ -418,6 +419,37 @@ namespace itk
     return; 
   } //getDb()
 
+//   template <class TInputMesh, class TOutputMesh>
+//   vnl_vector<typename TInputMesh::CoordRepType>
+//   ConformalFlatteningFilter<TInputMesh,TOutputMesh>
+//   :: solveLinearEq(vnl_matrix<typename TInputMesh::CoordRepType> const& A, 
+//                    vnl_vector<typename TInputMesh::CoordRepType> const& b) {
+    
+//     theFunc<typename TInputMesh::CoordRepType> f(A, b);
+
+//     vnl_conjugate_gradient cg;
+//     vnl_vector<typename TInputMesh::CoordRepType> x(f.dim(), 0);
+//     cg.minimize(x);
+//     return x;
+//   }
+
+  template <class TInputMesh, class TOutputMesh>
+  vnl_vector<typename TInputMesh::CoordRepType>
+  ConformalFlatteningFilter<TInputMesh,TOutputMesh>
+  ::solveLinearEq(vnl_sparse_matrix<typename TInputMesh::CoordRepType> const& A, 
+                  vnl_vector<typename TInputMesh::CoordRepType> const& b) {
+    
+    theFunc<typename TInputMesh::CoordRepType> f(A, b);
+
+    vnl_conjugate_gradient cg(f);
+    vnl_vector<typename TInputMesh::CoordRepType> x(f.dim(), 0);
+    cg.minimize(x);
+    return x;
+  }
+
+
+
+
 } // end namespace itk
 
 
@@ -430,47 +462,49 @@ namespace itk
 
 ////////////////////////////////////////////////////////////////////
 // implementation of class theFunc
-theFunc::theFunc(vnl_matrix<double> const& A, 
-                 vnl_vector<double> const& b)  
-  :_A(&A), _b(&b), _dim(b.size()), vnl_cost_function(b.size()), _sparse(false) {
+// template <class matrixDataType>
+// theFunc<matrixDataType>::theFunc(vnl_matrix<matrixDataType> const& A, 
+//                                  vnl_vector<matrixDataType> const& b)
+//   :_A(&A), _b(&b), _dim(b.size()), vnl_cost_function(b.size()), _sparse(false) {
 
-  if (A.rows() != b.size())
-        assert(!"The # of rows in A must be the same as the length of b!");    
-}
+//   if (A.rows() != b.size())
+//     assert(!"The # of rows in A must be the same as the length of b!");    
+// }
 
 // overload construction function for sparse matrix A
-theFunc::theFunc(vnl_sparse_matrix<double> const& A, 
-                 vnl_vector<double> const& b)  
+template <class matrixDataType>
+theFunc<matrixDataType>::theFunc(vnl_sparse_matrix<matrixDataType> const& A, 
+                                 vnl_vector<matrixDataType> const& b)
   :_Asparse(&A), _b(&b), _dim(b.size()), vnl_cost_function(b.size()), _sparse(true) {
 
   if (A.rows() != b.size())
-        assert(!"The # of rows in A must be the same as the length of b!");    
+    assert(!"The # of rows in A must be the same as the length of b!");    
 }
 
 
-
-double theFunc::f(vnl_vector<double> const& x) {  
-  double r;
+template <class matrixDataType>
+double theFunc<matrixDataType>::f(vnl_vector<matrixDataType> const& x) {  
+  matrixDataType r;
   if (_sparse == false) {
     r = 0.5*inner_product(x*(*_A),x)-inner_product((*_b),x);
   }
   else if (_sparse == true) {
-    vnl_vector<double> tmp;
+    vnl_vector<matrixDataType> tmp;
     _Asparse -> pre_mult(x, tmp);
-     r = 0.5*inner_product(tmp,x)-inner_product((*_b),x);
+    r = 0.5*inner_product(tmp,x)-inner_product((*_b),x);
   }
 
   return r;
 }
 
-
-void theFunc::gradf(vnl_vector<double> const& x, 
-                            vnl_vector<double> & g) {
+template <class matrixDataType>
+void theFunc<matrixDataType>::gradf(vnl_vector<matrixDataType> const& x, 
+                                    vnl_vector<matrixDataType> & g) {
   if (_sparse == false) {
     g = (*_A)*x - (*_b);
   }
   else if (_sparse == true) {
-    vnl_vector<double> tmp;
+    vnl_vector<matrixDataType> tmp;
     _Asparse -> mult(x, tmp);
     g = tmp - (*_b);
   }
@@ -481,27 +515,26 @@ void theFunc::gradf(vnl_vector<double> const& x,
 
 
 
-////////////////////////////////////////////////////////////////////
-// implementation of class linearEqnSolver
+// ////////////////////////////////////////////////////////////////////
+// // implementation of class linearEqnSolver
 
-linearEqnSolver::linearEqnSolver(vnl_matrix<double> const& A, 
-                                 vnl_vector<double> const& b)
-  :_f(A, b), _cg(_f) {}
+// linearEqnSolver::linearEqnSolver(vnl_matrix<double> const& A, 
+//                                  vnl_vector<double> const& b)
+//   :_f(A, b), _cg(_f) {}
 
-// overload construction function for sparse matrix
-linearEqnSolver::linearEqnSolver(vnl_sparse_matrix<double> const& A, 
-                                 vnl_vector<double> const& b)
-  :_f(A, b), _cg(_f) {}
+// // overload construction function for sparse matrix
+// linearEqnSolver::linearEqnSolver(vnl_sparse_matrix<double> const& A, 
+//                                  vnl_vector<double> const& b)
+//   :_f(A, b), _cg(_f) {}
 
 
-vnl_vector<double> linearEqnSolver::solve() {
-  vnl_vector<double> x(_f.dim(), 0);
-  _cg.minimize(x);
-  return x;
-}
-// implementation of class linearEqnSolver
-////////////////////////////////////////////////////////////////////
-
+// vnl_vector<double> linearEqnSolver::solve() {
+//   vnl_vector<double> x(_f.dim(), 0);
+//   _cg.minimize(x);
+//   return x;
+// }
+// // implementation of class linearEqnSolver
+// ////////////////////////////////////////////////////////////////////
 
 
 

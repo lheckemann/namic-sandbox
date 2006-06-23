@@ -22,6 +22,7 @@
 #include <assert.h>
 #include <vector>
 
+
 // vnl headers
 #include <vcl_iostream.h>
 #include <vnl/vnl_cost_function.h>
@@ -29,48 +30,44 @@
 #include <vnl/vnl_sparse_matrix.h>
 #include <vnl/algo/vnl_conjugate_gradient.h>
 
-#ifndef matrixDataType
-#define matrixDataType double
-#endif
-
-
+template <class matrixDataType>
 class theFunc : public vnl_cost_function {
  public:  
-  theFunc(vnl_matrix<double> const& A, 
-          vnl_vector<double> const& b);
+//   theFunc(vnl_matrix<matrixDataType> const& A, 
+//           vnl_vector<matrixDataType> const& b);
 
-  theFunc(vnl_sparse_matrix<double> const& A, 
-          vnl_vector<double> const& b);
+  theFunc(vnl_sparse_matrix<matrixDataType> const& A, 
+          vnl_vector<matrixDataType> const& b);
 
-  double f(vnl_vector<double> const& x);
-  void gradf(vnl_vector<double> const& x, vnl_vector<double> & g);
+  double f(vnl_vector<matrixDataType> const& x);
+  void gradf(vnl_vector<matrixDataType> const& x, vnl_vector<matrixDataType> & g);
 
   inline unsigned int dim() {return _dim;}
 
  private:
-  vnl_matrix<double> const* _A;
-  vnl_sparse_matrix<double> const* _Asparse;
-  vnl_vector<double> const* _b;
+  vnl_matrix<matrixDataType> const* _A;
+  vnl_sparse_matrix<matrixDataType> const* _Asparse;
+  vnl_vector<matrixDataType> const* _b;
   unsigned int _dim;
   bool _sparse;
 };
 
 
 
-class linearEqnSolver {
- public:  
-  linearEqnSolver(vnl_matrix<double> const& A, 
-                  vnl_vector<double> const& b);
+/* class linearEqnSolver { */
+/*  public:   */
+/*   linearEqnSolver(vnl_matrix<matrixDataType> const& A,  */
+/*                   vnl_vector<matrixDataType> const& b); */
 
-  linearEqnSolver(vnl_sparse_matrix<double> const& A, 
-                  vnl_vector<double> const& b);
+/*   linearEqnSolver(vnl_sparse_matrix<matrixDataType> const& A,  */
+/*                   vnl_vector<matrixDataType> const& b); */
 
-  vnl_vector<double> solve();
+/*   vnl_vector<matrixDataType> solve(); */
 
- private:
-  theFunc _f;
-  vnl_conjugate_gradient _cg;
-};
+/*  private: */
+/*   theFunc _f; */
+/*   vnl_conjugate_gradient _cg; */
+/* }; */
 
 
 
@@ -98,7 +95,7 @@ public:
   typedef TOutputMesh OutputMeshType;
   typedef typename InputMeshType::Pointer InputMeshPointer;
   typedef typename OutputMeshType::Pointer OutputMeshPointer;
-  
+
   /** Type for representing coordinates. */
   typedef typename TInputMesh::CoordRepType  CoordRepType;
 
@@ -107,6 +104,15 @@ public:
   
   /** Run-time type information (and related methods). */
   itkTypeMacro(ConformalFlatteningFilter, MeshToMeshFilter);
+
+  ///////////////////////
+  typedef typename InputMeshType::PointsContainer::ConstIterator PointIterator;
+  typedef typename InputMeshType::CellsContainer::ConstIterator CellIterator;  
+  typedef typename InputMeshType::CellType CellType;
+  typedef typename InputMeshType::CellType::PointIdIterator PointIdIterator;
+  typedef typename InputMeshType::PointType PointType;
+
+  typedef vnl_vector<CoordRepType> Tvnl_vector;
 
 protected:
   ConformalFlatteningFilter();
@@ -120,18 +126,24 @@ private:
   ConformalFlatteningFilter(const ConformalFlatteningFilter&); //purposely not implemented
   void operator=(const ConformalFlatteningFilter&); //purposely not implemented
 
-  // functions for conformal flattening mapping  
+  //  for conformal flattening mapping  
+  //  theFunc<CoordRepType> _f;
   void mapping( OutputMeshPointer mesh);
   void getDb(OutputMeshPointer mesh, 
-             vnl_sparse_matrix<matrixDataType> &D,
-             vnl_vector<matrixDataType> &bR,
-             vnl_vector<matrixDataType> &bI);  
+             vnl_sparse_matrix<CoordRepType> &D,
+             vnl_vector<CoordRepType> &bR,
+             vnl_vector<CoordRepType> &bI);  
+
+//   vnl_vector<CoordRepType> solveLinearEq(vnl_matrix<CoordRepType> const& A, 
+//                                    vnl_vector<CoordRepType> const& b);
+  vnl_vector<CoordRepType> solveLinearEq(vnl_sparse_matrix<CoordRepType> const& A, 
+                                   vnl_vector<CoordRepType> const& b);
 };
 
 } // end namespace itk
 
-/* #ifndef ITK_MANUAL_INSTANTIATION */
-/* #include "itkConformalFlatteningFilter.txx" */
-/* #endif */
+#ifndef ITK_MANUAL_INSTANTIATION
+#include "itkConformalFlatteningFilter.txx"
+#endif
 
 #endif
