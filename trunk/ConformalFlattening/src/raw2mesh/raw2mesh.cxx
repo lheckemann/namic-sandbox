@@ -121,3 +121,93 @@ int main(int argc, char *argv[])
 
   return 1;
 }
+
+
+void Display(vtkPolyData* polyData)
+{
+  vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
+  mapper->SetInput(polyData);
+
+  vtkActor* actor = vtkActor::New();
+  actor->SetMapper(mapper);
+
+//   vtkCamera *camera = vtkCamera::New();
+//       camera->SetPosition(1,1,1);
+//       camera->SetFocalPoint(0,0,0);
+
+  vtkRenderer* ren = vtkRenderer::New();
+  ren->AddActor(actor);
+  //ren->SetActiveCamera(camera);
+  //ren->ResetCamera();
+  ren->SetBackground(1,1,1);
+
+  vtkRenderWindow* renWin = vtkRenderWindow::New();
+  renWin->AddRenderer(ren);
+  renWin->SetSize(300,300);
+
+  vtkRenderWindowInteractor* inter = vtkRenderWindowInteractor::New();
+  inter->SetRenderWindow(renWin);
+
+  renWin->Render();
+  inter->Start();
+}
+
+
+vtkPolyData* ITKMeshToVtkPolyData(MeshType::Pointer mesh)
+{
+  //Creat a new vtkPolyData
+  vtkPolyData* newPolyData = vtkPolyData::New();
+
+  //Creat vtkPoints for insertion into newPolyData
+  vtkPoints *points = vtkPoints::New();
+
+  std::cout<<"Points = "<<mesh->GetNumberOfPoints()<<std::endl;
+
+  //Copy all points into the vtkPolyData structure
+  PointIterator pntIterator = mesh->GetPoints()->Begin();
+  PointIterator pntItEnd = mesh->GetPoints()->End();
+
+  for (int i = 0; pntIterator != pntItEnd; ++i, ++pntIterator)
+    {
+      ItkPoint pnt = pntIterator.Value();
+      points->InsertPoint(i, pnt[0], pnt[1], pnt[2]);
+//       std::cout<<i<<"-th point:  ";
+//       std::cout<<pnt[0]<<std::endl;
+//       std::cout<<"               "<<pntIterator.Value()<<std::endl;
+//      ++pntIterator;
+    }
+  newPolyData->SetPoints(points);
+  points->Delete();
+
+
+  //Copy all cells into the vtkPolyData structure
+  //Creat vtkCellArray into which the cells are copied
+  vtkCellArray* triangle = vtkCellArray::New();
+  
+  CellIterator cellIt = mesh->GetCells()->Begin();
+  CellIterator cellItEnd = mesh->GetCells()->End();
+
+  for (int it = 0; cellIt != cellItEnd; ++it, ++cellIt)
+    {
+      CellType * cellptr = cellIt.Value();
+      //    LineType * line = dynamic_cast<LineType *>( cellptr );
+      //    std::cout << line->GetNumberOfPoints() << std::endl;
+      //      std::cout << cellptr->GetNumberOfPoints() << std::endl;
+
+      PointIdIterator pntIdIter = cellptr->PointIdsBegin();
+      PointIdIterator pntIdEnd = cellptr->PointIdsEnd();
+      vtkIdList* pts = vtkIdList::New();
+
+      for (; pntIdIter != pntIdEnd; ++pntIdIter)
+        {
+          pts->InsertNextId( *pntIdIter );
+          //          std::cout<<"           "<<tempCell[it1]<<std::endl;
+        }
+      triangle->InsertNextCell(pts);
+    }
+  newPolyData->SetPolys(triangle);
+  triangle->Delete();
+
+  // return the vtkUnstructuredGrid
+  return newPolyData;
+}
