@@ -1,0 +1,507 @@
+#include "genus02mesh.h"
+#include "linearEqnSolver.h"
+
+int main( int argc, char * argv [] )
+{
+
+  if( argc < 2 )
+    {
+      std::cerr << "Missing arguments" << std::endl;
+      std::cerr << "Usage: InputImage vtkPolyDataInputFile" << std::endl;
+      return -1;
+    }
+
+  /* Read genus 0 binary image from file */
+  ReaderType::Pointer reader = ReaderType::New();
+  reader->SetFileName( argv[1] );
+  try
+    {
+    reader->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception thrown " << std::endl;
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  /* Generate an ITK Mesh from the Largest Connected Component */
+  /* Assume the object of interest has value 1 */
+  MeshSourceType::Pointer meshSource = MeshSourceType::New();
+  const InputImageType::PixelType objectValue = static_cast<InputImageType::PixelType>( 1 );
+  meshSource->SetObjectValue( objectValue );
+  meshSource->SetInput( reader->GetOutput() );
+  try
+    {
+    meshSource->Update();
+    }
+  catch( itk::ExceptionObject & exp )
+    {
+    std::cerr << "Exception thrown during Update() on meshSource " << std::endl;
+    std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+  std::cerr << "Nodes = " << meshSource->GetNumberOfNodes() << std::endl;
+  std::cerr << "Cells = " << meshSource->GetNumberOfCells() << std::endl;
+  
+// THIS CODE MAY BE USEFUL TO WRITE THE MESH TO FILE
+//   /* Create the Mesh Spatial Object */
+//   typedef itk::MeshSpatialObject<MeshType> MeshSpatialObjectType;
+//   MeshSpatialObjectType::Pointer meshSO = MeshSpatialObjectType::New();
+//   meshSO->SetMesh(meshSource->GetOutput());
+//   meshSO->SetId(3);
+//   std::cout<<"[PASSED]"<<std::endl;
+
+//   /* Writing the Mesh to File */
+//   std::cout<<"Testing Writing MeshSpatialObject: ";
+//   typedef itk::DefaultDynamicMeshTraits< float , 3, 3 > MeshTrait;
+//   typedef itk::SpatialObjectWriter<3,float,MeshTrait> SOWriterType;
+//   SOWriterType::Pointer soWriter = SOWriterType::New();
+//   soWriter->SetInput(meshSO);
+//   soWriter->SetFileName("metamesh.vtk");
+//   soWriter->Update();
+//   std::cout<<"[PASSED]"<<std::endl;
+
+  // Set the color for the mesh according to local mean/gaussian
+  // curvature.
+  vtkCurvatures* curv1 = vtkCurvatures::New();
+  vtkPolyData* polyData = ITKMeshToVtkPolyData( meshSource->GetOutput() );
+  curv1->SetInput( polyData );
+  //  curv1->SetCurvatureTypeToGaussian();
+  curv1->SetCurvatureTypeToMean();
+  Display( curv1->GetOutput() );
+
+  // Execute the conformal flattening
+  MeshType::Pointer newMesh = mapping( meshSource->GetOutput() );
+
+  //Begin convert from ITKMesh to vtkPolyData
+  vtkPolyData* newPolyData = ITKMeshToVtkPolyData(newMesh);
+
+  //Display the new polydata
+  newPolyData->GetPointData()->SetScalars(curv1->GetOutput()->GetPointData()->GetScalars());
+  Display( newPolyData );
+  
+//   std::cout << "Mesh  " << std::endl;
+//   std::cout << "Number of Points =   " << mesh->GetNumberOfPoints() << std::endl;
+//   std::cout << "Number of Cells  =   " << mesh->GetNumberOfCells()  << std::endl;
+
+  return 0;
+}
+
+
+
+vtkPolyData* ITKMeshToVtkPolyData(MeshType::Pointer mesh)
+{
+  //Creat a new vtkPolyData
+  vtkPolyData* newPolyData = vtkPolyData::New();
+
+  //Creat vtkPoints for insertion into newPolyData
+  vtkPoints *points = vtkPoints::New();
+
+  std::cout<<"Points = "<<mesh->GetNumberOfPoints()<<std::endl;
+
+  //Copy all points into the vtkPolyData structure
+  PointIterator pntIterator = mesh->GetPoints()->Begin();
+  PointIterator pntItEnd = mesh->GetPoints()->End();
+
+  for (int i = 0; pntIterator != pntItEnd; ++i, ++pntIterator)
+    {
+      ItkPoint pnt = pntIterator.Value();
+      points->InsertPoint(i, pnt[0], pnt[1], pnt[2]);
+//       std::cout<<i<<"-th point:  ";
+//       std::cout<<pnt[0]<<std::endl;
+//       std::cout<<"               "<<pntIterator.Value()<<std::endl;
+//      ++pntIterator;
+    }
+  newPolyData->SetPoints(points);
+  points->Delete();
+
+
+  //Copy all cells into the vtkPolyData structure
+  //Creat vtkCellArray into which the cells are copied
+  vtkCellArray* triangle = vtkCellArray::New();
+  
+  CellIterator cellIt = mesh->GetCells()->Begin();
+  CellIterator cellItEnd = mesh->GetCells()->End();
+
+  for (int it = 0; cellIt != cellItEnd; ++it, ++cellIt)
+    {
+      CellType * cellptr = cellIt.Value();
+      //    LineType * line = dynamic_cast<LineType *>( cellptr );
+      //    std::cout << line->GetNumberOfPoints() << std::endl;
+      //      std::cout << cellptr->GetNumberOfPoints() << std::endl;
+
+      PointIdIterator pntIdIter = cellptr->PointIdsBegin();
+      PointIdIterator pntIdEnd = cellptr->PointIdsEnd();
+      vtkIdList* pts = vtkIdList::New();
+
+      for (; pntIdIter != pntIdEnd; ++pntIdIter)
+        {
+          pts->InsertNextId( *pntIdIter );
+          //          std::cout<<"           "<<tempCell[it1]<<std::endl;
+        }
+      triangle->InsertNextCell(pts);
+    }
+  newPolyData->SetPolys(triangle);
+  triangle->Delete();
+
+  // return the vtkUnstructuredGrid
+  return newPolyData;
+}
+
+void Display(vtkPolyData* polyData)
+{
+
+  vtkPolyDataNormals* norm = vtkPolyDataNormals::New();
+  norm->SetInput(polyData);
+  norm->SetFeatureAngle(45);
+
+
+  vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
+  mapper->SetInput(norm->GetOutput());
+
+  vtkLookupTable* lut1 = vtkLookupTable::New();
+  lut1->SetNumberOfColors(256);
+//   lut1->SetHueRange(0.2, 0); //0:red, 0.2: yellow, 0.7: blue, 1:red again.
+//   lut1->SetSaturationRange(0.2, 1.0);
+//   lut1->SetValueRange(1.0, 0.3);
+
+  lut1->SetHueRange(0.15, 1.0); //0:red, 0.2: yellow, 0.7: blue, 1:red again.
+  lut1->SetSaturationRange(1.0, 1.0);
+
+
+
+  lut1->SetAlphaRange(1.0, 1.0);
+  lut1->SetRange(-20, 20); //-20: left value above, 20: right value above
+
+  mapper->SetLookupTable(lut1);
+  mapper->SetUseLookupTableScalarRange(1);
+
+
+  vtkActor* actor = vtkActor::New();
+  actor->SetMapper(mapper);
+
+//   vtkCamera *camera = vtkCamera::New();
+//       camera->SetPosition(1,1,1);
+//       camera->SetFocalPoint(0,0,0);
+
+  vtkRenderer* ren = vtkRenderer::New();
+  ren->AddActor(actor);
+  //ren->SetActiveCamera(camera);
+  //ren->ResetCamera();
+  ren->SetBackground(1,1,1);
+
+  vtkRenderWindow* renWin = vtkRenderWindow::New();
+  renWin->AddRenderer(ren);
+  renWin->SetSize(300,300);
+
+  vtkRenderWindowInteractor* inter = vtkRenderWindowInteractor::New();
+  inter->SetRenderWindow(renWin);
+
+  renWin->Render();
+  inter->Start();
+}
+
+
+MeshType::Pointer mapping(MeshType::Pointer mesh) {
+  
+  const unsigned int numberOfPoints = mesh->GetNumberOfPoints();
+  vnl_sparse_matrix<vtkFloatingPointType> D(numberOfPoints,
+                                            numberOfPoints);
+  vnl_vector<vtkFloatingPointType> bR(numberOfPoints, 0);
+  vnl_vector<vtkFloatingPointType> bI(numberOfPoints, 0);
+
+  getDb( mesh, D , bR, bI);
+  
+    
+  linearEqnSolver lesR(D, bR);
+  vnl_vector<double> zR = lesR.solve();  
+
+  linearEqnSolver lesI(D, bI);
+  vnl_vector<double> zI = lesI.solve();
+
+  std::vector<double> x(numberOfPoints), y(numberOfPoints), z(numberOfPoints);
+  std::vector<double>::iterator 
+    itX = x.begin(), 
+    itY = y.begin(), 
+    itZ = z.begin(), 
+    itXend = x.end();
+  
+    for (int it = 0; itX != itXend; ++itX, ++itY, ++itZ, ++it) {
+      double r2 = zR(it)*zR(it) + zI(it)*zI(it);
+      *itX = 2*zR(it)/(1+r2);
+      *itY = 2*zI(it)/(1+r2);
+      *itZ = 2*r2/(1+r2) - 1;
+
+     vtkFloatingPointType apoint[3] = {*itX, *itY, *itZ};
+     //vtkFloatingPointType apoint[3] = {zR(it), zI(it), 0};
+     //      vtkFloatingPointType apoint[3] = {pointXYZ[it][0], pointXYZ[it][1], 0};    
+//       std::cerr<<"zR: "<<zR(it)<<"    zI: "<<zI(it)<<std::endl;
+//       std::cerr<<"x: "<<*itX<<"    y: "<<*itY<<"    z: "<<*itZ<<"   r2: "<<r2<<std::endl;
+      mesh->SetPoint( it, MeshType::PointType( apoint ));
+    } // for it
+  //  MeshType::Pointer newMesh = MeshType::New();
+
+  //
+  // set new point position, leaving the triangles' relation unchanged
+  //
+  
+  //  mesh->GetPoints()->Reserve( numberOfPoints );
+  
+//   for(unsigned int p =0; p < numberOfPoints; p++)
+//     {
+
+//       //      vtkFloatingPointType * apoint = vtkpoints->GetPoint( p );
+      
+    
+//     }  
+  
+  return mesh;
+}
+
+
+
+void getDb(MeshType::Pointer mesh, 
+           vnl_sparse_matrix<vtkFloatingPointType> &D,
+           vnl_vector<vtkFloatingPointType> &bR,
+           vnl_vector<vtkFloatingPointType> &bI) {
+
+  int numOfPoints = mesh->GetNumberOfPoints();
+  int numOfCells = mesh->GetNumberOfCells();
+
+  // 1. store the points coordinates: pointXYZ
+  std::vector< std::vector<double> > pointXYZ( numOfPoints, std::vector<double>(3, 0) );
+
+  PointIterator pntIterator = mesh->GetPoints()->Begin();
+
+  for ( int it = 0; it < numOfPoints; ++it, ++pntIterator) {
+    ItkPoint pnt = pntIterator.Value();
+    
+    pointXYZ[it][0] = pnt[0];
+    pointXYZ[it][1] = pnt[1];
+    pointXYZ[it][2] = pnt[2];
+  }
+
+  // 2. store the relationship from point to cell, i.e. for each
+  // point, which cells contain it?  For each point in the mesh,
+  // generate a vector, storing the id number of triangles containing
+  // this point.  The vectors of all the points form a vector:
+  // pointCell
+
+  // 3. store the relationship from cell to point, i.e. for each cell,
+  // which points does it contains? store in vector: cellPoint
+  std::vector< std::vector<int> > pointCell( numOfPoints );
+  std::vector< std::vector<int> > cellPoint( numOfCells, std::vector<int>(3, 0) );
+
+  CellIterator cellIt = mesh->GetCells()->Begin();
+
+  for ( int itCell = 0;
+        itCell < numOfCells;
+        ++itCell, ++cellIt) {
+    
+    CellType * cellptr = cellIt.Value(); 
+    // cellptr will point to each cell in the mesh
+    // std::cout << cellptr->GetNumberOfPoints() << std::endl;
+
+    PointIdIterator pntIdIter = cellptr->PointIdsBegin(); 
+    //pntIdIter will point to each point in the current cell
+    PointIdIterator pntIdEnd = cellptr->PointIdsEnd();
+
+    for (int itPntInCell = 0; pntIdIter != pntIdEnd; ++pntIdIter, ++itPntInCell)
+      {
+        pointCell[ *pntIdIter ].push_back(itCell);
+        cellPoint[itCell][itPntInCell] = *pntIdIter;
+      }
+  }
+
+
+  //   //--------------------------------------------------------------
+  //   // print out the result
+  //   std::cout<<std::endl;
+  //   std::cout<<std::endl;
+  //   std::cout<<std::endl;
+  //   std::cout<<std::endl;
+
+  //   for (int it = 0; it < numOfPoints; ++it) {
+  //     std::cout<<"point# "<<it<<" :"
+  //              <<"       X: "<<pointXYZ[it][0]
+  //              <<"       Y: "<<pointXYZ[it][1]
+  //              <<"       Z: "<<pointXYZ[it][2]<<std::endl;
+  //   }
+
+  //   for (int it = 0; it < numOfPoints; ++it) {
+  //     std::cout<<"point# "<<it<<" is contained by    "<<pointCell[it].size()<<"   cells:"<<std::endl;
+  //     for (std::vector<int>::const_iterator vi = pointCell[it].begin();
+  //          vi != pointCell[it].end();
+  //          ++vi) {
+  //       std::cout<<*vi<<"     ";      
+  //     }
+  //     std::cout<<std::endl;
+  //   }
+
+  //   for (int it = 0; it < numOfCells; ++it) {
+  //     std::cout<<"cell# "<<it<<" has points: "
+  //              <<cellPoint[it][0]<<"  "
+  //              <<cellPoint[it][1]<<"  "
+  //              <<cellPoint[it][2]<<std::endl;
+  //   }
+  //   //---------------------------------------------------------------
+
+
+  // 1. Iterate point P from 0 to the last point in the mesh. 
+  // 2. For each P, find its neighbors, each neighbor must:
+  //    1) has at least two triangles containing P and itself ---not the boundary.
+  //    2) has larger pointId, to avoid re-calculation.
+  // 3. For each of P's neighbors, Q, calculate R, S
+  // 4. Write the value in matrix.
+  std::vector< std::vector<int> >::iterator itP, itPEnd = pointCell.end();
+  int idP = 0;
+  for ( itP = pointCell.begin(); itP != itPEnd; ++itP, ++idP) {
+    std::vector<int> neighborOfP;
+    // for each point P, traverse all cells containing it.
+    std::vector<int>::iterator itCell = (*itP).begin();
+    std::vector<int>::iterator itCellEnd = (*itP).end();
+
+    for (; itCell != itCellEnd; ++itCell) {
+      // for each cell containing P, store the point with larger point Id.
+      // only three points, don't use for-loop to save time.
+      if ( cellPoint[*itCell][0] > idP ) 
+        neighborOfP.push_back(cellPoint[*itCell][0]);
+      if ( cellPoint[*itCell][1] > idP ) 
+        neighborOfP.push_back(cellPoint[*itCell][1]);
+      if ( cellPoint[*itCell][2] > idP ) 
+        neighborOfP.push_back(cellPoint[*itCell][2]);
+    }// ok, now all neighbors of P is stored in neighborOfP;
+    
+    sort(neighborOfP.begin(), neighborOfP.end());
+    std::vector<int>::iterator it;
+    it = unique(neighborOfP.begin(), neighborOfP.end());
+    neighborOfP.erase(it, neighborOfP.end());
+
+    //-----------------------------------------------
+    // print out the neighbors
+    //     std::vector<int>::iterator itNeighbor = neighborOfP.begin();
+    //     std::vector<int>::iterator itNeighborEnd = neighborOfP.end();
+    //     std::cerr<<"The neighbors of "<<idP<<" are: ";
+    //     for (; itNeighbor != itNeighborEnd; ++itNeighbor) {
+    //       std::cerr<<*itNeighbor<<" , ";
+    //     }
+    //     std::cerr<<std::endl;
+    // ----------------------------------------------------
+
+    // next, from P to each neighbor...
+    // note: itP and itQ point at different type of vectors...
+    // *itP is a vector containing a list of cell Ids, all of which contains point P
+    // idP is the point Id of P
+    // *itQ is the point Id of Q (so idP and *itQ are same type)
+    std::vector<int>::iterator itQ, itQEnd = neighborOfP.end();
+    for ( itQ = neighborOfP.begin(); itQ != itQEnd; ++itQ) {
+      // first check whether PQ is a boundary edge:
+      std::vector<int> cellsContainingP(*itP), cellsContainingQ(pointCell[*itQ]);
+      std::vector<int> cells(cellsContainingP.size() + cellsContainingQ.size());
+      std::vector<int>::iterator itv, endIter;
+
+      sort(cellsContainingP.begin(), cellsContainingP.end());
+      sort(cellsContainingQ.begin(), cellsContainingQ.end());
+
+      endIter = set_intersection(cellsContainingP.begin(), cellsContainingP.end(),
+                                 cellsContainingQ.begin(), cellsContainingQ.end(),
+                                 cells.begin());
+      cells.erase(endIter, cells.end());
+      if (cells.size() != 2) continue;
+      // If P and Q are not shared by two triangles, i.e. 1: are not
+      // connected by and edge, or, 2: are on the surface boundary
+      // thus only shared by one triangle. then skip.  However, in
+      // this paper the surface is closed thus there is not boundary.
+
+      // If passed test above, then P and Q are two valid points.
+      // i.e. PQ is a valid edge.  i.e. cells now contain two int's,
+      // which are the Id of the triangles containing P and Q
+
+
+      //       //------------------------------------------------------------
+      //       //print out valid edge
+      //       std::cerr<<idP<<" and "<<*itQ<<" are two valid points"<<std::endl;
+      //       std::cerr<<(endIter == cells.end())<<std::endl;
+      //       //-----------------------------------------------------------
+
+
+      // Next we extract R and S from cells
+      int itS, itR; // the Id of point S and R;
+      for (int it = 0; it < 3; ++it) {
+        if (cellPoint[cells[0]][it] != idP && cellPoint[cells[0]][it] != *itQ) 
+          itS = cellPoint[cells[0]][it];
+        if (cellPoint[cells[1]][it] != idP && cellPoint[cells[1]][it] != *itQ) 
+          itR = cellPoint[cells[1]][it];
+      }
+
+      std::vector<double> P(pointXYZ[idP]), 
+        Q(pointXYZ[*itQ]), 
+        R(pointXYZ[itR]),
+        S(pointXYZ[itS]);
+
+      std::vector<double> SP(3), SQ(3), RP(3), RQ(3);
+      double SPnorm = 0, SQnorm = 0, RPnorm = 0, RQnorm = 0, SPSQinnerProd = 0, RPRQinnerProd = 0;
+      for (int it = 0; it<3; ++it) {
+        SP[it] = P[it] - S[it]; SPnorm += SP[it]*SP[it];
+        SQ[it] = Q[it] - S[it]; SQnorm += SQ[it]*SQ[it]; SPSQinnerProd += SP[it]*SQ[it];
+        RP[it] = P[it] - R[it]; RPnorm += RP[it]*RP[it];
+        RQ[it] = Q[it] - R[it]; RQnorm += RQ[it]*RQ[it]; RPRQinnerProd += RP[it]*RQ[it];
+      } //it
+      SPnorm = sqrt(SPnorm);
+      SQnorm = sqrt(SQnorm);
+      RPnorm = sqrt(RPnorm);
+      RQnorm = sqrt(RQnorm);
+
+      double cosS = SPSQinnerProd / (SPnorm * SQnorm); 
+      double cosR = RPRQinnerProd / (RPnorm * RQnorm);
+      double ctgS = cosS/sqrt(1-cosS*cosS), ctgR = cosR/sqrt(1-cosR*cosR);
+
+      D(idP, *itQ) = -0.5*(ctgS + ctgR);
+      D(idP, idP) += 0.5*(ctgS + ctgR); 
+      // add to the diagonal element of this line.
+
+      D(*itQ, idP) = -0.5*(ctgS + ctgR); // symmetric
+      D(*itQ, *itQ) += 0.5*(ctgS + ctgR); 
+      // add to the diagonal element of this line.
+    } // itQ
+  } // itP
+
+  // compute b = bR + i*bI separately
+  std::vector<double> A( pointXYZ[ cellPoint[0][0] ] ), 
+    B( pointXYZ[ cellPoint[0][1] ] ), 
+    C( pointXYZ[ cellPoint[0][2] ] );
+  double ABnorm, CA_BAip; // the inner product of vector C-A and B-A;
+  ABnorm = (A[0] - B[0]) * (A[0] - B[0])
+    + (A[1] - B[1]) * (A[1] - B[1])
+    + (A[2] - B[2]) * (A[2] - B[2]);
+
+  CA_BAip = (C[0] - A[0]) * (B[0] - A[0])
+    + (C[1] - A[1]) * (B[1] - A[1])
+    + (C[2] - A[2]) * (B[2] - A[2]);
+
+  double theta = CA_BAip / ABnorm; 
+  // Here ABnorm is actually the square of AB's norm, which is what we
+  // want. So don't bother square the square root.
+  
+  ABnorm = sqrt(ABnorm); // This is real norm of vector AB.
+
+  std::vector<double> E(3);
+  for (int it = 0; it < 3; ++it) 
+    E[it] = A[it] + theta*(B[it] - A[it]);
+
+  double CEnorm;
+  CEnorm = (C[0] - E[0]) * (C[0] - E[0])
+    + (C[1] - E[1]) * (C[1] - E[1])
+    + (C[2] - E[2]) * (C[2] - E[2]);
+  CEnorm = sqrt(CEnorm); // This is real norm of vector CE.
+
+  bR(cellPoint[0][0]) = -1 / ABnorm;
+  bR(cellPoint[0][1]) = 1 / ABnorm;
+
+  bI(cellPoint[0][0]) = (1-theta)/ CEnorm;
+  bI(cellPoint[0][1]) = theta/ CEnorm;
+  bI(cellPoint[0][2]) = -1 / CEnorm;
+  
+  return; 
+}
