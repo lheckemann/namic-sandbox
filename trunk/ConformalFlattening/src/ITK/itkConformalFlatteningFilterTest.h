@@ -48,7 +48,6 @@ typedef itk::DefaultStaticMeshTraits<
   maxCellDimension, 
   vtkFloatingPointType, 
   vtkFloatingPointType  >       MeshTraits;
-
   
 typedef itk::Mesh<
   vtkFloatingPointType, 
