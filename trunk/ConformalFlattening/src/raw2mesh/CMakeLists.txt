@@ -5,6 +5,7 @@ PROJECT(raw2mesh)
 # prior to the one in ITK.
 INCLUDE_DIRECTORIES( 
   ${raw2mesh_SOURCE_DIR}
+  ${InsightApplications_Source_DIR}/Auxiliary/vtk/
   )
 
 FIND_PACKAGE(ITK)
@@ -14,6 +15,13 @@ ELSE(ITK_FOUND)
   MESSAGE(FATAL_ERROR "ITK not found. Please set ITK_DIR.")
 ENDIF(ITK_FOUND)
 
+FIND_PACKAGE(VTK)
+IF(VTK_FOUND)
+  INCLUDE(${VTK_USE_FILE})
+ELSE(VTK_FOUND)
+  MESSAGE(FATAL_ERROR "VTK not found. Please set VTK_DIR.")
+ENDIF(VTK_FOUND)
+
 # Add the executable
 ADD_EXECUTABLE(raw2mesh raw2mesh.cxx )
-TARGET_LINK_LIBRARIES(raw2mesh ITKIO ITKCommon ITKBasicFilters ITKStatistics)
+TARGET_LINK_LIBRARIES(raw2mesh vtkRendering vtkIO ITKIO ITKCommon ITKBasicFilters ITKStatistics)
