@@ -5,6 +5,7 @@ PROJECT(vtkItkVtk)
 # prior to the one in ITK.
 INCLUDE_DIRECTORIES( 
   ${vtkItkVtk_SOURCE_DIR}
+  ${InsightApplications_Source_DIR}/Auxiliary/vtk/
   )
 
 FIND_PACKAGE(ITK)

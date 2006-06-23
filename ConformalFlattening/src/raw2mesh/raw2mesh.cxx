@@ -1,19 +1,4 @@
-#pragma warning (disable: 4786)
-
-#include <iostream>
-#include <fstream>
-#include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkConnectedComponentImageFilter.h"
-#include "itkRelabelComponentImageFilter.h"
-#include "itkLabelStatisticsImageFilter.h"
-#include "itkImageFileWriter.h"
-#include "itkBinaryThresholdImageFilter.h"
-#include "itkBinaryMask3DMeshSource.h"
-#include "itkMesh.h"
-#include "itkMeshSpatialObject.h"
-#include "itkSpatialObjectWriter.h"
-#include <itkDefaultDynamicMeshTraits.h>
+#include "raw2mesh.h"
 
 int main(int argc, char *argv[])
 {
@@ -30,8 +15,6 @@ int main(int argc, char *argv[])
   std::cerr << std::endl;
 
   /* Readin the Skull-Stripped Binary Image from File */
-  typedef itk::Image< unsigned char, 3 > InputImageType;
-  typedef itk::ImageFileReader< InputImageType > ReaderType;
   ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[1] );
   try
@@ -47,14 +30,12 @@ int main(int argc, char *argv[])
 
   /* Connected Component Filter */
   std::cerr << "Executing the Connected Component and Relabel Filter... " << std::endl;
-  typedef itk::ConnectedComponentImageFilter< InputImageType, InputImageType > ConnectedComponentType;
   ConnectedComponentType::Pointer connectedComponentFilter = ConnectedComponentType::New();
   connectedComponentFilter->SetInput( reader->GetOutput() );
   connectedComponentFilter->SetFullyConnected( 0 );
   std::cerr << "  GetFullyConnected = " << connectedComponentFilter->GetFullyConnected() << std::endl;
 
   /* Relabel Filter */
-  typedef itk::RelabelComponentImageFilter< InputImageType, InputImageType > RelabelType;
   RelabelType::Pointer relabelFilter = RelabelType::New();
   relabelFilter->SetInput( connectedComponentFilter->GetOutput() );
   relabelFilter->InPlaceOn();
@@ -64,7 +45,6 @@ int main(int argc, char *argv[])
   /* Compute Label Statistics on the Original Labels */
   std::ofstream labelStatistics ("labelStatistics.txt");
   std::cerr << "Computing label statistics... " << std::endl;
-  typedef itk::LabelStatisticsImageFilter<InputImageType, InputImageType> LabelStatisticsImageFilterType;
   LabelStatisticsImageFilterType::Pointer statisticsFilterOrig = LabelStatisticsImageFilterType::New();
   statisticsFilterOrig->SetInput( reader->GetOutput() );
   statisticsFilterOrig->SetLabelInput( relabelFilter->GetOutput() );
@@ -88,7 +68,6 @@ int main(int argc, char *argv[])
   relabelWriter = 0;
 
   /* Extract the Largest Connected Component (ignore all others) */
-  typedef itk::BinaryThresholdImageFilter< InputImageType, InputImageType > BinaryThresholdFilterType;
   BinaryThresholdFilterType::Pointer binaryThresholdFilter = BinaryThresholdFilterType::New();
   binaryThresholdFilter->SetInput( relabelFilter->GetOutput() );
   binaryThresholdFilter->SetOutsideValue( 0 );
@@ -99,8 +78,6 @@ int main(int argc, char *argv[])
 
   /* Generate an ITK Mesh from the Largest Connected Component */
   /* NOTE: Can probably skip the binary threshold image filter */
-  typedef itk::Mesh<double> MeshType;
-  typedef itk::BinaryMask3DMeshSource< InputImageType, MeshType > MeshSourceType;
   MeshSourceType::Pointer meshSource = MeshSourceType::New();
   const InputImageType::PixelType objectValue = static_cast<InputImageType::PixelType>( 1 );
   meshSource->SetObjectValue( objectValue );
@@ -118,22 +95,29 @@ int main(int argc, char *argv[])
   std::cerr << "Nodes = " << meshSource->GetNumberOfNodes() << std::endl;
   std::cerr << "Cells = " << meshSource->GetNumberOfCells() << std::endl;
   
-  /* Create the Mesh Spatial Object */
-  typedef itk::MeshSpatialObject<MeshType> MeshSpatialObjectType;
-  MeshSpatialObjectType::Pointer meshSO = MeshSpatialObjectType::New();
-  meshSO->SetMesh(meshSource->GetOutput());
-  meshSO->SetId(3);
-  std::cout<<"[PASSED]"<<std::endl;
+  //Begin convert from ITKMesh to vtkPolyData
+  vtkPolyData* polyData = ITKMeshToVtkPolyData( meshSource->GetOutput() );
 
-  /* Writing the Mesh to File */
-  std::cout<<"Testing Writing MeshSpatialObject: ";
-  typedef itk::DefaultDynamicMeshTraits< float , 3, 3 > MeshTrait;
-  typedef itk::SpatialObjectWriter<3,float,MeshTrait> SOWriterType;
-  SOWriterType::Pointer soWriter = SOWriterType::New();
-  soWriter->SetInput(meshSO);
-  soWriter->SetFileName("metamesh.vtk");
-  soWriter->Update();
-  std::cout<<"[PASSED]"<<std::endl;
+  //Display the new polydata
+  Display( polyData );
+
+
+//   /* Create the Mesh Spatial Object */
+//   typedef itk::MeshSpatialObject<MeshType> MeshSpatialObjectType;
+//   MeshSpatialObjectType::Pointer meshSO = MeshSpatialObjectType::New();
+//   meshSO->SetMesh(meshSource->GetOutput());
+//   meshSO->SetId(3);
+//   std::cout<<"[PASSED]"<<std::endl;
+
+//   /* Writing the Mesh to File */
+//   std::cout<<"Testing Writing MeshSpatialObject: ";
+//   typedef itk::DefaultDynamicMeshTraits< float , 3, 3 > MeshTrait;
+//   typedef itk::SpatialObjectWriter<3,float,MeshTrait> SOWriterType;
+//   SOWriterType::Pointer soWriter = SOWriterType::New();
+//   soWriter->SetInput(meshSO);
+//   soWriter->SetFileName("metamesh.vtk");
+//   soWriter->Update();
+//   std::cout<<"[PASSED]"<<std::endl;
 
   return 1;
 }

@@ -1,4 +1,4 @@
-#include "conformalFlatteningITK.h"
+#include "vtkItkVtk.h"
 
 
 int main( int argc, char * argv [] )
