@@ -20,17 +20,17 @@ int main( int argc, char * argv [] )
 {
 
 
-  if( argc < 2 )
-    {
-      std::cerr << "Missing arguments" << std::endl;
-      std::cerr << "Usage: vtkPolyDataToITKMesh   vtkPolyDataInputFile" << std::endl;
-      return -1;
-    }
+//   if( argc < 2 )
+//     {
+//       std::cerr << "Missing arguments" << std::endl;
+//       std::cerr << "Usage: vtkPolyDataToITKMesh   vtkPolyDataInputFile" << std::endl;
+//       return -1;
+//     }
 
 
 
 
-  vtkPolyData *polyData = readDataToPolyData( argv[1] );
+  vtkPolyData *polyData = readDataToPolyData("nice.vtk" );//argv[1] );
   // Set the color for the mesh according to local mean/gaussian
   // curvature.
   vtkCurvatures* curv1 = vtkCurvatures::New();
@@ -60,14 +60,14 @@ int main( int argc, char * argv [] )
   filter->Update();
 
   // Get the Smart Pointer to the Filter Output 
-  //  MeshType::Pointer outputMesh = filter->GetOutput();
+  MeshType::Pointer newMesh = filter->GetOutput();
     ///////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////
   ///////////////////////////////////////////////////////////////////////
 
   //Begin convert from ITKMesh to vtkPolyData
-  vtkPolyData* newPolyData = ITKMeshToVtkPolyData(filter->GetOutput());
+  vtkPolyData* newPolyData = ITKMeshToVtkPolyData(newMesh);
 
   //Display the new polydata
 

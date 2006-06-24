@@ -128,7 +128,7 @@ private:
 
   //  for conformal flattening mapping  
   //  theFunc<CoordRepType> _f;
-  void mapping( OutputMeshPointer mesh);
+  void mapping( InputMeshPointer inputMesh, OutputMeshPointer outputMesh);
   void getDb(OutputMeshPointer mesh, 
              vnl_sparse_matrix<CoordRepType> &D,
              vnl_vector<CoordRepType> &bR,
