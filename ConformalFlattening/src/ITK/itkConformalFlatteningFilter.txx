@@ -100,29 +100,31 @@ namespace itk
     outputMesh->SetCells(  inputMesh->GetCells() );
     outputMesh->SetCellData(  inputMesh->GetCellData() );
   
+    mapping(inputMesh, outputMesh);
+    
+    //   this->Modified();
   
-    unsigned int maxDimension = TInputMesh::MaxTopologicalDimension;
+//     unsigned int maxDimension = TInputMesh::MaxTopologicalDimension;
 
-    for( unsigned int dim = 0; dim < maxDimension; dim++ )
-      {
-        outputMesh->SetBoundaryAssignments(  dim,
-                                             inputMesh->GetBoundaryAssignments(dim) );
-      }
-
-    mapping(outputMesh);
-  }
+//     for( unsigned int dim = 0; dim < maxDimension; dim++ ) {
+//       outputMesh->SetBoundaryAssignments(  dim,
+//                                            inputMesh->GetBoundaryAssignments(dim) );
+//     }
+  }// GenerateData()
 
   template <class TInputMesh, class TOutputMesh>
   void
   ConformalFlatteningFilter<TInputMesh,TOutputMesh>::
-  mapping( OutputMeshPointer mesh) {
+  mapping( InputMeshPointer iMesh, OutputMeshPointer oMesh) {
 
-    const unsigned int numberOfPoints = mesh->GetNumberOfPoints();
+    
+
+    const unsigned int numberOfPoints = iMesh->GetNumberOfPoints();
     vnl_sparse_matrix<typename TInputMesh::CoordRepType> D(numberOfPoints, numberOfPoints);
     vnl_vector<typename TInputMesh::CoordRepType> bR(numberOfPoints, 0);
     vnl_vector<typename TInputMesh::CoordRepType> bI(numberOfPoints, 0);
 
-    getDb( mesh, D , bR, bI);
+    getDb( iMesh, D , bR, bI);
   
     
     //    linearEqnSolver lesR(D, bR);
@@ -151,7 +153,7 @@ namespace itk
       //       std::cerr<<"x: "<<*itX<<"    y: "<<*itY<<"    z: "<<*itZ<<"   r2: "<<r2<<std::endl;
 
       //      mesh->SetPoint( it, MeshType::PointType( apoint ));
-      mesh->SetPoint( it,typename TOutputMesh::PointType( apoint ));
+      oMesh->SetPoint( it,typename TOutputMesh::PointType( apoint ));
     } // for it
     //  MeshType::Pointer newMesh = MeshType::New();
 
@@ -419,19 +421,19 @@ namespace itk
     return; 
   } //getDb()
 
-//   template <class TInputMesh, class TOutputMesh>
-//   vnl_vector<typename TInputMesh::CoordRepType>
-//   ConformalFlatteningFilter<TInputMesh,TOutputMesh>
-//   :: solveLinearEq(vnl_matrix<typename TInputMesh::CoordRepType> const& A, 
-//                    vnl_vector<typename TInputMesh::CoordRepType> const& b) {
+  //   template <class TInputMesh, class TOutputMesh>
+  //   vnl_vector<typename TInputMesh::CoordRepType>
+  //   ConformalFlatteningFilter<TInputMesh,TOutputMesh>
+  //   :: solveLinearEq(vnl_matrix<typename TInputMesh::CoordRepType> const& A, 
+  //                    vnl_vector<typename TInputMesh::CoordRepType> const& b) {
     
-//     theFunc<typename TInputMesh::CoordRepType> f(A, b);
+  //     theFunc<typename TInputMesh::CoordRepType> f(A, b);
 
-//     vnl_conjugate_gradient cg;
-//     vnl_vector<typename TInputMesh::CoordRepType> x(f.dim(), 0);
-//     cg.minimize(x);
-//     return x;
-//   }
+  //     vnl_conjugate_gradient cg;
+  //     vnl_vector<typename TInputMesh::CoordRepType> x(f.dim(), 0);
+  //     cg.minimize(x);
+  //     return x;
+  //   }
 
   template <class TInputMesh, class TOutputMesh>
   vnl_vector<typename TInputMesh::CoordRepType>
