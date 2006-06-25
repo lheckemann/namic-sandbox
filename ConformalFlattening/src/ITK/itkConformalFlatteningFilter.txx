@@ -44,10 +44,6 @@ namespace itk
   ::PrintSelf(std::ostream& os, Indent indent) const
   {
     Superclass::PrintSelf(os,indent);
-    //   if (m_Transform)
-    //     {
-    //     os << indent << "Transform: " << m_Transform << std::endl;
-    //     }
   }
 
 
@@ -101,8 +97,7 @@ namespace itk
     outputMesh->SetCellData(  inputMesh->GetCellData() );
   
     mapping(inputMesh, outputMesh);
-    
-    //   this->Modified();
+// The actual conformal flattening mapping process.    
   
 //     unsigned int maxDimension = TInputMesh::MaxTopologicalDimension;
 
@@ -116,60 +111,32 @@ namespace itk
   void
   ConformalFlatteningFilter<TInputMesh,TOutputMesh>::
   mapping( InputMeshPointer iMesh, OutputMeshPointer oMesh) {
-
-    
+// The main function realizing the conformal mapping process.
+  // It will call two functions:
+  // 1. getDb() function generate the matrics for computating Dx=b
+  // 2. solveLinearEq() function use the matrics generated above to 
+//compute the mapping function(complex function) by solving the
+  //  linear equation for both real and imaginary parts.
+  // With the transform function defined on every points of the mesh,
+  // just assign the real part as the x coordinate and imaginary part as
+  // the y coordinate, the z coordinate being left zero. 
+  // That's the plane.
+  // Then using the stereographic projection to map the plane to a shpere.
+  // r := sqrt(x*x + y*y); 
+  // x:=2*x/(1+r*r); y:=2*y/(1+r*r); z:=2*r*r/(1+r*r) - 1;
 
     const unsigned int numberOfPoints = iMesh->GetNumberOfPoints();
     vnl_sparse_matrix<typename TInputMesh::CoordRepType> D(numberOfPoints, numberOfPoints);
     vnl_vector<typename TInputMesh::CoordRepType> bR(numberOfPoints, 0);
     vnl_vector<typename TInputMesh::CoordRepType> bI(numberOfPoints, 0);
 
-    getDb( iMesh, D , bR, bI);
-  
+    getDb( iMesh, D , bR, bI);  
     
-    //    linearEqnSolver lesR(D, bR);
-    vnl_vector<double> zR = solveLinearEq(D, bR);//lesR.solve();  
-
-    //    linearEqnSolver lesI(D, bI);
-    vnl_vector<double> zI = solveLinearEq(D, bI);//lesI.solve();
-
-    std::vector<double> x(numberOfPoints), y(numberOfPoints), z(numberOfPoints);
-    std::vector<double>::iterator 
-      itX = x.begin(), 
-      itY = y.begin(), 
-      itZ = z.begin(), 
-      itXend = x.end();
-  
-    for (int it = 0; itX != itXend; ++itX, ++itY, ++itZ, ++it) {
-      double r2 = zR(it)*zR(it) + zI(it)*zI(it);
-      *itX = 2*zR(it)/(1+r2);
-      *itY = 2*zI(it)/(1+r2);
-      *itZ = 2*r2/(1+r2) - 1;
-
-      typename TInputMesh::CoordRepType apoint[3] = {*itX, *itY, *itZ};
-      //typename TInputMesh::CoordRepType apoint[3] = {zR(it), zI(it), 0};
-      //      typename TInputMesh::CoordRepType apoint[3] = {pointXYZ[it][0], pointXYZ[it][1], 0};    
-      //       std::cerr<<"zR: "<<zR(it)<<"    zI: "<<zI(it)<<std::endl;
-      //       std::cerr<<"x: "<<*itX<<"    y: "<<*itY<<"    z: "<<*itZ<<"   r2: "<<r2<<std::endl;
-
-      //      mesh->SetPoint( it, MeshType::PointType( apoint ));
-      oMesh->SetPoint( it,typename TOutputMesh::PointType( apoint ));
-    } // for it
-    //  MeshType::Pointer newMesh = MeshType::New();
-
-    //
-    // set new point position, leaving the triangles' relation unchanged
-    //
-  
-    //  mesh->GetPoints()->Reserve( numberOfPoints );
-  
-    //   for(unsigned int p =0; p < numberOfPoints; p++)
-    //     {
-
-    //       //       typename TInputMesh::CoordRepType* apoint = vtkpoints->GetPoint( p );
-      
+    vnl_vector<double> zR = solveLinearEq(D, bR);
+    vnl_vector<double> zI = solveLinearEq(D, bI);
     
-    //     }  
+    stereographicProject(zR, zI, oMesh);
+        
     return;
   }//  mapping()
 
@@ -182,7 +149,7 @@ namespace itk
         vnl_vector<typename TInputMesh::CoordRepType> &bI) {
   
     int numOfPoints = mesh->GetNumberOfPoints();
-    int numOfCells = mesh->GetNumberOfCells();
+    int numOfCells = mesh->GetNumberOfCells();     
 
     // 1. store the points coordinates: pointXYZ
     std::vector< std::vector<typename TInputMesh::CoordRepType> > pointXYZ( numOfPoints, std::vector<typename TInputMesh::CoordRepType>(3, 0) );
@@ -421,19 +388,6 @@ namespace itk
     return; 
   } //getDb()
 
-  //   template <class TInputMesh, class TOutputMesh>
-  //   vnl_vector<typename TInputMesh::CoordRepType>
-  //   ConformalFlatteningFilter<TInputMesh,TOutputMesh>
-  //   :: solveLinearEq(vnl_matrix<typename TInputMesh::CoordRepType> const& A, 
-  //                    vnl_vector<typename TInputMesh::CoordRepType> const& b) {
-    
-  //     theFunc<typename TInputMesh::CoordRepType> f(A, b);
-
-  //     vnl_conjugate_gradient cg;
-  //     vnl_vector<typename TInputMesh::CoordRepType> x(f.dim(), 0);
-  //     cg.minimize(x);
-  //     return x;
-  //   }
 
   template <class TInputMesh, class TOutputMesh>
   vnl_vector<typename TInputMesh::CoordRepType>
@@ -447,9 +401,34 @@ namespace itk
     vnl_vector<typename TInputMesh::CoordRepType> x(f.dim(), 0);
     cg.minimize(x);
     return x;
-  }
+  }// solveLinearEq()
 
+template <class TInputMesh,class TOutputMesh>
+void
+ConformalFlatteningFilter<TInputMesh,TOutputMesh>
+  ::stereographicProject( vnl_vector<typename TInputMesh::CoordRepType> const& zR,
+vnl_vector<typename TInputMesh::CoordRepType> const& zI,
+OutputMeshPointer oMesh) {
+  const unsigned int numberOfPoints = oMesh->GetNumberOfPoints();
+  std::vector<double> x(numberOfPoints), y(numberOfPoints), z(numberOfPoints);
+    std::vector<double>::iterator
+      itX = x.begin(), 
+      itY = y.begin(), 
+      itZ = z.begin(), 
+      itXend = x.end();
+  
+    for (int it = 0; itX != itXend; ++itX, ++itY, ++itZ, ++it) {
+      double r2 = zR(it)*zR(it) + zI(it)*zI(it);
+      *itX = 2*zR(it)/(1+r2);
+      *itY = 2*zI(it)/(1+r2);
+      *itZ = 2*r2/(1+r2) - 1;
 
+      typename TInputMesh::CoordRepType apoint[3] = {*itX, *itY, *itZ};
+      //typename TInputMesh::CoordRepType apoint[3] = {zR(it), zI(it), 0}; // map to a plane
+
+      oMesh->SetPoint( it,typename TOutputMesh::PointType( apoint ));
+        } // for it
+        }//stereographicProject
 
 
 } // end namespace itk
@@ -464,14 +443,6 @@ namespace itk
 
 ////////////////////////////////////////////////////////////////////
 // implementation of class theFunc
-// template <class matrixDataType>
-// theFunc<matrixDataType>::theFunc(vnl_matrix<matrixDataType> const& A, 
-//                                  vnl_vector<matrixDataType> const& b)
-//   :_A(&A), _b(&b), _dim(b.size()), vnl_cost_function(b.size()), _sparse(false) {
-
-//   if (A.rows() != b.size())
-//     assert(!"The # of rows in A must be the same as the length of b!");    
-// }
 
 // overload construction function for sparse matrix A
 template <class matrixDataType>
@@ -481,7 +452,7 @@ theFunc<matrixDataType>::theFunc(vnl_sparse_matrix<matrixDataType> const& A,
 
   if (A.rows() != b.size())
     assert(!"The # of rows in A must be the same as the length of b!");    
-}
+} // construction function for theFunc class
 
 
 template <class matrixDataType>
@@ -497,7 +468,7 @@ double theFunc<matrixDataType>::f(vnl_vector<matrixDataType> const& x) {
   }
 
   return r;
-}
+} // definition of function f in theFunc class
 
 template <class matrixDataType>
 void theFunc<matrixDataType>::gradf(vnl_vector<matrixDataType> const& x, 
@@ -510,33 +481,10 @@ void theFunc<matrixDataType>::gradf(vnl_vector<matrixDataType> const& x,
     _Asparse -> mult(x, tmp);
     g = tmp - (*_b);
   }
-}
+} // definition of the gradient of function f in theFunc class
 
 // implementation of class theFunc
 ////////////////////////////////////////////////////////////////////
-
-
-
-// ////////////////////////////////////////////////////////////////////
-// // implementation of class linearEqnSolver
-
-// linearEqnSolver::linearEqnSolver(vnl_matrix<double> const& A, 
-//                                  vnl_vector<double> const& b)
-//   :_f(A, b), _cg(_f) {}
-
-// // overload construction function for sparse matrix
-// linearEqnSolver::linearEqnSolver(vnl_sparse_matrix<double> const& A, 
-//                                  vnl_vector<double> const& b)
-//   :_f(A, b), _cg(_f) {}
-
-
-// vnl_vector<double> linearEqnSolver::solve() {
-//   vnl_vector<double> x(_f.dim(), 0);
-//   _cg.minimize(x);
-//   return x;
-// }
-// // implementation of class linearEqnSolver
-// ////////////////////////////////////////////////////////////////////
 
 
 

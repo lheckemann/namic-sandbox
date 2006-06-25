@@ -53,24 +53,6 @@ class theFunc : public vnl_cost_function {
 };
 
 
-
-/* class linearEqnSolver { */
-/*  public:   */
-/*   linearEqnSolver(vnl_matrix<matrixDataType> const& A,  */
-/*                   vnl_vector<matrixDataType> const& b); */
-
-/*   linearEqnSolver(vnl_sparse_matrix<matrixDataType> const& A,  */
-/*                   vnl_vector<matrixDataType> const& b); */
-
-/*   vnl_vector<matrixDataType> solve(); */
-
-/*  private: */
-/*   theFunc _f; */
-/*   vnl_conjugate_gradient _cg; */
-/* }; */
-
-
-
 namespace itk
 {
 
@@ -129,6 +111,9 @@ private:
   //  for conformal flattening mapping  
   //  theFunc<CoordRepType> _f;
   void mapping( InputMeshPointer inputMesh, OutputMeshPointer outputMesh);
+  void stereographicProject( vnl_vector<CoordRepType> const& x,
+    vnl_vector<CoordRepType> const& y,
+    OutputMeshPointer outputMesh);
   void getDb(OutputMeshPointer mesh, 
              vnl_sparse_matrix<CoordRepType> &D,
              vnl_vector<CoordRepType> &bR,
