@@ -214,7 +214,7 @@ proc add_gallery_link {} {
 
   set uploadtime [clock format [clock seconds] -format "%A, %B %d, %Y at %l:%M%p"]
 
-  set imagetext "=== Image by $::env(USER) on $uploadtime ===\n"
+  set imagetext "=== Image from $::env(USER) on $uploadtime ===\n"
   append imagetext "\[\[image:$::WIKIMAGE(imagename) | thumb | 200px\]\]\n"
   append imagetext "$::WIKIMAGE(caption) \n"
 
