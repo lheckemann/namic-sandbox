@@ -56,17 +56,17 @@ int main( int argc, char * argv [] )
 {
 
 
-//   if( argc < 2 )
-//     {
-//       std::cerr << "Missing arguments" << std::endl;
-//       std::cerr << "Usage: vtkPolyDataToITKMesh   vtkPolyDataInputFile" << std::endl;
-//       return -1;
-//     }
+  //   if( argc < 2 )
+  //     {
+  //       std::cerr << "Missing arguments" << std::endl;
+  //       std::cerr << "Usage: vtkPolyDataToITKMesh   vtkPolyDataInputFile" << std::endl;
+  //       return -1;
+  //     }
 
-//int tmp = itkTransformMeshFilterTest(argv[1]);
-int tmp = itkTransformMeshFilterTest("nice.vtk");
+  //int tmp = itkTransformMeshFilterTest(argv[1]);
+  int tmp = itkTransformMeshFilterTest("nice.vtk");
 
-return 0;
+  return 0;
 
 
 }
@@ -228,10 +228,10 @@ vtkPolyData* ITKMeshToVtkPolyData(MeshType::Pointer mesh)
     {
       ItkPoint pnt = pntIterator.Value();
       points->InsertPoint(i, pnt[0], pnt[1], pnt[2]);
-//       std::cout<<i<<"-th point:  ";
-//       std::cout<<pnt[0]<<std::endl;
-//       std::cout<<"               "<<pntIterator.Value()<<std::endl;
-//      ++pntIterator;
+      //       std::cout<<i<<"-th point:  ";
+      //       std::cout<<pnt[0]<<std::endl;
+      //       std::cout<<"               "<<pntIterator.Value()<<std::endl;
+      //      ++pntIterator;
     }
   newPolyData->SetPoints(points);
   points->Delete();
@@ -282,9 +282,9 @@ void Display(vtkPolyData* polyData)
 
   vtkLookupTable* lut1 = vtkLookupTable::New();
   lut1->SetNumberOfColors(256);
-//   lut1->SetHueRange(0.2, 0); //0:red, 0.2: yellow, 0.7: blue, 1:red again.
-//   lut1->SetSaturationRange(0.2, 1.0);
-//   lut1->SetValueRange(1.0, 0.3);
+  //   lut1->SetHueRange(0.2, 0); //0:red, 0.2: yellow, 0.7: blue, 1:red again.
+  //   lut1->SetSaturationRange(0.2, 1.0);
+  //   lut1->SetValueRange(1.0, 0.3);
 
   lut1->SetHueRange(0.15, 1.0); //0:red, 0.2: yellow, 0.7: blue, 1:red again.
   lut1->SetSaturationRange(1.0, 1.0);
@@ -301,9 +301,9 @@ void Display(vtkPolyData* polyData)
   vtkActor* actor = vtkActor::New();
   actor->SetMapper(mapper);
 
-//   vtkCamera *camera = vtkCamera::New();
-//       camera->SetPosition(1,1,1);
-//       camera->SetFocalPoint(0,0,0);
+  //   vtkCamera *camera = vtkCamera::New();
+  //       camera->SetPosition(1,1,1);
+  //       camera->SetFocalPoint(0,0,0);
 
   vtkRenderer* ren = vtkRenderer::New();
   ren->AddActor(actor);
