@@ -38,7 +38,7 @@
 
 
 const unsigned int pointDimension   = 3;
-const unsigned int maxCellDimension = 3;
+const unsigned int maxCellDimension = 2;
 
 typedef itk::Point<vtkFloatingPointType, pointDimension> ItkPoint;
   

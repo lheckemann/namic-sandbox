@@ -25,13 +25,85 @@ PURPOSE.  See the above copyright notices for more information.
 namespace itk
 {
   
+// define a function class derived from vnl_cost_function to compute the 
+// conformal flattening mapping by conjugate gradient method.
+template <class matrixDataType>
+class conformalFlatteningFunc : public vnl_cost_function {
+ public:  
+
+  conformalFlatteningFunc(vnl_sparse_matrix<matrixDataType> const& A, 
+          vnl_vector<matrixDataType> const& b);
+
+  double f(vnl_vector<matrixDataType> const& x);
+  void gradf(vnl_vector<matrixDataType> const& x, vnl_vector<matrixDataType> & g);
+
+  inline unsigned int dim() {return _dim;}
+
+ private:
+  vnl_matrix<matrixDataType> const* _A;
+  vnl_sparse_matrix<matrixDataType> const* _Asparse;
+  vnl_vector<matrixDataType> const* _b;
+  unsigned int _dim;
+  bool _sparse;
+};
+
+
+////////////////////////////////////////////////////////////////////
+// implementation of class conformalFlatteningFunc
+
+// overload construction function for sparse matrix A
+template <class matrixDataType>
+conformalFlatteningFunc<matrixDataType>::conformalFlatteningFunc(vnl_sparse_matrix<matrixDataType> const& A, 
+                                 vnl_vector<matrixDataType> const& b)
+  :_Asparse(&A), _b(&b), _dim(b.size()), vnl_cost_function(b.size()), _sparse(true) {
+
+  if (A.rows() != b.size())
+    assert(!"The # of rows in A must be the same as the length of b!");    
+} // construction function for conformalFlatteningFunc class
+
+
+template <class matrixDataType>
+double conformalFlatteningFunc<matrixDataType>::f(vnl_vector<matrixDataType> const& x) {  
+  matrixDataType r;
+  if (_sparse == false) {
+    r = 0.5*inner_product(x*(*_A),x)-inner_product((*_b),x);
+  }
+  else if (_sparse == true) {
+    vnl_vector<matrixDataType> tmp;
+    _Asparse -> pre_mult(x, tmp);
+    r = 0.5*inner_product(tmp,x)-inner_product((*_b),x);
+  }
+
+  return r;
+} // definition of function f in conformalFlatteningFunc class
+
+template <class matrixDataType>
+void conformalFlatteningFunc<matrixDataType>::gradf(vnl_vector<matrixDataType> const& x, 
+                                    vnl_vector<matrixDataType> & g) {
+  if (_sparse == false) {
+    g = (*_A)*x - (*_b);
+  }
+  else if (_sparse == true) {
+    vnl_vector<matrixDataType> tmp;
+    _Asparse -> mult(x, tmp);
+    g = tmp - (*_b);
+  }
+} // definition of the gradient of function f in conformalFlatteningFunc class
+
+// implementation of class conformalFlatteningFunc
+////////////////////////////////////////////////////////////////////
+
+  
+  
+  
+  
   /**
    *
    */
   template <class TInputMesh, class TOutputMesh>
   ConformalFlatteningFilter<TInputMesh,TOutputMesh>
-  ::ConformalFlatteningFilter() {
-    // since there is nothing here, do we still want it?
+  ::ConformalFlatteningFilter() 
+    {
   }
 
 
@@ -99,12 +171,12 @@ namespace itk
     mapping(inputMesh, outputMesh);
 // The actual conformal flattening mapping process.    
   
-//     unsigned int maxDimension = TInputMesh::MaxTopologicalDimension;
+     unsigned int maxDimension = TInputMesh::MaxTopologicalDimension;
 
-//     for( unsigned int dim = 0; dim < maxDimension; dim++ ) {
-//       outputMesh->SetBoundaryAssignments(  dim,
-//                                            inputMesh->GetBoundaryAssignments(dim) );
-//     }
+     for( unsigned int dim = 0; dim < maxDimension; dim++ ) {
+       outputMesh->SetBoundaryAssignments(  dim,
+                                            inputMesh->GetBoundaryAssignments(dim) );
+     }
   }// GenerateData()
 
   template <class TInputMesh, class TOutputMesh>
@@ -392,7 +464,7 @@ namespace itk
 
 
   template <class TInputMesh, class TOutputMesh>
-  vnl_vector<typename TInputMesh::CoordRepType>
+  typename ConformalFlatteningFilter<TInputMesh,TOutputMesh>::Tvnl_vector
   ConformalFlatteningFilter<TInputMesh,TOutputMesh>
   ::solveLinearEq(vnl_sparse_matrix<CoordRepType> const& A, 
                   vnl_vector<CoordRepType> const& b) {
@@ -406,10 +478,10 @@ namespace itk
 // not checked within this but left for the user. Basically, this
 // class optimizes the function y=\frac{1}{2}(x^T)*A*x - (b^T)*x.
 
-// The above function is defined by the class theFunc which is derived
+// The above function is defined by the class conformalFlatteningFunc which is derived
 // from the vnl_cost_function.
     
-    theFunc<CoordRepType> f(A, b);
+    conformalFlatteningFunc<CoordRepType> f(A, b);
 
     vnl_conjugate_gradient cg(f);
     vnl_vector<CoordRepType> x(f.dim(), 0);
@@ -446,59 +518,6 @@ OutputMeshPointer oMesh) {
 
 
 } // end namespace itk
-
-
-
-
-
-//-------------------------------------------------------
-//for linear equation solver
-
-
-////////////////////////////////////////////////////////////////////
-// implementation of class theFunc
-
-// overload construction function for sparse matrix A
-template <class matrixDataType>
-theFunc<matrixDataType>::theFunc(vnl_sparse_matrix<matrixDataType> const& A, 
-                                 vnl_vector<matrixDataType> const& b)
-  :_Asparse(&A), _b(&b), _dim(b.size()), vnl_cost_function(b.size()), _sparse(true) {
-
-  if (A.rows() != b.size())
-    assert(!"The # of rows in A must be the same as the length of b!");    
-} // construction function for theFunc class
-
-
-template <class matrixDataType>
-double theFunc<matrixDataType>::f(vnl_vector<matrixDataType> const& x) {  
-  matrixDataType r;
-  if (_sparse == false) {
-    r = 0.5*inner_product(x*(*_A),x)-inner_product((*_b),x);
-  }
-  else if (_sparse == true) {
-    vnl_vector<matrixDataType> tmp;
-    _Asparse -> pre_mult(x, tmp);
-    r = 0.5*inner_product(tmp,x)-inner_product((*_b),x);
-  }
-
-  return r;
-} // definition of function f in theFunc class
-
-template <class matrixDataType>
-void theFunc<matrixDataType>::gradf(vnl_vector<matrixDataType> const& x, 
-                                    vnl_vector<matrixDataType> & g) {
-  if (_sparse == false) {
-    g = (*_A)*x - (*_b);
-  }
-  else if (_sparse == true) {
-    vnl_vector<matrixDataType> tmp;
-    _Asparse -> mult(x, tmp);
-    g = tmp - (*_b);
-  }
-} // definition of the gradient of function f in theFunc class
-
-// implementation of class theFunc
-////////////////////////////////////////////////////////////////////
 
 
 
