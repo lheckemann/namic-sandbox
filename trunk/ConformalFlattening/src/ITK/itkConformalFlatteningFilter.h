@@ -30,28 +30,6 @@
 #include <vnl/vnl_sparse_matrix.h>
 #include <vnl/algo/vnl_conjugate_gradient.h>
 
-template <class matrixDataType>
-class theFunc : public vnl_cost_function {
- public:  
-//   theFunc(vnl_matrix<matrixDataType> const& A, 
-//           vnl_vector<matrixDataType> const& b);
-
-  theFunc(vnl_sparse_matrix<matrixDataType> const& A, 
-          vnl_vector<matrixDataType> const& b);
-
-  double f(vnl_vector<matrixDataType> const& x);
-  void gradf(vnl_vector<matrixDataType> const& x, vnl_vector<matrixDataType> & g);
-
-  inline unsigned int dim() {return _dim;}
-
- private:
-  vnl_matrix<matrixDataType> const* _A;
-  vnl_sparse_matrix<matrixDataType> const* _Asparse;
-  vnl_vector<matrixDataType> const* _b;
-  unsigned int _dim;
-  bool _sparse;
-};
-
 
 namespace itk
 {
@@ -108,8 +86,6 @@ private:
   ConformalFlatteningFilter(const ConformalFlatteningFilter&); //purposely not implemented
   void operator=(const ConformalFlatteningFilter&); //purposely not implemented
 
-  //  for conformal flattening mapping  
-  //  theFunc<CoordRepType> _f;
   void mapping( InputMeshPointer inputMesh, OutputMeshPointer outputMesh);
   void stereographicProject( vnl_vector<CoordRepType> const& x,
     vnl_vector<CoordRepType> const& y,
