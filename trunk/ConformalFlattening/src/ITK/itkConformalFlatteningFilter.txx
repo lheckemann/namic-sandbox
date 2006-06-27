@@ -31,7 +31,7 @@ namespace itk
   template <class TInputMesh, class TOutputMesh>
   ConformalFlatteningFilter<TInputMesh,TOutputMesh>
   ::ConformalFlatteningFilter() {
-    //  m_Transform = TransformType::New();
+    // since there is nothing here, do we still want it?
   }
 
 
@@ -56,10 +56,10 @@ namespace itk
   ::GenerateData(void) 
   {
   
-    typedef typename TInputMesh::PointsContainer  InputPointsContainer;
-    typedef typename TOutputMesh::PointsContainer OutputPointsContainer;
+//    typedef typename TInputMesh::PointsContainer  InputPointsContainer;
+//    typedef typename TOutputMesh::PointsContainer OutputPointsContainer;
 
-    typedef typename TInputMesh::PointsContainerPointer  InputPointsContainerPointer;
+//    typedef typename TInputMesh::PointsContainerPointer  InputPointsContainerPointer;
     typedef typename TOutputMesh::PointsContainerPointer OutputPointsContainerPointer;
 
     InputMeshPointer    inputMesh      =  this->GetInput();
@@ -77,15 +77,15 @@ namespace itk
 
     outputMesh->SetBufferedRegion( outputMesh->GetRequestedRegion() );
 
-    InputPointsContainerPointer  inPoints  = inputMesh->GetPoints();
+//    InputPointsContainerPointer  inPoints  = inputMesh->GetPoints();
     OutputPointsContainerPointer outPoints = outputMesh->GetPoints();
 
     outPoints->Reserve( inputMesh->GetNumberOfPoints() );
     outPoints->Squeeze();  // in case the previous mesh had 
     // allocated a larger memory
 
-    typename InputPointsContainer::ConstIterator  inputPoint  = inPoints->Begin();
-    typename OutputPointsContainer::Iterator      outputPoint = outPoints->Begin();
+//    typename InputPointsContainer::ConstIterator  inputPoint  = inPoints->Begin();
+//    typename OutputPointsContainer::Iterator      outputPoint = outPoints->Begin();
 
     // Create duplicate references to the rest of data on the mesh
 
@@ -126,33 +126,35 @@ namespace itk
   // x:=2*x/(1+r*r); y:=2*y/(1+r*r); z:=2*r*r/(1+r*r) - 1;
 
     const unsigned int numberOfPoints = iMesh->GetNumberOfPoints();
-    vnl_sparse_matrix<typename TInputMesh::CoordRepType> D(numberOfPoints, numberOfPoints);
-    vnl_vector<typename TInputMesh::CoordRepType> bR(numberOfPoints, 0);
-    vnl_vector<typename TInputMesh::CoordRepType> bI(numberOfPoints, 0);
+    vnl_sparse_matrix<CoordRepType> D(numberOfPoints, numberOfPoints);
+    vnl_vector<CoordRepType> bR(numberOfPoints, 0);
+    vnl_vector<CoordRepType> bI(numberOfPoints, 0);
 
     getDb( iMesh, D , bR, bI);  
     
-    vnl_vector<double> zR = solveLinearEq(D, bR);
-    vnl_vector<double> zI = solveLinearEq(D, bI);
+    vnl_vector<CoordRepType> zR = solveLinearEq(D, bR);
+    vnl_vector<CoordRepType> zI = solveLinearEq(D, bI);
     
     stereographicProject(zR, zI, oMesh);
         
     return;
   }//  mapping()
 
+        
+        
   template <class TInputMesh, class TOutputMesh>
   void
   ConformalFlatteningFilter<TInputMesh,TOutputMesh>::
   getDb(OutputMeshPointer mesh, 
-        vnl_sparse_matrix<typename TInputMesh::CoordRepType> &D,
-        vnl_vector<typename TInputMesh::CoordRepType> &bR,
-        vnl_vector<typename TInputMesh::CoordRepType> &bI) {
+        vnl_sparse_matrix<CoordRepType> &D,
+        vnl_vector<CoordRepType> &bR,
+        vnl_vector<CoordRepType> &bI) {
   
     int numOfPoints = mesh->GetNumberOfPoints();
     int numOfCells = mesh->GetNumberOfCells();     
 
     // 1. store the points coordinates: pointXYZ
-    std::vector< std::vector<typename TInputMesh::CoordRepType> > pointXYZ( numOfPoints, std::vector<typename TInputMesh::CoordRepType>(3, 0) );
+    std::vector< std::vector<CoordRepType> > pointXYZ( numOfPoints, std::vector<CoordRepType>(3, 0) );
 
     PointIterator pntIterator = mesh->GetPoints()->Begin();
 
@@ -198,7 +200,7 @@ namespace itk
 
 
     //   //--------------------------------------------------------------
-    //   // print out the result
+    //   // print out the result for debuging
     //   std::cout<<std::endl;
     //   std::cout<<std::endl;
     //   std::cout<<std::endl;
@@ -392,13 +394,25 @@ namespace itk
   template <class TInputMesh, class TOutputMesh>
   vnl_vector<typename TInputMesh::CoordRepType>
   ConformalFlatteningFilter<TInputMesh,TOutputMesh>
-  ::solveLinearEq(vnl_sparse_matrix<typename TInputMesh::CoordRepType> const& A, 
-                  vnl_vector<typename TInputMesh::CoordRepType> const& b) {
+  ::solveLinearEq(vnl_sparse_matrix<CoordRepType> const& A, 
+                  vnl_vector<CoordRepType> const& b) {
+                    
+// Solve the linear system Ax=b using the Conjugate Gradient method. 
+// So it requires that the matrix A be symmetric and
+// positive defined. In many cases of the numerical computation for
+// the solution of partial differential equations, those properties of
+// A hold. 
+// However, the symmetry and positive define properties are
+// not checked within this but left for the user. Basically, this
+// class optimizes the function y=\frac{1}{2}(x^T)*A*x - (b^T)*x.
+
+// The above function is defined by the class theFunc which is derived
+// from the vnl_cost_function.
     
-    theFunc<typename TInputMesh::CoordRepType> f(A, b);
+    theFunc<CoordRepType> f(A, b);
 
     vnl_conjugate_gradient cg(f);
-    vnl_vector<typename TInputMesh::CoordRepType> x(f.dim(), 0);
+    vnl_vector<CoordRepType> x(f.dim(), 0);
     cg.minimize(x);
     return x;
   }// solveLinearEq()
@@ -406,8 +420,8 @@ namespace itk
 template <class TInputMesh,class TOutputMesh>
 void
 ConformalFlatteningFilter<TInputMesh,TOutputMesh>
-  ::stereographicProject( vnl_vector<typename TInputMesh::CoordRepType> const& zR,
-vnl_vector<typename TInputMesh::CoordRepType> const& zI,
+  ::stereographicProject( vnl_vector<CoordRepType> const& zR,
+vnl_vector<CoordRepType> const& zI,
 OutputMeshPointer oMesh) {
   const unsigned int numberOfPoints = oMesh->GetNumberOfPoints();
   std::vector<double> x(numberOfPoints), y(numberOfPoints), z(numberOfPoints);
@@ -423,8 +437,8 @@ OutputMeshPointer oMesh) {
       *itY = 2*zI(it)/(1+r2);
       *itZ = 2*r2/(1+r2) - 1;
 
-      typename TInputMesh::CoordRepType apoint[3] = {*itX, *itY, *itZ};
-      //typename TInputMesh::CoordRepType apoint[3] = {zR(it), zI(it), 0}; // map to a plane
+      CoordRepType apoint[3] = {*itX, *itY, *itZ};
+      //CoordRepType apoint[3] = {zR(it), zI(it), 0}; // map to a plane
 
       oMesh->SetPoint( it,typename TOutputMesh::PointType( apoint ));
         } // for it

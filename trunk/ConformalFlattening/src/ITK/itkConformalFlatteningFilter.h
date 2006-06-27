@@ -119,10 +119,9 @@ private:
              vnl_vector<CoordRepType> &bR,
              vnl_vector<CoordRepType> &bI);  
 
-//   vnl_vector<CoordRepType> solveLinearEq(vnl_matrix<CoordRepType> const& A, 
-//                                    vnl_vector<CoordRepType> const& b);
   vnl_vector<CoordRepType> solveLinearEq(vnl_sparse_matrix<CoordRepType> const& A, 
                                    vnl_vector<CoordRepType> const& b);
+             
 };
 
 } // end namespace itk
