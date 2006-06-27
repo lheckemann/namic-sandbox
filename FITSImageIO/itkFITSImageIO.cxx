@@ -17,6 +17,7 @@
 #include "itkFITSImageIO.h"
 #include "itkExceptionObject.h"
 #include "itkByteSwapper.h"
+#include "itkMetaDataObject.h"
 #include <iostream>
 #include <list>
 #include <string>
@@ -24,6 +25,7 @@
 #include <zlib.h>
 
 #include "fitsio.h"
+#include <itksys/SystemTools.hxx>
 
 namespace itk
 {
@@ -202,7 +204,7 @@ bool FITSImageIO::CheckExtension(const char* filename)
 
   bool extensionValid = false;
 
-  std::string extension = itksys::SystemTools::GetExtension( filename );
+  std::string extension = itksys::SystemTools::GetFilenameExtension( filename );
 
   if( extension == "fits" )
     {
