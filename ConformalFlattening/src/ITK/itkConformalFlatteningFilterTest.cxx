@@ -1,36 +1,10 @@
-/*=========================================================================
-
-  Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkTransformMeshFilterTest.cxx,v $
-  Language:  C++
-  Date:      $Date: 2003/09/10 14:30:08 $
-  Version:   $Revision: 1.9 $
-
-  Copyright (c) Insight Software Consortium. All rights reserved.
-  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
-     PURPOSE.  See the above copyright notices for more information.
-
-=========================================================================*/
 #include "itkConformalFlatteningFilterTest.h"
 
-int main( int argc, char * argv [] )
-{
-
-
-//   if( argc < 2 )
-//     {
-//       std::cerr << "Missing arguments" << std::endl;
-//       std::cerr << "Usage: vtkPolyDataToITKMesh   vtkPolyDataInputFile" << std::endl;
-//       return -1;
-//     }
-
-
-
-
-  vtkPolyData *polyData = readDataToPolyData("nice.vtk" );//argv[1] );
+int itkTransformMeshFilterTest(char* fileName) {
+  
+  vtkPolyData *polyData = readDataToPolyData(fileName);//argv[1] );
+  //read in the data from the .vtk file.
+  
   // Set the color for the mesh according to local mean/gaussian
   // curvature.
   vtkCurvatures* curv1 = vtkCurvatures::New();
@@ -45,11 +19,8 @@ int main( int argc, char * argv [] )
   //Begin convert from vtkPolyData to ITKMesh
   MeshType::Pointer  mesh = vtkPolyDataToITKMesh(polyData);
 
-  //  MeshType::Pointer newMesh = mapping(mesh);
   ///////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////
+  // itkConformalFlatteningFilter
   typedef itk::ConformalFlatteningFilter< MeshType, MeshType>  FilterType;
   FilterType::Pointer filter = FilterType::New();
   
@@ -61,10 +32,9 @@ int main( int argc, char * argv [] )
 
   // Get the Smart Pointer to the Filter Output 
   MeshType::Pointer newMesh = filter->GetOutput();
-    ///////////////////////////////////////////////////////////////////////
+  // itkConformalFlatteningFilter
   ///////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////
+  
 
   //Begin convert from ITKMesh to vtkPolyData
   vtkPolyData* newPolyData = ITKMeshToVtkPolyData(newMesh);
@@ -75,104 +45,29 @@ int main( int argc, char * argv [] )
   
   Display(newPolyData);
 
-//   // Declare the type for PointsContainer
-//   typedef MeshType::PointsContainer     PointsContainerType;
-
-//   // Declare the type for PointsContainerPointer
-//   typedef MeshType::PointsContainerPointer     
-//                                         PointsContainerPointer;
-//   // Declare the type for Points
-//   typedef MeshType::PointType           PointType;
-
-   // Create an input Mesh
-
-
-//   // Insert data on the Mesh
-//   PointsContainerPointer  points = inputMesh->GetPoints();
-
-//   // Fill a cube with points , just to get some data
-//   int n = 1;  // let's start with a few of them
-//   PointsContainerType::ElementIdentifier  count = 0; // count them
-
-//   for(int x= -n; x <= n; x++)
-//     {
-//     for(int y= -n; y <= n; y++)
-//       {
-//       for(int z= -n; z <= n; z++)
-//         {
-//         PointType p;
-//         p[0] = x;
-//         p[1] = y;
-//         p[2] = z;
-//         std::cout << "Inserting point # ";
-//         std::cout.width( 3); std::cout << count << "  = ";
-//         std::cout.width( 4); std::cout << p[0] << ", ";
-//         std::cout.width( 4); std::cout << p[1] << ", ";
-//         std::cout.width( 4); std::cout << p[2] << std::endl;
-//         points->InsertElement( count, p );
-//         count++;
-//         }
-//       }
-//     }
-  
-//   std::cout << "Input Mesh has " << inputMesh->GetNumberOfPoints();
-//   std::cout << "   points " << std::endl;
-
-  
-//   // Declare the transform type
-//   typedef itk::AffineTransform<float,3> TransformType;
-  
-
-//   // Declare the type for the filter
-//   typedef itk::TransformMeshFilter<
-//                                 MeshType,
-//                                 MeshType,
-//                                 TransformType  >       FilterType;
-            
-
-//   // Create a Filter                                
-//   FilterType::Pointer filter = FilterType::New();
-  
-//   // Create an  Transform 
-//   // (it doesn't use smart pointers)
-//   TransformType::Pointer   affineTransform = TransformType::New();
-//   affineTransform->Scale( 3.5 );
-//   TransformType::OffsetType::ValueType tInit[3] = {100,200,300};
-//   TransformType::OffsetType   translation = tInit;
-//   affineTransform->Translate( translation );
-
-//   // Connect the inputs
-//   filter->SetInput( inputMesh ); 
-//   filter->SetTransform( affineTransform ); 
-
-//   // Execute the filter
-//   filter->Update();
-//   std::cout << "Filter: " << filter;
-
-//   // Get the Smart Pointer to the Filter Output 
-//   MeshType::Pointer outputMesh = filter->GetOutput();
-
-//   std::cout << "Output Mesh has " << outputMesh->GetNumberOfPoints();
-//   std::cout << "   points " << std::endl;
-
-//   // Get the the point container
-//   MeshType::PointsContainerPointer  
-//                   transformedPoints = outputMesh->GetPoints();
-
-
-//   PointsContainerType::ConstIterator it = transformedPoints->Begin();
-//   while( it != transformedPoints->End() )
-//     {
-//     PointType p = it.Value();
-//     std::cout.width( 5 ); std::cout << p[0] << ", ";
-//     std::cout.width( 5 ); std::cout << p[1] << ", ";
-//     std::cout.width( 5 ); std::cout << p[2] << std::endl;
-//     ++it;
-//     }
-  
-//   // All objects should be automatically destroyed at this point
-
   return 0;
+  
+  
+}
+
+
+
+int main( int argc, char * argv [] )
+{
+
+
+//   if( argc < 2 )
+//     {
+//       std::cerr << "Missing arguments" << std::endl;
+//       std::cerr << "Usage: vtkPolyDataToITKMesh   vtkPolyDataInputFile" << std::endl;
+//       return -1;
+//     }
+
+//int tmp = itkTransformMeshFilterTest(argv[1]);
+int tmp = itkTransformMeshFilterTest("nice.vtk");
+
+return 0;
+
 
 }
 
