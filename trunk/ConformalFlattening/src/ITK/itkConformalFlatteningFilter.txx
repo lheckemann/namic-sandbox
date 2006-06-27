@@ -25,73 +25,73 @@ PURPOSE.  See the above copyright notices for more information.
 namespace itk
 {
   
-// define a function class derived from vnl_cost_function to compute the 
-// conformal flattening mapping by conjugate gradient method.
-template <class matrixDataType>
-class conformalFlatteningFunc : public vnl_cost_function {
- public:  
+  // define a function class derived from vnl_cost_function to compute the 
+  // conformal flattening mapping by conjugate gradient method.
+  template <class matrixDataType>
+  class conformalFlatteningFunc : public vnl_cost_function {
+  public:  
 
-  conformalFlatteningFunc(vnl_sparse_matrix<matrixDataType> const& A, 
-          vnl_vector<matrixDataType> const& b);
+    conformalFlatteningFunc(vnl_sparse_matrix<matrixDataType> const& A, 
+                            vnl_vector<matrixDataType> const& b);
 
-  double f(vnl_vector<matrixDataType> const& x);
-  void gradf(vnl_vector<matrixDataType> const& x, vnl_vector<matrixDataType> & g);
+    double f(vnl_vector<matrixDataType> const& x);
+    void gradf(vnl_vector<matrixDataType> const& x, vnl_vector<matrixDataType> & g);
 
-  inline unsigned int dim() {return _dim;}
+    inline unsigned int dim() {return _dim;}
 
- private:
-  vnl_matrix<matrixDataType> const* _A;
-  vnl_sparse_matrix<matrixDataType> const* _Asparse;
-  vnl_vector<matrixDataType> const* _b;
-  unsigned int _dim;
-  bool _sparse;
-};
-
-
-////////////////////////////////////////////////////////////////////
-// implementation of class conformalFlatteningFunc
-
-// overload construction function for sparse matrix A
-template <class matrixDataType>
-conformalFlatteningFunc<matrixDataType>::conformalFlatteningFunc(vnl_sparse_matrix<matrixDataType> const& A, 
-                                 vnl_vector<matrixDataType> const& b)
-  :_Asparse(&A), _b(&b), _dim(b.size()), vnl_cost_function(b.size()), _sparse(true) {
-
-  if (A.rows() != b.size())
-    assert(!"The # of rows in A must be the same as the length of b!");    
-} // construction function for conformalFlatteningFunc class
+  private:
+    vnl_matrix<matrixDataType> const* _A;
+    vnl_sparse_matrix<matrixDataType> const* _Asparse;
+    vnl_vector<matrixDataType> const* _b;
+    unsigned int _dim;
+    bool _sparse;
+  };
 
 
-template <class matrixDataType>
-double conformalFlatteningFunc<matrixDataType>::f(vnl_vector<matrixDataType> const& x) {  
-  matrixDataType r;
-  if (_sparse == false) {
-    r = 0.5*inner_product(x*(*_A),x)-inner_product((*_b),x);
-  }
-  else if (_sparse == true) {
-    vnl_vector<matrixDataType> tmp;
-    _Asparse -> pre_mult(x, tmp);
-    r = 0.5*inner_product(tmp,x)-inner_product((*_b),x);
-  }
+  ////////////////////////////////////////////////////////////////////
+  // implementation of class conformalFlatteningFunc
 
-  return r;
-} // definition of function f in conformalFlatteningFunc class
+  // overload construction function for sparse matrix A
+  template <class matrixDataType>
+  conformalFlatteningFunc<matrixDataType>::conformalFlatteningFunc(vnl_sparse_matrix<matrixDataType> const& A, 
+                                                                   vnl_vector<matrixDataType> const& b)
+    :_Asparse(&A), _b(&b), _dim(b.size()), vnl_cost_function(b.size()), _sparse(true) {
 
-template <class matrixDataType>
-void conformalFlatteningFunc<matrixDataType>::gradf(vnl_vector<matrixDataType> const& x, 
-                                    vnl_vector<matrixDataType> & g) {
-  if (_sparse == false) {
-    g = (*_A)*x - (*_b);
-  }
-  else if (_sparse == true) {
-    vnl_vector<matrixDataType> tmp;
-    _Asparse -> mult(x, tmp);
-    g = tmp - (*_b);
-  }
-} // definition of the gradient of function f in conformalFlatteningFunc class
+    if (A.rows() != b.size())
+      assert(!"The # of rows in A must be the same as the length of b!");    
+  } // construction function for conformalFlatteningFunc class
 
-// implementation of class conformalFlatteningFunc
-////////////////////////////////////////////////////////////////////
+
+  template <class matrixDataType>
+  double conformalFlatteningFunc<matrixDataType>::f(vnl_vector<matrixDataType> const& x) {  
+    matrixDataType r;
+    if (_sparse == false) {
+      r = 0.5*inner_product(x*(*_A),x)-inner_product((*_b),x);
+    }
+    else if (_sparse == true) {
+      vnl_vector<matrixDataType> tmp;
+      _Asparse -> pre_mult(x, tmp);
+      r = 0.5*inner_product(tmp,x)-inner_product((*_b),x);
+    }
+
+    return r;
+  } // definition of function f in conformalFlatteningFunc class
+
+  template <class matrixDataType>
+  void conformalFlatteningFunc<matrixDataType>::gradf(vnl_vector<matrixDataType> const& x, 
+                                                      vnl_vector<matrixDataType> & g) {
+    if (_sparse == false) {
+      g = (*_A)*x - (*_b);
+    }
+    else if (_sparse == true) {
+      vnl_vector<matrixDataType> tmp;
+      _Asparse -> mult(x, tmp);
+      g = tmp - (*_b);
+    }
+  } // definition of the gradient of function f in conformalFlatteningFunc class
+
+  // implementation of class conformalFlatteningFunc
+  ////////////////////////////////////////////////////////////////////
 
   
   
@@ -103,7 +103,7 @@ void conformalFlatteningFunc<matrixDataType>::gradf(vnl_vector<matrixDataType> c
   template <class TInputMesh, class TOutputMesh>
   ConformalFlatteningFilter<TInputMesh,TOutputMesh>
   ::ConformalFlatteningFilter() 
-    {
+  {
   }
 
 
@@ -128,10 +128,10 @@ void conformalFlatteningFunc<matrixDataType>::gradf(vnl_vector<matrixDataType> c
   ::GenerateData(void) 
   {
   
-//    typedef typename TInputMesh::PointsContainer  InputPointsContainer;
-//    typedef typename TOutputMesh::PointsContainer OutputPointsContainer;
+    //    typedef typename TInputMesh::PointsContainer  InputPointsContainer;
+    //    typedef typename TOutputMesh::PointsContainer OutputPointsContainer;
 
-//    typedef typename TInputMesh::PointsContainerPointer  InputPointsContainerPointer;
+    //    typedef typename TInputMesh::PointsContainerPointer  InputPointsContainerPointer;
     typedef typename TOutputMesh::PointsContainerPointer OutputPointsContainerPointer;
 
     InputMeshPointer    inputMesh      =  this->GetInput();
@@ -149,15 +149,15 @@ void conformalFlatteningFunc<matrixDataType>::gradf(vnl_vector<matrixDataType> c
 
     outputMesh->SetBufferedRegion( outputMesh->GetRequestedRegion() );
 
-//    InputPointsContainerPointer  inPoints  = inputMesh->GetPoints();
+    //    InputPointsContainerPointer  inPoints  = inputMesh->GetPoints();
     OutputPointsContainerPointer outPoints = outputMesh->GetPoints();
 
     outPoints->Reserve( inputMesh->GetNumberOfPoints() );
     outPoints->Squeeze();  // in case the previous mesh had 
     // allocated a larger memory
 
-//    typename InputPointsContainer::ConstIterator  inputPoint  = inPoints->Begin();
-//    typename OutputPointsContainer::Iterator      outputPoint = outPoints->Begin();
+    //    typename InputPointsContainer::ConstIterator  inputPoint  = inPoints->Begin();
+    //    typename OutputPointsContainer::Iterator      outputPoint = outPoints->Begin();
 
     // Create duplicate references to the rest of data on the mesh
 
@@ -169,33 +169,33 @@ void conformalFlatteningFunc<matrixDataType>::gradf(vnl_vector<matrixDataType> c
     outputMesh->SetCellData(  inputMesh->GetCellData() );
   
     mapping(inputMesh, outputMesh);
-// The actual conformal flattening mapping process.    
+    // The actual conformal flattening mapping process.    
   
-     unsigned int maxDimension = TInputMesh::MaxTopologicalDimension;
+    unsigned int maxDimension = TInputMesh::MaxTopologicalDimension;
 
-     for( unsigned int dim = 0; dim < maxDimension; dim++ ) {
-       outputMesh->SetBoundaryAssignments(  dim,
-                                            inputMesh->GetBoundaryAssignments(dim) );
-     }
+    for( unsigned int dim = 0; dim < maxDimension; dim++ ) {
+      outputMesh->SetBoundaryAssignments(  dim,
+                                           inputMesh->GetBoundaryAssignments(dim) );
+    }
   }// GenerateData()
 
   template <class TInputMesh, class TOutputMesh>
   void
   ConformalFlatteningFilter<TInputMesh,TOutputMesh>::
   mapping( InputMeshPointer iMesh, OutputMeshPointer oMesh) {
-// The main function realizing the conformal mapping process.
-  // It will call two functions:
-  // 1. getDb() function generate the matrics for computating Dx=b
-  // 2. solveLinearEq() function use the matrics generated above to 
-//compute the mapping function(complex function) by solving the
-  //  linear equation for both real and imaginary parts.
-  // With the transform function defined on every points of the mesh,
-  // just assign the real part as the x coordinate and imaginary part as
-  // the y coordinate, the z coordinate being left zero. 
-  // That's the plane.
-  // Then using the stereographic projection to map the plane to a shpere.
-  // r := sqrt(x*x + y*y); 
-  // x:=2*x/(1+r*r); y:=2*y/(1+r*r); z:=2*r*r/(1+r*r) - 1;
+    // The main function realizing the conformal mapping process.
+    // It will call two functions:
+    // 1. getDb() function generate the matrics for computating Dx=b
+    // 2. solveLinearEq() function use the matrics generated above to 
+    //compute the mapping function(complex function) by solving the
+    //  linear equation for both real and imaginary parts.
+    // With the transform function defined on every points of the mesh,
+    // just assign the real part as the x coordinate and imaginary part as
+    // the y coordinate, the z coordinate being left zero. 
+    // That's the plane.
+    // Then using the stereographic projection to map the plane to a shpere.
+    // r := sqrt(x*x + y*y); 
+    // x:=2*x/(1+r*r); y:=2*y/(1+r*r); z:=2*r*r/(1+r*r) - 1;
 
     const unsigned int numberOfPoints = iMesh->GetNumberOfPoints();
     vnl_sparse_matrix<CoordRepType> D(numberOfPoints, numberOfPoints);
@@ -469,17 +469,17 @@ void conformalFlatteningFunc<matrixDataType>::gradf(vnl_vector<matrixDataType> c
   ::solveLinearEq(vnl_sparse_matrix<CoordRepType> const& A, 
                   vnl_vector<CoordRepType> const& b) {
                     
-// Solve the linear system Ax=b using the Conjugate Gradient method. 
-// So it requires that the matrix A be symmetric and
-// positive defined. In many cases of the numerical computation for
-// the solution of partial differential equations, those properties of
-// A hold. 
-// However, the symmetry and positive define properties are
-// not checked within this but left for the user. Basically, this
-// class optimizes the function y=\frac{1}{2}(x^T)*A*x - (b^T)*x.
+    // Solve the linear system Ax=b using the Conjugate Gradient method. 
+    // So it requires that the matrix A be symmetric and
+    // positive defined. In many cases of the numerical computation for
+    // the solution of partial differential equations, those properties of
+    // A hold. 
+    // However, the symmetry and positive define properties are
+    // not checked within this but left for the user. Basically, this
+    // class optimizes the function y=\frac{1}{2}(x^T)*A*x - (b^T)*x.
 
-// The above function is defined by the class conformalFlatteningFunc which is derived
-// from the vnl_cost_function.
+    // The above function is defined by the class conformalFlatteningFunc which is derived
+    // from the vnl_cost_function.
     
     conformalFlatteningFunc<CoordRepType> f(A, b);
 
@@ -489,14 +489,14 @@ void conformalFlatteningFunc<matrixDataType>::gradf(vnl_vector<matrixDataType> c
     return x;
   }// solveLinearEq()
 
-template <class TInputMesh,class TOutputMesh>
-void
-ConformalFlatteningFilter<TInputMesh,TOutputMesh>
+  template <class TInputMesh,class TOutputMesh>
+  void
+  ConformalFlatteningFilter<TInputMesh,TOutputMesh>
   ::stereographicProject( vnl_vector<CoordRepType> const& zR,
-vnl_vector<CoordRepType> const& zI,
-OutputMeshPointer oMesh) {
-  const unsigned int numberOfPoints = oMesh->GetNumberOfPoints();
-  std::vector<double> x(numberOfPoints), y(numberOfPoints), z(numberOfPoints);
+                          vnl_vector<CoordRepType> const& zI,
+                          OutputMeshPointer oMesh) {
+    const unsigned int numberOfPoints = oMesh->GetNumberOfPoints();
+    std::vector<double> x(numberOfPoints), y(numberOfPoints), z(numberOfPoints);
     std::vector<double>::iterator
       itX = x.begin(), 
       itY = y.begin(), 
@@ -513,8 +513,8 @@ OutputMeshPointer oMesh) {
       //CoordRepType apoint[3] = {zR(it), zI(it), 0}; // map to a plane
 
       oMesh->SetPoint( it,typename TOutputMesh::PointType( apoint ));
-        } // for it
-        }//stereographicProject
+    } // for it
+  }//stereographicProject
 
 
 } // end namespace itk
