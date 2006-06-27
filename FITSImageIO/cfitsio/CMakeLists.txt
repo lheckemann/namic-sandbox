@@ -1,0 +1,86 @@
+PROJECT(cfitsio)
+
+SET(FITS_SRCS
+  buffers.c
+  cfileio.c
+  checksum.c
+  compress.c
+  compress_alternate.c
+  cookbook.c
+  drvrfile.c
+  drvrmem.c
+  drvrnet.c
+  drvrsmem.c
+  editcol.c
+  edithdu.c
+  eval_f.c
+  eval_l.c
+  eval_y.c
+  f77_wrap1.c
+  f77_wrap2.c
+  f77_wrap3.c
+  f77_wrap4.c
+  fitscopy.c
+  fitscore.c
+  getcol.c
+  getcolb.c
+  getcold.c
+  getcole.c
+  getcoli.c
+  getcolj.c
+  getcolk.c
+  getcoll.c
+  getcols.c
+  getcolsb.c
+  getcolui.c
+  getcoluj.c
+  getcoluk.c
+  getkey.c
+  group.c
+  grparser.c
+  histo.c
+  imcompress.c
+  imcopy.c
+  iraffits.c
+  iter_a.c
+  iter_b.c
+  iter_c.c
+  iter_image.c
+  iter_var.c
+  listhead.c
+  modkey.c
+  pliocomp.c
+  putcol.c
+  putcolb.c
+  putcold.c
+  putcole.c
+  putcoli.c
+  putcolj.c
+  putcolk.c
+  putcoll.c
+  putcols.c
+  putcolsb.c
+  putcolu.c
+  putcolui.c
+  putcoluj.c
+  putcoluk.c
+  putkey.c
+  quantize.c
+  region.c
+  ricecomp.c
+  scalnull.c
+  smem.c
+  speed.c
+  swapproc.c
+  testprog.c
+  wcssub.c
+  wcsutil.c
+  wcsutil_alternate.c
+  )
+
+ADD_LIBRARY(ITKCFITSIO ${FITS_SRCS})
+
+IF(ITK_LIBRARY_PROPERTIES)
+  SET_TARGET_PROPERTIES(ITKCFITSIO PROPERTIES ${ITK_LIBRARY_PROPERTIES})
+ENDIF(ITK_LIBRARY_PROPERTIES)
+
