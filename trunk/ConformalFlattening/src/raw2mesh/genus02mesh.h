@@ -5,6 +5,8 @@
 #pragma warning ( disable : 4786 )
 #endif
 
+#include "itkConformalFlatteningFilter.h"
+
 //
 //
 //  This program illustrates how to convert 
@@ -29,13 +31,17 @@
 #include "itkMesh.h"
 #include "itkLineCell.h"
 #include "itkTriangleCell.h"
-// #include "itkMeshSpatialObject.h"
-// #include "itkSpatialObjectWriter.h"
-// #include "itkDefaultDynamicMeshTraits.h"
+#include "itkVTKImageExport.h"
+#include "itkVTKImageImport.h"
 
 //
 // VTK headers
 //
+#include "vtkImageImport.h"
+#include "vtkImageExport.h"
+#include "vtkMarchingCubes.h"
+#include "vtkWindowedSincPolyDataFilter.h"
+#include "vtkQuadricDecimation.h"
 #include "vtkPolyDataReader.h"
 #include "vtkPolyData.h"
 #include "vtkPoints.h"
@@ -49,15 +55,7 @@
 #include "vtkLookupTable.h"
 #include "vtkPointData.h"
 #include "vtkPolyDataNormals.h"
-
-//
-// vnl headers
-//
-#include <vcl_iostream.h>
-#include <vnl/vnl_cost_function.h>
-#include <vnl/vnl_math.h>
-#include <vnl/vnl_sparse_matrix.h>
-#include <vnl/algo/vnl_conjugate_gradient.h>
+#include "vtkImageData.h"
 
 // This define is needed to deal with double/float changes in VTK
 #ifndef vtkFloatingPointType
@@ -69,7 +67,6 @@ const unsigned int maxCellDimension = 3;
 
 typedef itk::Image< unsigned char, pointDimension > InputImageType;
 typedef itk::ImageFileReader< InputImageType > ReaderType;
-typedef itk::Point<vtkFloatingPointType, pointDimension> ItkPoint;
 typedef itk::DefaultStaticMeshTraits< 
   vtkFloatingPointType, 
   pointDimension,
@@ -80,19 +77,19 @@ typedef itk::Mesh<
   vtkFloatingPointType, 
   pointDimension, 
   MeshTraits              >     MeshType;
-typedef itk::BinaryMask3DMeshSource< InputImageType, MeshType > MeshSourceType;
 typedef MeshType::PointsContainer::ConstIterator PointIterator;
 typedef MeshType::CellType CellType;
-typedef MeshType::CellsContainer::ConstIterator CellIterator;
 typedef CellType::PointIdIterator PointIdIterator;
+typedef MeshType::CellsContainer::ConstIterator CellIterator;
+typedef itk::Point< vtkFloatingPointType, pointDimension > ItkPoint;
 
-//functions definition:
-MeshType::Pointer vtkPolyDataToITKMesh(vtkPolyData* polyData);
-vtkPolyData* readDataToPolyData(char* fName);
-vtkPolyData* ITKMeshToVtkPolyData(MeshType::Pointer mesh);
-void Display(vtkPolyData* polyData);
-MeshType::Pointer mapping(MeshType::Pointer mesh);
-void getDb(MeshType::Pointer mesh, 
-           vnl_sparse_matrix<vtkFloatingPointType> &D,
-           vnl_vector<vtkFloatingPointType> &bR,
-           vnl_vector<vtkFloatingPointType> &bI);
+// Function definitions
+MeshType::Pointer vtkPolyDataToITKMesh( vtkPolyData* polyData );
+vtkPolyData* ITKMeshToVtkPolyData( MeshType::Pointer mesh );
+void Display( vtkPolyData* polyData );
+
+// THE FILTER
+typedef itk::ConformalFlatteningFilter< MeshType, MeshType>  ConformalFlatteningFilterType;
+typedef itk::VTKImageExport< InputImageType > VTKImageExportType;
+typedef itk::VTKImageImport< InputImageType > VTKImageImportType;
+void ConnectITKToVTK( VTKImageExportType* in, vtkImageImport* out );

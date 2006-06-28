@@ -5,7 +5,6 @@ PROJECT(raw2mesh)
 # prior to the one in ITK.
 INCLUDE_DIRECTORIES( 
   ${raw2mesh_SOURCE_DIR}
-  ${InsightApplications_Source_DIR}/Auxiliary/vtk/
   )
 
 FIND_PACKAGE(ITK)
@@ -27,6 +26,5 @@ ADD_EXECUTABLE(raw2genus0 raw2genus0.cxx )
 TARGET_LINK_LIBRARIES(raw2genus0 vtkRendering vtkIO ITKIO ITKCommon ITKBasicFilters ITKStatistics)
 
 # Add the executable
-ADD_LIBRARY(linearEqnSolver linearEqnSolver.cxx) 
 ADD_EXECUTABLE(genus02mesh genus02mesh.cxx )
-TARGET_LINK_LIBRARIES(genus02mesh linearEqnSolver vtkRendering vtkIO ITKCommon ITKBasicFilters ITKIO itkvnl)
+TARGET_LINK_LIBRARIES(genus02mesh vtkRendering vtkIO ITKCommon ITKBasicFilters ITKIO itkvnl)
