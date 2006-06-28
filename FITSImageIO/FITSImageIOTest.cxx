@@ -29,9 +29,13 @@
 
 #include "itkImage.h"
 
+#include "itkFITSImageIOFactory.h"
+
 
 int main( int argc, char ** argv )
 {
+  // Register FITS one factory with the ImageIOFactory.
+  itk::FITSImageIOFactory::RegisterOneFactory();
 
   // Verify the number of parameters in the command line
   if( argc < 3 )
