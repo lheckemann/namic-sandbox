@@ -107,6 +107,9 @@ void IsingMeanFieldApproximationImageFilter
   
   numberOfPosteriorClasses = NumberOfSegmetationLabels * m_NumberOfActivationStates;
 
+  m_PosteriorProbabilitesImage = this->GetOutput();
+  m_PosteriorProbabilitesImage->SetVectorLength( numberOfPosteriorClasses ); 
+
   if( m_PairwisePotentialMatrixSetByUser == false )
     {
     // construction of a matrix indicating the transition strength between classes      
@@ -173,7 +176,6 @@ void IsingMeanFieldApproximationImageFilter
     }
   
   vtkFloatArray *probGivenClassArray = (vtkFloatArray *)this->GetInput(1)->GetPointData()->GetScalars();
-  vtkFloatArray *outputArray = vtkFloatArray::New();
   vtkIntArray *finalOutput = vtkIntArray::New();
   
   output->SetDimensions(dims);
@@ -185,13 +187,17 @@ void IsingMeanFieldApproximationImageFilter
   helpArray = new float[numberOfPosteriorClasses];
 
   // initialization of class probability output volume
-  for (int n=0; n<numberOfPosteriorClasses; n++)
-    for (unsigned long int i=0; i<size; i++)
-      outputArray->InsertNextValue((1.0/numberOfPosteriorClasses));
+
+  PosteriorProbabilitiesImageType::PixelType   initialPosteriorValues;
+
+  initialPosteriorValues->SetLength( numberOfPosteriorClasses );
+  initialPosteriorValues->Fill( 1.0 / numberOfPosteriorClasses );
+
+  m_PosteriorProbabilitesImage->FillBuffer( initialPosteriorValues );
   
   // meanfield iteration     
   register int i, j, k, n;     
-  for (n=0; n<iterations; n++){
+  for (n=0; n< m_MaximumNumberOfIterations; n++){
     for (k=0; k<z; k++)
       for (j=0; j<y; j++)
         for (i=0; i<x; i++){
@@ -200,27 +206,27 @@ void IsingMeanFieldApproximationImageFilter
             eValue = 0.0;          
             if (i != 0){
               for (int s=0; s<numberOfPosteriorClasses; s++)
-                eValue += ((outputArray->GetValue((s*size)+(k*x*y)+(j*x)+i-1))*(logTransitionMatrix->GetValue((l*numberOfPosteriorClasses)+s))); 
+                eValue += ((m_PosteriorProbabilitesImage->GetValue((s*size)+(k*x*y)+(j*x)+i-1))*(logTransitionMatrix->GetValue((l*numberOfPosteriorClasses)+s))); 
             }    
             if (i != x-1){
               for (int s=0; s<numberOfPosteriorClasses; s++)
-                eValue += ((outputArray->GetValue((s*size)+(k*x*y)+(j*x)+i+1))*(logTransitionMatrix->GetValue((l*numberOfPosteriorClasses)+s)));                             
+                eValue += ((m_PosteriorProbabilitesImage->GetValue((s*size)+(k*x*y)+(j*x)+i+1))*(logTransitionMatrix->GetValue((l*numberOfPosteriorClasses)+s)));                             
             }           
             if (j != 0){
               for (int s=0; s<numberOfPosteriorClasses; s++)
-                eValue += ((outputArray->GetValue((s*size)+(k*x*y)+((j-1)*x)+i))*(logTransitionMatrix->GetValue((l*numberOfPosteriorClasses)+s))); 
+                eValue += ((m_PosteriorProbabilitesImage->GetValue((s*size)+(k*x*y)+((j-1)*x)+i))*(logTransitionMatrix->GetValue((l*numberOfPosteriorClasses)+s))); 
             }           
             if (j != y-1){
               for (int s=0; s<numberOfPosteriorClasses; s++)
-                eValue += ((outputArray->GetValue((s*size)+(k*x*y)+((j+1)*x)+i))*(logTransitionMatrix->GetValue((l*numberOfPosteriorClasses)+s)));
+                eValue += ((m_PosteriorProbabilitesImage->GetValue((s*size)+(k*x*y)+((j+1)*x)+i))*(logTransitionMatrix->GetValue((l*numberOfPosteriorClasses)+s)));
             }        
             if (k != 0){
               for (int s=0; s<numberOfPosteriorClasses; s++)
-                eValue += ((outputArray->GetValue((s*size)+((k-1)*x*y)+(j*x)+i))*(logTransitionMatrix->GetValue((l*numberOfPosteriorClasses)+s))); 
+                eValue += ((m_PosteriorProbabilitesImage->GetValue((s*size)+((k-1)*x*y)+(j*x)+i))*(logTransitionMatrix->GetValue((l*numberOfPosteriorClasses)+s))); 
             }    
             if (k != z-1){
               for (int s=0; s<numberOfPosteriorClasses; s++)
-                eValue += ((outputArray->GetValue((s*size)+((k+1)*x*y)+(j*x)+i))*(logTransitionMatrix->GetValue((l*numberOfPosteriorClasses)+s))); 
+                eValue += ((m_PosteriorProbabilitesImage->GetValue((s*size)+((k+1)*x*y)+(j*x)+i))*(logTransitionMatrix->GetValue((l*numberOfPosteriorClasses)+s))); 
             }        
                         
 //
@@ -238,10 +244,10 @@ void IsingMeanFieldApproximationImageFilter
             sumHelpArray += helpArray[l];
           }
           for (int l=0; l<numberOfPosteriorClasses; l++){
-            outputArray->SetValue((l*size)+(k*x*y)+(j*x)+i, helpArray[l]/sumHelpArray);
+            m_PosteriorProbabilitesImage->SetValue((l*size)+(k*x*y)+(j*x)+i, helpArray[l]/sumHelpArray);
           }
         }   
-    UpdateProgress(n * (1.0/iterations));   
+    UpdateProgress(n * (1.0/ m_MaximumNumberOfIterations));   
   }
   
   // creation of activation label map
@@ -249,8 +255,8 @@ void IsingMeanFieldApproximationImageFilter
     max = 0.0;
     posMax = 0;
     for (int n=0; n<numberOfPosteriorClasses; n++){
-      if ((outputArray->GetValue((n*size)+i)) > max){
-        max = (outputArray->GetValue((n*size)+i)); 
+      if ((m_PosteriorProbabilitesImage->GetValue((n*size)+i)) > max){
+        max = (m_PosteriorProbabilitesImage->GetValue((n*size)+i)); 
         posMax = n;
       }
     }   
@@ -283,7 +289,6 @@ void IsingMeanFieldApproximationImageFilter
     m_SegmentationLabelMap->Delete();
   }
   delete [] helpArray;
-  outputArray->Delete(); 
   finalOutput->Delete();     
 }
 
