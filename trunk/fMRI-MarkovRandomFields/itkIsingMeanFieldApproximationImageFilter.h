@@ -131,6 +131,8 @@ private:
 
   ActivationFrequencyArrayType               m_ActivationFrequencyArray;
 
+  unsigned int                               m_MaximumNumberOfIterations;
+
   int nonactive;                        // value for label map representation
   int posactive;                        // value for label map representation
   int negactive;                        // value for label map representation
@@ -146,7 +148,6 @@ private:
   int index2;                           // index der transition matrix
   float logHelp;                        // help variable for log calculation
   vtkIntArray *segMArray;               // anatomical label map input
-  int iterations;            // iterations of meanfield algorithm 
   float eValue;                         // e value in the meanfield algorithm
   float *helpArray;                     // array to buffer calculations of the meanfield iteration
   float sumHelpArray;                // sum of help array
