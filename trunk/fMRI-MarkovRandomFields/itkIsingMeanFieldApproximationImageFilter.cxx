@@ -6,7 +6,7 @@
   or http://www.slicer.org/copyright/copyright.txt for details.
 
   Program:   3D Slicer
-  Module:    $RCSfile: vtkIsingMeanfieldApproximation.cxx,v $
+  Module:    $RCSfile: IsingMeanFieldApproximationImageFilter.cxx,v $
   Date:      $Date: 2006/06/01 21:54:02 $
   Version:   $Revision: 1.2 $
 
@@ -16,22 +16,36 @@
 #include "itkIsingMeanfieldApproximationImageFilter.h"
 #include "vtkCommand.h"
 
-vtkStandardNewMacro(vtkIsingMeanfieldApproximation);
+vtkStandardNewMacro(IsingMeanFieldApproximationImageFilter);
 
-vtkIsingMeanfieldApproximation::vtkIsingMeanfieldApproximation()
+IsingMeanFieldApproximationImageFilter
+::IsingMeanFieldApproximationImageFilter()
 {
+  this->m_PairwisePotentialMatrixSetByUser = false; 
   this->nonactive = 0;
   this->posactive = 301;
   this->negactive = 300;
   this->logTransitionMatrix = vtkFloatArray::New();
 }
 
-vtkIsingMeanfieldApproximation::~vtkIsingMeanfieldApproximation()
+IsingMeanFieldApproximationImageFilter
+::~IsingMeanFieldApproximationImageFilter()
 {
   this->logTransitionMatrix->Delete();
 }
 
-void vtkIsingMeanfieldApproximation::SimpleExecute(vtkImageData *input, vtkImageData *output)
+void
+IsingMeanfieldApproximationImageFilter
+::SetPairwisePotentialMatrix( const PairwisePotentialMatrixType & matrix )
+{
+    itkDebugMacro("setting m_PairwisePotentialMatrix to " << matrix ); 
+    this->m_PairwisePotentialMatrix = matrix; 
+    this->m_PairwisePotentialMatrixSetByUser  = true;
+    this->Modified(); 
+} 
+
+void IsingMeanFieldApproximationImageFilter
+::SimpleExecute(vtkImageData *input, vtkImageData *output)
 {
 
   dims[0] = x;   // X is the size[0] of the image
@@ -93,11 +107,8 @@ void vtkIsingMeanfieldApproximation::SimpleExecute(vtkImageData *input, vtkImage
   
   numberOfPosteriorClasses = NumberOfSegmetationLabels * m_NumberOfActivationStates;
 
-  sum = 0;
-  for (int i=0; i<(numberOfPosteriorClasses*numberOfPosteriorClasses); i++)
-    sum += (transitionMatrix->GetValue(i));
-        
-  if (sum == 0){      
+  if( m_PairwisePotentialMatrixSetByUser == false )
+    {
     // construction of a matrix indicating the transition strength between classes      
     register int i, j, k;
     for (i=0; i<x; i++)
@@ -106,46 +117,46 @@ void vtkIsingMeanfieldApproximation::SimpleExecute(vtkImageData *input, vtkImage
           if (i != 0){
             index1 = classArray->GetValue((k*x*y)+(j*x)+i);
             index2 = classArray->GetValue((k*x*y)+(j*x)+i-1);
-            transitionMatrix->SetValue((index1*numberOfPosteriorClasses)+index2, (transitionMatrix->GetValue((index1*numberOfPosteriorClasses)+index2)+1));
+            m_PairwisePotentialMatrix->SetValue((index1*numberOfPosteriorClasses)+index2, (m_PairwisePotentialMatrix->GetValue((index1*numberOfPosteriorClasses)+index2)+1));
           }
           if (i != x-1){
             index1 = classArray->GetValue((k*x*y)+(j*x)+i);
             index2 = classArray->GetValue((k*x*y)+(j*x)+i+1);
-            transitionMatrix->SetValue((index1*numberOfPosteriorClasses)+index2, (transitionMatrix->GetValue((index1*numberOfPosteriorClasses)+index2)+1));
+            m_PairwisePotentialMatrix->SetValue((index1*numberOfPosteriorClasses)+index2, (m_PairwisePotentialMatrix->GetValue((index1*numberOfPosteriorClasses)+index2)+1));
           }
           if (j != 0){
             index1 = classArray->GetValue((k*x*y)+(j*x)+i);
             index2 = classArray->GetValue((k*x*y)+((j-1)*x)+i);
-            transitionMatrix->SetValue((index1*numberOfPosteriorClasses)+index2, (transitionMatrix->GetValue((index1*numberOfPosteriorClasses)+index2)+1));
+            m_PairwisePotentialMatrix->SetValue((index1*numberOfPosteriorClasses)+index2, (m_PairwisePotentialMatrix->GetValue((index1*numberOfPosteriorClasses)+index2)+1));
           }
           if (j != y-1){
             index1 = classArray->GetValue((k*x*y)+(j*x)+i);
             index2 = classArray->GetValue((k*x*y)+((j+1)*x)+i);
-            transitionMatrix->SetValue((index1*numberOfPosteriorClasses)+index2, (transitionMatrix->GetValue((index1*numberOfPosteriorClasses)+index2)+1));       
+            m_PairwisePotentialMatrix->SetValue((index1*numberOfPosteriorClasses)+index2, (m_PairwisePotentialMatrix->GetValue((index1*numberOfPosteriorClasses)+index2)+1));       
           }
           if (k != 0){
             index1 = classArray->GetValue((k*x*y)+(j*x)+i);
             index2 = classArray->GetValue(((k-1)*x*y)+(j*x)+i);
-            transitionMatrix->SetValue((index1*numberOfPosteriorClasses)+index2, (transitionMatrix->GetValue((index1*numberOfPosteriorClasses)+index2)+1));
+            m_PairwisePotentialMatrix->SetValue((index1*numberOfPosteriorClasses)+index2, (m_PairwisePotentialMatrix->GetValue((index1*numberOfPosteriorClasses)+index2)+1));
           }
          if (k != z-1){
             index1 = classArray->GetValue((k*x*y)+(j*x)+i);
             index2 = classArray->GetValue(((k+1)*x*y)+(j*x)+i);
-            transitionMatrix->SetValue((index1*numberOfPosteriorClasses)+index2, (transitionMatrix->GetValue((index1*numberOfPosteriorClasses)+index2)+1));
+            m_PairwisePotentialMatrix->SetValue((index1*numberOfPosteriorClasses)+index2, (m_PairwisePotentialMatrix->GetValue((index1*numberOfPosteriorClasses)+index2)+1));
           }
         }
         
     // neighborhoods were counted double
     for (int i=0; i<numberOfPosteriorClasses; i++)
-      if (transitionMatrix->GetValue((i*numberOfPosteriorClasses)+i) != 0)
-        transitionMatrix->SetValue((i*numberOfPosteriorClasses)+i, (transitionMatrix->GetValue((i*numberOfPosteriorClasses)+i))/2);
+      if (m_PairwisePotentialMatrix->GetValue((i*numberOfPosteriorClasses)+i) != 0)
+        m_PairwisePotentialMatrix->SetValue((i*numberOfPosteriorClasses)+i, (m_PairwisePotentialMatrix->GetValue((i*numberOfPosteriorClasses)+i))/2);
   }  
   
   // in case of existing 0 values in transition matrix, increase all by 1 to prevent log range error   
   for (int i=0; i<(numberOfPosteriorClasses*numberOfPosteriorClasses); i++)
-    if (transitionMatrix->GetValue(i) == 0){
+    if (m_PairwisePotentialMatrix->GetValue(i) == 0){
       for (int j=0; j<(numberOfPosteriorClasses*numberOfPosteriorClasses); j++)             
-        transitionMatrix->SetValue(j, (transitionMatrix->GetValue(j))+1);     
+        m_PairwisePotentialMatrix->SetValue(j, (m_PairwisePotentialMatrix->GetValue(j))+1);     
       break;
     }
   
@@ -153,7 +164,7 @@ void vtkIsingMeanfieldApproximation::SimpleExecute(vtkImageData *input, vtkImage
   logTransitionMatrix->SetNumberOfValues(numberOfPosteriorClasses*numberOfPosteriorClasses);
   for (int i=0; i<numberOfPosteriorClasses; i++)
     for (int j=0; j<numberOfPosteriorClasses; j++){
-      logHelp = (float) log((transitionMatrix->GetValue((i*numberOfPosteriorClasses)+j))/sqrt(((activationFrequence->GetValue(i))*size)*((activationFrequence->GetValue(j))*size)));                  
+      logHelp = (float) log((m_PairwisePotentialMatrix->GetValue((i*numberOfPosteriorClasses)+j))/sqrt(((activationFrequence->GetValue(i))*size)*((activationFrequence->GetValue(j))*size)));                  
       logTransitionMatrix->SetValue((i*numberOfPosteriorClasses)+j, logHelp);
     }
   
@@ -208,8 +219,11 @@ void vtkIsingMeanfieldApproximation::SimpleExecute(vtkImageData *input, vtkImage
                 eValue += ((outputArray->GetValue((s*size)+((k+1)*x*y)+(j*x)+i))*(logTransitionMatrix->GetValue((l*numberOfPosteriorClasses)+s))); 
             }        
                         
-// THIS REQUIRES THE SEGMENTATION ARRAY m_SegmentationLabelMap to be contiguous labeles
-// {0,1,2,....N} so we can use it as index in probGivenSegM.
+//
+// THIS REQUIRES THE SEGMENTATION ARRAY m_SegmentationLabelMap to be contiguous
+// labeles {0,1,2,....N} so we can use it as index in the matrix
+// m_PriorClassProbabilityGivenSegmentation.
+//
 
             helpArray[l] =   activationFrequence->GetValue(l) 
                            * m_PriorClassProbabilityGivenSegmentation(
@@ -273,7 +287,8 @@ void vtkIsingMeanfieldApproximation::SimpleExecute(vtkImageData *input, vtkImage
 
 // If the output image of a filter has different properties from the input image
 // we need to explicitly define the ExecuteInformation() method
-void vtkIsingMeanfieldApproximation::ExecuteInformation(vtkImageData *input, vtkImageData *output)
+void IsingMeanFieldApproximationImageFilter
+::ExecuteInformation(vtkImageData *input, vtkImageData *output)
 {
   output->SetDimensions(dims);
   output->SetScalarType(VTK_INT);
