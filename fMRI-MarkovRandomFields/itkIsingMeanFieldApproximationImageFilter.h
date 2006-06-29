@@ -63,7 +63,10 @@ public:
   itkTypeMacro(IsingMeanfieldApproximationImageFilter, ImageToImageFilter);
   
   /** Image related typedefs. */
-  typedef typename TInputImage::Pointer InputImagePointer;
+  typedef Image< float,3 >            fMRIStatisticsImageType;
+  typedef VectorImage< float, 3 >     PosteriorProbabilitiesImageType;
+  typedef Image< unsigned short, 3 >  SegmentationLabelsImageType;
+
 
   /** Set the number of activation states expected in the functional MRI input */
   itkSetMacro( NumberOfActivationStates, unsigned int );
@@ -72,7 +75,23 @@ public:
     * convergence criterion. */
   itkSetMacro( MaximumNumberOfIterations, unsigned int );
   
-  void SetsegLabel(vtkIntArray *segLabelTcl) {this->segLabel = segLabelTcl;};
+  /** Set the anatomical label map */
+  void SetSegmentationLabelMap( const SetSegmentationLabelMap * labelMap );
+
+  /** Set the anatomical label map */
+  void SetfMRIStatisticsImage( const fMRIStatisticsImageType * labelMap );
+
+  /** Type for representing the prior class probabilities given segmentation labels. */
+  typedef vnl_matrix< float >  PriorClassProbabilityGivenSegmentationMatrixType;
+
+  /** Set the prior class probabilities given segmentation labels. This matrix
+   * should be provided by the user and it should have a number of rows equal to
+   * the number of segmentation labels and a number of columns equals to the
+   * product of number of activation states and the number of segmentation
+   * labels. */
+  itkSetMacro( PriorClassProbabilityGivenSegmentation, 
+               PriorClassProbabilityGivenSegmentationMatrixType ); 
+
   void SetprobGivenSegM(vtkFloatArray *probGivenSegMTcl) {this->probGivenSegM = probGivenSegMTcl;}; 
   void SettransitionMatrix(vtkIntArray *transitionMatrixTcl) {this->transitionMatrix = transitionMatrixTcl;};
   void SetactivationFrequence(vtkFloatArray *activationFrequenceTcl) {this->activationFrequence = activationFrequenceTcl;};
@@ -80,6 +99,12 @@ public:
 private:
 
   unsigned int m_NumberOfActivationStates;  
+
+  SegmentationLabelsImageType::Pointer       m_SegmentationLabelMap;
+  fMRIStatisticsImageType::Pointer           m_fMRIStatisticsImage;
+  PosteriorProbabilitiesImageType::Pointer   m_PosteriorProbabilitesImage;
+  
+  PriorClassProbabilityGivenSegmentationMatrixType m_PriorClassProbabilityGivenSegmentation;
 
   int nonactive;                        // value for label map representation
   int posactive;                        // value for label map representation
@@ -92,7 +117,6 @@ private:
   vtkFloatArray *logTransitionMatrix;   // log transition matrix  
   vtkFloatArray *probGivenSegM;         // prob given SegM matrix [segInput][nType]
   vtkIntArray *transitionMatrix;    // transition matrix
-  vtkIntArray *segLabel;                // list of segmentation labels
   short int *labelValue;                // contains a value of the anatomical label map
   int sum;                              // help variable for summation
   int index1;                    // index der transition matrix
