@@ -102,9 +102,10 @@ namespace itk
    */
   template <class TInputMesh, class TOutputMesh>
   ConformalFlatteningFilter<TInputMesh,TOutputMesh>
-  ::ConformalFlatteningFilter() 
+  ::ConformalFlatteningFilter()
   {
-  }
+    _cellHavePntP = 0; //set the p point of delta function in the 0-th cell
+    }
 
 
   /**
@@ -311,7 +312,8 @@ namespace itk
     // 3. For each of P's neighbors, Q, calculate R, S
     // 4. Write the value in matrix.
     std::vector< std::vector<int> >::iterator itP, itPEnd = pointCell.end();
-    int idP = 0;
+    int idP = 0;    
+    unsigned long numOfEdges = 0;
     for ( itP = pointCell.begin(); itP != itPEnd; ++itP, ++idP) {
       std::vector<int> neighborOfP;
       // for each point P, traverse all cells containing it.
@@ -333,11 +335,13 @@ namespace itk
       std::vector<int>::iterator it;
       it = unique(neighborOfP.begin(), neighborOfP.end());
       neighborOfP.erase(it, neighborOfP.end());
+      
+      numOfEdges += neighborOfP.size();
 
       //-----------------------------------------------
       // print out the neighbors
       //     std::vector<int>::iterator itNeighbor = neighborOfP.begin();
-      //     std::vector<int>::iterator itNeighborEnd = neighborOfP.end();
+      //    std::vector<int>::iterator itNeighborEnd = neighborOfP.end();
       //     std::cerr<<"The neighbors of "<<idP<<" are: ";
       //     for (; itNeighbor != itNeighborEnd; ++itNeighbor) {
       //       std::cerr<<*itNeighbor<<" , ";
@@ -421,12 +425,25 @@ namespace itk
         D(*itQ, *itQ) += 0.5*(ctgS + ctgR); 
         // add to the diagonal element of this line.
       } // itQ
-    } // itP
+    } // itP  
+    
+    
+    
+    ////////////////////////////////////////////////////////
+    // calculate Eular Number to test whether the mesh is genus 0. i.e. Eular Num is 2;
+////    std::cout<<"Total number of edges: "<<numOfEdges<<std::endl;
+    int eularNum = numOfPoints - numOfEdges + numOfCells;
+    
+    if (eularNum != 2) {
+      std::cerr<<"Eular Number is "<<eularNum<<", not 2! Not genus 0 surface."<<std::endl<<"exiting..."<<std::endl;
+        exit(-1);
+    }
+//      std::cout<<"Eular number: "<<numOfPoints - numOfEdges + numOfCells<<std::endl;
 
     // compute b = bR + i*bI separately
-    std::vector<double> A( pointXYZ[ cellPoint[0][0] ] ), 
-      B( pointXYZ[ cellPoint[0][1] ] ), 
-      C( pointXYZ[ cellPoint[0][2] ] );
+    std::vector<double> A( pointXYZ[ cellPoint[ _cellHavePntP ][ 0 ] ] ), 
+      B( pointXYZ[ cellPoint[ _cellHavePntP ][ 1 ] ] ), 
+      C( pointXYZ[ cellPoint[ _cellHavePntP ][ 2 ] ] );
     double ABnorm, CA_BAip; // the inner product of vector C-A and B-A;
     ABnorm = (A[0] - B[0]) * (A[0] - B[0])
       + (A[1] - B[1]) * (A[1] - B[1])
@@ -452,12 +469,12 @@ namespace itk
       + (C[2] - E[2]) * (C[2] - E[2]);
     CEnorm = sqrt(CEnorm); // This is real norm of vector CE.
 
-    bR(cellPoint[0][0]) = -1 / ABnorm;
-    bR(cellPoint[0][1]) = 1 / ABnorm;
+    bR(cellPoint[ _cellHavePntP ][0]) = -1 / ABnorm;
+    bR(cellPoint[ _cellHavePntP ][1]) = 1 / ABnorm;
 
-    bI(cellPoint[0][0]) = (1-theta)/ CEnorm;
-    bI(cellPoint[0][1]) = theta/ CEnorm;
-    bI(cellPoint[0][2]) = -1 / CEnorm;
+    bI(cellPoint[ _cellHavePntP ][0]) = (1-theta)/ CEnorm;
+    bI(cellPoint[ _cellHavePntP ][1]) = theta/ CEnorm;
+    bI(cellPoint[ _cellHavePntP ][2]) = -1 / CEnorm;
   
     return; 
   } //getDb()

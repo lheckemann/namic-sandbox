@@ -97,6 +97,8 @@ namespace itk
 
     vnl_vector<CoordRepType> solveLinearEq(vnl_sparse_matrix<CoordRepType> const& A, 
                                            vnl_vector<CoordRepType> const& b);
+                                           
+    unsigned int _cellHavePntP;
              
   };
 
