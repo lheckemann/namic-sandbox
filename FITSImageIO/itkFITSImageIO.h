@@ -32,7 +32,7 @@ namespace itk
 /** \class FITSImageIO
  *
  *  \brief Read FITS file format. 
- *  Add here a link to documentation...
+ *  TODO: Add here a link to documentation...
  *
  *  \ingroup IOFilters
  *
@@ -41,8 +41,8 @@ class ITK_EXPORT FITSImageIO : public ImageIOBase
 {
 public:
   /** Standard class typedefs. */
-  typedef FITSImageIO            Self;
-  typedef ImageIOBase  Superclass;
+  typedef FITSImageIO         Self;
+  typedef ImageIOBase         Superclass;
   typedef SmartPointer<Self>  Pointer;
   
   /** Method for creation through the object factory. */
@@ -55,7 +55,7 @@ public:
 
   /** Determine the file type. Returns true if this ImageIO can read the
    * file specified. */
-  virtual bool CanReadFile(const char * filename) ;
+  virtual bool CanReadFile(const char* filename) ;
 
   /** Set the spacing and dimension information for the set filename. */
   virtual void ReadImageInformation();
@@ -78,18 +78,12 @@ public:
 
 
 protected:
-
-  FITSImageIO();
-  virtual ~FITSImageIO();
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  FITSImageIO() {};
+  virtual void PrintSelf(std::ostream& os, Indent indent) const;
   
 private:
   FITSImageIO(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
-
-  void SwapBytesIfNecessary(void* buffer, unsigned long numberOfPixels);
-  bool CheckExtension(const char*);
-
 };
 
 } // end namespace itk
