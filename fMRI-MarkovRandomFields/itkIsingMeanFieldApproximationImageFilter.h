@@ -92,8 +92,20 @@ public:
   itkSetMacro( PriorClassProbabilityGivenSegmentation, 
                PriorClassProbabilityGivenSegmentationMatrixType ); 
 
-  void SetprobGivenSegM(vtkFloatArray *probGivenSegMTcl) {this->probGivenSegM = probGivenSegMTcl;}; 
-  void SettransitionMatrix(vtkIntArray *transitionMatrixTcl) {this->transitionMatrix = transitionMatrixTcl;};
+  /** Type for representing the pair-wise pixel potential matrix */
+  typedef vnl_matrix< float >  PairwisePotentialMatrixType;
+
+  /** Set the pair-wise pixel potential matrix. This matrix represents how
+   * likely is to find two adjancent pixels with particular values of posterior
+   * probabilities. This matrix is optional. If provided by the user it is used
+   * directly in the computation of the Ising model, otherwise this filters
+   * estimate the matrix values based on the input segmentation labeling and the
+   * activation statistics. The symmetric matrix must have a number of rows equal
+   * to the product of number of activation states and the number of segmentation
+   * labels, which is equal to the number of posterior probabilities. */
+  void SetPairwisePotentialMatrix( const PairwisePotentialMatrixType & matrix ); 
+
+
   void SetactivationFrequence(vtkFloatArray *activationFrequenceTcl) {this->activationFrequence = activationFrequenceTcl;};
   
 private:
@@ -106,6 +118,9 @@ private:
   
   PriorClassProbabilityGivenSegmentationMatrixType m_PriorClassProbabilityGivenSegmentation;
 
+  PairwisePotentialMatrixType                m_PairwisePotentialMatrix;
+  bool                                       m_PairwisePotentialMatrixSetByUser;
+
   int nonactive;                        // value for label map representation
   int posactive;                        // value for label map representation
   int negactive;                        // value for label map representation
@@ -115,7 +130,6 @@ private:
   int numActivationStates;              // number of activation states
   vtkFloatArray *activationFrequence;   // class frequence   
   vtkFloatArray *logTransitionMatrix;   // log transition matrix  
-  vtkFloatArray *probGivenSegM;         // prob given SegM matrix [segInput][nType]
   vtkIntArray *transitionMatrix;    // transition matrix
   short int *labelValue;                // contains a value of the anatomical label map
   int sum;                              // help variable for summation
@@ -131,9 +145,11 @@ private:
   int dims[3];                          // array of dimensions
   unsigned long int size;               // size of the image input   
   float help;                           // help variable
+
 protected:
-  vtkIsingMeanfieldApproximation();
-  ~vtkIsingMeanfieldApproximation();
+
+  IsingMeanfieldApproximationImageFilter();
+  virtual ~IsingMeanfieldApproximationImageFilter();
   void SimpleExecute(vtkImageData *input, vtkImageData *output);
   void ExecuteInformation(vtkImageData *input, vtkImageData *output);
 };
