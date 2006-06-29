@@ -31,6 +31,7 @@
 using std::string;
 using std::ostream;
 using std::cerr;
+using std::endl;
 
 // Forward declarations:
 static bool checkExtension(const string&);
