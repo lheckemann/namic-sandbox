@@ -164,7 +164,11 @@ void IsingMeanFieldApproximationImageFilter
   logTransitionMatrix->SetNumberOfValues(numberOfPosteriorClasses*numberOfPosteriorClasses);
   for (int i=0; i<numberOfPosteriorClasses; i++)
     for (int j=0; j<numberOfPosteriorClasses; j++){
-      logHelp = (float) log((m_PairwisePotentialMatrix->GetValue((i*numberOfPosteriorClasses)+j))/sqrt(((activationFrequence->GetValue(i))*size)*((activationFrequence->GetValue(j))*size)));                  
+      logHelp = (float) log(
+        (m_PairwisePotentialMatrix->GetValue((i*numberOfPosteriorClasses)+j)) / 
+          sqrt( ((m_ActivationFrequencyArray[i])*size)*
+                ((m_ActivationFrequencyArray[j])*size)  )
+         );                  
       logTransitionMatrix->SetValue((i*numberOfPosteriorClasses)+j, logHelp);
     }
   
@@ -225,7 +229,7 @@ void IsingMeanFieldApproximationImageFilter
 // m_PriorClassProbabilityGivenSegmentation.
 //
 
-            helpArray[l] =   activationFrequence->GetValue(l) 
+            helpArray[l] =   m_ActivationFrequencyArray->GetValue(l) 
                            * m_PriorClassProbabilityGivenSegmentation(
                                      m_SegmentationLabelMap->GetPixel(k,j,i), l )
                            * probGivenClassArray->GetValue((l*size)+(k*x*y)+(j*x)+i)

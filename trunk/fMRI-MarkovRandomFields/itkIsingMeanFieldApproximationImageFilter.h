@@ -98,16 +98,24 @@ public:
   /** Set the pair-wise pixel potential matrix. This matrix represents how
    * likely is to find two adjancent pixels with particular values of posterior
    * probabilities. This matrix is optional. If provided by the user it is used
-   * directly in the computation of the Ising model, otherwise this filters
-   * estimate the matrix values based on the input segmentation labeling and the
+   * directly in the computation of the Ising model, otherwise this filter
+   * estimates the matrix values based on the input segmentation labeling and the
    * activation statistics. The symmetric matrix must have a number of rows equal
    * to the product of number of activation states and the number of segmentation
    * labels, which is equal to the number of posterior probabilities. */
   void SetPairwisePotentialMatrix( const PairwisePotentialMatrixType & matrix ); 
 
+  /** Type for representing the activation frequency. */
+  typedef vnl_vector< float >  ActivationFrequencyArrayType;
 
-  void SetactivationFrequence(vtkFloatArray *activationFrequenceTcl) {this->activationFrequence = activationFrequenceTcl;};
-  
+  /** Set the array containing the activation frequency. These frequencies
+ * represents how often each one of the combinations of activation states and
+ * segmentation label appears. The length of the array must be equal to the
+ * product of the number of activation states and the number of segmentation
+ * lables. This input MUST be provided by the user before running the filter.*/
+  itkSetMacro( ActivationFrequencyArray, ActivationFrequencyArrayType ); 
+
+
 private:
 
   unsigned int m_NumberOfActivationStates;  
@@ -121,6 +129,8 @@ private:
   PairwisePotentialMatrixType                m_PairwisePotentialMatrix;
   bool                                       m_PairwisePotentialMatrixSetByUser;
 
+  ActivationFrequencyArrayType               m_ActivationFrequencyArray;
+
   int nonactive;                        // value for label map representation
   int posactive;                        // value for label map representation
   int negactive;                        // value for label map representation
@@ -128,7 +138,6 @@ private:
   float max;                            // maximum of posterior probability
   int posMax;                           // class of maximum of posterior probability
   int numActivationStates;              // number of activation states
-  vtkFloatArray *activationFrequence;   // class frequence   
   vtkFloatArray *logTransitionMatrix;   // log transition matrix  
   vtkIntArray *transitionMatrix;    // transition matrix
   short int *labelValue;                // contains a value of the anatomical label map
@@ -150,6 +159,7 @@ protected:
 
   IsingMeanfieldApproximationImageFilter();
   virtual ~IsingMeanfieldApproximationImageFilter();
+
   void SimpleExecute(vtkImageData *input, vtkImageData *output);
   void ExecuteInformation(vtkImageData *input, vtkImageData *output);
 };
