@@ -542,10 +542,10 @@ namespace itk
     std::cout<<"The max Y in plane: "<<ymax<<std::endl;
     std::cout<<"The min Y in plane: "<<ymin<<std::endl;
     
-    CoordRepType temp1 = std::min( abs(xmin), abs(xmax) ); 
-    CoordRepType temp2 = std::min( abs(ymin), abs(ymax) );
-    std::cout<<std::min( temp1, temp2 )<<std::endl;
-    CoordRepType factor = 10/( std::min( temp1, temp2 ) );
+    CoordRepType temp1 = std::max( abs(xmin), abs(xmax) ); 
+    CoordRepType temp2 = std::max( abs(ymin), abs(ymax) );
+    std::cout<<std::max( temp1, temp2 )<<std::endl;
+    CoordRepType factor = 100/( std::max( temp1, temp2 ) );
     
     
     
