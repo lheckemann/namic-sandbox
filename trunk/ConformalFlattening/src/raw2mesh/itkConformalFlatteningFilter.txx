@@ -20,6 +20,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkConformalFlatteningFilter.h"
 #include "itkExceptionObject.h"
 
+#include <algorithm>
 
 
 namespace itk
@@ -104,8 +105,9 @@ namespace itk
   ConformalFlatteningFilter<TInputMesh,TOutputMesh>
   ::ConformalFlatteningFilter()
   {
-  _cellHavePntP = 0; // set the p point of delta function in the 0-th cell
-  }
+    _cellHavePntP = 100; //set the p point of delta function in the 0-th cell
+    _mapToSphere = 1;
+    }
 
 
   /**
@@ -214,7 +216,6 @@ namespace itk
   }//  mapping()
 
         
-        
   template <class TInputMesh, class TOutputMesh>
   void
   ConformalFlatteningFilter<TInputMesh,TOutputMesh>::
@@ -271,6 +272,15 @@ namespace itk
         }
     }
 
+    std::vector< std::vector<int> >::iterator itPointCell;
+    std::vector< std::vector<int> >::iterator itPointCellEnd = pointCell.end();
+      
+    for ( itPointCell = pointCell.begin(); itPointCell != itPointCellEnd; ++itPointCell) {
+      if ((*itPointCell).size() < 3) {
+      std::cerr<<"There is boundary in mesh! exiting..."<<std::endl;
+        exit(-1);
+    }
+    }
 
     //   //--------------------------------------------------------------
     //   // print out the result for debuging
@@ -430,16 +440,17 @@ namespace itk
     
     
     ////////////////////////////////////////////////////////
-    // calculate Eular Number to test whether the mesh is genus 0. i.e. Eular Num is 2;
+    // calculate Euler Number to test whether the mesh is genus 0. i.e. Euler Num is 2;
 ////    std::cout<<"Total number of edges: "<<numOfEdges<<std::endl;
-    int eularNum = numOfPoints - numOfEdges + numOfCells;
+    int eulerNum = numOfPoints - numOfEdges + numOfCells;
+    std::cerr<<"Euler Characteristic = "<<eulerNum<<std::endl;
+    std::cerr<<"genus = "<<(2.0 - eulerNum)/2<<std::endl;
     
-    if (eularNum != 2) {
-      std::cerr<<eularNum<<std::endl;
-      std::cerr<<"Eular Number is not 2! Not genus 0"<<std::endl;
+    if (eulerNum != 2) {
+      std::cerr<<"Euler Number is "<<eulerNum<<", not 2! Not genus 0 surface."<<std::endl<<"exiting..."<<std::endl;
         exit(-1);
     }
-//      std::cout<<"Eular number: "<<numOfPoints - numOfEdges + numOfCells<<std::endl;
+//      std::cout<<"Euler number: "<<numOfPoints - numOfEdges + numOfCells<<std::endl;
 
     // compute b = bR + i*bI separately
     std::vector<double> A( pointXYZ[ cellPoint[ _cellHavePntP ][ 0 ] ] ), 
@@ -513,18 +524,49 @@ namespace itk
   ::stereographicProject( vnl_vector<CoordRepType> const& zR,
                           vnl_vector<CoordRepType> const& zI,
                           OutputMeshPointer oMesh) {
+                            
+    CoordRepType xmin = zR(0), xmax = zR(0), ymin = zI(0) , ymax = zI(0);
+                            
     const unsigned int numberOfPoints = oMesh->GetNumberOfPoints();
+    
+    for (int it = 0; it < numberOfPoints;  ++it) {
+      
+      xmin = (xmin<zR(it))?xmin:zR(it);
+      xmax = (xmax>zR(it))?xmax:zR(it);
+      ymin = (ymin<zI(it))?ymin:zI(it);
+      ymax = (ymax>zI(it))?ymax:zI(it);        
+        
+    } // for it    
+    std::cout<<"The max X in plane: "<<xmax<<std::endl;
+    std::cout<<"The min X in plane: "<<xmin<<std::endl;
+    std::cout<<"The max Y in plane: "<<ymax<<std::endl;
+    std::cout<<"The min Y in plane: "<<ymin<<std::endl;
+    
+    CoordRepType temp1 = std::min( abs(xmin), abs(xmax) ); 
+    CoordRepType temp2 = std::min( abs(ymin), abs(ymax) );
+    std::cout<<std::min( temp1, temp2 )<<std::endl;
+    CoordRepType factor = 10/( std::min( temp1, temp2 ) );
+    
+    
+    
     std::vector<double> x(numberOfPoints), y(numberOfPoints), z(numberOfPoints);
     std::vector<double>::iterator
       itX = x.begin(), 
       itY = y.begin(), 
       itZ = z.begin(), 
       itXend = x.end();
-  
+  if (_mapToSphere == 1) {
     for (int it = 0; itX != itXend; ++itX, ++itY, ++itZ, ++it) {
-      double r2 = zR(it)*zR(it) + zI(it)*zI(it);
-      *itX = 2*zR(it)/(1+r2);
-      *itY = 2*zI(it)/(1+r2);
+      
+//      xmin = (xmin<zR(it))?xmin:zR(it);
+//      xmax = (xmax>zR(it))?xmax:zR(it);
+//      ymin = (ymin<zI(it))?ymin:zI(it);
+//      ymax = (ymax>zI(it))?ymax:zI(it);
+      
+      
+      double r2 = factor*zR(it)*factor*zR(it) + factor*zI(it)*factor*zI(it);
+      *itX = 2*factor*zR(it)/(1+r2);
+      *itY = 2*factor*zI(it)/(1+r2);
       *itZ = 2*r2/(1+r2) - 1;
 
       CoordRepType apoint[3] = {*itX, *itY, *itZ};
@@ -532,8 +574,46 @@ namespace itk
 
       oMesh->SetPoint( it,typename TOutputMesh::PointType( apoint ));
     } // for it
+  } // if (_mapToSphere == 1)
+  else {
+    for (int it = 0; it < numberOfPoints;  ++it) {
+      
+      xmin = (xmin<zR(it))?xmin:zR(it);
+      xmax = (xmax>zR(it))?xmax:zR(it);
+      ymin = (ymin<zI(it))?ymin:zI(it);
+      ymax = (ymax>zI(it))?ymax:zI(it);
+        
+        
+      CoordRepType apoint[3] = {zR(it), zI(it), 0}; // map to a plane
+
+      oMesh->SetPoint( it,typename TOutputMesh::PointType( apoint ));
+    } // for it    
+  } //else of if (_mapToSphere == 1)
+  
+
+  
   }//stereographicProject
 
+template <class TInputMesh, class TOutputMesh>
+void 
+ConformalFlatteningFilter<TInputMesh,TOutputMesh>::setPointP( int p )
+  {
+    _cellHavePntP = p;
+  }
+
+template <class TInputMesh, class TOutputMesh>
+void 
+ConformalFlatteningFilter<TInputMesh,TOutputMesh>::mapToSphere( void )
+  {
+    _mapToSphere = 1;
+  }
+  
+template <class TInputMesh, class TOutputMesh>
+void 
+ConformalFlatteningFilter<TInputMesh,TOutputMesh>::mapToPlane( void )
+  {
+    _mapToSphere = 0;
+  }
 
 } // end namespace itk
 
