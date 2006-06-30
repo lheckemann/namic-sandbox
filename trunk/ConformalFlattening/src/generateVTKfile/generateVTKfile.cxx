@@ -9,61 +9,87 @@ int main( int argc, char * argv [] )
     std::cerr << "Usage: InputImage vtkPolyDataOutputFile" << std::endl;
     return -1;
     }
+vtkJPEGReader* reader = vtkJPEGReader::New();
+reader->SetDataExtent(0, 99, 0, 99, 1, 100);
+reader->SetDataSpacing(1,1,1);
+reader->SetFilePrefix(argv[1]);
 
-  /* Read genus 0 binary image from file */
-  std::cerr << "Read genus 0 binary image from file..." << std::endl;
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName( argv[1] );
-  try
-    {
-    reader->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << "Exception thrown " << std::endl;
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  /* Convert ITK pipeline to a VTK pipeline*/
-  std::cerr << "Convert ITK pipeline to a VTK pipeline..." << std::endl;
-  VTKImageExportType::Pointer vtkImageExportFilter = VTKImageExportType::New();
-  vtkImageExportFilter->SetInput( reader->GetOutput() );
-  vtkImageImport* vtkImportImageObject = vtkImageImport::New();
-  ConnectITKToVTK( vtkImageExportFilter, vtkImportImageObject );
-  
+//  /* Read genus 0 binary image from file */
+//  std::cerr << "Read genus 0 binary image from file..." << std::endl;
+//  ReaderType::Pointer reader = ReaderType::New();
+//  reader->SetFileName( argv[1] );
+//  try
+//    {
+//    reader->Update();
+//    }
+//  catch( itk::ExceptionObject & excp )
+//    {
+//    std::cerr << "Exception thrown " << std::endl;
+//    std::cerr << excp << std::endl;
+//    return EXIT_FAILURE;
+//    }
+//
+//  /* Convert ITK pipeline to a VTK pipeline*/
+//  std::cerr << "Convert ITK pipeline to a VTK pipeline..." << std::endl;
+//  VTKImageExportType::Pointer vtkImageExportFilter = VTKImageExportType::New();
+//  vtkImageExportFilter->SetInput( reader->GetOutput() );
+//  vtkImageImport* vtkImportImageObject = vtkImageImport::New();
+//  ConnectITKToVTK( vtkImageExportFilter, vtkImportImageObject );
+//  
 //  vtkImageShrink3D  *imShrink = vtkImageShrink3D ::New();
 //  imShrink->SetInput( vtkImportImageObject->GetOutput() );
 //  imShrink->SetShrinkFactors (5, 5, 5);  
 
+  
   /* Run marching cubes to generate the mesh*/
   std::cerr << "Run marching cubes to generate the mesh..." << std::endl;
   vtkMarchingCubes *cubes = vtkMarchingCubes::New();
 //  cubes->SetInput( imShrink->GetOutput() );
-  cubes->SetInput( vtkImportImageObject->GetOutput() );
-  cubes->SetValue(0, 0.5);
+  cubes->SetInput( reader->GetOutput() );
+  cubes->SetValue(0, 200);
+  cubes->SetNumberOfContours(1);
   cubes->Update();
 
-  std::cerr<<"Number of Cells after shrink: "<<cubes->GetOutput()->GetNumberOfCells()<<std::endl;
+  std::cerr<<"Number of Cells: "<<cubes->GetOutput()->GetNumberOfCells()<<std::endl;
   
-//  Display( cubes->GetOutput() );
+  Display( cubes->GetOutput() );
+
+
   
-//  /* Smooth the mesh */
-//  std::cerr << "Smooth the mesh..." << std::endl;
-//  vtkWindowedSincPolyDataFilter* smooth = vtkWindowedSincPolyDataFilter::New();
-//  smooth->SetInput( cubes->GetOutput() );
-//  smooth->Update();
+
 //  
-//  /* Decimate the mesh */
-//  std::cout<<"Points, before decimation = "<< smooth->GetOutput()->GetNumberOfPoints() <<std::endl;
-//  std::cout<<"Cells, before decimation = "<< smooth->GetOutput()->GetNumberOfCells() <<std::endl;
-//  std::cerr << "Decimate the mesh..." << std::endl;
+  /* Decimate the mesh */
+  std::cout<<"Points, before decimation = "<< cubes->GetOutput()->GetNumberOfPoints() <<std::endl;
+  std::cout<<"Cells, before decimation = "<< cubes->GetOutput()->GetNumberOfCells() <<std::endl;
+  std::cerr << "Decimate the mesh..." << std::endl;
+    
+   vtkDecimatePro *decimator = vtkDecimatePro::New();
+    decimator->SetInputConnection( cubes->GetOutputPort() );
+    decimator->SetTargetReduction(0.9);
+    decimator->PreserveTopologyOn(); 
+    
 //  vtkQuadricDecimation *decimator = vtkQuadricDecimation::New();
-//  decimator->SetInput( smooth->GetOutput() );
+//  decimator->SetInput( cubes->GetOutput() );
 //  decimator->SetTargetReduction( 0.1 );
-//  std::cout<<"Points, after decimation = "<< decimator->GetOutput()->GetNumberOfPoints() <<std::endl;
-//  std::cout<<"Cells, after decimation = "<< decimator->GetOutput()->GetNumberOfCells() <<std::endl;
+  
+  std::cout<<"Points, after decimation = "<< decimator->GetOutput()->GetNumberOfPoints() <<std::endl;
+  std::cout<<"Cells, after decimation = "<< decimator->GetOutput()->GetNumberOfCells() <<std::endl;
 //
+
+  /* Smooth the mesh */
+  std::cerr << "Smooth the mesh..." << std::endl;
+  vtkWindowedSincPolyDataFilter* smooth = vtkWindowedSincPolyDataFilter::New();
+  smooth->SetInput( cubes->GetOutput() );
+  smooth->Update();
+
+  Display( smooth->GetOutput() );
+
+  vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
+  writer->SetInput(smooth->GetOutput());
+  writer->SetFileName(argv[2]);
+  writer->SetFileTypeToASCII();
+  writer->Write();
+  
 //  /* Set the color according to local mean/gaussian curvature */
 //  std::cerr << "Set the color according to local mean/gaussian curvature..." << std::endl;
 //  vtkCurvatures* meanCurvatures = vtkCurvatures::New();
@@ -73,26 +99,26 @@ int main( int argc, char * argv [] )
 //  Display( meanCurvatures->GetOutput() );
 
   /* Convert back to an ITK mesh */
-  std::cerr << "Convert back to an ITK mesh..." << std::endl;
-  //MeshType::Pointer smoothedMesh = vtkPolyDataToITKMesh( decimator->GetOutput() );
-  MeshType::Pointer smoothedMesh = vtkPolyDataToITKMesh( cubes->GetOutput() );
-
-  /* Execute the conformal flattening */
-  std::cerr << "Execute the conformal flattening..." << std::endl;
-  ConformalFlatteningFilterType::Pointer conformalFlatteningFilter = ConformalFlatteningFilterType::New();
-  conformalFlatteningFilter->SetInput( smoothedMesh );
-  conformalFlatteningFilter->Update();   
-
-  /* Begin convert from ITKMesh to vtkPolyData */
-  std::cerr << "Begin convert from ITKMesh to vtkPolyData..." << std::endl;
-  vtkPolyData* conformallyFlattenedPolyData = ITKMeshToVtkPolyData( conformalFlatteningFilter->GetOutput() );
-
-  /* Display the new polydata */
-  std::cerr << "Display the new polydata..." << std::endl;
-  // conformallyFlattenedPolyData->GetPointData()->SetScalars( meanCurvatures->GetOutput()->GetPointData()->GetScalars() );
-  Display( conformallyFlattenedPolyData );
+//  std::cerr << "Convert back to an ITK mesh..." << std::endl;
+//  //MeshType::Pointer smoothedMesh = vtkPolyDataToITKMesh( decimator->GetOutput() );
+//  MeshType::Pointer smoothedMesh = vtkPolyDataToITKMesh( cubes->GetOutput() );
+//
+//  /* Execute the conformal flattening */
+//  std::cerr << "Execute the conformal flattening..." << std::endl;
+//  ConformalFlatteningFilterType::Pointer conformalFlatteningFilter = ConformalFlatteningFilterType::New();
+//  conformalFlatteningFilter->SetInput( smoothedMesh );
+//  conformalFlatteningFilter->Update();   
+//
+//  /* Begin convert from ITKMesh to vtkPolyData */
+//  std::cerr << "Begin convert from ITKMesh to vtkPolyData..." << std::endl;
+//  vtkPolyData* conformallyFlattenedPolyData = ITKMeshToVtkPolyData( conformalFlatteningFilter->GetOutput() );
+//
+//  /* Display the new polydata */
+//  std::cerr << "Display the new polydata..." << std::endl;
+//  // conformallyFlattenedPolyData->GetPointData()->SetScalars( meanCurvatures->GetOutput()->GetPointData()->GetScalars() );
+//  Display( conformallyFlattenedPolyData );
   
-  return EXIT_SUCCESS;
+  return 0;
 }
 
 

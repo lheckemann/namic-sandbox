@@ -5,7 +5,7 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkConformalFlatteningFilter.h"
+//#include "itkConformalFlatteningFilter.h"
 
 //
 //
@@ -34,6 +34,7 @@
 #include "itkVTKImageExport.h"
 #include "itkVTKImageImport.h"
 
+
 //
 // VTK headers
 //
@@ -57,6 +58,10 @@
 #include "vtkPolyDataNormals.h"
 #include "vtkImageData.h"
 #include "vtkImageShrink3D.h"
+
+#include "vtkJPEGReader.h"
+#include "vtkPolyDataWriter.h"
+#include "vtkDecimatePro.h"
 
 // This define is needed to deal with double/float changes in VTK
 #ifndef vtkFloatingPointType
@@ -90,7 +95,7 @@ vtkPolyData* ITKMeshToVtkPolyData( MeshType::Pointer mesh );
 void Display( vtkPolyData* polyData );
 
 // THE FILTER
-typedef itk::ConformalFlatteningFilter< MeshType, MeshType>  ConformalFlatteningFilterType;
+//typedef itk::ConformalFlatteningFilter< MeshType, MeshType>  ConformalFlatteningFilterType;
 typedef itk::VTKImageExport< InputImageType > VTKImageExportType;
 typedef itk::VTKImageImport< InputImageType > VTKImageImportType;
 void ConnectITKToVTK( VTKImageExportType* in, vtkImageImport* out );
