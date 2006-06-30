@@ -13,12 +13,16 @@
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkRelabelComponentImageFilter.h"
-#include "itkLabelStatisticsImageFilter.h"
-#include "itkInvertIntensityImageFilter.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageFileWriter.h"
 #include "itkFileOutputWindow.h"
+
+#include "itkTPGACLevelSetImageFilter.h"
+#include "itkCurvatureAnisotropicDiffusionImageFilter.h"
+#include "itkGradientMagnitudeRecursiveGaussianImageFilter.h"
+#include "itkSigmoidImageFilter.h"
+#include "itkFastMarchingImageFilter.h"
 
 // IMAGE STUFF
 typedef itk::Image< unsigned char, 3 > InputImageType;
@@ -27,9 +31,16 @@ typedef itk::ImageFileReader< InputImageType > ReaderType;
 typedef itk::BinaryThresholdImageFilter< InputImageType, InputImageType > ThresholdFilterType;
 typedef itk::ConnectedComponentImageFilter< InputImageType, LongImageType > ConnectedComponentType;
 typedef itk::RelabelComponentImageFilter< LongImageType, InputImageType > RelabelType;
-typedef itk::InvertIntensityImageFilter< InputImageType, InputImageType > InvertFilterType;
-typedef itk::LabelStatisticsImageFilter<InputImageType, InputImageType> LabelStatisticsImageFilterType;
-typedef itk::BinaryThresholdImageFilter< InputImageType, InputImageType > BinaryThresholdFilterType;
 typedef itk::ImageRegionConstIterator< InputImageType > ConstIteratorType;
 typedef itk::ImageRegionIterator< InputImageType> IteratorType;
 typedef itk::ImageFileWriter< InputImageType > WriterType;
+
+typedef itk::CurvatureAnisotropicDiffusionImageFilter< InputImageType, InputImageType > SmoothingFilterType;
+typedef itk::GradientMagnitudeRecursiveGaussianImageFilter< InputImageType, InputImageType > GradientFilterType;
+typedef itk::SigmoidImageFilter< InputImageType, InputImageType > SigmoidFilterType;
+typedef itk::FastMarchingImageFilter< InternalImageType, InternalImageType > FastMarchingFilterType;
+typedef itk::TPGACLevelSetImageFilter< InternalImageType, InternalImageType > TPGACFilterType;
+typedef FastMarchingFilterType::NodeContainer  NodeContainer;
+typedef FastMarchingFilterType::NodeType       NodeType;
+
+
