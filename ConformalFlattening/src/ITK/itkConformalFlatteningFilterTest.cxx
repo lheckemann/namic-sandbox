@@ -26,6 +26,8 @@ int itkTransformMeshFilterTest(char* fileName) {
   
   // Connect the inputs
   filter->SetInput( mesh ); 
+  filter->setPointP(1000);
+  filter->mapToPlane();
 
   // Execute the filter
   filter->Update();
@@ -56,15 +58,15 @@ int main( int argc, char * argv [] )
 {
 
 
-  //   if( argc < 2 )
-  //     {
-  //       std::cerr << "Missing arguments" << std::endl;
-  //       std::cerr << "Usage: vtkPolyDataToITKMesh   vtkPolyDataInputFile" << std::endl;
-  //       return -1;
-  //     }
+     if( argc < 2 )
+       {
+         std::cerr << "Missing arguments" << std::endl;
+         std::cerr << "Usage: vtkPolyDataToITKMesh   vtkPolyDataInputFile" << std::endl;
+         return -1;
+       }
 
-  //int tmp = itkTransformMeshFilterTest(argv[1]);
-  int tmp = itkTransformMeshFilterTest("nice.vtk");
+  int tmp = itkTransformMeshFilterTest(argv[1]);
+  //int tmp = itkTransformMeshFilterTest("nice.vtk");
 
   return 0;
 

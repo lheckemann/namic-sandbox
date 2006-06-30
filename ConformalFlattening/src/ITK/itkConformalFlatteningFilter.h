@@ -73,6 +73,10 @@ namespace itk
     typedef typename InputMeshType::PointType PointType;
 
     typedef vnl_vector<CoordRepType> Tvnl_vector;
+    
+    void setPointP( int );
+    void mapToSphere( void );
+    void mapToPlane( void );
 
   protected:
     ConformalFlatteningFilter();
@@ -99,6 +103,7 @@ namespace itk
                                            vnl_vector<CoordRepType> const& b);
                                            
     unsigned int _cellHavePntP;
+    bool _mapToSphere;
              
   };
 
