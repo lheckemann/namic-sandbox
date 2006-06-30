@@ -22,9 +22,11 @@ public:
   typedef SmartPointer<const Self>  ConstPointer;
 
   /** Inherited typedef from the superclass. */
-  typedef typename Superclass::ValueType ValueType;
-  typedef typename Superclass::OutputImageType OutputImageType;
+  typedef typename Superclass::ValueType        ValueType;
+  typedef typename Superclass::OutputImageType  OutputImageType;
   typedef typename Superclass::FeatureImageType FeatureImageType;
+  typedef typename Superclass::IndexType        IndexType;
+  typedef typename Superclass::TimeStepType     TimeStepType;
   
   /** Run-time type information (and related methods). */
   itkTypeMacro(TPGACLevelSetImageFilter,
@@ -42,6 +44,7 @@ protected:
 
   TPGACLevelSetImageFilter(const Self &); // purposely not implemented
   void operator=(const Self&); //purposely not implemented
+
 
   /** Overridden from the parent class to indroduce a constraint on
    *  surface flow under certain conditions. */

@@ -109,7 +109,6 @@
 
 // Software Guide : BeginCodeSnippet
 #include "itkImage.h"
-#include "itkTPGACLevelSetImageFilter.h"
 // Software Guide : EndCodeSnippet
 
 
@@ -122,6 +121,7 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 
+#include "itkTPGACLevelSetImageFilter.h"
 
 int main( int argc, char *argv[] )
 {
