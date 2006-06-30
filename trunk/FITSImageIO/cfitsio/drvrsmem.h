@@ -116,6 +116,7 @@ typedef struct flock flock_t;
 #define HAVE_FLOCK_T
 #endif
 
+#define HAVE_UNION_SEMUN 1
 #ifndef HAVE_UNION_SEMUN
 union semun
       {        int val;
