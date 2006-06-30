@@ -42,7 +42,7 @@
 #include "vtkImageExport.h"
 #include "vtkMarchingCubes.h"
 #include "vtkWindowedSincPolyDataFilter.h"
-#include "vtkQuadricDecimation.h"
+//#include "vtkQuadricDecimation.h"
 #include "vtkPolyDataReader.h"
 #include "vtkPolyData.h"
 #include "vtkPoints.h"
@@ -61,7 +61,11 @@
 
 #include "vtkJPEGReader.h"
 #include "vtkPolyDataWriter.h"
-#include "vtkDecimatePro.h"
+//#include "vtkDecimatePro.h"
+#include "vtkSmoothPolyDataFilter.h"
+
+
+
 
 // This define is needed to deal with double/float changes in VTK
 #ifndef vtkFloatingPointType
