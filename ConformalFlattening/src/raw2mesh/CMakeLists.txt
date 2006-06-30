@@ -30,5 +30,5 @@ TARGET_LINK_LIBRARIES(genus02mesh vtkRendering vtkIO ITKCommon ITKBasicFilters I
 #ADD_EXECUTABLE(ls_raw2genus0 ls_raw2genus0.cxx )
 #TARGET_LINK_LIBRARIES(ls_raw2genus0 ITKIO ITKCommon ITKBasicFilters ITKAlgorithms)
 
-#ADD_EXECUTABLE(TPGACImageFilter TPGACImageFilter.cxx )
-#TARGET_LINK_LIBRARIES(TPGACImageFilter ITKNumerics ITKIO)
+ADD_EXECUTABLE(TPGACImageFilter TPGACImageFilter.cxx )
+TARGET_LINK_LIBRARIES(TPGACImageFilter ITKNumerics ITKIO)
