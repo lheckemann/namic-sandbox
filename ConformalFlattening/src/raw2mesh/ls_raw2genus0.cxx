@@ -1,6 +1,4 @@
-#if defined(_MSC_VER)
-#pragma warning ( disable : 4786 )
-#endif
+#include "ls_raw2genus0.h"
 
 int main( int argc, char *argv[] )
 {
@@ -57,8 +55,8 @@ int main( int argc, char *argv[] )
 
   /* Iterate through the Image to Remove Extraneous Regions */
   std::cerr << "Iterate through the Image to Remove Extraneous Regions... " << std::endl;
-  InputImageType::Pointer outputImage = thresholdFilter->GetOutput();
-  InputImageType::RegionType imageRegion = outputImage->GetLargestPossibleRegion();
+  ThresholdFilterType::OutputImageType::Pointer outputImage = thresholdFilter->GetOutput();
+  ThresholdFilterType::OutputImageType::RegionType imageRegion = outputImage->GetLargestPossibleRegion();
   ConstIteratorType removeExtraIt( removeExtraRelabelFilter->GetOutput(), removeExtraRelabelFilter->GetOutput()->GetLargestPossibleRegion() );
   IteratorType outputIt( outputImage, imageRegion );
   int count = 0;
@@ -73,29 +71,52 @@ int main( int argc, char *argv[] )
   std::cerr << "  A Total of " << count << " pixels were filled." << std::endl;
 
   /* Smoothing Filter */
+  std::cerr << "Smoothing Filter... " << std::endl;
   SmoothingFilterType::Pointer smoothing = SmoothingFilterType::New();
-  smoothing->SetInput( reader->GetOutput() );
+  smoothing->SetInput( outputImage );
   smoothing->SetTimeStep( 0.125 );
   smoothing->SetNumberOfIterations(  5 );
   smoothing->SetConductanceParameter( 9.0 );
+  smoothing->Update();
 
   /* Gradient Filter */
+  std::cerr << "Gradient Filter... " << std::endl;
   GradientFilterType::Pointer gradientMagnitude = GradientFilterType::New();
   gradientMagnitude->SetInput( smoothing->GetOutput() );
   gradientMagnitude->SetSigma( 1.0 );
+  gradientMagnitude->Update();
 
   /* Sigmoid Filter */
+  std::cerr << "Sigmoid Filter... " << std::endl;
   SigmoidFilterType::Pointer sigmoid = SigmoidFilterType::New();
   sigmoid->SetOutputMinimum(  0.0  );
   sigmoid->SetOutputMaximum(  1.0  );
   sigmoid->SetAlpha( 1.0 );
   sigmoid->SetBeta( 1.0 );
   sigmoid->SetInput( gradientMagnitude->GetOutput() );
+  sigmoid->Update();
 
   /* Fast Marching Filter */
+  std::cerr << "Fast Marching... " << std::endl;
+  const double initialDistance = 50;
+  const double seedValue = - initialDistance;
   FastMarchingFilterType::Pointer fastMarching = FastMarchingFilterType::New();
+  NodeContainer::Pointer seeds = NodeContainer::New();
+  InputImageType::IndexType  seedPosition;
+  seedPosition[0] = 150;
+  seedPosition[1] = 150;
+  seedPosition[2] = 150;
+  NodeType node;
+  node.SetValue( seedValue );
+  node.SetIndex( seedPosition );
+  seeds->Initialize();
+  seeds->InsertElement( 0, node );
+  fastMarching->SetTrialPoints(  seeds  );
+  fastMarching->SetSpeedConstant( 1.0 );
+  fastMarching->SetOutputSize( reader->GetOutput()->GetBufferedRegion().GetSize() );
 
-  /* Geodesic Active Contour Filter */
+  /* TPGAC Filter */
+  std::cerr << "TPGAC... " << std::endl;
   TPGACFilterType::Pointer tpgac = TPGACFilterType::New();
   tpgac->SetPropagationScaling( 1.0 );
   tpgac->SetCurvatureScaling( 1.0 );
@@ -106,47 +127,22 @@ int main( int argc, char *argv[] )
   tpgac->SetFeatureImage( sigmoid->GetOutput() );
 
   /* Threshold Filter */
+  std::cerr << "Threshold... " << std::endl;
+  ThresholdFilterType::Pointer thresholder = ThresholdFilterType::New();
   thresholder->SetInput( tpgac->GetOutput() );
+  thresholder->SetLowerThreshold( -1000.0 );
+  thresholder->SetUpperThreshold(     0.0 );
+  thresholder->SetOutsideValue(  0  );
+  thresholder->SetInsideValue(  255 );
 
-
-
-  writer->SetInput( thresholder->GetOutput() );
-  
-
-
-
-  
-  //
-
-  NodeContainer::Pointer seeds = NodeContainer::New();
-  InternalImageType::IndexType  seedPosition;
-  
-  seedPosition[0] = atoi( argv[3] );
-  seedPosition[1] = atoi( argv[4] );
-
-
-  const double initialDistance = atof( argv[5] );
-
-  NodeType node;
-
-  const double seedValue = - initialDistance;
-  
-  node.SetValue( seedValue );
-  node.SetIndex( seedPosition );
-
-
-  seeds->Initialize();
-  seeds->InsertElement( 0, node );
-
-  fastMarching->SetTrialPoints(  seeds  );
-
-  fastMarching->SetSpeedConstant( 1.0 );
-
+  /* Write Image to File */
+  std::cerr << "Write Image to File... " << std::endl;
   CastFilterType::Pointer caster1 = CastFilterType::New();
   CastFilterType::Pointer caster2 = CastFilterType::New();
   CastFilterType::Pointer caster3 = CastFilterType::New();
   CastFilterType::Pointer caster4 = CastFilterType::New();
 
+  WriterType::Pointer writer = WriterType::New();
   WriterType::Pointer writer1 = WriterType::New();
   WriterType::Pointer writer2 = WriterType::New();
   WriterType::Pointer writer3 = WriterType::New();
@@ -178,10 +174,9 @@ int main( int argc, char *argv[] )
   writer4->SetFileName("TPGACImageFilterOutput4.png");
   caster4->SetOutputMinimum(   0 );
   caster4->SetOutputMaximum( 255 );
+  writer4->Update();
 
-  fastMarching->SetOutputSize( 
-    reader->GetOutput()->GetBufferedRegion().GetSize() );
-
+  writer->SetInput( thresholder->GetOutput() );
   try
     {
     writer->Update();
@@ -200,22 +195,17 @@ int main( int argc, char *argv[] )
   std::cout << "No. elpased iterations: " << tpgac->GetElapsedIterations() << std::endl;
   std::cout << "RMS change: " << tpgac->GetRMSChange() << std::endl;
 
-  writer4->Update();
-
-
-  typedef itk::ImageFileWriter< InternalImageType > InternalWriterType;
-
-  InternalWriterType::Pointer mapWriter = InternalWriterType::New();
+  WriterType::Pointer mapWriter = WriterType::New();
   mapWriter->SetInput( fastMarching->GetOutput() );
   mapWriter->SetFileName("TPGACImageFilterOutput4.mha");
   mapWriter->Update();
 
-  InternalWriterType::Pointer speedWriter = InternalWriterType::New();
+  WriterType::Pointer speedWriter = WriterType::New();
   speedWriter->SetInput( sigmoid->GetOutput() );
   speedWriter->SetFileName("TPGACImageFilterOutput3.mha");
   speedWriter->Update();
 
-  InternalWriterType::Pointer gradientWriter = InternalWriterType::New();
+  WriterType::Pointer gradientWriter = WriterType::New();
   gradientWriter->SetInput( gradientMagnitude->GetOutput() );
   gradientWriter->SetFileName("TPGACImageFilterOutput2.mha");
   gradientWriter->Update();

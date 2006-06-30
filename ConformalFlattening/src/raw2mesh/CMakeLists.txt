@@ -21,14 +21,14 @@ ELSE(VTK_FOUND)
   MESSAGE(FATAL_ERROR "VTK not found. Please set VTK_DIR.")
 ENDIF(VTK_FOUND)
 
-# Add the executable
 ADD_EXECUTABLE(raw2genus0 raw2genus0.cxx )
 TARGET_LINK_LIBRARIES(raw2genus0 ITKIO ITKCommon ITKBasicFilters ITKStatistics)
 
-# Add the executable
 ADD_EXECUTABLE(genus02mesh genus02mesh.cxx )
 TARGET_LINK_LIBRARIES(genus02mesh vtkRendering vtkIO ITKCommon ITKBasicFilters ITKIO itkvnl)
 
-# Add the executable
-ADD_EXECUTABLE(ls_raw2genus0.cxx ls_raw2genus0.cxx )
-TARGET_LINK_LIBRARIES(ls_raw2genus0 ITKIO ITKCommon ITKBasicFilters ITKStatistics)
+#ADD_EXECUTABLE(ls_raw2genus0 ls_raw2genus0.cxx )
+#TARGET_LINK_LIBRARIES(ls_raw2genus0 ITKIO ITKCommon ITKBasicFilters ITKAlgorithms)
+
+#ADD_EXECUTABLE(TPGACImageFilter TPGACImageFilter.cxx )
+#TARGET_LINK_LIBRARIES(TPGACImageFilter ITKNumerics ITKIO)
