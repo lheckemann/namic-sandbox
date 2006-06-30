@@ -22,8 +22,9 @@
 #endif
 
 #include <fstream>
-#include "itkImageIOBase.h"
 #include <stdio.h>
+#include <fitsio.h>
+#include <itkImageIOBase.h>
 
 namespace itk
 {
@@ -78,12 +79,18 @@ public:
 
 
 protected:
-  FITSImageIO() {};
+
+  FITSImageIO() {}; /* default ctor */
   virtual void PrintSelf(std::ostream& os, Indent indent) const;
   
 private:
-  FITSImageIO(const Self&); //purposely not implemented
-  void operator=(const Self&); //purposely not implemented
+
+  // Deactivate object copying:
+  FITSImageIO(const Self&);
+  void operator=(const Self&);
+
+  // Instance variables:
+  fitsfile* m_fitsFile;
 };
 
 } // end namespace itk

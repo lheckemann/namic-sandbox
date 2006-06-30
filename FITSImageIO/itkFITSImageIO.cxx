@@ -17,6 +17,7 @@
 #include <iostream>
 #include <list>
 #include <string>
+#include <sstream>
 #include <math.h>
 #include <zlib.h>
 
@@ -24,18 +25,19 @@
 #include <itkByteSwapper.h>
 #include <itkMetaDataObject.h>
 #include <itksys/SystemTools.hxx>
-#include <fitsio.h>
 
 #include "itkFITSImageIO.h"
+#include <grparser.h> // for FITS NGP_MAX_ARRAY_DIM
 
 using std::string;
+using std::stringstream;
 using std::ostream;
 using std::cerr;
 using std::endl;
 
 // Forward declarations:
 static bool checkExtension(const string&);
-
+static string getAllFitsErrorMessages(int status);
 
 namespace itk {
 
@@ -46,10 +48,13 @@ namespace itk {
 /*method*/ bool
 FITSImageIO::CanReadFile(const char* filepath) 
 { 
-  if (!filepath || *filepath == 0) {
+  cerr << "DEBUG: Entering FITSImageIO::CanReadFile()." << endl; //d
+
+  if (!filepath or *filepath == 0) {
     itkDebugMacro(<< "No filename specified.");
     return false;
   } else if (::checkExtension(filepath)) {
+    cerr << "DEBUG: Exiting FITSImageIO::CanReadFile() with true." << endl; //d
     return true;
   } else {
     itkDebugMacro(<<"The filename extension is not recognized");
@@ -89,19 +94,6 @@ FITSImageIO::CanWriteFile(const char* const name)
 
 
 //-----------------------------------------------------------------------------
-// Read(): virtual method of FITSImageIO
-//-----------------------------------------------------------------------------
-
-/*method*/ void
-FITSImageIO::Read(void* const buffer)
-{
-   // here is the fun part...
-   //
-   // TODO: get the buffer here...
-}
-
-
-//-----------------------------------------------------------------------------
 // ReadImageInformation(): virtual method of FITSImageIO
 //-----------------------------------------------------------------------------
 
@@ -111,36 +103,59 @@ FITSImageIO::Read(void* const buffer)
 /*method*/ void
 FITSImageIO::ReadImageInformation()
 {
-   // TODO: Delegate to cfits and populate the MetaDataDictionary.
-   // page 4  Quick Start Guide (how to get the list of tags in the header)
-   // page 34 Cfits IO User's guide.
-   //
+  int status = 0;
+
+  // Open the FITS file:
+  ::fits_open_file(&m_fitsFile, this->GetFileName(), READONLY, &status);
+  if (status) {
+    itkExceptionMacro("FITSImageIO could not open FITS file: \""
+                      << this->GetFileName() << " for reading: "
+                      << ::getAllFitsErrorMessages(status));
+  }
+
+  // TODO: Delegate to cfits and populate the MetaDataDictionary.
+  // page 4  Quick Start Guide (how to get the list of tags in the header)
+  // page 34 Cfits IO User's guide.
+  //
    
-   typedef string defaultValueType;
+  // TODO:
+  // typedef string defaultValueType;
 
-   // TODO: We may want to open the FITS file in the ctor rather than
-   // in each method, since if we end up opening a compressed file
-   // multiple times, in different methods, the file will end up being
-   // uncompressed multiple times.
+  // TODO: We may want to open the FITS file in the ctor rather than
+  // in each method, since if we end up opening a compressed file
+  // multiple times, in different methods, the file will end up being
+  // uncompressed multiple times.
 
-   fitsfile* fptr;
-   int status = 0;
-   int naxis;
+  cerr << "DEBUG: Entering FITSImageIO::ReadImageInformation()." << endl; //d
 
-   ::fits_get_img_dim(fptr, &naxis, &status);
-   
-   cerr << "NAXIS=" << naxis << endl; //d
+  // Get the dimensions and type of the image:
+  int numOfAxes;
+  long dimOfAxis[NGP_MAX_ARRAY_DIM];
+  int bitsPerPixel;
+  ::fits_get_img_param(m_fitsFile, NGP_MAX_ARRAY_DIM, &bitsPerPixel,
+                       &numOfAxes, dimOfAxis, &status);
 
-   // Open the file
-   ::fits_open_file(&fptr, m_FileName.c_str(), READONLY, &status);
+  cerr << "NAXIS=" << numOfAxes << endl; //d
+  cerr << "DIMS="; //d
+  for (long i = 0; i < numOfAxes; ++i) {  //d
+    cerr << " " << dimOfAxis[i]; //d
+  }
+  cerr << endl;
+  cerr << "BPP= " << bitsPerPixel << endl;
 
-   // TODO: Gather : Dimension, NumberOfPixels, Spacing and Origin 
+  // Set up the ITK image:
+  this->SetNumberOfComponents(1);
+  this->SetPixelType(SCALAR);
+  this->SetComponentType(FLOAT);
+  this->SetNumberOfDimensions(numOfAxes);
+  for (int i = 0; i < numOfAxes; ++i) {
+    this->SetDimensions(i, dimOfAxis[i]);
+    this->SetOrigin(i, 0);
+    this->SetSpacing(i, 1.0);
+  }
 
-   // TODO: Convert status to a meaningful string and use it to throw
-   // an exception....
 
-
-   // TODO: Make the commented-out code below work properly:
+  // TODO: Make the commented-out code below work properly:
 
 //    // Get the header
       int numberOfHeaderEntries = 0;
@@ -176,8 +191,54 @@ FITSImageIO::ReadImageInformation()
 //       itk::EncapsulateMetaData<defaultValueType>(thisDic, stringKey,
 //                                               stringValue);
 //     }
+}
 
-   ::fits_close_file(fptr, &status);
+
+//-----------------------------------------------------------------------------
+// Read(): virtual method of FITSImageIO
+//-----------------------------------------------------------------------------
+
+/*method*/ void
+FITSImageIO::Read(void* const buffer)
+{
+  // TODO: We probably want to preserve the native pixel type, rather
+  // than converting everything into a float.
+
+  float* bufferAsFloats = static_cast<float*>(buffer);
+
+  // Make a pixel location array that represents the origin pixel; i.e., [1,
+  // 1, 1, ...]:
+  const int nDimensions = this->GetNumberOfDimensions();
+  long origin[nDimensions];
+  for (int i = 0; i < nDimensions; ++i) {
+    origin[i] = 1;
+  }
+
+  // Calculate the total number of pixels in the image:
+  long long nPixels = 1;
+  for (int i = 0; i < nDimensions; ++i) {
+    nPixels *= GetDimensions(i);
+  }
+
+  // Read the FITS image into the ITK image buffer:
+  int status = 0;
+  ::fits_read_pix(m_fitsFile, TFLOAT, origin, nPixels, NULL,
+                  bufferAsFloats, NULL, &status);
+  if (status) {
+    itkExceptionMacro("FITSImageIO::Read() could not read the primary data "
+                      "array from FITS file \""
+                      << this->GetFileName() << "\": "
+                      << ::getAllFitsErrorMessages(status));
+  }
+                
+  // Close the FITS file:
+  ::fits_close_file(m_fitsFile, &status);
+  if (status) {
+    itkExceptionMacro("FITSImageIO::Read() could not close FITS file \""
+                      << this->GetFileName()
+                      << "\" after reading the primary data array: "
+                      << ::getAllFitsErrorMessages(status));
+  }
 }
 
 
@@ -270,11 +331,11 @@ checkExtension(const string& filepath)
 {
   string loweredFilepath = filepath;
   toLower(loweredFilepath);
-  if (endMatchesP(loweredFilepath, ".fits") ||
-      endMatchesP(loweredFilepath, ".fits.gz") ||
-      endMatchesP(loweredFilepath, ".fit") ||
-      endMatchesP(loweredFilepath, ".fit.gz") ||
-      endMatchesP(loweredFilepath, ".fits.Z") ||
+  if (endMatchesP(loweredFilepath, ".fits")    or
+      endMatchesP(loweredFilepath, ".fits.gz") or
+      endMatchesP(loweredFilepath, ".fit")     or
+      endMatchesP(loweredFilepath, ".fit.gz")  or
+      endMatchesP(loweredFilepath, ".fits.Z")  or
       endMatchesP(loweredFilepath, ".fit.Z"))
     {
       return true;
@@ -285,4 +346,24 @@ checkExtension(const string& filepath)
 }
 
 
+//-----------------------------------------------------------------------------
+// getAllFitsErrorMessages(): local proc
+//-----------------------------------------------------------------------------
 
+/*proc*/ string
+getAllFitsErrorMessages(int status)
+{
+  string retval;
+  char fitsError[FLEN_ERRMSG];
+//   while (::fits_read_errmsg(fitsError)) {
+//     retval += fitsError;
+//   }
+  retval = "FITSIO status = ";
+  stringstream ss;
+  ss << status;
+  retval += ss.str();
+  retval += ": ";
+  ::fits_get_errstatus(status, fitsError);
+  retval += fitsError;
+  return retval;
+}
