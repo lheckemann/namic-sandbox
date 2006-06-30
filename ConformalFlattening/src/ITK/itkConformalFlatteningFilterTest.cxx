@@ -27,7 +27,8 @@ int itkTransformMeshFilterTest(char* fileName) {
   // Connect the inputs
   filter->SetInput( mesh ); 
   filter->setPointP(1000);
-  filter->mapToPlane();
+  //filter->mapToPlane();
+  filter->mapToSphere();
 
   // Execute the filter
   filter->Update();

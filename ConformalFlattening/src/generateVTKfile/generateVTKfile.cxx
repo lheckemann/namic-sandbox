@@ -63,22 +63,25 @@ reader->SetFilePrefix(argv[1]);
   std::cout<<"Cells, before decimation = "<< cubes->GetOutput()->GetNumberOfCells() <<std::endl;
   std::cerr << "Decimate the mesh..." << std::endl;
     
-   vtkDecimatePro *decimator = vtkDecimatePro::New();
-    decimator->SetInputConnection( cubes->GetOutputPort() );
-    decimator->SetTargetReduction(0.9);
-    decimator->PreserveTopologyOn(); 
+//   vtkDecimatePro *decimator = vtkDecimatePro::New();
+//    decimator->SetInputConnection( cubes->GetOutputPort() );
+//    decimator->SetTargetReduction(0.9);
+//    decimator->PreserveTopologyOn(); 
     
 //  vtkQuadricDecimation *decimator = vtkQuadricDecimation::New();
 //  decimator->SetInput( cubes->GetOutput() );
 //  decimator->SetTargetReduction( 0.1 );
-  
-  std::cout<<"Points, after decimation = "<< decimator->GetOutput()->GetNumberOfPoints() <<std::endl;
-  std::cout<<"Cells, after decimation = "<< decimator->GetOutput()->GetNumberOfCells() <<std::endl;
+//  
+//  std::cout<<"Points, after decimation = "<< decimator->GetOutput()->GetNumberOfPoints() <<std::endl;
+//  std::cout<<"Cells, after decimation = "<< decimator->GetOutput()->GetNumberOfCells() <<std::endl;
 //
 
   /* Smooth the mesh */
   std::cerr << "Smooth the mesh..." << std::endl;
-  vtkWindowedSincPolyDataFilter* smooth = vtkWindowedSincPolyDataFilter::New();
+    
+  vtkSmoothPolyDataFilter* smooth = vtkSmoothPolyDataFilter::New();    
+  smooth->SetNumberOfIterations(100);
+//  vtkWindowedSincPolyDataFilter* smooth = vtkWindowedSincPolyDataFilter::New();
   smooth->SetInput( cubes->GetOutput() );
   smooth->Update();
 
