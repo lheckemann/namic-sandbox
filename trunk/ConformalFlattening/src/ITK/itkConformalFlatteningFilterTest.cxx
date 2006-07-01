@@ -221,7 +221,7 @@ vtkPolyData* ITKMeshToVtkPolyData(MeshType::Pointer mesh)
   //Creat vtkPoints for insertion into newPolyData
   vtkPoints *points = vtkPoints::New();
 
-  std::cout<<"Points = "<<mesh->GetNumberOfPoints()<<std::endl;
+  // std::cout<<"Points = "<<mesh->GetNumberOfPoints()<<std::endl;
 
   //Copy all points into the vtkPolyData structure
   PointIterator pntIterator = mesh->GetPoints()->Begin();
