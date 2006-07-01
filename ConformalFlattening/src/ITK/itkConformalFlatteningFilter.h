@@ -75,8 +75,13 @@ namespace itk
     typedef vnl_vector<CoordRepType> Tvnl_vector;
     
     void setPointP( int );
+    // The point P used to define the mapping is put according to the input of this function.
+    
     void mapToSphere( void );
+    // Output a sphere, default choice.
+    
     void mapToPlane( void );
+    // Output a plane, i.e., no stereographic projection step.
 
   protected:
     ConformalFlatteningFilter();
@@ -103,8 +108,10 @@ namespace itk
                                            vnl_vector<CoordRepType> const& b);
                                            
     unsigned int _cellHavePntP;
+    // Store the cell Id in which the point P, which is used to define the mapping, lies in.
+    
     bool _mapToSphere;
-             
+    // Whether the result is sphere or plane.             
   };
 
 } // end namespace itk
