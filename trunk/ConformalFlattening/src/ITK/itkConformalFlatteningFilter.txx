@@ -24,7 +24,7 @@ PURPOSE.  See the above copyright notices for more information.
 #ifndef _DISPLAY_DEBUG_INFO_
 #define _DISPLAY_DEBUG_INFO_
 
-//#include <algorithm>
+#include <math.h>
 
 
 namespace itk
@@ -576,13 +576,13 @@ namespace itk
 //    std::cout<<"The min X in plane: "<<xmin<<std::endl;
 //    std::cout<<"The max Y in plane: "<<ymax<<std::endl;
 //    std::cout<<"The min Y in plane: "<<ymin<<std::endl;
-    
-    CoordRepType temp1 = std::max( abs(xmin), abs(xmax) ); 
-    CoordRepType temp2 = std::max( abs(ymin), abs(ymax) );
+
+    CoordRepType temp1 = ( fabs(xmin)>fabs(xmax) )?fabs(xmin):fabs(xmax); 
+    CoordRepType temp2 = ( fabs(ymin)>fabs(ymax) )?fabs(ymin):fabs(ymax);
 //    std::cout<<std::max( temp1, temp2 )<<std::endl;
-    CoordRepType factor = 100/( std::max( temp1, temp2 ) );
+    CoordRepType factor = 100/( ( temp1>temp2 )?temp1:temp2 );
+
     // the factor is used to re-scale the points in the plane.
-    
     
     
     std::vector<double> x(numberOfPoints), y(numberOfPoints), z(numberOfPoints);
