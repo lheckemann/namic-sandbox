@@ -622,7 +622,15 @@ template <class TInputMesh, class TOutputMesh>
 void 
 ConformalFlatteningFilter<TInputMesh,TOutputMesh>::setPointP( int p )
   {
-    _cellHavePntP = p;
+    if (p >= 0 && p < this->GetInput()->GetNumberOfCells() )
+    {
+      _cellHavePntP = p;
+    }
+    else
+    {
+      std::cerr<<"Location of point p exceeds number of cells. Set to default value 0."<<std::endl<<std::endl;
+      _cellHavePntP = 0;
+    }
   }
 
 template <class TInputMesh, class TOutputMesh>
