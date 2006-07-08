@@ -44,38 +44,34 @@ int main( int argc, char * argv [] )
   cubes->SetValue(0, 0.5);
   cubes->Update();
 
-  std::cerr<<"Number of Cells after shrink: "<<cubes->GetOutput()->GetNumberOfCells()<<std::endl;
-  
-//  Display( cubes->GetOutput() );
-  
-//  /* Smooth the mesh */
-//  std::cerr << "Smooth the mesh..." << std::endl;
-//  vtkWindowedSincPolyDataFilter* smooth = vtkWindowedSincPolyDataFilter::New();
-//  smooth->SetInput( cubes->GetOutput() );
-//  smooth->Update();
-//  
-//  /* Decimate the mesh */
-//  std::cout<<"Points, before decimation = "<< smooth->GetOutput()->GetNumberOfPoints() <<std::endl;
-//  std::cout<<"Cells, before decimation = "<< smooth->GetOutput()->GetNumberOfCells() <<std::endl;
-//  std::cerr << "Decimate the mesh..." << std::endl;
-//  vtkQuadricDecimation *decimator = vtkQuadricDecimation::New();
-//  decimator->SetInput( smooth->GetOutput() );
-//  decimator->SetTargetReduction( 0.1 );
-//  std::cout<<"Points, after decimation = "<< decimator->GetOutput()->GetNumberOfPoints() <<std::endl;
-//  std::cout<<"Cells, after decimation = "<< decimator->GetOutput()->GetNumberOfCells() <<std::endl;
-//
-//  /* Set the color according to local mean/gaussian curvature */
-//  std::cerr << "Set the color according to local mean/gaussian curvature..." << std::endl;
-//  vtkCurvatures* meanCurvatures = vtkCurvatures::New();
-//  meanCurvatures->SetInput( decimator->GetOutput() );
-//  //  meanCurvatures->SetCurvatureTypeToGaussian();
-//  meanCurvatures->SetCurvatureTypeToMean();
-//  Display( meanCurvatures->GetOutput() );
+  /* Smooth the mesh */
+  std::cerr << "Smooth the mesh..." << std::endl;
+  vtkWindowedSincPolyDataFilter* smooth = vtkWindowedSincPolyDataFilter::New();
+  smooth->SetInput( cubes->GetOutput() );
+  smooth->Update();
+ 
+  /* Decimate the mesh */
+  std::cout<<"Points, before decimation = "<< smooth->GetOutput()->GetNumberOfPoints() <<std::endl;
+  std::cout<<"Cells, before decimation = "<< smooth->GetOutput()->GetNumberOfCells() <<std::endl;
+  std::cerr << "Decimate the mesh..." << std::endl;
+//   vtkQuadricDecimation *decimator = vtkQuadricDecimation::New();
+//   decimator->SetInput( smooth->GetOutput() );
+//   decimator->SetTargetReduction( 1 );
+//   std::cout<<"Points, after decimation = "<< decimator->GetOutput()->GetNumberOfPoints() <<std::endl;
+//   std::cout<<"Cells, after decimation = "<< decimator->GetOutput()->GetNumberOfCells() <<std::endl;
+
+  /* Set the color according to local mean/gaussian curvature */
+  std::cerr << "Set the color according to local mean/gaussian curvature..." << std::endl;
+  vtkCurvatures* meanCurvatures = vtkCurvatures::New();
+  meanCurvatures->SetInput( smooth->GetOutput() );
+  //  meanCurvatures->SetCurvatureTypeToGaussian();
+  meanCurvatures->SetCurvatureTypeToMean();
+  Display( meanCurvatures->GetOutput() );
 
   /* Convert back to an ITK mesh */
   std::cerr << "Convert back to an ITK mesh..." << std::endl;
   //MeshType::Pointer smoothedMesh = vtkPolyDataToITKMesh( decimator->GetOutput() );
-  MeshType::Pointer smoothedMesh = vtkPolyDataToITKMesh( cubes->GetOutput() );
+  MeshType::Pointer smoothedMesh = vtkPolyDataToITKMesh( smooth->GetOutput() );
 
   /* Execute the conformal flattening */
   std::cerr << "Execute the conformal flattening..." << std::endl;
@@ -89,7 +85,7 @@ int main( int argc, char * argv [] )
 
   /* Display the new polydata */
   std::cerr << "Display the new polydata..." << std::endl;
-  // conformallyFlattenedPolyData->GetPointData()->SetScalars( meanCurvatures->GetOutput()->GetPointData()->GetScalars() );
+  conformallyFlattenedPolyData->GetPointData()->SetScalars( meanCurvatures->GetOutput()->GetPointData()->GetScalars() );
   Display( conformallyFlattenedPolyData );
   
   return EXIT_SUCCESS;

@@ -24,7 +24,7 @@ PURPOSE.  See the above copyright notices for more information.
 #ifndef _DISPLAY_DEBUG_INFO_
 #define _DISPLAY_DEBUG_INFO_
 
-//#include <algorithm>
+#include <math.h>
 
 
 namespace itk
@@ -481,8 +481,8 @@ namespace itk
     
     if (eulerNum != 2) 
     {
-      std::cerr<<"    Euler characteristics is "<<eulerNum<<", not 2! Not genus 0 surface."<<std::endl<<"exiting..."<<std::endl;
-        exit(-1);
+      std::cerr<<"    Euler characteristics is "<<eulerNum<<", not 2! Not genus 0 surface."<<std::endl;//<<"exiting..."<<std::endl;
+       // exit(-1);
     } // if eulerNum
 
     // compute b = bR + i*bI separately
@@ -576,13 +576,13 @@ namespace itk
 //    std::cout<<"The min X in plane: "<<xmin<<std::endl;
 //    std::cout<<"The max Y in plane: "<<ymax<<std::endl;
 //    std::cout<<"The min Y in plane: "<<ymin<<std::endl;
-    
-    CoordRepType temp1 = std::max( abs(xmin), abs(xmax) ); 
-    CoordRepType temp2 = std::max( abs(ymin), abs(ymax) );
+
+    CoordRepType temp1 = ( fabs(xmin)>fabs(xmax) )?fabs(xmin):fabs(xmax); 
+    CoordRepType temp2 = ( fabs(ymin)>fabs(ymax) )?fabs(ymin):fabs(ymax);
 //    std::cout<<std::max( temp1, temp2 )<<std::endl;
-    CoordRepType factor = 100/( std::max( temp1, temp2 ) );
+    CoordRepType factor = 100/( ( temp1>temp2 )?temp1:temp2 );
+
     // the factor is used to re-scale the points in the plane.
-    
     
     
     std::vector<double> x(numberOfPoints), y(numberOfPoints), z(numberOfPoints);
@@ -622,7 +622,15 @@ template <class TInputMesh, class TOutputMesh>
 void 
 ConformalFlatteningFilter<TInputMesh,TOutputMesh>::setPointP( int p )
   {
-    _cellHavePntP = p;
+    if (p >= 0 && p < this->GetInput()->GetNumberOfCells() )
+    {
+      _cellHavePntP = p;
+    }
+    else
+    {
+      std::cerr<<"Location of point p exceeds number of cells. Set to default value 0."<<std::endl<<std::endl;
+      _cellHavePntP = 0;
+    }
   }
 
 template <class TInputMesh, class TOutputMesh>
