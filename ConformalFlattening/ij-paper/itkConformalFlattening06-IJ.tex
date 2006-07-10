@@ -36,10 +36,9 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 % At minimum, give your name and an email address.  You can include a
 % snail-mail address if you like.
-\author{Yi Gao$^{1}$ and et al $^{1}$ $^{2}$ $^{3}$}
+\author{Yi Gao$^{1}$, John Melonakos$^{1}$, and Allen Tannenbaum$^{1}$}
 \authoraddress{$^{1}$Georgia Institute of Technology, Atlanta, GA\\
-               $^{2}$Kitware, Clifton Park, NY\\
-               $^{3}$GE, Niskayuna, NY}
+               }
 
 \begin{document}
 
@@ -77,67 +76,88 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 % The abstract should be a paragraph or two long, and describe the
 % scope of the document.
 \begin{abstract}
-\noindent This document describes the Insight Toolkit (ITK)
-Conformal Flattening filter.
+\noindent This paper describes the Insight Toolkit (ITK) Conformal
+Flattening filter: itkConformalFlatteningFilter. This ITK filter is an
+implementation of a paper by Sigurd Angenent, et al., ``On the
+Laplace-Beltrami Operator and Brain Surface Flattening''
+\cite{angenent1999lbo}. This filter performs an angle preserving map of any
+genus zero (i.e. no handles) triangulated mesh to the sphere or,
+alternatively, to the plane. In other words, any given triangle in the
+resulting sphere will have the same angles as the corresponding
+triangle in the original mesh, though their areas may differ. In this
+paper, we describe our code and provide the user with enough details
+to reproduce the results which we present in this paper. This filter
+has a variety of applications including the flattening of brain
+surfaces, which was the initial motivation for this work.
 \end{abstract}
 
 \tableofcontents
 
-The folding and wrapping of brain surface brought difficulties in obtaining a more 
-intuitionistic view and the measurement of distance on the surface. In recent years, 
-a number of methods have been proposed to map the surface to a plane or a sphere. 
-Most of the previous methods are derived to preserve local area or length. 
-In the paper of \emph{Angenent99} ( S. Angenent, et.al., On the Laplace-Beltrami 
-Operator and Brain Surface Flattening), an angle preserving conformal flattening scheme is proposed.
+The folding and wrapping of brain surfaces presents researchers with
+difficulties in obtaining a more intuition-based surface rendering and
+in measuring distances on the brain surface. In recent years, a number
+of methods have been proposed to map the brain surface to a plane or a
+sphere. Most of the previous methods are derived to preserve local
+area or length. In the paper of Sigurd Angenent, et al., ``On the
+Laplace-Beltrami Operator and Brain Surface Flattening'', an angle
+preserving conformal flattening scheme is proposed.
 
-The algorithm obtains the explicit form of flattening mapping by solving a partial 
-differential equation on the surface using the finite element method(FEM). The mapping is a 
-bijection and the original structure can be restored by inverse mapping.
+The algorithm obtains the explicit form of the flattening map by
+solving a partial differential equation on the surface using the
+finite element method (FEM). The mapping is a bijection and the
+original structure can be restored by inverse mapping.
 
 \section{Algorithm Details}
 
 \subsection{Mathematical manipulation}
-  Denote the genu zero surface which is to be flattened as $\Sigma$. 
+  Denote the genus zero surface which is to be flattened as $\Sigma$.
   $\Sigma$ can be mapped to a plane using the algorithm proposed in
-  the paper \emph{Angenent99}. The mapping is conformal thus the angles are preserved.
-  Further, the plane can be mapped to a sphere, using the standard stereographic
-  projection.
+  \cite{angenent1999lbo}. The mapping is conformal thus the angles are
+  preserved. Furthermore, the plane can be mapped to a sphere, using
+  standard stereographic projection.
   
-  It is proved in the appendix of \emph{Angenent99} that the mapping $z$, defined on $\Sigma$,
-  satisfying:  
+  It is proven in the appendix of \cite{angenent1999lbo} that the mapping
+  $z$, defined on $\Sigma$, satisfying is the following:
   \begin{eqnarray}
     \triangle z = (\frac{\partial}{\partial u} - i\frac{\partial}{\partial v})\delta_p 
     \label{pde}
   \end{eqnarray}
   
-  in which $p$ is an (arbitrary) point on $\Sigma$. $z$ maps $\Sigma \backslash \{p\}$ to the complex plane $\mathbf{C}$.
-  Then by the standard sterographic projection, the complex plane is mapped to a sphere
-  without north pole.
+  where $p$ is an (arbitrary) point on $\Sigma$. The funtion $z$ maps
+  $\Sigma \backslash \{p\}$ to the complex plane $\mathbf{C}$. Then by
+  standard sterographic projection, the complex plane is mapped to a
+  sphere excluding only the north pole.
 
   \subsection{Numerical scheme}
-  The mapping $z$ is defined on the surface. In the numerical manipulation where
-  the surface is denoted as a triangulated mesh, solving of the equation (\ref{pde})
-  is carried out by FEM. 
+  The mapping $z$ is defined on the surface. In the numerical
+  manipulation where the surface is denoted as a triangulated mesh,
+  solving of the equation (\ref{pde}) is carried out by FEM.
   
-  In the discrete configuration, $z$ is approximated by a piecewise linear function on the triangulated mesh.
-  Denote the finite-dimensional space $PL(\Sigma)$ of piecewise linear functions on $\Sigma$. 
-  To solve equation (\ref{pde}), first its right side should be approximated.
-  For any function $f$ smooth in a neighborhood of $p$,
+  In the discrete configuration, $z$ is approximated by a piecewise
+  linear function on the triangulated mesh. Denote the
+  finite-dimensional space $PL(\Sigma)$ of piecewise linear functions
+  on $\Sigma$. To solve equation (\ref{pde}), first its right side
+  should be approximated. For any function $f$ smooth in a
+  neighborhood of $p$,
   \begin{eqnarray}
     && \int\int_{\Sigma} f (\frac{\partial}{\partial u} - i\frac{\partial}{\partial v})\delta_p \mathrm{d}S \nonumber \\
     &=& - \int\int_{\Sigma}(\frac{\partial}{\partial u} - i\frac{\partial}{\partial v})f \delta_p(w) \mathrm{d}S \nonumber \\
     &=& -(\frac{\partial f}{\partial u} - i\frac{\partial f}{\partial v})\delta_p \label{rightSideOfPDE}
   \end{eqnarray}  
-  Thus $\forall f \in PL(\Sigma)$, given that the point $p$ lies in the cell composed by three points $A$, $B$, and $C$, 
-  the quantity of (\ref{rightSideOfPDE}) is determined by the values of $f$ on $A$, $B$, and $C$.
+  Thus $\forall f \in PL(\Sigma)$, given that the point $p$ lies in
+  the cell composed by three points $A$, $B$, and $C$, the quantity of
+  (\ref{rightSideOfPDE}) is determined by the values of $f$ on $A$,
+  $B$, and $C$.
   
-  On the triangle $\triangle ABC$, choose the $u$ and $v$ axes such that $A$ and $B$ are along $u$ axis and the positive direction
-  of axis $v$ is pointing to the point $C$. So,  
+  On the triangle $\triangle ABC$, choose the $u$ and $v$ axes such
+  that $A$ and $B$ are along $u$ axis and the positive direction of
+  axis $v$ is pointing to the point $C$. So,
   \begin{eqnarray}    
     \frac{\partial f}{\partial u} &=& \frac{f_B - f_A}{||B - A||} \nonumber \\
     \frac{\partial f}{\partial v} &=& \frac{f_C - f_E}{||C - E||} \nonumber
   \end{eqnarray}  
-  in which E is the orthogonal projection of $C$ on $AB$ and can be computed by:      
+  in which E is the orthogonal projection of $C$ on $AB$ and can be
+  computed by:
   \begin{eqnarray}  
     E = A + \theta(B-A) \nonumber
   \end{eqnarray}  
@@ -153,28 +173,33 @@ bijection and the original structure can be restored by inverse mapping.
      \frac{f_A - f_B}{|| B - A ||} + i\frac{f_c-(f_A + \theta(f_B - f_A))}{||C - E||} \label{Rinteqn}
   \end{eqnarray}  
   
-  Next we are going to perform the finite element solution of the mapping in the function space $PL(\Sigma)$.
+  Next we are going to perform the finite element solution of the
+  mapping in the function space $PL(\Sigma)$.
   
-  FEM theory indicates that the solver function $z=x+iy$ for equation (\ref{pde}) is the minimizer
-  of the Dirichlet functional:    
+  FEM theory indicates that the solver function $z=x+iy$ for equation
+  (\ref{pde}) is the minimizer of the Dirichlet functional:
   \begin{eqnarray}  
       \mathbf{D}(z):=\frac{1}{2}\int\int_{\Sigma}[ |\nabla z|^2 + 2z (\frac{\partial}{\partial u} - i\frac{\partial}{\partial v})\delta_p ]\mathrm{d}S \label{DirichletFunctional}
   \end{eqnarray}      
-  $z$ satisfies equation(\ref{pde}) if and only if $\forall$ smooth function $f$,    
+  $z$ satisfies equation(\ref{pde}) if and only if $\forall$ smooth
+  function $f$,
   \begin{eqnarray}  
       \int\int_{\Sigma} \nabla z \cdot \nabla f \mathrm{d}S = (\frac{\partial f}{\partial u} - i\frac{\partial f}{\partial v})|_p \label{FEM}
   \end{eqnarray}    
-  To find the function in $PL(\Sigma)$ satisfying equation(\ref{FEM}), we define a set of basis $\phi_P$ in the $PL(\Sigma)$ as,
+  To find the function in $PL(\Sigma)$ satisfying equation(\ref{FEM}),
+  we define a set of basis $\phi_P$ in the $PL(\Sigma)$ as,
   \begin{eqnarray}  
       \phi_P(P) &=& 1 \nonumber \\
       \phi_P(Q) &=& 0, \forall Q \ne P \nonumber \\
       \phi_P(P) && is \quad linear \quad on \quad each \quad triangle \label{basis}
   \end{eqnarray}  
-  Then function $z$ can be expressed as a linear combination of the basis:  
+  Then function $z$ can be expressed as a linear combination of the
+  basis:
   \begin{eqnarray}  
       z = \sum_{P:\quad vertex \quad of \quad \Sigma} z_P \phi_P \label{zInBasis}
   \end{eqnarray}  
-  By this we convert the original problem into solving for the complex vector $\vec{z}=(z_P)$:  
+  By this we convert the original problem into solving for the complex
+  vector $\vec{z}=(z_P)$:
    \begin{eqnarray}  
       \sum_P z_P \int\int \nabla \phi_P \cdot \nabla \phi_Q \mathrm{d}S = \frac{\partial \phi_Q}{\partial u}(p) - i \frac{\partial \phi_Q}{\partial v}(p)
       \label{allQ}
@@ -228,13 +253,16 @@ bijection and the original structure can be restored by inverse mapping.
         i\frac{-1}{||C-E||} & for & Q = C
       \end{array} \right. \label{ab}
     \end{eqnarray}      
-With vectors $a$, $b$ and matrix $D$, we can solve the linear equation to obtain the mapping.
-The matrix $D$ is sparce, symmetric and positive defined, hence is suitable to be solved by conjugated gradient method.
+With vectors $a$, $b$, and matrix $D$, we can solve the linear
+equation to obtain the mapping. The matrix $D$ is sparce, symmetric
+and positively defined, hence is suitable to being solved by the
+conjugate gradient method.
 
 \section{User's Guide}
 
-The conformal flattening filter takes an ITK mesh as input and will generate another mesh as output.
-The usage is basically the same as other mesh to mesh filters in ITK.
+The conformal flattening filter takes an ITK mesh as input and will
+generate another ITK mesh as output. The usage is basically the same
+as other mesh to mesh filters in ITK.
 
 \subsection{Basic usage}
 The filter is instaintiated by:
@@ -252,23 +280,31 @@ and
 \end{verbatim}
 
 \subsection{More about APIs}
-The filter has two categories of APIs for further manipulation.
-The first one is the setPointP function and the second contains two switch functions, mapToPlane and mapToSphere.
+The filter has two categories of APIs for further manipulation. The
+first one is the setPointP function and the second contains two switch
+functions, mapToPlane and mapToSphere.
 
-On the right side of equation (\ref{pde}), the $\delta_p$ function depands on the location of the point \emph{p}.
-Baiscally, this point will be mapped to infinity on the plane and the north-pole of the sphere.
-Hence the selection of the point \emph{p} determines which patch on the original mesh is mapped to around the north pole.
+On the right side of equation (\ref{pde}), the $\delta_p$ function
+depands on the location of the point \emph{p}. Basically, this point
+will be mapped to infinity on the plane and the north-pole of the
+sphere. Hence the selection of the point \emph{p} determines which
+patch on the original mesh is mapped up to the north pole.
 
-The API setPointP takes an integer as input indicating the cell number in which the point \emph{p} lies.
-It's a good choice to set the point \emph{p} at the local surface where is relatively flat, i.e., having a small local curvature. 
-However the computation of curvature is not trival and can be done by vtkCurvatures. 
-To make this filter independent of vtk, this feature is not included in the filter.
-If setting the point \emph{p} at some flat area is crucial, 
-we suggest that user first use vtkCurvatures to obtain the number of cell having low curvature and then call this function using that cell number.
+The API setPointP takes an integer as input indicating the cell number
+in which the point \emph{p} lies. It's a good choice to set the point
+\emph{p} where the local surface is relatively flat, i.e., having a
+small local curvature. However the computation of curvature can be
+done by the vtkCurvatures filter. In order to make this filter
+independent of VTK, this feature is not included in the filter and is
+left to the user. If setting the point \emph{p} at some flat area is
+crucial, we suggest that user first use vtkCurvatures to obtain the
+number of cells having low curvatures and then call this function
+using one of the cells with a low curvature.
 
-The switch functions mapToPlane and mapToSphere determine the output to be whether a plane or a sphere, the later one being the default.
-The difference between the two is mapping to sphere has an extra step of stereographic projection.
-Simply by
+The switch functions mapToPlane and mapToSphere determine the output
+to be either a plane or a sphere, the sphere being the default. The
+difference between the two mappings is simply a stereographic
+projection from the plane to the sphere. Simply by
 \begin{verbatim}
   filter->mapToSphere( ); 
 \end{verbatim}
@@ -276,18 +312,32 @@ or
 \begin{verbatim}
   filter->mapToPlane( ); 
 \end{verbatim}
-users can switch between two different output.
+users can switch between two different outputs.
 
 \section{Examples}
 
 Here we show examples of our filter in action.  We also provide
-reviewers with all parameters and data so that they too can
-reproduce our results.  This is crucial for a good review.
+reviewers with all parameters and data so that they too can reproduce
+our results.  This is crucial for a good review.
 
 
 \section{Conclusions}
+In this paper, we have described the Insight Toolkit (ITK) Conformal
+Flattening filter: itkConformalFlatteningFilter. This ITK filter is an
+implementation of a paper by Sigurd Angenent, et al., ``On the
+Laplace-Beltrami Operator and Brain Surface Flattening''
+\cite{angenent1999lbo}. This filter performs an angle preserving map of any
+genus zero (i.e. no handles) triangulated mesh to the sphere or,
+alternatively, to the plane.
 
-Here we summarize our work.
+We have provide the user with details to be able to reproduce our
+results. We have also given suggestions as to how to exploit the full
+functionality of this filter.
+
+In the future, we propose to use this filter to map entire brain
+surfaces to the sphere. Perhaps clinical studies of the resulting
+flattened map with yield insights into brain anatomy and function.
+
 
 
 % The preceding sections will have been written in a gentler,
@@ -363,7 +413,7 @@ Here we summarize our work.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \bibliographystyle{plain}
-\bibliography{InsightJournal}
+\bibliography{itkConformalFlattening06-IJ}
 
 
 \end{document}
