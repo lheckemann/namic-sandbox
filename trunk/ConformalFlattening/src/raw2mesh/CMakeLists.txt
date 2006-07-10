@@ -24,6 +24,9 @@ ENDIF(VTK_FOUND)
 ADD_EXECUTABLE(raw2genus0 raw2genus0.cxx )
 TARGET_LINK_LIBRARIES(raw2genus0 ITKIO ITKCommon ITKBasicFilters ITKStatistics)
 
+ADD_EXECUTABLE(labels2genus0 labels2genus0.cxx )
+TARGET_LINK_LIBRARIES(labels2genus0 ITKIO ITKCommon ITKBasicFilters ITKStatistics)
+
 ADD_EXECUTABLE(genus02mesh genus02mesh.cxx )
 TARGET_LINK_LIBRARIES(genus02mesh vtkRendering vtkIO ITKCommon ITKBasicFilters ITKIO itkvnl)
 

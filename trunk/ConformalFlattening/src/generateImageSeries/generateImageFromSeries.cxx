@@ -23,9 +23,9 @@ int main( int argc, char * argv [] )
   ReaderType::Pointer reader = ReaderType::New();
   typedef itk::NumericSeriesFileNames NameGeneratorType;
   NameGeneratorType::Pointer nameGenerator = NameGeneratorType::New();
-  nameGenerator->SetSeriesFormat( "series%03d.png" );
+  nameGenerator->SetSeriesFormat( "raw%03d.png" );
   nameGenerator->SetStartIndex( 0 );
-  nameGenerator->SetEndIndex( 180 );
+  nameGenerator->SetEndIndex( 231 );
   nameGenerator->SetIncrementIndex( 1 );
   reader->SetImageIO( itk::PNGImageIO::New() );
   reader->SetFileNames( nameGenerator->GetFileNames() );

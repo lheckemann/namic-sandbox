@@ -48,6 +48,7 @@ int main( int argc, char * argv [] )
   std::cerr << "Smooth the mesh..." << std::endl;
   vtkWindowedSincPolyDataFilter* smooth = vtkWindowedSincPolyDataFilter::New();
   smooth->SetInput( cubes->GetOutput() );
+  smooth->SetNumberOfIterations( 10 );
   smooth->Update();
  
   /* Decimate the mesh */
