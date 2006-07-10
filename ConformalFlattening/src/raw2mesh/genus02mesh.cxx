@@ -3,10 +3,10 @@
 int main( int argc, char * argv [] )
 {
 
-  if( argc < 3 )
+  if( argc < 4 )
     {
     std::cerr << "Missing arguments" << std::endl;
-    std::cerr << "Usage: InputImage vtkPolyDataOutputFile" << std::endl;
+    std::cerr << "Usage: InputImage vtkPolyDataInputFile vtkPolyDataOutputFile" << std::endl;
     return -1;
     }
 
@@ -51,6 +51,13 @@ int main( int argc, char * argv [] )
   smooth->SetNumberOfIterations( 10 );
   smooth->Update();
  
+  /* Write vtkPolyData to file */
+  vtkPolyDataWriter *writerIn = vtkPolyDataWriter::New();
+  writerIn->SetInput( smooth->GetOutput() );
+  writerIn->SetFileName(argv[2]);
+  writerIn->SetFileTypeToASCII();
+  writerIn->Write();
+  
   /* Decimate the mesh */
   std::cout<<"Points, before decimation = "<< smooth->GetOutput()->GetNumberOfPoints() <<std::endl;
   std::cout<<"Cells, before decimation = "<< smooth->GetOutput()->GetNumberOfCells() <<std::endl;
@@ -87,7 +94,7 @@ int main( int argc, char * argv [] )
   /* Write vtkPolyData to file */
   vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
   writer->SetInput( conformallyFlattenedPolyData );
-  writer->SetFileName(argv[2]);
+  writer->SetFileName(argv[3]);
   writer->SetFileTypeToASCII();
   writer->Write();
   
