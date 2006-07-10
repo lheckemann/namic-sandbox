@@ -84,6 +84,13 @@ int main( int argc, char * argv [] )
   std::cerr << "Begin convert from ITKMesh to vtkPolyData..." << std::endl;
   vtkPolyData* conformallyFlattenedPolyData = ITKMeshToVtkPolyData( conformalFlatteningFilter->GetOutput() );
 
+  /* Write vtkPolyData to file */
+  vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
+  writer->SetInput( conformallyFlattenedPolyData );
+  writer->SetFileName(argv[2]);
+  writer->SetFileTypeToASCII();
+  writer->Write();
+  
   /* Display the new polydata */
   std::cerr << "Display the new polydata..." << std::endl;
   conformallyFlattenedPolyData->GetPointData()->SetScalars( meanCurvatures->GetOutput()->GetPointData()->GetScalars() );

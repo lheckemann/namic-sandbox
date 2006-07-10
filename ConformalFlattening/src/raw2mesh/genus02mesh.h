@@ -57,6 +57,7 @@
 #include "vtkPolyDataNormals.h"
 #include "vtkImageData.h"
 #include "vtkImageShrink3D.h"
+#include "vtkPolyDataWriter.h"
 
 // This define is needed to deal with double/float changes in VTK
 #ifndef vtkFloatingPointType
