@@ -49,8 +49,6 @@ int itkTransformMeshFilterTest(char* fileName) {
   Display(newPolyData);
 
   return 0;
-  
-  
 }
 
 
@@ -59,19 +57,16 @@ int main( int argc, char * argv [] )
 {
 
 
-     if( argc < 2 )
+     if( argc < 1 )
        {
          std::cerr << "Missing arguments" << std::endl;
-         std::cerr << "Usage: vtkPolyDataToITKMesh   vtkPolyDataInputFile" << std::endl;
+         std::cerr << "Usage: vtkPolyData" << std::endl;
          return -1;
        }
 
   int tmp = itkTransformMeshFilterTest(argv[1]);
-  //int tmp = itkTransformMeshFilterTest("nice.vtk");
 
   return 0;
-
-
 }
 
 

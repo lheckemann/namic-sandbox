@@ -16,10 +16,10 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage[dvips,
-bookmarks,
-bookmarksopen,
-backref,
-colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
+	bookmarks,
+	bookmarksopen,
+	backref,
+	colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 ]{hyperref}
 
 
@@ -38,78 +38,78 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 % snail-mail address if you like.
 \author{Yi Gao$^{1}$, John Melonakos$^{1}$, and Allen Tannenbaum$^{1}$}
 \authoraddress{$^{1}$Georgia Institute of Technology, Atlanta, GA\\
-               }
+}
 
 \begin{document}
 
-\newif\ifpdf
-\ifx\pdfoutput\undefined
+	\newif\ifpdf
+	\ifx\pdfoutput\undefined
   \pdffalse
-\else
+	\else
   \pdfoutput=1
   \pdftrue
-\fi
+	\fi
 
 
-\ifpdf
-\else
-   %
-   % Commands for including Graphics when using latex
-   %
-   \DeclareGraphicsExtensions{.eps,.jpg,.gif,.tiff,.bmp,.png}
-   \DeclareGraphicsRule{.jpg}{eps}{.jpg.bb}{`convert #1 eps:-}
-   \DeclareGraphicsRule{.gif}{eps}{.gif.bb}{`convert #1 eps:-}
-   \DeclareGraphicsRule{.tiff}{eps}{.tiff.bb}{`convert #1 eps:-}
-   \DeclareGraphicsRule{.bmp}{eps}{.bmp.bb}{`convert #1 eps:-}
-   \DeclareGraphicsRule{.png}{eps}{.png.bb}{`convert #1 eps:-}
-\fi
+	\ifpdf
+	\else
+  %
+  % Commands for including Graphics when using latex
+  %
+  \DeclareGraphicsExtensions{.eps,.jpg,.gif,.tiff,.bmp,.png}
+  \DeclareGraphicsRule{.jpg}{eps}{.jpg.bb}{`convert #1 eps:-}
+  \DeclareGraphicsRule{.gif}{eps}{.gif.bb}{`convert #1 eps:-}
+  \DeclareGraphicsRule{.tiff}{eps}{.tiff.bb}{`convert #1 eps:-}
+  \DeclareGraphicsRule{.bmp}{eps}{.bmp.bb}{`convert #1 eps:-}
+  \DeclareGraphicsRule{.png}{eps}{.png.bb}{`convert #1 eps:-}
+	\fi
 
 
-\maketitle
+	\maketitle
 
 
-\ifhtml
-\chapter*{Front Matter\label{front}}
-\fi
+	\ifhtml
+	\chapter*{Front Matter\label{front}}
+	\fi
 
 
-% The abstract should be a paragraph or two long, and describe the
-% scope of the document.
-\begin{abstract}
-\noindent This paper describes the Insight Toolkit (ITK) Conformal
-Flattening filter: itkConformalFlatteningFilter. This ITK filter is an
-implementation of a paper by Sigurd Angenent, et al., ``On the
-Laplace-Beltrami Operator and Brain Surface Flattening''
-\cite{angenent1999lbo}. This filter performs an angle preserving map of any
-genus zero (i.e. no handles) triangulated mesh to the sphere or,
-alternatively, to the plane. In other words, any given triangle in the
-resulting sphere will have the same angles as the corresponding
-triangle in the original mesh, though their areas may differ. In this
-paper, we describe our code and provide the user with enough details
-to reproduce the results which we present in this paper. This filter
-has a variety of applications including the flattening of brain
-surfaces, which was the initial motivation for this work.
-\end{abstract}
+	% The abstract should be a paragraph or two long, and describe the
+	% scope of the document.
+	\begin{abstract}
+		\noindent This paper describes the Insight Toolkit (ITK) Conformal
+		Flattening filter: itkConformalFlatteningFilter. This ITK filter is an
+		implementation of a paper by Sigurd Angenent, et al., ``On the
+		Laplace-Beltrami Operator and Brain Surface Flattening''
+		\cite{angenent1999lbo}. This filter performs an angle preserving map of any
+		genus zero (i.e. no handles) triangulated mesh to the sphere or,
+		alternatively, to the plane. In other words, any given triangle in the
+		resulting sphere will have the same angles as the corresponding
+		triangle in the original mesh, though their areas may differ. In this
+		paper, we describe our code and provide the user with enough details
+		to reproduce the results which we present in this paper. This filter
+		has a variety of applications including the flattening of brain
+		surfaces, which was the initial motivation for this work.
+	\end{abstract}
 
-\tableofcontents
+	\tableofcontents
 
-The folding and wrapping of brain surfaces presents researchers with
-difficulties in obtaining a more intuition-based surface rendering and
-in measuring distances on the brain surface. In recent years, a number
-of methods have been proposed to map the brain surface to a plane or a
-sphere. Most of the previous methods are derived to preserve local
-area or length. In the paper of Sigurd Angenent, et al., ``On the
-Laplace-Beltrami Operator and Brain Surface Flattening'', an angle
-preserving conformal flattening scheme is proposed.
+	The folding and wrapping of brain surfaces presents researchers with
+	difficulties in obtaining a more intuition-based surface rendering and
+	in measuring distances on the brain surface. In recent years, a number
+	of methods have been proposed to map the brain surface to a plane or a
+	sphere. Most of the previous methods are derived to preserve local
+	area or length. In the paper of Sigurd Angenent, et al., ``On the
+	Laplace-Beltrami Operator and Brain Surface Flattening'', an angle
+	preserving conformal flattening scheme is proposed.
 
-The algorithm obtains the explicit form of the flattening map by
-solving a partial differential equation on the surface using the
-finite element method (FEM). The mapping is a bijection and the
-original structure can be restored by inverse mapping.
+	The algorithm obtains the explicit form of the flattening map by
+	solving a partial differential equation on the surface using the
+	finite element method (FEM). The mapping is a bijection and the
+	original structure can be restored by inverse mapping.
 
-\section{Algorithm Details}
+	\section{Algorithm Details}
 
-\subsection{Mathematical manipulation}
+	\subsection{Mathematical manipulation}
   Denote the genus zero surface which is to be flattened as $\Sigma$.
   $\Sigma$ can be mapped to a plane using the algorithm proposed in
   \cite{angenent1999lbo}. The mapping is conformal thus the angles are
@@ -169,8 +169,8 @@ original structure can be restored by inverse mapping.
   
   Thus $\forall f \in PL(\Sigma)$, 
   \begin{eqnarray}  
-     (\frac{\partial f}{\partial u} - i\frac{\partial f}{\partial v})\delta_p = 
-     \frac{f_A - f_B}{|| B - A ||} + i\frac{f_c-(f_A + \theta(f_B - f_A))}{||C - E||} \label{Rinteqn}
+    (\frac{\partial f}{\partial u} - i\frac{\partial f}{\partial v})\delta_p = 
+    \frac{f_A - f_B}{|| B - A ||} + i\frac{f_c-(f_A + \theta(f_B - f_A))}{||C - E||} \label{Rinteqn}
   \end{eqnarray}  
   
   Next we are going to perform the finite element solution of the
@@ -179,241 +179,251 @@ original structure can be restored by inverse mapping.
   FEM theory indicates that the solver function $z=x+iy$ for equation
   (\ref{pde}) is the minimizer of the Dirichlet functional:
   \begin{eqnarray}  
-      \mathbf{D}(z):=\frac{1}{2}\int\int_{\Sigma}[ |\nabla z|^2 + 2z (\frac{\partial}{\partial u} - i\frac{\partial}{\partial v})\delta_p ]\mathrm{d}S \label{DirichletFunctional}
+    \mathbf{D}(z):=\frac{1}{2}\int\int_{\Sigma}[ |\nabla z|^2 + 2z (\frac{\partial}{\partial u} - i\frac{\partial}{\partial v})\delta_p ]\mathrm{d}S \label{DirichletFunctional}
   \end{eqnarray}      
   $z$ satisfies equation(\ref{pde}) if and only if $\forall$ smooth
   function $f$,
   \begin{eqnarray}  
-      \int\int_{\Sigma} \nabla z \cdot \nabla f \mathrm{d}S = (\frac{\partial f}{\partial u} - i\frac{\partial f}{\partial v})|_p \label{FEM}
+    \int\int_{\Sigma} \nabla z \cdot \nabla f \mathrm{d}S = (\frac{\partial f}{\partial u} - i\frac{\partial f}{\partial v})|_p \label{FEM}
   \end{eqnarray}    
   To find the function in $PL(\Sigma)$ satisfying equation(\ref{FEM}),
   we define a set of basis $\phi_P$ in the $PL(\Sigma)$ as,
   \begin{eqnarray}  
-      \phi_P(P) &=& 1 \nonumber \\
-      \phi_P(Q) &=& 0, \forall Q \ne P \nonumber \\
-      \phi_P(P) && is \quad linear \quad on \quad each \quad triangle \label{basis}
+    \phi_P(P) &=& 1 \nonumber \\
+    \phi_P(Q) &=& 0, \forall Q \ne P \nonumber \\
+    \phi_P(P) && is \quad linear \quad on \quad each \quad triangle \label{basis}
   \end{eqnarray}  
   Then function $z$ can be expressed as a linear combination of the
   basis:
   \begin{eqnarray}  
-      z = \sum_{P:\quad vertex \quad of \quad \Sigma} z_P \phi_P \label{zInBasis}
+    z = \sum_{P:\quad vertex \quad of \quad \Sigma} z_P \phi_P \label{zInBasis}
   \end{eqnarray}  
   By this we convert the original problem into solving for the complex
   vector $\vec{z}=(z_P)$:
-   \begin{eqnarray}  
-      \sum_P z_P \int\int \nabla \phi_P \cdot \nabla \phi_Q \mathrm{d}S = \frac{\partial \phi_Q}{\partial u}(p) - i \frac{\partial \phi_Q}{\partial v}(p)
-      \label{allQ}
+  \begin{eqnarray}  
+    \sum_P z_P \int\int \nabla \phi_P \cdot \nabla \phi_Q \mathrm{d}S = \frac{\partial \phi_Q}{\partial u}(p) - i \frac{\partial \phi_Q}{\partial v}(p)
+    \label{allQ}
   \end{eqnarray}  
   Denote matrix $D_{PQ}$ as
-   \begin{eqnarray}  
-      D_{PQ} = \int\int \nabla \phi_P \cdot \nabla \phi_Q \mathrm{d}S  \label{Dpq}
+  \begin{eqnarray}  
+    D_{PQ} = \int\int \nabla \phi_P \cdot \nabla \phi_Q \mathrm{d}S  \label{Dpq}
   \end{eqnarray}  
   The off-diagonal elements of $D$ can be computed by:
-   \begin{eqnarray}  
-      \{ \mathbf{D} \}_{P,Q } = -\frac{1}{2}(ctg\angle R + ctg\angle S), \quad P \ne Q  \label{ctg}
+  \begin{eqnarray}  
+    \{ \mathbf{D} \}_{P,Q } = -\frac{1}{2}(ctg\angle R + ctg\angle S), \quad P \ne Q  \label{ctg}
   \end{eqnarray}  
   \begin{figure}
-  \begin{center}
-    \includegraphics[width=7cm]{PntPQRS.eps} \caption{Triangle} \label{PntPQRS}
+		\begin{center}
+			\includegraphics[width=7cm]{PntPQRS.eps} \caption{Triangle} \label{PntPQRS}
     \end{center}
   \end{figure}  
   The points are illustrated in figure (\ref{PntPQRS}).  
   
   Also, since
-   \begin{eqnarray}  
-      \sum_P D_PQ = \sum_P \int \nabla \phi_P \cdot \nabla \phi_Q = \int \nabla 1 \cdot \nabla \phi_Q = 0
+  \begin{eqnarray}  
+    \sum_P D_PQ = \sum_P \int \nabla \phi_P \cdot \nabla \phi_Q = \int \nabla 1 \cdot \nabla \phi_Q = 0
   \end{eqnarray}
   Thus the diagonal elements of matrix D can be obtained by:
-    \begin{eqnarray}
-      \mathbf{D}_{PP} = -\sum_{P \ne Q}D_PQ \label{diagonalOfD}
-    \end{eqnarray}    
-    Write each $z_p$ as $z_p=x_p + iy_p$, then
-    equation (\ref{allQ}) can be written separately as:
-    \begin{eqnarray}
-      \sum_{P}x_p D_{PQ} &=& \frac{\partial \Phi(Q)}{\partial u}(P) \nonumber\\
-      \sum_{Q}y_p D_{PQ} &=& -\frac{\partial \Phi(Q)}{\partial v} (P)
-    \end{eqnarray}  
-    denote:
-    \begin{eqnarray}
-      \vec{a} = (a_Q) &=& \frac{\partial \Phi(Q)}{\partial u}(P) \nonumber \\
-      \vec{b} = (b_Q) &=& -\frac{\partial \Phi(Q)}{\partial v} (P)
-    \end{eqnarray}  
-    so we have:
-    \begin{eqnarray}
-      \mathbf{D}\vec{x} &=& \vec{a} \nonumber \\
-      \mathbf{D}\vec{y} &=& \vec{b} \label{z}
-    \end{eqnarray}    
-    $\forall \quad point \quad Q$:
-    \begin{eqnarray}
-      a_Q - ib_Q := \left\{
-      \begin{array}{lcl}
-        0 & for & Q \notin {A, B, C} \\
-        \frac{-1}{||B-A||} + i\frac{1-\theta}{||C-E||} & for & Q = A \\
-        \frac{1}{||B-A||} + i\frac{\theta}{||C-E||} & for & Q = B \\
-        i\frac{-1}{||C-E||} & for & Q = C
-      \end{array} \right. \label{ab}
-    \end{eqnarray}      
-With vectors $a$, $b$, and matrix $D$, we can solve the linear
-equation to obtain the mapping. The matrix $D$ is sparce, symmetric
-and positively defined, hence is suitable to being solved by the
-conjugate gradient method.
+  \begin{eqnarray}
+    \mathbf{D}_{PP} = -\sum_{P \ne Q}D_PQ \label{diagonalOfD}
+  \end{eqnarray}    
+  Write each $z_p$ as $z_p=x_p + iy_p$, then
+  equation (\ref{allQ}) can be written separately as:
+  \begin{eqnarray}
+    \sum_{P}x_p D_{PQ} &=& \frac{\partial \Phi(Q)}{\partial u}(P) \nonumber\\
+    \sum_{Q}y_p D_{PQ} &=& -\frac{\partial \Phi(Q)}{\partial v} (P)
+  \end{eqnarray}  
+  denote:
+  \begin{eqnarray}
+    \vec{a} = (a_Q) &=& \frac{\partial \Phi(Q)}{\partial u}(P) \nonumber \\
+    \vec{b} = (b_Q) &=& -\frac{\partial \Phi(Q)}{\partial v} (P)
+  \end{eqnarray}  
+  so we have:
+  \begin{eqnarray}
+    \mathbf{D}\vec{x} &=& \vec{a} \nonumber \\
+    \mathbf{D}\vec{y} &=& \vec{b} \label{z}
+  \end{eqnarray}    
+  $\forall \quad point \quad Q$:
+  \begin{eqnarray}
+    a_Q - ib_Q := \left\{
+    \begin{array}{lcl}
+      0 & for & Q \notin {A, B, C} \\
+      \frac{-1}{||B-A||} + i\frac{1-\theta}{||C-E||} & for & Q = A \\
+      \frac{1}{||B-A||} + i\frac{\theta}{||C-E||} & for & Q = B \\
+      i\frac{-1}{||C-E||} & for & Q = C
+    \end{array} \right. \label{ab}
+  \end{eqnarray}      
+	With vectors $a$, $b$, and matrix $D$, we can solve the linear
+	equation to obtain the mapping. The matrix $D$ is sparce, symmetric
+	and positively defined, hence is suitable to being solved by the
+	conjugate gradient method.
 
-\section{User's Guide}
+	\section{User's Guide}
 
-The conformal flattening filter takes an ITK mesh as input and will
-generate another ITK mesh as output. The usage is basically the same
-as other mesh to mesh filters in ITK.
+	The conformal flattening filter takes an ITK mesh as input and will
+	generate another ITK mesh as output. The usage is basically the same
+	as other mesh to mesh filters in ITK.
 
-\subsection{Basic usage}
-The filter is instaintiated by:
-\begin{verbatim}
-  typedef itk::ConformalFlatteningFilter< MeshType, MeshType>  FilterType;
-  FilterType::Pointer filter = FilterType::New();
-\end{verbatim}
-Then the input can be set and result can be obtained by:
-\begin{verbatim}
-  filter->SetInput( mesh ); 
-\end{verbatim}
-and
-\begin{verbatim}
-  newMesh = filter->GetOutput(); 
-\end{verbatim}
+	\subsection{Basic usage}
+	The filter is instaintiated by:
+	\begin{verbatim}
+		typedef itk::ConformalFlatteningFilter< MeshType, MeshType>  FilterType;
+		FilterType::Pointer filter = FilterType::New();
+	\end{verbatim}
+	Then the input can be set and result can be obtained by:
+	\begin{verbatim}
+		filter->SetInput( mesh ); 
+	\end{verbatim}
+	and
+	\begin{verbatim}
+		newMesh = filter->GetOutput(); 
+	\end{verbatim}
 
-\subsection{More about APIs}
-The filter has two categories of APIs for further manipulation. The
-first one is the setPointP function and the second contains two switch
-functions, mapToPlane and mapToSphere.
+	\subsection{More about APIs}
+	The filter has two categories of APIs for further manipulation. The
+	first one is the setPointP function and the second contains two switch
+	functions, mapToPlane and mapToSphere.
 
-On the right side of equation (\ref{pde}), the $\delta_p$ function
-depands on the location of the point \emph{p}. Basically, this point
-will be mapped to infinity on the plane and the north-pole of the
-sphere. Hence the selection of the point \emph{p} determines which
-patch on the original mesh is mapped up to the north pole.
+	On the right side of equation (\ref{pde}), the $\delta_p$ function
+	depands on the location of the point \emph{p}. Basically, this point
+	will be mapped to infinity on the plane and the north-pole of the
+	sphere. Hence the selection of the point \emph{p} determines which
+	patch on the original mesh is mapped up to the north pole.
 
-The API setPointP takes an integer as input indicating the cell number
-in which the point \emph{p} lies. It's a good choice to set the point
-\emph{p} where the local surface is relatively flat, i.e., having a
-small local curvature. However the computation of curvature can be
-done by the vtkCurvatures filter. In order to make this filter
-independent of VTK, this feature is not included in the filter and is
-left to the user. If setting the point \emph{p} at some flat area is
-crucial, we suggest that user first use vtkCurvatures to obtain the
-number of cells having low curvatures and then call this function
-using one of the cells with a low curvature.
+	The API setPointP takes an integer as input indicating the cell number
+	in which the point \emph{p} lies. It's a good choice to set the point
+	\emph{p} where the local surface is relatively flat, i.e., having a
+	small local curvature. However the computation of curvature can be
+	done by the vtkCurvatures filter. In order to make this filter
+	independent of VTK, this feature is not included in the filter and is
+	left to the user. If setting the point \emph{p} at some flat area is
+	crucial, we suggest that user first use vtkCurvatures to obtain the
+	number of cells having low curvatures and then call this function
+	using one of the cells with a low curvature.
 
-The switch functions mapToPlane and mapToSphere determine the output
-to be either a plane or a sphere, the sphere being the default. The
-difference between the two mappings is simply a stereographic
-projection from the plane to the sphere. Simply by
-\begin{verbatim}
-  filter->mapToSphere( ); 
-\end{verbatim}
-or
-\begin{verbatim}
-  filter->mapToPlane( ); 
-\end{verbatim}
-users can switch between two different outputs.
+	The switch functions mapToPlane and mapToSphere determine the output
+	to be either a plane or a sphere, the sphere being the default. The
+	difference between the two mappings is simply a stereographic
+	projection from the plane to the sphere. Simply by
+	\begin{verbatim}
+		filter->mapToSphere( ); 
+	\end{verbatim}
+	or
+	\begin{verbatim}
+		filter->mapToPlane( ); 
+	\end{verbatim}
+	users can switch between two different outputs.
 
-\section{Examples}
+	\section{Examples}
 
-Here we show examples of our filter in action.  We also provide
-reviewers with all parameters and data so that they too can reproduce
-our results.  This is crucial for a good review.
+	Here we show examples of our filter in action.
 
+  \begin{figure}
+		\begin{center}
+			\includegraphics[width=7cm]{nice.eps} \caption{Original Mesh} \label{PntPQRS}
+    \end{center}
+  \end{figure}  
 
-\section{Conclusions}
-In this paper, we have described the Insight Toolkit (ITK) Conformal
-Flattening filter: itkConformalFlatteningFilter. This ITK filter is an
-implementation of a paper by Sigurd Angenent, et al., ``On the
-Laplace-Beltrami Operator and Brain Surface Flattening''
-\cite{angenent1999lbo}. This filter performs an angle preserving map of any
-genus zero (i.e. no handles) triangulated mesh to the sphere or,
-alternatively, to the plane.
+  \begin{figure}
+		\begin{center}
+			\includegraphics[width=7cm]{nice-flat.eps} \caption{Conformally
+			Flattened Mesh} \label{PntPQRS}
+    \end{center}
+  \end{figure}  
 
-We have provide the user with details to be able to reproduce our
-results. We have also given suggestions as to how to exploit the full
-functionality of this filter.
+	\section{Conclusions}
+	In this paper, we have described the Insight Toolkit (ITK) Conformal
+	Flattening filter: itkConformalFlatteningFilter. This ITK filter is an
+	implementation of a paper by Sigurd Angenent, et al., ``On the
+	Laplace-Beltrami Operator and Brain Surface Flattening''
+	\cite{angenent1999lbo}. This filter performs an angle preserving map of any
+	genus zero (i.e. no handles) triangulated mesh to the sphere or,
+	alternatively, to the plane.
 
-In the future, we propose to use this filter to map entire brain
-surfaces to the sphere. Perhaps clinical studies of the resulting
-flattened map with yield insights into brain anatomy and function.
+	We have provide the user with details to be able to reproduce our
+	results. We have also given suggestions as to how to exploit the full
+	functionality of this filter.
 
-
-
-% The preceding sections will have been written in a gentler,
-% introductory style.  You may also wish to include a reference
-% section, documenting all the functions/exceptions/constants.
-% Often, these will be placed in separate files and input like this:
-
-
-
-%\appendix
-%
-%\section{This is an Appendix}
-%
-%To create an appendix in a Insight HOWTO document, use markup like
-%this:
-%
-%\begin{verbatim}
-%\appendix
-%
-%\section{This is an Appendix}
-%
-%To create an appendix in a Insight HOWTO document, ....
-%
-%
-%\section{This is another}
-%
-%Just add another \section{}, but don't say \appendix again.
-%\end{verbatim}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%  Example on how to insert a figure
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%\begin{figure}
-%\center
-%\includegraphics[width=0.8\textwidth]{RegistrationComponentsDiagram.eps}
-%\itkcaption[Registration Framework Components]{The basic components of the
-%registration framework are two input images, a transform, a metric, an
-%interpolator and an optimizer.}
-%\label{fig:RegistrationComponents}
-%\end{figure}
+	In the future, we propose to use this filter to map entire brain
+	surfaces to the sphere. Perhaps clinical studies of the resulting
+	flattened map with yield insights into brain anatomy and function.
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%  Example on how to insert an equation.
-%  Never forget to put an equation in your paper.
-%  They make them look professional and impress the reviewers.
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%To support shape-guidance, the generic level set equation
-%(Eqn(~\ref{eqn:ShapeInfluenceTerm})) is extended to incorporate a shape guidance
-%term:
-%
-%\begin{equation}
-%\label{eqn:ShapeInfluenceTerm}
-%\xi \left(\psi^{*}(\mathbf{x}) - \psi(\mathbf{x})\right)
-%\end{equation}
+	% The preceding sections will have been written in a gentler,
+	% introductory style.  You may also wish to include a reference
+	% section, documenting all the functions/exceptions/constants.
+	% Often, these will be placed in separate files and input like this:
 
 
 
+	%\appendix
+	%
+	%\section{This is an Appendix}
+	%
+	%To create an appendix in a Insight HOWTO document, use markup like
+	%this:
+	%
+	%\begin{verbatim}
+	%\appendix
+	%
+	%\section{This is an Appendix}
+	%
+	%To create an appendix in a Insight HOWTO document, ....
+	%
+	%
+	%\section{This is another}
+	%
+	%Just add another \section{}, but don't say \appendix again.
+	%\end{verbatim}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%  Insert the bibliography using BibTeX
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\bibliographystyle{plain}
-\bibliography{itkConformalFlattening06-IJ}
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%
+	%  Example on how to insert a figure
+	%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+	%\begin{figure}
+	%\center
+	%\includegraphics[width=0.8\textwidth]{RegistrationComponentsDiagram.eps}
+	%\itkcaption[Registration Framework Components]{The basic components of the
+	%registration framework are two input images, a transform, a metric, an
+	%interpolator and an optimizer.}
+	%\label{fig:RegistrationComponents}
+	%\end{figure}
+
+
+
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%
+	%  Example on how to insert an equation.
+	%  Never forget to put an equation in your paper.
+	%  They make them look professional and impress the reviewers.
+	%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+	%To support shape-guidance, the generic level set equation
+	%(Eqn(~\ref{eqn:ShapeInfluenceTerm})) is extended to incorporate a shape guidance
+	%term:
+	%
+	%\begin{equation}
+	%\label{eqn:ShapeInfluenceTerm}
+	%\xi \left(\psi^{*}(\mathbf{x}) - \psi(\mathbf{x})\right)
+	%\end{equation}
+
+
+
+
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%
+	%  Insert the bibliography using BibTeX
+	%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+	\bibliographystyle{plain}
+	\bibliography{itkConformalFlattening06-IJ}
 
 
 \end{document}
