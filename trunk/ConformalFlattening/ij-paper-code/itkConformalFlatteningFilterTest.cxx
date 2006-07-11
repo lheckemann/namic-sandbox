@@ -9,7 +9,7 @@ int itkTransformMeshFilterTest(char* fileName) {
   // curvature.
   vtkCurvatures* curv1 = vtkCurvatures::New();
   curv1->SetInput(polyData);
-  //  curv1->SetCurvatureTypeToGaussian();
+//  curv1->SetCurvatureTypeToGaussian();
   curv1->SetCurvatureTypeToMean();
 
   Display(curv1->GetOutput());
