@@ -9,6 +9,7 @@
 \documentclass{InsightArticle}
 
 \usepackage[dvips]{graphicx}
+\usepackage{subfigure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -94,13 +95,13 @@
 	\tableofcontents
 
 	The folding and wrapping of brain surfaces presents researchers with
-	difficulties in obtaining a more intuition-based surface rendering and
-	in measuring distances on the brain surface. In recent years, a number
-	of methods have been proposed to map the brain surface to a plane or a
-	sphere. Most of the previous methods are derived to preserve local
-	area or length. In the paper of Sigurd Angenent, et al., ``On the
-	Laplace-Beltrami Operator and Brain Surface Flattening'', an angle
-	preserving conformal flattening scheme is proposed.
+	difficulties in obtaining a more intuition-based surface
+	rendering. In recent years, a number of methods have been proposed
+	to map the brain surface to a plane or a sphere. Most of the
+	previous methods are derived to preserve local area or length. In
+	the paper of Sigurd Angenent, et al., ``On the Laplace-Beltrami
+	Operator and Brain Surface Flattening'', an angle preserving
+	conformal flattening scheme is proposed.
 
 	The algorithm obtains the explicit form of the flattening map by
 	solving a partial differential equation on the surface using the
@@ -270,7 +271,7 @@
 		typedef itk::ConformalFlatteningFilter< MeshType, MeshType>  FilterType;
 		FilterType::Pointer filter = FilterType::New();
 	\end{verbatim}
-	Then the input can be set and result can be obtained by:
+	Then the input can be set and results can be obtained by:
 	\begin{verbatim}
 		filter->SetInput( mesh ); 
 	\end{verbatim}
@@ -314,21 +315,94 @@
 	\end{verbatim}
 	users can switch between two different outputs.
 
-	\section{Examples}
+	\section{The Filter Test}
+  This section contains details about the test we include with the
+  submission of this ITK filter. We have provided $nice.vtk$ which is
+  a synthetic genus zero mesh. We set this as the single input to the
+  itkConformalFlatteningFilterTest, as follows:
 
-	Here we show examples of our filter in action.
+	\begin{verbatim}
+		> ./itkConformalFlatteningFilterTest nice.vtk
+	\end{verbatim}
 
-  \begin{figure}
+  \noindent In Figure~\ref{fig:original}, we show the original
+  $nice.vtk$ data, which is colored according to mean curvature. In
+  Figure~\ref{fig:nice}, we show the surface view and in
+  Figure~\ref{fig:nice-mesh}, we show the triangulated mesh.
+
+  \begin{figure}[t]
 		\begin{center}
-			\includegraphics[width=7cm]{nice.eps} \caption{Original Mesh} \label{PntPQRS}
+			\subfigure[Original Surface]{\includegraphics[width=5cm]{nice.eps} \label{fig:nice}}
+			\subfigure[Original Mesh]{\includegraphics[width=5cm]{nice-mesh.eps} \label{fig:nice-mesh}}
     \end{center}
+    \vspace{-.25in} \caption{The Original Data} \label{fig:original}
   \end{figure}  
 
-  \begin{figure}
+  In Figure~\ref{fig:results}, we show the results of the filter. The
+  coloring provides a convenient visual mapping from the original mesh
+  to the sphere. In Figure~\ref{fig:nice-flat}, we show the surface
+  view of the sphere and in Figure~\ref{fig:nice-flat-mesh}, we show
+  the triangulated mesh on the sphere.
+
+  \begin{figure}[h]
 		\begin{center}
-			\includegraphics[width=7cm]{nice-flat.eps} \caption{Conformally
-			Flattened Mesh} \label{PntPQRS}
+			\subfigure[Flattened Surface]{\includegraphics[width=5cm]{nice-flat.eps} \label{fig:nice-flat}}
+			\subfigure[Flattened Mesh]{\includegraphics[width=5cm]{nice-flat-mesh.eps} \label{fig:nice-flat-mesh}}
     \end{center}
+    \vspace{-.25in} \caption{The Results} \label{fig:results}
+  \end{figure}  
+
+  In order to reproduce our results, the reader should compile and run
+  our code with the following packages (though the code will likely
+  compile and run with other variants, including CVS checkouts, of
+  CMake, ITK, and VTK):
+
+  \begin{verbatim}
+  CMake 2.2.3
+  ITK 2.4.1
+  VTK 4.4.2
+  \end{verbatim}
+
+  We have also included the results presented here as the
+  $niceFlat.vtk$ file included in this submission. One can verify the
+  angle preserving nature of this filter by comparing ratios of edge
+  lengths between triangles in the original surface and the
+  corresponding triangles in the flattened mesh.
+
+	\section{Future Applications}
+  We propose to use this filter to conformally flatten brain
+  surfaces. In order to accomplish this, we are currently
+  investigating automated methods for extracting genus zero brain
+  surfaces from raw MRI volumes.
+
+  We have tried a variety of brain extraction (skull-removing) tools,
+  including FreeSurfer, BET, MRIcro, ITKSNAP, and other ITK levelset
+  filters and have been able to extract brain surfaces meshes using
+  these tools. However, thus far, we have been unsuccessful in
+  obtaining a genus zero surface without significant manual editing,
+  using these tools. We are hopeful that topology preserving levelset
+  algorithms will soon become part of ITK to facilitate our work, but
+  the development of this filter is beyond the scope of this paper. We
+  are also aware of topology correction algorithms which perform
+  cutting operations to convert any genus surfaces into genus zero
+  surfaces. We will also investigate the use of these algorithms to
+  extract genus zero brain surfaces.
+
+  As described above, through the use of various open-source tools and
+  a fair amount of manual editing, we were able to obtain a genus zero
+  surface of the brain which we show in
+  Figure~\ref{fig:brain}. Preliminary results of running the
+  itkConformalFlatteningFilterTest on $brain.vtk$ can be seen in
+  Figure~\ref{fig:brain-flat}. Note that the coloring is not optimal
+  since the coloring parameters in the test filter have been optimized
+  for the $nice.vtk$ test file.
+
+  \begin{figure}[t]
+		\begin{center}
+			\subfigure[Original Brain Surface]{\includegraphics[width=5cm]{brain.eps} \label{fig:brain}}
+			\subfigure[Flattened Brain Surface]{\includegraphics[width=5cm]{brain-flat.eps} \label{fig:brain-flat}}
+    \end{center}
+    \vspace{-.25in} \caption{Preliminary Brain Surface Results}
   \end{figure}  
 
 	\section{Conclusions}
