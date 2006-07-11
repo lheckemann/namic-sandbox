@@ -377,7 +377,7 @@
 
   We have tried a variety of brain extraction (skull-removing) tools,
   including FreeSurfer, BET, MRIcro, ITKSNAP, and other ITK levelset
-  filters and have been able to extract brain surfaces meshes using
+  filters and have been able to extract brain surface meshes using
   these tools. However, thus far, we have been unsuccessful in
   obtaining a genus zero surface without significant manual editing,
   using these tools. We are hopeful that topology preserving levelset
@@ -388,16 +388,7 @@
   surfaces. We will also investigate the use of these algorithms to
   extract genus zero brain surfaces.
 
-  As described above, through the use of various open-source tools and
-  a fair amount of manual editing, we were able to obtain a genus zero
-  surface of the brain which we show in
-  Figure~\ref{fig:brain}. Preliminary results of running the
-  itkConformalFlatteningFilterTest on $brain.vtk$ can be seen in
-  Figure~\ref{fig:brain-flat}. Note that the coloring is not optimal
-  since the coloring parameters in the test filter have been optimized
-  for the $nice.vtk$ test file.
-
-  \begin{figure}[t]
+  \begin{figure}[h]
 		\begin{center}
 			\subfigure[Original Brain Surface]{\includegraphics[width=5cm]{brain.eps} \label{fig:brain}}
 			\subfigure[Flattened Brain Surface]{\includegraphics[width=5cm]{brain-flat.eps} \label{fig:brain-flat}}
@@ -405,18 +396,30 @@
     \vspace{-.25in} \caption{Preliminary Brain Surface Results}
   \end{figure}  
 
+  As described above, through the use of various open-source tools and
+  a fair amount of manual editing, we were able to obtain a genus zero
+  surface of the brain which we show in
+  Figure~\ref{fig:brain}. Preliminary results of running the
+  itkConformalFlatteningFilterTest on $brain.vtk$ can be seen in
+  Figure~\ref{fig:brain-flat}. Note that the coloring is not optimal
+  since the coloring parameters in the test filter have been optimized
+  for the $nice.vtk$ test file. In the future, we will optimize the
+  coloring scheme for brain surfaces so that brain surface meshes
+  mapped to the sphere will provide nice visual insights into the
+  contours of brain sulci and gyri.
+
 	\section{Conclusions}
 	In this paper, we have described the Insight Toolkit (ITK) Conformal
-	Flattening filter: itkConformalFlatteningFilter. This ITK filter is an
-	implementation of a paper by Sigurd Angenent, et al., ``On the
+	Flattening filter: itkConformalFlatteningFilter. This ITK filter is
+	an implementation of a paper by Sigurd Angenent, et al., ``On the
 	Laplace-Beltrami Operator and Brain Surface Flattening''
-	\cite{angenent1999lbo}. This filter performs an angle preserving map of any
-	genus zero (i.e. no handles) triangulated mesh to the sphere or,
-	alternatively, to the plane.
+	\cite{angenent1999lbo}. This filter performs an angle preserving map
+	of any genus zero (i.e. no handles) triangulated mesh to the sphere
+	or, alternatively, to the plane.
 
 	We have provide the user with details to be able to reproduce our
-	results. We have also given suggestions as to how to exploit the full
-	functionality of this filter.
+	results. We have also given suggestions as to how to exploit the
+	full functionality of this filter.
 
 	In the future, we propose to use this filter to map entire brain
 	surfaces to the sphere. Perhaps clinical studies of the resulting

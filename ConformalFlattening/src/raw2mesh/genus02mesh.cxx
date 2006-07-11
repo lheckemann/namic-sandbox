@@ -48,7 +48,7 @@ int main( int argc, char * argv [] )
   std::cerr << "Smooth the mesh..." << std::endl;
   vtkWindowedSincPolyDataFilter* smooth = vtkWindowedSincPolyDataFilter::New();
   smooth->SetInput( cubes->GetOutput() );
-  smooth->SetNumberOfIterations( 10 );
+  smooth->SetNumberOfIterations( 10000 );
   smooth->Update();
  
   /* Write vtkPolyData to file */
@@ -58,10 +58,11 @@ int main( int argc, char * argv [] )
   writerIn->SetFileTypeToASCII();
   writerIn->Write();
   
+  std::cout<<"Points in the mesh = "<< smooth->GetOutput()->GetNumberOfPoints() <<std::endl;
+  std::cout<<"Cells in the mesh = "<< smooth->GetOutput()->GetNumberOfCells() <<std::endl;
+
   /* Decimate the mesh */
-  std::cout<<"Points, before decimation = "<< smooth->GetOutput()->GetNumberOfPoints() <<std::endl;
-  std::cout<<"Cells, before decimation = "<< smooth->GetOutput()->GetNumberOfCells() <<std::endl;
-  std::cerr << "Decimate the mesh..." << std::endl;
+//   std::cerr << "Decimate the mesh..." << std::endl;
 //   vtkQuadricDecimation *decimator = vtkQuadricDecimation::New();
 //   decimator->SetInput( smooth->GetOutput() );
 //   decimator->SetTargetReduction( 1 );
@@ -69,16 +70,15 @@ int main( int argc, char * argv [] )
 //   std::cout<<"Cells, after decimation = "<< decimator->GetOutput()->GetNumberOfCells() <<std::endl;
 
   /* Set the color according to local mean/gaussian curvature */
-  std::cerr << "Set the color according to local mean/gaussian curvature..." << std::endl;
+  std::cerr << "Set the color according to local mean curvature..." << std::endl;
   vtkCurvatures* meanCurvatures = vtkCurvatures::New();
   meanCurvatures->SetInput( smooth->GetOutput() );
-  //  meanCurvatures->SetCurvatureTypeToGaussian();
+//  meanCurvatures->SetCurvatureTypeToGaussian();
   meanCurvatures->SetCurvatureTypeToMean();
   Display( meanCurvatures->GetOutput() );
 
   /* Convert back to an ITK mesh */
   std::cerr << "Convert back to an ITK mesh..." << std::endl;
-  //MeshType::Pointer smoothedMesh = vtkPolyDataToITKMesh( decimator->GetOutput() );
   MeshType::Pointer smoothedMesh = vtkPolyDataToITKMesh( smooth->GetOutput() );
 
   /* Execute the conformal flattening */
