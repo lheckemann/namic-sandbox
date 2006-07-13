@@ -39,7 +39,7 @@
 //
 #include "vtkImageImport.h"
 #include "vtkImageExport.h"
-#include "vtkMarchingCubes.h"
+#include "vtkDiscreteMarchingCubes.h"
 #include "vtkWindowedSincPolyDataFilter.h"
 #include "vtkQuadricDecimation.h"
 #include "vtkPolyDataReader.h"

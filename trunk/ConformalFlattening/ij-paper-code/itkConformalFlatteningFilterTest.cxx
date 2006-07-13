@@ -276,6 +276,7 @@ void Display(vtkPolyData* polyData)
 
 
   vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
+  mapper->SetScalarRange( -0.01, 0.01 );
   mapper->SetInput(norm->GetOutput());
 
   vtkLookupTable* lut1 = vtkLookupTable::New();

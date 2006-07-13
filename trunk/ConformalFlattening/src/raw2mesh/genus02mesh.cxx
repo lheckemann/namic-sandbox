@@ -38,26 +38,20 @@ int main( int argc, char * argv [] )
 
   /* Run marching cubes to generate the mesh*/
   std::cerr << "Run marching cubes to generate the mesh..." << std::endl;
-  vtkMarchingCubes *cubes = vtkMarchingCubes::New();
+  vtkDiscreteMarchingCubes *cubes = vtkDiscreteMarchingCubes::New();
 //  cubes->SetInput( imShrink->GetOutput() );
   cubes->SetInput( vtkImportImageObject->GetOutput() );
-  cubes->SetValue(0, 0.5);
+//  cubes->SetValue(0, 0.5);
   cubes->Update();
 
   /* Smooth the mesh */
   std::cerr << "Smooth the mesh..." << std::endl;
   vtkWindowedSincPolyDataFilter* smooth = vtkWindowedSincPolyDataFilter::New();
   smooth->SetInput( cubes->GetOutput() );
-  smooth->SetNumberOfIterations( 10000 );
+  smooth->SetNumberOfIterations( 150 );
+  smooth->NormalizeCoordinatesOn();
   smooth->Update();
  
-  /* Write vtkPolyData to file */
-  vtkPolyDataWriter *writerIn = vtkPolyDataWriter::New();
-  writerIn->SetInput( smooth->GetOutput() );
-  writerIn->SetFileName(argv[2]);
-  writerIn->SetFileTypeToASCII();
-  writerIn->Write();
-  
   std::cout<<"Points in the mesh = "<< smooth->GetOutput()->GetNumberOfPoints() <<std::endl;
   std::cout<<"Cells in the mesh = "<< smooth->GetOutput()->GetNumberOfCells() <<std::endl;
 
@@ -75,11 +69,31 @@ int main( int argc, char * argv [] )
   meanCurvatures->SetInput( smooth->GetOutput() );
 //  meanCurvatures->SetCurvatureTypeToGaussian();
   meanCurvatures->SetCurvatureTypeToMean();
-  Display( meanCurvatures->GetOutput() );
+
+  /* Set the polyData normals */
+  vtkPolyDataNormals* norm1 = vtkPolyDataNormals::New();
+  norm1->SetInput( smooth->GetOutput() );
+  norm1->SetFeatureAngle(30);
+  norm1->Update();
+
+  /* Create the original polyData */
+  vtkPolyData* originalPolyData = vtkPolyData::New();
+  originalPolyData = smooth->GetOutput();
+  originalPolyData->GetPointData()->SetNormals( norm1->GetOutput()->GetPointData()->GetNormals() );
+
+  /* Write vtkPolyData to file */
+  vtkPolyDataWriter *writerIn = vtkPolyDataWriter::New();
+  writerIn->SetInput( originalPolyData );
+  writerIn->SetFileName(argv[2]);
+  writerIn->SetFileTypeToASCII();
+  writerIn->Write();
+  
+  /* Display the original mesh */
+  Display( originalPolyData );
 
   /* Convert back to an ITK mesh */
   std::cerr << "Convert back to an ITK mesh..." << std::endl;
-  MeshType::Pointer smoothedMesh = vtkPolyDataToITKMesh( smooth->GetOutput() );
+  MeshType::Pointer smoothedMesh = vtkPolyDataToITKMesh( originalPolyData );
 
   /* Execute the conformal flattening */
   std::cerr << "Execute the conformal flattening..." << std::endl;
@@ -100,7 +114,7 @@ int main( int argc, char * argv [] )
   
   /* Display the new polydata */
   std::cerr << "Display the new polydata..." << std::endl;
-  conformallyFlattenedPolyData->GetPointData()->SetScalars( meanCurvatures->GetOutput()->GetPointData()->GetScalars() );
+  conformallyFlattenedPolyData->GetPointData()->SetScalars( originalPolyData->GetPointData()->GetScalars() );
   Display( conformallyFlattenedPolyData );
   
   return EXIT_SUCCESS;
@@ -261,27 +275,31 @@ vtkPolyData* ITKMeshToVtkPolyData( MeshType::Pointer mesh )
 
 void Display(vtkPolyData* polyData)
 {
-  vtkPolyDataNormals* norm = vtkPolyDataNormals::New();
-  norm->SetInput(polyData);
-  norm->SetFeatureAngle(45);
   vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
-  mapper->SetInput(norm->GetOutput());
-  vtkLookupTable* lut1 = vtkLookupTable::New();
-  lut1->SetNumberOfColors(256);
-//   lut1->SetHueRange(0.2, 0); //0:red, 0.2: yellow, 0.7: blue, 1:red again.
-//   lut1->SetSaturationRange(0.2, 1.0);
-//   lut1->SetValueRange(1.0, 0.3);
-  lut1->SetHueRange(0.15, 1.0); //0:red, 0.2: yellow, 0.7: blue, 1:red again.
-  lut1->SetSaturationRange(1.0, 1.0);
-  lut1->SetAlphaRange(1.0, 1.0);
-  lut1->SetRange(-20, 20); //-20: left value above, 20: right value above
-  mapper->SetLookupTable(lut1);
-  mapper->SetUseLookupTableScalarRange(1);
+  mapper->SetInput( polyData );
+  mapper->SetScalarRange( -0.01, 0.01 );
+
+
+//   vtkLookupTable* lut1 = vtkLookupTable::New();
+//   lut1->SetNumberOfColors(256);
+// //   lut1->SetHueRange(0.2, 0); //0:red, 0.2: yellow, 0.7: blue, 1:red again.
+// //   lut1->SetSaturationRange(0.2, 1.0);
+// //   lut1->SetValueRange(1.0, 0.3);
+//   lut1->SetHueRange(0.15, 1.0); //0:red, 0.2: yellow, 0.7: blue, 1:red again.
+//   lut1->SetSaturationRange(1.0, 1.0);
+//   lut1->SetAlphaRange(1.0, 1.0);
+//   lut1->SetRange(-20, 20); //-20: left value above, 20: right value above
+//   mapper->SetLookupTable(lut1);
+//   mapper->SetUseLookupTableScalarRange(1);
+
+
   vtkActor* actor = vtkActor::New();
   actor->SetMapper(mapper);
+
 //   vtkCamera *camera = vtkCamera::New();
 //       camera->SetPosition(1,1,1);
 //       camera->SetFocalPoint(0,0,0);
+
 
   vtkRenderer* ren = vtkRenderer::New();
   ren->AddActor(actor);
