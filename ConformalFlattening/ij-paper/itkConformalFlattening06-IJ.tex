@@ -308,10 +308,10 @@
 	number of cells having low curvatures and then call this function
 	using one of the cells with a low curvature.
 
-	\item The switch functions mapToPlane and mapToSphere determine the output
-	to be either a plane or a sphere, the sphere being the default. The
-	difference between the two mappings is simply a stereographic
-	projection from the plane to the sphere. Simply by
+	\item The switch functions mapToPlane and mapToSphere determine the
+	output to be either a plane or a sphere, the sphere being the
+	default. The difference between the two mappings is simply a
+	stereographic projection from the plane to the sphere. Simply by
 	\begin{verbatim}
 		filter->mapToSphere( ); 
 	\end{verbatim}
@@ -321,17 +321,20 @@
 	\end{verbatim}
 	users can switch between two different outputs.
 	
-	\item setScale function. The mapping, calculated from the equation (\ref{pde}),
-	is dependent on the number of the nodes	within the mesh. Given a mesh of a
-	large number of nodes and cells, the image of the flattening mapping, is constrained
-	in a small range around origin. To make it cover a sufficient area of the plane
-	and further get a reasonable result from stereographic projection, re-scale of the
-	flattened plane is needed. This function is used to set the scale factor. by
+	\item setScale function. The mapping, calculated from the equation
+	(\ref{pde}), is dependent upon the number of the nodes within the
+	mesh. Given a mesh of a large number of nodes and cells, the image
+	of the flattening mapping is constrained in a small range around
+	origin. To make it cover a sufficient area of the plane and further
+	get a reasonable result from stereographic projection, a rescaling
+	of the flattened plane is needed. This function is used to set the
+	scale factor. by
 	\begin{verbatim}
 		filter->setScale( scale factor ); 
 	\end{verbatim}
-	For a mesh of around several thousands of nodes, a factor of 100 is likely to get a 
-	good result. The factor should grow as the number of nodes grows.	
+	For a mesh of around several thousands of nodes, a factor of 100 is
+	likely to get a good result. The factor should grow as the number of
+	nodes grows.
 	\end{enumerate}
 
 	\section{The Filter Test}
@@ -461,23 +464,25 @@
   file).
   \end{enumerate}
   
-  The mapping is conformal thus preserves angles in each triangle. Then,
-  for a triangle $\triangle ABC$ which is mapped to $\triangle A'B'C'$,
-  theoretically, $\frac{\bar{AB}}{\bar{A'B'}}$, $\frac{\bar{AC}}{\bar{A'C'}}$
-  and $\frac{\bar{BC}}{\bar{B'C'}}$ should be equal to a constant. While
-  this constant will vary from one triangle to another. We have the 
-  apc.cxx (apc for angle preserving check) file to check this property.
-  The above *Test.cxx files will generate an output mesh file, say, result.vtk.
-  Then by
+  The mapping is conformal thus preserves angles in each
+  triangle. Then, for a triangle $\triangle ABC$ which is mapped to
+  $\triangle A'B'C'$, theoretically, $\frac{\bar{AB}}{\bar{A'B'}}$,
+  $\frac{\bar{AC}}{\bar{A'C'}}$ and $\frac{\bar{BC}}{\bar{B'C'}}$
+  should be equal to a constant. While this constant will vary from
+  one triangle to another. We have the anglePreserveCheck.cxx file to
+  check this property.  The above *Test.cxx files will generate an
+  output mesh file, say, result.vtk. Then, by
   \begin{verbatim}
-  > ./apc originalSurface.vtk result.vtk
+  > ./anglePreserveCheck originalSurface.vtk result.vtk,
   \end{verbatim}
-  a angleDiff.dat file is generated. Each line of this file contains
-  three ratios of $\frac{\bar{AB}}{\bar{A'B'}}$, $\frac{\bar{AC}}{\bar{A'C'}}$
-  and $\frac{\bar{BC}}{\bar{B'C'}}$, respectively. Assign those three values
-  as the x, y and z coodinates of points and plot them, they should be
-  gathering around, though not all exactly on(because of the approximation computation 
-  of the flattening mapping), the line of x=y=z. The plot is given in Figure~\ref{anglePreservingCheck}.
+  the angleDiff.dat file is generated. Each line of this file contains
+  three ratios of $\frac{\bar{AB}}{\bar{A'B'}}$,
+  $\frac{\bar{AC}}{\bar{A'C'}}$ and $\frac{\bar{BC}}{\bar{B'C'}}$,
+  respectively. Assign those three values as the x, y and z coodinates
+  of points and plot them, they should be gathering around, though not
+  all exactly on (because of the approximation computation of the
+  flattening mapping), the line of x=y=z. The plot is given in
+  Figure~\ref{anglePreservingCheck}.
   \begin{figure}[h]
 		\begin{center}
 			\includegraphics[width=6cm]{anglePreservingCheck.eps} \label{anglePreservingCheck}
