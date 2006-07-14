@@ -264,3 +264,4 @@ int RegressionTestImage (const char *testImageFilename, const char *baselineImag
     }
   return (status != 0) ? 1 : 0;
 }
+

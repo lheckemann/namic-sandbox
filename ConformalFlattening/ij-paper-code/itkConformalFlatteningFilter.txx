@@ -108,6 +108,8 @@ namespace itk
   {
     _cellHavePntP = 0; //set the p point of delta function in the 0-th cell
     _mapToSphere = true;
+    
+    _mapScale = 100; // The largest corrdinates of the furthest point in the plane is _mapScale.
   }
 
 
@@ -580,7 +582,7 @@ namespace itk
     CoordRepType temp1 = ( fabs(xmin)>fabs(xmax) )?fabs(xmin):fabs(xmax); 
     CoordRepType temp2 = ( fabs(ymin)>fabs(ymax) )?fabs(ymin):fabs(ymax);
 //    std::cout<<std::max( temp1, temp2 )<<std::endl;
-    CoordRepType factor = 100/( ( temp1>temp2 )?temp1:temp2 );
+    CoordRepType factor = _mapScale/( ( temp1>temp2 )?temp1:temp2 );
 
     // the factor is used to re-scale the points in the plane.
     
@@ -635,6 +637,21 @@ ConformalFlatteningFilter<TInputMesh,TOutputMesh>::setPointP( int p )
 
 template <class TInputMesh, class TOutputMesh>
 void 
+ConformalFlatteningFilter<TInputMesh,TOutputMesh>::setScale( double scale )
+  {
+    if (scale > 0)
+    {
+      _mapScale = scale;
+    }
+    else
+    {
+      std::cerr<<"Scale should be larger than 0. Set to 100."<<std::endl<<std::endl;
+      _mapScale = 100;
+    }
+  }
+
+template <class TInputMesh, class TOutputMesh>
+void 
 ConformalFlatteningFilter<TInputMesh,TOutputMesh>::mapToSphere( void )
   {
     _mapToSphere = true;
@@ -652,3 +669,4 @@ ConformalFlatteningFilter<TInputMesh,TOutputMesh>::mapToPlane( void )
 
 
 #endif
+
