@@ -47,6 +47,10 @@ SET(CurrentExe "brainTest")
 ADD_EXECUTABLE(${CurrentExe} brainTest.cxx) 
 TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
 
+SET(CurrentExe "anglePreserveCheck")
+ADD_EXECUTABLE(${CurrentExe} anglePreserveCheck.cxx) 
+TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
+
 #the following line is an example of how to add a test to your project.
 #Testname is the title for this particular test.  ExecutableToRun is the
 #program which will be running this test.  It can either be a part of this

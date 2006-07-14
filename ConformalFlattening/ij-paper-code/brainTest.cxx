@@ -1,4 +1,4 @@
-#include "itkConformalFlatteningFilterTest.h"
+#include "brainTest.h"
 
 int itkTransformMeshFilterTest(char* fileNameIn, char* fileNameOut) {
   
