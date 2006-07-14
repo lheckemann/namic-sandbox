@@ -1,7 +1,7 @@
 INCLUDE(${CMAKE_SOURCE_DIR}/IJMacros.txt)
 
 #Change PROJECT_NAME to the name of your project
-PROJECT(itkConformalFlatteningFilterTest)
+PROJECT(ConformalFlatteningITKProject)
 
 #The following lines are required to use Dart
 ENABLE_TESTING()
