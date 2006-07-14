@@ -43,6 +43,10 @@ SET(CurrentExe "itkConformalFlatteningFilterTest")
 ADD_EXECUTABLE(${CurrentExe} itkConformalFlatteningFilterTest.cxx) 
 TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
 
+SET(CurrentExe "brainTest")
+ADD_EXECUTABLE(${CurrentExe} brainTest.cxx) 
+TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
+
 #the following line is an example of how to add a test to your project.
 #Testname is the title for this particular test.  ExecutableToRun is the
 #program which will be running this test.  It can either be a part of this
@@ -53,3 +57,4 @@ TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
 #ADD_TEST(CompareImage ImageCompare ${CMAKE_SOURCE_DIR}/img1.png ${CMAKE_SOURCE_DIR}/img1.png.base.png)
 
 #Once you're done modifying this template, you should rename it to "CMakeLists.txt"
+

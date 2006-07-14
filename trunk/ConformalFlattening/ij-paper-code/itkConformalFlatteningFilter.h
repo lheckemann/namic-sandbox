@@ -77,11 +77,15 @@ namespace itk
     void setPointP( int );
     // The point P used to define the mapping is put according to the input of this function.
     
+    void setScale( double );
+    
+    
     void mapToSphere( void );
     // Output a sphere, default choice.
     
     void mapToPlane( void );
     // Output a plane, i.e., no stereographic projection step.
+    
 
   protected:
     ConformalFlatteningFilter();
@@ -111,7 +115,10 @@ namespace itk
     // Store the cell Id in which the point P, which is used to define the mapping, lies in.
     
     bool _mapToSphere;
-    // Whether the result is sphere or plane.             
+    // Whether the result is sphere or plane.  
+    
+    double _mapScale;
+    // The scale when mapping to the plane. Determines how far the farthest point goes.           
   };
 
 } // end namespace itk

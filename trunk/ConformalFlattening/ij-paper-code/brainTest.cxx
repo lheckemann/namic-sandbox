@@ -26,7 +26,7 @@ int itkTransformMeshFilterTest(char* fileNameIn, char* fileNameOut) {
   filter->setPointP(-100000);
   //filter->mapToPlane();
   filter->mapToSphere();
-  filter->setScale( 100 );
+  filter->setScale( 5000 );
 
   // Execute the filter
   filter->Update();
@@ -76,7 +76,7 @@ vtkPolyData* readDataToPolyData(char* fName)
 {
   vtkPolyDataReader * reader = vtkPolyDataReader::New();
 
-  reader->SetFileName( fName);
+  reader->SetFileName( fName );
   reader->Update();
 
   vtkPolyData * polyData = reader->GetOutput();
@@ -271,25 +271,25 @@ void Display(vtkPolyData* polyData)
   norm->GetOutput()->GetPointData()->SetScalars( polyData->GetPointData()->GetScalars() );
 
   vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();
-//  mapper->SetScalarRange( -0.01, 0.01 );
+  mapper->SetScalarRange( -0.01, 0.01 );
   mapper->SetInput( norm->GetOutput() );
 
-  vtkLookupTable* lut1 = vtkLookupTable::New();
-  lut1->SetNumberOfColors(256);
-  //   lut1->SetHueRange(0.2, 0); //0:red, 0.2: yellow, 0.7: blue, 1:red again.
-  //   lut1->SetSaturationRange(0.2, 1.0);
-  //   lut1->SetValueRange(1.0, 0.3);
+//   vtkLookupTable* lut1 = vtkLookupTable::New();
+//   lut1->SetNumberOfColors(256);
+//   //   lut1->SetHueRange(0.2, 0); //0:red, 0.2: yellow, 0.7: blue, 1:red again.
+//   //   lut1->SetSaturationRange(0.2, 1.0);
+//   //   lut1->SetValueRange(1.0, 0.3);
 
-  lut1->SetHueRange(0.15, 1.0); //0:red, 0.2: yellow, 0.7: blue, 1:red again.
-  lut1->SetSaturationRange(1.0, 1.0);
+//   lut1->SetHueRange(0.15, 1.0); //0:red, 0.2: yellow, 0.7: blue, 1:red again.
+//   lut1->SetSaturationRange(1.0, 1.0);
 
 
 
-  lut1->SetAlphaRange(1.0, 1.0);
-  lut1->SetRange(-20, 20); //-20: left value above, 20: right value above
+//   lut1->SetAlphaRange(1.0, 1.0);
+//   lut1->SetRange(-20, 20); //-20: left value above, 20: right value above
 
-  mapper->SetLookupTable(lut1);
-  mapper->SetUseLookupTableScalarRange(1);
+//   mapper->SetLookupTable(lut1);
+//   mapper->SetUseLookupTableScalarRange(1);
 
   vtkActor* actor = vtkActor::New();
   actor->SetMapper(mapper);

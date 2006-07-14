@@ -32,7 +32,7 @@
 #include "vtkLookupTable.h"
 #include "vtkPointData.h"
 #include "vtkPolyDataNormals.h"
-
+#include "vtkPolyDataWriter.h"
 
 
 
@@ -72,4 +72,3 @@ MeshType::Pointer vtkPolyDataToITKMesh(vtkPolyData* polyData);
 vtkPolyData* readDataToPolyData(char* fName);
 vtkPolyData* ITKMeshToVtkPolyData(MeshType::Pointer mesh);
 void Display(vtkPolyData* polyData);
-
