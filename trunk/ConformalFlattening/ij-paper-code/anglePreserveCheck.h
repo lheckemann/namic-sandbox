@@ -1,3 +1,10 @@
+// In the Conformal Flattening map, the transform function is the
+// solution of a partial differential equation(PDE). The PDE is solved
+// by Finite Element Method which turns the original problem into a
+// system of linear equation Dx=b. In this section we are to generate
+// the matrix D (b will be computed in another program) which will
+// feed into the linear equation solver part.
+
 // Disable warning for long symbol names in this file only
 #ifdef _MSC_VER
 #pragma warning ( disable : 4786 )
@@ -6,7 +13,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <ctime>
+#include <numeric>
 
 //
 // ITK Headers
@@ -83,4 +90,3 @@ vtkPolyData* ITKMeshToVtkPolyData(MeshType::Pointer mesh);
 void Display(vtkPolyData* polyData);
 
 void anglePreserveCheck( MeshType::Pointer mesh1, MeshType::Pointer mesh2 );
-  

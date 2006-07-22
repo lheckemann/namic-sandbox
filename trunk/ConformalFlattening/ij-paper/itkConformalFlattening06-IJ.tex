@@ -78,18 +78,16 @@
 	% scope of the document.
 	\begin{abstract}
 		\noindent This paper describes the Insight Toolkit (ITK) Conformal
-		Flattening filter: itkConformalFlatteningFilter. This ITK filter is an
-		implementation of a paper by Sigurd Angenent, et al., ``On the
-		Laplace-Beltrami Operator and Brain Surface Flattening''
-		\cite{angenent1999lbo}. This filter performs an angle preserving map of any
-		genus zero (i.e. no handles) triangulated mesh to the sphere or,
-		alternatively, to the plane. In other words, any given triangle in the
-		resulting sphere will have the same angles as the corresponding
-		triangle in the original mesh, though their areas may differ. In this
-		paper, we describe our code and provide the user with enough details
-		to reproduce the results which we present in this paper. This filter
-		has a variety of applications including the flattening of brain
-		surfaces, which was the initial motivation for this work.
+		Flattening filter: itkConformalFlatteningFilter. This ITK filter
+		is an implementation of a paper by Sigurd Angenent, et al., ``On
+		the Laplace-Beltrami Operator and Brain Surface Flattening''
+		\cite{angenent1999lbo}. This filter performs an angle preserving
+		map of any genus zero (i.e. no handles) surface to the sphere or,
+		alternatively, to the plane. In this paper, we describe our code
+		and provide the user with enough details to reproduce the results
+		which we present in this paper. This filter has a variety of
+		applications including the flattening of brain surfaces, which was
+		the initial motivation for this work.
 	\end{abstract}
 
 	\tableofcontents
@@ -99,21 +97,23 @@
 	rendering. In recent years, a number of methods have been proposed
 	to map the brain surface to a plane or a sphere. Most of the
 	previous methods are derived to preserve local area or length. Like
-	in the work of \cite{davatzikos1996} and \cite{macDonald1994}, 
-	a parameterized deformable surface whose topology is mappable to a sphere
-	is fitted. Thus the brain surface can be represented on a planar map 
-	using spherical coordinates. Also, as in \cite{carman1995} and \cite{schwartz1989}, 
-	quasi-isometrics and quasi-conformal flattening schemes are used 
-	to flatten the brain surface. Those methods are more functional
-	minimizing schemes and hence bijectivity can not be guaranteed.	
-	In the paper \cite{angenent1999lbo}, an bijective angle preserving
-	conformal flattening scheme is proposed.
+	in the work of \cite{davatzikos1996} and \cite{macDonald1994}, a
+	parameterized deformable surface whose topology is mappable to a
+	sphere is fitted. Thus the brain surface can be represented on a
+	planar map using spherical coordinates. Also, as in
+	\cite{carman1995} and \cite{schwartz1989}, quasi-isometrics and
+	quasi-conformal flattening schemes are used to flatten the brain
+	surface. Those methods are more functional minimizing schemes and
+	hence bijectivity can not be guaranteed.  In the paper
+	\cite{angenent1999lbo}, an bijective angle preserving conformal
+	flattening scheme is proposed. See the end of
+	section~\ref{sec:brain-flat} for a definition of angle preserving.
 
 	The algorithm obtains the explicit form of the flattening map by
 	solving a partial differential equation on the surface using the
-	finite element method (FEM). The mapping is a bijection thus the 
-	triangles do not flip and the original structure can be restored
-	by inverse mapping.
+	finite element method (FEM). The mapping is a bijection thus the
+	triangles do not flip and the original structure can be restored by
+	inverse mapping.
 
 	\section{Algorithm Details}
 
@@ -291,22 +291,24 @@
 	The filter has several APIs for further manipulation of the output.
 	
 	\begin{enumerate}
-	\item setPointP function. On the right side of equation (\ref{pde}), the $\delta_p$ function
-	depands on the location of the point \emph{p}. Basically, this point
-	will be mapped to infinity on the plane and the north-pole of the
-	sphere. Hence the selection of the point \emph{p} determines which
-	patch on the original mesh is mapped up to the north pole.
+	\item setPointP function. On the right side of equation (\ref{pde}),
+	the $\delta_p$ function depands on the location of the point
+	\emph{p}. Basically, this point will be mapped to infinity on the
+	plane and the north-pole of the sphere. Hence the selection of the
+	point \emph{p} determines which patch on the original mesh is mapped
+	up to the north pole.
 
-	The API setPointP takes an integer as input indicating the cell number
-	in which the point \emph{p} lies. It's a good choice to set the point
-	\emph{p} where the local surface is relatively flat, i.e., having a
-	small local curvature. However the computation of curvature can be
-	done by the vtkCurvatures filter. In order to make this filter
-	independent of VTK, this feature is not included in the filter and is
-	left to the user. If setting the point \emph{p} at some flat area is
-	crucial, we suggest that user first use vtkCurvatures to obtain the
-	number of cells having low curvatures and then call this function
-	using one of the cells with a low curvature.
+	The API setPointP takes an integer as input indicating the cell
+	number in which the point \emph{p} lies. It's a good choice to set
+	the point \emph{p} where the local surface is relatively flat, i.e.,
+	having a small local curvature. However the computation of curvature
+	can be done by the vtkCurvatures filter. In order to make this
+	filter independent of VTK, this feature is not included in the
+	filter and is left to the user. If setting the point \emph{p} at
+	some flat area is crucial, we suggest that user first use
+	vtkCurvatures to obtain the number of cells having low curvatures
+	and then call this function using one of the cells with a low
+	curvature.
 
 	\item The switch functions mapToPlane and mapToSphere determine the
 	output to be either a plane or a sphere, the sphere being the
@@ -322,19 +324,18 @@
 	users can switch between two different outputs.
 	
 	\item setScale function. The mapping, calculated from the equation
-	(\ref{pde}), is dependent upon the number of the nodes within the
+	(\ref{pde}), is dependent on the number of the nodes within the
 	mesh. Given a mesh of a large number of nodes and cells, the image
-	of the flattening mapping is constrained in a small range around
+	of the flattening mapping, is constrained in a small range around
 	origin. To make it cover a sufficient area of the plane and further
-	get a reasonable result from stereographic projection, a rescaling
-	of the flattened plane is needed. This function is used to set the
-	scale factor. by
+	get a reasonable result from stereographic projection, re-scale of
+	the flattened plane is needed. This function is used to set the
+	scale factor, by:
 	\begin{verbatim}
 		filter->setScale( scale factor ); 
 	\end{verbatim}
-	For a mesh of around several thousands of nodes, a factor of 100 is
-	likely to get a good result. The factor should grow as the number of
-	nodes grows.
+	For a mesh of around several thousands of nodes, a factor of 100 is likely to get a 
+	good result. The factor should grow as the number of nodes grows.	
 	\end{enumerate}
 
 	\section{The Filter Test}
@@ -405,12 +406,14 @@
 
   We have also included the results presented here as the
   $niceFlat.vtk$ file included in this submission. One can verify the
-  angle preserving nature of this filter by comparing ratios of edge
-  lengths between triangles in the original surface and the
-  corresponding triangles in the flattened mesh. We have included the
-  ...
+  angle preserving nature of this filter by comparing the relative
+  angle proportions of angles emanating from each vertex in the
+  mesh. We have included the anglePreserveCheck.cxx/h files to
+  enable the user to verify that the angles are indeed preserved. We
+  expond more on this in the next section.
 
 	\section{Brain Flattening Applications}
+  \label{sec:brain-flat}
   We propose to use this filter to conformally flatten brain
   surfaces. In order to accomplish this, we are currently
   investigating automated methods for extracting genus zero brain
@@ -464,31 +467,32 @@
   file).
   \end{enumerate}
   
-  The mapping is conformal thus preserves angles in each
-  triangle. Then, for a triangle $\triangle ABC$ which is mapped to
-  $\triangle A'B'C'$, theoretically, $\frac{\bar{AB}}{\bar{A'B'}}$,
-  $\frac{\bar{AC}}{\bar{A'C'}}$ and $\frac{\bar{BC}}{\bar{B'C'}}$
-  should be equal to a constant. While this constant will vary from
-  one triangle to another. We have the anglePreserveCheck.cxx file to
-  check this property.  The above *Test.cxx files will generate an
-  output mesh file, say, result.vtk. Then, by
+  The mapping is conformal thus preserves angles. Since the surface is
+  triangulated, the angle preserving property preserves the relative
+  angles emanating from any given vertex in the mesh. Take, for
+  example, any vertex $P$, which is mapped to point $P'$. There are
+  $M$ angles emanating from $P$, denoted as $A_1, A_2, \hdots ,A_M$
+  for the original mesh and $A'_1, A'_2, \hdots ,A'_M$ for the
+  flattened mesh. The angle preserving property claims that
+  \begin{eqnarray}
+    \frac{A_k}{sum_{i=1}^M A_i} = \frac{A'_k}{sum_{i=1}^M A'_i}, \quad \forall k
+    \label{anglePreserve}
+  \end{eqnarray} 
+  
+  Numerically, the ratio of the left to right sides of equation
+  (\ref{anglePreserve}) will be close to 1.0. We provide code to
+  calculate and write to file the ratio in equation
+  (\ref{anglePreserve}) for every angle at every vertex in the
+  mesh. The usage of this angle preserving check is:
   \begin{verbatim}
-  > ./anglePreserveCheck originalSurface.vtk result.vtk,
+  > ./anglePreserveCheck originalSurface.vtk flattenedSurface.vtk
   \end{verbatim}
-  the angleDiff.dat file is generated. Each line of this file contains
-  three ratios of $\frac{\bar{AB}}{\bar{A'B'}}$,
-  $\frac{\bar{AC}}{\bar{A'C'}}$ and $\frac{\bar{BC}}{\bar{B'C'}}$,
-  respectively. Assign those three values as the x, y and z coodinates
-  of points and plot them, they should be gathering around, though not
-  all exactly on (because of the approximation computation of the
-  flattening mapping), the line of x=y=z. The plot is given in
-  Figure~\ref{anglePreservingCheck}.
-  \begin{figure}[h]
-		\begin{center}
-			\includegraphics[width=6cm]{anglePreservingCheck.eps} \label{anglePreservingCheck}
-    \end{center}
-    \vspace{-.25in} \caption{Angle preserving check}
-  \end{figure}
+  \noindent The computed ratios will be written to
+  $angleRatioDiff.dat$. 
+
+  For the example given in Figure~\ref{fig:nice}, the mean of all the
+  ratios is 1.0026 and the standard deviation is 0.0629, thus
+  verifying the angle preserving nature of this mapping.
   
 	\section{Conclusions}
 	In this paper, we have described the Insight Toolkit (ITK) Conformal
