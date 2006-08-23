@@ -36,7 +36,7 @@ public:
   /** Hold on to the type information specified by the template parameters. */
   const static unsigned int MaxTopoDim=2;
   //typename ButterflyStructure
-  typedef double PixelType;
+  typedef itk::ButterflyStructure PixelType;
   typedef double CoordinateType;
   typedef double InterpolationWeightType;
   typedef  itk::DefaultStaticMeshTraits<PixelType, VDimension, MaxTopoDim, CoordinateType, InterpolationWeightType> MeshTraits;
