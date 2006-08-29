@@ -47,7 +47,7 @@ int main( int argc, char ** argv )
 
 
 
-  typedef short               PixelType;
+  typedef float               PixelType;
   const   unsigned int        Dimension = 3;
 
   typedef itk::Image< PixelType, Dimension >    ImageType;

@@ -231,6 +231,14 @@ FITSImageIO::Read(void* const buffer)
                       << ::getAllFitsErrorMessages(status));
   }
                 
+
+  // TODO: Remove this terrible hack.
+  // Scale the values by 1,000:
+  const float* const lastPixel = bufferAsFloats + nPixels;
+  for (float* pixelPtr = bufferAsFloats; pixelPtr < lastPixel; ++pixelPtr) {
+    *pixelPtr = 1000 * *pixelPtr;
+  }
+
   // Close the FITS file:
   ::fits_close_file(m_fitsFile, &status);
   if (status) {
