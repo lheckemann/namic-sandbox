@@ -21,7 +21,7 @@
 #define _itkBayesianClassifierInitializationImageFilter_txx
 
 #include "itkBayesianClassifierInitializationImageFilter.h"
-#include "itkScalarImageKmeansImageFilter.h"
+#include "itkScalarImageKmeansImageFilterWithMask.h"
 #include "itkGaussianDensityFunction.h"
 
 namespace itk
@@ -78,7 +78,7 @@ BayesianClassifierInitializationImageFilter<TInputImage,
 ::InitializeMembershipFunctions()
 {
   // Typedefs for the KMeans filter, Covariance calculator...
-  typedef ScalarImageKmeansImageFilter< InputImageType > KMeansFilterType;
+  typedef ScalarImageKmeansImageFilterWithMask< InputImageType > KMeansFilterType;
   typedef typename KMeansFilterType::OutputImageType  KMeansOutputImageType;
   typedef ImageRegionConstIterator< 
                   KMeansOutputImageType >             ConstKMeansIteratorType;
