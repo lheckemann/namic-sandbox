@@ -100,8 +100,8 @@ public:
   typedef typename MaskImageType::PixelType    MaskPixelType;
 
   /** Get/Set MaskImage **/
-  itkSetMacro( MaskImage, MaskImageType );
-  itkGetMacro( MaskImage, MaskImageType );
+  itkSetObjectMacro( MaskImage, MaskImageType );
+  itkGetConstObjectMacro( MaskImage, MaskImageType );
 
   /** Get/Set MaskValue **/
   itkSetMacro( MaskValue, MaskPixelType );
@@ -121,7 +121,7 @@ public:
 //                                                      AdaptorType > 
 //                                                              TreeGeneratorType;
   typedef itk::Statistics::WeightedCentroidKdTreeGenerator< 
-    ImageToListGeneratorType > TreeGeneratorType;
+    typename ImageToListGeneratorType::ListSampleType > TreeGeneratorType;
   typedef typename TreeGeneratorType::KdTreeType TreeType;
   typedef itk::Statistics::KdTreeBasedKmeansEstimator<TreeType> EstimatorType;
 
@@ -189,6 +189,10 @@ private:
   ImageRegionType m_ImageRegion;
 
   bool m_ImageRegionDefined;
+  
+  typename MaskImageType::Pointer m_MaskImage;
+
+  MaskPixelType m_MaskValue;
 };
   
 } // end namespace itk

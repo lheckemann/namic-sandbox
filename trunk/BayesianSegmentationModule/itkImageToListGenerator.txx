@@ -131,7 +131,9 @@ ImageToListGenerator< TImage, TMaskImage >
       {
       if (mit.Get() == this->m_MaskValue)
         {
-        output->PushBack(it.Get());
+        MeasurementVectorType m;
+        m[0] = it.Get();
+        output->PushBack(m);
         }
       ++mit;
       ++it;
@@ -141,7 +143,9 @@ ImageToListGenerator< TImage, TMaskImage >
     {
     while (!it.IsAtEnd())
       {
-      output->PushBack(it.Get());
+      MeasurementVectorType m;
+      m[0] = it.Get();
+      output->PushBack(m);
       ++it;
       }
     }

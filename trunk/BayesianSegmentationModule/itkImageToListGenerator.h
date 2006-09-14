@@ -22,6 +22,7 @@
 #include "itkProcessObject.h"
 #include "itkDataObject.h"
 #include "itkDataObjectDecorator.h"
+#include "itkFixedArray.h"
 
 namespace itk{ 
 namespace Statistics{
@@ -71,7 +72,7 @@ public:
   typedef typename ImageType::Pointer      ImagePointer ;
   typedef typename ImageType::ConstPointer ImageConstPointer ;
   typedef typename ImageType::PixelType    PixelType ;
-  typedef PixelType                        MeasurementVectorType;
+  typedef FixedArray< PixelType, 1 >       MeasurementVectorType;
 
   /** Mask Image typedefs */
   typedef TMaskImage                           MaskImageType;

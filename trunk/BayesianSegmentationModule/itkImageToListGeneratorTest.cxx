@@ -19,7 +19,6 @@
 #endif
 #include "itkImageToListGenerator.h"
 #include "itkImageRegionIteratorWithIndex.h"
-#include "itkScalarToArrayCastImageFilter.h"
 
 typedef itk::Image< unsigned char, 2 > ImageType;
 typedef itk::Image< unsigned char, 2 > MaskImageType;
@@ -75,21 +74,11 @@ int main(int, char* [] )
   ImageType::Pointer image         = CreateImage();
   MaskImageType::Pointer maskImage = CreateMaskImage();
   
-  typedef itk::FixedArray< ImageType::PixelType, 1 > ArrayPixelType ;
-  typedef itk::Image< ArrayPixelType, 2 > ArrayPixelImageType ;
-  
-  // What a waste of time doing this for scalar images.. !
-  typedef itk::ScalarToArrayCastImageFilter< ImageType, 
-                     ArrayPixelImageType > ImageCastFilterType;
-  ImageCastFilterType::Pointer castFilter = ImageCastFilterType::New() ;
-  castFilter->SetInput(image);
-  castFilter->Update();
-
   typedef itk::Statistics::ImageToListGenerator< 
-    ArrayPixelImageType, MaskImageType > ImageToListGeneratorType;
+    ImageType, MaskImageType > ImageToListGeneratorType;
   ImageToListGeneratorType::Pointer listGenerator 
                               = ImageToListGeneratorType::New();
-  listGenerator->SetInput( castFilter->GetOutput() );
+  listGenerator->SetInput( image );
   listGenerator->SetMaskImage( maskImage );
   listGenerator->SetMaskValue( 255 );
   listGenerator->Update();

@@ -47,7 +47,6 @@ void
 ScalarImageKmeansImageFilterWithMask< TInputImage >
 ::GenerateData()
 {
-//    typename AdaptorType::Pointer adaptor = AdaptorType::New();
   typename ImageToListGeneratorType::Pointer imageToListGenerator
     = ImageToListGeneratorType::New();
 
@@ -67,13 +66,16 @@ ScalarImageKmeansImageFilterWithMask< TInputImage >
 //       { 
 //       adaptor->SetImage( this->GetInput() );
 //       }
-  imageToListGenerator->SetImage( this->GetInput() );
+
+  // This is not an adaptor.. its a filter.. 
+  imageToListGenerator->SetInput( this->GetInput() );
   imageToListGenerator->SetMaskImage( this->GetMaskImage() );
   imageToListGenerator->SetMaskValue( this->GetMaskValue() );
 
-  typename TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
+  // Generate the sample set from the masked image.
+  imageToListGenerator->Update(); 
 
-//    treeGenerator->SetSample( adaptor );
+  typename TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
   treeGenerator->SetSample( imageToListGenerator->GetListSample() );
   treeGenerator->SetBucketSize( 16 );
   treeGenerator->Update();
@@ -111,7 +113,7 @@ ScalarImageKmeansImageFilterWithMask< TInputImage >
     
 //  typedef itk::Statistics::SampleClassifier< AdaptorType > ClassifierType;
   typedef itk::Statistics::SampleClassifier<
-    ImageToListGeneratorType::ListSampleType > ClassifierType;
+    typename ImageToListGeneratorType::ListSampleType > ClassifierType;
   typename ClassifierType::Pointer classifier = ClassifierType::New();
 
   classifier->SetDecisionRule( decisionRule.GetPointer() );
