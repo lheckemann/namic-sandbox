@@ -30,9 +30,12 @@ namespace itk
 /**
  *
  */
-template <class TInputImage, class TProbabilityPrecisionType>
-//template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
-BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionType>
+//template <class TInputImage, class TProbabilityPrecisionType>
+template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
+//BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionType>
+BayesianClassifierInitializationImageFilter< TInputImage,
+                                             TMaskImage,
+                                             TProbabilityPrecisionType>
 ::BayesianClassifierInitializationImageFilter()
   : m_UserSuppliesMembershipFunctions( false ),
     m_NumberOfClasses( 0 )
@@ -43,11 +46,14 @@ BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionTy
 
 // GenerateOutputInformation method. Here we force update on the entire input
 // image. It does not make sense having K-Means etc otherwise
-template <class TInputImage, class TProbabilityPrecisionType>
-//template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
+//template <class TInputImage, class TProbabilityPrecisionType>
+template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
 void 
-BayesianClassifierInitializationImageFilter<TInputImage, 
-                                            TProbabilityPrecisionType>
+//BayesianClassifierInitializationImageFilter<TInputImage, 
+//                                            TProbabilityPrecisionType>
+BayesianClassifierInitializationImageFilter< TInputImage,
+                                             TMaskImage,
+                                             TProbabilityPrecisionType>
 ::GenerateOutputInformation()
 {
   // call the superclass' implementation of this method
@@ -73,11 +79,14 @@ BayesianClassifierInitializationImageFilter<TInputImage,
 }
 
 
-template <class TInputImage, class TProbabilityPrecisionType>
-//template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
+//template <class TInputImage, class TProbabilityPrecisionType>
+template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
 void 
-BayesianClassifierInitializationImageFilter<TInputImage, 
-                                            TProbabilityPrecisionType>
+//BayesianClassifierInitializationImageFilter<TInputImage, 
+//                                            TProbabilityPrecisionType>
+BayesianClassifierInitializationImageFilter< TInputImage,
+                                             TMaskImage,
+                                             TProbabilityPrecisionType>
 ::InitializeMembershipFunctions()
 {
   // Typedefs for the KMeans filter, Covariance calculator...
@@ -213,10 +222,13 @@ BayesianClassifierInitializationImageFilter<TInputImage,
 }
 
 
-template <class TInputImage, class TProbabilityPrecisionType>
-//template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
+//template <class TInputImage, class TProbabilityPrecisionType>
+template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
 void 
-BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionType>
+//BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionType>
+BayesianClassifierInitializationImageFilter< TInputImage,
+                                             TMaskImage,
+                                             TProbabilityPrecisionType>
 ::GenerateData()
 {
   // TODO Check if we need a progress accumulator
@@ -262,10 +274,13 @@ BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionTy
 
 }
 
-template <class TInputImage, class TProbabilityPrecisionType>
-//template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
+//template <class TInputImage, class TProbabilityPrecisionType>
+template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
 void 
-BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionType>
+//BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionType>
+BayesianClassifierInitializationImageFilter< TInputImage,
+                                             TMaskImage,
+                                             TProbabilityPrecisionType>
 ::SetMembershipFunctions( MembershipFunctionContainerType *membershipFunction )
 {
   if( m_NumberOfClasses )
@@ -287,10 +302,13 @@ BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionTy
 }
 
 
-template <class TInputImage, class TProbabilityPrecisionType>
-//template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
+//template <class TInputImage, class TProbabilityPrecisionType>
+template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
 void 
-BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionType>
+//BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionType>
+BayesianClassifierInitializationImageFilter< TInputImage,
+                                             TMaskImage,
+                                             TProbabilityPrecisionType>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);

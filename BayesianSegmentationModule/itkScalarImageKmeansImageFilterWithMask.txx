@@ -24,9 +24,7 @@
 namespace itk
 {
 
-//template <class TInputImage>
 template <class TInputImage, class TMaskImage>
-//ScalarImageKmeansImageFilterWithMask<TInputImage>
 ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
 ::ScalarImageKmeansImageFilterWithMask()
 {
@@ -34,10 +32,8 @@ ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
   m_ImageRegionDefined = false;
 }
 
-//template <class TInputImage>
 template <class TInputImage, class TMaskImage>
 void
-//ScalarImageKmeansImageFilterWithMask<TInputImage>
 ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
 ::SetImageRegion( const ImageRegionType & region )
 {
@@ -45,34 +41,13 @@ ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
   m_ImageRegionDefined = true;
 }
 
-
-  
-//template< class TInputImage >
 template <class TInputImage, class TMaskImage>
 void
-//ScalarImageKmeansImageFilterWithMask< TInputImage >
 ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
 ::GenerateData()
 {
   typename ImageToListGeneratorType::Pointer imageToListGenerator
     = ImageToListGeneratorType::New();
-
-  // Setup the regions here if a sub-region has been specified to restrict
-  // classification on.. Since this is not ThreadedGenenerateData, we are
-  // safe...
-//     if( m_ImageRegionDefined )
-//       {
-//       typename RegionOfInterestFilterType::Pointer regionOfInterestFilter 
-//                                   = RegionOfInterestFilterType::New();
-//       regionOfInterestFilter->SetRegionOfInterest( m_ImageRegion );
-//       regionOfInterestFilter->SetInput( this->GetInput() );
-//       regionOfInterestFilter->Update();
-//       adaptor->SetImage( regionOfInterestFilter->GetOutput() );
-//       }
-//     else
-//       { 
-//       adaptor->SetImage( this->GetInput() );
-//       }
 
   // This is not an adaptor.. its a filter.. 
   imageToListGenerator->SetInput( this->GetInput() );
@@ -118,13 +93,11 @@ ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
   typedef itk::MinimumDecisionRule DecisionRuleType;
   DecisionRuleType::Pointer decisionRule = DecisionRuleType::New();
     
-//  typedef itk::Statistics::SampleClassifier< AdaptorType > ClassifierType;
   typedef itk::Statistics::SampleClassifier<
     typename ImageToListGeneratorType::ListSampleType > ClassifierType;
   typename ClassifierType::Pointer classifier = ClassifierType::New();
 
   classifier->SetDecisionRule( decisionRule.GetPointer() );
-//  classifier->SetSample( adaptor );
   classifier->SetSample( imageToListGenerator->GetListSample() );
 
   classifier->SetNumberOfClasses( numberOfClasses  );
@@ -149,7 +122,6 @@ ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
     classLabels[k] = label;
     label += labelInterval;
     MembershipFunctionPointer membershipFunction = MembershipFunctionType::New();
-//    MembershipFunctionOriginType origin( adaptor->GetMeasurementVectorSize() );
     MembershipFunctionOriginType origin(
       imageToListGenerator->GetListSample()->GetMeasurementVectorSize() );
     origin[0] = this->m_FinalMeans[k]; // A scalar image has a MeasurementVector of dimension 1
@@ -233,10 +205,8 @@ ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
    * Add a new class for the classifier. This requires to explicitly set the
  * initial mean value for that class.
  */
-//template <class TInputImage >
 template <class TInputImage, class TMaskImage>
 void
-//ScalarImageKmeansImageFilterWithMask<TInputImage >
 ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
 ::AddClassWithInitialMean( RealPixelType mean )
 {
@@ -247,10 +217,8 @@ ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
 /**
  * Standard "PrintSelf" method
  */
-//template <class TInputImage >
 template <class TInputImage, class TMaskImage>
 void
-//ScalarImageKmeansImageFilterWithMask<TInputImage >
 ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
 ::PrintSelf(
   std::ostream& os, 

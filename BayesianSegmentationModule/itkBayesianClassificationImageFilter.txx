@@ -27,7 +27,9 @@ namespace itk
 {
 
 template < class TInputImage, class TOutputImage >
+//template < class TInputImage, class TMaskImage, class TOutputImage >
 BayesianClassificationImageFilter< TInputImage, TOutputImage >
+//BayesianClassificationImageFilter< TInputImage, TMaskImage, TOutputImage >
 ::BayesianClassificationImageFilter()
   : m_NumberOfClasses( 0 ),
     m_NumberOfSmoothingIterations( 0 )
@@ -37,13 +39,17 @@ BayesianClassificationImageFilter< TInputImage, TOutputImage >
 }
 
 template < class TInputImage, class TOutputImage >
+//template < class TInputImage, class TMaskImage, class TOutputImage >
 void
 BayesianClassificationImageFilter< TInputImage, TOutputImage >
+//BayesianClassificationImageFilter< TInputImage, TMaskImage, TOutputImage >
 ::GenerateData()
 {
   // TODO Minipipeline could use a progress accumulator
   m_Initializer->SetInput( this->GetInput() );
   m_Initializer->SetNumberOfClasses( this->GetNumberOfClasses() );
+  m_Initializer->SetMaskImage( this->GetMaskImage() );
+  m_Initializer->SetMaskValue( this->GetMaskValue() );
   m_Initializer->Update();
   
   m_Classifier->SetInput( m_Initializer->GetOutput() );
@@ -72,8 +78,10 @@ BayesianClassificationImageFilter< TInputImage, TOutputImage >
  *  Print Self Method
  */
 template < class TInputImage, class TOutputImage >
+//template < class TInputImage, class TMaskImage, class TOutputImage >
 void
 BayesianClassificationImageFilter< TInputImage, TOutputImage >
+//BayesianClassificationImageFilter< TInputImage, TMaskImage, TOutputImage >
 ::PrintSelf( std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);

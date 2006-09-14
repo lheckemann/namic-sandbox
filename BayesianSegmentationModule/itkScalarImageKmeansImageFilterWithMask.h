@@ -29,12 +29,9 @@
 #include "itkEuclideanDistance.h"
 #include "itkSampleClassifier.h"
 
-//#include "itkScalarImageToListAdaptor.h"
 #include "itkImageToListGenerator.h"
 #include "itkImageRegion.h"
 #include "itkRegionOfInterestImageFilter.h"
-
-
 
 #include <vector>
 
@@ -109,18 +106,12 @@ public:
   itkGetMacro( MaskValue, MaskPixelType );
   
   /** Create a List from the scalar image */
-//  typedef itk::Statistics::ScalarImageToListAdaptor< InputImageType > AdaptorType;
-//  typedef itk::Statistics::ImageToListGenerator< InputImageType, InputImageType > OurType;
   typedef itk::Statistics::ImageToListGenerator< InputImageType, MaskImageType > ImageToListGeneratorType;
  
   /** Define the Measurement vector type from the AdaptorType */
-//  typedef typename AdaptorType::MeasurementVectorType  MeasurementVectorType;
   typedef typename ImageToListGeneratorType::MeasurementVectorType  MeasurementVectorType;
 
   /** Create the K-d tree structure */
-//  typedef itk::Statistics::WeightedCentroidKdTreeGenerator< 
-//                                                      AdaptorType > 
-//                                                              TreeGeneratorType;
   typedef itk::Statistics::WeightedCentroidKdTreeGenerator< 
     typename ImageToListGeneratorType::ListSampleType > TreeGeneratorType;
   typedef typename TreeGeneratorType::KdTreeType TreeType;
@@ -133,7 +124,6 @@ public:
   typedef RegionOfInterestImageFilter< 
                                  InputImageType,
                                  InputImageType  > RegionOfInterestFilterType;
-
 
   /** Add a new class to the classification by specifying its initial mean. */
   void AddClassWithInitialMean( RealPixelType mean );
