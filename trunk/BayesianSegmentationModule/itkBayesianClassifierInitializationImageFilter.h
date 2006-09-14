@@ -71,7 +71,7 @@ namespace itk
  * \ingroup ClassificationFilters 
  */
 template< class TInputImage,
-//          class TMaskImage=TInputImage,
+          class TMaskImage=TInputImage,
           class TProbabilityPrecisionType=float >
 class ITK_EXPORT BayesianClassifierInitializationImageFilter :
     public
@@ -108,7 +108,7 @@ public:
   typedef typename OutputImageType::PixelType OutputPixelType;
 
   /** Mask Image typedefs */
-  typedef TInputImage                          MaskImageType;
+  typedef TMaskImage                           MaskImageType;
   typedef typename MaskImageType::PixelType    MaskPixelType;
 
   /** Get/Set MaskImage **/

@@ -40,8 +40,10 @@ namespace itk
 {
   
 template< class TInputImage, class TLabelImage >
+//template< class TInputImage, class TMaskImage, class TLabelImage >
 class ITK_EXPORT BayesianClassificationImageFilter : public
 ImageToImageFilter< TInputImage, TLabelImage >
+//ImageToImageFilter< TInputImage, TMaskImage, TLabelImage >
 {
 public:
   typedef BayesianClassificationImageFilter          Self;
@@ -71,6 +73,18 @@ public:
   itkSetMacro( NumberOfSmoothingIterations, unsigned int );
   itkGetMacro( NumberOfSmoothingIterations, unsigned int );
 
+  /** Mask Image typedefs */
+  typedef TInputImage                           MaskImageType;
+  typedef typename MaskImageType::PixelType    MaskPixelType;
+
+  /** Get/Set MaskImage **/
+  itkSetObjectMacro( MaskImage, MaskImageType );
+  itkGetObjectMacro( MaskImage, MaskImageType );
+
+  /** Get/Set MaskValue **/
+  itkSetMacro( MaskValue, MaskPixelType );
+  itkGetMacro( MaskValue, MaskPixelType );
+  
 protected:
   BayesianClassificationImageFilter();
   virtual ~BayesianClassificationImageFilter() {}
@@ -85,7 +99,6 @@ protected:
   typedef typename BayesianInitializerType::Pointer    BayesianInitializerPointer;
   typedef typename BayesianInitializerType::OutputImageType 
                                                        InitializerOutputImageType;
-  
   // Classifier 
   typedef BayesianClassifierImageFilter< 
       InitializerOutputImageType >                     ClassifierFilterType;
@@ -100,6 +113,9 @@ private:
   BayesianInitializerPointer          m_Initializer;
   ClassifierFilterPointer             m_Classifier;
 
+  typename MaskImageType::Pointer m_MaskImage;
+
+  MaskPixelType m_MaskValue;
 };
 
 } // end namespace itk
@@ -109,4 +125,3 @@ private:
 #endif
 
 #endif    
-
