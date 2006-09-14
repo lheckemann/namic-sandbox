@@ -24,16 +24,21 @@
 namespace itk
 {
 
-template <class TInputImage>
-ScalarImageKmeansImageFilterWithMask<TInputImage>
+//template <class TInputImage>
+template <class TInputImage, class TMaskImage>
+//ScalarImageKmeansImageFilterWithMask<TInputImage>
+ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
 ::ScalarImageKmeansImageFilterWithMask()
 {
   m_UseNonContiguousLabels = false;
   m_ImageRegionDefined = false;
 }
 
-template <class TInputImage>
-void ScalarImageKmeansImageFilterWithMask<TInputImage>
+//template <class TInputImage>
+template <class TInputImage, class TMaskImage>
+void
+//ScalarImageKmeansImageFilterWithMask<TInputImage>
+ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
 ::SetImageRegion( const ImageRegionType & region )
 {
   m_ImageRegion = region;
@@ -42,9 +47,11 @@ void ScalarImageKmeansImageFilterWithMask<TInputImage>
 
 
   
-template< class TInputImage >
+//template< class TInputImage >
+template <class TInputImage, class TMaskImage>
 void
-ScalarImageKmeansImageFilterWithMask< TInputImage >
+//ScalarImageKmeansImageFilterWithMask< TInputImage >
+ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
 ::GenerateData()
 {
   typename ImageToListGeneratorType::Pointer imageToListGenerator
@@ -226,9 +233,11 @@ ScalarImageKmeansImageFilterWithMask< TInputImage >
    * Add a new class for the classifier. This requires to explicitly set the
  * initial mean value for that class.
  */
-template <class TInputImage >
+//template <class TInputImage >
+template <class TInputImage, class TMaskImage>
 void
-ScalarImageKmeansImageFilterWithMask<TInputImage >
+//ScalarImageKmeansImageFilterWithMask<TInputImage >
+ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
 ::AddClassWithInitialMean( RealPixelType mean )
 {
   this->m_InitialMeans.push_back( mean );
@@ -238,9 +247,11 @@ ScalarImageKmeansImageFilterWithMask<TInputImage >
 /**
  * Standard "PrintSelf" method
  */
-template <class TInputImage >
+//template <class TInputImage >
+template <class TInputImage, class TMaskImage>
 void
-ScalarImageKmeansImageFilterWithMask<TInputImage >
+//ScalarImageKmeansImageFilterWithMask<TInputImage >
+ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
 ::PrintSelf(
   std::ostream& os, 
   Indent indent) const

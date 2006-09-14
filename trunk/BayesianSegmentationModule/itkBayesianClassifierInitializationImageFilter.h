@@ -70,7 +70,9 @@ namespace itk
  * \sa VectorImage
  * \ingroup ClassificationFilters 
  */
-template< class TInputImage, class TProbabilityPrecisionType=float >
+template< class TInputImage,
+//          class TMaskImage=TInputImage,
+          class TProbabilityPrecisionType=float >
 class ITK_EXPORT BayesianClassifierInitializationImageFilter :
     public
 ImageToImageFilter<TInputImage, VectorImage< TProbabilityPrecisionType, 
@@ -105,6 +107,18 @@ public:
   typedef typename InputImageType::PixelType  InputPixelType;
   typedef typename OutputImageType::PixelType OutputPixelType;
 
+  /** Mask Image typedefs */
+  typedef TInputImage                          MaskImageType;
+  typedef typename MaskImageType::PixelType    MaskPixelType;
+
+  /** Get/Set MaskImage **/
+  itkSetObjectMacro( MaskImage, MaskImageType );
+  itkGetObjectMacro( MaskImage, MaskImageType );
+
+  /** Get/Set MaskValue **/
+  itkSetMacro( MaskValue, MaskPixelType );
+  itkGetMacro( MaskValue, MaskPixelType );
+  
   /** Image Type and Pixel type for the images representing the membership of a
    *  pixel to a particular class. This image has arrays as pixels, the number of 
    *  elements in the array is the same as the number of classes to be used.    */
@@ -165,6 +179,10 @@ private:
   bool                      m_UserSuppliesMembershipFunctions;
   unsigned int              m_NumberOfClasses;
   typename MembershipFunctionContainerType::Pointer m_MembershipFunctionContainer;
+
+  typename MaskImageType::Pointer m_MaskImage;
+
+  MaskPixelType m_MaskValue;
 };
 
 } // end namespace itk

@@ -31,6 +31,7 @@ namespace itk
  *
  */
 template <class TInputImage, class TProbabilityPrecisionType>
+//template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
 BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionType>
 ::BayesianClassifierInitializationImageFilter()
   : m_UserSuppliesMembershipFunctions( false ),
@@ -43,6 +44,7 @@ BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionTy
 // GenerateOutputInformation method. Here we force update on the entire input
 // image. It does not make sense having K-Means etc otherwise
 template <class TInputImage, class TProbabilityPrecisionType>
+//template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
 void 
 BayesianClassifierInitializationImageFilter<TInputImage, 
                                             TProbabilityPrecisionType>
@@ -72,13 +74,15 @@ BayesianClassifierInitializationImageFilter<TInputImage,
 
 
 template <class TInputImage, class TProbabilityPrecisionType>
+//template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
 void 
 BayesianClassifierInitializationImageFilter<TInputImage, 
                                             TProbabilityPrecisionType>
 ::InitializeMembershipFunctions()
 {
   // Typedefs for the KMeans filter, Covariance calculator...
-  typedef ScalarImageKmeansImageFilterWithMask< InputImageType > KMeansFilterType;
+  typedef ScalarImageKmeansImageFilterWithMask< InputImageType, MaskImageType >
+    KMeansFilterType;
   typedef typename KMeansFilterType::OutputImageType  KMeansOutputImageType;
   typedef ImageRegionConstIterator< 
                   KMeansOutputImageType >             ConstKMeansIteratorType;
@@ -95,6 +99,8 @@ BayesianClassifierInitializationImageFilter<TInputImage,
   // Run k means to get the means from the input image
   typename KMeansFilterType::Pointer kmeansFilter = KMeansFilterType::New();
   kmeansFilter->SetInput( this->GetInput() );
+  kmeansFilter->SetMaskImage( this->GetMaskImage() );
+  kmeansFilter->SetMaskValue( this->GetMaskValue() );
   kmeansFilter->SetUseNonContiguousLabels( false );
 
   for( unsigned k=0; k < m_NumberOfClasses; k++ )
@@ -208,6 +214,7 @@ BayesianClassifierInitializationImageFilter<TInputImage,
 
 
 template <class TInputImage, class TProbabilityPrecisionType>
+//template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
 void 
 BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionType>
 ::GenerateData()
@@ -256,6 +263,7 @@ BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionTy
 }
 
 template <class TInputImage, class TProbabilityPrecisionType>
+//template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
 void 
 BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionType>
 ::SetMembershipFunctions( MembershipFunctionContainerType *membershipFunction )
@@ -280,6 +288,7 @@ BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionTy
 
 
 template <class TInputImage, class TProbabilityPrecisionType>
+//template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
 void 
 BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionType>
 ::PrintSelf(std::ostream& os, Indent indent) const

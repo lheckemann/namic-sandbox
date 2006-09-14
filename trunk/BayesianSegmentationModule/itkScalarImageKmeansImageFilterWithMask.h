@@ -61,7 +61,8 @@ namespace itk
  * 
  * \ingroup ClassificationFilters 
  */
-template <class TInputImage >
+template <class TInputImage,
+          class TMaskImage=TInputImage >
 class ITK_EXPORT ScalarImageKmeansImageFilterWithMask :
     public ImageToImageFilter< TInputImage, Image<unsigned char,
                                                   ::itk::GetImageDimension<TInputImage>::ImageDimension> >
@@ -96,7 +97,7 @@ public:
   typedef typename NumericTraits< InputPixelType >::RealType RealPixelType;
   
   /** Mask Image typedefs */
-  typedef InputImageType                       MaskImageType;
+  typedef TMaskImage                           MaskImageType;
   typedef typename MaskImageType::PixelType    MaskPixelType;
 
   /** Get/Set MaskImage **/
