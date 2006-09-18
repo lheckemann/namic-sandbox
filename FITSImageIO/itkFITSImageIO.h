@@ -28,59 +28,43 @@
 
 namespace itk
 {
-
   
-/** \class FITSImageIO
- *
- *  \brief Read FITS file format. 
- *  TODO: Add here a link to documentation...
- *
- *  \ingroup IOFilters
- *
- */
+//! \class FITSImageIO
+//!
+//! \brief Read FITS file format. 
+//!
+//! TODO: Add here a link to documentation...
+//!
+//! \ingroup IOFilters
+
 class ITK_EXPORT FITSImageIO : public ImageIOBase
 {
 public:
-  /** Standard class typedefs. */
+
+  // Standard class typedefs:
   typedef FITSImageIO         Self;
   typedef ImageIOBase         Superclass;
   typedef SmartPointer<Self>  Pointer;
   
-  /** Method for creation through the object factory. */
+  //! Method for creation through the object factory.
   itkNewMacro(Self);
 
-  /** Run-time type information (and related methods). */
+  //! Run-time type information (and related methods).
   itkTypeMacro(FITSImageIO, ImageIOBase);
 
-  /*-------- This part of the interfaces deals with reading data. ----- */
-
-  /** Determine the file type. Returns true if this ImageIO can read the
-   * file specified. */
+  // Virtual methods implementing pure virtual methods of ImageIOBase:
   virtual bool CanReadFile(const char* filename) ;
-
-  /** Set the spacing and dimension information for the set filename. */
   virtual void ReadImageInformation();
-  
-  /** Reads the data from disk into the memory buffer provided. */
   virtual void Read(void* buffer);
-
-  /*-------- This part of the interfaces deals with writing data. ----- */
-
-  /** Determine the file type. Returns true if this ImageIO can write the
-   * file specified. */
   virtual bool CanWriteFile(const char*);
-
-  /** Set the spacing and dimension information for the set filename. */
   virtual void WriteImageInformation();
-  
-  /** Writes the data to disk from the memory buffer provided. Make sure
-   * that the IORegions has been set properly. */
   virtual void Write(const void* buffer);
-
 
 protected:
 
-  FITSImageIO() {}; /* default ctor */
+  FITSImageIO() {}; // default ctor
+
+  // Virtual methods overriding partially implemented methods of ImageIOBase:
   virtual void PrintSelf(std::ostream& os, Indent indent) const;
   
 private:

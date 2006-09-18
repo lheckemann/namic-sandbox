@@ -1,6 +1,6 @@
-PROJECT(cfitsio)
+project(cfitsio)
 
-SET(FITS_SRCS
+set(fits_source_files
   buffers.c
   cfileio.c
   checksum.c
@@ -78,9 +78,8 @@ SET(FITS_SRCS
   wcsutil_alternate.c
   )
 
-ADD_LIBRARY(ITKCFITSIO ${FITS_SRCS})
+add_library(itkcfitsio ${fits_source_files})
 
-IF(ITK_LIBRARY_PROPERTIES)
-  SET_TARGET_PROPERTIES(ITKCFITSIO PROPERTIES ${ITK_LIBRARY_PROPERTIES})
-ENDIF(ITK_LIBRARY_PROPERTIES)
-
+if(ITK_LIBRARY_PROPERTIES)
+  set_target_properties(itkcfitsio PROPERTIES ${ITK_LIBRARY_PROPERTIES})
+endif(ITK_LIBRARY_PROPERTIES)

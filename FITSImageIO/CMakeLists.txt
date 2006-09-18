@@ -8,10 +8,12 @@ ENDIF(ITK_FOUND)
 
 SUBDIRS(
   cfitsio
+  libwcs
   )
 
 INCLUDE_DIRECTORIES(
   ${FITSImageIO_SOURCE_DIR}/cfitsio
+  ${FITSImageIO_SOURCE_DIR}/libwcs
   )
 
 IF(NOT LIBRARY_OUTPUT_PATH)
@@ -31,4 +33,4 @@ ADD_EXECUTABLE(FITSImageIOTest
   itkFITSImageIOFactory.cxx 
   )
 
-TARGET_LINK_LIBRARIES(FITSImageIOTest ITKCFITSIO ITKIO ITKCommon)
+TARGET_LINK_LIBRARIES(FITSImageIOTest itkcfitsio itkwcs ITKIO ITKCommon)
