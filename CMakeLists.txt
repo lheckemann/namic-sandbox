@@ -42,6 +42,7 @@ SUBDIRS(
   SlicerTractClusteringImplementation
   Distributions
   SlicerIO
+  MGHImageIOConverter
   )
 
 # Add the testing directories
