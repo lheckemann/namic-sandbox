@@ -1,0 +1,2 @@
+PROJECT(MGHImageIOConverter)
+SUBDIRS(src)
