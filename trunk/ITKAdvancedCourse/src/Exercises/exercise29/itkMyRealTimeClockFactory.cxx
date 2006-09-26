@@ -88,8 +88,8 @@ MyRealTimeClockFactory::MyRealTimeClockFactory()
   std::cout << "classname1 = " << classname1 << std::endl;
   std::cout << "classname2 = " << classname2 << std::endl;
 
-  this->RegisterOverride("RealTimeClock",
-                         "RealTimeClock",
+  this->RegisterOverride(classname1.c_str(),
+                         classname2.c_str(),
                          "Real Time Clock",
                          1,
                          CreateObjectFunction<MyRealTimeClock>::New());
