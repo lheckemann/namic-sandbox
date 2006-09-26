@@ -35,7 +35,14 @@ namespace itk
       typedef SmartPointer< const Self >   ConstPointer;
 
       itkTypeMacro(MyRealTimeClock,RealTimeClock);
-      itkNewMacro(Self)
+
+      static Pointer New()
+      {
+        MyRealTimeClock * rtc = new MyRealTimeClock;
+        rtc->Register();
+        return rtc;
+      }
+      
         
     protected:
         MyRealTimeClock()
