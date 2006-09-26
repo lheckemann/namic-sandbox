@@ -36,12 +36,15 @@ namespace itk
 
       itkTypeMacro(MyRealTimeClock,RealTimeClock);
 
+      // itkNewMacro(Self);
+      
       static Pointer New()
       {
         MyRealTimeClock * rtc = new MyRealTimeClock;
-        rtc->Register();
+        rtc->Register();  // Reference counting problem.
         return rtc;
       }
+     
       
         
     protected:
