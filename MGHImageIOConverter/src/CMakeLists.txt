@@ -8,6 +8,11 @@ ELSE(ITK_FOUND)
   "Cannot build without ITK. Please set ITK_DIR.")
 ENDIF(ITK_FOUND)
 
+IF(EXISTS "${ITK_DIR}/CMakeCache.txt")
+  INCLUDE_DIRECTORIES("${ITK_DIR}/Utilities/zlib")
+ELSE(EXISTS "${ITK_DIR}/CMakeCache.txt")
+ENDIF(EXISTS "${ITK_DIR}/CMakeCache.txt")
+
 ADD_EXECUTABLE(mgh_test test_read_data.cxx itkMGHImageIO.cxx itkMGHImageIOFactory.cxx)
 
-TARGET_LINK_LIBRARIES(mgh_test ITKIO z)
+TARGET_LINK_LIBRARIES(mgh_test ITKIO)

@@ -8,7 +8,7 @@
 // ITK includes
 #include "itkImageIOBase.h"
 
-#include <zlib.h>
+#include <zlib/zlib.h>
 
 namespace itk
 {
