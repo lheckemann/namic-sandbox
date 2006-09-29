@@ -269,22 +269,41 @@ namespace itk
   
   float fBuffer;
   float c[3];
+
+  // reading in x_r x_a x_s y_r y_a y_s z_r z_a z_s and putting it into the
+  // matrix as:
+  // x_r y_r z_r
+  // x_a y_a z_a
+  // x_s y_s z_s
   for(unsigned int uj=0; uj<3; ++uj)
     {
       for(unsigned int ui=0; ui<3; ++ui)
         {
     TReadZ(fp, fBuffer);
     matrix[ui][uj] = fBuffer;
+//    std::cout << "itkMGHImageIO ReadVolumeHeader: matrix[" << ui << "][" << uj << "] = " << matrix[ui][uj] << "\n";
         }
     }
   for(unsigned int ui=0; ui<3; ++ui)
+  {
     TReadZ(fp, c[ui]);
+  }
 
+ 
+  // now take x_r, x_a, x_s out of the matrix and set it to the direction
+  // vector 0, same for y_* and direction vector 1, z_* and vector 2
   for(unsigned int ui=0; ui<3; ++ui)
     {
       std::vector<double> vDir;
+      // convert the coordinates from RAS to LPS, as the ITK archetype assumes
+      // LPS volumes
+      matrix[0][ui] *= -1.0; // R -> L
+      matrix[1][ui] *= -1.0; // A -> P
       for(unsigned int uj=0; uj<3; ++uj)
-        vDir.push_back( matrix[ui][uj] );
+      {
+        vDir.push_back( matrix[uj][ui] );
+      }
+      //std::cout << "itkMGHImageIO ReadVolumeHeader: setting " << ui << " direction in LPS: " << vDir[0] << "," << vDir[1] << "," << vDir[2] << "\n";
       SetDirection( ui, vDir );
     }
   
