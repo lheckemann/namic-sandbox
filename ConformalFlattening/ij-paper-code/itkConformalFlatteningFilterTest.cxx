@@ -268,6 +268,9 @@ void Display(vtkPolyData* polyData)
   vtkPolyDataNormals* norm = vtkPolyDataNormals::New();
   norm->SetInput( polyData );
   norm->SetFeatureAngle( 30 );
+
+  norm->FlipNormalsOn();
+
   norm->GetOutput()->GetPointData()->SetScalars( polyData->GetPointData()->GetScalars() );
 
   vtkPolyDataMapper* mapper = vtkPolyDataMapper::New();

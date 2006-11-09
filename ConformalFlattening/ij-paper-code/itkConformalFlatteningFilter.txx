@@ -566,26 +566,31 @@ namespace itk
     CoordRepType xmin = zR(0), xmax = zR(0), ymin = zI(0) , ymax = zI(0);
                             
     const unsigned int numberOfPoints = oMesh->GetNumberOfPoints();
+    std::vector<double> v_r2(numberOfPoints);
+    std::vector<double>::iterator itv_r2=v_r2.begin();
     
-    for (int it = 0; it < numberOfPoints;  ++it) 
-    {      
-      xmin = (xmin<zR(it))?xmin:zR(it);
-      xmax = (xmax>zR(it))?xmax:zR(it);
-      ymin = (ymin<zI(it))?ymin:zI(it);
-      ymax = (ymax>zI(it))?ymax:zI(it);                
+    for (int it = 0; it < numberOfPoints;  ++it, ++itv_r2) 
+    {
+      *itv_r2 = zR(it)*zR(it) + zI(it)*zI(it);
     } // for it    
+
+//       xmin = (xmin<zR(it))?xmin:zR(it);
+//       xmax = (xmax>zR(it))?xmax:zR(it);
+//       ymin = (ymin<zI(it))?ymin:zI(it);
+//       ymax = (ymax>zI(it))?ymax:zI(it);                
 //    std::cout<<"The max X in plane: "<<xmax<<std::endl;
 //    std::cout<<"The min X in plane: "<<xmin<<std::endl;
 //    std::cout<<"The max Y in plane: "<<ymax<<std::endl;
 //    std::cout<<"The min Y in plane: "<<ymin<<std::endl;
 
-    CoordRepType temp1 = ( fabs(xmin)>fabs(xmax) )?fabs(xmin):fabs(xmax); 
-    CoordRepType temp2 = ( fabs(ymin)>fabs(ymax) )?fabs(ymin):fabs(ymax);
-//    std::cout<<std::max( temp1, temp2 )<<std::endl;
-    CoordRepType factor = _mapScale/( ( temp1>temp2 )?temp1:temp2 );
-
-    // the factor is used to re-scale the points in the plane.
-    
+    sort(v_r2.begin(), v_r2.end());
+    unsigned int uiMidPointIdx = (unsigned int)round(numberOfPoints/2)-1;
+    CoordRepType factor = 1/sqrt(v_r2[uiMidPointIdx]);
+    // Sort all points in the mesh according to there distance to the origin.
+    // Take the median
+    // Use its distance to re-scale the mesh, i.e. forcing the distance of the median to be 1.
+    // Then in the stereographic projection, it'll be mapped to equator.
+    // The # of vertics in either hemi-spere will be same.
     
     std::vector<double> x(numberOfPoints), y(numberOfPoints), z(numberOfPoints);
     std::vector<double>::iterator
