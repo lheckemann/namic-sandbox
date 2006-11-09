@@ -89,7 +89,7 @@ int main( int argc, char * argv [] )
   writerIn->Write();
   
   /* Display the original mesh */
-  Display( originalPolyData );
+  //  Display( originalPolyData );
 
   /* Convert back to an ITK mesh */
   std::cerr << "Convert back to an ITK mesh..." << std::endl;
@@ -115,7 +115,7 @@ int main( int argc, char * argv [] )
   /* Display the new polydata */
   std::cerr << "Display the new polydata..." << std::endl;
   conformallyFlattenedPolyData->GetPointData()->SetScalars( originalPolyData->GetPointData()->GetScalars() );
-  Display( conformallyFlattenedPolyData );
+  //  Display( conformallyFlattenedPolyData );
   
   return EXIT_SUCCESS;
 }
