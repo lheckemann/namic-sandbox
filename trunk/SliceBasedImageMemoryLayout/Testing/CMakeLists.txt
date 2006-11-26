@@ -1,0 +1,5 @@
+
+ADD_EXECUTABLE(SliceBasedImageTest01 SliceBasedImageTest01.cxx )
+TARGET_LINK_LIBRARIES(SliceBasedImageTest01 ITKCommon)
+
+ADD_TEST(SliceBasedImageTest01 SliceBasedImageTest01)
