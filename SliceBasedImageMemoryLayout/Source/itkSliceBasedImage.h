@@ -14,12 +14,12 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkImage_h
-#define __itkImage_h
+#ifndef __itkSliceBasedImage_h
+#define __itkSliceBasedImage_h
 
 #include "itkImageBase.h"
 #include "itkImageRegion.h"
-#include "itkImportImageContainer.h"
+#include "itkSliceImageContainer.h"
 #include "itkDefaultPixelAccessor.h"
 #include "itkDefaultPixelAccessorFunctor.h"
 #include "itkPoint.h"
@@ -368,18 +368,9 @@ private:
 
 } // end namespace itk
 
-// Define instantiation macro for this template.
-#define ITK_TEMPLATE_Image(_, EXPORT, x, y) namespace itk { \
-  _(2(class EXPORT SliceBasedImage< ITK_TEMPLATE_2 x >)) \
-  namespace Templates { typedef SliceBasedImage< ITK_TEMPLATE_2 x > SliceBasedImage##y; } \
-  }
-
-#if ITK_TEMPLATE_EXPLICIT
-# include "Templates/itkImage+-.h"
-#endif
 
 #if ITK_TEMPLATE_TXX
-# include "itkImage.txx"
+# include "itkSliceBasedImage.txx"
 #endif
 
 #endif

@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImage.txx,v $
+  Module:    $RCSfile: itkSliceBasedImage.txx,v $
   Language:  C++
   Date:      $Date: 2006/05/10 20:27:16 $
   Version:   $Revision: 1.97 $
@@ -17,10 +17,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkImage_txx
-#define _itkImage_txx
+#ifndef _itkSliceBasedImage_txx
+#define _itkSliceBasedImage_txx
 
-#include "itkImage.h"
+#include "itkSliceBasedImage.h"
 #include "itkProcessObject.h"
 
 namespace itk
@@ -30,8 +30,8 @@ namespace itk
  *
  */
 template<class TPixel, unsigned int VImageDimension>
-Image<TPixel, VImageDimension>
-::Image()
+SliceBasedImage<TPixel, VImageDimension>
+::SliceBasedImage()
 {
   m_Buffer = PixelContainer::New();
 }
@@ -40,7 +40,7 @@ Image<TPixel, VImageDimension>
 //----------------------------------------------------------------------------
 template<class TPixel, unsigned int VImageDimension>
 void 
-Image<TPixel, VImageDimension>
+SliceBasedImage<TPixel, VImageDimension>
 ::Allocate()
 {
   unsigned long num;
@@ -53,7 +53,7 @@ Image<TPixel, VImageDimension>
 
 template<class TPixel, unsigned int VImageDimension>
 void 
-Image<TPixel, VImageDimension>
+SliceBasedImage<TPixel, VImageDimension>
 ::Initialize()
 {
   //
@@ -73,7 +73,7 @@ Image<TPixel, VImageDimension>
 
 template<class TPixel, unsigned int VImageDimension>
 void 
-Image<TPixel, VImageDimension>
+SliceBasedImage<TPixel, VImageDimension>
 ::FillBuffer (const TPixel& value)
 {
   const unsigned long numberOfPixels =
@@ -87,7 +87,7 @@ Image<TPixel, VImageDimension>
 
 template<class TPixel, unsigned int VImageDimension>
 void 
-Image<TPixel, VImageDimension>
+SliceBasedImage<TPixel, VImageDimension>
 ::SetPixelContainer(PixelContainer *container)
 {
   if (m_Buffer != container)
@@ -100,7 +100,7 @@ Image<TPixel, VImageDimension>
 //----------------------------------------------------------------------------
 template<class TPixel, unsigned int VImageDimension>
 void 
-Image<TPixel, VImageDimension>
+SliceBasedImage<TPixel, VImageDimension>
 ::Graft(const DataObject *data)
 {
   // call the superclass' implementation
@@ -130,7 +130,7 @@ Image<TPixel, VImageDimension>
     else
       {
       // pointer could not be cast back down
-      itkExceptionMacro( << "itk::Image::Graft() cannot cast "
+      itkExceptionMacro( << "itk::SliceBasedImage::Graft() cannot cast "
                          << typeid(data).name() << " to "
                          << typeid(const Self *).name() );
       }
@@ -143,7 +143,7 @@ Image<TPixel, VImageDimension>
  */
 template<class TPixel, unsigned int VImageDimension>
 void 
-Image<TPixel, VImageDimension>
+SliceBasedImage<TPixel, VImageDimension>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
