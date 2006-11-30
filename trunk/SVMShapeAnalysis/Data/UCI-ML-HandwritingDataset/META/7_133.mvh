@@ -1,0 +1,4 @@
+Length = 240
+ElementType = MET_FLOAT
+BinaryData = True
+ElementDataFile = 7_133.raw
