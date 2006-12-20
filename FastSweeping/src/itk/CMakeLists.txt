@@ -1,0 +1,14 @@
+# This project is designed to be built outside the Insight source tree.
+PROJECT(FastSweepingIterator)
+
+# Find ITK.
+FIND_PACKAGE(ITK REQUIRED)
+IF(ITK_FOUND)
+  INCLUDE(${ITK_USE_FILE})
+ENDIF(ITK_FOUND)
+
+ADD_EXECUTABLE(Test1 Test1.cxx )
+TARGET_LINK_LIBRARIES(Test1 ITKCommon)
+
+ADD_EXECUTABLE(Test2 Test2.cxx )
+TARGET_LINK_LIBRARIES(Test2 ITKCommon)
