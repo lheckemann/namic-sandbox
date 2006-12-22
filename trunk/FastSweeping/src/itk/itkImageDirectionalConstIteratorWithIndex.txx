@@ -106,6 +106,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
       {
       if( binaryHelper & 1 )
         {
+        this->m_Remaining = true;
         this->m_Directions[j] = -1;
         this->m_BeginIndex[j] = this->m_UnchangingEndIndex[j];
         this->m_EndIndex[j] = this->m_UnchangingBeginIndex[j];
@@ -119,7 +120,9 @@ ImageDirectionalConstIteratorWithIndex<TImage>
       binaryHelper >>= 1;
       }
 
-  this->Superclass::GoToBegin();
+  this->m_PositionIndex = this->m_BeginIndex;
+  this->m_Position--;
+
 }
  
 //----------------------------------------------------------------------
