@@ -109,7 +109,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
         this->m_Remaining = true;
         this->m_Directions[j] = -1;
         this->m_BeginIndex[j] = this->m_UnchangingEndIndex[j]-1;
-        this->m_EndIndex[j] = this->m_UnchangingBeginIndex[j]+1;
+        this->m_EndIndex[j] = this->m_UnchangingBeginIndex[j]-1;
         }
       else
         {
