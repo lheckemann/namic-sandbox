@@ -138,19 +138,35 @@ ImageDirectionalConstIteratorWithIndex<TImage>
   for( unsigned int in=0; in<TImage::ImageDimension; in++ )
     {
     this->m_PositionIndex[ in  ] += this->m_Directions[ in ];
-    if( this->m_PositionIndex[ in ] < this->m_EndIndex[ in ] )
+    if( this->m_Directions[in] == 1 )
       {
-      // FIXME: A faster way to do this is to define a duplicate
-      // offset table where we change +/- in NextDirection()
-      this->m_Position += this->m_OffsetTable[in] * this->m_Directions[ in ];
-      this->m_Remaining = true;
-      break;
+      if( this->m_PositionIndex[ in ] < this->m_EndIndex[ in ] )
+        {
+        this->m_Position += this->m_OffsetTable[in];
+        this->m_Remaining = true;
+        break;
+        }
+      else 
+        {
+        this->m_Position -= this->m_OffsetTable[ in ] *
+            ( static_cast<long>(this->m_Region.GetSize()[in])-1 );
+        this->m_PositionIndex[ in ] = this->m_BeginIndex[ in ]; 
+        }
       }
-    else 
+    else
       {
-      this->m_Position -= this->m_OffsetTable[ in ] * this->m_Directions[ in ]  
-        * ( static_cast<long>(this->m_Region.GetSize()[in])-1 );
-      this->m_PositionIndex[ in ] = this->m_BeginIndex[ in ]; 
+      if( this->m_PositionIndex[ in ] > this->m_EndIndex[ in ] )
+        {
+        this->m_Position -= this->m_OffsetTable[in];
+        this->m_Remaining = true;
+        break;
+        }
+      else 
+        {
+        this->m_Position += this->m_OffsetTable[ in ] * 
+            ( static_cast<long>(this->m_Region.GetSize()[in])-1 );
+        this->m_PositionIndex[ in ] = this->m_BeginIndex[ in ]; 
+        }
       }
     }
 
