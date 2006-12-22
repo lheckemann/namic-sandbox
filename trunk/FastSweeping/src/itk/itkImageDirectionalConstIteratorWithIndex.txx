@@ -45,7 +45,7 @@ bool
 ImageDirectionalConstIteratorWithIndex<TImage>
 ::IsAtEnd()
 {
-  for(unsigned int i; i<ImageDimension; i++)
+  for(unsigned int i=0; i<ImageDimension; i++)
     {
     if( this->m_Directions[i] != -1 )
       {
@@ -97,7 +97,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
     {
     unsigned long bit = ( this->m_Directions[i] == 1 ) ? 0 : 1;
     binaryHelper |= bit;
-    binaryHelper << 1;
+    binaryHelper <<= 1;
     }
 
   binaryHelper++;
@@ -116,7 +116,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
         this->m_BeginIndex[j] = this->m_UnchangingBeginIndex[j];
         this->m_EndIndex[j] = this->m_UnchangingEndIndex[j];
         }
-      binaryHelper >> 1;
+      binaryHelper >>= 1;
       }
 
   this->Superclass::GoToBegin();
