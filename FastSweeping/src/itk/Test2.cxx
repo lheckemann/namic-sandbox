@@ -18,7 +18,7 @@ main()
   ImageType::IndexType start;
   ImageType::SizeType size;
 
-  size.Fill( 3 );
+  size.Fill( 4 );
   start.Fill( 0 );
 
   region.SetSize( size );
