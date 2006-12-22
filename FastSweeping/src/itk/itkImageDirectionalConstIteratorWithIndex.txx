@@ -46,14 +46,11 @@ bool
 ImageDirectionalConstIteratorWithIndex<TImage>
 ::IsAtEnd()
 {
-  for(unsigned int i=0; i<ImageDimension; i++)
+  if( this->m_BinaryHelper == ( 1 << ImageDimension ) )
     {
-    if( this->m_Directions[i] != -1 )
-      {
-      return false;
-      }
+    return true;
     }
-   return true;
+  return false;
 }
 
 //----------------------------------------------------------------------
