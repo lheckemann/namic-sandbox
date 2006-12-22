@@ -35,6 +35,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
 
   this->m_UnchangingBeginIndex = this->m_BeginIndex;
   this->m_UnchangingEndIndex = this->m_EndIndex;
+  this->m_BinaryHelper = 0L;
 }
   
 //----------------------------------------------------------------------
@@ -76,7 +77,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
 {
   this->Superclass::GoToBegin();
   this->m_Directions.Fill( 1 );
-
+  this->m_BinaryHelper = 0L;
 }
  
   
@@ -88,20 +89,12 @@ void
 ImageDirectionalConstIteratorWithIndex<TImage>
 ::NextDirection()
 {
-  unsigned long binaryHelper = 0L;
+  this->m_BinaryHelper++;
 
   std::cout << "NextDirection() " << std::endl;
   std::cout << "ImageDimension " << ImageDimension << std::endl;
 
-  for(unsigned int i=ImageDimension; i>0; i--)
-    {
-    std::cout << "i " << i-1 << " : " << binaryHelper << std::endl; 
-    unsigned long bit = ( this->m_Directions[i-1] == 1 ) ? 0 : 1;
-    binaryHelper |= bit;
-    binaryHelper *= 2;
-    }
-
-  binaryHelper++;
+  unsigned long binaryHelper = this->m_BinaryHelper;
   std::cout << "binaryHelper = " << binaryHelper << std::endl;
 
   for(unsigned int j=0; j<ImageDimension; j++)

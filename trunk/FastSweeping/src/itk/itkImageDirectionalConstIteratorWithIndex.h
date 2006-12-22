@@ -152,6 +152,7 @@ public:
 
     IndexType        m_UnchangingBeginIndex;
     IndexType        m_UnchangingEndIndex;
+    unsigned long    m_BinaryHelper;
 
 };
 
