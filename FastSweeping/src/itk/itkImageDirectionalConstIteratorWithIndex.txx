@@ -108,8 +108,8 @@ ImageDirectionalConstIteratorWithIndex<TImage>
         {
         this->m_Remaining = true;
         this->m_Directions[j] = -1;
-        this->m_BeginIndex[j] = this->m_UnchangingEndIndex[j];
-        this->m_EndIndex[j] = this->m_UnchangingBeginIndex[j];
+        this->m_BeginIndex[j] = this->m_UnchangingEndIndex[j]-1;
+        this->m_EndIndex[j] = this->m_UnchangingBeginIndex[j]+1;
         }
       else
         {
@@ -123,6 +123,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
   this->m_PositionIndex = this->m_BeginIndex;
   this->m_Position--;
 
+  std::cout << "m_PositionIndex = " << this->m_PositionIndex << std::endl;
 }
  
 //----------------------------------------------------------------------
@@ -137,9 +138,9 @@ ImageDirectionalConstIteratorWithIndex<TImage>
   this->m_Remaining = false;
   for( unsigned int in=0; in<TImage::ImageDimension; in++ )
     {
-    this->m_PositionIndex[ in  ] += this->m_Directions[ in ];
     if( this->m_Directions[in] == 1 )
       {
+      this->m_PositionIndex[ in ]++;
       if( this->m_PositionIndex[ in ] < this->m_EndIndex[ in ] )
         {
         this->m_Position += this->m_OffsetTable[in];
@@ -155,6 +156,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
       }
     else
       {
+      this->m_PositionIndex[ in ]--;
       if( this->m_PositionIndex[ in ] > this->m_EndIndex[ in ] )
         {
         this->m_Position -= this->m_OffsetTable[in];
