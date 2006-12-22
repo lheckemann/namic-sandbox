@@ -63,7 +63,7 @@ bool
 ImageDirectionalConstIteratorWithIndex<TImage>
 ::IsAtEndOfDirection()
 { 
-  this->Superclass::IsAtEnd();
+  return this->Superclass::IsAtEnd();
 }
 
 //----------------------------------------------------------------------
