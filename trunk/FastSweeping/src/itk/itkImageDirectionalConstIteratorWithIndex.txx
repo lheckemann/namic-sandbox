@@ -88,11 +88,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
 {
   this->m_BinaryHelper++;
 
-  std::cout << "NextDirection() " << std::endl;
-  std::cout << "ImageDimension " << ImageDimension << std::endl;
-
   unsigned long binaryHelper = this->m_BinaryHelper;
-  std::cout << "binaryHelper = " << binaryHelper << std::endl;
 
   for(unsigned int j=0; j<ImageDimension; j++)
       {
@@ -116,7 +112,6 @@ ImageDirectionalConstIteratorWithIndex<TImage>
   this->m_Position = this->m_Image->GetBufferPointer() + 
                      this->m_Image->ComputeOffset( this->m_PositionIndex );
 
-  std::cout << "m_PositionIndex = " << this->m_PositionIndex << std::endl;
 }
  
 //----------------------------------------------------------------------
