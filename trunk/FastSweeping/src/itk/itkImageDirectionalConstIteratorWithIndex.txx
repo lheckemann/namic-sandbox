@@ -113,7 +113,8 @@ ImageDirectionalConstIteratorWithIndex<TImage>
       }
 
   this->m_PositionIndex = this->m_BeginIndex;
-  this->m_Position--;
+  this->m_Position = this->m_Image->GetBufferPointer() + 
+                     this->m_Image->ComputeOffset( this->m_PositionIndex );
 
   std::cout << "m_PositionIndex = " << this->m_PositionIndex << std::endl;
 }
