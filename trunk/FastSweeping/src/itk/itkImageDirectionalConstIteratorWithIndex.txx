@@ -90,7 +90,10 @@ ImageDirectionalConstIteratorWithIndex<TImage>
 {
   unsigned long binaryHelper = 0L;
 
-  for(unsigned int i; i<ImageDimension; i++)
+  std::cout << "NextDirection() " << std::endl;
+  std::cout << "ImageDimension " << ImageDimension << std::endl;
+
+  for(unsigned int i=0; i<ImageDimension; i++)
     {
     unsigned long bit = ( this->m_Directions[i] == 1 ) ? 0 : 1;
     binaryHelper |= bit;
@@ -99,7 +102,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
 
   binaryHelper++;
 
-  for(unsigned int j; j<ImageDimension; j++)
+  for(unsigned int j=0; j<ImageDimension; j++)
       {
       if( binaryHelper & 1 )
         {
