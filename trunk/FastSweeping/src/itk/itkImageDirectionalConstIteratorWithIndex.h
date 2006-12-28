@@ -19,6 +19,7 @@
 
 #include "itkImageConstIteratorWithIndex.h"
 #include "itkFixedArray.h"
+#include "itkNeighborhood.h"
 
 namespace itk
 {
@@ -148,7 +149,12 @@ public:
 
   private:
 
-    FixedArray< int, ImageDimension >  m_Directions;
+    typedef typename TImage::PixelType                 PixelType;
+    typedef FixedArray< int, ImageDimension >          FixedArrayType;
+    typedef Neighborhood< PixelType, ImageDimension >  NeighborhoodType;
+    
+    FixedArrayType   m_Directions;
+    NeighborhoodType m_Neigborhood;
 
     IndexType        m_UnchangingBeginIndex;
     IndexType        m_UnchangingEndIndex;
