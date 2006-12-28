@@ -187,7 +187,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
 template<class TImage>
 typename ImageDirectionalConstIteratorWithIndex<TImage>::Iterator
 ImageDirectionalConstIteratorWithIndex<TImage>
-::Begin()
+::GetFirstNeighborIterator()
 {
    return m_Neigborhood.Begin();
 }
@@ -200,7 +200,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
 template<class TImage>
 typename ImageDirectionalConstIteratorWithIndex<TImage>::ConstIterator
 ImageDirectionalConstIteratorWithIndex<TImage>
-::Begin() const
+::GetFirstNeighborIterator() const
 {
    return m_Neigborhood.Begin();
 }
@@ -212,7 +212,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
 template<class TImage>
 typename ImageDirectionalConstIteratorWithIndex<TImage>::Iterator
 ImageDirectionalConstIteratorWithIndex<TImage>
-::End()
+::GetTerminalNeighborIterator()
 {
    return m_Neigborhood.End();
 }
@@ -225,7 +225,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
 template<class TImage>
 typename ImageDirectionalConstIteratorWithIndex<TImage>::ConstIterator
 ImageDirectionalConstIteratorWithIndex<TImage>
-::End() const
+::GetTerminalNeighborIterator() const
 {
    return m_Neigborhood.End();
 }

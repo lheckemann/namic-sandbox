@@ -58,10 +58,11 @@ main()
         std::cerr << " GetIndex() = " << itr2.GetIndex();
         std::cerr << std::endl;
         }  
-      NeighborPixel neigbor = itr2.Begin();
-      NeighborPixel last    = itr2.End();
+      NeighborPixel neigbor = itr2.GetFirstNeighborIterator();
+      NeighborPixel last    = itr2.GetTerminalNeighborIterator();
       while( neigbor != last )
         {
+        PixelType neighborValue = *neigbor;
         ++neigbor;
         }
       ++itr2;
