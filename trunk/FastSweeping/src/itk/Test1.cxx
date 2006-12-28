@@ -74,6 +74,9 @@ main()
         std::cerr << " GetIndex() = " << itr2.GetIndex();
         std::cerr << std::endl;
         }  
+
+      std::cout << "--------------------------------------" << std::endl;
+      std::cout << " GetIndex() = " << itr2.GetIndex();
       std::cout << "Begin walking neighbors..." << std::endl; 
       NeighborPixel neighbor = itr2.GetFirstNeighborIterator();
       NeighborPixel last     = itr2.GetTerminalNeighborIterator();
