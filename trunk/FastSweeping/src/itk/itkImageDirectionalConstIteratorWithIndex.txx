@@ -75,6 +75,9 @@ ImageDirectionalConstIteratorWithIndex<TImage>
   this->Superclass::GoToBegin();
   this->m_Directions.Fill( 1 );
   this->m_BinaryHelper = 0L;
+
+  // Initialize the neighbors
+  this->SetPixelPointers( this->m_BeginIndex );
 }
  
   
@@ -112,6 +115,8 @@ ImageDirectionalConstIteratorWithIndex<TImage>
   this->m_Position = this->m_Image->GetBufferPointer() + 
                      this->m_Image->ComputeOffset( this->m_PositionIndex );
 
+  // Initialize the neighbors
+  this->SetPixelPointers( this->m_BeginIndex );
 }
  
 //----------------------------------------------------------------------
@@ -132,6 +137,12 @@ ImageDirectionalConstIteratorWithIndex<TImage>
       if( this->m_PositionIndex[ in ] < this->m_EndIndex[ in ] )
         {
         this->m_Position += this->m_OffsetTable[in];
+        Iterator nit = this->m_Neigborhood.Begin();
+        Iterator end = this->m_Neigborhood.End();
+        while( nit != end )
+          {
+          ++nit;
+          }
         this->m_Remaining = true;
         break;
         }
@@ -140,6 +151,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
         this->m_Position -= this->m_OffsetTable[ in ] *
             ( static_cast<long>(this->m_Region.GetSize()[in])-1 );
         this->m_PositionIndex[ in ] = this->m_BeginIndex[ in ]; 
+        this->SetPixelPointers( this->m_PositionIndex );
         }
       }
     else
@@ -148,6 +160,12 @@ ImageDirectionalConstIteratorWithIndex<TImage>
       if( this->m_PositionIndex[ in ] > this->m_EndIndex[ in ] )
         {
         this->m_Position -= this->m_OffsetTable[in];
+        Iterator nit = this->m_Neigborhood.Begin();
+        Iterator end = this->m_Neigborhood.End();
+        while( nit != end )
+          {
+          --nit;
+          }
         this->m_Remaining = true;
         break;
         }
@@ -156,6 +174,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
         this->m_Position += this->m_OffsetTable[ in ] * 
             ( static_cast<long>(this->m_Region.GetSize()[in])-1 );
         this->m_PositionIndex[ in ] = this->m_BeginIndex[ in ]; 
+        this->SetPixelPointers( this->m_PositionIndex );
         }
       }
     }
@@ -244,12 +263,12 @@ ImageDirectionalConstIteratorWithIndex<TImage>
   typedef typename ImageType::SizeType                 SizeType;
   typedef typename ImageType::OffsetValueType          OffsetValueType;
 
-  const Iterator _end = Superclass::End();
+  const Iterator _end = this->m_Neigborhood.End();
   InternalPixelType * Iit;
-  ImageType *ptr = const_cast<ImageType *>(this->m_Image->GetPointer());
-  const SizeType size = this->GetSize();
+  ImageType *ptr = const_cast<ImageType *>(this->m_Image.GetPointer());
+  const SizeType size = this->m_Region.GetSize();
   const OffsetValueType *OffsetTable = this->m_Image->GetOffsetTable();
-  const SizeType radius = this->GetRadius();
+  const SizeType radius = this->m_Neigborhood.GetRadius();
 
   unsigned int i;
   Iterator Nit;
@@ -265,9 +284,10 @@ ImageDirectionalConstIteratorWithIndex<TImage>
     }
 
   // Compute the rest of the pixel addresses
-  for (Nit = Superclass::Begin(); Nit != _end; ++Nit)
+  for (Nit = this->m_Neigborhood.Begin(); Nit != _end; ++Nit)
     {
-    *Nit = Iit;
+    //*Nit = Iit;
+    Nit = Iit;
     ++Iit;
     for (i = 0; i <ImageDimension; ++i)
       {
@@ -278,7 +298,10 @@ ImageDirectionalConstIteratorWithIndex<TImage>
         Iit += OffsetTable[i+1] - OffsetTable[i] * static_cast<long>(size[i]);
         loop[i]= 0;
         }
-      else break;
+      else 
+        {
+        break;
+        }
       }
     }
 }
