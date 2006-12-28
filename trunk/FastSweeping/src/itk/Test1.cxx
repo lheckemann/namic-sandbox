@@ -79,9 +79,14 @@ main()
       NeighborPixel last     = itr2.GetTerminalNeighborIterator();
       while( neighbor != last )
         {
-//        PixelType neighborValue = *(*neighbor);
-//        std::cout << neighborValue << std::endl;
-        std::cout << *neighbor << std::endl;
+        std::cout << neighbor << " : " << *neighbor << " : ";
+        if( *neighbor )
+          {
+          PixelType neighborValue = *(*neighbor);
+          std::cout << neighborValue;
+          }
+        std::cout << std::endl;
+
         ++neighbor;
         }
       std::cout << "End walking neighbors..." << std::endl; 

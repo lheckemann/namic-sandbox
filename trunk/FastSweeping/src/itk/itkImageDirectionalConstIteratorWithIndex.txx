@@ -288,7 +288,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
   // Compute the rest of the pixel addresses
   for (Nit = this->m_Neigborhood.Begin(); Nit != _end; ++Nit)
     {
-    *Nit; // = Iit;
+    *Nit = Iit;
     ++Iit;
     for (i = 0; i <ImageDimension; ++i)
       {
