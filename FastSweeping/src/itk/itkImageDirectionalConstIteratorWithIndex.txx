@@ -168,6 +168,18 @@ ImageDirectionalConstIteratorWithIndex<TImage>
   return *this;
 }
 
+  
+//----------------------------------------------------------------------
+//  Define the size of the neigborhood
+//----------------------------------------------------------------------
+template<class TImage>
+void
+ImageDirectionalConstIteratorWithIndex<TImage>
+::SetRadius(const unsigned long radius)
+{
+  m_Neigborhood.SetRadius( radius );
+}
+
 
 
 } // end namespace itk

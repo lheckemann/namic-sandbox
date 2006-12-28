@@ -40,7 +40,11 @@ main()
 
 
   IteratorType itr2( image, region );
+
+  itr2.SetRadius( 1 );
+
   itr2.GoToBegin();
+
   while( !itr2.IsAtEnd() )
     {
     while( !itr2.IsAtEndOfDirection() )
