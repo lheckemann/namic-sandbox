@@ -180,6 +180,56 @@ ImageDirectionalConstIteratorWithIndex<TImage>
   m_Neigborhood.SetRadius( radius );
 }
 
+  
+//----------------------------------------------------------------------
+//  Return the first neighbor
+//----------------------------------------------------------------------
+template<class TImage>
+typename ImageDirectionalConstIteratorWithIndex<TImage>::Iterator
+ImageDirectionalConstIteratorWithIndex<TImage>
+::Begin()
+{
+   return m_Neigborhood.Begin();
+}
+
+
+  
+//----------------------------------------------------------------------
+//  Return the first neighbor (const version)
+//----------------------------------------------------------------------
+template<class TImage>
+typename ImageDirectionalConstIteratorWithIndex<TImage>::ConstIterator
+ImageDirectionalConstIteratorWithIndex<TImage>
+::Begin() const
+{
+   return m_Neigborhood.Begin();
+}
+
+ 
+//----------------------------------------------------------------------
+//  Return the one-past-the-end neighbor
+//----------------------------------------------------------------------
+template<class TImage>
+typename ImageDirectionalConstIteratorWithIndex<TImage>::Iterator
+ImageDirectionalConstIteratorWithIndex<TImage>
+::End()
+{
+   return m_Neigborhood.End();
+}
+
+
+  
+//----------------------------------------------------------------------
+//  Return the one-past-the-end neighbor (const version)
+//----------------------------------------------------------------------
+template<class TImage>
+typename ImageDirectionalConstIteratorWithIndex<TImage>::ConstIterator
+ImageDirectionalConstIteratorWithIndex<TImage>
+::End() const
+{
+   return m_Neigborhood.End();
+}
+
 
 
 } // end namespace itk

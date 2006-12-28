@@ -152,11 +152,21 @@ public:
    * Neighborhood (resulting in a "square" neighborhood). */
   void SetRadius(const unsigned long);
 
-  private:
+  /** Typedefs required for the neighborhood */
+  typedef typename TImage::PixelType                 PixelType;
+  typedef Neighborhood< PixelType, ImageDimension >  NeighborhoodType;
+  typedef typename NeighborhoodType::Iterator        Iterator;
+  typedef typename NeighborhoodType::ConstIterator   ConstIterator;
 
-    typedef typename TImage::PixelType                 PixelType;
+  /** STL-style iterator support. */
+  Iterator End();
+  Iterator Begin();
+  ConstIterator End() const;
+  ConstIterator Begin() const;
+
+private:
+
     typedef FixedArray< int, ImageDimension >          FixedArrayType;
-    typedef Neighborhood< PixelType, ImageDimension >  NeighborhoodType;
     
     FixedArrayType   m_Directions;
     NeighborhoodType m_Neigborhood;
