@@ -43,6 +43,8 @@ main()
 
   itr2.SetRadius( 1 );
 
+  typedef IteratorType::Iterator  NeighborPixel;
+
   itr2.GoToBegin();
 
   while( !itr2.IsAtEnd() )
@@ -56,6 +58,12 @@ main()
         std::cerr << " GetIndex() = " << itr2.GetIndex();
         std::cerr << std::endl;
         }  
+      NeighborPixel neigbor = itr2.Begin();
+      NeighborPixel last    = itr2.End();
+      while( neigbor != last )
+        {
+        ++neigbor;
+        }
       ++itr2;
       }
     itr2.NextDirection();
