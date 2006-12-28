@@ -159,10 +159,10 @@ public:
   typedef typename NeighborhoodType::ConstIterator   ConstIterator;
 
   /** STL-style iterator support. */
-  Iterator End();
-  Iterator Begin();
-  ConstIterator End() const;
-  ConstIterator Begin() const;
+  Iterator GetTerminalNeighborIterator();
+  Iterator GetFirstNeighborIterator();
+  ConstIterator GetTerminalNeighborIterator() const;
+  ConstIterator GetFirstNeighborIterator() const;
 
 private:
 
