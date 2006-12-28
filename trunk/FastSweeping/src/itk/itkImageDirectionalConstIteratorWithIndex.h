@@ -166,6 +166,9 @@ public:
 
 private:
 
+    // Initialize the pointers to neigbors in the neighborhood.
+    void SetPixelPointers(const IndexType &pos);
+
     typedef FixedArray< int, ImageDimension >          FixedArrayType;
     
     FixedArrayType   m_Directions;

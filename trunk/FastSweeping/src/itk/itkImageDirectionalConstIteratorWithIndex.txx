@@ -232,6 +232,60 @@ ImageDirectionalConstIteratorWithIndex<TImage>
 
 
 
+//----------------------------------------------------------------------
+//  Return the one-past-the-end neighbor (const version)
+//----------------------------------------------------------------------
+template<class TImage>
+void
+ImageDirectionalConstIteratorWithIndex<TImage>
+::SetPixelPointers(const IndexType &pos)
+{
+  typedef typename ImageType::InternalPixelType        InternalPixelType;
+  typedef typename ImageType::SizeType                 SizeType;
+  typedef typename ImageType::OffsetValueType          OffsetValueType;
+
+  const Iterator _end = Superclass::End();
+  InternalPixelType * Iit;
+  ImageType *ptr = const_cast<ImageType *>(this->m_Image->GetPointer());
+  const SizeType size = this->GetSize();
+  const OffsetValueType *OffsetTable = this->m_Image->GetOffsetTable();
+  const SizeType radius = this->GetRadius();
+
+  unsigned int i;
+  Iterator Nit;
+  SizeType loop;
+  for (i=0; i<ImageDimension; ++i) loop[i]=0;
+
+  // Find first "upper-left-corner"  pixel address of neighborhood
+  Iit = ptr->GetBufferPointer() + ptr->ComputeOffset(pos);
+
+  for (i = 0; i<ImageDimension; ++i)
+    {
+    Iit -= radius[i] * OffsetTable[i];
+    }
+
+  // Compute the rest of the pixel addresses
+  for (Nit = Superclass::Begin(); Nit != _end; ++Nit)
+    {
+    *Nit = Iit;
+    ++Iit;
+    for (i = 0; i <ImageDimension; ++i)
+      {
+      loop[i]++;
+      if ( loop[i] == size[i] )
+        {
+        if (i==ImageDimension-1) break;
+        Iit += OffsetTable[i+1] - OffsetTable[i] * static_cast<long>(size[i]);
+        loop[i]= 0;
+        }
+      else break;
+      }
+    }
+}
+
+
+
+
 } // end namespace itk
 
 #endif
