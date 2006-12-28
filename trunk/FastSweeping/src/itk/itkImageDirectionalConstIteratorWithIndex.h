@@ -147,6 +147,11 @@ public:
   bool IsAtEnd();
   void GoToBegin();
 
+  /** Overloads SetRadius to allow a single long integer argument
+   * that is used as the radius of all the dimensions of the
+   * Neighborhood (resulting in a "square" neighborhood). */
+  void SetRadius(const unsigned long);
+
   private:
 
     typedef typename TImage::PixelType                 PixelType;
