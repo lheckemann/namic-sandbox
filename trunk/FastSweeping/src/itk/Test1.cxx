@@ -75,13 +75,14 @@ main()
         std::cerr << std::endl;
         }  
       std::cout << "Begin walking neighbors..." << std::endl; 
-      NeighborPixel neigbor = itr2.GetFirstNeighborIterator();
-      NeighborPixel last    = itr2.GetTerminalNeighborIterator();
-      while( neigbor != last )
+      NeighborPixel neighbor = itr2.GetFirstNeighborIterator();
+      NeighborPixel last     = itr2.GetTerminalNeighborIterator();
+      while( neighbor != last )
         {
-        PixelType neighborValue = *neigbor;
-        std::cout << neighborValue << std::endl;
-        ++neigbor;
+//        PixelType neighborValue = *(*neighbor);
+//        std::cout << neighborValue << std::endl;
+        std::cout << *neighbor << std::endl;
+        ++neighbor;
         }
       std::cout << "End walking neighbors..." << std::endl; 
       ++itr2;
