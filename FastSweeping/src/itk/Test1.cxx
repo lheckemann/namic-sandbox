@@ -74,13 +74,16 @@ main()
         std::cerr << " GetIndex() = " << itr2.GetIndex();
         std::cerr << std::endl;
         }  
+      std::cout << "Begin walking neighbors..." << std::endl; 
       NeighborPixel neigbor = itr2.GetFirstNeighborIterator();
       NeighborPixel last    = itr2.GetTerminalNeighborIterator();
       while( neigbor != last )
         {
         PixelType neighborValue = *neigbor;
+        std::cout << neighborValue << std::endl;
         ++neigbor;
         }
+      std::cout << "End walking neighbors..." << std::endl; 
       ++itr2;
       }
     itr2.NextDirection();
