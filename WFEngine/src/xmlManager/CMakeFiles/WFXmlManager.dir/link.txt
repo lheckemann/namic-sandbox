@@ -1,0 +1,2 @@
+/usr/bin/ar cr ../../bin/libWFXmlManager.a  "CMakeFiles/WFXmlManager.dir/WFXmlManager.o" "CMakeFiles/WFXmlManager.dir/DOMTreeErrorReporter.o" "CMakeFiles/WFXmlManager.dir/WFXmlConfigManager.o" 
+/usr/bin/ranlib ../../bin/libWFXmlManager.a 

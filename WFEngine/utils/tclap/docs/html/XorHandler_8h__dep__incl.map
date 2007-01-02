@@ -1,0 +1,5 @@
+base referer
+rect $CmdLine_8h.html 339,32 427,61
+rect $DocBookOutput_8h.html 159,31 289,60
+rect $StdOutput_8h.html 176,84 272,113
+rect $XMLOutput_8h.html 172,137 276,167

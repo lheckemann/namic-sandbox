@@ -1,0 +1,5 @@
+base referer
+rect $classTCLAP_1_1CmdLineOutput.html 5,59 176,88
+rect $classTCLAP_1_1DocBookOutput.html 225,5 396,35
+rect $classTCLAP_1_1StdOutput.html 243,59 379,88
+rect $classTCLAP_1_1XMLOutput.html 239,112 383,141

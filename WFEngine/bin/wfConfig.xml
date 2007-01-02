@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<WFEngineConfig>
+	<knownWorkflows>
+		<workflow id="1" fileName="test.xml" visible="1" embedded="0"/>
+		<workflow id="2" fileName="test.xml" visible="1" embedded="0"/>
+		<workflow id="3" fileName="test.xml" visible="1" embedded="0"/>
+		<workflow id="4" fileName="test.xml" visible="1" embedded="0"/>
+	</knownWorkflows>
+	<lookUpPaths>
+		<path url="."/>
+		<path url="~"/>
+	</lookUpPaths>
+</WFEngineConfig>

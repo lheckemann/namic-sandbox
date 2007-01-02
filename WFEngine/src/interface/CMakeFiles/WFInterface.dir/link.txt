@@ -1,0 +1,2 @@
+/usr/bin/ar cr ../../bin/libWFInterface.a  "CMakeFiles/WFInterface.dir/WFBaseSocket.o" "CMakeFiles/WFInterface.dir/WFServerConnection.o" "CMakeFiles/WFInterface.dir/WFClientConnection.o" "CMakeFiles/WFInterface.dir/WFSocketCollection.o" 
+/usr/bin/ranlib ../../bin/libWFInterface.a 

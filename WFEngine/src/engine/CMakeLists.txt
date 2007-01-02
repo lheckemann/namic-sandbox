@@ -1,0 +1,17 @@
+PROJECT(WFEngine)
+
+SET(SRCS
+WFBaseEngine.cxx
+WFEngineOptions.cxx
+WFFactory.cxx
+)
+
+SET(LINK_LIBS
+WFInterface WFXmlManager)
+
+IF(LOKI_FOUND)
+  SET(LINK_LIBS ${LINK_LIBS} ${LOKI_LIBRARY})
+ENDIF(LOKI_FOUND)
+
+ADD_LIBRARY(WFBaseEngine ${SRCS})
+TARGET_LINK_LIBRARIES(WFBaseEngine ${LINK_LIBS})
