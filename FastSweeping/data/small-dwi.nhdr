@@ -1,11 +1,11 @@
 NRRD0005
 # Complete NRRD file format specification at:
 # http://teem.sourceforge.net/nrrd/format.html
-content: crop(???,[126,128]x[126,128]x[39,41]x[0,58])
+content: crop(???,[124,130]x[124,130]x[37,43]x[0,58])
 type: unsigned short
 dimension: 4
 space: right-anterior-superior
-sizes: 3 3 3 59
+sizes: 7 7 7 59
 thicknesses: NaN NaN 2 NaN
 space directions: (-0.9375,0,0) (0,-0.9375,0) (0,0,1.7) none
 centerings: cell cell cell ???
@@ -13,7 +13,7 @@ kinds: space space space list
 endian: little
 encoding: raw
 space units: "mm" "mm" "mm"
-space origin: (-254.265,-248.373,36.4374)
+space origin: (-252.39,-246.498,33.0374)
 measurement frame: (1,0,0) (0,1,0) (0,0,1)
 data file: small-dwi.raw
 modality:=DWMRI
