@@ -76,14 +76,12 @@ int main( int argc, char *argv[] )
     {
     while( !itr2.IsAtEndOfDirection() )
       {
+
+      // Access the neighbor pixels
       NeighborPixel neighbor = itr2.GetFirstNeighborIterator();
-      NeighborPixel last     = itr2.GetTerminalNeighborIterator();
-      while( neighbor != last )
-        {
-        PixelType neighborValue = *(neighbor[13]);
-        std::cout << itr2.GetIndex() << " = " << neighborValue << std::endl;
-        ++neighbor;
-        }
+      PixelType neighborValue = *(neighbor[13]);
+      std::cout << itr2.GetIndex() << " = " << neighborValue << std::endl;
+
       ++itr2;
       }
     itr2.NextDirection();
