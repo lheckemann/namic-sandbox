@@ -64,6 +64,8 @@ int main( int argc, char *argv[] )
 
   IteratorType itr2( image, region2 );
 
+  std::cout << "Region = " << region2 << std::endl;
+
   itr2.SetRadius( radius );
 
   typedef IteratorType::Iterator  NeighborPixel;
@@ -79,7 +81,7 @@ int main( int argc, char *argv[] )
       while( neighbor != last )
         {
         PixelType neighborValue = *(neighbor[13]);
-        std::cout <<  neighborValue << std::endl;
+        std::cout << itr2.GetIndex() << " = " << neighborValue << std::endl;
         ++neighbor;
         }
       ++itr2;
