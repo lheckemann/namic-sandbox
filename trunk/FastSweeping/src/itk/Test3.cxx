@@ -27,7 +27,16 @@ int main( int argc, char *argv[] )
   ReaderType::Pointer reader = ReaderType::New();
 
   reader->SetFileName( argv[1] );
-  reader->Update();
+
+  try
+    {
+    reader->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
 
   ImageType::ConstPointer image = reader->GetOutput();
   
