@@ -95,10 +95,16 @@ int main( int argc, char *argv[] )
     while( !itr2.IsAtEndOfDirection() )
       {
 
+      PixelType neighborValue = itr2.Get();
+      std::cout << itr2.GetIndex() << " = " << neighborValue << std::endl;
+
       // Access the neighbor pixels
       NeighborPixel neighbor = itr2.GetFirstNeighborIterator();
-      PixelType neighborValue = itr2.GetNeighborPixel(13);
-      std::cout << itr2.GetIndex() << " = " << neighborValue << std::endl;
+      for(unsigned int k=0; k < 27; k++)
+        {
+        PixelType neighborValue = itr2.GetNeighborPixel(k);
+        std::cout << neighborValue << std::endl;
+        }
 
       ++itr2;
       }
