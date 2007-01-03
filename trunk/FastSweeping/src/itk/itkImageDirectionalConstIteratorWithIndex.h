@@ -159,6 +159,12 @@ public:
   typedef typename NeighborhoodType::Iterator        Iterator;
   typedef typename NeighborhoodType::ConstIterator   ConstIterator;
 
+  /** Typedef for the functor used to access neighborhoods of pixel pointers.
+   * This is obtained as a trait from the image and is different for Image
+   * and VectorImage. */
+  typedef typename ImageType::NeighborhoodAccessorFunctorType 
+                                              NeighborhoodAccessorFunctorType;
+
   /** STL-style iterator support. */
   Iterator GetTerminalNeighborIterator();
   Iterator GetFirstNeighborIterator();
@@ -178,6 +184,9 @@ private:
     IndexType        m_UnchangingBeginIndex;
     IndexType        m_UnchangingEndIndex;
     unsigned long    m_BinaryHelper;
+
+    /** Functor type used to access neighborhoods of pixel pointers */
+    NeighborhoodAccessorFunctorType m_NeighborhoodAccessorFunctor;
 
 };
 
