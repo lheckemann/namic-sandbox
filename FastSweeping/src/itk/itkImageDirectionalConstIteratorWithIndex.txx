@@ -36,6 +36,9 @@ ImageDirectionalConstIteratorWithIndex<TImage>
   this->m_UnchangingBeginIndex = this->m_BeginIndex;
   this->m_UnchangingEndIndex = this->m_EndIndex;
   this->m_BinaryHelper = 0L;
+
+  this->m_NeighborhoodAccessorFunctor = ptr->GetNeighborhoodAccessor();
+  this->m_NeighborhoodAccessorFunctor.SetBegin( ptr->GetBufferPointer() );
 }
   
 //----------------------------------------------------------------------
