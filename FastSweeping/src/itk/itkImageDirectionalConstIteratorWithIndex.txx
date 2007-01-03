@@ -261,6 +261,7 @@ void
 ImageDirectionalConstIteratorWithIndex<TImage>
 ::SetPixelPointers(const IndexType &pos)
 {
+std::cout << "SetPixelPointers" << std::endl;
   typedef typename ImageType::InternalPixelType        InternalPixelType;
   typedef typename ImageType::SizeType                 SizeType;
   typedef typename ImageType::OffsetValueType          OffsetValueType;
@@ -285,6 +286,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
     Iit -= radius[i] * OffsetTable[i];
     }
 
+  std::cout << "First neighbor pixel of " << pos << " = " << *Iit << std::endl;
   // Compute the rest of the pixel addresses
   for (Nit = this->m_Neigborhood.Begin(); Nit != _end; ++Nit)
     {
