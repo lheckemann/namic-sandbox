@@ -55,7 +55,7 @@ main()
   region2.SetSize( size2 );
   region2.SetIndex( start2 );
 
-  IteratorType itr2( image, region );
+  IteratorType itr2( image, region2 );
 
   itr2.SetRadius( radius );
 
