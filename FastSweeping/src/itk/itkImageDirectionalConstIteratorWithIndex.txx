@@ -128,6 +128,8 @@ ImageDirectionalConstIteratorWithIndex<TImage>
 ::operator++()
 {
   
+  bool lineChanged = false;
+
   this->m_Remaining = false;
   for( unsigned int in=0; in<TImage::ImageDimension; in++ )
     {
@@ -152,7 +154,7 @@ ImageDirectionalConstIteratorWithIndex<TImage>
         this->m_Position -= this->m_OffsetTable[ in ] *
             ( static_cast<long>(this->m_Region.GetSize()[in])-1 );
         this->m_PositionIndex[ in ] = this->m_BeginIndex[ in ]; 
-        this->SetPixelPointers( this->m_PositionIndex );
+        lineChanged = true;
         }
       }
     else
@@ -176,9 +178,14 @@ ImageDirectionalConstIteratorWithIndex<TImage>
         this->m_Position += this->m_OffsetTable[ in ] * 
             ( static_cast<long>(this->m_Region.GetSize()[in])-1 );
         this->m_PositionIndex[ in ] = this->m_BeginIndex[ in ]; 
-        this->SetPixelPointers( this->m_PositionIndex );
+        lineChanged = true;
         }
       }
+    }
+
+  if( lineChanged )
+    {
+    this->SetPixelPointers( this->m_PositionIndex );
     }
 
   if( !this->m_Remaining ) // It will not advance here otherwise
