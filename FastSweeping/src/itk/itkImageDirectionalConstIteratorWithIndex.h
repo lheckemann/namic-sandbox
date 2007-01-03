@@ -154,7 +154,8 @@ public:
 
   /** Typedefs required for the neighborhood */
   typedef typename TImage::PixelType                 PixelType;
-  typedef Neighborhood< PixelType *, ImageDimension >  NeighborhoodType;
+  typedef typename TImage::InternalPixelType         InternalPixelType;
+  typedef Neighborhood< InternalPixelType *, ImageDimension >  NeighborhoodType;
   typedef typename NeighborhoodType::Iterator        Iterator;
   typedef typename NeighborhoodType::ConstIterator   ConstIterator;
 
