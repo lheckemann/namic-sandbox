@@ -319,6 +319,17 @@ ImageDirectionalConstIteratorWithIndex<TImage>
 
 
 
+//---------------------------------------------------------------------------
+//  The pixel type after being passed through the NeighborhoodAccessorFunctor
+//---------------------------------------------------------------------------
+template<class TImage>
+typename ImageDirectionalConstIteratorWithIndex<TImage>::PixelType
+ImageDirectionalConstIteratorWithIndex<TImage>
+::GetNeighborPixel(unsigned int i) const
+{
+  return ( this->m_NeighborhoodAccessorFunctor.Get( this->m_Neigborhood[i] ) );
+}
+
 
 } // end namespace itk
 

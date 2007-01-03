@@ -79,7 +79,7 @@ int main( int argc, char *argv[] )
 
       // Access the neighbor pixels
       NeighborPixel neighbor = itr2.GetFirstNeighborIterator();
-      PixelType neighborValue = *(neighbor[13]);
+      PixelType neighborValue = itr2.GetNeighborPixel(13);
       std::cout << itr2.GetIndex() << " = " << neighborValue << std::endl;
 
       ++itr2;

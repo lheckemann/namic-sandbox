@@ -171,6 +171,8 @@ public:
   ConstIterator GetTerminalNeighborIterator() const;
   ConstIterator GetFirstNeighborIterator() const;
 
+  virtual PixelType GetNeighborPixel(unsigned int) const;
+
 private:
 
     // Initialize the pointers to neigbors in the neighborhood.
