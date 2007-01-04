@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <dirent.h>
+#include <errno.h>
 
 #include "WFSocketCollection.h"
 
@@ -12,81 +14,162 @@ using namespace std;
 
 using namespace WFEngine;
 //{
-
-WFBaseEngine* WFBaseEngine::m_wfeBE = 0;
+WFBaseEngine* WFBaseEngine::sm_wfeBE = 0;
 
 WFBaseEngine::WFBaseEngine()
 {
- 
- //initialize static variables
- //using namespace WFFactoryNameSpace;
- //WFFactory *WFFactory::m_wfFactory;
+  this->configExists = false;
 }
 
 WFBaseEngine::~WFBaseEngine()
 {
 }
 
-WFBaseEngine* WFBaseEngine::New(std::string wfConfigFile, bool showEditGUI)
+WFBaseEngine* WFBaseEngine::New()
 {
- 
- //
- bool configExists = false;
+  WFBaseEngine::sm_wfeBE = new WFBaseEngine(); 
+   return sm_wfeBE;  
+}
 
- if(wfConfigFile == "")
- {
-  fstream fs_op("wfConfig.xml",ios::in);
-  if(!fs_op)
+void WFBaseEngine::InitializeWFEngine(std::string wfConfigFile)
+{
+  if(wfConfigFile == "")
   {
-   cout<<"wfConfig.xml not found!"<<endl;
+    fstream fs_op("wfConfig.xml",ios::in);
+    if(!fs_op)
+    {
+     cout<<"wfConfig.xml not found!"<<endl;
+    }
+    else
+    {
+     cout<<"wfConfig.xml found!"<<endl;
+     wfConfigFile = "wfConfig.xml";
+     configExists = true;
+    }
+    fs_op.close();
   }
   else
   {
-   cout<<"wfConfig.xml found!"<<endl;
-   wfConfigFile = "wfConfig.xml";
-   configExists = true;
+    cout<<wfConfigFile<<endl;
+    
+    fstream fs_op(wfConfigFile.c_str(), ios::in);
+    if(!fs_op)
+    {
+     cout<<wfConfigFile<<" could not be found!"<<endl;
+    }
+    else configExists = true;
+    
+    fs_op.close();
   }
-  fs_op.close();
- }
- else
- {
-  cout<<wfConfigFile<<endl;
   
-  fstream fs_op(wfConfigFile.c_str(), ios::in);
-  if(!fs_op)
-  {
-   cout<<wfConfigFile<<" could not be found!"<<endl;
-  }
-  else configExists = true;
+  if(!configExists)
+   {
+    const string emptyStr = "";
+    this->m_wfeOpts = this->InitializeWFEOpts(emptyStr);
+   }
+   else
+   {
+    this->m_wfeOpts = this->InitializeWFEOpts(wfConfigFile);
+   }
+   
+  this->InitializeKnowWorkflows();
+   
+//  this->mainInterfaceLoop();
   
-  fs_op.close();
- }
- 
- m_wfeBE = new WFBaseEngine();
- 
- if(!configExists)
- {
-  const string emptyStr = "";
-  m_wfeBE->m_wfeOpts = m_wfeBE->InitializeWFEOpts(emptyStr, true);
- }
- else
- {
-  m_wfeBE->m_wfeOpts = m_wfeBE->InitializeWFEOpts(wfConfigFile, showEditGUI);
- }
- 
-// wfBE->InitializeWFFactoryClasses();
- 
- m_wfeBE->mainInterfaceLoop();
- 
- return m_wfeBE;
+  this->saveAndExit();
 }
 
-nmWFEngineOptions::WFEngineOptions *WFBaseEngine::InitializeWFEOpts(string wfConfigFile, bool showEditGUI)
+nmWFEngineOptions::WFEngineOptions *WFBaseEngine::InitializeWFEOpts(string wfConfigFile)
 {
  using namespace nmWFEngineOptions;
  WFEngineOptions *wfeOpts = WFEngineOptions::New();
  wfeOpts->SetConfigFile(wfConfigFile);
- wfeOpts->SetShowEditor(showEditGUI);
+ return wfeOpts;
+}
+
+void WFBaseEngine::InitializeKnowWorkflows()
+{
+  
+  //look for existing workflow description files
+  //remove those which doesn't exist anymore
+  //add those if non existent which are in the lookUpPaths
+  
+  using namespace WFEngine::nmWFXmlConfigManager;
+  std::vector<WFXmlConfigManager::myAttrMap> lookUpPaths;
+  std::vector<WFXmlConfigManager::myAttrMap> knowWFs;
+  
+  lookUpPaths = this->m_wfeOpts->GetLookUpPaths();
+  knowWFs = this->m_wfeOpts->GetKnownWorkflows();
+  
+  std::vector<WFXmlConfigManager::myAttrMap>::const_iterator endi = knowWFs.end();
+  std::vector<WFXmlConfigManager::myAttrMap>::const_iterator iter;
+  for(iter = knowWFs.begin(); iter != endi; iter++)
+  {
+    WFXmlConfigManager::myAttrMap attrMap = (*iter);
+    std::string fn = attrMap["fileName"];
+    std::cout<<fn;
+    if(validateXMLFile(fn))
+      std::cout<<" validated! Keep!"<<std::endl;
+    else
+      std::cout<<" not validated! Erase!"<<std::endl;
+      this->m_wfeOpts->RemoveKnownWorkflow(fn);
+  }
+  
+  for(iter = lookUpPaths.begin(); iter != lookUpPaths.end(); iter++)
+  {
+    std::map<std::string,std::string>::const_iterator endj = iter->end();
+    for(std::map<std::string,std::string>::const_iterator map_iter = iter->begin(); map_iter != iter->end(); map_iter++)
+    {
+      DIR *pdir;
+      struct dirent *pent;
+      bool success = true;
+      pdir=opendir(map_iter->second.c_str()); //"." refers to the current dir
+      if (!pdir)
+      {
+        std::cout<<"opendir(\""<<map_iter->second<<"\") failure; terminating"<<std::endl;
+        std::string path = map_iter->second;
+        this->m_wfeOpts->RemoveLookUpPath(path);
+        success = false;
+      }
+      errno=0;
+      if(success)
+      {
+        while ((pent=readdir(pdir)))
+        {
+          std::string fileName(pent->d_name);
+          std::cout<<fileName<<std::endl;
+          std::string pathWithFileName = map_iter->second + "/" + fileName;
+          if(fileName.length() > 4)
+          {
+            if(fileName.substr(fileName.length()-4, fileName.length()-1) == ".xml")
+            {
+              if(validateXMLFile(pathWithFileName))
+                this->m_wfeOpts->AddKnownWorkflow(fileName);
+              else
+                this->m_wfeOpts->RemoveKnownWorkflow(fileName);
+            }
+          }          
+        }
+        if (errno)
+        {
+          std::cout<<"readdir() failure; terminating"<<std::endl;
+        }
+      }      
+      closedir(pdir);  
+    }    
+  }
+  
+//  entryVector::const_iterator endi = osArticle.entries.end();
+//  for (entryVector::const_iterator i = osArticle.entries.begin(); i != endi;
+//  ++i)
+//  {
+//      entryMap::const_iterator endj = i->end();
+//      for (entryMap::const_iterator j = i->begin(); j != endj; ++j)
+//      {
+//          os << j->first << ' ' << j->second << endl;
+//      }
+//
+//  } 
 }
 
 //void WFBaseEngine::InitializeWFFactoryClasses()
@@ -126,20 +209,10 @@ void WFBaseEngine::mainInterfaceLoop()
  
  sc.addSocket(m_wfeSC);
  
- 
- //setup Client Connections
- //this->m_wfeCH->addConnection(6867,5, &WFBaseEngine::recvClientData);
- 
-// //setup Option Conection
-// this->m_wfeCH->addConnection(6868,1, &WFBaseEngine::recvOptionsData);
-// 
-////setup Option Conection
-// this->m_wfeCH->addConnection(6869,1, &WFBaseEngine::recvOptionsData);
- 
  sc.setTimeOut(1);
  while(true)
  {
-  sc.selectOnSockets();
+   sc.selectOnSockets();
  }
 // m_wfeCLI = WFClientInterface::New(6867, 5, &WFBaseEngine::recvClientData);
  
@@ -148,33 +221,57 @@ void WFBaseEngine::mainInterfaceLoop()
 
 void WFBaseEngine::recvClientData(int socket, char* buffer)
 {
- if(buffer == NULL) return;
- 
- std::cout<<"recvClientData:"<<std::endl;
- std::cout<<buffer<<std::endl;
- 
- //int length = sizeof("acknowledgment")+1;
- //char sendData[length];
- std::string sendData = "acknowledgment";
- m_wfeBE->sendClientData(socket, sendData.c_str());
+  if(buffer == NULL) return;
+   
+   std::cout<<"recvClientData:"<<std::endl;
+   std::cout<<buffer<<std::endl;
+   
+   //int length = sizeof("acknowledgment")+1;
+   //char sendData[length];
+   std::string sendData = "acknowledgment";
+   sm_wfeBE->sendClientData(socket, sendData.c_str());
 }
 
 void WFBaseEngine::recvOptionsData(int socket, char* buffer)
 {
- if(buffer == NULL) return;
- 
- std::cout<<"recvClientData:"<<std::endl;
- std::cout<<buffer<<std::endl;
- 
- //int length = sizeof("acknowledgment")+1;
- //char sendData[length];
- std::string sendData = "acknowledgment";
- m_wfeBE->sendClientData(socket, sendData.c_str());
+  if(buffer == NULL) return;
+   
+   std::cout<<"recvClientData:"<<std::endl;
+   std::cout<<buffer<<std::endl;
+   
+   //int length = sizeof("acknowledgment")+1;
+   //char sendData[length];
+   std::string sendData = "acknowledgment";
+   sm_wfeBE->sendClientData(socket, sendData.c_str());
 }
 
 void WFBaseEngine::sendClientData(int socket, std::string buffer)
 {
- this->m_wfeSC->sendDataToConnection(socket, buffer);
+  this->m_wfeSC->sendDataToConnection(socket, buffer);
 }
 
+void WFBaseEngine::saveAndExit()
+{
+  this->m_wfeOpts->SaveChanges();
+}
+
+bool WFBaseEngine::validateXMLFile(std::string &fileName)
+{
+  std::ifstream file(fileName.c_str());
+  if (!file)
+    return false;
+  
+  std::string line;
+  while (std::getline(file, line))
+  {
+    std::cout<<line<<std::endl;  
+    size_t pos = line.find("yawl");
+    if(pos != std::string::npos)
+    {
+      //found
+      return true;
+    }
+  }
+  return false;
+}
 //}

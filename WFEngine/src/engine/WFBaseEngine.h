@@ -11,15 +11,22 @@ namespace WFEngine
  class WFBaseEngine
  {
  public:
-  static WFBaseEngine* New(const std::string wfConfigFile, bool showEditGUI);
+  static WFBaseEngine* New();
+  void InitializeWFEngine(std::string wfConfigFile);
  protected:
  
   WFBaseEngine();
   virtual ~WFBaseEngine();
  
-  nmWFEngineOptions::WFEngineOptions * InitializeWFEOpts(std::string wfConfigFile, bool showEditGUI);
+  nmWFEngineOptions::WFEngineOptions * InitializeWFEOpts(std::string wfConfigFile);
   void InitializeWFFactoryClasses();
   void InitializeWFInterfaces();
+  void InitializeKnowWorkflows();
+  
+  void saveAndExit();
+  
+  bool validateXMLFile(std::string &fileName);
+  bool configExists;
  
  private:
   //static string wfConfigFile;
@@ -29,11 +36,11 @@ namespace WFEngine
   static void recvOptionsData(int socket, char* buffer);
   void sendClientData(int socket, std::string sendData);
   void sendOptionsData(int socket, std::string sendData);
+  
+  static WFBaseEngine* sm_wfeBE;
 //  nmWFFactory::WFFactory *m_wfeFactory;
   
 //  nmWFClientInterface::WFClientInterface *m_wfeCLI;
-  
-  static WFBaseEngine *m_wfeBE;
   
   void mainInterfaceLoop();
   

@@ -2,6 +2,8 @@
 
 #include "DOMTreeErrorReporter.h"
 #include <xercesc/util/OutOfMemoryException.hpp>
+#include <xercesc/framework/LocalFileFormatTarget.hpp>
+#include "WFXmlWriter.h"
 
 using namespace std;
 
@@ -16,14 +18,15 @@ WFXmlManager::WFXmlManager()
  gSchemaFullChecking    = false;
  gDoCreate              = false;
  
- //char* goutputfile            = 0;
+ char* goutputfile      = 0;
  //options for DOMLSSerializer's features
- //XMLCh* gOutputEncoding       = 0;
+ XMLCh* gOutputEncoding = 0;
  
  gSplitCdataSections    = true;
  gDiscardDefaultContent = true;
  gUseFilter;//             = false;
- gFormatPrettyPrint     = false;
+ gFormatPrettyPrint     = true;
+ gWhitespaceInElementContent = false;
  gWriteBOM              = false;
  gValScheme = XercesDOMParser::Val_Auto;
 }
@@ -112,6 +115,7 @@ int WFXmlManager::initializeXerces(std::string xmlFileName)
     {
      this->xmlDoc = parser->getDocument();
      cout<<XMLString::transcode(this->xmlDoc->getDocumentElement()->getTagName())<<std::endl;
+     this->goutputfile = (char*)xmlFileName.c_str();
     }
     std::cout<<parser->getErrorCount()<<std::endl;
     //std::cout<<this->xmlParser->getErrorCount()<<std::endl;
@@ -151,4 +155,98 @@ void WFXmlManager::setXercesParsingOptions(bool doNamespaces,
   this->gValScheme = XercesDOMParser::Val_Always;
   break;
  }
+}
+
+int WFXmlManager::saveXmlFile()
+{
+  int retval;
+  WFXmlWriter *myFilter = 0;
+
+    try
+    {
+        // get a serializer, an instance of DOMLSSerializer
+        XMLCh tempStr[3] = {chLatin_L, chLatin_S, chNull};
+        DOMImplementation *impl          = DOMImplementationRegistry::getDOMImplementation(tempStr);
+        DOMLSSerializer   *theSerializer = ((DOMImplementationLS*)impl)->createLSSerializer();
+        DOMLSOutput       *theOutputDesc = ((DOMImplementationLS*)impl)->createLSOutput();
+
+        // set user specified output encoding
+        theOutputDesc->setEncoding(gOutputEncoding);
+
+        // plug in user's own filter
+        if (gUseFilter)
+        {
+            // even we say to show attribute, but the DOMLSSerializer
+            // will not show attribute nodes to the filter as
+            // the specs explicitly says that DOMLSSerializer shall
+            // NOT show attributes to DOMLSSerializerFilter.
+            //
+            // so DOMNodeFilter::SHOW_ATTRIBUTE has no effect.
+            // same DOMNodeFilter::SHOW_DOCUMENT_TYPE, no effect.
+            //
+            myFilter = new WFXmlWriter(DOMNodeFilter::SHOW_ELEMENT   |
+                                          DOMNodeFilter::SHOW_ATTRIBUTE |
+                                          DOMNodeFilter::SHOW_DOCUMENT_TYPE);
+            theSerializer->setFilter(myFilter);
+        }
+
+        // plug in user's own error handler
+        DOMConfiguration* serializerConfig=theSerializer->getDomConfig();
+        
+        // set feature if the serializer supports the feature/mode
+        if (serializerConfig->canSetParameter(XMLUni::fgDOMWRTSplitCdataSections, gSplitCdataSections))
+            serializerConfig->setParameter(XMLUni::fgDOMWRTSplitCdataSections, gSplitCdataSections);
+
+        if (serializerConfig->canSetParameter(XMLUni::fgDOMWRTDiscardDefaultContent, gDiscardDefaultContent))
+            serializerConfig->setParameter(XMLUni::fgDOMWRTDiscardDefaultContent, gDiscardDefaultContent);
+
+        if (serializerConfig->canSetParameter(XMLUni::fgDOMWRTFormatPrettyPrint, gFormatPrettyPrint))
+            serializerConfig->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, gFormatPrettyPrint);
+
+        if (serializerConfig->canSetParameter(XMLUni::fgDOMWRTBOM, gWriteBOM))
+            serializerConfig->setParameter(XMLUni::fgDOMWRTBOM, gWriteBOM);
+
+        if (serializerConfig->canSetParameter(XMLUni::fgDOMWRTWhitespaceInElementContent , gWhitespaceInElementContent))
+            serializerConfig->setParameter(XMLUni::fgDOMWRTWhitespaceInElementContent , gWhitespaceInElementContent);
+        //
+        // Plug in a format target to receive the resultant
+        // XML stream from the serializer.
+        //
+        // StdOutFormatTarget prints the resultant XML stream
+        // to stdout once it receives any thing from the serializer.
+        //
+        XMLFormatTarget *myFormTarget;
+        myFormTarget=new LocalFileFormatTarget(goutputfile);
+        theOutputDesc->setByteStream(myFormTarget);
+
+        //
+        // do the serialization through DOMLSSerializer::write();
+        //
+        theSerializer->write(this->xmlDoc, theOutputDesc);
+
+        theOutputDesc->release();
+        theSerializer->release();
+
+        //
+        // Filter, formatTarget and error handler
+        // are NOT owned by the serializer.
+        //
+        delete myFormTarget;
+
+        if (gUseFilter)
+            delete myFilter;
+
+    }
+    catch (const OutOfMemoryException&)
+    {
+        XERCES_STD_QUALIFIER cerr << "OutOfMemoryException" << XERCES_STD_QUALIFIER endl;
+        retval = 5;
+    }
+    catch (XMLException& e)
+    {
+        XERCES_STD_QUALIFIER cerr << "An error occurred during creation of output transcoder. Msg is:"
+            << XERCES_STD_QUALIFIER endl
+            << StrX(e.getMessage()) << XERCES_STD_QUALIFIER endl;
+        retval = 4;
+    }
 }

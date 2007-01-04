@@ -66,7 +66,7 @@ namespace WFEngine
   public:
 //   virtual WFXmlManager* New() const = 0;
    
-   virtual int loadXmlFile(std::string xmlFileName) = 0;
+   virtual int loadXmlFile(std::string &xmlFileName) = 0;
    
    //set the parameters before loading the xmlFile
    void setXercesParsingOptions(bool doNamespaces,
@@ -80,6 +80,7 @@ namespace WFEngine
       bool writeBOM,
       int validateSchema);
    
+   int saveXmlFile();
   protected:
    DOMDocument* xmlDoc;
    int initializeXerces(std::string xmlFileName);
@@ -96,15 +97,16 @@ namespace WFEngine
    bool  gSchemaFullChecking;//    = false;
    bool  gDoCreate;//              = false;
    
-   //char* goutputfile            = 0;
+   char* goutputfile;
    //options for DOMLSSerializer's features
-   //XMLCh* gOutputEncoding       = 0;
    
    bool gSplitCdataSections;//    = true;
    bool gDiscardDefaultContent;// = true;
    bool gUseFilter;//             = false;
    bool gFormatPrettyPrint;//     = false;
    bool gWriteBOM;//              = false;
+   bool gWhitespaceInElementContent;
+   XMLCh* gOutputEncoding;
    
    XercesDOMParser::ValSchemes gValScheme;// = XercesDOMParser::Val_Auto;
   };

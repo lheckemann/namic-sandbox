@@ -5,10 +5,12 @@
 using namespace std;
 
 using namespace WFEngine::nmWFEngineOptions;
+using namespace WFEngine::nmWFXmlConfigManager;
 
 WFEngineOptions::WFEngineOptions()
 {
  this->m_configIsActive = false;
+ this->m_isLoaded = false;
 }
 
 WFEngineOptions::~WFEngineOptions()
@@ -30,26 +32,20 @@ WFEngineOptions* WFEngineOptions::New()
  return wfeOpts;
 }
 
-int WFEngineOptions::loadConfigFile(string wfConfigFile)
+int WFEngineOptions::LoadConfigFile(string wfConfigFile)
 {
  int retVal = 0;
- using namespace nmWFXmlConfigManager;
  this->m_WFCfgXmlManager = WFXmlConfigManager::New();
  retVal = this->m_WFCfgXmlManager->loadConfigFile(wfConfigFile);
- if (retVal != 1)
+ if(retVal != 1)
  {
-  //load Config into interal data structure
-//  retVal = this->m_WFCfgXmlManager
-  //get all known Workflows
-  std::vector<WFXmlConfigManager::myAttrMap> knownWFs;
-  knownWFs = this->m_WFCfgXmlManager->getAllKnownWorkflows();
-  std::cout<<knownWFs.size()<<std::endl;
+   this->m_isLoaded = true;
  }
 }
 
 void WFEngineOptions::SetConfigFile(string wfConfigFile)
 {
- if(this->loadConfigFile(wfConfigFile))
+ if(this->LoadConfigFile(wfConfigFile))
  {
   this->m_wfConfigFile = wfConfigFile;
   this->m_configIsActive = true;
@@ -61,7 +57,65 @@ string WFEngineOptions::GetConfigFile()
  return this->m_wfConfigFile;
 }
 
-void WFEngineOptions::SetShowEditor(bool showEditGUI)
+std::vector<WFXmlConfigManager::myAttrMap> WFEngineOptions::GetLookUpPaths()
 {
- 
+  std::vector<WFXmlConfigManager::myAttrMap> lookUpPaths;
+  if(IsLoaded())
+  {
+    lookUpPaths = this->m_WFCfgXmlManager->getAllLookUpPaths();
+    std::cout<<lookUpPaths.size()<<std::endl;    
+  }
+  
+  return lookUpPaths;
+}
+
+std::vector<WFXmlConfigManager::myAttrMap> WFEngineOptions::GetKnownWorkflows()
+{
+  std::vector<WFXmlConfigManager::myAttrMap> knownWFs;
+  if(IsLoaded())
+  {
+    knownWFs = this->m_WFCfgXmlManager->getAllKnownWorkflows();
+    std::cout<<knownWFs.size()<<std::endl;
+  }
+
+  return knownWFs;
+}
+
+bool WFEngineOptions::IsLoaded()
+{
+  return this->m_isLoaded;
+}
+
+void WFEngineOptions::RemoveKnownWorkflow(std::string &fileName)
+{
+  if(IsLoaded())
+  {
+    this->m_WFCfgXmlManager->removeKnownWorkflow(fileName);
+  }
+}
+
+void WFEngineOptions::RemoveLookUpPath(std::string &path)
+{
+  if(IsLoaded())
+  {
+    this->m_WFCfgXmlManager->removeLookUpPath(path);
+  }
+}
+
+void WFEngineOptions::AddKnownWorkflow(std::string &fileName)
+{
+  this->AddKnownWorkflow(fileName, true, true);
+}
+
+void WFEngineOptions::AddKnownWorkflow(std::string &fileName, bool visible, bool enabled)
+{
+  if(IsLoaded())
+  {
+    this->m_WFCfgXmlManager->addKnownWorkflow(fileName, visible, enabled);
+  }
+}
+
+void WFEngineOptions::SaveChanges()
+{
+  this->m_WFCfgXmlManager->saveXmlFile();
 }

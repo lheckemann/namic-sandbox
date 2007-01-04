@@ -1,105 +1,23 @@
-#include "WFTestClient.h"
+#include "vtkWFTestWizard.h"
 
 #include "vtkKWApplication.h"
-#include "vtkKWWindowBase.h"
 #include "vtkKWLabel.h"
-#include "vtkKWFrame.h"
-#include "vtkKWNotebook.h"
-#include "vtkKWText.h"
 
-#include <vtksys/SystemTools.hxx>
+// We define several classes in this example, and we want to be able to use
+// their C++ methods as callbacks for our user interface. To do so, we created
+// a library and wrapped it automatically for the Tcl language, which is used
+// as a bridge between C++ objects at run-time. An initialization function is
+// automatically created in this library to allow classes and C++ methods to
+// be used as commands and callbacks inside the Tcl interpreter; let's *not* 
+// forget to declare *and* call this function right after we initialize the Tcl
+// interpreter in our application. The name of this function is built from the
+// library name in lower-case (except for the first letter) and suffixed with
+// "_Init" (for example: KWCallbacksExampleLib => Kwcallbacksexamplelib_Init).
+// This whole process is required to use C++ methods as callbacks; it is not
+// needed if you use VTK's C++ command/observer pattern directly, which is
+// demonstrated in KWWidgets's C++ 'Callbacks' example.
 
-namespace nmWFTestClient
-{
-
-WFTestClient::WFTestClient()
-{
-}
-
-WFTestClient::~WFTestClient()
-{
-}
-
-WFTestClient *WFTestClient::New()
-{
- WFTestClient *wfTC = new WFTestClient;
- int retVal = wfTC->initializeInterface();
- return wfTC;
-}
-
-int WFTestClient::initializeInterface()
-{
- vtkKWApplication *app = vtkKWApplication::New();
- app->SetName("WFTestClient");
- 
- app->RestoreApplicationSettingsFromRegistry();
-
- // Set a help link. Can be a remote link (URL), or a local file
-
- // vtksys::SystemTools::GetFilenamePath(__FILE__) + "/help.html";
- //app->SetHelpDialogStartingPage("http://www.kwwidgets.org");
-
- // Add a window
- // Set 'SupportHelp' to automatically add a menu entry for the help link
-
- vtkKWWindowBase *win = vtkKWWindowBase::New();
- //win->SupportHelpOn();
- app->AddWindow(win);
- win->Create();
- win->SetStatusFrameVisibility(0);
- 
- // Add a notebook to the testClient
- vtkKWNotebook *tclNB = vtkKWNotebook::New();
- tclNB->SetParent(win->GetViewFrame());
- tclNB->Create();
- std::cout<<win->GetViewFrame()->GetWidth()<<std::endl;
- tclNB->SetMinimumHeight(win->GetViewFrame()->GetHeight());
- tclNB->SetMinimumWidth(win->GetViewFrame()->GetWidth());
- 
- app->Script(
-      "pack %s -side top -anchor nw -expand y -fill both -padx 0 -pady 0", 
-      tclNB->GetWidgetName());
- 
- tclNB->Delete();
- int wfPage_id = tclNB->AddPage("Workflow");
- int consolePage_id = tclNB->AddPage("Console");
- // Add a label, attach it to the view frame, and pack
-   
- vtkKWLabel *hello_label = vtkKWLabel::New();
- hello_label->SetParent(tclNB->GetFrame(wfPage_id));
- hello_label->Create();
- hello_label->SetText("Hello, World!");
- app->Script("pack %s -side left -anchor c -expand y", 
-               hello_label->GetWidgetName());
- hello_label->Delete();
- 
- vtkKWText *consoleText = vtkKWText::New();
- consoleText->SetParent(tclNB->GetFrame(consolePage_id));
- consoleText->Create();
-// consoleText->SetBackgroundColor(0,0,0);
- consoleText->SetForegroundColor(128,128,128);
- consoleText->SetText("Network - Console\n-----------------------------------------------");
- app->Script("pack %s -side top -anchor c -expand y -fill both", 
-   consoleText->GetWidgetName());
- consoleText->Delete();
-   
- int ret = 0;
- win->Display();
-   
- app->Start(1, NULL);
- ret = app->GetExitStatus();
-   
- win->Close();
-
- // Deallocate and exit
-
- win->Delete();
- app->Delete();
-   
- return ret;
-}
-
-}
+extern "C" int Wftestwizardlib_Init(Tcl_Interp *interp);
 
 int my_main(int argc, char *argv[])
 {
@@ -112,14 +30,35 @@ int my_main(int argc, char *argv[])
     return 1;
     }
 
+  // Initialize our Tcl library (i.e. our classes wrapped in Tcl).
+  // This *is* required for the C++ methods to be used as callbacks.
+  // See comment at the top of this file.
+
+  Wftestwizardlib_Init(interp);
+
   // Create the application
   // If --test was provided, ignore all registry settings, and exit silently
   // Restore the settings that have been saved to the registry, like
   // the geometry of the user interface so far.
-  nmWFTestClient::WFTestClient::New();
-   // Start the application
+  
+  vtkKWApplication *app = vtkKWApplication::New();
+  app->SetName("Prostata biopsy Wizard");
+  app->RestoreApplicationSettingsFromRegistry();
+  app->PromptBeforeExitOff();
+  
+  vtkKWWizardDialog *wfTW = vtkWFTestWizard::New();
+  wfTW->SetApplication(app);
+  wfTW->Create();
+  wfTW->Invoke();
+  
+  wfTW->Delete();
+  // Start the application
   // If --test was provided, do not enter the event loop and run this example
   // as a non-interactive test for software quality purposes.
+  
+  app->Exit();
+  app->Delete();
+  
   return 0;
 }
 

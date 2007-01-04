@@ -2,7 +2,7 @@ PROJECT(WFEngine)
 
 SET(SRCS
 WFXmlManager.cxx DOMTreeErrorReporter.cxx
-WFXmlConfigManager.cxx
+WFXmlConfigManager.cxx WFXmlWriter.cxx
 )
 
 SET(LINK_LIBS

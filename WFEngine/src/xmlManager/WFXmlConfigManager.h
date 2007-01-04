@@ -18,24 +18,31 @@ namespace WFEngine
   {
   public:
    static WFXmlConfigManager* New();
-   int loadConfigFile(std::string xmlFileName);
-   int parseConfig(std::string parentTag);
+   int loadConfigFile(std::string &xmlFileName);
+   int parseConfig(std::string &parentTag);
    
 //   typedef std::list< std::vector<std::string,std::string> > tagAttrList;
    typedef std::map<std::string,std::string> myAttrMap;
    
    std::vector<myAttrMap> getAllKnownWorkflows();
    
-      
+   std::vector<myAttrMap> getAllLookUpPaths();
+   
+   void removeKnownWorkflow(std::string &fileName);
+   void removeLookUpPath(std::string &path);
+   void addKnownWorkflow(std::string &fileName, bool visible, bool enabled);
+  protected:
+    WFXmlConfigManager();
+    virtual ~WFXmlConfigManager();
+    void removeAllNodesWithAttribute(std::string &parentTagName, std::string &childTagName, std::string &attribName, std::string &attribValue);
+    int loadXmlFile(std::string &xmlFileName);
+    DOMNode *getParentNodeByName(std::string &parentTagName);
+    myAttrMap getAllAttributesFromElement(DOMElement* curElem);
+    DOMNodeList *getAllChildesByName(std::string &parentTagName, std::string &childTagName);
+    std::vector<myAttrMap> getAttributesOfChilds(DOMNodeList *nodeList);
   private:
-   int loadXmlFile(std::string xmlFileName);
-   WFXmlConfigManager();
-   virtual ~WFXmlConfigManager();
    
    typedef WFXmlManager super;
-   
-   myAttrMap getAllAttributesFromTag(DOMElement* curElem);
-   void getParseAllChildesByName(std::string, std::string, std::vector<myAttrMap>&);
   };
  }
 }

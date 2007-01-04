@@ -63,7 +63,8 @@ int my_main(int argc, char *argv[])
  } catch (ArgException &e)  // catch any exceptions
  { cerr << "error: " << e.error() << " for arg " << e.argId() << endl; }
  
- WFBaseEngine *wfeBE = WFBaseEngine::New(wfConfigFile, showEditGUI);
+ WFBaseEngine *wfeBE = WFBaseEngine::New();
+ wfeBE->InitializeWFEngine(wfConfigFile);
  
  //Initialize die Engine
  

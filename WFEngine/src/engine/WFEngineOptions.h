@@ -1,15 +1,14 @@
 #ifndef WFENGINEOPTIONS_H_
 #define WFENGINEOPTIONS_H_
 
-#include "WFXmlConfigManager.h"
+#include <WFXmlConfigManager.h>
 
 #include <string>
-#include <list>
+#include <vector>
 #include <map>
 
 namespace WFEngine
 {
- 
  namespace nmWFEngineOptions
  {
   class WFEngineOptions
@@ -28,7 +27,18 @@ namespace WFEngine
    void SetConfigFile(std::string wfConfigFile);
    std::string GetConfigFile();
  
-   void SetShowEditor(bool);
+   
+   std::vector<WFEngine::nmWFXmlConfigManager::WFXmlConfigManager::myAttrMap> GetLookUpPaths();  
+   std::vector<WFEngine::nmWFXmlConfigManager::WFXmlConfigManager::myAttrMap> GetKnownWorkflows();
+   
+   void AddKnownWorkflow(std::string &fileName);
+   void AddKnownWorkflow(std::string &fileName, bool visible, bool enabled);
+   
+   bool IsLoaded();
+   
+   void RemoveKnownWorkflow(std::string &fileName);
+   void RemoveLookUpPath(std::string &path);
+   void SaveChanges();
   
   protected:
    WFEngineOptions();
@@ -41,13 +51,13 @@ namespace WFEngine
  
    std::map<int, struct wfDescription> m_knownWFs;
  
-   int loadConfigFile(std::string wfConfigFile);
+   int LoadConfigFile(std::string wfConfigFile);
  
    bool m_configIsActive;
+   bool m_isLoaded;
    std::string m_wfConfigFile;
    
-   void recvOptionsData(char* buffer);
-   
+   void recvOptionsData(char* buffer);   
   };
  }
 
