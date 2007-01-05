@@ -10,9 +10,9 @@
 //#include <vector>
 #include <iostream>
 
-#include <loki/Factory.h>
+//#include <loki/Factory.h>
 
-using namespace Loki;
+//using namespace Loki;
 namespace WFEngine
 {
  
@@ -27,16 +27,16 @@ namespace WFEngine
  
    void registerTypes();
   
-   template<class AbstractProduct, class Product>
-   bool registerType(int id, AbstractProduct absProd, Product prod)
-   {
-    typedef SingletonHolder 
-    <
-        Factory< AbstractProduct, int >,
-        CreateUsingNew,
-        Loki::LongevityLifetime::DieAsSmallObjectChild
-       >
-    aFactory;
+//   template<class AbstractProduct, class Product>
+//   bool registerType(int id, AbstractProduct absProd, Product prod)
+//   {
+//    typedef SingletonHolder 
+//    <
+//        Factory< AbstractProduct, int >,
+//        CreateUsingNew,
+//        Loki::LongevityLifetime::DieAsSmallObjectChild
+//       >
+//    aFactory;
      
 //   WFClientInterface wfCI;
      
@@ -44,8 +44,8 @@ namespace WFEngine
 //    factInst.Register(1, Product::New);
     
 //    factInst.CreateObject(1);
-   }
-   //typedef std::map<int, Loki::Factory> factory_map;
+//   }
+//   typedef std::map<int, Loki::Factory> factory_map;
  
   protected:
    WFFactory();

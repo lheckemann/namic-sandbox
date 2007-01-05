@@ -77,7 +77,7 @@ void vtkWFTestWizard::initializeWizard()
     this->m_FirstStep->SetShowUserInterfaceCommand(
       this, "Show1UserInterfaceCallback");
     this->m_FirstStep->SetHideUserInterfaceCommand(wizard_widget, "ClearPage");
-    this->m_FirstStep->SetValidationCommand(this, "Validate1Callback");
+    this->m_FirstStep->SetValidateCommand(this, "Validate1Callback");
 
     wizard_workflow->AddStep(this->m_FirstStep);
       
@@ -94,7 +94,7 @@ void vtkWFTestWizard::initializeWizard()
       this->m_SecondStep->SetShowUserInterfaceCommand(
         this, "Show2UserInterfaceCallback");
       this->m_SecondStep->SetHideUserInterfaceCommand(wizard_widget, "ClearPage");
-      this->m_SecondStep->SetValidationCommand(this, "Validate2Callback");
+      this->m_SecondStep->SetValidateCommand(this, "Validate2Callback");
 
       wizard_workflow->AddNextStep(this->m_SecondStep);
       
@@ -111,7 +111,7 @@ void vtkWFTestWizard::initializeWizard()
       this->m_ThirdStep->SetShowUserInterfaceCommand(
         this, "Show3UserInterfaceCallback");
       this->m_ThirdStep->SetHideUserInterfaceCommand(wizard_widget, "ClearPage");
-      this->m_ThirdStep->SetValidationCommand(this, "Validate3Callback");
+      this->m_ThirdStep->SetValidateCommand(this, "Validate3Callback");
 
       wizard_workflow->AddNextStep(this->m_ThirdStep);
       
@@ -128,7 +128,7 @@ void vtkWFTestWizard::initializeWizard()
       this->m_FourthStep->SetShowUserInterfaceCommand(
         this, "Show4UserInterfaceCallback");
       this->m_FourthStep->SetHideUserInterfaceCommand(wizard_widget, "ClearPage");
-      this->m_FourthStep->SetValidationCommand(this, "Validate4Callback");
+      this->m_FourthStep->SetValidateCommand(this, "Validate4Callback");
 
       wizard_workflow->AddNextStep(this->m_FourthStep);
       
@@ -145,7 +145,7 @@ void vtkWFTestWizard::initializeWizard()
       this->m_LastStep->SetShowUserInterfaceCommand(
         this, "ShowLastUserInterfaceCallback");
       this->m_LastStep->SetHideUserInterfaceCommand(wizard_widget, "ClearPage");
-      this->m_LastStep->SetValidationCommand(this, "ValidateLastCallback");
+      this->m_LastStep->SetValidateCommand(this, "ValidateLastCallback");
 
       wizard_workflow->AddNextStep(this->m_LastStep);
     

@@ -11,12 +11,8 @@ SET(CMAKE_C_INCLUDE_PATH
   "src/engine"
   "src/interface"
   "src/xmlManager"
-  "src/wfConfigEditor"
   "src/test"
   "/projects/birn/keilhack/workspace/xercesc/src"
-  "/projects/birn/keilhack/workspace/loki-lib-svn/include"
-  "/projects/birn/keilhack/workspace/asio/include"
-  "/projects/birn/keilhack/workspace/boost"
   )
 SET(CMAKE_CXX_INCLUDE_PATH ${CMAKE_C_INCLUDE_PATH})
 
