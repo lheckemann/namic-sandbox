@@ -157,7 +157,7 @@ Poistats::Poistats( int inArgs, char ** iaArgs ) :
   SetOutput( output );
   
   SetChildren( "matlab: poistats" );
-  SetVersion( "Beta 1.5" );
+  SetVersion( "Beta 1.6" );
   SetAuthor( "David Tuch" );
   SetBugEmail( "martinos-tech@yahoogroups.com" );
 }

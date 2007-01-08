@@ -80,9 +80,9 @@ PoistatsReplica::ShouldUpdateEnergy() {
 
   const double delta  = ( m_CurrentMeanEnergy - m_PreviousMeanEnergy ) / 
     m_Temperature;
- 
-  double updateProbability = exp( -delta );
 
+  double updateProbability = exp( -delta );
+  
   static const double maxProbablity = 1.0;
   
   if( updateProbability > maxProbablity ) {

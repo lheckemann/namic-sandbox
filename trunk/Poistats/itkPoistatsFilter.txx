@@ -605,7 +605,9 @@ PoistatsFilter< TInputImage, TOutputImage >
     nSpatialDimensions );
   
   const double lullEnergyDifferenceThreshold = .5*1e-3;
-
+  
+  const bool isMoreThanOneReplica = m_Replicas->GetNumberOfReplicas() > 1;
+  
   std::cerr << "starting..." << std::endl;
     
   for( int currentTime=1, currentLull=0;
@@ -667,8 +669,11 @@ PoistatsFilter< TInputImage, TOutputImage >
       // Delta = (energy(i)-energyprev(i))/temp(i);
       // updateprobability = min(1, exp(-Delta));
       // if rand(1) <= updateprobability;
-      if( this->m_Replicas->ShouldUpdateEnergy( cReplica ) ) {
-
+      
+      // update the energy, and always set it initially to the first replica
+      if( this->m_Replicas->ShouldUpdateEnergy( cReplica ) || 
+        ( cReplica == 0 &&  !isNotFirst ) ) {
+      
         // basepath{i} = lowtrialpath; 
         // bestpath{i} = trialpath{i};
         m_Replicas->FoundBestPath( cReplica, &lowTrialPath );
@@ -691,7 +696,7 @@ PoistatsFilter< TInputImage, TOutputImage >
       }
       
       // if  time > 1 & rand(1) < replicaexchprob
-      const bool shouldExchange = isNotFirst && 
+      const bool shouldExchange = isNotFirst && isMoreThanOneReplica &&
         ( m_PoistatsModel->GetRandomNumber() < this->GetReplicaExchangeProbability() );
             
       if( shouldExchange ) {
@@ -1389,8 +1394,6 @@ PoistatsFilter<TInputImage, TOutputImage>
   MatrixType initialPoints( nInitialPoints, spatialDimensions );
   this->GetInitialPoints( &initialPoints );
 
-  const int numberOfControlPoints = this->GetNumberOfControlPoints();
-  
   this->m_Replicas->SetInitialPoints( &initialPoints );
   
 }

@@ -302,12 +302,12 @@ PoistatsReplicas::GetPreviousTrialPath( const int replica ) {
 }
 
 void PoistatsReplicas::SetInitialPoints( const MatrixPointer points ) {
-  
+
   if( m_InitialPoints != NULL ) {
     delete m_InitialPoints;
   }
   m_InitialPoints = new MatrixType( *points );
-  
+    
   const int nEndPoints = 2;
   const int nTotalControlPoints = GetNumberOfControlPoints() + nEndPoints;
 
@@ -425,11 +425,18 @@ PoistatsReplicas::GetBestTrialPathProbabilities( const int replica) {
 void PoistatsReplicas::SpaceTemperaturesEvenly( 
   const double floorTemp, const double ceilingTemp ) {
 
-  ArrayType temperatures( this->GetNumberOfReplicas() );  
-  PoistatsReplica::SpaceEvenly( &temperatures, floorTemp, ceilingTemp );
-  for( int cReplica=0; cReplica<this->GetNumberOfReplicas(); cReplica++ ) {
-    const double temperature = temperatures[ cReplica ];
-    this->SetTemperature( cReplica, temperature );
+  if( this->GetNumberOfReplicas() > 1 ) {
+
+    ArrayType temperatures( this->GetNumberOfReplicas() );  
+    PoistatsReplica::SpaceEvenly( &temperatures, floorTemp, ceilingTemp );
+    for( int cReplica=0; cReplica<this->GetNumberOfReplicas(); cReplica++ ) {
+      const double temperature = temperatures[ cReplica ];
+      this->SetTemperature( cReplica, temperature );
+    }
+   
+  } else {
+    // if we just have one replica, then we'll just take the center temp
+    this->SetTemperature( 0, ( ceilingTemp-floorTemp ) / 2.0 );
   }
     
 }
@@ -473,7 +480,7 @@ void PoistatsReplicas::CopyCurrentToPreviousTrialPath( const int replica ) {
 PoistatsReplicas::MatrixPointer
 PoistatsReplicas::RethreadPath(
   MatrixPointer originalPath, const int nNewSamples ) {
-
+    
   // create evenly spaced parametric points for the original path
   const double gridFloor = 0.0;
   const double gridCeiling = 1.0;
@@ -483,7 +490,7 @@ PoistatsReplicas::RethreadPath(
   // interploate the spline
   MatrixPointer rethreadedPath = this->CubicSplineInterpolation( 
     originalPath, &originalPathGrid, nNewSamples );
-    
+
   // calculate the path length of the new path at each point
   ArrayType magnitude( nNewSamples-1 );
   PoistatsReplica::CalculatePathMagnitude( rethreadedPath, &magnitude );
@@ -497,6 +504,7 @@ PoistatsReplicas::RethreadPath(
   // and setting the parametric coordinates based on the path length
   ArrayType normalizedCumulativeSum( nNewSamples );
   double pathLength = cumulativeSum[ cumulativeSum.size() - 1 ];
+    
   for( int cRow=0; cRow<cumulativeSum.size(); cRow++ ) {
     normalizedCumulativeSum[ cRow ] = cumulativeSum[ cRow ] / pathLength;
   }
@@ -518,7 +526,7 @@ PoistatsReplicas::MatrixPointer
 PoistatsReplicas::CubicSplineInterpolation( 
   MatrixPointer originalPath, ArrayPointer originalPathGrid, 
   const int nNewSamples ) {
-
+    
   const int spatialDimension = 3;
   const unsigned int ImageDimension = 1;
 
@@ -545,8 +553,9 @@ PoistatsReplicas::CubicSplineInterpolation(
   const int nTotalControlPoints = GetNumberOfControlPoints() + 2;
   nControlPoints.Fill( nTotalControlPoints );
   m_CubicSplineFilter->SetNumberOfControlPoints( nControlPoints );
-  
+
   m_CubicSplineFilter->SetInput( pointSet );
+
   m_CubicSplineFilter->Update();
 
   MatrixPointer rethreadedPath = 
