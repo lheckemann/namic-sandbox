@@ -5,8 +5,6 @@ WFServerConnection.cxx
 WFClientConnection.cxx
 WFSocketCollection.cxx)
 
-#FIND_PACKAGE(Threads)
+ADD_LIBRARY(WFNetworkInterface ${SRCS})
 
-ADD_LIBRARY(WFInterface ${SRCS})
-
-TARGET_LINK_LIBRARIES(WFInterface)
+TARGET_LINK_LIBRARIES(WFNetworkInterface)

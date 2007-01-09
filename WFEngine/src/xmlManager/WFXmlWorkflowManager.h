@@ -8,23 +8,29 @@ using namespace WFEngine::nmWFXmlManager;
 namespace WFEngine
 {
     
- namespace nmWFXmlConfigManager
+ namespace nmWFXmlWorkflowManager
  {
      class WFXmlWorkflowManager : public WFXmlManager
      {
      public:
          static WFXmlWorkflowManager* New(); 
          void getNextWorkstepDescription();
-         void loadWorkflowDescription(std::string &wfXmlFile);
+         int loadWorkflowDescription(std::string &wfXmlFile);
          bool IsLoaded();
-                  
+         
+         std::string getWorkflowName();
+         void destroy();
      protected:
          WFXmlWorkflowManager();
          virtual ~WFXmlWorkflowManager();
-         
-         int loadXmlFile(std::string &xmlFileName);        
+                 
      private:
          bool m_isLoaded;
+         
+         std::string specification;
+         std::string decomposition;
+         std::string schema;
+         
      };
  }
 

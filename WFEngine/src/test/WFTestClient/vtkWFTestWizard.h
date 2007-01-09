@@ -14,9 +14,9 @@ class vtkCallbackCommand;
 class vtkWFTestWizard : public vtkKWWizardDialog
 {
 public:
-  static vtkWFTestWizard *New();
-  
-  vtkTypeRevisionMacro(vtkWFTestWizard,vtkKWWizardDialog);
+    static vtkWFTestWizard *New();
+    
+    vtkTypeRevisionMacro(vtkWFTestWizard,vtkKWWizardDialog);
   
     virtual void initializeWizard();
     
@@ -53,37 +53,37 @@ public:
     
     
 protected:
-  vtkWFTestWizard();
-  ~vtkWFTestWizard();
+    vtkWFTestWizard();
+    ~vtkWFTestWizard();
   
     // Description:
     // Create the widget.
     virtual void CreateWidget();
     
-  //BTX
-  enum
-    {
-     patientNew = 0,
-     patientLoad
-    };
-    //ETX
+    //BTX
+    enum
+      {
+       patientNew = 0,
+       patientLoad
+      };
+      //ETX
     
     // Description:
-  // Operator step
-  vtkKWWizardStep *m_FirstStep;
+    // Operator step
+    vtkKWWizardStep *m_FirstStep;
     vtkKWWizardStep *m_SecondStep;
     vtkKWWizardStep *m_ThirdStep;
     vtkKWWizardStep *m_FourthStep;
     vtkKWWizardStep *m_LastStep;
   
-  vtkKWRadioButtonSet *m_patientSelectorRBS;
+    vtkKWRadioButtonSet *m_patientSelectorRBS;
     
     int getPatientSelector();
     
     static void patientSelectorCallback(vtkObject* obj, unsigned long,void*, void*);  
 private:
-  vtkWFTestWizard(const vtkWFTestWizard&);   // Not implemented.
-  void operator=(const vtkWFTestWizard&);  // Not implemented.
+    vtkWFTestWizard(const vtkWFTestWizard&);   // Not implemented.
+    void operator=(const vtkWFTestWizard&);  // Not implemented.
 };
 
 //static bool WFTestWizard::classCreated = false;

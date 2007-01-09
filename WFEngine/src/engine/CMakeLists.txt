@@ -1,17 +1,30 @@
 PROJECT(WFEngine)
 
 SET(SRCS
-WFBaseEngine.cxx
-WFEngineOptions.cxx
-WFFactory.cxx
+${CMAKE_SOURCE_DIR}/src/engine/WFBaseEngine.cxx
+${CMAKE_SOURCE_DIR}/src/engine/WFEngineOptions.cxx
+${CMAKE_SOURCE_DIR}/src/engine/WFFactory.cxx
+${CMAKE_SOURCE_DIR}/src/engine/WFWorkflowManager.cxx
+${CMAKE_SOURCE_DIR}/src/engine/WFStepObject.cxx
 )
-
-SET(LINK_LIBS
-WFInterface WFXmlManager)
 
 #IF(LOKI_FOUND)
 #  SET(LINK_LIBS ${LINK_LIBS} ${LOKI_LIBRARY})
 #ENDIF(LOKI_FOUND)
 
-ADD_LIBRARY(WFBaseEngine ${SRCS})
-TARGET_LINK_LIBRARIES(WFBaseEngine ${LINK_LIBS})
+IF(BUILD_WFDIRECTINTERFACE)
+SET_SOURCE_FILES_PROPERTIES(
+    ${CMAKE_SOURCE_DIR}/src/engine/WFBaseEngine.cxx
+    COMPILE_FLAGS -DWFDIRECTINTERFACE)
+    SET(LINK_LIBS WFXmlManager)
+    ADD_LIBRARY(WFDIBaseEngine ${SRCS})
+    TARGET_LINK_LIBRARIES(WFDIBaseEngine ${LINK_LIBS})
+ELSE(BUILD_WFDIRECTINTERFACE)
+    SET(LINK_LIBS WFNetworkInterface WFXmlManager)
+    ADD_LIBRARY(WFBaseEngine ${SRCS})
+    TARGET_LINK_LIBRARIES(WFBaseEngine ${LINK_LIBS})
+ENDIF(BUILD_WFDIRECTINTERFACE)
+
+
+
+

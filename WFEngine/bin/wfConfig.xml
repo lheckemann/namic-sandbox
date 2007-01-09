@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<WFEngineConfig>
-  <knownWorkflows>		    	
-    <workflow enabled="true" fileName="prostate.xml" visible="true"/>
-    <workflow enabled="true" fileName="test1-withvars.xml" visible="true"/>
-    <workflow enabled="true" fileName="test1.xml" visible="true"/>
+<WFEngine>
+  <knownWorkflows>
+    <workflow enabled="true" fileName="../workflows/prostate.xml" visible="true"/>
+    <workflow enabled="true" fileName="../workflows/test1-withvars.xml" visible="true"/>
+    <workflow enabled="true" fileName="../workflows/test1.xml" visible="true"/>
   </knownWorkflows>
   <lookUpPaths>
-	<path url="."/>		
-	<path url="../workflows"/>
-  </lookUpPaths>
-</WFEngineConfig>
+    <path url=".">
+</path></lookUpPaths>
+</WFEngine>

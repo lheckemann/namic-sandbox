@@ -12,7 +12,8 @@
 #include <xercesc/parsers/XercesDOMParser.hpp>
 
 #include <string>
-//#include <vector>
+#include <map>
+#include <vector>
 //#include <list>
 
 //need to recognize the XERCESC types
@@ -65,50 +66,54 @@ namespace WFEngine
   {
   public:
 //   virtual WFXmlManager* New() const = 0;
-   
-   virtual int loadXmlFile(std::string &xmlFileName) = 0;
-   
-   //set the parameters before loading the xmlFile
-   void setXercesParsingOptions(bool doNamespaces,
-      bool doSchema,
-      bool schemaFullChecking,
-      bool doCreate,
-      bool splitCdataSections,
-      bool discardDefaultContent,
-      bool useFilter,
-      bool formatPrettyPrint,
-      bool writeBOM,
-      int validateSchema);
-   
-   int saveXmlFile();
+      int saveXmlFile();
+      typedef std::map<std::string,std::string> myAttrMap;
   protected:
-   DOMDocument* xmlDoc;
-   int initializeXerces(std::string xmlFileName);
-   
-   WFXmlManager();
-   virtual ~WFXmlManager();
+      DOMDocument* xmlDoc;
+      int loadXmlFile(std::string &xmlFileName);
+      WFXmlManager();
+      virtual ~WFXmlManager();
+      
+      //set the parameters before loading the xmlFile
+      void setXercesParsingOptions(bool doNamespaces,
+         bool doSchema,
+         bool schemaFullChecking,
+         bool doCreate,
+         bool splitCdataSections,
+         bool discardDefaultContent,
+         bool useFilter,
+         bool formatPrettyPrint,
+         bool writeBOM,
+         int validateSchema);
+      
+      DOMNode *getParentNodeByName(std::string &parentTagName);
+      myAttrMap getAllAttributesFromElement(DOMElement* curElem);
+      DOMNodeList *getAllChildesByName(std::string &parentTagName, std::string &childTagName);
+      std::vector<myAttrMap> getAttributesOfChilds(DOMNodeList *nodeList);
+      
   private:
-     
-   WFXmlManager* m_wfXmlMgr;
-   
-   std::string gXmlFile;// = 0;
-   bool  gDoNamespaces;//          = false;
-   bool  gDoSchema;//              = false;
-   bool  gSchemaFullChecking;//    = false;
-   bool  gDoCreate;//              = false;
-   
-   char* goutputfile;
-   //options for DOMLSSerializer's features
-   
-   bool gSplitCdataSections;//    = true;
-   bool gDiscardDefaultContent;// = true;
-   bool gUseFilter;//             = false;
-   bool gFormatPrettyPrint;//     = false;
-   bool gWriteBOM;//              = false;
-   bool gWhitespaceInElementContent;
-   XMLCh* gOutputEncoding;
-   
-   XercesDOMParser::ValSchemes gValScheme;// = XercesDOMParser::Val_Auto;
+      int initializeXerces(std::string xmlFileName);
+      
+      WFXmlManager* m_wfXmlMgr;
+      
+      std::string gXmlFile;// = 0;
+      bool  gDoNamespaces;//          = false;
+      bool  gDoSchema;//              = false;
+      bool  gSchemaFullChecking;//    = false;
+      bool  gDoCreate;//              = false;
+      
+      char* goutputfile;
+      //options for DOMLSSerializer's features
+      
+      bool gSplitCdataSections;//    = true;
+      bool gDiscardDefaultContent;// = true;
+      bool gUseFilter;//             = false;
+      bool gFormatPrettyPrint;//     = false;
+      bool gWriteBOM;//              = false;
+      bool gWhitespaceInElementContent;
+      XMLCh* gOutputEncoding;
+      
+      XercesDOMParser::ValSchemes gValScheme;// = XercesDOMParser::Val_Auto;
   };
  }
 }

@@ -5,7 +5,9 @@
 #include <dirent.h>
 #include <errno.h>
 
+#ifndef WFDIRECTINTERFACE
 #include "WFSocketCollection.h"
+#endif
 
 #define WFCLIENT_INTF 1
 #define WFOPTIONS_INTF 2
@@ -27,11 +29,10 @@ WFBaseEngine::~WFBaseEngine()
 
 WFBaseEngine* WFBaseEngine::New()
 {
-  WFBaseEngine::sm_wfeBE = new WFBaseEngine(); 
-   return sm_wfeBE;  
+   return new WFBaseEngine();   
 }
 
-void WFBaseEngine::InitializeWFEngine(std::string wfConfigFile)
+int WFBaseEngine::InitializeWFEngine(std::string wfConfigFile)
 {
   if(wfConfigFile == "")
   {
@@ -63,20 +64,18 @@ void WFBaseEngine::InitializeWFEngine(std::string wfConfigFile)
   }
   
   if(!configExists)
-   {
+  {
     const string emptyStr = "";
     this->m_wfeOpts = this->InitializeWFEOpts(emptyStr);
-   }
-   else
-   {
+  }
+  else
+  {
     this->m_wfeOpts = this->InitializeWFEOpts(wfConfigFile);
-   }
-   
+  }
+     
   this->InitializeKnowWorkflows();
-   
-//  this->mainInterfaceLoop();
   
-  this->saveAndExit();
+  return 1;
 }
 
 nmWFEngineOptions::WFEngineOptions *WFBaseEngine::InitializeWFEOpts(string wfConfigFile)
@@ -101,6 +100,8 @@ void WFBaseEngine::InitializeKnowWorkflows()
   lookUpPaths = this->m_wfeOpts->GetLookUpPaths();
   knowWFs = this->m_wfeOpts->GetKnownWorkflows();
   
+  std::cout<<"***Configuration checkup***"<<std::endl;
+  
   std::vector<WFXmlConfigManager::myAttrMap>::const_iterator endi = knowWFs.end();
   std::vector<WFXmlConfigManager::myAttrMap>::const_iterator iter;
   for(iter = knowWFs.begin(); iter != endi; iter++)
@@ -109,10 +110,15 @@ void WFBaseEngine::InitializeKnowWorkflows()
     std::string fn = attrMap["fileName"];
     std::cout<<fn;
     if(validateXMLFile(fn))
-      std::cout<<" validated! Keep!"<<std::endl;
+    {
+        std::cout<<" validated! Keep!"<<std::endl;   
+    }      
     else
-      std::cout<<" not validated! Erase!"<<std::endl;
-      this->m_wfeOpts->RemoveKnownWorkflow(fn);
+    {
+        std::cout<<" not validated! Erase!"<<std::endl;
+        this->m_wfeOpts->RemoveKnownWorkflow(fn);  
+    }
+      
   }
   
   for(iter = lookUpPaths.begin(); iter != lookUpPaths.end(); iter++)
@@ -144,9 +150,9 @@ void WFBaseEngine::InitializeKnowWorkflows()
             if(fileName.substr(fileName.length()-4, fileName.length()-1) == ".xml")
             {
               if(validateXMLFile(pathWithFileName))
-                this->m_wfeOpts->AddKnownWorkflow(fileName);
-              else
-                this->m_wfeOpts->RemoveKnownWorkflow(fileName);
+                this->m_wfeOpts->AddKnownWorkflow(pathWithFileName);
+//              else
+//                this->m_wfeOpts->RemoveKnownWorkflow(pathWithFileName);
             }
           }          
         }
@@ -156,7 +162,8 @@ void WFBaseEngine::InitializeKnowWorkflows()
         }
       }      
       closedir(pdir);  
-    }    
+    }
+    std::cout<<"***Configuration done!***"<<std::endl;
   }
   
 //  entryVector::const_iterator endi = osArticle.entries.end();
@@ -186,6 +193,7 @@ void WFBaseEngine::InitializeKnowWorkflows()
 // //m_Factory->registerTypes();
 //}
 
+#ifndef WFDIRECTINTERFACE
 void WFBaseEngine::mainInterfaceLoop()
 {
  using namespace nmWFServerConnection;
@@ -215,8 +223,7 @@ void WFBaseEngine::mainInterfaceLoop()
    sc.selectOnSockets();
  }
 // m_wfeCLI = WFClientInterface::New(6867, 5, &WFBaseEngine::recvClientData);
- 
- 
+ this->SaveState(); 
 }
 
 void WFBaseEngine::recvClientData(int socket, char* buffer)
@@ -250,7 +257,9 @@ void WFBaseEngine::sendClientData(int socket, std::string buffer)
   this->m_wfeSC->sendDataToConnection(socket, buffer);
 }
 
-void WFBaseEngine::saveAndExit()
+#endif
+
+void WFBaseEngine::SaveState()
 {
   this->m_wfeOpts->SaveChanges();
 }
@@ -264,7 +273,6 @@ bool WFBaseEngine::validateXMLFile(std::string &fileName)
   std::string line;
   while (std::getline(file, line))
   {
-    std::cout<<line<<std::endl;  
     size_t pos = line.find("yawl");
     if(pos != std::string::npos)
     {
@@ -275,3 +283,9 @@ bool WFBaseEngine::validateXMLFile(std::string &fileName)
   return false;
 }
 //}
+#ifndef WFDIRECTINTERFACE
+void WFBaseEngine::RunNetworkInterface()
+{
+   this->mainInterfaceLoop();
+}
+#endif

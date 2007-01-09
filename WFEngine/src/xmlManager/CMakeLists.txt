@@ -3,7 +3,7 @@ PROJECT(WFEngine)
 SET(SRCS
 WFXmlManager.cxx DOMTreeErrorReporter.cxx
 WFXmlConfigManager.cxx WFXmlWriter.cxx
-WFXmlWorkflowManager.cxx WFStepObject.cxx
+WFXmlWorkflowManager.cxx
 )
 
 SET(LINK_LIBS

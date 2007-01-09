@@ -34,10 +34,10 @@ WFEngineOptions* WFEngineOptions::New()
 
 int WFEngineOptions::LoadConfigFile(string wfConfigFile)
 {
- int retVal = 0;
+ int retVal = 1;
  this->m_WFCfgXmlManager = WFXmlConfigManager::New();
  retVal = this->m_WFCfgXmlManager->loadConfigFile(wfConfigFile);
- if(retVal != 1)
+ if(retVal)
  {
    this->m_isLoaded = true;
  }

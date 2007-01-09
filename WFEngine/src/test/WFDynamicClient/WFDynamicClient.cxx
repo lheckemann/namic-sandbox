@@ -49,9 +49,10 @@ int my_main(int argc, char *argv[])
   vtkWFDynamicWizard *wfTW = vtkWFDynamicWizard::New();
   wfTW->SetApplication(app);
   wfTW->Create();
-//  wfTW->InitializeDynamicWizard();
-  wfTW->Invoke();
+  if(wfTW->ConnectToWFEngine())
+      wfTW->Invoke();
   
+  wfTW->SaveState();
   wfTW->Delete();
   // Start the application
   // If --test was provided, do not enter the event loop and run this example

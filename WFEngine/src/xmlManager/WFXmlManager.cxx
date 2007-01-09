@@ -45,8 +45,8 @@ WFXmlManager::~WFXmlManager()
 
 int WFXmlManager::initializeXerces(std::string xmlFileName)
 {
- int retVal = 0;
- //Initialize the XML4C2 system
+    int retVal = 1;
+    //Initialize the XML4C2 system
     try
     {
         XMLPlatformUtils::Initialize();
@@ -57,7 +57,7 @@ int WFXmlManager::initializeXerces(std::string xmlFileName)
         XERCES_STD_QUALIFIER cerr << "Error during Xerces-c Initialization.\n"
              << "  Exception message:"
              << StrX(toCatch.getMessage()) << XERCES_STD_QUALIFIER endl;
-        retVal = 1;
+        retVal = 0;
         return retVal;
     }
     
@@ -82,13 +82,13 @@ int WFXmlManager::initializeXerces(std::string xmlFileName)
     catch (const OutOfMemoryException&)
     {
         XERCES_STD_QUALIFIER cerr << "OutOfMemoryException" << XERCES_STD_QUALIFIER endl;
-        retVal = 1;
+        retVal = 0;
     }
     catch (const XMLException& e)
     {
         XERCES_STD_QUALIFIER cerr << "An error occurred during parsing\n   Message: "
              << StrX(e.getMessage()) << XERCES_STD_QUALIFIER endl;
-        retVal = 1;
+        retVal = 0;
     }
 
     catch (const DOMException& e)
@@ -102,22 +102,23 @@ int WFXmlManager::initializeXerces(std::string xmlFileName)
         if (DOMImplementation::loadDOMExceptionMsg(e.code, errText, maxChars))
              XERCES_STD_QUALIFIER cerr << "Message is: " << StrX(errText) << XERCES_STD_QUALIFIER endl;
 
-        retVal = 1;
+        retVal = 0;
     }
 
     catch (...)
     {
         XERCES_STD_QUALIFIER cerr << "An error occurred during parsing\n " << XERCES_STD_QUALIFIER endl;
-        retVal = 1;
+        retVal = 0;
     }
     
-    if(retVal != 1)
+    if(retVal)
     {
      this->xmlDoc = parser->getDocument();
      cout<<XMLString::transcode(this->xmlDoc->getDocumentElement()->getTagName())<<std::endl;
      this->goutputfile = (char*)xmlFileName.c_str();
     }
-    std::cout<<parser->getErrorCount()<<std::endl;
+    std::cout<<"retVal="<<retVal<<std::endl;
+    std::cout<<"ErrorCount: "<<parser->getErrorCount()<<std::endl;
     //std::cout<<this->xmlParser->getErrorCount()<<std::endl;
     return retVal;
 }
@@ -249,4 +250,61 @@ int WFXmlManager::saveXmlFile()
             << StrX(e.getMessage()) << XERCES_STD_QUALIFIER endl;
         retval = 4;
     }
+}
+
+int WFXmlManager::loadXmlFile(std::string &xmlFileName)
+{
+    return initializeXerces(xmlFileName);
+}
+
+DOMNode *WFXmlManager::getParentNodeByName(std::string &parentTagName)
+{
+  DOMNodeList *myKnownWFNL = this->xmlDoc->getDocumentElement()->getElementsByTagName(XMLString::transcode(parentTagName.c_str()));
+  std::cout<<myKnownWFNL->getLength()<<" <"<<parentTagName<<"> Length"<<std::endl;
+   
+  if(myKnownWFNL->getLength() > 0)
+    return myKnownWFNL->item(0);
+  else
+    return NULL;
+}
+
+DOMNodeList *WFXmlManager::getAllChildesByName(std::string &parentTagName, std::string &childTagName)
+{
+  DOMNode *myKnownWFNode = this->getParentNodeByName(parentTagName);
+  //check if the node type is an ElementNode
+  if (myKnownWFNode != NULL && myKnownWFNode->getNodeType() == 1)
+  {
+   DOMElement *curElem = (DOMElement*)myKnownWFNode;
+   std::cout<<XMLString::transcode(curElem->getTagName())<<" "<<childTagName.c_str()<<std::endl;
+   DOMNodeList *parentChilds = curElem->getElementsByTagName(XMLString::transcode(childTagName.c_str()));
+   std::cout<<parentChilds->getLength()<<std::endl;
+   return parentChilds;
+  }
+  else return NULL;
+}
+
+std::vector<WFXmlManager::myAttrMap> WFXmlManager::getAttributesOfChilds(DOMNodeList *nodeList)
+{
+  std::vector<WFXmlManager::myAttrMap> myChildList;
+  for(int i = 0; i < nodeList->getLength(); i++)
+  {
+      if (nodeList->item(i)->getNodeType() == 1)
+      {
+       myChildList.push_back(this->getAllAttributesFromElement((DOMElement*)(nodeList->item(i))));
+      }
+  }
+  
+  return myChildList;
+}
+
+WFXmlManager::myAttrMap WFXmlManager::getAllAttributesFromElement(DOMElement *curElem)
+{
+    WFXmlManager::myAttrMap curAttrMap;
+ DOMNamedNodeMap *attrMap = curElem->getAttributes();
+ for(int i = 0; i < attrMap->getLength(); i++)
+ {
+  std::cout<<XMLString::transcode(attrMap->item(i)->getNodeName())<<"='"<<XMLString::transcode(attrMap->item(i)->getNodeValue())<<"'"<<std::endl;
+  curAttrMap.insert(std::make_pair(XMLString::transcode(attrMap->item(i)->getNodeName()), XMLString::transcode(attrMap->item(i)->getNodeValue())));
+ }
+ return curAttrMap;
 }

@@ -1,0 +1,13 @@
+PROJECT(WFDirectInterface)
+SET(SRCS
+WFDirectInterface.cxx)
+
+SET(BUILD_WFDIRECTINTERFACE TRUE)
+#INCLUDE(${CMAKE_SOURCE_DIR}/src/engine/CMakeLists.txt)
+SUBDIRS(${CMAKE_SOURCE_DIR}/src/engine)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/engine ${CMAKE_SOURCE_DIR}/src/xmlManager)
+
+ADD_LIBRARY(WFDirectInterface SHARED ${SRCS})
+SET(LINK_LIBS ${LINK_LIBS} WFDIBaseEngine WFXmlManager)
+TARGET_LINK_LIBRARIES(WFDirectInterface ${LINK_LIBS})
+

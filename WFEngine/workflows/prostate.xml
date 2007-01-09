@@ -10,19 +10,36 @@
     <decomposition id="New_Net_1" isRootNet="true" xsi:type="NetFactsType">
       <processControlElements>
         <inputCondition id="InputCondition_1">
-          <name>prostate biopsy</name>
           <flowsInto>
-            <nextElementRef id="input_params_3" />
+            <nextElementRef id="step1_3" />
           </flowsInto>
         </inputCondition>
-        <task id="input_params_3">
-          <name>input_params</name>
+        <task id="step1_3">
+          <name>step1</name>
+          <flowsInto>
+            <nextElementRef id="step2_4" />
+          </flowsInto>
+          <join code="xor" />
+          <split code="and" />
+          <startingMappings>
+            <mapping>
+              <expression query="&lt;name&gt;&lt;/name&gt;" />
+              <mapsTo>name</mapsTo>
+            </mapping>
+            <mapping>
+              <expression query="&lt;mr-image&gt;&lt;/mr-image&gt;" />
+              <mapsTo>mr-image</mapsTo>
+            </mapping>
+          </startingMappings>
+          <decomposesTo id="input_params" />
+        </task>
+        <task id="step2_4">
+          <name>step2</name>
           <flowsInto>
             <nextElementRef id="OutputCondition_2" />
           </flowsInto>
           <join code="xor" />
           <split code="and" />
-          <decomposesTo id="input_params" />
         </task>
         <outputCondition id="OutputCondition_2" />
       </processControlElements>

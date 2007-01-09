@@ -2,7 +2,11 @@
 #define WFENGINE_H_
 
 #include "WFEngineOptions.h"
+#include "WFWorkflowManager.h"
+
+#ifndef WFDIRECTINTERFACE
 #include "WFServerConnection.h"
+#endif
 
 #include <string>
 
@@ -12,7 +16,11 @@ namespace WFEngine
  {
  public:
   static WFBaseEngine* New();
-  void InitializeWFEngine(std::string wfConfigFile);
+  int InitializeWFEngine(std::string wfConfigFile);
+
+#ifndef WFDIRECTINTERFACE
+  void RunNetworkInterface();
+#endif
  protected:
  
   WFBaseEngine();
@@ -22,15 +30,17 @@ namespace WFEngine
   void InitializeWFFactoryClasses();
   void InitializeWFInterfaces();
   void InitializeKnowWorkflows();
-  
-  void saveAndExit();
+   
+  void SaveState();
   
   bool validateXMLFile(std::string &fileName);
   bool configExists;
+  
+  WFBaseEngine *GetWFBEInstance();
  
- private:
   //static string wfConfigFile;
   nmWFEngineOptions::WFEngineOptions *m_wfeOpts;
+ private:
  
   static void recvClientData(int socket, char* buffer);
   static void recvOptionsData(int socket, char* buffer);
@@ -41,11 +51,12 @@ namespace WFEngine
 //  nmWFFactory::WFFactory *m_wfeFactory;
   
 //  nmWFClientInterface::WFClientInterface *m_wfeCLI;
-  
+#ifndef WFDIRECTINTERFACE
   void mainInterfaceLoop();
   
   //ConnectionHandler is the main Handler for all server connections
   nmWFServerConnection::WFServerConnection *m_wfeSC;
+#endif
  };
 }
 

@@ -65,6 +65,7 @@ int my_main(int argc, char *argv[])
  
  WFBaseEngine *wfeBE = WFBaseEngine::New();
  wfeBE->InitializeWFEngine(wfConfigFile);
+ wfeBE->RunNetworkInterface();
  
  //Initialize die Engine
  
