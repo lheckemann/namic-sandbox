@@ -96,18 +96,22 @@ int main( int argc, char *argv[] )
   IteratorType it( referenceImage, referenceImage->GetBufferedRegion() );
   dwiit.GoToBegin();
   it.GoToBegin();
+  std::cerr << "DEBUG: 1" << std::endl;
   while (!it.IsAtEnd())
     {
     it.Set(dwiit.Get()[0]);
     ++it;
     ++dwiit;
     }
+  std::cerr << "DEBUG: 2" << std::endl;
   if( writeReferenceImageToFile )
     {
     GradientWriterType::Pointer gradientWriter = GradientWriterType::New();
     gradientWriter->SetInput( referenceImage );
-    gradientWriter->SetFileName( "ReferenceImage.hdr" );
+    gradientWriter->SetFileName( "ReferenceImage.nhdr" );
+  std::cerr << "DEBUG: 3" << std::endl;
     gradientWriter->Update();
+  std::cerr << "DEBUG: 4" << std::endl;
     }
   
   /* Reconstruct the Tensors */
@@ -124,11 +128,12 @@ int main( int argc, char *argv[] )
   if( writeTensorsImageToFile )
     {
     TensorWriterType::Pointer tensorWriter = TensorWriterType::New();
-    tensorWriter->SetFileName( "TensorsImage.hdr" );
+    tensorWriter->SetFileName( "TensorsImage.nhdr" );
     tensorWriter->SetInput( tensorReconstructionFilter->GetOutput() );
     tensorWriter->Update();
     }
 
+  std::cerr << "DEBUG: 4" << std::endl;
   /* Compute the FA and RA */
   FAFilterType::Pointer fractionalAnisotropyFilter = FAFilterType::New();
   fractionalAnisotropyFilter->SetInput( tensorReconstructionFilter->GetOutput() );
@@ -136,7 +141,7 @@ int main( int argc, char *argv[] )
     {
     FAWriterType::Pointer faWriter = FAWriterType::New();
     faWriter->SetInput( fractionalAnisotropyFilter->GetOutput() );
-    faWriter->SetFileName( "FAImage.hdr" );
+    faWriter->SetFileName( "FAImage.nhdr" );
     faWriter->Update();
     }
   
@@ -146,13 +151,84 @@ int main( int argc, char *argv[] )
     {
     RAWriterType::Pointer raWriter = RAWriterType::New();
     raWriter->SetInput( relativeAnisotropyFilter->GetOutput() );
-    raWriter->SetFileName( "RAImage.hdr" );
+    raWriter->SetFileName( "RAImage.nhdr" );
     raWriter->Update();
     }
 
   /* Generate the Local Cost Function */
 
+
   /* Run Fast Sweeping */
+
+  ImageType::ConstPointer image = reader->GetOutput();
+  
+  ImageType::RegionType region = image->GetBufferedRegion();
+  ImageType::IndexType start = region.GetIndex();
+  ImageType::SizeType size = region.GetSize();
+
+
+  ImageType::RegionType region2;
+  ImageType::IndexType start2;
+  ImageType::SizeType size2;
+
+  const unsigned int radius = 1;
+
+  size2[0] = size[0] - 2 * radius;
+  size2[1] = size[1] - 2 * radius;
+  size2[2] = size[2] - 2 * radius;
+
+  start2[0] = start[0] + radius;
+  start2[1] = start[1] + radius;
+  start2[2] = start[2] + radius;
+
+  region2.SetSize( size2 );
+  region2.SetIndex( start2 );
+
+  IteratorType itr2( image, region2 );
+
+  NormalIteratorType itr1( image, region2 );
+
+  std::cout << "Region = " << region2 << std::endl;
+
+  std::cout << "Original image values = " << std::endl;
+  itr1.GoToBegin();
+  while( !itr1.IsAtEnd() )
+    {
+    std::cout <<  itr1.GetIndex() << " = " << itr1.Get() << std::endl;
+    ++itr1;
+    }
+
+
+  std::cout << std::endl;
+  std::cout << "Now visiting with ImageDirectionalConstIterator" << std::endl;
+  std::cout << std::endl;
+
+  itr2.SetRadius( radius );
+
+  typedef IteratorType::Iterator  NeighborPixel;
+
+  itr2.GoToBegin();
+
+  while( !itr2.IsAtEnd() )
+    {
+    while( !itr2.IsAtEndOfDirection() )
+      {
+
+      PixelType neighborValue = itr2.Get();
+      std::cout << itr2.GetIndex() << " = " << neighborValue << std::endl;
+
+      // Access the neighbor pixels
+      NeighborPixel neighbor = itr2.GetFirstNeighborIterator();
+      for(unsigned int k=0; k < 27; k++)
+        {
+        PixelType neighborValue = itr2.GetNeighborPixel(k);
+        std::cout << neighborValue << std::endl;
+        }
+
+      ++itr2;
+      }
+    itr2.NextDirection();
+    }
 
   /* Generate the Tracts */
 

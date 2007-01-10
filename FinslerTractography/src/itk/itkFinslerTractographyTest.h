@@ -28,32 +28,45 @@ unsigned int numberOfImages = 0;
 bool readb0 = false;
 double b0 = 0;
   
-typedef unsigned short                                 PixelType;
-typedef itk::VectorImage< unsigned short, Dimension >  ImageType;
-typedef itk::ImageFileReader< ImageType >              ReaderType;
+typedef unsigned short                            PixelType;
+typedef itk::VectorImage< PixelType, Dimension >  ImageType;
+typedef itk::ImageFileReader< ImageType >         ReaderType;
 typedef itk::DiffusionTensor3DReconstructionImageFilter< 
-        PixelType, PixelType, double > TensorReconstructionImageFilterType;
+  PixelType, PixelType, double > TensorReconstructionImageFilterType;
+typedef itk::ImageRegionConstIteratorWithIndex<
+  ImageType > NormalIteratorType;
+typedef itk::ImageDirectionalConstIteratorWithIndex<
+  ImageType > DirectionalIteratorType;
   
-typedef itk::Image< PixelType, Dimension >             ReferenceImageType;
-typedef ReferenceImageType                             GradientImageType;
+typedef itk::Image< PixelType, Dimension > ReferenceImageType;
+typedef ReferenceImageType                 GradientImageType;
 
-typedef itk::ImageRegionConstIterator< ImageType >     DWIIteratorType;
-typedef itk::ImageRegionIterator< GradientImageType >  IteratorType;
+typedef itk::ImageRegionConstIterator<
+  ImageType >     DWIIteratorType;
+typedef itk::ImageRegionIterator<
+  GradientImageType >  IteratorType;
 
-typedef itk::ImageFileWriter< GradientImageType >      GradientWriterType;
+typedef itk::ImageFileWriter<
+  GradientImageType >      GradientWriterType;
 typedef itk::ImageFileWriter< 
-  TensorReconstructionImageFilterType::OutputImageType > TensorWriterType;
-typedef TensorReconstructionImageFilterType::TensorPixelType TensorPixelType;
-typedef TensorPixelType::RealValueType                       RealValueType;
+  TensorReconstructionImageFilterType::OutputImageType >
+  TensorWriterType;
+typedef TensorReconstructionImageFilterType::TensorPixelType
+  TensorPixelType;
+typedef TensorPixelType::RealValueType  RealValueType;
 
-typedef itk::Image< RealValueType, Dimension >                 FAImageType;
+typedef itk::Image< RealValueType, Dimension >  FAImageType;
 typedef itk::TensorFractionalAnisotropyImageFilter< 
-  TensorReconstructionImageFilterType::OutputImageType, FAImageType >
-  FAFilterType;
-typedef itk::ImageFileWriter< FAFilterType::OutputImageType >  FAWriterType;
+  TensorReconstructionImageFilterType::OutputImageType,
+  FAImageType > FAFilterType;
+typedef itk::ImageFileWriter<
+  FAFilterType::OutputImageType >  FAWriterType;
 
-typedef itk::Image< RealValueType, Dimension >                 RAImageType;
+typedef itk::Image< RealValueType, Dimension > RAImageType;
 typedef itk::TensorRelativeAnisotropyImageFilter< 
-  TensorReconstructionImageFilterType::OutputImageType, RAImageType >
-  RAFilterType;
-typedef itk::ImageFileWriter< RAFilterType::OutputImageType >  RAWriterType;
+  TensorReconstructionImageFilterType::OutputImageType,
+  RAImageType > RAFilterType;
+typedef itk::ImageFileWriter<
+  RAFilterType::OutputImageType >  RAWriterType;
+
+
