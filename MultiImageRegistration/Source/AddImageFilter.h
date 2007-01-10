@@ -6,7 +6,7 @@
   Date:      $Date: 2006/04/03 15:07:51 $
   Version:   $Revision: 1.25 $
 
-  Copyright (c) Insight Software Consortium. All rights reserved.
+  Copyright (c) Insight Software  Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
      This software is distributed WITHOUT ANY WARRANTY; without even 
