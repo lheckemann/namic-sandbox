@@ -27,7 +27,6 @@
 #include "VarianceMultiImageMetric.h"
 #include "UserMacro.h"
 #include <vector>
-using namespace std;
 
 namespace itk
 {
@@ -130,11 +129,7 @@ public:
 
   /** Set/Get the Fixed image. */
   void SetImage( const ImageType * fixedImage, int i );
-//  itkGetConstObjectMacro( FixedImage, ImageType ); 
-
-  /** Set/Get the Moving image. */
-//  void SetMovingImage( const MovingImageType * movingImage );
-//  itkGetConstObjectMacro( MovingImage, MovingImageType );
+  UserGetConstObjectMacro( ImageArrayPointer, ImageType );
 
   /** Set/Get the Optimizer. */
   itkSetObjectMacro( Optimizer,  OptimizerType );
@@ -146,13 +141,14 @@ public:
 
   /** Set/Get the Transfrom. */
   UserSetObjectMacro( TransformArray, TransformType );
-  //UserGetObjectMacro( TransformArray, TransformType );
+  UserGetObjectMacro( TransformArray, TransformType );
 
   /** Set/Get the Interpolator. */
   UserSetObjectMacro( InterpolatorArray, InterpolatorType );
-  //itkGetObjectMacro( Interpolator, InterpolatorType );
+  UserGetObjectMacro( InterpolatorArray, InterpolatorType );
 
   /** Set/Get the initial transformation parameters. */
+  virtual void SetInitialTransformParameters( const ParametersType & param , int i );
   virtual void SetInitialTransformParameters( const ParametersType & param );
   itkGetConstReferenceMacro( InitialTransformParameters, ParametersType );
 
@@ -221,10 +217,8 @@ private:
 
   ImageArrayPointer                m_ImageArrayPointer;
 
-  //TransformPointer                 m_Transform;
   TransformPointerArray            m_TransformArray;
-  //InterpolatorPointer              m_Interpolator;
-  InterpolatorPointerArray     m_InterpolatorArray;
+  InterpolatorPointerArray         m_InterpolatorArray;
 
   ParametersType                   m_InitialTransformParameters;
   ParametersType                   m_LastTransformParameters;

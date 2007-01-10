@@ -248,7 +248,7 @@
 #define UserGetObjectMacro(name,type) \
   virtual type * Get##name (int i) \
   { \
-    itkDebugMacro("returning " #name " address " << this->m_##name ); \
+    itkDebugMacro("returning " #name " address " << this->m_##name[i] ); \
     return this->m_##name[i].GetPointer(); \
   } 
 
@@ -277,14 +277,14 @@
     return this->m_##name[i].GetPointer(); \
   } 
 
-// /** Get a const reference to a smart pointer to an object.  
-//  * Creates the member Get"name"() (e.g., GetPoints()). */
-// #define itkGetConstReferenceObjectMacro(name,type) \
-//   virtual const typename type::Pointer & Get##name () const \
-//   { \
-//     itkDebugMacro("returning " #name " address " << this->m_##name ); \
-//     return this->m_##name; \
-//   } 
+/** Get a const reference to a smart pointer to an object.
+ * Creates the member Get"name"() (e.g., GetPoints()). */
+#define UserGetConstReferenceObjectMacro(name,type) \
+  virtual const typename type::Pointer & Get##name (int i) const \
+  { \
+    itkDebugMacro("returning " #name " address " << this->m_##name[i] ); \
+    return this->m_##name[i]; \
+  }
 // 
 // /** Create members "name"On() and "name"Off() (e.g., DebugOn() DebugOff()).
 //  * Set method must be defined to use this macro. */

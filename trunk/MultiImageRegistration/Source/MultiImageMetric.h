@@ -29,6 +29,8 @@
 #include <vector>
 #include "UserMacro.h"
 
+using std::vector;
+    
 namespace itk
 {
   
@@ -147,46 +149,20 @@ public:
   typedef Superclass::ParametersType                 ParametersType;
   typedef std::vector<ParametersType>                ParametersArray;
 
-  /** Connect the Fixed Image.  */
-  //itkSetConstObjectMacro( FixedImage, FixedImageType );
-
   /** Connect i'th image to Image Array */
   UserSetConstObjectMacro( ImageArray, FixedImageType );
-
-  /** Get the Fixed Image. */
-  //itkGetConstObjectMacro( FixedImage, FixedImageType );
 
   /**Get the i'th Image */
   UserGetConstObjectMacro( ImageArray, FixedImageType );
 
-  /** Connect the Moving Image.  */
-  //itkSetConstObjectMacro( MovingImage, MovingImageType );
-
-  /** Get the Moving Image. */
-  //itkGetConstObjectMacro( MovingImage, MovingImageType );
-
-  /** Connect the Transform. */
-  //itkSetObjectMacro( Transform, TransformType );
-
   /**Connect the Transform Array */
-  //UserSetObjectMacro( TransformArray, TransformType );  
-  void SetTransformArray(TransformPointer, int);
-
-  /** Get a pointer to the Transform.  */
-  //itkGetConstObjectMacro( Transform, TransformType );
+  UserSetObjectMacro( TransformArray, TransformType );
 
   /** Get a pointer to the i'th Transform */
   UserGetConstObjectMacro( TransformArray, TransformType );
  
-  /** Connect the Interpolator. */
-   //itkSetObjectMacro( Interpolator, InterpolatorType );
-
   /** Connect the i'th Interpolator. */
-  //UserSetObjectMacro( InterpolatorArray, InterpolatorType );
-  void SetInterpolatorArray(InterpolatorPointer _arg, int i);
-
-  /** Get a pointer to the Interpolator.  */
-  //itkGetConstObjectMacro( Interpolator, InterpolatorType );
+  UserSetObjectMacro( InterpolatorArray, InterpolatorType );
 
   /** Get a pointer to the i'th Interpolator.  */
   UserGetConstObjectMacro( InterpolatorArray, InterpolatorType );
@@ -200,25 +176,14 @@ public:
   /** Get the region over which the metric will be computed */
   itkGetConstReferenceMacro( FixedImageRegion, FixedImageRegionType );
  
-  /** Set/Get the moving image mask. */
-  //itkSetObjectMacro( MovingImageMask, MovingImageMaskType );
-  //itkGetConstObjectMacro( MovingImageMask, MovingImageMaskType );
-
   /** Set/Get the i'th image mask. */
   UserSetObjectMacro( ImageMaskArray, MovingImageMaskType );
   UserGetConstObjectMacro( ImageMaskArray, MovingImageMaskType );
-
-  /** Set/Get the fixed image mask. */
-  //itkSetObjectMacro( FixedImageMask, FixedImageMaskType );
-  //itkGetConstObjectMacro( FixedImageMask, FixedImageMaskType );
 
   /** Set/Get gradient computation. */
   itkSetMacro( ComputeGradient, bool);
   itkGetConstReferenceMacro( ComputeGradient, bool);
   itkBooleanMacro(ComputeGradient);
-
-  /** Get Gradient Image. */
-  //itkGetConstObjectMacro( GradientImage, GradientImageType );
 
   /** Get Gradient Image. */
   UserGetConstObjectMacro( GradientImageArray, GradientImageType );
@@ -228,8 +193,7 @@ public:
 
   /** Return the number of parameters required by the Transform */
   unsigned int GetNumberOfParameters(void) const 
-//   { return m_Transform->GetNumberOfParameters(); }
-   { return m_TransformArray[1]->GetNumberOfParameters()*m_NumberOfImages; }
+   { return m_TransformArray[0]->GetNumberOfParameters()*m_NumberOfImages; }
 
   /** Initialize the Metric by making sure that all the components
    *  are present and plugged together correctly     */
@@ -241,9 +205,6 @@ public:
   /** Get number of images in the class */
   int GetNumberOfImages();
 
-  /** Convert tranform parameters into a concatenated super array */
-//  const ParametersArray convertParametersToArray( const ParametersType& , ParametersArray& ) const;
-
   /**  Get the value. Method that provides the infrastructure for supporting Multi-Threading. */
   MeasureType GetValue( const ParametersType& parameters ) const;
 
@@ -254,21 +215,17 @@ protected:
 
   mutable unsigned long       m_NumberOfPixelsCounted;
 
-  //FixedImageConstPointer      m_FixedImage;
-  //MovingImageConstPointer     m_MovingImage;
   ImageConstPointerArray      m_ImageArray;
 
-  //mutable TransformPointer    m_Transform;
   mutable TransformPointerArray m_TransformArray;
-  //InterpolatorPointer         m_Interpolator;
   InterpolatorPointerArray    m_InterpolatorArray;
 
   bool                        m_ComputeGradient;
   //GradientImagePointer        m_GradientImage;
   GradientImagePointerArray   m_GradientImageArray;
 
-  mutable FixedImageMaskPointer   m_FixedImageMask;
-  mutable MovingImageMaskPointer  m_MovingImageMask;
+  //mutable FixedImageMaskPointer   m_FixedImageMask;
+  //mutable MovingImageMaskPointer  m_MovingImageMask;
   mutable ImageMaskPointerArray   m_ImageMaskArray;
 
   /** Number of images */
@@ -280,11 +237,10 @@ protected:
 
   /** Methods added for supporting multi-threading */
   void GetThreadedValue( int threadID ) const;
-  void BeforeGetThreadedValue() const;
-  MeasureType AfterGetThreadedValue() const;
+  void BeforeGetThreadedValue(const ParametersType & parameters) const;
+  void AfterGetThreadedValue( MeasureType & value, DerivativeType & derivative) const;
 
 
-private:
   MultiImageMetric(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
   
@@ -293,7 +249,7 @@ private:
   /** Get/Set the number of threads to create when executing. */
   itkSetClampMacro( NumberOfThreads, int, 1, ITK_MAX_THREADS );
   itkGetConstReferenceMacro( NumberOfThreads, int );
- 
+
   /** Support processing data in multiple threads. Used by subclasses
    * (e.g., ImageSource). */
   mutable MultiThreader::Pointer m_Threader;

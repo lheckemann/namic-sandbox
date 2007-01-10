@@ -60,43 +60,17 @@ void
 MultiImageMetric<TFixedImage>
 ::SetTransformParameters( const ParametersType & parameters ) const
 {
-//   if( !m_Transform )
-//     {
-//     itkExceptionMacro(<<"Transform has not been assigned");
-//     }
-//   m_Transform->SetParameters( parameters );
 
-//   if( !m_TransformArray[1] )
-//     {
-//     itkExceptionMacro(<<"Transform has not been assigned");
-//     }
-//   m_TransformArray[1]->SetParameters( parameters );
-
-//   ParametersArray  parametersArray;
-//   parametersArray = convertParametersToArray(parameters, parametersArray );
-//   for(int i=0; i<m_NumberOfImages; i++)
-//   {
-// 
-//     if( !m_TransformArray[i] )
-//       {
-//       itkExceptionMacro(<<"Transform "<< i <<" has not been assigned");
-//       }
-//     m_TransformArray[i]->SetParameters( parametersArray[i] );
-//   }
-
-  
-
-  int begin = 0;
-  ParametersType currentParam(this->m_TransformArray[1]->GetNumberOfParameters());
+  int numParam = this->m_TransformArray[0]->GetNumberOfParameters();
+  ParametersType currentParam(numParam);
   for(int i=0; i<this->m_NumberOfImages; i++ )
   {
     if( !m_TransformArray[i] )
-      {
+    {
       itkExceptionMacro(<<"Transform "<< i <<" has not been assigned");
-      }
-    for(int j=0; j<this->m_TransformArray[i]->GetNumberOfParameters(); j++)
-  currentParam[j] = parameters[begin+j];
-    //cout << currentParam;
+    }
+    for(int j=0; j<numParam; j++)
+      currentParam[j] = parameters[i*numParam+j];
     this->m_TransformArray[i]->SetParameters( currentParam );
   }
 }
@@ -112,109 +86,79 @@ MultiImageMetric<TFixedImage>
 ::Initialize(void) throw ( ExceptionObject )
 {
 
-//   if( !m_Transform )
-//     {
-//     itkExceptionMacro(<<"Transform is not present");
-//     }
-  for(int i=0; i<m_ImageArray.size(); i++)
+  for(int i=0; i<this->m_NumberOfImages; i++)
   {
-  if( !m_TransformArray[i] )
+    if( !m_TransformArray[i] )
     {
-    itkExceptionMacro(<<"Transform is not present");
+      itkExceptionMacro(<<"Transform is not present");
     }
 
   
-  if( !m_InterpolatorArray[i] )
+    if( !m_InterpolatorArray[i] )
     {
-    itkExceptionMacro(<<"Interpolator is not present");
+      itkExceptionMacro(<<"Interpolator is not present");
     }
-   }
-
-
-  for(int i=0; i<m_ImageArray.size(); i++)
+    
     if( !m_ImageArray[i] )
     {
-    itkExceptionMacro(<<"FixedImage is not present");
+      itkExceptionMacro(<<"FixedImage is not present");
     }
+    
+  }
 
 
   if( m_FixedImageRegion.GetNumberOfPixels() == 0 )
-    {
+  {
     itkExceptionMacro(<<"FixedImageRegion is empty");
-    }
-
-//   // If the image is provided by a source, update the source.
-//   if( m_MovingImage->GetSource() )
-//     {
-//     m_MovingImage->GetSource()->Update();
-//     }
-// 
-//   // If the image is provided by a source, update the source.
-//   if( m_FixedImage->GetSource() )
-//     {
-//     m_FixedImage->GetSource()->Update();
-//     }
+  }
 
   // If the Image array is provided by a source update the source
-  for( int i=0; i< m_ImageArray.size(); i++ )  
-  if( m_ImageArray[i]->GetSource() )
+  for( int i=0; i< m_ImageArray.size(); i++ )
+  {
+    if( m_ImageArray[i]->GetSource() )
     {
       /** Comment Out If Release */
-      cout << "Reading Image " << i << endl;  
-    m_ImageArray[i]->GetSource()->Update();
+      std::cout << "Reading Image " << i << std::endl;  
+      m_ImageArray[i]->GetSource()->Update();
     }
-
-//   // Make sure the FixedImageRegion is within the FixedImage buffered region
-//   if ( !m_FixedImageRegion.Crop( m_FixedImage->GetBufferedRegion() ) )
-//     {
-//     itkExceptionMacro(<<"FixedImageRegion does not overlap the fixed image buffered region" );
-//     }
+  }
 
   // Make sure the FixedImageRegion is within the FixedImage buffered region
   if ( !m_FixedImageRegion.Crop( m_ImageArray[0]->GetBufferedRegion() ) )
-    {
+  {
     itkExceptionMacro(<<"FixedImageRegion does not overlap the fixed image buffered region" );
-    }
+  }
 
-//   m_Interpolator->SetInputImage( m_MovingImage );
-  for(int i=0; i<m_ImageArray.size(); i++)
+  for(int i=0; i < this->m_NumberOfImages; i++)
+  {
     m_InterpolatorArray[i]->SetInputImage( m_ImageArray[i] );
+  }
  
   if ( m_ComputeGradient )
-    {
-
+  {
     vector<GradientImageFilterPointer> gradientFilterArray;
-    gradientFilterArray.resize(2);
+    gradientFilterArray.resize(this->m_NumberOfImages);
  
-
-    for(int j=0; j<m_ImageArray.size(); j++)
+    for(int j=0; j<this->m_NumberOfImages; j++)
     {
-
-       gradientFilterArray[j]=GradientImageFilterType::New();
-//     gradientFilter->SetInput( m_MovingImage );
-
+      gradientFilterArray[j]=GradientImageFilterType::New();
       gradientFilterArray[j]->SetInput( m_ImageArray[j] );
 
-//     const typename MovingImageType::SpacingType&
-//       spacing = m_MovingImage->GetSpacing();
-    const typename MovingImageType::SpacingType&
-      spacing = m_ImageArray[1]->GetSpacing();
-    double maximumSpacing=0.0;
-    for(unsigned int i=0; i<MovingImageDimension; i++)
+      const typename MovingImageType::SpacingType&
+      spacing = m_ImageArray[j]->GetSpacing();
+      double maximumSpacing=0.0;
+      for(unsigned int i=0; i<MovingImageDimension; i++)
       {
-      if( spacing[i] > maximumSpacing )
+        if( spacing[i] > maximumSpacing )
         {
-        maximumSpacing = spacing[i];
+          maximumSpacing = spacing[i];
         }
       }
-    gradientFilterArray[j]->SetSigma( maximumSpacing );
-    gradientFilterArray[j]->SetNormalizeAcrossScale( true );
+      gradientFilterArray[j]->SetSigma( maximumSpacing );
+      gradientFilterArray[j]->SetNormalizeAcrossScale( true );
+      gradientFilterArray[j]->Update();
 
-    gradientFilterArray[j]->Update();
-
-    //m_GradientImage = gradientFilter->GetOutput();
-    m_GradientImageArray[j] = gradientFilterArray[j]->GetOutput();
-
+      m_GradientImageArray[j] = gradientFilterArray[j]->GetOutput();
     }
   }
 
@@ -236,14 +180,15 @@ MultiImageMetric<TFixedImage>
   os << indent << "ComputeGradient: "
      << static_cast<typename NumericTraits<bool>::PrintType>(m_ComputeGradient)
      << std::endl;
-//  os << indent << "Moving Image: " << m_MovingImage.GetPointer()  << std::endl;
-//  os << indent << "Fixed  Image: " << m_FixedImage.GetPointer()   << std::endl;
-//  os << indent << "Gradient Image: " << m_GradientImage.GetPointer()   << std::endl;
-//  os << indent << "Transform:    " << m_Transform.GetPointer()    << std::endl;
-//  os << indent << "Interpolator: " << m_Interpolator.GetPointer() << std::endl;
+  for( int i=0; i<this->m_NumberOfImages; i++)
+  {
+    os << indent << "Moving Image: "  << i << " " << m_ImageArray[i].GetPointer()  << std::endl;
+    os << indent << "Gradient Image: "<< i << " " << m_GradientImageArray[i].GetPointer()   << std::endl;
+    os << indent << "Transform:    "  << i << " " << m_TransformArray[i].GetPointer()    << std::endl;
+    os << indent << "Interpolator: "  << i << " " << m_InterpolatorArray[i].GetPointer() << std::endl;
+    os << indent << "Moving Image Mask: " << i << " " << m_ImageMaskArray[i].GetPointer() << std::endl;
+  }
   os << indent << "FixedImageRegion: " << m_FixedImageRegion << std::endl;
-  os << indent << "Moving Image Mask: " << m_MovingImageMask.GetPointer() << std::endl;
-  os << indent << "Fixed Image Mask: " << m_FixedImageMask.GetPointer() << std::endl;
   os << indent << "Number of Pixels Counted: " << m_NumberOfPixelsCounted << std::endl;
 
 }
@@ -263,11 +208,11 @@ MultiImageMetric<TFixedImage>
 
   for(int i=m_NumberOfImages; i<N; i++ )
   {
-  m_ImageArray[i] =0;
+    m_ImageArray[i] =0;
     m_GradientImageArray[i]=0;
     m_InterpolatorArray[i]=0;
     m_TransformArray[i]=0;
-  m_ImageMaskArray[i]=0;
+    m_ImageMaskArray[i]=0;
   }
     
   m_NumberOfImages = N;
@@ -281,68 +226,30 @@ MultiImageMetric<TFixedImage>
   return m_NumberOfImages;
 }
 
-
-
-
-template <class TFixedImage> 
-void 
+template <class TFixedImage>
+void
 MultiImageMetric<TFixedImage>
-::SetTransformArray(TransformPointer _arg, int i)
-/** Set pointer to object; uses Object reference counting methodology.
- * Creates method Set"name"() (e.g., SetPoints()). Note that using
- * smart pointers requires using real pointers when setting input,
- * but returning smart pointers on output. */
-{ 
-    if (this->m_TransformArray[i] != _arg) 
-      { 
-      this->m_TransformArray[i] = _arg; 
-      //this->m_TransformArray[i]->SetInput(m_InterpolatorArray[i]->GetOutput();
-      this->Modified(); 
-      } 
-  
-}
-
-template <class TFixedImage> 
-void 
-MultiImageMetric<TFixedImage>
-::SetInterpolatorArray(InterpolatorPointer _arg, int i)
-/** Set pointer to object; uses Object reference counting methodology.
- * Creates method Set"name"() (e.g., SetPoints()). Note that using
- * smart pointers requires using real pointers when setting input,
- * but returning smart pointers on output. */
-{ 
-    if (this->m_InterpolatorArray[i] != _arg) 
-      { 
-      this->m_InterpolatorArray[i] = _arg; 
-      //this->m_TransformArray[i]->SetInput(m_InterpolatorArray[i]->GetOutput();
-      this->Modified(); 
-      } 
-  
-}
-
-template <class TFixedImage> 
-void 
-MultiImageMetric<TFixedImage>
-::BeforeGetThreadedValue() const
+  ::BeforeGetThreadedValue(const ParametersType & parameters) const
 {
 }
 
-template <class TFixedImage> 
-typename MultiImageMetric < TFixedImage >::MeasureType
+template <class TFixedImage>
+void
 MultiImageMetric<TFixedImage>
-::AfterGetThreadedValue() const
+::AfterGetThreadedValue(MeasureType & value, DerivativeType & derivative) const
 {
-  return NumericTraits< MeasureType >::Zero;
 }
 
 /*
  * Get the match Measure
  */
-  template < class TFixedImage >
+template < class TFixedImage >
 void
 MultiImageMetric < TFixedImage >
 ::GetThreadedValue ( int itkNotUsed( threadId ) ) const
 {
+  //int x;
+  //std::cin >> x;
 }
 
 
@@ -356,30 +263,35 @@ MultiImageMetric< TFixedImage >
 {
   // Call a method that perform some calculations prior to splitting the main
   // computations into separate threads
-  this->BeforeGetThreadedValue();
-  
+  this->BeforeGetThreadedValue(parameters);
+
   // Set up the multithreaded processing
   ThreadStruct str;
   str.Metric = this;
-  
+
   this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
   this->GetMultiThreader()->SetSingleMethod(this->ThreaderCallback, &str);
-  
+
   // multithread the execution
   this->GetMultiThreader()->SingleMethodExecute();
 
   // Call a method that can be overridden by a subclass to perform
   // some calculations after all the threads have completed
-  return this->AfterGetThreadedValue();
+  MeasureType value = 0.0;
+  //this->AfterGetThreadedValue(value);
+  return value;
 
 }
 
 
+
+
+
 // Callback routine used by the threading library. This routine just calls
 // the GetThreadedValue() method after setting the correct partition of data
-// for this thread. 
+// for this thread.
 template < class TFixedImage >
-ITK_THREAD_RETURN_TYPE 
+ITK_THREAD_RETURN_TYPE
 MultiImageMetric< TFixedImage >
 ::ThreaderCallback( void *arg )
 {
@@ -394,7 +306,7 @@ MultiImageMetric< TFixedImage >
   str = (ThreadStruct *)(((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
 
   str->Metric->GetThreadedValue( threadId );
-  
+
   return ITK_THREAD_RETURN_VALUE;
 }
 

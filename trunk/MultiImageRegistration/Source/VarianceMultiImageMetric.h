@@ -17,8 +17,6 @@
 #ifndef __VarianceMultiImageMetric_h
 #define __VarianceMultiImageMetric_h
 
-#include "MultiImageMetric.h"
-
 //#include "itkImageToImageMetric.h"
 #include "itkCovariantVector.h"
 #include "itkPoint.h"
@@ -27,7 +25,10 @@
 #include "itkKernelFunction.h"
 #include "itkCentralDifferenceImageFunction.h"
 
+//user defined headers
 #include <vector>
+#include "MultiImageMetric.h"
+
 using namespace std;
 
 namespace itk
@@ -123,6 +124,11 @@ public:
   typedef typename Superclass::MovingImageType          MovingImageType;
   typedef typename Superclass::FixedImageConstPointer   FixedImageConstPointer;
   typedef typename Superclass::MovingImageConstPointer  MovingImageCosntPointer;
+  //typedef typename Superclass::ThreadStruct             ThreadStruct;
+  struct ThreadStruct
+  {
+    ConstPointer Metric;
+  };
   //typedef vector<FixedImageType> FixedImageTypeArray;
   //typedef vector<FixedImageConstPointer> ImageConstPointerArray;
 
@@ -157,11 +163,15 @@ public:
   /**  Get the value and derivatives for single valued optimizers. */
   void GetValueAndDerivative( const ParametersType& parameters, 
                               MeasureType& Value, DerivativeType& Derivative ) const;
+  void GetValueAndDerivative2( const ParametersType& parameters,
+                              MeasureType& Value, DerivativeType& Derivative ) const;
 
   /** Methods added for supporting multi-threading */
   void GetThreadedValue( int threadID ) const;
-  void BeforeGetThreadedValue() const;
-  MeasureType AfterGetThreadedValue() const;
+  void BeforeGetThreadedValue(const ParametersType & parameters) const;
+  void AfterGetThreadedValue(MeasureType & value,
+                             DerivativeType & derivative) const;
+  
 
   /** Set the number of spatial samples. This is the number of image
    * samples used to calculate the joint probability distribution.
@@ -237,14 +247,10 @@ private:
 
   /** SpatialSampleContainer typedef support. */
   typedef std::vector<SpatialSample>  SpatialSampleContainer;
+  static ITK_THREAD_RETURN_TYPE ThreaderCallback( void *arg );
 
-  /** Container to store sample set  A - used to approximate the probability
-   * density function (pdf). */
-  mutable SpatialSampleContainer      m_SampleA;
-
-  /** Container to store sample set  B - used to approximate the mutual
-   * information value. */
-  mutable SpatialSampleContainer      m_SampleB;
+  /** Container to store sample set */
+  mutable SpatialSampleContainer      m_Sample;
 
   unsigned int                        m_NumberOfSpatialSamples;
   double                              m_MovingImageStandardDeviation;
@@ -260,6 +266,7 @@ private:
    * Calculate the intensity derivatives at a point
    */
   void CalculateDerivatives( const FixedImagePointType& , DerivativeType& , int i) const;
+  void CalculateDerivatives( const FixedImagePointType& , DerivativeType& , int i, int threadID) const;
 
   typedef typename Superclass::CoordinateRepresentationType  
   CoordinateRepresentationType;
@@ -271,9 +278,9 @@ private:
   bool             m_ReseedIterator;
   int              m_RandomSeed;
   
-  mutable Array< RealType >   m_Sum;
-  mutable Array< RealType >   m_SumOfSquares;
-
+  mutable Array< RealType >   m_value;
+  mutable std::vector< typename DerivativeFunctionType::Pointer > m_DerivativeCalcVector;
+  mutable std::vector<DerivativeType> m_derivativeArray;
 };
 
 } // end namespace itk
