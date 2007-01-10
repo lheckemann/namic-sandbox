@@ -1,7 +1,7 @@
 INCLUDE(${CMAKE_SOURCE_DIR}/IJMacros.txt)
 
 #Change PROJECT_NAME to the name of your project
-PROJECT(DWITractographyProject)
+PROJECT(FinslerTractographyProject)
 
 #The following lines are required to use Dart
 ENABLE_TESTING()
@@ -34,12 +34,12 @@ ITKBasicFilters
 #MyExe will be built using the files MyClass.h and MyClass.cxx, and it will
 #be linked to all the libraries you specified above. 
 #You can build more than one executable per project
-SET(CurrentExe "itkDWITractographyMainTest")
-ADD_EXECUTABLE(${CurrentExe} itkDWITractographyMainTest.cxx) 
+SET(CurrentExe "itkFinslerTractographyTest")
+ADD_EXECUTABLE(${CurrentExe} itkFinslerTractographyTest.cxx) 
 TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
 
-#SET(CurrentExe "itkDWITractographyGenerateLocalCostsFilterTest")
-#ADD_EXECUTABLE(${CurrentExe} itkDWITractographyGenerateLocalCostsFilterTest.cxx) 
+#SET(CurrentExe "itkFastSweepingImageFilterTest")
+#ADD_EXECUTABLE(${CurrentExe} itkFastSweepingImageFilterTest.cxx) 
 #TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
 
 #the following line is an example of how to add a test to your project.
