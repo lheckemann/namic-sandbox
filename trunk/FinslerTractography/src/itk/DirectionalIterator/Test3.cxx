@@ -15,6 +15,7 @@ int main( int argc, char *argv[] )
   const unsigned int Dimension = 3;
 
   typedef unsigned short PixelScalarType;
+//  typedef float PixelScalarType;
   typedef itk::VectorImage< PixelScalarType, Dimension >  ImageType;
 
   typedef ImageType::PixelType PixelType;
