@@ -3,47 +3,52 @@
 #endif
 
 /* User Parameters */
+const unsigned int Dimension = 3;
+bool readb0 = true;
 bool writeReferenceImageToFile = true;
 bool writeTensorsImageToFile = true;
 bool writeFAImageToFile = true;
 bool writeRAImageToFile = true;
 
 /* ITK Headers */
-#include "itkDiffusionTensor3DReconstructionImageFilter.h"
-#include "itkTensorFractionalAnisotropyImageFilter.h"
-#include "itkTensorRelativeAnisotropyImageFilter.h"
 #include "itkVectorImage.h"
 #include "itkNrrdImageIO.h"
 #include "itkMetaDataDictionary.h"
-#include "itkImageSeriesReader.h"
 #include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
+#include "itkImageSeriesReader.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
-#include "itkImageDirectionalConstIteratorWithIndex.h"
+#include "itkImageFileWriter.h"
+#include "itkDiffusionTensor3DReconstructionImageFilter.h"
+#include "itkTensorFractionalAnisotropyImageFilter.h"
+#include "itkTensorRelativeAnisotropyImageFilter.h"
 #include <iostream>
 
+#include "itkImageDirectionalConstIteratorWithIndex.h"
+#include "itkFastSweepingImageFilter.h"
+
 /* ITK Typedefs */
-const unsigned int Dimension = 3;
 unsigned int numberOfImages = 0;
-bool readb0 = false;
 double b0 = 0;
   
-typedef unsigned short                            PixelType;
-typedef itk::VectorImage< PixelType, Dimension >  ImageType;
-typedef itk::ImageFileReader< ImageType >         ReaderType;
+typedef unsigned short    DWIPixelComponentType;
+typedef itk::VectorImage< DWIPixelComponentType,
+                          Dimension >  DWIImageType;
+typedef itk::ImageFileReader< DWIImageType >  ReaderType;
 typedef itk::DiffusionTensor3DReconstructionImageFilter< 
-  PixelType, PixelType, double > TensorReconstructionImageFilterType;
+  DWIPixelComponentType, DWIPixelComponentType,
+  double > TensorReconstructionImageFilterType;
 typedef itk::ImageRegionConstIteratorWithIndex<
-  ImageType > NormalIteratorType;
+  DWIImageType > NormalIteratorType;
 typedef itk::ImageDirectionalConstIteratorWithIndex<
-  ImageType > DirectionalIteratorType;
+  DWIImageType > DirectionalIteratorType;
   
-typedef itk::Image< PixelType, Dimension > ReferenceImageType;
-typedef ReferenceImageType                 GradientImageType;
+typedef itk::Image< DWIPixelComponentType,
+                    Dimension > ReferenceImageType;
+typedef ReferenceImageType      GradientImageType;
 
 typedef itk::ImageRegionConstIterator<
-  ImageType >     DWIIteratorType;
+  DWIImageType >     DWIIteratorType;
 typedef itk::ImageRegionIterator<
   GradientImageType >  IteratorType;
 
@@ -69,3 +74,19 @@ typedef itk::TensorRelativeAnisotropyImageFilter<
   RAImageType > RAFilterType;
 typedef itk::ImageFileWriter<
   RAFilterType::OutputImageType >  RAWriterType;
+
+
+/** ITK FastSweeping typedefs */
+typedef float       OutputPixelType;
+typedef itk::Image< OutputPixelType,
+                    Dimension > ArrivalTimesImageType;
+typedef itk::Image< itk::Vector< OutputPixelType, Dimension >,
+                    Dimension > ArrivalVectorsImageType;
+
+typedef itk::ImageFileWriter<
+  ArrivalTimesImageType >   ArrivalTimesWriterType;
+typedef itk::ImageFileWriter<
+  ArrivalVectorsImageType > ArrivalVectorsWriterType;
+
+typedef itk::FastSweepingImageFilter<
+  DWIImageType, ArrivalTimesImageType > FastSweepingFilterType;

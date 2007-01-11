@@ -1,5 +1,5 @@
-#ifndef __itkFastSweepingImageFilter_h
-#define __itkFastSweepingImageFilter_h
+#ifndef __itkFinslerTractographyImageFilter_h
+#define __itkFinslerTractographyImageFilter_h
 
 #include "itkImageToImageFilter.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
@@ -13,12 +13,12 @@ namespace itk
 {
 
 template <class TInputImage,class TOutputImage>
-class ITK_EXPORT FastSweepingImageFilter :
+class ITK_EXPORT FinslerTractographyImageFilter :
     public ImageToImageFilter<TInputImage,TOutputImage>
 {
 public:
   /** Standard class typedefs. */
-  typedef FastSweepingImageFilter    Self;
+  typedef FinslerTractographyImageFilter    Self;
   typedef ImageToImageFilter<TInputImage,TOutputImage> Superclass;
   typedef SmartPointer<Self> Pointer;
   typedef SmartPointer<const Self> ConstPointer;
@@ -27,7 +27,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( FastSweepingImageFilter, ImageToImageFilter );
+  itkTypeMacro( FinslerTractographyImageFilter, ImageToImageFilter );
 
   /** Type for input image. */
   typedef   TInputImage       InputImageType;
@@ -101,8 +101,8 @@ public:
 #endif
 
 protected:
-  FastSweepingImageFilter();
-  virtual ~FastSweepingImageFilter() {};
+  FinslerTractographyImageFilter();
+  virtual ~FinslerTractographyImageFilter() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   /** Compute Arrival Times and Arrival Vectors */
@@ -112,20 +112,20 @@ protected:
   void PrepareData();  
 
 private:   
-  FastSweepingImageFilter(const Self&); //purposely not implemented
+  FinslerTractographyImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
   typename OutputImageType::PixelType    m_ConvergenceParameter;
   typename GradientDiffusionVectorsContainerType::Pointer
     m_GradientDiffusionVectorsContainer;
 
-}; // end of FastSweepingImageFilter class
+}; // end of FinslerTractographyImageFilter class
 
 } //end namespace itk
 
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkFastSweepingImageFilter.txx"
+#include "itkFinslerTractographyImageFilter.txx"
 #endif
 
 #endif
