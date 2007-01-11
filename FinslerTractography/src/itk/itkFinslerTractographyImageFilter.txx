@@ -1,9 +1,9 @@
-#ifndef _itkFastSweepingImageFilter_txx
-#define _itkFastSweepingImageFilter_txx
+#ifndef _itkFinslerTractographyImageFilter_txx
+#define _itkFinslerTractographyImageFilter_txx
 
 #include <iostream>
 
-#include "itkFastSweepingImageFilter.h"
+#include "itkFinslerTractographyImageFilter.h"
 
 namespace itk
 {
@@ -13,8 +13,8 @@ namespace itk
  *    Constructor
  */
 template <class TInputImage,class TOutputImage>
-FastSweepingImageFilter<TInputImage,TOutputImage>
-::FastSweepingImageFilter() :
+FinslerTractographyImageFilter<TInputImage,TOutputImage>
+::FinslerTractographyImageFilter() :
   m_ConvergenceParameter(0),
   m_GradientDiffusionVectorsContainer(0)
 {
@@ -36,7 +36,7 @@ FastSweepingImageFilter<TInputImage,TOutputImage>
  */
 template <class TInputImage,class TOutputImage>
 void 
-FastSweepingImageFilter<TInputImage,TOutputImage>
+FinslerTractographyImageFilter<TInputImage,TOutputImage>
 ::SetGradientDiffusionVectors( GradientDiffusionVectorsContainerType *gradientDirections )
 {
   this->m_GradientDiffusionVectorsContainer = gradientDirections;
@@ -47,9 +47,9 @@ FastSweepingImageFilter<TInputImage,TOutputImage>
  *  Return the arrival times Image pointer
  */
 template <class TInputImage,class TOutputImage>
-typename FastSweepingImageFilter<
+typename FinslerTractographyImageFilter<
   TInputImage,TOutputImage>::OutputImageType * 
-FastSweepingImageFilter<TInputImage,TOutputImage>
+FinslerTractographyImageFilter<TInputImage,TOutputImage>
 ::GetArrivalTimes(void)
 {
   return  dynamic_cast< OutputImageType * >(
@@ -61,9 +61,9 @@ FastSweepingImageFilter<TInputImage,TOutputImage>
  *  Return the arrival vectors
  */
 template <class TInputImage,class TOutputImage>
-typename FastSweepingImageFilter<
+typename FinslerTractographyImageFilter<
   TInputImage,TOutputImage>::VectorImageType * 
-FastSweepingImageFilter<TInputImage,TOutputImage>
+FinslerTractographyImageFilter<TInputImage,TOutputImage>
 ::GetArrivalVectors(void)
 {
   return  dynamic_cast< VectorImageType * >(
@@ -76,7 +76,7 @@ FastSweepingImageFilter<TInputImage,TOutputImage>
  */
 template <class TInputImage,class TOutputImage>
 void 
-FastSweepingImageFilter<TInputImage,TOutputImage>
+FinslerTractographyImageFilter<TInputImage,TOutputImage>
 ::PrepareData(void) 
 {
   itkDebugMacro(<< "PrepareData Start");
@@ -121,7 +121,7 @@ FastSweepingImageFilter<TInputImage,TOutputImage>
  */
 template <class TInputImage,class TOutputImage>
 void 
-FastSweepingImageFilter<TInputImage,TOutputImage>
+FinslerTractographyImageFilter<TInputImage,TOutputImage>
 ::GenerateData() 
 {
   this->PrepareData();
@@ -343,12 +343,12 @@ FastSweepingImageFilter<TInputImage,TOutputImage>
  */
 template <class TInputImage,class TOutputImage>
 void 
-FastSweepingImageFilter<TInputImage,TOutputImage>
+FinslerTractographyImageFilter<TInputImage,TOutputImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
   
-  os << indent << "FastSweeping: " << std::endl;
+  os << indent << "FinslerTractography: " << std::endl;
   os << indent << "  ConvergenceParameter: " << m_ConvergenceParameter << std::endl;
   os << indent << "  GradientDiffusionVectorsContainer: "
      << m_GradientDiffusionVectorsContainer << std::endl;
