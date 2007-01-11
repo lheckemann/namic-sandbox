@@ -194,7 +194,7 @@ FastSweepingImageFilter<TInputImage,TOutputImage>
         InputPixelType neighborValue = speedImageDirIt.GetNeighborPixel(k);
         }
       arrivalTimesDirIt.Set( 25 );
-//      arrivalVectorsDirIt.Set( speedImageDirIt.GetNeighborPixel(13) );
+      arrivalVectorsDirIt.Set( speedImageDirIt.GetNeighborPixel(13) );
 
       ++speedImageDirIt;
       ++arrivalTimesDirIt;
