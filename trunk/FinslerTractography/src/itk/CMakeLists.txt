@@ -38,9 +38,9 @@ SET(CurrentExe "itkFinslerTractographyTest")
 ADD_EXECUTABLE(${CurrentExe} itkFinslerTractographyTest.cxx) 
 TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
 
-#SET(CurrentExe "itkFastSweepingImageFilterTest")
-#ADD_EXECUTABLE(${CurrentExe} itkFastSweepingImageFilterTest.cxx) 
-#TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
+SET(CurrentExe "itkFastSweepingImageFilterTest")
+ADD_EXECUTABLE(${CurrentExe} itkFastSweepingImageFilterTest.cxx) 
+TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
 
 #the following line is an example of how to add a test to your project.
 #Testname is the title for this particular test.  ExecutableToRun is the

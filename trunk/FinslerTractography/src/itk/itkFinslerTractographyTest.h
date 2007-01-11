@@ -20,6 +20,7 @@ bool writeRAImageToFile = true;
 #include "itkImageFileWriter.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
+#include "itkImageDirectionalConstIteratorWithIndex.h"
 #include <iostream>
 
 /* ITK Typedefs */
@@ -68,5 +69,3 @@ typedef itk::TensorRelativeAnisotropyImageFilter<
   RAImageType > RAFilterType;
 typedef itk::ImageFileWriter<
   RAFilterType::OutputImageType >  RAWriterType;
-
-
