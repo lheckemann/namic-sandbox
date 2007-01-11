@@ -176,17 +176,29 @@ FastSweepingImageFilter<TInputImage,TOutputImage>
   OutputDirIteratorType arrivalTimesDirIt( arrivalTimes, region2 );
   VectorDirIteratorType arrivalVectorsDirIt( arrivalVectors, region2 );
 
+  typedef std::vector< InputPixelType >  PixelArrayType;
+  PixelArrayType pixelArray;
+  pixelArray.resize( 7 );
+
   speedImageDirIt.SetRadius( radius );
   speedImageDirIt.GoToBegin();
   arrivalTimesDirIt.SetRadius( radius );
   arrivalTimesDirIt.GoToBegin();
   arrivalVectorsDirIt.SetRadius( radius );
   arrivalVectorsDirIt.GoToBegin();
-  while( !speedImageDirIt.IsAtEnd() )
+   while( !speedImageDirIt.IsAtEnd() )
     {
     while( !speedImageDirIt.IsAtEndOfDirection() )
       {
       InputPixelType neighborValue = speedImageDirIt.Get();
+
+      pixelArray[0] = speedImageDirIt.GetNeighborPixel(13);
+      pixelArray[1] = speedImageDirIt.GetNeighborPixel(4);
+      pixelArray[2] = speedImageDirIt.GetNeighborPixel(12);
+      pixelArray[3] = speedImageDirIt.GetNeighborPixel(14);
+      pixelArray[4] = speedImageDirIt.GetNeighborPixel(10);
+      pixelArray[5] = speedImageDirIt.GetNeighborPixel(16);
+      pixelArray[6] = speedImageDirIt.GetNeighborPixel(22);
 
       // Access the neighbor pixels
       for(unsigned int k=0; k < 27; k++)
@@ -194,7 +206,7 @@ FastSweepingImageFilter<TInputImage,TOutputImage>
         InputPixelType neighborValue = speedImageDirIt.GetNeighborPixel(k);
         }
       arrivalTimesDirIt.Set( 25 );
-      arrivalVectorsDirIt.Set( speedImageDirIt.GetNeighborPixel(13) );
+      arrivalVectorsDirIt.Set( vectorPixel );
 
       ++speedImageDirIt;
       ++arrivalTimesDirIt;
