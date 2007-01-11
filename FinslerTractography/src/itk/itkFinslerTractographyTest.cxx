@@ -231,7 +231,8 @@ int main( int argc, char *argv[] )
 //     }
 
   /* Generate the Tracts */
-
+//use std vector of itk points
+  
   /* Visualize the Results */
 
   return EXIT_SUCCESS;
