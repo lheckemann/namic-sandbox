@@ -10,6 +10,7 @@
 #endif
 
 #include "itkFastSweepingImageFilterTest.h"
+#include "itkFastSweepingImageFilter.h"
 
 int main( int argc, char *argv[] )
 {
@@ -38,7 +39,7 @@ int main( int argc, char *argv[] )
     }
 
   /* Run Fast Sweeping */
-  typedef itk::FastSweepingImageFilter< InputImageType, OutputImageType >
+  typedef itk::FastSweepingImageFilter< InputImageType, ArrivalTimesImageType >
     FastSweepingFilterType;
   FastSweepingFilterType::Pointer fastSweepingFilter = FastSweepingFilterType::New();
   fastSweepingFilter->SetInput( reader->GetOutput() );
@@ -46,7 +47,7 @@ int main( int argc, char *argv[] )
   
   /* Write Results to File */
   ArrivalTimesWriterType::Pointer atWriter = ArrivalTimesWriterType::New();
-  atWriter->SetInput( fastSweepingFilter->GetOutput(0) );
+  atWriter->SetInput( fastSweepingFilter->GetArrivalTimes() );
   atWriter->SetFileName( "arrivalTimes.nhdr" );
   try
     {
@@ -59,8 +60,8 @@ int main( int argc, char *argv[] )
     }
 
   ArrivalVectorsWriterType::Pointer avWriter = ArrivalVectorsWriterType::New();
+  avWriter->SetInput( fastSweepingFilter->GetArrivalVectors() );
   avWriter->SetFileName( "arrivalVectors.nhdr" );
-  avWriter->SetInput( fastSweepingFilter->GetOutput(1) );
   try
     {
     avWriter->Update();

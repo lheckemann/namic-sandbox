@@ -4,8 +4,6 @@
 #include <iostream>
 
 #include "itkFastSweepingImageFilter.h"
-#include "itkReflectiveImageRegionConstIterator.h"
-#include "itkImageRegionConstIteratorWithIndex.h"
 
 namespace itk
 {
@@ -81,7 +79,7 @@ FastSweepingImageFilter<TInputImage,TOutputImage>
     dynamic_cast<const TInputImage  *>( ProcessObject::GetInput(0) );
 
   /* Prepare the arrival times */
-  OutputImagePointer arrivalTimes = this->GetDistanceMap();
+  OutputImagePointer arrivalTimes = this->GetArrivalTimes();
 
   arrivalTimes->CopyInformation( inputImage );
 
@@ -96,7 +94,7 @@ FastSweepingImageFilter<TInputImage,TOutputImage>
                             typename OutputImageType::PixelType >::max() );
 
   /* Prepare the arrival vectors */
-  VectorImagePointer arrivalVectors = GetVectorDistanceMap();
+  VectorImagePointer arrivalVectors = GetArrivalVectors();
 
   arrivalVectors->CopyInformation( inputImage );
 
@@ -126,14 +124,16 @@ FastSweepingImageFilter<TInputImage,TOutputImage>
   this->PrepareData();
 
   // Specify images and regions.
-  
+  InputImagePointer speedImage       =  this->GetInput();
+  typename OutputImageType::RegionType region = speedImage->GetRequestedRegion();
+  InputIteratorType speedImageIt( speedImage, region );
+
   OutputImagePointer arrivalTimes    =  this->GetArrivalTimes();
-  OutputImageType::RegionType region = arrivalTimes->GetRequestedRegion();
   OutputIteratorType arrivalTimesIt( arrivalTimes, region );
 
   VectorImagePointer arrivalVectors  =  this->GetArrivalVectors();
   VectorIteratorType arrivalVectorsIt( arrivalVectors, region );  
-  VectorImageType::PixelType vectorPixel;
+  typename VectorImageType::PixelType vectorPixel;
   
   itkDebugMacro (<< "Region to process " << region);
 
@@ -152,6 +152,58 @@ FastSweepingImageFilter<TInputImage,TOutputImage>
     }
 
   // Instantiate the directional iterator
+  typename InputImageType::IndexType start = region.GetIndex();
+  typename InputImageType::SizeType size = region.GetSize();
+
+  typename InputImageType::RegionType region2;
+  typename InputImageType::IndexType start2;
+  typename InputImageType::SizeType size2;
+
+  const unsigned int radius = 1;
+
+  size2[0] = size[0] - 2 * radius;
+  size2[1] = size[1] - 2 * radius;
+  size2[2] = size[2] - 2 * radius;
+
+  start2[0] = start[0] + radius;
+  start2[1] = start[1] + radius;
+  start2[2] = start[2] + radius;
+
+  region2.SetSize( size2 );
+  region2.SetIndex( start2 );
+
+  InputDirConstIteratorType speedImageDirIt( speedImage, region2 );
+  OutputDirIteratorType arrivalTimesDirIt( arrivalTimes, region2 );
+  VectorDirIteratorType arrivalVectorsDirIt( arrivalVectors, region2 );
+
+  speedImageDirIt.SetRadius( radius );
+  speedImageDirIt.GoToBegin();
+  arrivalTimesDirIt.SetRadius( radius );
+  arrivalTimesDirIt.GoToBegin();
+  arrivalVectorsDirIt.SetRadius( radius );
+  arrivalVectorsDirIt.GoToBegin();
+  while( !speedImageDirIt.IsAtEnd() )
+    {
+    while( !speedImageDirIt.IsAtEndOfDirection() )
+      {
+      InputPixelType neighborValue = speedImageDirIt.Get();
+
+      // Access the neighbor pixels
+      for(unsigned int k=0; k < 27; k++)
+        {
+        InputPixelType neighborValue = speedImageDirIt.GetNeighborPixel(k);
+        }
+      arrivalTimesDirIt.Set( 25 );
+//      arrivalVectorsDirIt.Set( speedImageDirIt.GetNeighborPixel(13) );
+
+      ++speedImageDirIt;
+      ++arrivalTimesDirIt;
+      ++arrivalVectorsDirIt;
+      }
+    speedImageDirIt.NextDirection();
+    arrivalTimesDirIt.NextDirection();
+    arrivalVectorsDirIt.NextDirection();
+    }
 
   itkDebugMacro(<< "GenerateData");
   
