@@ -236,10 +236,10 @@ private:
   {
   public:
     SpatialSample()
-    {FixedImagePointValue.Fill( 0.0 );}
+    {FixedImagePoint.Fill( 0.0 );}
     ~SpatialSample(){};
 
-    FixedImagePointType              FixedImagePointValue;
+    FixedImagePointType              FixedImagePoint;
     vector<double>                   imageValueArray;
    // double                           FixedImageValue;
    // double                           MovingImageValue;

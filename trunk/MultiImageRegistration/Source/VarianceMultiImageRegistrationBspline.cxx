@@ -64,6 +64,7 @@ class CommandIterationUpdate : public itk::Command
 
     void Execute(itk::Object *caller, const itk::EventObject & event)
     {
+      //caller->Print(std::cout, 3 );
       Execute( (const itk::Object *)caller, event);
     }
 
@@ -181,6 +182,11 @@ int main( int argc, char *argv[] )
   GaussianFilterArrayType gaussianFilterArray;
   gaussianFilterArray.resize(N);
 
+  typedef TransformType::ParametersType     ParametersType;
+  vector<ParametersType> parametersArray;
+  parametersArray.resize(N);
+
+
 /** Connect the compenents together */
 try
 {
@@ -234,13 +240,10 @@ try
     transformArray[i]->SetGridRegion( bsplineRegion );
 
 
-    typedef TransformType::ParametersType     ParametersType;
-
     const unsigned int numberOfParameters =
         transformArray[i]->GetNumberOfParameters();
 
     ParametersType parameters( numberOfParameters );
-
     parameters.Fill( 0.0 );
 
     transformArray[i]->SetParameters( parameters );
@@ -271,9 +274,9 @@ catch( itk::ExceptionObject & err )
   const unsigned int numberOfPixels = fixedImageRegion.GetNumberOfPixels();
 
   const unsigned int numberOfSamples = 
-                        static_cast< unsigned int >( numberOfPixels * 0.1 );
+                        static_cast< unsigned int >( numberOfPixels * 0.01 );
 
-  metric->SetNumberOfSpatialSamples( numberOfSamples );
+  metric->SetNumberOfSpatialSamples( 2 );
 
   // Set Optimizer Parameters
   /*
@@ -284,8 +287,9 @@ catch( itk::ExceptionObject & err )
   optimizer->SetMaximumNumberOfFunctionEvaluations( 1000 );
   */
 
-  optimizer->SetLearningRate( 100.0 );
-  optimizer->SetNumberOfIterations( 500 );
+
+  optimizer->SetLearningRate( 1e-4 );
+  optimizer->SetNumberOfIterations( 5 );
   optimizer->MaximizeOn();
 
   
@@ -408,9 +412,9 @@ int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& in
   {
     std::cerr << "Missing Image Names " << std::endl;
     std::cerr << "\t -i Input folder for images" << std::endl;
-    std::cerr << "\t -f Output folder for registered images" << std::endl;
+    std::cerr << "\t -o Output folder for registered images" << std::endl;
     std::cerr << "\t -m Level of Multiresolution" << std::endl;
-    std::cerr << "\t -o Optimizer Type" << std::endl;
+    std::cerr << "\t -opt Optimizer Type" << std::endl;
     std::cerr << "\t -t Transform Type: Bspline Affine Translation" << std::endl;
     std::cerr << std::endl << "Usage: " << std::endl << "\t" << argv[0];
     std::cerr << " -i folder1/ -f output/ -o gradient -m 4 -t Affine ImageFile1  ImageFile2 ImageFile3 ... " << std::endl << std::endl;
