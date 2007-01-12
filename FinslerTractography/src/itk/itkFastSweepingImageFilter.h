@@ -1,13 +1,13 @@
 #ifndef __itkFastSweepingImageFilter_h
 #define __itkFastSweepingImageFilter_h
 
+#include "itkVector.h"
+#include "itkVectorContainer.h"
 #include "itkImageToImageFilter.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkImageDirectionalConstIteratorWithIndex.h"
 #include "itkImageDirectionalIteratorWithIndex.h"
-#include "itkVector.h"
-#include "itkVectorContainer.h"
 
 namespace itk
 {

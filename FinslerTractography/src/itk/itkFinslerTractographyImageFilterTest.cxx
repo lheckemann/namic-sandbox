@@ -25,17 +25,16 @@ int main( int argc, char *argv[] )
     std::cerr << "\tExample args: xt_dwi.nhdr 80" << std::endl;
     return EXIT_FAILURE;
     }
+
   
   /* Data Input */
-  DWIImageType::Pointer img;
+  DWIImageType::Pointer dwiInputImage;
   ReaderType::Pointer reader = ReaderType::New();
-  
   reader->SetFileName( argv[1] );
-
   try
     {
     reader->Update();
-    img = reader->GetOutput();
+    dwiInputImage = reader->GetOutput();
     }
   catch (itk::ExceptionObject &ex)
     {
@@ -43,8 +42,9 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
+
   /* Parse the NRRD Header */
-  itk::MetaDataDictionary imgMetaDictionary = img->GetMetaDataDictionary();    
+  itk::MetaDataDictionary imgMetaDictionary = dwiInputImage->GetMetaDataDictionary();    
   std::vector<std::string> imgMetaKeys = imgMetaDictionary.GetKeys();
   std::vector<std::string>::const_iterator itKey = imgMetaKeys.begin();
   std::string metaString;
@@ -83,22 +83,22 @@ int main( int argc, char *argv[] )
     }
 
   /* Separate the Reference Image from the Gradient Images */
-  DWIIteratorType dwiit( img, img->GetBufferedRegion() ); 
+  DWIIteratorType dwiIt( dwiInputImage, dwiInputImage->GetBufferedRegion() ); 
   
   GradientImageType::Pointer referenceImage = GradientImageType::New();
-  referenceImage->CopyInformation( img );
-  referenceImage->SetBufferedRegion( img->GetBufferedRegion() );
-  referenceImage->SetRequestedRegion( img->GetRequestedRegion() );
+  referenceImage->CopyInformation( dwiInputImage );
+  referenceImage->SetBufferedRegion( dwiInputImage->GetBufferedRegion() );
+  referenceImage->SetRequestedRegion( dwiInputImage->GetRequestedRegion() );
   referenceImage->Allocate();
     
-  IteratorType it( referenceImage, referenceImage->GetBufferedRegion() );
-  dwiit.GoToBegin();
-  it.GoToBegin();
-  while (!it.IsAtEnd())
+  GradientIteratorType gradIt( referenceImage, referenceImage->GetBufferedRegion() );
+  dwiIt.GoToBegin();
+  gradIt.GoToBegin();
+  while (!gradIt.IsAtEnd())
     {
-    it.Set(dwiit.Get()[0]);
-    ++it;
-    ++dwiit;
+    gradIt.Set(dwiIt.Get()[0]);
+    ++gradIt;
+    ++dwiIt;
     }
   if( writeReferenceImageToFile )
     {
@@ -148,19 +148,12 @@ int main( int argc, char *argv[] )
     raWriter->Update();
     }
 
-  /* Generate the Local Cost Function */
-
-
-  /* Run Fast Sweeping */
-  FastSweepingFilterType::Pointer fastSweepingFilter = FastSweepingFilterType::New();
-  fastSweepingFilter->SetInput( reader->GetOutput() );
-  fastSweepingFilter->SetGradientDiffusionVectors( GradientDiffusionVectors );
-  fastSweepingFilter->Update();
+  /* Execute Finsler Tractography */
+  FinslerTractographyFilterType::Pointer finslerTractographyFilter =
+    FinslerTractographyFilterType::New();
+  finslerTractographyFilter->SetInput( reader->GetOutput() );
+  finslerTractographyFilter->SetGradientDiffusionVectors( GradientDiffusionVectors );
+  finslerTractographyFilter->Update();
   
-  /* Generate the Tracts */
-//use std vector of itk points
-  
-  /* Visualize the Results */
-
   return EXIT_SUCCESS;
 }
