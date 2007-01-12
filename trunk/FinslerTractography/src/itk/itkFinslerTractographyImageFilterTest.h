@@ -18,14 +18,13 @@ bool writeRAImageToFile = true;
 #include "itkImageSeriesReader.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
-#include "itkImageFileWriter.h"
 #include "itkDiffusionTensor3DReconstructionImageFilter.h"
 #include "itkTensorFractionalAnisotropyImageFilter.h"
 #include "itkTensorRelativeAnisotropyImageFilter.h"
+#include "itkImageFileWriter.h"
 #include <iostream>
 
-#include "itkImageDirectionalConstIteratorWithIndex.h"
-#include "itkFastSweepingImageFilter.h"
+#include "itkFinslerTractographyImageFilter.h"
 
 /* ITK Typedefs */
 unsigned int numberOfImages = 0;
@@ -34,26 +33,23 @@ double b0 = 0;
 typedef unsigned short    DWIPixelComponentType;
 typedef itk::VectorImage< DWIPixelComponentType,
                           Dimension >  DWIImageType;
+typedef itk::ImageRegionConstIterator<
+  DWIImageType >     DWIIteratorType;
+
 typedef itk::ImageFileReader< DWIImageType >  ReaderType;
+
 typedef itk::DiffusionTensor3DReconstructionImageFilter< 
   DWIPixelComponentType, DWIPixelComponentType,
   double > TensorReconstructionImageFilterType;
-typedef itk::ImageRegionConstIteratorWithIndex<
-  DWIImageType > NormalIteratorType;
-typedef itk::ImageDirectionalConstIteratorWithIndex<
-  DWIImageType > DirectionalIteratorType;
   
 typedef itk::Image< DWIPixelComponentType,
                     Dimension > ReferenceImageType;
 typedef ReferenceImageType      GradientImageType;
-
-typedef itk::ImageRegionConstIterator<
-  DWIImageType >     DWIIteratorType;
 typedef itk::ImageRegionIterator<
-  GradientImageType >  IteratorType;
-
+  GradientImageType >  GradientIteratorType;
 typedef itk::ImageFileWriter<
   GradientImageType >      GradientWriterType;
+
 typedef itk::ImageFileWriter< 
   TensorReconstructionImageFilterType::OutputImageType >
   TensorWriterType;
@@ -75,18 +71,8 @@ typedef itk::TensorRelativeAnisotropyImageFilter<
 typedef itk::ImageFileWriter<
   RAFilterType::OutputImageType >  RAWriterType;
 
-
-/** ITK FastSweeping typedefs */
-typedef float       OutputPixelType;
-typedef itk::Image< OutputPixelType,
-                    Dimension > ArrivalTimesImageType;
-typedef itk::Image< itk::Vector< OutputPixelType, Dimension >,
-                    Dimension > ArrivalVectorsImageType;
-
-typedef itk::ImageFileWriter<
-  ArrivalTimesImageType >   ArrivalTimesWriterType;
-typedef itk::ImageFileWriter<
-  ArrivalVectorsImageType > ArrivalVectorsWriterType;
-
-typedef itk::FastSweepingImageFilter<
-  DWIImageType, ArrivalTimesImageType > FastSweepingFilterType;
+/** Finsler Tractography ITK Typedefs */
+typedef double  ArrivalTimesPixelType;
+typedef itk::Image< ArrivalTimesPixelType, Dimension > ArrivalTimesImageType;
+typedef itk::FinslerTractographyImageFilter<
+  DWIImageType, ArrivalTimesImageType > FinslerTractographyFilterType;

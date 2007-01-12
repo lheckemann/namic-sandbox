@@ -1,13 +1,13 @@
 #ifndef __itkFinslerTractographyImageFilter_h
 #define __itkFinslerTractographyImageFilter_h
 
+#include "itkVector.h"
+#include "itkVectorContainer.h"
 #include "itkImageToImageFilter.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImageRegionIteratorWithIndex.h"
-#include "itkImageDirectionalConstIteratorWithIndex.h"
-#include "itkImageDirectionalIteratorWithIndex.h"
-#include "itkVector.h"
-#include "itkVectorContainer.h"
+
+#include "itkFastSweepingImageFilter.h"
 
 namespace itk
 {
@@ -54,10 +54,6 @@ public:
             VectorImageType > VectorIteratorType;
   typedef typename VectorImageType::Pointer VectorImagePointer;
 
-  /** Set/Get methods for convergence parameter. */
-  itkSetMacro( ConvergenceParameter, typename OutputImageType::PixelType );
-  itkGetMacro( ConvergenceParameter, typename OutputImageType::PixelType );
-
   /** Set/Get methods for gradient diffusion vectors. */
   typedef vnl_vector_fixed< double, InputImageDimension >
     GradientDiffusionVectorType;
@@ -73,16 +69,9 @@ public:
   /** Get arrival vectors */
   VectorImageType * GetArrivalVectors(void);
 
-  /** Directional iterator */
-  typedef itk::ImageDirectionalConstIteratorWithIndex< 
-            InputImageType > InputDirConstIteratorType;
-  typedef typename InputDirConstIteratorType::Iterator InputNeighborPixel;
-  typedef itk::ImageDirectionalIteratorWithIndex< 
-            OutputImageType > OutputDirIteratorType;
-  typedef typename OutputDirIteratorType::Iterator  OutputNeighborPixel;
-  typedef itk::ImageDirectionalIteratorWithIndex< 
-            VectorImageType > VectorDirIteratorType;
-  typedef typename VectorDirIteratorType::Iterator  VectorNeighborPixel;
+  /** Fast Sweeping ITK Typedefs */
+  typedef itk::FastSweepingImageFilter<
+    InputImageType, OutputImageType > FastSweepingFilterType;
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -115,7 +104,6 @@ private:
   FinslerTractographyImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  typename OutputImageType::PixelType    m_ConvergenceParameter;
   typename GradientDiffusionVectorsContainerType::Pointer
     m_GradientDiffusionVectorsContainer;
 
