@@ -82,10 +82,11 @@
 #include <string>
 #include <fstream>
 #include <vector>
-
+//Bspline optimizer and transform
+#include "itkBSplineDeformableTransform.h"
+#include "itkLBFGSBOptimizer.h"
 
 #include "itkNormalizeImageFilter.h"
-
 #include "itkDiscreteGaussianImageFilter.h"
     
 class CommandIterationUpdate : public itk::Command 
@@ -103,6 +104,7 @@ public:
 
   void Execute(itk::Object *caller, const itk::EventObject & event)
     {
+      //caller->Print(std::cout, 3 );
       Execute( (const itk::Object *)caller, event);
     }
 
@@ -170,11 +172,12 @@ public:
     { return; }
 };
 
-//
+// Get the command line arguments
 int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType,  int& multiLevel, string& transformType );
 
 int main( int argc, char *argv[] )
 {
+
   vector<string> fileNames;
   string inputFolder, outputFolder, optimizerType, transformType;
   int multiLevel;
@@ -355,7 +358,7 @@ int main( int argc, char *argv[] )
   metric->SetNumberOfSpatialSamples( numberOfSamples );
 
 
-  optimizer->SetLearningRate( 1e-4 );
+  optimizer->SetLearningRate( 2e-4 );
   optimizer->SetNumberOfIterations( 200 );
   optimizer->MaximizeOn();
 
@@ -375,25 +378,151 @@ int main( int argc, char *argv[] )
   registration->SetNumberOfLevels( multiLevel );
 
   try 
-    { 
+  { 
     registration->StartRegistration(); 
-    } 
+  } 
   catch( itk::ExceptionObject & err ) 
-    { 
+  { 
     std::cout << "ExceptionObject caught !" << std::endl; 
     std::cout << err << std::endl; 
     return -1;
+  }
+
+
+
+  //BSPline registration
+  std::cout << "Beginning the bspline registration" << std::endl;
+
+  const unsigned int SpaceDimension = 2;
+  const unsigned int SplineOrder = 3;
+  typedef double CoordinateRepType;
+
+  typedef itk::BSplineDeformableTransform<
+                            CoordinateRepType,
+                            SpaceDimension,
+                            SplineOrder >     BSplineTransformType;
+
+  typedef itk::LBFGSBOptimizer       BSplineOptimizerType;
+
+  typedef vector<BSplineTransformType::Pointer> BSplineTransformArrayType;
+  BSplineTransformArrayType      bsplineTransformArray;
+  bsplineTransformArray.resize(N);
+
+  // Get the latest transform parameters of affine transfom
+  ParametersType affineParameters = registration->GetLastTransformParameters();
+  ParametersType affineCurrentParameters(numberOfParameters);
+
+  // Initialize all the tranform parameters to zero
+  typedef BSplineTransformType::ParametersType     BSplineParametersType;
+  BSplineParametersType bsplineInitialParameters( 8*8*2*N );
+
+  vector<BSplineParametersType> bsplineParametersArray(N);
+
+  bsplineInitialParameters.Fill(0.0);
+  registration->SetInitialTransformParameters( bsplineInitialParameters );
+
+  try
+  {
+    for( int i=0; i< N; i++ )
+    {
+      bsplineTransformArray[i] = BSplineTransformType::New();
+      registration->SetTransformArray(     bsplineTransformArray[i] ,i    );
+
+      // Initialize the bspline tranform parameters
+      typedef BSplineTransformType::RegionType RegionType;
+      RegionType bsplineRegion;
+      RegionType::SizeType   gridSizeOnImage;
+      RegionType::SizeType   gridBorderSize;
+      RegionType::SizeType   totalGridSize;
+
+      gridSizeOnImage.Fill( 5 );
+      gridBorderSize.Fill( 3 );    // Border for spline order = 3 ( 1 lower, 2 upper )
+      totalGridSize = gridSizeOnImage + gridBorderSize;
+
+      bsplineRegion.SetSize( totalGridSize );
+
+      imageArrayReader[i]->Update();
+      typedef BSplineTransformType::SpacingType SpacingType;
+      SpacingType spacing = imageArrayReader[i]->GetOutput()->GetSpacing();
+
+      typedef BSplineTransformType::OriginType OriginType;
+      OriginType origin = imageArrayReader[i]->GetOutput()->GetOrigin();;
+
+      ImageType::RegionType fixedRegion = imageArrayReader[i]->GetOutput()->GetBufferedRegion();
+      ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
+
+      for(unsigned int r=0; r<Dimension; r++)
+      {
+        spacing[r] *= floor( static_cast<double>(fixedImageSize[r] - 1)  /
+            static_cast<double>(gridSizeOnImage[r] - 1) );
+        origin[r]  -=  spacing[r];
+      }
+
+      bsplineTransformArray[i]->SetGridSpacing( spacing );
+      bsplineTransformArray[i]->SetGridOrigin( origin );
+      bsplineTransformArray[i]->SetGridRegion( bsplineRegion );
+
+      //Set the transform parameters resulting from the affine registration
+      for(int j=0; j<numberOfParameters; j++ )
+      {
+        affineCurrentParameters[j] = affineParameters[numberOfParameters*i + j];
+      }
+      transformArray[i]->SetParametersByValue(affineCurrentParameters);
+      bsplineTransformArray[i]->SetBulkTransform( transformArray[i] );
+
+      const unsigned int bsplineNumberOfParameters =
+          bsplineTransformArray[i]->GetNumberOfParameters();
+
+      bsplineParametersArray[i].SetSize(128);
+      bsplineParametersArray[i].Fill(0.0);
+
+      bsplineTransformArray[i]->SetParameters( bsplineParametersArray[i] );
+      registration->SetTransformArray(     bsplineTransformArray[i] ,i    );
+      registration->SetInitialTransformParameters(bsplineParametersArray[i], i);
+
     }
+  }
+  catch( itk::ExceptionObject & err ) 
+  { 
+    std::cout << "ExceptionObject caught !" << std::endl; 
+    std::cout << err << std::endl; 
+    return -1;
+  } 
+
+  //Reset the optimizer scales
+  optimizerScales.SetSize( 128*N);
+  optimizerScales.Fill( 1.0 );
+  optimizer->SetScales( optimizerScales );
+
+  optimizer->SetLearningRate( 1e-4 );
+  optimizer->SetNumberOfIterations( 100 );
+  optimizer->MaximizeOn();
 
 
-    ParametersType finalParameters = registration->GetLastTransformParameters();
+  //Reset the number of levels in the registration
+  registration->SetNumberOfLevels( 1 );
+  metric->SetNumberOfSpatialSamples( numberOfSamples );
+
+  try 
+  { 
+    registration->StartRegistration(); 
+  } 
+  catch( itk::ExceptionObject & err ) 
+  { 
+    std::cerr << "ExceptionObject caught !" << std::endl; 
+    std::cerr << err << std::endl; 
+    return -1;
+  } 
+
+  std::cout << " bspline registration ended" << std::endl;
+  BSplineParametersType finalParameters = registration->GetLastTransformParameters();
   
-    double TranslationAlongX = finalParameters[4];
-    double TranslationAlongY = finalParameters[5];
+  double TranslationAlongX = finalParameters[4];
+  double TranslationAlongY = finalParameters[5];
   
-    unsigned int numberOfIterations = optimizer->GetCurrentIteration();
+  unsigned int numberOfIterations = optimizer->GetCurrentIteration();
   
-    double bestValue = optimizer->GetValue();
+  double bestValue = optimizer->GetValue();
 
 
   // Print out results
@@ -408,11 +537,13 @@ int main( int argc, char *argv[] )
 
 
 
+  numberOfParameters = 128;
+
+  // Write the output images
   typedef itk::ResampleImageFilter< 
                             ImageType, 
                             ImageType >    ResampleFilterType;
 
-  TransformType::Pointer finalTransform = TransformType::New();
   ResampleFilterType::Pointer resample = ResampleFilterType::New();
   ImageType::Pointer fixedImage;
   typedef  unsigned char  OutputPixelType;
@@ -429,7 +560,8 @@ int main( int argc, char *argv[] )
   CastFilterType::Pointer  caster = CastFilterType::New();
 
 
-  ParametersType currentParameters(numberOfParameters);
+  BSplineParametersType currentParameters(numberOfParameters);
+  BSplineParametersType currentParameters2(numberOfParameters);
   
 
 
@@ -437,10 +569,13 @@ int main( int argc, char *argv[] )
   {
   //copy current parameters
   for(int j=0; j<numberOfParameters; j++ )
+  {
     currentParameters[j] = finalParameters[numberOfParameters*i + j];
+  }
 
-  finalTransform->SetParameters( currentParameters );
-  resample->SetTransform( finalTransform );
+  bsplineTransformArray[0]->SetBulkTransform( transformArray[i] );
+  bsplineTransformArray[0]->SetParameters( currentParameters );
+  resample->SetTransform( bsplineTransformArray[0] );
   resample->SetInput( imageArrayReader[i]->GetOutput() );
   fixedImage = imageArrayReader[i]->GetOutput();
   resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
@@ -448,7 +583,7 @@ int main( int argc, char *argv[] )
   resample->SetOutputSpacing( fixedImage->GetSpacing() );
   resample->SetDefaultPixelValue( 100 );
 
-  cout << "Writing " << outputFileNames[i] << std::endl;
+  std::cout << "Writing " << outputFileNames[i] << std::endl;
   //cout << "   \tX= "<< finalParameters[2*i] << " Y= " <<finalParameters[2*i+1] <<std::endl;
   writer->SetFileName( outputFileNames[i].c_str() );
   caster->SetInput( resample->GetOutput() );
@@ -458,7 +593,6 @@ int main( int argc, char *argv[] )
 
   /** Compute Mean Image */
   ResampleFilterType::Pointer resample2 = ResampleFilterType::New();
-  TransformType::Pointer finalTransform2 = TransformType::New();
 
   typedef itk::AddImageFilter <
       ImageType,
@@ -475,8 +609,8 @@ int main( int argc, char *argv[] )
   for(int j=0; j<numberOfParameters; j++ )
     currentParameters[j] = finalParameters[numberOfParameters*0 + j];
 
-  finalTransform->SetParameters( currentParameters );
-  resample->SetTransform( finalTransform );
+  bsplineTransformArray[0]->SetParameters( currentParameters );
+  resample->SetTransform( bsplineTransformArray[0] );
   resample->SetInput( imageArrayReader[0]->GetOutput() );
   fixedImage = imageArrayReader[0]->GetOutput();
   resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
@@ -487,9 +621,9 @@ int main( int argc, char *argv[] )
   addition2->SetInput1(imageArrayReader[0]->GetOutput() );
   //Set the second image
   for(int j=0; j<numberOfParameters; j++ )
-    currentParameters[j] = finalParameters[numberOfParameters*1 + j];
-  finalTransform2->SetParameters( currentParameters );
-  resample2->SetTransform( finalTransform2 );
+    currentParameters2[j] = finalParameters[numberOfParameters*1 + j];
+  bsplineTransformArray[1]->SetParameters( currentParameters2 );
+  resample2->SetTransform( bsplineTransformArray[0] );
   resample2->SetInput( imageArrayReader[1]->GetOutput() );
   fixedImage = imageArrayReader[1]->GetOutput();
   resample2->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
@@ -506,9 +640,12 @@ int main( int argc, char *argv[] )
   {
   //copy current parameters
     for(int j=0; j<numberOfParameters; j++ )
+    {
       currentParameters[j] = finalParameters[numberOfParameters*i + j];
-    finalTransform->SetParameters( currentParameters );
-    resample->SetTransform( finalTransform );
+    }
+    bsplineTransformArray[0]->SetBulkTransform( transformArray[i] );
+    bsplineTransformArray[0]->SetParameters( currentParameters );
+    resample->SetTransform( bsplineTransformArray[0] );
     resample->SetInput( imageArrayReader[i]->GetOutput() );
     fixedImage = imageArrayReader[i]->GetOutput();
     resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
@@ -587,6 +724,7 @@ int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& in
     else
       fileNames.push_back(dummy); // get file name
   }
+
 
   if( fileNames.size() < 2)
   {

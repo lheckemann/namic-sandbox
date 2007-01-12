@@ -138,10 +138,10 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
       // Get sampled fixed image value
       (*iter).imageValueArray[0] = randIter.Get();
       // Translate index to point
-      this->m_ImageArray[0]->TransformIndexToPhysicalPoint(index, (*iter).FixedImagePointValue);
+      this->m_ImageArray[0]->TransformIndexToPhysicalPoint(index, (*iter).FixedImagePoint);
 
       // If not inside the fixed mask, ignore the point
-      if (this->m_ImageMaskArray[0] && !this->m_ImageMaskArray[0]->IsInside ((*iter).FixedImagePointValue))
+      if (this->m_ImageMaskArray[0] && !this->m_ImageMaskArray[0]->IsInside ((*iter).FixedImagePoint))
       {
         ++randIter;    // jump to another random position
         continue;
@@ -158,9 +158,9 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
         }
       }
       
-      for (int j = 1; j < this->m_NumberOfImages; j++)
+      for (int j = 0; j < this->m_NumberOfImages; j++)
       {
-        MovingImagePointType mappedPoint = this->m_TransformArray[j]->TransformPoint ((*iter).FixedImagePointValue);
+        MovingImagePointType mappedPoint = this->m_TransformArray[j]->TransformPoint ((*iter).FixedImagePoint);
         // If the transformed point after transformation does not lie within the
         // MovingImageMask, skip it.
         if (this->m_ImageMaskArray[j] && !this->m_ImageMaskArray[j]->IsInside (mappedPoint))
@@ -215,7 +215,7 @@ GetValue(const ParametersType & parameters) const
       {
         currentParam[j] = parameters[i * N + j];
       }
-      this->m_TransformArray[i]->SetParameters (currentParam);
+      this->m_TransformArray[i]->SetParametersByValue (currentParam);
     }
 
     // collect sample set
@@ -275,7 +275,7 @@ VarianceMultiImageMetric < TFixedImage >
     {
       currentParam[j] = parameters[numberOfParameters * i + j];
     }
-    this->m_TransformArray[i]->SetParameters (currentParam);
+    this->m_TransformArray[i]->SetParametersByValue (currentParam);
   }
 
   // Each thread has its own derivative pointer
@@ -326,7 +326,7 @@ void VarianceMultiImageMetric < TFixedImage >
  * Get the match Measure
  */
 template < class TFixedImage >
-void
+void 
 VarianceMultiImageMetric < TFixedImage >
 ::GetThreadedValue(int threadId) const
 {
@@ -398,9 +398,8 @@ VarianceMultiImageMetric < TFixedImage >
       derI = 2.0 / N * (m_Sample[a].imageValueArray[i] - meanSum);
       
       // get the image derivative for this B sample
-      this->CalculateDerivatives (m_Sample[a].FixedImagePointValue,
-                                    deriv,i,threadId);
-     sum -= deriv * derI;
+      this->CalculateDerivatives (m_Sample[a].FixedImagePoint, deriv, i, threadId);
+      sum -= deriv * derI;
 
     }      // end of sample B loop
 
@@ -426,7 +425,8 @@ void VarianceMultiImageMetric < TFixedImage >
 {
   // Call a method that perform some calculations prior to splitting the main
   // computations into separate threads
-  this->BeforeGetThreadedValue(parameters);
+
+  this->BeforeGetThreadedValue(parameters); 
   
   // Set up the multithreaded processing
   ThreadStruct str;
@@ -522,7 +522,7 @@ void VarianceMultiImageMetric < TFixedImage >
       currentParam[j] = parameters[numberOfParameters * i + j];
     }
     // make sure the transform has the current parameters
-    this->m_TransformArray[i]->SetParameters (currentParam);
+    this->m_TransformArray[i]->SetParametersByValue (currentParam);
 
 
     // set the DerivativeCalculator
@@ -590,10 +590,10 @@ void VarianceMultiImageMetric < TFixedImage >
     }
   }
 
-//  for (int i = 0; i < this->m_NumberOfImages * numberOfParameters; i++)
-//  {
-//      derivative[i] -= sum[i % numberOfParameters];
-//  }
+  for (int i = 0; i < this->m_NumberOfImages * numberOfParameters; i++)
+  {
+      derivative[i] -= sum[i % numberOfParameters];
+  }
 
 
 
@@ -646,31 +646,31 @@ CalculateDerivatives (const FixedImagePointType & point, DerivativeType & deriva
       }
 
     typedef typename TransformType::JacobianType JacobianType;
-//   const JacobianType& jacobian = this->m_Transform->GetJacobian( point );
+    // const JacobianType& jacobian = this->m_Transform->GetJacobian( point );
     const JacobianType & jacobian =
       this->m_TransformArray[i]->GetJacobian (point);
 
-//   unsigned int numberOfParameters = this->m_Transform->GetNumberOfParameters();
+    // unsigned int numberOfParameters = this->m_Transform->GetNumberOfParameters();
     unsigned int numberOfParameters =
       this->m_TransformArray[i]->GetNumberOfParameters ();
 
     for (unsigned int k = 0; k < numberOfParameters; k++)
-      {
-  derivatives[k] = 0.0;
-  for (unsigned int j = 0; j < MovingImageDimension; j++)
     {
-      derivatives[k] += jacobian[j][k] * imageDerivatives[j];
-    }
+      derivatives[k] = 0.0;
+      for (unsigned int j = 0; j < MovingImageDimension; j++)
+      {
+        derivatives[k] += jacobian[j][k] * imageDerivatives[j];
       }
+    }
 
   }
 
-  template < class TFixedImage >
+template < class TFixedImage >
 void VarianceMultiImageMetric < TFixedImage >::
-      CalculateDerivatives (const FixedImagePointType & point, DerivativeType & derivatives, int i) const
+CalculateDerivatives (const FixedImagePointType & point, DerivativeType & derivatives, int i) const
       {
 
-//   MovingImagePointType mappedPoint = this->m_Transform->TransformPoint( point );
+        //MovingImagePointType mappedPoint = this->m_Transform->TransformPoint( point );
         MovingImagePointType mappedPoint =
             this->m_TransformArray[i]->TransformPoint (point);
 
@@ -687,11 +687,11 @@ void VarianceMultiImageMetric < TFixedImage >::
         }
 
         typedef typename TransformType::JacobianType JacobianType;
-//   const JacobianType& jacobian = this->m_Transform->GetJacobian( point );
+        //const JacobianType& jacobian = this->m_Transform->GetJacobian( point );
         const JacobianType & jacobian =
             this->m_TransformArray[i]->GetJacobian (point);
 
-//   unsigned int numberOfParameters = this->m_Transform->GetNumberOfParameters();
+        //unsigned int numberOfParameters = this->m_Transform->GetNumberOfParameters();
         unsigned int numberOfParameters =
             this->m_TransformArray[i]->GetNumberOfParameters ();
 
