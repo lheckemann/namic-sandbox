@@ -10,8 +10,10 @@
 #include "itkPolyLineParametricPath.h"
 #include "vnl/algo/vnl_qr.h"
 #include "itkVariableLengthVector.h"
+#include <vector>
 
 namespace itk{
+
 template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
 class ITK_EXPORT ProbabilisticTractographyFilter :
   public ImageToImageFilter< TInputDWIImage,
@@ -79,7 +81,8 @@ public:
   
   /** Set/Get the Measurement Frame **/
   itkSetMacro( MeasurementFrame, MeasurementFrameType );
-  itkGetMacro( MeasurementFrame, MeasurementFrameType );            
+  itkGetMacro( MeasurementFrame, MeasurementFrameType );
+              
   void GenerateData();
 protected:
   /** Convenience Types used only inside the filter **/
@@ -99,8 +102,11 @@ protected:
   /** Path Types **/
   typedef PolyLineParametricPath< 3 > PathType;
   
+  /** Instantiate a Probability Distribution Image for the Cache **/
+  typename ProbabilityDistributionImageType::Pointer m_LikelihoodCache;
+  
   ProbabilisticTractographyFilter();
-  virtual ~ProbabilisticTractographyFilter(){};
+  virtual ~ProbabilisticTractographyFilter();
   
   /** Classwide Data members **/
   GradientDirectionContainerType::ConstPointer m_Gradients;
@@ -111,6 +117,11 @@ protected:
   void BeforeGenerateData(void){
     this->UpdateGradientDirections();
     this->UpdateTensorModelFittingMatrices();
+    this->m_LikelihoodCache = ProbabilityDistributionImageType::New();
+    this->m_LikelihoodCache->CopyInformation( this->GetDWIImageInput() );
+      this->m_LikelihoodCache->SetBufferedRegion( this->GetDWIImageInput()->GetBufferedRegion() );
+      this->m_LikelihoodCache->SetRequestedRegion( this->GetDWIImageInput()->GetRequestedRegion() );
+    this->m_LikelihoodCache->Allocate();
   }
     
   /** Primary steps in the algorithm **/
@@ -118,7 +129,6 @@ protected:
       const PathType::ContinuousIndexType& cindex,
       typename InputDWIImageType::IndexType& index);
                       
-  
   /** Functions and data related to fitting the tensor model at each pixel **/
   void UpdateGradientDirections(void);
   void UpdateTensorModelFittingMatrices( void );
