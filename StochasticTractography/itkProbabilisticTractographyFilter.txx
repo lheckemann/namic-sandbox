@@ -23,7 +23,6 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
                       TOutputConnectivityImage >
 ::ProbabilisticTractographyFilter(){
 
-  /**Set the default number of Tracts **/
   this->SetTotalTracts( 50 );
   this->SetMaxTractLength( 100 );
   this->SetGradients(NULL);
@@ -32,8 +31,17 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
   this->m_A=NULL;
   this->m_Aqr=NULL;
   this->m_W=NULL;
+  this->m_LikelihoodCache = NULL;
 } 
 
+template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
+ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
+                      TOutputConnectivityImage >
+::~ProbabilisticTractographyFilter(){
+  delete this->m_A;
+  delete this->m_Aqr;
+  delete this->m_W;
+} 
 
 template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
 void
@@ -372,24 +380,33 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
     (dwiimagePtr->GetLargestPossibleRegion().IsInside(cindex_curr)); j++){
 
     ProbabilityDistributionImageType::PixelType 
-      likelihood_curr(this->GetSampleDirections()->Size());
-    ProbabilityDistributionImageType::PixelType 
       prior_curr(this->GetSampleDirections()->Size()); 
     ProbabilityDistributionImageType::PixelType 
       posterior_curr(this->GetSampleDirections()->Size());
-    
+      
     tractPtr->AddVertex(cindex_curr);
     
     this->ProbabilisticallyInterpolate( randomgenerator, cindex_curr,
                                       index_curr );
-    this->CalculateLikelihood(static_cast< DWIVectorImageType::PixelType >(
-      dwiimagePtr->GetPixel(index_curr)) + vnl_math::eps,
-      this->GetSampleDirections(),
-      likelihood_curr);
+    
+    
+    ProbabilityDistributionImageType::PixelType&
+      likelihood_curr = m_LikelihoodCache->GetPixel( index_curr );  
+                            
+    if( likelihood_curr.GetSize() == 0){
+      //std::cout<<"Cache Miss!\n";
+      likelihood_curr.SetSize(this->GetSampleDirections()->Size());
+      
+      this->CalculateLikelihood(static_cast< DWIVectorImageType::PixelType >(
+        dwiimagePtr->GetPixel(index_curr)) + vnl_math::eps,
+        this->GetSampleDirections(),
+        likelihood_curr);
+    }
+
     this->CalculatePrior( v_prev, this->GetSampleDirections(), prior_curr);
     this->CalculatePosterior( likelihood_curr, prior_curr, posterior_curr);
     this->SampleTractOrientation(randomgenerator, posterior_curr,
-                              this->GetSampleDirections(), v_curr);
+                          this->GetSampleDirections(), v_curr);
           
     cindex_curr[0]+=v_curr[0];
     cindex_curr[1]+=v_curr[1];
@@ -415,7 +432,7 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
   
   outputPtr->FillBuffer(0);
   typedef ImageRegionConstIterator< InputDWIImageType > InputDWIImageIteratorType;
-  typedef ImageRegionConstIteratorWithIndex< InputROIImageType > InputROIImageIteratorType;
+  typedef ImageRegionConstIterator< InputROIImageType > InputROIImageIteratorType;
   typedef ImageRegionIterator< OutputConnectivityImageType > OutputIteratorType;
   typedef PathIterator< OutputConnectivityImageType, PathType > OutputPathIteratorType;
   
@@ -427,9 +444,8 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
   unsigned int voxelnum = 0;
   
   for(inputROIImageIt.GoToBegin(); !inputROIImageIt.IsAtEnd(); ++inputROIImageIt){
-    if(inputROIImageIt.Get() == 2){
-      short int foo = inputROIImageIt.Get();
-      std::cout << "PixelValue: "<< foo << std::endl;
+    if(inputROIImageIt.Get() > 0 && inputROIImageIt.Get() < 100){
+      std::cout << "PixelIndex: "<< inputROIImageIt.GetIndex() << std::endl;
       for(unsigned int i=0; i<this->GetTotalTracts(); i++){
         StochasticTractGeneration(inputDWIImagePtr,
           static_cast< PathType::ContinuousIndexType >(inputROIImageIt.GetIndex()),
@@ -441,7 +457,7 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
           /* there is an issue using outputtractIt.Value() */
           outputtractIt.Set(outputtractIt.Get()+1);
         }
-        std::cout<<"Tract: "<<i<<" complete."<<std::endl;
+        //std::cout<<"Tract: "<<i<<" complete."<<std::endl;
         //for(outputIt.GoToBegin(); !outputIt.IsAtEnd(); ++outputIt){
         //  outputIt.Set(outputIt.Get()/this->GetTotalTracts());
         //}
