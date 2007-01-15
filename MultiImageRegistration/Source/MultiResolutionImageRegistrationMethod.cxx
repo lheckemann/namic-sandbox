@@ -372,6 +372,7 @@ void
 MultiResolutionMultiImageRegistrationMethod<ImageType>
 ::SetInitialTransformParameters( const ParametersType & param, int i )
 {
+
   for(int j=0; j < param.Size(); j++)
   {
     m_InitialTransformParameters[i*param.Size()+j] = param[j];
