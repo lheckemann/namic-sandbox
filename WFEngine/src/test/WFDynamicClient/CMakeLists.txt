@@ -3,6 +3,7 @@ PROJECT(WFDynamicClient)
 SET(SRCS
 WFDynamicClient.cxx
 vtkWFDynamicWizard.cxx
+WFStateConverter.cxx
 )
 
 

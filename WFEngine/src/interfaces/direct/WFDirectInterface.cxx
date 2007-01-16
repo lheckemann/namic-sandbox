@@ -5,7 +5,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "WFStepObject.h"
+
 using namespace WFEngine;
+using namespace WFEngine::nmWFStepObject;
 
 WFDirectInterface::WFDirectInterface()
 {
@@ -93,5 +96,15 @@ void WFDirectInterface::CloseWorkflowManager()
 int WFDirectInterface::IsLoaded()
 {
     return this->m_isLoaded;
+}
+
+WFStepObject *WFDirectInterface::getNextWorkStep()
+{
+    return this->m_wfMgr->GetNextWFStep();
+}
+
+WFStepObject *WFDirectInterface::getBackWorkStep()
+{
+    this->m_wfMgr->GetPreviousWFStep();
 }
 

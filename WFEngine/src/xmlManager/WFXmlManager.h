@@ -86,10 +86,15 @@ namespace WFEngine
          bool writeBOM,
          int validateSchema);
       
-      DOMNode *getParentNodeByName(std::string &parentTagName);
+      DOMElement *getParentElementByName(std::string &parentTagName);
       myAttrMap getAllAttributesFromElement(DOMElement* curElem);
       DOMNodeList *getAllChildesByName(std::string &parentTagName, std::string &childTagName);
+      DOMNodeList *getAllChildesByName(DOMElement *parentTagName, std::string &childTagName);
       std::vector<myAttrMap> getAttributesOfChilds(DOMNodeList *nodeList);
+      
+      DOMElement *getElementByPath(std::string &xmlPath);
+      DOMElement *getElementByPath(DOMElement *parentElement, std::string &xmlPath);
+      DOMElement *getFirstChildByName(DOMElement *parentElement, std::string &tagName);
       
   private:
       int initializeXerces(std::string xmlFileName);

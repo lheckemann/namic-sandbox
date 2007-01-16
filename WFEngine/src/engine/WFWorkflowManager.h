@@ -2,15 +2,16 @@
 #define WFWORKFLOWMANAGER_H_
 
 #include "WFXmlWorkflowManager.h"
-#include "WFStepObject.h"
 
 #include <string>
+#include <vector>
 
 namespace WFEngine
 {
     namespace nmWFWorkflowManager
     {
-        class WFWorkflowManager
+        class WFEngine::nmWFStepObject::WFStepObject;
+        class WFWorkflowManager : public WFEngine::nmWFXmlWorkflowManager::WFXmlWorkflowManager
         {
         public:
             static WFWorkflowManager *New();
@@ -22,7 +23,10 @@ namespace WFEngine
             
             void Close();
             
-            bool IsLoaded();
+//            bool IsLoaded();
+            
+            WFEngine::nmWFStepObject::WFStepObject *GetNextWFStep();
+            WFEngine::nmWFStepObject::WFStepObject *GetPreviousWFStep();
         protected:
             WFWorkflowManager();
             virtual ~WFWorkflowManager();
@@ -30,9 +34,10 @@ namespace WFEngine
             int LoadWorkflowFile(std::string wfDescFile);
             
         private:
-            bool m_isLoaded;
+//            bool m_isLoaded;
             std::string m_wfDescFile;
-            WFEngine::nmWFXmlWorkflowManager::WFXmlWorkflowManager *m_WFXmlWorkflowManager;
+            
+            std::vector<WFEngine::nmWFStepObject::WFStepObject*> m_workSteps;
             
         };
     }

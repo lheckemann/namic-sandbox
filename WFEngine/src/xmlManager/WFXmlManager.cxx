@@ -5,7 +5,7 @@
 #include <xercesc/framework/LocalFileFormatTarget.hpp>
 #include "WFXmlWriter.h"
 
-using namespace std;
+#include <string>
 
 using namespace WFEngine::nmWFXmlManager;
 
@@ -114,7 +114,7 @@ int WFXmlManager::initializeXerces(std::string xmlFileName)
     if(retVal)
     {
      this->xmlDoc = parser->getDocument();
-     cout<<XMLString::transcode(this->xmlDoc->getDocumentElement()->getTagName())<<std::endl;
+     std::cout<<XMLString::transcode(this->xmlDoc->getDocumentElement()->getTagName())<<std::endl;
      this->goutputfile = (char*)xmlFileName.c_str();
     }
     std::cout<<"retVal="<<retVal<<std::endl;
@@ -254,29 +254,43 @@ int WFXmlManager::saveXmlFile()
 
 int WFXmlManager::loadXmlFile(std::string &xmlFileName)
 {
+    if(this->xmlDoc)
+    {
+//        delete(this->xmlDoc);
+        this->xmlDoc = NULL;    
+    }
+    
     return initializeXerces(xmlFileName);
 }
 
-DOMNode *WFXmlManager::getParentNodeByName(std::string &parentTagName)
+DOMElement *WFXmlManager::getParentElementByName(std::string &parentTagName)
 {
-  DOMNodeList *myKnownWFNL = this->xmlDoc->getDocumentElement()->getElementsByTagName(XMLString::transcode(parentTagName.c_str()));
-  std::cout<<myKnownWFNL->getLength()<<" <"<<parentTagName<<"> Length"<<std::endl;
-   
-  if(myKnownWFNL->getLength() > 0)
-    return myKnownWFNL->item(0);
-  else
-    return NULL;
+    return this->getFirstChildByName(this->xmlDoc->getDocumentElement(), parentTagName);
 }
 
 DOMNodeList *WFXmlManager::getAllChildesByName(std::string &parentTagName, std::string &childTagName)
 {
-  DOMNode *myKnownWFNode = this->getParentNodeByName(parentTagName);
+  DOMElement *myKnownWFNode = this->getParentElementByName(parentTagName);
   //check if the node type is an ElementNode
-  if (myKnownWFNode != NULL && myKnownWFNode->getNodeType() == 1)
+  if (myKnownWFNode != NULL)
   {
    DOMElement *curElem = (DOMElement*)myKnownWFNode;
    std::cout<<XMLString::transcode(curElem->getTagName())<<" "<<childTagName.c_str()<<std::endl;
    DOMNodeList *parentChilds = curElem->getElementsByTagName(XMLString::transcode(childTagName.c_str()));
+   std::cout<<parentChilds->getLength()<<std::endl;
+   return parentChilds;
+  }
+  else return NULL;
+}
+
+DOMNodeList *WFXmlManager::getAllChildesByName(DOMElement *parentElement, std::string &childTagName)
+{
+//  DOMElement *myKnownWFNode = this->getElementByPath(parentElement, childTagName);
+  //check if the node type is an ElementNode
+  if (parentElement != NULL)
+  {
+   std::cout<<XMLString::transcode(parentElement->getTagName())<<" "<<childTagName.c_str()<<std::endl;
+   DOMNodeList *parentChilds = parentElement->getElementsByTagName(XMLString::transcode(childTagName.c_str()));
    std::cout<<parentChilds->getLength()<<std::endl;
    return parentChilds;
   }
@@ -307,4 +321,59 @@ WFXmlManager::myAttrMap WFXmlManager::getAllAttributesFromElement(DOMElement *cu
   curAttrMap.insert(std::make_pair(XMLString::transcode(attrMap->item(i)->getNodeName()), XMLString::transcode(attrMap->item(i)->getNodeValue())));
  }
  return curAttrMap;
+}
+
+DOMElement *WFXmlManager::getElementByPath(std::string &xmlPath)
+{
+    return this->getElementByPath(this->xmlDoc->getDocumentElement(), xmlPath);
+}
+
+DOMElement *WFXmlManager::getElementByPath(DOMElement *parentElement, std::string &xmlPath)
+{
+    DOMElement *retDOMElement;
+    DOMElement *curParentDOMElement = parentElement;
+    unsigned int offset = 0;
+    unsigned int delimIndex = 0;
+    const std::string delim = "/";
+    
+    delimIndex = xmlPath.find(delim, offset);
+
+    if(delimIndex >= xmlPath.length())
+    {
+        return this->getFirstChildByName(parentElement, xmlPath);
+    }        
+    else
+    {
+        while (delimIndex < xmlPath.length())
+        {
+            std::string subStr = xmlPath.substr(offset, delimIndex - offset);
+            retDOMElement = this->getFirstChildByName(curParentDOMElement,subStr);
+            if(retDOMElement)
+            {
+                offset += delimIndex - offset + delim.length();
+                delimIndex = xmlPath.find(delim, offset);    
+            }
+            else
+                return curParentDOMElement;
+            
+        }   
+    }
+    std::cout<<xmlPath<<" not found!"<<std::endl;
+    return NULL;
+}
+
+DOMElement *WFXmlManager::getFirstChildByName(DOMElement *parentElement, std::string &tagName)
+{
+    DOMNodeList *myKnownWFNL = parentElement->getElementsByTagName(XMLString::transcode(tagName.c_str()));
+    std::cout<<myKnownWFNL->getLength()<<" <"<<tagName<<"> Length"<<std::endl;
+     
+    if(myKnownWFNL->getLength() > 0)
+    {
+        for(int i = 0; i < myKnownWFNL->getLength(); i++)
+        {
+            if(myKnownWFNL->item(i)->getNodeType() == 1)
+                return (DOMElement*)myKnownWFNL->item(i);
+        }        
+    }    
+    return NULL;
 }

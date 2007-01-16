@@ -11,17 +11,97 @@
       <processControlElements>
         <inputCondition id="InputCondition_1">
           <flowsInto>
-            <nextElementRef id="step1_3" />
+            <nextElementRef id="step0.1_4" />
           </flowsInto>
         </inputCondition>
-        <task id="step1_3">
-          <name>step1</name>
+        <task id="step0.1_4">
+          <name>step0.1</name>
           <flowsInto>
-            <nextElementRef id="step2_4" />
+            <nextElementRef id="step2_3" />
           </flowsInto>
           <join code="xor" />
           <split code="and" />
           <startingMappings>
+            <mapping>
+              <expression query="&lt;gui&gt;<executable>
+  <category>Tours</category>
+  <title>Execution Model Tour</title>
+  <description>
+  Shows one of each type of parameter.
+  </description>
+  <version>1.0</version>
+  <documentationurl></documentationurl>
+  <license></license>
+  <contributor>Daniel Blezek</contributor>
+
+  <parameters>
+    <label>Scalar Parameters</label>
+    <description>
+    Variations on scalar parameters
+    </description>
+    <integer>
+      <name>integerVariable</name>
+      <flag>i</flag>
+      <longflag>integer</longflag>
+      <description>
+      An integer without constraints
+      </description>
+      <label>Integer Parameter</label>
+      <default>30</default>
+    </integer>
+    <label>Scalar Parameters With Constraints</label>
+    <description>Variations on scalar parameters</description>
+    <double>
+      <name>doubleVariable</name>
+      <flag>d</flag>
+      <longflag>double</longflag>
+      <description>An double with constraints</description>
+      <label>Double Parameter</label>
+      <default>30</default>
+      <constraints>
+        <minimum>0</minimum>
+        <maximum>1.e3</maximum>
+        <step>0</step>
+      </constraints>
+    </double>
+  </parameters>
+
+  <parameters>
+    <label>Vector Parameters</label>
+    <description>Variations on vector parameters</description>
+    <float-vector>
+      <name>floatVector</name>
+      <flag>f</flag>
+      <description>A vector of floats</description>
+      <label>Float Vector Parameter</label>
+      <default>1.3,2,-14</default>
+    </float-vector>
+    <string-vector>
+      <name>stringVector</name>
+      <longflag>string_vector</longflag>
+      <description>A vector of strings</description>
+      <label>String Vector Parameter</label>
+      <default>"foo",bar,"foobar"</default>
+    </string-vector>
+  </parameters>
+
+  <parameters>
+    <label>Enumeration Parameters</label>
+    <description>Variations on enumeration parameters</description>
+    <string-enumeration>
+      <name>stringChoice</name>
+      <flag>e</flag>
+      <longflag>enumeration</longflag>
+      <description>An enumeration of strings</description>
+      <label>String Enumeration Parameter</label>
+      <default>foo</default>
+      <element>foo</element>
+      <element>"foobar"</element>
+      <element>foofoo</element>
+    </string-enumeration>
+  </parameters>&lt;/gui&gt;" />
+              <mapsTo>gui</mapsTo>
+            </mapping>
             <mapping>
               <expression query="&lt;name&gt;&lt;/name&gt;" />
               <mapsTo>name</mapsTo>
@@ -33,7 +113,7 @@
           </startingMappings>
           <decomposesTo id="input_params" />
         </task>
-        <task id="step2_4">
+        <task id="step2_3">
           <name>step2</name>
           <flowsInto>
             <nextElementRef id="OutputCondition_2" />
@@ -55,6 +135,16 @@
         <type>string</type>
         <namespace>http://www.w3.org/2001/XMLSchema</namespace>
       </inputParam>
+      <inputParam>
+        <name>gui</name>
+        <type>string</type>
+        <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+      </inputParam>
+      <outputParam>
+        <name>gui</name>
+        <type>string</type>
+        <namespace>http://www.w3.org/2001/XMLSchema</namespace>
+      </outputParam>
       <outputParam>
         <name>name</name>
         <type>string</type>

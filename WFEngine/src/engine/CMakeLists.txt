@@ -5,7 +5,6 @@ ${CMAKE_SOURCE_DIR}/src/engine/WFBaseEngine.cxx
 ${CMAKE_SOURCE_DIR}/src/engine/WFEngineOptions.cxx
 ${CMAKE_SOURCE_DIR}/src/engine/WFFactory.cxx
 ${CMAKE_SOURCE_DIR}/src/engine/WFWorkflowManager.cxx
-${CMAKE_SOURCE_DIR}/src/engine/WFStepObject.cxx
 )
 
 #IF(LOKI_FOUND)

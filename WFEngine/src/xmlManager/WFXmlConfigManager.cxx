@@ -100,7 +100,7 @@ void WFXmlConfigManager::removeLookUpPath(std::string &path)
 
 void WFXmlConfigManager::addKnownWorkflow(std::string &fileName, bool visible, bool enabled)
 {
-  DOMNode *myKnownWFNode = this->getParentNodeByName(knownWorkflows);
+  DOMNode *myKnownWFNode = this->getParentElementByName(knownWorkflows);
   
   if(myKnownWFNode != NULL && myKnownWFNode->getNodeType() == 1)
   {

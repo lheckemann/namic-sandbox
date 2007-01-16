@@ -5,9 +5,11 @@
 
 #include <string>
 #include <vector>
-#include "WFStepObject.h"
 #include "WFXmlWorkflowManager.h"
 #include "WFBaseEngine.h"
+
+
+class WFEngine::nmWFStepObject::WFStepObject;
 
 class WFDirectInterface : public WFEngine::WFBaseEngine
 {
@@ -31,6 +33,9 @@ public:
     
     void SaveState();
     void CloseWorkflowManager();
+    
+    WFEngine::nmWFStepObject::WFStepObject *getNextWorkStep();
+    WFEngine::nmWFStepObject::WFStepObject *getBackWorkStep();
 protected:
     WFDirectInterface();
     virtual ~WFDirectInterface();
