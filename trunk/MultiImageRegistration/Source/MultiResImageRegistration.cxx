@@ -487,6 +487,7 @@ int main( int argc, char *argv[] )
       registration->SetTransformArray(     bsplineTransformArray[i] ,i    );
       registration->SetInitialTransformParameters(bsplineParametersArray[i], i);
 
+
     }
   }
   catch( itk::ExceptionObject & err ) 
@@ -521,7 +522,6 @@ int main( int argc, char *argv[] )
     return -1;
   }
 
-
   // Upsample the Bspline
   //  Once the registration has finished with the low resolution grid, we
   //  proceed to instantiate a higher resolution
@@ -538,7 +538,6 @@ int main( int argc, char *argv[] )
   for( int i=0; i< N; i++ )
   {
     bsplineTransformHigh[i] = BSplineTransformType::New();
-    registration->SetTransformArray(     bsplineTransformHigh[i] ,i    );
     
     RegionType bsplineRegion;
     RegionType::SizeType gridHighSizeOnImage;
@@ -678,7 +677,6 @@ int main( int argc, char *argv[] )
     return -1;
   }
   
-
   std::cout << " bspline registration ended" << std::endl;
   BSplineParametersType finalParameters = registration->GetLastTransformParameters();
   
@@ -738,9 +736,9 @@ int main( int argc, char *argv[] )
       currentParameters[j] = finalParameters[numberOfParameters*i + j];
     }
 
-    bsplineTransformHigh[0]->SetBulkTransform( transformArray[i] );
-    bsplineTransformHigh[0]->SetParameters( currentParameters );
-    resample->SetTransform( bsplineTransformHigh[0] );
+    bsplineTransformHigh[i]->SetBulkTransform( transformArray[i] );
+    bsplineTransformHigh[i]->SetParameters( currentParameters );
+    resample->SetTransform( bsplineTransformHigh[i] );
     resample->SetInput( imageArrayReader[i]->GetOutput() );
     fixedImage = imageArrayReader[i]->GetOutput();
     resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );

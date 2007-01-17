@@ -44,7 +44,11 @@
 #include "itkBSplineDeformableTransform.h"
 #include "itkLBFGSOptimizer.h"
 //#include "itkLBFGSBOptimizer.h"
+    
+#include "AddImageFilter.h"
+#include "itkRescaleIntensityImageFilter.h"
 
+    
 #include <sstream>
 #include <string>
 
@@ -243,10 +247,10 @@ try
     const unsigned int numberOfParameters =
         transformArray[i]->GetNumberOfParameters();
 
-    ParametersType parameters( numberOfParameters );
-    parameters.Fill( 0.0 );
+    parametersArray[i].SetSize( numberOfParameters );
+    parametersArray[i].Fill( 0.0 );
 
-    transformArray[i]->SetParameters( parameters );
+    transformArray[i]->SetParameters( parametersArray[i] );
     registration->SetTransformArray(     transformArray[i] ,i    );
   }
 }   
@@ -276,7 +280,7 @@ catch( itk::ExceptionObject & err )
   const unsigned int numberOfSamples = 
                         static_cast< unsigned int >( numberOfPixels * 0.01 );
 
-  metric->SetNumberOfSpatialSamples( 2 );
+  metric->SetNumberOfSpatialSamples( numberOfSamples );
 
   // Set Optimizer Parameters
   /*
@@ -288,8 +292,8 @@ catch( itk::ExceptionObject & err )
   */
 
 
-  optimizer->SetLearningRate( 1e-4 );
-  optimizer->SetNumberOfIterations( 5 );
+  optimizer->SetLearningRate( 2500 );
+  optimizer->SetNumberOfIterations( 500 );
   optimizer->MaximizeOn();
 
   
@@ -353,6 +357,7 @@ catch( itk::ExceptionObject & err )
 
   int numberOfParameters = transformArray[0]->GetNumberOfParameters();
   ParametersType currentParameters(numberOfParameters);
+  ParametersType currentParameters2(numberOfParameters);
   
 
   for(int i=0; i<N; i++)
@@ -377,6 +382,105 @@ catch( itk::ExceptionObject & err )
   writer->Update();
   }
 
+  /** Compute Mean Image */
+  ResampleFilterType::Pointer resample2 = ResampleFilterType::New();
+
+  typedef itk::AddImageFilter <
+      ImageType,
+  ImageType,
+  ImageType > AddFilterType;
+
+  //Mean of the registered images
+  AddFilterType::Pointer addition = AddFilterType::New();
+  // Mean Image of original images
+  AddFilterType::Pointer addition2 = AddFilterType::New();
+
+
+  //Set the first image
+  for(int j=0; j<numberOfParameters; j++ )
+    currentParameters[j] = finalParameters[numberOfParameters*0 + j];
+
+  transformArray[0]->SetParametersByValue( currentParameters );
+  resample->SetTransform( transformArray[0] );
+  resample->SetInput( imageArrayReader[0]->GetOutput() );
+  fixedImage = imageArrayReader[0]->GetOutput();
+  resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
+  resample->SetOutputOrigin(  fixedImage->GetOrigin() );
+  resample->SetOutputSpacing( fixedImage->GetSpacing() );
+  resample->SetDefaultPixelValue( 1 );
+  addition->SetInput1( resample->GetOutput() );
+  addition2->SetInput1(imageArrayReader[0]->GetOutput() );
+  //Set the second image
+  for(int j=0; j<numberOfParameters; j++ )
+    currentParameters2[j] = finalParameters[numberOfParameters*1 + j];
+  transformArray[1]->SetParametersByValue( currentParameters2 );
+  resample2->SetTransform( transformArray[1] );
+  resample2->SetInput( imageArrayReader[1]->GetOutput() );
+  fixedImage = imageArrayReader[1]->GetOutput();
+  resample2->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
+  resample2->SetOutputOrigin(  fixedImage->GetOrigin() );
+  resample2->SetOutputSpacing( fixedImage->GetSpacing() );
+  resample2->SetDefaultPixelValue( 1 );
+  addition->SetInput2( resample2->GetOutput() );
+  addition2->SetInput2(imageArrayReader[1]->GetOutput() );
+  addition->Update();
+  addition2->Update();
+
+  //Add other images
+  for(int i=2; i<N; i++)
+  {
+    //copy current parameters
+    for(int j=0; j<numberOfParameters; j++ )
+    {
+      currentParameters[j] = finalParameters[numberOfParameters*i + j];
+    }
+    transformArray[i]->SetParameters( currentParameters );
+    resample->SetTransform( transformArray[i] );
+    resample->SetInput( imageArrayReader[i]->GetOutput() );
+    fixedImage = imageArrayReader[i]->GetOutput();
+    resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
+    resample->SetOutputOrigin(  fixedImage->GetOrigin() );
+    resample->SetOutputSpacing( fixedImage->GetSpacing() );
+    resample->SetDefaultPixelValue( 1 );
+
+    addition->SetInput1( addition->GetOutput() );
+    addition->SetInput2( resample->GetOutput() );
+    addition->Update();
+
+    addition2->SetInput1( addition2->GetOutput() );
+    addition2->SetInput2( imageArrayReader[i]->GetOutput() );
+    addition2->Update();
+
+  }
+
+
+  
+  typedef itk::RescaleIntensityImageFilter<
+      ImageType,
+  ImageType >   RescalerType;
+
+  RescalerType::Pointer intensityRescaler = RescalerType::New();
+  
+  intensityRescaler->SetInput( addition->GetOutput() );
+  intensityRescaler->SetOutputMinimum(   0 );
+  intensityRescaler->SetOutputMaximum( 255 );
+
+  caster->SetInput( intensityRescaler->GetOutput() );
+  writer->SetInput( caster->GetOutput()   );
+
+  string meanImageFname = outputFolder + "MeanRegisteredImage.png";
+  writer->SetFileName( meanImageFname.c_str() );
+  writer->Update();
+
+  intensityRescaler->SetInput( addition2->GetOutput() );
+
+  caster->SetInput( intensityRescaler->GetOutput() );
+  writer->SetInput( caster->GetOutput()   );
+
+  string meanImageFname2 = outputFolder + "MeanOriginalImage.png";
+  writer->SetFileName( meanImageFname2.c_str() );
+  writer->Update();
+  
 
   return 0;
 }
@@ -387,7 +491,7 @@ int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& in
   //initialize parameters
   inputFolder = "";
   outputFolder = "";
-  multiLevel = 1;
+  multiLevel = 3;
   optimizerType = "GradientDescent";
   transformType = "Translation";
   //read parameters
@@ -396,11 +500,11 @@ int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& in
     string dummy(argv[i]);
     if(dummy == "-i")
       inputFolder = argv[++i];
-    else if (dummy == "-f")
+    else if (dummy == "-o")
       outputFolder = argv[++i];
     else if (dummy == "-m")
       multiLevel = atoi(argv[++i]);
-    else if (dummy == "-o")
+    else if (dummy == "-opt")
       optimizerType == argv[++i];
     else if (dummy == "-t")
       optimizerType == argv[++i];
@@ -408,11 +512,12 @@ int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& in
       fileNames.push_back(dummy); // get file name
   }
 
+
   if( fileNames.size() < 2)
   {
     std::cerr << "Missing Image Names " << std::endl;
     std::cerr << "\t -i Input folder for images" << std::endl;
-    std::cerr << "\t -o Output folder for registered images" << std::endl;
+    std::cerr << "\t -f Output folder for registered images" << std::endl;
     std::cerr << "\t -m Level of Multiresolution" << std::endl;
     std::cerr << "\t -opt Optimizer Type" << std::endl;
     std::cerr << "\t -t Transform Type: Bspline Affine Translation" << std::endl;
