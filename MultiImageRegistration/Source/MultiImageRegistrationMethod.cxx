@@ -329,7 +329,7 @@ MultiImageRegistrationMethod<ImageType>
     {
       current[j] = m_LastTransformParameters[i*m_TransformArray[i]->GetNumberOfParameters()+j];
     }
-    m_TransformArray[i]->SetParameters( current );
+    m_TransformArray[i]->SetParametersByValue( current );
   }
 }
 
@@ -423,6 +423,33 @@ MultiImageRegistrationMethod<ImageType>
   }
 }
 
+/*
+ * Set the length of the parameters vector
+ */
+template < typename ImageType >
+void
+MultiImageRegistrationMethod<ImageType>
+::SetTransformParametersLength( int N )
+{
+
+  m_InitialTransformParameters.SetSize(N);
+  m_LastTransformParameters.SetSize(N);
+
+  this->Modified();
+}
+
+/*
+ * Get the length of the parameters vector
+ */
+template < typename ImageType >
+int
+MultiImageRegistrationMethod<ImageType>
+::GetTransformParametersLength( int N )
+{
+
+  return m_InitialTransformParameters.GetSize();
+  
+}
 
 
 

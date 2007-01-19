@@ -164,6 +164,11 @@ public:
   /** Get the current resolution level being processed. */
   itkGetMacro( CurrentLevel, unsigned long );
 
+  /** Set/Get the length of the parameters vector. The length of the parameters
+      array should be set before assigning individual parameters */
+  virtual void SetTransformParametersLength( int N );
+  virtual int GetTransformParametersLength( int N );
+  
   /** Set/Get the initial transformation parameters. */
   //itkSetMacro( InitialTransformParameters, ParametersType );
   itkGetConstReferenceMacro( InitialTransformParameters, ParametersType );

@@ -147,6 +147,11 @@ public:
   UserSetObjectMacro( InterpolatorArray, InterpolatorType );
   UserGetObjectMacro( InterpolatorArray, InterpolatorType );
 
+  /** Set/Get the length of the parameters vector. The length of the parameters
+  array should be set before assigning individual parameters */
+  virtual void SetTransformParametersLength( int N );
+  virtual int GetTransformParametersLength( int N );
+
   /** Set/Get the initial transformation parameters. */
   virtual void SetInitialTransformParameters( const ParametersType & param , int i );
   virtual void SetInitialTransformParameters( const ParametersType & param );
