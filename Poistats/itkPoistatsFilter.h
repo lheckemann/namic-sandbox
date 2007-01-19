@@ -310,8 +310,22 @@ private:
   
   itkStaticConstMacro( DEFAULT_NUMBER_OF_DIRECTIONS, int, 252 );
   int m_NumberOfDirections;
-    
-  itkStaticConstMacro( DEFAULT_COOL_FACTOR, double, 0.995 );
+
+// This used to work under the old version of itk I had, it's not supported 
+// anymore because:
+//
+// The StaticConstMacro was designed for dealing with numeric
+// parameters of templated classes. Such parameter can only
+// be "int", "unsigned int", and "enum".
+//
+// However, some compilers do not support the enums, while other
+// do not support the initialization of static variables.
+//
+// You could be ok with using the StaticConstMacro with a double
+// type *ONLY* in some compilers... 
+//  itkStaticConstMacro( DEFAULT_COOL_FACTOR, double, 0.995 );
+  static const double DEFAULT_COOL_FACTOR = 0.995;
+
   double m_CoolFactor;
   itkGetMacro(CoolFactor, double);
   itkSetMacro(CoolFactor, double);
@@ -368,13 +382,13 @@ private:
   PoistatsReplicas *m_Replicas;
   
   double m_ReplicaExchangeProbability;
-  itkStaticConstMacro( DEFAULT_REPLICA_EXCHANGE_PROBABILITY, double, 0.05 );
+  static const double DEFAULT_REPLICA_EXCHANGE_PROBABILITY = 0.05;
 
   double m_SigmaTimeConstant;
-  itkStaticConstMacro( DEFAULT_SIGMA_TIME_CONSTANT, double, 2*1e2 );  
+  static const double DEFAULT_SIGMA_TIME_CONSTANT = 2*1e2;  
 
   double m_PointsToImageGamma;
-  itkStaticConstMacro( DEFAULT_POINTS_TO_IMAGE_GAMMA, double, 0.5 );  
+  static const double DEFAULT_POINTS_TO_IMAGE_GAMMA = 0.5;  
   
 };
 
