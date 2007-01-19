@@ -307,7 +307,7 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
       {
         current[j] = m_LastTransformParameters[i*m_TransformArray[i]->GetNumberOfParameters()+j];
       }
-      m_TransformArray[i]->SetParameters( current );
+      m_TransformArray[i]->SetParametersByValue( current );
     }
     
     // setup the initial parameters for next level
@@ -419,6 +419,35 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
     m_InitialTransformParametersOfNextLevel= param;
 
   this->Modified();
+}
+
+/*
+ * Set the length of the parameters vector
+ */
+template < typename ImageType >
+void
+MultiResolutionMultiImageRegistrationMethod<ImageType>
+::SetTransformParametersLength( int N )
+{
+
+  m_InitialTransformParametersOfNextLevel.SetSize(N);
+  m_InitialTransformParameters.SetSize(N);
+  m_LastTransformParameters.SetSize(N);
+
+  this->Modified();
+}
+
+/*
+ * Get the length of the parameters vector
+ */
+template < typename ImageType >
+int 
+MultiResolutionMultiImageRegistrationMethod<ImageType>
+::GetTransformParametersLength( int N )
+{
+
+  return m_InitialTransformParameters.GetSize();
+  
 }
 
 

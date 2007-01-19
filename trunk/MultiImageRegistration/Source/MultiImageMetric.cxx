@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _CongealingMetric_cxx
-#define _CongealingMetric_cxx
+#ifndef _MultiImageMetric_cxx
+#define _MultiImageMetric_cxx
 
 
 #include "MultiImageMetric.h"
@@ -71,7 +71,7 @@ MultiImageMetric<TFixedImage>
     }
     for(int j=0; j<numParam; j++)
       currentParam[j] = parameters[i*numParam+j];
-    this->m_TransformArray[i]->SetParameters( currentParam );
+    this->m_TransformArray[i]->SetParametersByValue( currentParam );
   }
 }
 
@@ -117,8 +117,6 @@ MultiImageMetric<TFixedImage>
   {
     if( m_ImageArray[i]->GetSource() )
     {
-      /** Comment Out If Release */
-      std::cout << "Reading Image " << i << std::endl;  
       m_ImageArray[i]->GetSource()->Update();
     }
   }

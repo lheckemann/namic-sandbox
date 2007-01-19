@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _CongealingMultiImageMetric_cxx
-#define _CongealingMultiImageMetric_cxx
+#ifndef _VarianceMultiImageMetric_cxx
+#define _VarianceMultiImageMetric_cxx
 
 #include "VarianceMultiImageMetric.h"
 
