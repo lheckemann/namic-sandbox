@@ -140,8 +140,8 @@ public:
   itkGetObjectMacro( Metric, MetricType );
 
   /** Set/Get the Metric. */
-  itkSetMacro( ImageRegion, ImageRegionType );
-  itkGetConstReferenceMacro( ImageRegion, ImageRegionType );
+  itkSetMacro( FixedImageRegion, ImageRegionType );
+  itkGetConstReferenceMacro( FixedImageRegion, ImageRegionType );
 
   /** Set/Get the Transfrom. */
   UserSetObjectMacro( TransformArray, TransformType );
@@ -227,8 +227,8 @@ private:
   ParametersType                   m_InitialTransformParametersOfNextLevel;
   ParametersType                   m_LastTransformParameters;
 
-  ImageRegionType                  m_ImageRegion;
-  std::vector<ImageRegionType>     m_ImageRegionPyramid;
+  ImageRegionType                  m_FixedImageRegion;
+  std::vector<ImageRegionType>     m_FixedImageRegionPyramid;
 
   unsigned long                    m_NumberOfLevels;
   unsigned long                    m_CurrentLevel;

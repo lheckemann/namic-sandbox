@@ -123,7 +123,7 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
   }
 
   // Setup the metric
-  m_Metric->SetFixedImageRegion( m_ImageRegionPyramid[ m_CurrentLevel ] );
+  m_Metric->SetFixedImageRegion( m_FixedImageRegionPyramid[ m_CurrentLevel ] );
   m_Metric->Initialize();
 
   // Setup the optimizer
@@ -184,9 +184,9 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
 
   if ( m_InitialTransformParametersOfNextLevel.Size() != 
        m_TransformArray[0]->GetNumberOfParameters()*m_NumberOfImages )
-    {
+  {
     itkExceptionMacro(<<"Size mismatch between initial parameter and transform"); 
-    }
+  }
 
   for(int i=0; i<m_NumberOfImages; i++)
   {
@@ -204,36 +204,36 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
 
   ScheduleType schedule = m_ImagePyramidArray[0]->GetSchedule();
 
-  SizeType  inputSize  = m_ImageRegion.GetSize();
-  IndexType inputStart = m_ImageRegion.GetIndex();
+  SizeType  inputSize  = m_FixedImageRegion.GetSize();
+  IndexType inputStart = m_FixedImageRegion.GetIndex();
 
-  m_ImageRegionPyramid.reserve( m_NumberOfLevels );
-  m_ImageRegionPyramid.resize( m_NumberOfLevels );
+  m_FixedImageRegionPyramid.reserve( m_NumberOfLevels );
+  m_FixedImageRegionPyramid.resize( m_NumberOfLevels );
 
   // Compute the FixedImageRegion corresponding to each level of the 
   // pyramid. This uses the same algorithm of the ShrinkImageFilter 
   // since the regions should be compatible. 
   for ( unsigned int level=0; level < m_NumberOfLevels; level++ )
-    {
+  {
     SizeType  size;
     IndexType start;
     for ( unsigned int dim = 0; dim < ImageType::ImageDimension; dim++)
-      {
+    {
       const float scaleFactor = static_cast<float>( schedule[ level ][ dim ] );
 
       size[ dim ] = static_cast<typename SizeType::SizeValueType>(
         vcl_floor(static_cast<float>( inputSize[ dim ] ) / scaleFactor ) );
       if( size[ dim ] < 1 )
-        {
+      {
         size[ dim ] = 1;
-        }
+      }
       
       start[ dim ] = static_cast<typename IndexType::IndexValueType>(
         vcl_ceil(static_cast<float>( inputStart[ dim ] ) / scaleFactor ) ); 
-      }
-    m_ImageRegionPyramid[ level ].SetSize( size );
-    m_ImageRegionPyramid[ level ].SetIndex( start );
     }
+    m_FixedImageRegionPyramid[ level ].SetSize( size );
+    m_FixedImageRegionPyramid[ level ].SetIndex( start );
+  }
 
 }
 
@@ -256,7 +256,7 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
 
   for ( m_CurrentLevel = 0; m_CurrentLevel < m_NumberOfLevels;
         m_CurrentLevel++ )
-    {
+  {
 
     // Invoke an iteration event.
     // This allows a UI to reset any of the components between
@@ -265,38 +265,38 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
 
     // Check if there has been a stop request
     if ( m_Stop ) 
-      {
+    {
       break;
-      }
+    }
 
     try
-      {
+    {
       // initialize the interconnects between components
       this->Initialize();
-      }
+    }
     catch( ExceptionObject& err )
-      {
+    {
       m_LastTransformParameters = ParametersType(1);
       m_LastTransformParameters.Fill( 0.0f );
 
       // pass exception to caller
       throw err;
-      }
+    }
 
     try
-      {
+    {
       // do the optimization
       m_Optimizer->StartOptimization();
-      }
+    }
     catch( ExceptionObject& err )
-      {
+    {
       // An error has occurred in the optimization.
       // Update the parameters
       m_LastTransformParameters = m_Optimizer->GetCurrentPosition();
 
       // Pass exception to caller
       throw err;
-      }
+    }
 
     // get the results
     ParametersType current(m_TransformArray[0]->GetNumberOfParameters());
@@ -312,11 +312,11 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
     
     // setup the initial parameters for next level
     if ( m_CurrentLevel < m_NumberOfLevels - 1 )
-      {
+    {
       m_InitialTransformParametersOfNextLevel =
         m_LastTransformParameters;
-      }
     }
+  }
 
 }
 
@@ -355,11 +355,11 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
   os << indent << "LastTransformParameters: ";
   os << m_LastTransformParameters << std::endl;
   os << indent << "ImageRegion: ";
-  os << m_ImageRegion << std::endl;
-  for(unsigned int level=0; level< m_ImageRegionPyramid.size(); level++)
+  os << m_FixedImageRegion << std::endl;
+  for(unsigned int level=0; level< m_FixedImageRegionPyramid.size(); level++)
     {
     os << indent << "ImageRegion at level " << level << ": ";
-    os << m_ImageRegionPyramid[level] << std::endl;
+    os << m_FixedImageRegionPyramid[level] << std::endl;
     }
 
 }

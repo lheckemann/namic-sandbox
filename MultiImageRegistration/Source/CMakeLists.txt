@@ -57,7 +57,7 @@ TARGET_LINK_LIBRARIES(RegisterVarianceAffine ITKNumerics ITKIO )
 ADD_EXECUTABLE(RegisterVarianceBspline ${MultiImageRegistrationBspline_SRCS})
 TARGET_LINK_LIBRARIES(RegisterVarianceBspline ITKNumerics ITKIO )
 
-ADD_EXECUTABLE(RegisterVarianceAffineMultiResAffine ${MultiResImageRegistrationAffine_SRCS})
+ADD_EXECUTABLE(RegisterVarianceMultiResAffine ${MultiResImageRegistrationAffine_SRCS})
 TARGET_LINK_LIBRARIES(RegisterVarianceAffineMultiResAffine ITKNumerics ITKIO )
 
 ADD_EXECUTABLE(RegisterVarianceAffineMultiRes ${MultiResImageRegistration_SRCS})

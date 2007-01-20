@@ -322,7 +322,7 @@ int main( int argc, char *argv[] )
   normalizedFilterArray[0]->Update();
   ImageType::RegionType fixedImageRegion =
       normalizedFilterArray[0]->GetOutput()->GetBufferedRegion();
-  registration->SetImageRegion( fixedImageRegion );
+  registration->SetFixedImageRegion( fixedImageRegion );
 
   typedef RegistrationType::ParametersType ParametersType;
   ParametersType initialParameters( transformArray[0]->GetNumberOfParameters()*N );
