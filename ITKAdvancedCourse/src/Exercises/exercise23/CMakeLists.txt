@@ -4,6 +4,6 @@ FIND_PACKAGE(ITK REQUIRED)
 
 INCLUDE(${ITK_USE_FILE})
 
-ADD_EXECUTABLE(MyFunctorFilter  main.cxx       )
+ADD_EXECUTABLE(MyFunctorFilter23  main.cxx       )
 
-TARGET_LINK_LIBRARIES(MyFunctorFilter   ITKIO ITKNumerics ITKCommon )
+TARGET_LINK_LIBRARIES(MyFunctorFilter23   ITKIO ITKNumerics ITKCommon )

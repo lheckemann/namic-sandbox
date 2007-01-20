@@ -2,14 +2,11 @@
 PROJECT(Exercise18)
 
 # Find ITK.
-FIND_PACKAGE(ITK)
+FIND_PACKAGE(ITK REQUIRED)
 IF(ITK_FOUND)
   INCLUDE(${ITK_USE_FILE})
-ELSE(ITK_FOUND)
-  MESSAGE(FATAL_ERROR
-          "Cannot build without ITK.  Please set ITK_DIR.")
 ENDIF(ITK_FOUND)
 
-ADD_EXECUTABLE(filter       filter.cxx       )
+ADD_EXECUTABLE(filter18       filter.cxx       )
 
-TARGET_LINK_LIBRARIES(filter       ITKCommon ITKIO)
+TARGET_LINK_LIBRARIES(filter18       ITKCommon ITKIO)

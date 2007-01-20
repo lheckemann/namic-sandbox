@@ -4,6 +4,6 @@ FIND_PACKAGE(ITK REQUIRED)
 
 INCLUDE(${ITK_USE_FILE})
 
-ADD_EXECUTABLE(ReflectDiagonalWithIterators  main.cxx       )
+ADD_EXECUTABLE(ReflectDiagonalWithIterators28  main.cxx       )
 
-TARGET_LINK_LIBRARIES(ReflectDiagonalWithIterators   ITKIO ITKNumerics ITKCommon )
+TARGET_LINK_LIBRARIES(ReflectDiagonalWithIterators28   ITKIO ITKNumerics ITKCommon )

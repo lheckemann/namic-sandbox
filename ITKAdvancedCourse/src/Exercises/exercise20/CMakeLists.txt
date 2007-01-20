@@ -10,8 +10,8 @@ ELSE(ITK_FOUND)
           "Cannot build without ITK.  Please set ITK_DIR.")
 ENDIF(ITK_FOUND)
 
-ADD_EXECUTABLE(registration       registration.cxx       )
-ADD_EXECUTABLE(registrationAnswer registrationAnswer.cxx )
+ADD_EXECUTABLE(registration20       registration.cxx       )
+ADD_EXECUTABLE(registration20Answer registrationAnswer.cxx )
 
-TARGET_LINK_LIBRARIES(registration       ITKIO ITKNumerics ITKCommon )
-TARGET_LINK_LIBRARIES(registrationAnswer ITKIO ITKNumerics ITKCommon )
+TARGET_LINK_LIBRARIES(registration20       ITKIO ITKNumerics ITKCommon )
+TARGET_LINK_LIBRARIES(registration20Answer ITKIO ITKNumerics ITKCommon )
