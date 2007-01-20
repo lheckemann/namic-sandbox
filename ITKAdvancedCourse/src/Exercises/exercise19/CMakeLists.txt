@@ -15,16 +15,16 @@ INCLUDE_DIRECTORIES(
 )
   
 
-ADD_EXECUTABLE( myProject myProject.cxx )
+ADD_EXECUTABLE( myProject19 myProject.cxx )
 
-TARGET_LINK_LIBRARIES( myProject
+TARGET_LINK_LIBRARIES( myProject19
     ITKMetaIO ITKIO ITKBasicFilters ITKNumerics ITKCommon 
     vtkRendering vtkGraphics vtkHybrid vtkImaging 
     vtkIO vtkFiltering vtkCommon )
 
-ADD_EXECUTABLE( myProjectAnswer myProjectAnswer.cxx )
+ADD_EXECUTABLE( myProject19Answer myProjectAnswer.cxx )
 
-TARGET_LINK_LIBRARIES( myProjectAnswer
+TARGET_LINK_LIBRARIES( myProject19Answer
     ITKMetaIO ITKIO ITKBasicFilters ITKNumerics ITKCommon 
     vtkRendering vtkGraphics vtkHybrid vtkImaging 
     vtkIO vtkFiltering vtkCommon )
