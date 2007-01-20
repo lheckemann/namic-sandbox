@@ -215,7 +215,7 @@ try
     gaussianFilterArray[i]->SetVariance( 2.0 );
     normalizedFilterArray[i]->SetInput( imageArrayReader[i]->GetOutput() );
     gaussianFilterArray[i]->SetInput( normalizedFilterArray[i]->GetOutput() );
-    registration->SetImage(    gaussianFilterArray[i]->GetOutput() , i   );
+    registration->SetImageArrayPointer(    gaussianFilterArray[i]->GetOutput() , i   );
     imageArrayReader[i]->Update();
 
     transformArrayLow[i]     = TransformType::New();

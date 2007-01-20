@@ -82,6 +82,8 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <iomanip>
+#include <iostream>
 //Bspline optimizer and transform
 #include "itkBSplineDeformableTransform.h"
 #include "itkLBFGSBOptimizer.h"
@@ -117,13 +119,16 @@ public:
       OptimizerPointer optimizer = 
         dynamic_cast< OptimizerPointer >( object );
       if( !(itk::IterationEvent().CheckEvent( &event )) )
-        {
+      {
         return;
-        }
-      std::cout << optimizer->GetCurrentIteration() << "   ";
-      std::cout << optimizer->GetValue() << "   ";
-      std::cout /*<< optimizer->GetCurrentPosition() << "  " */<<
-        m_CumulativeIterationIndex++ << std::endl;
+      }
+
+      std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
+      std::cout << std::setw(3) << m_CumulativeIterationIndex++ << "   ";
+      std::cout << std::setw(3) << optimizer->GetCurrentIteration() << "   ";
+      std::cout << std::setw(6) << optimizer->GetValue() << "   ";
+      std::cout << std::setw(6) << optimizer->GetCurrentPosition()[0] << "   ";
+      std::cout << std::setw(6) << optimizer->GetCurrentPosition()[10] <<std::endl;
     }
 private:
   unsigned int m_CumulativeIterationIndex;
@@ -162,7 +167,7 @@ public:
 
     if ( registration->GetCurrentLevel() == 0 )
       {
-        optimizer->SetLearningRate( 2e-4 );
+        //optimizer->SetLearningRate( 2e-4 );
         optimizer->MaximizeOn();
       }
     else
@@ -322,7 +327,8 @@ int main( int argc, char *argv[] )
   normalizedFilterArray[0]->Update();
   ImageType::RegionType fixedImageRegion =
       normalizedFilterArray[0]->GetOutput()->GetBufferedRegion();
-  registration->SetImageRegion( fixedImageRegion );
+  registration->SetFixedImageRegion( fixedImageRegion );
+
 
   typedef RegistrationType::ParametersType ParametersType;
   ParametersType initialParameters( transformArray[0]->GetNumberOfParameters()*N );
@@ -363,7 +369,7 @@ int main( int argc, char *argv[] )
 
 
   optimizer->SetLearningRate( 2e-4 );
-  optimizer->SetNumberOfIterations( 150 );
+  optimizer->SetNumberOfIterations( 400 );
   optimizer->MaximizeOn();
 
 
@@ -381,6 +387,9 @@ int main( int argc, char *argv[] )
   registration->AddObserver( itk::IterationEvent(), command );
   registration->SetNumberOfLevels( multiLevel );
 
+  std::cout << "Starting Registration with Affine Transform " << std::endl;
+
+  
   try 
   { 
     registration->StartRegistration(); 
@@ -392,25 +401,21 @@ int main( int argc, char *argv[] )
     return -1;
   }
 
+  /** BSpline Registration */
 
-
-  //BSPline registration
-  std::cout << "Beginning the bspline registration" << std::endl;
-
-  const unsigned int SpaceDimension = 2;
+  int bsplineGridSize = 5;
+  int numberOfResolutionLevel = 3;
   const unsigned int SplineOrder = 3;
   typedef double CoordinateRepType;
 
-  typedef itk::BSplineDeformableTransform<
-                            CoordinateRepType,
-                            SpaceDimension,
-                            SplineOrder >     BSplineTransformType;
+  typedef itk::BSplineDeformableTransform< CoordinateRepType,
+                                           Dimension,
+                                           SplineOrder >     BSplineTransformType;
 
-  typedef itk::LBFGSBOptimizer       BSplineOptimizerType;
-
+  // Allocate bspline tranform array for low grid size
   typedef vector<BSplineTransformType::Pointer> BSplineTransformArrayType;
-  BSplineTransformArrayType      bsplineTransformArray;
-  bsplineTransformArray.resize(N);
+  BSplineTransformArrayType      bsplineTransformArrayLow(N);
+  
   typedef BSplineTransformType::RegionType RegionType;
   typedef BSplineTransformType::SpacingType SpacingType;
   typedef BSplineTransformType::OriginType OriginType;
@@ -420,40 +425,46 @@ int main( int argc, char *argv[] )
 
   // Get the latest transform parameters of affine transfom
   ParametersType affineParameters = registration->GetLastTransformParameters();
-  ParametersType affineCurrentParameters(numberOfParameters);
+  ParametersType affineCurrentParameters(transformArray[0]->GetNumberOfParameters());
+  // Update the transform parameters
+  for( int i=0; i<N; i++)
+  {
+    for(int j=0; j<transformArray[0]->GetNumberOfParameters(); j++)
+    {
+      affineCurrentParameters[j]=affineParameters[i*transformArray[0]->GetNumberOfParameters()+j];
+    }
+    transformArray[i]->SetParametersByValue(affineCurrentParameters);
+  }
 
-  // Initialize all the tranform parameters to zero
+  // Initialize the size of the parameters array
+  registration->SetTransformParametersLength( (int) pow( (double) (bsplineGridSize+SplineOrder), (int) Dimension)*Dimension*N);
+
+  // Allocate the vector holding the transform parameters
   typedef BSplineTransformType::ParametersType     BSplineParametersType;
-  BSplineParametersType bsplineInitialParameters( 8*8*2*N );
+  vector<BSplineParametersType> bsplineParametersArrayLow(N);
 
-  vector<BSplineParametersType> bsplineParametersArray(N);
-
-  bsplineInitialParameters.Fill(0.0);
-  registration->SetInitialTransformParameters( bsplineInitialParameters );
-
+  
+  /** Connect the compenents together */
   try
   {
-    for( int i=0; i< N; i++ )
-    {
-      bsplineTransformArray[i] = BSplineTransformType::New();
-      registration->SetTransformArray(     bsplineTransformArray[i] ,i    );
+    for( int i=0; i< N; i++ ){
 
-      // Initialize the bspline tranform parameters
+
+      bsplineTransformArrayLow[i] = BSplineTransformType::New();
       RegionType bsplineRegion;
       RegionType::SizeType   gridSizeOnImage;
       RegionType::SizeType   gridBorderSize;
       RegionType::SizeType   totalGridSize;
 
-      gridSizeOnImage.Fill( 5 );
-      gridBorderSize.Fill( 3 );    // Border for spline order = 3 ( 1 lower, 2 upper )
+      gridSizeOnImage.Fill( bsplineGridSize );
+      gridBorderSize.Fill( SplineOrder );    // Border for spline order = 3 ( 1 lower, 2 upper )
       totalGridSize = gridSizeOnImage + gridBorderSize;
 
       bsplineRegion.SetSize( totalGridSize );
 
-      imageArrayReader[i]->Update();
       SpacingType spacing = imageArrayReader[i]->GetOutput()->GetSpacing();
 
-      OriginType origin = imageArrayReader[i]->GetOutput()->GetOrigin();;
+      OriginType origin = imageArrayReader[i]->GetOutput()->GetOrigin();
 
       ImageType::RegionType fixedRegion = imageArrayReader[i]->GetOutput()->GetBufferedRegion();
       ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
@@ -465,207 +476,56 @@ int main( int argc, char *argv[] )
         origin[r]  -=  spacing[r];
       }
 
-      bsplineTransformArray[i]->SetGridSpacing( spacing );
-      bsplineTransformArray[i]->SetGridOrigin( origin );
-      bsplineTransformArray[i]->SetGridRegion( bsplineRegion );
-
-      //Set the transform parameters resulting from the affine registration
-      for(int j=0; j<numberOfParameters; j++ )
-      {
-        affineCurrentParameters[j] = affineParameters[numberOfParameters*i + j];
-      }
-      transformArray[i]->SetParametersByValue(affineCurrentParameters);
-      bsplineTransformArray[i]->SetBulkTransform( transformArray[i] );
-
-      const unsigned int bsplineNumberOfParameters =
-          bsplineTransformArray[i]->GetNumberOfParameters();
-
-      bsplineParametersArray[i].SetSize(128);
-      bsplineParametersArray[i].Fill(0.0);
-
-      bsplineTransformArray[i]->SetParameters( bsplineParametersArray[i] );
-      registration->SetTransformArray(     bsplineTransformArray[i] ,i    );
-      registration->SetInitialTransformParameters(bsplineParametersArray[i], i);
+      bsplineTransformArrayLow[i]->SetGridSpacing( spacing );
+      bsplineTransformArrayLow[i]->SetGridOrigin( origin );
+      bsplineTransformArrayLow[i]->SetGridRegion( bsplineRegion );
 
 
+      const unsigned int numberOfParametersLow =
+          bsplineTransformArrayLow[i]->GetNumberOfParameters();
+
+      bsplineParametersArrayLow[i].SetSize( numberOfParametersLow );
+      bsplineParametersArrayLow[i].Fill( 0.0 );
+
+      bsplineTransformArrayLow[i]->SetBulkTransform(transformArray[i]);
+      bsplineTransformArrayLow[i]->SetParameters( bsplineParametersArrayLow[i] );
+      registration->SetTransformArray(     bsplineTransformArrayLow[i] ,i    );
+      registration->SetInitialTransformParameters( bsplineParametersArrayLow[i], i);
     }
   }
-  catch( itk::ExceptionObject & err ) 
-  { 
-    std::cout << "ExceptionObject caught !" << std::endl; 
-    std::cout << err << std::endl; 
-    return -1;
-  } 
-
-  //Reset the optimizer scales
-  optimizerScales.SetSize( 128*N);
-  optimizerScales.Fill( 1.0 );
-  optimizer->SetScales( optimizerScales );
-
-  optimizer->SetLearningRate( 1e-4 );
-  optimizer->SetNumberOfIterations( 50 );
-  optimizer->MaximizeOn();
-
-
-  //Reset the number of levels in the registration
-  registration->SetNumberOfLevels( 1 );
-  metric->SetNumberOfSpatialSamples( numberOfSamples );
-
-  try 
-  { 
-    registration->StartRegistration(); 
-  } 
-  catch( itk::ExceptionObject & err ) 
-  { 
-    std::cerr << "ExceptionObject caught !" << std::endl; 
-    std::cerr << err << std::endl; 
-    return -1;
-  }
-
-  // Upsample the Bspline
-  //  Once the registration has finished with the low resolution grid, we
-  //  proceed to instantiate a higher resolution
-
-  BSplineTransformArrayType  bsplineTransformHigh(N);
-  vector<BSplineParametersType> bsplineParametersArrayHigh(N);
-  std::cout << "-2" << std::endl;
-
-  bsplineInitialParameters.SetSize(13*13*2*N);
-  bsplineInitialParameters.Fill(0.0);
-  registration->SetInitialTransformParameters( bsplineInitialParameters );
-
-  
-  for( int i=0; i< N; i++ )
+  catch( itk::ExceptionObject & err )
   {
-    bsplineTransformHigh[i] = BSplineTransformType::New();
-    
-    RegionType bsplineRegion;
-    RegionType::SizeType gridHighSizeOnImage;
-    RegionType::SizeType gridBorderSize;
-    RegionType::SizeType totalGridSize;
-    gridBorderSize.Fill(3);
-    gridHighSizeOnImage.Fill( 10 );
-    totalGridSize = gridHighSizeOnImage + gridBorderSize;
-
-    bsplineRegion.SetSize( totalGridSize );
-
-    std::cout << "-1" << std::endl;
-    
-    imageArrayReader[i]->Update();
-    
-    ImageType::RegionType fixedRegion = imageArrayReader[i]->GetOutput()->GetBufferedRegion();
-    ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
-
-    SpacingType spacingHigh = imageArrayReader[i]->GetOutput()->GetSpacing();
-    OriginType  originHigh  = imageArrayReader[i]->GetOutput()->GetOrigin();;
-
-    std::cout << "0" << std::endl;
-    
-    for(unsigned int rh=0; rh<Dimension; rh++)
-    {
-      spacingHigh[rh] *= floor( static_cast<double>(fixedImageSize[rh] - 1)  /
-          static_cast<double>(gridHighSizeOnImage[rh] - 1) );
-      originHigh[rh]  -=  spacingHigh[rh];
-    }
-
-    std::cout << "0.1" << std::endl;
-    bsplineTransformHigh[i]->SetGridSpacing( spacingHigh );
-    std::cout << "0.2" << std::endl;
-    bsplineTransformHigh[i]->SetGridOrigin( originHigh );
-    std::cout << "0.3" << std::endl;
-    bsplineTransformHigh[i]->SetGridRegion( bsplineRegion );
-
-    std::cout << "1" << std::endl;
-    
-    bsplineTransformHigh[i]->SetBulkTransform( transformArray[i] );
-    
-    bsplineParametersArrayHigh[i].SetSize( 13*13*2 );
-    bsplineParametersArrayHigh[i].Fill( 0.0 );
-
-    //  Now we need to initialize the BSpline coefficients of the higher resolution
-    //  transform. This is done by first computing the actual deformation field 
-    //  at the higher resolution from the lower resolution BSpline coefficients. 
-    //  Then a BSpline decomposition is done to obtain the BSpline coefficient of 
-    //  the higher resolution transform.
-
-    unsigned int counter = 0;
-
-    for ( unsigned int k = 0; k < Dimension; k++ )
-    {
-      typedef BSplineTransformType::ImageType ParametersImageType;
-      typedef itk::ResampleImageFilter<ParametersImageType,ParametersImageType> ResamplerType;
-      ResamplerType::Pointer upsampler = ResamplerType::New();
-
-      typedef itk::BSplineResampleImageFunction<ParametersImageType,double> FunctionType;
-      FunctionType::Pointer function = FunctionType::New();
-
-      typedef itk::IdentityTransform<double,Dimension> IdentityTransformType;
-      IdentityTransformType::Pointer identity = IdentityTransformType::New();
-
-      upsampler->SetInput( bsplineTransformArray[i]->GetCoefficientImage()[k] );
-      upsampler->SetInterpolator( function );
-      upsampler->SetTransform( identity );
-      upsampler->SetSize( bsplineTransformHigh[i]->GetGridRegion().GetSize() );
-      upsampler->SetOutputSpacing( bsplineTransformHigh[i]->GetGridSpacing() );
-      upsampler->SetOutputOrigin( bsplineTransformHigh[i]->GetGridOrigin() );
-
-      typedef itk::BSplineDecompositionImageFilter<ParametersImageType,ParametersImageType> DecompositionType;
-      DecompositionType::Pointer decomposition = DecompositionType::New();
-
-      std::cout << "2" << std::endl;
-      
-      decomposition->SetSplineOrder( SplineOrder );
-      decomposition->SetInput( upsampler->GetOutput() );
-      decomposition->Update();
-
-      ParametersImageType::Pointer newCoefficients = decomposition->GetOutput();
-
-      // copy the coefficients into the parameter array
-      typedef itk::ImageRegionIterator<ParametersImageType> Iterator;
-      Iterator it( newCoefficients, bsplineTransformHigh[i]->GetGridRegion() );
-      while ( !it.IsAtEnd() )
-      {
-        bsplineParametersArrayHigh[i][ counter++ ] = it.Get();
-        ++it;
-      }
-
-    }
-
-    std::cout << "3" << std::endl;
-    bsplineTransformHigh[i]->SetParameters( bsplineParametersArrayHigh[i] );
-
-    registration->SetInitialTransformParameters( bsplineTransformHigh[i]->GetParameters(), i );
-    registration->SetTransformArray( bsplineTransformHigh[i], i );
-
-
-    //  We now pass the parameters of the high resolution transform as the initial
-    //  parameters to be used in a second stage of the registration process.
-
+    std::cout << "ExceptionObject caught !" << std::endl;
+    std::cout << err << std::endl;
+    return -1;
   }
 
-  //Reset the optimizer scales
-  optimizerScales.SetSize( 13*13*2*N);
+
+  // Set Optimizer Parameters
+  /*
+  optimizer->SetGradientConvergenceTolerance( 1e-5 );
+  optimizer->SetLineSearchAccuracy( 0.9 );
+  optimizer->SetDefaultStepLength( 1.5 );
+  optimizer->TraceOn();
+  optimizer->SetMaximumNumberOfFunctionEvaluations( 1000 );
+  */
+  
+  // Reset the optimizer scales
+  optimizerScales.SetSize( bsplineTransformArrayLow[0]->GetNumberOfParameters()*N);
   optimizerScales.Fill( 1.0 );
   optimizer->SetScales( optimizerScales );
 
-  optimizer->SetLearningRate( 1e-4 );
-  optimizer->SetNumberOfIterations( 50 );
+  // Set optimizer parameters for bspline registration
+  optimizer->SetLearningRate( 1000 );
+  optimizer->SetNumberOfIterations( 1500 );
   optimizer->MaximizeOn();
+  
 
-
-  //Reset the number of levels in the registration
   registration->SetNumberOfLevels( 1 );
-  metric->SetNumberOfSpatialSamples( numberOfSamples );
-
-  std::cout << "Starting Registration with high resolution transform" << std::endl;
-
-  // Software Guide : BeginCodeSnippet
   
-  
-
-  //  Typically, we will also want to tighten the optimizer parameters
-  //  when we move from lower to higher resolution grid.
-
+  std::cout << "Starting BSpline Registration with low resolution transform: " << std::endl;
+  std::cout << "Resolution level " << 0;
+  std::cout << " Number Of parameters: " << bsplineTransformArrayLow[0]->GetNumberOfParameters()*N <<std::endl;
   try
   {
     registration->StartRegistration();
@@ -676,12 +536,174 @@ int main( int argc, char *argv[] )
     std::cerr << err << std::endl;
     return -1;
   }
+
+
+  /** Increase the resolution of the grid */
+  BSplineTransformArrayType bsplineTransformArrayHigh(N);
+  vector<BSplineParametersType> bsplineParametersArrayHigh(N);
+
   
-  std::cout << " bspline registration ended" << std::endl;
+  for(int level=1; level < numberOfResolutionLevel; level++)
+  {
+    /** Copy the last parameters */
+    BSplineParametersType parametersLow = registration->GetLastTransformParameters();
+
+    int numberOfParametersLow = bsplineTransformArrayLow[0]->GetNumberOfParameters();
+    BSplineParametersType currentParametersLow(numberOfParametersLow);
+
+    // Update the last transform parameters
+    for(int i=0; i<N; i++)
+    {
+      //copy current parameters
+      for(int j=0; j<numberOfParametersLow; j++ )
+        currentParametersLow[j] = parametersLow[numberOfParametersLow*i + j];
+
+      bsplineTransformArrayLow[i]->SetParametersByValue( currentParametersLow );
+    }
+
+
+    bsplineGridSize *= 2;
+    registration->SetTransformParametersLength( (int) pow( (double) (bsplineGridSize+SplineOrder), (int) Dimension)*Dimension*N);
+
+    // Set the parameters of the high resolution Bspline Transform
+    for( int i=0; i<N; i++)
+    {
+
+      bsplineTransformArrayHigh[i] = BSplineTransformType::New();
+
+      RegionType bsplineRegion;
+      RegionType::SizeType   gridHighSizeOnImage;
+      RegionType::SizeType   gridBorderSize;
+      RegionType::SizeType   totalGridSize;
+
+      
+      gridBorderSize.Fill( SplineOrder );
+      gridHighSizeOnImage.Fill( bsplineGridSize );
+      totalGridSize = gridHighSizeOnImage + gridBorderSize;
+
+      bsplineRegion.SetSize( totalGridSize );
+    
+      imageArrayReader[i]->Update();
+
+      SpacingType spacingHigh = imageArrayReader[i]->GetOutput()->GetSpacing();
+      OriginType  originHigh  = imageArrayReader[i]->GetOutput()->GetOrigin();
+
+      ImageType::RegionType fixedRegion = imageArrayReader[i]->GetOutput()->GetBufferedRegion();
+      ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
+    
+      for(unsigned int rh=0; rh<Dimension; rh++)
+      {
+        spacingHigh[rh] *= floor( static_cast<double>(fixedImageSize[rh] - 1)  /
+            static_cast<double>(gridHighSizeOnImage[rh] - 1) );
+        originHigh[rh]  -=  spacingHigh[rh];
+      }
+
+      bsplineTransformArrayHigh[i]->SetGridSpacing( spacingHigh );
+      bsplineTransformArrayHigh[i]->SetGridOrigin( originHigh );
+      bsplineTransformArrayHigh[i]->SetGridRegion( bsplineRegion );
+
+      bsplineParametersArrayHigh[i].SetSize( bsplineTransformArrayHigh[i]->GetNumberOfParameters() );
+      bsplineParametersArrayHigh[i].Fill( 0.0 );
+
+
+      //  Now we need to initialize the BSpline coefficients of the higher resolution
+      //  transform. 
+
+      int counter = 0;
+
+      for ( unsigned int k = 0; k < Dimension; k++ )
+      {
+        typedef BSplineTransformType::ImageType ParametersImageType;
+        typedef itk::ResampleImageFilter<ParametersImageType,ParametersImageType> ResamplerType;
+        ResamplerType::Pointer upsampler = ResamplerType::New();
+
+        typedef itk::BSplineResampleImageFunction<ParametersImageType,double> FunctionType;
+        FunctionType::Pointer function = FunctionType::New();
+
+        typedef itk::IdentityTransform<double,Dimension> IdentityTransformType;
+        IdentityTransformType::Pointer identity = IdentityTransformType::New();
+
+        upsampler->SetInput( bsplineTransformArrayLow[i]->GetCoefficientImage()[k] );
+        upsampler->SetInterpolator( function );
+        upsampler->SetTransform( identity );
+        upsampler->SetSize( bsplineTransformArrayHigh[i]->GetGridRegion().GetSize() );
+        upsampler->SetOutputSpacing( bsplineTransformArrayHigh[i]->GetGridSpacing() );
+        upsampler->SetOutputOrigin( bsplineTransformArrayHigh[i]->GetGridOrigin() );
+
+        typedef itk::BSplineDecompositionImageFilter<ParametersImageType,ParametersImageType>
+            DecompositionType;
+            DecompositionType::Pointer decomposition = DecompositionType::New();
+
+            decomposition->SetSplineOrder( SplineOrder );
+            decomposition->SetInput( upsampler->GetOutput() );
+            decomposition->Update();
+
+            ParametersImageType::Pointer newCoefficients = decomposition->GetOutput();
+
+        // copy the coefficients into the parameter array
+            typedef itk::ImageRegionIterator<ParametersImageType> Iterator;
+            Iterator it( newCoefficients, bsplineTransformArrayHigh[i]->GetGridRegion() );
+            while ( !it.IsAtEnd() )
+            {
+              bsplineParametersArrayHigh[i][ counter++ ] = it.Get();
+              ++it;
+            }
+
+      }
+
+      // parametersArrayHigh[i].Fill(0.0);
+      bsplineTransformArrayHigh[i]->SetParameters( bsplineParametersArrayHigh[i] );
+
+      // Set parameters of the high transform to low transform for the next level
+      bsplineTransformArrayLow[i]->SetGridSpacing( spacingHigh );
+      bsplineTransformArrayLow[i]->SetGridOrigin( originHigh );
+      bsplineTransformArrayLow[i]->SetGridRegion( bsplineRegion );
+
+      //  We now pass the parameters of the high resolution transform as the initial
+      //  parameters to be used in a second stage of the registration process.
+
+    
+
+      // Software Guide : BeginCodeSnippet
+      registration->SetInitialTransformParameters( bsplineParametersArrayHigh[i] , i );
+      registration->SetTransformArray( bsplineTransformArrayHigh[i], i );
+
+
+      //  Typically, we will also want to tighten the optimizer parameters
+      //  when we move from lower to higher resolution grid.
+
+    }
+  
+    std::cout << "Starting Registration with high resolution transform: " << std::endl;
+    std::cout << "Resolution level " << level;
+    std::cout << " Number Of parameters: " << bsplineTransformArrayHigh[0]->GetNumberOfParameters()*N <<std::endl;
+    optimizer->SetLearningRate( 200 );
+    optimizer->SetNumberOfIterations( 100 );
+    optimizer->MaximizeOn();
+
+    //Reset the optimizer scales
+    typedef OptimizerType::ScalesType       OptimizerScalesType;
+    OptimizerScalesType optimizerScales( bsplineTransformArrayHigh[0]->GetNumberOfParameters()*N );
+    optimizerScales.Fill( 1.0 );
+    optimizer->SetScales( optimizerScales );
+  
+    try
+    {
+      registration->StartRegistration();
+    }
+    catch( itk::ExceptionObject & err )
+    {
+      std::cerr << "ExceptionObject caught !" << std::endl;
+      std::cerr << err << std::endl;
+      return -1;
+    }
+
+  }
+
+
+
   BSplineParametersType finalParameters = registration->GetLastTransformParameters();
-  
-  double TranslationAlongX = finalParameters[4];
-  double TranslationAlongY = finalParameters[5];
+ 
   
   unsigned int numberOfIterations = optimizer->GetCurrentIteration();
   
@@ -691,8 +713,8 @@ int main( int argc, char *argv[] )
   // Print out results
   //
   std::cout << "Result = " << std::endl;
-  std::cout << " Translation X = " << TranslationAlongX  << std::endl;
-  std::cout << " Translation Y = " << TranslationAlongY  << std::endl;
+  std::cout << " final parameters 0 = " << finalParameters[0]  << std::endl;
+  std::cout << " final parameters 10 = " << finalParameters[10]  << std::endl;
   std::cout << " Iterations    = " << numberOfIterations << std::endl;
   std::cout << " Metric value  = " << bestValue          << std::endl;
 
@@ -700,7 +722,6 @@ int main( int argc, char *argv[] )
 
 
 
-  numberOfParameters = 13*13*2;
 
   // Write the output images
   typedef itk::ResampleImageFilter< 
@@ -723,11 +744,12 @@ int main( int argc, char *argv[] )
   CastFilterType::Pointer  caster = CastFilterType::New();
 
 
+  numberOfParameters = bsplineTransformArrayHigh[0]->GetNumberOfParameters();
   BSplineParametersType currentParameters(numberOfParameters);
   BSplineParametersType currentParameters2(numberOfParameters);
   
 
-
+  // Loop over images
   for(int i=0; i<N; i++)
   {
     //copy current parameters
@@ -736,9 +758,9 @@ int main( int argc, char *argv[] )
       currentParameters[j] = finalParameters[numberOfParameters*i + j];
     }
 
-    bsplineTransformHigh[i]->SetBulkTransform( transformArray[i] );
-    bsplineTransformHigh[i]->SetParameters( currentParameters );
-    resample->SetTransform( bsplineTransformHigh[i] );
+    bsplineTransformArrayHigh[i]->SetBulkTransform( transformArray[i] );
+    bsplineTransformArrayHigh[i]->SetParametersByValue( currentParameters );
+    resample->SetTransform( bsplineTransformArrayHigh[i] );
     resample->SetInput( imageArrayReader[i]->GetOutput() );
     fixedImage = imageArrayReader[i]->GetOutput();
     resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
@@ -770,11 +792,13 @@ int main( int argc, char *argv[] )
 
   //Set the first image
   for(int j=0; j<numberOfParameters; j++ )
+  {
     currentParameters[j] = finalParameters[numberOfParameters*0 + j];
+  }
 
-  bsplineTransformHigh[0]->SetParameters( currentParameters );
-  bsplineTransformHigh[0]->SetBulkTransform( transformArray[0] );
-  resample->SetTransform( bsplineTransformHigh[0] );
+  bsplineTransformArrayHigh[0]->SetBulkTransform( transformArray[0] );
+  bsplineTransformArrayHigh[0]->SetParametersByValue( currentParameters );
+  resample->SetTransform( bsplineTransformArrayHigh[0] );
   resample->SetInput( imageArrayReader[0]->GetOutput() );
   fixedImage = imageArrayReader[0]->GetOutput();
   resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
@@ -783,12 +807,16 @@ int main( int argc, char *argv[] )
   resample->SetDefaultPixelValue( 1 );
   addition->SetInput1( resample->GetOutput() );
   addition2->SetInput1(imageArrayReader[0]->GetOutput() );
+  
   //Set the second image
   for(int j=0; j<numberOfParameters; j++ )
+  {
     currentParameters2[j] = finalParameters[numberOfParameters*1 + j];
-  bsplineTransformHigh[1]->SetParameters( currentParameters2 );
-  bsplineTransformHigh[1]->SetBulkTransform( transformArray[1] );
-  resample2->SetTransform( bsplineTransformHigh[0] );
+  }
+
+  bsplineTransformArrayHigh[1]->SetBulkTransform( transformArray[1] );
+  bsplineTransformArrayHigh[1]->SetParametersByValue( currentParameters2 );
+  resample2->SetTransform( bsplineTransformArrayHigh[1] );
   resample2->SetInput( imageArrayReader[1]->GetOutput() );
   fixedImage = imageArrayReader[1]->GetOutput();
   resample2->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
@@ -808,9 +836,9 @@ int main( int argc, char *argv[] )
     {
       currentParameters[j] = finalParameters[numberOfParameters*i + j];
     }
-    bsplineTransformHigh[0]->SetBulkTransform( transformArray[i] );
-    bsplineTransformHigh[0]->SetParameters( currentParameters );
-    resample->SetTransform( bsplineTransformHigh[0] );
+    bsplineTransformArrayHigh[i]->SetBulkTransform( transformArray[i] );
+    bsplineTransformArrayHigh[i]->SetParametersByValue( currentParameters );
+    resample->SetTransform( bsplineTransformArrayHigh[i] );
     resample->SetInput( imageArrayReader[i]->GetOutput() );
     fixedImage = imageArrayReader[i]->GetOutput();
     resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );

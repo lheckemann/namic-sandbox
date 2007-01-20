@@ -408,7 +408,7 @@ MultiImageRegistrationMethod<ImageType>
 template < typename ImageType >
 void 
 MultiImageRegistrationMethod<ImageType>
-::SetImage( const ImageType * fixedImage, int i )
+::SetImageArrayPointer( const ImageType * fixedImage, int i )
 {
   itkDebugMacro("setting Fixed Image to " << fixedImage ); 
 

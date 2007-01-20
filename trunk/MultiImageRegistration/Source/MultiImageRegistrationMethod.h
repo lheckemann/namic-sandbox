@@ -128,7 +128,7 @@ public:
   void StartOptimization(void);
 
   /** Set/Get the Fixed image. */
-  void SetImage( const ImageType * fixedImage, int i );
+  void SetImageArrayPointer( const ImageType * fixedImage, int i );
   UserGetConstObjectMacro( ImageArrayPointer, ImageType );
 
   /** Set/Get the Optimizer. */
@@ -168,7 +168,7 @@ public:
    \warning The same region can also be set directly into the metric.
    please avoid to set the region in both places since this can lead
    to inconsistent configurations.  */
-  void SetFixedImageRegion( const  FixedImageRegionType & region ); 
+  void SetFixedImageRegion( const  FixedImageRegionType & region );
   /** Get the region of the fixed image to be considered as region of
    interest during the registration. This region will be passed to 
    the ImageMetric in order to restrict the metric computation to 
