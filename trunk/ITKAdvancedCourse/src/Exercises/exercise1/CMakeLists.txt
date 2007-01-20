@@ -10,6 +10,6 @@ ELSE(ITK_FOUND)
           "Cannot build without ITK.  Please set ITK_DIR.")
 ENDIF(ITK_FOUND)
 
-ADD_EXECUTABLE(HelloWorld HelloWorld.cxx )
+ADD_EXECUTABLE(HelloWorld1 HelloWorld.cxx )
 
-TARGET_LINK_LIBRARIES(HelloWorld ITKCommon)
+TARGET_LINK_LIBRARIES(HelloWorld1 ITKCommon)

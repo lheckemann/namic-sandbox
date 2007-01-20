@@ -10,6 +10,6 @@ ELSE(ITK_FOUND)
           "Cannot build without ITK.  Please set ITK_DIR.")
 ENDIF(ITK_FOUND)
 
-ADD_EXECUTABLE(myProject myProject.cxx )
+ADD_EXECUTABLE(myProject2 myProject.cxx )
 
-TARGET_LINK_LIBRARIES(myProject ITKCommon ITKIO)
+TARGET_LINK_LIBRARIES(myProject2 ITKCommon ITKIO)

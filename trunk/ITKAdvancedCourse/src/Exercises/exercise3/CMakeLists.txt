@@ -10,9 +10,9 @@ ELSE(ITK_FOUND)
           "Cannot build without ITK.  Please set ITK_DIR.")
 ENDIF(ITK_FOUND)
 
-ADD_EXECUTABLE(Image1       Image1.cxx       )
-ADD_EXECUTABLE(Image1answer Image1answer.cxx )
+ADD_EXECUTABLE(Image3_1       Image1.cxx       )
+ADD_EXECUTABLE(Image3_1answer Image1answer.cxx )
 
-TARGET_LINK_LIBRARIES(Image1       ITKCommon)
-TARGET_LINK_LIBRARIES(Image1answer ITKCommon)
+TARGET_LINK_LIBRARIES(Image3_1       ITKCommon)
+TARGET_LINK_LIBRARIES(Image3_1answer ITKCommon)
 

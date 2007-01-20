@@ -4,10 +4,10 @@ FIND_PACKAGE(ITK REQUIRED)
 
 INCLUDE(${ITK_USE_FILE})
 
-ADD_EXECUTABLE(ImageRedAdaptor  main.cxx       )
+ADD_EXECUTABLE(ImageRedAdaptor27  main.cxx       )
 
-TARGET_LINK_LIBRARIES(ImageRedAdaptor   ITKIO ITKNumerics ITKCommon )
+TARGET_LINK_LIBRARIES(ImageRedAdaptor27   ITKIO ITKNumerics ITKCommon )
 
-ADD_EXECUTABLE(ImageInvertAdaptor  main2.cxx       )
+ADD_EXECUTABLE(ImageInvertAdaptor27  main2.cxx       )
 
-TARGET_LINK_LIBRARIES(ImageInvertAdaptor   ITKIO ITKNumerics ITKCommon )
+TARGET_LINK_LIBRARIES(ImageInvertAdaptor27   ITKIO ITKNumerics ITKCommon )

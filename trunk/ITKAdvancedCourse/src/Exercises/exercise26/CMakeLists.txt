@@ -4,6 +4,6 @@ FIND_PACKAGE(ITK REQUIRED)
 
 INCLUDE(${ITK_USE_FILE})
 
-ADD_EXECUTABLE(FirstQuadrantExtractImageFilter  main.cxx       )
+ADD_EXECUTABLE(FirstQuadrantExtractImageFilter26  main.cxx       )
 
-TARGET_LINK_LIBRARIES(FirstQuadrantExtractImageFilter   ITKIO ITKNumerics ITKCommon )
+TARGET_LINK_LIBRARIES(FirstQuadrantExtractImageFilter26   ITKIO ITKNumerics ITKCommon )

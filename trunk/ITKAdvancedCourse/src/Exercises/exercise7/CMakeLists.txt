@@ -10,6 +10,6 @@ ELSE(ITK_FOUND)
           "Cannot build without ITK.  Please set ITK_DIR.")
 ENDIF(ITK_FOUND)
 
-ADD_EXECUTABLE(filter       filter.cxx       )
+ADD_EXECUTABLE(filter7       filter.cxx       )
 
-TARGET_LINK_LIBRARIES(filter       ITKCommon ITKIO)
+TARGET_LINK_LIBRARIES(filter7       ITKCommon ITKIO)
