@@ -391,7 +391,7 @@ PoistatsFilter<TInputImage, TOutputImage>
 template <class TInputImage, class TOutputImage>
 void
 PoistatsFilter<TInputImage, TOutputImage>
-::AllocateOutputImage( const int outputIndex, OutputImagePointer image) {
+::AllocateOutputImage( const int outputIndex, OutputImagePointer image ) {
   
   InputImageConstPointer inputImage = this->GetInput();
   
@@ -1043,7 +1043,6 @@ PoistatsFilter<TInputImage, TOutputImage>
   const int nColumns = imageSize[ 0 ];
   const int nRows = imageSize[ 1 ];
   const int nSlices = imageSize[ 2 ];
-  const int nDirections = imageSize[ 3 ];
   
   int cOdfs = 0;
   
@@ -1073,7 +1072,7 @@ PoistatsFilter<TInputImage, TOutputImage>
     for( int cRow=0; cRow<nRows; cRow++ ) {
 
       for( int cColumn=0; cColumn<nColumns; cColumn++ ) {
-
+      
         const int nTensorRows = 3;
         const int nTensorColumns = 3;
         itk::Matrix< double, nTensorRows, nTensorColumns > tensor;
@@ -1095,25 +1094,26 @@ PoistatsFilter<TInputImage, TOutputImage>
         
         bool hasZero = false;        
         if( !isPixelMasked ) {
-
-          int cDirection = 0;
+        
+          IndexType pixelIndex;
+          pixelIndex[ 0 ] = cColumn;
+          pixelIndex[ 1 ] = cRow;
+          pixelIndex[ 2 ] = cSlice;
+          
+          PixelType currentTensor = inputImage->GetPixel( pixelIndex );
+          
           for( int cTensorRow=0; cTensorRow<nTensorRows; cTensorRow++ ) {
           
             for( int cTensorColumn=0; cTensorColumn<nTensorColumns; cTensorColumn++ ) {
-  
-              IndexType pixelIndex;
-              pixelIndex[ 0 ] = cColumn;
-              pixelIndex[ 1 ] = cRow;
-              pixelIndex[ 2 ] = cSlice;
-              pixelIndex[ 3 ] = cDirection++;
-              
+            
               tensor[ cTensorRow ][ cTensorColumn ] = 
-                inputImage->GetPixel( pixelIndex );
-                  
-              if( tensor[ cTensorRow ][ cTensorColumn] == 0.0 ) {              
+                currentTensor( cTensorRow, cTensorColumn);
+            
+              if( tensor[ cTensorRow ][ cTensorColumn] == 0.0 ) {
+                              
                 hasZero = true;
               }
-                                          
+              
             }
             
           }
