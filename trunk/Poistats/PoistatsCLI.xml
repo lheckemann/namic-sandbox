@@ -59,6 +59,30 @@
 			
 		</file>
 		
+		<boolean>
+		  
+		  <name>
+		    isSymmetricTensorData
+		  </name>
+		  
+		  <description>
+		    Is the data stored as a symmetric matrix (6 components)?
+		  </description>
+		  
+		  <label>
+		    Symmetric Data Storage
+		  </label>
+		  
+		  <longflag>
+		    symmetric
+		  </longflag>
+		  
+		  <default>
+		    false
+		  </default>
+		  
+		</boolean>
+		
 		<image>
 			
 			<name>
