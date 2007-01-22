@@ -304,8 +304,8 @@ void VarianceMultiImageMetric < TFixedImage >
 
   value = NumericTraits< RealType >::Zero;
 
-
-  DerivativeType temp (this->m_TransformArray[0]->GetNumberOfParameters () * this->m_NumberOfImages);
+  const int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters ();
+  DerivativeType temp (numberOfParameters * this->m_NumberOfImages);
   temp.Fill (0.0);
 
   // Sum over the values returned by threads
@@ -317,6 +317,26 @@ void VarianceMultiImageMetric < TFixedImage >
   value /= (double) m_Sample.size();
   temp /= (double) m_Sample.size();
   derivative = temp;
+  
+  //Set the mean to zero
+  //Remove mean
+  temp.SetSize(numberOfParameters);
+  temp.Fill(0.0);
+  for (int i = 0; i < this->m_NumberOfImages; i++)
+  {
+    for (int j = 0; j < numberOfParameters; j++)
+    {
+      temp[j] += derivative[i * numberOfParameters + j];
+    }
+  }
+
+  for (int i = 0; i < this->m_NumberOfImages * numberOfParameters; i++)
+  {
+    derivative[i] -= temp[i % numberOfParameters] / (double) this->m_NumberOfImages;
+  }
+
+  
+
 
   
 }
@@ -480,7 +500,7 @@ template < class TFixedImage >
  */
 template < class TFixedImage >
 void VarianceMultiImageMetric < TFixedImage >
-::GetValueAndDerivative2 (const ParametersType & parameters,
+::GetValueAndDerivative2(const ParametersType & parameters,
             MeasureType & value,
             DerivativeType & derivative) const
 {
@@ -566,7 +586,7 @@ void VarianceMultiImageMetric < TFixedImage >
 
 
       // get the image derivative for this B sample
-      this->CalculateDerivatives ((*aiter).FixedImagePointValue,
+      this->CalculateDerivatives ((*aiter).FixedImagePoint,
            derivA,i);
 
       sum -= derivA * derI;
