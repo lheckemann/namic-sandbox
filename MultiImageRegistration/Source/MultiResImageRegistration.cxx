@@ -74,6 +74,8 @@
 #include "itkCastImageFilter.h"
 #include "itkCheckerBoardImageFilter.h"
 
+#include "itkTimeProbesCollectorBase.h"
+
 //  The following section of code implements an observer
 //  that will monitor the evolution of the registration process.
 //
@@ -369,7 +371,7 @@ int main( int argc, char *argv[] )
 
 
   optimizer->SetLearningRate( 2e-4 );
-  optimizer->SetNumberOfIterations( 400 );
+  optimizer->SetNumberOfIterations( 1 );
   optimizer->MaximizeOn();
 
 
@@ -389,9 +391,12 @@ int main( int argc, char *argv[] )
 
   std::cout << "Starting Registration with Affine Transform " << std::endl;
 
+  //Add probe
+  itk::TimeProbesCollectorBase collector;
   
   try 
-  { 
+  {
+    collector.Start( "Registration" );
     registration->StartRegistration(); 
   } 
   catch( itk::ExceptionObject & err ) 
@@ -404,7 +409,7 @@ int main( int argc, char *argv[] )
   /** BSpline Registration */
 
   int bsplineGridSize = 5;
-  int numberOfResolutionLevel = 3;
+  int numberOfResolutionLevel = 2;
   const unsigned int SplineOrder = 3;
   typedef double CoordinateRepType;
 
@@ -516,12 +521,12 @@ int main( int argc, char *argv[] )
   optimizer->SetScales( optimizerScales );
 
   // Set optimizer parameters for bspline registration
-  optimizer->SetLearningRate( 1000 );
-  optimizer->SetNumberOfIterations( 1500 );
+  optimizer->SetLearningRate( 1000000 );
+  optimizer->SetNumberOfIterations( 50 );
   optimizer->MaximizeOn();
   
 
-  registration->SetNumberOfLevels( 1 );
+  registration->SetNumberOfLevels( 4 );
   
   std::cout << "Starting BSpline Registration with low resolution transform: " << std::endl;
   std::cout << "Resolution level " << 0;
@@ -677,8 +682,8 @@ int main( int argc, char *argv[] )
     std::cout << "Starting Registration with high resolution transform: " << std::endl;
     std::cout << "Resolution level " << level;
     std::cout << " Number Of parameters: " << bsplineTransformArrayHigh[0]->GetNumberOfParameters()*N <<std::endl;
-    optimizer->SetLearningRate( 200 );
-    optimizer->SetNumberOfIterations( 100 );
+    optimizer->SetLearningRate( 500 );
+    optimizer->SetNumberOfIterations( 1 );
     optimizer->MaximizeOn();
 
     //Reset the optimizer scales
@@ -690,6 +695,7 @@ int main( int argc, char *argv[] )
     try
     {
       registration->StartRegistration();
+      collector.Stop( "Registration" );
     }
     catch( itk::ExceptionObject & err )
     {
@@ -717,6 +723,7 @@ int main( int argc, char *argv[] )
   std::cout << " final parameters 10 = " << finalParameters[10]  << std::endl;
   std::cout << " Iterations    = " << numberOfIterations << std::endl;
   std::cout << " Metric value  = " << bestValue          << std::endl;
+  collector.Report();
 
 
 
