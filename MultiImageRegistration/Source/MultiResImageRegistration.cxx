@@ -190,10 +190,23 @@ int main( int argc, char *argv[] )
 {
 
   vector<string> fileNames;
-  string inputFolder, outputFolder, optimizerType, transformType;
-  int multiLevel;
-
-  if( getCommandLine(argc,argv, fileNames, inputFolder, outputFolder, optimizerType, multiLevel, transformType  ) )
+  string inputFolder;
+  string outputFolder;
+  string optimizerType;
+  string transformType;
+  int multiLevelAffine = 3;
+  int multiLevelBspline = 3;
+  int multiLevelBsplineHigh = 1;
+  double optAffineLearningRate = 2e-4;
+  double optBsplineLearningRate = 500000;
+  int optAffineNumberOfIterations = 1;
+  int optBsplineNumberOfIterations = 50;
+  double numberOfSpatialSamplesAffinePercentage = 0.01;
+  double numberOfSpatialSamplesBsplinePercentage = 0.01;
+  int bsplineGridSize = 5;
+  int numberOfResolutionLevel = 2;
+  
+  if( getCommandLine(argc,argv, fileNames, inputFolder, outputFolder, optimizerType, multiLevelAffine, transformType  ) )
     return 1;
 
   const    unsigned int    Dimension = 2;
@@ -365,16 +378,14 @@ int main( int argc, char *argv[] )
   const unsigned int numberOfPixels = fixedImageRegion.GetNumberOfPixels();
   
   const unsigned int numberOfSamples =
-      static_cast< unsigned int >( numberOfPixels * 0.01 );
+      static_cast< unsigned int >( numberOfPixels * numberOfSpatialSamplesAffinePercentage );
 
   metric->SetNumberOfSpatialSamples( numberOfSamples );
 
 
-  optimizer->SetLearningRate( 2e-4 );
-  optimizer->SetNumberOfIterations( 1 );
+  optimizer->SetLearningRate( optAffineLearningRate );
+  optimizer->SetNumberOfIterations( optAffineNumberOfIterations );
   optimizer->MaximizeOn();
-
-
 
   // Create the Command observer and register it with the optimizer.
   //
@@ -387,7 +398,7 @@ int main( int argc, char *argv[] )
   typedef RegistrationInterfaceCommand<RegistrationType> CommandType;
   CommandType::Pointer command = CommandType::New();
   registration->AddObserver( itk::IterationEvent(), command );
-  registration->SetNumberOfLevels( multiLevel );
+  registration->SetNumberOfLevels( multiLevelAffine );
 
   std::cout << "Starting Registration with Affine Transform " << std::endl;
 
@@ -408,8 +419,6 @@ int main( int argc, char *argv[] )
 
   /** BSpline Registration */
 
-  int bsplineGridSize = 5;
-  int numberOfResolutionLevel = 2;
   const unsigned int SplineOrder = 3;
   typedef double CoordinateRepType;
 
@@ -521,13 +530,15 @@ int main( int argc, char *argv[] )
   optimizer->SetScales( optimizerScales );
 
   // Set optimizer parameters for bspline registration
-  optimizer->SetLearningRate( 1000000 );
-  optimizer->SetNumberOfIterations( 50 );
+  optimizer->SetLearningRate( optBsplineLearningRate );
+  optimizer->SetNumberOfIterations( optBsplineNumberOfIterations );
   optimizer->MaximizeOn();
-  
 
-  registration->SetNumberOfLevels( 4 );
-  
+
+  metric->SetNumberOfSpatialSamples( (int) (numberOfPixels * numberOfSpatialSamplesBsplinePercentage) );
+
+  registration->SetNumberOfLevels( multiLevelBspline );
+
   std::cout << "Starting BSpline Registration with low resolution transform: " << std::endl;
   std::cout << "Resolution level " << 0;
   std::cout << " Number Of parameters: " << bsplineTransformArrayLow[0]->GetNumberOfParameters()*N <<std::endl;
@@ -678,11 +689,13 @@ int main( int argc, char *argv[] )
       //  when we move from lower to higher resolution grid.
 
     }
-  
+
     std::cout << "Starting Registration with high resolution transform: " << std::endl;
     std::cout << "Resolution level " << level;
     std::cout << " Number Of parameters: " << bsplineTransformArrayHigh[0]->GetNumberOfParameters()*N <<std::endl;
-    optimizer->SetLearningRate( 500 );
+
+    optBsplineLearningRate = optBsplineLearningRate / 10 ;
+    optimizer->SetLearningRate( optBsplineLearningRate );
     optimizer->SetNumberOfIterations( 1 );
     optimizer->MaximizeOn();
 
@@ -691,7 +704,9 @@ int main( int argc, char *argv[] )
     OptimizerScalesType optimizerScales( bsplineTransformArrayHigh[0]->GetNumberOfParameters()*N );
     optimizerScales.Fill( 1.0 );
     optimizer->SetScales( optimizerScales );
-  
+
+    registration->SetNumberOfLevels( multiLevelBsplineHigh );
+
     try
     {
       registration->StartRegistration();
@@ -898,13 +913,13 @@ int main( int argc, char *argv[] )
 
 
 
-int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType, int& multiLevel, string& transformType  )
+int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType, int& multiLevelAffine, string& transformType  )
 {
 
   //initialize parameters
   inputFolder = "";
   outputFolder = "";
-  multiLevel = 3;
+  multiLevelAffine = 3;
   optimizerType = "GradientDescent";
   transformType = "Translation";
   //read parameters
@@ -916,7 +931,7 @@ int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& in
     else if (dummy == "-o")
       outputFolder = argv[++i];
     else if (dummy == "-m")
-      multiLevel = atoi(argv[++i]);
+      multiLevelAffine = atoi(argv[++i]);
     else if (dummy == "-opt")
       optimizerType == argv[++i];
     else if (dummy == "-t")
