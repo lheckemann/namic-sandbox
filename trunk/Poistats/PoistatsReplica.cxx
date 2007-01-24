@@ -37,7 +37,7 @@ PoistatsReplica::SetModel( PoistatsModel* model ) {
 }
 
 double 
-PoistatsReplica::GetCurrentMeanEnergy() {
+PoistatsReplica::GetCurrentMeanEnergy() const {
   return m_CurrentMeanEnergy;
 }
 
@@ -47,7 +47,7 @@ PoistatsReplica::SetCurrentMeanEnergy( const double energy ) {
 }
   
 double 
-PoistatsReplica::GetPreviousMeanEnergy() {
+PoistatsReplica::GetPreviousMeanEnergy() const {
   return m_PreviousMeanEnergy;
 }
 

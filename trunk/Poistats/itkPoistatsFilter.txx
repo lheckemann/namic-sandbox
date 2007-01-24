@@ -584,7 +584,6 @@ PoistatsFilter< TInputImage, TOutputImage >
   std::cerr << "initializing paths..." << std::endl;
   this->InitPaths();
   
-  std::cerr << "constructing odf list..." << std::endl;
   this->ConstructOdfList();
 
   // initialize temperatures to be regularily spaced between 0.05 and 0.1
@@ -598,7 +597,7 @@ PoistatsFilter< TInputImage, TOutputImage >
   
   this->m_Replicas->FillPreviousMeanEnergies( maxDouble );
   
-  double finalMinEnergy = maxDouble;
+  this->SetGlobalMinEnergy( maxDouble );
 
   const int nSpatialDimensions = 3;  
   MatrixType finalBestPath( m_Replicas->GetNumberOfSteps(), 
@@ -610,14 +609,14 @@ PoistatsFilter< TInputImage, TOutputImage >
   
   std::cerr << "starting..." << std::endl;
     
-  for( int currentTime=1, currentLull=0;
-       currentTime < this->GetMaxTime() && currentLull < this->GetMaxLull();
-       currentTime++ ) {
+  for( m_CurrentIteration=1, m_CurrentLull=0;
+       m_CurrentIteration < this->GetMaxTime() && m_CurrentLull < this->GetMaxLull();
+       m_CurrentIteration++ ) {
 
     clock_t startClock = clock();
 
     const double sigma = static_cast< double >( this->GetInitialSigma() ) * 
-      exp( -static_cast< double >( currentTime ) / 
+      exp( -static_cast< double >( m_CurrentIteration ) / 
            this->GetSigmaTimeConstant() );
                    
     // reset the number of exchanges that occured...if you're keeping track
@@ -626,7 +625,7 @@ PoistatsFilter< TInputImage, TOutputImage >
     for( int cReplica=0; cReplica<this->GetNumberOfReplicas(); cReplica++ ) {
     
       //if time > 1, prevpath{i} = trialpath{i}; end;
-      const bool isNotFirst = currentTime != 1;
+      const bool isNotFirst = m_CurrentIteration != 1;
       if( isNotFirst ) {
         m_Replicas->CopyCurrentToPreviousTrialPath( cReplica );
       }
@@ -683,10 +682,12 @@ PoistatsFilter< TInputImage, TOutputImage >
         //   globalminenergy = energy(i);
         // end
         if( this->m_Replicas->GetCurrentMeanEnergy( cReplica ) < 
-          finalMinEnergy ) {
+          this->GetGlobalMinEnergy() ) {
 
           PoistatsReplica::CopyPath( perturbedTrialPath, &finalBestPath );
-          finalMinEnergy = this->m_Replicas->GetCurrentMeanEnergy( cReplica );
+
+          SetGlobalMinEnergy( 
+            this->m_Replicas->GetCurrentMeanEnergy( cReplica ) );
           
         }
 
@@ -726,7 +727,7 @@ PoistatsFilter< TInputImage, TOutputImage >
     }
     
     //denergy = (mean(energy)-mean(energyprev))/mean(energy);        
-    const double energyDifference = 
+    m_CurrentEnergyDifference = 
       this->m_Replicas->GetNormalizedMeanCurrentPreviousEnergiesDifference();
       
     //    if abs(denergy) < lulldenergy
@@ -734,10 +735,10 @@ PoistatsFilter< TInputImage, TOutputImage >
     //    else
     //      lull = 0;
     //    end
-    if( fabs( energyDifference ) < lullEnergyDifferenceThreshold ) {
-      currentLull++;
+    if( fabs( m_CurrentEnergyDifference ) < lullEnergyDifferenceThreshold ) {
+      m_CurrentLull++;
     } else {
-      currentLull = 0;
+      m_CurrentLull = 0;
     }
         
     //    energyprev = energy;
@@ -752,11 +753,12 @@ PoistatsFilter< TInputImage, TOutputImage >
     clock_t endClock = clock();
     const double elapsedTime = 
       static_cast< double >( endClock - startClock ) / CLOCKS_PER_SEC;
+    this->SetElapsedTime( elapsedTime );
     
-    std::cerr << currentTime << "   lull: " << currentLull << "  denergy: " << energyDifference << "  mean: " << this->m_Replicas->GetCurrentMeanOfEnergies() << "  min: " << this->m_Replicas->GetMinimumCurrentEnergy() << "  global min: " << finalMinEnergy << "  exchs: " << this->GetExchanges() << "  time: " << elapsedTime << std::endl;
+// TODO: remove this
+//    std::cerr << currentTime << "   lull: " << currentLull << "  denergy: " << energyDifference << "  mean: " << this->m_Replicas->GetCurrentMeanOfEnergies() << "  min: " << this->m_Replicas->GetMinimumCurrentEnergy() << "  global min: " << finalMinEnergy << "  exchs: " << this->GetExchanges() << "  time: " << elapsedTime << std::endl;
+    this->InvokeEvent( IterationEvent() );            
     
-    // this is done in the for loop already
-    //    time = time + 1;  
   }
 
   MatrixPointer rethreadedFinalPath = m_Replicas->RethreadPath( &finalBestPath, 
@@ -793,6 +795,20 @@ PoistatsFilter< TInputImage, TOutputImage >
 // TODO: remove this
 //  PrintFlippedMatlabMatrix( finalBestPath, "FinalBestPath" );
 
+}
+
+template <class TInputImage, class TOutputImage>
+double 
+PoistatsFilter<TInputImage, TOutputImage>
+::GetCurrentMeanOfEnergies() const {
+  return this->m_Replicas->GetCurrentMeanOfEnergies();
+}
+
+template <class TInputImage, class TOutputImage>
+double 
+PoistatsFilter<TInputImage, TOutputImage>
+::GetCurrentMinOfEnergies() const {
+  return this->m_Replicas->GetMinimumCurrentEnergy();
 }
 
 template <class TInputImage, class TOutputImage>
@@ -1065,7 +1081,7 @@ PoistatsFilter<TInputImage, TOutputImage>
      
   OdfLookUpTablePointer odfLookUpTable = this->GetOdfLookUpTable();
   
-  std::cerr << "calculating odfs" << std::endl;
+  this->InvokeEvent( PoistatsOdfCalculationStartEvent() );
       
   for( int cSlice=0; cSlice<nSlices; cSlice++ ) {
   
@@ -1175,7 +1191,7 @@ PoistatsFilter<TInputImage, TOutputImage>
           this->m_Odfs.push_back( odf );
           
           if( ( cOdfs % 10000 ) == 0 ) {
-            std::cerr << "  " << cOdfs << std::endl;
+            this->InvokeEvent( PoistatsOdfCalculationProgressEvent() );            
           }
           cOdfs++;
                     
@@ -1187,7 +1203,7 @@ PoistatsFilter<TInputImage, TOutputImage>
 
   }
   
-  std::cerr << "finished..." << std::endl;
+  this->InvokeEvent( PoistatsOdfCalculationEndEvent() );            
 }
 
 

@@ -27,10 +27,10 @@ public:
 
   void SetModel( PoistatsModel* model );
   
-  double GetCurrentMeanEnergy();
+  double GetCurrentMeanEnergy() const;
   void SetCurrentMeanEnergy( const double energy );
   
-  double GetPreviousMeanEnergy();  
+  double GetPreviousMeanEnergy() const;  
   void SetPreviousMeanEnergy( const double temperature );
 
   double GetTemperature();  

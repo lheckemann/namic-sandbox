@@ -107,7 +107,7 @@ PoistatsReplicas::FillPreviousMeanEnergies( const double energy ) {
 }
 
 double
-PoistatsReplicas::GetCurrentMeanOfEnergies() {
+PoistatsReplicas::GetCurrentMeanOfEnergies() const {
   double sum = 0.0;
   for( int cReplica=0; cReplica<m_NumberOfReplicas; cReplica++ ) {
     sum += m_Replicas[ cReplica ].GetCurrentMeanEnergy();
@@ -119,7 +119,7 @@ PoistatsReplicas::GetCurrentMeanOfEnergies() {
 }
 
 double
-PoistatsReplicas::GetPreviousMeanOfEnergies() {
+PoistatsReplicas::GetPreviousMeanOfEnergies() const {
   double sum = 0.0;
   for( int cReplica=0; cReplica<m_NumberOfReplicas; cReplica++ ) {
     sum += m_Replicas[ cReplica ].GetPreviousMeanEnergy();
@@ -131,7 +131,7 @@ PoistatsReplicas::GetPreviousMeanOfEnergies() {
 }
 
 double 
-PoistatsReplicas::GetNormalizedMeanCurrentPreviousEnergiesDifference() {
+PoistatsReplicas::GetNormalizedMeanCurrentPreviousEnergiesDifference() const {
   const double currentMean = GetCurrentMeanOfEnergies();
   const double previousMean = GetPreviousMeanOfEnergies();
   const double difference = currentMean - previousMean;

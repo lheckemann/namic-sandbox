@@ -11,6 +11,8 @@
 #include <itkNiftiImageIO.h>
 #include "itkPoistatsFilter.h"
 
+#include "CommandUpdate.h"
+
 #include "PoistatsCLICLP.h"
 
 const std::string NORMAL_A = "normal_a:";
@@ -75,26 +77,14 @@ double ReadField( std::string fileName, std::string fieldName ) {
 int main (int argc, char * argv[]) {
 
   PARSE_ARGS;
+  
+  CommandUpdate::Pointer observer = CommandUpdate::New();
 
-//  typedef itk::Image< float, 4 > DtImageType;
-//  typedef itk::Image< float, 3 > OutputImageType;
-//  typedef itk::PoistatsFilter< DtImageType, OutputImageType > 
-//    PoistatsFilterType;
-//  PoistatsFilterType::Pointer poistatsFilter = PoistatsFilterType::New();
-//
-//  // load the tensor volume
-//  typedef itk::ImageFileReader< PoistatsFilterType::InputImageType > DtiReaderType;  
-//  DtiReaderType::Pointer dtiReader = DtiReaderType::New();
-//  dtiReader->SetFileName( diffusionTensorImage );
-//  
-//  std::cerr << "reading dti..." << std::endl;
-//  try { 
-//    dtiReader->Update();
-//  } catch( itk::ExceptionObject & excp ) {
-//    std::cerr << "Error reading the series." << std::endl;
-//    std::cerr << excp << std::endl;
-//  }
+  observer->SetOutputDirectory( outputDirectory );  
+  observer->SetLogFileName( "poistats.log" );
 
+  observer->PostMessage( "-- starting poistats --\n" );
+  
   typedef itk::DiffusionTensor3D< float > TensorPixelType;
   typedef itk::Image< TensorPixelType, 3 > TensorImageType;
 
@@ -103,7 +93,7 @@ int main (int argc, char * argv[]) {
   // if the data is stored as 9 components  
   if( !isSymmetricTensorData ){
     
-    std::cerr << "not symmetric" << std::endl;
+    observer->PostMessage( "not stored symmetrically\n" );
     
     typedef itk::Image< float, 4 > FullTensorImageType;
     typedef itk::ImageFileReader< FullTensorImageType > FullTensorReaderType;
@@ -136,26 +126,21 @@ int main (int argc, char * argv[]) {
     }
         
     TensorImageType::RegionType region;
-    std::cerr << region << std::endl;
-
     region.SetSize( size );    
-
     region.SetIndex( start );
     
     tensors = TensorImageType::New();
     tensors->SetRegions( region );
     tensors->SetOrigin( origin );
-    tensors->SetSpacing( spacing );  
-    
-    tensors->Allocate();
-  
+    tensors->SetSpacing( spacing );      
+    tensors->Allocate();  
     tensors->FillBuffer( 0.0 );
 
     //  - copy the data into the right areas
     const int nTensorRows = 3;
     const int nTensorCols = 3;
 
-    std::cerr << "  filling tensors with real values..." << std::endl;
+    observer->PostMessage( "  filling tensors with real values..." );
     for( int cImageRow=0; cImageRow<size[ 0 ]; cImageRow++ ) {
       for( int cImageCol=0; cImageCol<size[ 1 ]; cImageCol++ ) {
         for( int cImageSlice=0; cImageSlice<size[ 2 ]; cImageSlice++ ) {
@@ -205,7 +190,7 @@ int main (int argc, char * argv[]) {
     typedef itk::ImageFileReader< TensorImageType > TensorReaderType;
     TensorReaderType::Pointer tensorReader = TensorReaderType::New();
     tensorReader->SetFileName( diffusionTensorImage );
-    std::cerr << "reading symmetric tensors..." << std::endl;
+    observer->PostMessage( "reading symmetric tensors...\n" );
     try { 
       tensorReader->Update();
     } catch( itk::ExceptionObject & excp ) {
@@ -221,44 +206,16 @@ int main (int argc, char * argv[]) {
     PoistatsFilterType;
   PoistatsFilterType::Pointer poistatsFilter = PoistatsFilterType::New();
   
+  poistatsFilter->AddObserver( itk::AnyEvent(), observer );
+  
   poistatsFilter->SetInput( tensors );
-  
-
-//// TODO: I'm testing in reading nrrd files generated from slicer:
-//  typedef itk::DiffusionTensor3D< float > TensorPixelType;
-//  typedef itk::Image< TensorPixelType, 3 > TensorImageType;
-//  typedef itk::ImageFileReader< TensorImageType > TensorReaderType;
-//  TensorReaderType::Pointer tensorReader = TensorReaderType::New();
-//  tensorReader->SetFileName( diffusionTensorImage );
-//  std::cerr << "reading tensors..." << std::endl;
-//  try { 
-//    tensorReader->Update();
-//  } catch( itk::ExceptionObject & excp ) {
-//    std::cerr << "Error reading the series." << std::endl;
-//    std::cerr << excp << std::endl;
-//  }
-//  TensorImageType::Pointer tensors = tensorReader->GetOutput();
-//  std::cerr << "tensors: " << tensors << std::endl;
-//
-//  itk::ImageRegionIterator< TensorImageType > it(
-//    tensors, tensors->GetLargestPossibleRegion() );
-//
-//  // get the unique values
-//  for ( it = it.Begin(); !it.IsAtEnd(); ++it ) {    
-//    TensorPixelType pixelValue = it.Value();
-//    for( int cElement=0; cElement<pixelValue.Size(); cElement++ ) {
-//      if( pixelValue[ cElement ] != 0 ) {
-//        std::cerr << pixelValue << std::endl;
-//      }
-//    }
-//  }  
-  
+    
 //  PoistatsFilterType::InputImageType::Pointer dti = dtiReader->GetOutput();
 //  std::cerr << "direction: " << dti->GetDirection();
 
   double normalS = 1.0;
   double normalA = 0.0;
-  std::cout << "*** NOTE: reading "<< headerFile << " for normalS and normalA" <<std::endl;
+  observer->PostMessage( "*** NOTE: reading " + headerFile + " for normalS and normalA" );
   std::string headerFileName( headerFile );
   normalS = ReadField( headerFileName, NORMAL_S );
   std::cout << NORMAL_S << normalS << std::endl;
@@ -270,7 +227,7 @@ int main (int argc, char * argv[]) {
   PoistatsFilterType::ArrayType sliceUp( sliceUpData, 3 );
   poistatsFilter->SetSliceUp( sliceUp );
 
-  std::cout << "reading seed volume..." << std::endl;
+  observer->PostMessage( "reading seed volume...\n" );
   // read seed volume
   typedef itk::ImageFileReader< PoistatsFilterType::SeedVolumeType > SeedReaderType;
   SeedReaderType::Pointer seedReader = SeedReaderType::New();
@@ -306,7 +263,7 @@ int main (int argc, char * argv[]) {
   poistatsFilter->SetNumberOfControlPoints( numberOfControlPoints );
   poistatsFilter->SetInitialSigma( sigma );
 
-  std::cout << "reading sampling volume..." << std::endl;
+  observer->PostMessage( "reading sampling volume...\n" );
 
   // read sampling volume
   typedef itk::ImageFileReader< PoistatsFilterType::SamplingVolumeType > SamplingReaderType;
@@ -326,7 +283,7 @@ int main (int argc, char * argv[]) {
 
   // read mask volume if it exists
   if( mask.size() != 0 ) {
-    std::cout << "reading mask..." << std::endl;
+    observer->PostMessage( "reading mask...\n" );
     typedef itk::ImageFileReader< PoistatsFilterType::MaskVolumeType > MaskReaderType;
     MaskReaderType::Pointer maskReader = MaskReaderType::New();
     maskReader->SetFileName( mask );
@@ -377,7 +334,7 @@ int main (int argc, char * argv[]) {
   writer->SetInput( pathDensity );
   writer->SetFileName( densityFileName.c_str() );
   
-  std::cout << "writing: " << densityFileName << std::endl;
+  observer->PostMessage( "writing: " + densityFileName + "\n" );  
   writer->Update();  
 
   std::string optimalDensityFileName = (std::string)outputDirectory + 
@@ -387,7 +344,7 @@ int main (int argc, char * argv[]) {
   writer->SetInput( optimalPathDensity );
   writer->SetFileName( optimalDensityFileName.c_str() );
 
-  std::cout << "writing: " << optimalDensityFileName << std::endl;
+  observer->PostMessage( "writing: " + optimalDensityFileName );  
   writer->Update();    
   
   PoistatsFilterType::MatrixType finalPath = poistatsFilter->GetFinalPath();
@@ -427,7 +384,7 @@ int main (int argc, char * argv[]) {
   intWriter->SetInput( optimalPathSegmenation );
   intWriter->SetFileName( optimalSegmentationFileName.c_str() );
 
-  std::cout << "writing: " << optimalSegmentationFileName << std::endl;
+  observer->PostMessage( "writing: " + optimalSegmentationFileName + "\n" );  
   intWriter->Update();    
 
   return EXIT_SUCCESS;

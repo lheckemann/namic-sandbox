@@ -10,6 +10,8 @@
 #include "PoistatsReplicas.h"
 #include "PoistatsModel.h"
 
+#include "PoistatsEvents.h"
+
 namespace itk
 {
 
@@ -109,7 +111,6 @@ public:
   typedef OdfLookUpTableType::IndexType OdfLookUpIndexType;
   typedef OdfLookUpTableType::RegionType OdfLookUpRegionType;
 
-
   // used with get and set output
   itkStaticConstMacro( PATH_DENSITY_OUTPUT, int, 0 );
   itkStaticConstMacro( OPTIMAL_PATH_DENSITY_OUTPUT, int, 1 );
@@ -137,7 +138,13 @@ public:
   static void RoundPath( itk::Array2D< int > *outputRoundedArray, 
                          itk::Array2D< double >* inputArray );
         
-  itkGetMacro(Exchanges, int);
+  itkGetConstMacro( Exchanges, int );
+
+  itkGetConstMacro( CurrentIteration, int );
+  itkGetConstMacro( CurrentLull, int );
+  itkGetConstMacro( CurrentEnergyDifference, double );
+  itkGetConstMacro( GlobalMinEnergy, double );
+  itkGetConstMacro( ElapsedTime, double );  
   
   MatrixPointer GetStartSeeds();
   MatrixPointer GetEndSeeds();
@@ -250,7 +257,10 @@ public:
 
   void CalculateOptimalPathProbabilitiesVolume( 
     OutputImagePointer optimalPathProbabilities );
-      
+    
+  double GetCurrentMeanOfEnergies() const;
+
+  double GetCurrentMinOfEnergies() const;      
 
 protected:
   PoistatsFilter();
@@ -389,6 +399,17 @@ private:
 
   double m_PointsToImageGamma;
   static const double DEFAULT_POINTS_TO_IMAGE_GAMMA = 0.5;  
+  
+  int m_CurrentIteration;
+  int m_CurrentLull;
+
+  double m_GlobalMinEnergy;
+  itkSetMacro( GlobalMinEnergy, double );
+
+  double m_ElapsedTime;
+  itkSetMacro( ElapsedTime, double );  
+
+  double m_CurrentEnergyDifference;
   
 };
 
