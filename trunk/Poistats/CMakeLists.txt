@@ -16,6 +16,7 @@ INCLUDE(/space/heraclitus/1/users/dsjen/working/workspace/Slicer3/Libs/GenerateC
 # For each executable, include the following, replacing MyFilter with the name
 # of your C++ source:
 SET ( POISTATS_SOURCE 
+  CommandUpdate.cxx
   PoistatsCLI.cxx
   itkPoistatsFilter.txx
   PoistatsReplicas.cxx
@@ -23,7 +24,7 @@ SET ( POISTATS_SOURCE
   PoistatsModel.cxx
   itkBSplineKernelFunction.txx
   itkBSplineScatteredDataPointSetToImageFilter.txx
-  itkPointSetToImageFilter.txx 
+  itkPointSetToImageFilter.txx
 )
 GENERATECLP(POISTATS_SOURCE PoistatsCLI.xml)
 
