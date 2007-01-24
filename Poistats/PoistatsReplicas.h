@@ -32,12 +32,12 @@ public:
   double GetMinimumCurrentEnergy();
   
   void FillCurrentMeanEnergies( const double energy );
-  double GetCurrentMeanOfEnergies();
+  double GetCurrentMeanOfEnergies() const;
 
   void FillPreviousMeanEnergies( const double energy );
-  double GetPreviousMeanOfEnergies();
+  double GetPreviousMeanOfEnergies() const;
   
-  double GetNormalizedMeanCurrentPreviousEnergiesDifference();
+  double GetNormalizedMeanCurrentPreviousEnergiesDifference() const;
   
   double GetCurrentMeanEnergy( const int replica );
   void SetCurrentMeanEnergy( const int replica, const double energy );
