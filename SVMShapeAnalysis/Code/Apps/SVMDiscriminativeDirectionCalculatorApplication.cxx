@@ -118,7 +118,7 @@ int main(int argc, char** argv)
       }
       argc--; argv++;
     }
-    else if (std::string(argv[0]) == std::string("--normalizeVectorLength") ||
+    else if (std::string(argv[0]) == std::string("--normalizeOutputVectors") ||
              std::string(argv[0]) == std::string("-n"))
     {
       if (argc < 2) {
