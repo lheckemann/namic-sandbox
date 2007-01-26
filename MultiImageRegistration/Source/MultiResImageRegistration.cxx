@@ -195,57 +195,49 @@ int main( int argc, char *argv[] )
   string optimizerType;
   string transformType;
   int multiLevelAffine = 3;
-  int multiLevelBspline = 3;
+  int multiLevelBspline = 1;
   int multiLevelBsplineHigh = 1;
   double optAffineLearningRate = 2e-4;
-  double optBsplineLearningRate = 500000;
+  double optBsplineLearningRate = 50;
   int optAffineNumberOfIterations = 1;
-  int optBsplineNumberOfIterations = 50;
-  double numberOfSpatialSamplesAffinePercentage = 0.01;
-  double numberOfSpatialSamplesBsplinePercentage = 0.01;
+  int optBsplineNumberOfIterations = 5;
+  double numberOfSpatialSamplesAffinePercentage = 0.001;
+  double numberOfSpatialSamplesBsplinePercentage = 0.001;
   int bsplineGridSize = 5;
   int numberOfResolutionLevel = 2;
   
   if( getCommandLine(argc,argv, fileNames, inputFolder, outputFolder, optimizerType, multiLevelAffine, transformType  ) )
     return 1;
 
+  // Input Image type typedef
   const    unsigned int    Dimension = 2;
-  typedef  float  PixelType;
-  
+  typedef  unsigned short  PixelType;
   typedef itk::Image< PixelType, Dimension >  ImageType;
 
+  //Internal Image Type typedef
+  typedef float InternalPixelType;
+  typedef double ScalarType;
+  typedef itk::Image< InternalPixelType, Dimension > InternalImageType;
 
-  //  Software Guide : BeginLatex
-  //  
-  //  The configuration of the registration method in this example closely
-  //  follows the procedure in the previous section. The main changes involve the
-  //  construction and initialization of the transform. The instantiation of
-  //  the transform type requires only the dimension of the space and the
-  //  type used for representing space coordinates.
-  //  
-  //  \index{itk::AffineTransform!Instantiation}
-  //
-  //  Software Guide : EndLatex 
-  
-  // Software Guide : BeginCodeSnippet
-  typedef itk::AffineTransform< double, Dimension > TransformType;
-  // Software Guide : EndCodeSnippet
+
+
+  typedef itk::AffineTransform< ScalarType, Dimension > TransformType;
 
 
   typedef itk::GradientDescentOptimizer       OptimizerType;
   typedef itk::LinearInterpolateImageFunction< 
-                                    ImageType,
-                                    double             > InterpolatorType;
-  typedef itk::VarianceMultiImageMetric< ImageType>    MetricType;
+                                    InternalImageType,
+                                    ScalarType        > InterpolatorType;
+  typedef itk::VarianceMultiImageMetric< InternalImageType>    MetricType;
 
 
   typedef OptimizerType::ScalesType       OptimizerScalesType;
 
-  typedef itk::MultiResolutionMultiImageRegistrationMethod< ImageType >    RegistrationType;
+  typedef itk::MultiResolutionMultiImageRegistrationMethod< InternalImageType >    RegistrationType;
 
   typedef itk::MultiResolutionPyramidImageFilter<
-                                    ImageType,
-                                    ImageType  >    ImagePyramidType;
+                                    InternalImageType,
+                                    InternalImageType  >    ImagePyramidType;
 
 
   OptimizerType::Pointer      optimizer     = OptimizerType::New();
@@ -281,30 +273,27 @@ int main( int argc, char *argv[] )
   registration->SetMetric( metric  );
 
 
-  typedef itk::ImageFileReader< ImageType  > FixedImageReaderType;
-  typedef vector< FixedImageReaderType::Pointer > ImageArrayReader;
-  ImageArrayReader imageArrayReader;
-  imageArrayReader.resize(N);
+  typedef itk::ImageFileReader< ImageType  > ImageReaderType;
+  typedef vector< ImageReaderType::Pointer > ImageArrayReader;
+  ImageArrayReader imageArrayReader(N);
 
 
   typedef  vector<ImagePyramidType::Pointer>                ImagePyramidArray;
-  ImagePyramidArray imagePyramidArray;
-  imagePyramidArray.resize(N);
+  ImagePyramidArray imagePyramidArray(N);
+
 
   
-  typedef itk::NormalizeImageFilter< ImageType, ImageType > FixedNormalizeFilterType;
-  typedef FixedNormalizeFilterType::Pointer FixedNormalizeFilterTypePointer;
-  typedef vector<FixedNormalizeFilterTypePointer> NormalizedFilterArrayType;
-  NormalizedFilterArrayType normalizedFilterArray;
-  normalizedFilterArray.resize(N);
+  typedef itk::NormalizeImageFilter< ImageType, InternalImageType > NormalizeFilterType;
+  typedef NormalizeFilterType::Pointer NormalizeFilterTypePointer;
+  typedef vector<NormalizeFilterTypePointer> NormalizedFilterArrayType;
+  NormalizedFilterArrayType normalizedFilterArray(N);
 
   typedef itk::DiscreteGaussianImageFilter<
-                                      ImageType, 
-                                      ImageType
+                                      InternalImageType, 
+                                      InternalImageType
                                                     > GaussianFilterType;
   typedef vector< GaussianFilterType::Pointer > GaussianFilterArrayType;
-  GaussianFilterArrayType gaussianFilterArray;
-  gaussianFilterArray.resize(N);
+  GaussianFilterArrayType gaussianFilterArray(N);
 
 
 
@@ -319,10 +308,10 @@ int main( int argc, char *argv[] )
       imagePyramidArray[i] =  ImagePyramidType::New();
       //registration->SetImagePyramidArray( imagePyramidArray[i], i );
 
-      imageArrayReader[i] = FixedImageReaderType::New();
+      imageArrayReader[i] = ImageReaderType::New();
       imageArrayReader[i]->SetFileName( inputFileNames[i].c_str() );
     
-      normalizedFilterArray[i] = FixedNormalizeFilterType::New();
+      normalizedFilterArray[i] = NormalizeFilterType::New();
       gaussianFilterArray[i] = GaussianFilterType::New();
       gaussianFilterArray[i]->SetVariance( 2.0 );
       normalizedFilterArray[i]->SetInput( imageArrayReader[i]->GetOutput() );
@@ -420,7 +409,7 @@ int main( int argc, char *argv[] )
   /** BSpline Registration */
 
   const unsigned int SplineOrder = 3;
-  typedef double CoordinateRepType;
+  typedef ScalarType CoordinateRepType;
 
   typedef itk::BSplineDeformableTransform< CoordinateRepType,
                                            Dimension,
@@ -515,15 +504,6 @@ int main( int argc, char *argv[] )
   }
 
 
-  // Set Optimizer Parameters
-  /*
-  optimizer->SetGradientConvergenceTolerance( 1e-5 );
-  optimizer->SetLineSearchAccuracy( 0.9 );
-  optimizer->SetDefaultStepLength( 1.5 );
-  optimizer->TraceOn();
-  optimizer->SetMaximumNumberOfFunctionEvaluations( 1000 );
-  */
-  
   // Reset the optimizer scales
   optimizerScales.SetSize( bsplineTransformArrayLow[0]->GetNumberOfParameters()*N);
   optimizerScales.Fill( 1.0 );
@@ -648,22 +628,22 @@ int main( int argc, char *argv[] )
 
         typedef itk::BSplineDecompositionImageFilter<ParametersImageType,ParametersImageType>
             DecompositionType;
-            DecompositionType::Pointer decomposition = DecompositionType::New();
+        DecompositionType::Pointer decomposition = DecompositionType::New();
 
-            decomposition->SetSplineOrder( SplineOrder );
-            decomposition->SetInput( upsampler->GetOutput() );
-            decomposition->Update();
+        decomposition->SetSplineOrder( SplineOrder );
+        decomposition->SetInput( upsampler->GetOutput() );
+        decomposition->Update();
 
-            ParametersImageType::Pointer newCoefficients = decomposition->GetOutput();
+        ParametersImageType::Pointer newCoefficients = decomposition->GetOutput();
 
         // copy the coefficients into the parameter array
-            typedef itk::ImageRegionIterator<ParametersImageType> Iterator;
-            Iterator it( newCoefficients, bsplineTransformArrayHigh[i]->GetGridRegion() );
-            while ( !it.IsAtEnd() )
-            {
-              bsplineParametersArrayHigh[i][ counter++ ] = it.Get();
-              ++it;
-            }
+        typedef itk::ImageRegionIterator<ParametersImageType> Iterator;
+        Iterator it( newCoefficients, bsplineTransformArrayHigh[i]->GetGridRegion() );
+        while ( !it.IsAtEnd() )
+        {
+          bsplineParametersArrayHigh[i][ counter++ ] = it.Get();
+          ++it;
+        }
 
       }
 
@@ -696,7 +676,7 @@ int main( int argc, char *argv[] )
 
     optBsplineLearningRate = optBsplineLearningRate / 10 ;
     optimizer->SetLearningRate( optBsplineLearningRate );
-    optimizer->SetNumberOfIterations( 1 );
+    optimizer->SetNumberOfIterations( optBsplineNumberOfIterations );
     optimizer->MaximizeOn();
 
     //Reset the optimizer scales
@@ -752,7 +732,7 @@ int main( int argc, char *argv[] )
 
   ResampleFilterType::Pointer resample = ResampleFilterType::New();
   ImageType::Pointer fixedImage;
-  typedef  unsigned char  OutputPixelType;
+  typedef  unsigned short  OutputPixelType;
   typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
   
   typedef itk::CastImageFilter< 
