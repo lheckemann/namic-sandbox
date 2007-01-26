@@ -99,6 +99,7 @@ int main (int argc, char * argv[]) {
     typedef itk::ImageFileReader< FullTensorImageType > FullTensorReaderType;
     FullTensorReaderType::Pointer tensorReader = FullTensorReaderType::New();
     tensorReader->SetFileName( diffusionTensorImage );
+    observer->PostMessage( "reading tensors...\n" );
     try { 
       tensorReader->Update();
     } catch( itk::ExceptionObject & excp ) {
@@ -141,7 +142,7 @@ int main (int argc, char * argv[]) {
     const int nTensorRows = 3;
     const int nTensorCols = 3;
 
-    observer->PostMessage( "  filling tensors with real values..." );
+    observer->PostMessage( "converting tensors to symmetric format\n" );
     for( int cImageRow=0; cImageRow<size[ 0 ]; cImageRow++ ) {
       for( int cImageCol=0; cImageCol<size[ 1 ]; cImageCol++ ) {
         for( int cImageSlice=0; cImageSlice<size[ 2 ]; cImageSlice++ ) {
