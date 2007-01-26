@@ -240,7 +240,7 @@ int main (int argc, char * argv[]) {
     return 0;
   }
   poistatsFilter->SetSeedVolume( seedReader->GetOutput() );
-
+  
   // set seed for random number generator
   std::srand( ( unsigned ) time( 0 ) ); 
   poistatsFilter->SetRandomSeed( std::rand() );
@@ -319,7 +319,7 @@ int main (int argc, char * argv[]) {
   if( numberOfReplicas > 0 ) {
     poistatsFilter->SetNumberOfReplicas( numberOfReplicas );
   }
-    
+
   // compute the poi
   poistatsFilter->Update();
   
@@ -366,26 +366,26 @@ int main (int argc, char * argv[]) {
   WriteData( pathProbabilitiesFileName, 
     finalPathProbabilities.data_block(), finalPathProbabilities.size() );
     
-  PoistatsFilterType::MatrixType replicasProbabilities = 
-    poistatsFilter->GetBestPathsProbabilities();
-  const std::string bestPathsProbabilitiesFileName( (std::string)outputDirectory + 
-    (std::string)"/ReplicasProbabilities.txt" );
-  WriteData( bestPathsProbabilitiesFileName, 
-    replicasProbabilities.data_array(), replicasProbabilities.rows(), 
-    replicasProbabilities.cols() );
-
-  typedef itk::ImageFileWriter< PoistatsFilterType::SegmentationVolumeType > IntWriterType;  
-  IntWriterType::Pointer intWriter = IntWriterType::New();
-
-  std::string optimalSegmentationFileName = (std::string)outputDirectory + 
-    (std::string)"/OptimalPathSegmentation.nii";
-  PoistatsFilterType::SegmentationVolumePointer optimalPathSegmenation = 
-    poistatsFilter->GetOptimalSegmentation();
-  intWriter->SetInput( optimalPathSegmenation );
-  intWriter->SetFileName( optimalSegmentationFileName.c_str() );
-
-  observer->PostMessage( "writing: " + optimalSegmentationFileName + "\n" );  
-  intWriter->Update();    
+//  PoistatsFilterType::MatrixType replicasProbabilities = 
+//    poistatsFilter->GetBestPathsProbabilities();
+//  const std::string bestPathsProbabilitiesFileName( (std::string)outputDirectory + 
+//    (std::string)"/ReplicasProbabilities.txt" );
+//  WriteData( bestPathsProbabilitiesFileName, 
+//    replicasProbabilities.data_array(), replicasProbabilities.rows(), 
+//    replicasProbabilities.cols() );
+//
+//  typedef itk::ImageFileWriter< PoistatsFilterType::SegmentationVolumeType > IntWriterType;  
+//  IntWriterType::Pointer intWriter = IntWriterType::New();
+//
+//  std::string optimalSegmentationFileName = (std::string)outputDirectory + 
+//    (std::string)"/OptimalPathSegmentation.nii";
+//  PoistatsFilterType::SegmentationVolumePointer optimalPathSegmenation = 
+//    poistatsFilter->GetOptimalSegmentation();
+//  intWriter->SetInput( optimalPathSegmenation );
+//  intWriter->SetFileName( optimalSegmentationFileName.c_str() );
+//
+//  observer->PostMessage( "writing: " + optimalSegmentationFileName + "\n" );  
+//  intWriter->Update();    
 
   return EXIT_SUCCESS;
 

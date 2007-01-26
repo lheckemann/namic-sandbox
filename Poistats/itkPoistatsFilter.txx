@@ -577,11 +577,13 @@ template <class TInputImage, class TOutputImage>
 void
 PoistatsFilter< TInputImage, TOutputImage >
 ::GenerateData() {
-  
-  std::cerr << "parsing seed volume..." << std::endl;
+
+  this->InvokeEvent( StartEvent() );
+    
+  itkDebugMacro( << "parsing seed volume" );  
   this->ParseSeedVolume();
 
-  std::cerr << "initializing paths..." << std::endl;
+  itkDebugMacro( << "initializing paths" );
   this->InitPaths();
   
   this->ConstructOdfList();
@@ -606,9 +608,7 @@ PoistatsFilter< TInputImage, TOutputImage >
   const double lullEnergyDifferenceThreshold = .5*1e-3;
   
   const bool isMoreThanOneReplica = m_Replicas->GetNumberOfReplicas() > 1;
-  
-  std::cerr << "starting..." << std::endl;
-    
+      
   for( m_CurrentIteration=1, m_CurrentLull=0;
        m_CurrentIteration < this->GetMaxTime() && m_CurrentLull < this->GetMaxLull();
        m_CurrentIteration++ ) {
@@ -755,8 +755,6 @@ PoistatsFilter< TInputImage, TOutputImage >
       static_cast< double >( endClock - startClock ) / CLOCKS_PER_SEC;
     this->SetElapsedTime( elapsedTime );
     
-// TODO: remove this
-//    std::cerr << currentTime << "   lull: " << currentLull << "  denergy: " << energyDifference << "  mean: " << this->m_Replicas->GetCurrentMeanOfEnergies() << "  min: " << this->m_Replicas->GetMinimumCurrentEnergy() << "  global min: " << finalMinEnergy << "  exchs: " << this->GetExchanges() << "  time: " << elapsedTime << std::endl;
     this->InvokeEvent( IterationEvent() );            
     
   }
@@ -770,30 +768,31 @@ PoistatsFilter< TInputImage, TOutputImage >
   delete rethreadedFinalPath;
   rethreadedFinalPath = NULL;
   
-  std::cerr << "setting optimal path densities..." << std::endl;
+  this->InvokeEvent( GenerateOptimalPathDensitiesEvent() );
   OutputImagePointer optimalPathDensity = OutputImageType::New();
   AllocateOutputImage( OPTIMAL_PATH_DENSITY_OUTPUT, optimalPathDensity );
   this->ConvertPointsToImage( &finalBestPath, optimalPathDensity );  
 
-  std::cerr << "setting path densities..." << std::endl;
+  this->InvokeEvent( GenerateBestReplicaPathDensitiesStartEvent() );
   OutputImagePointer pathDensities = OutputImageType::New();
   AllocateOutputImage( PATH_DENSITY_OUTPUT, pathDensities );
-
-  std::cerr << "calculating best replica path densities..." << std::endl;
   MatrixListType bestPaths = m_Replicas->GetBestTrialPaths();
   this->GetAggregateReplicaDensities( bestPaths, pathDensities );
-    
-  std::cerr << "calculate final path probabilities..." << std::endl;
+  this->InvokeEvent( GenerateBestReplicaPathDensitiesEndEvent() );
+  
+  this->InvokeEvent( GenerateFinalPathProbabilitiesEvent() );
   this->CalculateFinalPathProbabilities();
   
-  std::cerr << "calculate best path probabilities for each replica..." << std::endl;
-  this->CalculateBestPathProbabilities();
+//  std::cerr << "calculate best path probabilities for each replica..." << std::endl;
+//  this->CalculateBestPathProbabilities();
   
-  std::cerr << "calculating optimal path segmentation..." << std::endl;
-  this->CalculateOptimalPathSegmentation( optimalPathDensity );
+//  std::cerr << "calculating optimal path segmentation..." << std::endl;
+//  this->CalculateOptimalPathSegmentation( optimalPathDensity );
   
 // TODO: remove this
 //  PrintFlippedMatlabMatrix( finalBestPath, "FinalBestPath" );
+
+  this->InvokeEvent( EndEvent() );
 
 }
 
@@ -1072,8 +1071,8 @@ PoistatsFilter<TInputImage, TOutputImage>
 
   MatrixType rotationMatrix( 3, 3 );
   GetMagnetToSliceFrameRotation( &rotationMatrix );
-  std::cerr << "magnet to slice frame rotation:" << std::endl;
-  std::cerr << rotationMatrix << std::endl;
+  itkDebugMacro( << "magnet to slice frame rotation:" );
+  itkDebugMacro( << rotationMatrix );
   
   const MatrixType inverseRotationMatrix =
     vnl_matrix_inverse< double >( rotationMatrix ).inverse();
@@ -1151,9 +1150,6 @@ PoistatsFilter<TInputImage, TOutputImage>
           tableIndex[ 1 ] = cRow;
           tableIndex[ 2 ] = cSlice;
           odfLookUpTable->SetPixel( tableIndex, cOdfs );
-
-//          std::cerr << "=== " << tableIndex << std::endl;
-//          std::cerr << "original tensor: \n" << tensor << std::endl;
           
           itk::Matrix< double, nTensorRows, nTensorColumns > 
             tensorClone( tensor );
@@ -1383,6 +1379,13 @@ PoistatsFilter<TInputImage, TOutputImage>
   return m_OptimalPathSegmentation;
 }
 
+template <class TInputImage, class TOutputImage>
+int
+PoistatsFilter<TInputImage, TOutputImage>
+::GetNumberOfInitialPoints() const {
+  return this->m_Seeds.size();
+}
+
 /**
  * Returns the path with evenly spaced sample points.
  */
@@ -1402,16 +1405,15 @@ PoistatsFilter<TInputImage, TOutputImage>
 //  end  
 
   // TODO: I think that it would be better to have the initial points method create the initial points  
-  const int nInitialPoints = this->m_Seeds.size();  
+  const int nInitialPoints = this->GetNumberOfInitialPoints();  
   const int spatialDimensions = 3;
-  
-  std::cerr << "  finding " << nInitialPoints << " seeds" << std::endl;
   
   MatrixType initialPoints( nInitialPoints, spatialDimensions );
   this->GetInitialPoints( &initialPoints );
 
   this->m_Replicas->SetInitialPoints( &initialPoints );
   
+  this->InvokeEvent( SeedsFoundInitialEvent() );
 }
 
 /**
@@ -1446,7 +1448,7 @@ PoistatsFilter<TInputImage, TOutputImage>
     MatrixPointer seedRegion = this->m_Seeds[ cSeed ];
     
     GetPointClosestToCenter( seedRegion, &closestPoint );    
-    std::cerr << "closest point: " << closestPoint << std::endl;
+    itkDebugMacro( << "closest point: " << closestPoint << std::endl );
     
     if( cSeed < initialPoints->rows() ) {
     
@@ -1455,9 +1457,14 @@ PoistatsFilter<TInputImage, TOutputImage>
       }
       
     } else {
-    
+      // TODO: throw an error here
       std::cerr << "too many seeds!" << std::endl;
-    
+
+//      ByteSwapperError e(__FILE__, __LINE__);
+//      e.SetLocation("SwapBE");
+//      e.SetDescription("Cannot swap number of bytes requested");
+//      throw e;
+      
     }
     
   }
@@ -1663,13 +1670,8 @@ PoistatsFilter<TInputImage, TOutputImage>
   MatrixType densityMatrix( pathGeoAngles.rows(), pathGeoAngles.cols() );
   CalculateDensityMatrix( &pathGeoAngles, &densityMatrix );
   
-//  std::cerr << "density matrix: " << std::endl << densityMatrix << std::endl;
-
 //  odflist = odflist(1:(end-1),:); % n - 1 sets of odfs, because they
-//                                % correspond to path segments, not path points.
-//  itk::Array2D< double > odfList( *odfs );
-//  odfList.SetSize( odfList.rows()-1, odfList.cols() );
-    
+//                                % correspond to path segments, not path points.    
 //% odfvalues are the baysian conditional posterior probability distribution
 //%  sum(A,2) will sum along the rows
 //odfvalues = sum(odflist.*dm,2);
@@ -1994,7 +1996,7 @@ PoistatsFilter<TInputImage, TOutputImage>
   GetSortedUniqueSeedValues( this->m_SeedVolume, &seedValueCountPairs );
   
   if( this->m_SeedValuesToUse.empty() ) {
-    std::cerr << "seeds to use not explicitly set, using all seeds in seed volume..." << std::endl;
+    this->InvokeEvent( SeedsUsingAllEvent() );
   } else {
     TakeUnionOfSeeds( &seedValueCountPairs, &this->m_SeedValuesToUse );
   }
@@ -2008,7 +2010,7 @@ PoistatsFilter<TInputImage, TOutputImage>
     const SeedType seedValue = ( *valuesIt ).first;
     const int nCurrentSeed = ( *valuesIt ).second;
     
-    std::cerr << "  ( seed value, number of seeds ): (" << seedValue << ", " << nCurrentSeed << " )" << std::endl;
+    itkDebugMacro( << "  ( seed value, number of seeds ): (" << seedValue << ", " << nCurrentSeed << " )" );
 
     MatrixPointer currentSeeds = 
       new MatrixType( nCurrentSeed, SeedVolumeIndexType::GetIndexDimension() );
@@ -2179,9 +2181,7 @@ density = density / sum(density(:));
   for( MatrixListType::iterator replicaIterator = replicaPaths.begin(); 
     replicaIterator != replicaPaths.end(); replicaIterator++ ) {
 
-// TODO: move this into an observer    
-    std::cerr << "calculating densities: " << cReplica + 1 << " / " << replicaPaths.size() << std::endl;
-
+    this->InvokeEvent( GenerateBestReplicaPathDensitiesProgressEvent() );
     const MatrixPointer currentReplicaPath = ( *replicaIterator );
         
     OutputImagePointer currentReplicaDensity = OutputImageType::New();

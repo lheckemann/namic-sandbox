@@ -168,6 +168,8 @@ public:
     
   void GetInitialPoints( itk::Array2D< double >* initialPoints );
   
+  int GetNumberOfInitialPoints() const;  
+  
   itkGetMacro( Polarity, MatrixType );
   itkSetMacro( Polarity, MatrixType );
   

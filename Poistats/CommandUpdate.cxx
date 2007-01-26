@@ -31,14 +31,12 @@ CommandUpdate::Execute(const itk::Object * object,
     const int exchanges = filter->GetExchanges();
     const double elapsedTime = filter->GetElapsedTime();
     
-//    std::string message = currentIteration + "   lull: " + currentLull + "  denergy: " + energyDifference + "  mean: " + meanOfEnergies + "  min: " + minOfEnergies + "  global min: " +  globalMin + "  exchs: " + exchanges + "  time: " + elapsedTime + "\n";
-    
     std::ostringstream output;
     output << currentIteration << "   lull: " << currentLull << "  denergy: " << energyDifference << "  mean: " << meanOfEnergies << "  min: " << minOfEnergies << "  global min: " <<  globalMin << "  exchs: " << exchanges << "  time: " << elapsedTime << "\n";
     
     PostMessage( output.str() );
     
-  } else if( itk::ProgressEvent().CheckEvent( &event ) ) {
+  } else if( itk::PoistatsOdfCalculationEvent().CheckEvent( &event ) ) {
 
     if( itk::PoistatsOdfCalculationStartEvent().CheckEvent( &event ) ) {
       PostMessage( "constructing odf list\n" );
@@ -48,15 +46,64 @@ CommandUpdate::Execute(const itk::Object * object,
       PostMessage( "\nfinished\n" );
     }
 
+  } else if( itk::SeedsEvent().CheckEvent( &event ) ) {
+    
+    if( itk::SeedsUsingAllEvent().CheckEvent( &event ) ) {
+      
+      PostMessage( "Seeds to use not explicitly set, using all seeds in seed volume...\n" );      
+
+    } else if( itk::SeedsFoundInitialEvent().CheckEvent( &event ) ) {
+
+      PoistatsFilterPointer filter = 
+        dynamic_cast< PoistatsFilterPointer >( object );
+      const int nInitialPoints = filter->GetNumberOfInitialPoints();
+      std::ostringstream output;
+      output << "Finding " << nInitialPoints << " seeds" << std::endl;
+      PostMessage( output.str() );
+
+    }
+    
+  } else if( itk::GenerateOutputEvent().CheckEvent( &event ) ) {
+    
+    if( itk::GenerateOptimalPathDensitiesEvent().CheckEvent( &event ) ) {
+      
+      PostMessage( "calculating optimal path densities\n" );
+      
+    } else if( itk::GenerateBestReplicaPathDensitiesEvent().
+      CheckEvent( &event ) ) {
+
+      if( itk::GenerateBestReplicaPathDensitiesStartEvent().
+        CheckEvent( &event ) ) {
+          
+        PostMessage( "calculating best replica path densities\n" );
+        
+      } else if( itk::GenerateBestReplicaPathDensitiesProgressEvent().
+        CheckEvent( &event ) ) {
+          
+        PostMessage( ". " );
+
+      } else if( itk::GenerateBestReplicaPathDensitiesEndEvent().
+        CheckEvent( &event ) ) {
+          
+        PostMessage( "finished\n" );
+
+      }
+      
+    } else if( itk::GenerateFinalPathProbabilitiesEvent().
+      CheckEvent( &event ) ) {
+        
+      PostMessage( "calculate final path probabilities\n" );
+      
+    }
+    
   }
   
 }
 
-
 void 
 CommandUpdate::PostMessage( const std::string message ){
   
-  std::cerr << message;
+  std::cout << message;
   
   std::string fileName = m_OutputDirectory + "/" + m_LogFileName;
   WriteMessage( message, fileName );
