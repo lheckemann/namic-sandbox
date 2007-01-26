@@ -111,6 +111,16 @@ CommandUpdate::PostMessage( const std::string message ){
 }
 
 void 
+CommandUpdate::PostErrorMessage( const std::string message ){
+  
+  std::cerr << "ERROR: " + message;
+  
+  std::string fileName = m_OutputDirectory + "/" + m_LogFileName;
+  WriteMessage( message, fileName );
+  
+}
+
+void 
 CommandUpdate::WriteMessage( const std::string message, 
   const std::string fileName ) {
 

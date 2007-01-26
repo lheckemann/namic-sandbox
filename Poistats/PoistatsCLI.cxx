@@ -102,9 +102,10 @@ int main (int argc, char * argv[]) {
     try { 
       tensorReader->Update();
     } catch( itk::ExceptionObject & excp ) {
-      std::cerr << "Error reading the series." << std::endl;
-      std::cerr << excp << std::endl;
-      return 0;
+      std::ostringstream output;
+      output << "Error reading the series." << std::endl << excp << std::endl;
+      observer->PostErrorMessage( output.str() );
+      return EXIT_FAILURE;
     }
     
     FullTensorImageType::Pointer fullTensors = tensorReader->GetOutput();
@@ -194,9 +195,10 @@ int main (int argc, char * argv[]) {
     try { 
       tensorReader->Update();
     } catch( itk::ExceptionObject & excp ) {
-      std::cerr << "Error reading the series." << std::endl;
-      std::cerr << excp << std::endl;
-      return 0;
+      std::ostringstream output;
+      output << "Error reading the series." << std::endl << excp << std::endl;
+      observer->PostErrorMessage( output.str() );
+      return EXIT_FAILURE;
     }
     tensors = tensorReader->GetOutput();
   }
@@ -235,9 +237,10 @@ int main (int argc, char * argv[]) {
   try { 
     seedReader->Update();
   } catch( itk::ExceptionObject & excp ) {
-    std::cerr << "Error reading the series." << std::endl;
-    std::cerr << excp << std::endl;
-    return 0;
+    std::ostringstream output;
+    output << "Error reading the series." << std::endl << excp << std::endl;
+    observer->PostErrorMessage( output.str() );
+    return EXIT_FAILURE;
   }
   poistatsFilter->SetSeedVolume( seedReader->GetOutput() );
   
@@ -272,9 +275,10 @@ int main (int argc, char * argv[]) {
   try { 
     samplingReader->Update();
   } catch( itk::ExceptionObject & excp ) {
-    std::cerr << "Error reading the series." << std::endl;
-    std::cerr << excp << std::endl;
-    return 0;
+    std::ostringstream output;
+    output << "Error reading the series." << std::endl << excp << std::endl;
+    observer->PostErrorMessage( output.str() );
+    return EXIT_FAILURE;
   }
   poistatsFilter->SetSamplingVolume( samplingReader->GetOutput() );
   
@@ -290,8 +294,10 @@ int main (int argc, char * argv[]) {
     try { 
       maskReader->Update();
     } catch( itk::ExceptionObject & excp ) {
-      std::cerr << "Error reading the series." << std::endl;
-      std::cerr << excp << std::endl;
+      std::ostringstream output;
+      output << "Error reading the series." << std::endl << excp << std::endl;
+      observer->PostErrorMessage( output.str() );
+      return EXIT_FAILURE;
     }
     poistatsFilter->SetMaskVolume( maskReader->GetOutput() );
   }
@@ -321,7 +327,14 @@ int main (int argc, char * argv[]) {
   }
 
   // compute the poi
-  poistatsFilter->Update();
+  try { 
+    poistatsFilter->Update();
+  } catch( itk::ExceptionObject & excp ) {
+    std::ostringstream output;
+    output << "Error thrown in poistats filter." << std::endl << excp << std::endl;
+    observer->PostErrorMessage( output.str() );
+    return EXIT_FAILURE;
+  }
   
   typedef itk::ImageFileWriter< PoistatsFilterType::OutputImageType > WriterType;  
   WriterType::Pointer writer = WriterType::New();

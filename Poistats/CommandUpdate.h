@@ -29,6 +29,8 @@ public:
   void Execute(const itk::Object * object, const itk::EventObject & event);
   
   void PostMessage( const std::string message );
+
+  void PostErrorMessage( const std::string message );
   
   static void WriteMessage( const std::string message, 
     const std::string fileName );
