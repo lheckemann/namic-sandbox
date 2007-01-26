@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 
 // I need to include this for ofstream to work for some reason...
@@ -124,7 +125,7 @@ void
 CommandUpdate::WriteMessage( const std::string message, 
   const std::string fileName ) {
 
-  std::ofstream logFile( fileName.c_str() );
+  std::ofstream logFile( fileName.c_str(), std::ios::out | std::ios::app  );
   
   logFile << message;
   
