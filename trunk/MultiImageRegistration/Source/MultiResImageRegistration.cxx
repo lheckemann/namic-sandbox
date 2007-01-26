@@ -210,7 +210,7 @@ int main( int argc, char *argv[] )
     return 1;
 
   // Input Image type typedef
-  const    unsigned int    Dimension = 2;
+  const    unsigned int    Dimension = 3;
   typedef  unsigned short  PixelType;
   typedef itk::Image< PixelType, Dimension >  ImageType;
 
@@ -873,7 +873,15 @@ int main( int argc, char *argv[] )
   caster->SetInput( intensityRescaler->GetOutput() );
   writer->SetInput( caster->GetOutput()   );
 
-  string meanImageFname = outputFolder + "MeanRegisteredImage.png";
+  string meanImageFname;
+  if(Dimension == 2)
+  {
+    meanImageFname = outputFolder + "MeanRegisteredImage.png";
+  }
+  else
+  {
+    meanImageFname = outputFolder + "MeanRegisteredImage.mhd";
+  }
   writer->SetFileName( meanImageFname.c_str() );
   writer->Update();
 
@@ -882,7 +890,15 @@ int main( int argc, char *argv[] )
   caster->SetInput( intensityRescaler->GetOutput() );
   writer->SetInput( caster->GetOutput()   );
 
-  string meanImageFname2 = outputFolder + "MeanOriginalImage.png";
+  string meanImageFname2;
+  if(Dimension == 2)
+  {
+    meanImageFname2 = outputFolder + "MeanOriginalImage.png";
+  }
+  else
+  {
+    meanImageFname2 = outputFolder + "MeanOriginalImage.mhd";
+  }
   writer->SetFileName( meanImageFname2.c_str() );
   writer->Update();
 
