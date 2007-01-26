@@ -1457,13 +1457,8 @@ PoistatsFilter<TInputImage, TOutputImage>
       }
       
     } else {
-      // TODO: throw an error here
-      std::cerr << "too many seeds!" << std::endl;
-
-//      ByteSwapperError e(__FILE__, __LINE__);
-//      e.SetLocation("SwapBE");
-//      e.SetDescription("Cannot swap number of bytes requested");
-//      throw e;
+    
+      itkGenericExceptionMacro (<< "too many seeds");            
       
     }
     
