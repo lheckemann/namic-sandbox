@@ -1,18 +1,17 @@
 #include <iostream>
 #include <string>
+#include <cstdlib>
+#include <unistd.h>
+#include <sys/utsname.h>
 
 #include <itkDiffusionTensor3D.h>
-
 #include <itkImageSeriesReader.h>
 #include <itkImageFileWriter.h>
-
 #include <itkBSplineInterpolateImageFunction.h>
-
 #include <itkNiftiImageIO.h>
+
 #include "itkPoistatsFilter.h"
-
 #include "CommandUpdate.h"
-
 #include "PoistatsCLICLP.h"
 
 const std::string NORMAL_A = "normal_a:";
@@ -53,6 +52,78 @@ WriteData( const std::string fileName,
     
 }
 
+std::string 
+GetFieldAndParameter( std::string field, std::string parameter ) {
+  std::ostringstream output;
+  output << field << ": \n" << "  " << parameter << std::endl << std::endl;
+  return output.str();
+}
+
+std::string 
+GetVersion() {
+  return "1.0 Beta";
+}
+
+std::string 
+GetCurrentDirectory() {
+  
+  const int nChars = 2000;
+  char cwd[ nChars ];
+  
+  getcwd( cwd, nChars );
+  
+  return std::string( cwd );
+}
+
+std::string 
+GetCommandArguments( int argc, char * argv[] ) {  
+
+  std::ostringstream output;
+
+  for( int cArg=0; cArg<argc; cArg++ ) {
+    output << argv[ cArg ] << " ";
+  }
+  output << std::endl;
+  
+  return output.str();
+}
+
+std::string 
+GetOperatingSystem() {  
+  utsname uts;
+  uname( &uts );    
+  std::string name( uts.sysname );
+  return name;
+}
+
+std::string
+GetHostName() {
+  utsname uts;
+  uname( &uts );
+  std::string name( uts.nodename );
+  return name;
+}
+
+std::string
+GetMachine() {
+  utsname uts;
+  uname( &uts );
+  std::string machine( uts.machine );
+  return machine;
+}
+
+std::string 
+GetFreeSurferHome() {  
+  std::string fsHome( std::getenv( "FREESURFER_HOME" ) ); 
+  return fsHome;
+}
+
+std::string 
+GetSubjectsDirectory() {
+  std::string subjectsDirectory( std::getenv( "SUBJECTS_DIR" ) ); 
+  return subjectsDirectory;
+}
+
 double ReadField( std::string fileName, std::string fieldName ) {
   std::string s;
   std::ifstream headerFile( fileName.c_str() );
@@ -83,7 +154,26 @@ int main (int argc, char * argv[]) {
   observer->SetOutputDirectory( outputDirectory );  
   observer->SetLogFileName( "poistats.log" );
 
-  observer->PostMessage( "-- starting poistats --\n" );
+  observer->PostMessage( "-- Poistats " + GetVersion() + " --\n\n" );
+  
+  observer->PostMessage( GetFieldAndParameter( "Command", 
+    GetCommandArguments( argc, argv ) ) );
+
+  observer->PostMessage( GetFieldAndParameter( "FreeSurfer Home", 
+    GetFreeSurferHome() ) );
+
+  observer->PostMessage( GetFieldAndParameter( "Subjects Directory", 
+    GetSubjectsDirectory() ) );
+
+  observer->PostMessage( GetFieldAndParameter( "Current Working Directory", 
+    GetCurrentDirectory() ) );
+  
+  observer->PostMessage( GetFieldAndParameter( "Operating System", 
+    GetOperatingSystem() ) );
+
+  observer->PostMessage( GetFieldAndParameter( "Host name", GetHostName() ) );
+
+  observer->PostMessage( GetFieldAndParameter( "Machine", GetMachine() ) );
   
   typedef itk::DiffusionTensor3D< float > TensorPixelType;
   typedef itk::Image< TensorPixelType, 3 > TensorImageType;
@@ -218,7 +308,7 @@ int main (int argc, char * argv[]) {
 
   double normalS = 1.0;
   double normalA = 0.0;
-  observer->PostMessage( "*** NOTE: reading " + headerFile + " for normalS and normalA" );
+  observer->PostMessage( "*** NOTE: reading " + headerFile + " for normalS and normalA\n" );
   std::string headerFileName( headerFile );
   normalS = ReadField( headerFileName, NORMAL_S );
   std::cout << NORMAL_S << normalS << std::endl;
