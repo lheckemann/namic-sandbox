@@ -21,7 +21,9 @@
 #include "itkResampleImageFilter.h"
 
 #include "itkAffineTransform.h"
-#include "itkNearestNeighborInterpolateImageFunction.h"
+#include "itkBSplineDeformableTransform.h"
+
+#include "itkLinearInterpolateImageFunction.h"
 
 #include <string>
 #include <sstream>
@@ -36,9 +38,9 @@ int main( int argc, char * argv[] )
     return EXIT_FAILURE;
     }
 
-  const     unsigned int   Dimension = 2;
-  typedef   unsigned char  InputPixelType;
-  typedef   unsigned char  OutputPixelType;
+  const     unsigned int   Dimension = 3;
+  typedef   unsigned short  InputPixelType;
+  typedef   unsigned short  OutputPixelType;
   typedef itk::Image< InputPixelType,  Dimension >   InputImageType;
   typedef itk::Image< OutputPixelType, Dimension >   OutputImageType;
 
@@ -46,66 +48,92 @@ int main( int argc, char * argv[] )
   typedef itk::ImageFileReader< InputImageType  >  ReaderType;
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;
   
-  ofstream filenames("GeneratedAffineFileNames.txt");
-  
-   for(int i=-20; i<=20 ; i=i+3)
-      {
-      for(int j=-20; j<=20 ; j=j+3)
-        {
-        ReaderType::Pointer reader = ReaderType::New();
-        WriterType::Pointer writer = WriterType::New();
+  for(int i=-5; i<=5 ; i=i+3)
+  {
+    for(int j=-5; j<=5 ; j=j+3)
+    {
+      ReaderType::Pointer reader = ReaderType::New();
+      WriterType::Pointer writer = WriterType::New();
 
-        reader->SetFileName( argv[1] );
-        writer->SetFileName( argv[1] );
+      reader->SetFileName( argv[1] );
 
-        typedef itk::ResampleImageFilter<InputImageType,OutputImageType> FilterType;
-        FilterType::Pointer filter = FilterType::New();
+      typedef itk::ResampleImageFilter<InputImageType,OutputImageType> ResampleFilterType;
+      ResampleFilterType::Pointer resample = ResampleFilterType::New();
 
-        typedef itk::AffineTransform< double, Dimension >  TransformType;
-        TransformType::Pointer transform = TransformType::New();
-        filter->SetTransform( transform );
-        typedef itk::NearestNeighborInterpolateImageFunction< 
+      typedef itk::AffineTransform< double, Dimension >  AffineTransformType;
+      AffineTransformType::Pointer affineTransform = AffineTransformType::New();
+
+      typedef itk::BSplineDeformableTransform< double,
+                                           Dimension,
+                                           3 >     BSplineTransformType;
+
+      resample->SetTransform( affineTransform );
+      typedef itk::LinearInterpolateImageFunction< 
                              InputImageType, double >  InterpolatorType;
 
-        InterpolatorType::Pointer interpolator = InterpolatorType::New();
-        filter->SetInterpolator( interpolator );
-        filter->SetDefaultPixelValue( 0 );
-         
-         InputImageType::SizeType   size;
-       
-         size[0] = 221;  // number of pixels along X
-         size[1] = 257;  // number of pixels along Y
-       
-         filter->SetSize( size );
+      InterpolatorType::Pointer interpolator = InterpolatorType::New();
+      resample->SetInterpolator( interpolator );
+      resample->SetDefaultPixelValue( 0 );
 
-        filter->SetInput( reader->GetOutput() );
-        writer->SetInput( filter->GetOutput() );
-        writer->Update();
-        TransformType::OutputVectorType translation;
-
-
-
-        translation[0] = i;  // X translation in millimeters
-        translation[1] = j;  // Y translation in millimeters
-        transform->Translate( translation );
-
-        string fname;
-        ostringstream fnameStream;
-        fnameStream << argv[2] << "/" << argv[3] <<"_X_" << i << "_Y_" << j << ".png" ;
-        filenames << argv[3] <<"_X_" << i << "_Y_" << j << ".png ";
-        fname = fnameStream.str();
-        writer->SetFileName( fname.c_str() );
-        
-
-        filter->SetDefaultPixelValue( 0 );
-
-        std::cout << "Result = " << fname.c_str() << std::endl;
-        std::cout << " Translation X = " << translation[0];
-        std::cout << " Translation Y = " << translation[1]  << std::endl;
-        writer->Update();
-        }
+      // Set the parameters of the affine transform
+      affineTransform->SetIdentity();
+      AffineTransformType::ParametersType affineParameters;
+      affineParameters = affineTransform->GetParameters();
+      for( int r=0; r<affineParameters.GetSize(); r++ )
+      {
+        affineParameters[r] += i;
       }
+      
+      // Initialize the resampler
+      // Get the size of the image
+      InputImageType::SizeType   size;
+      reader->Update();
+      size = reader->GetOutput()->GetLargestPossibleRegion().GetSize();
+      // Increase the size by 10 pixels (voxels)
+      for(int r=0; r<Dimension; r++)
+      {
+        size[r] += 10;
+      }
+      
+      //Get the spacing
+      InputImageType::SpacingType spacing;
+      spacing = reader->GetOutput()->GetSpacing();
+      //Get the origin
+      BSplineTransformType::OriginType origin;
+      origin = reader->GetOutput()->GetOrigin();
 
+      // Move the origin 5 spaces
+      for(int r=0; r<Dimension; r++ )
+      {
+        origin[r] += 5*spacing[r];
+      }
+      resample->SetSize(size);
+      resample->SetOutputOrigin(origin);
+      resample->SetOutputSpacing(spacing);
+
+
+      resample->SetInput( reader->GetOutput() );
+      writer->SetInput( resample->GetOutput() );
+      
+
+      string fname;
+      ostringstream fnameStream;
+      fnameStream << argv[2] << "/" << argv[3] <<"_" << affineParameters.GetSize();
+      for(int r=0; r<affineParameters.GetSize(); r++ )
+      {
+        fnameStream << "_" << static_cast<int>(affineParameters[r]);
+      }
+      if(Dimension == 2)
+        fnameStream << ".png";
+      else
+        fnameStream << ".mhd";
+      fname = fnameStream.str();
+      writer->SetFileName( fname.c_str() );
+
+      std::cout << "Result = " << fname.c_str() << std::endl;
+      writer->Update();
+    }
+  }
   return EXIT_SUCCESS;
 }
 
