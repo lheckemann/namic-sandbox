@@ -1,71 +1,48 @@
 /*=========================================================================
 
-  Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: MultiResImageRegistration2.cxx,v $
+  Program:   Group-wise registration
+  Module:    MultiResImageRegistration.cxx
   Language:  C++
-  Date:      $Date: 2006/05/14 12:16:23 $
-  Version:   $Revision: 1.43 $
+  Date:      
+  Version:   
 
-  Copyright (c) Insight Software Consortium. All rights reserved.
-  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
-     PURPOSE.  See the above copyright notices for more information.
-
+  We implement a multiresolution based approach to the group-wise registration problem.
+  We first register the input images using Affine Transform. Then the output of the
+  affine transform is supplied to the B-spline transform. We successively increase the
+  resolution of the Bspline grid. All the transforms are implemented in a multiresolution
+  fashion.
+    
 =========================================================================*/
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
 #endif
 
-//  Software Guide : BeginCommandLineArgs
-//    INPUTS:  {BrainT1SliceBorder20.png}
-//    INPUTS:  {BrainProtonDensitySliceShifted13x17y.png}
-//    OUTPUTS: {MultiResImageRegistration2Output.png}
-//    100
-//    OUTPUTS: {MultiResImageRegistration2CheckerboardBefore.png}
-//    OUTPUTS: {MultiResImageRegistration2CheckerboardAfter.png}
-//  Software Guide : EndCommandLineArgs
+//    INPUTS:  A series of images, either 2D or 3D
+//    OUTPUTS: registered version of each input image
+//    OUTPUTS: The arithmetic mean of the input images and the mean of the registered images
 
-// Software Guide : BeginLatex
-//
-//  This example illustrates the use of more complex components of the
-//  registration framework. In particular, it introduces the use of the
-//  \doxygen{AffineTransform} and the importance of fine-tuning the scale
-//  parameters of the optimizer.
-//
-// \index{itk::ImageRegistrationMethod!AffineTransform}
-// \index{itk::ImageRegistrationMethod!Scaling parameter space}
-// \index{itk::AffineTransform!Image Registration}
-//
-// The AffineTransform is a linear transformation that maps lines into
-// lines. It can be used to represent translations, rotations, anisotropic
-// scaling, shearing or any combination of them. Details about the affine
-// transform can be seen in Section~\ref{sec:AffineTransform}.
-//
-// In order to use the AffineTransform class, the following header
-// must be included.
-//
-// \index{itk::AffineTransform!Header}
-//
-// Software Guide : EndLatex 
+// This code will use a entropy based metric that is implemented in a multithreaded way.
+// The metric uses stoachastic subsampling. The sampled pixels(voxels) are stored in a
+// std::vector. Each element in the vector contains pixels(voxels) that correspond to
+// each other along the images. The metric then computes the summation of the entropies
+// of each element in the vector.
 
-
-// Software Guide : BeginCodeSnippet
-// Software Guide : EndCodeSnippet
-//user defined headers
+// Headers for the registration method and the metric
 #include "MultiResolutionImageRegistrationMethod.h"
 #include "VarianceMultiImageMetric.h"
+
+    
+    
 #include "AddImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 
-#include "MultiResolutionImageRegistrationMethod.h"
 #include "itkAffineTransform.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkGradientDescentOptimizer.h"
 #include "itkMultiResolutionPyramidImageFilter.h"
 #include "itkImage.h"
-
+#include "itkNormalizeImageFilter.h"
+#include "itkDiscreteGaussianImageFilter.h"
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -74,12 +51,11 @@
 #include "itkCastImageFilter.h"
 #include "itkCheckerBoardImageFilter.h"
 
+// Header to collect the time to register the images
 #include "itkTimeProbesCollectorBase.h"
 
-//  The following section of code implements an observer
-//  that will monitor the evolution of the registration process.
-//
 #include "itkCommand.h"
+
 #include <sstream>
 #include <string>
 #include <fstream>
@@ -91,8 +67,6 @@
 #include "itkBSplineDeformableTransform.h"
 #include "itkLBFGSBOptimizer.h"
 
-#include "itkNormalizeImageFilter.h"
-#include "itkDiscreteGaussianImageFilter.h"
 
 //BSpline related headers
 #include "itkBSplineResampleImageFunction.h"
@@ -108,8 +82,10 @@
 
 //System Related headers
 #include <itksys/SystemTools.hxx>
-
     
+//  The following section of code implements an observer
+//  that will monitor the evolution of the registration process.
+
 class CommandIterationUpdate : public itk::Command 
 {
 public:
@@ -142,8 +118,8 @@ public:
       std::cout << std::setw(3) << m_CumulativeIterationIndex++ << "   ";
       std::cout << std::setw(3) << optimizer->GetCurrentIteration() << "   ";
       std::cout << std::setw(6) << optimizer->GetValue() << "   ";
-      //std::cout << std::setw(6) << optimizer->GetCurrentPosition()[0] << "   ";
-      std::cout << std::setw(6) << optimizer->GetCurrentPosition() <<std::endl;
+      std::cout << std::setw(6) << optimizer->GetCurrentPosition()[0] << "   ";
+      std::cout << std::setw(6) << optimizer->GetCurrentPosition()[13] <<std::endl;
       
     }
 private:
@@ -173,25 +149,25 @@ public:
   void Execute(itk::Object * object, const itk::EventObject & event)
   {
     if( !(itk::IterationEvent().CheckEvent( &event )) )
-      {
+    {
       return;
-      }
+    }
     RegistrationPointer registration =
                         dynamic_cast<RegistrationPointer>( object );
     OptimizerPointer optimizer = dynamic_cast< OptimizerPointer >( 
                        registration->GetOptimizer() );
 
     if ( registration->GetCurrentLevel() == 0 )
-      {
+    {
         //optimizer->SetLearningRate( 2e-4 );
         optimizer->MaximizeOn();
-      }
+    }
     else
-      {
+    {
+      // Decrease the learning rate at each increasing multiresolution level
       optimizer->SetLearningRate( optimizer->GetLearningRate() / 5.0 );
       optimizer->MaximizeOn();
-
-      }
+    }
   }
   void Execute(const itk::Object * , const itk::EventObject & )
     { return; }
@@ -199,6 +175,7 @@ public:
 
 // Get the command line arguments
 int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType,  int& multiLevel, string& transformType, string& imageType );
+
 
 int main( int argc, char *argv[] )
 {
@@ -226,7 +203,7 @@ int main( int argc, char *argv[] )
 
   // Input Image type typedef
   const    unsigned int    Dimension = 3;
-  typedef  unsigned int  PixelType;
+  typedef  unsigned short  PixelType;
   typedef itk::Image< PixelType, Dimension >  ImageType;
 
   //Internal Image Type typedef
@@ -259,8 +236,10 @@ int main( int argc, char *argv[] )
   RegistrationType::Pointer   registration  = RegistrationType::New();
 
 
+  // N is the number of images in the registration
   int N = fileNames.size();
-  //create filenames
+  
+  //generate filenames
   vector<string> inputFileNames(N);
   vector<string> outputFileNames(N);
   for(int i=0; i<N; i++)
@@ -276,13 +255,13 @@ int main( int argc, char *argv[] )
   registration->SetNumberOfImages(N);
   registration->SetOptimizer(     optimizer     );
 
-  
+  //typedefs for affine transform array
   typedef vector<TransformType::Pointer> TransformArrayType;
-  TransformArrayType      transformArray;
+  TransformArrayType      transformArray(N);
+
+  //typedefs for intorpolater array
   typedef vector<InterpolatorType::Pointer>  InterpolatorArrayType;
-  InterpolatorArrayType      interpolatorArray;
-  transformArray.resize(N);
-  interpolatorArray.resize(N);
+  InterpolatorArrayType      interpolatorArray(N);
 
   MetricType::Pointer         metric        = MetricType::New();
   registration->SetMetric( metric  );
@@ -309,12 +288,15 @@ int main( int argc, char *argv[] )
   ImagePyramidArray imagePyramidArray(N);
 
 
-  
+  // typedef for normalized image filters
+  // the mean and the variance of the images normalized before registering
   typedef itk::NormalizeImageFilter< ImageType, InternalImageType > NormalizeFilterType;
   typedef NormalizeFilterType::Pointer NormalizeFilterTypePointer;
   typedef vector<NormalizeFilterTypePointer> NormalizedFilterArrayType;
   NormalizedFilterArrayType normalizedFilterArray(N);
 
+  // typedefs for Gaussian filters
+  // The normalized images are passed through a Gaussian filter for smoothing
   typedef itk::DiscreteGaussianImageFilter<
                                       InternalImageType, 
                                       InternalImageType
@@ -324,10 +306,17 @@ int main( int argc, char *argv[] )
 
 
 
-  /* Connect the compenents together */
+  // Begin the registration with the affine transform
+  // Connect the compenents together
+  //
+  // for all input images
+  // create a separate tranform, interpolater, image reader,
+  // normalized filter, gaussian filter and connect those components
+  //
   try
   {
-    for( int i=0; i< N; i++ ){
+    for( int i=0; i< N; i++ )
+    {
       transformArray[i]     = TransformType::New();
       interpolatorArray[i]  = InterpolatorType::New();
       registration->SetTransformArray(     transformArray[i] ,i    );
@@ -386,10 +375,14 @@ int main( int argc, char *argv[] )
   registration->SetFixedImageRegion( fixedImageRegion );
 
 
+  // Allocate the space for tranform parameters used by registration method
+  // We use a large array to concatenate the parameter array of each tranform
   typedef RegistrationType::ParametersType ParametersType;
   ParametersType initialParameters( transformArray[0]->GetNumberOfParameters()*N );
   initialParameters.Fill(0.0);
   registration->SetInitialTransformParameters( initialParameters );
+
+  //Initialize the affine transforms to identity transform
   for(int i=0; i<N; i++)
   {
     transformArray[i]->SetIdentity();
@@ -397,8 +390,8 @@ int main( int argc, char *argv[] )
   }
 
 
-  
   // Set the scales of the optimizer
+  // We set a large scale for the parameters corresponding to translation
   typedef OptimizerType::ScalesType       OptimizerScalesType;
   OptimizerScalesType optimizerScales( transformArray[0]->GetNumberOfParameters()*N );
   int numberOfParameters = transformArray[0]->GetNumberOfParameters();
@@ -415,36 +408,42 @@ int main( int argc, char *argv[] )
   }
   optimizer->SetScales( optimizerScales );
 
+
+  // Get the number of pixels (voxels) in the images
   const unsigned int numberOfPixels = fixedImageRegion.GetNumberOfPixels();
   
   const unsigned int numberOfSamples =
       static_cast< unsigned int >( numberOfPixels * numberOfSpatialSamplesAffinePercentage );
 
+  // Set the number of samples to be used by the metric
   metric->SetNumberOfSpatialSamples( numberOfSamples );
 
 
+  // Set the optimizer parameters
   optimizer->SetLearningRate( optAffineLearningRate );
   optimizer->SetNumberOfIterations( optAffineNumberOfIterations );
   optimizer->MaximizeOn();
 
   // Create the Command observer and register it with the optimizer.
-  //
   CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
   optimizer->AddObserver( itk::IterationEvent(), observer );
 
 
   // Create the Command interface observer and register it with the optimizer.
-  //
   typedef RegistrationInterfaceCommand<RegistrationType> CommandType;
   CommandType::Pointer command = CommandType::New();
   registration->AddObserver( itk::IterationEvent(), command );
+
+  // Set the number of multiresolution levels
   registration->SetNumberOfLevels( multiLevelAffine );
 
   std::cout << "Starting Registration with Affine Transform " << std::endl;
 
-  //Add probe
+  // Add probe to count the time used by the registration
   itk::TimeProbesCollectorBase collector;
-  
+
+
+  // Start registration
   try 
   {
     collector.Start( "Registration" );
@@ -457,9 +456,13 @@ int main( int argc, char *argv[] )
     return -1;
   }
 
-
-  /** BSpline Registration */
-
+  //
+  // BSpline Registration
+  //
+  // We supply the affine transform from the first part as initial parameters to the Bspline
+  // registration. As the user might want to increase the resolution of the Bspline grid
+  // we begin by declaring the Bspline parameters for the low resolution
+  
   const unsigned int SplineOrder = 3;
   typedef ScalarType CoordinateRepType;
 
@@ -470,18 +473,17 @@ int main( int argc, char *argv[] )
   // Allocate bspline tranform array for low grid size
   typedef vector<BSplineTransformType::Pointer> BSplineTransformArrayType;
   BSplineTransformArrayType      bsplineTransformArrayLow(N);
-  
+
+  // typdefs for region, spacing and origin of the Bspline coefficient images
   typedef BSplineTransformType::RegionType RegionType;
   typedef BSplineTransformType::SpacingType SpacingType;
   typedef BSplineTransformType::OriginType OriginType;
 
 
-
-
   // Get the latest transform parameters of affine transfom
   ParametersType affineParameters = registration->GetLastTransformParameters();
   ParametersType affineCurrentParameters(transformArray[0]->GetNumberOfParameters());
-  // Update the transform parameters
+  // Update the affine transform parameters
   for( int i=0; i<N; i++)
   {
     for(int j=0; j<transformArray[0]->GetNumberOfParameters(); j++)
@@ -492,31 +494,40 @@ int main( int argc, char *argv[] )
   }
 
   // Initialize the size of the parameters array
-  registration->SetTransformParametersLength( (int) pow( (double) (bsplineGridSize+SplineOrder), (int) Dimension)*Dimension*N);
+  registration->SetTransformParametersLength( static_cast<int>( pow( static_cast<double>(bsplineGridSize+SplineOrder),
+                                               static_cast<int>(Dimension*Dimension)*N) ));
 
-  // Allocate the vector holding the transform parameters
+  // Allocate the vector holding Bspline transform parameters for low resolution
   typedef BSplineTransformType::ParametersType     BSplineParametersType;
   vector<BSplineParametersType> bsplineParametersArrayLow(N);
 
   
-  /** Connect the compenents together */
+  //
+  // As in the affine registration each image has its own pointers.
+  // As we dont change image readers, normalized fileters, Gaussian filters and
+  // the interpolaters. We dont re-register them with the registration method.
+  // We only need to reinitilize Bspline tranforms for each input image.
+  //
+  // Connect the compenents together
+  //
   try
   {
     for( int i=0; i< N; i++ ){
 
-
       bsplineTransformArrayLow[i] = BSplineTransformType::New();
+      
       RegionType bsplineRegion;
       RegionType::SizeType   gridSizeOnImage;
       RegionType::SizeType   gridBorderSize;
       RegionType::SizeType   totalGridSize;
 
-      gridSizeOnImage.Fill( bsplineGridSize );
+      gridSizeOnImage.Fill( bsplineGridSize ); // We actually should initilize gridSizeOnImage taking into account image dimensions
       gridBorderSize.Fill( SplineOrder );    // Border for spline order = 3 ( 1 lower, 2 upper )
       totalGridSize = gridSizeOnImage + gridBorderSize;
 
       bsplineRegion.SetSize( totalGridSize );
 
+      // Get the spacing, origin and imagesize form the image readers
       SpacingType spacing;
       OriginType origin;
       ImageType::RegionType fixedRegion;
@@ -535,27 +546,34 @@ int main( int argc, char *argv[] )
 
       ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
 
+      // Calculate the spacing for the Bspline grid
       for(unsigned int r=0; r<Dimension; r++)
       {
-        //There was a floor here, is it a bug?
+        // There was a floor here, is it a bug? The floor causes a division by zero error
+        // if the gridSizeOnImage is larger than fixedImageSize
         spacing[r] *= ( static_cast<double>(fixedImageSize[r] - 1)  /
             static_cast<double>(gridSizeOnImage[r] - 1) );
         origin[r]  -=  spacing[r];
       }
 
+      // Set the spacing origin and bsplineRegion
       bsplineTransformArrayLow[i]->SetGridSpacing( spacing );
       bsplineTransformArrayLow[i]->SetGridOrigin( origin );
       bsplineTransformArrayLow[i]->SetGridRegion( bsplineRegion );
 
 
-      const unsigned int numberOfParametersLow =
-          bsplineTransformArrayLow[i]->GetNumberOfParameters();
+      unsigned int numberOfParametersLow =
+                      bsplineTransformArrayLow[i]->GetNumberOfParameters();
 
+      // Set the initial Bspline parameters to zero
       bsplineParametersArrayLow[i].SetSize( numberOfParametersLow );
       bsplineParametersArrayLow[i].Fill( 0.0 );
 
+      // Set the affine tranform and initial paramters of Bsplines
       bsplineTransformArrayLow[i]->SetBulkTransform(transformArray[i]);
       bsplineTransformArrayLow[i]->SetParameters( bsplineParametersArrayLow[i] );
+
+      // register Bspline pointers with the registration method
       registration->SetInitialTransformParameters( bsplineTransformArrayLow[i]->GetParameters(), i);
       registration->SetTransformArray(     bsplineTransformArrayLow[i] ,i    );
     }
@@ -569,6 +587,7 @@ int main( int argc, char *argv[] )
 
 
   // Reset the optimizer scales
+  // All parameters are set to be equal
   optimizerScales.SetSize( bsplineTransformArrayLow[0]->GetNumberOfParameters()*N);
   optimizerScales.Fill( 1.0 );
   optimizer->SetScales( optimizerScales );
@@ -579,7 +598,7 @@ int main( int argc, char *argv[] )
   optimizer->MaximizeOn();
 
 
-  metric->SetNumberOfSpatialSamples( (int) (numberOfPixels * numberOfSpatialSamplesBsplinePercentage) );
+  metric->SetNumberOfSpatialSamples( static_cast<int>(numberOfPixels * numberOfSpatialSamplesBsplinePercentage) );
 
   registration->SetNumberOfLevels( multiLevelBspline );
 
@@ -598,14 +617,22 @@ int main( int argc, char *argv[] )
   }
 
 
-  /** Increase the resolution of the grid */
+  // Using the result of the low grid Bspline registration
+  // begin a registration on a finer grid.
+  // Calculate the initial parameters for the finer grid using
+  // itkBsplineDecomposition filter
+  //
+  // We need to register higher resolution Bsplines with the registration
+  // method.
+  //
   BSplineTransformArrayType bsplineTransformArrayHigh(N);
   vector<BSplineParametersType> bsplineParametersArrayHigh(N);
 
-  
+  // For each level in the Bspline increase the resolution grid by
+  // a factor of two
   for(int level=1; level < numberOfResolutionLevel; level++)
   {
-    /** Copy the last parameters */
+    // Copy the last parameters of coarse grid Bspline
     BSplineParametersType parametersLow = registration->GetLastTransformParameters();
 
     int numberOfParametersLow = bsplineTransformArrayLow[0]->GetNumberOfParameters();
@@ -622,8 +649,10 @@ int main( int argc, char *argv[] )
     }
 
 
+    // Increase the grid size by a factor of two
     bsplineGridSize *= 2;
-    registration->SetTransformParametersLength( (int) pow( (double) (bsplineGridSize+SplineOrder), (int) Dimension)*Dimension*N);
+    registration->SetTransformParametersLength( static_cast<int>( pow( static_cast<double>(bsplineGridSize+SplineOrder),
+                                                static_cast<int>(Dimension*Dimension)*N) ));
 
     // Set the parameters of the high resolution Bspline Transform
     for( int i=0; i<N; i++)
@@ -635,15 +664,12 @@ int main( int argc, char *argv[] )
       RegionType::SizeType   gridHighSizeOnImage;
       RegionType::SizeType   gridBorderSize;
       RegionType::SizeType   totalGridSize;
-
       
       gridBorderSize.Fill( SplineOrder );
       gridHighSizeOnImage.Fill( bsplineGridSize );
       totalGridSize = gridHighSizeOnImage + gridBorderSize;
 
       bsplineRegion.SetSize( totalGridSize );
-    
-      //imageArrayReader[i]->Update();
 
       SpacingType spacingHigh;
       OriginType  originHigh;
@@ -680,8 +706,9 @@ int main( int argc, char *argv[] )
 
 
       //  Now we need to initialize the BSpline coefficients of the higher resolution
-      //  transform. 
-
+      //  transform. We take the coefficient image of the low resolution Bspline.
+      // using this image we initiliaze the coefficients of the finer grid Bspline
+      //
       int counter = 0;
 
       for ( unsigned int k = 0; k < Dimension; k++ )
@@ -724,20 +751,16 @@ int main( int argc, char *argv[] )
 
       }
 
-      // parametersArrayHigh[i].Fill(0.0);
       bsplineTransformArrayHigh[i]->SetParameters( bsplineParametersArrayHigh[i] );
 
-      // Set parameters of the high transform to low transform for the next level
+      // Set parameters of the fine grid Bspline transform
+      // to coarse grid Bspline transform for the next level
       bsplineTransformArrayLow[i]->SetGridSpacing( spacingHigh );
       bsplineTransformArrayLow[i]->SetGridOrigin( originHigh );
       bsplineTransformArrayLow[i]->SetGridRegion( bsplineRegion );
 
-      //  We now pass the parameters of the high resolution transform as the initial
-      //  parameters to be used in a second stage of the registration process.
 
-    
-
-      // Software Guide : BeginCodeSnippet
+      // Set initial parameters of the registration
       registration->SetInitialTransformParameters( bsplineTransformArrayHigh[i]->GetParameters() , i );
       registration->SetTransformArray( bsplineTransformArrayHigh[i], i );
 
@@ -748,6 +771,7 @@ int main( int argc, char *argv[] )
     std::cout << "Resolution level " << level;
     std::cout << " Number Of parameters: " << bsplineTransformArrayHigh[0]->GetNumberOfParameters()*N <<std::endl;
 
+    // Decrease the learning rate at each level
     optBsplineLearningRate = optBsplineLearningRate / 10 ;
     optimizer->SetLearningRate( optBsplineLearningRate );
     optimizer->SetNumberOfIterations( optBsplineNumberOfIterations );
@@ -775,8 +799,9 @@ int main( int argc, char *argv[] )
 
   }
 
-
-
+  // End of registration
+  // The following code gets the last tranform parameters and writes the output images
+  //
   BSplineParametersType finalParameters = registration->GetLastTransformParameters();
  
   
@@ -789,23 +814,22 @@ int main( int argc, char *argv[] )
   //
   std::cout << "Result = " << std::endl;
   std::cout << " final parameters 0 = " << finalParameters[0]  << std::endl;
-  std::cout << " final parameters 10 = " << finalParameters[10]  << std::endl;
+  std::cout << " final parameters 13 = " << finalParameters[13]  << std::endl;
   std::cout << " Iterations    = " << numberOfIterations << std::endl;
   std::cout << " Metric value  = " << bestValue          << std::endl;
+
+  // Get the time for the registration 
   collector.Report();
 
 
-
-
-
-
-  // Write the output images
+  // typedefs for output images
   typedef itk::ResampleImageFilter< 
                             ImageType, 
                             ImageType >    ResampleFilterType;
-
   ResampleFilterType::Pointer resample = ResampleFilterType::New();
+  
   ImageType::Pointer fixedImage;
+  
   typedef  unsigned short  OutputPixelType;
   typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
   
@@ -829,7 +853,7 @@ int main( int argc, char *argv[] )
   BSplineParametersType currentParameters2(numberOfParameters);
 
 
-  //Update Transform Parameters
+  // Update last Transform Parameters
   for(int i=0; i<N; i++)
   {
     //copy current parameters
@@ -893,7 +917,7 @@ int main( int argc, char *argv[] )
     }
   }
 
-  /** Compute Mean Image */
+  // Compute Mean Images 
   ResampleFilterType::Pointer resample2 = ResampleFilterType::New();
 
   typedef itk::AddImageFilter < ImageType, ImageType,
