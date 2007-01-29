@@ -145,6 +145,22 @@ double ReadField( std::string fileName, std::string fieldName ) {
   return field;
 }
 
+std::string
+GetFileExtension( std::string fileName ) {
+
+  // take in part from itk  
+  std::string::size_type ext = fileName.rfind( '.' );
+  std::string exts = fileName.substr( ext );
+  if(exts == ".gz") {
+    std::string::size_type dotpos = fileName.rfind('.',ext-1);
+    if(dotpos != std::string::npos) {
+      exts = fileName.substr(dotpos);
+    }
+  }  
+  
+  return exts;
+}
+
 int main (int argc, char * argv[]) {
 
   PARSE_ARGS;
@@ -200,6 +216,12 @@ int main (int argc, char * argv[]) {
     }
     
     FullTensorImageType::Pointer fullTensors = tensorReader->GetOutput();
+
+    
+    // TODO:
+    std::cerr << fullTensors << std::endl;
+    std::cerr << "\ndirection: " << fullTensors->GetDirection();
+
     
     // convert the full 9 component tensors to 6 component tensors
     //  - create and allocate a new DiffusionTensor3D image
@@ -303,9 +325,6 @@ int main (int argc, char * argv[]) {
   
   poistatsFilter->SetInput( tensors );
     
-//  PoistatsFilterType::InputImageType::Pointer dti = dtiReader->GetOutput();
-//  std::cerr << "direction: " << dti->GetDirection();
-
   double normalS = 1.0;
   double normalA = 0.0;
   observer->PostMessage( "*** NOTE: reading " + headerFile + " for normalS and normalA\n" );
@@ -430,9 +449,12 @@ int main (int argc, char * argv[]) {
   typedef itk::ImageFileWriter< PoistatsFilterType::OutputImageType > WriterType;  
   WriterType::Pointer writer = WriterType::New();
 
+  // save the image volumes out as the same file type as input  
+  std::string imageFileExtension = GetFileExtension( diffusionTensorImage );
+
   // write aggregate densities
   std::string densityFileName = (std::string)outputDirectory + 
-    (std::string)"/PathDensity.nii";
+    (std::string)"/PathDensity" + imageFileExtension;
   OutputImageType::Pointer pathDensity = 
     poistatsFilter->GetOutput( PoistatsFilterType::PATH_DENSITY_OUTPUT );
   writer->SetInput( pathDensity );
@@ -442,14 +464,14 @@ int main (int argc, char * argv[]) {
   writer->Update();  
 
   std::string optimalDensityFileName = (std::string)outputDirectory + 
-    (std::string)"/OptimalPathDensity.nii";
+    (std::string)"/OptimalPathDensity" + imageFileExtension;
   OutputImageType::Pointer optimalPathDensity = 
     poistatsFilter->GetOutput( PoistatsFilterType::OPTIMAL_PATH_DENSITY_OUTPUT );
   writer->SetInput( optimalPathDensity );
   writer->SetFileName( optimalDensityFileName.c_str() );
 
   observer->PostMessage( "writing: " + optimalDensityFileName );  
-  writer->Update();    
+  writer->Update();
   
   PoistatsFilterType::MatrixType finalPath = poistatsFilter->GetFinalPath();
   const std::string finalPathFileName( (std::string)outputDirectory + 
