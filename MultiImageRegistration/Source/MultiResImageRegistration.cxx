@@ -86,6 +86,7 @@
 #include <vector>
 #include <iomanip>
 #include <iostream>
+    
 //Bspline optimizer and transform
 #include "itkBSplineDeformableTransform.h"
 #include "itkLBFGSBOptimizer.h"
@@ -93,9 +94,21 @@
 #include "itkNormalizeImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
 
+//BSpline related headers
 #include "itkBSplineResampleImageFunction.h"
 #include "itkIdentityTransform.h"
 #include "itkBSplineDecompositionImageFilter.h"
+
+
+//DICOM related headers
+#include "itkGDCMImageIO.h"
+#include "itkGDCMSeriesFileNames.h"
+#include "itkImageSeriesReader.h"
+#include "itkImageSeriesWriter.h"
+
+//System Related headers
+#include <itksys/SystemTools.hxx>
+
     
 class CommandIterationUpdate : public itk::Command 
 {
@@ -129,8 +142,9 @@ public:
       std::cout << std::setw(3) << m_CumulativeIterationIndex++ << "   ";
       std::cout << std::setw(3) << optimizer->GetCurrentIteration() << "   ";
       std::cout << std::setw(6) << optimizer->GetValue() << "   ";
-      std::cout << std::setw(6) << optimizer->GetCurrentPosition()[0] << "   ";
-      std::cout << std::setw(6) << optimizer->GetCurrentPosition()[10] <<std::endl;
+      //std::cout << std::setw(6) << optimizer->GetCurrentPosition()[0] << "   ";
+      std::cout << std::setw(6) << optimizer->GetCurrentPosition() <<std::endl;
+      
     }
 private:
   unsigned int m_CumulativeIterationIndex;
@@ -184,7 +198,7 @@ public:
 };
 
 // Get the command line arguments
-int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType,  int& multiLevel, string& transformType );
+int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType,  int& multiLevel, string& transformType, string& imageType );
 
 int main( int argc, char *argv[] )
 {
@@ -199,23 +213,24 @@ int main( int argc, char *argv[] )
   int multiLevelBsplineHigh = 1;
   double optAffineLearningRate = 2e-4;
   double optBsplineLearningRate = 50;
-  int optAffineNumberOfIterations = 1;
-  int optBsplineNumberOfIterations = 5;
+  int optAffineNumberOfIterations = 5;
+  int optBsplineNumberOfIterations = 8;
   double numberOfSpatialSamplesAffinePercentage = 0.001;
   double numberOfSpatialSamplesBsplinePercentage = 0.001;
   int bsplineGridSize = 5;
   int numberOfResolutionLevel = 2;
-  
-  if( getCommandLine(argc,argv, fileNames, inputFolder, outputFolder, optimizerType, multiLevelAffine, transformType  ) )
+  string imageType = "normal";
+
+  if( getCommandLine(argc,argv, fileNames, inputFolder, outputFolder, optimizerType, multiLevelAffine, transformType, imageType  ) )
     return 1;
 
   // Input Image type typedef
   const    unsigned int    Dimension = 3;
-  typedef  unsigned short  PixelType;
+  typedef  unsigned int  PixelType;
   typedef itk::Image< PixelType, Dimension >  ImageType;
 
   //Internal Image Type typedef
-  typedef float InternalPixelType;
+  typedef double InternalPixelType;
   typedef double ScalarType;
   typedef itk::Image< InternalPixelType, Dimension > InternalImageType;
 
@@ -273,9 +288,21 @@ int main( int argc, char *argv[] )
   registration->SetMetric( metric  );
 
 
+  // typedefs for image file readers
   typedef itk::ImageFileReader< ImageType  > ImageReaderType;
   typedef vector< ImageReaderType::Pointer > ImageArrayReader;
   ImageArrayReader imageArrayReader(N);
+
+  //Type definitions to be used in reading DICOM images
+  typedef itk::ImageSeriesReader< ImageType >     DICOMReaderType;
+  typedef vector< DICOMReaderType::Pointer > DICOMReaderArray;
+  DICOMReaderArray dicomArrayReader(N);
+  typedef itk::GDCMImageIO                        ImageIOType;
+  typedef vector<ImageIOType::Pointer>                     ImageIOTypeArray;
+  ImageIOTypeArray imageIOTypeArray(N);
+  typedef itk::GDCMSeriesFileNames                NamesGeneratorType;
+  typedef vector<NamesGeneratorType::Pointer>              NamesGeneratorTypeArray;
+  NamesGeneratorTypeArray namesGeneratorArray(N);
 
 
   typedef  vector<ImagePyramidType::Pointer>                ImagePyramidArray;
@@ -306,15 +333,40 @@ int main( int argc, char *argv[] )
       registration->SetTransformArray(     transformArray[i] ,i    );
       registration->SetInterpolatorArray(     interpolatorArray[i] ,i    );
       imagePyramidArray[i] =  ImagePyramidType::New();
-      //registration->SetImagePyramidArray( imagePyramidArray[i], i );
 
-      imageArrayReader[i] = ImageReaderType::New();
-      imageArrayReader[i]->SetFileName( inputFileNames[i].c_str() );
+      if(imageType == "DICOM")
+      {
+        imageIOTypeArray[i] = ImageIOType::New();
+        namesGeneratorArray[i] = NamesGeneratorType::New();
+        namesGeneratorArray[i]->SetInputDirectory( inputFileNames[i].c_str() );
+
+        std::cout << "Reading first slice " << namesGeneratorArray[i]->GetInputFileNames()[0] << std:: endl;
+        std::cout << "Reading " << namesGeneratorArray[i]->GetInputFileNames().size() << " DICOM slices" << std::endl;
+
+        dicomArrayReader[i] = DICOMReaderType::New();
+        dicomArrayReader[i]->SetImageIO( imageIOTypeArray[i] );
+        dicomArrayReader[i]->SetFileNames( namesGeneratorArray[i]->GetInputFileNames() );
+        
+      }
+      else
+      {
+        imageArrayReader[i] = ImageReaderType::New();
+        imageArrayReader[i]->SetFileName( inputFileNames[i].c_str() );
+      }
     
       normalizedFilterArray[i] = NormalizeFilterType::New();
       gaussianFilterArray[i] = GaussianFilterType::New();
       gaussianFilterArray[i]->SetVariance( 2.0 );
-      normalizedFilterArray[i]->SetInput( imageArrayReader[i]->GetOutput() );
+      
+      if( imageType == "DICOM")
+      {
+        normalizedFilterArray[i]->SetInput( dicomArrayReader[i]->GetOutput() );
+      }
+      else
+      {
+        normalizedFilterArray[i]->SetInput( imageArrayReader[i]->GetOutput() );
+      }
+      
       gaussianFilterArray[i]->SetInput( normalizedFilterArray[i]->GetOutput() );
       registration->SetImageArrayPointer(    gaussianFilterArray[i]->GetOutput() , i   );
     }
@@ -352,17 +404,16 @@ int main( int argc, char *argv[] )
   int numberOfParameters = transformArray[0]->GetNumberOfParameters();
   for( int i=0; i<N; i++)
   {
-    optimizerScales[i*numberOfParameters + 0] = 1.0; // scale for M11
-    optimizerScales[i*numberOfParameters + 1] = 1.0; // scale for M12
-    optimizerScales[i*numberOfParameters + 2] = 1.0; // scale for M21
-    optimizerScales[i*numberOfParameters + 3] = 1.0; // scale for M22
-
-    optimizerScales[i*numberOfParameters + 4] = 1.0 / 1000000.0; // scale for translation on X
-    optimizerScales[i*numberOfParameters + 5] = 1.0 / 1000000.0; // scale for translation on Y
+    for( int j=0; j<Dimension*Dimension; j++ )
+    {
+      optimizerScales[i*numberOfParameters + j] = 1.0; // scale for indices in 2x2 (3x3) Matrix
+    }
+    for(int j=Dimension*Dimension; j<Dimension+Dimension*Dimension; j++)
+    {
+      optimizerScales[i*numberOfParameters + j] = 1.0 / 1000000.0; // scale for translation on X,Y,Z
+    }
   }
   optimizer->SetScales( optimizerScales );
-
-
 
   const unsigned int numberOfPixels = fixedImageRegion.GetNumberOfPixels();
   
@@ -397,7 +448,7 @@ int main( int argc, char *argv[] )
   try 
   {
     collector.Start( "Registration" );
-    registration->StartRegistration(); 
+    registration->StartRegistration();
   } 
   catch( itk::ExceptionObject & err ) 
   { 
@@ -405,6 +456,7 @@ int main( int argc, char *argv[] )
     std::cout << err << std::endl; 
     return -1;
   }
+
 
   /** BSpline Registration */
 
@@ -465,16 +517,28 @@ int main( int argc, char *argv[] )
 
       bsplineRegion.SetSize( totalGridSize );
 
-      SpacingType spacing = imageArrayReader[i]->GetOutput()->GetSpacing();
+      SpacingType spacing;
+      OriginType origin;
+      ImageType::RegionType fixedRegion;
+      if( imageType == "DICOM")
+      {
+        spacing = dicomArrayReader[i]->GetOutput()->GetSpacing();
+        origin = dicomArrayReader[i]->GetOutput()->GetOrigin();
+        fixedRegion = dicomArrayReader[i]->GetOutput()->GetBufferedRegion();
+      }
+      else
+      {
+        spacing = imageArrayReader[i]->GetOutput()->GetSpacing();
+        origin = imageArrayReader[i]->GetOutput()->GetOrigin();
+        fixedRegion = imageArrayReader[i]->GetOutput()->GetBufferedRegion();
+      }
 
-      OriginType origin = imageArrayReader[i]->GetOutput()->GetOrigin();
-
-      ImageType::RegionType fixedRegion = imageArrayReader[i]->GetOutput()->GetBufferedRegion();
       ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
 
       for(unsigned int r=0; r<Dimension; r++)
       {
-        spacing[r] *= floor( static_cast<double>(fixedImageSize[r] - 1)  /
+        //There was a floor here, is it a bug?
+        spacing[r] *= ( static_cast<double>(fixedImageSize[r] - 1)  /
             static_cast<double>(gridSizeOnImage[r] - 1) );
         origin[r]  -=  spacing[r];
       }
@@ -492,8 +556,8 @@ int main( int argc, char *argv[] )
 
       bsplineTransformArrayLow[i]->SetBulkTransform(transformArray[i]);
       bsplineTransformArrayLow[i]->SetParameters( bsplineParametersArrayLow[i] );
+      registration->SetInitialTransformParameters( bsplineTransformArrayLow[i]->GetParameters(), i);
       registration->SetTransformArray(     bsplineTransformArrayLow[i] ,i    );
-      registration->SetInitialTransformParameters( bsplineParametersArrayLow[i], i);
     }
   }
   catch( itk::ExceptionObject & err )
@@ -579,17 +643,30 @@ int main( int argc, char *argv[] )
 
       bsplineRegion.SetSize( totalGridSize );
     
-      imageArrayReader[i]->Update();
+      //imageArrayReader[i]->Update();
 
-      SpacingType spacingHigh = imageArrayReader[i]->GetOutput()->GetSpacing();
-      OriginType  originHigh  = imageArrayReader[i]->GetOutput()->GetOrigin();
+      SpacingType spacingHigh;
+      OriginType  originHigh;
+      ImageType::RegionType fixedRegion;
 
-      ImageType::RegionType fixedRegion = imageArrayReader[i]->GetOutput()->GetBufferedRegion();
+      if(imageType =="DICOM")
+      {
+        spacingHigh = dicomArrayReader[i]->GetOutput()->GetSpacing();
+        originHigh  = dicomArrayReader[i]->GetOutput()->GetOrigin();
+        fixedRegion = dicomArrayReader[i]->GetOutput()->GetBufferedRegion();
+      }
+      else
+      {
+        spacingHigh = imageArrayReader[i]->GetOutput()->GetSpacing();
+        originHigh  = imageArrayReader[i]->GetOutput()->GetOrigin();
+        fixedRegion = imageArrayReader[i]->GetOutput()->GetBufferedRegion();
+      }
       ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
     
       for(unsigned int rh=0; rh<Dimension; rh++)
       {
-        spacingHigh[rh] *= floor( static_cast<double>(fixedImageSize[rh] - 1)  /
+        //There was a floor here, is it a BUG?
+        spacingHigh[rh] *= ( static_cast<double>(fixedImageSize[rh] - 1)  /
             static_cast<double>(gridHighSizeOnImage[rh] - 1) );
         originHigh[rh]  -=  spacingHigh[rh];
       }
@@ -661,12 +738,9 @@ int main( int argc, char *argv[] )
     
 
       // Software Guide : BeginCodeSnippet
-      registration->SetInitialTransformParameters( bsplineParametersArrayHigh[i] , i );
+      registration->SetInitialTransformParameters( bsplineTransformArrayHigh[i]->GetParameters() , i );
       registration->SetTransformArray( bsplineTransformArrayHigh[i], i );
 
-
-      //  Typically, we will also want to tighten the optimizer parameters
-      //  when we move from lower to higher resolution grid.
 
     }
 
@@ -741,6 +815,10 @@ int main( int argc, char *argv[] )
                     
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;  
 
+  //DICOM writer type definitions
+  typedef itk::Image< OutputPixelType, 2 >    Image2DType;
+  typedef itk::ImageSeriesWriter< ImageType, Image2DType >  SeriesWriterType;
+  SeriesWriterType::Pointer seriesWriter = SeriesWriterType::New();
   
   WriterType::Pointer      writer =  WriterType::New();
   CastFilterType::Pointer  caster = CastFilterType::New();
@@ -749,9 +827,9 @@ int main( int argc, char *argv[] )
   numberOfParameters = bsplineTransformArrayHigh[0]->GetNumberOfParameters();
   BSplineParametersType currentParameters(numberOfParameters);
   BSplineParametersType currentParameters2(numberOfParameters);
-  
 
-  // Loop over images
+
+  //Update Transform Parameters
   for(int i=0; i<N; i++)
   {
     //copy current parameters
@@ -762,29 +840,64 @@ int main( int argc, char *argv[] )
 
     bsplineTransformArrayHigh[i]->SetBulkTransform( transformArray[i] );
     bsplineTransformArrayHigh[i]->SetParametersByValue( currentParameters );
+  }
+
+  // Loop over images and write output images
+  for(int i=0; i<N; i++)
+  {
+
     resample->SetTransform( bsplineTransformArrayHigh[i] );
-    resample->SetInput( imageArrayReader[i]->GetOutput() );
-    fixedImage = imageArrayReader[i]->GetOutput();
+    if( imageType == "DICOM")
+    {
+      resample->SetInput( dicomArrayReader[i]->GetOutput() );
+      fixedImage = dicomArrayReader[i]->GetOutput();
+    }
+    else
+    {
+      resample->SetInput( imageArrayReader[i]->GetOutput() );
+      fixedImage = imageArrayReader[i]->GetOutput();
+    }
     resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
     resample->SetOutputOrigin(  fixedImage->GetOrigin() );
     resample->SetOutputSpacing( fixedImage->GetSpacing() );
     resample->SetDefaultPixelValue( 100 );
 
     std::cout << "Writing " << outputFileNames[i] << std::endl;
-    //cout << "   \tX= "<< finalParameters[2*i] << " Y= " <<finalParameters[2*i+1] <<std::endl;
-    writer->SetFileName( outputFileNames[i].c_str() );
-    caster->SetInput( resample->GetOutput() );
-    writer->SetInput( caster->GetOutput()   );
-    writer->Update();
+    if( imageType == "DICOM")
+    {
+      itksys::SystemTools::MakeDirectory( outputFileNames[i].c_str() );
+      seriesWriter->SetInput( resample->GetOutput() );
+      seriesWriter->SetImageIO( imageIOTypeArray[i] );
+      namesGeneratorArray[i]->SetOutputDirectory( outputFileNames[i].c_str() );
+      seriesWriter->SetFileNames( namesGeneratorArray[i]->GetOutputFileNames() );
+      seriesWriter->SetMetaDataDictionaryArray( dicomArrayReader[i]->GetMetaDataDictionaryArray() );
+      
+      try
+      {
+        seriesWriter->Update();
+      }
+      catch( itk::ExceptionObject & excp )
+      {
+        std::cerr << "Exception thrown while writing the series " << std::endl;
+        std::cerr << excp << std::endl;
+        return EXIT_FAILURE;
+      }
+    }
+    else
+    {
+      itksys::SystemTools::MakeDirectory( outputFolder.c_str() );
+      caster->SetInput( resample->GetOutput() );
+      writer->SetFileName( outputFileNames[i].c_str() );
+      writer->SetInput( caster->GetOutput()   );
+      writer->Update();
+    }
   }
 
   /** Compute Mean Image */
   ResampleFilterType::Pointer resample2 = ResampleFilterType::New();
 
-  typedef itk::AddImageFilter <
-      ImageType,
-  ImageType,
-  ImageType > AddFilterType;
+  typedef itk::AddImageFilter < ImageType, ImageType,
+                                           ImageType > AddFilterType;
 
   //Mean of the registered images
   AddFilterType::Pointer addition = AddFilterType::New();
@@ -793,56 +906,74 @@ int main( int argc, char *argv[] )
 
 
   //Set the first image
-  for(int j=0; j<numberOfParameters; j++ )
-  {
-    currentParameters[j] = finalParameters[numberOfParameters*0 + j];
-  }
-
-  bsplineTransformArrayHigh[0]->SetBulkTransform( transformArray[0] );
-  bsplineTransformArrayHigh[0]->SetParametersByValue( currentParameters );
   resample->SetTransform( bsplineTransformArrayHigh[0] );
-  resample->SetInput( imageArrayReader[0]->GetOutput() );
-  fixedImage = imageArrayReader[0]->GetOutput();
+  if( imageType == "DICOM")
+  {
+    resample->SetInput( dicomArrayReader[0]->GetOutput() );
+    fixedImage = dicomArrayReader[0]->GetOutput();
+  }
+  else
+  {
+    resample->SetInput( imageArrayReader[0]->GetOutput() );
+    fixedImage = imageArrayReader[0]->GetOutput();
+  }
   resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
   resample->SetOutputOrigin(  fixedImage->GetOrigin() );
   resample->SetOutputSpacing( fixedImage->GetSpacing() );
   resample->SetDefaultPixelValue( 1 );
   addition->SetInput1( resample->GetOutput() );
-  addition2->SetInput1(imageArrayReader[0]->GetOutput() );
+  if( imageType == "DICOM")
+  {
+    addition2->SetInput1(dicomArrayReader[0]->GetOutput() );
+  }
+  else
+  {
+    addition2->SetInput1(imageArrayReader[0]->GetOutput() );
+  }
   
   //Set the second image
-  for(int j=0; j<numberOfParameters; j++ )
-  {
-    currentParameters2[j] = finalParameters[numberOfParameters*1 + j];
-  }
-
-  bsplineTransformArrayHigh[1]->SetBulkTransform( transformArray[1] );
-  bsplineTransformArrayHigh[1]->SetParametersByValue( currentParameters2 );
   resample2->SetTransform( bsplineTransformArrayHigh[1] );
-  resample2->SetInput( imageArrayReader[1]->GetOutput() );
-  fixedImage = imageArrayReader[1]->GetOutput();
+  if( imageType == "DICOM")
+  {
+    resample2->SetInput( dicomArrayReader[1]->GetOutput() );
+    fixedImage = dicomArrayReader[1]->GetOutput();
+  }
+  else
+  {
+    resample2->SetInput( imageArrayReader[1]->GetOutput() );
+    fixedImage = imageArrayReader[1]->GetOutput();
+  }
   resample2->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
   resample2->SetOutputOrigin(  fixedImage->GetOrigin() );
   resample2->SetOutputSpacing( fixedImage->GetSpacing() );
   resample2->SetDefaultPixelValue( 1 );
   addition->SetInput2( resample2->GetOutput() );
-  addition2->SetInput2(imageArrayReader[1]->GetOutput() );
+  if( imageType == "DICOM")
+  {
+    addition2->SetInput2(dicomArrayReader[1]->GetOutput() );
+  }
+  else
+  {
+    addition2->SetInput2(imageArrayReader[1]->GetOutput() );
+  }
   addition->Update();
   addition2->Update();
 
   //Add other images
   for(int i=2; i<N; i++)
   {
-    //copy current parameters
-    for(int j=0; j<numberOfParameters; j++ )
-    {
-      currentParameters[j] = finalParameters[numberOfParameters*i + j];
-    }
-    bsplineTransformArrayHigh[i]->SetBulkTransform( transformArray[i] );
-    bsplineTransformArrayHigh[i]->SetParametersByValue( currentParameters );
+
     resample->SetTransform( bsplineTransformArrayHigh[i] );
-    resample->SetInput( imageArrayReader[i]->GetOutput() );
-    fixedImage = imageArrayReader[i]->GetOutput();
+    if( imageType == "DICOM")
+    {
+      resample->SetInput( dicomArrayReader[i]->GetOutput() );
+      fixedImage = dicomArrayReader[i]->GetOutput();
+    }
+    else
+    {
+      resample->SetInput( imageArrayReader[i]->GetOutput() );
+      fixedImage = imageArrayReader[i]->GetOutput();
+    }
     resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
     resample->SetOutputOrigin(  fixedImage->GetOrigin() );
     resample->SetOutputSpacing( fixedImage->GetSpacing() );
@@ -853,16 +984,21 @@ int main( int argc, char *argv[] )
     addition->Update();
 
     addition2->SetInput1( addition2->GetOutput() );
-    addition2->SetInput2( imageArrayReader[i]->GetOutput() );
+    if( imageType == "DICOM")
+    {
+      addition2->SetInput2(dicomArrayReader[i]->GetOutput() );
+    }
+    else
+    {
+      addition2->SetInput2(imageArrayReader[i]->GetOutput() );
+    }
     addition2->Update();
 
   }
 
 
-  
-  typedef itk::RescaleIntensityImageFilter<
-      ImageType,
-  ImageType >   RescalerType;
+  //Write the mean image
+  typedef itk::RescaleIntensityImageFilter< ImageType, ImageType >   RescalerType;
 
   RescalerType::Pointer intensityRescaler = RescalerType::New();
   
@@ -870,37 +1006,85 @@ int main( int argc, char *argv[] )
   intensityRescaler->SetOutputMinimum(   0 );
   intensityRescaler->SetOutputMaximum( 255 );
 
-  caster->SetInput( intensityRescaler->GetOutput() );
-  writer->SetInput( caster->GetOutput()   );
-
-  string meanImageFname;
-  if(Dimension == 2)
+  if( imageType == "DICOM")
   {
-    meanImageFname = outputFolder + "MeanRegisteredImage.png";
+    string meanImageFname = outputFolder + "MeanRegisteredImage";
+    itksys::SystemTools::MakeDirectory( meanImageFname.c_str() );
+    seriesWriter->SetInput( intensityRescaler->GetOutput() );
+    seriesWriter->SetImageIO( imageIOTypeArray[0] );
+    namesGeneratorArray[0]->SetOutputDirectory( meanImageFname.c_str() );
+    seriesWriter->SetFileNames( namesGeneratorArray[0]->GetOutputFileNames() );
+    seriesWriter->SetMetaDataDictionaryArray( dicomArrayReader[0]->GetMetaDataDictionaryArray() );
+    
+    try
+    {
+      seriesWriter->Update();
+    }
+    catch( itk::ExceptionObject & excp )
+    {
+      std::cerr << "Exception thrown while writing the series " << std::endl;
+      std::cerr << excp << std::endl;
+      return EXIT_FAILURE;
+    }
   }
   else
   {
-    meanImageFname = outputFolder + "MeanRegisteredImage.mhd";
+    caster->SetInput( intensityRescaler->GetOutput() );
+    writer->SetInput( caster->GetOutput()   );
+
+    string meanImageFname;
+    if (Dimension == 2)
+    {
+      meanImageFname = outputFolder + "MeanRegisteredImage.png";
+    }
+    else
+    {
+      meanImageFname = outputFolder + "MeanRegisteredImage.mhd";
+    }
+    writer->SetFileName( meanImageFname.c_str() );
+    writer->Update();
   }
-  writer->SetFileName( meanImageFname.c_str() );
-  writer->Update();
 
   intensityRescaler->SetInput( addition2->GetOutput() );
 
-  caster->SetInput( intensityRescaler->GetOutput() );
-  writer->SetInput( caster->GetOutput()   );
-
-  string meanImageFname2;
-  if(Dimension == 2)
+  if( imageType == "DICOM")
   {
-    meanImageFname2 = outputFolder + "MeanOriginalImage.png";
+    string meanImageFname = outputFolder + "MeanOriginalImage";
+    itksys::SystemTools::MakeDirectory( meanImageFname.c_str() );
+    seriesWriter->SetInput( intensityRescaler->GetOutput() );
+    seriesWriter->SetImageIO( imageIOTypeArray[0] );
+    namesGeneratorArray[0]->SetOutputDirectory( meanImageFname.c_str() );
+    seriesWriter->SetFileNames( namesGeneratorArray[0]->GetOutputFileNames() );
+    seriesWriter->SetMetaDataDictionaryArray( dicomArrayReader[0]->GetMetaDataDictionaryArray() );
+    
+    try
+    {
+      seriesWriter->Update();
+    }
+    catch( itk::ExceptionObject & excp )
+    {
+      std::cerr << "Exception thrown while writing the series " << std::endl;
+      std::cerr << excp << std::endl;
+      return EXIT_FAILURE;
+    }
   }
   else
   {
-    meanImageFname2 = outputFolder + "MeanOriginalImage.mhd";
+    caster->SetInput( intensityRescaler->GetOutput() );
+    writer->SetInput( caster->GetOutput()   );
+
+    string meanImageFname;
+    if (Dimension == 2)
+    {
+      meanImageFname = outputFolder + "MeanRegisteredImage.png";
+    }
+    else
+    {
+      meanImageFname = outputFolder + "MeanRegisteredImage.mhd";
+    }
+    writer->SetFileName( meanImageFname.c_str() );
+    writer->Update();
   }
-  writer->SetFileName( meanImageFname2.c_str() );
-  writer->Update();
 
 
   return 0;
@@ -909,7 +1093,7 @@ int main( int argc, char *argv[] )
 
 
 
-int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType, int& multiLevelAffine, string& transformType  )
+int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType, int& multiLevelAffine, string& transformType, string& imageType  )
 {
 
   //initialize parameters
@@ -932,6 +1116,8 @@ int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& in
       optimizerType == argv[++i];
     else if (dummy == "-t")
       optimizerType == argv[++i];
+    else if (dummy == "-imageType")
+      imageType = argv[++i];
     else
       fileNames.push_back(dummy); // get file name
   }
