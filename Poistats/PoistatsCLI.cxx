@@ -9,6 +9,7 @@
 #include <itkImageFileWriter.h>
 #include <itkBSplineInterpolateImageFunction.h>
 #include <itkNiftiImageIO.h>
+#include <itkOrientedImage.h>
 
 #include "itkPoistatsFilter.h"
 #include "CommandUpdate.h"
@@ -112,19 +113,30 @@ GetMachine() {
   return machine;
 }
 
+std::string
+GetEnvironmentVariable( std::string variable ) {
+  char *result = std::getenv( variable.c_str() );
+  std::string stringResult;
+  if( result == NULL ) {
+    stringResult = "not set";
+  } else {
+    stringResult = std::string( result );
+  }
+  return stringResult;
+}
+
 std::string 
-GetFreeSurferHome() {  
-  std::string fsHome( std::getenv( "FREESURFER_HOME" ) ); 
-  return fsHome;
+GetFreeSurferHome() {
+  return GetEnvironmentVariable( "FREESURFER_HOME" );
 }
 
 std::string 
 GetSubjectsDirectory() {
-  std::string subjectsDirectory( std::getenv( "SUBJECTS_DIR" ) ); 
-  return subjectsDirectory;
+  return GetEnvironmentVariable( "SUBJECTS_DIR" );
 }
 
-double ReadField( std::string fileName, std::string fieldName ) {
+double 
+ReadField( std::string fileName, std::string fieldName ) {
   std::string s;
   std::ifstream headerFile( fileName.c_str() );
   
@@ -151,9 +163,9 @@ GetFileExtension( std::string fileName ) {
   // take in part from itk  
   std::string::size_type ext = fileName.rfind( '.' );
   std::string exts = fileName.substr( ext );
-  if(exts == ".gz") {
-    std::string::size_type dotpos = fileName.rfind('.',ext-1);
-    if(dotpos != std::string::npos) {
+  if( exts == ".gz" ) {
+    std::string::size_type dotpos = fileName.rfind( '.', ext-1 );
+    if( dotpos != std::string::npos ) {
       exts = fileName.substr(dotpos);
     }
   }  
@@ -192,7 +204,8 @@ int main (int argc, char * argv[]) {
   observer->PostMessage( GetFieldAndParameter( "Machine", GetMachine() ) );
   
   typedef itk::DiffusionTensor3D< float > TensorPixelType;
-  typedef itk::Image< TensorPixelType, 3 > TensorImageType;
+//  typedef itk::Image< TensorPixelType, 3 > TensorImageType;
+  typedef itk::OrientedImage< TensorPixelType, 3 > TensorImageType;
 
   TensorImageType::Pointer tensors;
   
@@ -201,9 +214,14 @@ int main (int argc, char * argv[]) {
     
     observer->PostMessage( "not stored symmetrically\n" );
     
-    typedef itk::Image< float, 4 > FullTensorImageType;
+//    typedef itk::Image< float, 4 > FullTensorImageType;
+    typedef itk::OrientedImage< float, 4 > FullTensorImageType;
     typedef itk::ImageFileReader< FullTensorImageType > FullTensorReaderType;
     FullTensorReaderType::Pointer tensorReader = FullTensorReaderType::New();
+    
+    // TODO:
+    tensorReader->DebugOn();
+    
     tensorReader->SetFileName( diffusionTensorImage );
     observer->PostMessage( "reading tensors...\n" );
     try { 
@@ -216,11 +234,13 @@ int main (int argc, char * argv[]) {
     }
     
     FullTensorImageType::Pointer fullTensors = tensorReader->GetOutput();
-
+    
+// TODO:    
+//    (dynamic_cast< itk::NiftiImageIO* >(tensorReader->GetImageIO() ))->DumpNiftiHeader( diffusionTensorImage );
     
     // TODO:
     std::cerr << fullTensors << std::endl;
-    std::cerr << "\ndirection: " << fullTensors->GetDirection();
+    std::cerr << "\ndirection: \n" << fullTensors->GetDirection();
 
     
     // convert the full 9 component tensors to 6 component tensors
@@ -325,6 +345,8 @@ int main (int argc, char * argv[]) {
   
   poistatsFilter->SetInput( tensors );
     
+  // TODO: the direction cosines should be read here instead of the header
+  //    - look like this might be a bug in the ITK nifti reader
   double normalS = 1.0;
   double normalA = 0.0;
   observer->PostMessage( "*** NOTE: reading " + headerFile + " for normalS and normalA\n" );
