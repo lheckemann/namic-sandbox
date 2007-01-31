@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkGaussianDerivativeImageFunction.txx,v $
+  Module:    $RCSfile: itkShapeOperatorImageFunction.txx,v $
   Language:  C++
   Date:      $Date: 2006/02/16 14:17:42 $
   Version:   $Revision: 1.14 $
@@ -31,23 +31,6 @@ template <class TInputImage, class TOutput>
 ShapeOperatorImageFunction<TInputImage,TOutput>
 ::ShapeOperatorImageFunction()
 {
-  /*
-  typename GaussianFunctionType::ArrayType mean;
-  mean[0]=0.0;
-  for(unsigned int i=0;i<itkGetStaticConstMacro(ImageDimension2);i++)
-    {
-    m_Sigma[i] = 1.0;
-    m_Extent[i] = 1.0;
-    }
-  m_UseImageSpacing = true;
-  m_GaussianDerivativeFunction = GaussianDerivativeFunctionType::New();
-  m_GaussianFunction = GaussianFunctionType::New();
-  m_OperatorImageFunction = OperatorImageFunctionType::New();
-  m_GaussianFunction->SetMean(mean);
-  m_GaussianFunction->SetNormalized(false); // faster
-  m_GaussianDerivativeFunction->SetNormalized(false); // faster
-  this->RecomputeGaussianKernel();
-  */
   m_OperatorImageFunction = OperatorImageFunctionType::New();
 }
 
