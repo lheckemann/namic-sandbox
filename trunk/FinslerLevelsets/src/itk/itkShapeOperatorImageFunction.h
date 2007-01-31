@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkGaussianDerivativeImageFunction.h,v $
+  Module:    $RCSfile: itkShapeOperatorImageFunction.h,v $
   Language:  C++
-  Date:      $Date: 2006/02/06 22:01:55 $
-  Version:   $Revision: 1.10 $
+  Date:      $Date: 2007/01/12 22:01:55 $
+  Version:   $Revision: 1.0 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -39,9 +39,7 @@ namespace itk
 template <class TInputImage, class TOutput = double>
 class ITK_EXPORT ShapeOperatorImageFunction :
   public ImageFunction< TInputImage, 
-    //Vector<TOutput,::itk::GetImageDimension<TInputImage>::ImageDimension>,
-  //SymmetricSecondRankTensor<TOutput,::itk::GetImageDimension<TInputImage>::ImageDimension>,
-  itk::Matrix<TOutput, ::itk::GetImageDimension<TInputImage>::ImageDimension,::itk::GetImageDimension<TInputImage>::ImageDimension>,
+    itk::Matrix<TOutput, ::itk::GetImageDimension<TInputImage>::ImageDimension,::itk::GetImageDimension<TInputImage>::ImageDimension>,
   TOutput>
 {
 public:
@@ -88,8 +86,6 @@ public:
 
   typedef Vector<TOutput,itkGetStaticConstMacro(ImageDimension2)>  VectorType;
   typedef SymmetricSecondRankTensor<double,itkGetStaticConstMacro(ImageDimension2)> TensorType;
-  //typedef typename Superclass::OutputType  OutputType;
-    //typedef SymmetricSecondRankTensor<TOutput,::itk::GetImageDimension<TInputImage>::ImageDimension> OutputType;
   typedef itk::Matrix<TOutput,::itk::GetImageDimension<TInputImage>::ImageDimension,::itk::GetImageDimension<TInputImage>::ImageDimension> OutputType;
 
   typedef FixedArray<OperatorNeighborhoodType,2*itkGetStaticConstMacro(ImageDimension2)> OperatorArrayType;
