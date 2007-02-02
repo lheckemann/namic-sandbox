@@ -4,19 +4,65 @@
 #include <unistd.h>
 #include <sys/utsname.h>
 
-#include <itkDiffusionTensor3D.h>
+#include <nifti1_io.h>
+
 #include <itkImageSeriesReader.h>
 #include <itkImageFileWriter.h>
 #include <itkBSplineInterpolateImageFunction.h>
 #include <itkNiftiImageIO.h>
 #include <itkOrientedImage.h>
 
+#include "itkMGHImageIOFactory.h"
 #include "itkPoistatsFilter.h"
 #include "CommandUpdate.h"
+#include "SymmetricTensorReaderStrategy.h"
+#include "AsymmetricTensorReaderStrategy.h"
+#include "AsymmetricTensorVectorReaderStrategy.h"
+
 #include "PoistatsCLICLP.h"
 
 const std::string NORMAL_A = "normal_a:";
 const std::string NORMAL_S = "normal_s:";
+
+
+bool
+IsNifti( std::string fileExtension ) {
+
+  bool isNifti = false;
+  
+  if( fileExtension == ".nii" || fileExtension == ".nii.gz" ) {
+    isNifti = true;
+  }
+  
+  return isNifti;
+}
+
+bool
+IsMGH( std::string fileExtension ) {
+
+  bool isMGH = false;
+  
+  if( fileExtension == ".mgh" || fileExtension == ".mgz" ) {
+    isMGH = true;
+  }
+  
+  return isMGH;
+}
+
+mat44
+GetNiftiTransform( const char *filename ) {
+  mat44 rval;
+  nifti_image *img = nifti_image_read(filename, false);
+  if(img == 0) {
+    return rval;
+  }
+  
+  // TODO: check the transform
+  rval = img->qto_xyz; // or img->sto_xyz -- you need to check the transform type
+                                     // to ensure getting the 'one true transform' for this file
+  nifti_image_free(img);
+  return rval;
+} 
 
 void 
 WriteData( const std::string fileName, 
@@ -135,28 +181,6 @@ GetSubjectsDirectory() {
   return GetEnvironmentVariable( "SUBJECTS_DIR" );
 }
 
-double 
-ReadField( std::string fileName, std::string fieldName ) {
-  std::string s;
-  std::ifstream headerFile( fileName.c_str() );
-  
-  double field = 0.0;
-  while( headerFile >> s ) {
-    
-    if( s == fieldName ) {
-      
-      headerFile >> s;
-      
-      std::stringstream stream;
-      stream << s;
-      stream >> field;
-    }
-    
-  }
-  
-  return field;
-}
-
 std::string
 GetFileExtension( std::string fileName ) {
 
@@ -177,6 +201,9 @@ int main (int argc, char * argv[]) {
 
   PARSE_ARGS;
   
+  // add the MGH/MGZ reader
+  itk::ObjectFactoryBase::RegisterFactory( itk::MGHImageIOFactory::New() ); 
+    
   CommandUpdate::Pointer observer = CommandUpdate::New();
 
   observer->SetOutputDirectory( outputDirectory );  
@@ -203,138 +230,150 @@ int main (int argc, char * argv[]) {
 
   observer->PostMessage( GetFieldAndParameter( "Machine", GetMachine() ) );
   
-  typedef itk::DiffusionTensor3D< float > TensorPixelType;
-//  typedef itk::Image< TensorPixelType, 3 > TensorImageType;
-  typedef itk::OrientedImage< TensorPixelType, 3 > TensorImageType;
+  std::string imageFileExtension = GetFileExtension( diffusionTensorImage );
 
-  TensorImageType::Pointer tensors;
-  
-  // if the data is stored as 9 components  
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
+
+  TensorReaderStrategy *tensorReader = NULL;
   if( !isSymmetricTensorData ){
     
-    observer->PostMessage( "not stored symmetrically\n" );
-    
-//    typedef itk::Image< float, 4 > FullTensorImageType;
-    typedef itk::OrientedImage< float, 4 > FullTensorImageType;
-    typedef itk::ImageFileReader< FullTensorImageType > FullTensorReaderType;
-    FullTensorReaderType::Pointer tensorReader = FullTensorReaderType::New();
-    
-    // TODO:
-    tensorReader->DebugOn();
-    
-    tensorReader->SetFileName( diffusionTensorImage );
-    observer->PostMessage( "reading tensors...\n" );
-    try { 
-      tensorReader->Update();
-    } catch( itk::ExceptionObject & excp ) {
-      std::ostringstream output;
-      output << "Error reading the series." << std::endl << excp << std::endl;
-      observer->PostErrorMessage( output.str() );
-      return EXIT_FAILURE;
+    if( IsMGH( imageFileExtension ) ){
+      tensorReader = new AsymmetricTensorVectorReaderStrategy();
+    } else {
+      tensorReader = new AsymmetricTensorReaderStrategy();
     }
-    
-    FullTensorImageType::Pointer fullTensors = tensorReader->GetOutput();
-    
-// TODO:    
-//    (dynamic_cast< itk::NiftiImageIO* >(tensorReader->GetImageIO() ))->DumpNiftiHeader( diffusionTensorImage );
-    
-    // TODO:
-    std::cerr << fullTensors << std::endl;
-    std::cerr << "\ndirection: \n" << fullTensors->GetDirection();
-
-    
-    // convert the full 9 component tensors to 6 component tensors
-    //  - create and allocate a new DiffusionTensor3D image
-    FullTensorImageType::RegionType dtiRegion = 
-      fullTensors->GetLargestPossibleRegion();
-    TensorImageType::SizeType size;
-    double origin[ TensorImageType::RegionType::GetImageDimension() ];
-    TensorImageType::IndexType start;
-    TensorImageType::SpacingType spacing;
-  
-    for( int cDim=0; cDim<TensorImageType::RegionType::GetImageDimension(); cDim++ ) {    
-      size[ cDim ] = dtiRegion.GetSize()[ cDim ];
-      origin[ cDim ] = fullTensors->GetOrigin()[ cDim ];
-      start[ cDim ] = 0;
-      spacing[ cDim ] = fullTensors->GetSpacing()[ cDim ];
-    }
-        
-    TensorImageType::RegionType region;
-    region.SetSize( size );    
-    region.SetIndex( start );
-    
-    tensors = TensorImageType::New();
-    tensors->SetRegions( region );
-    tensors->SetOrigin( origin );
-    tensors->SetSpacing( spacing );      
-    tensors->Allocate();  
-    tensors->FillBuffer( 0.0 );
-
-    //  - copy the data into the right areas
-    const int nTensorRows = 3;
-    const int nTensorCols = 3;
-
-    observer->PostMessage( "converting tensors to symmetric format\n" );
-    for( int cImageRow=0; cImageRow<size[ 0 ]; cImageRow++ ) {
-      for( int cImageCol=0; cImageCol<size[ 1 ]; cImageCol++ ) {
-        for( int cImageSlice=0; cImageSlice<size[ 2 ]; cImageSlice++ ) {
-        
-          TensorImageType::IndexType symmetricIndex;
-          symmetricIndex[ 0 ] = cImageRow;
-          symmetricIndex[ 1 ] = cImageCol;
-          symmetricIndex[ 2 ] = cImageSlice;
-
-          TensorPixelType symmetricTensor;
-
-          FullTensorImageType::IndexType fullTensorIndex;
-          fullTensorIndex[ 0 ] = cImageRow;
-          fullTensorIndex[ 1 ] = cImageCol;
-          fullTensorIndex[ 2 ] = cImageSlice;
-        
-          int cContinuousIndex = 0;
-          
-          // iterate through each component
-          // TODO: actually we'll only need to iterate through some of them
-          for( int cTensorRow = 0; cTensorRow<nTensorRows; cTensorRow++ ) {
-            
-            for( int cTensorCol = 0; cTensorCol<nTensorCols; cTensorCol++ ) {
-              
-              fullTensorIndex[ 3 ] = cContinuousIndex;
-              
-              symmetricTensor( cTensorRow, cTensorCol ) = 
-                fullTensors->GetPixel( fullTensorIndex );
-
-//              if( fullTensors->GetPixel( fullTensorIndex ) != 0.0 )
-//                std::cerr << fullTensors->GetPixel( fullTensorIndex ) << "  ";
-              
-              cContinuousIndex++;
-            }
-            
-          }
-          
-          tensors->SetPixel( symmetricIndex, symmetricTensor );
-
-        }
-      }
-    }
-    
     
   } else {
-    // data stored in 6 components
-    typedef itk::ImageFileReader< TensorImageType > TensorReaderType;
-    TensorReaderType::Pointer tensorReader = TensorReaderType::New();
-    tensorReader->SetFileName( diffusionTensorImage );
-    observer->PostMessage( "reading symmetric tensors...\n" );
-    try { 
-      tensorReader->Update();
-    } catch( itk::ExceptionObject & excp ) {
-      std::ostringstream output;
-      output << "Error reading the series." << std::endl << excp << std::endl;
-      observer->PostErrorMessage( output.str() );
-      return EXIT_FAILURE;
-    }
-    tensors = tensorReader->GetOutput();
+    tensorReader = new SymmetricTensorReaderStrategy();
   }
+  tensorReader->SetObserver( observer );
+  tensorReader->SetFileName( diffusionTensorImage );
+  TensorImageType::Pointer tensors = tensorReader->GetTensors();
+  
+  delete tensorReader;
+    
+//  // if the data is stored as 9 components  
+//  if( !isSymmetricTensorData ){
+//    
+//    observer->PostMessage( "not stored symmetrically\n" );
+//    
+//    typedef itk::OrientedImage< float, 4 > FullTensorImageType;
+////    typedef itk::VectorImage< float, 4 > FullTensorImageType;
+//    typedef itk::ImageFileReader< FullTensorImageType > FullTensorReaderType;
+//    FullTensorReaderType::Pointer tensorReader = FullTensorReaderType::New();
+//        
+//    tensorReader->SetFileName( diffusionTensorImage );
+//    observer->PostMessage( "reading tensors...\n" );
+//    try { 
+//      tensorReader->Update();
+//    } catch( itk::ExceptionObject & excp ) {
+//      std::ostringstream output;
+//      output << "Error reading the series." << std::endl << excp << std::endl;
+//      observer->PostErrorMessage( output.str() );
+//      return EXIT_FAILURE;
+//    }
+//    
+//    FullTensorImageType::Pointer fullTensors = tensorReader->GetOutput();
+//        
+//    // TODO:
+//    std::cerr << fullTensors << std::endl;
+//    std::cerr << "\ndirection: \n" << fullTensors->GetDirection();
+//    
+//    // convert the full 9 component tensors to 6 component tensors
+//    //  - create and allocate a new DiffusionTensor3D image
+//    FullTensorImageType::RegionType dtiRegion = 
+//      fullTensors->GetLargestPossibleRegion();
+//    TensorImageType::SizeType size;
+//    double origin[ TensorImageType::RegionType::GetImageDimension() ];
+//    TensorImageType::IndexType start;
+//    TensorImageType::SpacingType spacing;
+//  
+//    for( int cDim=0; cDim<TensorImageType::RegionType::GetImageDimension(); cDim++ ) {    
+//      size[ cDim ] = dtiRegion.GetSize()[ cDim ];
+//      origin[ cDim ] = fullTensors->GetOrigin()[ cDim ];
+//      start[ cDim ] = 0;
+//      spacing[ cDim ] = fullTensors->GetSpacing()[ cDim ];
+//    }
+//        
+//    TensorImageType::RegionType region;
+//    region.SetSize( size );    
+//    region.SetIndex( start );
+//    
+//    tensors = TensorImageType::New();
+//    tensors->SetRegions( region );
+//    tensors->SetOrigin( origin );
+//    tensors->SetSpacing( spacing );      
+//    tensors->Allocate();  
+//    tensors->FillBuffer( 0.0 );
+//
+//    //  - copy the data into the right areas
+//    const int nTensorRows = 3;
+//    const int nTensorCols = 3;
+//
+//    observer->PostMessage( "converting tensors to symmetric format\n" );
+//    for( int cImageRow=0; cImageRow<size[ 0 ]; cImageRow++ ) {
+//      for( int cImageCol=0; cImageCol<size[ 1 ]; cImageCol++ ) {
+//        for( int cImageSlice=0; cImageSlice<size[ 2 ]; cImageSlice++ ) {
+//        
+//          TensorImageType::IndexType symmetricIndex;
+//          symmetricIndex[ 0 ] = cImageRow;
+//          symmetricIndex[ 1 ] = cImageCol;
+//          symmetricIndex[ 2 ] = cImageSlice;
+//
+//          TensorPixelType symmetricTensor;
+//
+//          FullTensorImageType::IndexType fullTensorIndex;
+//          fullTensorIndex[ 0 ] = cImageRow;
+//          fullTensorIndex[ 1 ] = cImageCol;
+//          fullTensorIndex[ 2 ] = cImageSlice;
+//        
+//          int cContinuousIndex = 0;
+//          
+//          // iterate through each component
+//          // TODO: actually we'll only need to iterate through some of them
+//          for( int cTensorRow = 0; cTensorRow<nTensorRows; cTensorRow++ ) {
+//            
+//            for( int cTensorCol = 0; cTensorCol<nTensorCols; cTensorCol++ ) {
+//              
+//              fullTensorIndex[ 3 ] = cContinuousIndex;
+//              
+//              std::cerr << "  pixel: " << fullTensors->GetPixel( fullTensorIndex ) << std::endl;
+//              
+//              symmetricTensor( cTensorRow, cTensorCol ) = 
+//                fullTensors->GetPixel( fullTensorIndex );
+//
+////              if( fullTensors->GetPixel( fullTensorIndex ) != 0.0 )
+////                std::cerr << fullTensors->GetPixel( fullTensorIndex ) << "  ";
+//              
+//              cContinuousIndex++;
+//            }
+//            
+//          }
+//          
+//          tensors->SetPixel( symmetricIndex, symmetricTensor );
+//
+//        }
+//      }
+//    }
+//    
+//    
+//  } else {
+//    // data stored in 6 components
+//    typedef itk::ImageFileReader< TensorImageType > TensorReaderType;
+//    TensorReaderType::Pointer tensorReader = TensorReaderType::New();
+//    tensorReader->SetFileName( diffusionTensorImage );
+//    observer->PostMessage( "reading symmetric tensors...\n" );
+//    try { 
+//      tensorReader->Update();
+//    } catch( itk::ExceptionObject & excp ) {
+//      std::ostringstream output;
+//      output << "Error reading the series." << std::endl << excp << std::endl;
+//      observer->PostErrorMessage( output.str() );
+//      return EXIT_FAILURE;
+//    }
+//    tensors = tensorReader->GetOutput();
+//  }
   
   typedef itk::Image< float, 3 > OutputImageType;
   typedef itk::PoistatsFilter< TensorImageType, OutputImageType > 
@@ -342,24 +381,28 @@ int main (int argc, char * argv[]) {
   PoistatsFilterType::Pointer poistatsFilter = PoistatsFilterType::New();
   
   poistatsFilter->AddObserver( itk::AnyEvent(), observer );
+
+  // this is a hack to get the directions loaded corrently.  There's a bug
+  // in the itk nifti reader that sets the direction cosines to the wrong
+  // to the canonical directions rather than the true calculated directions
+  if( IsNifti( imageFileExtension ) ) {
+
+    mat44 transform = GetNiftiTransform( diffusionTensorImage.c_str() );
+  
+    TensorImageType::DirectionType direction = tensors->GetDirection();
+    for( int cRow=0; cRow<3; cRow++ ) {
+      for( int cCol=0; cCol<3; cCol++ ) {
+        direction( cRow, cCol ) = transform.m[ cRow ][ cCol ] / 
+          tensors->GetSpacing()[ cRow ];
+      }
+    }
+        
+    tensors->SetDirection( direction );
+    
+    std::cerr << "direction: \n" << direction;
+  }
   
   poistatsFilter->SetInput( tensors );
-    
-  // TODO: the direction cosines should be read here instead of the header
-  //    - look like this might be a bug in the ITK nifti reader
-  double normalS = 1.0;
-  double normalA = 0.0;
-  observer->PostMessage( "*** NOTE: reading " + headerFile + " for normalS and normalA\n" );
-  std::string headerFileName( headerFile );
-  normalS = ReadField( headerFileName, NORMAL_S );
-  std::cout << NORMAL_S << normalS << std::endl;
-
-  normalA = ReadField( headerFileName, NORMAL_A );
-  std::cout << NORMAL_A << normalA << std::endl;    
-  
-  const double sliceUpData[] = { normalS, normalA, 0 };
-  PoistatsFilterType::ArrayType sliceUp( sliceUpData, 3 );
-  poistatsFilter->SetSliceUp( sliceUp );
 
   observer->PostMessage( "reading seed volume...\n" );
   // read seed volume
@@ -470,9 +513,6 @@ int main (int argc, char * argv[]) {
   
   typedef itk::ImageFileWriter< PoistatsFilterType::OutputImageType > WriterType;  
   WriterType::Pointer writer = WriterType::New();
-
-  // save the image volumes out as the same file type as input  
-  std::string imageFileExtension = GetFileExtension( diffusionTensorImage );
 
   // write aggregate densities
   std::string densityFileName = (std::string)outputDirectory + 

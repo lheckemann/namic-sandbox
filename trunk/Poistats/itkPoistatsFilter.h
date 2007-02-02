@@ -229,9 +229,6 @@ public:
     
   void GetMagnetToSliceFrameRotation( MatrixPointer rotation );
 
-  itkGetMacro( SliceUp, ArrayType );
-  itkSetMacro( SliceUp, ArrayType );
-
   void ParseSeedVolume();
 
   static void CalculateDensityMatrix( itk::Array2D< double > *angles, 
