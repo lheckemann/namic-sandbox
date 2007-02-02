@@ -1215,7 +1215,13 @@ PoistatsFilter<TInputImage, TOutputImage>
   double identityValues[] = { 1, 0, 0 };  
   ArrayType identity( identityValues, 3 );
 
-  ArrayType sliceUp = this->GetSliceUp();
+  const double normalS = this->GetInput()->GetDirection()( 2, 2 );
+  const double normalA = this->GetInput()->GetDirection()( 1, 2 );
+  const double normalR = 0.0;
+  ArrayType sliceUp( 3 );
+  sliceUp( 0 ) = normalS;
+  sliceUp( 1 ) = normalA;
+  sliceUp( 2 ) = normalR;
   
   GenerateRotationMatrix3u2v( &identity, &sliceUp, rotation );
 }
