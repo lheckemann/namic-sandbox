@@ -492,6 +492,12 @@ int main( int argc, char *argv[] )
   BSplineTransformArrayType      bsplineTransformArrayLow(N);
 
   BSplineTransformArrayType bsplineTransformArrayHigh(N);
+
+  // Allocate the vector holding Bspline transform parameters for low resolution
+  typedef BSplineTransformType::ParametersType     BSplineParametersType;
+  vector<BSplineParametersType> bsplineParametersArrayLow(N);
+  vector<BSplineParametersType> bsplineParametersArrayHigh(N);
+
   
   if( useBspline == "on" )
   {
@@ -519,10 +525,6 @@ int main( int argc, char *argv[] )
     // Initialize the size of the parameters array
     registration->SetTransformParametersLength( static_cast<int>( pow( static_cast<double>(bsplineInitialGridSize+SplineOrder),
                                                  static_cast<int>(Dimension))*Dimension*N ));
-
-    // Allocate the vector holding Bspline transform parameters for low resolution
-    typedef BSplineTransformType::ParametersType     BSplineParametersType;
-    vector<BSplineParametersType> bsplineParametersArrayLow(N);
 
   
     //
@@ -652,9 +654,6 @@ int main( int argc, char *argv[] )
     if(useBsplineHigh =="on")
     {
 
-      vector<BSplineParametersType> bsplineParametersArrayHigh(N);
-
-      
       // For each level in the Bspline increase the resolution grid by
       // a factor of two
       for(int level=0; level < numberOfBsplineLevel; level++)
@@ -815,7 +814,6 @@ int main( int argc, char *argv[] )
         try
        {
           registration->StartRegistration();
-          collector.Stop( "Registration" );
        }
        catch( itk::ExceptionObject & err )
        {
@@ -854,7 +852,8 @@ int main( int argc, char *argv[] )
   std::cout << " Iterations    = " << numberOfIterations << std::endl;
   std::cout << " Metric value  = " << bestValue          << std::endl;
 
-  // Get the time for the registration 
+  // Get the time for the registration
+  collector.Stop( "Registration" );
   collector.Report();
 
 
@@ -889,7 +888,7 @@ int main( int argc, char *argv[] )
   {
     numberOfParameters = bsplineTransformArrayHigh[0]->GetNumberOfParameters();
   }
-  else if (useBspline == "on ")
+  else if (useBspline == "on")
   {
     numberOfParameters = bsplineTransformArrayLow[0]->GetNumberOfParameters();
   }
@@ -913,11 +912,13 @@ int main( int argc, char *argv[] )
     if(useBsplineHigh == "on")
     {
       bsplineTransformArrayHigh[i]->SetBulkTransform( transformArray[i] );
-      bsplineTransformArrayHigh[i]->SetParametersByValue( currentParameters );    }
-    else if (useBspline == "on ")
+      bsplineTransformArrayHigh[i]->SetParametersByValue( currentParameters );
+    }
+    else if (useBspline == "on")
     {
       bsplineTransformArrayLow[i]->SetBulkTransform( transformArray[i] );
-      bsplineTransformArrayLow[i]->SetParametersByValue( currentParameters );    }
+      bsplineTransformArrayLow[i]->SetParametersByValue( currentParameters );
+    }
     else
     {
       transformArray[i]->SetParametersByValue( currentParameters );
@@ -934,7 +935,7 @@ int main( int argc, char *argv[] )
     {
       resample->SetTransform( bsplineTransformArrayHigh[i] );
     }
-    else if (useBspline == "on ")
+    else if (useBspline == "on")
     {
       resample->SetTransform( bsplineTransformArrayLow[i] );
     }
@@ -1009,7 +1010,7 @@ int main( int argc, char *argv[] )
   {
     resample->SetTransform( bsplineTransformArrayHigh[0] );
   }
-  else if (useBspline == "on ")
+  else if (useBspline == "on")
   {
     resample->SetTransform( bsplineTransformArrayLow[0] );
   }
@@ -1049,7 +1050,7 @@ int main( int argc, char *argv[] )
   {
     resample2->SetTransform( bsplineTransformArrayHigh[1] );
   }
-  else if (useBspline == "on ")
+  else if (useBspline == "on")
   {
     resample2->SetTransform( bsplineTransformArrayLow[1] );
   }
@@ -1093,7 +1094,7 @@ int main( int argc, char *argv[] )
     {
       resample->SetTransform( bsplineTransformArrayHigh[i] );
     }
-    else if (useBspline == "on ")
+    else if (useBspline == "on")
     {
       resample->SetTransform( bsplineTransformArrayLow[i] );
     }
