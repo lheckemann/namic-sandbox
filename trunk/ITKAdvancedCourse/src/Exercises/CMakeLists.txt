@@ -28,5 +28,7 @@ SUBDIRS(
   exercise27
   exercise28
   exercise29
+  exercise31
+  exercise32
   )
 
