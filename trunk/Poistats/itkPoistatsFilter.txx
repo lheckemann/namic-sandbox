@@ -1081,127 +1081,145 @@ PoistatsFilter<TInputImage, TOutputImage>
   OdfLookUpTablePointer odfLookUpTable = this->GetOdfLookUpTable();
   
   this->InvokeEvent( PoistatsOdfCalculationStartEvent() );
-      
-  for( int cSlice=0; cSlice<nSlices; cSlice++ ) {
-  
-    for( int cRow=0; cRow<nRows; cRow++ ) {
 
-      for( int cColumn=0; cColumn<nColumns; cColumn++ ) {
-      
-        const int nTensorRows = 3;
-        const int nTensorColumns = 3;
-        itk::Matrix< double, nTensorRows, nTensorColumns > tensor;
-        
-        bool isPixelMasked = false;
-        
-        if( this->GetMaskVolume() ) {
-          MaskVolumeIndexType maskIndex;
-          maskIndex[ 0 ] = cColumn;
-          maskIndex[ 1 ] = cRow;
-          maskIndex[ 2 ] = cSlice;
-          
-          MaskType pixel = this->GetMaskVolume()->GetPixel( maskIndex );
-          
-          if( pixel == 0 ) {            
-            isPixelMasked = true;
-          }
-        }
-        
-        bool hasZero = false;        
-        if( !isPixelMasked ) {
-        
-          IndexType pixelIndex;
-          pixelIndex[ 0 ] = cColumn;
-          pixelIndex[ 1 ] = cRow;
-          pixelIndex[ 2 ] = cSlice;
-          
-          PixelType currentTensor = inputImage->GetPixel( pixelIndex );
-          
-          for( int cTensorRow=0; cTensorRow<nTensorRows; cTensorRow++ ) {
-          
-            for( int cTensorColumn=0; cTensorColumn<nTensorColumns; cTensorColumn++ ) {
-            
-              tensor[ cTensorRow ][ cTensorColumn ] = 
-                currentTensor( cTensorRow, cTensorColumn);
-            
-              if( tensor[ cTensorRow ][ cTensorColumn] == 0.0 ) {
-                              
-                hasZero = true;
-              }
-              
-            }
-            
-          }
-          
-        }
-                        
-        if( !hasZero && !isPixelMasked ) {
+  clock_t startClock = clock();
 
-// DJ: my attempt at explaining what look is.  I'd like to get rid of the look
-// up table at some point:
-  // look is actually a 3D matrix, the size of the mask.  At every location that
-  // the volume contains a non-masked pixel, look will contain an index that
-  // cooresponds to the index that the odf is created in m_Odfs
-            
-          // MATLAB: look = zeros(size(mask));
-          
-          OdfLookUpIndexType tableIndex;
-          tableIndex[ 0 ] = cColumn;
-          tableIndex[ 1 ] = cRow;
-          tableIndex[ 2 ] = cSlice;
-          odfLookUpTable->SetPixel( tableIndex, cOdfs );
-          
-          itk::Matrix< double, nTensorRows, nTensorColumns > 
-            tensorClone( tensor );
+  itk::ImageRegionIterator< OdfLookUpTableType > odfLookUpTableIt( 
+    odfLookUpTable, odfLookUpTable->GetLargestPossibleRegion() );  
 
-          // MATLAB: d = d(order, order) .* polarity;
-          for( int cTensorRow=0; cTensorRow<nTensorRows; cTensorRow++ ) {
-          
-            for( int cTensorColumn=0; cTensorColumn<nTensorColumns; 
-              cTensorColumn++ ) {
+  itk::ImageRegionConstIterator< InputImageType > inputImageIt( inputImage, 
+    inputImage->GetLargestPossibleRegion() );  
 
-              // we want flip the tensors rows and columns backwards (not 
-              // transpose though)
-              int cFlippedTensorRow = ( nTensorRows - 1 ) - cTensorRow;
-              int cTensorFlippedColumn = ( nTensorColumns - 1 ) - cTensorColumn;
-              
-              double flippedValue = 
-                tensorClone[ cFlippedTensorRow ][ cTensorFlippedColumn ];
-              double currentPolarity = polarity[ cTensorRow ][ cTensorColumn ];
-              
-              tensor[ cTensorRow ][ cTensorColumn ] = 
-                flippedValue * currentPolarity;
-              
-            }
-          
-          }
-  
-//        MATLAB: d = R*d*invR;
-          if( !isRotationIdentity ) {
-            tensor = rotationMatrix * tensor.GetVnlMatrix() * inverseRotationMatrix;
-          }
-  
-          ArrayPointer odf = new ArrayType( this->GetNumberOfDirections() );
-          CalculateTensor2Odf( &tensor, odf);
-                    
-          this->m_Odfs.push_back( odf );
-          
-          if( ( cOdfs % 10000 ) == 0 ) {
-            this->InvokeEvent( PoistatsOdfCalculationProgressEvent() );            
-          }
-          cOdfs++;
-                    
-        }
-
-      }
-
-    }
-
+  // the mask isn't required, so the iterator might not exist and need to be
+  // iterated over
+  MaskVolumePointer mask = this->GetMaskVolume();
+  itk::ImageRegionConstIterator< MaskVolumeType > maskIt;
+  if( mask ) {
+    maskIt = itk::ImageRegionConstIterator< MaskVolumeType >
+      ( mask, mask->GetLargestPossibleRegion() );
   }
   
+  bool isMaskUsed = false;
+  if( mask ) {
+    isMaskUsed = true;
+  }
+  
+  if( isMaskUsed ) {
+    maskIt = maskIt.Begin();
+  }
+
+  const int nTensorRows = 3;
+  const int nTensorColumns = 3;
+
+  for ( 
+    inputImageIt = inputImageIt.Begin(),
+    odfLookUpTableIt = odfLookUpTableIt.Begin(),
+    maskIt = maskIt.Begin(); 
+    
+    !inputImageIt.IsAtEnd() &&
+    !odfLookUpTableIt.IsAtEnd();
+    
+    ++inputImageIt,
+    ++odfLookUpTableIt )
+  {
+      
+    itk::Matrix< double, nTensorRows, nTensorColumns > tensor;
+        
+    bool isPixelMasked = false;
+        
+    if( isMaskUsed ) {
+      const MaskType pixel = maskIt.Value();
+      
+      if( pixel == 0 ) {            
+        isPixelMasked = true;
+      }
+    }
+        
+    bool hasZero = false;        
+    if( !isPixelMasked ) {
+        
+      // determine if a zero exists within the current tensor
+      PixelType currentTensor = inputImageIt.Value();
+      
+      typedef typename PixelType::ConstIterator TensorIterator;
+      for( TensorIterator tensorIterator = currentTensor.Begin(); 
+        tensorIterator != currentTensor.End() && !hasZero; ++tensorIterator ) {
+        
+        if( *tensorIterator == 0.0 ) {
+          hasZero = true;
+        }
+      
+      }
+          
+    }
+                        
+    if( !hasZero && !isPixelMasked ) {
+
+    // DJ: my attempt at explaining what look is.  I'd like to get rid of the look
+    // up table at some point:
+    //   look is actually a 3D matrix, the size of the mask.  At every location that
+    //   the volume contains a non-masked pixel, look will contain an index that
+    //   cooresponds to the index that the odf is created in m_Odfs
+            
+          // MATLAB: look = zeros(size(mask));
+
+      odfLookUpTableIt.Set( cOdfs );          
+      PixelType currentTensor = inputImageIt.Value();
+
+      // MATLAB: d = d(order, order) .* polarity;
+      for( int cTensorRow=0; cTensorRow<nTensorRows; cTensorRow++ ) {
+      
+        // we want flip the tensors rows and columns backwards (not 
+        // transpose though)
+        const int cFlippedTensorRow = ( nTensorRows - 1 ) - cTensorRow;
+
+        for( int cTensorColumn=0; cTensorColumn<nTensorColumns; 
+          cTensorColumn++ ) {
+
+          const int cTensorFlippedColumn = ( nTensorColumns - 1 ) - cTensorColumn;
+          
+          const double flippedValue = 
+            currentTensor( cFlippedTensorRow, cTensorFlippedColumn );
+          const double currentPolarity = 
+            polarity[ cTensorRow ][ cTensorColumn ];
+                    
+          tensor[ cTensorRow ][ cTensorColumn ] = 
+            flippedValue * currentPolarity;
+          
+        }
+      
+      }
+  
+//    MATLAB: d = R*d*invR;
+      if( !isRotationIdentity ) {
+        tensor = rotationMatrix * tensor.GetVnlMatrix() * inverseRotationMatrix;
+      }
+  
+      ArrayPointer odf = new ArrayType( this->GetNumberOfDirections() );
+      CalculateTensor2Odf( &tensor, odf);
+                    
+      this->m_Odfs.push_back( odf );
+      
+      if( ( cOdfs % 10000 ) == 0 ) {
+        this->InvokeEvent( PoistatsOdfCalculationProgressEvent() );            
+      }
+      
+      cOdfs++;
+                
+    }
+    
+    if( isMaskUsed ) {
+      ++maskIt;    
+    }
+    
+  }
+  
+  clock_t endClock = clock();
+  const double elapsedTime = 
+    static_cast< double >( endClock - startClock ) / CLOCKS_PER_SEC;
+  this->SetElapsedTime( elapsedTime );
   this->InvokeEvent( PoistatsOdfCalculationEndEvent() );            
 }
-
 
 template <class TInputImage, class TOutputImage>
 void

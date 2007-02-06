@@ -83,6 +83,30 @@
 		  
 		</boolean>
 		
+		<boolean>
+		  
+		  <name>
+		    isOutputNii
+		  </name>
+		  
+		  <description>
+		    Should the output be in nifti?  This overrides the default.
+		  </description>
+		  
+		  <label>
+		    Nifit Output
+		  </label>
+		  
+		  <longflag>
+		    nii
+		  </longflag>
+		  
+		  <default>
+		    false
+		  </default>
+		  
+		</boolean>		
+		
 		<image>
 			
 			<name>
@@ -347,30 +371,6 @@
 		
 		</integer>
 		
-		<file>
-		
-			<name>
-				headerFile
-			</name>
-			
-			<description>
-				Read in bheader file.  This is a hack to let me read in the normal_a and normal_s values.
-			</description>
-			
-			<label>
-				Header file
-			</label>
-			
-			<longflag>
-				header
-			</longflag>
-			
-			<channel>
-				input
-			</channel>
-		
-		</file>
-
 		<double>
 
 			<name>
