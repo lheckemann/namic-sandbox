@@ -96,6 +96,8 @@ AsymmetricTensorReaderStrategy::GetTensors(){
             
             symmetricTensor( cTensorRow, cTensorCol ) = 
               fullTensors->GetPixel( fullTensorIndex );
+              
+            cContinuousIndex++;
           }
           
         }
