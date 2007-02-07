@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/utsname.h>
 
+// for reading in the cosine directions because itk doesn't do it properly
 #include <nifti1_io.h>
 
 #include <itkImageSeriesReader.h>
@@ -14,16 +15,13 @@
 
 #include "itkMGHImageIOFactory.h"
 #include "itkPoistatsFilter.h"
+
 #include "CommandUpdate.h"
 #include "SymmetricTensorReaderStrategy.h"
 #include "AsymmetricTensorReaderStrategy.h"
 #include "AsymmetricTensorVectorReaderStrategy.h"
 
 #include "PoistatsCLICLP.h"
-
-const std::string NORMAL_A = "normal_a:";
-const std::string NORMAL_S = "normal_s:";
-
 
 bool
 IsNifti( std::string fileExtension ) {

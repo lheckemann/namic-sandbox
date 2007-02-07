@@ -13,8 +13,6 @@ AsymmetricTensorVectorReaderStrategy::~AsymmetricTensorVectorReaderStrategy(){
 AsymmetricTensorVectorReaderStrategy::TensorImageType::Pointer
 AsymmetricTensorVectorReaderStrategy::GetTensors(){
 
-  m_Observer->PostMessage( "not stored symmetrically\n" );
-  
   typedef itk::VectorImage< float, 4 > FullTensorImageType;
   typedef itk::ImageFileReader< FullTensorImageType > FullTensorReaderType;
   FullTensorReaderType::Pointer tensorReader = FullTensorReaderType::New();
@@ -30,11 +28,7 @@ AsymmetricTensorVectorReaderStrategy::GetTensors(){
   }
   
   FullTensorImageType::Pointer fullTensors = tensorReader->GetOutput();
-      
-  // TODO:
-  std::cerr << fullTensors << std::endl;
-  std::cerr << "\ndirection: \n" << fullTensors->GetDirection();
-  
+        
   // convert the full 9 component tensors to 6 component tensors
   //  - create and allocate a new DiffusionTensor3D image
   FullTensorImageType::RegionType dtiRegion = 
@@ -43,7 +37,7 @@ AsymmetricTensorVectorReaderStrategy::GetTensors(){
   double origin[ TensorImageType::RegionType::GetImageDimension() ];
   TensorImageType::IndexType start;
   TensorImageType::SpacingType spacing;
-
+  
   for( int cDim=0; cDim<TensorImageType::RegionType::GetImageDimension(); cDim++ ) {    
     size[ cDim ] = dtiRegion.GetSize()[ cDim ];
     origin[ cDim ] = fullTensors->GetOrigin()[ cDim ];
@@ -59,9 +53,10 @@ AsymmetricTensorVectorReaderStrategy::GetTensors(){
   tensors->SetRegions( region );
   tensors->SetOrigin( origin );
   tensors->SetSpacing( spacing );      
+//  tensors->SetDirection( direction );  
   tensors->Allocate();  
   tensors->FillBuffer( 0.0 );
-
+    
   //  - copy the data into the right areas
   const int nTensorRows = 3;
   const int nTensorCols = 3;
@@ -70,7 +65,7 @@ AsymmetricTensorVectorReaderStrategy::GetTensors(){
   for( int cImageRow=0; cImageRow<size[ 0 ]; cImageRow++ ) {
     for( int cImageCol=0; cImageCol<size[ 1 ]; cImageCol++ ) {
       for( int cImageSlice=0; cImageSlice<size[ 2 ]; cImageSlice++ ) {
-      
+
         TensorImageType::IndexType symmetricIndex;
         symmetricIndex[ 0 ] = cImageRow;
         symmetricIndex[ 1 ] = cImageCol;
@@ -104,6 +99,17 @@ AsymmetricTensorVectorReaderStrategy::GetTensors(){
       }
     }
   }
+  
+  // for some reason, I can't do this above, so I'm setting the cosine direction
+  // here instead; it will seg fault otherwise.  
+  TensorImageType::DirectionType dir;
+  const FullTensorImageType::DirectionType& fullDirection = fullTensors->GetDirection();
+  for( int cDim=0; cDim<TensorImageType::RegionType::GetImageDimension(); cDim++ ) {    
+    for( int cDirection=0; cDirection<3; cDirection++ ) {
+      dir[ cDim][ cDirection ] = fullDirection[ cDim ][ cDirection ];
+    }
+  }
+  tensors->SetDirection( dir );
   
   return tensors;
 }

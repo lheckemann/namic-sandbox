@@ -12,7 +12,6 @@ AsymmetricTensorReaderStrategy::~AsymmetricTensorReaderStrategy(){
 
 AsymmetricTensorReaderStrategy::TensorImageType::Pointer
 AsymmetricTensorReaderStrategy::GetTensors(){
-  m_Observer->PostMessage( "not stored symmetrically\n" );
   
   typedef itk::Image< float, 4 > FullTensorImageType;
   typedef itk::ImageFileReader< FullTensorImageType > FullTensorReaderType;
@@ -29,11 +28,7 @@ AsymmetricTensorReaderStrategy::GetTensors(){
   }
   
   FullTensorImageType::Pointer fullTensors = tensorReader->GetOutput();
-      
-  // TODO:
-  std::cerr << fullTensors << std::endl;
-  std::cerr << "\ndirection: \n" << fullTensors->GetDirection();
-  
+        
   // convert the full 9 component tensors to 6 component tensors
   //  - create and allocate a new DiffusionTensor3D image
   FullTensorImageType::RegionType dtiRegion = 

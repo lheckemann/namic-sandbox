@@ -44,7 +44,14 @@ CommandUpdate::Execute(const itk::Object * object,
     } else if( itk::PoistatsOdfCalculationProgressEvent().CheckEvent( &event ) ){
       PostMessage( ". " );
     } else if( itk::PoistatsOdfCalculationEndEvent().CheckEvent( &event ) ) {
-      PostMessage( "\nfinished\n" );
+      PoistatsFilterPointer filter = 
+        dynamic_cast< PoistatsFilterPointer >( object );
+
+      std::ostringstream output;
+
+      output << "\nfinished\n" << "elapsed time: " << filter->GetElapsedTime() << std::endl;
+          
+      PostMessage( output.str() );
     }
 
   } else if( itk::SeedsEvent().CheckEvent( &event ) ) {
@@ -85,9 +92,7 @@ CommandUpdate::Execute(const itk::Object * object,
 
       } else if( itk::GenerateBestReplicaPathDensitiesEndEvent().
         CheckEvent( &event ) ) {
-          
-        PostMessage( "finished\n" );
-
+        PostMessage( "\nfinished\n" );
       }
       
     } else if( itk::GenerateFinalPathProbabilitiesEvent().
