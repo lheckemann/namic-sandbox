@@ -401,8 +401,6 @@ namespace itk
   
   const unsigned int pixelSize = componentSize*m_NumberOfComponents;
   
-  std::cerr << "  m_NumberOfComponents: " << m_NumberOfComponents << std::endl;
-  
   for(unsigned int frameIndex = 0;
       frameIndex < m_NumberOfComponents;
       ++frameIndex)
@@ -661,14 +659,21 @@ namespace itk
     //===================================================================
     // get directions matrix
     std::vector<std::vector<double> > vvRas;
-    for(unsigned int ui=0; ui<3; ++ui) vvRas.push_back( GetDirection(ui) );
+
+    for(unsigned int ui=0; ui<3; ++ui) 
+      vvRas.push_back( GetDirection(ui) );
+
     // transpose data before writing it
     std::vector<float> vBufRas;
+
     // transpose the matrix
-    for(unsigned int ui(0), count(0);
-  ui < 3; ++ui)
-      for(unsigned int uj(0); uj<3; ++uj)
-  vBufRas.push_back( (float)vvRas[uj][ui] );
+    for( unsigned int ui(0), count(0); ui < 3; ++ui )
+      for( unsigned int uj(0); uj<3; ++uj ) {
+
+        float direction = (float)vvRas[uj][ui];
+        vBufRas.push_back( direction );
+        
+      }
     //===================================================================
 
     for(std::vector<float>::const_iterator cit = vBufRas.begin();
@@ -681,7 +686,7 @@ namespace itk
       {
   crasBuf = m_Origin[ui];
   for(unsigned int uj=0; uj<3; ++uj)
-    crasBuf += vvRas[ui][uj]*m_Spacing[uj]*(float)m_Dimensions[uj]/2.0f;
+    crasBuf += vvRas[ui][uj] * m_Spacing[uj] * (float)m_Dimensions[uj] / 2.0f;
   
   TWriteZ( file_p, crasBuf );
       }
