@@ -3,6 +3,11 @@
 
 #pragma once
 
+#include "itkImage.h"
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
+#include "itkCurvatureFlowImageFilter.h"
+
 
 // CITKMFCDlg dialog
 class CITKMFCDlg : public CDialog
@@ -28,4 +33,18 @@ protected:
   afx_msg void OnPaint();
   afx_msg HCURSOR OnQueryDragIcon();
   DECLARE_MESSAGE_MAP()
+
+private:
+
+  typedef unsigned char                       PixelType;  
+  typedef itk::Image< PixelType, 2 >          ImageType;
+  typedef itk::ImageFileReader< ImageType >   ReaderType;
+  typedef itk::ImageFileWriter< ImageType >   WriterType;
+  typedef itk::CurvatureFlowImageFilter< 
+                     ImageType, ImageType >   FilterType;
+
+  ReaderType::Pointer     m_Reader;
+  WriterType::Pointer     m_Writer;
+  FilterType::Pointer     m_Filter;
+
 };
