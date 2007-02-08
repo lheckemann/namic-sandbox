@@ -49,6 +49,11 @@ CITKMFCDlg::CITKMFCDlg(CWnd* pParent /*=NULL*/)
   : CDialog(CITKMFCDlg::IDD, pParent)
 {
   m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+  
+  m_Reader = ReaderType::New();
+  m_Writer = WriterType::New();
+  m_Filter = FilterType::New();
+
 }
 
 void CITKMFCDlg::DoDataExchange(CDataExchange* pDX)
