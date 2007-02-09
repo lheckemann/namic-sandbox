@@ -60,12 +60,20 @@ CITKMFCDlg::CITKMFCDlg(CWnd* pParent /*=NULL*/)
   m_Filter->SetTimeStep( 0.1 ); // for 2D images
   m_Filter->SetNumberOfIterations( 5 );
   
+  this->m_ReceptorCommand = ReceptorCommandType::New();
+
+  this->m_ReceptorCommand->SetCallbackFunction( 
+    this, & CITKMFCDlg::UpdateProgressBar );
+
+  this->m_Filter->AddObserver( 
+    itk::ProgressEvent(), this->m_ReceptorCommand );
 }
 
 void CITKMFCDlg::DoDataExchange(CDataExchange* pDX)
 {
   CDialog::DoDataExchange(pDX);
   DDX_Control(pDX, IDC_SLIDER1, m_NumberOfIterationsSlider);
+  DDX_Control(pDX, IDC_PROGRESS1, m_ProgressBar);
 }
 
 BEGIN_MESSAGE_MAP(CITKMFCDlg, CDialog)
@@ -117,6 +125,10 @@ BOOL CITKMFCDlg::OnInitDialog()
   m_NumberOfIterationsSlider.SetTic(true);
   m_NumberOfIterationsSlider.SetTicFreq(5);
   
+  m_ProgressBar.SetRange( 0, 100 );
+  m_ProgressBar.SetStep( 1 );
+  m_ProgressBar.SetPos( 0 );
+
   return TRUE;  // return TRUE  unless you set the focus to a control
 }
 
@@ -196,7 +208,9 @@ void CITKMFCDlg::RunImageFilter()
 {
   try
     {
+    m_ProgressBar.SetPos( 0 );
     m_Filter->Update();
+    m_ProgressBar.SetPos( 100 );
     }
   catch( itk::ExceptionObject & excp )
     {
@@ -240,3 +254,17 @@ void CITKMFCDlg::OnHScroll(
       m_NumberOfIterationsSlider.GetPos() );
     }
 }
+
+void CITKMFCDlg::UpdateProgressBar( const itk::EventObject & event )
+{
+  const itk::ProgressEvent * progressEvent =
+    dynamic_cast< const itk::ProgressEvent * >( & event );
+  if( progressEvent )
+    {
+    float progress = m_Filter->GetProgress();
+    int integerProgess = static_cast<int>( progress * 100.0 );
+    this->m_ProgressBar.SetPos( integerProgess );
+    }
+}
+
+
