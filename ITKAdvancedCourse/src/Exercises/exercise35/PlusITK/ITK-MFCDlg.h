@@ -36,6 +36,8 @@ protected:
   afx_msg void RunImageFilter();
   afx_msg void SaveOutputImage();
 
+  afx_msg void CancelFiltering();
+
   afx_msg void OnHScroll(
     UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 
@@ -58,6 +60,8 @@ private:
   CSliderCtrl             m_NumberOfIterationsSlider;
 
   CProgressCtrl           m_ProgressBar;
+
+  bool                    m_CancelFilter;
 
   typedef itk::ReceptorMemberCommand< CITKMFCDlg > ReceptorCommandType;
 
