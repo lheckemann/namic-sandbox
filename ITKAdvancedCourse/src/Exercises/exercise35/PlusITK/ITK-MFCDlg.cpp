@@ -57,11 +57,19 @@ CITKMFCDlg::CITKMFCDlg(CWnd* pParent /*=NULL*/)
   m_Filter->SetInput( m_Reader->GetOutput() );
   m_Writer->SetInput( m_Filter->GetOutput() );
 
+  m_Filter->SetTimeStep( 0.1 ); // for 2D images
+  m_Filter->SetNumberOfIterations( 5 );
+  
+  m_NumberOfIterationsSlider.SetRange( 1, 50 );
+  m_NumberOfIterationsSlider.SetPos( 5 );
+  m_NumberOfIterationsSlider.SetTic(true);
+  m_NumberOfIterationsSlider.SetTicFreq(5);
 }
 
 void CITKMFCDlg::DoDataExchange(CDataExchange* pDX)
 {
   CDialog::DoDataExchange(pDX);
+  DDX_Control(pDX, IDC_SLIDER1, m_NumberOfIterationsSlider);
 }
 
 BEGIN_MESSAGE_MAP(CITKMFCDlg, CDialog)
@@ -73,6 +81,7 @@ BEGIN_MESSAGE_MAP(CITKMFCDlg, CDialog)
   ON_BN_CLICKED(IDC_BUTTON3, RunImageFilter)
   ON_BN_CLICKED(IDC_BUTTON4, SaveOutputImage)
 
+  ON_WM_HSCROLL(IDC_SLIDER1, ChangeNumberOfIterations)
   //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -218,3 +227,16 @@ void CITKMFCDlg::SaveOutputImage()
     }
 }
 
+
+void CITKMFCDlg::ChangeNumberOfIterations( 
+  UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
+{
+  std::cout << "number of iterations = " << nPos << std::endl;
+  if( nPos != m_NumberOfIterationsSlider.GetPos() )
+    {
+    MessageBox( _T("Wrong Number of Iterations"), 0, 0 );
+    }
+
+  m_Filter->SetNumberOfIterations( nPos );
+  this->SaveOutputImage();
+}

@@ -36,12 +36,15 @@ protected:
   afx_msg void RunImageFilter();
   afx_msg void SaveOutputImage();
 
+  afx_msg void ChangeNumberOfIterations(
+    UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+
   afx_msg HCURSOR OnQueryDragIcon();
   DECLARE_MESSAGE_MAP()
 
 private:
 
-  typedef unsigned char                       PixelType;  
+  typedef float                               PixelType;  
   typedef itk::Image< PixelType, 2 >          ImageType;
   typedef itk::ImageFileReader< ImageType >   ReaderType;
   typedef itk::ImageFileWriter< ImageType >   WriterType;
@@ -52,4 +55,6 @@ private:
   WriterType::Pointer     m_Writer;
   FilterType::Pointer     m_Filter;
 
+
+  CSliderCtrl m_NumberOfIterationsSlider;
 };
