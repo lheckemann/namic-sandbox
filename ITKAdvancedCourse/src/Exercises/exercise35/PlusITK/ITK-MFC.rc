@@ -92,8 +92,7 @@ FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,263,7,50,16
     PUSHBUTTON      "Cancel",IDCANCEL,263,25,50,16
-    CTEXT           "TODO: Place dialog controls here.",IDC_STATIC,10,96,300,
-                    8
+    CTEXT           "ITK + MFC Example",IDC_STATIC,10,96,300,8
     PUSHBUTTON      "Load Image",IDC_BUTTON1,19,19,50,14
     PUSHBUTTON      "Run Filter",IDC_BUTTON3,19,50,50,14
     PUSHBUTTON      "Save Image",IDC_BUTTON4,18,81,50,14
