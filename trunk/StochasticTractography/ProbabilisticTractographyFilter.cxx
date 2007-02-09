@@ -4,9 +4,11 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkMetaDataDictionary.h"
+#include "itkAddImageFilter.h"
 #include <iostream>
 #include <vector>
-#include "ProbabilisticTractographyFilterCLP.h"
+#include "itkImageRegionConstIterator.h"
+//#include "ProbabilisticTractographyFilterCLP.h"
 
 template< class TTOContainerType >
 bool SamplingDirections(const char* fn, typename TTOContainerType::Pointer directions){
@@ -44,11 +46,14 @@ bool SamplingDirections(const char* fn, typename TTOContainerType::Pointer direc
 }
 
 int main(int argc, char* argv[]){
-  PARSE_ARGS;
+//  PARSE_ARGS;
   //define the input/output types
   typedef itk::VectorImage< unsigned short int, 3 > DWIVectorImageType;
   typedef itk::Image< short int, 3 > ROIImageType;
   typedef itk::Image< unsigned int, 3 > CImageType;
+  
+  //define an iterator for the ROI image
+  typedef itk::ImageRegionConstIterator< ROIImageType > ROIImageIteratorType;
   
   //define reader and writer
   typedef itk::ImageFileReader< DWIVectorImageType > DWIVectorImageReaderType;
@@ -61,11 +66,14 @@ int main(int argc, char* argv[]){
 
   //define a probabilistic tractography filter type and associated bValue, gradient direction
   //and measurement frame types
-  typedef itk::ProbabilisticTractographyFilter< DWIVectorImageType, ROIImageType, 
-    CImageType > PTFilterType;
+  typedef itk::ProbabilisticTractographyFilter< DWIVectorImageType, CImageType > 
+    PTFilterType;
   typedef PTFilterType::bValueContainerType bValueContainerType;
   typedef PTFilterType::GradientDirectionContainerType GDContainerType;
   typedef PTFilterType::MeasurementFrameType MeasurementFrameType;
+  
+  //define AddImageFilterType to accumulate the connectivity maps of the pixels in the ROI
+  typedef itk::AddImageFilter< CImageType, CImageType, CImageType> AddImageFilterType;
   
   //parse command line arguments
   if(argc < 3){
@@ -74,11 +82,11 @@ int main(int argc, char* argv[]){
     std::cerr<< "NumberOfTracts MaxTractLength\n";
     return EXIT_FAILURE;
   }
-  //char* dwifilename = argv[1];
-  //char* roifilename = argv[2];
-  //char* cfilename = argv[3];
-  //unsigned int totaltracts = atoi(argv[4]);
-  //unsigned int maxtractlength = atoi(argv[5]);
+  char* dwifilename = argv[1];
+  char* roifilename = argv[2];
+  char* cfilename = argv[3];
+  unsigned int totaltracts = atoi(argv[4]);
+  unsigned int maxtractlength = atoi(argv[5]);
   
   //read in the DWI image
   DWIVectorImageReaderType::Pointer dwireaderPtr = DWIVectorImageReaderType::New();
@@ -136,6 +144,7 @@ int main(int argc, char* argv[]){
     std::cerr <<"no measurement frame was found!";
     return EXIT_FAILURE;
   }
+  //correct the measurement frame
   
   std::cout << scaling_bValue << std::endl;
   for(unsigned int i=0; i<gradientsPtr->Size(); i++)
@@ -150,7 +159,10 @@ int main(int argc, char* argv[]){
     std::cout << std::endl;
   }
  
-    //fill up bValue container with the scaling_bValue;
+  //correct the measurement frame since the image is now in LPS from RAS frame
+  //NRRDIO should do this, but we do it here as a work around
+  
+  //fill up bValue container with the scaling_bValue;
   for(unsigned int i=0; i<gradientsPtr->Size() ;i++)
     bValuesPtr->InsertElement(i, scaling_bValue);
   //the first b value is zero for the non diffusion weighted image
@@ -161,6 +173,7 @@ int main(int argc, char* argv[]){
   //setup the ROI image reader
   ROIImageReaderType::Pointer roireaderPtr = ROIImageReaderType::New();
   roireaderPtr->SetFileName(roifilename);
+  roireaderPtr->Update();
   
   //set list of directions
   typedef PTFilterType::TractOrientationContainerType TOCType;
@@ -169,11 +182,9 @@ int main(int argc, char* argv[]){
   if(SamplingDirections<TOCType>("SD.txt", directionsPtr));
   else return EXIT_FAILURE;
   
-   //Setup the PTFilter
+  //Setup the PTFilter
   PTFilterType::Pointer ptfilterPtr = PTFilterType::New();
-  
-  ptfilterPtr->SetDWIImageInput( dwireaderPtr->GetOutput() );
-  ptfilterPtr->SetROIImageInput( roireaderPtr->GetOutput() );
+  ptfilterPtr->SetInput( dwireaderPtr->GetOutput() );
   ptfilterPtr->SetbValues(bValuesPtr);
   ptfilterPtr->SetGradients( gradientsPtr );
   ptfilterPtr->SetMeasurementFrame( measurement_frame );
@@ -181,9 +192,35 @@ int main(int argc, char* argv[]){
   ptfilterPtr->SetMaxTractLength( maxtractlength );
   ptfilterPtr->SetTotalTracts( totaltracts );
   
-  //Write out the Tensor Image
+  //Setup the AddImageFilter
+  AddImageFilterType::Pointer addimagefilterPtr = AddImageFilterType::New();
+  
+  //Create a zeroed Connectivity Image
+  CImageType::Pointer accumulatedcimagePtr = CImageType::New();
+  accumulatedcimagePtr->CopyInformation( dwireaderPtr->GetOutput() );
+  accumulatedcimagePtr->SetBufferedRegion( dwireaderPtr->GetOutput()->GetBufferedRegion() );
+  accumulatedcimagePtr->SetRequestedRegion( dwireaderPtr->GetOutput()->GetRequestedRegion() );
+  accumulatedcimagePtr->Allocate();
+  accumulatedcimagePtr->FillBuffer(0);
+  
+  //graft this onto the output of the addimagefilter
+  addimagefilterPtr->GraftOutput(accumulatedcimagePtr);
+  addimagefilterPtr->SetInput1(ptfilterPtr->GetOutput());
+  addimagefilterPtr->SetInput2(addimagefilterPtr->GetOutput());
+  
+  ROIImageIteratorType ROIImageIt( roireaderPtr->GetOutput(),
+    roireaderPtr->GetOutput()->GetRequestedRegion() );
+  for(ROIImageIt.GoToBegin(); !ROIImageIt.IsAtEnd(); ++ROIImageIt){
+    //std::cout << "PixelIndex: "<< inputROIImageIt.GetIndex() << std::endl;
+    if(ROIImageIt.Get() > 0 && ROIImageIt.Get() < 100){
+      ptfilterPtr->SetSeedIndex( ROIImageIt.GetIndex() );
+      addimagefilterPtr->Update();
+    }
+  }        
+
+  //Write out the Connectivity Map
   CImageWriterType::Pointer writerPtr = CImageWriterType::New();
-  writerPtr->SetInput( ptfilterPtr->GetOutput() );
+  writerPtr->SetInput( accumulatedcimagePtr );
   writerPtr->SetFileName( cfilename );
   writerPtr->Update();
   

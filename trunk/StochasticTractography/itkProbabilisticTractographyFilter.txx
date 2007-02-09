@@ -18,9 +18,8 @@
 
 namespace itk{
 
-template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
-ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
-                      TOutputConnectivityImage >
+template< class TInputDWIImage, class TOutputConnectivityImage >
+ProbabilisticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
 ::ProbabilisticTractographyFilter(){
 
   this->SetTotalTracts( 50 );
@@ -34,19 +33,17 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
   this->m_LikelihoodCache = NULL;
 } 
 
-template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
-ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
-                      TOutputConnectivityImage >
+template< class TInputDWIImage, class TOutputConnectivityImage >
+ProbabilisticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
 ::~ProbabilisticTractographyFilter(){
   delete this->m_A;
   delete this->m_Aqr;
   delete this->m_W;
 } 
 
-template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TOutputConnectivityImage >
 void
-ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
-                      TOutputConnectivityImage >
+ProbabilisticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
 ::ProbabilisticallyInterpolate( vnl_random& randomgenerator, 
                       const PathType::ContinuousIndexType& cindex,
                       typename InputDWIImageType::IndexType& index){
@@ -58,10 +55,9 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
   }
 }
 
-template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TOutputConnectivityImage >
 void
-ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
-                      TOutputConnectivityImage >
+ProbabilisticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
 ::UpdateGradientDirections(void){
   //the gradient direction is transformed into IJK space
   //by moving into RAS space and then to LPS space then to IJK space
@@ -82,10 +78,9 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
   this->SetGradients(gradients_prime);
 }
 
-template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TOutputConnectivityImage >
 void
-ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
-                      TOutputConnectivityImage >
+ProbabilisticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
 ::UpdateTensorModelFittingMatrices( void ){
 
   //estimate the parameters using linear LS estimation
@@ -116,10 +111,9 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
   this->m_Aqr = new vnl_qr< double >(A);
 }
 
-template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TOutputConnectivityImage >
 void
-ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
-                      TOutputConnectivityImage >
+ProbabilisticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
 ::CalculateTensorModelParameters( const DWIVectorImageType::PixelType& dwivalues,
   TensorModelParamType& tensormodelparams){
   
@@ -157,10 +151,9 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
   tensormodelparams = vnl_svd< double >((W*A)).solve(W*logPhi);
 }
 
-template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TOutputConnectivityImage >
 void
-ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
-                      TOutputConnectivityImage >
+ProbabilisticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
 ::CalculateConstrainedModelParameters( const TensorModelParamType& tensormodelparams,
     ConstrainedModelParamType& constrainedmodelparams){          
               
@@ -194,10 +187,9 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
   constrainedmodelparams[5] = (Deig.get_eigenvector(2))[2];                  
 }
               
-template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TOutputConnectivityImage >
 void
-ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
-                      TOutputConnectivityImage >
+ProbabilisticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
 ::CalculateNoiseFreeDWIFromConstrainedModel( const ConstrainedModelParamType& constrainedmodelparams,
     DWIVectorImageType::PixelType& noisefreedwi){
     
@@ -219,10 +211,9 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
   }     
 }
 
-template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TOutputConnectivityImage >
 void
-ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
-                      TOutputConnectivityImage >
+ProbabilisticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
 ::CalculateResidualVariance( const DWIVectorImageType::PixelType& noisydwi,
     const DWIVectorImageType::PixelType& noisefreedwi,
     const unsigned int dof,
@@ -241,10 +232,9 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
   residualvariance/=(N-dof);
 }
                                  
-template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TOutputConnectivityImage >
 void
-ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
-                      TOutputConnectivityImage >
+ProbabilisticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
 ::CalculateLikelihood( const DWIVectorImageType::PixelType &dwipixel, 
     TractOrientationContainerType::ConstPointer orientations,
     ProbabilityDistributionImageType::PixelType& likelihood){
@@ -289,10 +279,9 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
   double a = 1;
 }
 
-template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TOutputConnectivityImage >
 void
-ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
-                      TOutputConnectivityImage >
+ProbabilisticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
 ::CalculatePrior( TractOrientationContainerType::Element v_prev, 
     TractOrientationContainerType::ConstPointer orientations,
     ProbabilityDistributionImageType::PixelType& prior ){
@@ -315,10 +304,9 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
   }
 }
 
-template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TOutputConnectivityImage >
 void
-ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
-                      TOutputConnectivityImage >
+ProbabilisticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
 ::CalculatePosterior( const ProbabilityDistributionImageType::PixelType& likelihood,
     const ProbabilityDistributionImageType::PixelType& prior,
     ProbabilityDistributionImageType::PixelType& posterior){
@@ -332,10 +320,9 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
     }
 }
 
-template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TOutputConnectivityImage >
 void
-ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
-                      TOutputConnectivityImage >
+ProbabilisticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
 ::SampleTractOrientation( vnl_random& randomgenerator, 
     const ProbabilityDistributionImageType::PixelType& posterior,
     TractOrientationContainerType::ConstPointer orientations,
@@ -357,13 +344,12 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
       //  <<") "<<choosendirection<< std::endl;
 }
 
-//the seedpoint is in continuous IJK coordinates
-template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
+//the seedindex is in continuous IJK coordinates
+template< class TInputDWIImage, class TOutputConnectivityImage >
 void
-ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
-                      TOutputConnectivityImage >
+ProbabilisticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
 ::StochasticTractGeneration( typename InputDWIImageType::ConstPointer dwiimagePtr,
-  PathType::ContinuousIndexType seedpoint,
+  typename InputDWIImageType::IndexType seedindex,
   PathType::Pointer tractPtr){
   
   PathType::ContinuousIndexType cindex_curr;
@@ -375,7 +361,7 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
   
   tractPtr->Initialize();
   
-  cindex_curr = seedpoint;
+  cindex_curr = seedindex;
   for(unsigned int j=0; (j<this->GetMaxTractLength()) &&
     (dwiimagePtr->GetLargestPossibleRegion().IsInside(cindex_curr)); j++){
 
@@ -407,17 +393,20 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
     this->CalculatePosterior( likelihood_curr, prior_curr, posterior_curr);
     this->SampleTractOrientation(randomgenerator, posterior_curr,
                           this->GetSampleDirections(), v_curr);
-          
-    cindex_curr[0]+=v_curr[0];
-    cindex_curr[1]+=v_curr[1];
-    cindex_curr[2]+=v_curr[2];
+    
+    //takes into account voxels of different sizes
+    //converts from a step length of 1 mm to the corresponding length in IJK space
+    const typename InputDWIImageType::SpacingType& spacing = dwiimagePtr->GetSpacing();
+    cindex_curr[0]+=v_curr[0]/spacing[0];
+    cindex_curr[1]+=v_curr[1]/spacing[1];
+    cindex_curr[2]+=v_curr[2]/spacing[2];
     v_prev=v_curr;
   }
 }
-template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
+
+template< class TInputDWIImage, class TOutputConnectivityImage >
 void
-ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
-                      TOutputConnectivityImage >
+ProbabilisticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
 ::GenerateData(){
   typedef ProbabilityDistributionImageType PDImageType;
   //preparations
@@ -426,44 +415,35 @@ ProbabilisticTractographyFilter< TInputDWIImage, TInputROIImage,
   //allocate outputs
   this->AllocateOutputs();
   
-  typename InputDWIImageType::ConstPointer inputDWIImagePtr = this->GetDWIImageInput();
-  typename InputROIImageType::ConstPointer inputROIImagePtr = this->GetROIImageInput();
+  typename InputDWIImageType::ConstPointer inputDWIImagePtr = this->GetInput();
   typename OutputConnectivityImageType::Pointer outputPtr = this->GetOutput();
   
   outputPtr->FillBuffer(0);
   typedef ImageRegionConstIterator< InputDWIImageType > InputDWIImageIteratorType;
-  typedef ImageRegionConstIterator< InputROIImageType > InputROIImageIteratorType;
   typedef ImageRegionIterator< OutputConnectivityImageType > OutputIteratorType;
   typedef PathIterator< OutputConnectivityImageType, PathType > OutputPathIteratorType;
   
-  InputROIImageIteratorType inputROIImageIt( inputROIImagePtr, 
-    outputPtr->GetRequestedRegion() );
   OutputIteratorType outputIt( outputPtr, outputPtr->GetRequestedRegion() );
   
   PathType::Pointer tractPtr = PathType::New();
   unsigned int voxelnum = 0;
   
-  for(inputROIImageIt.GoToBegin(); !inputROIImageIt.IsAtEnd(); ++inputROIImageIt){
-    if(inputROIImageIt.Get() > 0 && inputROIImageIt.Get() < 100){
-      std::cout << "PixelIndex: "<< inputROIImageIt.GetIndex() << std::endl;
-      for(unsigned int i=0; i<this->GetTotalTracts(); i++){
-        StochasticTractGeneration(inputDWIImagePtr,
-          static_cast< PathType::ContinuousIndexType >(inputROIImageIt.GetIndex()),
-          tractPtr);
-      
-        OutputPathIteratorType outputtractIt( outputPtr, tractPtr );
+  std::cout << "PixelIndex: "<< this->GetSeedIndex() << std::endl;
+  for(unsigned int i=0; i<this->GetTotalTracts(); i++){
+    StochasticTractGeneration(inputDWIImagePtr,
+      this->GetSeedIndex(),
+      tractPtr);
+  
+    OutputPathIteratorType outputtractIt( outputPtr, tractPtr );
 
-        for(outputtractIt.GoToBegin(); !outputtractIt.IsAtEnd(); ++outputtractIt){
-          /* there is an issue using outputtractIt.Value() */
-          outputtractIt.Set(outputtractIt.Get()+1);
-        }
-        //std::cout<<"Tract: "<<i<<" complete."<<std::endl;
-        //for(outputIt.GoToBegin(); !outputIt.IsAtEnd(); ++outputIt){
-        //  outputIt.Set(outputIt.Get()/this->GetTotalTracts());
-        //}
-      }
-      std::cout<<"----------Voxel: "<<voxelnum++<<" complete\n";  
+    for(outputtractIt.GoToBegin(); !outputtractIt.IsAtEnd(); ++outputtractIt){
+      /* there is an issue using outputtractIt.Value() */
+      outputtractIt.Set(outputtractIt.Get()+1);
     }
+    std::cout<<"Tract: "<<i<<" complete."<<std::endl;
+    //for(outputIt.GoToBegin(); !outputIt.IsAtEnd(); ++outputIt){
+    //  outputIt.Set(outputIt.Get()/this->GetTotalTracts());
+    //}
   }
 }
 
