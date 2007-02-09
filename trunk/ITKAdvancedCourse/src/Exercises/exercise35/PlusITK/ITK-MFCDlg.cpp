@@ -85,6 +85,8 @@ BEGIN_MESSAGE_MAP(CITKMFCDlg, CDialog)
   ON_BN_CLICKED(IDC_BUTTON3, RunImageFilter)
   ON_BN_CLICKED(IDC_BUTTON4, SaveOutputImage)
 
+  ON_BN_CLICKED(IDCANCEL, CancelFiltering)
+
   ON_WM_HSCROLL()
   //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
@@ -206,6 +208,8 @@ void CITKMFCDlg::LoadInputImage()
 
 void CITKMFCDlg::RunImageFilter()
 {
+  this->m_CancelFilter = false;
+
   try
     {
     m_ProgressBar.SetPos( 0 );
@@ -214,6 +218,7 @@ void CITKMFCDlg::RunImageFilter()
     }
   catch( itk::ExceptionObject & excp )
     {
+    m_ProgressBar.SetPos( 0 );
     MessageBox( _T( excp.GetDescription() ), 0, 0 );
     }
 }
@@ -265,6 +270,23 @@ void CITKMFCDlg::UpdateProgressBar( const itk::EventObject & event )
     int integerProgess = static_cast<int>( progress * 100.0 );
     this->m_ProgressBar.SetPos( integerProgess );
     }
+
+  // Check if the Cancel button has been pressed
+  MSG message;
+  if( ::PeekMessage( &message, NULL, 0, 0, PM_NOREMOVE ) )
+    {
+    AfxGetApp()->PumpMessage();
+    if( this->m_CancelFilter )
+      {
+      // Aborting filter execution
+      this->m_Filter->AbortGenerateDataOn();
+      this->m_ProgressBar.SetPos( 0 );
+      }
+    }
 }
 
+void CITKMFCDlg::CancelFiltering()
+{
+  this->m_CancelFilter = true;
+}
 
