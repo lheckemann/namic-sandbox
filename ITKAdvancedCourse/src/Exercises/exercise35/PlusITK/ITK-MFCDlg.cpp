@@ -162,16 +162,59 @@ HCURSOR CITKMFCDlg::OnQueryDragIcon()
 
 void CITKMFCDlg::LoadInputImage()
 {
-  m_Reader->SetFileName("");
+  CString strFilter = "*.png";
+
+  CFileDialog fileDialog( TRUE, NULL, NULL, OFN_FILEMUSTEXIST, strFilter );
+  HRESULT hResult = (int)fileDialog.DoModal();
+  if( FAILED( hResult ) ) 
+    {
+    return;
+    }
+
+  m_Reader->SetFileName( fileDialog.GetFileName() );
+
+  try
+    {
+    m_Reader->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    MessageBox( _T( excp.GetDescription() ), 0, 0 );
+    }
 }
 
 void CITKMFCDlg::RunImageFilter()
 {
-  m_Filter->Update();
+  try
+    {
+    m_Filter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    MessageBox( _T( excp.GetDescription() ), 0, 0 );
+    }
 }
 
 void CITKMFCDlg::SaveOutputImage()
 {
-  m_Writer->SetFileName("");
+  CString strFilter = "*.png";
+
+  CFileDialog fileDialog( FALSE, NULL, NULL, OFN_PATHMUSTEXIST, strFilter );
+  HRESULT hResult = (int)fileDialog.DoModal();
+  if( FAILED( hResult ) ) 
+    {
+    return;
+    }
+
+  m_Writer->SetFileName( fileDialog.GetFileName() );
+
+  try
+    {
+    m_Writer->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    MessageBox( _T( excp.GetDescription() ), 0, 0 );
+    }
 }
 
