@@ -54,6 +54,9 @@ CITKMFCDlg::CITKMFCDlg(CWnd* pParent /*=NULL*/)
   m_Writer = WriterType::New();
   m_Filter = FilterType::New();
 
+  m_Filter->SetInput( m_Reader->GetOutput() );
+  m_Writer->SetInput( m_Filter->GetOutput() );
+
 }
 
 void CITKMFCDlg::DoDataExchange(CDataExchange* pDX)
@@ -65,6 +68,11 @@ BEGIN_MESSAGE_MAP(CITKMFCDlg, CDialog)
   ON_WM_SYSCOMMAND()
   ON_WM_PAINT()
   ON_WM_QUERYDRAGICON()
+
+  ON_BN_CLICKED(IDC_BUTTON1, LoadInputImage)
+  ON_BN_CLICKED(IDC_BUTTON3, RunImageFilter)
+  ON_BN_CLICKED(IDC_BUTTON4, SaveOutputImage)
+
   //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -151,3 +159,19 @@ HCURSOR CITKMFCDlg::OnQueryDragIcon()
 {
   return static_cast<HCURSOR>(m_hIcon);
 }
+
+void CITKMFCDlg::LoadInputImage()
+{
+  m_Reader->SetFileName("");
+}
+
+void CITKMFCDlg::RunImageFilter()
+{
+  m_Filter->Update();
+}
+
+void CITKMFCDlg::SaveOutputImage()
+{
+  m_Writer->SetFileName("");
+}
+

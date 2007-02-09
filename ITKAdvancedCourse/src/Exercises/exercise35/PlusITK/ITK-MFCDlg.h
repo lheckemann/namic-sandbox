@@ -31,6 +31,11 @@ protected:
   virtual BOOL OnInitDialog();
   afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
   afx_msg void OnPaint();
+
+  afx_msg void LoadInputImage();
+  afx_msg void RunImageFilter();
+  afx_msg void SaveOutputImage();
+
   afx_msg HCURSOR OnQueryDragIcon();
   DECLARE_MESSAGE_MAP()
 
