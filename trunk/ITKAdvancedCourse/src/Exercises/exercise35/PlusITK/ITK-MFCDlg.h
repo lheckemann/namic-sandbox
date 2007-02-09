@@ -55,6 +55,15 @@ private:
   WriterType::Pointer     m_Writer;
   FilterType::Pointer     m_Filter;
 
+  CSliderCtrl             m_NumberOfIterationsSlider;
 
-  CSliderCtrl m_NumberOfIterationsSlider;
+  CProgressCtrl           m_ProgressBar;
+
+  typedef itk::ReceptorMemberCommand< CITKMFCDlg > ReceptorCommandType;
+
+  ReceptorCommandType::Pointer m_ReceptorCommand;
+
+  void UpdateProgressBar( const itk::EventObject & event );
+
+
 };
