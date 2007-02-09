@@ -60,10 +60,6 @@ CITKMFCDlg::CITKMFCDlg(CWnd* pParent /*=NULL*/)
   m_Filter->SetTimeStep( 0.1 ); // for 2D images
   m_Filter->SetNumberOfIterations( 5 );
   
-  m_NumberOfIterationsSlider.SetRange( 1, 50 );
-  m_NumberOfIterationsSlider.SetPos( 5 );
-  m_NumberOfIterationsSlider.SetTic(true);
-  m_NumberOfIterationsSlider.SetTicFreq(5);
 }
 
 void CITKMFCDlg::DoDataExchange(CDataExchange* pDX)
@@ -81,7 +77,7 @@ BEGIN_MESSAGE_MAP(CITKMFCDlg, CDialog)
   ON_BN_CLICKED(IDC_BUTTON3, RunImageFilter)
   ON_BN_CLICKED(IDC_BUTTON4, SaveOutputImage)
 
-  ON_WM_HSCROLL(IDC_SLIDER1, ChangeNumberOfIterations)
+  ON_WM_HSCROLL()
   //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -116,6 +112,10 @@ BOOL CITKMFCDlg::OnInitDialog()
   SetIcon(m_hIcon, FALSE);    // Set small icon
 
   // TODO: Add extra initialization here
+  m_NumberOfIterationsSlider.SetRange( 1, 50 );
+  m_NumberOfIterationsSlider.SetPos( 5 );
+  m_NumberOfIterationsSlider.SetTic(true);
+  m_NumberOfIterationsSlider.SetTicFreq(5);
   
   return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -228,15 +228,15 @@ void CITKMFCDlg::SaveOutputImage()
 }
 
 
-void CITKMFCDlg::ChangeNumberOfIterations( 
+void CITKMFCDlg::OnHScroll( 
   UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
 {
-  std::cout << "number of iterations = " << nPos << std::endl;
-  if( nPos != m_NumberOfIterationsSlider.GetPos() )
-    {
-    MessageBox( _T("Wrong Number of Iterations"), 0, 0 );
-    }
+  CSliderCtrl * slider =
+    dynamic_cast< CSliderCtrl * >( pScrollBar );
 
-  m_Filter->SetNumberOfIterations( nPos );
-  this->SaveOutputImage();
+  if( slider == &m_NumberOfIterationsSlider )
+    {
+    m_Filter->SetNumberOfIterations( 
+      m_NumberOfIterationsSlider.GetPos() );
+    }
 }

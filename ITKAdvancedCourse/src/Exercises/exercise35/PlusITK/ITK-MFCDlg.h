@@ -36,7 +36,7 @@ protected:
   afx_msg void RunImageFilter();
   afx_msg void SaveOutputImage();
 
-  afx_msg void ChangeNumberOfIterations(
+  afx_msg void OnHScroll(
     UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 
   afx_msg HCURSOR OnQueryDragIcon();

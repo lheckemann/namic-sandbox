@@ -96,8 +96,8 @@ BEGIN
     PUSHBUTTON      "Load Image",IDC_BUTTON1,19,19,50,14
     PUSHBUTTON      "Run Filter",IDC_BUTTON3,19,50,50,14
     PUSHBUTTON      "Save Image",IDC_BUTTON4,18,81,50,14
-    CONTROL         "",IDC_SLIDER1,"msctls_trackbar32",TBS_BOTH | WS_TABSTOP,
-                    87,47,164,25
+    CONTROL         "",IDC_SLIDER1,"msctls_trackbar32",TBS_AUTOTICKS | 
+                    WS_TABSTOP,87,47,164,25
 END
 
 
