@@ -98,6 +98,8 @@ BEGIN
     PUSHBUTTON      "Save Image",IDC_BUTTON4,18,81,50,14
     CONTROL         "",IDC_SLIDER1,"msctls_trackbar32",TBS_AUTOTICKS | 
                     WS_TABSTOP,87,47,164,25
+    CONTROL         "",IDC_PROGRESS1,"msctls_progress32",WS_BORDER,19,141,
+                    279,14
 END
 
 
