@@ -14,7 +14,7 @@
 
 namespace itk{
 
-template< class TInputDWIImage, class TInputROIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TOutputConnectivityImage >
 class ITK_EXPORT ProbabilisticTractographyFilter :
   public ImageToImageFilter< TInputDWIImage,
                     TOutputConnectivityImage >{
@@ -31,9 +31,6 @@ public:
   
   /** Types for the DWI Input Image **/
   typedef TInputDWIImage InputDWIImageType;
-  
-  /** Type for the ROI Input Image **/
-  typedef TInputROIImage InputROIImageType;
   
   /** Types for the Connectivity Output Image**/
   typedef TOutputConnectivityImage OutputConnectivityImageType;
@@ -52,13 +49,6 @@ public:
   typedef VectorContainer< unsigned int, vnl_vector_fixed< double, 3 > > 
     TractOrientationContainerType;
   
-  /** Set/Get Inputs **/
-  itkSetInputMacro(DWIImage, InputDWIImageType, 0);
-  itkGetInputMacro(DWIImage, InputDWIImageType, 0);
-  
-  itkSetInputMacro(ROIImage, InputROIImageType, 1);
-  itkGetInputMacro(ROIImage, InputROIImageType, 1);
-  
   /** the number of Tracts to generate **/
   itkSetMacro( TotalTracts, unsigned int);
   itkGetMacro( TotalTracts, unsigned int);
@@ -74,6 +64,10 @@ public:
   /** Set/Get of gradient directions **/
   itkSetConstObjectMacro( Gradients, GradientDirectionContainerType );
   itkGetConstObjectMacro( Gradients, GradientDirectionContainerType );;
+  
+  /** Set/Get the seed index **/
+  itkSetMacro( SeedIndex, typename InputDWIImageType::IndexType );
+  itkGetMacro( SeedIndex, typename InputDWIImageType::IndexType );
   
   /** Set/Get the list of directions to sample **/
   itkSetConstObjectMacro( SampleDirections, TractOrientationContainerType );
@@ -118,9 +112,9 @@ protected:
     this->UpdateGradientDirections();
     this->UpdateTensorModelFittingMatrices();
     this->m_LikelihoodCache = ProbabilityDistributionImageType::New();
-    this->m_LikelihoodCache->CopyInformation( this->GetDWIImageInput() );
-      this->m_LikelihoodCache->SetBufferedRegion( this->GetDWIImageInput()->GetBufferedRegion() );
-      this->m_LikelihoodCache->SetRequestedRegion( this->GetDWIImageInput()->GetRequestedRegion() );
+    this->m_LikelihoodCache->CopyInformation( this->GetInput() );
+    this->m_LikelihoodCache->SetBufferedRegion( this->GetInput()->GetBufferedRegion() );
+    this->m_LikelihoodCache->SetRequestedRegion( this->GetInput()->GetRequestedRegion() );
     this->m_LikelihoodCache->Allocate();
   }
     
@@ -172,11 +166,12 @@ protected:
     TractOrientationContainerType::Element& choosendirection );
   
   void StochasticTractGeneration( typename InputDWIImageType::ConstPointer dwiimagePtr,
-    PathType::ContinuousIndexType seedpoint,
+    typename InputDWIImageType::IndexType seedindex,
     PathType::Pointer tractPtr);
                     
   unsigned int m_MaxTractLength;
   unsigned int m_TotalTracts;
+  typename InputDWIImageType::IndexType m_SeedIndex;
   TractOrientationContainerType::ConstPointer m_SampleDirections;
 };
 
