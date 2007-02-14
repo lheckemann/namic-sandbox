@@ -195,6 +195,10 @@ GetFileExtension( std::string fileName ) {
   return exts;
 }
 
+void PrintUsageError( std::string error ) {
+  std::cerr << "\n*** usage error: " << error << std::endl << std::endl;
+}
+
 int main (int argc, char * argv[]) {
 
   PARSE_ARGS;
@@ -203,8 +207,18 @@ int main (int argc, char * argv[]) {
   itk::ObjectFactoryBase::RegisterFactory( itk::MGHImageIOFactory::New() ); 
     
   CommandUpdate::Pointer observer = CommandUpdate::New();
+  
+  if( argc <= 1 ) {
+    std::cerr << "\nuse --help flag for usage\n" << std::endl;
+    return EXIT_FAILURE;
+  }
 
-  observer->SetOutputDirectory( outputDirectory );  
+  if( !outputDirectory.empty() ) {
+    observer->SetOutputDirectory( outputDirectory );
+  } else {
+    PrintUsageError( "must specify output directory" );
+    return EXIT_FAILURE;
+  }
   observer->SetLogFileName( "poistats.log" );
 
   observer->PostMessage( "-- Poistats " + GetVersion() + " --\n\n" );
@@ -275,9 +289,9 @@ int main (int argc, char * argv[]) {
         
     tensors->SetDirection( direction );
     
-    std::cerr << "direction: \n" << direction;
   }
   
+  std::cerr << "direction: \n" << tensors->GetDirection();
   poistatsFilter->SetInput( tensors );
 
   observer->PostMessage( "reading seed volume...\n" );
@@ -413,7 +427,7 @@ int main (int argc, char * argv[]) {
   writer->SetInput( optimalPathDensity );
   writer->SetFileName( optimalDensityFileName.c_str() );
 
-  observer->PostMessage( "writing: " + optimalDensityFileName );  
+  observer->PostMessage( "writing: " + optimalDensityFileName + "\n" );  
   writer->Update();
   
   PoistatsFilterType::MatrixType finalPath = poistatsFilter->GetFinalPath();
@@ -435,27 +449,6 @@ int main (int argc, char * argv[]) {
   WriteData( pathProbabilitiesFileName, 
     finalPathProbabilities.data_block(), finalPathProbabilities.size() );
     
-//  PoistatsFilterType::MatrixType replicasProbabilities = 
-//    poistatsFilter->GetBestPathsProbabilities();
-//  const std::string bestPathsProbabilitiesFileName( (std::string)outputDirectory + 
-//    (std::string)"/ReplicasProbabilities.txt" );
-//  WriteData( bestPathsProbabilitiesFileName, 
-//    replicasProbabilities.data_array(), replicasProbabilities.rows(), 
-//    replicasProbabilities.cols() );
-//
-//  typedef itk::ImageFileWriter< PoistatsFilterType::SegmentationVolumeType > IntWriterType;  
-//  IntWriterType::Pointer intWriter = IntWriterType::New();
-//
-//  std::string optimalSegmentationFileName = (std::string)outputDirectory + 
-//    (std::string)"/OptimalPathSegmentation.nii";
-//  PoistatsFilterType::SegmentationVolumePointer optimalPathSegmenation = 
-//    poistatsFilter->GetOptimalSegmentation();
-//  intWriter->SetInput( optimalPathSegmenation );
-//  intWriter->SetFileName( optimalSegmentationFileName.c_str() );
-//
-//  observer->PostMessage( "writing: " + optimalSegmentationFileName + "\n" );  
-//  intWriter->Update();    
-
   return EXIT_SUCCESS;
 
 }

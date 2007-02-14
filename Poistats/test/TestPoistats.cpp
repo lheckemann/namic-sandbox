@@ -10,6 +10,8 @@
 #include <fstream>
 #include <string>
 
+#include "../AsymmetricTensorReaderStrategy.h"
+
 #include "TestPoistats.h"
 
 
@@ -32,7 +34,9 @@ void TestPoistats::TestGenerateRotationMatrix3u2v() {
 // input: vector, vector
 // output: 3x3 rotation matrix
   typedef itk::Image<float, 3> FloatImage3DType;
-  typedef itk::PoistatsFilter< FloatImage3DType, FloatImage3DType > 
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
+  typedef itk::PoistatsFilter< TensorImageType, FloatImage3DType > 
     PoistatsFilterType;
   
   const int arraySize = 3;
@@ -77,19 +81,24 @@ void TestPoistats::TestGetMagnetToSliceFrameRotation() {
     0,        0,          1
   };
 
-  typedef itk::Image< float, 4 > FloatImage4DType;
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
   typedef itk::Image< float, 3 > OutputImageType;
-  typedef itk::PoistatsFilter< FloatImage4DType, OutputImageType > 
+  typedef itk::PoistatsFilter< TensorImageType, OutputImageType > 
     PoistatsFilterType;
       
-  const double sliceUpData[] = { 0.990816, 0.124036, 0 };
-  PoistatsFilterType::ArrayType sliceUp( sliceUpData, 3 );
-
   PoistatsFilterType::Pointer poistatsFilter = PoistatsFilterType::New();
-  poistatsFilter->SetSliceUp( sliceUp );
+
+  TensorImageType::Pointer tensors = TensorImageType::New();
+  TensorImageType::DirectionType direction = tensors->GetDirection();
+  
+  direction( 2, 2 ) = 0.990816;
+  direction( 1, 2 ) = 0.124036;
+  
+  tensors->SetDirection( direction );
+  poistatsFilter->SetInput( tensors );
   
   PoistatsFilterType::MatrixType actualRotation( 3, 3 );
-
   poistatsFilter->GetMagnetToSliceFrameRotation( &actualRotation );
     
   const double tolerance = 0.00005;
@@ -110,8 +119,10 @@ void TestPoistats::TestCalculateTensor2Odf() {
   const double expected[] = {
 0.000040896298672, 0.000036449674298, 0.000036711974862, 0.000045683898371, 0.000048113119619, 0.00005491703329, 0.000057425487315, 0.000036048479402, 0.000047829844474, 0.000048932769154, 0.000041992773248, 0.000041093862794, 0.000079242904281, 0.000073318921482, 0.000086541384049, 0.000070554709445, 0.000080494192045, 0.000097971574381, 0.000113771858178, 0.000045451836449, 0.000044169949999, 0.00006339160985, 0.000060459230439, 0.000091391216114, 0.000094931535209, 0.000060745426302, 0.000055460645661, 0.000162510946718, 0.000156232635912, 0.000256429952273, 0.00017281778699, 0.000293346054982, 0.000102897615848, 0.000086585498825, 0.000204359132705, 0.000062692967755, 0.000296870253962, 0.000260948765261, 0.00039666825954, 0.000159706899393, 0.000137923297825, 0.000078506953137, 0.000069280885115, 0.000136420451034, 0.000102398357756, 0.000438714384876, 0.000468850921312, 0.000841050140014, 0.000731684273767, 0.018666084280226, 0.001383190273508, 0.004488466482144, 0.000969593399125, 0.010705106746449, 0.000366857650948, 0.000211680132208, 0.000139339621574, 0.000122453981069, 0.27351231544165, 0.001841639508486, 0.003562769585844, 0.00095577633399, 0.004854614991305, 0.004681682043008, 0.00024876186408, 0.000158722484451, 0.001145599759318, 0.000325844723342, 0.002013020859513, 0.000309292039818, 0.000753724920372, 0.000825373599871, 0.002507740229738, 0.003034563401795, 0.00032128178282, 0.000671559020357, 0.000257166238383, 0.001160255205806, 0.006062604918742, 0.002719565792765, 0.000388733968619, 0.000414348373893, 0.000866860865612, 0.000403366685336, 0.000277588234997, 0.000199747309967, 0.000275042568221, 0.009354478840775, 0.000900515505412, 0.000548206763369, 0.001516432647189, 0.00055379752057, 0.000383258865622, 0.000157974527062, 0.000517852716029, 0.000164868076028, 0.000411300555778, 0.009038984067251, 0.000869319753001, 0.00080827162961, 0.000203649531748, 0.000224122062386, 0.000133774106967, 0.000164025661766, 0.00018496376633, 0.087262951289482, 0.005052010862736, 0.000185272006392, 0.000491273679988, 0.00133449307414, 0.000318116100318, 0.000934417628894, 0.175215562438808, 0.000288460490726, 0.000131723700921, 0.000154523020011, 0.000130422468706, 0.0018077143528, 0.000647431649546, 0.000290827559354, 0.001877491729483, 0.000131088306219, 0.000211408571322, 0.000525375783546, 0.000165425622758, 0.001735677380289, 0.001735677380289, 0.000165425622758, 0.000525375783546, 0.000211408571322, 0.000131088306219, 0.001877491729483, 0.000290827559354, 0.000647431649546, 0.0018077143528, 0.000130422468706, 0.000154523020011, 0.000131723700921, 0.000288460490726, 0.175215562438808, 0.000934417628894, 0.000318116100318, 0.00133449307414, 0.000491273679988, 0.000185272006392, 0.005052010862736, 0.087262951289482, 0.00018496376633, 0.000164025661766, 0.000133774106967, 0.000224122062386, 0.000203649531748, 0.00080827162961, 0.000869319753001, 0.009038984067251, 0.000411300555778, 0.000164868076028, 0.000517852716029, 0.000157974527062, 0.000383258865622, 0.00055379752057, 0.001516432647189, 0.000548206763369, 0.000900515505412, 0.009354478840775, 0.000275042568221, 0.000199747309967, 0.000277588234997, 0.000403366685336, 0.000866860865612, 0.000414348373893, 0.000388733968619, 0.002719565792765, 0.006062604918742, 0.001160255205806, 0.000257166238383, 0.000671559020357, 0.00032128178282, 0.003034563401795, 0.002507740229738, 0.000825373599871, 0.000753724920372, 0.000309292039818, 0.002013020859513, 0.000325844723342, 0.001145599759318, 0.000158722484451, 0.00024876186408, 0.004681682043008, 0.004854614991305, 0.00095577633399, 0.003562769585844, 0.001841639508486, 0.27351231544165, 0.000122453981069, 0.000139339621574, 0.000211680132208, 0.000366857650948, 0.010705106746449, 0.000969593399125, 0.004488466482144, 0.001383190273508, 0.018666084280226, 0.000731684273767, 0.000841050140014, 0.000468850921312, 0.000438714384876, 0.000102398357756, 0.000136420451034, 0.000069280885115, 0.000078506953137, 0.000137923297825, 0.000159706899393, 0.00039666825954, 0.000260948765261, 0.000296870253962, 0.000062692967755, 0.000204359132705, 0.000086585498825, 0.000102897615848, 0.000293346054982, 0.00017281778699, 0.000256429952273, 0.000156232635912, 0.000162510946718, 0.000055460645661, 0.000060745426302, 0.000094931535209, 0.000091391216114, 0.000060459230439, 0.00006339160985, 0.000044169949999, 0.000045451836449, 0.000113771858178, 0.000097971574381, 0.000080494192045, 0.000070554709445, 0.000086541384049, 0.000073318921482, 0.000079242904281, 0.000041093862794, 0.000041992773248, 0.000048932769154, 0.000047829844474, 0.000036048479402, 0.000057425487315, 0.00005491703329, 0.000048113119619, 0.000045683898371, 0.000036711974862, 0.000036449674298, 0.000040896298672};    
 
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
   typedef itk::Image<float, 3> FloatImage3DType;
-  typedef itk::PoistatsFilter< FloatImage3DType, FloatImage3DType > 
+  typedef itk::PoistatsFilter< TensorImageType, FloatImage3DType > 
     PoistatsFilterType;
 
   itk::Matrix< double, 3, 3 > tensor;
@@ -227,20 +238,18 @@ void TestPoistats::TestCalculateOdfPathEnergy() {
 //  vnl_matrix< double > pathVnl( *path, nPoints, nSpatialDimensions );
 //  itk::Array2D< double > pathItk( pathVnl );
 
-  typedef itk::Image<float, 4> FloatImage4DType;
   typedef itk::Image<float, 3> FloatImage3DType;
-  typedef itk::PoistatsFilter< FloatImage4DType, FloatImage3DType > 
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
+  typedef itk::PoistatsFilter< TensorImageType, FloatImage3DType > 
     PoistatsFilterType;
 
-  typedef itk::ImageFileReader< FloatImage4DType > ReaderType;
-  
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName( "dtensor.nii" );
-  reader->Update();
-  FloatImage4DType::Pointer dtImage = reader->GetOutput();
+  TensorReaderStrategy *tensorReader = new AsymmetricTensorReaderStrategy();
+  tensorReader->SetFileName( "data/dtensor.nii" );
+  TensorImageType::Pointer tensors = tensorReader->GetTensors();  
   
   PoistatsFilterType::Pointer poistatsFilter = PoistatsFilterType::New();
-  poistatsFilter->SetInput( dtImage );
+  poistatsFilter->SetInput( tensors );
 
   PoistatsFilterType::MatrixType polarity( 3, 3 );
   polarity[ 0 ][ 0 ] = 1;
@@ -258,7 +267,9 @@ void TestPoistats::TestCalculateOdfPathEnergy() {
   
   const double sliceUpData[] = { 1, 0, 0 };
   PoistatsFilterType::ArrayType sliceUp( sliceUpData, 3 );
-  poistatsFilter->SetSliceUp( sliceUp );
+
+// TODO: create an image with these cosine directions
+//  poistatsFilter->SetSliceUp( sliceUp );
     
   poistatsFilter->ConstructOdfList();
                      
@@ -283,33 +294,25 @@ void TestPoistats::TestCalculate() {
   
   std::cerr << "In TestCalculate(): " << std::endl;
   
-  typedef itk::Image< float, 4 > FloatImage4DType;
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
   typedef itk::Image< float, 3 > OutputImageType;
-  typedef itk::PoistatsFilter< FloatImage4DType, OutputImageType > 
+  typedef itk::PoistatsFilter< TensorImageType, OutputImageType > 
     PoistatsFilterType;
-  PoistatsFilterType::Pointer poistatsFilter = PoistatsFilterType::New();
 
-  typedef itk::ImageFileReader< FloatImage4DType > ReaderType;
+  TensorReaderStrategy *tensorReader = new AsymmetricTensorReaderStrategy();
+  tensorReader->SetFileName( "data/dtensor.nii" );
+  TensorImageType::Pointer tensors = tensorReader->GetTensors();  
   
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName( "/space/heraclitus/1/users/dsjen/working/workspace/fd-analysis-trunk/src/test/dtensor.nii" );
-  
-  try { 
-    reader->Update();
-  } catch( itk::ExceptionObject & excp ) {
-    std::cerr << "Error reading the series." << std::endl;
-    std::cerr << excp << std::endl;
-  }
-  
-  FloatImage4DType::Pointer dtImage = reader->GetOutput();  
-  poistatsFilter->SetInput( dtImage );
+  PoistatsFilterType::Pointer poistatsFilter = PoistatsFilterType::New();
+  poistatsFilter->SetInput( tensors );
     
   poistatsFilter->SetNumberOfControlPoints( 2 );
   poistatsFilter->SetInitialSigma( 10 );
 
   typedef itk::ImageFileReader< PoistatsFilterType::SeedVolumeType > SeedReaderType;
   SeedReaderType::Pointer seedReader = SeedReaderType::New();
-  seedReader->SetFileName( "/space/heraclitus/1/users/dsjen/working/workspace/fd-analysis-trunk/src/test/FinalSeeds.nii" );
+  seedReader->SetFileName( "data/FinalSeeds.nii" );
   seedReader->Update();
   PoistatsFilterType::SeedVolumePointer seedVolume = seedReader->GetOutput();
   poistatsFilter->SetSeedVolume( seedVolume );
@@ -333,7 +336,9 @@ void TestPoistats::TestCalculate() {
 
   const double sliceUpData[] = { 1, 0, 0 };
   PoistatsFilterType::ArrayType sliceUp( sliceUpData, 3 );
-  poistatsFilter->SetSliceUp( sliceUp );
+
+// TODO: create an image with this cosine direction
+//  poistatsFilter->SetSliceUp( sliceUp );
 
   poistatsFilter->Update();
   
@@ -347,7 +352,7 @@ void TestPoistats::TestCalculate() {
 //  WriterType::Pointer writer = WriterType::New();
 
 //  writer->SetInput( pathDensity );
-//  writer->SetFileName( "PathDensity.nii" );
+//  writer->SetFileName( "data/PathDensity.nii" );
 //  writer->Update();  
 //
 //  writer->SetInput( optimalPathDensity );
@@ -405,8 +410,10 @@ void TestPoistats::TestRoundPath() {
   
   std::cerr << "TestRoundPath" << std::endl;  
   
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
   typedef itk::Image<float, 3> FloatImage3DType;
-  typedef itk::PoistatsFilter< FloatImage3DType, FloatImage3DType > 
+  typedef itk::PoistatsFilter< TensorImageType, FloatImage3DType > 
     PoistatsFilterType;
   
   const int numberOfRows = 2;
@@ -508,31 +515,25 @@ void TestPoistats::TestConstructOdfList() {
   double odf2[] = {0.0030996919,0.0046274386,0.002717769,0.0043774836,0.0020596428,0.0033293769,0.002479248,0.0043550165,0.0064316162,0.0017301809,0.007962126,0.0023528107,0.0028602104,0.003763525,0.001853787,0.0047040213,0.0014590156,0.0032774169,0.0023615937,0.0078929181,0.0037687405,0.0095532207,0.0015404251,0.0060694467,0.0012387415,0.013370971,0.002110791,0.0029655825,0.0033212813,0.0014356369,0.0031966999,0.0019291502,0.012494118,0.0014631491,0.0036110307,0.0066773217,0.0011377673,0.0032214567,0.0026514519,0.0073703203,0.0011583039,0.01526796,0.0030110367,0.017751804,0.0017876338,0.004004872,0.0010105876,0.0033231808,0.0025580823,0.001650326,0.0024113236,0.0012340644,0.0028292968,0.0023641253,0.0094904408,0.0012334069,0.012250811,0.0049497865,0.0024192986,0.0010187997,0.0046803699,0.0010044307,0.0033491549,0.0034080586,0.020054144,0.0024685692,0.012526388,0.0015048133,0.0019043986,0.001529177,0.0024847311,0.00093885565,0.004038381,0.002120751,0.0021858933,0.0017520407,0.0011862798,0.0053680426,0.0011113755,0.0026648698,0.0034530564,0.0078802941,0.014879266,0.0037184306,0.0016221119,0.0010405329,0.0026877778,0.013194276,0.0020817731,0.00096930393,0.003683296,0.0049119512,0.0014874425,0.0015204932,0.0015977939,0.0021262726,0.0061188775,0.0013773792,0.0050902729,0.0019391308,0.0034390891,0.0013019369,0.001321114,0.001605538,0.00099657494,0.0092575402,0.0053096435,0.0029929701,0.0011155107,0.0027093832,0.0056994399,0.010200598,0.0030621897,0.0012466661,0.0019577797,0.0011997219,0.0012059222,0.0041455446,0.0071783179,0.0062705316,0.0019100744,0.0017256165,0.0010689196,0.0014161783,0.0032231631,0.0062322467,0.0062322467,0.0032231631,0.0014161783,0.0010689196,0.0017256165,0.0019100744,0.0062705316,0.0071783179,0.0041455446,0.0012059222,0.0011997219,0.0019577797,0.0012466661,0.0030621897,0.010200598,0.0056994399,0.0027093832,0.0011155107,0.0029929701,0.0053096435,0.0092575402,0.00099657494,0.001605538,0.001321114,0.0013019369,0.0034390891,0.0019391308,0.0050902729,0.0013773792,0.0061188775,0.0021262726,0.0015977939,0.0015204932,0.0014874425,0.0049119512,0.003683296,0.00096930393,0.0020817731,0.013194276,0.0026877778,0.0010405329,0.0016221119,0.0037184306,0.014879266,0.0078802941,0.0034530564,0.0026648698,0.0011113755,0.0053680426,0.0011862798,0.0017520407,0.0021858933,0.002120751,0.004038381,0.00093885565,0.0024847311,0.001529177,0.0019043986,0.0015048133,0.012526388,0.0024685692,0.020054144,0.0034080586,0.0033491549,0.0010044307,0.0046803699,0.0010187997,0.0024192986,0.0049497865,0.012250811,0.0012334069,0.0094904408,0.0023641253,0.0028292968,0.0012340644,0.0024113236,0.001650326,0.0025580823,0.0033231808,0.0010105876,0.004004872,0.0017876338,0.017751804,0.0030110367,0.01526796,0.0011583039,0.0073703203,0.0026514519,0.0032214567,0.0011377673,0.0066773217,0.0036110307,0.0014631491,0.012494118,0.0019291502,0.0031966999,0.0014356369,0.0033212813,0.0029655825,0.002110791,0.013370971,0.0012387415,0.0060694467,0.0015404251,0.0095532207,0.0037687405,0.0078929181,0.0023615937,0.0032774169,0.0014590156,0.0047040213,0.001853787,0.003763525,0.0028602104,0.0023528107,0.007962126,0.0017301809,0.0064316162,0.0043550165,0.002479248,0.0033293769,0.0020596428,0.0043774836,0.002717769,0.0046274386,0.0030996919};
   double odf3[] = {0.00255879016678,0.003785435486852,0.002578876980346,0.003190551374204,0.001949531365956,0.002477641076763,0.002088711102422,0.004202156878879,0.004747292161152,0.001820103094092,0.006677824857135,0.002516058561024,0.002196800768336,0.00262610385154,0.00174727234193,0.00335496100228,0.001528118383334,0.002326710653059,0.001992488105869,0.007955480365834,0.004132116461973,0.007604100959987,0.001735661373359,0.00471263084062,0.001394054272522,0.012235904379396,0.002410301114468,0.00223118836332,0.00244661342269,0.001502289438652,0.002266540388526,0.001822343638808,0.011411548199287,0.001699981824226,0.002900980954982,0.007629138884485,0.001280803712523,0.002291483155706,0.002202125209101,0.006573046799393,0.001348085175124,0.016780479554485,0.003495440826801,0.019013250470308,0.002084528562042,0.003628040870218,0.001179122150916,0.002489346916991,0.002000348658342,0.001731364418158,0.002041325460507,0.001391756269529,0.002113412789234,0.002232822519422,0.010012246938123,0.001442549795783,0.01448593467256,0.005712309446121,0.002256573898141,0.001192566875187,0.004861965466451,0.001180007736435,0.002473654685534,0.00282197882745,0.024589069397743,0.002828538775368,0.015158972127648,0.001726349034888,0.00169185392952,0.001730115683079,0.002583077761578,0.001108876514872,0.003100743496622,0.001794625173048,0.002327261537072,0.001681060706277,0.001393933683105,0.006310496928935,0.001278990149704,0.002160919244129,0.003296632859463,0.008541671827033,0.016959183653554,0.004015839696514,0.001697312208135,0.001236326680769,0.00308971025834,0.016103204537469,0.002258615826853,0.001122665682828,0.0029327083369,0.004160704885662,0.001461017122194,0.001794157899861,0.001519920833564,0.002452972186588,0.007547467346217,0.001508628324735,0.004151997315636,0.001781507278191,0.003749532582231,0.00137240088732,0.001579582732726,0.001820618493109,0.001163161201553,0.009103433088557,0.005183935292401,0.003628406437815,0.001234413345043,0.002412189225632,0.005605510336795,0.010605678298431,0.003005055162613,0.001304377529891,0.002353756792327,0.001349864880626,0.001419656017319,0.003633296674125,0.006439450420454,0.00716695701264,0.001911309566348,0.002058105744641,0.001191535588826,0.001450209793608,0.003846918060332,0.005540640974866,0.005540640974866,0.003846918060332,0.001450209793608,0.001191535588826,0.002058105744641,0.001911309566348,0.00716695701264,0.006439450420454,0.003633296674125,0.001419656017319,0.001349864880626,0.002353756792327,0.001304377529891,0.003005055162613,0.010605678298431,0.005605510336795,0.002412189225632,0.001234413345043,0.003628406437815,0.005183935292401,0.009103433088557,0.001163161201553,0.001820618493109,0.001579582732726,0.00137240088732,0.003749532582231,0.001781507278191,0.004151997315636,0.001508628324735,0.007547467346217,0.002452972186588,0.001519920833564,0.001794157899861,0.001461017122194,0.004160704885662,0.0029327083369,0.001122665682828,0.002258615826853,0.016103204537469,0.00308971025834,0.001236326680769,0.001697312208135,0.004015839696514,0.016959183653554,0.008541671827033,0.003296632859463,0.002160919244129,0.001278990149704,0.006310496928935,0.001393933683105,0.001681060706277,0.002327261537072,0.001794625173048,0.003100743496622,0.001108876514872,0.002583077761578,0.001730115683079,0.00169185392952,0.001726349034888,0.015158972127648,0.002828538775368,0.024589069397743,0.00282197882745,0.002473654685534,0.001180007736435,0.004861965466451,0.001192566875187,0.002256573898141,0.005712309446121,0.01448593467256,0.001442549795783,0.010012246938123,0.002232822519422,0.002113412789234,0.001391756269529,0.002041325460507,0.001731364418158,0.002000348658342,0.002489346916991,0.001179122150916,0.003628040870218,0.002084528562042,0.019013250470308,0.003495440826801,0.016780479554485,0.001348085175124,0.006573046799393,0.002202125209101,0.002291483155706,0.001280803712523,0.007629138884485,0.002900980954982,0.001699981824226,0.011411548199287,0.001822343638808,0.002266540388526,0.001502289438652,0.00244661342269,0.00223118836332,0.002410301114468,0.012235904379396,0.001394054272522,0.00471263084062,0.001735661373359,0.007604100959987,0.004132116461973,0.007955480365834,0.001992488105869,0.002326710653059,0.001528118383334,0.00335496100228,0.00174727234193,0.00262610385154,0.002196800768336,0.002516058561024,0.006677824857135,0.001820103094092,0.004747292161152,0.004202156878879,0.002088711102422,0.002477641076763,0.001949531365956,0.003190551374204,0.002578876980346,0.003785435486852,0.00255879016678};
   
-  typedef itk::Image< float, 4 > FloatImage4DType;
   typedef itk::Image< float, 3 > OutputImageType;
-  typedef itk::PoistatsFilter< FloatImage4DType, OutputImageType > 
+  
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
+  typedef itk::PoistatsFilter< TensorImageType, OutputImageType > 
     PoistatsFilterType;
-  
-  typedef itk::ImageFileReader< FloatImage4DType > ReaderType;
-  
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName( "dtensor.nii" );
-  
-  try { 
-    reader->Update();
-  } catch( itk::ExceptionObject & excp ) {
-    std::cerr << "Error reading the series." << std::endl;
-    std::cerr << excp << std::endl;
-  }
-  
-  FloatImage4DType::Pointer dtImage = reader->GetOutput();
+
+  TensorReaderStrategy *tensorReader = new AsymmetricTensorReaderStrategy();
+  tensorReader->SetFileName( "data/dtensor.nii" );
+  TensorImageType::Pointer tensors = tensorReader->GetTensors();  
   
   PoistatsFilterType::Pointer poistatsFilter = PoistatsFilterType::New();
-  poistatsFilter->SetInput( dtImage );
+  poistatsFilter->SetInput( tensors );
 
   const double sliceUpData[] = { 1, 0, 0 };
   PoistatsFilterType::ArrayType sliceUp( sliceUpData, 3 );
-  poistatsFilter->SetSliceUp( sliceUp );
+
+// TODO: create an image with this cosine direction
+//  poistatsFilter->SetSliceUp( sliceUp );
 
   PoistatsFilterType::MatrixType polarity( 3, 3 );
   polarity[ 0 ][ 0 ] = 1;
@@ -612,8 +613,10 @@ void TestPoistats::TestGetDistance() {
 
   std::cerr << "TestGetDistance" << std::endl;  
 
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
   typedef itk::Image< float, 4 > FloatImage4DType;
-  typedef itk::PoistatsFilter< FloatImage4DType, FloatImage4DType > 
+  typedef itk::PoistatsFilter< TensorImageType, FloatImage4DType > 
     PoistatsFilterType;
 
   vnl_vector< double > point1( 3 );
@@ -638,8 +641,10 @@ void TestPoistats::TestGetPointClosestToCenter() {
 
   std::cerr << "TestGetPointClosestToCenter" << std::endl;  
 
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
   typedef itk::Image< float, 4 > FloatImage4DType;
-  typedef itk::PoistatsFilter< FloatImage4DType, FloatImage4DType > 
+  typedef itk::PoistatsFilter< TensorImageType, FloatImage4DType > 
     PoistatsFilterType;
 
   itk::Array2D< double > seeds( 3, 3 );
@@ -671,8 +676,10 @@ void TestPoistats::TestGetCenterOfMass() {
 
   std::cerr << "TestGetCenterOfMass" << std::endl;  
 
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
   typedef itk::Image< float, 4 > FloatImage4DType;
-  typedef itk::PoistatsFilter< FloatImage4DType, FloatImage4DType > 
+  typedef itk::PoistatsFilter< TensorImageType, FloatImage4DType > 
     PoistatsFilterType;
     
   const double expectedCenter[] = {5.633333333333334e+01, 
@@ -708,9 +715,10 @@ void TestPoistats::TestConvertPointsToImage() {
   
   std::cerr << "TestConvertPointsToImage" << std::endl;  
   
-  typedef itk::Image< float, 4 > FloatImage4DType;
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
   typedef itk::Image< float, 3 > OutputImageType;
-  typedef itk::PoistatsFilter< FloatImage4DType, OutputImageType > 
+  typedef itk::PoistatsFilter< TensorImageType, OutputImageType > 
     PoistatsFilterType;
       
   PoistatsFilterType::MatrixType points( 3, 3 );
@@ -742,7 +750,7 @@ void TestPoistats::TestConvertPointsToImage() {
 
   typedef itk::ImageFileReader< OutputImageType > ReaderType;  
   ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName( "Path.nii" );  
+  reader->SetFileName( "data/Path.nii" );  
   reader->Update();
 
   OutputImageType::Pointer expectedImage = reader->GetOutput();
@@ -790,14 +798,18 @@ void TestPoistats::TestConvertPointsToImage() {
   WriterType::Pointer writer = WriterType::New();
 
   writer->SetInput( image );
-  writer->SetFileName( "ItkPath.nii" );
+  writer->SetFileName( "data/ItkPath.nii" );
   writer->Update();  
 }
 
 void TestPoistats::TestGetPositiveMinimumInt() {
-  typedef itk::Image< float, 4 > FloatImage4DType;
+
+  std::cerr << "TestGetPositiveMinimumInt" << std::endl;
+  
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
   typedef itk::Image< float, 3 > OutputImageType;
-  typedef itk::PoistatsFilter< FloatImage4DType, OutputImageType > 
+  typedef itk::PoistatsFilter< TensorImageType, OutputImageType > 
     PoistatsFilterType;
 
   PoistatsFilterType::MatrixType points( 3, 3 );
@@ -832,9 +844,10 @@ void TestPoistats::TestGetPositiveMaximumInt() {
   
   std::cerr << "TestGetPositiveMaximumInt" << std::endl;  
   
-  typedef itk::Image< float, 4 > FloatImage4DType;
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
   typedef itk::Image< float, 3 > OutputImageType;
-  typedef itk::PoistatsFilter< FloatImage4DType, OutputImageType > 
+  typedef itk::PoistatsFilter< TensorImageType, OutputImageType > 
     PoistatsFilterType;
 
   PoistatsFilterType::MatrixType points( 3, 3 );
@@ -899,9 +912,10 @@ void TestPoistats::TestSetSeedVolume() {
   expectedEnd[ 2 ][ 1 ] = 81;
   expectedEnd[ 2 ][ 2 ] = 26;
 
-  typedef itk::Image< float, 4 > FloatImage4DType;
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
   typedef itk::Image< float, 3 > OutputImageType;
-  typedef itk::PoistatsFilter< FloatImage4DType, OutputImageType > 
+  typedef itk::PoistatsFilter< TensorImageType, OutputImageType > 
     PoistatsFilterType;
     
   PoistatsFilterType::Pointer poistatsFilter = PoistatsFilterType::New();
@@ -910,7 +924,7 @@ void TestPoistats::TestSetSeedVolume() {
 
   typedef itk::ImageFileReader< PoistatsFilterType::SeedVolumeType > ReaderType;  
   ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName( "FinalSeeds.nii" );  
+  reader->SetFileName( "data/FinalSeeds.nii" );  
   reader->Update();
   PoistatsFilterType::SeedVolumePointer seedVolume = reader->GetOutput();
 
@@ -946,20 +960,19 @@ void TestPoistats::TestSetSeedVolume() {
 void TestPoistats::TestGetPathProbabilities() {
   
   std::cerr << "TestGetPathProbabilities" << std::endl;  
-  
-  typedef itk::Image< float, 4 > FloatImage4DType;
+
   typedef itk::Image< float, 3 > OutputImageType;
-  typedef itk::PoistatsFilter< FloatImage4DType, OutputImageType > 
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
+  typedef itk::PoistatsFilter< TensorImageType, OutputImageType > 
     PoistatsFilterType;
-    
-  typedef itk::ImageFileReader< FloatImage4DType > ReaderType;  
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName( "dtensor.nii" );
-  reader->Update();
-  FloatImage4DType::Pointer dtImage = reader->GetOutput();
+
+  TensorReaderStrategy *tensorReader = new AsymmetricTensorReaderStrategy();
+  tensorReader->SetFileName( "data/dtensor.nii" );
+  TensorImageType::Pointer tensors = tensorReader->GetTensors();  
   
   PoistatsFilterType::Pointer poistatsFilter = PoistatsFilterType::New();
-  poistatsFilter->SetInput( dtImage );
+  poistatsFilter->SetInput( tensors );
 
   PoistatsFilterType::MatrixType polarity( 3, 3 );
   polarity[ 0 ][ 0 ] = 1;
@@ -977,7 +990,9 @@ void TestPoistats::TestGetPathProbabilities() {
   
   const double sliceUpData[] = { 1, 0, 0 };
   PoistatsFilterType::ArrayType sliceUp( sliceUpData, 3 );
-  poistatsFilter->SetSliceUp( sliceUp );  
+
+// TODO: create an image with this cosine direction
+//  poistatsFilter->SetSliceUp( sliceUp );  
   
   poistatsFilter->ConstructOdfList();
 
@@ -1111,19 +1126,18 @@ void TestPoistats::TestGetAggregateReplicaDensities() {
   
   std::cerr << "TestGetAggregateReplicaDensities" << std::endl;  
 
-  typedef itk::Image< float, 4 > FloatImage4DType;
   typedef itk::Image< float, 3 > OutputImageType;
-  typedef itk::PoistatsFilter< FloatImage4DType, OutputImageType > 
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
+  typedef itk::PoistatsFilter< TensorImageType, OutputImageType > 
     PoistatsFilterType;
-    
-  typedef itk::ImageFileReader< FloatImage4DType > ReaderType;  
-  ReaderType::Pointer reader = ReaderType::New();
-  reader->SetFileName( "dtensor.nii" );
-  reader->Update();
-  FloatImage4DType::Pointer dtImage = reader->GetOutput();
+
+  TensorReaderStrategy *tensorReader = new AsymmetricTensorReaderStrategy();
+  tensorReader->SetFileName( "data/dtensor.nii" );
+  TensorImageType::Pointer tensors = tensorReader->GetTensors();  
   
   PoistatsFilterType::Pointer poistatsFilter = PoistatsFilterType::New();
-  poistatsFilter->SetInput( dtImage );  
+  poistatsFilter->SetInput( tensors );
 
   const int nReplica = 3;
 
@@ -1170,7 +1184,7 @@ void TestPoistats::TestGetAggregateReplicaDensities() {
   typedef itk::ImageFileReader< OutputImageType > AggregateDensityReaderType;  
   AggregateDensityReaderType::Pointer aggregateReader = 
     AggregateDensityReaderType::New();
-  aggregateReader->SetFileName( "AggregateDensity.nii" );
+  aggregateReader->SetFileName( "data/AggregateDensity.nii" );
   aggregateReader->Update();
   OutputImageType::Pointer expectedAggregateDensity = aggregateReader->GetOutput();
   
@@ -1228,12 +1242,14 @@ void TestPoistats::TestMask() {
     1, 0, 1, 
     1, 1, 0, 
     0, 0, 1 };
-     
-  typedef itk::Image< float, 4 > FloatImage4DType;
+
+
   typedef itk::Image< float, 3 > OutputImageType;
-  typedef itk::PoistatsFilter< FloatImage4DType, OutputImageType > 
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
+  typedef itk::PoistatsFilter< TensorImageType, OutputImageType > 
     PoistatsFilterType;
-    
+
   PoistatsFilterType::MaskVolumePointer originalMask = 
     PoistatsFilterType::MaskVolumeType::New();
 
@@ -1307,7 +1323,9 @@ void TestPoistats::TestMask() {
   
   const double sliceUpData[] = { 1, 0, 0 };
   PoistatsFilterType::ArrayType sliceUp( sliceUpData, 3 );
-  poistatsFilter->SetSliceUp( sliceUp );
+
+// TODO: create an image with this cosine direction
+//  poistatsFilter->SetSliceUp( sliceUp );
 
   poistatsFilter->ConstructOdfList();
     
@@ -1344,10 +1362,14 @@ void TestPoistats::TestMask() {
 }
 
 void TestPoistats::TestCalculateDensityMatrix() {
-
-  typedef itk::Image< float, 4 > FloatImage4DType;
+  
+  std::cerr << "TestCalculateDensityMatrix" << std::endl;
+  
+  typedef TensorReaderStrategy::TensorPixelType TensorPixelType;
+  typedef TensorReaderStrategy::TensorImageType TensorImageType;
+  
   typedef itk::Image< float, 3 > OutputImageType;
-  typedef itk::PoistatsFilter< FloatImage4DType, OutputImageType > 
+  typedef itk::PoistatsFilter< TensorImageType, OutputImageType > 
     PoistatsFilterType;
     
   const int nAngleRows = 49;

@@ -10,6 +10,11 @@ SET(DRIVERS_SRCS
 )
 
 SET(TEST_SRCS
+  ../CommandUpdate.cxx
+  ../TensorReaderStrategy.cxx
+  ../SymmetricTensorReaderStrategy.cxx
+  ../AsymmetricTensorReaderStrategy.cxx
+  ../AsymmetricTensorVectorReaderStrategy.cxx
   ../PoistatsModel.cxx
   ../PoistatsReplica.cxx
   ../PoistatsReplicas.cxx

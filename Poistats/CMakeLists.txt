@@ -36,8 +36,8 @@ SET ( POISTATS_SOURCE
 GENERATECLP(POISTATS_SOURCE PoistatsCLI.xml)
 
 # To generate a stand-alone executable add the lines:
-ADD_EXECUTABLE ( PoistatsCLI ${POISTATS_SOURCE})
-TARGET_LINK_LIBRARIES ( PoistatsCLI 
+ADD_EXECUTABLE ( poistats ${POISTATS_SOURCE})
+TARGET_LINK_LIBRARIES ( poistats 
   ITKIO 
   ITKAlgorithms 
   ITKBasicFilters 
@@ -45,12 +45,11 @@ TARGET_LINK_LIBRARIES ( PoistatsCLI
 )
 
 # To generate a pluggable library add the lines:
-ADD_LIBRARY(PoistatsCLILib SHARED ${POISTATS_SOURCE})
-SET_TARGET_PROPERTIES (PoistatsCLILib PROPERTIES COMPILE_FLAGS
-"-Dmain=SlicerModuleEntryPoint")
-TARGET_LINK_LIBRARIES (PoistatsCLILib ITKAlgorithms ITKIO ITKBasicFilters)
+#ADD_LIBRARY(PoistatsCLILib SHARED ${POISTATS_SOURCE})
+#SET_TARGET_PROPERTIES (PoistatsCLILib PROPERTIES COMPILE_FLAGS
+#"-Dmain=SlicerModuleEntryPoint")
+#TARGET_LINK_LIBRARIES (PoistatsCLILib ITKAlgorithms ITKIO ITKBasicFilters)
 
-#CONFIGURE_FILE(
-#  ${Poistats_SOURCE_DIR}/itkMGHImageIOConfigure.h.in 
-#  ${Poistats_BINARY_DIR}/itkMGHImageIOConfigure.h
-#)
+# enable "make test"
+ENABLE_TESTING()
+SUBDIRS(test)
