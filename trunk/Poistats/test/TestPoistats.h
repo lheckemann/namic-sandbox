@@ -3,8 +3,10 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include "RunnableTest.h"
+#include "../TensorReaderStrategy.h"
 #include "../itkPoistatsFilter.h"
+
+#include "RunnableTest.h"
 
 class TestPoistats : public CppUnit::TestFixture, public RunnableTest
 {
