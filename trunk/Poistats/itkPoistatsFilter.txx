@@ -2,20 +2,19 @@
 #define _itkPoistatsFilter_txx
 
 #include <itkBSplineInterpolateImageFunction.h>
-
 #include <itkImageRegionIterator.h>
-
 #include <itkNonUniformBSpline.h>
+
+// for calculating the elapsed time
+#include <time.h>
 
 #include <vnl/vnl_diag_matrix.h>
 #include <vnl/vnl_cross.h>
 
-#include <time.h>
-
-#include "itkPoistatsFilter.h"
-
 #include "itkPointSet.h"
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
+
+#include "itkPoistatsFilter.h"
 
 namespace itk
 {
@@ -377,12 +376,8 @@ PoistatsFilter<TInputImage, TOutputImage>
     
     this->m_OdfLookUpTable->Allocate();
 
-    // TODO: ask kitware guys about this
-    // for some reason, I had linking errors when I tried to do:
-    //    this->m_OdfLookUpTable->FillBuffer( INVALID_INDEX )
-    const int invalid = INVALID_INDEX;
-    this->m_OdfLookUpTable->FillBuffer( invalid );
-
+    // initially set all the indices to be invalid
+    this->m_OdfLookUpTable->FillBuffer( INVALID_INDEX );
   }
 
   return this->m_OdfLookUpTable;
@@ -428,7 +423,7 @@ template <class TInputImage, class TOutputImage>
 void
 PoistatsFilter< TInputImage, TOutputImage >
 ::GetPositiveMinimumInt( MatrixPointer points, const int radius, 
-  itk::Array< int >* minimum ) {
+  VoxelIndexPointer minimum ) {
 
   const int rowFloor = 0;
   
@@ -452,7 +447,7 @@ template <class TInputImage, class TOutputImage>
 void
 PoistatsFilter< TInputImage, TOutputImage >
 ::GetPositiveMaximumInt( MatrixPointer points, const int radius, 
-  itk::Array< int >* maximum, OutputRegionType pointsRegion ) {
+  VoxelIndexPointer maximum, OutputRegionType pointsRegion ) {
 
   for( int cColumn=0; cColumn<points->cols(); cColumn++ ) {
     
@@ -478,31 +473,30 @@ void
 PoistatsFilter< TInputImage, TOutputImage >
 ::ConvertPointsToImage( MatrixPointer points, OutputImagePointer image ) {
 
-/*
-
-mn = floor(min(pnts)-3);
-mn = max(1,mn);
-
-mx = ceil(max(pnts)+3);
-mx = min(volsize, mx);
-
-[X Y Z] = meshgrid(mn(1):mx(1), mn(2):mx(2), mn(3):mx(3));
-X = X(:); Y = Y(:); Z = Z(:);
-box = [X Y Z];
-wts = sum(exp(-gamma*distmat(box, pnts).^2),2);
-wts = wts/sum(wts(:));
-idx = int64(sub2ind(volsize, X, Y, Z));
-
-vol = zeros(volsize);
-vol(idx) = vol(idx) + wts;
-*/
+  /* MATLAB:  
+  mn = floor(min(pnts)-3);
+  mn = max(1,mn);
+  
+  mx = ceil(max(pnts)+3);
+  mx = min(volsize, mx);
+  
+  [X Y Z] = meshgrid(mn(1):mx(1), mn(2):mx(2), mn(3):mx(3));
+  X = X(:); Y = Y(:); Z = Z(:);
+  box = [X Y Z];
+  wts = sum(exp(-gamma*distmat(box, pnts).^2),2);
+  wts = wts/sum(wts(:));
+  idx = int64(sub2ind(volsize, X, Y, Z));
+  
+  vol = zeros(volsize);
+  vol(idx) = vol(idx) + wts;
+  */
 
   const int radius = 3;
 
-  itk::Array< int > minimumPoint( 3 );
+  VoxelIndexType minimumPoint( 3 );
   GetPositiveMinimumInt( points, radius, &minimumPoint );
   
-  itk::Array< int > maximumPoint( 3 );
+  VoxelIndexType maximumPoint( 3 );
   GetPositiveMaximumInt( points, radius, &maximumPoint, 
     image->GetLargestPossibleRegion() );
 
@@ -786,12 +780,6 @@ PoistatsFilter< TInputImage, TOutputImage >
 //  std::cerr << "calculate best path probabilities for each replica..." << std::endl;
 //  this->CalculateBestPathProbabilities();
   
-//  std::cerr << "calculating optimal path segmentation..." << std::endl;
-//  this->CalculateOptimalPathSegmentation( optimalPathDensity );
-  
-// TODO: remove this
-//  PrintFlippedMatlabMatrix( finalBestPath, "FinalBestPath" );
-
   this->InvokeEvent( EndEvent() );
 
 }
@@ -811,195 +799,6 @@ PoistatsFilter<TInputImage, TOutputImage>
 }
 
 template <class TInputImage, class TOutputImage>
-void
-PoistatsFilter<TInputImage, TOutputImage>
-::CalculateOptimalPathProbabilitiesVolume( 
-  OutputImagePointer optimalPathProbabilities ) {
-
-  typedef itk::ImageRegionIterator< OutputImageType > IteratorType;
-
-  IteratorType optimalSamplesIt( optimalPathProbabilities, 
-    optimalPathProbabilities->GetLargestPossibleRegion() );
-    
-  typedef itk::ImageRegionIterator< SegmentationVolumeType > SegIteratorType;
-  SegIteratorType segIt( m_OptimalPathSegmentation, 
-    m_OptimalPathSegmentation->GetLargestPossibleRegion() );
-
-  for( 
-    optimalSamplesIt = optimalSamplesIt.Begin(), 
-    segIt = segIt.Begin();
-      
-    !optimalSamplesIt.IsAtEnd() && !segIt.IsAtEnd();
-    
-    ++optimalSamplesIt, ++segIt) {
-    
-    if( segIt.Value() == 1 ) {
-
-      // 1) Get the pixel index
-      SegmentationVolumeIndexType currentIndex = segIt.GetIndex();
-      
-      // 2) determine which sample point in closest to the pixel index
-      SamplingVolumeIndexType closestSamplingIndex;
-      double closestDistance = 10000; // this is a big number
-      MatrixType finalPathDouble = this->GetFinalPath();
-      itk::Array2D< int > finalPath( finalPathDouble.rows(), 
-        finalPathDouble.cols() );                                     
-      RoundPath( &finalPath, &finalPathDouble );
-      
-      int closestPoint = 0;
-      
-      for( int cPoint=0; cPoint<finalPath.rows(); cPoint++ ) {
-        
-        double currentDistance = 0;
-        for( int cDim=0; cDim<3; cDim++ ) {
-          const double dimDifference = 
-            currentIndex[ cDim ] - finalPath[ cPoint ][ cDim ];
-          currentDistance += dimDifference * dimDifference;
-        }
-        currentDistance = sqrt( currentDistance );
-        
-        if( currentDistance < closestDistance ) {
-          closestDistance = currentDistance;
-          closestPoint = cPoint;
-        }
-        
-      }
-      
-      // 3) set the value
-      optimalSamplesIt.Set( this->m_FinalPathProbabilities[ closestPoint ] );
-      
-    } 
-    
-  }
-  
-}
-
-template <class TInputImage, class TOutputImage>
-void
-PoistatsFilter<TInputImage, TOutputImage>
-::CalculateOptimalPathSamples( OutputImagePointer optimalPathSamples ) {
-
-  typedef itk::ImageRegionIterator< OutputImageType > IteratorType;
-  IteratorType optimalSamplesIt( optimalPathSamples, 
-    optimalPathSamples->GetLargestPossibleRegion() );
-  IteratorType samplingIt( m_SamplingVolume, 
-    m_SamplingVolume->GetLargestPossibleRegion() );
-
-  typedef itk::ImageRegionIterator< SegmentationVolumeType > SegIteratorType;
-  SegIteratorType segIt( m_OptimalPathSegmentation, 
-    m_OptimalPathSegmentation->GetLargestPossibleRegion() );
-
-  for( 
-    optimalSamplesIt = optimalSamplesIt.Begin(), 
-    segIt = segIt.Begin(),
-    samplingIt = samplingIt.Begin();
-  
-    !optimalSamplesIt.IsAtEnd() && !segIt.IsAtEnd() && !samplingIt.IsAtEnd();
-    
-    ++optimalSamplesIt, ++segIt, ++samplingIt ) {
-    
-    if( segIt.Value() == 1 ) {
-
-// TODO: removing this temporarily
-//      optimalSamplesIt.Set( samplingIt.Value() );
-      
-      // 1) Get the pixel index
-      SegmentationVolumeIndexType currentIndex = segIt.GetIndex();
-      
-      // 2) determine which sample point in closest to the pixel index
-      SamplingVolumeIndexType closestSamplingIndex;
-      double closestDistance = 10000; // this is a big number
-      MatrixType finalPathDouble = this->GetFinalPath();
-      itk::Array2D< int > finalPath( finalPathDouble.rows(), 
-        finalPathDouble.cols() );                                     
-      RoundPath( &finalPath, &finalPathDouble );
-      
-      for( int cPoint=0; cPoint<finalPath.rows(); cPoint++ ) {
-        
-        double currentDistance = 0;
-        for( int cDim=0; cDim<3; cDim++ ) {
-          const double dimDifference = 
-            currentIndex[ cDim ] - finalPath[ cPoint ][ cDim ];
-          currentDistance += dimDifference * dimDifference;
-        }
-        currentDistance = sqrt( currentDistance );
-        
-        if( currentDistance < closestDistance ) {
-          closestDistance = currentDistance;
-          for( int cDim=0; cDim<3; cDim++ ) {
-            closestSamplingIndex[ cDim ] = finalPath[ cPoint ][ cDim ];
-          }
-        }
-        
-      }
-      
-      // 3) set the value
-      optimalSamplesIt.Set( m_SamplingVolume->GetPixel( closestSamplingIndex ) );
-      
-    } 
-    
-  }
-  
-}
-
-template <class TInputImage, class TOutputImage>
-void
-PoistatsFilter<TInputImage, TOutputImage>
-::CalculateOptimalPathSegmentation( OutputImagePointer optimalPathDensity ) {
-
-  InputImageConstPointer inputImage = this->GetInput();
-  
-  RegionType dtiRegion = inputImage->GetLargestPossibleRegion();
-  SegmentationVolumeSizeType outputSize;
-  double outputOrigin[ SegmentationVolumeRegionType::GetImageDimension() ];
-  SegmentationVolumeIndexType outputStart;
-  SegmentationVolumeSpacingType outputSpacing;
-
-  for( int cDim=0; cDim<SegmentationVolumeRegionType::GetImageDimension(); cDim++ ) {    
-    outputSize[ cDim ] = dtiRegion.GetSize()[ cDim ];
-    outputOrigin[ cDim ] = this->GetInput()->GetOrigin()[ cDim ];
-    outputStart[ cDim ] = 0;
-    outputSpacing[ cDim ] = this->GetInput()->GetSpacing()[ cDim ];
-  }
-      
-  SegmentationVolumeRegionType outputRegion;
-  outputRegion.SetSize( outputSize );    
-  outputRegion.SetIndex( outputStart );
-  
-  m_OptimalPathSegmentation = SegmentationVolumeType::New();
-  m_OptimalPathSegmentation->SetRegions( outputRegion );
-  m_OptimalPathSegmentation->SetOrigin( outputOrigin );
-  m_OptimalPathSegmentation->SetSpacing( outputSpacing );  
-
-  m_OptimalPathSegmentation->Allocate();
-
-  m_OptimalPathSegmentation->FillBuffer( 0 );
-  
-  typedef itk::ImageRegionIterator< OutputImageType > IteratorType;
-  IteratorType it( optimalPathDensity, 
-    optimalPathDensity->GetLargestPossibleRegion() );
-
-  typedef itk::ImageRegionIterator< SegmentationVolumeType > SegIteratorType;
-  SegIteratorType segIt( m_OptimalPathSegmentation, 
-    m_OptimalPathSegmentation->GetLargestPossibleRegion() );
-
-//  const double threshold = 0.0001;
-  const double threshold = 0.0001;
-  
-  for( it = it.Begin(), segIt = segIt.Begin();
-  
-    !it.IsAtEnd() && !segIt.IsAtEnd();
-    
-    ++it, ++segIt ) {
-    const double pixelValue = it.Value();
-    if( pixelValue > threshold ) {
-      segIt.Set( 1 );
-    } 
-  }
-  
-}
-
-template <class TInputImage, class TOutputImage>
 typename PoistatsFilter<TInputImage, TOutputImage>::MatrixType
 PoistatsFilter<TInputImage, TOutputImage>
 ::GetBestPathsProbabilities() {
@@ -1015,6 +814,9 @@ PoistatsFilter<TInputImage, TOutputImage>
 
 }
 
+/**
+ * Calculate the probabilities of the best path that was found.
+ */
 template <class TInputImage, class TOutputImage>
 void
 PoistatsFilter<TInputImage, TOutputImage>
@@ -1036,23 +838,25 @@ template <class TInputImage, class TOutputImage>
 void
 PoistatsFilter<TInputImage, TOutputImage>
 ::ConstructOdfList() {
-// MATLAB:
-//fprintf('Constructing ODF list ... \n');
-//flatd = reshape(dtensortmp, [slices*rows*cols 9]);
-//odflist = zeros(length(maskidx),size(geo,1));
-//for i = 1:length(maskidx)
-//  % every 10,000th element, print something
-//  if ~mod(i, 1e4)
-//      fprintf('%d ',i); 
-//  end;
-//  d = reshape(flatd(maskidx(i),:), [3 3]);
-//  d = d(order, order) .* polarity;
-//  d = R*d*invR;
-//  odflist(i,:) = tensor2odf(d, geo, 'angulargaussian')';
-//end
-//fprintf(' done (%g)\n',toc);
+  /* MATLAB:
 
-  InputImageConstPointer inputImage  = this->GetInput();
+   fprintf('Constructing ODF list ... \n');
+   flatd = reshape(dtensortmp, [slices*rows*cols 9]);
+   odflist = zeros(length(maskidx),size(geo,1));
+   for i = 1:length(maskidx)
+     % every 10,000th element, print something
+     if ~mod(i, 1e4)
+         fprintf('%d ',i); 
+     end;
+     d = reshape(flatd(maskidx(i),:), [3 3]);
+     d = d(order, order) .* polarity;
+     d = R*d*invR;
+     odflist(i,:) = tensor2odf(d, geo, 'angulargaussian')';
+   end
+   fprintf(' done (%g)\n',toc);
+  */
+
+  InputImageConstPointer inputImage = this->GetInput();
     
   SizeType imageSize = inputImage->GetLargestPossibleRegion().GetSize();
   const int nColumns = imageSize[ 0 ];
@@ -1062,13 +866,14 @@ PoistatsFilter<TInputImage, TOutputImage>
   int cOdfs = 0;
   
   MatrixType polarity = this->GetPolarity();
-  
-//% rotation matrix from magnet to slice frame
-//% only works for oblique axial
-//sliceup = [normal_s normal_a 0];
-//R = rot3u2v([1 0 0], sliceup);
-//invR = inv(R);  
 
+  /* MATLAB:   
+    % rotation matrix from magnet to slice frame
+    % only works for oblique axial
+    sliceup = [normal_s normal_a 0];
+    R = rot3u2v([1 0 0], sliceup);
+    invR = inv(R);  
+  */
   MatrixType rotationMatrix( 3, 3 );
   GetMagnetToSliceFrameRotation( &rotationMatrix );
   itkDebugMacro( << "magnet to slice frame rotation:" );
@@ -1082,6 +887,7 @@ PoistatsFilter<TInputImage, TOutputImage>
   
   this->InvokeEvent( PoistatsOdfCalculationStartEvent() );
 
+  // start the timer
   clock_t startClock = clock();
 
   itk::ImageRegionIterator< OdfLookUpTableType > odfLookUpTableIt( 
@@ -1094,16 +900,17 @@ PoistatsFilter<TInputImage, TOutputImage>
   // iterated over
   MaskVolumePointer mask = this->GetMaskVolume();
   itk::ImageRegionConstIterator< MaskVolumeType > maskIt;
-  if( mask ) {
-    maskIt = itk::ImageRegionConstIterator< MaskVolumeType >
-      ( mask, mask->GetLargestPossibleRegion() );
-  }
-  
+
   bool isMaskUsed = false;
   if( mask ) {
     isMaskUsed = true;
   }
-  
+
+  if( isMaskUsed ) {
+    maskIt = itk::ImageRegionConstIterator< MaskVolumeType >
+      ( mask, mask->GetLargestPossibleRegion() );
+  }
+    
   if( isMaskUsed ) {
     maskIt = maskIt.Begin();
   }
@@ -1122,9 +929,7 @@ PoistatsFilter<TInputImage, TOutputImage>
     ++inputImageIt,
     ++odfLookUpTableIt )
   {
-      
-    itk::Matrix< double, nTensorRows, nTensorColumns > tensor;
-        
+            
     bool isPixelMasked = false;
         
     if( isMaskUsed ) {
@@ -1155,16 +960,23 @@ PoistatsFilter<TInputImage, TOutputImage>
                         
     if( !hasZero && !isPixelMasked ) {
 
-    // DJ: my attempt at explaining what look is.  I'd like to get rid of the look
-    // up table at some point:
-    //   look is actually a 3D matrix, the size of the mask.  At every location that
-    //   the volume contains a non-masked pixel, look will contain an index that
-    //   cooresponds to the index that the odf is created in m_Odfs
-            
-          // MATLAB: look = zeros(size(mask));
+      /* DJ: my attempt at explaining what look is.  I'd like to get rid of the 
+         look up table at some point:
+         
+         look is actually a 3D matrix, the size of the mask.  At every location
+         that the volume contains a non-masked pixel, look will contain an index
+         that cooresponds to the index that the odf is created in m_Odfs        
+
+         MATLAB: look = zeros(size(mask));
+      */
 
       odfLookUpTableIt.Set( cOdfs );          
       PixelType currentTensor = inputImageIt.Value();
+
+      /* diffusion tensors stored with taking advantage of the storage savings
+         offered by the symmmetry because we need to multiply the elements of
+         the tensor by the polarity */       
+      itk::Matrix< double, nTensorRows, nTensorColumns > tensor;
 
       // MATLAB: d = d(order, order) .* polarity;
       for( int cTensorRow=0; cTensorRow<nTensorRows; cTensorRow++ ) {
@@ -1190,7 +1002,7 @@ PoistatsFilter<TInputImage, TOutputImage>
       
       }
   
-//    MATLAB: d = R*d*invR;
+      // MATLAB: d = R*d*invR;
       if( !isRotationIdentity ) {
         tensor = rotationMatrix * tensor.GetVnlMatrix() * inverseRotationMatrix;
       }
@@ -1214,6 +1026,7 @@ PoistatsFilter<TInputImage, TOutputImage>
     
   }
   
+  // stop the clock and calculat the elapsed time
   clock_t endClock = clock();
   const double elapsedTime = 
     static_cast< double >( endClock - startClock ) / CLOCKS_PER_SEC;
@@ -1226,22 +1039,27 @@ void
 PoistatsFilter<TInputImage, TOutputImage>
 ::GetMagnetToSliceFrameRotation( MatrixPointer rotation ) {
 
-  // MATLAB:
-  //   sliceup = [normal_s normal_a 0];
-  //   R = rot3u2v([1 0 0], sliceup);
+  /* MATLAB:  
+    sliceup = [normal_s normal_a 0];
+    R = rot3u2v([1 0 0], sliceup);
+  */
 
-  double identityValues[] = { 1, 0, 0 };  
+  const double identityValues[] = { 1, 0, 0 };  
   ArrayType identity( identityValues, 3 );
-
-  const double normalS = this->GetInput()->GetDirection()( 2, 2 );
-  const double normalA = this->GetInput()->GetDirection()( 1, 2 );
-  const double normalR = 0.0;
-  ArrayType sliceUp( 3 );
-  sliceUp( 0 ) = normalS;
-  sliceUp( 1 ) = normalA;
-  sliceUp( 2 ) = normalR;
   
-  GenerateRotationMatrix3u2v( &identity, &sliceUp, rotation );
+  if( this->GetInput() ) {
+
+    const double normalS = this->GetInput()->GetDirection()( 2, 2 );
+    const double normalA = this->GetInput()->GetDirection()( 1, 2 );
+    const double normalR = 0.0;
+    ArrayType sliceUp( 3 );
+    sliceUp( 0 ) = normalS;
+    sliceUp( 1 ) = normalA;
+    sliceUp( 2 ) = normalR;
+    
+    GenerateRotationMatrix3u2v( &identity, &sliceUp, rotation );
+    
+  }
 }
 
 template <class TInputImage, class TOutputImage>
@@ -1397,13 +1215,6 @@ PoistatsFilter<TInputImage, TOutputImage>
 }
 
 template <class TInputImage, class TOutputImage>
-typename PoistatsFilter<TInputImage, TOutputImage>::SegmentationVolumePointer
-PoistatsFilter<TInputImage, TOutputImage>
-::GetOptimalSegmentation() {
-  return m_OptimalPathSegmentation;
-}
-
-template <class TInputImage, class TOutputImage>
 int
 PoistatsFilter<TInputImage, TOutputImage>
 ::GetNumberOfInitialPoints() const {
@@ -1417,16 +1228,18 @@ template <class TInputImage, class TOutputImage>
 void
 PoistatsFilter<TInputImage, TOutputImage>
 ::InitPaths() {
-//  % initialize paths
-//  fprintf('Initializing paths ...\n');  
-//  origpath = rethreadpath(initpoints, ncontrolpoints+2);
-//  lowtrialpath = origpath;
-//  for i = 1:nreplica
-//    basepath{i} = origpath;
-//    prevpath{i} = rethreadpath(origpath, steps);
-//    trialpath{i} = zeros(steps,3);
-//    bestpath{i} = zeros(steps,3);
-//  end  
+  /* MATLAB:
+    % initialize paths
+    fprintf('Initializing paths ...\n');  
+    origpath = rethreadpath(initpoints, ncontrolpoints+2);
+    lowtrialpath = origpath;
+    for i = 1:nreplica
+      basepath{i} = origpath;
+      prevpath{i} = rethreadpath(origpath, steps);
+      trialpath{i} = zeros(steps,3);
+      bestpath{i} = zeros(steps,3);
+    end  
+  */
 
   // TODO: I think that it would be better to have the initial points method create the initial points  
   const int nInitialPoints = this->GetNumberOfInitialPoints();  
@@ -1448,21 +1261,21 @@ void
 PoistatsFilter<TInputImage, TOutputImage>
 ::GetInitialPoints( MatrixPointer initialPoints ) {
 
-/*
-  for idx = 1:nseeds
-    [i j k] = ind2sub(size(seeds),find(seeds==seedvalues(idx)));
-    X = [i j k];
-    com = mean(X,1); % com = center of mass
-    % jdx = subscript into voxel distance list of smallest distance
-    % between com and each voxel in region
-    [null jdx] = min(distmat(com, X));
-    % min can return multiples in case of ties. arbitrarily select first tie.
-    jdx = jdx(1);
-    % initpoints = dim1 x dim2 array of subscripts of voxels closest to coms
-    % of each roi. dim1 = number of seeds. dim2 = 3 (image dimension)
-    initpoints(idx,:) = X(jdx,:);  
-  end
-*/
+  /* MATLAB:
+    for idx = 1:nseeds
+      [i j k] = ind2sub(size(seeds),find(seeds==seedvalues(idx)));
+      X = [i j k];
+      com = mean(X,1); % com = center of mass
+      % jdx = subscript into voxel distance list of smallest distance
+      % between com and each voxel in region
+      [null jdx] = min(distmat(com, X));
+      % min can return multiples in case of ties. arbitrarily select first tie.
+      jdx = jdx(1);
+      % initpoints = dim1 x dim2 array of subscripts of voxels closest to coms
+      % of each roi. dim1 = number of seeds. dim2 = 3 (image dimension)
+      initpoints(idx,:) = X(jdx,:);  
+    end
+  */
 
   const int nDimensions = 3;
 
@@ -2149,21 +1962,20 @@ PoistatsFilter<TInputImage, TOutputImage>
 template <class TInputImage, class TOutputImage>
 void
 PoistatsFilter<TInputImage, TOutputImage>
-::GetAggregateReplicaDensities( 
-  MatrixListType replicaPaths,
+::GetAggregateReplicaDensities( MatrixListType replicaPaths, 
   OutputImagePointer aggregateDensities ) {
 
-/*
-ps = exp(-energy); ps = ps/sum(ps);
-density = zeros(size(mask));
-for i = 1:nreplica
-  if ~mod(i,5), fprintf('%d ',i);end;
-  if ps(i) > (1e-1/nreplica) % if replica contributes
-    density = density + ps(i)*pnts2vol(bestpath{i}, size(density),.5);
+  /* MATLAB:
+  ps = exp(-energy); ps = ps/sum(ps);
+  density = zeros(size(mask));
+  for i = 1:nreplica
+    if ~mod(i,5), fprintf('%d ',i);end;
+    if ps(i) > (1e-1/nreplica) % if replica contributes
+      density = density + ps(i)*pnts2vol(bestpath{i}, size(density),.5);
+    end
   end
-end
-density = density / sum(density(:));
-*/
+  density = density / sum(density(:));
+  */
 
   ArrayType probability( m_Replicas->GetNumberOfReplicas() );
   for( int cProbability=0; cProbability<probability.size(); cProbability++ ) {
@@ -2257,11 +2069,17 @@ density = density / sum(density(:));
   
 }
 
+/**
+ * Sets the maks volume to use.  This is optional.  If set, all non-zero areas
+ * are masked when finding paths.
+ * 
+ * @param volume Mask volume.
+ */
 template <class TInputImage, class TOutputImage>
 void
 PoistatsFilter<TInputImage, TOutputImage>
 ::SetMaskVolume( MaskVolumePointer volume ) {
-
+  
   this->m_MaskVolume = volume;
   
   typedef itk::ImageRegionIterator< MaskVolumeType > MaskIteratorType;
@@ -2277,20 +2095,22 @@ PoistatsFilter<TInputImage, TOutputImage>
     MaskType value = maskIterator.Value();
     
     if( value != invalidValue && value != validValue ) {
-      maskIterator.Set( 1 );
+      maskIterator.Set( validValue );
     }
     
   }
 
 }
 
+/**
+ * Sets the next seed value to be used in connecting the path.
+ * @param seedValue Next seed value to be used--pushed to the vector.
+ */
 template <class TInputImage, class TOutputImage>
 void
 PoistatsFilter<TInputImage, TOutputImage>
 ::SetNextSeedValueToUse( int seedValue ) {
-
   this->m_SeedValuesToUse.push_back( seedValue );
-
 }
 
 template <class TInputImage, class TOutputImage>
@@ -2307,17 +2127,6 @@ PoistatsFilter<TInputImage, TOutputImage>
 
     this->m_TensorGeometry = VnlMatrixType( *NO_ZERO_SHELL_252,
       numberOfOdfs, numberOfTensorAxes );
-
-    // TODO: right now, the shell is loaded in with the first and last columns
-    //       switched, so we need to swap them...maybe, but I think they're symmetric, so maybe not...?
-//    for( int cPoint=0; cPoint<this->m_TensorGeometry.rows(); cPoint++ ) {  
-//    
-//      std::cerr << "*** NOTE: flipped tensor geometry..." << std::endl;
-//    
-//      const double tmp = this->m_TensorGeometry[ cPoint ][ 0 ];
-//      this->m_TensorGeometry[ cPoint ][ 0 ] = this->m_TensorGeometry[ cPoint ][ 2 ];
-//      this->m_TensorGeometry[ cPoint ][ 2 ] = tmp;      
-//    }
     
   }
   
@@ -2351,44 +2160,6 @@ PoistatsFilter<TInputImage, TOutputImage>
   
   return m_TensorGeometryFlipped;
   
-}
-
-template <class TInputImage, class TOutputImage>
-void
-PoistatsFilter<TInputImage, TOutputImage>
-::PrintFlippedMatlabMatrixCombo( itk::Array2D< double > lowTrialPath, 
-  itk::Array2D< double > rethreadedPath ){
-
-  std::string matrixName( "MyLowTrialPath" );
-  PrintFlippedMatlabMatrix( lowTrialPath, matrixName );
-  std::cout << "figure;";
-  std::cout << "plot3( " << matrixName << "(:,1), " << matrixName << "(:,2), " << matrixName << "(:,3),'ro' )" << std::endl;
-  
-  matrixName = "MyRethreadedPath";
-  PrintFlippedMatlabMatrix( rethreadedPath, matrixName );
-  std::cout << "hold on;" << std::endl;  
-  std::cout << "plot3( " << matrixName << "(:,1), " << matrixName << "(:,2), " << matrixName << "(:,3),'bx' )" << std::endl;
-  std::cout << "hold on;" << std::endl;  
-  std::cout << "plot3( " << matrixName << "(:,1), " << matrixName << "(:,2), " << matrixName << "(:,3) )" << std::endl;
-
-}
-
-template <class TInputImage, class TOutputImage>
-void
-PoistatsFilter<TInputImage, TOutputImage>
-::PrintFlippedMatlabMatrix( itk::Array2D< double > matrix, 
-  std::string matrixName ){
-
-  std::cout << matrixName << " = [" << std::endl;
-
-  for( int cRow=0; cRow<matrix.rows(); cRow++ ) {
-    for( int cCol=0; cCol<matrix.cols(); cCol++ ) {      
-      std::cout << matrix[ cRow ][ matrix.cols()-cCol-1 ] + 1 << "   ";
-    }
-    std::cout << ";" << std::endl;
-  }
-  std::cout << "];" << std::endl;  
-
 }
 
 } // end namespace itk

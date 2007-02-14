@@ -18,13 +18,20 @@ AsymmetricTensorReaderStrategy::GetTensors(){
   FullTensorReaderType::Pointer tensorReader = FullTensorReaderType::New();
       
   tensorReader->SetFileName( m_TensorFileName );
-  m_Observer->PostMessage( "reading tensors...\n" );
+  if( m_Observer != NULL ) {
+    m_Observer->PostMessage( "reading tensors...\n" );
+  }
+  
   try { 
     tensorReader->Update();
   } catch( itk::ExceptionObject & excp ) {
     std::ostringstream output;
     output << "Error reading the series." << std::endl << excp << std::endl;
-    m_Observer->PostErrorMessage( output.str() );
+    if( m_Observer != NULL ) {
+      m_Observer->PostErrorMessage( output.str() );
+    } else {
+      std::cerr << output.str();
+    }
   }
   
   FullTensorImageType::Pointer fullTensors = tensorReader->GetOutput();
@@ -60,7 +67,10 @@ AsymmetricTensorReaderStrategy::GetTensors(){
   const int nTensorRows = 3;
   const int nTensorCols = 3;
 
-  m_Observer->PostMessage( "converting tensors to symmetric format\n" );
+  if( m_Observer != NULL ) {
+    m_Observer->PostMessage( "converting tensors to symmetric format\n" );
+  }
+  
   for( int cImageRow=0; cImageRow<size[ 0 ]; cImageRow++ ) {
     for( int cImageCol=0; cImageCol<size[ 1 ]; cImageCol++ ) {
       for( int cImageSlice=0; cImageSlice<size[ 2 ]; cImageSlice++ ) {

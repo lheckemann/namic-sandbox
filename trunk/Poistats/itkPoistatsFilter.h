@@ -71,17 +71,7 @@ public:
   typedef SeedVolumeType::RegionType SeedVolumeRegionType;
   typedef SeedVolumeType::SizeType SeedVolumeSizeType;
   typedef SeedVolumeType::IndexType SeedVolumeIndexType;
-  
-  /** Optimal Path Segmentation */
-  typedef int SegmentationType;
-  typedef itk::Image< SegmentationType, 3 > SegmentationVolumeType;
-  typedef SegmentationVolumeType::Pointer SegmentationVolumePointer;
-  typedef SegmentationVolumeType::PixelType SegmentationVolumePixelType;
-  typedef SegmentationVolumeType::RegionType SegmentationVolumeRegionType;
-  typedef SegmentationVolumeType::SizeType SegmentationVolumeSizeType;
-  typedef SegmentationVolumeType::IndexType SegmentationVolumeIndexType;  
-  typedef SegmentationVolumeType::SpacingType SegmentationVolumeSpacingType;
-  
+    
   /** Type for sampling volume */
   typedef float SamplingType;
   typedef itk::Image< SamplingType, 3 > SamplingVolumeType;
@@ -98,13 +88,17 @@ public:
   typedef MaskVolumeType::IndexType MaskVolumeIndexType;
     
   typedef itk::Array2D< double > MatrixType;
-  typedef itk::Array2D< double >* MatrixPointer;
+  typedef MatrixType* MatrixPointer;
   typedef std::vector< MatrixPointer > MatrixListType;
   
   typedef itk::Array< double > ArrayType;
-  typedef itk::Array< double >* ArrayPointer;
+  typedef ArrayType* ArrayPointer;
   typedef std::vector< ArrayPointer > ArrayListType;
   
+  typedef itk::Array< int > VoxelIndexType;
+  typedef VoxelIndexType* VoxelIndexPointer;
+  
+  /** Type for ODF look up table */
   typedef itk::Image< int, 3 > OdfLookUpTableType;  
   typedef OdfLookUpTableType::Pointer OdfLookUpTablePointer;
   typedef OdfLookUpTableType::SizeType OdfLookUpSizeType;
@@ -117,18 +111,16 @@ public:
 
   itkStaticConstMacro( INVALID_INDEX, int, -1 );
   
-  itkGetMacro(InitialSigma, int);
-  itkSetMacro(InitialSigma, int);
+  itkGetMacro( InitialSigma, int );
+  itkSetMacro( InitialSigma, int );
 
-  itkGetMacro(NumberOfSamplePoints, int);
-  itkSetMacro(NumberOfSamplePoints, int);
+  itkGetMacro( NumberOfSamplePoints, int );
+  itkSetMacro( NumberOfSamplePoints, int );
 
   OutputImageType *GetOptimalDensity();
   
   OutputImageType *GetDensity();
   
-  SegmentationVolumePointer GetOptimalSegmentation();
-      
   void CalculateTensor2Odf( itk::Matrix< double, 3, 3 > *tensor,
     ArrayPointer odf );
     
@@ -179,10 +171,10 @@ public:
   void ConvertPointsToImage( MatrixPointer points, OutputImagePointer volume );
   
   static void GetPositiveMinimumInt( MatrixPointer points, const int radius, 
-    itk::Array< int >* minimum );
+    VoxelIndexPointer minimum );
 
   static void GetPositiveMaximumInt( MatrixPointer points, const int radius, 
-    itk::Array< int >* maximum, OutputRegionType rowCeiling );
+    VoxelIndexPointer maximum, OutputRegionType rowCeiling );
     
   void SetSeedVolume( SeedVolumePointer volume );
 
@@ -248,15 +240,7 @@ public:
 
   itkGetMacro( PointsToImageGamma, double );
   itkSetMacro( PointsToImageGamma, double );
-  
-  void CalculateOptimalPathSegmentation( 
-    OutputImagePointer optimalPathDensity );
-
-  void CalculateOptimalPathSamples( OutputImagePointer optimalPathSamples );
-
-  void CalculateOptimalPathProbabilitiesVolume( 
-    OutputImagePointer optimalPathProbabilities );
-    
+      
   double GetCurrentMeanOfEnergies() const;
 
   double GetCurrentMinOfEnergies() const;      
@@ -269,22 +253,6 @@ protected:
   virtual void GenerateData();  
 
 private:
-// inputs:
-//  - image volume, tensors
-//  - image volume, seeds
-//  - image volume, sample
-//  - int, control points
-//  - int, sigma
-//  - image volume, mask
-//  - int, sample points
-//  - int[], seed labels to be used
-
-// outputs:
-//  - optimaldensity volume
-//  - density volume
-//  - path probability -- discrete points
-//  - path samples -- discrete points
-
   static const double NO_ZERO_SHELL_252[][3];
   
   PoistatsModel *m_PoistatsModel;
@@ -296,9 +264,7 @@ private:
   MaskVolumePointer m_MaskVolume;
   
   OdfLookUpTablePointer m_OdfLookUpTable;
-  
-  SegmentationVolumePointer m_OptimalPathSegmentation;
- 
+   
   ArrayListType m_Odfs;
 
   int m_InitialSigma;
@@ -320,19 +286,18 @@ private:
   itkStaticConstMacro( DEFAULT_NUMBER_OF_DIRECTIONS, int, 252 );
   int m_NumberOfDirections;
 
-// This used to work under the old version of itk I had, it's not supported 
-// anymore because:
-//
-// The StaticConstMacro was designed for dealing with numeric
-// parameters of templated classes. Such parameter can only
-// be "int", "unsigned int", and "enum".
-//
-// However, some compilers do not support the enums, while other
-// do not support the initialization of static variables.
-//
-// You could be ok with using the StaticConstMacro with a double
-// type *ONLY* in some compilers... 
-//  itkStaticConstMacro( DEFAULT_COOL_FACTOR, double, 0.995 );
+  /* itkStaticConstMacro can only be used with ints because:
+   The StaticConstMacro was designed for dealing with numeric
+   parameters of templated classes. Such parameter can only
+   be "int", "unsigned int", and "enum".
+  
+   However, some compilers do not support the enums, while other
+   do not support the initialization of static variables.
+  
+   You could be ok with using the StaticConstMacro with a double
+   type *ONLY* in some compilers... 
+ */
+  // itkStaticConstMacro( DEFAULT_COOL_FACTOR, double, 0.995 );
   static const double DEFAULT_COOL_FACTOR = 0.995;
 
   double m_CoolFactor;
@@ -380,14 +345,7 @@ private:
 
   typedef vnl_vector< double > VnlVectorType;
   ArrayType m_InvalidOdf;
-  
-  static void PrintFlippedMatlabMatrix( MatrixType matrix,
-    std::string matrixName );
-
-  static void PrintFlippedMatlabMatrixCombo( 
-    itk::Array2D< double > lowTrialPath, 
-    itk::Array2D< double > rethreadedPath );
-    
+      
   PoistatsReplicas *m_Replicas;
   
   double m_ReplicaExchangeProbability;
