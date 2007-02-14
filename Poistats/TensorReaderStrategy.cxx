@@ -1,7 +1,7 @@
 #include "TensorReaderStrategy.h"
 
 TensorReaderStrategy::TensorReaderStrategy(){
-  
+  this->m_Observer = NULL;
 }
 
 
