@@ -213,8 +213,10 @@ int main(int argc, char* argv[]){
   for(ROIImageIt.GoToBegin(); !ROIImageIt.IsAtEnd(); ++ROIImageIt){
     //std::cout << "PixelIndex: "<< inputROIImageIt.GetIndex() << std::endl;
     if(ROIImageIt.Get() > 0 && ROIImageIt.Get() < 100){
+    //if(ROIImageIt.Get() == 1){
       ptfilterPtr->SetSeedIndex( ROIImageIt.GetIndex() );
       addimagefilterPtr->Update();
+      break;
     }
   }        
 
