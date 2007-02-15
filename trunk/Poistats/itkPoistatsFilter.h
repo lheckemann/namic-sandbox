@@ -340,9 +340,6 @@ private:
   VnlMatrixType m_TensorGeometry;  
   VnlMatrixType GetTensorGeometry();
   
-  VnlMatrixType m_TensorGeometryFlipped;  
-  VnlMatrixType GetTensorGeometryFlipped();
-
   typedef vnl_vector< double > VnlVectorType;
   ArrayType m_InvalidOdf;
       

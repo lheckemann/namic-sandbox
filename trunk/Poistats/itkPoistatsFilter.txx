@@ -1456,19 +1456,19 @@ PoistatsFilter<TInputImage, TOutputImage>
 template <class TInputImage, class TOutputImage>
 double
 PoistatsFilter<TInputImage, TOutputImage>
-::CalculateOdfPathEnergy( itk::Array2D< double > *path,
-                          itk::Array< double > **odfs,
+::CalculateOdfPathEnergy( MatrixPointer path,
+                          ArrayPointer* odfs,
                           ArrayPointer outputEnergies ) {
   
   const int spatialDimension = path->columns();
   
-  itk::Array2D< double > pathDifference( path->rows()-1, spatialDimension );
+  MatrixType pathDifference( path->rows()-1, spatialDimension );
   PoistatsReplica::CalculatePathVectors( path, &pathDifference );
     
-  itk::Array< double > magnitude( path->rows() - 1 );
+  ArrayType magnitude( path->rows() - 1 );
   PoistatsReplica::CalculateMagnitude( &pathDifference, &magnitude );  
 
-  itk::Array2D< double > normalizedPathVectors( pathDifference );
+  MatrixType normalizedPathVectors( pathDifference );
   // normalize the vectors
   for( int cPath=0; cPath<pathDifference.rows(); cPath++ ) {
     for( int cDimension=0; cDimension<pathDifference.cols(); cDimension++ ) {
@@ -1476,90 +1476,95 @@ PoistatsFilter<TInputImage, TOutputImage>
     }
   }
     
-  itk::Array< double > anglesBetweenPathVectors( normalizedPathVectors.rows()-1 );
+  ArrayType anglesBetweenPathVectors( normalizedPathVectors.rows()-1 );
   CalculateAnglesBetweenVectors( &normalizedPathVectors, 
                                  &anglesBetweenPathVectors );
-
-  const int numberOfOdfs = this->GetNumberOfDirections();
-  const int numberOfTensorAxes = 3;
-  vnl_matrix< double > geo = this->GetTensorGeometryFlipped();
   
-  vnl_matrix< double > dotProductPerGeoDirection( normalizedPathVectors * geo.transpose() );
-  for( int cRow=0; cRow<dotProductPerGeoDirection.rows(); cRow++ ) {
-    for( int cColumn=0; cColumn<dotProductPerGeoDirection.cols(); cColumn++ ) {
-      dotProductPerGeoDirection[ cRow ][ cColumn ] = fabs( dotProductPerGeoDirection[ cRow ][ cColumn ] );
-    }
-  }
-
-  // calculate the angles between path and geo
-  itk::Array2D< double > pathGeoAngles( dotProductPerGeoDirection.rows(), dotProductPerGeoDirection.cols() );
-  for( int cRow=0; cRow<pathGeoAngles.rows(); cRow++ ) {
-    for( int cColumn=0; cColumn<pathGeoAngles.cols(); cColumn++ ) {
-      pathGeoAngles[ cRow ][ cColumn ] = acos( dotProductPerGeoDirection[ cRow ][ cColumn ] );
-    }
-  }  
-  
-  MatrixType densityMatrix( pathGeoAngles.rows(), pathGeoAngles.cols() );
-  CalculateDensityMatrix( &pathGeoAngles, &densityMatrix );
-  
-//  odflist = odflist(1:(end-1),:); % n - 1 sets of odfs, because they
-//                                % correspond to path segments, not path points.    
-//% odfvalues are the baysian conditional posterior probability distribution
-//%  sum(A,2) will sum along the rows
-//odfvalues = sum(odflist.*dm,2);
-  itk::Array< double > odfValues( densityMatrix.rows() );
-  for( int cRow=0; cRow<densityMatrix.rows(); cRow++ ) {
-    
-    double odfListSum = 0.0;
-    
-    // sums along the rows
-    for( int cColumn=0; cColumn<densityMatrix.cols(); cColumn++ ) {
-      ArrayPointer odfsAtRow = odfs[ cRow ];
-      double odf = ( *odfsAtRow )[ cColumn ] ;
-      double density = densityMatrix[ cRow ][ cColumn ];
-      odfListSum += odf * density;
-    }
-    
-    odfValues[ cRow ] = odfListSum;
-  }
-  
-//% compute energy
-//% the energy is defined as the negative logarithm of the conditional
-//% confirmational posterior distribution see Habeck et el Physical Review E
-//% 72, 031912, 2005, equation 17
-//energies = -log(abs(odfvalues)).*nm;
-  ArrayType energies( odfValues.size() );
-  for( int cRow=0; cRow<energies.size(); cRow++ ) {
-    energies[ cRow ] = -log( fabs( odfValues[ cRow ] ) ) * magnitude[ cRow ];
-  }
-  
-  // if the output energies exist, we should copy them out
-  if( outputEnergies ) {
-    for( int cRow=0; cRow<energies.size(); cRow++ ) {
-      ( *outputEnergies )[ cRow ] = energies[ cRow ];
-    }
-  }
-
-// we don't want sharp turns, so set those very large
-// we don't know why energies doesn't remain an array in this case
-
-// TODO: I'm not sure if this is right and I think that I should check ahead of time
-//       for this case
-//if max(angles) > pi/3, energies = 1e6; end;
-
-  const double largeAngle = M_PI / 3.0;
-    
+  // MATLAB: if max(angles) > pi/3, energies = 1e6; end;
+  static const double largeAngle = M_PI / 3.0;    
   double meanEnergy = 0.0;
   
+  // we don't want sharp turns, so set those very large
   if( anglesBetweenPathVectors.max_value() > largeAngle ) {
   
     const double maxEnergy = 1e6;
     meanEnergy = maxEnergy / magnitude.sum();
 
-    energies.Fill( maxEnergy );
+    if( outputEnergies ) {
+      outputEnergies->Fill( maxEnergy );
+    }
 
   } else {
-    //meanenergy = sum(energies)/sum(nm);
+
+    const int numberOfOdfs = this->GetNumberOfDirections();
+    const int numberOfTensorAxes = 3;
+  
+    vnl_matrix< double > geo = this->GetTensorGeometry();  
+    vnl_matrix< double > dotProductPerGeoDirection( normalizedPathVectors * 
+                                                    geo.transpose() );
+  
+    for( int cRow=0; cRow<dotProductPerGeoDirection.rows(); cRow++ ) {
+      for( int cColumn=0; cColumn<dotProductPerGeoDirection.cols(); cColumn++ ) {
+        dotProductPerGeoDirection[ cRow ][ cColumn ] = 
+          fabs( dotProductPerGeoDirection[ cRow ][ cColumn ] );
+      }
+    }
+  
+    // calculate the angles between path and geo
+    MatrixType pathGeoAngles( dotProductPerGeoDirection.rows(), dotProductPerGeoDirection.cols() );
+    for( int cRow=0; cRow<pathGeoAngles.rows(); cRow++ ) {
+      for( int cColumn=0; cColumn<pathGeoAngles.cols(); cColumn++ ) {
+        pathGeoAngles[ cRow ][ cColumn ] = 
+          acos( dotProductPerGeoDirection[ cRow ][ cColumn ] );
+      }
+    }  
+    
+    MatrixType densityMatrix( pathGeoAngles.rows(), pathGeoAngles.cols() );
+    CalculateDensityMatrix( &pathGeoAngles, &densityMatrix );
+    
+    /* MATLAB:
+      odflist = odflist(1:(end-1),:); % n - 1 sets of odfs, because they
+                                    % correspond to path segments, not path points.    
+    % odfvalues are the baysian conditional posterior probability distribution
+    %  sum(A,2) will sum along the rows
+    odfvalues = sum(odflist.*dm,2);
+    */
+    ArrayType odfValues( densityMatrix.rows() );
+    for( int cRow=0; cRow<densityMatrix.rows(); cRow++ ) {
+      
+      double odfListSum = 0.0;
+      
+      // sums along the rows
+      for( int cColumn=0; cColumn<densityMatrix.cols(); cColumn++ ) {
+        ArrayPointer odfsAtRow = odfs[ cRow ];
+        double odf = ( *odfsAtRow )[ cColumn ] ;
+        double density = densityMatrix[ cRow ][ cColumn ];
+        odfListSum += odf * density;
+      }
+      
+      odfValues[ cRow ] = odfListSum;
+    }
+
+    /* MATLAB:    
+    % compute energy
+    % the energy is defined as the negative logarithm of the conditional
+    % confirmational posterior distribution see Habeck et el Physical Review E
+    % 72, 031912, 2005, equation 17
+    energies = -log(abs(odfvalues)).*nm;
+    */
+    ArrayType energies( odfValues.size() );
+    for( int cRow=0; cRow<energies.size(); cRow++ ) {
+      energies[ cRow ] = -log( fabs( odfValues[ cRow ] ) ) * magnitude[ cRow ];
+    }
+    
+    // if the output energies exist, we should copy them out
+    if( outputEnergies ) {
+      for( int cRow=0; cRow<energies.size(); cRow++ ) {
+        ( *outputEnergies )[ cRow ] = energies[ cRow ];
+      }
+    }
+  
+    // MATLAB: meanenergy = sum(energies)/sum(nm);
     meanEnergy = energies.sum() / magnitude.sum();
   }
    
@@ -2131,34 +2136,6 @@ PoistatsFilter<TInputImage, TOutputImage>
   }
   
   return this->m_TensorGeometry;
-  
-}
-
-
-// TODO: this is a hack to get the energy to be calculated correctly.  I feel like I need to study this a little more...
-template <class TInputImage, class TOutputImage>
-typename PoistatsFilter<TInputImage, TOutputImage>::VnlMatrixType
-PoistatsFilter<TInputImage, TOutputImage>
-::GetTensorGeometryFlipped() {
-
-  if( m_TensorGeometryFlipped.empty() ) {
-    const int numberOfOdfs = this->GetNumberOfDirections();
-    const int numberOfTensorAxes = 3;  
-
-    this->m_TensorGeometryFlipped = VnlMatrixType( *NO_ZERO_SHELL_252,
-      numberOfOdfs, numberOfTensorAxes );
-      
-    // TODO: right now, the shell is loaded in with the first and last columns
-    //       switched, so we need to swap them...maybe, but I think they're symmetric, so maybe not...?
-    for( int cPoint=0; cPoint<this->m_TensorGeometryFlipped.rows(); cPoint++ ) {  
-      const double tmp = this->m_TensorGeometryFlipped[ cPoint ][ 0 ];
-      this->m_TensorGeometryFlipped[ cPoint ][ 0 ] = this->m_TensorGeometryFlipped[ cPoint ][ 2 ];
-      this->m_TensorGeometryFlipped[ cPoint ][ 2 ] = tmp;      
-    }
-    
-  }
-  
-  return m_TensorGeometryFlipped;
   
 }
 
