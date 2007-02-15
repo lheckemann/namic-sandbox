@@ -109,7 +109,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(CongealingMultiImageMetric, CongealingMetric);
+  itkTypeMacro(VarianceMultiImageMetric, MultiImageMetric);
 
   /** Types inherited from Superclass. */
   typedef typename Superclass::TransformType            TransformType;
@@ -191,11 +191,9 @@ public:
                     NumericTraits<double>::NonpositiveMin(), NumericTraits<double>::max() );
   itkGetConstReferenceMacro( MovingImageStandardDeviation, double );
 
-  /** Set/Get the fixed image intensitiy standard deviation. This defines
-   * the kernel bandwidth used in the joint probability distribution
-   * calculation. Default value is 0.4 which works well for image intensities
-   * normalized to a mean of 0 and standard deviation of 1.0.  
-   * Value is clamped to be always greater than zero. */
+  /** Initialize the Metric by making sure that all the components
+   *  are present and plugged together correctly     */
+  virtual void Initialize(void) throw ( ExceptionObject );
 
   /**Change this */
   itkSetClampMacro( FixedImageStandardDeviation, double,

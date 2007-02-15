@@ -67,7 +67,7 @@ public:
   typedef Superclass::ParametersValueType CoordinateRepresentationType;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(CongealingMetric, SingleValuedCostFunction);
+  itkTypeMacro( MultiImageMetric, SingleValuedCostFunction);
 
   /**  Type of the moving Image. */
   typedef TFixedImage                                TMovingImage;
