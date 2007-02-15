@@ -23,7 +23,7 @@ class TestPoistats : public CppUnit::TestFixture, public RunnableTest
     CPPUNIT_TEST( TestCalculateTensor2Odf );
 
 // TODO: this takes too long to run all the time...    
-//    CPPUNIT_TEST( TestCalculateOdfPathEnergy );
+    CPPUNIT_TEST( TestCalculateOdfPathEnergy );
 
     CPPUNIT_TEST( TestCalculateDensityMatrix );
         
