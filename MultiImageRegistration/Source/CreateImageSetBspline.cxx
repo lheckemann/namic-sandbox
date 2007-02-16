@@ -24,6 +24,9 @@
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkBSplineDeformableTransform.h"
 
+#include "itkImageRegionIterator.h"
+#include "itkNormalVariateGenerator.h"
+    
 #include <string>
 #include <sstream>
 #include <fstream>
@@ -42,6 +45,7 @@ if( argc < 4 )
     }
 
   const     unsigned int   Dimension = 3;
+  const     double   Sigma = 2;
   typedef   unsigned short  InputPixelType;
   typedef   unsigned short  OutputPixelType;
   typedef itk::Image< InputPixelType,  Dimension >   InputImageType;
@@ -50,6 +54,13 @@ if( argc < 4 )
 
   typedef itk::ImageFileReader< InputImageType  >  ReaderType;
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;
+
+  typedef itk::ImageRegionIterator< InputImageType> IteratorType;
+
+  typedef itk::Statistics::NormalVariateGenerator GeneratorType;
+  
+  GeneratorType::Pointer generator = GeneratorType::New();
+  generator->Initialize(230546);
   
   for(int i=0; i<4 ; i++)
   {
@@ -63,6 +74,13 @@ if( argc < 4 )
     typedef itk::ResampleImageFilter<InputImageType,OutputImageType> ResampleFilterType;
     ResampleFilterType::Pointer resample = ResampleFilterType::New();
 
+    // Add Gaussian Noise to the images
+    IteratorType it( reader->GetOutput(), reader->GetOutput()->GetLargestPossibleRegion());
+    for ( it.GoToBegin(); !it.IsAtEnd(); ++it )
+    {
+      it.Set( abs( it.Get() + static_cast<int>(generator->GetVariate()*Sigma) ) );
+    }
+    
     typedef itk::BSplineDeformableTransform< double,
                                            Dimension,
                                            3 >     BSplineTransformType;
@@ -116,56 +134,56 @@ if( argc < 4 )
     {
       for(int j=0; j<bsplineParameters.GetSize(); j++)
       {
-        if ( j%5 == 0 )
-          bsplineParameters[j] = 1.5;
-        else if (j%5 == 1 )
-          bsplineParameters[j] = -1.5;
-        else if (j%5 == 2 )
-          bsplineParameters[j] = 3;
-        else if (j%5 == 3 )
-          bsplineParameters[j] = -3;
+        if ( j%4 == 0 )
+          bsplineParameters[j] = 2.5;
+        else if (j%4 == 1 )
+          bsplineParameters[j] = -0.5;
+        else if (j%4 == 2 )
+          bsplineParameters[j] =  1.5;
+        else if (j%4 == 3 )
+          bsplineParameters[j] =  -3.5;
       }
     }
     else if(i==1)
     {
       for(int j=0; j<bsplineParameters.GetSize(); j++)
       {
-        if ( j%5 == 0 )
-          bsplineParameters[j] = -1.5;
-        else if (j%5 == 1 )
-          bsplineParameters[j] = 3;
-        else if (j%5 == 2 )
-          bsplineParameters[j] = -3;
-        else if (j%5 == 3 )
-          bsplineParameters[j] = 1.5;
+        if ( j%4 == 1 )
+          bsplineParameters[j] = 2.5;
+        else if (j%4 == 2 )
+          bsplineParameters[j] = -0.5;
+        else if (j%4 == 3 )
+          bsplineParameters[j] =  1.5;
+        else if (j%4 == 0 )
+          bsplineParameters[j] =  -3.5;
       }
     }
     else if(i==2)
     {
       for(int j=0; j<bsplineParameters.GetSize(); j++)
       {
-        if ( j%5 == 0 )
-          bsplineParameters[j] = 3;
-        else if (j%5 == 1 )
-          bsplineParameters[j] = -3;
-        else if (j%5 == 2 )
-          bsplineParameters[j] = 1.5;
-        else if (j%5 == 3 )
-          bsplineParameters[j] = -1.5;
+        if ( j%4 == 2 )
+          bsplineParameters[j] = 2.5;
+        else if (j%4 == 3 )
+          bsplineParameters[j] = -0.5;
+        else if (j%4 == 0 )
+          bsplineParameters[j] =  1.5;
+        else if (j%4 == 1 )
+          bsplineParameters[j] =  -3.5;
       }
     }
     else if(i==3)
     {
       for(int j=0; j<bsplineParameters.GetSize(); j++)
       {
-        if ( j%5 == 0 )
-          bsplineParameters[j] = -3;
-        else if (j%5 == 1 )
-          bsplineParameters[j] = 1.5;
-        else if (j%5 == 2 )
-          bsplineParameters[j] = -1.5;
-        else if (j%5 == 3 )
-          bsplineParameters[j] = 3;
+        if ( j%4 == 3 )
+          bsplineParameters[j] = 2.5;
+        else if (j%4 == 0 )
+          bsplineParameters[j] = -0.5;
+        else if (j%4 == 1 )
+          bsplineParameters[j] =  1.5;
+        else if (j%4 == 2 )
+          bsplineParameters[j] =  -3.5;
       }
     }
 
@@ -177,7 +195,7 @@ if( argc < 4 )
 
     InterpolatorType::Pointer interpolator = InterpolatorType::New();
     resample->SetInterpolator( interpolator );
-    resample->SetDefaultPixelValue( 1 );
+    resample->SetDefaultPixelValue( 0 );
 
     // Initialize the resampler
     // Get the size of the image
@@ -186,7 +204,7 @@ if( argc < 4 )
     // Increase the size by 10 pixels (voxels)
     for(int r=0; r<Dimension; r++)
     {
-      size[r] += 10;
+      //size[r] += 10;
     }
       
     //Get the spacing
@@ -199,7 +217,7 @@ if( argc < 4 )
     // Move the origin 5 spaces
     for(int r=0; r<Dimension; r++ )
     {
-      origin[r] -= 5*spacing[r];
+      //origin[r] -= 5*spacing[r];
     }
     resample->SetSize(size);
     resample->SetOutputOrigin(origin);
