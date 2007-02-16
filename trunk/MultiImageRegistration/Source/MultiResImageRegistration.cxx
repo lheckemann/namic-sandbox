@@ -403,6 +403,19 @@ int main( int argc, char *argv[] )
   for(int i=0; i<N; i++)
   {
     transformArray[i]->SetIdentity();
+    TransformType::InputPointType center;
+    // Get spacing, origin and size of the images
+    ImageType::SpacingType spacing = normalizedFilterArray[0]->GetOutput()->GetSpacing();
+    itk::Point<double, Dimension> origin = normalizedFilterArray[0]->GetOutput()->GetOrigin();
+    ImageType::SizeType size = normalizedFilterArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
+
+    // Place the center of rotation to the center of the image
+    for(int j=0; j< Dimension; j++)
+    {
+      center[j] = (origin[j] + spacing[j]*size[j]) / 2.0;
+    }
+    transformArray[i]->SetIdentity();
+    transformArray[i]->SetCenter(center);
     registration->SetInitialTransformParameters( transformArray[i]->GetParameters(),i );
   }
 
@@ -416,11 +429,11 @@ int main( int argc, char *argv[] )
   {
     for( int j=0; j<Dimension*Dimension; j++ )
     {
-      optimizerScales[i*numberOfParameters + j] = 1.0; // scale for indices in 2x2 (3x3) Matrix
+      optimizerScales[i*numberOfParameters + j] = -1.0; // scale for indices in 2x2 (3x3) Matrix
     }
     for(int j=Dimension*Dimension; j<Dimension+Dimension*Dimension; j++)
     {
-      optimizerScales[i*numberOfParameters + j] = 1.0 / 1000000.0; // scale for translation on X,Y,Z
+      optimizerScales[i*numberOfParameters + j] = -1.0 / 5000.0; // scale for translation on X,Y,Z
     }
   }
   optimizer->SetScales( optimizerScales );
