@@ -219,7 +219,7 @@ typename VarianceMultiImageMetric < TFixedImage >::MeasureType
 VarianceMultiImageMetric <TFixedImage >::
 GetValue(const ParametersType & parameters) const
 {
-  cout << "Checking GetValue" << endl;
+  // cout << "Checking GetValue" << endl;
 
   int N = this->m_NumberOfImages;
   int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters ();
@@ -231,7 +231,7 @@ GetValue(const ParametersType & parameters) const
     {
       currentParam[j] = parameters[i * numberOfParameters + j];
     }
-    cout << currentParam << endl;
+    // cout << currentParam << endl;
     this->m_TransformArray[i]->SetParametersByValue (currentParam);
   }
 
@@ -239,36 +239,35 @@ GetValue(const ParametersType & parameters) const
   //
   // or dont collect a new sample set if used with
   // regular gradient descent
-  this->SampleFixedImageDomain(m_Sample);
+  // this->SampleFixedImageDomain(m_Sample);
+
+  // Update intensity values
+  MovingImagePointType mappedPoint;
+  for(int i=0; i< m_Sample.size(); i++ )
+  {
+    for(int j=0; j<this->m_NumberOfImages; j++)
+    {
+      mappedPoint = this->m_TransformArray[j]->TransformPoint(m_Sample[i].FixedImagePoint);
+      if(this->m_InterpolatorArray[j]->IsInsideBuffer (mappedPoint) )
+      {
+        m_Sample[i].imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(mappedPoint);
+      }
+    }
+  } 
 
   //Calculate variance and mean
   double measure = 0.0;
-
-  typename SpatialSampleContainer::const_iterator iter;
-  typename SpatialSampleContainer::const_iterator end = m_Sample.end ();
-
   double squareSum, meanSum;
-  int outsideCount = 0;
 
-  for (iter = m_Sample.begin (); iter != end; ++iter)
+  for(int i=0; i< m_Sample.size(); i++ )
   {
     squareSum = 0.0;
     meanSum = 0.0;
     double currentValue;
     for (int j = 0; j < this->m_NumberOfImages; j++)
     {
-      if(this->m_InterpolatorArray[j]->IsInsideBuffer (this->m_TransformArray[j]->TransformPoint ((*iter).FixedImagePoint)) )
-      {
-        currentValue = this->m_InterpolatorArray[j]->
-                             Evaluate(this->m_TransformArray[j]->TransformPoint ((*iter).FixedImagePoint));
-      }
-      else
-      {
-        currentValue = 0.0;
-      }
-      
-      squareSum += currentValue * currentValue;
-      meanSum += currentValue;
+      squareSum += m_Sample[i].imageValueArray[j] * m_Sample[i].imageValueArray[j];
+      meanSum += m_Sample[i].imageValueArray[j];
     }
 
     meanSum /= N;
@@ -276,9 +275,8 @@ GetValue(const ParametersType & parameters) const
     measure += squareSum - meanSum * meanSum;
   }        // end of sample loop
   
-  measure = measure / static_cast<double>(m_NumberOfSpatialSamples);
+  measure /= -1.0 * static_cast<double>(m_NumberOfSpatialSamples);
 
-  cout << parameters << endl;
   cout << measure << endl;
   return measure;
 
@@ -293,6 +291,8 @@ void
 VarianceMultiImageMetric < TFixedImage >
 ::BeforeGetThreadedValue (const ParametersType & parameters) const
 {
+
+  cout << "checking derivative" << endl;
 
   // collect sample set
   this->SampleFixedImageDomain (m_Sample);
@@ -357,7 +357,7 @@ void VarianceMultiImageMetric < TFixedImage >
   {
     derivative[i] -= temp[i % numberOfParameters] / (double) this->m_NumberOfImages;
   }
-  
+
 }
 
 
