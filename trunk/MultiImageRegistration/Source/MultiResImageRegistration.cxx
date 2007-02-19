@@ -63,6 +63,7 @@
 #include <vector>
 #include <iomanip>
 #include <iostream>
+#include <fstream>
     
 //Bspline optimizer and transform
 #include "itkBSplineDeformableTransform.h"
@@ -193,6 +194,8 @@ int main( int argc, char *argv[] )
   string optimizerType("");
   string transformType("");
   string metricType("entropy");
+
+  string metricPrint("on");
   
   int multiLevelAffine = 3;
   int multiLevelBspline = 2;
@@ -436,7 +439,7 @@ int main( int argc, char *argv[] )
     }
     for(int j=Dimension*Dimension; j<Dimension+Dimension*Dimension; j++)
     {
-      optimizerScales[i*numberOfParameters + j] = -1.0 / 10000.0; // scale for translation on X,Y,Z
+      optimizerScales[i*numberOfParameters + j] = -1.0 / 1000.0; // scale for translation on X,Y,Z
     }
   }
   optimizer->SetScales( optimizerScales );
@@ -503,6 +506,33 @@ int main( int argc, char *argv[] )
     std::cout << "ExceptionObject caught !" << std::endl; 
     std::cout << err << std::endl; 
     return -1;
+  }
+
+  //Print out the metric values for translation parameters
+  if( metricPrint == "on")
+  {
+      ofstream outputFile("metricOutput.txt");
+      ParametersType parameters = registration->GetLastTransformParameters();
+
+      for(int i=0; i<40; i++)
+      {
+        for(int j=0; j<40; j++)
+        {
+          parameters[10] = i/5.0;
+          parameters[11] = j/4.0;
+
+          if(metricType =="variance")
+          {
+            outputFile << varianceMetric->GetValue(parameters) << " ";
+          }
+          else
+          {
+            outputFile << entropyMetric->GetValue(parameters) << " ";
+          }
+        }
+        outputFile << std::endl;
+      }
+      outputFile.close();
   }
 
   //

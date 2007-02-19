@@ -183,7 +183,8 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
     {
       mappedPointsArray[j] = this->m_TransformArray[j]->TransformPoint ((*iter).FixedImagePoint);
       
-      if ( this->m_ImageMaskArray[j] && !this->m_ImageMaskArray[j]->IsInside (mappedPointsArray[j]) )
+      if ( (this->m_ImageMaskArray[j] && !this->m_ImageMaskArray[j]->IsInside (mappedPointsArray[j]) )
+           || !this->m_InterpolatorArray[j]->IsInsideBuffer (mappedPointsArray[j]) )
       {
         allPointsInside = false;
       }
@@ -200,14 +201,8 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
     // write the mapped samples intensity values inside an array
     for (int j = 0; j < this->m_NumberOfImages; j++)
     {
-      if(this->m_InterpolatorArray[j]->IsInsideBuffer (mappedPointsArray[j]))
-      {
-        (*iter).imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(mappedPointsArray[j]);
-      }
-      else
-      {
-        (*iter).imageValueArray[j] = 0.0;
-      }
+      (*iter).imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(mappedPointsArray[j]);
+
       allOutside = false;
     }
     // Jump to random position
@@ -234,14 +229,16 @@ GetValue(const ParametersType & parameters) const
   cout << "Checking GetValue" << endl;
 
   int N = this->m_NumberOfImages;
-  ParametersType currentParam (this->m_TransformArray[0]->GetNumberOfParameters ());
+  int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters ();
+  ParametersType currentParam (numberOfParameters);
 
   for (int i = 0; i < N; i++)
   {
-    for (int j = 0; j < this->m_TransformArray[i]->GetNumberOfParameters (); j++)
+    for (int j = 0; j < numberOfParameters; j++)
     {
-      currentParam[j] = parameters[i * N + j];
+      currentParam[j] = parameters[i * numberOfParameters + j];
     }
+    cout << currentParam << endl;
     this->m_TransformArray[i]->SetParametersByValue (currentParam);
   }
 
@@ -283,7 +280,6 @@ GetValue(const ParametersType & parameters) const
   
   measure = dLogSumMean / static_cast<double>(m_NumberOfSpatialSamples);
 
-  cout << parameters << endl;
   cout << measure << endl;
   return measure;
 
@@ -298,7 +294,7 @@ void
 ParzenWindowEntropyMultiImageMetric < TFixedImage >
 ::BeforeGetThreadedValue (const ParametersType & parameters) const
 {
-
+  cout << "cheching derivative" << endl;
   // collect sample set
   this->SampleFixedImageDomain (m_Sample);
 
@@ -313,6 +309,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
     {
       currentParam[j] = parameters[numberOfParameters * i + j];
     }
+    cout << currentParam << endl;
     this->m_TransformArray[i]->SetParametersByValue (currentParam);
   }
 
@@ -455,9 +452,7 @@ void ParzenWindowEntropyMultiImageMetric < TFixedImage >
   // Call a method that perform some calculations prior to splitting the main
   // computations into separate threads
 
-  // cout << parameters << endl;
-
-  this->BeforeGetThreadedValue(parameters); 
+  this->BeforeGetThreadedValue(parameters);
   
   // Set up the multithreaded processing
   ThreadStruct str;
