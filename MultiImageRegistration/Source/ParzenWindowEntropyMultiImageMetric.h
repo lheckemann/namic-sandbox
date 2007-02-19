@@ -14,10 +14,9 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __VarianceMultiImageMetric_h
-#define __VarianceMultiImageMetric_h
+#ifndef __ParzenWindowEntropyMultiImageMetric_h
+#define __ParzenWindowEntropyMultiImageMetric_h
 
-//#include "itkImageToImageMetric.h"
 #include "itkCovariantVector.h"
 #include "itkPoint.h"
 
@@ -34,7 +33,7 @@ using namespace std;
 namespace itk
 {
 
-/** \class MutualInformationImageToImageMetric
+/** \class ParzenWindowEntropyImageToImageMetric
  * \brief Computes the mutual information between two images to be registered
  *
  * MutualInformationImageToImageMetric computes the mutual information
@@ -93,13 +92,13 @@ namespace itk
  * \ingroup RegistrationMetrics
  */
 template <class TFixedImage>
-class ITK_EXPORT VarianceMultiImageMetric :
+class ITK_EXPORT ParzenWindowEntropyMultiImageMetric :
     public MultiImageMetric< TFixedImage>
 {
 public:
 
   /** Standard class typedefs. */
-  typedef VarianceMultiImageMetric  Self;
+  typedef ParzenWindowEntropyMultiImageMetric  Self;
   typedef MultiImageMetric< TFixedImage > Superclass;
   //typedef CongealingMetric< TFixedImage, TFixedImage > Superclass;
   typedef SmartPointer<Self>  Pointer;
@@ -109,7 +108,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(VarianceMultiImageMetric, MultiImageMetric);
+  itkTypeMacro(ParzenWindowEntropyMultiImageMetric, MultiImageMetric);
 
   /** Types inherited from Superclass. */
   typedef typename Superclass::TransformType            TransformType;
@@ -163,8 +162,7 @@ public:
   /**  Get the value and derivatives for single valued optimizers. */
   void GetValueAndDerivative( const ParametersType& parameters, 
                               MeasureType& Value, DerivativeType& Derivative ) const;
-  void GetValueAndDerivative2( const ParametersType& parameters,
-                              MeasureType& Value, DerivativeType& Derivative ) const;
+
 
   /** Methods added for supporting multi-threading */
   void GetThreadedValue( int threadID ) const;
@@ -182,36 +180,38 @@ public:
   /** Get the number of spatial samples. */
   itkGetConstReferenceMacro( NumberOfSpatialSamples, unsigned int );
 
+  /** Set/Get the moving image intensitiy standard deviation. This defines
+   * the kernel bandwidth used in the joint probability distribution
+   * calculation. Default value is 0.4 which works well for image intensities
+   * normalized to a mean of 0 and standard deviation of 1.0.  
+   * Value is clamped to be always greater than zero. */
+  itkSetClampMacro( ImageStandardDeviation, double,
+                    NumericTraits<double>::NonpositiveMin(), NumericTraits<double>::max() );
+  itkGetConstReferenceMacro( ImageStandardDeviation, double );
+
   /** Initialize the Metric by making sure that all the components
    *  are present and plugged together correctly     */
   virtual void Initialize(void) throw ( ExceptionObject );
 
+  /** Set/Get the kernel function. This is used to calculate the joint
+   * probability distribution. Default is the GaussianKernelFunction. */
+  itkSetObjectMacro( KernelFunction, KernelFunction );
+  itkGetObjectMacro( KernelFunction, KernelFunction );
 
   void ReinitializeSeed();
   void ReinitializeSeed(int);
 
 protected:
-  VarianceMultiImageMetric();
-  virtual ~VarianceMultiImageMetric() {};
+  ParzenWindowEntropyMultiImageMetric();
+  virtual ~ParzenWindowEntropyMultiImageMetric() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
 
 private:
-  VarianceMultiImageMetric(const Self&); //purposely not implemented
+  ParzenWindowEntropyMultiImageMetric(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
   
   /** A spatial sample consists of the fixed domain point, the fixed image value
    *   at that point, and the corresponding moving image value. */
-//   class SpatialSample
-//   {
-//   public:
-//     SpatialSample():FixedImageValue(0.0),MovingImageValue(0.0)
-//     { FixedImagePointValue.Fill( 0.0 ); }
-//     ~SpatialSample(){};
-// 
-//     FixedImagePointType              FixedImagePointValue;
-//     double                           FixedImageValue;
-//     double                           MovingImageValue;
-//   };
   class SpatialSample
   {
   public:
@@ -233,7 +233,9 @@ private:
   mutable SpatialSampleContainer      m_Sample;
 
   unsigned int                        m_NumberOfSpatialSamples;
-
+  double                              m_ImageStandardDeviation;
+  typename KernelFunction::Pointer    m_KernelFunction;
+  double                              m_MinProbability;
 
   /** Uniformly select samples from the fixed image buffer. */
   void SampleFixedImageDomain( SpatialSampleContainer& samples ) const;
@@ -264,7 +266,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "VarianceMultiImageMetric.cxx"
+#include "ParzenWindowEntropyMultiImageMetric.cxx"
 #endif
 
 #endif

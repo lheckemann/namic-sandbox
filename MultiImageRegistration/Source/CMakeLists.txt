@@ -32,6 +32,8 @@ SET(MultiResImageRegistration_SRCS
   MultiResolutionImageRegistrationMethod.h 
   VarianceMultiImageMetric.cxx 
   VarianceMultiImageMetric.h 
+  ParzenWindowEntropyMultiImageMetric.h
+  ParzenWindowEntropyMultiImageMetric.cxx
   MultiImageMetric.cxx 
   MultiImageMetric.h 
   AddImageFilter.h
@@ -49,9 +51,9 @@ SET(MultiResImageRegistration_SRCS
 ADD_EXECUTABLE(RegisterVarianceAffineMultiRes ${MultiResImageRegistration_SRCS})
 TARGET_LINK_LIBRARIES(RegisterVarianceAffineMultiRes ITKNumerics ITKIO )
 
-#ADD_EXECUTABLE(CreateImageSetAffine CreateImageSetAffine.cxx )
-#TARGET_LINK_LIBRARIES(CreateImageSetAffine ITKCommon ITKBasicFilters ITKIO)
+ADD_EXECUTABLE(CreateImageSetAffine CreateImageSetAffine.cxx )
+TARGET_LINK_LIBRARIES(CreateImageSetAffine ITKCommon ITKBasicFilters ITKIO ITKStatistics)
     
-#ADD_EXECUTABLE(CreateImageSetBspline CreateImageSetBspline.cxx )
-#TARGET_LINK_LIBRARIES(CreateImageSetBspline ITKCommon ITKBasicFilters ITKIO)
+ADD_EXECUTABLE(CreateImageSetBspline CreateImageSetBspline.cxx )
+TARGET_LINK_LIBRARIES(CreateImageSetBspline ITKCommon ITKBasicFilters ITKIO ITKStatistics)
 

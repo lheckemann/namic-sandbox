@@ -14,10 +14,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _VarianceMultiImageMetric_cxx
-#define _VarianceMultiImageMetric_cxx
+#ifndef _ParzenWindowEntropyMultiImageMetric_cxx
+#define _ParzenWindowEntropyMultiImageMetric_cxx
 
-#include "VarianceMultiImageMetric.h"
+#include "ParzenWindowEntropyMultiImageMetric.h"
 
 
 #include "itkCovariantVector.h"
@@ -33,13 +33,17 @@ namespace itk
  * Constructor
  */
 template < class TFixedImage >
-VarianceMultiImageMetric < TFixedImage >::
-VarianceMultiImageMetric()
+ParzenWindowEntropyMultiImageMetric < TFixedImage >::
+    ParzenWindowEntropyMultiImageMetric()
 {
 
   m_NumberOfSpatialSamples = 0;
   this->SetNumberOfSpatialSamples(50);
 
+  m_KernelFunction =
+    dynamic_cast < KernelFunction * >(GaussianKernelFunction::New ().GetPointer ());
+
+  m_ImageStandardDeviation = 0.4;
 
   // Following initialization is related to
   // calculating image derivatives
@@ -53,7 +57,7 @@ VarianceMultiImageMetric()
  */
 template <class TFixedImage> 
 void
-VarianceMultiImageMetric<TFixedImage>
+ParzenWindowEntropyMultiImageMetric<TFixedImage>
 ::Initialize(void) throw ( ExceptionObject )
 {
 
@@ -95,12 +99,16 @@ VarianceMultiImageMetric<TFixedImage>
 
 
 template < class TFixedImage >
-void VarianceMultiImageMetric < TFixedImage >::
+void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
 PrintSelf (std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf (os, indent);
   os << indent << "NumberOfSpatialSamples: ";
   os << m_NumberOfSpatialSamples << std::endl;
+  os << indent << "FixedImageStandardDeviation: ";
+  os << m_ImageStandardDeviation << std::endl;
+  os << indent << "MovingImageStandardDeviation: ";
+  os << m_KernelFunction.GetPointer () << std::endl;
 }
 
 
@@ -109,7 +117,7 @@ PrintSelf (std::ostream & os, Indent indent) const
  */
 template < class TFixedImage >
 void
-VarianceMultiImageMetric < TFixedImage >::
+ParzenWindowEntropyMultiImageMetric < TFixedImage >::
 SetNumberOfSpatialSamples (unsigned int num)
 {
   if (num == m_NumberOfSpatialSamples)
@@ -129,7 +137,7 @@ SetNumberOfSpatialSamples (unsigned int num)
  *  - Corresponding moving image intensity values
  */
 template < class TFixedImage >
-void VarianceMultiImageMetric < TFixedImage >::
+void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
 SampleFixedImageDomain (SpatialSampleContainer & samples) const
 {
   
@@ -219,8 +227,8 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
  * Get the match Measure
  */
 template < class TFixedImage >
-typename VarianceMultiImageMetric < TFixedImage >::MeasureType
-VarianceMultiImageMetric <TFixedImage >::
+typename ParzenWindowEntropyMultiImageMetric < TFixedImage >::MeasureType
+ParzenWindowEntropyMultiImageMetric <TFixedImage >::
 GetValue(const ParametersType & parameters) const
 {
   cout << "Checking GetValue" << endl;
@@ -249,36 +257,31 @@ GetValue(const ParametersType & parameters) const
   typename SpatialSampleContainer::const_iterator iter;
   typename SpatialSampleContainer::const_iterator end = m_Sample.end ();
 
-  double squareSum, meanSum;
-  int outsideCount = 0;
+  double dLogSumMean = 0.0;
 
+  // Loop over the pixel stacks
   for (iter = m_Sample.begin (); iter != end; ++iter)
   {
-    squareSum = 0.0;
-    meanSum = 0.0;
-    double currentValue;
+    double dLogSum = 0.0;
+    
     for (int j = 0; j < this->m_NumberOfImages; j++)
     {
-      if(this->m_InterpolatorArray[j]->IsInsideBuffer (this->m_TransformArray[j]->TransformPoint ((*iter).FixedImagePoint)) )
+      double dSum = m_MinProbability;
+      
+      for(int k = 0; k < this->m_NumberOfImages; k++)
       {
-        currentValue = this->m_InterpolatorArray[j]->
-                             Evaluate(this->m_TransformArray[j]->TransformPoint ((*iter).FixedImagePoint));
-      }
-      else
-      {
-        currentValue = 0.0;
+        dSum += m_KernelFunction->Evaluate( ( (*iter).imageValueArray[j] - (*iter).imageValueArray[k] ) /
+                                            m_ImageStandardDeviation );
       }
       
-      squareSum += currentValue * currentValue;
-      meanSum += currentValue;
+      dLogSum  -= ( dSum > 0.0 ) ? vcl_log( dSum / (double) this->m_NumberOfImages ) : 0.0;
+      
     }
+    dLogSumMean += dLogSum / (double) this->m_NumberOfImages;
 
-    meanSum /= N;
-    squareSum /= N;
-    measure += squareSum - meanSum * meanSum;
   }        // end of sample loop
   
-  measure = measure / static_cast<double>(m_NumberOfSpatialSamples);
+  measure = dLogSumMean / static_cast<double>(m_NumberOfSpatialSamples);
 
   cout << parameters << endl;
   cout << measure << endl;
@@ -292,7 +295,7 @@ GetValue(const ParametersType & parameters) const
  */
 template < class TFixedImage >
 void 
-VarianceMultiImageMetric < TFixedImage >
+ParzenWindowEntropyMultiImageMetric < TFixedImage >
 ::BeforeGetThreadedValue (const ParametersType & parameters) const
 {
 
@@ -300,7 +303,7 @@ VarianceMultiImageMetric < TFixedImage >
   this->SampleFixedImageDomain (m_Sample);
 
   //Make sure that each transform parameters are updated
-  int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters ();
+  int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters();
   ParametersType currentParam (numberOfParameters);
   // Loop over images
   for (int i = 0; i < this->m_NumberOfImages; i++)
@@ -320,7 +323,7 @@ VarianceMultiImageMetric < TFixedImage >
  * Consolidate auxiliary variables after finishing the threads
  */
 template < class TFixedImage >
-void VarianceMultiImageMetric < TFixedImage >
+void ParzenWindowEntropyMultiImageMetric < TFixedImage >
 ::AfterGetThreadedValue (MeasureType & value,
                            DerivativeType & derivative) const
 {
@@ -367,83 +370,91 @@ void VarianceMultiImageMetric < TFixedImage >
  */
 template < class TFixedImage >
 void 
-VarianceMultiImageMetric < TFixedImage >
+ParzenWindowEntropyMultiImageMetric < TFixedImage >
 ::GetThreadedValue(int threadId) const
 {
 
   double N = (double) this->m_NumberOfImages;
-  int numberOfThreads = this->GetNumberOfThreads();
-  
+
   /** The tranform parameters vector holding i'th images parameters 
   Copy parameters in to a collection of arrays */
   MeasureType value = NumericTraits < MeasureType >::Zero;
 
   unsigned int numberOfParameters =
       this->m_TransformArray[0]->GetNumberOfParameters();
-
-  //Initialize the derivative to zero
+  
+  //Initialize the derivative array to zero
   m_derivativeArray[threadId].Fill(0.0);
 
-  
-  //Calculate metric value
-  double measure = 0.0;
-  double mean;
-  double variance;
-  double sumOfSquares = 0.0;
+
+  //Calculate variance and mean
+  m_value[threadId] = 0.0;
+  std::vector<double> dSum(this->m_NumberOfImages);
   DerivativeType deriv(numberOfParameters);
-  // Sum over spatial samples
-  for (int a=threadId; a<m_Sample.size(); a += numberOfThreads )
+
+  // Loop over the pixel stacks
+  for (int a=threadId; a<m_Sample.size(); a += m_NumberOfThreads )
   {
-    sumOfSquares = 0.0;
-    mean = 0.0;
-    // Sum over images
+    double dLogSum = 0.0;
+    
     for (int j = 0; j < this->m_NumberOfImages; j++)
     {
-      sumOfSquares += m_Sample[a].imageValueArray[j]*m_Sample[a].imageValueArray[j];
-      mean += m_Sample[a].imageValueArray[j];
+      dSum[j] = m_MinProbability;
+      
+      for(int k = 0; k < this->m_NumberOfImages; k++)
+      {
+        dSum[j] += m_KernelFunction->Evaluate( ( m_Sample[a].imageValueArray[j] - m_Sample[a].imageValueArray[k] ) /
+            m_ImageStandardDeviation );
+      }
+      dSum[j] /= static_cast<double> (this->m_NumberOfImages);
+      dLogSum  -= ( dSum[j] > 0.0 ) ? vcl_log( dSum[j] ) : 0.0;
+      
     }
-    mean /= N;
-    sumOfSquares /= N;
-    variance = sumOfSquares - mean*mean;
-    if(variance <= 1e-5)
-    {
-      variance = 1e-5;
-    }
-    measure += variance;
+    m_value[threadId] += dLogSum / (double) this->m_NumberOfImages;
+
 
     // Calculate derivative
-    for (int i = 0; i < this->m_NumberOfImages; i++)
+    for (int j = 0; j < this->m_NumberOfImages; j++)
     {
-      //calculate the derivative weight
-      double weight = 2.0 / static_cast<double>(this->m_NumberOfImages) *
-                      (m_Sample[a].imageValueArray[i] - mean) / variance;
-      
-      //Get the derivative at this pixel
-      m_DerivativeCalcVector[threadId]->SetInputImage(this->m_ImageArray[i]);
-      this->CalculateDerivatives (m_Sample[a].FixedImagePoint, deriv, i, threadId);
-
-      //copy the properpart of the derivative
-      for (int j = 0;j < this->m_TransformArray[i]->GetNumberOfParameters (); j++)
+      double innerSum = 0.0;
+      for (int k = 0; k < this->m_NumberOfImages; k++)
       {
-        m_derivativeArray[threadId][i * numberOfParameters + j] += weight*deriv[j];
+        double diff = ( m_Sample[a].imageValueArray[j] - m_Sample[a].imageValueArray[k] ) /
+                        m_ImageStandardDeviation;
+        innerSum += m_KernelFunction->Evaluate( diff ) * diff;
+      }
+      innerSum /= static_cast<double>(this->m_NumberOfImages);
+
+      // Get the derivative for this sample
+      m_DerivativeCalcVector[threadId]->SetInputImage(this->m_ImageArray[j]);
+      this->CalculateDerivatives(m_Sample[a].FixedImagePoint, deriv, j, threadId);
+
+      double weight = 2.0 / static_cast<double>(this->m_NumberOfImages) * innerSum / dSum[j];
+
+      //Copy the proper part of the derivative
+      for (int l = 0; l < numberOfParameters; l++)
+      {
+        m_derivativeArray[threadId][j * numberOfParameters + l] += weight*deriv[l];
       }
     }
-  } // End of sample Loop
-  m_value[threadId] = vcl_log(measure);
+  }  // End of sample loop
+
   
+
 }
 
 /*
  * Get the match Measure
  */
 template < class TFixedImage >
-void VarianceMultiImageMetric < TFixedImage >
+void ParzenWindowEntropyMultiImageMetric < TFixedImage >
 ::GetValueAndDerivative(const ParametersType & parameters,
                           MeasureType & value,
                           DerivativeType & derivative) const
 {
   // Call a method that perform some calculations prior to splitting the main
   // computations into separate threads
+
   // cout << parameters << endl;
 
   this->BeforeGetThreadedValue(parameters); 
@@ -472,7 +483,7 @@ void VarianceMultiImageMetric < TFixedImage >
 // for this thread.
 template < class TFixedImage >
 ITK_THREAD_RETURN_TYPE
-VarianceMultiImageMetric< TFixedImage >
+ParzenWindowEntropyMultiImageMetric< TFixedImage >
 ::ThreaderCallback( void *arg )
 {
   ThreadStruct *str;
@@ -498,7 +509,7 @@ VarianceMultiImageMetric< TFixedImage >
  * Get the match measure derivative
  */
 template < class TFixedImage >
-void VarianceMultiImageMetric < TFixedImage >
+void ParzenWindowEntropyMultiImageMetric < TFixedImage >
 ::GetDerivative (const ParametersType & parameters,
           DerivativeType & derivative) const
 {
@@ -519,7 +530,7 @@ void VarianceMultiImageMetric < TFixedImage >
  * that support GetJacobian()
  */
 template < class TFixedImage >
-void VarianceMultiImageMetric < TFixedImage >::
+void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
 CalculateDerivatives(const FixedImagePointType & point, DerivativeType & derivatives, int i, int threadID) const
 {
 
@@ -561,7 +572,7 @@ CalculateDerivatives(const FixedImagePointType & point, DerivativeType & derivat
  * Reinitialize the seed of the random number generator
  */
 template < class TFixedImage >
-void VarianceMultiImageMetric < TFixedImage >::ReinitializeSeed()
+void ParzenWindowEntropyMultiImageMetric < TFixedImage >::ReinitializeSeed()
 {
   Statistics::MersenneTwisterRandomVariateGenerator::GetInstance()->SetSeed();
 }
@@ -570,7 +581,7 @@ void VarianceMultiImageMetric < TFixedImage >::ReinitializeSeed()
  * Reinitialize the seed of the random number generator
  */
 template < class TFixedImage >
-void VarianceMultiImageMetric < TFixedImage >::ReinitializeSeed(int seed)
+void ParzenWindowEntropyMultiImageMetric < TFixedImage >::ReinitializeSeed(int seed)
 {
     Statistics::MersenneTwisterRandomVariateGenerator::GetInstance()->SetSeed(seed);
 }
