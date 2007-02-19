@@ -30,6 +30,7 @@
 // Headers for the registration method and the metric
 #include "MultiResolutionImageRegistrationMethod.h"
 #include "VarianceMultiImageMetric.h"
+#include "ParzenWindowEntropyMultiImageMetric.h"
 
     
     
@@ -82,7 +83,9 @@
 
 //System Related headers
 #include <itksys/SystemTools.hxx>
-    
+
+#include "itkImageRegionIterator.h"
+
 //  The following section of code implements an observer
 //  that will monitor the evolution of the registration process.
 
@@ -177,7 +180,7 @@ public:
 };
 
 // Get the command line arguments
-int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType, int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh, double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate, int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,  int& bsplineInitialGridSize,  int& numberOfBsplineLevel, string& transformType, string& imageType, string& useBspline, string& useBsplineHigh  );
+int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType, int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh, double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate, int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,  int& bsplineInitialGridSize,  int& numberOfBsplineLevel, string& transformType, string& imageType,string& metricType, string& useBspline, string& useBsplineHigh  );
 
 
 int main( int argc, char *argv[] )
@@ -186,8 +189,10 @@ int main( int argc, char *argv[] )
   vector<string> fileNames;
   string inputFolder("");
   string outputFolder("");
+  
   string optimizerType("");
   string transformType("");
+  string metricType("entropy");
   
   int multiLevelAffine = 3;
   int multiLevelBspline = 2;
@@ -210,11 +215,11 @@ int main( int argc, char *argv[] )
   int numberOfBsplineLevel = 1;
   string imageType = "normal";
 
-  string useBspline("on");
-  string useBsplineHigh("on");
+  string useBspline("off");
+  string useBsplineHigh("off");
 
   //Get the command line arguments
-  if( getCommandLine(argc,argv, fileNames, inputFolder, outputFolder, optimizerType, multiLevelAffine, multiLevelBspline, multiLevelBsplineHigh, optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate, optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations, numberOfSpatialSamplesAffinePercentage, numberOfSpatialSamplesBsplinePercentage, numberOfSpatialSamplesBsplineHighPercentage, bsplineInitialGridSize, numberOfBsplineLevel, transformType, imageType, useBspline, useBsplineHigh  ) )
+  if( getCommandLine(argc,argv, fileNames, inputFolder, outputFolder, optimizerType, multiLevelAffine, multiLevelBspline, multiLevelBsplineHigh, optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate, optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations, numberOfSpatialSamplesAffinePercentage, numberOfSpatialSamplesBsplinePercentage, numberOfSpatialSamplesBsplineHighPercentage, bsplineInitialGridSize, numberOfBsplineLevel, transformType, imageType, metricType, useBspline, useBsplineHigh  ) )
     return 1;
   
 
@@ -237,7 +242,9 @@ int main( int argc, char *argv[] )
   typedef itk::LinearInterpolateImageFunction< 
                                     InternalImageType,
                                     ScalarType        > InterpolatorType;
+                                    
   typedef itk::VarianceMultiImageMetric< InternalImageType>    MetricType;
+  typedef itk::ParzenWindowEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
 
 
   typedef OptimizerType::ScalesType       OptimizerScalesType;
@@ -279,10 +286,6 @@ int main( int argc, char *argv[] )
   //typedefs for intorpolater array
   typedef vector<InterpolatorType::Pointer>  InterpolatorArrayType;
   InterpolatorArrayType      interpolatorArray(N);
-
-  MetricType::Pointer         metric        = MetricType::New();
-  registration->SetMetric( metric  );
-
 
   // typedefs for image file readers
   typedef itk::ImageFileReader< ImageType  > ImageReaderType;
@@ -433,7 +436,7 @@ int main( int argc, char *argv[] )
     }
     for(int j=Dimension*Dimension; j<Dimension+Dimension*Dimension; j++)
     {
-      optimizerScales[i*numberOfParameters + j] = -1.0 / 5000.0; // scale for translation on X,Y,Z
+      optimizerScales[i*numberOfParameters + j] = -1.0 / 10000.0; // scale for translation on X,Y,Z
     }
   }
   optimizer->SetScales( optimizerScales );
@@ -445,8 +448,24 @@ int main( int argc, char *argv[] )
   const unsigned int numberOfSamples =
       static_cast< unsigned int >( numberOfPixels * numberOfSpatialSamplesAffinePercentage );
 
-  // Set the number of samples to be used by the metric
-  metric->SetNumberOfSpatialSamples( numberOfSamples );
+  //Set the metric type
+  MetricType::Pointer         varianceMetric;
+  EntropyMetricType::Pointer         entropyMetric;
+  if(metricType == "variance")
+  {
+    varianceMetric        = MetricType::New();
+    registration->SetMetric( varianceMetric  );
+    // Set the number of samples to be used by the metric
+    varianceMetric->SetNumberOfSpatialSamples( numberOfSamples );
+  }
+  else
+  {
+    entropyMetric        = EntropyMetricType::New();
+    registration->SetMetric( entropyMetric  );
+    // Set the number of samples to be used by the metric
+    entropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
+  }
+
 
 
   // Set the optimizer parameters
@@ -635,8 +654,15 @@ int main( int argc, char *argv[] )
     optimizer->SetNumberOfIterations( optBsplineNumberOfIterations );
     optimizer->MaximizeOn();
 
-
-    metric->SetNumberOfSpatialSamples( static_cast<int>(numberOfPixels * numberOfSpatialSamplesBsplinePercentage) );
+    // Set the number of samples to be used by the metric
+    if(metricType == "variance")
+    {
+      varianceMetric->SetNumberOfSpatialSamples( static_cast<int>(numberOfPixels * numberOfSpatialSamplesBsplinePercentage) );
+    }
+    else
+    {
+      entropyMetric->SetNumberOfSpatialSamples( static_cast<int>(numberOfPixels * numberOfSpatialSamplesBsplinePercentage) );
+    }
 
     registration->SetNumberOfLevels( multiLevelBspline );
 
@@ -820,7 +846,15 @@ int main( int argc, char *argv[] )
         optimizerScales.Fill( 1.0 );
         optimizer->SetScales( optimizerScales );
 
-        metric->SetNumberOfSpatialSamples( static_cast<int>(numberOfPixels * numberOfSpatialSamplesBsplineHighPercentage) );
+        // Set the number of samples to be used by the metric
+        if(metricType == "variance")
+        {
+          varianceMetric->SetNumberOfSpatialSamples( static_cast<int>(numberOfPixels * numberOfSpatialSamplesBsplineHighPercentage));
+        }
+        else
+        {
+          entropyMetric->SetNumberOfSpatialSamples( static_cast<int>(numberOfPixels * numberOfSpatialSamplesBsplineHighPercentage) );
+        }
 
         registration->SetNumberOfLevels( multiLevelBsplineHigh );
 
@@ -1235,6 +1269,7 @@ int main( int argc, char *argv[] )
     writer->Update();
   }
 
+  
 
   return 0;
 }
@@ -1248,7 +1283,8 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
                           int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
                           double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
-                          string& transformType, string& imageType, string& useBspline, string& useBsplineHigh  )
+                          string& transformType, string& imageType,string& metricType,
+                          string& useBspline, string& useBsplineHigh  )
 {
 
 
@@ -1264,8 +1300,11 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
       optimizerType == argv[++i];
     else if (dummy == "-t")
       optimizerType == argv[++i];
+    
     else if (dummy == "-imageType")
       imageType = argv[++i];
+    else if (dummy == "-metricType")
+      metricType = argv[++i];
     
     else if (dummy == "-multiLevelAffine")
       multiLevelAffine = atoi(argv[++i]);
