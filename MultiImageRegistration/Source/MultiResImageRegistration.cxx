@@ -39,7 +39,6 @@
 
 #include "itkAffineTransform.h"
 #include "itkLinearInterpolateImageFunction.h"
-#include "itkGradientDescentOptimizer.h"
 #include "itkMultiResolutionPyramidImageFilter.h"
 #include "itkImage.h"
 #include "itkNormalizeImageFilter.h"
@@ -68,6 +67,8 @@
 //Bspline optimizer and transform
 #include "itkBSplineDeformableTransform.h"
 #include "itkLBFGSBOptimizer.h"
+#include "itkFRPROptimizer.h"
+#include "itkGradientDescentOptimizer.h"
 
 
 //BSpline related headers
@@ -100,7 +101,8 @@ public:
 protected:
   CommandIterationUpdate(): m_CumulativeIterationIndex(0) {};
 public:
-  typedef   itk::GradientDescentOptimizer     OptimizerType;
+  //typedef   itk::GradientDescentOptimizer     OptimizerType;
+  typedef itk::FRPROptimizer                  OptimizerType;
   typedef   const OptimizerType   *           OptimizerPointer;
 
   void Execute(itk::Object *caller, const itk::EventObject & event)
@@ -167,13 +169,13 @@ public:
     if ( registration->GetCurrentLevel() == 0 )
     {
         //optimizer->SetLearningRate( 2e-4 );
-        optimizer->MaximizeOn();
+        //optimizer->MaximizeOn();
     }
     else
     {
       // Decrease the learning rate at each increasing multiresolution level
       // optimizer->SetLearningRate( optimizer->GetLearningRate() / 5.0 );
-      optimizer->MaximizeOn();
+      //optimizer->MaximizeOn();
     }
   }
   void Execute(const itk::Object * , const itk::EventObject & )
@@ -191,11 +193,11 @@ int main( int argc, char *argv[] )
   string inputFolder("");
   string outputFolder("");
   
-  string optimizerType("");
+  string optimizerType("gradient");
   string transformType("");
   string metricType("entropy");
 
-  string metricPrint("on");
+  string metricPrint("off");
   
   int multiLevelAffine = 1;
   int multiLevelBspline = 1;
@@ -242,9 +244,9 @@ int main( int argc, char *argv[] )
 
 
   typedef itk::GradientDescentOptimizer       OptimizerType;
-  typedef itk::LinearInterpolateImageFunction< 
-                                    InternalImageType,
-                                    ScalarType        > InterpolatorType;
+  typedef itk::FRPROptimizer                  FRPROptimizerType;
+
+  typedef itk::LinearInterpolateImageFunction<InternalImageType,ScalarType        > InterpolatorType;
                                     
   typedef itk::VarianceMultiImageMetric< InternalImageType>    MetricType;
   typedef itk::ParzenWindowEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
@@ -259,7 +261,6 @@ int main( int argc, char *argv[] )
                                     InternalImageType  >    ImagePyramidType;
 
 
-  OptimizerType::Pointer      optimizer     = OptimizerType::New();
   RegistrationType::Pointer   registration  = RegistrationType::New();
 
 
@@ -280,7 +281,20 @@ int main( int argc, char *argv[] )
 
 
   registration->SetNumberOfImages(N);
-  registration->SetOptimizer(     optimizer     );
+
+  //Set the optimizerType
+  OptimizerType::Pointer      optimizer;
+  FRPROptimizerType::Pointer  FRPRoptimizer;
+  if(optimizerType == "FRPR")
+  {
+    FRPRoptimizer = FRPROptimizerType::New();
+    registration->SetOptimizer(     FRPRoptimizer     );
+  }
+  else
+  {
+    optimizer     = OptimizerType::New();
+    registration->SetOptimizer(     optimizer     );
+  }
 
   //typedefs for affine transform array
   typedef vector<TransformType::Pointer> TransformArrayType;
@@ -435,14 +449,13 @@ int main( int argc, char *argv[] )
   {
     for( int j=0; j<Dimension*Dimension; j++ )
     {
-      optimizerScales[i*numberOfParameters + j] = -1.0; // scale for indices in 2x2 (3x3) Matrix
+      optimizerScales[i*numberOfParameters + j] = 1.0; // scale for indices in 2x2 (3x3) Matrix
     }
     for(int j=Dimension*Dimension; j<Dimension+Dimension*Dimension; j++)
     {
-      optimizerScales[i*numberOfParameters + j] = -1.0 / 1000.0; // scale for translation on X,Y,Z
+      optimizerScales[i*numberOfParameters + j] = 1.0 / 1000.0; // scale for translation on X,Y,Z
     }
   }
-  optimizer->SetScales( optimizerScales );
 
 
   // Get the number of pixels (voxels) in the images
@@ -469,16 +482,29 @@ int main( int argc, char *argv[] )
     entropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
   }
 
-
-
+  
   // Set the optimizer parameters
-  optimizer->SetLearningRate( optAffineLearningRate );
-  optimizer->SetNumberOfIterations( optAffineNumberOfIterations );
-  optimizer->MaximizeOn();
+  if(optimizerType == "FRPR")
+  {
+    FRPRoptimizer->SetStepLength(optAffineLearningRate);
+    FRPRoptimizer->SetMaximize(false);
+    FRPRoptimizer->SetMaximumIteration( optAffineNumberOfIterations );
+    //FRPRoptimizer->SetMaximumLineIteration( 1 );
+    FRPRoptimizer->SetScales( optimizerScales );
+    FRPRoptimizer->SetToFletchReeves();
 
-  // Create the Command observer and register it with the optimizer.
-  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
-  optimizer->AddObserver( itk::IterationEvent(), observer );
+  }
+  else
+  {
+    optimizer->SetLearningRate( optAffineLearningRate );
+    optimizer->SetNumberOfIterations( optAffineNumberOfIterations );
+    optimizer->MaximizeOff();
+    optimizer->SetScales( optimizerScales );
+    // Create the Command observer and register it with the optimizer.
+    CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+    //optimizer->AddObserver( itk::IterationEvent(), observer );
+  }
+
 
 
   // Create the Command interface observer and register it with the optimizer.
@@ -514,12 +540,12 @@ int main( int argc, char *argv[] )
       ofstream outputFile("metricOutput.txt");
       ParametersType parameters = registration->GetLastTransformParameters();
 
-      for(double i=2.6; i<7.4; i+=0.2)
+      for(double i=-7.5; i<7.5; i+=0.5)
       {
-        for(double j=2.6; j<7.4; j+=0.2)
+        for(double j=-7.5; j<7.5; j+=0.5)
         {
-          parameters[10] = i/10.0;
-          parameters[11] = j/10.0;
+          parameters[10] = i;
+          parameters[11] = j;
 
           if(metricType =="variance")
           {
@@ -677,12 +703,22 @@ int main( int argc, char *argv[] )
     // All parameters are set to be equal
     optimizerScales.SetSize( bsplineTransformArrayLow[0]->GetNumberOfParameters()*N);
     optimizerScales.Fill( 1.0 );
-    optimizer->SetScales( optimizerScales );
+    if(optimizerType == "FRPR")
+    {
+      FRPRoptimizer->SetScales( optimizerScales );
+      FRPRoptimizer->SetStepLength(optBsplineLearningRate);
+      FRPRoptimizer->SetMaximumIteration( optBsplineNumberOfIterations );
+      //FRPRoptimizer->SetMaximumLineIteration( 1 );
+      FRPRoptimizer->SetScales( optimizerScales );
+    }
+    else
+    {
+      optimizer->SetScales( optimizerScales );
+      optimizer->SetLearningRate( optBsplineLearningRate );
+      optimizer->SetNumberOfIterations( optBsplineNumberOfIterations );
+    }
 
-    // Set optimizer parameters for bspline registration
-    optimizer->SetLearningRate( optBsplineLearningRate );
-    optimizer->SetNumberOfIterations( optBsplineNumberOfIterations );
-    optimizer->MaximizeOn();
+
 
     // Set the number of samples to be used by the metric
     if(metricType == "variance")
@@ -866,15 +902,26 @@ int main( int argc, char *argv[] )
         std::cout << " Number Of parameters: " << bsplineTransformArrayHigh[0]->GetNumberOfParameters()*N <<std::endl;
 
         // Decrease the learning rate at each level
-        optimizer->SetLearningRate( optBsplineHighLearningRate );
-        optimizer->SetNumberOfIterations( optBsplineHighNumberOfIterations );
-        optimizer->MaximizeOn();
-
-        //Reset the optimizer scales
+        // Reset the optimizer scales
         typedef OptimizerType::ScalesType       OptimizerScalesType;
         OptimizerScalesType optimizerScales( bsplineTransformArrayHigh[0]->GetNumberOfParameters()*N );
         optimizerScales.Fill( 1.0 );
-        optimizer->SetScales( optimizerScales );
+
+        if(optimizerType == "FRPR")
+        {
+          FRPRoptimizer->SetScales( optimizerScales );
+          FRPRoptimizer->SetStepLength(optBsplineHighLearningRate);
+          FRPRoptimizer->SetMaximumIteration( optBsplineHighNumberOfIterations );
+          //FRPRoptimizer->SetMaximumLineIteration( 1 );
+          FRPRoptimizer->SetScales( optimizerScales );
+        }
+        else
+        {
+          optimizer->SetScales( optimizerScales );
+          optimizer->SetLearningRate( optBsplineHighLearningRate );
+          optimizer->SetNumberOfIterations( optBsplineHighNumberOfIterations );
+        }
+
 
         // Set the number of samples to be used by the metric
         if(metricType == "variance")
@@ -915,10 +962,19 @@ int main( int argc, char *argv[] )
   //
   ParametersType finalParameters = registration->GetLastTransformParameters();
 
-  
-  unsigned int numberOfIterations = optimizer->GetCurrentIteration();
-  
-  double bestValue = optimizer->GetValue();
+  unsigned int numberOfIterations;
+  double bestValue;
+  if(optimizerType == "FRPR")
+  {
+    numberOfIterations = FRPRoptimizer->GetCurrentIteration();
+    bestValue = FRPRoptimizer->GetValue();
+  }
+  else
+  {
+    numberOfIterations = optimizer->GetCurrentIteration();
+    bestValue = optimizer->GetValue();
+  }
+
 
   
   // Print out results
@@ -1335,6 +1391,8 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
       imageType = argv[++i];
     else if (dummy == "-metricType")
       metricType = argv[++i];
+    else if (dummy == "-optimizerType")
+      optimizerType = argv[++i];
     
     else if (dummy == "-multiLevelAffine")
       multiLevelAffine = atoi(argv[++i]);

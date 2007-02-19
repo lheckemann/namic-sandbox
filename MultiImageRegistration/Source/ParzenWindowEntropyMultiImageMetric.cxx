@@ -226,7 +226,7 @@ typename ParzenWindowEntropyMultiImageMetric < TFixedImage >::MeasureType
 ParzenWindowEntropyMultiImageMetric <TFixedImage >::
 GetValue(const ParametersType & parameters) const
 {
-  cout << "Checking GetValue" << endl;
+  //cout << "Checking GetValue" << endl;
 
   int N = this->m_NumberOfImages;
   int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters ();
@@ -238,7 +238,7 @@ GetValue(const ParametersType & parameters) const
     {
       currentParam[j] = parameters[i * numberOfParameters + j];
     }
-    cout << currentParam << endl;
+    //cout << currentParam << endl;
     this->m_TransformArray[i]->SetParametersByValue (currentParam);
   }
 
@@ -246,7 +246,21 @@ GetValue(const ParametersType & parameters) const
   //
   // or dont collect a new sample set if used with
   // regular gradient descent
-  this->SampleFixedImageDomain(m_Sample);
+  // this->SampleFixedImageDomain(m_Sample);
+  
+  // Update intensity values
+  MovingImagePointType mappedPoint;
+  for(int i=0; i< m_Sample.size(); i++ )
+  {
+    for(int j=0; j<this->m_NumberOfImages; j++)
+    {
+      mappedPoint = this->m_TransformArray[j]->TransformPoint(m_Sample[i].FixedImagePoint);
+      if(this->m_InterpolatorArray[j]->IsInsideBuffer (mappedPoint) )
+      {
+        m_Sample[i].imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(mappedPoint);
+      }
+    }
+  } 
 
   //Calculate variance and mean
   double measure = 0.0;
@@ -294,7 +308,7 @@ void
 ParzenWindowEntropyMultiImageMetric < TFixedImage >
 ::BeforeGetThreadedValue (const ParametersType & parameters) const
 {
-  cout << "cheching derivative" << endl;
+  cout << "checking derivative" << endl;
   // collect sample set
   this->SampleFixedImageDomain (m_Sample);
 
