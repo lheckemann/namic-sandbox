@@ -197,21 +197,21 @@ int main( int argc, char *argv[] )
 
   string metricPrint("on");
   
-  int multiLevelAffine = 3;
-  int multiLevelBspline = 2;
+  int multiLevelAffine = 1;
+  int multiLevelBspline = 1;
   int multiLevelBsplineHigh = 1;
   
-  double optAffineLearningRate = 2e-7;
-  double optBsplineLearningRate = 10000;
+  double optAffineLearningRate = 2e-3;
+  double optBsplineLearningRate = 500;
   double optBsplineHighLearningRate = 500;
   
-  int optAffineNumberOfIterations = 5;
-  int optBsplineNumberOfIterations = 3;
-  int optBsplineHighNumberOfIterations = 10;
+  int optAffineNumberOfIterations = 10000;
+  int optBsplineNumberOfIterations = 10000;
+  int optBsplineHighNumberOfIterations = 10000;
   
-  double numberOfSpatialSamplesAffinePercentage = 0.004;
-  double numberOfSpatialSamplesBsplinePercentage = 0.004;
-  double numberOfSpatialSamplesBsplineHighPercentage = 0.004;
+  double numberOfSpatialSamplesAffinePercentage = 0.01;
+  double numberOfSpatialSamplesBsplinePercentage = 0.01;
+  double numberOfSpatialSamplesBsplineHighPercentage = 0.01;
 
   
   int bsplineInitialGridSize = 5;
@@ -514,12 +514,12 @@ int main( int argc, char *argv[] )
       ofstream outputFile("metricOutput.txt");
       ParametersType parameters = registration->GetLastTransformParameters();
 
-      for(int i=0; i<40; i++)
+      for(double i=2.6; i<7.4; i+=0.2)
       {
-        for(int j=0; j<40; j++)
+        for(double j=2.6; j<7.4; j+=0.2)
         {
-          parameters[10] = i/5.0;
-          parameters[11] = j/4.0;
+          parameters[10] = i/10.0;
+          parameters[11] = j/10.0;
 
           if(metricType =="variance")
           {
