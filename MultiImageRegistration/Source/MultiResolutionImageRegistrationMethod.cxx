@@ -264,7 +264,7 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
     this->InvokeEvent( IterationEvent() );
 
     // Check if there has been a stop request
-    if ( m_Stop ) 
+    if ( m_Stop )
     {
       break;
     }

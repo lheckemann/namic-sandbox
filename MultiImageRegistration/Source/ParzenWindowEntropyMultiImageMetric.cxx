@@ -238,7 +238,7 @@ GetValue(const ParametersType & parameters) const
     {
       currentParam[j] = parameters[i * numberOfParameters + j];
     }
-    //cout << currentParam << endl;
+    // cout << currentParam << endl;
     this->m_TransformArray[i]->SetParametersByValue (currentParam);
   }
 
