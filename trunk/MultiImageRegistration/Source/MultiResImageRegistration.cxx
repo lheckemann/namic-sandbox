@@ -58,6 +58,7 @@
 
 #include <sstream>
 #include <string>
+#include <cstring>
 #include <fstream>
 #include <vector>
 #include <iomanip>
@@ -88,6 +89,11 @@
 
 #include "itkImageRegionIterator.h"
 
+//Define the global types for image type
+#define PixelType unsigned short
+#define InternalPixelType double
+#define Dimension 3
+
 //  The following section of code implements an observer
 //  that will monitor the evolution of the registration process.
 
@@ -113,8 +119,7 @@ public:
 
   void Execute(const itk::Object * object, const itk::EventObject & event)
     {
-      OptimizerPointer optimizer = 
-        dynamic_cast< OptimizerPointer >( object );
+      OptimizerPointer optimizer = dynamic_cast< OptimizerPointer >( object );
       if( !(itk::IterationEvent().CheckEvent( &event )) )
       {
         return;
@@ -153,29 +158,87 @@ protected:
 public:
   typedef   TRegistration                              RegistrationType;
   typedef   RegistrationType *                         RegistrationPointer;
-  typedef   itk::GradientDescentOptimizer   OptimizerType;
+  
+  typedef   itk::SingleValuedNonLinearOptimizer   OptimizerType;
   typedef   OptimizerType *                            OptimizerPointer;
+  typedef   itk::GradientDescentOptimizer       GradientOptimizerType;
+  typedef   GradientOptimizerType *             GradientOptimizerPointer;
+  typedef   itk::FRPROptimizer                  FRPROptimizerType;
+  typedef   FRPROptimizerType *                 FRPROptimizerPointer;
+  
+  typedef   itk::Image< InternalPixelType, Dimension >   InternalImageType;
+  typedef   itk::MultiImageMetric< InternalImageType>    MetricType;
+  typedef   MetricType *                                 MetricPointer;
+  typedef   itk::VarianceMultiImageMetric< InternalImageType>    VarianceMetricType;
+  typedef   VarianceMetricType *                                 VarianceMetricPointer;
+  typedef   itk::ParzenWindowEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
+  typedef   EntropyMetricType *                                             EntropyMetricPointer;
+
   void Execute(itk::Object * object, const itk::EventObject & event)
   {
     if( !(itk::IterationEvent().CheckEvent( &event )) )
     {
       return;
     }
-    RegistrationPointer registration =
-                        dynamic_cast<RegistrationPointer>( object );
+    RegistrationPointer registration =  dynamic_cast<RegistrationPointer>( object );
     OptimizerPointer optimizer = dynamic_cast< OptimizerPointer >( 
                        registration->GetOptimizer() );
+    MetricPointer       metric = dynamic_cast< MetricPointer>
+                                         (registration->GetMetric());
 
     if ( registration->GetCurrentLevel() == 0 )
     {
-        //optimizer->SetLearningRate( 2e-4 );
-        //optimizer->MaximizeOn();
+      // Set the number of spatial samples according to the current level
+      if(  !strcmp(metric->GetNameOfClass(), "VarianceMultiImageMetric" ) )
+      {
+        VarianceMetricPointer  varianceMetric = dynamic_cast< VarianceMetricPointer>
+                                                              (registration->GetMetric());
+        varianceMetric->SetNumberOfSpatialSamples((unsigned int) (varianceMetric->GetNumberOfSpatialSamples() /
+                        pow( pow(2.0, Dimension - 1), (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
+      }
+      else if(!strcmp(metric->GetNameOfClass(), "ParzenWindowEntropyMultiImageMetric") )
+      {
+        EntropyMetricPointer  entropyMetric = dynamic_cast< EntropyMetricPointer>
+                                                            (registration->GetMetric());
+        entropyMetric->SetNumberOfSpatialSamples((unsigned int) (entropyMetric->GetNumberOfSpatialSamples() /
+                                  pow( pow(2.0, Dimension - 1), (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
+      }
+
     }
     else
     {
+      // Set the number of spatian samples according to the current level
+      if(  !strcmp(metric->GetNameOfClass(), "VarianceMultiImageMetric" ) )
+      {
+        VarianceMetricPointer  varianceMetric = dynamic_cast< VarianceMetricPointer>
+            (registration->GetMetric());
+        varianceMetric->SetNumberOfSpatialSamples((unsigned int) (varianceMetric->GetNumberOfSpatialSamples() *
+                                                        pow(2.0,Dimension - 1) ) );
+      }
+      else if(!strcmp(metric->GetNameOfClass(), "ParzenWindowEntropyMultiImageMetric") )
+      {
+        EntropyMetricPointer  entropyMetric = dynamic_cast< EntropyMetricPointer>
+            (registration->GetMetric());
+        entropyMetric->SetNumberOfSpatialSamples((unsigned int) (entropyMetric->GetNumberOfSpatialSamples() *
+                                                        pow(2.0,Dimension - 1 ) ) );
+      }
+
       // Decrease the learning rate at each increasing multiresolution level
-      // optimizer->SetLearningRate( optimizer->GetLearningRate() / 5.0 );
-      //optimizer->MaximizeOn();
+      // Increase the number of steps
+      if(  !strcmp(optimizer->GetNameOfClass(), "GradientDescentOptimizer" ) )
+      {
+        GradientOptimizerPointer gradientPointer = dynamic_cast< GradientOptimizerPointer >(
+                                                                 registration->GetOptimizer() );
+        gradientPointer->SetNumberOfIterations( gradientPointer->GetNumberOfIterations()*2 );
+        gradientPointer->SetLearningRate( gradientPointer->GetLearningRate() / 2.0 );
+      }
+      else if(!strcmp(optimizer->GetNameOfClass(), "FRPROptimizer") )
+      {
+        FRPROptimizerPointer FRPRPointer = dynamic_cast< FRPROptimizerPointer >(
+                                                         registration->GetOptimizer() );
+        FRPRPointer->SetMaximumIteration( FRPRPointer->GetMaximumIteration()*2 );
+      }
+
     }
   }
   void Execute(const itk::Object * , const itk::EventObject & )
@@ -229,12 +292,12 @@ int main( int argc, char *argv[] )
   
 
   // Input Image type typedef
-  const    unsigned int    Dimension = 3;
-  typedef  unsigned short  PixelType;
+  // const    unsigned int    Dimension = 3;
+  // typedef  unsigned short  PixelType;
   typedef itk::Image< PixelType, Dimension >  ImageType;
 
   //Internal Image Type typedef
-  typedef double InternalPixelType;
+  //typedef double InternalPixelType;
   typedef double ScalarType;
   typedef itk::Image< InternalPixelType, Dimension > InternalImageType;
 
@@ -453,7 +516,7 @@ int main( int argc, char *argv[] )
     }
     for(int j=Dimension*Dimension; j<Dimension+Dimension*Dimension; j++)
     {
-      optimizerScales[i*numberOfParameters + j] = 1.0 / 1000.0; // scale for translation on X,Y,Z
+      optimizerScales[i*numberOfParameters + j] = 1.0 / 10000.0; // scale for translation on X,Y,Z
     }
   }
 
@@ -482,17 +545,16 @@ int main( int argc, char *argv[] )
     entropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
   }
 
-  
+
   // Set the optimizer parameters
   if(optimizerType == "FRPR")
   {
     FRPRoptimizer->SetStepLength(optAffineLearningRate);
     FRPRoptimizer->SetMaximize(false);
     FRPRoptimizer->SetMaximumIteration( optAffineNumberOfIterations );
-    //FRPRoptimizer->SetMaximumLineIteration( 1 );
+    FRPRoptimizer->SetMaximumLineIteration( 15 );
     FRPRoptimizer->SetScales( optimizerScales );
     FRPRoptimizer->SetToFletchReeves();
-
   }
   else
   {
@@ -537,28 +599,29 @@ int main( int argc, char *argv[] )
   //Print out the metric values for translation parameters
   if( metricPrint == "on")
   {
-      ofstream outputFile("metricOutput.txt");
-      ParametersType parameters = registration->GetLastTransformParameters();
+    cout << "Metric Probe " << endl;
+    ofstream outputFile("metricOutput.txt");
+    ParametersType parameters = registration->GetLastTransformParameters();
 
-      for(double i=-7.5; i<7.5; i+=0.5)
+    for(double i=-7.5; i<7.5; i+=0.5)
+    {
+      for(double j=-7.5; j<7.5; j+=0.5)
       {
-        for(double j=-7.5; j<7.5; j+=0.5)
-        {
-          parameters[10] = i;
-          parameters[11] = j;
+        parameters[10] = i;
+        parameters[11] = j;
 
-          if(metricType =="variance")
-          {
-            outputFile << varianceMetric->GetValue(parameters) << " ";
-          }
-          else
-          {
-            outputFile << entropyMetric->GetValue(parameters) << " ";
-          }
+        if(metricType =="variance")
+        {
+          outputFile << varianceMetric->GetValue(parameters) << " ";
         }
-        outputFile << std::endl;
+        else
+        {
+          outputFile << entropyMetric->GetValue(parameters) << " ";
+        }
       }
-      outputFile.close();
+      outputFile << std::endl;
+    }
+    outputFile.close();
   }
 
   //
