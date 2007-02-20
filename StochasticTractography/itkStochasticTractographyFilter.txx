@@ -31,6 +31,8 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   this->m_Aqr=NULL;
   this->m_W=NULL;
   this->m_LikelihoodCache = NULL;
+  this->SetMaxLikelihoodCacheSize( 524288 );  //arbitrary
+  this->SetCurrentLikelihoodCacheSize( 0 ); 
 } 
 
 template< class TInputDWIImage, class TOutputConnectivityImage >
@@ -381,22 +383,33 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
                             
     if( likelihood_curr.GetSize() == 0){
       //std::cout<<"Cache Miss!\n";
-      likelihood_curr.SetSize(this->GetSampleDirections()->Size());
-      if(not out of memory){
+      if(this->GetCurrentLikelihoodCacheSize() < this->GetMaxLikelihoodCacheSize()){
         //calculate it here and store it
+        likelihood_curr.SetSize(this->GetSampleDirections()->Size());
         this->CalculateLikelihood(static_cast< DWIVectorImageType::PixelType >(
           dwiimagePtr->GetPixel(index_curr)) + vnl_math::eps,
           this->GetSampleDirections(),
           likelihood_curr);
+        this->CalculatePrior( v_prev, this->GetSampleDirections(), prior_curr);
+        this->CalculatePosterior( likelihood_curr, prior_curr, posterior_curr);
+        this->SampleTractOrientation(randomgenerator, posterior_curr,
+                          this->GetSampleDirections(), v_curr);
       }
       else{
         //calculate the next direction here but don't store it
+        ProbabilityDistributionImageType::PixelType likelihood_curr_temp;
+        
+        this->CalculateLikelihood(static_cast< DWIVectorImageType::PixelType >(
+          dwiimagePtr->GetPixel(index_curr)) + vnl_math::eps,
+          this->GetSampleDirections(),
+          likelihood_curr_temp);
+        this->CalculatePrior( v_prev, this->GetSampleDirections(), prior_curr);
+        this->CalculatePosterior( likelihood_curr, prior_curr, posterior_curr);
+        this->SampleTractOrientation(randomgenerator, posterior_curr,
+                          this->GetSampleDirections(), v_curr);
+      }
     }
 
-    this->CalculatePrior( v_prev, this->GetSampleDirections(), prior_curr);
-    this->CalculatePosterior( likelihood_curr, prior_curr, posterior_curr);
-    this->SampleTractOrientation(randomgenerator, posterior_curr,
-                          this->GetSampleDirections(), v_curr);
     
     //takes into account voxels of different sizes
     //converts from a step length of 1 mm to the corresponding length in IJK space

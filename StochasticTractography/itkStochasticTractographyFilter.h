@@ -76,7 +76,13 @@ public:
   /** Set/Get the Measurement Frame **/
   itkSetMacro( MeasurementFrame, MeasurementFrameType );
   itkGetMacro( MeasurementFrame, MeasurementFrameType );
-              
+  
+  /** Set/Get the Maximum Likelihood Cache Size, the max num. of cached voxels **/
+  itkSetMacro( MaxLikelihoodCacheSize, unsigned int );
+  itkGetMacro( MaxLikelihoodCacheSize, unsigned int );
+            
+  /** Get the current Likelihood Cache Size, i.e. the total unique cached pixels **/
+  itkGetMacro( CurrentLikelihoodCacheSize, unsigned int );
   void GenerateData();
 protected:
   /** Convenience Types used only inside the filter **/
@@ -173,6 +179,8 @@ protected:
   unsigned int m_TotalTracts;
   typename InputDWIImageType::IndexType m_SeedIndex;
   TractOrientationContainerType::ConstPointer m_SampleDirections;
+  unsigned int m_MaxLikelihoodCacheSize;
+  unsigned int m_CurrentLikelihoodCacheSize;
 };
 
 }
