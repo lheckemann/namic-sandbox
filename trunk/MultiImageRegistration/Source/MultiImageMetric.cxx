@@ -112,15 +112,6 @@ MultiImageMetric<TFixedImage>
     itkExceptionMacro(<<"FixedImageRegion is empty");
   }
 
-  // If the Image array is provided by a source update the source
-  for( int i=0; i< m_ImageArray.size(); i++ )
-  {
-    if( m_ImageArray[i]->GetSource() )
-    {
-      m_ImageArray[i]->GetSource()->Update();
-    }
-  }
-
   // Make sure the FixedImageRegion is within the FixedImage buffered region
   if ( !m_FixedImageRegion.Crop( m_ImageArray[0]->GetBufferedRegion() ) )
   {

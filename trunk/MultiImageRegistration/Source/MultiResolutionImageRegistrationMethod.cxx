@@ -31,7 +31,6 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
 ::MultiResolutionMultiImageRegistrationMethod()
 {
 
-  m_ImageArrayPointer.resize(0); // Might be a bug
   m_TransformArray.resize(0);
   m_InterpolatorArray.resize(0);
   m_Metric       = 0; // has to be provided by the user.
@@ -61,15 +60,13 @@ void MultiResolutionMultiImageRegistrationMethod<ImageType>
 
   m_TransformArray.resize(N);
   m_InterpolatorArray.resize(N);
-  m_ImageArrayPointer.resize(N);
   m_ImagePyramidArray.resize(N);
 
   for(int i=m_NumberOfImages; i<N; i++)
   {
     m_TransformArray[i]=0;
     m_InterpolatorArray[i]=0;
-    m_ImageArrayPointer[i]=0;
-    m_ImagePyramidArray[i]=ImagePyramidType::New(); 
+    m_ImagePyramidArray[i]=0;
   }
 
   m_NumberOfImages  = N;
@@ -86,10 +83,6 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
 
   for(int i=0; i<m_NumberOfImages; i++)
   {
-    if( !m_ImageArrayPointer[i] )
-    {
-      itkExceptionMacro(<<"FixedImage " << i << " is not present");
-    }
 
     if( !m_TransformArray[i] )
     {
@@ -159,11 +152,7 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
 {
   for(int i=0; i<m_NumberOfImages; i++)
   {
-    if( !m_ImageArrayPointer[i] )
-    {
-      itkExceptionMacro(<<"Image " << i << " is not present");
-    }
-
+    
     if( !m_TransformArray[i] )
     {
       itkExceptionMacro(<<"Transform " << i << " is not present");
@@ -188,17 +177,8 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
     itkExceptionMacro(<<"Size mismatch between initial parameter and transform"); 
   }
 
-  for(int i=0; i<m_NumberOfImages; i++)
-  {
-    // Setup the image pyramids
-    m_ImagePyramidArray[i]->ReleaseDataFlagOn();
-    m_ImagePyramidArray[i]->SetNumberOfLevels( m_NumberOfLevels );
-    m_ImagePyramidArray[i]->SetInput( m_ImageArrayPointer[i] );
-    m_ImagePyramidArray[i]->UpdateLargestPossibleRegion();
-    
-  }
 
-
+  //Assume the image pyramid is present
   typedef typename ImageRegionType::SizeType         SizeType;
   typedef typename ImageRegionType::IndexType        IndexType;
   typedef typename ImagePyramidType::ScheduleType    ScheduleType;
@@ -338,7 +318,6 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
   {
     os << indent << "Transform: " << i << " " << m_TransformArray[i].GetPointer() << std::endl;
     os << indent << "Interpolator: " << i << " " << m_InterpolatorArray[i].GetPointer() << std::endl;
-    os << indent << "Image: " << i << " " << m_ImageArrayPointer[i].GetPointer() << std::endl;
     os << indent << "FixedImagePyramid: " << i << " " ;
     os << m_ImagePyramidArray[i].GetPointer() << std::endl;
   }
