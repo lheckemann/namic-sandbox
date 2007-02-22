@@ -91,7 +91,7 @@
 
 //Define the global types for image type
 #define PixelType unsigned short
-#define InternalPixelType float
+#define InternalPixelType double
 #define Dimension 3
 
 //  The following section of code implements an observer
@@ -370,7 +370,6 @@ int main( int argc, char *argv[] )
   // typedefs for image file readers
   typedef itk::ImageFileReader< ImageType  > ImageReaderType;
   typedef vector< ImageReaderType::Pointer > ImageArrayReader;
-  ImageArrayReader imageArrayReader(N);
 
   //Type definitions to be used in reading DICOM images
   typedef itk::ImageSeriesReader< ImageType >     DICOMReaderType;
@@ -393,7 +392,7 @@ int main( int argc, char *argv[] )
   typedef itk::NormalizeImageFilter< ImageType, InternalImageType > NormalizeFilterType;
   typedef NormalizeFilterType::Pointer NormalizeFilterTypePointer;
   typedef vector<NormalizeFilterTypePointer> NormalizedFilterArrayType;
-  NormalizedFilterArrayType normalizedFilterArray(N);
+
 
   // typedefs for Gaussian filters
   // The normalized images are passed through a Gaussian filter for smoothing
@@ -402,7 +401,6 @@ int main( int argc, char *argv[] )
                                       InternalImageType
                                                     > GaussianFilterType;
   typedef vector< GaussianFilterType::Pointer > GaussianFilterArrayType;
-  GaussianFilterArrayType gaussianFilterArray(N);
 
   // Begin the registration with the affine transform
   // Connect the compenents together
@@ -413,8 +411,10 @@ int main( int argc, char *argv[] )
   //
   try
   {
+  
     for( int i=0; i< N; i++ )
     {
+      ImageReaderType::Pointer imageReader;
       transformArray[i]     = TransformType::New();
       interpolatorArray[i]  = InterpolatorType::New();
       registration->SetTransformArray(     transformArray[i] ,i    );
@@ -436,32 +436,34 @@ int main( int argc, char *argv[] )
       }
       else
       {
-        imageArrayReader[i] = ImageReaderType::New();
-        imageArrayReader[i]->ReleaseDataFlagOn();
-        imageArrayReader[i]->SetFileName( inputFileNames[i].c_str() );
+        imageReader = ImageReaderType::New();
+        //imageReader->ReleaseDataFlagOn();
+        imageReader->SetFileName( inputFileNames[i].c_str() );
       }
+        
     
-      normalizedFilterArray[i] = NormalizeFilterType::New();
-      normalizedFilterArray[i]->ReleaseDataFlagOn();
+    
+      NormalizeFilterType::Pointer normalizeFilter = NormalizeFilterType::New();
+      //normalizeFilter->ReleaseDataFlagOn();
       if( imageType == "DICOM")
       {
-        normalizedFilterArray[i]->SetInput( dicomArrayReader[i]->GetOutput() );
+        normalizeFilter->SetInput( dicomArrayReader[i]->GetOutput() );
       }
       else
       {
-        normalizedFilterArray[i]->SetInput( imageArrayReader[i]->GetOutput() );
+        normalizeFilter->SetInput( imageReader->GetOutput() );
       }
 
-      gaussianFilterArray[i] = GaussianFilterType::New();
-      gaussianFilterArray[i]->ReleaseDataFlagOn();
-      gaussianFilterArray[i]->SetVariance( 2.0 );
-      gaussianFilterArray[i]->SetInput( normalizedFilterArray[i]->GetOutput() );
+      GaussianFilterType::Pointer gaussianFilter = GaussianFilterType::New();
+      gaussianFilter->ReleaseDataFlagOn();
+      gaussianFilter->SetVariance( 2.0 );
+      gaussianFilter->SetInput( normalizeFilter->GetOutput() );
 
       //Set up the Image Pyramid
       imagePyramidArray[i] = ImagePyramidType::New();
       imagePyramidArray[i]->ReleaseDataFlagOn();
       imagePyramidArray[i]->SetNumberOfLevels( multiLevelAffine );
-      imagePyramidArray[i]->SetInput( gaussianFilterArray[i]->GetOutput() );
+      imagePyramidArray[i]->SetInput( gaussianFilter->GetOutput() );
 
       std::cout << "Reading Image: " << inputFileNames[i].c_str() << std::endl;
       imagePyramidArray[i]->Update();
@@ -474,7 +476,7 @@ int main( int argc, char *argv[] )
       {
         //imageArrayReader[i]->Delete();
       }
-      normalizedFilterArray[i]->Delete();
+      //normalizedFilterArray[i]->UnRegister();
     }
   }
   catch( itk::ExceptionObject & err )
@@ -487,7 +489,7 @@ int main( int argc, char *argv[] )
 
   // Set initial parameters of the transform
   ImageType::RegionType fixedImageRegion =
-      gaussianFilterArray[0]->GetOutput()->GetBufferedRegion();
+      imagePyramidArray[0]->GetOutput(0)->GetBufferedRegion();
   registration->SetFixedImageRegion( fixedImageRegion );
 
 
@@ -504,9 +506,9 @@ int main( int argc, char *argv[] )
     transformArray[i]->SetIdentity();
     TransformType::InputPointType center;
     // Get spacing, origin and size of the images
-    ImageType::SpacingType spacing = gaussianFilterArray[0]->GetOutput()->GetSpacing();
-    itk::Point<double, Dimension> origin = gaussianFilterArray[0]->GetOutput()->GetOrigin();
-    ImageType::SizeType size = gaussianFilterArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
+    ImageType::SpacingType spacing = imagePyramidArray[0]->GetOutput(0)->GetSpacing();
+    itk::Point<double, Dimension> origin = imagePyramidArray[0]->GetOutput(0)->GetOrigin();
+    ImageType::SizeType size = imagePyramidArray[0]->GetOutput(0)->GetLargestPossibleRegion().GetSize();
 
     // Place the center of rotation to the center of the image
     for(int j=0; j< Dimension; j++)
@@ -570,7 +572,7 @@ int main( int argc, char *argv[] )
     FRPRoptimizer->SetMaximumIteration( optAffineNumberOfIterations );
     FRPRoptimizer->SetMaximumLineIteration( 15 );
     FRPRoptimizer->SetScales( optimizerScales );
-    FRPRoptimizer->SetToFletchReeves();
+    FRPRoptimizer->SetToPolakRibiere();
   }
   else
   {
@@ -731,9 +733,9 @@ int main( int argc, char *argv[] )
         }
         else
         {
-          spacing = imageArrayReader[i]->GetOutput()->GetSpacing();
-          origin = imageArrayReader[i]->GetOutput()->GetOrigin();
-          fixedRegion = imageArrayReader[i]->GetOutput()->GetBufferedRegion();
+          spacing = imagePyramidArray[i]->GetOutput(0)->GetSpacing();
+          origin = imagePyramidArray[i]->GetOutput(0)->GetOrigin();
+          fixedRegion = imagePyramidArray[i]->GetOutput(0)->GetBufferedRegion();
         }
 
         ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
@@ -893,9 +895,9 @@ int main( int argc, char *argv[] )
           }
           else
           {
-            spacingHigh = imageArrayReader[i]->GetOutput()->GetSpacing();
-            originHigh  = imageArrayReader[i]->GetOutput()->GetOrigin();
-            fixedRegion = imageArrayReader[i]->GetOutput()->GetBufferedRegion();
+            spacingHigh = imagePyramidArray[i]->GetOutput(0)->GetSpacing();
+            originHigh  = imagePyramidArray[i]->GetOutput(0)->GetOrigin();
+            fixedRegion = imagePyramidArray[i]->GetOutput(0)->GetBufferedRegion();
           }
           ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
     
@@ -1066,15 +1068,16 @@ int main( int argc, char *argv[] )
 
   // Get the time for the registration
   collector.Stop( "Registration" );
-  collector.Report();
-
+  collector.Report();  
+  
 
   // typedefs for output images
   typedef itk::ResampleImageFilter< 
                             ImageType, 
                             ImageType >    ResampleFilterType;
   ResampleFilterType::Pointer resample = ResampleFilterType::New();
-  
+  ImageArrayReader imageArrayReader(N);
+
   ImageType::Pointer fixedImage;
   
   typedef  unsigned short  OutputPixelType;
@@ -1164,6 +1167,10 @@ int main( int argc, char *argv[] )
     }
     else
     {
+      //Read the images again for memory efficiency
+      imageArrayReader[i] = ImageReaderType::New();
+      imageArrayReader[i]->SetFileName( inputFileNames[i].c_str() );
+      imageArrayReader[i]->Update();
       resample->SetInput( imageArrayReader[i]->GetOutput() );
       fixedImage = imageArrayReader[i]->GetOutput();
     }
