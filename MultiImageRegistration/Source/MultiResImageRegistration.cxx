@@ -421,7 +421,6 @@ int main( int argc, char *argv[] )
       interpolatorArray[i]  = InterpolatorType::New();
       registration->SetTransformArray(     transformArray[i] ,i    );
       registration->SetInterpolatorArray(     interpolatorArray[i] ,i    );
-      imagePyramidArray[i] =  ImagePyramidType::New();
 
       if(imageType == "DICOM")
       {
@@ -440,11 +439,14 @@ int main( int argc, char *argv[] )
       else
       {
         imageArrayReader[i] = ImageReaderType::New();
+        imageArrayReader[i]->ReleaseDataFlagOn();
         imageArrayReader[i]->SetFileName( inputFileNames[i].c_str() );
       }
     
       normalizedFilterArray[i] = NormalizeFilterType::New();
+      normalizedFilterArray[i]->ReleaseDataFlagOn();
       gaussianFilterArray[i] = GaussianFilterType::New();
+      gaussianFilterArray[i]->ReleaseDataFlagOn();
       gaussianFilterArray[i]->SetVariance( 2.0 );
       
       if( imageType == "DICOM")
