@@ -469,9 +469,9 @@ int main( int argc, char *argv[] )
 
 
   // Set initial parameters of the transform
-  normalizedFilterArray[0]->Update();
+  gaussianFilterArray[0]->Update();
   ImageType::RegionType fixedImageRegion =
-      normalizedFilterArray[0]->GetOutput()->GetBufferedRegion();
+      gaussianFilterArray[0]->GetOutput()->GetBufferedRegion();
   registration->SetFixedImageRegion( fixedImageRegion );
 
 
@@ -488,9 +488,9 @@ int main( int argc, char *argv[] )
     transformArray[i]->SetIdentity();
     TransformType::InputPointType center;
     // Get spacing, origin and size of the images
-    ImageType::SpacingType spacing = normalizedFilterArray[0]->GetOutput()->GetSpacing();
-    itk::Point<double, Dimension> origin = normalizedFilterArray[0]->GetOutput()->GetOrigin();
-    ImageType::SizeType size = normalizedFilterArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
+    ImageType::SpacingType spacing = gaussianFilterArray[0]->GetOutput()->GetSpacing();
+    itk::Point<double, Dimension> origin = gaussianFilterArray[0]->GetOutput()->GetOrigin();
+    ImageType::SizeType size = gaussianFilterArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
 
     // Place the center of rotation to the center of the image
     for(int j=0; j< Dimension; j++)
@@ -1154,6 +1154,7 @@ int main( int argc, char *argv[] )
     resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
     resample->SetOutputOrigin(  fixedImage->GetOrigin() );
     resample->SetOutputSpacing( fixedImage->GetSpacing() );
+    resample->SetOutputDirection( fixedImage->GetDirection());
     resample->SetDefaultPixelValue( 100 );
 
     std::cout << "Writing " << outputFileNames[i] << std::endl;
@@ -1181,6 +1182,7 @@ int main( int argc, char *argv[] )
     {
       itksys::SystemTools::MakeDirectory( outputFolder.c_str() );
       caster->SetInput( resample->GetOutput() );
+      writer->SetImageIO(imageArrayReader[0]->GetImageIO());
       writer->SetFileName( outputFileNames[i].c_str() );
       writer->SetInput( caster->GetOutput()   );
       writer->Update();
@@ -1229,6 +1231,7 @@ int main( int argc, char *argv[] )
   resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
   resample->SetOutputOrigin(  fixedImage->GetOrigin() );
   resample->SetOutputSpacing( fixedImage->GetSpacing() );
+  resample->SetOutputDirection( fixedImage->GetDirection());
   resample->SetDefaultPixelValue( 1 );
   addition->SetInput1( resample->GetOutput() );
   
@@ -1268,6 +1271,7 @@ int main( int argc, char *argv[] )
   resample2->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
   resample2->SetOutputOrigin(  fixedImage->GetOrigin() );
   resample2->SetOutputSpacing( fixedImage->GetSpacing() );
+  resample2->SetOutputDirection( fixedImage->GetDirection());
   resample2->SetDefaultPixelValue( 1 );
   addition->SetInput2( resample2->GetOutput() );
   if( imageType == "DICOM")
@@ -1333,7 +1337,8 @@ int main( int argc, char *argv[] )
   typedef itk::RescaleIntensityImageFilter< ImageType, ImageType >   RescalerType;
 
   RescalerType::Pointer intensityRescaler = RescalerType::New();
-  
+  WriterType::Pointer      writer2 =  WriterType::New();
+
   intensityRescaler->SetInput( addition->GetOutput() );
   intensityRescaler->SetOutputMinimum(   0 );
   intensityRescaler->SetOutputMaximum( 255 );
@@ -1362,7 +1367,7 @@ int main( int argc, char *argv[] )
   else
   {
     caster->SetInput( intensityRescaler->GetOutput() );
-    writer->SetInput( caster->GetOutput()   );
+    writer2->SetInput( caster->GetOutput()   );
 
     string meanImageFname;
     if (Dimension == 2)
@@ -1373,8 +1378,8 @@ int main( int argc, char *argv[] )
     {
       meanImageFname = outputFolder + "MeanRegisteredImage.mhd";
     }
-    writer->SetFileName( meanImageFname.c_str() );
-    writer->Update();
+    writer2->SetFileName( meanImageFname.c_str() );
+    writer2->Update();
   }
 
   intensityRescaler->SetInput( addition2->GetOutput() );
@@ -1403,7 +1408,7 @@ int main( int argc, char *argv[] )
   else
   {
     caster->SetInput( intensityRescaler->GetOutput() );
-    writer->SetInput( caster->GetOutput()   );
+    writer2->SetInput( caster->GetOutput()   );
 
     string meanImageFname;
     if (Dimension == 2)
@@ -1414,8 +1419,8 @@ int main( int argc, char *argv[] )
     {
       meanImageFname = outputFolder + "MeanOriginalImage.mhd";
     }
-    writer->SetFileName( meanImageFname.c_str() );
-    writer->Update();
+    writer2->SetFileName( meanImageFname.c_str() );
+    writer2->Update();
   }
 
   
