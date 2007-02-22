@@ -191,6 +191,7 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
   for(int i=0; i<m_NumberOfImages; i++)
   {
     // Setup the image pyramids
+    m_ImagePyramidArray[i]->ReleaseDataFlagOn();
     m_ImagePyramidArray[i]->SetNumberOfLevels( m_NumberOfLevels );
     m_ImagePyramidArray[i]->SetInput( m_ImageArrayPointer[i] );
     m_ImagePyramidArray[i]->UpdateLargestPossibleRegion();
