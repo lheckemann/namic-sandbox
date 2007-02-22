@@ -91,7 +91,7 @@
 
 //Define the global types for image type
 #define PixelType unsigned short
-#define InternalPixelType double
+#define InternalPixelType float
 #define Dimension 3
 
 //  The following section of code implements an observer
@@ -404,8 +404,6 @@ int main( int argc, char *argv[] )
   typedef vector< GaussianFilterType::Pointer > GaussianFilterArrayType;
   GaussianFilterArrayType gaussianFilterArray(N);
 
-
-
   // Begin the registration with the affine transform
   // Connect the compenents together
   //
@@ -445,10 +443,6 @@ int main( int argc, char *argv[] )
     
       normalizedFilterArray[i] = NormalizeFilterType::New();
       normalizedFilterArray[i]->ReleaseDataFlagOn();
-      gaussianFilterArray[i] = GaussianFilterType::New();
-      gaussianFilterArray[i]->ReleaseDataFlagOn();
-      gaussianFilterArray[i]->SetVariance( 2.0 );
-      
       if( imageType == "DICOM")
       {
         normalizedFilterArray[i]->SetInput( dicomArrayReader[i]->GetOutput() );
@@ -457,9 +451,30 @@ int main( int argc, char *argv[] )
       {
         normalizedFilterArray[i]->SetInput( imageArrayReader[i]->GetOutput() );
       }
-      
+
+      gaussianFilterArray[i] = GaussianFilterType::New();
+      gaussianFilterArray[i]->ReleaseDataFlagOn();
+      gaussianFilterArray[i]->SetVariance( 2.0 );
       gaussianFilterArray[i]->SetInput( normalizedFilterArray[i]->GetOutput() );
-      registration->SetImageArrayPointer(    gaussianFilterArray[i]->GetOutput() , i   );
+
+      //Set up the Image Pyramid
+      imagePyramidArray[i] = ImagePyramidType::New();
+      imagePyramidArray[i]->ReleaseDataFlagOn();
+      imagePyramidArray[i]->SetNumberOfLevels( multiLevelAffine );
+      imagePyramidArray[i]->SetInput( gaussianFilterArray[i]->GetOutput() );
+
+      std::cout << "Reading Image: " << inputFileNames[i].c_str() << std::endl;
+      imagePyramidArray[i]->Update();
+
+      //Set the input into the registration method
+      registration->SetImagePyramidArray(imagePyramidArray[i],i);
+
+      //Delete the intermediate filter outputs for memory efficiency
+      if(imageType != "DICOM")
+      {
+        //imageArrayReader[i]->Delete();
+      }
+      normalizedFilterArray[i]->Delete();
     }
   }
   catch( itk::ExceptionObject & err )
@@ -471,7 +486,6 @@ int main( int argc, char *argv[] )
 
 
   // Set initial parameters of the transform
-  gaussianFilterArray[0]->Update();
   ImageType::RegionType fixedImageRegion =
       gaussianFilterArray[0]->GetOutput()->GetBufferedRegion();
   registration->SetFixedImageRegion( fixedImageRegion );

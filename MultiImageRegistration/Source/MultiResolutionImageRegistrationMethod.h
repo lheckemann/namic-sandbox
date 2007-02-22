@@ -127,10 +127,6 @@ public:
   /** Method to stop the registration. */
   void StopRegistration();
 
-  /** Set/Get the Fixed image. */
-  UserSetConstObjectMacro( ImageArrayPointer, ImageType );
-  UserGetConstObjectMacro( ImageArrayPointer, ImageType );
-
   /** Set/Get the Optimizer. */
   itkSetObjectMacro( Optimizer,  OptimizerType );
   itkGetObjectMacro( Optimizer,  OptimizerType );
@@ -214,9 +210,6 @@ private:
   
   MetricPointer                    m_Metric;
   OptimizerType::Pointer           m_Optimizer;
-
-  ImageArrayPointer                m_ImageArrayPointer;
-
 
   TransformPointerArray            m_TransformArray;
   InterpolatorPointerArray         m_InterpolatorArray;
