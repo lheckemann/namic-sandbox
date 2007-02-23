@@ -91,7 +91,7 @@
 
 //Define the global types for image type
 #define PixelType unsigned short
-#define InternalPixelType double
+#define InternalPixelType float
 #define Dimension 3
 
 //  The following section of code implements an observer
@@ -344,6 +344,7 @@ int main( int argc, char *argv[] )
 
 
   registration->SetNumberOfImages(N);
+  registration->ReleaseDataFlagOn();
 
   //Set the optimizerType
   OptimizerType::Pointer      optimizer;
@@ -442,9 +443,8 @@ int main( int argc, char *argv[] )
       }
         
     
-    
       NormalizeFilterType::Pointer normalizeFilter = NormalizeFilterType::New();
-      //normalizeFilter->ReleaseDataFlagOn();
+      normalizeFilter->ReleaseDataFlagOn();
       if( imageType == "DICOM")
       {
         normalizeFilter->SetInput( dicomArrayReader[i]->GetOutput() );
@@ -471,12 +471,6 @@ int main( int argc, char *argv[] )
       //Set the input into the registration method
       registration->SetImagePyramidArray(imagePyramidArray[i],i);
 
-      //Delete the intermediate filter outputs for memory efficiency
-      if(imageType != "DICOM")
-      {
-        //imageArrayReader[i]->Delete();
-      }
-      //normalizedFilterArray[i]->UnRegister();
     }
   }
   catch( itk::ExceptionObject & err )
@@ -573,6 +567,7 @@ int main( int argc, char *argv[] )
     FRPRoptimizer->SetMaximumLineIteration( 15 );
     FRPRoptimizer->SetScales( optimizerScales );
     FRPRoptimizer->SetToPolakRibiere();
+    //FRPRoptimizer->SetToFletchReeves();
   }
   else
   {
@@ -1076,6 +1071,8 @@ int main( int argc, char *argv[] )
                             ImageType, 
                             ImageType >    ResampleFilterType;
   ResampleFilterType::Pointer resample = ResampleFilterType::New();
+  resample->ReleaseDataFlagOn();
+  
   ImageArrayReader imageArrayReader(N);
 
   ImageType::Pointer fixedImage;
@@ -1095,7 +1092,9 @@ int main( int argc, char *argv[] )
   SeriesWriterType::Pointer seriesWriter = SeriesWriterType::New();
   
   WriterType::Pointer      writer =  WriterType::New();
+  writer->ReleaseDataFlagOn();
   CastFilterType::Pointer  caster = CastFilterType::New();
+  caster->ReleaseDataFlagOn();
 
 
   // Get the correct number of paramaters
@@ -1169,6 +1168,7 @@ int main( int argc, char *argv[] )
     {
       //Read the images again for memory efficiency
       imageArrayReader[i] = ImageReaderType::New();
+      //imageArrayReader[i]->ReleaseDataFlagOn();
       imageArrayReader[i]->SetFileName( inputFileNames[i].c_str() );
       imageArrayReader[i]->Update();
       resample->SetInput( imageArrayReader[i]->GetOutput() );
@@ -1216,14 +1216,17 @@ int main( int argc, char *argv[] )
 
   // Compute Mean Images 
   ResampleFilterType::Pointer resample2 = ResampleFilterType::New();
+  resample2->ReleaseDataFlagOn();
 
   typedef itk::AddImageFilter < ImageType, ImageType,
                                            ImageType > AddFilterType;
 
   //Mean of the registered images
   AddFilterType::Pointer addition = AddFilterType::New();
+  addition->ReleaseDataFlagOn();
   // Mean Image of original images
   AddFilterType::Pointer addition2 = AddFilterType::New();
+  addition2->ReleaseDataFlagOn();
 
 
   //Set the first image
