@@ -34,6 +34,8 @@ SET(MultiResImageRegistration_SRCS
   VarianceMultiImageMetric.h 
   ParzenWindowEntropyMultiImageMetric.h
   ParzenWindowEntropyMultiImageMetric.cxx
+  GradientDescentLineSearchOptimizer.h
+  GradientDescentLineSearchOptimizer.cxx
   MultiImageMetric.cxx 
   MultiImageMetric.h 
   AddImageFilter.h

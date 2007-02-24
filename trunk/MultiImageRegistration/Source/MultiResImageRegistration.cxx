@@ -70,6 +70,7 @@
 #include "itkLBFGSBOptimizer.h"
 #include "itkFRPROptimizer.h"
 #include "itkGradientDescentOptimizer.h"
+#include "GradientDescentLineSearchOptimizer.h"
 
 
 //BSpline related headers
@@ -91,7 +92,7 @@
 
 //Define the global types for image type
 #define PixelType unsigned short
-#define InternalPixelType float
+#define InternalPixelType double
 #define Dimension 3
 
 //  The following section of code implements an observer
@@ -165,7 +166,9 @@ public:
   typedef   GradientOptimizerType *             GradientOptimizerPointer;
   typedef   itk::FRPROptimizer                  FRPROptimizerType;
   typedef   FRPROptimizerType *                 FRPROptimizerPointer;
-  
+  typedef   itk::GradientDescentLineSearchOptimizer LineSearchOptimizerType;
+  typedef   LineSearchOptimizerType  *          LineSearchOptimizerPointer;
+
   typedef   itk::Image< InternalPixelType, Dimension >   InternalImageType;
   typedef   itk::MultiImageMetric< InternalImageType>    MetricType;
   typedef   MetricType *                                 MetricPointer;
@@ -202,6 +205,8 @@ public:
                                                             (registration->GetMetric());
         entropyMetric->SetNumberOfSpatialSamples((unsigned int) (entropyMetric->GetNumberOfSpatialSamples() /
                                   pow( pow(2.0, Dimension - 1), (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
+        cout << pow( pow(2.0, Dimension - 1), (double) (registration->GetNumberOfLevels() - 1.0)) << endl;
+
       }
 
     }
@@ -237,6 +242,12 @@ public:
         FRPROptimizerPointer FRPRPointer = dynamic_cast< FRPROptimizerPointer >(
                                                          registration->GetOptimizer() );
         FRPRPointer->SetMaximumIteration( FRPRPointer->GetMaximumIteration()*2 );
+      }
+      else if(!strcmp(optimizer->GetNameOfClass(), "GradientDescentLineSearchOptimizer") )
+      {
+        LineSearchOptimizerPointer lineSearchOptimizerPointer = dynamic_cast< LineSearchOptimizerPointer >(
+            registration->GetOptimizer() );
+        lineSearchOptimizerPointer->SetMaximumIteration( lineSearchOptimizerPointer->GetMaximumIteration()*2 );
       }
 
     }
@@ -308,6 +319,7 @@ int main( int argc, char *argv[] )
 
   typedef itk::GradientDescentOptimizer       OptimizerType;
   typedef itk::FRPROptimizer                  FRPROptimizerType;
+  typedef itk::GradientDescentLineSearchOptimizer LineSearchOptimizerType;
 
   typedef itk::LinearInterpolateImageFunction<InternalImageType,ScalarType        > InterpolatorType;
                                     
@@ -349,11 +361,17 @@ int main( int argc, char *argv[] )
   //Set the optimizerType
   OptimizerType::Pointer      optimizer;
   FRPROptimizerType::Pointer  FRPRoptimizer;
+  LineSearchOptimizerType::Pointer lineSearchOptimizer;
   if(optimizerType == "FRPR")
   {
     FRPRoptimizer = FRPROptimizerType::New();
     registration->SetOptimizer(     FRPRoptimizer     );
   }
+  else if(optimizerType == "lineSearch")
+  {
+    lineSearchOptimizer     = LineSearchOptimizerType::New();
+    registration->SetOptimizer(     lineSearchOptimizer     );
+  } 
   else
   {
     optimizer     = OptimizerType::New();
@@ -564,11 +582,19 @@ int main( int argc, char *argv[] )
     FRPRoptimizer->SetStepLength(optAffineLearningRate);
     FRPRoptimizer->SetMaximize(false);
     FRPRoptimizer->SetMaximumIteration( optAffineNumberOfIterations );
-    FRPRoptimizer->SetMaximumLineIteration( 15 );
+    FRPRoptimizer->SetMaximumLineIteration( 5 );
     FRPRoptimizer->SetScales( optimizerScales );
     FRPRoptimizer->SetToPolakRibiere();
     //FRPRoptimizer->SetToFletchReeves();
   }
+  else if(optimizerType == "lineSearch")
+  {
+    lineSearchOptimizer->SetStepLength(optAffineLearningRate);
+    lineSearchOptimizer->SetMaximize(false);
+    lineSearchOptimizer->SetMaximumIteration( optAffineNumberOfIterations );
+    lineSearchOptimizer->SetMaximumLineIteration( 5 );
+    lineSearchOptimizer->SetScales( optimizerScales );
+  } 
   else
   {
     optimizer->SetLearningRate( optAffineLearningRate );
@@ -784,8 +810,14 @@ int main( int argc, char *argv[] )
       FRPRoptimizer->SetScales( optimizerScales );
       FRPRoptimizer->SetStepLength(optBsplineLearningRate);
       FRPRoptimizer->SetMaximumIteration( optBsplineNumberOfIterations );
-      //FRPRoptimizer->SetMaximumLineIteration( 1 );
       FRPRoptimizer->SetScales( optimizerScales );
+    }
+    else if(optimizerType == "lineSearch")
+    {
+      lineSearchOptimizer->SetScales( optimizerScales );
+      lineSearchOptimizer->SetStepLength(optBsplineLearningRate);
+      lineSearchOptimizer->SetMaximumIteration( optBsplineNumberOfIterations );
+      lineSearchOptimizer->SetScales( optimizerScales );
     }
     else
     {
@@ -991,6 +1023,14 @@ int main( int argc, char *argv[] )
           //FRPRoptimizer->SetMaximumLineIteration( 1 );
           FRPRoptimizer->SetScales( optimizerScales );
         }
+        else if(optimizerType == "lineSearch")
+        {
+          lineSearchOptimizer->SetScales( optimizerScales );
+          lineSearchOptimizer->SetStepLength(optBsplineHighLearningRate);
+          lineSearchOptimizer->SetMaximumIteration( optBsplineHighNumberOfIterations );
+          //lineSearchOptimizer->SetMaximumLineIteration( 1 );
+          lineSearchOptimizer->SetScales( optimizerScales );
+        }
         else
         {
           optimizer->SetScales( optimizerScales );
@@ -1044,6 +1084,11 @@ int main( int argc, char *argv[] )
   {
     numberOfIterations = FRPRoptimizer->GetCurrentIteration();
     bestValue = FRPRoptimizer->GetValue();
+  }
+  else if(optimizerType == "lineSearch")
+  {
+    numberOfIterations = lineSearchOptimizer->GetCurrentIteration();
+    bestValue = lineSearchOptimizer->GetValue();
   }
   else
   {
@@ -1168,7 +1213,7 @@ int main( int argc, char *argv[] )
     {
       //Read the images again for memory efficiency
       imageArrayReader[i] = ImageReaderType::New();
-      //imageArrayReader[i]->ReleaseDataFlagOn();
+      imageArrayReader[i]->ReleaseDataFlagOn();
       imageArrayReader[i]->SetFileName( inputFileNames[i].c_str() );
       imageArrayReader[i]->Update();
       resample->SetInput( imageArrayReader[i]->GetOutput() );
@@ -1223,10 +1268,8 @@ int main( int argc, char *argv[] )
 
   //Mean of the registered images
   AddFilterType::Pointer addition = AddFilterType::New();
-  addition->ReleaseDataFlagOn();
   // Mean Image of original images
   AddFilterType::Pointer addition2 = AddFilterType::New();
-  addition2->ReleaseDataFlagOn();
 
 
   //Set the first image
