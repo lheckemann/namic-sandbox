@@ -158,16 +158,20 @@ public:
 
   /**  Get the value. */
   MeasureType GetValue( const ParametersType& parameters ) const;
+  /** Methods added for supporting multi-threading GetValueAndDerivative */
+  void GetThreadedValue( int threadID ) const;
+  void BeforeGetThreadedValue(const ParametersType & parameters) const;
+  MeasureType AfterGetThreadedValue() const;
 
   /**  Get the value and derivatives for single valued optimizers. */
   void GetValueAndDerivative( const ParametersType& parameters, 
                               MeasureType& Value, DerivativeType& Derivative ) const;
 
 
-  /** Methods added for supporting multi-threading */
-  void GetThreadedValue( int threadID ) const;
-  void BeforeGetThreadedValue(const ParametersType & parameters) const;
-  void AfterGetThreadedValue(MeasureType & value,
+  /** Methods added for supporting multi-threading GetValueAndDerivative */
+  void GetThreadedValueAndDerivative( int threadID ) const;
+  void BeforeGetThreadedValueAndDerivative(const ParametersType & parameters) const;
+  void AfterGetThreadedValueAndDerivative(MeasureType & value,
                              DerivativeType & derivative) const;
   
 
@@ -227,7 +231,9 @@ private:
 
   /** SpatialSampleContainer typedef support. */
   typedef std::vector<SpatialSample>  SpatialSampleContainer;
-  static ITK_THREAD_RETURN_TYPE ThreaderCallback( void *arg );
+  static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueAndDerivative( void *arg );
+  static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValue( void *arg );
+
 
   /** Container to store sample set */
   mutable SpatialSampleContainer      m_Sample;
