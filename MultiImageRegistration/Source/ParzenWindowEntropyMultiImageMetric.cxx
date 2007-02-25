@@ -226,31 +226,94 @@ typename ParzenWindowEntropyMultiImageMetric < TFixedImage >::MeasureType
 ParzenWindowEntropyMultiImageMetric <TFixedImage >::
 GetValue(const ParametersType & parameters) const
 {
-  //cout << "Checking GetValue" << endl;
+  // Call a method that perform some calculations prior to splitting the main
+  // computations into separate threads
 
-  int N = this->m_NumberOfImages;
-  int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters ();
+  this->BeforeGetThreadedValue(parameters);
+  
+  // Set up the multithreaded processing
+  ThreadStruct str;
+  str.Metric =  this;
+
+
+  this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
+  this->GetMultiThreader()->SetSingleMethod(ThreaderCallbackGetValue, &str);
+  
+  // multithread the execution
+  this->GetMultiThreader()->SingleMethodExecute();
+
+  // Call a method that can be overridden by a subclass to perform
+  // some calculations after all the threads have completed
+  return this->AfterGetThreadedValue();
+
+}
+
+// Callback routine used by the threading library. This routine just calls
+// the GetThreadedValue() method after setting the correct partition of data
+// for this thread.
+template < class TFixedImage >
+ITK_THREAD_RETURN_TYPE
+ParzenWindowEntropyMultiImageMetric< TFixedImage >
+::ThreaderCallbackGetValue( void *arg )
+{
+  ThreadStruct *str;
+
+  int threadId = ((MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
+
+  str = (ThreadStruct *)(((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
+
+  str->Metric->GetThreadedValue( threadId );
+
+
+  return ITK_THREAD_RETURN_VALUE;
+}
+
+
+/**
+ * Prepare auxiliary variables before starting the threads
+ */
+template < class TFixedImage >
+void 
+ParzenWindowEntropyMultiImageMetric < TFixedImage >
+::BeforeGetThreadedValue(const ParametersType & parameters) const
+{
+  //Make sure that each transform parameters are updated
+  int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters();
   ParametersType currentParam (numberOfParameters);
-
-  for (int i = 0; i < N; i++)
+  // Loop over images
+  for (int i = 0; i < this->m_NumberOfImages; i++)
   {
+    //Copy the parameters of the current transform
     for (int j = 0; j < numberOfParameters; j++)
     {
-      currentParam[j] = parameters[i * numberOfParameters + j];
+      currentParam[j] = parameters[numberOfParameters * i + j];
     }
-    // cout << currentParam << endl;
     this->m_TransformArray[i]->SetParametersByValue (currentParam);
   }
 
-  // collect sample set
-  //
-  // or dont collect a new sample set if used with
-  // regular gradient descent
-  // this->SampleFixedImageDomain(m_Sample);
-  
+}
+
+
+/*
+ * Get the match Measure
+ */
+template < class TFixedImage >
+void 
+ParzenWindowEntropyMultiImageMetric < TFixedImage >
+::GetThreadedValue(int threadId) const
+{
+
+  double N = (double) this->m_NumberOfImages;
+
+  /** The tranform parameters vector holding i'th images parameters 
+  Copy parameters in to a collection of arrays */
+
+  unsigned int numberOfParameters =
+      this->m_TransformArray[0]->GetNumberOfParameters();
+
   // Update intensity values
   MovingImagePointType mappedPoint;
-  for(int i=0; i< m_Sample.size(); i++ )
+  for(int i=threadId; i< m_Sample.size(); i += m_NumberOfThreads )
   {
     for(int j=0; j<this->m_NumberOfImages; j++)
     {
@@ -263,40 +326,110 @@ GetValue(const ParametersType & parameters) const
   } 
 
   //Calculate variance and mean
-  double measure = 0.0;
-
-  typename SpatialSampleContainer::const_iterator iter;
-  typename SpatialSampleContainer::const_iterator end = m_Sample.end ();
-
-  double dLogSumMean = 0.0;
+  m_value[threadId] = 0.0;
+  double dSum;
 
   // Loop over the pixel stacks
-  for (iter = m_Sample.begin (); iter != end; ++iter)
+  for (int a=threadId; a<m_Sample.size(); a += m_NumberOfThreads )
   {
     double dLogSum = 0.0;
     
     for (int j = 0; j < this->m_NumberOfImages; j++)
     {
-      double dSum = m_MinProbability;
+      dSum = m_MinProbability;
       
       for(int k = 0; k < this->m_NumberOfImages; k++)
       {
-        dSum += m_KernelFunction->Evaluate( ( (*iter).imageValueArray[j] - (*iter).imageValueArray[k] ) /
-                                            m_ImageStandardDeviation );
+        dSum += m_KernelFunction->Evaluate( ( m_Sample[a].imageValueArray[j] - m_Sample[a].imageValueArray[k] ) /
+            m_ImageStandardDeviation );
       }
-      
-      dLogSum  -= ( dSum > 0.0 ) ? vcl_log( dSum / (double) this->m_NumberOfImages ) : 0.0;
+      dSum /= static_cast<double> (this->m_NumberOfImages);
+      dLogSum  -= ( dSum > 0.0 ) ? vcl_log( dSum ) : 0.0;
       
     }
-    dLogSumMean += dLogSum / (double) this->m_NumberOfImages;
+    m_value[threadId] += dLogSum;
 
-  }        // end of sample loop
+
+  }  // End of sample loop
+
   
-  measure = dLogSumMean / static_cast<double>(m_NumberOfSpatialSamples);
+}
 
-  cout << measure << endl;
-  return measure;
 
+/**
+ * Consolidate auxiliary variables after finishing the threads
+ */
+template < class TFixedImage >
+typename ParzenWindowEntropyMultiImageMetric < TFixedImage >::MeasureType
+ParzenWindowEntropyMultiImageMetric < TFixedImage >
+::AfterGetThreadedValue() const
+{
+
+  MeasureType value = NumericTraits< RealType >::Zero;
+
+  const int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters();
+
+  // Sum over the values returned by threads
+  for( unsigned int i=0; i < m_NumberOfThreads; i++ )
+  {
+    value += m_value[i];
+  }
+  value /= (MeasureType) (m_Sample.size()*this->m_NumberOfImages);
+
+  cout << value << endl;
+  return value;
+}
+
+
+/*
+ * Get the match Measure
+ */
+template < class TFixedImage >
+void ParzenWindowEntropyMultiImageMetric < TFixedImage >
+::GetValueAndDerivative(const ParametersType & parameters,
+                          MeasureType & value,
+                          DerivativeType & derivative) const
+{
+  // Call a method that perform some calculations prior to splitting the main
+  // computations into separate threads
+
+  this->BeforeGetThreadedValueAndDerivative(parameters);
+  
+  // Set up the multithreaded processing
+  ThreadStruct str;
+  str.Metric =  this;
+
+
+  this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
+  this->GetMultiThreader()->SetSingleMethod(this->ThreaderCallbackGetValueAndDerivative, &str);
+  
+  // multithread the execution
+  this->GetMultiThreader()->SingleMethodExecute();
+
+  // Call a method that can be overridden by a subclass to perform
+  // some calculations after all the threads have completed
+  this->AfterGetThreadedValueAndDerivative(value, derivative);
+
+}
+
+// Callback routine used by the threading library. This routine just calls
+// the GetThreadedValue() method after setting the correct partition of data
+// for this thread.
+template < class TFixedImage >
+ITK_THREAD_RETURN_TYPE
+ParzenWindowEntropyMultiImageMetric< TFixedImage >
+::ThreaderCallbackGetValueAndDerivative( void *arg )
+{
+  ThreadStruct *str;
+
+  int threadId = ((MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
+
+  str = (ThreadStruct *)(((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
+
+  str->Metric->GetThreadedValueAndDerivative( threadId );
+
+
+  return ITK_THREAD_RETURN_VALUE;
 }
 
 
@@ -306,7 +439,7 @@ GetValue(const ParametersType & parameters) const
 template < class TFixedImage >
 void 
 ParzenWindowEntropyMultiImageMetric < TFixedImage >
-::BeforeGetThreadedValue (const ParametersType & parameters) const
+::BeforeGetThreadedValueAndDerivative(const ParametersType & parameters) const
 {
   cout << "checking derivative" << endl;
   // collect sample set
@@ -335,7 +468,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
  */
 template < class TFixedImage >
 void ParzenWindowEntropyMultiImageMetric < TFixedImage >
-::AfterGetThreadedValue (MeasureType & value,
+::AfterGetThreadedValueAndDerivative(MeasureType & value,
                            DerivativeType & derivative) const
 {
 
@@ -382,7 +515,7 @@ void ParzenWindowEntropyMultiImageMetric < TFixedImage >
 template < class TFixedImage >
 void 
 ParzenWindowEntropyMultiImageMetric < TFixedImage >
-::GetThreadedValue(int threadId) const
+::GetThreadedValueAndDerivative(int threadId) const
 {
 
   double N = (double) this->m_NumberOfImages;
@@ -452,63 +585,6 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 
   
 
-}
-
-/*
- * Get the match Measure
- */
-template < class TFixedImage >
-void ParzenWindowEntropyMultiImageMetric < TFixedImage >
-::GetValueAndDerivative(const ParametersType & parameters,
-                          MeasureType & value,
-                          DerivativeType & derivative) const
-{
-  // Call a method that perform some calculations prior to splitting the main
-  // computations into separate threads
-
-  this->BeforeGetThreadedValue(parameters);
-  
-  // Set up the multithreaded processing
-  ThreadStruct str;
-  str.Metric =  this;
-
-
-  this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
-  this->GetMultiThreader()->SetSingleMethod(this->ThreaderCallback, &str);
-  
-  // multithread the execution
-  this->GetMultiThreader()->SingleMethodExecute();
-
-  // Call a method that can be overridden by a subclass to perform
-  // some calculations after all the threads have completed
-  this->AfterGetThreadedValue(value, derivative);
-
-}
-
-
-
-// Callback routine used by the threading library. This routine just calls
-// the GetThreadedValue() method after setting the correct partition of data
-// for this thread.
-template < class TFixedImage >
-ITK_THREAD_RETURN_TYPE
-ParzenWindowEntropyMultiImageMetric< TFixedImage >
-::ThreaderCallback( void *arg )
-{
-  ThreadStruct *str;
-
-  int threadId;
-  int threadCount;
-
-  threadId = ((MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
-  threadCount = ((MultiThreader::ThreadInfoStruct *)(arg))->NumberOfThreads;
-
-  str = (ThreadStruct *)(((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
-
-  str->Metric->GetThreadedValue( threadId );
-
-
-  return ITK_THREAD_RETURN_VALUE;
 }
 
 
