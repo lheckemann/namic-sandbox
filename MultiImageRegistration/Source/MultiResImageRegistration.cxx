@@ -114,7 +114,6 @@ public:
 
   void Execute(itk::Object *caller, const itk::EventObject & event)
     {
-      //caller->Print(std::cout, 3 );
       Execute( (const itk::Object *)caller, event);
     }
 
@@ -248,6 +247,7 @@ public:
         LineSearchOptimizerPointer lineSearchOptimizerPointer = dynamic_cast< LineSearchOptimizerPointer >(
             registration->GetOptimizer() );
         lineSearchOptimizerPointer->SetMaximumIteration( lineSearchOptimizerPointer->GetMaximumIteration()*2 );
+        lineSearchOptimizerPointer->SetStepLength(lineSearchOptimizerPointer->GetStepLength()/2.0);
       }
 
     }
@@ -582,7 +582,7 @@ int main( int argc, char *argv[] )
     FRPRoptimizer->SetStepLength(optAffineLearningRate);
     FRPRoptimizer->SetMaximize(false);
     FRPRoptimizer->SetMaximumIteration( optAffineNumberOfIterations );
-    FRPRoptimizer->SetMaximumLineIteration( 7 );
+    //FRPRoptimizer->SetMaximumLineIteration( 7 );
     FRPRoptimizer->SetScales( optimizerScales );
     FRPRoptimizer->SetToPolakRibiere();
     //FRPRoptimizer->SetToFletchReeves();
@@ -592,7 +592,7 @@ int main( int argc, char *argv[] )
     lineSearchOptimizer->SetStepLength(optAffineLearningRate);
     lineSearchOptimizer->SetMaximize(false);
     lineSearchOptimizer->SetMaximumIteration( optAffineNumberOfIterations );
-    lineSearchOptimizer->SetMaximumLineIteration( 7 );
+    //lineSearchOptimizer->SetMaximumLineIteration( 7 );
     lineSearchOptimizer->SetScales( optimizerScales );
   } 
   else
