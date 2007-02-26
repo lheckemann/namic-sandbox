@@ -38,6 +38,8 @@
 #include "itkRescaleIntensityImageFilter.h"
 
 #include "itkAffineTransform.h"
+#include "itkTranslationTransform.h"
+
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkMultiResolutionPyramidImageFilter.h"
 #include "itkImage.h"
@@ -153,8 +155,7 @@ public:
   typedef  itk::Command                   Superclass;
   typedef  itk::SmartPointer<Self>        Pointer;
   itkNewMacro( Self );
-protected:
-  RegistrationInterfaceCommand() {};
+
 public:
   typedef   TRegistration                              RegistrationType;
   typedef   RegistrationType *                         RegistrationPointer;
@@ -196,35 +197,34 @@ public:
         VarianceMetricPointer  varianceMetric = dynamic_cast< VarianceMetricPointer>
                                                               (registration->GetMetric());
         varianceMetric->SetNumberOfSpatialSamples((unsigned int) (varianceMetric->GetNumberOfSpatialSamples() /
-                        pow( pow(2.0, Dimension - 1), (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
+                        pow( 2.0, (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
       }
       else if(!strcmp(metric->GetNameOfClass(), "ParzenWindowEntropyMultiImageMetric") )
       {
         EntropyMetricPointer  entropyMetric = dynamic_cast< EntropyMetricPointer>
                                                             (registration->GetMetric());
         entropyMetric->SetNumberOfSpatialSamples((unsigned int) (entropyMetric->GetNumberOfSpatialSamples() /
-                                  pow( pow(2.0, Dimension - 1), (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
-        cout << pow( pow(2.0, Dimension - 1), (double) (registration->GetNumberOfLevels() - 1.0)) << endl;
+                                  pow( 2.0, (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
 
       }
 
     }
     else
     {
-      // Set the number of spatian samples according to the current level
+      // Set the number of spatial samples according to the current level
       if(  !strcmp(metric->GetNameOfClass(), "VarianceMultiImageMetric" ) )
       {
         VarianceMetricPointer  varianceMetric = dynamic_cast< VarianceMetricPointer>
             (registration->GetMetric());
         varianceMetric->SetNumberOfSpatialSamples((unsigned int) (varianceMetric->GetNumberOfSpatialSamples() *
-                                                        pow(2.0,Dimension - 1) ) );
+                                                        2.0 ) );
       }
       else if(!strcmp(metric->GetNameOfClass(), "ParzenWindowEntropyMultiImageMetric") )
       {
         EntropyMetricPointer  entropyMetric = dynamic_cast< EntropyMetricPointer>
             (registration->GetMetric());
         entropyMetric->SetNumberOfSpatialSamples((unsigned int) (entropyMetric->GetNumberOfSpatialSamples() *
-                                                        pow(2.0,Dimension - 1 ) ) );
+                                                        2.0 ) );
       }
 
       // Decrease the learning rate at each increasing multiresolution level
@@ -234,7 +234,7 @@ public:
         GradientOptimizerPointer gradientPointer = dynamic_cast< GradientOptimizerPointer >(
                                                                  registration->GetOptimizer() );
         gradientPointer->SetNumberOfIterations( gradientPointer->GetNumberOfIterations()*2 );
-        gradientPointer->SetLearningRate( gradientPointer->GetLearningRate() / 2.0 );
+        gradientPointer->SetLearningRate( gradientPointer->GetLearningRate()  );
       }
       else if(!strcmp(optimizer->GetNameOfClass(), "FRPROptimizer") )
       {
@@ -247,17 +247,23 @@ public:
         LineSearchOptimizerPointer lineSearchOptimizerPointer = dynamic_cast< LineSearchOptimizerPointer >(
             registration->GetOptimizer() );
         lineSearchOptimizerPointer->SetMaximumIteration( lineSearchOptimizerPointer->GetMaximumIteration()*2 );
-        lineSearchOptimizerPointer->SetStepLength(lineSearchOptimizerPointer->GetStepLength()/2.0);
+        lineSearchOptimizerPointer->SetStepLength(lineSearchOptimizerPointer->GetStepLength() );
       }
 
     }
   }
   void Execute(const itk::Object * , const itk::EventObject & )
     { return; }
+  
+  protected:
+    RegistrationInterfaceCommand()
+    {
+    };
+
 };
 
 // Get the command line arguments
-int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType, int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh, double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate, int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,  int& bsplineInitialGridSize,  int& numberOfBsplineLevel, string& transformType, string& imageType,string& metricType, string& useBspline, string& useBsplineHigh  );
+int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType, int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh, double& optTranslationLearningRate, double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate, int& optTranslationNumberOfIterations, int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,  int& bsplineInitialGridSize,  int& numberOfBsplineLevel, string& transformType, string& imageType,string& metricType, string& useBspline, string& useBsplineHigh  );
 
 
 int main( int argc, char *argv[] )
@@ -276,11 +282,13 @@ int main( int argc, char *argv[] )
   int multiLevelAffine = 1;
   int multiLevelBspline = 1;
   int multiLevelBsplineHigh = 1;
-  
+
+  double optTranslationLearningRate = 1000;
   double optAffineLearningRate = 2e-3;
   double optBsplineLearningRate = 500;
   double optBsplineHighLearningRate = 500;
-  
+
+  int optTranslationNumberOfIterations = 500;
   int optAffineNumberOfIterations = 10000;
   int optBsplineNumberOfIterations = 10000;
   int optBsplineHighNumberOfIterations = 10000;
@@ -298,7 +306,7 @@ int main( int argc, char *argv[] )
   string useBsplineHigh("off");
 
   //Get the command line arguments
-  if( getCommandLine(argc,argv, fileNames, inputFolder, outputFolder, optimizerType, multiLevelAffine, multiLevelBspline, multiLevelBsplineHigh, optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate, optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations, numberOfSpatialSamplesAffinePercentage, numberOfSpatialSamplesBsplinePercentage, numberOfSpatialSamplesBsplineHighPercentage, bsplineInitialGridSize, numberOfBsplineLevel, transformType, imageType, metricType, useBspline, useBsplineHigh  ) )
+  if( getCommandLine(argc,argv, fileNames, inputFolder, outputFolder, optimizerType, multiLevelAffine, multiLevelBspline, multiLevelBsplineHigh, optTranslationLearningRate, optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate, optTranslationNumberOfIterations, optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations, numberOfSpatialSamplesAffinePercentage, numberOfSpatialSamplesBsplinePercentage, numberOfSpatialSamplesBsplineHighPercentage, bsplineInitialGridSize, numberOfBsplineLevel, transformType, imageType, metricType, useBspline, useBsplineHigh  ) )
     return 1;
   
 
@@ -314,6 +322,7 @@ int main( int argc, char *argv[] )
 
 
 
+  typedef itk::TranslationTransform< ScalarType, Dimension > TranslationTransformType;
   typedef itk::AffineTransform< ScalarType, Dimension > TransformType;
 
 
@@ -377,10 +386,14 @@ int main( int argc, char *argv[] )
     optimizer     = OptimizerType::New();
     registration->SetOptimizer(     optimizer     );
   }
+  
+  //typedefs for translation transform array
+  typedef vector<TranslationTransformType::Pointer> TranslationTransformArrayType;
+  TranslationTransformArrayType      translationTransformArray(N);
 
   //typedefs for affine transform array
   typedef vector<TransformType::Pointer> TransformArrayType;
-  TransformArrayType      transformArray(N);
+  TransformArrayType      affineTransformArray(N);
 
   //typedefs for intorpolater array
   typedef vector<InterpolatorType::Pointer>  InterpolatorArrayType;
@@ -434,9 +447,9 @@ int main( int argc, char *argv[] )
     for( int i=0; i< N; i++ )
     {
       ImageReaderType::Pointer imageReader;
-      transformArray[i]     = TransformType::New();
+      translationTransformArray[i] = TranslationTransformType::New();
       interpolatorArray[i]  = InterpolatorType::New();
-      registration->SetTransformArray(     transformArray[i] ,i    );
+      registration->SetTransformArray(     translationTransformArray[i] ,i    );
       registration->SetInterpolatorArray(     interpolatorArray[i] ,i    );
 
       if(imageType == "DICOM")
@@ -508,47 +521,16 @@ int main( int argc, char *argv[] )
   // Allocate the space for tranform parameters used by registration method
   // We use a large array to concatenate the parameter array of each tranform
   typedef RegistrationType::ParametersType ParametersType;
-  ParametersType initialParameters( transformArray[0]->GetNumberOfParameters()*N );
+  ParametersType initialParameters( translationTransformArray[0]->GetNumberOfParameters()*N );
   initialParameters.Fill(0.0);
   registration->SetInitialTransformParameters( initialParameters );
-
-  //Initialize the affine transforms to identity transform
-  for(int i=0; i<N; i++)
-  {
-    transformArray[i]->SetIdentity();
-    TransformType::InputPointType center;
-    // Get spacing, origin and size of the images
-    ImageType::SpacingType spacing = imagePyramidArray[0]->GetOutput(0)->GetSpacing();
-    itk::Point<double, Dimension> origin = imagePyramidArray[0]->GetOutput(0)->GetOrigin();
-    ImageType::SizeType size = imagePyramidArray[0]->GetOutput(0)->GetLargestPossibleRegion().GetSize();
-
-    // Place the center of rotation to the center of the image
-    for(int j=0; j< Dimension; j++)
-    {
-      center[j] = origin[j] + spacing[j]*size[j] / 2.0;
-    }
-    transformArray[i]->SetIdentity();
-    transformArray[i]->SetCenter(center);
-    registration->SetInitialTransformParameters( transformArray[i]->GetParameters(),i );
-  }
 
 
   // Set the scales of the optimizer
   // We set a large scale for the parameters corresponding to translation
   typedef OptimizerType::ScalesType       OptimizerScalesType;
-  OptimizerScalesType optimizerScales( transformArray[0]->GetNumberOfParameters()*N );
-  int numberOfParameters = transformArray[0]->GetNumberOfParameters();
-  for( int i=0; i<N; i++)
-  {
-    for( int j=0; j<Dimension*Dimension; j++ )
-    {
-      optimizerScales[i*numberOfParameters + j] = 1.0; // scale for indices in 2x2 (3x3) Matrix
-    }
-    for(int j=Dimension*Dimension; j<Dimension+Dimension*Dimension; j++)
-    {
-      optimizerScales[i*numberOfParameters + j] = 1.0 / 10000.0; // scale for translation on X,Y,Z
-    }
-  }
+  OptimizerScalesType optimizerScales( translationTransformArray[0]->GetNumberOfParameters()*N );
+  optimizerScales.Fill(1.0);
 
 
   // Get the number of pixels (voxels) in the images
@@ -579,9 +561,9 @@ int main( int argc, char *argv[] )
   // Set the optimizer parameters
   if(optimizerType == "FRPR")
   {
-    FRPRoptimizer->SetStepLength(optAffineLearningRate);
+    FRPRoptimizer->SetStepLength(optTranslationLearningRate);
     FRPRoptimizer->SetMaximize(false);
-    FRPRoptimizer->SetMaximumIteration( optAffineNumberOfIterations );
+    FRPRoptimizer->SetMaximumIteration( optTranslationNumberOfIterations );
     FRPRoptimizer->SetMaximumLineIteration( 10 );
     FRPRoptimizer->SetScales( optimizerScales );
     FRPRoptimizer->SetToPolakRibiere();
@@ -589,16 +571,16 @@ int main( int argc, char *argv[] )
   }
   else if(optimizerType == "lineSearch")
   {
-    lineSearchOptimizer->SetStepLength(optAffineLearningRate);
+    lineSearchOptimizer->SetStepLength(optTranslationLearningRate);
     lineSearchOptimizer->SetMaximize(false);
-    lineSearchOptimizer->SetMaximumIteration( optAffineNumberOfIterations );
+    lineSearchOptimizer->SetMaximumIteration( optTranslationNumberOfIterations );
     lineSearchOptimizer->SetMaximumLineIteration( 10 );
     lineSearchOptimizer->SetScales( optimizerScales );
   } 
   else
   {
-    optimizer->SetLearningRate( optAffineLearningRate );
-    optimizer->SetNumberOfIterations( optAffineNumberOfIterations );
+    optimizer->SetLearningRate( optTranslationLearningRate );
+    optimizer->SetNumberOfIterations( optTranslationNumberOfIterations );
     optimizer->MaximizeOff();
     optimizer->SetScales( optimizerScales );
     // Create the Command observer and register it with the optimizer.
@@ -616,13 +598,13 @@ int main( int argc, char *argv[] )
   // Set the number of multiresolution levels
   registration->SetNumberOfLevels( multiLevelAffine );
 
-  std::cout << "Starting Registration with Affine Transform " << std::endl;
+  std::cout << "Starting Registration with Translation Transform " << std::endl;
 
   // Add probe to count the time used by the registration
   itk::TimeProbesCollectorBase collector;
 
 
-  // Start registration
+  // Start registration with translation transform
   try 
   {
     collector.Start( "Registration" );
@@ -635,6 +617,116 @@ int main( int argc, char *argv[] )
     return -1;
   }
 
+
+  
+  // Continue with affine transform using the results of the translation transform
+  //
+  //Get the latest parameters from the registration
+  ParametersType translationParameters = registration->GetLastTransformParameters();
+  
+  std::cout << "Starting Registration with Affine Transform " << std::endl;
+  for(int i=0; i<N; i++)
+  {
+    affineTransformArray[i]     = TransformType::New();
+    registration->SetTransformArray(     affineTransformArray[i] ,i    );
+  }
+
+  // Allocate the space for tranform parameters used by registration method
+  // We use a large array to concatenate the parameter array of each tranform
+  ParametersType initialAffineParameters( affineTransformArray[0]->GetNumberOfParameters()*N );
+  initialAffineParameters.Fill(0.0);
+  registration->SetInitialTransformParameters( initialAffineParameters );
+  
+  int numberOfParameters = affineTransformArray[0]->GetNumberOfParameters();
+
+  //Initialize the affine transforms to identity transform
+  // And use the results of the translation transform
+  for(int i=0; i<N; i++)
+  {
+    affineTransformArray[i]->SetIdentity();
+    TransformType::InputPointType center;
+    // Get spacing, origin and size of the images
+    ImageType::SpacingType spacing = imagePyramidArray[i]->GetOutput(0)->GetSpacing();
+    itk::Point<double, Dimension> origin = imagePyramidArray[i]->GetOutput(0)->GetOrigin();
+    ImageType::SizeType size = imagePyramidArray[i]->GetOutput(0)->GetLargestPossibleRegion().GetSize();
+
+    // Place the center of rotation to the center of the image
+    for(int j=0; j< Dimension; j++)
+    {
+      center[j] = origin[j] + spacing[j]*size[j] / 2.0;
+    }
+    affineTransformArray[i]->SetCenter(center);
+
+    //Initialize the translation parameters using the results of the tranlation transform
+    ParametersType affineParameters = affineTransformArray[i]->GetParameters();
+    for(int j=Dimension*Dimension; j<Dimension+Dimension*Dimension; j++)
+    {
+      affineParameters[j] = translationParameters[i*Dimension + j-Dimension*Dimension]; // scale for translation on X,Y,Z
+    }
+    affineTransformArray[i]->SetParametersByValue(affineParameters);
+
+    registration->SetInitialTransformParameters( affineTransformArray[i]->GetParameters(),i );
+  }
+
+  // Set the scales of the optimizer
+  // We set a large scale for the parameters corresponding to translation
+  OptimizerScalesType optimizerAffineScales( affineTransformArray[0]->GetNumberOfParameters()*N );
+  optimizerAffineScales.Fill(1.0);
+  for( int i=0; i<N; i++)
+  {
+    for( int j=0; j<Dimension*Dimension; j++ )
+    {
+      optimizerAffineScales[i*numberOfParameters + j] = 1.0; // scale for indices in 2x2 (3x3) Matrix
+    }
+    for(int j=Dimension*Dimension; j<Dimension+Dimension*Dimension; j++)
+    {
+      optimizerAffineScales[i*numberOfParameters + j] = 1.0 ; // scale for translation on X,Y,Z
+    }
+  }
+
+  // Set the optimizer parameters
+  if(optimizerType == "FRPR")
+  {
+    FRPRoptimizer->SetStepLength(optAffineLearningRate);
+    FRPRoptimizer->SetMaximize(false);
+    FRPRoptimizer->SetMaximumIteration( optAffineNumberOfIterations );
+    FRPRoptimizer->SetMaximumLineIteration( 10 );
+    FRPRoptimizer->SetScales( optimizerAffineScales );
+    FRPRoptimizer->SetToPolakRibiere();
+    //FRPRoptimizer->SetToFletchReeves();
+  }
+  else if(optimizerType == "lineSearch")
+  {
+    lineSearchOptimizer->SetStepLength(optAffineLearningRate);
+    lineSearchOptimizer->SetMaximize(false);
+    lineSearchOptimizer->SetMaximumIteration( optAffineNumberOfIterations );
+    lineSearchOptimizer->SetMaximumLineIteration( 10 );
+    lineSearchOptimizer->SetScales( optimizerAffineScales );
+  }
+  else
+  {
+    optimizer->SetLearningRate( optAffineLearningRate );
+    optimizer->SetNumberOfIterations( optAffineNumberOfIterations );
+    optimizer->MaximizeOff();
+    optimizer->SetScales( optimizerAffineScales );
+    // Create the Command observer and register it with the optimizer.
+    CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+    //optimizer->AddObserver( itk::IterationEvent(), observer );
+  }
+
+  // Start registration with Affine Transform
+  try
+  {
+    registration->StartRegistration();
+  }
+  catch( itk::ExceptionObject & err )
+  {
+    std::cout << "ExceptionObject caught !" << std::endl;
+    std::cout << err << std::endl;
+    return -1;
+  }
+
+  
   //Print out the metric values for translation parameters
   if( metricPrint == "on")
   {
@@ -700,16 +792,16 @@ int main( int argc, char *argv[] )
 
     // Get the latest transform parameters of affine transfom
     ParametersType affineParameters = registration->GetLastTransformParameters();
-    ParametersType affineCurrentParameters(transformArray[0]->GetNumberOfParameters());
+    ParametersType affineCurrentParameters(affineTransformArray[0]->GetNumberOfParameters());
   
     // Update the affine transform parameters
     for( int i=0; i<N; i++)
     {
-      for(int j=0; j<transformArray[0]->GetNumberOfParameters(); j++)
+      for(int j=0; j<affineTransformArray[0]->GetNumberOfParameters(); j++)
       {
-        affineCurrentParameters[j]=affineParameters[i*transformArray[0]->GetNumberOfParameters()+j];
+        affineCurrentParameters[j]=affineParameters[i*affineTransformArray[0]->GetNumberOfParameters()+j];
       }
-      transformArray[i]->SetParametersByValue(affineCurrentParameters);
+      affineTransformArray[i]->SetParametersByValue(affineCurrentParameters);
     }
 
     // Initialize the size of the parameters array
@@ -785,7 +877,7 @@ int main( int argc, char *argv[] )
         bsplineParametersArrayLow[i].Fill( 0.0 );
 
         // Set the affine tranform and initial paramters of Bsplines
-        bsplineTransformArrayLow[i]->SetBulkTransform(transformArray[i]);
+        bsplineTransformArrayLow[i]->SetBulkTransform(affineTransformArray[i]);
         bsplineTransformArrayLow[i]->SetParameters( bsplineParametersArrayLow[i] );
 
         // register Bspline pointers with the registration method
@@ -1153,7 +1245,7 @@ int main( int argc, char *argv[] )
   }
   else
   {
-    numberOfParameters = transformArray[0]->GetNumberOfParameters();
+    numberOfParameters = affineTransformArray[0]->GetNumberOfParameters();
   }
   ParametersType currentParameters(numberOfParameters);
   ParametersType currentParameters2(numberOfParameters);
@@ -1170,17 +1262,17 @@ int main( int argc, char *argv[] )
 
     if(useBsplineHigh == "on")
     {
-      bsplineTransformArrayHigh[i]->SetBulkTransform( transformArray[i] );
+      bsplineTransformArrayHigh[i]->SetBulkTransform( affineTransformArray[i] );
       bsplineTransformArrayHigh[i]->SetParametersByValue( currentParameters );
     }
     else if (useBspline == "on")
     {
-      bsplineTransformArrayLow[i]->SetBulkTransform( transformArray[i] );
+      bsplineTransformArrayLow[i]->SetBulkTransform( affineTransformArray[i] );
       bsplineTransformArrayLow[i]->SetParametersByValue( currentParameters );
     }
     else
     {
-      transformArray[i]->SetParametersByValue( currentParameters );
+      affineTransformArray[i]->SetParametersByValue( currentParameters );
     }
 
   }
@@ -1200,7 +1292,7 @@ int main( int argc, char *argv[] )
     }
     else
     {
-      resample->SetTransform( transformArray[i] );
+      resample->SetTransform( affineTransformArray[i] );
     }
 
     
@@ -1283,7 +1375,7 @@ int main( int argc, char *argv[] )
   }
   else
   {
-    resample->SetTransform( transformArray[0] );
+    resample->SetTransform( affineTransformArray[0] );
   }
 
   if( imageType == "DICOM")
@@ -1324,7 +1416,7 @@ int main( int argc, char *argv[] )
   }
   else
   {
-    resample2->SetTransform( transformArray[1] );
+    resample2->SetTransform( affineTransformArray[1] );
   }
 
   if( imageType == "DICOM")
@@ -1369,7 +1461,7 @@ int main( int argc, char *argv[] )
     }
     else
     {
-      resample->SetTransform( transformArray[i] );
+      resample->SetTransform( affineTransformArray[i] );
     }
 
     if( imageType == "DICOM")
@@ -1502,8 +1594,8 @@ int main( int argc, char *argv[] )
 
 int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType,
                           int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh,
-                          double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate,
-                          int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
+                          double& optTranslationLearningRate, double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate,
+                          int& optTranslationNumberOfIterations, int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
                           double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
                           string& transformType, string& imageType,string& metricType,
@@ -1537,7 +1629,9 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
       multiLevelBspline = atoi(argv[++i]);
     else if (dummy == "-multiLevelBsplineHigh")
       multiLevelBsplineHigh = atoi(argv[++i]);
-
+    
+    else if (dummy == "-optTranslationLearningRate")
+      optTranslationLearningRate = atof(argv[++i]);
     else if (dummy == "-optAffineLearningRate")
       optAffineLearningRate = atof(argv[++i]);
     else if (dummy == "-optBsplineLearningRate")
@@ -1545,6 +1639,8 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
     else if (dummy == "-optBsplineHighLearningrate")
       optBsplineHighLearningRate = atof(argv[++i]);
 
+    else if (dummy == "-optTranslationNumberOfIterations")
+      optTranslationNumberOfIterations = atoi(argv[++i]);
     else if (dummy == "-optAffineNumberOfIterations")
       optAffineNumberOfIterations = atoi(argv[++i]);
     else if (dummy == "-optBsplineNumberOfIterations")
