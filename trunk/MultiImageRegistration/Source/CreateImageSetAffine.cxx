@@ -30,6 +30,9 @@
     
 #include <string>
 #include <sstream>
+
+#include <itksys/SystemTools.hxx>
+
 using namespace std;
 
 int main( int argc, char * argv[] )
@@ -58,8 +61,11 @@ int main( int argc, char * argv[] )
   
   GeneratorType::Pointer generator = GeneratorType::New();
   generator->Initialize(981645);
+
+  //Create the output folder
+  itksys::SystemTools::MakeDirectory( argv[2] );
   
-  for(int i=0; i<3 ; i++)
+  for(int i=0; i<30 ; i++)
   {
 
     ReaderType::Pointer reader = ReaderType::New();
@@ -89,7 +95,7 @@ int main( int argc, char * argv[] )
     IteratorType it( reader->GetOutput(), reader->GetOutput()->GetLargestPossibleRegion());
     for ( it.GoToBegin(); !it.IsAtEnd(); ++it )
     {
-      it.Set( abs( it.Get() + static_cast<int>(generator->GetVariate()*Sigma) ) );
+      //it.Set( abs( it.Get() + static_cast<int>(generator->GetVariate()*Sigma) ) );
     }
     
     // Set the parameters of the affine transform
@@ -110,7 +116,8 @@ int main( int argc, char * argv[] )
     affineTransform->SetCenter(center);
     AffineTransformType::ParametersType affineParameters;
     affineParameters = affineTransform->GetParameters();
-    
+
+    /*
     if(i==1)
     {
       if(Dimension == 2)
@@ -175,6 +182,23 @@ int main( int argc, char * argv[] )
         affineParameters[11] = -5;
       }
     }
+    */
+    affineParameters[0] = 1.0 + (rand()%100/100.0 - 0.5)*0.035;
+    affineParameters[1] = (rand()%100/100.0 - 0.5)*0.2;
+    affineParameters[2] = (rand()%100/100.0 - 0.5)*0.15;
+      
+    affineParameters[3] = (rand()%100/100.0 - 0.5)*0.2;
+    affineParameters[4] = 1.0 + (rand()%100/100.0 - 0.5)*0.035;
+    affineParameters[5] = (rand()%100/100.0 - 0.5)*0.2;
+      
+    affineParameters[6] = (rand()%100/100.0 - 0.5)*0.15;
+    affineParameters[7] = (rand()%100/100.0 - 0.5)*0.2;
+    affineParameters[8] = 1.0 + (rand()%100/100.0 - 0.5)*0.035;
+      
+    affineParameters[9] = (rand()%100/100.0 - 0.5)*10.0;
+    affineParameters[10] = (rand()%100/100.0 - 0.5)*10.0;
+    affineParameters[11] = (rand()%100/100.0 - 0.5)*10.0;
+    
     affineTransform->SetParameters(affineParameters);
       
     // Initialize the resampler
@@ -183,20 +207,20 @@ int main( int argc, char * argv[] )
     // Increase the size by 10 pixels (voxels)
     for(int r=0; r<Dimension; r++)
     {
-      size[r] += 9;
+      size[r] += 6;
     }
       
 
     // Move the origin 5 spaces
     for(int r=0; r<Dimension; r++ )
     {
-      origin[r] -= 5*spacing[r];
+      origin[r] -= 3*spacing[r];
     }
     resample->SetSize(size);
     resample->SetOutputOrigin(origin);
     resample->SetOutputSpacing(spacing);
-    resample->SetDefaultPixelValue( 0 );
-    
+    resample->SetDefaultPixelValue( 100 );
+    resample->SetOutputDirection( reader->GetOutput()->GetDirection());
     resample->SetInput( reader->GetOutput() );
     writer->SetInput( resample->GetOutput() );
       
