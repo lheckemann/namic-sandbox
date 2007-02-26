@@ -117,20 +117,7 @@ GradientDescentLineSearchOptimizer
     fret = fp;
     this->LineOptimize(&p, xi, &fret);
 
-    if ( 2.0 * vcl_abs(fret - fp) <= 
-      this->GetValueTolerance() * (vcl_abs(fret)+ vcl_abs(fp) + FRPR_TINY) )
-    {
-
-      this->SetCurrentPosition(p);
-      this->InvokeEvent( EndEvent() );
-      return;
-
-    }
-    else
-      {
-      this->GetValueAndDerivative(p, &fp, &xi);
-      }
-      
+    this->GetValueAndDerivative(p, &fp, &xi);
 
     this->SetCurrentPosition(p);
     this->InvokeEvent( IterationEvent() );
