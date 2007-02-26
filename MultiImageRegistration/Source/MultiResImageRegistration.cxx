@@ -525,7 +525,7 @@ int main( int argc, char *argv[] )
     // Place the center of rotation to the center of the image
     for(int j=0; j< Dimension; j++)
     {
-      center[j] = (origin[j] + spacing[j]*size[j]) / 2.0;
+      center[j] = origin[j] + spacing[j]*size[j] / 2.0;
     }
     transformArray[i]->SetIdentity();
     transformArray[i]->SetCenter(center);
@@ -582,7 +582,7 @@ int main( int argc, char *argv[] )
     FRPRoptimizer->SetStepLength(optAffineLearningRate);
     FRPRoptimizer->SetMaximize(false);
     FRPRoptimizer->SetMaximumIteration( optAffineNumberOfIterations );
-    FRPRoptimizer->SetMaximumLineIteration( 5 );
+    FRPRoptimizer->SetMaximumLineIteration( 7 );
     FRPRoptimizer->SetScales( optimizerScales );
     FRPRoptimizer->SetToPolakRibiere();
     //FRPRoptimizer->SetToFletchReeves();
@@ -592,7 +592,7 @@ int main( int argc, char *argv[] )
     lineSearchOptimizer->SetStepLength(optAffineLearningRate);
     lineSearchOptimizer->SetMaximize(false);
     lineSearchOptimizer->SetMaximumIteration( optAffineNumberOfIterations );
-    lineSearchOptimizer->SetMaximumLineIteration( 5 );
+    lineSearchOptimizer->SetMaximumLineIteration( 7 );
     lineSearchOptimizer->SetScales( optimizerScales );
   } 
   else
