@@ -582,7 +582,7 @@ int main( int argc, char *argv[] )
     FRPRoptimizer->SetStepLength(optAffineLearningRate);
     FRPRoptimizer->SetMaximize(false);
     FRPRoptimizer->SetMaximumIteration( optAffineNumberOfIterations );
-    //FRPRoptimizer->SetMaximumLineIteration( 7 );
+    FRPRoptimizer->SetMaximumLineIteration( 10 );
     FRPRoptimizer->SetScales( optimizerScales );
     FRPRoptimizer->SetToPolakRibiere();
     //FRPRoptimizer->SetToFletchReeves();
@@ -592,7 +592,7 @@ int main( int argc, char *argv[] )
     lineSearchOptimizer->SetStepLength(optAffineLearningRate);
     lineSearchOptimizer->SetMaximize(false);
     lineSearchOptimizer->SetMaximumIteration( optAffineNumberOfIterations );
-    //lineSearchOptimizer->SetMaximumLineIteration( 7 );
+    lineSearchOptimizer->SetMaximumLineIteration( 10 );
     lineSearchOptimizer->SetScales( optimizerScales );
   } 
   else
