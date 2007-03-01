@@ -31,8 +31,8 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   this->m_Aqr=NULL;
   this->m_W=NULL;
   this->m_LikelihoodCache = NULL;
-  this->SetMaxLikelihoodCacheSize( 524288 );  //arbitrary
-  this->SetCurrentLikelihoodCacheSize( 0 ); 
+  this->SetMaxLikelihoodCacheSize( 125000000 );  //very big arbitrary number
+  this->m_CurrentLikelihoodCacheSize = 0; 
 } 
 
 template< class TInputDWIImage, class TOutputConnectivityImage >
@@ -394,6 +394,9 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
         this->CalculatePosterior( likelihood_curr, prior_curr, posterior_curr);
         this->SampleTractOrientation(randomgenerator, posterior_curr,
                           this->GetSampleDirections(), v_curr);
+        this->m_CurrentLikelihoodCacheSize++;
+        std::cout<<"CurrentLikelihoodCacheSize: " << 
+          this->GetCurrentLikelihoodCacheSize()<<std::endl;
       }
       else{
         //calculate the next direction here but don't store it
