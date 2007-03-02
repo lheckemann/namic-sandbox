@@ -275,7 +275,7 @@ GetValue(const ParametersType & parameters) const
     measure += squareSum - meanSum * meanSum;
   }        // end of sample loop
   
-  measure /= -1.0 * static_cast<double>(m_NumberOfSpatialSamples);
+  measure /= static_cast<double>(m_NumberOfSpatialSamples);
 
   cout << measure << endl;
   return measure;

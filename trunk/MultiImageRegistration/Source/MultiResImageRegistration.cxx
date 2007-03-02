@@ -111,7 +111,7 @@ protected:
   CommandIterationUpdate(): m_CumulativeIterationIndex(0) {};
 public:
   //typedef   itk::GradientDescentOptimizer     OptimizerType;
-  typedef itk::FRPROptimizer                  OptimizerType;
+  typedef   itk::FRPROptimizer                  OptimizerType;
   typedef   const OptimizerType   *           OptimizerPointer;
 
   void Execute(itk::Object *caller, const itk::EventObject & event)
@@ -156,6 +156,12 @@ public:
   typedef  itk::SmartPointer<Self>        Pointer;
   itkNewMacro( Self );
 
+  //Set-Get methods to change between the scales
+  itkSetMacro(MultiScaleSamplePercentageIncrease, double);
+  itkSetMacro(MultiScaleMaximumIterationIncrease, double);
+  itkSetMacro(MultiScaleStepLengthIncrease, double);
+
+
 public:
   typedef   TRegistration                              RegistrationType;
   typedef   RegistrationType *                         RegistrationPointer;
@@ -197,17 +203,40 @@ public:
         VarianceMetricPointer  varianceMetric = dynamic_cast< VarianceMetricPointer>
                                                               (registration->GetMetric());
         varianceMetric->SetNumberOfSpatialSamples((unsigned int) (varianceMetric->GetNumberOfSpatialSamples() /
-                        pow( 2.0, (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
+                        pow( pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease, (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
       }
       else if(!strcmp(metric->GetNameOfClass(), "ParzenWindowEntropyMultiImageMetric") )
       {
         EntropyMetricPointer  entropyMetric = dynamic_cast< EntropyMetricPointer>
                                                             (registration->GetMetric());
         entropyMetric->SetNumberOfSpatialSamples((unsigned int) (entropyMetric->GetNumberOfSpatialSamples() /
-                                  pow( 2.0, (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
-
+                                  pow( pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease, (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
+      }
+      
+      
+      if(  !strcmp(optimizer->GetNameOfClass(), "GradientDescentOptimizer" ) )
+      {
+        GradientOptimizerPointer gradientPointer = dynamic_cast< GradientOptimizerPointer >(
+            registration->GetOptimizer() );
+        gradientPointer->SetNumberOfIterations( (int)( gradientPointer->GetNumberOfIterations()*pow(m_MultiScaleMaximumIterationIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) ));
+        gradientPointer->SetLearningRate( gradientPointer->GetLearningRate()*pow(m_MultiScaleStepLengthIncrease,(double) (registration->GetNumberOfLevels() - 1.0) )  );
+      }
+      else if(!strcmp(optimizer->GetNameOfClass(), "FRPROptimizer") )
+      {
+        FRPROptimizerPointer FRPRPointer = dynamic_cast< FRPROptimizerPointer >(
+            registration->GetOptimizer() );
+        FRPRPointer->SetMaximumIteration( (int)(FRPRPointer->GetMaximumIteration()*pow(m_MultiScaleMaximumIterationIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) ));
+        FRPRPointer->SetStepLength( FRPRPointer->GetStepLength()*pow(m_MultiScaleStepLengthIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ));
+      }
+      else if(!strcmp(optimizer->GetNameOfClass(), "GradientDescentLineSearchOptimizer") )
+      {
+        LineSearchOptimizerPointer lineSearchOptimizerPointer = dynamic_cast< LineSearchOptimizerPointer >(
+            registration->GetOptimizer() );
+        lineSearchOptimizerPointer->SetMaximumIteration((int)(lineSearchOptimizerPointer->GetMaximumIteration()*pow(m_MultiScaleMaximumIterationIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) ));
+        lineSearchOptimizerPointer->SetStepLength(lineSearchOptimizerPointer->GetStepLength()*pow(m_MultiScaleStepLengthIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) );
       }
 
+      
     }
     else
     {
@@ -217,14 +246,14 @@ public:
         VarianceMetricPointer  varianceMetric = dynamic_cast< VarianceMetricPointer>
             (registration->GetMetric());
         varianceMetric->SetNumberOfSpatialSamples((unsigned int) (varianceMetric->GetNumberOfSpatialSamples() *
-                                                        2.0 ) );
+                                                        pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease ) );
       }
       else if(!strcmp(metric->GetNameOfClass(), "ParzenWindowEntropyMultiImageMetric") )
       {
         EntropyMetricPointer  entropyMetric = dynamic_cast< EntropyMetricPointer>
             (registration->GetMetric());
         entropyMetric->SetNumberOfSpatialSamples((unsigned int) (entropyMetric->GetNumberOfSpatialSamples() *
-                                                        2.0 ) );
+                                                        pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease ) );
       }
 
       // Decrease the learning rate at each increasing multiresolution level
@@ -233,21 +262,22 @@ public:
       {
         GradientOptimizerPointer gradientPointer = dynamic_cast< GradientOptimizerPointer >(
                                                                  registration->GetOptimizer() );
-        gradientPointer->SetNumberOfIterations( gradientPointer->GetNumberOfIterations()*2 );
-        gradientPointer->SetLearningRate( gradientPointer->GetLearningRate()  );
+        gradientPointer->SetNumberOfIterations((int) (gradientPointer->GetNumberOfIterations()/m_MultiScaleMaximumIterationIncrease ));
+        gradientPointer->SetLearningRate( gradientPointer->GetLearningRate()/m_MultiScaleStepLengthIncrease  );
       }
       else if(!strcmp(optimizer->GetNameOfClass(), "FRPROptimizer") )
       {
         FRPROptimizerPointer FRPRPointer = dynamic_cast< FRPROptimizerPointer >(
                                                          registration->GetOptimizer() );
-        FRPRPointer->SetMaximumIteration( FRPRPointer->GetMaximumIteration()*2 );
+        FRPRPointer->SetMaximumIteration( (int)(FRPRPointer->GetMaximumIteration()/m_MultiScaleMaximumIterationIncrease ));
+        FRPRPointer->SetStepLength( FRPRPointer->GetStepLength()/m_MultiScaleStepLengthIncrease);
       }
       else if(!strcmp(optimizer->GetNameOfClass(), "GradientDescentLineSearchOptimizer") )
       {
         LineSearchOptimizerPointer lineSearchOptimizerPointer = dynamic_cast< LineSearchOptimizerPointer >(
             registration->GetOptimizer() );
-        lineSearchOptimizerPointer->SetMaximumIteration( lineSearchOptimizerPointer->GetMaximumIteration()*2 );
-        lineSearchOptimizerPointer->SetStepLength(lineSearchOptimizerPointer->GetStepLength() );
+        lineSearchOptimizerPointer->SetMaximumIteration((int)(lineSearchOptimizerPointer->GetMaximumIteration()/m_MultiScaleMaximumIterationIncrease ));
+        lineSearchOptimizerPointer->SetStepLength(lineSearchOptimizerPointer->GetStepLength()/m_MultiScaleStepLengthIncrease );
       }
 
     }
@@ -256,14 +286,26 @@ public:
     { return; }
   
   protected:
+    //Constructor initialize the variables
     RegistrationInterfaceCommand()
     {
+      m_MultiScaleSamplePercentageIncrease = 1;
+      m_MultiScaleMaximumIterationIncrease = 1;
+      m_MultiScaleStepLengthIncrease = 1;
     };
+  private:
+    double m_MultiScaleSamplePercentageIncrease;
+    double m_MultiScaleMaximumIterationIncrease;
+    double m_MultiScaleStepLengthIncrease;
+    
 
 };
 
 // Get the command line arguments
-int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType, int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh, double& optTranslationLearningRate, double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate, int& optTranslationNumberOfIterations, int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,  int& bsplineInitialGridSize,  int& numberOfBsplineLevel, string& transformType, string& imageType,string& metricType, string& useBspline, string& useBsplineHigh  );
+int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType, int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh, double& optTranslationLearningRate, double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate, int& optTranslationNumberOfIterations, int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,  int& bsplineInitialGridSize,  int& numberOfBsplineLevel, string& transformType, string& imageType,string& metricType, string& useBspline, string& useBsplineHigh,
+                   double& translationMultiScaleSamplePercentageIncrease, double& affineMultiScaleSamplePercentageIncrease, double& bsplineMultiScaleSamplePercentageIncrease,
+                   double& translationMultiScaleMaximumIterationIncrease, double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
+                   double& translationMultiScaleStepLengthIncrease, double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease  );
 
 
 int main( int argc, char *argv[] )
@@ -297,6 +339,19 @@ int main( int argc, char *argv[] )
   double numberOfSpatialSamplesBsplinePercentage = 0.01;
   double numberOfSpatialSamplesBsplineHighPercentage = 0.01;
 
+  double translationMultiScaleSamplePercentageIncrease = 4.0;
+  double affineMultiScaleSamplePercentageIncrease = 4.0;
+  double bsplineMultiScaleSamplePercentageIncrease = 4.0;
+  
+  double translationMultiScaleMaximumIterationIncrease = 1.0;
+  double affineMultiScaleMaximumIterationIncrease = 1.0;
+  double bsplineMultiScaleMaximumIterationIncrease = 1.0;
+
+  
+  double translationMultiScaleStepLengthIncrease = 1.0;
+  double affineMultiScaleStepLengthIncrease = 1.0;
+  double bsplineMultiScaleStepLengthIncrease = 1.0;
+
   
   int bsplineInitialGridSize = 5;
   int numberOfBsplineLevel = 1;
@@ -306,7 +361,7 @@ int main( int argc, char *argv[] )
   string useBsplineHigh("off");
 
   //Get the command line arguments
-  if( getCommandLine(argc,argv, fileNames, inputFolder, outputFolder, optimizerType, multiLevelAffine, multiLevelBspline, multiLevelBsplineHigh, optTranslationLearningRate, optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate, optTranslationNumberOfIterations, optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations, numberOfSpatialSamplesAffinePercentage, numberOfSpatialSamplesBsplinePercentage, numberOfSpatialSamplesBsplineHighPercentage, bsplineInitialGridSize, numberOfBsplineLevel, transformType, imageType, metricType, useBspline, useBsplineHigh  ) )
+  if( getCommandLine(argc,argv, fileNames, inputFolder, outputFolder, optimizerType, multiLevelAffine, multiLevelBspline, multiLevelBsplineHigh, optTranslationLearningRate, optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate, optTranslationNumberOfIterations, optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations, numberOfSpatialSamplesAffinePercentage, numberOfSpatialSamplesBsplinePercentage, numberOfSpatialSamplesBsplineHighPercentage, bsplineInitialGridSize, numberOfBsplineLevel, transformType, imageType, metricType, useBspline, useBsplineHigh, translationMultiScaleSamplePercentageIncrease, affineMultiScaleSamplePercentageIncrease, bsplineMultiScaleSamplePercentageIncrease, translationMultiScaleMaximumIterationIncrease, affineMultiScaleMaximumIterationIncrease,  bsplineMultiScaleMaximumIterationIncrease, translationMultiScaleStepLengthIncrease, affineMultiScaleStepLengthIncrease, bsplineMultiScaleStepLengthIncrease   ) )
     return 1;
   
 
@@ -593,6 +648,11 @@ int main( int argc, char *argv[] )
   // Create the Command interface observer and register it with the optimizer.
   typedef RegistrationInterfaceCommand<RegistrationType> CommandType;
   CommandType::Pointer command = CommandType::New();
+  //Set the parameters of the command observer
+  command->SetMultiScaleSamplePercentageIncrease(translationMultiScaleSamplePercentageIncrease);
+  command->SetMultiScaleMaximumIterationIncrease(translationMultiScaleMaximumIterationIncrease);
+  command->SetMultiScaleStepLengthIncrease(translationMultiScaleStepLengthIncrease);
+  
   registration->AddObserver( itk::IterationEvent(), command );
 
   // Set the number of multiresolution levels
@@ -714,6 +774,11 @@ int main( int argc, char *argv[] )
     //optimizer->AddObserver( itk::IterationEvent(), observer );
   }
 
+  //Set the parameters of the command observer
+  command->SetMultiScaleSamplePercentageIncrease(affineMultiScaleSamplePercentageIncrease);
+  command->SetMultiScaleMaximumIterationIncrease(affineMultiScaleMaximumIterationIncrease);
+  command->SetMultiScaleStepLengthIncrease(affineMultiScaleStepLengthIncrease);
+  
   // Start registration with Affine Transform
   try
   {
@@ -931,6 +996,11 @@ int main( int argc, char *argv[] )
     }
 
     registration->SetNumberOfLevels( multiLevelBspline );
+
+    //Set the parameters of the command observer
+    command->SetMultiScaleSamplePercentageIncrease(bsplineMultiScaleSamplePercentageIncrease);
+    command->SetMultiScaleMaximumIterationIncrease(bsplineMultiScaleMaximumIterationIncrease);
+    command->SetMultiScaleStepLengthIncrease(bsplineMultiScaleStepLengthIncrease);
 
     std::cout << "Starting BSpline Registration with low resolution transform: " << std::endl;
     std::cout << "Resolution level " << 0;
@@ -1599,7 +1669,12 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
                           double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
                           string& transformType, string& imageType,string& metricType,
-                          string& useBspline, string& useBsplineHigh  )
+                          string& useBspline, string& useBsplineHigh,
+                          double& translationMultiScaleSamplePercentageIncrease, double& affineMultiScaleSamplePercentageIncrease, double& bsplineMultiScaleSamplePercentageIncrease,
+
+                          double& translationMultiScaleMaximumIterationIncrease, double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
+
+                          double& translationMultiScaleStepLengthIncrease, double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease    )
 {
 
 
@@ -1654,6 +1729,28 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
       numberOfSpatialSamplesBsplinePercentage = atof(argv[++i]);
     else if (dummy == "-numberOfSpatialSamplesBsplineHighPercentage")
       numberOfSpatialSamplesBsplineHighPercentage = atof(argv[++i]);
+
+    else if (dummy == "-translationMultiScaleSamplePercentageIncrease")
+      translationMultiScaleSamplePercentageIncrease = atof(argv[++i]);
+    else if (dummy == "-affineMultiScaleSamplePercentageIncrease")
+      affineMultiScaleSamplePercentageIncrease = atof(argv[++i]);
+    else if (dummy == "-bsplineMultiScaleSamplePercentageIncrease")
+      bsplineMultiScaleSamplePercentageIncrease = atof(argv[++i]);
+    
+
+    else if (dummy == "-translationMultiScaleMaximumIterationIncrease")
+      translationMultiScaleMaximumIterationIncrease = atof(argv[++i]);
+    else if (dummy == "-affineMultiScaleMaximumIterationIncrease")
+      affineMultiScaleMaximumIterationIncrease = atof(argv[++i]);
+    else if (dummy == "-bsplineMultiScaleMaximumIterationIncrease")
+      bsplineMultiScaleMaximumIterationIncrease = atof(argv[++i]);
+
+    else if (dummy == "-translationMultiScaleStepLengthIncrease")
+      translationMultiScaleStepLengthIncrease = atof(argv[++i]);
+    else if (dummy == "-affineMultiScaleStepLengthIncrease")
+      affineMultiScaleStepLengthIncrease = atof(argv[++i]);
+    else if (dummy == "-bsplineMultiScaleStepLengthIncrease")
+      bsplineMultiScaleStepLengthIncrease = atof(argv[++i]);
     
     else if (dummy == "-bsplineInitialGridSize")
       bsplineInitialGridSize = atoi(argv[++i]);
