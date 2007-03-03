@@ -376,7 +376,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
   }
   value /= (MeasureType) (m_Sample.size()*this->m_NumberOfImages);
 
-  cout << value << endl;
+  //cout << value << endl;
   return value;
 }
 
@@ -441,7 +441,7 @@ void
 ParzenWindowEntropyMultiImageMetric < TFixedImage >
 ::BeforeGetThreadedValueAndDerivative(const ParametersType & parameters) const
 {
-  cout << "checking derivative" << endl;
+  //cout << "checking derivative" << endl;
   // collect sample set
   this->SampleFixedImageDomain (m_Sample);
 
@@ -456,7 +456,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
     {
       currentParam[j] = parameters[numberOfParameters * i + j];
     }
-    cout << currentParam << endl;
+    //cout << currentParam << endl;
     this->m_TransformArray[i]->SetParametersByValue (currentParam);
   }
 
