@@ -110,9 +110,16 @@ public:
 protected:
   CommandIterationUpdate(): m_CumulativeIterationIndex(0) {};
 public:
-  //typedef   itk::GradientDescentOptimizer     OptimizerType;
-  typedef   itk::FRPROptimizer                  OptimizerType;
-  typedef   const OptimizerType   *           OptimizerPointer;
+  
+  typedef   itk::SingleValuedNonLinearOptimizer   OptimizerType;
+  typedef   const OptimizerType *                            OptimizerPointer;
+  typedef   itk::GradientDescentOptimizer       GradientOptimizerType;
+  typedef   const GradientOptimizerType *             GradientOptimizerPointer;
+  typedef   itk::FRPROptimizer                  FRPROptimizerType;
+  typedef   const FRPROptimizerType *                 FRPROptimizerPointer;
+  typedef   itk::GradientDescentLineSearchOptimizer LineSearchOptimizerType;
+  typedef   const LineSearchOptimizerType  *          LineSearchOptimizerPointer;
+
 
   void Execute(itk::Object *caller, const itk::EventObject & event)
     {
@@ -127,19 +134,50 @@ public:
         return;
       }
 
-      std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
-      std::cout << std::setw(3) << m_CumulativeIterationIndex++ << "   ";
-      std::cout << std::setw(3) << optimizer->GetCurrentIteration() << "   ";
-      std::cout << std::setw(6) << optimizer->GetValue() << "   ";
-      for(int i=0; i<5; i++)
+      if(  !strcmp(optimizer->GetNameOfClass(), "GradientDescentOptimizer" ) )
       {
-        std::cout << std::setw(6) << optimizer->GetCurrentPosition()[i] << "   ";
-      }
-      std::cout << std::endl;// std::setw(6) << optimizer->GetCurrentPosition()[12] <<std::endl;
+        GradientOptimizerPointer gradientPointer = dynamic_cast< GradientOptimizerPointer >(
+            object );
+        std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
+        std::cout << "Iter " << std::setw(3) << m_CumulativeIterationIndex++ << "   ";
+        std::cout << std::setw(3) << gradientPointer->GetCurrentIteration() << "   ";
+        std::cout << std::setw(6) << gradientPointer->GetValue() << "   ";
       
+      }
+      else if(!strcmp(optimizer->GetNameOfClass(), "FRPROptimizer") )
+      {
+        FRPROptimizerPointer FRPRPointer = dynamic_cast< FRPROptimizerPointer >(
+            object );
+        std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
+        std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex++ << "   ";
+        std::cout << std::setw(3) << FRPRPointer->GetCurrentIteration() << "   ";
+        std::cout << std::setw(6) << FRPRPointer->GetValue() << "   ";
+
+      }
+      else if(!strcmp(optimizer->GetNameOfClass(), "GradientDescentLineSearchOptimizer") )
+      {
+        LineSearchOptimizerPointer lineSearchOptimizerPointer = dynamic_cast< LineSearchOptimizerPointer >( object );
+        std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
+        std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex++ << "   ";
+        std::cout << std::setw(3) << lineSearchOptimizerPointer->GetCurrentIteration() << "   ";
+        std::cout << std::setw(6) << lineSearchOptimizerPointer->GetValue() << "   " << std::endl;
+
+      }
+
+      
+      //std::cout << std::setw(6) << optimizer->GetCurrentPosition()[i] << "   ";
+
+      
+    }
+
+    //Set the filename to write the outputs
+    void SetOutputFileName(string fname)
+    {
+      output.open(fname.c_str());
     }
 private:
   unsigned int m_CumulativeIterationIndex;
+  ofstream output;
 };
 
 
@@ -612,7 +650,11 @@ int main( int argc, char *argv[] )
     entropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
   }
 
-
+  // Create the Command observer and register it with the optimizer.
+  // And set output file name
+  CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+  //observer->SetFilename("iterations.txt");
+  
   // Set the optimizer parameters
   if(optimizerType == "FRPR")
   {
@@ -623,6 +665,7 @@ int main( int argc, char *argv[] )
     FRPRoptimizer->SetScales( optimizerScales );
     FRPRoptimizer->SetToPolakRibiere();
     //FRPRoptimizer->SetToFletchReeves();
+    FRPRoptimizer->AddObserver( itk::IterationEvent(), observer );
   }
   else if(optimizerType == "lineSearch")
   {
@@ -631,6 +674,7 @@ int main( int argc, char *argv[] )
     lineSearchOptimizer->SetMaximumIteration( optTranslationNumberOfIterations );
     lineSearchOptimizer->SetMaximumLineIteration( 10 );
     lineSearchOptimizer->SetScales( optimizerScales );
+    lineSearchOptimizer->AddObserver( itk::IterationEvent(), observer );
   } 
   else
   {
@@ -638,9 +682,7 @@ int main( int argc, char *argv[] )
     optimizer->SetNumberOfIterations( optTranslationNumberOfIterations );
     optimizer->MaximizeOff();
     optimizer->SetScales( optimizerScales );
-    // Create the Command observer and register it with the optimizer.
-    CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
-    //optimizer->AddObserver( itk::IterationEvent(), observer );
+    optimizer->AddObserver( itk::IterationEvent(), observer );
   }
 
 
@@ -769,8 +811,6 @@ int main( int argc, char *argv[] )
     optimizer->SetNumberOfIterations( optAffineNumberOfIterations );
     optimizer->MaximizeOff();
     optimizer->SetScales( optimizerAffineScales );
-    // Create the Command observer and register it with the optimizer.
-    CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
     //optimizer->AddObserver( itk::IterationEvent(), observer );
   }
 
@@ -1262,16 +1302,13 @@ int main( int argc, char *argv[] )
   
   // Print out results
   //
-  std::cout << "Result = " << std::endl;
-  std::cout << " final parameters 0 = " << finalParameters[0]  << std::endl;
-  std::cout << " final parameters 13 = " << finalParameters[13]  << std::endl;
-  std::cout << " Iterations    = " << numberOfIterations << std::endl;
-  std::cout << " Metric value  = " << bestValue          << std::endl;
+  std::cout << "Registration Completed " << std::endl;
+  std::cout << "Time Report " << std::endl;
 
   // Get the time for the registration
   collector.Stop( "Registration" );
-  collector.Report();  
-  
+  collector.Report();
+
 
   // typedefs for output images
   typedef itk::ResampleImageFilter< 
@@ -1322,6 +1359,7 @@ int main( int argc, char *argv[] )
 
 
   // Update last Transform Parameters
+  std::cout << "Resulting parameters " << std::endl;
   for(int i=0; i<N; i++)
   {
     //copy current parameters
@@ -1329,6 +1367,8 @@ int main( int argc, char *argv[] )
     {
       currentParameters[j] = finalParameters[numberOfParameters*i + j];
     }
+    //Print the resulting parameters
+    std::cout << "param: " << currentParameters << std::endl;
 
     if(useBsplineHigh == "on")
     {
