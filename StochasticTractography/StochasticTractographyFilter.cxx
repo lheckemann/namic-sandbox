@@ -79,7 +79,7 @@ int main(int argc, char* argv[]){
   if(argc < 3){
     std::cerr << "Usage: " << argv[0];
     std::cerr<< " DWIFile(.nhdr) ROIFile(.nhdr) ConnectivityFile(.nhdr) ";
-    std::cerr<< "LabelNumber NumberOfTracts MaxTractLength\n";
+    std::cerr<< "LabelNumber NumberOfTracts MaxTractLength MaxLikelihoodCacheSize\n";
     return EXIT_FAILURE;
   }
   char* dwifilename = argv[1];
@@ -88,6 +88,7 @@ int main(int argc, char* argv[]){
   unsigned int labelnumber = atoi(argv[4]);
   unsigned int totaltracts = atoi(argv[5]);
   unsigned int maxtractlength = atoi(argv[6]);
+  unsigned int maxlikelihoodcachesize = atoi(argv[7]);
   
   //read in the DWI image
   DWIVectorImageReaderType::Pointer dwireaderPtr = DWIVectorImageReaderType::New();
