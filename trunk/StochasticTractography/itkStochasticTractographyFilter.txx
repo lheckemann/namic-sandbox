@@ -395,22 +395,31 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
         this->SampleTractOrientation(randomgenerator, posterior_curr,
                           this->GetSampleDirections(), v_curr);
         this->m_CurrentLikelihoodCacheSize++;
-        std::cout<<"CurrentLikelihoodCacheSize: " << 
-          this->GetCurrentLikelihoodCacheSize()<<std::endl;
+        //std::cout<<"CurrentLikelihoodCacheSize: " << 
+          //this->GetCurrentLikelihoodCacheSize()<<std::endl;
       }
       else{
+        std::cout<<"not storing: " << std::endl;
         //calculate the next direction here but don't store it
         ProbabilityDistributionImageType::PixelType likelihood_curr_temp;
+        likelihood_curr_temp.SetSize(this->GetSampleDirections()->Size());
         
         this->CalculateLikelihood(static_cast< DWIVectorImageType::PixelType >(
           dwiimagePtr->GetPixel(index_curr)) + vnl_math::eps,
           this->GetSampleDirections(),
           likelihood_curr_temp);
         this->CalculatePrior( v_prev, this->GetSampleDirections(), prior_curr);
-        this->CalculatePosterior( likelihood_curr, prior_curr, posterior_curr);
+        this->CalculatePosterior( likelihood_curr_temp, prior_curr, posterior_curr);
         this->SampleTractOrientation(randomgenerator, posterior_curr,
                           this->GetSampleDirections(), v_curr);
       }
+    }
+    else{
+      //use the cached direction
+      this->CalculatePrior( v_prev, this->GetSampleDirections(), prior_curr);
+      this->CalculatePosterior( likelihood_curr, prior_curr, posterior_curr);
+      this->SampleTractOrientation(randomgenerator, posterior_curr,
+                          this->GetSampleDirections(), v_curr);
     }
 
     

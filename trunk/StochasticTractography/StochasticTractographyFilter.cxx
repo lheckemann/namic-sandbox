@@ -193,6 +193,7 @@ int main(int argc, char* argv[]){
   ptfilterPtr->SetSampleDirections(directionsPtr);
   ptfilterPtr->SetMaxTractLength( maxtractlength );
   ptfilterPtr->SetTotalTracts( totaltracts );
+  ptfilterPtr->SetMaxLikelihoodCacheSize( maxlikelihoodcachesize );
   
   //Setup the AddImageFilter
   AddImageFilterType::Pointer addimagefilterPtr = AddImageFilterType::New();
