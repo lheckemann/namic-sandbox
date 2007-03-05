@@ -364,7 +364,7 @@ int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& in
                    int& optTranslationNumberOfIterations, int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
                    double& numberOfSpatialSamplesTranslationPercentage, double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
                    int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
-                   string& transformType, string& imageType,string& metricType, string& useBspline, string& useBsplineHigh,
+                   string& transformType, string& imageType,string& metricType, string& useBspline, string& useBsplineHigh, double& translationScaleCoeffs,
                    double& translationMultiScaleSamplePercentageIncrease, double& affineMultiScaleSamplePercentageIncrease, double& bsplineMultiScaleSamplePercentageIncrease,
                    double& translationMultiScaleMaximumIterationIncrease, double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
                    double& translationMultiScaleStepLengthIncrease, double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease,
@@ -421,7 +421,7 @@ int main( int argc, char *argv[] )
   double affineMultiScaleStepLengthIncrease = 1.0;
   double bsplineMultiScaleStepLengthIncrease = 1.0;
 
-  
+  double translationScaleCoeffs = 1.0;
   int bsplineInitialGridSize = 5;
   int numberOfBsplineLevel = 1;
   string imageType = "normal";
@@ -435,7 +435,7 @@ int main( int argc, char *argv[] )
       optTranslationLearningRate, optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate,
       optTranslationNumberOfIterations, optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations,
       numberOfSpatialSamplesTranslationPercentage, numberOfSpatialSamplesAffinePercentage, numberOfSpatialSamplesBsplinePercentage, numberOfSpatialSamplesBsplineHighPercentage,
-      bsplineInitialGridSize, numberOfBsplineLevel, transformType, imageType, metricType, useBspline, useBsplineHigh,
+      bsplineInitialGridSize, numberOfBsplineLevel, transformType, imageType, metricType, useBspline, useBsplineHigh, translationScaleCoeffs,
       translationMultiScaleSamplePercentageIncrease, affineMultiScaleSamplePercentageIncrease, bsplineMultiScaleSamplePercentageIncrease, translationMultiScaleMaximumIterationIncrease, affineMultiScaleMaximumIterationIncrease,  bsplineMultiScaleMaximumIterationIncrease,
       translationMultiScaleStepLengthIncrease, affineMultiScaleStepLengthIncrease, bsplineMultiScaleStepLengthIncrease,
       numberOfSpatialSamplesTranslation, numberOfSpatialSamplesAffine, numberOfSpatialSamplesBspline, numberOfSpatialSamplesBsplineHigh ) )
@@ -481,7 +481,7 @@ int main( int argc, char *argv[] )
 
 
   // N is the number of images in the registration
-  int N = fileNames.size();
+  const unsigned int N = fileNames.size();
   
   //generate filenames
   vector<string> inputFileNames(N);
@@ -825,7 +825,7 @@ int main( int argc, char *argv[] )
     }
     for(int j=Dimension*Dimension; j<Dimension+Dimension*Dimension; j++)
     {
-      optimizerAffineScales[i*numberOfParameters + j] = 1.0 ; // scale for translation on X,Y,Z
+      optimizerAffineScales[i*numberOfParameters + j] = translationScaleCoeffs; // scale for translation on X,Y,Z
     }
   }
 
@@ -1533,7 +1533,7 @@ int main( int argc, char *argv[] )
     {
       itksys::SystemTools::MakeDirectory( outputFolder.c_str() );
       caster->SetInput( resample->GetOutput() );
-      writer->SetImageIO(imageArrayReader[0]->GetImageIO());
+      writer->SetImageIO(imageArrayReader[i]->GetImageIO());
       writer->SetFileName( outputFileNames[i].c_str() );
       writer->SetInput( caster->GetOutput()   );
       writer->Update();
@@ -1837,7 +1837,7 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
                           double& numberOfSpatialSamplesTranslationPercentage, double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
                           string& transformType, string& imageType,string& metricType,
-                          string& useBspline, string& useBsplineHigh,
+                          string& useBspline, string& useBsplineHigh, double& translationScaleCoeffs,
                           double& translationMultiScaleSamplePercentageIncrease, double& affineMultiScaleSamplePercentageIncrease, double& bsplineMultiScaleSamplePercentageIncrease,
 
                           double& translationMultiScaleMaximumIterationIncrease, double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
@@ -1937,6 +1937,8 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
       bsplineInitialGridSize = atoi(argv[++i]);
     else if (dummy == "-numberOfBsplineLevel")
       numberOfBsplineLevel = atoi(argv[++i]);
+    else if (dummy == "-translationScaleCoeffs")
+      translationScaleCoeffs = atof(argv[++i]);
     
     else if (dummy == "-useBspline")
       useBspline = argv[++i];
