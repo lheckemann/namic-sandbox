@@ -65,6 +65,20 @@ public:
   itkSetConstObjectMacro( Gradients, GradientDirectionContainerType );
   itkGetConstObjectMacro( Gradients, GradientDirectionContainerType );;
   
+  //overide the built in set input function
+  //we need to create a new cache everytime we change the input image
+  //but we need to preserve it when the input image is the same
+  void SetInput( typename TInputDWIImage::Pointer dwiimage ){
+    Superclass::SetInput( dwiimage );
+    //update the likelihood cache
+    this->m_LikelihoodCache = ProbabilityDistributionImageType::New();
+    this->m_LikelihoodCache->CopyInformation( this->GetInput() );
+    this->m_LikelihoodCache->SetBufferedRegion( this->GetInput()->GetBufferedRegion() );
+    this->m_LikelihoodCache->SetRequestedRegion( this->GetInput()->GetRequestedRegion() );
+    this->m_LikelihoodCache->Allocate();
+    this->m_CurrentLikelihoodCacheSize = 0;
+  }
+    
   /** Set/Get the seed index **/
   itkSetMacro( SeedIndex, typename InputDWIImageType::IndexType );
   itkGetMacro( SeedIndex, typename InputDWIImageType::IndexType );
@@ -117,11 +131,6 @@ protected:
   void BeforeGenerateData(void){
     this->UpdateGradientDirections();
     this->UpdateTensorModelFittingMatrices();
-    this->m_LikelihoodCache = ProbabilityDistributionImageType::New();
-    this->m_LikelihoodCache->CopyInformation( this->GetInput() );
-    this->m_LikelihoodCache->SetBufferedRegion( this->GetInput()->GetBufferedRegion() );
-    this->m_LikelihoodCache->SetRequestedRegion( this->GetInput()->GetRequestedRegion() );
-    this->m_LikelihoodCache->Allocate();
   }
     
   /** Primary steps in the algorithm **/

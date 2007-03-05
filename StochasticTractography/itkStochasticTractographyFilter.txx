@@ -395,8 +395,6 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
         this->SampleTractOrientation(randomgenerator, posterior_curr,
                           this->GetSampleDirections(), v_curr);
         this->m_CurrentLikelihoodCacheSize++;
-        //std::cout<<"CurrentLikelihoodCacheSize: " << 
-          //this->GetCurrentLikelihoodCacheSize()<<std::endl;
       }
       else{
         std::cout<<"not storing: " << std::endl;
@@ -468,7 +466,9 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
       /* there is an issue using outputtractIt.Value() */
       outputtractIt.Set(outputtractIt.Get()+1);
     }
-    std::cout<<"Tract: "<<i<<" complete."<<std::endl;
+    std::cout<<"Tract: "<<i<<" complete. " <<
+      "CurrentLikelihoodCacheSize: " << 
+        this->GetCurrentLikelihoodCacheSize() << std::endl;
     //for(outputIt.GoToBegin(); !outputIt.IsAtEnd(); ++outputIt){
     //  outputIt.Set(outputIt.Get()/this->GetTotalTracts());
     //}
