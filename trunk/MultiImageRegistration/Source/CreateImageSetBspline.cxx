@@ -32,7 +32,9 @@
 #include <fstream>
 
 #include <cstdlib>
-    
+
+#include <itksys/SystemTools.hxx>
+
 using namespace std;
 
 int main( int argc, char * argv[] )
@@ -61,8 +63,11 @@ if( argc < 4 )
   
   GeneratorType::Pointer generator = GeneratorType::New();
   generator->Initialize(230546);
+
+  //Create the output folder
+  itksys::SystemTools::MakeDirectory( argv[2] );
   
-  for(int i=0; i<4 ; i++)
+  for(int i=0; i<30 ; i++)
   {
 
     ReaderType::Pointer reader = ReaderType::New();
@@ -130,62 +135,11 @@ if( argc < 4 )
     bsplineParameters.Fill( 0.0 );
 
     //Randomly set the parameters
-    if(i==0)
+    for(int j=0; j<bsplineParameters.GetSize(); j++)
     {
-      for(int j=0; j<bsplineParameters.GetSize(); j++)
-      {
-        if ( j%4 == 0 )
-          bsplineParameters[j] = 2.5;
-        else if (j%4 == 1 )
-          bsplineParameters[j] = -0.5;
-        else if (j%4 == 2 )
-          bsplineParameters[j] =  1.5;
-        else if (j%4 == 3 )
-          bsplineParameters[j] =  -3.5;
-      }
+      bsplineParameters[j] = (rand()%100/100.0 - 0.5)*8.0;;
     }
-    else if(i==1)
-    {
-      for(int j=0; j<bsplineParameters.GetSize(); j++)
-      {
-        if ( j%4 == 1 )
-          bsplineParameters[j] = 2.5;
-        else if (j%4 == 2 )
-          bsplineParameters[j] = -0.5;
-        else if (j%4 == 3 )
-          bsplineParameters[j] =  1.5;
-        else if (j%4 == 0 )
-          bsplineParameters[j] =  -3.5;
-      }
-    }
-    else if(i==2)
-    {
-      for(int j=0; j<bsplineParameters.GetSize(); j++)
-      {
-        if ( j%4 == 2 )
-          bsplineParameters[j] = 2.5;
-        else if (j%4 == 3 )
-          bsplineParameters[j] = -0.5;
-        else if (j%4 == 0 )
-          bsplineParameters[j] =  1.5;
-        else if (j%4 == 1 )
-          bsplineParameters[j] =  -3.5;
-      }
-    }
-    else if(i==3)
-    {
-      for(int j=0; j<bsplineParameters.GetSize(); j++)
-      {
-        if ( j%4 == 3 )
-          bsplineParameters[j] = 2.5;
-        else if (j%4 == 0 )
-          bsplineParameters[j] = -0.5;
-        else if (j%4 == 1 )
-          bsplineParameters[j] =  1.5;
-        else if (j%4 == 2 )
-          bsplineParameters[j] =  -3.5;
-      }
-    }
+
 
     bsplineTransform->SetParameters( bsplineParameters );
 
