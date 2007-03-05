@@ -48,6 +48,7 @@
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "itkExtractImageFilter.h"
 
 #include "itkResampleImageFilter.h"
 #include "itkCastImageFilter.h"
@@ -1401,6 +1402,19 @@ int main( int argc, char *argv[] )
   typedef itk::Image< OutputPixelType, 2 >    Image2DType;
   typedef itk::ImageSeriesWriter< ImageType, Image2DType >  SeriesWriterType;
   SeriesWriterType::Pointer seriesWriter = SeriesWriterType::New();
+
+  // Extract slices writer type
+  typedef itk::Image< unsigned char, 2 >    SliceImageType;
+  typedef itk::ImageFileWriter< SliceImageType >  SliceWriterType;
+  SliceWriterType::Pointer  sliceWriter = SliceWriterType::New();
+  // Filter to extract a slice from an image
+  typedef itk::ExtractImageFilter< OutputImageType, SliceImageType > SliceExtractFilterType;
+  SliceExtractFilterType::Pointer sliceExtractFilter = SliceExtractFilterType::New();
+
+  // typedefs for output images
+  typedef itk::ResampleImageFilter< Image2DType, Image2DType >    SliceResampleFilterType;
+  SliceResampleFilterType::Pointer sliceResample = SliceResampleFilterType::New();
+
   
   WriterType::Pointer      writer =  WriterType::New();
   writer->ReleaseDataFlagOn();
@@ -1523,6 +1537,53 @@ int main( int argc, char *argv[] )
       writer->SetFileName( outputFileNames[i].c_str() );
       writer->SetInput( caster->GetOutput()   );
       writer->Update();
+
+      //Extract slices for 3D Images
+      if(Dimension == 3)
+      {
+        //Write the registered images
+        string slices("RegisteredSlices/");
+        slices = outputFolder + slices;
+        string outputFilename(fileNames[i]);
+        outputFilename[outputFilename.size()-4] = '.';
+        outputFilename[outputFilename.size()-3] = 'p';
+        outputFilename[outputFilename.size()-2] = 'n';
+        outputFilename[outputFilename.size()-1] = 'g';
+        outputFilename = slices + outputFilename;
+        itksys::SystemTools::MakeDirectory( slices.c_str() );
+        
+        OutputImageType::SizeType size = fixedImage->GetLargestPossibleRegion().GetSize();
+        OutputImageType::IndexType start = fixedImage->GetLargestPossibleRegion().GetIndex();
+        start[2] = size[2]/2;
+        size[2] = 0;
+
+        
+        OutputImageType::RegionType extractRegion;
+        extractRegion.SetSize(  size  );
+        extractRegion.SetIndex( start );
+        sliceExtractFilter->SetExtractionRegion( extractRegion );
+
+        sliceExtractFilter->SetInput( caster->GetOutput() );
+        sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
+        sliceWriter->SetFileName( outputFilename.c_str() );
+        sliceWriter->Update();
+
+        //Write the original images
+        string slices2("OriginalSlices/");
+        slices2 = outputFolder + slices2;
+        string outputFilename2(fileNames[i]);
+        outputFilename2[outputFilename2.size()-4] = '.';
+        outputFilename2[outputFilename2.size()-3] = 'p';
+        outputFilename2[outputFilename2.size()-2] = 'n';
+        outputFilename2[outputFilename2.size()-1] = 'g';
+        outputFilename2 = slices2 + outputFilename2;
+        itksys::SystemTools::MakeDirectory( slices2.c_str() );
+
+        sliceExtractFilter->SetInput( imageArrayReader[i]->GetOutput() );
+        sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
+        sliceWriter->SetFileName( outputFilename2.c_str() );
+        sliceWriter->Update();
+      }
     }
   }
 
