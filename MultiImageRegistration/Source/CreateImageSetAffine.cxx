@@ -207,19 +207,19 @@ int main( int argc, char * argv[] )
     // Increase the size by 10 pixels (voxels)
     for(int r=0; r<Dimension; r++)
     {
-      size[r] += 6;
+      //size[r] += 6;
     }
       
 
     // Move the origin 5 spaces
     for(int r=0; r<Dimension; r++ )
     {
-      origin[r] -= 3*spacing[r];
+      //origin[r] -= 3*spacing[r];
     }
     resample->SetSize(size);
     resample->SetOutputOrigin(origin);
     resample->SetOutputSpacing(spacing);
-    resample->SetDefaultPixelValue( 100 );
+    resample->SetDefaultPixelValue( 0 );
     resample->SetOutputDirection( reader->GetOutput()->GetDirection());
     resample->SetInput( reader->GetOutput() );
     writer->SetInput( resample->GetOutput() );
