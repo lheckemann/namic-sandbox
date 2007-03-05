@@ -134,37 +134,54 @@ public:
         return;
       }
 
+      // only print results every ten iterations
+      if(m_CumulativeIterationIndex % 10 != 0)
+      {
+        m_CumulativeIterationIndex++;
+        return;
+      }
+      
       if(  !strcmp(optimizer->GetNameOfClass(), "GradientDescentOptimizer" ) )
       {
         GradientOptimizerPointer gradientPointer = dynamic_cast< GradientOptimizerPointer >(
             object );
         std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
-        std::cout << "Iter " << std::setw(3) << m_CumulativeIterationIndex++ << "   ";
+        std::cout << "Iter " << std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(3) << gradientPointer->GetCurrentIteration() << "   ";
         std::cout << std::setw(6) << gradientPointer->GetValue() << "   ";
-      
+        if(gradientPointer->GetCurrentIteration() % 50 == 0)
+        {
+          std::cout << std::setw(6) << "Position: " << gradientPointer->GetCurrentPosition() << std::endl;
+        }
       }
       else if(!strcmp(optimizer->GetNameOfClass(), "FRPROptimizer") )
       {
         FRPROptimizerPointer FRPRPointer = dynamic_cast< FRPROptimizerPointer >(
             object );
         std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
-        std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex++ << "   ";
+        std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(3) << FRPRPointer->GetCurrentIteration() << "   ";
         std::cout << std::setw(6) << FRPRPointer->GetValue() << "   ";
-
+        if(FRPRPointer->GetCurrentIteration() % 50 == 0)
+        {
+          std::cout << std::setw(6) << "Position: " << FRPRPointer->GetCurrentPosition() << std::endl;
+        }
       }
       else if(!strcmp(optimizer->GetNameOfClass(), "GradientDescentLineSearchOptimizer") )
       {
         LineSearchOptimizerPointer lineSearchOptimizerPointer = dynamic_cast< LineSearchOptimizerPointer >( object );
         std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
-        std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex++ << "   ";
+        std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(3) << lineSearchOptimizerPointer->GetCurrentIteration() << "   ";
         std::cout << std::setw(6) << lineSearchOptimizerPointer->GetValue() << "   " << std::endl;
-
+        if(lineSearchOptimizerPointer->GetCurrentIteration() % 50 == 0)
+        {
+          std::cout << std::setw(6) << "Position: " << lineSearchOptimizerPointer->GetCurrentPosition() << std::endl;
+        }
       }
 
-      
+      //Increase the cumulative index
+      m_CumulativeIterationIndex++;
       //std::cout << std::setw(6) << optimizer->GetCurrentPosition()[i] << "   ";
 
       
@@ -551,8 +568,8 @@ int main( int argc, char *argv[] )
         namesGeneratorArray[i] = NamesGeneratorType::New();
         namesGeneratorArray[i]->SetInputDirectory( inputFileNames[i].c_str() );
 
-        std::cout << "Reading first slice " << namesGeneratorArray[i]->GetInputFileNames()[0] << std:: endl;
-        std::cout << "Reading " << namesGeneratorArray[i]->GetInputFileNames().size() << " DICOM slices" << std::endl;
+        std::cout << "message: Reading first slice " << namesGeneratorArray[i]->GetInputFileNames()[0] << std:: endl;
+        std::cout << "message: Reading " << namesGeneratorArray[i]->GetInputFileNames().size() << " DICOM slices" << std::endl;
 
         dicomArrayReader[i] = DICOMReaderType::New();
         dicomArrayReader[i]->SetImageIO( imageIOTypeArray[i] );
@@ -589,7 +606,7 @@ int main( int argc, char *argv[] )
       imagePyramidArray[i]->SetNumberOfLevels( multiLevelAffine );
       imagePyramidArray[i]->SetInput( gaussianFilter->GetOutput() );
 
-      std::cout << "Reading Image: " << inputFileNames[i].c_str() << std::endl;
+      std::cout << "message: Reading Image: " << inputFileNames[i].c_str() << std::endl;
       imagePyramidArray[i]->Update();
 
       //Set the input into the registration method
@@ -607,7 +624,7 @@ int main( int argc, char *argv[] )
 
   // Set initial parameters of the transform
   ImageType::RegionType fixedImageRegion =
-      imagePyramidArray[0]->GetOutput(0)->GetBufferedRegion();
+      imagePyramidArray[0]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetBufferedRegion();
   registration->SetFixedImageRegion( fixedImageRegion );
 
 
@@ -700,7 +717,7 @@ int main( int argc, char *argv[] )
   // Set the number of multiresolution levels
   registration->SetNumberOfLevels( multiLevelAffine );
 
-  std::cout << "Starting Registration with Translation Transform " << std::endl;
+  std::cout << "message: Starting Registration with Translation Transform " << std::endl;
 
   // Add probe to count the time used by the registration
   itk::TimeProbesCollectorBase collector;
@@ -726,7 +743,7 @@ int main( int argc, char *argv[] )
   //Get the latest parameters from the registration
   ParametersType translationParameters = registration->GetLastTransformParameters();
   
-  std::cout << "Starting Registration with Affine Transform " << std::endl;
+  std::cout << "message: Starting Registration with Affine Transform " << std::endl;
   for(int i=0; i<N; i++)
   {
     affineTransformArray[i]     = TransformType::New();
@@ -835,7 +852,7 @@ int main( int argc, char *argv[] )
   //Print out the metric values for translation parameters
   if( metricPrint == "on")
   {
-    cout << "Metric Probe " << endl;
+    cout << "message: Metric Probe " << endl;
     ofstream outputFile("metricOutput.txt");
     ParametersType parameters = registration->GetLastTransformParameters();
 
@@ -1042,8 +1059,8 @@ int main( int argc, char *argv[] )
     command->SetMultiScaleMaximumIterationIncrease(bsplineMultiScaleMaximumIterationIncrease);
     command->SetMultiScaleStepLengthIncrease(bsplineMultiScaleStepLengthIncrease);
 
-    std::cout << "Starting BSpline Registration with low resolution transform: " << std::endl;
-    std::cout << "Resolution level " << 0;
+    std::cout << "message: Starting BSpline Registration with low resolution transform: " << std::endl;
+    std::cout << "message: Resolution level " << 0;
     std::cout << " Number Of parameters: " << bsplineTransformArrayLow[0]->GetNumberOfParameters()*N <<std::endl;
     try
     {
@@ -1207,8 +1224,8 @@ int main( int argc, char *argv[] )
 
         }
 
-        std::cout << "Starting Registration with high resolution transform: " << std::endl;
-        std::cout << "Resolution level " << level;
+        std::cout << "message: Starting Registration with high resolution transform: " << std::endl;
+        std::cout << "message: Resolution level " << level;
         std::cout << " Number Of parameters: " << bsplineTransformArrayHigh[0]->GetNumberOfParameters()*N <<std::endl;
 
         // Decrease the learning rate at each level
@@ -1302,8 +1319,8 @@ int main( int argc, char *argv[] )
   
   // Print out results
   //
-  std::cout << "Registration Completed " << std::endl;
-  std::cout << "Time Report " << std::endl;
+  std::cout << "message: Registration Completed " << std::endl;
+  std::cout << "message: Time Report " << std::endl;
 
   // Get the time for the registration
   collector.Stop( "Registration" );
@@ -1359,7 +1376,7 @@ int main( int argc, char *argv[] )
 
 
   // Update last Transform Parameters
-  std::cout << "Resulting parameters " << std::endl;
+  std::cout << "message: Resulting parameters " << std::endl;
   for(int i=0; i<N; i++)
   {
     //copy current parameters
@@ -1427,7 +1444,7 @@ int main( int argc, char *argv[] )
     resample->SetOutputDirection( fixedImage->GetDirection());
     resample->SetDefaultPixelValue( 100 );
 
-    std::cout << "Writing " << outputFileNames[i] << std::endl;
+    std::cout << "message: Writing " << outputFileNames[i] << std::endl;
     if( imageType == "DICOM")
     {
       itksys::SystemTools::MakeDirectory( outputFileNames[i].c_str() );
@@ -1459,7 +1476,7 @@ int main( int argc, char *argv[] )
     }
   }
 
-  std::cout << "Computing mean images" << std::endl;
+  std::cout << "message: Computing mean images" << std::endl;
 
   // Compute Mean Images 
   ResampleFilterType::Pointer resample2 = ResampleFilterType::New();
