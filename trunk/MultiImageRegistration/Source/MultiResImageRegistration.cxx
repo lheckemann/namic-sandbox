@@ -41,7 +41,7 @@
 #include "itkTranslationTransform.h"
 
 #include "itkLinearInterpolateImageFunction.h"
-#include "itkMultiResolutionPyramidImageFilter.h"
+#include "itkRecursiveMultiResolutionPyramidImageFilter.h"
 #include "itkImage.h"
 #include "itkNormalizeImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
@@ -357,10 +357,17 @@ public:
 };
 
 // Get the command line arguments
-int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType, int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh, double& optTranslationLearningRate, double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate, int& optTranslationNumberOfIterations, int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,  int& bsplineInitialGridSize,  int& numberOfBsplineLevel, string& transformType, string& imageType,string& metricType, string& useBspline, string& useBsplineHigh,
+int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType,
+                   int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh,
+                   double& optTranslationLearningRate, double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate,
+                   int& optTranslationNumberOfIterations, int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
+                   double& numberOfSpatialSamplesTranslationPercentage, double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
+                   int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
+                   string& transformType, string& imageType,string& metricType, string& useBspline, string& useBsplineHigh,
                    double& translationMultiScaleSamplePercentageIncrease, double& affineMultiScaleSamplePercentageIncrease, double& bsplineMultiScaleSamplePercentageIncrease,
                    double& translationMultiScaleMaximumIterationIncrease, double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
-                   double& translationMultiScaleStepLengthIncrease, double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease  );
+                   double& translationMultiScaleStepLengthIncrease, double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease,
+                   unsigned int& numberOfSpatialSamplesTranslation, unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh );
 
 
 int main( int argc, char *argv[] )
@@ -389,10 +396,16 @@ int main( int argc, char *argv[] )
   int optAffineNumberOfIterations = 10000;
   int optBsplineNumberOfIterations = 10000;
   int optBsplineHighNumberOfIterations = 10000;
-  
-  double numberOfSpatialSamplesAffinePercentage = 0.01;
-  double numberOfSpatialSamplesBsplinePercentage = 0.01;
-  double numberOfSpatialSamplesBsplineHighPercentage = 0.01;
+
+  double numberOfSpatialSamplesTranslationPercentage = 0;
+  double numberOfSpatialSamplesAffinePercentage = 0;
+  double numberOfSpatialSamplesBsplinePercentage = 0;
+  double numberOfSpatialSamplesBsplineHighPercentage = 0;
+
+  unsigned int numberOfSpatialSamplesTranslation = 1000;
+  unsigned int numberOfSpatialSamplesAffine = 2000;
+  unsigned int numberOfSpatialSamplesBspline = 20000;
+  unsigned int numberOfSpatialSamplesBsplineHigh = 50000;
 
   double translationMultiScaleSamplePercentageIncrease = 4.0;
   double affineMultiScaleSamplePercentageIncrease = 4.0;
@@ -416,7 +429,15 @@ int main( int argc, char *argv[] )
   string useBsplineHigh("off");
 
   //Get the command line arguments
-  if( getCommandLine(argc,argv, fileNames, inputFolder, outputFolder, optimizerType, multiLevelAffine, multiLevelBspline, multiLevelBsplineHigh, optTranslationLearningRate, optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate, optTranslationNumberOfIterations, optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations, numberOfSpatialSamplesAffinePercentage, numberOfSpatialSamplesBsplinePercentage, numberOfSpatialSamplesBsplineHighPercentage, bsplineInitialGridSize, numberOfBsplineLevel, transformType, imageType, metricType, useBspline, useBsplineHigh, translationMultiScaleSamplePercentageIncrease, affineMultiScaleSamplePercentageIncrease, bsplineMultiScaleSamplePercentageIncrease, translationMultiScaleMaximumIterationIncrease, affineMultiScaleMaximumIterationIncrease,  bsplineMultiScaleMaximumIterationIncrease, translationMultiScaleStepLengthIncrease, affineMultiScaleStepLengthIncrease, bsplineMultiScaleStepLengthIncrease   ) )
+  if( getCommandLine(argc,argv, fileNames, inputFolder, outputFolder, optimizerType,
+      multiLevelAffine, multiLevelBspline, multiLevelBsplineHigh,
+      optTranslationLearningRate, optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate,
+      optTranslationNumberOfIterations, optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations,
+      numberOfSpatialSamplesTranslationPercentage, numberOfSpatialSamplesAffinePercentage, numberOfSpatialSamplesBsplinePercentage, numberOfSpatialSamplesBsplineHighPercentage,
+      bsplineInitialGridSize, numberOfBsplineLevel, transformType, imageType, metricType, useBspline, useBsplineHigh,
+      translationMultiScaleSamplePercentageIncrease, affineMultiScaleSamplePercentageIncrease, bsplineMultiScaleSamplePercentageIncrease, translationMultiScaleMaximumIterationIncrease, affineMultiScaleMaximumIterationIncrease,  bsplineMultiScaleMaximumIterationIncrease,
+      translationMultiScaleStepLengthIncrease, affineMultiScaleStepLengthIncrease, bsplineMultiScaleStepLengthIncrease,
+      numberOfSpatialSamplesTranslation, numberOfSpatialSamplesAffine, numberOfSpatialSamplesBspline, numberOfSpatialSamplesBsplineHigh ) )
     return 1;
   
 
@@ -450,7 +471,7 @@ int main( int argc, char *argv[] )
 
   typedef itk::MultiResolutionMultiImageRegistrationMethod< InternalImageType >    RegistrationType;
 
-  typedef itk::MultiResolutionPyramidImageFilter<
+  typedef itk::RecursiveMultiResolutionPyramidImageFilter<
                                     InternalImageType,
                                     InternalImageType  >    ImagePyramidType;
 
@@ -646,8 +667,12 @@ int main( int argc, char *argv[] )
   // Get the number of pixels (voxels) in the images
   const unsigned int numberOfPixels = fixedImageRegion.GetNumberOfPixels();
   
-  const unsigned int numberOfSamples =
-      static_cast< unsigned int >( numberOfPixels * numberOfSpatialSamplesAffinePercentage );
+  unsigned int numberOfSamples = numberOfSpatialSamplesTranslation;
+  if( numberOfSpatialSamplesTranslationPercentage > 0 )
+  {
+    numberOfSamples = static_cast< unsigned int >( numberOfPixels * numberOfSpatialSamplesTranslationPercentage );
+  }
+
 
   //Set the metric type
   MetricType::Pointer         varianceMetric;
@@ -831,6 +856,21 @@ int main( int argc, char *argv[] )
     //optimizer->AddObserver( itk::IterationEvent(), observer );
   }
 
+  // Set the number of spatial samples for the metric
+  numberOfSamples = numberOfSpatialSamplesAffine;
+  if( numberOfSpatialSamplesAffinePercentage > 0 )
+  {
+    numberOfSamples = static_cast< unsigned int >( numberOfPixels * numberOfSpatialSamplesAffinePercentage );
+  }
+  if(metricType == "variance")
+  {
+    varianceMetric->SetNumberOfSpatialSamples( numberOfSamples );
+  }
+  else
+  {
+    entropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
+  }
+  
   //Set the parameters of the command observer
   command->SetMultiScaleSamplePercentageIncrease(affineMultiScaleSamplePercentageIncrease);
   command->SetMultiScaleMaximumIterationIncrease(affineMultiScaleMaximumIterationIncrease);
@@ -1043,13 +1083,18 @@ int main( int argc, char *argv[] )
 
 
     // Set the number of samples to be used by the metric
+    numberOfSamples = numberOfSpatialSamplesBspline;
+    if( numberOfSpatialSamplesBsplinePercentage > 0 )
+    {
+      numberOfSamples = static_cast< unsigned int >( numberOfPixels * numberOfSpatialSamplesBsplinePercentage );
+    }
     if(metricType == "variance")
     {
-      varianceMetric->SetNumberOfSpatialSamples( static_cast<int>(numberOfPixels * numberOfSpatialSamplesBsplinePercentage) );
+      varianceMetric->SetNumberOfSpatialSamples( numberOfSamples );
     }
     else
     {
-      entropyMetric->SetNumberOfSpatialSamples( static_cast<int>(numberOfPixels * numberOfSpatialSamplesBsplinePercentage) );
+      entropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
     }
 
     registration->SetNumberOfLevels( multiLevelBspline );
@@ -1259,27 +1304,32 @@ int main( int argc, char *argv[] )
 
 
         // Set the number of samples to be used by the metric
+        numberOfSamples = numberOfSpatialSamplesBsplineHigh;
+        if( numberOfSpatialSamplesBsplineHighPercentage > 0 )
+        {
+          numberOfSamples = static_cast< unsigned int >( numberOfPixels * numberOfSpatialSamplesBsplineHighPercentage );
+        }
         if(metricType == "variance")
         {
-          varianceMetric->SetNumberOfSpatialSamples( static_cast<int>(numberOfPixels * numberOfSpatialSamplesBsplineHighPercentage));
+          varianceMetric->SetNumberOfSpatialSamples( numberOfSamples );
         }
         else
         {
-          entropyMetric->SetNumberOfSpatialSamples( static_cast<int>(numberOfPixels * numberOfSpatialSamplesBsplineHighPercentage) );
+          entropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
         }
 
         registration->SetNumberOfLevels( multiLevelBsplineHigh );
 
         try
-       {
+        {
           registration->StartRegistration();
-       }
-       catch( itk::ExceptionObject & err )
-       {
+        }
+        catch( itk::ExceptionObject & err )
+        {
           std::cerr << "ExceptionObject caught !" << std::endl;
           std::cerr << err << std::endl;
           return -1;
-       }
+        }
 
       }
 
@@ -1723,7 +1773,7 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
                           int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh,
                           double& optTranslationLearningRate, double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate,
                           int& optTranslationNumberOfIterations, int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
-                          double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
+                          double& numberOfSpatialSamplesTranslationPercentage, double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
                           string& transformType, string& imageType,string& metricType,
                           string& useBspline, string& useBsplineHigh,
@@ -1731,7 +1781,8 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
 
                           double& translationMultiScaleMaximumIterationIncrease, double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
 
-                          double& translationMultiScaleStepLengthIncrease, double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease    )
+                          double& translationMultiScaleStepLengthIncrease, double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease,
+                          unsigned int& numberOfSpatialSamplesTranslation, unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh )
 {
 
 
@@ -1780,6 +1831,8 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
     else if (dummy == "-optBsplineHighNumberOfIterations")
       optBsplineHighNumberOfIterations = atoi(argv[++i]);
 
+    else if (dummy == "-numberOfSpatialSamplesTranslationPercentage")
+      numberOfSpatialSamplesTranslationPercentage = atof(argv[++i]);
     else if (dummy == "-numberOfSpatialSamplesAffinePercentage")
       numberOfSpatialSamplesAffinePercentage = atof(argv[++i]);
     else if (dummy == "-numberOfSpatialSamplesBsplinePercentage")
@@ -1787,6 +1840,16 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
     else if (dummy == "-numberOfSpatialSamplesBsplineHighPercentage")
       numberOfSpatialSamplesBsplineHighPercentage = atof(argv[++i]);
 
+
+    else if (dummy == "-numberOfSpatialSamplesTranslation")
+      numberOfSpatialSamplesTranslation = atoi(argv[++i]);
+    else if (dummy == "-numberOfSpatialSamplesAffine")
+      numberOfSpatialSamplesAffine = atoi(argv[++i]);
+    else if (dummy == "-numberOfSpatialSamplesBspline")
+      numberOfSpatialSamplesBspline = atoi(argv[++i]);
+    else if (dummy == "-numberOfSpatialSamplesBsplineHigh")
+      numberOfSpatialSamplesBsplineHigh = atoi(argv[++i]);
+    
     else if (dummy == "-translationMultiScaleSamplePercentageIncrease")
       translationMultiScaleSamplePercentageIncrease = atof(argv[++i]);
     else if (dummy == "-affineMultiScaleSamplePercentageIncrease")
