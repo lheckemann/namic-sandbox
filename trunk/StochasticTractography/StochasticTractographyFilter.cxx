@@ -219,7 +219,6 @@ int main(int argc, char* argv[]){
       std::cout << "PixelIndex: "<< ROIImageIt.GetIndex() << std::endl;
       ptfilterPtr->SetSeedIndex( ROIImageIt.GetIndex() );
       addimagefilterPtr->Update();
-      break;
     }
   }        
 
