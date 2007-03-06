@@ -136,7 +136,7 @@ public:
       }
 
       // only print results every ten iterations
-      if(m_CumulativeIterationIndex % 10 != 0)
+      if(m_CumulativeIterationIndex % 25 != 0)
       {
         m_CumulativeIterationIndex++;
         return;
@@ -144,40 +144,41 @@ public:
       
       if(  !strcmp(optimizer->GetNameOfClass(), "GradientDescentOptimizer" ) )
       {
-        GradientOptimizerPointer gradientPointer = dynamic_cast< GradientOptimizerPointer >(
-            object );
+        GradientOptimizerPointer gradientPointer =
+            dynamic_cast< GradientOptimizerPointer >(object );
         std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
         std::cout << "Iter " << std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(3) << gradientPointer->GetCurrentIteration() << "   ";
         std::cout << std::setw(6) << gradientPointer->GetValue() << "   ";
         if(gradientPointer->GetCurrentIteration() % 50 == 0)
         {
-          std::cout << std::setw(6) << "Position: " << gradientPointer->GetCurrentPosition() << std::endl;
+          //std::cout << std::setw(6) << "Position: " << gradientPointer->GetCurrentPosition() << std::endl;
         }
       }
       else if(!strcmp(optimizer->GetNameOfClass(), "FRPROptimizer") )
       {
-        FRPROptimizerPointer FRPRPointer = dynamic_cast< FRPROptimizerPointer >(
-            object );
+        FRPROptimizerPointer FRPRPointer =
+            dynamic_cast< FRPROptimizerPointer >( object );
         std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
         std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(3) << FRPRPointer->GetCurrentIteration() << "   ";
         std::cout << std::setw(6) << FRPRPointer->GetValue() << "   ";
         if(FRPRPointer->GetCurrentIteration() % 50 == 0)
         {
-          std::cout << std::setw(6) << "Position: " << FRPRPointer->GetCurrentPosition() << std::endl;
+          //std::cout << std::setw(6) << "Position: " << FRPRPointer->GetCurrentPosition() << std::endl;
         }
       }
       else if(!strcmp(optimizer->GetNameOfClass(), "GradientDescentLineSearchOptimizer") )
       {
-        LineSearchOptimizerPointer lineSearchOptimizerPointer = dynamic_cast< LineSearchOptimizerPointer >( object );
+        LineSearchOptimizerPointer lineSearchOptimizerPointer =
+            dynamic_cast< LineSearchOptimizerPointer >( object );
         std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
         std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(3) << lineSearchOptimizerPointer->GetCurrentIteration() << "   ";
         std::cout << std::setw(6) << lineSearchOptimizerPointer->GetValue() << "   " << std::endl;
         if(lineSearchOptimizerPointer->GetCurrentIteration() % 50 == 0)
         {
-          std::cout << std::setw(6) << "Position: " << lineSearchOptimizerPointer->GetCurrentPosition() << std::endl;
+          //std::cout << std::setw(6) << "Position: " << lineSearchOptimizerPointer->GetCurrentPosition() << std::endl;
         }
       }
 
@@ -251,6 +252,12 @@ public:
     MetricPointer       metric = dynamic_cast< MetricPointer>
                                          (registration->GetMetric());
 
+    // Output message about registration
+    std::cout << "message: Registration using " << registration->GetTransformArray(0)->GetNameOfClass() << std::endl;
+    std::cout << "message: Multiresolution level : " << registration->GetCurrentLevel() << std::endl;
+    std::cout << "message: Number of total parameters : " << registration->GetTransformParametersLength() << std::endl;
+    std::cout << "message: Optimizertype : " << optimizer->GetNameOfClass() << std::endl;
+
     if ( registration->GetCurrentLevel() == 0 )
     {
       // Set the number of spatial samples according to the current level
@@ -258,15 +265,19 @@ public:
       {
         VarianceMetricPointer  varianceMetric = dynamic_cast< VarianceMetricPointer>
                                                               (registration->GetMetric());
-        varianceMetric->SetNumberOfSpatialSamples((unsigned int) (varianceMetric->GetNumberOfSpatialSamples() /
-                        pow( pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease, (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
+        varianceMetric->SetNumberOfSpatialSamples(
+                        (unsigned int) (varianceMetric->GetNumberOfSpatialSamples() /
+                        pow( pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease,
+                             (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
       }
       else if(!strcmp(metric->GetNameOfClass(), "ParzenWindowEntropyMultiImageMetric") )
       {
         EntropyMetricPointer  entropyMetric = dynamic_cast< EntropyMetricPointer>
                                                             (registration->GetMetric());
-        entropyMetric->SetNumberOfSpatialSamples((unsigned int) (entropyMetric->GetNumberOfSpatialSamples() /
-                                  pow( pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease, (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
+        entropyMetric->SetNumberOfSpatialSamples(
+                           (unsigned int) (entropyMetric->GetNumberOfSpatialSamples() /
+                           pow( pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease,
+                                (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
       }
       
       
@@ -274,22 +285,42 @@ public:
       {
         GradientOptimizerPointer gradientPointer = dynamic_cast< GradientOptimizerPointer >(
             registration->GetOptimizer() );
-        gradientPointer->SetNumberOfIterations( (int)( gradientPointer->GetNumberOfIterations()*pow(m_MultiScaleMaximumIterationIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) ));
-        gradientPointer->SetLearningRate( gradientPointer->GetLearningRate()*pow(m_MultiScaleStepLengthIncrease,(double) (registration->GetNumberOfLevels() - 1.0) )  );
+        gradientPointer->SetNumberOfIterations(
+             (int)(gradientPointer->GetNumberOfIterations()*pow(m_MultiScaleMaximumIterationIncrease,
+                   (double) (registration->GetNumberOfLevels() - 1.0) ) ));
+        gradientPointer->SetLearningRate(
+            gradientPointer->GetLearningRate()*pow(m_MultiScaleStepLengthIncrease,
+                (double) (registration->GetNumberOfLevels() - 1.0) )  );
+        //print messages
+        std::cout << "message: Optimizer number of Iterations : " << gradientPointer->GetNumberOfIterations();
+        std::cout << "message: Learning rate : " << gradientPointer->GetLearningRate();
+
       }
       else if(!strcmp(optimizer->GetNameOfClass(), "FRPROptimizer") )
       {
         FRPROptimizerPointer FRPRPointer = dynamic_cast< FRPROptimizerPointer >(
             registration->GetOptimizer() );
-        FRPRPointer->SetMaximumIteration( (int)(FRPRPointer->GetMaximumIteration()*pow(m_MultiScaleMaximumIterationIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) ));
-        FRPRPointer->SetStepLength( FRPRPointer->GetStepLength()*pow(m_MultiScaleStepLengthIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ));
+        FRPRPointer->SetMaximumIteration(
+              (int)(FRPRPointer->GetMaximumIteration()*pow(m_MultiScaleMaximumIterationIncrease,
+                 (double) (registration->GetNumberOfLevels() - 1.0) ) ));
+        FRPRPointer->SetStepLength(
+            FRPRPointer->GetStepLength()*pow(m_MultiScaleStepLengthIncrease,
+                 (double) (registration->GetNumberOfLevels() - 1.0) ));
       }
       else if(!strcmp(optimizer->GetNameOfClass(), "GradientDescentLineSearchOptimizer") )
       {
-        LineSearchOptimizerPointer lineSearchOptimizerPointer = dynamic_cast< LineSearchOptimizerPointer >(
+        LineSearchOptimizerPointer lineSearchOptimizerPointer =
+            dynamic_cast< LineSearchOptimizerPointer >(
             registration->GetOptimizer() );
-        lineSearchOptimizerPointer->SetMaximumIteration((int)(lineSearchOptimizerPointer->GetMaximumIteration()*pow(m_MultiScaleMaximumIterationIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) ));
-        lineSearchOptimizerPointer->SetStepLength(lineSearchOptimizerPointer->GetStepLength()*pow(m_MultiScaleStepLengthIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) );
+        lineSearchOptimizerPointer->SetMaximumIteration(
+            (int)(lineSearchOptimizerPointer->GetMaximumIteration()*pow(m_MultiScaleMaximumIterationIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) ));
+        lineSearchOptimizerPointer->SetStepLength(lineSearchOptimizerPointer->GetStepLength()*
+            pow(m_MultiScaleStepLengthIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) );
+        //print messages
+        std::cout << "message: Optimizer number of Iterations : " <<
+            lineSearchOptimizerPointer->GetMaximumIteration() <<std::endl;
+        std::cout << "message: Optimizer learning rate : " <<
+            lineSearchOptimizerPointer->GetStepLength() << std::endl;
       }
 
       
@@ -301,42 +332,65 @@ public:
       {
         VarianceMetricPointer  varianceMetric = dynamic_cast< VarianceMetricPointer>
             (registration->GetMetric());
-        varianceMetric->SetNumberOfSpatialSamples((unsigned int) (varianceMetric->GetNumberOfSpatialSamples() *
-                                                        pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease ) );
+        varianceMetric->SetNumberOfSpatialSamples(
+            (unsigned int) (varianceMetric->GetNumberOfSpatialSamples() *
+                  pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease ) );
       }
       else if(!strcmp(metric->GetNameOfClass(), "ParzenWindowEntropyMultiImageMetric") )
       {
-        EntropyMetricPointer  entropyMetric = dynamic_cast< EntropyMetricPointer>
+        EntropyMetricPointer  entropyMetric =
+            dynamic_cast< EntropyMetricPointer>
             (registration->GetMetric());
-        entropyMetric->SetNumberOfSpatialSamples((unsigned int) (entropyMetric->GetNumberOfSpatialSamples() *
-                                                        pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease ) );
+        entropyMetric->SetNumberOfSpatialSamples(
+            (unsigned int) (entropyMetric->GetNumberOfSpatialSamples() *
+                   pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease ) );
       }
 
       // Decrease the learning rate at each increasing multiresolution level
       // Increase the number of steps
       if(  !strcmp(optimizer->GetNameOfClass(), "GradientDescentOptimizer" ) )
       {
-        GradientOptimizerPointer gradientPointer = dynamic_cast< GradientOptimizerPointer >(
+        GradientOptimizerPointer gradientPointer =
+            dynamic_cast< GradientOptimizerPointer >(
                                                                  registration->GetOptimizer() );
-        gradientPointer->SetNumberOfIterations((int) (gradientPointer->GetNumberOfIterations()/m_MultiScaleMaximumIterationIncrease ));
-        gradientPointer->SetLearningRate( gradientPointer->GetLearningRate()/m_MultiScaleStepLengthIncrease  );
+        gradientPointer->SetNumberOfIterations(
+            (int) (gradientPointer->GetNumberOfIterations()/m_MultiScaleMaximumIterationIncrease ));
+        gradientPointer->SetLearningRate(
+            gradientPointer->GetLearningRate()/m_MultiScaleStepLengthIncrease  );
+        //print messages
+        std::cout << "message: Optimizer number of Iterations : " << gradientPointer->GetNumberOfIterations() << std::endl;
+        std::cout << "message: Learning rate : " << gradientPointer->GetLearningRate() << std::endl;
       }
       else if(!strcmp(optimizer->GetNameOfClass(), "FRPROptimizer") )
       {
-        FRPROptimizerPointer FRPRPointer = dynamic_cast< FRPROptimizerPointer >(
+        FRPROptimizerPointer FRPRPointer =
+            dynamic_cast< FRPROptimizerPointer >(
                                                          registration->GetOptimizer() );
-        FRPRPointer->SetMaximumIteration( (int)(FRPRPointer->GetMaximumIteration()/m_MultiScaleMaximumIterationIncrease ));
+        FRPRPointer->SetMaximumIteration(
+            (int)(FRPRPointer->GetMaximumIteration()/m_MultiScaleMaximumIterationIncrease ));
         FRPRPointer->SetStepLength( FRPRPointer->GetStepLength()/m_MultiScaleStepLengthIncrease);
       }
       else if(!strcmp(optimizer->GetNameOfClass(), "GradientDescentLineSearchOptimizer") )
       {
-        LineSearchOptimizerPointer lineSearchOptimizerPointer = dynamic_cast< LineSearchOptimizerPointer >(
-            registration->GetOptimizer() );
-        lineSearchOptimizerPointer->SetMaximumIteration((int)(lineSearchOptimizerPointer->GetMaximumIteration()/m_MultiScaleMaximumIterationIncrease ));
-        lineSearchOptimizerPointer->SetStepLength(lineSearchOptimizerPointer->GetStepLength()/m_MultiScaleStepLengthIncrease );
+        LineSearchOptimizerPointer lineSearchOptimizerPointer =
+            dynamic_cast< LineSearchOptimizerPointer >(registration->GetOptimizer() );
+        lineSearchOptimizerPointer->SetMaximumIteration(
+            (int)(lineSearchOptimizerPointer->GetMaximumIteration()/m_MultiScaleMaximumIterationIncrease ));
+        lineSearchOptimizerPointer->SetStepLength(
+            lineSearchOptimizerPointer->GetStepLength()/m_MultiScaleStepLengthIncrease );
+        
+        std::cout << "message: Optimizer number of Iterations : " <<
+            lineSearchOptimizerPointer->GetMaximumIteration() << std::endl;
+        std::cout << "message: Optimizer learning rate : " <<
+            lineSearchOptimizerPointer->GetStepLength() << std::endl;
       }
 
     }
+
+
+    std::cout << "message: Number of total pixels : " << metric->GetFixedImageRegion().GetNumberOfPixels() << std::endl;
+    std::cout << "message: Number of used pixels : " << metric->GetNumberOfPixelsCounted() << std::endl;
+
   }
   void Execute(const itk::Object * , const itk::EventObject & )
     { return; }
@@ -364,7 +418,9 @@ int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& in
                    int& optTranslationNumberOfIterations, int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
                    double& numberOfSpatialSamplesTranslationPercentage, double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
                    int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
-                   string& transformType, string& imageType,string& metricType, string& useBspline, string& useBsplineHigh, double& translationScaleCoeffs,
+                   string& transformType, string& imageType,string& metricType, string& useBspline, string& useBsplineHigh,
+                   double& translationScaleCoeffs,  double& gaussianFilterVariance,
+                   int& maximumLineIteration,
                    double& translationMultiScaleSamplePercentageIncrease, double& affineMultiScaleSamplePercentageIncrease, double& bsplineMultiScaleSamplePercentageIncrease,
                    double& translationMultiScaleMaximumIterationIncrease, double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
                    double& translationMultiScaleStepLengthIncrease, double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease,
@@ -422,6 +478,9 @@ int main( int argc, char *argv[] )
   double bsplineMultiScaleStepLengthIncrease = 1.0;
 
   double translationScaleCoeffs = 1.0;
+  double gaussianFilterVariance = 2.0;
+  int maximumLineIteration = 10;
+  
   int bsplineInitialGridSize = 5;
   int numberOfBsplineLevel = 1;
   string imageType = "normal";
@@ -435,7 +494,8 @@ int main( int argc, char *argv[] )
       optTranslationLearningRate, optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate,
       optTranslationNumberOfIterations, optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations,
       numberOfSpatialSamplesTranslationPercentage, numberOfSpatialSamplesAffinePercentage, numberOfSpatialSamplesBsplinePercentage, numberOfSpatialSamplesBsplineHighPercentage,
-      bsplineInitialGridSize, numberOfBsplineLevel, transformType, imageType, metricType, useBspline, useBsplineHigh, translationScaleCoeffs,
+      bsplineInitialGridSize, numberOfBsplineLevel, transformType, imageType, metricType, useBspline, useBsplineHigh,
+      translationScaleCoeffs,gaussianFilterVariance, maximumLineIteration,
       translationMultiScaleSamplePercentageIncrease, affineMultiScaleSamplePercentageIncrease, bsplineMultiScaleSamplePercentageIncrease, translationMultiScaleMaximumIterationIncrease, affineMultiScaleMaximumIterationIncrease,  bsplineMultiScaleMaximumIterationIncrease,
       translationMultiScaleStepLengthIncrease, affineMultiScaleStepLengthIncrease, bsplineMultiScaleStepLengthIncrease,
       numberOfSpatialSamplesTranslation, numberOfSpatialSamplesAffine, numberOfSpatialSamplesBspline, numberOfSpatialSamplesBsplineHigh ) )
@@ -619,7 +679,7 @@ int main( int argc, char *argv[] )
 
       GaussianFilterType::Pointer gaussianFilter = GaussianFilterType::New();
       gaussianFilter->ReleaseDataFlagOn();
-      gaussianFilter->SetVariance( 2.0 );
+      gaussianFilter->SetVariance( gaussianFilterVariance );
       gaussianFilter->SetInput( normalizeFilter->GetOutput() );
 
       //Set up the Image Pyramid
@@ -704,7 +764,7 @@ int main( int argc, char *argv[] )
     FRPRoptimizer->SetStepLength(optTranslationLearningRate);
     FRPRoptimizer->SetMaximize(false);
     FRPRoptimizer->SetMaximumIteration( optTranslationNumberOfIterations );
-    FRPRoptimizer->SetMaximumLineIteration( 10 );
+    FRPRoptimizer->SetMaximumLineIteration( maximumLineIteration );
     FRPRoptimizer->SetScales( optimizerScales );
     FRPRoptimizer->SetToPolakRibiere();
     //FRPRoptimizer->SetToFletchReeves();
@@ -715,7 +775,7 @@ int main( int argc, char *argv[] )
     lineSearchOptimizer->SetStepLength(optTranslationLearningRate);
     lineSearchOptimizer->SetMaximize(false);
     lineSearchOptimizer->SetMaximumIteration( optTranslationNumberOfIterations );
-    lineSearchOptimizer->SetMaximumLineIteration( 10 );
+    lineSearchOptimizer->SetMaximumLineIteration( maximumLineIteration );
     lineSearchOptimizer->SetScales( optimizerScales );
     lineSearchOptimizer->AddObserver( itk::IterationEvent(), observer );
   } 
@@ -743,7 +803,7 @@ int main( int argc, char *argv[] )
   // Set the number of multiresolution levels
   registration->SetNumberOfLevels( multiLevelAffine );
 
-  std::cout << "message: Starting Registration with Translation Transform " << std::endl;
+  std::cout << "message: Starting Registration " << std::endl;
 
   // Add probe to count the time used by the registration
   itk::TimeProbesCollectorBase collector;
@@ -769,7 +829,6 @@ int main( int argc, char *argv[] )
   //Get the latest parameters from the registration
   ParametersType translationParameters = registration->GetLastTransformParameters();
   
-  std::cout << "message: Starting Registration with Affine Transform " << std::endl;
   for(int i=0; i<N; i++)
   {
     affineTransformArray[i]     = TransformType::New();
@@ -791,9 +850,9 @@ int main( int argc, char *argv[] )
     affineTransformArray[i]->SetIdentity();
     TransformType::InputPointType center;
     // Get spacing, origin and size of the images
-    ImageType::SpacingType spacing = imagePyramidArray[i]->GetOutput(0)->GetSpacing();
-    itk::Point<double, Dimension> origin = imagePyramidArray[i]->GetOutput(0)->GetOrigin();
-    ImageType::SizeType size = imagePyramidArray[i]->GetOutput(0)->GetLargestPossibleRegion().GetSize();
+    ImageType::SpacingType spacing = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetSpacing();
+    itk::Point<double, Dimension> origin = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetOrigin();
+    ImageType::SizeType size = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetLargestPossibleRegion().GetSize();
 
     // Place the center of rotation to the center of the image
     for(int j=0; j< Dimension; j++)
@@ -1009,9 +1068,9 @@ int main( int argc, char *argv[] )
         }
         else
         {
-          spacing = imagePyramidArray[i]->GetOutput(0)->GetSpacing();
-          origin = imagePyramidArray[i]->GetOutput(0)->GetOrigin();
-          fixedRegion = imagePyramidArray[i]->GetOutput(0)->GetBufferedRegion();
+          spacing = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetSpacing();
+          origin = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetOrigin();
+          fixedRegion = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetBufferedRegion();
         }
 
         ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
@@ -1105,9 +1164,6 @@ int main( int argc, char *argv[] )
     command->SetMultiScaleMaximumIterationIncrease(bsplineMultiScaleMaximumIterationIncrease);
     command->SetMultiScaleStepLengthIncrease(bsplineMultiScaleStepLengthIncrease);
 
-    std::cout << "message: Starting BSpline Registration with low resolution transform: " << std::endl;
-    std::cout << "message: Resolution level " << 0;
-    std::cout << " Number Of parameters: " << bsplineTransformArrayLow[0]->GetNumberOfParameters()*N <<std::endl;
     try
     {
       registration->StartRegistration();
@@ -1187,9 +1243,9 @@ int main( int argc, char *argv[] )
           }
           else
           {
-            spacingHigh = imagePyramidArray[i]->GetOutput(0)->GetSpacing();
-            originHigh  = imagePyramidArray[i]->GetOutput(0)->GetOrigin();
-            fixedRegion = imagePyramidArray[i]->GetOutput(0)->GetBufferedRegion();
+            spacingHigh = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetSpacing();
+            originHigh  = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetOrigin();
+            fixedRegion = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetBufferedRegion();
           }
           ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
     
@@ -1270,9 +1326,6 @@ int main( int argc, char *argv[] )
 
         }
 
-        std::cout << "message: Starting Registration with high resolution transform: " << std::endl;
-        std::cout << "message: Resolution level " << level;
-        std::cout << " Number Of parameters: " << bsplineTransformArrayHigh[0]->GetNumberOfParameters()*N <<std::endl;
 
         // Decrease the learning rate at each level
         // Reset the optimizer scales
@@ -1440,7 +1493,12 @@ int main( int argc, char *argv[] )
 
 
   // Update last Transform Parameters
-  std::cout << "message: Resulting parameters " << std::endl;
+  // and write the last tranform parameters to an output file
+  string parametersFolder("RegistrationParameters/");
+  parametersFolder = outputFolder + parametersFolder;
+  itksys::SystemTools::MakeDirectory( parametersFolder.c_str() );
+
+  std::cout << "message: Writing result parameters " << std::endl;
   for(int i=0; i<N; i++)
   {
     //copy current parameters
@@ -1449,22 +1507,41 @@ int main( int argc, char *argv[] )
       currentParameters[j] = finalParameters[numberOfParameters*i + j];
     }
     //Print the resulting parameters
-    std::cout << "param: " << currentParameters << std::endl;
+    string outputFname(fileNames[i]);
+    outputFname[outputFname.size()-4] = '.';
+    outputFname[outputFname.size()-3] = 't';
+    outputFname[outputFname.size()-2] = 'x';
+    outputFname[outputFname.size()-1] = 't';
+    outputFname = parametersFolder + outputFname;
+    ofstream outputFile(outputFname.c_str());
 
     if(useBsplineHigh == "on")
     {
       bsplineTransformArrayHigh[i]->SetBulkTransform( affineTransformArray[i] );
       bsplineTransformArrayHigh[i]->SetParametersByValue( currentParameters );
+
+      outputFile << "Bspline: " << std::endl;
+      outputFile << "GridSize: " << bsplineTransformArrayHigh[i]->GetGridRegion().GetSize() << std::endl;
+      outputFile << "Parameters:" << std::endl << currentParameters << std::endl;
     }
     else if (useBspline == "on")
     {
       bsplineTransformArrayLow[i]->SetBulkTransform( affineTransformArray[i] );
       bsplineTransformArrayLow[i]->SetParametersByValue( currentParameters );
+
+      outputFile << "Bspline: " << std::endl;
+      outputFile << "GridSize: " << bsplineTransformArrayLow[i]->GetGridRegion().GetSize() << std::endl;
+      outputFile << "Parameters:" << std::endl << currentParameters << std::endl;
+
     }
     else
     {
       affineTransformArray[i]->SetParametersByValue( currentParameters );
     }
+
+    outputFile << "Affine Params: " << std::endl;
+    outputFile << affineTransformArray[i]->GetParameters() << std::endl;
+    outputFile.close();
 
   }
 
@@ -1536,7 +1613,7 @@ int main( int argc, char *argv[] )
       writer->SetImageIO(imageArrayReader[i]->GetImageIO());
       writer->SetFileName( outputFileNames[i].c_str() );
       writer->SetInput( caster->GetOutput()   );
-      writer->Update();
+      //writer->Update();
 
       //Extract slices for 3D Images
       if(Dimension == 3)
@@ -1751,21 +1828,13 @@ int main( int argc, char *argv[] )
     namesGeneratorArray[0]->SetOutputDirectory( meanImageFname.c_str() );
     seriesWriter->SetFileNames( namesGeneratorArray[0]->GetOutputFileNames() );
     seriesWriter->SetMetaDataDictionaryArray( dicomArrayReader[0]->GetMetaDataDictionaryArray() );
-    
-    try
-    {
-      seriesWriter->Update();
-    }
-    catch( itk::ExceptionObject & excp )
-    {
-      std::cerr << "Exception thrown while writing the series " << std::endl;
-      std::cerr << excp << std::endl;
-      return EXIT_FAILURE;
-    }
+    seriesWriter->Update();
+
   }
   else
   {
     caster->SetInput( intensityRescaler->GetOutput() );
+
     writer2->SetInput( caster->GetOutput()   );
 
     string meanImageFname;
@@ -1775,7 +1844,38 @@ int main( int argc, char *argv[] )
     }
     else
     {
-      meanImageFname = outputFolder + "MeanRegisteredImage.mhd";
+      //Write the registered images
+      string meanImages("MeanImages/");
+      meanImageFname = outputFolder + meanImages + "MeanRegisteredImage.mhd";
+
+      meanImages = outputFolder + meanImages;
+      itksys::SystemTools::MakeDirectory( meanImages.c_str() );
+
+      vector<string> outputFilenames(Dimension);
+      outputFilenames[0] = "MeanRegisteredSlice1.png";
+      outputFilenames[1] = "MeanRegisteredSlice2.png";
+      outputFilenames[2] = "MeanRegisteredSlice3.png";
+
+      for(int index=0; index<Dimension; index++)
+      {
+        outputFilenames[index] = meanImages + outputFilenames[index];
+
+        OutputImageType::SizeType size = fixedImage->GetLargestPossibleRegion().GetSize();
+        OutputImageType::IndexType start = fixedImage->GetLargestPossibleRegion().GetIndex();
+        start[index] = size[index]/2;
+        size[index] = 0;
+        
+        OutputImageType::RegionType extractRegion;
+        extractRegion.SetSize(  size  );
+        extractRegion.SetIndex( start );
+        sliceExtractFilter->SetExtractionRegion( extractRegion );
+
+        sliceExtractFilter->SetInput( caster->GetOutput() );
+        sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
+        sliceWriter->SetFileName( outputFilenames[index].c_str() );
+        sliceWriter->Update();
+      }
+
     }
     writer2->SetFileName( meanImageFname.c_str() );
     writer2->Update();
@@ -1792,17 +1892,8 @@ int main( int argc, char *argv[] )
     namesGeneratorArray[0]->SetOutputDirectory( meanImageFname.c_str() );
     seriesWriter->SetFileNames( namesGeneratorArray[0]->GetOutputFileNames() );
     seriesWriter->SetMetaDataDictionaryArray( dicomArrayReader[0]->GetMetaDataDictionaryArray() );
-    
-    try
-    {
-      seriesWriter->Update();
-    }
-    catch( itk::ExceptionObject & excp )
-    {
-      std::cerr << "Exception thrown while writing the series " << std::endl;
-      std::cerr << excp << std::endl;
-      return EXIT_FAILURE;
-    }
+    seriesWriter->Update();
+
   }
   else
   {
@@ -1816,7 +1907,36 @@ int main( int argc, char *argv[] )
     }
     else
     {
-      meanImageFname = outputFolder + "MeanOriginalImage.mhd";
+      //Write the original images
+      string meanImages("MeanImages/");
+      meanImageFname = outputFolder + meanImages + "MeanOriginalImage.mhd";
+
+      meanImages = outputFolder + meanImages;
+
+      vector<string> outputFilenames(Dimension);
+      outputFilenames[0] = "MeanOriginalSlice1.png";
+      outputFilenames[1] = "MeanOriginalSlice2.png";
+      outputFilenames[2] = "MeanOriginalSlice3.png";
+
+      for(int index=0; index<Dimension; index++)
+      {
+        outputFilenames[index] = meanImages + outputFilenames[index];
+
+        OutputImageType::SizeType size = fixedImage->GetLargestPossibleRegion().GetSize();
+        OutputImageType::IndexType start = fixedImage->GetLargestPossibleRegion().GetIndex();
+        start[index] = size[index]/2;
+        size[index] = 0;
+        
+        OutputImageType::RegionType extractRegion;
+        extractRegion.SetSize(  size  );
+        extractRegion.SetIndex( start );
+        sliceExtractFilter->SetExtractionRegion( extractRegion );
+
+        sliceExtractFilter->SetInput( caster->GetOutput() );
+        sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
+        sliceWriter->SetFileName( outputFilenames[index].c_str() );
+        sliceWriter->Update();
+      }
     }
     writer2->SetFileName( meanImageFname.c_str() );
     writer2->Update();
@@ -1837,7 +1957,11 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
                           double& numberOfSpatialSamplesTranslationPercentage, double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
                           string& transformType, string& imageType,string& metricType,
-                          string& useBspline, string& useBsplineHigh, double& translationScaleCoeffs,
+                          string& useBspline, string& useBsplineHigh,
+                          
+                          double& translationScaleCoeffs,double& gaussianFilterVariance,
+                          int& maximumLineIteration,
+                          
                           double& translationMultiScaleSamplePercentageIncrease, double& affineMultiScaleSamplePercentageIncrease, double& bsplineMultiScaleSamplePercentageIncrease,
 
                           double& translationMultiScaleMaximumIterationIncrease, double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
@@ -1939,6 +2063,11 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
       numberOfBsplineLevel = atoi(argv[++i]);
     else if (dummy == "-translationScaleCoeffs")
       translationScaleCoeffs = atof(argv[++i]);
+    else if (dummy == "-gaussianFilterVariance")
+      gaussianFilterVariance = atof(argv[++i]);
+    else if (dummy == "-maximumLineIteration")
+      maximumLineIteration = atoi(argv[++i]);
+
     
     else if (dummy == "-useBspline")
       useBspline = argv[++i];
