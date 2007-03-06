@@ -80,6 +80,13 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
   int numberOfParameters =
       this->m_TransformArray[0]->GetNumberOfParameters();
 
+  //resize the currentParameters vector
+  currentParametersArray.resize(this->m_NumberOfImages);
+  for(int i=0; i<this->m_NumberOfImages; i++)
+  {
+    currentParametersArray[i].SetSize(numberOfParameters);
+  }
+  
   //Get number of threads
   m_NumberOfThreads = this->GetNumberOfThreads();
 
@@ -94,7 +101,7 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
     m_DerivativeCalcVector[i] = DerivativeFunctionType::New ();
   }
 
-  
+  this->m_NumberOfPixelsCounted = GetNumberOfSpatialSamples();
 }
 
 
@@ -279,16 +286,15 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 {
   //Make sure that each transform parameters are updated
   int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters();
-  ParametersType currentParam (numberOfParameters);
+  
   // Loop over images
   for (int i = 0; i < this->m_NumberOfImages; i++)
   {
     //Copy the parameters of the current transform
     for (int j = 0; j < numberOfParameters; j++)
     {
-      currentParam[j] = parameters[numberOfParameters * i + j];
+      currentParametersArray[i][j] = parameters[numberOfParameters * i + j];
     }
-    this->m_TransformArray[i]->SetParametersByValue (currentParam);
   }
 
 }
@@ -310,6 +316,12 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 
   unsigned int numberOfParameters =
       this->m_TransformArray[0]->GetNumberOfParameters();
+
+  //update current parameters
+  for (int i = threadId; i < this->m_NumberOfImages; i+=m_NumberOfThreads)
+  {
+    this->m_TransformArray[i]->SetParameters(currentParametersArray[i]);
+  }
 
   // Update intensity values
   MovingImagePointType mappedPoint;
@@ -447,17 +459,16 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 
   //Make sure that each transform parameters are updated
   int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters();
-  ParametersType currentParam (numberOfParameters);
+  
   // Loop over images
   for (int i = 0; i < this->m_NumberOfImages; i++)
   {
     //Copy the parameters of the current transform
     for (int j = 0; j < numberOfParameters; j++)
     {
-      currentParam[j] = parameters[numberOfParameters * i + j];
+      currentParametersArray[i][j] = parameters[numberOfParameters * i + j];
     }
-    // cout << currentParam << endl;
-    this->m_TransformArray[i]->SetParametersByValue (currentParam);
+
   }
 
 }
@@ -526,6 +537,12 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 
   unsigned int numberOfParameters =
       this->m_TransformArray[0]->GetNumberOfParameters();
+
+  //update current parameters
+  for (int i = threadId; i < this->m_NumberOfImages; i+=m_NumberOfThreads)
+  {
+    this->m_TransformArray[i]->SetParameters(currentParametersArray[i]);
+  }
   
   //Initialize the derivative array to zero
   m_derivativeArray[threadId].Fill(0.0);

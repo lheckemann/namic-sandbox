@@ -167,7 +167,12 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
       itkExceptionMacro(<<"Image pyramid " << i << "is not present");
     }
   }
-  
+
+  // Assume ImagePyramidArray is allocated correctly
+  if( m_NumberOfLevels > m_ImagePyramidArray[0]->GetNumberOfLevels() )
+  {
+    itkExceptionMacro(<<"Image Pyramid does not have sufficient levels, increase the number of levels of the pyramid filter");
+  }
 
   m_InitialTransformParametersOfNextLevel = m_InitialTransformParameters;
 
@@ -194,7 +199,7 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
   // Compute the FixedImageRegion corresponding to each level of the 
   // pyramid. This uses the same algorithm of the ShrinkImageFilter 
   // since the regions should be compatible. 
-  for ( unsigned int level=0; level < m_NumberOfLevels; level++ )
+  for ( unsigned int level=0; level < m_ImagePyramidArray[0]->GetNumberOfLevels(); level++ )
   {
     SizeType  size;
     IndexType start;
@@ -235,7 +240,10 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
 
   this->PreparePyramids();
 
-  for ( m_CurrentLevel = 0; m_CurrentLevel < m_NumberOfLevels;
+  // ImagePyramidArray might have more levels than required
+  // there do not necessarily begin from zero
+  for ( m_CurrentLevel = m_ImagePyramidArray[0]->GetNumberOfLevels()-m_NumberOfLevels;
+        m_CurrentLevel < m_ImagePyramidArray[0]->GetNumberOfLevels();
         m_CurrentLevel++ )
   {
 
@@ -423,7 +431,7 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
 template < typename ImageType >
 int 
 MultiResolutionMultiImageRegistrationMethod<ImageType>
-::GetTransformParametersLength( int N )
+::GetTransformParametersLength( )
 {
 
   return m_InitialTransformParameters.GetSize();

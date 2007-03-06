@@ -135,7 +135,7 @@ public:
   itkSetObjectMacro( Metric, MetricType );
   itkGetObjectMacro( Metric, MetricType );
 
-  /** Set/Get the Metric. */
+  /** Set/Get the FixedImageRegion. */
   itkSetMacro( FixedImageRegion, ImageRegionType );
   itkGetConstReferenceMacro( FixedImageRegion, ImageRegionType );
 
@@ -163,7 +163,7 @@ public:
   /** Set/Get the length of the parameters vector. The length of the parameters
       array should be set before assigning individual parameters */
   virtual void SetTransformParametersLength( int N );
-  virtual int GetTransformParametersLength( int N );
+  virtual int GetTransformParametersLength( );
   
   /** Set/Get the initial transformation parameters. */
   //itkSetMacro( InitialTransformParameters, ParametersType );

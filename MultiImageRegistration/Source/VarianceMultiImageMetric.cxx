@@ -90,7 +90,8 @@ VarianceMultiImageMetric<TFixedImage>
     m_DerivativeCalcVector[i] = DerivativeFunctionType::New ();
   }
 
-  
+  this->m_NumberOfPixelsCounted = GetNumberOfSpatialSamples();
+
 }
 
 

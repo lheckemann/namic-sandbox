@@ -265,7 +265,7 @@ private:
   mutable Array< RealType >   m_value;
   mutable std::vector< typename DerivativeFunctionType::Pointer > m_DerivativeCalcVector;
   mutable std::vector<DerivativeType> m_derivativeArray;
-
+  mutable std::vector<ParametersType> currentParametersArray;
   int m_NumberOfThreads;
 };
 
