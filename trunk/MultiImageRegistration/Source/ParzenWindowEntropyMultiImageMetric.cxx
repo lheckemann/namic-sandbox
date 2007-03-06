@@ -352,8 +352,11 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
       
       for(int k = 0; k < this->m_NumberOfImages; k++)
       {
-        dSum += m_KernelFunction->Evaluate( ( m_Sample[a].imageValueArray[j] - m_Sample[a].imageValueArray[k] ) /
+        if(k!=j)
+        {
+          dSum += m_KernelFunction->Evaluate( ( m_Sample[a].imageValueArray[j] - m_Sample[a].imageValueArray[k] ) /
             m_ImageStandardDeviation );
+        }
       }
       dSum /= static_cast<double> (this->m_NumberOfImages);
       dLogSum  -= ( dSum > 0.0 ) ? vcl_log( dSum ) : 0.0;
@@ -564,8 +567,11 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
       
       for(int k = 0; k < this->m_NumberOfImages; k++)
       {
-        dSum[j] += m_KernelFunction->Evaluate( ( m_Sample[a].imageValueArray[j] - m_Sample[a].imageValueArray[k] ) /
+        if(k!=j)
+        {
+          dSum[j] += m_KernelFunction->Evaluate( ( m_Sample[a].imageValueArray[j] - m_Sample[a].imageValueArray[k] ) /
             m_ImageStandardDeviation );
+        }
       }
       dSum[j] /= static_cast<double> (this->m_NumberOfImages);
       dLogSum  -= ( dSum[j] > 0.0 ) ? vcl_log( dSum[j] ) : 0.0;
@@ -580,9 +586,12 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
       double innerSum = 0.0;
       for (int k = 0; k < this->m_NumberOfImages; k++)
       {
-        double diff = ( m_Sample[a].imageValueArray[j] - m_Sample[a].imageValueArray[k] ) /
+        if(k!= j)
+        {
+          const double diff = ( m_Sample[a].imageValueArray[j] - m_Sample[a].imageValueArray[k] ) /
                         m_ImageStandardDeviation;
-        innerSum += m_KernelFunction->Evaluate( diff ) * diff;
+          innerSum += m_KernelFunction->Evaluate( diff ) * diff;
+        }
       }
       innerSum /= static_cast<double>(this->m_NumberOfImages);
 
