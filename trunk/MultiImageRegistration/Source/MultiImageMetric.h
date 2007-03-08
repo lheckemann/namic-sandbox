@@ -200,7 +200,7 @@ public:
   virtual void Initialize(void) throw ( ExceptionObject );
 
   /** Set number of images in the class */
-  void SetNumberOfImages(int);
+  virtual void SetNumberOfImages(int);
 
   /** Get number of images in the class */
   int GetNumberOfImages();
