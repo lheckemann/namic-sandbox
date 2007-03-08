@@ -32,7 +32,10 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   this->m_W=NULL;
   this->m_LikelihoodCache = NULL;
   this->SetMaxLikelihoodCacheSize( 125000000 );  //very big arbitrary number
-  this->m_CurrentLikelihoodCacheSize = 0; 
+  this->m_CurrentLikelihoodCacheSize = 0;
+  
+  //load in default sample directions
+  this->LoadDefaultSampleDirections();
 } 
 
 template< class TInputDWIImage, class TOutputConnectivityImage >
@@ -474,5 +477,6 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
     //}
   }
 }
+
 
 }

@@ -177,6 +177,7 @@ int main(int argc, char* argv[]){
   roireaderPtr->SetFileName(roifilename);
   roireaderPtr->Update();
   
+  /*
   //set list of directions
   typedef PTFilterType::TractOrientationContainerType TOCType;
   TOCType::Pointer directionsPtr = TOCType::New();
@@ -184,13 +185,24 @@ int main(int argc, char* argv[]){
   if(SamplingDirections<TOCType>("SD.txt", directionsPtr));
   else return EXIT_FAILURE;
   
+  //write out the directions
+  std::ofstream outfile("crapola.txt");
+  
+ 
+  for(int i=0; i<directionsPtr->Size(); i++){
+    TOCType::Element dir = directionsPtr->GetElement(i);
+    outfile<<"{"<<dir[0]<<", "<<dir[1]<<", "<<dir[2]<<"},"<<std::endl;
+  }
+  outfile.close();
+  */
+  
   //Setup the PTFilter
   PTFilterType::Pointer ptfilterPtr = PTFilterType::New();
   ptfilterPtr->SetInput( dwireaderPtr->GetOutput() );
   ptfilterPtr->SetbValues(bValuesPtr);
   ptfilterPtr->SetGradients( gradientsPtr );
   ptfilterPtr->SetMeasurementFrame( measurement_frame );
-  ptfilterPtr->SetSampleDirections(directionsPtr);
+  //ptfilterPtr->SetSampleDirections(directionsPtr);
   ptfilterPtr->SetMaxTractLength( maxtractlength );
   ptfilterPtr->SetTotalTracts( totaltracts );
   ptfilterPtr->SetMaxLikelihoodCacheSize( maxlikelihoodcachesize );
@@ -214,7 +226,6 @@ int main(int argc, char* argv[]){
   ROIImageIteratorType ROIImageIt( roireaderPtr->GetOutput(),
     roireaderPtr->GetOutput()->GetRequestedRegion() );
   for(ROIImageIt.GoToBegin(); !ROIImageIt.IsAtEnd(); ++ROIImageIt){
-    //std::cout << "PixelIndex: "<< inputROIImageIt.GetIndex() << std::endl;
     if(ROIImageIt.Get() == labelnumber){
       std::cout << "PixelIndex: "<< ROIImageIt.GetIndex() << std::endl;
       ptfilterPtr->SetSeedIndex( ROIImageIt.GetIndex() );
