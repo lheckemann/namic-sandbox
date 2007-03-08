@@ -137,7 +137,7 @@ if( argc < 4 )
     //Randomly set the parameters
     for(int j=0; j<bsplineParameters.GetSize(); j++)
     {
-      bsplineParameters[j] = (rand()%100/100.0 - 0.5)*8.0;;
+      bsplineParameters[j] = (rand()%203/203.0 - 0.5)*23.0;;
     }
 
 
@@ -149,7 +149,6 @@ if( argc < 4 )
 
     InterpolatorType::Pointer interpolator = InterpolatorType::New();
     resample->SetInterpolator( interpolator );
-    resample->SetDefaultPixelValue( 0 );
 
     // Initialize the resampler
     // Get the size of the image
@@ -176,7 +175,8 @@ if( argc < 4 )
     resample->SetSize(size);
     resample->SetOutputOrigin(origin);
     resample->SetOutputSpacing(spacing);
-
+    resample->SetOutputDirection( reader->GetOutput()->GetDirection());
+    resample->SetDefaultPixelValue( 0 );
       
     resample->SetInput( reader->GetOutput() );
     writer->SetInput( resample->GetOutput() );

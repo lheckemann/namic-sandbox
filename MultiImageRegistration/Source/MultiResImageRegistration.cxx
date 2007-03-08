@@ -418,6 +418,7 @@ int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& in
                    int& optTranslationNumberOfIterations, int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
                    double& numberOfSpatialSamplesTranslationPercentage, double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
                    int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
+                   string& useBSplineRegularization, double& bsplineRegularizationFactor,
                    string& transformType, string& imageType,string& metricType, string& useBspline, string& useBsplineHigh,
                    double& translationScaleCoeffs,  double& gaussianFilterVariance,
                    int& maximumLineIteration,
@@ -434,35 +435,35 @@ int main( int argc, char *argv[] )
   string inputFolder("");
   string outputFolder("");
   
-  string optimizerType("gradient");
+  string optimizerType("lineSearch");
   string transformType("");
   string metricType("entropy");
 
   string metricPrint("off");
   
-  int multiLevelAffine = 1;
+  int multiLevelAffine = 2;
   int multiLevelBspline = 1;
   int multiLevelBsplineHigh = 1;
 
-  double optTranslationLearningRate = 1000;
-  double optAffineLearningRate = 2e-3;
-  double optBsplineLearningRate = 500;
-  double optBsplineHighLearningRate = 500;
+  double optTranslationLearningRate = 1e5;
+  double optAffineLearningRate = 1e-3;
+  double optBsplineLearningRate = 1e5;
+  double optBsplineHighLearningRate = 1e5;
 
   int optTranslationNumberOfIterations = 500;
-  int optAffineNumberOfIterations = 10000;
-  int optBsplineNumberOfIterations = 10000;
-  int optBsplineHighNumberOfIterations = 10000;
+  int optAffineNumberOfIterations = 500;
+  int optBsplineNumberOfIterations = 500;
+  int optBsplineHighNumberOfIterations = 500;
 
   double numberOfSpatialSamplesTranslationPercentage = 0;
   double numberOfSpatialSamplesAffinePercentage = 0;
   double numberOfSpatialSamplesBsplinePercentage = 0;
   double numberOfSpatialSamplesBsplineHighPercentage = 0;
 
-  unsigned int numberOfSpatialSamplesTranslation = 1000;
+  unsigned int numberOfSpatialSamplesTranslation = 2000;
   unsigned int numberOfSpatialSamplesAffine = 2000;
-  unsigned int numberOfSpatialSamplesBspline = 20000;
-  unsigned int numberOfSpatialSamplesBsplineHigh = 50000;
+  unsigned int numberOfSpatialSamplesBspline = 4000;
+  unsigned int numberOfSpatialSamplesBsplineHigh = 4000;
 
   double translationMultiScaleSamplePercentageIncrease = 4.0;
   double affineMultiScaleSamplePercentageIncrease = 4.0;
@@ -473,16 +474,20 @@ int main( int argc, char *argv[] )
   double bsplineMultiScaleMaximumIterationIncrease = 1.0;
 
   
-  double translationMultiScaleStepLengthIncrease = 1.0;
-  double affineMultiScaleStepLengthIncrease = 1.0;
-  double bsplineMultiScaleStepLengthIncrease = 1.0;
+  double translationMultiScaleStepLengthIncrease = 1e-1;
+  double affineMultiScaleStepLengthIncrease = 1e-1;
+  double bsplineMultiScaleStepLengthIncrease = 1e-1;
 
-  double translationScaleCoeffs = 1.0;
+  double translationScaleCoeffs = 1e-5;
   double gaussianFilterVariance = 2.0;
   int maximumLineIteration = 10;
   
   int bsplineInitialGridSize = 5;
   int numberOfBsplineLevel = 1;
+  string useBSplineRegularization("on");
+  double bsplineRegularizationFactor = 1e-1;
+
+      
   string imageType = "normal";
 
   string useBspline("off");
@@ -494,7 +499,9 @@ int main( int argc, char *argv[] )
       optTranslationLearningRate, optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate,
       optTranslationNumberOfIterations, optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations,
       numberOfSpatialSamplesTranslationPercentage, numberOfSpatialSamplesAffinePercentage, numberOfSpatialSamplesBsplinePercentage, numberOfSpatialSamplesBsplineHighPercentage,
-      bsplineInitialGridSize, numberOfBsplineLevel, transformType, imageType, metricType, useBspline, useBsplineHigh,
+      bsplineInitialGridSize, numberOfBsplineLevel,
+      useBSplineRegularization, bsplineRegularizationFactor,
+      transformType, imageType, metricType, useBspline, useBsplineHigh,
       translationScaleCoeffs,gaussianFilterVariance, maximumLineIteration,
       translationMultiScaleSamplePercentageIncrease, affineMultiScaleSamplePercentageIncrease, bsplineMultiScaleSamplePercentageIncrease, translationMultiScaleMaximumIterationIncrease, affineMultiScaleMaximumIterationIncrease,  bsplineMultiScaleMaximumIterationIncrease,
       translationMultiScaleStepLengthIncrease, affineMultiScaleStepLengthIncrease, bsplineMultiScaleStepLengthIncrease,
@@ -1105,6 +1112,16 @@ int main( int argc, char *argv[] )
         // register Bspline pointers with the registration method
         registration->SetInitialTransformParameters( bsplineTransformArrayLow[i]->GetParameters(), i);
         registration->SetTransformArray(     bsplineTransformArrayLow[i] ,i    );
+        if(metricType == "entropy")
+        {
+          if(useBSplineRegularization == "on")
+          {
+            entropyMetric->SetNumberOfImages(N);
+            entropyMetric->SetBSplineTransformArray(     bsplineTransformArrayLow[i] ,i    );
+            entropyMetric->SetRegularization(true);
+            entropyMetric->SetRegularizationFactor(bsplineRegularizationFactor);
+          }
+        }
       }
     }
     catch( itk::ExceptionObject & err )
@@ -1324,6 +1341,17 @@ int main( int argc, char *argv[] )
           registration->SetInitialTransformParameters( bsplineTransformArrayHigh[i]->GetParameters() , i );
           registration->SetTransformArray( bsplineTransformArrayHigh[i], i );
 
+          // Set the regularization term
+          if(metricType == "entropy")
+          {
+            if(useBSplineRegularization == "on")
+            {
+              entropyMetric->SetNumberOfImages(N);
+              entropyMetric->SetBSplineTransformArray(     bsplineTransformArrayHigh[i] ,i    );
+              entropyMetric->SetRegularization(true);
+              entropyMetric->SetRegularizationFactor(bsplineRegularizationFactor);
+            }
+          }
         }
 
 
@@ -1956,6 +1984,9 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
                           int& optTranslationNumberOfIterations, int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
                           double& numberOfSpatialSamplesTranslationPercentage, double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
+                          
+                          string& useBSplineRegularization, double& bsplineRegularizationFactor,
+
                           string& transformType, string& imageType,string& metricType,
                           string& useBspline, string& useBsplineHigh,
                           
@@ -2061,6 +2092,11 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
       bsplineInitialGridSize = atoi(argv[++i]);
     else if (dummy == "-numberOfBsplineLevel")
       numberOfBsplineLevel = atoi(argv[++i]);
+    else if (dummy == "-useBSplineRegularization")
+      useBSplineRegularization = argv[++i];
+    else if (dummy == "-bsplineRegularizationFactor")
+      bsplineRegularizationFactor = atof(argv[++i]);
+
     else if (dummy == "-translationScaleCoeffs")
       translationScaleCoeffs = atof(argv[++i]);
     else if (dummy == "-gaussianFilterVariance")

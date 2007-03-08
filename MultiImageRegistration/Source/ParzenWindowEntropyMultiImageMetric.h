@@ -23,6 +23,12 @@
 #include "itkIndex.h"
 #include "itkKernelFunction.h"
 #include "itkCentralDifferenceImageFunction.h"
+    
+#include "itkGradientImageFilter.h"
+#include "itkBSplineDeformableTransform.h"
+
+#include "itkImageRegionIterator.h"
+#include <itkHessianRecursiveGaussianImageFilter.h>
 
 //user defined headers
 #include <vector>
@@ -123,7 +129,12 @@ public:
   typedef typename Superclass::MovingImageType          MovingImageType;
   typedef typename Superclass::FixedImageConstPointer   FixedImageConstPointer;
   typedef typename Superclass::MovingImageConstPointer  MovingImageCosntPointer;
-  //typedef typename Superclass::ThreadStruct             ThreadStruct;
+  typedef typename Superclass::GradientImageType        GradientImageType;
+  typedef typename Superclass::GradientImagePointer     GradientImagePointer;
+  typedef typename Superclass::GradientPixelType        GradientPixelType;
+  typedef typename Superclass::MovingImagePixelType     ImagePixelType;
+  typedef typename Superclass::RealType        RealType;
+  
   struct ThreadStruct
   {
     ConstPointer Metric;
@@ -141,10 +152,10 @@ public:
   //typedef vector<FixedImageIndexValueType> ImageIndexValueTypeArray;
 
   /** PixelType */
-  typedef typename FixedImageType::PixelType            PixelType;
+  //typedef typename FixedImageType::PixelType            PixelType;
 
   /** Type to use for computations. */
-  typedef typename NumericTraits<PixelType>::RealType   RealType;
+  //typedef typename NumericTraits<PixelType>::RealType   RealType;
 
 
   /** Enum of the moving image dimension. */
@@ -205,6 +216,49 @@ public:
   void ReinitializeSeed();
   void ReinitializeSeed(int);
 
+  /** Define the bspline tranform type for regularization
+     For Regularization BsplineTransfromPointer must be explicitly
+     provided */
+  typedef itk::BSplineDeformableTransform<double,   itkGetStaticConstMacro(MovingImageDimension), 3> BSplineTransformType;
+  typedef typename BSplineTransformType::Pointer BSplineTransformTypePointer;
+  
+  typedef typename BSplineTransformType::ImageType BSplineParametersImageType;
+  typedef itk::GradientImageFilter<BSplineParametersImageType, RealType, RealType> GradientFilterType;
+  typedef typename GradientFilterType::Pointer GradientFilterTypePointer;
+
+
+  /** Typedefs to compute the hessian of the BSpline parameter images */
+  //typedef CovariantVector< GradientPixelType,
+  //                          itkGetStaticConstMacro(MovingImageDimension) > HessianPixelType;
+
+  typedef itk::Image< SymmetricSecondRankTensor< RealType, itkGetStaticConstMacro(MovingImageDimension) >,        itkGetStaticConstMacro(MovingImageDimension) > HessianImageType;
+  typedef typename HessianImageType::PixelType HessianPixelType;
+  //typedef Image<HessianPixelType,
+  //              itkGetStaticConstMacro(MovingImageDimension)> HessianImageType;
+  typedef SmartPointer<HessianImageType>     HessianImagePointer;
+  typedef std::vector<HessianImagePointer>   HessianImagePointerArray;
+  //typedef itk::GradientImageFilter<GradientImageType, GradientPixelType, GradientPixelType> HessianFilterType;
+
+  typedef itk::HessianRecursiveGaussianImageFilter< BSplineParametersImageType >  HessianFilterType;
+  typedef typename HessianFilterType::Pointer HessianFilterTypePointer;
+
+
+
+  /** Set/Get the i'th Bspline Transform Pointer. */
+  UserSetObjectMacro( BSplineTransformArray, BSplineTransformType );
+  UserGetConstObjectMacro( BSplineTransformArray, BSplineTransformType );
+
+  /** Set/Get the regularization factor */
+  itkSetMacro( RegularizationFactor, RealType );
+
+  /** Turn regularization on/off: Default off (true=on) */
+  itkSetMacro( Regularization, bool );
+  /** Get regularization on/off */
+  itkGetMacro( Regularization, bool );
+
+  /** Set Number of images */
+  virtual void SetNumberOfImages(int N);
+
 protected:
   ParzenWindowEntropyMultiImageMetric();
   virtual ~ParzenWindowEntropyMultiImageMetric() {};
@@ -224,9 +278,8 @@ private:
     ~SpatialSample(){};
 
     FixedImagePointType              FixedImagePoint;
-    vector<double>                   imageValueArray;
-   // double                           FixedImageValue;
-   // double                           MovingImageValue;
+    vector< RealType >                   imageValueArray;
+
   };
 
   /** SpatialSampleContainer typedef support. */
@@ -267,6 +320,13 @@ private:
   mutable std::vector<DerivativeType> m_derivativeArray;
   mutable std::vector<ParametersType> currentParametersArray;
   int m_NumberOfThreads;
+
+  bool m_Regularization;
+  double m_RegularizationFactor;
+  
+  std::vector<BSplineTransformTypePointer> m_BSplineTransformArray;
+
+  std::vector< std::vector<HessianFilterTypePointer> > hessianFilterArray;
 };
 
 } // end namespace itk
