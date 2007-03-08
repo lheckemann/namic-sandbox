@@ -46,6 +46,7 @@ public:
   /** Types for the Measurement Frame of the Gradients **/
   typedef vnl_matrix_fixed< double, 3, 3 > MeasurementFrameType;
 
+  /** Type for the sample directions **/
   typedef VectorContainer< unsigned int, vnl_vector_fixed< double, 3 > > 
     TractOrientationContainerType;
   
@@ -132,7 +133,10 @@ protected:
     this->UpdateGradientDirections();
     this->UpdateTensorModelFittingMatrices();
   }
-    
+  
+  /** Load the default Sample Directions**/
+  void LoadDefaultSampleDirections( void );
+  
   /** Primary steps in the algorithm **/
   void ProbabilisticallyInterpolate( vnl_random& randomgenerator, 
       const PathType::ContinuousIndexType& cindex,
@@ -196,6 +200,7 @@ protected:
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #include "itkStochasticTractographyFilter.txx"
+#include "itkStochasticTractographyFilter_SD.txx"
 #endif
 
 #endif
