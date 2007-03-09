@@ -44,13 +44,7 @@ SET(MultiResImageRegistration_SRCS
  
 
 
-#ADD_EXECUTABLE(RegisterVarianceAffine ${MultiImageRegistration_SRCS})
-#TARGET_LINK_LIBRARIES(RegisterVarianceAffine ITKNumerics ITKIO )
-
-#ADD_EXECUTABLE(RegisterVarianceBspline ${MultiImageRegistrationBspline_SRCS})
-#TARGET_LINK_LIBRARIES(RegisterVarianceBspline ITKNumerics ITKIO )
-
-ADD_EXECUTABLE(RegisterVarianceAffineMultiRes ${MultiResImageRegistration_SRCS})
+ADD_EXECUTABLE(Congeal ${MultiResImageRegistration_SRCS})
 TARGET_LINK_LIBRARIES(RegisterVarianceAffineMultiRes ITKNumerics ITKIO )
 
 ADD_EXECUTABLE(CreateImageSetAffine CreateImageSetAffine.cxx )
