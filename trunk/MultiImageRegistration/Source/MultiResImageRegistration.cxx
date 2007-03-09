@@ -670,6 +670,9 @@ int main( int argc, char *argv[] )
         imageReader = ImageReaderType::New();
         //imageReader->ReleaseDataFlagOn();
         imageReader->SetFileName( inputFileNames[i].c_str() );
+        imageReader->Update();
+        ImageType::Pointer ppt = imageReader->GetOutput();
+        int x;
       }
         
     
@@ -1470,7 +1473,7 @@ int main( int argc, char *argv[] )
 
   ImageType::Pointer fixedImage;
   
-  typedef  unsigned short  OutputPixelType;
+  typedef  PixelType  OutputPixelType;
   typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
   
   typedef itk::CastImageFilter< 
@@ -1489,7 +1492,7 @@ int main( int argc, char *argv[] )
   typedef itk::ImageFileWriter< SliceImageType >  SliceWriterType;
   SliceWriterType::Pointer  sliceWriter = SliceWriterType::New();
   // Filter to extract a slice from an image
-  typedef itk::ExtractImageFilter< OutputImageType, SliceImageType > SliceExtractFilterType;
+  typedef itk::ExtractImageFilter< ImageType, SliceImageType > SliceExtractFilterType;
   SliceExtractFilterType::Pointer sliceExtractFilter = SliceExtractFilterType::New();
 
   // typedefs for output images
