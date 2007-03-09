@@ -26,7 +26,7 @@ SET(MultiImageRegistrationBspline_SRCS
  )
  
 
-SET(MultiResImageRegistration_SRCS 
+SET(Congealing_SRCS 
   MultiResImageRegistration.cxx 
   MultiResolutionImageRegistrationMethod.cxx 
   MultiResolutionImageRegistrationMethod.h 
@@ -44,8 +44,8 @@ SET(MultiResImageRegistration_SRCS
  
 
 
-ADD_EXECUTABLE(Congeal ${MultiResImageRegistration_SRCS})
-TARGET_LINK_LIBRARIES(RegisterVarianceAffineMultiRes ITKNumerics ITKIO )
+ADD_EXECUTABLE(Congeal ${Congealing_SRCS})
+TARGET_LINK_LIBRARIES(Congeal ITKNumerics ITKIO )
 
 ADD_EXECUTABLE(CreateImageSetAffine CreateImageSetAffine.cxx )
 TARGET_LINK_LIBRARIES(CreateImageSetAffine ITKCommon ITKBasicFilters ITKIO ITKStatistics)
