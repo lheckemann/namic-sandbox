@@ -421,7 +421,7 @@ int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& in
                    string& useBSplineRegularization, double& bsplineRegularizationFactor,
                    string& transformType, string& imageType,string& metricType, string& useBspline, string& useBsplineHigh,
                    double& translationScaleCoeffs,  double& gaussianFilterVariance,
-                   int& maximumLineIteration,
+                   int& maximumLineIteration, double& parzenWindowStandardDeviation,
                    double& translationMultiScaleSamplePercentageIncrease, double& affineMultiScaleSamplePercentageIncrease, double& bsplineMultiScaleSamplePercentageIncrease,
                    double& translationMultiScaleMaximumIterationIncrease, double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
                    double& translationMultiScaleStepLengthIncrease, double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease,
@@ -486,6 +486,7 @@ int main( int argc, char *argv[] )
   int numberOfBsplineLevel = 1;
   string useBSplineRegularization("on");
   double bsplineRegularizationFactor = 1e-1;
+  double parzenWindowStandardDeviation = 0.4;
 
       
   string imageType = "normal";
@@ -502,7 +503,7 @@ int main( int argc, char *argv[] )
       bsplineInitialGridSize, numberOfBsplineLevel,
       useBSplineRegularization, bsplineRegularizationFactor,
       transformType, imageType, metricType, useBspline, useBsplineHigh,
-      translationScaleCoeffs,gaussianFilterVariance, maximumLineIteration,
+      translationScaleCoeffs,gaussianFilterVariance, maximumLineIteration,  parzenWindowStandardDeviation,
       translationMultiScaleSamplePercentageIncrease, affineMultiScaleSamplePercentageIncrease, bsplineMultiScaleSamplePercentageIncrease, translationMultiScaleMaximumIterationIncrease, affineMultiScaleMaximumIterationIncrease,  bsplineMultiScaleMaximumIterationIncrease,
       translationMultiScaleStepLengthIncrease, affineMultiScaleStepLengthIncrease, bsplineMultiScaleStepLengthIncrease,
       numberOfSpatialSamplesTranslation, numberOfSpatialSamplesAffine, numberOfSpatialSamplesBspline, numberOfSpatialSamplesBsplineHigh ) )
@@ -761,6 +762,7 @@ int main( int argc, char *argv[] )
     registration->SetMetric( entropyMetric  );
     // Set the number of samples to be used by the metric
     entropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
+    entropyMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
   }
 
   // Create the Command observer and register it with the optimizer.
@@ -1994,7 +1996,7 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
                           string& useBspline, string& useBsplineHigh,
                           
                           double& translationScaleCoeffs,double& gaussianFilterVariance,
-                          int& maximumLineIteration,
+                          int& maximumLineIteration,   double& parzenWindowStandardDeviation,
                           
                           double& translationMultiScaleSamplePercentageIncrease, double& affineMultiScaleSamplePercentageIncrease, double& bsplineMultiScaleSamplePercentageIncrease,
 
@@ -2106,6 +2108,9 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
       gaussianFilterVariance = atof(argv[++i]);
     else if (dummy == "-maximumLineIteration")
       maximumLineIteration = atoi(argv[++i]);
+    else if (dummy == "-parzenWindowStandardDeviation")
+      parzenWindowStandardDeviation = atof(argv[++i]);
+
 
     
     else if (dummy == "-useBspline")

@@ -23,7 +23,7 @@
   
 -translationMultiScaleStepLengthIncrease 1e-1 -affineMultiScaleStepLengthIncrease 1e-1 -bsplineMultiScaleStepLengthIncrease 1e-1 
     
--translationScaleCoeffs 1e-5 -gaussianFilterVariance 2.0 -maximumLineIteration 10
+-translationScaleCoeffs 1e-5 -gaussianFilterVariance 2.0 -maximumLineIteration 10 -parzenWindowStandardDeviation 0.4
     
 -bsplineInitialGridSize 5 -numberOfBsplineLevel 1 -useBSplineRegularization on -bsplineRegularizationFactor 1e-1
     
