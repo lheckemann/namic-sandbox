@@ -28,7 +28,6 @@
 #include "itkBSplineDeformableTransform.h"
 
 #include "itkImageRegionIterator.h"
-#include <itkHessianRecursiveGaussianImageFilter.h>
 
 //user defined headers
 #include <vector>
@@ -223,25 +222,10 @@ public:
   typedef typename BSplineTransformType::Pointer BSplineTransformTypePointer;
   
   typedef typename BSplineTransformType::ImageType BSplineParametersImageType;
+  typedef typename BSplineParametersImageType::Pointer BSplineParametersImagePointer;
+  
   typedef itk::GradientImageFilter<BSplineParametersImageType, RealType, RealType> GradientFilterType;
   typedef typename GradientFilterType::Pointer GradientFilterTypePointer;
-
-
-  /** Typedefs to compute the hessian of the BSpline parameter images */
-  //typedef CovariantVector< GradientPixelType,
-  //                          itkGetStaticConstMacro(MovingImageDimension) > HessianPixelType;
-
-  typedef itk::Image< SymmetricSecondRankTensor< RealType, itkGetStaticConstMacro(MovingImageDimension) >,        itkGetStaticConstMacro(MovingImageDimension) > HessianImageType;
-  typedef typename HessianImageType::PixelType HessianPixelType;
-  //typedef Image<HessianPixelType,
-  //              itkGetStaticConstMacro(MovingImageDimension)> HessianImageType;
-  typedef SmartPointer<HessianImageType>     HessianImagePointer;
-  typedef std::vector<HessianImagePointer>   HessianImagePointerArray;
-  //typedef itk::GradientImageFilter<GradientImageType, GradientPixelType, GradientPixelType> HessianFilterType;
-
-  typedef itk::HessianRecursiveGaussianImageFilter< BSplineParametersImageType >  HessianFilterType;
-  typedef typename HessianFilterType::Pointer HessianFilterTypePointer;
-
 
 
   /** Set/Get the i'th Bspline Transform Pointer. */
@@ -326,7 +310,11 @@ private:
   
   std::vector<BSplineTransformTypePointer> m_BSplineTransformArray;
 
-  std::vector< std::vector<HessianFilterTypePointer> > hessianFilterArray;
+  std::vector< std::vector< GradientFilterTypePointer > >  m_BSplineGradientArray;
+  std::vector< std::vector< std::vector< GradientFilterTypePointer > > > m_BSplineHessianArray;
+
+  std::vector< std::vector< std::vector< BSplineParametersImagePointer > > > m_BSplineGradientImagesArray;
+
 };
 
 } // end namespace itk
