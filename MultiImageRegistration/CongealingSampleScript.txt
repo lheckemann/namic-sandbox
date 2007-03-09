@@ -1,0 +1,20 @@
+# remark : Sample script file 
+# remove newlines before executing the script
+
+./bin/congeal  
+
+-i inputFolder   -o outputFolder/   
+
+-useBspline on -useBsplineHigh off  
+
+-multiLevelAffine 2  -multiLevelBspline 1  -multiLevelBsplineHigh 1
+ 
+-optTranslationLearningRate 1e5 -optAffineLearningRate  1e-3 -optBsplineLearningRate 1e5 -optBsplineHighLearningRate 1e5
+ 
+-optTranslationNumberOfIterations 50 -optAffineNumberOfIterations 500  -optBsplineNumberOfIterations 500  -optBsplineHighNumberOfIterations 500 
+
+-numberOfSpatialSamplesTranslationPercentage 25e-5 -numberOfSpatialSamplesAffinePercentage 25e-5 -numberOfSpatialSamplesBsplinePercentage 5e-4 -numberOfSpatialSamplesBsplineHighPercentage 1e-3
+    
+-translationScaleCoeffs 1e-5  -bsplineRegularizationFactor 1e-1
+    
+filename1 filename2 filename3 filename4 filename5 filename6 filename7 filename8 filename9 filename10 filename11 filename12 filename13 filename14 filename15 filename16 filename17 filename18 filename19 filename20 filename21 filename22 filename23 filename24 filename25 filename26 filename27 filename28 filename29 filename30
