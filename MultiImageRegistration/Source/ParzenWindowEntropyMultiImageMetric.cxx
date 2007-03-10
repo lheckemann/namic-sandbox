@@ -54,6 +54,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >::
   m_Regularization = false;
   m_RegularizationFactor = 1e-5;
 
+  m_UseMask = false;
 }
 
 /*
@@ -100,6 +101,14 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
   }
   this->m_NumberOfPixelsCounted = m_NumberOfSpatialSamples;
   
+  //check whether there is a mask
+  for (int j = 0; j < this->m_NumberOfImages; j++)
+  {
+    if ( this->m_ImageMaskArray[j] )
+    {
+      m_UseMask = true;
+    }
+  }
   // reinitilize the seed for the random iterator
   this->ReinitializeSeed();
 
@@ -122,6 +131,7 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
     m_derivativeArray[i].SetSize(numberOfParameters*this->m_NumberOfImages);
     m_DerivativeCalcVector[i] = DerivativeFunctionType::New ();
   }
+
 
   // Initialize the variables for regularization term
   if( m_Regularization &&
@@ -241,7 +251,7 @@ template < class TFixedImage >
 void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
 SampleFixedImageDomain (SpatialSampleContainer & samples) const
 {
-  
+  int count =0;
   typedef ImageRandomConstIteratorWithIndex < FixedImageType > RandomIterator;
   RandomIterator randIter(this->m_ImageArray[0], this->GetFixedImageRegion());
 
@@ -255,7 +265,7 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
 
   // Number of random picks made from the portion of fixed image within the fixed mask
   unsigned long numberOfFixedImagePixelsVisited = 0;
-  unsigned long dryRunTolerance = this->GetFixedImageRegion().GetNumberOfPixels();
+  unsigned long dryRunTolerance = 3*this->GetFixedImageRegion().GetNumberOfPixels();
 
   // Vector to hold mapped points
   std::vector<MovingImagePointType> mappedPointsArray(this->m_NumberOfImages);
@@ -280,19 +290,28 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
 
     //Check whether all points are inside mask
     bool allPointsInside = true;
-    for (int j = 0; j < this->m_NumberOfImages; j++)
+    bool pointInsideMask = false;
+    for (int j = 0; j < this->m_NumberOfImages && allPointsInside; j++)
     {
       mappedPointsArray[j] = this->m_TransformArray[j]->TransformPoint ((*iter).FixedImagePoint);
-      
-      if ( (this->m_ImageMaskArray[j] && !this->m_ImageMaskArray[j]->IsInside (mappedPointsArray[j]) )
-           || !this->m_InterpolatorArray[j]->IsInsideBuffer (mappedPointsArray[j]) )
+
+      //check whether sampled point is in one of the masks
+      if ( this->m_ImageMaskArray[j] && !this->m_ImageMaskArray[j]
+           ->IsInside (mappedPointsArray[j])  )
       {
-        allPointsInside = false;
+        pointInsideMask = true;
       }
+
+      allPointsInside = allPointsInside && this->m_InterpolatorArray[j]
+                                             ->IsInsideBuffer (mappedPointsArray[j]);
     }
 
+    if(allPointsInside == false || (m_UseMask && pointInsideMask == false) )
+    {
+       count++;
+    }
     // If not all points are inside continue to the next random sample
-    if (allPointsInside == false)
+    if (allPointsInside == false || (m_UseMask && pointInsideMask == false) )
     {
       ++randIter;
       --iter;
@@ -311,6 +330,7 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
 
   }
 
+  cout << count << " " << numberOfFixedImagePixelsVisited << endl;
   if (allOutside)
   {
     // if all the samples mapped to the outside throw an exception

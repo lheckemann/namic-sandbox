@@ -116,7 +116,10 @@ public:
   typedef typename ImagePyramidType::Pointer  ImagePyramidPointer;
   typedef  vector<ImagePyramidPointer>                ImagePyramidPointerArray;
 
-
+  /** Typedef for image masks */
+  typedef typename MetricType::MovingImageMaskType ImageMaskType;
+  typedef typename  MetricType::MovingImageMaskPointer ImageMaskPointer;
+  typedef typename std::vector< ImageMaskPointer > ImageMaskPointerArray;
   /** Type of the Transformation parameters This is the same type used to
    *  represent the search space of the optimization algorithm */
   typedef  typename MetricType::TransformParametersType    ParametersType;
@@ -151,7 +154,10 @@ public:
   UserSetObjectMacro( ImagePyramidArray, ImagePyramidType );
   UserGetObjectMacro( ImagePyramidArray, ImagePyramidType );
 
-
+  /** Set/Get image mask array */
+  UserSetObjectMacro( ImageMaskArray, ImageMaskType );
+  UserGetObjectMacro( ImageMaskArray, ImageMaskType );
+  
   /** Set/Get the number of multi-resolution levels. */
   itkSetClampMacro( NumberOfLevels, unsigned long, 1,
                     NumericTraits<unsigned long>::max() );
@@ -223,6 +229,7 @@ private:
   ImageRegionType                  m_FixedImageRegion;
   std::vector<ImageRegionType>     m_FixedImageRegionPyramid;
 
+  ImageMaskPointerArray  m_ImageMaskArray;
   unsigned long                    m_NumberOfLevels;
   unsigned long                    m_CurrentLevel;
 
