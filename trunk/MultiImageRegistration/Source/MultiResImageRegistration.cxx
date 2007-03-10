@@ -93,6 +93,11 @@
 
 #include "itkImageRegionIterator.h"
 
+//header for creating mask
+#include "itkImageMaskSpatialObject.h"
+#include "itkConnectedThresholdImageFilter.h"
+#include "itkNeighborhoodConnectedImageFilter.h"
+
 //Define the global types for image type
 #define PixelType unsigned short
 #define InternalPixelType double
@@ -425,7 +430,8 @@ int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& in
                    double& translationMultiScaleSamplePercentageIncrease, double& affineMultiScaleSamplePercentageIncrease, double& bsplineMultiScaleSamplePercentageIncrease,
                    double& translationMultiScaleMaximumIterationIncrease, double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
                    double& translationMultiScaleStepLengthIncrease, double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease,
-                   unsigned int& numberOfSpatialSamplesTranslation, unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh );
+                   unsigned int& numberOfSpatialSamplesTranslation, unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh,
+                   string &mask, string& maskType, unsigned int& threshold1, unsigned int threshold2 );
 
 
 int main( int argc, char *argv[] )
@@ -488,6 +494,10 @@ int main( int argc, char *argv[] )
   double bsplineRegularizationFactor = 1e-1;
   double parzenWindowStandardDeviation = 0.4;
 
+  string mask("all");
+  string maskType("none");
+  unsigned int threshold1 = 9;
+  unsigned int threshold2 = 20;
       
   string imageType = "normal";
 
@@ -506,7 +516,8 @@ int main( int argc, char *argv[] )
       translationScaleCoeffs,gaussianFilterVariance, maximumLineIteration,  parzenWindowStandardDeviation,
       translationMultiScaleSamplePercentageIncrease, affineMultiScaleSamplePercentageIncrease, bsplineMultiScaleSamplePercentageIncrease, translationMultiScaleMaximumIterationIncrease, affineMultiScaleMaximumIterationIncrease,  bsplineMultiScaleMaximumIterationIncrease,
       translationMultiScaleStepLengthIncrease, affineMultiScaleStepLengthIncrease, bsplineMultiScaleStepLengthIncrease,
-      numberOfSpatialSamplesTranslation, numberOfSpatialSamplesAffine, numberOfSpatialSamplesBspline, numberOfSpatialSamplesBsplineHigh ) )
+      numberOfSpatialSamplesTranslation, numberOfSpatialSamplesAffine, numberOfSpatialSamplesBspline, numberOfSpatialSamplesBsplineHigh,
+      mask, maskType, threshold1, threshold2 ) )
     return 1;
   
 
@@ -543,6 +554,15 @@ int main( int argc, char *argv[] )
   typedef itk::RecursiveMultiResolutionPyramidImageFilter<
                                     InternalImageType,
                                     InternalImageType  >    ImagePyramidType;
+
+
+  //Mask related typedefs
+  typedef itk::Image< unsigned char, Dimension > ImageMaskType;
+  typedef itk::ConnectedThresholdImageFilter< ImageType,ImageMaskType >
+                                        ConnectedThresholdImageFilterType;
+  typedef itk::NeighborhoodConnectedImageFilter< ImageType,ImageMaskType >
+                                        NeighborhoodConnectedImageFilterType;
+  typedef itk::ImageMaskSpatialObject<Dimension> ImageMaskSpatialObject;
 
 
   RegistrationType::Pointer   registration  = RegistrationType::New();
@@ -664,19 +684,81 @@ int main( int argc, char *argv[] )
         dicomArrayReader[i] = DICOMReaderType::New();
         dicomArrayReader[i]->SetImageIO( imageIOTypeArray[i] );
         dicomArrayReader[i]->SetFileNames( namesGeneratorArray[i]->GetInputFileNames() );
-        
+
       }
       else
       {
         imageReader = ImageReaderType::New();
         //imageReader->ReleaseDataFlagOn();
         imageReader->SetFileName( inputFileNames[i].c_str() );
-        imageReader->Update();
-        ImageType::Pointer ppt = imageReader->GetOutput();
-        int x;
       }
+
+      //Initialize mask filters
+      ConnectedThresholdImageFilterType::Pointer connectedThreshold;
+      NeighborhoodConnectedImageFilterType::Pointer neighborhoodConnected;
+
+      //if mask is single only mask the first image
+      //else mask all images
+      if(maskType == "connectedThreshold" && ((mask == "single" && i==0 ) || mask != "single"))
+      {
+        connectedThreshold =ConnectedThresholdImageFilterType::New();
+        if( imageType == "DICOM")
+        {
+          connectedThreshold->SetInput( dicomArrayReader[i]->GetOutput() );
+        }
+        else
+        {
+          connectedThreshold->SetInput( imageReader->GetOutput() );
+        }
+        ConnectedThresholdImageFilterType::IndexType seed;
+        seed.Fill(0);
+        connectedThreshold->AddSeed(seed);
+
+        connectedThreshold->SetLower(0);
+        connectedThreshold->SetUpper(9);
         
-    
+        connectedThreshold->ReleaseDataFlagOn();
+        connectedThreshold->Update();
+        
+        ImageMaskSpatialObject::Pointer maskImage = ImageMaskSpatialObject::New();
+        maskImage->SetImage(connectedThreshold->GetOutput());
+        registration->SetImageMaskArray(maskImage, i);
+
+      }
+      else if( maskType == "neighborhoodConnected" && ((mask == "single" && i==0 ) || mask != "single"))
+      {
+        neighborhoodConnected = NeighborhoodConnectedImageFilterType::New();
+        if( imageType == "DICOM")
+        {
+          neighborhoodConnected->SetInput( dicomArrayReader[i]->GetOutput() );
+        }
+        else
+        {
+          neighborhoodConnected->SetInput( imageReader->GetOutput() );
+        }
+        NeighborhoodConnectedImageFilterType::IndexType seed;
+  
+        seed.Fill(0);
+        neighborhoodConnected->SetSeed(seed);
+  
+        neighborhoodConnected->SetLower (0);
+        neighborhoodConnected->SetUpper (20);
+        
+        typedef NeighborhoodConnectedImageFilterType::InputImageSizeType SizeType;
+        SizeType radius;
+        radius.Fill(1);
+        neighborhoodConnected->SetRadius(radius);
+        
+        neighborhoodConnected->ReleaseDataFlagOn();
+        neighborhoodConnected->Update();
+        
+        ImageMaskSpatialObject::Pointer maskImage = ImageMaskSpatialObject::New();
+        maskImage->SetImage(neighborhoodConnected->GetOutput());
+        registration->SetImageMaskArray(maskImage, i);
+
+
+      }
+
       NormalizeFilterType::Pointer normalizeFilter = NormalizeFilterType::New();
       normalizeFilter->ReleaseDataFlagOn();
       if( imageType == "DICOM")
@@ -2003,7 +2085,9 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
                           double& translationMultiScaleMaximumIterationIncrease, double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
 
                           double& translationMultiScaleStepLengthIncrease, double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease,
-                          unsigned int& numberOfSpatialSamplesTranslation, unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh )
+                          unsigned int& numberOfSpatialSamplesTranslation, unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh,
+
+                          string &mask, string& maskType, unsigned int& threshold1, unsigned int threshold2 )
 {
 
 
@@ -2111,7 +2195,14 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
     else if (dummy == "-parzenWindowStandardDeviation")
       parzenWindowStandardDeviation = atof(argv[++i]);
 
-
+    else if (dummy == "-mask")
+      mask = argv[++i];
+    else if (dummy == "-maskType")
+      maskType = argv[++i];
+    else if (dummy == "-threshold1")
+      threshold1 = atoi(argv[++i]);
+    else if (dummy == "-threshold2")
+      threshold2 = atoi(argv[++i]);
     
     else if (dummy == "-useBspline")
       useBspline = argv[++i];

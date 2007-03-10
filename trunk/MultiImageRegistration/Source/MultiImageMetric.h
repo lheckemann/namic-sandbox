@@ -25,6 +25,7 @@
 #include "itkGradientRecursiveGaussianImageFilter.h"
 #include "itkSpatialObject.h"
 #include "itkMultiThreader.h"
+#include "itkImageMaskSpatialObject.h"
 
 #include <vector>
 #include "UserMacro.h"
@@ -126,16 +127,16 @@ public:
 
   /**  Type for the mask of the fixed image. Only pixels that are "inside"
        this mask will be considered for the computation of the metric */
-  typedef SpatialObject< itkGetStaticConstMacro(FixedImageDimension)
+  typedef ImageMaskSpatialObject< itkGetStaticConstMacro(FixedImageDimension)
                                              >       FixedImageMaskType;
   typedef typename  FixedImageMaskType::Pointer      FixedImageMaskPointer;
-  typedef std::vector<FixedImageMaskPointer>              ImageMaskPointerArray;
 
   /**  Type for the mask of the moving image. Only pixels that are "inside"
        this mask will be considered for the computation of the metric */
-  typedef SpatialObject< itkGetStaticConstMacro(MovingImageDimension)
-                                              >      MovingImageMaskType;
+  typedef ImageMaskSpatialObject< itkGetStaticConstMacro(FixedImageDimension)
+                                             >      MovingImageMaskType;
   typedef typename  MovingImageMaskType::Pointer     MovingImageMaskPointer;
+  typedef std::vector<MovingImageMaskPointer>              ImageMaskPointerArray;
 
 
 
@@ -226,7 +227,7 @@ protected:
 
   //mutable FixedImageMaskPointer   m_FixedImageMask;
   //mutable MovingImageMaskPointer  m_MovingImageMask;
-  mutable ImageMaskPointerArray   m_ImageMaskArray;
+  ImageMaskPointerArray   m_ImageMaskArray;
 
   /** Number of images */
   unsigned int m_NumberOfImages;

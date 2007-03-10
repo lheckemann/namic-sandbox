@@ -1,9 +1,9 @@
 # remark : Sample script file 
 # remove newlines before executing the script
 
-./bin/congeal  
+./bin/Congeal  
 
--i inputFolder   -o outputFolder/   
+-i inputFolder/   -o outputFolder/   
 
 -useBspline on -useBsplineHigh off  
 

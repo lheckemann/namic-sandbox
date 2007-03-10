@@ -1,9 +1,9 @@
 # remark : Sample script file with all parameters
 # remove newlines before executing the script
 
-./bin/congeal  
+./bin/Congeal  
 
--i inputFolder   -o outputFolder/   
+-i inputFolder/   -o outputFolder/   
 
 -useBspline on -useBsplineHigh off  
 
@@ -27,4 +27,6 @@
     
 -bsplineInitialGridSize 5 -numberOfBsplineLevel 1 -useBSplineRegularization on -bsplineRegularizationFactor 1e-1
     
+-mask all -maskType connectedThreshold -threshold1 9 -threshold2 20
+
 filename1 filename2 filename3 filename4 filename5 filename6 filename7 filename8 filename9 filename10 filename11 filename12 filename13 filename14 filename15 filename16 filename17 filename18 filename19 filename20 filename21 filename22 filename23 filename24 filename25 filename26 filename27 filename28 filename29 filename30

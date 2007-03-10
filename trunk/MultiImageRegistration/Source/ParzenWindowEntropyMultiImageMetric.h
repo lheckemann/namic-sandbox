@@ -315,6 +315,8 @@ private:
 
   std::vector< std::vector< std::vector< BSplineParametersImagePointer > > > m_BSplineGradientImagesArray;
 
+  bool m_UseMask;
+
 };
 
 } // end namespace itk

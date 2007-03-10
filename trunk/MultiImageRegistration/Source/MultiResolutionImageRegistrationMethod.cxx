@@ -61,12 +61,13 @@ void MultiResolutionMultiImageRegistrationMethod<ImageType>
   m_TransformArray.resize(N);
   m_InterpolatorArray.resize(N);
   m_ImagePyramidArray.resize(N);
-
+  m_ImageMaskArray.resize(N);
   for(int i=m_NumberOfImages; i<N; i++)
   {
     m_TransformArray[i]=0;
     m_InterpolatorArray[i]=0;
     m_ImagePyramidArray[i]=0;
+    m_ImageMaskArray[i]=0;
   }
 
   m_NumberOfImages  = N;
@@ -113,6 +114,11 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
     m_Metric->SetImageArray( m_ImagePyramidArray[i]->GetOutput(m_CurrentLevel), i);
     m_Metric->SetInterpolatorArray( m_InterpolatorArray[i], i );
     m_Metric->SetTransformArray( m_TransformArray[i], i );
+    //Connect the mask
+    if(m_ImageMaskArray[i])
+    {
+      m_Metric->SetImageMaskArray( m_ImageMaskArray[i], i );
+    }
   }
 
   // Setup the metric
