@@ -99,7 +99,7 @@
 #include "itkNeighborhoodConnectedImageFilter.h"
 
 //Define the global types for image type
-#define PixelType unsigned short
+#define PixelType unsigned char
 #define InternalPixelType double
 #define Dimension 3
 
@@ -1823,9 +1823,9 @@ int main( int argc, char *argv[] )
   resample->SetOutputOrigin(  fixedImage->GetOrigin() );
   resample->SetOutputSpacing( fixedImage->GetSpacing() );
   resample->SetOutputDirection( fixedImage->GetDirection());
-  resample->SetDefaultPixelValue( 1 );
+  resample->SetDefaultPixelValue( 0 );
   addition->SetInput1( resample->GetOutput() );
-  
+
   if( imageType == "DICOM")
   {
     addition2->SetInput1(dicomArrayReader[0]->GetOutput() );
@@ -1877,7 +1877,7 @@ int main( int argc, char *argv[] )
   addition2->Update();
 
   //Add other images
-  resample->SetDefaultPixelValue( 1 );
+  resample->SetDefaultPixelValue( 0 );
   for(int i=2; i<N; i++)
   {
 
@@ -1928,12 +1928,17 @@ int main( int argc, char *argv[] )
   typedef itk::RescaleIntensityImageFilter< ImageType, ImageType >   RescalerType;
 
   RescalerType::Pointer intensityRescaler = RescalerType::New();
+  RescalerType::Pointer intensityRescaler2 = RescalerType::New();
   WriterType::Pointer      writer2 =  WriterType::New();
+  WriterType::Pointer      writer3 =  WriterType::New();
 
   intensityRescaler->SetInput( addition->GetOutput() );
   intensityRescaler->SetOutputMinimum(   0 );
   intensityRescaler->SetOutputMaximum( 255 );
-
+  
+  intensityRescaler2->SetInput( addition2->GetOutput() );
+  intensityRescaler2->SetOutputMinimum(   0 );
+  intensityRescaler2->SetOutputMaximum( 255 );
   if( imageType == "DICOM")
   {
     string meanImageFname = outputFolder + "MeanRegisteredImage";
@@ -1960,9 +1965,12 @@ int main( int argc, char *argv[] )
     else
     {
       //Write the registered images
+      // in the format of the input images
       string meanImages("MeanImages/");
-      meanImageFname = outputFolder + meanImages + "MeanRegisteredImage.mhd";
-
+      meanImageFname = outputFolder + meanImages + "MeanRegisteredImage.";
+      meanImageFname = meanImageFname + inputFileNames[0][inputFileNames[0].size()-3] +
+          inputFileNames[0][inputFileNames[0].size()-2] +inputFileNames[0][inputFileNames[0].size()-1];
+      
       meanImages = outputFolder + meanImages;
       itksys::SystemTools::MakeDirectory( meanImages.c_str() );
 
@@ -1992,17 +2000,16 @@ int main( int argc, char *argv[] )
       }
 
     }
+    writer2->SetImageIO(imageArrayReader[0]->GetImageIO());
     writer2->SetFileName( meanImageFname.c_str() );
     writer2->Update();
   }
-
-  intensityRescaler->SetInput( addition2->GetOutput() );
 
   if( imageType == "DICOM")
   {
     string meanImageFname = outputFolder + "MeanOriginalImage";
     itksys::SystemTools::MakeDirectory( meanImageFname.c_str() );
-    seriesWriter->SetInput( intensityRescaler->GetOutput() );
+    seriesWriter->SetInput( intensityRescaler2->GetOutput() );
     seriesWriter->SetImageIO( imageIOTypeArray[0] );
     namesGeneratorArray[0]->SetOutputDirectory( meanImageFname.c_str() );
     seriesWriter->SetFileNames( namesGeneratorArray[0]->GetOutputFileNames() );
@@ -2012,8 +2019,8 @@ int main( int argc, char *argv[] )
   }
   else
   {
-    caster->SetInput( intensityRescaler->GetOutput() );
-    writer2->SetInput( caster->GetOutput()   );
+    caster->SetInput( intensityRescaler2->GetOutput() );
+    writer3->SetInput( caster->GetOutput()   );
 
     string meanImageFname;
     if (Dimension == 2)
@@ -2023,8 +2030,11 @@ int main( int argc, char *argv[] )
     else
     {
       //Write the original images
+      // in the format of the given images
       string meanImages("MeanImages/");
-      meanImageFname = outputFolder + meanImages + "MeanOriginalImage.mhd";
+      meanImageFname = outputFolder + meanImages + "MeanOriginalImage.";
+      meanImageFname = meanImageFname + inputFileNames[0][inputFileNames[0].size()-3] +
+          inputFileNames[0][inputFileNames[0].size()-2] +inputFileNames[0][inputFileNames[0].size()-1];
 
       meanImages = outputFolder + meanImages;
 
@@ -2053,8 +2063,9 @@ int main( int argc, char *argv[] )
         sliceWriter->Update();
       }
     }
-    writer2->SetFileName( meanImageFname.c_str() );
-    writer2->Update();
+    writer3->SetImageIO(imageArrayReader[1]->GetImageIO());
+    writer3->SetFileName( meanImageFname.c_str() );
+    writer3->Update();
   }
 
   
