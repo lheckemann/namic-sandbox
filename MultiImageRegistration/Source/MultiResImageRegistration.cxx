@@ -417,7 +417,7 @@ public:
 };
 
 // Get the command line arguments
-int getCommandLine(int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType,
+int getCommandLine(int argc, char *initFname, vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType,
                    int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh,
                    double& optTranslationLearningRate, double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate,
                    int& optTranslationNumberOfIterations, int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
@@ -505,21 +505,27 @@ int main( int argc, char *argv[] )
   string useBsplineHigh("off");
 
   //Get the command line arguments
-  if( getCommandLine(argc,argv, fileNames, inputFolder, outputFolder, optimizerType,
-      multiLevelAffine, multiLevelBspline, multiLevelBsplineHigh,
-      optTranslationLearningRate, optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate,
-      optTranslationNumberOfIterations, optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations,
-      numberOfSpatialSamplesTranslationPercentage, numberOfSpatialSamplesAffinePercentage, numberOfSpatialSamplesBsplinePercentage, numberOfSpatialSamplesBsplineHighPercentage,
-      bsplineInitialGridSize, numberOfBsplineLevel,
-      useBSplineRegularization, bsplineRegularizationFactor,
-      transformType, imageType, metricType, useBspline, useBsplineHigh,
-      translationScaleCoeffs,gaussianFilterVariance, maximumLineIteration,  parzenWindowStandardDeviation,
-      translationMultiScaleSamplePercentageIncrease, affineMultiScaleSamplePercentageIncrease, bsplineMultiScaleSamplePercentageIncrease, translationMultiScaleMaximumIterationIncrease, affineMultiScaleMaximumIterationIncrease,  bsplineMultiScaleMaximumIterationIncrease,
-      translationMultiScaleStepLengthIncrease, affineMultiScaleStepLengthIncrease, bsplineMultiScaleStepLengthIncrease,
-      numberOfSpatialSamplesTranslation, numberOfSpatialSamplesAffine, numberOfSpatialSamplesBspline, numberOfSpatialSamplesBsplineHigh,
-      mask, maskType, threshold1, threshold2 ) )
-    return 1;
-  
+  for(int i=1; i<argc; i++)
+  {
+    if( getCommandLine(argc,argv[i], fileNames, inputFolder, outputFolder, optimizerType,
+        multiLevelAffine, multiLevelBspline, multiLevelBsplineHigh,
+        optTranslationLearningRate, optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate,
+        optTranslationNumberOfIterations, optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations,
+        numberOfSpatialSamplesTranslationPercentage, numberOfSpatialSamplesAffinePercentage, numberOfSpatialSamplesBsplinePercentage, numberOfSpatialSamplesBsplineHighPercentage,
+        bsplineInitialGridSize, numberOfBsplineLevel,
+        useBSplineRegularization, bsplineRegularizationFactor,
+        transformType, imageType, metricType, useBspline, useBsplineHigh,
+        translationScaleCoeffs,gaussianFilterVariance, maximumLineIteration,  parzenWindowStandardDeviation,
+        translationMultiScaleSamplePercentageIncrease, affineMultiScaleSamplePercentageIncrease, bsplineMultiScaleSamplePercentageIncrease, translationMultiScaleMaximumIterationIncrease, affineMultiScaleMaximumIterationIncrease,  bsplineMultiScaleMaximumIterationIncrease,
+        translationMultiScaleStepLengthIncrease, affineMultiScaleStepLengthIncrease, bsplineMultiScaleStepLengthIncrease,
+        numberOfSpatialSamplesTranslation, numberOfSpatialSamplesAffine, numberOfSpatialSamplesBspline, numberOfSpatialSamplesBsplineHigh,
+        mask, maskType, threshold1, threshold2 ) )
+    {
+      std:: cout << "Error reading parameter file " << std::endl;
+      return 1;
+    }
+  }
+
 
   // Input Image type typedef
   // const    unsigned int    Dimension = 3;
@@ -570,6 +576,11 @@ int main( int argc, char *argv[] )
 
   // N is the number of images in the registration
   const unsigned int N = fileNames.size();
+  if( N < 2 )
+  {
+    std::cout << "Not enough filenames " << std::endl;
+    return 1;
+  }
   
   //generate filenames
   vector<string> inputFileNames(N);
@@ -2076,7 +2087,7 @@ int main( int argc, char *argv[] )
 
 
 
-int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType,
+int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType,
                           int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh,
                           double& optTranslationLearningRate, double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate,
                           int& optTranslationNumberOfIterations, int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
@@ -2102,136 +2113,298 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
 {
 
 
-  //read parameters
-  for(int i=1; i<argc; i++)
+  ifstream initFile(initFname);
+  if( initFile.fail() )
   {
-    string dummy(argv[i]);
+    std::cout << "could not open file: " << initFname << std::endl;
+    return 1;
+  }
+
+  while( !initFile.eof() )
+  {
+    
+    string dummy;
+    initFile >> dummy;
+
     if(dummy == "-i")
-      inputFolder = argv[++i];
+    {
+      initFile >> dummy;
+      inputFolder = dummy;
+    }
     else if (dummy == "-o")
-      outputFolder = argv[++i];
+    {
+      initFile >> dummy;
+      outputFolder = dummy;
+    }
     else if (dummy == "-opt")
-      optimizerType == argv[++i];
+    {
+      initFile >> dummy;
+      optimizerType == dummy;
+    }
     else if (dummy == "-t")
-      optimizerType == argv[++i];
+    {
+      initFile >> dummy;
+      optimizerType == dummy;
+    }
     
     else if (dummy == "-imageType")
-      imageType = argv[++i];
+    {
+      initFile >> dummy;
+      imageType = dummy;
+    }
     else if (dummy == "-metricType")
-      metricType = argv[++i];
+    {
+      initFile >> dummy;
+      metricType = dummy;
+    }
     else if (dummy == "-optimizerType")
-      optimizerType = argv[++i];
+    {
+      initFile >> dummy;
+      optimizerType = dummy;
+    }
     
     else if (dummy == "-multiLevelAffine")
-      multiLevelAffine = atoi(argv[++i]);
+    {
+      initFile >> dummy;
+      multiLevelAffine = atoi(dummy.c_str());
+    }
     else if (dummy == "-multiLevelBspline")
-      multiLevelBspline = atoi(argv[++i]);
+    {
+      initFile >> dummy;
+      multiLevelBspline = atoi(dummy.c_str());
+    }
     else if (dummy == "-multiLevelBsplineHigh")
-      multiLevelBsplineHigh = atoi(argv[++i]);
+    {
+      initFile >> dummy;
+      multiLevelBsplineHigh = atoi(dummy.c_str());
+    }
     
     else if (dummy == "-optTranslationLearningRate")
-      optTranslationLearningRate = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      optTranslationLearningRate = atof(dummy.c_str());
+    }
     else if (dummy == "-optAffineLearningRate")
-      optAffineLearningRate = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      optAffineLearningRate = atof(dummy.c_str());
+    }
     else if (dummy == "-optBsplineLearningRate")
-      optBsplineLearningRate = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      optBsplineLearningRate = atof(dummy.c_str());
+    }
     else if (dummy == "-optBsplineHighLearningrate")
-      optBsplineHighLearningRate = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      optBsplineHighLearningRate = atof(dummy.c_str());
+    }
 
     else if (dummy == "-optTranslationNumberOfIterations")
-      optTranslationNumberOfIterations = atoi(argv[++i]);
+    {
+      initFile >> dummy;
+      optTranslationNumberOfIterations = atoi(dummy.c_str());
+    }
     else if (dummy == "-optAffineNumberOfIterations")
-      optAffineNumberOfIterations = atoi(argv[++i]);
+    {
+      initFile >> dummy;
+      optAffineNumberOfIterations = atoi(dummy.c_str());
+    }
     else if (dummy == "-optBsplineNumberOfIterations")
-      optBsplineNumberOfIterations = atoi(argv[++i]);
+    {
+      initFile >> dummy;
+      optBsplineNumberOfIterations = atoi(dummy.c_str());
+    }
     else if (dummy == "-optBsplineHighNumberOfIterations")
-      optBsplineHighNumberOfIterations = atoi(argv[++i]);
+    {
+      initFile >> dummy;
+      optBsplineHighNumberOfIterations = atoi(dummy.c_str());
+    }
 
     else if (dummy == "-numberOfSpatialSamplesTranslationPercentage")
-      numberOfSpatialSamplesTranslationPercentage = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      numberOfSpatialSamplesTranslationPercentage = atof(dummy.c_str());
+    }
     else if (dummy == "-numberOfSpatialSamplesAffinePercentage")
-      numberOfSpatialSamplesAffinePercentage = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      numberOfSpatialSamplesAffinePercentage = atof(dummy.c_str());
+    }
     else if (dummy == "-numberOfSpatialSamplesBsplinePercentage")
-      numberOfSpatialSamplesBsplinePercentage = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      numberOfSpatialSamplesBsplinePercentage = atof(dummy.c_str());
+    }
     else if (dummy == "-numberOfSpatialSamplesBsplineHighPercentage")
-      numberOfSpatialSamplesBsplineHighPercentage = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      numberOfSpatialSamplesBsplineHighPercentage = atof(dummy.c_str());
+    }
 
 
     else if (dummy == "-numberOfSpatialSamplesTranslation")
-      numberOfSpatialSamplesTranslation = atoi(argv[++i]);
+    {
+      initFile >> dummy;
+      numberOfSpatialSamplesTranslation = atoi(dummy.c_str());
+    }
     else if (dummy == "-numberOfSpatialSamplesAffine")
-      numberOfSpatialSamplesAffine = atoi(argv[++i]);
+    {
+      initFile >> dummy;
+      numberOfSpatialSamplesAffine = atoi(dummy.c_str());
+    }
     else if (dummy == "-numberOfSpatialSamplesBspline")
-      numberOfSpatialSamplesBspline = atoi(argv[++i]);
+    {
+      initFile >> dummy;
+      numberOfSpatialSamplesBspline = atoi(dummy.c_str());
+    }
     else if (dummy == "-numberOfSpatialSamplesBsplineHigh")
-      numberOfSpatialSamplesBsplineHigh = atoi(argv[++i]);
+    {
+      initFile >> dummy;
+      numberOfSpatialSamplesBsplineHigh = atoi(dummy.c_str());
+    }
     
     else if (dummy == "-translationMultiScaleSamplePercentageIncrease")
-      translationMultiScaleSamplePercentageIncrease = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      translationMultiScaleSamplePercentageIncrease = atof(dummy.c_str());
+    }
     else if (dummy == "-affineMultiScaleSamplePercentageIncrease")
-      affineMultiScaleSamplePercentageIncrease = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      affineMultiScaleSamplePercentageIncrease = atof(dummy.c_str());
+    }
     else if (dummy == "-bsplineMultiScaleSamplePercentageIncrease")
-      bsplineMultiScaleSamplePercentageIncrease = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      bsplineMultiScaleSamplePercentageIncrease = atof(dummy.c_str());
+    }
     
 
     else if (dummy == "-translationMultiScaleMaximumIterationIncrease")
-      translationMultiScaleMaximumIterationIncrease = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      translationMultiScaleMaximumIterationIncrease = atof(dummy.c_str());
+    }
     else if (dummy == "-affineMultiScaleMaximumIterationIncrease")
-      affineMultiScaleMaximumIterationIncrease = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      affineMultiScaleMaximumIterationIncrease = atof(dummy.c_str());
+    }
     else if (dummy == "-bsplineMultiScaleMaximumIterationIncrease")
-      bsplineMultiScaleMaximumIterationIncrease = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      bsplineMultiScaleMaximumIterationIncrease = atof(dummy.c_str());
+    }
 
     else if (dummy == "-translationMultiScaleStepLengthIncrease")
-      translationMultiScaleStepLengthIncrease = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      translationMultiScaleStepLengthIncrease = atof(dummy.c_str());
+    }
     else if (dummy == "-affineMultiScaleStepLengthIncrease")
-      affineMultiScaleStepLengthIncrease = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      affineMultiScaleStepLengthIncrease = atof(dummy.c_str());
+    }
     else if (dummy == "-bsplineMultiScaleStepLengthIncrease")
-      bsplineMultiScaleStepLengthIncrease = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      bsplineMultiScaleStepLengthIncrease = atof(dummy.c_str());
+    }
     
     else if (dummy == "-bsplineInitialGridSize")
-      bsplineInitialGridSize = atoi(argv[++i]);
+    {
+      initFile >> dummy;
+      bsplineInitialGridSize = atoi(dummy.c_str());
+    }
     else if (dummy == "-numberOfBsplineLevel")
-      numberOfBsplineLevel = atoi(argv[++i]);
+    {
+      initFile >> dummy;
+      numberOfBsplineLevel = atoi(dummy.c_str());
+    }
     else if (dummy == "-useBSplineRegularization")
-      useBSplineRegularization = argv[++i];
+    {
+      initFile >> dummy;
+      useBSplineRegularization = dummy;
+    }
     else if (dummy == "-bsplineRegularizationFactor")
-      bsplineRegularizationFactor = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      bsplineRegularizationFactor = atof(dummy.c_str());
+    }
 
     else if (dummy == "-translationScaleCoeffs")
-      translationScaleCoeffs = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      translationScaleCoeffs = atof(dummy.c_str());
+    }
     else if (dummy == "-gaussianFilterVariance")
-      gaussianFilterVariance = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      gaussianFilterVariance = atof(dummy.c_str());
+    }
     else if (dummy == "-maximumLineIteration")
-      maximumLineIteration = atoi(argv[++i]);
+    {
+      initFile >> dummy;
+      maximumLineIteration = atoi(dummy.c_str());
+    }
     else if (dummy == "-parzenWindowStandardDeviation")
-      parzenWindowStandardDeviation = atof(argv[++i]);
+    {
+      initFile >> dummy;
+      parzenWindowStandardDeviation = atof(dummy.c_str());
+    }
 
     else if (dummy == "-mask")
-      mask = argv[++i];
+    {
+      initFile >> dummy;
+      mask = dummy;
+    }
     else if (dummy == "-maskType")
-      maskType = argv[++i];
+    {
+      initFile >> dummy;
+      maskType = dummy;
+    }
     else if (dummy == "-threshold1")
-      threshold1 = atoi(argv[++i]);
+    {
+      initFile >> dummy;
+      threshold1 = atoi(dummy.c_str());
+    }
     else if (dummy == "-threshold2")
-      threshold2 = atoi(argv[++i]);
+    {
+      initFile >> dummy;
+      threshold2 = atoi(dummy.c_str());
+    }
     
     else if (dummy == "-useBspline")
-      useBspline = argv[++i];
+    {
+      initFile >> dummy;
+      useBspline = dummy;
+    }
     else if (dummy == "-useBsplineHigh")
-      useBsplineHigh = argv[++i];
+    {
+      initFile >> dummy;
+      useBsplineHigh = dummy;
+    }
     
-    else
+    else if (dummy == "-f")
+    {
+      initFile >> dummy;
       fileNames.push_back(dummy); // get file name
+    }
+
   }
 
-
-  if( fileNames.size() < 2)
+  initFile.close();
+  return 0;
+  // Ignore the output message for right now 
+  if( false )
   {
     std::cerr << "Not enough input arguments " << std::endl;
 
     std::cerr << "\t  imageName [image names does not require any prefix parameters]" << std::endl;
     std::cerr << "\t -i Input folder for images" << std::endl;
-    std::cerr << "\t -f Output folder for registered images" << std::endl;
+    std::cerr << "\t -o Output folder for registered images" << std::endl;
 
     std::cerr << "\t -imageType imageType. 'DICOM' for DICOM images 'normal' otherwise. [default=DICOM]" << std::endl;
     
@@ -2260,7 +2433,7 @@ int getCommandLine(       int argc, char *argv[], vector<string>& fileNames, str
     
     std::cerr << "\t -opt Optimizer Type" << std::endl;
     std::cerr << "\t -t Transform Type: Bspline Affine Translation" << std::endl;
-    std::cerr << std::endl << "Usage: " << std::endl << "\t" << argv[0];
+    //std::cerr << std::endl << "Usage: " << std::endl << "\t" << argv[0];
     std::cerr << " -i folder1/ -f output/ -o gradient -m 4 -t Affine ImageFile1  ImageFile2 ImageFile3 ... " << std::endl << std::endl;
     return 1;
   }
