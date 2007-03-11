@@ -251,7 +251,7 @@ template < class TFixedImage >
 void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
 SampleFixedImageDomain (SpatialSampleContainer & samples) const
 {
-  int count =0;
+  
   typedef ImageRandomConstIteratorWithIndex < FixedImageType > RandomIterator;
   RandomIterator randIter(this->m_ImageArray[0], this->GetFixedImageRegion());
 
@@ -306,10 +306,6 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
                                              ->IsInsideBuffer (mappedPointsArray[j]);
     }
 
-    if(allPointsInside == false || (m_UseMask && pointInsideMask == false) )
-    {
-       count++;
-    }
     // If not all points are inside continue to the next random sample
     if (allPointsInside == false || (m_UseMask && pointInsideMask == false) )
     {
@@ -330,7 +326,6 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
 
   }
 
-  cout << count << " " << numberOfFixedImagePixelsVisited << endl;
   if (allOutside)
   {
     // if all the samples mapped to the outside throw an exception
