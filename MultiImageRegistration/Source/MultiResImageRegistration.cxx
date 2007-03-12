@@ -99,8 +99,8 @@
 #include "itkNeighborhoodConnectedImageFilter.h"
 
 //Define the global types for image type
-#define PixelType unsigned char
-#define InternalPixelType double
+#define PixelType unsigned short
+#define InternalPixelType float
 #define Dimension 3
 
 //  The following section of code implements an observer
@@ -297,8 +297,8 @@ public:
             gradientPointer->GetLearningRate()*pow(m_MultiScaleStepLengthIncrease,
                 (double) (registration->GetNumberOfLevels() - 1.0) )  );
         //print messages
-        std::cout << "message: Optimizer number of Iterations : " << gradientPointer->GetNumberOfIterations();
-        std::cout << "message: Learning rate : " << gradientPointer->GetLearningRate();
+        std::cout << "message: Optimizer number of Iterations : " << gradientPointer->GetNumberOfIterations() << std::endl;
+        std::cout << "message: Learning rate : " << gradientPointer->GetLearningRate() << std::endl;
 
       }
       else if(!strcmp(optimizer->GetNameOfClass(), "FRPROptimizer") )

@@ -44,7 +44,8 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >::
     dynamic_cast < KernelFunction * >(GaussianKernelFunction::New ().GetPointer ());
 
   m_ImageStandardDeviation = 0.4;
-
+  m_MinProbability = 1e-10;
+  
   // Following initialization is related to
   // calculating image derivatives
   this->SetComputeGradient (false);  // don't use the default gradient for now
@@ -112,8 +113,6 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
   // reinitilize the seed for the random iterator
   this->ReinitializeSeed();
 
-  // Sample the image domain
-  this->SampleFixedImageDomain(m_Sample);
 
   int numberOfParameters =
       this->m_TransformArray[0]->GetNumberOfParameters();
@@ -132,7 +131,9 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
     m_DerivativeCalcVector[i] = DerivativeFunctionType::New ();
   }
 
-
+  // Sample the image domain
+  this->SampleFixedImageDomain(m_Sample);
+  
   // Initialize the variables for regularization term
   if( m_Regularization &&
       strcmp(this->m_TransformArray[0]->GetNameOfClass(), "BSplineDeformableTransform") )
@@ -527,9 +528,9 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 
             for(int l=0; l<k; l++)
             {
-              sumOfSquares += 2.0*gradientVoxel[l]*gradientVoxel[l];
+              sumOfSquares += 1.0 / 18.0 *gradientVoxel[l]*gradientVoxel[l];
             }
-            sumOfSquares += gradientVoxel[k]*gradientVoxel[k];
+            sumOfSquares += 16.0 / 81.0 * gradientVoxel[k]*gradientVoxel[k];
             
             ++hessianIterators[k];
           }
@@ -836,11 +837,11 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 
             for(int l=0; l<k; l++)
             {
-              sumOfSquares += 2.0*gradientVoxel[l]*gradientVoxel[l];
-              sum -= 8*gradientVoxel[l];
+              sumOfSquares += 1.0 / 18.0 *gradientVoxel[l]*gradientVoxel[l];
+              //sum -= 8*gradientVoxel[l];
             }
-            sumOfSquares += gradientVoxel[k]*gradientVoxel[k];
-            sum -= 4*gradientVoxel[k];
+            sumOfSquares += 16.0 / 18.0 * gradientVoxel[k]*gradientVoxel[k];
+            sum += -16.0 / 9.0 * gradientVoxel[k];
 
             ++hessianIterators[k];
           }
