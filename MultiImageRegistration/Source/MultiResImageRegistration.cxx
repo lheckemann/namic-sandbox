@@ -672,6 +672,13 @@ int main( int argc, char *argv[] )
   // create a separate tranform, interpolater, image reader,
   // normalized filter, gaussian filter and connect those components
   //
+
+  // Add probe to count the time used by the registration
+  itk::TimeProbesCollectorBase collector;
+  
+  collector.Start( "1Image Read " );
+  collector.Start( "6Total Time " );
+
   try
   {
   
@@ -911,14 +918,16 @@ int main( int argc, char *argv[] )
   std::cout << "message: Starting Registration " << std::endl;
 
   // Add probe to count the time used by the registration
-  itk::TimeProbesCollectorBase collector;
+  collector.Stop( "1Image Read " );
+
 
 
   // Start registration with translation transform
   try 
   {
-    collector.Start( "Registration" );
+    collector.Start( "2Translation Reg." );
     registration->StartRegistration();
+    collector.Stop( "2Translation Reg." );
   } 
   catch( itk::ExceptionObject & err ) 
   { 
@@ -926,7 +935,6 @@ int main( int argc, char *argv[] )
     std::cout << err << std::endl; 
     return -1;
   }
-
 
   
   // Continue with affine transform using the results of the translation transform
@@ -1044,7 +1052,9 @@ int main( int argc, char *argv[] )
   // Start registration with Affine Transform
   try
   {
+    collector.Start( "3Affine Reg." );
     registration->StartRegistration();
+    collector.Stop( "3Affine Reg." );
   }
   catch( itk::ExceptionObject & err )
   {
@@ -1053,7 +1063,6 @@ int main( int argc, char *argv[] )
     return -1;
   }
 
-  
   //Print out the metric values for translation parameters
   if( metricPrint == "on")
   {
@@ -1088,6 +1097,8 @@ int main( int argc, char *argv[] )
   // We supply the affine transform from the first part as initial parameters to the Bspline
   // registration. As the user might want to increase the resolution of the Bspline grid
   // we begin by declaring the Bspline parameters for the low resolution
+
+  collector.Start( "4Bspline Reg." );
 
   const unsigned int SplineOrder = 3;
   typedef ScalarType CoordinateRepType;
@@ -1516,6 +1527,8 @@ int main( int argc, char *argv[] )
     } // End of BsplineHigh registration
 
   } // End of Bspline Registration
+  collector.Stop( "4Bspline Reg." );
+
   //
   //
   //
@@ -1550,11 +1563,9 @@ int main( int argc, char *argv[] )
   // Print out results
   //
   std::cout << "message: Registration Completed " << std::endl;
-  std::cout << "message: Time Report " << std::endl;
 
   // Get the time for the registration
-  collector.Stop( "Registration" );
-  collector.Report();
+  collector.Start( "5Image Write " );
 
 
   // typedefs for output images
@@ -2079,7 +2090,11 @@ int main( int argc, char *argv[] )
     writer3->Update();
   }
 
-  
+  std::cout << "message: Time Report " << std::endl;
+  collector.Stop( "5Image Write " );
+  collector.Stop( "6Total Time " );
+  collector.Report();
+
 
   return 0;
 }
