@@ -253,11 +253,6 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
         m_CurrentLevel++ )
   {
 
-    // Invoke an iteration event.
-    // This allows a UI to reset any of the components between
-    // resolution level.
-    this->InvokeEvent( IterationEvent() );
-
     // Check if there has been a stop request
     if ( m_Stop )
     {
@@ -278,6 +273,11 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
       throw err;
     }
 
+    // Invoke an iteration event.
+    // This allows a UI to reset any of the components between
+    // resolution level.
+    this->InvokeEvent( IterationEvent() );
+    
     try
     {
       // do the optimization
