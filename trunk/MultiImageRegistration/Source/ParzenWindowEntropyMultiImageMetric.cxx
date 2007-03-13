@@ -205,6 +205,28 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
       }
     }
 
+    // Allocate the images for cost function derivative update
+    m_BSplineGradientUpdateImagesArray.resize(MovingImageType::ImageDimension);
+    m_BSplineGradientUpdateArray.resize(MovingImageType::ImageDimension);
+    for (int i=0; i< MovingImageType::ImageDimension; i++)
+    {
+      m_BSplineGradientUpdateImagesArray[i].resize(MovingImageType::ImageDimension);
+      m_BSplineGradientUpdateArray[i].resize(MovingImageType::ImageDimension);
+      for( int j=0; j<= i; j++ )
+      {
+        m_BSplineGradientUpdateImagesArray[i][j] = BSplineParametersImageType::New();
+        m_BSplineGradientUpdateImagesArray[i][j]->SetRegions( m_BSplineTransformArray[i]->GetGridRegion() );
+        m_BSplineGradientUpdateImagesArray[i][j]->Allocate();
+        m_BSplineGradientUpdateImagesArray[i][j]->SetSpacing( m_BSplineTransformArray[i]->GetGridSpacing() );
+        m_BSplineGradientUpdateImagesArray[i][j]->SetOrigin( m_BSplineTransformArray[i]->GetGridOrigin() );
+        m_BSplineGradientUpdateImagesArray[i][j]->FillBuffer( 0.0 );
+
+        // connect the bspline gradient images
+        m_BSplineGradientUpdateArray[i][j] = GradientFilterType::New();
+        m_BSplineGradientUpdateArray[i][j]->SetInput(m_BSplineGradientUpdateImagesArray[i][j]);
+        //m_BSplineGradientUpdateArray[i][j]->Update();
+      }
+    }
   }
   
 }
@@ -777,7 +799,6 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
     //Add the regularization term
   if(m_Regularization )
   {
-    double sum;
     double sumOfSquares = 0.0;
 
     typedef typename BSplineTransformType::RegionType RegionType;
@@ -826,10 +847,9 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
           m_BSplineHessianArray[i][j][k]->Update();
           hessianIterators[k] = GradientIteratorType( m_BSplineHessianArray[i][j][k]->GetOutput(), region );
         }
-        
+
         while ( !hessianIterators[0].IsAtEnd() )
         {
-          sum = 0.0;
 
           for(int k=0; k<MovingImageType::ImageDimension; k++)
           {
@@ -837,21 +857,185 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 
             for(int l=0; l<k; l++)
             {
-              sumOfSquares += 1.0 / 8.0 * gradientVoxel[l]*gradientVoxel[l];
-              //sum -= 8*gradientVoxel[l];
+              sumOfSquares += 1.0 / 8.0 *gradientVoxel[l]*gradientVoxel[l];
             }
             sumOfSquares += gradientVoxel[k]*gradientVoxel[k];
-            sum += -2.0 * gradientVoxel[k];
 
             ++hessianIterators[k];
           }
-          
-          m_derivativeArray[threadId][i * numberOfParameters + parametersIndex++] += m_RegularizationFactor * sum;
-          
         }
+
+        //Calculate the derivative
+          
+        //Extract the components of the hessian matrix
+        std::vector< std::vector< BSplineImageIteratorType > > derivativeIterators(MovingImageType::ImageDimension);
+        for(int k=0; k<MovingImageType::ImageDimension; k++)
+        {
+          derivativeIterators[k].resize(MovingImageType::ImageDimension);
+          for(int l=0; l<=k; l++)
+          {
+            derivativeIterators[k][l] = BSplineImageIteratorType( m_BSplineGradientUpdateImagesArray[k][l], region );
+          }
+        }
+        std::vector< GradientIteratorType > hessianDerivativeIterators(MovingImageType::ImageDimension);
+        for(int k=0; k<MovingImageType::ImageDimension; k++)
+        {
+          hessianDerivativeIterators[k] = GradientIteratorType( m_BSplineHessianArray[i][j][k]->GetOutput(), region );
+        }
+
+        //Copy the hessian matrix into update images
+        while ( !hessianDerivativeIterators[0].IsAtEnd() )
+        {
+          for(int k=0; k<MovingImageType::ImageDimension; k++)
+          {
+            gradientVoxel = hessianDerivativeIterators[k].Get();
+
+            for(int l=0; l<=k; l++)
+            {
+              derivativeIterators[k][l].Set(gradientVoxel[l]);
+              ++derivativeIterators[k][l];
+            }
+            ++hessianDerivativeIterators[k];
+          }
+        }
+
+        // Compute the gradient of the hessian components
+        // Copy the hessian matrix into update images
+        for(int k=0; k<MovingImageType::ImageDimension; k++)
+        {
+          for(int l=0; l<=k; l++)
+          {
+            m_BSplineGradientUpdateImagesArray[k][l]->Modified();
+            m_BSplineGradientUpdateArray[k][l]->Modified();
+            m_BSplineGradientUpdateArray[k][l]->Update();
+          }
+        }
+
+        // Extract the proper part of the gradient update arrays
+        std::vector< std::vector< BSplineImageIteratorType > > derivativeIterators2(MovingImageType::ImageDimension);
+        
+        for(int k=0; k<MovingImageType::ImageDimension; k++)
+        {
+          derivativeIterators2[k].resize(MovingImageType::ImageDimension);
+          for(int l=0; l<=k; l++)
+          {
+            derivativeIterators2[k][l] = BSplineImageIteratorType( m_BSplineGradientUpdateImagesArray[k][l], region );
+          }
+        }
+        std::vector< std::vector< GradientIteratorType > > gradientUpdateDerivativeIterators(MovingImageType::ImageDimension);
+        for(int k=0; k<MovingImageType::ImageDimension; k++)
+        {
+          gradientUpdateDerivativeIterators[k].resize(MovingImageType::ImageDimension);
+          for(int l=0; l<=k; l++)
+          {
+            gradientUpdateDerivativeIterators[k][l] = GradientIteratorType( m_BSplineGradientUpdateArray[k][l]->GetOutput(), region );
+          }
+        }
+
+        // Get only the k'th component
+        //Copy the hessian matrix into update images
+        while ( !gradientUpdateDerivativeIterators[0][0].IsAtEnd() )
+        {
+          for(int k=0; k<MovingImageType::ImageDimension; k++)
+          {
+            for(int l=0; l<=k; l++)
+            {
+              gradientVoxel = gradientUpdateDerivativeIterators[k][l].Get();
+              derivativeIterators2[k][l].Set(gradientVoxel[k]);
+              ++gradientUpdateDerivativeIterators[k][l];
+              ++derivativeIterators2[k][l];
+            }
+          }
+        }
+
+        // Now the m_BSplineGradientUpdateImagesArray hold the first derivatives
+        // Compute the second derivatives
+        for(int k=0; k<MovingImageType::ImageDimension; k++)
+        {
+          for(int l=0; l<=k; l++)
+          {
+            m_BSplineGradientUpdateImagesArray[k][l]->Modified();
+            m_BSplineGradientUpdateArray[k][l]->Modified();
+            m_BSplineGradientUpdateArray[k][l]->Update();
+          }
+        }
+
+        // Get the l'th component of the gradient images
+        std::vector< std::vector< BSplineImageIteratorType > > derivativeIterators3(MovingImageType::ImageDimension);
+        for(int k=0; k<MovingImageType::ImageDimension; k++)
+        {
+          derivativeIterators3[k].resize(MovingImageType::ImageDimension);
+          for(int l=0; l<=k; l++)
+          {
+            derivativeIterators3[k][l] = BSplineImageIteratorType( m_BSplineGradientUpdateImagesArray[k][l], region );
+          }
+        }
+        std::vector< std::vector< GradientIteratorType > > gradientUpdateDerivativeIterators2(MovingImageType::ImageDimension);
+        for(int k=0; k<MovingImageType::ImageDimension; k++)
+        {
+          gradientUpdateDerivativeIterators2[k].resize(MovingImageType::ImageDimension);
+          for(int l=0; l<=k; l++)
+          {
+            gradientUpdateDerivativeIterators2[k][l] = GradientIteratorType( m_BSplineGradientUpdateArray[k][l]->GetOutput(), region );
+          }
+        }
+
+        while ( !gradientUpdateDerivativeIterators2[0][0].IsAtEnd() )
+        {
+          for(int k=0; k<MovingImageType::ImageDimension; k++)
+          {
+            for(int l=0; l<=k; l++)
+            {
+              gradientVoxel = gradientUpdateDerivativeIterators2[k][l].Get();
+              derivativeIterators3[k][l].Set(gradientVoxel[l]);
+              ++gradientUpdateDerivativeIterators2[k][l];
+              ++derivativeIterators3[k][l];
+            }
+          }
+        }
+
+        // The derivative of the parameters is the sum over the m_BSplineGradientUpdateImagesArray
+        // Sum over m_BSplineGradientUpdateImagesArray
+        std::vector< std::vector< BSplineImageIteratorType > > derivativeIterators4(MovingImageType::ImageDimension);
+        for(int k=0; k<MovingImageType::ImageDimension; k++)
+        {
+          derivativeIterators4[k].resize(MovingImageType::ImageDimension);
+          for(int l=0; l<=k; l++)
+          {
+            derivativeIterators4[k][l] = BSplineImageIteratorType( m_BSplineGradientUpdateImagesArray[k][l], region );
+          }
+        }
+
+        while ( !derivativeIterators4[0][0].IsAtEnd() )
+        {
+          for(int k=1; k<MovingImageType::ImageDimension; k++)
+          {
+            for(int l=0; l<k; l++)
+            {
+              derivativeIterators4[0][0].Set(derivativeIterators4[0][0].Get() + 1.0 / 8.0 * derivativeIterators4[k][l].Get() );
+              ++derivativeIterators4[k][l];
+            }
+            derivativeIterators4[0][0].Set(derivativeIterators4[0][0].Get() + derivativeIterators4[k][k].Get() );
+            ++derivativeIterators4[k][k];
+          }
+          ++derivativeIterators4[0][0];
+        }
+
+        // first image of m_BSplineGradientUpdateImagesArray holds the updates
+        // write them into parameters array
+        BSplineImageIteratorType parametersUpdateIterators( m_BSplineGradientUpdateImagesArray[0][0], region );
+        while ( !parametersUpdateIterators.IsAtEnd() )
+        {
+          m_derivativeArray[threadId][i * numberOfParameters + parametersIndex++] += 2.0 * m_RegularizationFactor * parametersUpdateIterators.Get();
+          ++parametersUpdateIterators;
+        }
+
       }
     }
     m_value[threadId] += m_RegularizationFactor * sumOfSquares;
+
+
+
   }
 
 

@@ -308,13 +308,15 @@ private:
   bool m_Regularization;
   double m_RegularizationFactor;
   
-  std::vector<BSplineTransformTypePointer> m_BSplineTransformArray;
+  mutable std::vector<BSplineTransformTypePointer> m_BSplineTransformArray;
 
-  std::vector< std::vector< GradientFilterTypePointer > >  m_BSplineGradientArray;
-  std::vector< std::vector< std::vector< GradientFilterTypePointer > > > m_BSplineHessianArray;
+  mutable std::vector< std::vector< GradientFilterTypePointer > >  m_BSplineGradientArray;
+  mutable std::vector< std::vector< std::vector< GradientFilterTypePointer > > > m_BSplineHessianArray;
 
-  std::vector< std::vector< std::vector< BSplineParametersImagePointer > > > m_BSplineGradientImagesArray;
+  mutable std::vector< std::vector< std::vector< BSplineParametersImagePointer > > > m_BSplineGradientImagesArray;
 
+  mutable std::vector< std::vector< GradientFilterTypePointer > >    m_BSplineGradientUpdateArray;
+  mutable std::vector< std::vector< BSplineParametersImagePointer > >              m_BSplineGradientUpdateImagesArray;
   bool m_UseMask;
 
 };
