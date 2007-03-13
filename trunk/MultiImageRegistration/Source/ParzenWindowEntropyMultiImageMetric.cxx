@@ -528,9 +528,9 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 
             for(int l=0; l<k; l++)
             {
-              sumOfSquares += 1.0 / 18.0 *gradientVoxel[l]*gradientVoxel[l];
+              sumOfSquares += 1.0 / 8.0 *gradientVoxel[l]*gradientVoxel[l];
             }
-            sumOfSquares += 16.0 / 81.0 * gradientVoxel[k]*gradientVoxel[k];
+            sumOfSquares += gradientVoxel[k]*gradientVoxel[k];
             
             ++hessianIterators[k];
           }
@@ -837,11 +837,11 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 
             for(int l=0; l<k; l++)
             {
-              sumOfSquares += 1.0 / 18.0 *gradientVoxel[l]*gradientVoxel[l];
+              sumOfSquares += 1.0 / 8.0 * gradientVoxel[l]*gradientVoxel[l];
               //sum -= 8*gradientVoxel[l];
             }
-            sumOfSquares += 16.0 / 18.0 * gradientVoxel[k]*gradientVoxel[k];
-            sum += -16.0 / 9.0 * gradientVoxel[k];
+            sumOfSquares += gradientVoxel[k]*gradientVoxel[k];
+            sum += -2.0 * gradientVoxel[k];
 
             ++hessianIterators[k];
           }
