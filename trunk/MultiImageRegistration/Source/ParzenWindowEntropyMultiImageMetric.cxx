@@ -214,17 +214,25 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
       m_BSplineGradientUpdateArray[i].resize(MovingImageType::ImageDimension);
       for( int j=0; j<= i; j++ )
       {
-        m_BSplineGradientUpdateImagesArray[i][j] = BSplineParametersImageType::New();
-        m_BSplineGradientUpdateImagesArray[i][j]->SetRegions( m_BSplineTransformArray[i]->GetGridRegion() );
-        m_BSplineGradientUpdateImagesArray[i][j]->Allocate();
-        m_BSplineGradientUpdateImagesArray[i][j]->SetSpacing( m_BSplineTransformArray[i]->GetGridSpacing() );
-        m_BSplineGradientUpdateImagesArray[i][j]->SetOrigin( m_BSplineTransformArray[i]->GetGridOrigin() );
-        m_BSplineGradientUpdateImagesArray[i][j]->FillBuffer( 0.0 );
+        m_BSplineGradientUpdateImagesArray[i][j].resize(m_NumberOfThreads);
+        m_BSplineGradientUpdateArray[i][j].resize(m_NumberOfThreads);
+        
+        // separate for each thread
+        for(int k=0; k<m_NumberOfThreads; k++)
+        {
+          m_BSplineGradientUpdateImagesArray[i][j][k] = BSplineParametersImageType::New();
+          m_BSplineGradientUpdateImagesArray[i][j][k]->SetRegions( m_BSplineTransformArray[i]->GetGridRegion() );
+          m_BSplineGradientUpdateImagesArray[i][j][k]->Allocate();
+          m_BSplineGradientUpdateImagesArray[i][j][k]->SetSpacing( m_BSplineTransformArray[i]->GetGridSpacing() );
+          m_BSplineGradientUpdateImagesArray[i][j][k]->SetOrigin( m_BSplineTransformArray[i]->GetGridOrigin() );
+          m_BSplineGradientUpdateImagesArray[i][j][k]->FillBuffer( 0.0 );
 
         // connect the bspline gradient images
-        m_BSplineGradientUpdateArray[i][j] = GradientFilterType::New();
-        m_BSplineGradientUpdateArray[i][j]->SetInput(m_BSplineGradientUpdateImagesArray[i][j]);
-        //m_BSplineGradientUpdateArray[i][j]->Update();
+          m_BSplineGradientUpdateArray[i][j][k] = GradientFilterType::New();
+          m_BSplineGradientUpdateArray[i][j][k]->SetInput(m_BSplineGradientUpdateImagesArray[i][j][k]);
+          m_BSplineGradientUpdateArray[i][j][k]->Update();
+        
+        }
       }
     }
   }
@@ -874,7 +882,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
           derivativeIterators[k].resize(MovingImageType::ImageDimension);
           for(int l=0; l<=k; l++)
           {
-            derivativeIterators[k][l] = BSplineImageIteratorType( m_BSplineGradientUpdateImagesArray[k][l], region );
+            derivativeIterators[k][l] = BSplineImageIteratorType( m_BSplineGradientUpdateImagesArray[k][l][threadId], region );
           }
         }
         std::vector< GradientIteratorType > hessianDerivativeIterators(MovingImageType::ImageDimension);
@@ -905,9 +913,9 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
         {
           for(int l=0; l<=k; l++)
           {
-            m_BSplineGradientUpdateImagesArray[k][l]->Modified();
-            m_BSplineGradientUpdateArray[k][l]->Modified();
-            m_BSplineGradientUpdateArray[k][l]->Update();
+            m_BSplineGradientUpdateImagesArray[k][l][threadId]->Modified();
+            m_BSplineGradientUpdateArray[k][l][threadId]->Modified();
+            m_BSplineGradientUpdateArray[k][l][threadId]->Update();
           }
         }
 
@@ -919,7 +927,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
           derivativeIterators2[k].resize(MovingImageType::ImageDimension);
           for(int l=0; l<=k; l++)
           {
-            derivativeIterators2[k][l] = BSplineImageIteratorType( m_BSplineGradientUpdateImagesArray[k][l], region );
+            derivativeIterators2[k][l] = BSplineImageIteratorType( m_BSplineGradientUpdateImagesArray[k][l][threadId], region );
           }
         }
         std::vector< std::vector< GradientIteratorType > > gradientUpdateDerivativeIterators(MovingImageType::ImageDimension);
@@ -928,7 +936,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
           gradientUpdateDerivativeIterators[k].resize(MovingImageType::ImageDimension);
           for(int l=0; l<=k; l++)
           {
-            gradientUpdateDerivativeIterators[k][l] = GradientIteratorType( m_BSplineGradientUpdateArray[k][l]->GetOutput(), region );
+            gradientUpdateDerivativeIterators[k][l] = GradientIteratorType( m_BSplineGradientUpdateArray[k][l][threadId]->GetOutput(), region );
           }
         }
 
@@ -954,9 +962,9 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
         {
           for(int l=0; l<=k; l++)
           {
-            m_BSplineGradientUpdateImagesArray[k][l]->Modified();
-            m_BSplineGradientUpdateArray[k][l]->Modified();
-            m_BSplineGradientUpdateArray[k][l]->Update();
+            m_BSplineGradientUpdateImagesArray[k][l][threadId]->Modified();
+            m_BSplineGradientUpdateArray[k][l][threadId]->Modified();
+            m_BSplineGradientUpdateArray[k][l][threadId]->Update();
           }
         }
 
@@ -967,7 +975,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
           derivativeIterators3[k].resize(MovingImageType::ImageDimension);
           for(int l=0; l<=k; l++)
           {
-            derivativeIterators3[k][l] = BSplineImageIteratorType( m_BSplineGradientUpdateImagesArray[k][l], region );
+            derivativeIterators3[k][l] = BSplineImageIteratorType( m_BSplineGradientUpdateImagesArray[k][l][threadId], region );
           }
         }
         std::vector< std::vector< GradientIteratorType > > gradientUpdateDerivativeIterators2(MovingImageType::ImageDimension);
@@ -976,7 +984,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
           gradientUpdateDerivativeIterators2[k].resize(MovingImageType::ImageDimension);
           for(int l=0; l<=k; l++)
           {
-            gradientUpdateDerivativeIterators2[k][l] = GradientIteratorType( m_BSplineGradientUpdateArray[k][l]->GetOutput(), region );
+            gradientUpdateDerivativeIterators2[k][l] = GradientIteratorType( m_BSplineGradientUpdateArray[k][l][threadId]->GetOutput(), region );
           }
         }
 
@@ -1002,7 +1010,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
           derivativeIterators4[k].resize(MovingImageType::ImageDimension);
           for(int l=0; l<=k; l++)
           {
-            derivativeIterators4[k][l] = BSplineImageIteratorType( m_BSplineGradientUpdateImagesArray[k][l], region );
+            derivativeIterators4[k][l] = BSplineImageIteratorType( m_BSplineGradientUpdateImagesArray[k][l][threadId], region );
           }
         }
 
@@ -1023,10 +1031,10 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 
         // first image of m_BSplineGradientUpdateImagesArray holds the updates
         // write them into parameters array
-        BSplineImageIteratorType parametersUpdateIterators( m_BSplineGradientUpdateImagesArray[0][0], region );
+        BSplineImageIteratorType parametersUpdateIterators( m_BSplineGradientUpdateImagesArray[0][0][threadId], region );
         while ( !parametersUpdateIterators.IsAtEnd() )
         {
-          m_derivativeArray[threadId][i * numberOfParameters + parametersIndex++] += 2.0 * m_RegularizationFactor * parametersUpdateIterators.Get();
+          m_derivativeArray[threadId][i * numberOfParameters + parametersIndex++] -= 2.0 * m_RegularizationFactor * parametersUpdateIterators.Get();
           ++parametersUpdateIterators;
         }
 

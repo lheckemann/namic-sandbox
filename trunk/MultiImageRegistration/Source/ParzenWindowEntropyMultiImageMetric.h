@@ -315,8 +315,8 @@ private:
 
   mutable std::vector< std::vector< std::vector< BSplineParametersImagePointer > > > m_BSplineGradientImagesArray;
 
-  mutable std::vector< std::vector< GradientFilterTypePointer > >    m_BSplineGradientUpdateArray;
-  mutable std::vector< std::vector< BSplineParametersImagePointer > >              m_BSplineGradientUpdateImagesArray;
+  mutable std::vector< std::vector< std::vector< GradientFilterTypePointer > > >   m_BSplineGradientUpdateArray;
+  mutable std::vector< std::vector< std::vector< BSplineParametersImagePointer > > >             m_BSplineGradientUpdateImagesArray;
   bool m_UseMask;
 
 };
