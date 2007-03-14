@@ -99,7 +99,7 @@
 #include "itkNeighborhoodConnectedImageFilter.h"
 
 //Define the global types for image type
-#define PixelType unsigned short
+#define PixelType unsigned char
 #define InternalPixelType float
 #define Dimension 3
 
@@ -1571,7 +1571,7 @@ int main( int argc, char *argv[] )
   // typedefs for output images
   typedef itk::ResampleImageFilter< 
                             ImageType, 
-                            ImageType >    ResampleFilterType;
+                            InternalImageType >    ResampleFilterType;
   ResampleFilterType::Pointer resample = ResampleFilterType::New();
   resample->ReleaseDataFlagOn();
   
@@ -1583,8 +1583,11 @@ int main( int argc, char *argv[] )
   typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
   
   typedef itk::CastImageFilter< 
-                        ImageType,
+                        InternalImageType,
                         OutputImageType > CastFilterType;
+  typedef itk::CastImageFilter< 
+                        ImageType,
+                        InternalImageType > ImageCastFilterType;
                     
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;  
 
@@ -1611,7 +1614,9 @@ int main( int argc, char *argv[] )
   CastFilterType::Pointer  caster = CastFilterType::New();
   caster->ReleaseDataFlagOn();
 
-
+  ImageCastFilterType::Pointer  imageCaster = ImageCastFilterType::New();
+  imageCaster->ReleaseDataFlagOn();
+  
   // Get the correct number of paramaters
   if(useBsplineHigh == "on")
   {
@@ -1726,7 +1731,8 @@ int main( int argc, char *argv[] )
     if( imageType == "DICOM")
     {
       itksys::SystemTools::MakeDirectory( outputFileNames[i].c_str() );
-      seriesWriter->SetInput( resample->GetOutput() );
+      caster->SetInput(resample->GetOutput());
+      seriesWriter->SetInput( caster->GetOutput() );
       seriesWriter->SetImageIO( imageIOTypeArray[i] );
       namesGeneratorArray[i]->SetOutputDirectory( outputFileNames[i].c_str() );
       seriesWriter->SetFileNames( namesGeneratorArray[i]->GetOutputFileNames() );
@@ -1777,6 +1783,7 @@ int main( int argc, char *argv[] )
         extractRegion.SetIndex( start );
         sliceExtractFilter->SetExtractionRegion( extractRegion );
 
+        caster->SetInput(resample->GetOutput());
         sliceExtractFilter->SetInput( caster->GetOutput() );
         sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
         sliceWriter->SetFileName( outputFilename.c_str() );
@@ -1807,8 +1814,8 @@ int main( int argc, char *argv[] )
   ResampleFilterType::Pointer resample2 = ResampleFilterType::New();
   resample2->ReleaseDataFlagOn();
 
-  typedef itk::AddImageFilter < ImageType, ImageType,
-                                           ImageType > AddFilterType;
+  typedef itk::AddImageFilter < InternalImageType, InternalImageType,
+                                           InternalImageType > AddFilterType;
 
   //Mean of the registered images
   AddFilterType::Pointer addition = AddFilterType::New();
@@ -1850,11 +1857,13 @@ int main( int argc, char *argv[] )
 
   if( imageType == "DICOM")
   {
-    addition2->SetInput1(dicomArrayReader[0]->GetOutput() );
+    imageCaster->SetInput(dicomArrayReader[0]->GetOutput());
+    addition2->SetInput1(imageCaster->GetOutput() );
   }
   else
   {
-    addition2->SetInput1(imageArrayReader[0]->GetOutput() );
+    imageCaster->SetInput(imageArrayReader[0]->GetOutput());
+    addition2->SetInput1(imageCaster->GetOutput() );
   }
   
   //Set the second image
@@ -1889,11 +1898,13 @@ int main( int argc, char *argv[] )
   addition->SetInput2( resample2->GetOutput() );
   if( imageType == "DICOM")
   {
-    addition2->SetInput2(dicomArrayReader[1]->GetOutput() );
+    imageCaster->SetInput(dicomArrayReader[1]->GetOutput());
+    addition2->SetInput2(imageCaster->GetOutput() );
   }
   else
   {
-    addition2->SetInput2(imageArrayReader[1]->GetOutput() );
+    imageCaster->SetInput(imageArrayReader[1]->GetOutput());
+    addition2->SetInput2(imageCaster->GetOutput() );
   }
   addition->Update();
   addition2->Update();
@@ -1935,11 +1946,13 @@ int main( int argc, char *argv[] )
     addition2->SetInput1( addition2->GetOutput() );
     if( imageType == "DICOM")
     {
-      addition2->SetInput2(dicomArrayReader[i]->GetOutput() );
+      imageCaster->SetInput(dicomArrayReader[i]->GetOutput());
+      addition2->SetInput2(imageCaster->GetOutput() );
     }
     else
     {
-      addition2->SetInput2(imageArrayReader[i]->GetOutput() );
+      imageCaster->SetInput(imageArrayReader[i]->GetOutput());
+      addition2->SetInput2(imageCaster->GetOutput() );
     }
     addition2->Update();
 
@@ -1947,7 +1960,7 @@ int main( int argc, char *argv[] )
 
 
   //Write the mean image
-  typedef itk::RescaleIntensityImageFilter< ImageType, ImageType >   RescalerType;
+  typedef itk::RescaleIntensityImageFilter< InternalImageType, InternalImageType >   RescalerType;
 
   RescalerType::Pointer intensityRescaler = RescalerType::New();
   RescalerType::Pointer intensityRescaler2 = RescalerType::New();
@@ -1965,7 +1978,8 @@ int main( int argc, char *argv[] )
   {
     string meanImageFname = outputFolder + "MeanRegisteredImage";
     itksys::SystemTools::MakeDirectory( meanImageFname.c_str() );
-    seriesWriter->SetInput( intensityRescaler->GetOutput() );
+    caster->SetInput( intensityRescaler->GetOutput() );
+    seriesWriter->SetInput( caster->GetOutput() );
     seriesWriter->SetImageIO( imageIOTypeArray[0] );
     namesGeneratorArray[0]->SetOutputDirectory( meanImageFname.c_str() );
     seriesWriter->SetFileNames( namesGeneratorArray[0]->GetOutputFileNames() );
@@ -2015,6 +2029,7 @@ int main( int argc, char *argv[] )
         extractRegion.SetIndex( start );
         sliceExtractFilter->SetExtractionRegion( extractRegion );
 
+        caster->SetInput(intensityRescaler->GetOutput());
         sliceExtractFilter->SetInput( caster->GetOutput() );
         sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
         sliceWriter->SetFileName( outputFilenames[index].c_str() );
@@ -2031,7 +2046,8 @@ int main( int argc, char *argv[] )
   {
     string meanImageFname = outputFolder + "MeanOriginalImage";
     itksys::SystemTools::MakeDirectory( meanImageFname.c_str() );
-    seriesWriter->SetInput( intensityRescaler2->GetOutput() );
+    caster->SetInput(intensityRescaler2->GetOutput());
+    seriesWriter->SetInput( caster->GetOutput() );
     seriesWriter->SetImageIO( imageIOTypeArray[0] );
     namesGeneratorArray[0]->SetOutputDirectory( meanImageFname.c_str() );
     seriesWriter->SetFileNames( namesGeneratorArray[0]->GetOutputFileNames() );
@@ -2079,6 +2095,7 @@ int main( int argc, char *argv[] )
         extractRegion.SetIndex( start );
         sliceExtractFilter->SetExtractionRegion( extractRegion );
 
+        caster->SetInput(intensityRescaler2->GetOutput());
         sliceExtractFilter->SetInput( caster->GetOutput() );
         sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
         sliceWriter->SetFileName( outputFilenames[index].c_str() );
