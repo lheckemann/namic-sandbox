@@ -1336,7 +1336,7 @@ int main( int argc, char *argv[] )
 
 
         // Increase the grid size by a factor of two
-        bsplineInitialGridSize *= 2;
+        bsplineInitialGridSize = 2*(bsplineInitialGridSize+SplineOrder)-SplineOrder;
         registration->SetTransformParametersLength( static_cast<int>( pow( static_cast<double>(bsplineInitialGridSize+SplineOrder),
                                                     static_cast<int>(Dimension))*Dimension*N ));
 
