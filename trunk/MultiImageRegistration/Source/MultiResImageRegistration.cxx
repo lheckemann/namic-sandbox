@@ -49,6 +49,7 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkExtractImageFilter.h"
+#include "itkImageRegionIteratorWithIndex.h"
 
 #include "itkResampleImageFilter.h"
 #include "itkCastImageFilter.h"
@@ -431,7 +432,8 @@ int getCommandLine(int argc, char *initFname, vector<string>& fileNames, string&
                    double& translationMultiScaleMaximumIterationIncrease, double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
                    double& translationMultiScaleStepLengthIncrease, double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease,
                    unsigned int& numberOfSpatialSamplesTranslation, unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh,
-                   string &mask, string& maskType, unsigned int& threshold1, unsigned int threshold2 );
+                   string &mask, string& maskType, unsigned int& threshold1, unsigned int threshold2,
+                   string &writeOutputImages, string &writeDeformationFields );
 
 
 int main( int argc, char *argv[] )
@@ -504,6 +506,9 @@ int main( int argc, char *argv[] )
   string useBspline("off");
   string useBsplineHigh("off");
 
+  string writeOutputImages("on");
+  string writeDeformationFields("on");
+
   //Get the command line arguments
   for(int i=1; i<argc; i++)
   {
@@ -519,7 +524,8 @@ int main( int argc, char *argv[] )
         translationMultiScaleSamplePercentageIncrease, affineMultiScaleSamplePercentageIncrease, bsplineMultiScaleSamplePercentageIncrease, translationMultiScaleMaximumIterationIncrease, affineMultiScaleMaximumIterationIncrease,  bsplineMultiScaleMaximumIterationIncrease,
         translationMultiScaleStepLengthIncrease, affineMultiScaleStepLengthIncrease, bsplineMultiScaleStepLengthIncrease,
         numberOfSpatialSamplesTranslation, numberOfSpatialSamplesAffine, numberOfSpatialSamplesBspline, numberOfSpatialSamplesBsplineHigh,
-        mask, maskType, threshold1, threshold2 ) )
+        mask, maskType, threshold1, threshold2,
+        writeOutputImages, writeDeformationFields) )
     {
       std:: cout << "Error reading parameter file " << std::endl;
       return 1;
@@ -1681,11 +1687,17 @@ int main( int argc, char *argv[] )
       affineTransformArray[i]->SetParametersByValue( currentParameters );
     }
 
-    outputFile << "Affine Params: " << std::endl;
+    outputFile << "Affine: " << std::endl;
     outputFile << affineTransformArray[i]->GetParameters() << std::endl;
     outputFile.close();
 
   }
+
+
+  
+  // Create a toy image for deformation Field visualization
+  ImageType::Pointer deformationImage = ImageType::New();
+
 
   // Loop over images and write output images
   for(int i=0; i<N; i++)
@@ -1715,7 +1727,7 @@ int main( int argc, char *argv[] )
     {
       //Read the images again for memory efficiency
       imageArrayReader[i] = ImageReaderType::New();
-      imageArrayReader[i]->ReleaseDataFlagOn();
+      //imageArrayReader[i]->ReleaseDataFlagOn();
       imageArrayReader[i]->SetFileName( inputFileNames[i].c_str() );
       imageArrayReader[i]->Update();
       resample->SetInput( imageArrayReader[i]->GetOutput() );
@@ -1752,11 +1764,19 @@ int main( int argc, char *argv[] )
     else
     {
       itksys::SystemTools::MakeDirectory( outputFolder.c_str() );
+      string registeredImagesFolder("RegisteredImages/");
+      registeredImagesFolder = outputFolder + registeredImagesFolder;
+      itksys::SystemTools::MakeDirectory( registeredImagesFolder.c_str() );
+      outputFileNames[i] = registeredImagesFolder + fileNames[i];
+      
       caster->SetInput( resample->GetOutput() );
       writer->SetImageIO(imageArrayReader[i]->GetImageIO());
       writer->SetFileName( outputFileNames[i].c_str() );
       writer->SetInput( caster->GetOutput()   );
-      //writer->Update();
+      if(writeOutputImages == "on")
+      {
+        writer->Update();
+      }
 
       //Extract slices for 3D Images
       if(Dimension == 3)
@@ -1804,6 +1824,63 @@ int main( int argc, char *argv[] )
         sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
         sliceWriter->SetFileName( outputFilename2.c_str() );
         sliceWriter->Update();
+
+
+        // Write the deformation fields for Bsplines
+        string defName("DeformationFields3D/");
+        defName = outputFolder + defName;
+        itksys::SystemTools::MakeDirectory( defName.c_str() );
+
+
+        //Create the toy image
+        if(i==0)
+        {
+          deformationImage->SetRegions( imageArrayReader[i]->GetOutput()->GetLargestPossibleRegion() );
+          deformationImage->CopyInformation( imageArrayReader[i]->GetOutput() );
+          deformationImage->Allocate();
+          deformationImage->FillBuffer( 0 );
+
+
+          // Create perpendicular planes in the deformationImage
+          typedef itk::ImageRegionIteratorWithIndex< ImageType > IteratorWithIndexType;
+          IteratorWithIndexType defIt( deformationImage, deformationImage->GetRequestedRegion() );
+          ImageType::IndexType index;
+          for ( defIt.GoToBegin(); !defIt.IsAtEnd(); ++defIt)
+          {
+            index = defIt.GetIndex();
+            if(index[0]%8 == 0 || index[1]%8 ==0 || index[2]%8 ==4)
+            {
+              defIt.Set( 255 );
+            }
+          }
+        }
+
+        resample->SetInput( deformationImage );
+
+        // Generate the outputfilename and write the output
+        string defFile(fileNames[i]);
+        defFile = defName + defFile;
+        writer->SetFileName( defFile.c_str() );
+        if(writeDeformationFields =="on")
+        {
+          writer->Update();
+        }
+
+        // Extract the central slices of the the deformation field
+        string defName2D("DeformationFields2D/");
+        defName2D = outputFolder + defName2D;
+        itksys::SystemTools::MakeDirectory( defName2D.c_str() );
+        string defFile2D(fileNames[i]);
+        defFile2D[defFile2D.size()-4] = '.';
+        defFile2D[defFile2D.size()-3] = 'p';
+        defFile2D[defFile2D.size()-2] = 'n';
+        defFile2D[defFile2D.size()-1] = 'g';
+        defFile2D = defName2D + defFile2D;
+        sliceExtractFilter->SetInput( caster->GetOutput() );
+        sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
+        sliceWriter->SetFileName( defFile2D.c_str() );
+        sliceWriter->Update();
+      
       }
     }
   }
@@ -2141,7 +2218,8 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
                           double& translationMultiScaleStepLengthIncrease, double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease,
                           unsigned int& numberOfSpatialSamplesTranslation, unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh,
 
-                          string &mask, string& maskType, unsigned int& threshold1, unsigned int threshold2 )
+                          string &mask, string& maskType, unsigned int& threshold1, unsigned int threshold2,
+                          string &writeOutputImages, string &writeDeformationFields )
 {
 
 
@@ -2417,6 +2495,16 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
     {
       initFile >> dummy;
       useBsplineHigh = dummy;
+    }
+    else if (dummy == "-writeOutputImages")
+    {
+      initFile >> dummy;
+      writeOutputImages = dummy;
+    }
+    else if (dummy == "-writeDeformationFields")
+    {
+      initFile >> dummy;
+      writeDeformationFields = dummy;
     }
     
     else if (dummy == "-f")

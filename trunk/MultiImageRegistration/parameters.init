@@ -8,34 +8,40 @@
 -multiLevelBspline 1  
 -multiLevelBsplineHigh 1
  
--optTranslationLearningRate 1e2
--optAffineLearningRate  1e-3
--optBsplineLearningRate 1e2 
--optBsplineHighLearningRate 1e2
-
--optTranslationNumberOfIterations 50
--optAffineNumberOfIterations 400
+-optTranslationLearningRate 1e5 
+-optAffineLearningRate  1e-3 
+-optBsplineLearningRate 1e5 
+-optBsplineHighLearningRate 1e5
+ 
+-optTranslationNumberOfIterations 50 
+-optAffineNumberOfIterations 500  
 -optBsplineNumberOfIterations 500  
--optBsplineHighNumberOfIterations 50 
+-optBsplineHighNumberOfIterations 500 
 
+-numberOfSpatialSamplesTranslationPercentage 25e-5 
+-numberOfSpatialSamplesAffinePercentage 25e-5 
+-numberOfSpatialSamplesBsplinePercentage 5e-4 
+-numberOfSpatialSamplesBsplineHighPercentage 1e-3
+    
 -numberOfSpatialSamplesTranslation 2000
 -numberOfSpatialSamplesAffine 2000
--numberOfSpatialSamplesBspline 5000
--numberOfSpatialSamplesBsplineHigh 5000
+-numberOfSpatialSamplesBspline 4000
+-numberOfSpatialSamplesBsplineHigh 4000
 
--bsplineInitialGridSize 10
+-bsplineInitialGridSize 5 
 -numberOfBsplineLevel 1 
 -useBSplineRegularization on 
--bsplineRegularizationFactor 1e0
+-bsplineRegularizationFactor 1e-1
     
 -mask all 
 -maskType connectedThreshold 
--threshold1 5 
+-threshold1 8 
 -threshold2 20
 
--translationMultiScaleSamplePercentageIncrease 8.0 
--affineMultiScaleSamplePercentageIncrease 8.0 
--bsplineMultiScaleSamplePercentageIncrease 8.0 
+
+-translationMultiScaleSamplePercentageIncrease 4.0 
+-affineMultiScaleSamplePercentageIncrease 4.0 
+-bsplineMultiScaleSamplePercentageIncrease 4.0 
     
 -translationMultiScaleMaximumIterationIncrease 1.0 
 -affineMultiScaleMaximumIterationIncrease 1.0 
@@ -45,9 +51,10 @@
 -affineMultiScaleStepLengthIncrease 1e-1 
 -bsplineMultiScaleStepLengthIncrease 1e-1 
     
--translationScaleCoeffs 1e-4 
--gaussianFilterVariance 3.0 
+-translationScaleCoeffs 1e-5 
+-gaussianFilterVariance 2.0 
 -maximumLineIteration 10 
 -parzenWindowStandardDeviation 0.4
     
-
+ -writeOutputImages off
+ -writeDeformationFields off
