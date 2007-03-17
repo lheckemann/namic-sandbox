@@ -129,7 +129,11 @@ public:
   typedef typename Superclass::MovingImageType          MovingImageType;
   typedef typename Superclass::FixedImageConstPointer   FixedImageConstPointer;
   typedef typename Superclass::MovingImageConstPointer  MovingImageCosntPointer;
-  //typedef typename Superclass::ThreadStruct             ThreadStruct;
+  typedef typename Superclass::GradientImageType        GradientImageType;
+  typedef typename Superclass::GradientImagePointer     GradientImagePointer;
+  typedef typename Superclass::GradientPixelType        GradientPixelType;
+  typedef typename Superclass::MovingImagePixelType     ImagePixelType;
+  typedef typename Superclass::RealType        RealType;
   struct ThreadStruct
   {
     ConstPointer Metric;
@@ -148,10 +152,6 @@ public:
 
   /** PixelType */
   typedef typename FixedImageType::PixelType            PixelType;
-
-  /** Type to use for computations. */
-  typedef typename NumericTraits<PixelType>::RealType   RealType;
-
 
   /** Enum of the moving image dimension. */
   itkStaticConstMacro(MovingImageDimension, unsigned int,
