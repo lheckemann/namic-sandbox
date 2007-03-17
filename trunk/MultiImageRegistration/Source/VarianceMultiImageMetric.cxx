@@ -40,13 +40,42 @@ VarianceMultiImageMetric()
   m_NumberOfSpatialSamples = 0;
   this->SetNumberOfSpatialSamples(50);
 
-
   // Following initialization is related to
   // calculating image derivatives
   this->SetComputeGradient (false);  // don't use the default gradient for now
   m_DerivativeCalculator = DerivativeFunctionType::New ();
 
+  m_BSplineTransformArray.resize(0);
+  m_Regularization = false;
+  m_RegularizationFactor = 1e-5;
+
+  m_UseMask = false;
+
 }
+
+/*
+ * Set Number of images
+ */
+
+template <class TFixedImage> 
+void
+VarianceMultiImageMetric<TFixedImage>
+::SetNumberOfImages(int N)
+{
+
+  const int numberOfImages = this->m_NumberOfImages;
+  
+  Superclass::SetNumberOfImages(N);
+
+  m_BSplineTransformArray.resize(N);
+
+  for(int i=numberOfImages; i<N; i++ )
+  {
+    //m_BSplineTransformArray[i]=0;
+  }
+
+}
+
 
 /*
  * Initialize
@@ -66,12 +95,19 @@ VarianceMultiImageMetric<TFixedImage>
   {
     m_Sample[i].imageValueArray.resize (this->m_NumberOfImages);
   }
-
+  this->m_NumberOfPixelsCounted = m_NumberOfSpatialSamples;
+  
+  //check whether there is a mask
+  for (int j = 0; j < this->m_NumberOfImages; j++)
+  {
+    if ( this->m_ImageMaskArray[j] )
+    {
+      m_UseMask = true;
+    }
+  }
   // reinitilize the seed for the random iterator
   this->ReinitializeSeed();
 
-  // Sample the image domain
-  this->SampleFixedImageDomain(m_Sample);
 
   int numberOfParameters =
       this->m_TransformArray[0]->GetNumberOfParameters();
@@ -90,7 +126,111 @@ VarianceMultiImageMetric<TFixedImage>
     m_DerivativeCalcVector[i] = DerivativeFunctionType::New ();
   }
 
-  this->m_NumberOfPixelsCounted = GetNumberOfSpatialSamples();
+  // Sample the image domain
+  this->SampleFixedImageDomain(m_Sample);
+  
+  // Initialize the variables for regularization term
+  if( m_Regularization &&
+      strcmp(this->m_TransformArray[0]->GetNameOfClass(), "BSplineDeformableTransform") )
+  {
+    itkExceptionMacro(<<"Cannot use regularization with transforms" <<
+        " other than BSplineDeformableTransform" );
+  }
+
+  // If using regularization check that the Bspline Transform is supplied
+  if( m_Regularization &&
+      !strcmp(this->m_TransformArray[0]->GetNameOfClass(), "BSplineDeformableTransform") )
+  {
+    for(int i=0; i<this->m_NumberOfImages;i++)
+    {
+      if( !m_BSplineTransformArray[i] )
+      {
+        itkExceptionMacro(<<"Bspline Transform Array not initialized" );
+      }
+      
+      if( (void *) m_BSplineTransformArray[i] != (void*)this->m_TransformArray[i])
+      {
+        itkExceptionMacro(<<"While using Bspline regularization transform array and Bspline array should have the pointers to the same transform" );
+      }
+    }
+
+  }
+
+  //Prepare the gradient filters if Regularization is on
+  if(m_Regularization)
+  {
+
+    //Prepare hessian filters
+    m_BSplineGradientArray.resize(this->m_NumberOfImages);
+    m_BSplineHessianArray.resize(this->m_NumberOfImages);
+    m_BSplineGradientImagesArray.resize(this->m_NumberOfImages);
+    for(int i=0; i<this->m_NumberOfImages; i++)
+    {
+      m_BSplineGradientArray[i].resize(MovingImageType::ImageDimension);
+      m_BSplineHessianArray[i].resize(MovingImageType::ImageDimension);
+      m_BSplineGradientImagesArray[i].resize(MovingImageType::ImageDimension);
+
+      for(int j=0; j<MovingImageType::ImageDimension; j++)
+      {
+        // Connect bspline coeff images to gradient filters
+        m_BSplineGradientArray[i][j] = GradientFilterType::New();
+        m_BSplineGradientArray[i][j]->SetInput(m_BSplineTransformArray[i]->GetCoefficientImage()[j]);
+        m_BSplineGradientArray[i][j]->Update();
+
+        m_BSplineHessianArray[i][j].resize(MovingImageType::ImageDimension);
+        m_BSplineGradientImagesArray[i][j].resize(MovingImageType::ImageDimension);
+        
+        for(int k=0; k<MovingImageType::ImageDimension; k++)
+        {
+          // allocate the gradient images which hold k'th image of the graadient of the
+          // Bspline coeff image
+          m_BSplineGradientImagesArray[i][j][k] = BSplineParametersImageType::New();
+          m_BSplineGradientImagesArray[i][j][k]->SetRegions( m_BSplineTransformArray[i]->GetGridRegion() );
+          m_BSplineGradientImagesArray[i][j][k]->Allocate();
+          m_BSplineGradientImagesArray[i][j][k]->SetSpacing( m_BSplineTransformArray[i]->GetGridSpacing() );
+          m_BSplineGradientImagesArray[i][j][k]->SetOrigin( m_BSplineTransformArray[i]->GetGridOrigin() );
+          m_BSplineGradientImagesArray[i][j][k]->FillBuffer( 0.0 );
+
+          // connect the bspline gradient images
+          // to gradient filter to compute hessian
+          m_BSplineHessianArray[i][j][k] = GradientFilterType::New();
+          m_BSplineHessianArray[i][j][k]->SetInput(m_BSplineGradientImagesArray[i][j][k]);
+
+        }
+      }
+    }
+
+    // Allocate the images for cost function derivative update
+    m_BSplineGradientUpdateImagesArray.resize(MovingImageType::ImageDimension);
+    m_BSplineGradientUpdateArray.resize(MovingImageType::ImageDimension);
+    for (int i=0; i< MovingImageType::ImageDimension; i++)
+    {
+      m_BSplineGradientUpdateImagesArray[i].resize(MovingImageType::ImageDimension);
+      m_BSplineGradientUpdateArray[i].resize(MovingImageType::ImageDimension);
+      for( int j=0; j<= i; j++ )
+      {
+        m_BSplineGradientUpdateImagesArray[i][j].resize(m_NumberOfThreads);
+        m_BSplineGradientUpdateArray[i][j].resize(m_NumberOfThreads);
+        
+        // separate for each thread
+        for(int k=0; k<m_NumberOfThreads; k++)
+        {
+          m_BSplineGradientUpdateImagesArray[i][j][k] = BSplineParametersImageType::New();
+          m_BSplineGradientUpdateImagesArray[i][j][k]->SetRegions( m_BSplineTransformArray[i]->GetGridRegion() );
+          m_BSplineGradientUpdateImagesArray[i][j][k]->Allocate();
+          m_BSplineGradientUpdateImagesArray[i][j][k]->SetSpacing( m_BSplineTransformArray[i]->GetGridSpacing() );
+          m_BSplineGradientUpdateImagesArray[i][j][k]->SetOrigin( m_BSplineTransformArray[i]->GetGridOrigin() );
+          m_BSplineGradientUpdateImagesArray[i][j][k]->FillBuffer( 0.0 );
+
+        // connect the bspline gradient images
+          m_BSplineGradientUpdateArray[i][j][k] = GradientFilterType::New();
+          m_BSplineGradientUpdateArray[i][j][k]->SetInput(m_BSplineGradientUpdateImagesArray[i][j][k]);
+          m_BSplineGradientUpdateArray[i][j][k]->Update();
+        
+        }
+      }
+    }
+  }
 
 }
 
@@ -147,7 +287,7 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
 
   // Number of random picks made from the portion of fixed image within the fixed mask
   unsigned long numberOfFixedImagePixelsVisited = 0;
-  unsigned long dryRunTolerance = this->GetFixedImageRegion().GetNumberOfPixels();
+  unsigned long dryRunTolerance = 3*this->GetFixedImageRegion().GetNumberOfPixels();
 
   // Vector to hold mapped points
   std::vector<MovingImagePointType> mappedPointsArray(this->m_NumberOfImages);
@@ -172,26 +312,30 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
 
     //Check whether all points are inside mask
     bool allPointsInside = true;
-    for (int j = 0; j < this->m_NumberOfImages; j++)
+    bool pointInsideMask = false;
+    for (int j = 0; j < this->m_NumberOfImages && allPointsInside; j++)
     {
       mappedPointsArray[j] = this->m_TransformArray[j]->TransformPoint ((*iter).FixedImagePoint);
-      
-      if ( (this->m_ImageMaskArray[j] && !this->m_ImageMaskArray[j]->IsInside (mappedPointsArray[j]) )
-            || !this->m_InterpolatorArray[j]->IsInsideBuffer (mappedPointsArray[j]) )
+
+      //check whether sampled point is in one of the masks
+      if ( this->m_ImageMaskArray[j] && !this->m_ImageMaskArray[j]
+           ->IsInside (mappedPointsArray[j])  )
       {
-        allPointsInside = false;
+        pointInsideMask = true;
       }
+
+      allPointsInside = allPointsInside && this->m_InterpolatorArray[j]
+          ->IsInsideBuffer (mappedPointsArray[j]);
     }
 
     // If not all points are inside continue to the next random sample
-    if (allPointsInside == false)
+    if (allPointsInside == false || (m_UseMask && pointInsideMask == false) )
     {
       ++randIter;
       --iter;
       continue;
     }
 
-    // write the mapped samples intensity values inside an array
     // write the mapped samples intensity values inside an array
     for (int j = 0; j < this->m_NumberOfImages; j++)
     {
@@ -220,69 +364,28 @@ typename VarianceMultiImageMetric < TFixedImage >::MeasureType
 VarianceMultiImageMetric <TFixedImage >::
 GetValue(const ParametersType & parameters) const
 {
-  // cout << "Checking GetValue" << endl;
 
-  int N = this->m_NumberOfImages;
-  int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters ();
-  ParametersType currentParam (numberOfParameters);
+  // Call a method that perform some calculations prior to splitting the main
+  // computations into separate threads
 
-  for (int i = 0; i < N; i++)
-  {
-    for (int j = 0; j < numberOfParameters; j++)
-    {
-      currentParam[j] = parameters[i * numberOfParameters + j];
-    }
-    // cout << currentParam << endl;
-    this->m_TransformArray[i]->SetParametersByValue (currentParam);
-  }
-
-  // collect sample set
-  //
-  // or dont collect a new sample set if used with
-  // regular gradient descent
-  // this->SampleFixedImageDomain(m_Sample);
-
-  // Update intensity values
-  MovingImagePointType mappedPoint;
-  for(int i=0; i< m_Sample.size(); i++ )
-  {
-    for(int j=0; j<this->m_NumberOfImages; j++)
-    {
-      mappedPoint = this->m_TransformArray[j]->TransformPoint(m_Sample[i].FixedImagePoint);
-      if(this->m_InterpolatorArray[j]->IsInsideBuffer (mappedPoint) )
-      {
-        m_Sample[i].imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(mappedPoint);
-      }
-    }
-  } 
-
-  //Calculate variance and mean
-  double measure = 0.0;
-  double squareSum, meanSum;
-
-  for(int i=0; i< m_Sample.size(); i++ )
-  {
-    squareSum = 0.0;
-    meanSum = 0.0;
-    double currentValue;
-    for (int j = 0; j < this->m_NumberOfImages; j++)
-    {
-      squareSum += m_Sample[i].imageValueArray[j] * m_Sample[i].imageValueArray[j];
-      meanSum += m_Sample[i].imageValueArray[j];
-    }
-
-    meanSum /= N;
-    squareSum /= N;
-    measure += squareSum - meanSum * meanSum;
-  }        // end of sample loop
+  this->BeforeGetThreadedValue(parameters);
   
-  measure /= static_cast<double>(m_NumberOfSpatialSamples);
+  // Set up the multithreaded processing
+  ThreadStruct str;
+  str.Metric =  this;
 
-  cout << measure << endl;
-  return measure;
+
+  this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
+  this->GetMultiThreader()->SetSingleMethod(ThreaderCallbackGetValue, &str);
+  
+  // multithread the execution
+  this->GetMultiThreader()->SingleMethodExecute();
+
+  // Call a method that can be overridden by a subclass to perform
+  // some calculations after all the threads have completed
+  return this->AfterGetThreadedValue();
 
 }
-
 
 /**
  * Prepare auxiliary variables before starting the threads
@@ -290,16 +393,10 @@ GetValue(const ParametersType & parameters) const
 template < class TFixedImage >
 void 
 VarianceMultiImageMetric < TFixedImage >
-::BeforeGetThreadedValue (const ParametersType & parameters) const
+::BeforeGetThreadedValue(const ParametersType & parameters) const
 {
-
-  cout << "checking derivative" << endl;
-
-  // collect sample set
-  this->SampleFixedImageDomain (m_Sample);
-
   //Make sure that each transform parameters are updated
-  int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters ();
+  const int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters();
   ParametersType currentParam (numberOfParameters);
   // Loop over images
   for (int i = 0; i < this->m_NumberOfImages; i++)
@@ -309,7 +406,111 @@ VarianceMultiImageMetric < TFixedImage >
     {
       currentParam[j] = parameters[numberOfParameters * i + j];
     }
-    cout << currentParam << endl;
+    this->m_TransformArray[i]->SetParametersByValue (currentParam);
+  }
+
+}
+
+/*
+ * Get the match Measure
+ */
+template < class TFixedImage >
+void
+VarianceMultiImageMetric < TFixedImage >
+::GetThreadedValue(int threadId) const
+{
+
+  const int N = this->m_NumberOfImages;
+  const unsigned int size = m_Sample.size();
+  /** The tranform parameters vector holding i'th images parameters 
+  Copy parameters in to a collection of arrays */
+
+  const unsigned int numberOfParameters =
+      this->m_TransformArray[0]->GetNumberOfParameters();
+
+  // Update intensity values
+  MovingImagePointType mappedPoint;
+  for(int i=threadId; i< size; i += m_NumberOfThreads )
+  {
+    for(int j=0; j<N; j++)
+    {
+      mappedPoint = this->m_TransformArray[j]->TransformPoint(m_Sample[i].FixedImagePoint);
+      if(this->m_InterpolatorArray[j]->IsInsideBuffer (mappedPoint) )
+      {
+        m_Sample[i].imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(mappedPoint);
+      }
+    }
+  }
+
+  //Calculate variance and mean
+  m_value[threadId] = 0.0;
+  double squareSum, meanSum;
+
+  for(int i=threadId; i< size; i+=m_NumberOfThreads )
+  {
+    squareSum = 0.0;
+    meanSum = 0.0;
+    for (int j = 0; j < this->m_NumberOfImages; j++)
+    {
+      const double currentValue = m_Sample[i].imageValueArray[j];
+      squareSum += currentValue * currentValue;
+      meanSum += currentValue;
+    }
+
+    meanSum /= (double) N;
+    squareSum /= (double) N;
+    m_value[threadId] += squareSum - meanSum * meanSum;
+  }        // end of sample loop
+
+}
+/**
+ * Consolidate auxiliary variables after finishing the threads
+ */
+template < class TFixedImage >
+typename VarianceMultiImageMetric < TFixedImage >::MeasureType
+VarianceMultiImageMetric < TFixedImage >
+::AfterGetThreadedValue() const
+{
+
+  MeasureType value = NumericTraits< RealType >::Zero;
+
+  const int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters();
+
+  // Sum over the values returned by threads
+  for( unsigned int i=0; i < m_NumberOfThreads; i++ )
+  {
+    value += m_value[i];
+  }
+  value /= (MeasureType) m_Sample.size();
+
+  //cout << value << endl;
+  return value;
+}
+/**
+ * Prepare auxiliary variables before starting the threads
+ */
+template < class TFixedImage >
+void 
+VarianceMultiImageMetric < TFixedImage >
+::BeforeGetThreadedValueAndDerivative (const ParametersType & parameters) const
+{
+
+  // cout << "checking derivative" << endl;
+  // collect sample set
+  this->SampleFixedImageDomain (m_Sample);
+
+  //Make sure that each transform parameters are updated
+  int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters();
+  ParametersType currentParam (numberOfParameters);
+  // Loop over images
+  for (int i = 0; i < this->m_NumberOfImages; i++)
+  {
+    //Copy the parameters of the current transform
+    for (int j = 0; j < numberOfParameters; j++)
+    {
+      currentParam[j] = parameters[numberOfParameters * i + j];
+    }
+    // cout << currentParam << endl;
     this->m_TransformArray[i]->SetParametersByValue (currentParam);
   }
 
@@ -321,7 +522,7 @@ VarianceMultiImageMetric < TFixedImage >
  */
 template < class TFixedImage >
 void VarianceMultiImageMetric < TFixedImage >
-::AfterGetThreadedValue (MeasureType & value,
+::AfterGetThreadedValueAndDerivative (MeasureType & value,
                            DerivativeType & derivative) const
 {
 
@@ -368,7 +569,7 @@ void VarianceMultiImageMetric < TFixedImage >
 template < class TFixedImage >
 void 
 VarianceMultiImageMetric < TFixedImage >
-::GetThreadedValue(int threadId) const
+::GetThreadedValueAndDerivative(int threadId) const
 {
 
   double N = (double) this->m_NumberOfImages;
@@ -399,16 +600,13 @@ VarianceMultiImageMetric < TFixedImage >
     // Sum over images
     for (int j = 0; j < this->m_NumberOfImages; j++)
     {
-      sumOfSquares += m_Sample[a].imageValueArray[j]*m_Sample[a].imageValueArray[j];
-      mean += m_Sample[a].imageValueArray[j];
+      const double currentValue = m_Sample[a].imageValueArray[j];
+      sumOfSquares += currentValue*currentValue;
+      mean += currentValue;
     }
     mean /= N;
     sumOfSquares /= N;
     variance = sumOfSquares - mean*mean;
-    if(variance <= 1e-5)
-    {
-      variance = 1e-5;
-    }
     measure += variance;
 
     // Calculate derivative
@@ -416,7 +614,7 @@ VarianceMultiImageMetric < TFixedImage >
     {
       //calculate the derivative weight
       double weight = 2.0 / static_cast<double>(this->m_NumberOfImages) *
-                      (m_Sample[a].imageValueArray[i] - mean) / variance;
+                      (m_Sample[a].imageValueArray[i] - mean);
       
       //Get the derivative at this pixel
       m_DerivativeCalcVector[threadId]->SetInputImage(this->m_ImageArray[i]);
@@ -429,7 +627,7 @@ VarianceMultiImageMetric < TFixedImage >
       }
     }
   } // End of sample Loop
-  m_value[threadId] = vcl_log(measure);
+  m_value[threadId] = measure;
   
 }
 
@@ -445,7 +643,7 @@ void VarianceMultiImageMetric < TFixedImage >
   // Call a method that perform some calculations prior to splitting the main
   // computations into separate threads
 
-  this->BeforeGetThreadedValue(parameters); 
+  this->BeforeGetThreadedValueAndDerivative(parameters); 
   
   // Set up the multithreaded processing
   ThreadStruct str;
@@ -453,17 +651,16 @@ void VarianceMultiImageMetric < TFixedImage >
 
 
   this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
-  this->GetMultiThreader()->SetSingleMethod(this->ThreaderCallback, &str);
+  this->GetMultiThreader()->SetSingleMethod(this->ThreaderCallbackGetValueAndDerivative, &str);
   
   // multithread the execution
   this->GetMultiThreader()->SingleMethodExecute();
 
   // Call a method that can be overridden by a subclass to perform
   // some calculations after all the threads have completed
-  this->AfterGetThreadedValue(value, derivative);
+  this->AfterGetThreadedValueAndDerivative(value, derivative);
 
 }
-
 
 
 // Callback routine used by the threading library. This routine just calls
@@ -472,15 +669,31 @@ void VarianceMultiImageMetric < TFixedImage >
 template < class TFixedImage >
 ITK_THREAD_RETURN_TYPE
 VarianceMultiImageMetric< TFixedImage >
-::ThreaderCallback( void *arg )
+::ThreaderCallbackGetValueAndDerivative( void *arg )
 {
   ThreadStruct *str;
 
-  int threadId;
-  int threadCount;
+  int threadId = ((MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
 
-  threadId = ((MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
-  threadCount = ((MultiThreader::ThreadInfoStruct *)(arg))->NumberOfThreads;
+  str = (ThreadStruct *)(((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
+
+  str->Metric->GetThreadedValueAndDerivative( threadId );
+
+
+  return ITK_THREAD_RETURN_VALUE;
+}
+
+// Callback routine used by the threading library. This routine just calls
+// the GetThreadedValue() method after setting the correct partition of data
+// for this thread.
+template < class TFixedImage >
+ITK_THREAD_RETURN_TYPE
+VarianceMultiImageMetric< TFixedImage >
+::ThreaderCallbackGetValue( void *arg )
+{
+  ThreadStruct *str;
+
+  int threadId = ((MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
 
   str = (ThreadStruct *)(((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
 
@@ -489,8 +702,6 @@ VarianceMultiImageMetric< TFixedImage >
 
   return ITK_THREAD_RETURN_VALUE;
 }
-
-
 
 
 /*

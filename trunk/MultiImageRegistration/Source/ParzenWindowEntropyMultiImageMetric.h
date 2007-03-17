@@ -168,7 +168,7 @@ public:
 
   /**  Get the value. */
   MeasureType GetValue( const ParametersType& parameters ) const;
-  /** Methods added for supporting multi-threading GetValueAndDerivative */
+  /** Methods added for supporting multi-threading GetValue */
   void GetThreadedValue( int threadID ) const;
   void BeforeGetThreadedValue(const ParametersType & parameters) const;
   MeasureType AfterGetThreadedValue() const;

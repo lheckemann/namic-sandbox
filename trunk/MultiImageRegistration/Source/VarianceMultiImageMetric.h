@@ -29,6 +29,11 @@
 #include <vector>
 #include "MultiImageMetric.h"
 
+#include "itkGradientImageFilter.h"
+#include "itkBSplineDeformableTransform.h"
+
+#include "itkImageRegionIterator.h"
+
 using namespace std;
 
 namespace itk
@@ -159,17 +164,19 @@ public:
 
   /**  Get the value. */
   MeasureType GetValue( const ParametersType& parameters ) const;
-
+  /** Methods added for supporting multi-threading GetValue */
+  void GetThreadedValue( int threadID ) const;
+  void BeforeGetThreadedValue(const ParametersType & parameters) const;
+  MeasureType AfterGetThreadedValue() const;
+  
   /**  Get the value and derivatives for single valued optimizers. */
   void GetValueAndDerivative( const ParametersType& parameters, 
                               MeasureType& Value, DerivativeType& Derivative ) const;
-  void GetValueAndDerivative2( const ParametersType& parameters,
-                              MeasureType& Value, DerivativeType& Derivative ) const;
 
   /** Methods added for supporting multi-threading */
-  void GetThreadedValue( int threadID ) const;
-  void BeforeGetThreadedValue(const ParametersType & parameters) const;
-  void AfterGetThreadedValue(MeasureType & value,
+  void GetThreadedValueAndDerivative( int threadID ) const;
+  void BeforeGetThreadedValueAndDerivative(const ParametersType & parameters) const;
+  void AfterGetThreadedValueAndDerivative(MeasureType & value,
                              DerivativeType & derivative) const;
   
 
@@ -189,6 +196,34 @@ public:
 
   void ReinitializeSeed();
   void ReinitializeSeed(int);
+
+    /** Define the bspline tranform type for regularization
+  For Regularization BsplineTransfromPointer must be explicitly
+  provided */
+  typedef itk::BSplineDeformableTransform<double,   itkGetStaticConstMacro(MovingImageDimension), 3> BSplineTransformType;
+  typedef typename BSplineTransformType::Pointer BSplineTransformTypePointer;
+  
+  typedef typename BSplineTransformType::ImageType BSplineParametersImageType;
+  typedef typename BSplineParametersImageType::Pointer BSplineParametersImagePointer;
+  
+  typedef itk::GradientImageFilter<BSplineParametersImageType, RealType, RealType> GradientFilterType;
+  typedef typename GradientFilterType::Pointer GradientFilterTypePointer;
+
+
+  /** Set/Get the i'th Bspline Transform Pointer. */
+  UserSetObjectMacro( BSplineTransformArray, BSplineTransformType );
+  UserGetConstObjectMacro( BSplineTransformArray, BSplineTransformType );
+
+  /** Set/Get the regularization factor */
+  itkSetMacro( RegularizationFactor, RealType );
+
+  /** Turn regularization on/off: Default off (true=on) */
+  itkSetMacro( Regularization, bool );
+  /** Get regularization on/off */
+  itkGetMacro( Regularization, bool );
+
+  /** Set Number of images */
+  virtual void SetNumberOfImages(int N);
 
 protected:
   VarianceMultiImageMetric();
@@ -227,7 +262,8 @@ private:
 
   /** SpatialSampleContainer typedef support. */
   typedef std::vector<SpatialSample>  SpatialSampleContainer;
-  static ITK_THREAD_RETURN_TYPE ThreaderCallback( void *arg );
+  static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueAndDerivative( void *arg );
+  static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValue( void *arg );
 
   /** Container to store sample set */
   mutable SpatialSampleContainer      m_Sample;
@@ -259,6 +295,21 @@ private:
   mutable std::vector<DerivativeType> m_derivativeArray;
 
   int m_NumberOfThreads;
+
+  bool m_Regularization;
+  double m_RegularizationFactor;
+  
+  mutable std::vector<BSplineTransformTypePointer> m_BSplineTransformArray;
+
+  mutable std::vector< std::vector< GradientFilterTypePointer > >  m_BSplineGradientArray;
+  mutable std::vector< std::vector< std::vector< GradientFilterTypePointer > > > m_BSplineHessianArray;
+
+  mutable std::vector< std::vector< std::vector< BSplineParametersImagePointer > > > m_BSplineGradientImagesArray;
+
+  mutable std::vector< std::vector< std::vector< GradientFilterTypePointer > > >   m_BSplineGradientUpdateArray;
+  mutable std::vector< std::vector< std::vector< BSplineParametersImagePointer > > >             m_BSplineGradientUpdateImagesArray;
+  bool m_UseMask;
+
 };
 
 } // end namespace itk

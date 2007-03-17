@@ -425,7 +425,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 ::BeforeGetThreadedValue(const ParametersType & parameters) const
 {
   //Make sure that each transform parameters are updated
-  int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters();
+  const int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters();
   ParametersType currentParam (numberOfParameters);
   // Loop over images
   for (int i = 0; i < this->m_NumberOfImages; i++)
@@ -455,7 +455,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
   /** The tranform parameters vector holding i'th images parameters 
   Copy parameters in to a collection of arrays */
 
-  unsigned int numberOfParameters =
+  const unsigned int numberOfParameters =
       this->m_TransformArray[0]->GetNumberOfParameters();
 
   // Update intensity values
