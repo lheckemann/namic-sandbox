@@ -804,7 +804,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
   }  // End of sample loop
 
 
-    //Add the regularization term
+  //Add the regularization term
   if(m_Regularization )
   {
     double sumOfSquares = 0.0;
