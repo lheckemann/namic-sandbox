@@ -470,7 +470,7 @@ MutualInformationImageToImageMetricBsplineRegularization<TFixedImage,TMovingImag
         
       }
     }
-    measure -= m_RegularizationFactor * sumOfSquares;
+    measure += m_RegularizationFactor * sumOfSquares;
   
   }
 
@@ -868,13 +868,13 @@ MutualInformationImageToImageMetricBsplineRegularization<TFixedImage,TMovingImag
         BSplineImageIteratorType parametersUpdateIterators( m_BSplineGradientUpdateImagesArray[0][0][0], region );
         while ( !parametersUpdateIterators.IsAtEnd() )
         {
-          derivative[ parametersIndex++] += 2.0 * m_RegularizationFactor * parametersUpdateIterators.Get();
+          derivative[ parametersIndex++] -= 2.0 * m_RegularizationFactor * parametersUpdateIterators.Get();
           ++parametersUpdateIterators;
         }
 
       }
     }
-    value -= m_RegularizationFactor * sumOfSquares;
+    value += m_RegularizationFactor * sumOfSquares;
 
   }
 }
