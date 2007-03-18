@@ -42,13 +42,24 @@ SET(Congealing_SRCS
   UserMacro.h
  )
  
+SET(Pairwise_SRCS 
+  PairwiseRegistration.cxx 
+  GradientDescentLineSearchOptimizer.h
+  GradientDescentLineSearchOptimizer.cxx
+  MutualInformationImageToImageMetricBsplineRegularization.h
+  MutualInformationImageToImageMetricBsplineRegularization.cxx
+  AddImageFilter.h
+ )
 
 
 ADD_EXECUTABLE(Congeal ${Congealing_SRCS})
-TARGET_LINK_LIBRARIES(Congeal ITKNumerics ITKIO ITKBasicFilters)
+TARGET_LINK_LIBRARIES(Congeal ITKCommon ITKNumerics ITKIO ITKBasicFilters)
 
 ADD_EXECUTABLE(TransformImage TransformImage.cxx )
 TARGET_LINK_LIBRARIES(TransformImage ITKCommon ITKBasicFilters ITKIO)
+
+ADD_EXECUTABLE(PairwiseRegistration ${Pairwise_SRCS} )
+TARGET_LINK_LIBRARIES(PairwiseRegistration ITKCommon ITKNumerics ITKIO ITKBasicFilters)
 
 ADD_EXECUTABLE(CreateImageSetAffine CreateImageSetAffine.cxx )
 TARGET_LINK_LIBRARIES(CreateImageSetAffine ITKCommon ITKBasicFilters ITKIO ITKStatistics)

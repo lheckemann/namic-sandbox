@@ -147,14 +147,9 @@ public:
   typedef typename MovingImageType::IndexType           MovingImageIndexType;
   typedef typename TransformType::InputPointType        FixedImagePointType;
   typedef typename TransformType::OutputPointType       MovingImagePointType;
-  //typedef vector<FixedImageIndexType> ImageIndexTypeArray;
-  //typedef vector<FixedImageIndexValueType> ImageIndexValueTypeArray;
 
   /** PixelType */
   //typedef typename FixedImageType::PixelType            PixelType;
-
-  /** Type to use for computations. */
-  //typedef typename NumericTraits<PixelType>::RealType   RealType;
 
 
   /** Enum of the moving image dimension. */
