@@ -942,6 +942,18 @@ int main( int argc, char *argv[] )
     return -1;
   }
 
+  //
+  //
+  //
+  //
+  //
+  //    AFFINE TRANSFORM REGISTRATION
+  //
+  //
+  //
+  //
+  //
+
   
   // Continue with affine transform using the results of the translation transform
   //
@@ -962,7 +974,7 @@ int main( int argc, char *argv[] )
   
   int numberOfParameters = affineTransformArray[0]->GetNumberOfParameters();
 
-  //Initialize the affine transforms to identity transform
+  // Initialize the affine transforms to identity transform
   // And use the results of the translation transform
   for(int i=0; i<N; i++)
   {
@@ -1737,7 +1749,7 @@ int main( int argc, char *argv[] )
     resample->SetOutputOrigin(  fixedImage->GetOrigin() );
     resample->SetOutputSpacing( fixedImage->GetSpacing() );
     resample->SetOutputDirection( fixedImage->GetDirection());
-    resample->SetDefaultPixelValue( 100 );
+    resample->SetDefaultPixelValue( 0 );
 
     std::cout << "message: Writing " << outputFileNames[i] << std::endl;
     if( imageType == "DICOM")

@@ -47,9 +47,13 @@ SET(Congealing_SRCS
 ADD_EXECUTABLE(Congeal ${Congealing_SRCS})
 TARGET_LINK_LIBRARIES(Congeal ITKNumerics ITKIO ITKBasicFilters)
 
+ADD_EXECUTABLE(TransformImage TransformImage.cxx )
+TARGET_LINK_LIBRARIES(TransformImage ITKCommon ITKBasicFilters ITKIO)
+
 ADD_EXECUTABLE(CreateImageSetAffine CreateImageSetAffine.cxx )
 TARGET_LINK_LIBRARIES(CreateImageSetAffine ITKCommon ITKBasicFilters ITKIO ITKStatistics)
     
 ADD_EXECUTABLE(CreateImageSetBspline CreateImageSetBspline.cxx )
 TARGET_LINK_LIBRARIES(CreateImageSetBspline ITKCommon ITKBasicFilters ITKIO ITKStatistics)
+
 
