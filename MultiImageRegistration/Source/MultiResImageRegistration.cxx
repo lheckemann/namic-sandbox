@@ -71,8 +71,6 @@
     
 //Bspline optimizer and transform
 #include "itkBSplineDeformableTransform.h"
-#include "itkLBFGSBOptimizer.h"
-#include "itkFRPROptimizer.h"
 #include "itkGradientDescentOptimizer.h"
 #include "GradientDescentLineSearchOptimizer.h"
 
@@ -122,8 +120,6 @@ public:
   typedef   const OptimizerType *                            OptimizerPointer;
   typedef   itk::GradientDescentOptimizer       GradientOptimizerType;
   typedef   const GradientOptimizerType *             GradientOptimizerPointer;
-  typedef   itk::FRPROptimizer                  FRPROptimizerType;
-  typedef   const FRPROptimizerType *                 FRPROptimizerPointer;
   typedef   itk::GradientDescentLineSearchOptimizer LineSearchOptimizerType;
   typedef   const LineSearchOptimizerType  *          LineSearchOptimizerPointer;
 
@@ -161,19 +157,7 @@ public:
           //std::cout << std::setw(6) << "Position: " << gradientPointer->GetCurrentPosition() << std::endl;
         }
       }
-      else if(!strcmp(optimizer->GetNameOfClass(), "FRPROptimizer") )
-      {
-        FRPROptimizerPointer FRPRPointer =
-            dynamic_cast< FRPROptimizerPointer >( object );
-        std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
-        std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex << "   ";
-        std::cout << std::setw(3) << FRPRPointer->GetCurrentIteration() << "   ";
-        std::cout << std::setw(6) << FRPRPointer->GetValue() << "   ";
-        if(FRPRPointer->GetCurrentIteration() % 50 == 0)
-        {
-          //std::cout << std::setw(6) << "Position: " << FRPRPointer->GetCurrentPosition() << std::endl;
-        }
-      }
+
       else if(!strcmp(optimizer->GetNameOfClass(), "GradientDescentLineSearchOptimizer") )
       {
         LineSearchOptimizerPointer lineSearchOptimizerPointer =
@@ -233,8 +217,6 @@ public:
   typedef   OptimizerType *                            OptimizerPointer;
   typedef   itk::GradientDescentOptimizer       GradientOptimizerType;
   typedef   GradientOptimizerType *             GradientOptimizerPointer;
-  typedef   itk::FRPROptimizer                  FRPROptimizerType;
-  typedef   FRPROptimizerType *                 FRPROptimizerPointer;
   typedef   itk::GradientDescentLineSearchOptimizer LineSearchOptimizerType;
   typedef   LineSearchOptimizerType  *          LineSearchOptimizerPointer;
 
@@ -302,17 +284,7 @@ public:
         std::cout << "message: Learning rate : " << gradientPointer->GetLearningRate() << std::endl;
 
       }
-      else if(!strcmp(optimizer->GetNameOfClass(), "FRPROptimizer") )
-      {
-        FRPROptimizerPointer FRPRPointer = dynamic_cast< FRPROptimizerPointer >(
-            registration->GetOptimizer() );
-        FRPRPointer->SetMaximumIteration(
-              (int)(FRPRPointer->GetMaximumIteration()*pow(m_MultiScaleMaximumIterationIncrease,
-                 (double) (registration->GetNumberOfLevels() - 1.0) ) ));
-        FRPRPointer->SetStepLength(
-            FRPRPointer->GetStepLength()*pow(m_MultiScaleStepLengthIncrease,
-                 (double) (registration->GetNumberOfLevels() - 1.0) ));
-      }
+
       else if(!strcmp(optimizer->GetNameOfClass(), "GradientDescentLineSearchOptimizer") )
       {
         LineSearchOptimizerPointer lineSearchOptimizerPointer =
@@ -367,15 +339,7 @@ public:
         std::cout << "message: Optimizer number of Iterations : " << gradientPointer->GetNumberOfIterations() << std::endl;
         std::cout << "message: Learning rate : " << gradientPointer->GetLearningRate() << std::endl;
       }
-      else if(!strcmp(optimizer->GetNameOfClass(), "FRPROptimizer") )
-      {
-        FRPROptimizerPointer FRPRPointer =
-            dynamic_cast< FRPROptimizerPointer >(
-                                                         registration->GetOptimizer() );
-        FRPRPointer->SetMaximumIteration(
-            (int)(FRPRPointer->GetMaximumIteration()/m_MultiScaleMaximumIterationIncrease ));
-        FRPRPointer->SetStepLength( FRPRPointer->GetStepLength()/m_MultiScaleStepLengthIncrease);
-      }
+
       else if(!strcmp(optimizer->GetNameOfClass(), "GradientDescentLineSearchOptimizer") )
       {
         LineSearchOptimizerPointer lineSearchOptimizerPointer =
@@ -550,7 +514,6 @@ int main( int argc, char *argv[] )
 
 
   typedef itk::GradientDescentOptimizer       OptimizerType;
-  typedef itk::FRPROptimizer                  FRPROptimizerType;
   typedef itk::GradientDescentLineSearchOptimizer LineSearchOptimizerType;
 
   typedef itk::LinearInterpolateImageFunction<InternalImageType,ScalarType        > InterpolatorType;
@@ -606,14 +569,8 @@ int main( int argc, char *argv[] )
 
   //Set the optimizerType
   OptimizerType::Pointer      optimizer;
-  FRPROptimizerType::Pointer  FRPRoptimizer;
   LineSearchOptimizerType::Pointer lineSearchOptimizer;
-  if(optimizerType == "FRPR")
-  {
-    FRPRoptimizer = FRPROptimizerType::New();
-    registration->SetOptimizer(     FRPRoptimizer     );
-  }
-  else if(optimizerType == "lineSearch")
+  if(optimizerType == "lineSearch")
   {
     lineSearchOptimizer     = LineSearchOptimizerType::New();
     registration->SetOptimizer(     lineSearchOptimizer     );
@@ -877,18 +834,7 @@ int main( int argc, char *argv[] )
   //observer->SetFilename("iterations.txt");
   
   // Set the optimizer parameters
-  if(optimizerType == "FRPR")
-  {
-    FRPRoptimizer->SetStepLength(optTranslationLearningRate);
-    FRPRoptimizer->SetMaximize(false);
-    FRPRoptimizer->SetMaximumIteration( optTranslationNumberOfIterations );
-    FRPRoptimizer->SetMaximumLineIteration( maximumLineIteration );
-    FRPRoptimizer->SetScales( optimizerScales );
-    FRPRoptimizer->SetToPolakRibiere();
-    //FRPRoptimizer->SetToFletchReeves();
-    FRPRoptimizer->AddObserver( itk::IterationEvent(), observer );
-  }
-  else if(optimizerType == "lineSearch")
+  if(optimizerType == "lineSearch")
   {
     lineSearchOptimizer->SetStepLength(optTranslationLearningRate);
     lineSearchOptimizer->SetMaximize(false);
@@ -1020,17 +966,7 @@ int main( int argc, char *argv[] )
   }
 
   // Set the optimizer parameters
-  if(optimizerType == "FRPR")
-  {
-    FRPRoptimizer->SetStepLength(optAffineLearningRate);
-    FRPRoptimizer->SetMaximize(false);
-    FRPRoptimizer->SetMaximumIteration( optAffineNumberOfIterations );
-    FRPRoptimizer->SetMaximumLineIteration( 10 );
-    FRPRoptimizer->SetScales( optimizerAffineScales );
-    FRPRoptimizer->SetToPolakRibiere();
-    //FRPRoptimizer->SetToFletchReeves();
-  }
-  else if(optimizerType == "lineSearch")
+  if(optimizerType == "lineSearch")
   {
     lineSearchOptimizer->SetStepLength(optAffineLearningRate);
     lineSearchOptimizer->SetMaximize(false);
@@ -1251,14 +1187,7 @@ int main( int argc, char *argv[] )
     // All parameters are set to be equal
     optimizerScales.SetSize( bsplineTransformArrayLow[0]->GetNumberOfParameters()*N);
     optimizerScales.Fill( 1.0 );
-    if(optimizerType == "FRPR")
-    {
-      FRPRoptimizer->SetScales( optimizerScales );
-      FRPRoptimizer->SetStepLength(optBsplineLearningRate);
-      FRPRoptimizer->SetMaximumIteration( optBsplineNumberOfIterations );
-      FRPRoptimizer->SetScales( optimizerScales );
-    }
-    else if(optimizerType == "lineSearch")
+    if(optimizerType == "lineSearch")
     {
       lineSearchOptimizer->SetScales( optimizerScales );
       lineSearchOptimizer->SetStepLength(optBsplineLearningRate);
@@ -1476,15 +1405,7 @@ int main( int argc, char *argv[] )
         OptimizerScalesType optimizerScales( bsplineTransformArrayHigh[0]->GetNumberOfParameters()*N );
         optimizerScales.Fill( 1.0 );
 
-        if(optimizerType == "FRPR")
-        {
-          FRPRoptimizer->SetScales( optimizerScales );
-          FRPRoptimizer->SetStepLength(optBsplineHighLearningRate);
-          FRPRoptimizer->SetMaximumIteration( optBsplineHighNumberOfIterations );
-          //FRPRoptimizer->SetMaximumLineIteration( 1 );
-          FRPRoptimizer->SetScales( optimizerScales );
-        }
-        else if(optimizerType == "lineSearch")
+        if(optimizerType == "lineSearch")
         {
           lineSearchOptimizer->SetScales( optimizerScales );
           lineSearchOptimizer->SetStepLength(optBsplineHighLearningRate);
@@ -1548,12 +1469,7 @@ int main( int argc, char *argv[] )
 
   unsigned int numberOfIterations;
   double bestValue;
-  if(optimizerType == "FRPR")
-  {
-    numberOfIterations = FRPRoptimizer->GetCurrentIteration();
-    bestValue = FRPRoptimizer->GetValue();
-  }
-  else if(optimizerType == "lineSearch")
+  if(optimizerType == "lineSearch")
   {
     numberOfIterations = lineSearchOptimizer->GetCurrentIteration();
     bestValue = lineSearchOptimizer->GetValue();

@@ -25,6 +25,13 @@
 #include "itkKernelFunction.h"
 #include "itkCentralDifferenceImageFunction.h"
 
+#include "itkGradientImageFilter.h"
+#include "itkBSplineDeformableTransform.h"
+
+#include "itkImageRegionIterator.h"
+#include <vector>
+        
+
 namespace itk
 {
 
@@ -124,6 +131,13 @@ public:
   typedef typename TransformType::InputPointType        FixedImagePointType;
   typedef typename TransformType::OutputPointType       MovingImagePointType;
 
+  /** Regularization related typedefs */
+  typedef typename Superclass::RealType        RealType;
+  typedef typename Superclass::GradientImageType        GradientImageType;
+  typedef typename Superclass::GradientImagePointer     GradientImagePointer;
+  typedef typename Superclass::GradientPixelType        GradientPixelType;
+  typedef typename Superclass::MovingImagePixelType     ImagePixelType;
+    
   /** Enum of the moving image dimension. */
   itkStaticConstMacro(MovingImageDimension, unsigned int,
                       MovingImageType::ImageDimension);
@@ -184,11 +198,41 @@ public:
   void ReinitializeSeed();
   void ReinitializeSeed(int);
 
+  // Typedef for Bspline regularization
+  /** Define the bspline tranform type for regularization
+  For Regularization BsplineTransfromPointer must be explicitly
+  provided */
+  typedef itk::BSplineDeformableTransform<double,   itkGetStaticConstMacro(MovingImageDimension), 3> BSplineTransformType;
+  typedef typename BSplineTransformType::Pointer BSplineTransformTypePointer;
+  
+  typedef typename BSplineTransformType::ImageType BSplineParametersImageType;
+  typedef typename BSplineParametersImageType::Pointer BSplineParametersImagePointer;
+  
+  typedef itk::GradientImageFilter<BSplineParametersImageType, RealType, RealType> GradientFilterType;
+  typedef typename GradientFilterType::Pointer GradientFilterTypePointer;
+
+
+  /** Set/Get the i'th Bspline Transform Pointer. */
+  itkSetObjectMacro( BSplineTransform, BSplineTransformType );
+  itkGetConstObjectMacro( BSplineTransform, BSplineTransformType );
+
+  /** Set/Get the regularization factor */
+  itkSetMacro( RegularizationFactor, RealType );
+
+  /** Turn regularization on/off: Default off (true=on) */
+  itkSetMacro( Regularization, bool );
+  /** Get regularization on/off */
+  itkGetMacro( Regularization, bool );
+
 protected:
   MutualInformationImageToImageMetricBsplineRegularization();
   virtual ~MutualInformationImageToImageMetricBsplineRegularization() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
 
+  /** Initialize the Metric by making sure that all the components
+   *  are present and plugged together correctly     */
+  virtual void Initialize(void) throw ( ExceptionObject );
+  
 private:
   MutualInformationImageToImageMetricBsplineRegularization(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
@@ -241,7 +285,20 @@ private:
 
   bool             m_ReseedIterator;
   int              m_RandomSeed;
+
+  // Parameters added for Bspline regularization
+  bool m_Regularization;
+  double m_RegularizationFactor;
   
+  mutable BSplineTransformTypePointer m_BSplineTransform;
+
+  mutable std::vector< std::vector< GradientFilterTypePointer > >  m_BSplineGradientArray;
+  mutable std::vector< std::vector< std::vector< GradientFilterTypePointer > > > m_BSplineHessianArray;
+
+  mutable std::vector< std::vector< std::vector< BSplineParametersImagePointer > > > m_BSplineGradientImagesArray;
+
+  mutable std::vector< std::vector< std::vector< GradientFilterTypePointer > > >   m_BSplineGradientUpdateArray;
+  mutable std::vector< std::vector< std::vector< BSplineParametersImagePointer > > >             m_BSplineGradientUpdateImagesArray;  
 
 };
 
