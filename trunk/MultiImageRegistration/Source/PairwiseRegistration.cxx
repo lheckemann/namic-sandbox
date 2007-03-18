@@ -137,7 +137,7 @@ public:
       }
 
       // only print results every ten iterations
-      if(m_CumulativeIterationIndex % 10 != 0 && false)
+      if(m_CumulativeIterationIndex % 10 != 0 )
       {
         m_CumulativeIterationIndex++;
         return;
@@ -165,7 +165,7 @@ public:
         std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(3) << lineSearchOptimizerPointer->GetCurrentIteration() << "   ";
         std::cout << std::setw(6) << lineSearchOptimizerPointer->GetValue() << "   " << std::endl;
-        if(lineSearchOptimizerPointer->GetCurrentIteration() % 6 == 0 )
+        if(lineSearchOptimizerPointer->GetCurrentIteration() % 7 == 0 ||1)
         {
           //std::cout << std::setw(6) << "Position: " << lineSearchOptimizerPointer->GetCurrentPosition() << std::endl;
         }
