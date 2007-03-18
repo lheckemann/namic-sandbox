@@ -28,12 +28,11 @@
 // of each element in the vector.
 
 // Headers for the registration method and the metric
-#include "MultiResolutionImageRegistrationMethod.h"
-#include "VarianceMultiImageMetric.h"
-#include "ParzenWindowEntropyMultiImageMetric.h"
+#include "itkMultiResolutionImageRegistrationMethod.h"
+//#include "itkMutualInformationImageToImageMetric.h"
+#include "MutualInformationImageToImageMetricBsplineRegularization.h"
+#include "itkImageToImageMetric.h"
 
-    
-    
 #include "AddImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 
@@ -41,7 +40,6 @@
 #include "itkTranslationTransform.h"
 
 #include "itkLinearInterpolateImageFunction.h"
-#include "itkRecursiveMultiResolutionPyramidImageFilter.h"
 #include "itkImage.h"
 #include "itkNormalizeImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
@@ -104,6 +102,7 @@
 #define InternalPixelType float
 #define Dimension 3
 
+using namespace std;;
 //  The following section of code implements an observer
 //  that will monitor the evolution of the registration process.
 
@@ -142,7 +141,7 @@ public:
       }
 
       // only print results every ten iterations
-      if(m_CumulativeIterationIndex % 25 != 0)
+      if(m_CumulativeIterationIndex % 20 != 0 && false)
       {
         m_CumulativeIterationIndex++;
         return;
@@ -155,10 +154,10 @@ public:
         std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
         std::cout << "Iter " << std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(3) << gradientPointer->GetCurrentIteration() << "   ";
-        std::cout << std::setw(6) << gradientPointer->GetValue() << "   ";
-        if(gradientPointer->GetCurrentIteration() % 50 == 0)
+        std::cout << std::setw(6) << gradientPointer->GetValue() << "   " << std::endl;
+        if(gradientPointer->GetCurrentIteration() % 25 == 0 || true) 
         {
-          //std::cout << std::setw(6) << "Position: " << gradientPointer->GetCurrentPosition() << std::endl;
+          std::cout << std::setw(6) << "Position: " << gradientPointer->GetCurrentPosition() << std::endl;
         }
       }
       else if(!strcmp(optimizer->GetNameOfClass(), "FRPROptimizer") )
@@ -239,12 +238,10 @@ public:
   typedef   LineSearchOptimizerType  *          LineSearchOptimizerPointer;
 
   typedef   itk::Image< InternalPixelType, Dimension >   InternalImageType;
-  typedef   itk::MultiImageMetric< InternalImageType>    MetricType;
+  typedef   itk::ImageToImageMetric< InternalImageType, InternalImageType>    MetricType;
   typedef   MetricType *                                 MetricPointer;
-  typedef   itk::VarianceMultiImageMetric< InternalImageType>    VarianceMetricType;
-  typedef   VarianceMetricType *                                 VarianceMetricPointer;
-  typedef   itk::ParzenWindowEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
-  typedef   EntropyMetricType *                                             EntropyMetricPointer;
+  typedef   itk::MutualInformationImageToImageMetricBsplineRegularization< InternalImageType, InternalImageType >    MutualInformationMetricType;
+  typedef   MutualInformationMetricType *                                 MutualInformationMetricTypePointer;
 
   void Execute(itk::Object * object, const itk::EventObject & event)
   {
@@ -259,9 +256,9 @@ public:
                                          (registration->GetMetric());
 
     // Output message about registration
-    std::cout << "message: Registration using " << registration->GetTransformArray(0)->GetNameOfClass() << std::endl;
+    std::cout << "message: Registration using " << registration->GetTransform()->GetNameOfClass() << std::endl;
     std::cout << "message: Multiresolution level : " << registration->GetCurrentLevel() << std::endl;
-    std::cout << "message: Number of total parameters : " << registration->GetTransformParametersLength() << std::endl;
+    std::cout << "message: Number of total parameters : " << registration->GetTransform()->GetNumberOfParameters() << std::endl;
     std::cout << "message: Optimizertype : " << optimizer->GetNameOfClass() << std::endl;
 
     if ( registration->GetCurrentLevel() == 0 )
@@ -269,22 +266,14 @@ public:
       // Set the number of spatial samples according to the current level
       if(  !strcmp(metric->GetNameOfClass(), "VarianceMultiImageMetric" ) )
       {
-        VarianceMetricPointer  varianceMetric = dynamic_cast< VarianceMetricPointer>
+        MutualInformationMetricTypePointer  mutualInformationMetric = dynamic_cast< MutualInformationMetricTypePointer>
                                                               (registration->GetMetric());
-        varianceMetric->SetNumberOfSpatialSamples(
-                        (unsigned int) (varianceMetric->GetNumberOfSpatialSamples() /
+        mutualInformationMetric->SetNumberOfSpatialSamples(
+            (unsigned int) (mutualInformationMetric->GetNumberOfSpatialSamples() /
                         pow( pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease,
                              (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
       }
-      else if(!strcmp(metric->GetNameOfClass(), "ParzenWindowEntropyMultiImageMetric") )
-      {
-        EntropyMetricPointer  entropyMetric = dynamic_cast< EntropyMetricPointer>
-                                                            (registration->GetMetric());
-        entropyMetric->SetNumberOfSpatialSamples(
-                           (unsigned int) (entropyMetric->GetNumberOfSpatialSamples() /
-                           pow( pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease,
-                                (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
-      }
+
       
       
       if(  !strcmp(optimizer->GetNameOfClass(), "GradientDescentOptimizer" ) )
@@ -336,21 +325,13 @@ public:
       // Set the number of spatial samples according to the current level
       if(  !strcmp(metric->GetNameOfClass(), "VarianceMultiImageMetric" ) )
       {
-        VarianceMetricPointer  varianceMetric = dynamic_cast< VarianceMetricPointer>
+        MutualInformationMetricTypePointer  mutualInformationMetric = dynamic_cast< MutualInformationMetricTypePointer>
             (registration->GetMetric());
-        varianceMetric->SetNumberOfSpatialSamples(
-            (unsigned int) (varianceMetric->GetNumberOfSpatialSamples() *
+        mutualInformationMetric->SetNumberOfSpatialSamples(
+            (unsigned int) (mutualInformationMetric->GetNumberOfSpatialSamples() *
                   pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease ) );
       }
-      else if(!strcmp(metric->GetNameOfClass(), "ParzenWindowEntropyMultiImageMetric") )
-      {
-        EntropyMetricPointer  entropyMetric =
-            dynamic_cast< EntropyMetricPointer>
-            (registration->GetMetric());
-        entropyMetric->SetNumberOfSpatialSamples(
-            (unsigned int) (entropyMetric->GetNumberOfSpatialSamples() *
-                   pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease ) );
-      }
+
 
       // Decrease the learning rate at each increasing multiresolution level
       // Increase the number of steps
@@ -405,9 +386,9 @@ public:
     //Constructor initialize the variables
     RegistrationInterfaceCommand()
     {
-      m_MultiScaleSamplePercentageIncrease = 1;
-      m_MultiScaleMaximumIterationIncrease = 1;
-      m_MultiScaleStepLengthIncrease = 1;
+      m_MultiScaleSamplePercentageIncrease = 8;
+      m_MultiScaleMaximumIterationIncrease = 8;
+      m_MultiScaleStepLengthIncrease = 8;
     };
   private:
     double m_MultiScaleSamplePercentageIncrease;
@@ -555,18 +536,12 @@ int main( int argc, char *argv[] )
 
   typedef itk::LinearInterpolateImageFunction<InternalImageType,ScalarType        > InterpolatorType;
                                     
-  typedef itk::VarianceMultiImageMetric< InternalImageType>    MetricType;
-  typedef itk::ParzenWindowEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
+  typedef itk::MutualInformationImageToImageMetricBsplineRegularization< InternalImageType, InternalImageType >    MutualInformationMetricType;
 
 
   typedef OptimizerType::ScalesType       OptimizerScalesType;
 
-  typedef itk::MultiResolutionMultiImageRegistrationMethod< InternalImageType >    RegistrationType;
-
-  typedef itk::RecursiveMultiResolutionPyramidImageFilter<
-                                    InternalImageType,
-                                    InternalImageType  >    ImagePyramidType;
-
+  typedef itk::MultiResolutionImageRegistrationMethod< InternalImageType, InternalImageType >    RegistrationType;
 
   //Mask related typedefs
   typedef itk::Image< unsigned char, Dimension > ImageMaskType;
@@ -582,9 +557,9 @@ int main( int argc, char *argv[] )
 
   // N is the number of images in the registration
   const unsigned int N = fileNames.size();
-  if( N < 2 )
+  if( N != 2 )
   {
-    std::cout << "Not enough filenames " << std::endl;
+    std::cout << "number of files is not equal to two " << std::endl;
     return 1;
   }
   
@@ -600,10 +575,6 @@ int main( int argc, char *argv[] )
     inputFileNames[i] = inputFolder + fileNames[i];
   }
 
-
-  registration->SetNumberOfImages(N);
-  registration->ReleaseDataFlagOn();
-
   //Set the optimizerType
   OptimizerType::Pointer      optimizer;
   FRPROptimizerType::Pointer  FRPRoptimizer;
@@ -611,18 +582,55 @@ int main( int argc, char *argv[] )
   if(optimizerType == "FRPR")
   {
     FRPRoptimizer = FRPROptimizerType::New();
+
+    if(metricType == "variance")
+    {
+      FRPRoptimizer->SetMaximize(true);
+    }
+    else
+    {
+      FRPRoptimizer->SetMaximize(false);
+    }
+    
     registration->SetOptimizer(     FRPRoptimizer     );
   }
   else if(optimizerType == "lineSearch")
   {
     lineSearchOptimizer     = LineSearchOptimizerType::New();
+    if(metricType == "variance")
+    {
+      lineSearchOptimizer->SetMaximize(true);
+    }
+    else
+    {
+      lineSearchOptimizer->SetMaximize(false);
+    }
     registration->SetOptimizer(     lineSearchOptimizer     );
   } 
   else
   {
     optimizer     = OptimizerType::New();
+    if(metricType == "variance")
+    {
+      optimizer->MaximizeOn();
+    }
+    else
+    {
+      optimizer->MaximizeOff();
+    }
     registration->SetOptimizer(     optimizer     );
   }
+
+  //Set the metric type
+  MutualInformationMetricType::Pointer         mutualInformationMetric;
+  if(metricType == "variance")
+  {
+    mutualInformationMetric        = MutualInformationMetricType::New();
+    registration->SetMetric( mutualInformationMetric  );
+    mutualInformationMetric->SetFixedImageStandardDeviation(  parzenWindowStandardDeviation );
+    mutualInformationMetric->SetMovingImageStandardDeviation( parzenWindowStandardDeviation );
+  }
+
   
   //typedefs for translation transform array
   typedef vector<TranslationTransformType::Pointer> TranslationTransformArrayType;
@@ -639,7 +647,8 @@ int main( int argc, char *argv[] )
   // typedefs for image file readers
   typedef itk::ImageFileReader< ImageType  > ImageReaderType;
   typedef vector< ImageReaderType::Pointer > ImageArrayReader;
-
+  ImageArrayReader   imageArrayReader(N);
+  
   //Type definitions to be used in reading DICOM images
   typedef itk::ImageSeriesReader< ImageType >     DICOMReaderType;
   typedef vector< DICOMReaderType::Pointer > DICOMReaderArray;
@@ -651,9 +660,6 @@ int main( int argc, char *argv[] )
   typedef vector<NamesGeneratorType::Pointer>              NamesGeneratorTypeArray;
   NamesGeneratorTypeArray namesGeneratorArray(N);
 
-
-  typedef  vector<ImagePyramidType::Pointer>                ImagePyramidArray;
-  ImagePyramidArray imagePyramidArray(N);
 
 
   // typedef for normalized image filters
@@ -670,7 +676,7 @@ int main( int argc, char *argv[] )
                                       InternalImageType
                                                     > GaussianFilterType;
   typedef vector< GaussianFilterType::Pointer > GaussianFilterArrayType;
-
+  GaussianFilterArrayType gaussianFilterArray(N);
   // Begin the registration with the affine transform
   // Connect the compenents together
   //
@@ -687,14 +693,9 @@ int main( int argc, char *argv[] )
 
   try
   {
-  
+
     for( int i=0; i< N; i++ )
     {
-      ImageReaderType::Pointer imageReader;
-      translationTransformArray[i] = TranslationTransformType::New();
-      interpolatorArray[i]  = InterpolatorType::New();
-      registration->SetTransformArray(     translationTransformArray[i] ,i    );
-      registration->SetInterpolatorArray(     interpolatorArray[i] ,i    );
 
       if(imageType == "DICOM")
       {
@@ -712,9 +713,8 @@ int main( int argc, char *argv[] )
       }
       else
       {
-        imageReader = ImageReaderType::New();
-        //imageReader->ReleaseDataFlagOn();
-        imageReader->SetFileName( inputFileNames[i].c_str() );
+        imageArrayReader[i] = ImageReaderType::New();
+        imageArrayReader[i]->SetFileName( inputFileNames[i].c_str() );
       }
 
       //Initialize mask filters
@@ -732,7 +732,7 @@ int main( int argc, char *argv[] )
         }
         else
         {
-          connectedThreshold->SetInput( imageReader->GetOutput() );
+          connectedThreshold->SetInput( imageArrayReader[i]->GetOutput() );
         }
         ConnectedThresholdImageFilterType::IndexType seed;
         seed.Fill(0);
@@ -746,7 +746,18 @@ int main( int argc, char *argv[] )
         
         ImageMaskSpatialObject::Pointer maskImage = ImageMaskSpatialObject::New();
         maskImage->SetImage(connectedThreshold->GetOutput());
-        registration->SetImageMaskArray(maskImage, i);
+
+        if(metricType == "variance")
+        {
+          if(i==0)
+          {
+            mutualInformationMetric->SetFixedImageMask( maskImage );
+          }
+          else
+          {
+            mutualInformationMetric->SetMovingImageMask( maskImage );
+          }
+        }
 
       }
       else if( maskType == "neighborhoodConnected" && ((mask == "single" && i==0 ) || mask != "single"))
@@ -758,7 +769,7 @@ int main( int argc, char *argv[] )
         }
         else
         {
-          neighborhoodConnected->SetInput( imageReader->GetOutput() );
+          neighborhoodConnected->SetInput( imageArrayReader[i]->GetOutput() );
         }
         NeighborhoodConnectedImageFilterType::IndexType seed;
   
@@ -778,40 +789,49 @@ int main( int argc, char *argv[] )
         
         ImageMaskSpatialObject::Pointer maskImage = ImageMaskSpatialObject::New();
         maskImage->SetImage(neighborhoodConnected->GetOutput());
-        registration->SetImageMaskArray(maskImage, i);
 
+        if(metricType == "variance")
+        {
+          if(i==0)
+          {
+            mutualInformationMetric->SetFixedImageMask( maskImage );
+          }
+          else
+          {
+            mutualInformationMetric->SetMovingImageMask( maskImage );
+          }
+        }
 
       }
 
       NormalizeFilterType::Pointer normalizeFilter = NormalizeFilterType::New();
-      normalizeFilter->ReleaseDataFlagOn();
       if( imageType == "DICOM")
       {
         normalizeFilter->SetInput( dicomArrayReader[i]->GetOutput() );
       }
       else
       {
-        normalizeFilter->SetInput( imageReader->GetOutput() );
+        normalizeFilter->SetInput( imageArrayReader[i]->GetOutput() );
       }
 
-      GaussianFilterType::Pointer gaussianFilter = GaussianFilterType::New();
-      gaussianFilter->ReleaseDataFlagOn();
-      gaussianFilter->SetVariance( gaussianFilterVariance );
-      gaussianFilter->SetInput( normalizeFilter->GetOutput() );
-
-      //Set up the Image Pyramid
-      imagePyramidArray[i] = ImagePyramidType::New();
-      imagePyramidArray[i]->ReleaseDataFlagOn();
-      imagePyramidArray[i]->SetNumberOfLevels( multiLevelAffine );
-      imagePyramidArray[i]->SetInput( gaussianFilter->GetOutput() );
-
-      std::cout << "message: Reading Image: " << inputFileNames[i].c_str() << std::endl;
-      imagePyramidArray[i]->Update();
-
-      //Set the input into the registration method
-      registration->SetImagePyramidArray(imagePyramidArray[i],i);
-
+      gaussianFilterArray[i] = GaussianFilterType::New();
+      gaussianFilterArray[i]->SetVariance( gaussianFilterVariance );
+      gaussianFilterArray[i]->SetInput( normalizeFilter->GetOutput() );
+      gaussianFilterArray[i]->Update();
+      if(i==0)
+      {
+        registration->SetFixedImage(    gaussianFilterArray[i]->GetOutput()    );
+      }
+      else
+      {
+        registration->SetMovingImage(   gaussianFilterArray[i]->GetOutput()   );
+      }
     }
+    
+    translationTransformArray[1] = TranslationTransformType::New();
+    interpolatorArray[1]  = InterpolatorType::New();
+    registration->SetTransform(     translationTransformArray[1]     );
+    registration->SetInterpolator(     interpolatorArray[1]     );
   }
   catch( itk::ExceptionObject & err )
   {
@@ -823,14 +843,14 @@ int main( int argc, char *argv[] )
 
   // Set initial parameters of the transform
   ImageType::RegionType fixedImageRegion =
-      imagePyramidArray[0]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetBufferedRegion();
+      gaussianFilterArray[0]->GetOutput()->GetBufferedRegion();
   registration->SetFixedImageRegion( fixedImageRegion );
 
 
   // Allocate the space for tranform parameters used by registration method
   // We use a large array to concatenate the parameter array of each tranform
   typedef RegistrationType::ParametersType ParametersType;
-  ParametersType initialParameters( translationTransformArray[0]->GetNumberOfParameters()*N );
+  ParametersType initialParameters( translationTransformArray[1]->GetNumberOfParameters() );
   initialParameters.Fill(0.0);
   registration->SetInitialTransformParameters( initialParameters );
 
@@ -838,7 +858,7 @@ int main( int argc, char *argv[] )
   // Set the scales of the optimizer
   // We set a large scale for the parameters corresponding to translation
   typedef OptimizerType::ScalesType       OptimizerScalesType;
-  OptimizerScalesType optimizerScales( translationTransformArray[0]->GetNumberOfParameters()*N );
+  OptimizerScalesType optimizerScales( translationTransformArray[1]->GetNumberOfParameters() );
   optimizerScales.Fill(1.0);
 
 
@@ -852,24 +872,12 @@ int main( int argc, char *argv[] )
   }
 
 
-  //Set the metric type
-  MetricType::Pointer         varianceMetric;
-  EntropyMetricType::Pointer         entropyMetric;
+  //Set the number of samples
   if(metricType == "variance")
   {
-    varianceMetric        = MetricType::New();
-    registration->SetMetric( varianceMetric  );
-    // Set the number of samples to be used by the metric
-    varianceMetric->SetNumberOfSpatialSamples( numberOfSamples );
+    mutualInformationMetric->SetNumberOfSpatialSamples( numberOfSamples );
   }
-  else
-  {
-    entropyMetric        = EntropyMetricType::New();
-    registration->SetMetric( entropyMetric  );
-    // Set the number of samples to be used by the metric
-    entropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
-    entropyMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
-  }
+
 
   // Create the Command observer and register it with the optimizer.
   // And set output file name
@@ -880,7 +888,6 @@ int main( int argc, char *argv[] )
   if(optimizerType == "FRPR")
   {
     FRPRoptimizer->SetStepLength(optTranslationLearningRate);
-    FRPRoptimizer->SetMaximize(false);
     FRPRoptimizer->SetMaximumIteration( optTranslationNumberOfIterations );
     FRPRoptimizer->SetMaximumLineIteration( maximumLineIteration );
     FRPRoptimizer->SetScales( optimizerScales );
@@ -891,7 +898,6 @@ int main( int argc, char *argv[] )
   else if(optimizerType == "lineSearch")
   {
     lineSearchOptimizer->SetStepLength(optTranslationLearningRate);
-    lineSearchOptimizer->SetMaximize(false);
     lineSearchOptimizer->SetMaximumIteration( optTranslationNumberOfIterations );
     lineSearchOptimizer->SetMaximumLineIteration( maximumLineIteration );
     lineSearchOptimizer->SetScales( optimizerScales );
@@ -901,7 +907,6 @@ int main( int argc, char *argv[] )
   {
     optimizer->SetLearningRate( optTranslationLearningRate );
     optimizer->SetNumberOfIterations( optTranslationNumberOfIterations );
-    optimizer->MaximizeOff();
     optimizer->SetScales( optimizerScales );
     optimizer->AddObserver( itk::IterationEvent(), observer );
   }
@@ -960,70 +965,58 @@ int main( int argc, char *argv[] )
   //Get the latest parameters from the registration
   ParametersType translationParameters = registration->GetLastTransformParameters();
   
-  for(int i=0; i<N; i++)
-  {
-    affineTransformArray[i]     = TransformType::New();
-    registration->SetTransformArray(     affineTransformArray[i] ,i    );
-  }
+  affineTransformArray[1]     = TransformType::New();
+  registration->SetTransform(     affineTransformArray[1]    );
 
-  // Allocate the space for tranform parameters used by registration method
-  // We use a large array to concatenate the parameter array of each tranform
-  ParametersType initialAffineParameters( affineTransformArray[0]->GetNumberOfParameters()*N );
-  initialAffineParameters.Fill(0.0);
-  registration->SetInitialTransformParameters( initialAffineParameters );
-  
-  int numberOfParameters = affineTransformArray[0]->GetNumberOfParameters();
+
+  //int numberOfParameters = affineTransformArray[1]->GetNumberOfParameters();
 
   // Initialize the affine transforms to identity transform
   // And use the results of the translation transform
-  for(int i=0; i<N; i++)
+
+  affineTransformArray[1]->SetIdentity();
+  TransformType::InputPointType center;
+  // Get spacing, origin and size of the images
+  ImageType::SpacingType spacing = gaussianFilterArray[1]->GetOutput()->GetSpacing();
+  itk::Point<double, Dimension> origin = gaussianFilterArray[1]->GetOutput()->GetOrigin();
+  ImageType::SizeType size = gaussianFilterArray[1]->GetOutput()->GetLargestPossibleRegion().GetSize();
+
+  // Place the center of rotation to the center of the image
+  for(int j=0; j< Dimension; j++)
   {
-    affineTransformArray[i]->SetIdentity();
-    TransformType::InputPointType center;
-    // Get spacing, origin and size of the images
-    ImageType::SpacingType spacing = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetSpacing();
-    itk::Point<double, Dimension> origin = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetOrigin();
-    ImageType::SizeType size = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetLargestPossibleRegion().GetSize();
-
-    // Place the center of rotation to the center of the image
-    for(int j=0; j< Dimension; j++)
-    {
-      center[j] = origin[j] + spacing[j]*size[j] / 2.0;
-    }
-    affineTransformArray[i]->SetCenter(center);
-
-    //Initialize the translation parameters using the results of the tranlation transform
-    ParametersType affineParameters = affineTransformArray[i]->GetParameters();
-    for(int j=Dimension*Dimension; j<Dimension+Dimension*Dimension; j++)
-    {
-      affineParameters[j] = translationParameters[i*Dimension + j-Dimension*Dimension]; // scale for translation on X,Y,Z
-    }
-    affineTransformArray[i]->SetParametersByValue(affineParameters);
-
-    registration->SetInitialTransformParameters( affineTransformArray[i]->GetParameters(),i );
+    center[j] = origin[j] + spacing[j]*size[j] / 2.0;
   }
+  affineTransformArray[1]->SetCenter(center);
+
+  //Initialize the translation parameters using the results of the tranlation transform
+  ParametersType affineParameters = affineTransformArray[1]->GetParameters();
+  for(int j=Dimension*Dimension; j<Dimension+Dimension*Dimension; j++)
+  {
+    affineParameters[j] = translationParameters[j-Dimension*Dimension]; // scale for translation on X,Y,Z
+  }
+  affineTransformArray[1]->SetParametersByValue(affineParameters);
+
+  registration->SetInitialTransformParameters( affineTransformArray[1]->GetParameters() );
+
 
   // Set the scales of the optimizer
   // We set a large scale for the parameters corresponding to translation
-  OptimizerScalesType optimizerAffineScales( affineTransformArray[0]->GetNumberOfParameters()*N );
+  OptimizerScalesType optimizerAffineScales( affineTransformArray[1]->GetNumberOfParameters());
   optimizerAffineScales.Fill(1.0);
-  for( int i=0; i<N; i++)
+  for( int j=0; j<Dimension*Dimension; j++ )
   {
-    for( int j=0; j<Dimension*Dimension; j++ )
-    {
-      optimizerAffineScales[i*numberOfParameters + j] = 1.0; // scale for indices in 2x2 (3x3) Matrix
-    }
-    for(int j=Dimension*Dimension; j<Dimension+Dimension*Dimension; j++)
-    {
-      optimizerAffineScales[i*numberOfParameters + j] = translationScaleCoeffs; // scale for translation on X,Y,Z
-    }
+    optimizerAffineScales[j] = 1.0; // scale for indices in 2x2 (3x3) Matrix
   }
+  for(int j=Dimension*Dimension; j<Dimension+Dimension*Dimension; j++)
+  {
+    optimizerAffineScales[j] = translationScaleCoeffs; // scale for translation on X,Y,Z
+  }
+
 
   // Set the optimizer parameters
   if(optimizerType == "FRPR")
   {
     FRPRoptimizer->SetStepLength(optAffineLearningRate);
-    FRPRoptimizer->SetMaximize(false);
     FRPRoptimizer->SetMaximumIteration( optAffineNumberOfIterations );
     FRPRoptimizer->SetMaximumLineIteration( 10 );
     FRPRoptimizer->SetScales( optimizerAffineScales );
@@ -1033,7 +1026,6 @@ int main( int argc, char *argv[] )
   else if(optimizerType == "lineSearch")
   {
     lineSearchOptimizer->SetStepLength(optAffineLearningRate);
-    lineSearchOptimizer->SetMaximize(false);
     lineSearchOptimizer->SetMaximumIteration( optAffineNumberOfIterations );
     lineSearchOptimizer->SetMaximumLineIteration( 10 );
     lineSearchOptimizer->SetScales( optimizerAffineScales );
@@ -1042,9 +1034,7 @@ int main( int argc, char *argv[] )
   {
     optimizer->SetLearningRate( optAffineLearningRate );
     optimizer->SetNumberOfIterations( optAffineNumberOfIterations );
-    optimizer->MaximizeOff();
     optimizer->SetScales( optimizerAffineScales );
-    //optimizer->AddObserver( itk::IterationEvent(), observer );
   }
 
   // Set the number of spatial samples for the metric
@@ -1055,12 +1045,9 @@ int main( int argc, char *argv[] )
   }
   if(metricType == "variance")
   {
-    varianceMetric->SetNumberOfSpatialSamples( numberOfSamples );
+    mutualInformationMetric->SetNumberOfSpatialSamples( numberOfSamples );
   }
-  else
-  {
-    entropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
-  }
+
   
   //Set the parameters of the command observer
   command->SetMultiScaleSamplePercentageIncrease(affineMultiScaleSamplePercentageIncrease);
@@ -1081,34 +1068,6 @@ int main( int argc, char *argv[] )
     return -1;
   }
 
-  //Print out the metric values for translation parameters
-  if( metricPrint == "on")
-  {
-    cout << "message: Metric Probe " << endl;
-    ofstream outputFile("metricOutput.txt");
-    ParametersType parameters = registration->GetLastTransformParameters();
-
-    for(double i=-7.5; i<7.5; i+=0.5)
-    {
-      for(double j=-7.5; j<7.5; j+=0.5)
-      {
-        parameters[10] = i;
-        parameters[11] = j;
-
-        if(metricType =="variance")
-        {
-          outputFile << varianceMetric->GetValue(parameters) << " ";
-        }
-        else
-        {
-          outputFile << entropyMetric->GetValue(parameters) << " ";
-        }
-      }
-      outputFile << std::endl;
-    }
-    outputFile.close();
-  }
-
   //
   // BSpline Registration
   //
@@ -1122,8 +1081,8 @@ int main( int argc, char *argv[] )
   typedef ScalarType CoordinateRepType;
 
   typedef itk::BSplineDeformableTransform< CoordinateRepType,
-  Dimension,
-  SplineOrder >     BSplineTransformType;
+                                           Dimension,
+                                           SplineOrder >     BSplineTransformType;
 
     // Allocate bspline tranform array for low grid size
   typedef vector<BSplineTransformType::Pointer> BSplineTransformArrayType;
@@ -1147,24 +1106,9 @@ int main( int argc, char *argv[] )
 
 
     // Get the latest transform parameters of affine transfom
-    ParametersType affineParameters = registration->GetLastTransformParameters();
-    ParametersType affineCurrentParameters(affineTransformArray[0]->GetNumberOfParameters());
-  
-    // Update the affine transform parameters
-    for( int i=0; i<N; i++)
-    {
-      for(int j=0; j<affineTransformArray[0]->GetNumberOfParameters(); j++)
-      {
-        affineCurrentParameters[j]=affineParameters[i*affineTransformArray[0]->GetNumberOfParameters()+j];
-      }
-      affineTransformArray[i]->SetParametersByValue(affineCurrentParameters);
-    }
+    affineTransformArray[1]->SetParametersByValue(registration->GetLastTransformParameters());
 
-    // Initialize the size of the parameters array
-    registration->SetTransformParametersLength( static_cast<int>( pow( static_cast<double>(bsplineInitialGridSize+SplineOrder),
-                                                 static_cast<int>(Dimension))*Dimension*N ));
 
-  
     //
     // As in the affine registration each image has its own pointers.
     // As we dont change image readers, normalized fileters, Gaussian filters and
@@ -1175,69 +1119,71 @@ int main( int argc, char *argv[] )
     //
     try
     {
-      for( int i=0; i< N; i++ ){
-
-        bsplineTransformArrayLow[i] = BSplineTransformType::New();
+      bsplineTransformArrayLow[1] = BSplineTransformType::New();
       
-        RegionType bsplineRegion;
-        RegionType::SizeType   gridSizeOnImage;
-        RegionType::SizeType   gridBorderSize;
-        RegionType::SizeType   totalGridSize;
+      RegionType bsplineRegion;
+      RegionType::SizeType   gridSizeOnImage;
+      RegionType::SizeType   gridBorderSize;
+      RegionType::SizeType   totalGridSize;
 
-        gridSizeOnImage.Fill( bsplineInitialGridSize ); // We actually should initilize gridSizeOnImage taking into account image dimensions
-        gridBorderSize.Fill( SplineOrder );    // Border for spline order = 3 ( 1 lower, 2 upper )
-        totalGridSize = gridSizeOnImage + gridBorderSize;
+      gridSizeOnImage.Fill( bsplineInitialGridSize ); // We actually should initilize gridSizeOnImage taking into account image dimensions
+      gridBorderSize.Fill( SplineOrder );    // Border for spline order = 3 ( 1 lower, 2 upper )
+      totalGridSize = gridSizeOnImage + gridBorderSize;
 
-        bsplineRegion.SetSize( totalGridSize );
+      bsplineRegion.SetSize( totalGridSize );
 
-        // Get the spacing, origin and imagesize form the image readers
-        SpacingType spacing = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetSpacing();
-        OriginType origin   = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetOrigin();
-        ImageType::RegionType fixedRegion = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetBufferedRegion();
-
-        ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
-
-        // Calculate the spacing for the Bspline grid
-        for(unsigned int r=0; r<Dimension; r++)
-        {
-          // There was a floor here, is it a bug? The floor causes a division by zero error
-          // if the gridSizeOnImage is larger than fixedImageSize
-          spacing[r] *= floor( static_cast<double>(fixedImageSize[r] - 1)  /
-              static_cast<double>(gridSizeOnImage[r] - 1) );
-          origin[r]  -=  spacing[r];
-        }
-
-        // Set the spacing origin and bsplineRegion
-        bsplineTransformArrayLow[i]->SetGridSpacing( spacing );
-        bsplineTransformArrayLow[i]->SetGridOrigin( origin );
-        bsplineTransformArrayLow[i]->SetGridRegion( bsplineRegion );
+      // Get the spacing, origin and imagesize form the image readers
+      SpacingType spacing;
+      OriginType origin;
+      ImageType::RegionType fixedRegion;
+        
+      spacing = gaussianFilterArray[1]->GetOutput()->GetSpacing();
+      origin = gaussianFilterArray[1]->GetOutput()->GetOrigin();
+      fixedRegion = gaussianFilterArray[1]->GetOutput()->GetBufferedRegion();
 
 
-        unsigned int numberOfParametersLow =
-                        bsplineTransformArrayLow[i]->GetNumberOfParameters();
+      ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
 
-        // Set the initial Bspline parameters to zero
-        bsplineParametersArrayLow[i].SetSize( numberOfParametersLow );
-        bsplineParametersArrayLow[i].Fill( 0.0 );
-
-        // Set the affine tranform and initial paramters of Bsplines
-        bsplineTransformArrayLow[i]->SetBulkTransform(affineTransformArray[i]);
-        bsplineTransformArrayLow[i]->SetParameters( bsplineParametersArrayLow[i] );
-
-        // register Bspline pointers with the registration method
-        registration->SetInitialTransformParameters( bsplineTransformArrayLow[i]->GetParameters(), i);
-        registration->SetTransformArray(     bsplineTransformArrayLow[i] ,i    );
-        if(metricType == "entropy")
-        {
-          if(useBSplineRegularization == "on")
-          {
-            entropyMetric->SetNumberOfImages(N);
-            entropyMetric->SetBSplineTransformArray(     bsplineTransformArrayLow[i] ,i    );
-            entropyMetric->SetRegularization(true);
-            entropyMetric->SetRegularizationFactor(bsplineRegularizationFactor);
-          }
-        }
+      // Calculate the spacing for the Bspline grid
+      for(unsigned int r=0; r<Dimension; r++)
+      {
+        // There was a floor here, is it a bug? The floor causes a division by zero error
+        // if the gridSizeOnImage is larger than fixedImageSize
+        spacing[r] *= floor( static_cast<double>(fixedImageSize[r] - 1)  /
+            static_cast<double>(gridSizeOnImage[r] - 1) );
+        origin[r]  -=  spacing[r];
       }
+
+      // Set the spacing origin and bsplineRegion
+      bsplineTransformArrayLow[1]->SetGridSpacing( spacing );
+      bsplineTransformArrayLow[1]->SetGridOrigin( origin );
+      bsplineTransformArrayLow[1]->SetGridRegion( bsplineRegion );
+
+
+      unsigned int numberOfParametersLow =
+                      bsplineTransformArrayLow[1]->GetNumberOfParameters();
+
+      // Set the initial Bspline parameters to zero
+      bsplineParametersArrayLow[1].SetSize( numberOfParametersLow );
+      bsplineParametersArrayLow[1].Fill( 0.0 );
+
+      // Set the affine tranform and initial paramters of Bsplines
+      bsplineTransformArrayLow[1]->SetBulkTransform(affineTransformArray[1]);
+      bsplineTransformArrayLow[1]->SetParameters( bsplineParametersArrayLow[1] );
+      
+      // register Bspline pointers with the registration method
+      registration->SetInitialTransformParameters( bsplineTransformArrayLow[1]->GetParameters() );
+      registration->SetTransform(     bsplineTransformArrayLow[1] );
+        //if(metricType == "entropy")
+        //{
+        //  if(useBSplineRegularization == "on")
+        //  {
+        //    entropyMetric->SetBSplineTransformArray(     bsplineTransformArrayLow[i] ,i    );
+        //    entropyMetric->SetRegularization(true);
+        //    entropyMetric->SetRegularizationFactor(bsplineRegularizationFactor);
+        //  }
+      
+      
     }
     catch( itk::ExceptionObject & err )
     {
@@ -1249,7 +1195,7 @@ int main( int argc, char *argv[] )
 
     // Reset the optimizer scales
     // All parameters are set to be equal
-    optimizerScales.SetSize( bsplineTransformArrayLow[0]->GetNumberOfParameters()*N);
+    optimizerScales.SetSize( bsplineTransformArrayLow[1]->GetNumberOfParameters());
     optimizerScales.Fill( 1.0 );
     if(optimizerType == "FRPR")
     {
@@ -1282,12 +1228,9 @@ int main( int argc, char *argv[] )
     }
     if(metricType == "variance")
     {
-      varianceMetric->SetNumberOfSpatialSamples( numberOfSamples );
+      mutualInformationMetric->SetNumberOfSpatialSamples( numberOfSamples );
     }
-    else
-    {
-      entropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
-    }
+
 
     registration->SetNumberOfLevels( multiLevelBspline );
 
@@ -1327,153 +1270,130 @@ int main( int argc, char *argv[] )
         // Copy the last parameters of coarse grid Bspline
         BSplineParametersType parametersLow = registration->GetLastTransformParameters();
     
-        int numberOfParametersLow = bsplineTransformArrayLow[0]->GetNumberOfParameters();
-        BSplineParametersType currentParametersLow(numberOfParametersLow);
-
         // Update the last transform parameters
-        for(int i=0; i<N; i++)
-        {
-          //copy current parameters
-          for(int j=0; j<numberOfParametersLow; j++ )
-            currentParametersLow[j] = parametersLow[numberOfParametersLow*i + j];
+        bsplineTransformArrayLow[1]->SetParametersByValue( registration->GetLastTransformParameters() );
 
-          bsplineTransformArrayLow[i]->SetParametersByValue( currentParametersLow );
-        }
 
 
         // Increase the grid size by a factor of two
         bsplineInitialGridSize = 2*(bsplineInitialGridSize+SplineOrder)-SplineOrder;
-        registration->SetTransformParametersLength( static_cast<int>( pow( static_cast<double>(bsplineInitialGridSize+SplineOrder),
-                                                    static_cast<int>(Dimension))*Dimension*N ));
+
 
         // Set the parameters of the high resolution Bspline Transform
-        for( int i=0; i<N; i++)
-        {
+        bsplineTransformArrayHigh[1] = BSplineTransformType::New();
 
-          bsplineTransformArrayHigh[i] = BSplineTransformType::New();
-
-          RegionType bsplineRegion;
-          RegionType::SizeType   gridHighSizeOnImage;
-          RegionType::SizeType   gridBorderSize;
-          RegionType::SizeType   totalGridSize;
+        RegionType bsplineRegion;
+        RegionType::SizeType   gridHighSizeOnImage;
+        RegionType::SizeType   gridBorderSize;
+        RegionType::SizeType   totalGridSize;
       
-          gridBorderSize.Fill( SplineOrder );
-          gridHighSizeOnImage.Fill( bsplineInitialGridSize );
-          totalGridSize = gridHighSizeOnImage + gridBorderSize;
+        gridBorderSize.Fill( SplineOrder );
+        gridHighSizeOnImage.Fill( bsplineInitialGridSize );
+        totalGridSize = gridHighSizeOnImage + gridBorderSize;
 
-          bsplineRegion.SetSize( totalGridSize );
+        bsplineRegion.SetSize( totalGridSize );
 
-          SpacingType spacingHigh;
-          OriginType  originHigh;
-          ImageType::RegionType fixedRegion;
+        SpacingType spacingHigh;
+        OriginType  originHigh;
+        ImageType::RegionType fixedRegion;
 
-          if(imageType =="DICOM")
-          {
-            spacingHigh = dicomArrayReader[i]->GetOutput()->GetSpacing();
-            originHigh  = dicomArrayReader[i]->GetOutput()->GetOrigin();
-            fixedRegion = dicomArrayReader[i]->GetOutput()->GetBufferedRegion();
-          }
-          else
-          {
-            spacingHigh = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetSpacing();
-            originHigh  = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetOrigin();
-            fixedRegion = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetBufferedRegion();
-          }
-          ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
+        spacingHigh = gaussianFilterArray[1]->GetOutput()->GetSpacing();
+        originHigh  = gaussianFilterArray[1]->GetOutput()->GetOrigin();
+        fixedRegion = gaussianFilterArray[1]->GetOutput()->GetBufferedRegion();
+
+        ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
     
-          for(unsigned int rh=0; rh<Dimension; rh++)
-          {
-            //There was a floor here, is it a BUG?
-            spacingHigh[rh] *= floor( static_cast<double>(fixedImageSize[rh] - 1)  /
-                static_cast<double>(gridHighSizeOnImage[rh] - 1) );
-            originHigh[rh]  -=  spacingHigh[rh];
-          }
+        for(unsigned int rh=0; rh<Dimension; rh++)
+        {
+          //There was a floor here, is it a BUG?
+          spacingHigh[rh] *= floor( static_cast<double>(fixedImageSize[rh] - 1)  /
+              static_cast<double>(gridHighSizeOnImage[rh] - 1) );
+          originHigh[rh]  -=  spacingHigh[rh];
+        }
 
-          bsplineTransformArrayHigh[i]->SetGridSpacing( spacingHigh );
-          bsplineTransformArrayHigh[i]->SetGridOrigin( originHigh );
-          bsplineTransformArrayHigh[i]->SetGridRegion( bsplineRegion );
+        bsplineTransformArrayHigh[1]->SetGridSpacing( spacingHigh );
+        bsplineTransformArrayHigh[1]->SetGridOrigin( originHigh );
+        bsplineTransformArrayHigh[1]->SetGridRegion( bsplineRegion );
 
-          bsplineParametersArrayHigh[i].SetSize( bsplineTransformArrayHigh[i]->GetNumberOfParameters() );
-          bsplineParametersArrayHigh[i].Fill( 0.0 );
+        bsplineParametersArrayHigh[1].SetSize( bsplineTransformArrayHigh[1]->GetNumberOfParameters() );
+        bsplineParametersArrayHigh[1].Fill( 0.0 );
 
 
           //  Now we need to initialize the BSpline coefficients of the higher resolution
           //  transform. We take the coefficient image of the low resolution Bspline.
           // using this image we initiliaze the coefficients of the finer grid Bspline
           //
-          int counter = 0;
+        int counter = 0;
 
-          for ( unsigned int k = 0; k < Dimension; k++ )
+        for ( unsigned int k = 0; k < Dimension; k++ )
+        {
+          typedef BSplineTransformType::ImageType ParametersImageType;
+          typedef itk::ResampleImageFilter<ParametersImageType,ParametersImageType> ResamplerType;
+          ResamplerType::Pointer upsampler = ResamplerType::New();
+           
+          typedef itk::BSplineResampleImageFunction<ParametersImageType,double> FunctionType;
+          FunctionType::Pointer function = FunctionType::New();
+
+          typedef itk::IdentityTransform<double,Dimension> IdentityTransformType;
+          IdentityTransformType::Pointer identity = IdentityTransformType::New();
+
+          upsampler->SetInput( bsplineTransformArrayLow[1]->GetCoefficientImage()[k] );
+          upsampler->SetInterpolator( function );
+          upsampler->SetTransform( identity );
+          upsampler->SetSize( bsplineTransformArrayHigh[1]->GetGridRegion().GetSize() );
+          upsampler->SetOutputSpacing( bsplineTransformArrayHigh[1]->GetGridSpacing() );
+          upsampler->SetOutputOrigin( bsplineTransformArrayHigh[1]->GetGridOrigin() );
+
+          typedef itk::BSplineDecompositionImageFilter<ParametersImageType,ParametersImageType>
+              DecompositionType;
+          DecompositionType::Pointer decomposition = DecompositionType::New();
+
+          decomposition->SetSplineOrder( SplineOrder );
+          decomposition->SetInput( upsampler->GetOutput() );
+          decomposition->Update();
+
+          ParametersImageType::Pointer newCoefficients = decomposition->GetOutput();
+
+          // copy the coefficients into the parameter array
+          typedef itk::ImageRegionIterator<ParametersImageType> Iterator;
+          Iterator it( newCoefficients, bsplineTransformArrayHigh[1]->GetGridRegion() );
+          while ( !it.IsAtEnd() )
           {
-            typedef BSplineTransformType::ImageType ParametersImageType;
-            typedef itk::ResampleImageFilter<ParametersImageType,ParametersImageType> ResamplerType;
-            ResamplerType::Pointer upsampler = ResamplerType::New();
-
-            typedef itk::BSplineResampleImageFunction<ParametersImageType,double> FunctionType;
-            FunctionType::Pointer function = FunctionType::New();
-
-            typedef itk::IdentityTransform<double,Dimension> IdentityTransformType;
-            IdentityTransformType::Pointer identity = IdentityTransformType::New();
-
-            upsampler->SetInput( bsplineTransformArrayLow[i]->GetCoefficientImage()[k] );
-            upsampler->SetInterpolator( function );
-            upsampler->SetTransform( identity );
-            upsampler->SetSize( bsplineTransformArrayHigh[i]->GetGridRegion().GetSize() );
-            upsampler->SetOutputSpacing( bsplineTransformArrayHigh[i]->GetGridSpacing() );
-            upsampler->SetOutputOrigin( bsplineTransformArrayHigh[i]->GetGridOrigin() );
-
-            typedef itk::BSplineDecompositionImageFilter<ParametersImageType,ParametersImageType>
-                DecompositionType;
-            DecompositionType::Pointer decomposition = DecompositionType::New();
-
-            decomposition->SetSplineOrder( SplineOrder );
-            decomposition->SetInput( upsampler->GetOutput() );
-            decomposition->Update();
-
-            ParametersImageType::Pointer newCoefficients = decomposition->GetOutput();
-
-            // copy the coefficients into the parameter array
-            typedef itk::ImageRegionIterator<ParametersImageType> Iterator;
-            Iterator it( newCoefficients, bsplineTransformArrayHigh[i]->GetGridRegion() );
-            while ( !it.IsAtEnd() )
-            {
-              bsplineParametersArrayHigh[i][ counter++ ] = it.Get();
-              ++it;
-            }
-
+            bsplineParametersArrayHigh[1][ counter++ ] = it.Get();
+            ++it;
           }
 
-          bsplineTransformArrayHigh[i]->SetParameters( bsplineParametersArrayHigh[i] );
-
-          // Set parameters of the fine grid Bspline transform
-          // to coarse grid Bspline transform for the next level
-          bsplineTransformArrayLow[i]->SetGridSpacing( spacingHigh );
-          bsplineTransformArrayLow[i]->SetGridOrigin( originHigh );
-          bsplineTransformArrayLow[i]->SetGridRegion( bsplineRegion );
-
-
-          // Set initial parameters of the registration
-          registration->SetInitialTransformParameters( bsplineTransformArrayHigh[i]->GetParameters() , i );
-          registration->SetTransformArray( bsplineTransformArrayHigh[i], i );
-
-          // Set the regularization term
-          if(metricType == "entropy")
-          {
-            if(useBSplineRegularization == "on")
-            {
-              entropyMetric->SetNumberOfImages(N);
-              entropyMetric->SetBSplineTransformArray(     bsplineTransformArrayHigh[i] ,i    );
-              entropyMetric->SetRegularization(true);
-              entropyMetric->SetRegularizationFactor(bsplineRegularizationFactor);
-            }
-          }
         }
 
+        bsplineTransformArrayHigh[1]->SetParameters( bsplineParametersArrayHigh[1] );
 
+        // Set parameters of the fine grid Bspline transform
+        // to coarse grid Bspline transform for the next level
+        bsplineTransformArrayLow[1]->SetGridSpacing( spacingHigh );
+        bsplineTransformArrayLow[1]->SetGridOrigin( originHigh );
+        bsplineTransformArrayLow[1]->SetGridRegion( bsplineRegion );
+
+
+        // Set initial parameters of the registration
+        registration->SetInitialTransformParameters( bsplineTransformArrayHigh[1]->GetParameters() );
+        registration->SetTransform( bsplineTransformArrayHigh[1] );
+
+        // Set the regularization term
+        //if(metricType == "entropy")
+        //  {
+        //    if(useBSplineRegularization == "on")
+        //    {
+        //      entropyMetric->SetNumberOfImages(N);
+        //      entropyMetric->SetBSplineTransformArray(     bsplineTransformArrayHigh[i] ,i    );
+        //      entropyMetric->SetRegularization(true);
+        //      entropyMetric->SetRegularizationFactor(bsplineRegularizationFactor);
+        //    }
+        //  }
+        
         // Decrease the learning rate at each level
         // Reset the optimizer scales
         typedef OptimizerType::ScalesType       OptimizerScalesType;
-        OptimizerScalesType optimizerScales( bsplineTransformArrayHigh[0]->GetNumberOfParameters()*N );
+        OptimizerScalesType optimizerScales( bsplineTransformArrayHigh[1]->GetNumberOfParameters() );
         optimizerScales.Fill( 1.0 );
 
         if(optimizerType == "FRPR")
@@ -1481,7 +1401,6 @@ int main( int argc, char *argv[] )
           FRPRoptimizer->SetScales( optimizerScales );
           FRPRoptimizer->SetStepLength(optBsplineHighLearningRate);
           FRPRoptimizer->SetMaximumIteration( optBsplineHighNumberOfIterations );
-          //FRPRoptimizer->SetMaximumLineIteration( 1 );
           FRPRoptimizer->SetScales( optimizerScales );
         }
         else if(optimizerType == "lineSearch")
@@ -1489,7 +1408,6 @@ int main( int argc, char *argv[] )
           lineSearchOptimizer->SetScales( optimizerScales );
           lineSearchOptimizer->SetStepLength(optBsplineHighLearningRate);
           lineSearchOptimizer->SetMaximumIteration( optBsplineHighNumberOfIterations );
-          //lineSearchOptimizer->SetMaximumLineIteration( 1 );
           lineSearchOptimizer->SetScales( optimizerScales );
         }
         else
@@ -1508,12 +1426,9 @@ int main( int argc, char *argv[] )
         }
         if(metricType == "variance")
         {
-          varianceMetric->SetNumberOfSpatialSamples( numberOfSamples );
+          mutualInformationMetric->SetNumberOfSpatialSamples( numberOfSamples );
         }
-        else
-        {
-          entropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
-        }
+
 
         registration->SetNumberOfLevels( multiLevelBsplineHigh );
 
@@ -1579,9 +1494,6 @@ int main( int argc, char *argv[] )
                             ImageType, 
                             InternalImageType >    ResampleFilterType;
   ResampleFilterType::Pointer resample = ResampleFilterType::New();
-  resample->ReleaseDataFlagOn();
-  
-  ImageArrayReader imageArrayReader(N);
 
   ImageType::Pointer fixedImage;
   
@@ -1616,29 +1528,10 @@ int main( int argc, char *argv[] )
 
   
   WriterType::Pointer      writer =  WriterType::New();
-  writer->ReleaseDataFlagOn();
   CastFilterType::Pointer  caster = CastFilterType::New();
-  caster->ReleaseDataFlagOn();
 
   ImageCastFilterType::Pointer  imageCaster = ImageCastFilterType::New();
-  imageCaster->ReleaseDataFlagOn();
-  
-  // Get the correct number of paramaters
-  if(useBsplineHigh == "on")
-  {
-    numberOfParameters = bsplineTransformArrayHigh[0]->GetNumberOfParameters();
-  }
-  else if (useBspline == "on")
-  {
-    numberOfParameters = bsplineTransformArrayLow[0]->GetNumberOfParameters();
-  }
-  else
-  {
-    numberOfParameters = affineTransformArray[0]->GetNumberOfParameters();
-  }
-  ParametersType currentParameters(numberOfParameters);
-  ParametersType currentParameters2(numberOfParameters);
-
+  ImageCastFilterType::Pointer  imageCaster2 = ImageCastFilterType::New();
 
   // Update last Transform Parameters
   // and write the last tranform parameters to an output file
@@ -1647,51 +1540,45 @@ int main( int argc, char *argv[] )
   itksys::SystemTools::MakeDirectory( parametersFolder.c_str() );
 
   std::cout << "message: Writing result parameters " << std::endl;
-  for(int i=0; i<N; i++)
+
+  //Print the resulting parameters
+  string outputFname(fileNames[1]);
+  outputFname[outputFname.size()-4] = '.';
+  outputFname[outputFname.size()-3] = 't';
+  outputFname[outputFname.size()-2] = 'x';
+  outputFname[outputFname.size()-1] = 't';
+  outputFname = parametersFolder + outputFname;
+  ofstream outputFile(outputFname.c_str());
+
+  if(useBsplineHigh == "on")
   {
-    //copy current parameters
-    for(int j=0; j<numberOfParameters; j++ )
-    {
-      currentParameters[j] = finalParameters[numberOfParameters*i + j];
-    }
-    //Print the resulting parameters
-    string outputFname(fileNames[i]);
-    outputFname[outputFname.size()-4] = '.';
-    outputFname[outputFname.size()-3] = 't';
-    outputFname[outputFname.size()-2] = 'x';
-    outputFname[outputFname.size()-1] = 't';
-    outputFname = parametersFolder + outputFname;
-    ofstream outputFile(outputFname.c_str());
+    bsplineTransformArrayHigh[1]->SetBulkTransform( affineTransformArray[1] );
+    bsplineTransformArrayHigh[1]->SetParametersByValue( finalParameters );
 
-    if(useBsplineHigh == "on")
-    {
-      bsplineTransformArrayHigh[i]->SetBulkTransform( affineTransformArray[i] );
-      bsplineTransformArrayHigh[i]->SetParametersByValue( currentParameters );
+    outputFile << "Bspline: " << std::endl;
+    outputFile << "GridSize: " << bsplineTransformArrayHigh[1]->GetGridRegion().GetSize() << std::endl;
+    outputFile << "Parameters:" << std::endl << finalParameters << std::endl;
+  }
+  else if (useBspline == "on")
+  {
+    bsplineTransformArrayLow[1]->SetBulkTransform( affineTransformArray[1] );
+    bsplineTransformArrayLow[1]->SetParametersByValue( finalParameters );
 
-      outputFile << "Bspline: " << std::endl;
-      outputFile << "GridSize: " << bsplineTransformArrayHigh[i]->GetGridRegion().GetSize() << std::endl;
-      outputFile << "Parameters:" << std::endl << currentParameters << std::endl;
-    }
-    else if (useBspline == "on")
-    {
-      bsplineTransformArrayLow[i]->SetBulkTransform( affineTransformArray[i] );
-      bsplineTransformArrayLow[i]->SetParametersByValue( currentParameters );
-
-      outputFile << "Bspline: " << std::endl;
-      outputFile << "GridSize: " << bsplineTransformArrayLow[i]->GetGridRegion().GetSize() << std::endl;
-      outputFile << "Parameters:" << std::endl << currentParameters << std::endl;
-
-    }
-    else
-    {
-      affineTransformArray[i]->SetParametersByValue( currentParameters );
-    }
-
-    outputFile << "Affine: " << std::endl;
-    outputFile << affineTransformArray[i]->GetParameters() << std::endl;
-    outputFile.close();
+    outputFile << "Bspline: " << std::endl;
+    outputFile << "GridSize: " << bsplineTransformArrayLow[1]->GetGridRegion().GetSize() << std::endl;
+    outputFile << "Parameters:" << std::endl << finalParameters << std::endl;
 
   }
+  else
+  {
+    affineTransformArray[1]->SetParametersByValue( finalParameters );
+  }
+
+  outputFile << "Affine: " << std::endl;
+  outputFile << affineTransformArray[1]->GetParameters() << std::endl;
+  outputFile.close();
+
+  
 
 
   
@@ -1700,115 +1587,108 @@ int main( int argc, char *argv[] )
 
 
   // Loop over images and write output images
-  for(int i=0; i<N; i++)
+  //Set the correct tranform
+  if(useBsplineHigh == "on")
   {
-
-    //Set the correct tranform
-    if(useBsplineHigh == "on")
-    {
-      resample->SetTransform( bsplineTransformArrayHigh[i] );
-    }
-    else if (useBspline == "on")
-    {
-      resample->SetTransform( bsplineTransformArrayLow[i] );
-    }
-    else
-    {
-      resample->SetTransform( affineTransformArray[i] );
-    }
+    resample->SetTransform( bsplineTransformArrayHigh[1] );
+  }
+  else if (useBspline == "on")
+  {
+    resample->SetTransform( bsplineTransformArrayLow[1] );
+  }
+  else
+  {
+    resample->SetTransform( affineTransformArray[1] );
+  }
 
     
-    if( imageType == "DICOM")
-    {
-      resample->SetInput( dicomArrayReader[i]->GetOutput() );
-      fixedImage = dicomArrayReader[i]->GetOutput();
-    }
-    else
-    {
-      //Read the images again for memory efficiency
-      imageArrayReader[i] = ImageReaderType::New();
-      //imageArrayReader[i]->ReleaseDataFlagOn();
-      imageArrayReader[i]->SetFileName( inputFileNames[i].c_str() );
-      imageArrayReader[i]->Update();
-      resample->SetInput( imageArrayReader[i]->GetOutput() );
-      fixedImage = imageArrayReader[i]->GetOutput();
-    }
-    resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
-    resample->SetOutputOrigin(  fixedImage->GetOrigin() );
-    resample->SetOutputSpacing( fixedImage->GetSpacing() );
-    resample->SetOutputDirection( fixedImage->GetDirection());
-    resample->SetDefaultPixelValue( 0 );
+  if( imageType == "DICOM")
+  {
+    resample->SetInput( dicomArrayReader[1]->GetOutput() );
+    fixedImage = dicomArrayReader[1]->GetOutput();
+  }
+  else
+  {
+    resample->SetInput( imageArrayReader[1]->GetOutput() );
+    fixedImage = imageArrayReader[1]->GetOutput();
+  }
+  resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
+  resample->SetOutputOrigin(  fixedImage->GetOrigin() );
+  resample->SetOutputSpacing( fixedImage->GetSpacing() );
+  resample->SetOutputDirection( fixedImage->GetDirection());
+  resample->SetDefaultPixelValue( 0 );
 
-    std::cout << "message: Writing " << outputFileNames[i] << std::endl;
-    if( imageType == "DICOM")
+  std::cout << "message: Writing " << outputFileNames[1] << std::endl;
+  if( imageType == "DICOM")
+  {
+    itksys::SystemTools::MakeDirectory( outputFileNames[1].c_str() );
+    caster->SetInput(resample->GetOutput());
+    seriesWriter->SetInput( caster->GetOutput() );
+    seriesWriter->SetImageIO( imageIOTypeArray[1] );
+    namesGeneratorArray[1]->SetOutputDirectory( outputFileNames[1].c_str() );
+    seriesWriter->SetFileNames( namesGeneratorArray[1]->GetOutputFileNames() );
+    seriesWriter->SetMetaDataDictionaryArray( dicomArrayReader[1]->GetMetaDataDictionaryArray() );
+      
+    try
     {
-      itksys::SystemTools::MakeDirectory( outputFileNames[i].c_str() );
+      seriesWriter->Update();
+    }
+    catch( itk::ExceptionObject & excp )
+    {
+      std::cerr << "Exception thrown while writing the series " << std::endl;
+      std::cerr << excp << std::endl;
+      return EXIT_FAILURE;
+    }
+  }
+  else
+  {
+    itksys::SystemTools::MakeDirectory( outputFolder.c_str() );
+    string registeredImagesFolder("RegisteredImages/");
+    registeredImagesFolder = outputFolder + registeredImagesFolder;
+    itksys::SystemTools::MakeDirectory( registeredImagesFolder.c_str() );
+    outputFileNames[1] = registeredImagesFolder + fileNames[1];
+      
+    caster->SetInput( resample->GetOutput() );
+    writer->SetImageIO(imageArrayReader[1]->GetImageIO());
+    writer->SetFileName( outputFileNames[1].c_str() );
+    writer->SetInput( caster->GetOutput()   );
+    if(writeOutputImages == "on")
+    {
+      writer->Update();
+    }
+
+    //Extract slices for 3D Images
+    if(Dimension == 3)
+    {
+      //Write the registered images
+      string slices("RegisteredSlices/");
+      slices = outputFolder + slices;
+      string outputFilename(fileNames[1]);
+      outputFilename[outputFilename.size()-4] = '.';
+      outputFilename[outputFilename.size()-3] = 'p';
+      outputFilename[outputFilename.size()-2] = 'n';
+      outputFilename[outputFilename.size()-1] = 'g';
+      outputFilename = slices + outputFilename;
+      itksys::SystemTools::MakeDirectory( slices.c_str() );
+      
+      OutputImageType::SizeType size = fixedImage->GetLargestPossibleRegion().GetSize();
+      OutputImageType::IndexType start = fixedImage->GetLargestPossibleRegion().GetIndex();
+      start[2] = size[2]/2;
+      size[2] = 0;
+
+      OutputImageType::RegionType extractRegion;
+      extractRegion.SetSize(  size  );
+      extractRegion.SetIndex( start );
+      sliceExtractFilter->SetExtractionRegion( extractRegion );
+
       caster->SetInput(resample->GetOutput());
-      seriesWriter->SetInput( caster->GetOutput() );
-      seriesWriter->SetImageIO( imageIOTypeArray[i] );
-      namesGeneratorArray[i]->SetOutputDirectory( outputFileNames[i].c_str() );
-      seriesWriter->SetFileNames( namesGeneratorArray[i]->GetOutputFileNames() );
-      seriesWriter->SetMetaDataDictionaryArray( dicomArrayReader[i]->GetMetaDataDictionaryArray() );
-      
-      try
-      {
-        seriesWriter->Update();
-      }
-      catch( itk::ExceptionObject & excp )
-      {
-        std::cerr << "Exception thrown while writing the series " << std::endl;
-        std::cerr << excp << std::endl;
-        return EXIT_FAILURE;
-      }
-    }
-    else
-    {
-      itksys::SystemTools::MakeDirectory( outputFolder.c_str() );
-      string registeredImagesFolder("RegisteredImages/");
-      registeredImagesFolder = outputFolder + registeredImagesFolder;
-      itksys::SystemTools::MakeDirectory( registeredImagesFolder.c_str() );
-      outputFileNames[i] = registeredImagesFolder + fileNames[i];
-      
-      caster->SetInput( resample->GetOutput() );
-      writer->SetImageIO(imageArrayReader[i]->GetImageIO());
-      writer->SetFileName( outputFileNames[i].c_str() );
-      writer->SetInput( caster->GetOutput()   );
-      if(writeOutputImages == "on")
-      {
-        writer->Update();
-      }
+      sliceExtractFilter->SetInput( caster->GetOutput() );
+      sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
+      sliceWriter->SetFileName( outputFilename.c_str() );
+      sliceWriter->Update();
 
-      //Extract slices for 3D Images
-      if(Dimension == 3)
+      for(int i=0; i<N; i++)
       {
-        //Write the registered images
-        string slices("RegisteredSlices/");
-        slices = outputFolder + slices;
-        string outputFilename(fileNames[i]);
-        outputFilename[outputFilename.size()-4] = '.';
-        outputFilename[outputFilename.size()-3] = 'p';
-        outputFilename[outputFilename.size()-2] = 'n';
-        outputFilename[outputFilename.size()-1] = 'g';
-        outputFilename = slices + outputFilename;
-        itksys::SystemTools::MakeDirectory( slices.c_str() );
-        
-        OutputImageType::SizeType size = fixedImage->GetLargestPossibleRegion().GetSize();
-        OutputImageType::IndexType start = fixedImage->GetLargestPossibleRegion().GetIndex();
-        start[2] = size[2]/2;
-        size[2] = 0;
-
-        
-        OutputImageType::RegionType extractRegion;
-        extractRegion.SetSize(  size  );
-        extractRegion.SetIndex( start );
-        sliceExtractFilter->SetExtractionRegion( extractRegion );
-
-        caster->SetInput(resample->GetOutput());
-        sliceExtractFilter->SetInput( caster->GetOutput() );
-        sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
-        sliceWriter->SetFileName( outputFilename.c_str() );
-        sliceWriter->Update();
-
         //Write the original images
         string slices2("OriginalSlices/");
         slices2 = outputFolder + slices2;
@@ -1824,73 +1704,68 @@ int main( int argc, char *argv[] )
         sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
         sliceWriter->SetFileName( outputFilename2.c_str() );
         sliceWriter->Update();
-
-
-        // Write the deformation fields for Bsplines
-        string defName("DeformationFields3D/");
-        defName = outputFolder + defName;
-        itksys::SystemTools::MakeDirectory( defName.c_str() );
-
-
-        //Create the toy image
-        if(i==0)
-        {
-          deformationImage->SetRegions( imageArrayReader[i]->GetOutput()->GetLargestPossibleRegion() );
-          deformationImage->CopyInformation( imageArrayReader[i]->GetOutput() );
-          deformationImage->Allocate();
-          deformationImage->FillBuffer( 0 );
-
-
-          // Create perpendicular planes in the deformationImage
-          typedef itk::ImageRegionIteratorWithIndex< ImageType > IteratorWithIndexType;
-          IteratorWithIndexType defIt( deformationImage, deformationImage->GetRequestedRegion() );
-          ImageType::IndexType index;
-          for ( defIt.GoToBegin(); !defIt.IsAtEnd(); ++defIt)
-          {
-            index = defIt.GetIndex();
-            if(index[0]%8 == 0 || index[1]%8 ==0 || index[2]%8 ==4)
-            {
-              defIt.Set( 255 );
-            }
-          }
-        }
-
-        resample->SetInput( deformationImage );
-
-        // Generate the outputfilename and write the output
-        string defFile(fileNames[i]);
-        defFile = defName + defFile;
-        writer->SetFileName( defFile.c_str() );
-        if(writeDeformationFields =="on")
-        {
-          writer->Update();
-        }
-
-        // Extract the central slices of the the deformation field
-        string defName2D("DeformationFields2D/");
-        defName2D = outputFolder + defName2D;
-        itksys::SystemTools::MakeDirectory( defName2D.c_str() );
-        string defFile2D(fileNames[i]);
-        defFile2D[defFile2D.size()-4] = '.';
-        defFile2D[defFile2D.size()-3] = 'p';
-        defFile2D[defFile2D.size()-2] = 'n';
-        defFile2D[defFile2D.size()-1] = 'g';
-        defFile2D = defName2D + defFile2D;
-        sliceExtractFilter->SetInput( caster->GetOutput() );
-        sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
-        sliceWriter->SetFileName( defFile2D.c_str() );
-        sliceWriter->Update();
-      
       }
+
+
+      // Write the deformation fields for Bsplines
+      string defName("DeformationFields3D/");
+      defName = outputFolder + defName;
+      itksys::SystemTools::MakeDirectory( defName.c_str() );
+        
+      //Create the toy image
+
+      deformationImage->SetRegions( imageArrayReader[1]->GetOutput()->GetLargestPossibleRegion() );
+      deformationImage->CopyInformation( imageArrayReader[1]->GetOutput() );
+      deformationImage->Allocate();
+      deformationImage->FillBuffer( 0 );
+          
+      // Create perpendicular planes in the deformationImage
+      typedef itk::ImageRegionIteratorWithIndex< ImageType > IteratorWithIndexType;
+      IteratorWithIndexType defIt( deformationImage, deformationImage->GetRequestedRegion() );
+      ImageType::IndexType index;
+      for ( defIt.GoToBegin(); !defIt.IsAtEnd(); ++defIt)
+      {
+        index = defIt.GetIndex();
+        if(index[0]%8 == 0 || index[1]%8 ==0 || index[2]%8 ==4)
+        {
+          defIt.Set( 255 );
+        }
+      }
+
+
+      resample->SetInput( deformationImage );
+
+      // Generate the outputfilename and write the output
+      string defFile(fileNames[1]);
+      defFile = defName + defFile;
+      writer->SetFileName( defFile.c_str() );
+      if(writeDeformationFields =="on")
+      {
+        writer->Update();
+      }
+
+      // Extract the central slices of the the deformation field
+      string defName2D("DeformationFields2D/");
+      defName2D = outputFolder + defName2D;
+      itksys::SystemTools::MakeDirectory( defName2D.c_str() );
+      string defFile2D(fileNames[1]);
+      defFile2D[defFile2D.size()-4] = '.';
+      defFile2D[defFile2D.size()-3] = 'p';
+      defFile2D[defFile2D.size()-2] = 'n';
+      defFile2D[defFile2D.size()-1] = 'g';
+      defFile2D = defName2D + defFile2D;
+      sliceExtractFilter->SetInput( caster->GetOutput() );
+      sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
+      sliceWriter->SetFileName( defFile2D.c_str() );
+      sliceWriter->Update();
+      
     }
   }
+  
 
   std::cout << "message: Computing mean images" << std::endl;
 
   // Compute Mean Images 
-  ResampleFilterType::Pointer resample2 = ResampleFilterType::New();
-  resample2->ReleaseDataFlagOn();
-
   typedef itk::AddImageFilter < InternalImageType, InternalImageType,
                                            InternalImageType > AddFilterType;
 
@@ -1903,26 +1778,26 @@ int main( int argc, char *argv[] )
   //Set the first image
   if(useBsplineHigh == "on")
   {
-    resample->SetTransform( bsplineTransformArrayHigh[0] );
+    resample->SetTransform( bsplineTransformArrayHigh[1] );
   }
   else if (useBspline == "on")
   {
-    resample->SetTransform( bsplineTransformArrayLow[0] );
+    resample->SetTransform( bsplineTransformArrayLow[1] );
   }
   else
   {
-    resample->SetTransform( affineTransformArray[0] );
+    resample->SetTransform( affineTransformArray[1] );
   }
 
   if( imageType == "DICOM")
   {
-    resample->SetInput( dicomArrayReader[0]->GetOutput() );
-    fixedImage = dicomArrayReader[0]->GetOutput();
+    resample->SetInput( dicomArrayReader[1]->GetOutput() );
+    fixedImage = dicomArrayReader[1]->GetOutput();
   }
   else
   {
-    resample->SetInput( imageArrayReader[0]->GetOutput() );
-    fixedImage = imageArrayReader[0]->GetOutput();
+    resample->SetInput( imageArrayReader[1]->GetOutput() );
+    fixedImage = imageArrayReader[1]->GetOutput();
   }
   
   resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
@@ -1930,110 +1805,35 @@ int main( int argc, char *argv[] )
   resample->SetOutputSpacing( fixedImage->GetSpacing() );
   resample->SetOutputDirection( fixedImage->GetDirection());
   resample->SetDefaultPixelValue( 0 );
-  addition->SetInput1( resample->GetOutput() );
+  addition->SetInput2( resample->GetOutput() );
 
+  //Set the second image
   if( imageType == "DICOM")
   {
     imageCaster->SetInput(dicomArrayReader[0]->GetOutput());
-    addition2->SetInput1(imageCaster->GetOutput() );
   }
   else
   {
     imageCaster->SetInput(imageArrayReader[0]->GetOutput());
-    addition2->SetInput1(imageCaster->GetOutput() );
   }
-  
-  //Set the second image
-  if(useBsplineHigh == "on")
-  {
-    resample2->SetTransform( bsplineTransformArrayHigh[1] );
-  }
-  else if (useBspline == "on")
-  {
-    resample2->SetTransform( bsplineTransformArrayLow[1] );
-  }
-  else
-  {
-    resample2->SetTransform( affineTransformArray[1] );
-  }
+
+  addition->SetInput1( imageCaster->GetOutput() );
+  addition2->SetInput1(imageCaster->GetOutput() );
 
   if( imageType == "DICOM")
   {
-    resample2->SetInput( dicomArrayReader[1]->GetOutput() );
-    fixedImage = dicomArrayReader[1]->GetOutput();
+    imageCaster2->SetInput(dicomArrayReader[1]->GetOutput());
   }
   else
   {
-    resample2->SetInput( imageArrayReader[1]->GetOutput() );
-    fixedImage = imageArrayReader[1]->GetOutput();
+    imageCaster2->SetInput(imageArrayReader[1]->GetOutput());
   }
-  resample2->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
-  resample2->SetOutputOrigin(  fixedImage->GetOrigin() );
-  resample2->SetOutputSpacing( fixedImage->GetSpacing() );
-  resample2->SetOutputDirection( fixedImage->GetDirection());
-  resample2->SetDefaultPixelValue( 1 );
-  addition->SetInput2( resample2->GetOutput() );
-  if( imageType == "DICOM")
-  {
-    imageCaster->SetInput(dicomArrayReader[1]->GetOutput());
-    addition2->SetInput2(imageCaster->GetOutput() );
-  }
-  else
-  {
-    imageCaster->SetInput(imageArrayReader[1]->GetOutput());
-    addition2->SetInput2(imageCaster->GetOutput() );
-  }
-  addition->Update();
-  addition2->Update();
+  addition2->SetInput2(imageCaster2->GetOutput() );
 
-  //Add other images
-  resample->SetDefaultPixelValue( 0 );
-  for(int i=2; i<N; i++)
-  {
+  //addition->Update();
+  //addition2->Update();
 
-    if(useBsplineHigh == "on")
-    {
-      resample->SetTransform( bsplineTransformArrayHigh[i] );
-    }
-    else if (useBspline == "on")
-    {
-      resample->SetTransform( bsplineTransformArrayLow[i] );
-    }
-    else
-    {
-      resample->SetTransform( affineTransformArray[i] );
-    }
 
-    if( imageType == "DICOM")
-    {
-      resample->SetInput( dicomArrayReader[i]->GetOutput() );
-      fixedImage = dicomArrayReader[i]->GetOutput();
-    }
-    else
-    {
-      resample->SetInput( imageArrayReader[i]->GetOutput() );
-      fixedImage = imageArrayReader[i]->GetOutput();
-    }
-
-    addition->SetInput1( addition->GetOutput() );
-    addition->SetInput2( resample->GetOutput() );
-
-    addition->Update();
-
-    addition2->SetInput1( addition2->GetOutput() );
-    if( imageType == "DICOM")
-    {
-      imageCaster->SetInput(dicomArrayReader[i]->GetOutput());
-      addition2->SetInput2(imageCaster->GetOutput() );
-    }
-    else
-    {
-      imageCaster->SetInput(imageArrayReader[i]->GetOutput());
-      addition2->SetInput2(imageCaster->GetOutput() );
-    }
-    addition2->Update();
-
-  }
 
 
   //Write the mean image
