@@ -344,6 +344,25 @@ MutualInformationImageToImageMetricBsplineRegularization<TFixedImage,TMovingImag
   // collect sample set B
   // this->SampleFixedImageDomain( m_SampleB );
 
+  // Update intensity values
+  MovingImagePointType mappedPoint;
+  for(int i=0; i< m_SampleA.size(); i ++ )
+  {
+    mappedPoint = this->m_Transform->TransformPoint(m_SampleA[i].FixedImagePointValue);
+    if(this->m_Interpolator->IsInsideBuffer (mappedPoint) )
+    {
+      m_SampleA[i].MovingImageValue = this->m_Interpolator->Evaluate(mappedPoint);
+    }
+  }
+  for(int i=0; i< m_SampleB.size(); i ++ )
+  {
+    mappedPoint = this->m_Transform->TransformPoint(m_SampleB[i].FixedImagePointValue);
+    if(this->m_Interpolator->IsInsideBuffer (mappedPoint) )
+    {
+      m_SampleB[i].MovingImageValue = this->m_Interpolator->Evaluate(mappedPoint);
+    }
+  }
+
   // calculate the mutual information
   double dLogSumFixed = 0.0;
   double dLogSumMoving    = 0.0;
