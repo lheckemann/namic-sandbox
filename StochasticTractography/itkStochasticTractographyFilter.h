@@ -7,9 +7,9 @@
 #include "vnl/vnl_matrix.h"
 #include "itkArray.h"
 #include "itkVectorContainer.h"
-#include "itkPolyLineParametricPath.h"
 #include "vnl/algo/vnl_qr.h"
 #include "itkVariableLengthVector.h"
+#include "itkSlowPolyLineParametricPath.h"
 #include <vector>
 
 namespace itk{
@@ -115,7 +115,7 @@ protected:
   typedef Image< Array< double >, 3 > ProbabilityDistributionImageType;
   
   /** Path Types **/
-  typedef PolyLineParametricPath< 3 > PathType;
+  typedef SlowPolyLineParametricPath< 3 > PathType;
   
   /** Instantiate a Probability Distribution Image for the Cache **/
   typename ProbabilityDistributionImageType::Pointer m_LikelihoodCache;
