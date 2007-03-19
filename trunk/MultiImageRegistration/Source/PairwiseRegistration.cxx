@@ -1191,7 +1191,7 @@ int main( int argc, char *argv[] )
 
 
         // Increase the grid size by a factor of two
-        bsplineInitialGridSize = 2*(bsplineInitialGridSize+SplineOrder)-SplineOrder;
+        bsplineInitialGridSize = 2*bsplineInitialGridSize;
 
 
         // Set the parameters of the high resolution Bspline Transform
@@ -1280,6 +1280,7 @@ int main( int argc, char *argv[] )
 
         }
 
+        bsplineTransformArrayHigh[1]->SetBulkTransform( affineTransformArray[1] );
         bsplineTransformArrayHigh[1]->SetParameters( bsplineParametersArrayHigh[1] );
 
         // Set parameters of the fine grid Bspline transform
