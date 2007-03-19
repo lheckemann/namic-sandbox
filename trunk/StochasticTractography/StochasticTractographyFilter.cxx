@@ -184,7 +184,8 @@ int main(int argc, char* argv[]){
   
   if(SamplingDirections<TOCType>("SD.txt", directionsPtr));
   else return EXIT_FAILURE;
-  
+  */
+  /*
   //write out the directions
   std::ofstream outfile("crapola.txt");
   
