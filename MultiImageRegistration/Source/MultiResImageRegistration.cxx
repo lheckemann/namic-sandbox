@@ -138,7 +138,7 @@ public:
       }
 
       // only print results every ten iterations
-      if(m_CumulativeIterationIndex % 25 != 0)
+      if(m_CumulativeIterationIndex % 25 != 0 )
       {
         m_CumulativeIterationIndex++;
         return;
@@ -166,8 +166,8 @@ public:
         std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(3) << lineSearchOptimizerPointer->GetCurrentIteration() << "   ";
         std::cout << std::setw(6) << lineSearchOptimizerPointer->GetValue() << "   " << std::endl;
-        if(lineSearchOptimizerPointer->GetCurrentIteration() % 50 == 0)
-        {
+        if(lineSearchOptimizerPointer->GetCurrentIteration() % 50 == 0 )
+        { 
           //std::cout << std::setw(6) << "Position: " << lineSearchOptimizerPointer->GetCurrentPosition() << std::endl;
         }
       }
@@ -1271,9 +1271,12 @@ int main( int argc, char *argv[] )
 
 
         // Increase the grid size by a factor of two
-        bsplineInitialGridSize = 2*(bsplineInitialGridSize+SplineOrder)-SplineOrder;
-        registration->SetTransformParametersLength( static_cast<int>( pow( static_cast<double>(bsplineInitialGridSize+SplineOrder),
-                                                    static_cast<int>(Dimension))*Dimension*N ));
+        bsplineInitialGridSize = 2*bsplineInitialGridSize;
+        
+        registration->SetTransformParametersLength( static_cast<int>(
+            pow( static_cast<double>(bsplineInitialGridSize+SplineOrder),
+                                                    static_cast<int>(Dimension))
+                                                      *Dimension*N ));
 
         // Set the parameters of the high resolution Bspline Transform
         for( int i=0; i<N; i++)
@@ -1370,8 +1373,12 @@ int main( int argc, char *argv[] )
               ++it;
             }
 
+
+
+
           }
 
+          bsplineTransformArrayHigh[i]->SetBulkTransform( affineTransformArray[i] );
           bsplineTransformArrayHigh[i]->SetParameters( bsplineParametersArrayHigh[i] );
 
           // Set parameters of the fine grid Bspline transform
@@ -1469,7 +1476,7 @@ int main( int argc, char *argv[] )
 
   unsigned int numberOfIterations;
   double bestValue;
-  if(optimizerType == "lineSearch")
+if(optimizerType == "lineSearch")
   {
     numberOfIterations = lineSearchOptimizer->GetCurrentIteration();
     bestValue = lineSearchOptimizer->GetValue();
