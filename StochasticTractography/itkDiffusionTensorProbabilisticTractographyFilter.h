@@ -1,4 +1,0 @@
-#ifndef __itkDiffusionTensorProbabilisticTractographyFilter_h__
-#define __itkDiffusionTensorProbabilisticTractographyFilter_h__
-namespace itk{
-
