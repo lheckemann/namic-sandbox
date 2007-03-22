@@ -179,7 +179,7 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
       {
         // Connect bspline coeff images to gradient filters
         m_BSplineGradientArray[i][j] = GradientFilterType::New();
-        m_BSplineGradientArray[i][j]->SetInput(m_BSplineTransformArray[i]->GetCoefficientImage()[j]);
+        m_BSplineGradientArray[i][j]->SetInput(m_BSplineTransformArray[0]->GetCoefficientImage()[j]);
         m_BSplineGradientArray[i][j]->Update();
 
         m_BSplineHessianArray[i][j].resize(MovingImageType::ImageDimension);
@@ -190,10 +190,10 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
           // allocate the gradient images which hold k'th image of the graadient of the
           // Bspline coeff image
           m_BSplineGradientImagesArray[i][j][k] = BSplineParametersImageType::New();
-          m_BSplineGradientImagesArray[i][j][k]->SetRegions( m_BSplineTransformArray[i]->GetGridRegion() );
+          m_BSplineGradientImagesArray[i][j][k]->SetRegions( m_BSplineTransformArray[0]->GetGridRegion() );
           m_BSplineGradientImagesArray[i][j][k]->Allocate();
-          m_BSplineGradientImagesArray[i][j][k]->SetSpacing( m_BSplineTransformArray[i]->GetGridSpacing() );
-          m_BSplineGradientImagesArray[i][j][k]->SetOrigin( m_BSplineTransformArray[i]->GetGridOrigin() );
+          m_BSplineGradientImagesArray[i][j][k]->SetSpacing( m_BSplineTransformArray[0]->GetGridSpacing() );
+          m_BSplineGradientImagesArray[i][j][k]->SetOrigin( m_BSplineTransformArray[0]->GetGridOrigin() );
           m_BSplineGradientImagesArray[i][j][k]->FillBuffer( 0.0 );
 
           // connect the bspline gradient images
@@ -221,10 +221,10 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
         for(int k=0; k<m_NumberOfThreads; k++)
         {
           m_BSplineGradientUpdateImagesArray[i][j][k] = BSplineParametersImageType::New();
-          m_BSplineGradientUpdateImagesArray[i][j][k]->SetRegions( m_BSplineTransformArray[i]->GetGridRegion() );
+          m_BSplineGradientUpdateImagesArray[i][j][k]->SetRegions( m_BSplineTransformArray[0]->GetGridRegion() );
           m_BSplineGradientUpdateImagesArray[i][j][k]->Allocate();
-          m_BSplineGradientUpdateImagesArray[i][j][k]->SetSpacing( m_BSplineTransformArray[i]->GetGridSpacing() );
-          m_BSplineGradientUpdateImagesArray[i][j][k]->SetOrigin( m_BSplineTransformArray[i]->GetGridOrigin() );
+          m_BSplineGradientUpdateImagesArray[i][j][k]->SetSpacing( m_BSplineTransformArray[0]->GetGridSpacing() );
+          m_BSplineGradientUpdateImagesArray[i][j][k]->SetOrigin( m_BSplineTransformArray[0]->GetGridOrigin() );
           m_BSplineGradientUpdateImagesArray[i][j][k]->FillBuffer( 0.0 );
 
         // connect the bspline gradient images
@@ -512,6 +512,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
     for (int i=threadId; i<this->m_NumberOfImages; i+= m_NumberOfThreads)
     {
       const RegionType region = m_BSplineTransformArray[i]->GetGridRegion();
+
       for(int j=0; j<MovingImageType::ImageDimension; j++)
       {
         
