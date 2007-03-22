@@ -570,6 +570,11 @@ int main( int argc, char *argv[] )
     mutualInformationMetric->SetFixedImageStandardDeviation(  parzenWindowStandardDeviation );
     mutualInformationMetric->SetMovingImageStandardDeviation( parzenWindowStandardDeviation );
   }
+  else
+  {
+    std::cout << "Metric was not set correctly, try 'MI' " << std::cout;
+    return 1;
+  }
 
   
   //typedefs for translation transform array
