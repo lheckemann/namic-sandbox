@@ -9,7 +9,7 @@
 #include <iostream>
 #include <vector>
 #include "itkImageRegionConstIterator.h"
-//#include "StochasticTractographyFilterCLP.h"
+#include "StochasticTractographyFilterCLP.h"
 
 template< class TTOContainerType >
 bool SamplingDirections(const char* fn, typename TTOContainerType::Pointer directions){
@@ -78,7 +78,7 @@ public:
 }
 
 int main(int argc, char* argv[]){
-//  PARSE_ARGS;
+  PARSE_ARGS;
   //define the input/output types
   typedef itk::VectorImage< unsigned short int, 3 > DWIVectorImageType;
   typedef itk::Image< unsigned short int, 3 > MaskImageType;
@@ -123,6 +123,7 @@ int main(int argc, char* argv[]){
     std::cerr<< "LabelNumber NumberOfTracts MaxTractLength MaxLikelihoodCacheSize\n";
     return EXIT_FAILURE;
   }
+  /*
   char* dwifilename = argv[1];
   char* roifilename = argv[2];
   char* cfilename = argv[3];
@@ -130,7 +131,7 @@ int main(int argc, char* argv[]){
   unsigned int totaltracts = atoi(argv[5]);
   unsigned int maxtractlength = atoi(argv[6]);
   unsigned int maxlikelihoodcachesize = atoi(argv[7]);
-  
+  */
   //read in the DWI image
   DWIVectorImageReaderType::Pointer dwireaderPtr = DWIVectorImageReaderType::New();
   dwireaderPtr->SetFileName(dwifilename);
