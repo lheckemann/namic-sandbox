@@ -14,14 +14,14 @@
 
 namespace itk{
 
-template< class TInputDWIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 class ITK_EXPORT StochasticTractographyFilter :
   public ImageToImageFilter< TInputDWIImage,
                     TOutputConnectivityImage >{
 public:
   typedef StochasticTractographyFilter Self;
   typedef ImageToImageFilter< TInputDWIImage,
-                      TOutputConnectivityImage > Superclass;
+    TOutputConnectivityImage > Superclass;
   typedef SmartPointer< Self > Pointer;
   typedef SmartPointer< const Self > ConstPointer;
   
@@ -34,6 +34,9 @@ public:
   
   /** Types for the Connectivity Output Image**/
   typedef TOutputConnectivityImage OutputConnectivityImageType;
+  
+  /** Types for the Mask Image **/
+  typedef TInputMaskImage InputMaskImageType;
   
   /** Types for the Image-wide Magnetic Field Gradient Directions **/
   typedef VectorContainer< unsigned int, vnl_vector_fixed< double, 3 > >
@@ -64,13 +67,22 @@ public:
   
   /** Set/Get of gradient directions **/
   itkSetConstObjectMacro( Gradients, GradientDirectionContainerType );
-  itkGetConstObjectMacro( Gradients, GradientDirectionContainerType );;
+  itkGetConstObjectMacro( Gradients, GradientDirectionContainerType );
+  
+  /** Set/Get the Mask Input image **/
+  // If the user does not set one, the filter will
+  // create a default one that specifies the
+  // whole image as valid
+  // 0 indicates an invalid region
+  // values > 0 indicate valid regions
+  itkSetInputMacro(MaskImage, InputMaskImageType, 1);
+  itkGetInputMacro(MaskImage, InputMaskImageType, 1);
   
   //overide the built in set input function
   //we need to create a new cache everytime we change the input image
   //but we need to preserve it when the input image is the same
-  void SetInput( typename TInputDWIImage::Pointer dwiimage ){
-    Superclass::SetInput( dwiimage );
+  void SetInput( typename InputDWIImageType::Pointer dwiimagePtr ){
+    Superclass::SetInput( dwiimagePtr );
     //update the likelihood cache
     this->m_LikelihoodCache = ProbabilityDistributionImageType::New();
     this->m_LikelihoodCache->CopyInformation( this->GetInput() );
@@ -79,7 +91,7 @@ public:
     this->m_LikelihoodCache->Allocate();
     this->m_CurrentLikelihoodCacheSize = 0;
   }
-    
+  
   /** Set/Get the seed index **/
   itkSetMacro( SeedIndex, typename InputDWIImageType::IndexType );
   itkGetMacro( SeedIndex, typename InputDWIImageType::IndexType );
@@ -99,6 +111,7 @@ public:
   /** Get the current Likelihood Cache Size, i.e. the total unique cached pixels **/
   itkGetMacro( CurrentLikelihoodCacheSize, unsigned int );
   void GenerateData();
+  
 protected:
   /** Convenience Types used only inside the filter **/
     
@@ -185,8 +198,9 @@ protected:
     TractOrientationContainerType::Element& choosendirection );
   
   void StochasticTractGeneration( typename InputDWIImageType::ConstPointer dwiimagePtr,
+    typename InputMaskImageType::ConstPointer maskimagePtr,
     typename InputDWIImageType::IndexType seedindex,
-    PathType::Pointer tractPtr);
+    PathType::Pointer tractPtr );
                     
   unsigned int m_MaxTractLength;
   unsigned int m_TotalTracts;
