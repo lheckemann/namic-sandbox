@@ -5,6 +5,7 @@
 #include "itkImageFileWriter.h"
 #include "itkMetaDataDictionary.h"
 #include "itkAddImageFilter.h"
+#include "itkUnaryFunctorImageFilter.h"
 #include <iostream>
 #include <vector>
 #include "itkImageRegionConstIterator.h"
@@ -45,10 +46,42 @@ bool SamplingDirections(const char* fn, typename TTOContainerType::Pointer direc
   return true;
 }
 
+
+namespace Functor {  
+   
+template< class TInput, class TOutput>
+class ZeroDWITest
+{
+public:
+  ZeroDWITest() {};
+  ~ZeroDWITest() {};
+  bool operator!=( const ZeroDWITest & ) const
+  {
+    return false;
+  }
+  bool operator==( const ZeroDWITest & other ) const
+  {
+    return !(*this != other);
+  }
+  inline TOutput operator()( const TInput & A )
+  {
+    for(int i=0;i<A.GetSize();i++){
+      if(A[i]<100){
+        std::cout<<"Invalid Voxel\n";
+        return 0;
+      }
+    }
+    return 10;
+  }
+}; 
+ 
+}
+
 int main(int argc, char* argv[]){
 //  PARSE_ARGS;
   //define the input/output types
   typedef itk::VectorImage< unsigned short int, 3 > DWIVectorImageType;
+  typedef itk::Image< unsigned short int, 3 > MaskImageType;
   typedef itk::Image< short int, 3 > ROIImageType;
   typedef itk::Image< unsigned int, 3 > CImageType;
   
@@ -59,19 +92,27 @@ int main(int argc, char* argv[]){
   typedef itk::ImageFileReader< DWIVectorImageType > DWIVectorImageReaderType;
   typedef itk::ImageFileReader< ROIImageType > ROIImageReaderType;
   typedef itk::ImageFileWriter< CImageType > CImageWriterType;
+  typedef itk::ImageFileWriter< MaskImageType > MaskImageWriterType;
   
   //define metadata dictionary types
   typedef itk::MetaDataDictionary DictionaryType;
   typedef DictionaryType::ConstIterator DictionaryIteratorType;
 
-  //define a probabilistic tractography filter type and associated bValue, gradient direction
-  //and measurement frame types
-  typedef itk::StochasticTractographyFilter< DWIVectorImageType, CImageType > 
+  //define a probabilistic tractography filter type and associated bValue,
+  //gradient direction, and measurement frame types
+  typedef itk::StochasticTractographyFilter< DWIVectorImageType, MaskImageType,
+    CImageType > 
     PTFilterType;
   typedef PTFilterType::bValueContainerType bValueContainerType;
   typedef PTFilterType::GradientDirectionContainerType GDContainerType;
   typedef PTFilterType::MeasurementFrameType MeasurementFrameType;
   
+  //define a filter to generate a mask image that excludes zero dwi values
+  typedef Functor::ZeroDWITest< DWIVectorImageType::PixelType, MaskImageType::PixelType >
+    ZeroDWITestType;
+  typedef itk::UnaryFunctorImageFilter< DWIVectorImageType, MaskImageType, 
+    ZeroDWITestType > ExcludeZeroDWIFilterType;
+    
   //define AddImageFilterType to accumulate the connectivity maps of the pixels in the ROI
   typedef itk::AddImageFilter< CImageType, CImageType, CImageType> AddImageFilterType;
   
@@ -197,9 +238,21 @@ int main(int argc, char* argv[]){
   outfile.close();
   */
   
+  //Create a default Mask Image which 
+  //excludes DWI pixels which contain values that are zero
+  ExcludeZeroDWIFilterType::Pointer ezdwifilter = ExcludeZeroDWIFilterType::New();
+  ezdwifilter->SetInput( dwireaderPtr->GetOutput() );
+  
+  //write out the mask image
+  MaskImageWriterType::Pointer maskwriterPtr = MaskImageWriterType::New();
+  maskwriterPtr->SetInput( ezdwifilter->GetOutput() );
+  maskwriterPtr->SetFileName( "maskimage.nhdr" );
+  maskwriterPtr->Update();
+  
   //Setup the PTFilter
   PTFilterType::Pointer ptfilterPtr = PTFilterType::New();
   ptfilterPtr->SetInput( dwireaderPtr->GetOutput() );
+  ptfilterPtr->SetMaskImageInput( ezdwifilter->GetOutput() );
   ptfilterPtr->SetbValues(bValuesPtr);
   ptfilterPtr->SetGradients( gradientsPtr );
   ptfilterPtr->SetMeasurementFrame( measurement_frame );

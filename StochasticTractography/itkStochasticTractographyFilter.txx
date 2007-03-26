@@ -18,10 +18,10 @@
 
 namespace itk{
 
-template< class TInputDWIImage, class TOutputConnectivityImage >
-StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::StochasticTractographyFilter(){
-
+  this->SetNumberOfRequiredInputs(2); //Filter needs a DWI image and a Mask Image
   this->SetTotalTracts( 50 );
   this->SetMaxTractLength( 100 );
   this->SetGradients(NULL);
@@ -38,17 +38,17 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   this->LoadDefaultSampleDirections();
 } 
 
-template< class TInputDWIImage, class TOutputConnectivityImage >
-StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::~StochasticTractographyFilter(){
   delete this->m_A;
   delete this->m_Aqr;
   delete this->m_W;
 } 
 
-template< class TInputDWIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::ProbabilisticallyInterpolate( vnl_random& randomgenerator, 
                       const PathType::ContinuousIndexType& cindex,
                       typename InputDWIImageType::IndexType& index){
@@ -60,9 +60,9 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   }
 }
 
-template< class TInputDWIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::UpdateGradientDirections(void){
   //the gradient direction is transformed into IJK space
   //by moving into RAS space and then to LPS space then to IJK space
@@ -83,9 +83,9 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   this->SetGradients(gradients_prime);
 }
 
-template< class TInputDWIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::UpdateTensorModelFittingMatrices( void ){
 
   //estimate the parameters using linear LS estimation
@@ -116,9 +116,9 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   this->m_Aqr = new vnl_qr< double >(A);
 }
 
-template< class TInputDWIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::CalculateTensorModelParameters( const DWIVectorImageType::PixelType& dwivalues,
   TensorModelParamType& tensormodelparams){
   
@@ -134,8 +134,11 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   vnl_vector< double > logPhi( N );
   
   for(unsigned int j=0; j< N ; j++){
+    //throw an exception here when the dwi value is zero
+    if(dwivalues[j] == 0)
+      itkExceptionMacro(<<"Zero DWI Value! Voxel should be excluded by Mask Image.");
+      
     //fill up the logPhi vector using log(dwi) values
-    //add eps to prevent vcl_log from returning infinte values
     logPhi.put(j, vcl_log((double) dwivalues[j]));
   }
   
@@ -147,8 +150,7 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   //setup a reference for code clarity
   vnl_diag_matrix< double >& W = *(this->m_W);
   
-  for(vnl_diag_matrix< double >::iterator i = W.begin();
-      i!=W.end(); i++){
+  for(vnl_diag_matrix< double >::iterator i = W.begin();i!=W.end(); i++){
     *i = vcl_exp( *i );
   }
   
@@ -156,9 +158,9 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   tensormodelparams = vnl_svd< double >((W*A)).solve(W*logPhi);
 }
 
-template< class TInputDWIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::CalculateConstrainedModelParameters( const TensorModelParamType& tensormodelparams,
     ConstrainedModelParamType& constrainedmodelparams){          
               
@@ -192,9 +194,9 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   constrainedmodelparams[5] = (Deig.get_eigenvector(2))[2];                  
 }
               
-template< class TInputDWIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::CalculateNoiseFreeDWIFromConstrainedModel( const ConstrainedModelParamType& constrainedmodelparams,
     DWIVectorImageType::PixelType& noisefreedwi){
     
@@ -216,9 +218,9 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   }     
 }
 
-template< class TInputDWIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::CalculateResidualVariance( const DWIVectorImageType::PixelType& noisydwi,
     const DWIVectorImageType::PixelType& noisefreedwi,
     const unsigned int dof,
@@ -237,9 +239,9 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   residualvariance/=(N-dof);
 }
                                  
-template< class TInputDWIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::CalculateLikelihood( const DWIVectorImageType::PixelType &dwipixel, 
     TractOrientationContainerType::ConstPointer orientations,
     ProbabilityDistributionImageType::PixelType& likelihood){
@@ -284,9 +286,9 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   double a = 1;
 }
 
-template< class TInputDWIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::CalculatePrior( TractOrientationContainerType::Element v_prev, 
     TractOrientationContainerType::ConstPointer orientations,
     ProbabilityDistributionImageType::PixelType& prior ){
@@ -309,9 +311,9 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   }
 }
 
-template< class TInputDWIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::CalculatePosterior( const ProbabilityDistributionImageType::PixelType& likelihood,
     const ProbabilityDistributionImageType::PixelType& prior,
     ProbabilityDistributionImageType::PixelType& posterior){
@@ -325,9 +327,9 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
     }
 }
 
-template< class TInputDWIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::SampleTractOrientation( vnl_random& randomgenerator, 
     const ProbabilityDistributionImageType::PixelType& posterior,
     TractOrientationContainerType::ConstPointer orientations,
@@ -350,10 +352,11 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
 }
 
 //the seedindex is in continuous IJK coordinates
-template< class TInputDWIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::StochasticTractGeneration( typename InputDWIImageType::ConstPointer dwiimagePtr,
+  typename InputMaskImageType::ConstPointer maskimagePtr,
   typename InputDWIImageType::IndexType seedindex,
   PathType::Pointer tractPtr){
   
@@ -368,7 +371,8 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   
   cindex_curr = seedindex;
   for(unsigned int j=0; (j<this->GetMaxTractLength()) &&
-    (dwiimagePtr->GetLargestPossibleRegion().IsInside(cindex_curr)); j++){
+    (dwiimagePtr->GetLargestPossibleRegion().IsInside(cindex_curr));
+    j++){
 
     ProbabilityDistributionImageType::PixelType 
       prior_curr(this->GetSampleDirections()->Size()); 
@@ -382,7 +386,13 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
     
     
     ProbabilityDistributionImageType::PixelType&
-      likelihood_curr = m_LikelihoodCache->GetPixel( index_curr );  
+      likelihood_curr = m_LikelihoodCache->GetPixel( index_curr );
+    
+    //End the tracking if pixel is not valid according to the mask image
+    if(maskimagePtr->GetPixel( index_curr ) == 0 ){
+      std::cout<<"Stopped Tracking: invalid voxel\n";
+      break;
+    }
                             
     if( likelihood_curr.GetSize() == 0){
       //std::cout<<"Cache Miss!\n";
@@ -390,7 +400,7 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
         //calculate it here and store it
         likelihood_curr.SetSize(this->GetSampleDirections()->Size());
         this->CalculateLikelihood(static_cast< DWIVectorImageType::PixelType >(
-          dwiimagePtr->GetPixel(index_curr)) + vnl_math::eps,
+          dwiimagePtr->GetPixel(index_curr)),
           this->GetSampleDirections(),
           likelihood_curr);
         this->CalculatePrior( v_prev, this->GetSampleDirections(), prior_curr);
@@ -406,7 +416,7 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
         likelihood_curr_temp.SetSize(this->GetSampleDirections()->Size());
         
         this->CalculateLikelihood(static_cast< DWIVectorImageType::PixelType >(
-          dwiimagePtr->GetPixel(index_curr)) + vnl_math::eps,
+          dwiimagePtr->GetPixel(index_curr)),
           this->GetSampleDirections(),
           likelihood_curr_temp);
         this->CalculatePrior( v_prev, this->GetSampleDirections(), prior_curr);
@@ -434,9 +444,9 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   }
 }
 
-template< class TInputDWIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::GenerateData(){
   typedef ProbabilityDistributionImageType PDImageType;
   //preparations
@@ -446,6 +456,7 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   this->AllocateOutputs();
   
   typename InputDWIImageType::ConstPointer inputDWIImagePtr = this->GetInput();
+  typename InputMaskImageType::ConstPointer inputMaskImagePtr = this->GetMaskImageInput();
   typename OutputConnectivityImageType::Pointer outputPtr = this->GetOutput();
   
   outputPtr->FillBuffer(0);
@@ -460,6 +471,7 @@ StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
   
   for(unsigned int i=0; i<this->GetTotalTracts(); i++){
     StochasticTractGeneration(inputDWIImagePtr,
+      inputMaskImagePtr,
       this->GetSeedIndex(),
       tractPtr);
   

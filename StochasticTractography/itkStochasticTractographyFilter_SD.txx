@@ -2,9 +2,9 @@
 
 namespace itk{
 
-template< class TInputDWIImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::LoadDefaultSampleDirections( void ){
   const unsigned int totalsd = 2562;
   double sdarray[totalsd][3] = {
