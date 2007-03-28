@@ -358,12 +358,12 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
 ::StochasticTractGeneration( typename InputDWIImageType::ConstPointer dwiimagePtr,
   typename InputMaskImageType::ConstPointer maskimagePtr,
   typename InputDWIImageType::IndexType seedindex,
+  vnl_random& randomgenerator,
   PathType::Pointer tractPtr){
   
   PathType::ContinuousIndexType cindex_curr;
   typename InputDWIImageType::IndexType index_curr;
   
-  vnl_random randomgenerator;
   TractOrientationContainerType::Element v_curr(0,0,0);
   TractOrientationContainerType::Element v_prev(0,0,0);
   
@@ -468,11 +468,12 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   
   PathType::Pointer tractPtr = PathType::New();
   unsigned int voxelnum = 0;
-  
+  vnl_random randomgenerator;
   for(unsigned int i=0; i<this->GetTotalTracts(); i++){
     StochasticTractGeneration(inputDWIImagePtr,
       inputMaskImagePtr,
       this->GetSeedIndex(),
+      randomgenerator,
       tractPtr);
   
     OutputPathIteratorType outputtractIt( outputPtr, tractPtr );

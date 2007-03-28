@@ -200,6 +200,7 @@ protected:
   void StochasticTractGeneration( typename InputDWIImageType::ConstPointer dwiimagePtr,
     typename InputMaskImageType::ConstPointer maskimagePtr,
     typename InputDWIImageType::IndexType seedindex,
+    vnl_random& randomgenerator,
     PathType::Pointer tractPtr );
                     
   unsigned int m_MaxTractLength;

@@ -9,7 +9,8 @@ ELSE(ITK_FOUND)
   MESSAGE(FATAL_ERROR,"ITK not found.  Please set ITK_DIR.")
 ENDIF(ITK_FOUND)
 
-INCLUDE(../Slicer3/Libs/GenerateCLP/UseGenerateCLP.cmake)
+#INCLUDE(/projects/schiz/software/Slicer3/Libs/GenerateCLP/UseGenerateCLP.cmake)
+INCLUDE(/home/tringo/Meng/Code/subversion/Slicer3/Libs/GenerateCLP/UseGenerateCLP.cmake)
 
 SET(StochasticTractographyFilter_SOURCE StochasticTractographyFilter.cxx)
 GENERATECLP(StochasticTractographyFilter_SOURCE StochasticTractographyFilter.xml)

@@ -67,7 +67,7 @@ public:
   {
     for(int i=0;i<A.GetSize();i++){
       if(A[i]<100){
-        std::cout<<"Invalid Voxel\n";
+        //std::cout<<"Invalid Voxel\n";
         return 0;
       }
     }
@@ -257,8 +257,9 @@ int main(int argc, char* argv[]){
   ptfilterPtr->SetbValues(bValuesPtr);
   ptfilterPtr->SetGradients( gradientsPtr );
   ptfilterPtr->SetMeasurementFrame( measurement_frame );
+  ptfilterPtr->SetMinTractProbability( mintractprobability );
   //ptfilterPtr->SetSampleDirections(directionsPtr);
-  ptfilterPtr->SetMaxTractLength( maxtractlength );
+  //ptfilterPtr->SetMaxTractLength( maxtractlength );
   ptfilterPtr->SetTotalTracts( totaltracts );
   ptfilterPtr->SetMaxLikelihoodCacheSize( maxlikelihoodcachesize );
   

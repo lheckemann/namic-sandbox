@@ -44,18 +44,19 @@
       </constraints>
     </integer>
 
-    <integer>
-      <name>maxtractlength</name>
-      <flag>m</flag>
-      <longflag>maxtractlength</longflag>
-      <description>Maximum Length of Sample Tract</description>
-      <label>Maximum Tract Length</label>
-      <default>100</default>
+    <double>
+      <name>mintractprobability</name>
+      <flag>p</flag>
+      <longflag>mintractprobability</longflag>
+      <description>Minimum Sample Tract Probability</description>
+      <label>Minimum Sample Tract Probability</label>
+      <default>0.1</default>
       <constraints>
         <minimum>0</minimum>
+        <maximum>1</maximum>
         <step>1</step>
       </constraints>
-    </integer>
+    </double>
     
     <integer>
       <name>maxlikelihoodcachesize</name>
@@ -63,9 +64,10 @@
       <longflag>maxlikelihoodcachesize</longflag>
       <description>Maximum Size of Likelihood Cache</description>
       <label>Maximum Cache Size</label>
-      <default>100000000</default>
+      <default>10000</default>
       <constraints>
         <minimum>0</minimum>
+        <maximum>10000000</maximum>
         <step>1</step>
       </constraints>
     </integer>
@@ -75,7 +77,7 @@
   <parameters>
     <label>IO</label>
     <description>Input/output parameters</description>
-    <image>
+    <image type="diffusion-weighted">
       <name>dwifilename</name>
       <label>Input Volume</label>
       <channel>input</channel>
