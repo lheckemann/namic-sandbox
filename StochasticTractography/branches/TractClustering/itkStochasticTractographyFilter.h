@@ -14,7 +14,8 @@
 
 namespace itk{
 
-template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputROIImage, class TInputMaskImage,
+  class TOutputConnectivityImage >
 class ITK_EXPORT StochasticTractographyFilter :
   public ImageToImageFilter< TInputDWIImage,
                     TOutputConnectivityImage >{
@@ -32,11 +33,14 @@ public:
   /** Types for the DWI Input Image **/
   typedef TInputDWIImage InputDWIImageType;
   
-  /** Types for the Connectivity Output Image**/
-  typedef TOutputConnectivityImage OutputConnectivityImageType;
+  /** Types for ROI Input Image **/
+  typedef TInputROIImage InputROIImageType;
   
   /** Types for the Mask Image **/
   typedef TInputMaskImage InputMaskImageType;
+  
+  /** Types for the Connectivity Output Image**/
+  typedef TOutputConnectivityImage OutputConnectivityImageType;
   
   /** Types for the Image-wide Magnetic Field Gradient Directions **/
   typedef VectorContainer< unsigned int, vnl_vector_fixed< double, 3 > >
@@ -57,9 +61,21 @@ public:
   itkSetMacro( TotalTracts, unsigned int);
   itkGetMacro( TotalTracts, unsigned int);
   
+  /** Seed Point Label **/
+  itkSetMacro( SeedPointLabel, unsigned int );
+  itkGetMacro( SeedPointLabel, unsigned int );
+  
+  /** End Region Label **/
+  itkSetMacro( EndRegionLabel, unsigned int );
+  itkGetMacro( EndRegionLabel, unsigned int );
+  
   /** the maximum length of Tract **/
   itkSetMacro( MaxTractLength, unsigned int );
   itkGetMacro( MaxTractLength, unsigned int );
+  
+  /** the minimum Probability of a Tract **/
+  itkSetMacro( MinTractProbability, double );
+  itkGetMacro( MinTractProbability, double );
   
   /** Set/Get bvalues **/
   itkSetConstObjectMacro( bValues, bValueContainerType );
@@ -130,6 +146,10 @@ protected:
   /** Path Types **/
   typedef SlowPolyLineParametricPath< 3 > PathType;
   
+  /** Tract Segment Probability Container Type **/
+  typedef VectorContainer< unsigned int, double >
+    TractSegmentProbabilityContainerType;
+    
   /** Instantiate a Probability Distribution Image for the Cache **/
   typename ProbabilityDistributionImageType::Pointer m_LikelihoodCache;
   
@@ -195,14 +215,19 @@ protected:
   void SampleTractOrientation( vnl_random& randomgenerator, 
     const ProbabilityDistributionImageType::PixelType& posterior,
     TractOrientationContainerType::ConstPointer orientations,
-    TractOrientationContainerType::Element& choosendirection );
+    TractOrientationContainerType::Element& choosendirection,
+    double& choosenposterior );
   
   void StochasticTractGeneration( typename InputDWIImageType::ConstPointer dwiimagePtr,
     typename InputMaskImageType::ConstPointer maskimagePtr,
     typename InputDWIImageType::IndexType seedindex,
+    vnl_random& randomgenerator,
     PathType::Pointer tractPtr );
                     
   unsigned int m_MaxTractLength;
+  double m_MinTractProbability;
+  unsigned int m_SeedPointLabel;
+  unsigned int m_EndRegionLabel;
   unsigned int m_TotalTracts;
   typename InputDWIImageType::IndexType m_SeedIndex;
   TractOrientationContainerType::ConstPointer m_SampleDirections;
