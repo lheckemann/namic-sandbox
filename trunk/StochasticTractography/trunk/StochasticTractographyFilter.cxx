@@ -65,12 +65,13 @@ public:
   }
   inline TOutput operator()( const TInput & A )
   {
-    for(int i=0;i<A.GetSize();i++){
-      if(A[i]<100){
+    /*for(int i=0;i<A.GetSize();i++){
+      if(A[0]<100){
         std::cout<<"Invalid Voxel\n";
         return 0;
       }
     }
+    */
     return 10;
   }
 }; 

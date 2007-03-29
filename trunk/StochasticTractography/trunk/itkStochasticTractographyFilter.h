@@ -159,6 +159,7 @@ protected:
   void UpdateGradientDirections(void);
   void UpdateTensorModelFittingMatrices( void );
   void CalculateTensorModelParameters( const DWIVectorImageType::PixelType& dwivalues,
+    vnl_diag_matrix<double>& W,
     TensorModelParamType& tensormodelparams);
   //these will be the same for every pixel in the image so
   //go ahead and do a QR decomposition to optimize the
@@ -166,8 +167,7 @@ protected:
   //in this case we solve instead:
   //R*Beta = Q'logPhi
   vnl_matrix< double >* m_A;
-  vnl_qr< double >* m_Aqr;
-  vnl_diag_matrix< double >* m_W;         
+  vnl_qr< double >* m_Aqr;    
   
   void CalculateConstrainedModelParameters( const TensorModelParamType& tensormodelparams,
     ConstrainedModelParamType& constrainedmodelparams);
@@ -177,6 +177,7 @@ protected:
   
   void CalculateResidualVariance( const DWIVectorImageType::PixelType& noisydwi,
     const DWIVectorImageType::PixelType& noisefreedwi,
+    const vnl_diag_matrix< double >& W,
     const unsigned int dof,
     double& residualvariance);
   
@@ -200,7 +201,7 @@ protected:
   void StochasticTractGeneration( typename InputDWIImageType::ConstPointer dwiimagePtr,
     typename InputMaskImageType::ConstPointer maskimagePtr,
     typename InputDWIImageType::IndexType seedindex,
-    vnl_random& randomgenerator,
+    unsigned int tractnumber,
     PathType::Pointer tractPtr );
                     
   unsigned int m_MaxTractLength;
