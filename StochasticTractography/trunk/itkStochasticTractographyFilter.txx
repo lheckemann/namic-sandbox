@@ -29,7 +29,6 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   this->SetSampleDirections(NULL);
   this->m_A=NULL;
   this->m_Aqr=NULL;
-  this->m_W=NULL;
   this->m_LikelihoodCache = NULL;
   this->SetMaxLikelihoodCacheSize( 125000000 );  //very big arbitrary number
   this->m_CurrentLikelihoodCacheSize = 0;
@@ -43,7 +42,6 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
 ::~StochasticTractographyFilter(){
   delete this->m_A;
   delete this->m_Aqr;
-  delete this->m_W;
 } 
 
 template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
@@ -54,7 +52,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
                       typename InputDWIImageType::IndexType& index){
                       
   for(int i=0; i<3; i++){
-    if ((vcl_ceil(cindex[i]+vnl_math::eps)-cindex[i]) < randomgenerator.drand32())
+    if ((vcl_ceil(cindex[i]+vnl_math::eps)-cindex[i]) < randomgenerator.drand64())
        index[i]=(int)vcl_ceil(cindex[i]);
      else index[i]=(int)vcl_floor(cindex[i]);
   }
@@ -65,7 +63,7 @@ void
 StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::UpdateGradientDirections(void){
   //the gradient direction is transformed into IJK space
-  //by moving into RAS space and then to LPS space then to IJK space
+  //by moving into the image space and then to IJK space
   
   GradientDirectionContainerType::ConstPointer gradients_orig = this->GetGradients();
   GradientDirectionContainerType::Pointer gradients_prime = GradientDirectionContainerType::New();
@@ -75,8 +73,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
       this->GetMeasurementFrame() *
       gradients_orig->GetElement(i);
     
-    g_i[0] = -g_i[0];
-    g_i[1] = -g_i[1];
+    /** The correction to LPS space is not neccessary as of itk 3.2 **/
+    //g_i[0] = -g_i[0];
+    //g_i[1] = -g_i[1];
     g_i = this->GetInput()->GetDirection().GetInverse() * g_i;  
     gradients_prime->InsertElement(i, g_i);
   }
@@ -120,6 +119,7 @@ template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivity
 void
 StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::CalculateTensorModelParameters( const DWIVectorImageType::PixelType& dwivalues,
+  vnl_diag_matrix<double>& W,
   TensorModelParamType& tensormodelparams){
   
   unsigned  int N = (this->GetGradients())->Size();
@@ -134,21 +134,14 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   vnl_vector< double > logPhi( N );
   
   for(unsigned int j=0; j< N ; j++){
-    //throw an exception here when the dwi value is zero
-    if(dwivalues[j] == 0)
-      itkExceptionMacro(<<"Zero DWI Value! Voxel should be excluded by Mask Image.");
-      
     //fill up the logPhi vector using log(dwi) values
-    logPhi.put(j, vcl_log((double) dwivalues[j]));
+    logPhi.put(j, vcl_log(static_cast<double>(dwivalues[j]) + vnl_math::eps));
   }
   
-  // Find WLS estimate of the parameters of the Tensor model
+  /** Find WLS estimate of the parameters of the Tensor model **/
   
   // First estimate W by LS estimation of the intensities
-  this->m_W = new vnl_diag_matrix< double >(A * Aqr.solve(logPhi));
-  
-  //setup a reference for code clarity
-  vnl_diag_matrix< double >& W = *(this->m_W);
+  W = A * Aqr.solve(logPhi);
   
   for(vnl_diag_matrix< double >::iterator i = W.begin();i!=W.end(); i++){
     *i = vcl_exp( *i );
@@ -223,11 +216,11 @@ void
 StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::CalculateResidualVariance( const DWIVectorImageType::PixelType& noisydwi,
     const DWIVectorImageType::PixelType& noisefreedwi,
+    const vnl_diag_matrix< double >& W,
     const unsigned int dof,
     double& residualvariance){
     
   unsigned int N = (this->GetGradients())->Size();
-  vnl_diag_matrix< double >& W = *(this->m_W);
   
   residualvariance=0;
   
@@ -248,14 +241,15 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
     
   unsigned int N = (this->GetGradients())->Size();
   TensorModelParamType tensorparams;
+  vnl_diag_matrix< double > W;
   ConstrainedModelParamType constrainedparams;
   DWIVectorImageType::PixelType noisefreedwi(N);
   double residualvariance;
   
-  CalculateTensorModelParameters( dwipixel, tensorparams );
+  CalculateTensorModelParameters( dwipixel, W, tensorparams );
   CalculateConstrainedModelParameters( tensorparams, constrainedparams );
   CalculateNoiseFreeDWIFromConstrainedModel( constrainedparams, noisefreedwi );
-  CalculateResidualVariance( dwipixel, noisefreedwi, 5, residualvariance );
+  CalculateResidualVariance( dwipixel, noisefreedwi, W, 5, residualvariance );
   
   for(unsigned int i=0; i < orientations->Size(); i++){
     /** Vary the entry corresponding to the estimated
@@ -335,7 +329,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
     TractOrientationContainerType::ConstPointer orientations,
     TractOrientationContainerType::Element& choosendirection ){
     
-      double randomnum = randomgenerator.drand32();
+      double randomnum = randomgenerator.drand64();
       int i=0;
       double cumsum=0;
       
@@ -358,7 +352,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
 ::StochasticTractGeneration( typename InputDWIImageType::ConstPointer dwiimagePtr,
   typename InputMaskImageType::ConstPointer maskimagePtr,
   typename InputDWIImageType::IndexType seedindex,
-  vnl_random& randomgenerator,
+  unsigned int tractnumber,
   PathType::Pointer tractPtr){
   
   PathType::ContinuousIndexType cindex_curr;
@@ -368,12 +362,13 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   TractOrientationContainerType::Element v_prev(0,0,0);
   
   tractPtr->Initialize();
+  vnl_random randomgenerator(tractnumber);
+  std::cout<<randomgenerator.drand64()<<std::endl;
   
   cindex_curr = seedindex;
   for(unsigned int j=0; (j<this->GetMaxTractLength()) &&
     (dwiimagePtr->GetLargestPossibleRegion().IsInside(cindex_curr));
     j++){
-
     ProbabilityDistributionImageType::PixelType 
       prior_curr(this->GetSampleDirections()->Size()); 
     ProbabilityDistributionImageType::PixelType 
@@ -405,8 +400,6 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
           likelihood_curr);
         this->CalculatePrior( v_prev, this->GetSampleDirections(), prior_curr);
         this->CalculatePosterior( likelihood_curr, prior_curr, posterior_curr);
-        this->SampleTractOrientation(randomgenerator, posterior_curr,
-                          this->GetSampleDirections(), v_curr);
         this->m_CurrentLikelihoodCacheSize++;
       }
       else{
@@ -421,18 +414,16 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
           likelihood_curr_temp);
         this->CalculatePrior( v_prev, this->GetSampleDirections(), prior_curr);
         this->CalculatePosterior( likelihood_curr_temp, prior_curr, posterior_curr);
-        this->SampleTractOrientation(randomgenerator, posterior_curr,
-                          this->GetSampleDirections(), v_curr);
       }
     }
     else{
       //use the cached direction
       this->CalculatePrior( v_prev, this->GetSampleDirections(), prior_curr);
       this->CalculatePosterior( likelihood_curr, prior_curr, posterior_curr);
-      this->SampleTractOrientation(randomgenerator, posterior_curr,
-                          this->GetSampleDirections(), v_curr);
     }
-
+    
+    this->SampleTractOrientation(randomgenerator, posterior_curr,
+          this->GetSampleDirections(), v_curr);
     
     //takes into account voxels of different sizes
     //converts from a step length of 1 mm to the corresponding length in IJK space
@@ -467,13 +458,12 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   OutputIteratorType outputIt( outputPtr, outputPtr->GetRequestedRegion() );
   
   PathType::Pointer tractPtr = PathType::New();
-  unsigned int voxelnum = 0;
-  vnl_random randomgenerator;
+
   for(unsigned int i=0; i<this->GetTotalTracts(); i++){
     StochasticTractGeneration(inputDWIImagePtr,
       inputMaskImagePtr,
       this->GetSeedIndex(),
-      randomgenerator,
+      i,
       tractPtr);
   
     OutputPathIteratorType outputtractIt( outputPtr, tractPtr );
@@ -490,6 +480,5 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
     //}
   }
 }
-
 
 }
