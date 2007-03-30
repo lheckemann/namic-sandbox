@@ -33,6 +33,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   this->m_LikelihoodCache = NULL;
   this->SetMaxLikelihoodCacheSize( 125000000 );  //very big arbitrary number
   this->m_CurrentLikelihoodCacheSize = 0;
+  this->m_TotalDelegatedTracts = 0;
   
   //load in default sample directions
   this->LoadDefaultSampleDirections();
@@ -125,9 +126,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   
   unsigned  int N = (this->GetGradients())->Size();
   
-  //setup references for code clarity
-  vnl_matrix< double >& A = *(this->m_A);
-  vnl_qr< double >& Aqr = *(this->m_Aqr);
+  //setup const references for code clarity
+  const vnl_matrix< double >& A = *(this->m_A);
+  const vnl_qr< double >& Aqr = *(this->m_Aqr);
   
   //vnl_vector is used because the itk vector is limited in its methods and does not
   //contain an internal vnl class like VariableSizematrix
@@ -149,7 +150,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   }
   
   // Now solve for parameters using the estimated weighing matrix
-  tensormodelparams = vnl_svd< double >((W*A)).solve(W*logPhi);
+  tensormodelparams = vnl_svd< double >(W*A).solve(W*logPhi);
 }
 
 template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
@@ -218,7 +219,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
 ::CalculateResidualVariance( const DWIVectorImageType::PixelType& noisydwi,
     const DWIVectorImageType::PixelType& noisefreedwi,
     const vnl_diag_matrix< double >& W,
-    const unsigned int dof,
+    const unsigned int numberofparameters,
     double& residualvariance){
     
   unsigned int N = (this->GetGradients())->Size();
@@ -230,7 +231,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   /** perhaps using WLS will correct this problem **/
   for(unsigned int i=0; i<N; i++)
     residualvariance+=vnl_math_sqr(W(i,i) * (vcl_log(noisydwi[i]/noisefreedwi[i])));
-  residualvariance/=(N-dof);
+  residualvariance/=(N-numberofparameters);
 }
                                  
 template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
@@ -250,7 +251,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   CalculateTensorModelParameters( dwipixel, W, tensorparams );
   CalculateConstrainedModelParameters( tensorparams, constrainedparams );
   CalculateNoiseFreeDWIFromConstrainedModel( constrainedparams, noisefreedwi );
-  CalculateResidualVariance( dwipixel, noisefreedwi, W, 5, residualvariance );
+  CalculateResidualVariance( dwipixel, noisefreedwi, W, 6, residualvariance );
   
   for(unsigned int i=0; i < orientations->Size(); i++){
     /** Vary the entry corresponding to the estimated
@@ -446,46 +447,17 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   typename OutputConnectivityImageType::Pointer outputPtr = this->GetOutput();
   outputPtr->FillBuffer(0);
 
-  typedef PathIterator< OutputConnectivityImageType, PathType > OutputPathIteratorType;
+  //setup the multithreader
+  StochasticTractGenerationCallbackStruct data;
+  data.Filter = this;
+  this->GetMultiThreader()->SetSingleMethod( StochasticTractGenerationCallback,
+    &data );
   
-  PathType::Pointer tractPtr = PathType::New();
-
-  int i=0;
-  std::queue< int > threadIDContainer;
-  std::queue< StochasticTractGenerationCallbackStruct* > stgcsContainer;
-  std::cout << "Number of threads: " << this->GetNumberOfThreads() <<std::endl;
-  while(i < this->GetTotalTracts() ){
-    while(i < this->GetTotalTracts() &&
-      (threadIDContainer.size() < this->GetNumberOfThreads()) ){
-      stgcsContainer.push(new StochasticTractGenerationCallbackStruct);
-      stgcsContainer.back()->Filter = this;
-      stgcsContainer.back()->tractnumber = i;
-      stgcsContainer.back()->tractPtr = PathType::New();
-      
-      threadIDContainer.push(
-        this->GetMultiThreader()->SpawnThread( StochasticTractGenerationCallback,
-          stgcsContainer.back() ) );
-      i++;
-    }
-
-    while(threadIDContainer.size() > 0){
-      this->GetMultiThreader()->TerminateThread( threadIDContainer.front() );
-      threadIDContainer.pop();
-      //write the tract onto the output image
-      OutputPathIteratorType outputtractIt( outputPtr,
-        stgcsContainer.front()->tractPtr );
-      for(outputtractIt.GoToBegin(); !outputtractIt.IsAtEnd(); ++outputtractIt){
-        /* there is an issue using outputtractIt.Value() */
-        outputtractIt.Set(outputtractIt.Get()+1);
-      }
-      std::cout<<"Tract: "<< stgcsContainer.front()->tractnumber <<" complete. " <<
-      "CurrentLikelihoodCacheSize: " << 
-        this->GetCurrentLikelihoodCacheSize() << std::endl;
-      delete stgcsContainer.front();
-      stgcsContainer.pop();
-    }
-    
-  }
+  std::cout<<"Number of Threads: " << this->GetNumberOfThreads() << std::endl; 
+  //start the multithreaded execution
+  this->GetMultiThreader()->SingleMethodExecute();
+  std::cout<< "CurrentLikelihoodCacheSize: " << 
+    this->GetCurrentLikelihoodCacheSize() << std::endl;
 }
 
 // Callback routine used by the threading library. This routine just calls
@@ -504,16 +476,39 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
 
   str = (StochasticTractGenerationCallbackStruct *)
     (((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
-
-  typename InputDWIImageType::ConstPointer inputDWIImagePtr = str->Filter->GetInput();
-  typename InputMaskImageType::ConstPointer inputMaskImagePtr = str->Filter->GetMaskImageInput();
   
-  str->Filter->StochasticTractGeneration( inputDWIImagePtr,
-    inputMaskImagePtr,
-    str->Filter->GetSeedIndex(),
-    str->tractnumber,
-    str->tractPtr);
+  typedef PathIterator< OutputConnectivityImageType, PathType > OutputPathIteratorType;
+  unsigned int tractnumber;
+  PathType::Pointer tractPtr = PathType::New();
+  
+  while(str->Filter->ObtainTractNumber(tractnumber)){
+    typename InputDWIImageType::ConstPointer inputDWIImagePtr = str->Filter->GetInput();
+    typename InputMaskImageType::ConstPointer inputMaskImagePtr = str->Filter->GetMaskImageInput();
+    typename OutputConnectivityImageType::Pointer outputPtr = str->Filter->GetOutput();
+    
+    //generate the tract
+    str->Filter->StochasticTractGeneration( inputDWIImagePtr,
+      inputMaskImagePtr,
+      str->Filter->GetSeedIndex(),
+      tractnumber,
+      tractPtr);
+      
+    //write the tract to output image
+    str->Filter->m_OutputImageMutex.Lock();
+    OutputPathIteratorType outputtractIt( outputPtr,
+        tractPtr );
+    for(outputtractIt.GoToBegin(); !outputtractIt.IsAtEnd(); ++outputtractIt){
+      /* there is an issue using outputtractIt.Value() */
+      outputtractIt.Set(outputtractIt.Get()+1);
+    }
+    //std::cout<<"Tract: "<<tractnumber<<" complete. " <<
+    //  "CurrentLikelihoodCacheSize: " << 
+    //    str->Filter->GetCurrentLikelihoodCacheSize() << std::endl;
+    
+    str->Filter->m_OutputImageMutex.Unlock();
 
+  }
+  
   return ITK_THREAD_RETURN_VALUE;
 }
 

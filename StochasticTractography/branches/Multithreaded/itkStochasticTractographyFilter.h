@@ -146,6 +146,7 @@ protected:
   void BeforeGenerateData(void){
     this->UpdateGradientDirections();
     this->UpdateTensorModelFittingMatrices();
+    this->m_TotalDelegatedTracts = 0;
   }
   
   /** Load the default Sample Directions**/
@@ -179,7 +180,7 @@ protected:
   void CalculateResidualVariance( const DWIVectorImageType::PixelType& noisydwi,
     const DWIVectorImageType::PixelType& noisefreedwi,
     const vnl_diag_matrix< double >& W,
-    const unsigned int dof,
+    const unsigned int numberofparameters,
     double& residualvariance);
   
   void CalculateLikelihood( const DWIVectorImageType::PixelType &dwipixel, 
@@ -210,10 +211,21 @@ protected:
   
   struct StochasticTractGenerationCallbackStruct{
     Pointer Filter;
-    unsigned int tractnumber;
-    PathType::Pointer tractPtr;
   };
-                    
+  /** Thread Safe Function to obtain a tractnumber to start tracking **/
+  bool ObtainTractNumber(unsigned int& tractnumber){
+    bool success = false;
+    this->m_TotalDelegatedTractsMutex.Lock();
+    if(this->m_TotalDelegatedTracts < this->GetTotalTracts()){
+      tractnumber = m_TotalDelegatedTracts;
+      this->m_TotalDelegatedTracts++;
+      success = true;
+    }
+    else success = false;
+    this->m_TotalDelegatedTractsMutex.Unlock();
+    
+    return success;
+  }
   unsigned int m_MaxTractLength;
   unsigned int m_TotalTracts;
   typename InputDWIImageType::IndexType m_SeedIndex;
@@ -221,6 +233,11 @@ protected:
   unsigned int m_MaxLikelihoodCacheSize;
   unsigned int m_CurrentLikelihoodCacheSize;
   SimpleFastMutexLock m_LikelihoodCacheMutex;
+  
+  unsigned int m_TotalDelegatedTracts;
+  SimpleFastMutexLock m_TotalDelegatedTractsMutex;
+  
+  SimpleFastMutexLock m_OutputImageMutex;
 };
 
 }
