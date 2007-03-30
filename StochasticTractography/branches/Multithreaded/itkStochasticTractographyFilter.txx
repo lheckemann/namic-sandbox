@@ -30,7 +30,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   this->SetSampleDirections(NULL);
   this->m_A=NULL;
   this->m_Aqr=NULL;
-  this->m_LikelihoodCache = NULL;
+  this->m_LikelihoodCachePtr = NULL;
   this->SetMaxLikelihoodCacheSize( 125000000 );  //very big arbitrary number
   this->m_CurrentLikelihoodCacheSize = 0;
   this->m_TotalDelegatedTracts = 0;
@@ -387,10 +387,17 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
       break;
     }
     
+    this->CalculatePrior( v_prev, this->GetSampleDirections(), prior_curr);
+    
     const ProbabilityDistributionImageType::PixelType&
-      likelihood_curr = m_LikelihoodCache->GetPixel( index_curr );
+      cachelikelihood_curr = this->AccessLikelihoodCache(index_curr);
                             
-    if( likelihood_curr.GetSize() == 0){
+    if( cachelikelihood_curr.GetSize() != 0){
+      //use the cached direction
+      this->CalculatePosterior( cachelikelihood_curr, prior_curr, posterior_curr);
+    }
+    else{
+      //do the likelihood calculation and discard
       //std::cout<<"Cache Miss!\n";
       ProbabilityDistributionImageType::PixelType likelihood_curr_temp;
       likelihood_curr_temp.SetSize(this->GetSampleDirections()->Size());
@@ -399,27 +406,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
         dwiimagePtr->GetPixel(index_curr)),
         this->GetSampleDirections(),
         likelihood_curr_temp);
-      this->CalculatePrior( v_prev, this->GetSampleDirections(), prior_curr);
       this->CalculatePosterior( likelihood_curr_temp, prior_curr, posterior_curr);
-      
-      this->m_LikelihoodCacheMutex.Lock();
-      if(this->GetCurrentLikelihoodCacheSize() < this->GetMaxLikelihoodCacheSize()){
-
-        ProbabilityDistributionImageType::PixelType&
-        likelihood_store = m_LikelihoodCache->GetPixel( index_curr );
-        
-        if(likelihood_store.GetSize() == 0){
-          likelihood_curr_temp.SetSize(this->GetSampleDirections()->Size());
-          likelihood_store = likelihood_curr_temp;
-          this->m_CurrentLikelihoodCacheSize++;
-        }
-      }
-      this->m_LikelihoodCacheMutex.Unlock();
-    }
-    else{
-      //use the cached direction
-      this->CalculatePrior( v_prev, this->GetSampleDirections(), prior_curr);
-      this->CalculatePosterior( likelihood_curr, prior_curr, posterior_curr);
     }
     this->SampleTractOrientation(randomgenerator, posterior_curr,
       this->GetSampleDirections(), v_curr);
@@ -501,15 +488,70 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
       /* there is an issue using outputtractIt.Value() */
       outputtractIt.Set(outputtractIt.Get()+1);
     }
-    //std::cout<<"Tract: "<<tractnumber<<" complete. " <<
-    //  "CurrentLikelihoodCacheSize: " << 
-    //    str->Filter->GetCurrentLikelihoodCacheSize() << std::endl;
+    std::cout<<"Tract: "<<tractnumber<<" complete. " <<
+      "CurrentLikelihoodCacheSize: " << 
+        str->Filter->GetCurrentLikelihoodCacheSize() << std::endl;
     
     str->Filter->m_OutputImageMutex.Unlock();
 
   }
   
   return ITK_THREAD_RETURN_VALUE;
+}
+
+/** Thread Safe Function to check/update an entry in the likelihood cache **/
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
+ProbabilityDistributionImageType::PixelType&
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
+::AccessLikelihoodCache( typename InputDWIImageType::IndexType index ){
+  this->m_LikelihoodCacheMutex.Lock();
+  
+  ProbabilityDistributionImageType::PixelType& likelihood = 
+    m_LikelihoodCachePtr->GetPixel( index );
+  typename InputDWIImageType::ConstPointer inputDWIImagePtr = this->GetInput();
+  
+  if( likelihood.GetSize() !=0){
+    //entry found in cache
+    this->m_LikelihoodCacheMutex.Unlock();
+    return likelihood;
+  }
+  else if( this->GetCurrentLikelihoodCacheSize() < this->GetMaxLikelihoodCacheSize() ){
+    //entry not found in cache but we have space to store it
+    likelihood.SetSize(this->GetSampleDirections()->Size());
+
+    this->CalculateLikelihood(static_cast< DWIVectorImageType::PixelType >(
+      inputDWIImagePtr->GetPixel(index)),
+      this->GetSampleDirections(),
+      likelihood);
+    this->m_CurrentLikelihoodCacheSize++;
+    
+    this->m_LikelihoodCacheMutex.Unlock();
+    return likelihood;
+  }
+  else{
+    //entry not found in cache and no space to store it
+    this->m_LikelihoodCacheMutex.Unlock();
+    return likelihood;
+  }
+}
+
+/** Thread Safe Function to obtain a tractnumber to start tracking **/
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
+bool
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
+::ObtainTractNumber(unsigned int& tractnumber){
+  bool success = false;
+  this->m_TotalDelegatedTractsMutex.Lock();
+  if(this->m_TotalDelegatedTracts < this->GetTotalTracts()){
+    tractnumber = m_TotalDelegatedTracts;
+    this->m_TotalDelegatedTracts++;
+    success = true;
+    //a tract was successfully delegated
+  }
+  else success = false; //all tracts have been delegated
+  this->m_TotalDelegatedTractsMutex.Unlock();
+  
+  return success;
 }
 
 }
