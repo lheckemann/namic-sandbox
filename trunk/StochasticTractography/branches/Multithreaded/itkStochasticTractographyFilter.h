@@ -15,6 +15,9 @@
 
 namespace itk{
 
+/**Types for Probability Distribution **/
+typedef Image< Array< double >, 3 > ProbabilityDistributionImageType;
+
 template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 class ITK_EXPORT StochasticTractographyFilter :
   public ImageToImageFilter< TInputDWIImage,
@@ -85,11 +88,11 @@ public:
   void SetInput( typename InputDWIImageType::Pointer dwiimagePtr ){
     Superclass::SetInput( dwiimagePtr );
     //update the likelihood cache
-    this->m_LikelihoodCache = ProbabilityDistributionImageType::New();
-    this->m_LikelihoodCache->CopyInformation( this->GetInput() );
-    this->m_LikelihoodCache->SetBufferedRegion( this->GetInput()->GetBufferedRegion() );
-    this->m_LikelihoodCache->SetRequestedRegion( this->GetInput()->GetRequestedRegion() );
-    this->m_LikelihoodCache->Allocate();
+    this->m_LikelihoodCachePtr = ProbabilityDistributionImageType::New();
+    this->m_LikelihoodCachePtr->CopyInformation( this->GetInput() );
+    this->m_LikelihoodCachePtr->SetBufferedRegion( this->GetInput()->GetBufferedRegion() );
+    this->m_LikelihoodCachePtr->SetRequestedRegion( this->GetInput()->GetRequestedRegion() );
+    this->m_LikelihoodCachePtr->Allocate();
     this->m_CurrentLikelihoodCacheSize = 0;
   }
   
@@ -125,14 +128,11 @@ protected:
   /**Type to hold generated DWI values**/
   typedef Image< VariableLengthVector< double >, 3 > DWIVectorImageType;
   
-  /**Types for Probability Distribution **/
-  typedef Image< Array< double >, 3 > ProbabilityDistributionImageType;
-  
   /** Path Types **/
   typedef SlowPolyLineParametricPath< 3 > PathType;
   
-  /** Instantiate a Probability Distribution Image for the Cache **/
-  typename ProbabilityDistributionImageType::Pointer m_LikelihoodCache;
+  /**Types for Probability Distribution **/
+  typedef Image< Array< double >, 3 > ProbabilityDistributionImageType;
   
   StochasticTractographyFilter();
   virtual ~StochasticTractographyFilter();
@@ -212,20 +212,13 @@ protected:
   struct StochasticTractGenerationCallbackStruct{
     Pointer Filter;
   };
+  /** Thread Safe Function to check/update an entry in the likelihood cache **/
+  ProbabilityDistributionImageType::PixelType& 
+    AccessLikelihoodCache( typename InputDWIImageType::IndexType index );
   /** Thread Safe Function to obtain a tractnumber to start tracking **/
-  bool ObtainTractNumber(unsigned int& tractnumber){
-    bool success = false;
-    this->m_TotalDelegatedTractsMutex.Lock();
-    if(this->m_TotalDelegatedTracts < this->GetTotalTracts()){
-      tractnumber = m_TotalDelegatedTracts;
-      this->m_TotalDelegatedTracts++;
-      success = true;
-    }
-    else success = false;
-    this->m_TotalDelegatedTractsMutex.Unlock();
-    
-    return success;
-  }
+  bool ObtainTractNumber(unsigned int& tractnumber);
+  
+  ProbabilityDistributionImageType::Pointer m_LikelihoodCachePtr;
   unsigned int m_MaxTractLength;
   unsigned int m_TotalTracts;
   typename InputDWIImageType::IndexType m_SeedIndex;
