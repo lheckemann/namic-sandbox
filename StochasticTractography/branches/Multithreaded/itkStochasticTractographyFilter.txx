@@ -6,7 +6,7 @@
 #include "vnl/vnl_vector.h"
 #include "vnl/vnl_diag_matrix.h"
 #include "vnl/algo/vnl_qr.h"
-#include "vnl/algo/vnl_svd.h"
+//#include "vnl/algo/vnl_svd.h"
 #include "vnl/algo/vnl_matrix_inverse.h"
 #include "vnl/algo/vnl_symmetric_eigensystem.h"
 #include "vnl/vnl_transpose.h"
@@ -143,14 +143,20 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   /** Find WLS estimate of the parameters of the Tensor model **/
   
   // First estimate W by LS estimation of the intensities
-  W = A * Aqr.solve(logPhi);
-  
+  //vnl_matrix< double > Q = Aqr.Q();
+  //vnl_vector< double > QtB = Aqr.Q().transpose()*logPhi;
+  //vnl_vector< double > QTB = Aqr.QtB(logPhi);
+  //vnl_matrix< double > R = Aqr.R(); 
+  W = A* vnl_qr< double >(Aqr.R()).solve(Aqr.QtB(logPhi));
+  //W = A * Aqr.solve(logPhi);  
   for(vnl_diag_matrix< double >::iterator i = W.begin();i!=W.end(); i++){
     *i = vcl_exp( *i );
   }
   
   // Now solve for parameters using the estimated weighing matrix
-  tensormodelparams = vnl_svd< double >(W*A).solve(W*logPhi);
+  tensormodelparams = vnl_qr< double >((W*A).transpose()*W*A).solve(
+    (W*A).transpose()*W*logPhi);
+  //tensormodelparams = vnl_qr< double >((W*A)).solve(W*logPhi);
 }
 
 template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
@@ -439,8 +445,8 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   data.Filter = this;
   this->GetMultiThreader()->SetSingleMethod( StochasticTractGenerationCallback,
     &data );
-  
-  std::cout<<"Number of Threads: " << this->GetNumberOfThreads() << std::endl; 
+  this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
+  std::cout<<"Number of Threads: " << this->GetMultiThreader()->GetNumberOfThreads() << std::endl; 
   //start the multithreaded execution
   this->GetMultiThreader()->SingleMethodExecute();
   std::cout<< "CurrentLikelihoodCacheSize: " << 
