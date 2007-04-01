@@ -31,8 +31,8 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   this->m_A=NULL;
   this->m_Aqr=NULL;
   this->m_LikelihoodCachePtr = NULL;
-  this->SetMaxLikelihoodCacheSize( 125000000 );  //very big arbitrary number
-  this->m_CurrentLikelihoodCacheSize = 0;
+  this->SetMaxLikelihoodCacheSize( 4096 );  //4 gigs
+  this->m_CurrentLikelihoodCacheElements = 0;
   this->m_TotalDelegatedTracts = 0;
   
   //load in default sample directions
@@ -253,6 +253,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   ConstrainedModelParamType constrainedparams;
   DWIVectorImageType::PixelType noisefreedwi(N);
   double residualvariance;
+  double jointlikelihood;
   
   CalculateTensorModelParameters( dwipixel, W, tensorparams );
   CalculateConstrainedModelParameters( tensorparams, constrainedparams );
@@ -274,7 +275,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
       intensity for this choice of Tract direction **/
     CalculateNoiseFreeDWIFromConstrainedModel(constrainedparams, noisefreedwi);
     
-    double jointlikelihood = 1.0;
+    jointlikelihood = 1.0;
     for(unsigned int j=0; j<N; j++){
       /** Calculate the likelihood given the residualvariance,
         estimated intensity and the actual intensity (refer to Friman) **/
@@ -285,7 +286,6 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
     }
     likelihood[i]=jointlikelihood;  
   }
-  double a = 1;
 }
 
 template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
@@ -365,7 +365,10 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   
   PathType::ContinuousIndexType cindex_curr;
   typename InputDWIImageType::IndexType index_curr;
-  
+  ProbabilityDistributionImageType::PixelType 
+      prior_curr(this->GetSampleDirections()->Size()); 
+  ProbabilityDistributionImageType::PixelType 
+      posterior_curr(this->GetSampleDirections()->Size());
   TractOrientationContainerType::Element v_curr(0,0,0);
   TractOrientationContainerType::Element v_prev(0,0,0);
   
@@ -377,11 +380,6 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   for(unsigned int j=0; (j<this->GetMaxTractLength()) &&
     (dwiimagePtr->GetLargestPossibleRegion().IsInside(cindex_curr));
     j++){
-    ProbabilityDistributionImageType::PixelType 
-      prior_curr(this->GetSampleDirections()->Size()); 
-    ProbabilityDistributionImageType::PixelType 
-      posterior_curr(this->GetSampleDirections()->Size());
-      
     tractPtr->AddVertex(cindex_curr);
     
     this->ProbabilisticallyInterpolate( randomgenerator, cindex_curr,
@@ -449,8 +447,8 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   std::cout<<"Number of Threads: " << this->GetMultiThreader()->GetNumberOfThreads() << std::endl; 
   //start the multithreaded execution
   this->GetMultiThreader()->SingleMethodExecute();
-  std::cout<< "CurrentLikelihoodCacheSize: " << 
-    this->GetCurrentLikelihoodCacheSize() << std::endl;
+  std::cout<< "CurrentLikelihoodCacheElements: " << 
+    this->m_CurrentLikelihoodCacheElements << std::endl;
 }
 
 // Callback routine used by the threading library. This routine just calls
@@ -495,8 +493,8 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
       outputtractIt.Set(outputtractIt.Get()+1);
     }
     std::cout<<"Tract: "<<tractnumber<<" complete. " <<
-      "CurrentLikelihoodCacheSize: " << 
-        str->Filter->GetCurrentLikelihoodCacheSize() << std::endl;
+      "CurrentLikelihoodCacheElements: " << 
+        str->Filter->m_CurrentLikelihoodCacheElements << std::endl;
     
     str->Filter->m_OutputImageMutex.Unlock();
 
@@ -521,7 +519,8 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
     this->m_LikelihoodCacheMutexImagePtr->GetPixel(index).Unlock();
     return likelihood;
   }
-  else if( this->GetCurrentLikelihoodCacheSize() < this->GetMaxLikelihoodCacheSize() ){
+  //we need to lock m_CurrentLikelihoodCacheElements as well but not crucial right now
+  else if( this->m_CurrentLikelihoodCacheElements < this->m_MaxLikelihoodCacheElements ){
     //entry not found in cache but we have space to store it
     likelihood.SetSize(this->GetSampleDirections()->Size());
 
@@ -529,7 +528,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
       inputDWIImagePtr->GetPixel(index)),
       this->GetSampleDirections(),
       likelihood);
-    this->m_CurrentLikelihoodCacheSize++;
+    this->m_CurrentLikelihoodCacheElements++;
     
     this->m_LikelihoodCacheMutexImagePtr->GetPixel(index).Unlock();
     return likelihood;

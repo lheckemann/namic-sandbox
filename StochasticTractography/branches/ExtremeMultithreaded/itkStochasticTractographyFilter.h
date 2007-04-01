@@ -93,7 +93,7 @@ public:
     this->m_LikelihoodCachePtr->SetBufferedRegion( this->GetInput()->GetBufferedRegion() );
     this->m_LikelihoodCachePtr->SetRequestedRegion( this->GetInput()->GetRequestedRegion() );
     this->m_LikelihoodCachePtr->Allocate();
-    this->m_CurrentLikelihoodCacheSize = 0;
+    this->m_CurrentLikelihoodCacheElements = 0;
     //update the likelihoodcache mutex image
     this->m_LikelihoodCacheMutexImagePtr = LikelihoodCacheMutexImageType::New();
     this->m_LikelihoodCacheMutexImagePtr->CopyInformation( this->GetInput() );
@@ -118,8 +118,6 @@ public:
   itkSetMacro( MaxLikelihoodCacheSize, unsigned int );
   itkGetMacro( MaxLikelihoodCacheSize, unsigned int );
             
-  /** Get the current Likelihood Cache Size, i.e. the total unique cached pixels **/
-  itkGetMacro( CurrentLikelihoodCacheSize, unsigned int );
   void GenerateData();
   
 protected:
@@ -156,6 +154,17 @@ protected:
     this->UpdateGradientDirections();
     this->UpdateTensorModelFittingMatrices();
     this->m_TotalDelegatedTracts = 0;
+    
+    //calculate the number of voxels to cache from Megabyte memory size limit
+    ProbabilityDistributionImageType::PixelType 
+      element(this->GetSampleDirections()->Size());
+    size_t elementsize = sizeof(ProbabilityDistributionImageType::PixelType) + 
+      sizeof(double)*element.Size();
+    this->m_MaxLikelihoodCacheElements = 
+      (this->GetMaxLikelihoodCacheSize()*1048576)/elementsize;
+    std::cout << "MaxLikelhoodCacheElements: "
+      << this->m_MaxLikelihoodCacheElements
+      << std::endl;
   }
   
   /** Load the default Sample Directions**/
@@ -233,8 +242,9 @@ protected:
   unsigned int m_TotalTracts;
   typename InputDWIImageType::IndexType m_SeedIndex;
   TractOrientationContainerType::ConstPointer m_SampleDirections;
-  unsigned int m_MaxLikelihoodCacheSize;
-  unsigned int m_CurrentLikelihoodCacheSize;
+  unsigned int m_MaxLikelihoodCacheSize;   //in Megabytes
+  unsigned int m_MaxLikelihoodCacheElements;  //in Elements (Voxels)
+  unsigned int m_CurrentLikelihoodCacheElements;
   SimpleFastMutexLock m_LikelihoodCacheMutex;
   
   unsigned int m_TotalDelegatedTracts;
