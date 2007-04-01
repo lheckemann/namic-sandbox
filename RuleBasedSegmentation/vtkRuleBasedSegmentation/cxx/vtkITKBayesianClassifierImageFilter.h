@@ -88,26 +88,24 @@ class VTK_RULEBASEDSEGMENTATION_EXPORT vtkITKBayesianClassifierImageFilter : pub
     {
     DelegateITKOutputMacro( GetNumberOfSmoothingIterations);
     }
-
 //   void SetMaskImage( ??? )
 //     {
-//     DelegateITKInputMacro( SetMaskImage, static_cast< unsigned int >( n ) );
+//     DelegateITKInputMacro( SetMaskImage, static_cast< unsigned int >( n ) ); // CAN WE USE SOMETHING LIKE THIS?
 //     }
 
 //   int GetMaskImage()
 //     {
-//     DelegateITKOutputMacro( GetMaskImage);
+//     DelegateITKOutputMacro( GetMaskImage); // CAN WE USE SOMETHING LIKE THIS?
 //     }
+  void SetMaskValue( int n )
+    {
+    DelegateITKInputMacro( SetMaskValue, static_cast< unsigned int >( n ) );
+    }
 
-//   void SetMaskValue( int n )
-//     {
-//     DelegateITKInputMacro( SetMaskValue, static_cast< unsigned int >( n ) );
-//     }
-
-//   int GetMaskValue()
-//     {
-//     DelegateITKOutputMacro( GetMaskValue );
-//     }
+  int GetMaskValue()
+    {
+    DelegateITKOutputMacro( GetMaskValue );
+    }
 
 protected:
   //BTX
