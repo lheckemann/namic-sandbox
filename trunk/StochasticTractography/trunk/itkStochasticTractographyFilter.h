@@ -10,9 +10,13 @@
 #include "vnl/algo/vnl_qr.h"
 #include "itkVariableLengthVector.h"
 #include "itkSlowPolyLineParametricPath.h"
+#include "itkSimpleFastMutexLock.h"
 #include <vector>
 
 namespace itk{
+
+/**Types for Probability Distribution **/
+typedef Image< Array< double >, 3 > ProbabilityDistributionImageType;
 
 template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 class ITK_EXPORT StochasticTractographyFilter :
@@ -84,12 +88,18 @@ public:
   void SetInput( typename InputDWIImageType::Pointer dwiimagePtr ){
     Superclass::SetInput( dwiimagePtr );
     //update the likelihood cache
-    this->m_LikelihoodCache = ProbabilityDistributionImageType::New();
-    this->m_LikelihoodCache->CopyInformation( this->GetInput() );
-    this->m_LikelihoodCache->SetBufferedRegion( this->GetInput()->GetBufferedRegion() );
-    this->m_LikelihoodCache->SetRequestedRegion( this->GetInput()->GetRequestedRegion() );
-    this->m_LikelihoodCache->Allocate();
-    this->m_CurrentLikelihoodCacheSize = 0;
+    this->m_LikelihoodCachePtr = ProbabilityDistributionImageType::New();
+    this->m_LikelihoodCachePtr->CopyInformation( this->GetInput() );
+    this->m_LikelihoodCachePtr->SetBufferedRegion( this->GetInput()->GetBufferedRegion() );
+    this->m_LikelihoodCachePtr->SetRequestedRegion( this->GetInput()->GetRequestedRegion() );
+    this->m_LikelihoodCachePtr->Allocate();
+    this->m_CurrentLikelihoodCacheElements = 0;
+    //update the likelihoodcache mutex image
+    this->m_LikelihoodCacheMutexImagePtr = LikelihoodCacheMutexImageType::New();
+    this->m_LikelihoodCacheMutexImagePtr->CopyInformation( this->GetInput() );
+    this->m_LikelihoodCacheMutexImagePtr->SetBufferedRegion( this->GetInput()->GetBufferedRegion() );
+    this->m_LikelihoodCacheMutexImagePtr->SetRequestedRegion( this->GetInput()->GetRequestedRegion() );
+    this->m_LikelihoodCacheMutexImagePtr->Allocate();
   }
   
   /** Set/Get the seed index **/
@@ -108,8 +118,6 @@ public:
   itkSetMacro( MaxLikelihoodCacheSize, unsigned int );
   itkGetMacro( MaxLikelihoodCacheSize, unsigned int );
             
-  /** Get the current Likelihood Cache Size, i.e. the total unique cached pixels **/
-  itkGetMacro( CurrentLikelihoodCacheSize, unsigned int );
   void GenerateData();
   
 protected:
@@ -124,14 +132,14 @@ protected:
   /**Type to hold generated DWI values**/
   typedef Image< VariableLengthVector< double >, 3 > DWIVectorImageType;
   
-  /**Types for Probability Distribution **/
-  typedef Image< Array< double >, 3 > ProbabilityDistributionImageType;
-  
   /** Path Types **/
   typedef SlowPolyLineParametricPath< 3 > PathType;
   
-  /** Instantiate a Probability Distribution Image for the Cache **/
-  typename ProbabilityDistributionImageType::Pointer m_LikelihoodCache;
+  /**Types for Probability Distribution **/
+  typedef Image< Array< double >, 3 > ProbabilityDistributionImageType;
+  
+  /** Types for the Image of Mutexes of the Likelihood distribution **/
+  typedef Image< SimpleFastMutexLock, 3 > LikelihoodCacheMutexImageType;
   
   StochasticTractographyFilter();
   virtual ~StochasticTractographyFilter();
@@ -145,6 +153,18 @@ protected:
   void BeforeGenerateData(void){
     this->UpdateGradientDirections();
     this->UpdateTensorModelFittingMatrices();
+    this->m_TotalDelegatedTracts = 0;
+    
+    //calculate the number of voxels to cache from Megabyte memory size limit
+    ProbabilityDistributionImageType::PixelType 
+      element(this->GetSampleDirections()->Size());
+    size_t elementsize = sizeof(ProbabilityDistributionImageType::PixelType) + 
+      sizeof(double)*element.Size();
+    this->m_MaxLikelihoodCacheElements = 
+      (this->GetMaxLikelihoodCacheSize()*1048576)/elementsize;
+    std::cout << "MaxLikelhoodCacheElements: "
+      << this->m_MaxLikelihoodCacheElements
+      << std::endl;
   }
   
   /** Load the default Sample Directions**/
@@ -178,7 +198,7 @@ protected:
   void CalculateResidualVariance( const DWIVectorImageType::PixelType& noisydwi,
     const DWIVectorImageType::PixelType& noisefreedwi,
     const vnl_diag_matrix< double >& W,
-    const unsigned int dof,
+    const unsigned int numberofparameters,
     double& residualvariance);
   
   void CalculateLikelihood( const DWIVectorImageType::PixelType &dwipixel, 
@@ -203,13 +223,34 @@ protected:
     typename InputDWIImageType::IndexType seedindex,
     unsigned int tractnumber,
     PathType::Pointer tractPtr );
-                    
+  
+  /** This function is called by the multithreader **/
+  static ITK_THREAD_RETURN_TYPE StochasticTractGenerationCallback( void *arg );
+  
+  struct StochasticTractGenerationCallbackStruct{
+    Pointer Filter;
+  };
+  /** Thread Safe Function to check/update an entry in the likelihood cache **/
+  ProbabilityDistributionImageType::PixelType& 
+    AccessLikelihoodCache( typename InputDWIImageType::IndexType index );
+  /** Thread Safe Function to obtain a tractnumber to start tracking **/
+  bool ObtainTractNumber(unsigned int& tractnumber);
+  
+  ProbabilityDistributionImageType::Pointer m_LikelihoodCachePtr;
+  LikelihoodCacheMutexImageType::Pointer m_LikelihoodCacheMutexImagePtr;
   unsigned int m_MaxTractLength;
   unsigned int m_TotalTracts;
   typename InputDWIImageType::IndexType m_SeedIndex;
   TractOrientationContainerType::ConstPointer m_SampleDirections;
-  unsigned int m_MaxLikelihoodCacheSize;
-  unsigned int m_CurrentLikelihoodCacheSize;
+  unsigned int m_MaxLikelihoodCacheSize;   //in Megabytes
+  unsigned int m_MaxLikelihoodCacheElements;  //in Elements (Voxels)
+  unsigned int m_CurrentLikelihoodCacheElements;
+  SimpleFastMutexLock m_LikelihoodCacheMutex;
+  
+  unsigned int m_TotalDelegatedTracts;
+  SimpleFastMutexLock m_TotalDelegatedTractsMutex;
+  
+  SimpleFastMutexLock m_OutputImageMutex;
 };
 
 }
