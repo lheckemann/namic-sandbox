@@ -65,12 +65,12 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   //the gradient direction is transformed into IJK space
   //by moving into the image space and then to IJK space
   
-  GradientDirectionContainerType::ConstPointer gradients_orig = this->GetGradients();
+  GradientDirectionContainerType::ConstPointer gradients_orig = this->m_Gradients;
   GradientDirectionContainerType::Pointer gradients_prime = GradientDirectionContainerType::New();
   unsigned int N = gradients_orig->Size();
   for(unsigned int i=0; i<N; i++){
     GradientDirectionContainerType::Element g_i = 
-      this->GetMeasurementFrame() *
+      this->m_MeasurementFrame *
       gradients_orig->GetElement(i);
     
     /** The correction to LPS space is not neccessary as of itk 3.2 **/
@@ -79,7 +79,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
     g_i = this->GetInput()->GetDirection().GetInverse() * g_i;  
     gradients_prime->InsertElement(i, g_i);
   }
-  this->SetGradients(gradients_prime);
+  this->m_Gradients=gradients_prime;
 }
 
 template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
@@ -92,14 +92,14 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   //solve for Beta in: logPhi=X*Beta
   //number of rows of the matrix depends on the number of inputs,
   //i.e. the number of measurements of the voxel (n)
-  unsigned int N = (this->GetGradients())->Size();
+  unsigned int N = this->m_Gradients->Size();
   
   this->m_A = new vnl_matrix< double >(N, 7);
   vnl_matrix< double >& A = *(this->m_A);
   
   for(unsigned int j=0; j< N ; j++){
-    GradientDirectionContainerType::Element g = GetGradients()->GetElement(j);
-    const bValueType&  b_i = GetbValues()->GetElement(j);
+    GradientDirectionContainerType::Element g = m_Gradients->GetElement(j);
+    const bValueType&  b_i = m_bValues->GetElement(j);
     
     A(j,0)=1.0;
     A(j,1)=-1*b_i*(g[0]*g[0]);
@@ -122,7 +122,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   vnl_diag_matrix<double>& W,
   TensorModelParamType& tensormodelparams){
   
-  unsigned  int N = (this->GetGradients())->Size();
+  unsigned  int N = this->m_Gradients->Size();
   
   //setup const references for code clarity
   const vnl_matrix< double >& A = *(this->m_A);
@@ -154,6 +154,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   // Now solve for parameters using the estimated weighing matrix
   tensormodelparams = vnl_qr< double >((W*A).transpose()*W*A).solve(
     (W*A).transpose()*W*logPhi);
+  int a;
   //tensormodelparams = vnl_qr< double >((W*A)).solve(W*logPhi);
 }
 
@@ -200,7 +201,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
 ::CalculateNoiseFreeDWIFromConstrainedModel( const ConstrainedModelParamType& constrainedmodelparams,
     DWIVectorImageType::PixelType& noisefreedwi){
     
-  unsigned int N = (this->GetGradients())->Size();
+  unsigned int N = this->m_Gradients->Size();
   const double& z_0 = constrainedmodelparams[0];
   const double& alpha = constrainedmodelparams[1];
   const double& beta = constrainedmodelparams[2];
@@ -209,9 +210,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
     constrainedmodelparams[5]);
   
   for(unsigned int i=0; i < N ; i++ ){
-    const double& b_i = (this->GetbValues())->GetElement(i);
+    const double& b_i = this->m_bValues->GetElement(i);
     const GradientDirectionContainerType::Element& g_i = 
-      (this->GetGradients())->GetElement(i);
+      this->m_Gradients->GetElement(i);
     
     noisefreedwi.SetElement(i,
       vcl_exp(z_0-(alpha*b_i+beta*b_i*vnl_math_sqr(dot_product(g_i, v_hat)))));
@@ -227,7 +228,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
     const unsigned int numberofparameters,
     double& residualvariance){
     
-  unsigned int N = (this->GetGradients())->Size();
+  unsigned int N = this->m_Gradients->Size();
   
   residualvariance=0;
   
@@ -246,7 +247,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
     TractOrientationContainerType::ConstPointer orientations,
     ProbabilityDistributionImageType::PixelType& likelihood){
     
-  unsigned int N = (this->GetGradients())->Size();
+  unsigned int N = this->m_Gradients->Size();
   TensorModelParamType tensorparams( 0.0 );
   vnl_diag_matrix< double > W(N,0);
   ConstrainedModelParamType constrainedparams( 0.0 );
@@ -365,9 +366,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   PathType::ContinuousIndexType cindex_curr = seedindex;
   typename InputDWIImageType::IndexType index_curr = {{0,0,0}};
   ProbabilityDistributionImageType::PixelType 
-      prior_curr(this->GetSampleDirections()->Size()); 
+      prior_curr(this->m_SampleDirections->Size()); 
   ProbabilityDistributionImageType::PixelType 
-      posterior_curr(this->GetSampleDirections()->Size());
+      posterior_curr(this->m_SampleDirections->Size());
   TractOrientationContainerType::Element v_curr(0,0,0);
   TractOrientationContainerType::Element v_prev(0,0,0);
   
@@ -375,7 +376,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   vnl_random randomgenerator(tractnumber);
   //std::cout<<randomgenerator.drand64()<<std::endl;
   
-  for(unsigned int j=0; (j<this->GetMaxTractLength()) &&
+  for(unsigned int j=0; (j<this->m_MaxTractLength) &&
     (dwiimagePtr->GetLargestPossibleRegion().IsInside(cindex_curr));
     j++){
     tractPtr->AddVertex(cindex_curr);
@@ -389,7 +390,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
       break;
     }
     
-    this->CalculatePrior( v_prev, this->GetSampleDirections(), prior_curr);
+    this->CalculatePrior( v_prev, this->m_SampleDirections, prior_curr);
     
     const ProbabilityDistributionImageType::PixelType&
       cachelikelihood_curr = this->AccessLikelihoodCache(index_curr);
@@ -402,16 +403,16 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
       //do the likelihood calculation and discard
       //std::cout<<"Cache Miss!\n";
       ProbabilityDistributionImageType::PixelType 
-        likelihood_curr_temp(this->GetSampleDirections()->Size());
+        likelihood_curr_temp(this->m_SampleDirections->Size());
 
       this->CalculateLikelihood(static_cast< DWIVectorImageType::PixelType >(
         dwiimagePtr->GetPixel(index_curr)),
-        this->GetSampleDirections(),
+        this->m_SampleDirections,
         likelihood_curr_temp);
       this->CalculatePosterior( likelihood_curr_temp, prior_curr, posterior_curr);
     }
     this->SampleTractOrientation(randomgenerator, posterior_curr,
-      this->GetSampleDirections(), v_curr);
+      this->m_SampleDirections, v_curr);
     
     //takes into account voxels of different sizes
     //converts from a step length of 1 mm to the corresponding length in IJK space
@@ -515,11 +516,11 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   //we need to lock m_CurrentLikelihoodCacheElements as well but not crucial right now
   else if( this->m_CurrentLikelihoodCacheElements < this->m_MaxLikelihoodCacheElements ){
     //entry not found in cache but we have space to store it
-    likelihood.SetSize(this->GetSampleDirections()->Size());
+    likelihood.SetSize(this->m_SampleDirections->Size());
 
     this->CalculateLikelihood(static_cast< DWIVectorImageType::PixelType >(
       inputDWIImagePtr->GetPixel(index)),
-      this->GetSampleDirections(),
+      this->m_SampleDirections,
       likelihood);
     this->m_CurrentLikelihoodCacheElements++;
     
@@ -541,7 +542,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
 ::ObtainTractNumber(unsigned int& tractnumber){
   bool success = false;
   this->m_TotalDelegatedTractsMutex.Lock();
-  if(this->m_TotalDelegatedTracts < this->GetTotalTracts()){
+  if(this->m_TotalDelegatedTracts < this->m_TotalTracts){
     tractnumber = m_TotalDelegatedTracts;
     this->m_TotalDelegatedTracts++;
     success = true;

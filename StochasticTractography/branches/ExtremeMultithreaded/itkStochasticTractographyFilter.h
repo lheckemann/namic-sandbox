@@ -143,12 +143,7 @@ protected:
   
   StochasticTractographyFilter();
   virtual ~StochasticTractographyFilter();
-  
-  /** Classwide Data members **/
-  GradientDirectionContainerType::ConstPointer m_Gradients;
-  bValueContainerType::ConstPointer m_bValues;
-  MeasurementFrameType m_MeasurementFrame;
-  
+
   /** Preparatory Steps (optimizations) before running algorithm **/
   void BeforeGenerateData(void){
     this->UpdateGradientDirections();
@@ -236,6 +231,9 @@ protected:
   /** Thread Safe Function to obtain a tractnumber to start tracking **/
   bool ObtainTractNumber(unsigned int& tractnumber);
   
+  GradientDirectionContainerType::ConstPointer m_Gradients;
+  bValueContainerType::ConstPointer m_bValues;
+  MeasurementFrameType m_MeasurementFrame;
   ProbabilityDistributionImageType::Pointer m_LikelihoodCachePtr;
   LikelihoodCacheMutexImageType::Pointer m_LikelihoodCacheMutexImagePtr;
   unsigned int m_MaxTractLength;
