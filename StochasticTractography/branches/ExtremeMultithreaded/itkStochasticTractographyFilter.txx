@@ -9,7 +9,8 @@
 #include "vnl/algo/vnl_qr.h"
 //#include "vnl/algo/vnl_svd.h"
 #include "vnl/algo/vnl_matrix_inverse.h"
-#include "vnl/algo/vnl_symmetric_eigensystem.h"
+//#include "vnl/algo/vnl_symmetric_eigensystem.h"
+#include "itkSymmetricEigenAnalysis.h"
 #include "vnl/vnl_transpose.h"
 #include "itkVariableSizeMatrix.h"
 #include "itkPathIterator.h"
@@ -181,18 +182,23 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   //pass through the no gradient intensity Z_0 and
   //calculate alpha, beta and v hat (the eigenvector 
   //associated with the largest eigenvalue)
-  vnl_symmetric_eigensystem< double > Deig(D.as_matrix());
+  vnl_matrix_fixed< double, 3, 3 > S(0.0);
+  vnl_vector_fixed< double, 3 > Lambda(0.0);
+  SymmetricEigenAnalysis< vnl_sym_matrix< double >,
+    vnl_vector_fixed< double, 3 >, vnl_matrix_fixed< double, 3, 3 > >
+    eigensystem( 3 );
+  eigensystem.ComputeEigenValuesAndVectors( D, Lambda, S );
   
   //need to take abs to get rid of negative eigenvalues
-  alpha = (vcl_abs(Deig.get_eigenvalue(0)) + vcl_abs(Deig.get_eigenvalue(1))) / 2;
-  beta = vcl_abs(Deig.get_eigenvalue(2)) - alpha;
+  alpha = (vcl_abs(Lambda[0]) + vcl_abs(Lambda[1])) / 2;
+  beta = vcl_abs(Lambda[2]) - alpha;
   
   constrainedmodelparams[0] = tensormodelparams[0];
   constrainedmodelparams[1] = alpha;
   constrainedmodelparams[2] = beta;
-  constrainedmodelparams[3] = (Deig.get_eigenvector(2))[0];
-  constrainedmodelparams[4] = (Deig.get_eigenvector(2))[1];
-  constrainedmodelparams[5] = (Deig.get_eigenvector(2))[2];                  
+  constrainedmodelparams[3] = S[2][0];
+  constrainedmodelparams[4] = S[2][1];
+  constrainedmodelparams[5] = S[2][2];                  
 }
               
 template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
