@@ -21,19 +21,16 @@ namespace itk{
 
 template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
-::StochasticTractographyFilter(){
+::StochasticTractographyFilter():
+  m_TotalTracts(0),m_MaxTractLength(0),m_Gradients(NULL),m_bValues(NULL),
+  m_SampleDirections(NULL), m_A(NULL), m_Aqr(NULL), m_LikelihoodCachePtr(NULL),
+  m_MaxLikelihoodCacheSize(0), m_CurrentLikelihoodCacheElements(0),
+  m_TotalDelegatedTracts(0) {
+  this->m_SeedIndex[0]=0;
+  this->m_SeedIndex[1]=0;
+  this->m_SeedIndex[2]=0;
+  this->m_MeasurementFrame.set_identity();
   this->SetNumberOfRequiredInputs(2); //Filter needs a DWI image and a Mask Image
-  this->SetTotalTracts( 50 );
-  this->SetMaxTractLength( 100 );
-  this->SetGradients(NULL);
-  this->SetbValues(NULL);
-  this->SetSampleDirections(NULL);
-  this->m_A=NULL;
-  this->m_Aqr=NULL;
-  this->m_LikelihoodCachePtr = NULL;
-  this->SetMaxLikelihoodCacheSize( 4096 );  //4 gigs
-  this->m_CurrentLikelihoodCacheElements = 0;
-  this->m_TotalDelegatedTracts = 0;
   
   //load in default sample directions
   this->LoadDefaultSampleDirections();
@@ -88,7 +85,7 @@ template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivity
 void
 StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::UpdateTensorModelFittingMatrices( void ){
-
+  std::cout<<"UpdateTensorFittingMatrix\n";
   //estimate the parameters using linear LS estimation
   //using convention specified by Salvador
   //solve for Beta in: logPhi=X*Beta
@@ -467,15 +464,15 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
 
   str = (StochasticTractGenerationCallbackStruct *)
     (((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
+  typename InputDWIImageType::ConstPointer inputDWIImagePtr = str->Filter->GetInput();
+  typename InputMaskImageType::ConstPointer inputMaskImagePtr = str->Filter->GetMaskImageInput();
+  typename OutputConnectivityImageType::Pointer outputPtr = str->Filter->GetOutput();
   
   typedef PathIterator< OutputConnectivityImageType, PathType > OutputPathIteratorType;
   unsigned int tractnumber;
   PathType::Pointer tractPtr = PathType::New();
   
   while(str->Filter->ObtainTractNumber(tractnumber)){
-    typename InputDWIImageType::ConstPointer inputDWIImagePtr = str->Filter->GetInput();
-    typename InputMaskImageType::ConstPointer inputMaskImagePtr = str->Filter->GetMaskImageInput();
-    typename OutputConnectivityImageType::Pointer outputPtr = str->Filter->GetOutput();
     
     //generate the tract
     str->Filter->StochasticTractGeneration( inputDWIImagePtr,
