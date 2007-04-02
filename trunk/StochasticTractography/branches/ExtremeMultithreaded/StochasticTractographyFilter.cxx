@@ -262,7 +262,7 @@ int main(int argc, char* argv[]){
   ptfilterPtr->SetMaxTractLength( maxtractlength );
   ptfilterPtr->SetTotalTracts( totaltracts );
   ptfilterPtr->SetMaxLikelihoodCacheSize( maxlikelihoodcachesize );
-  ptfilterPtr->SetNumberOfThreads( 8 );
+  ptfilterPtr->SetNumberOfThreads( 3 );
   
   //Setup the AddImageFilter
   AddImageFilterType::Pointer addimagefilterPtr = AddImageFilterType::New();
@@ -280,6 +280,7 @@ int main(int argc, char* argv[]){
   addimagefilterPtr->SetInput1(ptfilterPtr->GetOutput());
   addimagefilterPtr->SetInput2(addimagefilterPtr->GetOutput());
   
+  std::cout<<"Start Processing\n";
   ROIImageIteratorType ROIImageIt( roireaderPtr->GetOutput(),
     roireaderPtr->GetOutput()->GetRequestedRegion() );
   for(ROIImageIt.GoToBegin(); !ROIImageIt.IsAtEnd(); ++ROIImageIt){
