@@ -3,6 +3,7 @@
 #include "vnl/vnl_matrix_fixed.h"
 #include "vnl/vnl_vector_fixed.h"
 #include "vnl/vnl_matrix.h"
+#include "vnl/vnl_sym_matrix.h"
 #include "vnl/vnl_vector.h"
 #include "vnl/vnl_diag_matrix.h"
 #include "vnl/algo/vnl_qr.h"
@@ -162,8 +163,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
 ::CalculateConstrainedModelParameters( const TensorModelParamType& tensormodelparams,
     ConstrainedModelParamType& constrainedmodelparams){          
               
-  vnl_matrix_fixed< double, 3, 3 > D;
-  double alpha, beta;
+  vnl_sym_matrix< double > D( 3, 0 );
+  double alpha =0;
+  double beta=0;
   //set the tensor model parameters into a Diffusion tensor
   D(0,0) = tensormodelparams[1];
   D(0,1) = tensormodelparams[4];
@@ -178,7 +180,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   //pass through the no gradient intensity Z_0 and
   //calculate alpha, beta and v hat (the eigenvector 
   //associated with the largest eigenvalue)
-  vnl_symmetric_eigensystem< double > Deig(D);
+  vnl_symmetric_eigensystem< double > Deig(D.as_matrix());
   
   //need to take abs to get rid of negative eigenvalues
   alpha = (vcl_abs(Deig.get_eigenvalue(0)) + vcl_abs(Deig.get_eigenvalue(1))) / 2;
@@ -245,12 +247,12 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
     ProbabilityDistributionImageType::PixelType& likelihood){
     
   unsigned int N = (this->GetGradients())->Size();
-  TensorModelParamType tensorparams;
-  vnl_diag_matrix< double > W;
-  ConstrainedModelParamType constrainedparams;
+  TensorModelParamType tensorparams( 0.0 );
+  vnl_diag_matrix< double > W(N,0);
+  ConstrainedModelParamType constrainedparams( 0.0 );
   DWIVectorImageType::PixelType noisefreedwi(N);
-  double residualvariance;
-  double jointlikelihood;
+  double residualvariance=0;
+  double jointlikelihood=1;
   
   CalculateTensorModelParameters( dwipixel, W, tensorparams );
   CalculateConstrainedModelParameters( tensorparams, constrainedparams );
@@ -360,8 +362,8 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   unsigned int tractnumber,
   PathType::Pointer tractPtr){
   
-  PathType::ContinuousIndexType cindex_curr;
-  typename InputDWIImageType::IndexType index_curr;
+  PathType::ContinuousIndexType cindex_curr = seedindex;
+  typename InputDWIImageType::IndexType index_curr = {{0,0,0}};
   ProbabilityDistributionImageType::PixelType 
       prior_curr(this->GetSampleDirections()->Size()); 
   ProbabilityDistributionImageType::PixelType 
@@ -373,7 +375,6 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   vnl_random randomgenerator(tractnumber);
   //std::cout<<randomgenerator.drand64()<<std::endl;
   
-  cindex_curr = seedindex;
   for(unsigned int j=0; (j<this->GetMaxTractLength()) &&
     (dwiimagePtr->GetLargestPossibleRegion().IsInside(cindex_curr));
     j++){
@@ -400,8 +401,8 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
     else{
       //do the likelihood calculation and discard
       //std::cout<<"Cache Miss!\n";
-      ProbabilityDistributionImageType::PixelType likelihood_curr_temp;
-      likelihood_curr_temp.SetSize(this->GetSampleDirections()->Size());
+      ProbabilityDistributionImageType::PixelType 
+        likelihood_curr_temp(this->GetSampleDirections()->Size());
 
       this->CalculateLikelihood(static_cast< DWIVectorImageType::PixelType >(
         dwiimagePtr->GetPixel(index_curr)),
@@ -425,7 +426,6 @@ template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivity
 void
 StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::GenerateData(){
-  typedef ProbabilityDistributionImageType PDImageType;
   //preparations
   this->BeforeGenerateData();
   
@@ -456,20 +456,16 @@ ITK_THREAD_RETURN_TYPE
 StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::StochasticTractGenerationCallback( void *arg )
 {
-  StochasticTractGenerationCallbackStruct *str;
-  int total, threadId, threadCount;
+  StochasticTractGenerationCallbackStruct* str=
+    (StochasticTractGenerationCallbackStruct *)
+      (((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
 
-  threadId = ((MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
-  threadCount = ((MultiThreader::ThreadInfoStruct *)(arg))->NumberOfThreads;
-
-  str = (StochasticTractGenerationCallbackStruct *)
-    (((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
   typename InputDWIImageType::ConstPointer inputDWIImagePtr = str->Filter->GetInput();
   typename InputMaskImageType::ConstPointer inputMaskImagePtr = str->Filter->GetMaskImageInput();
   typename OutputConnectivityImageType::Pointer outputPtr = str->Filter->GetOutput();
   
   typedef PathIterator< OutputConnectivityImageType, PathType > OutputPathIteratorType;
-  unsigned int tractnumber;
+  unsigned int tractnumber=-1;
   PathType::Pointer tractPtr = PathType::New();
   
   while(str->Filter->ObtainTractNumber(tractnumber)){
@@ -535,6 +531,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
     this->m_LikelihoodCacheMutexImagePtr->GetPixel(index).Unlock();
     return likelihood;
   }
+  this->m_LikelihoodCacheMutexImagePtr->GetPixel(index).Unlock();
 }
 
 /** Thread Safe Function to obtain a tractnumber to start tracking **/
