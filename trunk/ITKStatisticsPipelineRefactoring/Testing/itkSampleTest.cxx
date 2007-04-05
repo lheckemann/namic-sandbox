@@ -88,11 +88,22 @@ private:
 int itkSampleTest(int, char* [] )
 {
 
-  typedef itk::FixedArray< float, 10 >  MeasurementVectorType;
+  const unsigned int MeasurementVectorSize = 17;
+
+  typedef itk::FixedArray< 
+    float, MeasurementVectorSize >  MeasurementVectorType;
+
   typedef itk::StatisticsNew::SampleTest::MySample< 
     MeasurementVectorType >   SampleType;
 
   SampleType::Pointer sample = SampleType::New();
 
-  return (EXIT_SUCCESS);
+  sample->SetMeasurementVectorSize( 27 ); // in this case the call should be ignored.
+
+  if( sample->GetMeasurementVectorSize() != MeasurementVectorSize )
+    {
+    std::cerr << "GetMeasurementVectorSize() Failed !" << std::endl;
+    return EXIT_FAILURE;
+    }
+  return EXIT_SUCCESS;
 }

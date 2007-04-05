@@ -115,8 +115,6 @@ public:
     if( (defaultLength != 0) && (s!=defaultLength) )
       {
       return; // Do not do anything.
-      //itkExceptionMacro( << "Cannot instantiate a sample with a fixed length "
-      // << "container and resize it later. Create it with itk::Array if you like.");
       }
     this->m_MeasurementVectorSize = s;
     }
