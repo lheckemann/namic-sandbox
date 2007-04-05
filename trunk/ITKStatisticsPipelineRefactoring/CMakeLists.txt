@@ -5,8 +5,15 @@ IF(ITK_FOUND)
   INCLUDE(${ITK_USE_FILE})
 ENDIF(ITK_FOUND)
 
-SUBDIRS(Source)
+# The "BEFORE" modified ensures that our Source directory will 
+# be visited before the ITK Code/Numerics/Statistics directory.
+INCLUDE_DIRECTORIES( BEFORE
+  ${StatisticsRefactoring_SOURCE_DIR}
+  ${StatisticsRefactoring_SOURCE_DIR}/Source
+  ${StatisticsRefactoring_SOURCE_DIR}/Testing
+  )
 
+SUBDIRS(Source)
 
 CONFIGURE_FILE(
   DartConfiguration.tcl.in

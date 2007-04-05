@@ -26,7 +26,7 @@
 #include "itkNumericTraits.h"
 
 namespace itk{ 
-namespace Statistics{
+namespace StatisticsNew {
 
 /** \class Sample 
  *  \brief A collection of measurements for statistical analysis
@@ -147,7 +147,7 @@ private:
   MeasurementVectorSizeType m_MeasurementVectorSize;
 } ; // end of class
 
-} // end of namespace Statistics 
+} // end of namespace StatisticsNew 
 } // end of namespace itk
 
 #endif

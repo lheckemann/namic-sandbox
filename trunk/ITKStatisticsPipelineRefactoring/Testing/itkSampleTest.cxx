@@ -23,7 +23,7 @@
 #include "itkObjectFactory.h"
 
 namespace itk {
-namespace Statistics {
+namespace StatisticsNew {
 namespace SampleTest {
 
 template <class TMeasurementVector>
@@ -89,7 +89,7 @@ int itkSampleTest(int, char* [] )
 {
 
   typedef itk::FixedArray< float, 10 >  MeasurementVectorType;
-  typedef itk::Statistics::SampleTest::MySample< 
+  typedef itk::StatisticsNew::SampleTest::MySample< 
     MeasurementVectorType >   SampleType;
 
   SampleType::Pointer sample = SampleType::New();
