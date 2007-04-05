@@ -34,8 +34,16 @@ PATHS
 /usr/local/bin
 )
 
+CONFIGURE_FILE(
+  Utilities/KWStyle/ITKFiles.txt.in
+  ${PROJECT_BINARY_DIR}/Utilities/KWStyle/ITKFiles.txt)
+
+CONFIGURE_FILE(
+  Utilities/KWStyle/ITK.kws.xml.in
+  ${PROJECT_BINARY_DIR}/Utilities/KWStyle/ITK.kws.xml)
+
 SET(KWSTYLE_ARGUMENTS
-  -xml ${ITK_BINARY_DIR}/ITK.kws.xml -o ${ITK_SOURCE_DIR}/Utilities/KWStyle/ITKOverwrite.txt -v -D ${ITK_BINARY_DIR}/Utilities/KWStyle/InsightFiles.txt  
+  -xml ${PROJECT_BINARY_DIR}/Utilities/KWStyle/ITK.kws.xml -v -D ${PROJECT_BINARY_DIR}/Utilities/KWStyle/ITKFiles.txt  
   )
 
 IF(KWSTYLE_USE_VIM_FORMAT)
@@ -53,4 +61,5 @@ ADD_CUSTOM_COMMAND(
   COMMENT "Coding Style Checker"
   )
 ADD_CUSTOM_TARGET(StyleCheck DEPENDS ${StatisticsRefactoring_BINARY_DIR}/KWStyleReport.txt)
+ADD_TEST(KWStyleTest ${KWSTYLE_EXECUTABLE} ${KWSTYLE_ARGUMENTS})
 
