@@ -23,6 +23,7 @@
 #include "itkPointSet.h"
 
 // #include "itkSample.h"   // abstract class
+#include "itkHistogram.h"
 #include "itkListSample.h"
 
 int itkStatisticsPrintTest(int , char* [])
@@ -36,9 +37,14 @@ int itkStatisticsPrintTest(int , char* [])
   typedef itk::Statistics::ListSample< MeasurementVectorType >
     SampleType;
 
+  typedef itk::Statistics::Histogram< MeasurementType, 2 > HistogramType ;
+
   SampleType::Pointer sampleObj = SampleType::New();
   std::cout << "----------ListSample " << sampleObj;
 
+  HistogramType::Pointer HistogramObj=
+    HistogramType::New();
+  std::cout << "----------Histogram " << HistogramObj;
 
   return EXIT_SUCCESS;
 }
