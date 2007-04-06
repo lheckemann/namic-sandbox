@@ -82,11 +82,11 @@ public:
     m_InternalContainer.resize(n);
     }
 
-  /** Removes all the elements in the Sample*/
+  /** Removes all the elements in the Sample */
   void Clear()
-  {
-  m_InternalContainer.clear();
-  }
+    {
+    m_InternalContainer.clear();
+    }
 
   /** Inserts a measurement at the end of the list */
   void PushBack( MeasurementVectorType mv )
@@ -94,11 +94,11 @@ public:
     m_InternalContainer.push_back( mv );
     }
 
-  /** Get the number of measurement vectors in the sample*/
+  /** Get the number of measurement vectors in the sample */
   unsigned int Size() const
-  {
-  return static_cast<unsigned int>( m_InternalContainer.size() );
-  }
+    {
+    return static_cast<unsigned int>( m_InternalContainer.size() );
+    }
 
   /** Get the measurement associated with the specified
    * InstanceIdentifier */
