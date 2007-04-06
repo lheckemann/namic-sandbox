@@ -54,12 +54,16 @@ public:
    * InstanceIdentifier. */
   virtual const MeasurementVectorType & 
     GetMeasurementVector(const InstanceIdentifier &id) const
-      { return m_Values[id]; }
+      { 
+      return m_Values[id];
+      }
 
   /** Get the frequency of a measurement specified by instance
    * identifier. */
   virtual FrequencyType GetFrequency(const InstanceIdentifier &id) const
-      { return m_Frequencies[id]; }
+    { 
+    return m_Frequencies[id];
+    }
 
   /** Get the total frequency of the sample. */
   virtual TotalFrequencyType GetTotalFrequency() const 
@@ -74,6 +78,20 @@ public:
       }
     return sum;
     }
+
+  void PrintSelf(std::ostream& os, Indent indent) const
+    {
+    Superclass::PrintSelf(os,indent);
+    os << indent << m_Values.size() << std::endl;
+    os << indent << m_Frequencies.size() << std::endl;
+    }
+
+  void AddMeasurementVector( 
+    const MeasurementVectorType & measure, FrequencyType frequency )
+      {
+      m_Values.push_back( measure );
+      m_Frequencies.push_back( frequency );
+      }
 
 private:
 
@@ -98,12 +116,54 @@ int itkSampleTest(int, char* [] )
 
   SampleType::Pointer sample = SampleType::New();
 
+  std::cout << sample->GetNameOfClass() << std::endl;
+  std::cout << sample->SampleType::Superclass::GetNameOfClass() << std::endl;
+
+  sample->Print(std::cout);
+
   sample->SetMeasurementVectorSize( 27 ); // in this case the call should be ignored.
+
+  sample->SetMeasurementVectorSize( MeasurementVectorSize ); // for code coverage
 
   if( sample->GetMeasurementVectorSize() != MeasurementVectorSize )
     {
     std::cerr << "GetMeasurementVectorSize() Failed !" << std::endl;
     return EXIT_FAILURE;
     }
+
+  std::cout << sample->Size() << std::endl;
+
+  MeasurementVectorType measure;
+  for( unsigned int i=0; i<MeasurementVectorSize; i++)
+    {
+    measure[i] = 29 * i * i;
+    }
+
+  typedef SampleType::FrequencyType FrequencyType;
+  
+  FrequencyType frequency = 17;
+
+  sample->AddMeasurementVector( measure, frequency );
+
+  MeasurementVectorType measureBack = sample->GetMeasurementVector( 0 );
+  FrequencyType frequencyBack = sample->GetFrequency( 0 );
+
+  if( frequencyBack != frequency )
+    {
+    std::cerr << "Error in GetFrequency()" << std::endl;
+    return EXIT_FAILURE;
+    }
+    
+  for( unsigned int j=0; j<MeasurementVectorSize; j++)
+    {
+    if( measureBack[j] != measure[j] )
+      {
+      std::cerr << "Error in Set/Get MeasurementVector()" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+  std::cout << sample->GetTotalFrequency() << std::endl;
+
   return EXIT_SUCCESS;
 }
