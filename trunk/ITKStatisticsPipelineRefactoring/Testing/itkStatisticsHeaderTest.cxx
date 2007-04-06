@@ -24,6 +24,7 @@
 // Test to include each header file for Insight
 
 #include "itkSample.h"
+#include "itkListSample.h"
 
 int main ( int , char*  )
 {

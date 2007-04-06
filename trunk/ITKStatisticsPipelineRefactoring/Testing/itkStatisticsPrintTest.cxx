@@ -23,13 +23,22 @@
 #include "itkPointSet.h"
 
 // #include "itkSample.h"   // abstract class
+#include "itkListSample.h"
+
 int itkStatisticsPrintTest(int , char* [])
 {
-  typedef float MeasurementType ;
-  typedef float FrequencyType ;
-  typedef itk::FixedArray< MeasurementType, 2 > MeasurementVectorType ;
-  typedef itk::Image< MeasurementVectorType, 3 > ImageType ;
-  typedef itk::PointSet< MeasurementType > PointSetType ;
+  typedef float MeasurementType;
+  typedef float FrequencyType;
+  typedef itk::FixedArray< MeasurementType, 2 > MeasurementVectorType;
+  typedef itk::Image< MeasurementVectorType, 3 > ImageType;
+  typedef itk::PointSet< MeasurementType > PointSetType;
+
+  typedef itk::Statistics::ListSample< MeasurementVectorType >
+    SampleType;
+
+  SampleType::Pointer sampleObj = SampleType::New();
+  std::cout << "----------ListSample " << sampleObj;
+
 
   return EXIT_SUCCESS;
 }
