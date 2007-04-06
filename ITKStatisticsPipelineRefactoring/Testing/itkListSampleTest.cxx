@@ -17,7 +17,9 @@ PURPOSE.  See the above copyright notices for more information.
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
 #endif
+
 #include "itkArray.h"
+#include "itkVariableLengthVector.h"
 #include "itkListSample.h"
 
 int itkListSampleTest(int argc, char *argv[] ) 
@@ -28,8 +30,8 @@ int itkListSampleTest(int argc, char *argv[] )
     std::cerr << "itkListSampleTest LengthOfMeasurementVector" << std::endl;
     }
     
-  typedef itk::Array< float > MeasurementVectorType ;
-  typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType ;
+  typedef itk::Array< float > MeasurementVectorType;
+  typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
 
   SampleType::MeasurementVectorSizeType measurementVectorSize = atoi(argv[1]);
   std::cerr << "Measurement vector size: " << measurementVectorSize 
@@ -37,18 +39,18 @@ int itkListSampleTest(int argc, char *argv[] )
 
   unsigned int sampleSize = 25;
 
-  SampleType::Pointer sample = SampleType::New() ;
+  SampleType::Pointer sample = SampleType::New();
 
   sample->SetMeasurementVectorSize( measurementVectorSize );
 
-  MeasurementVectorType mv( measurementVectorSize ) ;
-  for ( unsigned int i = 0 ; i < sampleSize ; i++ )
+  MeasurementVectorType mv( measurementVectorSize );
+  for ( unsigned int i = 0; i < sampleSize; i++ )
     {
-    for (unsigned int j = 0 ; j < measurementVectorSize ; j++ )
+    for (unsigned int j = 0; j < measurementVectorSize; j++ )
       {
-      mv[j] = rand() / (RAND_MAX+1.0)  ;
+      mv[j] = rand() / (RAND_MAX+1.0) ;
       }
-    sample->PushBack(mv) ;
+    sample->PushBack(mv);
     }
 
   // tests begin
@@ -70,7 +72,7 @@ int itkListSampleTest(int argc, char *argv[] )
     }
 
   // get and set measurements
-  mv = sample->GetMeasurementVector(4) ;
+  mv = sample->GetMeasurementVector(4);
   if ( mv != sample->GetMeasurementVector(4) )
     {
     std::cerr << "GetMeasurementVector failed" << std::endl;
@@ -107,7 +109,7 @@ int itkListSampleTest(int argc, char *argv[] )
   std::cerr << "Iterators..." << std::endl;
     {
     // forward iterator
-    SampleType::Iterator s_iter = sample->Begin() ;
+    SampleType::Iterator s_iter = sample->Begin();
     
     // copy constructor
     SampleType::Iterator bs_iter(s_iter);
@@ -117,7 +119,7 @@ int itkListSampleTest(int argc, char *argv[] )
       return EXIT_FAILURE;    
       }
     
-    SampleType::InstanceIdentifier id = 0 ;
+    SampleType::InstanceIdentifier id = 0;
     while (s_iter != sample->End())
       {
       if (sample->GetMeasurementVector(id) != 
@@ -143,8 +145,8 @@ int itkListSampleTest(int argc, char *argv[] )
         std::cerr << "GetFrequency (forward) failed" << std::endl;
         return EXIT_FAILURE;
         }
-      ++id ;
-      ++s_iter ;
+      ++id;
+      ++s_iter;
       }
     
     if (s_iter != sample->End())
@@ -184,7 +186,7 @@ int itkListSampleTest(int argc, char *argv[] )
     std::cerr << "Const Iterators..." << std::endl;
     {
     // forward iterator
-    SampleType::ConstIterator s_iter = sample->Begin() ;
+    SampleType::ConstIterator s_iter = sample->Begin();
     
     // copy constructor
     SampleType::ConstIterator bs_iter(s_iter);
@@ -212,7 +214,7 @@ int itkListSampleTest(int argc, char *argv[] )
       return EXIT_FAILURE;    
       }
     
-    SampleType::InstanceIdentifier id = 0 ;
+    SampleType::InstanceIdentifier id = 0;
     while (s_iter != sample->End())
       {
       if (sample->GetMeasurementVector(id) != 
@@ -233,8 +235,8 @@ int itkListSampleTest(int argc, char *argv[] )
         std::cerr << "Iterator::GetFrequency (forward) failed" << std::endl;
         return EXIT_FAILURE;
         }
-      ++id ;
-      ++s_iter ;
+      ++id;
+      ++s_iter;
       }
     
     if (s_iter != sample->End())
@@ -288,6 +290,73 @@ int itkListSampleTest(int argc, char *argv[] )
       return EXIT_FAILURE;          
       }
     
+
+    // Test a VariableSizeVector
+    typedef itk::VariableLengthVector< float >  
+      VariableSizeMeasurementVectorType;
+
+    typedef itk::Statistics::ListSample< VariableSizeMeasurementVectorType >
+      VariableSizeListSampleType;
+
+    VariableSizeListSampleType::Pointer variableSizeSample = 
+      VariableSizeListSampleType::New();
+    
+    const unsigned int initialSize = 19;
+      variableSizeSample->SetMeasurementVectorSize( initialSize );
+
+    unsigned int returnedSize =
+      variableSizeSample->GetMeasurementVectorSize();
+     
+    if( initialSize != returnedSize )
+      {
+      std::cerr << "Error in Get/SetMeasurementVectorSize() " << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    VariableSizeMeasurementVectorType variableLenghtVector;
+    variableLenghtVector.SetSize( 42 );
+
+    variableSizeSample->PushBack( variableLenghtVector );
+
+    variableSizeSample->SetMeasurementVectorSize( initialSize );
+
+    returnedSize = variableSizeSample->GetMeasurementVectorSize();
+     
+    if( initialSize != returnedSize )
+      {
+      std::cerr << "Error in Get/SetMeasurementVectorSize() " << std::endl;
+      return EXIT_FAILURE;
+      }
+
+
+    // Now, verify that it can be changed
+    const unsigned int initialSize2 = 37;
+      variableSizeSample->SetMeasurementVectorSize( initialSize2 );
+
+    const unsigned int returnedSize2 =
+      variableSizeSample->GetMeasurementVectorSize();
+     
+    if( initialSize2 != returnedSize2 )
+      {
+      std::cerr << "Error in Get/SetMeasurementVectorSize() " << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    // Now, verify that if set to zero, it will use the first element
+    // to return a vector size.
+    const unsigned int initialSize3 = 0;
+      variableSizeSample->SetMeasurementVectorSize( initialSize3 );
+
+    const unsigned int returnedSize3 =
+      variableSizeSample->GetMeasurementVectorSize();
+     
+    if( variableLenghtVector.GetSize() != returnedSize3 )
+      {
+      std::cerr << "Error in Get/SetMeasurementVectorSize() " << std::endl;
+      return EXIT_FAILURE;
+      }
+
+
 
     std::cout << "Test passed." << std::endl;
     return EXIT_SUCCESS;
