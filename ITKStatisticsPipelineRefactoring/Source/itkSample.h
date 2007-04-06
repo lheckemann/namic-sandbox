@@ -25,6 +25,11 @@
 #include "itkMeasurementVectorTraits.h"
 #include "itkNumericTraits.h"
 
+/** Macro used to redefine a type from the superclass. */
+#define itkSuperclassTraitMacro(traitname) \
+  typedef typename Superclass::traitname traitname;
+
+
 namespace itk { 
 namespace Statistics {
 
