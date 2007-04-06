@@ -17,11 +17,13 @@ ADD_TEST(itkStatisticsHeaderTest ${STATISTICS_HEADER_TESTS})
 ADD_TEST(itkStatisticsPrintTest ${STATISTICS_TESTS} itkStatisticsPrintTest)
 
 ADD_TEST(itkSampleTest ${STATISTICS_TESTS} itkSampleTest)
+ADD_TEST(itkListSampleTest ${STATISTICS_TESTS} itkListSampleTest)
 
 
 SET(Statistics_SRCS
   itkStatisticsPrintTest.cxx
   itkSampleTest.cxx
+  itkListSampleTest.cxx
   )
 
 ADD_EXECUTABLE(itkStatisticsTests itkStatisticsTests.cxx ${Statistics_SRCS})

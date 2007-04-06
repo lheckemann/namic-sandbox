@@ -26,7 +26,7 @@
 #include "itkNumericTraits.h"
 
 namespace itk { 
-namespace StatisticsNew {
+namespace Statistics {
 
 /** \class Sample 
  *  \brief A collection of measurements for statistical analysis
