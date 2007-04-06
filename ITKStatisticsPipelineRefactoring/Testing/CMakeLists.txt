@@ -17,7 +17,10 @@ ADD_TEST(itkStatisticsHeaderTest ${STATISTICS_HEADER_TESTS})
 ADD_TEST(itkStatisticsPrintTest ${STATISTICS_TESTS} itkStatisticsPrintTest)
 
 ADD_TEST(itkSampleTest ${STATISTICS_TESTS} itkSampleTest)
-ADD_TEST(itkListSampleTest ${STATISTICS_TESTS} itkListSampleTest)
+ADD_TEST(itkListSampleTest1 ${STATISTICS_TESTS} itkListSampleTest 1)
+ADD_TEST(itkListSampleTest2 ${STATISTICS_TESTS} itkListSampleTest 5)
+ADD_TEST(itkListSampleTest3 ${STATISTICS_TESTS} itkListSampleTest 10)
+ADD_TEST(itkListSampleTest4 ${STATISTICS_TESTS} itkListSampleTest 100)
 
 
 SET(Statistics_SRCS
