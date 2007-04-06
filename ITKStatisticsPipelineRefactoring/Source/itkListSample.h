@@ -195,113 +195,124 @@ public:
       }
 
     private:
-      typename InternalDataContainerType::iterator m_Iter;
-      InstanceIdentifier m_InstanceIdentifier;
+
+    typename InternalDataContainerType::iterator m_Iter;
+    InstanceIdentifier m_InstanceIdentifier;
+
     };
 
   class ConstIterator
-  {
+    {
   public:
 
     ConstIterator(){}
 
-    ConstIterator(typename InternalDataContainerType::const_iterator iter,
-             InstanceIdentifier iid)
-      :m_Iter(iter), m_InstanceIdentifier(iid)
-    {}
+    ConstIterator(
+      typename InternalDataContainerType::const_iterator iter,
+      InstanceIdentifier iid)
+      {
+      m_Iter = iter;
+      m_InstanceIdentifier = iid;
+      }
 
     FrequencyType GetFrequency() const
-    { return 1;}
+      {
+      return 1;
+      }
 
     const MeasurementVectorType & GetMeasurementVector() const
-    { return static_cast<const MeasurementVectorType&>(*m_Iter);}
+      {
+      return static_cast<const MeasurementVectorType&>(*m_Iter);
+      }
 
     InstanceIdentifier GetInstanceIdentifier() const
-    { return m_InstanceIdentifier;}
+      {
+      return m_InstanceIdentifier;
+      }
 
     ConstIterator& operator++()
-    {
+      {
       ++m_Iter;
       ++m_InstanceIdentifier;
       return *this;
-    }
+      }
 
     ConstIterator& operator--()
-    {
+      {
       --m_Iter;
       --m_InstanceIdentifier;
       return *this;
-    }
+      }
 
     bool operator!=(const ConstIterator &it)
-    {
+      {
       return (m_Iter != it.m_Iter);
-    }
+      }
 
     bool operator==(const ConstIterator &it)
-    {
+      {
       return (m_Iter == it.m_Iter);
-    }
+      }
 
     ConstIterator& operator = (const ConstIterator iter)
-    {
+      {
       m_Iter = iter.m_Iter;
       m_InstanceIdentifier = iter.m_InstanceIdentifier;
       return *this;
-    }
+      }
 
     ConstIterator& operator = (const Iterator & iter)
-    {
+      {
       m_Iter = iter.m_Iter;
       m_InstanceIdentifier = iter.m_InstanceIdentifier;
       return *this;
-    }
+      }
 
 
     ConstIterator(const ConstIterator &iter)
-    {
+      {
       m_Iter = iter.m_Iter;
       m_InstanceIdentifier = iter.m_InstanceIdentifier;
-    }
+      }
 
     ConstIterator(const Iterator &iter)
-    {
+      {
       m_Iter = iter.m_Iter;
       m_InstanceIdentifier = iter.m_InstanceIdentifier;
-    }
+      }
 
   private:
     typename InternalDataContainerType::const_iterator m_Iter;
     InstanceIdentifier m_InstanceIdentifier;
-  };
+    };
 
   /** returns an iterator that points to the beginning of the container */
   Iterator Begin()
-  {
+    {
     Iterator iter(m_InternalContainer.begin(), 0);
     return iter;
-  }
+    }
 
   /** returns an iterator that points to the end of the container */
   Iterator End()
-  {
+    {
     Iterator iter(m_InternalContainer.end(), m_InternalContainer.size());
     return iter;
-  }
+    }
 
   /** returns an iterator that points to the beginning of the container */
   ConstIterator Begin() const
-  {
+    {
     ConstIterator iter(m_InternalContainer.begin(), 0);
     return iter;
-  }
+    }
 
   /** returns an iterator that points to the end of the container */
   ConstIterator End() const
-  {
+    {
     ConstIterator iter(m_InternalContainer.end(), m_InternalContainer.size());
     return iter;
-  }
+    }
 
   virtual MeasurementVectorSizeType GetMeasurementVectorSize() const
     {

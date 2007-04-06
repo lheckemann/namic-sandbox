@@ -26,8 +26,8 @@
 #include "itkNumericTraits.h"
 
 /** Macro used to redefine a type from the superclass. */
-#define itkSuperclassTraitMacro(traitname) \
-  typedef typename Superclass::traitname traitname;
+#define itkSuperclassTraitMacro(TraitnameType) \
+  typedef typename Superclass::TraitnameType TraitnameType;
 
 
 namespace itk { 
