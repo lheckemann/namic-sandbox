@@ -152,7 +152,7 @@ public:
 
   /** Get the index of a measurement value from the histogram.
    * \deprecated Use GetIndex(const MeasurementVectorType &
-   * measurement, IndexType & index ) const instead.*/
+   * measurement, IndexType & index ) const instead. */
   const IndexType & GetIndex(const MeasurementVectorType& measurement) const;
 
   /** Get the index of histogram corresponding to the specified
@@ -334,7 +334,7 @@ public:
   MeasurementType GetMeasurement(const unsigned long n,
                                   const unsigned int dimension) const;
 
-  /** Get the total frequency in the histogram*/
+  /** Get the total frequency in the histogram */
   TotalFrequencyType GetTotalFrequency() const;
 
   /** Get the frequency of a dimension's nth element. */
