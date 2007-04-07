@@ -82,14 +82,14 @@ public:
    * MeasurementVector */ 
   typedef typename MeasurementVectorType::ValueType   MeasurementType;
 
-  /** Frequency value type*/
+  /** Frequency value type */
   typedef float FrequencyType;
   
-  /** Total frequency type*/
+  /** Total frequency type */
   typedef NumericTraits<FrequencyType>::AccumulateType TotalFrequencyType;
 
   /** InstanceIdentifier typedef. This identifier is a unique
-   * sequential id for each measurement vector in a Sample subclass.*/ 
+   * sequential id for each measurement vector in a Sample subclass. */ 
   typedef unsigned long InstanceIdentifier;
 
   /** Typedef for the length of each measurement vector */
