@@ -380,6 +380,16 @@ int itkListSampleTest(int argc, char *argv[] )
       return EXIT_FAILURE;
       }
 
+    const double outOfRangeFrequency =
+      sample->GetFrequency( largestId + 10 );
+
+    if( outOfRangeFrequency != 0.0 )
+      {
+      std::cerr << "GetFrequency() failed for out of range Id";
+      std::cerr << std::endl;
+      return EXIT_FAILURE;
+      }
+    
     std::cout << "Test passed." << std::endl;
     return EXIT_SUCCESS;
 }
