@@ -77,9 +77,9 @@ public:
    * this container, instead, it will throw exception. Therefore,
    * resize the container before using the sample in a Subsample or
    * MembershipSample. */
-  void Resize( unsigned int n )
+  void Resize( InstanceIdentifier newsize )
     {
-    m_InternalContainer.resize(n);
+    m_InternalContainer.resize( newsize );
     }
 
   /** Removes all the elements in the Sample */
@@ -89,33 +89,33 @@ public:
     }
 
   /** Inserts a measurement at the end of the list */
-  void PushBack( MeasurementVectorType mv )
+  void PushBack( const MeasurementVectorType & mv )
     {
     m_InternalContainer.push_back( mv );
     }
 
   /** Get the number of measurement vectors in the sample */
-  unsigned int Size() const
+  InstanceIdentifier Size() const
     {
-    return static_cast<unsigned int>( m_InternalContainer.size() );
+    return static_cast<InstanceIdentifier>( m_InternalContainer.size() );
     }
 
   /** Get the measurement associated with the specified
    * InstanceIdentifier */
-  const MeasurementVectorType & GetMeasurementVector(const InstanceIdentifier &id) const;
+  const MeasurementVectorType & GetMeasurementVector(InstanceIdentifier id) const;
 
   /** Set a component a measurement to a particular value. */
-  void SetMeasurement(const InstanceIdentifier &id,
-                      const unsigned int &dim,
+  void SetMeasurement(InstanceIdentifier id,
+                      unsigned int dim,
                       const MeasurementType &value);
 
   /** Replace a measurement with a different measurement */
-  void SetMeasurementVector(const InstanceIdentifier &id,
+  void SetMeasurementVector( InstanceIdentifier id,
                             const MeasurementVectorType &mv);
 
   /** Get the frequency of a measurement. Returns 1 if the measurement
    * exist. */
-  FrequencyType GetFrequency(const InstanceIdentifier &id) const;
+  FrequencyType GetFrequency( InstanceIdentifier id ) const;
 
   /** Get the total frequency of the sample.  This is equivalent to
    * the size of the sample. */

@@ -32,7 +32,7 @@ ListSample< TMeasurementVector >
 template< class TMeasurementVector >
 const typename ListSample< TMeasurementVector >::MeasurementVectorType &
 ListSample< TMeasurementVector >
-::GetMeasurementVector(const InstanceIdentifier &id) const 
+::GetMeasurementVector(InstanceIdentifier id) const 
 {
   if ( id < m_InternalContainer.size() )
     {
@@ -44,9 +44,9 @@ ListSample< TMeasurementVector >
 template< class TMeasurementVector >
 void 
 ListSample< TMeasurementVector >
-::SetMeasurement(const InstanceIdentifier &id, 
-                 const unsigned int &dim,
-                 const MeasurementType &value)
+::SetMeasurement( InstanceIdentifier id, 
+                  unsigned int dim,
+                  const MeasurementType &value)
 {
   if ( id < m_InternalContainer.size() )
     {
@@ -57,8 +57,8 @@ ListSample< TMeasurementVector >
 template< class TMeasurementVector >
 void
 ListSample< TMeasurementVector >
-::SetMeasurementVector(const InstanceIdentifier &id, 
-                       const MeasurementVectorType &mv)
+::SetMeasurementVector( InstanceIdentifier id, 
+                        const MeasurementVectorType &mv)
 {
   if ( id < m_InternalContainer.size() )
     {
@@ -69,7 +69,7 @@ ListSample< TMeasurementVector >
 template< class TMeasurementVector >
 typename ListSample< TMeasurementVector >::FrequencyType 
 ListSample< TMeasurementVector >
-::GetFrequency(const InstanceIdentifier &id) const
+::GetFrequency( InstanceIdentifier id ) const
 {
   if ( id < m_InternalContainer.size() )
     {
