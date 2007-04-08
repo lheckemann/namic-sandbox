@@ -36,12 +36,15 @@ int itkHistogramTest(int, char* [] )
           itk::Statistics::DenseFrequencyContainer > HistogramType;
   HistogramType::Pointer histogram = HistogramType::New();
 
+  typedef HistogramType::MeasurementVectorType MeasurementVectorType;
+  typedef HistogramType::InstanceIdentifier    InstanceIdentifier; 
+
   // initializes a 64 x 64 x 64 histogram with equal size interval
   HistogramType::SizeType size;
   size.Fill(64);
   unsigned long totalSize = size[0] * size[1] * size[2];
-  HistogramType::MeasurementVectorType lowerBound;
-  HistogramType::MeasurementVectorType upperBound;
+  MeasurementVectorType lowerBound;
+  MeasurementVectorType upperBound;
   lowerBound.Fill(0);
   upperBound.Fill(1024);
   histogram->Initialize(size, lowerBound, upperBound );
@@ -51,7 +54,7 @@ int itkHistogramTest(int, char* [] )
     static_cast< HistogramType::MeasurementType >(size[0]);
 
   // tests begin
-  HistogramType::MeasurementVectorType measurements;
+  MeasurementVectorType measurements;
   measurements.Fill(512);
   HistogramType::IndexType index;
   HistogramType::IndexType ind;
@@ -70,8 +73,7 @@ int itkHistogramTest(int, char* [] )
     whereFail = "GetIndex(MeasurementVectorType&)";
     }
   
-  HistogramType::InstanceIdentifier id = 
-    histogram->GetInstanceIdentifier(index);
+  InstanceIdentifier id = histogram->GetInstanceIdentifier(index);
   if (index != histogram->GetIndex(id))
     {
     pass = false;
@@ -111,7 +113,7 @@ int itkHistogramTest(int, char* [] )
     }
 
   for (id = 0; 
-       id < static_cast< HistogramType::InstanceIdentifier >(totalSize);
+       id < static_cast< InstanceIdentifier >(totalSize);
        id++)
     {
     histogram->SetFrequency(id, 1);
@@ -270,6 +272,19 @@ int itkHistogramTest(int, char* [] )
     std::cout << excp << std::endl;
     }
 
+  index.Fill(0);
+  MeasurementVectorType measurement = histogram->GetMeasurementVector( index );
+  std::cout << "Index " << index << "Measurement " << measurement << std::endl;
+  
+  histogram->SetClipBinsAtEnds( true );
+
+  measurement = histogram->GetMeasurementVector( index );
+  std::cout << "Index " << index << "Measurement " << measurement << std::endl;
+  
+  const InstanceIdentifier instanceId = 0;
+  measurement = histogram->GetMeasurementVector( instanceId );
+  std::cout << "Id " << instanceId << "Measurement " << measurement << std::endl;
+ 
   if( !pass )
     {
     std::cout << "Test failed in " << whereFail << "." << std::endl;
