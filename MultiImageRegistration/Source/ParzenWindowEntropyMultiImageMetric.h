@@ -229,7 +229,12 @@ public:
 
   /** Set/Get the regularization factor */
   itkSetMacro( RegularizationFactor, RealType );
+  itkGetMacro( RegularizationFactor, RealType );
 
+  /** Set/Get the number of fixed images */
+  itkSetMacro( NumberOfFixedImages, unsigned int );
+  itkGetMacro( NumberOfFixedImages, unsigned int );
+  
   /** Turn regularization on/off: Default off (true=on) */
   itkSetMacro( Regularization, bool );
   /** Get regularization on/off */
@@ -243,7 +248,6 @@ protected:
   virtual ~ParzenWindowEntropyMultiImageMetric() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-private:
   ParzenWindowEntropyMultiImageMetric(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
   
@@ -313,7 +317,7 @@ private:
   mutable std::vector< std::vector< std::vector< GradientFilterTypePointer > > >   m_BSplineGradientUpdateArray;
   mutable std::vector< std::vector< std::vector< BSplineParametersImagePointer > > >             m_BSplineGradientUpdateImagesArray;
   bool m_UseMask;
-
+  unsigned int m_NumberOfFixedImages;
 };
 
 } // end namespace itk

@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __VarianceMultiImageMetric_h
-#define __VarianceMultiImageMetric_h
+#ifndef __JointEntropyMultiImageMetric_h
+#define __JointEntropyMultiImageMetric_h
 
 //#include "itkImageToImageMetric.h"
 #include "itkCovariantVector.h"
@@ -98,13 +98,13 @@ namespace itk
  * \ingroup RegistrationMetrics
  */
 template <class TFixedImage>
-class ITK_EXPORT VarianceMultiImageMetric :
+class ITK_EXPORT JointEntropyMultiImageMetric :
     public ParzenWindowEntropyMultiImageMetric< TFixedImage>
 {
 public:
 
   /** Standard class typedefs. */
-  typedef VarianceMultiImageMetric  Self;
+  typedef JointEntropyMultiImageMetric  Self;
   typedef ParzenWindowEntropyMultiImageMetric< TFixedImage > Superclass;
   //typedef CongealingMetric< TFixedImage, TFixedImage > Superclass;
   typedef SmartPointer<Self>  Pointer;
@@ -114,7 +114,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(VarianceMultiImageMetric, ParzenWindowEntropyMultiImageMetric);
+  itkTypeMacro(JointEntropyMultiImageMetric, ParzenWindowEntropyMultiImageMetric);
 
   /** Types inherited from Superclass. */
   typedef typename Superclass::TransformType            TransformType;
@@ -175,21 +175,26 @@ public:
   MeasureType GetValue( const ParametersType& parameters ) const;
   /** Methods added for supporting multi-threading GetValue */
   void GetThreadedValue( int threadID ) const;
+  MeasureType AfterGetThreadedValue() const;
+
   
   /**  Get the value and derivatives for single valued optimizers. */
   void GetValueAndDerivative( const ParametersType& parameters,
                               MeasureType& Value, DerivativeType& Derivative ) const;
   /** Methods added for supporting multi-threading GetValueAndDerivative */
   void GetThreadedValueAndDerivative( int threadID ) const;
-
+  void AfterGetThreadedValueAndDerivative(MeasureType & value,
+                                          DerivativeType & derivative) const;
 
 
 protected:
-  VarianceMultiImageMetric();
-  virtual ~VarianceMultiImageMetric() {};
+  JointEntropyMultiImageMetric();
+  virtual ~JointEntropyMultiImageMetric() {};
+
+  static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValue( void *arg );
 
 private:
-  VarianceMultiImageMetric(const Self&); //purposely not implemented
+  JointEntropyMultiImageMetric(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
 };
@@ -197,7 +202,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "VarianceMultiImageMetric.cxx"
+#include "JointEntropyMultiImageMetric.cxx"
 #endif
 
 #endif

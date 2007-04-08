@@ -56,6 +56,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >::
   m_RegularizationFactor = 1e-5;
 
   m_UseMask = false;
+  m_NumberOfFixedImages = 0;
 }
 
 /*
@@ -779,27 +780,42 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 
 
     // Calculate derivative
-    for (int j = 0; j < N; j++)
+    for (int i = 0; i < N; i++)
     {
-      double innerSum = 0.0;
+      double innerSum1 = 0.0;
       for (int k = 0; k < N; k++)
       {
-        const double diff = ( m_Sample[a].imageValueArray[j] - m_Sample[a].imageValueArray[k] ) /
+        const double diff = ( m_Sample[a].imageValueArray[i] - m_Sample[a].imageValueArray[k] ) /
                         m_ImageStandardDeviation;
-        innerSum += m_KernelFunction->Evaluate( diff ) * diff;
+        innerSum1 += m_KernelFunction->Evaluate( diff );
       }
-      innerSum /= static_cast<double>(this->m_NumberOfImages);
 
+      double weight = 0.0;
+      for(int j=0; j<N; j++)
+      {
+        double innerSum2 = 0.0;
+        for (int k = 0; k < N; k++)
+        {
+          const double diff = ( m_Sample[a].imageValueArray[j] - m_Sample[a].imageValueArray[k] ) /
+              m_ImageStandardDeviation;
+          innerSum2 += m_KernelFunction->Evaluate( diff );
+        }
+
+        const double diff = (m_Sample[a].imageValueArray[i] - m_Sample[a].imageValueArray[j] );
+        const double g = m_KernelFunction->Evaluate( diff / m_ImageStandardDeviation );
+
+        weight += (1.0/innerSum1 + 1.0/innerSum2) * g * diff;
+      }
+      weight /=  m_ImageStandardDeviation*m_ImageStandardDeviation*N;
+      
       // Get the derivative for this sample
-      m_DerivativeCalcVector[threadId]->SetInputImage(this->m_ImageArray[j]);
-      this->CalculateDerivatives(m_Sample[a].FixedImagePoint, deriv, j, threadId);
-
-      const double weight = 2.0 / static_cast<double>(this->m_NumberOfImages) * innerSum / dSum[j];
+      m_DerivativeCalcVector[threadId]->SetInputImage(this->m_ImageArray[i]);
+      this->CalculateDerivatives(m_Sample[a].FixedImagePoint, deriv, i, threadId);
 
       //Copy the proper part of the derivative
       for (int l = 0; l < numberOfParameters; l++)
       {
-        m_derivativeArray[threadId][j * numberOfParameters + l] += weight*deriv[l];
+        m_derivativeArray[threadId][i * numberOfParameters + l] += weight*deriv[l];
       }
     }
   }  // End of sample loop
