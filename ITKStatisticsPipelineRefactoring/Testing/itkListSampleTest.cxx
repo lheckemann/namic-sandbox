@@ -357,6 +357,28 @@ int itkListSampleTest(int argc, char *argv[] )
       }
 
 
+    // Exercise the exception throwing when requesting
+    // an element id that is outside the list range.
+    const unsigned int largestId = sample->Size();
+    bool exceptionWorks = false;
+    try
+      {
+      MeasurementVectorType measurement =
+        sample->GetMeasurementVector( largestId + 10 );
+      std::cout << measurement << std::endl;
+      }
+    catch( itk::ExceptionObject & excp )
+      {
+      std::cout << excp << std::endl;
+      exceptionWorks = true;
+      }
+    
+    if( !exceptionWorks )
+      {
+      std::cerr << "GetMeasurementVector() exception failed !";
+      std::cerr << std::endl;
+      return EXIT_FAILURE;
+      }
 
     std::cout << "Test passed." << std::endl;
     return EXIT_SUCCESS;
