@@ -518,7 +518,7 @@ public:
     return ConstIterator(m_OffsetTable[VMeasurementVectorSize], this);
     }
 
-  virtual void SetMeasurementVectorSize( const MeasurementVectorSizeType s )
+  virtual void SetMeasurementVectorSize( MeasurementVectorSizeType s )
     {
     if( s!= VMeasurementVectorSize )
       {
