@@ -24,6 +24,7 @@
 #include "itkFixedArray.h"
 #include "itkMeasurementVectorTraits.h"
 #include "itkNumericTraits.h"
+#include <vector> // for the size_type declaration
 
 /** Macro used to redefine a type from the superclass. */
 #define itkSuperclassTraitMacro(TraitnameType) \
@@ -90,26 +91,26 @@ public:
 
   /** InstanceIdentifier typedef. This identifier is a unique
    * sequential id for each measurement vector in a Sample subclass. */ 
-  typedef unsigned long InstanceIdentifier;
+  typedef typename std::vector<MeasurementVectorType>::size_type 
+     InstanceIdentifier;
 
   /** Typedef for the length of each measurement vector */
   typedef unsigned int  MeasurementVectorSizeType;
 
   /** Get the size of the sample (number of measurements) */
-  virtual unsigned int Size() const = 0;
+  virtual InstanceIdentifier Size() const = 0;
 
   /** Get the measurement associated with a particular
    * InstanceIdentifier. */
   virtual const MeasurementVectorType & 
-    GetMeasurementVector(const InstanceIdentifier &id) const = 0;
+    GetMeasurementVector( InstanceIdentifier id) const = 0;
 
   /** Get the frequency of a measurement specified by instance
    * identifier. */
-  virtual FrequencyType GetFrequency(const InstanceIdentifier &id) const = 0;
+  virtual FrequencyType GetFrequency( InstanceIdentifier id ) const = 0;
 
   /** Get the total frequency of the sample. */
-  virtual TotalFrequencyType GetTotalFrequency() const 
-    = 0;
+  virtual TotalFrequencyType GetTotalFrequency() const = 0;
 
   
   /** Set/Get macros for the length of the measurement vector */

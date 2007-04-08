@@ -56,14 +56,14 @@ public:
   /** Get the measurement associated with a particular
    * InstanceIdentifier. */
   virtual const MeasurementVectorType & 
-    GetMeasurementVector(const InstanceIdentifier &id) const
+    GetMeasurementVector(InstanceIdentifier id) const
       { 
       return m_Values[id];
       }
 
   /** Get the frequency of a measurement specified by instance
    * identifier. */
-  virtual FrequencyType GetFrequency(const InstanceIdentifier &id) const
+  virtual FrequencyType GetFrequency(InstanceIdentifier id) const
     { 
     return m_Frequencies[id];
     }
