@@ -28,10 +28,12 @@
 // of each element in the vector.
 
 // Headers for the registration method and the metric
+#include "itkBSplineDeformableTransform.h"
+
 #include "MultiResolutionImageRegistrationMethod.h"
 #include "VarianceMultiImageMetric.h"
 #include "ParzenWindowEntropyMultiImageMetric.h"
-
+#include "JointEntropyMultiImageMetric.h"
     
     
 #include "AddImageFilter.h"
@@ -70,7 +72,6 @@
 #include <fstream>
     
 //Bspline optimizer and transform
-#include "itkBSplineDeformableTransform.h"
 #include "itkGradientDescentOptimizer.h"
 #include "GradientDescentLineSearchOptimizer.h"
 
@@ -151,7 +152,7 @@ public:
         std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
         std::cout << "Iter " << std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(3) << gradientPointer->GetCurrentIteration() << "   ";
-        std::cout << std::setw(6) << gradientPointer->GetValue() << "   ";
+        std::cout << std::setw(6) << gradientPointer->GetValue() << "   " << std::endl;
         if(gradientPointer->GetCurrentIteration() % 50 == 0)
         {
           //std::cout << std::setw(6) << "Position: " << gradientPointer->GetCurrentPosition() << std::endl;
@@ -397,7 +398,8 @@ int getCommandLine(int argc, char *initFname, vector<string>& fileNames, string&
                    double& translationMultiScaleStepLengthIncrease, double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease,
                    unsigned int& numberOfSpatialSamplesTranslation, unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh,
                    string &mask, string& maskType, unsigned int& threshold1, unsigned int threshold2,
-                   string &writeOutputImages, string &writeDeformationFields );
+                   string &writeOutputImages, string &writeDeformationFields,
+                   unsigned int &NumberOfFixedImages);
 
 
 int main( int argc, char *argv[] )
@@ -473,6 +475,8 @@ int main( int argc, char *argv[] )
   string writeOutputImages("on");
   string writeDeformationFields("on");
 
+  unsigned int NumberOfFixedImages = 0;
+
   //Get the command line arguments
   for(int i=1; i<argc; i++)
   {
@@ -489,7 +493,8 @@ int main( int argc, char *argv[] )
         translationMultiScaleStepLengthIncrease, affineMultiScaleStepLengthIncrease, bsplineMultiScaleStepLengthIncrease,
         numberOfSpatialSamplesTranslation, numberOfSpatialSamplesAffine, numberOfSpatialSamplesBspline, numberOfSpatialSamplesBsplineHigh,
         mask, maskType, threshold1, threshold2,
-        writeOutputImages, writeDeformationFields) )
+        writeOutputImages, writeDeformationFields,
+        NumberOfFixedImages ) )
     {
       std:: cout << "Error reading parameter file " << std::endl;
       return 1;
@@ -520,6 +525,8 @@ int main( int argc, char *argv[] )
                                     
   typedef itk::VarianceMultiImageMetric< InternalImageType>    MetricType;
   typedef itk::ParzenWindowEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
+  typedef itk::JointEntropyMultiImageMetric< InternalImageType>    JointEntropyMetricType;
+  
 
 
   typedef OptimizerType::ScalesType       OptimizerScalesType;
@@ -812,12 +819,21 @@ int main( int argc, char *argv[] )
   //Set the metric type
   MetricType::Pointer         varianceMetric;
   EntropyMetricType::Pointer         entropyMetric;
+  JointEntropyMetricType::Pointer         jointEntropyMetric;
   if(metricType == "variance")
   {
     varianceMetric        = MetricType::New();
     registration->SetMetric( varianceMetric  );
     // Set the number of samples to be used by the metric
     varianceMetric->SetNumberOfSpatialSamples( numberOfSamples );
+  }
+  else if( metricType == "jointEntropy" )
+  {
+    jointEntropyMetric        = JointEntropyMetricType::New();
+    registration->SetMetric( jointEntropyMetric  );
+    // Set the number of samples to be used by the metric
+    jointEntropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
+    jointEntropyMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
   }
   else
   {
@@ -993,6 +1009,10 @@ int main( int argc, char *argv[] )
   {
     varianceMetric->SetNumberOfSpatialSamples( numberOfSamples );
   }
+  else if( metricType =="jointEntropy")
+  {
+    jointEntropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
+  }  
   else
   {
     entropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
@@ -1035,6 +1055,10 @@ int main( int argc, char *argv[] )
         {
           outputFile << varianceMetric->GetValue(parameters) << " ";
         }
+        else if( metricType == "jointEntropy" )
+        {
+          outputFile << jointEntropyMetric->GetValue(parameters) << " ";
+        }        
         else
         {
           outputFile << entropyMetric->GetValue(parameters) << " ";
@@ -1213,6 +1237,10 @@ int main( int argc, char *argv[] )
     {
       varianceMetric->SetNumberOfSpatialSamples( numberOfSamples );
     }
+    else if( metricType == "jointEntropy")
+    {
+      jointEntropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
+    }    
     else
     {
       entropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
@@ -1437,6 +1465,10 @@ int main( int argc, char *argv[] )
         if(metricType == "variance")
         {
           varianceMetric->SetNumberOfSpatialSamples( numberOfSamples );
+        }
+        else if(metricType == "jointEntropy")
+        {
+          jointEntropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
         }
         else
         {
@@ -2142,7 +2174,8 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
                           unsigned int& numberOfSpatialSamplesTranslation, unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh,
 
                           string &mask, string& maskType, unsigned int& threshold1, unsigned int threshold2,
-                          string &writeOutputImages, string &writeDeformationFields )
+                          string &writeOutputImages, string &writeDeformationFields,
+                          unsigned int& NumberOfFixedImages)
 {
 
 
@@ -2429,6 +2462,13 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       initFile >> dummy;
       writeDeformationFields = dummy;
     }
+    
+    else if (dummy == "-NumberOfFixedImages")
+    {
+      initFile >> dummy;
+      NumberOfFixedImages = atoi(dummy.c_str());
+    }
+
     
     else if (dummy == "-f")
     {

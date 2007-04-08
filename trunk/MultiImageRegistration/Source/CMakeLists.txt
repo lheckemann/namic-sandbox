@@ -34,6 +34,8 @@ SET(Congealing_SRCS
   VarianceMultiImageMetric.h 
   ParzenWindowEntropyMultiImageMetric.h
   ParzenWindowEntropyMultiImageMetric.cxx
+  JointEntropyMultiImageMetric.h
+  JointEntropyMultiImageMetric.cxx
   GradientDescentLineSearchOptimizer.h
   GradientDescentLineSearchOptimizer.cxx
   MultiImageMetric.cxx 
