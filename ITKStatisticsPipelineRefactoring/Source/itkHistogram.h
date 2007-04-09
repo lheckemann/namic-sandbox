@@ -349,7 +349,7 @@ public:
    * If p is greater than or equal to 0.5
    * the percentile value =
    * max - ((pp - p) / pb) * interval  */
-  double Quantile(unsigned int dimension, const double &p) const;
+  double Quantile(unsigned int dimension, double p) const;
 
 protected:
   void PrintSelf(std::ostream& os, Indent indent) const;
