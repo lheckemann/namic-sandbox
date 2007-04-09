@@ -154,7 +154,10 @@ bool Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
   // index.
   unsigned int dim;
   
-  int begin, mid, end;
+  int begin;
+  int mid;
+  int end;
+
   MeasurementType median;
   MeasurementType tempMeasurement;
 
@@ -181,7 +184,7 @@ bool Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
     end = m_Min[dim].size() - 1;
     if (tempMeasurement >= m_Max[dim][end])
       {
-      // one of measurement is below the minimum
+      // one of measurement is above the maximum
       // its ok if we extend the bins to infinity.. not ok if we don't
       if(!m_ClipBinsAtEnds)
         {
@@ -195,6 +198,7 @@ bool Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
         }
       }
 
+    // Binary search for the bin where this measurement could be
     mid = (end + 1) / 2;
     median = m_Min[dim][mid];
 
@@ -206,17 +210,18 @@ bool Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
         } 
       else if (tempMeasurement > median)
         {
-        if (tempMeasurement < m_Max[dim][mid])
+        // test whether it is inside the current bin by comparing to the max of this bin.
+        if( tempMeasurement <  m_Max[dim][mid] && 
+            tempMeasurement >= m_Min[dim][mid] )
           {
           index[dim] = mid;
           break;
           }
-              
+        // otherwise, continue binary search
         begin = mid + 1;
         }
       else
         {
-        // measurement[dim] = m_Min[dim][med] 
         index[dim] = mid;
         break;
         }
