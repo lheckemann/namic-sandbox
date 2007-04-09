@@ -39,10 +39,17 @@
 #include "AddImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 
+// Transform headers    
 #include "itkAffineTransform.h"
 #include "itkTranslationTransform.h"
 
+// Interpolator headers    
 #include "itkLinearInterpolateImageFunction.h"
+#include "itkNearestNeighborInterpolateImageFunction.h"
+#include "itkWindowedSincInterpolateImageFunction.h"
+#include "itkBSplineInterpolateImageFunction.h"
+
+    
 #include "itkRecursiveMultiResolutionPyramidImageFilter.h"
 #include "itkImage.h"
 #include "itkNormalizeImageFilter.h"
@@ -410,9 +417,8 @@ int main( int argc, char *argv[] )
   string outputFolder("");
   
   string optimizerType("lineSearch");
-  string transformType("");
   string metricType("entropy");
-
+  string interpolatorType("linear");
   string metricPrint("off");
   
   int multiLevelAffine = 2;
@@ -487,7 +493,7 @@ int main( int argc, char *argv[] )
         numberOfSpatialSamplesTranslationPercentage, numberOfSpatialSamplesAffinePercentage, numberOfSpatialSamplesBsplinePercentage, numberOfSpatialSamplesBsplineHighPercentage,
         bsplineInitialGridSize, numberOfBsplineLevel,
         useBSplineRegularization, bsplineRegularizationFactor,
-        transformType, imageType, metricType, useBspline, useBsplineHigh,
+        interpolatorType, imageType, metricType, useBspline, useBsplineHigh,
         translationScaleCoeffs,gaussianFilterVariance, maximumLineIteration,  parzenWindowStandardDeviation,
         translationMultiScaleSamplePercentageIncrease, affineMultiScaleSamplePercentageIncrease, bsplineMultiScaleSamplePercentageIncrease, translationMultiScaleMaximumIterationIncrease, affineMultiScaleMaximumIterationIncrease,  bsplineMultiScaleMaximumIterationIncrease,
         translationMultiScaleStepLengthIncrease, affineMultiScaleStepLengthIncrease, bsplineMultiScaleStepLengthIncrease,
@@ -521,12 +527,18 @@ int main( int argc, char *argv[] )
   typedef itk::GradientDescentOptimizer       OptimizerType;
   typedef itk::GradientDescentLineSearchOptimizer LineSearchOptimizerType;
 
-  typedef itk::LinearInterpolateImageFunction<InternalImageType,ScalarType        > InterpolatorType;
-                                    
+  // Interpolator typedef
+  typedef itk::InterpolateImageFunction<InternalImageType,ScalarType        >  InterpolatorType;
+  typedef itk::LinearInterpolateImageFunction<InternalImageType,ScalarType        > LinearInterpolatorType;
+  typedef itk::NearestNeighborInterpolateImageFunction< InternalImageType, ScalarType >  NearestNeighborInterpolatorType;
+  typedef itk::WindowedSincInterpolateImageFunction< InternalImageType, 5 >    SincInterpolatorType;
+  typedef itk::BSplineInterpolateImageFunction< InternalImageType, ScalarType >  BsplineInterpolatorType;
+
+  
   typedef itk::VarianceMultiImageMetric< InternalImageType>    MetricType;
   typedef itk::ParzenWindowEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
   typedef itk::JointEntropyMultiImageMetric< InternalImageType>    JointEntropyMetricType;
-  
+
 
 
   typedef OptimizerType::ScalesType       OptimizerScalesType;
@@ -656,7 +668,24 @@ int main( int argc, char *argv[] )
     {
       ImageReaderType::Pointer imageReader;
       translationTransformArray[i] = TranslationTransformType::New();
-      interpolatorArray[i]  = InterpolatorType::New();
+
+      // Get the interpolator type
+      if( interpolatorType == "nearest")
+      {
+        interpolatorArray[i]  = NearestNeighborInterpolatorType::New();
+      }
+      else if( interpolatorType == "sinc" )
+      {
+        interpolatorArray[i]  = SincInterpolatorType::New();
+      }
+      else if ( interpolatorType == "bspline")
+      {
+        interpolatorArray[i]  = BsplineInterpolatorType::New();
+      }
+      else // assume linear by default
+      {
+        interpolatorArray[i]  = LinearInterpolatorType::New();
+      }
       registration->SetTransformArray(     translationTransformArray[i] ,i    );
       registration->SetInterpolatorArray(     interpolatorArray[i] ,i    );
 
@@ -2160,7 +2189,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
                           
                           string& useBSplineRegularization, double& bsplineRegularizationFactor,
 
-                          string& transformType, string& imageType,string& metricType,
+                          string& interpolatorType, string& imageType,string& metricType,
                           string& useBspline, string& useBsplineHigh,
                           
                           double& translationScaleCoeffs,double& gaussianFilterVariance,
@@ -2228,6 +2257,12 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       initFile >> dummy;
       optimizerType = dummy;
     }
+    else if (dummy == "-interpolatorType")
+    {
+      initFile >> dummy;
+      interpolatorType = dummy;
+    }
+        
     
     else if (dummy == "-multiLevelAffine")
     {

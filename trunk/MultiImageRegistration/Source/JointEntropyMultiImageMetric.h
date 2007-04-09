@@ -176,13 +176,14 @@ public:
   /** Methods added for supporting multi-threading GetValue */
   void GetThreadedValue( int threadID ) const;
   MeasureType AfterGetThreadedValue() const;
+  void BeforeGetThreadedValue(const ParametersType & parameters) const;
 
-  
   /**  Get the value and derivatives for single valued optimizers. */
   void GetValueAndDerivative( const ParametersType& parameters,
                               MeasureType& Value, DerivativeType& Derivative ) const;
   /** Methods added for supporting multi-threading GetValueAndDerivative */
   void GetThreadedValueAndDerivative( int threadID ) const;
+  void BeforeGetThreadedValueAndDerivative(const ParametersType & parameters) const;
   void AfterGetThreadedValueAndDerivative(MeasureType & value,
                                           DerivativeType & derivative) const;
 
@@ -192,7 +193,9 @@ protected:
   virtual ~JointEntropyMultiImageMetric() {};
 
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValue( void *arg );
+  static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueAndDerivative( void *arg );
 
+  mutable std::vector< double > W_x_j;
 private:
   JointEntropyMultiImageMetric(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
