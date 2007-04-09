@@ -479,6 +479,37 @@ int itkHistogramTest(int, char* [] )
       }
     }
 
+  // Testing GetIndex on the upper and lower bounds
+  IndexType upperIndex;
+  bool upperIndexBool = histogram->GetIndex( upperBound, upperIndex );
+  if( upperIndexBool )
+    {
+    std::cout << "Upper bound index = " << upperIndex << std::endl;
+    }
+
+  IndexType lowerIndex;
+  bool lowerIndexBool = histogram->GetIndex( lowerBound, lowerIndex );
+  if( lowerIndexBool )
+    {
+    std::cout << "Upper bound index = " << lowerIndex << std::endl;
+    }
+
+  // Testing GetIndex above the upper bound of a bin
+  histogram->SetClipBinsAtEnds( false );
+  MeasurementVectorType measurementVectorAbove;
+  for( unsigned int gupk1 = 0; gupk1<numberOfComponents; gupk1++)
+    {
+    measurementVectorAbove[gupk1] = 129.9;
+    }
+
+  IndexType aboveUpperIndex;
+  bool aboveUpperIndexBool =
+    histogram->GetIndex( measurementVectorAbove, aboveUpperIndex );
+  if( !aboveUpperIndexBool )
+    {
+    std::cerr << "Upper bound index = " << aboveUpperIndex << std::endl;
+    }
+
 
   if( !pass )
     {
