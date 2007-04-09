@@ -81,12 +81,32 @@ int itkHistogramTest(int, char* [] )
     whereFail = "GetIndex(InstanceIdentifier&)";
     }
 
-  index.Fill(100);
+  index.Fill( -5 ); // test for outside below
   
-  if (!histogram->IsIndexOutOfBounds(index))
+  if( !histogram->IsIndexOutOfBounds(index) )
     {
+    std::cerr << "IsIndexOutOfBounds() for " << index << std::endl;
     pass = false;
-    whereFail = "IsIndexOutOfBound(IndexType)";
+    whereFail = "IsIndexOutOfBounds(IndexType)";
+    }
+
+
+  index.Fill(32); // test for inside
+  
+  if( histogram->IsIndexOutOfBounds(index) )
+    {
+    std::cerr << "IsIndexOutOfBounds() for " << index << std::endl;
+    pass = false;
+    whereFail = "IsIndexOutOfBounds(IndexType)";
+    }
+
+  index.Fill(100); // test for outside
+  
+  if( !histogram->IsIndexOutOfBounds(index) )
+    {
+    std::cerr << "IsIndexOutOfBounds() for " << index << std::endl;
+    pass = false;
+    whereFail = "IsIndexOutOfBounds(IndexType)";
     }
 
   if (totalSize != histogram->Size())
@@ -173,7 +193,7 @@ int itkHistogramTest(int, char* [] )
   if (!sparseHistogram->IsIndexOutOfBounds(index))
     {
     pass = false;
-    whereFail = "Sparse Histogram: IsIndexOutOfBound(IndexType)";
+    whereFail = "Sparse Histogram: IsIndexOutOfBounds(IndexType)";
     }
 
   if (totalSize != sparseHistogram->Size())
@@ -275,16 +295,46 @@ int itkHistogramTest(int, char* [] )
 
   index.Fill(0);
   MeasurementVectorType measurement = histogram->GetMeasurementVector( index );
-  std::cout << "Index " << index << " Measurement " << measurement << std::endl;
+  for( unsigned kid0 = 0; kid0 < numberOfComponents; kid0++ )
+    {
+    if( measurement[kid0] != 8 )
+      {
+      std::cerr << "GetMeasurementVector() for index = ";
+      std::cerr << index << std::endl;
+      pass = false;
+      whereFail = "GetMeasurementVector() failed for index";
+      break;
+      }
+    }
   
   histogram->SetClipBinsAtEnds( true );
 
   measurement = histogram->GetMeasurementVector( index );
-  std::cout << "Index " << index << " Measurement " << measurement << std::endl;
+  for( unsigned kid1 = 0; kid1 < numberOfComponents; kid1++ )
+    {
+    if( measurement[kid1] != 8 )
+      {
+      std::cerr << "GetMeasurementVector() for index = ";
+      std::cerr << index << std::endl;
+      pass = false;
+      whereFail = "GetMeasurementVector() failed for index";
+      break;
+      }
+    }
   
   const InstanceIdentifier instanceId = 0;
   measurement = histogram->GetMeasurementVector( instanceId );
-  std::cout << "Id " << instanceId << " Measurement " << measurement << std::endl;
+  for( unsigned kid2 = 0; kid2 < numberOfComponents; kid2++ )
+    {
+    if( measurement[kid2] != 8 )
+      {
+      std::cerr << "GetMeasurementVector() for instanceId = ";
+      std::cerr << instanceId << std::endl;
+      pass = false;
+      whereFail = "GetMeasurementVector() failed for instanceId";
+      break;
+      }
+    }
  
   // Test GetIndex with different settings of SetClipBinsAtEnds
   MeasurementVectorType outOfLowerRange;
