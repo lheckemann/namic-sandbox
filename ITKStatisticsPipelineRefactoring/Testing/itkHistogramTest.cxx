@@ -440,8 +440,10 @@ int itkHistogramTest(int, char* [] )
     }
 
 
+  // Testing GetIndex() for values that are above the median value of the Bin.
   MeasurementVectorType measurementVector =
     histogram->GetMeasurementVector( 32 );
+
   for( unsigned int gik1=0; gik1<numberOfComponents; gik1++)
     {
     measurementVector[gik1] += 0.3;
@@ -452,6 +454,24 @@ int itkHistogramTest(int, char* [] )
   for( unsigned int gik2=0; gik2<numberOfComponents; gik2++)
     {
     if( gindex[gik2] != 32 )
+      {
+      std::cerr << "GetIndex() / GetMeasurementVector() failed " << std::endl;
+      std::cerr << "MeasurementVector = " << measurementVector << std::endl;
+      std::cerr << "Index returned = " << gindex << std::endl;
+      }
+    }
+
+  // Testing GetIndex() for values that are below the median value of the Bin.
+  for( unsigned int gik3=0; gik3<numberOfComponents; gik3++)
+    {
+    measurementVector[gik3] -= 0.6;
+    }
+
+  gindex = histogram->GetIndex( measurementVector );
+
+  for( unsigned int gik4=0; gik4<numberOfComponents; gik4++)
+    {
+    if( gindex[gik4] != 32 )
       {
       std::cerr << "GetIndex() / GetMeasurementVector() failed " << std::endl;
       std::cerr << "MeasurementVector = " << measurementVector << std::endl;
