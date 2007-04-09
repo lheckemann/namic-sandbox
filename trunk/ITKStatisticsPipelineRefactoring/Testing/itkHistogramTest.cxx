@@ -27,7 +27,7 @@ int itkHistogramTest(int, char* [] )
   bool pass = true;
   std::string whereFail = "";
   
-  typedef int MeasurementType;
+  typedef float MeasurementType;
   const unsigned int numberOfComponents = 3;
 
   // creats a histogram with 3 components measurement vectors
@@ -437,6 +437,26 @@ int itkHistogramTest(int, char* [] )
     {
     pass = false;
     whereFail = "GetIndex() failed for outOfUpperRange";
+    }
+
+
+  MeasurementVectorType measurementVector =
+    histogram->GetMeasurementVector( 32 );
+  for( unsigned int gik1=0; gik1<numberOfComponents; gik1++)
+    {
+    measurementVector[gik1] += 0.3;
+    }
+  
+  IndexType gindex = histogram->GetIndex( measurementVector );
+
+  for( unsigned int gik2=0; gik2<numberOfComponents; gik2++)
+    {
+    if( gindex[gik2] != 32 )
+      {
+      std::cerr << "GetIndex() / GetMeasurementVector() failed " << std::endl;
+      std::cerr << "MeasurementVector = " << measurementVector << std::endl;
+      std::cerr << "Index returned = " << gindex << std::endl;
+      }
     }
 
 
