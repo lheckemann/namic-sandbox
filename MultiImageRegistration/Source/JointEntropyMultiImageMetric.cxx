@@ -56,6 +56,10 @@ JointEntropyMultiImageMetric<TFixedImage>
   // Number of Spatial Samples must be an even number
   // First half is the set A and second half is the set B
   this->m_NumberOfSpatialSamples -= this->m_NumberOfSpatialSamples%2;
+
+  // Resize w_x_j
+  W_x_j.resize(this->m_NumberOfSpatialSamples);
+
 }
 
 /*
@@ -108,6 +112,37 @@ JointEntropyMultiImageMetric< TFixedImage >
   return ITK_THREAD_RETURN_VALUE;
 }
 
+
+
+/**
+ * Prepare auxiliary variables before starting the threads
+ */
+template < class TFixedImage >
+void 
+JointEntropyMultiImageMetric < TFixedImage >
+::BeforeGetThreadedValue(const ParametersType & parameters) const
+{
+
+  Superclass::BeforeGetThreadedValue(parameters);
+
+  // Update intensity values
+  const int N = this->m_NumberOfImages;
+  const unsigned int size = this->m_NumberOfSpatialSamples;
+  for(int i=0; i< size; i++ )
+  {
+    for(int j=0; j<N; j++)
+    {
+      const MovingImagePointType mappedPoint = this->m_TransformArray[j]->TransformPoint(this->m_Sample[i].FixedImagePoint);
+      if(this->m_InterpolatorArray[j]->IsInsideBuffer (mappedPoint) )
+      {
+        this->m_Sample[i].imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(mappedPoint);
+      }
+    }
+  }
+  
+}
+
+
 /*
  * Get the match Measure
  */
@@ -127,20 +162,6 @@ JointEntropyMultiImageMetric < TFixedImage >
   const unsigned int numberOfParameters =
       this->m_TransformArray[0]->GetNumberOfParameters();
 
-  // Update intensity values
-  MovingImagePointType mappedPoint;
-  for(int i=threadId; i< size; i += this->m_NumberOfThreads )
-  {
-    for(int j=0; j<N; j++)
-    {
-      mappedPoint = this->m_TransformArray[j]->TransformPoint(this->m_Sample[i].FixedImagePoint);
-      if(this->m_InterpolatorArray[j]->IsInsideBuffer (mappedPoint) )
-      {
-        this->m_Sample[i].imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(mappedPoint);
-      }
-    }
-  }
-  
   //Calculate joint entropy
   this->m_value[threadId] = 0.0;
   double logSum = 0.0;
@@ -163,89 +184,15 @@ JointEntropyMultiImageMetric < TFixedImage >
       // Evaluate the probability of d(x_a, x_b)
       probSum += this->m_KernelFunction->Evaluate(sqrt(sumOfSquares) / this->m_ImageStandardDeviation );
     }
-    probSum /= sampleBSize;
+    probSum /= sampleASize;
     
-    if( probSum > 0.0)
-    {
-      this->m_value[threadId] -= vcl_log( probSum );
-    }
+    this->m_value[threadId] += vcl_log( probSum );
+
 
   }  // End of sample loop
 
-  this->m_value[threadId] /= sampleBSize;
+  this->m_value[threadId] /= -1.0 * sampleBSize;
 
-  //Add the regularization term
-  if(this->m_Regularization )
-  {
-    double sumOfSquares = 0.0;
-    const unsigned int dim = MovingImageType::ImageDimension*(MovingImageType::ImageDimension+1)/2;
-    
-    typedef typename BSplineTransformType::RegionType RegionType;
-    
-    GradientPixelType gradientVoxel;
-    
-    for (int i=threadId; i<this->m_NumberOfImages; i+= this->m_NumberOfThreads)
-    {
-      const RegionType region = this->m_BSplineTransformArray[i]->GetGridRegion();
-      for(int j=0; j<MovingImageType::ImageDimension; j++)
-      {
-        
-        typedef itk::ImageRegionConstIterator<GradientImageType> GradientIteratorType;
-        typedef itk::ImageRegionIterator<BSplineParametersImageType> BSplineImageIteratorType;
-
-        this->m_BSplineTransformArray[i]->Modified();
-        this->m_BSplineGradientArray[i][j]->Modified();
-        this->m_BSplineGradientArray[i][j]->Update();
-        GradientIteratorType gradientIt( this->m_BSplineGradientArray[i][j]->GetOutput(), region );
-
-        std::vector< BSplineImageIteratorType > imageIterators(MovingImageType::ImageDimension);
-        for(int k=0; k<MovingImageType::ImageDimension; k++)
-        {
-          imageIterators[k] = BSplineImageIteratorType( this->m_BSplineGradientImagesArray[i][j][k], region );
-        }
-
-        //Extract the gradient images
-        while( !gradientIt.IsAtEnd() )
-        {
-          gradientVoxel = gradientIt.Get();
-          for(int k=0; k<MovingImageType::ImageDimension; k++)
-          {
-            imageIterators[k].Set(gradientVoxel[k]);
-            ++imageIterators[k];
-          }
-          ++gradientIt;
-        }
-
-        std::vector< GradientIteratorType > hessianIterators(MovingImageType::ImageDimension);
-        for(int k=0; k<MovingImageType::ImageDimension; k++)
-        {
-          this->m_BSplineHessianArray[i][j][k]->Modified();
-          this->m_BSplineHessianArray[i][j][k]->Update();
-          hessianIterators[k] = GradientIteratorType( this->m_BSplineHessianArray[i][j][k]->GetOutput(), region );
-        }
-        
-        
-        while ( !hessianIterators[0].IsAtEnd() )
-        {
-          for(int k=0; k<MovingImageType::ImageDimension; k++)
-          {
-            gradientVoxel = hessianIterators[k].Get();
-
-            for(int l=0; l<k; l++)
-            {
-              sumOfSquares += 1.0 / 8.0 *gradientVoxel[l]*gradientVoxel[l];
-            }
-            sumOfSquares += gradientVoxel[k]*gradientVoxel[k];
-            
-            ++hessianIterators[k];
-          }
-        }
-        
-      }
-    }
-    this->m_value[threadId] += this->m_RegularizationFactor * sumOfSquares;
-  
-  }
 }
 
 /**
@@ -268,7 +215,39 @@ JointEntropyMultiImageMetric < TFixedImage >
   return value;
 }
 
+/**
+ * Prepare auxiliary variables before starting the threads
+ */
+template < class TFixedImage >
+void 
+JointEntropyMultiImageMetric < TFixedImage >
+::BeforeGetThreadedValueAndDerivative(const ParametersType & parameters) const
+{
+   Superclass::BeforeGetThreadedValueAndDerivative(parameters);
 
+   // Compute W(x_j)
+   const unsigned int sampleSize = this->m_NumberOfSpatialSamples / 2;
+   const unsigned int N = this->m_NumberOfImages;
+   // Loop over set B
+   for(unsigned int b=sampleSize; b< sampleSize*2; b++)
+   {
+     W_x_j[b] = 0.0;
+     //Loop over set A
+     for( unsigned int a=0; a<sampleSize; a++)
+     {
+       // Compute d(x(a),x(b))
+       double sumOfSquares = 0.0;
+       for(int m=0; m<N; m++)
+       {
+         const double diff = this->m_Sample[b].imageValueArray[m] - this->m_Sample[a].imageValueArray[m];
+         sumOfSquares += diff*diff;
+       }
+       
+       W_x_j[b] += this->m_KernelFunction->Evaluate( sqrt(sumOfSquares) / this->m_ImageStandardDeviation );
+     }
+   }
+
+}
 
 template < class TFixedImage >
 void JointEntropyMultiImageMetric < TFixedImage >
@@ -325,14 +304,14 @@ JointEntropyMultiImageMetric < TFixedImage >
   DerivativeType deriv(numberOfParameters);
 
   
-  //Calculate the joint entropy
+  //Calculate joint entropy
   double logSum = 0.0;
   // Loop over first sample set
   for (int b=sampleASize+threadId; b<sampleASize+sampleBSize; b += this->m_NumberOfThreads )
   {
 
     double probSum = 0.0;
-    for( int a=0; a < sampleBSize; a++)
+    for( int a=0; a < sampleASize; a++)
     {
 
       // Compute d(x_a, x_b)
@@ -346,42 +325,24 @@ JointEntropyMultiImageMetric < TFixedImage >
       // Evaluate the probability of d(x_a, x_b)
       probSum += this->m_KernelFunction->Evaluate(sqrt(sumOfSquares) / this->m_ImageStandardDeviation );
     }
-    probSum /= sampleBSize;
+    probSum /= sampleASize;
     
-    if( probSum > 0.0)
-    {
-      this->m_value[threadId] -= vcl_log( probSum );
-    }
+    this->m_value[threadId] += vcl_log( probSum );
+
 
   }  // End of sample loop
 
-  this->m_value[threadId] /= sampleASize;
+  this->m_value[threadId] /= -1.0 * sampleBSize;
 
 
   // Calculate the derivative
-  // Loop over the pixel stacks
-  for( int l=0; l<N; l++)
+  for( int l=threadId; l<N; l += this->m_NumberOfThreads )
   {
     // Set the image for derivatives
     this->m_DerivativeCalcVector[threadId]->SetInputImage(this->m_ImageArray[l]);
     
-    for (int i=sampleASize+threadId; i<sampleASize+sampleBSize; i += this->m_NumberOfThreads )
+    for (int i=sampleASize; i<sampleASize+sampleBSize; i++ )
     {
-
-      // compute W(v_l(x_i))
-      double W_x_i = 0.0;
-      for(unsigned int k=0; k<sampleASize; k++ )
-      {
-        //Compute d(x_i,x_k)
-        double sumOfSquares = 0.0;
-        for(unsigned int m=0; m<N; m++)
-        {
-          const double diff = this->m_Sample[i].imageValueArray[m] - this->m_Sample[k].imageValueArray[m];
-          sumOfSquares += diff*diff;
-        }
-
-        W_x_i += this->m_KernelFunction->Evaluate( sqrt(sumOfSquares) / this->m_ImageStandardDeviation );
-      }
 
       // Sum over the second sample set
       double weight = 0.0;
@@ -402,7 +363,7 @@ JointEntropyMultiImageMetric < TFixedImage >
         weight += G* (this->m_Sample[i].imageValueArray[l] - this->m_Sample[j].imageValueArray[l]);
       }
 
-      weight /= W_x_i;
+      weight /= W_x_j[i];
 
       // Compute the gradient
       this->CalculateDerivatives(this->m_Sample[i].FixedImagePoint, deriv, l, threadId);
@@ -417,27 +378,12 @@ JointEntropyMultiImageMetric < TFixedImage >
 
     
     // Loop over the samples A
-    for (int i=threadId; i<sampleASize; i += this->m_NumberOfThreads )
+    for (int i=0; i<sampleASize; i++ )
     {
-
-      // compute W(v_l(x_i))
-      double W_x_i = 0.0;
-      for(unsigned int k=sampleASize; k<sampleASize+sampleBSize; k++ )
-      {
-        //Compute d(x_i,x_k)
-        double sumOfSquares = 0.0;
-        for(int m=0; m<N; m++)
-        {
-          const double diff = this->m_Sample[i].imageValueArray[m] - this->m_Sample[k].imageValueArray[m];
-          sumOfSquares += diff*diff;
-        }
-
-        W_x_i += this->m_KernelFunction->Evaluate( sqrt(sumOfSquares) / this->m_ImageStandardDeviation );
-      }
 
       // Sum over the second sample set
       double weight = 0.0;
-      for (int j=sampleASize; i<sampleASize+sampleBSize; j++ )
+      for (int j=sampleASize; j<sampleASize+sampleBSize; j++ )
       {
 
         // Compute d(x_i, x_j)
@@ -451,11 +397,9 @@ JointEntropyMultiImageMetric < TFixedImage >
         // Compute G(d(x_i,x_j))
         const double G = this->m_KernelFunction->Evaluate( sqrt(sumOfSquares) / this->m_ImageStandardDeviation );
 
-        weight += G* (this->m_Sample[i].imageValueArray[l] - this->m_Sample[j].imageValueArray[l]);
+        weight += G * (this->m_Sample[i].imageValueArray[l] - this->m_Sample[j].imageValueArray[l]) / W_x_j[j];
         
       }
-
-      weight /= W_x_i;
 
       // Compute the gradient
       this->CalculateDerivatives(this->m_Sample[i].FixedImagePoint, deriv, l, threadId);
@@ -467,247 +411,6 @@ JointEntropyMultiImageMetric < TFixedImage >
       }
     }  // End of sample loop B
     
-  }
-  //Add the regularization term
-  if(this->m_Regularization )
-  {
-    double sumOfSquares = 0.0;
-
-    typedef typename BSplineTransformType::RegionType RegionType;
-    
-    GradientPixelType gradientVoxel;
-    int parametersIndex = 0;
-
-    for (int i=threadId; i<this->m_NumberOfImages; i+= this->m_NumberOfThreads)
-    {
-      const RegionType region = this->m_BSplineTransformArray[i]->GetGridRegion();
-      parametersIndex = 0;
-
-      for(int j=0; j<MovingImageType::ImageDimension; j++)
-      {
-
-        typedef itk::ImageRegionConstIterator<GradientImageType> GradientIteratorType;
-        typedef itk::ImageRegionIterator<BSplineParametersImageType> BSplineImageIteratorType;
-
-        this->m_BSplineTransformArray[i]->Modified();
-        this->m_BSplineGradientArray[i][j]->Modified();
-        this->m_BSplineGradientArray[i][j]->Update();
-        GradientIteratorType gradientIt( this->m_BSplineGradientArray[i][j]->GetOutput(), region );
-
-        std::vector< BSplineImageIteratorType > imageIterators(MovingImageType::ImageDimension);
-        for(int k=0; k<MovingImageType::ImageDimension; k++)
-        {
-          imageIterators[k] = BSplineImageIteratorType( this->m_BSplineGradientImagesArray[i][j][k], region );
-        }
-
-        //Extract the gradient images
-        while( !gradientIt.IsAtEnd() )
-        {
-          gradientVoxel = gradientIt.Get();
-          for(int k=0; k<MovingImageType::ImageDimension; k++)
-          {
-            imageIterators[k].Set(gradientVoxel[k]);
-            ++imageIterators[k];
-          }
-          ++gradientIt;
-        }
-
-        std::vector< GradientIteratorType > hessianIterators(MovingImageType::ImageDimension);
-        for(int k=0; k<MovingImageType::ImageDimension; k++)
-        {
-          this->m_BSplineHessianArray[i][j][k]->Modified();
-          this->m_BSplineHessianArray[i][j][k]->Update();
-          hessianIterators[k] = GradientIteratorType( this->m_BSplineHessianArray[i][j][k]->GetOutput(), region );
-        }
-
-        while ( !hessianIterators[0].IsAtEnd() )
-        {
-
-          for(int k=0; k<MovingImageType::ImageDimension; k++)
-          {
-            gradientVoxel = hessianIterators[k].Get();
-
-            for(int l=0; l<k; l++)
-            {
-              sumOfSquares += 1.0 / 8.0 *gradientVoxel[l]*gradientVoxel[l];
-            }
-            sumOfSquares += gradientVoxel[k]*gradientVoxel[k];
-
-            ++hessianIterators[k];
-          }
-        }
-
-        //Calculate the derivative
-          
-        //Extract the components of the hessian matrix
-        std::vector< std::vector< BSplineImageIteratorType > > derivativeIterators(MovingImageType::ImageDimension);
-        for(int k=0; k<MovingImageType::ImageDimension; k++)
-        {
-          derivativeIterators[k].resize(MovingImageType::ImageDimension);
-          for(int l=0; l<=k; l++)
-          {
-            derivativeIterators[k][l] = BSplineImageIteratorType( this->m_BSplineGradientUpdateImagesArray[k][l][threadId], region );
-          }
-        }
-        std::vector< GradientIteratorType > hessianDerivativeIterators(MovingImageType::ImageDimension);
-        for(int k=0; k<MovingImageType::ImageDimension; k++)
-        {
-          hessianDerivativeIterators[k] = GradientIteratorType( this->m_BSplineHessianArray[i][j][k]->GetOutput(), region );
-        }
-
-        //Copy the hessian matrix into update images
-        while ( !hessianDerivativeIterators[0].IsAtEnd() )
-        {
-          for(int k=0; k<MovingImageType::ImageDimension; k++)
-          {
-            gradientVoxel = hessianDerivativeIterators[k].Get();
-
-            for(int l=0; l<=k; l++)
-            {
-              derivativeIterators[k][l].Set(gradientVoxel[l]);
-              ++derivativeIterators[k][l];
-            }
-            ++hessianDerivativeIterators[k];
-          }
-        }
-
-        // Compute the gradient of the hessian components
-        // Copy the hessian matrix into update images
-        for(int k=0; k<MovingImageType::ImageDimension; k++)
-        {
-          for(int l=0; l<=k; l++)
-          {
-            this->m_BSplineGradientUpdateImagesArray[k][l][threadId]->Modified();
-            this->m_BSplineGradientUpdateArray[k][l][threadId]->Modified();
-            this->m_BSplineGradientUpdateArray[k][l][threadId]->Update();
-          }
-        }
-
-        // Extract the proper part of the gradient update arrays
-        std::vector< std::vector< BSplineImageIteratorType > > derivativeIterators2(MovingImageType::ImageDimension);
-        
-        for(int k=0; k<MovingImageType::ImageDimension; k++)
-        {
-          derivativeIterators2[k].resize(MovingImageType::ImageDimension);
-          for(int l=0; l<=k; l++)
-          {
-            derivativeIterators2[k][l] = BSplineImageIteratorType( this->m_BSplineGradientUpdateImagesArray[k][l][threadId], region );
-          }
-        }
-        std::vector< std::vector< GradientIteratorType > > gradientUpdateDerivativeIterators(MovingImageType::ImageDimension);
-        for(int k=0; k<MovingImageType::ImageDimension; k++)
-        {
-          gradientUpdateDerivativeIterators[k].resize(MovingImageType::ImageDimension);
-          for(int l=0; l<=k; l++)
-          {
-            gradientUpdateDerivativeIterators[k][l] = GradientIteratorType( this->m_BSplineGradientUpdateArray[k][l][threadId]->GetOutput(), region );
-          }
-        }
-
-        // Get only the k'th component
-        //Copy the hessian matrix into update images
-        while ( !gradientUpdateDerivativeIterators[0][0].IsAtEnd() )
-        {
-          for(int k=0; k<MovingImageType::ImageDimension; k++)
-          {
-            for(int l=0; l<=k; l++)
-            {
-              gradientVoxel = gradientUpdateDerivativeIterators[k][l].Get();
-              derivativeIterators2[k][l].Set(gradientVoxel[k]);
-              ++gradientUpdateDerivativeIterators[k][l];
-              ++derivativeIterators2[k][l];
-            }
-          }
-        }
-
-        // Now the m_BSplineGradientUpdateImagesArray hold the first derivatives
-        // Compute the second derivatives
-        for(int k=0; k<MovingImageType::ImageDimension; k++)
-        {
-          for(int l=0; l<=k; l++)
-          {
-            this->m_BSplineGradientUpdateImagesArray[k][l][threadId]->Modified();
-            this->m_BSplineGradientUpdateArray[k][l][threadId]->Modified();
-            this->m_BSplineGradientUpdateArray[k][l][threadId]->Update();
-          }
-        }
-
-        // Get the l'th component of the gradient images
-        std::vector< std::vector< BSplineImageIteratorType > > derivativeIterators3(MovingImageType::ImageDimension);
-        for(int k=0; k<MovingImageType::ImageDimension; k++)
-        {
-          derivativeIterators3[k].resize(MovingImageType::ImageDimension);
-          for(int l=0; l<=k; l++)
-          {
-            derivativeIterators3[k][l] = BSplineImageIteratorType( this->m_BSplineGradientUpdateImagesArray[k][l][threadId], region );
-          }
-        }
-        std::vector< std::vector< GradientIteratorType > > gradientUpdateDerivativeIterators2(MovingImageType::ImageDimension);
-        for(int k=0; k<MovingImageType::ImageDimension; k++)
-        {
-          gradientUpdateDerivativeIterators2[k].resize(MovingImageType::ImageDimension);
-          for(int l=0; l<=k; l++)
-          {
-            gradientUpdateDerivativeIterators2[k][l] = GradientIteratorType( this->m_BSplineGradientUpdateArray[k][l][threadId]->GetOutput(), region );
-          }
-        }
-
-        while ( !gradientUpdateDerivativeIterators2[0][0].IsAtEnd() )
-        {
-          for(int k=0; k<MovingImageType::ImageDimension; k++)
-          {
-            for(int l=0; l<=k; l++)
-            {
-              gradientVoxel = gradientUpdateDerivativeIterators2[k][l].Get();
-              derivativeIterators3[k][l].Set(gradientVoxel[l]);
-              ++gradientUpdateDerivativeIterators2[k][l];
-              ++derivativeIterators3[k][l];
-            }
-          }
-        }
-
-        // The derivative of the parameters is the sum over the m_BSplineGradientUpdateImagesArray
-        // Sum over m_BSplineGradientUpdateImagesArray
-        std::vector< std::vector< BSplineImageIteratorType > > derivativeIterators4(MovingImageType::ImageDimension);
-        for(int k=0; k<MovingImageType::ImageDimension; k++)
-        {
-          derivativeIterators4[k].resize(MovingImageType::ImageDimension);
-          for(int l=0; l<=k; l++)
-          {
-            this->derivativeIterators4[k][l] = BSplineImageIteratorType( this->m_BSplineGradientUpdateImagesArray[k][l][threadId], region );
-          }
-        }
-
-        while ( !derivativeIterators4[0][0].IsAtEnd() )
-        {
-          for(int k=1; k<MovingImageType::ImageDimension; k++)
-          {
-            for(int l=0; l<k; l++)
-            {
-              derivativeIterators4[0][0].Set(derivativeIterators4[0][0].Get() + 1.0 / 8.0 * derivativeIterators4[k][l].Get() );
-              ++derivativeIterators4[k][l];
-            }
-            derivativeIterators4[0][0].Set(derivativeIterators4[0][0].Get() + derivativeIterators4[k][k].Get() );
-            ++derivativeIterators4[k][k];
-          }
-          ++derivativeIterators4[0][0];
-        }
-
-        // first image of m_BSplineGradientUpdateImagesArray holds the updates
-        // write them into parameters array
-        BSplineImageIteratorType parametersUpdateIterators( this->m_BSplineGradientUpdateImagesArray[0][0][threadId], region );
-        while ( !parametersUpdateIterators.IsAtEnd() )
-        {
-          this->m_derivativeArray[threadId][i * numberOfParameters + parametersIndex++] -= 2.0 * this->m_RegularizationFactor * parametersUpdateIterators.Get();
-          ++parametersUpdateIterators;
-        }
-
-      }
-    }
-    this->m_value[threadId] += this->m_RegularizationFactor * sumOfSquares;
-
-
-
   }
 }
 
@@ -732,7 +435,6 @@ void JointEntropyMultiImageMetric < TFixedImage >
     value += this->m_value[i];
     temp += this->m_derivativeArray[i];
   }
-  //value /= (double) this->m_NumberOfSpatialSamples / 2 * this->m_ImageStandardDeviation * this->m_ImageStandardDeviation;
   temp /= (double) this->m_NumberOfSpatialSamples / 2 * this->m_ImageStandardDeviation * this->m_ImageStandardDeviation;
   derivative = temp;
   
@@ -753,10 +455,28 @@ void JointEntropyMultiImageMetric < TFixedImage >
   {
     derivative[i] -= temp[i % numberOfParameters] / (double) this->m_NumberOfImages;
   }
-  
+
 }
 
+// Callback routine used by the threading library. This routine just calls
+// the GetThreadedValue() method after setting the correct partition of data
+// for this thread.
+template < class TFixedImage >
+ITK_THREAD_RETURN_TYPE
+JointEntropyMultiImageMetric< TFixedImage >
+::ThreaderCallbackGetValueAndDerivative( void *arg )
+{
+  ThreadStruct *str;
 
+  int threadId = ((MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
+
+  str = (ThreadStruct *)(((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
+
+  str->Metric->GetThreadedValueAndDerivative( threadId );
+
+
+  return ITK_THREAD_RETURN_VALUE;
+}
 
 }        // end namespace itk
 

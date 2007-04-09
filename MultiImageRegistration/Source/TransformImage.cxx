@@ -41,8 +41,8 @@ int main( int argc, char * argv[] )
     return EXIT_FAILURE;
     }
 
-  const     unsigned int   Dimension = 3;
-  typedef   unsigned short  PixelType;
+  const     unsigned int   Dimension = 2;
+  typedef   unsigned char  PixelType;
   typedef itk::Image< PixelType,  Dimension >   ImageType;
 
 
