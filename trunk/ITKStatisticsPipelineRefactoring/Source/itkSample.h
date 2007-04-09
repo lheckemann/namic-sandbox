@@ -114,7 +114,7 @@ public:
 
   
   /** Set/Get macros for the length of the measurement vector */
-  virtual void SetMeasurementVectorSize( const MeasurementVectorSizeType s )
+  virtual void SetMeasurementVectorSize( MeasurementVectorSizeType s )
     {
     MeasurementVectorType m;
     MeasurementVectorSizeType defaultLength = MeasurementVectorTraits::GetLength( m );
