@@ -518,7 +518,7 @@ template< class TMeasurement, unsigned int VMeasurementVectorSize,
           class TFrequencyContainer >
 double
 Histogram< TMeasurement, VMeasurementVectorSize, TFrequencyContainer >
-::Quantile(const unsigned int dimension, const double &p) const
+::Quantile(unsigned int dimension, double p) const
 {
   InstanceIdentifier n;
   const unsigned int size = this->GetSize(dimension);
