@@ -25,6 +25,7 @@
 // #include "itkSample.h"   // abstract class
 #include "itkHistogram.h"
 #include "itkListSample.h"
+#include "itkListSampleToHistogramFilter.h"
 
 int itkStatisticsPrintTest(int , char* [])
 {
@@ -39,12 +40,22 @@ int itkStatisticsPrintTest(int , char* [])
 
   typedef itk::Statistics::Histogram< MeasurementType, 2 > HistogramType ;
 
+  typedef itk::Statistics::ListSampleToHistogramFilter< 
+    SampleType, HistogramType > ListSampleToHistogramFilterType;
+
+
   SampleType::Pointer sampleObj = SampleType::New();
   std::cout << "----------ListSample " << sampleObj;
 
   HistogramType::Pointer HistogramObj=
     HistogramType::New();
   std::cout << "----------Histogram " << HistogramObj;
+
+  ListSampleToHistogramFilterType::Pointer ListSampleToHistogramFilterObj =
+    ListSampleToHistogramFilterType::New();
+  std::cout << "----------ListSampleToHistogramFilter ";
+  std::cout << ListSampleToHistogramFilterObj;
+
 
   return EXIT_SUCCESS;
 }
