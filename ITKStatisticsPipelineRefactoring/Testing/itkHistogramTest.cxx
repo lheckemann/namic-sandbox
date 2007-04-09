@@ -147,15 +147,34 @@ int itkHistogramTest(int, char* [] )
       }
     }
 
-  if (histogram->Quantile(0, 0.5) != 512.0)
+  double quantile1 = histogram->Quantile(0, 0.3);
+  if( quantile1 != 307.2)
     {
+    std::cerr << "quantile1 = " << quantile1 << std::endl;
     pass = false;
     whereFail = "Quantile(Dimension, percent)";
     }
 
+  double quantile2 = histogram->Quantile(0, 0.5);
+  if( quantile2 != 512.0)
+    {
+    std::cerr << "quantile2 = " << quantile2 << std::endl;
+    pass = false;
+    whereFail = "Quantile(Dimension, percent)";
+    }
+
+  double quantile3 = histogram->Quantile(0, 0.7);
+  if( quantile3 != 716.8)
+    {
+    std::cerr << "quantile3 = " << quantile3 << std::endl;
+    pass = false;
+    whereFail = "Quantile(Dimension, percent)";
+    }
+
+
   if( !pass )
     {
-    std::cout << "Test failed in " << whereFail << "." << std::endl;
+    std::cerr << "Test failed in " << whereFail << "." << std::endl;
     return EXIT_FAILURE;
     }
 
