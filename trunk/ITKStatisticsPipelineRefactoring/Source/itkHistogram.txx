@@ -584,14 +584,8 @@ Histogram< TMeasurement, VMeasurementVectorSize, TFrequencyContainer >
   Superclass::PrintSelf(os,indent);
 
   os << indent << "OffsetTable: " << *m_OffsetTable << std::endl;
-  if(m_ClipBinsAtEnds)
-    {
-    os << indent << "ClipBinsAtEnds: True" << std::endl;
-    }
-  else
-    {
-    os << indent << "ClipBinsAtEnds: False" << std::endl;
-    }
+  os << indent << "ClipBinsAtEnds: " <<  
+    itk::NumericTraits<bool>::PrintType( m_ClipBinsAtEnds ) << std::endl;
   os << indent << "FrequencyContainerPointer: " << m_FrequencyContainer
      << std::endl;
 }
