@@ -28,6 +28,7 @@ SET(Statistics_SRCS
   itkStatisticsPrintTest.cxx
   itkSampleTest.cxx
   itkListSampleTest.cxx
+  itkListSampleToHistogramFilterTest.cxx
   itkHistogramTest.cxx
   )
 
