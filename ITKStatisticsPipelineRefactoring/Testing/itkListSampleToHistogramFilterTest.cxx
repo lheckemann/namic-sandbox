@@ -27,9 +27,28 @@ PURPOSE.  See the above copyright notices for more information.
 int itkListSampleToHistogramFilterTest(int argc, char *argv[] ) 
 {
     
-  typedef itk::Array< float > MeasurementVectorType;
+  const unsigned int numberOfComponents = 3;
+  typedef float      MeasurementType;
+
+  typedef itk::Array< MeasurementType > MeasurementVectorType;
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
-    
+
+  typedef itk::Statistics::Histogram< MeasurementType, 
+          numberOfComponents, 
+          itk::Statistics::DenseFrequencyContainer > HistogramType;
+
+  typedef itk::Statistics::ListSampleToHistogramFilter< 
+    SampleType, HistogramType > FilterType;
+
+  FilterType::Pointer filter = FilterType::New();  
+
+
+
+  // Exercise the Print method.
+  filter->Print( std::cout );
+
+
+
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
