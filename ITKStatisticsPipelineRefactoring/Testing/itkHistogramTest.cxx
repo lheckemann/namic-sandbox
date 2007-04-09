@@ -27,7 +27,7 @@ int itkHistogramTest(int, char* [] )
   bool pass = true;
   std::string whereFail = "";
   
-  typedef unsigned int MeasurementType;
+  typedef int MeasurementType;
   const unsigned int numberOfComponents = 3;
 
   // creats a histogram with 3 components measurement vectors
@@ -38,6 +38,7 @@ int itkHistogramTest(int, char* [] )
 
   typedef HistogramType::MeasurementVectorType MeasurementVectorType;
   typedef HistogramType::InstanceIdentifier    InstanceIdentifier; 
+  typedef HistogramType::IndexType             IndexType; 
 
   // initializes a 64 x 64 x 64 histogram with equal size interval
   HistogramType::SizeType size;
@@ -56,8 +57,8 @@ int itkHistogramTest(int, char* [] )
   // tests begin
   MeasurementVectorType measurements;
   measurements.Fill(512);
-  HistogramType::IndexType index;
-  HistogramType::IndexType ind;
+  IndexType index;
+  IndexType ind;
   index.Fill(32);
   if(histogram->GetIndex(measurements,ind))
     {
@@ -274,17 +275,63 @@ int itkHistogramTest(int, char* [] )
 
   index.Fill(0);
   MeasurementVectorType measurement = histogram->GetMeasurementVector( index );
-  std::cout << "Index " << index << "Measurement " << measurement << std::endl;
+  std::cout << "Index " << index << " Measurement " << measurement << std::endl;
   
   histogram->SetClipBinsAtEnds( true );
 
   measurement = histogram->GetMeasurementVector( index );
-  std::cout << "Index " << index << "Measurement " << measurement << std::endl;
+  std::cout << "Index " << index << " Measurement " << measurement << std::endl;
   
   const InstanceIdentifier instanceId = 0;
   measurement = histogram->GetMeasurementVector( instanceId );
-  std::cout << "Id " << instanceId << "Measurement " << measurement << std::endl;
+  std::cout << "Id " << instanceId << " Measurement " << measurement << std::endl;
  
+  // Test GetIndex with different settings of SetClipBinsAtEnds
+  MeasurementVectorType outOfLowerRange;
+  MeasurementVectorType outOfUpperRange;
+  for(unsigned int k = 0; k < numberOfComponents; k++)
+    {
+    outOfLowerRange[k] = lowerBound[k] - 13;
+    outOfUpperRange[k] = upperBound[k] + 23;
+    }
+
+  histogram->SetClipBinsAtEnds( false );
+
+  IndexType index1;
+  bool getindex1 = histogram->GetIndex( outOfLowerRange, index1 );
+
+  std::cout << "GetIndex() with SetClipBinsAtEnds() = false " << std::endl;
+  std::cout << "Boolean " << getindex1 << " Index " << index1 << std::endl;
+  
+  if( !getindex1 )
+    {
+    pass = false;
+    whereFail = "GetIndex() returned boolean failed for outOfLowerRange";
+    }
+
+  for(unsigned k1=0; k1 < numberOfComponents; k1++ )
+    {
+    if( index1[ k1 ] != 0 )
+      {
+      pass = false;
+      whereFail = "GetIndex() index value failed for outOfLowerRange";
+      }
+    }
+
+  
+  histogram->SetClipBinsAtEnds( true );
+  
+  getindex1 = histogram->GetIndex( outOfLowerRange, index1 );
+  
+  std::cout << "GetIndex() with SetClipBinsAtEnds() = true " << std::endl;
+  std::cout << "Boolean " << getindex1 << " Index " << index1 << std::endl;
+
+  if( getindex1 )
+    {
+    pass = false;
+    whereFail = "GetIndex() failed for outOfLowerRange";
+    }
+
   if( !pass )
     {
     std::cout << "Test failed in " << whereFail << "." << std::endl;
