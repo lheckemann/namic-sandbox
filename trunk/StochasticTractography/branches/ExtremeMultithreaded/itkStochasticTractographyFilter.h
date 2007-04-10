@@ -11,6 +11,7 @@
 #include "itkVariableLengthVector.h"
 #include "itkSlowPolyLineParametricPath.h"
 #include "itkSimpleFastMutexLock.h"
+#include "itkRealTimeClock.h"
 #include <vector>
 
 namespace itk{
@@ -153,10 +154,10 @@ protected:
     //calculate the number of voxels to cache from Megabyte memory size limit
     ProbabilityDistributionImageType::PixelType 
       element(this->GetSampleDirections()->Size());
-    size_t elementsize = sizeof(ProbabilityDistributionImageType::PixelType) + 
+    unsigned long elementsize = sizeof(ProbabilityDistributionImageType::PixelType) + 
       sizeof(double)*element.Size();
     this->m_MaxLikelihoodCacheElements = 
-      (this->GetMaxLikelihoodCacheSize()*1048576)/elementsize;
+      (this->m_MaxLikelihoodCacheSize*1048576)/elementsize;
     std::cout << "MaxLikelhoodCacheElements: "
       << this->m_MaxLikelihoodCacheElements
       << std::endl;
@@ -216,7 +217,7 @@ protected:
   void StochasticTractGeneration( typename InputDWIImageType::ConstPointer dwiimagePtr,
     typename InputMaskImageType::ConstPointer maskimagePtr,
     typename InputDWIImageType::IndexType seedindex,
-    unsigned int tractnumber,
+    unsigned long randomseed,
     PathType::Pointer tractPtr );
   
   /** This function is called by the multithreader **/
@@ -240,14 +241,15 @@ protected:
   unsigned int m_TotalTracts;
   typename InputDWIImageType::IndexType m_SeedIndex;
   TractOrientationContainerType::ConstPointer m_SampleDirections;
-  unsigned int m_MaxLikelihoodCacheSize;   //in Megabytes
-  unsigned int m_MaxLikelihoodCacheElements;  //in Elements (Voxels)
-  unsigned int m_CurrentLikelihoodCacheElements;
+  unsigned long m_MaxLikelihoodCacheSize;   //in Megabytes
+  unsigned long m_MaxLikelihoodCacheElements;  //in Elements (Voxels)
+  unsigned long m_CurrentLikelihoodCacheElements;
   SimpleFastMutexLock m_LikelihoodCacheMutex;
   
   unsigned int m_TotalDelegatedTracts;
   SimpleFastMutexLock m_TotalDelegatedTractsMutex;
-  
+  RealTimeClock::Pointer m_ClockPtr;
+  unsigned long m_RandomSeed;
   SimpleFastMutexLock m_OutputImageMutex;
 };
 

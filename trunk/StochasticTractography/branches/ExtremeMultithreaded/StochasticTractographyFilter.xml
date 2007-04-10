@@ -63,7 +63,7 @@
       <longflag>maxlikelihoodcachesize</longflag>
       <description>Maximum Size of Likelihood Cache</description>
       <label>Maximum Cache Size</label>
-      <default>100000000</default>
+      <default>100</default>
       <constraints>
         <minimum>0</minimum>
         <step>1</step>
@@ -75,14 +75,14 @@
   <parameters>
     <label>IO</label>
     <description>Input/output parameters</description>
-    <image>
+    <image type="diffusion-weighted">
       <name>dwifilename</name>
       <label>Input Volume</label>
       <channel>input</channel>
       <index>0</index>
       <description>Input DWI volume to be filtered</description>
     </image>
-	  <image>
+    <image>
       <name>roifilename</name>
       <label>Input ROI Volume</label>
       <channel>input</channel>
