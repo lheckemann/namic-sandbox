@@ -42,12 +42,25 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
 
   FilterType::Pointer filter = FilterType::New();  
 
+  SampleType::Pointer sample = SampleType::New();
 
+  // Test GetInput() before setting the input
+  if( filter->GetInput() != NULL )
+    {
+    std::cerr << "GetInput() should have returned NULL" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  filter->SetInput( sample );
+
+  if( filter->GetInput() != sample.GetPointer() )
+    {
+    std::cerr << "GetInput() didn't matched SetInput()" << std::endl;
+    return EXIT_FAILURE;
+    }
 
   // Exercise the Print method.
   filter->Print( std::cout );
-
-
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;

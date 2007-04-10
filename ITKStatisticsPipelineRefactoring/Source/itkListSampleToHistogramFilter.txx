@@ -37,6 +37,32 @@ ListSampleToHistogramFilter< TSample, THistogram >
 template < class TSample, class THistogram >
 void
 ListSampleToHistogramFilter< TSample, THistogram >
+::SetInput( const SampleType * sample )
+{
+  // Process object is not const-correct so the const_cast is required here
+  this->ProcessObject::SetNthInput(0, 
+                                   const_cast< SampleType * >( sample ) );
+}
+
+template < class TSample, class THistogram >
+const typename 
+ListSampleToHistogramFilter< TSample, THistogram >::SampleType *
+ListSampleToHistogramFilter< TSample, THistogram >
+::GetInput() const
+{
+  if (this->GetNumberOfInputs() < 1)
+    {
+    return NULL;
+    }
+  const SampleType * input = 
+    static_cast<const SampleType * >(this->ProcessObject::GetInput(0) );
+
+  return input;
+}
+
+template < class TSample, class THistogram >
+void
+ListSampleToHistogramFilter< TSample, THistogram >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
