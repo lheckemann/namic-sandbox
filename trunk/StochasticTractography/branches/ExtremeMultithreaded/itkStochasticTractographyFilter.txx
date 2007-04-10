@@ -385,8 +385,6 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   for(unsigned int j=0; (j<this->m_MaxTractLength) &&
     (dwiimagePtr->GetLargestPossibleRegion().IsInside(cindex_curr));
     j++){
-    tractPtr->AddVertex(cindex_curr);
-    
     this->ProbabilisticallyInterpolate( randomgenerator, cindex_curr,
                                       index_curr );
     
@@ -395,6 +393,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
       std::cout<<"Stopped Tracking: invalid voxel\n";
       break;
     }
+    tractPtr->AddVertex(cindex_curr);
     
     this->CalculatePrior( v_prev, this->m_SampleDirections, prior_curr);
     
