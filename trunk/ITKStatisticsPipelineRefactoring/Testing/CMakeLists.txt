@@ -21,6 +21,7 @@ ADD_TEST(itkListSampleTest1 ${STATISTICS_TESTS} itkListSampleTest 1)
 ADD_TEST(itkListSampleTest2 ${STATISTICS_TESTS} itkListSampleTest 5)
 ADD_TEST(itkListSampleTest3 ${STATISTICS_TESTS} itkListSampleTest 10)
 ADD_TEST(itkListSampleTest4 ${STATISTICS_TESTS} itkListSampleTest 100)
+ADD_TEST(itkListSampleToHistogramFilterTest ${STATISTICS_TESTS} itkListSampleToHistogramFilterTest)
 ADD_TEST(itkHistogramTest ${STATISTICS_TESTS} itkHistogramTest)
 
 
