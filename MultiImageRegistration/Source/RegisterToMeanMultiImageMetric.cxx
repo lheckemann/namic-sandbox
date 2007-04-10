@@ -14,10 +14,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _JointEntropyMultiImageMetric_cxx
-#define _JointEntropyMultiImageMetric_cxx
+#ifndef _RegisterToMeanMultiImageMetric_cxx
+#define _RegisterToMeanMultiImageMetric_cxx
 
-#include "JointEntropyMultiImageMetric.h"
+#include "RegisterToMeanMultiImageMetric.h"
 
 
 #include "itkCovariantVector.h"
@@ -33,8 +33,8 @@ namespace itk
  * Constructor
  */
 template < class TFixedImage >
-JointEntropyMultiImageMetric < TFixedImage >::
-JointEntropyMultiImageMetric()
+RegisterToMeanMultiImageMetric < TFixedImage >::
+RegisterToMeanMultiImageMetric()
 {
 
 
@@ -46,7 +46,7 @@ JointEntropyMultiImageMetric()
  */
 template <class TFixedImage> 
 void
-JointEntropyMultiImageMetric<TFixedImage>
+RegisterToMeanMultiImageMetric<TFixedImage>
 ::Initialize(void) throw ( ExceptionObject )
 {
 
@@ -59,15 +59,21 @@ JointEntropyMultiImageMetric<TFixedImage>
 
   // Resize w_x_j
   W_x_j.resize(this->m_NumberOfSpatialSamples);
+  for(int i=0; i<this->m_NumberOfSpatialSamples; i++)
+  {
+    W_x_j[i].resize(this->m_NumberOfImages);
+  }
+  mean.resize(this->m_NumberOfSpatialSamples);
 
+  m_MeanStandardDeviation = this->m_ImageStandardDeviation / sqrt( this->m_NumberOfImages);
 }
 
 /*
  * Get the match Measure
  */
 template < class TFixedImage >
-typename JointEntropyMultiImageMetric < TFixedImage >::MeasureType
-JointEntropyMultiImageMetric <TFixedImage >::
+typename RegisterToMeanMultiImageMetric < TFixedImage >::MeasureType
+RegisterToMeanMultiImageMetric <TFixedImage >::
 GetValue(const ParametersType & parameters) const
 {
   // Call a method that perform some calculations prior to splitting the main
@@ -97,7 +103,7 @@ GetValue(const ParametersType & parameters) const
 // for this thread.
 template < class TFixedImage >
 ITK_THREAD_RETURN_TYPE
-JointEntropyMultiImageMetric< TFixedImage >
+RegisterToMeanMultiImageMetric< TFixedImage >
 ::ThreaderCallbackGetValue( void *arg )
 {
   ThreadStruct *str;
@@ -119,7 +125,7 @@ JointEntropyMultiImageMetric< TFixedImage >
  */
 template < class TFixedImage >
 void 
-JointEntropyMultiImageMetric < TFixedImage >
+RegisterToMeanMultiImageMetric < TFixedImage >
 ::BeforeGetThreadedValue(const ParametersType & parameters) const
 {
 
@@ -140,6 +146,16 @@ JointEntropyMultiImageMetric < TFixedImage >
     }
   }
   
+  for(int i=0; i< size; i++ )
+  {
+    mean[i] = 0.0;
+    for(int j=0; j<N; j++)
+    {
+      mean[i] += this->m_Sample[i].imageValueArray[j];
+    }
+    mean[i] /= (double) N;
+  }
+  
 }
 
 
@@ -148,12 +164,11 @@ JointEntropyMultiImageMetric < TFixedImage >
  */
 template < class TFixedImage >
 void
-JointEntropyMultiImageMetric < TFixedImage >
+RegisterToMeanMultiImageMetric < TFixedImage >
 ::GetThreadedValue(int threadId) const
 {
 
   const int N = this->m_NumberOfImages;
-  const unsigned int size = this->m_NumberOfSpatialSamples;
   const unsigned int sampleASize = this->m_NumberOfSpatialSamples / 2;
   const unsigned int sampleBSize = this->m_NumberOfSpatialSamples / 2;
   /** The tranform parameters vector holding i'th images parameters 
@@ -162,34 +177,34 @@ JointEntropyMultiImageMetric < TFixedImage >
   const unsigned int numberOfParameters =
       this->m_TransformArray[0]->GetNumberOfParameters();
 
-  //Calculate joint entropy
+  //Calculate the entropy
   this->m_value[threadId] = 0.0;
-  double logSum = 0.0;
   // Loop over first sample set
-  for (int x_i=sampleASize+threadId; x_i<sampleASize+sampleBSize; x_i += this->m_NumberOfThreads )
+  for( int l=0; l < N; l++)
   {
-
-    double probSum = 0.0;
-    for( int x_j=0; x_j < sampleASize; x_j++)
+    for (int x_i=sampleASize+threadId; x_i<sampleASize+sampleBSize; x_i += this->m_NumberOfThreads )
     {
 
-      // Compute d(x_a, x_b)
-      double sumOfSquares = 0.0;
-      for(int k=0; k<N; k++)
+      double probSum = 0.0;
+      for( int x_j=0; x_j < sampleASize; x_j++)
       {
-        const double diff = this->m_Sample[x_i].imageValueArray[k] - this->m_Sample[x_j].imageValueArray[k];
-        sumOfSquares += diff*diff;
+
+        // Compute d(x_i, x_j)
+        const double diff1 = (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l])
+                              /this->m_ImageStandardDeviation;
+        const double diff2 = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
+
+        // Evaluate the probability of d(x_a, x_b)
+        probSum += this->m_KernelFunction->Evaluate
+            ( sqrt( diff1*diff1  + diff2*diff2 ) );
       }
-
-      // Evaluate the probability of d(x_a, x_b)
-      probSum += this->m_KernelFunction->Evaluate(sqrt(sumOfSquares) / this->m_ImageStandardDeviation );
-    }
-    probSum /= (double)sampleASize;
+      probSum /= (double)sampleASize;
     
-    this->m_value[threadId] += vcl_log( probSum );
+      this->m_value[threadId] += vcl_log( probSum );
 
 
-  }  // End of sample loop
+    }  // End of sample loop
+  }
 
 }
 
@@ -197,8 +212,8 @@ JointEntropyMultiImageMetric < TFixedImage >
  * Consolidate auxiliary variables after finishing the threads
  */
 template < class TFixedImage >
-typename JointEntropyMultiImageMetric < TFixedImage >::MeasureType
-JointEntropyMultiImageMetric < TFixedImage >
+typename RegisterToMeanMultiImageMetric < TFixedImage >::MeasureType
+RegisterToMeanMultiImageMetric < TFixedImage >
 ::AfterGetThreadedValue() const
 {
 
@@ -209,7 +224,7 @@ JointEntropyMultiImageMetric < TFixedImage >
   {
     value += this->m_value[i];
   }
-  value /= (double)( -0.5 * this->m_NumberOfSpatialSamples );
+  value /= (double)( -0.5 * this->m_NumberOfSpatialSamples * this->m_NumberOfImages );
 
   return value;
 }
@@ -219,37 +234,54 @@ JointEntropyMultiImageMetric < TFixedImage >
  */
 template < class TFixedImage >
 void 
-JointEntropyMultiImageMetric < TFixedImage >
+RegisterToMeanMultiImageMetric < TFixedImage >
 ::BeforeGetThreadedValueAndDerivative(const ParametersType & parameters) const
 {
    Superclass::BeforeGetThreadedValueAndDerivative(parameters);
 
+
    // Compute W(x_j)
    const unsigned int sampleSize = this->m_NumberOfSpatialSamples / 2;
+   const unsigned int size = this->m_NumberOfSpatialSamples ;
    const unsigned int N = this->m_NumberOfImages;
-   // Loop over set B
-   for(unsigned int b=sampleSize; b< sampleSize*2; b++)
-   {
-     W_x_j[b] = 0.0;
-     //Loop over set A
-     for( unsigned int a=0; a<sampleSize; a++)
-     {
-       // Compute d(x(a),x(b))
-       double sumOfSquares = 0.0;
-       for(int m=0; m<N; m++)
-       {
-         const double diff = this->m_Sample[b].imageValueArray[m] - this->m_Sample[a].imageValueArray[m];
-         sumOfSquares += diff*diff;
-       }
 
-       W_x_j[b] += this->m_KernelFunction->Evaluate( sqrt(sumOfSquares) / this->m_ImageStandardDeviation );
+   // Update mean
+   for(unsigned int i=0; i < size; i++)
+   {
+     mean[i] = 0.0;
+     for( int j=0; j< N; j++)
+     {
+       mean[i] += this->m_Sample[i].imageValueArray[j];
      }
+     mean[i] /= (double) N;
    }
+
+   for( int l=0; l < N; l ++)
+   {
+     for (int x_i=sampleSize; x_i<sampleSize+sampleSize; x_i++ )
+     {
+
+       W_x_j[x_i][l] = 0.0;
+       for( int x_j=0; x_j < sampleSize; x_j++)
+       {
+
+         // Compute d(x_i, x_j)
+         const double diff1 = (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l])
+                              /this->m_ImageStandardDeviation;
+         const double diff2 = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
+
+         // Evaluate the probability of d(x_a, x_b)
+         W_x_j[x_i][l] += this->m_KernelFunction->Evaluate
+                          ( sqrt( diff1*diff1  + diff2*diff2 ) );
+       }
+     }  // End of sample loop
+   }
+
 
 }
 
 template < class TFixedImage >
-void JointEntropyMultiImageMetric < TFixedImage >
+void RegisterToMeanMultiImageMetric < TFixedImage >
 ::GetValueAndDerivative(const ParametersType & parameters,
                           MeasureType & value,
                           DerivativeType & derivative) const
@@ -280,16 +312,17 @@ void JointEntropyMultiImageMetric < TFixedImage >
  */
 template < class TFixedImage >
 void 
-JointEntropyMultiImageMetric < TFixedImage >
+RegisterToMeanMultiImageMetric < TFixedImage >
 ::GetThreadedValueAndDerivative(int threadId) const
 {
 
-  double N = (double) this->m_NumberOfImages;
+  const unsigned int N = this->m_NumberOfImages;
   int numberOfThreads = this->GetNumberOfThreads();
   const unsigned int sampleASize = this->m_NumberOfSpatialSamples / 2;
   const unsigned int sampleBSize = this->m_NumberOfSpatialSamples / 2;
+  const double meanVariance = m_MeanStandardDeviation * m_MeanStandardDeviation;
+  const double imageVariance = this->m_ImageStandardDeviation * this->m_ImageStandardDeviation;
 
-  
   /** The tranform parameters vector holding i'th images parameters 
   Copy parameters in to a collection of arrays */
   MeasureType value = NumericTraits < MeasureType >::Zero;
@@ -303,92 +336,117 @@ JointEntropyMultiImageMetric < TFixedImage >
   DerivativeType deriv(numberOfParameters);
 
   
-  //Calculate joint entropy
-  double logSum = 0.0;
+  //Calculate the entropy
+  this->m_value[threadId] = 0.0;
   // Loop over first sample set
-  for (int b=sampleASize+threadId; b<sampleASize+sampleBSize; b += this->m_NumberOfThreads )
+  for( int l=threadId; l < N; l += this->m_NumberOfThreads)
   {
-    this->m_value[threadId] += vcl_log( W_x_j[b]/(double)sampleASize );
-  }  // End of sample loop
-
-  this->m_value[threadId] /= -1.0 * (double) sampleBSize;
-
-
-  // Calculate the derivative
-  for( int l=threadId; l<N; l += this->m_NumberOfThreads )
-  {
-    // Set the image for derivatives
-    this->m_DerivativeCalcVector[threadId]->SetInputImage(this->m_ImageArray[l]);
-    
     for (int x_i=sampleASize; x_i<sampleASize+sampleBSize; x_i++ )
     {
+      this->m_value[threadId] += vcl_log( W_x_j[x_i][l] / (double)sampleASize );
+    }  // End of sample loop
+  }
 
-      // Sum over the second sample set
-      double weight = 0.0;
-      for (int x_j=0; x_j<sampleASize; x_j++ )
+
+    // Calculate the derivative
+    // Set the image for derivatives
+  for( int m=threadId; m < N; m += this->m_NumberOfThreads)
+  {
+    this->m_DerivativeCalcVector[threadId]->SetInputImage(this->m_ImageArray[m]);
+
+    for( int l=0; l < N; l ++)
+    {
+
+      for (int x_i=sampleASize; x_i<sampleASize+sampleBSize; x_i++ )
       {
 
-        // Compute d(x_i, x_j)
-        double sumOfSquares = 0.0;
-        for(int m=0; m<N; m++)
+        // Sum over the second sample set
+        double weight = 0.0;
+        for (int x_j=0; x_j<sampleASize; x_j++ )
         {
-          const double diff = this->m_Sample[x_i].imageValueArray[m] - this->m_Sample[x_j].imageValueArray[m];
-          sumOfSquares += diff*diff;
+
+          // Compute d(x_i, x_j)
+          const double diff1 = (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l])
+                              /this->m_ImageStandardDeviation;
+          const double diff2 = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
+
+          // Compute G(d(x_i,x_j))
+          const double G = this->m_KernelFunction->Evaluate
+                           ( sqrt( diff1*diff1  + diff2*diff2 ) );
+
+          double dir;
+          if( l == m)
+          {
+            dir = 2.0 / meanVariance / (double) N * (mean[x_i] - mean[x_j])
+                + ( this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l] ) / imageVariance;
+          }
+          else
+          {
+            dir = 2.0 / meanVariance / (double) N * (mean[x_i] - mean[x_j]);
+          }
+          
+          weight += G * dir;
         }
 
-        // Compute G(d(x_i,x_j))
-        const double G = this->m_KernelFunction->Evaluate( sqrt(sumOfSquares) / this->m_ImageStandardDeviation );
+        weight /= W_x_j[x_i][l];
 
-        weight += G* (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l]);
-      }
+        // Compute the gradient
+        this->CalculateDerivatives(this->m_Sample[x_i].FixedImagePoint, deriv, m, threadId);
 
-      weight /= W_x_j[x_i];
-
-      // Compute the gradient
-      this->CalculateDerivatives(this->m_Sample[x_i].FixedImagePoint, deriv, l, threadId);
-
-      //Copy the proper part of the derivative
-      for (int n = 0; n < numberOfParameters; n++)
-      {
-        this->m_derivativeArray[threadId][l * numberOfParameters + n] += weight*deriv[n];
-      }
-    }  // End of sample loop B
+        //Copy the proper part of the derivative
+        for (int n = 0; n < numberOfParameters; n++)
+        {
+          this->m_derivativeArray[threadId][m * numberOfParameters + n] += weight*deriv[n];
+        }
+      }  // End of sample loop B
 
 
     
-    // Loop over the samples A
-    for (int x_i=0; x_i<sampleASize; x_i++ )
-    {
-
-      // Sum over the second sample set
-      double weight = 0.0;
-      for (int x_j=sampleASize; x_j<sampleASize+sampleBSize; x_j++ )
+      // Loop over the samples A
+      for (int x_i=0; x_i<sampleASize; x_i++ )
       {
 
-        // Compute d(x_i, x_j)
-        double sumOfSquares = 0.0;
-        for(int m=0; m<N; m++)
+        // Sum over the second sample set
+        double weight = 0.0;
+        for (int x_j=sampleASize; x_j<sampleASize+sampleBSize; x_j++ )
         {
-          const double diff = this->m_Sample[x_i].imageValueArray[m] - this->m_Sample[x_j].imageValueArray[m];
-          sumOfSquares += diff*diff;
+
+          // Compute d(x_i, x_j)
+          const double diff1 = (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l])
+                              /this->m_ImageStandardDeviation;
+          const double diff2 = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
+
+          // Compute G(d(x_i,x_j))
+          const double G = this->m_KernelFunction->Evaluate
+                           ( sqrt( diff1*diff1  + diff2*diff2 ) );
+
+          double dir;
+          if( l == m)
+          {
+            dir = 2.0 / meanVariance / (double) N * (mean[x_i] - mean[x_j])
+                + ( this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l] )
+                  / imageVariance;
+          }
+          else
+          {
+            dir = 2.0 / meanVariance / (double) N * (mean[x_i] - mean[x_j]);
+          }
+
+          weight += G * dir / W_x_j[x_j][l];
+        
         }
 
-        // Compute G(d(x_i,x_j))
-        const double G = this->m_KernelFunction->Evaluate( sqrt(sumOfSquares) / this->m_ImageStandardDeviation );
+        // Compute the gradient
+        this->CalculateDerivatives(this->m_Sample[x_i].FixedImagePoint, deriv, m, threadId);
 
-        weight += G * (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l]) / W_x_j[x_j];
-        
-      }
+        //Copy the proper part of the derivative
+        for (int n = 0; n < numberOfParameters; n++)
+        {
+          this->m_derivativeArray[threadId][m * numberOfParameters + n] += weight*deriv[n];
+        }
+      }  // End of sample loop B
 
-      // Compute the gradient
-      this->CalculateDerivatives(this->m_Sample[x_i].FixedImagePoint, deriv, l, threadId);
-
-      //Copy the proper part of the derivative
-      for (int n = 0; n < numberOfParameters; n++)
-      {
-        this->m_derivativeArray[threadId][l * numberOfParameters + n] += weight*deriv[n];
-      }
-    }  // End of sample loop B
+    }
     
   }
 }
@@ -397,7 +455,7 @@ JointEntropyMultiImageMetric < TFixedImage >
  * Consolidate auxiliary variables after finishing the threads
  */
 template < class TFixedImage >
-void JointEntropyMultiImageMetric < TFixedImage >
+void RegisterToMeanMultiImageMetric < TFixedImage >
 ::AfterGetThreadedValueAndDerivative(MeasureType & value,
                            DerivativeType & derivative) const
 {
@@ -414,7 +472,9 @@ void JointEntropyMultiImageMetric < TFixedImage >
     value += this->m_value[i];
     temp += this->m_derivativeArray[i];
   }
-  temp /= (double) (this->m_NumberOfSpatialSamples / 2.0 * this->m_ImageStandardDeviation * this->m_ImageStandardDeviation);
+  value /=  -0.5 * (double) this->m_NumberOfSpatialSamples * (double) this->m_NumberOfImages;
+  temp /= (double) (this->m_NumberOfSpatialSamples / 2.0 *
+                    this->m_NumberOfImages);
   derivative = temp;
   
   //Set the mean to zero
@@ -442,7 +502,7 @@ void JointEntropyMultiImageMetric < TFixedImage >
 // for this thread.
 template < class TFixedImage >
 ITK_THREAD_RETURN_TYPE
-JointEntropyMultiImageMetric< TFixedImage >
+RegisterToMeanMultiImageMetric< TFixedImage >
 ::ThreaderCallbackGetValueAndDerivative( void *arg )
 {
   ThreadStruct *str;

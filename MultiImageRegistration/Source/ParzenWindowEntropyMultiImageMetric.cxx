@@ -480,22 +480,23 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
   // Loop over the pixel stacks
   for (int a=threadId; a<m_Sample.size(); a += m_NumberOfThreads )
   {
-    double dLogSum = 0.0;
-    
+
     for (int j = 0; j < N; j++)
     {
-      dSum = m_MinProbability;
+      dSum = 0.0;
       
       for(int k = 0; k < N; k++)
       {
-        dSum += m_KernelFunction->Evaluate( ( m_Sample[a].imageValueArray[j] - m_Sample[a].imageValueArray[k] ) /
-            m_ImageStandardDeviation );
+        if( k != j)
+        {
+          dSum += m_KernelFunction->Evaluate( ( m_Sample[a].imageValueArray[j] - m_Sample[a].imageValueArray[k] )
+                                                /m_ImageStandardDeviation );
+        }
       }
-      dSum /= static_cast<double> (this->m_NumberOfImages);
-      dLogSum  -= ( dSum > 0.0 ) ? vcl_log( dSum ) : 0.0;
+      dSum /= static_cast<double> (this->m_NumberOfImages - 1.0);
+      m_value[threadId]  += vcl_log( dSum );
       
     }
-    m_value[threadId] += dLogSum;
 
   }  // End of sample loop
 
@@ -596,7 +597,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
   {
     value += m_value[i];
   }
-  value /= (MeasureType) (m_Sample.size()*this->m_NumberOfImages);
+  value /= (MeasureType) (-1.0 * m_Sample.size()*this->m_NumberOfImages);
 
   //cout << value << endl;
   return value;
@@ -706,8 +707,9 @@ void ParzenWindowEntropyMultiImageMetric < TFixedImage >
     value += m_value[i];
     temp += m_derivativeArray[i];
   }
-  value /= (double) m_Sample.size();
-  temp /= (double) m_Sample.size();
+  value /= (double) ( -1.0 * m_Sample.size() * this->m_NumberOfImages );
+  temp /= (double) (m_Sample.size() * this->m_NumberOfImages *
+                     m_ImageStandardDeviation * m_ImageStandardDeviation );
   derivative = temp;
   
   //Set the mean to zero
@@ -755,67 +757,52 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 
   //Calculate variance and mean
   m_value[threadId] = 0.0;
-  std::vector<double> dSum(this->m_NumberOfImages);
+  std::vector<double> W_j(this->m_NumberOfImages);
   DerivativeType deriv(numberOfParameters);
-
+  
   // Loop over the pixel stacks
-  for (int a=threadId; a<m_Sample.size(); a += m_NumberOfThreads )
+  for (int x=threadId; x<m_Sample.size(); x += m_NumberOfThreads )
   {
-    double dLogSum = 0.0;
-    
+    // Calculate the entropy
     for (int j = 0; j < N; j++)
     {
-      dSum[j] = m_MinProbability;
+      W_j[j] = 0.0;
       
       for(int k = 0; k < N; k++)
       {
-        dSum[j] += m_KernelFunction->Evaluate( ( m_Sample[a].imageValueArray[j] - m_Sample[a].imageValueArray[k] ) /
+        if( k!= j)
+        {
+          W_j[j] += m_KernelFunction->Evaluate( ( m_Sample[x].imageValueArray[j] - m_Sample[x].imageValueArray[k] ) /
             m_ImageStandardDeviation );
+        }
       }
-      dSum[j] /= static_cast<double> (this->m_NumberOfImages);
-      dLogSum  -= ( dSum[j] > 0.0 ) ? vcl_log( dSum[j] ) : 0.0;
+      m_value[threadId]  += vcl_log( W_j[j] / (double) (this->m_NumberOfImages -1.0) );
       
     }
-    m_value[threadId] += dLogSum / (double) this->m_NumberOfImages;
 
 
     // Calculate derivative
-    for (int i = 0; i < N; i++)
+    for (int l = 0; l < N; l++)
     {
-      double innerSum1 = 0.0;
-      for (int k = 0; k < N; k++)
-      {
-        const double diff = ( m_Sample[a].imageValueArray[i] - m_Sample[a].imageValueArray[k] ) /
-                        m_ImageStandardDeviation;
-        innerSum1 += m_KernelFunction->Evaluate( diff );
-      }
 
       double weight = 0.0;
       for(int j=0; j<N; j++)
       {
-        double innerSum2 = 0.0;
-        for (int k = 0; k < N; k++)
-        {
-          const double diff = ( m_Sample[a].imageValueArray[j] - m_Sample[a].imageValueArray[k] ) /
-              m_ImageStandardDeviation;
-          innerSum2 += m_KernelFunction->Evaluate( diff );
-        }
 
-        const double diff = (m_Sample[a].imageValueArray[i] - m_Sample[a].imageValueArray[j] );
+        const double diff = (m_Sample[x].imageValueArray[l] - m_Sample[x].imageValueArray[j] );
         const double g = m_KernelFunction->Evaluate( diff / m_ImageStandardDeviation );
 
-        weight += (1.0/innerSum1 + 1.0/innerSum2) * g * diff;
+        weight += (1.0/W_j[l] + 1.0/W_j[j]) * g * diff;
       }
-      weight /=  m_ImageStandardDeviation*m_ImageStandardDeviation*N;
       
       // Get the derivative for this sample
-      m_DerivativeCalcVector[threadId]->SetInputImage(this->m_ImageArray[i]);
-      this->CalculateDerivatives(m_Sample[a].FixedImagePoint, deriv, i, threadId);
+      m_DerivativeCalcVector[threadId]->SetInputImage(this->m_ImageArray[l]);
+      this->CalculateDerivatives(m_Sample[x].FixedImagePoint, deriv, l, threadId);
 
       //Copy the proper part of the derivative
-      for (int l = 0; l < numberOfParameters; l++)
+      for (int k = 0; k < numberOfParameters; k++)
       {
-        m_derivativeArray[threadId][i * numberOfParameters + l] += weight*deriv[l];
+        m_derivativeArray[threadId][l * numberOfParameters + k] += weight*deriv[k];
       }
     }
   }  // End of sample loop

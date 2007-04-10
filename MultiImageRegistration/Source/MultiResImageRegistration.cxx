@@ -34,6 +34,8 @@
 #include "VarianceMultiImageMetric.h"
 #include "ParzenWindowEntropyMultiImageMetric.h"
 #include "JointEntropyMultiImageMetric.h"
+#include "RegisterToMeanMultiImageMetric.h"
+#include "RegisterToMeanAndVarianceMultiImageMetric.h"
     
     
 #include "AddImageFilter.h"
@@ -538,6 +540,8 @@ int main( int argc, char *argv[] )
   typedef itk::VarianceMultiImageMetric< InternalImageType>    MetricType;
   typedef itk::ParzenWindowEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
   typedef itk::JointEntropyMultiImageMetric< InternalImageType>    JointEntropyMetricType;
+  typedef itk::RegisterToMeanMultiImageMetric< InternalImageType>    RegisterToMeanMetricType;
+  typedef itk::RegisterToMeanAndVarianceMultiImageMetric< InternalImageType>    RegisterToMeanAndVarianceMetricType;
 
 
 
@@ -849,6 +853,9 @@ int main( int argc, char *argv[] )
   MetricType::Pointer         varianceMetric;
   EntropyMetricType::Pointer         entropyMetric;
   JointEntropyMetricType::Pointer         jointEntropyMetric;
+  RegisterToMeanMetricType::Pointer         registerToMeanMetric;
+  RegisterToMeanAndVarianceMetricType::Pointer         registerToMeanAndVarianceMetric;
+  
   if(metricType == "variance")
   {
     varianceMetric        = MetricType::New();
@@ -864,6 +871,22 @@ int main( int argc, char *argv[] )
     jointEntropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
     jointEntropyMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
   }
+  else if( metricType == "mean" )
+  {
+    registerToMeanMetric        = RegisterToMeanMetricType::New();
+    registration->SetMetric( registerToMeanMetric  );
+    // Set the number of samples to be used by the metric
+    registerToMeanMetric->SetNumberOfSpatialSamples( numberOfSamples );
+    registerToMeanMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
+  }
+  else if( metricType == "meanAndVariance" )
+  {
+    registerToMeanAndVarianceMetric        = RegisterToMeanAndVarianceMetricType::New();
+    registration->SetMetric( registerToMeanAndVarianceMetric  );
+    // Set the number of samples to be used by the metric
+    registerToMeanAndVarianceMetric->SetNumberOfSpatialSamples( numberOfSamples );
+    registerToMeanAndVarianceMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
+  }   
   else
   {
     entropyMetric        = EntropyMetricType::New();
@@ -1041,7 +1064,15 @@ int main( int argc, char *argv[] )
   else if( metricType =="jointEntropy")
   {
     jointEntropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
-  }  
+  }
+  else if( metricType =="mean")
+  {
+    registerToMeanMetric->SetNumberOfSpatialSamples( numberOfSamples );
+  }
+  else if( metricType =="meanAndVariance")
+  {
+    registerToMeanAndVarianceMetric->SetNumberOfSpatialSamples( numberOfSamples );
+  }   
   else
   {
     entropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
@@ -1087,7 +1118,15 @@ int main( int argc, char *argv[] )
         else if( metricType == "jointEntropy" )
         {
           outputFile << jointEntropyMetric->GetValue(parameters) << " ";
-        }        
+        }
+        else if( metricType == "mean" )
+        {
+          outputFile << registerToMeanMetric->GetValue(parameters) << " ";
+        }
+        else if( metricType == "meanAndVariance" )
+        {
+          outputFile << registerToMeanAndVarianceMetric->GetValue(parameters) << " ";
+        }         
         else
         {
           outputFile << entropyMetric->GetValue(parameters) << " ";
@@ -1269,7 +1308,15 @@ int main( int argc, char *argv[] )
     else if( metricType == "jointEntropy")
     {
       jointEntropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
-    }    
+    }
+    else if( metricType == "mean")
+    {
+      registerToMeanMetric->SetNumberOfSpatialSamples( numberOfSamples );
+    }
+    else if( metricType == "meanAndVariance")
+    {
+      registerToMeanAndVarianceMetric->SetNumberOfSpatialSamples( numberOfSamples );
+    }          
     else
     {
       entropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
@@ -1499,6 +1546,14 @@ int main( int argc, char *argv[] )
         {
           jointEntropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
         }
+        else if(metricType == "mean")
+        {
+          registerToMeanMetric->SetNumberOfSpatialSamples( numberOfSamples );
+        }
+        else if(metricType == "meanAndVariance")
+        {
+          registerToMeanAndVarianceMetric->SetNumberOfSpatialSamples( numberOfSamples );
+        }                
         else
         {
           entropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
