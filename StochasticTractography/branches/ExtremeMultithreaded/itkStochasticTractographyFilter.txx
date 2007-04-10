@@ -17,7 +17,6 @@
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
-#include <queue>
 
 namespace itk{
 
@@ -26,14 +25,15 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
 ::StochasticTractographyFilter():
   m_TotalTracts(0),m_MaxTractLength(0),m_Gradients(NULL),m_bValues(NULL),
   m_SampleDirections(NULL), m_A(NULL), m_Aqr(NULL), m_LikelihoodCachePtr(NULL),
-  m_MaxLikelihoodCacheSize(0), m_CurrentLikelihoodCacheElements(0),
-  m_TotalDelegatedTracts(0) {
+  m_MaxLikelihoodCacheSize(0), m_CurrentLikelihoodCacheElements(0), m_RandomSeed(0),
+  m_ClockPtr(NULL), m_TotalDelegatedTracts(0) {
   this->m_SeedIndex[0]=0;
   this->m_SeedIndex[1]=0;
   this->m_SeedIndex[2]=0;
   this->m_MeasurementFrame.set_identity();
   this->SetNumberOfRequiredInputs(2); //Filter needs a DWI image and a Mask Image
   
+  m_ClockPtr = RealTimeClock::New();
   //load in default sample directions
   this->LoadDefaultSampleDirections();
 } 
@@ -366,7 +366,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
 ::StochasticTractGeneration( typename InputDWIImageType::ConstPointer dwiimagePtr,
   typename InputMaskImageType::ConstPointer maskimagePtr,
   typename InputDWIImageType::IndexType seedindex,
-  unsigned int tractnumber,
+  unsigned long randomseed,
   PathType::Pointer tractPtr){
   
   PathType::ContinuousIndexType cindex_curr = seedindex;
@@ -379,7 +379,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   TractOrientationContainerType::Element v_prev(0,0,0);
   
   tractPtr->Initialize();
-  vnl_random randomgenerator(tractnumber);
+  vnl_random randomgenerator(randomseed);
   //std::cout<<randomgenerator.drand64()<<std::endl;
   
   for(unsigned int j=0; (j<this->m_MaxTractLength) &&
@@ -425,7 +425,10 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
     const typename InputDWIImageType::SpacingType& spacing = dwiimagePtr->GetSpacing();
     cindex_curr[0]+=v_curr[0]/spacing[0];
     cindex_curr[1]+=v_curr[1]/spacing[1];
-    cindex_curr[2]+=v_curr[2]/spacing[2];
+   cindex_curr[2]+=v_curr[2]/spacing[2];
+//    cindex_curr[0]+=v_curr[0];
+//    cindex_curr[1]+=v_curr[1];
+ //   cindex_curr[2]+=v_curr[2];
     v_prev=v_curr;
   }
 }
@@ -442,6 +445,10 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   typename OutputConnectivityImageType::Pointer outputPtr = this->GetOutput();
   outputPtr->FillBuffer(0);
 
+  //get a random seed
+  this->m_RandomSeed = ((unsigned long) this->m_ClockPtr->GetTimeStamp())%10000;
+  std::cout<<"RandomSeed: "<<this->m_RandomSeed<<std::endl;
+
   //setup the multithreader
   StochasticTractGenerationCallbackStruct data;
   data.Filter = this;
@@ -452,7 +459,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   //start the multithreaded execution
   this->GetMultiThreader()->SingleMethodExecute();
   std::cout<< "CurrentLikelihoodCacheElements: " << 
-    this->m_CurrentLikelihoodCacheElements << std::endl;
+    this->m_CurrentLikelihoodCacheElements << std::endl; 
 }
 
 // Callback routine used by the threading library. This routine just calls
@@ -481,7 +488,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
     str->Filter->StochasticTractGeneration( inputDWIImagePtr,
       inputMaskImagePtr,
       str->Filter->GetSeedIndex(),
-      tractnumber,
+      str->Filter->m_RandomSeed*tractnumber,
       tractPtr);
       
     //write the tract to output image
@@ -492,9 +499,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
       /* there is an issue using outputtractIt.Value() */
       outputtractIt.Set(outputtractIt.Get()+1);
     }
-    std::cout<<"Tract: "<<tractnumber<<" complete. " <<
-      "CurrentLikelihoodCacheElements: " << 
-        str->Filter->m_CurrentLikelihoodCacheElements << std::endl;
+//    std::cout<<tractnumber;
+//      "CurrentLikelihoodCacheElements: " << 
+//        str->Filter->m_CurrentLikelihoodCacheElements << std::endl;
     
     str->Filter->m_OutputImageMutex.Unlock();
 

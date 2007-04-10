@@ -244,13 +244,15 @@ int main(int argc, char* argv[]){
   //excludes DWI pixels which contain values that are zero
   ExcludeZeroDWIFilterType::Pointer ezdwifilter = ExcludeZeroDWIFilterType::New();
   ezdwifilter->SetInput( dwireaderPtr->GetOutput() );
-  
+  std::cout<<"Start mask image\n";  
   //write out the mask image
   MaskImageWriterType::Pointer maskwriterPtr = MaskImageWriterType::New();
   maskwriterPtr->SetInput( ezdwifilter->GetOutput() );
   maskwriterPtr->SetFileName( "maskimage.nhdr" );
   maskwriterPtr->Update();
-  
+  std::cout<<"Finish the mask image\n";
+
+  std::cout<<"Create PTFilter\n";
   //Setup the PTFilter
   PTFilterType::Pointer ptfilterPtr = PTFilterType::New();
   ptfilterPtr->SetInput( dwireaderPtr->GetOutput() );
@@ -262,7 +264,7 @@ int main(int argc, char* argv[]){
   ptfilterPtr->SetMaxTractLength( maxtractlength );
   ptfilterPtr->SetTotalTracts( totaltracts );
   ptfilterPtr->SetMaxLikelihoodCacheSize( maxlikelihoodcachesize );
-  ptfilterPtr->SetNumberOfThreads( 3 );
+  ptfilterPtr->SetNumberOfThreads( 8 );
   
   //Setup the AddImageFilter
   AddImageFilterType::Pointer addimagefilterPtr = AddImageFilterType::New();
@@ -280,7 +282,6 @@ int main(int argc, char* argv[]){
   addimagefilterPtr->SetInput1(ptfilterPtr->GetOutput());
   addimagefilterPtr->SetInput2(addimagefilterPtr->GetOutput());
   
-  std::cout<<"Start Processing\n";
   ROIImageIteratorType ROIImageIt( roireaderPtr->GetOutput(),
     roireaderPtr->GetOutput()->GetRequestedRegion() );
   for(ROIImageIt.GoToBegin(); !ROIImageIt.IsAtEnd(); ++ROIImageIt){
@@ -288,6 +289,7 @@ int main(int argc, char* argv[]){
       std::cout << "PixelIndex: "<< ROIImageIt.GetIndex() << std::endl;
       ptfilterPtr->SetSeedIndex( ROIImageIt.GetIndex() );
       addimagefilterPtr->Update();
+//      break;
     }
   }        
 
