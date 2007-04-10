@@ -57,7 +57,13 @@ public:
   typedef typename SampleType::MeasurementVectorType  MeasurementVectorType;
   typedef typename MeasurementVectorType::ValueType   MeasurementType;
 
-  // Add concept checking here
+
+  // Add concept checking here : FIXME
+
+
+  /** Set/Get the input sample */
+  virtual void SetInput( const SampleType * sample );
+  virtual const SampleType * GetInput() const;
   
 protected:
   ListSampleToHistogramFilter();
