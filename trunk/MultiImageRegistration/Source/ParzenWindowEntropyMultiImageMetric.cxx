@@ -99,7 +99,7 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
   m_Sample.resize (m_NumberOfSpatialSamples);
   for (int i = 0; i < m_NumberOfSpatialSamples; i++)
   {
-    m_Sample[i].imageValueArray.resize (this->m_NumberOfImages);
+    m_Sample[i].imageValueArray.set_size (this->m_NumberOfImages);
   }
   this->m_NumberOfPixelsCounted = m_NumberOfSpatialSamples;
   

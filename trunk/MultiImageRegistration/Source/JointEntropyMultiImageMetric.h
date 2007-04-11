@@ -9,8 +9,8 @@
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
@@ -56,7 +56,7 @@ namespace itk
  * SetInterpolator().
  *
  * \warning This metric assumes that the moving image has already been
- * connected to the interpolator outside of this class. 
+ * connected to the interpolator outside of this class.
  *
  * The method GetValue() computes of the mutual information
  * while method GetValueAndDerivative() computes
@@ -194,8 +194,16 @@ protected:
 
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValue( void *arg );
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueAndDerivative( void *arg );
+  static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueAndDerivativeHelper( void *arg );
+  static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueHelper( void *arg );
+
+  /** computes derivatives in multithreaded fashion */
+  void GetValueAndDerivativeHelper(int threadId) const;
+  void GetValueHelper(int threadId) const;
 
   mutable std::vector< double > W_x_j;
+  mutable std::vector< std::vector< Array<double> > > m_DerivativeArray;
+
 private:
   JointEntropyMultiImageMetric(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
