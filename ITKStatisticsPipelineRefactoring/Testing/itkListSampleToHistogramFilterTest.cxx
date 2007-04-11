@@ -40,6 +40,9 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
   typedef itk::Statistics::ListSampleToHistogramFilter< 
     SampleType, HistogramType > FilterType;
 
+  typedef FilterType::InputHistogramSizeObjectType   InputHistogramSizeObjectType;
+  typedef FilterType::HistogramSizeType              HistogramSizeType;
+
   FilterType::Pointer filter = FilterType::New();  
 
   SampleType::Pointer sample = SampleType::New();
@@ -87,6 +90,61 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     std::cerr << "GetOutput() should have returned NON-NULL" << std::endl;
     return EXIT_FAILURE;
     }
+
+
+  HistogramSizeType histogramSize;
+  histogramSize[0] = 256;
+  histogramSize[1] = 256;
+  histogramSize[2] = 256;
+
+  filter->SetHistogramSize( histogramSize );
+
+  const InputHistogramSizeObjectType * returnedHistogramSizeObject =
+    filter->GetHistogramSizeInput();
+
+  if( returnedHistogramSizeObject == NULL )
+    {
+    std::cerr << "SetHistogramSize() failed pointer consistency test" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  HistogramSizeType returnedHistogramSize = returnedHistogramSizeObject->Get();
+
+  for( unsigned int k1 = 0; k1 < numberOfComponents; k1++ )
+    {
+    if( returnedHistogramSize[k1] != histogramSize[k1] )
+      {
+      std::cerr << "Get/Set HistogramSize() failed value consistency test" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+  InputHistogramSizeObjectType::Pointer histogramSizeObject =
+    InputHistogramSizeObjectType::New();
+
+  histogramSizeObject->Set( histogramSize );
+
+  filter->SetHistogramSizeInput( histogramSizeObject );
+
+  returnedHistogramSizeObject = filter->GetHistogramSizeInput();
+
+  if( returnedHistogramSizeObject != histogramSizeObject )
+    {
+    std::cerr << "Get/Set HistogramSizeInput() failed pointer consistency test" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  returnedHistogramSize = returnedHistogramSizeObject->Get();
+
+  for( unsigned int k2 = 0; k2 < numberOfComponents; k2++ )
+    {
+    if( returnedHistogramSize[k2] != histogramSize[k2] )
+      {
+      std::cerr << "Get/Set HistogramSizeInput() failed value consistency test" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
 
 
   std::cout << "Test passed." << std::endl;

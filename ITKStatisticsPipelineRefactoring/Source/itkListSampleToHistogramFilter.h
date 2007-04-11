@@ -20,6 +20,7 @@
 #include "itkMacro.h"
 #include "itkProcessObject.h"
 #include "itkMeasurementVectorTraits.h"
+#include "itkSimpleDataObjectDecorator.h"
 
 
 namespace itk { 
@@ -57,6 +58,7 @@ public:
   typedef typename SampleType::MeasurementVectorType  MeasurementVectorType;
   typedef typename MeasurementVectorType::ValueType   MeasurementType;
   typedef typename Superclass::DataObjectPointer      DataObjectPointer;
+  typedef typename HistogramType::SizeType            HistogramSizeType;
 
 
   // Add concept checking here : FIXME
@@ -69,6 +71,20 @@ public:
   /** Get the output Histogram */
   const HistogramType  * GetOutput() const;
 
+  /** Type of DataObjects to use for Size inputs */
+  typedef SimpleDataObjectDecorator<
+    HistogramSizeType> InputHistogramSizeObjectType;
+
+  /** Methods for setting and getting the histogram size.
+   *  The histogram size is encapsulated inside a decorator
+   *  class. For this reason, it is possible to set and get
+   *  the decorator class, but it is only possible to set the
+   *  histogram size by value.
+   */
+  virtual void SetHistogramSize( const HistogramSizeType & histogramSize );
+  virtual void SetHistogramSizeInput( const InputHistogramSizeObjectType * );
+  virtual const InputHistogramSizeObjectType * GetHistogramSizeInput() const;
+ 
 protected:
   ListSampleToHistogramFilter();
   virtual ~ListSampleToHistogramFilter();
