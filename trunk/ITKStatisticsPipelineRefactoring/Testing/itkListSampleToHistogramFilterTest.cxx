@@ -92,12 +92,18 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     }
 
 
-  HistogramSizeType histogramSize;
-  histogramSize[0] = 256;
-  histogramSize[1] = 256;
-  histogramSize[2] = 256;
+  HistogramSizeType histogramSize1;
+  histogramSize1[0] = 256;
+  histogramSize1[1] = 256;
+  histogramSize1[2] = 256;
 
-  filter->SetHistogramSize( histogramSize );
+  HistogramSizeType histogramSize2;
+  histogramSize2[0] = 128;
+  histogramSize2[1] = 128;
+  histogramSize2[2] = 128;
+
+
+  filter->SetHistogramSize( histogramSize1 );
 
   const InputHistogramSizeObjectType * returnedHistogramSizeObject =
     filter->GetHistogramSizeInput();
@@ -112,17 +118,35 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
 
   for( unsigned int k1 = 0; k1 < numberOfComponents; k1++ )
     {
-    if( returnedHistogramSize[k1] != histogramSize[k1] )
+    if( returnedHistogramSize[k1] != histogramSize1[k1] )
       {
       std::cerr << "Get/Set HistogramSize() failed value consistency test" << std::endl;
       return EXIT_FAILURE;
       }
     }
 
+
+  filter->SetHistogramSize( histogramSize2 );
+
+  returnedHistogramSizeObject =
+      filter->GetHistogramSizeInput();
+
+  returnedHistogramSize = returnedHistogramSizeObject->Get();
+
+  for( unsigned int k2 = 0; k2 < numberOfComponents; k2++ )
+    {
+    if( returnedHistogramSize[k2] != histogramSize2[k2] )
+      {
+      std::cerr << "Get/Set HistogramSize() failed value consistency test" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+
   InputHistogramSizeObjectType::Pointer histogramSizeObject =
     InputHistogramSizeObjectType::New();
 
-  histogramSizeObject->Set( histogramSize );
+  histogramSizeObject->Set( histogramSize1 );
 
   filter->SetHistogramSizeInput( histogramSizeObject );
 
@@ -136,15 +160,57 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
 
   returnedHistogramSize = returnedHistogramSizeObject->Get();
 
-  for( unsigned int k2 = 0; k2 < numberOfComponents; k2++ )
+  for( unsigned int k3 = 0; k3 < numberOfComponents; k3++ )
     {
-    if( returnedHistogramSize[k2] != histogramSize[k2] )
+    if( returnedHistogramSize[k3] != histogramSize1[k3] )
       {
       std::cerr << "Get/Set HistogramSizeInput() failed value consistency test" << std::endl;
       return EXIT_FAILURE;
       }
     }
 
+  histogramSizeObject->Set( histogramSize2 );
+
+  filter->SetInput1( histogramSizeObject );
+
+  returnedHistogramSizeObject = filter->GetInput1();
+
+  if( returnedHistogramSizeObject != histogramSizeObject )
+    {
+    std::cerr << "Get/Set HistogramSizeInput() failed pointer consistency test" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  returnedHistogramSize = returnedHistogramSizeObject->Get();
+
+  for( unsigned int k4 = 0; k4 < numberOfComponents; k4++ )
+    {
+    if( returnedHistogramSize[k4] != histogramSize2[k4] )
+      {
+      std::cerr << "Get/Set HistogramSizeInput() failed value consistency test" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+
+  filter->SetHistogramSize( histogramSize1 );
+  filter->Update();
+  unsigned long modifiedTime = filter->GetMTime();
+  filter->SetHistogramSize( histogramSize1 );
+
+  if( filter->GetMTime() != modifiedTime )
+    {
+    std::cerr << "SetHistogramSize() failed modified Test 1" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  filter->SetHistogramSize( histogramSize2 );
+
+  if( filter->GetMTime() == modifiedTime )
+    {
+    std::cerr << "SetHistogramSize() failed modified Test 2" << std::endl;
+    return EXIT_FAILURE;
+    }
 
 
   std::cout << "Test passed." << std::endl;
