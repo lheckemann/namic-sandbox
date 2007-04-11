@@ -40,8 +40,10 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
   typedef itk::Statistics::ListSampleToHistogramFilter< 
     SampleType, HistogramType > FilterType;
 
-  typedef FilterType::InputHistogramSizeObjectType   InputHistogramSizeObjectType;
-  typedef FilterType::HistogramSizeType              HistogramSizeType;
+  typedef FilterType::InputHistogramSizeObjectType         InputHistogramSizeObjectType;
+  typedef FilterType::HistogramSizeType                    HistogramSizeType;
+  typedef FilterType::HistogramMeasurementType             HistogramMeasurementType;
+  typedef FilterType::InputHistogramMeasurementObjectType  InputHistogramMeasurementObjectType;
 
   FilterType::Pointer filter = FilterType::New();  
 
@@ -212,6 +214,106 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
+
+  // Testing the settings of the MarginalScale.
+  const HistogramMeasurementType marginalScale1 = 237;
+  const HistogramMeasurementType marginalScale2 = 179;
+
+  filter->SetMarginalScale( marginalScale1 );
+  
+  const InputHistogramMeasurementObjectType * recoveredMarginalScaleObject =
+    filter->GetMarginalScaleInput();
+   
+  if( recoveredMarginalScaleObject == NULL )
+    {
+    std::cerr << "GetMarginalScaleInput() returned NULL object." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( recoveredMarginalScaleObject->Get() != marginalScale1 )
+    {
+    std::cerr << "GetMarginalScaleInput() test for value consistency 1 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  filter->SetMarginalScale( marginalScale2 );
+  
+  recoveredMarginalScaleObject = filter->GetMarginalScaleInput();
+   
+  if( recoveredMarginalScaleObject == NULL )
+    {
+    std::cerr << "GetMarginalScaleInput() returned NULL object." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( recoveredMarginalScaleObject->Get() != marginalScale2 )
+    {
+    std::cerr << "GetMarginalScaleInput() test for value consistency 2 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  InputHistogramMeasurementObjectType::Pointer marginalScaleObject1 =
+    InputHistogramMeasurementObjectType::New();
+
+  marginalScaleObject1->Set( marginalScale1 );
+
+  filter->SetMarginalScaleInput( marginalScaleObject1 );
+ 
+  recoveredMarginalScaleObject = filter->GetMarginalScaleInput();
+
+  if( recoveredMarginalScaleObject != marginalScaleObject1 )
+    {
+    std::cerr << "GetMarginalScaleInput() test for pointer consistency 1 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( recoveredMarginalScaleObject->Get() != marginalScale1 )
+    {
+    std::cerr << "GetMarginalScaleInput() test for value consistency 3 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  InputHistogramMeasurementObjectType::Pointer marginalScaleObject2 =
+    InputHistogramMeasurementObjectType::New();
+
+  marginalScaleObject2->Set( marginalScale2 );
+
+  filter->SetMarginalScaleInput( marginalScaleObject2 );
+ 
+  recoveredMarginalScaleObject = filter->GetMarginalScaleInput();
+
+  if( recoveredMarginalScaleObject != marginalScaleObject2 )
+    {
+    std::cerr << "GetMarginalScaleInput() test for pointer consistency 2 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( recoveredMarginalScaleObject->Get() != marginalScale2 )
+    {
+    std::cerr << "GetMarginalScaleInput() test for value consistency 4 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  filter->SetInput2( marginalScaleObject1 );
+ 
+  recoveredMarginalScaleObject = filter->GetInput2();
+
+  if( recoveredMarginalScaleObject != marginalScaleObject1 )
+    {
+    std::cerr << "GetMarginalScaleInput() test for pointer consistency 3 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( recoveredMarginalScaleObject->Get() != marginalScale1 )
+    {
+    std::cerr << "GetMarginalScaleInput() test for value consistency 5 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+
+  
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
