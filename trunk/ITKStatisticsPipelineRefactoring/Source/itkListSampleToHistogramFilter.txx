@@ -34,6 +34,16 @@ ListSampleToHistogramFilter< TSample, THistogram >
     = static_cast<HistogramType*>(this->MakeOutput(0).GetPointer()); 
   this->ProcessObject::SetNumberOfRequiredOutputs(1);
   this->ProcessObject::SetNthOutput(0, output.GetPointer());
+
+  // Set some default inputs 
+  typename InputHistogramSizeObjectType::Pointer histogramSizeObject =
+    InputHistogramSizeObjectType::New();
+
+  HistogramSizeType histogramSize;
+  histogramSize.Fill(0);
+  histogramSizeObject->Set( histogramSize );
+  this->ProcessObject::SetNthInput( 1, histogramSizeObject );
+
 }
 
 template < class TSample, class THistogram >
@@ -66,6 +76,57 @@ ListSampleToHistogramFilter< TSample, THistogram >
     static_cast<const SampleType * >(this->ProcessObject::GetInput(0) );
 
   return input;
+}
+
+
+template < class TSample, class THistogram >
+void
+ListSampleToHistogramFilter< TSample, THistogram >
+::SetHistogramSize( const HistogramSizeType & histogramSize )
+{
+  // first check to see if anything changed
+  const InputHistogramSizeObjectType * oldHistogramSizeObject
+    = this->GetHistogramSizeInput();
+
+  if( oldHistogramSizeObject && oldHistogramSizeObject->Get() == histogramSize )
+    {
+    return;
+    }
+  
+  // Create an object for it
+  typename InputHistogramSizeObjectType::Pointer  
+    newHistogramSizeObject = InputHistogramSizeObjectType::New();
+  newHistogramSizeObject->Set( histogramSize );
+
+  this->SetHistogramSizeInput( newHistogramSizeObject );
+}
+
+
+template < class TSample, class THistogram >
+void
+ListSampleToHistogramFilter< TSample, THistogram >
+::SetHistogramSizeInput( const InputHistogramSizeObjectType * input )
+{
+  if( input != this->GetHistogramSizeInput() )
+    {
+    this->ProcessObject::SetNthInput(1,
+      const_cast<InputHistogramSizeObjectType*>(input));
+    this->Modified();
+    }
+}
+
+
+template < class TSample, class THistogram >
+const typename
+ListSampleToHistogramFilter< TSample, THistogram >::InputHistogramSizeObjectType *
+ListSampleToHistogramFilter< TSample, THistogram >
+::GetHistogramSizeInput() const
+{
+  const InputHistogramSizeObjectType * histogramSizeObject =
+      static_cast<const InputHistogramSizeObjectType *>( 
+        this->ProcessObject::GetInput(1) );
+  
+  return histogramSizeObject;
 }
 
 
