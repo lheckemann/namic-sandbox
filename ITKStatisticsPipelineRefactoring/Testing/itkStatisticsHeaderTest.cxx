@@ -27,6 +27,7 @@
 #include "itkListSampleToHistogramFilter.h"
 #include "itkHistogram.h"
 #include "itkSample.h"
+#include "itkMeanFilter.h"
 
 int main ( int , char*  )
 {
