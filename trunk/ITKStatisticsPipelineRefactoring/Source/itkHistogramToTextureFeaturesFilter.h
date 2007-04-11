@@ -23,7 +23,7 @@
 #include "itkSimpleDataObjectDecorator.h"
 
 namespace itk {
-  namespace Statistics {
+namespace Statistics {
 
 /** \class HistogramToTextureFeaturesFilter 
 *  \brief This class computes texture feature coefficients from a grey level
@@ -58,7 +58,7 @@ namespace itk {
 * \sum_{i,j}j \cdot g(i, j) \f$ (due to matrix summetry), and
 *
 * \f$ \sigma =  \f$ (weighted pixel variance) \f$ = \sum_{i,j}(i - \mu)^2 \cdot g(i, j) = 
-* \sum_{i,j}(j - \mu)^2 \cdot g(i, j)  \f$  (due to matrix summetry)    
+* \sum_{i,j}(j - \mu)^2 \cdot g(i, j)  \f$  (due to matrix summetry)
 *
 * A good texture feature set to use is the Conners, Trivedi and Harlow set: 
 * features 1, 2, 4, 5, 6, and 7. There is some correlation between the various
@@ -103,93 +103,93 @@ enum TextureFeatureName { Energy, Entropy, Correlation,
     
 template< class THistogram >
 class HistogramToTextureFeaturesFilter : public ProcessObject
-  {
-  public:
-    /** Standard typedefs */
-    typedef HistogramToTextureFeaturesFilter                Self;
-    typedef ProcessObject                                   Superclass;
-    typedef SmartPointer<Self>                              Pointer;
-    typedef SmartPointer<const Self>                        ConstPointer;
+{
+public:
+  /** Standard typedefs */
+  typedef HistogramToTextureFeaturesFilter                Self;
+  typedef ProcessObject                                   Superclass;
+  typedef SmartPointer<Self>                              Pointer;
+  typedef SmartPointer<const Self>                        ConstPointer;
+  
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(HistogramToTextureFeaturesFilter, ProcessObject);
+  
+  /** standard New() method support */
+  itkNewMacro(Self);
+  
+  typedef THistogram                                      HistogramType;
+  typedef typename HistogramType::Pointer                 HistogramPointer;
+  typedef typename HistogramType::ConstPointer            HistogramConstPointer;
+  typedef typename HistogramType::MeasurementType         MeasurementType;
+  typedef typename HistogramType::MeasurementVectorType   MeasurementVectorType;
+  typedef typename HistogramType::IndexType               IndexType;
+  typedef typename HistogramType::FrequencyType           FrequencyType;
+  /** Method to Set/Get the input Histogram */
+  void SetInput ( const HistogramType * histogram );
+  const HistogramType * GetInput() const;
+  
+  /** Connects the GLCM histogram over which the features are going to be computed */
+  itkSetObjectMacro( Histogram, HistogramType );
+  itkGetObjectMacro( Histogram, HistogramType );
+
+  /** Smart Pointer type to a DataObject. */
+  typedef DataObject::Pointer                   DataObjectPointer;
+
+  /** Type of DataObjects used for scalar outputs */
+  typedef SimpleDataObjectDecorator<MeasurementType>     MeasurementObjectType;
+
+  /** Return energy texture value. */
+  MeasurementType GetEnergy() const;
+  const MeasurementObjectType* GetEnergyOutput() const;
+
+  /** Return entropy texture value. */
+  MeasurementType GetEntropy() const;
+  const MeasurementObjectType* GetEntropyOutput() const;
+
+  /** return correlation texture value. */
+  MeasurementType GetCorrelation() const;
+  const MeasurementObjectType* GetCorrelationOutput() const;
+
+  /** Return inverse difference moment texture value. */
+  MeasurementType GetInverseDifferenceMoment() const;
+  const MeasurementObjectType* GetInverseDifferenceMomentOutput() const;
+  /** Return inertia texture value. */
+  MeasurementType GetInertia() const;
+  const MeasurementObjectType* GetInertiaOutput() const;
+
+  /** Return cluster shade texture value. */
+  MeasurementType GetClusterShade() const;
+  const MeasurementObjectType* GetClusterShadeOutput() const;
+
+  /** Return cluster prominence texture value. */
+  MeasurementType GetClusterProminence() const;
+  const MeasurementObjectType* GetClusterProminenceOutput() const;
+
+  /** Return Haralick correlation texture value. */
+  MeasurementType GetHaralickCorrelation() const;
+  const MeasurementObjectType* GetHaralickCorrelationOutput() const;
+  
+protected:
+  HistogramToTextureFeaturesFilter();
+  ~HistogramToTextureFeaturesFilter() {};
+  void PrintSelf(std::ostream& os, Indent indent) const;
+
+  /** Make a DataObject of the correct type to be used as the specified
+   * output. */
+  virtual DataObjectPointer MakeOutput(unsigned int idx);
+
+
+  void GenerateData();
+
+private:
+  HistogramPointer m_Histogram;
+  void NormalizeHistogram(void);
+  void ComputeMeansAndVariances( double &pixelMean, double &marginalMean, 
+    double &marginalDevSquared, double &pixelVariance );
+};
     
-    /** Run-time type information (and related methods). */
-    itkTypeMacro(HistogramToTextureFeaturesFilter, ProcessObject);
     
-    /** standard New() method support */
-    itkNewMacro(Self) ;
-    
-    typedef THistogram                                      HistogramType;
-    typedef typename HistogramType::Pointer                 HistogramPointer;
-    typedef typename HistogramType::ConstPointer            HistogramConstPointer;
-    typedef typename HistogramType::MeasurementType         MeasurementType;
-    typedef typename HistogramType::MeasurementVectorType   MeasurementVectorType;
-    typedef typename HistogramType::IndexType               IndexType;
-    typedef typename HistogramType::FrequencyType           FrequencyType;
-    /** Method to Set/Get the input Histogram */
-    void SetInput ( const HistogramType * histogram );
-    const HistogramType * GetInput() const;
-    
-    /** Connects the GLCM histogram over which the features are going to be computed */
-    itkSetObjectMacro( Histogram, HistogramType );
-    itkGetObjectMacro( Histogram, HistogramType );
-
-    /** Smart Pointer type to a DataObject. */
-    typedef DataObject::Pointer                   DataObjectPointer;
-
-    /** Type of DataObjects used for scalar outputs */
-    typedef SimpleDataObjectDecorator<MeasurementType>     MeasurementObjectType;
-
-    /** Return energy texture value. */
-    MeasurementType GetEnergy() const;
-    const MeasurementObjectType* GetEnergyOutput() const;
-
-    /** Return entropy texture value. */
-    MeasurementType GetEntropy() const;
-    const MeasurementObjectType* GetEntropyOutput() const;
-
-    /** return correlation texture value. */
-    MeasurementType GetCorrelation() const;
-    const MeasurementObjectType* GetCorrelationOutput() const;
-
-    /** Return inverse difference moment texture value. */
-    MeasurementType GetInverseDifferenceMoment() const;
-    const MeasurementObjectType* GetInverseDifferenceMomentOutput() const;
-    /** Return inertia texture value. */
-    MeasurementType GetInertia() const;
-    const MeasurementObjectType* GetInertiaOutput() const;
-
-    /** Return cluster shade texture value. */
-    MeasurementType GetClusterShade() const;
-    const MeasurementObjectType* GetClusterShadeOutput() const;
-
-    /** Return cluster prominence texture value. */
-    MeasurementType GetClusterProminence() const;
-    const MeasurementObjectType* GetClusterProminenceOutput() const;
-
-    /** Return Haralick correlation texture value. */
-    MeasurementType GetHaralickCorrelation() const;
-    const MeasurementObjectType* GetHaralickCorrelationOutput() const;
-    
-  protected:
-    HistogramToTextureFeaturesFilter();
-    ~HistogramToTextureFeaturesFilter() {};
-    void PrintSelf(std::ostream& os, Indent indent) const;    
-
-    /** Make a DataObject of the correct type to be used as the specified
-     * output. */
-    virtual DataObjectPointer MakeOutput(unsigned int idx);
-
-
-    void GenerateData();
-
-   private:
-    HistogramPointer m_Histogram;
-    void NormalizeHistogram(void);
-    void ComputeMeansAndVariances( double &pixelMean, double &marginalMean, 
-      double &marginalDevSquared, double &pixelVariance );
-  };
-    
-    
-  } // end of namespace Statistics 
+} // end of namespace Statistics 
 } // end of namespace itk 
 
 #ifndef ITK_MANUAL_INSTANTIATION
