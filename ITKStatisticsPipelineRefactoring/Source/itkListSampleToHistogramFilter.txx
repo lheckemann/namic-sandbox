@@ -26,6 +26,14 @@ template < class TSample, class THistogram >
 ListSampleToHistogramFilter< TSample, THistogram >
 ::ListSampleToHistogramFilter()
 {
+  this->ProcessObject::SetNumberOfRequiredInputs( 1 );
+
+  // Create the output. We use static_cast<> here because we know the default
+  // output must be of type HistogramType
+  typename HistogramType::Pointer output
+    = static_cast<HistogramType*>(this->MakeOutput(0).GetPointer()); 
+  this->ProcessObject::SetNumberOfRequiredOutputs(1);
+  this->ProcessObject::SetNthOutput(0, output.GetPointer());
 }
 
 template < class TSample, class THistogram >
@@ -59,6 +67,29 @@ ListSampleToHistogramFilter< TSample, THistogram >
 
   return input;
 }
+
+
+template < class TSample, class THistogram >
+const typename 
+ListSampleToHistogramFilter< TSample, THistogram >::HistogramType *
+ListSampleToHistogramFilter< TSample, THistogram >
+::GetOutput() const
+{
+  const HistogramType * output = 
+    static_cast<const HistogramType*>(this->ProcessObject::GetOutput(0));
+
+  return output;
+}
+
+
+template < class TSample, class THistogram >
+typename ListSampleToHistogramFilter< TSample, THistogram >::DataObjectPointer
+ListSampleToHistogramFilter< TSample, THistogram >
+::MakeOutput(unsigned int)
+{
+  return static_cast<DataObject*>(HistogramType::New().GetPointer());
+}
+
 
 template < class TSample, class THistogram >
 void
