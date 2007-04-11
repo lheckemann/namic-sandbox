@@ -68,13 +68,8 @@ ListSampleToHistogramFilter< TSample, THistogram >::SampleType *
 ListSampleToHistogramFilter< TSample, THistogram >
 ::GetInput() const
 {
-  if (this->GetNumberOfInputs() < 1)
-    {
-    return NULL;
-    }
   const SampleType * input = 
-    static_cast<const SampleType * >(this->ProcessObject::GetInput(0) );
-
+    static_cast< const SampleType * >( this->ProcessObject::GetInput( 0 ) );
   return input;
 }
 
@@ -99,34 +94,6 @@ ListSampleToHistogramFilter< TSample, THistogram >
   newHistogramSizeObject->Set( histogramSize );
 
   this->SetHistogramSizeInput( newHistogramSizeObject );
-}
-
-
-template < class TSample, class THistogram >
-void
-ListSampleToHistogramFilter< TSample, THistogram >
-::SetHistogramSizeInput( const InputHistogramSizeObjectType * input )
-{
-  if( input != this->GetHistogramSizeInput() )
-    {
-    this->ProcessObject::SetNthInput(1,
-      const_cast<InputHistogramSizeObjectType*>(input));
-    this->Modified();
-    }
-}
-
-
-template < class TSample, class THistogram >
-const typename
-ListSampleToHistogramFilter< TSample, THistogram >::InputHistogramSizeObjectType *
-ListSampleToHistogramFilter< TSample, THistogram >
-::GetHistogramSizeInput() const
-{
-  const InputHistogramSizeObjectType * histogramSizeObject =
-      static_cast<const InputHistogramSizeObjectType *>( 
-        this->ProcessObject::GetInput(1) );
-  
-  return histogramSizeObject;
 }
 
 
