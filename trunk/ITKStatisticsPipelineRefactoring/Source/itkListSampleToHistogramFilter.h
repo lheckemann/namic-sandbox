@@ -23,6 +23,24 @@
 #include "itkSimpleDataObjectDecorator.h"
 
 
+/** Set an input. This defines the Set"name"Input() method */
+#define itkSetDecoratedInputMacro(name, type, number) \
+  virtual void Set##name(const type &_arg) \
+  { \
+    typedef SimpleDataObjectDecorator< type > DecoratorType; \
+    itkDebugMacro("setting input " #name " to " << _arg); \
+    const DecoratorType * oldInput = \
+      static_cast< const DecoratorType * >( \
+        this->ProcessObject::GetInput(number) ); \
+    if( oldInput && oldInput->Get() == _arg ) \
+      { \
+      return; \
+      } \
+    typename DecoratorType::Pointer newInput = DecoratorType::New(); \
+    newInput->Set( _arg ); \
+    this->Set##name##Input( newInput ); \
+  }
+
 namespace itk { 
 namespace Statistics {
 
@@ -81,7 +99,7 @@ public:
    *  the decorator class, but it is only possible to set the
    *  histogram size by value.
    */
-  virtual void SetHistogramSize( const HistogramSizeType & histogramSize );
+  itkSetDecoratedInputMacro( HistogramSize, HistogramSizeType, 1 );
   itkSetInputMacro( HistogramSize, InputHistogramSizeObjectType, 1 );
   itkGetInputMacro( HistogramSize, InputHistogramSizeObjectType, 1 );
 
