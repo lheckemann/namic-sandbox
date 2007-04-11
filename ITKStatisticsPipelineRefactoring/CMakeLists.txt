@@ -13,8 +13,6 @@ INCLUDE_DIRECTORIES( BEFORE
   ${StatisticsRefactoring_SOURCE_DIR}/Testing
   )
 
-SUBDIRS(Source)
-
 CONFIGURE_FILE(
   DartConfiguration.tcl.in
   ${PROJECT_BINARY_DIR}/CTestConfiguration.ini )
@@ -23,7 +21,11 @@ ENABLE_TESTING()
 
 INCLUDE (${CMAKE_ROOT}/Modules/Dart.cmake)
 
-SUBDIRS(Testing)
+SUBDIRS(
+  Source
+  Testing
+  Examples
+  )
 
 OPTION(KWSTYLE_USE_VIM_FORMAT "Set KWStyle to generate errors with a VIM-compatible format." OFF)
 OPTION(KWSTYLE_USE_MSVC_FORMAT "Set KWStyle to generate errors with a VisualStudio-compatible format." OFF)
