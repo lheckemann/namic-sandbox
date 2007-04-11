@@ -128,10 +128,6 @@ public:
   void SetInput ( const HistogramType * histogram );
   const HistogramType * GetInput() const;
   
-  /** Connects the GLCM histogram over which the features are going to be computed */
-  itkSetObjectMacro( Histogram, HistogramType );
-  itkGetObjectMacro( Histogram, HistogramType );
-
   /** Smart Pointer type to a DataObject. */
   typedef DataObject::Pointer                   DataObjectPointer;
 
@@ -182,7 +178,6 @@ protected:
   void GenerateData();
 
 private:
-  HistogramPointer m_Histogram;
   void NormalizeHistogram(void);
   void ComputeMeansAndVariances( double &pixelMean, double &marginalMean, 
     double &marginalDevSquared, double &pixelVariance );
