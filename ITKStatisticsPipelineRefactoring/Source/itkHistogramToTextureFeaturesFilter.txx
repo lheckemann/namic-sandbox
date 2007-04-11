@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkHistogramToTextureFeaturesFilter_txx
-#define _itkHistogramToTextureFeaturesFilter_txx
+#ifndef __itkHistogramToTextureFeaturesFilter_txx
+#define __itkHistogramToTextureFeaturesFilter_txx
 
 #include "itkHistogramToTextureFeaturesFilter.h"
 
@@ -40,7 +40,7 @@ HistogramToTextureFeaturesFilter( void )
       = static_cast<MeasurementObjectType*>(this->MakeOutput(i).GetPointer());
     this->ProcessObject::SetNthOutput(i, output.GetPointer());
     }
-}    
+}
 
 template< class THistogram >
 void
@@ -203,7 +203,7 @@ NormalizeHistogram( void )
     {
     hit.SetFrequency(hit.GetFrequency() / totalFrequency);
     }
-  }
+}
   
 template< class THistogram >
 void
@@ -250,7 +250,7 @@ ComputeMeansAndVariances( double &pixelMean, double &marginalMean,
   */
   marginalMean = marginalSums[0];
   marginalDevSquared = 0;
-  for (unsigned int arrayIndex = 1 ; arrayIndex < binsPerAxis; arrayIndex++)
+  for (unsigned int arrayIndex = 1; arrayIndex < binsPerAxis; arrayIndex++)
     {
     int k = arrayIndex + 1;
     double M_k_minus_1 = marginalMean;
@@ -272,9 +272,9 @@ ComputeMeansAndVariances( double &pixelMean, double &marginalMean,
     MeasurementType frequency = hit.GetFrequency();
     IndexType index = m_Histogram->GetIndex(hit.GetInstanceIdentifier());
     pixelVariance += (index[0] - pixelMean) * (index[0] - pixelMean) * frequency;
-    }      
+    }
   delete [] marginalSums;
-  }
+}
 
 template<class THistogram >
 const
@@ -414,8 +414,8 @@ HistogramToTextureFeaturesFilter<THistogram>
 
 template< class THistogram >
 void
-HistogramToTextureFeaturesFilter< THistogram >::    
-PrintSelf(std::ostream& os, Indent indent) const
+HistogramToTextureFeaturesFilter< THistogram >
+::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
 }
