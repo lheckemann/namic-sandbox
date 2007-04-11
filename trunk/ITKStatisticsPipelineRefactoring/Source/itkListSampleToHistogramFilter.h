@@ -53,16 +53,14 @@ public:
   itkNewMacro(Self);
 
   /** MeasurementVector typedef support */ 
-  typedef TSample                                     SampleType;
-  typedef THistogram                                  HistogramType;
-  typedef typename SampleType::MeasurementVectorType  MeasurementVectorType;
-  typedef typename MeasurementVectorType::ValueType   MeasurementType;
-  typedef typename Superclass::DataObjectPointer      DataObjectPointer;
-  typedef typename HistogramType::SizeType            HistogramSizeType;
-  typedef typename HistogramType::MeasurementType     HistogramMeasurementType;
-
-
-  // Add concept checking here : FIXME
+  typedef TSample                                        SampleType;
+  typedef THistogram                                     HistogramType;
+  typedef typename SampleType::MeasurementVectorType     MeasurementVectorType;
+  typedef typename MeasurementVectorType::ValueType      MeasurementType;
+  typedef typename Superclass::DataObjectPointer         DataObjectPointer;
+  typedef typename HistogramType::SizeType               HistogramSizeType;
+  typedef typename HistogramType::MeasurementType        HistogramMeasurementType;
+  typedef typename HistogramType::MeasurementVectorType  HistogramMeasurementVectorType;
 
 
   /** Set/Get the input sample */
@@ -80,6 +78,12 @@ public:
   typedef SimpleDataObjectDecorator<
     HistogramMeasurementType > InputHistogramMeasurementObjectType;
 
+  /** Type of DataObjects to use for Minimum and Maximums values of the
+   * histogram bins. */
+  typedef SimpleDataObjectDecorator<
+    HistogramMeasurementVectorType > InputHistogramMeasurementVectorObjectType;
+
+
   /** Methods for setting and getting the histogram size.  The histogram size
    * is encapsulated inside a decorator class. For this reason, it is possible
    * to set and get the decorator class, but it is only possible to set the
@@ -92,6 +96,11 @@ public:
    * scale is used when the type of the measurement vector componets are of
    * integer type. */
   itkSetDecoratedInputMacro( MarginalScale, HistogramMeasurementType, 2 );
+
+  /** Methods for setting and getting the Minimum and Maximum values of the
+   * histogram bins. */
+  itkSetDecoratedInputMacro( HistogramBinMinimum, HistogramMeasurementVectorType, 3 );
+  itkSetDecoratedInputMacro( HistogramBinMaximum, HistogramMeasurementVectorType, 4 );
 
 protected:
   ListSampleToHistogramFilter();
