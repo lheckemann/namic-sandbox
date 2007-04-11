@@ -19,8 +19,8 @@
 
 #include "itkMeasurementVectorTraits.h"
 
-namespace itk{ 
-namespace Statistics{
+namespace itk { 
+namespace Statistics {
 
 template< class TSample >
 MeanFilter< TSample >
@@ -108,25 +108,25 @@ MeanFilter< TSample >
 
   MeasurementVectorType output = decoratedOutput->Get();
 
-  typename TSample::ConstIterator iter = input->Begin() ;
-  typename TSample::ConstIterator end =  input->End() ;
-  double totalFrequency = 0.0 ;
+  typename TSample::ConstIterator iter = input->Begin();
+  typename TSample::ConstIterator end =  input->End();
+  double totalFrequency = 0.0;
 
   while (iter != end)
     {
-    double frequency = iter.GetFrequency() ;
-    totalFrequency += frequency ;
+    double frequency = iter.GetFrequency();
+    totalFrequency += frequency;
 
-    for (unsigned int dim = 0 ; dim < measurementVectorSize ; dim++)
+    for (unsigned int dim = 0; dim < measurementVectorSize; dim++)
       {
-      output[dim] += iter.GetMeasurementVector()[dim] * frequency ;
+      output[dim] += iter.GetMeasurementVector()[dim] * frequency;
       }
-    ++iter ;
+    ++iter;
     }
  
-  for (unsigned int dim = 0 ; dim < measurementVectorSize ; dim++)
+  for (unsigned int dim = 0; dim < measurementVectorSize; dim++)
     {
-    output[dim] /= totalFrequency ;
+    output[dim] /= totalFrequency;
     }
 
   decoratedOutput->Set( output );
@@ -137,4 +137,3 @@ MeanFilter< TSample >
 } // end of namespace itk
 
 #endif
-

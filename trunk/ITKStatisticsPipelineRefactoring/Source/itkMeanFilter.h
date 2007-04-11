@@ -23,8 +23,8 @@
 #include "itkSimpleDataObjectDecorator.h"
 #include "itkDataObject.h"
 
-namespace itk{ 
-  namespace Statistics{
+namespace itk { 
+namespace Statistics {
   
 /** \class MeanFilter
  * \brief Given a sample, this filter computes the sample mean
@@ -49,14 +49,14 @@ class ITK_EXPORT MeanFilter : public ProcessObject
 public:
   /**Standard class typedefs. */
   typedef MeanFilter                      Self;
-  typedef ProcessObject                   Superclass ;
+  typedef ProcessObject                   Superclass;
   typedef SmartPointer<Self>              Pointer;
   typedef SmartPointer<const Self>        ConstPointer;
   typedef TSample                         SampleType;
 
   /**Standard Macros */
   itkTypeMacro(MeanFilter, ProcessObject);
-  itkNewMacro(Self) ;
+  itkNewMacro(Self);
 
   /** Length of a measurement vector */
   typedef   unsigned int                              MeasurementVectorSizeType;
@@ -80,19 +80,19 @@ public:
   MeasurementVectorDecoratedType * GetOutput();
 
 protected:
-  MeanFilter() ;
+  MeanFilter();
   virtual ~MeanFilter() {}
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-  void GenerateData() ;
+  void GenerateData();
 
 private:
   MeanFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-} ; // end of class
+}; // end of class
     
-  } // end of namespace Statistics 
+} // end of namespace Statistics 
 } // end of namespace itk 
 
 #ifndef ITK_MANUAL_INSTANTIATION
@@ -100,4 +100,3 @@ private:
 #endif
 
 #endif
-
