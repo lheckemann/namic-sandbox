@@ -75,29 +75,6 @@ ListSampleToHistogramFilter< TSample, THistogram >
 
 
 template < class TSample, class THistogram >
-void
-ListSampleToHistogramFilter< TSample, THistogram >
-::SetHistogramSize( const HistogramSizeType & histogramSize )
-{
-  // first check to see if anything changed
-  const InputHistogramSizeObjectType * oldHistogramSizeObject
-    = this->GetHistogramSizeInput();
-
-  if( oldHistogramSizeObject && oldHistogramSizeObject->Get() == histogramSize )
-    {
-    return;
-    }
-  
-  // Create an object for it
-  typename InputHistogramSizeObjectType::Pointer  
-    newHistogramSizeObject = InputHistogramSizeObjectType::New();
-  newHistogramSizeObject->Set( histogramSize );
-
-  this->SetHistogramSizeInput( newHistogramSizeObject );
-}
-
-
-template < class TSample, class THistogram >
 const typename 
 ListSampleToHistogramFilter< TSample, THistogram >::HistogramType *
 ListSampleToHistogramFilter< TSample, THistogram >
