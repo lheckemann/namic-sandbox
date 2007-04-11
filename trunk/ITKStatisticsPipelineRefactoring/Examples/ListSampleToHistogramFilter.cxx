@@ -42,6 +42,10 @@ int main(int argc, char *argv[] )
 
   typedef FilterType::HistogramSizeType                    HistogramSizeType;
   typedef FilterType::HistogramMeasurementType             HistogramMeasurementType;
+  typedef HistogramType::FrequencyType                     FrequencyType;
+  typedef HistogramType::InstanceIdentifier                InstanceIdentifier;
+  typedef HistogramType::MeasurementVectorType             HistogramMeasurementVectorType;
+
 
   FilterType::Pointer filter = FilterType::New();  
 
@@ -58,6 +62,25 @@ int main(int argc, char *argv[] )
   histogramSize[2] = 256;
 
   filter->SetHistogramSize( histogramSize );
+
+
+  const HistogramType * histogram = filter->GetOutput();
+
+  HistogramType::ConstIterator itr = histogram->Begin();
+  HistogramType::ConstIterator end = histogram->End();
+
+
+  while( itr != end )
+    {
+    const FrequencyType frequency = itr.GetFrequency();
+    const InstanceIdentifier identifier = itr.GetInstanceIdentifier();
+    const HistogramMeasurementVectorType vector = itr.GetMeasurementVector();
+    std::cout << identifier << " ";
+    std::cout << frequency << " ";
+    std::cout << vector << std::endl;
+    ++itr;
+    }
+
 
   return EXIT_SUCCESS;
 }
