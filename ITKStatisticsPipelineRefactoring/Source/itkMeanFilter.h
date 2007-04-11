@@ -73,9 +73,6 @@ public:
    * a ProcessObject's pipeline */
   typedef  SimpleDataObjectDecorator< MeasurementVectorType >  MeasurementVectorDecoratedType;
 
-  /** Standard itk::ProcessObject subclass method. */
-  virtual DataObjectPointer MakeOutput(unsigned int idx);
-
   /** Get the mean measurement vector */
   MeasurementVectorDecoratedType * GetOutput();
 
@@ -83,6 +80,8 @@ protected:
   MeanFilter();
   virtual ~MeanFilter() {}
   void PrintSelf(std::ostream& os, Indent indent) const;
+
+  virtual DataObjectPointer MakeOutput(unsigned int idx);
 
   void GenerateData();
 
