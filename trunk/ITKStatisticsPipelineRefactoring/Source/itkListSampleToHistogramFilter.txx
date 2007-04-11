@@ -36,13 +36,11 @@ ListSampleToHistogramFilter< TSample, THistogram >
   this->ProcessObject::SetNthOutput(0, output.GetPointer());
 
   // Set some default inputs 
-  typename InputHistogramSizeObjectType::Pointer histogramSizeObject =
-    InputHistogramSizeObjectType::New();
-
   HistogramSizeType histogramSize;
   histogramSize.Fill(0);
-  histogramSizeObject->Set( histogramSize );
-  this->ProcessObject::SetNthInput( 1, histogramSizeObject );
+  this->SetHistogramSize( histogramSize );
+
+  this->SetMarginalScale( 100 );
 
 }
 

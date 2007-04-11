@@ -59,6 +59,7 @@ public:
   typedef typename MeasurementVectorType::ValueType   MeasurementType;
   typedef typename Superclass::DataObjectPointer      DataObjectPointer;
   typedef typename HistogramType::SizeType            HistogramSizeType;
+  typedef typename HistogramType::MeasurementType     HistogramMeasurementType;
 
 
   // Add concept checking here : FIXME
@@ -73,7 +74,11 @@ public:
 
   /** Type of DataObjects to use for Size inputs */
   typedef SimpleDataObjectDecorator<
-    HistogramSizeType> InputHistogramSizeObjectType;
+    HistogramSizeType > InputHistogramSizeObjectType;
+
+  /** Type of DataObjects to use for Marginal Scale inputs */
+  typedef SimpleDataObjectDecorator<
+    HistogramMeasurementType > InputHistogramMeasurementObjectType;
 
   /** Methods for setting and getting the histogram size.  The histogram size
    * is encapsulated inside a decorator class. For this reason, it is possible
@@ -82,6 +87,11 @@ public:
    * SetHistogramSize(), SetHistogramSizeInput(), GetHistogramSizeInput().
    */
   itkSetDecoratedInputMacro( HistogramSize, HistogramSizeType, 1 );
+
+  /** Methods for setting and getting the Marginal scale value.  The marginal
+   * scale is used when the type of the measurement vector componets are of
+   * integer type. */
+  itkSetDecoratedInputMacro( MarginalScale, HistogramMeasurementType, 2 );
 
 protected:
   ListSampleToHistogramFilter();
