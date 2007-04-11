@@ -82,9 +82,9 @@ public:
    *  histogram size by value.
    */
   virtual void SetHistogramSize( const HistogramSizeType & histogramSize );
-  virtual void SetHistogramSizeInput( const InputHistogramSizeObjectType * );
-  virtual const InputHistogramSizeObjectType * GetHistogramSizeInput() const;
- 
+  itkSetInputMacro( HistogramSize, InputHistogramSizeObjectType, 1 );
+  itkGetInputMacro( HistogramSize, InputHistogramSizeObjectType, 1 );
+
 protected:
   ListSampleToHistogramFilter();
   virtual ~ListSampleToHistogramFilter();
