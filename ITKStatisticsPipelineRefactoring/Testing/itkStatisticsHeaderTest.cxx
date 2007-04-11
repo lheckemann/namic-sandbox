@@ -25,6 +25,7 @@
 
 #include "itkListSample.h"
 #include "itkListSampleToHistogramFilter.h"
+#include "itkHistogramToTextureFeaturesFilter.h"
 #include "itkHistogram.h"
 #include "itkSample.h"
 #include "itkMeanFilter.h"
