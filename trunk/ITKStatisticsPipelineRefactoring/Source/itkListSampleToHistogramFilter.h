@@ -23,24 +23,6 @@
 #include "itkSimpleDataObjectDecorator.h"
 
 
-/** Set an input. This defines the Set"name"Input() method */
-#define itkSetDecoratedInputMacro(name, type, number) \
-  virtual void Set##name(const type &_arg) \
-  { \
-    typedef SimpleDataObjectDecorator< type > DecoratorType; \
-    itkDebugMacro("setting input " #name " to " << _arg); \
-    const DecoratorType * oldInput = \
-      static_cast< const DecoratorType * >( \
-        this->ProcessObject::GetInput(number) ); \
-    if( oldInput && oldInput->Get() == _arg ) \
-      { \
-      return; \
-      } \
-    typename DecoratorType::Pointer newInput = DecoratorType::New(); \
-    newInput->Set( _arg ); \
-    this->Set##name##Input( newInput ); \
-  }
-
 namespace itk { 
 namespace Statistics {
 
@@ -93,15 +75,13 @@ public:
   typedef SimpleDataObjectDecorator<
     HistogramSizeType> InputHistogramSizeObjectType;
 
-  /** Methods for setting and getting the histogram size.
-   *  The histogram size is encapsulated inside a decorator
-   *  class. For this reason, it is possible to set and get
-   *  the decorator class, but it is only possible to set the
-   *  histogram size by value.
+  /** Methods for setting and getting the histogram size.  The histogram size
+   * is encapsulated inside a decorator class. For this reason, it is possible
+   * to set and get the decorator class, but it is only possible to set the
+   * histogram size by value. This macro declares the methods
+   * SetHistogramSize(), SetHistogramSizeInput(), GetHistogramSizeInput().
    */
   itkSetDecoratedInputMacro( HistogramSize, HistogramSizeType, 1 );
-  itkSetInputMacro( HistogramSize, InputHistogramSizeObjectType, 1 );
-  itkGetInputMacro( HistogramSize, InputHistogramSizeObjectType, 1 );
 
 protected:
   ListSampleToHistogramFilter();
