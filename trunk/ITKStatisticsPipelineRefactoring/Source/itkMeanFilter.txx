@@ -87,7 +87,7 @@ void
 MeanFilter< TSample >
 ::GenerateData() 
 {
-  SampleType *input = const_cast< SampleType * >(this->GetInput());
+  const SampleType *input = this->GetInput();
 
   MeasurementVectorSizeType measurementVectorSize = 
                              input->GetMeasurementVectorSize();
