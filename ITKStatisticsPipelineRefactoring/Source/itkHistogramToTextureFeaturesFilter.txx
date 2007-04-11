@@ -97,10 +97,12 @@ HistogramToTextureFeaturesFilter< THistogram >::
 GenerateData( void )
 {
   typedef typename HistogramType::Iterator HistogramIterator;
+
+  HistogramType * inputHistogram = const_cast< HistogramType * >(this->GetInput());
   
   // First, normalize the histogram if it doesn't look normalized.
   // This is one pass through the histogram.
-  FrequencyType totalFrequency = m_Histogram->GetTotalFrequency();
+  FrequencyType totalFrequency = inputHistogram->GetTotalFrequency();
   if ( (totalFrequency - NumericTraits<MeasurementType>::One) > 0.0001 )
     {
     // Doesn't look normalized:
@@ -129,8 +131,8 @@ GenerateData( void )
  
   double pixelVarianceSquared = pixelVariance * pixelVariance;
   double log2 = vcl_log(2.);
-  for (HistogramIterator hit = m_Histogram->Begin();
-       hit != m_Histogram->End(); ++hit)
+  for (HistogramIterator hit = inputHistogram->Begin();
+       hit != inputHistogram->End(); ++hit)
     {
     MeasurementType frequency = hit.GetFrequency();
     if (frequency == 0)
@@ -138,7 +140,7 @@ GenerateData( void )
       continue; // no use doing these calculations if we're just multiplying by zero.
       }
     
-    IndexType index = m_Histogram->GetIndex(hit.GetInstanceIdentifier());
+    IndexType index = inputHistogram->GetIndex(hit.GetInstanceIdentifier());
     energy += frequency * frequency;
     entropy -= (frequency > 0.0001) ? frequency * vcl_log(frequency) / log2 : 0;
     correlation += ( (index[0] - pixelMean) * (index[1] - pixelMean) * frequency)
@@ -195,11 +197,13 @@ void
 HistogramToTextureFeaturesFilter< THistogram >::
 NormalizeHistogram( void )
 {
+  HistogramType * inputHistogram = const_cast< HistogramType * >(this->GetInput());
+
   typename HistogramType::Iterator hit;
   typename HistogramType::FrequencyType totalFrequency = 
-    m_Histogram->GetTotalFrequency();
+    inputHistogram->GetTotalFrequency();
 
-  for (hit = m_Histogram->Begin(); hit != m_Histogram->End(); ++hit)
+  for (hit = inputHistogram->Begin(); hit != inputHistogram->End(); ++hit)
     {
     hit.SetFrequency(hit.GetFrequency() / totalFrequency);
     }
@@ -217,8 +221,10 @@ ComputeMeansAndVariances( double &pixelMean, double &marginalMean,
   
   typedef typename HistogramType::Iterator HistogramIterator;
   
+  HistogramType * inputHistogram = const_cast< HistogramType * >(this->GetInput());
+
   // Initialize everything
-  typename HistogramType::SizeValueType binsPerAxis = m_Histogram->GetSize(0);
+  typename HistogramType::SizeValueType binsPerAxis = inputHistogram->GetSize(0);
   double *marginalSums = new double[binsPerAxis];
   for (double *ms_It = marginalSums; 
        ms_It < marginalSums + binsPerAxis; ms_It++)
@@ -230,10 +236,10 @@ ComputeMeansAndVariances( double &pixelMean, double &marginalMean,
   // Ok, now do the first pass through the histogram to get the marginal sums
   // and compute the pixel mean
   HistogramIterator hit;
-  for (hit = m_Histogram->Begin(); hit != m_Histogram->End(); ++hit)
+  for (hit = inputHistogram->Begin(); hit != inputHistogram->End(); ++hit)
     {
     MeasurementType frequency = hit.GetFrequency();
-    IndexType index = m_Histogram->GetIndex(hit.GetInstanceIdentifier());
+    IndexType index = inputHistogram->GetIndex(hit.GetInstanceIdentifier());
     pixelMean += index[0] * frequency;
     marginalSums[index[0]] += frequency;
     }
@@ -267,10 +273,10 @@ ComputeMeansAndVariances( double &pixelMean, double &marginalMean,
   
   // OK, now compute the pixel variances.
   pixelVariance = 0;
-  for (hit = m_Histogram->Begin(); hit != m_Histogram->End(); ++hit)
+  for (hit = inputHistogram->Begin(); hit != inputHistogram->End(); ++hit)
     {
     MeasurementType frequency = hit.GetFrequency();
-    IndexType index = m_Histogram->GetIndex(hit.GetInstanceIdentifier());
+    IndexType index = inputHistogram->GetIndex(hit.GetInstanceIdentifier());
     pixelVariance += (index[0] - pixelMean) * (index[0] - pixelMean) * frequency;
     }
   delete [] marginalSums;
