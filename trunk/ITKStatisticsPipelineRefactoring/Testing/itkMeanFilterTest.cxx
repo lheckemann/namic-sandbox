@@ -25,7 +25,13 @@
 
 int itkMeanFilterTest(int, char* [] ) 
 {
-  const unsigned int MeasurementVectorSize = 2;
+  std::cout << "MeanFilter test \n \n";
+  bool pass = true;
+  std::string failureMeassage= "";
+
+  const unsigned int                  MeasurementVectorSize = 2;
+  const unsigned int                  numberOfMeasurementVectors = 5;
+  unsigned int                        counter = 0;
 
   typedef itk::FixedArray< 
     float, MeasurementVectorSize >             MeasurementVectorType;
@@ -36,9 +42,10 @@ int itkMeanFilterTest(int, char* [] )
 
   sample->SetMeasurementVectorSize( MeasurementVectorSize ); 
 
-  const unsigned int                  numberOfMeasurementVectors = 5;
-  unsigned int                        counter = 0;
   MeasurementVectorType               measure;
+  
+  //reset counter
+  counter = 0;
 
   while ( counter < numberOfMeasurementVectors ) 
     {
@@ -54,11 +61,43 @@ int itkMeanFilterTest(int, char* [] )
     FilterType;
 
   FilterType::Pointer filter = FilterType::New() ;
-  
+
+  std::cout << filter->GetNameOfClass() << std::endl;
+  filter->Print(std::cout);
+
+  //Invoke update before adding an input. An exception should be 
+  //thrown.
+  try
+    {
+    filter->Update();
+    failureMeassage = "Exception should have been thrown since \
+                    Update() is invoked without setting an input ";
+    pass = false;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception caught: " << excp << std::endl;
+    }    
+
+  if ( filter->GetInput() != NULL )
+    {
+    pass = false;
+    failureMeassage = "GetInput() should return NULL if the input \
+                     has not been set";
+    }
+
+  filter->ResetPipeline();
   filter->SetInput( sample );
 
-  filter->Update() ;
-
+  try
+    {
+    filter->Update();
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception caught: " << excp << std::endl;
+    }    
+ 
   FilterType::MeasurementVectorDecoratedType * decorator = filter->GetOutput() ;
   FilterType::MeasurementVectorType    meanOutput  = decorator->Get();
 
@@ -67,26 +106,26 @@ int itkMeanFilterTest(int, char* [] )
   mean[0] = 2.0;
   mean[1] = 2.0;
 
-  bool pass = true;
-
   std::cout << meanOutput[0] << " " << mean[0] << " "  
             << meanOutput[1] << " " << mean[1] << " " << std::endl;  
 
-  if (meanOutput[0] != mean[0] || 
-      meanOutput[1] != mean[1])
+  FilterType::MeasurementVectorType::ValueType    epsilon = 1e-6; 
+
+  if ( ( fabs( meanOutput[0] - mean[0]) > epsilon )  || 
+       ( fabs( meanOutput[1] - mean[1]) > epsilon ))
     {
-      pass = false ;
+    pass = false ;
+    failureMeassage = "The result is not what is expected";
     }
  
   if( !pass )
     {
-      std::cout << "Test failed." << std::endl;
+    std::cout << "Test failed." << failureMeassage << std::endl;
     return EXIT_FAILURE;
     }
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
-
 }
 
 
