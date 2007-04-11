@@ -24,6 +24,8 @@ ADD_TEST(itkListSampleTest4 ${STATISTICS_TESTS} itkListSampleTest 100)
 ADD_TEST(itkListSampleToHistogramFilterTest ${STATISTICS_TESTS} itkListSampleToHistogramFilterTest)
 ADD_TEST(itkHistogramTest ${STATISTICS_TESTS} itkHistogramTest)
 ADD_TEST(itkMeanFilterTest ${STATISTICS_TESTS} itkMeanFilterTest)
+ADD_TEST(itkHistogramToTextureFeaturesFilterTest ${STATISTICS_TESTS} itkHistogramToTextureFeaturesFilterTest)
+
 
 
 SET(Statistics_SRCS
@@ -33,6 +35,7 @@ SET(Statistics_SRCS
   itkListSampleToHistogramFilterTest.cxx
   itkHistogramTest.cxx
   itkMeanFilterTest.cxx
+  itkHistogramToTextureFeaturesFilterTest.cxx
   )
 
 ADD_EXECUTABLE(itkStatisticsTests itkStatisticsTests.cxx ${Statistics_SRCS})
