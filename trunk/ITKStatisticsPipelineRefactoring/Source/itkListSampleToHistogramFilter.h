@@ -56,6 +56,7 @@ public:
   typedef THistogram                                  HistogramType;
   typedef typename SampleType::MeasurementVectorType  MeasurementVectorType;
   typedef typename MeasurementVectorType::ValueType   MeasurementType;
+  typedef typename Superclass::DataObjectPointer      DataObjectPointer;
 
 
   // Add concept checking here : FIXME
@@ -65,11 +66,22 @@ public:
   virtual void SetInput( const SampleType * sample );
   virtual const SampleType * GetInput() const;
   
+  /** Get the output Histogram */
+  const HistogramType  * GetOutput() const;
+
 protected:
   ListSampleToHistogramFilter();
   virtual ~ListSampleToHistogramFilter();
 
   void PrintSelf(std::ostream& os, Indent indent) const;
+  
+  /** Make a DataObject of the correct type to used as the specified
+   * output. This method
+   * is automatically called when DataObject::DisconnectPipeline() is
+   * called.  
+   * \sa ProcessObject
+   */
+  virtual DataObjectPointer MakeOutput(unsigned int idx);
   
 private:
   ListSampleToHistogramFilter(const Self&); //purposely not implemented

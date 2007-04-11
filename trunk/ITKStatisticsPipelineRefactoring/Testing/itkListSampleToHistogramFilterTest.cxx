@@ -51,6 +51,13 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
+  // Test GetOutput() before creating the output
+  if( filter->GetOutput() == NULL )
+    {
+    std::cerr << "GetOutput() should have returned NON-NULL" << std::endl;
+    return EXIT_FAILURE;
+    }
+
   filter->SetInput( sample );
 
   if( filter->GetInput() != sample.GetPointer() )
@@ -61,6 +68,26 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
 
   // Exercise the Print method.
   filter->Print( std::cout );
+
+
+  try
+    {
+    filter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  // Test GetOutput() after creating the output
+  if( filter->GetOutput() == NULL )
+    {
+    std::cerr << "GetOutput() should have returned NON-NULL" << std::endl;
+    return EXIT_FAILURE;
+    }
+
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
