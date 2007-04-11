@@ -30,7 +30,7 @@ void RegisterTests()
   vnl_sample_reseed(8775070);
   REGISTER_TEST(itkStatisticsPrintTest);
   REGISTER_TEST(itkListSampleTest);
-//  REGISTER_TEST(itkListSampleToHistogramFilterTest);
+  REGISTER_TEST(itkListSampleToHistogramFilterTest);
   REGISTER_TEST(itkHistogramTest);
   REGISTER_TEST(itkSampleTest);
   REGISTER_TEST(itkMeanFilterTest);
