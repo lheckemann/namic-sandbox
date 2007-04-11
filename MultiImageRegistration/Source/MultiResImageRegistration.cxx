@@ -34,6 +34,7 @@
 #include "VarianceMultiImageMetric.h"
 #include "ParzenWindowEntropyMultiImageMetric.h"
 #include "JointEntropyMultiImageMetric.h"
+#include "JointEntropyKNNMultiImageMetric.h"    
 #include "RegisterToMeanMultiImageMetric.h"
 #include "RegisterToMeanAndVarianceMultiImageMetric.h"
     
@@ -408,7 +409,8 @@ int getCommandLine(int argc, char *initFname, vector<string>& fileNames, string&
                    unsigned int& numberOfSpatialSamplesTranslation, unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh,
                    string &mask, string& maskType, unsigned int& threshold1, unsigned int threshold2,
                    string &writeOutputImages, string &writeDeformationFields,
-                   unsigned int &NumberOfFixedImages);
+                   unsigned int &NumberOfFixedImages,
+                   unsigned int &numberOfNearestNeigbors, double &errorBound);
 
 
 int main( int argc, char *argv[] )
@@ -485,6 +487,10 @@ int main( int argc, char *argv[] )
 
   unsigned int NumberOfFixedImages = 0;
 
+  //KNN related parameters
+  unsigned int numberOfNearestNeigbors = 100;
+  double errorBound = 0.1;
+
   //Get the command line arguments
   for(int i=1; i<argc; i++)
   {
@@ -502,7 +508,8 @@ int main( int argc, char *argv[] )
         numberOfSpatialSamplesTranslation, numberOfSpatialSamplesAffine, numberOfSpatialSamplesBspline, numberOfSpatialSamplesBsplineHigh,
         mask, maskType, threshold1, threshold2,
         writeOutputImages, writeDeformationFields,
-        NumberOfFixedImages ) )
+        NumberOfFixedImages,
+        numberOfNearestNeigbors, errorBound ) )
     {
       std:: cout << "Error reading parameter file " << std::endl;
       return 1;
@@ -540,6 +547,7 @@ int main( int argc, char *argv[] )
   typedef itk::VarianceMultiImageMetric< InternalImageType>    MetricType;
   typedef itk::ParzenWindowEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
   typedef itk::JointEntropyMultiImageMetric< InternalImageType>    JointEntropyMetricType;
+  typedef itk::JointEntropyKNNMultiImageMetric< InternalImageType>    JointEntropyKNNMetricType;  
   typedef itk::RegisterToMeanMultiImageMetric< InternalImageType>    RegisterToMeanMetricType;
   typedef itk::RegisterToMeanAndVarianceMultiImageMetric< InternalImageType>    RegisterToMeanAndVarianceMetricType;
 
@@ -853,6 +861,7 @@ int main( int argc, char *argv[] )
   MetricType::Pointer         varianceMetric;
   EntropyMetricType::Pointer         entropyMetric;
   JointEntropyMetricType::Pointer         jointEntropyMetric;
+  JointEntropyKNNMetricType::Pointer         jointEntropyKNNMetric;  
   RegisterToMeanMetricType::Pointer         registerToMeanMetric;
   RegisterToMeanAndVarianceMetricType::Pointer         registerToMeanAndVarianceMetric;
   
@@ -871,6 +880,16 @@ int main( int argc, char *argv[] )
     jointEntropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
     jointEntropyMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
   }
+  else if( metricType == "jointEntropyKNN" )
+  {
+    jointEntropyKNNMetric        = JointEntropyKNNMetricType::New();
+    registration->SetMetric( jointEntropyKNNMetric  );
+    // Set the number of samples to be used by the metric
+    jointEntropyKNNMetric->SetNumberOfSpatialSamples( numberOfSamples );
+    jointEntropyKNNMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
+    jointEntropyKNNMetric->SetNumberOfNearestNeigbors(numberOfNearestNeigbors);
+    jointEntropyKNNMetric->SetErrorBound(errorBound);
+  }  
   else if( metricType == "mean" )
   {
     registerToMeanMetric        = RegisterToMeanMetricType::New();
@@ -1065,6 +1084,10 @@ int main( int argc, char *argv[] )
   {
     jointEntropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
   }
+  else if( metricType =="jointEntropyKNN")
+  {
+    jointEntropyKNNMetric->SetNumberOfSpatialSamples( numberOfSamples );
+  }  
   else if( metricType =="mean")
   {
     registerToMeanMetric->SetNumberOfSpatialSamples( numberOfSamples );
@@ -1119,6 +1142,10 @@ int main( int argc, char *argv[] )
         {
           outputFile << jointEntropyMetric->GetValue(parameters) << " ";
         }
+        else if( metricType == "jointEntropyKNN" )
+        {
+          outputFile << jointEntropyKNNMetric->GetValue(parameters) << " ";
+        }        
         else if( metricType == "mean" )
         {
           outputFile << registerToMeanMetric->GetValue(parameters) << " ";
@@ -1309,6 +1336,10 @@ int main( int argc, char *argv[] )
     {
       jointEntropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
     }
+    else if( metricType == "jointEntropyKNN")
+    {
+      jointEntropyKNNMetric->SetNumberOfSpatialSamples( numberOfSamples );
+    }    
     else if( metricType == "mean")
     {
       registerToMeanMetric->SetNumberOfSpatialSamples( numberOfSamples );
@@ -1546,6 +1577,10 @@ int main( int argc, char *argv[] )
         {
           jointEntropyMetric->SetNumberOfSpatialSamples( numberOfSamples );
         }
+        else if(metricType == "jointEntropyKNN")
+        {
+          jointEntropyKNNMetric->SetNumberOfSpatialSamples( numberOfSamples );
+        }        
         else if(metricType == "mean")
         {
           registerToMeanMetric->SetNumberOfSpatialSamples( numberOfSamples );
@@ -2259,7 +2294,9 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
 
                           string &mask, string& maskType, unsigned int& threshold1, unsigned int threshold2,
                           string &writeOutputImages, string &writeDeformationFields,
-                          unsigned int& NumberOfFixedImages)
+                          unsigned int& NumberOfFixedImages,
+                          
+                          unsigned int &numberOfNearestNeigbors, double &errorBound      )
 {
 
 
@@ -2559,7 +2596,17 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       NumberOfFixedImages = atoi(dummy.c_str());
     }
 
-    
+    else if (dummy == "-numberOfNearestNeigbors")
+    {
+      initFile >> dummy;
+      numberOfNearestNeigbors = atoi(dummy.c_str());
+    }
+    else if (dummy == "-errorBound")
+    {
+      initFile >> dummy;
+      errorBound = atof(dummy.c_str());
+    }
+
     else if (dummy == "-f")
     {
       initFile >> dummy;
