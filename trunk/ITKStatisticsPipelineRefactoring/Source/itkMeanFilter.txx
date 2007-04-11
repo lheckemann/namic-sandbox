@@ -78,11 +78,6 @@ typename MeanFilter< TSample>::MeasurementVectorDecoratedType *
 MeanFilter< TSample >
 ::GetOutput()
 {
-  if (this->GetNumberOfOutputs() < 1)
-    {
-    return 0;
-    }
-
   return static_cast< MeasurementVectorDecoratedType * >(
               this->ProcessObject::GetOutput(0));
 }
@@ -97,11 +92,6 @@ MeanFilter< TSample >
   MeasurementVectorSizeType measurementVectorSize = 
                              input->GetMeasurementVectorSize();
  
-  if (measurementVectorSize == 0)
-    {
-    itkExceptionMacro( << "Length of a measurement vector cannot be zero.");
-    }
-
   MeasurementVectorDecoratedType * decoratedOutput =
             static_cast< MeasurementVectorDecoratedType * >(
               this->ProcessObject::GetOutput(0));
