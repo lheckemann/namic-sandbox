@@ -9,8 +9,8 @@
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
@@ -44,7 +44,7 @@ JointEntropyMultiImageMetric()
 /*
  * Initialize
  */
-template <class TFixedImage> 
+template <class TFixedImage>
 void
 JointEntropyMultiImageMetric<TFixedImage>
 ::Initialize(void) throw ( ExceptionObject )
@@ -59,6 +59,20 @@ JointEntropyMultiImageMetric<TFixedImage>
 
   // Resize w_x_j
   W_x_j.resize(this->m_NumberOfSpatialSamples);
+
+  // Resize derivative container
+  const unsigned int numberOfParameters =
+      this->m_TransformArray[0]->GetNumberOfParameters();
+  m_DerivativeArray.resize(this->m_NumberOfImages);
+  for(int l=0; l<this->m_NumberOfImages; l++)
+  {
+    m_DerivativeArray[l].resize(this->m_NumberOfSpatialSamples);
+    for(int i=0; i<this->m_NumberOfSpatialSamples; i++)
+    {
+      m_DerivativeArray[l][i].set_size(numberOfParameters);
+    }
+  }
+
 
 }
 
@@ -79,7 +93,12 @@ GetValue(const ParametersType & parameters) const
   ThreadStruct str;
   str.Metric =  this;
 
+  // Prepare the variables for getvalue
+  this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
+  this->GetMultiThreader()->SetSingleMethod(this->ThreaderCallbackGetValueHelper, &str);
+  this->GetMultiThreader()->SingleMethodExecute();
 
+  
   this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
   this->GetMultiThreader()->SetSingleMethod(this->ThreaderCallbackGetValue, &str);
   
@@ -118,27 +137,12 @@ JointEntropyMultiImageMetric< TFixedImage >
  * Prepare auxiliary variables before starting the threads
  */
 template < class TFixedImage >
-void 
+void
 JointEntropyMultiImageMetric < TFixedImage >
 ::BeforeGetThreadedValue(const ParametersType & parameters) const
 {
 
   Superclass::BeforeGetThreadedValue(parameters);
-
-  // Update intensity values
-  const int N = this->m_NumberOfImages;
-  const unsigned int size = this->m_NumberOfSpatialSamples;
-  for(int i=0; i< size; i++ )
-  {
-    for(int j=0; j<N; j++)
-    {
-      const MovingImagePointType mappedPoint = this->m_TransformArray[j]->TransformPoint(this->m_Sample[i].FixedImagePoint);
-      if(this->m_InterpolatorArray[j]->IsInsideBuffer (mappedPoint) )
-      {
-        this->m_Sample[i].imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(mappedPoint);
-      }
-    }
-  }
   
 }
 
@@ -156,7 +160,7 @@ JointEntropyMultiImageMetric < TFixedImage >
   const unsigned int size = this->m_NumberOfSpatialSamples;
   const unsigned int sampleASize = this->m_NumberOfSpatialSamples / 2;
   const unsigned int sampleBSize = this->m_NumberOfSpatialSamples / 2;
-  /** The tranform parameters vector holding i'th images parameters 
+  /** The tranform parameters vector holding i'th images parameters
   Copy parameters in to a collection of arrays */
 
   const unsigned int numberOfParameters =
@@ -172,17 +176,9 @@ JointEntropyMultiImageMetric < TFixedImage >
     double probSum = 0.0;
     for( int x_j=0; x_j < sampleASize; x_j++)
     {
-
-      // Compute d(x_a, x_b)
-      double sumOfSquares = 0.0;
-      for(int k=0; k<N; k++)
-      {
-        const double diff = this->m_Sample[x_i].imageValueArray[k] - this->m_Sample[x_j].imageValueArray[k];
-        sumOfSquares += diff*diff;
-      }
-
       // Evaluate the probability of d(x_a, x_b)
-      probSum += this->m_KernelFunction->Evaluate(sqrt(sumOfSquares) / this->m_ImageStandardDeviation );
+      const double dist = (this->m_Sample[x_i].imageValueArray - this->m_Sample[x_j].imageValueArray).two_norm(); 
+      probSum += this->m_KernelFunction->Evaluate(  dist / this->m_ImageStandardDeviation );
     }
     probSum /= (double)sampleASize;
     
@@ -218,34 +214,11 @@ JointEntropyMultiImageMetric < TFixedImage >
  * Prepare auxiliary variables before starting the threads
  */
 template < class TFixedImage >
-void 
+void
 JointEntropyMultiImageMetric < TFixedImage >
 ::BeforeGetThreadedValueAndDerivative(const ParametersType & parameters) const
 {
    Superclass::BeforeGetThreadedValueAndDerivative(parameters);
-
-   // Compute W(x_j)
-   const unsigned int sampleSize = this->m_NumberOfSpatialSamples / 2;
-   const unsigned int N = this->m_NumberOfImages;
-   // Loop over set B
-   for(unsigned int b=sampleSize; b< sampleSize*2; b++)
-   {
-     W_x_j[b] = 0.0;
-     //Loop over set A
-     for( unsigned int a=0; a<sampleSize; a++)
-     {
-       // Compute d(x(a),x(b))
-       double sumOfSquares = 0.0;
-       for(int m=0; m<N; m++)
-       {
-         const double diff = this->m_Sample[b].imageValueArray[m] - this->m_Sample[a].imageValueArray[m];
-         sumOfSquares += diff*diff;
-       }
-
-       W_x_j[b] += this->m_KernelFunction->Evaluate( sqrt(sumOfSquares) / this->m_ImageStandardDeviation );
-     }
-   }
-
 }
 
 template < class TFixedImage >
@@ -263,7 +236,14 @@ void JointEntropyMultiImageMetric < TFixedImage >
   ThreadStruct str;
   str.Metric =  this;
 
+  // Compute the derivatives
+  this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
+  this->GetMultiThreader()->SetSingleMethod(this->ThreaderCallbackGetValueAndDerivativeHelper, &str);
+  
+  // multithread the execution
+  this->GetMultiThreader()->SingleMethodExecute();
 
+  
   this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
   this->GetMultiThreader()->SetSingleMethod(this->ThreaderCallbackGetValueAndDerivative, &str);
   
@@ -279,7 +259,7 @@ void JointEntropyMultiImageMetric < TFixedImage >
  * Get the match Measure
  */
 template < class TFixedImage >
-void 
+void
 JointEntropyMultiImageMetric < TFixedImage >
 ::GetThreadedValueAndDerivative(int threadId) const
 {
@@ -290,7 +270,7 @@ JointEntropyMultiImageMetric < TFixedImage >
   const unsigned int sampleBSize = this->m_NumberOfSpatialSamples / 2;
 
   
-  /** The tranform parameters vector holding i'th images parameters 
+  /** The tranform parameters vector holding i'th images parameters
   Copy parameters in to a collection of arrays */
   MeasureType value = NumericTraits < MeasureType >::Zero;
 
@@ -301,96 +281,76 @@ JointEntropyMultiImageMetric < TFixedImage >
   this->m_derivativeArray[threadId].Fill(0.0);
   this->m_value[threadId] = 0.0;
   DerivativeType deriv(numberOfParameters);
-
+  Array<double> weight(this->m_NumberOfImages);
   
-  //Calculate joint entropy
-  double logSum = 0.0;
-  // Loop over first sample set
-  for (int b=sampleASize+threadId; b<sampleASize+sampleBSize; b += this->m_NumberOfThreads )
-  {
-    this->m_value[threadId] += vcl_log( W_x_j[b]/(double)sampleASize );
-  }  // End of sample loop
-
-  this->m_value[threadId] /= -1.0 * (double) sampleBSize;
-
 
   // Calculate the derivative
-  for( int l=threadId; l<N; l += this->m_NumberOfThreads )
+  for (int x_i=sampleASize+threadId; x_i<sampleASize+sampleBSize; x_i+= this->m_NumberOfThreads )
   {
-    // Set the image for derivatives
-    this->m_DerivativeCalcVector[threadId]->SetInputImage(this->m_ImageArray[l]);
     
-    for (int x_i=sampleASize; x_i<sampleASize+sampleBSize; x_i++ )
+    // Compute W(x_j)
+    W_x_j[x_i] = 0.0;
+    // Sum over the second sample set
+    weight.Fill(0.0);
+    for (int x_j=0; x_j<sampleASize; x_j++ )
     {
 
-      // Sum over the second sample set
-      double weight = 0.0;
-      for (int x_j=0; x_j<sampleASize; x_j++ )
-      {
+      // Compute d(x_i, x_j)
+      const double diff =
+                   (this->m_Sample[x_i].imageValueArray - this->m_Sample[x_j].imageValueArray).two_norm();
 
-        // Compute d(x_i, x_j)
-        double sumOfSquares = 0.0;
-        for(int m=0; m<N; m++)
-        {
-          const double diff = this->m_Sample[x_i].imageValueArray[m] - this->m_Sample[x_j].imageValueArray[m];
-          sumOfSquares += diff*diff;
-        }
+      // Compute G(d(x_i,x_j))
+      const double G = this->m_KernelFunction->Evaluate( diff / this->m_ImageStandardDeviation );
 
-        // Compute G(d(x_i,x_j))
-        const double G = this->m_KernelFunction->Evaluate( sqrt(sumOfSquares) / this->m_ImageStandardDeviation );
+      W_x_j[x_i] += G;
+      weight += G* (this->m_Sample[x_i].imageValueArray - this->m_Sample[x_j].imageValueArray);
+    }
 
-        weight += G* (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l]);
-      }
+    //Calculate joint entropy
+    this->m_value[threadId] += vcl_log( W_x_j[x_i] / (double)sampleASize );
+    weight /= W_x_j[x_i];
 
-      weight /= W_x_j[x_i];
-
-      // Compute the gradient
-      this->CalculateDerivatives(this->m_Sample[x_i].FixedImagePoint, deriv, l, threadId);
+    for( int l=0; l<this->m_NumberOfImages; l++ )
+    {
 
       //Copy the proper part of the derivative
       for (int n = 0; n < numberOfParameters; n++)
       {
-        this->m_derivativeArray[threadId][l * numberOfParameters + n] += weight*deriv[n];
+        this->m_derivativeArray[threadId][l * numberOfParameters + n] += weight[l]*m_DerivativeArray[l][x_i][n];
       }
     }  // End of sample loop B
-
-
-    
-    // Loop over the samples A
-    for (int x_i=0; x_i<sampleASize; x_i++ )
-    {
-
-      // Sum over the second sample set
-      double weight = 0.0;
-      for (int x_j=sampleASize; x_j<sampleASize+sampleBSize; x_j++ )
-      {
-
-        // Compute d(x_i, x_j)
-        double sumOfSquares = 0.0;
-        for(int m=0; m<N; m++)
-        {
-          const double diff = this->m_Sample[x_i].imageValueArray[m] - this->m_Sample[x_j].imageValueArray[m];
-          sumOfSquares += diff*diff;
-        }
-
-        // Compute G(d(x_i,x_j))
-        const double G = this->m_KernelFunction->Evaluate( sqrt(sumOfSquares) / this->m_ImageStandardDeviation );
-
-        weight += G * (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l]) / W_x_j[x_j];
-        
-      }
-
-      // Compute the gradient
-      this->CalculateDerivatives(this->m_Sample[x_i].FixedImagePoint, deriv, l, threadId);
-
-      //Copy the proper part of the derivative
-      for (int n = 0; n < numberOfParameters; n++)
-      {
-        this->m_derivativeArray[threadId][l * numberOfParameters + n] += weight*deriv[n];
-      }
-    }  // End of sample loop B
-    
   }
+
+  for (int x_j=0; x_j<sampleASize; x_j++ )
+  {
+
+    // Sum over the second sample set
+    weight.Fill(0.0);
+    for (int x_i=sampleASize+threadId; x_i<sampleASize+sampleBSize; x_i+= this->m_NumberOfThreads )    
+    {
+
+      // Compute d(x_i, x_j)
+      const double diff =
+          (this->m_Sample[x_i].imageValueArray - this->m_Sample[x_j].imageValueArray).two_norm();
+
+      // Compute G(d(x_i,x_j))
+      const double G = this->m_KernelFunction->Evaluate( diff / this->m_ImageStandardDeviation );
+
+      weight += G / W_x_j[x_i] *
+               (this->m_Sample[x_i].imageValueArray - this->m_Sample[x_j].imageValueArray);
+    }
+
+    for( int l=0; l<this->m_NumberOfImages; l++ )
+    {
+      //Copy the proper part of the derivative
+      for (int n = 0; n < numberOfParameters; n++)
+      {
+        this->m_derivativeArray[threadId][l * numberOfParameters + n] -= weight[l]*m_DerivativeArray[l][x_j][n];
+      }
+    }  // End of sample loop B
+  }
+
+  this->m_value[threadId] /= -1.0 * (double) sampleBSize;
 }
 
 /**
@@ -402,24 +362,22 @@ void JointEntropyMultiImageMetric < TFixedImage >
                            DerivativeType & derivative) const
 {
 
-  value = NumericTraits< RealType >::Zero;
 
   const int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters();
-  DerivativeType temp (numberOfParameters * this->m_NumberOfImages);
-  temp.Fill (0.0);
 
   // Sum over the values returned by threads
-  for( unsigned int i=0; i < this->m_NumberOfThreads; i++ )
+  value = this->m_value[0];
+  derivative = this->m_derivativeArray[0];
+  for( unsigned int i=1; i < this->m_NumberOfThreads; i++ )
   {
     value += this->m_value[i];
-    temp += this->m_derivativeArray[i];
+    derivative += this->m_derivativeArray[i];
   }
-  temp /= (double) (this->m_NumberOfSpatialSamples / 2.0 * this->m_ImageStandardDeviation * this->m_ImageStandardDeviation);
-  derivative = temp;
-  
+  derivative /= (double) (this->m_NumberOfSpatialSamples / 2.0 * this->m_ImageStandardDeviation * this->m_ImageStandardDeviation);
+
   //Set the mean to zero
   //Remove mean
-  temp.SetSize(numberOfParameters);
+  DerivativeType temp(numberOfParameters);
   temp.Fill(0.0);
   for (int i = 0; i < this->m_NumberOfImages; i++)
   {
@@ -455,6 +413,95 @@ JointEntropyMultiImageMetric< TFixedImage >
 
 
   return ITK_THREAD_RETURN_VALUE;
+}
+
+// Callback routine used by the threading library. This routine just calls
+// the ComputeDerivative() method after setting the correct partition of data
+// for this thread.
+template < class TFixedImage >
+ITK_THREAD_RETURN_TYPE
+JointEntropyMultiImageMetric< TFixedImage >
+::ThreaderCallbackGetValueAndDerivativeHelper( void *arg )
+{
+  ThreadStruct *str;
+
+  int threadId = ((MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
+
+  str = (ThreadStruct *)(((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
+
+  str->Metric->GetValueAndDerivativeHelper( threadId );
+
+
+  return ITK_THREAD_RETURN_VALUE;
+}
+
+/*
+ * Compute the derivatives before getthreadedvalueandDerivative
+ */
+template < class TFixedImage >
+void
+JointEntropyMultiImageMetric < TFixedImage >
+::GetValueAndDerivativeHelper(int threadId) const
+{
+
+  
+  for( int l=0; l<this->m_NumberOfImages; l++ )
+  {
+    // Set the image for derivatives
+    this->m_DerivativeCalcVector[threadId]->SetInputImage(this->m_ImageArray[l]);
+
+    for (unsigned int i=threadId; i<this->m_NumberOfSpatialSamples; i+= this->m_NumberOfThreads )
+    {
+      // Compute the gradient
+      this->CalculateDerivatives(this->m_Sample[i].FixedImagePoint, m_DerivativeArray[l][i], l, threadId);
+    }
+
+  }
+}
+
+
+// Callback routine used by the threading library. This routine just calls
+// the ComputeDerivative() method after setting the correct partition of data
+// for this thread.
+template < class TFixedImage >
+ITK_THREAD_RETURN_TYPE
+JointEntropyMultiImageMetric< TFixedImage >
+::ThreaderCallbackGetValueHelper( void *arg )
+{
+  ThreadStruct *str;
+
+  int threadId = ((MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
+
+  str = (ThreadStruct *)(((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
+
+  str->Metric->GetValueHelper( threadId );
+
+
+  return ITK_THREAD_RETURN_VALUE;
+}
+/*
+ * Update the intensities before getthreadedvalue
+ */
+template < class TFixedImage >
+void
+JointEntropyMultiImageMetric < TFixedImage >
+::GetValueHelper(int threadId) const
+{
+
+  // Update intensity values
+  const int N = this->m_NumberOfImages;
+  const unsigned int size = this->m_NumberOfSpatialSamples;
+  for(int i=threadId; i< size; i+=this->m_NumberOfThreads )
+  {
+    for(int j=0; j<N; j++)
+    {
+      const MovingImagePointType mappedPoint = this->m_TransformArray[j]->TransformPoint(this->m_Sample[i].FixedImagePoint);
+      if(this->m_InterpolatorArray[j]->IsInsideBuffer (mappedPoint) )
+      {
+        this->m_Sample[i].imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(mappedPoint);
+      }
+    }
+  }
 }
 
 }        // end namespace itk

@@ -261,7 +261,7 @@ protected:
     ~SpatialSample(){};
 
     FixedImagePointType              FixedImagePoint;
-    vector< RealType >                   imageValueArray;
+    Array< RealType >                   imageValueArray;
 
   };
 
