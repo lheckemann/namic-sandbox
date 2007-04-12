@@ -29,6 +29,7 @@
 #include "itkHistogram.h"
 #include "itkSample.h"
 #include "itkMeanFilter.h"
+#include "itkWeightedMeanFilter.h"
 
 int main ( int , char*  )
 {
