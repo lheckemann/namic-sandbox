@@ -82,18 +82,71 @@ int itkImageToListSampleFilterTest(int, char* [] )
   ImageType::Pointer     image     = CreateImage();
   MaskImageType::Pointer maskImage = CreateMaskImage();
   
-  // Generate a list sampel from "image" confined to the mask, "maskImage".
+  // Generate a list sample from "image" confined to the mask, "maskImage".
   typedef itk::Statistics::ImageToListSampleFilter< 
     ImageType, MaskImageType > ImageToListSampleFilterType;
-  ImageToListSampleFilterType::Pointer listGenerator 
+  ImageToListSampleFilterType::Pointer filter 
                               = ImageToListSampleFilterType::New();
-  listGenerator->SetInput( image );
-  listGenerator->SetMaskImage( maskImage );
-  listGenerator->SetMaskValue( 255 );
-  listGenerator->Update();
 
+  bool pass = true;
+  std::string failureMeassage="";
+
+  //Invoke update before adding an input. An exception should be 
+  //thrown.
+  try
+    {
+    filter->Update();
+    failureMeassage = "Exception should have been thrown since \
+                    Update() is invoked without setting an input ";
+    pass = false;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception caught: " << excp << std::endl;
+    }    
+
+  if ( filter->GetInput() != NULL )
+    {
+    pass = false;
+    failureMeassage = "GetInput() should return NULL if the input \
+                     has not been set";
+    }
+
+  if ( filter->GetMaskImage() != NULL )
+    {
+    pass = false;
+    failureMeassage = "GetMaskImage() should return NULL if mask image \
+                     has not been set";
+    }
+
+  try
+    {
+    filter->SetMeasurementVectorSize( 3 );
+    failureMeassage = "Exception should have been thrown since \
+                    the measurement vector size set is different \
+                    from pixel's dimension";
+    pass = false;
+    }
+   catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception caught: " << excp << std::endl;
+    }    
+
+  filter->ResetPipeline();
+  filter->SetMeasurementVectorSize( 1 );
+  filter->SetInput( image );
+  filter->SetMaskImage( maskImage );
+  filter->SetMaskValue( 255 );
+  filter->Update();
+
+  std::cout << filter->GetNameOfClass() << std::endl;
+  filter->Print(std::cout);
+
+ 
+  ImageToListSampleFilterType::MaskPixelType pixelType = filter->GetMaskValue();
+ 
   typedef ImageToListSampleFilterType::ListSampleType ListSampleType;
-  ListSampleType * list = listGenerator->GetListSample();
+  ListSampleType * list = filter->GetListSample();
 
   // Check the sum of the pixels in the list sample. This should
   // be 945
@@ -107,9 +160,16 @@ int itkImageToListSampleFilterTest(int, char* [] )
 
   if (sum != 945) 
     {
-    std::cerr << "[FAILED]" << std::endl;
-    std::cerr << "  Sum of pixels in the list sample (masked) is : " << sum
+    pass = false;
+    failureMeassage = "Wrong sum of pixels";
+    std::cerr << "Computed sum of pixels in the list sample (masked) is : "
+              << sum
               << " but should be 945.";
+    }
+
+  if ( !pass )
+    {
+    std::cerr << "[FAILED]" << failureMeassage << std::endl;
     return EXIT_FAILURE;
     }
   
