@@ -98,8 +98,30 @@ int itkHistogramToTextureFeaturesFilterTest(int, char* [] )
   HistogramToTextureFeaturesFilterType::Pointer filter = 
                       HistogramToTextureFeaturesFilterType::New();
 
-  filter->SetInput( histogram );
+  std::cout << filter->GetNameOfClass() << std::endl;
+  filter->Print(std::cout);
 
+  bool passed = true;
+  //Invoke update before adding an input. An exception should be 
+  //thrown.
+  try
+    {
+    filter->Update();
+    passed = false;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception caught: " << excp << std::endl;
+    }    
+
+  if ( filter->GetInput() != NULL )
+    {
+    passed = false;
+    }
+
+  filter->ResetPipeline();
+ 
+  filter->SetInput( histogram );
   try
     {
     filter->Update();
@@ -128,7 +150,6 @@ int itkHistogramToTextureFeaturesFilterTest(int, char* [] )
   double clusterProminence = filter->GetClusterProminence();
   double haralickCorrelation = filter->GetHaralickCorrelation();
   
-  bool passed = true;
   
   if( vnl_math_abs(energy - trueEnergy) > 0.001 )
     {
