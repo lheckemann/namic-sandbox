@@ -36,5 +36,6 @@ void RegisterTests()
   REGISTER_TEST(itkMeanFilterTest);
   REGISTER_TEST(itkWeightedMeanFilterTest);
   REGISTER_TEST(itkHistogramToTextureFeaturesFilterTest);
+  REGISTER_TEST(itkImageToListSampleFilterTest);
 }
 

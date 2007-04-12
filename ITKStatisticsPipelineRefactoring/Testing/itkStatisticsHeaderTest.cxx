@@ -30,6 +30,7 @@
 #include "itkSample.h"
 #include "itkMeanFilter.h"
 #include "itkWeightedMeanFilter.h"
+#include "itkImageToListSampleFilter.h"
 
 int main ( int , char*  )
 {
