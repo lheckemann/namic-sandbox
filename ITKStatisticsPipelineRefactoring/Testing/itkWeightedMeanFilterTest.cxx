@@ -177,6 +177,8 @@ int itkWeightedMeanFilterTest(int, char* [] )
   weightArray[numberOfMeasurementVectors - 1] = 0.5;
   filter->SetWeights( weightArray );
 
+  std::cout << "Weight array: " << filter->GetWeights() << std::endl;
+
   try
     {
     filter->Update();
