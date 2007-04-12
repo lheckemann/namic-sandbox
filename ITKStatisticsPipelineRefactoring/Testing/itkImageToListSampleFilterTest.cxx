@@ -132,9 +132,15 @@ int itkImageToListSampleFilterTest(int, char* [] )
     std::cerr << "Exception caught: " << excp << std::endl;
     }    
 
+  //genreate list sample without a mask image
   filter->ResetPipeline();
   filter->SetMeasurementVectorSize( 1 );
   filter->SetInput( image );
+  filter->Update();
+
+
+  //use a mask image
+  filter->ResetPipeline();
   filter->SetMaskImage( maskImage );
   filter->SetMaskValue( 255 );
   filter->Update();
