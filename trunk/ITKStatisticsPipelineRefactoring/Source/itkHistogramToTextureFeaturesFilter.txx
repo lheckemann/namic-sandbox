@@ -163,31 +163,31 @@ GenerateData( void )
   energyOutputObject->Set( energy );
 
   MeasurementObjectType* entropyOutputObject=
-                   static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(0));
+                   static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(1));
   entropyOutputObject->Set( energy );
 
   MeasurementObjectType* correlationOutputObject=
-                   static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(0));
+                   static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(2));
   correlationOutputObject->Set( energy );
 
   MeasurementObjectType* inverseDifferenceMomentOutputObject=
-                   static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(0));
+                   static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(3));
   inverseDifferenceMomentOutputObject->Set( energy );
 
   MeasurementObjectType* inertiaOutputObject=
-                   static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(0));
+                   static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(4));
   inertiaOutputObject->Set( energy );
 
   MeasurementObjectType* clusterShadeOutputObject=
-                   static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(0));
+                   static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(5));
   clusterShadeOutputObject->Set( energy );
 
   MeasurementObjectType* clusterProminenceOutputObject=
-                   static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(0));
+                   static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(6));
   clusterProminenceOutputObject->Set( energy );
 
   MeasurementObjectType* haralickCorrelationOutputObject=
-                   static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(0));
+                   static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(7));
   haralickCorrelationOutputObject->Set( energy );
 }
 
@@ -416,6 +416,35 @@ HistogramToTextureFeaturesFilter<THistogram>
 ::GetHaralickCorrelation() const 
 {
   return this->GetHaralickCorrelationOutput()->Get();
+}
+
+template<class THistogram >
+typename HistogramToTextureFeaturesFilter< THistogram >::MeasurementType
+HistogramToTextureFeaturesFilter<THistogram>
+::
+GetFeature(TextureFeatureName feature)
+{
+  switch(feature)
+    {
+    case Energy:
+      return this->GetEnergy();
+    case Entropy:
+      return this->GetEntropy();
+    case Correlation:
+      return this->GetCorrelation();
+    case InverseDifferenceMoment:
+      return this->GetInverseDifferenceMoment();
+    case Inertia:
+      return this->GetInertia();
+    case ClusterShade:
+      return this->GetClusterShade();
+    case ClusterProminence:
+      return this->GetClusterProminence();
+    case HaralickCorrelation:
+      return this->GetHaralickCorrelation();
+    default:
+      return 0;
+    }
 }
 
 template< class THistogram >
