@@ -165,6 +165,9 @@ public:
   MeasurementType GetHaralickCorrelation() const;
   const MeasurementObjectType* GetHaralickCorrelationOutput() const;
   
+  /** convenience method to access the texture values */
+  MeasurementType GetFeature( TextureFeatureName name );
+
 protected:
   HistogramToTextureFeaturesFilter();
   ~HistogramToTextureFeaturesFilter() {};
