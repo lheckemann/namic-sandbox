@@ -59,6 +59,8 @@ int itkHistogramToTextureFeaturesFilterTest(int, char* [] )
   index[0] = 3 ;
   index[1] = 3 ;
   frequency = 0.5; 
+  identifier = histogram->GetInstanceIdentifier ( index );
+  histogram->SetFrequency(identifier, frequency);
 
   index[0] = 2 ;
   index[1] = 1 ;
