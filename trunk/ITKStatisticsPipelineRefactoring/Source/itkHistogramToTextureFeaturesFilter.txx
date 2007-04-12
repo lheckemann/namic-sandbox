@@ -164,31 +164,31 @@ GenerateData( void )
 
   MeasurementObjectType* entropyOutputObject=
                    static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(1));
-  entropyOutputObject->Set( energy );
+  entropyOutputObject->Set( entropy );
 
   MeasurementObjectType* correlationOutputObject=
                    static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(2));
-  correlationOutputObject->Set( energy );
+  correlationOutputObject->Set( correlation );
 
   MeasurementObjectType* inverseDifferenceMomentOutputObject=
                    static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(3));
-  inverseDifferenceMomentOutputObject->Set( energy );
+  inverseDifferenceMomentOutputObject->Set( inverseDifferenceMoment );
 
   MeasurementObjectType* inertiaOutputObject=
                    static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(4));
-  inertiaOutputObject->Set( energy );
+  inertiaOutputObject->Set( inertia );
 
   MeasurementObjectType* clusterShadeOutputObject=
                    static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(5));
-  clusterShadeOutputObject->Set( energy );
+  clusterShadeOutputObject->Set( clusterShade );
 
   MeasurementObjectType* clusterProminenceOutputObject=
                    static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(6));
-  clusterProminenceOutputObject->Set( energy );
+  clusterProminenceOutputObject->Set( clusterProminence );
 
   MeasurementObjectType* haralickCorrelationOutputObject=
                    static_cast<MeasurementObjectType*>(this->ProcessObject::GetOutput(7));
-  haralickCorrelationOutputObject->Set( energy );
+  haralickCorrelationOutputObject->Set( haralickCorrelation );
 }
 
 
