@@ -34,5 +34,6 @@ void RegisterTests()
   REGISTER_TEST(itkHistogramTest);
   REGISTER_TEST(itkSampleTest);
   REGISTER_TEST(itkMeanFilterTest);
+  REGISTER_TEST(itkHistogramToTextureFeaturesFilterTest);
 }
 
