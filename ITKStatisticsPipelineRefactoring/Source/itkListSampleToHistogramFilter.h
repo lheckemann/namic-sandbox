@@ -116,6 +116,9 @@ protected:
    */
   virtual DataObjectPointer MakeOutput(unsigned int idx);
   
+  // Where the histogram is actually computed
+  virtual void GenerateData();
+  
 private:
   ListSampleToHistogramFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented

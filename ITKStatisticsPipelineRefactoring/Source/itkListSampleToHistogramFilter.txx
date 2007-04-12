@@ -103,6 +103,27 @@ ListSampleToHistogramFilter< TSample, THistogram >
 }
 
 
+template < class TSample, class THistogram >
+void
+ListSampleToHistogramFilter< TSample, THistogram >
+::GenerateData()
+{
+  const InputHistogramMeasurementVectorObjectType * binMinimum =
+    this->GetHistogramBinMinimumInput();
+
+  const InputHistogramMeasurementVectorObjectType * binMaximum =
+    this->GetHistogramBinMaximumInput();
+
+  const InputHistogramMeasurementObjectType * marginalScale =
+    this->GetMarginalScaleInput();
+ 
+  const SampleType * inputSample = this->GetInput();
+
+  HistogramType * outputHistogram = 
+    static_cast<HistogramType*>(this->ProcessObject::GetOutput(0));
+
+}
+
 } // end of namespace StatisticsNew 
 } // end of namespace itk
 
