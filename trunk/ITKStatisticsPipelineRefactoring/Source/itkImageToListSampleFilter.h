@@ -102,25 +102,8 @@ public:
   /** Standard itk::ProcessObject subclass method. */
   virtual DataObjectPointer MakeOutput(unsigned int idx);
 
-  virtual void SetMeasurementVectorSize( const MeasurementVectorSizeType s )
-    {
-    // Measurement vector size for this class is fixed as the pixel's 
-    // dimension. This method should throw an exception if the user tries to 
-    // set the dimension to a different value. 
-    if( s != MeasurementVectorSize )
-      {
-      itkExceptionMacro(
-        << "Measurement vector size for the image adaptor obtained"
-        << " from the pixel dimension is: "
-        << MeasurementVectorSize << " but you "
-        << "are setting it to " << s);
-      }
-    }
-
-  unsigned int GetMeasurementVectorSize() const 
-    {
-    return MeasurementVectorSize;
-    } 
+  virtual void SetMeasurementVectorSize( const MeasurementVectorSizeType s );
+  unsigned int GetMeasurementVectorSize() const;
 
   /** Method to set/get the image */
   void SetInput( const ImageType* image );
