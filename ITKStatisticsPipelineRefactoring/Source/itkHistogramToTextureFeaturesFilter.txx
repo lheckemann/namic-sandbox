@@ -37,7 +37,7 @@ HistogramToTextureFeaturesFilter( void )
   for (int i=0; i < 8; ++i)
     {
     typename MeasurementObjectType::Pointer output
-      = static_cast<MeasurementObjectType*>(this->MakeOutput(i).GetPointer());
+      = static_cast<MeasurementObjectType*>(this->MakeOutput().GetPointer());
     this->ProcessObject::SetNthOutput(i, output.GetPointer());
     }
 }
@@ -71,23 +71,9 @@ template<class THistogram>
 typename
 HistogramToTextureFeaturesFilter<THistogram>::DataObjectPointer
 HistogramToTextureFeaturesFilter<THistogram>
-::MakeOutput(unsigned int output)
+::MakeOutput( void )
 {
-  switch (output)
-    {
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-    case 6:
-    case 7:
-      return static_cast<DataObject*>(MeasurementObjectType::New().GetPointer());
-      break;
-    default:
-      break;
-    }
+  return static_cast<DataObject*>(MeasurementObjectType::New().GetPointer());
 }
 
 

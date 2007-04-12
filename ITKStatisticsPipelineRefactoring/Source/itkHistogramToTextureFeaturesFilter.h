@@ -173,9 +173,8 @@ protected:
   ~HistogramToTextureFeaturesFilter() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-  /** Make a DataObject of the correct type to be used as the specified
-   * output. */
-  virtual DataObjectPointer MakeOutput(unsigned int idx);
+  /** Make a DataObject to be used for output output. */
+  virtual DataObjectPointer MakeOutput();
 
 
   void GenerateData();
