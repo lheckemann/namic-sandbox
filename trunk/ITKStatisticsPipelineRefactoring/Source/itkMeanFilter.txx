@@ -118,10 +118,14 @@ MeanFilter< TSample >
       }
     ++iter;
     }
- 
-  for (unsigned int dim = 0; dim < measurementVectorSize; dim++)
+
+  // compute the mean if the total frequency is different from zero 
+  if ( totalFrequency != 0.0 )
     {
-    output[dim] /= totalFrequency;
+    for (unsigned int dim = 0; dim < measurementVectorSize; dim++)
+      {
+      output[dim] /= totalFrequency;
+      }
     }
 
   decoratedOutput->Set( output );

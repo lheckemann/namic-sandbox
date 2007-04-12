@@ -158,10 +158,13 @@ WeightedMeanFilter< TSample >
       }
     }
 
-  for (unsigned int dim = 0; dim < measurementVectorSize; dim++)
+  if ( totalWeight != 0.0 )
+  {
+    for (unsigned int dim = 0; dim < measurementVectorSize; dim++)
     {
     output[dim] /= totalWeight;
     }
+  }
 
   decoratedOutput->Set( output );
  
