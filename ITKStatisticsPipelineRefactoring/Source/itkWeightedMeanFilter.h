@@ -94,7 +94,7 @@ public:
   typedef  SimpleDataObjectDecorator< MeasurementVectorType >  MeasurementVectorDecoratedType;
 
   /** Get the mean measurement vector */
-  MeasurementVectorDecoratedType * GetOutput();
+  const MeasurementVectorDecoratedType * GetOutput() const;
 
 protected:
   WeightedMeanFilter();

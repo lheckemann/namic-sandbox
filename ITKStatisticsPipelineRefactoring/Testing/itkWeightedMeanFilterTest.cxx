@@ -153,7 +153,7 @@ int itkWeightedMeanFilterTest(int, char* [] )
     std::cerr << "Exception caught: " << excp << std::endl;
     }    
  
-  FilterType::MeasurementVectorDecoratedType * decorator = filter->GetOutput() ;
+  const FilterType::MeasurementVectorDecoratedType * decorator = filter->GetOutput() ;
   FilterType::MeasurementVectorType    meanOutput  = decorator->Get();
 
   FilterType::MeasurementVectorType mean;

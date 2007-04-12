@@ -89,11 +89,11 @@ WeightedMeanFilter< TSample >
 }
 
 template< class TSample >
-typename WeightedMeanFilter< TSample>::MeasurementVectorDecoratedType *
+const typename WeightedMeanFilter< TSample>::MeasurementVectorDecoratedType *
 WeightedMeanFilter< TSample >
-::GetOutput()
+::GetOutput() const
 {
-  return static_cast< MeasurementVectorDecoratedType * >(
+  return static_cast< const MeasurementVectorDecoratedType * >(
               this->ProcessObject::GetOutput(0));
 }
 
