@@ -510,6 +510,28 @@ int itkHistogramTest(int, char* [] )
     std::cerr << "Upper bound index = " << aboveUpperIndex << std::endl;
     }
 
+  HistogramType::Iterator itr = histogram->Begin();
+  HistogramType::Iterator end = histogram->End();
+
+  HistogramType::TotalFrequencyType totalFrequency = 
+    histogram->GetTotalFrequency();
+
+  InstanceIdentifier histogramSize = histogram->Size();
+  
+  while( itr != end )
+    {
+    itr.SetFrequency( itr.GetFrequency() + 1 );
+    ++itr;
+    }
+
+  HistogramType::TotalFrequencyType newTotalFrequency =
+    histogram->GetTotalFrequency();
+
+  if( newTotalFrequency != histogramSize + totalFrequency )
+    {
+    std::cerr << "Get/SetFrequency error in the Iterator" << std::endl;
+    return EXIT_FAILURE;
+    }
 
   if( !pass )
     {
