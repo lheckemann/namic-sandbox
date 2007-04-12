@@ -111,7 +111,11 @@ GenerateData( void )
   
   // Now get the various means and variances. This is takes two passes
   // through the histogram.
-  double pixelMean, marginalMean, marginalDevSquared, pixelVariance;
+  double pixelMean;
+  double marginalMean;
+  double marginalDevSquared;
+  double pixelVariance;
+
   this->ComputeMeansAndVariances(pixelMean, marginalMean, marginalDevSquared,
                                  pixelVariance);
   
@@ -279,6 +283,7 @@ ComputeMeansAndVariances( double &pixelMean, double &marginalMean,
     IndexType index = inputHistogram->GetIndex(hit.GetInstanceIdentifier());
     pixelVariance += (index[0] - pixelMean) * (index[0] - pixelMean) * frequency;
     }
+
   delete [] marginalSums;
 }
 
