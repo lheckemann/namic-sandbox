@@ -42,6 +42,7 @@ ListSampleToHistogramFilter< TSample, THistogram >
 
   this->SetMarginalScale( 100 );
 
+  this->SetAutoMinimumMaximum( true );
 }
 
 template < class TSample, class THistogram >
@@ -108,6 +109,8 @@ void
 ListSampleToHistogramFilter< TSample, THistogram >
 ::GenerateData()
 {
+  const SampleType * inputSample = this->GetInput();
+
   const InputHistogramMeasurementVectorObjectType * binMinimum =
     this->GetHistogramBinMinimumInput();
 
@@ -117,11 +120,23 @@ ListSampleToHistogramFilter< TSample, THistogram >
   const InputHistogramMeasurementObjectType * marginalScale =
     this->GetMarginalScaleInput();
  
-  const SampleType * inputSample = this->GetInput();
+  const InputBooleanObjectType * autoMinimumMaximum =
+    this->GetAutoMinimumMaximumInput();
 
+  const InputHistogramSizeObjectType * histogramSize =
+    this->GetHistogramSizeInput();
+    
+  if( histogramSize == NULL )
+    {
+    itkExceptionMacro("Histogram Size input is missing");
+    }
+    
   HistogramType * outputHistogram = 
     static_cast<HistogramType*>(this->ProcessObject::GetOutput(0));
 
+  if( autoMinimumMaximum && autoMinimumMaximum->Get() )
+    {
+    }
 }
 
 } // end of namespace StatisticsNew 

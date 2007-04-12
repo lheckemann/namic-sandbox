@@ -655,8 +655,20 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
+  filter->SetHistogramSizeInput( NULL );
 
- 
+  try
+    {
+    filter->Update();
+    std::cerr << "Failure to throw expected exception ";
+    std::cerr << " due to NULL SetHistogramSizeInput()";
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cout << "Expected exception received" << std::endl;  
+    }
+
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
