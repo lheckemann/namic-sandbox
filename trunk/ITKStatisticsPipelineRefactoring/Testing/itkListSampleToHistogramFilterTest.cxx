@@ -557,6 +557,104 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
+  // Testing the settings of the AutoMinimumMaximum Flag.
+  const bool autoMinimumMaximum1 = true;
+  const bool autoMinimumMaximum2 = false;
+
+  filter->SetAutoMinimumMaximum( autoMinimumMaximum1 );
+  
+  typedef FilterType::InputBooleanObjectType InputBooleanObjectType;
+
+  const InputBooleanObjectType * recoveredAutoMinimumMaximumObject =
+    filter->GetAutoMinimumMaximumInput();
+   
+  if( recoveredAutoMinimumMaximumObject == NULL )
+    {
+    std::cerr << "GetAutoMinimumMaximumInput() returned NULL object." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( recoveredAutoMinimumMaximumObject->Get() != autoMinimumMaximum1 )
+    {
+    std::cerr << "GetAutoMinimumMaximumInput() test for value consistency 1 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  filter->SetAutoMinimumMaximum( autoMinimumMaximum2 );
+  
+  recoveredAutoMinimumMaximumObject = filter->GetAutoMinimumMaximumInput();
+   
+  if( recoveredAutoMinimumMaximumObject == NULL )
+    {
+    std::cerr << "GetAutoMinimumMaximumInput() returned NULL object." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( recoveredAutoMinimumMaximumObject->Get() != autoMinimumMaximum2 )
+    {
+    std::cerr << "GetAutoMinimumMaximumInput() test for value consistency 2 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  InputBooleanObjectType::Pointer autoMinimumMaximumObject1 =
+    InputBooleanObjectType::New();
+
+  autoMinimumMaximumObject1->Set( autoMinimumMaximum1 );
+
+  filter->SetAutoMinimumMaximumInput( autoMinimumMaximumObject1 );
+ 
+  recoveredAutoMinimumMaximumObject = filter->GetAutoMinimumMaximumInput();
+
+  if( recoveredAutoMinimumMaximumObject != autoMinimumMaximumObject1 )
+    {
+    std::cerr << "GetAutoMinimumMaximumInput() test for pointer consistency 1 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( recoveredAutoMinimumMaximumObject->Get() != autoMinimumMaximum1 )
+    {
+    std::cerr << "GetAutoMinimumMaximumInput() test for value consistency 3 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  InputBooleanObjectType::Pointer autoMinimumMaximumObject2 =
+    InputBooleanObjectType::New();
+
+  autoMinimumMaximumObject2->Set( autoMinimumMaximum2 );
+
+  filter->SetAutoMinimumMaximumInput( autoMinimumMaximumObject2 );
+ 
+  recoveredAutoMinimumMaximumObject = filter->GetAutoMinimumMaximumInput();
+
+  if( recoveredAutoMinimumMaximumObject != autoMinimumMaximumObject2 )
+    {
+    std::cerr << "GetAutoMinimumMaximumInput() test for pointer consistency 2 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( recoveredAutoMinimumMaximumObject->Get() != autoMinimumMaximum2 )
+    {
+    std::cerr << "GetAutoMinimumMaximumInput() test for value consistency 4 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  filter->SetInput5( autoMinimumMaximumObject1 );
+ 
+  recoveredAutoMinimumMaximumObject = filter->GetInput5();
+
+  if( recoveredAutoMinimumMaximumObject != autoMinimumMaximumObject1 )
+    {
+    std::cerr << "GetAutoMinimumMaximumInput() test for pointer consistency 3 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( recoveredAutoMinimumMaximumObject->Get() != autoMinimumMaximum1 )
+    {
+    std::cerr << "GetAutoMinimumMaximumInput() test for value consistency 5 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
 
  
 
