@@ -61,6 +61,7 @@ public:
   /** Length of a measurement vector */
   typedef   unsigned int                              MeasurementVectorSizeType;
   typedef   typename TSample::MeasurementVectorType   MeasurementVectorType;
+  typedef   typename TSample::MeasurementType         MeasurementType;
 
   /** Method to set/get the sample */
   void SetInput( const SampleType * sample );
@@ -74,7 +75,7 @@ public:
   typedef  SimpleDataObjectDecorator< MeasurementVectorType >  MeasurementVectorDecoratedType;
 
   /** Get the mean measurement vector */
-  MeasurementVectorDecoratedType * GetOutput();
+  const MeasurementVectorDecoratedType * GetOutput() const;
 
 protected:
   MeanFilter();

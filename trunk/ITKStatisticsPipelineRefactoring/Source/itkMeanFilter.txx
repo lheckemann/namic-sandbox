@@ -74,11 +74,11 @@ MeanFilter< TSample >
 }
 
 template< class TSample >
-typename MeanFilter< TSample>::MeasurementVectorDecoratedType *
+const typename MeanFilter< TSample>::MeasurementVectorDecoratedType *
 MeanFilter< TSample >
-::GetOutput()
+::GetOutput() const
 {
-  return static_cast< MeasurementVectorDecoratedType * >(
+  return static_cast< const MeasurementVectorDecoratedType * >(
               this->ProcessObject::GetOutput(0));
 }
 
@@ -101,6 +101,11 @@ MeanFilter< TSample >
   typename TSample::ConstIterator iter = input->Begin();
   typename TSample::ConstIterator end =  input->End();
   double totalFrequency = 0.0;
+
+  for (unsigned int dim = 0; dim < measurementVectorSize; dim++)
+    {
+    output[dim] = itk::NumericTraits< MeasurementType >::Zero;
+    }
 
   while (iter != end)
     {
