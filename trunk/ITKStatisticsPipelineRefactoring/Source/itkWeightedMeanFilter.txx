@@ -114,47 +114,47 @@ WeightedMeanFilter< TSample >
   MeasurementVectorType output = decoratedOutput->Get();
 
   //reset the output
-  for (unsigned int dim = 0 ; dim < measurementVectorSize ; dim++)
+  for (unsigned int dim = 0; dim < measurementVectorSize; dim++)
     {
     output[dim] = NumericTraits< MeasurementType >::Zero;
     }
   
   typename TSample::ConstIterator iter = input->Begin();
   typename TSample::ConstIterator end =  input->End();
-  double totalWeight = 0.0 ;
-  double weight ;
-  int measurementVectorIndex = 0 ;
-  typename TSample::MeasurementVectorType measurements ;
+  double totalWeight = 0.0;
+  double weight;
+  int measurementVectorIndex = 0;
+  typename TSample::MeasurementVectorType measurements;
 
   if (m_WeightFunction != 0) 
     {
     while (iter != end)
       {
-      measurements = iter.GetMeasurementVector() ;
+      measurements = iter.GetMeasurementVector();
       weight = 
-        iter.GetFrequency() * m_WeightFunction->Evaluate(measurements) ;
-      totalWeight += weight ;
-      for ( unsigned int dim = 0 ; dim < measurementVectorSize ; dim++ )
+        iter.GetFrequency() * m_WeightFunction->Evaluate(measurements);
+      totalWeight += weight;
+      for ( unsigned int dim = 0; dim < measurementVectorSize; dim++ )
         {
-        output[dim] += measurements[dim] * weight ;
+        output[dim] += measurements[dim] * weight;
         }
-      ++iter ;
+      ++iter;
       }
     }
   else
     {
     while (iter != end)
       {
-      measurements = iter.GetMeasurementVector() ;
-      weight = iter.GetFrequency() * (m_Weights)[measurementVectorIndex] ;
-      totalWeight += weight ;
+      measurements = iter.GetMeasurementVector();
+      weight = iter.GetFrequency() * (m_Weights)[measurementVectorIndex];
+      totalWeight += weight;
 
-      for ( unsigned int dim = 0 ; dim < measurementVectorSize ; dim++ )
+      for ( unsigned int dim = 0; dim < measurementVectorSize; dim++ )
         {
-        output[dim] += measurements[dim] * weight ;
+        output[dim] += measurements[dim] * weight;
         }
-      ++measurementVectorIndex ;
-      ++iter ;
+      ++measurementVectorIndex;
+      ++iter;
       }
     }
 

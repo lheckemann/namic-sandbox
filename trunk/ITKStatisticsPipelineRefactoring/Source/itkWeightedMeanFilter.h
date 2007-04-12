@@ -52,10 +52,10 @@ class ITK_EXPORT WeightedMeanFilter : public ProcessObject
 public:
   /**Standard class typedefs. */
   typedef WeightedMeanFilter                      Self;
-  typedef ProcessObject                   Superclass;
-  typedef SmartPointer<Self>              Pointer;
-  typedef SmartPointer<const Self>        ConstPointer;
-  typedef TSample                         SampleType;
+  typedef ProcessObject                           Superclass;
+  typedef SmartPointer<Self>                      Pointer;
+  typedef SmartPointer<const Self>                ConstPointer;
+  typedef TSample                                 SampleType;
 
   /**Standard Macros */
   itkTypeMacro(WeightedMeanFilter, ProcessObject);
@@ -71,14 +71,14 @@ public:
   const SampleType *  GetInput() const;
 
   /** Array typedef for weights */
-  typedef Array< double > WeightArrayType ;
+  typedef Array< double > WeightArrayType;
 
   /** Set/Get the weights using an array */
   itkSetMacro( Weights,WeightArrayType );
   itkGetMacro( Weights,WeightArrayType )
 
   /** Weight calculation function typedef */
-  typedef FunctionBase< MeasurementVectorType, double > WeightFunctionType ;
+  typedef FunctionBase< MeasurementVectorType, double > WeightFunctionType;
 
   /** Set the weights using an function
    * the function should have a method, 
@@ -109,8 +109,8 @@ private:
   WeightedMeanFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  WeightArrayType                      m_Weights ;
-  WeightFunctionType*                  m_WeightFunction ;
+  WeightArrayType                      m_Weights;
+  WeightFunctionType*                  m_WeightFunction;
 }; // end of class
     
 } // end of namespace Statistics 
