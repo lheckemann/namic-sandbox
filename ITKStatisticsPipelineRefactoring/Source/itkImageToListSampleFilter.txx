@@ -108,6 +108,32 @@ ImageToListSampleFilter< TImage, TMaskImage >
 template < class TImage, class TMaskImage >
 void
 ImageToListSampleFilter< TImage, TMaskImage >
+:: SetMeasurementVectorSize( const MeasurementVectorSizeType s )
+{
+  // Measurement vector size for this class is fixed as the pixel's 
+  // dimension. This method should throw an exception if the user tries to 
+  // set the dimension to a different value. 
+  if( s != MeasurementVectorSize )
+    {
+    itkExceptionMacro(
+      << "Measurement vector size for the image adaptor obtained"
+      << " from the pixel dimension is: "
+      << MeasurementVectorSize << " but you "
+      << "are setting it to " << s);
+    }
+}
+
+template < class TImage, class TMaskImage >
+unsigned int 
+ImageToListSampleFilter< TImage, TMaskImage >
+::GetMeasurementVectorSize() const 
+{
+  return MeasurementVectorSize;
+} 
+
+template < class TImage, class TMaskImage >
+void
+ImageToListSampleFilter< TImage, TMaskImage >
 ::GenerateData()
 {
   ListSampleOutputType * decoratedOutput =
