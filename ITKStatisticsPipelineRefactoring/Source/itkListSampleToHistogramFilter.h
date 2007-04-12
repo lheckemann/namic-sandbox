@@ -83,6 +83,8 @@ public:
   typedef SimpleDataObjectDecorator<
     HistogramMeasurementVectorType > InputHistogramMeasurementVectorObjectType;
 
+  /** Type of DataObjects to use for AutoMinimumMaximum input */
+  typedef SimpleDataObjectDecorator< bool > InputBooleanObjectType;
 
   /** Methods for setting and getting the histogram size.  The histogram size
    * is encapsulated inside a decorator class. For this reason, it is possible
@@ -101,6 +103,11 @@ public:
    * histogram bins. */
   itkSetDecoratedInputMacro( HistogramBinMinimum, HistogramMeasurementVectorType, 3 );
   itkSetDecoratedInputMacro( HistogramBinMaximum, HistogramMeasurementVectorType, 4 );
+
+  /** Methods for setting and getting the boolean flag that defines whether the
+   * minimum and maximum of the histogram are going to be computed
+   * automatically from the values of the sample */
+  itkSetDecoratedInputMacro( AutoMinimumMaximum, bool, 5 );
 
 protected:
   ListSampleToHistogramFilter();
