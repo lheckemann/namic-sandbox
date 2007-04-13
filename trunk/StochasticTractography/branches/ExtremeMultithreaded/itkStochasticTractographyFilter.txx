@@ -23,7 +23,7 @@ namespace itk{
 template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::StochasticTractographyFilter():
-  m_TotalTracts(0),m_MaxTractLength(0),m_Gradients(NULL),m_bValues(NULL),
+  m_TotalTracts(0),m_MaxTractLength(0),m_Gradients(NULL), m_TransformedGradients(NULL),m_bValues(NULL),
   m_SampleDirections(NULL), m_A(NULL), m_Aqr(NULL), m_LikelihoodCachePtr(NULL),
   m_MaxLikelihoodCacheSize(0), m_CurrentLikelihoodCacheElements(0), m_RandomSeed(0),
   m_ClockPtr(NULL), m_TotalDelegatedTracts(0), m_OutputTractContainer(NULL){
@@ -66,21 +66,19 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   //the gradient direction is transformed into IJK space
   //by moving into the image space and then to IJK space
   
-  GradientDirectionContainerType::ConstPointer gradients_orig = this->m_Gradients;
-  GradientDirectionContainerType::Pointer gradients_prime = GradientDirectionContainerType::New();
-  unsigned int N = gradients_orig->Size();
+  this->m_TransformedGradients = GradientDirectionContainerType::New();
+  unsigned int N = this->m_Gradients->Size();
   for(unsigned int i=0; i<N; i++){
     GradientDirectionContainerType::Element g_i = 
       this->m_MeasurementFrame *
-      gradients_orig->GetElement(i);
+      this->m_Gradients->GetElement(i);
     
     /** The correction to LPS space is not neccessary as of itk 3.2 **/
     //g_i[0] = -g_i[0];
     //g_i[1] = -g_i[1];
     g_i = this->GetInput()->GetDirection().GetInverse() * g_i;  
-    gradients_prime->InsertElement(i, g_i);
+    this->m_TransformedGradients->InsertElement(i, g_i);
   }
-  this->m_Gradients=gradients_prime;
 }
 
 template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
@@ -93,13 +91,13 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   //solve for Beta in: logPhi=X*Beta
   //number of rows of the matrix depends on the number of inputs,
   //i.e. the number of measurements of the voxel (n)
-  unsigned int N = this->m_Gradients->Size();
+  unsigned int N = this->m_TransformedGradients->Size();
   
-  this->m_A = new vnl_matrix< double >(N, 7);
+  this->m_A = new vnl_matrix< double >(N, 7); //potential memory leak here
   vnl_matrix< double >& A = *(this->m_A);
   
   for(unsigned int j=0; j< N ; j++){
-    GradientDirectionContainerType::Element g = m_Gradients->GetElement(j);
+    GradientDirectionContainerType::Element g = m_TransformedGradients->GetElement(j);
     const bValueType&  b_i = m_bValues->GetElement(j);
     
     A(j,0)=1.0;
@@ -113,7 +111,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   
   //Store a QR decomposition to quickly estimate
   //the weighing matrix for each voxel
-  this->m_Aqr = new vnl_qr< double >(A);
+  this->m_Aqr = new vnl_qr< double >(A);  //potential memory leak here
 }
 
 template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
@@ -123,7 +121,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   vnl_diag_matrix<double>& W,
   TensorModelParamType& tensormodelparams){
   
-  unsigned  int N = this->m_Gradients->Size();
+  unsigned  int N = this->m_TransformedGradients->Size();
   
   //setup const references for code clarity
   const vnl_matrix< double >& A = *(this->m_A);
@@ -207,7 +205,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
 ::CalculateNoiseFreeDWIFromConstrainedModel( const ConstrainedModelParamType& constrainedmodelparams,
     DWIVectorImageType::PixelType& noisefreedwi){
     
-  unsigned int N = this->m_Gradients->Size();
+  unsigned int N = this->m_TransformedGradients->Size();
   const double& z_0 = constrainedmodelparams[0];
   const double& alpha = constrainedmodelparams[1];
   const double& beta = constrainedmodelparams[2];
@@ -218,7 +216,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   for(unsigned int i=0; i < N ; i++ ){
     const double& b_i = this->m_bValues->GetElement(i);
     const GradientDirectionContainerType::Element& g_i = 
-      this->m_Gradients->GetElement(i);
+      this->m_TransformedGradients->GetElement(i);
     
     noisefreedwi.SetElement(i,
       vcl_exp(z_0-(alpha*b_i+beta*b_i*vnl_math_sqr(dot_product(g_i, v_hat)))));
@@ -234,7 +232,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
     const unsigned int numberofparameters,
     double& residualvariance){
     
-  unsigned int N = this->m_Gradients->Size();
+  unsigned int N = this->m_TransformedGradients->Size();
   
   residualvariance=0;
   
@@ -253,7 +251,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
     TractOrientationContainerType::ConstPointer orientations,
     ProbabilityDistributionImageType::PixelType& likelihood){
     
-  unsigned int N = this->m_Gradients->Size();
+  unsigned int N = this->m_TransformedGradients->Size();
   TensorModelParamType tensorparams( 0.0 );
   vnl_diag_matrix< double > W(N,0);
   ConstrainedModelParamType constrainedparams( 0.0 );
@@ -602,6 +600,55 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
       this->m_OutputTractContainer->Size(),
       tract);
     this->m_OutputTractContainerMutex.Unlock();
+}
+
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
+void
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
+::GenerateTensorImageOutput(void){
+  this->UpdateGradientDirections();
+  this->UpdateTensorModelFittingMatrices();
+  
+  //allocate the tensor image
+  this->m_OutputTensorImage = OutputTensorImageType::New();
+  m_OutputTensorImage->CopyInformation( this->GetInput() );
+  m_OutputTensorImage->SetBufferedRegion( this->GetInput()->GetBufferedRegion() );
+  m_OutputTensorImage->SetRequestedRegion( this->GetInput()->GetRequestedRegion() );
+  m_OutputTensorImage->Allocate();
+  
+  //define an iterator for the input and output images
+  typedef itk::ImageRegionConstIterator< InputDWIImageType > DWIImageIteratorType;
+  typedef itk::ImageRegionIterator< OutputTensorImageType > TensorImageIteratorType;
+  
+  DWIImageIteratorType 
+  inputDWIit( this->GetInput(), m_OutputTensorImage->GetRequestedRegion() );
+  
+  TensorImageIteratorType outputtensorit
+    ( m_OutputTensorImage, m_OutputTensorImage->GetRequestedRegion() );
+  
+  unsigned int N = this->m_TransformedGradients->Size();
+  TensorModelParamType tensormodelparams( 0.0 );
+  vnl_diag_matrix< double > W(N,0);
+  
+  for(inputDWIit.GoToBegin(), outputtensorit.GoToBegin();
+    !outputtensorit.IsAtEnd(); ++inputDWIit, ++outputtensorit){
+    CalculateTensorModelParameters( inputDWIit.Get(),
+      W, tensormodelparams);
+      
+    OutputTensorImageType::PixelType& D = outputtensorit.Value();
+    //set the tensor model parameters into a Diffusion tensor
+    D(0,0) = tensormodelparams[1];
+    D(0,1) = tensormodelparams[4];
+    D(0,2) = tensormodelparams[5];
+    D(1,0) = tensormodelparams[4];
+    D(1,1) = tensormodelparams[2];
+    D(1,2) = tensormodelparams[6];
+    D(2,0) = tensormodelparams[5];
+    D(2,1) = tensormodelparams[6];
+    D(2,2) = tensormodelparams[3];
+    
+    //std::cout<<D;
+  }
 }
 
 }
