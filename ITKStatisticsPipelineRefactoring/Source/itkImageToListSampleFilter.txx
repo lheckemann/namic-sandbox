@@ -138,12 +138,20 @@ ImageToListSampleFilter< TImage, TMaskImage >
   const ImageType *input = this->GetInput();
   const MaskImageType *maskImage = NULL;
   
-  output->Clear();
-
-  if( this->GetNumberOfInputs() > 1 )
+  // Verify whether the image and the mask have the same LargestPossibleRegion.
+  // Otherwise, throw an exception.
+  // 
+  if (this->GetNumberOfInputs() > 1)
     {
     maskImage = this->GetMaskImage();
+
+    if( input->GetLargestPossibleRegion() != maskImage->GetLargestPossibleRegion()) 
+      {
+      itkExceptionMacro("LargestPossibleRegion of the mask does not match the one for the image");
+      }
     }
+
+  output->Clear();
 
   typedef ImageRegionConstIterator< ImageType >     IteratorType; 
   IteratorType it( input, input->GetBufferedRegion() );
@@ -199,19 +207,6 @@ ImageToListSampleFilter< TImage, TMaskImage >
   // copy the output requested region to the input requested region
   Superclass::GenerateInputRequestedRegion();
 
-  // Verify whether the image and the mask have the same LargestPossibleRegion.
-  // Otherwise, throw an exception.
-  // 
-  if (this->GetNumberOfInputs() > 1)
-    {
-    const MaskImageType *maskImage = this->GetMaskImage();
-    const ImageType     *image     = this->GetInput();
-
-    if( image->GetLargestPossibleRegion() != maskImage->GetLargestPossibleRegion()) 
-      {
-      itkExceptionMacro("LargestPossibleRegion of the mask does not match the one for the image");
-      }
-    }
 }
 
 template < class TImage, class TMaskImage >
