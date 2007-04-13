@@ -9,8 +9,8 @@ Version:   $Revision: 1.12 $
 Copyright (c) Insight Software Consortium. All rights reserved.
 See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-This software is distributed WITHOUT ANY WARRANTY; without even 
-the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+This software is distributed WITHOUT ANY WARRANTY; without even
+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
@@ -24,20 +24,20 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkHistogram.h"
 #include "itkListSampleToHistogramFilter.h"
 
-int itkListSampleToHistogramFilterTest(int argc, char *argv[] ) 
+int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
 {
-    
+
   const unsigned int numberOfComponents = 3;
   typedef float      MeasurementType;
 
   typedef itk::Array< MeasurementType > MeasurementVectorType;
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
 
-  typedef itk::Statistics::Histogram< MeasurementType, 
-          numberOfComponents, 
+  typedef itk::Statistics::Histogram< MeasurementType,
+          numberOfComponents,
           itk::Statistics::DenseFrequencyContainer > HistogramType;
 
-  typedef itk::Statistics::ListSampleToHistogramFilter< 
+  typedef itk::Statistics::ListSampleToHistogramFilter<
     SampleType, HistogramType > FilterType;
 
   typedef FilterType::InputHistogramSizeObjectType         InputHistogramSizeObjectType;
@@ -48,7 +48,7 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
   typedef FilterType::
     InputHistogramMeasurementVectorObjectType  InputHistogramMeasurementVectorObjectType;
 
-  FilterType::Pointer filter = FilterType::New();  
+  FilterType::Pointer filter = FilterType::New();
 
   SampleType::Pointer sample = SampleType::New();
 
@@ -78,6 +78,39 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
   filter->Print( std::cout );
 
 
+  // Test exception when calling Update() without having
+  // defined the size of the sample
+  try
+    {
+    filter->Update();
+    std::cerr << "Failure to throw expected exception due to lack";
+    std::cerr << " of calling SetMeasurementVectorSize() in the sample";
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cout << "Expected exception received" << std::endl;
+    }
+
+  sample->SetMeasurementVectorSize( numberOfComponents );
+
+  // Set a bad number of samples on purpose
+  sample->SetMeasurementVectorSize( numberOfComponents + 5 );
+
+  try
+    {
+    filter->Update();
+    std::cerr << "Failure to throw expected exception due to lack";
+    std::cerr << " of calling SetMeasurementVectorSize() in bin maximum ";
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cout << "Expected exception received" << std::endl;
+    }
+
+  sample->SetMeasurementVectorSize( numberOfComponents );
+
   try
     {
     filter->Update();
@@ -85,14 +118,6 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
   catch( itk::ExceptionObject & excp )
     {
     std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
-    }
-
-
-  // Test GetOutput() after creating the output
-  if( filter->GetOutput() == NULL )
-    {
-    std::cerr << "GetOutput() should have returned NON-NULL" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -197,6 +222,7 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
       }
     }
 
+  
 
   filter->SetHistogramSize( histogramSize1 );
   filter->Update();
@@ -223,10 +249,10 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
   const HistogramMeasurementType marginalScale2 = 179;
 
   filter->SetMarginalScale( marginalScale1 );
-  
+
   const InputHistogramMeasurementObjectType * recoveredMarginalScaleObject =
     filter->GetMarginalScaleInput();
-   
+
   if( recoveredMarginalScaleObject == NULL )
     {
     std::cerr << "GetMarginalScaleInput() returned NULL object." << std::endl;
@@ -240,9 +266,9 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     }
 
   filter->SetMarginalScale( marginalScale2 );
-  
+
   recoveredMarginalScaleObject = filter->GetMarginalScaleInput();
-   
+
   if( recoveredMarginalScaleObject == NULL )
     {
     std::cerr << "GetMarginalScaleInput() returned NULL object." << std::endl;
@@ -262,7 +288,7 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
   marginalScaleObject1->Set( marginalScale1 );
 
   filter->SetMarginalScaleInput( marginalScaleObject1 );
- 
+
   recoveredMarginalScaleObject = filter->GetMarginalScaleInput();
 
   if( recoveredMarginalScaleObject != marginalScaleObject1 )
@@ -283,7 +309,7 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
   marginalScaleObject2->Set( marginalScale2 );
 
   filter->SetMarginalScaleInput( marginalScaleObject2 );
- 
+
   recoveredMarginalScaleObject = filter->GetMarginalScaleInput();
 
   if( recoveredMarginalScaleObject != marginalScaleObject2 )
@@ -299,7 +325,7 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     }
 
   filter->SetInput2( marginalScaleObject1 );
- 
+
   recoveredMarginalScaleObject = filter->GetInput2();
 
   if( recoveredMarginalScaleObject != marginalScaleObject1 )
@@ -562,12 +588,12 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
   const bool autoMinimumMaximum2 = false;
 
   filter->SetAutoMinimumMaximum( autoMinimumMaximum1 );
-  
+
   typedef FilterType::InputBooleanObjectType InputBooleanObjectType;
 
   const InputBooleanObjectType * recoveredAutoMinimumMaximumObject =
     filter->GetAutoMinimumMaximumInput();
-   
+
   if( recoveredAutoMinimumMaximumObject == NULL )
     {
     std::cerr << "GetAutoMinimumMaximumInput() returned NULL object." << std::endl;
@@ -581,9 +607,9 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     }
 
   filter->SetAutoMinimumMaximum( autoMinimumMaximum2 );
-  
+
   recoveredAutoMinimumMaximumObject = filter->GetAutoMinimumMaximumInput();
-   
+
   if( recoveredAutoMinimumMaximumObject == NULL )
     {
     std::cerr << "GetAutoMinimumMaximumInput() returned NULL object." << std::endl;
@@ -603,7 +629,7 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
   autoMinimumMaximumObject1->Set( autoMinimumMaximum1 );
 
   filter->SetAutoMinimumMaximumInput( autoMinimumMaximumObject1 );
- 
+
   recoveredAutoMinimumMaximumObject = filter->GetAutoMinimumMaximumInput();
 
   if( recoveredAutoMinimumMaximumObject != autoMinimumMaximumObject1 )
@@ -624,7 +650,7 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
   autoMinimumMaximumObject2->Set( autoMinimumMaximum2 );
 
   filter->SetAutoMinimumMaximumInput( autoMinimumMaximumObject2 );
- 
+
   recoveredAutoMinimumMaximumObject = filter->GetAutoMinimumMaximumInput();
 
   if( recoveredAutoMinimumMaximumObject != autoMinimumMaximumObject2 )
@@ -640,7 +666,7 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     }
 
   filter->SetInput5( autoMinimumMaximumObject1 );
- 
+
   recoveredAutoMinimumMaximumObject = filter->GetInput5();
 
   if( recoveredAutoMinimumMaximumObject != autoMinimumMaximumObject1 )
@@ -655,7 +681,12 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
+
+  // Testing exception cases in the GenerateData() method.
+  //
   filter->SetHistogramSizeInput( NULL );
+
+  std::cout << "GetHistogramSizeInput() =  " <<  filter->GetHistogramSizeInput() << std::endl;
 
   try
     {
@@ -666,9 +697,28 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     }
   catch( itk::ExceptionObject & excp )
     {
-    std::cout << "Expected exception received" << std::endl;  
+    std::cout << "Expected exception received" << std::endl;
     }
 
+  filter->SetHistogramSizeInput( histogramSizeObject );
+
+  try
+    {
+    filter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  // Test GetOutput() after creating the output
+  if( filter->GetOutput() == NULL )
+    {
+    std::cerr << "GetOutput() should have returned NON-NULL" << std::endl;
+    return EXIT_FAILURE;
+    }
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
