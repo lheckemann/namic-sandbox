@@ -39,6 +39,19 @@
     { \
     } 
 
+#define itkAssertLengthExceptionMacro( m1, m2 ) \
+  try \
+    { \
+    itk::MeasurementVectorTraits::Assert( (m1), (m2) ); \
+    std::cerr << "Failed to get expected exception for Assert() "; \
+    std::cerr << std::endl; \
+    return EXIT_FAILURE; \
+    } \
+  catch( itk::ExceptionObject & )  \
+    { \
+    } 
+
+
 int itkMeasurementVectorTraitsTest(int, char* [] ) 
 {
   std::cout << "MeasurementVectorTraits Test" << std::endl; 
@@ -51,6 +64,12 @@ int itkMeasurementVectorTraitsTest(int, char* [] )
   typedef std::vector< float >                MeasurementVectorType4;
 
   const unsigned int length2 = 19;
+
+  typedef itk::FixedArray< float, length2 >   MeasurementVectorType1b;
+  typedef itk::Array< float >                 MeasurementVectorType2b;
+  typedef itk::VariableLengthVector< float >  MeasurementVectorType3b;
+  typedef std::vector< float >                MeasurementVectorType4b;
+
 
   MeasurementVectorType1 measure1;
   MeasurementVectorType2 measure2;
@@ -76,6 +95,21 @@ int itkMeasurementVectorTraitsTest(int, char* [] )
   itkSetGetLengthVerificationMacro( measure4  , length2, length2 );
   itkSetGetLengthVerificationMacro( &measure4 , length1, length1 );
   itkSetGetLengthVerificationMacro( &measure4 , length2, length2 );
+
+  // Test the Asser() methods
+  //
+  MeasurementVectorType1b measure1b;
+  MeasurementVectorType2b measure2b;
+  MeasurementVectorType3b measure3b;
+  MeasurementVectorType4b measure4b;
+
+  itk::MeasurementVectorTraits::SetLength( measure1b, length2 );
+  itk::MeasurementVectorTraits::SetLength( measure2b, length2 );
+  itk::MeasurementVectorTraits::SetLength( measure3b, length2 );
+  itk::MeasurementVectorTraits::SetLength( measure4b, length2 );
+
+  itkAssertLengthExceptionMacro( measure1, measure2b );
+  itkAssertLengthExceptionMacro( measure1, measure3b );
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
