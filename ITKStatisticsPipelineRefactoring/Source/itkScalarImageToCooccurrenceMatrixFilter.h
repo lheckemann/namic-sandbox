@@ -126,29 +126,12 @@ public:
 
   itkStaticConstMacro(DefaultBinsPerAxis, unsigned int, 256);
 
-  /** Triggers the Computation of the histogram */
-  void Compute( void );
-
-  /** Connects the input image for which the histogram is going to be computed */
-  itkSetConstObjectMacro( Input, ImageType );
-  itkGetConstObjectMacro( Input, ImageType );
-
   /** Set the offset or offsets over which the co-occurrence pairs will be computed.
       Calling either of these methods clears the previous offsets.*/
   itkSetConstObjectMacro( Offsets, OffsetVector );
   itkGetConstObjectMacro( Offsets, OffsetVector );
-  void SetOffset( const OffsetType offset )
-    {
-    OffsetVectorPointer offsetVector = OffsetVector::New();
-    offsetVector->push_back(offset);
-    this->SetOffsets(offsetVector);
-    }
+  void SetOffset( const OffsetType offset );
       
-  /** Return the histogram.
-    \warning This output is only valid after the Compute() method has been invoked 
-    \sa Compute */
-  itkGetObjectMacro( Output, HistogramType );
-
   /** Set number of histogram bins along each axis */
   itkSetMacro( NumberOfBinsPerAxis, unsigned int );
   itkGetMacro( NumberOfBinsPerAxis, unsigned int );
@@ -164,17 +147,29 @@ public:
   itkGetMacro(Normalize, bool);
   itkBooleanMacro(Normalize);
 
+  /** Method to set/get the image */
+  void SetInput( const ImageType* image );
+  const ImageType* GetInput() const;
+
+  /** method to get the Histogram */
+  const HistogramType * GetOutput() const;
+
 protected:
   ScalarImageToCooccurrenceMatrixFilter();
   virtual ~ScalarImageToCooccurrenceMatrixFilter() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
   virtual void FillHistogram( RadiusType radius, RegionType region );
-      
+   
+  /** Standard itk::ProcessObject subclass method. */
+  typedef DataObject::Pointer DataObjectPointer;
+  virtual DataObjectPointer MakeOutput(unsigned int idx);
+
+  /** This method causes the filter to generate its output. */
+  virtual void GenerateData();
+
 private:
   void NormalizeHistogram( void );
 
-  ImageConstPointer        m_Input;
-  HistogramPointer         m_Output;
   OffsetVectorConstPointer m_Offsets;
   PixelType                m_Min;
   PixelType                m_Max;
