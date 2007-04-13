@@ -72,7 +72,8 @@ public:
   typedef typename ImageType::Pointer      ImagePointer;
   typedef typename ImageType::ConstPointer ImageConstPointer;
   typedef typename ImageType::PixelType    PixelType;
-  typedef FixedArray< PixelType, 1 >       MeasurementVectorType;
+  typedef typename MeasurementVectorPixelTraits< 
+    PixelType >::MeasurementVectorType     MeasurementVectorType;
 
   /** Mask Image typedefs */
   typedef TMaskImage                           MaskImageType;
@@ -83,26 +84,7 @@ public:
    /** Type of the output list sample */
   typedef ListSample< MeasurementVectorType >  ListSampleType;
   
-  /** Superclass typedefs for Measurement vector, measurement, 
-   * Instance Identifier, frequency, size, size element value */
-  typedef PixelTraits< typename ImageType::PixelType > PixelTraitsType;
-  typedef typename ListSampleType::MeasurementVectorSizeType 
-                                     MeasurementVectorSizeType;
-  
-  typedef DataObject::Pointer DataObjectPointer;
-
-  /** ListSample is not a DataObject, we need to decorate it to push it down
-   * a ProcessObject's pipeline */
-  typedef DataObjectDecorator< ListSampleType >  ListSampleOutputType;
-
-  /** the number of components in a measurement vector */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      PixelTraitsType::Dimension);
-  
-  /** Standard itk::ProcessObject subclass method. */
-  virtual DataObjectPointer MakeOutput(unsigned int idx);
-
-  virtual void SetMeasurementVectorSize( const MeasurementVectorSizeType s );
+  /** return the number of components of the input image */
   unsigned int GetMeasurementVectorSize() const;
 
   /** Method to set/get the image */
@@ -116,7 +98,7 @@ public:
   /** Method to get the list sample, the generated output. Note that this does
    * not invoke Update(). You should have called update on this class to get
    * any meaningful output. */
-  ListSampleType * GetListSample();
+  const ListSampleType * GetOutput() const;
   
   /** Set the pixel value treated as on in the mask. If a mask has been 
    * specified, only pixels with this value will be added to the list sample, if
@@ -125,6 +107,15 @@ public:
   itkSetMacro( MaskValue, MaskPixelType );
   itkGetMacro( MaskValue, MaskPixelType );
   
+protected:
+  ImageToListSampleFilter();
+  virtual ~ImageToListSampleFilter() {}
+  void PrintSelf(std::ostream& os, Indent indent) const;  
+
+  /** Standard itk::ProcessObject subclass method. */
+  typedef DataObject::Pointer DataObjectPointer;
+  virtual DataObjectPointer MakeOutput(unsigned int idx);
+
   /** This method causes the filter to generate its output. */
   virtual void GenerateData();
 
@@ -134,11 +125,6 @@ public:
     throw(InvalidRequestedRegionError);
   
   virtual void GenerateOutputInformation();
-
-protected:
-  ImageToListSampleFilter();
-  virtual ~ImageToListSampleFilter() {}
-  void PrintSelf(std::ostream& os, Indent indent) const;  
 
 private:
   ImageToListSampleFilter(const Self&); //purposely not implemented
