@@ -168,11 +168,6 @@ FillHistogram(RadiusType radius, RegionType region)
   // co-occurrence pair to the histogram
 
   const ImageType *input = this->GetInput();
-  
-  if( input == NULL )
-    {
-    itkExceptionMacro("Input image has not been set yet");
-    }
 
   HistogramType * output = 
    static_cast< HistogramType * >( this->ProcessObject::GetOutput(0) );
