@@ -123,7 +123,13 @@ inline void FindSampleBound(const TSample* sample,
   unsigned int dimension;
   typename TSample::MeasurementVectorType temp;
 
+  if( begin == end )
+    {
+    return;
+    }
+
   min = max = temp = begin.GetMeasurementVector();
+
   while (true)
     {
     for (dimension= 0; dimension < Dimension; dimension++)
