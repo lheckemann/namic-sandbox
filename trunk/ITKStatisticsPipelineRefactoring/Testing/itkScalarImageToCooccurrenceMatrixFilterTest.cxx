@@ -88,12 +88,32 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
   // with zeroes elsewhere.
   //--------------------------------------------------------------------------
   
+  bool passed = true;
   try {
   
   typedef itk::Statistics::ScalarImageToCooccurrenceMatrixFilter< 
     InputImageType> FilterType;
   
   FilterType::Pointer filter = FilterType::New();
+
+  //Invoke update before adding an input. An exception should be 
+  //thrown.
+  try
+    {
+    filter->Update();
+    passed = false;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception caught: " << excp << std::endl;
+    }    
+
+  filter->ResetPipeline();
+
+  if ( filter->GetInput() != NULL )
+    {
+    passed = false;
+    }
   
   filter->SetInput(image);
   InputImageType::OffsetType offset1 = {{0, 1}};
@@ -110,7 +130,6 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
   //--------------------------------------------------------------------------
   // Test the histogram.
   //--------------------------------------------------------------------------
-  bool passed = true;
   
   // First make sure the bins are sized properly:
   
