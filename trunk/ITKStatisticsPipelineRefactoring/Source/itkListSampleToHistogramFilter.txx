@@ -144,14 +144,20 @@ ListSampleToHistogramFilter< TSample, THistogram >
   HistogramType * outputHistogram = 
     static_cast<HistogramType*>(this->ProcessObject::GetOutput(0));
 
+  const typename SampleType::InstanceIdentifier measurementVectorSize =
+    inputSample->GetMeasurementVectorSize();
+
   typename SampleType::MeasurementVectorType lower;
   typename SampleType::MeasurementVectorType upper;
+
+  MeasurementVectorTraits::SetLength( lower, measurementVectorSize );
+  MeasurementVectorTraits::SetLength( upper, measurementVectorSize );
 
   typename HistogramType::MeasurementVectorType h_upper;
   typename HistogramType::MeasurementVectorType h_lower;
 
-  const typename SampleType::InstanceIdentifier measurementVectorSize =
-    inputSample->GetMeasurementVectorSize();
+  MeasurementVectorTraits::SetLength( h_lower, measurementVectorSize );
+  MeasurementVectorTraits::SetLength( h_upper, measurementVectorSize );
 
   if( autoMinimumMaximum && autoMinimumMaximum->Get() )
     {
