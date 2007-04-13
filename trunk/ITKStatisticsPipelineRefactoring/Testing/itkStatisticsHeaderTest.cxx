@@ -31,6 +31,7 @@
 #include "itkMeanFilter.h"
 #include "itkWeightedMeanFilter.h"
 #include "itkImageToListSampleFilter.h"
+#include "itkScalarImageToCooccurrenceMatrixFilter.h"
 
 int main ( int , char*  )
 {

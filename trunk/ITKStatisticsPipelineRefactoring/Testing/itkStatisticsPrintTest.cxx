@@ -26,14 +26,18 @@
 #include "itkHistogram.h"
 #include "itkListSample.h"
 #include "itkListSampleToHistogramFilter.h"
+#include "itkImageToListSampleFilter.h"
+#include "itkScalarImageToCooccurrenceMatrixFilter.h"
+#include "itkHistogramToTextureFeaturesFilter.h"
 
 int itkStatisticsPrintTest(int , char* [])
 {
   typedef float MeasurementType;
   typedef float FrequencyType;
-  typedef itk::FixedArray< MeasurementType, 2 > MeasurementVectorType;
+  typedef itk::FixedArray< MeasurementType, 2 >  MeasurementVectorType;
   typedef itk::Image< MeasurementVectorType, 3 > ImageType;
-  typedef itk::PointSet< MeasurementType > PointSetType;
+  typedef itk::Image< unsigned char, 3>          ScalarImageType;
+  typedef itk::PointSet< MeasurementType >       PointSetType;
 
   typedef itk::Statistics::ListSample< MeasurementVectorType >
     SampleType;
@@ -43,6 +47,14 @@ int itkStatisticsPrintTest(int , char* [])
   typedef itk::Statistics::ListSampleToHistogramFilter< 
     SampleType, HistogramType > ListSampleToHistogramFilterType;
 
+  typedef itk::Statistics::ImageToListSampleFilter< 
+    ImageType, ImageType > ImageToListSampleFilterType;
+
+  typedef itk::Statistics::ScalarImageToCooccurrenceMatrixFilter< 
+    ScalarImageType > ScalarImageToCooccurrenceMatrixFilterType;
+
+  typedef itk::Statistics::HistogramToTextureFeaturesFilter<
+    HistogramType > HistogramToTextureFeaturesFilterType;
 
   SampleType::Pointer sampleObj = SampleType::New();
   std::cout << "----------ListSample " << sampleObj;
@@ -55,6 +67,20 @@ int itkStatisticsPrintTest(int , char* [])
     ListSampleToHistogramFilterType::New();
   std::cout << "----------ListSampleToHistogramFilter ";
   std::cout << ListSampleToHistogramFilterObj;
+
+  ImageToListSampleFilterType::Pointer ImageToListSampleFilterObj =
+    ImageToListSampleFilterType::New();
+  std::cout << "----------ImageToListSampleFilter ";
+  std::cout << ImageToListSampleFilterObj;
+
+  ScalarImageToCooccurrenceMatrixFilterType::Pointer ScalarImageToCooccurrenceMatrixFilterObj =
+    ScalarImageToCooccurrenceMatrixFilterType::New();
+  std::cout << "----------ScalarImageToCooccurrenceMatrixFilter ";
+  std::cout << ScalarImageToCooccurrenceMatrixFilterObj;
+
+  HistogramToTextureFeaturesFilterType::Pointer HistogramToTextureFeaturesFilterObj=
+    HistogramToTextureFeaturesFilterType::New();
+  std::cout << "----------HistogramToTextureFeaturesFilter " << HistogramToTextureFeaturesFilterObj;
 
 
   return EXIT_SUCCESS;
