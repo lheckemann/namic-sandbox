@@ -10,6 +10,8 @@
 #include <vector>
 #include "itkImageRegionConstIterator.h"
 #include "StochasticTractographyFilterCLP.h"
+#include "itkTensorFractionalAnisotropyImageFilter.h"
+#include "itkPathIterator.h"
 
 template< class TTOContainerType >
 bool SamplingDirections(const char* fn, typename TTOContainerType::Pointer directions){
@@ -79,6 +81,21 @@ bool WriteTractContainerToFile( const char* fn, typename TractContainerType::Poi
     return false;
   }
 }
+template< class FAContainerType >
+bool WriteScalarContainerToFile( const char* fn, typename FAContainerType::Pointer facontainer ){
+  std::ofstream fafile( fn, std::ios::out );
+  if(fafile.is_open()){
+    for(int i=0; i<facontainer->Size(); i++){
+      fafile<<facontainer->GetElement(i)<<std::endl;
+    }
+    fafile.close();
+    return true;
+  }
+  else{
+    std::cerr<<"Problems opening file to write FA value\n";
+    return false;
+  }
+}
 
 namespace Functor {  
    
@@ -108,7 +125,34 @@ public:
     return 10;
   }
 }; 
- 
+
+template< class TInput, class TOutput>
+class ScalarMultiply
+{
+public:
+  ScalarMultiply() {};
+  ~ScalarMultiply() {};
+  bool operator!=( const ScalarMultiply & ) const
+  {
+    return false;
+  }
+  bool operator==( const ScalarMultiply & other ) const
+  {
+    return !(*this != other);
+  }
+  inline TOutput operator()( const TInput & A )
+  {
+    /*for(int i=0;i<A.GetSize();i++){
+      if(A[0]<100){
+        std::cout<<"Invalid Voxel\n";
+        return 0;
+      }
+    }
+    */
+    return A*1000;
+  }
+}; 
+
 }
 
 int main(int argc, char* argv[]){
@@ -118,7 +162,7 @@ int main(int argc, char* argv[]){
   typedef itk::Image< unsigned short int, 3 > MaskImageType;
   typedef itk::Image< short int, 3 > ROIImageType;
   typedef itk::Image< unsigned int, 3 > CImageType;
-  
+
   //define an iterator for the ROI image
   typedef itk::ImageRegionConstIterator< ROIImageType > ROIImageIteratorType;
   
@@ -131,7 +175,7 @@ int main(int argc, char* argv[]){
   //define metadata dictionary types
   typedef itk::MetaDataDictionary DictionaryType;
   typedef DictionaryType::ConstIterator DictionaryIteratorType;
-
+    
   //define a probabilistic tractography filter type and associated bValue,
   //gradient direction, and measurement frame types
   typedef itk::StochasticTractographyFilter< DWIVectorImageType, MaskImageType,
@@ -146,6 +190,18 @@ int main(int argc, char* argv[]){
     ZeroDWITestType;
   typedef itk::UnaryFunctorImageFilter< DWIVectorImageType, MaskImageType, 
     ZeroDWITestType > ExcludeZeroDWIFilterType;
+  
+  //FA stuff
+  typedef itk::Image< double, 3 > FAImageType;
+  typedef itk::TensorFractionalAnisotropyImageFilter< PTFilterType::OutputTensorImageType,
+    FAImageType > FAFilterType;
+  typedef itk::ImageFileWriter< FAImageType > FAImageWriterType;
+    
+  //define a filter to multiply a FA image by 1000
+  typedef Functor::ScalarMultiply< FAImageType::PixelType, FAImageType::PixelType >
+    ScalarMultiplyType;
+  typedef itk::UnaryFunctorImageFilter< FAImageType, FAImageType,
+    ScalarMultiplyType > MultiplyFAFilterType;
     
   //define AddImageFilterType to accumulate the connectivity maps of the pixels in the ROI
   typedef itk::AddImageFilter< CImageType, CImageType, CImageType> AddImageFilterType;
@@ -299,6 +355,19 @@ int main(int argc, char* argv[]){
   ptfilterPtr->SetMaxLikelihoodCacheSize( maxlikelihoodcachesize );
   ptfilterPtr->SetNumberOfThreads( 8 );
   
+  //calculate the tensor image
+  ptfilterPtr->GenerateTensorImageOutput();
+  
+  //Setup the FAImageFilter
+  FAFilterType::Pointer fafilter =  FAFilterType::New();
+  
+  fafilter->SetInput( ptfilterPtr->GetOutputTensorImage() );
+  fafilter->Update();
+  
+  //Setup the FA container to hold FA values for tracts of interest
+  typedef itk::VectorContainer< unsigned int, double > FAContainerType;
+  FAContainerType::Pointer facontainer = FAContainerType::New();
+  
   //Setup the AddImageFilter
   AddImageFilterType::Pointer addimagefilterPtr = AddImageFilterType::New();
   
@@ -310,6 +379,15 @@ int main(int argc, char* argv[]){
   accumulatedcimagePtr->Allocate();
   accumulatedcimagePtr->FillBuffer(0);
   
+  //Create another Connectivity Map for just the tracts
+  //which make it to the second ROI
+  CImageType::Pointer conditionedcimagePtr = CImageType::New();
+  conditionedcimagePtr->CopyInformation( dwireaderPtr->GetOutput() );
+  conditionedcimagePtr->SetBufferedRegion( dwireaderPtr->GetOutput()->GetBufferedRegion() );
+  conditionedcimagePtr->SetRequestedRegion( dwireaderPtr->GetOutput()->GetRequestedRegion() );
+  conditionedcimagePtr->Allocate();
+  conditionedcimagePtr->FillBuffer(0);
+    
   //graft this onto the output of the addimagefilter
   addimagefilterPtr->GraftOutput(accumulatedcimagePtr);
   addimagefilterPtr->SetInput1(ptfilterPtr->GetOutput());
@@ -327,16 +405,31 @@ int main(int argc, char* argv[]){
       //WriteTractContainerToFile( filename, ptfilterPtr->GetOutputTractContainer() );
       addimagefilterPtr->Update();
       
-      char tractsfn[30];
-      sprintf( tractsfn, "TRACTS_%i_%i_%i_%i.trk",
-        totaltracts,
-        ROIImageIt.GetIndex()[0],
-        ROIImageIt.GetIndex()[1],
-        ROIImageIt.GetIndex()[2]);
+      //calculate the FA stats for tracts which pass through a second ROI
+      PTFilterType::TractContainerType::Pointer tractcontainer = 
+        ptfilterPtr->GetOutputTractContainer();
+
+      typedef itk::PathIterator< ROIImageType, PTFilterType::TractType > 
+        ROITractIteratorType;
+  
+      for(int i=0; i<tractcontainer->Size(); i++ ){
+        ROITractIteratorType roitractIt( roireaderPtr->GetOutput(),
+          tractcontainer->GetElement(i) );
         
-      WriteTractContainerToFile< PTFilterType::TractContainerType >
-        ( tractsfn, ptfilterPtr->GetOutputTractContainer() );
-//      break;
+        for(roitractIt.GoToBegin(); !roitractIt.IsAtEnd(); ++roitractIt){
+          if(roitractIt.Get() == endlabelnumber){
+            double accumFA=0;
+            unsigned int voxelcount=0;
+            for(roitractIt.GoToBegin(); !roitractIt.IsAtEnd(); ++roitractIt){
+              voxelcount++;
+              //std::cout<<fafilter->GetOutput()->GetPixel(roitractIt.GetIndex())<<std::endl;
+              accumFA+=fafilter->GetOutput()->GetPixel(roitractIt.GetIndex());
+              conditionedcimagePtr->GetPixel(roitractIt.GetIndex())++;
+            }
+            facontainer->InsertElement( facontainer->Size(), accumFA/((double)voxelcount) );
+          }
+        }
+      }
     }
   }        
 
@@ -345,6 +438,38 @@ int main(int argc, char* argv[]){
   writerPtr->SetInput( accumulatedcimagePtr );
   writerPtr->SetFileName( cfilename );
   writerPtr->Update();
+  
+  //Write out TensorImage
+  char tensorimagefilename[30];
+  sprintf(tensorimagefilename, "TENSOR_Image.nhdr");
+  typedef itk::ImageFileWriter< PTFilterType::OutputTensorImageType > TensorImageWriterType;
+  TensorImageWriterType::Pointer tensorwriter = TensorImageWriterType::New();
+  tensorwriter->SetInput( ptfilterPtr->GetOutputTensorImage() );
+  tensorwriter->SetFileName( tensorimagefilename );
+  tensorwriter->Update();
+  
+  //Create a default Mask Image which 
+  //excludes DWI pixels which contain values that are zero
+  MultiplyFAFilterType::Pointer multFAfilter = MultiplyFAFilterType::New();
+  multFAfilter->SetInput( fafilter->GetOutput() );  
+  //write out the FA image
+  FAImageWriterType::Pointer fawriter = FAImageWriterType::New();
+  fawriter->SetInput( multFAfilter->GetOutput() );
+  fawriter->SetFileName( "FA_Image.nhdr" );
+  fawriter->Update();
+  
+  //Write out the conditioned connectivity map
+  CImageWriterType::Pointer condcmapwriterPtr = CImageWriterType::New();
+  condcmapwriterPtr->SetInput( conditionedcimagePtr );
+  char condcmapfilename[30];
+  sprintf(condcmapfilename, "COND_Image.nhdr" );
+  condcmapwriterPtr->SetFileName( condcmapfilename );
+  condcmapwriterPtr->Update();
+  
+  //Write out FA container
+  char fafilename[30];
+  sprintf( fafilename, "CONDFA_Values.txt" );
+  WriteScalarContainerToFile< FAContainerType >( fafilename, facontainer );
   
   return EXIT_SUCCESS;
 }

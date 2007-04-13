@@ -32,6 +32,19 @@
     </integer>
     
     <integer>
+      <name>endlabelnumber</name>
+      <flag>e</flag>
+      <longflag>endlabelnumber</longflag>
+      <description>Label Number to use as end region</description>
+      <label>End Region Label Number</label>
+      <default>1</default>
+      <constraints>
+        <minimum>0</minimum>
+        <step>1</step>
+      </constraints>
+    </integer>
+       
+    <integer>
       <name>totaltracts</name>
       <flag>t</flag>
       <longflag>totaltracts</longflag>

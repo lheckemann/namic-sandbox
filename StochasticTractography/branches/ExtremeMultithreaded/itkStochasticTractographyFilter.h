@@ -12,6 +12,7 @@
 #include "itkSlowPolyLineParametricPath.h"
 #include "itkSimpleFastMutexLock.h"
 #include "itkRealTimeClock.h"
+#include "itkDiffusionTensor3D.h"
 #include <vector>
 
 namespace itk{
@@ -49,6 +50,9 @@ public:
   /** Types for the TractContainer **/
   typedef VectorContainer< unsigned int, typename TractType::Pointer > 
     TractContainerType;
+  
+  /** Types for Tensor Output Image **/
+  typedef Image< DiffusionTensor3D< double >, 3 > OutputTensorImageType;
   
   /** Types for the Image-wide Magnetic Field Gradient Directions **/
   typedef VectorContainer< unsigned int, vnl_vector_fixed< double, 3 > >
@@ -129,7 +133,12 @@ public:
   /** Get the Tracts that are generated **/
   itkGetObjectMacro( OutputTractContainer, TractContainerType );
   
+  /** Get TensorImage **/
+  itkGetObjectMacro( OutputTensorImage, OutputTensorImageType );
+  
   void GenerateData();
+  void GenerateTractContainerOutput( void );
+  void GenerateTensorImageOutput( void );
   
 protected:
   /** Convenience Types used only inside the filter **/
@@ -208,9 +217,7 @@ protected:
     typename InputDWIImageType::IndexType seedindex,
     unsigned long randomseed,
     TractType::Pointer tract );
-  
-  void GenerateTractContainerOutput( void );
-  
+
   /** Callback routine used by the threading library. This routine just calls
       the ThreadedGenerateData method after setting the correct region for this
       thread. **/
@@ -231,6 +238,8 @@ protected:
   void StoreTract(TractType::Pointer tract);
   
   GradientDirectionContainerType::ConstPointer m_Gradients;
+  GradientDirectionContainerType::Pointer m_TransformedGradients;
+  
   bValueContainerType::ConstPointer m_bValues;
   MeasurementFrameType m_MeasurementFrame;
   ProbabilityDistributionImageType::Pointer m_LikelihoodCachePtr;
@@ -251,6 +260,8 @@ protected:
   SimpleFastMutexLock m_OutputImageMutex;
   TractContainerType::Pointer m_OutputTractContainer;
   SimpleFastMutexLock m_OutputTractContainerMutex;
+  
+  OutputTensorImageType::Pointer m_OutputTensorImage;
 };
 
 }
