@@ -46,6 +46,39 @@ bool SamplingDirections(const char* fn, typename TTOContainerType::Pointer direc
   return true;
 }
 
+template< class TractContainerType >
+bool WriteTractContainerToFile( const char* fn, typename TractContainerType::Pointer tractcontainer ){
+  std::ofstream tractfile( fn, std::ios::out | std::ios::binary );
+  tractfile.seekp(0);
+  if(tractfile.is_open()){
+    for(int i=0; i<tractcontainer->Size(); i++ ){
+      typename TractContainerType::Element tract =
+        tractcontainer->GetElement(i);
+      
+      typename TractContainerType::Element::ObjectType::VertexListType::ConstPointer vertexlist = 
+        tract->GetVertexList();
+      
+      for(int j=0; j<vertexlist->Size(); j++){
+        typename TractContainerType::Element::ObjectType::VertexListType::Element vertex =
+          vertexlist->GetElement(j);
+        tractfile.write((char*)&vertex[0], sizeof(vertex[0]));
+        tractfile.write((char*)&vertex[1], sizeof(vertex[1]));
+        tractfile.write((char*)&vertex[2], sizeof(vertex[2]));
+      }
+      double endoftractsymbol = 0.0;
+      tractfile.write((char*)&endoftractsymbol, sizeof(endoftractsymbol));
+      tractfile.write((char*)&endoftractsymbol, sizeof(endoftractsymbol));
+      tractfile.write((char*)&endoftractsymbol, sizeof(endoftractsymbol));
+    }
+    
+    tractfile.close();
+    return true;
+  }
+  else{
+    std::cerr<<"Problems opening file to write tracts\n";
+    return false;
+  }
+}
 
 namespace Functor {  
    
@@ -288,7 +321,21 @@ int main(int argc, char* argv[]){
     if(ROIImageIt.Get() == labelnumber){
       std::cout << "PixelIndex: "<< ROIImageIt.GetIndex() << std::endl;
       ptfilterPtr->SetSeedIndex( ROIImageIt.GetIndex() );
+      //ptfilterPtr->GenerateTractContainerOutput();
+      //write out the tract info
+
+      //WriteTractContainerToFile( filename, ptfilterPtr->GetOutputTractContainer() );
       addimagefilterPtr->Update();
+      
+      char tractsfn[30];
+      sprintf( tractsfn, "TRACTS_%i_%i_%i_%i.trk",
+        totaltracts,
+        ROIImageIt.GetIndex()[0],
+        ROIImageIt.GetIndex()[1],
+        ROIImageIt.GetIndex()[2]);
+        
+      WriteTractContainerToFile< PTFilterType::TractContainerType >
+        ( tractsfn, ptfilterPtr->GetOutputTractContainer() );
 //      break;
     }
   }        

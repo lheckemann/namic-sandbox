@@ -43,6 +43,13 @@ public:
   /** Types for the Mask Image **/
   typedef TInputMaskImage InputMaskImageType;
   
+  /** Tract Types **/
+  typedef SlowPolyLineParametricPath< 3 > TractType;
+  
+  /** Types for the TractContainer **/
+  typedef VectorContainer< unsigned int, typename TractType::Pointer > 
+    TractContainerType;
+  
   /** Types for the Image-wide Magnetic Field Gradient Directions **/
   typedef VectorContainer< unsigned int, vnl_vector_fixed< double, 3 > >
     GradientDirectionContainerType;
@@ -119,6 +126,9 @@ public:
   itkSetMacro( MaxLikelihoodCacheSize, unsigned int );
   itkGetMacro( MaxLikelihoodCacheSize, unsigned int );
             
+  /** Get the Tracts that are generated **/
+  itkGetObjectMacro( OutputTractContainer, TractContainerType );
+  
   void GenerateData();
   
 protected:
@@ -133,9 +143,6 @@ protected:
   /**Type to hold generated DWI values**/
   typedef Image< VariableLengthVector< double >, 3 > DWIVectorImageType;
   
-  /** Path Types **/
-  typedef SlowPolyLineParametricPath< 3 > PathType;
-  
   /**Types for Probability Distribution **/
   typedef Image< Array< double >, 3 > ProbabilityDistributionImageType;
   
@@ -144,32 +151,14 @@ protected:
   
   StochasticTractographyFilter();
   virtual ~StochasticTractographyFilter();
-
-  /** Preparatory Steps (optimizations) before running algorithm **/
-  void BeforeGenerateData(void){
-    this->UpdateGradientDirections();
-    this->UpdateTensorModelFittingMatrices();
-    this->m_TotalDelegatedTracts = 0;
-    
-    //calculate the number of voxels to cache from Megabyte memory size limit
-    ProbabilityDistributionImageType::PixelType 
-      element(this->GetSampleDirections()->Size());
-    unsigned long elementsize = sizeof(ProbabilityDistributionImageType::PixelType) + 
-      sizeof(double)*element.Size();
-    this->m_MaxLikelihoodCacheElements = 
-      (this->m_MaxLikelihoodCacheSize*1048576)/elementsize;
-    std::cout << "MaxLikelhoodCacheElements: "
-      << this->m_MaxLikelihoodCacheElements
-      << std::endl;
-  }
   
   /** Load the default Sample Directions**/
   void LoadDefaultSampleDirections( void );
   
-  /** Primary steps in the algorithm **/
+  /** Randomly chose a neighboring pixel weighted on distance **/
   void ProbabilisticallyInterpolate( vnl_random& randomgenerator, 
-      const PathType::ContinuousIndexType& cindex,
-      typename InputDWIImageType::IndexType& index);
+    const TractType::ContinuousIndexType& cindex,
+    typename InputDWIImageType::IndexType& index);
                       
   /** Functions and data related to fitting the tensor model at each pixel **/
   void UpdateGradientDirections(void);
@@ -218,19 +207,28 @@ protected:
     typename InputMaskImageType::ConstPointer maskimagePtr,
     typename InputDWIImageType::IndexType seedindex,
     unsigned long randomseed,
-    PathType::Pointer tractPtr );
+    TractType::Pointer tract );
   
-  /** This function is called by the multithreader **/
+  void GenerateTractContainerOutput( void );
+  
+  /** Callback routine used by the threading library. This routine just calls
+      the ThreadedGenerateData method after setting the correct region for this
+      thread. **/
   static ITK_THREAD_RETURN_TYPE StochasticTractGenerationCallback( void *arg );
   
   struct StochasticTractGenerationCallbackStruct{
     Pointer Filter;
   };
+
   /** Thread Safe Function to check/update an entry in the likelihood cache **/
   ProbabilityDistributionImageType::PixelType& 
     AccessLikelihoodCache( typename InputDWIImageType::IndexType index );
   /** Thread Safe Function to obtain a tractnumber to start tracking **/
   bool ObtainTractNumber(unsigned int& tractnumber);
+  /** Function to write a tract to the connectivity map **/
+  void TractContainerToConnectivityMap(TractContainerType::Pointer tractcontainer);
+  /** Thread Safe Function to store a tract to a TractContainer **/
+  void StoreTract(TractType::Pointer tract);
   
   GradientDirectionContainerType::ConstPointer m_Gradients;
   bValueContainerType::ConstPointer m_bValues;
@@ -251,6 +249,8 @@ protected:
   RealTimeClock::Pointer m_ClockPtr;
   unsigned long m_RandomSeed;
   SimpleFastMutexLock m_OutputImageMutex;
+  TractContainerType::Pointer m_OutputTractContainer;
+  SimpleFastMutexLock m_OutputTractContainerMutex;
 };
 
 }
