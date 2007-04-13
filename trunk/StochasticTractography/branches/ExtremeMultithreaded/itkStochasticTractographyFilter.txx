@@ -26,7 +26,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   m_TotalTracts(0),m_MaxTractLength(0),m_Gradients(NULL),m_bValues(NULL),
   m_SampleDirections(NULL), m_A(NULL), m_Aqr(NULL), m_LikelihoodCachePtr(NULL),
   m_MaxLikelihoodCacheSize(0), m_CurrentLikelihoodCacheElements(0), m_RandomSeed(0),
-  m_ClockPtr(NULL), m_TotalDelegatedTracts(0) {
+  m_ClockPtr(NULL), m_TotalDelegatedTracts(0), m_OutputTractContainer(NULL){
   this->m_SeedIndex[0]=0;
   this->m_SeedIndex[1]=0;
   this->m_SeedIndex[2]=0;
@@ -49,8 +49,8 @@ template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivity
 void
 StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::ProbabilisticallyInterpolate( vnl_random& randomgenerator, 
-                      const PathType::ContinuousIndexType& cindex,
-                      typename InputDWIImageType::IndexType& index){
+  const TractType::ContinuousIndexType& cindex,
+  typename InputDWIImageType::IndexType& index){
                       
   for(int i=0; i<3; i++){
     if ((vcl_ceil(cindex[i]+vnl_math::eps)-cindex[i]) < randomgenerator.drand64())
@@ -367,9 +367,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   typename InputMaskImageType::ConstPointer maskimagePtr,
   typename InputDWIImageType::IndexType seedindex,
   unsigned long randomseed,
-  PathType::Pointer tractPtr){
+  TractType::Pointer tract){
   
-  PathType::ContinuousIndexType cindex_curr = seedindex;
+  TractType::ContinuousIndexType cindex_curr = seedindex;
   typename InputDWIImageType::IndexType index_curr = {{0,0,0}};
   ProbabilityDistributionImageType::PixelType 
       prior_curr(this->m_SampleDirections->Size()); 
@@ -378,9 +378,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   TractOrientationContainerType::Element v_curr(0,0,0);
   TractOrientationContainerType::Element v_prev(0,0,0);
   
-  tractPtr->Initialize();
+  tract->Initialize();
   vnl_random randomgenerator(randomseed);
-  //std::cout<<randomgenerator.drand64()<<std::endl;
+  //std::cout<<randomseed<<std::endl;
   
   for(unsigned int j=0; (j<this->m_MaxTractLength) &&
     (dwiimagePtr->GetLargestPossibleRegion().IsInside(cindex_curr));
@@ -393,7 +393,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
       std::cout<<"Stopped Tracking: invalid voxel\n";
       break;
     }
-    tractPtr->AddVertex(cindex_curr);
+    tract->AddVertex(cindex_curr);
     
     this->CalculatePrior( v_prev, this->m_SampleDirections, prior_curr);
     
@@ -431,19 +431,29 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
     v_prev=v_curr;
   }
 }
+
 template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 void
 StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
-::GenerateData(){
-  //preparations
-  this->BeforeGenerateData();
+::GenerateTractContainerOutput(){
+  //allocate tractcontainer
+  this->m_OutputTractContainer = TractContainerType::New();
   
-  //allocate outputs
-  this->AllocateOutputs();
+  this->UpdateGradientDirections();
+  this->UpdateTensorModelFittingMatrices();
+  this->m_TotalDelegatedTracts = 0;
   
-  typename OutputConnectivityImageType::Pointer outputPtr = this->GetOutput();
-  outputPtr->FillBuffer(0);
-
+  //calculate the number of voxels to cache from Megabyte memory size limit
+  ProbabilityDistributionImageType::PixelType 
+    element(this->GetSampleDirections()->Size());
+  unsigned long elementsize = sizeof(ProbabilityDistributionImageType::PixelType) + 
+    sizeof(double)*element.Size();
+  this->m_MaxLikelihoodCacheElements = 
+    (this->m_MaxLikelihoodCacheSize*1048576)/elementsize;
+  std::cout << "MaxLikelhoodCacheElements: "
+    << this->m_MaxLikelihoodCacheElements
+    << std::endl;
+    
   //get a random seed
   this->m_RandomSeed = ((unsigned long) this->m_ClockPtr->GetTimeStamp())%10000;
   std::cout<<"RandomSeed: "<<this->m_RandomSeed<<std::endl;
@@ -461,9 +471,21 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
     this->m_CurrentLikelihoodCacheElements << std::endl; 
 }
 
-// Callback routine used by the threading library. This routine just calls
-// the ThreadedGenerateData method after setting the correct region for this
-// thread. 
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
+void
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
+::GenerateData(){
+  //Generate the tracts
+  this->GenerateTractContainerOutput();
+  
+  //allocate outputs
+  this->AllocateOutputs();
+  
+  //write tracts to output image
+  this->TractContainerToConnectivityMap(this->m_OutputTractContainer);
+
+}
+
 template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 ITK_THREAD_RETURN_TYPE 
 StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
@@ -475,41 +497,26 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
 
   typename InputDWIImageType::ConstPointer inputDWIImagePtr = str->Filter->GetInput();
   typename InputMaskImageType::ConstPointer inputMaskImagePtr = str->Filter->GetMaskImageInput();
-  typename OutputConnectivityImageType::Pointer outputPtr = str->Filter->GetOutput();
-  
-  typedef PathIterator< OutputConnectivityImageType, PathType > OutputPathIteratorType;
+
   unsigned int tractnumber=-1;
-  PathType::Pointer tractPtr = PathType::New();
   
   while(str->Filter->ObtainTractNumber(tractnumber)){
     
     //generate the tract
+    TractType::Pointer tract = TractType::New();
+    
     str->Filter->StochasticTractGeneration( inputDWIImagePtr,
       inputMaskImagePtr,
       str->Filter->GetSeedIndex(),
-      str->Filter->m_RandomSeed*tractnumber,
-      tractPtr);
-      
-    //write the tract to output image
-    str->Filter->m_OutputImageMutex.Lock();
-    OutputPathIteratorType outputtractIt( outputPtr,
-        tractPtr );
-    for(outputtractIt.GoToBegin(); !outputtractIt.IsAtEnd(); ++outputtractIt){
-      /* there is an issue using outputtractIt.Value() */
-      outputtractIt.Set(outputtractIt.Get()+1);
-    }
-//    std::cout<<tractnumber;
-//      "CurrentLikelihoodCacheElements: " << 
-//        str->Filter->m_CurrentLikelihoodCacheElements << std::endl;
+      str->Filter->m_RandomSeed*(tractnumber+1),
+      tract);
     
-    str->Filter->m_OutputImageMutex.Unlock();
-
+    str->Filter->StoreTract(tract);
   }
   
   return ITK_THREAD_RETURN_VALUE;
 }
 
-/** Thread Safe Function to check/update an entry in the likelihood cache **/
 template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 ProbabilityDistributionImageType::PixelType&
 StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
@@ -547,7 +554,6 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   this->m_LikelihoodCacheMutexImagePtr->GetPixel(index).Unlock();
 }
 
-/** Thread Safe Function to obtain a tractnumber to start tracking **/
 template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
 bool
 StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
@@ -564,6 +570,38 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   this->m_TotalDelegatedTractsMutex.Unlock();
   
   return success;
+}
+
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
+void
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
+::TractContainerToConnectivityMap(TractContainerType::Pointer tractcontainer){
+  //zero the output image
+  typename OutputConnectivityImageType::Pointer outputPtr = this->GetOutput();
+  outputPtr->FillBuffer(0);
+
+  typedef PathIterator< OutputConnectivityImageType, TractType > OutputTractIteratorType;
+  
+  for(int i=0; i<tractcontainer->Size(); i++ ){
+    OutputTractIteratorType outputtractIt( outputPtr,
+      tractcontainer->GetElement(i) );
+      
+    for(outputtractIt.GoToBegin(); !outputtractIt.IsAtEnd(); ++outputtractIt){
+    /* there is an issue using outputtractIt.Value() */
+      outputtractIt.Set(outputtractIt.Get()+1);
+    }
+  }
+}
+
+template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivityImage >
+void
+StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
+::StoreTract(TractType::Pointer tract){
+    this->m_OutputTractContainerMutex.Lock();
+    this->m_OutputTractContainer->InsertElement( 
+      this->m_OutputTractContainer->Size(),
+      tract);
+    this->m_OutputTractContainerMutex.Unlock();
 }
 
 }

@@ -10,8 +10,8 @@ ELSE(ITK_FOUND)
 ENDIF(ITK_FOUND)
 
 #INCLUDE(/projects/schiz/software/Slicer3/Libs/GenerateCLP/UseGenerateCLP.cmake)
-#INCLUDE(/home/tringo/Meng/Code/subversion/Slicer3/Libs/GenerateCLP/UseGenerateCLP.cmake)
-INCLUDE(/afs/csail.mit.edu/u/t/tringo/subversion/Slicer3/Libs/GenerateCLP/UseGenerateCLP.cmake)
+INCLUDE(/home/tringo/Meng/Code/subversion/Slicer3/Libs/GenerateCLP/UseGenerateCLP.cmake)
+#INCLUDE(/afs/csail.mit.edu/u/t/tringo/subversion/Slicer3/Libs/GenerateCLP/UseGenerateCLP.cmake)
 SET(StochasticTractographyFilter_SOURCE StochasticTractographyFilter.cxx)
 GENERATECLP(StochasticTractographyFilter_SOURCE StochasticTractographyFilter.xml)
 
