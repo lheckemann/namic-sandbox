@@ -19,11 +19,10 @@
 #endif
 
 #include "itkMeasurementVectorTraits.h"
-#include "itkFixedArray.h"
 
 #define itkSetGetLengthVerificationMacro( measure, len1, len2 ) \
-  itk::MeasurementVectorTraits::SetLength( measure1, len1 ); \
-  if( itk::MeasurementVectorTraits::GetLength( measure1 ) != len2 ) \
+  itk::MeasurementVectorTraits::SetLength( (measure), len1 ); \
+  if( itk::MeasurementVectorTraits::GetLength( (measure) ) != len2 ) \
     { \
     std::cerr << "Set/GetLength() failed in measure " << std::endl; \
     } 
@@ -31,7 +30,7 @@
 #define itkSetLengthExceptionMacro( measure, len ) \
   try \
     { \
-    itk::MeasurementVectorTraits::SetLength( measure, len ); \
+    itk::MeasurementVectorTraits::SetLength( (measure), len ); \
     std::cerr << "Failed to get expected exception for SetLength() "; \
     std::cerr << std::endl; \
     return EXIT_FAILURE; \
@@ -48,17 +47,35 @@ int itkMeasurementVectorTraitsTest(int, char* [] )
 
   typedef itk::FixedArray< float, length1 >   MeasurementVectorType1;
   typedef itk::Array< float >                 MeasurementVectorType2;
+  typedef itk::VariableLengthVector< float >  MeasurementVectorType3;
+  typedef std::vector< float >                MeasurementVectorType4;
 
   const unsigned int length2 = 19;
 
   MeasurementVectorType1 measure1;
   MeasurementVectorType2 measure2;
+  MeasurementVectorType3 measure3;
+  MeasurementVectorType4 measure4;
 
   itkSetGetLengthVerificationMacro( measure1    , length1, length1 );
-  itkSetGetLengthVerificationMacro( (&measure1) , length1, length1 );
-
+  itkSetGetLengthVerificationMacro( &measure1   , length1, length1 );
   itkSetLengthExceptionMacro( measure1    , length2 );
-  itkSetLengthExceptionMacro( (&measure1) , length2 );
+  itkSetLengthExceptionMacro( &measure1   , length2 );
+
+  itkSetGetLengthVerificationMacro( measure2  , length1, length1 );
+  itkSetGetLengthVerificationMacro( measure2  , length2, length2 );
+  itkSetGetLengthVerificationMacro( &measure2 , length1, length1 );
+  itkSetGetLengthVerificationMacro( &measure2 , length2, length2 );
+
+  itkSetGetLengthVerificationMacro( measure3  , length1, length1 );
+  itkSetGetLengthVerificationMacro( measure3  , length2, length2 );
+  itkSetGetLengthVerificationMacro( &measure3 , length1, length1 );
+  itkSetGetLengthVerificationMacro( &measure3 , length2, length2 );
+
+  itkSetGetLengthVerificationMacro( measure4  , length1, length1 );
+  itkSetGetLengthVerificationMacro( measure4  , length2, length2 );
+  itkSetGetLengthVerificationMacro( &measure4 , length1, length1 );
+  itkSetGetLengthVerificationMacro( &measure4 , length2, length2 );
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
