@@ -104,6 +104,8 @@ int itkImageToListSampleFilterTest(int, char* [] )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
     }    
+  // Restore the pipeline after the exception
+  filter->ResetPipeline();
 
   if ( filter->GetInput() != NULL )
     {
@@ -119,28 +121,13 @@ int itkImageToListSampleFilterTest(int, char* [] )
                      has not been set";
     }
 
-  try
-    {
-    filter->SetMeasurementVectorSize( 3 );
-    failureMeassage = "Exception should have been thrown since \
-                    the measurement vector size set is different \
-                    from pixel's dimension";
-    pass = false;
-    }
-   catch ( itk::ExceptionObject & excp )
-    {
-    std::cerr << "Exception caught: " << excp << std::endl;
-    }    
 
-  //genreate list sample without a mask image
-  filter->ResetPipeline();
-  filter->SetMeasurementVectorSize( 1 );
+  //generate list sample without a mask image
   filter->SetInput( image );
   filter->Update();
 
 
   //use a mask image
-  filter->ResetPipeline();
   filter->SetMaskImage( maskImage );
   filter->SetMaskValue( 255 );
   filter->Update();
@@ -152,11 +139,11 @@ int itkImageToListSampleFilterTest(int, char* [] )
   ImageToListSampleFilterType::MaskPixelType pixelType = filter->GetMaskValue();
  
   typedef ImageToListSampleFilterType::ListSampleType ListSampleType;
-  ListSampleType * list = filter->GetListSample();
+  const ListSampleType * list = filter->GetOutput();
 
   // Check the sum of the pixels in the list sample. This should
   // be 945
-  ListSampleType::Iterator lit = list->Begin();
+  ListSampleType::ConstIterator lit = list->Begin();
   unsigned int sum = 0;
   while (lit != list->End())
     {

@@ -29,9 +29,8 @@ ImageToListSampleFilter< TImage, TMaskImage >
 {
   this->SetNumberOfRequiredInputs(1);
   this->SetNumberOfRequiredOutputs(1);
-  typename ListSampleOutputType::Pointer listSampleDecorator = 
-    static_cast< ListSampleOutputType * >( this->MakeOutput(0).GetPointer() );
-  this->ProcessObject::SetNthOutput(0, listSampleDecorator.GetPointer());
+
+  this->ProcessObject::SetNthOutput(0, this->MakeOutput(0).GetPointer() );
 }
 
 template < class TImage, class TMaskImage >
@@ -99,28 +98,8 @@ typename ImageToListSampleFilter< TImage, TMaskImage >::DataObjectPointer
 ImageToListSampleFilter< TImage, TMaskImage >
 ::MakeOutput(unsigned int itkNotUsed(idx))
 {
-  typename ListSampleOutputType::Pointer decoratedOutput =
-    ListSampleOutputType::New();
-  decoratedOutput->Set( ListSampleType::New() );
-  return static_cast< DataObject * >(decoratedOutput.GetPointer());
-}
-
-template < class TImage, class TMaskImage >
-void
-ImageToListSampleFilter< TImage, TMaskImage >
-:: SetMeasurementVectorSize( const MeasurementVectorSizeType s )
-{
-  // Measurement vector size for this class is fixed as the pixel's 
-  // dimension. This method should throw an exception if the user tries to 
-  // set the dimension to a different value. 
-  if( s != MeasurementVectorSize )
-    {
-    itkExceptionMacro(
-      << "Measurement vector size for the image adaptor obtained"
-      << " from the pixel dimension is: "
-      << MeasurementVectorSize << " but you "
-      << "are setting it to " << s);
-    }
+  typename ListSampleType::Pointer output = ListSampleType::New();
+  return static_cast< DataObject * >( output );
 }
 
 template < class TImage, class TMaskImage >
@@ -128,7 +107,24 @@ unsigned int
 ImageToListSampleFilter< TImage, TMaskImage >
 ::GetMeasurementVectorSize() const 
 {
-  return MeasurementVectorSize;
+  const ImageType *input = this->GetInput();
+
+  if( input == NULL )
+    {
+    itkExceptionMacro("Input image has not been set yet");
+    }
+
+  typedef ImageRegionConstIterator< ImageType >     IteratorType; 
+  IteratorType it( input, input->GetBufferedRegion() );
+  it.GoToBegin();
+  
+  MeasurementVectorType m;
+  MeasurementVectorTraits::Assign( m, it.Get() );
+
+  const unsigned int measurementVectorSize = 
+    MeasurementVectorTraits::GetLength( m );
+
+  return measurementVectorSize;
 } 
 
 template < class TImage, class TMaskImage >
@@ -136,36 +132,35 @@ void
 ImageToListSampleFilter< TImage, TMaskImage >
 ::GenerateData()
 {
-  ListSampleOutputType * decoratedOutput =
-    static_cast< ListSampleOutputType * >(
-      this->ProcessObject::GetOutput(0));
-  ListSampleType *output = decoratedOutput->Get();
-  ImageType *input = const_cast< ImageType * >(this->GetInput());
-  MaskImageType *maskImage = NULL;
+  ListSampleType * output = 
+   static_cast< ListSampleType * >( this->ProcessObject::GetOutput(0) );
+
+  const ImageType *input = this->GetInput();
+  const MaskImageType *maskImage = NULL;
   
   output->Clear();
 
-  if (this->GetNumberOfInputs() > 1)
+  if( this->GetNumberOfInputs() > 1 )
     {
-    maskImage = const_cast< MaskImageType * >(this->GetMaskImage());
+    maskImage = this->GetMaskImage();
     }
 
   typedef ImageRegionConstIterator< ImageType >     IteratorType; 
   IteratorType it( input, input->GetBufferedRegion() );
   it.GoToBegin();
   
-  if (maskImage) // mask specified
+  if( maskImage ) // mask specified
     {
     typedef ImageRegionConstIterator< MaskImageType > MaskIteratorType;
     MaskIteratorType mit( maskImage, maskImage->GetBufferedRegion() );
     mit.GoToBegin();
-    while (!it.IsAtEnd())
+    while( !it.IsAtEnd() )
       {
-      if (mit.Get() == this->m_MaskValue)
+      if( mit.Get() == this->m_MaskValue )
         {
         MeasurementVectorType m;
-        m[0] = it.Get();
-        output->PushBack(m);
+        MeasurementVectorTraits::Assign( m, it.Get() );
+        output->PushBack( m );
         }
       ++mit;
       ++it;
@@ -176,8 +171,8 @@ ImageToListSampleFilter< TImage, TMaskImage >
     while (!it.IsAtEnd())
       {
       MeasurementVectorType m;
-      m[0] = it.Get();
-      output->PushBack(m);
+      MeasurementVectorTraits::Assign( m, it.Get() );
+      output->PushBack( m );
       ++it;
       }
     }
@@ -190,12 +185,9 @@ ImageToListSampleFilter< TImage, TMaskImage >
 {
   Superclass::GenerateOutputInformation();
 
-  ListSampleOutputType * decoratedOutput =
-    static_cast< ListSampleOutputType * >(
-      this->ProcessObject::GetOutput(0));
-  ListSampleType *output = decoratedOutput->Get();
-  output->SetMeasurementVectorSize( 
-    itkGetStaticConstMacro( MeasurementVectorSize ));
+  ListSampleType * output = 
+    static_cast< ListSampleType * >( this->ProcessObject::GetOutput(0));
+  output->SetMeasurementVectorSize( this->GetMeasurementVectorSize() );
 }
 
 template < class TImage, class TMaskImage >
@@ -207,35 +199,29 @@ ImageToListSampleFilter< TImage, TMaskImage >
   // copy the output requested region to the input requested region
   Superclass::GenerateInputRequestedRegion();
 
-  // Make sure that the mask's requested region, if specified is at least 
-  // as large as the input image's buffered region. If not funny things can 
-  // happen such as the mask iterator going out of bounds etc.. 
+  // Verify whether the image and the mask have the same LargestPossibleRegion.
+  // Otherwise, throw an exception.
   // 
-  // TODO: Why don't most other ITK filters that take multiple inputs check
-  // for this ? 
-  //
   if (this->GetNumberOfInputs() > 1)
     {
-    MaskImageType *maskImage =
-      const_cast< MaskImageType * >(this->GetMaskImage());
-    ImageType     *image =
-      const_cast< ImageType * >( this->GetInput() );
-    if (!image->GetBufferedRegion().IsInside( maskImage->GetBufferedRegion()) )
+    const MaskImageType *maskImage = this->GetMaskImage();
+    const ImageType     *image     = this->GetInput();
+
+    if( image->GetLargestPossibleRegion() != maskImage->GetLargestPossibleRegion()) 
       {
-      maskImage->SetRequestedRegion( image->GetBufferedRegion() );
+      itkExceptionMacro("LargestPossibleRegion of the mask does not match the one for the image");
       }
     }
 }
 
 template < class TImage, class TMaskImage >
-typename ImageToListSampleFilter< TImage, TMaskImage >::ListSampleType *
+const typename ImageToListSampleFilter< TImage, TMaskImage >::ListSampleType *
 ImageToListSampleFilter< TImage, TMaskImage >
-::GetListSample()
+::GetOutput() const
 {
-  ListSampleOutputType * decoratedOutput =
-    static_cast< ListSampleOutputType * >(
-      this->ProcessObject::GetOutput(0));
-  return decoratedOutput->Get();
+  const ListSampleType * output = 
+    static_cast< const ListSampleType * >( this->ProcessObject::GetOutput(0));
+  return output;
 }
 
 } // end of namespace Statistics 
