@@ -77,6 +77,21 @@ static MaskImageType::Pointer CreateMaskImage()
   return image;
 }
 
+//------------------------------------------------------------------------
+// Creates a 13 x 17 image for testing verification of LargestPossibleRegion
+static MaskImageType::Pointer CreateLargerMaskImage()
+{
+  MaskImageType::Pointer image = MaskImageType::New();
+  MaskImageType::IndexType start = {0,0};
+  MaskImageType::SizeType  size = {13, 17};
+  MaskImageType::RegionType region( start, size );
+  image->SetRegions( region );
+  image->Allocate();
+  image->FillBuffer(0);
+  return image;
+}
+
+
 int itkImageToListSampleFilterTest(int, char* [] ) 
 {
   ImageType::Pointer     image     = CreateImage();
@@ -103,7 +118,7 @@ int itkImageToListSampleFilterTest(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
-    }    
+    }
   // Restore the pipeline after the exception
   filter->ResetPipeline();
 
@@ -158,6 +173,22 @@ int itkImageToListSampleFilterTest(int, char* [] )
     std::cerr << "Computed sum of pixels in the list sample (masked) is : "
               << sum
               << " but should be 945.";
+    }
+
+
+  // Set on purpose a mask of inconsistent LargestPossibleRegion
+  filter->SetMaskImage( CreateLargerMaskImage() );
+
+  try
+    {
+    filter->Update();
+    std::cerr << "Exception should have been thrown since \
+      the mask has a different LargestPossibleRegion." << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Expected Exception caught: " << excp << std::endl;
     }
 
   if ( !pass )
