@@ -24,6 +24,7 @@ ADD_TEST(itkListSampleTest4 ${STATISTICS_TESTS} itkListSampleTest 100)
 ADD_TEST(itkListSampleToHistogramFilterTest ${STATISTICS_TESTS} itkListSampleToHistogramFilterTest)
 ADD_TEST(itkHistogramTest ${STATISTICS_TESTS} itkHistogramTest)
 ADD_TEST(itkMeanFilterTest ${STATISTICS_TESTS} itkMeanFilterTest)
+ADD_TEST(itkMeasurementVectorTraitsTest ${STATISTICS_TESTS} itkMeasurementVectorTraitsTest)
 ADD_TEST(itkWeightedMeanFilterTest ${STATISTICS_TESTS} itkWeightedMeanFilterTest)
 ADD_TEST(itkHistogramToTextureFeaturesFilterTest ${STATISTICS_TESTS} itkHistogramToTextureFeaturesFilterTest)
 ADD_TEST(itkImageToListSampleFilterTest ${STATISTICS_TESTS} itkImageToListSampleFilterTest)
@@ -40,6 +41,7 @@ SET(Statistics_SRCS
   itkListSampleToHistogramFilterTest.cxx
   itkHistogramTest.cxx
   itkMeanFilterTest.cxx
+  itkMeasurementVectorTraitsTest.cxx
   itkWeightedMeanFilterTest.cxx
   itkHistogramToTextureFeaturesFilterTest.cxx
   itkImageToListSampleFilterTest.cxx
