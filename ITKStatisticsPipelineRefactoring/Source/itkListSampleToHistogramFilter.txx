@@ -18,6 +18,7 @@
 #define __itkListSampleToHistogramFilter_txx
 
 #include "itkListSampleToHistogramFilter.h"
+#include "itkStatisticsAlgorithm.h"
 
 namespace itk { 
 namespace Statistics {
@@ -111,35 +112,112 @@ ListSampleToHistogramFilter< TSample, THistogram >
 {
   const SampleType * inputSample = this->GetInput();
 
-  const InputHistogramMeasurementVectorObjectType * binMinimum =
+  const InputHistogramMeasurementVectorObjectType * binMinimumObject =
     this->GetHistogramBinMinimumInput();
 
-  const InputHistogramMeasurementVectorObjectType * binMaximum =
+  const InputHistogramMeasurementVectorObjectType * binMaximumObject =
     this->GetHistogramBinMaximumInput();
 
-  const InputHistogramMeasurementObjectType * marginalScale =
+  const InputHistogramMeasurementObjectType * marginalScaleObject =
     this->GetMarginalScaleInput();
  
   const InputBooleanObjectType * autoMinimumMaximum =
     this->GetAutoMinimumMaximumInput();
 
-  const InputHistogramSizeObjectType * histogramSize =
+  const InputHistogramSizeObjectType * histogramSizeObject =
     this->GetHistogramSizeInput();
     
-  if( histogramSize == NULL )
+  if( histogramSizeObject == NULL )
     {
     itkExceptionMacro("Histogram Size input is missing");
     }
     
+  if( marginalScaleObject == NULL )
+    {
+    itkExceptionMacro("Marginal scale input is missing");
+    }
+
+  HistogramSizeType histogramSize = histogramSizeObject->Get();
+
+  MeasurementType marginalScale = marginalScaleObject->Get();
+
   HistogramType * outputHistogram = 
     static_cast<HistogramType*>(this->ProcessObject::GetOutput(0));
 
+  typename SampleType::MeasurementVectorType lower;
+  typename SampleType::MeasurementVectorType upper;
+
+  typename HistogramType::MeasurementVectorType h_upper;
+  typename HistogramType::MeasurementVectorType h_lower;
+
+  const typename SampleType::InstanceIdentifier measurementVectorSize =
+    inputSample->GetMeasurementVectorSize();
+
   if( autoMinimumMaximum && autoMinimumMaximum->Get() )
     {
+    Algorithm::FindSampleBound( 
+      inputSample,  inputSample->Begin(), inputSample->End(), lower, upper);
+    
+    float margin;
+
+    for( unsigned int i = 0; i < measurementVectorSize; i++ )
+      {
+      if( !NumericTraits< HistogramMeasurementType >::is_integer )
+        {
+        margin = 
+            ( (HistogramMeasurementType )(upper[i] - lower[i]) / 
+              (HistogramMeasurementType ) histogramSize[i] ) / 
+            (HistogramMeasurementType ) marginalScale;
+        h_upper[i] = (HistogramMeasurementType ) (upper[i] + margin);
+        if(h_upper[i] <= upper[i])
+          { 
+          // an overflow has occurred therefore set upper to upper
+          h_upper[i] = upper[i];
+          // Histogram measurement type would force the clipping the max value.
+          // Therefore we must call the following to include the max value:
+          outputHistogram->SetClipBinsAtEnds(false);
+          // The above function is okay since here we are within the autoMinMax 
+          // computation and clearly the user intended to include min and max.
+          }
+        }
+      else
+        {
+        h_upper[i] = ((HistogramMeasurementType ) upper[i]) + 
+          NumericTraits< HistogramMeasurementType  >::One;
+        if(h_upper[i] <= upper[i])
+          { 
+          // an overflow has occurred therefore set upper to upper
+          h_upper[i] = upper[i];
+          // Histogram measurement type would force the clipping the max value.
+          // Therefore we must call the following to include the max value:
+          outputHistogram->SetClipBinsAtEnds(false);
+          // The above function is okay since here we are within the autoMinMax 
+          // computation and clearly the user intended to include min and max.
+          }
+        }
+      h_lower[i] = ( HistogramMeasurementType ) lower[i];
+      }
     }
+  else
+    {
+    if( binMaximumObject == NULL )
+      {
+      itkExceptionMacro("Histogram Bin Maximum input is missing");
+      }
+
+    if( binMinimumObject == NULL )
+      {
+      itkExceptionMacro("Histogram Bin Minimum input is missing");
+      }
+
+    h_upper = binMaximumObject->Get();
+    h_lower = binMinimumObject->Get();
+    }
+
+
 }
 
-} // end of namespace StatisticsNew 
+} // end of namespace Statistics 
 } // end of namespace itk
 
 #endif
