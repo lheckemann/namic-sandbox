@@ -39,5 +39,6 @@ void RegisterTests()
   REGISTER_TEST(itkImageToListSampleFilterTest);
   REGISTER_TEST(itkImageToListSampleFilterTest2);
   REGISTER_TEST(itkImageToListSampleFilterTest3);
+  REGISTER_TEST(itkScalarImageToCooccurrenceMatrixFilterTest);
 }
 
