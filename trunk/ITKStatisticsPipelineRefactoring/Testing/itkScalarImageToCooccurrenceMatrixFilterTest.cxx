@@ -91,21 +91,21 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
   try {
   
   typedef itk::Statistics::ScalarImageToCooccurrenceMatrixFilter< 
-    InputImageType> GLCMGeneratorType;
+    InputImageType> FilterType;
   
-  GLCMGeneratorType::Pointer glcmGen = GLCMGeneratorType::New();
+  FilterType::Pointer filter = FilterType::New();
   
-  glcmGen->SetInput(image);
+  filter->SetInput(image);
   InputImageType::OffsetType offset1 = {{0, 1}};
   InputImageType::OffsetType offset2 = {{1, 0}};
-  GLCMGeneratorType::OffsetVectorPointer offsetV = 
-  GLCMGeneratorType::OffsetVector::New();
+  FilterType::OffsetVectorPointer offsetV = 
+  FilterType::OffsetVector::New();
   offsetV->push_back(offset1);
   offsetV->push_back(offset2);
   
-  glcmGen->SetOffsets(offsetV);
-  glcmGen->Compute();
-  GLCMGeneratorType::HistogramPointer hist = glcmGen->GetOutput();
+  filter->SetOffsets(offsetV);
+  filter->Update();
+  const FilterType::HistogramType * hist = filter->GetOutput();
   
   //--------------------------------------------------------------------------
   // Test the histogram.
@@ -126,7 +126,7 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
     }
   
   // Now make sure the contents of the bins are correct:
-  typedef GLCMGeneratorType::HistogramType::IndexType IndexType;
+  typedef FilterType::HistogramType::IndexType IndexType;
   IndexType one_one = {{1, 1}}, one_two= {{1, 2}}, two_one= {{2, 1}}, two_two= {{2, 2}};
   float ooF, otF, toF, ttF, totalF;
   ooF = hist->GetFrequency(one_one);
@@ -149,13 +149,13 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
   //--------------------------------------------------------------------------
   
 
-  GLCMGeneratorType::Pointer glcmGen0 = GLCMGeneratorType::New();
+  FilterType::Pointer filter0 = FilterType::New();
   
-  glcmGen0->SetInput(image);
-  glcmGen0->SetOffsets(offsetV);
-  glcmGen0->NormalizeOn();
-  glcmGen0->Compute();
-  GLCMGeneratorType::HistogramPointer hist0 = glcmGen0->GetOutput();
+  filter0->SetInput(image);
+  filter0->SetOffsets(offsetV);
+  filter0->NormalizeOn();
+  filter0->Update();
+  const FilterType::HistogramType * hist0 = filter0->GetOutput();
 
   ooF = hist0->GetFrequency(one_one);
   otF = hist0->GetFrequency(one_two);
@@ -178,15 +178,15 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
   //--------------------------------------------------------------------------
   
   // First a histogram with 2 bins per axis
-  GLCMGeneratorType::Pointer glcmGen2 = GLCMGeneratorType::New();
+  FilterType::Pointer filter2 = FilterType::New();
   
-  glcmGen2->SetInput(image);
+  filter2->SetInput(image);
   InputImageType::OffsetType offset3 = {{0, 1}};
 
-  glcmGen2->SetOffset(offset3);
-  glcmGen2->SetNumberOfBinsPerAxis( 2 );
-  glcmGen2->Compute();
-  GLCMGeneratorType::HistogramPointer hist2 = glcmGen2->GetOutput();
+  filter2->SetOffset(offset3);
+  filter2->SetNumberOfBinsPerAxis( 2 );
+  filter2->Update();
+  const FilterType::HistogramType * hist2 = filter2->GetOutput();
   
   IndexType zero_zero = {{0, 0}};
   float zzF;
@@ -203,18 +203,18 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
   
   
   // Next a histogram with a smaller range.
-  GLCMGeneratorType::Pointer glcmGen3 = GLCMGeneratorType::New();
+  FilterType::Pointer filter3 = FilterType::New();
   
-  glcmGen3->SetInput(image);
+  filter3->SetInput(image);
   InputImageType::OffsetType offset4 = {{1, 1}};
   
-  glcmGen3->SetOffset(offset4);
+  filter3->SetOffset(offset4);
   
-  glcmGen3->SetPixelValueMinMax(1, 2);
-  glcmGen3->SetNumberOfBinsPerAxis( 2 );
+  filter3->SetPixelValueMinMax(1, 2);
+  filter3->SetNumberOfBinsPerAxis( 2 );
 
-  glcmGen3->Compute();
-  GLCMGeneratorType::HistogramPointer hist3 = glcmGen3->GetOutput();
+  filter3->Update();
+  const FilterType::HistogramType * hist3 = filter3->GetOutput();
 
   IndexType zero_one = {{0, 1}}, one_zero= {{1, 0}};
   float zoF, ozF;
@@ -234,16 +234,16 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
     }
 
   // Next a histogram with a truncated range.
-  GLCMGeneratorType::Pointer glcmGen4 = GLCMGeneratorType::New();
+  FilterType::Pointer filter4 = FilterType::New();
   
-  glcmGen4->SetInput(image);
-  glcmGen4->SetOffsets(offsetV);
+  filter4->SetInput(image);
+  filter4->SetOffsets(offsetV);
   
-  glcmGen4->SetPixelValueMinMax(0, 1);
-  glcmGen4->SetNumberOfBinsPerAxis( 2 );
+  filter4->SetPixelValueMinMax(0, 1);
+  filter4->SetNumberOfBinsPerAxis( 2 );
   
-  glcmGen4->Compute();
-  GLCMGeneratorType::HistogramPointer hist4 = glcmGen4->GetOutput();
+  filter4->Update();
+  const FilterType::HistogramType * hist4 = filter4->GetOutput();
 
   zzF = hist4->GetFrequency(zero_zero);
   zoF = hist4->GetFrequency(zero_one);

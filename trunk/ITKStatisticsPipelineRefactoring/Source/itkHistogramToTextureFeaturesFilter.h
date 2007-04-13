@@ -124,6 +124,7 @@ public:
   typedef typename HistogramType::MeasurementVectorType   MeasurementVectorType;
   typedef typename HistogramType::IndexType               IndexType;
   typedef typename HistogramType::FrequencyType           FrequencyType;
+
   /** Method to Set/Get the input Histogram */
   void SetInput ( const HistogramType * histogram );
   const HistogramType * GetInput() const;
