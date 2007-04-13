@@ -66,7 +66,7 @@ int itkImageToListSampleFilterTest3(int, char* [] )
   maskImage->Allocate();
   maskImage->FillBuffer(0);
   MaskImageType::IndexType startMask = {2,3,5};
-  MaskImageType::SizeType sizeMask = {7,3,9};
+  MaskImageType::SizeType sizeMask = {7,3,4};
   MaskImageType::RegionType regionMask( startMask, sizeMask);
   typedef itk::ImageRegionIteratorWithIndex< MaskImageType > MaskIteratorType;
   MaskIteratorType mit( maskImage, regionMask );
@@ -85,6 +85,7 @@ int itkImageToListSampleFilterTest3(int, char* [] )
 
   filter->SetInput( image );
   filter->SetMaskImage( maskImage );
+  filter->SetMaskValue( 255 );
 
   try
     {
@@ -96,11 +97,30 @@ int itkImageToListSampleFilterTest3(int, char* [] )
     return EXIT_FAILURE;
     }
 
-  // Verify here the output content : FIXME
-  //
-  //
-  //
- 
+  typedef ImageToListSampleFilterType::ListSampleType ListSampleType;
+  const ListSampleType * list = filter->GetOutput();
+
+  // Check the sum of the pixels in the list sample. This should
+  // be 420.0
+  ListSampleType::ConstIterator lit = list->Begin();
+  float sum = 0.0;
+
+  while (lit != list->End())
+    {
+    sum += lit.GetMeasurementVector()[0];
+    ++lit;
+    }
+  
+  const double epsilon = 1e-6;
+
+  if ( fabs( sum - 420.0 ) > epsilon ) 
+    {
+    std::cerr << "Computed sum of pixels in the list sample (masked) is : "
+              << sum
+              << " but should be 420.0";
+    return EXIT_FAILURE; 
+    }
+
   std::cerr << "[PASSED]" << std::endl;
   return EXIT_SUCCESS;
 }
