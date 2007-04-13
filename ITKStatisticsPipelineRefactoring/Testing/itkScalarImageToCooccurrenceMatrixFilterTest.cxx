@@ -154,6 +154,13 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
   filter0->SetInput(image);
   filter0->SetOffsets(offsetV);
   filter0->NormalizeOn();
+
+  if ( filter0->GetNormalize() != true )
+    {
+    std::cerr << "Normalize boolean is not set correctly";
+    passed = false;
+    }
+  
   filter0->Update();
   const FilterType::HistogramType * hist0 = filter0->GetOutput();
 
@@ -185,6 +192,13 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
 
   filter2->SetOffset(offset3);
   filter2->SetNumberOfBinsPerAxis( 2 );
+
+  if ( filter2->GetNumberOfBinsPerAxis() != 2 )
+    {
+    std::cerr << "GetNumberOfBinsPerAxis() is not returning the expected value" << std::cout;
+    passed = false;
+    }
+
   filter2->Update();
   const FilterType::HistogramType * hist2 = filter2->GetOutput();
   
@@ -211,6 +225,22 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
   filter3->SetOffset(offset4);
   
   filter3->SetPixelValueMinMax(1, 2);
+
+  if ( filter3->GetMin() != 1 )
+    {
+    std::cerr << "Error: " << std::endl;
+    std::cerr << "GetMin() is not returning the value that is expected: 1" << std::endl;
+    passed = false;
+    }
+
+  if ( filter3->GetMax() != 2 )
+    {
+    std::cerr << "Error: " << std::endl;
+    std::cerr << "GetMin() is not returning the value that is expected: 2" << std::endl;
+    passed = false;
+    }
+
+
   filter3->SetNumberOfBinsPerAxis( 2 );
 
   filter3->Update();
@@ -238,6 +268,13 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
   
   filter4->SetInput(image);
   filter4->SetOffsets(offsetV);
+
+  if ( filter4->GetOffsets() != offsetV )
+    {
+    std::cerr << "Error: " << std::endl;
+    std::cerr << "GetOffsets() is not returning the expected offset vector: " << std::endl;
+    passed = false;
+    }
   
   filter4->SetPixelValueMinMax(0, 1);
   filter4->SetNumberOfBinsPerAxis( 2 );
