@@ -165,6 +165,14 @@ int itkMeasurementVectorTraitsTest(int, char* [] )
 
   const unsigned int zeroLength = 0;
 
+  itkAssertLengthSameValueReturn( measure1b, zeroLength );
+  itkAssertLengthSameValueReturn( measure2b, zeroLength );
+  itkAssertLengthSameValueReturn( measure3b, zeroLength );
+
+  itkAssertLengthSameValueReturn( &measure1b, zeroLength );
+  itkAssertLengthSameValueReturn( &measure2b, zeroLength );
+  itkAssertLengthSameValueReturn( &measure3b, zeroLength );
+
   itk::MeasurementVectorTraits::SetLength( measure2b, zeroLength );
   itk::MeasurementVectorTraits::SetLength( measure3b, zeroLength );
   itk::MeasurementVectorTraits::SetLength( measure4b, zeroLength );
@@ -172,12 +180,10 @@ int itkMeasurementVectorTraitsTest(int, char* [] )
   itkAssertLengthSameValueReturn( measure1b, measure2b );
   itkAssertLengthSameValueReturn( measure1b, measure3b );
   itkAssertLengthSameValueReturn( measure1b, measure4b );
-  itkAssertLengthSameValueReturn( measure1b, zeroLength );
 
   itkAssertLengthSameValueReturn( &measure1b, &measure2b );
   itkAssertLengthSameValueReturn( &measure1b, &measure3b );
   itkAssertLengthSameValueReturn( &measure1b, &measure4b );
-  itkAssertLengthSameValueReturn( &measure1b, zeroLength );
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
