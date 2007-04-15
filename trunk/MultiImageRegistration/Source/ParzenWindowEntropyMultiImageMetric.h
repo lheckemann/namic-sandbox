@@ -25,7 +25,7 @@
 #include "itkCentralDifferenceImageFunction.h"
     
 #include "itkGradientImageFilter.h"
-#include "itkBSplineDeformableTransform.h"
+#include "UserBSplineDeformableTransform.h"
 
 #include "itkImageRegionIterator.h"
 
@@ -213,7 +213,7 @@ public:
   /** Define the bspline tranform type for regularization
      For Regularization BsplineTransfromPointer must be explicitly
      provided */
-  typedef itk::BSplineDeformableTransform<double,   itkGetStaticConstMacro(MovingImageDimension), 3> BSplineTransformType;
+  typedef itk::UserBSplineDeformableTransform<double,   itkGetStaticConstMacro(MovingImageDimension), 3> BSplineTransformType;
   typedef typename BSplineTransformType::Pointer BSplineTransformTypePointer;
   
   typedef typename BSplineTransformType::ImageType BSplineParametersImageType;
@@ -262,6 +262,7 @@ protected:
 
     FixedImagePointType              FixedImagePoint;
     Array< RealType >                   imageValueArray;
+    std::vector<MovingImagePointType>   mappedPointsArray;
 
   };
 
@@ -288,6 +289,10 @@ protected:
   void CalculateDerivatives( const FixedImagePointType& , DerivativeType& , int i) const;
   void CalculateDerivatives( const FixedImagePointType& , DerivativeType& , int i, int threadID) const;
 
+  /** Add the derivative update to the current images parameters at a given point and image derivative*/
+  typedef CovariantVector < double, MovingImageDimension > CovarientType;
+  void UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSample& sample, const RealType& weight, const int& imageNumber, const int& threadID) const;
+
   typedef typename Superclass::CoordinateRepresentationType  
   CoordinateRepresentationType;
   typedef CentralDifferenceImageFunction< MovingImageType, 
@@ -302,7 +307,14 @@ protected:
   mutable std::vector< typename DerivativeFunctionType::Pointer > m_DerivativeCalcVector;
   mutable std::vector<DerivativeType> m_derivativeArray;
   mutable std::vector<ParametersType> currentParametersArray;
+  mutable std::vector< std::vector<DerivativeType> > m_DerivativesArray;
   int m_NumberOfThreads;
+
+  // Bspline optimization
+  bool m_UserBsplineDefined;
+  ParametersType indexes; // Holds nonzeros indexes of Bspline derivatives
+
+  mutable std::vector< ParametersType > m_TransformParametersArray;
 
   bool m_Regularization;
   double m_RegularizationFactor;

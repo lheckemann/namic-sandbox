@@ -108,15 +108,11 @@ public:
 
   /** Gaussian filter to compute the gradient of the Moving Image */
   typedef typename NumericTraits<MovingImagePixelType>::RealType RealType;
-  typedef CovariantVector<RealType,
-                          itkGetStaticConstMacro(MovingImageDimension)> GradientPixelType;
-  typedef Image<GradientPixelType,
-                itkGetStaticConstMacro(MovingImageDimension)> GradientImageType;
-  typedef SmartPointer<GradientImageType>     GradientImagePointer;
+  typedef CovariantVector<RealType,itkGetStaticConstMacro(MovingImageDimension)> GradientPixelType;
+  typedef Image<GradientPixelType,itkGetStaticConstMacro(MovingImageDimension)> GradientImageType;
+  typedef GradientImageType*     GradientImagePointer;
   typedef std::vector<GradientImagePointer>   GradientImagePointerArray;
-  typedef GradientRecursiveGaussianImageFilter< MovingImageType,
-                                                GradientImageType >
-  GradientImageFilterType;  
+  typedef GradientRecursiveGaussianImageFilter< MovingImageType,GradientImageType > GradientImageFilterType;
   typedef typename GradientImageFilterType::Pointer GradientImageFilterPointer;
 
 
@@ -187,7 +183,8 @@ public:
   itkBooleanMacro(ComputeGradient);
 
   /** Get Gradient Image. */
-  UserGetConstObjectMacro( GradientImageArray, GradientImageType );
+  //UserGetConstObjectMacro( GradientImageArray, GradientImageType );
+  //UserSetObjectMacro( GradientImageArray, GradientImageType );
 
   /** Set the parameters defining the Transform. */
   void SetTransformParameters(const ParametersType & parameters ) const;
@@ -231,6 +228,9 @@ protected:
 
   /** Number of images */
   unsigned int m_NumberOfImages;
+
+  /** number of total parameters */
+  unsigned int numberOfParameters;
 
   /** Return the multithreader used by this class. */
   MultiThreader * GetMultiThreader() const

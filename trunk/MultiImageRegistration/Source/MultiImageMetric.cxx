@@ -122,7 +122,7 @@ MultiImageMetric<TFixedImage>
   {
     m_InterpolatorArray[i]->SetInputImage( m_ImageArray[i] );
   }
- 
+
   if ( m_ComputeGradient )
   {
     vector<GradientImageFilterPointer> gradientFilterArray;
@@ -133,8 +133,9 @@ MultiImageMetric<TFixedImage>
       gradientFilterArray[j]=GradientImageFilterType::New();
       gradientFilterArray[j]->SetInput( m_ImageArray[j] );
 
-      const typename MovingImageType::SpacingType&
-      spacing = m_ImageArray[j]->GetSpacing();
+      std::cout << m_ImageArray[j] ;
+      std::cout << gradientFilterArray[j];
+      const typename MovingImageType::SpacingType& spacing = m_ImageArray[j]->GetSpacing();
       double maximumSpacing=0.0;
       for(unsigned int i=0; i<MovingImageDimension; i++)
       {
@@ -144,16 +145,19 @@ MultiImageMetric<TFixedImage>
         }
       }
       gradientFilterArray[j]->SetSigma( maximumSpacing );
-      gradientFilterArray[j]->SetNormalizeAcrossScale( true );
-      gradientFilterArray[j]->Update();
+      gradientFilterArray[j]->SetNormalizeAcrossScale( false );
+      gradientFilterArray[j]->UpdateLargestPossibleRegion();
 
       m_GradientImageArray[j] = gradientFilterArray[j]->GetOutput();
     }
   }
 
+  numberOfParameters = m_TransformArray[0]->GetNumberOfParameters();
+  
   // If there are any observers on the metric, call them to give the
   // user code a chance to set parameters on the metric
   this->InvokeEvent( InitializeEvent() );
+
 }
  
 
@@ -172,7 +176,7 @@ MultiImageMetric<TFixedImage>
   for( int i=0; i<this->m_NumberOfImages; i++)
   {
     os << indent << "Moving Image: "  << i << " " << m_ImageArray[i].GetPointer()  << std::endl;
-    os << indent << "Gradient Image: "<< i << " " << m_GradientImageArray[i].GetPointer()   << std::endl;
+    //os << indent << "Gradient Image: "<< i << " " << m_GradientImageArray[i].GetPointer()   << std::endl;
     os << indent << "Transform:    "  << i << " " << m_TransformArray[i].GetPointer()    << std::endl;
     os << indent << "Interpolator: "  << i << " " << m_InterpolatorArray[i].GetPointer() << std::endl;
     os << indent << "Moving Image Mask: " << i << " " << m_ImageMaskArray[i].GetPointer() << std::endl;

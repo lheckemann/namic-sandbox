@@ -216,13 +216,6 @@ protected:
   mutable std::vector< double > W_x_j;
   mutable std::vector< std::vector< Array<double> > > m_DerivativeArray;
 
-
-
-  
-private:
-  JointEntropyKNNMultiImageMetric(const Self&); //purposely not implemented
-  void operator=(const Self&); //purposely not implemented
-
   /** KNN related parameters */
   unsigned int m_NumberOfNearestNeigbors;
   double m_ErrorBound;
@@ -231,6 +224,13 @@ private:
   mutable std::vector< ANNidxArray >       nnIdx;
 
   mutable std::vector< Array<double> > weigtsArray;
+
+  
+private:
+  JointEntropyKNNMultiImageMetric(const Self&); //purposely not implemented
+  void operator=(const Self&); //purposely not implemented
+
+
 };
 
 } // end namespace itk
