@@ -87,8 +87,14 @@ int itkStatisticsAlgorithmTest(int argc, char *argv[] )
   
   realLower.Fill( 1000 );
   realUpper.Fill(    0 );
-    
-  for( unsigned int i = 0; i < numberOfSamples; i++ )
+  
+  // Force the first value not to be the min or max.
+  measure[0] = 13; 
+  measure[1] = 39;
+
+  sample->PushBack( measure );
+
+  for( unsigned int i = 1; i < numberOfSamples; i++ )
     {
     float value = i + 3;
     measure[0] = value;
