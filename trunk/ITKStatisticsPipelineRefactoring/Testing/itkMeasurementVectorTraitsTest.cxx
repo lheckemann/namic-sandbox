@@ -51,6 +51,16 @@
     { \
     } 
 
+#define itkAssertLengthSameValueReturn( m1, m2 ) \
+  if( \
+    itk::MeasurementVectorTraits::Assert( (m1), (m2) ) != \
+    itk::MeasurementVectorTraits::GetLength( (m1) ) ) \
+    { \
+    std::cerr << "Failed to get expected VLenght for Assert() "; \
+    std::cerr << std::endl; \
+    return EXIT_FAILURE; \
+    } 
+
 
 int itkMeasurementVectorTraitsTest(int, char* [] ) 
 {
@@ -110,6 +120,15 @@ int itkMeasurementVectorTraitsTest(int, char* [] )
 
   itkAssertLengthExceptionMacro( measure1, measure2b );
   itkAssertLengthExceptionMacro( measure1, measure3b );
+  itkAssertLengthExceptionMacro( measure1b, length1 );
+
+  const unsigned int zeroLenght = 0;
+
+  itk::MeasurementVectorTraits::SetLength( measure2b, zeroLenght );
+  itk::MeasurementVectorTraits::SetLength( measure3b, zeroLenght );
+
+  itkAssertLengthSameValueReturn( measure1b, measure2b );
+  itkAssertLengthSameValueReturn( measure1b, measure3b );
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
