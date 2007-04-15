@@ -159,9 +159,11 @@ int itkMeasurementVectorTraitsTest(int, char* [] )
 
   itkAssertLengthExceptionMacro( measure1, measure2b );
   itkAssertLengthExceptionMacro( measure1, measure3b );
+  itkAssertLengthExceptionMacro( measure1, measure4b );
 
   itkAssertLengthExceptionMacro( &measure1, &measure2b );
   itkAssertLengthExceptionMacro( &measure1, &measure3b );
+  itkAssertLengthExceptionMacro( &measure1, &measure4b );
 
   const unsigned int zeroLength = 0;
 
