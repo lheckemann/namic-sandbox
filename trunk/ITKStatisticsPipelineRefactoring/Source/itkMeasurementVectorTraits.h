@@ -221,6 +221,42 @@ public:
     return 0;
     }
 
+  template< class TValueType1, unsigned int VLength, class TValueType2 >
+  static MeasurementVectorLength Assert( const FixedArray< TValueType1, VLength > &, 
+                      const std::vector< TValueType2 > &b, const char *errMsg="Length Mismatch")
+    {
+    if( b.size() == 0 )
+      {
+      return VLength;
+      }
+    if( b.size() != 0 )
+      {
+      if (b.size() != VLength)
+        {
+        itkGenericExceptionMacro( << errMsg );
+        return 0;
+        }
+      }
+    return 0;
+    }
+
+  template< class TValueType1, unsigned int VLength, class TValueType2 >
+  static MeasurementVectorLength Assert( const FixedArray< TValueType1, VLength > *, 
+                      const std::vector< TValueType2 > *b, const char *errMsg="Length Mismatch")
+    {
+    if( b->size() == 0 )
+      {
+      return VLength;
+      }
+    else if (b->size() != VLength)
+      {
+      itkGenericExceptionMacro( << errMsg );
+      return 0;
+      }
+    return 0;
+    }
+
+
   template< class TValueType1, unsigned int VLength>
   static MeasurementVectorLength Assert( const FixedArray< TValueType1, VLength > &, 
                 const MeasurementVectorLength l, const char *errMsg="Length Mismatch")
