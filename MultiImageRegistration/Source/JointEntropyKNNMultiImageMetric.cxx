@@ -536,8 +536,8 @@ void JointEntropyKNNMultiImageMetric < TFixedImage >
   {
     derivative[i] -= temp[i % numberOfParameters] / (double) this->m_NumberOfImages;
   }
-
-}
+  
+} 
 
 // Callback routine used by the threading library. This routine just calls
 // the GetThreadedValue() method after setting the correct partition of data

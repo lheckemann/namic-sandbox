@@ -34,17 +34,20 @@
 #include "VarianceMultiImageMetric.h"
 #include "ParzenWindowEntropyMultiImageMetric.h"
 #include "JointEntropyMultiImageMetric.h"
-#include "JointEntropyKNNMultiImageMetric.h"    
+#include "JointEntropyKNNMultiImageMetric.h"
+#include "JointEntropyKNNFixedMultiImageMetric.h"
 #include "RegisterToMeanMultiImageMetric.h"
 #include "RegisterToMeanAndVarianceMultiImageMetric.h"
     
     
 #include "AddImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
+#include "UserBSplineDeformableTransform.h"
 
 // Transform headers    
 #include "itkAffineTransform.h"
 #include "itkTranslationTransform.h"
+#include "UserBSplineDeformableTransform.h"
 
 // Interpolator headers    
 #include "itkLinearInterpolateImageFunction.h"
@@ -532,7 +535,6 @@ int main( int argc, char *argv[] )
   typedef itk::TranslationTransform< ScalarType, Dimension > TranslationTransformType;
   typedef itk::AffineTransform< ScalarType, Dimension > TransformType;
 
-
   typedef itk::GradientDescentOptimizer       OptimizerType;
   typedef itk::GradientDescentLineSearchOptimizer LineSearchOptimizerType;
 
@@ -547,7 +549,8 @@ int main( int argc, char *argv[] )
   typedef itk::VarianceMultiImageMetric< InternalImageType>    MetricType;
   typedef itk::ParzenWindowEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
   typedef itk::JointEntropyMultiImageMetric< InternalImageType>    JointEntropyMetricType;
-  typedef itk::JointEntropyKNNMultiImageMetric< InternalImageType>    JointEntropyKNNMetricType;  
+  typedef itk::JointEntropyKNNMultiImageMetric< InternalImageType>    JointEntropyKNNMetricType;
+  typedef itk::JointEntropyKNNFixedMultiImageMetric< InternalImageType>    JointEntropyKNNFixedMetricType;
   typedef itk::RegisterToMeanMultiImageMetric< InternalImageType>    RegisterToMeanMetricType;
   typedef itk::RegisterToMeanAndVarianceMultiImageMetric< InternalImageType>    RegisterToMeanAndVarianceMetricType;
 
@@ -861,7 +864,8 @@ int main( int argc, char *argv[] )
   MetricType::Pointer         varianceMetric;
   EntropyMetricType::Pointer         entropyMetric;
   JointEntropyMetricType::Pointer         jointEntropyMetric;
-  JointEntropyKNNMetricType::Pointer         jointEntropyKNNMetric;  
+  JointEntropyKNNMetricType::Pointer         jointEntropyKNNMetric;
+  JointEntropyKNNFixedMetricType::Pointer         jointEntropyKNNFixedMetric;  
   RegisterToMeanMetricType::Pointer         registerToMeanMetric;
   RegisterToMeanAndVarianceMetricType::Pointer         registerToMeanAndVarianceMetric;
   
@@ -889,6 +893,16 @@ int main( int argc, char *argv[] )
     jointEntropyKNNMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
     jointEntropyKNNMetric->SetNumberOfNearestNeigbors(numberOfNearestNeigbors);
     jointEntropyKNNMetric->SetErrorBound(errorBound);
+  }
+  else if( metricType == "jointEntropyKNNFixed" )
+  {
+    jointEntropyKNNFixedMetric        = JointEntropyKNNFixedMetricType::New();
+    registration->SetMetric( jointEntropyKNNFixedMetric  );
+    // Set the number of samples to be used by the metric
+    jointEntropyKNNFixedMetric->SetNumberOfSpatialSamples( numberOfSamples );
+    jointEntropyKNNFixedMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
+    jointEntropyKNNFixedMetric->SetNumberOfNearestNeigbors(numberOfNearestNeigbors);
+    jointEntropyKNNFixedMetric->SetErrorBound(errorBound);
   }  
   else if( metricType == "mean" )
   {
@@ -1087,6 +1101,10 @@ int main( int argc, char *argv[] )
   else if( metricType =="jointEntropyKNN")
   {
     jointEntropyKNNMetric->SetNumberOfSpatialSamples( numberOfSamples );
+  }
+  else if( metricType =="jointEntropyKNNFixed")
+  {
+    jointEntropyKNNFixedMetric->SetNumberOfSpatialSamples( numberOfSamples );
   }  
   else if( metricType =="mean")
   {
@@ -1145,7 +1163,11 @@ int main( int argc, char *argv[] )
         else if( metricType == "jointEntropyKNN" )
         {
           outputFile << jointEntropyKNNMetric->GetValue(parameters) << " ";
-        }        
+        }
+        else if( metricType =="jointEntropyKNNFixed")
+        {
+          jointEntropyKNNFixedMetric->SetNumberOfSpatialSamples( numberOfSamples );
+        }         
         else if( metricType == "mean" )
         {
           outputFile << registerToMeanMetric->GetValue(parameters) << " ";
@@ -1176,7 +1198,7 @@ int main( int argc, char *argv[] )
   const unsigned int SplineOrder = 3;
   typedef ScalarType CoordinateRepType;
 
-  typedef itk::BSplineDeformableTransform< CoordinateRepType,
+  typedef itk::UserBSplineDeformableTransform< CoordinateRepType,
   Dimension,
   SplineOrder >     BSplineTransformType;
 
@@ -1284,10 +1306,10 @@ int main( int argc, char *argv[] )
         registration->SetTransformArray(     bsplineTransformArrayLow[i] ,i    );
         if(metricType == "entropy")
         {
+          entropyMetric->SetNumberOfImages(N); 
+          entropyMetric->SetBSplineTransformArray(     bsplineTransformArrayLow[i] ,i    ); 
           if(useBSplineRegularization == "on")
           {
-            entropyMetric->SetNumberOfImages(N);
-            entropyMetric->SetBSplineTransformArray(     bsplineTransformArrayLow[i] ,i    );
             entropyMetric->SetRegularization(true);
             entropyMetric->SetRegularizationFactor(bsplineRegularizationFactor);
           }
@@ -1339,7 +1361,11 @@ int main( int argc, char *argv[] )
     else if( metricType == "jointEntropyKNN")
     {
       jointEntropyKNNMetric->SetNumberOfSpatialSamples( numberOfSamples );
-    }    
+    }
+    else if( metricType =="jointEntropyKNNFixed")
+    {
+      jointEntropyKNNFixedMetric->SetNumberOfSpatialSamples( numberOfSamples );
+    }     
     else if( metricType == "mean")
     {
       registerToMeanMetric->SetNumberOfSpatialSamples( numberOfSamples );
@@ -1530,10 +1556,10 @@ int main( int argc, char *argv[] )
           // Set the regularization term
           if(metricType == "entropy")
           {
+            entropyMetric->SetNumberOfImages(N);            
+            entropyMetric->SetBSplineTransformArray(     bsplineTransformArrayHigh[i] ,i    );
             if(useBSplineRegularization == "on")
             {
-              entropyMetric->SetNumberOfImages(N);
-              entropyMetric->SetBSplineTransformArray(     bsplineTransformArrayHigh[i] ,i    );
               entropyMetric->SetRegularization(true);
               entropyMetric->SetRegularizationFactor(bsplineRegularizationFactor);
             }
@@ -1580,7 +1606,11 @@ int main( int argc, char *argv[] )
         else if(metricType == "jointEntropyKNN")
         {
           jointEntropyKNNMetric->SetNumberOfSpatialSamples( numberOfSamples );
-        }        
+        }
+        else if(metricType == "jointEntropyKNN")
+        {
+          jointEntropyKNNMetric->SetNumberOfSpatialSamples( numberOfSamples );
+        }            
         else if(metricType == "mean")
         {
           registerToMeanMetric->SetNumberOfSpatialSamples( numberOfSamples );

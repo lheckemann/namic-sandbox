@@ -36,8 +36,19 @@ SET(Congealing_SRCS
   ParzenWindowEntropyMultiImageMetric.cxx
   JointEntropyMultiImageMetric.h
   JointEntropyMultiImageMetric.cxx
+  JointEntropyKNNMultiImageMetric.h
+  JointEntropyKNNMultiImageMetric.cxx
+  JointEntropyKNNFixedMultiImageMetric.h
+  JointEntropyKNNFixedMultiImageMetric.cxx
+  RegisterToMeanMultiImageMetric.h
+  RegisterToMeanMultiImageMetric.cxx
+  RegisterToMeanAndVarianceMultiImageMetric.h
+  RegisterToMeanAndVarianceMultiImageMetric.cxx
   GradientDescentLineSearchOptimizer.h
   GradientDescentLineSearchOptimizer.cxx
+  UserBSplineDeformableTransform.h
+  UserBSplineDeformableTransform.cxx
+  UserImageRegionIterator.h
   MultiImageMetric.cxx 
   MultiImageMetric.h 
   AddImageFilter.h
@@ -55,7 +66,7 @@ SET(Pairwise_SRCS
 
 
 ADD_EXECUTABLE(Congeal ${Congealing_SRCS})
-TARGET_LINK_LIBRARIES(Congeal ITKCommon ITKNumerics ITKIO ITKBasicFilters)
+TARGET_LINK_LIBRARIES(Congeal ITKCommon ITKNumerics ITKIO ITKBasicFilters ANN)
 
 ADD_EXECUTABLE(TransformImage TransformImage.cxx )
 TARGET_LINK_LIBRARIES(TransformImage ITKCommon ITKBasicFilters ITKIO)
