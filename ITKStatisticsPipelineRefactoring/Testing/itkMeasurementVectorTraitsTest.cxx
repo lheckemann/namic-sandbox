@@ -128,46 +128,40 @@ int itkMeasurementVectorTraitsTest(int, char* [] )
   itk::MeasurementVectorTraits::SetLength( measure4b, length2 );
 
   // against other arrays
-  itkAssertSameLengthTest( measure1, measure2 );
-  itkAssertSameLengthTest( measure1, measure3 );
-  itkAssertSameLengthTest( measure1, measure4 );
+  itkAssertSameLengthTest( measure1b, measure2b );
+  itkAssertSameLengthTest( measure1b, measure3b );
+  itkAssertSameLengthTest( measure1b, measure4b );
 
-  itkAssertSameLengthTest( &measure1, &measure2 );
-  itkAssertSameLengthTest( &measure1, &measure3 );
-  itkAssertSameLengthTest( &measure1, &measure4 );
+  itkAssertSameLengthTest( &measure1b, &measure2b );
+  itkAssertSameLengthTest( &measure1b, &measure3b );
+  itkAssertSameLengthTest( &measure1b, &measure4b );
 
   // against scalar length
-  itkAssertSameLengthTest( measure1, length1 );
-  itkAssertSameLengthTest( measure2, length1 );
-  itkAssertSameLengthTest( measure3, length1 );
-  itkAssertSameLengthTest( measure4, length1 );
+  itkAssertSameLengthTest( measure1b, length2 );
+  itkAssertSameLengthTest( measure2b, length2 );
+  itkAssertSameLengthTest( measure3b, length2 );
+  itkAssertSameLengthTest( measure4b, length2 );
 
-  itkAssertSameLengthTest( &measure1, length1 );
-  itkAssertSameLengthTest( &measure2, length1 );
-  itkAssertSameLengthTest( &measure3, length1 );
-  itkAssertSameLengthTest( &measure4, length1 );
+  itkAssertSameLengthTest( &measure1b, length2 );
+  itkAssertSameLengthTest( &measure2b, length2 );
+  itkAssertSameLengthTest( &measure3b, length2 );
+  itkAssertSameLengthTest( &measure4b, length2 );
   
-  itkAssertLengthExceptionMacro( measure1, length2 );
-  itkAssertLengthExceptionMacro( measure2, length2 );
-  itkAssertLengthExceptionMacro( measure3, length2 );
-  itkAssertLengthExceptionMacro( measure4, length2 );
-
-  itkAssertLengthExceptionMacro( &measure1, length2 );
-  itkAssertLengthExceptionMacro( &measure2, length2 );
-  itkAssertLengthExceptionMacro( &measure3, length2 );
-  itkAssertLengthExceptionMacro( &measure4, length2 );
-
-  itkAssertLengthExceptionMacro( measure1, measure2b );
-  itkAssertLengthExceptionMacro( measure1, measure3b );
   itkAssertLengthExceptionMacro( measure1b, length1 );
   itkAssertLengthExceptionMacro( measure2b, length1 );
-
-  
-  itkAssertLengthExceptionMacro( &measure1, &measure2b );
-  itkAssertLengthExceptionMacro( &measure1, &measure3b );
+  itkAssertLengthExceptionMacro( measure3b, length1 );
+  itkAssertLengthExceptionMacro( measure4b, length1 );
 
   itkAssertLengthExceptionMacro( &measure1b, length1 );
   itkAssertLengthExceptionMacro( &measure2b, length1 );
+  itkAssertLengthExceptionMacro( &measure3b, length1 );
+  itkAssertLengthExceptionMacro( &measure4b, length1 );
+
+  itkAssertLengthExceptionMacro( measure1, measure2b );
+  itkAssertLengthExceptionMacro( measure1, measure3b );
+
+  itkAssertLengthExceptionMacro( &measure1, &measure2b );
+  itkAssertLengthExceptionMacro( &measure1, &measure3b );
 
   const unsigned int zeroLenght = 0;
 
