@@ -29,17 +29,18 @@ void RegisterTests()
 {
   vnl_sample_reseed(8775070);
   REGISTER_TEST(itkStatisticsPrintTest);
-  REGISTER_TEST(itkListSampleTest);
-  REGISTER_TEST(itkListSampleToHistogramFilterTest);
   REGISTER_TEST(itkHistogramTest);
-  REGISTER_TEST(itkSampleTest);
-  REGISTER_TEST(itkMeanFilterTest);
-  REGISTER_TEST(itkMeasurementVectorTraitsTest);
-  REGISTER_TEST(itkWeightedMeanFilterTest);
   REGISTER_TEST(itkHistogramToTextureFeaturesFilterTest);
   REGISTER_TEST(itkImageToListSampleFilterTest);
   REGISTER_TEST(itkImageToListSampleFilterTest2);
   REGISTER_TEST(itkImageToListSampleFilterTest3);
+  REGISTER_TEST(itkListSampleTest);
+  REGISTER_TEST(itkListSampleToHistogramFilterTest);
+  REGISTER_TEST(itkMeanFilterTest);
+  REGISTER_TEST(itkMeasurementVectorTraitsTest);
   REGISTER_TEST(itkScalarImageToCooccurrenceMatrixFilterTest);
+  REGISTER_TEST(itkSampleTest);
+  REGISTER_TEST(itkStatisticsAlgorithmTest);
+  REGISTER_TEST(itkWeightedMeanFilterTest);
 }
 
