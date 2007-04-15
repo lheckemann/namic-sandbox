@@ -36,17 +36,17 @@ int itkStatisticsAlgorithmTest(int argc, char *argv[] )
 
   sample->SetMeasurementVectorSize( measurementVectorSize );
 
-  MeasurementVectorType measure;
+  MeasurementVectorType measure( measurementVectorSize );
 
-  MeasurementVectorType realUpper;
-  MeasurementVectorType realLower;
+  MeasurementVectorType realUpper( measurementVectorSize );
+  MeasurementVectorType realLower( measurementVectorSize );
 
   const unsigned int numberOfSamples = 25;
   
   realLower.Fill( 1000 );
   realUpper.Fill(    0 );
     
-  for( unsigned int i = 0; i < numberOfSamples; i )
+  for( unsigned int i = 0; i < numberOfSamples; i++ )
     {
     float value = i + 3;
     measure[0] = value;
@@ -71,36 +71,53 @@ int itkStatisticsAlgorithmTest(int argc, char *argv[] )
 
   const SampleType * constSample = sample.GetPointer();
 
+  try
+    {
+    itk::Statistics::Algorithm::FindSampleBound( 
+      constSample,  
+      constSample->Begin(), constSample->End(), 
+      lower, upper
+      );
+    std::cerr << "Failed to throw expected exception" << std::endl;
+    std::cerr << " due to lack of invocation of SetLength()" << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cout << "Got expected exception " << std::endl;
+    std::cout << excp << std::endl;
+    }
+ 
+  sample->SetMeasurementVectorSize( measurementVectorSize );
+
   itk::Statistics::Algorithm::FindSampleBound( 
     constSample,  
-    constSample->Begin(), 
-    constSample->End(), 
-    lower,
-    upper
+    constSample->Begin(), constSample->End(), 
+    lower, upper
     );
- 
-  const float epsilon = 1e-5;
 
-  for(unsigned int j = 0; j < measurementVectorSize; j++ )
+const float epsilon = 1e-5;
+
+for(unsigned int j = 0; j < measurementVectorSize; j++ )
+  {
+  if( vnl_math_abs( lower[j] - realLower[j] ) > epsilon )
     {
-    if( vnl_math_abs( lower[j] - realLower[j] ) > epsilon )
-      {
-      std::cerr << "FindSampleBound() failed" << std::endl;
-      std::cerr << "Expected lower = " << realLower << std::endl;
-      std::cerr << "Computed lower = " << lower << std::endl;
-      return EXIT_FAILURE;
-      }
-    if( vnl_math_abs( upper[j] - realUpper[j] ) > epsilon )
-      {
-      std::cerr << "FindSampleBound() failed" << std::endl;
-      std::cerr << "Expected upper = " << realUpper << std::endl;
-      std::cerr << "Computed upper = " << upper << std::endl;
-      return EXIT_FAILURE;
-      }
+    std::cerr << "FindSampleBound() failed" << std::endl;
+    std::cerr << "Expected lower = " << realLower << std::endl;
+    std::cerr << "Computed lower = " << lower << std::endl;
+    return EXIT_FAILURE;
     }
+  if( vnl_math_abs( upper[j] - realUpper[j] ) > epsilon )
+    {
+    std::cerr << "FindSampleBound() failed" << std::endl;
+    std::cerr << "Expected upper = " << realUpper << std::endl;
+    std::cerr << "Computed upper = " << upper << std::endl;
+    return EXIT_FAILURE;
+    }
+  }
 
-  std::cout << "Test passed." << std::endl;
-  return EXIT_SUCCESS;
+std::cout << "Test passed." << std::endl;
+return EXIT_SUCCESS;
 }
 
 
