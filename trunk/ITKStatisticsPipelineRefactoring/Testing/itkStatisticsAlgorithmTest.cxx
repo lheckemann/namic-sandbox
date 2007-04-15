@@ -34,7 +34,49 @@ int itkStatisticsAlgorithmTest(int argc, char *argv[] )
 
   SampleType::Pointer sample = SampleType::New();
 
+  SampleType::MeasurementVectorType lower( measurementVectorSize );
+  SampleType::MeasurementVectorType upper( measurementVectorSize );
+
+  const SampleType * constSample = sample.GetPointer();
+
+  // Testing the exception throwing for samples of measurement size = 0
+  sample->SetMeasurementVectorSize( 0 );
+
+  try
+    {
+    itk::Statistics::Algorithm::FindSampleBound( 
+      constSample,  
+      constSample->Begin(), constSample->End(), 
+      lower, upper
+      );
+    std::cerr << "Failure to throw expected exception when " << std::endl;
+    std::cerr << " MeasurementVectorType() has been set to zero" << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cout << "Got Expected exception" << std::endl;
+    }
+
+  // Now set the correct measurement vector size
   sample->SetMeasurementVectorSize( measurementVectorSize );
+
+  // Testing the equivalent of an empty sample by passing 
+  // the Begin() iterator inlieu of the End() iterator.
+  try
+    {
+    itk::Statistics::Algorithm::FindSampleBound( 
+      constSample,  
+      constSample->Begin(), constSample->Begin(), 
+      lower, upper
+      );
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cout << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
 
   MeasurementVectorType measure( measurementVectorSize );
 
@@ -66,26 +108,6 @@ int itkStatisticsAlgorithmTest(int argc, char *argv[] )
       }
     }
 
-  SampleType::MeasurementVectorType lower( measurementVectorSize );
-  SampleType::MeasurementVectorType upper( measurementVectorSize );
-
-  const SampleType * constSample = sample.GetPointer();
-
-  // testing the equivalent of an empty sample by passing 
-  // the Begin() iterator inlieu of the End() iterator.
-  try
-    {
-    itk::Statistics::Algorithm::FindSampleBound( 
-      constSample,  
-      constSample->Begin(), constSample->Begin(), 
-      lower, upper
-      );
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cout << excp << std::endl;
-    return EXIT_FAILURE;
-    }
 
   // Now testing the real algorithm
   try
