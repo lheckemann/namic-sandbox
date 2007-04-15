@@ -163,13 +163,21 @@ int itkMeasurementVectorTraitsTest(int, char* [] )
   itkAssertLengthExceptionMacro( &measure1, &measure2b );
   itkAssertLengthExceptionMacro( &measure1, &measure3b );
 
-  const unsigned int zeroLenght = 0;
+  const unsigned int zeroLength = 0;
 
-  itk::MeasurementVectorTraits::SetLength( measure2b, zeroLenght );
-  itk::MeasurementVectorTraits::SetLength( measure3b, zeroLenght );
+  itk::MeasurementVectorTraits::SetLength( measure2b, zeroLength );
+  itk::MeasurementVectorTraits::SetLength( measure3b, zeroLength );
+  itk::MeasurementVectorTraits::SetLength( measure4b, zeroLength );
 
   itkAssertLengthSameValueReturn( measure1b, measure2b );
   itkAssertLengthSameValueReturn( measure1b, measure3b );
+  itkAssertLengthSameValueReturn( measure1b, measure4b );
+  itkAssertLengthSameValueReturn( measure1b, zeroLength );
+
+  itkAssertLengthSameValueReturn( &measure1b, &measure2b );
+  itkAssertLengthSameValueReturn( &measure1b, &measure3b );
+  itkAssertLengthSameValueReturn( &measure1b, &measure4b );
+  itkAssertLengthSameValueReturn( &measure1b, zeroLength );
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
