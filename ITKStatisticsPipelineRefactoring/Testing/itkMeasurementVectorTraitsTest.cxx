@@ -170,10 +170,12 @@ int itkMeasurementVectorTraitsTest(int, char* [] )
   itkAssertLengthSameValueReturn( measure1b, zeroLength );
   itkAssertLengthSameValueReturn( measure2b, zeroLength );
   itkAssertLengthSameValueReturn( measure3b, zeroLength );
+  itkAssertLengthSameValueReturn( measure4b, zeroLength );
 
   itkAssertLengthSameValueReturn( &measure1b, zeroLength );
   itkAssertLengthSameValueReturn( &measure2b, zeroLength );
   itkAssertLengthSameValueReturn( &measure3b, zeroLength );
+  itkAssertLengthSameValueReturn( &measure4b, zeroLength );
 
   itk::MeasurementVectorTraits::SetLength( measure2b, zeroLength );
   itk::MeasurementVectorTraits::SetLength( measure3b, zeroLength );
