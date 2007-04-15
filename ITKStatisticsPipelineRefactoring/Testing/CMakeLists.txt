@@ -16,38 +16,40 @@ SET(STATISTICS_HEADER_TESTS ${CXX_TEST_PATH}/itkStatisticsHeaderTest)
 ADD_TEST(itkStatisticsHeaderTest ${STATISTICS_HEADER_TESTS})
 ADD_TEST(itkStatisticsPrintTest ${STATISTICS_TESTS} itkStatisticsPrintTest)
 
-ADD_TEST(itkSampleTest ${STATISTICS_TESTS} itkSampleTest)
+ADD_TEST(itkHistogramToTextureFeaturesFilterTest ${STATISTICS_TESTS} itkHistogramToTextureFeaturesFilterTest)
+ADD_TEST(itkHistogramTest ${STATISTICS_TESTS} itkHistogramTest)
+ADD_TEST(itkImageToListSampleFilterTest ${STATISTICS_TESTS} itkImageToListSampleFilterTest)
+ADD_TEST(itkImageToListSampleFilterTest2 ${STATISTICS_TESTS} itkImageToListSampleFilterTest2)
+ADD_TEST(itkImageToListSampleFilterTest3 ${STATISTICS_TESTS} itkImageToListSampleFilterTest3)
 ADD_TEST(itkListSampleTest1 ${STATISTICS_TESTS} itkListSampleTest 1)
 ADD_TEST(itkListSampleTest2 ${STATISTICS_TESTS} itkListSampleTest 5)
 ADD_TEST(itkListSampleTest3 ${STATISTICS_TESTS} itkListSampleTest 10)
 ADD_TEST(itkListSampleTest4 ${STATISTICS_TESTS} itkListSampleTest 100)
 ADD_TEST(itkListSampleToHistogramFilterTest ${STATISTICS_TESTS} itkListSampleToHistogramFilterTest)
-ADD_TEST(itkHistogramTest ${STATISTICS_TESTS} itkHistogramTest)
 ADD_TEST(itkMeanFilterTest ${STATISTICS_TESTS} itkMeanFilterTest)
 ADD_TEST(itkMeasurementVectorTraitsTest ${STATISTICS_TESTS} itkMeasurementVectorTraitsTest)
-ADD_TEST(itkWeightedMeanFilterTest ${STATISTICS_TESTS} itkWeightedMeanFilterTest)
-ADD_TEST(itkHistogramToTextureFeaturesFilterTest ${STATISTICS_TESTS} itkHistogramToTextureFeaturesFilterTest)
-ADD_TEST(itkImageToListSampleFilterTest ${STATISTICS_TESTS} itkImageToListSampleFilterTest)
-ADD_TEST(itkImageToListSampleFilterTest2 ${STATISTICS_TESTS} itkImageToListSampleFilterTest2)
-ADD_TEST(itkImageToListSampleFilterTest3 ${STATISTICS_TESTS} itkImageToListSampleFilterTest3)
 ADD_TEST(itkScalarImageToCooccurrenceMatrixFilterTest ${STATISTICS_TESTS} itkScalarImageToCooccurrenceMatrixFilterTest)
+ADD_TEST(itkSampleTest ${STATISTICS_TESTS} itkSampleTest)
+ADD_TEST(itkStatisticsAlgorithmTest ${STATISTICS_TESTS} itkStatisticsAlgorithmTest)
+ADD_TEST(itkWeightedMeanFilterTest ${STATISTICS_TESTS} itkWeightedMeanFilterTest)
 
 
 
 SET(Statistics_SRCS
-  itkStatisticsPrintTest.cxx
-  itkSampleTest.cxx
-  itkListSampleTest.cxx
-  itkListSampleToHistogramFilterTest.cxx
   itkHistogramTest.cxx
-  itkMeanFilterTest.cxx
-  itkMeasurementVectorTraitsTest.cxx
-  itkWeightedMeanFilterTest.cxx
   itkHistogramToTextureFeaturesFilterTest.cxx
   itkImageToListSampleFilterTest.cxx
   itkImageToListSampleFilterTest2.cxx
   itkImageToListSampleFilterTest3.cxx
+  itkListSampleTest.cxx
+  itkListSampleToHistogramFilterTest.cxx
+  itkMeanFilterTest.cxx
+  itkMeasurementVectorTraitsTest.cxx
   itkScalarImageToCooccurrenceMatrixFilterTest.cxx
+  itkStatisticsPrintTest.cxx
+  itkStatisticsAlgorithmTest.cxx
+  itkSampleTest.cxx
+  itkWeightedMeanFilterTest.cxx
   )
 
 ADD_EXECUTABLE(itkStatisticsTests itkStatisticsTests.cxx ${Statistics_SRCS})
