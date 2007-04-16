@@ -79,6 +79,8 @@ int itkSubsampleTest(int, char* [] )
   
   SubsampleType::Pointer subsample = SubsampleType::New() ;
 
+  std::cout << subsample->GetNameOfClass() << std::endl; 
+  
   const ImageToListSampleFilterType::ListSampleType * listSample = filter->GetOutput();
 
   subsample->SetSample( listSample ) ;
@@ -94,11 +96,43 @@ int itkSubsampleTest(int, char* [] )
     subsample->AddInstance(id) ;
     }
 
+  // test if an exception is thrown, if a sample with id outside the 
+  // range of the Sample is added to the SubSample 
+  int idOutisdeRange = listSample->Size() + 2;
+
+  try
+    {
+    subsample->AddInstance( idOutisdeRange ); 
+    std::cerr << "Exception should have been thrown since \
+      an instance outside the range of the sample container is added" << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Expected Exception caught: " << excp << std::endl;
+    }
+
+  typedef ImageToListSampleFilterType::MeasurementVectorType 
+                                                    MeasurementVectorType;
+  try
+    {
+    MeasurementVectorType vec = subsample->GetMeasurementVector( idOutisdeRange ); 
+    std::cerr << "Exception should have been thrown since \
+      the id specified is outside the range of the sample container" << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Expected Exception caught: " << excp << std::endl;
+    }
+
   if ((totalSize / 2) != subsample->Size())
     {
       pass = false ;
       whereFail = "Size()" ;
     }
+
+  std::cout << subsample->GetTotalFrequency() << std::endl;
 
   ArrayPixelImageType::IndexType index ;
   index.Fill(2) ;// index {2, 2, 2} = instance identifier (offset from image) 
