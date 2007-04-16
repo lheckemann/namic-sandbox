@@ -144,6 +144,7 @@ int itkSubsampleTest2(int argc, char *argv[] )
     std::cout << iter.GetInstanceIdentifier() << " ";
     std::cout << iter.GetMeasurementVector() << " ";
     std::cout << iter.GetFrequency() << std::endl;
+    ++iter;
     }
 
   typedef CascadedSubsampleType::ConstIterator ConstIteratorType;
@@ -154,6 +155,39 @@ int itkSubsampleTest2(int argc, char *argv[] )
     std::cout << citer.GetInstanceIdentifier() << " ";
     std::cout << citer.GetMeasurementVector() << " ";
     std::cout << citer.GetFrequency() << std::endl;
+    ++citer;
+    }
+
+  IteratorType iter1 = subSample2->Begin();
+  IteratorType iter2 = subSample2->Begin();
+
+  citer = iter1;
+
+  if( citer != iter1 )
+    {
+    std::cerr << "Error in iterator != operator " << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  if( !(citer == iter1) )
+    {
+    std::cerr << "Error in iterator == operator " << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  if( iter1 != iter2 )
+    {
+    std::cerr << "Error in iterator != operator " << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  if( !(iter1 == iter2) )
+    {
+    std::cerr << "Error in iterator == operator " << std::endl;
+    return EXIT_FAILURE;
     }
 
 
