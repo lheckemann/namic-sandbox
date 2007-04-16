@@ -80,13 +80,23 @@ int itkSubsampleTest(int, char* [] )
   SubsampleType::Pointer subsample = SubsampleType::New() ;
 
   std::cout << subsample->GetNameOfClass() << std::endl; 
+
   
   const ImageToListSampleFilterType::ListSampleType * listSample = filter->GetOutput();
 
+  subsample->Print( std::cout );
+
   subsample->SetSample( listSample ) ;
 
-  // tests begin
-  
+  subsample->Print( std::cout );
+
+ 
+  //Initialize the subsample with sample
+  subsample->InitializeWithAllInstances();
+
+  //Clear and  repopulate the subsample container
+  subsample->Clear();
+
   // add only the first half of instances of the sample
   for (ListSampleType::InstanceIdentifier id = 0 ; 
        id < static_cast< ListSampleType::InstanceIdentifier >
