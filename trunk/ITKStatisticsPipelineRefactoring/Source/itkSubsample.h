@@ -36,12 +36,12 @@ namespace Statistics {
  */ 
 template< class TSample >
 class ITK_EXPORT Subsample : 
-    public Sample< typename TSample::MeasurementVectorType >
+    public TSample
 {
 public:
   /** Standard class typedefs */
   typedef Subsample                                         Self;
-  typedef Sample< typename TSample::MeasurementVectorType > Superclass;
+  typedef TSample                                           Superclass;
   typedef SmartPointer< Self >                              Pointer;
   typedef SmartPointer<const Self>                          ConstPointer;
 
@@ -192,25 +192,6 @@ public:
       :ConstIterator( iter, classSample )
       {}
     
-    Iterator& operator=(const Iterator& iter)
-      {
-      this->ConstIterator::operator=( iter );
-      return *this;
-      }
-
-    Iterator(const Iterator& iter): ConstIterator( iter )
-      {
-      }
-    
-    bool operator!=(const ConstIterator& iter)
-      {
-      return this->ConstIterator::operator!=( iter );
-      } 
-
-    bool operator==(const ConstIterator& iter)
-      {
-      return this->ConstIterator::operator==( iter );
-      } 
 
   private:
   };
