@@ -55,13 +55,23 @@ int itkSubsampleTest(int, char* [] )
     ImageCastFilterType ;
   ImageCastFilterType::Pointer castFilter = ImageCastFilterType::New() ;
   castFilter->SetInput(source->GetOutput()) ;
-  castFilter->Update() ;
+  castFilter->Update();
 
   typedef  itk::Statistics::ImageToListSampleFilter< ArrayPixelImageType >
     ImageToListSampleFilterType ;
 
   ImageToListSampleFilterType::Pointer filter = ImageToListSampleFilterType::New() ;
   filter->SetInput(castFilter->GetOutput()) ;
+
+  try
+    {
+    filter->Update();
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception caught: " << excp << std::endl;
+    return EXIT_FAILURE;
+    }
 
   typedef ImageToListSampleFilterType::ListSampleType  ListSampleType;
 
@@ -72,7 +82,7 @@ int itkSubsampleTest(int, char* [] )
   const ImageToListSampleFilterType::ListSampleType * listSample = filter->GetOutput();
 
   subsample->SetSample( listSample ) ;
-  
+
   // tests begin
   
   // add only the first half of instances of the sample
@@ -81,7 +91,7 @@ int itkSubsampleTest(int, char* [] )
          (listSample->Size() / 2) ;
        id++)
     {
-      subsample->AddInstance(id) ;
+    subsample->AddInstance(id) ;
     }
 
   if ((totalSize / 2) != subsample->Size())
@@ -96,7 +106,7 @@ int itkSubsampleTest(int, char* [] )
   ListSampleType::InstanceIdentifier ind = 
     static_cast< FloatImage::OffsetValueType >(filter->GetInput()
                                                ->ComputeOffset(index)) ;
-
+ 
   if (pixel[0] != subsample->GetMeasurementVector(ind)[0])
     {
       pass = false ;
