@@ -87,7 +87,7 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     std::cerr << " of calling SetMeasurementVectorSize() in the sample";
     return EXIT_FAILURE;
     }
-  catch( itk::ExceptionObject & excp )
+  catch( itk::ExceptionObject & )
     {
     std::cout << "Expected exception received" << std::endl;
     }
@@ -104,7 +104,7 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     std::cerr << " of calling SetMeasurementVectorSize() in bin maximum ";
     return EXIT_FAILURE;
     }
-  catch( itk::ExceptionObject & excp )
+  catch( itk::ExceptionObject & )
     {
     std::cout << "Expected exception received" << std::endl;
     }
@@ -696,7 +696,7 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     std::cerr << " due to NULL SetHistogramSizeInput()";
     return EXIT_FAILURE;
     }
-  catch( itk::ExceptionObject & excp )
+  catch( itk::ExceptionObject & )
     {
     std::cout << "Expected exception received" << std::endl;
     }
@@ -717,7 +717,7 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     std::cerr << " due to NULL SetMarginalScaleInput()";
     return EXIT_FAILURE;
     }
-  catch( itk::ExceptionObject & excp )
+  catch( itk::ExceptionObject & )
     {
     std::cout << "Expected exception received" << std::endl;
     }
@@ -744,7 +744,7 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     std::cerr << " due to NULL SetHistogramBinMinimumInput()";
     return EXIT_FAILURE;
     }
-  catch( itk::ExceptionObject & excp )
+  catch( itk::ExceptionObject & )
     {
     std::cout << "Expected exception received" << std::endl;
     }
@@ -766,7 +766,7 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     std::cerr << " due to NULL SetHistogramBinMaximumInput()";
     return EXIT_FAILURE;
     }
-  catch( itk::ExceptionObject & excp )
+  catch( itk::ExceptionObject & )
     {
     std::cout << "Expected exception received" << std::endl;
     }
