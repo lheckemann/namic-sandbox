@@ -533,6 +533,34 @@ int itkHistogramTest(int, char* [] )
     return EXIT_FAILURE;
     }
 
+
+  // Testing methods specific to Iterators
+  {
+  typedef HistogramType::Iterator IteratorType;
+  IteratorType iter = histogram->Begin();
+  IteratorType iter2;
+  iter2 = iter;
+  if( iter2 != iter )
+    {
+    std::cerr << "Iterator operator=() failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+  }
+
+  // Testing methods specific to ConstIterators
+  {
+  typedef HistogramType::ConstIterator ConstIteratorType;
+  ConstIteratorType iter = histogram->Begin();
+  ConstIteratorType iter2;
+  iter2 = iter;
+  if( iter2 != iter )
+    {
+    std::cerr << "ConstIterator operator=() failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+  }
+
+
   if( !pass )
     {
     std::cout << "Test failed in " << whereFail << "." << std::endl;

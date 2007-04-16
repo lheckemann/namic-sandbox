@@ -109,16 +109,27 @@ int itkListSampleTest(int argc, char *argv[] )
   std::cerr << "Iterators..." << std::endl;
     {
     // forward iterator
-    SampleType::Iterator s_iter = sample->Begin();
+    typedef SampleType::Iterator IteratorType;
+    
+    IteratorType s_iter = sample->Begin();
     
     // copy constructor
-    SampleType::Iterator bs_iter(s_iter);
+    IteratorType bs_iter(s_iter);
     if (bs_iter != s_iter)
       {
       std::cerr << "Iterator::Copy Constructor failed" << std::endl;
       return EXIT_FAILURE;    
       }
     
+    // assignment operator 
+    IteratorType assignment_iter;
+    assignment_iter = s_iter;
+    if (assignment_iter != s_iter)
+      {
+      std::cerr << "Iterator::assignment operator failed" << std::endl;
+      return EXIT_FAILURE;    
+      }
+ 
     SampleType::InstanceIdentifier id = 0;
     while (s_iter != sample->End())
       {
@@ -186,13 +197,25 @@ int itkListSampleTest(int argc, char *argv[] )
     std::cerr << "Const Iterators..." << std::endl;
     {
     // forward iterator
-    SampleType::ConstIterator s_iter = sample->Begin();
+    typedef SampleType::ConstIterator  ConstIteratorType;
+    
+    ConstIteratorType s_iter = sample->Begin();
     
     // copy constructor
-    SampleType::ConstIterator bs_iter(s_iter);
+    ConstIteratorType bs_iter(s_iter);
     if (bs_iter != s_iter)
       {
       std::cerr << "Iterator::Copy Constructor (from const) failed" 
+                << std::endl;
+      return EXIT_FAILURE;    
+      }
+
+    // assignment operator
+    ConstIteratorType assignment_iter;
+    assignment_iter = s_iter;
+    if (assignment_iter != s_iter)
+      {
+      std::cerr << "Const Iterator::operator= () failed" 
                 << std::endl;
       return EXIT_FAILURE;    
       }
