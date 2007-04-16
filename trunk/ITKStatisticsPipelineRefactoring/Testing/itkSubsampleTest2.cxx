@@ -99,6 +99,11 @@ int itkSubsampleTest2(int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
+  subSample2->Swap( 0,2 );
+
+  //swap back 
+  subSample2->Swap( 2,0 );
+ 
   for ( unsigned int i=0 ; i < subSample2->Size() ; i++ ) 
     {
     std::cout << "Measurment Vector: " << i << "\t" 
@@ -111,7 +116,26 @@ int itkSubsampleTest2(int argc, char *argv[] )
       return EXIT_FAILURE;
       }
     }
- 
+
+  //exercise the GetInstanceIdentifier method
+  if ( subSample2->GetInstanceIdentifier( 0 ) != 0 ||
+       subSample2->GetInstanceIdentifier( 1 ) != 2 ||
+       subSample2->GetInstanceIdentifier( 2 ) != 4 )
+    {
+    std::cerr << "GetInstanceIdentifier() is not returning IDs that\
+                 are expected" << std::endl;
+    } 
+
+  if ( subSample2->GetFrequencyByIndex( 0 ) != 1  ||  
+       subSample2->GetFrequencyByIndex( 1 ) != 1  ||  
+       subSample2->GetFrequencyByIndex( 2 ) != 1    )
+    {
+    std::cerr << "GetFrequencyByIndex() is not returning IDs that\
+                 are expected" << std::endl;
+    } 
+
+  std::cout << subSample2->GetSample() << std::endl;
+
   return EXIT_SUCCESS; 
 }
 

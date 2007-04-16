@@ -186,6 +186,12 @@ inline void
 Subsample< TSample >
 ::Swap(int index1, int index2)
 {
+  if ( index1 >= m_IdHolder.size() ||
+       index2 >= m_IdHolder.size() ) 
+    {
+    itkExceptionMacro("Index out of range");
+    }
+
   InstanceIdentifier temp = m_IdHolder[index1];
   m_IdHolder[index1] = m_IdHolder[index2];
   m_IdHolder[index2] = temp;
