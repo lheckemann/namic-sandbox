@@ -70,87 +70,31 @@ public:
   typedef std::vector< InstanceIdentifier > InstanceIdentifierHolder;
 
   /** Plug in the actual sample data */
-  void SetSample(const TSample* sample)
-    { 
-    m_Sample = sample; 
-    this->SetMeasurementVectorSize( m_Sample->GetMeasurementVectorSize() );
-    }
+  void SetSample(const TSample* sample);
+  const TSample* GetSample() const;
 
-  const TSample* GetSample() const
-    { 
-    return m_Sample;
-    } 
+  /** Initialize the subsample with all instances of the sample */
+  void InitializeWithAllInstances();
 
-
-  void InitializeWithAllInstances()
-    {
-    m_IdHolder.resize(m_Sample->Size());
-    typename InstanceIdentifierHolder::iterator idIter = m_IdHolder.begin();
-    typename TSample::ConstIterator iter = m_Sample->Begin();
-    typename TSample::ConstIterator last = m_Sample->End();
-    m_TotalFrequency = NumericTraits< FrequencyType >::Zero;
-    while (iter != last)
-      {
-      *idIter++ = iter.GetInstanceIdentifier();
-      m_TotalFrequency += iter.GetFrequency();
-      ++iter;
-      }
-    }
-
-  void AddInstance(InstanceIdentifier id)
-    { 
-    if ( id > m_Sample->Size() )
-      {
-      itkExceptionMacro("MeasurementVector " << id << " does not exist in the Sample");
-      }
-
-    m_IdHolder.push_back(id); 
-    m_TotalFrequency += m_Sample->GetFrequency(id);
-    }
+  /** Add instance to the subsample */
+  void AddInstance(InstanceIdentifier id);
 
   /** returns SizeType object whose each element is the number of
    * elements in each dimension */
-  unsigned int Size() const
-    { 
-    return static_cast<unsigned int>( m_IdHolder.size() );
-    }
+  unsigned int Size() const;
 
-  void Clear()
-    { 
-    m_IdHolder.clear();
-    m_TotalFrequency = NumericTraits< FrequencyType >::Zero;
-    }
+  /** Clear the subsample */
+  void Clear();
 
   /** retunrs the measurement of the instance which is identified 
    * by the 'id' */
-  const MeasurementVectorType & GetMeasurementVector( InstanceIdentifier id) const
-    {
-    if ( id > m_IdHolder.size() )
-      {
-      itkExceptionMacro("MeasurementVector " << id << " does not exist");
-      }
-
-    // translate the id to its Sample container id 
-    InstanceIdentifier idInTheSample = m_IdHolder[id];
-    return m_Sample->GetMeasurementVector( idInTheSample );
-    }
+  const MeasurementVectorType & GetMeasurementVector( InstanceIdentifier id) const;
 
   /** returns the frequency of the instance which is identified by the 'id' */
-  FrequencyType GetFrequency( InstanceIdentifier id ) const
-    {
-    if ( id > m_IdHolder.size() )
-      {
-      itkExceptionMacro("MeasurementVector " << id << " does not exist");
-      }
-
-    return m_Sample->GetFrequency(id);
-    }
+  FrequencyType GetFrequency( InstanceIdentifier id ) const;
   
   /** returns the total frequency for the 'd' dimension */
-  TotalFrequencyType GetTotalFrequency() const
-    {
-    return m_TotalFrequency;
-    }
+  TotalFrequencyType GetTotalFrequency() const;
   
   void Swap(int index1, int index2);
   

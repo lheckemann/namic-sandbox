@@ -62,6 +62,110 @@ Subsample< TSample >
 }
 
 template< class TSample >
+void 
+Subsample< TSample >
+::SetSample(const TSample* sample)
+{ 
+  m_Sample = sample; 
+  this->SetMeasurementVectorSize( m_Sample->GetMeasurementVectorSize() );
+}
+
+template< class TSample >
+const TSample*
+Subsample< TSample >
+::GetSample() const
+{ 
+  return m_Sample;
+} 
+
+template< class TSample >
+void
+Subsample< TSample >
+::InitializeWithAllInstances()
+{
+  m_IdHolder.resize(m_Sample->Size());
+  typename InstanceIdentifierHolder::iterator idIter = m_IdHolder.begin();
+  typename TSample::ConstIterator iter = m_Sample->Begin();
+  typename TSample::ConstIterator last = m_Sample->End();
+  m_TotalFrequency = NumericTraits< FrequencyType >::Zero;
+  while (iter != last)
+    {
+    *idIter++ = iter.GetInstanceIdentifier();
+    m_TotalFrequency += iter.GetFrequency();
+    ++iter;
+    }
+  }
+
+
+template< class TSample >
+void
+Subsample< TSample >
+::AddInstance(InstanceIdentifier id)
+{ 
+  if ( id > m_Sample->Size() )
+    {
+    itkExceptionMacro("MeasurementVector " << id << " does not exist in the Sample");
+    }
+
+  m_IdHolder.push_back(id); 
+  m_TotalFrequency += m_Sample->GetFrequency(id);
+}
+
+template< class TSample >
+unsigned int
+Subsample< TSample >
+::Size() const
+{ 
+  return static_cast<unsigned int>( m_IdHolder.size() );
+}
+
+template< class TSample >
+void
+Subsample< TSample >
+::Clear()
+{ 
+  m_IdHolder.clear();
+  m_TotalFrequency = NumericTraits< FrequencyType >::Zero;
+}
+
+template< class TSample >
+const typename Subsample< TSample>::MeasurementVectorType &
+Subsample< TSample >
+::GetMeasurementVector( InstanceIdentifier id) const
+{
+  if ( id > m_IdHolder.size() )
+    {
+    itkExceptionMacro("MeasurementVector " << id << " does not exist");
+    }
+
+  // translate the id to its Sample container id 
+  InstanceIdentifier idInTheSample = m_IdHolder[id];
+  return m_Sample->GetMeasurementVector( idInTheSample );
+}
+
+template< class TSample >
+inline typename Subsample< TSample >::FrequencyType
+Subsample< TSample >
+::GetFrequency( InstanceIdentifier id ) const
+{
+  if ( id > m_IdHolder.size() )
+    {
+    itkExceptionMacro("MeasurementVector " << id << " does not exist");
+    }
+
+  return m_Sample->GetFrequency(id);
+}
+
+ 
+template< class TSample >
+inline typename Subsample< TSample >::TotalFrequencyType
+Subsample< TSample >
+::GetTotalFrequency() const
+{
+  return m_TotalFrequency;
+}
+
+template< class TSample >
 inline typename Subsample< TSample >::FrequencyType
 Subsample< TSample >
 ::GetFrequencyByIndex(int index) const
