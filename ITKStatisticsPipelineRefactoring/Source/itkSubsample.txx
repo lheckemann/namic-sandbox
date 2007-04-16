@@ -94,7 +94,7 @@ Subsample< TSample >
     m_TotalFrequency += iter.GetFrequency();
     ++iter;
     }
-  }
+}
 
 
 template< class TSample >
