@@ -355,80 +355,8 @@ protected:
   void PrintSelf(std::ostream& os, Indent indent) const;
 
 public:
-  /** \class Histogram::Iterator */
-  class Iterator
-    {
-    public:
-    Iterator(){};
 
-    Iterator(Self * histogram)
-      {
-      m_Id = 0;
-      m_Histogram = histogram;
-      }
-
-    Iterator(InstanceIdentifier id, Self * histogram)
-        : m_Id(id), m_Histogram(histogram)
-      {}
-
-    FrequencyType GetFrequency() const
-      {
-      return  m_Histogram->GetFrequency(m_Id);
-      }
-
-    bool SetFrequency(const FrequencyType value)
-      {
-      return m_Histogram->SetFrequency(m_Id, value);
-      }
-
-    InstanceIdentifier GetInstanceIdentifier() const
-      {
-      return m_Id;
-      }
-
-    const MeasurementVectorType & GetMeasurementVector() const
-      {
-      return m_Histogram->GetMeasurementVector(m_Id);
-      }
-
-    Iterator& operator++()
-      {
-      ++m_Id;
-      return *this;
-      }
-
-    bool operator!=(const Iterator& it)
-      {
-      return (m_Id != it.m_Id);
-      }
-
-    bool operator==(const Iterator& it)
-      {
-      return (m_Id == it.m_Id);
-      }
-
-    Iterator& operator=(const Iterator& it)
-      {
-      m_Id  = it.m_Id;
-      m_Histogram = it.m_Histogram;
-      return *this;
-      }
-
-    Iterator(const Iterator& it)
-      {
-      m_Id        = it.m_Id;
-      m_Histogram = it.m_Histogram;
-      }
-
-    private:
-    // Iterator pointing DenseFrequencyContainer
-    InstanceIdentifier m_Id;
-
-    // Pointer of DenseFrequencyContainer
-    Self* m_Histogram;
-    }; // end of iterator class
-
-  // Const Iterator
+  /** Const Iterator class that walks through the elements of the histogram */
   class ConstIterator
     {
     public:
@@ -488,13 +416,57 @@ public:
       m_Histogram = it.m_Histogram;
       }
 
-  private:
+  protected:
     // ConstIterator pointing DenseFrequencyContainer
     InstanceIdentifier m_Id;
 
     // Pointer of DenseFrequencyContainer
     const Self* m_Histogram;
     }; // end of iterator class
+
+  /** \class Histogram::Iterator */
+  class Iterator : public ConstIterator
+    {
+    public:
+    Iterator(){};
+
+    Iterator(Self * histogram):ConstIterator( histogram )
+      {
+      }
+
+    Iterator(InstanceIdentifier id, Self * histogram)
+        : ConstIterator( id, histogram )
+      {}
+
+    bool SetFrequency(const FrequencyType value)
+      {
+      Self * histogram = const_cast< Self * >( this->m_Histogram );
+      return histogram->SetFrequency( this->m_Id, value );
+      }
+
+    bool operator!=(const Iterator& it)
+      {
+      return this->ConstIterator::operator!=( it );
+      }
+
+    bool operator==(const Iterator& it)
+      {
+      return this->ConstIterator::operator==( it );
+      }
+
+    Iterator& operator=(const Iterator& it)
+      {
+      this->ConstIterator::operator=( it );
+      return *this;
+      }
+
+    Iterator(const Iterator& it):ConstIterator( it )
+      {
+      }
+
+    private:
+    }; // end of iterator class
+
 
   Iterator  Begin()
     {
