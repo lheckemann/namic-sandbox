@@ -682,6 +682,7 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     }
 
 
+  //
   // Testing exception cases in the GenerateData() method.
   //
   filter->SetHistogramSizeInput( NULL );
@@ -701,6 +702,29 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
     }
 
   filter->SetHistogramSizeInput( histogramSizeObject );
+
+  //
+  // Testing exception cases in the GenerateData() method.
+  //
+  filter->SetMarginalScaleInput( NULL );
+
+  std::cout << "GetMarginalScaleInput() =  " <<  filter->GetMarginalScaleInput() << std::endl;
+
+  try
+    {
+    filter->Update();
+    std::cerr << "Failure to throw expected exception ";
+    std::cerr << " due to NULL SetMarginalScaleInput()";
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cout << "Expected exception received" << std::endl;
+    }
+
+  marginalScaleObject1->Set( 100 );
+  filter->SetMarginalScaleInput( marginalScaleObject1 );
+
 
   try
     {
