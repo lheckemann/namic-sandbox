@@ -187,44 +187,26 @@ public:
   InstanceIdentifier Size() const;
 
   /** Get the size (N-dimensional) of the histogram  */
-  const SizeType & GetSize() const
-    {
-    return m_Size;
-    }
+  const SizeType & GetSize() const;
 
   /** Get the size of histogram along a specified dimension */
-  SizeValueType GetSize(unsigned int dimension) const
-    {
-    return m_Size[dimension];
-    }
+  SizeValueType GetSize(unsigned int dimension) const;
 
   /** Get the minimum value of nth bin of dimension d */
   const MeasurementType& GetBinMin(unsigned int dimension,
-                             InstanceIdentifier nbin) const
-    {
-    return m_Min[dimension][nbin];
-    }
+                             InstanceIdentifier nbin) const;
 
   /** Get the maximum value of nth bin of dimension d */
   const MeasurementType& GetBinMax(unsigned int dimension,
-                             InstanceIdentifier nbin) const
-    {
-    return m_Max[dimension][nbin];
-    }
+                             InstanceIdentifier nbin) const;
 
   /** Set the minimum value of nth bin of dimension d */
   void SetBinMin(unsigned int dimension, InstanceIdentifier nbin,
-                 MeasurementType min)
-    {
-    m_Min[dimension][nbin] = min;
-    }
+                 MeasurementType min);
 
   /** Set the maximum value of nth bin of dimension d */
   void SetBinMax(unsigned int dimension,
-                 InstanceIdentifier nbin, MeasurementType max)
-    {
-    m_Max[dimension][nbin] = max;
-    }
+                 InstanceIdentifier nbin, MeasurementType max);
 
   /** Get the minimum of the bin along dimension d corresponding to a
    * particular measurement. */
@@ -237,25 +219,16 @@ public:
                                       float value ) const;
 
   /** Get the vector of bin minimums along a dimension  */
-  const BinMinVectorType& GetDimensionMins(unsigned int dimension) const
-  { return m_Min[dimension]; }
+  const BinMinVectorType& GetDimensionMins(unsigned int dimension) const;
 
   /** Get the vector of maximums along a dimension  */
-  const BinMaxVectorType& GetDimensionMaxs(unsigned int dimension) const
-  {  return m_Max[dimension]; }
+  const BinMaxVectorType& GetDimensionMaxs(unsigned int dimension) const;
 
   /** Get the minimums of the bins  */
-  const BinMinContainerType& GetMins() const
-    {
-    return m_Min;
-    }
+  const BinMinContainerType& GetMins() const;
 
   /** Method the maximums of the bins  */
-  const BinMaxContainerType& GetMaxs() const
-    {
-    return m_Max;
-    }
-
+  const BinMaxContainerType& GetMaxs() const;
 
   /** Get the minimums of the bin corresponding to a particular index */
   const MeasurementVectorType & GetHistogramMinFromIndex(const IndexType &index) const;
@@ -264,10 +237,7 @@ public:
   const MeasurementVectorType& GetHistogramMaxFromIndex(const IndexType &index) const;
 
   /** Get the frequency of an instance indentifier */
-  FrequencyType GetFrequency( InstanceIdentifier id ) const
-    {
-    return m_FrequencyContainer->GetFrequency(id);
-    }
+  FrequencyType GetFrequency( InstanceIdentifier id ) const;
 
   /** Get the frequency of an index */
   FrequencyType GetFrequency(const IndexType &index) const;
@@ -277,10 +247,7 @@ public:
 
   /** Set the frequency of an instance identifier.  Returns false if the bin is
    * out of bounds. */
-  bool SetFrequency( InstanceIdentifier &id, FrequencyType value)
-    {
-    return m_FrequencyContainer->SetFrequency(id, value);
-    }
+  bool SetFrequency( InstanceIdentifier &id, FrequencyType value);
 
   /** Set the frequency of an index. Returns false if the bin is
    * out of bounds. */
@@ -296,17 +263,12 @@ public:
   /** Increase the frequency of an instance identifier.
    * Frequency is increased by the specified value. Returns false if
    * the bin is out of bounds. */
-  bool IncreaseFrequency(InstanceIdentifier id,
-                         FrequencyType value)
-    {
-    return m_FrequencyContainer->IncreaseFrequency(id, value);
-    }
+  bool IncreaseFrequency(InstanceIdentifier id, FrequencyType value);
 
   /** Increase the frequency of an index.  Frequency is
    * increased by the specified value. Returns false if the bin is out
    * of bounds. */
-  bool IncreaseFrequency(const IndexType &index,
-                         FrequencyType value);
+  bool IncreaseFrequency(const IndexType &index, FrequencyType value);
 
   /** Increase the frequency of a measurement.  Frequency is
    * increased by the specified value. Returns false if the

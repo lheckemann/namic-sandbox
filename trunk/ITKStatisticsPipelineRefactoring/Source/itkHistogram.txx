@@ -53,6 +53,135 @@ Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
 
 template< class TMeasurement, unsigned int VMeasurementVectorSize,
           class TFrequencyContainer>
+const typename 
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>::SizeType &
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
+::GetSize() const
+{
+  return m_Size;
+}
+
+template< class TMeasurement, unsigned int VMeasurementVectorSize,
+          class TFrequencyContainer>
+typename 
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>::SizeValueType
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
+::GetSize(unsigned int dimension) const
+{
+  return m_Size[dimension];
+}
+
+template< class TMeasurement, unsigned int VMeasurementVectorSize,
+          class TFrequencyContainer>
+const typename 
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>::MeasurementType &
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
+::GetBinMin(unsigned int dimension, InstanceIdentifier nbin) const
+{
+  return m_Min[dimension][nbin];
+}
+
+template< class TMeasurement, unsigned int VMeasurementVectorSize,
+          class TFrequencyContainer>
+const typename 
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>::MeasurementType &
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
+::GetBinMax(unsigned int dimension, InstanceIdentifier nbin) const
+{
+  return m_Max[dimension][nbin];
+}
+
+template< class TMeasurement, unsigned int VMeasurementVectorSize,
+          class TFrequencyContainer>
+void
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
+::SetBinMin( unsigned int dimension, InstanceIdentifier nbin,
+                 MeasurementType min)
+{
+  m_Min[dimension][nbin] = min;
+}
+
+template< class TMeasurement, unsigned int VMeasurementVectorSize,
+          class TFrequencyContainer>
+void
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
+::SetBinMax( unsigned int dimension, InstanceIdentifier nbin,
+                 MeasurementType max)
+{
+  m_Max[dimension][nbin] = max;
+}
+
+template< class TMeasurement, unsigned int VMeasurementVectorSize,
+          class TFrequencyContainer>
+const typename 
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>::BinMinVectorType &
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
+::GetDimensionMins(unsigned int dimension) const
+{
+  return m_Min[dimension];
+}
+
+template< class TMeasurement, unsigned int VMeasurementVectorSize,
+          class TFrequencyContainer>
+const typename 
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>::BinMaxVectorType &
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
+::GetDimensionMaxs(unsigned int dimension) const
+{
+  return m_Max[dimension];
+}
+
+template< class TMeasurement, unsigned int VMeasurementVectorSize,
+          class TFrequencyContainer>
+const typename 
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>::BinMinContainerType &
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
+::GetMins() const
+{
+  return m_Min;
+}
+
+template< class TMeasurement, unsigned int VMeasurementVectorSize,
+          class TFrequencyContainer>
+const typename 
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>::BinMaxContainerType &
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
+::GetMaxs() const
+{
+  return m_Max;
+}
+
+template< class TMeasurement, unsigned int VMeasurementVectorSize,
+          class TFrequencyContainer>
+typename 
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>::FrequencyType
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
+::GetFrequency( InstanceIdentifier id ) const
+{
+  return m_FrequencyContainer->GetFrequency(id);
+}
+
+template< class TMeasurement, unsigned int VMeasurementVectorSize,
+          class TFrequencyContainer>
+bool 
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
+::SetFrequency( InstanceIdentifier &id, FrequencyType value)
+{
+  return m_FrequencyContainer->SetFrequency(id, value);
+}
+
+template< class TMeasurement, unsigned int VMeasurementVectorSize,
+          class TFrequencyContainer>
+bool 
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
+::IncreaseFrequency(InstanceIdentifier id, FrequencyType value)
+{
+  return m_FrequencyContainer->IncreaseFrequency(id, value);
+}
+
+
+template< class TMeasurement, unsigned int VMeasurementVectorSize,
+          class TFrequencyContainer>
 void
 Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
 ::Initialize(const SizeType &size)
