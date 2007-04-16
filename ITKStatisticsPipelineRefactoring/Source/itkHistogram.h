@@ -356,7 +356,8 @@ protected:
 
 public:
 
-  /** Const Iterator class that walks through the elements of the histogram */
+  /** \class Histogram::ConstIterator class that walks through the elements of
+   * the histogram */
   class ConstIterator
     {
     public:
