@@ -297,12 +297,16 @@ int main(int argc, char* argv[]){
   //NRRDIO should do this, but we do it here as a work around
   
   //fill up bValue container with the scaling_bValue;
-  for(unsigned int i=0; i<gradientsPtr->Size() ;i++)
-    bValuesPtr->InsertElement(i, scaling_bValue);
-  //the first b value is zero for the non diffusion weighted image
-  //this matters in the calculations for the constrained model but not the tensor model
-  //since a gradient direction of all zeros handles it
-  bValuesPtr->SetElement( 0, 0.0);
+  for(unsigned int i=0; i<gradientsPtr->Size() ;i++){
+    if(gradientsPtr->GetElement(i).squared_magnitude() == 0){
+      bValuesPtr->InsertElement(i, 0);
+    }
+    else{
+      //this matters in the calculations for the constrained model but not the tensor model
+      //since a gradient direction of all zeros handles it
+      bValuesPtr->InsertElement(i, scaling_bValue);
+    }
+  }
   
   //setup the ROI image reader
   ROIImageReaderType::Pointer roireaderPtr = ROIImageReaderType::New();
