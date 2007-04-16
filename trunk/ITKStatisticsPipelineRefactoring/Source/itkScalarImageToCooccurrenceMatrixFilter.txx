@@ -117,11 +117,9 @@ GenerateData( void )
    static_cast< HistogramType * >( this->ProcessObject::GetOutput(0) );
 
   const ImageType *input = this->GetInput();
-
-  if( input == NULL )
-    {
-    itkExceptionMacro("Input image has not been set yet");
-    }
+  // At this point input must be non-NULL because the ProcessObject 
+  // checks the number of required input to be non-NULL pointers before
+  // calling this GenerateData() method.
 
   // First, create an appropriate histogram with the right number of bins
   // and mins and maxes correct for the image type.
