@@ -726,6 +726,55 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
   filter->SetMarginalScaleInput( marginalScaleObject1 );
 
 
+  //
+  // Testing exception cases in the GenerateData() method.
+  //
+
+  // First, force to use the minimum and maximum provided by the user.
+  filter->SetAutoMinimumMaximum( false ); 
+
+  filter->SetHistogramBinMinimumInput( NULL );
+
+  std::cout << "GetHistogramBinMinimumInput() =  " <<  filter->GetHistogramBinMinimumInput() << std::endl;
+
+  try
+    {
+    filter->Update();
+    std::cerr << "Failure to throw expected exception ";
+    std::cerr << " due to NULL SetHistogramBinMinimumInput()";
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cout << "Expected exception received" << std::endl;
+    }
+
+  histogramBinMinimumObject->Set( histogramBinMinimum1 );
+  filter->SetHistogramBinMinimumInput( histogramBinMinimumObject );
+
+  //
+  // Testing exception cases in the GenerateData() method.
+  //
+  filter->SetHistogramBinMaximumInput( NULL );
+
+  std::cout << "GetHistogramBinMaximumInput() =  " <<  filter->GetHistogramBinMaximumInput() << std::endl;
+
+  try
+    {
+    filter->Update();
+    std::cerr << "Failure to throw expected exception ";
+    std::cerr << " due to NULL SetHistogramBinMaximumInput()";
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cout << "Expected exception received" << std::endl;
+    }
+
+  histogramBinMaximumObject->Set( histogramBinMaximum1 );
+  filter->SetHistogramBinMaximumInput( histogramBinMaximumObject );
+
+
   try
     {
     filter->Update();
