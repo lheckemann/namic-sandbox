@@ -136,6 +136,27 @@ int itkSubsampleTest2(int argc, char *argv[] )
 
   std::cout << subSample2->GetSample() << std::endl;
 
+  typedef CascadedSubsampleType::Iterator IteratorType;
+
+  IteratorType iter = subSample2->Begin();
+  while( iter != subSample2->End() )
+    {
+    std::cout << iter.GetInstanceIdentifier() << " ";
+    std::cout << iter.GetMeasurementVector() << " ";
+    std::cout << iter.GetFrequency() << std::endl;
+    }
+
+  typedef CascadedSubsampleType::ConstIterator ConstIteratorType;
+
+  IteratorType citer = subSample2->Begin();
+  while( citer != subSample2->End() )
+    {
+    std::cout << citer.GetInstanceIdentifier() << " ";
+    std::cout << citer.GetMeasurementVector() << " ";
+    std::cout << citer.GetFrequency() << std::endl;
+    }
+
+
   return EXIT_SUCCESS; 
 }
 
