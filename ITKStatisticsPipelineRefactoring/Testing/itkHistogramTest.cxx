@@ -552,12 +552,46 @@ int itkHistogramTest(int, char* [] )
   typedef HistogramType::ConstIterator ConstIteratorType;
   ConstIteratorType iter = histogram->Begin();
   ConstIteratorType iter2;
+
   iter2 = iter;
+
   if( iter2 != iter )
     {
-    std::cerr << "ConstIterator operator=() failed" << std::endl;
+    std::cerr << "ConstIterator operator!=() or operator=() failed" << std::endl;
     return EXIT_FAILURE;
     }
+
+  if( !( iter2 == iter ) )
+    {
+    std::cerr << "ConstIterator operator==() failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  ConstIteratorType iter3( iter2 ); 
+  if( iter3 != iter2 )
+    {
+    std::cerr << "ConstIterator copy constructor failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  const HistogramType * constHistogram = histogram.GetPointer();
+
+  ConstIteratorType iter4( constHistogram->Begin() ); 
+  ConstIteratorType iter5( histogram->Begin() );
+  if( iter4 != iter5 )
+    {
+    std::cerr << "Constructor from const container Begin() differs from non-const Begin() " << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  ConstIteratorType iter6( constHistogram ); 
+  ConstIteratorType iter7( histogram );
+  if( iter6 != iter7 )
+    {
+    std::cerr << "Constructor from const container differs from non-const container" << std::endl;
+    return EXIT_FAILURE;
+    }
+
   }
 
 
