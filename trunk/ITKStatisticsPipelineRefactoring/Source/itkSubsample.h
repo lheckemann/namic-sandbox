@@ -135,18 +135,6 @@ public:
       return *this;
       }
     
-    ConstIterator& operator+(int n)
-      {
-      m_Iter += n;
-      return *this;
-      }
-    
-    ConstIterator& operator-(int n)
-      {
-      m_Iter -= n;
-      return *this;
-      }
-
     bool operator!=(const ConstIterator& it) 
       {
       return (m_Iter != it.m_Iter);
