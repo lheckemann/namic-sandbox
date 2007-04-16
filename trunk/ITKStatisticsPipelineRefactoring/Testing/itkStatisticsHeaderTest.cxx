@@ -28,6 +28,7 @@
 #include "itkHistogramToTextureFeaturesFilter.h"
 #include "itkHistogram.h"
 #include "itkSample.h"
+#include "itkSubsample.h"
 #include "itkMeanFilter.h"
 #include "itkWeightedMeanFilter.h"
 #include "itkImageToListSampleFilter.h"
