@@ -407,26 +407,6 @@ public:
       return histogram->SetFrequency( this->m_Id, value );
       }
 
-    bool operator!=(const Iterator& it)
-      {
-      return this->ConstIterator::operator!=( it );
-      }
-
-    bool operator==(const Iterator& it)
-      {
-      return this->ConstIterator::operator==( it );
-      }
-
-    Iterator& operator=(const Iterator& it)
-      {
-      this->ConstIterator::operator=( it );
-      return *this;
-      }
-
-    Iterator(const Iterator& it):ConstIterator( it )
-      {
-      }
-
     private:
     }; // end of iterator class
 
