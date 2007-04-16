@@ -102,10 +102,12 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
     {
     filter->Update();
     passed = false;
+    std::cerr << "Failed to throw expected exception due to NULL input: " << std::endl;
+    return EXIT_FAILURE;
     }
   catch ( itk::ExceptionObject & excp )
     {
-    std::cerr << "Exception caught: " << excp << std::endl;
+    std::cout << "Expected exception caught: " << excp << std::endl;
     }    
 
   filter->ResetPipeline();
@@ -115,7 +117,32 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
     passed = false;
     }
   
+
+  //Invoke update with a NULL input. An exception should be 
+  //thrown.
+  filter->SetInput( NULL );
+  try
+    {
+    filter->Update();
+    passed = false;
+    std::cerr << "Failed to throw expected exception due to NULL input: " << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cout << "Expected exception caught: " << excp << std::endl;
+    }    
+
+  filter->ResetPipeline();
+
+  if ( filter->GetInput() != NULL )
+    {
+    passed = false;
+    }
+  
+
   filter->SetInput(image);
+
   InputImageType::OffsetType offset1 = {{0, 1}};
   InputImageType::OffsetType offset2 = {{1, 0}};
   FilterType::OffsetVectorPointer offsetV = 
@@ -124,7 +151,13 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
   offsetV->push_back(offset2);
   
   filter->SetOffsets(offsetV);
+
+  
+
+
   filter->Update();
+
+
   const FilterType::HistogramType * hist = filter->GetOutput();
   
   //--------------------------------------------------------------------------
