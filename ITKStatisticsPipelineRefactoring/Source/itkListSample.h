@@ -124,82 +124,7 @@ public:
     return static_cast<TotalFrequencyType>( m_InternalContainer.size() );
     }
 
-  class ConstIterator;
-  class Iterator
-    {
-
-    friend class ConstIterator;
-
-    public:
-
-    Iterator(){}
-
-    Iterator(
-      typename InternalDataContainerType::iterator iter,
-      InstanceIdentifier iid)
-      {
-      m_Iter = iter;
-      m_InstanceIdentifier = iid;
-      }
-
-    FrequencyType GetFrequency() const
-      {
-      return 1;
-      }
-
-    const MeasurementVectorType & GetMeasurementVector() const
-      {
-      return (MeasurementVectorType&) *m_Iter;
-      }
-
-    InstanceIdentifier GetInstanceIdentifier() const
-      {
-      return m_InstanceIdentifier;
-      }
-
-    Iterator& operator++()
-      {
-      ++m_Iter;
-      ++m_InstanceIdentifier;
-      return *this;
-      }
-
-    Iterator& operator--()
-      {
-      --m_Iter;
-      --m_InstanceIdentifier;
-      return *this;
-      }
-
-    bool operator!=(const Iterator &it)
-      {
-      return (m_Iter != it.m_Iter);
-      }
-
-    bool operator==(const Iterator &it)
-      {
-      return (m_Iter == it.m_Iter);
-      }
-
-    Iterator& operator =(const Iterator & iter)
-      {
-      m_Iter = iter.m_Iter;
-      m_InstanceIdentifier = iter.m_InstanceIdentifier;
-      return *this;
-      }
-
-    Iterator(const Iterator &iter)
-      {
-      m_Iter = iter.m_Iter;
-      m_InstanceIdentifier = iter.m_InstanceIdentifier;
-      }
-
-    private:
-
-    typename InternalDataContainerType::iterator m_Iter;
-    InstanceIdentifier m_InstanceIdentifier;
-
-    };
+  class Iterator;
 
   class ConstIterator
     {
@@ -285,6 +210,43 @@ public:
     typename InternalDataContainerType::const_iterator m_Iter;
     InstanceIdentifier m_InstanceIdentifier;
     };
+
+  class Iterator : public ConstIterator
+    {
+
+  public:
+
+    Iterator(){}
+
+    Iterator(
+      typename InternalDataContainerType::iterator iter,
+      InstanceIdentifier iid):ConstIterator( iter, iid )
+      {
+      }
+
+    bool operator!=(const Iterator &it)
+      {
+      return this->ConstIterator::operator!=( it );
+      }
+
+    bool operator==(const Iterator &it)
+      {
+      return this->ConstIterator::operator==( it );
+      }
+
+    Iterator& operator =(const Iterator & iter)
+      {
+      this->ConstIterator::operator=( iter );
+      return *this;
+      }
+
+    Iterator(const Iterator &iter):ConstIterator( iter )
+      {
+      }
+
+    private:
+    };
+
 
   /** returns an iterator that points to the beginning of the container */
   Iterator Begin()
