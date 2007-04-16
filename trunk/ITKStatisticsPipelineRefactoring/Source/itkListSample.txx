@@ -28,6 +28,50 @@ ListSample< TMeasurementVector >
 {
 }
 
+template< class TMeasurementVector >
+void 
+ListSample< TMeasurementVector >
+::Resize( InstanceIdentifier newsize )
+{
+  this->m_InternalContainer.resize( newsize );
+}
+
+
+template< class TMeasurementVector >
+void 
+ListSample< TMeasurementVector >
+::Clear()
+{
+  this->m_InternalContainer.clear();
+}
+
+template< class TMeasurementVector >
+void 
+ListSample< TMeasurementVector >
+::PushBack( const MeasurementVectorType & mv )
+{
+  this->m_InternalContainer.push_back( mv );
+}
+
+template< class TMeasurementVector >
+typename ListSample< TMeasurementVector >::InstanceIdentifier
+ListSample< TMeasurementVector >
+::Size() const
+{
+  return static_cast<InstanceIdentifier>( 
+    this->m_InternalContainer.size() );
+}
+
+template< class TMeasurementVector >
+typename ListSample< TMeasurementVector >::TotalFrequencyType
+ListSample< TMeasurementVector >
+::GetTotalFrequency() const
+{
+  // Since the entries are unique, the total
+  // frequency is equal to the numbe of entries.
+  return this->Size();
+}
+
 
 template< class TMeasurementVector >
 const typename ListSample< TMeasurementVector >::MeasurementVectorType &

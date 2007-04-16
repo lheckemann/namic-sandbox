@@ -77,28 +77,16 @@ public:
    * this container, instead, it will throw exception. Therefore,
    * resize the container before using the sample in a Subsample or
    * MembershipSample. */
-  void Resize( InstanceIdentifier newsize )
-    {
-    m_InternalContainer.resize( newsize );
-    }
+  void Resize( InstanceIdentifier newsize );
 
   /** Removes all the elements in the Sample */
-  void Clear()
-    {
-    m_InternalContainer.clear();
-    }
+  void Clear();
 
   /** Inserts a measurement at the end of the list */
-  void PushBack( const MeasurementVectorType & mv )
-    {
-    m_InternalContainer.push_back( mv );
-    }
+  void PushBack( const MeasurementVectorType & mv );
 
   /** Get the number of measurement vectors in the sample */
-  InstanceIdentifier Size() const
-    {
-    return static_cast<InstanceIdentifier>( m_InternalContainer.size() );
-    }
+  InstanceIdentifier Size() const;
 
   /** Get the measurement associated with the specified
    * InstanceIdentifier */
@@ -119,10 +107,7 @@ public:
 
   /** Get the total frequency of the sample.  This is equivalent to
    * the size of the sample. */
-  TotalFrequencyType GetTotalFrequency() const
-    {
-    return static_cast<TotalFrequencyType>( m_InternalContainer.size() );
-    }
+  TotalFrequencyType GetTotalFrequency() const;
 
   class Iterator;
 
@@ -207,8 +192,9 @@ public:
       }
 
   private:
-    typename InternalDataContainerType::const_iterator m_Iter;
-    InstanceIdentifier m_InstanceIdentifier;
+    typedef typename InternalDataContainerType::const_iterator InternalIterator;
+    InternalIterator     m_Iter;
+    InstanceIdentifier   m_InstanceIdentifier;
     };
 
   class Iterator : public ConstIterator
