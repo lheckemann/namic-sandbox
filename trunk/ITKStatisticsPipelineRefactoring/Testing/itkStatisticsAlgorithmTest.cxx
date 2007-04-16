@@ -53,7 +53,7 @@ int itkStatisticsAlgorithmTest(int argc, char *argv[] )
     std::cerr << " MeasurementVectorType() has been set to zero" << std::endl;
     return EXIT_FAILURE;
     }
-  catch( itk::ExceptionObject & excp )
+  catch( itk::ExceptionObject & )
     {
     std::cout << "Got Expected exception" << std::endl;
     }
