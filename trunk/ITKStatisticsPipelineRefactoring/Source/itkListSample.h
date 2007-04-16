@@ -72,11 +72,13 @@ public:
   /** internal data container type */
   typedef std::vector< MeasurementVectorType > InternalDataContainerType;
 
-  /** Resize the container. If this sample is connected to a Subsample or
-   * MembershipSample, then this function won't change the size of
-   * this container, instead, it will throw exception. Therefore,
-   * resize the container before using the sample in a Subsample or
-   * MembershipSample. */
+  /** Resize the container. Using Resize() and then SetMeasurementVector() is
+   * about nine times faster than usign PushBack() continously. Which means that
+   * whenever the total number of Measurement vectors is known, the users
+   * should prefer calling Resize() first and then set the values by calling
+   * SetMeasurementVector(). On the other hand, if the number of measurement
+   * vectors is not known from the beginning, then calling PushBack()
+   * sequentially is a convenient option. */
   void Resize( InstanceIdentifier newsize );
 
   /** Removes all the elements in the Sample */
