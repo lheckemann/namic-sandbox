@@ -41,6 +41,7 @@ void RegisterTests()
   REGISTER_TEST(itkScalarImageToCooccurrenceMatrixFilterTest);
   REGISTER_TEST(itkSampleTest);
   REGISTER_TEST(itkSubsampleTest);
+  REGISTER_TEST(itkSubsampleTest2);
   REGISTER_TEST(itkStatisticsAlgorithmTest);
   REGISTER_TEST(itkWeightedMeanFilterTest);
 }
