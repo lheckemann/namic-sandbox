@@ -30,6 +30,7 @@ ADD_TEST(itkMeanFilterTest ${STATISTICS_TESTS} itkMeanFilterTest)
 ADD_TEST(itkMeasurementVectorTraitsTest ${STATISTICS_TESTS} itkMeasurementVectorTraitsTest)
 ADD_TEST(itkScalarImageToCooccurrenceMatrixFilterTest ${STATISTICS_TESTS} itkScalarImageToCooccurrenceMatrixFilterTest)
 ADD_TEST(itkSampleTest ${STATISTICS_TESTS} itkSampleTest)
+ADD_TEST(itkSubsampleTest ${STATISTICS_TESTS} itkSubsampleTest)
 ADD_TEST(itkStatisticsAlgorithmTest ${STATISTICS_TESTS} itkStatisticsAlgorithmTest)
 ADD_TEST(itkWeightedMeanFilterTest ${STATISTICS_TESTS} itkWeightedMeanFilterTest)
 
@@ -49,6 +50,7 @@ SET(Statistics_SRCS
   itkStatisticsPrintTest.cxx
   itkStatisticsAlgorithmTest.cxx
   itkSampleTest.cxx
+  itkSubsampleTest.cxx
   itkWeightedMeanFilterTest.cxx
   )
 

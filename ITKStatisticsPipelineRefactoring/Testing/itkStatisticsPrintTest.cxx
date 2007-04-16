@@ -25,6 +25,7 @@
 // #include "itkSample.h"   // abstract class
 #include "itkHistogram.h"
 #include "itkListSample.h"
+#include "itkSubsample.h"
 #include "itkListSampleToHistogramFilter.h"
 #include "itkImageToListSampleFilter.h"
 #include "itkScalarImageToCooccurrenceMatrixFilter.h"
@@ -42,6 +43,9 @@ int itkStatisticsPrintTest(int , char* [])
   typedef itk::Statistics::ListSample< MeasurementVectorType >
     SampleType;
 
+  typedef itk::Statistics::Subsample< SampleType >
+    SubSampleType;
+
   typedef itk::Statistics::Histogram< MeasurementType, 2 > HistogramType ;
 
   typedef itk::Statistics::ListSampleToHistogramFilter< 
@@ -58,6 +62,9 @@ int itkStatisticsPrintTest(int , char* [])
 
   SampleType::Pointer sampleObj = SampleType::New();
   std::cout << "----------ListSample " << sampleObj;
+
+  SubSampleType::Pointer subsampleObj = SubSampleType::New();
+  std::cout << "----------Subsample " << subsampleObj;
 
   HistogramType::Pointer HistogramObj=
     HistogramType::New();
