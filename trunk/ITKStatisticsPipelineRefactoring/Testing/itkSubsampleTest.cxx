@@ -112,11 +112,25 @@ int itkSubsampleTest(int, char* [] )
     std::cerr << "Expected Exception caught: " << excp << std::endl;
     }
 
-  typedef ImageToListSampleFilterType::MeasurementVectorType 
+  typedef SubsampleType::MeasurementVectorType 
                                                     MeasurementVectorType;
   try
     {
     MeasurementVectorType vec = subsample->GetMeasurementVector( idOutisdeRange ); 
+    std::cerr << "Exception should have been thrown since \
+      the id specified is outside the range of the sample container" << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Expected Exception caught: " << excp << std::endl;
+    }
+
+  typedef SubsampleType::FrequencyType            FrequencyType; 
+
+  try
+    {
+    FrequencyType frequency = subsample->GetFrequency( idOutisdeRange ); 
     std::cerr << "Exception should have been thrown since \
       the id specified is outside the range of the sample container" << std::endl;
     return EXIT_FAILURE;
