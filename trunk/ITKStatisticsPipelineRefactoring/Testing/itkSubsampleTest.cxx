@@ -150,6 +150,21 @@ int itkSubsampleTest(int, char* [] )
     std::cerr << "Expected Exception caught: " << excp << std::endl;
     }
 
+  // try swaping indices out of range
+  try
+    {
+    subsample->Swap( 2000000,50 ); 
+    std::cerr << "Exception should have been thrown since \
+      the indices specified to be swapped are outside the range\
+      of the sample container" << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Expected Exception caught: " << excp << std::endl;
+    }
+
+
   if ((totalSize / 2) != subsample->Size())
     {
       pass = false ;
