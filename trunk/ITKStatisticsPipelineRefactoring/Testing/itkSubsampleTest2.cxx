@@ -117,15 +117,7 @@ int itkSubsampleTest2(int argc, char *argv[] )
       }
     }
 
-  //exercise the GetInstanceIdentifier method
-  if ( subSample2->GetInstanceIdentifier( 0 ) != 0 ||
-       subSample2->GetInstanceIdentifier( 1 ) != 2 ||
-       subSample2->GetInstanceIdentifier( 2 ) != 4 )
-    {
-    std::cerr << "GetInstanceIdentifier() is not returning IDs that\
-                 are expected" << std::endl;
-    } 
-
+  //exercise the GetFrequencyByIndex method
   if ( subSample2->GetFrequencyByIndex( 0 ) != 1  ||  
        subSample2->GetFrequencyByIndex( 1 ) != 1  ||  
        subSample2->GetFrequencyByIndex( 2 ) != 1    )
@@ -243,14 +235,16 @@ int itkSubsampleTest2(int argc, char *argv[] )
     }
 
   IteratorType iter6( subSample2 );
-  for(unsigned int kk=0; kk<7; kk++ )
+  for(unsigned int kk=0; kk<3; kk++ )
     {
+    std::cout << "GetInstanceIdentifier() = " << iter6.GetInstanceIdentifier() << std::endl;
     ++iter6;
     }
 
-  if( iter6.GetInstanceIdentifier() != 7 )
+  if( iter6.GetInstanceIdentifier() != 3 )
     {
-    std::cerr << "Iterator Constructor with instance identifier 7 failed" << std::endl;
+    std::cerr << "Iterator Constructor with instance identifier 3 failed" << std::endl;
+    std::cerr << "identifier returned = " << iter6.GetInstanceIdentifier() << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -310,14 +304,14 @@ int itkSubsampleTest2(int argc, char *argv[] )
 
   
   ConstIteratorType iter9( subSample2 );
-  for(unsigned int kk=0; kk<7; kk++ )
+  for(unsigned int kk=0; kk<3; kk++ )
     {
     ++iter9;
     }
   
   std::cout << "Instance identifier = " << iter9.GetInstanceIdentifier() << std::endl;
   MeasurementVectorType vector9a = iter9.GetMeasurementVector();
-  MeasurementVectorType vector9b = subSample2->GetMeasurementVector( 7 );
+  MeasurementVectorType vector9b = subSample2->GetMeasurementVector( 3 );
   for( unsigned int kitr =0; kitr < measurementVectorSize; kitr++ )
     {
     if( vnl_math_abs( vector9b[kitr] - vector9a[kitr] ) )
