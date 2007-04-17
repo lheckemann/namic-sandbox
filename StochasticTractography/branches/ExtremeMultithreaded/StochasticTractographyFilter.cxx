@@ -441,22 +441,28 @@ int main(int argc, char* argv[]){
         ROITractIteratorType;
   
       for(int i=0; i<tractcontainer->Size(); i++ ){
+        PTFilterType::TractType::Pointer currtract = tractcontainer->GetElement(i);
         ROITractIteratorType roitractIt( roireaderPtr->GetOutput(),
-          tractcontainer->GetElement(i) );
+          currtract );
         
         for(roitractIt.GoToBegin(); !roitractIt.IsAtEnd(); ++roitractIt){
           if(roitractIt.Get() == endlabelnumber){
             double accumFA=0;
-            unsigned int voxelcount=0;
-            for(roitractIt.GoToBegin(); !roitractIt.IsAtEnd(); ++roitractIt){
-              voxelcount++;
+            unsigned int stepcount=0;
+            //integrate fa along length of tract
+            for(double t=0; t<currtract->EndOfInput(); t+=0.2){
+              stepcount++;
               //std::cout<<fafilter->GetOutput()->GetPixel(roitractIt.GetIndex())<<std::endl;
-              accumFA+=fafilter->GetOutput()->GetPixel(roitractIt.GetIndex());
-              conditionedcimagePtr->GetPixel(roitractIt.GetIndex())++;
+              accumFA+=fafilter->GetOutput()->GetPixel(currtract->EvaluateToIndex(t));
             }
             lengthcontainer->InsertElement( lengthcontainer->Size(),
               (unsigned int) tractcontainer->GetElement(i)->EndOfInput() );
-            facontainer->InsertElement( facontainer->Size(), accumFA/((double)voxelcount) );
+            facontainer->InsertElement( facontainer->Size(), accumFA/((double)stepcount) );
+ 
+            //color in the tracts
+            for(roitractIt.GoToBegin(); !roitractIt.IsAtEnd(); ++roitractIt){
+              conditionedcimagePtr->GetPixel(roitractIt.GetIndex())++;
+            }
             break;
           }
         }
