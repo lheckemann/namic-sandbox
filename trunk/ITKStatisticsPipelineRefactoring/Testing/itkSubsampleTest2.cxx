@@ -191,6 +191,169 @@ int itkSubsampleTest2(int argc, char *argv[] )
     }
 
 
+  //
+  // Additional iterator tests
+  //
+
+  // Testing methods specific to Iterators
+  {
+  typedef CascadedSubsampleType::Iterator IteratorType;
+  IteratorType iter = subSample2->Begin();
+  IteratorType iter2 = subSample2->End();
+
+  iter2 = iter;
+  if( iter2 != iter )
+    {
+    std::cerr << "Iterator operator=() failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  IteratorType iter3 = subSample2->Begin();
+  if( iter3 != subSample2->Begin() )
+    {
+    std::cerr << "Iterator constructor from sample failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  unsigned int counter = 0;
+  while( iter3 != subSample2->End() )
+    {
+    ++iter3;
+    counter++;
+    }
+
+  if( counter != subSample2->Size() )
+    {
+    std::cerr << "Iterator walk failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  IteratorType iter4( iter2 ); 
+  if( iter4 != iter2 )
+    {
+    std::cerr << "Iterator copy constructor failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  IteratorType iter5 = iter2; 
+  if( iter5 != iter2 )
+    {
+    std::cerr << "Iterator operator= failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  IteratorType iter6( subSample2 );
+  for(unsigned int kk=0; kk<7; kk++ )
+    {
+    ++iter6;
+    }
+
+  if( iter6.GetInstanceIdentifier() != 7 )
+    {
+    std::cerr << "Iterator Constructor with instance identifier 7 failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  }
+
+  // Testing methods specific to ConstIterators
+  {
+  typedef CascadedSubsampleType::ConstIterator ConstIteratorType;
+  ConstIteratorType iter = subSample2->Begin();
+  ConstIteratorType iter2 = subSample2->End();
+
+  iter2 = iter;
+
+  if( iter2 != iter )
+    {
+    std::cerr << "ConstIterator operator!=() or operator=() failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( !( iter2 == iter ) )
+    {
+    std::cerr << "ConstIterator operator==() failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  ConstIteratorType iter3( iter2 ); 
+  if( iter3 != iter2 )
+    {
+    std::cerr << "ConstIterator copy constructor failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  const CascadedSubsampleType * constSample = subSample2.GetPointer();
+
+  ConstIteratorType iter4( constSample->Begin() ); 
+  ConstIteratorType iter5( subSample2->Begin() );
+  if( iter4 != iter5 )
+    {
+    std::cerr << "Constructor from const container Begin() differs from non-const Begin() " << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  ConstIteratorType iter6( constSample ); 
+  ConstIteratorType iter7( subSample2 );
+  if( iter6 != iter7 )
+    {
+    std::cerr << "ConstIterator Constructor from const container differs from non-const container" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  ConstIteratorType iter8( subSample2 );
+  if( iter8.GetInstanceIdentifier() != 0 )
+    {
+    std::cerr << "Constructor with instance identifier 0 failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  
+  ConstIteratorType iter9( subSample2 );
+  for(unsigned int kk=0; kk<7; kk++ )
+    {
+    ++iter9;
+    }
+  
+  std::cout << "Instance identifier = " << iter9.GetInstanceIdentifier() << std::endl;
+  MeasurementVectorType vector9a = iter9.GetMeasurementVector();
+  MeasurementVectorType vector9b = subSample2->GetMeasurementVector( 7 );
+  for( unsigned int kitr =0; kitr < measurementVectorSize; kitr++ )
+    {
+    if( vnl_math_abs( vector9b[kitr] - vector9a[kitr] ) )
+      {
+      std::cerr << "Constructor with container followed by increments failed" << std::endl;
+      std::cerr << "Expected " << vector9b << std::endl;
+      std::cerr << "Received " << vector9a << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+  unsigned int counter = 0;
+  ConstIteratorType iter10( constSample );
+  if( iter10 != constSample->Begin() )
+    {
+    std::cerr << "ConstIterator constructor from sample failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  while( iter10 != constSample->End() )
+    {
+    ++iter10;
+    counter++;
+    }
+
+  if( counter != constSample->Size() )
+    {
+    std::cerr << "Iterator walk failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  }
+ 
+
+
   return EXIT_SUCCESS; 
 }
 

@@ -104,7 +104,6 @@ public:
 
   InstanceIdentifier GetInstanceIdentifier(int index) const;
   
-  class Iterator;
 
   class ConstIterator
     {
@@ -113,7 +112,43 @@ public:
              const Self* classSample)
       :m_Iter(iter), m_Subsample(classSample), m_Sample(classSample->m_Sample)
     {}
+
+    ConstIterator( const Self * sample )
+      {
+      *this = sample->Begin();
+      }
+
+    ConstIterator(const ConstIterator& iter)
+      {
+      m_Iter = iter.m_Iter;
+      m_Subsample = iter.m_Subsample;
+      m_Sample = iter.m_Sample;
+      }
+
+    ConstIterator& operator=(const ConstIterator& iter)
+      {
+      m_Iter = iter.m_Iter;
+      m_Subsample = iter.m_Subsample;
+      m_Sample = iter.m_Sample;
+      return *this;
+      }
+
+    bool operator!=(const ConstIterator& it) 
+      {
+      return (m_Iter != it.m_Iter);
+      }
     
+    bool operator==(const ConstIterator& it) 
+      { 
+      return (m_Iter == it.m_Iter);
+      }
+
+    ConstIterator& operator++() 
+      { 
+      ++m_Iter;
+      return *this;
+      }
+ 
     FrequencyType GetFrequency() const
       {
       return  m_Sample->GetFrequency(*m_Iter);
@@ -129,52 +164,6 @@ public:
       return *m_Iter;
       }
     
-    ConstIterator& operator++() 
-      { 
-      ++m_Iter;
-      return *this;
-      }
-    
-    bool operator!=(const ConstIterator& it) 
-      {
-      return (m_Iter != it.m_Iter);
-      }
-    
-    bool operator==(const ConstIterator& it) 
-      { 
-      return (m_Iter == it.m_Iter);
-      }
-    
-    ConstIterator& operator=(const ConstIterator& iter)
-      {
-      m_Iter = iter.m_Iter;
-      m_Subsample = iter.m_Subsample;
-      m_Sample = iter.m_Sample;
-      return *this;
-      }
-
-    ConstIterator& operator=(const Iterator& iter)
-      {
-      m_Iter = iter.m_Iter;
-      m_Subsample = iter.m_Subsample;
-      m_Sample = iter.m_Sample;
-      return *this;
-      }
-
-    ConstIterator(const ConstIterator& iter)
-      {
-      m_Iter = iter.m_Iter;
-      m_Subsample = iter.m_Subsample;
-      m_Sample = iter.m_Sample;
-      }
-
-    ConstIterator(const Iterator& iter)
-      {
-      m_Iter = iter.m_Iter;
-      m_Subsample = iter.m_Subsample;
-      m_Sample = iter.m_Sample;
-      }
-
   private:
     // ConstIterator pointing to ImageToListAdaptor
     typename InstanceIdentifierHolder::const_iterator m_Iter; 
@@ -192,6 +181,29 @@ public:
       :ConstIterator( iter, classSample )
       {}
     
+    Iterator(Self * sample):ConstIterator( sample )
+      {
+      }
+
+    Iterator(const Iterator &iter):ConstIterator( iter )
+      {
+      }
+
+    Iterator& operator =(const Iterator & iter)
+      {
+      this->ConstIterator::operator=( iter );
+      return *this;
+      }
+
+    protected:
+    // To ensure const-correctness these method must not be in the public API.
+    // The are purposly not implemented, since they should never be called.
+    Iterator(const Self * sample);
+    Iterator(typename InstanceIdentifierHolder::const_iterator iter, 
+             const Self* classSample);
+    Iterator(const ConstIterator & it);
+    ConstIterator& operator=(const ConstIterator& it);
+
 
   private:
   };
