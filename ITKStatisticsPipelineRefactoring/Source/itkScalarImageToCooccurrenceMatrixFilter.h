@@ -30,7 +30,8 @@ namespace Statistics {
 
 /** \class ScalarImageToCooccurrenceMatrixFilter 
 *  \brief This class computes a co-occurence matrix (histogram) from
-* a given image. Coocurrence matrces are used for image texture description.
+* a given image and a mask image if provided. Coocurrence matrces are
+* used for image texture description.
 *
 * This filters creates a grey-level co-occurence matrix from a N-D scalar
 * image. This is the first step in texture description a la Haralick. (See
@@ -151,14 +152,26 @@ public:
   void SetInput( const ImageType* image );
   const ImageType* GetInput() const;
 
+  /** Method to set/get the mask image */
+  void SetMaskImage( const ImageType* image );
+  const ImageType* GetMaskImage() const;
+
   /** method to get the Histogram */
   const HistogramType * GetOutput() const;
+
+  /** Set the pixel value of the mask that should be considered "inside" the 
+    object. Defaults to one. */
+  itkSetMacro( InsidePixelValue, PixelType );
+  itkGetMacro( InsidePixelValue, PixelType );
+
 
 protected:
   ScalarImageToCooccurrenceMatrixFilter();
   virtual ~ScalarImageToCooccurrenceMatrixFilter() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
   virtual void FillHistogram( RadiusType radius, RegionType region );
+  virtual void FillHistogramWithMask( RadiusType radius, RegionType region, const ImageType * maskImage );
+
    
   /** Standard itk::ProcessObject subclass method. */
   typedef DataObject::Pointer DataObjectPointer;
@@ -178,6 +191,8 @@ private:
   MeasurementVectorType   m_LowerBound;
   MeasurementVectorType   m_UpperBound;
   bool                    m_Normalize;
+
+  PixelType               m_InsidePixelValue;
 
 };
     
