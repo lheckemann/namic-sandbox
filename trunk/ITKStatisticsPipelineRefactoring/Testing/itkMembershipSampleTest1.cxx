@@ -19,6 +19,7 @@
 #endif
 
 #include <iostream>
+#include "itkListSample.h"
 #include "itkMembershipSample.h"
 
 int itkMembershipSampleTest1(int, char* [] )
@@ -26,9 +27,44 @@ int itkMembershipSampleTest1(int, char* [] )
 
   const unsigned int MeasurementVectorSize = 17;
 
+  const unsigned int numberOfClasses1 = 5;
+  const unsigned int numberOfClasses2 = 19;
+
   typedef itk::FixedArray< 
     float, MeasurementVectorSize >  MeasurementVectorType;
 
+  typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
 
+  typedef itk::Statistics::MembershipSample< SampleType >   MembershipSampleType;
+
+  SampleType::Pointer sample = SampleType::New();
+
+
+  MembershipSampleType::Pointer membershipSample = MembershipSampleType::New();
+
+  membershipSample->SetSample( sample );
+
+  if( membershipSample->GetSample() != sample )
+    {
+    std::cerr << "SetSample() / GetSample() failed " << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  membershipSample->SetNumberOfClasses( numberOfClasses1 );
+  if( membershipSample->GetNumberOfClasses() != numberOfClasses1 )
+    {
+    std::cerr << "SetNumberOfClasses() / GetNumberOfClasses() 1 failed " << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  // Check that it can be changed...
+  membershipSample->SetNumberOfClasses( numberOfClasses2 );
+  if( membershipSample->GetNumberOfClasses() != numberOfClasses2 )
+    {
+    std::cerr << "SetNumberOfClasses() / GetNumberOfClasses() 2 failed " << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  std::cout << "Test Passed !" << std::endl;
   return EXIT_SUCCESS;
 }

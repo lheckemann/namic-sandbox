@@ -62,11 +62,13 @@ public:
   
   /** Typedefs for Measurement vector, measurement, Instance Identifier, 
    * frequency, size, size element value from the template argument TSample*/
-  typedef typename TSample::MeasurementVectorType MeasurementVectorType;
-  typedef typename TSample::MeasurementType       MeasurementType;
-  typedef typename TSample::InstanceIdentifier    InstanceIdentifier;
-  typedef typename TSample::FrequencyType         FrequencyType;
-  typedef typename TSample::TotalFrequencyType    TotalFrequencyType;
+  typedef TSample                                    SampleType;
+  typedef typename SampleType::MeasurementVectorType MeasurementVectorType;
+  typedef typename SampleType::MeasurementType       MeasurementType;
+  typedef typename SampleType::InstanceIdentifier    InstanceIdentifier;
+  typedef typename SampleType::FrequencyType         FrequencyType;
+  typedef typename SampleType::TotalFrequencyType    TotalFrequencyType;
+  typedef typename SampleType::ConstPointer          SampleConstPointer;
   
   
   /** vector of unique class labels that will be used for mapping internal
@@ -79,16 +81,14 @@ public:
   
   /** Typedef for each subsample that stores instance identifers of instances
    * that belong to a class */
-  typedef Subsample< TSample >                      ClassSampleType;
+  typedef Subsample< SampleType >                   ClassSampleType;
   typedef typename ClassSampleType::Pointer         ClassSamplePointer;
   typedef typename ClassSampleType::ConstPointer    ClassSampleConstPointer;
   
-  /** Plug in the actual sample data */
-  void SetSample( const TSample* sample );
+  /** Set/Get the actual sample data */
+  itkSetConstObjectMacro( Sample, SampleType );
+  itkGetConstObjectMacro( Sample, SampleType );
 
-  /** Returns the source sample pointer */
-  const TSample* GetSample() const;
-  
   /** Sets the number of classes (class labels) */
   void SetNumberOfClasses(unsigned int numberOfClasses);
   
@@ -105,7 +105,7 @@ private:
   MembershipSample(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  const TSample*                  m_Sample;
+  SampleConstPointer              m_Sample;
   unsigned int                    m_NumberOfClasses;
 
 }; // end of class
