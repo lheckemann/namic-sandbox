@@ -103,6 +103,8 @@ int itkCovarianceFilterTest(int, char* [] )
     std::cerr << "Exception caught: " << excp << std::endl;
     }    
 
+  covarianceFilter->ResetPipeline();
+
   if ( covarianceFilter->GetInput() != NULL )
     {
     std::cerr << "GetInput() should return NULL if the input \
@@ -111,7 +113,6 @@ int itkCovarianceFilterTest(int, char* [] )
     }
 
   covarianceFilter->SetInput( sampleGeneratingFilter->GetOutput() ) ;
-
   try
     {
     covarianceFilter->Update();
