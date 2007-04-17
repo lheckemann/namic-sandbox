@@ -85,7 +85,7 @@ template< class TInputDWIImage, class TInputMaskImage, class TOutputConnectivity
 void
 StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivityImage >
 ::UpdateTensorModelFittingMatrices( void ){
-  std::cout<<"UpdateTensorFittingMatrix\n";
+  //std::cout<<"UpdateTensorFittingMatrix\n";
   //estimate the parameters using linear LS estimation
   //using convention specified by Salvador
   //solve for Beta in: logPhi=X*Beta

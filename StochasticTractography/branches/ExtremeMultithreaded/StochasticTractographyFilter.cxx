@@ -168,6 +168,7 @@ int main(int argc, char* argv[]){
   
   //define reader and writer
   typedef itk::ImageFileReader< DWIVectorImageType > DWIVectorImageReaderType;
+  typedef itk::ImageFileReader< MaskImageType > MaskImageReaderType;
   typedef itk::ImageFileReader< ROIImageType > ROIImageReaderType;
   typedef itk::ImageFileWriter< CImageType > CImageWriterType;
   typedef itk::ImageFileWriter< MaskImageType > MaskImageWriterType;
@@ -313,6 +314,10 @@ int main(int argc, char* argv[]){
   roireaderPtr->SetFileName(roifilename);
   roireaderPtr->Update();
   
+  //setup the Mask image reader
+  MaskImageReaderType::Pointer maskreader = MaskImageReaderType::New();
+  maskreader->SetFileName(maskfilename);
+  maskreader->Update();
   /*
   //set list of directions
   typedef PTFilterType::TractOrientationContainerType TOCType;
@@ -335,21 +340,22 @@ int main(int argc, char* argv[]){
   
   //Create a default Mask Image which 
   //excludes DWI pixels which contain values that are zero
-  ExcludeZeroDWIFilterType::Pointer ezdwifilter = ExcludeZeroDWIFilterType::New();
-  ezdwifilter->SetInput( dwireaderPtr->GetOutput() );
-  std::cout<<"Start mask image\n";  
+  //ExcludeZeroDWIFilterType::Pointer ezdwifilter = ExcludeZeroDWIFilterType::New();
+  //ezdwifilter->SetInput( dwireaderPtr->GetOutput() );
+  //std::cout<<"Start mask image\n";  
   //write out the mask image
-  MaskImageWriterType::Pointer maskwriterPtr = MaskImageWriterType::New();
-  maskwriterPtr->SetInput( ezdwifilter->GetOutput() );
-  maskwriterPtr->SetFileName( "maskimage.nhdr" );
-  maskwriterPtr->Update();
-  std::cout<<"Finish the mask image\n";
-
+  //MaskImageWriterType::Pointer maskwriterPtr = MaskImageWriterType::New();
+  //maskwriterPtr->SetInput( ezdwifilter->GetOutput() );
+  //maskwriterPtr->SetFileName( "maskimage.nhdr" );
+  //maskwriterPtr->Update();
+  //std::cout<<"Finish the mask image\n";
+  
   std::cout<<"Create PTFilter\n";
   //Setup the PTFilter
   PTFilterType::Pointer ptfilterPtr = PTFilterType::New();
   ptfilterPtr->SetInput( dwireaderPtr->GetOutput() );
-  ptfilterPtr->SetMaskImageInput( ezdwifilter->GetOutput() );
+  //ptfilterPtr->SetMaskImageInput( ezdwifilter->GetOutput() );
+  ptfilterPtr->SetMaskImageInput( maskreader->GetOutput() );
   ptfilterPtr->SetbValues(bValuesPtr);
   ptfilterPtr->SetGradients( gradientsPtr );
   ptfilterPtr->SetMeasurementFrame( measurement_frame );
@@ -371,6 +377,10 @@ int main(int argc, char* argv[]){
   //Setup the FA container to hold FA values for tracts of interest
   typedef itk::VectorContainer< unsigned int, double > FAContainerType;
   FAContainerType::Pointer facontainer = FAContainerType::New();
+  
+  //Setup the length container to hold lengths for tracts of interest
+  typedef itk::VectorContainer< unsigned int, unsigned int > LengthContainerType;
+  LengthContainerType::Pointer lengthcontainer = LengthContainerType::New();
   
   //Setup the AddImageFilter
   AddImageFilterType::Pointer addimagefilterPtr = AddImageFilterType::New();
@@ -409,6 +419,7 @@ int main(int argc, char* argv[]){
       //WriteTractContainerToFile( filename, ptfilterPtr->GetOutputTractContainer() );
       addimagefilterPtr->Update();
       
+      std::cout<<"Calculate Statistics\n";
       //calculate the FA stats for tracts which pass through a second ROI
       PTFilterType::TractContainerType::Pointer tractcontainer = 
         ptfilterPtr->GetOutputTractContainer();
@@ -430,7 +441,9 @@ int main(int argc, char* argv[]){
               accumFA+=fafilter->GetOutput()->GetPixel(roitractIt.GetIndex());
               conditionedcimagePtr->GetPixel(roitractIt.GetIndex())++;
             }
+            lengthcontainer->InsertElement( lengthcontainer->Size(), voxelcount );
             facontainer->InsertElement( facontainer->Size(), accumFA/((double)voxelcount) );
+            break;
           }
         }
       }
@@ -475,5 +488,9 @@ int main(int argc, char* argv[]){
   sprintf( fafilename, "CONDFA_Values.txt" );
   WriteScalarContainerToFile< FAContainerType >( fafilename, facontainer );
   
+  //Write out tract length container
+  char lengthfilename[30];
+  sprintf( lengthfilename, "CONDLENGTH_Values.txt" );
+  WriteScalarContainerToFile< LengthContainerType >( lengthfilename, lengthcontainer );
   return EXIT_SUCCESS;
 }
