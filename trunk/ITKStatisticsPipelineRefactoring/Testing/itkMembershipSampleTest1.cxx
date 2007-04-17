@@ -64,6 +64,12 @@ int itkMembershipSampleTest1(int, char* [] )
     std::cerr << "SetNumberOfClasses() / GetNumberOfClasses() 2 failed " << std::endl;
     return EXIT_FAILURE;
     }
+ 
+
+  //
+  // Exercise the Print() method
+  //
+  membershipSample->Print( std::cout );
 
   std::cout << "Test Passed !" << std::endl;
   return EXIT_SUCCESS;
