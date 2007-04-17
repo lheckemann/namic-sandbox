@@ -101,11 +101,8 @@ public:
 
   class ConstIterator
     {
-  public:
-    ConstIterator(typename InstanceIdentifierHolder::const_iterator iter, 
-             const Self* classSample)
-      :m_Iter(iter), m_Subsample(classSample), m_Sample(classSample->m_Sample)
-    {}
+    friend class Subsample;
+    public:
 
     ConstIterator( const Self * sample )
       {
@@ -158,22 +155,32 @@ public:
       return ( m_Iter - m_Subsample->m_IdHolder.begin() );
       }
     
-  private:
+    protected:
+    // Purposely not implemented
+    ConstIterator();
+
+    // Only to be called from the Subsample
+    ConstIterator(typename InstanceIdentifierHolder::const_iterator iter, 
+             const Self* classSample)
+      :m_Iter(iter), m_Subsample(classSample), m_Sample(classSample->m_Sample)
+    {}
+
     // ConstIterator pointing to ImageToListAdaptor
     typename InstanceIdentifierHolder::const_iterator m_Iter; 
 
     // Pointer to Subsample object
     const Self*    m_Subsample;
     const TSample* m_Sample;
+
+    private:
+
   };
 
   class Iterator: public ConstIterator
     {
-  public:
-    Iterator(typename InstanceIdentifierHolder::iterator iter, 
-             Self* classSample)
-      :ConstIterator( iter, classSample )
-      {}
+    friend class Subsample;
+
+    public:
     
     Iterator(Self * sample):ConstIterator( sample )
       {
@@ -189,14 +196,27 @@ public:
       return *this;
       }
 
+    bool SetFrequency( const FrequencyType value )
+      {
+      Self * sample = const_cast< Self * >( this->m_Subsample );
+      return sample->SetFrequency( this->GetInstanceIdentifier(), value );
+      }
+
     protected:
     // To ensure const-correctness these method must not be in the public API.
     // The are purposly not implemented, since they should never be called.
+    Iterator();
     Iterator(const Self * sample);
     Iterator(typename InstanceIdentifierHolder::const_iterator iter, 
              const Self* classSample);
     Iterator(const ConstIterator & it);
     ConstIterator& operator=(const ConstIterator& it);
+
+    // Only to be called from the Subsample
+    Iterator(typename InstanceIdentifierHolder::iterator iter, 
+             Self* classSample)
+      :ConstIterator( iter, classSample )
+      {}
 
 
   private:
