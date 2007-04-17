@@ -323,7 +323,11 @@ public:
   class ConstIterator
     {
     public:
-    ConstIterator(){};
+    ConstIterator()
+      {
+      m_Id = 0;
+      m_Histogram = NULL;
+      };
 
     ConstIterator(const Self * histogram)
       {
@@ -334,6 +338,19 @@ public:
     ConstIterator(InstanceIdentifier id, const Self * histogram)
       : m_Id(id), m_Histogram(histogram)
       {}
+
+    ConstIterator(const ConstIterator & it)
+      {
+      m_Id        = it.m_Id;
+      m_Histogram = it.m_Histogram;
+      }
+
+    ConstIterator& operator=(const ConstIterator& it)
+      {
+      m_Id  = it.m_Id;
+      m_Histogram = it.m_Histogram;
+      return *this;
+      }
 
     FrequencyType GetFrequency() const
       {
@@ -364,19 +381,6 @@ public:
     bool operator==(const ConstIterator& it)
       {
       return (m_Id == it.m_Id);
-      }
-
-    ConstIterator& operator=(const ConstIterator& it)
-      {
-      m_Id  = it.m_Id;
-      m_Histogram = it.m_Histogram;
-      return *this;
-      }
-
-    ConstIterator(const ConstIterator & it)
-      {
-      m_Id        = it.m_Id;
-      m_Histogram = it.m_Histogram;
       }
 
   protected:
