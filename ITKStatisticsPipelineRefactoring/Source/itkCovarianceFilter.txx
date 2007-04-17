@@ -114,6 +114,8 @@ CovarianceFilter< TSample >
   MeasurementVectorType diff;
   MeasurementVectorType measurements;
 
+  std::cout << "Output1: " << output << std::endl;
+
   // fills the lower triangle and the diagonal cells in the covariance matrix
   while (iter != end)
     {
@@ -144,6 +146,8 @@ CovarianceFilter< TSample >
     ++iter;
     }
 
+  std::cout << "Output2: " << output << std::endl;
+
   // fills the upper triangle using the lower triangle  
   for (row = 1; row < measurementVectorSize; row++)
     {
@@ -154,7 +158,11 @@ CovarianceFilter< TSample >
       } 
     }
 
+  std::cout << "Output3: " << output << std::endl;
+
   output /= ( totalFrequency - 1.0 );
+
+  decoratedOutput->Set( output );
 }
 
 
