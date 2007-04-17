@@ -160,13 +160,6 @@ public:
       return *this;
       }
 
-    ConstIterator& operator--()
-      {
-      --m_Iter;
-      --m_InstanceIdentifier;
-      return *this;
-      }
-
     bool operator!=(const ConstIterator &it)
       {
       return (m_Iter != it.m_Iter);
