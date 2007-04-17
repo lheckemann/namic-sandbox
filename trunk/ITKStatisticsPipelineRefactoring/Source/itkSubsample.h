@@ -196,12 +196,6 @@ public:
       return *this;
       }
 
-    bool SetFrequency( const FrequencyType value )
-      {
-      Self * sample = const_cast< Self * >( this->m_Subsample );
-      return sample->SetFrequency( this->GetInstanceIdentifier(), value );
-      }
-
     protected:
     // To ensure const-correctness these method must not be in the public API.
     // The are purposly not implemented, since they should never be called.
