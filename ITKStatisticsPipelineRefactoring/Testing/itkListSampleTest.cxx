@@ -166,31 +166,6 @@ int itkListSampleTest(int argc, char *argv[] )
     return EXIT_FAILURE;    
     }
   
-  // backwards iterator
-  do 
-    {
-    --s_iter;
-    --id;
-    if (sample->GetMeasurementVector(id) != 
-        s_iter.GetMeasurementVector())
-      {
-      std::cerr << "Iterator::GetMeasurementVector (backward) failed" 
-                << std::endl;
-      return EXIT_FAILURE;
-      }
-    if (id != s_iter.GetInstanceIdentifier())
-      {
-      std::cerr << "Iterator::GetInstanceIdentifier (backward) failed" 
-                << std::endl;
-      return EXIT_FAILURE;
-      }      
-    } while (!(s_iter == sample->Begin())); // explicitly test ==
-      
-  if (!(s_iter == sample->Begin()))
-    {
-    std::cerr << "Iterator::Begin (backward) failed" << std::endl;
-    return EXIT_FAILURE;    
-    }
   }
 
 // ConstIterator test
@@ -268,31 +243,6 @@ int itkListSampleTest(int argc, char *argv[] )
     return EXIT_FAILURE;    
     }
   
-  // backwards iterator
-  do 
-    {
-    --s_iter;
-    --id;
-    if (sample->GetMeasurementVector(id) != 
-        s_iter.GetMeasurementVector())
-      {
-      std::cerr << "Iterator::GetMeasurementVector (backward) failed" 
-                << std::endl;
-      return EXIT_FAILURE;
-      }
-    if (id != s_iter.GetInstanceIdentifier())
-      {
-      std::cerr << "Iterator::GetInstanceIdentifier (backward) failed" 
-                << std::endl;
-      return EXIT_FAILURE;
-      }      
-    } while (!(s_iter == sample->Begin())); // explicitly test ==
-      
-  if (!(s_iter == sample->Begin()))
-    {
-    std::cerr << "Iterator::Begin (backward) failed" << std::endl;
-    return EXIT_FAILURE;    
-    }
   }
 
 
