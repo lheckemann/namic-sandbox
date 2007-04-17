@@ -405,6 +405,16 @@ public:
         : ConstIterator( id, histogram )
       {}
 
+    Iterator(const Iterator & it):ConstIterator(it)
+      {
+      }
+
+    Iterator & operator=(const Iterator& it)
+      {
+      this->ConstIterator::operator=( it );
+      return *this;
+      }
+
     bool SetFrequency(const FrequencyType value)
       {
       Self * histogram = const_cast< Self * >( this->m_Histogram );

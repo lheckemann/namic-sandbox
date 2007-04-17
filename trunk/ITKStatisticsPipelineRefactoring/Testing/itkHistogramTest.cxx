@@ -576,6 +576,28 @@ int itkHistogramTest(int, char* [] )
     std::cerr << "Iterator walk failed" << std::endl;
     return EXIT_FAILURE;
     }
+
+  IteratorType iter4( iter2 ); 
+  if( iter4 != iter2 )
+    {
+    std::cerr << "Iterator copy constructor failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  IteratorType iter5 = iter2; 
+  if( iter5 != iter2 )
+    {
+    std::cerr << "Iterator operator= failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  IteratorType iter6( 7, histogram );
+  if( iter6.GetInstanceIdentifier() != 7 )
+    {
+    std::cerr << "Iterator Constructor with instance identifier 7 failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
   }
 
   // Testing methods specific to ConstIterators
@@ -625,7 +647,7 @@ int itkHistogramTest(int, char* [] )
   ConstIteratorType iter7( histogram );
   if( iter6 != iter7 )
     {
-    std::cerr << "Constructor from const container differs from non-const container" << std::endl;
+    std::cerr << "ConstIterator Constructor from const container differs from non-const container" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -639,7 +661,7 @@ int itkHistogramTest(int, char* [] )
   ConstIteratorType iter9( 7, histogram );
   if( iter9.GetInstanceIdentifier() != 7 )
     {
-    std::cerr << "Constructor with instance identifier 7 failed" << std::endl;
+    std::cerr << "ConstIterator Constructor with instance identifier 7 failed" << std::endl;
     return EXIT_FAILURE;
     }
 
