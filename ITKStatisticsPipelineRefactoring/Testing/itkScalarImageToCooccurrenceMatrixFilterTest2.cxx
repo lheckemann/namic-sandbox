@@ -197,7 +197,13 @@ int itkScalarImageToCooccurrenceMatrixFilterTest2(int, char* [] )
     otF  << ", " << toF  << ", " << totalF << std::endl << std::endl;
     passed = false;
     }
-  
+ 
+  if ( filter->GetInsidePixelValue() != 0 )
+    {
+    std::cerr << "Error: " << std::endl;
+    std::cerr << "GetInsidePixelValue() is not returning the expected value" << std::endl;
+    passed = false;
+    } 
   
   //--------------------------------------------------------------------------
   // Generate the histogram with no mask. The un-normalized, un-masked histogram
