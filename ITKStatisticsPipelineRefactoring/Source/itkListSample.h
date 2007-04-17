@@ -111,21 +111,37 @@ public:
    * the size of the sample. */
   TotalFrequencyType GetTotalFrequency() const;
 
-  class Iterator;
 
+  /** \class ListSample::ConstIterator */
   class ConstIterator
     {
-  public:
+    friend class ListSample;
 
-    ConstIterator(){}
+    public:
 
-    ConstIterator(
-      typename InternalDataContainerType::const_iterator iter,
-      InstanceIdentifier iid)
+    ConstIterator()
       {
-      m_Iter = iter;
-      m_InstanceIdentifier = iid;
+      m_InstanceIdentifier = 0;
       }
+
+    ConstIterator( const ListSample * sample )
+      {
+      *this = sample->Begin();
+      }
+
+    ConstIterator(const ConstIterator &iter)
+      {
+      m_Iter = iter.m_Iter;
+      m_InstanceIdentifier = iter.m_InstanceIdentifier;
+      }
+
+    ConstIterator& operator=( const ConstIterator & iter )
+      {
+      m_Iter = iter.m_Iter;
+      m_InstanceIdentifier = iter.m_InstanceIdentifier;
+      return *this;
+      }
+
 
     FrequencyType GetFrequency() const
       {
@@ -166,45 +182,32 @@ public:
       return (m_Iter == it.m_Iter);
       }
 
-    ConstIterator& operator = (const ConstIterator iter)
-      {
-      m_Iter = iter.m_Iter;
-      m_InstanceIdentifier = iter.m_InstanceIdentifier;
-      return *this;
-      }
-
-    ConstIterator& operator = (const Iterator & iter)
-      {
-      m_Iter = iter.m_Iter;
-      m_InstanceIdentifier = iter.m_InstanceIdentifier;
-      return *this;
-      }
-
-
-    ConstIterator(const ConstIterator &iter)
-      {
-      m_Iter = iter.m_Iter;
-      m_InstanceIdentifier = iter.m_InstanceIdentifier;
-      }
-
-    ConstIterator(const Iterator &iter)
-      {
-      m_Iter = iter.m_Iter;
-      m_InstanceIdentifier = iter.m_InstanceIdentifier;
-      }
 
   private:
     typedef typename InternalDataContainerType::const_iterator InternalIterator;
     InternalIterator     m_Iter;
     InstanceIdentifier   m_InstanceIdentifier;
+
+    // This method should only be available to the ListSample class
+    ConstIterator(
+      typename InternalDataContainerType::const_iterator iter,
+      InstanceIdentifier iid)
+      {
+      m_Iter = iter;
+      m_InstanceIdentifier = iid;
+      }
+
     };
 
+  /** \class ListSample::Iterator */
   class Iterator : public ConstIterator
     {
-
-  public:
-
+    public:
     Iterator(){}
+
+    Iterator(Self * sample):ConstIterator(sample)
+      {
+      }
 
     Iterator(
       typename InternalDataContainerType::iterator iter,
@@ -212,14 +215,8 @@ public:
       {
       }
 
-    bool operator!=(const Iterator &it)
+    Iterator(const Iterator &iter):ConstIterator( iter )
       {
-      return this->ConstIterator::operator!=( it );
-      }
-
-    bool operator==(const Iterator &it)
-      {
-      return this->ConstIterator::operator==( it );
       }
 
     Iterator& operator =(const Iterator & iter)
@@ -228,9 +225,13 @@ public:
       return *this;
       }
 
-    Iterator(const Iterator &iter):ConstIterator( iter )
-      {
-      }
+    protected:
+    // To ensure const-correctness these method must not be in the public API.
+    // The are purposly not implemented, since they should never be called.
+    Iterator(const Self * sample);
+    Iterator( typename InternalDataContainerType::const_iterator iter, InstanceIdentifier iid);
+    Iterator(const ConstIterator & it);
+    ConstIterator& operator=(const ConstIterator& it);
 
     private:
     };
