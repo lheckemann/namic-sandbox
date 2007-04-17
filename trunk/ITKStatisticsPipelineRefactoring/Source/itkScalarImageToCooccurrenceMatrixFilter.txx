@@ -42,6 +42,9 @@ ScalarImageToCooccurrenceMatrixFilter()
   m_Min = NumericTraits<PixelType>::min();
   m_Max = NumericTraits<PixelType>::max();
 
+  //mask inside pixel value
+  m_InsidePixelValue = NumericTraits<PixelType>::One;
+
   m_NumberOfBinsPerAxis = DefaultBinsPerAxis; 
   m_Normalize = false;
 }
@@ -82,6 +85,21 @@ THistogramFrequencyContainer >
   return static_cast<const ImageType * >
     (this->ProcessObject::GetInput(0) );
 }  
+
+template< class TImageType, class THistogramFrequencyContainer >
+const TImageType* 
+ScalarImageToCooccurrenceMatrixFilter< TImageType,
+THistogramFrequencyContainer >
+::GetMaskImage() const
+{
+  if (this->GetNumberOfInputs() < 2)
+    {
+    return 0;
+    }
+  
+  return static_cast<const ImageType * >
+    (this->ProcessObject::GetInput(1) );
+}
 
 template< class TImageType, class THistogramFrequencyContainer >
 const typename ScalarImageToCooccurrenceMatrixFilter< TImageType,
@@ -144,9 +162,25 @@ GenerateData( void )
   
   RadiusType radius;
   radius.Fill(minRadius);
+ 
+  const ImageType *maskImage = NULL;
   
+  // Check if a mask image has been provided
+  // 
+  if (this->GetNumberOfInputs() > 1)
+    {
+    maskImage = this->GetMaskImage();
+    }
+
   // Now fill in the histogram
-  this->FillHistogram(radius, input->GetRequestedRegion());
+  if ( maskImage != NULL )
+    {  
+    this->FillHistogramWithMask(radius, input->GetRequestedRegion(), maskImage );
+    }
+  else
+    {
+    this->FillHistogram(radius, input->GetRequestedRegion());
+    }
   
   // Normalizse the histogram if requested
   if(m_Normalize)
@@ -199,6 +233,83 @@ FillHistogram(RadiusType radius, RegionType region)
       
       if (pixelIntensity < m_Min || 
           pixelIntensity > m_Max)
+        {
+        continue; // don't put a pixel in the histogram if the value
+                  // is out-of-bounds.
+        }
+      
+      // Now make both possible co-occurrence combinations and increment the
+      // histogram with them.
+      MeasurementVectorType cooccur;
+      cooccur[0] = centerPixelIntensity;
+      cooccur[1] = pixelIntensity;
+      output->IncreaseFrequency(cooccur, 1);
+      cooccur[1] = centerPixelIntensity;
+      cooccur[0] = pixelIntensity;
+      output->IncreaseFrequency(cooccur, 1);
+      }
+    }
+}
+
+template< class TImageType, class THistogramFrequencyContainer >
+void
+ScalarImageToCooccurrenceMatrixFilter< TImageType,
+THistogramFrequencyContainer >::
+FillHistogramWithMask(RadiusType radius, RegionType region, const ImageType * maskImage )
+{
+
+   // Iterate over all of those pixels and offsets, adding each 
+  // co-occurrence pair to the histogram
+
+  const ImageType *input = this->GetInput();
+
+  HistogramType * output = 
+   static_cast< HistogramType * >( this->ProcessObject::GetOutput(0) );
+
+  // Iterate over all of those pixels and offsets, adding each 
+  // co-occurrence pair to the histogram
+  typedef ConstNeighborhoodIterator<ImageType> NeighborhoodIteratorType;
+  NeighborhoodIteratorType neighborIt, maskNeighborIt;
+  neighborIt = NeighborhoodIteratorType(radius, input, region);
+  maskNeighborIt = NeighborhoodIteratorType(radius, maskImage, region);
+  
+  for (neighborIt.GoToBegin(), maskNeighborIt.GoToBegin();
+       !neighborIt.IsAtEnd(); ++neighborIt, ++maskNeighborIt) 
+    {
+    
+    if (maskNeighborIt.GetCenterPixel() != m_InsidePixelValue)
+      {
+      continue; // Go to the next loop if we're not in the mask
+      }
+    
+    const PixelType centerPixelIntensity = neighborIt.GetCenterPixel();
+    if (centerPixelIntensity < this->GetMin() || 
+        centerPixelIntensity > this->GetMax())
+      {
+      continue; // don't put a pixel in the histogram if the value
+                // is out-of-bounds.
+      }
+    
+    typename OffsetVector::ConstIterator offsets;
+    for(offsets = this->GetOffsets()->Begin(); offsets != this->GetOffsets()->End(); offsets++)
+      {
+      
+      if (maskNeighborIt.GetPixel(offsets.Value()) != m_InsidePixelValue)
+        {
+        continue; // Go to the next loop if we're not in the mask
+        }
+      
+      bool pixelInBounds;
+      const PixelType pixelIntensity = 
+        neighborIt.GetPixel(offsets.Value(), pixelInBounds);
+      
+      if (!pixelInBounds)
+        {
+        continue; // don't put a pixel in the histogram if it's out-of-bounds.
+        }
+      
+      if (pixelIntensity < this->GetMin() || 
+          pixelIntensity > this->GetMax())
         {
         continue; // don't put a pixel in the histogram if the value
                   // is out-of-bounds.
