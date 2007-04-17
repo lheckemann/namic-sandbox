@@ -27,6 +27,7 @@ ADD_TEST(itkListSampleTest3 ${STATISTICS_TESTS} itkListSampleTest 10)
 ADD_TEST(itkListSampleTest4 ${STATISTICS_TESTS} itkListSampleTest 100)
 ADD_TEST(itkListSampleToHistogramFilterTest ${STATISTICS_TESTS} itkListSampleToHistogramFilterTest)
 ADD_TEST(itkMeanFilterTest ${STATISTICS_TESTS} itkMeanFilterTest)
+ADD_TEST(itkCovarianceFilterTest ${STATISTICS_TESTS} itkCovarianceFilterTest)
 ADD_TEST(itkMeasurementVectorTraitsTest ${STATISTICS_TESTS} itkMeasurementVectorTraitsTest)
 ADD_TEST(itkScalarImageToCooccurrenceMatrixFilterTest ${STATISTICS_TESTS} itkScalarImageToCooccurrenceMatrixFilterTest)
 ADD_TEST(itkScalarImageToCooccurrenceMatrixFilterTest2 ${STATISTICS_TESTS} itkScalarImageToCooccurrenceMatrixFilterTest2)
@@ -48,6 +49,7 @@ SET(Statistics_SRCS
   itkListSampleTest.cxx
   itkListSampleToHistogramFilterTest.cxx
   itkMeanFilterTest.cxx
+  itkCovarianceFilterTest.cxx
   itkMeasurementVectorTraitsTest.cxx
   itkScalarImageToCooccurrenceMatrixFilterTest.cxx
   itkScalarImageToCooccurrenceMatrixFilterTest2.cxx
