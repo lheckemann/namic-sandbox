@@ -70,6 +70,17 @@ THistogramFrequencyContainer >
   this->ProcessObject::SetNthInput(0, 
                                    const_cast< ImageType* >( image ) );
 }
+template< class TImageType, class THistogramFrequencyContainer >
+void
+ScalarImageToCooccurrenceMatrixFilter< TImageType,
+THistogramFrequencyContainer >
+::SetMaskImage(const ImageType* image) 
+{ 
+  // Process object is not const-correct so the const_cast is required here
+  this->ProcessObject::SetNthInput(1, 
+                                   const_cast< ImageType* >( image ) );
+}
+
 
 template< class TImageType, class THistogramFrequencyContainer >
 const TImageType* 
