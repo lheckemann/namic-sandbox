@@ -91,12 +91,6 @@ CovarianceFilter< TSample >
   MeasurementVectorSizeType measurementVectorSize = 
                              input->GetMeasurementVectorSize();
  
-  if( measurementVectorSize == 0 )
-    {
-    itkExceptionMacro( << 
-        "Measurement vector size must be set." ); 
-    }
-
   MatrixDecoratedType * decoratedOutput =
             static_cast< MatrixDecoratedType * >(
               this->ProcessObject::GetOutput(0));
