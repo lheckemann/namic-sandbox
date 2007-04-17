@@ -117,15 +117,6 @@ int itkSubsampleTest2(int argc, char *argv[] )
       }
     }
 
-  //exercise the GetFrequencyByIndex method
-  if ( subSample2->GetFrequencyByIndex( 0 ) != 1  ||  
-       subSample2->GetFrequencyByIndex( 1 ) != 1  ||  
-       subSample2->GetFrequencyByIndex( 2 ) != 1    )
-    {
-    std::cerr << "GetFrequencyByIndex() is not returning IDs that\
-                 are expected" << std::endl;
-    } 
-
   std::cout << subSample2->GetSample() << std::endl;
 
   typedef CascadedSubsampleType::Iterator IteratorType;
@@ -235,15 +226,17 @@ int itkSubsampleTest2(int argc, char *argv[] )
     }
 
   IteratorType iter6( subSample2 );
-  for(unsigned int kk=0; kk<3; kk++ )
+  unsigned int targetEntry = 2;
+  for(unsigned int kk=0; kk<targetEntry; kk++ )
     {
     std::cout << "GetInstanceIdentifier() = " << iter6.GetInstanceIdentifier() << std::endl;
     ++iter6;
     }
 
-  if( iter6.GetInstanceIdentifier() != 3 )
+  if( iter6.GetInstanceIdentifier() != targetEntry )
     {
-    std::cerr << "Iterator Constructor with instance identifier 3 failed" << std::endl;
+    std::cerr << "Iterator Constructor with instance identifier failed" << std::endl;
+    std::cerr << "Expected identifier = " << targetEntry << std::endl;
     std::cerr << "identifier returned = " << iter6.GetInstanceIdentifier() << std::endl;
     return EXIT_FAILURE;
     }
@@ -304,14 +297,16 @@ int itkSubsampleTest2(int argc, char *argv[] )
 
   
   ConstIteratorType iter9( subSample2 );
-  for(unsigned int kk=0; kk<3; kk++ )
+  unsigned int targetEntry = 2;
+  for( unsigned int kk = 0; kk < targetEntry; kk++ )
     {
+    std::cout << "Instance identifier = " << iter9.GetInstanceIdentifier() << std::endl;
     ++iter9;
     }
   
   std::cout << "Instance identifier = " << iter9.GetInstanceIdentifier() << std::endl;
   MeasurementVectorType vector9a = iter9.GetMeasurementVector();
-  MeasurementVectorType vector9b = subSample2->GetMeasurementVector( 3 );
+  MeasurementVectorType vector9b = subSample2->GetMeasurementVector( targetEntry );
   for( unsigned int kitr =0; kitr < measurementVectorSize; kitr++ )
     {
     if( vnl_math_abs( vector9b[kitr] - vector9a[kitr] ) )
