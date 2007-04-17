@@ -549,6 +549,26 @@ int itkHistogramTest(int, char* [] )
     std::cerr << "Iterator operator=() failed" << std::endl;
     return EXIT_FAILURE;
     }
+
+  IteratorType iter3( histogram );
+  if( iter3 != histogram->Begin() )
+    {
+    std::cerr << "Iterator constructor from histogram failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  unsigned int counter = 0;
+  while( iter3 != histogram->End() )
+    {
+    ++iter3;
+    counter++;
+    }
+
+  if( counter != histogram->Size() )
+    {
+    std::cerr << "Iterator walk failed" << std::endl;
+    return EXIT_FAILURE;
+    }
   }
 
   // Testing methods specific to ConstIterators
@@ -620,8 +640,30 @@ int itkHistogramTest(int, char* [] )
       return EXIT_FAILURE;
       }
     }
-  }
 
+  unsigned int counter = 0;
+  ConstIteratorType iter10( constHistogram );
+  if( iter10 != constHistogram->Begin() )
+    {
+    std::cerr << "ConstIterator constructor from histogram failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  while( iter10 != constHistogram->End() )
+    {
+    ++iter10;
+    counter++;
+    }
+
+  if( counter != constHistogram->Size() )
+    {
+    std::cerr << "Iterator walk failed" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  }
+  
 
   if( !pass )
     {
