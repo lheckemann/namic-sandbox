@@ -441,8 +441,10 @@ int itkHistogramTest(int, char* [] )
 
 
   // Testing GetIndex() for values that are above the median value of the Bin.
+  IndexType pindex;
+  pindex.Fill( 32 );
   MeasurementVectorType measurementVector =
-    histogram->GetMeasurementVector( 32 );
+    histogram->GetMeasurementVector( pindex );
 
   for( unsigned int gik1=0; gik1<numberOfComponents; gik1++)
     {
@@ -458,6 +460,7 @@ int itkHistogramTest(int, char* [] )
       std::cerr << "GetIndex() / GetMeasurementVector() failed " << std::endl;
       std::cerr << "MeasurementVector = " << measurementVector << std::endl;
       std::cerr << "Index returned = " << gindex << std::endl;
+      return EXIT_FAILURE;
       }
     }
 
@@ -476,6 +479,7 @@ int itkHistogramTest(int, char* [] )
       std::cerr << "GetIndex() / GetMeasurementVector() failed " << std::endl;
       std::cerr << "MeasurementVector = " << measurementVector << std::endl;
       std::cerr << "Index returned = " << gindex << std::endl;
+      return EXIT_FAILURE;
       }
     }
 
@@ -600,19 +604,19 @@ int itkHistogramTest(int, char* [] )
     }
 
   ConstIteratorType iter9( 7, histogram );
-  if( iter8.GetInstanceIdentifier() != 7 )
+  if( iter9.GetInstanceIdentifier() != 7 )
     {
     std::cerr << "Constructor with instance identifier 7 failed" << std::endl;
     return EXIT_FAILURE;
     }
 
-  MeasurementVectorType vector9a = iter8.GetMeasurementVector();
+  MeasurementVectorType vector9a = iter9.GetMeasurementVector();
   MeasurementVectorType vector9b = histogram->GetMeasurementVector( 7 );
   for( unsigned int kitr =0; kitr < numberOfComponents; kitr++ )
     {
     if( vnl_math_abs( vector9b[kitr] - vector9a[kitr] ) )
       {
-      std::cerr << "Constructor with instance identifier 7 failed" << std::endl;
+      std::cerr << "Constructor with instance identifier 8 failed" << std::endl;
       return EXIT_FAILURE;
       }
     }
