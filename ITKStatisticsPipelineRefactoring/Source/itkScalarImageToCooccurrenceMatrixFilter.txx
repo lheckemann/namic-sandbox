@@ -348,13 +348,14 @@ NormalizeHistogram( void )
   HistogramType * output = 
    static_cast< HistogramType * >( this->ProcessObject::GetOutput(0) );
 
-  typename HistogramType::Iterator hit;
   typename HistogramType::FrequencyType totalFrequency = 
     output->GetTotalFrequency();
   
-  for (hit = output->Begin(); hit != output->End(); ++hit)
+  typename HistogramType::Iterator hit = output->Begin(); 
+  while( hit != output->End() )
     {
     hit.SetFrequency(hit.GetFrequency() / totalFrequency);
+    ++hit;
     }
 }
     

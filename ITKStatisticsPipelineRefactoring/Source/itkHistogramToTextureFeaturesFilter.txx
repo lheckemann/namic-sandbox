@@ -189,13 +189,15 @@ NormalizeHistogram( void )
 {
   HistogramType * inputHistogram = const_cast< HistogramType * >(this->GetInput());
 
-  typename HistogramType::Iterator hit;
   typename HistogramType::FrequencyType totalFrequency = 
     inputHistogram->GetTotalFrequency();
 
-  for (hit = inputHistogram->Begin(); hit != inputHistogram->End(); ++hit)
+  typename HistogramType::Iterator hit = inputHistogram->Begin();
+
+  while( hit != inputHistogram->End() )
     {
     hit.SetFrequency(hit.GetFrequency() / totalFrequency);
+    ++hit;
     }
 }
   
@@ -225,13 +227,14 @@ ComputeMeansAndVariances( double &pixelMean, double &marginalMean,
   
   // Ok, now do the first pass through the histogram to get the marginal sums
   // and compute the pixel mean
-  HistogramIterator hit;
-  for (hit = inputHistogram->Begin(); hit != inputHistogram->End(); ++hit)
+  HistogramIterator hit = inputHistogram->Begin(); 
+  while( hit != inputHistogram->End() )
     {
     MeasurementType frequency = hit.GetFrequency();
     IndexType index = inputHistogram->GetIndex(hit.GetInstanceIdentifier());
     pixelMean += index[0] * frequency;
     marginalSums[index[0]] += frequency;
+    ++hit;
     }
   
   /*  Now get the mean and deviaton of the marginal sums.
