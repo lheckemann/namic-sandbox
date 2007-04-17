@@ -327,7 +327,7 @@ public:
       {
       m_Id = 0;
       m_Histogram = NULL;
-      };
+      }
 
     ConstIterator(const Self * histogram)
       {
