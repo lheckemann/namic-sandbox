@@ -83,7 +83,6 @@ int itkCovarianceFilterTest(int, char* [] )
     }
 
   typedef ImageToListSampleFilterType::ListSampleType                 ListSampleType;
-
   typedef itk::Statistics::CovarianceFilter< ListSampleType >         CovarianceFilterType;
 
   CovarianceFilterType::Pointer covarianceFilter = CovarianceFilterType::New() ;
@@ -125,7 +124,12 @@ int itkCovarianceFilterTest(int, char* [] )
 
   covarianceFilter->Print( std::cout );
 
-  // CHECK THE RESULTS
+  //TODO: CHECK THE RESULTS
+  const CovarianceFilterType::MatrixDecoratedType * decorator = covarianceFilter->GetOutput() ;
+  CovarianceFilterType::MatrixType    covarianceMatrix  = decorator->Get();
+
+  std::cout << "Result:   " << covarianceMatrix << std::endl;
+
   if( !pass )
     {
     std::cout << "Test failed." << std::endl;
