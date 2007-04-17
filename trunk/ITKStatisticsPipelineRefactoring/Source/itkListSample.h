@@ -178,14 +178,6 @@ public:
       }
 
   protected:
-    // This method is purposely not implemented
-    ConstIterator();
-
-  private:
-    typedef typename InternalDataContainerType::const_iterator InternalIterator;
-    InternalIterator     m_Iter;
-    InstanceIdentifier   m_InstanceIdentifier;
-
     // This method should only be available to the ListSample class
     ConstIterator(
       typename InternalDataContainerType::const_iterator iter,
@@ -195,20 +187,25 @@ public:
       m_InstanceIdentifier = iid;
       }
 
+    // This method is purposely not implemented
+    ConstIterator();
+
+  private:
+    typedef typename InternalDataContainerType::const_iterator InternalIterator;
+    InternalIterator     m_Iter;
+    InstanceIdentifier   m_InstanceIdentifier;
+
     };
 
   /** \class ListSample::Iterator */
   class Iterator : public ConstIterator
     {
+
+    friend class ListSample;
+
     public:
 
     Iterator(Self * sample):ConstIterator(sample)
-      {
-      }
-
-    Iterator(
-      typename InternalDataContainerType::iterator iter,
-      InstanceIdentifier iid):ConstIterator( iter, iid )
       {
       }
 
@@ -230,6 +227,11 @@ public:
     Iterator( typename InternalDataContainerType::const_iterator iter, InstanceIdentifier iid);
     Iterator(const ConstIterator & it);
     ConstIterator& operator=(const ConstIterator& it);
+    Iterator(
+      typename InternalDataContainerType::iterator iter,
+      InstanceIdentifier iid):ConstIterator( iter, iid )
+      {
+      }
 
     private:
     };
