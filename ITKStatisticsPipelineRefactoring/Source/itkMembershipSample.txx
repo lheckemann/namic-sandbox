@@ -27,28 +27,6 @@ MembershipSample< TSample >
   m_Sample = 0;
 }
 
-template< class TSample >
-void 
-MembershipSample< TSample >
-::SetSample(const TSample* sample)
-{
-  itkDebugMacro("setting Sample to " << sample ); 
-
-  if (this->m_Sample != sample )
-    {
-    this->m_Sample = sample;
-    this->SetMeasurementVectorSize( sample->GetMeasurementVectorSize() );
-    this->Modified();
-    }
-}
-
-template< class TSample >
-const TSample*
-MembershipSample< TSample >
-::GetSample() const
-{
-  return m_Sample; 
-} 
 
 template< class TSample >
 void
