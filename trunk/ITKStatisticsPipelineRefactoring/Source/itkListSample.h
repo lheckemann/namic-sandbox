@@ -119,11 +119,6 @@ public:
 
     public:
 
-    ConstIterator()
-      {
-      m_InstanceIdentifier = 0;
-      }
-
     ConstIterator( const ListSample * sample )
       {
       *this = sample->Begin();
@@ -182,6 +177,9 @@ public:
       return (m_Iter == it.m_Iter);
       }
 
+  protected:
+    // This method is purposely not implemented
+    ConstIterator();
 
   private:
     typedef typename InternalDataContainerType::const_iterator InternalIterator;
@@ -203,7 +201,6 @@ public:
   class Iterator : public ConstIterator
     {
     public:
-    Iterator(){}
 
     Iterator(Self * sample):ConstIterator(sample)
       {
@@ -228,6 +225,7 @@ public:
     protected:
     // To ensure const-correctness these method must not be in the public API.
     // The are purposly not implemented, since they should never be called.
+    Iterator();
     Iterator(const Self * sample);
     Iterator( typename InternalDataContainerType::const_iterator iter, InstanceIdentifier iid);
     Iterator(const ConstIterator & it);

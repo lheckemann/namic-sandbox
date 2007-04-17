@@ -122,7 +122,7 @@ int itkListSampleTest(int argc, char *argv[] )
     }
   
   // assignment operator 
-  IteratorType assignment_iter;
+  IteratorType assignment_iter( bs_iter );
   assignment_iter = s_iter;
   if (assignment_iter != s_iter)
     {
@@ -211,7 +211,7 @@ int itkListSampleTest(int argc, char *argv[] )
     }
 
   // assignment operator
-  ConstIteratorType assignment_iter;
+  ConstIteratorType assignment_iter( bs_iter );
   assignment_iter = s_iter;
   if (assignment_iter != s_iter)
     {
@@ -432,13 +432,7 @@ int itkListSampleTest(int argc, char *argv[] )
   {
   typedef SampleType::Iterator IteratorType;
   IteratorType iter = sample->Begin();
-  IteratorType iter2;
-
-  if( iter2.GetInstanceIdentifier() != 0 )
-    {
-    std::cerr << "Iterator default constructor failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+  IteratorType iter2 = sample->Begin();
 
   iter2 = iter;
   if( iter2 != iter )
@@ -499,13 +493,7 @@ int itkListSampleTest(int argc, char *argv[] )
   {
   typedef SampleType::ConstIterator ConstIteratorType;
   ConstIteratorType iter = sample->Begin();
-  ConstIteratorType iter2;
-
-  if( iter2.GetInstanceIdentifier() != 0 )
-    {
-    std::cerr << "ConstIterator default constructor failed" << std::endl;     
-    return EXIT_FAILURE;
-    }
+  ConstIteratorType iter2 = sample->End();
 
   iter2 = iter;
 

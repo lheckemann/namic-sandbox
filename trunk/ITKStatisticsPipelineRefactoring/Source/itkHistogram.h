@@ -323,11 +323,6 @@ public:
   class ConstIterator
     {
     public:
-    ConstIterator()
-      {
-      m_Id = 0;
-      m_Histogram = NULL;
-      }
 
     ConstIterator(const Self * histogram)
       {
@@ -384,6 +379,9 @@ public:
       }
 
   protected:
+    // This method is purposely not implemented
+    ConstIterator();
+
     // ConstIterator pointing DenseFrequencyContainer
     InstanceIdentifier m_Id;
 
@@ -395,7 +393,6 @@ public:
   class Iterator : public ConstIterator
     {
     public:
-    Iterator(){};
 
     Iterator(Self * histogram):ConstIterator( histogram )
       {
@@ -424,6 +421,7 @@ public:
     protected:
     // To ensure const-correctness these method must not be in the public API.
     // The are purposly not implemented, since they should never be called.
+    Iterator();
     Iterator(const Self * histogram);
     Iterator(InstanceIdentifier id, const Self * histogram);
     Iterator(const ConstIterator & it);

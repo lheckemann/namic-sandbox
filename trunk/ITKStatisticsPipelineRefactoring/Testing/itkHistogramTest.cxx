@@ -542,13 +542,7 @@ int itkHistogramTest(int, char* [] )
   {
   typedef HistogramType::Iterator IteratorType;
   IteratorType iter = histogram->Begin();
-  IteratorType iter2;
-
-  if( iter2.GetInstanceIdentifier() != 0 )
-    {
-    std::cerr << "Iterator default constructor failed" << std::endl;
-    return EXIT_FAILURE;
-    }
+  IteratorType iter2 = histogram->End();
 
   iter2 = iter;
   if( iter2 != iter )
@@ -604,13 +598,7 @@ int itkHistogramTest(int, char* [] )
   {
   typedef HistogramType::ConstIterator ConstIteratorType;
   ConstIteratorType iter = histogram->Begin();
-  ConstIteratorType iter2;
-
-  if( iter2.GetInstanceIdentifier() != 0 )
-    {
-    std::cerr << "ConstIterator default constructor failed" << std::endl;     
-    return EXIT_FAILURE;
-    }
+  ConstIteratorType iter2 = histogram->End();
 
   iter2 = iter;
 
