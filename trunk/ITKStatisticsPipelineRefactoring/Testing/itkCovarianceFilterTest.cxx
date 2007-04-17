@@ -45,7 +45,7 @@ int itkCovarianceFilterTest(int, char* [] )
   region.SetIndex(index) ;
   region.SetSize(size) ;
   
-  image->SetLargestPossibleRegion(region) ;
+  
   image->SetBufferedRegion(region) ;
   image->Allocate() ;
 
@@ -87,7 +87,29 @@ int itkCovarianceFilterTest(int, char* [] )
   typedef itk::Statistics::CovarianceFilter< ListSampleType >         CovarianceFilterType;
 
   CovarianceFilterType::Pointer covarianceFilter = CovarianceFilterType::New() ;
+
+  std::cout << covarianceFilter->GetNameOfClass() << std::endl;
   
+  //Invoke update before adding an input. An exception should be 
+  try
+    {
+    covarianceFilter->Update();
+    std::cerr << "Exception should have been thrown since \
+                 Update() is invoked without setting an input " << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception caught: " << excp << std::endl;
+    }    
+
+  if ( covarianceFilter->GetInput() != NULL )
+    {
+    std::cerr << "GetInput() should return NULL if the input \
+                     has not been set" << std::endl;
+    return EXIT_FAILURE;
+    }
+
   covarianceFilter->SetInput( sampleGeneratingFilter->GetOutput() ) ;
 
   try
@@ -99,6 +121,8 @@ int itkCovarianceFilterTest(int, char* [] )
     std::cerr<< excp << std::endl;
     return EXIT_FAILURE;
     }
+
+  covarianceFilter->Print( std::cout );
 
   // CHECK THE RESULTS
   if( !pass )
