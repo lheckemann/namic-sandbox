@@ -12,6 +12,18 @@
 #include "StochasticTractographyFilterCLP.h"
 #include "itkTensorFractionalAnisotropyImageFilter.h"
 #include "itkPathIterator.h"
+#include <string>
+
+std::string stripExtension(const std::string& fileName){
+  const int length = fileName.length();
+  for (int i=0; i!=length; ++i){
+    if (fileName[i]=='.'){
+      return fileName.substr(0,i);
+    }
+  } 
+  return fileName; 
+}
+
 
 template< class TTOContainerType >
 bool SamplingDirections(const char* fn, typename TTOContainerType::Pointer directions){
@@ -245,7 +257,8 @@ int main(int argc, char* argv[]){
       std::string metaDataValue;
       itk::ExposeMetaData< std::string > (dictionary, dictit->first, metaDataValue);
       sscanf(metaDataValue.c_str(), "%lf %lf %lf\n", &g_i[0], &g_i[1], &g_i[2]);
-      gradientsPtr->InsertElement( gradientsPtr->Size(), g_i );
+      //normalize the gradient vector
+      gradientsPtr->InsertElement( gradientsPtr->Size(), g_i.normalize() );
     }
     else if(dictit->first.find("DWMRI_b-value") != std::string::npos){
       std::string metaDataValue;
@@ -441,7 +454,8 @@ int main(int argc, char* argv[]){
               accumFA+=fafilter->GetOutput()->GetPixel(roitractIt.GetIndex());
               conditionedcimagePtr->GetPixel(roitractIt.GetIndex())++;
             }
-            lengthcontainer->InsertElement( lengthcontainer->Size(), voxelcount );
+            lengthcontainer->InsertElement( lengthcontainer->Size(),
+              (unsigned int) tractcontainer->GetElement(i)->EndOfInput() );
             facontainer->InsertElement( facontainer->Size(), accumFA/((double)voxelcount) );
             break;
           }
@@ -456,9 +470,12 @@ int main(int argc, char* argv[]){
   writerPtr->SetFileName( cfilename );
   writerPtr->Update();
   
+  //Extract the output prefix
+  std::string outputprefix = stripExtension( cfilename );
+  
   //Write out TensorImage
   char tensorimagefilename[30];
-  sprintf(tensorimagefilename, "TENSOR_Image.nhdr");
+  sprintf(tensorimagefilename, "%s_TENSOR.nhdr", outputprefix.c_str() );
   typedef itk::ImageFileWriter< PTFilterType::OutputTensorImageType > TensorImageWriterType;
   TensorImageWriterType::Pointer tensorwriter = TensorImageWriterType::New();
   tensorwriter->SetInput( ptfilterPtr->GetOutputTensorImage() );
@@ -470,27 +487,29 @@ int main(int argc, char* argv[]){
   MultiplyFAFilterType::Pointer multFAfilter = MultiplyFAFilterType::New();
   multFAfilter->SetInput( fafilter->GetOutput() );  
   //write out the FA image
+  char faimagefilename[30];
+  sprintf(faimagefilename, "%s_FA.nhdr", outputprefix.c_str() );
   FAImageWriterType::Pointer fawriter = FAImageWriterType::New();
   fawriter->SetInput( multFAfilter->GetOutput() );
-  fawriter->SetFileName( "FA_Image.nhdr" );
+  fawriter->SetFileName( faimagefilename );
   fawriter->Update();
   
   //Write out the conditioned connectivity map
   CImageWriterType::Pointer condcmapwriterPtr = CImageWriterType::New();
   condcmapwriterPtr->SetInput( conditionedcimagePtr );
   char condcmapfilename[30];
-  sprintf(condcmapfilename, "COND_Image.nhdr" );
+  sprintf(condcmapfilename, "%s_COND.nhdr", outputprefix.c_str());
   condcmapwriterPtr->SetFileName( condcmapfilename );
   condcmapwriterPtr->Update();
   
   //Write out FA container
   char fafilename[30];
-  sprintf( fafilename, "CONDFA_Values.txt" );
+  sprintf( fafilename, "%s_CONDFAValues.txt", outputprefix.c_str() );
   WriteScalarContainerToFile< FAContainerType >( fafilename, facontainer );
   
   //Write out tract length container
   char lengthfilename[30];
-  sprintf( lengthfilename, "CONDLENGTH_Values.txt" );
+  sprintf( lengthfilename, "%s_CONDLENGTHValues.txt", outputprefix.c_str() );
   WriteScalarContainerToFile< LengthContainerType >( lengthfilename, lengthcontainer );
   return EXIT_SUCCESS;
 }
