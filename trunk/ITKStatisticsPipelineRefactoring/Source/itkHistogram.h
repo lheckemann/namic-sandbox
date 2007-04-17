@@ -411,6 +411,29 @@ public:
       return histogram->SetFrequency( this->m_Id, value );
       }
 
+    protected:
+    // To ensure const-correctness this method must not be in the public API
+    Iterator(const Self * histogram):ConstIterator(histogram)
+      {
+      }
+
+    // To ensure const-correctness this method must not be in the public API
+    Iterator(InstanceIdentifier id, const Self * histogram)
+      : ConstIterator( id, histogram )
+      {}
+
+    // To ensure const-correctness this method must not be in the public API
+    Iterator(const ConstIterator & it):ConstIterator(it)
+      {
+      }
+
+    // To ensure const-correctness this method must not be in the public API
+    ConstIterator& operator=(const ConstIterator& it)
+      {
+      this->ConstIterator::operator=( it );
+      return *this;
+      }
+
     private:
     }; // end of iterator class
 
