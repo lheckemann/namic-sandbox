@@ -114,6 +114,15 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
 
   if ( filter->GetInput() != NULL )
     {
+    std::cerr << "GetInput() should return NULL since the input is\
+                  not set yet " << std::endl;
+    passed = false;
+    }
+ 
+  if ( filter->GetMaskImage() != NULL )
+    {
+    std::cerr << "GetMaskImage() should return NULL since the mask image is\
+                  not set yet " << std::endl;
     passed = false;
     }
   
