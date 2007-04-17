@@ -68,6 +68,7 @@ Subsample< TSample >
 { 
   m_Sample = sample; 
   this->SetMeasurementVectorSize( m_Sample->GetMeasurementVectorSize() );
+  this->Modified();
 }
 
 template< class TSample >
@@ -94,6 +95,7 @@ Subsample< TSample >
     m_TotalFrequency += iter.GetFrequency();
     ++iter;
     }
+  this->Modified();
 }
 
 
@@ -109,6 +111,7 @@ Subsample< TSample >
 
   m_IdHolder.push_back(id); 
   m_TotalFrequency += m_Sample->GetFrequency(id);
+  this->Modified();
 }
 
 template< class TSample >
@@ -126,6 +129,7 @@ Subsample< TSample >
 { 
   m_IdHolder.clear();
   m_TotalFrequency = NumericTraits< FrequencyType >::Zero;
+  this->Modified();
 }
 
 template< class TSample >
@@ -195,6 +199,7 @@ Subsample< TSample >
   InstanceIdentifier temp = m_IdHolder[index1];
   m_IdHolder[index1] = m_IdHolder[index2];
   m_IdHolder[index2] = temp;
+  this->Modified();
 }
 
 } // end of namespace Statistics 
