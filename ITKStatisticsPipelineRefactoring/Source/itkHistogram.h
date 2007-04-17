@@ -422,27 +422,12 @@ public:
       }
 
     protected:
-    // To ensure const-correctness this method must not be in the public API
-    Iterator(const Self * histogram):ConstIterator(histogram)
-      {
-      }
-
-    // To ensure const-correctness this method must not be in the public API
-    Iterator(InstanceIdentifier id, const Self * histogram)
-      : ConstIterator( id, histogram )
-      {}
-
-    // To ensure const-correctness this method must not be in the public API
-    Iterator(const ConstIterator & it):ConstIterator(it)
-      {
-      }
-
-    // To ensure const-correctness this method must not be in the public API
-    ConstIterator& operator=(const ConstIterator& it)
-      {
-      this->ConstIterator::operator=( it );
-      return *this;
-      }
+    // To ensure const-correctness these method must not be in the public API.
+    // The are purposly not implemented, since they should never be called.
+    Iterator(const Self * histogram);
+    Iterator(InstanceIdentifier id, const Self * histogram);
+    Iterator(const ConstIterator & it);
+    ConstIterator& operator=(const ConstIterator& it);
 
     private:
     }; // end of iterator class
