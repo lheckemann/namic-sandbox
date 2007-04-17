@@ -27,6 +27,7 @@
 #include "itkListSample.h"
 #include "itkSubsample.h"
 #include "itkListSampleToHistogramFilter.h"
+#include "itkMembershipSample.h"
 #include "itkImageToListSampleFilter.h"
 #include "itkScalarImageToCooccurrenceMatrixFilter.h"
 #include "itkHistogramToTextureFeaturesFilter.h"
@@ -56,6 +57,9 @@ int itkStatisticsPrintTest(int , char* [])
 
   typedef itk::Statistics::ScalarImageToCooccurrenceMatrixFilter< 
     ScalarImageType > ScalarImageToCooccurrenceMatrixFilterType;
+
+  typedef itk::Statistics::MembershipSample< SampleType >
+    MembershipSampleType;
 
   typedef itk::Statistics::HistogramToTextureFeaturesFilter<
     HistogramType > HistogramToTextureFeaturesFilterType;
@@ -89,6 +93,9 @@ int itkStatisticsPrintTest(int , char* [])
     HistogramToTextureFeaturesFilterType::New();
   std::cout << "----------HistogramToTextureFeaturesFilter " << HistogramToTextureFeaturesFilterObj;
 
+  MembershipSampleType::Pointer MembershipSampleObj = 
+    MembershipSampleType::New();
+  std::cout << "----------MembershipSample " << MembershipSampleObj;
 
   return EXIT_SUCCESS;
 }
