@@ -93,6 +93,8 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   //i.e. the number of measurements of the voxel (n)
   unsigned int N = this->m_TransformedGradients->Size();
   
+  if(this->m_A!=NULL)
+    delete this->m_A;
   this->m_A = new vnl_matrix< double >(N, 7); //potential memory leak here
   vnl_matrix< double >& A = *(this->m_A);
   
@@ -111,6 +113,8 @@ StochasticTractographyFilter< TInputDWIImage, TInputMaskImage, TOutputConnectivi
   
   //Store a QR decomposition to quickly estimate
   //the weighing matrix for each voxel
+  if(this->m_Aqr!=NULL)
+    delete this->m_Aqr;
   this->m_Aqr = new vnl_qr< double >(A);  //potential memory leak here
 }
 

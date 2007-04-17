@@ -69,7 +69,18 @@
         <step>1</step>
       </constraints>
     </integer>
-    
+    <integer>
+      <name>stepsize</name>
+      <flag>s</flag>
+      <longflag>stepsize</longflag>
+      <description>The length of each segment of the tract in mm</description>
+      <label>Step Size(mm)</label>
+      <default>1</default>
+      <constraints>
+        <minimum>0.1</minimum>
+        <step>0.1</step>
+      </constraints>
+    </integer>
     <integer>
       <name>maxlikelihoodcachesize</name>
       <flag>c</flag>
@@ -100,7 +111,7 @@
       <label>Input Mask Volume</label>
       <channel>input</channel>
       <index>1</index>
-      <description>Input Mask volume that specifies trackable regions as nonzero values</description>
+      <description>Input Mask volume that specifies trackable regions as nonzero </description>
     </image>
     <image>
       <name>roifilename</name>
