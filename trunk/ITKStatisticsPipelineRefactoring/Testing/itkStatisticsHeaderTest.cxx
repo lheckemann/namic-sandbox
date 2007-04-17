@@ -30,6 +30,7 @@
 #include "itkSample.h"
 #include "itkSubsample.h"
 #include "itkMeanFilter.h"
+#include "itkCovarianceFilter.h"
 #include "itkWeightedMeanFilter.h"
 #include "itkImageToListSampleFilter.h"
 #include "itkScalarImageToCooccurrenceMatrixFilter.h"
