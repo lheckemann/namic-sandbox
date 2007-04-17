@@ -102,8 +102,6 @@ public:
 
   FrequencyType GetFrequencyByIndex(int index) const;
 
-  InstanceIdentifier GetInstanceIdentifier(int index) const;
-  
 
   class ConstIterator
     {
@@ -161,7 +159,7 @@ public:
     
     InstanceIdentifier GetInstanceIdentifier() const   
       {
-      return *m_Iter;
+      return ( m_Iter - m_Subsample->m_IdHolder.begin() );
       }
     
   private:

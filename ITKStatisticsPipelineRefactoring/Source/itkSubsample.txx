@@ -177,13 +177,6 @@ Subsample< TSample >
   return m_Sample->GetFrequency(m_IdHolder[index]);
 }
 
-template< class TSample >
-inline typename Subsample< TSample >::InstanceIdentifier
-Subsample< TSample >
-::GetInstanceIdentifier(int index) const
-{
-  return m_IdHolder[index];
-}
 
 template< class TSample >
 inline void
