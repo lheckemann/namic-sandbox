@@ -31,7 +31,7 @@ int itkCovarianceFilterTest(int, char* [] )
   std::string whereFail = "" ;
 
   // Now generate an image
-  enum { MeasurementVectorSize = 1 } ;
+  enum { MeasurementVectorSize = 3 } ;
   typedef float MeasurementType ;
   typedef itk::FixedArray< MeasurementType, MeasurementVectorSize > 
     MeasurementVectorType ;
