@@ -53,13 +53,6 @@ Subsample< TSample >
   os << indent << "InstanceIdentifierHolder : " << &m_IdHolder << std::endl;
 }
 
-template< class TSample >
-inline typename Subsample< TSample >::MeasurementVectorType
-Subsample< TSample >
-::GetMeasurementVectorByIndex(int index) const
-{
-  return m_Sample->GetMeasurementVector(m_IdHolder[index]);
-}
 
 template< class TSample >
 void 
@@ -137,7 +130,7 @@ const typename Subsample< TSample>::MeasurementVectorType &
 Subsample< TSample >
 ::GetMeasurementVector( InstanceIdentifier id) const
 {
-  if ( id > m_IdHolder.size() )
+  if ( id >= m_IdHolder.size() )
     {
     itkExceptionMacro("MeasurementVector " << id << " does not exist");
     }
@@ -152,12 +145,14 @@ inline typename Subsample< TSample >::FrequencyType
 Subsample< TSample >
 ::GetFrequency( InstanceIdentifier id ) const
 {
-  if ( id > m_IdHolder.size() )
+  if ( id >= m_IdHolder.size() )
     {
     itkExceptionMacro("MeasurementVector " << id << " does not exist");
     }
 
-  return m_Sample->GetFrequency(id);
+  // translate the id to its Sample container id 
+  InstanceIdentifier idInTheSample = m_IdHolder[id];
+  return m_Sample->GetFrequency(idInTheSample);
 }
 
  
@@ -167,14 +162,6 @@ Subsample< TSample >
 ::GetTotalFrequency() const
 {
   return m_TotalFrequency;
-}
-
-template< class TSample >
-inline typename Subsample< TSample >::FrequencyType
-Subsample< TSample >
-::GetFrequencyByIndex(int index) const
-{
-  return m_Sample->GetFrequency(m_IdHolder[index]);
 }
 
 
