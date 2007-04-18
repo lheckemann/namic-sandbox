@@ -26,6 +26,7 @@
 #include "itkHistogram.h"
 #include "itkListSample.h"
 #include "itkSubsample.h"
+#include "itkSampleClassifierFilter.h"
 #include "itkListSampleToHistogramFilter.h"
 #include "itkMembershipSample.h"
 #include "itkImageToListSampleFilter.h"
@@ -51,6 +52,9 @@ int itkStatisticsPrintTest(int , char* [])
 
   typedef itk::Statistics::ListSampleToHistogramFilter< 
     SampleType, HistogramType > ListSampleToHistogramFilterType;
+
+  typedef itk::Statistics::SampleClassifierFilter< 
+    SampleType > SampleClassifierFilterType;
 
   typedef itk::Statistics::ImageToListSampleFilter< 
     ImageType, ImageType > ImageToListSampleFilterType;
@@ -78,6 +82,11 @@ int itkStatisticsPrintTest(int , char* [])
     ListSampleToHistogramFilterType::New();
   std::cout << "----------ListSampleToHistogramFilter ";
   std::cout << ListSampleToHistogramFilterObj;
+
+  SampleClassifierFilterType::Pointer SampleClassifierFilterObj =
+    SampleClassifierFilterType::New();
+  std::cout << "----------SampleClassifierFilter ";
+  std::cout << SampleClassifierFilterObj;
 
   ImageToListSampleFilterType::Pointer ImageToListSampleFilterObj =
     ImageToListSampleFilterType::New();
