@@ -83,6 +83,9 @@ public:
   const MatrixDecoratedType * GetOutput() const;
 
 protected:
+  CovarianceFilter(const Self&); //purposely not implemented
+  void operator=(const Self&); //purposely not implemented
+
   CovarianceFilter();
   virtual ~CovarianceFilter() {} 
   void PrintSelf(std::ostream& os, Indent indent) const;
