@@ -116,6 +116,29 @@ CovarianceFilter< TSample >
 
   std::cout << "Output1: " << output << std::endl;
 
+  //Compute the mean first
+  while (iter != end)
+    {
+    frequency = iter.GetFrequency();
+    totalFrequency += frequency;
+    measurements = iter.GetMeasurementVector();
+    for ( i = 0; i < measurementVectorSize; ++i )
+      {
+      mean[i] += frequency * measurements[i];
+      }
+    ++iter;
+    }
+
+  for ( i = 0; i < measurementVectorSize; ++i )
+    {
+    mean[i] = mean[i] / ( totalFrequency-1 );
+    }
+
+  std::cout << "The mean is: " << mean << std::endl;
+
+  //reset the total frequency and iterator
+  totalFrequency = 0.0;
+  iter = input->Begin();
   // fills the lower triangle and the diagonal cells in the covariance matrix
   while (iter != end)
     {
@@ -127,20 +150,12 @@ CovarianceFilter< TSample >
       diff[i] = measurements[i] - mean[i];
       }
 
-    // updates the mean vector
-    double tempWeight = frequency / totalFrequency;
-    for ( i = 0; i < measurementVectorSize; ++i )
-      {
-      mean[i] += tempWeight * diff[i];
-      }
-
     // updates the covariance matrix
-    tempWeight = tempWeight * ( totalFrequency - frequency );
     for ( row = 0; row < measurementVectorSize; row++ )
       {
       for ( col = 0; col < row + 1; col++)
         {
-        output(row,col) += tempWeight * diff[row] * diff[col];
+        output(row,col) += frequency * diff[row] * diff[col];
         }
       }
     ++iter;
