@@ -24,7 +24,6 @@ template< class TSample >
 MembershipSample< TSample >
 ::MembershipSample()
 {
-  m_Sample = 0;
 }
 
 
@@ -48,7 +47,7 @@ MembershipSample< TSample >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
-  os << indent << "Sample: " << m_Sample << std::endl;
+  os << indent << "Sample: " << m_Sample.GetPointer() << std::endl;
   os << indent << "NumberOfClasses: " << m_NumberOfClasses << std::endl;
 }
 
