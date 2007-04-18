@@ -524,7 +524,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
       tract);
     
     //only store tract if it is of nonzero length
-    if( tract->GetVertexList()->Size() > 1 ){
+    if( tract->GetVertexList()->Size() > 4 ){
       std::cout<<"Storing tract\n";
       str->Filter->StoreTract(tract);
     }
