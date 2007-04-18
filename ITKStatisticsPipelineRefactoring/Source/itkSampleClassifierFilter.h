@@ -73,7 +73,8 @@ public:
   typedef TSample                        SampleType;
 
   /** Output type for GetClassSample method */
-  typedef MembershipSample< SampleType > OutputType;
+  typedef MembershipSample< SampleType > MembershipSampleType;
+  typedef MembershipSampleType           OutputType;
 
   /** typedefs from SampleType object */
   typedef typename SampleType::MeasurementType        MeasurementType;
