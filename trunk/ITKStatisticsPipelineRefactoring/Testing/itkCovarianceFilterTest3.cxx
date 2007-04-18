@@ -30,7 +30,7 @@ int itkCovarianceFilterTest3(int, char* [] )
   bool pass = true;
   std::string failureMeassage= "";
 
-  typedef float                       MeasurementType;
+  typedef double                      MeasurementType;
   const unsigned int                  MeasurementVectorSize = 5;
   const unsigned int                  numberOfMeasurementVectors = 1000;
   unsigned int                        counter = 0;
@@ -53,11 +53,11 @@ int itkCovarianceFilterTest3(int, char* [] )
   MeasurementVectorType lowerBound;
   MeasurementVectorType upperBound;
 
-  size.Fill(64);
+  size.Fill(5);
   lowerBound.Fill(0);
   upperBound.Fill(100);
 
-  histogram->Initialize(size, lowerBound, upperBound );
+  histogram->Initialize( size, lowerBound, upperBound );
   histogram->SetToZero();
 
   MembershipFunctionType::Pointer memberFunction = MembershipFunctionType::New();
@@ -75,6 +75,7 @@ int itkCovarianceFilterTest3(int, char* [] )
   mean[3] = 41;
   mean[4] = 47;
 
+/*
   covariance[0][0] =  2.0;
   covariance[0][1] =  5.0;
   covariance[0][2] =  7.0;
@@ -94,6 +95,16 @@ int itkCovarianceFilterTest3(int, char* [] )
   covariance[3][4] = 43.0;
 
   covariance[4][4] = 47.0;
+  */
+
+  covariance.set_identity();
+  covariance[0][0] = 2500.0;
+  covariance[1][1] = 2500.0;
+  covariance[2][2] = 2500.0;
+  covariance[3][3] = 2500.0;
+  covariance[4][4] = 2500.0;
+
+
 
   for( unsigned int i=0; i < MeasurementVectorSize; i++ )
     {
@@ -118,6 +129,7 @@ int itkCovarianceFilterTest3(int, char* [] )
       memberFunction->Evaluate( itr.GetMeasurementVector() );
     const double frequency = vcl_exp( - MahalanobisDistance );
     itr.SetFrequency( frequency );
+    std::cout << itr.GetMeasurementVector() << " MD = " << MahalanobisDistance << " f= " << itr.GetFrequency() << std::endl;
     ++itr;
     }
 
