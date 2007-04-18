@@ -9,8 +9,8 @@
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
@@ -19,8 +19,8 @@
 
 #include "itkSampleClassifierFilter.h"
 
-namespace itk{ 
-namespace Statistics{
+namespace itk {
+namespace Statistics {
 
 template< class TSample >
 SampleClassifierFilter< TSample >
@@ -44,7 +44,7 @@ SampleClassifierFilter< TSample >
 ::SetInput( const TSample* sample )
 {
   // Process object is not const-correct so the const_cast is required here
-  this->ProcessObject::SetNthInput(0, 
+  this->ProcessObject::SetNthInput(0,
                                    const_cast< SampleType * >( sample ) );
 }
 
@@ -53,7 +53,7 @@ const TSample*
 SampleClassifierFilter< TSample >
 ::GetInput() const
 {
-  const SampleType * input = 
+  const SampleType * input =
     static_cast< const SampleType * >( this->ProcessObject::GetInput( 0 ) );
   return input;
 }
@@ -81,7 +81,7 @@ void
 SampleClassifierFilter< TSample >
 ::GenerateData()
 {
-/*
+  /*
   unsigned int i ;
   typename TSample::ConstIterator iter = this->GetSample()->Begin() ;
   typename TSample::ConstIterator end  = this->GetSample()->End() ;
@@ -93,7 +93,7 @@ SampleClassifierFilter< TSample >
   discriminantScores.resize(numberOfClasses) ;
   unsigned int classLabel ;
   m_Output->SetNumberOfClasses(numberOfClasses) ;
-  typename Superclass::DecisionRuleType::Pointer rule = 
+  typename Superclass::DecisionRuleType::Pointer rule =
     this->GetDecisionRule() ;
 
   if ( m_ClassLabels.size() != this->GetNumberOfMembershipFunctions() )
@@ -118,11 +118,11 @@ SampleClassifierFilter< TSample >
       measurements = iter.GetMeasurementVector() ;
       for (i = 0 ; i < numberOfClasses ; i++)
         {
-        discriminantScores[i] = 
+        discriminantScores[i] =
           (this->GetMembershipFunction(i))->Evaluate(measurements) ;
         }
       classLabel = rule->Evaluate(discriminantScores) ;
-      m_Output->AddInstance(m_ClassLabels[classLabel], 
+      m_Output->AddInstance(m_ClassLabels[classLabel],
                             iter.GetInstanceIdentifier()) ;
       ++iter ;
       }
@@ -135,13 +135,13 @@ const typename SampleClassifierFilter< TSample >::OutputType *
 SampleClassifierFilter< TSample >
 ::GetOutput() const
 {
-  const OutputType * output = 
+  const OutputType * output =
     static_cast< const OutputType * >(this->ProcessObject::GetOutput(0));
 
   return output;
 }
 
-} // end of namespace Statistics 
+} // end of namespace Statistics
 } // end of namespace itk
 
 #endif

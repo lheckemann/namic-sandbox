@@ -23,7 +23,7 @@
 #include "itkProcessObject.h"
 
 namespace itk {
-  namespace Statistics {
+namespace Statistics {
 
 /** \class SampleClassifierFilter 
  *  \brief This filter takes as input a Sample and produces as output a
@@ -67,26 +67,26 @@ public:
 
   /** Standard macros */
   itkTypeMacro(SampleClassifierFilter, ProcessObject);
-  itkNewMacro(Self) ;
+  itkNewMacro(Self);
 
   /** Type of the input Sample */
   typedef TSample                        SampleType;
 
   /** Output type for GetClassSample method */
-  typedef MembershipSample< SampleType > OutputType ;
+  typedef MembershipSample< SampleType > OutputType;
 
   /** typedefs from SampleType object */
-  typedef typename SampleType::MeasurementType        MeasurementType ;
-  typedef typename SampleType::MeasurementVectorType  MeasurementVectorType ;
+  typedef typename SampleType::MeasurementType        MeasurementType;
+  typedef typename SampleType::MeasurementVectorType  MeasurementVectorType;
 
   /** Types required for the pipeline infrastructure */
   typedef typename DataObject::Pointer                DataObjectPointer;
   
-  typedef unsigned int ClassLabelType ;
-  typedef std::vector< ClassLabelType > ClassLabelVectorType ;
+  typedef unsigned long                               ClassLabelType;
+  typedef std::vector< ClassLabelType >               ClassLabelVectorType;
 
   /** Sets the input sample that will be classified by this filter. */
-  void SetInput(const SampleType* sample) ;
+  void SetInput(const SampleType* sample);
 
   /** Returns the input sample data */
   const SampleType * GetInput() const;
@@ -96,17 +96,17 @@ public:
    * this function, then the index of the membership function vector for a
    * membership function will be used as class label of measurement vectors
    * belong to the membership function */ 
-  // FIXME: this should be an Input  void SetMembershipFunctionClassLabels( ClassLabelVectorType& labels) ;
+  // FIXME: this should be an Input  void SetMembershipFunctionClassLabels( ClassLabelVectorType& labels);
 
   /** Gets the user given class labels */
   // FIXME: This shouldn't exist at all:  ClassLabelVectorType& GetMembershipFunctionClassLabels() 
-  // { return m_ClassLabels ; }
+  // { return m_ClassLabels; }
 
   /** Returns the classification result */
   const OutputType * GetOutput() const;
 
 protected:
-  SampleClassifierFilter() ;
+  SampleClassifierFilter();
   virtual ~SampleClassifierFilter() {}
   void PrintSelf(std::ostream& os, Indent indent) const;
 
@@ -115,7 +115,7 @@ protected:
 
 
   /** Starts the classification process */
-  void GenerateData() ;
+  void GenerateData();
 
   /** Make a DataObject of the correct type to used as the specified
    * output. This method
@@ -127,17 +127,18 @@ protected:
  
 private:
   /** Target data sample pointer*/
-  // MUST be stored in the Input  const SampleType* m_Sample ;
+  // MUST be stored in the Input  const SampleType* m_Sample;
 
   /** Output pointer (MembershipSample) */
-  // MUST be stored in the Output  typename OutputType::Pointer m_Output ;
+  // MUST be stored in the Output  typename OutputType::Pointer m_Output;
 
   /** User given class labels for membership functions */
-  // Must be stored in the input  ClassLabelVectorType m_ClassLabels ;
-} ; // end of class
+  // Must be stored in the input  ClassLabelVectorType m_ClassLabels;
+
+}; // end of class
 
 
-  } // end of namespace Statistics 
+} // end of namespace Statistics 
 } // end of namespace itk
 
 
@@ -146,10 +147,3 @@ private:
 #endif
 
 #endif
-
-
-
-
-
-
-
