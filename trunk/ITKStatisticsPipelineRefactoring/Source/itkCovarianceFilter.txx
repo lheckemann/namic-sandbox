@@ -106,8 +106,6 @@ CovarianceFilter< TSample >
   double frequency;
   double totalFrequency = 0.0;
 
-  unsigned int row, col;
-  unsigned int i;
   typename TSample::ConstIterator iter = input->Begin();
   typename TSample::ConstIterator end = input->End();
 
@@ -122,16 +120,16 @@ CovarianceFilter< TSample >
     frequency = iter.GetFrequency();
     totalFrequency += frequency;
     measurements = iter.GetMeasurementVector();
-    for ( i = 0; i < measurementVectorSize; ++i )
+    for( unsigned int i = 0; i < measurementVectorSize; ++i )
       {
       mean[i] += frequency * measurements[i];
       }
     ++iter;
     }
 
-  for ( i = 0; i < measurementVectorSize; ++i )
+  for( unsigned int i = 0; i < measurementVectorSize; ++i )
     {
-    mean[i] = mean[i] / ( totalFrequency-1 );
+    mean[i] = mean[i] / totalFrequency;
     }
 
   std::cout << "The mean is: " << mean << std::endl;
@@ -145,15 +143,15 @@ CovarianceFilter< TSample >
     frequency = iter.GetFrequency();
     totalFrequency += frequency;
     measurements = iter.GetMeasurementVector();
-    for ( i = 0; i < measurementVectorSize; ++i )
+    for ( unsigned int i = 0; i < measurementVectorSize; ++i )
       {
       diff[i] = measurements[i] - mean[i];
       }
 
     // updates the covariance matrix
-    for ( row = 0; row < measurementVectorSize; row++ )
+    for( unsigned int row = 0; row < measurementVectorSize; row++ )
       {
-      for ( col = 0; col < row + 1; col++)
+      for( unsigned int col = 0; col < row + 1; col++)
         {
         output(row,col) += frequency * diff[row] * diff[col];
         }
@@ -164,12 +162,11 @@ CovarianceFilter< TSample >
   std::cout << "Output2: " << output << std::endl;
 
   // fills the upper triangle using the lower triangle  
-  for (row = 1; row < measurementVectorSize; row++)
+  for( unsigned int row = 1; row < measurementVectorSize; row++)
     {
-    for (col = 0; col < row; col++)
+    for( unsigned int col = 0; col < row; col++)
       {
-      output(col, row) = 
-        output(row, col);
+      output(col, row) = output(row, col);
       } 
     }
 
