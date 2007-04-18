@@ -181,6 +181,9 @@ protected:
   virtual void GenerateData();
 
 private:
+  ScalarImageToCooccurrenceMatrixFilter(const Self&); //purposely not implemented
+  void operator=(const Self&); //purposely not implemented
+
   void NormalizeHistogram( void );
 
   OffsetVectorConstPointer m_Offsets;

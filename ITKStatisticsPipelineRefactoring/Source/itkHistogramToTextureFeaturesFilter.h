@@ -181,6 +181,9 @@ protected:
   void GenerateData();
 
 private:
+  HistogramToTextureFeaturesFilter(const Self&); //purposely not implemented
+  void operator=(const Self&); //purposely not implemented
+
   void NormalizeHistogram(void);
   void ComputeMeansAndVariances( double &pixelMean, double &marginalMean, 
     double &marginalDevSquared, double &pixelVariance );
