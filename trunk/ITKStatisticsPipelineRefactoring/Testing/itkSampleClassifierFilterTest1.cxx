@@ -64,39 +64,8 @@ int itkSampleClassifierFilterTest1(int argc, char *argv[] )
   // Exercise the Print method.
   filter->Print( std::cout );
 
-
-  // Test exception when calling Update() without having
-  // defined the size of the sample
-  try
-    {
-    filter->Update();
-    std::cerr << "Failure to throw expected exception due to lack";
-    std::cerr << " of calling SetMeasurementVectorSize() in the sample";
-    return EXIT_FAILURE;
-    }
-  catch( itk::ExceptionObject & )
-    {
-    std::cout << "Expected exception received" << std::endl;
-    }
-
   sample->SetMeasurementVectorSize( numberOfComponents );
 
-  // Set a bad number of samples on purpose
-  sample->SetMeasurementVectorSize( numberOfComponents + 5 );
-
-  try
-    {
-    filter->Update();
-    std::cerr << "Failure to throw expected exception due to lack";
-    std::cerr << " of calling SetMeasurementVectorSize() in bin maximum ";
-    return EXIT_FAILURE;
-    }
-  catch( itk::ExceptionObject & )
-    {
-    std::cout << "Expected exception received" << std::endl;
-    }
-
-  sample->SetMeasurementVectorSize( numberOfComponents );
 
   try
     {
