@@ -28,6 +28,7 @@ ADD_TEST(itkListSampleTest4 ${STATISTICS_TESTS} itkListSampleTest 100)
 ADD_TEST(itkListSampleToHistogramFilterTest ${STATISTICS_TESTS} itkListSampleToHistogramFilterTest)
 ADD_TEST(itkMeanFilterTest ${STATISTICS_TESTS} itkMeanFilterTest)
 ADD_TEST(itkCovarianceFilterTest ${STATISTICS_TESTS} itkCovarianceFilterTest)
+ADD_TEST(itkCovarianceFilterTest2 ${STATISTICS_TESTS} itkCovarianceFilterTest2)
 ADD_TEST(itkMeasurementVectorTraitsTest ${STATISTICS_TESTS} itkMeasurementVectorTraitsTest)
 ADD_TEST(itkMembershipSampleTest1 ${STATISTICS_TESTS} itkMembershipSampleTest1)
 ADD_TEST(itkMembershipSampleTest2 ${STATISTICS_TESTS} itkMembershipSampleTest2)
@@ -54,6 +55,7 @@ SET(Statistics_SRCS
   itkListSampleToHistogramFilterTest.cxx
   itkMeanFilterTest.cxx
   itkCovarianceFilterTest.cxx
+  itkCovarianceFilterTest2.cxx
   itkMeasurementVectorTraitsTest.cxx
   itkMembershipSampleTest1.cxx
   itkMembershipSampleTest2.cxx
