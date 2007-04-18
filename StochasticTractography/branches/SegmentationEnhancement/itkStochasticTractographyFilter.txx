@@ -600,7 +600,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   
   for(int i=0; i<tractcontainer->Size(); i++ ){
     TractType::Pointer tract = tractcontainer->GetElement(i);
-    std::cout<< tract->EndOfInput() <<std::endl;
+    //std::cout<< tract->EndOfInput() <<std::endl;
     OutputTractIteratorType outputtractIt( outputPtr,
       tract );
       
