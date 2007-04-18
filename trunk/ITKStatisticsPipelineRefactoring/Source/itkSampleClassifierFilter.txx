@@ -28,6 +28,15 @@ SampleClassifierFilter< TSample >
 {
   this->SetNumberOfRequiredInputs( 1 );
   this->SetNumberOfRequiredOutputs( 1 );
+
+  // Create the output. We use static_cast<> here because we know the default
+  // output must be of type MembershipSampleType
+  typename MembershipSampleType::Pointer output
+    = static_cast<MembershipSampleType*>(this->MakeOutput(0).GetPointer()); 
+
+  output->SetSample( this->GetInput() );
+
+  this->ProcessObject::SetNthOutput(0, output.GetPointer());
 }
 
 template< class TSample >
