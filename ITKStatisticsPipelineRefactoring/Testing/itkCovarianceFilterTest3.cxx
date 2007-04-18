@@ -19,10 +19,10 @@
 #endif
 
 #include "itkCovarianceFilter.h"
-#include "itkListSample.h"
 #include "itkFixedArray.h"
 #include "itkMeasurementVectorTraits.h"
 #include "itkMahalanobisDistanceMembershipFunction.h"
+#include "itkHistogram.h"
 
 int itkCovarianceFilterTest3(int, char* [] ) 
 {
@@ -30,16 +30,35 @@ int itkCovarianceFilterTest3(int, char* [] )
   bool pass = true;
   std::string failureMeassage= "";
 
+  typedef float                       MeasurementType;
   const unsigned int                  MeasurementVectorSize = 5;
   const unsigned int                  numberOfMeasurementVectors = 1000;
   unsigned int                        counter = 0;
 
   typedef itk::FixedArray< 
-    float, MeasurementVectorSize >             MeasurementVectorType;
-  typedef itk::Statistics::ListSample< 
-    MeasurementVectorType >                    SampleType;
+    MeasurementType, MeasurementVectorSize >   MeasurementVectorType;
 
-  typedef itk::Statistics::MahalanobisDistanceMembershipFunction< MeasurementVectorType > MembershipFunctionType;
+  typedef itk::Statistics::MahalanobisDistanceMembershipFunction< 
+    MeasurementVectorType >                    MembershipFunctionType;
+
+  typedef itk::Statistics::Histogram< MeasurementType, 
+          MeasurementVectorSize, 
+          itk::Statistics::DenseFrequencyContainer > HistogramType;
+
+  typedef HistogramType    SampleType; 
+
+  HistogramType::Pointer histogram = HistogramType::New();
+
+  HistogramType::SizeType size;
+  MeasurementVectorType lowerBound;
+  MeasurementVectorType upperBound;
+
+  size.Fill(64);
+  lowerBound.Fill(0);
+  upperBound.Fill(100);
+
+  histogram->Initialize(size, lowerBound, upperBound );
+  histogram->SetToZero();
 
   MembershipFunctionType::Pointer memberFunction = MembershipFunctionType::New();
 
@@ -90,32 +109,25 @@ int itkCovarianceFilterTest3(int, char* [] )
   memberFunction->SetMean( mean );
   memberFunction->SetCovariance( covariance );
 
+  HistogramType::Iterator itr = histogram->Begin();
+  HistogramType::Iterator end = histogram->End();
 
-  SampleType::Pointer sample = SampleType::New();
-
-  sample->SetMeasurementVectorSize( MeasurementVectorSize ); 
-
-  MeasurementVectorType               measure;
-  
-  //reset counter
-  counter = 0;
-
-  while ( counter < numberOfMeasurementVectors ) 
+  while( itr != end )
     {
-    for( unsigned int i=0; i<MeasurementVectorSize; i++)
-      {
-      measure[i] = counter;
-      }
-    sample->PushBack( measure );
-    counter++;
+    const double MahalanobisDistance =
+      memberFunction->Evaluate( itr.GetMeasurementVector() );
+    const double frequency = vcl_exp( - MahalanobisDistance );
+    itr.SetFrequency( frequency );
+    ++itr;
     }
+
 
   typedef itk::Statistics::CovarianceFilter< SampleType > 
     FilterType;
 
   FilterType::Pointer filter = FilterType::New() ;
 
-  filter->SetInput( sample );
+  filter->SetInput( histogram );
 
   try
     {
