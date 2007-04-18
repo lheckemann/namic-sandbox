@@ -524,9 +524,12 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
       tract);
     
     //only store tract if it is of nonzero length
-    if( tract->GetVertexList()->Size() > 0 ){
-      std::cout<<"Not storing zero length tract\n";
+    if( tract->GetVertexList()->Size() > 1 ){
+      std::cout<<"Storing tract\n";
       str->Filter->StoreTract(tract);
+    }
+    else{
+      std::cout<<"Not Storing Tract\n";
     }
   }
   return ITK_THREAD_RETURN_VALUE;
@@ -601,7 +604,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
     TractType::Pointer tract = tractcontainer->GetElement(i);
     std::cout<< tract->EndOfInput() <<std::endl;
     OutputTractIteratorType outputtractIt( outputPtr,
-      tractcontainer->GetElement(i) );
+      tract );
       
     for(outputtractIt.GoToBegin(); !outputtractIt.IsAtEnd(); ++outputtractIt){
     /* there is an issue using outputtractIt.Value() */
