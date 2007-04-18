@@ -523,9 +523,12 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
       str->Filter->m_RandomSeed*(tractnumber+1),
       tract);
     
-    str->Filter->StoreTract(tract);
+    //only store tract if it is of nonzero length
+    if( tract->EndOfTract() > 0 ){
+      std::cout<<"Not storing zero length tract\n";
+      str->Filter->StoreTract(tract);
+    }
   }
-  
   return ITK_THREAD_RETURN_VALUE;
 }
 
@@ -595,6 +598,8 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   typedef PathIterator< OutputConnectivityImageType, TractType > OutputTractIteratorType;
   
   for(int i=0; i<tractcontainer->Size(); i++ ){
+    TractType::Pointer tract = tractcontainer->GetElement(i);
+    
     OutputTractIteratorType outputtractIt( outputPtr,
       tractcontainer->GetElement(i) );
       
