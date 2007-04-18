@@ -538,6 +538,61 @@ int itkHistogramTest(int, char* [] )
     }
 
 
+  //
+  // Exercise GetMin / GetMax methods
+  //
+  {
+  const double epsilon = 1e-6;
+  HistogramType::SizeType size = histogram->GetSize();
+
+  HistogramType::BinMinContainerType binMinimums = histogram->GetMins();
+
+  for( unsigned int dim = 0 ; dim < numberOfComponents; dim++ )
+    {
+    HistogramType::BinMinVectorType binDimensionMinimums = histogram->GetDimensionMins( dim );
+    for( unsigned int k = 0; k < size[dim]; k++ )
+      {
+      HistogramType::MeasurementType minA = binMinimums[dim][k];
+      HistogramType::MeasurementType minB = binDimensionMinimums[k];
+      HistogramType::MeasurementType minC = histogram->GetBinMin( dim, k );
+      if( ( vnl_math_abs( minA - minB ) > epsilon ) ||
+          ( vnl_math_abs( minA - minC ) > epsilon )    )
+        {
+        std::cerr << "Error in Get Bin Mins methods" << std::endl;
+        std::cerr << "dim = " << dim << " k = " << k << std::endl;
+        std::cerr << "GetMins()          = " << minA << std::endl;
+        std::cerr << "GetDimensionMins() = " << minB << std::endl;
+        std::cerr << "GetMin()           = " << minC << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
+    }
+
+  HistogramType::BinMaxContainerType binMaximums = histogram->GetMaxs();
+
+  for( unsigned int dim = 0 ; dim < numberOfComponents; dim++ )
+    {
+    HistogramType::BinMaxVectorType binDimensionMaximums = histogram->GetDimensionMaxs( dim );
+    for( unsigned int k = 0; k < size[dim]; k++ )
+      {
+      HistogramType::MeasurementType maxA = binMaximums[dim][k];
+      HistogramType::MeasurementType maxB = binDimensionMaximums[k];
+      HistogramType::MeasurementType maxC = histogram->GetBinMax( dim, k );
+      if( ( vnl_math_abs( maxA - maxB ) > epsilon ) ||
+          ( vnl_math_abs( maxA - maxC ) > epsilon )    )
+        {
+        std::cerr << "Error in Get Bin Maxs methods" << std::endl;
+        std::cerr << "dim = " << dim << " k = " << k << std::endl;
+        std::cerr << "GetMaxs()          = " << maxA << std::endl;
+        std::cerr << "GetDimensionMaxs() = " << maxB << std::endl;
+        std::cerr << "GetMax()           = " << maxC << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
+    }
+  }
+
+
   // Testing methods specific to Iterators
   {
   typedef HistogramType::Iterator IteratorType;
@@ -687,6 +742,8 @@ int itkHistogramTest(int, char* [] )
 
   }
   
+  // Exercise Print() method
+  histogram->Print( std::cout );
 
   if( !pass )
     {
@@ -697,8 +754,4 @@ int itkHistogramTest(int, char* [] )
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 
-
 }
-
-
-
