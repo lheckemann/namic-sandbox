@@ -230,8 +230,8 @@ protected:
   /** Thread Safe Function to check/update an entry in the likelihood cache **/
   ProbabilityDistributionImageType::PixelType& 
     AccessLikelihoodCache( typename InputDWIImageType::IndexType index );
-  /** Thread Safe Function to obtain a tractnumber to start tracking **/
-  bool ObtainTractNumber(unsigned int& tractnumber);
+  /** Thread Safe Function to delegate a tract and obtain a randomseed to start tracking **/
+  bool DelegateTract(unsigned long& randomseed);
   /** Function to write a tract to the connectivity map **/
   void TractContainerToConnectivityMap(TractContainerType::Pointer tractcontainer);
   /** Thread Safe Function to store a tract to a TractContainer **/
@@ -260,12 +260,13 @@ protected:
   unsigned int m_TotalDelegatedTracts;
   SimpleFastMutexLock m_TotalDelegatedTractsMutex;
   RealTimeClock::Pointer m_ClockPtr;
-  unsigned long m_RandomSeed;
+  //unsigned long m_RandomSeed;
   SimpleFastMutexLock m_OutputImageMutex;
   TractContainerType::Pointer m_OutputTractContainer;
   SimpleFastMutexLock m_OutputTractContainerMutex;
   
   OutputTensorImageType::Pointer m_OutputTensorImage;
+  vnl_random m_RandomGenerator;
 };
 
 }

@@ -25,7 +25,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
 ::StochasticTractographyFilter():
   m_TotalTracts(0),m_MaxTractLength(0),m_Gradients(NULL), m_TransformedGradients(NULL),m_bValues(NULL),
   m_SampleDirections(NULL), m_A(NULL), m_Aqr(NULL), m_LikelihoodCachePtr(NULL),
-  m_MaxLikelihoodCacheSize(0), m_CurrentLikelihoodCacheElements(0), m_RandomSeed(0),
+  m_MaxLikelihoodCacheSize(0), m_CurrentLikelihoodCacheElements(0),
   m_ClockPtr(NULL), m_TotalDelegatedTracts(0), m_OutputTractContainer(NULL){
   this->m_SeedIndex[0]=0;
   this->m_SeedIndex[1]=0;
@@ -33,7 +33,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   this->m_MeasurementFrame.set_identity();
   this->SetNumberOfRequiredInputs(2); //Filter needs a DWI image and a Mask Image
   
+  
   m_ClockPtr = RealTimeClock::New();
+  this->m_RandomGenerator.reseed( ((unsigned long) this->m_ClockPtr->GetTimeStamp()) );
   //load in default sample directions
   this->LoadDefaultSampleDirections();
 } 
@@ -464,10 +466,6 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   std::cout << "MaxLikelhoodCacheElements: "
     << this->m_MaxLikelihoodCacheElements
     << std::endl;
-    
-  //get a random seed
-  this->m_RandomSeed = ((unsigned long) this->m_ClockPtr->GetTimeStamp())%10000;
-  std::cout<<"RandomSeed: "<<this->m_RandomSeed<<std::endl;
 
   //setup the multithreader
   StochasticTractGenerationCallbackStruct data;
@@ -510,26 +508,26 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   typename InputWhiteMatterProbabilityImageType::ConstPointer inputWMPImage = 
     str->Filter->GetWhiteMatterProbabilityImageInput();
 
-  unsigned int tractnumber=-1;
+  unsigned long randomseed=0;
   
-  while(str->Filter->ObtainTractNumber(tractnumber)){
-    
+  while(str->Filter->DelegateTract(randomseed)){
+    std::cout<<randomseed<<std::endl;
     //generate the tract
     TractType::Pointer tract = TractType::New();
     
     str->Filter->StochasticTractGeneration( inputDWIImagePtr,
       inputWMPImage,
       str->Filter->GetSeedIndex(),
-      str->Filter->m_RandomSeed*(tractnumber+1),
+      randomseed,
       tract);
     
     //only store tract if it is of nonzero length
     if( tract->GetVertexList()->Size() > 4 ){
-      std::cout<<"Storing tract\n";
+      //std::cout<<"Storing tract\n";
       str->Filter->StoreTract(tract);
     }
     else{
-      std::cout<<"Not Storing Tract\n";
+      //std::cout<<"Not Storing Tract\n";
     }
   }
   return ITK_THREAD_RETURN_VALUE;
@@ -575,11 +573,11 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
 template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
 bool
 StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
-::ObtainTractNumber(unsigned int& tractnumber){
+::DelegateTract(unsigned long& randomseed){
   bool success = false;
   this->m_TotalDelegatedTractsMutex.Lock();
   if(this->m_TotalDelegatedTracts < this->m_TotalTracts){
-    tractnumber = m_TotalDelegatedTracts;
+    randomseed = this->m_RandomGenerator.lrand32();
     this->m_TotalDelegatedTracts++;
     success = true;
     //a tract was successfully delegated
