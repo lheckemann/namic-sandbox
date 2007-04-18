@@ -439,7 +439,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
     }
     else{
       //fiber doesn't exist in this voxel
-      std::cout<<"Stopped Tracking: No Fiber in this Voxel\n";
+      //std::cout<<"Stopped Tracking: No Fiber in this Voxel\n";
       break;
     }
   }
@@ -511,7 +511,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   unsigned long randomseed=0;
   
   while(str->Filter->DelegateTract(randomseed)){
-    std::cout<<randomseed<<std::endl;
+    //std::cout<<randomseed<<std::endl;
     //generate the tract
     TractType::Pointer tract = TractType::New();
     
