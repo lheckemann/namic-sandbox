@@ -125,10 +125,25 @@ int itkCovarianceFilterTest(int, char* [] )
   covarianceFilter->Print( std::cout );
 
   //TODO: CHECK THE RESULTS
-  const CovarianceFilterType::MatrixDecoratedType * decorator = covarianceFilter->GetOutput() ;
+  const CovarianceFilterType::MeasurementVectorDecoratedType * meanDecorator = 
+                                                covarianceFilter->GetMeanOutput() ;
+
+  CovarianceFilterType::MeasurementVectorType    mean  = meanDecorator->Get();
+  std::cout << "Mean:   " << mean << std::endl;
+  CovarianceFilterType::MeasurementVectorType    mean2 = covarianceFilter->GetMean();
+
+  if ( mean != mean2 )
+    {
+    std::cerr << "Mean parameter value retrieved using GetMean() and the decorator\
+                  are not the same " << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  const CovarianceFilterType::MatrixDecoratedType * decorator = covarianceFilter->GetCovarianceMatrixOutput() ;
   CovarianceFilterType::MatrixType    covarianceMatrix  = decorator->Get();
 
-  std::cout << "Result:   " << covarianceMatrix << std::endl;
+  std::cout << "Covariance matrix:   " << covarianceMatrix << std::endl;
 
   if( !pass )
     {

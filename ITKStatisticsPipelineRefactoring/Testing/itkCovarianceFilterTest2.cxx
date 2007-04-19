@@ -72,12 +72,103 @@ int itkCovarianceFilterTest2(int, char* [] )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
     }    
+
+  std::cout << "Mean: " << filter->GetMean() << std::endl;
  
-  const FilterType::MatrixDecoratedType * decorator = filter->GetOutput() ;
+  const FilterType::MatrixDecoratedType * decorator = filter->GetCovarianceMatrixOutput() ;
   FilterType::MatrixType    covarianceOutput  = decorator->Get();
 
   std::cout << "Covariance Matrix: " << covarianceOutput << std::endl;
   FilterType::MatrixType covariance;
+
+
+  // use orthogonal meausrment vectors 
+  SampleType::Pointer sample2 = SampleType::New();
+
+  sample2->SetMeasurementVectorSize( MeasurementVectorSize ); 
+
+  MeasurementVectorType               measure2;
+  
+  //reset counter
+  counter = 0;
+
+  while ( counter < numberOfMeasurementVectors ) 
+    {
+    for( unsigned int i=0; i<MeasurementVectorSize; i++)
+      {
+      if ( counter == i )
+        {
+        measure2[i] = 1.0;
+        }
+      else
+        {
+        measure2[i] = 0.0;
+        }
+      }
+    sample2->PushBack( measure2 );
+    counter++;
+    }
+
+  filter->SetInput( sample2 );
+
+  try
+    {
+    filter->Update();
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception caught: " << excp << std::endl;
+    }    
+ 
+  std::cout << "Mean: " << filter->GetMean() << std::endl;
+  std::cout << "Covariance Matrix: " << filter->GetCovarianceMatrix() << std::endl;
+
+  SampleType::Pointer sample3 = SampleType::New();
+
+  sample2->SetMeasurementVectorSize( MeasurementVectorSize ); 
+
+  MeasurementVectorType               measure3;
+  
+  measure3[0] =  4.00;
+  measure3[1] =  2.00;
+  measure3[2] =  0.60;
+  sample3->PushBack( measure3 );
+
+  measure3[0] =  4.20;
+  measure3[1] =  2.10;
+  measure3[2] =  0.59;
+  sample3->PushBack( measure3 );
+
+  measure3[0] =  3.90;
+  measure3[1] =  2.00;
+  measure3[2] =  0.58;
+  sample3->PushBack( measure3 );
+
+  measure3[0] =  4.30;
+  measure3[1] =  2.10;
+  measure3[2] =  0.62;
+  sample3->PushBack( measure3 );
+
+  measure3[0] =  4.10;
+  measure3[1] =  2.20;
+  measure3[2] =  0.63;
+  sample3->PushBack( measure3 );
+
+
+  filter->SetInput( sample3 );
+
+  try
+    {
+    filter->Update();
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception caught: " << excp << std::endl;
+    }    
+ 
+  std::cout << "Mean: "              << filter->GetMean() << std::endl;
+  std::cout << "Covariance Matrix: " << filter->GetCovarianceMatrix() << std::endl;
+
 
   if( !pass )
     {

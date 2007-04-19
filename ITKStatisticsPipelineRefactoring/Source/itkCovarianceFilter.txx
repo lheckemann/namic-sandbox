@@ -30,6 +30,10 @@ CovarianceFilter< TSample >
   typename MatrixDecoratedType::Pointer matrixDecorator = 
     static_cast< MatrixDecoratedType * >( this->MakeOutput(0).GetPointer() );
   this->ProcessObject::SetNthOutput(0, matrixDecorator.GetPointer());
+  
+  typename MeasurementVectorDecoratedType::Pointer measurementVectorDecorator = 
+    static_cast< MeasurementVectorDecoratedType * >( this->MakeOutput(1).GetPointer() );
+  this->ProcessObject::SetNthOutput(1, measurementVectorDecorator.GetPointer());
 }
 
 template< class TSample >
@@ -66,20 +70,20 @@ CovarianceFilter< TSample >
 template< class TSample >
 typename CovarianceFilter< TSample>::DataObjectPointer
 CovarianceFilter< TSample >
-::MakeOutput(unsigned int itkNotUsed(idx))
+::MakeOutput(unsigned int index )
 {
-  return static_cast< DataObject * >(MatrixDecoratedType::New().GetPointer());
-}
+  if ( index == 0 )
+    {
+    return static_cast< DataObject * >(MatrixDecoratedType::New().GetPointer());
+    }
 
-template< class TSample >
-const typename CovarianceFilter< TSample>::MatrixDecoratedType *
-CovarianceFilter< TSample >
-::GetOutput() const
-{
-  return static_cast< const MatrixDecoratedType * >(
-              this->ProcessObject::GetOutput(0));
-}
+  if ( index == 1 )
+    {
+    return static_cast< DataObject * >(MeasurementVectorDecoratedType::New().GetPointer());
+    }
 
+  itkExceptionMacro( "This filter has only two types of outputs" );
+}
 
 template< class TSample >
 inline void
@@ -112,8 +116,6 @@ CovarianceFilter< TSample >
   MeasurementVectorType diff;
   MeasurementVectorType measurements;
 
-  std::cout << "Output1: " << output << std::endl;
-
   //Compute the mean first
   while (iter != end)
     {
@@ -131,8 +133,6 @@ CovarianceFilter< TSample >
     {
     mean[i] = mean[i] / totalFrequency;
     }
-
-  std::cout << "The mean is: " << mean << std::endl;
 
   //reset the total frequency and iterator
   totalFrequency = 0.0;
@@ -159,8 +159,6 @@ CovarianceFilter< TSample >
     ++iter;
     }
 
-  std::cout << "Output2: " << output << std::endl;
-
   // fills the upper triangle using the lower triangle  
   for( unsigned int row = 1; row < measurementVectorSize; row++)
     {
@@ -170,13 +168,42 @@ CovarianceFilter< TSample >
       } 
     }
 
-  std::cout << "Output3: " << output << std::endl;
-
   output /= ( totalFrequency - 1.0 );
 
   decoratedOutput->Set( output );
 }
 
+template< class TSample >
+const typename CovarianceFilter< TSample>::MatrixDecoratedType *
+CovarianceFilter< TSample >
+::GetCovarianceMatrixOutput() const
+{
+  return static_cast<const MatrixDecoratedType *>(this->ProcessObject::GetOutput(0));
+}
+
+template< class TSample >
+const typename CovarianceFilter< TSample>::MatrixType
+CovarianceFilter< TSample >
+::GetCovarianceMatrix() const 
+{
+  return this->GetCovarianceMatrixOutput()->Get();
+}
+
+template< class TSample >
+const typename CovarianceFilter< TSample>::MeasurementVectorDecoratedType *
+CovarianceFilter< TSample >
+::GetMeanOutput() const
+{
+  return static_cast<const MeasurementVectorDecoratedType *>(this->ProcessObject::GetOutput(1));
+}
+
+template< class TSample >
+const typename CovarianceFilter< TSample>::MeasurementVectorType
+CovarianceFilter< TSample >
+::GetMean() const 
+{
+  return this->GetMeanOutput()->Get();
+}
 
 } // end of namespace Statistics 
 } // end of namespace itk
