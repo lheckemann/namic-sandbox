@@ -79,8 +79,17 @@ public:
    * a ProcessObject's pipeline */
   typedef  SimpleDataObjectDecorator< MatrixType >  MatrixDecoratedType;
 
-  /** Get the data object decorated matrix */
-  const MatrixDecoratedType * GetOutput() const;
+  /** MeasurementVector is not a DataObject, we need to decorate it to push it down
+   * a ProcessObject's pipeline */
+  typedef  SimpleDataObjectDecorator< MeasurementVectorType >  MeasurementVectorDecoratedType;
+
+  /** Return the covariance matrix */
+  const MatrixType GetCovarianceMatrix() const;
+  const MatrixDecoratedType* GetCovarianceMatrixOutput() const;
+
+  /** Return the mean vector */
+  const MeasurementVectorType GetMean() const;
+  const MeasurementVectorDecoratedType* GetMeanOutput() const;
 
 protected:
   CovarianceFilter(const Self&); //purposely not implemented

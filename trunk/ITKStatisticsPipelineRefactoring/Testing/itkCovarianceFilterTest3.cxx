@@ -150,7 +150,7 @@ int itkCovarianceFilterTest3(int, char* [] )
     std::cerr << "Exception caught: " << excp << std::endl;
     }    
  
-  const FilterType::MatrixDecoratedType * decorator = filter->GetOutput() ;
+  const FilterType::MatrixDecoratedType * decorator = filter->GetCovarianceMatrixOutput() ;
   FilterType::MatrixType    covarianceOutput  = decorator->Get();
 
   std::cout << "Covariance Matrix: " << covarianceOutput << std::endl;
