@@ -30,9 +30,7 @@ namespace itk
 /**
  *
  */
-//template <class TInputImage, class TProbabilityPrecisionType>
 template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
-//BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionType>
 BayesianClassifierInitializationImageFilter< TInputImage,
                                              TMaskImage,
                                              TProbabilityPrecisionType>
@@ -46,11 +44,8 @@ BayesianClassifierInitializationImageFilter< TInputImage,
 
 // GenerateOutputInformation method. Here we force update on the entire input
 // image. It does not make sense having K-Means etc otherwise
-//template <class TInputImage, class TProbabilityPrecisionType>
 template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
 void 
-//BayesianClassifierInitializationImageFilter<TInputImage, 
-//                                            TProbabilityPrecisionType>
 BayesianClassifierInitializationImageFilter< TInputImage,
                                              TMaskImage,
                                              TProbabilityPrecisionType>
@@ -79,11 +74,8 @@ BayesianClassifierInitializationImageFilter< TInputImage,
 }
 
 
-//template <class TInputImage, class TProbabilityPrecisionType>
 template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
 void 
-//BayesianClassifierInitializationImageFilter<TInputImage, 
-//                                            TProbabilityPrecisionType>
 BayesianClassifierInitializationImageFilter< TInputImage,
                                              TMaskImage,
                                              TProbabilityPrecisionType>
@@ -222,10 +214,8 @@ BayesianClassifierInitializationImageFilter< TInputImage,
 }
 
 
-//template <class TInputImage, class TProbabilityPrecisionType>
 template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
 void 
-//BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionType>
 BayesianClassifierInitializationImageFilter< TInputImage,
                                              TMaskImage,
                                              TProbabilityPrecisionType>
@@ -274,10 +264,8 @@ BayesianClassifierInitializationImageFilter< TInputImage,
 
 }
 
-//template <class TInputImage, class TProbabilityPrecisionType>
 template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
 void 
-//BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionType>
 BayesianClassifierInitializationImageFilter< TInputImage,
                                              TMaskImage,
                                              TProbabilityPrecisionType>
@@ -302,10 +290,8 @@ BayesianClassifierInitializationImageFilter< TInputImage,
 }
 
 
-//template <class TInputImage, class TProbabilityPrecisionType>
 template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
 void 
-//BayesianClassifierInitializationImageFilter<TInputImage, TProbabilityPrecisionType>
 BayesianClassifierInitializationImageFilter< TInputImage,
                                              TMaskImage,
                                              TProbabilityPrecisionType>
