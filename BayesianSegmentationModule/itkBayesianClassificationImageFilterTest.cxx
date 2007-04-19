@@ -2,7 +2,7 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkBayesianClassificationImageFilter.h"
-
+#include "itkImageRegionConstIterator.h"
 
 int main(int argc, char *argv[])
 {
@@ -14,15 +14,15 @@ int main(int argc, char *argv[])
     }
   
   typedef itk::Image< unsigned char, Dimension > InputImageType;
-  typedef itk::Image< unsigned char, Dimension > MaskImageType;
   typedef itk::Image< unsigned char, Dimension > LabelImageType;
+  typedef itk::Image< unsigned char, Dimension > MaskImageType;
 
   typedef itk::BayesianClassificationImageFilter<
-      InputImageType, MaskImageType, LabelImageType > ClassifierType;
+      InputImageType, LabelImageType, MaskImageType > ClassifierType;
 
   ClassifierType::Pointer filter = ClassifierType::New();
   filter->SetNumberOfClasses( atoi(argv[3]) );
-  filter->SetNumberOfSmoothingIterations(atoi(argv[4]));
+  filter->SetNumberOfSmoothingIterations( atoi(argv[4]) );
     
   typedef itk::ImageFileReader< InputImageType > ReaderType;
   ReaderType::Pointer reader = ReaderType::New();
@@ -60,6 +60,21 @@ int main(int argc, char *argv[])
       return EXIT_FAILURE;
       }
   
+    // DEBUGGING: Count number of ON pixels
+    typedef itk::ImageRegionConstIterator< MaskImageType > MaskIteratorType;
+    MaskIteratorType maskIt( maskReader->GetOutput(), maskReader->GetOutput()->GetRequestedRegion() );
+    int count = 0;
+    for( maskIt.GoToBegin(); !maskIt.IsAtEnd(); ++maskIt )
+      {
+      if( maskIt.Get() == atoi(argv[6]) )
+        {
+        count = count + 1;
+        }
+      }
+    std::cerr << "The Mask Value is:  " << atoi(argv[6]) << std::endl;
+    std::cerr << "The Number of Masked Pixels are:  " << count << std::endl;
+    // End DEBUGGING
+
     filter->SetMaskImage( maskReader->GetOutput() );
     filter->SetMaskValue( atoi(argv[6]) );
     }
