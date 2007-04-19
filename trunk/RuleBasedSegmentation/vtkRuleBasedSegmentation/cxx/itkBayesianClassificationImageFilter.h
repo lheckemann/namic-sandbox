@@ -14,19 +14,22 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-// This filter is a wrapper around the itk::BayesianClassifierInitializationImageFilter
-// and the itk::BayesianClassifierImageFilter. It provides the minimal interfaces
-// necessary to provide Slicer with a blackbox that takes an image (to be
-// classified) as input and provides an output image. 
+// This filter is a wrapper around the
+// itk::BayesianClassifierInitializationImageFilter and the
+// itk::BayesianClassifierImageFilter. It provides the minimal
+// interfaces necessary to provide Slicer with a blackbox that takes
+// an image (to be classified) as input and provides an output image.
 //
-// TODO provide some documentation to a layman on what the filter actually does.
+// TODO provide some documentation to a layman on what the filter
+// actually does.
 // 
-// To sum up, the purpose of this class is to provide only the interfaces that
-// can be accessed by the slicer GUI. Here we will provide methods to 
-// set the number of classes (to be classified) and the number of smoothing 
-// iterations (that must be applied to the posteriors). At a later point a
-// method can be provided to switch between Curvature smoothing or Anisotropic
-// diffusion. Here we will use Anisotropic diffusion.
+// To sum up, the purpose of this class is to provide only the
+// interfaces that can be accessed by the slicer GUI. Here we will
+// provide methods to set the number of classes (to be classified) and
+// the number of smoothing iterations (that must be applied to the
+// posteriors). At a later point a method can be provided to switch
+// between Curvature smoothing or Anisotropic diffusion. Here we will
+// use Anisotropic diffusion.
 //
 
 #ifndef __itkBayesianClassificationImageFilter_h
@@ -34,12 +37,13 @@
 
 #include "itkBayesianClassifierImageFilter.h"
 #include "itkBayesianClassifierInitializationImageFilter.h"
+#include "itkProcessObject.h"
 
 
 namespace itk
 {
   
-template< class TInputImage, class TMaskImage, class TLabelImage >
+template< class TInputImage, class TLabelImage, class TMaskImage = TInputImage >
 class ITK_EXPORT BayesianClassificationImageFilter : public
 ImageToImageFilter< TInputImage, TLabelImage >
 {
@@ -48,7 +52,7 @@ public:
   typedef TInputImage                                InputImageType;
   typedef TLabelImage                                OutputImageType;
   typedef ImageToImageFilter< 
-          InputImageType, OutputImageType >          Superclass;
+    InputImageType, OutputImageType >          Superclass;
 
   typedef SmartPointer<Self>   Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
@@ -73,13 +77,22 @@ public:
 
   /** Mask Image typedefs */
   typedef TMaskImage                           MaskImageType;
-  typedef typename MaskImageType::PixelType    MaskPixelType;
+  typedef typename MaskImageType::Pointer      MaskImagePointer ;
+  typedef typename MaskImageType::ConstPointer MaskImageConstPointer ;
+  typedef typename MaskImageType::PixelType    MaskPixelType ;
+  
+  /** Method to set/get the image */
+  void SetInput( const InputImageType* image ) ;
+  const InputImageType* GetInput() const;
 
-  /** Get/Set MaskImage **/
-  itkSetObjectMacro( MaskImage, MaskImageType );
-  itkGetObjectMacro( MaskImage, MaskImageType );
+  /** Method to set/get the mask */
+  void SetMaskImage( const MaskImageType* image ) ;
+  const MaskImageType* GetMaskImage() const;
 
-  /** Get/Set MaskValue **/
+  /** Set the pixel value treated as on in the mask. If a mask has been 
+   * specified, only pixels with this value will be added to the list sample, if
+   * no mask has been specified all pixels will be added as measurement vectors
+   * to the list sample. */
   itkSetMacro( MaskValue, MaskPixelType );
   itkGetMacro( MaskValue, MaskPixelType );
   
@@ -93,13 +106,13 @@ protected:
 
   // Initialization filter
   typedef BayesianClassifierInitializationImageFilter< 
-            InputImageType >                           BayesianInitializerType;
+    InputImageType, MaskImageType >                    BayesianInitializerType;
   typedef typename BayesianInitializerType::Pointer    BayesianInitializerPointer;
   typedef typename BayesianInitializerType::OutputImageType 
-                                                       InitializerOutputImageType;
+  InitializerOutputImageType;
   // Classifier 
   typedef BayesianClassifierImageFilter< 
-      InitializerOutputImageType >                     ClassifierFilterType;
+    InitializerOutputImageType >                       ClassifierFilterType;
   typedef typename ClassifierFilterType::Pointer       ClassifierFilterPointer;
 
 private:
@@ -110,8 +123,6 @@ private:
   unsigned int                        m_NumberOfSmoothingIterations;
   BayesianInitializerPointer          m_Initializer;
   ClassifierFilterPointer             m_Classifier;
-
-  typename MaskImageType::Pointer m_MaskImage;
 
   MaskPixelType m_MaskValue;
 };

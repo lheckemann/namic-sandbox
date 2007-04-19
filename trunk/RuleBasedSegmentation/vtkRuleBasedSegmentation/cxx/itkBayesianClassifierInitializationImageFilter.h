@@ -23,6 +23,7 @@
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkDensityFunction.h"
+#include "itkProcessObject.h"
 
 namespace itk
 {
@@ -71,7 +72,7 @@ namespace itk
  * \ingroup ClassificationFilters 
  */
 template< class TInputImage,
-          class TMaskImage=TInputImage,
+          class TMaskImage = TInputImage,
           class TProbabilityPrecisionType=float >
 class ITK_EXPORT BayesianClassifierInitializationImageFilter :
     public
@@ -109,13 +110,22 @@ public:
 
   /** Mask Image typedefs */
   typedef TMaskImage                           MaskImageType;
-  typedef typename MaskImageType::PixelType    MaskPixelType;
+  typedef typename MaskImageType::Pointer      MaskImagePointer ;
+  typedef typename MaskImageType::ConstPointer MaskImageConstPointer ;
+  typedef typename MaskImageType::PixelType    MaskPixelType ;
+  
+  /** Method to set/get the image */
+  void SetInput( const InputImageType* image ) ;
+  const InputImageType* GetInput() const;
 
-  /** Get/Set MaskImage **/
-  itkSetObjectMacro( MaskImage, MaskImageType );
-  itkGetObjectMacro( MaskImage, MaskImageType );
+  /** Method to set/get the mask */
+  void SetMaskImage( const MaskImageType* image ) ;
+  const MaskImageType* GetMaskImage() const;
 
-  /** Get/Set MaskValue **/
+  /** Set the pixel value treated as on in the mask. If a mask has been 
+   * specified, only pixels with this value will be added to the list sample, if
+   * no mask has been specified all pixels will be added as measurement vectors
+   * to the list sample. */
   itkSetMacro( MaskValue, MaskPixelType );
   itkGetMacro( MaskValue, MaskPixelType );
   
@@ -179,8 +189,6 @@ private:
   bool                      m_UserSuppliesMembershipFunctions;
   unsigned int              m_NumberOfClasses;
   typename MembershipFunctionContainerType::Pointer m_MembershipFunctionContainer;
-
-  typename MaskImageType::Pointer m_MaskImage;
 
   MaskPixelType m_MaskValue;
 };

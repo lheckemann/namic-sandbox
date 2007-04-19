@@ -22,12 +22,13 @@
 
 #include "itkBayesianClassificationImageFilter.h"
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
+//#include "itkImageRegionConstIterator.h"
 
 namespace itk
 {
 
-template < class TInputImage, class TMaskImage, class TOutputImage >
-BayesianClassificationImageFilter< TInputImage, TMaskImage, TOutputImage >
+template < class TInputImage, class TLabelImage, class TMaskImage >
+BayesianClassificationImageFilter< TInputImage, TLabelImage, TMaskImage >
 ::BayesianClassificationImageFilter()
   : m_NumberOfClasses( 0 ),
     m_NumberOfSmoothingIterations( 0 )
@@ -36,16 +37,91 @@ BayesianClassificationImageFilter< TInputImage, TMaskImage, TOutputImage >
   m_Classifier  = ClassifierFilterType::New();
 }
 
-template < class TInputImage, class TMaskImage, class TOutputImage >
+template < class TInputImage, class TLabelImage, class TMaskImage >
 void
-BayesianClassificationImageFilter< TInputImage, TMaskImage, TOutputImage >
+BayesianClassificationImageFilter< TInputImage, TLabelImage, TMaskImage >
+::SetInput(const InputImageType* image) 
+{ 
+  // Process object is not const-correct so the const_cast is required here
+  this->ProcessObject::SetNthInput(0, 
+                                   const_cast< InputImageType* >( image ) );
+}
+
+template < class TInputImage, class TLabelImage, class TMaskImage >
+void
+BayesianClassificationImageFilter< TInputImage, TLabelImage, TMaskImage >
+::SetMaskImage(const MaskImageType* image) 
+{ 
+  // Process object is not const-correct so the const_cast is required here
+  this->ProcessObject::SetNthInput(1, 
+                                   const_cast< MaskImageType* >( image ) );
+}
+
+template < class TInputImage, class TLabelImage, class TMaskImage >
+const TInputImage*
+BayesianClassificationImageFilter< TInputImage, TLabelImage, TMaskImage >
+::GetInput() const
+{
+  if (this->GetNumberOfInputs() < 1)
+    {
+    return 0;
+    }
+  
+  return static_cast<const InputImageType * >
+    (this->ProcessObject::GetInput(0) );
+}  
+
+template < class TInputImage, class TLabelImage, class TMaskImage >
+const TMaskImage*
+BayesianClassificationImageFilter< TInputImage, TLabelImage, TMaskImage >
+::GetMaskImage() const
+{
+  if (this->GetNumberOfInputs() < 2)
+    {
+    return 0;
+    }
+  
+  return static_cast<const MaskImageType * >
+    (this->ProcessObject::GetInput(1) );
+}  
+
+template < class TInputImage, class TLabelImage, class TMaskImage >
+void
+BayesianClassificationImageFilter< TInputImage, TLabelImage, TMaskImage >
 ::GenerateData()
 {
+  InputImageType *input = const_cast< InputImageType * >(this->GetInput());
+  MaskImageType *maskImage = NULL;
+  
+  if (this->GetNumberOfInputs() > 1)
+    {
+    maskImage = const_cast< MaskImageType * >(this->GetMaskImage());
+    }
+
   // TODO Minipipeline could use a progress accumulator
-  m_Initializer->SetInput( this->GetInput() );
+  m_Initializer->SetInput( input );
   m_Initializer->SetNumberOfClasses( this->GetNumberOfClasses() );
-  m_Initializer->SetMaskImage( this->GetMaskImage() );
-  m_Initializer->SetMaskValue( this->GetMaskValue() );
+  if (maskImage) // mask specified
+    {
+//     // DEBUGGING: Count number of ON pixels
+//     std::cerr << "Setting the Mask in itkBayesianClassificationImageFilter..." << std::endl;
+//     typedef itk::ImageRegionConstIterator< MaskImageType > MaskIteratorType;
+//     MaskIteratorType maskIt( maskImage, maskImage->GetRequestedRegion() );
+//     int count = 0;
+//     for( maskIt.GoToBegin(); !maskIt.IsAtEnd(); ++maskIt )
+//       {
+//       if( maskIt.Get() == this->m_MaskValue )
+//         {
+//         count = count + 1;
+//         }
+//       }
+//     std::cerr << "The Mask Value is:  " << (int)this->m_MaskValue << std::endl;
+//     std::cerr << "The Number of Masked Pixels are:  " << count << std::endl;
+//     // End DEBUGGING
+
+    m_Initializer->SetMaskImage( maskImage );
+    m_Initializer->SetMaskValue( this->m_MaskValue );
+    }
   m_Initializer->Update();
   
   m_Classifier->SetInput( m_Initializer->GetOutput() );
@@ -73,9 +149,9 @@ BayesianClassificationImageFilter< TInputImage, TMaskImage, TOutputImage >
 /**
  *  Print Self Method
  */
-template < class TInputImage, class TMaskImage, class TOutputImage >
+template < class TInputImage, class TLabelImage, class TMaskImage >
 void
-BayesianClassificationImageFilter< TInputImage, TMaskImage, TOutputImage >
+BayesianClassificationImageFilter< TInputImage, TLabelImage, TMaskImage >
 ::PrintSelf( std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
@@ -88,3 +164,4 @@ BayesianClassificationImageFilter< TInputImage, TMaskImage, TOutputImage >
 } // end namespace itk
   
 #endif 
+

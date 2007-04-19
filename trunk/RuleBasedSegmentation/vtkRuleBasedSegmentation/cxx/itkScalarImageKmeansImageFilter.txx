@@ -1,7 +1,7 @@
 /*=========================================================================
 
     Program:   Insight Segmentation & Registration Toolkit
-    Module:    $RCSfile: itkScalarImageKmeansImageFilterWithMask.txx,v $
+    Module:    $RCSfile: itkScalarImageKmeansImageFilter.txx,v $
     Language:  C++
     Date:      $Date: 2005/07/26 15:55:08 $
     Version:   $Revision: 1.10 $
@@ -14,19 +14,20 @@
        PURPOSE.  See the above copyright notices for more information.
 
   =========================================================================*/
-#ifndef _itkScalarImageKmeansImageFilterWithMask_txx
-#define _itkScalarImageKmeansImageFilterWithMask_txx
-#include "itkScalarImageKmeansImageFilterWithMask.h"
+#ifndef _itkScalarImageKmeansImageFilter_txx
+#define _itkScalarImageKmeansImageFilter_txx
+#include "itkScalarImageKmeansImageFilter.h"
 #include "itkImageRegionExclusionIteratorWithIndex.h"
 
 #include "itkProgressReporter.h"
+//#include "itkImageRegionConstIterator.h"
 
 namespace itk
 {
 
 template <class TInputImage, class TMaskImage>
-ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
-::ScalarImageKmeansImageFilterWithMask()
+ScalarImageKmeansImageFilter<TInputImage,TMaskImage>
+::ScalarImageKmeansImageFilter()
 {
   m_UseNonContiguousLabels = false;
   m_ImageRegionDefined = false;
@@ -34,7 +35,7 @@ ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
 
 template <class TInputImage, class TMaskImage>
 void
-ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
+ScalarImageKmeansImageFilter<TInputImage,TMaskImage>
 ::SetImageRegion( const ImageRegionType & region )
 {
   m_ImageRegion = region;
@@ -43,16 +44,92 @@ ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
 
 template <class TInputImage, class TMaskImage>
 void
-ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
+ScalarImageKmeansImageFilter<TInputImage,TMaskImage>
+::SetInput(const InputImageType* image) 
+{ 
+  // Process object is not const-correct so the const_cast is required here
+  this->ProcessObject::SetNthInput(0, 
+                                   const_cast< InputImageType* >( image ) );
+}
+
+template <class TInputImage, class TMaskImage>
+void
+ScalarImageKmeansImageFilter<TInputImage,TMaskImage>
+::SetMaskImage(const MaskImageType* image) 
+{ 
+  // Process object is not const-correct so the const_cast is required here
+  this->ProcessObject::SetNthInput(1, 
+                                   const_cast< MaskImageType* >( image ) );
+}
+
+template <class TInputImage, class TMaskImage>
+const TInputImage*
+ScalarImageKmeansImageFilter<TInputImage,TMaskImage>
+::GetInput() const
+{
+  if (this->GetNumberOfInputs() < 1)
+    {
+    return 0;
+    }
+  
+  return static_cast<const InputImageType * >
+    (this->ProcessObject::GetInput(0) );
+}  
+
+template <class TInputImage, class TMaskImage>
+const TMaskImage*
+ScalarImageKmeansImageFilter<TInputImage,TMaskImage>
+::GetMaskImage() const
+{
+  if (this->GetNumberOfInputs() < 2)
+    {
+    return 0;
+    }
+  
+  return static_cast<const MaskImageType * >
+    (this->ProcessObject::GetInput(1) );
+}  
+
+template <class TInputImage, class TMaskImage>
+void
+ScalarImageKmeansImageFilter<TInputImage,TMaskImage>
 ::GenerateData()
 {
+  InputImageType *input = const_cast< InputImageType * >(this->GetInput());
+  MaskImageType *maskImage = NULL;
+
+  if (this->GetNumberOfInputs() > 1)
+    {
+    maskImage = const_cast< MaskImageType * >(this->GetMaskImage());
+    }
+
   typename ImageToListGeneratorType::Pointer imageToListGenerator
     = ImageToListGeneratorType::New();
 
   // This is not an adaptor.. its a filter.. 
-  imageToListGenerator->SetInput( this->GetInput() );
-  imageToListGenerator->SetMaskImage( this->GetMaskImage() );
-  imageToListGenerator->SetMaskValue( this->GetMaskValue() );
+  imageToListGenerator->SetInput( input );
+
+  if (maskImage) // mask specified
+    {
+//     // DEBUGGING: Count number of ON pixels
+//     std::cerr << "Setting the Mask in itkScalarImageKmeansImageFilter..." << std::endl;
+//     typedef itk::ImageRegionConstIterator< MaskImageType > MaskIteratorType;
+//     MaskIteratorType maskIt( maskImage, maskImage->GetRequestedRegion() );
+//     int count = 0;
+//     for( maskIt.GoToBegin(); !maskIt.IsAtEnd(); ++maskIt )
+//       {
+//       if( maskIt.Get() == this->m_MaskValue )
+//         {
+//         count = count + 1;
+//         }
+//       }
+//     std::cerr << "The Mask Value is:  " << (int)this->m_MaskValue << std::endl;
+//     std::cerr << "The Number of Masked Pixels are:  " << count << std::endl;
+//     // End DEBUGGING
+
+    imageToListGenerator->SetMaskImage( maskImage );
+    imageToListGenerator->SetMaskValue( this->m_MaskValue );
+    }
 
   // Generate the sample set from the masked image.
   imageToListGenerator->Update(); 
@@ -207,7 +284,7 @@ ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
  */
 template <class TInputImage, class TMaskImage>
 void
-ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
+ScalarImageKmeansImageFilter<TInputImage,TMaskImage>
 ::AddClassWithInitialMean( RealPixelType mean )
 {
   this->m_InitialMeans.push_back( mean );
@@ -219,7 +296,7 @@ ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
  */
 template <class TInputImage, class TMaskImage>
 void
-ScalarImageKmeansImageFilterWithMask<TInputImage,TMaskImage>
+ScalarImageKmeansImageFilter<TInputImage,TMaskImage>
 ::PrintSelf(
   std::ostream& os, 
   Indent indent) const

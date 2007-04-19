@@ -125,9 +125,24 @@ ImageToListGenerator< TImage, TMaskImage >
   if (maskImage) // mask specified
     {
     typedef ImageRegionConstIterator< MaskImageType > MaskIteratorType;
+
+//     // DEBUGGING: Count number of ON pixels
+//     std::cerr << "Setting the Mask in itkImageToListGenerator..." << std::endl;
+//     MaskIteratorType maskIt( maskImage, maskImage->GetRequestedRegion() );
+//     int count = 0;
+//     for( maskIt.GoToBegin(); !maskIt.IsAtEnd(); ++maskIt )
+//       {
+//       if( maskIt.Get() == this->m_MaskValue )
+//         {
+//         count = count + 1;
+//         }
+//       }
+//     std::cerr << "The Mask Value is:  " << (int)this->m_MaskValue << std::endl;
+//     std::cerr << "The Number of Masked Pixels are:  " << count << std::endl;
+//     // End DEBUGGING
+
     MaskIteratorType mit( maskImage, maskImage->GetBufferedRegion() );
     mit.GoToBegin();
-//    int count = 0; // debug
     while (!it.IsAtEnd())
       {
       if (mit.Get() == this->m_MaskValue)
@@ -135,12 +150,10 @@ ImageToListGenerator< TImage, TMaskImage >
         MeasurementVectorType m;
         m[0] = it.Get();
         output->PushBack(m);
-//        count++;
         }
       ++mit;
       ++it;
       }
-//    std::cerr << "There were " << count << " pixels!" << std::endl;
     }
   else // no mask specified
     {

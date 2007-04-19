@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkScalarImageKmeansImageFilterWithMask.h,v $
+  Module:    $RCSfile: itkScalarImageKmeansImageFilter.h,v $
   Language:  C++
   Date:      $Date: 2006/04/05 13:59:37 $
   Version:   $Revision: 1.4 $
@@ -14,12 +14,13 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkScalarImageKmeansImageFilterWithMask_h
-#define __itkScalarImageKmeansImageFilterWithMask_h
+#ifndef __itkScalarImageKmeansImageFilter_h
+#define __itkScalarImageKmeansImageFilter_h
 
 #include "itkImageToImageFilter.h"
 #include "itkImage.h"
 #include "itkNumericTraits.h"
+#include "itkProcessObject.h"
 
 #include "itkKdTree.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
@@ -37,7 +38,7 @@
 
 namespace itk
 {
-/** \class ScalarImageKmeansImageFilterWithMask
+/** \class ScalarImageKmeansImageFilter
  * \brief Classifies the intensity values of a scalar image using the K-Means algorithm.
  *
  * Given an input image with scalar values, it uses the K-Means statistical
@@ -59,8 +60,8 @@ namespace itk
  * \ingroup ClassificationFilters 
  */
 template <class TInputImage,
-          class TMaskImage=TInputImage >
-class ITK_EXPORT ScalarImageKmeansImageFilterWithMask :
+          class TMaskImage = TInputImage >
+class ITK_EXPORT ScalarImageKmeansImageFilter :
     public ImageToImageFilter< TInputImage, Image<unsigned char,
                                                   ::itk::GetImageDimension<TInputImage>::ImageDimension> >
 {
@@ -72,10 +73,10 @@ public:
   /** Convenient typedefs for simplifying declarations. */
   typedef TInputImage InputImageType;
   typedef Image<unsigned char,
-             ::itk::GetImageDimension<TInputImage>::ImageDimension> OutputImageType;
+                ::itk::GetImageDimension<TInputImage>::ImageDimension> OutputImageType;
 
   /** Standard class typedefs. */
-  typedef ScalarImageKmeansImageFilterWithMask Self;
+  typedef ScalarImageKmeansImageFilter Self;
   typedef ImageToImageFilter< InputImageType, OutputImageType> Superclass;
   typedef SmartPointer<Self> Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
@@ -84,7 +85,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ScalarImageKmeansImageFilterWithMask, ImageToImageFilter);
+  itkTypeMacro(ScalarImageKmeansImageFilter, ImageToImageFilter);
   
   /** Image typedef support. */
   typedef typename InputImageType::PixelType InputPixelType;
@@ -95,13 +96,26 @@ public:
   
   /** Mask Image typedefs */
   typedef TMaskImage                           MaskImageType;
-  typedef typename MaskImageType::PixelType    MaskPixelType;
+  typedef typename MaskImageType::Pointer      MaskImagePointer ;
+  typedef typename MaskImageType::ConstPointer MaskImageConstPointer ;
+  typedef typename MaskImageType::PixelType    MaskPixelType ;
+  
+  /** Method to set/get the image */
+  void SetInput( const InputImageType* image ) ;
+  const InputImageType* GetInput() const;
 
-  /** Get/Set MaskImage **/
-  itkSetObjectMacro( MaskImage, MaskImageType );
-  itkGetConstObjectMacro( MaskImage, MaskImageType );
+  /** Method to set/get the mask */
+  void SetMaskImage( const MaskImageType* image ) ;
+  const MaskImageType* GetMaskImage() const;
 
-  /** Get/Set MaskValue **/
+//   /** Get/Set MaskImage **/
+//   itkSetObjectMacro( MaskImage, MaskImageType );
+//   itkGetConstObjectMacro( MaskImage, MaskImageType );
+
+  /** Set the pixel value treated as on in the mask. If a mask has been 
+   * specified, only pixels with this value will be added to the list sample, if
+   * no mask has been specified all pixels will be added as measurement vectors
+   * to the list sample. */
   itkSetMacro( MaskValue, MaskPixelType );
   itkGetMacro( MaskValue, MaskPixelType );
   
@@ -122,8 +136,8 @@ public:
   typedef typename InputImageType::RegionType        ImageRegionType;
   
   typedef RegionOfInterestImageFilter< 
-                                 InputImageType,
-                                 InputImageType  > RegionOfInterestFilterType;
+    InputImageType,
+    InputImageType  > RegionOfInterestFilterType;
 
   /** Add a new class to the classification by specifying its initial mean. */
   void AddClassWithInitialMean( RealPixelType mean );
@@ -154,8 +168,8 @@ public:
 #endif
 
 protected:
-  ScalarImageKmeansImageFilterWithMask();
-  virtual ~ScalarImageKmeansImageFilterWithMask() {}
+  ScalarImageKmeansImageFilter();
+  virtual ~ScalarImageKmeansImageFilter() {}
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   /** This method runs the statistical methods that identify the means of the
@@ -166,7 +180,7 @@ protected:
   void GenerateData();
 
 private:
-  ScalarImageKmeansImageFilterWithMask(const Self&); //purposely not implemented
+  ScalarImageKmeansImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
   typedef std::vector< RealPixelType > MeansContainer;
@@ -181,15 +195,13 @@ private:
 
   bool m_ImageRegionDefined;
   
-  typename MaskImageType::Pointer m_MaskImage;
-
   MaskPixelType m_MaskValue;
 };
   
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkScalarImageKmeansImageFilterWithMask.txx"
+#include "itkScalarImageKmeansImageFilter.txx"
 #endif
 
 #endif
