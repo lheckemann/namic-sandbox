@@ -21,7 +21,7 @@
 #define _itkBayesianClassifierInitializationImageFilter_txx
 
 #include "itkBayesianClassifierInitializationImageFilter.h"
-#include "itkScalarImageKmeansImageFilterWithMask.h"
+#include "itkScalarImageKmeansImageFilter.h"
 #include "itkGaussianDensityFunction.h"
 
 namespace itk
@@ -40,6 +40,63 @@ BayesianClassifierInitializationImageFilter< TInputImage,
 {
   m_MembershipFunctionContainer = NULL;
 }
+
+
+template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
+void
+BayesianClassifierInitializationImageFilter< TInputImage,
+                                             TMaskImage,
+                                             TProbabilityPrecisionType>
+::SetInput(const InputImageType* image) 
+{ 
+  // Process object is not const-correct so the const_cast is required here
+  this->ProcessObject::SetNthInput(0, 
+                                   const_cast< InputImageType* >( image ) );
+}
+
+template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
+void
+BayesianClassifierInitializationImageFilter< TInputImage,
+                                             TMaskImage,
+                                             TProbabilityPrecisionType>
+::SetMaskImage(const MaskImageType* image) 
+{ 
+  // Process object is not const-correct so the const_cast is required here
+  this->ProcessObject::SetNthInput(1, 
+                                   const_cast< MaskImageType* >( image ) );
+}
+
+template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
+const TInputImage*
+BayesianClassifierInitializationImageFilter< TInputImage,
+                                             TMaskImage,
+                                             TProbabilityPrecisionType>
+::GetInput() const
+{
+  if (this->GetNumberOfInputs() < 1)
+    {
+    return 0;
+    }
+  
+  return static_cast<const InputImageType * >
+    (this->ProcessObject::GetInput(0) );
+}  
+
+template <class TInputImage, class TMaskImage, class TProbabilityPrecisionType >
+const TMaskImage*
+BayesianClassifierInitializationImageFilter< TInputImage,
+                                             TMaskImage,
+                                             TProbabilityPrecisionType>
+::GetMaskImage() const
+{
+  if (this->GetNumberOfInputs() < 2)
+    {
+    return 0;
+    }
+  
+  return static_cast<const MaskImageType * >
+    (this->ProcessObject::GetInput(1) );
+}  
 
 
 // GenerateOutputInformation method. Here we force update on the entire input
@@ -81,8 +138,16 @@ BayesianClassifierInitializationImageFilter< TInputImage,
                                              TProbabilityPrecisionType>
 ::InitializeMembershipFunctions()
 {
+  InputImageType *input = const_cast< InputImageType * >(this->GetInput());
+  MaskImageType *maskImage = NULL;
+
+  if (this->GetNumberOfInputs() > 1)
+    {
+    maskImage = const_cast< MaskImageType * >(this->GetMaskImage());
+    }
+
   // Typedefs for the KMeans filter, Covariance calculator...
-  typedef ScalarImageKmeansImageFilterWithMask< InputImageType, MaskImageType >
+  typedef ScalarImageKmeansImageFilter< InputImageType, MaskImageType >
     KMeansFilterType;
   typedef typename KMeansFilterType::OutputImageType  KMeansOutputImageType;
   typedef ImageRegionConstIterator< 
@@ -99,9 +164,28 @@ BayesianClassifierInitializationImageFilter< TInputImage,
   
   // Run k means to get the means from the input image
   typename KMeansFilterType::Pointer kmeansFilter = KMeansFilterType::New();
-  kmeansFilter->SetInput( this->GetInput() );
-  kmeansFilter->SetMaskImage( this->GetMaskImage() );
-  kmeansFilter->SetMaskValue( this->GetMaskValue() );
+  kmeansFilter->SetInput( input );
+  if (maskImage) // mask specified
+    {
+//     // DEBUGGING: Count number of ON pixels
+//     std::cerr << "Setting the Mask in itkBayesianClassifierInitializationImageFilter..." << std::endl;
+//     typedef itk::ImageRegionConstIterator< MaskImageType > MaskIteratorType;
+//     MaskIteratorType maskIt( maskImage, maskImage->GetRequestedRegion() );
+//     int count = 0;
+//     for( maskIt.GoToBegin(); !maskIt.IsAtEnd(); ++maskIt )
+//       {
+//       if( maskIt.Get() == this->m_MaskValue )
+//         {
+//         count = count + 1;
+//         }
+//       }
+//     std::cerr << "The Mask Value is:  " << (int)this->m_MaskValue << std::endl;
+//     std::cerr << "The Number of Masked Pixels are:  " << count << std::endl;
+//     // End DEBUGGING
+
+    kmeansFilter->SetMaskImage( maskImage );
+    kmeansFilter->SetMaskValue( this->m_MaskValue );
+    }
   kmeansFilter->SetUseNonContiguousLabels( false );
 
   for( unsigned k=0; k < m_NumberOfClasses; k++ )

@@ -37,19 +37,19 @@
 
 #include "itkBayesianClassifierImageFilter.h"
 #include "itkBayesianClassifierInitializationImageFilter.h"
+#include "itkProcessObject.h"
 
 
 namespace itk
 {
   
-template< class TInputImage, class TMaskImage, class TLabelImage >
+template< class TInputImage, class TLabelImage, class TMaskImage = TInputImage >
 class ITK_EXPORT BayesianClassificationImageFilter : public
 ImageToImageFilter< TInputImage, TLabelImage >
 {
 public:
   typedef BayesianClassificationImageFilter          Self;
   typedef TInputImage                                InputImageType;
-  typedef TMaskImage                                 MaskImageType;
   typedef TLabelImage                                OutputImageType;
   typedef ImageToImageFilter< 
     InputImageType, OutputImageType >          Superclass;
@@ -76,13 +76,23 @@ public:
   itkGetMacro( NumberOfSmoothingIterations, unsigned int );
 
   /** Mask Image typedefs */
-  typedef typename MaskImageType::PixelType    MaskPixelType;
+  typedef TMaskImage                           MaskImageType;
+  typedef typename MaskImageType::Pointer      MaskImagePointer ;
+  typedef typename MaskImageType::ConstPointer MaskImageConstPointer ;
+  typedef typename MaskImageType::PixelType    MaskPixelType ;
+  
+  /** Method to set/get the image */
+  void SetInput( const InputImageType* image ) ;
+  const InputImageType* GetInput() const;
 
-  /** Get/Set MaskImage **/
-  itkSetObjectMacro( MaskImage, MaskImageType );
-  itkGetObjectMacro( MaskImage, MaskImageType );
+  /** Method to set/get the mask */
+  void SetMaskImage( const MaskImageType* image ) ;
+  const MaskImageType* GetMaskImage() const;
 
-  /** Get/Set MaskValue **/
+  /** Set the pixel value treated as on in the mask. If a mask has been 
+   * specified, only pixels with this value will be added to the list sample, if
+   * no mask has been specified all pixels will be added as measurement vectors
+   * to the list sample. */
   itkSetMacro( MaskValue, MaskPixelType );
   itkGetMacro( MaskValue, MaskPixelType );
   
@@ -113,8 +123,6 @@ private:
   unsigned int                        m_NumberOfSmoothingIterations;
   BayesianInitializerPointer          m_Initializer;
   ClassifierFilterPointer             m_Classifier;
-
-  typename MaskImageType::Pointer m_MaskImage;
 
   MaskPixelType m_MaskValue;
 };

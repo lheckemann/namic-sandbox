@@ -73,8 +73,7 @@ int main(int argc, char *argv[])
     }
 
   typedef itk::Image< unsigned char, Dimension > ImageType;
-  typedef itk::Image< unsigned char, Dimension > MaskType;
-  typedef itk::BayesianClassifierInitializationImageFilter< ImageType, MaskType > 
+  typedef itk::BayesianClassifierInitializationImageFilter< ImageType > 
                                                 BayesianInitializerType;
   BayesianInitializerType::Pointer bayesianInitializer 
                                           = BayesianInitializerType::New();
