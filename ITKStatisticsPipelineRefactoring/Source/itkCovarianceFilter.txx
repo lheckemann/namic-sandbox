@@ -101,6 +101,10 @@ CovarianceFilter< TSample >
 
   MatrixType output = decoratedOutput->Get();
 
+  MeasurementVectorDecoratedType * decoratedMeanOutput =
+            static_cast< MeasurementVectorDecoratedType * >(
+              this->ProcessObject::GetOutput(1));
+
   output.SetSize( measurementVectorSize, measurementVectorSize );
   output.Fill(0.0);
 
@@ -133,6 +137,8 @@ CovarianceFilter< TSample >
     {
     mean[i] = mean[i] / totalFrequency;
     }
+
+   decoratedMeanOutput->Set( mean );
 
   //reset the total frequency and iterator
   totalFrequency = 0.0;

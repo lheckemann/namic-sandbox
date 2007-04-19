@@ -26,7 +26,6 @@
 int itkCovarianceFilterTest2(int, char* [] ) 
 {
   std::cout << "CovarianceFilter test \n \n";
-  bool pass = true;
   std::string failureMeassage= "";
 
   const unsigned int                  MeasurementVectorSize = 3;
@@ -60,6 +59,8 @@ int itkCovarianceFilterTest2(int, char* [] )
   typedef itk::Statistics::CovarianceFilter< SampleType > 
     FilterType;
 
+  typedef FilterType::MatrixType          CovarianceMatrixType;
+
   FilterType::Pointer filter = FilterType::New() ;
 
   filter->SetInput( sample );
@@ -79,7 +80,49 @@ int itkCovarianceFilterTest2(int, char* [] )
   FilterType::MatrixType    covarianceOutput  = decorator->Get();
 
   std::cout << "Covariance Matrix: " << covarianceOutput << std::endl;
-  FilterType::MatrixType covariance;
+
+  const FilterType::MeasurementVectorDecoratedType * meanDecorator  = filter->GetMeanOutput() ;
+  FilterType::MeasurementVectorType    mean = meanDecorator->Get();
+ 
+  //Check the results
+  float value[3] = {1.0, 1.0, 1.0};
+
+  MeasurementVectorType  meanExpected( value ); 
+
+  const double epsilon = 1e-4;
+
+  for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
+    {
+    if ( fabs( meanExpected[i] - mean[i] ) > epsilon )
+      {
+      std::cerr << "The computed mean value is incorrrect" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+  CovarianceMatrixType  matrixExpected( MeasurementVectorSize, MeasurementVectorSize );
+
+  matrixExpected[0][0] = 1.0;
+  matrixExpected[0][1] = 1.0;
+  matrixExpected[0][2] = 1.0;
+
+  matrixExpected[1][0] = 1.0;
+  matrixExpected[1][1] = 1.0;
+  matrixExpected[1][2] = 1.0;
+
+  matrixExpected[2][0] = 1.0;
+  matrixExpected[2][1] = 1.0;
+  matrixExpected[2][2] = 1.0;
+
+  for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
+  {
+  for ( unsigned int j = 0; j < MeasurementVectorSize; j++ )
+  if ( fabs( matrixExpected[i][j] - covarianceOutput[i][j] ) > epsilon )
+    {
+    std::cerr << "Computed covariance matrix value is incorrrect" << std::endl;
+    return EXIT_FAILURE;
+    }
+  }
 
 
   // use orthogonal meausrment vectors 
@@ -122,6 +165,48 @@ int itkCovarianceFilterTest2(int, char* [] )
  
   std::cout << "Mean: " << filter->GetMean() << std::endl;
   std::cout << "Covariance Matrix: " << filter->GetCovarianceMatrix() << std::endl;
+
+  mean = filter->GetMean();
+  CovarianceMatrixType matrix = filter->GetCovarianceMatrix();
+
+  //Check the results
+  float value2[3] = {0.333333, 0.333333, 0.3333333};
+
+  MeasurementVectorType  meanExpected2( value2 ); 
+
+  for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
+    {
+    if ( fabs( meanExpected2[i] - mean[i] ) > epsilon )
+      {
+      std::cerr << "The computed mean value is incorrrect" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+  CovarianceMatrixType  matrixExpected2( MeasurementVectorSize, MeasurementVectorSize );
+
+  matrixExpected2[0][0] = 0.33333;
+  matrixExpected2[0][1] = -0.16667;
+  matrixExpected2[0][2] = -0.16667;
+
+  matrixExpected2[1][0] = -0.16667;
+  matrixExpected2[1][1] = 0.33333;
+  matrixExpected2[1][2] = -0.16667;
+
+  matrixExpected2[2][0] = -0.16667;
+  matrixExpected2[2][1] = -0.16667;
+  matrixExpected2[2][2] = 0.333333;
+
+  for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
+  {
+  for ( unsigned int j = 0; j < MeasurementVectorSize; j++ )
+  if ( fabs( matrixExpected2[i][j] - matrix[i][j] ) > epsilon )
+    {
+    std::cerr << "Computed covariance matrix value is incorrrect" << std::endl;
+    return EXIT_FAILURE;
+    }
+  }
+
 
   SampleType::Pointer sample3 = SampleType::New();
 
@@ -166,14 +251,50 @@ int itkCovarianceFilterTest2(int, char* [] )
     std::cerr << "Exception caught: " << excp << std::endl;
     }    
  
-  std::cout << "Mean: "              << filter->GetMean() << std::endl;
-  std::cout << "Covariance Matrix: " << filter->GetCovarianceMatrix() << std::endl;
 
+  mean = filter->GetMean();
+  matrix = filter->GetCovarianceMatrix();
 
-  if( !pass )
+  std::cout << "Mean: "              << mean << std::endl;
+  std::cout << "Covariance Matrix: " << matrix << std::endl;
+
+  //Check the results
+
+  float value3[3] = {4.10, 2.08, 0.604};
+
+  MeasurementVectorType  meanExpected3( value3 ); 
+
+  for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
     {
-    std::cout << "Test failed." << failureMeassage << std::endl;
-    return EXIT_FAILURE;
+    if ( fabs( meanExpected3[i] - mean[i] ) > epsilon )
+      {
+      std::cerr << "The computed mean value is incorrrect" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+ CovarianceMatrixType  matrixExpected3( MeasurementVectorSize, MeasurementVectorSize );
+
+ matrixExpected3[0][0] = 0.025;
+ matrixExpected3[0][1] = 0.0075;
+ matrixExpected3[0][2] = 0.00175;
+
+ matrixExpected3[1][0] = 0.0075;
+ matrixExpected3[1][1] = 0.0070;
+ matrixExpected3[1][2] = 0.00135;
+
+ matrixExpected3[2][0] = 0.00175;
+ matrixExpected3[2][1] = 0.00135;
+ matrixExpected3[2][2] = 0.00043;
+
+ for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
+  {
+  for ( unsigned int j = 0; j < MeasurementVectorSize; j++ )
+    if ( fabs( matrixExpected3[i][j] - matrix[i][j] ) > epsilon )
+      {
+      std::cerr << "Computed covariance matrix value is incorrrect" << std::endl;
+      return EXIT_FAILURE;
+      }
     }
 
   std::cout << "Test passed." << std::endl;
