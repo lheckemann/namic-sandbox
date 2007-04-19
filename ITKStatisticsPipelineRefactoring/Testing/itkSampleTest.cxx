@@ -48,7 +48,7 @@ public:
   typedef typename Superclass::InstanceIdentifier InstanceIdentifier;
 
   /** Get the size of the sample (number of measurements) */
-  virtual unsigned int Size() const 
+  virtual InstanceIdentifier Size() const 
     {
     return m_Values.size();
     }

@@ -108,7 +108,7 @@ Subsample< TSample >
 }
 
 template< class TSample >
-unsigned int
+typename Subsample< TSample >::InstanceIdentifier
 Subsample< TSample >
 ::Size() const
 { 

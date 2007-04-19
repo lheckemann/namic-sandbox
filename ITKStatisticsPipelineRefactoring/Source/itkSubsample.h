@@ -81,7 +81,7 @@ public:
 
   /** returns SizeType object whose each element is the number of
    * elements in each dimension */
-  unsigned int Size() const;
+  InstanceIdentifier Size() const;
 
   /** Clear the subsample */
   void Clear();
