@@ -126,6 +126,7 @@ CovarianceFilter< TSample >
     frequency = iter.GetFrequency();
     totalFrequency += frequency;
     measurements = iter.GetMeasurementVector();
+
     for( unsigned int i = 0; i < measurementVectorSize; ++i )
       {
       mean[i] += frequency * measurements[i];
@@ -141,13 +142,11 @@ CovarianceFilter< TSample >
    decoratedMeanOutput->Set( mean );
 
   //reset the total frequency and iterator
-  totalFrequency = 0.0;
   iter = input->Begin();
   // fills the lower triangle and the diagonal cells in the covariance matrix
   while (iter != end)
     {
     frequency = iter.GetFrequency();
-    totalFrequency += frequency;
     measurements = iter.GetMeasurementVector();
     for ( unsigned int i = 0; i < measurementVectorSize; ++i )
       {
