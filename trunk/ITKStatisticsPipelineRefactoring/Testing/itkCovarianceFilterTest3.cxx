@@ -31,8 +31,8 @@ int itkCovarianceFilterTest3(int, char* [] )
   std::string failureMeassage= "";
 
   typedef double                      MeasurementType;
-  const unsigned int                  MeasurementVectorSize = 5;
-  const unsigned int                  numberOfMeasurementVectors = 1000;
+  const unsigned int                  MeasurementVectorSize = 3;
+  const unsigned int                  numberOfMeasurementVectors = 100;
   unsigned int                        counter = 0;
 
   typedef itk::FixedArray< 
@@ -53,9 +53,9 @@ int itkCovarianceFilterTest3(int, char* [] )
   MeasurementVectorType lowerBound;
   MeasurementVectorType upperBound;
 
-  size.Fill(5);
-  lowerBound.Fill(0);
-  upperBound.Fill(100);
+  size.Fill(50);
+  lowerBound.Fill(-350);
+  upperBound.Fill(450);
 
   histogram->Initialize( size, lowerBound, upperBound );
   histogram->SetToZero();
@@ -69,41 +69,14 @@ int itkCovarianceFilterTest3(int, char* [] )
   MeanVectorType mean( MeasurementVectorSize );
   CovarianceMatrixType covariance( MeasurementVectorSize, MeasurementVectorSize );
 
-  mean[0] = 29;
-  mean[1] = 31;
-  mean[2] = 37;
-  mean[3] = 41;
-  mean[4] = 47;
-
-/*
-  covariance[0][0] =  2.0;
-  covariance[0][1] =  5.0;
-  covariance[0][2] =  7.0;
-  covariance[0][3] = 11.0;
-  covariance[0][4] = 13.0;
-
-  covariance[1][1] = 17.0;
-  covariance[1][2] = 19.0;
-  covariance[1][3] = 23.0;
-  covariance[1][4] = 29.0;
-
-  covariance[2][2] = 31.0;
-  covariance[2][3] = 37.0;
-  covariance[2][4] = 39.0;
-
-  covariance[3][3] = 41.0;
-  covariance[3][4] = 43.0;
-
-  covariance[4][4] = 47.0;
-  */
+  mean[0] = 50;
+  mean[1] = 52;
+  mean[2] = 51; 
 
   covariance.set_identity();
-  covariance[0][0] = 2500.0;
-  covariance[1][1] = 2500.0;
-  covariance[2][2] = 2500.0;
-  covariance[3][3] = 2500.0;
-  covariance[4][4] = 2500.0;
-
+  covariance[0][0] = 10000.0;
+  covariance[1][1] = 8000.0;
+  covariance[2][2] = 6000.0;
 
 
   for( unsigned int i=0; i < MeasurementVectorSize; i++ )
@@ -127,7 +100,7 @@ int itkCovarianceFilterTest3(int, char* [] )
     {
     const double MahalanobisDistance =
       memberFunction->Evaluate( itr.GetMeasurementVector() );
-    const double frequency = vcl_exp( - MahalanobisDistance );
+    const double frequency = vcl_floor( 1e5 * vcl_exp( -0.5 * MahalanobisDistance ) );
     itr.SetFrequency( frequency );
     std::cout << itr.GetMeasurementVector() << " MD = " << MahalanobisDistance << " f= " << itr.GetFrequency() << std::endl;
     ++itr;
@@ -153,14 +126,38 @@ int itkCovarianceFilterTest3(int, char* [] )
   const FilterType::MatrixDecoratedType * decorator = filter->GetCovarianceMatrixOutput() ;
   FilterType::MatrixType    covarianceOutput  = decorator->Get();
 
+  FilterType::MeasurementVectorType    meanOutput = filter->GetMean();
+
+  std::cout << "Mean: "              << meanOutput << std::endl;
   std::cout << "Covariance Matrix: " << covarianceOutput << std::endl;
 
+  double epsilon = 1;
 
-  if( !pass )
+  for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
     {
-    std::cout << "Test failed." << failureMeassage << std::endl;
-    return EXIT_FAILURE;
+    if ( fabs( meanOutput[i] - mean[i] ) > epsilon )
+      {
+      std::cerr << "The computed mean value is incorrrect" << std::endl;
+      return EXIT_FAILURE;
+      }
     }
+
+  epsilon = 35;
+
+  for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
+  {
+    for ( unsigned int j = 0; j < MeasurementVectorSize; j++ )
+      {
+      if ( fabs( covariance[i][j] - covarianceOutput[i][j] ) > epsilon )
+        {
+        std::cerr << "Computed covariance matrix value is incorrrect:"
+                  << i << "," << j << "=" << covariance[i][j] 
+                  << "," << covarianceOutput[i][j] << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
+  }
+
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
