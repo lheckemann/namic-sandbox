@@ -242,6 +242,30 @@ int itkScalarImageToCooccurrenceMatrixFilterTest2(int, char* [] )
     otF  << ", " << toF  << ", " << totalF << std::endl << std::endl;
     passed = false;
     }
+ 
+  FilterType::Pointer filter2 = FilterType::New();
+  
+  filter2->SetInput(image);  
+  filter2->SetMaskImage(mask);
+  filter2->SetPixelValueMinMax(0,1);
+  filter2->SetOffsets(offsetV);
+  filter2->Update();
+  hist = filter2->GetOutput();
+  
+  ooF = hist->GetFrequency(one_one);
+  otF = hist->GetFrequency(one_two);
+  toF = hist->GetFrequency(two_one);
+  ttF = hist->GetFrequency(two_two);
+  totalF = hist->GetTotalFrequency();
+ 
+  if( ooF != 0 || ttF != 0 || otF != 0 || toF != 0 || totalF != 4)
+    {
+    std::cerr << "Error:" << std::endl;
+    std::cerr << "The histogram was calculated incorrectly" << std::endl;
+    std::cerr << "Expected 0, 0, 0, 0, 4 got " << ooF << ", " << ttF  << ", " <<
+    otF  << ", " << toF  << ", " << totalF << std::endl << std::endl;
+    passed = false;
+    }
   
   if (!passed)
     {
