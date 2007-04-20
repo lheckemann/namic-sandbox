@@ -112,6 +112,32 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
   measure[2] =  0.63;
   sample->PushBack( measure );
 
+  std::cout << filter->GetNameOfClass() << std::endl;
+  filter->Print(std::cout);
+
+  //Invoke update before adding an input. An exception should be 
+  //thrown.
+  try
+    {
+    filter->Update();
+    std::cerr << "Exception should have been thrown since \
+                    Update() is invoked without setting an input" << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception caught: " << excp << std::endl;
+    }    
+
+  if ( filter->GetInput() != NULL )
+    {
+    std::cerr << "GetInput() should return NULL if the input \
+                     has not been set" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  filter->ResetPipeline();
+
   // Run the filter with no weights 
   filter->SetInput( sample );
 
@@ -170,6 +196,52 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
       return EXIT_FAILURE;
       }
     }
+
+  //Specify weight
+  typedef FilterType::WeightArrayType  WeightArrayType;
+  WeightArrayType weightArray(sample->Size());
+  weightArray.Fill(1.0);
+
+  filter->SetWeights( weightArray );
+
+  std::cout << "Weight array: " << filter->GetWeights() << std::endl;
+
+  try
+    {
+    filter->Update();
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception caught: " << excp << std::endl;
+    }    
+ 
+  std::cout << "Weight array: " << filter->GetWeights() << std::endl;
+
+  mean = filter->GetMean();
+  matrix = filter->GetWeightedCovarianceMatrix();
+
+  std::cout << "Mean: "              << mean << std::endl;
+  std::cout << "WeightedCovariance Matrix: " << matrix << std::endl;
+
+  for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
+    {
+    if ( fabs( meanExpected3[i] - mean[i] ) > epsilon )
+      {
+      std::cerr << "The computed mean value is incorrrect" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+  for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
+   {
+  for ( unsigned int j = 0; j < MeasurementVectorSize; j++ )
+    if ( fabs( matrixExpected[i][j] - matrix[i][j] ) > epsilon )
+      {
+      std::cerr << "Computed covariance matrix value is incorrrect" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
 
   //set  a constant 1.0 weight using a function
   WeightedCovarianceTestFunction::Pointer weightFunction = WeightedCovarianceTestFunction::New(); 
