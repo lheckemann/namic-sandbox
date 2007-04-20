@@ -34,7 +34,7 @@ namespace Statistics {
  *  
  * Weight values can be specified in two ways: using a weighting function
  * or an array containing weight values. If none of these two is specified, 
- * the covariance matrix is generated with equal weights ( similar to CovarianceFilter). 
+ * the covariance matrix is generated with equal weights.  
  *
  * \sa CovarianceFilter
  *
@@ -95,10 +95,10 @@ public:
   typedef Array< double > WeightArrayType ;
 
   /** Sets the weights using an array */
-  void SetWeights(WeightArrayType* array) ;
+  void SetWeights(WeightArrayType array) ;
 
   /** Gets the weights array */
-  WeightArrayType* GetWeights() ;
+  WeightArrayType GetWeights() ;
 
   /** Sets the weights using an function the function should have a method, 
    * Evaluate(MeasurementVectorType&).  */
@@ -125,11 +125,8 @@ protected:
   /** Compute covariance matrix with weights specified in an array */
   void ComputeCovarianceMatrixWithWeights();
 
-  /** Compute covariance matrix without weight values */
-  void ComputeCovarianceMatrix();
-
 private:
-  WeightArrayType*    m_Weights ;
+  WeightArrayType     m_Weights ;
   WeightFunctionType* m_WeightFunction ;
 }; // end of class
     

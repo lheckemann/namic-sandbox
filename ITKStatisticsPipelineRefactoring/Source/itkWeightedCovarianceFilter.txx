@@ -37,7 +37,7 @@ WeightedCovarianceFilter< TSample >
 
   // initialize parameters
   m_WeightFunction = NULL ;
-  m_Weights        = NULL ;
+  m_Weights        = 0 ;
 }
 
 template< class TSample >
@@ -55,19 +55,22 @@ WeightedCovarianceFilter< TSample >
 {
   this->ProcessObject::SetNthInput(0, 
                                    const_cast< SampleType* >( sample ) );
+  //initialize the weight array
+  m_Weights.SetSize( sample->Size() );
+  m_Weights.Fill(1.0); // set equal weights
 }
 
 template< class TSample >
 void
 WeightedCovarianceFilter< TSample >
-::SetWeights(WeightArrayType* array)
+::SetWeights(WeightArrayType array)
 {
   m_Weights = array ;
   this->Modified();
 }
 
 template< class TSample >
-typename WeightedCovarianceFilter< TSample >::WeightArrayType*
+typename WeightedCovarianceFilter< TSample >::WeightArrayType
 WeightedCovarianceFilter< TSample >
 ::GetWeights()
 {
@@ -133,111 +136,8 @@ WeightedCovarianceFilter< TSample >
     return;
     }
 
-  // If weight array is specified, use it 
-  if ( m_Weights != NULL )
-    {
-    this->ComputeCovarianceMatrixWithWeights(); 
-    return;
-    } 
-
-  //Default, compute covariance matrix without weight coefficients
-  this->ComputeCovarianceMatrix();
-
+  this->ComputeCovarianceMatrixWithWeights(); 
 } 
-
-template< class TSample >
-inline void
-WeightedCovarianceFilter< TSample >
-::ComputeCovarianceMatrixWithWeightingFunction() 
-{
-  const SampleType *input = this->GetInput();
-
-  MeasurementVectorSizeType measurementVectorSize = 
-                             input->GetMeasurementVectorSize();
- 
-  MatrixDecoratedType * decoratedOutput =
-            static_cast< MatrixDecoratedType * >(
-              this->ProcessObject::GetOutput(0));
-
-  MatrixType output = decoratedOutput->Get();
-
-  MeasurementVectorDecoratedType * decoratedMeanOutput =
-            static_cast< MeasurementVectorDecoratedType * >(
-              this->ProcessObject::GetOutput(1));
-
-  output.SetSize( measurementVectorSize, measurementVectorSize );
-  output.Fill(0.0);
-
-  MeasurementVectorType mean;
-  mean.Fill(0.0);
-
-  double frequency;
-  double totalFrequency = 0.0;
-
-  typename TSample::ConstIterator iter = input->Begin();
-  typename TSample::ConstIterator end = input->End();
-
-  MeasurementVectorType diff;
-  MeasurementVectorType measurements;
-
-  //Compute the mean first
-  while (iter != end)
-    {
-    frequency = iter.GetFrequency();
-    totalFrequency += frequency;
-    measurements = iter.GetMeasurementVector();
-
-    for( unsigned int i = 0; i < measurementVectorSize; ++i )
-      {
-      mean[i] += frequency * measurements[i];
-      }
-    ++iter;
-    }
-
-  for( unsigned int i = 0; i < measurementVectorSize; ++i )
-    {
-    mean[i] = mean[i] / totalFrequency;
-    }
-
-   decoratedMeanOutput->Set( mean );
-
-  //reset the total frequency and iterator
-  iter = input->Begin();
-  // fills the lower triangle and the diagonal cells in the covariance matrix
-  while (iter != end)
-    {
-    frequency = iter.GetFrequency();
-    measurements = iter.GetMeasurementVector();
-    for ( unsigned int i = 0; i < measurementVectorSize; ++i )
-      {
-      diff[i] = measurements[i] - mean[i];
-      }
-
-    // updates the covariance matrix
-    for( unsigned int row = 0; row < measurementVectorSize; row++ )
-      {
-      for( unsigned int col = 0; col < row + 1; col++)
-        {
-        output(row,col) += frequency * diff[row] * diff[col];
-        }
-      }
-    ++iter;
-    }
-
-  // fills the upper triangle using the lower triangle  
-  for( unsigned int row = 1; row < measurementVectorSize; row++)
-    {
-    for( unsigned int col = 0; col < row; col++)
-      {
-      output(col, row) = output(row, col);
-      } 
-    }
-
-  output /= ( totalFrequency - 1.0 );
-
-  decoratedOutput->Set( output );
-}
-
 
 template< class TSample >
 inline void
@@ -274,33 +174,40 @@ WeightedCovarianceFilter< TSample >
   MeasurementVectorType diff;
   MeasurementVectorType measurements;
 
+  double weight;
+  double totalWeight = 0.0;
+  double sumSquaredWeight=0.0;
+
   //Compute the mean first
+
+  unsigned int measurementVectorIndex = 0;
   while (iter != end)
     {
-    frequency = iter.GetFrequency();
-    totalFrequency += frequency;
     measurements = iter.GetMeasurementVector();
+    weight = iter.GetFrequency() * (m_Weights)[measurementVectorIndex];
+    totalWeight += weight;
+    sumSquaredWeight += weight * weight;
 
     for( unsigned int i = 0; i < measurementVectorSize; ++i )
       {
-      mean[i] += frequency * measurements[i];
+      mean[i] += weight * measurements[i];
       }
     ++iter;
     }
 
   for( unsigned int i = 0; i < measurementVectorSize; ++i )
     {
-    mean[i] = mean[i] / totalFrequency;
+    mean[i] = mean[i] / totalWeight;
     }
 
    decoratedMeanOutput->Set( mean );
 
-  //reset the total frequency and iterator
+  //reset iterator
   iter = input->Begin();
   // fills the lower triangle and the diagonal cells in the covariance matrix
   while (iter != end)
     {
-    frequency = iter.GetFrequency();
+    weight = iter.GetFrequency() * (m_Weights)[measurementVectorIndex];
     measurements = iter.GetMeasurementVector();
     for ( unsigned int i = 0; i < measurementVectorSize; ++i )
       {
@@ -312,10 +219,11 @@ WeightedCovarianceFilter< TSample >
       {
       for( unsigned int col = 0; col < row + 1; col++)
         {
-        output(row,col) += frequency * diff[row] * diff[col];
+        output(row,col) += weight * diff[row] * diff[col];
         }
       }
     ++iter;
+    ++measurementVectorIndex;
     }
 
   // fills the upper triangle using the lower triangle  
@@ -327,7 +235,7 @@ WeightedCovarianceFilter< TSample >
       } 
     }
 
-  output /= ( totalFrequency - 1.0 );
+  output /= ( totalWeight - ( sumSquaredWeight / totalWeight ) );
 
   decoratedOutput->Set( output );
 }
@@ -336,7 +244,7 @@ WeightedCovarianceFilter< TSample >
 template< class TSample >
 inline void
 WeightedCovarianceFilter< TSample >
-::ComputeCovarianceMatrix() 
+::ComputeCovarianceMatrixWithWeightingFunction() 
 {
   const SampleType *input = this->GetInput();
 
