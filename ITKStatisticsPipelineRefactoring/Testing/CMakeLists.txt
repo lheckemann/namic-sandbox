@@ -43,6 +43,7 @@ ADD_TEST(itkSubsampleTest2 ${STATISTICS_TESTS} itkSubsampleTest2)
 ADD_TEST(itkSubsampleTest3 ${STATISTICS_TESTS} itkSubsampleTest3)
 ADD_TEST(itkStatisticsAlgorithmTest ${STATISTICS_TESTS} itkStatisticsAlgorithmTest)
 ADD_TEST(itkWeightedMeanFilterTest ${STATISTICS_TESTS} itkWeightedMeanFilterTest)
+ADD_TEST(itkWeightedCovarianceFilterTest ${STATISTICS_TESTS} itkWeightedCovarianceFilterTest)
 
 
 
@@ -72,6 +73,7 @@ SET(Statistics_SRCS
   itkSubsampleTest2.cxx
   itkSubsampleTest3.cxx
   itkWeightedMeanFilterTest.cxx
+  itkWeightedCovarianceFilterTest.cxx
   )
 
 ADD_EXECUTABLE(itkStatisticsTests itkStatisticsTests.cxx ${Statistics_SRCS})
