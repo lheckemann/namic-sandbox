@@ -32,6 +32,10 @@
 #include "itkImageToListSampleFilter.h"
 #include "itkScalarImageToCooccurrenceMatrixFilter.h"
 #include "itkHistogramToTextureFeaturesFilter.h"
+#include "itkMeanFilter.h"
+#include "itkWeightedMeanFilter.h"
+#include "itkCovarianceFilter.h"
+#include "itkWeightedCovarianceFilter.h"
 
 int itkStatisticsPrintTest(int , char* [])
 {
@@ -67,6 +71,12 @@ int itkStatisticsPrintTest(int , char* [])
 
   typedef itk::Statistics::HistogramToTextureFeaturesFilter<
     HistogramType > HistogramToTextureFeaturesFilterType;
+
+  typedef itk::Statistics::MeanFilter< SampleType > MeanFilterType;
+  typedef itk::Statistics::WeightedMeanFilter< SampleType > WeightedMeanFilterType;
+
+  typedef itk::Statistics::CovarianceFilter< SampleType > CovarianceFilterType;
+  typedef itk::Statistics::WeightedCovarianceFilter< SampleType > WeightedCovarianceFilterType;
 
   SampleType::Pointer sampleObj = SampleType::New();
   std::cout << "----------ListSample " << sampleObj;
@@ -105,6 +115,23 @@ int itkStatisticsPrintTest(int , char* [])
   MembershipSampleType::Pointer MembershipSampleObj = 
     MembershipSampleType::New();
   std::cout << "----------MembershipSample " << MembershipSampleObj;
+
+  MeanFilterType::Pointer meanFilterObj = 
+    MeanFilterType::New();
+  std::cout << "----------Mean filter " << meanFilterObj;
+
+  WeightedMeanFilterType::Pointer weighedMeanFilterObj = 
+    WeightedMeanFilterType::New();
+  std::cout << "----------WeightedMean filter " << weighedMeanFilterObj;
+
+  CovarianceFilterType::Pointer covarianceFilterObj = 
+    CovarianceFilterType::New();
+  std::cout << "----------Covariance filter " << covarianceFilterObj;
+
+  WeightedCovarianceFilterType::Pointer weighedCovarianceFilterObj = 
+    WeightedCovarianceFilterType::New();
+  std::cout << "----------WeightedCovariance filter " << weighedCovarianceFilterObj;
+
 
   return EXIT_SUCCESS;
 }

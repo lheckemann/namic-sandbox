@@ -34,6 +34,7 @@
 #include "itkMembershipSample.h"
 #include "itkCovarianceFilter.h"
 #include "itkWeightedMeanFilter.h"
+#include "itkWeightedCovarianceFilter.h"
 #include "itkImageToListSampleFilter.h"
 #include "itkScalarImageToCooccurrenceMatrixFilter.h"
 
