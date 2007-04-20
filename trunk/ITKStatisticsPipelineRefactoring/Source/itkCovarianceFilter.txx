@@ -81,8 +81,6 @@ CovarianceFilter< TSample >
     {
     return static_cast< DataObject * >(MeasurementVectorDecoratedType::New().GetPointer());
     }
-
-  itkExceptionMacro( "This filter has only two types of outputs" );
 }
 
 template< class TSample >
