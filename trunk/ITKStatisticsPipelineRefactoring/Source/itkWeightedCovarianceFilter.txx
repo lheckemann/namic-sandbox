@@ -36,8 +36,8 @@ WeightedCovarianceFilter< TSample >
   this->ProcessObject::SetNthOutput(1, measurementVectorDecorator.GetPointer());
 
   // initialize parameters
-  m_WeightFunction = NULL ;
-  m_Weights        = 0 ;
+  m_WeightFunction = NULL;
+  m_Weights        = 0;
 }
 
 template< class TSample >
@@ -65,7 +65,7 @@ void
 WeightedCovarianceFilter< TSample >
 ::SetWeights(WeightArrayType array)
 {
-  m_Weights = array ;
+  m_Weights = array;
   this->Modified();
 }
 
@@ -74,7 +74,7 @@ typename WeightedCovarianceFilter< TSample >::WeightArrayType
 WeightedCovarianceFilter< TSample >
 ::GetWeights()
 {
-  return m_Weights ;
+  return m_Weights;
 }
 
 template< class TSample >
@@ -82,7 +82,7 @@ void
 WeightedCovarianceFilter< TSample >
 ::SetWeightFunction(WeightFunctionType* func)
 {
-  m_WeightFunction = func ;
+  m_WeightFunction = func;
   this->Modified();
 }
 
@@ -91,7 +91,7 @@ typename WeightedCovarianceFilter< TSample >::WeightFunctionType*
 WeightedCovarianceFilter< TSample >
 ::GetWeightFunction()
 {
-  return m_WeightFunction ;
+  return m_WeightFunction;
 }
 
 template< class TSample >

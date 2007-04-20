@@ -46,7 +46,7 @@ class WeightedCovarianceFilter :
 {
 public:
   /** Standard class typedefs. */
-  typedef WeightedCovarianceFilter                Self;
+  typedef WeightedCovarianceFilter        Self;
   typedef ProcessObject                   Superclass;
   typedef SmartPointer<Self>              Pointer;
   typedef SmartPointer<const Self>        ConstPointer;
@@ -73,7 +73,7 @@ public:
   typedef DataObject::Pointer DataObjectPointer;
 
   /** Weight calculation function typedef */
-  typedef FunctionBase< MeasurementVectorType, double > WeightFunctionType ;
+  typedef FunctionBase< MeasurementVectorType, double > WeightFunctionType;
 
   /** VariableSizeMatrix is not a DataObject, we need to decorate it to push it down
    * a ProcessObject's pipeline */
@@ -92,20 +92,20 @@ public:
   const MeasurementVectorDecoratedType* GetMeanOutput() const;
 
   /** Array typedef for weights */
-  typedef Array< double > WeightArrayType ;
+  typedef Array< double > WeightArrayType;
 
   /** Sets the weights using an array */
-  void SetWeights(WeightArrayType array) ;
+  void SetWeights(WeightArrayType array);
 
   /** Gets the weights array */
-  WeightArrayType GetWeights() ;
+  WeightArrayType GetWeights();
 
   /** Sets the weights using an function the function should have a method, 
    * Evaluate(MeasurementVectorType&).  */
-  void SetWeightFunction(WeightFunctionType* func) ;
+  void SetWeightFunction(WeightFunctionType* func);
 
   /** Gets the weight function */
-  WeightFunctionType* GetWeightFunction() ;
+  WeightFunctionType* GetWeightFunction();
  
 protected:
   WeightedCovarianceFilter(const Self&); //purposely not implemented
@@ -126,8 +126,8 @@ protected:
   void ComputeCovarianceMatrixWithWeights();
 
 private:
-  WeightArrayType     m_Weights ;
-  WeightFunctionType* m_WeightFunction ;
+  WeightArrayType     m_Weights;
+  WeightFunctionType* m_WeightFunction;
 }; // end of class
     
 } // end of namespace Statistics 
