@@ -102,7 +102,6 @@ int itkCovarianceFilterTest3(int, char* [] )
       memberFunction->Evaluate( itr.GetMeasurementVector() );
     const double frequency = vcl_floor( 1e5 * vcl_exp( -0.5 * MahalanobisDistance ) );
     itr.SetFrequency( frequency );
-    std::cout << itr.GetMeasurementVector() << " MD = " << MahalanobisDistance << " f= " << itr.GetFrequency() << std::endl;
     ++itr;
     }
 
