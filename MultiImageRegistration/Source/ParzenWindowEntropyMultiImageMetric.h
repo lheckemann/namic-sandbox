@@ -25,7 +25,6 @@
 #include "itkCentralDifferenceImageFunction.h"
     
 #include "itkGradientImageFilter.h"
-#include "UserBSplineDeformableTransform.h"
 
 #include "itkImageRegionIterator.h"
 
@@ -133,6 +132,8 @@ public:
   typedef typename Superclass::GradientPixelType        GradientPixelType;
   typedef typename Superclass::MovingImagePixelType     ImagePixelType;
   typedef typename Superclass::RealType        RealType;
+  typedef typename Superclass::GradientOutputType     GradientOutputType;
+
   
   struct ThreadStruct
   {
@@ -180,15 +181,6 @@ public:
                              DerivativeType & derivative) const;
   
 
-  /** Set the number of spatial samples. This is the number of image
-   * samples used to calculate the joint probability distribution.
-   * The number of spatial samples is clamped to be a minimum of 1.
-   * Default value is 50. */
-  void SetNumberOfSpatialSamples( unsigned int num );
-
-  /** Get the number of spatial samples. */
-  itkGetConstReferenceMacro( NumberOfSpatialSamples, unsigned int );
-
   /** Set/Get the moving image intensitiy standard deviation. This defines
    * the kernel bandwidth used in the joint probability distribution
    * calculation. Default value is 0.4 which works well for image intensities
@@ -223,10 +215,6 @@ public:
   typedef typename GradientFilterType::Pointer GradientFilterTypePointer;
 
 
-  /** Set/Get the i'th Bspline Transform Pointer. */
-  UserSetObjectMacro( BSplineTransformArray, BSplineTransformType );
-  UserGetConstObjectMacro( BSplineTransformArray, BSplineTransformType );
-
   /** Set/Get the regularization factor */
   itkSetMacro( RegularizationFactor, RealType );
   itkGetMacro( RegularizationFactor, RealType );
@@ -256,8 +244,7 @@ protected:
   class SpatialSample
   {
   public:
-    SpatialSample()
-    {FixedImagePoint.Fill( 0.0 );}
+    SpatialSample(){}
     ~SpatialSample(){};
 
     FixedImagePointType              FixedImagePoint;
@@ -275,7 +262,6 @@ protected:
   /** Container to store sample set */
   mutable SpatialSampleContainer      m_Sample;
 
-  unsigned int                        m_NumberOfSpatialSamples;
   double                              m_ImageStandardDeviation;
   typename KernelFunction::Pointer    m_KernelFunction;
   double                              m_MinProbability;
@@ -283,35 +269,24 @@ protected:
   /** Uniformly select samples from the fixed image buffer. */
   void SampleFixedImageDomain( SpatialSampleContainer& samples ) const;
 
-  /**
-   * Calculate the intensity derivatives at a point
-   */
-  void CalculateDerivatives( const FixedImagePointType& , DerivativeType& , int i) const;
-  void CalculateDerivatives( const FixedImagePointType& , DerivativeType& , int i, int threadID) const;
-
   /** Add the derivative update to the current images parameters at a given point and image derivative*/
   typedef CovariantVector < double, MovingImageDimension > CovarientType;
   void UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSample& sample, const RealType& weight, const int& imageNumber, const int& threadID) const;
 
-  typedef typename Superclass::CoordinateRepresentationType  
-  CoordinateRepresentationType;
-  typedef CentralDifferenceImageFunction< MovingImageType, 
-                                          CoordinateRepresentationType > DerivativeFunctionType;
+  typedef typename Superclass::CoordinateRepresentationType  CoordinateRepresentationType;
+  typedef CentralDifferenceImageFunction< MovingImageType,   CoordinateRepresentationType > DerivativeFunctionType;
 
-  typename DerivativeFunctionType::Pointer  m_DerivativeCalculator;
 
   bool             m_ReseedIterator;
   int              m_RandomSeed;
   
   mutable Array< RealType >   m_value;
-  mutable std::vector< typename DerivativeFunctionType::Pointer > m_DerivativeCalcVector;
+  mutable std::vector< std::vector< typename DerivativeFunctionType::Pointer > > m_DerivativeCalculator;
   mutable std::vector<DerivativeType> m_derivativeArray;
-  mutable std::vector<ParametersType> currentParametersArray;
   mutable std::vector< std::vector<DerivativeType> > m_DerivativesArray;
   int m_NumberOfThreads;
 
   // Bspline optimization
-  bool m_UserBsplineDefined;
   ParametersType indexes; // Holds nonzeros indexes of Bspline derivatives
 
   mutable std::vector< ParametersType > m_TransformParametersArray;
@@ -319,15 +294,6 @@ protected:
   bool m_Regularization;
   double m_RegularizationFactor;
   
-  mutable std::vector<BSplineTransformTypePointer> m_BSplineTransformArray;
-
-  mutable std::vector< std::vector< GradientFilterTypePointer > >  m_BSplineGradientArray;
-  mutable std::vector< std::vector< std::vector< GradientFilterTypePointer > > > m_BSplineHessianArray;
-
-  mutable std::vector< std::vector< std::vector< BSplineParametersImagePointer > > > m_BSplineGradientImagesArray;
-
-  mutable std::vector< std::vector< std::vector< GradientFilterTypePointer > > >   m_BSplineGradientUpdateArray;
-  mutable std::vector< std::vector< std::vector< BSplineParametersImagePointer > > >             m_BSplineGradientUpdateImagesArray;
   bool m_UseMask;
   unsigned int m_NumberOfFixedImages;
 };

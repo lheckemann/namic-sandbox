@@ -62,12 +62,28 @@ void MultiResolutionMultiImageRegistrationMethod<ImageType>
   m_InterpolatorArray.resize(N);
   m_ImagePyramidArray.resize(N);
   m_ImageMaskArray.resize(N);
+  m_GradientInterpolatorArray.resize(N);
+  
   for(int i=m_NumberOfImages; i<N; i++)
   {
     m_TransformArray[i]=0;
     m_InterpolatorArray[i]=0;
     m_ImagePyramidArray[i]=0;
     m_ImageMaskArray[i]=0;
+    m_GradientInterpolatorArray[i] = 0;
+  }
+
+  //Resize the gradient image container
+  m_GradientImagePyramidArray.resize(N);
+
+  for(int i=0; i<N; i++)
+  {
+    m_GradientImagePyramidArray[i].resize(m_NumberOfLevels);
+    
+    for(int j=0; j<m_NumberOfLevels; j++)
+    {
+      m_GradientImagePyramidArray[i][j]=0;
+    }
   }
 
   m_NumberOfImages  = N;
@@ -94,6 +110,18 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
     {
       itkExceptionMacro(<<"Interpolator " << i << " is not present");
     }
+
+    /*
+    if( !m_GradientInterpolatorArray[i] )
+    {
+      itkExceptionMacro(<<"GradientInterpolator " << i << " is not present");
+    }
+    
+    if( !m_GradientImagePyramidArray[i][0] )
+    {
+      itkExceptionMacro(<<"GradientImagePyramid " << i << " is not present");
+    }
+    */
   }
 
   // Sanity checks
@@ -119,6 +147,10 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
     {
       m_Metric->SetImageMaskArray( m_ImageMaskArray[i], i );
     }
+    //m_GradientInterpolatorArray[i]->SetInputImage(m_GradientImagePyramidArray[i][m_CurrentLevel]);
+    //m_Metric->SetGradientInterpolatorArray( m_GradientInterpolatorArray[i], i );
+    //m_Metric->SetGradientImageArray( m_GradientImagePyramidArray[i][m_CurrentLevel], i );
+
   }
 
   // Setup the metric
@@ -187,7 +219,6 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
   {
     itkExceptionMacro(<<"Size mismatch between initial parameter and transform"); 
   }
-
 
   //Assume the image pyramid is present
   typedef typename ImageRegionType::SizeType         SizeType;
@@ -442,6 +473,14 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
 
   return m_InitialTransformParameters.GetSize();
   
+}
+
+template < typename ImageType >
+void
+MultiResolutionMultiImageRegistrationMethod<ImageType>
+::SetGradientImagePyramidArray(GradientImageType* gradientImage, int i, int j)
+{
+  m_GradientImagePyramidArray[i][j] = gradientImage;
 }
 
 

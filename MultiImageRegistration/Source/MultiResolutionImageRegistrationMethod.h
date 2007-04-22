@@ -117,9 +117,23 @@ public:
   typedef  vector<ImagePyramidPointer>                ImagePyramidPointerArray;
 
   /** Typedef for image masks */
-  typedef typename MetricType::MovingImageMaskType ImageMaskType;
+  typedef typename  MetricType::MovingImageMaskType ImageMaskType;
   typedef typename  MetricType::MovingImageMaskPointer ImageMaskPointer;
-  typedef typename std::vector< ImageMaskPointer > ImageMaskPointerArray;
+  typedef typename  std::vector< ImageMaskPointer > ImageMaskPointerArray;
+
+  /** Typedef for gradient image */
+  typedef typename  MetricType::GradientImageType GradientImageType;
+  typedef typename  MetricType::GradientImagePointerArray GradientImagePointerArray;
+  typedef typename  std::vector<GradientImagePointerArray> GradientImagePyramidArray;
+
+  /** Type used for representing point components  */
+  typedef typename MetricType::CoordinateRepresentationType CoordinateRepresentationType;
+  
+  /** Typedef for gradient image interpolators */
+  typedef typename  MetricType::GradientInterpolatorType GradientInterpolatorType;
+  typedef typename  MetricType::GradientInterpolatorPointerArray GradientInterpolatorPointerArray;
+
+  
   /** Type of the Transformation parameters This is the same type used to
    *  represent the search space of the optimization algorithm */
   typedef  typename MetricType::TransformParametersType    ParametersType;
@@ -150,6 +164,10 @@ public:
   UserSetObjectMacro( InterpolatorArray, InterpolatorType );
   UserGetObjectMacro( InterpolatorArray, InterpolatorType );
 
+  /** Set/Get the Interpolator. */
+  UserSetObjectMacro( GradientInterpolatorArray, GradientInterpolatorType );
+  UserGetObjectMacro( GradientInterpolatorArray, GradientInterpolatorType );
+  
   /** Set/Get the Fixed image pyramid. */
   UserSetObjectMacro( ImagePyramidArray, ImagePyramidType );
   UserGetObjectMacro( ImagePyramidArray, ImagePyramidType );
@@ -157,6 +175,9 @@ public:
   /** Set/Get image mask array */
   UserSetObjectMacro( ImageMaskArray, ImageMaskType );
   UserGetObjectMacro( ImageMaskArray, ImageMaskType );
+
+  /** Set the gradient image of i'th image at j'th level */
+  void SetGradientImagePyramidArray(GradientImageType* gradientImage, int i, int j);
   
   /** Set/Get the number of multi-resolution levels. */
   itkSetClampMacro( NumberOfLevels, unsigned long, 1,
@@ -219,9 +240,11 @@ private:
 
   TransformPointerArray            m_TransformArray;
   InterpolatorPointerArray         m_InterpolatorArray;
-
+  GradientInterpolatorPointerArray m_GradientInterpolatorArray;
+  
   ImagePyramidPointerArray         m_ImagePyramidArray;
-
+  GradientImagePyramidArray        m_GradientImagePyramidArray;
+  
   ParametersType                   m_InitialTransformParameters;
   ParametersType                   m_InitialTransformParametersOfNextLevel;
   ParametersType                   m_LastTransformParameters;
