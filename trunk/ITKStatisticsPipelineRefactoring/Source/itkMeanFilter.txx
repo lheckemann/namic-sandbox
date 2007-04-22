@@ -83,6 +83,14 @@ MeanFilter< TSample >
 }
 
 template< class TSample >
+const typename MeanFilter< TSample>::MeasurementVectorType 
+MeanFilter< TSample >
+::GetMean() const
+{
+  return this->GetOutput()->Get(); 
+}
+
+template< class TSample >
 void
 MeanFilter< TSample >
 ::GenerateData() 
