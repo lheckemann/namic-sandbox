@@ -76,6 +76,7 @@ public:
 
   /** Get the mean measurement vector */
   const MeasurementVectorDecoratedType * GetOutput() const;
+  const MeasurementVectorType            GetMean() const;
 
 protected:
   MeanFilter();
