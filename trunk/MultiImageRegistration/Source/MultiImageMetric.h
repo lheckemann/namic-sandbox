@@ -20,12 +20,14 @@
 #include "itkImageBase.h"
 #include "itkTransform.h"
 #include "itkInterpolateImageFunction.h"
+#include "itkVectorInterpolateImageFunction.h"
 #include "itkSingleValuedCostFunction.h"
 #include "itkExceptionObject.h"
 #include "itkGradientRecursiveGaussianImageFilter.h"
 #include "itkSpatialObject.h"
 #include "itkMultiThreader.h"
 #include "itkImageMaskSpatialObject.h"
+#include "UserBSplineDeformableTransform.h"
 
 #include <vector>
 #include "UserMacro.h"
@@ -85,13 +87,11 @@ public:
   /** Constants for the image dimensions */
   itkStaticConstMacro(MovingImageDimension, unsigned int,
                       TMovingImage::ImageDimension);
-  itkStaticConstMacro(FixedImageDimension, unsigned int,
-                      TFixedImage::ImageDimension);
-  
+
   /**  Type of the Transform Base class */
   typedef Transform<CoordinateRepresentationType, 
                     itkGetStaticConstMacro(MovingImageDimension),
-                    itkGetStaticConstMacro(FixedImageDimension)> TransformType;
+                    itkGetStaticConstMacro(MovingImageDimension)> TransformType;
 
   typedef typename TransformType::Pointer            TransformPointer;
   typedef typename TransformType::InputPointType     InputPointType;
@@ -102,34 +102,39 @@ public:
 
   /**  Type of the Interpolator Base class */
   typedef InterpolateImageFunction<
-    MovingImageType,
-    CoordinateRepresentationType > InterpolatorType;
+                                 MovingImageType,
+                                 CoordinateRepresentationType > InterpolatorType;
 
 
   /** Gaussian filter to compute the gradient of the Moving Image */
   typedef typename NumericTraits<MovingImagePixelType>::RealType RealType;
-  typedef CovariantVector<RealType,itkGetStaticConstMacro(MovingImageDimension)> GradientPixelType;
+  typedef CovariantVector<MovingImagePixelType,itkGetStaticConstMacro(MovingImageDimension)> GradientPixelType;
   typedef Image<GradientPixelType,itkGetStaticConstMacro(MovingImageDimension)> GradientImageType;
-  typedef GradientImageType*     GradientImagePointer;
+  typedef typename GradientImageType::Pointer     GradientImagePointer;
   typedef std::vector<GradientImagePointer>   GradientImagePointerArray;
   typedef GradientRecursiveGaussianImageFilter< MovingImageType,GradientImageType > GradientImageFilterType;
-  typedef typename GradientImageFilterType::Pointer GradientImageFilterPointer;
 
 
   typedef typename InterpolatorType::Pointer         InterpolatorPointer;
   typedef std::vector<InterpolatorPointer>           InterpolatorPointerArray;
 
-
-
+  /** interpolator for gradient images */
+  typedef VectorInterpolateImageFunction<
+                                 GradientImageType,
+                                 MovingImagePixelType > GradientInterpolatorType;
+  typedef typename GradientInterpolatorType::Pointer         GradientInterpolatorPointer;
+  typedef std::vector<GradientInterpolatorPointer>           GradientInterpolatorPointerArray;
+  typedef typename GradientInterpolatorType::OutputType                   GradientOutputType;
+  
   /**  Type for the mask of the fixed image. Only pixels that are "inside"
        this mask will be considered for the computation of the metric */
-  typedef ImageMaskSpatialObject< itkGetStaticConstMacro(FixedImageDimension)
+  typedef ImageMaskSpatialObject< itkGetStaticConstMacro(MovingImageDimension)
                                              >       FixedImageMaskType;
   typedef typename  FixedImageMaskType::Pointer      FixedImageMaskPointer;
 
   /**  Type for the mask of the moving image. Only pixels that are "inside"
        this mask will be considered for the computation of the metric */
-  typedef ImageMaskSpatialObject< itkGetStaticConstMacro(FixedImageDimension)
+  typedef ImageMaskSpatialObject< itkGetStaticConstMacro(MovingImageDimension)
                                              >      MovingImageMaskType;
   typedef typename  MovingImageMaskType::Pointer     MovingImageMaskPointer;
   typedef std::vector<MovingImageMaskPointer>              ImageMaskPointerArray;
@@ -164,6 +169,12 @@ public:
   /** Get a pointer to the i'th Interpolator.  */
   UserGetConstObjectMacro( InterpolatorArray, InterpolatorType );
 
+  /** Connect the i'th gradient Interpolator. */
+  UserSetObjectMacro( GradientInterpolatorArray, GradientInterpolatorType );
+
+  /** Get a pointer to the i'th gradient Interpolator.  */
+  UserGetConstObjectMacro( GradientInterpolatorArray, GradientInterpolatorType );
+  
   /** Get the number of pixels considered in the computation. */
   itkGetConstReferenceMacro( NumberOfPixelsCounted, unsigned long );
 
@@ -177,15 +188,29 @@ public:
   UserSetObjectMacro( ImageMaskArray, MovingImageMaskType );
   UserGetConstObjectMacro( ImageMaskArray, MovingImageMaskType );
 
+  typedef itk::UserBSplineDeformableTransform<double,   itkGetStaticConstMacro(MovingImageDimension), 3> BSplineTransformType;
+  typedef typename BSplineTransformType::Pointer BSplineTransformTypePointer;
+  
+  /** Set/Get the i'th Bspline Transform Pointer. */
+  UserSetObjectMacro( BSplineTransformArray, BSplineTransformType );
+  UserGetConstObjectMacro( BSplineTransformArray, BSplineTransformType );
+  
   /** Set/Get gradient computation. */
   itkSetMacro( ComputeGradient, bool);
   itkGetConstReferenceMacro( ComputeGradient, bool);
   itkBooleanMacro(ComputeGradient);
 
   /** Get Gradient Image. */
-  //UserGetConstObjectMacro( GradientImageArray, GradientImageType );
-  //UserSetObjectMacro( GradientImageArray, GradientImageType );
+  UserSetObjectMacro( GradientImageArray, GradientImageType );
+  UserGetObjectMacro( GradientImageArray, GradientImageType );
 
+  /** Set the number of spatial samples. This is the number of image
+   * samples used to calculate the joint probability distribution.
+   * The number of spatial samples is clamped to be a minimum of 1.
+   * Default value is 50. */
+  itkSetMacro( NumberOfSpatialSamples, unsigned int);
+  itkGetMacro( NumberOfSpatialSamples, unsigned int);
+  
   /** Set the parameters defining the Transform. */
   void SetTransformParameters(const ParametersType & parameters ) const;
 
@@ -217,7 +242,8 @@ protected:
 
   mutable TransformPointerArray m_TransformArray;
   InterpolatorPointerArray    m_InterpolatorArray;
-
+  GradientInterpolatorPointerArray m_GradientInterpolatorArray;
+  
   bool                        m_ComputeGradient;
   //GradientImagePointer        m_GradientImage;
   GradientImagePointerArray   m_GradientImageArray;
@@ -266,7 +292,15 @@ protected:
   {
    ConstPointer Metric;
   };
- 
+
+  // Bspline transform
+  // Provided to optimize for bsplines
+  mutable std::vector<BSplineTransformTypePointer> m_BSplineTransformArray;
+  bool m_UserBsplineDefined;
+
+  unsigned int                        m_NumberOfSpatialSamples;
+
+
 };
 
 } // end namespace itk

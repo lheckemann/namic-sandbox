@@ -58,10 +58,10 @@ RegisterToMeanAndVarianceMultiImageMetric<TFixedImage>
   this->m_NumberOfSpatialSamples -= this->m_NumberOfSpatialSamples%2;
 
   // Resize w_x_j
-  W_x_j.resize(this->m_NumberOfSpatialSamples);
-  for(int i=0; i<this->m_NumberOfSpatialSamples; i++)
+  W.resize(this->m_NumberOfThreads);
+  for(int i=0; i<this->m_NumberOfThreads; i++)
   {
-    W_x_j[i].resize(this->m_NumberOfImages);
+    W[i].resize(this->m_NumberOfSpatialSamples);
   }
   mean.resize(this->m_NumberOfSpatialSamples);
   variance.resize(this->m_NumberOfSpatialSamples);
@@ -271,30 +271,6 @@ RegisterToMeanAndVarianceMultiImageMetric < TFixedImage >
 
    }
 
-   for( int l=0; l < N; l ++)
-   {
-     for (int x_i=sampleSize; x_i<sampleSize+sampleSize; x_i++ )
-     {
-
-       W_x_j[x_i][l] = 0.0;
-       for( int x_j=0; x_j < sampleSize; x_j++)
-       {
-
-         // Compute d(x_i, x_j)
-         const double diff1 = (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l])
-                              /this->m_ImageStandardDeviation;
-         const double diff2 = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
-         const double diff3 = (variance[x_i] - variance[x_j]) / m_VarianceStandardDeviation;
-         
-
-         // Evaluate the probability of d(x_a, x_b)
-         W_x_j[x_i][l] += this->m_KernelFunction->Evaluate
-                          ( sqrt( diff1*diff1  + diff2*diff2 + diff3*diff3 ) );
-       }
-     }  // End of sample loop
-   }
-
-
 }
 
 template < class TFixedImage >
@@ -338,144 +314,87 @@ RegisterToMeanAndVarianceMultiImageMetric < TFixedImage >
   const unsigned int sampleASize = this->m_NumberOfSpatialSamples / 2;
   const unsigned int sampleBSize = this->m_NumberOfSpatialSamples / 2;
   
-  const double varianceVariance = m_MeanStandardDeviation * m_MeanStandardDeviation;
-  const double meanVariance = m_MeanStandardDeviation * m_MeanStandardDeviation;
-  const double imageVariance = this->m_ImageStandardDeviation * this->m_ImageStandardDeviation;
-
-  /** The tranform parameters vector holding i'th images parameters 
-  Copy parameters in to a collection of arrays */
   MeasureType value = NumericTraits < MeasureType >::Zero;
 
-  const unsigned int numberOfParameters =
-      this->m_TransformArray[0]->GetNumberOfParameters();
-
-  //Initialize the derivative to zero
-  this->m_derivativeArray[threadId].Fill(0.0);
+  //Initialize the derivative array to zero
+  for(int i=0; i<this->m_NumberOfImages;i++)
+  {
+    this->m_DerivativesArray[threadId][i].Fill(0.0);
+  }
   this->m_value[threadId] = 0.0;
-  DerivativeType deriv(numberOfParameters);
 
   
-  //Calculate the entropy
-  this->m_value[threadId] = 0.0;
-  // Loop over first sample set
-  for( int l=threadId; l < N; l += this->m_NumberOfThreads)
-  {
-    for (int x_i=sampleASize; x_i<sampleASize+sampleBSize; x_i++ )
-    {
-      this->m_value[threadId] += vcl_log( W_x_j[x_i][l] / (double)sampleASize );
-    }  // End of sample loop
-  }
-
-
-    // Calculate the derivative
-    // Set the image for derivatives
+  // Calculate the derivative
+  // Set the image for derivatives
   for( int m=threadId; m < N; m += this->m_NumberOfThreads)
   {
-    this->m_DerivativeCalcVector[threadId]->SetInputImage(this->m_ImageArray[m]);
-
-    for( int l=0; l < N; l ++)
+    
+    for (int x_i=sampleASize; x_i<sampleASize+sampleBSize; x_i++ )
     {
 
-      for (int x_i=sampleASize; x_i<sampleASize+sampleBSize; x_i++ )
+        // Sum over the second sample set
+      double weight = 0.0;
+      W[threadId][x_i] = 0.0;
+      for (int x_j=0; x_j<sampleASize; x_j++ )
       {
 
-        // Sum over the second sample set
-        double weight = 0.0;
-        for (int x_j=0; x_j<sampleASize; x_j++ )
-        {
-
           // Compute d(x_i, x_j)
-          const double diff1 = (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l])
+        const double diff1 = (this->m_Sample[x_i].imageValueArray[m] - this->m_Sample[x_j].imageValueArray[m])
                               /this->m_ImageStandardDeviation;
-          const double diff2 = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
-          const double diff3 = (variance[x_i] - variance[x_j]) / m_VarianceStandardDeviation;
-          
+        const double diff2 = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
+        const double diff3 = (variance[x_i] - variance[x_j]) / m_VarianceStandardDeviation;
 
           // Compute G(d(x_i,x_j))
-          const double G = this->m_KernelFunction->Evaluate
-                           ( sqrt( diff1*diff1  + diff2*diff2 + diff3*diff3 ) );
+        const double G = this->m_KernelFunction->Evaluate( sqrt( diff1*diff1  + diff2*diff2 + diff3*diff3 ) );
+        const double dir = diff1 / this->m_ImageStandardDeviation + diff2 / m_MeanStandardDeviation / (double) N +
+                           diff3 / m_VarianceStandardDeviation * 2.0 / (double) N
+                                 * (this->m_Sample[x_i].imageValueArray[m] - mean[x_i]);
 
-          double dir;
-          if( l == m)
-          {
-            dir = 2.0 / meanVariance / (double) N * (mean[x_i] - mean[x_j])
-                + 2.0 / varianceVariance / (double) N * (variance[x_i]-variance[x_j]) *
-                  (this->m_Sample[x_i].imageValueArray[m] - mean[x_i] )
-                + ( this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l] ) / imageVariance;
-          }
-          else
-          {
-            dir = 2.0 / meanVariance / (double) N * (mean[x_i] - mean[x_j])
-                + 2.0 / varianceVariance / (double) N * (variance[x_i]-variance[x_j]) *
-                  (this->m_Sample[x_i].imageValueArray[m] - mean[x_i] );
-          }
+        W[threadId][x_i] += G;
+        weight += G * dir;
+      }
+
+      weight /= W[threadId][x_i];
+      this->m_value[threadId] += vcl_log( W[threadId][x_i] / (double)sampleASize );
+        
+        // Get the derivative for this sample
+      this->UpdateSingleImageParameters( this->m_DerivativesArray[threadId][m], this->m_Sample[x_i], weight, m, threadId);
+        
+    }  // End of sample loop B
+
+
+    // Loop over the samples A
+    for (int x_i=0; x_i<sampleASize; x_i++ )
+    {
+
+        // Sum over the second sample set
+      double weight = 0.0;
+      for (int x_j=sampleASize; x_j<sampleASize+sampleBSize; x_j++ )
+      {
+
+          // Compute d(x_i, x_j)
+        const double diff1 = (this->m_Sample[x_i].imageValueArray[m] - this->m_Sample[x_j].imageValueArray[m])
+                              /this->m_ImageStandardDeviation;
+        const double diff2 = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
+        const double diff3 = (variance[x_i] - variance[x_j]) / m_VarianceStandardDeviation;
+
+          // Compute G(d(x_i,x_j))
+        const double G = this->m_KernelFunction->Evaluate( sqrt( diff1*diff1  + diff2*diff2 + diff3*diff3 ) );
           
-          weight += G * dir;
-        }
+        const double dir = diff1 / this->m_ImageStandardDeviation + diff2 / m_MeanStandardDeviation / (double) N +
+                           diff3 / m_VarianceStandardDeviation * 2.0 / (double) N
+                                 * (this->m_Sample[x_i].imageValueArray[m] - mean[x_i]);
+        
+        weight += G * dir / W[threadId][x_j];
+        
+      }
 
-        weight /= W_x_j[x_i][l];
-
-        // Compute the gradient
-        this->CalculateDerivatives(this->m_Sample[x_i].FixedImagePoint, deriv, m, threadId);
-
-        //Copy the proper part of the derivative
-        for (int n = 0; n < numberOfParameters; n++)
-        {
-          this->m_derivativeArray[threadId][m * numberOfParameters + n] += weight*deriv[n];
-        }
-      }  // End of sample loop B
-
+        // Get the derivative for this sample
+      this->UpdateSingleImageParameters( this->m_DerivativesArray[threadId][m], this->m_Sample[x_i], weight, m, threadId);
+        
+    }  // End of sample loop B
 
     
-      // Loop over the samples A
-      for (int x_i=0; x_i<sampleASize; x_i++ )
-      {
-
-        // Sum over the second sample set
-        double weight = 0.0;
-        for (int x_j=sampleASize; x_j<sampleASize+sampleBSize; x_j++ )
-        {
-
-          // Compute d(x_i, x_j)
-          const double diff1 = (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l])
-                              /this->m_ImageStandardDeviation;
-          const double diff2 = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
-          const double diff3 = (variance[x_i] - variance[x_j]) / m_VarianceStandardDeviation;
-
-          // Compute G(d(x_i,x_j))
-          const double G = this->m_KernelFunction->Evaluate
-                           ( sqrt( diff1*diff1  + diff2*diff2 + diff3*diff3 ) );
-
-          double dir;
-          if( l == m)
-          {
-            dir = 2.0 / meanVariance / (double) N * (mean[x_i] - mean[x_j])
-                + 2.0 / varianceVariance / (double) N * (variance[x_i]-variance[x_j]) *
-                (this->m_Sample[x_i].imageValueArray[m] - mean[x_i] )
-                + ( this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l] ) / imageVariance;
-          }
-          else
-          {
-            dir = 2.0 / meanVariance / (double) N * (mean[x_i] - mean[x_j])
-                + 2.0 / varianceVariance / (double) N * (variance[x_i]-variance[x_j]) *
-                (this->m_Sample[x_i].imageValueArray[m] - mean[x_i] );
-          }
-
-          weight += G * dir / W_x_j[x_j][l];
-        
-        }
-
-        // Compute the gradient
-        this->CalculateDerivatives(this->m_Sample[x_i].FixedImagePoint, deriv, m, threadId);
-
-        //Copy the proper part of the derivative
-        for (int n = 0; n < numberOfParameters; n++)
-        {
-          this->m_derivativeArray[threadId][m * numberOfParameters + n] += weight*deriv[n];
-        }
-      }  // End of sample loop B
-
-    }
     
   }
 }
@@ -491,39 +410,41 @@ void RegisterToMeanAndVarianceMultiImageMetric < TFixedImage >
 
   value = NumericTraits< RealType >::Zero;
 
-  const int numberOfParameters = this->m_TransformArray[0]->GetNumberOfParameters();
-  DerivativeType temp (numberOfParameters * this->m_NumberOfImages);
-  temp.Fill (0.0);
+  derivative.set_size(this->numberOfParameters * this->m_NumberOfImages);
+  derivative.Fill (0.0);
 
   // Sum over the values returned by threads
   for( unsigned int i=0; i < this->m_NumberOfThreads; i++ )
   {
     value += this->m_value[i];
-    temp += this->m_derivativeArray[i];
+    for(int j=0; j<this->m_NumberOfImages; j++)
+    {
+      for(int k=0; k<this->numberOfParameters; k++)
+      {
+        derivative[j * this->numberOfParameters + k] += this->m_DerivativesArray[i][j][k];
+      }
+    }
   }
-  value /=  -0.5 * (double) this->m_NumberOfSpatialSamples * (double) this->m_NumberOfImages;
-  temp /= (double) (this->m_NumberOfSpatialSamples / 2.0 *
-                    this->m_NumberOfImages);
-  derivative = temp;
-  
+  value /= -0.5 * (double) this->m_NumberOfSpatialSamples * (double) this->m_NumberOfImages;
+  derivative /=(double) (this->m_NumberOfSpatialSamples / 2.0 * this->m_NumberOfImages);
+
   //Set the mean to zero
   //Remove mean
-  temp.SetSize(numberOfParameters);
-  temp.Fill(0.0);
+  DerivativeType sum (this->numberOfParameters);
+  sum.Fill(0.0);
   for (int i = 0; i < this->m_NumberOfImages; i++)
   {
-    for (int j = 0; j < numberOfParameters; j++)
+    for (int j = 0; j < this->numberOfParameters; j++)
     {
-      temp[j] += derivative[i * numberOfParameters + j];
+      sum[j] += derivative[i * this->numberOfParameters + j];
     }
   }
 
   
-  for (int i = 0; i < this->m_NumberOfImages * numberOfParameters; i++)
+  for (int i = 0; i < this->m_NumberOfImages * this->numberOfParameters; i++)
   {
-    derivative[i] -= temp[i % numberOfParameters] / (double) this->m_NumberOfImages;
+    derivative[i] -= sum[i % this->numberOfParameters] / (double) this->m_NumberOfImages;
   }
-
 }
 
 // Callback routine used by the threading library. This routine just calls

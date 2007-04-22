@@ -36,7 +36,10 @@ MultiImageMetric<TFixedImage>
 //   m_Transform     = 0; // has to be provided by the user.
 //   m_Interpolator  = 0; // has to be provided by the user.
 //  m_GradientImage = 0; // will receive the output of the filter;
-  m_ComputeGradient = true; // metric computes gradient by default
+  m_NumberOfSpatialSamples = 50;
+
+  m_ComputeGradient = false; // metric does not compute gradient by default
+  m_UserBsplineDefined = false;
   m_NumberOfImages = 0;
   m_NumberOfPixelsCounted = 0; // initialize to zero
 //  m_GradientImage = NULL; // computed at initialization
@@ -123,36 +126,35 @@ MultiImageMetric<TFixedImage>
     m_InterpolatorArray[i]->SetInputImage( m_ImageArray[i] );
   }
 
-  if ( m_ComputeGradient )
+  numberOfParameters = m_TransformArray[0]->GetNumberOfParameters();
+  
+  // Use optimized Bspline derivatives if the tranform type is UserBSplie
+  if( !strcmp(this->m_TransformArray[0]->GetNameOfClass(), "UserBSplineDeformableTransform") )
   {
-    vector<GradientImageFilterPointer> gradientFilterArray;
-    gradientFilterArray.resize(this->m_NumberOfImages);
- 
-    for(int j=0; j<this->m_NumberOfImages; j++)
-    {
-      gradientFilterArray[j]=GradientImageFilterType::New();
-      gradientFilterArray[j]->SetInput( m_ImageArray[j] );
-
-      std::cout << m_ImageArray[j] ;
-      std::cout << gradientFilterArray[j];
-      const typename MovingImageType::SpacingType& spacing = m_ImageArray[j]->GetSpacing();
-      double maximumSpacing=0.0;
-      for(unsigned int i=0; i<MovingImageDimension; i++)
-      {
-        if( spacing[i] > maximumSpacing )
-        {
-          maximumSpacing = spacing[i];
-        }
-      }
-      gradientFilterArray[j]->SetSigma( maximumSpacing );
-      gradientFilterArray[j]->SetNormalizeAcrossScale( false );
-      gradientFilterArray[j]->UpdateLargestPossibleRegion();
-
-      m_GradientImageArray[j] = gradientFilterArray[j]->GetOutput();
-    }
+    this->m_UserBsplineDefined = true;
+  }
+  else
+  {
+    this->m_UserBsplineDefined = false;
   }
 
-  numberOfParameters = m_TransformArray[0]->GetNumberOfParameters();
+  // Check whether Bspline tranform are initialized correctly
+  if(this->m_UserBsplineDefined == true)
+  {
+    for(int i=0; i<this->m_NumberOfImages; i++)
+    {
+
+      if( !m_BSplineTransformArray[i] )
+      {
+        itkExceptionMacro(<<"Bspline Transform Array not initialized" );
+      }
+      
+      if( (void *) m_BSplineTransformArray[i] != (void*)this->m_TransformArray[i])
+      {
+        itkExceptionMacro(<<"Bsplines and transform arrays should have the pointers to the same transform" );
+      }
+    }
+  }
   
   // If there are any observers on the metric, call them to give the
   // user code a chance to set parameters on the metric
@@ -197,8 +199,9 @@ MultiImageMetric<TFixedImage>
   m_InterpolatorArray.resize(N);
   m_TransformArray.resize(N);
   m_ImageMaskArray.resize(N);
-
-
+  m_GradientInterpolatorArray.resize(N);
+  m_BSplineTransformArray.resize(N);
+  
   for(int i=m_NumberOfImages; i<N; i++ )
   {
     m_ImageArray[i] =0;
@@ -206,6 +209,8 @@ MultiImageMetric<TFixedImage>
     m_InterpolatorArray[i]=0;
     m_TransformArray[i]=0;
     m_ImageMaskArray[i]=0;
+    m_GradientInterpolatorArray[i] = 0;
+    m_BSplineTransformArray[i] = 0;
   }
     
   m_NumberOfImages = N;

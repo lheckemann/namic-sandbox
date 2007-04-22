@@ -450,12 +450,9 @@ JointEntropyKNNMultiImageMetric < TFixedImage >
 
     for( int l=0; l<this->m_NumberOfImages; l++ )
     {
+      // Get the derivative for this sample
+      this->UpdateSingleImageParameters( this->m_DerivativesArray[threadId][l], this->m_Sample[x_i], weight[l], l, threadId);
 
-      //Copy the proper part of the derivative
-      for (int n = 0; n < numberOfParameters; n++)
-      {
-        this->m_derivativeArray[threadId][l * numberOfParameters + n] += weight[l]*m_DerivativeArray[l][x_i][n];
-      }
     }  // End of sample loop B
   }
 
@@ -486,11 +483,9 @@ JointEntropyKNNMultiImageMetric < TFixedImage >
   {
     for( int l=0; l<this->m_NumberOfImages; l++ )
     {
-      //Copy the proper part of the derivative
-      for (int n = 0; n < numberOfParameters; n++)
-      {
-        this->m_derivativeArray[threadId][l * numberOfParameters + n] -= weigtsArray[x_j][l]*m_DerivativeArray[l][x_j][n] * (double)(counts[x_j]/m_NumberOfNearestNeigbors);
-      }
+
+      // Get the derivative for this sample
+      this->UpdateSingleImageParameters( this->m_DerivativesArray[threadId][l], this->m_Sample[x_j], weigtsArray[x_j][l], l, threadId);
     }  // End of sample loop B
   }
 
@@ -589,18 +584,6 @@ JointEntropyKNNMultiImageMetric < TFixedImage >
 {
 
   
-  for( int l=0; l<this->m_NumberOfImages; l++ )
-  {
-    // Set the image for derivatives
-    this->m_DerivativeCalcVector[threadId]->SetInputImage(this->m_ImageArray[l]);
-
-    for (unsigned int i=threadId; i<this->m_NumberOfSpatialSamples; i+= this->m_NumberOfThreads )
-    {
-      // Compute the gradient
-      this->CalculateDerivatives(this->m_Sample[i].FixedImagePoint, m_DerivativeArray[l][i], l, threadId);
-    }
-
-  }
 }
 
 
