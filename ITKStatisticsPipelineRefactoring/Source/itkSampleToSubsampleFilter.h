@@ -60,15 +60,31 @@ public:
   typedef typename SampleType::MeasurementType       MeasurementType;
   typedef typename SampleType::InstanceIdentifier    InstanceIdentifier;
   
-   /** Set/Get the input sample */
+  /** Declare the output type */
+  typedef Subsample< SampleType >                    SubsampleType;
+  typedef SubsampleType                              OutputType;
+
+  /** Set/Get the input sample */
   virtual void SetInput( const SampleType * sample );
   virtual const SampleType * GetInput() const;
-  
+
+  /** Get the output subsample */
+  const OutputType  * GetOutput() const;
+
+
 protected:
   SampleToSubsampleFilter();
   virtual ~SampleToSubsampleFilter();
   void PrintSelf(std::ostream& os, Indent indent) const;  
   
+  /** Make a DataObject of the correct type to used as the specified
+   * output. This method
+   * is automatically called when DataObject::DisconnectPipeline() is
+   * called.  
+   * \sa ProcessObject
+   */
+  virtual DataObjectPointer MakeOutput(unsigned int idx);
+ 
 private:
   SampleToSubsampleFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
