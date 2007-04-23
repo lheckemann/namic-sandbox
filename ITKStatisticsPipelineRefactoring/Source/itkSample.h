@@ -152,7 +152,7 @@ private:
   MeasurementVectorSizeType m_MeasurementVectorSize;
 }; // end of class
 
-} // end of namespace StatisticsNew 
+} // end of namespace Statistics
 } // end of namespace itk
 
 #endif

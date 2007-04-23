@@ -132,7 +132,7 @@ private:
 
 }; // end of class
 
-} // end of namespace StatisticsNew 
+} // end of namespace Statistics 
 } // end of namespace itk
 
 
