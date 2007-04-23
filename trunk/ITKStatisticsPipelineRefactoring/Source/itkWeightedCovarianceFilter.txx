@@ -122,6 +122,7 @@ WeightedCovarianceFilter< TSample >
     {
     return static_cast< DataObject * >(MeasurementVectorDecoratedType::New().GetPointer());
     }
+  itkExceptionMacro("Trying to create output of index " << index << " larger than the number of output");
 }
 
 template< class TSample >
@@ -165,7 +166,6 @@ WeightedCovarianceFilter< TSample >
   MeasurementVectorType mean;
   mean.Fill(0.0);
 
-  double frequency;
   double totalFrequency = 0.0;
 
   typename TSample::ConstIterator iter = input->Begin();
@@ -267,7 +267,6 @@ WeightedCovarianceFilter< TSample >
   MeasurementVectorType mean;
   mean.Fill(0.0);
 
-  double frequency;
   double totalFrequency = 0.0;
 
   typename TSample::ConstIterator iter = input->Begin();
