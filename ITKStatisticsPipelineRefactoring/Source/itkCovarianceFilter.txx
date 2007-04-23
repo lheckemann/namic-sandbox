@@ -81,6 +81,7 @@ CovarianceFilter< TSample >
     {
     return static_cast< DataObject * >(MeasurementVectorDecoratedType::New().GetPointer());
     }
+  itkExceptionMacro("Trying to create output of index " << index << " larger than the number of output");
 }
 
 template< class TSample >
