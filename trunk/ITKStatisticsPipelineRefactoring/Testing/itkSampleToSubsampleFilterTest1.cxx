@@ -81,15 +81,38 @@ int itkSampleToSubsampleFilterTest1(int, char* [] )
 
   FilterType::Pointer filter = FilterType::New();
 
+  // Test GetInput() before setting the input
+  if( filter->GetInput() != NULL )
+    {
+    std::cerr << "GetInput() should have returned NULL" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  // Test GetOutput() before creating the output
+  if( filter->GetOutput() == NULL )
+    {
+    std::cerr << "GetOutput() should have returned NON-NULL" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  filter->SetInput( sample );
+
+  if( filter->GetInput() != sample.GetPointer() )
+    {
+    std::cerr << "GetInput() didn't matched SetInput()" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
   //
   // Exercise the Print() method
   //
   filter->Print( std::cout );
 
 
-  filter->SetInput( sample );
-
   filter->Update();
+
+  std::cout << "Classname " << filter->GetNameOfClass() << std::endl;
 
   std::cout << "Test Passed !" << std::endl;
   return EXIT_SUCCESS;

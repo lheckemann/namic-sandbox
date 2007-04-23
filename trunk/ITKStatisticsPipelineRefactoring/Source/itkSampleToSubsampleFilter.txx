@@ -26,6 +26,14 @@ template< class TSample >
 SampleToSubsampleFilter< TSample >
 ::SampleToSubsampleFilter()
 {
+  this->ProcessObject::SetNumberOfRequiredInputs( 1 );
+  this->ProcessObject::SetNumberOfRequiredOutputs(1);
+
+  // Create the output. We use static_cast<> here because we know the
+  // default output must be of type SampleType
+  typename SampleType::Pointer output
+    = static_cast<SampleType*>(this->MakeOutput(0).GetPointer()); 
+  this->ProcessObject::SetNthOutput(0, output.GetPointer());
 }
 
 template< class TSample >
@@ -53,6 +61,27 @@ SampleToSubsampleFilter< TSample >
   const SampleType * input = 
     static_cast< const SampleType * >( this->ProcessObject::GetInput( 0 ) );
   return input;
+}
+
+
+template < class TSample >
+typename SampleToSubsampleFilter< TSample >::DataObjectPointer
+SampleToSubsampleFilter< TSample >
+::MakeOutput(unsigned int)
+{
+  return static_cast<DataObject*>(SubsampleType::New().GetPointer());
+}
+
+
+template < class TSample >
+const typename SampleToSubsampleFilter< TSample >::OutputType *
+SampleToSubsampleFilter< TSample >
+::GetOutput() const
+{
+  const SubsampleType * output = 
+    static_cast<const SubsampleType*>(this->ProcessObject::GetOutput(0));
+
+  return output;
 }
 
 
