@@ -40,6 +40,7 @@ void RegisterTests()
   REGISTER_TEST(itkMembershipSampleTest1);
   REGISTER_TEST(itkMembershipSampleTest2);
   REGISTER_TEST(itkMembershipSampleTest3);
+  REGISTER_TEST(itkNeighborhoodSamplerTest1);
   REGISTER_TEST(itkCovarianceFilterTest);
   REGISTER_TEST(itkCovarianceFilterTest2);
   REGISTER_TEST(itkCovarianceFilterTest3);
