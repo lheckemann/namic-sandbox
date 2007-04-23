@@ -26,10 +26,6 @@
 #include "itkNumericTraits.h"
 #include <vector> // for the size_type declaration
 
-/** Macro used to redefine a type from the superclass. */
-#define itkSuperclassTraitMacro(TraitnameType) \
-  typedef typename Superclass::TraitnameType TraitnameType;
-
 
 namespace itk { 
 namespace Statistics {
