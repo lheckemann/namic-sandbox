@@ -23,6 +23,7 @@
 #include "itkPointSet.h"
 
 // #include "itkSample.h"   // abstract class
+// #include "itkSampleToSubsampleFilter.h"   // abstract class
 #include "itkHistogram.h"
 #include "itkListSample.h"
 #include "itkSubsample.h"

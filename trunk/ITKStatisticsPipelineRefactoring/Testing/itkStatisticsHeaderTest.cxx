@@ -29,6 +29,7 @@
 #include "itkHistogram.h"
 #include "itkSample.h"
 #include "itkSampleClassifierFilter.h"
+#include "itkSampleToSubsampleFilter.h"
 #include "itkSubsample.h"
 #include "itkMeanFilter.h"
 #include "itkMembershipSample.h"
