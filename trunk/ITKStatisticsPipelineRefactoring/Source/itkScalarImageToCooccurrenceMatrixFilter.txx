@@ -37,9 +37,9 @@ ScalarImageToCooccurrenceMatrixFilter()
   this->ProcessObject::SetNthOutput(0, this->MakeOutput(0).GetPointer() );
 
   //initialize parameters
-  m_LowerBound.Fill(NumericTraits<PixelType>::min());
+  m_LowerBound.Fill(NumericTraits<PixelType>::NonpositiveMin());
   m_UpperBound.Fill(NumericTraits<PixelType>::max() + 1);
-  m_Min = NumericTraits<PixelType>::min();
+  m_Min = NumericTraits<PixelType>::NonpositiveMin();
   m_Max = NumericTraits<PixelType>::max();
 
   //mask inside pixel value
@@ -294,6 +294,7 @@ FillHistogramWithMask(RadiusType radius, RegionType region, const ImageType * ma
       }
     
     const PixelType centerPixelIntensity = neighborIt.GetCenterPixel();
+
     if (centerPixelIntensity < this->GetMin() || 
         centerPixelIntensity > this->GetMax())
       {
@@ -318,7 +319,7 @@ FillHistogramWithMask(RadiusType radius, RegionType region, const ImageType * ma
         {
         continue; // don't put a pixel in the histogram if it's out-of-bounds.
         }
-      
+ 
       if (pixelIntensity < this->GetMin() || 
           pixelIntensity > this->GetMax())
         {
