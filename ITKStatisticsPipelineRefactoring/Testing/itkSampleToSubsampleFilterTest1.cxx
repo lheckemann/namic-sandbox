@@ -112,7 +112,11 @@ int itkSampleToSubsampleFilterTest1(int, char* [] )
 
   filter->Update();
 
-  std::cout << "Classname " << filter->GetNameOfClass() << std::endl;
+
+  // Exercise the GetNameOfClass() method in the 
+  // SampleToSubsampleFilter:
+  std::cout << "Classname  " << filter->GetNameOfClass() << std::endl;
+  std::cout << "Superclass " << filter->Superclass::GetNameOfClass() << std::endl;
 
   std::cout << "Test Passed !" << std::endl;
   return EXIT_SUCCESS;
