@@ -33,6 +33,7 @@
 #include "itkSubsample.h"
 #include "itkMeanFilter.h"
 #include "itkMembershipSample.h"
+#include "itkNeighborhoodSampler.h"
 #include "itkCovarianceFilter.h"
 #include "itkWeightedMeanFilter.h"
 #include "itkWeightedCovarianceFilter.h"

@@ -30,6 +30,7 @@
 #include "itkSampleClassifierFilter.h"
 #include "itkListSampleToHistogramFilter.h"
 #include "itkMembershipSample.h"
+#include "itkNeighborhoodSampler.h"
 #include "itkImageToListSampleFilter.h"
 #include "itkScalarImageToCooccurrenceMatrixFilter.h"
 #include "itkHistogramToTextureFeaturesFilter.h"
@@ -78,6 +79,8 @@ int itkStatisticsPrintTest(int , char* [])
 
   typedef itk::Statistics::CovarianceFilter< SampleType > CovarianceFilterType;
   typedef itk::Statistics::WeightedCovarianceFilter< SampleType > WeightedCovarianceFilterType;
+
+  typedef itk::Statistics::NeighborhoodSampler< SampleType > NeighborhoodSamplerType;
 
   SampleType::Pointer sampleObj = SampleType::New();
   std::cout << "----------ListSample " << sampleObj;
@@ -132,6 +135,10 @@ int itkStatisticsPrintTest(int , char* [])
   WeightedCovarianceFilterType::Pointer weighedCovarianceFilterObj = 
     WeightedCovarianceFilterType::New();
   std::cout << "----------WeightedCovariance filter " << weighedCovarianceFilterObj;
+
+  NeighborhoodSamplerType::Pointer neighborhoodSamplerObj = 
+    NeighborhoodSamplerType::New();
+  std::cout << "----------NeighborhoodSamplerType filter " << neighborhoodSamplerObj;
 
 
   return EXIT_SUCCESS;
