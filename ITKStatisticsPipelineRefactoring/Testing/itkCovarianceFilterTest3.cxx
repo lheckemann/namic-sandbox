@@ -24,6 +24,33 @@
 #include "itkMahalanobisDistanceMembershipFunction.h"
 #include "itkHistogram.h"
 
+namespace itk {
+namespace Statistics {
+template < class TSample >
+class MyCovarianceFilter : public CovarianceFilter< TSample >
+{
+ public:
+  typedef MyCovarianceFilter                Self;
+  typedef CovarianceFilter<TSample>         Superclass;
+  typedef SmartPointer<Self>                Pointer;
+  typedef SmartPointer<const Self>          ConstPointer;
+  typedef TSample                           SampleType;
+
+  itkNewMacro(Self);
+
+  //method to invoke MakeOutput with index value different
+  //from one or zero. This is to check if an exception will be
+  // thrown
+
+  void CreateInvalidOutput()
+    {
+    unsigned int index=3;
+    Superclass::MakeOutput( index );
+    }
+};
+}
+}
+
 int itkCovarianceFilterTest3(int, char* [] ) 
 {
   std::cout << "CovarianceFilter test \n \n";
@@ -106,13 +133,27 @@ int itkCovarianceFilterTest3(int, char* [] )
     }
 
 
-  typedef itk::Statistics::CovarianceFilter< SampleType > 
+  typedef itk::Statistics::MyCovarianceFilter< SampleType > 
     FilterType;
 
   FilterType::Pointer filter = FilterType::New() ;
 
-  filter->SetInput( histogram );
 
+  //test if exception is thrown if a derived class tries to create
+  // an invalid output 
+  try
+    {
+    filter->CreateInvalidOutput();
+    std::cerr << "Exception should have been thrown: " << std::endl;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception caught: " << excp << std::endl;
+    }
+  
+  filter->ResetPipeline();
+  filter->SetInput( histogram );
+ 
   try
     {
     filter->Update();

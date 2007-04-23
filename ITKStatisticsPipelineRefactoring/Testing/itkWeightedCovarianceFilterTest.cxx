@@ -31,6 +31,33 @@ unsigned int                        counter = 0;
 typedef itk::FixedArray< 
   float, MeasurementVectorSize >             MeasurementVectorType;
 
+namespace itk {
+namespace Statistics {
+template < class TSample >
+class MyWeightedCovarianceFilter : public WeightedCovarianceFilter< TSample >
+{
+ public:
+  typedef MyWeightedCovarianceFilter           Self;
+  typedef WeightedCovarianceFilter<TSample>     Superclass;
+  typedef SmartPointer<Self>                   Pointer;
+  typedef SmartPointer<const Self>             ConstPointer;
+  typedef TSample                              SampleType;
+
+  itkNewMacro(Self);
+
+  //method to invoke MakeOutput with index value different
+  //from one or zero. This is to check if an exception will be
+  // thrown
+  void CreateInvalidOutput()
+    {
+    unsigned int index=3;
+    Superclass::MakeOutput( index );
+    }
+};
+}
+}
+
+
 class WeightedCovarianceTestFunction :
   public itk::FunctionBase< MeasurementVectorType, double >
 {
@@ -74,7 +101,7 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
  typedef itk::Statistics::ListSample< 
     MeasurementVectorType >                    SampleType;
 
-  typedef itk::Statistics::WeightedCovarianceFilter< SampleType > 
+  typedef itk::Statistics::MyWeightedCovarianceFilter< SampleType > 
     FilterType;
 
   typedef FilterType::MatrixType                 CovarianceMatrixType; 
@@ -136,6 +163,18 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
     return EXIT_FAILURE;
     }
 
+  //test if exception is thrown if a derived class tries to create
+  // an invalid output 
+  try
+    {
+    filter->CreateInvalidOutput();
+    std::cerr << "Exception should have been thrown: " << std::endl;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception caught: " << excp << std::endl;
+    }
+  
   filter->ResetPipeline();
 
   // Run the filter with no weights 
