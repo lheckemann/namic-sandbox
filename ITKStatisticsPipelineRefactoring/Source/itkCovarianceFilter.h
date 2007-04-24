@@ -72,9 +72,6 @@ public:
   void SetInput( const SampleType * sample );
   const SampleType *  GetInput() const;
 
-  /** DataObject pointer */
-  typedef DataObject::Pointer DataObjectPointer;
-
   /** VariableSizeMatrix is not a DataObject, we need to decorate it to push it down
    * a ProcessObject's pipeline */
   typedef  SimpleDataObjectDecorator< MatrixType >  MatrixDecoratedType;
@@ -96,8 +93,11 @@ protected:
   void operator=(const Self&); //purposely not implemented
 
   CovarianceFilter();
-  virtual ~CovarianceFilter() {} 
+  virtual ~CovarianceFilter();
   void PrintSelf(std::ostream& os, Indent indent) const;
+
+  /** DataObject pointer */
+  typedef DataObject::Pointer DataObjectPointer;
 
   virtual DataObjectPointer MakeOutput(unsigned int idx);
 

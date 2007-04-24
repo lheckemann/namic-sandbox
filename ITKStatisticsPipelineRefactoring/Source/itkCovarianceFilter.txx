@@ -25,7 +25,7 @@ CovarianceFilter< TSample >
 ::CovarianceFilter()  
 {
   this->ProcessObject::SetNumberOfRequiredInputs(1);
-  this->ProcessObject::SetNumberOfRequiredOutputs(1);
+  this->ProcessObject::SetNumberOfRequiredOutputs(2);
 
   typename MatrixDecoratedType::Pointer matrixDecorator = 
     static_cast< MatrixDecoratedType * >( this->MakeOutput(0).GetPointer() );
@@ -34,6 +34,12 @@ CovarianceFilter< TSample >
   typename MeasurementVectorDecoratedType::Pointer measurementVectorDecorator = 
     static_cast< MeasurementVectorDecoratedType * >( this->MakeOutput(1).GetPointer() );
   this->ProcessObject::SetNthOutput(1, measurementVectorDecorator.GetPointer());
+}
+
+template< class TSample >
+CovarianceFilter< TSample >
+::~CovarianceFilter()  
+{
 }
 
 template< class TSample >
