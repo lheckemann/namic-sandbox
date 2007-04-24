@@ -50,7 +50,7 @@ public:
   itkTypeMacro(WeightedMeanFilter, MeanFilter);
   itkNewMacro(Self);
 
-  /** Length of a measurement vector */
+  /** Traits derived from the base class */
   itkSuperclassTraitMacro( SampleType );
   itkSuperclassTraitMacro( MeasurementType );
   itkSuperclassTraitMacro( MeasurementVectorType );
