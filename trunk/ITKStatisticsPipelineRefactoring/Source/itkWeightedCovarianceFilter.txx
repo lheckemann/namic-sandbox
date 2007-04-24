@@ -49,16 +49,16 @@ WeightedCovarianceFilter< TSample >
 template< class TSample >
 void
 WeightedCovarianceFilter< TSample >
-::SetWeights(WeightArrayType array)
+::SetWeights(const WeightArrayType & array)
 {
   m_Weights = array;
   this->Modified();
 }
 
 template< class TSample >
-typename WeightedCovarianceFilter< TSample >::WeightArrayType
+const typename WeightedCovarianceFilter< TSample >::WeightArrayType &
 WeightedCovarianceFilter< TSample >
-::GetWeights()
+::GetWeights() const
 {
   return m_Weights;
 }
@@ -66,16 +66,17 @@ WeightedCovarianceFilter< TSample >
 template< class TSample >
 void
 WeightedCovarianceFilter< TSample >
-::SetWeightFunction(WeightFunctionType* func)
+::SetWeightFunction(const WeightFunctionType* func)
 {
+  // FIXME: it should have checked if it was the same value
   m_WeightFunction = func;
   this->Modified();
 }
 
 template< class TSample >
-typename WeightedCovarianceFilter< TSample >::WeightFunctionType*
+const typename WeightedCovarianceFilter< TSample >::WeightFunctionType*
 WeightedCovarianceFilter< TSample >
-::GetWeightFunction()
+::GetWeightFunction() const
 {
   return m_WeightFunction;
 }
@@ -123,6 +124,11 @@ WeightedCovarianceFilter< TSample >
   mean.Fill(0.0);
 
   double totalFrequency = 0.0;
+
+  if( m_Weights.Size() != input->Size() )
+    {
+    itkExceptionMacro("Size of weights array doesn't match the sample size");
+    }
 
   typename TSample::ConstIterator iter = input->Begin();
   typename TSample::ConstIterator end = input->End();

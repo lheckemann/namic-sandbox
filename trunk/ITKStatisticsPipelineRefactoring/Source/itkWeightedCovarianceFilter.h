@@ -71,17 +71,17 @@ public:
   typedef Array< double > WeightArrayType;
 
   /** Sets the weights using an array */
-  void SetWeights(WeightArrayType array);
+  void SetWeights( const WeightArrayType & array);
 
   /** Gets the weights array */
-  WeightArrayType GetWeights();
+  const WeightArrayType & GetWeights() const;
 
   /** Sets the weights using an function the function should have a method, 
    * Evaluate(MeasurementVectorType&).  */
-  void SetWeightFunction(WeightFunctionType* func);
+  void SetWeightFunction(const WeightFunctionType * func);
 
   /** Gets the weight function */
-  WeightFunctionType* GetWeightFunction();
+  const WeightFunctionType* GetWeightFunction() const;
  
 protected:
   WeightedCovarianceFilter(const Self&); //purposely not implemented
@@ -100,8 +100,8 @@ protected:
   void ComputeCovarianceMatrixWithWeights();
 
 private:
-  WeightArrayType     m_Weights;
-  WeightFunctionType* m_WeightFunction;
+  WeightArrayType            m_Weights;
+  const WeightFunctionType * m_WeightFunction;
 }; // end of class
     
 } // end of namespace Statistics 
