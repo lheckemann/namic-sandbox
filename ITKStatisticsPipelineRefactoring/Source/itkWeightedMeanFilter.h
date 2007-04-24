@@ -18,11 +18,8 @@
 #ifndef __itkWeightedMeanFilter_h
 #define __itkWeightedMeanFilter_h
 
-#include "itkProcessObject.h"
-#include "itkArray.h"
+#include "itkMeanFilter.h"
 #include "itkFunctionBase.h"
-#include "itkSimpleDataObjectDecorator.h"
-#include "itkDataObject.h"
 
 namespace itk { 
 namespace Statistics {
@@ -35,40 +32,30 @@ namespace Statistics {
  * using SetInput method and provides weight by an array or function.
  *. Then call the Update method to run the alogithm.
  * 
- * Recent API changes:
- * The static const macro to get the length of a measurement vector,
- * 'MeasurementVectorSize'  has been removed to allow the length of a measurement
- * vector to be specified at run time. It is now obtained from the input sample.
- * Please use the function GetMeasurementVectorSize() to obtain the length. 
- * The mean output is an Array rather than a Vector.
-
  * \sa MeanFilter 
  
 */
 
 template< class TSample >
-class ITK_EXPORT WeightedMeanFilter : public ProcessObject
+class ITK_EXPORT WeightedMeanFilter : public MeanFilter< TSample >
 {
 public:
   /**Standard class typedefs. */
   typedef WeightedMeanFilter                      Self;
-  typedef ProcessObject                           Superclass;
+  typedef MeanFilter< TSample >                   Superclass;
   typedef SmartPointer<Self>                      Pointer;
   typedef SmartPointer<const Self>                ConstPointer;
-  typedef TSample                                 SampleType;
 
   /**Standard Macros */
-  itkTypeMacro(WeightedMeanFilter, ProcessObject);
+  itkTypeMacro(WeightedMeanFilter, MeanFilter);
   itkNewMacro(Self);
 
   /** Length of a measurement vector */
-  typedef   unsigned int                              MeasurementVectorSizeType;
-  typedef   typename TSample::MeasurementVectorType   MeasurementVectorType;
-  typedef   typename TSample::MeasurementType         MeasurementType;
-
-  /** Method to set/get the sample */
-  void SetInput( const SampleType * sample );
-  const SampleType *  GetInput() const;
+  itkSuperclassTraitMacro( SampleType );
+  itkSuperclassTraitMacro( MeasurementType );
+  itkSuperclassTraitMacro( MeasurementVectorType );
+  itkSuperclassTraitMacro( MeasurementVectorSizeType );
+  itkSuperclassTraitMacro( MeasurementVectorDecoratedType );
 
   /** Array typedef for weights */
   typedef Array< double > WeightArrayType;
@@ -86,22 +73,10 @@ public:
   itkSetObjectMacro(WeightFunction, WeightFunctionType );
   const WeightFunctionType * GetWeightFunction();
 
-  /** DataObject pointer */
-  typedef DataObject::Pointer DataObjectPointer;
-
-  /** MeasurementVector is not a DataObject, we need to decorate it to push it down
-   * a ProcessObject's pipeline */
-  typedef  SimpleDataObjectDecorator< MeasurementVectorType >  MeasurementVectorDecoratedType;
-
-  /** Get the mean measurement vector */
-  const MeasurementVectorDecoratedType * GetOutput() const;
-
 protected:
   WeightedMeanFilter();
-  virtual ~WeightedMeanFilter() {}
+  virtual ~WeightedMeanFilter();
   void PrintSelf(std::ostream& os, Indent indent) const;
-
-  virtual DataObjectPointer MakeOutput(unsigned int idx);
 
   void GenerateData();
 

@@ -27,15 +27,16 @@ template< class TSample >
 WeightedMeanFilter< TSample >
 ::WeightedMeanFilter()
 {
-  this->ProcessObject::SetNumberOfRequiredInputs(1);
-  this->ProcessObject::SetNumberOfRequiredOutputs(1);
-
-  typename MeasurementVectorDecoratedType::Pointer measurementVectorDecorator = 
-    static_cast< MeasurementVectorDecoratedType * >( this->MakeOutput(0).GetPointer() );
-  this->ProcessObject::SetNthOutput(0, measurementVectorDecorator.GetPointer());
-
   m_WeightFunction = 0;
 }
+
+
+template< class TSample >
+WeightedMeanFilter< TSample >
+::~WeightedMeanFilter()
+{
+}
+
 
 template< class TSample >
 void
@@ -43,34 +44,11 @@ WeightedMeanFilter< TSample >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
+  os << indent << "Weights array " << m_Weights << std::endl;
+  os << indent << "Weight function " << m_WeightFunction << std::endl;
 }
 
-template< class TSample >
-void
-WeightedMeanFilter< TSample >
-::SetInput( const SampleType * sample )
-{
-  this->ProcessObject::SetNthInput(0, 
-                                   const_cast< SampleType* >( sample ) );
 
-  //initialize the weight array 
-  m_Weights.SetSize( sample->Size() );
-  m_Weights.Fill(1.0); //set equal weights
-}
-
-template< class TSample >
-const TSample *
-WeightedMeanFilter< TSample >
-::GetInput( ) const
-{
-  if (this->GetNumberOfInputs() < 1)
-    {
-    return 0;
-    }
-
-  return static_cast<const SampleType * >
-  (this->ProcessObject::GetInput(0) );
-}
 template< class TSample >
 const typename WeightedMeanFilter< TSample >::WeightFunctionType *
 WeightedMeanFilter< TSample >
@@ -79,23 +57,6 @@ WeightedMeanFilter< TSample >
   return m_WeightFunction;
 }
 
-
-template< class TSample >
-typename WeightedMeanFilter< TSample>::DataObjectPointer
-WeightedMeanFilter< TSample >
-::MakeOutput(unsigned int itkNotUsed(idx))
-{
-  return static_cast< DataObject * >(MeasurementVectorDecoratedType::New().GetPointer());
-}
-
-template< class TSample >
-const typename WeightedMeanFilter< TSample>::MeasurementVectorDecoratedType *
-WeightedMeanFilter< TSample >
-::GetOutput() const
-{
-  return static_cast< const MeasurementVectorDecoratedType * >(
-              this->ProcessObject::GetOutput(0));
-}
 
 template< class TSample >
 void
