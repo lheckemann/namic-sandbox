@@ -206,15 +206,7 @@ protected:
 
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValue( void *arg );
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueAndDerivative( void *arg );
-  static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueAndDerivativeHelper( void *arg );
-  static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueHelper( void *arg );
 
-  /** computes derivatives in multithreaded fashion */
-  void GetValueAndDerivativeHelper(int threadId) const;
-  void GetValueHelper(int threadId) const;
-
-  mutable std::vector< double > W_x_j;
-  mutable std::vector< std::vector< Array<double> > > m_DerivativeArray;
 
   /** KNN related parameters */
   unsigned int m_NumberOfNearestNeigbors;
@@ -223,9 +215,6 @@ protected:
   mutable std::vector< ANNdistArray >      dists;               // near neighbor distances
   mutable std::vector< ANNidxArray >       nnIdx;
 
-  mutable std::vector< Array<double> > weigtsArray;
-
-  
 private:
   JointEntropyKNNMultiImageMetric(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented

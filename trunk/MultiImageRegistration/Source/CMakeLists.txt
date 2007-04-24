@@ -38,12 +38,16 @@ SET(Congealing_SRCS
   JointEntropyMultiImageMetric.cxx
   JointEntropyKNNMultiImageMetric.h
   JointEntropyKNNMultiImageMetric.cxx
-  JointEntropyKNNFixedMultiImageMetric.h
-  JointEntropyKNNFixedMultiImageMetric.cxx
+  JointEntropyFixedMultiImageMetric.h
+  JointEntropyFixedMultiImageMetric.cxx
+  JointEntropyInterpolateArtefactMultiImageMetric.h
+  JointEntropyInterpolateArtefactMultiImageMetric.cxx
   RegisterToMeanMultiImageMetric.h
   RegisterToMeanMultiImageMetric.cxx
   RegisterToMeanAndVarianceMultiImageMetric.h
   RegisterToMeanAndVarianceMultiImageMetric.cxx
+  MutualInformationLinearInterpolateImageFunction.h
+  MutualInformationLinearInterpolateImageFunction.cxx
   GradientDescentLineSearchOptimizer.h
   GradientDescentLineSearchOptimizer.cxx
   UserBSplineDeformableTransform.h

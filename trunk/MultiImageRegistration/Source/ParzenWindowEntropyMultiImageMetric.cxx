@@ -84,11 +84,11 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
   Superclass::Initialize();
 
   // resize the sample array
-  m_Sample.resize (this->m_NumberOfSpatialSamples);
+  m_Sample = new  SpatialSample[this->m_NumberOfSpatialSamples];
   for (int i = 0; i < this->m_NumberOfSpatialSamples; i++)
   {
     m_Sample[i].imageValueArray.set_size (this->m_NumberOfImages);
-    m_Sample[i].mappedPointsArray.resize (this->m_NumberOfImages);
+    m_Sample[i].mappedPointsArray = new MovingImagePointType[this->m_NumberOfImages];
   }
 
   //check whether there is a mask
@@ -114,12 +114,9 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
   m_value.SetSize( m_NumberOfThreads );
 
   // Each thread has its own derivative pointer
-  m_derivativeArray.resize(m_NumberOfThreads);
   m_DerivativesArray.resize(m_NumberOfThreads);
   for(int i=0; i<m_NumberOfThreads; i++)
   {
-    m_derivativeArray[i].SetSize(this->numberOfParameters*this->m_NumberOfImages);
-
     m_DerivativesArray[i].resize(this->m_NumberOfImages);
     for(int j=0; j<this->m_NumberOfImages; j++)
     {
@@ -173,6 +170,25 @@ PrintSelf (std::ostream & os, Indent indent) const
   os << m_KernelFunction.GetPointer () << std::endl;
 }
 
+// Callback routine used by the threading library. This routine just calls
+// the ComputeDerivative() method after setting the correct partition of data
+// for this thread.
+template < class TFixedImage >
+ITK_THREAD_RETURN_TYPE
+ParzenWindowEntropyMultiImageMetric< TFixedImage >
+::ThreaderCallbackSampleImageDomain( void *arg )
+{
+  ThreadStruct *str;
+
+  int threadId = ((MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
+
+  str = (ThreadStruct *)(((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
+
+  str->Metric->SampleImageDomainHelper( threadId );
+
+
+  return ITK_THREAD_RETURN_VALUE;
+}
 
 /*
  * Uniformly sample the fixed image domain. Each sample consists of:
@@ -181,7 +197,7 @@ PrintSelf (std::ostream & os, Indent indent) const
  */
 template < class TFixedImage >
 void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
-SampleFixedImageDomain (SpatialSampleContainer & samples) const
+SampleImageDomainHelper (int threadId) const
 {
   
   typedef ImageRandomConstIteratorWithIndex < FixedImageType > RandomIterator;
@@ -190,9 +206,6 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
   randIter.SetNumberOfSamples(this->m_NumberOfSpatialSamples);
   randIter.GoToBegin();
 
-  typename SpatialSampleContainer::iterator iter;
-  typename SpatialSampleContainer::const_iterator end = samples.end();
-
   bool allOutside = true;
 
   // Number of random picks made from the portion of fixed image within the fixed mask
@@ -200,12 +213,12 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
   unsigned long dryRunTolerance = 3*this->GetFixedImageRegion().GetNumberOfPixels();
 
 
-  for (iter = samples.begin (); iter != end; ++iter)
+  for (int i=threadId; i<this->m_NumberOfSpatialSamples; i+=this->m_NumberOfThreads)
   {
     // Get sampled index
     FixedImageIndexType index = randIter.GetIndex();
     // Translate index to point
-    this->m_ImageArray[0]->TransformIndexToPhysicalPoint(index, (*iter).FixedImagePoint);
+    this->m_ImageArray[0]->TransformIndexToPhysicalPoint(index, m_Sample[i].FixedImagePoint);
 
     // Check the total number of sampled points
     ++numberOfFixedImagePixelsVisited;
@@ -222,31 +235,31 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
     bool pointInsideMask = false;
     for (int j = 0; j < this->m_NumberOfImages && allPointsInside; j++)
     {
-      (*iter).mappedPointsArray[j] = this->m_TransformArray[j]->TransformPoint ((*iter).FixedImagePoint);
+      m_Sample[i].mappedPointsArray[j] = this->m_TransformArray[j]->TransformPoint (m_Sample[i].FixedImagePoint);
 
       //check whether sampled point is in one of the masks
       if ( this->m_ImageMaskArray[j] && !this->m_ImageMaskArray[j]
-           ->IsInside ((*iter).mappedPointsArray[j])  )
+           ->IsInside (m_Sample[i].mappedPointsArray[j])  )
       {
         pointInsideMask = true;
       }
 
       allPointsInside = allPointsInside && this->m_InterpolatorArray[j]
-                                             ->IsInsideBuffer ((*iter).mappedPointsArray[j]);
+          ->IsInsideBuffer (m_Sample[i].mappedPointsArray[j]);
     }
 
     // If not all points are inside continue to the next random sample
     if (allPointsInside == false || (m_UseMask && pointInsideMask == false) )
     {
       ++randIter;
-      --iter;
+      i-=this->m_NumberOfThreads;
       continue;
     }
 
     // write the mapped samples intensity values inside an array
     for (int j = 0; j < this->m_NumberOfImages; j++)
     {
-      (*iter).imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate((*iter).mappedPointsArray[j]);
+      m_Sample[i].imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(m_Sample[i].mappedPointsArray[j]);
       //(*iter).gradientArray[j] = this->m_GradientInterpolatorArray[j]->Evaluate((*iter).mappedPointsArray[j]);
       allOutside = false;
     }
@@ -260,6 +273,28 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
     // if all the samples mapped to the outside throw an exception
     itkExceptionMacro(<<"All the sampled point mapped to outside of the moving image");
   }
+}
+
+/*
+ * Uniformly sample the fixed image domain. Each sample consists of:
+ *  - the sampled point
+ *  - Corresponding moving image intensity values
+ */
+template < class TFixedImage >
+void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
+SampleFixedImageDomain (SpatialSampleContainer & samples) const
+{
+
+  // Set up the multithreaded processing
+  ThreadStruct str;
+  str.Metric =  this;
+
+  this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
+  this->GetMultiThreader()->SetSingleMethod(this->ThreaderCallbackSampleImageDomain, &str);
+  
+  // multithread the execution
+  this->GetMultiThreader()->SingleMethodExecute();
+
 }
 
 
@@ -348,7 +383,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 
   // Update intensity values
   MovingImagePointType mappedPoint;
-  for(int i=threadId; i< m_Sample.size(); i += m_NumberOfThreads )
+  for(int i=threadId; i< this->m_NumberOfSpatialSamples; i += m_NumberOfThreads )
   {
     for(int j=0; j<this->m_NumberOfImages; j++)
     {
@@ -365,7 +400,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
   double dSum;
 
   // Loop over the pixel stacks
-  for (int a=threadId; a<m_Sample.size(); a += m_NumberOfThreads )
+  for (int a=threadId; a<this->m_NumberOfSpatialSamples; a += m_NumberOfThreads )
   {
 
     for (int j = 0; j < this->m_NumberOfImages; j++)
@@ -406,7 +441,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
   {
     value += m_value[i];
   }
-  value /= (MeasureType) (-1.0 * m_Sample.size()*this->m_NumberOfImages);
+  value /= (MeasureType) (-1.0 * this->m_NumberOfSpatialSamples*this->m_NumberOfImages);
 
   //cout << value << endl;
   return value;
@@ -518,8 +553,8 @@ void ParzenWindowEntropyMultiImageMetric < TFixedImage >
       }
     }
   }
-  value /= (double) ( -1.0 * m_Sample.size() * this->m_NumberOfImages );
-  derivative /= (double) (m_Sample.size() * this->m_NumberOfImages *
+  value /= (double) ( -1.0 * this->m_NumberOfSpatialSamples * this->m_NumberOfImages );
+  derivative /= (double) (this->m_NumberOfSpatialSamples * this->m_NumberOfImages *
                      m_ImageStandardDeviation * m_ImageStandardDeviation );
   
   //Set the mean to zero
@@ -567,7 +602,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
   DerivativeType deriv(this->numberOfParameters);
   
   // Loop over the pixel stacks
-  for (int x=threadId; x<m_Sample.size(); x += m_NumberOfThreads )
+  for (int x=threadId; x<this->m_NumberOfSpatialSamples; x += m_NumberOfThreads )
   {
     // Calculate the entropy
     for (int j = 0; j < this->m_NumberOfImages; j++)

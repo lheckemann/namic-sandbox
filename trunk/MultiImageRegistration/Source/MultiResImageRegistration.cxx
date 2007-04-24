@@ -34,8 +34,9 @@
 #include "VarianceMultiImageMetric.h"
 #include "ParzenWindowEntropyMultiImageMetric.h"
 #include "JointEntropyMultiImageMetric.h"
+#include "JointEntropyFixedMultiImageMetric.h"
+#include "JointEntropyInterpolateArtefactMultiImageMetric.h"
 #include "JointEntropyKNNMultiImageMetric.h"
-#include "JointEntropyKNNFixedMultiImageMetric.h"
 #include "RegisterToMeanMultiImageMetric.h"
 #include "RegisterToMeanAndVarianceMultiImageMetric.h"
     
@@ -55,8 +56,8 @@
 #include "itkWindowedSincInterpolateImageFunction.h"
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
+#include "MutualInformationLinearInterpolateImageFunction.h"
 
-    
 #include "itkRecursiveMultiResolutionPyramidImageFilter.h"
 #include "itkImage.h"
 #include "itkNormalizeImageFilter.h"
@@ -546,6 +547,7 @@ int main( int argc, char *argv[] )
   typedef itk::NearestNeighborInterpolateImageFunction< InternalImageType, ScalarType >  NearestNeighborInterpolatorType;
   typedef itk::WindowedSincInterpolateImageFunction< InternalImageType, 5 >    SincInterpolatorType;
   typedef itk::BSplineInterpolateImageFunction< InternalImageType, ScalarType >  BsplineInterpolatorType;
+  typedef itk::MutualInformationLinearInterpolateImageFunction<InternalImageType,ScalarType        > MutualInformationLinearInterpolatorType;
 
   
   typedef itk::MultiImageMetric< InternalImageType>    MetricType;
@@ -553,7 +555,8 @@ int main( int argc, char *argv[] )
   typedef itk::ParzenWindowEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
   typedef itk::JointEntropyMultiImageMetric< InternalImageType>    JointEntropyMetricType;
   typedef itk::JointEntropyKNNMultiImageMetric< InternalImageType>    JointEntropyKNNMetricType;
-  typedef itk::JointEntropyKNNFixedMultiImageMetric< InternalImageType>    JointEntropyKNNFixedMetricType;
+  typedef itk::JointEntropyFixedMultiImageMetric< InternalImageType>    JointEntropyFixedMetricType;
+  typedef itk::JointEntropyInterpolateArtefactMultiImageMetric< InternalImageType>    JointEntropyInterpolateArtefactMetricType;
   typedef itk::RegisterToMeanMultiImageMetric< InternalImageType>    RegisterToMeanMetricType;
   typedef itk::RegisterToMeanAndVarianceMultiImageMetric< InternalImageType>    RegisterToMeanAndVarianceMetricType;
 
@@ -679,6 +682,64 @@ int main( int argc, char *argv[] )
   collector.Start( "1Image Read " );
   collector.Start( "6Total Time " );
 
+
+    //Set the metric type
+  MetricType::Pointer                 metric;
+  if(metricType == "variance")
+  {
+    metric        = VarianceMetricType::New();
+    // Set the number of samples to be used by the metric
+  }
+  else if( metricType == "jointEntropy" )
+  {
+    JointEntropyMetricType::Pointer jointEntropyMetric        = JointEntropyMetricType::New();
+    jointEntropyMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
+    metric        = jointEntropyMetric;
+  }
+  else if( metricType == "jointEntropyFixed" )
+  {
+    JointEntropyFixedMetricType::Pointer jointEntropyFixedMetric        = JointEntropyFixedMetricType::New();
+    jointEntropyFixedMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
+    metric        = jointEntropyFixedMetric;
+  }
+  else if( metricType == "jointEntropyArtefact" )
+  {
+    JointEntropyInterpolateArtefactMetricType::Pointer jointEntropyInterpolateArtefactMetric        = JointEntropyInterpolateArtefactMetricType::New();
+    jointEntropyInterpolateArtefactMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
+    metric        = jointEntropyInterpolateArtefactMetric;
+  }
+  else if( metricType == "jointEntropyKNN" )
+  {
+    JointEntropyKNNMetricType::Pointer jointEntropyKNNMetric        = JointEntropyKNNMetricType::New();
+    jointEntropyKNNMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
+    jointEntropyKNNMetric->SetNumberOfNearestNeigbors(numberOfNearestNeigbors);
+    jointEntropyKNNMetric->SetErrorBound(errorBound);
+    metric = jointEntropyKNNMetric;
+  }
+  else if( metricType == "mean" )
+  {
+    RegisterToMeanMetricType::Pointer registerToMeanMetric        = RegisterToMeanMetricType::New();
+    // Set the number of samples to be used by the metric
+    registerToMeanMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
+    metric = registerToMeanMetric;
+  }
+  else if( metricType == "meanAndVariance" )
+  {
+    RegisterToMeanAndVarianceMetricType::Pointer registerToMeanAndVarianceMetric        = RegisterToMeanAndVarianceMetricType::New();
+    registerToMeanAndVarianceMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
+    metric = registerToMeanAndVarianceMetric;
+  }
+  else
+  {
+    EntropyMetricType::Pointer entropyMetric        = EntropyMetricType::New();
+    entropyMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
+    entropyMetric->SetRegularization(true);
+    entropyMetric->SetRegularizationFactor(bsplineRegularizationFactor);
+    metric = entropyMetric;
+  }
+  metric->SetNumberOfImages(N);
+
+  
   try
   {
   
@@ -699,6 +760,13 @@ int main( int argc, char *argv[] )
       else if ( interpolatorType == "bspline")
       {
         interpolatorArray[i]  = BsplineInterpolatorType::New();
+      }
+      else if ( interpolatorType == "mutual")
+      {
+        MutualInformationLinearInterpolatorType::Pointer mutualInformationInterpolator =
+                              MutualInformationLinearInterpolatorType::New();
+        metric->SetMutualInformationInterpolatorArray(mutualInformationInterpolator,i);
+        interpolatorArray[i]  = mutualInformationInterpolator;
       }
       else // assume linear by default
       {
@@ -805,16 +873,16 @@ int main( int argc, char *argv[] )
         normalizeFilter->SetInput( imageReader->GetOutput() );
       }
 
-      GaussianFilterType::Pointer gaussianFilter = GaussianFilterType::New();
-      gaussianFilter->ReleaseDataFlagOn();
-      gaussianFilter->SetVariance( gaussianFilterVariance );
-      gaussianFilter->SetInput( normalizeFilter->GetOutput() );
+      //GaussianFilterType::Pointer gaussianFilter = GaussianFilterType::New();
+      //gaussianFilter->ReleaseDataFlagOn();
+      //gaussianFilter->SetVariance( gaussianFilterVariance );
+      //gaussianFilter->SetInput( normalizeFilter->GetOutput() );
 
       //Set up the Image Pyramid
       imagePyramidArray[i] = ImagePyramidType::New();
       //imagePyramidArray[i]->ReleaseDataFlagOn();
       imagePyramidArray[i]->SetNumberOfLevels( multiLevelAffine );
-      imagePyramidArray[i]->SetInput( gaussianFilter->GetOutput() );
+      imagePyramidArray[i]->SetInput( normalizeFilter->GetOutput() );
 
       std::cout << "message: Reading Image: " << inputFileNames[i].c_str() << std::endl;
       imagePyramidArray[i]->Update();
@@ -881,62 +949,8 @@ int main( int argc, char *argv[] )
     numberOfSamples = static_cast< unsigned int >( numberOfPixels * numberOfSpatialSamplesTranslationPercentage );
   }
 
-
-  //Set the metric type
-  MetricType::Pointer                 metric;
-  if(metricType == "variance")
-  {
-    metric        = VarianceMetricType::New();
-    // Set the number of samples to be used by the metric
-  }
-  else if( metricType == "jointEntropy" )
-  {
-    JointEntropyMetricType::Pointer jointEntropyMetric        = JointEntropyMetricType::New();
-    jointEntropyMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
-    metric        = jointEntropyMetric;
-  }
-  else if( metricType == "jointEntropyKNN" )
-  {
-    JointEntropyKNNMetricType::Pointer jointEntropyKNNMetric        = JointEntropyKNNMetricType::New();
-    jointEntropyKNNMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
-    jointEntropyKNNMetric->SetNumberOfNearestNeigbors(numberOfNearestNeigbors);
-    jointEntropyKNNMetric->SetErrorBound(errorBound);
-    metric = jointEntropyKNNMetric;
-  }
-  else if( metricType == "jointEntropyKNNFixed" )
-  {
-    JointEntropyKNNFixedMetricType::Pointer jointEntropyKNNFixedMetric        = JointEntropyKNNFixedMetricType::New();
-    registration->SetMetric( jointEntropyKNNFixedMetric  );
-    // Set the number of samples to be used by the metric
-    jointEntropyKNNFixedMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
-    jointEntropyKNNFixedMetric->SetNumberOfNearestNeigbors(numberOfNearestNeigbors);
-    jointEntropyKNNFixedMetric->SetErrorBound(errorBound);
-    metric = jointEntropyKNNFixedMetric;
-  }  
-  else if( metricType == "mean" )
-  {
-    RegisterToMeanMetricType::Pointer registerToMeanMetric        = RegisterToMeanMetricType::New();
-    // Set the number of samples to be used by the metric
-    registerToMeanMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
-    metric = registerToMeanMetric;
-  }
-  else if( metricType == "meanAndVariance" )
-  {
-    RegisterToMeanAndVarianceMetricType::Pointer registerToMeanAndVarianceMetric        = RegisterToMeanAndVarianceMetricType::New();
-    registerToMeanAndVarianceMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
-    metric = registerToMeanAndVarianceMetric;
-  }   
-  else
-  {
-    EntropyMetricType::Pointer entropyMetric        = EntropyMetricType::New();
-    entropyMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
-    entropyMetric->SetRegularization(true);
-    entropyMetric->SetRegularizationFactor(bsplineRegularizationFactor);
-    metric = entropyMetric;
-  }
   // Set the number of samples to be used by the metric
   registration->SetMetric( metric  );
-  metric->SetNumberOfImages(N);
   metric->SetNumberOfSpatialSamples( numberOfSamples );
 
   
@@ -995,6 +1009,24 @@ int main( int argc, char *argv[] )
     std::cout << "ExceptionObject caught !" << std::endl; 
     std::cout << err << std::endl; 
     return -1;
+  }
+
+  //Print out the metric values for translation parameters
+  if( metricPrint == "on")
+  {
+    cout << "message: Metric Probe " << endl;
+    ofstream outputFile("metricOutput.txt");
+    ParametersType parameters = registration->GetLastTransformParameters();
+    cout << parameters << endl;
+    parameters.Fill(0.0);
+    
+    for(double i=-10.0; i<0.0; i+=0.1)
+    {
+      parameters[0] = i;
+      outputFile << metric->GetValue(parameters) << " ";
+      outputFile << std::endl;
+    }
+    outputFile.close();
   }
 
   //
@@ -1120,27 +1152,7 @@ int main( int argc, char *argv[] )
     return -1;
   }
 
-  //Print out the metric values for translation parameters
-  if( metricPrint == "on")
-  {
-    cout << "message: Metric Probe " << endl;
-    ofstream outputFile("metricOutput.txt");
-    ParametersType parameters = registration->GetLastTransformParameters();
 
-    for(double i=-7.5; i<7.5; i+=0.5)
-    {
-      for(double j=-7.5; j<7.5; j+=0.5)
-      {
-        parameters[10] = i;
-        parameters[11] = j;
-
-        outputFile << metric->GetValue(parameters) << " ";
-
-      }
-      outputFile << std::endl;
-    }
-    outputFile.close();
-  }
 
   //
   // BSpline Registration

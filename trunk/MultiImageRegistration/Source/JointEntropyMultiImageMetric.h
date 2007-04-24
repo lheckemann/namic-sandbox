@@ -194,15 +194,12 @@ protected:
 
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValue( void *arg );
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueAndDerivative( void *arg );
-  static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueAndDerivativeHelper( void *arg );
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueHelper( void *arg );
 
   /** computes derivatives in multithreaded fashion */
-  void GetValueAndDerivativeHelper(int threadId) const;
   void GetValueHelper(int threadId) const;
 
-  mutable std::vector< double > W_x_j;
-  mutable std::vector< std::vector< Array<double> > > m_DerivativeArray;
+  mutable std::vector< std::vector< double  > > W;
 
 private:
   JointEntropyMultiImageMetric(const Self&); //purposely not implemented

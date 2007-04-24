@@ -40,6 +40,7 @@ MultiImageMetric<TFixedImage>
 
   m_ComputeGradient = false; // metric does not compute gradient by default
   m_UserBsplineDefined = false;
+  m_CorrectInterpolationArtefact = false;
   m_NumberOfImages = 0;
   m_NumberOfPixelsCounted = 0; // initialize to zero
 //  m_GradientImage = NULL; // computed at initialization
@@ -47,6 +48,7 @@ MultiImageMetric<TFixedImage>
   m_ImageArray.resize(0);
   m_GradientImageArray.resize(0);
   m_InterpolatorArray.resize(0);
+  m_MutualInformationInterpolatorArray.resize(0);
   m_TransformArray.resize(0);
   m_ImageMaskArray.resize(0);
 
@@ -197,6 +199,7 @@ MultiImageMetric<TFixedImage>
   m_ImageArray.resize(N);
   m_GradientImageArray.resize(N);
   m_InterpolatorArray.resize(N);
+  m_MutualInformationInterpolatorArray.resize(N);
   m_TransformArray.resize(N);
   m_ImageMaskArray.resize(N);
   m_GradientInterpolatorArray.resize(N);
@@ -207,6 +210,7 @@ MultiImageMetric<TFixedImage>
     m_ImageArray[i] =0;
     m_GradientImageArray[i]=0;
     m_InterpolatorArray[i]=0;
+    m_MutualInformationInterpolatorArray[i] = 0;
     m_TransformArray[i]=0;
     m_ImageMaskArray[i]=0;
     m_GradientInterpolatorArray[i] = 0;
