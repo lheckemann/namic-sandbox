@@ -125,11 +125,6 @@ WeightedCovarianceFilter< TSample >
 
   double totalFrequency = 0.0;
 
-  if( m_Weights.Size() != input->Size() )
-    {
-    itkExceptionMacro("Size of weights array doesn't match the sample size");
-    }
-
   typename TSample::ConstIterator iter = input->Begin();
   typename TSample::ConstIterator end = input->End();
 
@@ -240,6 +235,11 @@ WeightedCovarianceFilter< TSample >
   double weight;
   double totalWeight = 0.0;
   double sumSquaredWeight=0.0;
+
+  if( m_Weights.Size() != input->Size() )
+    {
+    itkExceptionMacro("Size of weights array doesn't match the sample size");
+    }
 
   //Compute the mean first
 
