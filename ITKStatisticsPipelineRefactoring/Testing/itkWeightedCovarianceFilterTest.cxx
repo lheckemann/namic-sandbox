@@ -190,10 +190,10 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
     }    
  
   MeasurementVectorType  mean = filter->GetMean();
-  CovarianceMatrixType matrix = filter->GetWeightedCovarianceMatrix();
+  CovarianceMatrixType matrix = filter->GetCovarianceMatrix();
 
   std::cout << "Mean: "              << mean << std::endl;
-  std::cout << "WeightedCovariance Matrix: " << matrix << std::endl;
+  std::cout << "Covariance Matrix: " << matrix << std::endl;
 
   //Check the results
 
@@ -257,10 +257,10 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
   std::cout << "Weight array: " << filter->GetWeights() << std::endl;
 
   mean = filter->GetMean();
-  matrix = filter->GetWeightedCovarianceMatrix();
+  matrix = filter->GetCovarianceMatrix();
 
   std::cout << "Mean: "              << mean << std::endl;
-  std::cout << "WeightedCovariance Matrix: " << matrix << std::endl;
+  std::cout << "Covariance Matrix: " << matrix << std::endl;
 
   for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
     {
@@ -296,10 +296,10 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
     }    
 
   mean = filter->GetMean();
-  matrix = filter->GetWeightedCovarianceMatrix();
+  matrix = filter->GetCovarianceMatrix();
 
   std::cout << "Mean: "              << mean << std::endl;
-  std::cout << "WeightedCovariance Matrix: " << matrix << std::endl;
+  std::cout << "Covariance Matrix: " << matrix << std::endl;
 
   for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
     {

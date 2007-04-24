@@ -18,12 +18,8 @@
 #ifndef __itkWeightedCovarianceFilter_h
 #define __itkWeightedCovarianceFilter_h
 
-#include "itkProcessObject.h"
 #include "itkFunctionBase.h"
-
-#include "itkArray.h"
-#include "itkVariableSizeMatrix.h"
-#include "itkSimpleDataObjectDecorator.h"
+#include "itkCovarianceFilter.h"
 
 namespace itk { 
 namespace Statistics {
@@ -42,35 +38,27 @@ namespace Statistics {
 
 template< class TSample >
 class WeightedCovarianceFilter :
-    public ProcessObject
+    public CovarianceFilter< TSample >
 {
 public:
   /** Standard class typedefs. */
   typedef WeightedCovarianceFilter        Self;
-  typedef ProcessObject                   Superclass;
+  typedef CovarianceFilter< TSample >     Superclass;
   typedef SmartPointer<Self>              Pointer;
   typedef SmartPointer<const Self>        ConstPointer;
-  typedef TSample                         SampleType;
 
   /** Standard Macros */
-  itkTypeMacro(WeightedCovarianceFilter, ProcessObject);
+  itkTypeMacro(WeightedCovarianceFilter, CovarianceFilter);
   itkNewMacro(Self);
   
-  /** Length of a measurement vector */
-  typedef typename TSample::MeasurementVectorSizeType MeasurementVectorSizeType;
-
-  /** Measurement vector type */
-  typedef typename TSample::MeasurementVectorType MeasurementVectorType;
+  /** Traits derived from the base class */
+  itkSuperclassTraitMacro( SampleType );
+  itkSuperclassTraitMacro( MeasurementVectorType );
+  itkSuperclassTraitMacro( MeasurementVectorSizeType );
+  itkSuperclassTraitMacro( MeasurementVectorDecoratedType );
   
   /** Typedef for WeightedCovariance output */
   typedef VariableSizeMatrix< double >               MatrixType;
-
-  /** Method to set/get the sample */
-  void SetInput( const SampleType * sample );
-  const SampleType *  GetInput() const;
-
-  /** DataObject pointer */
-  typedef DataObject::Pointer DataObjectPointer;
 
   /** Weight calculation function typedef */
   typedef FunctionBase< MeasurementVectorType, double > WeightFunctionType;
@@ -78,18 +66,6 @@ public:
   /** VariableSizeMatrix is not a DataObject, we need to decorate it to push it down
    * a ProcessObject's pipeline */
   typedef  SimpleDataObjectDecorator< MatrixType >  MatrixDecoratedType;
-
-  /** MeasurementVector is not a DataObject, we need to decorate it to push it down
-   * a ProcessObject's pipeline */
-  typedef  SimpleDataObjectDecorator< MeasurementVectorType >  MeasurementVectorDecoratedType;
-
-  /** Return the covariance matrix */
-  const MatrixType GetWeightedCovarianceMatrix() const;
-  const MatrixDecoratedType* GetWeightedCovarianceMatrixOutput() const;
-
-  /** Return the mean vector */
-  const MeasurementVectorType GetMean() const;
-  const MeasurementVectorDecoratedType* GetMeanOutput() const;
 
   /** Array typedef for weights */
   typedef Array< double > WeightArrayType;
@@ -112,10 +88,8 @@ protected:
   void operator=(const Self&); //purposely not implemented
 
   WeightedCovarianceFilter();
-  virtual ~WeightedCovarianceFilter() {} 
+  virtual ~WeightedCovarianceFilter();
   void PrintSelf(std::ostream& os, Indent indent) const;
-
-  virtual DataObjectPointer MakeOutput(unsigned int idx);
 
   void GenerateData();
 
