@@ -24,21 +24,18 @@ template< class TSample >
 WeightedCovarianceFilter< TSample >
 ::WeightedCovarianceFilter()  
 {
-  this->ProcessObject::SetNumberOfRequiredInputs(1);
-  this->ProcessObject::SetNumberOfRequiredOutputs(1);
-
-  typename MatrixDecoratedType::Pointer matrixDecorator = 
-    static_cast< MatrixDecoratedType * >( this->MakeOutput(0).GetPointer() );
-  this->ProcessObject::SetNthOutput(0, matrixDecorator.GetPointer());
-  
-  typename MeasurementVectorDecoratedType::Pointer measurementVectorDecorator = 
-    static_cast< MeasurementVectorDecoratedType * >( this->MakeOutput(1).GetPointer() );
-  this->ProcessObject::SetNthOutput(1, measurementVectorDecorator.GetPointer());
-
   // initialize parameters
   m_WeightFunction = NULL;
   m_Weights        = 0;
 }
+
+
+template< class TSample >
+WeightedCovarianceFilter< TSample >
+::~WeightedCovarianceFilter()  
+{
+}
+
 
 template< class TSample >
 void
@@ -48,17 +45,6 @@ WeightedCovarianceFilter< TSample >
   Superclass::PrintSelf(os,indent);
 }
 
-template< class TSample >
-void
-WeightedCovarianceFilter< TSample >
-::SetInput( const SampleType * sample )
-{
-  this->ProcessObject::SetNthInput(0, 
-                                   const_cast< SampleType* >( sample ) );
-  //initialize the weight array
-  m_Weights.SetSize( sample->Size() );
-  m_Weights.Fill(1.0); // set equal weights
-}
 
 template< class TSample >
 void
@@ -94,36 +80,6 @@ WeightedCovarianceFilter< TSample >
   return m_WeightFunction;
 }
 
-template< class TSample >
-const TSample *
-WeightedCovarianceFilter< TSample >
-::GetInput( ) const
-{
-  if (this->GetNumberOfInputs() < 1)
-    {
-    return 0;
-    }
-
-  return static_cast<const SampleType * >
-  (this->ProcessObject::GetInput(0) );
-}
-
-template< class TSample >
-typename WeightedCovarianceFilter< TSample>::DataObjectPointer
-WeightedCovarianceFilter< TSample >
-::MakeOutput(unsigned int index )
-{
-  if ( index == 0 )
-    {
-    return static_cast< DataObject * >(MatrixDecoratedType::New().GetPointer());
-    }
-
-  if ( index == 1 )
-    {
-    return static_cast< DataObject * >(MeasurementVectorDecoratedType::New().GetPointer());
-    }
-  itkExceptionMacro("Trying to create output of index " << index << " larger than the number of output");
-}
 
 template< class TSample >
 inline void
@@ -339,38 +295,6 @@ WeightedCovarianceFilter< TSample >
   output /= ( totalWeight - ( sumSquaredWeight / totalWeight ) );
 
   decoratedOutput->Set( output );
-}
-
-template< class TSample >
-const typename WeightedCovarianceFilter< TSample>::MatrixDecoratedType *
-WeightedCovarianceFilter< TSample >
-::GetWeightedCovarianceMatrixOutput() const
-{
-  return static_cast<const MatrixDecoratedType *>(this->ProcessObject::GetOutput(0));
-}
-
-template< class TSample >
-const typename WeightedCovarianceFilter< TSample>::MatrixType
-WeightedCovarianceFilter< TSample >
-::GetWeightedCovarianceMatrix() const 
-{
-  return this->GetWeightedCovarianceMatrixOutput()->Get();
-}
-
-template< class TSample >
-const typename WeightedCovarianceFilter< TSample>::MeasurementVectorDecoratedType *
-WeightedCovarianceFilter< TSample >
-::GetMeanOutput() const
-{
-  return static_cast<const MeasurementVectorDecoratedType *>(this->ProcessObject::GetOutput(1));
-}
-
-template< class TSample >
-const typename WeightedCovarianceFilter< TSample>::MeasurementVectorType
-WeightedCovarianceFilter< TSample >
-::GetMean() const 
-{
-  return this->GetMeanOutput()->Get();
 }
 
 } // end of namespace Statistics 
