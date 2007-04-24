@@ -67,9 +67,6 @@ public:
   void SetInput( const SampleType * sample );
   const SampleType *  GetInput() const;
 
-  /** DataObject pointer */
-  typedef DataObject::Pointer DataObjectPointer;
-
   /** MeasurementVector is not a DataObject, we need to decorate it to push it down
    * a ProcessObject's pipeline */
   typedef  SimpleDataObjectDecorator< MeasurementVectorType >  MeasurementVectorDecoratedType;
@@ -80,8 +77,11 @@ public:
 
 protected:
   MeanFilter();
-  virtual ~MeanFilter() {}
+  virtual ~MeanFilter();
   void PrintSelf(std::ostream& os, Indent indent) const;
+
+  /** DataObject pointer */
+  typedef DataObject::Pointer DataObjectPointer;
 
   virtual DataObjectPointer MakeOutput(unsigned int idx);
 

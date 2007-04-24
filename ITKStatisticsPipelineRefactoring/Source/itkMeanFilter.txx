@@ -34,6 +34,14 @@ MeanFilter< TSample >
   this->ProcessObject::SetNthOutput(0, measurementVectorDecorator.GetPointer());
 }
 
+
+template< class TSample >
+MeanFilter< TSample >
+::~MeanFilter()
+{
+}
+
+
 template< class TSample >
 void
 MeanFilter< TSample >
