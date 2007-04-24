@@ -154,6 +154,7 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
+    return EXIT_FAILURE;
     }    
 
   if ( filter->GetInput() != NULL )
@@ -173,6 +174,7 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
+    return EXIT_FAILURE;
     }
   
   filter->ResetPipeline();
@@ -183,12 +185,33 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
   try
     {
     filter->Update();
+    std::cerr << "Failed to throw exception when weights were missing" << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cout << "Expected exception caught: " << excp << std::endl;
+    }    
+
+  //Specify weight
+  typedef FilterType::WeightArrayType  WeightArrayType;
+  WeightArrayType weightArray(sample->Size());
+  weightArray.Fill(1.0);
+
+  filter->SetWeights( weightArray );
+
+  // run with the weights
+  try
+    {
+    filter->Update();
     }
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
+    return EXIT_FAILURE;
     }    
- 
+
+
   MeasurementVectorType  mean = filter->GetMean();
   CovarianceMatrixType matrix = filter->GetCovarianceMatrix();
 
@@ -236,11 +259,6 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
       }
     }
 
-  //Specify weight
-  typedef FilterType::WeightArrayType  WeightArrayType;
-  WeightArrayType weightArray(sample->Size());
-  weightArray.Fill(1.0);
-
   filter->SetWeights( weightArray );
 
   std::cout << "Weight array: " << filter->GetWeights() << std::endl;
@@ -252,6 +270,7 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
+    return EXIT_FAILURE;
     }    
  
   std::cout << "Weight array: " << filter->GetWeights() << std::endl;
@@ -293,6 +312,7 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
   catch ( itk::ExceptionObject & excp )
     {
     std::cerr << "Exception caught: " << excp << std::endl;
+    return EXIT_FAILURE;
     }    
 
   mean = filter->GetMean();
