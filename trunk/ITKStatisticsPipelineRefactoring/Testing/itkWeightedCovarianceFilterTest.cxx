@@ -153,8 +153,7 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
     }
   catch ( itk::ExceptionObject & excp )
     {
-    std::cerr << "Exception caught: " << excp << std::endl;
-    return EXIT_FAILURE;
+    std::cout << "Expected exception caught: " << excp << std::endl;
     }    
 
   if ( filter->GetInput() != NULL )
@@ -170,11 +169,11 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
     {
     filter->CreateInvalidOutput();
     std::cerr << "Exception should have been thrown: " << std::endl;
+    return EXIT_FAILURE;
     }
   catch ( itk::ExceptionObject & excp )
     {
-    std::cerr << "Exception caught: " << excp << std::endl;
-    return EXIT_FAILURE;
+    std::cout << "Expected exception caught: " << excp << std::endl;
     }
   
   filter->ResetPipeline();
