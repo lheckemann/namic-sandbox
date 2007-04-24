@@ -34,6 +34,8 @@ int itkNeighborhoodSamplerTest1(int, char* [] )
 
   typedef itk::Statistics::NeighborhoodSampler< SampleType > FilterType;
 
+  typedef FilterType::RadiusType              RadiusType;
+  typedef FilterType::InputRadiusObjectType   InputRadiusObjectType;
 
   SampleType::Pointer sample = SampleType::New();
 
@@ -60,6 +62,106 @@ int itkNeighborhoodSamplerTest1(int, char* [] )
     std::cerr << "GetInput() didn't matched SetInput()" << std::endl;
     return EXIT_FAILURE;
     }
+
+
+  // Testing the settings of the Radius.
+  const RadiusType radius1 = 237;
+  const RadiusType radius2 = 179;
+
+  filter->SetRadius( radius1 );
+
+  const InputRadiusObjectType * recoveredRadiusObject =
+    filter->GetRadiusInput();
+
+  if( recoveredRadiusObject == NULL )
+    {
+    std::cerr << "GetRadiusInput() returned NULL object." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( recoveredRadiusObject->Get() != radius1 )
+    {
+    std::cerr << "GetRadiusInput() test for value consistency 1 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  filter->SetRadius( radius2 );
+
+  recoveredRadiusObject = filter->GetRadiusInput();
+
+  if( recoveredRadiusObject == NULL )
+    {
+    std::cerr << "GetRadiusInput() returned NULL object." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( recoveredRadiusObject->Get() != radius2 )
+    {
+    std::cerr << "GetRadiusInput() test for value consistency 2 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  InputRadiusObjectType::Pointer radiusObject1 =
+    InputRadiusObjectType::New();
+
+  radiusObject1->Set( radius1 );
+
+  filter->SetRadiusInput( radiusObject1 );
+
+  recoveredRadiusObject = filter->GetRadiusInput();
+
+  if( recoveredRadiusObject != radiusObject1 )
+    {
+    std::cerr << "GetRadiusInput() test for pointer consistency 1 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( recoveredRadiusObject->Get() != radius1 )
+    {
+    std::cerr << "GetRadiusInput() test for value consistency 3 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  InputRadiusObjectType::Pointer radiusObject2 =
+    InputRadiusObjectType::New();
+
+  radiusObject2->Set( radius2 );
+
+  filter->SetRadiusInput( radiusObject2 );
+
+  recoveredRadiusObject = filter->GetRadiusInput();
+
+  if( recoveredRadiusObject != radiusObject2 )
+    {
+    std::cerr << "GetRadiusInput() test for pointer consistency 2 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( recoveredRadiusObject->Get() != radius2 )
+    {
+    std::cerr << "GetRadiusInput() test for value consistency 4 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  filter->SetInput1( radiusObject1 );
+
+  recoveredRadiusObject = filter->GetInput1();
+
+  if( recoveredRadiusObject != radiusObject1 )
+    {
+    std::cerr << "GetRadiusInput() test for pointer consistency 3 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  if( recoveredRadiusObject->Get() != radius1 )
+    {
+    std::cerr << "GetRadiusInput() test for value consistency 5 failed." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+
 
 
   //

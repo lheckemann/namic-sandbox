@@ -47,6 +47,15 @@ NeighborhoodSampler< TSample >
   outputSubSample->SetSample( inputSample );
   outputSubSample->Clear();
 
+  const InputRadiusObjectType * radiusObject = this->GetRadiusInput();
+
+  if( radiusObject == NULL )
+    {
+    itkExceptionMacro("Radius input is missing");
+    }
+
+  const RadiusType radius = radiusObject->Get();
+
 }
 
 

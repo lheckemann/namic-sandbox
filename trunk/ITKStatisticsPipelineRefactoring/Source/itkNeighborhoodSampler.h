@@ -18,6 +18,7 @@
 #define __itkNeighborhoodSampler_h
 
 #include "itkSampleToSubsampleFilter.h"
+#include "itkSimpleDataObjectDecorator.h"
 
 namespace itk {
 namespace Statistics {
@@ -58,7 +59,17 @@ public:
   itkSuperclassTraitMacro( InstanceIdentifier );
   itkSuperclassTraitMacro( SubsampleType );
   itkSuperclassTraitMacro( OutputType );
-  
+
+  /** Type of the distance radius. */ 
+  typedef double RadiusType;
+
+  /** Type of DataObjects to use for distance radius input.*/
+  typedef SimpleDataObjectDecorator< RadiusType > InputRadiusObjectType;
+
+
+  /** Method to set the input value of the Radius */
+  itkSetDecoratedInputMacro( Radius, RadiusType, 1 );
+
 protected:
   NeighborhoodSampler();
   virtual ~NeighborhoodSampler();
