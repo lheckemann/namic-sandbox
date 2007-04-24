@@ -161,7 +161,27 @@ int itkNeighborhoodSamplerTest1(int, char* [] )
     }
 
 
+  //
+  // Testing exception cases in the GenerateData() method.
+  //
+  filter->SetRadiusInput( NULL );
 
+  std::cout << "GetRadiusInput() =  " <<  filter->GetRadiusInput() << std::endl;
+
+  try
+    {
+    filter->Update();
+    std::cerr << "Failure to throw expected exception ";
+    std::cerr << " due to NULL SetRadiusInput()";
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & )
+    {
+    std::cout << "Expected exception received" << std::endl;
+    }
+
+  radiusObject1->Set( 100 );
+  filter->SetRadiusInput( radiusObject1 );
 
 
   //
