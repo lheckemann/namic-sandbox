@@ -28,6 +28,7 @@
 #include "itkMultiThreader.h"
 #include "itkImageMaskSpatialObject.h"
 #include "UserBSplineDeformableTransform.h"
+#include "MutualInformationLinearInterpolateImageFunction.h"
 
 #include <vector>
 #include "UserMacro.h"
@@ -105,7 +106,10 @@ public:
                                  MovingImageType,
                                  CoordinateRepresentationType > InterpolatorType;
 
-
+  typedef MutualInformationLinearInterpolateImageFunction<
+                                 MovingImageType,
+                                 CoordinateRepresentationType > MutualInformationInterpolatorType;
+                                 
   /** Gaussian filter to compute the gradient of the Moving Image */
   typedef typename NumericTraits<MovingImagePixelType>::RealType RealType;
   typedef CovariantVector<MovingImagePixelType,itkGetStaticConstMacro(MovingImageDimension)> GradientPixelType;
@@ -118,6 +122,9 @@ public:
   typedef typename InterpolatorType::Pointer         InterpolatorPointer;
   typedef std::vector<InterpolatorPointer>           InterpolatorPointerArray;
 
+  typedef typename MutualInformationInterpolatorType::Pointer         MutualInformationInterpolatorPointer;
+  typedef std::vector<MutualInformationInterpolatorPointer>           MutualInformationInterpolatorPointerArray;
+  
   /** interpolator for gradient images */
   typedef VectorInterpolateImageFunction<
                                  GradientImageType,
@@ -169,6 +176,12 @@ public:
   /** Get a pointer to the i'th Interpolator.  */
   UserGetConstObjectMacro( InterpolatorArray, InterpolatorType );
 
+  /** Connect the i'th Mutual Information Interpolator. */
+  UserSetObjectMacro( MutualInformationInterpolatorArray, MutualInformationInterpolatorType );
+
+  /** Get a pointer to the i'th Mutual Information Interpolator.  */
+  UserGetConstObjectMacro( MutualInformationInterpolatorArray, MutualInformationInterpolatorType );
+  
   /** Connect the i'th gradient Interpolator. */
   UserSetObjectMacro( GradientInterpolatorArray, GradientInterpolatorType );
 
@@ -242,9 +255,12 @@ protected:
 
   mutable TransformPointerArray m_TransformArray;
   InterpolatorPointerArray    m_InterpolatorArray;
+  MutualInformationInterpolatorPointerArray m_MutualInformationInterpolatorArray;
+      
   GradientInterpolatorPointerArray m_GradientInterpolatorArray;
   
   bool                        m_ComputeGradient;
+  bool                        m_CorrectInterpolationArtefact;
   //GradientImagePointer        m_GradientImage;
   GradientImagePointerArray   m_GradientImageArray;
 

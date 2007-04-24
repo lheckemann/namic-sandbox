@@ -9,35 +9,43 @@
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __ParzenWindowEntropyMultiImageMetric_h
-#define __ParzenWindowEntropyMultiImageMetric_h
+#ifndef __JointEntropyInterpolateArtefactMultiImageMetric_h
+#define __JointEntropyInterpolateArtefactMultiImageMetric_h
 
+//#include "itkImageToImageMetric.h"
 #include "itkCovariantVector.h"
 #include "itkPoint.h"
 
 #include "itkIndex.h"
 #include "itkKernelFunction.h"
 #include "itkCentralDifferenceImageFunction.h"
-    
-#include "itkGradientImageFilter.h"
-
-#include "itkImageRegionIterator.h"
 
 //user defined headers
 #include <vector>
-#include "MultiImageMetric.h"
+#include "ParzenWindowEntropyMultiImageMetric.h"
 
+#include "itkGradientImageFilter.h"
+#include "itkBSplineDeformableTransform.h"
+
+#include "itkImageRegionIterator.h"
+
+
+// ANN is provided with Lesser GNU Public License (LGPL)
+// check if that is a problem    
+#include <ANN/ANN.h>             // ANN declarations
+
+    
 using namespace std;
 
 namespace itk
 {
 
-/** \class ParzenWindowEntropyImageToImageMetric
+/** \class MutualInformationImageToImageMetric
  * \brief Computes the mutual information between two images to be registered
  *
  * MutualInformationImageToImageMetric computes the mutual information
@@ -54,7 +62,7 @@ namespace itk
  * SetInterpolator().
  *
  * \warning This metric assumes that the moving image has already been
- * connected to the interpolator outside of this class. 
+ * connected to the interpolator outside of this class.
  *
  * The method GetValue() computes of the mutual information
  * while method GetValueAndDerivative() computes
@@ -96,14 +104,14 @@ namespace itk
  * \ingroup RegistrationMetrics
  */
 template <class TFixedImage>
-class ITK_EXPORT ParzenWindowEntropyMultiImageMetric :
-    public MultiImageMetric< TFixedImage>
+class ITK_EXPORT JointEntropyInterpolateArtefactMultiImageMetric :
+    public ParzenWindowEntropyMultiImageMetric< TFixedImage>
 {
 public:
 
   /** Standard class typedefs. */
-  typedef ParzenWindowEntropyMultiImageMetric  Self;
-  typedef MultiImageMetric< TFixedImage > Superclass;
+  typedef JointEntropyInterpolateArtefactMultiImageMetric  Self;
+  typedef ParzenWindowEntropyMultiImageMetric< TFixedImage > Superclass;
   //typedef CongealingMetric< TFixedImage, TFixedImage > Superclass;
   typedef SmartPointer<Self>  Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
@@ -112,7 +120,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ParzenWindowEntropyMultiImageMetric, MultiImageMetric);
+  itkTypeMacro(JointEntropyInterpolateArtefactMultiImageMetric, ParzenWindowEntropyMultiImageMetric);
 
   /** Types inherited from Superclass. */
   typedef typename Superclass::TransformType            TransformType;
@@ -132,15 +140,7 @@ public:
   typedef typename Superclass::GradientPixelType        GradientPixelType;
   typedef typename Superclass::MovingImagePixelType     ImagePixelType;
   typedef typename Superclass::RealType        RealType;
-  typedef typename Superclass::GradientOutputType     GradientOutputType;
 
-  
-  struct ThreadStruct
-  {
-    ConstPointer Metric;
-  };
-  //typedef vector<FixedImageType> FixedImageTypeArray;
-  //typedef vector<FixedImageConstPointer> ImageConstPointerArray;
 
   /** Index and Point typedef support. */
   typedef typename FixedImageType::IndexType            FixedImageIndexType;
@@ -149,163 +149,70 @@ public:
   typedef typename TransformType::InputPointType        FixedImagePointType;
   typedef typename TransformType::OutputPointType       MovingImagePointType;
 
-  /** PixelType */
-  //typedef typename FixedImageType::PixelType            PixelType;
+  struct ThreadStruct
+  {
+    ConstPointer Metric;
+  };
 
+  /** PixelType */
+  typedef typename FixedImageType::PixelType            PixelType;
 
   /** Enum of the moving image dimension. */
   itkStaticConstMacro(MovingImageDimension, unsigned int,
                       MovingImageType::ImageDimension);
 
-  /** Get the derivatives of the match measure. */
-  void GetDerivative( 
-    const ParametersType& parameters,
-    DerivativeType & Derivative ) const;
 
-  /**  Get the value. */
-  MeasureType GetValue( const ParametersType& parameters ) const;
-  /** Methods added for supporting multi-threading GetValue */
-  void GetThreadedValue( int threadID ) const;
-  void BeforeGetThreadedValue(const ParametersType & parameters) const;
-  MeasureType AfterGetThreadedValue() const;
-
-  /**  Get the value and derivatives for single valued optimizers. */
-  void GetValueAndDerivative( const ParametersType& parameters, 
-                              MeasureType& Value, DerivativeType& Derivative ) const;
-
-
-  /** Methods added for supporting multi-threading GetValueAndDerivative */
-  void GetThreadedValueAndDerivative( int threadID ) const;
-  void BeforeGetThreadedValueAndDerivative(const ParametersType & parameters) const;
-  void AfterGetThreadedValueAndDerivative(MeasureType & value,
-                             DerivativeType & derivative) const;
+  /** Define the bspline tranform type for regularization
+  For Regularization BsplineTransfromPointer must be explicitly
+  provided */
+  typedef typename Superclass::BSplineTransformType BSplineTransformType;
+  typedef typename BSplineTransformType::Pointer BSplineTransformTypePointer;
   
-
-  /** Set/Get the moving image intensitiy standard deviation. This defines
-   * the kernel bandwidth used in the joint probability distribution
-   * calculation. Default value is 0.4 which works well for image intensities
-   * normalized to a mean of 0 and standard deviation of 1.0.  
-   * Value is clamped to be always greater than zero. */
-  itkSetClampMacro( ImageStandardDeviation, double,
-                    NumericTraits<double>::NonpositiveMin(), NumericTraits<double>::max() );
-  itkGetConstReferenceMacro( ImageStandardDeviation, double );
+  typedef typename Superclass::BSplineParametersImageType BSplineParametersImageType;
+  typedef typename Superclass::BSplineParametersImagePointer BSplineParametersImagePointer;
+  
 
   /** Initialize the Metric by making sure that all the components
    *  are present and plugged together correctly     */
   virtual void Initialize(void) throw ( ExceptionObject );
 
-  /** Set/Get the kernel function. This is used to calculate the joint
-   * probability distribution. Default is the GaussianKernelFunction. */
-  itkSetObjectMacro( KernelFunction, KernelFunction );
-  itkGetObjectMacro( KernelFunction, KernelFunction );
+  /**  Get the value. */
+  MeasureType GetValue( const ParametersType& parameters ) const;
+  /** Methods added for supporting multi-threading GetValue */
+  void GetThreadedValue( int threadID ) const;
+  MeasureType AfterGetThreadedValue() const;
+  void BeforeGetThreadedValue(const ParametersType & parameters) const;
 
-  void ReinitializeSeed();
-  void ReinitializeSeed(int);
+  /**  Get the value and derivatives for single valued optimizers. */
+  void GetValueAndDerivative( const ParametersType& parameters,
+                              MeasureType& Value, DerivativeType& Derivative ) const;
+  /** Methods added for supporting multi-threading GetValueAndDerivative */
+  void GetThreadedValueAndDerivative( int threadID ) const;
+  void BeforeGetThreadedValueAndDerivative(const ParametersType & parameters) const;
+  void AfterGetThreadedValueAndDerivative(MeasureType & value,
+                                          DerivativeType & derivative) const;
 
-  /** Define the bspline tranform type for regularization
-     For Regularization BsplineTransfromPointer must be explicitly
-     provided */
-  typedef itk::UserBSplineDeformableTransform<double,   itkGetStaticConstMacro(MovingImageDimension), 3> BSplineTransformType;
-  typedef typename BSplineTransformType::Pointer BSplineTransformTypePointer;
-  
-  typedef typename BSplineTransformType::ImageType BSplineParametersImageType;
-  typedef typename BSplineParametersImageType::Pointer BSplineParametersImagePointer;
-  
-  typedef itk::GradientImageFilter<BSplineParametersImageType, RealType, RealType> GradientFilterType;
-  typedef typename GradientFilterType::Pointer GradientFilterTypePointer;
-
-
-  /** Set/Get the regularization factor */
-  itkSetMacro( RegularizationFactor, RealType );
-  itkGetMacro( RegularizationFactor, RealType );
-
-  /** Set/Get the number of fixed images */
-  itkSetMacro( NumberOfFixedImages, unsigned int );
-  itkGetMacro( NumberOfFixedImages, unsigned int );
-  
-  /** Turn regularization on/off: Default off (true=on) */
-  itkSetMacro( Regularization, bool );
-  /** Get regularization on/off */
-  itkGetMacro( Regularization, bool );
-
-  /** Set Number of images */
-  virtual void SetNumberOfImages(int N);
 
 protected:
-  ParzenWindowEntropyMultiImageMetric();
-  virtual ~ParzenWindowEntropyMultiImageMetric() {};
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  JointEntropyInterpolateArtefactMultiImageMetric();
+  virtual ~JointEntropyInterpolateArtefactMultiImageMetric();
 
-  ParzenWindowEntropyMultiImageMetric(const Self&); //purposely not implemented
-  void operator=(const Self&); //purposely not implemented
-  
-  /** A spatial sample consists of the fixed domain point, the fixed image value
-   *   at that point, and the corresponding moving image value. */
-  class SpatialSample
-  {
-  public:
-    SpatialSample(){}
-    ~SpatialSample(){};
-
-    FixedImagePointType              FixedImagePoint;
-    Array< RealType >                   imageValueArray;
-    MovingImagePointType *   mappedPointsArray;
-
-  };
-
-  /** SpatialSampleContainer typedef support. */
-  typedef SpatialSample *  SpatialSampleContainer;
-  static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueAndDerivative( void *arg );
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValue( void *arg );
+  static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueAndDerivative( void *arg );
 
-
-  /** Container to store sample set */
-  mutable SpatialSampleContainer      m_Sample;
-
-  double                              m_ImageStandardDeviation;
-  typename KernelFunction::Pointer    m_KernelFunction;
-  double                              m_MinProbability;
-
-  /** Uniformly select samples from the fixed image buffer. */
-  void SampleFixedImageDomain( SpatialSampleContainer& samples ) const;
-
-  /** Add the derivative update to the current images parameters at a given point and image derivative*/
-  typedef CovariantVector < double, MovingImageDimension > CovarientType;
-  void UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSample& sample, const RealType& weight, const int& imageNumber, const int& threadID) const;
-
-  typedef typename Superclass::CoordinateRepresentationType  CoordinateRepresentationType;
-  typedef CentralDifferenceImageFunction< MovingImageType,   CoordinateRepresentationType > DerivativeFunctionType;
-
-
-  bool             m_ReseedIterator;
-  int              m_RandomSeed;
+  mutable std::vector< std::vector< double > > interpolationVariance;
   
-  mutable Array< RealType >   m_value;
-  mutable std::vector< std::vector< typename DerivativeFunctionType::Pointer > > m_DerivativeCalculator;
-  mutable std::vector< std::vector<DerivativeType> > m_DerivativesArray;
-  int m_NumberOfThreads;
+private:
+  JointEntropyInterpolateArtefactMultiImageMetric(const Self&); //purposely not implemented
+  void operator=(const Self&); //purposely not implemented
 
-  // Bspline optimization
-  ParametersType indexes; // Holds nonzeros indexes of Bspline derivatives
-
-  mutable std::vector< ParametersType > m_TransformParametersArray;
-
-  bool m_Regularization;
-  double m_RegularizationFactor;
-  
-  bool m_UseMask;
-  unsigned int m_NumberOfFixedImages;
-
-  // Functions to implement multi-threaded sampling
-  static ITK_THREAD_RETURN_TYPE ThreaderCallbackSampleImageDomain( void *arg );
-  void SampleImageDomainHelper(int threadId) const;
 
 };
 
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "ParzenWindowEntropyMultiImageMetric.cxx"
+#include "JointEntropyInterpolateArtefactMultiImageMetric.cxx"
 #endif
 
 #endif
