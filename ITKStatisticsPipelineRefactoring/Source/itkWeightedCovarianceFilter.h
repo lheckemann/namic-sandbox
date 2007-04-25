@@ -70,11 +70,11 @@ public:
   /** Array typedef for weights */
   typedef Array< double > WeightArrayType;
 
-  /** Sets the weights using an array */
-  void SetWeights( const WeightArrayType & array);
+  /** Type of DataObjects to use for the weight array type */
+  typedef SimpleDataObjectDecorator< WeightArrayType > InputWeightArrayObjectType;
 
-  /** Gets the weights array */
-  const WeightArrayType & GetWeights() const;
+  /** Method to set the input value of the weight array */
+  itkSetDecoratedInputMacro( Weights, WeightArrayType, 1 );
 
   /** Sets the weights using an function the function should have a method, 
    * Evaluate(MeasurementVectorType&).  */
@@ -100,7 +100,6 @@ protected:
   void ComputeCovarianceMatrixWithWeights();
 
 private:
-  WeightArrayType            m_Weights;
   const WeightFunctionType * m_WeightFunction;
 }; // end of class
     

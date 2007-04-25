@@ -44,7 +44,6 @@ WeightedMeanFilter< TSample >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
-  os << indent << "Weights array " << m_Weights << std::endl;
   os << indent << "Weight function " << m_WeightFunction << std::endl;
 }
 
@@ -104,10 +103,13 @@ WeightedMeanFilter< TSample >
     }
   else
     {
+    const  InputWeightArrayObjectType * weightArrayObject = this->GetWeightsInput();
+    const  WeightArrayType weightArray = weightArrayObject->Get();
+
     while (iter != end)
       {
       measurements = iter.GetMeasurementVector();
-      weight = iter.GetFrequency() * (m_Weights)[measurementVectorIndex];
+      weight = iter.GetFrequency() * (weightArray)[measurementVectorIndex];
       totalWeight += weight;
 
       for ( unsigned int dim = 0; dim < measurementVectorSize; dim++ )

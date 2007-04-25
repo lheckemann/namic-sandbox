@@ -60,9 +60,11 @@ public:
   /** Array typedef for weights */
   typedef Array< double > WeightArrayType;
 
-  /** Set/Get the weights using an array */
-  itkSetMacro( Weights,WeightArrayType );
-  itkGetMacro( Weights,WeightArrayType )
+  /** Type of DataObjects to use for the weight array type */
+  typedef SimpleDataObjectDecorator< WeightArrayType > InputWeightArrayObjectType;
+
+  /** Method to set the input value of the weight array */
+  itkSetDecoratedInputMacro( Weights, WeightArrayType, 1 );
 
   /** Weight calculation function typedef */
   typedef FunctionBase< MeasurementVectorType, double > WeightFunctionType;
@@ -84,7 +86,6 @@ private:
   WeightedMeanFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  WeightArrayType                      m_Weights;
   WeightFunctionType*                  m_WeightFunction;
 }; // end of class
     

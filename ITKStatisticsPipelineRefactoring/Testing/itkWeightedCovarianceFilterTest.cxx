@@ -184,13 +184,58 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
   try
     {
     filter->Update();
-    std::cerr << "Failed to throw exception when weights were missing" << std::endl;
-    return EXIT_FAILURE;
     }
   catch ( itk::ExceptionObject & excp )
     {
     std::cout << "Expected exception caught: " << excp << std::endl;
     }    
+
+  MeasurementVectorType  mean = filter->GetMean();
+  CovarianceMatrixType matrix = filter->GetCovarianceMatrix();
+
+  std::cout << "Mean: "              << mean << std::endl;
+  std::cout << "Covariance Matrix: " << matrix << std::endl;
+
+  //Check the results
+
+  double epsilon = 1e-2;
+
+  float value33[3] = {4.10, 2.08, 0.604};
+
+  MeasurementVectorType  meanExpected33( value33 ); 
+
+  for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
+    {
+    if ( fabs( meanExpected33[i] - mean[i] ) > epsilon )
+      {
+      std::cerr << "The computed mean value is incorrrect" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+  CovarianceMatrixType  matrixExpected33( MeasurementVectorSize, MeasurementVectorSize );
+
+  matrixExpected33[0][0] = 0.025;
+  matrixExpected33[0][1] = 0.0075;
+  matrixExpected33[0][2] = 0.00175;
+
+  matrixExpected33[1][0] = 0.0075;
+  matrixExpected33[1][1] = 0.0070;
+  matrixExpected33[1][2] = 0.00135;
+
+  matrixExpected33[2][0] = 0.00175;
+  matrixExpected33[2][1] = 0.00135;
+  matrixExpected33[2][2] = 0.00043;
+
+  for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
+  {
+  for ( unsigned int j = 0; j < MeasurementVectorSize; j++ )
+    if ( fabs( matrixExpected33[i][j] - matrix[i][j] ) > epsilon )
+      {
+      std::cerr << "Computed covariance matrix value is incorrrect" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
 
   //Specify weight
   typedef FilterType::WeightArrayType  WeightArrayType;
@@ -199,7 +244,7 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
 
   filter->SetWeights( weightArray );
 
-  // run with the weights
+  // run with equal weights
   try
     {
     filter->Update();
@@ -211,15 +256,11 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
     }    
 
 
-  MeasurementVectorType  mean = filter->GetMean();
-  CovarianceMatrixType matrix = filter->GetCovarianceMatrix();
+  mean = filter->GetMean();
+  matrix = filter->GetCovarianceMatrix();
 
   std::cout << "Mean: "              << mean << std::endl;
   std::cout << "Covariance Matrix: " << matrix << std::endl;
-
-  //Check the results
-
-  double epsilon = 1e-2;
 
   float value3[3] = {4.10, 2.08, 0.604};
 
@@ -260,8 +301,6 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
 
   filter->SetWeights( weightArray );
 
-  std::cout << "Weight array: " << filter->GetWeights() << std::endl;
-
   try
     {
     filter->Update();
@@ -272,8 +311,6 @@ int itkWeightedCovarianceFilterTest(int, char* [] )
     return EXIT_FAILURE;
     }    
  
-  std::cout << "Weight array: " << filter->GetWeights() << std::endl;
-
   mean = filter->GetMean();
   matrix = filter->GetCovarianceMatrix();
 
