@@ -26,7 +26,6 @@ WeightedCovarianceFilter< TSample >
 {
   // initialize parameters
   m_WeightFunction = NULL;
-  m_Weights        = 0;
 }
 
 
@@ -43,24 +42,6 @@ WeightedCovarianceFilter< TSample >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
-}
-
-
-template< class TSample >
-void
-WeightedCovarianceFilter< TSample >
-::SetWeights(const WeightArrayType & array)
-{
-  m_Weights = array;
-  this->Modified();
-}
-
-template< class TSample >
-const typename WeightedCovarianceFilter< TSample >::WeightArrayType &
-WeightedCovarianceFilter< TSample >
-::GetWeights() const
-{
-  return m_Weights;
 }
 
 template< class TSample >
@@ -94,7 +75,19 @@ WeightedCovarianceFilter< TSample >
     return;
     }
 
-  this->ComputeCovarianceMatrixWithWeights(); 
+  // if weight array is specified use it to compute the covariance
+  const  InputWeightArrayObjectType * weightArrayObject = 
+                                         this->GetWeightsInput();
+
+  if ( weightArrayObject != NULL )
+    {
+    this->ComputeCovarianceMatrixWithWeights(); 
+    return;
+    }
+ 
+  // Otherwise compute the regular covariance matrix ( without weight coefficients) 
+  Superclass::GenerateData();
+  return;
 } 
 
 template< class TSample >
@@ -236,18 +229,16 @@ WeightedCovarianceFilter< TSample >
   double totalWeight = 0.0;
   double sumSquaredWeight=0.0;
 
-  if( m_Weights.Size() != input->Size() )
-    {
-    itkExceptionMacro("Size of weights array doesn't match the sample size");
-    }
-
+  const  InputWeightArrayObjectType * weightArrayObject = this->GetWeightsInput();
+  const  WeightArrayType weightArray = weightArrayObject->Get();
+ 
   //Compute the mean first
 
   unsigned int measurementVectorIndex = 0;
   while (iter != end)
     {
     measurements = iter.GetMeasurementVector();
-    weight = iter.GetFrequency() * (m_Weights)[measurementVectorIndex];
+    weight = iter.GetFrequency() * (weightArray)[measurementVectorIndex];
     totalWeight += weight;
     sumSquaredWeight += weight * weight;
 
@@ -270,7 +261,7 @@ WeightedCovarianceFilter< TSample >
   // fills the lower triangle and the diagonal cells in the covariance matrix
   while (iter != end)
     {
-    weight = iter.GetFrequency() * (m_Weights)[measurementVectorIndex];
+    weight = iter.GetFrequency() * (weightArray)[measurementVectorIndex];
     measurements = iter.GetMeasurementVector();
     for ( unsigned int i = 0; i < measurementVectorSize; ++i )
       {
