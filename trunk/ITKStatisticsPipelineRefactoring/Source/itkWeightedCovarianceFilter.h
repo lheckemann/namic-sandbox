@@ -77,30 +77,11 @@ public:
   /** Method to set the input value of the weight array */
   itkSetDecoratedInputMacro( Weights, WeightArrayType, 1 );
 
-/** Type of DataObjects to use for Weight function */
+  /** Type of DataObjects to use for Weight function */
   typedef DataObjectDecorator< WeightingFunctionType > InputWeightingFunctionObjectType;
 
   /** Method to set the weighting function */
-  //itkSetDecoratedObjectInputMacro( WeightingFunction, WeightingFunctionType, 2 );
-
-  itkSetInputMacro(WeightingFunction, DataObjectDecorator<WeightingFunctionType>, 2); 
-  itkGetInputMacro(WeightingFunction, DataObjectDecorator<WeightingFunctionType>, 2); 
-
-  virtual void SetWeightingFunction(const WeightingFunctionType *_arg) 
-    { 
-    typedef DataObjectDecorator< WeightingFunctionType > DecoratorType; 
-    const DecoratorType * oldInput = 
-      static_cast< const DecoratorType * >( 
-        this->ProcessObject::GetInput(2) ); 
-    if( oldInput && oldInput->Get() == _arg ) 
-      { 
-      return; 
-      } 
-    typename DecoratorType::Pointer newInput = DecoratorType::New(); 
-    WeightingFunctionType  * argNonConst = const_cast<WeightingFunctionType*>(_arg);
-    newInput->Set( argNonConst ); 
-    this->SetWeightingFunctionInput( newInput ); 
-    }
+  itkSetDecoratedObjectInputMacro( WeightingFunction, WeightingFunctionType, 2 );
 
 protected:
   WeightedCovarianceFilter(const Self&); //purposely not implemented
