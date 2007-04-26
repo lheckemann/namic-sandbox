@@ -24,8 +24,6 @@ template< class TSample >
 WeightedCovarianceFilter< TSample >
 ::WeightedCovarianceFilter()  
 {
-  // initialize parameters
-  m_WeightFunction = NULL;
 }
 
 
@@ -45,31 +43,15 @@ WeightedCovarianceFilter< TSample >
 }
 
 template< class TSample >
-void
-WeightedCovarianceFilter< TSample >
-::SetWeightFunction(const WeightFunctionType* func)
-{
-  // FIXME: it should have checked if it was the same value
-  m_WeightFunction = func;
-  this->Modified();
-}
-
-template< class TSample >
-const typename WeightedCovarianceFilter< TSample >::WeightFunctionType*
-WeightedCovarianceFilter< TSample >
-::GetWeightFunction() const
-{
-  return m_WeightFunction;
-}
-
-
-template< class TSample >
 inline void
 WeightedCovarianceFilter< TSample >
 ::GenerateData() 
 {
-  // if weighting function is specifed, use it to compute the covariance matrix 
-  if ( m_WeightFunction != NULL ) 
+  // if weighting function is specifed, use it to compute the mean
+  const  InputWeightingFunctionObjectType * functionObject = 
+                                         this->GetWeightingFunctionInput();
+
+  if ( functionObject != NULL ) 
     {
     this->ComputeCovarianceMatrixWithWeightingFunction(); 
     return;
@@ -128,13 +110,19 @@ WeightedCovarianceFilter< TSample >
   double totalWeight = 0.0;
   double sumSquaredWeight=0.0;
 
+  // if weighting function is specifed, use it to compute the mean
+  const  InputWeightingFunctionObjectType * functionObject = 
+                                         this->GetWeightingFunctionInput();
+
+  const  WeightingFunctionType * weightFunction = functionObject->Get();
+
   //Compute the mean first
 
   unsigned int measurementVectorIndex = 0;
   while (iter != end)
     {
     measurements = iter.GetMeasurementVector();
-    weight = iter.GetFrequency() * m_WeightFunction->Evaluate(measurements);
+    weight = iter.GetFrequency() * weightFunction->Evaluate(measurements);
     totalWeight += weight;
     sumSquaredWeight += weight * weight;
 
@@ -158,7 +146,7 @@ WeightedCovarianceFilter< TSample >
   while (iter != end)
     {
     measurements = iter.GetMeasurementVector();
-    weight = iter.GetFrequency() * m_WeightFunction->Evaluate(measurements);
+    weight = iter.GetFrequency() * weightFunction->Evaluate(measurements);
     for ( unsigned int i = 0; i < measurementVectorSize; ++i )
       {
       diff[i] = measurements[i] - mean[i];
