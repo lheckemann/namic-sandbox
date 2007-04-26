@@ -14,6 +14,10 @@ ELSE(ITK_FOUND)
   MESSAGE(FATAL_ERROR "ITK not found. Please set ITK_DIR.")
 ENDIF(ITK_FOUND)
 
+FIND_PACKAGE (VTK)
+IF (VTK_FOUND)
+   INCLUDE(${USE_VTK_FILE})
+ENDIF(VTK_FOUND) 
 
 # Test for the Bayesian Classifier
 ADD_EXECUTABLE(BayesianClassifier BayesianClassifier.cxx )
@@ -35,3 +39,5 @@ ADD_EXECUTABLE(itkImageToListGeneratorTest
   )
 TARGET_LINK_LIBRARIES(itkImageToListGeneratorTest ITKStatistics ITKCommon)
 
+ADD_EXECUTABLE(vtkITKBayesianClassificationImageFilterTest vtkITKBayesianClassificationImageFilterTest.cxx)
+TARGET_LINK_LIBRARIES(vtkITKBayesianClassificationImageFilterTest vtkIO)
