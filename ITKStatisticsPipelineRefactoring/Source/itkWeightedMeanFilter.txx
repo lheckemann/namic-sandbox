@@ -27,7 +27,6 @@ template< class TSample >
 WeightedMeanFilter< TSample >
 ::WeightedMeanFilter()
 {
-  m_WeightFunction = 0;
 }
 
 
@@ -44,23 +43,43 @@ WeightedMeanFilter< TSample >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
-  os << indent << "Weight function " << m_WeightFunction << std::endl;
 }
-
-
-template< class TSample >
-const typename WeightedMeanFilter< TSample >::WeightFunctionType *
-WeightedMeanFilter< TSample >
-::GetWeightFunction()
-{
-  return m_WeightFunction;
-}
-
 
 template< class TSample >
 void
 WeightedMeanFilter< TSample >
 ::GenerateData() 
+{
+  // if weighting function is specifed, use it to compute the mean
+  const  InputWeightingFunctionObjectType * functionObject = 
+                                         this->GetWeightingFunctionInput();
+
+
+  if ( functionObject != NULL ) 
+    {
+    this->ComputeMeanWithWeightingFunction(); 
+    return;
+    }
+
+  // if weight array is specified use it to compute the mean
+  const  InputWeightArrayObjectType * weightArrayObject = 
+                                         this->GetWeightsInput();
+
+  if ( weightArrayObject != NULL )
+    {
+    this->ComputeMeanWithWeights(); 
+    return;
+    }
+ 
+  // Otherwise compute the regular mean ( without weight coefficients) 
+  Superclass::GenerateData();
+  return;
+} 
+
+template< class TSample >
+void
+WeightedMeanFilter< TSample >
+::ComputeMeanWithWeights() 
 {
   const SampleType *input = this->GetInput();
 
@@ -86,39 +105,81 @@ WeightedMeanFilter< TSample >
   int measurementVectorIndex = 0;
   typename TSample::MeasurementVectorType measurements;
 
-  if (m_WeightFunction != 0) 
+  const  InputWeightArrayObjectType * weightArrayObject = this->GetWeightsInput();
+  const  WeightArrayType weightArray = weightArrayObject->Get();
+
+  while (iter != end)
     {
-    while (iter != end)
+    measurements = iter.GetMeasurementVector();
+    weight = iter.GetFrequency() * (weightArray)[measurementVectorIndex];
+    totalWeight += weight;
+
+    for ( unsigned int dim = 0; dim < measurementVectorSize; dim++ )
       {
-      measurements = iter.GetMeasurementVector();
-      weight = 
-        iter.GetFrequency() * m_WeightFunction->Evaluate(measurements);
-      totalWeight += weight;
-      for ( unsigned int dim = 0; dim < measurementVectorSize; dim++ )
-        {
-        output[dim] += measurements[dim] * weight;
-        }
-      ++iter;
+      output[dim] += measurements[dim] * weight;
       }
+    ++measurementVectorIndex;
+    ++iter;
     }
-  else
+
+  if ( totalWeight != 0.0 )
+  {
+    for (unsigned int dim = 0; dim < measurementVectorSize; dim++)
     {
-    const  InputWeightArrayObjectType * weightArrayObject = this->GetWeightsInput();
-    const  WeightArrayType weightArray = weightArrayObject->Get();
+    output[dim] /= totalWeight;
+    }
+  }
 
-    while (iter != end)
+  decoratedOutput->Set( output );
+ 
+}
+
+template< class TSample >
+void
+WeightedMeanFilter< TSample >
+::ComputeMeanWithWeightingFunction() 
+{
+  const SampleType *input = this->GetInput();
+
+  MeasurementVectorSizeType measurementVectorSize = 
+                             input->GetMeasurementVectorSize();
+ 
+  MeasurementVectorDecoratedType * decoratedOutput =
+            static_cast< MeasurementVectorDecoratedType * >(
+              this->ProcessObject::GetOutput(0));
+
+  MeasurementVectorType output = decoratedOutput->Get();
+
+  //reset the output
+  for (unsigned int dim = 0; dim < measurementVectorSize; dim++)
+    {
+    output[dim] = NumericTraits< MeasurementType >::Zero;
+    }
+  
+  typename TSample::ConstIterator iter = input->Begin();
+  typename TSample::ConstIterator end =  input->End();
+  double totalWeight = 0.0;
+  double weight;
+  int measurementVectorIndex = 0;
+  typename TSample::MeasurementVectorType measurements;
+
+  // if weighting function is specifed, use it to compute the mean
+  const  InputWeightingFunctionObjectType * functionObject = 
+                                         this->GetWeightingFunctionInput();
+
+  const  WeightingFunctionType * weightFunction = functionObject->Get();
+
+  while (iter != end)
+    {
+    measurements = iter.GetMeasurementVector();
+    weight = 
+      iter.GetFrequency() * weightFunction->Evaluate(measurements);
+    totalWeight += weight;
+    for ( unsigned int dim = 0; dim < measurementVectorSize; dim++ )
       {
-      measurements = iter.GetMeasurementVector();
-      weight = iter.GetFrequency() * (weightArray)[measurementVectorIndex];
-      totalWeight += weight;
-
-      for ( unsigned int dim = 0; dim < measurementVectorSize; dim++ )
-        {
-        output[dim] += measurements[dim] * weight;
-        }
-      ++measurementVectorIndex;
-      ++iter;
+      output[dim] += measurements[dim] * weight;
       }
+    ++iter;
     }
 
   if ( totalWeight != 0.0 )

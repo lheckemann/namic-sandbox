@@ -20,6 +20,7 @@
 
 #include "itkFunctionBase.h"
 #include "itkCovarianceFilter.h"
+#include "itkDataObjectDecorator.h"
 
 namespace itk { 
 namespace Statistics {
@@ -61,7 +62,7 @@ public:
   typedef VariableSizeMatrix< double >               MatrixType;
 
   /** Weight calculation function typedef */
-  typedef FunctionBase< MeasurementVectorType, double > WeightFunctionType;
+  typedef FunctionBase< MeasurementVectorType, double > WeightingFunctionType;
 
   /** VariableSizeMatrix is not a DataObject, we need to decorate it to push it down
    * a ProcessObject's pipeline */
@@ -76,13 +77,31 @@ public:
   /** Method to set the input value of the weight array */
   itkSetDecoratedInputMacro( Weights, WeightArrayType, 1 );
 
-  /** Sets the weights using an function the function should have a method, 
-   * Evaluate(MeasurementVectorType&).  */
-  void SetWeightFunction(const WeightFunctionType * func);
+/** Type of DataObjects to use for Weight function */
+  typedef DataObjectDecorator< WeightingFunctionType > InputWeightingFunctionObjectType;
 
-  /** Gets the weight function */
-  const WeightFunctionType* GetWeightFunction() const;
- 
+  /** Method to set the weighting function */
+  //itkSetDecoratedObjectInputMacro( WeightingFunction, WeightingFunctionType, 2 );
+
+  itkSetInputMacro(WeightingFunction, DataObjectDecorator<WeightingFunctionType>, 2); 
+  itkGetInputMacro(WeightingFunction, DataObjectDecorator<WeightingFunctionType>, 2); 
+
+  virtual void SetWeightingFunction(const WeightingFunctionType *_arg) 
+    { 
+    typedef DataObjectDecorator< WeightingFunctionType > DecoratorType; 
+    const DecoratorType * oldInput = 
+      static_cast< const DecoratorType * >( 
+        this->ProcessObject::GetInput(2) ); 
+    if( oldInput && oldInput->Get() == _arg ) 
+      { 
+      return; 
+      } 
+    typename DecoratorType::Pointer newInput = DecoratorType::New(); 
+    WeightingFunctionType  * argNonConst = const_cast<WeightingFunctionType*>(_arg);
+    newInput->Set( argNonConst ); 
+    this->SetWeightingFunctionInput( newInput ); 
+    }
+
 protected:
   WeightedCovarianceFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
@@ -100,7 +119,6 @@ protected:
   void ComputeCovarianceMatrixWithWeights();
 
 private:
-  const WeightFunctionType * m_WeightFunction;
 }; // end of class
     
 } // end of namespace Statistics 

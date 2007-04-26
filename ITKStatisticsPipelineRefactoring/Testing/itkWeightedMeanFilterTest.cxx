@@ -75,8 +75,6 @@ protected:
 int itkWeightedMeanFilterTest(int, char* [] ) 
 {
   std::cout << "WeightedMeanFilter test \n \n";
-  bool pass = true;
-  std::string failureMeassage= "";
 
   const unsigned int                  numberOfMeasurementVectors = 5;
   unsigned int                        counter = 0;
@@ -119,9 +117,9 @@ int itkWeightedMeanFilterTest(int, char* [] )
   try
     {
     filter->Update();
-    failureMeassage = "Exception should have been thrown since \
-                    Update() is invoked without setting an input ";
-    pass = false;
+    std::cerr << "Exception should have been thrown since \
+                    Update() is invoked without setting an input " << std::endl;
+    return EXIT_FAILURE;
     }
   catch ( itk::ExceptionObject & excp )
     {
@@ -130,20 +128,15 @@ int itkWeightedMeanFilterTest(int, char* [] )
 
   if ( filter->GetInput() != NULL )
     {
-    pass = false;
-    failureMeassage = "GetInput() should return NULL if the input \
-                     has not been set";
+    std::cerr << "GetInput() should return NULL if the input \
+                     has not been set" << std::endl;
+    return EXIT_FAILURE;
     }
 
   filter->ResetPipeline();
   filter->SetInput( sample );
 
-  typedef FilterType::WeightArrayType  WeightArrayType;
-  WeightArrayType weightArray(sample->Size());
-  weightArray.Fill(1.0);
-
-  filter->SetWeights( weightArray );
-
+  //run the filters without weighting coefficients
   try
     {
     filter->Update();
@@ -166,11 +159,42 @@ int itkWeightedMeanFilterTest(int, char* [] )
   if ( ( fabs( meanOutput[0] - mean[0]) > epsilon )  || 
        ( fabs( meanOutput[1] - mean[1]) > epsilon ))
     {
-    pass = false ;
-    std::cout << "Wrong result " << std::endl;
-    std::cout << meanOutput[0] << " " << mean[0] << " "  
+    std::cerr << "Wrong result " << std::endl;
+    std::cerr << meanOutput[0] << " " << mean[0] << " "  
             << meanOutput[1] << " " << mean[1] << " " << std::endl;  
-    failureMeassage = "The result is not what is expected";
+    std::cerr << "The result is not what is expected" << std::endl;
+    return EXIT_FAILURE;
+    }
+ 
+  typedef FilterType::WeightArrayType  WeightArrayType;
+  WeightArrayType weightArray(sample->Size());
+  weightArray.Fill(1.0);
+
+  filter->SetWeights( weightArray );
+
+  try
+    {
+    filter->Update();
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception caught: " << excp << std::endl;
+    }    
+ 
+  decorator = filter->GetOutput() ;
+  meanOutput  = decorator->Get();
+
+  mean[0] = 2.0;
+  mean[1] = 2.0;
+
+  if ( ( fabs( meanOutput[0] - mean[0]) > epsilon )  || 
+       ( fabs( meanOutput[1] - mean[1]) > epsilon ))
+    {
+    std::cerr << "Wrong result " << std::endl;
+    std::cerr << meanOutput[0] << " " << mean[0] << " "  
+            << meanOutput[1] << " " << mean[1] << " " << std::endl;  
+    std::cerr << "The result is not what is expected" << std::endl;
+    return EXIT_FAILURE;
     }
 
   //change the weight of the last element to 0.5 and recompute
@@ -195,17 +219,17 @@ int itkWeightedMeanFilterTest(int, char* [] )
   if ( ( fabs( meanOutput[0] - mean[0]) > epsilon )  || 
        ( fabs( meanOutput[1] - mean[1]) > epsilon ))
     {
-    pass = false ;
-    std::cout << "Wrong result" << std::endl;
-    std::cout << meanOutput[0] << " " << mean[0] << " "  
+    std::cerr << "Wrong result" << std::endl;
+    std::cerr << meanOutput[0] << " " << mean[0] << " "  
             << meanOutput[1] << " " << mean[1] << " " << std::endl;  
 
-    failureMeassage = "The result is not what is expected";
+    std::cerr << "The result is not what is expected" << std::endl;
+    return EXIT_FAILURE;
     }
  
   //set the weight using a function
   WeightedMeanTestFunction::Pointer weightFunction = WeightedMeanTestFunction::New(); 
-  filter->SetWeightFunction( weightFunction.GetPointer() );
+  filter->SetWeightingFunction( weightFunction.GetPointer() );
 
   try
     {
@@ -225,19 +249,13 @@ int itkWeightedMeanFilterTest(int, char* [] )
   if ( ( fabs( meanOutput[0] - mean[0]) > epsilon )  || 
        ( fabs( meanOutput[1] - mean[1]) > epsilon ))
     {
-    pass = false ;
-    std::cout << "Wrong result" << std::endl;
-    std::cout << meanOutput[0] << " " << mean[0] << " "  
+    std::cerr << "Wrong result" << std::endl;
+    std::cerr << meanOutput[0] << " " << mean[0] << " "  
             << meanOutput[1] << " " << mean[1] << " " << std::endl;  
-    failureMeassage = "The result is not what is expected";
-    }
- 
-  if( !pass )
-    {
-    std::cout << "Test failed." << failureMeassage << std::endl;
+    std::cerr << "The result is not what is expected" << std::endl;
     return EXIT_FAILURE;
     }
-
+ 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }

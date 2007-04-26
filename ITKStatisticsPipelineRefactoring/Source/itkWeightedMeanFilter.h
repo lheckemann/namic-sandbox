@@ -20,6 +20,7 @@
 
 #include "itkMeanFilter.h"
 #include "itkFunctionBase.h"
+#include "itkDataObjectDecorator.h"
 
 namespace itk { 
 namespace Statistics {
@@ -67,13 +68,32 @@ public:
   itkSetDecoratedInputMacro( Weights, WeightArrayType, 1 );
 
   /** Weight calculation function typedef */
-  typedef FunctionBase< MeasurementVectorType, double > WeightFunctionType;
+  typedef FunctionBase< MeasurementVectorType, double > WeightingFunctionType;
 
-  /** Set the weights using an function
-   * the function should have a method, 
-   * Evaluate(MeasurementVectorType&) */
-  itkSetObjectMacro(WeightFunction, WeightFunctionType );
-  const WeightFunctionType * GetWeightFunction();
+  /** Type of DataObjects to use for Weight function */
+  typedef DataObjectDecorator< WeightingFunctionType > InputWeightingFunctionObjectType;
+
+  /** Method to set the weighting function */
+  //itkSetDecoratedObjectInputMacro( WeightingFunction, WeightingFunctionType, 2 );
+
+  itkSetInputMacro(WeightingFunction, DataObjectDecorator<WeightingFunctionType>, 2); 
+  itkGetInputMacro(WeightingFunction, DataObjectDecorator<WeightingFunctionType>, 2); 
+
+  virtual void SetWeightingFunction(const WeightingFunctionType *_arg) 
+    { 
+    typedef DataObjectDecorator< WeightingFunctionType > DecoratorType; 
+    const DecoratorType * oldInput = 
+      static_cast< const DecoratorType * >( 
+        this->ProcessObject::GetInput(2) ); 
+    if( oldInput && oldInput->Get() == _arg ) 
+      { 
+      return; 
+      } 
+    typename DecoratorType::Pointer newInput = DecoratorType::New(); 
+    WeightingFunctionType  * argNonConst = const_cast<WeightingFunctionType*>(_arg);
+    newInput->Set( argNonConst ); 
+    this->SetWeightingFunctionInput( newInput ); 
+    }
 
 protected:
   WeightedMeanFilter();
@@ -82,11 +102,16 @@ protected:
 
   void GenerateData();
 
+  // compute mean with weight array
+  void ComputeMeanWithWeights();
+
+  // compute mean using a weighting function
+  void ComputeMeanWithWeightingFunction();
+
 private:
   WeightedMeanFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  WeightFunctionType*                  m_WeightFunction;
 }; // end of class
     
 } // end of namespace Statistics 
