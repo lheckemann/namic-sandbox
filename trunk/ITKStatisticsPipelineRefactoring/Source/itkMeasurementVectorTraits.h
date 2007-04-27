@@ -151,6 +151,20 @@ public:
     {return m->size(); }
 
 
+  template< class TVectorType >
+  static bool IsResizable( const TVectorType & m )
+    {
+    // Test whether the vector type is resizable or not
+    TVectorType m1;
+    TVectorType m2;
+    SetLength( m1, 1 );
+    SetLength( m2, 2 );
+    MeasurementVectorLength len1 = GetLength( m1 );
+    MeasurementVectorLength len2 = GetLength( m2 );
+
+    return ( len1 + 1 == len2 );
+    }
+
   template< class TValueType1, unsigned int VLength, class TValueType2 >
   static MeasurementVectorLength Assert( const FixedArray< TValueType1, VLength > &, 
                       const Array< TValueType2 > &b, const char *errMsg="Length Mismatch")

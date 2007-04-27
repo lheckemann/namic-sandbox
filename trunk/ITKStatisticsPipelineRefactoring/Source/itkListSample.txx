@@ -50,6 +50,10 @@ void
 ListSample< TMeasurementVector >
 ::PushBack( const MeasurementVectorType & mv )
 {
+  if( this->GetMeasurementVectorSize() != MeasurementVectorTraits::GetLength( mv ) )
+    {
+    itkExceptionMacro("MeasurementVector instance doesn't match MeasurementVectorSize");
+    }
   this->m_InternalContainer.push_back( mv );
 }
 

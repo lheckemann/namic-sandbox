@@ -112,8 +112,8 @@ int itkSampleToHistogramFilterTest2(int argc, char *argv[] )
     }
 
 //  filter->SetAutoMinimumMaximum( true );
-  filter->SetHistogramBinMinimum( minimum );
-  filter->SetHistogramBinMaximum( maximum );
+//  filter->SetHistogramBinMinimum( minimum );
+//  filter->SetHistogramBinMaximum( maximum );
   filter->SetHistogramSize( histogramSize );
 
   try
@@ -129,7 +129,7 @@ int itkSampleToHistogramFilterTest2(int argc, char *argv[] )
 
 
   HistogramType::ConstIterator histogramItr = histogram->Begin();
-  HistogramType::ConstIterator histogramEnd = histogram->Begin();
+  HistogramType::ConstIterator histogramEnd = histogram->End();
 
   unsigned int expectedFrequency = 1;
   while( histogramItr != histogramEnd )
