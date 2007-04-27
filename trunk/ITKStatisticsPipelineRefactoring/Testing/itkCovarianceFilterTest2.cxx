@@ -21,7 +21,6 @@
 #include "itkCovarianceFilter.h"
 #include "itkListSample.h"
 #include "itkFixedArray.h"
-#include "itkMeasurementVectorTraits.h"
 
 int itkCovarianceFilterTest2(int, char* [] ) 
 {

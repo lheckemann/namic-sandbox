@@ -21,7 +21,6 @@
 #include "itkWeightedMeanFilter.h"
 #include "itkListSample.h"
 #include "itkFixedArray.h"
-#include "itkMeasurementVectorTraits.h"
 #include "itkFunctionBase.h"
 
 const unsigned int                  MeasurementVectorSize = 2;

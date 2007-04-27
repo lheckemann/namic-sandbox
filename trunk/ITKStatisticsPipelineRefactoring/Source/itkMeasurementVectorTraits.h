@@ -34,6 +34,8 @@
 
 namespace itk
 {
+namespace Statistics
+{
 
 /** \class MeasurementVectorTraits
  * \brief   
@@ -426,9 +428,6 @@ public:
 };
 
 
-
-
-
 /** Traits for generating the MeasurementVectorType that best matches a
  * particular pixel type. */
  
@@ -519,6 +518,7 @@ public:
 };
 
 
+} // namespace Statistics
 } // namespace itk
 
 #endif  // __itkMeasurementVectorTraits_h

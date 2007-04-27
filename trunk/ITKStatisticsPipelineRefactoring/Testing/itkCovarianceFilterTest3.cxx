@@ -20,9 +20,8 @@
 
 #include "itkCovarianceFilter.h"
 #include "itkFixedArray.h"
-#include "itkMeasurementVectorTraits.h"
-#include "itkMahalanobisDistanceMembershipFunction.h"
 #include "itkHistogram.h"
+#include "itkMahalanobisDistanceMembershipFunction.h"
 
 namespace itk {
 namespace Statistics {
@@ -197,7 +196,6 @@ int itkCovarianceFilterTest3(int, char* [] )
         }
       }
   }
-
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
