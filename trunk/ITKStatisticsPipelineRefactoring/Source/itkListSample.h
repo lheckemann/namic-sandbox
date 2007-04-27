@@ -258,16 +258,6 @@ public:
     return iter;
     }
 
-  virtual MeasurementVectorSizeType GetMeasurementVectorSize() const
-    {
-    if ( !this->Superclass::GetMeasurementVectorSize() && this->Size())
-      { // determined from the length of the first vector in the sample
-        // at run time
-      return MeasurementVectorTraits::GetLength(this->GetMeasurementVector(0));
-      }
-    return this->Superclass::GetMeasurementVectorSize();
-    }
-
 protected:
 
   ListSample();
