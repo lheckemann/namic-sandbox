@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkListSampleToHistogramFilter_h
-#define __itkListSampleToHistogramFilter_h
+#ifndef __itkSampleToHistogramFilter_h
+#define __itkSampleToHistogramFilter_h
 
 #include "itkMacro.h"
 #include "itkProcessObject.h"
@@ -26,28 +26,28 @@
 namespace itk { 
 namespace Statistics {
 
-/** \class ListSampleToHistogramFilter 
- *  \brief Computes the Histogram corresponding to a ListSample.
+/** \class SampleToHistogramFilter 
+ *  \brief Computes the Histogram corresponding to a Sample.
  *
  * This filter produces as output the histogram corresponding to
- * the values of a ListSample.
+ * the values of a Sample.
  *
- * \sa ListSample, Histogram
+ * \sa Sample, Histogram
  *
  */
 
 template < class TSample, class THistogram >
-class ITK_EXPORT ListSampleToHistogramFilter : public ProcessObject
+class ITK_EXPORT SampleToHistogramFilter : public ProcessObject
 {
 public:
   /** Standard class typedefs */
-  typedef ListSampleToHistogramFilter   Self;  
+  typedef SampleToHistogramFilter       Self;  
   typedef ProcessObject                 Superclass;
   typedef SmartPointer< Self >          Pointer;
   typedef SmartPointer<const Self >     ConstPointer;
 
   /** Run-time type information (and related methods) */
-  itkTypeMacro(ListSampleToHistogramFilter, ProcessObject);
+  itkTypeMacro(SampleToHistogramFilter, ProcessObject);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -110,8 +110,8 @@ public:
   itkSetDecoratedInputMacro( AutoMinimumMaximum, bool, 5 );
 
 protected:
-  ListSampleToHistogramFilter();
-  virtual ~ListSampleToHistogramFilter();
+  SampleToHistogramFilter();
+  virtual ~SampleToHistogramFilter();
 
   void PrintSelf(std::ostream& os, Indent indent) const;
   
@@ -127,7 +127,7 @@ protected:
   virtual void GenerateData();
   
 private:
-  ListSampleToHistogramFilter(const Self&); //purposely not implemented
+  SampleToHistogramFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
 }; // end of class
@@ -137,7 +137,7 @@ private:
 
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkListSampleToHistogramFilter.txx"
+#include "itkSampleToHistogramFilter.txx"
 #endif
   
 #endif
