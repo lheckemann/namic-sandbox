@@ -152,17 +152,16 @@ public:
 
 
   template< class TVectorType >
-  static bool IsResizable( const TVectorType & m )
+  static bool IsResizable( const TVectorType &  )
     {
     // Test whether the vector type is resizable or not
-    TVectorType m1;
-    TVectorType m2;
-    SetLength( m1, 1 );
-    SetLength( m2, 2 );
-    MeasurementVectorLength len1 = GetLength( m1 );
-    MeasurementVectorLength len2 = GetLength( m2 );
-
-    return ( len1 + 1 == len2 );
+    //
+    // If the default constructor creates a vector of
+    // length zero, we assume that it is resizable,
+    // otherwise that is a pretty useless measurement vector.
+    TVectorType m;
+    MeasurementVectorLength len = GetLength( m );
+    return ( len == 0 );
     }
 
   template< class TValueType1, unsigned int VLength, class TValueType2 >
