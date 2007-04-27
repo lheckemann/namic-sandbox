@@ -291,24 +291,30 @@ int itkListSampleTest(int argc, char *argv[] )
     }
 
   VariableSizeMeasurementVectorType variableLenghtVector;
-  variableLenghtVector.SetSize( 42 );
+  const unsigned int newsize = 42;
+  variableLenghtVector.SetSize( newsize );
 
+  variableSizeSample->Clear();
+  variableSizeSample->SetMeasurementVectorSize( newsize );
   variableSizeSample->PushBack( variableLenghtVector );
 
-  variableSizeSample->SetMeasurementVectorSize( initialSize );
-
-  returnedSize = variableSizeSample->GetMeasurementVectorSize();
-   
-  if( initialSize != returnedSize )
+  // Attempt to resize a non-empty ListSample should throw an exception.
+  try
     {
-    std::cerr << "Error in Get/SetMeasurementVectorSize() " << std::endl;
+    variableSizeSample->SetMeasurementVectorSize( initialSize );
+    std::cerr << "Failed to throw expected exception in SetMeasurementVectorSize() " << std::endl;
     return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & )
+    {
+    std::cout << "Caught expected exception" << std::endl;
     }
 
 
   // Now, verify that it can be changed
   const unsigned int initialSize2 = 37;
-    variableSizeSample->SetMeasurementVectorSize( initialSize2 );
+  variableSizeSample->Clear();
+  variableSizeSample->SetMeasurementVectorSize( initialSize2 );
 
   const unsigned int returnedSize2 =
     variableSizeSample->GetMeasurementVectorSize();
@@ -316,20 +322,8 @@ int itkListSampleTest(int argc, char *argv[] )
   if( initialSize2 != returnedSize2 )
     {
     std::cerr << "Error in Get/SetMeasurementVectorSize() " << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  // Now, verify that if set to zero, it will use the first element
-  // to return a vector size.
-  const unsigned int initialSize3 = 0;
-    variableSizeSample->SetMeasurementVectorSize( initialSize3 );
-
-  const unsigned int returnedSize3 =
-    variableSizeSample->GetMeasurementVectorSize();
-   
-  if( variableLenghtVector.GetSize() != returnedSize3 )
-    {
-    std::cerr << "Error in Get/SetMeasurementVectorSize() " << std::endl;
+    std::cerr << "expected " << initialSize2 << std::endl;
+    std::cerr << "but got  " << returnedSize2 << std::endl;
     return EXIT_FAILURE;
     }
 
