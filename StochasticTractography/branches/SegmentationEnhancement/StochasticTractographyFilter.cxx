@@ -480,7 +480,7 @@ int main(int argc, char* argv[]){
   std::string outputprefix = stripExtension( cfilename );
   
   //Write out TensorImage
-  char tensorimagefilename[30];
+  char tensorimagefilename[100];
   sprintf(tensorimagefilename, "%s_TENSOR.nhdr", outputprefix.c_str() );
   typedef itk::ImageFileWriter< PTFilterType::OutputTensorImageType > TensorImageWriterType;
   TensorImageWriterType::Pointer tensorwriter = TensorImageWriterType::New();
@@ -493,7 +493,7 @@ int main(int argc, char* argv[]){
   MultiplyFAFilterType::Pointer multFAfilter = MultiplyFAFilterType::New();
   multFAfilter->SetInput( fafilter->GetOutput() );  
   //write out the FA image
-  char faimagefilename[30];
+  char faimagefilename[100];
   sprintf(faimagefilename, "%s_FA.nhdr", outputprefix.c_str() );
   FAImageWriterType::Pointer fawriter = FAImageWriterType::New();
   fawriter->SetInput( multFAfilter->GetOutput() );
@@ -503,18 +503,18 @@ int main(int argc, char* argv[]){
   //Write out the conditioned connectivity map
   CImageWriterType::Pointer condcmapwriterPtr = CImageWriterType::New();
   condcmapwriterPtr->SetInput( conditionedcimagePtr );
-  char condcmapfilename[30];
+  char condcmapfilename[100];
   sprintf(condcmapfilename, "%s_COND.nhdr", outputprefix.c_str());
   condcmapwriterPtr->SetFileName( condcmapfilename );
   condcmapwriterPtr->Update();
   
   //Write out FA container
-  char fafilename[30];
+  char fafilename[100];
   sprintf( fafilename, "%s_CONDFAValues.txt", outputprefix.c_str() );
   WriteScalarContainerToFile< FAContainerType >( fafilename, facontainer );
   
   //Write out tract length container
-  char lengthfilename[30];
+  char lengthfilename[100];
   sprintf( lengthfilename, "%s_CONDLENGTHValues.txt", outputprefix.c_str() );
   WriteScalarContainerToFile< LengthContainerType >( lengthfilename, lengthcontainer );
   return EXIT_SUCCESS;
