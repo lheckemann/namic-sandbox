@@ -70,7 +70,10 @@ int itkSampleToHistogramFilterTest2(int argc, char *argv[] )
   histogramSize[1] = 39;
   histogramSize[2] = 47;
 
-  MeasurementVectorType measure;
+  MeasurementVectorType measure( numberOfComponents );
+
+  sample->SetMeasurementVectorSize( numberOfComponents );
+
   // Populate the Sample
   for( unsigned int i=0; i < histogramSize[0]; i++ )
     {
@@ -85,6 +88,9 @@ int itkSampleToHistogramFilterTest2(int argc, char *argv[] )
         }
       }
     }
+
+
+  filter->SetInput( sample );
 
   try
     {
