@@ -53,8 +53,8 @@ int itkSampleToHistogramFilterTest2(int argc, char *argv[] )
   SampleType::Pointer sample = SampleType::New();
 
   
-  MeasurementVectorType minimum( numberOfComponents );
-  MeasurementVectorType maximum( numberOfComponents );
+  HistogramMeasurementVectorType minimum;
+  HistogramMeasurementVectorType maximum;
 
   minimum[0] = -17.5;
   minimum[1] = -19.5;
@@ -105,6 +105,45 @@ int itkSampleToHistogramFilterTest2(int argc, char *argv[] )
 
   const HistogramType * histogram = filter->GetOutput();
 
+  if( histogram->Size() )
+    {
+    std::cerr << "Histogram Size should have been zero" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+//  filter->SetAutoMinimumMaximum( true );
+  filter->SetHistogramBinMinimum( minimum );
+  filter->SetHistogramBinMaximum( maximum );
+  filter->SetHistogramSize( histogramSize );
+
+  try
+    {
+    filter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+
+  HistogramType::ConstIterator histogramItr = histogram->Begin();
+  HistogramType::ConstIterator histogramEnd = histogram->Begin();
+
+  unsigned int expectedFrequency = 1;
+  while( histogramItr != histogramEnd )
+    {
+    std::cout << histogramItr.GetMeasurementVector() << " " << histogramItr.GetFrequency() << std::endl;
+    if( histogramItr.GetFrequency() != expectedFrequency )
+      {
+      std::cerr << "Histogram bin error for measure " << std::endl;
+      std::cerr << histogramItr.GetMeasurementVector() << std::endl;
+      std::cerr << "Expected frequency = " << expectedFrequency << std::endl;
+      std::cerr << "Computed frequency = " << histogramItr.GetFrequency() << std::endl;
+      }
+    ++histogramItr;
+    }
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
