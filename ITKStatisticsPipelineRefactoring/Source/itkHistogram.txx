@@ -238,25 +238,28 @@ Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
 {
   this->Initialize(size);
 
-  float interval;
+  float interval = 0.0;
   for ( unsigned int i = 0; i < MeasurementVectorSize; i++)
     {
-    interval = (float) (upperBound[i] - lowerBound[i]) 
+    if( size[i] > 0 )
+      {
+      interval = (float) (upperBound[i] - lowerBound[i]) 
                        / static_cast< MeasurementType >(size[i]);
 
-    // Set the min vector and max vector
-    for (unsigned int j = 0; j < (size[i] - 1); j++)
-      {
-      this->SetBinMin(i, j, (MeasurementType)(lowerBound[i] +  
-                                              ((float)j * interval)));
-      this->SetBinMax(i, j, (MeasurementType)(lowerBound[i] +  
-                                              (((float)j + 1) * interval)));
+      // Set the min vector and max vector
+      for (unsigned int j = 0; j < (size[i] - 1); j++)
+        {
+        this->SetBinMin(i, j, (MeasurementType)(lowerBound[i] +  
+                                                ((float)j * interval)));
+        this->SetBinMax(i, j, (MeasurementType)(lowerBound[i] +  
+                                                (((float)j + 1) * interval)));
+        }
+      this->SetBinMin(i, size[i] - 1, 
+                      (MeasurementType)(lowerBound[i] + 
+                                        (((float) size[i] - 1) * interval)));
+      this->SetBinMax(i, size[i] - 1, 
+                      (MeasurementType)(upperBound[i]));
       }
-    this->SetBinMin(i, size[i] - 1, 
-                    (MeasurementType)(lowerBound[i] + 
-                                      (((float) size[i] - 1) * interval)));
-    this->SetBinMax(i, size[i] - 1, 
-                    (MeasurementType)(upperBound[i]));
     }
 }
 
