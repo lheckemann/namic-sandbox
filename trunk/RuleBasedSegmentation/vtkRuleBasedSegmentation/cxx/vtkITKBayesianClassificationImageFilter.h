@@ -38,18 +38,18 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    $RCSfile: vtkITKBayesianClassifierImageFilter.h,v $
+  Module:    $RCSfile: vtkITKBayesianClassificationImageFilter.h,v $
   Language:  C++
   Date:      $Date: 2005/04/19 18:47:06 $
   Version:   $Revision: 1.4 $
 */
-// .NAME vtkITKBayesianClassifierImageFilter - Wrapper class around itk::BayesianClassifierImageFilter
+// .NAME vtkITKBayesianClassificationImageFilter - Wrapper class around itk::BayesianClassificationImageFilter
 // .SECTION Description
-// vtkITKBayesianClassifierImageFilter
+// vtkITKBayesianClassificationImageFilter
 
 
-#ifndef __vtkITKBayesianClassifierImageFilter_h
-#define __vtkITKBayesianClassifierImageFilter_h
+#ifndef __vtkITKBayesianClassificationImageFilter_h
+#define __vtkITKBayesianClassificationImageFilter_h
 
 
 #include "vtkRuleBasedSegmentationConfigure.h"
@@ -58,36 +58,36 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #include "itkBayesianClassificationImageFilter.h"
 #include "vtkObjectFactory.h"
 
-class VTK_RULEBASEDSEGMENTATION_EXPORT vtkITKBayesianClassifierImageFilter : public vtkITKImageToImageFilterULUL
+class VTK_RULEBASEDSEGMENTATION_EXPORT vtkITKBayesianClassificationImageFilter : public vtkITKImageToImageFilterULUL
 {
  public:
-  static vtkITKBayesianClassifierImageFilter *New();
-  vtkTypeRevisionMacro(vtkITKBayesianClassifierImageFilter, vtkITKImageToImageFilterULUL);
+  static vtkITKBayesianClassificationImageFilter *New();
+  vtkTypeRevisionMacro(vtkITKBayesianClassificationImageFilter, vtkITKImageToImageFilterULUL);
 
   void PrintSelf( ostream &os, vtkIndent indent )
-    {
+  {
     Superclass::PrintSelf( os, indent );
-    }
+  }
 
   void SetNumberOfClasses( int n )
-    {
+  {
     DelegateITKInputMacro( SetNumberOfClasses, static_cast< unsigned int >( n ) );
-    }
+  }
 
   int GetNumberOfClasses()
-    {
+  {
     DelegateITKOutputMacro( GetNumberOfClasses);
-    }
+  }
  
   void SetNumberOfSmoothingIterations( int n )
-    {
+  {
     DelegateITKInputMacro( SetNumberOfSmoothingIterations, static_cast< unsigned int >( n ) );
-    }
+  }
 
   int GetNumberOfSmoothingIterations()
-    {
+  {
     DelegateITKOutputMacro( GetNumberOfSmoothingIterations);
-    }
+  }
 //   void SetMaskImage( ??? )
 //     {
 //     DelegateITKInputMacro( SetMaskImage, static_cast< unsigned int >( n ) ); // CAN WE USE SOMETHING LIKE THIS?
@@ -97,37 +97,37 @@ class VTK_RULEBASEDSEGMENTATION_EXPORT vtkITKBayesianClassifierImageFilter : pub
 //     {
 //     DelegateITKOutputMacro( GetMaskImage); // CAN WE USE SOMETHING LIKE THIS?
 //     }
-  void SetMaskValue( int n )
-    {
-    DelegateITKInputMacro( SetMaskValue, static_cast< unsigned int >( n ) );
-    }
 
-  int GetMaskValue()
-    {
-    DelegateITKOutputMacro( GetMaskValue );
-    }
+//  void SetMaskValue( int n )
+//  {
+//    DelegateITKInputMacro( SetMaskValue, static_cast< unsigned int >( n ) );
+//  }
+
+//  int GetMaskValue()
+//  {
+//    DelegateITKOutputMacro( GetMaskValue );
+//  }
 
 protected:
   //BTX
-  typedef itk::BayesianClassificationImageFilter<
-     Superclass::InputImageType,
-     Superclass::InputImageType,  // TODO: Change to a MaskImageType
-     Superclass::OutputImageType>                  ImageFilterType;
-  vtkITKBayesianClassifierImageFilter() : Superclass ( ImageFilterType::New() ){};
-  ~vtkITKBayesianClassifierImageFilter() {};
+//   typedef itk::BayesianClassificationImageFilter<
+//   Superclass::InputImageType,
+//   Superclass::OutputImageType,
+//   Superclass::InputImageType  // TODO: Change to a MaskImageType
+//   > ImageFilterType;
+  typedef itk::BayesianClassificationImageFilter< Superclass::InputImageType,
+                                                  Superclass::OutputImageType > ImageFilterType;
+  vtkITKBayesianClassificationImageFilter() : Superclass ( ImageFilterType::New() ){};
+  ~vtkITKBayesianClassificationImageFilter() {};
   ImageFilterType* GetImageFilterPointer() { return dynamic_cast<ImageFilterType*> ( m_Filter.GetPointer() ); }
   //ETX
   
 private:
-  vtkITKBayesianClassifierImageFilter(const vtkITKBayesianClassifierImageFilter&);  // Not implemented.
-  void operator=(const vtkITKBayesianClassifierImageFilter&);  // Not implemented.
+  vtkITKBayesianClassificationImageFilter(const vtkITKBayesianClassificationImageFilter&);  // Not implemented.
+  void operator=(const vtkITKBayesianClassificationImageFilter&);  // Not implemented.
 };
 
-vtkCxxRevisionMacro(vtkITKBayesianClassifierImageFilter, "$Revision: 1.4 $");
-vtkStandardNewMacro(vtkITKBayesianClassifierImageFilter);
+vtkCxxRevisionMacro(vtkITKBayesianClassificationImageFilter, "$Revision: 1.4 $");
+vtkStandardNewMacro(vtkITKBayesianClassificationImageFilter);
 
 #endif
-
-
-
-
