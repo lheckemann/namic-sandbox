@@ -53,6 +53,13 @@ public:
     return m_Values.size();
     }
 
+  /** Remove all measurement vectors */
+  virtual void Clear()
+    {
+    return m_Values.clear();
+    }
+
+
   /** Get the measurement associated with a particular
    * InstanceIdentifier. */
   virtual const MeasurementVectorType & 
@@ -106,13 +113,12 @@ private:
 }
 }
 }
-int itkSampleTest(int, char* [] )
+int itkSampleTest4(int, char* [] )
 {
 
   const unsigned int MeasurementVectorSize = 17;
 
-  typedef itk::FixedArray< 
-    float, MeasurementVectorSize >  MeasurementVectorType;
+  typedef std::vector< float >  MeasurementVectorType;
 
   typedef itk::Statistics::SampleTest::MySample< 
     MeasurementVectorType >   SampleType;
@@ -134,7 +140,8 @@ int itkSampleTest(int, char* [] )
 
   std::cout << sample->Size() << std::endl;
 
-  MeasurementVectorType measure;
+  MeasurementVectorType measure( MeasurementVectorSize );
+
   for( unsigned int i=0; i<MeasurementVectorSize; i++)
     {
     measure[i] = 29 * i * i;
@@ -165,6 +172,34 @@ int itkSampleTest(int, char* [] )
     }
 
   std::cout << sample->GetTotalFrequency() << std::endl;
+
+
+  try
+    {
+    sample->SetMeasurementVectorSize( MeasurementVectorSize + 5 );
+    std::cerr << "Sample failed to throw an exception when calling SetMeasurementVectorSize()" << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cout << "Expected exception caught" << std::endl;
+    }
+
+
+  // If we call Clear(), now we should be able to change the 
+  // MeasurementVectorSize of the Sample:
+  sample->Clear();
+
+  try
+    {
+    sample->SetMeasurementVectorSize( MeasurementVectorSize + 5 );
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
 
   return EXIT_SUCCESS;
 }
