@@ -161,47 +161,58 @@ ListSampleToHistogramFilter< TSample, THistogram >
 
   if( autoMinimumMaximum && autoMinimumMaximum->Get() )
     {
-    Algorithm::FindSampleBound( 
-      inputSample,  inputSample->Begin(), inputSample->End(), lower, upper);
-    
-    float margin;
-
-    for( unsigned int i = 0; i < measurementVectorSize; i++ )
+    if( inputSample->Size() )
       {
-      if( !NumericTraits< HistogramMeasurementType >::is_integer )
+      Algorithm::FindSampleBound( 
+        inputSample,  inputSample->Begin(), inputSample->End(), lower, upper);
+      
+      float margin;
+
+      for( unsigned int i = 0; i < measurementVectorSize; i++ )
         {
-        margin = 
-            ( (HistogramMeasurementType )(upper[i] - lower[i]) / 
-              (HistogramMeasurementType ) histogramSize[i] ) / 
-            (HistogramMeasurementType ) marginalScale;
-        h_upper[i] = (HistogramMeasurementType ) (upper[i] + margin);
-        if(h_upper[i] <= upper[i])
-          { 
-          // an overflow has occurred therefore set upper to upper
-          h_upper[i] = upper[i];
-          // Histogram measurement type would force the clipping the max value.
-          // Therefore we must call the following to include the max value:
-          outputHistogram->SetClipBinsAtEnds(false);
-          // The above function is okay since here we are within the autoMinMax 
-          // computation and clearly the user intended to include min and max.
+        if( !NumericTraits< HistogramMeasurementType >::is_integer )
+          {
+          margin = 
+              ( (HistogramMeasurementType )(upper[i] - lower[i]) / 
+                (HistogramMeasurementType ) histogramSize[i] ) / 
+              (HistogramMeasurementType ) marginalScale;
+          h_upper[i] = (HistogramMeasurementType ) (upper[i] + margin);
+          if(h_upper[i] <= upper[i])
+            { 
+            // an overflow has occurred therefore set upper to upper
+            h_upper[i] = upper[i];
+            // Histogram measurement type would force the clipping the max value.
+            // Therefore we must call the following to include the max value:
+            outputHistogram->SetClipBinsAtEnds(false);
+            // The above function is okay since here we are within the autoMinMax 
+            // computation and clearly the user intended to include min and max.
+            }
           }
+        else
+          {
+          h_upper[i] = ((HistogramMeasurementType ) upper[i]) + 
+            NumericTraits< HistogramMeasurementType  >::One;
+          if(h_upper[i] <= upper[i])
+            { 
+            // an overflow has occurred therefore set upper to upper
+            h_upper[i] = upper[i];
+            // Histogram measurement type would force the clipping the max value.
+            // Therefore we must call the following to include the max value:
+            outputHistogram->SetClipBinsAtEnds(false);
+            // The above function is okay since here we are within the autoMinMax 
+            // computation and clearly the user intended to include min and max.
+            }
+          }
+        h_lower[i] = ( HistogramMeasurementType ) lower[i];
         }
-      else
+      }
+    else
+      {
+      for( unsigned int i = 0; i < measurementVectorSize; i++ )
         {
-        h_upper[i] = ((HistogramMeasurementType ) upper[i]) + 
-          NumericTraits< HistogramMeasurementType  >::One;
-        if(h_upper[i] <= upper[i])
-          { 
-          // an overflow has occurred therefore set upper to upper
-          h_upper[i] = upper[i];
-          // Histogram measurement type would force the clipping the max value.
-          // Therefore we must call the following to include the max value:
-          outputHistogram->SetClipBinsAtEnds(false);
-          // The above function is okay since here we are within the autoMinMax 
-          // computation and clearly the user intended to include min and max.
-          }
+        h_lower[i] = ( HistogramMeasurementType ) lower[i];
+        h_upper[i] = ( HistogramMeasurementType ) upper[i];
         }
-      h_lower[i] = ( HistogramMeasurementType ) lower[i];
       }
     }
   else
@@ -220,6 +231,37 @@ ListSampleToHistogramFilter< TSample, THistogram >
     h_lower = binMinimumObject->Get();
     }
 
+  // initialize the Histogram object using the sizes and
+  // the upper and lower bound from the FindSampleBound function
+  outputHistogram->Initialize( histogramSize, h_lower, h_upper );
+
+  typename SampleType::ConstIterator iter = inputSample->Begin();
+  typename SampleType::ConstIterator last = inputSample->End();
+  typename HistogramType::IndexType index;
+  typename SampleType::MeasurementVectorType lvector;
+  typename HistogramType::MeasurementVectorType hvector;
+  unsigned int i;
+  while (iter != last)
+    {
+    lvector = iter.GetMeasurementVector();
+    for ( i = 0; i < HistogramType::MeasurementVectorSize; i++)
+      {
+      hvector[i] = (HistogramMeasurementType) lvector[i];
+      }
+
+    outputHistogram->GetIndex( hvector, index );
+    if( !outputHistogram->IsIndexOutOfBounds( index ) )
+      {
+      // if the measurement vector is out of bound then
+      // the GetIndex method has returned an index set to the max size of
+      // the invalid dimension - even if the hvector is less than the minimum
+      // bin value.
+      // If the index isn't valid, we don't increase the frequency.
+      // See the comments in Histogram->GetIndex() for more info.
+      outputHistogram->IncreaseFrequency( index, 1 );
+      }
+    ++iter;
+    }
 
 }
 
