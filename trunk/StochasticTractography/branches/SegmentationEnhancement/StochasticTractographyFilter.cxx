@@ -61,7 +61,7 @@ bool SamplingDirections(const char* fn, typename TTOContainerType::Pointer direc
 }
 
 template< class TractContainerType >
-bool WriteTractContainerToFile( const char* fn, typename TractContainerType::Pointer tractcontainer ){
+bool WriteTractContainerToFile( const char* fn, TractContainerType* tractcontainer ){
   std::ofstream tractfile( fn, std::ios::out | std::ios::binary );
   tractfile.seekp(0);
   if(tractfile.is_open()){
@@ -94,7 +94,7 @@ bool WriteTractContainerToFile( const char* fn, typename TractContainerType::Poi
   }
 }
 template< class FAContainerType >
-bool WriteScalarContainerToFile( const char* fn, typename FAContainerType::Pointer facontainer ){
+bool WriteScalarContainerToFile( const char* fn, FAContainerType* facontainer ){
   std::ofstream fafile( fn, std::ios::out );
   if(fafile.is_open()){
     for(int i=0; i<facontainer->Size(); i++){
