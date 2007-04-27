@@ -22,7 +22,6 @@
 #include "itkListSample.h"
 #include "itkSubsample.h"
 #include "itkFixedArray.h"
-#include "itkMeasurementVectorTraits.h"
 
 int itkSubsampleTest3(int, char* [] ) 
 {

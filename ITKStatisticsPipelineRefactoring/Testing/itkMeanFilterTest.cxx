@@ -21,7 +21,6 @@
 #include "itkMeanFilter.h"
 #include "itkListSample.h"
 #include "itkFixedArray.h"
-#include "itkMeasurementVectorTraits.h"
 
 int itkMeanFilterTest(int, char* [] ) 
 {

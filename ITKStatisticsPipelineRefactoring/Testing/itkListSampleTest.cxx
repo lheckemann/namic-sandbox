@@ -44,6 +44,10 @@ int itkListSampleTest(int argc, char *argv[] )
   sample->SetMeasurementVectorSize( measurementVectorSize );
 
   MeasurementVectorType mv( measurementVectorSize );
+
+  std::cout << "Sample length = " << sample->GetMeasurementVectorSize() << std::endl;
+  std::cout << "Vector length = " << itk::Statistics::MeasurementVectorTraits::GetLength( mv ) << std::endl;
+
   for ( unsigned int i = 0; i < sampleSize; i++ )
     {
     for (unsigned int j = 0; j < measurementVectorSize; j++ )
@@ -538,6 +542,3 @@ int itkListSampleTest(int argc, char *argv[] )
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
-
-
-
