@@ -14,18 +14,18 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkListSampleToHistogramFilter_txx
-#define __itkListSampleToHistogramFilter_txx
+#ifndef __itkSampleToHistogramFilter_txx
+#define __itkSampleToHistogramFilter_txx
 
-#include "itkListSampleToHistogramFilter.h"
+#include "itkSampleToHistogramFilter.h"
 #include "itkStatisticsAlgorithm.h"
 
 namespace itk { 
 namespace Statistics {
 
 template < class TSample, class THistogram >
-ListSampleToHistogramFilter< TSample, THistogram >
-::ListSampleToHistogramFilter()
+SampleToHistogramFilter< TSample, THistogram >
+::SampleToHistogramFilter()
 {
   this->ProcessObject::SetNumberOfRequiredInputs( 1 );
 
@@ -47,14 +47,14 @@ ListSampleToHistogramFilter< TSample, THistogram >
 }
 
 template < class TSample, class THistogram >
-ListSampleToHistogramFilter< TSample, THistogram >
-::~ListSampleToHistogramFilter()
+SampleToHistogramFilter< TSample, THistogram >
+::~SampleToHistogramFilter()
 {
 }
 
 template < class TSample, class THistogram >
 void
-ListSampleToHistogramFilter< TSample, THistogram >
+SampleToHistogramFilter< TSample, THistogram >
 ::SetInput( const SampleType * sample )
 {
   // Process object is not const-correct so the const_cast is required here
@@ -64,8 +64,8 @@ ListSampleToHistogramFilter< TSample, THistogram >
 
 template < class TSample, class THistogram >
 const typename 
-ListSampleToHistogramFilter< TSample, THistogram >::SampleType *
-ListSampleToHistogramFilter< TSample, THistogram >
+SampleToHistogramFilter< TSample, THistogram >::SampleType *
+SampleToHistogramFilter< TSample, THistogram >
 ::GetInput() const
 {
   const SampleType * input = 
@@ -76,8 +76,8 @@ ListSampleToHistogramFilter< TSample, THistogram >
 
 template < class TSample, class THistogram >
 const typename 
-ListSampleToHistogramFilter< TSample, THistogram >::HistogramType *
-ListSampleToHistogramFilter< TSample, THistogram >
+SampleToHistogramFilter< TSample, THistogram >::HistogramType *
+SampleToHistogramFilter< TSample, THistogram >
 ::GetOutput() const
 {
   const HistogramType * output = 
@@ -88,8 +88,8 @@ ListSampleToHistogramFilter< TSample, THistogram >
 
 
 template < class TSample, class THistogram >
-typename ListSampleToHistogramFilter< TSample, THistogram >::DataObjectPointer
-ListSampleToHistogramFilter< TSample, THistogram >
+typename SampleToHistogramFilter< TSample, THistogram >::DataObjectPointer
+SampleToHistogramFilter< TSample, THistogram >
 ::MakeOutput(unsigned int)
 {
   return static_cast<DataObject*>(HistogramType::New().GetPointer());
@@ -98,7 +98,7 @@ ListSampleToHistogramFilter< TSample, THistogram >
 
 template < class TSample, class THistogram >
 void
-ListSampleToHistogramFilter< TSample, THistogram >
+SampleToHistogramFilter< TSample, THistogram >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
@@ -107,7 +107,7 @@ ListSampleToHistogramFilter< TSample, THistogram >
 
 template < class TSample, class THistogram >
 void
-ListSampleToHistogramFilter< TSample, THistogram >
+SampleToHistogramFilter< TSample, THistogram >
 ::GenerateData()
 {
   const SampleType * inputSample = this->GetInput();

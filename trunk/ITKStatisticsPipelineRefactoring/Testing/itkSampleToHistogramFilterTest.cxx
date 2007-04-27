@@ -1,7 +1,7 @@
 /*=========================================================================
 
 Program:   Insight Segmentation & Registration Toolkit
-Module:    $RCSfile: itkListSampleTest.cxx,v $
+Module:    $RCSfile: itkSampleTest.cxx,v $
 Language:  C++
 Date:      $Date: 2007/04/06 15:26:57 $
 Version:   $Revision: 1.12 $
@@ -22,9 +22,9 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkVariableLengthVector.h"
 #include "itkListSample.h"
 #include "itkHistogram.h"
-#include "itkListSampleToHistogramFilter.h"
+#include "itkSampleToHistogramFilter.h"
 
-int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
+int itkSampleToHistogramFilterTest(int argc, char *argv[] )
 {
 
   const unsigned int numberOfComponents = 3;
@@ -37,7 +37,7 @@ int itkListSampleToHistogramFilterTest(int argc, char *argv[] )
           numberOfComponents,
           itk::Statistics::DenseFrequencyContainer > HistogramType;
 
-  typedef itk::Statistics::ListSampleToHistogramFilter<
+  typedef itk::Statistics::SampleToHistogramFilter<
     SampleType, HistogramType > FilterType;
 
   typedef FilterType::InputHistogramSizeObjectType         InputHistogramSizeObjectType;

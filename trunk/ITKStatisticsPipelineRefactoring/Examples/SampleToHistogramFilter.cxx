@@ -22,7 +22,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkVariableLengthVector.h"
 #include "itkListSample.h"
 #include "itkHistogram.h"
-#include "itkListSampleToHistogramFilter.h"
+#include "itkSampleToHistogramFilter.h"
 
 int main(int argc, char *argv[] ) 
 {
@@ -37,7 +37,7 @@ int main(int argc, char *argv[] )
           numberOfComponents, 
           itk::Statistics::DenseFrequencyContainer > HistogramType;
 
-  typedef itk::Statistics::ListSampleToHistogramFilter< 
+  typedef itk::Statistics::SampleToHistogramFilter< 
     SampleType, HistogramType > FilterType;
 
   typedef FilterType::HistogramSizeType                    HistogramSizeType;
