@@ -39,5 +39,6 @@ ADD_EXECUTABLE(itkImageToListGeneratorTest
   )
 TARGET_LINK_LIBRARIES(itkImageToListGeneratorTest ITKStatistics ITKCommon)
 
+# test for vtk wrapper of itkBayesianClassificationImageFilter
 ADD_EXECUTABLE(vtkITKBayesianClassificationImageFilterTest vtkITKBayesianClassificationImageFilterTest.cxx)
-TARGET_LINK_LIBRARIES(vtkITKBayesianClassificationImageFilterTest vtkIO)
+TARGET_LINK_LIBRARIES(vtkITKBayesianClassificationImageFilterTest vtkImaging vtkIO vtkCommon ITKStatistics ITKBasicFilters ITKIO ITKCommon)
