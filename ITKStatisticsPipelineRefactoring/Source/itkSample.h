@@ -77,7 +77,8 @@ public:
 
   /** ValueType of a measurement (ValueType of a component of the
    * MeasurementVector */ 
-  typedef typename MeasurementVectorType::ValueType   MeasurementType;
+  typedef typename MeasurementVectorTraitsTypes< 
+    MeasurementVectorType >::ValueType   MeasurementType;
 
   /** Frequency value type */
   typedef float FrequencyType;

@@ -405,6 +405,32 @@ public:
  
 };
 
+/** \class MeasurementVectorTraitsTypes
+ * \brief   
+ * \ingroup Statistics 
+ */
+
+template < class TMeasurementVector >
+class MeasurementVectorTraitsTypes
+{
+public:
+  typedef typename TMeasurementVector::ValueType    ValueType;
+};
+
+
+template< class T >
+class MeasurementVectorTraitsTypes< std::vector< T > >
+{
+public:
+   typedef T ValueType;
+};
+
+
+
+
+
+/** Traits for generating the MeasurementVectorType that best matches a
+ * particular pixel type. */
  
 template<class TPixelType>
 class MeasurementVectorPixelTraits
