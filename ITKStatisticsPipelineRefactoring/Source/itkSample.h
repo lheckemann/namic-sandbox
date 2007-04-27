@@ -109,17 +109,51 @@ public:
   virtual TotalFrequencyType GetTotalFrequency() const = 0;
 
   
-  /** Set/Get macros for the length of the measurement vector */
+  /** Set method for the length of the measurement vector */
   virtual void SetMeasurementVectorSize( MeasurementVectorSizeType s )
     {
+    // Test whether the vector type is resizable or not
     MeasurementVectorType m;
-    MeasurementVectorSizeType defaultLength = MeasurementVectorTraits::GetLength( m );
-    if( (defaultLength != 0) && (s!=defaultLength) )
+    if( MeasurementVectorTraits::IsResizable( m ) )
       {
-      return; // Do not do anything.
+      // then this is a resizable vector type
+      //
+      // if the new size is the same as the previou size, just return
+      if( s == this->m_MeasurementVectorSize )
+        {
+        return;
+        }
+      else
+        {
+        // If the new size is different from the current size, then
+        // only change the measurement vector size if the container is empty.
+        if( this->Size() )
+          {
+          itkExceptionMacro("Attempting to change the measurement \
+                              vector size of a non-empty Sample");
+          }
+        else
+          {
+          this->m_MeasurementVectorSize = s;
+          this->Modified();
+          }
+        }
       }
-    this->m_MeasurementVectorSize = s;
+    else
+      {
+      // If this is a non-resizable vector type
+      MeasurementVectorType m3;
+      MeasurementVectorSizeType defaultLength = MeasurementVectorTraits::GetLength( m3 );
+      // and the new length is different from the default one, then throw an exception
+      if( defaultLength != s )
+        {
+        itkExceptionMacro("Attempting to change the measurement \
+                           vector size of a non-resizable vector type");
+        }
+      }
     }
+
+  /** Get method for the length of the measurement vector */
   itkGetConstMacro( MeasurementVectorSize, MeasurementVectorSizeType );
 
   
