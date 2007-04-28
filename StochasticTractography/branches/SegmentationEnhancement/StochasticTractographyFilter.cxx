@@ -470,44 +470,44 @@ int main(int argc, char* argv[]){
     }
   }        
 
-  //Write out the Connectivity Map
-  CImageWriterType::Pointer writerPtr = CImageWriterType::New();
-  writerPtr->SetInput( accumulatedcimagePtr );
-  writerPtr->SetFileName( cfilename );
-  writerPtr->Update();
-  
-  //Extract the output prefix
-  std::string outputprefix = stripExtension( cfilename );
-  
-  //Write out TensorImage
-  char tensorimagefilename[100];
-  sprintf(tensorimagefilename, "%s_TENSOR.nhdr", outputprefix.c_str() );
-  typedef itk::ImageFileWriter< PTFilterType::OutputTensorImageType > TensorImageWriterType;
-  TensorImageWriterType::Pointer tensorwriter = TensorImageWriterType::New();
-  tensorwriter->SetInput( ptfilterPtr->GetOutputTensorImage() );
-  tensorwriter->SetFileName( tensorimagefilename );
-  tensorwriter->Update();
-  
-  //Create a default Mask Image which 
-  //excludes DWI pixels which contain values that are zero
-  MultiplyFAFilterType::Pointer multFAfilter = MultiplyFAFilterType::New();
-  multFAfilter->SetInput( fafilter->GetOutput() );  
-  //write out the FA image
-  char faimagefilename[100];
-  sprintf(faimagefilename, "%s_FA.nhdr", outputprefix.c_str() );
-  FAImageWriterType::Pointer fawriter = FAImageWriterType::New();
-  fawriter->SetInput( multFAfilter->GetOutput() );
-  fawriter->SetFileName( faimagefilename );
-  fawriter->Update();
-  
-  //Write out the conditioned connectivity map
-  CImageWriterType::Pointer condcmapwriterPtr = CImageWriterType::New();
-  condcmapwriterPtr->SetInput( conditionedcimagePtr );
-  char condcmapfilename[100];
-  sprintf(condcmapfilename, "%s_COND.nhdr", outputprefix.c_str());
-  condcmapwriterPtr->SetFileName( condcmapfilename );
-  condcmapwriterPtr->Update();
-  
+  if(outputimageswitch){
+    //Write out the Connectivity Map
+    char cfilename[100];
+    sprintf(cfilename, "%s_CMAP.nhdr", outputprefix.c_str() );
+    CImageWriterType::Pointer writerPtr = CImageWriterType::New();
+    writerPtr->SetInput( accumulatedcimagePtr );
+    writerPtr->SetFileName( cfilename );
+    writerPtr->Update();
+    
+    //Write out TensorImage
+    char tensorimagefilename[100];
+    sprintf(tensorimagefilename, "%s_TENSOR.nhdr", outputprefix.c_str() );
+    typedef itk::ImageFileWriter< PTFilterType::OutputTensorImageType > TensorImageWriterType;
+    TensorImageWriterType::Pointer tensorwriter = TensorImageWriterType::New();
+    tensorwriter->SetInput( ptfilterPtr->GetOutputTensorImage() );
+    tensorwriter->SetFileName( tensorimagefilename );
+    tensorwriter->Update();
+    
+    //Create a default Mask Image which 
+    //excludes DWI pixels which contain values that are zero
+    MultiplyFAFilterType::Pointer multFAfilter = MultiplyFAFilterType::New();
+    multFAfilter->SetInput( fafilter->GetOutput() );  
+    //write out the FA image
+    char faimagefilename[100];
+    sprintf(faimagefilename, "%s_FA.nhdr", outputprefix.c_str() );
+    FAImageWriterType::Pointer fawriter = FAImageWriterType::New();
+    fawriter->SetInput( multFAfilter->GetOutput() );
+    fawriter->SetFileName( faimagefilename );
+    fawriter->Update();
+    
+    //Write out the conditioned connectivity map
+    CImageWriterType::Pointer condcmapwriterPtr = CImageWriterType::New();
+    condcmapwriterPtr->SetInput( conditionedcimagePtr );
+    char condcmapfilename[100];
+    sprintf(condcmapfilename, "%s_COND.nhdr", outputprefix.c_str());
+    condcmapwriterPtr->SetFileName( condcmapfilename );
+    condcmapwriterPtr->Update();
+  }
   //Write out FA container
   char fafilename[100];
   sprintf( fafilename, "%s_CONDFAValues.txt", outputprefix.c_str() );

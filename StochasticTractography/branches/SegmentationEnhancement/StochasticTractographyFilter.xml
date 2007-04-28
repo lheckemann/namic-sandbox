@@ -93,7 +93,20 @@
         <step>1</step>
       </constraints>
     </integer>
-
+    <string>
+      <name>outputprefix</name>
+      <flag>o</flag>
+      <longflag>outputprefix</longflag>
+      <description>Prefix for the output files</description>
+      <label>Output Filename Prefix</label>
+      <default>"Output"</default>
+    </string>
+    <boolean>
+      <name>outputimageswitch</name>
+      <flag>i</flag>
+      <longflag>outputimageswitch</longflag>
+      <label>Produce Output Images?</label>
+    </boolean>
   </parameters>
 
   <parameters>
@@ -119,13 +132,6 @@
       <channel>input</channel>
       <index>2</index>
       <description>Input ROI volume used to seed algorithm</description>
-    </image>
-    <image>
-      <name>cfilename</name>
-      <label>Output Volume</label>
-      <channel>output</channel>
-      <index>3</index>
-      <description>Connectivity Map</description>
     </image>
   </parameters>
 
