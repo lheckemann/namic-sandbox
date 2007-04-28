@@ -104,6 +104,7 @@
     <boolean>
       <name>outputimageswitch</name>
       <flag>i</flag>
+      <default>false</default>
       <longflag>outputimageswitch</longflag>
       <label>Produce Output Images?</label>
     </boolean>
