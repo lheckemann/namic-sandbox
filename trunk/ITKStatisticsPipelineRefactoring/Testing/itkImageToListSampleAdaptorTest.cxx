@@ -65,28 +65,34 @@ int itkImageToListSampleAdaptorTest(int, char* [] )
 
   if (totalSize != sample->Size())
     {
-      pass = false ;
-      whereFail = "Size()" ;
-    }
-
-  ArrayPixelImageType::IndexType index ;
-  index.Fill(2) ;// index {2, 2, 2} = instance identifier (offset from image) 
-  ArrayPixelImageType::PixelType pixel = sample->GetImage()->GetPixel(index) ;
-  ImageToListSampleAdaptorType::InstanceIdentifier id = 
-    static_cast< FloatImage::OffsetValueType >(sample->GetImage()
-                                               ->ComputeOffset(index)) ;
-
-  if (pixel[0] != sample->GetMeasurementVector(id)[0])
-    {
-      pass = false ;
-      whereFail = "GetMeasurementVector()" ;
-    }
-
-  if( !pass )
-    {
-      std::cout << "Test failed in " << whereFail << "." << std::endl;
+    std::cerr << "Size() is not returning the correct size"<< std::endl;
     return EXIT_FAILURE;
     }
+
+  ArrayPixelImageType::IndexType index;
+  ArrayPixelImageType::PixelType pixel;
+
+  ImageToListSampleAdaptorType::InstanceIdentifier id;
+
+  for ( unsigned int i=0 ; i < size[2] ; i++ )
+    for ( unsigned int j=0; j < size[1]; j++ )
+      for ( unsigned int k=0; k < size[0]; k++ )  
+      {
+      index[0]=k;
+      index[1]=j;
+      index[2]=i;
+
+      pixel = sample->GetImage()->GetPixel( index );
+      id = sample->GetImage()->ComputeOffset( index );
+      for ( unsigned int m=0; m < sample->GetMeasurementVectorSize(); m++ )
+        {
+        if ( sample->GetMeasurementVector(id)[m] != pixel[m] )
+          {
+          std::cerr << "Error in pixel value accessed using the adaptor" << std::endl;  
+          return EXIT_FAILURE;
+          }
+        }
+      }
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
