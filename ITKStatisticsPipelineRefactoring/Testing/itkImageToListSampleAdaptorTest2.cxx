@@ -85,6 +85,7 @@ int itkImageToListSampleAdaptorTest2(int, char* [] )
           }
         }
       }
+ 
   
 
   std::cerr << "[PASSED]" << std::endl;
