@@ -59,15 +59,72 @@ int itkImageToListSampleAdaptorTest(int, char* [] )
     ImageToListSampleAdaptorType ;
 
   ImageToListSampleAdaptorType::Pointer sample = ImageToListSampleAdaptorType::New() ;
+
+  //Test if the methods throw exceptions if invoked before setting the image
+  try
+    {
+    unsigned long size = sample->Size();
+    std::cerr << "Exception should have been thrown since the input image \
+                  is not set yet" << std::endl;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Caught expected exception: " << excp << std::endl;
+    }
+  try
+    {
+    ImageToListSampleAdaptorType::FrequencyType totalFrequency = sample->GetTotalFrequency();
+    std::cerr << "Exception should have been thrown since the input image \
+                  is not set yet" << std::endl;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Caught expected exception: " << excp << std::endl;
+    }
+ 
+  try
+    {
+    ImageToListSampleAdaptorType::MeasurementVectorType m = sample->GetMeasurementVector( 0 );
+    std::cerr << "Exception should have been thrown since the input image \
+                  is not set yet" << std::endl;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Caught expected exception: " << excp << std::endl;
+    }
+ 
+  try
+    {
+    ImageToListSampleAdaptorType::ImageConstPointer image = sample->GetImage( );
+    std::cerr << "Exception should have been thrown since the input image \
+                  is not set yet" << std::endl;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Caught expected exception: " << excp << std::endl;
+    }
+ 
+ 
   sample->SetImage(castFilter->GetOutput()) ;
 
   // tests begin
 
+  //check size
   if (totalSize != sample->Size())
     {
     std::cerr << "Size() is not returning the correct size"<< std::endl;
     return EXIT_FAILURE;
     }
+
+  //check frequency
+  if (totalSize != sample->GetTotalFrequency())
+    {
+    std::cerr << "GetTotalFrequency() is not returning the correct frequency"<< std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  sample->Print( std::cout );
 
   ArrayPixelImageType::IndexType index;
   ArrayPixelImageType::PixelType pixel;
