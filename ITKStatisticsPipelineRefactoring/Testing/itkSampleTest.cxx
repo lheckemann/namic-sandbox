@@ -132,6 +132,7 @@ int itkSampleTest(int, char* [] )
     return EXIT_FAILURE;
     }
 
+
   std::cout << sample->Size() << std::endl;
 
   MeasurementVectorType measure;
@@ -165,6 +166,20 @@ int itkSampleTest(int, char* [] )
     }
 
   std::cout << sample->GetTotalFrequency() << std::endl;
+
+  //Test if an exception will be thrown if we try to resize the measurement vector
+  //size
+  try
+    {
+    sample->SetMeasurementVectorSize( MeasurementVectorSize + 1 ); 
+    std::cerr << "Exception should have been thrown since we are trying to resize\
+                  non-resizeable measurement vector type " << std::endl;
+    return EXIT_FAILURE; 
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Caughted expected exception: " << excp << std::endl;
+    }
 
   return EXIT_SUCCESS;
 }
