@@ -103,9 +103,6 @@ public:
   typedef typename Superclass::TotalFrequencyType              TotalFrequencyType;
   typedef typename Superclass::MeasurementVectorSizeType       MeasurementVectorSizeType;
 
-  /** the number of components in a measurement vector */
-  //itkStaticConstMacro(MeasurementVectorSize, unsigned int, PixelTraitsType::Dimension);
-  
   typedef MeasurementVectorType                       ValueType;
 
   /** Method to set the image */
@@ -128,20 +125,9 @@ protected:
   virtual ~ImageToListSampleAdaptor() {}
   void PrintSelf(std::ostream& os, Indent indent) const;  
 
-  itkGetConstReferenceMacro(PixelContainer,PixelContainerConstPointer);
-  itkGetConstReferenceMacro(UseBuffer,bool);
-  itkGetConstReferenceMacro(ImageBeginIndex,IndexType);
-  itkGetConstReferenceMacro(ImageEndIndex,IndexType);
-
-
 private:
   ImageToListSampleAdaptor(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
-
-  PixelContainerConstPointer m_PixelContainer;
-  bool                       m_UseBuffer;
-  IndexType                  m_ImageBeginIndex;
-  IndexType                  m_ImageEndIndex;
 
   ImageConstPointer          m_Image;
 }; // end of class ImageToListSampleAdaptor
