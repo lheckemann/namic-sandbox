@@ -57,6 +57,27 @@ int itkListSampleTest(int argc, char *argv[] )
     sample->PushBack(mv);
     }
 
+  // Try to push a measurement vector size different from what is set  
+  MeasurementVectorType  mvLargerSize( measurementVectorSize + 1 );
+
+  for (unsigned int j=0; j <= measurementVectorSize; j++ )
+    {
+    mvLargerSize[j] = rand() / (RAND_MAX+1.0);
+    }
+  
+  try
+    {
+    sample->PushBack( mvLargerSize );
+    std::cerr << "Exception was expected since the vector that was\
+                  added to the list has size different from what is set" 
+              << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Caught expected exception: " << excp << std::endl;
+    }
+ 
   // tests begin
 
   //
