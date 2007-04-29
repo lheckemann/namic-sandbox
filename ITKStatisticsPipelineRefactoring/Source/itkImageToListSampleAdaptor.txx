@@ -27,7 +27,6 @@ ImageToListSampleAdaptor< TImage, TMeasurementVector >
   m_UseBuffer = true;
   m_Image = 0;
   m_PixelContainer = 0;
-  Superclass::SetMeasurementVectorSize( MeasurementVectorSize );
 }
 
 template < class TImage, class TMeasurementVector >

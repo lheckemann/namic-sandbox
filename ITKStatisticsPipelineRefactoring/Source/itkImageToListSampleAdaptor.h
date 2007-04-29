@@ -95,21 +95,17 @@ public:
 
   /** Superclass typedefs for Measurement vector, measurement, 
    * Instance Identifier, frequency, size, size element value */
-  typedef typename PixelTraitsType::ValueType                  MeasurementType;
+  typedef TMeasurementVector                                   MeasurementVectorType; 
+//  typedef typename PixelTraitsType::ValueType                MeasurementType;
+  typedef typename MeasurementVectorTraitsTypes< 
+             MeasurementVectorType >::ValueType                MeasurementType;
   typedef typename Superclass::FrequencyType                   FrequencyType;
   typedef typename Superclass::TotalFrequencyType              TotalFrequencyType;
   typedef typename Superclass::MeasurementVectorSizeType       MeasurementVectorSizeType;
 
   /** the number of components in a measurement vector */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      PixelTraitsType::Dimension);
+  //itkStaticConstMacro(MeasurementVectorSize, unsigned int, PixelTraitsType::Dimension);
   
-  unsigned int GetMeasurementVectorSize() const 
-    {
-    return MeasurementVectorSize;
-    } 
-
-  typedef TMeasurementVector                          MeasurementVectorType;
   typedef MeasurementVectorType                       ValueType;
 
   /** Method to set the image */

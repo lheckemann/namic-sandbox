@@ -22,6 +22,7 @@
 
 #include "itkImageToListSampleAdaptor.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkVariableLengthVector.h"
 
 int itkImageToListSampleAdaptorTest2(int, char* [] ) 
 {
@@ -31,7 +32,6 @@ int itkImageToListSampleAdaptorTest2(int, char* [] )
 
   const unsigned int ImageDimension = 3;
   typedef itk::Image< PixelType, ImageDimension > ImageType;
-  typedef itk::Image< unsigned char, ImageDimension > MaskImageType;
 
   ImageType::Pointer image = ImageType::New();
   ImageType::IndexType start = {0,0,0};
@@ -86,7 +86,69 @@ int itkImageToListSampleAdaptorTest2(int, char* [] )
         }
       }
  
-  
+  typedef itk::VariableLengthVector< float > VariableLengthPixelType;
+
+  typedef itk::Image< VariableLengthPixelType, ImageDimension > VariableLengthImageType;
+
+  const unsigned int vMeasurementVectorSize = 4;
+
+  //VariableLengthPixelType value(vMeasurementVectorSize);
+
+  VariableLengthImageType::Pointer vImage = VariableLengthImageType::New();
+  VariableLengthImageType::IndexType vStart = {0,0,0};
+  VariableLengthImageType::SizeType  vSize = {10,10,10};
+  VariableLengthImageType::RegionType vRegion( vStart, vSize );
+  vImage->SetRegions( vRegion );
+  vImage->Allocate();
+  typedef itk::ImageRegionIteratorWithIndex< VariableLengthImageType > VariableIteratorType;
+  VariableIteratorType ivt( vImage, vRegion );
+  ivt.GoToBegin();
+  while (!ivt.IsAtEnd())
+    {
+    VariableLengthPixelType value(vMeasurementVectorSize);
+
+    for( unsigned int i=0; i< vMeasurementVectorSize; i++ )
+      {
+      value[i] = i + ivt.GetIndex()[0];
+      }
+    ivt.Set( value );
+    ++ivt; 
+    }
+
+  //define an adaptor for the image with variable length vector type 
+  typedef itk::Statistics::ImageToListSampleAdaptor< 
+    VariableLengthImageType > VariableLengthImageToListSampleAdaptorType;
+
+  VariableLengthImageToListSampleAdaptorType::Pointer vAdaptor 
+                              = VariableLengthImageToListSampleAdaptorType::New();
+
+  vAdaptor->SetImage( vImage );
+
+  VariableLengthImageType::IndexType vIndex;
+  VariableLengthImageType::PixelType vPixel;
+
+  VariableLengthImageToListSampleAdaptorType::InstanceIdentifier vId;
+
+  for ( unsigned int i=0 ; i < size[2] ; i++ )
+    for ( unsigned int j=0; j < size[1]; j++ )
+      for ( unsigned int k=0; k < size[0]; k++ )  
+      {
+      vIndex[0]=k;
+      vIndex[1]=j;
+      vIndex[2]=i;
+
+      vPixel = vImage->GetPixel( vIndex );
+      vId = vImage->ComputeOffset( vIndex );
+      for ( unsigned int m=0; m < vAdaptor->GetMeasurementVectorSize(); m++ )
+        {
+        if ( vAdaptor->GetMeasurementVector(vId)[m] != vPixel[m] )
+          {
+          std::cerr << "Error in vPixel value accessed using the vAdaptor" << std::endl;  
+          return EXIT_FAILURE;
+          }
+        }
+      }
+ 
 
   std::cerr << "[PASSED]" << std::endl;
   return EXIT_SUCCESS;
