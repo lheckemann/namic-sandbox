@@ -131,7 +131,7 @@ public:
         if( this->Size() )
           {
           itkExceptionMacro("Attempting to change the measurement \
-                              vector size of a non-empty Sample");
+          vector size of a non-empty Sample");
           }
         else
           {
