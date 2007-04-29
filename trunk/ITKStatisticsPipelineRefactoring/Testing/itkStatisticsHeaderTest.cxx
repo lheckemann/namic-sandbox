@@ -39,6 +39,7 @@
 #include "itkWeightedCovarianceFilter.h"
 #include "itkImageToListSampleFilter.h"
 #include "itkScalarImageToCooccurrenceMatrixFilter.h"
+#include "itkImageToListSampleAdaptor.h"
 
 int main ( int , char*  )
 {

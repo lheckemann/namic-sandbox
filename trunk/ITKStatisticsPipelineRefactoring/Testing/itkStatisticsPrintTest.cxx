@@ -38,6 +38,7 @@
 #include "itkWeightedMeanFilter.h"
 #include "itkCovarianceFilter.h"
 #include "itkWeightedCovarianceFilter.h"
+#include "itkImageToListSampleAdaptor.h"
 
 int itkStatisticsPrintTest(int , char* [])
 {
@@ -64,6 +65,9 @@ int itkStatisticsPrintTest(int , char* [])
 
   typedef itk::Statistics::ImageToListSampleFilter< 
     ImageType, ImageType > ImageToListSampleFilterType;
+
+  typedef itk::Statistics::ImageToListSampleAdaptor< 
+    ImageType> ImageToListSampleAdaptorType;
 
   typedef itk::Statistics::ScalarImageToCooccurrenceMatrixFilter< 
     ScalarImageType > ScalarImageToCooccurrenceMatrixFilterType;
@@ -106,6 +110,11 @@ int itkStatisticsPrintTest(int , char* [])
     ImageToListSampleFilterType::New();
   std::cout << "----------ImageToListSampleFilter ";
   std::cout << ImageToListSampleFilterObj;
+
+  ImageToListSampleAdaptorType::Pointer ImageToListSampleAdaptorObj =
+    ImageToListSampleAdaptorType::New();
+  std::cout << "----------ImageToListSampleAdaptor ";
+  std::cout << ImageToListSampleAdaptorObj;
 
   ScalarImageToCooccurrenceMatrixFilterType::Pointer ScalarImageToCooccurrenceMatrixFilterObj =
     ScalarImageToCooccurrenceMatrixFilterType::New();
