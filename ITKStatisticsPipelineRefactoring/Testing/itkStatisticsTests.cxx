@@ -61,5 +61,6 @@ void RegisterTests()
   REGISTER_TEST(itkWeightedMeanFilterTest);
   REGISTER_TEST(itkWeightedCovarianceFilterTest);
   REGISTER_TEST(itkImageToListSampleAdaptorTest); 
+  REGISTER_TEST(itkImageToListSampleAdaptorTest2); 
 }
 
