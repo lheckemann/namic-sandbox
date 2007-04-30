@@ -139,7 +139,7 @@ SampleToHistogramFilter< TSample, THistogram >
 
   HistogramSizeType histogramSize = histogramSizeObject->Get();
 
-  MeasurementType marginalScale = marginalScaleObject->Get();
+  HistogramMeasurementType marginalScale = marginalScaleObject->Get();
 
   HistogramType * outputHistogram = 
     static_cast<HistogramType*>(this->ProcessObject::GetOutput(0));
