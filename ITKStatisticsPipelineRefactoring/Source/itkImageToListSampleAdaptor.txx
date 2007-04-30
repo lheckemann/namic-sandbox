@@ -20,31 +20,42 @@
 namespace itk { 
 namespace Statistics {
 
-template < class TImage, class TMeasurementVector >
-ImageToListSampleAdaptor< TImage, TMeasurementVector >
+template < class TImage>
+ImageToListSampleAdaptor< TImage>
 ::ImageToListSampleAdaptor()
 {
   m_Image = 0;
+  m_UsePixelContainer = true ;
 }
 
-template < class TImage, class TMeasurementVector >
-inline const TMeasurementVector &
-ImageToListSampleAdaptor< TImage, TMeasurementVector >
-::GetMeasurementVector(const InstanceIdentifier &id) const
+template < class TImage>
+const typename ImageToListSampleAdaptor< TImage >::MeasurementVectorType&
+ImageToListSampleAdaptor< TImage>
+::GetMeasurementVector(const InstanceIdentifier &id) const 
 {
   if( m_Image.IsNull() )
     {
     itkExceptionMacro("Image has not been set yet");
     }
 
-  return *(reinterpret_cast< const MeasurementVectorType* >
-             ( &(m_Image->GetPixel( m_Image->ComputeIndex( id ) ) ) ) );
+  if ( m_UsePixelContainer )
+    {
+    MeasurementVectorTraits::Assign( m_MeasurementVectorInternal,
+                    (*m_PixelContainer)[id]); 
+    }
+  else
+    {
+    MeasurementVectorTraits::Assign( m_MeasurementVectorInternal,
+                    m_Image->GetPixel( m_Image->ComputeIndex( id ) ) ); 
+    }
+
+  return m_MeasurementVectorInternal;
 }
 
 /** returns the number of measurement vectors in this container*/
-template < class TImage, class TMeasurementVector >
+template < class TImage>
 inline unsigned int
-ImageToListSampleAdaptor< TImage, TMeasurementVector >
+ImageToListSampleAdaptor< TImage>
 ::Size() const
 {
   if( m_Image.IsNull() )
@@ -55,9 +66,9 @@ ImageToListSampleAdaptor< TImage, TMeasurementVector >
   return m_Image->GetPixelContainer()->Size();
 }
 
-template < class TImage, class TMeasurementVector >
-inline typename ImageToListSampleAdaptor< TImage, TMeasurementVector >::FrequencyType
-ImageToListSampleAdaptor< TImage, TMeasurementVector >
+template < class TImage>
+inline typename ImageToListSampleAdaptor< TImage>::FrequencyType
+ImageToListSampleAdaptor< TImage>
 ::GetFrequency(const InstanceIdentifier &) const 
 {
   if( m_Image.IsNull() )
@@ -69,9 +80,9 @@ ImageToListSampleAdaptor< TImage, TMeasurementVector >
 }
 
 
-template < class TImage, class TMeasurementVector >
+template < class TImage>
 void
-ImageToListSampleAdaptor< TImage, TMeasurementVector >
+ImageToListSampleAdaptor< TImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
@@ -87,18 +98,19 @@ ImageToListSampleAdaptor< TImage, TMeasurementVector >
     }
 }
 
-template < class TImage, class TMeasurementVector >
+template < class TImage>
 void
-ImageToListSampleAdaptor< TImage, TMeasurementVector >
+ImageToListSampleAdaptor< TImage>
 ::SetImage(const TImage* image) 
 { 
   m_Image = image; 
+  m_PixelContainer = image->GetPixelContainer();
   this->Modified();
 }
 
-template < class TImage, class TMeasurementVector >
+template < class TImage>
 const TImage*
-ImageToListSampleAdaptor< TImage, TMeasurementVector >
+ImageToListSampleAdaptor< TImage>
 ::GetImage() const
 {
   if( m_Image.IsNull() )
@@ -109,9 +121,9 @@ ImageToListSampleAdaptor< TImage, TMeasurementVector >
   return m_Image.GetPointer(); 
 }  
 
-template < class TImage, class TMeasurementVector >
-typename ImageToListSampleAdaptor< TImage, TMeasurementVector >::TotalFrequencyType
-ImageToListSampleAdaptor< TImage, TMeasurementVector >
+template < class TImage>
+typename ImageToListSampleAdaptor< TImage>::TotalFrequencyType
+ImageToListSampleAdaptor< TImage>
 ::GetTotalFrequency() const
 { 
   if( m_Image.IsNull() )
