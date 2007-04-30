@@ -89,6 +89,17 @@ int itkSampleToHistogramFilterTest5(int argc, char *argv[] )
 
   reader->SetFileName( argv[1] );
 
+  try
+    {
+    reader->Update();  // FIXME : This shouldn't be needed here, the pipeline sould trigger Update().
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
   imageToSampleFilter->SetInput( reader->GetOutput() );
   filter->SetInput( imageToSampleFilter->GetOutput() );
   
