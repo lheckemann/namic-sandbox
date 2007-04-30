@@ -114,15 +114,17 @@ ImageToListSampleFilter< TImage, TMaskImage >
     itkExceptionMacro("Input image has not been set yet");
     }
 
-  typedef ImageRegionConstIterator< ImageType >     IteratorType; 
-  IteratorType it( input, input->GetBufferedRegion() );
-  it.GoToBegin();
-  
   MeasurementVectorType m;
-  MeasurementVectorTraits::Assign( m, it.Get() );
+  unsigned int measurementVectorSize = 0;
 
-  const unsigned int measurementVectorSize = 
-    MeasurementVectorTraits::GetLength( m );
+  if( !MeasurementVectorTraits::IsResizable( m ) )
+    {
+    measurementVectorSize = MeasurementVectorTraits::GetLength( m );
+    }
+  else
+    {
+    measurementVectorSize = input->GetNumberOfComponentsPerPixel();
+    }
 
   return measurementVectorSize;
 } 
