@@ -151,10 +151,149 @@ int itkImageToListSampleAdaptorTest(int, char* [] )
         }
       }
 
+  // iterator tests
+  //
+  std::cerr << "Iterators..." << std::endl;
+  {
+  // forward iterator
+  typedef ImageToListSampleAdaptorType::Iterator IteratorType;
+  
+  IteratorType s_iter = sample->Begin();
+  
+  // copy constructor
+  IteratorType bs_iter(s_iter);
+  if (bs_iter != s_iter)
+    {
+    std::cerr << "Iterator::Copy Constructor failed" << std::endl;
+    return EXIT_FAILURE;    
+    }
+  
+  // assignment operator 
+  IteratorType assignment_iter( bs_iter );
+  assignment_iter = s_iter;
+  if (assignment_iter != s_iter)
+    {
+    std::cerr << "Iterator::assignment operator failed" << std::endl;
+    return EXIT_FAILURE;    
+    }
+
+  ImageToListSampleAdaptorType::InstanceIdentifier id = 0;
+  while (s_iter != sample->End())
+    {
+    if (sample->GetMeasurementVector(id) != 
+        s_iter.GetMeasurementVector())
+      {
+      std::cerr << "Iterator::GetMeasurementVector (forward) failed" 
+                << std::endl;
+      return EXIT_FAILURE;
+      }
+    if (id != s_iter.GetInstanceIdentifier())
+      {
+      std::cerr << "Iterator::GetInstanceIdentifier (forward) failed" 
+                << std::endl;
+      return EXIT_FAILURE;
+      }
+    if (s_iter.GetFrequency() != 1)
+      {
+      std::cerr << "Iterator::GetFrequency (forward) failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+    if (sample->GetFrequency(id) != 1)
+      {
+      std::cerr << "GetFrequency (forward) failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+    ++id;
+    ++s_iter;
+    }
+  
+  if (s_iter != sample->End())
+    {
+    std::cerr << "Iterator::End (forward) failed" << std::endl;
+    return EXIT_FAILURE;    
+    }
+  
+  }
+
+  //Test the iterators
+  std::cerr << "Const Iterators..." << std::endl;
+  {
+  // forward iterator
+  typedef ImageToListSampleAdaptorType::ConstIterator  ConstIteratorType;
+  
+  ConstIteratorType s_iter = sample->Begin();
+  
+  // copy constructor
+  ConstIteratorType bs_iter(s_iter);
+  if (bs_iter != s_iter)
+    {
+    std::cerr << "Iterator::Copy Constructor (from const) failed" 
+              << std::endl;
+    return EXIT_FAILURE;    
+    }
+
+  // assignment operator
+  ConstIteratorType assignment_iter( bs_iter );
+  assignment_iter = s_iter;
+  if (assignment_iter != s_iter)
+    {
+    std::cerr << "Const Iterator::operator= () failed" 
+              << std::endl;
+    return EXIT_FAILURE;    
+    }
+
+  // copy from non-const iterator
+  ImageToListSampleAdaptorType::Iterator nonconst_iter = sample->Begin();
+  ImageToListSampleAdaptorType::ConstIterator s2_iter(nonconst_iter);
+  if (s2_iter != s_iter)
+    {
+    std::cerr << "Iterator::Copy Constructor (from non-const) failed" 
+              << std::endl;
+    return EXIT_FAILURE;    
+    }
+  // assignment from non-const iterator
+  s2_iter = nonconst_iter;
+  if (s2_iter != s_iter)
+    {
+    std::cerr << "Iterator::assignment (from non-const) failed" << std::endl;
+    return EXIT_FAILURE;    
+    }
+  
+  ImageToListSampleAdaptorType::InstanceIdentifier id = 0;
+  while (s_iter != sample->End())
+    {
+    if (sample->GetMeasurementVector(id) != 
+        s_iter.GetMeasurementVector())
+      {
+      std::cerr << "Iterator::GetMeasurementVector (forward) failed" 
+                << std::endl;
+      return EXIT_FAILURE;
+      }
+    if (id != s_iter.GetInstanceIdentifier())
+      {
+      std::cerr << "Iterator::GetInstanceIdentifier (forward) failed" 
+                << std::endl;
+      return EXIT_FAILURE;
+      }
+    if (s_iter.GetFrequency() != 1)
+      {
+      std::cerr << "Iterator::GetFrequency (forward) failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+    ++id;
+    ++s_iter;
+    }
+  
+  if (s_iter != sample->End())
+    {
+    std::cerr << "Iterator::End (forward) failed" << std::endl;
+    return EXIT_FAILURE;    
+    }
+  
+  }
+
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
-
-
 }
 
 
