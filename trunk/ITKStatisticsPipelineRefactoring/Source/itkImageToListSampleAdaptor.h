@@ -26,6 +26,7 @@
 #include "itkImageRegionIterator.h"
 #include "itkFixedArray.h"
 #include "itkMacro.h"
+#include "itkMeasurementVectorTraits.h"
 
 namespace itk { 
 namespace Statistics {
@@ -59,16 +60,18 @@ namespace Statistics {
  * \sa Sample, ListSample
  */
 
-template < class TImage,
-           class TMeasurementVector = 
-           ITK_TYPENAME TImage::PixelType >
+template < class TImage >
 class ITK_EXPORT ImageToListSampleAdaptor : 
-    public ListSample< TMeasurementVector >
+    public ListSample< typename MeasurementVectorPixelTraits< typename TImage::PixelType >::MeasurementVectorType >
 {
 public:
   /** Standard class typedefs */
   typedef ImageToListSampleAdaptor               Self;
-  typedef ListSample< TMeasurementVector >       Superclass;
+
+  typedef ListSample< typename MeasurementVectorPixelTraits<
+     typename TImage::PixelType >::MeasurementVectorType >
+                                                 Superclass;
+
   typedef SmartPointer< Self >                   Pointer;
   typedef SmartPointer<const Self>               ConstPointer;
   
@@ -96,15 +99,16 @@ public:
 
   /** Superclass typedefs for Measurement vector, measurement, 
    * Instance Identifier, frequency, size, size element value */
-  typedef TMeasurementVector                                   MeasurementVectorType; 
-//  typedef typename PixelTraitsType::ValueType                MeasurementType;
+  typedef typename MeasurementVectorPixelTraits<
+         PixelType >::MeasurementVectorType
+                                                               MeasurementVectorType; 
   typedef typename MeasurementVectorTraitsTypes< 
              MeasurementVectorType >::ValueType                MeasurementType;
   typedef typename Superclass::FrequencyType                   FrequencyType;
   typedef typename Superclass::TotalFrequencyType              TotalFrequencyType;
   typedef typename Superclass::MeasurementVectorSizeType       MeasurementVectorSizeType;
 
-  typedef MeasurementVectorType                       ValueType;
+  typedef MeasurementVectorType                                ValueType;
 
   /** Method to set the image */
   void SetImage(const TImage* image);
@@ -115,11 +119,15 @@ public:
   /** returns the number of measurement vectors in this container*/
   unsigned int Size() const;
 
-  inline virtual const MeasurementVectorType & GetMeasurementVector(const InstanceIdentifier &id) const;
+  virtual const MeasurementVectorType & GetMeasurementVector(const InstanceIdentifier &id) const ;
 
-  inline FrequencyType GetFrequency(const InstanceIdentifier &id) const;
+  FrequencyType GetFrequency(const InstanceIdentifier &id) const;
 
   TotalFrequencyType GetTotalFrequency() const;
+
+  /** Method to set UsePixelContainer flag */
+  itkSetMacro( UsePixelContainer, bool );
+  itkBooleanMacro( UsePixelContainer );
 
   /** \class ListSample::ConstIterator */
   class ConstIterator
@@ -282,7 +290,12 @@ private:
   ImageToListSampleAdaptor(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  ImageConstPointer          m_Image;
+  ImageConstPointer                  m_Image;
+  mutable MeasurementVectorType      m_MeasurementVectorInternal;
+  bool                               m_UsePixelContainer;
+
+  PixelContainerConstPointer m_PixelContainer;
+
 }; // end of class ImageToListSampleAdaptor
 
 } // end of namespace Statistics

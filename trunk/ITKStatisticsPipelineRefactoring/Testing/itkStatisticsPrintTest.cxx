@@ -42,20 +42,21 @@
 
 int itkStatisticsPrintTest(int , char* [])
 {
-  typedef float MeasurementType;
+  typedef float TMeasurementType;
   typedef float FrequencyType;
-  typedef itk::FixedArray< MeasurementType, 2 >  MeasurementVectorType;
-  typedef itk::Image< MeasurementVectorType, 3 > ImageType;
+  typedef itk::FixedArray< TMeasurementType, 2 >  TMeasurementVectorType;
+  typedef itk::Image< TMeasurementVectorType, 3 > ImageType;
+  typedef itk::Image< float , 3 >                 TestImageType;
   typedef itk::Image< unsigned char, 3>          ScalarImageType;
-  typedef itk::PointSet< MeasurementType >       PointSetType;
+  typedef itk::PointSet< TMeasurementType >       PointSetType;
 
-  typedef itk::Statistics::ListSample< MeasurementVectorType >
+  typedef itk::Statistics::ListSample< TMeasurementVectorType >
     SampleType;
 
   typedef itk::Statistics::Subsample< SampleType >
     SubSampleType;
 
-  typedef itk::Statistics::Histogram< MeasurementType, 2 > HistogramType ;
+  typedef itk::Statistics::Histogram< TMeasurementType, 2 > HistogramType ;
 
   typedef itk::Statistics::SampleToHistogramFilter< 
     SampleType, HistogramType > SampleToHistogramFilterType;
@@ -67,7 +68,7 @@ int itkStatisticsPrintTest(int , char* [])
     ImageType, ImageType > ImageToListSampleFilterType;
 
   typedef itk::Statistics::ImageToListSampleAdaptor< 
-    ImageType> ImageToListSampleAdaptorType;
+    TestImageType> ImageToListSampleAdaptorType;
 
   typedef itk::Statistics::ScalarImageToCooccurrenceMatrixFilter< 
     ScalarImageType > ScalarImageToCooccurrenceMatrixFilterType;

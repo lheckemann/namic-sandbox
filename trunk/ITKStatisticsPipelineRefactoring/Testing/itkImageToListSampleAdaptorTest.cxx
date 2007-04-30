@@ -45,17 +45,8 @@ int itkImageToListSampleAdaptorTest(int, char* [] )
   source->SetMax( static_cast< FloatImage::PixelType >( maxValue ) );
   source->Update() ;
 
-  // creat a new image with array pixel type from the source
-  typedef itk::FixedArray< FloatImage::PixelType, 1 > ArrayPixelType ;
-  typedef itk::Image< ArrayPixelType, 3 > ArrayPixelImageType ;
-  typedef itk::ScalarToArrayCastImageFilter< FloatImage, ArrayPixelImageType >
-    ImageCastFilterType ;
-  ImageCastFilterType::Pointer castFilter = ImageCastFilterType::New() ;
-  castFilter->SetInput(source->GetOutput()) ;
-  castFilter->Update() ;
-
   // creates a sample
-  typedef  itk::Statistics::ImageToListSampleAdaptor< ArrayPixelImageType>
+  typedef  itk::Statistics::ImageToListSampleAdaptor< FloatImage >
     ImageToListSampleAdaptorType ;
 
   ImageToListSampleAdaptorType::Pointer sample = ImageToListSampleAdaptorType::New() ;
@@ -116,7 +107,7 @@ int itkImageToListSampleAdaptorTest(int, char* [] )
     }
  
 
-  sample->SetImage(castFilter->GetOutput()) ;
+  sample->SetImage(source->GetOutput()) ;
 
   // tests begin
 
@@ -137,8 +128,8 @@ int itkImageToListSampleAdaptorTest(int, char* [] )
 
   sample->Print( std::cout );
 
-  ArrayPixelImageType::IndexType index;
-  ArrayPixelImageType::PixelType pixel;
+  FloatImage::IndexType index;
+  FloatImage::PixelType pixel;
 
   ImageToListSampleAdaptorType::InstanceIdentifier id;
 
@@ -152,13 +143,10 @@ int itkImageToListSampleAdaptorTest(int, char* [] )
 
       pixel = sample->GetImage()->GetPixel( index );
       id = sample->GetImage()->ComputeOffset( index );
-      for ( unsigned int m=0; m < sample->GetMeasurementVectorSize(); m++ )
+      if ( sample->GetMeasurementVector(id)[0] != pixel )
         {
-        if ( sample->GetMeasurementVector(id)[m] != pixel[m] )
-          {
-          std::cerr << "Error in pixel value accessed using the adaptor" << std::endl;  
-          return EXIT_FAILURE;
-          }
+        std::cerr << "Error in pixel value accessed using the adaptor" << std::endl;  
+        return EXIT_FAILURE;
         }
       }
 
