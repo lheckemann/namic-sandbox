@@ -24,16 +24,17 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkHistogram.h"
 #include "itkSampleToHistogramFilter.h"
 
-int itkSampleToHistogramFilterTest3(int argc, char *argv[] )
+int itkSampleToHistogramFilterTest4(int argc, char *argv[] )
 {
 
   const unsigned int numberOfComponents = 3;
-  typedef signed int  MeasurementType;
+  typedef signed int  VMeasurementType;
+  typedef float       HMeasurementType;
 
-  typedef itk::Array< MeasurementType > MeasurementVectorType;
+  typedef itk::Array< VMeasurementType > MeasurementVectorType;
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
 
-  typedef itk::Statistics::Histogram< MeasurementType,
+  typedef itk::Statistics::Histogram< HMeasurementType,
           numberOfComponents,
           itk::Statistics::DenseFrequencyContainer > HistogramType;
 
