@@ -58,17 +58,17 @@ int itkSampleToHistogramFilterTest2(int argc, char *argv[] )
 
   minimum[0] = -17.5;
   minimum[1] = -19.5;
-  minimum[2] = -23.5;
+  minimum[2] = -24.5;
 
   maximum[0] =  17.5;
   maximum[1] =  19.5;
-  maximum[2] =  23.5;
+  maximum[2] =  24.5;
 
   HistogramSizeType histogramSize;
 
   histogramSize[0] = 35;
   histogramSize[1] = 39;
-  histogramSize[2] = 47;
+  histogramSize[2] = 49;
 
   MeasurementVectorType measure( numberOfComponents );
 
@@ -111,9 +111,6 @@ int itkSampleToHistogramFilterTest2(int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
-//  filter->SetAutoMinimumMaximum( true );
-//  filter->SetHistogramBinMinimum( minimum );
-//  filter->SetHistogramBinMaximum( maximum );
 
   filter->SetHistogramSize( histogramSize );
 
@@ -143,18 +140,68 @@ int itkSampleToHistogramFilterTest2(int argc, char *argv[] )
   HistogramType::ConstIterator histogramItr = histogram->Begin();
   HistogramType::ConstIterator histogramEnd = histogram->End();
 
-  unsigned int expectedFrequency = 1;
+  const unsigned int expectedFrequency1 = 1;
   while( histogramItr != histogramEnd )
     {
-    if( histogramItr.GetFrequency() != expectedFrequency )
+    if( histogramItr.GetFrequency() != expectedFrequency1 )
       {
       std::cerr << "Histogram bin error for measure " << std::endl;
       std::cerr << histogramItr.GetMeasurementVector() << std::endl;
-      std::cerr << "Expected frequency = " << expectedFrequency << std::endl;
+      std::cerr << "Expected frequency = " << expectedFrequency1 << std::endl;
       std::cerr << "Computed frequency = " << histogramItr.GetFrequency() << std::endl;
       }
     ++histogramItr;
     }
+
+
+  // Now resize the histogram, to see is the frequencies 
+  // are relocated correctly into the new size bins.
+  //
+  histogramSize[0] =  7; 
+  histogramSize[1] = 39;
+  histogramSize[2] = 49;
+
+  filter->SetHistogramSize( histogramSize );
+
+  try
+    {
+    filter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  const unsigned int expectedHistogramSize2 = 
+    histogramSize[0] * histogramSize[1] * histogramSize[2];
+
+  if( histogram->Size() != expectedHistogramSize2 )
+    {
+    std::cerr << "Histogram Size error" << std::endl;
+    std::cerr << "We expected " << expectedHistogramSize2 << std::endl;
+    std::cerr << "We received " << histogram->Size() << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  histogramItr = histogram->Begin();
+  histogramEnd = histogram->End();
+
+  const unsigned int expectedFrequency2 = 5;
+  while( histogramItr != histogramEnd )
+    {
+    if( histogramItr.GetFrequency() != expectedFrequency2 )
+      {
+      std::cerr << "Histogram bin error for measure " << std::endl;
+      std::cerr << histogramItr.GetMeasurementVector() << std::endl;
+      std::cerr << "Expected frequency = " << expectedFrequency2 << std::endl;
+      std::cerr << "Computed frequency = " << histogramItr.GetFrequency() << std::endl;
+      }
+    ++histogramItr;
+    }
+
+
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
