@@ -28,7 +28,7 @@ int itkSampleToHistogramFilterTest3(int argc, char *argv[] )
 {
 
   const unsigned int numberOfComponents = 3;
-  typedef signed int  MeasurementType;
+  typedef signed int  MeasurementType;    // Exercise an integer type for the samples
 
   typedef itk::Array< MeasurementType > MeasurementVectorType;
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
@@ -153,6 +153,41 @@ int itkSampleToHistogramFilterTest3(int argc, char *argv[] )
     ++histogramItr;
     }
 
+  // Exercise the saturation of the maximum
+  maximum[0] =  itk::NumericTraits< MeasurementType >::max();
+  maximum[1] =  itk::NumericTraits< MeasurementType >::max();
+  maximum[2] =  itk::NumericTraits< MeasurementType >::max();
+ 
+  minimum[0] =  itk::NumericTraits< MeasurementType >::min();
+  minimum[1] =  itk::NumericTraits< MeasurementType >::min();
+  minimum[2] =  itk::NumericTraits< MeasurementType >::min();
+ 
+  filter->SetHistogramBinMaximum( maximum );
+  filter->SetHistogramBinMinimum( minimum );
+  filter->SetAutoMinimumMaximum( true );
+
+  try
+    {
+    filter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  filter->SetAutoMinimumMaximum( false );
+
+  try
+    {
+    filter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
 
 
   std::cout << "Test passed." << std::endl;
