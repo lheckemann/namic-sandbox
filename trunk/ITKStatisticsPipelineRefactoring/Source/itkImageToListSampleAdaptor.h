@@ -56,7 +56,7 @@ namespace Statistics {
  * template argument. If you have pixel type is vector one and supports
  * [] operator, then replace third argument with VectorAccessor
  *
- * \sa Sample, ListSampleBase
+ * \sa Sample, ListSample
  */
 
 template < class TImage,
@@ -90,7 +90,8 @@ public:
   InstanceIdentifier;
   
   /** Image Iterator typedef support */
-  typedef ImageRegionIterator< ImageType >               IteratorType; 
+  typedef ImageRegionIterator< ImageType >               ImageIteratorType; 
+  typedef ImageRegionConstIterator< ImageType >          ImageConstIteratorType; 
   typedef PixelTraits< typename TImage::PixelType >      PixelTraitsType;
 
   /** Superclass typedefs for Measurement vector, measurement, 
@@ -119,6 +120,158 @@ public:
   inline FrequencyType GetFrequency(const InstanceIdentifier &id) const;
 
   TotalFrequencyType GetTotalFrequency() const;
+
+  /** \class ListSample::ConstIterator */
+  class ConstIterator
+    {
+    friend class ImageToListSampleAdaptor;
+    public:
+
+    ConstIterator( const ImageToListSampleAdaptor * adaptor )
+      {
+      *this = adaptor->Begin();
+      }
+
+    ConstIterator(const ConstIterator &iter)
+      {
+      m_Iter = iter.m_Iter;
+      m_InstanceIdentifier = iter.m_InstanceIdentifier;
+      }
+
+    ConstIterator& operator=( const ConstIterator & iter )
+      {
+      m_Iter = iter.m_Iter;
+      m_InstanceIdentifier = iter.m_InstanceIdentifier;
+      return *this;
+      }
+
+    FrequencyType GetFrequency() const
+      {
+      return 1;
+      }
+
+    const MeasurementVectorType & GetMeasurementVector() const
+      {
+      MeasurementVectorTraits::Assign( this->m_MeasurementVectorCache, m_Iter.Get());
+      return this->m_MeasurementVectorCache;
+      }
+
+    InstanceIdentifier GetInstanceIdentifier() const
+      {
+      return m_InstanceIdentifier;
+      }
+
+    ConstIterator& operator++()
+      {
+      ++m_Iter;
+      ++m_InstanceIdentifier;
+      return *this;
+      }
+
+    bool operator!=(const ConstIterator &it)
+      {
+      return (m_Iter != it.m_Iter);
+      }
+
+    bool operator==(const ConstIterator &it)
+      {
+      return (m_Iter == it.m_Iter);
+      }
+
+  protected:
+    // This method should only be available to the ListSample class
+    ConstIterator(
+      ImageConstIteratorType iter,
+      InstanceIdentifier iid)
+      {
+      m_Iter = iter;
+      m_InstanceIdentifier = iid;
+      }
+
+    // This method is purposely not implemented
+    ConstIterator();
+
+  private:
+    ImageConstIteratorType            m_Iter;
+    mutable MeasurementVectorType     m_MeasurementVectorCache;
+    InstanceIdentifier                m_InstanceIdentifier;
+    };
+
+ /** \class ImageToListSampleAdaptor::Iterator */
+  class Iterator : public ConstIterator
+    {
+
+    friend class ImageToListSampleAdaptor;
+
+    public:
+
+    Iterator(Self * adaptor):ConstIterator(adaptor)
+      {
+      }
+
+    Iterator(const Iterator &iter):ConstIterator( iter )
+      {
+      }
+
+    Iterator& operator =(const Iterator & iter)
+      {
+      this->ConstIterator::operator=( iter );
+      return *this;
+      }
+
+    protected:
+    // To ensure const-correctness these method must not be in the public API.
+    // The are purposly not implemented, since they should never be called.
+    Iterator();
+    Iterator(const Self * adaptor);
+    Iterator(  ImageConstIteratorType iter, InstanceIdentifier iid);
+    Iterator(const ConstIterator & it);
+    ConstIterator& operator=(const ConstIterator& it);
+    Iterator(
+      ImageIteratorType iter,
+      InstanceIdentifier iid):ConstIterator( iter, iid )
+      {
+      }
+
+    private:
+    };
+
+
+  /** returns an iterator that points to the beginning of the container */
+  Iterator Begin()
+    {
+    ImagePointer  nonConstImage = const_cast< ImageType* >(m_Image.GetPointer());
+    ImageIteratorType imageIterator( nonConstImage, nonConstImage->GetLargestPossibleRegion());  
+    Iterator iter(imageIterator.Begin(), 0);
+    return iter;
+    }
+
+  /** returns an iterator that points to the end of the container */
+  Iterator End()
+    {
+    ImagePointer  nonConstImage = const_cast< ImageType* >(m_Image.GetPointer());
+    ImageIteratorType imageIterator( nonConstImage, nonConstImage->GetLargestPossibleRegion());  
+    Iterator iter(imageIterator.End(), m_Image->GetPixelContainer()->Size());
+    return iter;
+    }
+
+
+  /** returns an iterator that points to the beginning of the container */
+  ConstIterator Begin() const
+    {
+    ImageConstIteratorType imageConstIterator( m_Image, m_Image->GetLargestPossibleRegion());  
+    ConstIterator iter(imageConstIterator.Begin(), 0);
+    return iter;
+    }
+
+  /** returns an iterator that points to the end of the container */
+  ConstIterator End() const
+    {
+    ImageConstIteratorType imageConstIterator( m_Image, m_Image->GetLargestPossibleRegion());  
+    ConstIterator iter(imageConstIterator.End(), m_Image->GetPixelContainer()->Size());
+    return iter;
+    }
+
 
 protected:
   ImageToListSampleAdaptor();
