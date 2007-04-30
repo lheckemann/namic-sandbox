@@ -104,12 +104,20 @@ int itkPointSetToListSampleAdaptorTest(int argc, char* argv[] )
 
   listSample->SetPointSet( pointSet.GetPointer() ) ;
 
-  // tests begin
-
+  //exercise returned pointset
+  const PointSetToListSampleAdaptorType::PointSetType * pointSetReturned = listSample->GetPointSet( );
+   
   //check size
   if (numberOfPoints != listSample->Size())
     {
     std::cerr << "Size() is not returning the correct size"<< std::endl;
+    return EXIT_FAILURE;
+    }
+
+  //check frequency
+  if ( listSample->GetFrequency( 0 ) != 1 )
+    {
+    std::cerr << "GetFrequency() is not returning the correct frequency"<< std::endl;
     return EXIT_FAILURE;
     }
 
@@ -119,6 +127,7 @@ int itkPointSetToListSampleAdaptorTest(int argc, char* argv[] )
     std::cerr << "GetTotalFrequency() is not returning the correct frequency"<< std::endl;
     return EXIT_FAILURE;
     }
+
 
   listSample->Print( std::cout );
 
