@@ -28,8 +28,20 @@ int itkSampleToHistogramFilterTest4(int argc, char *argv[] )
 {
 
   const unsigned int numberOfComponents = 3;
-  typedef signed int  VMeasurementType;
-  typedef float       HMeasurementType;
+
+  //
+  // Note: 
+  //
+  // The following two types are made different here.
+  //
+  // The purpose of this test is to verify that the 
+  // MeasurementVectorType can use an integer type for its 
+  // components, while the Histogram can use a float type for
+  // it measurement type.
+  //
+  typedef signed int  VMeasurementType;  // integer type for the samples
+  typedef float       HMeasurementType;  // float type for the histogram
+
 
   typedef itk::Array< VMeasurementType > MeasurementVectorType;
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
@@ -57,13 +69,13 @@ int itkSampleToHistogramFilterTest4(int argc, char *argv[] )
   HistogramMeasurementVectorType minimum;
   HistogramMeasurementVectorType maximum;
 
-  minimum[0] = -17;
-  minimum[1] = -19;
-  minimum[2] = -24;
+  minimum[0] = -17.5;
+  minimum[1] = -19.5;
+  minimum[2] = -24.5;
 
-  maximum[0] =  17;
-  maximum[1] =  19;
-  maximum[2] =  24;
+  maximum[0] =  17.5;
+  maximum[1] =  19.5;
+  maximum[2] =  24.5;
 
   HistogramSizeType histogramSize;
 
@@ -78,13 +90,13 @@ int itkSampleToHistogramFilterTest4(int argc, char *argv[] )
   // Populate the Sample
   for( unsigned int i=0; i < histogramSize[0]; i++ )
     {
-    measure[0] = minimum[0] + i;
+    measure[0] = static_cast< VMeasurementType >( minimum[0] + i );
     for( unsigned int j=0; j < histogramSize[1]; j++ )
       {
-      measure[1] = minimum[1] + j;
+      measure[1] = static_cast< VMeasurementType >( minimum[1] + j );
       for( unsigned int k=0; k < histogramSize[2]; k++ )
         {
-        measure[2] = minimum[2] + k;
+        measure[2] = static_cast< VMeasurementType >( minimum[2] + k );
         sample->PushBack( measure );
         }
       }
