@@ -37,7 +37,7 @@ int itkSampleToHistogramFilterTest5(int argc, char *argv[] )
     std::cerr << "Missing arguments" << std::endl;
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << "  inputImageFilename " << std::endl;
-    return EXIT_SUCCESS;
+    return EXIT_FAILURE;
     }
 
   //
