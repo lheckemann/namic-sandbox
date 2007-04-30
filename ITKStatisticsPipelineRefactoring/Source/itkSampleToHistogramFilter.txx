@@ -159,6 +159,9 @@ SampleToHistogramFilter< TSample, THistogram >
   MeasurementVectorTraits::SetLength( h_lower, measurementVectorSize );
   MeasurementVectorTraits::SetLength( h_upper, measurementVectorSize );
 
+  const HistogramMeasurementType maximumPossibleValue = 
+    itk::NumericTraits< HistogramMeasurementType >::max();
+
   if( autoMinimumMaximum && autoMinimumMaximum->Get() )
     {
     if( inputSample->Size() )
@@ -166,20 +169,26 @@ SampleToHistogramFilter< TSample, THistogram >
       Algorithm::FindSampleBound( 
         inputSample,  inputSample->Begin(), inputSample->End(), lower, upper);
       
-      float margin;
-
       for( unsigned int i = 0; i < measurementVectorSize; i++ )
         {
         if( !NumericTraits< HistogramMeasurementType >::is_integer )
           {
-          margin = 
+          const double margin = 
               ( (HistogramMeasurementType )(upper[i] - lower[i]) / 
                 (HistogramMeasurementType ) histogramSize[i] ) / 
               (HistogramMeasurementType ) marginalScale;
-          h_upper[i] = (HistogramMeasurementType ) (upper[i] + margin);
-          if(h_upper[i] <= upper[i])
+
+          // Now we check if the upper[i] value can be increased by 
+          // the margin value without saturating the capacity of the 
+          // HistogramMeasurementType
+          if( ( maximumPossibleValue - upper[i] ) > margin )
+            {
+            h_upper[i] = (HistogramMeasurementType ) (upper[i] + margin);
+            }
+          else
             { 
-            // an overflow has occurred therefore set upper to upper
+            // an overflow would occur if we add 'margin' to the upper 
+            // therefore we just compromise in setting h_upper = upper.
             h_upper[i] = upper[i];
             // Histogram measurement type would force the clipping the max value.
             // Therefore we must call the following to include the max value:
@@ -192,7 +201,7 @@ SampleToHistogramFilter< TSample, THistogram >
           {
           h_upper[i] = ((HistogramMeasurementType ) upper[i]) + 
             NumericTraits< HistogramMeasurementType  >::One;
-          if(h_upper[i] <= upper[i])
+          if( h_upper[i] <= upper[i] )
             { 
             // an overflow has occurred therefore set upper to upper
             h_upper[i] = upper[i];
