@@ -114,6 +114,7 @@ int itkSampleToHistogramFilterTest2(int argc, char *argv[] )
 //  filter->SetAutoMinimumMaximum( true );
 //  filter->SetHistogramBinMinimum( minimum );
 //  filter->SetHistogramBinMaximum( maximum );
+
   filter->SetHistogramSize( histogramSize );
 
   try
@@ -123,6 +124,17 @@ int itkSampleToHistogramFilterTest2(int argc, char *argv[] )
   catch( itk::ExceptionObject & excp )
     {
     std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  const unsigned int expectedHistogramSize1 = 
+    histogramSize[0] * histogramSize[1] * histogramSize[2];
+
+  if( histogram->Size() != expectedHistogramSize1 )
+    {
+    std::cerr << "Histogram Size error" << std::endl;
+    std::cerr << "We expected " << expectedHistogramSize1 << std::endl;
+    std::cerr << "We received " << histogram->Size() << std::endl;
     return EXIT_FAILURE;
     }
 
