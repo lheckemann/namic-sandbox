@@ -119,7 +119,7 @@ public:
   /** returns the number of measurement vectors in this container*/
   unsigned int Size() const;
 
-  virtual const MeasurementVectorType & GetMeasurementVector(const InstanceIdentifier &id) const ;
+  virtual const MeasurementVectorType & GetMeasurementVector(const InstanceIdentifier &id) const;
 
   FrequencyType GetFrequency(const InstanceIdentifier &id) const;
 
@@ -127,6 +127,7 @@ public:
 
   /** Method to set UsePixelContainer flag */
   itkSetMacro( UsePixelContainer, bool );
+  itkGetMacro( UsePixelContainer, bool );
   itkBooleanMacro( UsePixelContainer );
 
   /** \class ListSample::ConstIterator */

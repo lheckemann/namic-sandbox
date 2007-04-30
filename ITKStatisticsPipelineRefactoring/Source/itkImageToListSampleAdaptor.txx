@@ -25,7 +25,7 @@ ImageToListSampleAdaptor< TImage>
 ::ImageToListSampleAdaptor()
 {
   m_Image = 0;
-  m_UsePixelContainer = true ;
+  m_UsePixelContainer = true;
 }
 
 template < class TImage>

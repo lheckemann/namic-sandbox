@@ -39,6 +39,7 @@
 #include "itkCovarianceFilter.h"
 #include "itkWeightedCovarianceFilter.h"
 #include "itkImageToListSampleAdaptor.h"
+#include "itkPointSetToListSampleAdaptor.h"
 
 int itkStatisticsPrintTest(int , char* [])
 {
@@ -48,7 +49,7 @@ int itkStatisticsPrintTest(int , char* [])
   typedef itk::Image< TMeasurementVectorType, 3 > ImageType;
   typedef itk::Image< float , 3 >                 TestImageType;
   typedef itk::Image< unsigned char, 3>          ScalarImageType;
-  typedef itk::PointSet< TMeasurementType >       PointSetType;
+  typedef itk::PointSet< TMeasurementType, 2 >       PointSetType;
 
   typedef itk::Statistics::ListSample< TMeasurementVectorType >
     SampleType;
@@ -87,6 +88,8 @@ int itkStatisticsPrintTest(int , char* [])
 
   typedef itk::Statistics::NeighborhoodSampler< SampleType > NeighborhoodSamplerType;
 
+  typedef itk::Statistics::PointSetToListSampleAdaptor< PointSetType > PointSetToListSampleAdaptorType;
+ 
   SampleType::Pointer sampleObj = SampleType::New();
   std::cout << "----------ListSample " << sampleObj;
 
@@ -116,6 +119,11 @@ int itkStatisticsPrintTest(int , char* [])
     ImageToListSampleAdaptorType::New();
   std::cout << "----------ImageToListSampleAdaptor ";
   std::cout << ImageToListSampleAdaptorObj;
+
+  PointSetToListSampleAdaptorType::Pointer PointSetToListSampleAdaptorObj =
+    PointSetToListSampleAdaptorType::New();
+  std::cout << "----------PointSetToListSampleAdaptor ";
+  std::cout << PointSetToListSampleAdaptorObj;
 
   ScalarImageToCooccurrenceMatrixFilterType::Pointer ScalarImageToCooccurrenceMatrixFilterObj =
     ScalarImageToCooccurrenceMatrixFilterType::New();
