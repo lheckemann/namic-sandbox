@@ -179,6 +179,29 @@ int itkSampleToHistogramFilterTest3(int argc, char *argv[] )
 
   filter->SetAutoMinimumMaximum( false );
 
+  // Add a sample that will exercise the overflow code
+  //
+  measure[0] = itk::NumericTraits< MeasurementType >::max();
+  measure[1] = itk::NumericTraits< MeasurementType >::max();
+  measure[2] = itk::NumericTraits< MeasurementType >::max();
+
+  sample->PushBack( measure );
+  sample->Modified();
+
+  try
+    {
+    filter->Update();
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  filter->SetAutoMinimumMaximum( true );
+
+
   try
     {
     filter->Update();
