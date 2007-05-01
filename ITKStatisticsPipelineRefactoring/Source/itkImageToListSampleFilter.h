@@ -31,7 +31,7 @@ namespace Statistics {
  *  \brief The class takes an image as input and generates a list sample as 
  *  output. 
  *
- *  There are differences between this class and ImageToListAdaptor. This 
+ *  There are differences between this class and ImageToListSampleAdaptor. This 
  *  class is not an adaptor. It creates a new list sample and does not 
  *  provide a pseudo interface to the actual image to make it look like a 
  *  list sample.
@@ -48,7 +48,7 @@ namespace Statistics {
  * think the ImageMaskSpatialObject is slow in terms of inefficient iteration 
  * through the image.
  * 
- * \sa ImageToListAdaptor
+ * \sa ImageToListSampleAdaptor
  */
 template < class TImage, class TMaskImage = TImage > 
 class ITK_EXPORT ImageToListSampleFilter :
