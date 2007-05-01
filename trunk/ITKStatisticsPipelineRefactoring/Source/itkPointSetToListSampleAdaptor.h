@@ -27,16 +27,16 @@ namespace itk {
 namespace Statistics {
 
 /** \class PointSetToListSampleAdaptor
- *  \brief This class provides ListSampleBase interfaces to ITK PointSet
+ *  \brief This class provides ListSample interface to ITK PointSet
  *
  * After calling SetPointSet(PointSet*) method to plug-in 
  * the PointSet object, users can use Sample interfaces to access 
  * PointSet data. This adaptor assumes that the PointsContainer is
  * actual storage for measurment vectors. In other words, PointSet's
- * points are equal to measurement vectors. This class totally ignores
+ * dimension equals to the measurement vectors size. This class totally ignores
  * PointsDataContainer.
  * 
- * \sa Sample, ListSampleBase, DefaultStaticMeshTraits, PointSet
+ * \sa Sample, ListSample, PointSet
  */
 
 template < class TPointSet >
