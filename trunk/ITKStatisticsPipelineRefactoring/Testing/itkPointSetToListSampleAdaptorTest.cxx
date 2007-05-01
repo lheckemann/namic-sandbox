@@ -144,6 +144,148 @@ int itkPointSetToListSampleAdaptorTest(int argc, char* argv[] )
       }
     }
    
+  //Test the iterators
+  std::cerr << "Iterators..." << std::endl;
+  {
+  // forward iterator
+  typedef PointSetToListSampleAdaptorType::Iterator IteratorType;
+  
+  IteratorType s_iter = listSample->Begin();
+  
+  // copy constructor
+  IteratorType bs_iter(s_iter);
+  if (bs_iter != s_iter)
+    {
+    std::cerr << "Iterator::Copy Constructor failed" << std::endl;
+    return EXIT_FAILURE;    
+    }
+  
+  // assignment operator 
+  IteratorType assignment_iter( bs_iter );
+  assignment_iter = s_iter;
+  if (assignment_iter != s_iter)
+    {
+    std::cerr << "Iterator::assignment operator failed" << std::endl;
+    return EXIT_FAILURE;    
+    }
+
+  PointSetToListSampleAdaptorType::InstanceIdentifier id = 0;
+  while (s_iter != listSample->End())
+    {
+    if (listSample->GetMeasurementVector(id) != 
+        s_iter.GetMeasurementVector())
+      {
+      std::cerr << "Iterator::GetMeasurementVector (forward) failed" 
+                << std::endl;
+      return EXIT_FAILURE;
+      }
+    if (id != s_iter.GetInstanceIdentifier())
+      {
+      std::cerr << "Iterator::GetInstanceIdentifier (forward) failed" 
+                << std::endl;
+      return EXIT_FAILURE;
+      }
+    if (s_iter.GetFrequency() != 1)
+      {
+      std::cerr << "Iterator::GetFrequency (forward) failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+    if (listSample->GetFrequency(id) != 1)
+      {
+      std::cerr << "GetFrequency (forward) failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+    ++id;
+    ++s_iter;
+    }
+  
+  if (s_iter != listSample->End())
+    {
+    std::cerr << "Iterator::End (forward) failed" << std::endl;
+    return EXIT_FAILURE;    
+    }
+  
+  }
+
+  std::cerr << "Const Iterators..." << std::endl;
+  {
+  // forward iterator
+  typedef PointSetToListSampleAdaptorType::ConstIterator  ConstIteratorType;
+  
+  ConstIteratorType s_iter = listSample->Begin();
+  
+  // copy constructor
+  ConstIteratorType bs_iter(s_iter);
+  if (bs_iter != s_iter)
+    {
+    std::cerr << "Iterator::Copy Constructor (from const) failed" 
+              << std::endl;
+    return EXIT_FAILURE;    
+    }
+
+  // assignment operator
+  ConstIteratorType assignment_iter( bs_iter );
+  assignment_iter = s_iter;
+  if (assignment_iter != s_iter)
+    {
+    std::cerr << "Const Iterator::operator= () failed" 
+              << std::endl;
+    return EXIT_FAILURE;    
+    }
+
+  // copy from non-const iterator
+  PointSetToListSampleAdaptorType::Iterator nonconst_iter = listSample->Begin();
+  PointSetToListSampleAdaptorType::ConstIterator s2_iter(nonconst_iter);
+  if (s2_iter != s_iter)
+    {
+    std::cerr << "Iterator::Copy Constructor (from non-const) failed" 
+              << std::endl;
+    return EXIT_FAILURE;    
+    }
+   
+  // assignment from non-const iterator
+  s2_iter = nonconst_iter;
+  if (s2_iter != s_iter)
+    {
+    std::cerr << "Iterator::assignment (from non-const) failed" << std::endl;
+    return EXIT_FAILURE;    
+    }
+  
+  PointSetToListSampleAdaptorType::InstanceIdentifier id = 0;
+  while (s_iter != listSample->End())
+    {
+    if (listSample->GetMeasurementVector(id) != 
+        s_iter.GetMeasurementVector())
+      {
+      std::cerr << "Iterator::GetMeasurementVector (forward) failed" 
+                << std::endl;
+      return EXIT_FAILURE;
+      }
+    if (id != s_iter.GetInstanceIdentifier())
+      {
+      std::cerr << "Iterator::GetInstanceIdentifier (forward) failed" 
+                << std::endl;
+      return EXIT_FAILURE;
+      }
+    if (s_iter.GetFrequency() != 1)
+      {
+      std::cerr << "Iterator::GetFrequency (forward) failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+    ++id;
+    ++s_iter;
+    }
+  
+  if (s_iter != listSample->End())
+    {
+    std::cerr << "Iterator::End (forward) failed" << std::endl;
+    return EXIT_FAILURE;    
+    }
+  
+  }
+
+
+
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
 }
