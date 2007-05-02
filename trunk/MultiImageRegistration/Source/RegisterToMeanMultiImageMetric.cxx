@@ -66,7 +66,7 @@ RegisterToMeanMultiImageMetric<TFixedImage>
 
   mean.resize(this->m_NumberOfSpatialSamples);
 
-  m_MeanStandardDeviation = this->m_ImageStandardDeviation / sqrt( this->m_NumberOfImages);
+  m_MeanStandardDeviation = this->m_ImageStandardDeviation / sqrt( (double) this->m_NumberOfImages);
 }
 
 /*

@@ -195,6 +195,10 @@ public:
    *  are present and plugged together correctly     */
   virtual void Initialize(void) throw ( ExceptionObject );
 
+  /** Finalize the Metric by making sure that there is no
+   *  memory leak     */
+  virtual void Finalize(void);
+  
   /** Set/Get the kernel function. This is used to calculate the joint
    * probability distribution. Default is the GaussianKernelFunction. */
   itkSetObjectMacro( KernelFunction, KernelFunction );
@@ -283,6 +287,10 @@ protected:
   typedef ImageRandomNonRepeatingConstIteratorWithIndex < FixedImageType > NonRepeatingRandomIterator;
   mutable NonRepeatingRandomIterator* randIter;
 
+  // Get nonzero indexex
+  int numberOfWeights;
+  mutable Array<int> bsplineIndexes;
+  
 };
 
 } // end namespace itk

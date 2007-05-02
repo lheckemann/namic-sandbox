@@ -56,6 +56,7 @@
 #include "itkWindowedSincInterpolateImageFunction.h"
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
+#include "itkVectorNearestNeighborInterpolateImageFunction.h"
 #include "MutualInformationLinearInterpolateImageFunction.h"
 
 #include "itkRecursiveMultiResolutionPyramidImageFilter.h"
@@ -886,9 +887,11 @@ int main( int argc, char *argv[] )
 
       std::cout << "message: Reading Image: " << inputFileNames[i].c_str() << std::endl;
       imagePyramidArray[i]->Update();
+
+
       /*
       // Compute the gradient images
-      typedef    itk::CovariantVector< InternalPixelType > GradientPixelType;
+      typedef    itk::CovariantVector< InternalPixelType, Dimension > GradientPixelType;
       typedef    itk::Image< GradientPixelType, Dimension >   GradientImageType;
       
       for(int j=0; j<multiLevelAffine;j++)
@@ -899,9 +902,9 @@ int main( int argc, char *argv[] )
         registration->SetGradientImagePyramidArray(gradientFilter->GetOutput(),i,j);
         gradientFilter->Update();
       }
-      typedef itk::VectorLinearInterpolateImageFunction<GradientImageType,InternalPixelType> VectorLinearInterpolatorType;
+      typedef itk::VectorNearestNeighborInterpolateImageFunction<GradientImageType,InternalPixelType> VectorLinearInterpolatorType;
       VectorLinearInterpolatorType::Pointer vectorLinearInterpolator = VectorLinearInterpolatorType::New();
-      registration->SetGradientInterpolatorArray(vectorLinearInterpolator,i);
+      registration->SetGradientInterpolatorArray(vectorLinearInterpolator.GetPointer(),i);
       */
 
 

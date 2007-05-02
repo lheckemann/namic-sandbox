@@ -327,6 +327,9 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
       throw err;
     }
 
+    // finalize the metric
+    m_Metric->Finalize();
+    
     // get the results
     ParametersType current(m_TransformArray[0]->GetNumberOfParameters());
     m_LastTransformParameters = m_Optimizer->GetCurrentPosition();
