@@ -151,6 +151,16 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
         " other than BSplineDeformableTransform" );
   }
 
+
+  // Initialize the variables for regularization term
+  if( this->m_UserBsplineDefined )
+  {
+    // Get nonzero indexes
+    numberOfWeights = this->m_BSplineTransformArray[0]->GetNumberOfAffectedWeights();
+    bsplineIndexes.set_size( numberOfWeights );
+  }
+
+
   //Prepare the gradient filters if Regularization is on
   if(m_Regularization)
   {
@@ -159,6 +169,21 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
   
 }
 
+/*
+ * Finalize
+ */
+template <class TFixedImage> 
+void
+ParzenWindowEntropyMultiImageMetric<TFixedImage>
+::Finalize(void)
+{
+
+  // deallocate randomiterator
+  delete randIter;
+
+ //Finalize superclass
+  Superclass::Finalize();
+}
 
 template < class TFixedImage >
 void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
@@ -238,7 +263,7 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
     for (int j = 0; j < this->m_NumberOfImages; j++)
     {
       this->m_Sample[i].imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(this->m_Sample[i].mappedPointsArray[j]);
-      //(*iter).gradientArray[j] = this->m_GradientInterpolatorArray[j]->Evaluate((*iter).mappedPointsArray[j]);
+      //this->m_Sample[i].gradientArray[j] = this->m_GradientInterpolatorArray[j]->Evaluate(this->m_Sample[i].mappedPointsArray[j]);
       allOutside = false;
     }
     // Jump to random position
@@ -633,9 +658,9 @@ void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
 UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSample& sample, const RealType& weight, const int& imageNumber, const int& threadID) const
 {
 
-  //this->m_Sample[x].FixedImagePoint , this->m_Sample[x].mappedPointsArray[l]
-      const CovarientType gradient = m_DerivativeCalculator[imageNumber][threadID]->Evaluate(sample.mappedPointsArray[imageNumber]);
-
+  const CovarientType gradient = m_DerivativeCalculator[imageNumber][threadID]->Evaluate(sample.mappedPointsArray[imageNumber]);
+  //typedef FixedArray < double, MovingImageDimension > FixedArrayType;
+  //const FixedArrayType gradient = this->m_GradientInterpolatorArray[imageNumber]->Evaluate(sample.mappedPointsArray[imageNumber]);
 
   typedef typename TransformType::JacobianType JacobianType;
 
@@ -659,11 +684,9 @@ UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSamp
   else
   {
     // Get nonzero indexex
-    const int numberOfWeights = this->m_BSplineTransformArray[imageNumber]->GetNumberOfAffectedWeights();
-    Array<int> indexes( numberOfWeights );
-    
+
     const JacobianType & jacobian =
-        this->m_BSplineTransformArray[imageNumber]->GetJacobian(sample.FixedImagePoint, indexes);
+        this->m_BSplineTransformArray[imageNumber]->GetJacobian(sample.FixedImagePoint, bsplineIndexes);
 
     double currentValue;
     for (unsigned int k = 0; k < numberOfWeights; k++)
@@ -671,9 +694,9 @@ UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSamp
       currentValue = 0.0;
       for (unsigned int j = 0; j < MovingImageDimension; j++)
       {
-        currentValue += jacobian[j][indexes[k]] * gradient[j];
+        currentValue += jacobian[j][bsplineIndexes[k]] * gradient[j];
       }
-      inputDerivative[indexes[k]] += currentValue*weight;
+      inputDerivative[bsplineIndexes[k]] += currentValue*weight;
     }
   }
 

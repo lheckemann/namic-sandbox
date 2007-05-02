@@ -221,7 +221,7 @@ public:
    * samples used to calculate the joint probability distribution.
    * The number of spatial samples is clamped to be a minimum of 1.
    * Default value is 50. */
-  void SetNumberOfSpatialSamples(const unsigned int );
+  itkSetMacro( NumberOfSpatialSamples, unsigned int);
   itkGetMacro( NumberOfSpatialSamples, unsigned int);
   
   /** Set the parameters defining the Transform. */
@@ -235,6 +235,10 @@ public:
    *  are present and plugged together correctly     */
   virtual void Initialize(void) throw ( ExceptionObject );
 
+  /** Finalize the Metric by making sure that there is no
+  *  memory leak     */
+  virtual void Finalize(void);
+  
   /** Set number of images in the class */
   virtual void SetNumberOfImages(int);
 
@@ -321,6 +325,7 @@ protected:
    *   at that point, and the corresponding moving image value. */
   typedef typename TransformType::InputPointType        FixedImagePointType;
   typedef typename TransformType::OutputPointType       MovingImagePointType;
+
   class SpatialSample
   {
     public:
@@ -330,6 +335,7 @@ protected:
       FixedImagePointType              FixedImagePoint;
       Array< RealType >                   imageValueArray;
       MovingImagePointType *   mappedPointsArray;
+      //GradientPixelType*  gradientArray;
 
   };
   mutable SpatialSample*      m_Sample;

@@ -864,7 +864,7 @@ unsigned int
 UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 ::GetNumberOfAffectedWeights() const
 {
-  m_WeightsFunction->GetNumberOfWeights();
+  return m_WeightsFunction->GetNumberOfWeights();
 }
 
 

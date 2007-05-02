@@ -65,17 +65,7 @@ template <class TFixedImage>
 MultiImageMetric<TFixedImage>
 ::~MultiImageMetric()
 {
-  // deallocate sample array
-  if(this->m_Sample)
-  {
-    for (int i = 0; i < this->m_NumberOfSpatialSamples; i++)
-    {
-      this->m_Sample[i].imageValueArray.set_size(0);
-      delete [] this->m_Sample[i].mappedPointsArray;
-    }
-    delete [] this->m_Sample;
-    this->m_Sample = 0;
-  }
+
 }
 
 
@@ -101,37 +91,6 @@ MultiImageMetric<TFixedImage>
     this->m_TransformArray[i]->SetParametersByValue( currentParam );
   }
 }
-
-/*
- * Set number of spatial samples
- */
-template <class TFixedImage> 
-void
-MultiImageMetric<TFixedImage>
-::SetNumberOfSpatialSamples( const unsigned int  numberOfSamples ) 
-{
-
-  // deallocate sample array
-  if(m_NumberOfSpatialSamples)
-  {
-    for (int i = 0; i < this->m_NumberOfSpatialSamples; i++)
-    {
-      delete [] this->m_Sample[i].mappedPointsArray;
-    }
-    delete [] this->m_Sample;
-  }
-
-  this->m_NumberOfSpatialSamples = numberOfSamples;
-
-  // allocate new sample array
-  this->m_Sample = new  SpatialSample[this->m_NumberOfSpatialSamples];
-  for (int i = 0; i < this->m_NumberOfSpatialSamples; i++)
-  {
-    this->m_Sample[i].imageValueArray.set_size (this->m_NumberOfImages);
-    this->m_Sample[i].mappedPointsArray = new MovingImagePointType[this->m_NumberOfImages];
-  }
-}
-
 
 /*
  * Initialize
@@ -180,6 +139,16 @@ MultiImageMetric<TFixedImage>
   }
 
   numberOfParameters = m_TransformArray[0]->GetNumberOfParameters();
+
+
+  // allocate new sample array
+  this->m_Sample = new  SpatialSample[this->m_NumberOfSpatialSamples];
+  for (int i = 0; i < this->m_NumberOfSpatialSamples; i++)
+  {
+    this->m_Sample[i].imageValueArray.set_size (this->m_NumberOfImages);
+    this->m_Sample[i].mappedPointsArray = new MovingImagePointType[this->m_NumberOfImages];
+    //this->m_Sample[i].gradientArray = new GradientPixelType[this->m_NumberOfImages];
+  }
   
   // Use optimized Bspline derivatives if the tranform type is UserBSplie
   if( !strcmp(this->m_TransformArray[0]->GetNameOfClass(), "UserBSplineDeformableTransform") )
@@ -191,6 +160,7 @@ MultiImageMetric<TFixedImage>
     this->m_UserBsplineDefined = false;
   }
 
+  
   // Check whether Bspline tranform are initialized correctly
   if(this->m_UserBsplineDefined == true)
   {
@@ -214,7 +184,31 @@ MultiImageMetric<TFixedImage>
   this->InvokeEvent( InitializeEvent() );
 
 }
- 
+
+
+/*
+ * Finalize
+ */
+template <class TFixedImage> 
+void
+MultiImageMetric<TFixedImage>
+::Finalize(void)
+{
+
+  // deallocate sample array
+  if(this->m_Sample)
+  {
+    for (int i = 0; i < this->m_NumberOfSpatialSamples; i++)
+    {
+      this->m_Sample[i].imageValueArray.set_size(0);
+      delete [] this->m_Sample[i].mappedPointsArray;
+      //delete [] this->m_Sample[i].gradientArray;
+    }
+    delete [] this->m_Sample;
+    this->m_Sample = 0;
+  }
+  
+}
 
 /*
  * PrintSelf
