@@ -117,7 +117,7 @@
 //Define the global types for image type
 #define PixelType unsigned char
 #define InternalPixelType double
-#define Dimension 3
+#define Dimension 2
 
 //  The following section of code implements an observer
 //  that will monitor the evolution of the registration process.
@@ -886,7 +886,6 @@ int main( int argc, char *argv[] )
 
       std::cout << "message: Reading Image: " << inputFileNames[i].c_str() << std::endl;
       imagePyramidArray[i]->Update();
-
       /*
       // Compute the gradient images
       typedef    itk::CovariantVector< InternalPixelType > GradientPixelType;

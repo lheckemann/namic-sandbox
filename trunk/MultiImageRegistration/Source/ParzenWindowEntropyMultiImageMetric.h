@@ -25,6 +25,7 @@
 #include "itkCentralDifferenceImageFunction.h"
     
 #include "itkGradientImageFilter.h"
+#include "itkImageRandomNonRepeatingConstIteratorWithIndex.h"
 
 #include "itkImageRegionIterator.h"
 
@@ -228,39 +229,22 @@ public:
   /** Get regularization on/off */
   itkGetMacro( Regularization, bool );
 
-  /** Set Number of images */
-  virtual void SetNumberOfImages(int N);
 
 protected:
   ParzenWindowEntropyMultiImageMetric();
-  virtual ~ParzenWindowEntropyMultiImageMetric() {};
+  virtual ~ParzenWindowEntropyMultiImageMetric();
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   ParzenWindowEntropyMultiImageMetric(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
   
-  /** A spatial sample consists of the fixed domain point, the fixed image value
-   *   at that point, and the corresponding moving image value. */
-  class SpatialSample
-  {
-  public:
-    SpatialSample(){}
-    ~SpatialSample(){};
-
-    FixedImagePointType              FixedImagePoint;
-    Array< RealType >                   imageValueArray;
-    MovingImagePointType *   mappedPointsArray;
-
-  };
-
+  
   /** SpatialSampleContainer typedef support. */
+  typedef typename Superclass::SpatialSample SpatialSample;
   typedef SpatialSample *  SpatialSampleContainer;
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueAndDerivative( void *arg );
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValue( void *arg );
 
-
-  /** Container to store sample set */
-  mutable SpatialSampleContainer      m_Sample;
 
   double                              m_ImageStandardDeviation;
   typename KernelFunction::Pointer    m_KernelFunction;
@@ -296,9 +280,8 @@ protected:
   bool m_UseMask;
   unsigned int m_NumberOfFixedImages;
 
-  // Functions to implement multi-threaded sampling
-  static ITK_THREAD_RETURN_TYPE ThreaderCallbackSampleImageDomain( void *arg );
-  void SampleImageDomainHelper(int threadId) const;
+  typedef ImageRandomNonRepeatingConstIteratorWithIndex < FixedImageType > NonRepeatingRandomIterator;
+  mutable NonRepeatingRandomIterator* randIter;
 
 };
 
