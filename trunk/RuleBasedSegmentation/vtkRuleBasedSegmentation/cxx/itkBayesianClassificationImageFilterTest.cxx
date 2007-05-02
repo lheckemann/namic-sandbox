@@ -3,6 +3,7 @@
 #include "itkImageFileWriter.h"
 #include "itkBayesianClassificationImageFilter.h"
 #include "itkImageRegionConstIterator.h"
+#include "itkRescaleIntensityImageFilter.h"
 
 int main(int argc, char *argv[])
 {
@@ -79,12 +80,6 @@ int main(int argc, char *argv[])
     filter->SetMaskValue( atoi(argv[6]) );
     }
 
-  typedef itk::ImageFileWriter< 
-    ClassifierType::OutputImageType >  WriterType;
-  WriterType::Pointer writer = WriterType::New();
-  writer->SetInput(filter->GetOutput());
-  writer->SetFileName( argv[2] );
-  
   try
     {
     filter->Update();
@@ -96,6 +91,24 @@ int main(int argc, char *argv[])
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;
     }
+  
+  //
+  // Setup writer.. Rescale the label map to the dynamic range of the 
+  // datatype and write it 
+  //
+  typedef ClassifierType::OutputImageType      ClassifierOutputImageType;
+  typedef itk::Image< unsigned char, Dimension >     OutputImageType;
+  typedef itk::RescaleIntensityImageFilter< 
+    ClassifierOutputImageType, OutputImageType >   RescalerType;
+  RescalerType::Pointer rescaler = RescalerType::New();
+  rescaler->SetInput( filter->GetOutput() );
+  rescaler->SetOutputMinimum( 0 );
+  rescaler->SetOutputMaximum( 255 );
+
+  typedef itk::ImageFileWriter< OutputImageType >  WriterType;
+  WriterType::Pointer writer = WriterType::New();
+  writer->SetInput( rescaler->GetOutput() );
+  writer->SetFileName( argv[2] );
   
   try
     {
