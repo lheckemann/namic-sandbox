@@ -36,7 +36,8 @@ MultiImageMetric<TFixedImage>
 //   m_Transform     = 0; // has to be provided by the user.
 //   m_Interpolator  = 0; // has to be provided by the user.
 //  m_GradientImage = 0; // will receive the output of the filter;
-  m_NumberOfSpatialSamples = 50;
+  m_NumberOfSpatialSamples = 0;
+  m_Sample = 0;
 
   m_ComputeGradient = false; // metric does not compute gradient by default
   m_UserBsplineDefined = false;
@@ -54,6 +55,27 @@ MultiImageMetric<TFixedImage>
 
   m_Threader = MultiThreader::New();
   m_NumberOfThreads = m_Threader->GetNumberOfThreads();
+}
+
+
+/*
+ * Constructor
+ */
+template <class TFixedImage> 
+MultiImageMetric<TFixedImage>
+::~MultiImageMetric()
+{
+  // deallocate sample array
+  if(this->m_Sample)
+  {
+    for (int i = 0; i < this->m_NumberOfSpatialSamples; i++)
+    {
+      this->m_Sample[i].imageValueArray.set_size(0);
+      delete [] this->m_Sample[i].mappedPointsArray;
+    }
+    delete [] this->m_Sample;
+    this->m_Sample = 0;
+  }
 }
 
 
@@ -80,6 +102,35 @@ MultiImageMetric<TFixedImage>
   }
 }
 
+/*
+ * Set number of spatial samples
+ */
+template <class TFixedImage> 
+void
+MultiImageMetric<TFixedImage>
+::SetNumberOfSpatialSamples( const unsigned int  numberOfSamples ) 
+{
+
+  // deallocate sample array
+  if(m_NumberOfSpatialSamples)
+  {
+    for (int i = 0; i < this->m_NumberOfSpatialSamples; i++)
+    {
+      delete [] this->m_Sample[i].mappedPointsArray;
+    }
+    delete [] this->m_Sample;
+  }
+
+  this->m_NumberOfSpatialSamples = numberOfSamples;
+
+  // allocate new sample array
+  this->m_Sample = new  SpatialSample[this->m_NumberOfSpatialSamples];
+  for (int i = 0; i < this->m_NumberOfSpatialSamples; i++)
+  {
+    this->m_Sample[i].imageValueArray.set_size (this->m_NumberOfImages);
+    this->m_Sample[i].mappedPointsArray = new MovingImagePointType[this->m_NumberOfImages];
+  }
+}
 
 
 /*

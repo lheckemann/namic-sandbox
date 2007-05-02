@@ -1,60 +1,262 @@
--useBspline on 
--useBsplineHigh off  
+#
+# PARAMETERS OF BINARY FILE
+#
+# 
+# 
+# If useBpline is set off, only affine registration is done, 
+# if it is on and useBspline high is off, bspline registration 
+# is done with specified grid region. If useBsplineHigh is on
+# bspline registration iwth mesh refinement is performed
+#
+# Options to use:
+#    useBspline on/off
+#    useBsplineHigh on/off
+#
+    
+    -useBspline off
+    -useBsplineHigh off
 
--optimizerType lineSearch    
--imageType normal
 
--multiLevelAffine 2  
--multiLevelBspline 1  
+
+#
+# Currently there are two optimizer types. "gradient" is a fixed step gradient descent search. 
+# "lineSearch" is gradient descent search where step size is determined using line search.
+#
+# optimizerType gradient/lineSearch
+#
+    
+-optimizerType gradient
+    
+
+    
+    
+#
+# metricType specifies which objective function to use
+# possible options:
+#   metricType entropy/variance/mean/meanAndVariance/jointEntropy/jointEntropyKNN
+#   
+#   entropy: congealing with entropy along a pixel stack
+#   variance: congealing with variance computed along a pixel stack
+#   mean: each image is registered to the mean of all images. The mean is updated after each iteration
+#   meanAndVariance: each image is registered to the mean and variance images. 
+#                    mean and Variance images are updated after each iteration.
+#                    the registration to the mean and variance are done using mutual information I(X_i;mean,variance)
+#   jointEntropy:  objective function is to minimize the joint entropy of all images
+#   jointEntropyKNN: same objective function as jointEntropy. To decrease computational 
+#                    demand approximate nearest neighbors search is done instead of considering
+#                    all possible pairwise combinations.
+#
+    
+-metricType entropy
+
+
+
+#
+# There are three interpolator types
+# possible options:
+#     interpolatoType nearest/sinc/linear
+#
+# nearest: nearest neigbor interpolator
+# sinc: sinc interpolator
+# linear: linear interpolator
+#
+ 
+-interpolatorType linear
+
+
+
+#
+# following options define number of multiresolution levels used in optimization
+# if set to one no multiresolution optimization is performed.
+# Affine/Bspline/BsplineHigh define number of multiresolution levels
+# used for each registration stage
+#
+   
+-multiLevelAffine 2    
+-multiLevelBspline 1      
 -multiLevelBsplineHigh 1
  
--optTranslationLearningRate 1e5 
--optAffineLearningRate  1e-3 
--optBsplineLearningRate 1e5 
--optBsplineHighLearningRate 1e5
  
--optTranslationNumberOfIterations 50 
--optAffineNumberOfIterations 500  
--optBsplineNumberOfIterations 500  
--optBsplineHighNumberOfIterations 500 
+ 
+#
+# Following options define the learning rate of the optimizers 
+# for each stage of the registration
+#
 
--numberOfSpatialSamplesTranslationPercentage 25e-5 
--numberOfSpatialSamplesAffinePercentage 25e-5 
--numberOfSpatialSamplesBsplinePercentage 5e-4 
--numberOfSpatialSamplesBsplineHighPercentage 1e-3
+    -optTranslationLearningRate 1e-2
+    -optAffineLearningRate  1e-3
+    -optBsplineLearningRate 1e-2
+    -optBsplineHighLearningRate 1e-2
+ 
+ 
+ 
+#
+# Following options define the number iterations to be performed
+# Optimization is terminated after a fixed number of iterations
+# no other termination options are used
+#
+
+    -optTranslationNumberOfIterations 50
+    -optAffineNumberOfIterations 500
+    -optBsplineNumberOfIterations 500
+    -optBsplineHighNumberOfIterations 500
+
+
+# All objective functions make use of stochastic subsampline
+# following options define the number of spatial samples
+#
+
+    -numberOfSpatialSamplesTranslation 2000
+    -numberOfSpatialSamplesAffine 4000
+    -numberOfSpatialSamplesBspline 4000
+    -numberOfSpatialSamplesBsplineHigh 4000
+
+
+#
+# defines the initial bspline grid size along each dimension
+#
+    -bsplineInitialGridSize 8
     
--numberOfSpatialSamplesTranslation 2000
--numberOfSpatialSamplesAffine 2000
--numberOfSpatialSamplesBspline 4000
--numberOfSpatialSamplesBsplineHigh 4000
+#
+# When using Bspline grid refinement, this options defines how many number 
+# of refinements to use
+#
 
--bsplineInitialGridSize 5 
--numberOfBsplineLevel 1 
--useBSplineRegularization on 
--bsplineRegularizationFactor 1e-1
+    -numberOfBsplineLevel 2
     
--mask all 
--maskType connectedThreshold 
--threshold1 8 
--threshold2 20
+#
+# setting this options to on, introduces regularization
+# to bspline registration
+#
 
-
--translationMultiScaleSamplePercentageIncrease 4.0 
--affineMultiScaleSamplePercentageIncrease 4.0 
--bsplineMultiScaleSamplePercentageIncrease 4.0 
+    -useBSplineRegularization off
     
--translationMultiScaleMaximumIterationIncrease 1.0 
--affineMultiScaleMaximumIterationIncrease 1.0 
--bsplineMultiScaleMaximumIterationIncrease 1.0
+#
+# sets bspline regularization factor
+#
+    -bsplineRegularizationFactor 100
+    
+    
+#
+# Uses a mask on the images. Only pixels inside the mask are considered during the registration
+# possible options 
+#     mask none/single/all
+# none: do not use mask
+# single: only use mask for the first image
+# all: use mask for all images
+#
+    -mask none 
+    
+#
+# specifies the mask type
+# possible options 
+#     maskype connectedThreshold/neighborhoodConnected
+# connectedThreshold: adds all pixels
+#                     to the mask if its value is smaller than threshold1
+#                     than add connected pixels whose value is smaller than threshold2
+# neighborhoodConnected: same as connectedThreshold but a pixel is added 
+#                        only if it is all connected within a radius of one
+#
+    -maskType none
+    -threshold1 5 
+    -threshold2 20
+
+
+#
+# normal option reads image formats supported by ITK. Dicom is to read dicom images
+#
+# imageType normal/dicom    
+#
+    
+-imageType normal
+    
+    
+    
+   
+#
+# specifies the translation scale coefficients with respect to the affine coefficients
+# smaller values mean larger step size along translation directions
+#
+    -translationScaleCoeffs 1e-4
+    
+    
+    
+    
+#
+#  Maximum number of iterations performed for a line search 
+#  if the optimizer is lineSearch
+#    
+    -maximumLineIteration 10
+    
+    
+    
+    
+#
+# the width of the parzen window to compute the entropy
+# used by all metric types computing entropy
+#
+    -parzenWindowStandardDeviation 0.5
+    
+    
+    
+    
+#
+# the option to specify whether or not to write the output images
+# possible options
+#     writeOutputImages  on/off
+    -writeOutputImages on
+    
+    
+    
+    
+# 
+# option to specify whether or not to write the deformation fields
+# possible options:
+#     writeDeformationFields  on/off
+#
+    -writeDeformationFields off
+    
+    
+    
+# 
+# number of nearest neighbors to compute the joint entropy
+# when using metricType jointEntropyKNN
+# errorbound is the error of nearest neigbor approximation
+#
+    -NumberOfNearestNeigbors 5
+    -errorBound 3.0
+
+
+
+#
+#  Specifies the percentage increase in the sampling for each multiresolution level
+#
+    -translationMultiScaleSamplePercentageIncrease 4.0 
+    -affineMultiScaleSamplePercentageIncrease 8.0 
+    -bsplineMultiScaleSamplePercentageIncrease 8.0 
+    
+    
+    
+#
+#  Specifies number of iterations increase for each resolution level
+#
+    -translationMultiScaleMaximumIterationIncrease 1.0 
+    -affineMultiScaleMaximumIterationIncrease 1.0 
+    -bsplineMultiScaleMaximumIterationIncrease 1.0
   
--translationMultiScaleStepLengthIncrease 1e-1 
--affineMultiScaleStepLengthIncrease 1e-1 
--bsplineMultiScaleStepLengthIncrease 1e-1 
+  
+  
+#
+# Specifies optimizer step length increase fo each multiresolution level
+#
+    -translationMultiScaleStepLengthIncrease 1e-2 
+    -affineMultiScaleStepLengthIncrease 1e-2 
+    -bsplineMultiScaleStepLengthIncrease 1e-2 
     
--translationScaleCoeffs 1e-5 
--gaussianFilterVariance 2.0 
--maximumLineIteration 10 
--parzenWindowStandardDeviation 0.4
     
- -writeOutputImages off
- -writeDeformationFields off
+#
+# number of fixed image considered in the registration
+# currently not used by any metric
+#
+    -numberOfFixedImages 0
+    

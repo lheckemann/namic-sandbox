@@ -21,7 +21,7 @@
 
 
 #include "itkCovariantVector.h"
-#include "itkImageRandomConstIteratorWithIndex.h"
+
 #include "vnl/vnl_math.h"
 #include "itkGaussianKernelFunction.h"
 #include <cmath>
@@ -36,8 +36,6 @@ template < class TFixedImage >
 ParzenWindowEntropyMultiImageMetric < TFixedImage >::
     ParzenWindowEntropyMultiImageMetric()
 {
-
-  this->SetNumberOfSpatialSamples(50);
 
   m_KernelFunction =
     dynamic_cast < KernelFunction * >(GaussianKernelFunction::New ().GetPointer ());
@@ -55,20 +53,23 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >::
 
   m_UseMask = false;
   m_NumberOfFixedImages = 0;
+
+  this->m_Sample = 0;
+
 }
 
 /*
- * Set Number of images
+ * Constructor
  */
-
-template <class TFixedImage> 
-void
-ParzenWindowEntropyMultiImageMetric<TFixedImage>
-::SetNumberOfImages(int N)
+template < class TFixedImage >
+ParzenWindowEntropyMultiImageMetric < TFixedImage >::
+~ParzenWindowEntropyMultiImageMetric()
 {
+  
 
-  Superclass::SetNumberOfImages(N);
+
 }
+
 
 
 /*
@@ -83,12 +84,9 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
   //First intialize the superclass
   Superclass::Initialize();
 
-  // resize the sample array
-  m_Sample = new  SpatialSample[this->m_NumberOfSpatialSamples];
-  for (int i = 0; i < this->m_NumberOfSpatialSamples; i++)
+  if (this->m_NumberOfSpatialSamples == 0)
   {
-    m_Sample[i].imageValueArray.set_size (this->m_NumberOfImages);
-    m_Sample[i].mappedPointsArray = new MovingImagePointType[this->m_NumberOfImages];
+    this->SetNumberOfSpatialSamples(50);
   }
 
   //check whether there is a mask
@@ -138,7 +136,12 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
   }
 
   // Sample the image domain
-  this->SampleFixedImageDomain(m_Sample);
+  randIter = new NonRepeatingRandomIterator(this->m_ImageArray[0], this->GetFixedImageRegion());
+
+  randIter->SetNumberOfSamples(this->m_NumberOfSpatialSamples);
+  randIter->GoToBegin();
+  
+  this->SampleFixedImageDomain(this->m_Sample);
   
   // Initialize the variables for regularization term
   if( this->m_UserBsplineDefined && m_Regularization &&
@@ -170,25 +173,6 @@ PrintSelf (std::ostream & os, Indent indent) const
   os << m_KernelFunction.GetPointer () << std::endl;
 }
 
-// Callback routine used by the threading library. This routine just calls
-// the ComputeDerivative() method after setting the correct partition of data
-// for this thread.
-template < class TFixedImage >
-ITK_THREAD_RETURN_TYPE
-ParzenWindowEntropyMultiImageMetric< TFixedImage >
-::ThreaderCallbackSampleImageDomain( void *arg )
-{
-  ThreadStruct *str;
-
-  int threadId = ((MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
-
-  str = (ThreadStruct *)(((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
-
-  str->Metric->SampleImageDomainHelper( threadId );
-
-
-  return ITK_THREAD_RETURN_VALUE;
-}
 
 /*
  * Uniformly sample the fixed image domain. Each sample consists of:
@@ -197,14 +181,8 @@ ParzenWindowEntropyMultiImageMetric< TFixedImage >
  */
 template < class TFixedImage >
 void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
-SampleImageDomainHelper (int threadId) const
+SampleFixedImageDomain (SpatialSampleContainer & samples) const
 {
-  
-  typedef ImageRandomConstIteratorWithIndex < FixedImageType > RandomIterator;
-  RandomIterator randIter(this->m_ImageArray[0], this->GetFixedImageRegion());
-
-  randIter.SetNumberOfSamples(this->m_NumberOfSpatialSamples);
-  randIter.GoToBegin();
 
   bool allOutside = true;
 
@@ -213,12 +191,12 @@ SampleImageDomainHelper (int threadId) const
   unsigned long dryRunTolerance = 3*this->GetFixedImageRegion().GetNumberOfPixels();
 
 
-  for (int i=threadId; i<this->m_NumberOfSpatialSamples; i+=this->m_NumberOfThreads)
+  for (int i=0; i<this->m_NumberOfSpatialSamples; i++)
   {
     // Get sampled index
-    FixedImageIndexType index = randIter.GetIndex();
+    FixedImageIndexType index = randIter->GetIndex();
     // Translate index to point
-    this->m_ImageArray[0]->TransformIndexToPhysicalPoint(index, m_Sample[i].FixedImagePoint);
+    this->m_ImageArray[0]->TransformIndexToPhysicalPoint(index, this->m_Sample[i].FixedImagePoint);
 
     // Check the total number of sampled points
     ++numberOfFixedImagePixelsVisited;
@@ -235,23 +213,23 @@ SampleImageDomainHelper (int threadId) const
     bool pointInsideMask = false;
     for (int j = 0; j < this->m_NumberOfImages && allPointsInside; j++)
     {
-      m_Sample[i].mappedPointsArray[j] = this->m_TransformArray[j]->TransformPoint (m_Sample[i].FixedImagePoint);
+      this->m_Sample[i].mappedPointsArray[j] = this->m_TransformArray[j]->TransformPoint (this->m_Sample[i].FixedImagePoint);
 
       //check whether sampled point is in one of the masks
       if ( this->m_ImageMaskArray[j] && !this->m_ImageMaskArray[j]
-           ->IsInside (m_Sample[i].mappedPointsArray[j])  )
+           ->IsInside (this->m_Sample[i].mappedPointsArray[j])  )
       {
         pointInsideMask = true;
       }
 
       allPointsInside = allPointsInside && this->m_InterpolatorArray[j]
-          ->IsInsideBuffer (m_Sample[i].mappedPointsArray[j]);
+          ->IsInsideBuffer (this->m_Sample[i].mappedPointsArray[j]);
     }
 
     // If not all points are inside continue to the next random sample
     if (allPointsInside == false || (m_UseMask && pointInsideMask == false) )
     {
-      ++randIter;
+      ++(*randIter);
       i-=this->m_NumberOfThreads;
       continue;
     }
@@ -259,12 +237,12 @@ SampleImageDomainHelper (int threadId) const
     // write the mapped samples intensity values inside an array
     for (int j = 0; j < this->m_NumberOfImages; j++)
     {
-      m_Sample[i].imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(m_Sample[i].mappedPointsArray[j]);
+      this->m_Sample[i].imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(this->m_Sample[i].mappedPointsArray[j]);
       //(*iter).gradientArray[j] = this->m_GradientInterpolatorArray[j]->Evaluate((*iter).mappedPointsArray[j]);
       allOutside = false;
     }
     // Jump to random position
-    ++randIter;
+    ++(*randIter);
 
   }
 
@@ -273,27 +251,6 @@ SampleImageDomainHelper (int threadId) const
     // if all the samples mapped to the outside throw an exception
     itkExceptionMacro(<<"All the sampled point mapped to outside of the moving image");
   }
-}
-
-/*
- * Uniformly sample the fixed image domain. Each sample consists of:
- *  - the sampled point
- *  - Corresponding moving image intensity values
- */
-template < class TFixedImage >
-void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
-SampleFixedImageDomain (SpatialSampleContainer & samples) const
-{
-
-  // Set up the multithreaded processing
-  ThreadStruct str;
-  str.Metric =  this;
-
-  this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
-  this->GetMultiThreader()->SetSingleMethod(this->ThreaderCallbackSampleImageDomain, &str);
-  
-  // multithread the execution
-  this->GetMultiThreader()->SingleMethodExecute();
 
 }
 
@@ -387,10 +344,10 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
   {
     for(int j=0; j<this->m_NumberOfImages; j++)
     {
-      mappedPoint = this->m_TransformArray[j]->TransformPoint(m_Sample[i].FixedImagePoint);
+      mappedPoint = this->m_TransformArray[j]->TransformPoint(this->m_Sample[i].FixedImagePoint);
       if(this->m_InterpolatorArray[j]->IsInsideBuffer (mappedPoint) )
       {
-        m_Sample[i].imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(mappedPoint);
+        this->m_Sample[i].imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(mappedPoint);
       }
     }
   } 
@@ -411,7 +368,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
       {
         if( k != j)
         {
-          dSum += m_KernelFunction->Evaluate( ( m_Sample[a].imageValueArray[j] - m_Sample[a].imageValueArray[k] )
+          dSum += m_KernelFunction->Evaluate( ( this->m_Sample[a].imageValueArray[j] - this->m_Sample[a].imageValueArray[k] )
                                                 /m_ImageStandardDeviation );
         }
       }
@@ -510,7 +467,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 {
   // cout << "checking derivative" << endl;
   // collect sample set
-  this->SampleFixedImageDomain (m_Sample);
+  this->SampleFixedImageDomain (this->m_Sample);
 
   // Loop over images
   for (int i = 0; i < this->m_NumberOfImages; i++)
@@ -599,8 +556,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
   //Calculate variance and mean
   m_value[threadId] = 0.0;
   std::vector<double> W_j(this->m_NumberOfImages);
-  DerivativeType deriv(this->numberOfParameters);
-  
+
   // Loop over the pixel stacks
   for (int x=threadId; x<this->m_NumberOfSpatialSamples; x += m_NumberOfThreads )
   {
@@ -613,14 +569,13 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
       {
         if( k!= j)
         {
-          W_j[j] += m_KernelFunction->Evaluate( ( m_Sample[x].imageValueArray[j] - m_Sample[x].imageValueArray[k] ) /
+          W_j[j] += m_KernelFunction->Evaluate( ( this->m_Sample[x].imageValueArray[j] - this->m_Sample[x].imageValueArray[k] ) /
             m_ImageStandardDeviation );
         }
       }
       m_value[threadId]  += vcl_log( W_j[j] / (double) (this->m_NumberOfImages -1.0) );
       
     }
-    deriv.Fill(0.0);
 
 
     // Calculate derivative
@@ -631,14 +586,14 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
       for(int j=0; j<this->m_NumberOfImages; j++)
       {
 
-        const double diff = (m_Sample[x].imageValueArray[l] - m_Sample[x].imageValueArray[j] );
+        const double diff = (this->m_Sample[x].imageValueArray[l] - this->m_Sample[x].imageValueArray[j] );
         const double g = m_KernelFunction->Evaluate( diff / m_ImageStandardDeviation );
 
         weight += (1.0/W_j[l] + 1.0/W_j[j]) * g * diff;
       }
       
       // Get the derivative for this sample
-      UpdateSingleImageParameters( m_DerivativesArray[threadId][l], m_Sample[x], weight, l, threadId);
+      UpdateSingleImageParameters( m_DerivativesArray[threadId][l], this->m_Sample[x], weight, l, threadId);
     }
   }  // End of sample loop
 
@@ -678,7 +633,7 @@ void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
 UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSample& sample, const RealType& weight, const int& imageNumber, const int& threadID) const
 {
 
-  //m_Sample[x].FixedImagePoint , m_Sample[x].mappedPointsArray[l]
+  //this->m_Sample[x].FixedImagePoint , this->m_Sample[x].mappedPointsArray[l]
       const CovarientType gradient = m_DerivativeCalculator[imageNumber][threadID]->Evaluate(sample.mappedPointsArray[imageNumber]);
 
 

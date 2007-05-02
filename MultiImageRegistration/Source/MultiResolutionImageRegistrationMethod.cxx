@@ -290,8 +290,16 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
       break;
     }
 
+
+    // Invoke an iteration event.
+    // This allows a UI to reset any of the components between
+    // resolution level.
+    m_Metric->SetFixedImageRegion( m_FixedImageRegionPyramid[ m_CurrentLevel ] ); // To print total number of pixels
+    this->InvokeEvent( IterationEvent() );
+    
     try
     {
+      
       // initialize the interconnects between components
       this->Initialize();
     }
@@ -303,11 +311,6 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
       // pass exception to caller
       throw err;
     }
-
-    // Invoke an iteration event.
-    // This allows a UI to reset any of the components between
-    // resolution level.
-    this->InvokeEvent( IterationEvent() );
     
     try
     {

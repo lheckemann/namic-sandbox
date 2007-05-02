@@ -221,7 +221,7 @@ public:
    * samples used to calculate the joint probability distribution.
    * The number of spatial samples is clamped to be a minimum of 1.
    * Default value is 50. */
-  itkSetMacro( NumberOfSpatialSamples, unsigned int);
+  void SetNumberOfSpatialSamples(const unsigned int );
   itkGetMacro( NumberOfSpatialSamples, unsigned int);
   
   /** Set the parameters defining the Transform. */
@@ -244,9 +244,10 @@ public:
   /**  Get the value. Method that provides the infrastructure for supporting Multi-Threading. */
   MeasureType GetValue( const ParametersType& parameters ) const;
 
+  
 protected:
   MultiImageMetric();
-  virtual ~MultiImageMetric() {};
+  virtual ~MultiImageMetric();
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   mutable unsigned long       m_NumberOfPixelsCounted;
@@ -316,6 +317,22 @@ protected:
 
   unsigned int                        m_NumberOfSpatialSamples;
 
+  /** A spatial sample consists of the fixed domain point, the fixed image value
+   *   at that point, and the corresponding moving image value. */
+  typedef typename TransformType::InputPointType        FixedImagePointType;
+  typedef typename TransformType::OutputPointType       MovingImagePointType;
+  class SpatialSample
+  {
+    public:
+      SpatialSample(){}
+      ~SpatialSample(){};
+
+      FixedImagePointType              FixedImagePoint;
+      Array< RealType >                   imageValueArray;
+      MovingImagePointType *   mappedPointsArray;
+
+  };
+  mutable SpatialSample*      m_Sample;
 
 };
 
