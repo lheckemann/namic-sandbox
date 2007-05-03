@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkImageToListSampleAdaptorTest.cxx,v $
+  Module:    $RCSfile: itkJointDomainImageToListSampleAdaptorTest.cxx,v $
   Language:  C++
   Date:      $Date: 2007/01/15 18:38:35 $
   Version:   $Revision: 1.2 $
@@ -14,7 +14,7 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-// The example tests the class itk::Statistics::ImageToListSampleAdaptor.
+// The example tests the class itk::Statistics::JointDomainImageToListSampleAdaptor.
 
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
@@ -59,6 +59,61 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
     ImageType > JointDomainImageToListSampleAdaptorType;
   JointDomainImageToListSampleAdaptorType::Pointer adaptor 
                               = JointDomainImageToListSampleAdaptorType::New();
+ //Test if the methods throw exceptions if invoked before setting the image
+  try
+    {
+    unsigned long size = adaptor->Size();
+    std::cerr << "Exception should have been thrown since the input image \
+                  is not set yet" << std::endl;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Caught expected exception: " << excp << std::endl;
+    }
+  try
+    {
+    JointDomainImageToListSampleAdaptorType::FrequencyType totalFrequency = adaptor->GetTotalFrequency();
+    std::cerr << "Exception should have been thrown since the input image \
+                  is not set yet" << std::endl;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Caught expected exception: " << excp << std::endl;
+    }
+ 
+  try
+    {
+    JointDomainImageToListSampleAdaptorType::MeasurementVectorType m = adaptor->GetMeasurementVector( 0 );
+    std::cerr << "Exception should have been thrown since the input image \
+                  is not set yet" << std::endl;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Caught expected exception: " << excp << std::endl;
+    }
+ 
+  try
+    {
+    JointDomainImageToListSampleAdaptorType::ImageConstPointer image = adaptor->GetImage( );
+    std::cerr << "Exception should have been thrown since the input image \
+                  is not set yet" << std::endl;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Caught expected exception: " << excp << std::endl;
+    }
+ 
+  try
+    {
+    JointDomainImageToListSampleAdaptorType::FrequencyType frequency = adaptor->GetFrequency(0 );
+    std::cerr << "Exception should have been thrown since the input image \
+                  is not set yet" << std::endl;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Caught expected exception: " << excp << std::endl;
+    }
+ 
 
   adaptor->SetImage ( image );  
 
@@ -68,6 +123,59 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
     std::cerr << "Size() is not returning the correct size"<< std::endl;
     return EXIT_FAILURE;
     }
+
+  //check frequency
+  if (totalSize != adaptor->GetTotalFrequency())
+    {
+    std::cerr << "GetTotalFrequency() is not returning the correct frequency"<< std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  adaptor->Print( std::cout );
+
+  ImageType::IndexType index;
+  ImageType::PixelType pixel;
+
+  JointDomainImageToListSampleAdaptorType::InstanceIdentifier    id;
+  typedef JointDomainImageToListSampleAdaptorType::MeasurementVectorType MeasurementVectorType;
+  JointDomainImageToListSampleAdaptorType::PointType             tempPoint;
+  
+
+  MeasurementVectorType   measurementVector;
+
+  for ( unsigned int i=0 ; i < size[2] ; i++ )
+    for ( unsigned int j=0; j < size[1]; j++ )
+      for ( unsigned int k=0; k < size[0]; k++ )  
+      {
+      index[0]=k;
+      index[1]=j;
+      index[2]=i;
+
+      adaptor->GetImage()->TransformIndexToPhysicalPoint( index, tempPoint );
+
+      pixel = adaptor->GetImage()->GetPixel( index );
+  
+      measurementVector[0] = tempPoint[0];
+      measurementVector[1] = tempPoint[1];
+      measurementVector[2] = tempPoint[2];
+      measurementVector[3] = pixel[0];
+      measurementVector[4] = pixel[1];
+      measurementVector[5] = pixel[2];
+      
+      id = adaptor->GetImage()->ComputeOffset( index );
+
+      MeasurementVectorType measurementVectorFromAdaptor = adaptor->GetMeasurementVector(id);      
+      for ( unsigned int m=0 ; m < 5 ; m ++ )
+        {
+        if ( measurementVectorFromAdaptor[m] != measurementVector[m] )
+          {
+          std::cerr << "Error in measurment vector value accessed using the adaptor" << std::endl;  
+          return EXIT_FAILURE;
+          }
+        }
+      }
+
 
   std::cerr << "[PASSED]" << std::endl;
   return EXIT_SUCCESS;
