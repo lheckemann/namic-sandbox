@@ -187,6 +187,12 @@ public:
    * identifier. This method overrides superclass method. */
   const MeasurementVectorType & GetMeasurementVector(const InstanceIdentifier &id) const; 
 
+  /** Method to set UsePixelContainer flag */
+  itkSetMacro( UsePixelContainer, bool );
+  itkGetMacro( UsePixelContainer, bool );
+  itkBooleanMacro( UsePixelContainer );
+
+
 protected:
   JointDomainImageToListSampleAdaptor();
   virtual ~JointDomainImageToListSampleAdaptor() {}
@@ -204,7 +210,7 @@ private:
   ImageConstPointer                         m_Image;
   bool                                      m_UsePixelContainer;
 
-  PixelContainerConstPointer m_PixelContainer;
+  PixelContainerConstPointer                m_PixelContainer;
 
 }; // end of class JointDomainImageToListSampleAdaptor
 

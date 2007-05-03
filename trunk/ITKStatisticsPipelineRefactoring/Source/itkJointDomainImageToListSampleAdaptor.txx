@@ -28,6 +28,7 @@ JointDomainImageToListSampleAdaptor< TImage >
 {
   m_NormalizationFactors.Fill( 1.0f );
   m_Image = 0;
+  m_UsePixelContainer = true;
 }
 
 /** returns the number of measurement vectors in this container*/
@@ -139,17 +140,21 @@ JointDomainImageToListSampleAdaptor< TImage >
     m_TempVector[i] = m_TempPoint[i] / m_NormalizationFactors[i];
     }
 
-  if( this->GetUsePixelContainer() )
+  if( m_UsePixelContainer )
     {
-    m_TempRangeVector =  
+    MeasurementVectorTraits::Assign( m_TempRangeVector,
+                    (*m_PixelContainer)[id]); 
+   /* m_TempRangeVector =  
       *(reinterpret_cast<const RangeDomainMeasurementVectorType* >
-        (&(*this->GetPixelContainer())[id]));
+        (&(*this->GetPixelContainer())[id])); */
     }
   else
     {
-    m_TempRangeVector = 
+ /* m_TempRangeVector = 
       *(reinterpret_cast< const RangeDomainMeasurementVectorType* >
-        (&(this->GetImage()->GetPixel( m_TempIndex ) ) ) );
+        (&(this->GetImage()->GetPixel( m_TempIndex ) ) ) ); */
+    MeasurementVectorTraits::Assign( m_TempRangeVector,
+        m_Image->GetPixel( m_Image->ComputeIndex( id ) ) ); 
     }
   
   for ( unsigned int i = TImage::ImageDimension; i < MeasurementVectorType::Length; ++i )
