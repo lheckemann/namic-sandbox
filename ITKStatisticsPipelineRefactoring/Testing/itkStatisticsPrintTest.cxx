@@ -40,6 +40,7 @@
 #include "itkWeightedCovarianceFilter.h"
 #include "itkImageToListSampleAdaptor.h"
 #include "itkPointSetToListSampleAdaptor.h"
+#include "itkJointDomainImageToListSampleAdaptor.h"
 
 int itkStatisticsPrintTest(int , char* [])
 {
@@ -47,9 +48,8 @@ int itkStatisticsPrintTest(int , char* [])
   typedef float FrequencyType;
   typedef itk::FixedArray< TMeasurementType, 2 >  TMeasurementVectorType;
   typedef itk::Image< TMeasurementVectorType, 3 > ImageType;
-  typedef itk::Image< float , 3 >                 TestImageType;
-  typedef itk::Image< unsigned char, 3>          ScalarImageType;
-  typedef itk::PointSet< TMeasurementType, 2 >       PointSetType;
+  typedef itk::Image< unsigned char, 3>           ScalarImageType;
+  typedef itk::PointSet< TMeasurementType, 2 >    PointSetType;
 
   typedef itk::Statistics::ListSample< TMeasurementVectorType >
     SampleType;
@@ -69,7 +69,10 @@ int itkStatisticsPrintTest(int , char* [])
     ImageType, ImageType > ImageToListSampleFilterType;
 
   typedef itk::Statistics::ImageToListSampleAdaptor< 
-    TestImageType> ImageToListSampleAdaptorType;
+    ImageType> ImageToListSampleAdaptorType;
+
+  typedef itk::Statistics::JointDomainImageToListSampleAdaptor< 
+    ImageType> JointDomainImageToListSampleAdaptorType;
 
   typedef itk::Statistics::ScalarImageToCooccurrenceMatrixFilter< 
     ScalarImageType > ScalarImageToCooccurrenceMatrixFilterType;
@@ -119,6 +122,11 @@ int itkStatisticsPrintTest(int , char* [])
     ImageToListSampleAdaptorType::New();
   std::cout << "----------ImageToListSampleAdaptor ";
   std::cout << ImageToListSampleAdaptorObj;
+
+  JointDomainImageToListSampleAdaptorType::Pointer JointDomainImageToListSampleAdaptorObj =
+    JointDomainImageToListSampleAdaptorType::New();
+  std::cout << "----------JointDomainImageToListSampleAdaptor ";
+  std::cout << JointDomainImageToListSampleAdaptorObj;
 
   PointSetToListSampleAdaptorType::Pointer PointSetToListSampleAdaptorObj =
     PointSetToListSampleAdaptorType::New();

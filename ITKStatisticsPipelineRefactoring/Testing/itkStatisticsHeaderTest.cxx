@@ -41,6 +41,7 @@
 #include "itkScalarImageToCooccurrenceMatrixFilter.h"
 #include "itkImageToListSampleAdaptor.h"
 #include "itkPointSetToListSampleAdaptor.h"
+#include "itkJointDomainImageToListSampleAdaptor.h"
 
 int main ( int , char*  )
 {
