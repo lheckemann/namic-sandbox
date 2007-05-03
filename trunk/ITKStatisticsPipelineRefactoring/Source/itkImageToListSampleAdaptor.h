@@ -88,9 +88,6 @@ public:
   typedef typename ImageType::IndexType                   IndexType;
   typedef typename ImageType::PixelType                   PixelType;
   typedef typename ImageType::PixelContainerConstPointer  PixelContainerConstPointer;
-
-  typedef typename ImageType::PixelContainer::ElementIdentifier 
-  InstanceIdentifier;
   
   /** Image Iterator typedef support */
   typedef ImageRegionIterator< ImageType >               ImageIteratorType; 
@@ -107,6 +104,7 @@ public:
   typedef typename Superclass::FrequencyType                   FrequencyType;
   typedef typename Superclass::TotalFrequencyType              TotalFrequencyType;
   typedef typename Superclass::MeasurementVectorSizeType       MeasurementVectorSizeType;
+  typedef typename Superclass::InstanceIdentifier              InstanceIdentifier;
 
   typedef MeasurementVectorType                                ValueType;
 
@@ -117,7 +115,7 @@ public:
   const TImage* GetImage() const;
 
   /** returns the number of measurement vectors in this container*/
-  unsigned int Size() const;
+  InstanceIdentifier Size() const;
 
   virtual const MeasurementVectorType & GetMeasurementVector(const InstanceIdentifier &id) const;
 

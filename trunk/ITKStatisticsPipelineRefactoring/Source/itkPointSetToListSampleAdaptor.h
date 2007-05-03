@@ -64,7 +64,6 @@ public:
   typedef TPointSet                                        PointSetType;
   typedef typename TPointSet::Pointer                      PointSetPointer;
   typedef typename TPointSet::ConstPointer                 PointSetConstPointer;
-  typedef typename TPointSet::PointIdentifier              InstanceIdentifier;
   typedef typename TPointSet::PointsContainer              PointsContainer;
   typedef typename TPointSet::PointsContainerPointer       PointsContainerPointer;
   typedef typename TPointSet::PointsContainerConstPointer  PointsContainerConstPointer;
@@ -81,6 +80,7 @@ public:
   typedef typename Superclass::FrequencyType              FrequencyType;
   typedef typename Superclass::TotalFrequencyType         TotalFrequencyType;
   typedef typename Superclass::MeasurementVectorSizeType  MeasurementVectorSizeType;
+  typedef typename Superclass::InstanceIdentifier         InstanceIdentifier;
 
   /** Method to set the point set */
   void SetPointSet(const TPointSet* pointSet);
@@ -89,7 +89,7 @@ public:
   const TPointSet* GetPointSet();
 
   /** returns the number of measurement vectors in this container*/
-  unsigned int Size() const;
+  InstanceIdentifier Size() const;
 
   /** returns the measurement vector that is specified by the instance
    * identifier argument. */

@@ -73,7 +73,7 @@ PointSetToListSampleAdaptor< TPointSet >
 
 /** returns the number of measurement vectors in this container*/
 template < class TPointSet >
-unsigned int
+typename PointSetToListSampleAdaptor< TPointSet >::InstanceIdentifier
 PointSetToListSampleAdaptor< TPointSet >
 ::Size() const
 {

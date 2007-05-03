@@ -33,7 +33,7 @@ JointDomainImageToListSampleAdaptor< TImage >
 
 /** returns the number of measurement vectors in this container*/
 template < class TImage>
-inline unsigned int
+typename JointDomainImageToListSampleAdaptor< TImage>::InstanceIdentifier
 JointDomainImageToListSampleAdaptor< TImage>
 ::Size() const
 {
