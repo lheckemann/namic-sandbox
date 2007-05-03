@@ -158,7 +158,7 @@ public:
   const TImage* GetImage() const;
 
   /** returns the number of measurement vectors in this container*/
-  unsigned int Size() const;
+  InstanceIdentifier Size() const;
 
   /** Get frequency */
   FrequencyType GetFrequency(const InstanceIdentifier &id) const;

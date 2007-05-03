@@ -54,7 +54,7 @@ ImageToListSampleAdaptor< TImage>
 
 /** returns the number of measurement vectors in this container*/
 template < class TImage>
-inline unsigned int
+typename ImageToListSampleAdaptor< TImage>::InstanceIdentifier
 ImageToListSampleAdaptor< TImage>
 ::Size() const
 {
