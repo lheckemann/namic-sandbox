@@ -311,7 +311,7 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
     }
 
   // copy from non-const iterator
-  /* JointDomainImageToListSampleAdaptorType::Iterator nonconst_iter = adaptor->Begin();
+  JointDomainImageToListSampleAdaptorType::Iterator nonconst_iter = adaptor->Begin();
   JointDomainImageToListSampleAdaptorType::ConstIterator s2_iter(nonconst_iter);
   if (s2_iter != s_iter)
     {
@@ -326,7 +326,6 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
     std::cerr << "Iterator::assignment (from non-const) failed" << std::endl;
     return EXIT_FAILURE;    
     }
-  */
  
   JointDomainImageToListSampleAdaptorType::InstanceIdentifier id = 0;
   while (s_iter != adaptor->End())
