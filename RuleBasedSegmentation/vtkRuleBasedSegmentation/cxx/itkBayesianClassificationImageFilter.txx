@@ -92,10 +92,12 @@ BayesianClassificationImageFilter< TInputImage, TLabelImage, TMaskImage >
 {
   InputImageType *input = const_cast< InputImageType * >(this->GetInput());
   MaskImageType *maskImage = NULL;
-  
-  if (this->GetNumberOfInputs() > 1)
+  std::cerr << "GENERATING DATA" << std::endl;
+
+  if (this->GetNumberOfInputs() > 1 && this->GetMaskImage() != NULL)
     {
     maskImage = const_cast< MaskImageType * >(this->GetMaskImage());
+    std::cerr << maskImage->GetLargestPossibleRegion() << std::endl;
     }
 
   // TODO Minipipeline could use a progress accumulator
