@@ -7,7 +7,7 @@ IF (USE_ITK_FILE)
 ENDIF(USE_ITK_FILE)
 
 SET( LOCAL_MODULE_SRCS
-vtkITKBayesianClassifierImageFilter.cxx
+vtkITKBayesianClassificationImageFilter.cxx
 vtkITKImageToImageFilterULUL.h
 )
 
