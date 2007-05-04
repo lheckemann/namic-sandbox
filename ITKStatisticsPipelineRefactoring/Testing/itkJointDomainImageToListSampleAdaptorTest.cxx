@@ -176,7 +176,41 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
         }
       }
 
+  //Test the Use_PixelContainer boolean
 
+  adaptor->SetUsePixelContainer( false );
+  if ( adaptor->GetUsePixelContainer() != false )
+    {
+    std::cerr << "Error in Set/Get UsePixelContainer methods" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  adaptor->UsePixelContainerOn(  );
+  if ( adaptor->GetUsePixelContainer() != true )
+    {
+    std::cerr << "Error in Set/Get UsePixelContainerOn method" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  //Get measurement vector from the pixel container and using ComputeIndex and compare
+  //the result
+  JointDomainImageToListSampleAdaptorType::MeasurementVectorType  v1 = adaptor->GetMeasurementVector( 4 );
+  adaptor->UsePixelContainerOff();
+  JointDomainImageToListSampleAdaptorType::MeasurementVectorType  v2 = adaptor->GetMeasurementVector( 4 );
+
+  const double epsilon = 1e-3;
+
+  for ( unsigned int m=0 ; m < 5 ; m ++ )
+    {
+    if ( fabs( v1[m] - v2[m] ) > epsilon )
+      {
+      std::cerr << "Accessing the measurement vector using the two method produced different \
+                  result " << std::endl; 
+      return EXIT_FAILURE;
+      }
+    }
+
+ 
   std::cerr << "[PASSED]" << std::endl;
   return EXIT_SUCCESS;
 }
