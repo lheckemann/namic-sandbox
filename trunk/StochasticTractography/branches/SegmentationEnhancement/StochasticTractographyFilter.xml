@@ -106,7 +106,16 @@
       <flag>i</flag>
       <default>false</default>
       <longflag>outputimageswitch</longflag>
-      <label>Produce Output Images?</label>
+      <label>Produce Output Images</label>
+      <description>Output Tensor, FA maps and Connectivity Maps</description>
+    </boolean>
+    <boolean>
+      <name>recenteroriginswitch</name>
+      <flag>r</flag>
+      <default>false</default>
+      <longflag>recenteroriginswitch</longflag>
+      <label>Recenter Image Origins</label>
+      <description>Ignore the origins of the ROI and WM mask and set it to be the same as the DWI image origin</description>
     </boolean>
     <integer>
       <name>totalthreads</name>

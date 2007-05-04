@@ -397,10 +397,12 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   vnl_random randomgenerator(randomseed);
   //std::cout<<randomseed<<std::endl;
   
-  for(unsigned int j=0; (j<this->m_MaxTractLength) &&
-    (dwiimagePtr->GetLargestPossibleRegion().IsInside(cindex_curr));
-    j++){
+  for(unsigned int j=0; j<this->m_MaxTractLength; j++){
     this->ProbabilisticallyInterpolate( randomgenerator, cindex_curr, index_curr );
+    
+    if(!dwiimagePtr->GetLargestPossibleRegion().IsInside(index_curr)){
+      break;
+    }
     
     if( FiberExistenceTest( randomgenerator, wmpimagePtr, index_curr ) ){
       tract->AddVertex(cindex_curr);
