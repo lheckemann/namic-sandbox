@@ -209,7 +209,15 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
       return EXIT_FAILURE;
       }
     }
-
+ 
+  //Exercise GetFrequency method on the first and last element 
+  if ( adaptor->GetFrequency( 0 ) != 1 ||
+       adaptor->GetFrequency( adaptor->Size() ) != 1 )
+    {
+    std::cerr << "GetFrequency is not returning the expected value: " << std::endl;
+    return EXIT_FAILURE;
+    } 
+  
  
   std::cerr << "[PASSED]" << std::endl;
   return EXIT_SUCCESS;
