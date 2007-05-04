@@ -22,6 +22,8 @@
 #include "itkPoint.h"
 #include "itkPixelTraits.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
+#include "itkImageRegionIterator.h"
+#include "itkImageRegionConstIterator.h"
 #include "itkListSample.h"
 
 namespace itk { 
@@ -139,6 +141,9 @@ public:
 
   /** Image typedefs */
   typedef TImage                                          ImageType;
+  typedef ImageRegionIterator< ImageType >                ImageIteratorType; 
+  typedef ImageRegionConstIterator< ImageType >           ImageConstIteratorType; 
+ 
   typedef typename ImageType::Pointer                     ImagePointer;
   typedef typename ImageType::ConstPointer                ImageConstPointer;
   typedef typename ImageType::PixelType                   PixelType;
@@ -147,8 +152,6 @@ public:
   typedef typename ImageType::IndexType::IndexValueType   ImageIndexValueType;
   typedef typename ImageType::SizeType                    ImageSizeType;
   typedef typename ImageType::RegionType                  ImageRegionType;
-  typedef ImageRegionConstIteratorWithIndex< ImageType >  ImageIteratorType;
-
   typedef MeasurementVectorType                           ValueType;
  
   /** Method to set the image */
@@ -192,7 +195,146 @@ public:
   itkGetMacro( UsePixelContainer, bool );
   itkBooleanMacro( UsePixelContainer );
 
+  /** \class ListSample::ConstIterator */
+  class ConstIterator
+    {
+    friend class JointDomainImageToListSampleAdaptor;
+    public:
 
+    ConstIterator( const JointDomainImageToListSampleAdaptor * adaptor )
+      {
+      *this = adaptor->Begin();
+      }
+
+    ConstIterator(const ConstIterator &iter)
+      {
+      m_InstanceIdentifier = iter.m_InstanceIdentifier;
+      }
+
+    ConstIterator& operator=( const ConstIterator & iter )
+      {
+      m_InstanceIdentifier = iter.m_InstanceIdentifier;
+      return *this;
+      }
+
+    FrequencyType GetFrequency() const
+      {
+      return 1;
+      }
+
+    const MeasurementVectorType & GetMeasurementVector() const
+      {
+      m_MeasurementVectorCache = m_Adaptor->GetMeasurementVector( m_InstanceIdentifier );
+      return this->m_MeasurementVectorCache;
+      }
+
+    InstanceIdentifier GetInstanceIdentifier() const
+      {
+      return m_InstanceIdentifier;
+      }
+
+    ConstIterator& operator++()
+      {
+      ++m_InstanceIdentifier;
+      return *this;
+      }
+
+    bool operator!=(const ConstIterator &it)
+      {
+      return (m_InstanceIdentifier != it.m_InstanceIdentifier);
+      }
+
+    bool operator==(const ConstIterator &it)
+      {
+      return (m_InstanceIdentifier == it.m_InstanceIdentifier);
+      }
+
+  protected:
+    // This method should only be available to the ListSample class
+    ConstIterator(
+      const JointDomainImageToListSampleAdaptor * adaptor,
+      InstanceIdentifier iid)
+      {
+      m_Adaptor = adaptor;
+      m_InstanceIdentifier = iid;
+      }
+
+    // This method is purposely not implemented
+    ConstIterator();
+
+  private:
+    mutable MeasurementVectorType                   m_MeasurementVectorCache;
+    InstanceIdentifier                              m_InstanceIdentifier;
+    const JointDomainImageToListSampleAdaptor *     m_Adaptor; 
+    };
+
+  class Iterator : public ConstIterator
+    {
+
+    friend class JointDomainImageToListSampleAdaptor;
+
+    public:
+
+    Iterator(Self * adaptor):ConstIterator(adaptor)
+      {
+      }
+
+    Iterator(const Iterator &iter):ConstIterator( iter )
+      {
+      }
+
+    Iterator& operator =(const Iterator & iter)
+      {
+      this->ConstIterator::operator=( iter );
+      return *this;
+      }
+
+    protected:
+    // To ensure const-correctness these method must not be in the public API.
+    // The are purposly not implemented, since they should never be called.
+    Iterator();
+    Iterator(const Self * adaptor);
+    Iterator(const ConstIterator & it);
+    ConstIterator& operator=(const ConstIterator& it);
+    Iterator(
+      const JointDomainImageToListSampleAdaptor * adaptor,
+      InstanceIdentifier iid):ConstIterator( adaptor, iid )
+      {
+      }
+
+    private:
+    };
+
+
+  /** returns an iterator that points to the beginning of the container */
+  Iterator Begin()
+    {
+    Iterator iter(this, 0);
+    return iter;
+    }
+
+  /** returns an iterator that points to the end of the container */
+  Iterator End()
+    {
+    Iterator iter(this, m_Image->GetPixelContainer()->Size());
+    return iter;
+    }
+
+  /** returns an iterator that points to the beginning of the container */
+  ConstIterator Begin() const
+    {
+    ConstIterator iter(this, 0);
+    return iter;
+    }
+
+  /** returns an iterator that points to the end of the container */
+  ConstIterator End() const
+    {
+    ConstIterator iter(this, m_Image->GetPixelContainer()->Size());
+    return iter;
+    }
+
+ 
 protected:
   JointDomainImageToListSampleAdaptor();
   virtual ~JointDomainImageToListSampleAdaptor() {}
