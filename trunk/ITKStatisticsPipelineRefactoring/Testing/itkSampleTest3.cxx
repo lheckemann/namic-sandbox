@@ -183,7 +183,7 @@ int itkSampleTest3(int, char* [] )
     }
   catch( itk::ExceptionObject & excp )
     {
-    std::cout << "Expected exception caught" << std::endl;
+    std::cout << "Expected exception caught: " << excp << std::endl;
     }
 
 
