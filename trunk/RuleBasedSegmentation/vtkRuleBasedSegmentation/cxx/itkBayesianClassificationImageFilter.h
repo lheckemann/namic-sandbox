@@ -112,7 +112,8 @@ protected:
   InitializerOutputImageType;
   // Classifier 
   typedef BayesianClassifierImageFilter< 
-    InitializerOutputImageType >                       ClassifierFilterType;
+    InitializerOutputImageType, typename OutputImageType::PixelType >
+  ClassifierFilterType;
   typedef typename ClassifierFilterType::Pointer       ClassifierFilterPointer;
 
 private:
