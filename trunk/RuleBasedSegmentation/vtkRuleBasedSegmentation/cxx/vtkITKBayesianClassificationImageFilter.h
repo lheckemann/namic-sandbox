@@ -88,43 +88,101 @@ class VTK_RULEBASEDSEGMENTATION_EXPORT vtkITKBayesianClassificationImageFilter :
   {
     DelegateITKOutputMacro( GetNumberOfSmoothingIterations);
   }
-//   void SetMaskImage( ??? )
-//     {
-//     DelegateITKInputMacro( SetMaskImage, static_cast< unsigned int >( n ) ); // CAN WE USE SOMETHING LIKE THIS?
-//     }
 
-//   int GetMaskImage()
-//     {
-//     DelegateITKOutputMacro( GetMaskImage); // CAN WE USE SOMETHING LIKE THIS?
-//     }
+  virtual void SetMaskImage(vtkImageData *maskImage)
+  {
+    this->vtkMaskCast->SetInput(maskImage);
 
-//  void SetMaskValue( int n )
-//  {
-//    DelegateITKInputMacro( SetMaskValue, static_cast< unsigned int >( n ) );
-//  }
+    // connect or disconnect the mask's vtk->itk pipeline
+    // as determinded by wether maskImage is null
+    ImageFilterType* tempFilter =
+    dynamic_cast<ImageFilterType*> ( this->m_Filter.GetPointer() );
+    if (maskImage == NULL)
+    {
+      tempFilter->SetMaskImage(NULL);      
+    }
+    else
+    {
+      tempFilter->SetMaskImage(this->itkMaskImporter->GetOutput());
+    }
+  };
 
-//  int GetMaskValue()
-//  {
-//    DelegateITKOutputMacro( GetMaskValue );
-//  }
+  virtual vtkImageData *GetMaskImage()
+  {
+    return this->vtkMaskCast->GetInput();
+  };
+
+  void SetMaskValue( int n )
+  {
+    DelegateITKInputMacro( SetMaskValue, static_cast< unsigned int >( n ) );
+  }
+
+  int GetMaskValue()
+  {
+    DelegateITKOutputMacro( GetMaskValue );
+  }
 
 protected:
+  // typedefs and vars for delegation of mask image
   //BTX
-//   typedef itk::BayesianClassificationImageFilter<
-//   Superclass::InputImageType,
-//   Superclass::OutputImageType,
-//   Superclass::InputImageType  // TODO: Change to a MaskImageType
-//   > ImageFilterType;
-  typedef itk::BayesianClassificationImageFilter< Superclass::InputImageType,
-                                                  Superclass::OutputImageType > ImageFilterType;
-  vtkITKBayesianClassificationImageFilter() : Superclass ( ImageFilterType::New() ){};
-  ~vtkITKBayesianClassificationImageFilter() {};
-  ImageFilterType* GetImageFilterPointer() { return dynamic_cast<ImageFilterType*> ( m_Filter.GetPointer() ); }
+  typedef itk::Image<unsigned long, 3>       MaskImageType;
+  typedef itk::VTKImageImport<MaskImageType> MaskImportType;
+
+  MaskImportType::Pointer                    itkMaskImporter;
+  vtkImageCast*                              vtkMaskCast;
+  vtkImageExport*                            vtkMaskExporter;
+
+  typedef itk::BayesianClassificationImageFilter<
+    Superclass::InputImageType,
+    MaskImageType,
+    Superclass::OutputImageType>             ImageFilterType;
+
+  vtkITKBayesianClassificationImageFilter() : 
+    Superclass ( ImageFilterType::New() )
+  {
+    //
+    // Setup mechanism for setting and getting the mask from vtk. All
+    // of this could/should reasonably go into a superclass that
+    // supports masks for image to image filters.
+    //
+
+    // setup vtk ends of pipelines
+    this->vtkMaskCast                      = vtkImageCast::New();
+    this->vtkMaskExporter                  = vtkImageExport::New();
+    this->vtkMaskExporter->SetInput(this->vtkMaskCast->GetOutput());
+    this->vtkMaskCast->SetOutputScalarTypeToUnsignedLong();
+
+    // setup itk ends of pipelines: connect itk importers/exporters to
+    // itk filter
+    this->itkMaskImporter                  = MaskImportType::New();
+
+    ImageFilterType* tempFilter =
+      dynamic_cast<ImageFilterType*> ( this->m_Filter.GetPointer() );
+    // don't connect mask import pipeline with filter until a non-null
+    // mask is set
+    tempFilter->SetMaskImage(NULL);
+
+    // connect vtk and itk
+    ConnectPipelines(this->vtkMaskExporter, this->itkMaskImporter);
+  };
+
+  ~vtkITKBayesianClassificationImageFilter() 
+  {
+    this->vtkMaskCast->Delete();
+    this->vtkMaskExporter->Delete();
+  };
+
+  ImageFilterType* GetImageFilterPointer() 
+  { 
+    return dynamic_cast<ImageFilterType*> ( m_Filter.GetPointer() ); 
+  }
   //ETX
   
 private:
-  vtkITKBayesianClassificationImageFilter(const vtkITKBayesianClassificationImageFilter&);  // Not implemented.
-  void operator=(const vtkITKBayesianClassificationImageFilter&);  // Not implemented.
+  vtkITKBayesianClassificationImageFilter
+  (const vtkITKBayesianClassificationImageFilter&);  // Not implemented.
+  void operator=
+  (const vtkITKBayesianClassificationImageFilter&);  // Not implemented.
 };
 
 vtkCxxRevisionMacro(vtkITKBayesianClassificationImageFilter, "$Revision: 1.4 $");
