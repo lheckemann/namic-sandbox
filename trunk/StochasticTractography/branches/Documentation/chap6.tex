@@ -1,0 +1,12 @@
+\chapter{Conclusion}
+Although DTI is able to detect changes in anisotropy, DTI data alone is insufficient to determine the causes of changes in anisotropy.  Reduced anisotropy can stem from a decoherence in a fiber bundle's structure, losses in myelin, and other abnormalities.  Kubicki et al. \cite{kubickiNI05} attempts to clarify the cause of changes in anisotropy by comparing information about nerve fiber integrity that are inferred from DTI and MTR.  MTR is an MR scanning technique that provides information regarding the distribution of myelin in the brain. Anisotropy changes that are detectable by both MTR and DTI suggest alterations to the myelin.  Changes that are detectable only by DTI suggest decoherence in the fiber's structure.
+The algorithm can be further extended by incorporating information from MTR measurements \cite{kubickiNI05} into the probabilistic framework.  The information provided by MTR will refine the likelihood function and generate more informative probabilistic tractography results.
+
+
+%Refine the algorithm
+%	-currently the algorithm terminates when the generated fiber encounters a region of %anisotropy below some set value
+%		-in reality, fibers may exist that pass through areas of low anisotropy
+%		-this is possible in regions with many crossing fibers
+%			-perhaps it would be possible to terminate instead on the overall magnitude of %diffusion.  If total diffusion is above/below a certain threshold than end diffusion.
+
+%Once this data has been obtained the connectivity map will be generated for all subjects.  The connectivity maps will be compared to determine whether there are differences in the connectivity distributions of the regions that were determined by Kubicki et al. to differ either under DTI or MTR measurements, between the patients and the control groups.  The regions that differed under fractional anisotropy (FA), a summary measure of DTI, include the fornix, the corpus callosum, the  cingulum bundle, the superior occipito-frontal fasciculus, the internal capsule, the right inferior occipito-frontal fasciculus and the left arcuate fasciculus.  The regions that differed under MTR were the corpus callosum, fornix, right internal capsule, superior occipito-frontal fasciculus and the right posterior cingulum bundle.
