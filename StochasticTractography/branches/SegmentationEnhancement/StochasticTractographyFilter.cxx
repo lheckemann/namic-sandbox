@@ -332,8 +332,11 @@ int main(int argc, char* argv[]){
   wmpreader->SetFileName(wmpfilename);
   wmpreader->Update();
   
-  //optionally realign these images with the DWI image
-  
+  //optionally set the origins of these images to be the same as the DWI
+  if(recenteroriginswitch==true){
+    roireaderPtr->GetOutput()->SetOrigin( dwireaderPtr->GetOutput()->GetOrigin() );
+    wmpreader->GetOutput()->SetOrigin( dwireaderPtr->GetOutput()->GetOrigin() );
+  }
   /*
   //set list of directions
   typedef PTFilterType::TractOrientationContainerType TOCType;
@@ -472,7 +475,10 @@ int main(int argc, char* argv[]){
       }
     }
   }        
-
+  
+  std::cout<<"DWI image origin:"<< dwireaderPtr->GetOutput()->GetOrigin() <<std::endl;
+  std::cout<<"ROI image origin:"<< roireaderPtr->GetOutput()->GetOrigin() <<std::endl;
+  std::cout<<"wmp image origin:"<< wmpreader->GetOutput()->GetOrigin() <<std::endl;
   if(outputimageswitch){
     //Write out the Connectivity Map
     char cfilename[100];
