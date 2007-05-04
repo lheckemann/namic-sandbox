@@ -1,0 +1,79 @@
+\begin{thebibliography}{10}
+
+\bibitem{behrensMRM03}
+T.E.J Behrens, M.W. Woolrich, M.~Jenkinson, H.~Johansen-Berg, R.~G. Nunes,
+  S.~Clare, P.M. Matthews, J.M Brady, and S.M. Smith.
+\newblock Characterization and propagation of uncertainty in diffusion-weighted
+  mr imaging.
+\newblock {\em Magnetic Resonance in Medicine}, 50:1077--1088, 2003.
+
+\bibitem{3Dslicer}
+Brigham and Women's Hospital.
+\newblock 3d slicer medical visualization and processing environment for
+  research.
+\newblock {\em http://www.slicer.org/}.
+
+\bibitem{Ciccarelli}
+O.~Ciccarelli, T.~E. Beherens, D.~R. Altmann, R.~W.Orrell, H.~Johansen-Berg
+  R.~S.~Howard, D.~H. Miller, P.~M Matthews, and A.~J. Thompson.
+\newblock Probabilistic diffusion tractography: a potential tool to assess the
+  rate of disease progression in amyotrophic lateral sclerosis.
+
+\bibitem{itk}
+Insight~Software Consortium.
+\newblock National library of medicine insight segmentation and registration
+  toolkit(itk).
+\newblock {\em http://www.itk.org/}.
+
+\bibitem{frimanTMI06}
+Ola Friman, Gunnar Farneback, and Carl-Fredrik Westin.
+\newblock A {B}ayesian approach for stochastic white matter tractography.
+\newblock {\em TMI}, 2006.
+\newblock In Press.
+
+\bibitem{derek}
+Derek~K. Jones and Carlo Pierpaoli.
+\newblock Confidence mapping in diffusion tensor magnetic resonance imaging
+  tractography using a bootstrap approach.
+
+\bibitem{KindlmannTVCG2006}
+Gordon Kindlmann and Carl-Fredrik Westin.
+\newblock Diffusion tensor visualization with glyph packing.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics
+  (Proceedings Visualization / Information Visualization 2006)}, 12(5):(to
+  appear), September-October 2006.
+
+\bibitem{kubickiNI05}
+M.~Kubicki, H.-J. Park, C.-F. Westin, P.~Nestor, R.~Mulkern, S.~E. Maier,
+  M.~Niznikiewicz, E.~Connor, J.~Levitt, M.~Frumin, R.~Kikinis, F.~A. Jolesz,
+  R.~McCarley, and M.~E. Shenton.
+\newblock {DTI} and {MTR} abnormalities in schizophrenia: Analysis of white
+  matter integrity.
+\newblock {\em Neuroimage}, 26:1109--1118, 2005.
+
+\bibitem{kubickiBiologPsych03}
+M.~Kubicki, C.-F. Westin, S.~E. Maier, H.~Mamata, M.~Frumin,
+  H.~Ernst-Hirshefeld, R.~Kikinis, F.~A Jolesz, R.~W. McCarley, and M.~E.
+  Shenton.
+\newblock Cingulate fasciculus integrity disruption in schizophrenia: A
+  magnetic resonance diffusion tensor imaging study.
+\newblock {\em Biological Phychiatry}, 54:1171--1180, 2003.
+
+\bibitem{kubickiNYAS05}
+M.~Kubicki, C.-F. Westin, R.~McCarley, and M.~E. Shenton.
+\newblock The application of dti to investigate white matter abnormalities in
+  schizophrenia.
+\newblock {\em Ann NY Acad Sci}, 1064:134--148, 2005.
+
+\bibitem{odonnel06}
+Lauren O'Donnel.
+\newblock Cerebral white matter analysis using diffusion imaging.
+
+\bibitem{salvador}
+Raymond Salvador, Alonso Pena, David~K. Menon, T.~Adrian, T.~Adrian Carpenter,
+  John~D. Pickard, and Ed~T. Bullmore.
+\newblock Formal characterization and extension of the linearized diffusion
+  tensor model.
+\newblock {\em Human Brain Mapping}, 24:144--155, 2005.
+
+\end{thebibliography}

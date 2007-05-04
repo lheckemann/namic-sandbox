@@ -1,0 +1,63 @@
+This is BibTeX, Version 0.99c (Web2C 7.5.4)
+The top-level auxiliary file: main.aux
+A level-1 auxiliary file: cover.aux
+A level-1 auxiliary file: chap1.aux
+A level-1 auxiliary file: chap2.aux
+A level-1 auxiliary file: chap3.aux
+A level-1 auxiliary file: chap4.aux
+A level-1 auxiliary file: chap5.aux
+A level-1 auxiliary file: chap6.aux
+A level-1 auxiliary file: appa.aux
+A level-1 auxiliary file: biblio.aux
+The style file: plain.bst
+Database file #1: main.bib
+Warning--empty year in 3Dslicer
+Warning--empty journal in Ciccarelli
+Warning--empty year in Ciccarelli
+Warning--empty year in itk
+Warning--empty journal in derek
+Warning--empty year in derek
+Warning--empty journal in odonnel06
+Warning--empty year in odonnel06
+You've used 12 entries,
+            2118 wiz_defined-function locations,
+            576 strings with 6704 characters,
+and the built_in function-call counts, 4713 in all, are:
+= -- 421
+> -- 349
+< -- 0
++ -- 140
+- -- 126
+* -- 402
+:= -- 845
+add.period$ -- 34
+call.type$ -- 12
+change.case$ -- 99
+chr.to.int$ -- 0
+cite$ -- 20
+duplicate$ -- 126
+empty$ -- 270
+format.name$ -- 126
+if$ -- 892
+int.to.chr$ -- 0
+int.to.str$ -- 12
+missing$ -- 12
+newline$ -- 61
+num.names$ -- 24
+pop$ -- 102
+preamble$ -- 1
+purify$ -- 87
+quote$ -- 0
+skip$ -- 81
+stack$ -- 0
+substring$ -- 238
+swap$ -- 9
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 48
+warning$ -- 8
+while$ -- 35
+width$ -- 14
+write$ -- 119
+(There were 8 warnings)
