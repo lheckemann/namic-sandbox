@@ -144,15 +144,9 @@ JointDomainImageToListSampleAdaptor< TImage >
     {
     MeasurementVectorTraits::Assign( m_TempRangeVector,
                     (*m_PixelContainer)[id]); 
-   /* m_TempRangeVector =  
-      *(reinterpret_cast<const RangeDomainMeasurementVectorType* >
-        (&(*this->GetPixelContainer())[id])); */
     }
   else
     {
- /* m_TempRangeVector = 
-      *(reinterpret_cast< const RangeDomainMeasurementVectorType* >
-        (&(this->GetImage()->GetPixel( m_TempIndex ) ) ) ); */
     MeasurementVectorTraits::Assign( m_TempRangeVector,
         m_Image->GetPixel( m_Image->ComputeIndex( id ) ) ); 
     }
