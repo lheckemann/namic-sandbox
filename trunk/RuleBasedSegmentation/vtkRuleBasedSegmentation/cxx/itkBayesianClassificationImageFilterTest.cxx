@@ -7,16 +7,17 @@
 
 int main(int argc, char *argv[])
 {
-  const unsigned int Dimension = 2;
+  typedef unsigned long VoxelType;
+  const unsigned int Dimension = 3;
   if( argc < 4 )
     {
     std::cerr << "Usage arguments: InputImage ClassifiedImage numberOfClasses numberOfSmoothingIterations [Optional: MaskImage MaskValue]" << std::endl;
     return EXIT_FAILURE;
     }
   
-  typedef itk::Image< unsigned char, Dimension > InputImageType;
-  typedef itk::Image< unsigned char, Dimension > LabelImageType;
-  typedef itk::Image< unsigned char, Dimension > MaskImageType;
+  typedef itk::Image< VoxelType, Dimension > InputImageType;
+  typedef itk::Image< VoxelType, Dimension > LabelImageType;
+  typedef itk::Image< VoxelType, Dimension > MaskImageType;
 
   typedef itk::BayesianClassificationImageFilter<
       InputImageType, LabelImageType, MaskImageType > ClassifierType;
@@ -96,10 +97,10 @@ int main(int argc, char *argv[])
   // Setup writer.. Rescale the label map to the dynamic range of the 
   // datatype and write it 
   //
-  typedef ClassifierType::OutputImageType      ClassifierOutputImageType;
+  typedef ClassifierType::OutputImageType            ClassifierOutputImageType;
   typedef itk::Image< unsigned char, Dimension >     OutputImageType;
   typedef itk::RescaleIntensityImageFilter< 
-    ClassifierOutputImageType, OutputImageType >   RescalerType;
+    ClassifierOutputImageType, OutputImageType >     RescalerType;
   RescalerType::Pointer rescaler = RescalerType::New();
   rescaler->SetInput( filter->GetOutput() );
   rescaler->SetOutputMinimum( 0 );
