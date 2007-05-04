@@ -331,6 +331,9 @@ int main(int argc, char* argv[]){
   WMPImageReaderType::Pointer wmpreader = WMPImageReaderType::New();
   wmpreader->SetFileName(wmpfilename);
   wmpreader->Update();
+  
+  //optionally realign these images with the DWI image
+  
   /*
   //set list of directions
   typedef PTFilterType::TractOrientationContainerType TOCType;
@@ -376,7 +379,7 @@ int main(int argc, char* argv[]){
   ptfilterPtr->SetMaxTractLength( maxtractlength );
   ptfilterPtr->SetTotalTracts( totaltracts );
   ptfilterPtr->SetMaxLikelihoodCacheSize( maxlikelihoodcachesize );
-  ptfilterPtr->SetNumberOfThreads( 8 );
+  if(totalthreads!=0) ptfilterPtr->SetNumberOfThreads( totalthreads );
   
   //calculate the tensor image
   ptfilterPtr->GenerateTensorImageOutput();

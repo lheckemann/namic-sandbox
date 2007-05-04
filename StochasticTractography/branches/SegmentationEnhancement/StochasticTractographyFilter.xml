@@ -108,6 +108,18 @@
       <longflag>outputimageswitch</longflag>
       <label>Produce Output Images?</label>
     </boolean>
+    <integer>
+      <name>totalthreads</name>
+      <flag>j</flag>
+      <longflag>totalthreads</longflag>
+      <description>Total number of threads to use.  Default value of zero sets number of threads to number of CPUs</description>
+      <label>Total Threads</label>
+      <default>0</default>
+      <constraints>
+        <minimum>0</minimum>
+        <step>1</step>
+      </constraints>
+    </integer>
   </parameters>
 
   <parameters>
