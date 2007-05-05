@@ -65,7 +65,7 @@ struct ImageJointDomainTraits
  *  image pixel's range domain value (pixel value) and spatial domain
  *  value (pixel's physical coordiantes).
  *
- * This class is a derived class of the ImageToListSampleAdaptor. This class
+ * This class is a derived class of the ListSample class. This class
  * overrides the GetMeasurementVector method. The GetMeasurementVector
  * returns a measurement vector that consist of a pixel's physical
  * coordinates and intensity value. For example, if the image

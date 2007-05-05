@@ -32,30 +32,15 @@ namespace itk {
 namespace Statistics {
 
 /** \class ImageToListSampleAdaptor
- *  \brief This class provides ListSampleBase interfaces to ITK Image
+ *  \brief This class provides ListSample interface to ITK Image
  *
  * After calling SetImage( const Image * ) method to plug in the image object,
- * users can use Sample interfaces to access Image data.
- * However, the resulting data are a list of measurement vectors. The type of
- * data is measurement vector. For example, if the pixel type of Image object 
- * is STL vector< float > and each pixel has two different types of 
- * measurements, intensity and gradient magnitude, this adaptor has
- * measurement vector of type ITK Point< float, 2>, and one element of the Point
- * is intensity and the other is gradient magnitude.
+ * users can use Sample interfaces to access Image data. The resulting data
+ * are a list of measurement vectors.  
  *
- * There are two concepts of dimensions for this container. One is for Image 
- * object, and the other is for measurement vector dimension.
- * Only when using ITK Index to access data, the former concept is applicable
- * Otherwise, dimensions means dimensions of measurement vectors. 
- *
- * From the above example, there were two elements in a pixel and each pixel
- * provides [] operator for accessing its elements. However, in many cases,
- * The pixel might be a scalar value such as int or float. In this case,
- * The pixel doesn't support [] operator. To deal with this problem,
- * This class has two companion classes, ScalarAccessor and VectorAccessor.
- * If the pixel type is a scalar type, then you don't have change the third
- * template argument. If you have pixel type is vector one and supports
- * [] operator, then replace third argument with VectorAccessor
+ * The measurment vector type is determined from the image pixel type. This class
+ * handles images with scalar, fixed array or variable length vector pixel types. 
+ * 
  *
  * \sa Sample, ListSample
  */
@@ -117,15 +102,22 @@ public:
   /** returns the number of measurement vectors in this container*/
   InstanceIdentifier Size() const;
 
+  /** method to return measurement vector for a specified id */
   virtual const MeasurementVectorType & GetMeasurementVector(const InstanceIdentifier &id) const;
 
+  /** method to return frequency for a specified id */
   FrequencyType GetFrequency(const InstanceIdentifier &id) const;
 
+  /** method to return the total frequency */
   TotalFrequencyType GetTotalFrequency() const;
 
   /** Method to set UsePixelContainer flag */
   itkSetMacro( UsePixelContainer, bool );
+  
+  /** Method to get UsePixelContainer flag */
   itkGetMacro( UsePixelContainer, bool );
+
+  /** Convenience methods to turn on/off the UsePixelContainer flag */
   itkBooleanMacro( UsePixelContainer );
 
   /** \class ListSample::ConstIterator */
