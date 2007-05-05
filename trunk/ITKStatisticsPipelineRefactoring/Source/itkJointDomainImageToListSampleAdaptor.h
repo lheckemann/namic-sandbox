@@ -209,6 +209,7 @@ public:
     ConstIterator(const ConstIterator &iter)
       {
       m_InstanceIdentifier = iter.m_InstanceIdentifier;
+      m_Adaptor            = iter.m_Adaptor;
       }
 
     ConstIterator& operator=( const ConstIterator & iter )
