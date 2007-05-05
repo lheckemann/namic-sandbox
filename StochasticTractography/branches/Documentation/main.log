@@ -1,4 +1,4 @@
-This is pdfeTeX, Version 3.141592-1.21a-2.2 (Web2C 7.5.4) (format=pdflatex 2006.8.12)  4 MAY 2007 20:56
+This is pdfeTeX, Version 3.141592-1.21a-2.2 (Web2C 7.5.4) (format=pdflatex 2006.8.12)  4 MAY 2007 22:54
 entering extended mode
 **main
 (./main.tex
@@ -314,81 +314,76 @@ File: packedglyphs.png Graphic file (type png)
 <tractography.png, id=97, 250.41554pt x 178.14555pt>
 File: tractography.png Graphic file (type png)
  <use tractography.png>
-Overfull \hbox (2.61108pt too wide) in paragraph at lines 47--49
+Overfull \hbox (2.61108pt too wide) in paragraph at lines 51--53
 [][] [] 
  []
 
-[23 <./packedglyphs.png> <./tractography.png>] [24] [25] [26
+[23 <./packedglyphs.png> <./tractography.png>] [24] [25]
+Overfull \hbox (0.1769pt too wide) in paragraph at lines 78--79
+\OT1/cmr/m/n/12 Stochastic trac-tog-ra-phy meth-ods which use Bayesian frame-wo
+rks ex-press be-liefs about
+ []
+
+) [26] [27]
+\openout2 = `chap3.aux'.
+
+ (./chap3.tex [28
+
+
 
 ]
 Chapter 3.
-[27]
-Underfull \vbox (badness 1675) has occurred while \output is active []
+<stflow.png, id=117, 1127.21124pt x 796.9775pt>
+File: stflow.png Graphic file (type png)
+ <use stflow.png>) [29] [30 <./stflow.png>] [31]
+\openout2 = `chap4.aux'.
 
- [28]
-Underfull \vbox (badness 1675) has occurred while \output is active []
-
- [29])
-[30] [31]
-\openout2 = `chap3.aux'.
-
- (./chap3.tex [32
+ (./chap4.tex [32
 
 
 
 ]
 Chapter 4.
-<stflow.png, id=130, 1127.21124pt x 796.9775pt>
-File: stflow.png Graphic file (type png)
- <use stflow.png>) [33 <./stflow.png>]
-\openout2 = `chap4.aux'.
+<filterblock.png, id=131, 1127.21124pt x 796.9775pt>
+File: filterblock.png Graphic file (type png)
+ <use filterblock.png>
+[33 <./filterblock.png>]
+Underfull \vbox (badness 5652) has occurred while \output is active []
 
- (./chap4.tex [34
+ [34]
+Underfull \vbox (badness 1675) has occurred while \output is active []
+
+ [35]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [36])
+[37]
+\openout2 = `chap4a.aux'.
+
+ (./chap4a.tex [38
 
 
 
 ]
 Chapter 5.
-<filterblock.png, id=137, 1127.21124pt x 796.9775pt>
-File: filterblock.png Graphic file (type png)
- <use filterblock.png>
-[35 <./filterblock.png>]
-Underfull \vbox (badness 5652) has occurred while \output is active []
-
- [36]
-Underfull \vbox (badness 1675) has occurred while \output is active []
-
- [37]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [38])
-[39]
-\openout2 = `chap4a.aux'.
-
- (./chap4a.tex [40
-
-
-
-]
-Chapter 6.
-<slicermodule.png, id=157, 1405.25pt x 1053.9375pt>
+<slicermodule.png, id=151, 1405.25pt x 1053.9375pt>
 File: slicermodule.png Graphic file (type png)
  <use slicermodule.png>
-<slicer-0022.png, id=158, 1023.825pt x 914.41624pt>
+<slicer-0022.png, id=152, 1023.825pt x 914.41624pt>
 File: slicer-0022.png Graphic file (type png)
  <use slicer-0022.png>
-<slicer-0020.png, id=159, 1023.825pt x 914.41624pt>
+<slicer-0020.png, id=153, 1023.825pt x 914.41624pt>
 File: slicer-0020.png Graphic file (type png)
  <use slicer-0020.png>
 Overfull \hbox (2.61108pt too wide) in paragraph at lines 11--13
 [][] [] 
  []
 
-<hist_FA_nomask_single.pdf, id=160, 614.295pt x 794.97pt>
+<hist_FA_nomask_single.pdf, id=154, 614.295pt x 794.97pt>
 File: hist_FA_nomask_single.pdf Graphic file (type pdf)
 
 <use hist_FA_nomask_single.pdf>
-<hist_FA_mask_single.pdf, id=162, 614.295pt x 794.97pt>
+<hist_FA_mask_single.pdf, id=156, 614.295pt x 794.97pt>
 File: hist_FA_mask_single.pdf Graphic file (type pdf)
 
 <use hist_FA_mask_single.pdf>
@@ -396,11 +391,11 @@ Overfull \hbox (2.61108pt too wide) in paragraph at lines 18--21
 [][] [] 
  []
 
-<hist_length_nomask_single.pdf, id=164, 614.295pt x 794.97pt>
+<hist_length_nomask_single.pdf, id=158, 614.295pt x 794.97pt>
 File: hist_length_nomask_single.pdf Graphic file (type pdf)
 
 <use hist_length_nomask_single.pdf>
-<hist_length_mask_single.pdf, id=166, 614.295pt x 794.97pt>
+<hist_length_mask_single.pdf, id=160, 614.295pt x 794.97pt>
 File: hist_length_mask_single.pdf Graphic file (type pdf)
 
 <use hist_length_mask_single.pdf>
@@ -408,21 +403,21 @@ Overfull \hbox (2.61108pt too wide) in paragraph at lines 26--29
 [][] [] 
  []
 
-<slicer-0021.png, id=168, 1023.825pt x 914.41624pt>
+<slicer-0021.png, id=162, 1023.825pt x 914.41624pt>
 File: slicer-0021.png Graphic file (type png)
  <use slicer-0021.png>
-<slicer-0019.png, id=169, 1023.825pt x 914.41624pt>
+<slicer-0019.png, id=163, 1023.825pt x 914.41624pt>
 File: slicer-0019.png Graphic file (type png)
  <use slicer-0019.png>
 Overfull \hbox (2.61108pt too wide) in paragraph at lines 33--35
 [][] [] 
  []
 
-<hist_FA_nomask_two.pdf, id=170, 614.295pt x 794.97pt>
+<hist_FA_nomask_two.pdf, id=164, 614.295pt x 794.97pt>
 File: hist_FA_nomask_two.pdf Graphic file (type pdf)
 
 <use hist_FA_nomask_two.pdf>
-<hist_FA_mask_two.pdf, id=172, 614.295pt x 794.97pt>
+<hist_FA_mask_two.pdf, id=166, 614.295pt x 794.97pt>
 File: hist_FA_mask_two.pdf Graphic file (type pdf)
 
 <use hist_FA_mask_two.pdf>
@@ -430,11 +425,11 @@ Overfull \hbox (2.61108pt too wide) in paragraph at lines 40--43
 [][] [] 
  []
 
-<hist_length_nomask_two.pdf, id=174, 614.295pt x 794.97pt>
+<hist_length_nomask_two.pdf, id=168, 614.295pt x 794.97pt>
 File: hist_length_nomask_two.pdf Graphic file (type pdf)
 
 <use hist_length_nomask_two.pdf>
-<hist_length_mask_two.pdf, id=176, 614.295pt x 794.97pt>
+<hist_length_mask_two.pdf, id=170, 614.295pt x 794.97pt>
 File: hist_length_mask_two.pdf Graphic file (type pdf)
 
 <use hist_length_mask_two.pdf>
@@ -442,16 +437,16 @@ Overfull \hbox (2.61108pt too wide) in paragraph at lines 48--51
 [][] [] 
  []
 
-<slicer-0016.png, id=178, 1023.825pt x 914.41624pt>
+<slicer-0016.png, id=172, 1023.825pt x 914.41624pt>
 File: slicer-0016.png Graphic file (type png)
  <use slicer-0016.png>
-<slicer-0015.png, id=179, 1023.825pt x 914.41624pt>
+<slicer-0015.png, id=173, 1023.825pt x 914.41624pt>
 File: slicer-0015.png Graphic file (type png)
  <use slicer-0015.png>
-<slicer-0018.png, id=180, 1023.825pt x 914.41624pt>
+<slicer-0018.png, id=174, 1023.825pt x 914.41624pt>
 File: slicer-0018.png Graphic file (type png)
  <use slicer-0018.png>
-<slicer-0017.png, id=181, 1023.825pt x 914.41624pt>
+<slicer-0017.png, id=175, 1023.825pt x 914.41624pt>
 File: slicer-0017.png Graphic file (type png)
  <use slicer-0017.png>
 Overfull \hbox (2.61108pt too wide) in paragraph at lines 58--65
@@ -463,44 +458,46 @@ Overfull \hbox (2.61108pt too wide) in paragraph at lines 58--65
 [] [] 
  []
 
-<timepertracts.pdf, id=182, 614.295pt x 794.97pt>
+<timepertracts.pdf, id=176, 614.295pt x 794.97pt>
 File: timepertracts.pdf Graphic file (type pdf)
  <use timepertracts.pdf>)
-[41] [42 <./slicermodule.png> <./slicer-0022.png> <./slicer-0020.png>] [43 <./h
+[39] [40 <./slicermodule.png> <./slicer-0022.png> <./slicer-0020.png>] [41 <./h
 ist_FA_nomask_single.pdf> <./hist_FA_mask_single.pdf> <./hist_length_nomask_sin
-gle.pdf> <./hist_length_mask_single.pdf>] [44 <./hist_FA_nomask_two.pdf> <./his
-t_FA_mask_two.pdf> <./slicer-0021.png> <./slicer-0019.png>] [45 <./hist_length_
-nomask_two.pdf> <./hist_length_mask_two.pdf>] [46 <./slicer-0016.png> <./slicer
--0015.png> <./slicer-0018.png> <./slicer-0017.png>] [47 <./timepertracts.pdf>]
+gle.pdf> <./hist_length_mask_single.pdf>] [42 <./hist_FA_nomask_two.pdf> <./his
+t_FA_mask_two.pdf> <./slicer-0021.png> <./slicer-0019.png>] [43 <./hist_length_
+nomask_two.pdf> <./hist_length_mask_two.pdf>] [44 <./slicer-0016.png> <./slicer
+-0015.png> <./slicer-0018.png> <./slicer-0017.png>] [45 <./timepertracts.pdf>]
 \openout2 = `chap5.aux'.
 
 
-(./chap5.tex [48
+(./chap5.tex [46
+
+
+
+]
+Chapter 6.
+[47] <thalamus.png, id=246, 501.875pt x 574.145pt>
+File: thalamus.png Graphic file (type png)
+ <use thalamus.png>
+<frontalcortexfibers.png, id=247, 330.23375pt x 652.4375pt>
+File: frontalcortexfibers.png Graphic file (type png)
+
+<use frontalcortexfibers.png>
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [48 <./thalamus.png> <./frontalcortexfibers.png>]) [49]
+\openout2 = `chap6.aux'.
+
+ (./chap6.tex [50
 
 
 
 ]
 Chapter 7.
-<thalamus.png, id=249, 501.875pt x 574.145pt>
-File: thalamus.png Graphic file (type png)
- <use thalamus.png>
-<frontalcortexfibers.png, id=250, 330.23375pt x 652.4375pt>
-File: frontalcortexfibers.png Graphic file (type png)
-
-<use frontalcortexfibers.png> [49] [50 <./thalamus.png> <./frontalcortexfibers.
-png>]) [51]
-\openout2 = `chap6.aux'.
-
- (./chap6.tex [52
-
-
-
-]
-Chapter 8.
-) [53]
+) [51]
 \openout2 = `appa.aux'.
 
- (./appa.tex [54
+ (./appa.tex [52
 
 
 
@@ -509,11 +506,11 @@ Appendix A.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [55]
+ [53]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [56]
-[57] [58] [59] [60]
+ [54]
+[55] [56] [57] [58]
 Overfull \hbox (14.09363pt too wide) in paragraph at lines 196--199
 \OT1/cmr/m/n/12 pre-vi-ous step di-rec-tion and prior knowl-edge about the next
  step di-rec-tion: $\OML/cmm/m/it/12 p\OT1/cmr/m/n/12 ([]\OML/cmm/m/it/12 ; ^^R
@@ -523,15 +520,15 @@ Overfull \hbox (14.09363pt too wide) in paragraph at lines 196--199
 
 Underfull \vbox (badness 2486) has occurred while \output is active []
 
- [61])
-[62]
+ [59])
+[60]
 \openout2 = `biblio.aux'.
 
- (./biblio.tex (./main.bbl [63
+ (./biblio.tex (./main.bbl [61
 
 
 
-])) [64] (./main.aux (./cover.aux)
+])) [62] (./main.aux (./cover.aux)
 (./contents.aux) (./chap1.aux) (./chap2.aux) (./chap3.aux) (./chap4.aux)
 (./chap4a.aux) (./chap5.aux) (./chap6.aux) (./appa.aux) (./biblio.aux))
 
@@ -541,13 +538,13 @@ LaTeX Warning: There were multiply-defined labels.
 Here is how much of TeX's memory you used:
  2284 strings out of 94500
  27565 string characters out of 1175788
- 79425 words of memory out of 1000000
+ 79423 words of memory out of 1000000
  5333 multiletter control sequences out of 10000+50000
  11943 words of font info for 44 fonts, out of 500000 for 2000
  580 hyphenation exceptions out of 8191
  28i,9n,22p,2280b,237s stack positions out of 1500i,500n,5000p,200000b,5000s
 PDF statistics:
- 321 PDF objects out of 300000
+ 315 PDF objects out of 300000
  0 named destinations out of 131072
  180 words of extra memory for PDF output out of 65536
 </usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmti12.pfb></usr/share/texmf-t
@@ -561,4 +558,4 @@ pe1/bluesky/cm/cmex10.pfb></usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmsy10
 .pfb></usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmr17.pfb></usr/share/texmf
 -tetex/fonts/type1/bluesky/cm/cmr12.pfb></usr/share/texmf-tetex/fonts/type1/blu
 esky/cm/cmbx12.pfb>
-Output written on main.pdf (64 pages, 8134159 bytes).
+Output written on main.pdf (62 pages, 8131627 bytes).

@@ -4,31 +4,29 @@
 \contentsline {section}{\numberline {2.2}Diffusion Tensor MRI Physics}{20}
 \contentsline {section}{\numberline {2.3}Diffusion Tensor}{22}
 \contentsline {section}{\numberline {2.4}White Matter Tractography}{23}
-\contentsline {subsection}{\numberline {2.4.1}Visualization Methods}{23}
-\contentsline {section}{\numberline {2.5}Streamline Tractography Methods}{24}
-\contentsline {chapter}{\numberline {3}Stochastic Tractography Methods}{27}
-\contentsline {section}{\numberline {3.1}Modeling Approaches}{27}
-\contentsline {section}{\numberline {3.2}Probabilistic Tractography Theory}{30}
-\contentsline {section}{\numberline {3.3}Tractography in Clinical Studies}{30}
-\contentsline {chapter}{\numberline {4}Stochastic White Matter Tractography}{33}
-\contentsline {chapter}{\numberline {5}Implementation}{35}
-\contentsline {section}{\numberline {5.1}Optimizations}{39}
-\contentsline {section}{\numberline {5.2}3D Slicer Module}{39}
-\contentsline {chapter}{\numberline {6}Results}{41}
-\contentsline {section}{\numberline {6.1}3D Slicer Interface}{41}
-\contentsline {section}{\numberline {6.2}Example Results}{41}
-\contentsline {section}{\numberline {6.3}Comparison with streamlining tractography}{41}
-\contentsline {section}{\numberline {6.4}Performance}{41}
-\contentsline {chapter}{\numberline {7}Application to Clinical Data}{49}
-\contentsline {section}{\numberline {7.1}Schizophrenia}{49}
-\contentsline {section}{\numberline {7.2}Method}{50}
-\contentsline {section}{\numberline {7.3}Results}{51}
-\contentsline {subsection}{\numberline {7.3.1}Convergence of Statistics}{51}
-\contentsline {section}{\numberline {7.4}Discussion}{51}
-\contentsline {chapter}{\numberline {8}Conclusion}{53}
-\contentsline {chapter}{\numberline {A}Mathematical Derivation}{55}
-\contentsline {section}{\numberline {A.1}Linearized Diffusion Tensor Model}{55}
-\contentsline {section}{\numberline {A.2}Constrained Diffusion Tensor Model}{57}
-\contentsline {section}{\numberline {A.3}Fiber Orientation Likelihood Function}{58}
-\contentsline {section}{\numberline {A.4}Connectivity Probability Function}{59}
-\contentsline {section}{\numberline {A.5}Stochastic Fiber Tract Generation}{60}
+\contentsline {subsection}{\numberline {2.4.1}Streamline Tractography Methods}{24}
+\contentsline {subsection}{\numberline {2.4.2}Stochastic Tractography Methods}{25}
+\contentsline {subsubsection}{Bootstrap Method}{25}
+\contentsline {subsubsection}{Bayesian Methods}{26}
+\contentsline {chapter}{\numberline {3}Stochastic Tractography}{29}
+\contentsline {chapter}{\numberline {4}Implementation}{33}
+\contentsline {section}{\numberline {4.1}Optimizations}{37}
+\contentsline {section}{\numberline {4.2}3D Slicer Module}{37}
+\contentsline {chapter}{\numberline {5}Results}{39}
+\contentsline {section}{\numberline {5.1}3D Slicer Interface}{39}
+\contentsline {section}{\numberline {5.2}Example Results}{39}
+\contentsline {section}{\numberline {5.3}Comparison with streamlining tractography}{39}
+\contentsline {section}{\numberline {5.4}Performance}{39}
+\contentsline {chapter}{\numberline {6}Analysis of Frontal Lobe Fibers}{47}
+\contentsline {section}{\numberline {6.1}Schizophrenia}{47}
+\contentsline {section}{\numberline {6.2}Method}{49}
+\contentsline {section}{\numberline {6.3}Results}{49}
+\contentsline {subsection}{\numberline {6.3.1}Convergence of Statistics}{49}
+\contentsline {section}{\numberline {6.4}Discussion}{49}
+\contentsline {chapter}{\numberline {7}Conclusion}{51}
+\contentsline {chapter}{\numberline {A}Mathematical Derivation}{53}
+\contentsline {section}{\numberline {A.1}Linearized Diffusion Tensor Model}{53}
+\contentsline {section}{\numberline {A.2}Constrained Diffusion Tensor Model}{55}
+\contentsline {section}{\numberline {A.3}Fiber Orientation Likelihood Function}{56}
+\contentsline {section}{\numberline {A.4}Connectivity Probability Function}{57}
+\contentsline {section}{\numberline {A.5}Stochastic Fiber Tract Generation}{58}
