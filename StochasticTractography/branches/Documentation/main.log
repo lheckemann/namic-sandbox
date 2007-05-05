@@ -1,4 +1,4 @@
-This is pdfeTeX, Version 3.141592-1.21a-2.2 (Web2C 7.5.4) (format=pdflatex 2006.8.12)  4 MAY 2007 15:31
+This is pdfeTeX, Version 3.141592-1.21a-2.2 (Web2C 7.5.4) (format=pdflatex 2006.8.12)  4 MAY 2007 20:56
 entering extended mode
 **main
 (./main.tex
@@ -273,216 +273,234 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 ]
 Chapter 1.
-[15]) [16]
+[15]) [16] [17]
 \openout2 = `chap2.aux'.
 
- (./chap2.tex
+ (./chap2.tex [18
+
+
+
+]
 Chapter 2.
-<graysfibertracts.png, id=64, 614.295pt x 208.1376pt>
+
+Overfull \hbox (2.12975pt too wide) in paragraph at lines 4--5
+\OT1/cmr/m/n/12 nance (MR) tech-nique that pro-vides in-for-ma-tion about the d
+if-fu-sion of wa-ter molecules
+ []
+
+<graysfibertracts.png, id=70, 614.295pt x 208.1376pt>
 File: graysfibertracts.png Graphic file (type png)
 
 <use graysfibertracts.png>
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [17
-
-
-
-]
-Underfull \vbox (badness 2393) has occurred while \output is active []
-
- [18 <./graysfibertracts.png>]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
  [19]
-Overfull \hbox (8.1407pt too wide) in paragraph at lines 30--31
+[20 <./graysfibertracts.png>]
+Underfull \vbox (badness 5652) has occurred while \output is active []
+
+ [21]
+Overfull \hbox (8.1407pt too wide) in paragraph at lines 35--36
 []\OT1/cmr/m/n/12 Fractional anisotropy is cur-rently the most pop-u-lar way to
  sum-ma-rize the anisotropy
  []
 
-<packedglyphs.png, id=75, 251.4996pt x 178.86826pt>
+
+Underfull \vbox (badness 1642) has occurred while \output is active []
+
+ [22]
+<packedglyphs.png, id=96, 251.4996pt x 178.86826pt>
 File: packedglyphs.png Graphic file (type png)
  <use packedglyphs.png>
-<tractography.png, id=76, 250.41554pt x 178.14555pt>
+<tractography.png, id=97, 250.41554pt x 178.14555pt>
 File: tractography.png Graphic file (type png)
  <use tractography.png>
-Overfull \hbox (2.61108pt too wide) in paragraph at lines 40--42
+Overfull \hbox (2.61108pt too wide) in paragraph at lines 47--49
 [][] [] 
  []
 
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [20]
-Underfull \vbox (badness 2772) has occurred while \output is active []
-
- [21 <./packedglyphs.png> <./tractography.png>] [22]
-Chapter 3.
-[23
+[23 <./packedglyphs.png> <./tractography.png>] [24] [25] [26
 
 ]
-Underfull \vbox (badness 5652) has occurred while \output is active []
+Chapter 3.
+[27]
+Underfull \vbox (badness 1675) has occurred while \output is active []
 
- [24]
-[25]) [26] [27]
+ [28]
+Underfull \vbox (badness 1675) has occurred while \output is active []
+
+ [29])
+[30] [31]
 \openout2 = `chap3.aux'.
 
- (./chap3.tex [28
+ (./chap3.tex [32
 
 
 
 ]
 Chapter 4.
-) [29]
+<stflow.png, id=130, 1127.21124pt x 796.9775pt>
+File: stflow.png Graphic file (type png)
+ <use stflow.png>) [33 <./stflow.png>]
 \openout2 = `chap4.aux'.
 
- (./chap4.tex [30
+ (./chap4.tex [34
 
 
 
 ]
 Chapter 5.
-[31]
+<filterblock.png, id=137, 1127.21124pt x 796.9775pt>
+File: filterblock.png Graphic file (type png)
+ <use filterblock.png>
+[35 <./filterblock.png>]
 Underfull \vbox (badness 5652) has occurred while \output is active []
 
- [32]
-Underfull \vbox (badness 5652) has occurred while \output is active []
+ [36]
+Underfull \vbox (badness 1675) has occurred while \output is active []
 
- [33]
-[34]) [35]
+ [37]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [38])
+[39]
 \openout2 = `chap4a.aux'.
 
- (./chap4a.tex [36
+ (./chap4a.tex [40
 
 
 
 ]
 Chapter 6.
-<slicer-0022.png, id=142, 1023.825pt x 914.41624pt>
+<slicermodule.png, id=157, 1405.25pt x 1053.9375pt>
+File: slicermodule.png Graphic file (type png)
+ <use slicermodule.png>
+<slicer-0022.png, id=158, 1023.825pt x 914.41624pt>
 File: slicer-0022.png Graphic file (type png)
  <use slicer-0022.png>
-<slicer-0020.png, id=143, 1023.825pt x 914.41624pt>
+<slicer-0020.png, id=159, 1023.825pt x 914.41624pt>
 File: slicer-0020.png Graphic file (type png)
  <use slicer-0020.png>
-Overfull \hbox (2.61108pt too wide) in paragraph at lines 3--5
+Overfull \hbox (2.61108pt too wide) in paragraph at lines 11--13
 [][] [] 
  []
 
-<hist_FA_nomask_single.pdf, id=144, 614.295pt x 794.97pt>
+<hist_FA_nomask_single.pdf, id=160, 614.295pt x 794.97pt>
 File: hist_FA_nomask_single.pdf Graphic file (type pdf)
 
 <use hist_FA_nomask_single.pdf>
-<hist_FA_mask_single.pdf, id=146, 614.295pt x 794.97pt>
+<hist_FA_mask_single.pdf, id=162, 614.295pt x 794.97pt>
 File: hist_FA_mask_single.pdf Graphic file (type pdf)
 
 <use hist_FA_mask_single.pdf>
-Overfull \hbox (2.61108pt too wide) in paragraph at lines 10--13
-[][] [] 
- []
-
-<hist_length_nomask_single.pdf, id=148, 614.295pt x 794.97pt>
-File: hist_length_nomask_single.pdf Graphic file (type pdf)
-
-<use hist_length_nomask_single.pdf>
-<hist_length_mask_single.pdf, id=150, 614.295pt x 794.97pt>
-File: hist_length_mask_single.pdf Graphic file (type pdf)
-
-<use hist_length_mask_single.pdf>
 Overfull \hbox (2.61108pt too wide) in paragraph at lines 18--21
 [][] [] 
  []
 
-<slicer-0021.png, id=152, 1023.825pt x 914.41624pt>
-File: slicer-0021.png Graphic file (type png)
- <use slicer-0021.png>
-<slicer-0019.png, id=153, 1023.825pt x 914.41624pt>
-File: slicer-0019.png Graphic file (type png)
- <use slicer-0019.png>
-Overfull \hbox (2.61108pt too wide) in paragraph at lines 25--27
+<hist_length_nomask_single.pdf, id=164, 614.295pt x 794.97pt>
+File: hist_length_nomask_single.pdf Graphic file (type pdf)
+
+<use hist_length_nomask_single.pdf>
+<hist_length_mask_single.pdf, id=166, 614.295pt x 794.97pt>
+File: hist_length_mask_single.pdf Graphic file (type pdf)
+
+<use hist_length_mask_single.pdf>
+Overfull \hbox (2.61108pt too wide) in paragraph at lines 26--29
 [][] [] 
  []
 
-<hist_FA_nomask_two.pdf, id=154, 614.295pt x 794.97pt>
+<slicer-0021.png, id=168, 1023.825pt x 914.41624pt>
+File: slicer-0021.png Graphic file (type png)
+ <use slicer-0021.png>
+<slicer-0019.png, id=169, 1023.825pt x 914.41624pt>
+File: slicer-0019.png Graphic file (type png)
+ <use slicer-0019.png>
+Overfull \hbox (2.61108pt too wide) in paragraph at lines 33--35
+[][] [] 
+ []
+
+<hist_FA_nomask_two.pdf, id=170, 614.295pt x 794.97pt>
 File: hist_FA_nomask_two.pdf Graphic file (type pdf)
 
 <use hist_FA_nomask_two.pdf>
-<hist_FA_mask_two.pdf, id=156, 614.295pt x 794.97pt>
+<hist_FA_mask_two.pdf, id=172, 614.295pt x 794.97pt>
 File: hist_FA_mask_two.pdf Graphic file (type pdf)
 
 <use hist_FA_mask_two.pdf>
-Overfull \hbox (2.61108pt too wide) in paragraph at lines 32--35
-[][] [] 
- []
-
-<hist_length_nomask_two.pdf, id=158, 614.295pt x 794.97pt>
-File: hist_length_nomask_two.pdf Graphic file (type pdf)
-
-<use hist_length_nomask_two.pdf>
-<hist_length_mask_two.pdf, id=160, 614.295pt x 794.97pt>
-File: hist_length_mask_two.pdf Graphic file (type pdf)
-
-<use hist_length_mask_two.pdf>
 Overfull \hbox (2.61108pt too wide) in paragraph at lines 40--43
 [][] [] 
  []
 
-<slicer-0016.png, id=162, 1023.825pt x 914.41624pt>
+<hist_length_nomask_two.pdf, id=174, 614.295pt x 794.97pt>
+File: hist_length_nomask_two.pdf Graphic file (type pdf)
+
+<use hist_length_nomask_two.pdf>
+<hist_length_mask_two.pdf, id=176, 614.295pt x 794.97pt>
+File: hist_length_mask_two.pdf Graphic file (type pdf)
+
+<use hist_length_mask_two.pdf>
+Overfull \hbox (2.61108pt too wide) in paragraph at lines 48--51
+[][] [] 
+ []
+
+<slicer-0016.png, id=178, 1023.825pt x 914.41624pt>
 File: slicer-0016.png Graphic file (type png)
  <use slicer-0016.png>
-<slicer-0015.png, id=163, 1023.825pt x 914.41624pt>
+<slicer-0015.png, id=179, 1023.825pt x 914.41624pt>
 File: slicer-0015.png Graphic file (type png)
  <use slicer-0015.png>
-<slicer-0018.png, id=164, 1023.825pt x 914.41624pt>
+<slicer-0018.png, id=180, 1023.825pt x 914.41624pt>
 File: slicer-0018.png Graphic file (type png)
  <use slicer-0018.png>
-<slicer-0017.png, id=165, 1023.825pt x 914.41624pt>
+<slicer-0017.png, id=181, 1023.825pt x 914.41624pt>
 File: slicer-0017.png Graphic file (type png)
  <use slicer-0017.png>
-Overfull \hbox (2.61108pt too wide) in paragraph at lines 50--57
+Overfull \hbox (2.61108pt too wide) in paragraph at lines 58--65
 [][] []
  []
 
 
-Overfull \hbox (2.61108pt too wide) in paragraph at lines 50--57
+Overfull \hbox (2.61108pt too wide) in paragraph at lines 58--65
 [] [] 
  []
 
-<timepertracts.pdf, id=166, 614.295pt x 794.97pt>
+<timepertracts.pdf, id=182, 614.295pt x 794.97pt>
 File: timepertracts.pdf Graphic file (type pdf)
  <use timepertracts.pdf>)
-[37] [38 <./hist_FA_nomask_single.pdf> <./hist_FA_mask_single.pdf> <./slicer-00
-22.png> <./slicer-0020.png>] [39 <./hist_length_nomask_single.pdf> <./hist_leng
-th_mask_single.pdf> <./slicer-0021.png> <./slicer-0019.png>] [40 <./hist_FA_nom
-ask_two.pdf> <./hist_FA_mask_two.pdf> <./hist_length_nomask_two.pdf> <./hist_le
-ngth_mask_two.pdf>] [41 <./slicer-0016.png> <./slicer-0015.png> <./slicer-0018.
-png> <./slicer-0017.png>] [42 <./timepertracts.pdf>]
+[41] [42 <./slicermodule.png> <./slicer-0022.png> <./slicer-0020.png>] [43 <./h
+ist_FA_nomask_single.pdf> <./hist_FA_mask_single.pdf> <./hist_length_nomask_sin
+gle.pdf> <./hist_length_mask_single.pdf>] [44 <./hist_FA_nomask_two.pdf> <./his
+t_FA_mask_two.pdf> <./slicer-0021.png> <./slicer-0019.png>] [45 <./hist_length_
+nomask_two.pdf> <./hist_length_mask_two.pdf>] [46 <./slicer-0016.png> <./slicer
+-0015.png> <./slicer-0018.png> <./slicer-0017.png>] [47 <./timepertracts.pdf>]
 \openout2 = `chap5.aux'.
 
- (./chap5.tex
+
+(./chap5.tex [48
+
+
+
+]
 Chapter 7.
-<thalamus.png, id=227, 501.875pt x 574.145pt>
+<thalamus.png, id=249, 501.875pt x 574.145pt>
 File: thalamus.png Graphic file (type png)
  <use thalamus.png>
-<frontalcortexfibers.png, id=228, 330.23375pt x 652.4375pt>
+<frontalcortexfibers.png, id=250, 330.23375pt x 652.4375pt>
 File: frontalcortexfibers.png Graphic file (type png)
 
-<use frontalcortexfibers.png> [43
-
-
-
-] [44 <./thalamus.png> <./frontalcortexfibers.png>]) [45]
+<use frontalcortexfibers.png> [49] [50 <./thalamus.png> <./frontalcortexfibers.
+png>]) [51]
 \openout2 = `chap6.aux'.
 
- (./chap6.tex [46
+ (./chap6.tex [52
 
 
 
 ]
 Chapter 8.
-) [47]
+) [53]
 \openout2 = `appa.aux'.
 
- (./appa.tex [48
+ (./appa.tex [54
 
 
 
@@ -491,11 +509,11 @@ Appendix A.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [49]
+ [55]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [50]
-[51] [52] [53] [54]
+ [56]
+[57] [58] [59] [60]
 Overfull \hbox (14.09363pt too wide) in paragraph at lines 196--199
 \OT1/cmr/m/n/12 pre-vi-ous step di-rec-tion and prior knowl-edge about the next
  step di-rec-tion: $\OML/cmm/m/it/12 p\OT1/cmr/m/n/12 ([]\OML/cmm/m/it/12 ; ^^R
@@ -505,15 +523,15 @@ Overfull \hbox (14.09363pt too wide) in paragraph at lines 196--199
 
 Underfull \vbox (badness 2486) has occurred while \output is active []
 
- [55])
-[56]
+ [61])
+[62]
 \openout2 = `biblio.aux'.
 
- (./biblio.tex (./main.bbl [57
+ (./biblio.tex (./main.bbl [63
 
 
 
-])) [58] (./main.aux (./cover.aux)
+])) [64] (./main.aux (./cover.aux)
 (./contents.aux) (./chap1.aux) (./chap2.aux) (./chap3.aux) (./chap4.aux)
 (./chap4a.aux) (./chap5.aux) (./chap6.aux) (./appa.aux) (./biblio.aux))
 
@@ -521,17 +539,17 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 2267 strings out of 94500
- 27268 string characters out of 1175788
- 79388 words of memory out of 1000000
- 5319 multiletter control sequences out of 10000+50000
+ 2284 strings out of 94500
+ 27565 string characters out of 1175788
+ 79425 words of memory out of 1000000
+ 5333 multiletter control sequences out of 10000+50000
  11943 words of font info for 44 fonts, out of 500000 for 2000
  580 hyphenation exceptions out of 8191
- 28i,9n,22p,1775b,239s stack positions out of 1500i,500n,5000p,200000b,5000s
+ 28i,9n,22p,2280b,237s stack positions out of 1500i,500n,5000p,200000b,5000s
 PDF statistics:
- 299 PDF objects out of 300000
+ 321 PDF objects out of 300000
  0 named destinations out of 131072
- 165 words of extra memory for PDF output out of 65536
+ 180 words of extra memory for PDF output out of 65536
 </usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmti12.pfb></usr/share/texmf-t
 etex/fonts/type1/bluesky/symbols/msbm10.pfb></usr/share/texmf-tetex/fonts/type1
 /bluesky/cm/cmr6.pfb></usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmbx8.pfb><
@@ -543,4 +561,4 @@ pe1/bluesky/cm/cmex10.pfb></usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmsy10
 .pfb></usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmr17.pfb></usr/share/texmf
 -tetex/fonts/type1/bluesky/cm/cmr12.pfb></usr/share/texmf-tetex/fonts/type1/blu
 esky/cm/cmbx12.pfb>
-Output written on main.pdf (58 pages, 7868239 bytes).
+Output written on main.pdf (64 pages, 8134159 bytes).

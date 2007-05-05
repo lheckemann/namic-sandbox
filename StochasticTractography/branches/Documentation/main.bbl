@@ -13,12 +13,6 @@ Brigham and Women's Hospital.
   research.
 \newblock {\em http://www.slicer.org/}.
 
-\bibitem{Ciccarelli}
-O.~Ciccarelli, T.~E. Beherens, D.~R. Altmann, R.~W.Orrell, H.~Johansen-Berg
-  R.~S.~Howard, D.~H. Miller, P.~M Matthews, and A.~J. Thompson.
-\newblock Probabilistic diffusion tractography: a potential tool to assess the
-  rate of disease progression in amyotrophic lateral sclerosis.
-
 \bibitem{itk}
 Insight~Software Consortium.
 \newblock National library of medicine insight segmentation and registration
