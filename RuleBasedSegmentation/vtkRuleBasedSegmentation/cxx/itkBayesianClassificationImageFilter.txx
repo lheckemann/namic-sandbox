@@ -137,7 +137,7 @@ BayesianClassificationImageFilter< TInputImage, TLabelImage, TMaskImage >
     ExtractedComponentImageType, ExtractedComponentImageType >  SmoothingFilterType;
   typename SmoothingFilterType::Pointer smoother = SmoothingFilterType::New();
   smoother->SetNumberOfIterations( 1 );
-  smoother->SetTimeStep( 0.125 );
+  smoother->SetTimeStep( 0.0625 );
   smoother->SetConductanceParameter( 3 );  
   m_Classifier->SetSmoothingFilter( smoother );
 
