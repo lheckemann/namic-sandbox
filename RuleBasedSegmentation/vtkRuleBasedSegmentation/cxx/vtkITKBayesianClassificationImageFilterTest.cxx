@@ -24,6 +24,7 @@ int main( int argc, char * argv [] )
   // flip image
   vtkImageFlip* imageFlip = vtkImageFlip::New();
   imageFlip->SetFilteredAxis(1);
+  imageFlip->SetFlipAboutOrigin(1);
   imageFlip->SetInput(reader->GetOutput());
 
   //
@@ -52,6 +53,7 @@ int main( int argc, char * argv [] )
 
     vtkImageFlip* maskFlip = vtkImageFlip::New();
     maskFlip->SetFilteredAxis(1);
+    maskFlip->SetFlipAboutOrigin(1);
     maskFlip->SetInput(maskReader->GetOutput());
 
     filter->SetMaskImage( maskFlip->GetOutput() );
@@ -68,6 +70,7 @@ int main( int argc, char * argv [] )
   vtkImageFlip* outFlip = vtkImageFlip::New();
   outFlip->SetFilteredAxis(1);
   outFlip->SetInput(filter->GetOutput());
+  outFlip->SetFlipAboutOrigin(1);
 
   //
   // rescale [0,1] to [0,255] and convert to unsigned char
