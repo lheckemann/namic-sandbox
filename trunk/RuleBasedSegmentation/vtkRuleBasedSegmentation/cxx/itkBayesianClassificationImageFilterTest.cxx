@@ -7,7 +7,7 @@
 
 int main(int argc, char *argv[])
 {
-  typedef unsigned long VoxelType;
+  typedef unsigned short VoxelType;
   const unsigned int Dimension = 3;
   if( argc < 4 )
     {

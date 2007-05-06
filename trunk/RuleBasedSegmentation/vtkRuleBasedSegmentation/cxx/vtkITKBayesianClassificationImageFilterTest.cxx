@@ -1,6 +1,9 @@
 #include "vtkITKBayesianClassificationImageFilterTest.h"
 #include "vtkImageCast.h"
 #include "vtkImageMathematics.h"
+#include "vtkImageFlip.h"
+#include "vtkPNGWriter.h"
+#include "vtkPNGReader.h"
 
 int main( int argc, char * argv [] )
 {
@@ -13,10 +16,15 @@ int main( int argc, char * argv [] )
   //
   // read image
   std::cerr << "Reading image...";
-  vtkPNGReader * reader = vtkPNGReader::New();
+  vtkPNGReader* reader = vtkPNGReader::New();
   reader->SetFileName( argv[1] );
   reader->Update();
   std::cerr << "Done." << std::endl;
+
+  // flip image
+  vtkImageFlip* imageFlip = vtkImageFlip::New();
+  imageFlip->SetFilteredAxis(1);
+  imageFlip->SetInput(reader->GetOutput());
 
   //
   // create vtk filter
@@ -28,7 +36,7 @@ int main( int argc, char * argv [] )
   // set inputs
   // NB: vtkITK abuses the vtk pipeline architecture by overriding
   // SetInput thus, we must use SetInput
-  filter->SetInput( reader->GetOutput() );
+  filter->SetInput( imageFlip->GetOutput() );
   filter->SetNumberOfClasses( atoi(argv[3]) );
   filter->SetNumberOfSmoothingIterations( atoi(argv[4]) );
 
@@ -41,7 +49,12 @@ int main( int argc, char * argv [] )
     maskReader->SetFileName( argv[5] );
     maskReader->Update();
     std::cerr << "Done." << std::endl;
-    filter->SetMaskImage( maskReader->GetOutput() );
+
+    vtkImageFlip* maskFlip = vtkImageFlip::New();
+    maskFlip->SetFilteredAxis(1);
+    maskFlip->SetInput(maskReader->GetOutput());
+
+    filter->SetMaskImage( maskFlip->GetOutput() );
     filter->SetMaskValue( atoi(argv[6]) );
   }
 
@@ -51,10 +64,15 @@ int main( int argc, char * argv [] )
   filter->Update();
   std::cerr << "Done." << std::endl;
 
+  // flip image
+  vtkImageFlip* outFlip = vtkImageFlip::New();
+  outFlip->SetFilteredAxis(1);
+  outFlip->SetInput(filter->GetOutput());
+
   //
   // rescale [0,1] to [0,255] and convert to unsigned char
   vtkImageMathematics* intensityRescaler = vtkImageMathematics::New();
-  intensityRescaler->SetInput1( filter->GetOutput() );
+  intensityRescaler->SetInput1( outFlip->GetOutput() );
   intensityRescaler->SetOperationToMultiplyByK();
   intensityRescaler->SetConstantK(255);
 

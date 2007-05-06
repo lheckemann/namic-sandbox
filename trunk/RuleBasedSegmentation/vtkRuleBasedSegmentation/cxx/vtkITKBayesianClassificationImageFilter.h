@@ -54,15 +54,15 @@ PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 #include "vtkRuleBasedSegmentationConfigure.h"
 
-#include "vtkITKImageToImageFilterULUL.h"
+#include "vtkITKImageToImageFilterUSUS.h"
 #include "itkBayesianClassificationImageFilter.h"
 #include "vtkObjectFactory.h"
 
-class VTK_RULEBASEDSEGMENTATION_EXPORT vtkITKBayesianClassificationImageFilter : public vtkITKImageToImageFilterULUL
+class VTK_RULEBASEDSEGMENTATION_EXPORT vtkITKBayesianClassificationImageFilter : public vtkITKImageToImageFilterUSUS
 {
  public:
   static vtkITKBayesianClassificationImageFilter *New();
-  vtkTypeRevisionMacro(vtkITKBayesianClassificationImageFilter, vtkITKImageToImageFilterULUL);
+  vtkTypeRevisionMacro(vtkITKBayesianClassificationImageFilter, vtkITKImageToImageFilterUSUS);
 
   void PrintSelf( ostream &os, vtkIndent indent )
   {
@@ -125,7 +125,7 @@ class VTK_RULEBASEDSEGMENTATION_EXPORT vtkITKBayesianClassificationImageFilter :
 protected:
   // typedefs and vars for delegation of mask image
   //BTX
-  typedef itk::Image<unsigned long, 3>       MaskImageType;
+  typedef itk::Image<unsigned short, 3>       MaskImageType;
   typedef itk::VTKImageImport<MaskImageType> MaskImportType;
 
   MaskImportType::Pointer                    itkMaskImporter;
@@ -150,7 +150,7 @@ protected:
     this->vtkMaskCast                      = vtkImageCast::New();
     this->vtkMaskExporter                  = vtkImageExport::New();
     this->vtkMaskExporter->SetInput(this->vtkMaskCast->GetOutput());
-    this->vtkMaskCast->SetOutputScalarTypeToUnsignedLong();
+    this->vtkMaskCast->SetOutputScalarTypeToUnsignedShort();
 
     // setup itk ends of pipelines: connect itk importers/exporters to
     // itk filter
