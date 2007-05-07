@@ -82,14 +82,13 @@ public:
   /** Superclass typedefs for Measurement vector, measurement, 
    * Instance Identifier, frequency, size, size element value */
   typedef typename MeasurementVectorPixelTraits<
-         PixelType >::MeasurementVectorType
-                                                               MeasurementVectorType; 
+         PixelType >::MeasurementVectorType                    MeasurementVectorType; 
   typedef typename MeasurementVectorTraitsTypes< 
              MeasurementVectorType >::ValueType                MeasurementType;
-  typedef typename Superclass::FrequencyType                   FrequencyType;
-  typedef typename Superclass::TotalFrequencyType              TotalFrequencyType;
-  typedef typename Superclass::MeasurementVectorSizeType       MeasurementVectorSizeType;
-  typedef typename Superclass::InstanceIdentifier              InstanceIdentifier;
+  itkSuperclassTraitMacro( FrequencyType );
+  itkSuperclassTraitMacro( TotalFrequencyType );
+  itkSuperclassTraitMacro( MeasurementVectorSizeType );
+  itkSuperclassTraitMacro( InstanceIdentifier );
 
   typedef MeasurementVectorType                                ValueType;
 

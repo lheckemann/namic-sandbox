@@ -74,13 +74,14 @@ public:
 
   /** Superclass typedefs for Measurement vector, measurement, 
    * Instance Identifier, frequency, size, size element value */
-  typedef typename Superclass::MeasurementType            MeasurementType;
-  typedef typename Superclass::MeasurementVectorType      MeasurementVectorType;
+  itkSuperclassTraitMacro( MeasurementType );
+  itkSuperclassTraitMacro( MeasurementVectorType );
+  itkSuperclassTraitMacro( FrequencyType );
+  itkSuperclassTraitMacro( TotalFrequencyType );
+  itkSuperclassTraitMacro( MeasurementVectorSizeType );
+  itkSuperclassTraitMacro( InstanceIdentifier );
+
   typedef MeasurementVectorType                           ValueType;
-  typedef typename Superclass::FrequencyType              FrequencyType;
-  typedef typename Superclass::TotalFrequencyType         TotalFrequencyType;
-  typedef typename Superclass::MeasurementVectorSizeType  MeasurementVectorSizeType;
-  typedef typename Superclass::InstanceIdentifier         InstanceIdentifier;
 
   /** Method to set the point set */
   void SetPointSet(const TPointSet* pointSet);

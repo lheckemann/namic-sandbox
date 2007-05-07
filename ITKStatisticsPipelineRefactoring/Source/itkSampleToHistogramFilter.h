@@ -57,11 +57,13 @@ public:
   typedef THistogram                                     HistogramType;
   typedef typename SampleType::MeasurementVectorType     MeasurementVectorType;
   typedef typename MeasurementVectorType::ValueType      MeasurementType;
-  typedef typename Superclass::DataObjectPointer         DataObjectPointer;
   typedef typename HistogramType::SizeType               HistogramSizeType;
   typedef typename HistogramType::MeasurementType        HistogramMeasurementType;
   typedef typename HistogramType::MeasurementVectorType  HistogramMeasurementVectorType;
 
+
+  /** Type for the data object output */
+  itkSuperclassTraitsMacro( DataObjectPointer );
 
   /** Set/Get the input sample */
   virtual void SetInput( const SampleType * sample );
