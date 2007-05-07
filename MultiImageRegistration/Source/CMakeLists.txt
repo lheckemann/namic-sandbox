@@ -26,7 +26,7 @@ SET(MultiImageRegistrationBspline_SRCS
  )
  
 
-SET(Congealing_SRCS 
+SET(Groupwise_SRCS 
   MultiResImageRegistration.cxx 
   MultiResolutionImageRegistrationMethod.cxx 
   MultiResolutionImageRegistrationMethod.h 
@@ -58,7 +58,7 @@ SET(Congealing_SRCS
   AddImageFilter.h
   UserMacro.h
  )
- 
+  
 SET(Pairwise_SRCS 
   PairwiseRegistration.cxx 
   GradientDescentLineSearchOptimizer.h
@@ -69,8 +69,8 @@ SET(Pairwise_SRCS
  )
 
 
-ADD_EXECUTABLE(Congeal ${Congealing_SRCS})
-TARGET_LINK_LIBRARIES(Congeal ITKCommon ITKNumerics ITKIO ITKBasicFilters ANN)
+ADD_EXECUTABLE(GroupwiseRegistration ${Groupwise_SRCS})
+TARGET_LINK_LIBRARIES(GroupwiseRegistration ITKCommon ITKNumerics ITKIO ITKBasicFilters ANN)
 
 ADD_EXECUTABLE(TransformImage TransformImage.cxx )
 TARGET_LINK_LIBRARIES(TransformImage ITKCommon ITKBasicFilters ITKIO)
