@@ -38,7 +38,7 @@ SampleToHistogramFilter< TSample, THistogram >
 
   // Set some default inputs 
   HistogramSizeType histogramSize;
-  histogramSize.Fill(0);
+  histogramSize.Fill(1);
   this->SetHistogramSize( histogramSize );
 
   this->SetMarginalScale( 100 );
