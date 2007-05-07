@@ -4,7 +4,8 @@ This project by Polina Golland, and implemented by
 + Mert Sabuncu
 
 The goal of the project is to register a collection
-of images simultaneously, instead of pair-wise. Currently, 
+of images simultaneously, instead of pair-wise. See 
+"GroupWiseRegistration.pdf" for details. Currently, 
 implemented methods are
     Congealing with entropy 
     Congealing with variance
@@ -16,12 +17,13 @@ Currently supported deformation models
     Affine transform
     Affine followed by cubic BSpline with mesh refinement
     
+#
+#
+#  DOCUMENTATION
+#
+#        
     
-The code is in the svn repositories. If you dont have access to ITK's
-svn servers, you can get read access to the repository by simply
-downloading it according to the instructions in the following Wiki page:
-
-http://wiki.na-mic.org/Wiki/index.php/Engineering:SandBox
+For the use of the binary file see SourceGuide.txt
     
-
+For the computation of objective functions see GroupWiseRegistration.pdf    
 

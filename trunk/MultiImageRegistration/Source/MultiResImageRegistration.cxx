@@ -116,9 +116,9 @@
 #include "itkNeighborhoodConnectedImageFilter.h"
 
 //Define the global types for image type
-#define PixelType unsigned char
-#define InternalPixelType double
-#define Dimension 2
+#define PixelType unsigned short
+#define InternalPixelType float
+#define Dimension 3
 
 //  The following section of code implements an observer
 //  that will monitor the evolution of the registration process.
@@ -2185,7 +2185,7 @@ if(optimizerType == "lineSearch")
     }
     writer3->SetImageIO(imageArrayReader[1]->GetImageIO());
     writer3->SetFileName( meanImageFname.c_str() );
-    writer3->Update();
+    //writer3->Update();
   }
 
   std::cout << "message: Time Report " << std::endl;
