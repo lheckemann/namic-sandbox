@@ -42,6 +42,10 @@
 #include "itkImageToListSampleAdaptor.h"
 #include "itkPointSetToListSampleAdaptor.h"
 #include "itkJointDomainImageToListSampleAdaptor.h"
+#include "itkDenseFrequencyContainer.h"
+#include "itkGaussianDistribution.h"
+#include "itkNormalVariateGenerator.h"
+#include "itkTDistribution.h"
 
 int main ( int , char*  )
 {

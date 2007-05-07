@@ -41,6 +41,10 @@
 #include "itkImageToListSampleAdaptor.h"
 #include "itkPointSetToListSampleAdaptor.h"
 #include "itkJointDomainImageToListSampleAdaptor.h"
+#include "itkDenseFrequencyContainer.h"
+#include "itkGaussianDistribution.h"
+#include "itkNormalVariateGenerator.h"
+#include "itkTDistribution.h"
 
 int itkStatisticsPrintTest(int , char* [])
 {
@@ -92,6 +96,12 @@ int itkStatisticsPrintTest(int , char* [])
   typedef itk::Statistics::NeighborhoodSampler< SampleType > NeighborhoodSamplerType;
 
   typedef itk::Statistics::PointSetToListSampleAdaptor< PointSetType > PointSetToListSampleAdaptorType;
+
+  typedef itk::Statistics::DenseFrequencyContainer DenseFrequencyContainerType;
+  typedef itk::Statistics::GaussianDistribution    GaussianDistributionType;
+  typedef itk::Statistics::NormalVariateGenerator  NormalVariateGeneratorType;
+  typedef itk::Statistics::TDistribution           TDistributionType;
+  
  
   SampleType::Pointer sampleObj = SampleType::New();
   std::cout << "----------ListSample " << sampleObj;
@@ -166,6 +176,21 @@ int itkStatisticsPrintTest(int , char* [])
     NeighborhoodSamplerType::New();
   std::cout << "----------NeighborhoodSamplerType filter " << neighborhoodSamplerObj;
 
+  DenseFrequencyContainerType::Pointer DenseFrequencyContainerObj=
+    DenseFrequencyContainerType::New();
+  std::cout << "----------DenseFrequencyContainer " << DenseFrequencyContainerObj;
 
+  GaussianDistributionType::Pointer GaussianDistributionObj=
+    GaussianDistributionType::New();
+  std::cout << "----------GaussianDistribution " << GaussianDistributionObj;
+
+  NormalVariateGeneratorType::Pointer NormalVariateGeneratorObj=
+    NormalVariateGeneratorType::New();
+  std::cout << "----------NormalVariateGenerator " << NormalVariateGeneratorObj;
+
+  TDistributionType::Pointer TDistributionObj=
+    TDistributionType::New();
+  std::cout << "----------TDistribution " << TDistributionObj;
+ 
   return EXIT_SUCCESS;
 }
