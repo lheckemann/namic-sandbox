@@ -60,8 +60,10 @@ ADD_TEST(itkImageToListSampleAdaptorTest ${STATISTICS_TESTS} itkImageToListSampl
 ADD_TEST(itkImageToListSampleAdaptorTest2 ${STATISTICS_TESTS} itkImageToListSampleAdaptorTest2)
 ADD_TEST(itkJointDomainImageToListSampleAdaptorTest ${STATISTICS_TESTS} itkJointDomainImageToListSampleAdaptorTest)
 ADD_TEST(itkPointSetToListSampleAdaptorTest ${STATISTICS_TESTS} itkPointSetToListSampleAdaptorTest)
-
-
+ADD_TEST(itkDenseFrequencyContainerTest ${STATISTICS_TESTS} itkDenseFrequencyContainerTest)
+ADD_TEST(itkGaussianDistributionTest ${STATISTICS_TESTS} itkGaussianDistributionTest)
+ADD_TEST(itkNormalVariateGeneratorTest  ${STATISTICS_TESTS} itkNormalVariateGeneratorTest)
+ADD_TEST(itkTDistributionTest  ${STATISTICS_TESTS} itkTDistributionTest)
 
 
 SET(Statistics_SRCS
@@ -105,6 +107,11 @@ SET(Statistics_SRCS
   itkImageToListSampleAdaptorTest2.cxx
   itkJointDomainImageToListSampleAdaptorTest.cxx
   itkPointSetToListSampleAdaptorTest.cxx
+
+  itkDenseFrequencyContainerTest.cxx
+  itkGaussianDistributionTest.cxx
+  itkNormalVariateGeneratorTest.cxx
+  itkTDistributionTest.cxx
   )
 
 ADD_EXECUTABLE(itkStatisticsTests itkStatisticsTests.cxx ${Statistics_SRCS})
