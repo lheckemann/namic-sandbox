@@ -68,6 +68,6 @@ void RegisterTests()
   REGISTER_TEST(itkImageToListSampleAdaptorTest2); 
   REGISTER_TEST(itkPointSetToListSampleAdaptorTest); 
   REGISTER_TEST(itkJointDomainImageToListSampleAdaptorTest); 
-  REGISTER_TEST(itkDenseFrequencyContainerTest); 
+  REGISTER_TEST(itkDenseFrequencyContainer2Test); 
 }
 
