@@ -165,7 +165,7 @@ template< class TMeasurement, unsigned int VMeasurementVectorSize,
           class TFrequencyContainer>
 bool 
 Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
-::SetFrequency( InstanceIdentifier &id, FrequencyType value)
+::SetFrequency( InstanceIdentifier id, FrequencyType value)
 {
   return m_FrequencyContainer->SetFrequency(id, value);
 }

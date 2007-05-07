@@ -247,7 +247,7 @@ public:
 
   /** Set the frequency of an instance identifier.  Returns false if the bin is
    * out of bounds. */
-  bool SetFrequency( InstanceIdentifier &id, FrequencyType value);
+  bool SetFrequency( InstanceIdentifier id, FrequencyType value);
 
   /** Set the frequency of an index. Returns false if the bin is
    * out of bounds. */
@@ -324,15 +324,13 @@ public:
     {
     public:
 
+    friend class Histogram;
+
     ConstIterator(const Self * histogram)
       {
       m_Id = 0;
       m_Histogram = histogram;
       }
-
-    ConstIterator(InstanceIdentifier id, const Self * histogram)
-      : m_Id(id), m_Histogram(histogram)
-      {}
 
     ConstIterator(const ConstIterator & it)
       {
@@ -381,6 +379,10 @@ public:
   protected:
     // This method is purposely not implemented
     ConstIterator();
+
+    ConstIterator(InstanceIdentifier id, const Self * histogram)
+      : m_Id(id), m_Histogram(histogram)
+      {}
 
     // ConstIterator pointing DenseFrequencyContainer
     InstanceIdentifier m_Id;
