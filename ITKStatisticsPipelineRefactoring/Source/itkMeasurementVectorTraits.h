@@ -51,6 +51,9 @@ public:
   /** This typedef is intended to identify the largest integer type of this architecture */
   typedef std::vector<int>::size_type   InstanceIdentifier;
 
+  /** Type defined for representing the frequency of measurement vectors */
+  typedef float        FrequencyType;
+
   typedef unsigned int MeasurementVectorLength;
   
   template<class TValueType, unsigned int VLength>
