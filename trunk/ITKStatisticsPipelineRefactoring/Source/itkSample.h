@@ -81,7 +81,7 @@ public:
     MeasurementVectorType >::ValueType   MeasurementType;
 
   /** Frequency value type */
-  typedef float FrequencyType;
+  typedef MeasurementVectorTraits::FrequencyType       FrequencyType;
   
   /** Total frequency type */
   typedef NumericTraits<FrequencyType>::AccumulateType TotalFrequencyType;
