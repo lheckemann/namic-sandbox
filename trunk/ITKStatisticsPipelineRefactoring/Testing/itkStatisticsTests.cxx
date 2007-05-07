@@ -40,6 +40,7 @@ void RegisterTests()
   REGISTER_TEST(itkSampleToHistogramFilterTest3);
   REGISTER_TEST(itkSampleToHistogramFilterTest4);
   REGISTER_TEST(itkSampleToHistogramFilterTest5);
+  REGISTER_TEST(itkSampleToHistogramFilterTest6);
   REGISTER_TEST(itkMeanFilterTest);
   REGISTER_TEST(itkMembershipSampleTest1);
   REGISTER_TEST(itkMembershipSampleTest2);
