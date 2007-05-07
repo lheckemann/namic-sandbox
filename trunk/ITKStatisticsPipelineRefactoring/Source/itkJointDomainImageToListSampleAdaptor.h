@@ -131,13 +131,13 @@ public:
                       unsigned int, 
                       ImageJointDomainTraitsType::Dimension);
   
-  typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
+  itkSuperclassTraitMacro( MeasurementVectorSizeType;
 
   /** typedefs for Measurement vector, measurement, 
    * Instance Identifier, frequency, size, size element value */
-  typedef typename Superclass::FrequencyType          FrequencyType;
-  typedef typename Superclass::TotalFrequencyType     TotalFrequencyType;
-  typedef typename Superclass::InstanceIdentifier     InstanceIdentifier;
+  itkSuperclassTraitMacro( FrequencyType );
+  itkSuperclassTraitMacro( TotalFrequencyType );
+  itkSuperclassTraitMacro( InstanceIdentifier );
 
   /** Image typedefs */
   typedef TImage                                          ImageType;
