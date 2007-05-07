@@ -131,7 +131,7 @@ public:
                       unsigned int, 
                       ImageJointDomainTraitsType::Dimension);
   
-  itkSuperclassTraitMacro( MeasurementVectorSizeType;
+  itkSuperclassTraitMacro( MeasurementVectorSizeType );
 
   /** typedefs for Measurement vector, measurement, 
    * Instance Identifier, frequency, size, size element value */
