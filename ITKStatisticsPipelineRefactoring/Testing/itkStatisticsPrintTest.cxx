@@ -41,10 +41,8 @@
 #include "itkImageToListSampleAdaptor.h"
 #include "itkPointSetToListSampleAdaptor.h"
 #include "itkJointDomainImageToListSampleAdaptor.h"
-#include "itkDenseFrequencyContainer.h"
-#include "itkGaussianDistribution.h"
-#include "itkNormalVariateGenerator.h"
-#include "itkTDistribution.h"
+#include "itkDenseFrequencyContainer2.h"
+#include "itkSparseFrequencyContainer2.h"
 
 int itkStatisticsPrintTest(int , char* [])
 {
@@ -97,10 +95,8 @@ int itkStatisticsPrintTest(int , char* [])
 
   typedef itk::Statistics::PointSetToListSampleAdaptor< PointSetType > PointSetToListSampleAdaptorType;
 
-  typedef itk::Statistics::DenseFrequencyContainer DenseFrequencyContainerType;
-  typedef itk::Statistics::GaussianDistribution    GaussianDistributionType;
-  typedef itk::Statistics::NormalVariateGenerator  NormalVariateGeneratorType;
-  typedef itk::Statistics::TDistribution           TDistributionType;
+  typedef itk::Statistics::DenseFrequencyContainer2 DenseFrequencyContainer2Type;
+  typedef itk::Statistics::SparseFrequencyContainer2 SparseFrequencyContainer2Type;
   
  
   SampleType::Pointer sampleObj = SampleType::New();
@@ -176,21 +172,15 @@ int itkStatisticsPrintTest(int , char* [])
     NeighborhoodSamplerType::New();
   std::cout << "----------NeighborhoodSamplerType filter " << neighborhoodSamplerObj;
 
-  DenseFrequencyContainerType::Pointer DenseFrequencyContainerObj=
-    DenseFrequencyContainerType::New();
-  std::cout << "----------DenseFrequencyContainer " << DenseFrequencyContainerObj;
+  DenseFrequencyContainer2Type::Pointer DenseFrequencyContainer2Obj=
+    DenseFrequencyContainer2Type::New();
+  std::cout << "----------DenseFrequencyContainer " << DenseFrequencyContainer2Obj;
 
-  GaussianDistributionType::Pointer GaussianDistributionObj=
-    GaussianDistributionType::New();
-  std::cout << "----------GaussianDistribution " << GaussianDistributionObj;
+  SparseFrequencyContainer2Type::Pointer SparseFrequencyContainer2Obj=
+    SparseFrequencyContainer2Type::New();
+  std::cout << "----------SparseFrequencyContainer2 " << SparseFrequencyContainer2Obj;
 
-  NormalVariateGeneratorType::Pointer NormalVariateGeneratorObj=
-    NormalVariateGeneratorType::New();
-  std::cout << "----------NormalVariateGenerator " << NormalVariateGeneratorObj;
 
-  TDistributionType::Pointer TDistributionObj=
-    TDistributionType::New();
-  std::cout << "----------TDistribution " << TDistributionObj;
  
   return EXIT_SUCCESS;
 }
