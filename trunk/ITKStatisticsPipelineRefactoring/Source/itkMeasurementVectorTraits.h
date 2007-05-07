@@ -47,6 +47,10 @@ class MeasurementVectorTraits
 {
 public:
 
+  
+  /** This typedef is intended to identify the largest integer type of this architecture */
+  typedef std::vector<int>::size_type   InstanceIdentifier;
+
   typedef unsigned int MeasurementVectorLength;
   
   template<class TValueType, unsigned int VLength>

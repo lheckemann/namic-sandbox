@@ -40,7 +40,7 @@ namespace Statistics {
  * an image intensity of a pixel and the gradient magnitude at that pixel.
  * 
  * Data within a sample can be accessed via an
- * InstanceIdentfier. InstanceIdentifiers have different forms and
+ * InstanceIdentifier. InstanceIdentifiers have different forms and
  * meanings depending on the type of sample.  For ListSamples, the
  * InstanceIdentifier is an index into the corresponding list. In this
  * case, the InstanceIndentifier corresponds to a particular
@@ -88,8 +88,7 @@ public:
 
   /** InstanceIdentifier typedef. This identifier is a unique
    * sequential id for each measurement vector in a Sample subclass. */ 
-  typedef typename std::vector<MeasurementVectorType>::size_type 
-     InstanceIdentifier;
+  typedef MeasurementVectorTraits::InstanceIdentifier  InstanceIdentifier;
 
   /** Typedef for the length of each measurement vector */
   typedef unsigned int  MeasurementVectorSizeType;
