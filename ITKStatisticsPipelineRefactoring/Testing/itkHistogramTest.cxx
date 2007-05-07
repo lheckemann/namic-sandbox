@@ -694,29 +694,11 @@ int itkHistogramTest(int, char* [] )
     return EXIT_FAILURE;
     }
 
-  ConstIteratorType iter8( 0, histogram );
+  ConstIteratorType iter8( histogram );
   if( iter8.GetInstanceIdentifier() != 0 )
     {
     std::cerr << "Constructor with instance identifier 0 failed" << std::endl;
     return EXIT_FAILURE;
-    }
-
-  ConstIteratorType iter9( 7, histogram );
-  if( iter9.GetInstanceIdentifier() != 7 )
-    {
-    std::cerr << "ConstIterator Constructor with instance identifier 7 failed" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  MeasurementVectorType vector9a = iter9.GetMeasurementVector();
-  MeasurementVectorType vector9b = histogram->GetMeasurementVector( 7 );
-  for( unsigned int kitr =0; kitr < numberOfComponents; kitr++ )
-    {
-    if( vnl_math_abs( vector9b[kitr] - vector9a[kitr] ) )
-      {
-      std::cerr << "Constructor with instance identifier 8 failed" << std::endl;
-      return EXIT_FAILURE;
-      }
     }
 
   unsigned int counter = 0;
