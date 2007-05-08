@@ -1,6 +1,5 @@
 \chapter{Background}
 
-
 Diffusion Tensor Imaging (DTI or DTMRI) is a recently developed Magnetic Resonance (MR) technique that provides information about the diffusion of water molecules in throughout the brain.  In white matter, due to the interactions between water molecules and the surrounding nerve fibers, the principle diffusion direction is aligned with the local fiber orientation.
 
 White matter tractography is a visualization and analysis tool for DTI data.  It takes local diffusion information provided by DTI images and produces estimates of fiber bundles which may explain the observed global diffusion distribution.  White matter tractography provides a means of characterizing fiber bundles in-vivo and may provide insights into questions concerning white matter architecture.
@@ -8,11 +7,12 @@ White matter tractography is a visualization and analysis tool for DTI data.  It
 A number of clinical studies have used tractography to compare fiber bundle characteristics in different populations.  Many of these studies utilize tractography methods which do not provide a measure of the confidence regarding the estimated fiber bundles.  The stochastic tractography system implemented in this research provides these measures of confidence, and may open new avenues of clinical investigation of white matter architecture.
 
 \section{Neuroanatomy and Fiber Tracts}
-\begin{figure} \label{fig:fibertracts}
+\begin{figure} \label{fig:graysfibertracts}
 	\includegraphics[width=\linewidth]{graysfibertracts}
 	\caption{Example of human brain fiber tracts viewed from the front (coronal) and from the left (sagittal).  This image was derived from anatomical atlas diagrams in Gray's Anatomy \cite{odonnel06}.}
 \end{figure}
-Nerve tissue in the brain can be divided into gray and white matter.  Gray matter is found throughout the brain but is concentrated on the cortical surface as well as in structures deep within the brain such as the thalamus.  The defining characteristic of gray matter is its lack of myelinated axons.  In contrast white matter is white in color because it has an abundance of myelinated axons.  Myelin consists mostly of lipids and gives white matter its color.  Bundles of these axons comprise white matter tracts. Figure \ref{fig:fibertracts} illustrates some prominent fiber tracts.
+
+Nerve tissue in the brain can be divided into gray and white matter.  Gray matter is found throughout the brain but is concentrated on the cortical surface as well as in structures deep within the brain such as the thalamus.  The defining characteristic of gray matter is its lack of myelinated axons.  In contrast white matter is white in color because it has an abundance of myelinated axons.  Myelin consists mostly of lipids and gives white matter its color.  Bundles of these axons comprise white matter tracts. Figure \ref{fig:graysfibertracts} illustrates some prominent fiber tracts.
 
 \section{Diffusion Tensor MRI Physics}
 
@@ -26,13 +26,12 @@ Each Diffusion Weighted Image (DWI) provides information about the magnitude of 
 The diffusion tensor is a 3x3 symetric matrix which describes the distribution of diffusion within each voxel.  Because the matrix is positive definite, its eigenvalues are positive and represent the magnetude of diffusion in the direction of the eigenvector associated with that eigenvalue.  The diffusion tensor is mostly represented as an ellipsoid, whose major and minor axis are described by the eigenvectors and associated eigenvalues of the tensor.  The eigenvector associated with the largest eigenvalue is sometimes referred to as the principle diffusion direction.  If the diffusion is sufficiently anisotropic, the principle diffusion direction is a good estimate of the local fiber orientation. %add physical meaning of the ellipsoid
 %insert picture of ellipsoid
 
-Because the tensor is sensitive to changes in the orientation of the object being scanned, clinical studies which attempt to compare different groups prefer to use properties of the tensor that are invariant to changes in orientation.  The most commonly used properties are the trace and the fractional anisotropy.  The trace the tensor is the sum of the diagonal components of the tensor and reprensents the average total diffusion.  A higher trace implies that there are few obstacles to water diffusion in that voxel.  The fraction anisotropy is given as
-\begin{equation} \label{eq:tensormodel}
-\sqrt{\frac{2*[(l\lambda_1-D_{av})^2 + (l\lambda_2-D_{av})^2 + (l\lambda_3-D_{av})^2]}
+The diffusion tensor is sensitive to changes in the orientation of the object being scanned. Thus clinical studies tend to use statistics which are invariant to changes in orientation.  The most commonly used properties are the trace and the fractional anisotropy.  The trace the tensor is the sum of the diagonal components of the tensor and reprensents the average total diffusion.  A higher trace implies that there are few obstacles to water diffusion in that voxel.  Fractional anisotropy is a measure of the degree of difference between the largest eigenvalue and the smaller two eigenvalues.  Equation \ref{eq:FA} provides the expression for fractional anisotropy.
+\begin{equation} \label{eq:FA}
+FA=\sqrt{\frac{3[(l\lambda_1-D_{av})^2 + (l\lambda_2-D_{av})^2 + (l\lambda_3-D_{av})^2]}
 {2(\lambda_1^2+\lambda_2^2+\lambda_3^2)}}
 \end{equation}
-
-Fractional anisotropy is currently the most popular way to summarize the anisotropy of diffusion distribution expressed by the tensor.  FA ranges from 0 for isotropic diffusion to 1 for completely anisotropic diffusion.
+FA ranges from 0 for perfectly isotropic diffusion, a sphere, to 1 for perfectly anisotropic diffusion, an infinite cylinder.  While many other measures of anisotropy exist, fractional anisotropy is currently the most popular.
 
 %fill this in with related properties of the diffusion tensor
 %various measures of anisotropy

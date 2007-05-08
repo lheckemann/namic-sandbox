@@ -1,4 +1,4 @@
-This is pdfeTeX, Version 3.141592-1.21a-2.2 (Web2C 7.5.4) (format=pdflatex 2006.8.12)  4 MAY 2007 22:54
+This is pdfeTeX, Version 3.141592-1.21a-2.2 (Web2C 7.5.4) (format=pdflatex 2006.8.12)  7 MAY 2007 20:51
 entering extended mode
 **main
 (./main.tex
@@ -49,7 +49,27 @@ Package: lgrind 1997/01/30 v3.4 LGrind environment and supporting stuff
 \tb@x=\box30
 \TBw@d=\dimen103
 \@ts=\dimen104
-) (/usr/share/texmf-tetex/tex/latex/graphics/graphicx.sty
+) (/usr/share/texmf-tetex/tex/latex/subfigure/subfigure.sty
+Package: subfigure 2002/07/30 v2.1.4 subfigure package
+\subfigtopskip=\skip45
+\subfigcapskip=\skip46
+\subfigcaptopadj=\dimen105
+\subfigbottomskip=\skip47
+\subfigcapmargin=\dimen106
+\subfiglabelskip=\skip48
+\c@subfigure=\count93
+\c@lofdepth=\count94
+\c@subtable=\count95
+\c@lotdepth=\count96
+
+****************************************
+* Local config file subfigure.cfg used *
+****************************************
+(/usr/share/texmf-tetex/tex/latex/subfigure/subfigure.cfg)
+\subfig@top=\skip49
+\subfig@bottom=\skip50
+)
+(/usr/share/texmf-tetex/tex/latex/graphics/graphicx.sty
 Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
 
 (/usr/share/texmf-tetex/tex/latex/graphics/keyval.sty
@@ -69,14 +89,14 @@ Package graphics Info: Driver file: pdftex.def on input line 80.
 
 (/usr/share/texmf-tetex/tex/latex/graphics/pdftex.def
 File: pdftex.def 2002/06/19 v0.03k graphics/color for pdftex
-\Gread@gobject=\count93
+\Gread@gobject=\count97
 ))
-\Gin@req@height=\dimen105
-\Gin@req@width=\dimen106
+\Gin@req@height=\dimen107
+\Gin@req@width=\dimen108
 )
 (/usr/share/texmf-tetex/tex/latex/amsmath/amsmath.sty
 Package: amsmath 2000/07/18 v2.13 AMS math features
-\@mathmargin=\skip45
+\@mathmargin=\skip51
 
 For additional information on amsmath, use the `?' option.
 (/usr/share/texmf-tetex/tex/latex/amsmath/amstext.sty
@@ -85,49 +105,49 @@ Package: amstext 2000/06/29 v2.01
 (/usr/share/texmf-tetex/tex/latex/amsmath/amsgen.sty
 File: amsgen.sty 1999/11/30 v2.0
 \@emptytoks=\toks15
-\ex@=\dimen107
+\ex@=\dimen109
 ))
 (/usr/share/texmf-tetex/tex/latex/amsmath/amsbsy.sty
 Package: amsbsy 1999/11/29 v1.2d
-\pmbraise@=\dimen108
+\pmbraise@=\dimen110
 )
 (/usr/share/texmf-tetex/tex/latex/amsmath/amsopn.sty
 Package: amsopn 1999/12/14 v2.01 operator names
 )
-\inf@bad=\count94
+\inf@bad=\count98
 LaTeX Info: Redefining \frac on input line 211.
-\uproot@=\count95
-\leftroot@=\count96
+\uproot@=\count99
+\leftroot@=\count100
 LaTeX Info: Redefining \overline on input line 307.
-\classnum@=\count97
-\DOTSCASE@=\count98
+\classnum@=\count101
+\DOTSCASE@=\count102
 LaTeX Info: Redefining \ldots on input line 379.
 LaTeX Info: Redefining \dots on input line 382.
 LaTeX Info: Redefining \cdots on input line 467.
 \Mathstrutbox@=\box31
 \strutbox@=\box32
-\big@size=\dimen109
+\big@size=\dimen111
 LaTeX Font Info:    Redeclaring font encoding OML on input line 567.
 LaTeX Font Info:    Redeclaring font encoding OMS on input line 568.
-\macc@depth=\count99
-\c@MaxMatrixCols=\count100
+\macc@depth=\count103
+\c@MaxMatrixCols=\count104
 \dotsspace@=\muskip10
-\c@parentequation=\count101
-\dspbrk@lvl=\count102
+\c@parentequation=\count105
+\dspbrk@lvl=\count106
 \tag@help=\toks16
-\row@=\count103
-\column@=\count104
-\maxfields@=\count105
+\row@=\count107
+\column@=\count108
+\maxfields@=\count109
 \andhelp@=\toks17
-\eqnshift@=\dimen110
-\alignsep@=\dimen111
-\tagshift@=\dimen112
-\tagwidth@=\dimen113
-\totwidth@=\dimen114
-\lineht@=\dimen115
+\eqnshift@=\dimen112
+\alignsep@=\dimen113
+\tagshift@=\dimen114
+\tagwidth@=\dimen115
+\totwidth@=\dimen116
+\lineht@=\dimen117
 \@envbody=\toks18
-\multlinegap=\skip46
-\multlinetaggap=\skip47
+\multlinegap=\skip52
+\multlinetaggap=\skip53
 \mathdisplay@stack=\toks19
 LaTeX Info: Redefining \[ on input line 2666.
 LaTeX Info: Redefining \] on input line 2667.
@@ -147,61 +167,55 @@ Enter file names to process, (chap1,chap2 ...), or `all' to process all files:
 \files=all
 Including all files.
 (./main.aux (./cover.aux) (./contents.aux) (./chap1.aux) (./chap2.aux)
-(./chap3.aux) (./chap4.aux) (./chap4a.aux) (./chap5.aux
-
-LaTeX Warning: Label `fig:fibertracts' multiply defined.
-
-) (./chap6.aux) (./appa.aux
-
-LaTeX Warning: Label `eq:tensormodel' multiply defined.
-
-) (./biblio.aux))
+(./chap3.aux) (./chap4.aux) (./chap4a.aux) (./chap5.aux) (./chap6.aux)
+(./appa.aux) (./appb.aux) (./biblio.aux))
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 36.
-LaTeX Font Info:    ... okay on input line 36.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 36.
-LaTeX Font Info:    ... okay on input line 36.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 36.
-LaTeX Font Info:    ... okay on input line 36.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 36.
-LaTeX Font Info:    ... okay on input line 36.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 36.
-LaTeX Font Info:    ... okay on input line 36.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 36.
-LaTeX Font Info:    ... okay on input line 36.
- (/usr/share/texmf-tetex/tex/context/base/supp-pdf.tex
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 38.
+LaTeX Font Info:    ... okay on input line 38.
+
+(/usr/share/texmf-tetex/tex/context/base/supp-pdf.tex
 (/usr/share/texmf-tetex/tex/context/base/supp-mis.tex
 loading : Context Support Macros / Miscellaneous (2004.10.26)
-\protectiondepth=\count106
-\scratchcounter=\count107
+\protectiondepth=\count110
+\scratchcounter=\count111
 \scratchtoks=\toks20
-\scratchdimen=\dimen116
-\scratchskip=\skip48
+\scratchdimen=\dimen118
+\scratchskip=\skip54
 \scratchmuskip=\muskip11
 \scratchbox=\box33
 \scratchread=\read1
 \scratchwrite=\write3
-\zeropoint=\dimen117
-\onepoint=\dimen118
-\onebasepoint=\dimen119
-\minusone=\count108
-\thousandpoint=\dimen120
-\onerealpoint=\dimen121
+\zeropoint=\dimen119
+\onepoint=\dimen120
+\onebasepoint=\dimen121
+\minusone=\count112
+\thousandpoint=\dimen122
+\onerealpoint=\dimen123
 \emptytoks=\toks21
 \nextbox=\box34
-\nextdepth=\dimen122
+\nextdepth=\dimen124
 \everyline=\toks22
-\!!counta=\count109
-\!!countb=\count110
-\recursecounter=\count111
+\!!counta=\count113
+\!!countb=\count114
+\recursecounter=\count115
 )
 loading : Context Support Macros / PDF (2004.03.26)
-\nofMPsegments=\count112
-\nofMParguments=\count113
-\MPscratchCnt=\count114
-\MPscratchDim=\dimen123
-\MPnumerator=\count115
+\nofMPsegments=\count116
+\nofMParguments=\count117
+\MPscratchCnt=\count118
+\MPscratchDim=\dimen125
+\MPnumerator=\count119
 \everyMPtoPDFconversion=\toks23
 )
 \openout2 = `cover.aux'.
@@ -246,18 +260,18 @@ File: umsb.fd 2002/01/19 v2.2g AMS font definitions
 \openout4 = `main.toc'.
 
  [8] (./main.lof
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Underfull \vbox (badness 3439) has occurred while \output is active []
 
  [9
 
-]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [10])
+])
 \tf@lof=\write5
 \openout5 = `main.lof'.
 
 
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [10]
 [11] [12
 
 ] (./main.lot)
@@ -273,240 +287,267 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 ]
 Chapter 1.
-[15]) [16] [17]
+[15]) [16]
 \openout2 = `chap2.aux'.
 
- (./chap2.tex [18
-
-
-
-]
+ (./chap2.tex
 Chapter 2.
 
-Overfull \hbox (2.12975pt too wide) in paragraph at lines 4--5
+Overfull \hbox (2.12975pt too wide) in paragraph at lines 3--4
 \OT1/cmr/m/n/12 nance (MR) tech-nique that pro-vides in-for-ma-tion about the d
 if-fu-sion of wa-ter molecules
  []
 
-<graysfibertracts.png, id=70, 614.295pt x 208.1376pt>
+<graysfibertracts.png, id=64, 614.295pt x 208.1376pt>
 File: graysfibertracts.png Graphic file (type png)
 
 <use graysfibertracts.png>
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [19]
-[20 <./graysfibertracts.png>]
+ [17
+
+
+
+]
+[18 <./graysfibertracts.png>]
 Underfull \vbox (badness 5652) has occurred while \output is active []
 
- [21]
-Overfull \hbox (8.1407pt too wide) in paragraph at lines 35--36
-[]\OT1/cmr/m/n/12 Fractional anisotropy is cur-rently the most pop-u-lar way to
- sum-ma-rize the anisotropy
+ [19]
+Overfull \hbox (3.43529pt too wide) in paragraph at lines 32--34
+\OT1/cmr/m/n/12 FA ranges from 0 for per-fectly isotropic dif-fu-sion, a sphere
+, to 1 for per-fectly anisotropic
  []
 
-
-Underfull \vbox (badness 1642) has occurred while \output is active []
-
- [22]
-<packedglyphs.png, id=96, 251.4996pt x 178.86826pt>
+[20] <packedglyphs.png, id=90, 251.4996pt x 178.86826pt>
 File: packedglyphs.png Graphic file (type png)
- <use packedglyphs.png>
-<tractography.png, id=97, 250.41554pt x 178.14555pt>
+
+<use packedglyphs.png> <tractography.png, id=91, 250.41554pt x 178.14555pt>
 File: tractography.png Graphic file (type png)
- <use tractography.png>
-Overfull \hbox (2.61108pt too wide) in paragraph at lines 51--53
+
+<use tractography.png>
+Overfull \hbox (2.61108pt too wide) in paragraph at lines 49--51
 [][] [] 
  []
 
-[23 <./packedglyphs.png> <./tractography.png>] [24] [25]
-Overfull \hbox (0.1769pt too wide) in paragraph at lines 78--79
+[21 <./packedglyphs.png> <./tractography.png>] [22] [23]
+Overfull \hbox (0.1769pt too wide) in paragraph at lines 76--77
 \OT1/cmr/m/n/12 Stochastic trac-tog-ra-phy meth-ods which use Bayesian frame-wo
 rks ex-press be-liefs about
  []
 
-) [26] [27]
+) [24] [25]
 \openout2 = `chap3.aux'.
 
- (./chap3.tex [28
+ (./chap3.tex [26
 
 
 
 ]
 Chapter 3.
-<stflow.png, id=117, 1127.21124pt x 796.9775pt>
+<stflow.png, id=111, 1127.21124pt x 796.9775pt>
 File: stflow.png Graphic file (type png)
- <use stflow.png>) [29] [30 <./stflow.png>] [31]
+ <use stflow.png>
+Overfull \hbox (7.22682pt too wide) in paragraph at lines 7--8
+\OT1/cmr/m/n/12 The Stochas-tic Trac-tog-ra-phy Sys-tem im-ple-mented in this r
+e-search im-ple-ments Friman's
+ []
+
+[27]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [28 <./stflow.png>]) [29]
 \openout2 = `chap4.aux'.
 
- (./chap4.tex [32
+ (./chap4.tex [30
 
 
 
 ]
 Chapter 4.
-<filterblock.png, id=131, 1127.21124pt x 796.9775pt>
+<filterblock.png, id=126, 1127.21124pt x 796.9775pt>
 File: filterblock.png Graphic file (type png)
  <use filterblock.png>
-[33 <./filterblock.png>]
-Underfull \vbox (badness 5652) has occurred while \output is active []
-
- [34]
-Underfull \vbox (badness 1675) has occurred while \output is active []
-
- [35]
+[31]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [36])
-[37]
+ [32 <./filterblock.png>] <timepertracts.pdf, id=134, 614.295pt x 794.97pt>
+File: timepertracts.pdf Graphic file (type pdf)
+
+<use timepertracts.pdf>
+Underfull \vbox (badness 1675) has occurred while \output is active []
+
+ [33]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [34 <./timepertracts.pdf>] <slicermodule.png, id=146, 1405.25pt x 1053.9375pt>
+File: slicermodule.png Graphic file (type png)
+
+<use slicermodule.png> [35]) [36 <./slicermodule.png>]
 \openout2 = `chap4a.aux'.
 
- (./chap4a.tex [38
-
-
-
-]
+ (./chap4a.tex
 Chapter 5.
-<slicermodule.png, id=151, 1405.25pt x 1053.9375pt>
-File: slicermodule.png Graphic file (type png)
- <use slicermodule.png>
-<slicer-0022.png, id=152, 1023.825pt x 914.41624pt>
+<slicer-0001.png, id=153, 771.88374pt x 902.37125pt>
+File: slicer-0001.png Graphic file (type png)
+ <use slicer-0001.png>
+[37
+
+
+
+] <slicer-0022.png, id=158, 1023.825pt x 914.41624pt>
 File: slicer-0022.png Graphic file (type png)
  <use slicer-0022.png>
-<slicer-0020.png, id=153, 1023.825pt x 914.41624pt>
+<slicer-0020.png, id=159, 1023.825pt x 914.41624pt>
 File: slicer-0020.png Graphic file (type png)
  <use slicer-0020.png>
-Overfull \hbox (2.61108pt too wide) in paragraph at lines 11--13
+Overfull \hbox (18.27759pt too wide) in paragraph at lines 26--31
 [][] [] 
  []
 
-<hist_FA_nomask_single.pdf, id=154, 614.295pt x 794.97pt>
+[38 <./slicer-0001.png>]
+<hist_FA_nomask_single.pdf, id=163, 614.295pt x 794.97pt>
 File: hist_FA_nomask_single.pdf Graphic file (type pdf)
 
 <use hist_FA_nomask_single.pdf>
-<hist_FA_mask_single.pdf, id=156, 614.295pt x 794.97pt>
+<hist_FA_mask_single.pdf, id=165, 614.295pt x 794.97pt>
 File: hist_FA_mask_single.pdf Graphic file (type pdf)
 
 <use hist_FA_mask_single.pdf>
-Overfull \hbox (2.61108pt too wide) in paragraph at lines 18--21
+Overfull \hbox (18.27759pt too wide) in paragraph at lines 42--48
 [][] [] 
  []
 
-<hist_length_nomask_single.pdf, id=158, 614.295pt x 794.97pt>
+<hist_length_nomask_single.pdf, id=167, 614.295pt x 794.97pt>
 File: hist_length_nomask_single.pdf Graphic file (type pdf)
 
 <use hist_length_nomask_single.pdf>
-<hist_length_mask_single.pdf, id=160, 614.295pt x 794.97pt>
+<hist_length_mask_single.pdf, id=169, 614.295pt x 794.97pt>
 File: hist_length_mask_single.pdf Graphic file (type pdf)
 
 <use hist_length_mask_single.pdf>
-Overfull \hbox (2.61108pt too wide) in paragraph at lines 26--29
+Overfull \hbox (18.27759pt too wide) in paragraph at lines 59--65
 [][] [] 
  []
 
-<slicer-0021.png, id=162, 1023.825pt x 914.41624pt>
+
+Underfull \vbox (badness 5446) has occurred while \output is active []
+
+ [39 <./slicer-0022.png> <./slicer-0020.png>] [40 <./hist_FA_nomask_single.pdf>
+ <./hist_FA_mask_single.pdf> <./hist_length_nomask_single.pdf> <./hist_length_m
+ask_single.pdf>] <slicer-0021.png, id=198, 1023.825pt x 914.41624pt>
 File: slicer-0021.png Graphic file (type png)
  <use slicer-0021.png>
-<slicer-0019.png, id=163, 1023.825pt x 914.41624pt>
+<slicer-0019.png, id=199, 1023.825pt x 914.41624pt>
 File: slicer-0019.png Graphic file (type png)
  <use slicer-0019.png>
-Overfull \hbox (2.61108pt too wide) in paragraph at lines 33--35
+Overfull \hbox (18.27759pt too wide) in paragraph at lines 78--83
 [][] [] 
  []
 
-<hist_FA_nomask_two.pdf, id=164, 614.295pt x 794.97pt>
+<hist_FA_nomask_two.pdf, id=200, 614.295pt x 794.97pt>
 File: hist_FA_nomask_two.pdf Graphic file (type pdf)
 
 <use hist_FA_nomask_two.pdf>
-<hist_FA_mask_two.pdf, id=166, 614.295pt x 794.97pt>
+<hist_FA_mask_two.pdf, id=202, 614.295pt x 794.97pt>
 File: hist_FA_mask_two.pdf Graphic file (type pdf)
 
 <use hist_FA_mask_two.pdf>
-Overfull \hbox (2.61108pt too wide) in paragraph at lines 40--43
+Overfull \hbox (18.27759pt too wide) in paragraph at lines 93--99
 [][] [] 
  []
 
-<hist_length_nomask_two.pdf, id=168, 614.295pt x 794.97pt>
+[41 <./slicer-0021.png> <./slicer-0019.png>]
+<hist_length_nomask_two.pdf, id=207, 614.295pt x 794.97pt>
 File: hist_length_nomask_two.pdf Graphic file (type pdf)
 
 <use hist_length_nomask_two.pdf>
-<hist_length_mask_two.pdf, id=170, 614.295pt x 794.97pt>
+<hist_length_mask_two.pdf, id=209, 614.295pt x 794.97pt>
 File: hist_length_mask_two.pdf Graphic file (type pdf)
 
 <use hist_length_mask_two.pdf>
-Overfull \hbox (2.61108pt too wide) in paragraph at lines 48--51
+Overfull \hbox (18.27759pt too wide) in paragraph at lines 109--115
 [][] [] 
  []
 
-<slicer-0016.png, id=172, 1023.825pt x 914.41624pt>
+<slicer-0016.png, id=211, 1023.825pt x 914.41624pt>
 File: slicer-0016.png Graphic file (type png)
  <use slicer-0016.png>
-<slicer-0015.png, id=173, 1023.825pt x 914.41624pt>
-File: slicer-0015.png Graphic file (type png)
- <use slicer-0015.png>
-<slicer-0018.png, id=174, 1023.825pt x 914.41624pt>
+<slicer-0018.png, id=212, 1023.825pt x 914.41624pt>
 File: slicer-0018.png Graphic file (type png)
  <use slicer-0018.png>
-<slicer-0017.png, id=175, 1023.825pt x 914.41624pt>
+<slicer-0015.png, id=213, 1023.825pt x 914.41624pt>
+File: slicer-0015.png Graphic file (type png)
+ <use slicer-0015.png>
+<slicer-0017.png, id=214, 1023.825pt x 914.41624pt>
 File: slicer-0017.png Graphic file (type png)
  <use slicer-0017.png>
-Overfull \hbox (2.61108pt too wide) in paragraph at lines 58--65
-[][] []
+Overfull \hbox (11.74988pt too wide) in paragraph at lines 130--138
+[][]
  []
 
 
-Overfull \hbox (2.61108pt too wide) in paragraph at lines 58--65
-[] [] 
+Overfull \hbox (11.74988pt too wide) in paragraph at lines 130--138
+[] 
  []
 
-<timepertracts.pdf, id=176, 614.295pt x 794.97pt>
-File: timepertracts.pdf Graphic file (type pdf)
- <use timepertracts.pdf>)
-[39] [40 <./slicermodule.png> <./slicer-0022.png> <./slicer-0020.png>] [41 <./h
-ist_FA_nomask_single.pdf> <./hist_FA_mask_single.pdf> <./hist_length_nomask_sin
-gle.pdf> <./hist_length_mask_single.pdf>] [42 <./hist_FA_nomask_two.pdf> <./his
-t_FA_mask_two.pdf> <./slicer-0021.png> <./slicer-0019.png>] [43 <./hist_length_
-nomask_two.pdf> <./hist_length_mask_two.pdf>] [44 <./slicer-0016.png> <./slicer
--0015.png> <./slicer-0018.png> <./slicer-0017.png>] [45 <./timepertracts.pdf>]
+[42 <./hist_FA_nomask_two.pdf> <./hist_FA_mask_two.pdf>]
+Underfull \vbox (badness 1681) has occurred while \output is active []
+
+ [43 <./hist_length_nomask_two.pdf> <./hist_length_mask_two.pdf>] [44 <./slicer
+-0016.png> <./slicer-0018.png> <./slicer-0015.png> <./slicer-0017.png>]) [45]
 \openout2 = `chap5.aux'.
 
-
-(./chap5.tex [46
+ (./chap5.tex
+[46
 
 
 
 ]
 Chapter 6.
-[47] <thalamus.png, id=246, 501.875pt x 574.145pt>
+[47] <thalamus.png, id=252, 501.875pt x 574.145pt>
 File: thalamus.png Graphic file (type png)
  <use thalamus.png>
-<frontalcortexfibers.png, id=247, 330.23375pt x 652.4375pt>
+<frontalcortexfibers.png, id=253, 330.23375pt x 652.4375pt>
 File: frontalcortexfibers.png Graphic file (type png)
 
 <use frontalcortexfibers.png>
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [48 <./thalamus.png> <./frontalcortexfibers.png>]) [49]
+ [48 <./thalamus.png> <./frontalcortexfibers.png>]
+
+LaTeX Warning: Citation `jenkinson05' on page 49 undefined on input line 24.
+
+
+LaTeX Warning: Citation `zhang01' on page 49 undefined on input line 24.
+
+<FAcomp.pdf, id=259, 614.295pt x 794.97pt>
+File: FAcomp.pdf Graphic file (type pdf)
+ <use FAcomp.pdf>
+
+LaTeX Warning: Float too large for page by 10.0608pt on input line 34.
+
+) [49] [50 <./FAcomp.pdf>]
 \openout2 = `chap6.aux'.
 
- (./chap6.tex [50
-
-
-
-]
+ (./chap6.tex
 Chapter 7.
-) [51]
+) [51
+
+
+
+] [52]
 \openout2 = `appa.aux'.
 
- (./appa.tex [52
-
-
-
-]
+ (./appa.tex
 Appendix A.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [53]
+ [53
+
+
+
+]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [54]
@@ -522,40 +563,112 @@ Underfull \vbox (badness 2486) has occurred while \output is active []
 
  [59])
 [60]
+\openout2 = `appb.aux'.
+
+ (./appb.tex
+Appendix B.
+
+Overfull \hbox (29.50523pt too wide) in paragraph at lines 83--83
+[]                                 \OT1/cmtt/m/n/12 <std::string>] [--xml] [--e
+cho] [-j <int>][] 
+ []
+
+
+Overfull \hbox (10.98022pt too wide) in paragraph at lines 83--83
+[]                                 \OT1/cmtt/m/n/12 [-r] [-i] [-o <std::string>
+] [-c <int>][] 
+ []
+
+
+Overfull \hbox (10.98022pt too wide) in paragraph at lines 83--83
+[]                                 \OT1/cmtt/m/n/12 <int>] [-l <int>] [--] [--v
+ersion] [-h][] 
+ []
+
+
+Overfull \hbox (23.33023pt too wide) in paragraph at lines 83--83
+[]                                 \OT1/cmtt/m/n/12 <std::string> <std::string>
+ <std::string>[] 
+ []
+
+
+Overfull \hbox (23.33023pt too wide) in paragraph at lines 83--83
+[]     \OT1/cmtt/m/n/12 Address of a structure to store process information (pr
+ogress, abort,[] 
+ []
+
+[61
+
+
+
+]
+Overfull \hbox (23.33023pt too wide) in paragraph at lines 83--83
+[]     \OT1/cmtt/m/n/12 Total number of threads to use.  Default value of zero 
+sets number of[] 
+ []
+
+
+Overfull \hbox (29.50523pt too wide) in paragraph at lines 83--83
+[]     \OT1/cmtt/m/n/12 Ignore the origins of the ROI and WM mask and set it to
+ be the same as[] 
+ []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [62]
+Overfull \hbox (17.15523pt too wide) in paragraph at lines 83--83
+[]     \OT1/cmtt/m/n/12 (required)  Input Mask volume that provides the probabi
+lity that the[] 
+ []
+
+
+Overfull \hbox (10.98022pt too wide) in paragraph at lines 83--83
+[]   \OT1/cmtt/m/n/12 Description: Generates a map of connectivity probabilitie
+s from a DWI[] 
+ []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [63])
+[64]
 \openout2 = `biblio.aux'.
 
- (./biblio.tex (./main.bbl [61
+ (./biblio.tex (./main.bbl [65
 
 
 
-])) [62] (./main.aux (./cover.aux)
+])) [66] (./main.aux (./cover.aux)
 (./contents.aux) (./chap1.aux) (./chap2.aux) (./chap3.aux) (./chap4.aux)
-(./chap4a.aux) (./chap5.aux) (./chap6.aux) (./appa.aux) (./biblio.aux))
+(./chap4a.aux) (./chap5.aux) (./chap6.aux) (./appa.aux) (./appb.aux)
+(./biblio.aux))
 
-LaTeX Warning: There were multiply-defined labels.
+LaTeX Warning: There were undefined references.
 
  ) 
 Here is how much of TeX's memory you used:
- 2284 strings out of 94500
- 27565 string characters out of 1175788
- 79423 words of memory out of 1000000
- 5333 multiletter control sequences out of 10000+50000
- 11943 words of font info for 44 fonts, out of 500000 for 2000
+ 2497 strings out of 94500
+ 30793 string characters out of 1175788
+ 82292 words of memory out of 1000000
+ 5530 multiletter control sequences out of 10000+50000
+ 12112 words of font info for 45 fonts, out of 500000 for 2000
  580 hyphenation exceptions out of 8191
- 28i,9n,22p,2280b,237s stack positions out of 1500i,500n,5000p,200000b,5000s
+ 28i,9n,24p,2280b,270s stack positions out of 1500i,500n,5000p,200000b,5000s
 PDF statistics:
- 315 PDF objects out of 300000
+ 341 PDF objects out of 300000
  0 named destinations out of 131072
- 180 words of extra memory for PDF output out of 65536
+ 196 words of extra memory for PDF output out of 65536
 </usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmti12.pfb></usr/share/texmf-t
-etex/fonts/type1/bluesky/symbols/msbm10.pfb></usr/share/texmf-tetex/fonts/type1
-/bluesky/cm/cmr6.pfb></usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmbx8.pfb><
-/usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmmi6.pfb></usr/share/texmf-tetex
-/fonts/type1/bluesky/cm/cmsy8.pfb></usr/share/texmf-tetex/fonts/type1/bluesky/c
-m/cmmi8.pfb></usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmr8.pfb></usr/share
-/texmf-tetex/fonts/type1/bluesky/cm/cmmi12.pfb></usr/share/texmf-tetex/fonts/ty
-pe1/bluesky/cm/cmex10.pfb></usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmsy10
-.pfb></usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmr17.pfb></usr/share/texmf
--tetex/fonts/type1/bluesky/cm/cmr12.pfb></usr/share/texmf-tetex/fonts/type1/blu
-esky/cm/cmbx12.pfb>
-Output written on main.pdf (62 pages, 8131627 bytes).
+etex/fonts/type1/bluesky/cm/cmtt12.pfb></usr/share/texmf-tetex/fonts/type1/blue
+sky/symbols/msbm10.pfb></usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmr6.pfb>
+</usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmbx8.pfb></usr/share/texmf-tete
+x/fonts/type1/bluesky/cm/cmmi6.pfb></usr/share/texmf-tetex/fonts/type1/bluesky/
+cm/cmsy8.pfb></usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmr10.pfb></usr/sha
+re/texmf-tetex/fonts/type1/bluesky/cm/cmmi8.pfb></usr/share/texmf-tetex/fonts/t
+ype1/bluesky/cm/cmr8.pfb></usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmex10.
+pfb></usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmmi12.pfb></usr/share/texmf
+-tetex/fonts/type1/bluesky/cm/cmsy10.pfb></usr/share/texmf-tetex/fonts/type1/bl
+uesky/cm/cmr17.pfb></usr/share/texmf-tetex/fonts/type1/bluesky/cm/cmr12.pfb></u
+sr/share/texmf-tetex/fonts/type1/bluesky/cm/cmbx12.pfb>
+Output written on main.pdf (66 pages, 8341356 bytes).

@@ -10,6 +10,7 @@ A level-1 auxiliary file: chap4a.aux
 A level-1 auxiliary file: chap5.aux
 A level-1 auxiliary file: chap6.aux
 A level-1 auxiliary file: appa.aux
+A level-1 auxiliary file: appb.aux
 A level-1 auxiliary file: biblio.aux
 The style file: plain.bst
 Database file #1: main.bib
@@ -21,7 +22,7 @@ Warning--empty journal in odonnel06
 Warning--empty year in odonnel06
 You've used 11 entries,
             2118 wiz_defined-function locations,
-            574 strings with 6422 characters,
+            575 strings with 6430 characters,
 and the built_in function-call counts, 4292 in all, are:
 = -- 389
 > -- 306
