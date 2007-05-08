@@ -72,7 +72,7 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
     }
   try
     {
-    JointDomainImageToListSampleAdaptorType::FrequencyType totalFrequency = adaptor->GetTotalFrequency();
+    JointDomainImageToListSampleAdaptorType::AbsoluteFrequencyType totalFrequency = adaptor->GetTotalFrequency();
     std::cerr << "Exception should have been thrown since the input image \
                   is not set yet" << std::endl;
     }
@@ -105,7 +105,7 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
  
   try
     {
-    JointDomainImageToListSampleAdaptorType::FrequencyType frequency = adaptor->GetFrequency(0 );
+    JointDomainImageToListSampleAdaptorType::AbsoluteFrequencyType frequency = adaptor->GetFrequency(0 );
     std::cerr << "Exception should have been thrown since the input image \
                   is not set yet" << std::endl;
     }

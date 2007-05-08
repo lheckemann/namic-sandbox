@@ -135,8 +135,8 @@ public:
 
   /** typedefs for Measurement vector, measurement, 
    * Instance Identifier, frequency, size, size element value */
-  itkSuperclassTraitMacro( FrequencyType );
-  itkSuperclassTraitMacro( TotalFrequencyType );
+  itkSuperclassTraitMacro( AbsoluteFrequencyType );
+  itkSuperclassTraitMacro( TotalAbsoluteFrequencyType );
   itkSuperclassTraitMacro( InstanceIdentifier );
 
   /** Image typedefs */
@@ -164,10 +164,10 @@ public:
   InstanceIdentifier Size() const;
 
   /** Get frequency */
-  FrequencyType GetFrequency(const InstanceIdentifier &id) const;
+  AbsoluteFrequencyType GetFrequency(const InstanceIdentifier &id) const;
 
   /** Get total frequency */
-  TotalFrequencyType GetTotalFrequency() const;
+  TotalAbsoluteFrequencyType GetTotalFrequency() const;
 
   itkStaticConstMacro(RangeDomainDimension, 
                       unsigned int, 
@@ -218,7 +218,7 @@ public:
       return *this;
       }
 
-    FrequencyType GetFrequency() const
+    AbsoluteFrequencyType GetFrequency() const
       {
       return 1;
       }

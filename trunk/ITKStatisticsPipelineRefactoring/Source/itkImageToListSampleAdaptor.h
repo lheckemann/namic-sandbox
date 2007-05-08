@@ -85,8 +85,8 @@ public:
          PixelType >::MeasurementVectorType                    MeasurementVectorType; 
   typedef typename MeasurementVectorTraitsTypes< 
              MeasurementVectorType >::ValueType                MeasurementType;
-  itkSuperclassTraitMacro( FrequencyType );
-  itkSuperclassTraitMacro( TotalFrequencyType );
+  itkSuperclassTraitMacro( AbsoluteFrequencyType );
+  itkSuperclassTraitMacro( TotalAbsoluteFrequencyType );
   itkSuperclassTraitMacro( MeasurementVectorSizeType );
   itkSuperclassTraitMacro( InstanceIdentifier );
 
@@ -105,10 +105,10 @@ public:
   virtual const MeasurementVectorType & GetMeasurementVector(const InstanceIdentifier &id) const;
 
   /** method to return frequency for a specified id */
-  FrequencyType GetFrequency(const InstanceIdentifier &id) const;
+  AbsoluteFrequencyType GetFrequency(const InstanceIdentifier &id) const;
 
   /** method to return the total frequency */
-  TotalFrequencyType GetTotalFrequency() const;
+  TotalAbsoluteFrequencyType GetTotalFrequency() const;
 
   /** Method to set UsePixelContainer flag */
   itkSetMacro( UsePixelContainer, bool );
@@ -143,7 +143,7 @@ public:
       return *this;
       }
 
-    FrequencyType GetFrequency() const
+    AbsoluteFrequencyType GetFrequency() const
       {
       return 1;
       }

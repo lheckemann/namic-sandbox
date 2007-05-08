@@ -88,7 +88,7 @@ GenerateData( void )
   
   // First, normalize the histogram if it doesn't look normalized.
   // This is one pass through the histogram.
-  FrequencyType totalFrequency = inputHistogram->GetTotalFrequency();
+  AbsoluteFrequencyType totalFrequency = inputHistogram->GetTotalFrequency();
   if ( (totalFrequency - NumericTraits<MeasurementType>::One) > 0.0001 )
     {
     // Doesn't look normalized:
@@ -189,7 +189,7 @@ NormalizeHistogram( void )
 {
   HistogramType * inputHistogram = const_cast< HistogramType * >(this->GetInput());
 
-  typename HistogramType::FrequencyType totalFrequency = 
+  typename HistogramType::AbsoluteFrequencyType totalFrequency = 
     inputHistogram->GetTotalFrequency();
 
   typename HistogramType::Iterator hit = inputHistogram->Begin();

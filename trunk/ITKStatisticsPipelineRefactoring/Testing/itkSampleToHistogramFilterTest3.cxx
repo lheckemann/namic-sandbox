@@ -35,7 +35,7 @@ int itkSampleToHistogramFilterTest3(int argc, char *argv[] )
 
   typedef itk::Statistics::Histogram< MeasurementType,
           numberOfComponents,
-          itk::Statistics::DenseFrequencyContainer > HistogramType;
+          itk::Statistics::DenseFrequencyContainer2 > HistogramType;
 
   typedef itk::Statistics::SampleToHistogramFilter<
     SampleType, HistogramType > FilterType;

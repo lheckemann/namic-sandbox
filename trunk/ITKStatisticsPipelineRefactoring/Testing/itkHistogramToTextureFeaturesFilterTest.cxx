@@ -47,48 +47,48 @@ int itkHistogramToTextureFeaturesFilterTest(int, char* [] )
   histogram->Initialize(size, lowerBound, upperBound ) ; 
 
   HistogramType::IndexType                  index ;
-  HistogramType::FrequencyType              frequency;
+  HistogramType::AbsoluteFrequencyType              frequency;
   HistogramType::InstanceIdentifier         identifier;
   
   index[0] = 0 ;
   index[1] = 0 ;
-  frequency = 0.2; 
+  frequency = 2; 
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 
   index[0] = 3 ;
   index[1] = 3 ;
-  frequency = 1.0; 
+  frequency = 1; 
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 
   index[0] = 2 ;
   index[1] = 1 ;
-  frequency= 0.10;
+  frequency= 1;
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 
   index[0] = 1 ;
   index[1] = 2 ;
-  frequency = 0.10;
+  frequency = 1;
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 
   index[0] = 7 ;
   index[1] = 6 ;
-  frequency = 0.2;
+  frequency = 2;
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 
   index[0] = 6 ;
   index[1] = 7 ;
-  frequency = 0.2;
+  frequency = 2;
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 
   index[0] = 10 ;
   index[1] = 10 ;
-  frequency = 0.2;
+  frequency = 2;
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 

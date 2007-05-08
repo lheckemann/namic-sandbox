@@ -28,9 +28,6 @@ int itkDenseFrequencyContainer2Test(int, char* [] )
 {
   std::cout << "DenseFrequencyContainer2 Test \n \n"; 
   
-  typedef  float      FrequencyType;
-
-  const FrequencyType tolerance = 1e-6;
 
   typedef  itk::Statistics::DenseFrequencyContainer2   
                                             DenseFrequencyContainer2Type;
@@ -38,6 +35,8 @@ int itkDenseFrequencyContainer2Test(int, char* [] )
 
   DenseFrequencyContainer2Type::Pointer container =
                                             DenseFrequencyContainer2Type::New();
+
+  typedef  DenseFrequencyContainer2Type::AbsoluteFrequencyType     AbsoluteFrequencyType;
 
   const unsigned int numberOfBins = 1250;
 
@@ -50,7 +49,7 @@ int itkDenseFrequencyContainer2Test(int, char* [] )
   for( unsigned int bin=0; bin < numberOfBins; bin++ )
     {
     // Compute any value as frequency just to test the SetFrequency() method
-    const FrequencyType frequency = static_cast<FrequencyType>( bin * bin ); 
+    const AbsoluteFrequencyType frequency = static_cast<AbsoluteFrequencyType>( bin * bin ); 
     container->SetFrequency( bin, frequency );
     }
 
@@ -58,9 +57,9 @@ int itkDenseFrequencyContainer2Test(int, char* [] )
   for( unsigned int bin=0; bin < numberOfBins; bin++ )
     {
     // Test if the values can be read back
-    const FrequencyType frequency = static_cast<FrequencyType>( bin * bin ); 
-    const FrequencyType stored    = container->GetFrequency( bin );
-    if( vnl_math_abs( stored - frequency ) > tolerance )
+    const AbsoluteFrequencyType frequency = static_cast<AbsoluteFrequencyType>( bin * bin ); 
+    const AbsoluteFrequencyType stored    = container->GetFrequency( bin );
+    if( stored != frequency )
       {
       std::cout << "Failed !" << std::endl;
       std::cout << "Stored Frequency in bin " << bin << " doesn't match value" << std::endl;
@@ -71,7 +70,7 @@ int itkDenseFrequencyContainer2Test(int, char* [] )
 
   //Test Set/Get frequency of a out of bound bin
   unsigned int binOutOfBound = numberOfBins;
-  const FrequencyType frequency = static_cast<FrequencyType>( binOutOfBound * binOutOfBound ); 
+  const AbsoluteFrequencyType frequency = static_cast<AbsoluteFrequencyType>( binOutOfBound * binOutOfBound ); 
 
   if ( container->SetFrequency( binOutOfBound, frequency ) )
     {
@@ -80,7 +79,7 @@ int itkDenseFrequencyContainer2Test(int, char* [] )
     return EXIT_FAILURE;
     }
   
-  if ( container->GetFrequency( binOutOfBound ) != itk::NumericTraits< FrequencyType >::Zero )
+  if ( container->GetFrequency( binOutOfBound ) != itk::NumericTraits< AbsoluteFrequencyType >::Zero )
     {
     std::cerr << "GetFrequency() method should have returned zero frequency\
                   since the bin index is out of bound \n" << std::endl; 
@@ -99,7 +98,7 @@ int itkDenseFrequencyContainer2Test(int, char* [] )
   for( unsigned int bin=0; bin < numberOfBins; bin++ )
     {
     // Compute any value as frequency just to test the SetFrequency() method
-    const FrequencyType frequency = static_cast<FrequencyType>( bin * bin ); 
+    const AbsoluteFrequencyType frequency = static_cast<AbsoluteFrequencyType>( bin * bin ); 
     container->SetFrequency( bin, frequency );
     }
 
@@ -107,7 +106,7 @@ int itkDenseFrequencyContainer2Test(int, char* [] )
   for( unsigned int bin=0; bin < numberOfBins; bin++ )
     {
     // Compute any value as frequency just to test the IncreaseFrequency() method
-    const FrequencyType frequency = static_cast<FrequencyType>( bin ); 
+    const AbsoluteFrequencyType frequency = static_cast<AbsoluteFrequencyType>( bin ); 
     container->IncreaseFrequency( bin, frequency );
     }
 
@@ -115,9 +114,9 @@ int itkDenseFrequencyContainer2Test(int, char* [] )
   // Test if the values can be read back
   for( unsigned int bin=0; bin < numberOfBins; bin++ )
     {
-    const FrequencyType frequency = static_cast<FrequencyType>( bin * bin + bin ); 
-    const FrequencyType stored    = container->GetFrequency( bin );
-    if( vnl_math_abs( stored - frequency ) > tolerance )
+    const AbsoluteFrequencyType frequency = static_cast<AbsoluteFrequencyType>( bin * bin + bin ); 
+    const AbsoluteFrequencyType stored    = container->GetFrequency( bin );
+    if( stored != frequency )
       {
       std::cout << "Failed !" << std::endl;
       std::cout << "Stored Frequency in bin " << bin << " doesn't match value" << std::endl;
@@ -126,7 +125,7 @@ int itkDenseFrequencyContainer2Test(int, char* [] )
       }
     }
   unsigned int binOutOfBound = numberOfBins;
-  const FrequencyType frequency = static_cast<FrequencyType>( binOutOfBound ); 
+  const AbsoluteFrequencyType frequency = static_cast<AbsoluteFrequencyType>( binOutOfBound ); 
   
   if ( container->IncreaseFrequency( binOutOfBound, frequency ) )
     {

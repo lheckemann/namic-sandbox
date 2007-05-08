@@ -349,7 +349,7 @@ NormalizeHistogram( void )
   HistogramType * output = 
    static_cast< HistogramType * >( this->ProcessObject::GetOutput(0) );
 
-  typename HistogramType::FrequencyType totalFrequency = 
+  typename HistogramType::AbsoluteFrequencyType totalFrequency = 
     output->GetTotalFrequency();
   
   typename HistogramType::Iterator hit = output->Begin(); 

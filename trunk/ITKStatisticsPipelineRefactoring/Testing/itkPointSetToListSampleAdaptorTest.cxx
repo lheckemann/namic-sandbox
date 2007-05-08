@@ -59,7 +59,7 @@ int itkPointSetToListSampleAdaptorTest(int argc, char* argv[] )
     }
   try
     {
-    PointSetToListSampleAdaptorType::FrequencyType totalFrequency = listSample->GetTotalFrequency();
+    PointSetToListSampleAdaptorType::AbsoluteFrequencyType totalFrequency = listSample->GetTotalFrequency();
     std::cerr << "Exception should have been thrown since the input point set  \
                   is not set yet" << std::endl;
     }
@@ -92,7 +92,7 @@ int itkPointSetToListSampleAdaptorTest(int argc, char* argv[] )
  
   try
     {
-    PointSetToListSampleAdaptorType::FrequencyType frequency = listSample->GetFrequency(0 );
+    PointSetToListSampleAdaptorType::AbsoluteFrequencyType frequency = listSample->GetFrequency(0 );
     std::cerr << "Exception should have been thrown since the input point set  \
                   is not set yet" << std::endl;
     }

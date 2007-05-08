@@ -100,7 +100,7 @@ PointSetToListSampleAdaptor< TPointSet >
 }
 
 template < class TPointSet >
-inline typename PointSetToListSampleAdaptor< TPointSet >::FrequencyType
+inline typename PointSetToListSampleAdaptor< TPointSet >::AbsoluteFrequencyType
 PointSetToListSampleAdaptor< TPointSet >
 ::GetFrequency(const InstanceIdentifier &) const 
 {
@@ -113,7 +113,7 @@ PointSetToListSampleAdaptor< TPointSet >
 }
 
 template < class TPointSet >
-typename PointSetToListSampleAdaptor< TPointSet >::TotalFrequencyType
+typename PointSetToListSampleAdaptor< TPointSet >::TotalAbsoluteFrequencyType
 PointSetToListSampleAdaptor< TPointSet >
 ::GetTotalFrequency() const
 { 

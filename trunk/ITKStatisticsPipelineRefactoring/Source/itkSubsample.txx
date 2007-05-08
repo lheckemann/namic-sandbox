@@ -27,7 +27,7 @@ Subsample< TSample >
 ::Subsample()
 {
   m_Sample = 0;
-  m_TotalFrequency = NumericTraits< FrequencyType >::Zero;
+  m_TotalFrequency = NumericTraits< AbsoluteFrequencyType >::Zero;
   m_ActiveDimension = 0;
 }
 
@@ -81,7 +81,7 @@ Subsample< TSample >
   typename InstanceIdentifierHolder::iterator idIter = m_IdHolder.begin();
   typename TSample::ConstIterator iter = m_Sample->Begin();
   typename TSample::ConstIterator last = m_Sample->End();
-  m_TotalFrequency = NumericTraits< FrequencyType >::Zero;
+  m_TotalFrequency = NumericTraits< AbsoluteFrequencyType >::Zero;
   while (iter != last)
     {
     *idIter++ = iter.GetInstanceIdentifier();
@@ -121,7 +121,7 @@ Subsample< TSample >
 ::Clear()
 { 
   m_IdHolder.clear();
-  m_TotalFrequency = NumericTraits< FrequencyType >::Zero;
+  m_TotalFrequency = NumericTraits< AbsoluteFrequencyType >::Zero;
   this->Modified();
 }
 
@@ -141,7 +141,7 @@ Subsample< TSample >
 }
 
 template< class TSample >
-inline typename Subsample< TSample >::FrequencyType
+inline typename Subsample< TSample >::AbsoluteFrequencyType
 Subsample< TSample >
 ::GetFrequency( InstanceIdentifier id ) const
 {
@@ -157,7 +157,7 @@ Subsample< TSample >
 
  
 template< class TSample >
-inline typename Subsample< TSample >::TotalFrequencyType
+inline typename Subsample< TSample >::TotalAbsoluteFrequencyType
 Subsample< TSample >
 ::GetTotalFrequency() const
 {

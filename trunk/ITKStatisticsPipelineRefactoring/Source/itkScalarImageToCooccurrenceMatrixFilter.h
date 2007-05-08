@@ -19,7 +19,7 @@
 
 #include "itkImage.h"
 #include "itkHistogram.h"
-#include "itkDenseFrequencyContainer.h"
+#include "itkDenseFrequencyContainer2.h"
 #include "itkVectorContainer.h"
 #include "itkObject.h"
 #include "itkNumericTraits.h"
@@ -89,7 +89,7 @@ namespace Statistics {
 */
     
 template< class TImageType,
-          class THistogramFrequencyContainer = DenseFrequencyContainer >
+          class THistogramFrequencyContainer = DenseFrequencyContainer2 >
 class ScalarImageToCooccurrenceMatrixFilter : public ProcessObject
 {
 public:

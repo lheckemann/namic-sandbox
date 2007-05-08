@@ -19,7 +19,7 @@
 #endif
 #include "itkHistogram.h"
 
-#include "itkDenseFrequencyContainer.h"
+#include "itkDenseFrequencyContainer2.h"
 
 int itkHistogramTest(int, char* [] ) 
 {
@@ -33,7 +33,7 @@ int itkHistogramTest(int, char* [] )
   // creats a histogram with 3 components measurement vectors
   typedef itk::Statistics::Histogram< MeasurementType, 
           numberOfComponents, 
-          itk::Statistics::DenseFrequencyContainer > HistogramType;
+          itk::Statistics::DenseFrequencyContainer2 > HistogramType;
   HistogramType::Pointer histogram = HistogramType::New();
 
   typedef HistogramType::MeasurementVectorType MeasurementVectorType;
@@ -179,9 +179,9 @@ int itkHistogramTest(int, char* [] )
     }
 
 
-  // Histogram with SparseFrequencyContainer
+  // Histogram with SparseFrequencyContainer2
   typedef itk::Statistics::Histogram< MeasurementType, 3, 
-    itk::Statistics::SparseFrequencyContainer > SparseHistogramType;
+    itk::Statistics::SparseFrequencyContainer2 > SparseHistogramType;
   SparseHistogramType::Pointer sparseHistogram = SparseHistogramType::New();
 
   // initializes a 64 x 64 x 64 histogram with equal size interval
@@ -517,7 +517,7 @@ int itkHistogramTest(int, char* [] )
   HistogramType::Iterator itr = histogram->Begin();
   HistogramType::Iterator end = histogram->End();
 
-  HistogramType::TotalFrequencyType totalFrequency = 
+  HistogramType::TotalAbsoluteFrequencyType totalFrequency = 
     histogram->GetTotalFrequency();
 
   InstanceIdentifier histogramSize = histogram->Size();
@@ -528,7 +528,7 @@ int itkHistogramTest(int, char* [] )
     ++itr;
     }
 
-  HistogramType::TotalFrequencyType newTotalFrequency =
+  HistogramType::TotalAbsoluteFrequencyType newTotalFrequency =
     histogram->GetTotalFrequency();
 
   if( newTotalFrequency != histogramSize + totalFrequency )

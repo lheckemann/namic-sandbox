@@ -66,9 +66,10 @@ public:
   typedef typename SampleType::MeasurementVectorType MeasurementVectorType;
   typedef typename SampleType::MeasurementType       MeasurementType;
   typedef typename SampleType::InstanceIdentifier    InstanceIdentifier;
-  typedef typename SampleType::FrequencyType         FrequencyType;
-  typedef typename SampleType::TotalFrequencyType    TotalFrequencyType;
   typedef typename SampleType::ConstPointer          SampleConstPointer;
+
+  typedef typename SampleType::AbsoluteFrequencyType         AbsoluteFrequencyType;
+  typedef typename SampleType::TotalAbsoluteFrequencyType    TotalAbsoluteFrequencyType;
   
   
   /** vector of unique class labels that will be used for mapping internal

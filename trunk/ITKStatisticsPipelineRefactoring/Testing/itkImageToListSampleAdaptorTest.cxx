@@ -64,7 +64,7 @@ int itkImageToListSampleAdaptorTest(int, char* [] )
     }
   try
     {
-    ImageToListSampleAdaptorType::FrequencyType totalFrequency = sample->GetTotalFrequency();
+    ImageToListSampleAdaptorType::AbsoluteFrequencyType totalFrequency = sample->GetTotalFrequency();
     std::cerr << "Exception should have been thrown since the input image \
                   is not set yet" << std::endl;
     }
@@ -97,7 +97,7 @@ int itkImageToListSampleAdaptorTest(int, char* [] )
  
   try
     {
-    ImageToListSampleAdaptorType::FrequencyType frequency = sample->GetFrequency(0 );
+    ImageToListSampleAdaptorType::AbsoluteFrequencyType frequency = sample->GetFrequency(0 );
     std::cerr << "Exception should have been thrown since the input image \
                   is not set yet" << std::endl;
     }

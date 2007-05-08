@@ -136,11 +136,11 @@ int itkSubsampleTest(int, char* [] )
     std::cerr << "Expected Exception caught: " << excp << std::endl;
     }
 
-  typedef SubsampleType::FrequencyType            FrequencyType; 
+  typedef SubsampleType::AbsoluteFrequencyType            AbsoluteFrequencyType; 
 
   try
     {
-    FrequencyType frequency = subsample->GetFrequency( idOutisdeRange ); 
+    AbsoluteFrequencyType frequency = subsample->GetFrequency( idOutisdeRange ); 
     std::cerr << "Exception should have been thrown since \
       the id specified is outside the range of the sample container" << std::endl;
     return EXIT_FAILURE;
