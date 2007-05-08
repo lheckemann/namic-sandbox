@@ -81,10 +81,10 @@ public:
     MeasurementVectorType >::ValueType   MeasurementType;
 
   /** Frequency value type */
-  typedef MeasurementVectorTraits::FrequencyType       FrequencyType;
+  typedef MeasurementVectorTraits::AbsoluteFrequencyType       AbsoluteFrequencyType;
   
   /** Total frequency type */
-  typedef NumericTraits<FrequencyType>::AccumulateType TotalFrequencyType;
+  typedef NumericTraits<AbsoluteFrequencyType>::AccumulateType TotalAbsoluteFrequencyType;
 
   /** InstanceIdentifier typedef. This identifier is a unique
    * sequential id for each measurement vector in a Sample subclass. */ 
@@ -103,10 +103,10 @@ public:
 
   /** Get the frequency of a measurement specified by instance
    * identifier. */
-  virtual FrequencyType GetFrequency( InstanceIdentifier id ) const = 0;
+  virtual AbsoluteFrequencyType GetFrequency( InstanceIdentifier id ) const = 0;
 
   /** Get the total frequency of the sample. */
-  virtual TotalFrequencyType GetTotalFrequency() const = 0;
+  virtual TotalAbsoluteFrequencyType GetTotalFrequency() const = 0;
 
   
   /** Set method for the length of the measurement vector */

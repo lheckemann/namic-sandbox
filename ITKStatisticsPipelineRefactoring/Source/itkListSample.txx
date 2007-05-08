@@ -67,7 +67,7 @@ ListSample< TMeasurementVector >
 }
 
 template< class TMeasurementVector >
-typename ListSample< TMeasurementVector >::TotalFrequencyType
+typename ListSample< TMeasurementVector >::TotalAbsoluteFrequencyType
 ListSample< TMeasurementVector >
 ::GetTotalFrequency() const
 {
@@ -115,17 +115,17 @@ ListSample< TMeasurementVector >
 }
 
 template< class TMeasurementVector >
-typename ListSample< TMeasurementVector >::FrequencyType 
+typename ListSample< TMeasurementVector >::AbsoluteFrequencyType 
 ListSample< TMeasurementVector >
 ::GetFrequency( InstanceIdentifier id ) const
 {
   if ( id < m_InternalContainer.size() )
     {
-    return 1.0;
+    return 1;
     }
   else
     {
-    return 0.0;
+    return 0;
     }
 }
 

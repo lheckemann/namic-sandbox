@@ -23,8 +23,8 @@
 #include "itkSize.h"
 #include "itkFixedArray.h"
 #include "itkSample.h"
-#include "itkDenseFrequencyContainer.h"
-#include "itkSparseFrequencyContainer.h"
+#include "itkDenseFrequencyContainer2.h"
+#include "itkSparseFrequencyContainer2.h"
 
 namespace itk {
 namespace Statistics {
@@ -78,7 +78,7 @@ struct GetHistogramDimension
  */
 
 template < class TMeasurement = float, unsigned int VMeasurementVectorSize = 1,
-           class TFrequencyContainer = DenseFrequencyContainer >
+           class TFrequencyContainer = DenseFrequencyContainer2 >
 class ITK_EXPORT Histogram
   : public Sample < FixedArray< TMeasurement, VMeasurementVectorSize > >
 {
@@ -118,8 +118,8 @@ public:
   typedef typename FrequencyContainerType::Pointer   FrequencyContainerPointer;
 
   /** Frequency and TotalFrequency value type from superclass */
-  typedef typename FrequencyContainerType::FrequencyType      FrequencyType;
-  typedef typename FrequencyContainerType::TotalFrequencyType TotalFrequencyType;
+  typedef typename FrequencyContainerType::AbsoluteFrequencyType      AbsoluteFrequencyType;
+  typedef typename FrequencyContainerType::TotalAbsoluteFrequencyType TotalAbsoluteFrequencyType;
 
   /** Index typedef support. An index is used to access pixel values. */
   typedef itk::Index< VMeasurementVectorSize >  IndexType;
@@ -237,44 +237,44 @@ public:
   const MeasurementVectorType& GetHistogramMaxFromIndex(const IndexType &index) const;
 
   /** Get the frequency of an instance indentifier */
-  FrequencyType GetFrequency( InstanceIdentifier id ) const;
+  AbsoluteFrequencyType GetFrequency( InstanceIdentifier id ) const;
 
   /** Get the frequency of an index */
-  FrequencyType GetFrequency(const IndexType &index) const;
+  AbsoluteFrequencyType GetFrequency(const IndexType &index) const;
 
   /** Set all the bins in the histogram to a specified frequency */
-  void SetFrequency( FrequencyType value );
+  void SetFrequency( AbsoluteFrequencyType value );
 
   /** Set the frequency of an instance identifier.  Returns false if the bin is
    * out of bounds. */
-  bool SetFrequency( InstanceIdentifier id, FrequencyType value);
+  bool SetFrequency( InstanceIdentifier id, AbsoluteFrequencyType value);
 
   /** Set the frequency of an index. Returns false if the bin is
    * out of bounds. */
   bool SetFrequency(const IndexType &index,
-                    FrequencyType value);
+                    AbsoluteFrequencyType value);
 
   /** Set the frequency of a measurement. Returns false if the bin is
    * out of bounds. */
   bool SetFrequency(const MeasurementVectorType &measurement,
-                    FrequencyType value);
+                    AbsoluteFrequencyType value);
 
 
   /** Increase the frequency of an instance identifier.
    * Frequency is increased by the specified value. Returns false if
    * the bin is out of bounds. */
-  bool IncreaseFrequency(InstanceIdentifier id, FrequencyType value);
+  bool IncreaseFrequency(InstanceIdentifier id, AbsoluteFrequencyType value);
 
   /** Increase the frequency of an index.  Frequency is
    * increased by the specified value. Returns false if the bin is out
    * of bounds. */
-  bool IncreaseFrequency(const IndexType &index, FrequencyType value);
+  bool IncreaseFrequency(const IndexType &index, AbsoluteFrequencyType value);
 
   /** Increase the frequency of a measurement.  Frequency is
    * increased by the specified value. Returns false if the
    * measurement is outside the bounds of the histogram. */
   bool IncreaseFrequency(const MeasurementVectorType &measurement,
-                         FrequencyType value);
+                         AbsoluteFrequencyType value);
 
   /** Get the measurement of an instance identifier. This is the
    * centroid of the bin.
@@ -290,10 +290,10 @@ public:
                                  unsigned int dimension) const;
 
   /** Get the total frequency in the histogram */
-  TotalFrequencyType GetTotalFrequency() const;
+  TotalAbsoluteFrequencyType GetTotalFrequency() const;
 
   /** Get the frequency of a dimension's nth element. */
-  FrequencyType GetFrequency(InstanceIdentifier n,
+  AbsoluteFrequencyType GetFrequency(InstanceIdentifier n,
                              unsigned int dimension) const;
 
   /** Get the pth percentile value for a dimension.
@@ -345,7 +345,7 @@ public:
       return *this;
       }
 
-    FrequencyType GetFrequency() const
+    AbsoluteFrequencyType GetFrequency() const
       {
       return  m_Histogram->GetFrequency(m_Id);
       }
@@ -414,7 +414,7 @@ public:
       return *this;
       }
 
-    bool SetFrequency(const FrequencyType value)
+    bool SetFrequency(const AbsoluteFrequencyType value)
       {
       Self * histogram = const_cast< Self * >( this->m_Histogram );
       return histogram->SetFrequency( this->m_Id, value );

@@ -23,7 +23,7 @@ DenseFrequencyContainer2
 ::DenseFrequencyContainer2()
 {
   m_FrequencyContainer = FrequencyContainerType::New();
-  m_TotalFrequency = NumericTraits< TotalFrequencyType >::Zero;
+  m_TotalFrequency = NumericTraits< TotalAbsoluteFrequencyType >::Zero;
 } 
 
 void
@@ -38,44 +38,44 @@ void
 DenseFrequencyContainer2
 ::SetToZero() 
 {   
-  m_FrequencyContainer->Fill( NumericTraits< FrequencyType >::Zero );
-  m_TotalFrequency = NumericTraits< TotalFrequencyType >::Zero;
+  m_FrequencyContainer->Fill( NumericTraits< AbsoluteFrequencyType >::Zero );
+  m_TotalFrequency = NumericTraits< TotalAbsoluteFrequencyType >::Zero;
 }
 
 bool
 DenseFrequencyContainer2
-::SetFrequency(const InstanceIdentifier id, const FrequencyType value)
+::SetFrequency(const InstanceIdentifier id, const AbsoluteFrequencyType value)
 { 
   if( id >= m_FrequencyContainer->Size() )
     {
     return false;
     }
-  FrequencyType frequency = this->GetFrequency(id);
+  AbsoluteFrequencyType frequency = this->GetFrequency(id);
   (*m_FrequencyContainer)[id] = value; 
   m_TotalFrequency += (value - frequency);
   return true;
 }
 
-DenseFrequencyContainer2::FrequencyType
+DenseFrequencyContainer2::AbsoluteFrequencyType
 DenseFrequencyContainer2
 ::GetFrequency(const InstanceIdentifier id) const
 {
   if( id >= m_FrequencyContainer->Size() )
     {
-    return NumericTraits< FrequencyType >::Zero;
+    return NumericTraits< AbsoluteFrequencyType >::Zero;
     }
   return (*m_FrequencyContainer)[id];
 }
 
 bool
 DenseFrequencyContainer2 
-::IncreaseFrequency(const InstanceIdentifier id, const FrequencyType value)
+::IncreaseFrequency(const InstanceIdentifier id, const AbsoluteFrequencyType value)
 {
   if( id >= m_FrequencyContainer->Size() )
     {
     return false;
     }
-  FrequencyType frequency = this->GetFrequency(id);
+  AbsoluteFrequencyType frequency = this->GetFrequency(id);
   (*m_FrequencyContainer)[id] = frequency + value; 
   m_TotalFrequency += value;
   return true;

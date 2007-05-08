@@ -46,7 +46,7 @@ JointDomainImageToListSampleAdaptor< TImage>
 }
 
 template < class TImage>
-inline typename JointDomainImageToListSampleAdaptor< TImage>::FrequencyType
+inline typename JointDomainImageToListSampleAdaptor< TImage>::AbsoluteFrequencyType
 JointDomainImageToListSampleAdaptor< TImage>
 ::GetFrequency(const InstanceIdentifier &) const 
 {
@@ -55,7 +55,7 @@ JointDomainImageToListSampleAdaptor< TImage>
     itkExceptionMacro("Image has not been set yet");
     }
 
-  return NumericTraits< FrequencyType >::One;
+  return NumericTraits< AbsoluteFrequencyType >::One;
 }
 
 
@@ -101,7 +101,7 @@ JointDomainImageToListSampleAdaptor< TImage>
 }  
 
 template < class TImage>
-typename JointDomainImageToListSampleAdaptor< TImage>::TotalFrequencyType
+typename JointDomainImageToListSampleAdaptor< TImage>::TotalAbsoluteFrequencyType
 JointDomainImageToListSampleAdaptor< TImage>
 ::GetTotalFrequency() const
 { 

@@ -21,6 +21,7 @@
 #include "itkObjectFactory.h"
 #include "itkObject.h"
 #include "itkNumericTraits.h"
+#include "itkMeasurementVectorTraits.h"
 
 namespace itk { 
 namespace Statistics {
@@ -47,16 +48,16 @@ public:
   itkNewMacro(Self);
 
   /** instance idenfitifer alias */
-  typedef unsigned long InstanceIdentifier;
+  typedef MeasurementVectorTraits::InstanceIdentifier InstanceIdentifier;
 
   /** frequency type alias */
-  typedef float FrequencyType;
+  typedef MeasurementVectorTraits::AbsoluteFrequencyType  AbsoluteFrequencyType;
   
   /** Total frequency type*/
-  typedef NumericTraits<FrequencyType>::AccumulateType TotalFrequencyType;
+  typedef MeasurementVectorTraits::TotalAbsoluteFrequencyType  TotalAbsoluteFrequencyType;
 
   /** Histogram typedef support */
-  typedef std::map< InstanceIdentifier, FrequencyType > FrequencyContainerType;  
+  typedef std::map< InstanceIdentifier, AbsoluteFrequencyType > FrequencyContainerType;  
   typedef FrequencyContainerType::const_iterator 
           FrequencyContainerConstIterator;   
 
@@ -69,18 +70,18 @@ public:
 
   /** Method to set the frequency of histogram using instance identifier. It
    * returns false when the Id is out of bounds */
-  bool SetFrequency(const InstanceIdentifier id, const FrequencyType value);
+  bool SetFrequency(const InstanceIdentifier id, const AbsoluteFrequencyType value);
 
   /** Method to increase the frequency by one.  This function is convinent
    * to create a histogram. It returns false when the id is out of bounds. */
   bool IncreaseFrequency(const InstanceIdentifier id, 
-                         const FrequencyType value);
+                         const AbsoluteFrequencyType value);
 
   /** Method to get the frequency of a bin from the histogram. It will return
    * zero when the Id is out of bounds.  */
-  FrequencyType GetFrequency(const InstanceIdentifier id) const;
+  AbsoluteFrequencyType GetFrequency(const InstanceIdentifier id) const;
 
-  TotalFrequencyType GetTotalFrequency()
+  TotalAbsoluteFrequencyType GetTotalFrequency()
     { 
     return m_TotalFrequency;
     }
@@ -96,7 +97,7 @@ private:
 
   // Container of histogram
   FrequencyContainerType                                  m_FrequencyContainer;
-  TotalFrequencyType                                      m_TotalFrequency;
+  TotalAbsoluteFrequencyType                              m_TotalFrequency;
 }; // end of class
 
 } // end of namespace Statistics

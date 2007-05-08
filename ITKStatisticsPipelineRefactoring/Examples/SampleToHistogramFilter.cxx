@@ -35,14 +35,14 @@ int main(int argc, char *argv[] )
 
   typedef itk::Statistics::Histogram< MeasurementType, 
           numberOfComponents, 
-          itk::Statistics::DenseFrequencyContainer > HistogramType;
+          itk::Statistics::DenseFrequencyContainer2 > HistogramType;
 
   typedef itk::Statistics::SampleToHistogramFilter< 
     SampleType, HistogramType > FilterType;
 
   typedef FilterType::HistogramSizeType                    HistogramSizeType;
   typedef FilterType::HistogramMeasurementType             HistogramMeasurementType;
-  typedef HistogramType::FrequencyType                     FrequencyType;
+  typedef HistogramType::AbsoluteFrequencyType                     AbsoluteFrequencyType;
   typedef HistogramType::InstanceIdentifier                InstanceIdentifier;
   typedef HistogramType::MeasurementVectorType             HistogramMeasurementVectorType;
 
@@ -72,7 +72,7 @@ int main(int argc, char *argv[] )
 
   while( itr != end )
     {
-    const FrequencyType frequency = itr.GetFrequency();
+    const AbsoluteFrequencyType frequency = itr.GetFrequency();
     const InstanceIdentifier identifier = itr.GetInstanceIdentifier();
     const HistogramMeasurementVectorType vector = itr.GetMeasurementVector();
     std::cout << identifier << " ";

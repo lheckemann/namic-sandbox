@@ -22,6 +22,7 @@
 #include "itkObject.h"
 #include "itkValarrayImageContainer.h"
 #include "itkNumericTraits.h"
+#include "itkMeasurementVectorTraits.h"
 
 namespace itk { 
 namespace Statistics {
@@ -54,16 +55,16 @@ public:
   itkNewMacro(Self);
 
   /** InstanceIdenfitifer type alias */
-  typedef unsigned long InstanceIdentifier;
+  typedef MeasurementVectorTraits::InstanceIdentifier         InstanceIdentifier;
 
   /** Frequency type alias */
-  typedef float FrequencyType;
+  typedef MeasurementVectorTraits::AbsoluteFrequencyType      AbsoluteFrequencyType;
   
   /** Total frequency type*/
-  typedef NumericTraits<FrequencyType>::AccumulateType TotalFrequencyType;
+  typedef MeasurementVectorTraits::TotalAbsoluteFrequencyType TotalAbsoluteFrequencyType;
 
   /** Internal storage class typedefs */
-  typedef ValarrayImageContainer< InstanceIdentifier, FrequencyType > 
+  typedef ValarrayImageContainer< InstanceIdentifier, AbsoluteFrequencyType > 
   FrequencyContainerType;
 
   typedef FrequencyContainerType::Pointer FrequencyContainerPointer;
@@ -78,20 +79,20 @@ public:
 
   /** Sets the frequency of histogram using instance identifier. It returns
    * false when the Id is out of bounds. */
-  bool SetFrequency(const InstanceIdentifier id, const FrequencyType value);
+  bool SetFrequency(const InstanceIdentifier id, const AbsoluteFrequencyType value);
 
   /** Increases the frequency of a bin specified by the InstanceIdentifier by
    * one.  This function is convinient to create a histogram. It returns false
    * when the bin id is out of bounds. */
   bool IncreaseFrequency(const InstanceIdentifier id, 
-                         const FrequencyType value);
+                         const AbsoluteFrequencyType value);
 
   /** Method to get the frequency of a bin from the histogram. It returns zero
    * when the Id is out of bounds. */
-  FrequencyType GetFrequency(const InstanceIdentifier id) const;
+  AbsoluteFrequencyType GetFrequency(const InstanceIdentifier id) const;
 
   /** Gets the sum of the frequencies */
-  TotalFrequencyType GetTotalFrequency()
+  TotalAbsoluteFrequencyType GetTotalFrequency()
     {
     return m_TotalFrequency;
     }
@@ -107,7 +108,7 @@ private:
 
   /** Internal storage */
   FrequencyContainerPointer         m_FrequencyContainer;
-  TotalFrequencyType                m_TotalFrequency;
+  TotalAbsoluteFrequencyType        m_TotalFrequency;
 }; // end of class
 
 } // end of namespace Statistics

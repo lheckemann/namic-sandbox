@@ -69,7 +69,7 @@ int itkCovarianceFilterTest3(int, char* [] )
 
   typedef itk::Statistics::Histogram< MeasurementType, 
           MeasurementVectorSize, 
-          itk::Statistics::DenseFrequencyContainer > HistogramType;
+          itk::Statistics::DenseFrequencyContainer2 > HistogramType;
 
   typedef HistogramType    SampleType; 
 
@@ -122,11 +122,13 @@ int itkCovarianceFilterTest3(int, char* [] )
   HistogramType::Iterator itr = histogram->Begin();
   HistogramType::Iterator end = histogram->End();
 
+  typedef HistogramType::AbsoluteFrequencyType  AbsoluteFrequencyType;
+
   while( itr != end )
     {
     const double MahalanobisDistance =
       memberFunction->Evaluate( itr.GetMeasurementVector() );
-    const double frequency = vcl_floor( 1e5 * vcl_exp( -0.5 * MahalanobisDistance ) );
+    AbsoluteFrequencyType frequency = (AbsoluteFrequencyType) vcl_floor( 1e5 * vcl_exp( -0.5 * MahalanobisDistance ) );
     itr.SetFrequency( frequency );
     ++itr;
     }

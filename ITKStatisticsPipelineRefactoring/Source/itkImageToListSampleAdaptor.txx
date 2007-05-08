@@ -67,7 +67,7 @@ ImageToListSampleAdaptor< TImage>
 }
 
 template < class TImage>
-inline typename ImageToListSampleAdaptor< TImage>::FrequencyType
+inline typename ImageToListSampleAdaptor< TImage>::AbsoluteFrequencyType
 ImageToListSampleAdaptor< TImage>
 ::GetFrequency(const InstanceIdentifier &) const 
 {
@@ -76,7 +76,7 @@ ImageToListSampleAdaptor< TImage>
     itkExceptionMacro("Image has not been set yet");
     }
 
-  return NumericTraits< FrequencyType >::One;
+  return NumericTraits< AbsoluteFrequencyType >::One;
 }
 
 
@@ -122,7 +122,7 @@ ImageToListSampleAdaptor< TImage>
 }  
 
 template < class TImage>
-typename ImageToListSampleAdaptor< TImage>::TotalFrequencyType
+typename ImageToListSampleAdaptor< TImage>::TotalAbsoluteFrequencyType
 ImageToListSampleAdaptor< TImage>
 ::GetTotalFrequency() const
 { 

@@ -60,8 +60,8 @@ public:
   itkSuperclassTraitMacro( MeasurementVectorType );
   itkSuperclassTraitMacro( MeasurementVectorSizeType );
   itkSuperclassTraitMacro( MeasurementType );
-  itkSuperclassTraitMacro( FrequencyType );
-  itkSuperclassTraitMacro( TotalFrequencyType );
+  itkSuperclassTraitMacro( AbsoluteFrequencyType );
+  itkSuperclassTraitMacro( TotalAbsoluteFrequencyType );
   itkSuperclassTraitMacro( InstanceIdentifier );
 
   /** Value type of a measurement (component of the measurement
@@ -105,11 +105,11 @@ public:
 
   /** Get the frequency of a measurement. Returns 1 if the measurement
    * exist. */
-  FrequencyType GetFrequency( InstanceIdentifier id ) const;
+  AbsoluteFrequencyType GetFrequency( InstanceIdentifier id ) const;
 
   /** Get the total frequency of the sample.  This is equivalent to
    * the size of the sample. */
-  TotalFrequencyType GetTotalFrequency() const;
+  TotalAbsoluteFrequencyType GetTotalFrequency() const;
 
 
   /** \class ListSample::ConstIterator */
@@ -138,7 +138,7 @@ public:
       }
 
 
-    FrequencyType GetFrequency() const
+    AbsoluteFrequencyType GetFrequency() const
       {
       return 1;
       }

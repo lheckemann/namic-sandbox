@@ -154,7 +154,7 @@ Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
 template< class TMeasurement, unsigned int VMeasurementVectorSize,
           class TFrequencyContainer>
 typename 
-Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>::FrequencyType
+Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>::AbsoluteFrequencyType
 Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
 ::GetFrequency( InstanceIdentifier id ) const
 {
@@ -165,7 +165,7 @@ template< class TMeasurement, unsigned int VMeasurementVectorSize,
           class TFrequencyContainer>
 bool 
 Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
-::SetFrequency( InstanceIdentifier id, FrequencyType value)
+::SetFrequency( InstanceIdentifier id, AbsoluteFrequencyType value)
 {
   return m_FrequencyContainer->SetFrequency(id, value);
 }
@@ -174,7 +174,7 @@ template< class TMeasurement, unsigned int VMeasurementVectorSize,
           class TFrequencyContainer>
 bool 
 Histogram<TMeasurement, VMeasurementVectorSize, TFrequencyContainer>
-::IncreaseFrequency(InstanceIdentifier id, FrequencyType value)
+::IncreaseFrequency(InstanceIdentifier id, AbsoluteFrequencyType value)
 {
   return m_FrequencyContainer->IncreaseFrequency(id, value);
 }
@@ -538,7 +538,7 @@ template< class TMeasurement, unsigned int VMeasurementVectorSize,
           class TFrequencyContainer >
 inline void
 Histogram< TMeasurement, VMeasurementVectorSize, TFrequencyContainer >
-::SetFrequency(const FrequencyType value) 
+::SetFrequency(const AbsoluteFrequencyType value) 
 {
   typename Self::Iterator iter = this->Begin();
   typename Self::Iterator end = this->End();
@@ -554,7 +554,7 @@ template< class TMeasurement, unsigned int VMeasurementVectorSize,
           class TFrequencyContainer >
 inline bool
 Histogram< TMeasurement, VMeasurementVectorSize, TFrequencyContainer >
-::SetFrequency(const IndexType &index, const FrequencyType value) 
+::SetFrequency(const IndexType &index, const AbsoluteFrequencyType value) 
 {
   return this->SetFrequency( this->GetInstanceIdentifier(index), value);
 }
@@ -563,7 +563,7 @@ template< class TMeasurement, unsigned int VMeasurementVectorSize,
           class TFrequencyContainer >
 inline bool
 Histogram< TMeasurement, VMeasurementVectorSize, TFrequencyContainer >
-::SetFrequency(const MeasurementVectorType &measurement, const FrequencyType value) 
+::SetFrequency(const MeasurementVectorType &measurement, const AbsoluteFrequencyType value) 
 {
   return this->SetFrequency( this->GetInstanceIdentifier(GetIndex(measurement)), value);
 }
@@ -572,7 +572,7 @@ template< class TMeasurement, unsigned int VMeasurementVectorSize,
           class TFrequencyContainer >
 inline bool
 Histogram< TMeasurement, VMeasurementVectorSize, TFrequencyContainer >
-::IncreaseFrequency(const IndexType &index, const FrequencyType value)
+::IncreaseFrequency(const IndexType &index, const AbsoluteFrequencyType value)
 {
   const bool result = 
       this->IncreaseFrequency( this->GetInstanceIdentifier(index), value);
@@ -583,7 +583,7 @@ template< class TMeasurement, unsigned int VMeasurementVectorSize,
           class TFrequencyContainer >
 inline bool
 Histogram< TMeasurement, VMeasurementVectorSize, TFrequencyContainer >
-::IncreaseFrequency(const MeasurementVectorType &measurement, const FrequencyType value) 
+::IncreaseFrequency(const MeasurementVectorType &measurement, const AbsoluteFrequencyType value) 
 {
   IndexType index;
   this->GetIndex( measurement, index );
@@ -594,7 +594,7 @@ Histogram< TMeasurement, VMeasurementVectorSize, TFrequencyContainer >
 template< class TMeasurement, unsigned int VMeasurementVectorSize, 
           class TFrequencyContainer >
 inline typename Histogram< TMeasurement, VMeasurementVectorSize,
-                           TFrequencyContainer >::FrequencyType
+                           TFrequencyContainer >::AbsoluteFrequencyType
 Histogram< TMeasurement, VMeasurementVectorSize, TFrequencyContainer >
 ::GetFrequency(const IndexType &index) const
 {
@@ -615,7 +615,7 @@ Histogram< TMeasurement, VMeasurementVectorSize, TFrequencyContainer >
 template< class TMeasurement, unsigned int VMeasurementVectorSize, 
           class TFrequencyContainer >
 typename 
-Histogram< TMeasurement, VMeasurementVectorSize, TFrequencyContainer >::FrequencyType
+Histogram< TMeasurement, VMeasurementVectorSize, TFrequencyContainer >::AbsoluteFrequencyType
 Histogram< TMeasurement, VMeasurementVectorSize, TFrequencyContainer >
 ::GetFrequency( InstanceIdentifier n, unsigned int dimension) const
 {
@@ -626,7 +626,7 @@ Histogram< TMeasurement, VMeasurementVectorSize, TFrequencyContainer >
   InstanceIdentifier includeEnd;
   InstanceIdentifier last = m_OffsetTable[VMeasurementVectorSize];
 
-  FrequencyType frequency = 0;
+  AbsoluteFrequencyType frequency = 0;
   while (current < last)
     {
     include = current;
@@ -644,7 +644,7 @@ Histogram< TMeasurement, VMeasurementVectorSize, TFrequencyContainer >
 template< class TMeasurement, unsigned int VMeasurementVectorSize, 
           class TFrequencyContainer >
 inline typename Histogram< TMeasurement, VMeasurementVectorSize, 
-                           TFrequencyContainer >::TotalFrequencyType
+                           TFrequencyContainer >::TotalAbsoluteFrequencyType
 Histogram< TMeasurement, VMeasurementVectorSize, TFrequencyContainer >
 ::GetTotalFrequency() const
 {

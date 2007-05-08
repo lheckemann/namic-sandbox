@@ -123,7 +123,7 @@ public:
   typedef typename HistogramType::MeasurementType         MeasurementType;
   typedef typename HistogramType::MeasurementVectorType   MeasurementVectorType;
   typedef typename HistogramType::IndexType               IndexType;
-  typedef typename HistogramType::FrequencyType           FrequencyType;
+  typedef typename HistogramType::AbsoluteFrequencyType   AbsoluteFrequencyType;
 
   /** Method to Set/Get the input Histogram */
   void SetInput ( const HistogramType * histogram );

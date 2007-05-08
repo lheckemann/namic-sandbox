@@ -76,8 +76,8 @@ public:
    * Instance Identifier, frequency, size, size element value */
   itkSuperclassTraitMacro( MeasurementType );
   itkSuperclassTraitMacro( MeasurementVectorType );
-  itkSuperclassTraitMacro( FrequencyType );
-  itkSuperclassTraitMacro( TotalFrequencyType );
+  itkSuperclassTraitMacro( AbsoluteFrequencyType );
+  itkSuperclassTraitMacro( TotalAbsoluteFrequencyType );
   itkSuperclassTraitMacro( MeasurementVectorSizeType );
   itkSuperclassTraitMacro( InstanceIdentifier );
 
@@ -97,10 +97,10 @@ public:
   const MeasurementVectorType & GetMeasurementVector(const InstanceIdentifier &id) const;
 
   /** returns 1 as other subclasses of ListSampleBase does */
-  FrequencyType GetFrequency(const InstanceIdentifier &id) const;
+  AbsoluteFrequencyType GetFrequency(const InstanceIdentifier &id) const;
 
   /** returns the size of this container */
-  TotalFrequencyType GetTotalFrequency() const;
+  TotalAbsoluteFrequencyType GetTotalFrequency() const;
 
   /** \class ListSample::ConstIterator */
   class ConstIterator
@@ -126,7 +126,7 @@ public:
       return *this;
       }
 
-    FrequencyType GetFrequency() const
+    AbsoluteFrequencyType GetFrequency() const
       {
       return 1;
       }

@@ -43,8 +43,8 @@ public:
   itkNewMacro(Self) ;
  
   typedef typename Superclass::MeasurementVectorType MeasurementVectorType;
-  typedef typename Superclass::TotalFrequencyType TotalFrequencyType;
-  typedef typename Superclass::FrequencyType FrequencyType;
+  typedef typename Superclass::TotalAbsoluteFrequencyType TotalAbsoluteFrequencyType;
+  typedef typename Superclass::AbsoluteFrequencyType AbsoluteFrequencyType;
   typedef typename Superclass::InstanceIdentifier InstanceIdentifier;
 
   /** Get the size of the sample (number of measurements) */
@@ -70,16 +70,16 @@ public:
 
   /** Get the frequency of a measurement specified by instance
    * identifier. */
-  virtual FrequencyType GetFrequency(InstanceIdentifier id) const
+  virtual AbsoluteFrequencyType GetFrequency(InstanceIdentifier id) const
     { 
     return m_Frequencies[id];
     }
 
   /** Get the total frequency of the sample. */
-  virtual TotalFrequencyType GetTotalFrequency() const 
+  virtual TotalAbsoluteFrequencyType GetTotalFrequency() const 
     { 
-    TotalFrequencyType sum = NumericTraits< TotalFrequencyType >::Zero;
-    typedef typename std::vector< FrequencyType >::const_iterator Iterator;
+    TotalAbsoluteFrequencyType sum = NumericTraits< TotalAbsoluteFrequencyType >::Zero;
+    typedef typename std::vector< AbsoluteFrequencyType >::const_iterator Iterator;
     Iterator itr = m_Frequencies.begin();
     while( itr != m_Frequencies.end() )
       {
@@ -97,7 +97,7 @@ public:
     }
 
   void AddMeasurementVector( 
-    const MeasurementVectorType & measure, FrequencyType frequency )
+    const MeasurementVectorType & measure, AbsoluteFrequencyType frequency )
       {
       m_Values.push_back( measure );
       m_Frequencies.push_back( frequency );
@@ -106,7 +106,7 @@ public:
 private:
 
   std::vector< TMeasurementVector >  m_Values;
-  std::vector< FrequencyType >       m_Frequencies;
+  std::vector< AbsoluteFrequencyType >       m_Frequencies;
 
 };
 
@@ -147,14 +147,14 @@ int itkSampleTest2(int, char* [] )
     measure[i] = 29 * i * i;
     }
 
-  typedef SampleType::FrequencyType FrequencyType;
+  typedef SampleType::AbsoluteFrequencyType AbsoluteFrequencyType;
   
-  FrequencyType frequency = 17;
+  AbsoluteFrequencyType frequency = 17;
 
   sample->AddMeasurementVector( measure, frequency );
 
   MeasurementVectorType measureBack = sample->GetMeasurementVector( 0 );
-  FrequencyType frequencyBack = sample->GetFrequency( 0 );
+  AbsoluteFrequencyType frequencyBack = sample->GetFrequency( 0 );
 
   if( frequencyBack != frequency )
     {

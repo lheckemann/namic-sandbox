@@ -59,9 +59,10 @@ public:
   typedef typename TSample::MeasurementVectorType MeasurementVectorType;
   typedef typename TSample::MeasurementType       MeasurementType;
   typedef typename TSample::InstanceIdentifier    InstanceIdentifier;
-  typedef typename TSample::FrequencyType         FrequencyType;
-  typedef typename TSample::TotalFrequencyType    TotalFrequencyType;
   typedef MeasurementVectorType                   ValueType;
+
+  typedef typename TSample::AbsoluteFrequencyType         AbsoluteFrequencyType;
+  typedef typename TSample::TotalAbsoluteFrequencyType    TotalAbsoluteFrequencyType;
 
   /** Type of the storage for instances that belong to the class 
    * represented by a Subsample object. A Subsample object stores
@@ -91,10 +92,10 @@ public:
   const MeasurementVectorType & GetMeasurementVector( InstanceIdentifier id) const;
 
   /** returns the frequency of the instance which is identified by the 'id' */
-  FrequencyType GetFrequency( InstanceIdentifier id ) const;
+  AbsoluteFrequencyType GetFrequency( InstanceIdentifier id ) const;
   
   /** returns the total frequency for the 'd' dimension */
-  TotalFrequencyType GetTotalFrequency() const;
+  TotalAbsoluteFrequencyType GetTotalFrequency() const;
   
   void Swap(int index1, int index2);
   
@@ -140,7 +141,7 @@ public:
       return *this;
       }
  
-    FrequencyType GetFrequency() const
+    AbsoluteFrequencyType GetFrequency() const
       {
       return  m_Sample->GetFrequency(*m_Iter);
       }
@@ -256,7 +257,7 @@ private:
   const TSample*              m_Sample;
   InstanceIdentifierHolder    m_IdHolder;
   unsigned int                m_ActiveDimension;
-  FrequencyType               m_TotalFrequency;
+  TotalAbsoluteFrequencyType  m_TotalFrequency;
 }; // end of class
 
 
