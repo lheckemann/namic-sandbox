@@ -43,8 +43,6 @@ int itkSparseFrequencyContainer2Test(int, char* [] )
   container->Initialize( numberOfBins );
 
 
-
-
   // Test the SetFrequency() / GetFrequency() methods
   {
   std::cout << "Testing Set/Get Frequency methods...";
@@ -69,12 +67,21 @@ int itkSparseFrequencyContainer2Test(int, char* [] )
       }
     }
   std::cout << " PASSED !" << std::endl;
+
   }   // end of SetFrequency() / GetFrequency() test
 
-
-
-
-
+  //Set all the bins to zero and check the values
+  container->SetToZero();
+  for( unsigned int bin=0; bin < numberOfBins; bin++ )
+    {
+    if( container->GetFrequency( bin ) != itk::NumericTraits< FrequencyType >::Zero )
+      {
+      std::cout << "Failed !" << std::endl;
+      std::cout << "Stored Frequency in bin is not zero after SetToZero() method invocation"
+                << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
 
   // Test the IncreaseFrequency() method
   {

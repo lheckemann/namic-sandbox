@@ -140,14 +140,6 @@ int itkDenseFrequencyContainer2Test(int, char* [] )
   }   // end of SetFrequency() / GetFrequency() test
 
 
-
-
-
-
-
-
-
-
   bool pass = true;
 
   if( !pass )
