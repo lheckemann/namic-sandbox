@@ -543,6 +543,13 @@ int main(int argc, char* argv[]){
     condcmapwriterPtr->SetFileName( condcmapfilename );
     condcmapwriterPtr->Update();
   }
+  //close files
+  fafile.close();
+  lengthfile.close();
+  if(fafile.fail() || lengthfile.fail() ){
+    std::cerr<<"Error closing text files\n";
+    return EXIT_FAILURE;
+  }
   //Write out FA container
   //char fafilename[100];
   //sprintf( fafilename, "%s_CONDFAValues.txt", outputprefix.c_str() );
