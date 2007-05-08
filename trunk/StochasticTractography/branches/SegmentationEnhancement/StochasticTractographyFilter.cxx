@@ -13,6 +13,7 @@
 #include "itkTensorFractionalAnisotropyImageFilter.h"
 #include "itkPathIterator.h"
 #include <string>
+#include <fstream>
 
 std::string stripExtension(const std::string& fileName){
   const int length = fileName.length();
@@ -220,12 +221,12 @@ int main(int argc, char* argv[]){
   typedef itk::AddImageFilter< CImageType, CImageType, CImageType> AddImageFilterType;
   
   //parse command line arguments
-  if(argc < 3){
-    std::cerr << "Usage: " << argv[0];
-    std::cerr<< " DWIFile(.nhdr) ROIFile(.nhdr) ConnectivityFile(.nhdr) ";
-    std::cerr<< "LabelNumber NumberOfTracts MaxTractLength MaxLikelihoodCacheSize\n";
-    return EXIT_FAILURE;
-  }
+  //if(argc < 3){
+  //  std::cerr << "Usage: " << argv[0];
+  //  std::cerr<< " DWIFile(.nhdr) ROIFile(.nhdr) ConnectivityFile(.nhdr) ";
+  //  std::cerr<< "LabelNumber NumberOfTracts MaxTractLength MaxLikelihoodCacheSize\n";
+  //  return EXIT_FAILURE;
+  //}
   /*
   char* dwifilename = argv[1];
   char* roifilename = argv[2];
@@ -235,6 +236,25 @@ int main(int argc, char* argv[]){
   unsigned int maxtractlength = atoi(argv[6]);
   unsigned int maxlikelihoodcachesize = atoi(argv[7]);
   */
+  //setup output stat files
+  char fafilename[100];
+  sprintf( fafilename, "%s_CONDFAValues.txt", outputprefix.c_str() );
+  char lengthfilename[100];
+  sprintf( lengthfilename, "%s_CONDLENGTHValues.txt", outputprefix.c_str() );
+  
+  //open these files
+  std::ofstream fafile( fafilename );
+  if(!fafile.is_open()){
+    std::cerr<<"Could not open FA file!\n";
+    return EXIT_FAILURE;
+  }
+  
+  std::ofstream lengthfile( lengthfilename );
+  //if(!lengthfile.is_open()){
+  //  std::cerr<<"Could not open Length file!\n";
+  //  return EXIT_FAILURE;
+ // }
+  
   //read in the DWI image
   DWIVectorImageReaderType::Pointer dwireaderPtr = DWIVectorImageReaderType::New();
   dwireaderPtr->SetFileName(dwifilename);
@@ -395,11 +415,11 @@ int main(int argc, char* argv[]){
   
   //Setup the FA container to hold FA values for tracts of interest
   typedef itk::VectorContainer< unsigned int, double > FAContainerType;
-  FAContainerType::Pointer facontainer = FAContainerType::New();
+  //FAContainerType::Pointer facontainer = FAContainerType::New();
   
   //Setup the length container to hold lengths for tracts of interest
   typedef itk::VectorContainer< unsigned int, unsigned int > LengthContainerType;
-  LengthContainerType::Pointer lengthcontainer = LengthContainerType::New();
+  //LengthContainerType::Pointer lengthcontainer = LengthContainerType::New();
   
   //Setup the AddImageFilter
   AddImageFilterType::Pointer addimagefilterPtr = AddImageFilterType::New();
@@ -461,9 +481,15 @@ int main(int argc, char* argv[]){
               //std::cout<<fafilter->GetOutput()->GetPixel(roitractIt.GetIndex())<<std::endl;
               accumFA+=fafilter->GetOutput()->GetPixel(currtract->EvaluateToIndex(t));
             }
-            lengthcontainer->InsertElement( lengthcontainer->Size(),
-              (unsigned int) tractcontainer->GetElement(i)->EndOfInput() );
-            facontainer->InsertElement( facontainer->Size(), accumFA/((double)stepcount) );
+            fafile<<accumFA/((double)stepcount)<<std::endl;
+            lengthfile<<tractcontainer->GetElement(i)->EndOfInput();
+            if(fafile.fail() || lengthfile.fail() ){
+              std::cerr<<"Error writing to text files\n";
+              return EXIT_FAILURE;
+            }
+            //lengthcontainer->InsertElement( lengthcontainer->Size(),
+              //(unsigned int) tractcontainer->GetElement(i)->EndOfInput() );
+            //facontainer->InsertElement( facontainer->Size(), accumFA/((double)stepcount) );
  
             //color in the tracts
             for(roitractIt.GoToBegin(); !roitractIt.IsAtEnd(); ++roitractIt){
@@ -518,13 +544,13 @@ int main(int argc, char* argv[]){
     condcmapwriterPtr->Update();
   }
   //Write out FA container
-  char fafilename[100];
-  sprintf( fafilename, "%s_CONDFAValues.txt", outputprefix.c_str() );
-  WriteScalarContainerToFile< FAContainerType >( fafilename, facontainer );
+  //char fafilename[100];
+  //sprintf( fafilename, "%s_CONDFAValues.txt", outputprefix.c_str() );
+  //WriteScalarContainerToFile< FAContainerType >( fafilename, facontainer );
   
   //Write out tract length container
-  char lengthfilename[100];
-  sprintf( lengthfilename, "%s_CONDLENGTHValues.txt", outputprefix.c_str() );
-  WriteScalarContainerToFile< LengthContainerType >( lengthfilename, lengthcontainer );
+  //char lengthfilename[100];
+  //sprintf( lengthfilename, "%s_CONDLENGTHValues.txt", outputprefix.c_str() );
+  //WriteScalarContainerToFile< LengthContainerType >( lengthfilename, lengthcontainer );
   return EXIT_SUCCESS;
 }
