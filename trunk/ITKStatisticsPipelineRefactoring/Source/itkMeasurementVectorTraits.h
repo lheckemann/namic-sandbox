@@ -52,7 +52,11 @@ public:
   typedef std::vector<int>::size_type   InstanceIdentifier;
 
   /** Type defined for representing the frequency of measurement vectors */
-  typedef float        FrequencyType;
+  typedef float                                                   FrequencyType; /* ERASEME */
+  typedef InstanceIdentifier                                      AbsoluteFrequencyType;
+  typedef NumericTraits< AbsoluteFrequencyType >::RealType        RelativeFrequencyType;
+  typedef NumericTraits< AbsoluteFrequencyType >::AccumulateType  TotalAbsoluteFrequencyType;
+  typedef NumericTraits< RelativeFrequencyType >::AccumulateType  TotalRelativeFrequencyType;
 
   typedef unsigned int MeasurementVectorLength;
   

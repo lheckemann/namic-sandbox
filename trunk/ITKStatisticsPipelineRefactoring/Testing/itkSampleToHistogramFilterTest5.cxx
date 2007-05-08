@@ -43,20 +43,16 @@ int itkSampleToHistogramFilterTest5(int argc, char *argv[] )
   //
   // Note: 
   //
-  // The following two types are made different here.
-  //
   // The purpose of this test is to verify that the 
-  // MeasurementVectorType can use an integer type for its 
-  // components, while the Histogram can use a float type for
-  // it measurement type.
+  // SampleToHistogramFilter can be used for generating the 
+  // histogram of an image.
   //
-  typedef signed int  VMeasurementType;  // integer type for the samples
-  typedef float       HMeasurementType;  // float type for the histogram
+  typedef unsigned char  VMeasurementType;  // type for the samples
+  typedef float          HMeasurementType;  // type for the histogram
 
 
-  typedef itk::RGBPixel< VMeasurementType > MeasurementVectorType;
+  typedef itk::RGBPixel< VMeasurementType > PixelType;
 
-  typedef MeasurementVectorType  PixelType;
   typedef itk::Image< PixelType, imageDimension >   ImageType;
 
   typedef itk::Statistics::ImageToListSampleFilter< 
@@ -71,44 +67,25 @@ int itkSampleToHistogramFilterTest5(int argc, char *argv[] )
   typedef itk::Statistics::SampleToHistogramFilter<
     SampleType, HistogramType > FilterType;
 
-  typedef itk::ImageFileReader< ImageType >    ReaderType;
+  typedef HistogramType::MeasurementVectorType  MeasurementVectorType;
 
-  typedef FilterType::InputHistogramSizeObjectType         InputHistogramSizeObjectType;
-  typedef FilterType::HistogramSizeType                    HistogramSizeType;
-  typedef FilterType::HistogramMeasurementType             HistogramMeasurementType;
-  typedef FilterType::HistogramMeasurementVectorType       HistogramMeasurementVectorType;
-  typedef FilterType::InputHistogramMeasurementObjectType  InputHistogramMeasurementObjectType;
-  typedef FilterType::
-    InputHistogramMeasurementVectorObjectType  InputHistogramMeasurementVectorObjectType;
+  typedef FilterType::HistogramSizeType      HistogramSizeType;
+
+  typedef itk::ImageFileReader< ImageType >    ReaderType;
 
   ReaderType::Pointer reader = ReaderType::New();
 
-  ImageToListSampleFilterType::Pointer imageToSampleFilter = ImageToListSampleFilterType::New();
+  ImageToListSampleFilterType::Pointer imageToSampleFilter =
+    ImageToListSampleFilterType::New();
 
   FilterType::Pointer filter = FilterType::New();
 
   reader->SetFileName( argv[1] );
 
   imageToSampleFilter->SetInput( reader->GetOutput() );
+
   filter->SetInput( imageToSampleFilter->GetOutput() );
   
-  HistogramMeasurementVectorType minimum;
-  HistogramMeasurementVectorType maximum;
-
-  minimum[0] = -17.5;
-  minimum[1] = -19.5;
-  minimum[2] = -24.5;
-
-  maximum[0] =  17.5;
-  maximum[1] =  19.5;
-  maximum[2] =  24.5;
-
-  HistogramSizeType histogramSize;
-
-  histogramSize[0] = 36;
-  histogramSize[1] = 40;
-  histogramSize[2] = 50;
-
   try
     {
     filter->Update();
@@ -128,6 +105,11 @@ int itkSampleToHistogramFilterTest5(int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
+  HistogramSizeType histogramSize;
+
+  histogramSize[0] = 256;
+  histogramSize[1] = 256;
+  histogramSize[2] = 256;
 
   filter->SetHistogramSize( histogramSize );
 
@@ -141,14 +123,13 @@ int itkSampleToHistogramFilterTest5(int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
-  const unsigned int expectedHistogramSize1 = 
+  const unsigned int expectedHistogramSize = 
     histogramSize[0] * histogramSize[1] * histogramSize[2];
 
-  if( histogram->Size() != expectedHistogramSize1 )
+  if( histogram->Size() != expectedHistogramSize )
     {
-    std::cerr << "Histogram Size error" << std::endl;
-    std::cerr << "We expected " << expectedHistogramSize1 << std::endl;
-    std::cerr << "We received " << histogram->Size() << std::endl;
+    std::cerr << "Histogram Size should have been " << expectedHistogramSize << std::endl;
+    std::cerr << " but it actually is " << histogram->Size() << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -157,20 +138,44 @@ int itkSampleToHistogramFilterTest5(int argc, char *argv[] )
   HistogramType::ConstIterator histogramItr = histogram->Begin();
   HistogramType::ConstIterator histogramEnd = histogram->End();
 
-  const unsigned int expectedFrequency1 = 1;
+  unsigned int expectedFrequency;
+
+  typedef itk::NumericTraits< VMeasurementType >::PrintType    PrintType;
+
   while( histogramItr != histogramEnd )
     {
-    if( histogramItr.GetFrequency() != expectedFrequency1 )
+    if( histogramItr.GetFrequency() != 0 )
       {
-      std::cerr << "Histogram bin error for measure " << std::endl;
-      std::cerr << histogramItr.GetMeasurementVector() << std::endl;
-      std::cerr << "Expected frequency = " << expectedFrequency1 << std::endl;
-      std::cerr << "Computed frequency = " << histogramItr.GetFrequency() << std::endl;
+      MeasurementVectorType measurementVector = histogramItr.GetMeasurementVector();
+      std::cout << static_cast< PrintType >( measurementVector[0] ) << "  ";
+      std::cout << static_cast< PrintType >( measurementVector[1] ) << "  ";
+      std::cout << static_cast< PrintType >( measurementVector[2] ) << "  ";
+      std::cout << histogramItr.GetFrequency() << std::endl;
       }
+//    if( histogramItr.GetFrequency() != expectedFrequency1 )
+//      {
+//      std::cerr << "Histogram bin error for measure " << std::endl;
+//      std::cerr << histogramItr.GetMeasurementVector() << std::endl;
+//      std::cerr << "Expected frequency = " << expectedFrequency1 << std::endl;
+//      std::cerr << "Computed frequency = " << histogramItr.GetFrequency() << std::endl;
+//      }
     ++histogramItr;
     }
 
 
+  SampleType::ConstPointer sample = imageToSampleFilter->GetOutput();
+
+  SampleType::ConstIterator itr = sample->Begin();
+  SampleType::ConstIterator end = sample->End();
+
+  while( itr != end )
+    {
+    PixelType pixel = itr.GetMeasurementVector();
+    std::cout << static_cast< PrintType >( pixel[0] ) << "  ";
+    std::cout << static_cast< PrintType >( pixel[1] ) << "  ";
+    std::cout << static_cast< PrintType >( pixel[2] ) << std::endl;
+    ++itr;
+    }
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
