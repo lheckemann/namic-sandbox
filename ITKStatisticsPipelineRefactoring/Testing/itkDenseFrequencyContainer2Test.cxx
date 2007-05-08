@@ -20,6 +20,7 @@
 
 #include "itkDenseFrequencyContainer2.h"
 #include "vnl/vnl_math.h"
+#include "itkNumericTraits.h"
 
 
 
@@ -43,8 +44,6 @@ int itkDenseFrequencyContainer2Test(int, char* [] )
   container->Initialize( numberOfBins );
 
 
-
-
   // Test the SetFrequency() / GetFrequency() methods
   {
   std::cout << "Testing Set/Get Frequency methods...";
@@ -54,6 +53,7 @@ int itkDenseFrequencyContainer2Test(int, char* [] )
     const FrequencyType frequency = static_cast<FrequencyType>( bin * bin ); 
     container->SetFrequency( bin, frequency );
     }
+
 
   for( unsigned int bin=0; bin < numberOfBins; bin++ )
     {
@@ -68,12 +68,28 @@ int itkDenseFrequencyContainer2Test(int, char* [] )
       return EXIT_FAILURE;
       }
     }
+
+  //Test Set/Get frequency of a out of bound bin
+  unsigned int binOutOfBound = numberOfBins;
+  const FrequencyType frequency = static_cast<FrequencyType>( binOutOfBound * binOutOfBound ); 
+
+  if ( container->SetFrequency( binOutOfBound, frequency ) )
+    {
+    std::cerr << "SetFrequency() method should have returned false boolean\
+                  since the bin index is out of bound \n" << std::endl; 
+    return EXIT_FAILURE;
+    }
+  
+  if ( container->GetFrequency( binOutOfBound ) != itk::NumericTraits< FrequencyType >::Zero )
+    {
+    std::cerr << "GetFrequency() method should have returned zero frequency\
+                  since the bin index is out of bound \n" << std::endl; 
+    return EXIT_FAILURE;
+    }
+   
+
   std::cout << " PASSED !" << std::endl;
   }   // end of SetFrequency() / GetFrequency() test
-
-
-
-
 
 
   // Test the IncreaseFrequency() method
@@ -109,6 +125,17 @@ int itkDenseFrequencyContainer2Test(int, char* [] )
       return EXIT_FAILURE;
       }
     }
+  unsigned int binOutOfBound = numberOfBins;
+  const FrequencyType frequency = static_cast<FrequencyType>( binOutOfBound ); 
+  
+  if ( container->IncreaseFrequency( binOutOfBound, frequency ) )
+    {
+    std::cerr << "IncreaseFrequency() method should have returned a false boolean\
+                  since the bin index is out of bound \n" << std::endl; 
+    return EXIT_FAILURE;
+ 
+    }
+
   std::cout << " PASSED !" << std::endl;
   }   // end of SetFrequency() / GetFrequency() test
 
