@@ -481,8 +481,8 @@ int main(int argc, char* argv[]){
               //std::cout<<fafilter->GetOutput()->GetPixel(roitractIt.GetIndex())<<std::endl;
               accumFA+=fafilter->GetOutput()->GetPixel(currtract->EvaluateToIndex(t));
             }
-            fafile<<accumFA/((double)stepcount)<<std::endl;
-            lengthfile<<tractcontainer->GetElement(i)->EndOfInput();
+            fafile<<accumFA/((double)stepcount)<<std::endl << std::flush;
+            lengthfile<<tractcontainer->GetElement(i)->EndOfInput()<<std::endl << std::flush;
             if(fafile.fail() || lengthfile.fail() ){
               std::cerr<<"Error writing to text files\n";
               return EXIT_FAILURE;
