@@ -29,6 +29,7 @@ void RegisterTests()
 {
   vnl_sample_reseed(8775070);
   REGISTER_TEST(itkStatisticsPrintTest);
+  REGISTER_TEST(itkStatisticsTypesTest);
   REGISTER_TEST(itkHistogramTest);
   REGISTER_TEST(itkHistogramToTextureFeaturesFilterTest);
   REGISTER_TEST(itkImageToListSampleFilterTest);

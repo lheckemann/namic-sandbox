@@ -15,6 +15,7 @@ SET(STATISTICS_HEADER_TESTS ${CXX_TEST_PATH}/itkStatisticsHeaderTest)
 
 ADD_TEST(itkStatisticsHeaderTest ${STATISTICS_HEADER_TESTS})
 ADD_TEST(itkStatisticsPrintTest ${STATISTICS_TESTS} itkStatisticsPrintTest)
+ADD_TEST(itkStatisticsTypesTest ${STATISTICS_TESTS} itkStatisticsTypesTest)
 
 ADD_TEST(itkCovarianceFilterTest ${STATISTICS_TESTS} itkCovarianceFilterTest)
 ADD_TEST(itkCovarianceFilterTest2 ${STATISTICS_TESTS} itkCovarianceFilterTest2)
@@ -89,6 +90,7 @@ SET(Statistics_SRCS
   itkScalarImageToCooccurrenceMatrixFilterTest.cxx
   itkScalarImageToCooccurrenceMatrixFilterTest2.cxx
   itkStatisticsPrintTest.cxx
+  itkStatisticsTypesTest.cxx
   itkStatisticsAlgorithmTest.cxx
   itkSampleTest.cxx
   itkSampleTest2.cxx
