@@ -10,22 +10,24 @@
 \contentsline {subsubsection}{Bayesian Methods}{24}
 \contentsline {chapter}{\numberline {3}Stochastic Tractography}{27}
 \contentsline {chapter}{\numberline {4}Implementation}{31}
-\contentsline {section}{\numberline {4.1}3D Slicer Module}{35}
-\contentsline {section}{\numberline {4.2}3D Slicer Interface}{35}
-\contentsline {chapter}{\numberline {5}Example Analysis}{37}
-\contentsline {section}{\numberline {5.1}Single ROI}{38}
-\contentsline {section}{\numberline {5.2}Two ROIs}{41}
-\contentsline {section}{\numberline {5.3}Comparison with streamlining tractography}{42}
-\contentsline {chapter}{\numberline {6}Analysis of Frontal Lobe Fibers}{47}
-\contentsline {section}{\numberline {6.1}Schizophrenia}{47}
-\contentsline {section}{\numberline {6.2}Method}{49}
-\contentsline {section}{\numberline {6.3}Results}{49}
-\contentsline {section}{\numberline {6.4}Discussion}{49}
-\contentsline {chapter}{\numberline {7}Conclusion and Further Work}{51}
-\contentsline {chapter}{\numberline {A}Mathematical Derivation}{53}
-\contentsline {section}{\numberline {A.1}Linearized Diffusion Tensor Model}{53}
-\contentsline {section}{\numberline {A.2}Constrained Diffusion Tensor Model}{55}
-\contentsline {section}{\numberline {A.3}Fiber Orientation Likelihood Function}{56}
-\contentsline {section}{\numberline {A.4}Connectivity Probability Function}{57}
-\contentsline {section}{\numberline {A.5}Stochastic Fiber Tract Generation}{58}
-\contentsline {chapter}{\numberline {B}Command Line Module Interface}{61}
+\contentsline {section}{\numberline {4.1}Architecture}{31}
+\contentsline {section}{\numberline {4.2}ITK Stochastic Tractography Filter}{36}
+\contentsline {section}{\numberline {4.3}Command Line Module Interface}{38}
+\contentsline {section}{\numberline {4.4}3D Slicer Interface}{38}
+\contentsline {chapter}{\numberline {5}Example Analysis}{41}
+\contentsline {section}{\numberline {5.1}Single ROI}{42}
+\contentsline {section}{\numberline {5.2}Two ROIs}{45}
+\contentsline {section}{\numberline {5.3}Comparison with streamlining tractography}{46}
+\contentsline {chapter}{\numberline {6}Analysis of Frontal Lobe Fibers}{51}
+\contentsline {section}{\numberline {6.1}Schizophrenia}{51}
+\contentsline {section}{\numberline {6.2}Method}{53}
+\contentsline {section}{\numberline {6.3}Results}{53}
+\contentsline {section}{\numberline {6.4}Discussion}{53}
+\contentsline {chapter}{\numberline {7}Conclusion and Further Work}{55}
+\contentsline {chapter}{\numberline {A}Mathematical Derivation}{57}
+\contentsline {section}{\numberline {A.1}Linearized Diffusion Tensor Model}{57}
+\contentsline {section}{\numberline {A.2}Constrained Diffusion Tensor Model}{59}
+\contentsline {section}{\numberline {A.3}Fiber Orientation Likelihood Function}{60}
+\contentsline {section}{\numberline {A.4}Connectivity Probability Function}{61}
+\contentsline {section}{\numberline {A.5}Stochastic Fiber Tract Generation}{62}
+\contentsline {chapter}{\numberline {B}Command Line Module Interface}{65}
