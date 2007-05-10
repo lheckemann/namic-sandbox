@@ -57,11 +57,18 @@ public:
   /** InstanceIdenfitifer type alias */
   typedef MeasurementVectorTraits::InstanceIdentifier         InstanceIdentifier;
 
-  /** Frequency type alias */
+  /** Absoluate Frequency type alias */
   typedef MeasurementVectorTraits::AbsoluteFrequencyType      AbsoluteFrequencyType;
   
-  /** Total frequency type*/
+  /** Absolute Total frequency type*/
   typedef MeasurementVectorTraits::TotalAbsoluteFrequencyType TotalAbsoluteFrequencyType;
+
+  /** Relative Frequency type alias */
+  typedef MeasurementVectorTraits::RelativeFrequencyType      RelativeFrequencyType;
+  
+  /** Relative Total frequency type*/
+  typedef MeasurementVectorTraits::TotalRelativeFrequencyType TotalRelativeFrequencyType;
+
 
   /** Internal storage class typedefs */
   typedef ValarrayImageContainer< InstanceIdentifier, AbsoluteFrequencyType > 

@@ -124,6 +124,16 @@ public:
   typedef typename HistogramType::MeasurementVectorType   MeasurementVectorType;
   typedef typename HistogramType::IndexType               IndexType;
   typedef typename HistogramType::AbsoluteFrequencyType   AbsoluteFrequencyType;
+  typedef typename HistogramType::RelativeFrequencyType   RelativeFrequencyType;
+
+  typedef typename HistogramType::TotalAbsoluteFrequencyType   
+                                                     TotalAbsoluteFrequencyType;
+
+  typedef typename HistogramType::TotalRelativeFrequencyType   
+                                                     TotalRelativeFrequencyType;
+
+  /** Container to hold relative frequencies of the histogram */
+  typedef std::vector< RelativeFrequencyType >          RelativeFrequencyContainerType;
 
   /** Method to Set/Get the input Histogram */
   void SetInput ( const HistogramType * histogram );
@@ -184,9 +194,10 @@ private:
   HistogramToTextureFeaturesFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  void NormalizeHistogram(void);
   void ComputeMeansAndVariances( double &pixelMean, double &marginalMean, 
     double &marginalDevSquared, double &pixelVariance );
+
+  RelativeFrequencyContainerType             m_RelativeFrequencyContainer;
 };
     
     
