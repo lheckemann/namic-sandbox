@@ -52,43 +52,43 @@ int itkHistogramToTextureFeaturesFilterTest(int, char* [] )
   
   index[0] = 0 ;
   index[1] = 0 ;
-  frequency = 2; 
+  frequency = 10; 
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 
   index[0] = 3 ;
   index[1] = 3 ;
-  frequency = 1; 
+  frequency = 50; 
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 
   index[0] = 2 ;
   index[1] = 1 ;
-  frequency= 1;
+  frequency= 5;
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 
   index[0] = 1 ;
   index[1] = 2 ;
-  frequency = 1;
+  frequency = 5;
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 
   index[0] = 7 ;
   index[1] = 6 ;
-  frequency = 2;
+  frequency = 10;
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 
   index[0] = 6 ;
   index[1] = 7 ;
-  frequency = 2;
+  frequency = 10;
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 
   index[0] = 10 ;
   index[1] = 10 ;
-  frequency = 2;
+  frequency = 10;
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 

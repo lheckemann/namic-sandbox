@@ -120,6 +120,10 @@ public:
   /** Frequency and TotalFrequency value type from superclass */
   typedef typename FrequencyContainerType::AbsoluteFrequencyType      AbsoluteFrequencyType;
   typedef typename FrequencyContainerType::TotalAbsoluteFrequencyType TotalAbsoluteFrequencyType;
+  typedef typename FrequencyContainerType::RelativeFrequencyType      RelativeFrequencyType;
+  typedef typename FrequencyContainerType::TotalRelativeFrequencyType TotalRelativeFrequencyType;
+  
+
 
   /** Index typedef support. An index is used to access pixel values. */
   typedef itk::Index< VMeasurementVectorSize >  IndexType;

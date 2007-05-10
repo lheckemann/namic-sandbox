@@ -50,11 +50,17 @@ public:
   /** instance idenfitifer alias */
   typedef MeasurementVectorTraits::InstanceIdentifier InstanceIdentifier;
 
-  /** frequency type alias */
+  /** Absolute frequency type alias */
   typedef MeasurementVectorTraits::AbsoluteFrequencyType  AbsoluteFrequencyType;
   
-  /** Total frequency type*/
+  /** Absolute Total frequency type*/
   typedef MeasurementVectorTraits::TotalAbsoluteFrequencyType  TotalAbsoluteFrequencyType;
+
+  /** Relative frequency type alias */
+  typedef MeasurementVectorTraits::RelativeFrequencyType       RelativeFrequencyType;
+  
+  /** Relative Relative frequency type*/
+  typedef MeasurementVectorTraits::TotalRelativeFrequencyType  TotalRelativeFrequencyType;
 
   /** Histogram typedef support */
   typedef std::map< InstanceIdentifier, AbsoluteFrequencyType > FrequencyContainerType;  
