@@ -32,6 +32,43 @@
 #include <vector>
 
 
+/* THIS DECLARATION OF NUMERICTRAITS IS HERE TEMPORARILY 
+ * 
+ * It should be moved to the Insight/Code/Common/itkNumericTraits.h file
+ * when the new framework is integrated into ITK
+ *
+ * */
+namespace itk
+{
+
+/** \class NumericTraits<unsigned long>
+ * \brief Define traits for type unsigned long.
+ * \ingroup DataRepresentation 
+ */
+template <>
+class NumericTraits< std::vector<int>::size_type > : public vcl_numeric_limits< std::vector<int>::size_type > {
+public:
+  typedef std::vector<int>::size_type self; 
+  typedef self ValueType;
+  typedef self PrintType;
+  typedef self AbsType;
+  typedef self AccumulateType;
+  typedef long double RealType;
+  typedef RealType ScalarRealType;
+  typedef long double FloatType;
+  static const self ITKCommon_EXPORT Zero;
+  static const self ITKCommon_EXPORT One;
+
+  static self NonpositiveMin() { return min(); }
+  static bool IsPositive(self val) { return val != Zero; }
+  static bool IsNonpositive(self val) { return val == Zero; }
+  static bool IsNegative(self) { return false; }
+  static bool IsNonnegative(self) {return true; }
+  static self ZeroValue() { return Zero; }
+};
+}
+
+
 namespace itk
 {
 namespace Statistics
