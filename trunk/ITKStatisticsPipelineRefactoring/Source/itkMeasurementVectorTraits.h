@@ -32,12 +32,14 @@
 #include <vector>
 
 
-/* THIS DECLARATION OF NUMERICTRAITS IS HERE TEMPORARILY 
- * 
- * It should be moved to the Insight/Code/Common/itkNumericTraits.h file
- * when the new framework is integrated into ITK
- *
- * */
+/** THIS DECLARATION OF NUMERICTRAITS IS HERE TEMPORARILY 
+* 
+* It should be moved to the Insight/Code/Common/itkNumericTraits.h file
+* when the new framework is integrated into ITK
+*
+**/
+#ifdef _WIN64
+
 namespace itk
 {
 
@@ -48,25 +50,27 @@ namespace itk
 template <>
 class NumericTraits< std::vector<int>::size_type > : public vcl_numeric_limits< std::vector<int>::size_type > {
 public:
-  typedef std::vector<int>::size_type self; 
-  typedef self ValueType;
-  typedef self PrintType;
-  typedef self AbsType;
-  typedef self AccumulateType;
-  typedef long double RealType;
-  typedef RealType ScalarRealType;
-  typedef long double FloatType;
-  static const self ITKCommon_EXPORT Zero;
-  static const self ITKCommon_EXPORT One;
+  typedef std::vector<int>::size_type SelfType; 
+  typedef SelfType                    ValueType;
+  typedef SelfType                    PrintType;
+  typedef SelfType                    AbsType;
+  typedef SelfType                    AccumulateType;
+  typedef long double                 RealType;
+  typedef RealType                    ScalarRealType;
+  typedef long double                 FloatType;
+  static const SelfType ITKCommon_EXPORT Zero;
+  static const SelfType ITKCommon_EXPORT One;
 
-  static self NonpositiveMin() { return min(); }
-  static bool IsPositive(self val) { return val != Zero; }
-  static bool IsNonpositive(self val) { return val == Zero; }
-  static bool IsNegative(self) { return false; }
-  static bool IsNonnegative(self) {return true; }
-  static self ZeroValue() { return Zero; }
+  static SelfType NonpositiveMin() { return min(); }
+  static bool IsPositive(SelfType val) { return val != Zero; }
+  static bool IsNonpositive(SelfType val) { return val == Zero; }
+  static bool IsNegative(SelfType) { return false; }
+  static bool IsNonnegative(SelfType) {return true; }
+  static SelfType ZeroValue() { return Zero; }
 };
 }
+
+#endif
 
 
 namespace itk
