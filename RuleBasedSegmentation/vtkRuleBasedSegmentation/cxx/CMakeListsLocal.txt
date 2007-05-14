@@ -11,7 +11,11 @@ vtkITKBayesianClassificationImageFilter.cxx
 vtkITKImageToImageFilterULUL.h
 )
 
-INCLUDE_DIRECTORIES(${VTKITK_SOURCE_DIR}/cxx)
+#INCLUDE_DIRECTORIES(${VTKITK_SOURCE_DIR}/cxx)
+# !!!
+# change this line to match your slicer source directory
+# !!!
+INCLUDE_DIRECTORIES(/usr/local/dev/src/slicer2/Modules/vtkITK/cxx)
 INCLUDE_DIRECTORIES(${VTKRULEBASEDSEGMENTATION_SOURCE_DIR})
 INCLUDE_DIRECTORIES(${VTKRULEBASEDSEGMENTATION_BINARY_DIR})
 MESSAGE( "${VTKRULEBASEDSEGMENTATION_SOURCE_DIR}/../vtkITK/cxx" )
@@ -39,7 +43,31 @@ ITKBasicFilters
 ${VTKITK_BUILD_LIB}
 )
 
-SET_SOURCE_FILES_PROPERTIES (
-vtkITKImageToImageFilterULUL.h
-ABSTRACT
+#SET_SOURCE_FILES_PROPERTIES (
+#vtkITKImageToImageFilterULUL.h
+#ABSTRACT
+#)
+
+# Executable for testing itk class wrapper
+ADD_EXECUTABLE(itkBayesianClassificationImageFilterTest
+  itkBayesianClassificationImageFilterTest.cxx
+  )
+TARGET_LINK_LIBRARIES(itkBayesianClassificationImageFilterTest 
+  ITKStatistics 
+  ITKIO 
+  ITKCommon
+  )
+
+# test for vtk wrapper of itkBayesianClassificationImageFilter
+ADD_EXECUTABLE(vtkITKBayesianClassificationImageFilterTest 
+  vtkITKBayesianClassificationImageFilterTest.cxx
+  )
+TARGET_LINK_LIBRARIES(vtkITKBayesianClassificationImageFilterTest 
+  vtkImaging 
+  vtkIO 
+  vtkCommon 
+  ITKStatistics 
+  ITKBasicFilters 
+  ITKIO 
+  ITKCommon
 )
