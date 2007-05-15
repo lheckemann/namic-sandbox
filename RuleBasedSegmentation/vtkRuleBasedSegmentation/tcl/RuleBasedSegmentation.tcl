@@ -719,30 +719,25 @@ proc RuleBasedSegmentationApplyBayesian {} {
 
     global RuleBasedSegmentation Volume
 
-
     set RuleBasedSegmentation(filter) vtkITKBayesianClassificationImageFilter  
     set filter $RuleBasedSegmentation(filter)
 
-    set RuleBasedSegmentation($filter,params) SetConductanceParameter 
-    set param SetConductanceParameter 
-    set RuleBasedSegmentation($filter,$param) 5 
-    set RuleBasedSegmentation($filter,$param,type) "scalar"
-
-    set RuleBasedSegmentation($filter,$param,text) "Conductance"
-    set RuleBasedSegmentation($filter,$param,maxmin) "1 10"
-    set RuleBasedSegmentation($filter,$param,res) 1
-    set RuleBasedSegmentation($filter,$param,widget) "scale"
-
-
+#     set RuleBasedSegmentation($filter,params) SetNumberOfClasses
+#     set param SetNumberOfClasses
+#     set RuleBasedSegmentation($filter,$param) 3
+#     set RuleBasedSegmentation($filter,$param,type) "scalar"
+#     set RuleBasedSegmentation($filter,$param,text) "Number of Classes"
+#     set RuleBasedSegmentation($filter,$param,maxmin) "1 10"
+#     set RuleBasedSegmentation($filter,$param,res) 1
+#     set RuleBasedSegmentation($filter,$param,widget) "scale"
 
     # first input
     set v1 $RuleBasedSegmentation(DLPFCSubVolumeID)
     # later on, we will want a second input
-    #set v0 $RuleBasedSegmentation(LabelVolumeIn)
+    set v0 $RuleBasedSegmentation(DLPFCLabelVolumeIn)
 
     #output
     set v2 -5
-
 
     set filter $RuleBasedSegmentation(filter)
 
@@ -772,26 +767,28 @@ proc RuleBasedSegmentationApplyBayesian {} {
     #Create Object
 
     catch "_filter Delete"
-    vtkITK$filter _filter
+    $filter _filter
 
-    foreach param $RuleBasedSegmentation($filter,params) {
-        switch -exact -- $RuleBasedSegmentation($filter,$param,type) {
-            "scalar" {
-                _filter $param $RuleBasedSegmentation($filter,$param)
-            }
-            "darray" {
-                catch "vals Delete"
-                vtkDoubleArray vals
-                foreach val $RuleBasedSegmentation($filter,$param) {
-                    vals InsertNextValue $val
-                }
-                _filter $param vals
-                vals Delete
-            }
-        }
-    }
-    _filter SetInput [_cast GetOutput]
-
+#     foreach param $RuleBasedSegmentation($filter,params) {
+#         switch -exact -- $RuleBasedSegmentation($filter,$param,type) {
+#             "scalar" {
+#                 _filter $param $RuleBasedSegmentation($filter,$param)
+#             }
+#             "darray" {
+#                 catch "vals Delete"
+#                 vtkDoubleArray vals
+#                 foreach val $RuleBasedSegmentation($filter,$param) {
+#                     vals InsertNextValue $val
+#                 }
+#                 _filter $param vals
+#                 vals Delete
+#             }
+#         }
+#     }
+    _filter SetInput [Volume($v1,vol) GetOutput]
+    _filter SetMaskImage [Volume($v0,vol) GetOutput]
+    _filter SetNumberOfClasses 3
+    _filter SetMaskValue 2
 
     RuleBasedSegmentationITKFiltersBeforeUpdate
 
