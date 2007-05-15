@@ -15,7 +15,10 @@ vtkITKImageToImageFilterULUL.h
 # !!!
 # change this line to match your slicer source directory
 # !!!
-INCLUDE_DIRECTORIES(/usr/local/dev/src/slicer2/Modules/vtkITK/cxx)
+INCLUDE_DIRECTORIES(
+   ${VTKITK_SOURCE_DIR}/cxx
+   ${VTKITK_BUILD_DIR}
+)
 INCLUDE_DIRECTORIES(${VTKRULEBASEDSEGMENTATION_SOURCE_DIR})
 INCLUDE_DIRECTORIES(${VTKRULEBASEDSEGMENTATION_BINARY_DIR})
 MESSAGE( "${VTKRULEBASEDSEGMENTATION_SOURCE_DIR}/../vtkITK/cxx" )
@@ -24,6 +27,8 @@ ADD_LIBRARY ( ${LOCAL_LIBRARY_BASENAME} ${LOCAL_MODULE_SRCS} )
 
 LINK_DIRECTORIES(
 ${VTKITK_BIN_DIR}
+${ITK_DIR}
+${VTK_DIR}
 )
 
 LINK_LIBRARIES (${VTKITK_BUILD_LIB} ${VTKITK_BUILD_TCL_LIB})
@@ -43,31 +48,38 @@ ITKBasicFilters
 ${VTKITK_BUILD_LIB}
 )
 
+
+#
+## note: tests are commented out for now!
+#
+
 #SET_SOURCE_FILES_PROPERTIES (
 #vtkITKImageToImageFilterULUL.h
 #ABSTRACT
 #)
 
 # Executable for testing itk class wrapper
-ADD_EXECUTABLE(itkBayesianClassificationImageFilterTest
-  itkBayesianClassificationImageFilterTest.cxx
-  )
-TARGET_LINK_LIBRARIES(itkBayesianClassificationImageFilterTest 
-  ITKStatistics 
-  ITKIO 
-  ITKCommon
-  )
+###ADD_EXECUTABLE(itkBayesianClassificationImageFilterTest
+  ###itkBayesianClassificationImageFilterTest.cxx
+  ###)
+###TARGET_LINK_LIBRARIES(itkBayesianClassificationImageFilterTest 
+  ###ITKStatistics 
+  ###ITKIO 
+  ###ITKCommon
+  ###)
 
-# test for vtk wrapper of itkBayesianClassificationImageFilter
-ADD_EXECUTABLE(vtkITKBayesianClassificationImageFilterTest 
-  vtkITKBayesianClassificationImageFilterTest.cxx
-  )
-TARGET_LINK_LIBRARIES(vtkITKBayesianClassificationImageFilterTest 
-  vtkImaging 
-  vtkIO 
-  vtkCommon 
-  ITKStatistics 
-  ITKBasicFilters 
-  ITKIO 
-  ITKCommon
-)
+#  # test for vtk wrapper of itkBayesianClassificationImageFilter
+#  ADD_EXECUTABLE(vtkITKBayesianClassificationImageFilterTest 
+  #  vtkITKBayesianClassificationImageFilterTest.cxx
+  #  )
+#  TARGET_LINK_LIBRARIES(vtkITKBayesianClassificationImageFilterTest 
+  #  ${VTKITK_BUILD_LIB}
+  #  vtkImaging 
+  #  vtkIO 
+  #  vtkCommon 
+  #  ITKAlgorithms
+  #  ITKStatistics 
+  #  ITKBasicFilters 
+  #  ITKIO 
+  #  ITKCommon
+#  )
