@@ -1,0 +1,10 @@
+FILE(REMOVE
+"vtkITKBayesianClassificationImageFilterTcl.cxx"
+"vtkITKImageToImageFilterULULTcl.cxx"
+"../bin/libvtkRuleBasedSegmentationTCL.a"
+"../bin/libvtkRuleBasedSegmentationTCL.so"
+"../bin/vtkRuleBasedSegmentationTCL"
+"CMakeFiles/vtkRuleBasedSegmentationTCL.dir/vtkRuleBasedSegmentationTCLInit.o"
+"CMakeFiles/vtkRuleBasedSegmentationTCL.dir/vtkITKBayesianClassificationImageFilterTcl.o"
+"CMakeFiles/vtkRuleBasedSegmentationTCL.dir/vtkITKImageToImageFilterULULTcl.o"
+)
