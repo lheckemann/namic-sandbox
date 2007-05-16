@@ -22,7 +22,7 @@
 
 #include "itkBayesianClassificationImageFilter.h"
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
-//#include "itkImageRegionConstIterator.h"
+#include "itkMaskImageFilter.h"
 
 namespace itk
 {
@@ -99,51 +99,51 @@ BayesianClassificationImageFilter< TInputImage, TLabelImage, TMaskImage >
     }
 
   // TODO Minipipeline could use a progress accumulator
-  m_Initializer->SetInput( input );
-  m_Initializer->SetNumberOfClasses( this->GetNumberOfClasses() );
-  if (maskImage) // mask specified
+  if( maskImage ) // mask specified
     {
-//     // DEBUGGING: Count number of ON pixels
-//     std::cerr << "Setting the Mask in itkBayesianClassificationImageFilter..." << std::endl;
-//     typedef itk::ImageRegionConstIterator< MaskImageType > MaskIteratorType;
-//     MaskIteratorType maskIt( maskImage, maskImage->GetRequestedRegion() );
-//     int count = 0;
-//     for( maskIt.GoToBegin(); !maskIt.IsAtEnd(); ++maskIt )
-//       {
-//       if( maskIt.Get() == this->m_MaskValue )
-//         {
-//         count = count + 1;
-//         }
-//       }
-//     std::cerr << "The Mask Value is:  " << (int)this->m_MaskValue << std::endl;
-//     std::cerr << "The Number of Masked Pixels are:  " << count << std::endl;
-//     // End DEBUGGING
-
     m_Initializer->SetMaskImage( maskImage );
     m_Initializer->SetMaskValue( this->m_MaskValue );
     }
+  m_Initializer->SetInput( input );
+  m_Initializer->SetNumberOfClasses( this->GetNumberOfClasses() );
   m_Initializer->Update();
   
   m_Classifier->SetInput( m_Initializer->GetOutput() );
   m_Classifier->SetNumberOfSmoothingIterations( 
-        this->GetNumberOfSmoothingIterations() );
+    this->GetNumberOfSmoothingIterations() );
 
   // Assume that the smoothing filter is Anisotropic diffusion..
   // make this an option to switch between curvature flow - 
   // anisotropic diffusion etc....
   typedef typename ClassifierFilterType::ExtractedComponentImageType 
-                                         ExtractedComponentImageType; 
+    ExtractedComponentImageType; 
   typedef itk::GradientAnisotropicDiffusionImageFilter<
-    ExtractedComponentImageType, ExtractedComponentImageType >  SmoothingFilterType;
+  ExtractedComponentImageType, ExtractedComponentImageType >  SmoothingFilterType;
   typename SmoothingFilterType::Pointer smoother = SmoothingFilterType::New();
   smoother->SetNumberOfIterations( 1 );
   smoother->SetTimeStep( 0.0625 );
   smoother->SetConductanceParameter( 3 );  
   m_Classifier->SetSmoothingFilter( smoother );
 
-  m_Classifier->GraftOutput( this->GetOutput() );
-  m_Classifier->Update();
-  this->GraftOutput( m_Classifier->GetOutput() );
+  if( maskImage )
+    {
+    typedef itk::MaskImageFilter< OutputImageType, MaskImageType, OutputImageType >
+      MaskFilterType;
+    typename MaskFilterType::Pointer maskFilter = MaskFilterType::New();
+    maskFilter->SetInput1( m_Classifier->GetOutput() );
+    maskFilter->SetInput2( maskImage );
+    maskFilter->SetOutsideValue( 0 );
+    maskFilter->GraftOutput( this->GetOutput() );
+    maskFilter->Update();
+    this->GraftOutput( maskFilter->GetOutput() );
+    }
+  else
+    {
+    m_Classifier->GraftOutput( this->GetOutput() );
+    m_Classifier->Update();
+    this->GraftOutput( m_Classifier->GetOutput() );
+    }
+
 }
 
 /**

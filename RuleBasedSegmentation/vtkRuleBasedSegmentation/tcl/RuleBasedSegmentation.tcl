@@ -759,12 +759,12 @@ proc RuleBasedSegmentationApplyBayesian {} {
         Volume($v2,node) Copy Volume($v1,node)
     }
 
-    #Caster
-    vtkImageCast _cast
-    _cast SetOutputScalarTypeToFloat
-    _cast SetInput [Volume($v1,vol) GetOutput]
-    _cast Update
-    #Create Object
+#     #Caster
+#     vtkImageCast _cast
+#     _cast SetOutputScalarTypeToFloat
+#     _cast SetInput [Volume($v1,vol) GetOutput]
+#     _cast Update
+#     #Create Object
 
     catch "_filter Delete"
     $filter _filter
@@ -785,6 +785,7 @@ proc RuleBasedSegmentationApplyBayesian {} {
 #             }
 #         }
 #     }
+
     _filter SetInput [Volume($v1,vol) GetOutput]
     _filter SetMaskImage [Volume($v0,vol) GetOutput]
     _filter SetNumberOfClasses 3
@@ -804,7 +805,7 @@ proc RuleBasedSegmentationApplyBayesian {} {
 
     #Disconnect pipeline
 
-    _cast Delete
+#    _cast Delete
     _filter SetOutput ""
     _filter Delete
 

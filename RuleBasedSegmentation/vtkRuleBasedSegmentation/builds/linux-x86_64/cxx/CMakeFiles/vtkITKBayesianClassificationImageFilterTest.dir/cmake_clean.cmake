@@ -1,0 +1,6 @@
+FILE(REMOVE
+"vtkITKBayesianClassificationImageFilterTcl.cxx"
+"vtkITKImageToImageFilterULULTcl.cxx"
+"../bin/vtkITKBayesianClassificationImageFilterTest"
+"CMakeFiles/vtkITKBayesianClassificationImageFilterTest.dir/vtkITKBayesianClassificationImageFilterTest.o"
+)
