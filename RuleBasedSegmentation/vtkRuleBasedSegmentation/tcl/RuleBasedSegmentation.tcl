@@ -567,7 +567,9 @@ proc RuleBasedSegmentationApply {} {
     set z2 [expr round($w1 + 0.6*(abs($w2-$w1)))]
     set z1 [expr round($w1 + 0.2*(abs($w2-$w1)))]
 
-    set y1 [expr round(($y2 + $u1)/2)]
+    #set y1 [expr round(($y2 + $u1)/2)]
+    set y1 [expr round([lindex $RuleBasedSegmentation(DLPFC,Ext3D,Ijk) 2])]
+
 
     vtkExtractVOI op
     op SetInput [Volume($volID,vol) GetOutput]
@@ -1006,7 +1008,7 @@ proc RuleBasedSegmentationGetInitParams {tab} {
     set RuleBasedSegmentation(InExtent) [[Volume($volID,vol) GetOutput] GetExtent] 
     
     set RuleBasedSegmentation(OutputName) "[Volume($volID,node) GetName]_roi"
-    set RuleBasedSegmentation(OutputName2) "[Volume($RuleBasedSegmentation(DLPFCVolumeIn),node) GetName]labelmap_roi"
+    set RuleBasedSegmentation(OutputName2) "[Volume($RuleBasedSegmentation(DLPFCVolumeIn),node) GetName]_output"
     
     set Ext $RuleBasedSegmentation(InExtent)
     
