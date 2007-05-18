@@ -40,7 +40,7 @@
 **/
 #ifdef _WIN64
 
-namespace itk {
+ namespace itk { 
 
 /** \class NumericTraits<unsigned long>
  * \brief Define traits for type unsigned long.
