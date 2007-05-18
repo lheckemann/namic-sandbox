@@ -40,8 +40,7 @@
 **/
 #ifdef _WIN64
 
-namespace itk
-{
+namespace itk {
 
 /** \class NumericTraits<unsigned long>
  * \brief Define traits for type unsigned long.
@@ -58,6 +57,7 @@ public:
   typedef long double                 RealType;
   typedef RealType                    ScalarRealType;
   typedef long double                 FloatType;
+
   static const SelfType ITKCommon_EXPORT Zero;
   static const SelfType ITKCommon_EXPORT One;
 
@@ -87,13 +87,16 @@ namespace Statistics
 class MeasurementVectorTraits 
 {
 public:
-
-  
-  /** This typedef is intended to identify the largest integer type of this architecture */
+ 
+  /** In the old framework, the FrequencyType is set to float. The problem is for 
+      large histograms the total frequency can be more than 1e+7, than increasing 
+      the frequency by one does not change the total frequency (because of lack of 
+      precision). Using double type will also ultimately fall into the same problem.
+      Hence in the new statistics framework, InstanceIdentifier/FrequencyTypes are 
+      set to the the largest possible integer on the machine */  
   typedef std::vector<int>::size_type   InstanceIdentifier;
 
   /** Type defined for representing the frequency of measurement vectors */
-  typedef float                                                   FrequencyType; /* ERASEME */
   typedef InstanceIdentifier                                      AbsoluteFrequencyType;
   typedef NumericTraits< AbsoluteFrequencyType >::RealType        RelativeFrequencyType;
   typedef NumericTraits< AbsoluteFrequencyType >::AccumulateType  TotalAbsoluteFrequencyType;

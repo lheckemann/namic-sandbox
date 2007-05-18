@@ -46,6 +46,7 @@ CONFIGURE_FILE(
 
 SET(KWSTYLE_ARGUMENTS
   -xml ${PROJECT_BINARY_DIR}/Utilities/KWStyle/ITK.kws.xml -v -D ${PROJECT_BINARY_DIR}/Utilities/KWStyle/ITKFiles.txt  
+  -o ${PROJECT_SOURCE_DIR}/Utilities/KWStyle/ITKOverwrite.txt
   )
 
 IF(KWSTYLE_USE_VIM_FORMAT)
