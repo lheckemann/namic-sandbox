@@ -7,33 +7,33 @@
 \addvspace {10\p@ }
 \contentsline {figure}{\numberline {4-1}{\ignorespaces A block diagram of the filter showing its shared likelihood cache and multithreaded architecture.}}{33}
 \contentsline {figure}{\numberline {4-2}{\ignorespaces A graph displaying the amount of time needed to sample a number of tracts. Each line represents the algorithms performance using different numbers of threads. This test was run on an 8 processor machine.}}{35}
-\contentsline {figure}{\numberline {4-3}{\ignorespaces This is a screen shot of the Stochastic Tractography GUI module with 3D Slicer.}}{38}
+\contentsline {figure}{\numberline {4-3}{\ignorespaces Stochastic Tractography GUI module within 3D Slicer.}}{41}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {5-1}{\ignorespaces The non-diffusion weighted b0 image with superimposed right internal capsule and frontal lobe ROI's.}}{42}
-\contentsline {figure}{\numberline {5-2}{\ignorespaces Connectivity maps generated using stochastic tractography overlaid on a fractional anisotropy image of the data. The seed region is the right internal capsule. Colors indicate the number of tracts originating from the seed region which pass through that voxel.}}{43}
-\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Without white matter map}}}{43}
-\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {With white matter map}}}{43}
-\contentsline {figure}{\numberline {5-3}{\ignorespaces Histogram showing distribution of tract-averaged fractional anisotropy for tracts which originate in the right internal capsule.}}{44}
-\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Without white matter map}}}{44}
-\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {with white matter map}}}{44}
-\contentsline {figure}{\numberline {5-4}{\ignorespaces Histogram showing distribution of fiber lengths for sampled frontal lobe tracts.}}{44}
-\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Without white matter map}}}{44}
-\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {With white matter map}}}{44}
-\contentsline {figure}{\numberline {5-5}{\ignorespaces Connectivity map overlaid on a fractional anisotropy image showing the probability that a voxel is connected to the internal capsule by a fiber which passes through a second ROI in the frontal lobe.}}{45}
+\contentsline {figure}{\numberline {5-1}{\ignorespaces The non-diffusion weighted b0 image with superimposed right internal capsule and frontal lobe ROI's.}}{44}
+\contentsline {figure}{\numberline {5-2}{\ignorespaces Connectivity maps generated using stochastic tractography overlaid on a fractional anisotropy image of the data. The seed region is the right internal capsule. Colors indicate the number of tracts originating from the seed region which pass through that voxel.}}{45}
 \contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Without white matter map}}}{45}
 \contentsline {subfigure}{\numberline {(b)}{\ignorespaces {With white matter map}}}{45}
-\contentsline {figure}{\numberline {5-6}{\ignorespaces A histogram of tract-averaged fractional anisotropy for fibers which originate in the right internal capsule and pass through an ROI in the frontal lobe.}}{46}
+\contentsline {figure}{\numberline {5-3}{\ignorespaces Histogram showing distribution of tract-averaged fractional anisotropy for tracts which originate in the right internal capsule.}}{46}
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Without white matter map}}}{46}
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {with white matter map}}}{46}
+\contentsline {figure}{\numberline {5-4}{\ignorespaces Histogram showing distribution of fiber lengths for sampled frontal lobe tracts.}}{46}
 \contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Without white matter map}}}{46}
 \contentsline {subfigure}{\numberline {(b)}{\ignorespaces {With white matter map}}}{46}
-\contentsline {figure}{\numberline {5-7}{\ignorespaces A histogram of lengths for sampled fibers which start in the right internal capsule and pass through an ROI in the frontal lobe. }}{47}
+\contentsline {figure}{\numberline {5-5}{\ignorespaces Connectivity map overlaid on a fractional anisotropy image showing the probability that a voxel is connected to the internal capsule by a fiber which passes through a second ROI in the frontal lobe.}}{47}
 \contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Without white matter map}}}{47}
 \contentsline {subfigure}{\numberline {(b)}{\ignorespaces {With white matter map}}}{47}
-\contentsline {figure}{\numberline {5-8}{\ignorespaces A comparison of streamlining and stochastic tractography results. Results courtesy of Gudrun Rosenberger.}}{48}
-\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Streamlining results}}}{48}
-\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Streamlining results with volume rendered connectivity map}}}{48}
+\contentsline {figure}{\numberline {5-6}{\ignorespaces A histogram of tract-averaged fractional anisotropy for fibers which originate in the right internal capsule and pass through an ROI in the frontal lobe.}}{48}
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Without white matter map}}}{48}
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {With white matter map}}}{48}
+\contentsline {figure}{\numberline {5-7}{\ignorespaces A histogram of lengths for sampled fibers which start in the right internal capsule and pass through an ROI in the frontal lobe. }}{49}
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Without white matter map}}}{49}
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {With white matter map}}}{49}
+\contentsline {figure}{\numberline {5-8}{\ignorespaces A comparison of streamlining and stochastic tractography results. Results courtesy of Gudrun Rosenberger.}}{50}
+\contentsline {subfigure}{\numberline {(a)}{\ignorespaces {Streamlining results}}}{50}
+\contentsline {subfigure}{\numberline {(b)}{\ignorespaces {Streamlining results with volume rendered connectivity map}}}{50}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {6-1}{\ignorespaces The Thalamus, the Internal Capsule and fibers. We wish to characterize the fibers which originate in the thalamus, pass through the internal capsule and end in the frontal cortex. This image is from a diagram in Gray's Anatomy}}{52}
-\contentsline {figure}{\numberline {6-2}{\ignorespaces A graph of tract-averaged FA means for each subject, for the left and right frontal lobe fibers under streamlining tractography and stochastic tractography. Error bars have a length of two standard deviations. The FA variance for the tract generated using the streamlining method was not available. Patients 1-5 are control, patients 6-10 are diagnosed with Schizophrenia. Streamlining results are from research by Gudrun Rosenberger}}{54}
+\contentsline {figure}{\numberline {6-1}{\ignorespaces The Thalamus, the Internal Capsule and fibers. We wish to characterize the fibers which originate in the thalamus, pass through the internal capsule and end in the frontal cortex. This image is from a diagram in Gray's Anatomy}}{54}
+\contentsline {figure}{\numberline {6-2}{\ignorespaces A graph of tract-averaged FA means for each subject, for the left and right frontal lobe fibers under streamlining tractography and stochastic tractography. Error bars have a length of two standard deviations. The FA variance for the tract generated using the streamlining method was not available. Patients 1-5 are control, patients 6-10 are diagnosed with Schizophrenia. Streamlining results are from research by Gudrun Rosenberger}}{56}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

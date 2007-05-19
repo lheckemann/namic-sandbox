@@ -65,12 +65,13 @@ The filter's required inputs and parameters must be set before it can be run.  T
     \hline
     \small{SetMaxLikelihoodCachSize} & Maximum Likelihood Cache Size(MB) A positive integer that sets the maximum size of the Likelihood Cache in megabytes.\\
     \hline
-    \small{SetSeedIndex} & Seed Voxel Index:  The discrete index of the seed voxel, in the (IJK) reference frame of the image to start tractography.
+    \small{SetSeedIndex} & Seed Voxel Index:  The discrete index of the seed voxel, in the (IJK) reference frame of the image to start tractography.\\
+    \hline
   \end{tabular}
   \caption{ITK Stochastic Tractography Filter Required Inputs and Parameters}
 \end{table}
 
-The code below is a continuation of the demonstration above and shows how to setup the filter's required inputs and paramters.  The inputs to these methods are provided by ITK's image readers.
+The code below is a continuation of the demonstration above and shows how to setup the filter's required inputs and parameters.  The inputs to these methods are provided by ITK's image readers.
 \begin{verbatim}
   ptfilterPtr->SetInput( dwireaderPtr->GetOutput() );
   ptfilterPtr->SetWhiteMatterProbabilityImageInput( wmpreader->GetOutput() );
@@ -88,7 +89,7 @@ The filter can then be run by calling the Update method.
   ptfilterPtr->Update();
 \end{verbatim}
 
-For the specified seed voxel, the filter outputs a connectivity map and a container holding all of the sampled tracts used to generate the connectivity map.  The container of sampled tracts can be further processed outside of the stochastic tractography filter to obtain various statistic on the sampled tracts.  Additional seed voxels can be included in the seed region by changing the SeedIndex and rerunning the filter.  The statistics for a multivoxel seed region can be analyzed by accumating statistics for all seed voxels within the seed region.  These outputs can be accessed by calling the GetOutput and GetOutputTractContainer after calling the Update method.  The code below continues the example above and demonstrates how to obtain the filter's outputs.
+For the specified seed voxel, the filter outputs a connectivity map and a container holding all of the sampled tracts used to generate the connectivity map.  The container of sampled tracts can be further processed outside of the stochastic tractography filter to obtain various statistic on the sampled tracts.  Additional seed voxels can be included in the seed region by changing the seed voxel index and rerunning the filter.  The statistics for a multi-voxel seed region can be analyzed by accumulating statistics for all seed voxels within the seed region.  These outputs can be accessed by calling the GetOutput and GetOutputTractContainer methods after calling the Update method.  The code below continues the example above and demonstrates how to obtain the filter's outputs.
 \begin{verbatim}
   PTFilterType::TractContainerType::Pointer tractcontainer = 
     ptfilterPtr->GetOutputTractContainer();
@@ -98,28 +99,50 @@ For the specified seed voxel, the filter outputs a connectivity map and a contai
 \section{Command Line Module Interface}
 The command line module interface provides an easy use method of performing common tasks which use the ITK stochastic tractography filter.  The command line module takes as input a DWI volume, a white matter probability map and a label map to produce a connectivity probability map and fractional anisotropy and length statistics for a selected seed region in the label map.  Currently the command line module is designed to work only with NRRD formatted volumes due to its support of the diffusion measurement frame, but future revisions of the software will extend support to other formats.
 
-The command line module is named \texttt{StochasticTractographyFilter}.  Calling the executable with the \texttt{--help} flag will list all available inputs and options as well as a short description of each item.  This section will demonstrate two typical usages of the command line module interface.
+The command line module is named \texttt{StochasticTractographyFilter}.  Calling the executable with the \texttt{--help} flag will list all available inputs and options as well as a short description of each item (Appendix B).  This section will demonstrate two typical usages of the command line module interface.
 
-\subsection{Single ROI Analysis}
 Given a DWI volume, an associated white matter probability map and a label map, the command line module can be used to generate an image that provides the probability of connectivity from an ROI in the label map in to all other voxels in the DWI.  The label map is an integer valued image that segments voxels into different classes or labels.
 
-Let case24 be the name of the subject we are interested in analyzing.  The directory \texttt{case24} contains all relevant files for that subject.  It will also the output files from the command line module.  A possible list of files in the \texttt{case24} directory may include:
+Let case24 be the name of the subject we are interested in analyzing.  The directory \texttt{case24} contains all relevant files for that subject.  It will also the output files from the command line module.  Before executing the command line module interface, a possible list of files in the \texttt{case24} directory may include:
 \begin{verbatim}
-  case24_DWI.nhdr (DWI nhdr header)
-  case24_DWI.raw (DWI nhdr data)
-  case24_whitematterPB.nhdr (White Matter Probability Map nhdr header)
-  case24_whitematterPB.raw (White Matter Probability Map raw data)
-  case24_labelmap.nhdr (Label Map nhdr data)
-  case24_labelmap.raw (Whit
+  case24_DWI.nhdr (DWI NRRD header)
+  case24_DWI.raw (DWI NRRD data)
+  case24_whitematterPB.nhdr (White Matter Probability Map NRRD header)
+  case24_whitematterPB.raw (White Matter Probability Map NRRD data)
+  case24_labelmap.nhdr (Label Map NRRD data)
+  case24_labelmap.raw (Label Map NRRD data)
+\end{verbatim}
+Assuming that the starting ROI is labeled $15$ inside the labelmap, the stochastic tractography filter can be run by executing the command below within the \texttt{case24} directory: 
+To run the command line module, execute the command:
+\begin{verbatim}
+  StochasticTractographyFilter -c 6500 -m 500 -t 200 -e 15 -l 15 -r -o case24_RUN0
+    case24_DWI.nhdr case24_whitematterPB.nhdr case24_labelmap.nhdr
+\end{verbatim}
+After the command completes, the \texttt{case24} directory will contain the following additional files:
+\begin{verbatim}
+  case24_RUN0_CMAP.nhdr (Connectivity Map NRRD header)
+  case24_RUN0_CMAP.raw (Connectivity Map NRRD data)
+  case24_RUN0_TENSOR.nhdr (Tensor image NRRD header)
+  case24_RUN0_TENSOR.raw (Tensor image NRRD data)
+  case24_RUN0_COND.nhdr (Conditioned Connectivity Map NRRD header)
+  case24_RUN0_COND.raw (Conditioned Connectivity Map NRRD data)
+  case24_RUN0_CONDFAValues.txt (Conditioned Tract-Averaged FA values)
+  case24_RUN0_CONDLENGTHValues.txt (Conditioned Tract Length values)
 \end{verbatim}
 
-\subsection{Two ROI Analysis}
+The conditioned connectivity map is identical to the normal connectivity map when the start label and end labels are the same.  However, if the label map contains ROI's designated by two labels, the conditioned connectivity map will be generated using only fibers which start in the start ROI and also pass through the second ROI.  Assuming the second ROI is labeled $2$ in the labelmap, the following command will isolate tracts which start in the start ROI and pass through the end ROI:
+\begin{verbatim}
+  StochasticTractographyFilter -c 6500 -m 500 -t 200 -e 2 -l 15 -r -o case24_RUN0
+    case24_DWI.nhdr case24_whitematterPB.nhdr case24_labelmap.nhdr
+\end{verbatim}
 
+Now the conditioned connectivity maps and statistics are generated using only tracts which fulfill the condition of passing through both ROI's.  This feature allows us to analyze the particular bundle of tracts which connect two regions.
+ 
 \section{3D Slicer Interface}
 \begin{figure} \label{fig:slicermodule}
   \center
 	\includegraphics[width=0.5\linewidth]{slicermodule}
-	\caption{This is a screen shot of the Stochastic Tractography GUI module with 3D Slicer.}
+	\caption{Stochastic Tractography GUI module within 3D Slicer.}
 \end{figure}
 %slicer3 module
 %include figure
