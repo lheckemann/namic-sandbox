@@ -24,6 +24,7 @@
 
 #include "itkHistogramToTextureFeaturesFilter.h"
 #include "itkScalarImageToCooccurrenceMatrixFilter.h"
+#include "itkDenseFrequencyContainer2.h"
 
 namespace itk {
 namespace Statistics {
@@ -192,7 +193,7 @@ private:
   typename CooccurrenceMatrixFilterType::Pointer m_GLCMGenerator;
 
   FeatureValueVectorPointer         m_FeatureMeans;
-  FeatureNameVectorPointer          m_FeatureStandardDeviations;
+  FeatureValueVectorPointer         m_FeatureStandardDeviations;
   FeatureNameVectorConstPointer     m_RequestedFeatures;
   OffsetVectorConstPointer          m_Offsets;
   bool                              m_FastCalculations;
