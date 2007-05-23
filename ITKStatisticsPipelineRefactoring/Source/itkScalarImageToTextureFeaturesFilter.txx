@@ -29,6 +29,14 @@ ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer >::
 ScalarImageToTextureFeaturesFilter()
 {
   this->SetNumberOfRequiredInputs(1);
+  this->SetNumberOfRequiredOutputs(1);
+
+  for (int i=0; i < 2; ++i)
+    {
+    typename FeatureValueVectorDataObjectType::Pointer output
+      = static_cast<FeatureValueVectorDataObjectType*>(this->MakeOutput().GetPointer());
+    this->ProcessObject::SetNthOutput(i, output.GetPointer());
+    }
 
   m_GLCMGenerator = CooccurrenceMatrixFilterType::New();
   m_FeatureMeans = FeatureValueVector::New();
@@ -69,10 +77,27 @@ ScalarImageToTextureFeaturesFilter()
 }
 
 template< class TImage, class THistogramFrequencyContainer >
+typename
+ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer > ::DataObjectPointer
+ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer >
+::MakeOutput( void )
+{
+  return static_cast<DataObject*>(FeatureValueVectorDataObjectType::New().GetPointer());
+}
+
+
+template< class TImage, class THistogramFrequencyContainer >
 void
 ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer >::
 GenerateData(void)
 {
+  const ImageType *input = this->GetInput();
+
+  if( input == NULL )
+    {
+    itkExceptionMacro("Input image has not been set yet");
+    }
+
   if (m_FastCalculations) 
     {
     this->FastCompute();
@@ -165,6 +190,15 @@ FullCompute(void)
     m_FeatureMeans->push_back(tempFeatureMeans[featureNum]);
     m_FeatureStandardDeviations->push_back(tempFeatureDevs[featureNum]);
     }
+
+  FeatureValueVectorDataObjectType* meanOutputObject=
+                   static_cast<FeatureValueVectorDataObjectType*>(this->ProcessObject::GetOutput(0));
+  meanOutputObject->Set( m_FeatureMeans );
+
+  FeatureValueVectorDataObjectType* standardDeviationOutputObject=
+                   static_cast<FeatureValueVectorDataObjectType*>(this->ProcessObject::GetOutput(1));
+  standardDeviationOutputObject->Set( m_FeatureStandardDeviations );
+
   delete [] tempFeatureMeans;
   delete [] tempFeatureDevs;
   for(int i=0; i < numOffsets; i++)
@@ -200,6 +234,15 @@ FastCompute(void)
     m_FeatureMeans->push_back(glcmCalc->GetFeature(fnameIt.Value()));
     m_FeatureStandardDeviations->push_back(0.0);
     }
+
+  FeatureValueVectorDataObjectType* meanOutputObject=
+                   static_cast<FeatureValueVectorDataObjectType*>(this->ProcessObject::GetOutput(0));
+  meanOutputObject->Set( m_FeatureMeans );
+
+  FeatureValueVectorDataObjectType* standardDeviationOutputObject=
+                   static_cast<FeatureValueVectorDataObjectType*>(this->ProcessObject::GetOutput(1));
+  standardDeviationOutputObject->Set( m_FeatureStandardDeviations );
+
 }
 
 
@@ -213,7 +256,6 @@ SetInput( const ImageType * image )
                                    const_cast< ImageType* >( image ) );
 
   m_GLCMGenerator->SetInput(image);
-  this->Modified();
 }
     
 template< class TImage, class THistogramFrequencyContainer >
@@ -246,7 +288,6 @@ SetMaskImage( const ImageType* image)
                                    const_cast< ImageType* >( image ) );
 
   m_GLCMGenerator->SetImageMask(image);
-  this->Modified();
 }
 
 template< class TImage, class THistogramFrequencyContainer >
@@ -262,6 +303,23 @@ ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer >
   return static_cast<const ImageType * >
     (this->ProcessObject::GetInput(0) );
 }  
+
+template< class TImage, class THistogramFrequencyContainer >
+const typename  
+ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer >::FeatureValueVectorDataObjectType*
+ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer >::GetFeatureMeansOutput() const
+{
+  return static_cast< const FeatureValueVectorDataObjectType*>(this->ProcessObject::GetOutput(0));
+}
+
+template< class TImage, class THistogramFrequencyContainer >
+const typename  
+ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer >::FeatureValueVectorDataObjectType*
+ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer >
+::GetFeatureStandardDeviationsOutput() const
+{
+  return static_cast< const FeatureValueVectorDataObjectType*>(this->ProcessObject::GetOutput(1));
+}
 
 template< class TImage, class THistogramFrequencyContainer >
 const TImage *

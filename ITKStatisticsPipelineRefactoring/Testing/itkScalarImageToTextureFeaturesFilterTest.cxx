@@ -75,28 +75,81 @@ int itkScalarImageToTextureFeaturesFilterTest(int, char* [] )
 
   
   //--------------------------------------------------------------------------
-  // Test the calculator
+  // Test the texFilter
   //--------------------------------------------------------------------------
+  bool passed = true;
   
   try {
   
   typedef itk::Statistics::ScalarImageToTextureFeaturesFilter< 
-    InputImageType> TextureCalcType;
+    InputImageType> TextureFilterType;
   
   // First test: just use the defaults.
-  TextureCalcType::Pointer texCalc = TextureCalcType::New();
-  texCalc->SetInput(image);
-  texCalc->Compute();
-  TextureCalcType::FeatureValueVectorPointer means, stds;
-  means = texCalc->GetFeatureMeans();
-  stds = texCalc->GetFeatureStandardDeviations();
+  TextureFilterType::Pointer texFilter = TextureFilterType::New();
+
+  //Invoke update before adding an input. An exception should be 
+  //thrown.
+  try
+    {
+    texFilter->Update();
+    passed = false;
+    std::cerr << "Failed to throw expected exception due to NULL input: " << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cout << "Expected exception caught: " << excp << std::endl;
+    }    
+
+  texFilter->ResetPipeline();
+
+  if ( texFilter->GetInput() != NULL )
+    {
+    std::cerr << "GetInput() should return NULL since the input is\
+                  not set yet " << std::endl;
+    passed = false;
+    }
+ 
+  if ( texFilter->GetMaskImage() != NULL )
+    {
+    std::cerr << "GetMaskImage() should return NULL since the mask image is\
+                  not set yet " << std::endl;
+    passed = false;
+    }
+
+  //Invoke update with a NULL input. An exception should be 
+  //thrown.
+  texFilter->SetInput( NULL );
+  try
+    {
+    texFilter->Update();
+    passed = false;
+    std::cerr << "Failed to throw expected exception due to NULL input: " << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cout << "Expected exception caught: " << excp << std::endl;
+    }    
+
+  texFilter->ResetPipeline();
+
+  if ( texFilter->GetInput() != NULL )
+    {
+    passed = false;
+    }
+  
+  texFilter->SetInput(image);
+  texFilter->Update();
+  TextureFilterType::FeatureValueVectorPointer means, stds;
+  means = texFilter->GetFeatureMeans();
+  stds = texFilter->GetFeatureStandardDeviations();
   
   double expectedMeans[6] = {0.505, 0.992738, 0.625, 0.75, 0.0959999, 0.2688};
   double expectedDeviations[6] = {0.00866027, 0.0125788, 0.216506351, 0.433012702, 
     0.166277, 0.465575};
   
-  bool passed = true;
-  TextureCalcType::FeatureValueVector::ConstIterator mIt, sIt;
+  TextureFilterType::FeatureValueVector::ConstIterator mIt, sIt;
   int counter;
   for (counter = 0, mIt = means->Begin(); mIt != means->End(); ++mIt, counter++)
     {
