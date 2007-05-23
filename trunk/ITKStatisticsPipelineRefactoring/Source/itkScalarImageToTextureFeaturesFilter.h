@@ -21,6 +21,7 @@
 #include "itkProcessObject.h"
 #include "itkVectorContainer.h"
 #include "itkMacro.h"
+#include "itkDataObjectDecorator.h"
 
 #include "itkHistogramToTextureFeaturesFilter.h"
 #include "itkScalarImageToCooccurrenceMatrixFilter.h"
@@ -140,17 +141,22 @@ public:
   typedef typename FeatureNameVector::ConstPointer    FeatureNameVectorConstPointer;
   typedef VectorContainer<unsigned char, double>      FeatureValueVector;
   typedef typename FeatureValueVector::Pointer        FeatureValueVectorPointer;
-     
-  /** Triggers the computation of the features */
-  void Compute( void );
-      
+
+  /** Smart Pointer type to a DataObject. */
+  typedef DataObject::Pointer                   DataObjectPointer;
+
+  /** Type of DataObjects used for scalar outputs */
+  typedef DataObjectDecorator<FeatureValueVector>
+                                    FeatureValueVectorDataObjectType;
+
+  const FeatureValueVectorDataObjectType * GetFeatureMeansOutput() const;
+  const FeatureValueVectorDataObjectType * GetFeatureStandardDeviationsOutput() const;
+
   /** Connects the input image for which the features are going to be computed */
   void SetInput( const ImageType * );
   const ImageType* GetInput() const;
 
-  /** Return the feature means and deviations.
-      \warning This output is only valid after the Compute() method has been invoked 
-      \sa Compute */
+  /** Return the feature means and deviations.  */
   itkGetObjectMacro(FeatureMeans, FeatureValueVector);
   itkGetObjectMacro(FeatureStandardDeviations, FeatureValueVector);
       
@@ -194,7 +200,10 @@ protected:
 
   /** This method causes the filter to generate its output. */
   virtual void GenerateData();
-      
+
+  /** Make a DataObject to be used for output output. */
+  virtual DataObjectPointer MakeOutput();
+     
 private:
   typename CooccurrenceMatrixFilterType::Pointer m_GLCMGenerator;
 
