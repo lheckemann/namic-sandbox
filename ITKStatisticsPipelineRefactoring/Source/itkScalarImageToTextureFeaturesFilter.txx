@@ -28,6 +28,8 @@ template< class TImage, class THistogramFrequencyContainer >
 ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer >::
 ScalarImageToTextureFeaturesFilter()
 {
+  this->SetNumberOfRequiredInputs(1);
+
   m_GLCMGenerator = CooccurrenceMatrixFilterType::New();
   m_FeatureMeans = FeatureValueVector::New();
   m_FeatureStandardDeviations = FeatureValueVector::New();
@@ -69,7 +71,7 @@ ScalarImageToTextureFeaturesFilter()
 template< class TImage, class THistogramFrequencyContainer >
 void
 ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer >::
-Compute(void)
+GenerateData(void)
 {
   if (m_FastCalculations) 
     {
@@ -204,10 +206,13 @@ FastCompute(void)
 template< class TImage, class THistogramFrequencyContainer >
 void
 ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer >::
-SetInput( const ImageType * inputImage )
+SetInput( const ImageType * image )
 {
-  itkDebugMacro("setting Input to " << inputImage);
-  m_GLCMGenerator->SetInput(inputImage);
+  // Process object is not const-correct so the const_cast is required here
+  this->ProcessObject::SetNthInput(0, 
+                                   const_cast< ImageType* >( image ) );
+
+  m_GLCMGenerator->SetInput(image);
   this->Modified();
 }
     
@@ -234,13 +239,46 @@ SetPixelValueMinMax( PixelType min, PixelType max )
 template< class TImage, class THistogramFrequencyContainer >
 void
 ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer >::
-SetImageMask( const ImageType* imageMask)
+SetMaskImage( const ImageType* image)
 {
-  itkDebugMacro("setting ImageMask to " << imageMask);
-  m_GLCMGenerator->SetImageMask(imageMask);
+  // Process object is not const-correct so the const_cast is required here
+  this->ProcessObject::SetNthInput(1, 
+                                   const_cast< ImageType* >( image ) );
+
+  m_GLCMGenerator->SetImageMask(image);
   this->Modified();
 }
-    
+
+template< class TImage, class THistogramFrequencyContainer >
+const TImage *
+ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer >
+::GetInput() const
+{
+  if (this->GetNumberOfInputs() < 1)
+    {
+    return 0;
+    }
+  
+  return static_cast<const ImageType * >
+    (this->ProcessObject::GetInput(0) );
+}  
+
+template< class TImage, class THistogramFrequencyContainer >
+const TImage *
+ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer >
+::GetMaskImage() const
+{
+  if (this->GetNumberOfInputs() < 2)
+    {
+    return 0;
+    }
+  
+  return static_cast<const ImageType * >
+    (this->ProcessObject::GetInput(1) );
+}
+
+
+   
 template< class TImage, class THistogramFrequencyContainer >
 void
 ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer >::

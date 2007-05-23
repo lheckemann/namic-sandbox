@@ -105,7 +105,7 @@ namespace Statistics {
     
 template< class TImageType,
           class THistogramFrequencyContainer = DenseFrequencyContainer2 >
-class ScalarImageToTextureFeaturesFilter : public Object
+class ScalarImageToTextureFeaturesFilter : public ProcessObject
 {
 public:
   /** Standard typedefs */
@@ -146,7 +146,8 @@ public:
       
   /** Connects the input image for which the features are going to be computed */
   void SetInput( const ImageType * );
-      
+  const ImageType* GetInput() const;
+
   /** Return the feature means and deviations.
       \warning This output is only valid after the Compute() method has been invoked 
       \sa Compute */
@@ -172,7 +173,8 @@ public:
       
   /** Connects the mask image for which the histogram is going to be computed.
       Optional; for default value see above. */
-  void SetImageMask(const ImageType * );
+  void SetMaskImage(const ImageType * );
+  const ImageType* GetMaskImage() const;
       
   /** Set the pixel value of the mask that should be considered "inside" the 
       object. Optional; for default value see above. */
@@ -186,8 +188,12 @@ protected:
   ScalarImageToTextureFeaturesFilter();
   virtual ~ScalarImageToTextureFeaturesFilter() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
+
   void FastCompute();
   void FullCompute();
+
+  /** This method causes the filter to generate its output. */
+  virtual void GenerateData();
       
 private:
   typename CooccurrenceMatrixFilterType::Pointer m_GLCMGenerator;
