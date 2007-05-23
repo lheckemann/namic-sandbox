@@ -44,6 +44,7 @@
 #include "itkJointDomainImageToListSampleAdaptor.h"
 #include "itkDenseFrequencyContainer.h"
 #include "itkSparseFrequencyContainer.h"
+#include "itkScalarImageToTextureFeaturesFilter.h"
 
 int main ( int , char*  )
 {

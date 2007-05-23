@@ -71,5 +71,6 @@ void RegisterTests()
   REGISTER_TEST(itkJointDomainImageToListSampleAdaptorTest); 
   REGISTER_TEST(itkDenseFrequencyContainer2Test); 
   REGISTER_TEST(itkSparseFrequencyContainer2Test); 
+  REGISTER_TEST(itkScalarImageToTextureFeaturesFilterTest); 
 }
 

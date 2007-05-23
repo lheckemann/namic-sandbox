@@ -63,6 +63,7 @@ ADD_TEST(itkJointDomainImageToListSampleAdaptorTest ${STATISTICS_TESTS} itkJoint
 ADD_TEST(itkPointSetToListSampleAdaptorTest ${STATISTICS_TESTS} itkPointSetToListSampleAdaptorTest)
 ADD_TEST(itkDenseFrequencyContainer2Test ${STATISTICS_TESTS} itkDenseFrequencyContainer2Test)
 ADD_TEST(itkSparseFrequencyContainer2Test ${STATISTICS_TESTS} itkSparseFrequencyContainer2Test)
+ADD_TEST(itkScalarImageToTextureFeaturesFilterTest ${STATISTICS_TESTS} itkScalarImageToTextureFeaturesFilterTest)
 
 
 SET(Statistics_SRCS
@@ -109,6 +110,7 @@ SET(Statistics_SRCS
   itkPointSetToListSampleAdaptorTest.cxx
   itkDenseFrequencyContainer2Test.cxx
   itkSparseFrequencyContainer2Test.cxx
+  itkScalarImageToTextureFeaturesFilterTest.cxx
   )
 
 ADD_EXECUTABLE(itkStatisticsTests itkStatisticsTests.cxx ${Statistics_SRCS})
