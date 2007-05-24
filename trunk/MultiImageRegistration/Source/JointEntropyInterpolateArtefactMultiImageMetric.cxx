@@ -203,7 +203,7 @@ JointEntropyInterpolateArtefactMultiImageMetric < TFixedImage >
         norm += diff[j]*diff[j]; //
             //(interpolationVariance[x_i][j] + interpolationVariance[x_j][j]);
       }
-      probSum += this->m_KernelFunction->Evaluate( sqrt(norm) / this->m_ImageStandardDeviation );
+      probSum += this->m_KernelFunction[threadId]->Evaluate( sqrt(norm) / this->m_ImageStandardDeviation );
 
     }
     probSum /= (double)size;
@@ -328,7 +328,7 @@ JointEntropyInterpolateArtefactMultiImageMetric < TFixedImage >
         norm += diff[j]*diff[j] /
             (interpolationVariance[x_i][j] + interpolationVariance[x_j][j]);
       }
-      const double G = this->m_KernelFunction->Evaluate( sqrt(norm) / this->m_ImageStandardDeviation );
+      const double G = this->m_KernelFunction[threadId]->Evaluate( sqrt(norm) / this->m_ImageStandardDeviation );
 
       Wsum += G;
       weight += G * diff;

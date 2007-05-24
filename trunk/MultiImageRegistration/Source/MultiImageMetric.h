@@ -248,6 +248,16 @@ public:
   /**  Get the value. Method that provides the infrastructure for supporting Multi-Threading. */
   MeasureType GetValue( const ParametersType& parameters ) const;
 
+  /** Set/Get the regularization factor */
+  itkSetMacro( RegularizationFactor, RealType );
+  itkGetMacro( RegularizationFactor, RealType );
+
+  /** Turn regularization on/off: Default off (true=on) */
+  itkSetMacro( Regularization, bool );
+  
+  /** Get regularization on/off */
+  itkGetMacro( Regularization, bool );
+
   
 protected:
   MultiImageMetric();
@@ -340,6 +350,8 @@ protected:
   };
   mutable SpatialSample*      m_Sample;
 
+  bool m_Regularization;
+  double m_RegularizationFactor;
 };
 
 } // end namespace itk

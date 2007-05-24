@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __ParzenWindowEntropyMultiImageMetric_h
-#define __ParzenWindowEntropyMultiImageMetric_h
+#ifndef __JointEntropyKNNGraphMultiImageMetric_h
+#define __JointEntropyKNNGraphMultiImageMetric_h
 
 #include "itkCovariantVector.h"
 #include "itkPoint.h"
@@ -33,6 +33,12 @@
 #include <vector>
 #include "MultiImageMetric.h"
 
+
+// ANN is provided with Lesser GNU Public License (LGPL)
+// check if that is a problem    
+#include <ANN/ANN.h>             // ANN declarations
+
+    
 using namespace std;
 
 namespace itk
@@ -97,13 +103,13 @@ namespace itk
  * \ingroup RegistrationMetrics
  */
 template <class TFixedImage>
-class ITK_EXPORT ParzenWindowEntropyMultiImageMetric :
+class ITK_EXPORT JointEntropyKNNGraphMultiImageMetric :
     public MultiImageMetric< TFixedImage>
 {
 public:
 
   /** Standard class typedefs. */
-  typedef ParzenWindowEntropyMultiImageMetric  Self;
+  typedef JointEntropyKNNGraphMultiImageMetric  Self;
   typedef MultiImageMetric< TFixedImage > Superclass;
   //typedef CongealingMetric< TFixedImage, TFixedImage > Superclass;
   typedef SmartPointer<Self>  Pointer;
@@ -113,7 +119,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ParzenWindowEntropyMultiImageMetric, MultiImageMetric);
+  itkTypeMacro(JointEntropyKNNGraphMultiImageMetric, MultiImageMetric);
 
   /** Types inherited from Superclass. */
   typedef typename Superclass::TransformType            TransformType;
@@ -200,32 +206,45 @@ public:
   virtual void Finalize(void);
   
   /** Define the bspline tranform type for regularization
-  For Regularization BsplineTransfromPointer must be explicitly
-  provided */
+     For Regularization BsplineTransfromPointer must be explicitly
+     provided */
   typedef itk::UserBSplineDeformableTransform<double,   itkGetStaticConstMacro(MovingImageDimension), 3> BSplineTransformType;
   typedef typename BSplineTransformType::Pointer BSplineTransformTypePointer;
   
   typedef typename BSplineTransformType::ImageType BSplineParametersImageType;
   typedef typename BSplineParametersImageType::Pointer BSplineParametersImagePointer;
   
-  typedef itk::GradientImageFilter<BSplineParametersImageType, ImagePixelType, ImagePixelType> GradientFilterType;
+  typedef itk::GradientImageFilter<BSplineParametersImageType, RealType, RealType> GradientFilterType;
   typedef typename GradientFilterType::Pointer GradientFilterTypePointer;
 
 
+  /** Set/Get the regularization factor */
+  itkSetMacro( RegularizationFactor, RealType );
+  itkGetMacro( RegularizationFactor, RealType );
 
   /** Set/Get the number of fixed images */
   itkSetMacro( NumberOfFixedImages, unsigned int );
   itkGetMacro( NumberOfFixedImages, unsigned int );
   
+  /** Turn regularization on/off: Default off (true=on) */
+  itkSetMacro( Regularization, bool );
+  /** Get regularization on/off */
+  itkGetMacro( Regularization, bool );
 
+  /** Set/Get the regularization factor */
+  itkSetMacro( NumberOfNearestNeigbors, unsigned int );
+  itkGetMacro( NumberOfNearestNeigbors, unsigned int );
 
+  /** Set/Get the regularization factor */
+  itkSetMacro( ErrorBound, double );
+  itkGetMacro( ErrorBound, double );
 
 protected:
-  ParzenWindowEntropyMultiImageMetric();
-  virtual ~ParzenWindowEntropyMultiImageMetric();
+  JointEntropyKNNGraphMultiImageMetric();
+  virtual ~JointEntropyKNNGraphMultiImageMetric();
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-  ParzenWindowEntropyMultiImageMetric(const Self&); //purposely not implemented
+  JointEntropyKNNGraphMultiImageMetric(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
   
   
@@ -237,15 +256,15 @@ protected:
 
 
   double                              m_ImageStandardDeviation;
-  std::vector<typename KernelFunction::Pointer>    m_KernelFunction;
+  typename KernelFunction::Pointer    m_KernelFunction;
   double                              m_MinProbability;
 
   /** Uniformly select samples from the fixed image buffer. */
-  void SampleFixedImageDomain( SpatialSampleContainer& samples ) const;
+  void GetSamples() const;
 
   /** Add the derivative update to the current images parameters at a given point and image derivative*/
-  typedef CovariantVector < RealType, MovingImageDimension > CovarientType;
-  void UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSample& sample, const RealType& weight, const int& imageNumber, const int& threadID) const;
+  typedef CovariantVector < double, MovingImageDimension > CovarientType;
+  void UpdateImageParameters( DerivativeType & inputDerivative, const int& index, const RealType& weight, const int& imageNumber, const int& threadID) const;
 
   typedef typename Superclass::CoordinateRepresentationType  CoordinateRepresentationType;
   typedef CentralDifferenceImageFunction< MovingImageType,   CoordinateRepresentationType > DerivativeFunctionType;
@@ -264,6 +283,9 @@ protected:
 
   mutable std::vector< ParametersType > m_TransformParametersArray;
 
+  bool m_Regularization;
+  double m_RegularizationFactor;
+  
   bool m_UseMask;
   unsigned int m_NumberOfFixedImages;
 
@@ -275,21 +297,26 @@ protected:
   mutable unsigned int* bsplineIndexes;
   long unsigned int numbersPerdimension;
 
-  // reguzlarization related
-  mutable std::vector< std::vector< GradientFilterTypePointer > >  m_BSplineGradientArray;
-  mutable std::vector< std::vector< std::vector< GradientFilterTypePointer > > > m_BSplineHessianArray;
 
-  mutable std::vector< std::vector< std::vector< BSplineParametersImagePointer > > > m_BSplineGradientImagesArray;
+  /** KNN related parameters */
+  unsigned int m_NumberOfNearestNeigbors;
+  double m_ErrorBound;
+  
+  mutable ANNdistArray*      dists;               // near neighbor distances
+  mutable ANNidxArray*       nnIdx;
 
-  mutable std::vector< std::vector< std::vector< GradientFilterTypePointer > > >   m_BSplineGradientUpdateArray;
-  mutable std::vector< std::vector< std::vector< BSplineParametersImagePointer > > >             m_BSplineGradientUpdateImagesArray;
+  mutable ANNkd_tree*       kdTree;              // search structure
+  mutable ANNpointArray     dataPts;          // data points
+
+  mutable MovingImagePointType**            m_MappedPointsArray;
+  mutable FixedImagePointType*               m_FixedImagePointArray;
 
 };
 
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "ParzenWindowEntropyMultiImageMetric.cxx"
+#include "JointEntropyKNNGraphMultiImageMetric.cxx"
 #endif
 
 #endif

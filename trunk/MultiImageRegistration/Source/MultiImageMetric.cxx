@@ -55,6 +55,9 @@ MultiImageMetric<TFixedImage>
 
   m_Threader = MultiThreader::New();
   m_NumberOfThreads = m_Threader->GetNumberOfThreads();
+
+  m_Regularization = false;
+  m_RegularizationFactor = 1e-5;
 }
 
 
