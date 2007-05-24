@@ -163,7 +163,7 @@ JointEntropyMultiImageMetric < TFixedImage >
     {
       // Evaluate the probability of d(x_a, x_b)
       const double dist = (this->m_Sample[x_i].imageValueArray - this->m_Sample[x_j].imageValueArray).two_norm();
-      probSum += this->m_KernelFunction->Evaluate(  dist / this->m_ImageStandardDeviation );
+      probSum += this->m_KernelFunction[threadId]->Evaluate(  dist / this->m_ImageStandardDeviation );
     }
     probSum /= (double)sampleASize;
     
@@ -281,7 +281,7 @@ JointEntropyMultiImageMetric < TFixedImage >
                    this->m_Sample[x_i].imageValueArray - this->m_Sample[x_j].imageValueArray;
 
       // Compute G(d(x_i,x_j))
-      const double G = this->m_KernelFunction->Evaluate( diff.two_norm() / this->m_ImageStandardDeviation );
+      const double G = this->m_KernelFunction[threadId]->Evaluate( diff.two_norm() / this->m_ImageStandardDeviation );
 
       W[threadId][x_i] += G;
       weight += G * diff;
@@ -312,7 +312,7 @@ JointEntropyMultiImageMetric < TFixedImage >
           this->m_Sample[x_i].imageValueArray - this->m_Sample[x_j].imageValueArray;
 
       // Compute G(d(x_i,x_j))
-      const double G = this->m_KernelFunction->Evaluate( diff.two_norm() / this->m_ImageStandardDeviation );
+      const double G = this->m_KernelFunction[threadId]->Evaluate( diff.two_norm() / this->m_ImageStandardDeviation );
 
       weight += (G / W[threadId][x_i]) * diff;
     }

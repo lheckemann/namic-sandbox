@@ -204,7 +204,7 @@ RegisterToMeanAndVarianceMultiImageMetric < TFixedImage >
         const double diff3 = (variance[x_i] - variance[x_j]) / m_VarianceStandardDeviation;
 
         // Evaluate the probability of d(x_a, x_b)
-        probSum += this->m_KernelFunction->Evaluate
+        probSum += this->m_KernelFunction[threadId]->Evaluate
             ( sqrt( diff1*diff1  + diff2*diff2 + diff3*diff3) );
       }
       probSum /= (double)sampleASize;
@@ -345,7 +345,7 @@ RegisterToMeanAndVarianceMultiImageMetric < TFixedImage >
         const double diff3 = (variance[x_i] - variance[x_j]) / m_VarianceStandardDeviation;
 
           // Compute G(d(x_i,x_j))
-        const double G = this->m_KernelFunction->Evaluate( sqrt( diff1*diff1  + diff2*diff2 + diff3*diff3 ) );
+        const double G = this->m_KernelFunction[threadId]->Evaluate( sqrt( diff1*diff1  + diff2*diff2 + diff3*diff3 ) );
         const double dir = diff1 / this->m_ImageStandardDeviation + diff2 / m_MeanStandardDeviation / (double) N +
                            diff3 / m_VarianceStandardDeviation * 2.0 / (double) N
                                  * (this->m_Sample[x_i].imageValueArray[m] - mean[x_i]);
@@ -379,7 +379,7 @@ RegisterToMeanAndVarianceMultiImageMetric < TFixedImage >
         const double diff3 = (variance[x_i] - variance[x_j]) / m_VarianceStandardDeviation;
 
           // Compute G(d(x_i,x_j))
-        const double G = this->m_KernelFunction->Evaluate( sqrt( diff1*diff1  + diff2*diff2 + diff3*diff3 ) );
+        const double G = this->m_KernelFunction[threadId]->Evaluate( sqrt( diff1*diff1  + diff2*diff2 + diff3*diff3 ) );
           
         const double dir = diff1 / this->m_ImageStandardDeviation + diff2 / m_MeanStandardDeviation / (double) N +
                            diff3 / m_VarianceStandardDeviation * 2.0 / (double) N

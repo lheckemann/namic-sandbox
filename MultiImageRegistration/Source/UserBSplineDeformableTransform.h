@@ -317,7 +317,6 @@ public:
   virtual void TransformPoint( const InputPointType & inputPoint,
                        OutputPointType & outputPoint,
                        WeightsType & weights,
-                       ParameterIndexArrayType & indices, 
                        bool & inside ) const;
 
   /** Get number of weights. */
@@ -351,7 +350,7 @@ public:
     
   /** Compute the Jacobian Matrix of the transformation at one point */
   virtual const JacobianType& GetJacobian(const InputPointType  &point ) const;
-  virtual const JacobianType& GetJacobian( const InputPointType & point, Array<int>& indexes );
+  virtual const JacobianType& GetJacobian( const InputPointType & point, unsigned int* indexes );
   
   /** Return the number of parameters that completely define the Transfom */
   virtual unsigned int GetNumberOfParameters(void) const;
@@ -441,7 +440,6 @@ private:
 
   // Added afterwards
   mutable WeightsType weights;
-  mutable ParameterIndexArrayType indices;
 
 }; //class UserBSplineDeformableTransform
 

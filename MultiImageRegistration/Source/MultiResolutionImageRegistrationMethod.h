@@ -214,6 +214,9 @@ public:
   /** Set the number of images */
   void SetNumberOfImages(int N);
 
+  /** write output images and extract their slices after each resolution */
+  
+
 protected:
   MultiResolutionMultiImageRegistrationMethod();
   virtual ~MultiResolutionMultiImageRegistrationMethod() {};

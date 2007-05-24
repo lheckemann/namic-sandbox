@@ -100,7 +100,6 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
   m_LastJacobianIndex = m_ValidRegion.GetIndex();
 
   weights.SetSize( m_WeightsFunction->GetNumberOfWeights() );
-  indices.SetSize( m_WeightsFunction->GetNumberOfWeights() );
 
 }
     
@@ -566,7 +565,6 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
   const InputPointType & point, 
   OutputPointType & outputPoint, 
   WeightsType & weights, 
-  ParameterIndexArrayType & indices,
   bool& inside ) const
 {
 
@@ -614,7 +612,6 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
     typedef ImageRegionConstIterator<ImageType> IteratorType;
     IteratorType m_Iterator[ SpaceDimension ];
     unsigned long counter = 0;
-    const PixelType * basePointer = m_CoefficientImage[0]->GetBufferPointer();
 
     for ( j = 0; j < SpaceDimension; j++ )
       {
@@ -630,9 +627,6 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
         outputPoint[j] += static_cast<ScalarType>( 
           weights[counter] * m_Iterator[j].Get());
         }
-
-      // populate the indices array
-      indices[counter] = &(m_Iterator[0].Value()) - basePointer;
 
       // go to next coefficient in the support region
       ++ counter;
@@ -674,7 +668,7 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
   OutputPointType outputPoint;
   bool inside;
 
-  this->TransformPoint( point, outputPoint, weights, indices, inside );
+  this->TransformPoint( point, outputPoint, weights, inside );
 
   return outputPoint;
 
@@ -787,21 +781,8 @@ const
 typename UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 ::JacobianType & 
 UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
-::GetJacobian( const InputPointType & point, Array<int>& indexes )
+::GetJacobian( const InputPointType & point, unsigned int* indexes )
 {
-  // Can only compute Jacobian if parameters are set via
-  // SetParameters or SetParametersByValue
-  if( m_InputParametersPointer == NULL )
-    {
-    itkExceptionMacro( <<"Cannot compute Jacobian: parameters not set" );
-    }
-
-  // Zero all components of jacobian
-  // NOTE: for efficiency, we only need to zero out the coefficients
-  // that got fill last time this method was called.
-  RegionType supportRegion;
-  supportRegion.SetSize( m_SupportSize );
-  supportRegion.SetIndex( m_LastJacobianIndex );
 
   typedef UserImageRegionIterator<JacobianImageType> IteratorType;
   IteratorType m_Iterator[ SpaceDimension ];
@@ -813,20 +794,14 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
     index[j] = ( point[j] - m_GridOrigin[j] ) / m_GridSpacing[j];
     }
 
-  // NOTE: if the support region does not lie totally within the grid
-  // we assume zero displacement and return the input point
-  if ( !this->InsideValidRegion( index ) )
-    {
-    return this->m_Jacobian;
-    }
-
   // Compute interpolation weights
   IndexType supportIndex;
 
   m_WeightsFunction->Evaluate( index, weights, supportIndex );
-  m_LastJacobianIndex = supportIndex;
 
   // For each dimension, copy the weight to the support region
+  RegionType supportRegion;
+  supportRegion.SetSize( m_SupportSize );
   supportRegion.SetIndex( supportIndex );
   unsigned long counter = 0;
 
@@ -845,6 +820,7 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
       }
 
     indexes[counter] = m_Iterator[0].GetBuffer();
+
     // go to next coefficient in the support region
     ++ counter;
     for ( j = 0; j < SpaceDimension; j++ )

@@ -234,7 +234,7 @@ JointEntropyKNNMultiImageMetric < TFixedImage >
       // Evaluate the probability of d(x_a, x_b)
       const double diff =
           (this->m_Sample[x_i].imageValueArray - this->m_Sample[nnIdx[x_i][j]].imageValueArray).two_norm();
-      probSum += this->m_KernelFunction->Evaluate(  diff / this->m_ImageStandardDeviation );
+      probSum += this->m_KernelFunction[threadId]->Evaluate(  diff / this->m_ImageStandardDeviation );
     }
     probSum /= (double)m_NumberOfNearestNeigbors;
     
@@ -395,7 +395,7 @@ JointEntropyKNNMultiImageMetric < TFixedImage >
           this->m_Sample[x_i].imageValueArray - this->m_Sample[x_j].imageValueArray;
 
       // Compute G(d(x_i,x_j))
-      const double G = this->m_KernelFunction->Evaluate( diff.two_norm() / this->m_ImageStandardDeviation );
+      const double G = this->m_KernelFunction[threadId]->Evaluate( diff.two_norm() / this->m_ImageStandardDeviation );
 
       Wsum += G;
       weight += G * diff;
