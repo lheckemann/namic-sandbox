@@ -13,8 +13,8 @@
 #    useBsplineHigh on/off
 #
     
-    -useBspline off
-    -useBsplineHigh off
+    -useBspline on
+    -useBsplineHigh on
 
 
 
@@ -25,7 +25,7 @@
 # optimizerType gradient/lineSearch
 #
     
--optimizerType gradient
+-optimizerType lineSearch
     
 
     
@@ -45,6 +45,7 @@
 #   jointEntropyKNN: same objective function as jointEntropy. To decrease computational 
 #                    demand approximate nearest neighbors search is done instead of considering
 #                    all possible pairwise combinations.
+#   jointEntropyKNNGraph : Entropy estimate using KNN Graph
 #
     
 -metricType entropy
@@ -72,7 +73,7 @@
 # used for each registration stage
 #
    
--multiLevelAffine 2    
+-multiLevelAffine 3
 -multiLevelBspline 1      
 -multiLevelBsplineHigh 1
  
@@ -83,10 +84,10 @@
 # for each stage of the registration
 #
 
-    -optTranslationLearningRate 1e-2
-    -optAffineLearningRate  1e-3
-    -optBsplineLearningRate 1e-2
-    -optBsplineHighLearningRate 1e-2
+    -optTranslationLearningRate 1e-4
+    -optAffineLearningRate  1e-4
+    -optBsplineLearningRate 1e1
+    -optBsplineHighLearningRate 1.0
  
  
  
@@ -96,26 +97,26 @@
 # no other termination options are used
 #
 
-    -optTranslationNumberOfIterations 50
-    -optAffineNumberOfIterations 500
-    -optBsplineNumberOfIterations 500
-    -optBsplineHighNumberOfIterations 500
+    -optTranslationNumberOfIterations 1
+    -optAffineNumberOfIterations 300
+    -optBsplineNumberOfIterations 100
+    -optBsplineHighNumberOfIterations 50
 
 
 # All objective functions make use of stochastic subsampline
 # following options define the number of spatial samples
 #
 
-    -numberOfSpatialSamplesTranslation 2000
-    -numberOfSpatialSamplesAffine 4000
-    -numberOfSpatialSamplesBspline 4000
-    -numberOfSpatialSamplesBsplineHigh 4000
+    -numberOfSpatialSamplesTranslation 10000
+    -numberOfSpatialSamplesAffine 20000
+    -numberOfSpatialSamplesBspline 100000
+    -numberOfSpatialSamplesBsplineHigh 100000
 
 
 #
 # defines the initial bspline grid size along each dimension
 #
-    -bsplineInitialGridSize 8
+    -bsplineInitialGridSize  8
     
 #
 # When using Bspline grid refinement, this options defines how many number 
@@ -129,12 +130,12 @@
 # to bspline registration
 #
 
-    -useBSplineRegularization off
+    -useBSplineRegularization on
     
 #
 # sets bspline regularization factor
 #
-    -bsplineRegularizationFactor 100
+    -bsplineRegularizationFactor 5
     
     
 #
@@ -186,7 +187,7 @@
 #  Maximum number of iterations performed for a line search 
 #  if the optimizer is lineSearch
 #    
-    -maximumLineIteration 10
+    -maximumLineIteration 7
     
     
     
@@ -204,7 +205,7 @@
 # the option to specify whether or not to write the output images
 # possible options
 #     writeOutputImages  on/off
-    -writeOutputImages on
+    -writeOutputImages off
     
     
     
@@ -216,22 +217,27 @@
 #
     -writeDeformationFields off
     
-    
+# 
+# option to specify whether or not to write mean images in 3D format
+# possible options:
+#     writeMean3DImages  on/off
+#
+    -writeMean3DImages off
     
 # 
 # number of nearest neighbors to compute the joint entropy
 # when using metricType jointEntropyKNN
 # errorbound is the error of nearest neigbor approximation
 #
-    -NumberOfNearestNeigbors 5
-    -errorBound 3.0
+    -NumberOfNearestNeigbors 4
+    -errorBound 0.0
 
 
 
 #
 #  Specifies the percentage increase in the sampling for each multiresolution level
 #
-    -translationMultiScaleSamplePercentageIncrease 4.0 
+    -translationMultiScaleSamplePercentageIncrease 8.0 
     -affineMultiScaleSamplePercentageIncrease 8.0 
     -bsplineMultiScaleSamplePercentageIncrease 8.0 
     
@@ -249,9 +255,9 @@
 #
 # Specifies optimizer step length increase fo each multiresolution level
 #
-    -translationMultiScaleStepLengthIncrease 1e-2 
-    -affineMultiScaleStepLengthIncrease 1e-2 
-    -bsplineMultiScaleStepLengthIncrease 1e-2 
+    -translationMultiScaleStepLengthIncrease 1.0
+    -affineMultiScaleStepLengthIncrease 1.0 
+    -bsplineMultiScaleStepLengthIncrease 1.0
     
     
 #
