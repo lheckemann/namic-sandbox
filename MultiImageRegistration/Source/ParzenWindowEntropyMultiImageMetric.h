@@ -272,8 +272,8 @@ protected:
 
   // Get nonzero indexex
   int numberOfWeights;
-  mutable unsigned int* bsplineIndexes;
-  long unsigned int numbersPerdimension;
+  mutable Array<unsigned long> bsplineIndexes;
+  long unsigned int m_NumberOfParametersPerdimension;
 
   // reguzlarization related
   mutable std::vector< std::vector< GradientFilterTypePointer > >  m_BSplineGradientArray;

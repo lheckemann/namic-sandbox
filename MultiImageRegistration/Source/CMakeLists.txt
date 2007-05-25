@@ -38,6 +38,8 @@ SET(Groupwise_SRCS
   JointEntropyMultiImageMetric.cxx
   JointEntropyKNNMultiImageMetric.h
   JointEntropyKNNMultiImageMetric.cxx
+  JointEntropyKNNGraphMultiImageMetric.h
+  JointEntropyKNNGraphMultiImageMetric.cxx
   JointEntropyFixedMultiImageMetric.h
   JointEntropyFixedMultiImageMetric.cxx
   JointEntropyInterpolateArtefactMultiImageMetric.h
@@ -52,7 +54,6 @@ SET(Groupwise_SRCS
   GradientDescentLineSearchOptimizer.cxx
   UserBSplineDeformableTransform.h
   UserBSplineDeformableTransform.cxx
-  UserImageRegionIterator.h
   MultiImageMetric.cxx 
   MultiImageMetric.h 
   AddImageFilter.h

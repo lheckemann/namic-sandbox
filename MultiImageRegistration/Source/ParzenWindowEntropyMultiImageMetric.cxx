@@ -49,7 +49,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >::
 
   m_UseMask = false;
   m_NumberOfFixedImages = 0;
-  numbersPerdimension = 0;
+  m_NumberOfParametersPerdimension = 0;
   this->m_Sample = 0;
 
 }
@@ -161,8 +161,8 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
   {
     // Get nonzero indexes
     numberOfWeights = this->m_BSplineTransformArray[0]->GetNumberOfAffectedWeights();
-    bsplineIndexes = new unsigned int[numberOfWeights];
-    long unsigned int numbersPerdimension = this->m_BSplineTransformArray[0]->GetNumberOfParametersPerDimension();
+    bsplineIndexes.set_size(numberOfWeights);
+    m_NumberOfParametersPerdimension = this->m_BSplineTransformArray[0]->GetNumberOfParametersPerDimension();
   }
 
   // Initialize the variables for regularization term
@@ -281,11 +281,7 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
 
   // deallocate randomiterator
   delete randIter;
-  if( this->m_UserBsplineDefined )
-  {
-    delete [] bsplineIndexes;
-  }
-  
+
  //Finalize superclass
   Superclass::Finalize();
 }
@@ -1091,16 +1087,17 @@ UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSamp
       for (unsigned int j = 0; j < MovingImageDimension; j++)
       {
         currentValue += jacobian[j][k] * gradient[j];
-
       }
+
       inputDerivative[k] += currentValue*weight;
     }
+
   }
   else
   {
     // Get nonzero indexes
-
-    const JacobianType & jacobian =
+    typedef itk::Array<RealType> WeigtsType;
+    const WeigtsType & bsplineWeights =
         this->m_BSplineTransformArray[imageNumber]->GetJacobian(sample.FixedImagePoint, bsplineIndexes);
 
     for (unsigned int k = 0; k < numberOfWeights; k++)
@@ -1109,11 +1106,11 @@ UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSamp
         for (unsigned int j = 0; j < MovingImageDimension; j++)
         {
 
-          inputDerivative[j*numbersPerdimension + bsplineIndexes[k]] += jacobian[j][j*numbersPerdimension + bsplineIndexes[k]]
-                                                                        * gradient[j] * weight;
+          inputDerivative[j*m_NumberOfParametersPerdimension + bsplineIndexes[k]] += bsplineWeights[k] * gradient[j] * weight;
         }
 
     }
+
   }
 
 }

@@ -294,8 +294,8 @@ protected:
 
   // Get nonzero indexex
   int numberOfWeights;
-  mutable unsigned int* bsplineIndexes;
-  long unsigned int numbersPerdimension;
+  mutable Array<unsigned long> bsplineIndexes;
+  long unsigned int m_NumberOfParametersPerdimension;
 
 
   /** KNN related parameters */
