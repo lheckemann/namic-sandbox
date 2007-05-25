@@ -350,7 +350,7 @@ public:
     
   /** Compute the Jacobian Matrix of the transformation at one point */
   virtual const JacobianType& GetJacobian(const InputPointType  &point ) const;
-  virtual const JacobianType& GetJacobian( const InputPointType & point, unsigned int* indexes );
+  virtual const WeightsType& GetJacobian( const InputPointType & point, ParameterIndexArrayType& indexes );
   
   /** Return the number of parameters that completely define the Transfom */
   virtual unsigned int GetNumberOfParameters(void) const;
@@ -417,7 +417,7 @@ private:
   typedef typename JacobianType::ValueType JacobianPixelType;
   typedef Image<JacobianPixelType,
                 itkGetStaticConstMacro(SpaceDimension)> JacobianImageType;
- 
+
   typename JacobianImageType::Pointer m_JacobianImage[NDimensions];
 
   /** Keep track of last support region used in computing the Jacobian

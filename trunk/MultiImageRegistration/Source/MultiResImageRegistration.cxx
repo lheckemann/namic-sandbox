@@ -116,7 +116,7 @@
 
 //Define the global types for image type
 #define PixelType unsigned short
-#define InternalPixelType double
+#define InternalPixelType float
 #define Dimension 3
 
 //  The following section of code implements an observer

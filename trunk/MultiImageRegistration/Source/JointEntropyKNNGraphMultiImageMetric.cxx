@@ -48,6 +48,7 @@ JointEntropyKNNGraphMultiImageMetric < TFixedImage >::
   this->m_BSplineTransformArray.resize(0);
   m_Regularization = false;
   m_RegularizationFactor = 1e-5;
+  m_NumberOfParametersPerdimension = 0;
 
   m_UseMask = false;
   m_NumberOfFixedImages = 0;
@@ -152,8 +153,8 @@ JointEntropyKNNGraphMultiImageMetric<TFixedImage>
   {
     // Get nonzero indexes
     numberOfWeights = this->m_BSplineTransformArray[0]->GetNumberOfAffectedWeights();
-    bsplineIndexes = new unsigned int[numberOfWeights];
-    long unsigned int numbersPerdimension = this->m_BSplineTransformArray[0]->GetNumberOfParametersPerDimension();
+    bsplineIndexes.set_size(numberOfWeights);
+    m_NumberOfParametersPerdimension = this->m_BSplineTransformArray[0]->GetNumberOfParametersPerDimension();
   }
 
 
@@ -231,10 +232,7 @@ JointEntropyKNNGraphMultiImageMetric<TFixedImage>
   
   // deallocate randomiterator
   delete randIter;
-  if( this->m_UserBsplineDefined )
-  {
-    delete [] bsplineIndexes;
-  }
+
  //Finalize superclass
   Superclass::Finalize();
 }
@@ -737,8 +735,9 @@ UpdateImageParameters( DerivativeType & inputDerivative, const int& index, const
   {
     // Get nonzero indexex
 
-    const JacobianType & jacobian =
-        this->m_BSplineTransformArray[imageNumber]->GetJacobian(m_FixedImagePointArray[index], bsplineIndexes);
+    typedef itk::Array<RealType> WeigtsType;
+    const WeigtsType & jacobian =
+                this->m_BSplineTransformArray[imageNumber]->GetJacobian(m_FixedImagePointArray[index], bsplineIndexes);
 
     for (unsigned int k = 0; k < numberOfWeights; k++)
     {
@@ -746,7 +745,7 @@ UpdateImageParameters( DerivativeType & inputDerivative, const int& index, const
         for (unsigned int j = 0; j < MovingImageDimension; j++)
         {
 
-          inputDerivative[j*numbersPerdimension + bsplineIndexes[k]] += jacobian[j][j*numbersPerdimension + bsplineIndexes[k]]
+          inputDerivative[j*m_NumberOfParametersPerdimension + bsplineIndexes[k]] += jacobian[k]
                                                                         * gradient[j] * weight;
         }
 
