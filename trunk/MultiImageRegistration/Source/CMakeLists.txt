@@ -76,6 +76,9 @@ TARGET_LINK_LIBRARIES(GroupwiseRegistration ITKCommon ITKNumerics ITKIO ITKBasic
 ADD_EXECUTABLE(TransformImage TransformImage.cxx )
 TARGET_LINK_LIBRARIES(TransformImage ITKCommon ITKBasicFilters ITKIO)
 
+ADD_EXECUTABLE(ComputeDice ComputeDice.cxx )
+TARGET_LINK_LIBRARIES(ComputeDice ITKCommon ITKBasicFilters ITKIO)
+
 ADD_EXECUTABLE(PairwiseRegistration ${Pairwise_SRCS} )
 TARGET_LINK_LIBRARIES(PairwiseRegistration ITKCommon ITKNumerics ITKIO ITKBasicFilters)
 
