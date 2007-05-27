@@ -736,8 +736,8 @@ UpdateImageParameters( DerivativeType & inputDerivative, const int& index, const
     // Get nonzero indexex
 
     typedef itk::Array<RealType> WeigtsType;
-    const WeigtsType & jacobian =
-                this->m_BSplineTransformArray[imageNumber]->GetJacobian(m_FixedImagePointArray[index], bsplineIndexes);
+    WeigtsType bsplineWeights(numberOfWeights);
+    this->m_BSplineTransformArray[imageNumber]->GetJacobian(m_FixedImagePointArray[index], bsplineIndexes, bsplineWeights);
 
     for (unsigned int k = 0; k < numberOfWeights; k++)
     {
@@ -745,7 +745,7 @@ UpdateImageParameters( DerivativeType & inputDerivative, const int& index, const
         for (unsigned int j = 0; j < MovingImageDimension; j++)
         {
 
-          inputDerivative[j*m_NumberOfParametersPerdimension + bsplineIndexes[k]] += jacobian[k]
+          inputDerivative[j*m_NumberOfParametersPerdimension + bsplineIndexes[k]] += bsplineWeights[k]
                                                                         * gradient[j] * weight;
         }
 

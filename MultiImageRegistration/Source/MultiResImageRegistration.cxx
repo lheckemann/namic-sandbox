@@ -155,7 +155,7 @@ public:
       }
 
       // only print results every ten iterations
-      if(m_CumulativeIterationIndex % 2 != 0 )
+      if(m_CumulativeIterationIndex % 25 != 0 )
       {
         m_CumulativeIterationIndex++;
         return;
@@ -223,10 +223,10 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
   std::vector<string> outputFileNames(N);
   
   typedef itk::ResampleImageFilter<
-                                    ImageType,
-                                    ImageType >    ResampleFilterType;
+                                    InternalImageType,
+                                    InternalImageType >    ResampleFilterType;
   ResampleFilterType::Pointer resample = ResampleFilterType::New();
-  resample->ReleaseDataFlagOn();
+  //resample->ReleaseDataFlagOn();
 
   // get the image reader
   typedef itk::ImageFileReader< ImageType  > ImageReaderType;
@@ -246,7 +246,15 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
 
 
   WriterType::Pointer      writer =  WriterType::New();
-  writer->ReleaseDataFlagOn();
+  //writer->ReleaseDataFlagOn();
+
+  typedef itk::CastImageFilter<ImageType, InternalImageType > InternalImageCasterType;
+  InternalImageCasterType::Pointer internalImageCaster = InternalImageCasterType::New();
+  //internalImageCaster->ReleaseDataFlagOn();
+
+  typedef itk::CastImageFilter<InternalImageType, ImageType > OutputImageCasterType;
+  OutputImageCasterType::Pointer outputImageCaster = OutputImageCasterType::New();
+  //outputImageCaster->ReleaseDataFlagOn();
   
   // Loop over images and write output images
   for(int i=0; i<N; i++)
@@ -260,9 +268,14 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
     //imageArrayReader[i]->ReleaseDataFlagOn();
     imageArrayReader[i]->SetFileName( inputFileNames[i].c_str() );
     imageArrayReader[i]->Update();
-    resample->SetInput( imageArrayReader[i]->GetOutput() );
+    internalImageCaster->SetInput(imageArrayReader[i]->GetOutput());
+    resample->SetInput( internalImageCaster->GetOutput() );
     fixedImage = imageArrayReader[i]->GetOutput();
-    
+
+    typedef itk::LinearInterpolateImageFunction< InternalImageType, double >  InterpolatorType;
+    InterpolatorType::Pointer interpolator = InterpolatorType::New();
+
+    resample->SetInterpolator( interpolator );
     resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
     resample->SetOutputOrigin(  fixedImage->GetOrigin() );
     resample->SetOutputSpacing( fixedImage->GetSpacing() );
@@ -278,7 +291,8 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
 
     writer->SetImageIO(imageArrayReader[i]->GetImageIO());
     writer->SetFileName( outputFileNames[i].c_str() );
-    writer->SetInput( resample->GetOutput()   );
+    outputImageCaster->SetInput(resample->GetOutput());
+    writer->SetInput( outputImageCaster->GetOutput()   );
     if(writeOutputImages == "on")
     {
       itksys::SystemTools::MakeDirectory( registeredImagesFolder.c_str() );
@@ -293,8 +307,8 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
       slices = outputFolder + slices;
       string outputFilename(fileNames[i]);
       outputFilename[outputFilename.size()-4] = '.';
-      outputFilename[outputFilename.size()-3] = 'p';
-      outputFilename[outputFilename.size()-2] = 'n';
+      outputFilename[outputFilename.size()-3] = 'j';
+      outputFilename[outputFilename.size()-2] = 'p';
       outputFilename[outputFilename.size()-1] = 'g';
       outputFilename = slices + outputFilename;
       itksys::SystemTools::MakeDirectory( slices.c_str() );
@@ -310,7 +324,7 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
       extractRegion.SetIndex( start );
       sliceExtractFilter->SetExtractionRegion( extractRegion );
       
-      sliceExtractFilter->SetInput( resample->GetOutput() );
+      sliceExtractFilter->SetInput( outputImageCaster->GetOutput() );
       sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
       sliceWriter->SetFileName( outputFilename.c_str() );
       sliceWriter->Update();
@@ -336,14 +350,15 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
         for ( defIt.GoToBegin(); !defIt.IsAtEnd(); ++defIt)
         {
           index = defIt.GetIndex();
-          if(index[0]%8 == 0 || index[1]%8 ==0 || index[2]%8 ==4)
+          if(index[0]%8 == 0 || index[1]%8 ==0 )
           {
             defIt.Set( 255 );
           }
         }
       }
 
-      resample->SetInput( deformationImage );
+      internalImageCaster->SetInput(deformationImage);
+      resample->SetInput( internalImageCaster->GetOutput() );
 
       // Generate the outputfilename and write the output
       string defFile(fileNames[i]);
@@ -361,11 +376,12 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
       itksys::SystemTools::MakeDirectory( defName2D.c_str() );
       string defFile2D(fileNames[i]);
       defFile2D[defFile2D.size()-4] = '.';
-      defFile2D[defFile2D.size()-3] = 'p';
-      defFile2D[defFile2D.size()-2] = 'n';
+      defFile2D[defFile2D.size()-3] = 'j';
+      defFile2D[defFile2D.size()-2] = 'p';
       defFile2D[defFile2D.size()-1] = 'g';
       defFile2D = defName2D + defFile2D;
-      sliceExtractFilter->SetInput( resample->GetOutput() );
+      outputImageCaster->SetInput(resample->GetOutput());
+      sliceExtractFilter->SetInput( outputImageCaster->GetOutput() );
       sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
       sliceWriter->SetFileName( defFile2D.c_str() );
       sliceWriter->Update();
@@ -375,13 +391,16 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
   }
 
   // Compute Mean Images
-  typedef itk::NaryAddImageFilter < ImageType,
-  InternalImageType > NaryAddFilterType;
+  typedef itk::NaryAddImageFilter < InternalImageType,
+                                    InternalImageType > NaryAddFilterType;
   NaryAddFilterType::Pointer NaryAddfilter = NaryAddFilterType::New();
 
   typedef ResampleFilterType::Pointer ResampleFilterPointer;
   std::vector< ResampleFilterPointer > ResampleFilterArray(N);
 
+  typedef std::vector< InternalImageCasterType::Pointer > InternalImageCasterArray;
+  InternalImageCasterArray internalImageCasterArray(N);
+  
   for(int i=0; i<N; i++)
   {
 
@@ -390,8 +409,11 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
 
     //Set the first image
     ResampleFilterArray[i]->SetTransform( transformArray[i] );
+
+    internalImageCasterArray[i] = InternalImageCasterType::New();
+    internalImageCasterArray[i]->SetInput(imageArrayReader[i]->GetOutput() );
     
-    ResampleFilterArray[i]->SetInput( imageArrayReader[i]->GetOutput() );
+    ResampleFilterArray[i]->SetInput( internalImageCasterArray[i]->GetOutput() );
     ResampleFilterArray[i]->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
     ResampleFilterArray[i]->SetOutputOrigin(  fixedImage->GetOrigin() );
     ResampleFilterArray[i]->SetOutputSpacing( fixedImage->GetSpacing() );
@@ -405,7 +427,7 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
   
   
   //Write the mean image
-  typedef itk::RescaleIntensityImageFilter< InternalImageType, ImageType >   RescalerType;
+  typedef itk::RescaleIntensityImageFilter< InternalImageType, InternalImageType >   RescalerType;
 
   RescalerType::Pointer intensityRescaler = RescalerType::New();
   WriterType::Pointer      writer2 =  WriterType::New();
@@ -413,13 +435,14 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
   intensityRescaler->SetInput( NaryAddfilter->GetOutput() );
   intensityRescaler->SetOutputMinimum(   0 );
   intensityRescaler->SetOutputMaximum( 255 );
-  
-  writer2->SetInput( intensityRescaler->GetOutput()   );
+
+  outputImageCaster->SetInput(intensityRescaler->GetOutput());
+  writer2->SetInput( outputImageCaster->GetOutput()   );
 
   string meanImageFname;
   if (Dimension == 2)
   {
-    meanImageFname = outputFolder + "MeanRegisteredImage.png";
+    meanImageFname = outputFolder + "MeanRegisteredImage.jpg";
   }
   else
   {
@@ -434,9 +457,9 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
     itksys::SystemTools::MakeDirectory( meanImages.c_str() );
 
     vector<string> outputFilenames(Dimension);
-    outputFilenames[0] = "MeanRegisteredSlice1.png";
-    outputFilenames[1] = "MeanRegisteredSlice2.png";
-    outputFilenames[2] = "MeanRegisteredSlice3.png";
+    outputFilenames[0] = "MeanRegisteredSlice1.jpg";
+    outputFilenames[1] = "MeanRegisteredSlice2.jpg";
+    outputFilenames[2] = "MeanRegisteredSlice3.jpg";
 
     for(int index=0; index<Dimension; index++)
     {
@@ -452,7 +475,7 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
       extractRegion.SetIndex( start );
       sliceExtractFilter->SetExtractionRegion( extractRegion );
 
-      sliceExtractFilter->SetInput( intensityRescaler->GetOutput() );
+      sliceExtractFilter->SetInput( outputImageCaster->GetOutput() );
       sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
       sliceWriter->SetFileName( outputFilenames[index].c_str() );
       sliceWriter->Update();
@@ -1571,9 +1594,9 @@ int main( int argc, char *argv[] )
         bsplineRegion.SetSize( totalGridSize );
 
         // Get the spacing, origin and imagesize form the image readers
-        SpacingType spacing = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetSpacing();
-        OriginType origin   = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetOrigin();
-        ImageType::RegionType fixedRegion = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetBufferedRegion();
+        SpacingType spacing = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetSpacing();
+        OriginType origin   = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetOrigin();
+        ImageType::RegionType fixedRegion = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetBufferedRegion();
 
         ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
 
@@ -1765,9 +1788,9 @@ int main( int argc, char *argv[] )
           OriginType  originHigh;
           ImageType::RegionType fixedRegion;
 
-          spacingHigh = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetSpacing();
-          originHigh  = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetOrigin();
-          fixedRegion = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetBufferedRegion();
+          spacingHigh = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetSpacing();
+          originHigh  = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetOrigin();
+          fixedRegion = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetBufferedRegion();
           
           ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
     
@@ -1977,12 +2000,6 @@ int main( int argc, char *argv[] )
 
 
   // typedefs for output images
-  typedef itk::ResampleImageFilter< 
-                            ImageType, 
-                            ImageType >    ResampleFilterType;
-  ResampleFilterType::Pointer resample = ResampleFilterType::New();
-  resample->ReleaseDataFlagOn();
-  
   ImageArrayReader imageArrayReader(N);
 
   typedef itk::ImageFileWriter< ImageType >  WriterType;
@@ -2032,8 +2049,8 @@ int main( int argc, char *argv[] )
       slices2 = outputFolder + slices2;
       string outputFilename2(fileNames[i]);
       outputFilename2[outputFilename2.size()-4] = '.';
-      outputFilename2[outputFilename2.size()-3] = 'p';
-      outputFilename2[outputFilename2.size()-2] = 'n';
+      outputFilename2[outputFilename2.size()-3] = 'j';
+      outputFilename2[outputFilename2.size()-2] = 'p';
       outputFilename2[outputFilename2.size()-1] = 'g';
       outputFilename2 = slices2 + outputFilename2;
       itksys::SystemTools::MakeDirectory( slices2.c_str() );
@@ -2048,20 +2065,26 @@ int main( int argc, char *argv[] )
   std::cout << "message: Computing mean images" << std::endl;
       
   // Compute Mean Images
-  typedef itk::NaryAddImageFilter < ImageType,
+  typedef itk::NaryAddImageFilter < InternalImageType,
                                            InternalImageType > NaryAddFilterType;
   NaryAddFilterType::Pointer NaryAddfilter = NaryAddFilterType::New();
 
-
+  typedef itk::CastImageFilter<ImageType, InternalImageType > InternalImageCasterType;
+  typedef std::vector< InternalImageCasterType::Pointer >    InternalImageCasterArray;
+  InternalImageCasterArray  internalImageCasterArray(N);
+  
   for(int i=0; i<N; i++)
   {
-    NaryAddfilter->SetInput(i,imageArrayReader[i]->GetOutput());
+    internalImageCasterArray[i] = InternalImageCasterType::New();
+    internalImageCasterArray[i]->ReleaseDataFlagOn();
+    internalImageCasterArray[i]->SetInput(imageArrayReader[i]->GetOutput());
+    NaryAddfilter->SetInput(i,internalImageCasterArray[i]->GetOutput());
   }
 
   
   
   //Write the mean image
-  typedef itk::RescaleIntensityImageFilter< InternalImageType, ImageType >   RescalerType;
+  typedef itk::RescaleIntensityImageFilter< InternalImageType, InternalImageType >   RescalerType;
 
   RescalerType::Pointer intensityRescaler = RescalerType::New();
   WriterType::Pointer      writer3 =  WriterType::New();
@@ -2072,11 +2095,16 @@ int main( int argc, char *argv[] )
 
 
   string meanImageFname;
-  writer3->SetInput( intensityRescaler->GetOutput()   );
+
+  typedef itk::CastImageFilter<InternalImageType, ImageType > OutputImageCasterType;
+  OutputImageCasterType::Pointer  outputImageCaster = OutputImageCasterType::New();
+
+  outputImageCaster->SetInput(intensityRescaler->GetOutput());
+  writer3->SetInput( outputImageCaster->GetOutput()   );
 
   if (Dimension == 2)
   {
-    meanImageFname = outputFolder + "InputImage/MeanImages/MeanOriginalImage.png";
+    meanImageFname = outputFolder + "InputImage/MeanImages/MeanOriginalImage.jpg";
   }
   else
   {
@@ -2091,9 +2119,9 @@ int main( int argc, char *argv[] )
     itksys::SystemTools::MakeDirectory( meanImages.c_str() );
 
     vector<string> outputFilenames(Dimension);
-    outputFilenames[0] = "MeanOriginalSlice1.png";
-    outputFilenames[1] = "MeanOriginalSlice2.png";
-    outputFilenames[2] = "MeanOriginalSlice3.png";
+    outputFilenames[0] = "MeanOriginalSlice1.jpg";
+    outputFilenames[1] = "MeanOriginalSlice2.jpg";
+    outputFilenames[2] = "MeanOriginalSlice3.jpg";
 
     for(int index=0; index<Dimension; index++)
     {
@@ -2109,7 +2137,7 @@ int main( int argc, char *argv[] )
       extractRegion.SetIndex( start );
       sliceExtractFilter->SetExtractionRegion( extractRegion );
 
-      sliceExtractFilter->SetInput( intensityRescaler->GetOutput() );
+      sliceExtractFilter->SetInput( outputImageCaster->GetOutput() );
       sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
       sliceWriter->SetFileName( outputFilenames[index].c_str() );
       sliceWriter->Update();

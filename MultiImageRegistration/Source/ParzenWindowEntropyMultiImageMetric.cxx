@@ -740,7 +740,7 @@ void
 ParzenWindowEntropyMultiImageMetric < TFixedImage >
 ::GetThreadedValueAndDerivative(int threadId) const
 {
-
+  
   MeasureType value = NumericTraits < MeasureType >::Zero;
 
   //Initialize the derivative array to zero
@@ -1088,8 +1088,8 @@ UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSamp
       {
         currentValue += jacobian[j][k] * gradient[j];
       }
-
       inputDerivative[k] += currentValue*weight;
+     
     }
 
   }
@@ -1097,8 +1097,8 @@ UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSamp
   {
     // Get nonzero indexes
     typedef itk::Array<RealType> WeigtsType;
-    const WeigtsType & bsplineWeights =
-        this->m_BSplineTransformArray[imageNumber]->GetJacobian(sample.FixedImagePoint, bsplineIndexes);
+    WeigtsType bsplineWeights(numberOfWeights);
+    this->m_BSplineTransformArray[imageNumber]->GetJacobian(sample.FixedImagePoint, bsplineIndexes, bsplineWeights);
 
     for (unsigned int k = 0; k < numberOfWeights; k++)
     {
