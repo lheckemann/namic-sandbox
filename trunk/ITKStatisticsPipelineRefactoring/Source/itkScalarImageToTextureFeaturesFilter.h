@@ -133,10 +133,13 @@ public:
 
   typedef ScalarImageToCooccurrenceMatrixFilter< ImageType,
     FrequencyContainerType > CooccurrenceMatrixFilterType;
+
   typedef HistogramToTextureFeaturesFilter< typename
   CooccurrenceMatrixFilterType::HistogramType >                TextureFeaturesFilterType;
-      
-  typedef VectorContainer<unsigned char, TextureFeatureName> FeatureNameVector;
+
+  typedef typename TextureFeaturesFilterType::TextureFeatureName  TextureFeatureName;
+  typedef VectorContainer<unsigned char, TextureFeatureName>      FeatureNameVector;
+
   typedef typename FeatureNameVector::Pointer         FeatureNameVectorPointer;
   typedef typename FeatureNameVector::ConstPointer    FeatureNameVectorConstPointer;
   typedef VectorContainer<unsigned char, double>      FeatureValueVector;

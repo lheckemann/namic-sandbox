@@ -96,11 +96,7 @@ namespace Statistics {
 * Author: Zachary Pincus
 */
     
-/** Texture feature types */
-enum TextureFeatureName { Energy, Entropy, Correlation,
-  InverseDifferenceMoment, Inertia, ClusterShade, ClusterProminence,
-  HaralickCorrelation };
-    
+  
 template< class THistogram >
 class HistogramToTextureFeaturesFilter : public ProcessObject
 {
@@ -176,9 +172,23 @@ public:
   MeasurementType GetHaralickCorrelation() const;
   const MeasurementObjectType* GetHaralickCorrelationOutput() const;
   
+  /** Texture feature types */
+  typedef enum 
+    { 
+    Energy,
+    Entropy,
+    Correlation,
+    InverseDifferenceMoment,
+    Inertia,
+    ClusterShade,
+    ClusterProminence,
+    HaralickCorrelation
+    }  TextureFeatureName;
+
   /** convenience method to access the texture values */
   MeasurementType GetFeature( TextureFeatureName name );
 
+  
 protected:
   HistogramToTextureFeaturesFilter();
   ~HistogramToTextureFeaturesFilter() {};

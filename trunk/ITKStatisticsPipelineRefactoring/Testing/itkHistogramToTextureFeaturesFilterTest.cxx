@@ -214,7 +214,95 @@ int itkHistogramToTextureFeaturesFilterTest(int, char* [] )
       << trueHaralickCorrelation << ", got: "  << haralickCorrelation << std::endl;
     passed = false;
     }
+ 
+  //Get the texture features using GetFeature() method  
+  double energy2 = filter->GetFeature(
+                      HistogramToTextureFeaturesFilterType::Energy);
+
+  double entropy2 = filter->GetFeature(
+                      HistogramToTextureFeaturesFilterType::Entropy);
+
+  double correlation2 = filter->GetFeature(
+                      HistogramToTextureFeaturesFilterType::Correlation);
+
+  double inverseDifferenceMoment2 = filter->GetFeature(
+                      HistogramToTextureFeaturesFilterType::InverseDifferenceMoment);
+
+  double inertia2 = filter->GetFeature(
+                      HistogramToTextureFeaturesFilterType::Inertia);
+
+  double clusterShade2 = filter->GetFeature(
+                      HistogramToTextureFeaturesFilterType::ClusterShade);
+
+  double clusterProminence2 = filter->GetFeature(
+                      HistogramToTextureFeaturesFilterType::ClusterProminence);
+
+  double haralickCorrelation2 = filter->GetFeature(
+                      HistogramToTextureFeaturesFilterType::HaralickCorrelation);
   
+  if( vnl_math_abs(energy2 - trueEnergy) > 0.001 )
+    {
+    std::cerr << "Error:" << std::endl;
+    std::cerr << "Energy calculated wrong. Expected: " << trueEnergy << ", got: " 
+      << energy2 << std::endl;
+    passed = false;
+    }
+   
+  if( vnl_math_abs(entropy2 - trueEntropy) > 0.001 )
+    {
+    std::cerr << "Error:" << std::endl;
+    std::cerr << "Entropy calculated wrong. Expected: " << trueEntropy << ", got: "  
+      << entropy2 << std::endl;
+    passed = false;
+    }
+  
+  if( vnl_math_abs(correlation2 - trueCorrelation) > 0.001 )
+    {
+    std::cerr << "Error:" << std::endl;
+    std::cerr << "Correlation calculated wrong. Expected: " << trueCorrelation << 
+      ", got: "  << correlation2 << std::endl;
+    passed = false;
+    }
+  
+  if( vnl_math_abs(inverseDifferenceMoment2 - trueInverseDifferenceMoment) > 0.001 )
+    {
+    std::cerr << "Error:" << std::endl;
+    std::cerr << "InverseDifferenceMoment calculated wrong. Expected: " << 
+      trueInverseDifferenceMoment <<  ", got: "  << inverseDifferenceMoment2 << std::endl;
+    passed = false;
+    }
+  
+  if( vnl_math_abs(inertia2 - trueInertia) > 0.001 )
+    {
+    std::cerr << "Error:" << std::endl;
+    std::cerr << "Inertia calculated wrong. Expected: " << trueInertia << ", got: " 
+      << inertia2 << std::endl;
+    passed = false;
+    }
+  
+  if( vnl_math_abs(clusterShade2 - trueClusterShade) > 0.001 )
+    {
+    std::cerr << "Error:" << std::endl;
+    std::cerr << "ClusterShade calculated wrong. Expected: " << trueClusterShade << 
+      ", got: "  << clusterShade2 << std::endl;
+    passed = false;
+    }
+
+  if( vnl_math_abs(clusterProminence2 - trueClusterProminence) > 0.001 )
+    {
+    std::cerr << "Error:" << std::endl;
+    std::cerr << "ClusterProminence calculated wrong. Expected: " 
+      << trueClusterProminence << ", got: "  << clusterProminence2 << std::endl;
+    passed = false;
+    }
+  
+  if( vnl_math_abs(haralickCorrelation2 - trueHaralickCorrelation) > 0.001 )
+    {
+    std::cerr << "Error:" << std::endl;
+    std::cerr << "Haralick's Correlation calculated wrong. Expected: "
+      << trueHaralickCorrelation << ", got: "  << haralickCorrelation2 << std::endl;
+    passed = false;
+    }
   
   if (!passed)
     {
