@@ -303,8 +303,19 @@ int itkHistogramToTextureFeaturesFilterTest(int, char* [] )
       << trueHaralickCorrelation << ", got: "  << haralickCorrelation2 << std::endl;
     passed = false;
     }
+
+  //Test inquiry for invalid feature
+
+  if( filter->GetFeature( HistogramToTextureFeaturesFilterType::InvalidFeatureName ) ) 
+    {
+    std::cerr << "Error: " << std::endl;
+    std::cerr << "GetFeature() is returing non-zero feature value: "
+              << "for invalid feature request" << std::endl;
+    passed = false;
+    }
+    
   
-  if (!passed)
+  if( !passed )
     {
     std::cerr << "Test failed" << std::endl;
     return EXIT_FAILURE;

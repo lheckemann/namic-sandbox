@@ -95,9 +95,8 @@ namespace Statistics {
 *
 * Author: Zachary Pincus
 */
-    
-  
-template< class THistogram >
+
+template < class THistogram >
 class HistogramToTextureFeaturesFilter : public ProcessObject
 {
 public:
@@ -182,7 +181,8 @@ public:
     Inertia,
     ClusterShade,
     ClusterProminence,
-    HaralickCorrelation
+    HaralickCorrelation,
+    InvalidFeatureName
     }  TextureFeatureName;
 
   /** convenience method to access the texture values */
