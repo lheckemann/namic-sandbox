@@ -73,6 +73,27 @@ int itkScalarImageToTextureFeaturesFilterTest(int, char* [] )
       imageIt.Set(j % 2 + 1);
       }
 
+  //--------------------------------------------------------------------------
+  // Set up the mask next. It looks like:
+  //  1 1 1 1 1
+  //  1 1 1 1 1
+  //  1 1 1 1 1
+  //  1 1 1 1 1
+  //  1 1 1 1 1
+  //--------------------------------------------------------------------------
+      
+  InputImageType::Pointer mask = InputImageType::New();
+  mask->SetRegions( region );
+  mask->Allocate();
+  
+  // setup the iterator
+  InputImageIterator maskIt( mask, mask->GetBufferedRegion() );
+  maskIt.GoToBegin();
+  for(int i = 0; i < 5; i++)
+    for(int j = 0; j < 5; j++, ++maskIt)
+      {
+      maskIt.Set(1);
+      }
   
   //--------------------------------------------------------------------------
   // Test the texFilter
@@ -155,7 +176,8 @@ int itkScalarImageToTextureFeaturesFilterTest(int, char* [] )
     }
  
   texFilter->FastCalculationsOff();
-  texFilter->SetInput(image);
+  texFilter->SetInput( image );
+  texFilter->SetMaskImage( mask );
   texFilter->Update();
 
   texFilter->Print( std::cout );

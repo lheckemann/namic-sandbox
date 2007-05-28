@@ -280,7 +280,7 @@ SetMaskImage( const ImageType* image)
   this->ProcessObject::SetNthInput(1, 
                                    const_cast< ImageType* >( image ) );
 
-  m_GLCMGenerator->SetImageMask(image);
+  m_GLCMGenerator->SetMaskImage(image);
 }
 
 template< class TImage, class THistogramFrequencyContainer >
