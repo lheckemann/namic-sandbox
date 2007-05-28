@@ -93,8 +93,7 @@ namespace Statistics {
 * \sa MaskedScalarImageToGreyLevelCooccurrenceMatrixGenerator
 * \sa ScalarImageTextureCalculator
 *
-* Author: Zachary Pincus
-*/
+* Author: Zachary Pincus */
 
 template < class THistogram >
 class HistogramToTextureFeaturesFilter : public ProcessObject
