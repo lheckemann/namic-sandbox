@@ -46,12 +46,12 @@ ScalarImageToTextureFeaturesFilter()
   // {Energy, Entropy, InverseDifferenceMoment, Inertia, ClusterShade, ClusterProminence}
   FeatureNameVectorPointer requestedFeatures = FeatureNameVector::New(); 
   // can't directly set m_RequestedFeatures since it is const!
-  requestedFeatures->push_back(Energy);
-  requestedFeatures->push_back(Entropy);
-  requestedFeatures->push_back(InverseDifferenceMoment);
-  requestedFeatures->push_back(Inertia);
-  requestedFeatures->push_back(ClusterShade);
-  requestedFeatures->push_back(ClusterProminence);
+  requestedFeatures->push_back(TextureFeaturesFilterType::Energy);
+  requestedFeatures->push_back(TextureFeaturesFilterType::Entropy);
+  requestedFeatures->push_back(TextureFeaturesFilterType::InverseDifferenceMoment);
+  requestedFeatures->push_back(TextureFeaturesFilterType::Inertia);
+  requestedFeatures->push_back(TextureFeaturesFilterType::ClusterShade);
+  requestedFeatures->push_back(TextureFeaturesFilterType::ClusterProminence);
   this->SetRequestedFeatures(requestedFeatures);
   
   // Set the offset directions to their defaults: half of all the possible
