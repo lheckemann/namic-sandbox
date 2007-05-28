@@ -182,6 +182,20 @@ int itkScalarImageToTextureFeaturesFilterTest(int, char* [] )
 
   texFilter->Print( std::cout );
 
+  //Test GetInput
+  if ( texFilter->GetInput() != image )
+    {
+    std::cerr << "Error in GetInput() method " << std::endl;
+    passed = false; 
+    }
+
+  //Test GetMaskImage
+  if ( texFilter->GetMaskImage() != mask )
+    {
+    std::cerr << "Error in GetMaskImage() method " << std::endl;
+    passed = false; 
+    }
+
   TextureFilterType::FeatureValueVectorPointer means, stds;
   means = texFilter->GetFeatureMeans();
   stds = texFilter->GetFeatureStandardDeviations();

@@ -92,8 +92,6 @@ void
 ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer >::
 GenerateData(void)
 {
-  const ImageType *input = this->GetInput();
-
   if (m_FastCalculations) 
     {
     this->FastCompute();
