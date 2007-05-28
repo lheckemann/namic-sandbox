@@ -361,6 +361,22 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
     m_CoefficientImage[j] = m_WrappedImage[j];
     }
 
+    
+  /**
+     * Allocate memory for Jacobian and wrap into SpaceDimension number
+     * of ITK images
+   */
+    this->m_Jacobian.set_size( SpaceDimension, this->GetNumberOfParameters() );
+    this->m_Jacobian.Fill( NumericTraits<JacobianPixelType>::Zero );
+    m_LastJacobianIndex = m_ValidRegion.GetIndex();
+    JacobianPixelType * jacobianDataPointer = this->m_Jacobian.data_block();
+
+    for ( unsigned int j = 0; j < SpaceDimension; j++ )
+    {
+      m_JacobianImage[j]->GetPixelContainer()->
+          SetImportPointer( jacobianDataPointer, numberOfPixels );
+      jacobianDataPointer += this->GetNumberOfParameters() + numberOfPixels;
+    }
 }
 
 

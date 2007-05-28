@@ -22,6 +22,7 @@
 
 #include "itkAffineTransform.h"
 #include "UserBSplineDeformableTransform.h"
+#include "itkBSplineDeformableTransform.h"
 #include "itkTransformFactory.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 
@@ -33,7 +34,7 @@
 #include <fstream>
 
 //Define the global types for image type
-#define PixelType unsigned char
+#define PixelType unsigned short
 #define InternalPixelType float
 #define Dimension 3
 
@@ -129,14 +130,15 @@ public:
   }
   inline PixelType operator()( const std::vector< PixelType > pixelStack)
   {
+    PixelType count = 0;
     for(int i=0; i<pixelStack.size(); i++)
     {
-      if( pixelStack[i] != m_Number)
+      if( pixelStack[i] == m_Number)
       {
-         return 0;
+        count++;
       }
     }
-    return 1;
+    return count;
   }
 
   PixelType m_Number;
@@ -161,7 +163,7 @@ public:
     {
       if( pixelStack[i] == m_Number)
       {
-         return 1;
+        return pixelStack.size();
       }
     }
     return 0;
@@ -222,7 +224,6 @@ int main( int argc, char * argv[] )
   typedef itk::ImageFileWriter< ImageType >  WriterType;
 
   // Read the input labels
-  cout << "Reading Images" << endl;
   std::vector< ReaderType::Pointer > labelReaderArray(N);
   for(int i=0; i<N; i++)
   {
@@ -257,7 +258,7 @@ int main( int argc, char * argv[] )
     {
       for( int j=0; j<N; j++)
       {
-        transformFileNames[i][j] = outputFolder + "Affine/TransformFiles/" + fileNames[i];
+        transformFileNames[i][j] = outputFolder + "Affine/TransformFiles/" + fileNames[j];
         transformFileNames[i][j].replace(transformFileNames[i][j].size()-3, 3, "txt" );
       }
       transformNames[i] = "Affine";
@@ -265,12 +266,13 @@ int main( int argc, char * argv[] )
     else // generate bspline names
     {
       ostringstream bsplineFolderName;
-      bsplineFolderName << "Bspline_Grid_" << (int) pow((double)bsplineInitialGridSize,i);
+      bsplineFolderName << "Bspline_Grid_" << (int) bsplineInitialGridSize * pow(2.0,i-1);
       transformNames[i] = bsplineFolderName.str();
       for( int j=0; j<N; j++)
       {
-        transformFileNames[i][j] = outputFolder + bsplineFolderName.str() + "/TransformFiles/" + fileNames[i];
+        transformFileNames[i][j] = outputFolder + bsplineFolderName.str() + "/TransformFiles/" + fileNames[j];
         transformFileNames[i][j].replace(transformFileNames[i][j].size()-3, 3, "txt" );
+
       }
     }
 
@@ -284,86 +286,138 @@ int main( int argc, char * argv[] )
   for(int i=0; i<transformLevels; i++)
   {
     // typedef for transformation types
-    typedef itk::Transform< double, Dimension >  TransformType;
+    typedef itk::Transform< double, Dimension,Dimension >  TransformType;
     typedef itk::AffineTransform< double, Dimension >  AffineTransformType;
     typedef itk::UserBSplineDeformableTransform< double,
                                              Dimension,
                                              3 >     BSplineTransformType;
 
-    std::vector< TransformType::Pointer >   transformArray(N);
 
+    std::vector< TransformType::Pointer >   transformArray(N);
+    std::vector< BSplineTransformType::Pointer >   bsplineTransformArray(N);
+    std::vector< AffineTransformType::Pointer >    affineTransformArray(N);
+
+    typedef BSplineTransformType::ParametersType BsplineParametersType;
+    std::vector< BsplineParametersType > bsplineParametersArray(N);
+
+    // Resample the labels according to transforms
+    typedef itk::ResampleImageFilter<ImageType,ImageType> ResampleFilterType;
+    std::vector<ResampleFilterType::Pointer> resampleArray(N);
+
+    
     for(int j=0; j<N; j++)
     {
       // Typedef for reader
       typedef itk::TransformFileReader    TransformFileReader;
       typedef TransformFileReader::TransformListType   TransformListType;
       
-      TransformFileReader::Pointer        transformFileReader = TransformFileReader::New();
-      transformFileReader->SetFileName(transformFileNames[i][j].c_str());
 
+      cout << "Reading Transform" << transformFileNames[i][j] << endl;
+
+      // Create reader factories
+      itk::TransformFactoryBase::Pointer f = itk::TransformFactoryBase::GetFactory();
+      affineTransformArray[j] = AffineTransformType::New();
+      f->RegisterTransform(affineTransformArray[j]->GetTransformTypeAsString().c_str(),
+                           affineTransformArray[j]->GetTransformTypeAsString().c_str(),
+                           affineTransformArray[j]->GetTransformTypeAsString().c_str(),
+                           1,
+                           itk::CreateObjectFunction<AffineTransformType>::New());
+
+      bsplineTransformArray[j] = BSplineTransformType::New();
+      f->RegisterTransform(bsplineTransformArray[j]->GetTransformTypeAsString().c_str(),
+                           bsplineTransformArray[j]->GetTransformTypeAsString().c_str(),
+                           bsplineTransformArray[j]->GetTransformTypeAsString().c_str(),
+                           1,
+                           itk::CreateObjectFunction<BSplineTransformType>::New());
+      
       if( i == 0)
       {
+        TransformFileReader::Pointer        transformFileReader = TransformFileReader::New();
+        transformFileReader->SetFileName(transformFileNames[i][j].c_str());
+        
         // Create the transforms
         transformFileReader->Update();
         TransformListType*   transformList = transformFileReader->GetTransformList();
         
-        AffineTransformType::Pointer  affineTransform = AffineTransformType::New();
-        affineTransform->SetFixedParameters(transformList->front()->GetFixedParameters());
-        affineTransform->SetParameters(transformList->front()->GetParameters());
-        transformArray[j] = affineTransform;
+        affineTransformArray[j]->SetFixedParameters(transformList->front()->GetFixedParameters());
+        affineTransformArray[j]->SetParameters(transformList->front()->GetParameters());
+        transformArray[j] = affineTransformArray[j];
       }
       else
       {
 
+        
         // Get Affine transform
         TransformFileReader::Pointer        affineTransformFileReader = TransformFileReader::New();
         affineTransformFileReader->SetFileName(transformFileNames[0][j].c_str());
-
         affineTransformFileReader->Update();
         TransformListType*   affineTransformList = affineTransformFileReader->GetTransformList();
 
         
-        AffineTransformType::Pointer  affineTransform = AffineTransformType::New();
-        affineTransform->SetFixedParameters(affineTransformList->front()->GetFixedParameters());
-        affineTransform->SetParameters(affineTransformList->front()->GetParameters());
+        affineTransformArray[j]->SetFixedParameters(affineTransformList->front()->GetFixedParameters());
+        affineTransformArray[j]->SetParameters(affineTransformList->front()->GetParameters());
         
 
-        // Get BSpline transform
-        itk::TransformFactoryBase::Pointer f = itk::TransformFactoryBase::GetFactory();
-        BSplineTransformType::Pointer  bsplineTransform = BSplineTransformType::New();
-        f->RegisterTransform(bsplineTransform->GetTransformTypeAsString().c_str(),
-                             bsplineTransform->GetTransformTypeAsString().c_str(),
-                             bsplineTransform->GetTransformTypeAsString().c_str(),
-                             1,
-                             itk::CreateObjectFunction<BSplineTransformType>::New());
+        
+        TransformFileReader::Pointer        transformFileReader = TransformFileReader::New();
+        transformFileReader->SetFileName(transformFileNames[i][j].c_str());
         transformFileReader->Update();
         TransformListType*   transformList = transformFileReader->GetTransformList();
-        bsplineTransform->SetFixedParameters(transformList->front()->GetFixedParameters());
-        bsplineTransform->SetParameters(transformList->front()->GetParameters());
-        bsplineTransform->SetBulkTransform(affineTransform);
-        transformArray[j] = bsplineTransform;
+        
+        bsplineTransformArray[j]->SetFixedParameters(transformList->front()->GetFixedParameters());
+        
+        bsplineParametersArray[j].set_size(bsplineTransformArray[j]->GetNumberOfParameters());
+        bsplineTransformArray[j]->SetParameters(bsplineParametersArray[j]);
+        bsplineTransformArray[j]->SetParametersByValue(transformList->front()->GetParameters());
+        
+        bsplineTransformArray[j]->SetBulkTransform(affineTransformArray[j]);
+
+        transformArray[j] = bsplineTransformArray[j];
+
       }
-    }
 
 
-    // Resample the labels according to transforms
-    typedef itk::ResampleImageFilter<ImageType,ImageType> ResampleFilterType;
-    std::vector< ResampleFilterType::Pointer> resampleArray(N);
-
-    typedef itk::NearestNeighborInterpolateImageFunction< ImageType, double >  InterpolatorType;
-
-    for(int j=0; j<N; j++)
-    {
-      InterpolatorType::Pointer interpolator = InterpolatorType::New();
       resampleArray[j] = ResampleFilterType::New();
+
+      typedef itk::NearestNeighborInterpolateImageFunction< ImageType, double >  InterpolatorType;
+      InterpolatorType::Pointer interpolator = InterpolatorType::New();
       resampleArray[j]->SetInterpolator( interpolator );
       resampleArray[j]->SetTransform( transformArray[j] );
-      resampleArray[j]->SetInput( labelReaderArray[j]->GetOutput() );
-      resampleArray[j]->SetSize(    labelReaderArray[j]->GetOutput()->GetLargestPossibleRegion().GetSize() );
-      resampleArray[j]->SetOutputOrigin(  labelReaderArray[j]->GetOutput()->GetOrigin() );
-      resampleArray[j]->SetOutputSpacing( labelReaderArray[j]->GetOutput()->GetSpacing() );
-      resampleArray[j]->SetOutputDirection( labelReaderArray[j]->GetOutput()->GetDirection());
+      
+      labelReaderArray[j]->Update();
+      
+      ImageType::Pointer imagePointer = labelReaderArray[j]->GetOutput();
+      ResampleFilterType::OriginPointType  origin = labelReaderArray[j]->GetOutput()->GetOrigin();
+      origin[0] = 111.5625;
+      origin[1] = 111.5625;
+      origin[2] = -138.0;
+      imagePointer->SetOrigin(origin);
+
+      resampleArray[j]->SetInput( imagePointer );
+      resampleArray[j]->SetSize(    imagePointer->GetLargestPossibleRegion().GetSize() );
+      resampleArray[j]->SetOutputOrigin(  imagePointer->GetOrigin() );
+      resampleArray[j]->SetOutputSpacing( imagePointer->GetSpacing() );
+      resampleArray[j]->SetOutputDirection( imagePointer->GetDirection());
       resampleArray[j]->SetDefaultPixelValue( 0 );
+      
+      cout << "Updating " << labelFileFolder + labelFileNames[j] << endl;
+      //for(int k=0; k<100; k++)
+      //{
+      //  cout << transformArray[j]->GetParameters()[k] << " " ;
+      //}
+      //cout << transformArray[j]->GetFixedParameters() << endl;
+      
+      resampleArray[j]->Update();
+
+      WriterType::Pointer writer = WriterType::New();
+      writer->SetFileName("temp3.hdr");
+      writer->SetImageIO(labelReaderArray[j]->GetImageIO());
+      writer->SetInput(resampleArray[j]->GetOutput());
+      if(j==0 && i==1)
+      {
+        writer->Update();
+      }
+      
     }
 
     // Compute the dice measures
