@@ -157,6 +157,9 @@ int itkScalarImageToTextureFeaturesFilterTest(int, char* [] )
   texFilter->FastCalculationsOff();
   texFilter->SetInput(image);
   texFilter->Update();
+
+  texFilter->Print( std::cout );
+
   TextureFilterType::FeatureValueVectorPointer means, stds;
   means = texFilter->GetFeatureMeans();
   stds = texFilter->GetFeatureStandardDeviations();
