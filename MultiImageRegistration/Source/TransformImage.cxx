@@ -69,6 +69,14 @@ int main( int argc, char * argv[] )
                        bsplineTransform->GetTransformTypeAsString().c_str(),
                        1,
                        itk::CreateObjectFunction<BSplineTransformType>::New());
+  
+  AffineTransformType::Pointer  affineTransform = AffineTransformType::New();
+  f->RegisterTransform(affineTransform->GetTransformTypeAsString().c_str(),
+                       affineTransform->GetTransformTypeAsString().c_str(),
+                       affineTransform->GetTransformTypeAsString().c_str(),
+                       1,
+                       itk::CreateObjectFunction<AffineTransformType>::New());
+  
   // Typedef for reader
   typedef itk::TransformFileReader    TransformFileReader;
 
@@ -90,8 +98,8 @@ int main( int argc, char * argv[] )
     if(type=="bspline")
     {
       BSplineTransformType::Pointer  bsplineTransform = BSplineTransformType::New();
-      bsplineTransform->SetParameters((*it)->GetParameters());
       bsplineTransform->SetFixedParameters((*it)->GetFixedParameters());
+      bsplineTransform->SetParameters((*it)->GetParameters());
       transform = bsplineTransform;
     }
     else
@@ -132,12 +140,19 @@ int main( int argc, char * argv[] )
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
   resample->SetInterpolator( interpolator );
   resample->SetTransform( transform );
-  
-  resample->SetInput( reader->GetOutput() );
-  resample->SetSize(    reader->GetOutput()->GetLargestPossibleRegion().GetSize() );
-  resample->SetOutputOrigin(  reader->GetOutput()->GetOrigin() );
-  resample->SetOutputSpacing( reader->GetOutput()->GetSpacing() );
-  resample->SetOutputDirection( reader->GetOutput()->GetDirection());
+
+  ImageType::Pointer imagePointer = reader->GetOutput();
+  ResampleFilterType::OriginPointType  origin = reader->GetOutput()->GetOrigin();
+  origin[0] = 111.5625;
+  origin[1] = 111.5625;
+  origin[2] = -138.0;
+  imagePointer->SetOrigin(origin);
+  resample->SetInput( imagePointer );
+  resample->SetSize(    imagePointer->GetLargestPossibleRegion().GetSize() );
+
+  resample->SetOutputOrigin(  origin );
+  resample->SetOutputSpacing( imagePointer->GetSpacing() );
+  resample->SetOutputDirection( imagePointer->GetDirection());
   resample->SetDefaultPixelValue( 0 );
 
 
