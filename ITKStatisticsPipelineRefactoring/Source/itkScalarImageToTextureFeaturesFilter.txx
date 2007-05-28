@@ -70,6 +70,7 @@ ScalarImageToTextureFeaturesFilter()
   for (unsigned int d=0; d < centerIndex; d++)
     {
     offset = hood.GetOffset(d);
+    std::cout << "Add the offset: " << offset << std::endl;
     offsets->push_back(offset);
     }
   this->SetOffsets(offsets);
@@ -213,12 +214,9 @@ void
 ScalarImageToTextureFeaturesFilter< TImage, THistogramFrequencyContainer >::
 FastCompute(void)
 {
-  // For each offset, calculate each feature
-  typename OffsetVector::ConstIterator offsetIt;
-  for(offsetIt = m_Offsets->Begin(); offsetIt != m_Offsets->End(); offsetIt++)
-    {
-    m_GLCMGenerator->SetOffset(offsetIt.Value());
-    }
+  // Compute the feature for the first offset
+  typename OffsetVector::ConstIterator offsetIt = m_Offsets->Begin();
+  m_GLCMGenerator->SetOffset(offsetIt.Value());
   
   m_GLCMGenerator->Update();
   typename TextureFeaturesFilterType::Pointer glcmCalc = TextureFeaturesFilterType::New();
