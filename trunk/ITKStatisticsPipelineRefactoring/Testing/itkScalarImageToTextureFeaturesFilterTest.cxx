@@ -138,7 +138,23 @@ int itkScalarImageToTextureFeaturesFilterTest(int, char* [] )
     {
     passed = false;
     }
-  
+
+   //Test the Use_PixelContainer boolean
+  texFilter->SetFastCalculations( false );
+  if ( texFilter->GetFastCalculations() != false )
+    {
+    std::cerr << "Error in Set/Get FastCalculations methods" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  texFilter->FastCalculationsOn(  );
+  if ( texFilter->GetFastCalculations() != true )
+    {
+    std::cerr << "Error in Set/Get FastCalculationsOn method" << std::endl;
+    return EXIT_FAILURE;
+    }
+ 
+  texFilter->FastCalculationsOff();
   texFilter->SetInput(image);
   texFilter->Update();
   TextureFilterType::FeatureValueVectorPointer means, stds;
@@ -167,6 +183,74 @@ int itkScalarImageToTextureFeaturesFilterTest(int, char* [] )
       {
       std::cout << "Error. Deiviation for feature " << counter << " is " << sIt.Value() <<
       ", expected " << expectedDeviations[counter] << "." << std::endl;
+      passed = false;
+      }
+    }
+
+  //Rerun the feature generation with fast calculations on 
+  texFilter->FastCalculationsOn();
+  texFilter->Update();
+  means = texFilter->GetFeatureMeans();
+  stds = texFilter->GetFeatureStandardDeviations();
+  
+  double expectedMeans2[6] = {0.5, 1.0, 0.5, 1.0, 0.0, 0.0};
+  double expectedDeviations2[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+  for (counter = 0, mIt = means->Begin(); mIt != means->End(); ++mIt, counter++)
+    {
+    if ( vnl_math_abs(expectedMeans2[counter] - mIt.Value()) > 0.0001 ) 
+      {
+      std::cout << "Error. Mean for feature " << counter << " is " << mIt.Value() <<
+      ", expected " << expectedMeans2[counter] << "." << std::endl;
+      passed = false;
+      }
+    }
+
+  for (counter = 0, sIt = stds->Begin(); sIt != stds->End(); ++sIt, counter ++)
+    {
+    if ( vnl_math_abs(expectedDeviations2[counter] - sIt.Value() ) > 0.0001 )
+      {
+      std::cout << "Error. Deiviation for feature " << counter << " is " << sIt.Value() <<
+      ", expected " << expectedDeviations2[counter] << "." << std::endl;
+      passed = false;
+      }
+    }
+ 
+  //Rerun the feature generation setting an offset 
+  TextureFilterType::OffsetType   offset;
+  offset[0] = -1;
+  offset[1] =  -1;
+
+  TextureFilterType::OffsetVectorPointer   offsets;
+
+  offsets = TextureFilterType::OffsetVector::New();
+ 
+  offsets->push_back( offset );
+  texFilter->SetOffsets( offsets );
+  texFilter->Update();
+
+  means = texFilter->GetFeatureMeans();
+  stds = texFilter->GetFeatureStandardDeviations();
+  
+  double expectedMeans3[6] = {0.5, 1.0, 0.5, 1.0, 0.0, 0.0};
+  double expectedDeviations3[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+  for (counter = 0, mIt = means->Begin(); mIt != means->End(); ++mIt, counter++)
+    {
+    if ( vnl_math_abs(expectedMeans3[counter] - mIt.Value()) > 0.0001 ) 
+      {
+      std::cout << "Error. Mean for feature " << counter << " is " << mIt.Value() <<
+      ", expected " << expectedMeans3[counter] << "." << std::endl;
+      passed = false;
+      }
+    }
+
+  for (counter = 0, sIt = stds->Begin(); sIt != stds->End(); ++sIt, counter ++)
+    {
+    if ( vnl_math_abs(expectedDeviations3[counter] - sIt.Value() ) > 0.0001 )
+      {
+      std::cout << "Error. Deiviation for feature " << counter << " is " << sIt.Value() <<
+      ", expected " << expectedDeviations3[counter] << "." << std::endl;
       passed = false;
       }
     }

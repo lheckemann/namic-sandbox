@@ -44,7 +44,7 @@ namespace Statistics {
  * direction and then averaged afterward, so it is possible to access the standard
  * deviations of the texture features. These values give a clue as to texture 
  * anisotropy. However, doing this is much more work, because it involved computing
- * one GLCM for each offset given. To compute a single GLCM for all of the offsets,
+ * one GLCM for each offset given. To compute a single GLCM using the first offset ,
  * call FastCalculationsOn(). If this is called, then the texture standard deviations
  * will not be computed (and will be set to zero), but texture computation will
  * be much faster.
