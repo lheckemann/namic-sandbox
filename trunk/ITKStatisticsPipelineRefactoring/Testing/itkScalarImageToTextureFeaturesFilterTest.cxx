@@ -165,13 +165,15 @@ int itkScalarImageToTextureFeaturesFilterTest(int, char* [] )
   double expectedDeviations[6] = {0.00866027, 0.0125788, 0.216506351, 0.433012702, 
     0.166277, 0.465575};
   
-  TextureFilterType::FeatureValueVector::ConstIterator mIt, sIt;
+  TextureFilterType::FeatureValueVector::ConstIterator mIt;
+  TextureFilterType::FeatureValueVector::ConstIterator sIt;
+
   int counter;
   for (counter = 0, mIt = means->Begin(); mIt != means->End(); ++mIt, counter++)
     {
     if ( vnl_math_abs(expectedMeans[counter] - mIt.Value()) > 0.0001 ) 
       {
-      std::cout << "Error. Mean for feature " << counter << " is " << mIt.Value() <<
+      std::cerr << "Error. Mean for feature " << counter << " is " << mIt.Value() <<
       ", expected " << expectedMeans[counter] << "." << std::endl;
       passed = false;
       }
@@ -181,7 +183,7 @@ int itkScalarImageToTextureFeaturesFilterTest(int, char* [] )
     {
     if ( vnl_math_abs(expectedDeviations[counter] - sIt.Value()) > 0.0001 )
       {
-      std::cout << "Error. Deiviation for feature " << counter << " is " << sIt.Value() <<
+      std::cerr << "Error. Deiviation for feature " << counter << " is " << sIt.Value() <<
       ", expected " << expectedDeviations[counter] << "." << std::endl;
       passed = false;
       }
@@ -200,7 +202,7 @@ int itkScalarImageToTextureFeaturesFilterTest(int, char* [] )
     {
     if ( vnl_math_abs(expectedMeans2[counter] - mIt.Value()) > 0.0001 ) 
       {
-      std::cout << "Error. Mean for feature " << counter << " is " << mIt.Value() <<
+      std::cerr << "Error. Mean for feature " << counter << " is " << mIt.Value() <<
       ", expected " << expectedMeans2[counter] << "." << std::endl;
       passed = false;
       }
@@ -210,7 +212,7 @@ int itkScalarImageToTextureFeaturesFilterTest(int, char* [] )
     {
     if ( vnl_math_abs(expectedDeviations2[counter] - sIt.Value() ) > 0.0001 )
       {
-      std::cout << "Error. Deiviation for feature " << counter << " is " << sIt.Value() <<
+      std::cerr << "Error. Deiviation for feature " << counter << " is " << sIt.Value() <<
       ", expected " << expectedDeviations2[counter] << "." << std::endl;
       passed = false;
       }
@@ -227,6 +229,21 @@ int itkScalarImageToTextureFeaturesFilterTest(int, char* [] )
  
   offsets->push_back( offset );
   texFilter->SetOffsets( offsets );
+
+  const TextureFilterType::OffsetVector* offsets2 = texFilter->GetOffsets(); 
+
+  TextureFilterType::OffsetVector::ConstIterator vIt;
+  TextureFilterType::OffsetVector::ConstIterator vIt2;
+
+  for (vIt = offsets->Begin(), vIt2 = offsets2->Begin(); vIt != offsets->End(); ++vIt,++vIt2)
+    {
+    if ( vIt.Value() != vIt2.Value() )
+      {
+      std::cerr << "Offsets not properly set" << std::endl;
+      passed = false;
+      }
+    }
+
   texFilter->Update();
 
   means = texFilter->GetFeatureMeans();
@@ -239,7 +256,7 @@ int itkScalarImageToTextureFeaturesFilterTest(int, char* [] )
     {
     if ( vnl_math_abs(expectedMeans3[counter] - mIt.Value()) > 0.0001 ) 
       {
-      std::cout << "Error. Mean for feature " << counter << " is " << mIt.Value() <<
+      std::cerr << "Error. Mean for feature " << counter << " is " << mIt.Value() <<
       ", expected " << expectedMeans3[counter] << "." << std::endl;
       passed = false;
       }
@@ -249,12 +266,41 @@ int itkScalarImageToTextureFeaturesFilterTest(int, char* [] )
     {
     if ( vnl_math_abs(expectedDeviations3[counter] - sIt.Value() ) > 0.0001 )
       {
-      std::cout << "Error. Deiviation for feature " << counter << " is " << sIt.Value() <<
+      std::cerr << "Error. Deiviation for feature " << counter << " is " << sIt.Value() <<
       ", expected " << expectedDeviations3[counter] << "." << std::endl;
       passed = false;
       }
     }
-  
+
+  //Test Set/Get Requested features 
+  typedef TextureFilterType::TextureFeaturesFilterType   TextureFeaturesFilterType;
+
+  TextureFilterType::FeatureNameVectorPointer requestedFeatures = 
+                                              TextureFilterType::FeatureNameVector::New(); 
+
+  requestedFeatures->push_back(TextureFeaturesFilterType::Inertia);
+  requestedFeatures->push_back(TextureFeaturesFilterType::ClusterShade);
+  texFilter->SetRequestedFeatures(requestedFeatures);
+
+  const TextureFilterType::FeatureNameVector* requestedFeatures2 =
+                                              texFilter->GetRequestedFeatures(); 
+
+  TextureFilterType::FeatureNameVector::ConstIterator fIt;
+
+  fIt = requestedFeatures2->Begin();
+  if ( ! fIt.Value() == TextureFeaturesFilterType::Inertia )
+    {
+    std::cerr << "Requested feature name not correctly set" << std::endl;
+    passed = false;
+    }
+  fIt++;
+
+  if ( ! fIt.Value() == TextureFeaturesFilterType::ClusterShade )
+    {
+    std::cerr << "Requested feature name not correctly set" << std::endl;
+    passed = false;
+    }
+
   if (!passed)
     {
     std::cerr << "Test failed" << std::endl;
