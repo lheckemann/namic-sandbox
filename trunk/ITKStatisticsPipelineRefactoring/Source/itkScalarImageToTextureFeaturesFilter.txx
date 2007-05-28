@@ -94,11 +94,6 @@ GenerateData(void)
 {
   const ImageType *input = this->GetInput();
 
-  if( input == NULL )
-    {
-    itkExceptionMacro("Input image has not been set yet");
-    }
-
   if (m_FastCalculations) 
     {
     this->FastCompute();
