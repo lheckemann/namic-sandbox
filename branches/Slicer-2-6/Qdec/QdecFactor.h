@@ -32,6 +32,7 @@
 
 #include <vector>
 #include <string>
+#include <cassert>
 
 using namespace std;
 
@@ -39,18 +40,18 @@ class QdecFactor
 {
 public:
 
-  static const int QdecFactor::qdecDiscreteFactorType = 1;
-  static const int QdecFactor::qdecContinuousFactorType = 2;
+  static const int qdecDiscreteFactorType = 1;
+  static const int qdecContinuousFactorType = 2;
 
   // Constructors/Destructors
   //
 
-  QdecFactor::QdecFactor ( const char* isName,
+  QdecFactor ( const char* isName,
                            int iType /* ==1 discrete or ==2 continuous */ );
-  QdecFactor::QdecFactor ( const char* isName,
+  QdecFactor ( const char* isName,
                            int iType, // ==1 discrete
                            const char* iValue );
-  QdecFactor::QdecFactor ( const char* isName,
+  QdecFactor ( const char* isName,
                            int iType, // ==2 continuous
                            double iValue );
 

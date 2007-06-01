@@ -32,6 +32,7 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <cassert>
 
 #include "QdecContrast.h"
 

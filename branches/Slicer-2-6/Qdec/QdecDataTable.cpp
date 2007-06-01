@@ -31,6 +31,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <cassert>
 
 #include "QdecDataTable.h"
 #include "QdecUtilities.h"
