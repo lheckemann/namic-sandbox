@@ -43,6 +43,7 @@ SUBDIRS(
   Distributions
   SlicerIO
   MGHImageIOConverter
+  Qdec
   )
 
 # Add the testing directories
