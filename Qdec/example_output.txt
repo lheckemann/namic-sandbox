@@ -1,0 +1,175 @@
+./qdecCmd /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec/qdec.table.dat diagnosis none Age none thickness lh 10 
+
+Loading data table /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec/qdec.table.dat...
+Number of columns:  24
+fsid column:        1
+Number of factors:  23
+Number of subjects: 27
+Reading discrete factor levels from config file /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec/gender.levels...'male','female', done.
+Reading discrete factor levels from config file /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec/diagnosis.levels...'ASD','CON', done.
+
+Data table /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec/qdec.table.dat loaded.
+Input table: /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec/qdec.table.dat
+Subject #, Subject ID, Factor Data...
+  0 aut_020805AM male 49.000000 ASD 122.000000 9.000000 2.000000 11.000000 0.000000 0.000000 0.000000 7338.000000 3339.000000 6303.000000 1876.000000 1580.000000 551.000000 7385.000000 5738.000000 1951.000000 4501.000000 1553.000000 702.000000 3534.000000 
+  1 aut_010416RB male 33.000000 ASD 134.000000 6.000000 2.000000 8.000000 14.000000 2.000000 24.000000 7812.000000 3657.000000 5963.000000 1847.000000 1800.000000 867.000000 7309.000000 5758.000000 1931.000000 4585.000000 1744.000000 591.000000 3704.000000 
+  2 aut_010514SS male 40.000000 ASD 122.000000 6.000000 2.000000 8.000000 12.000000 2.000000 15.000000 6531.000000 3445.000000 5683.000000 1543.000000 1950.000000 625.000000 6467.000000 5523.000000 1707.000000 4196.000000 1729.000000 477.000000 3510.000000 
+  3 aut_020327PL male 39.000000 ASD 79.000000 5.000000 3.000000 8.000000 7.000000 5.000000 15.000000 8924.000000 4174.000000 5883.000000 1702.000000 1953.000000 655.000000 8536.000000 5600.000000 1691.000000 4463.000000 1854.000000 844.000000 4008.000000 
+  4 aut_000924JB male 18.000000 ASD 119.000000 13.000000 7.000000 20.000000 20.000000 11.000000 27.000000 6743.000000 2749.000000 6037.000000 1529.000000 1478.000000 649.000000 6798.000000 5154.000000 1401.000000 4446.000000 1684.000000 533.000000 2795.000000 
+  5 aut_020701JR male 51.000000 ASD 111.000000 6.000000 2.000000 8.000000 0.000000 0.000000 0.000000 6408.000000 3710.000000 5748.000000 1826.000000 1984.000000 770.000000 6207.000000 5565.000000 1916.000000 3984.000000 2092.000000 742.000000 3811.000000 
+  6 aut_010820JC male 53.000000 ASD 106.000000 8.000000 3.000000 11.000000 13.000000 2.000000 12.000000 6011.000000 4102.000000 5934.000000 1899.000000 1688.000000 744.000000 5910.000000 5476.000000 1727.000000 3963.000000 1695.000000 541.000000 4201.000000 
+  7 aut_001009DS male 40.000000 ASD 119.000000 5.000000 1.000000 6.000000 7.000000 2.000000 15.000000 7612.000000 4308.000000 7284.000000 2178.000000 1791.000000 946.000000 7454.000000 7246.000000 2317.000000 4383.000000 1965.000000 645.000000 4337.000000 
+  8 aut_020417RF male 29.000000 ASD 127.000000 5.000000 3.000000 8.000000 8.000000 6.000000 16.000000 7913.000000 4413.000000 6452.000000 2314.000000 1712.000000 828.000000 7673.000000 5970.000000 2407.000000 4100.000000 1795.000000 566.000000 4505.000000 
+  9 PD-ASD-040629 male 38.000000 ASD 131.000000 10.000000 3.000000 13.000000 16.000000 8.000000 22.000000 7546.000000 3736.000000 5602.000000 1835.000000 1906.000000 831.000000 6921.000000 5331.000000 2391.000000 5248.000000 1993.000000 767.000000 4037.000000 
+ 10 aut_010730AB male 27.000000 ASD 105.000000 8.000000 2.000000 10.000000 14.000000 6.000000 26.000000 7092.000000 3874.000000 6131.000000 1934.000000 1517.000000 931.000000 7475.000000 6246.000000 1764.000000 4000.000000 1771.000000 762.000000 3720.000000 
+ 11 aut_020405RD male 24.000000 ASD 80.000000 3.000000 3.000000 6.000000 10.000000 2.000000 14.000000 7663.000000 4345.000000 6147.000000 1849.000000 2092.000000 809.000000 7496.000000 5807.000000 1952.000000 3892.000000 1902.000000 500.000000 4676.000000 
+ 12 aut_010514EF male 18.000000 ASD 117.000000 5.000000 1.000000 6.000000 7.000000 5.000000 15.000000 7850.000000 3821.000000 5242.000000 1849.000000 1630.000000 701.000000 7854.000000 5073.000000 1911.000000 3874.000000 1484.000000 461.000000 3845.000000 
+ 13 aut_001009FR.retry male 27.000000 ASD 119.000000 6.000000 2.000000 8.000000 10.000000 8.000000 18.000000 7454.000000 3643.000000 6530.000000 1892.000000 1726.000000 717.000000 7213.000000 6160.000000 1983.000000 4546.000000 2083.000000 735.000000 4002.000000 
+ 14 con_020724PW male 42.000000 CON 126.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 7009.000000 4606.000000 7076.000000 2091.000000 1801.000000 725.000000 7132.000000 6539.000000 2081.000000 4439.000000 1964.000000 647.000000 4687.000000 
+ 15 con_011217PM male 36.000000 CON 118.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 7406.000000 4099.000000 6562.000000 2176.000000 1590.000000 581.000000 8146.000000 5933.000000 1966.000000 3846.000000 1536.000000 472.000000 4298.000000 
+ 16 con_010219TH male 36.000000 CON 126.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 6782.000000 4123.000000 6027.000000 1935.000000 1947.000000 528.000000 7336.000000 5575.000000 1971.000000 4184.000000 1725.000000 524.000000 3906.000000 
+ 17 con_010819CN male 24.000000 CON 117.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 6233.000000 2817.000000 5811.000000 1769.000000 1239.000000 556.000000 6806.000000 5842.000000 1874.000000 3784.000000 1496.000000 531.000000 2832.000000 
+ 18 con_011029RM male 43.000000 CON 119.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 8227.000000 3264.000000 6737.000000 2298.000000 1789.000000 850.000000 8188.000000 6678.000000 2339.000000 4559.000000 2005.000000 639.000000 3511.000000 
+ 19 con_020720RR male 47.000000 CON 95.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 6319.000000 3133.000000 5241.000000 1681.000000 1569.000000 730.000000 6274.000000 5199.000000 1798.000000 4016.000000 1721.000000 598.000000 2811.000000 
+ 20 con_020412BG male 26.000000 CON 110.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 7190.000000 4135.000000 6458.000000 2053.000000 1603.000000 728.000000 7252.000000 6024.000000 2098.000000 4192.000000 1919.000000 550.000000 4523.000000 
+ 21 con_011008TS male 25.000000 CON 117.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 8762.000000 3248.000000 6315.000000 2172.000000 1894.000000 771.000000 8305.000000 5889.000000 2292.000000 4615.000000 2051.000000 630.000000 3298.000000 
+ 22 con_010806JR male 27.000000 CON 129.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 7808.000000 5126.000000 6460.000000 1870.000000 1587.000000 917.000000 7489.000000 6440.000000 2065.000000 3915.000000 1686.000000 748.000000 5429.000000 
+ 23 con_010611JL male 27.000000 CON 120.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 8344.000000 4035.000000 5830.000000 1957.000000 1716.000000 714.000000 7856.000000 5706.000000 1927.000000 4379.000000 1749.000000 502.000000 4081.000000 
+ 24 con_020107AD male 20.000000 CON 104.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 6812.000000 3649.000000 6019.000000 1936.000000 1839.000000 727.000000 6456.000000 5557.000000 2090.000000 3605.000000 1855.000000 647.000000 3789.000000 
+ 25 con_010815TB male 24.000000 CON 108.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 7022.000000 4478.000000 6392.000000 1847.000000 1470.000000 952.000000 6881.000000 6220.000000 1992.000000 4151.000000 1641.000000 762.000000 4560.000000 
+ 26 con_010625NS male 20.000000 CON 127.000000 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000 9108.000000 4533.000000 7361.000000 2357.000000 1471.000000 663.000000 9716.000000 6513.000000 2452.000000 4740.000000 1609.000000 586.000000 4675.000000 
+1  gender  discrete 2
+    1  male
+    2  female
+2  Age  continuous 0
+3  diagnosis  discrete 2
+    1  ASD
+    2  CON
+4  IQ  continuous 0
+5  ADOSsocial  continuous 0
+6  ADOScom  continuous 0
+7  ADOStot  continuous 0
+8  ADIcom  continuous 0
+9  ADIrep  continuous 0
+10  ADIsoc  continuous 0
+11  Left-Thalamus-Proper  continuous 0
+12  Left-Caudate  continuous 0
+13  Left-Putamen  continuous 0
+14  Left-Pallidum  continuous 0
+15  Left-Amygdala  continuous 0
+16  Left-Accumbens-area  continuous 0
+17  Right-Thalamus-Proper  continuous 0
+18  Right-Putamen  continuous 0
+19  Right-Pallidum  continuous 0
+20  Right-Hippocampus  continuous 0
+21  Right-Amygdala  continuous 0
+22  Right-Accumbens-area  continuous 0
+23  Right-Caudate  continuous 0
+Continuous Factors:                  Mean:      StdDev:
+
+                                 Age 32.704    10.443
+                                 IQ  115.074   13.677
+                         ADOSsocial  3.519      3.906
+                            ADOScom  1.333      1.664
+                            ADOStot  4.852      5.433
+                             ADIcom  5.111      6.405
+                             ADIrep  2.185      3.175
+                             ADIsoc  8.111      9.823
+               Left-Thalamus-Proper  7404.407   818.220
+                       Left-Caudate  3872.667      565.610
+                       Left-Putamen  6193.630      531.871
+                      Left-Pallidum  1933.889      214.241
+                      Left-Amygdala  1715.630      198.420
+                Left-Accumbens-area  743.185      121.471
+              Right-Thalamus-Proper  7353.148      811.789
+                      Right-Putamen  5880.074      507.340
+                     Right-Pallidum  1999.778      248.933
+                  Right-Hippocampus  4244.667      360.139
+                     Right-Amygdala  1788.926      179.172
+               Right-Accumbens-area  618.593      107.957
+                      Right-Caudate  3966.111      625.939
+
+Number of subjects:   27
+Number of factors:    23 (2 discrete, 21 continuous)
+Number of classes:    4
+Number of regressors: 88
+============================================================
+Avg-Intercept -----------------------
+Does the average thickness differ from zero?
+ 1.000   1.000   0.000   0.000;
+
+Avg-thickness-Age-Cor -----------------------
+Does the correlation between thickness and Age differ from zero?
+ 0.000   0.000   1.000   1.000;
+
+Diff-ASD-CON-Intercept -----------------------
+Does the average thickness differ between ASD and CON?
+ 1.000  -1.000   0.000   0.000;
+
+Diff-ASD-CON-Cor-thickness -----------------------
+Does the thickness--Age correlation differ between ASD and CON?
+ 0.000   0.000   1.000  -1.000;
+
+ninputs = 27
+nframestot = 27
+Writing to /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec/y.mgh
+reading group avg surface area 864 cm^2 from file
+Reading in average area /autofs/space/minerva_001/users/nicks/subjects/qdec4/fsaverage/surf/lh.white.avg.area.mgh
+gdfReadHeader: reading /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec/qdec.fsgd
+INFO: DeMeanFlag keyword not found, DeMeaning will NOT be done.
+Continuous Variable Means (all subjects)
+0 Age 32.7037
+Class Means of each Continuous Variable
+1 diagnosisASD 34.7143 
+2 diagnosisCON 30.5385 
+INFO: gd2mtx_method is dods
+Reading source surface /autofs/space/minerva_001/users/nicks/subjects/qdec4/fsaverage/surf/lh.white
+Number of vertices 163842
+Number of faces    327680
+Total area         70394.773438
+AvgVtxArea       0.429650
+AvgVtxDist       0.757401
+StdVtxDist       0.227951
+
+$Id: mri_glmfit.c,v 1.125 2007/05/18 19:59:37 nicks Exp $
+cwd /autofs/space/minerva_001/users/nicks/dev/qdec2/nicole
+cmdline mri_glmfit --y /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec/y.mgh --fsgd /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec/qdec.fsgd --glmdir /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec --surf fsaverage lh --C /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec/contrasts/Avg-Intercept.mat --C /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec/contrasts/Avg-thickness-Age-Cor.mat --C /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec/contrasts/Diff-ASD-CON-Intercept.mat --C /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec/contrasts/Diff-ASD-CON-Cor-thickness.mat 
+sysname  Linux
+hostname minerva
+machine  x86_64
+user     nicks
+FixVertexAreaFlag = 1
+UseMaskWithSmoothing     1
+OneSampleGroupMean 0
+y    /autofs/space/sake_025/users/nicks/subjects/qdec4/qdec/y.mgh
+logyflag 0
+usedti  0
+FSGD /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec/qdec.fsgd
+glmdir /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec
+DoFFx 0
+Creating output directory /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec
+Loading y from /autofs/space/sake_025/users/nicks/subjects/qdec4/qdec/y.mgh
+Matrix condition is 50.4156
+Pruning voxels by frame.
+Found 163842 voxels in mask
+Saving mask to /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec/mask.mgh
+search space = 86444.7
+DOF = 23
+Starting fit and test
+10% 20% 30% 40% 50% 60% 70% 80% 90% 100% 
+Fit completed in 0.0718333 minutes
+Computing spatial AR1 on surface
+Residual: ar1mn=0.995019, ar1std=0.002403, gstd=5.359062, fwhm=12.619626
+Writing results
+  Avg-Intercept
+    maxvox sig=21.1676  F=1340.13  at  index 133948 0 0    seed=1180156724
+  Avg-thickness-Age-Cor
+    maxvox sig=3.51684  F=18.0374  at  index 24288 0 0    seed=1180156724
+  Diff-ASD-CON-Intercept
+    maxvox sig=3.84845  F=20.7316  at  index 60511 0 0    seed=1180156724
+  Diff-ASD-CON-Cor-thickness
+    maxvox sig=-4.91314  F=30.7404  at  index 124652 0 0    seed=1180156724
+mri_glmfit done
+ninputs = 4
+nframestot = 4
+Writing to /autofs/space/minerva_001/users/nicks/subjects/qdec4/qdec/contrasts.sig.mgh
