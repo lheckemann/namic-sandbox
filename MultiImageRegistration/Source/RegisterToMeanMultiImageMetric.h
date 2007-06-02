@@ -132,7 +132,7 @@ public:
   typedef typename Superclass::GradientImageType        GradientImageType;
   typedef typename Superclass::GradientImagePointer     GradientImagePointer;
   typedef typename Superclass::GradientPixelType        GradientPixelType;
-  typedef typename Superclass::MovingImagePixelType     ImagePixelType;
+  typedef typename Superclass::PixelType                ImagePixelType;
   typedef typename Superclass::RealType        RealType;
 
 
@@ -195,7 +195,9 @@ protected:
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValue( void *arg );
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueAndDerivative( void *arg );
 
-  mutable std::vector< std::vector< double  > > W;
+  mutable std::vector<std::vector< double >   > W_moving;
+  mutable std::vector<std::vector< double >  > W_joint;
+  
   mutable std::vector< double > mean;
   double m_MeanStandardDeviation;
 private:

@@ -262,7 +262,7 @@ JointEntropyMultiImageMetric < TFixedImage >
 
   //Initialize the derivative to zero
   this->m_value[threadId] = 0.0;
-  Array<double> weight(this->m_NumberOfImages);
+  Array<PixelType> weight(this->m_NumberOfImages);
   
 
   // Calculate the derivative
@@ -277,11 +277,11 @@ JointEntropyMultiImageMetric < TFixedImage >
     {
 
       // Compute d(x_i, x_j)
-      const vnl_vector<double> diff =
+      const vnl_vector<PixelType> diff =
                    this->m_Sample[x_i].imageValueArray - this->m_Sample[x_j].imageValueArray;
 
       // Compute G(d(x_i,x_j))
-      const double G = this->m_KernelFunction[threadId]->Evaluate( diff.two_norm() / this->m_ImageStandardDeviation );
+      const PixelType G = this->m_KernelFunction[threadId]->Evaluate( diff.two_norm() / this->m_ImageStandardDeviation );
 
       W[threadId][x_i] += G;
       weight += G * diff;
@@ -308,11 +308,11 @@ JointEntropyMultiImageMetric < TFixedImage >
     {
 
       // Compute d(x_i, x_j)
-      const vnl_vector<double> diff =
+      const vnl_vector<PixelType> diff =
           this->m_Sample[x_i].imageValueArray - this->m_Sample[x_j].imageValueArray;
 
       // Compute G(d(x_i,x_j))
-      const double G = this->m_KernelFunction[threadId]->Evaluate( diff.two_norm() / this->m_ImageStandardDeviation );
+      const PixelType G = this->m_KernelFunction[threadId]->Evaluate( diff.two_norm() / this->m_ImageStandardDeviation );
 
       weight += (G / W[threadId][x_i]) * diff;
     }

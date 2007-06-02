@@ -138,7 +138,7 @@ public:
   typedef typename Superclass::GradientImageType        GradientImageType;
   typedef typename Superclass::GradientImagePointer     GradientImagePointer;
   typedef typename Superclass::GradientPixelType        GradientPixelType;
-  typedef typename Superclass::MovingImagePixelType     ImagePixelType;
+  typedef typename Superclass::PixelType                ImagePixelType;
   typedef typename Superclass::RealType        RealType;
 
 

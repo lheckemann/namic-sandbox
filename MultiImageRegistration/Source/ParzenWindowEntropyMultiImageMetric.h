@@ -131,7 +131,7 @@ public:
   typedef typename Superclass::GradientImageType        GradientImageType;
   typedef typename Superclass::GradientImagePointer     GradientImagePointer;
   typedef typename Superclass::GradientPixelType        GradientPixelType;
-  typedef typename Superclass::MovingImagePixelType     ImagePixelType;
+  typedef typename Superclass::PixelType                PixelType;
   typedef typename Superclass::RealType        RealType;
   typedef typename Superclass::GradientOutputType     GradientOutputType;
 
@@ -208,7 +208,7 @@ public:
   typedef typename BSplineTransformType::ImageType BSplineParametersImageType;
   typedef typename BSplineParametersImageType::Pointer BSplineParametersImagePointer;
   
-  typedef itk::GradientImageFilter<BSplineParametersImageType, ImagePixelType, ImagePixelType> GradientFilterType;
+  typedef itk::GradientImageFilter<BSplineParametersImageType, PixelType, PixelType> GradientFilterType;
   typedef typename GradientFilterType::Pointer GradientFilterTypePointer;
 
 

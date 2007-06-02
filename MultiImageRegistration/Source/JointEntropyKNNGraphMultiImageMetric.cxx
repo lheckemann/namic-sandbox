@@ -46,8 +46,6 @@ JointEntropyKNNGraphMultiImageMetric < TFixedImage >::
   this->SetComputeGradient (false);  // don't use the default gradient for now
 
   this->m_BSplineTransformArray.resize(0);
-  m_Regularization = false;
-  m_RegularizationFactor = 1e-5;
   m_NumberOfParametersPerdimension = 0;
 
   m_UseMask = false;
@@ -81,6 +79,7 @@ JointEntropyKNNGraphMultiImageMetric<TFixedImage>
 
   //First intialize the superclass
   Superclass::Initialize();
+  
   // We wont use the default sample so deallocate it
   Superclass::Finalize();
 
@@ -140,7 +139,7 @@ JointEntropyKNNGraphMultiImageMetric<TFixedImage>
   randIter->GoToBegin();
   
     // Initialize the variables for regularization term
-  if( this->m_UserBsplineDefined && m_Regularization &&
+  if( this->m_UserBsplineDefined && this->m_Regularization &&
       strcmp(this->m_TransformArray[0]->GetNameOfClass(), "UserBSplineDeformableTransform") )
   {
     itkExceptionMacro(<<"Cannot use regularization with transforms" <<
@@ -159,7 +158,7 @@ JointEntropyKNNGraphMultiImageMetric<TFixedImage>
 
 
   //Prepare the gradient filters if Regularization is on
-  if(m_Regularization)
+  if(this->m_Regularization)
   {
     
   }
@@ -174,7 +173,7 @@ JointEntropyKNNGraphMultiImageMetric<TFixedImage>
     dists[i] = new ANNdist[m_NumberOfNearestNeigbors+1];                // allocate near neighbor dists
   }
 
-  m_FixedImagePointArray = new FixedImagePointType[this->m_NumberOfSpatialSamples];
+  m_FixedImagePointArray.resize(this->m_NumberOfSpatialSamples);
   m_MappedPointsArray = new MovingImagePointType*[this->m_NumberOfSpatialSamples];
   for(int i=0;i<this->m_NumberOfSpatialSamples;i++)
   {
@@ -228,8 +227,7 @@ JointEntropyKNNGraphMultiImageMetric<TFixedImage>
   delete[] nnIdx;
 
   delete[] m_MappedPointsArray;
-  delete[] m_FixedImagePointArray;
-  
+
   // deallocate randomiterator
   delete randIter;
 
@@ -436,14 +434,17 @@ JointEntropyKNNGraphMultiImageMetric < TFixedImage >
   for (int i=threadId; i<this->m_NumberOfSpatialSamples; i += m_NumberOfThreads )
   {
 
-    dist = 1e-300;
-    for (int j = 0; j < this->m_NumberOfImages; j++)
+    for(int k=1; k<m_NumberOfNearestNeigbors+1; k++)
     {
-      const double diff = dataPts[i][j] - dataPts[nnIdx[i][m_NumberOfNearestNeigbors]][j];
-      dist += diff*diff;
-    }
+      dist = 0.0;
+      for (int j = 0; j < this->m_NumberOfImages; j++)
+      {
+        const double diff = dataPts[i][j] - dataPts[nnIdx[i][k]][j];
+        dist += diff*diff;
+      }
 
-    m_value[threadId] += sqrt(dist);
+      m_value[threadId] += sqrt(dist);
+    }
     
   }  // End of sample loop
 
@@ -647,28 +648,31 @@ JointEntropyKNNGraphMultiImageMetric < TFixedImage >
   double dist;
   for (int i=0; i<this->m_NumberOfSpatialSamples; i++ )
   {
-    // Calculate the entropy
-    dist = 1e-300;
-    for (int j = 0; j < this->m_NumberOfImages; j++)
+    for(int k=1; k<m_NumberOfNearestNeigbors+1; k++)
     {
-      const double diff = dataPts[i][j] - dataPts[nnIdx[i][m_NumberOfNearestNeigbors]][j];
-      dist += diff*diff;
-    }
-    dist = sqrt(dist);
+      // Calculate the entropy
+      dist = 0.0;
+      for (int j = 0; j < this->m_NumberOfImages; j++)
+      {
+        const double diff = dataPts[i][j] - dataPts[nnIdx[i][k]][j];
+        dist += diff*diff;
+      }
+      dist = sqrt(dist);
     
-    m_value[threadId] += dist;
+      m_value[threadId] += dist;
 
 
-    // Calculate derivative
-    for (int j = threadId; j < this->m_NumberOfImages; j+=this->m_NumberOfThreads)
-    {
-      // Get the derivative for this sample
-      UpdateImageParameters( m_DerivativesArray[threadId][j], i,
-                                   1.0*(dataPts[i][j] - dataPts[nnIdx[i][m_NumberOfNearestNeigbors]][j]) / dist
-                                   , j, threadId);
-      UpdateImageParameters( m_DerivativesArray[threadId][j], nnIdx[i][m_NumberOfNearestNeigbors],
-                                   -1.0*(dataPts[i][j] - dataPts[nnIdx[i][m_NumberOfNearestNeigbors]][j]) / dist
-                                   , j, threadId);
+      // Calculate derivative
+      for (int j = threadId; j < this->m_NumberOfImages; j+=this->m_NumberOfThreads)
+      {
+        // Get the derivative for this sample
+        UpdateImageParameters( m_DerivativesArray[threadId][j], i,
+                                     1.0*(dataPts[i][j] - dataPts[nnIdx[i][k]][j]) / dist
+                                     , j, threadId);
+        //UpdateImageParameters( m_DerivativesArray[threadId][j], nnIdx[i][k],
+        //                           -1.0*(dataPts[i][j] - dataPts[nnIdx[i][k]][j]) / dist
+        //                           , j, threadId);
+      }
     }
   }  // End of sample loop
 
@@ -734,7 +738,6 @@ UpdateImageParameters( DerivativeType & inputDerivative, const int& index, const
   else
   {
     // Get nonzero indexex
-
     typedef itk::Array<RealType> WeigtsType;
     WeigtsType bsplineWeights(numberOfWeights);
     this->m_BSplineTransformArray[imageNumber]->GetJacobian(m_FixedImagePointArray[index], bsplineIndexes, bsplineWeights);

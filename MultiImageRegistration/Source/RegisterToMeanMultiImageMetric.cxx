@@ -58,15 +58,18 @@ RegisterToMeanMultiImageMetric<TFixedImage>
   this->m_NumberOfSpatialSamples -= this->m_NumberOfSpatialSamples%2;
 
   // Resize w_x_j
-  W.resize(this->m_NumberOfThreads);
+  W_moving.resize(this->m_NumberOfThreads);
+  W_joint.resize(this->m_NumberOfThreads);
   for(int i=0; i<this->m_NumberOfThreads; i++)
   {
-    W[i].resize(this->m_NumberOfSpatialSamples);
+    W_moving[i].resize(this->m_NumberOfSpatialSamples);
+    W_joint[i].resize(this->m_NumberOfSpatialSamples);
   }
+
 
   mean.resize(this->m_NumberOfSpatialSamples);
 
-  m_MeanStandardDeviation = this->m_ImageStandardDeviation / sqrt( (double) this->m_NumberOfImages);
+  m_MeanStandardDeviation = this->m_ImageStandardDeviation;// / sqrt( (double) this->m_NumberOfImages);
 }
 
 /*
@@ -130,12 +133,21 @@ RegisterToMeanMultiImageMetric < TFixedImage >
 ::BeforeGetThreadedValue(const ParametersType & parameters) const
 {
 
-  Superclass::BeforeGetThreadedValue(parameters);
-
+  //Make sure that each transform parameters are updated
+  // Loop over images
+  for (int i = 0; i < this->m_NumberOfImages; i++)
+  {
+    //Copy the parameters of the current transform
+    for (int j = 0; j < this->numberOfParameters; j++)
+    {
+      this->m_TransformParametersArray[i][j] = parameters[this->numberOfParameters * i + j];
+    }
+    this->m_TransformArray[i]->SetParameters(this->m_TransformParametersArray[i]);
+  }
+  
   // Update intensity values
   const int N = this->m_NumberOfImages;
-  const unsigned int size = this->m_NumberOfSpatialSamples;
-  for(int i=0; i< size; i++ )
+  for(int i=0; i< this->m_NumberOfSpatialSamples; i++ )
   {
     for(int j=0; j<N; j++)
     {
@@ -146,8 +158,9 @@ RegisterToMeanMultiImageMetric < TFixedImage >
       }
     }
   }
-  
-  for(int i=0; i< size; i++ )
+
+  // compute the mean
+  for(int i=0; i< this->m_NumberOfSpatialSamples; i++ )
   {
     mean[i] = 0.0;
     for(int j=0; j<N; j++)
@@ -170,37 +183,46 @@ RegisterToMeanMultiImageMetric < TFixedImage >
 {
 
   const int N = this->m_NumberOfImages;
-  const unsigned int sampleASize = this->m_NumberOfSpatialSamples / 2;
-  const unsigned int sampleBSize = this->m_NumberOfSpatialSamples / 2;
-  /** The tranform parameters vector holding i'th images parameters 
+  /** The tranform parameters vector holding i'th images parameters
   Copy parameters in to a collection of arrays */
 
   //Calculate the entropy
   this->m_value[threadId] = 0.0;
   // Loop over first sample set
-  for( int l=0; l < N; l++)
+  for( int l=threadId; l < N; l+= this->m_NumberOfThreads)
   {
-    for (int x_i=sampleASize+threadId; x_i<sampleASize+sampleBSize; x_i += this->m_NumberOfThreads )
+    for (int x_i=0; x_i<this->m_NumberOfSpatialSamples; x_i ++ )
     {
 
-      double probSum = 0.0;
-      for( int x_j=0; x_j < sampleASize; x_j++)
+      double movingProbSum = 1e-5;
+      double meanProbSum = 1e-5;
+      double jointProbSum = 1e-5;
+
+      for( int x_j=0; x_j < this->m_NumberOfSpatialSamples; x_j++)
       {
 
         // Compute d(x_i, x_j)
-        const double diff1 = (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l])
+        double diff1 = (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l])
                               /this->m_ImageStandardDeviation;
-        const double diff2 = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
+
+        diff1 = this->m_KernelFunction[threadId]->Evaluate( diff1 );
+        
+        double diff2 = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
+        diff2 = this->m_KernelFunction[threadId]->Evaluate( diff2 );
 
         // Evaluate the probability of d(x_a, x_b)
-        probSum += this->m_KernelFunction[threadId]->Evaluate( sqrt( diff1*diff1  + diff2*diff2 ) );
+        movingProbSum += diff1;
+        meanProbSum += diff2;
+        jointProbSum += diff1*diff2;
       }
-      probSum /= (double)sampleASize;
-    
-      this->m_value[threadId] += vcl_log( probSum );
+      
+      this->m_value[threadId] += vcl_log( movingProbSum  );
+      //this->m_value[threadId] += vcl_log( meanProbSum );
+      this->m_value[threadId] -= vcl_log( jointProbSum );
 
 
     }  // End of sample loop
+    this->m_value[threadId] += vcl_log( (double) this->m_NumberOfSpatialSamples );
   }
 
 }
@@ -221,7 +243,7 @@ RegisterToMeanMultiImageMetric < TFixedImage >
   {
     value += this->m_value[i];
   }
-  value /= (double)( -0.5 * this->m_NumberOfSpatialSamples * this->m_NumberOfImages );
+  value /= (double)( 1.0 * this->m_NumberOfSpatialSamples * this->m_NumberOfImages );
 
   return value;
 }
@@ -238,12 +260,10 @@ RegisterToMeanMultiImageMetric < TFixedImage >
 
 
    // Compute W(x_j)
-   const unsigned int sampleSize = this->m_NumberOfSpatialSamples / 2;
-   const unsigned int size = this->m_NumberOfSpatialSamples ;
    const unsigned int N = this->m_NumberOfImages;
 
    // Update mean
-   for(unsigned int i=0; i < size; i++)
+   for(unsigned int i=0; i < this->m_NumberOfSpatialSamples; i++)
    {
      mean[i] = 0.0;
      for( int j=0; j< N; j++)
@@ -292,9 +312,7 @@ RegisterToMeanMultiImageMetric < TFixedImage >
 {
 
   const unsigned int N = this->m_NumberOfImages;
-  int numberOfThreads = this->GetNumberOfThreads();
-  const unsigned int sampleASize = this->m_NumberOfSpatialSamples / 2;
-  const unsigned int sampleBSize = this->m_NumberOfSpatialSamples / 2;
+  const int numberOfThreads = this->GetNumberOfThreads();
 
   /** The tranform parameters vector holding i'th images parameters 
   Copy parameters in to a collection of arrays */
@@ -310,69 +328,76 @@ RegisterToMeanMultiImageMetric < TFixedImage >
   
   // Calculate the derivative
   // Set the image for derivatives
-  for( int m=threadId; m < N; m += this->m_NumberOfThreads)
+  for( int l=threadId; l < N; l += this->m_NumberOfThreads)
   {
 
-      for (int x_i=sampleASize; x_i<sampleASize+sampleBSize; x_i++ )
+    for (int x_i=0; x_i<this->m_NumberOfSpatialSamples; x_i ++ )
+    {
+      // Initialize the weight in the denominator to zero
+      W_moving[threadId][x_i] = 1e-5;
+      W_joint[threadId][x_i] = 1e-5;
+      double meanProbSum = 1e-5;
+
+      for( int x_j=0; x_j < this->m_NumberOfSpatialSamples; x_j++)
       {
 
-        // Sum over the second sample set
-        double weight = 0.0;
-        W[threadId][x_i] = 0.0;
-        for (int x_j=0; x_j<sampleASize; x_j++ )
-        {
-
-          // Compute d(x_i, x_j)
-          const double diff1 = (this->m_Sample[x_i].imageValueArray[m] - this->m_Sample[x_j].imageValueArray[m])
+        // Compute d(x_i, x_j)
+        double diff1 = (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l])
                               /this->m_ImageStandardDeviation;
-          const double diff2 = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
 
-          // Compute G(d(x_i,x_j))
-          const double G = this->m_KernelFunction[threadId]->Evaluate( sqrt( diff1*diff1  + diff2*diff2 ) );
-          const double dir = diff1 / this->m_ImageStandardDeviation + diff2 / m_MeanStandardDeviation / (double) N;
-
-          W[threadId][x_i] += G;
-          weight += G * dir;
-        }
-
-        weight /= W[threadId][x_i];
-        this->m_value[threadId] += vcl_log( W[threadId][x_i] / (double)sampleASize );
+        diff1 = this->m_KernelFunction[threadId]->Evaluate( diff1 );
         
-        // Get the derivative for this sample
-        this->UpdateSingleImageParameters( this->m_DerivativesArray[threadId][m], this->m_Sample[x_i], weight, m, threadId);
-        
-      }  // End of sample loop B
+        double diff2 = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
+        diff2 = this->m_KernelFunction[threadId]->Evaluate( diff2 );
+
+        // Evaluate the probability of d(x_a, x_b)
+        meanProbSum += diff2;
+
+        // Update the weights
+        W_moving[threadId][x_i] += diff1;
+        W_joint[threadId][x_i] += diff1*diff2;
+      }
+      
+      this->m_value[threadId] += vcl_log( W_moving[threadId][x_i] );
+      //this->m_value[threadId] += vcl_log( meanProbSum );
+      this->m_value[threadId] -= vcl_log( W_joint[threadId][x_i]  );
 
 
-    
-      // Loop over the samples A
-      for (int x_i=0; x_i<sampleASize; x_i++ )
+    }  // End of sample loop
+    this->m_value[threadId] += vcl_log ((double)this->m_NumberOfSpatialSamples);
+
+
+
+    for (int x_i=0; x_i<this->m_NumberOfSpatialSamples; x_i ++ )
+    {
+
+      // Sum over the second sample set
+      double weightMoving = 0.0;
+      double weightJoint = 0.0;
+
+      for (int x_j=0; x_j<this->m_NumberOfSpatialSamples; x_j++ )
       {
 
-        // Sum over the second sample set
-        double weight = 0.0;
-        for (int x_j=sampleASize; x_j<sampleASize+sampleBSize; x_j++ )
-        {
+        // Compute dir(x_i, x_j)
+        const double dir1 = (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l]);
 
-          // Compute d(x_i, x_j)
-          const double diff1 = (this->m_Sample[x_i].imageValueArray[m] - this->m_Sample[x_j].imageValueArray[m])
-                              /this->m_ImageStandardDeviation;
-          const double diff2 = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
+        // Compute d(x_i, x_j)
+        double diff1 = dir1 / this->m_ImageStandardDeviation;
 
-          // Compute G(d(x_i,x_j))
-          const double G = this->m_KernelFunction[threadId]->Evaluate( sqrt( diff1*diff1  + diff2*diff2 ) );
-          
-          const double dir = diff1 / this->m_ImageStandardDeviation + diff2 / m_MeanStandardDeviation / (double) this->m_NumberOfImages;
-
-          weight += G * dir / W[threadId][x_j];
+        diff1 = this->m_KernelFunction[threadId]->Evaluate( diff1 );
+        weightMoving += diff1 / W_moving[threadId][x_i] * dir1;
         
-        }
+        double diff2 = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
+        diff2 = this->m_KernelFunction[threadId]->Evaluate( diff2 );
+        weightJoint += diff1 * diff2 / W_joint[threadId][x_i] * dir1;
 
-        // Get the derivative for this sample
-        this->UpdateSingleImageParameters( this->m_DerivativesArray[threadId][m], this->m_Sample[x_i], weight, m, threadId);
-        
+
       }  // End of sample loop B
 
+      // Get the derivative for this sample
+      this->UpdateSingleImageParameters( this->m_DerivativesArray[threadId][l], this->m_Sample[x_i],
+                                         weightMoving-weightJoint, l, threadId);
+    }
     
     
   }
@@ -404,8 +429,9 @@ void RegisterToMeanMultiImageMetric < TFixedImage >
       }
     }
   }
-  value /= -0.5 * (double) this->m_NumberOfSpatialSamples * (double) this->m_NumberOfImages;
-  derivative /=(double) (this->m_NumberOfSpatialSamples / 2.0 * this->m_NumberOfImages);
+  value /= 1.0 * (double) this->m_NumberOfSpatialSamples * (double) this->m_NumberOfImages;
+  derivative /= (double) (-1.0*this->m_NumberOfSpatialSamples * this->m_NumberOfImages *
+                          this->m_ImageStandardDeviation * this->m_ImageStandardDeviation);
 
   //Set the mean to zero
   //Remove mean
@@ -424,7 +450,7 @@ void RegisterToMeanMultiImageMetric < TFixedImage >
   {
     derivative[i] -= sum[i % this->numberOfParameters] / (double) this->m_NumberOfImages;
   }
-
+  
 }
 
 // Callback routine used by the threading library. This routine just calls

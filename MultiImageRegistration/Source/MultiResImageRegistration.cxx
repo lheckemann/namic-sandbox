@@ -130,7 +130,11 @@ public:
   typedef  itk::SmartPointer<Self>  Pointer;
   itkNewMacro( Self );
 protected:
-  CommandIterationUpdate(): m_CumulativeIterationIndex(0) {};
+  CommandIterationUpdate(): m_CumulativeIterationIndex(0)
+  {
+    m_MetricPrint = false;
+    m_PrintInterval = 500;
+  };
 public:
   
   typedef   itk::SingleValuedNonLinearOptimizer   OptimizerType;
@@ -139,6 +143,7 @@ public:
   typedef   const GradientOptimizerType *             GradientOptimizerPointer;
   typedef   itk::GradientDescentLineSearchOptimizer LineSearchOptimizerType;
   typedef   const LineSearchOptimizerType  *          LineSearchOptimizerPointer;
+  typedef   itk::MultiImageMetric< itk::Image<InternalPixelType, Dimension > >    MetricType;
 
 
   void Execute(itk::Object *caller, const itk::EventObject & event)
@@ -189,6 +194,23 @@ public:
         }
       }
 
+      // only print results every ten iterations
+      if(m_MetricPrint && m_CumulativeIterationIndex % m_PrintInterval == 0 )
+      {
+         // Print the metric Value
+        unsigned long int numberOfSamples = m_MetricPointer->GetNumberOfSpatialSamples();
+        m_MetricPointer->Finalize();
+        m_MetricPointer->SetNumberOfSpatialSamples( m_MetricPointer->GetFixedImageRegion().GetNumberOfPixels() );
+        m_MetricPointer->Initialize();
+        cout << "ALLSamples: Iter" << m_CumulativeIterationIndex;
+        cout << " Value " << m_MetricPointer->GetValue(optimizer->GetCurrentPosition());
+        cout << " # of samples " << m_MetricPointer->GetFixedImageRegion().GetNumberOfPixels()/2 << endl;
+        m_MetricPointer->Finalize();
+        m_MetricPointer->SetNumberOfSpatialSamples(numberOfSamples);
+        m_MetricPointer->Initialize();
+
+      }
+      
       //Increase the cumulative index
       m_CumulativeIterationIndex++;
       //std::cout << std::setw(6) << optimizer->GetCurrentPosition()[i] << "   ";
@@ -196,8 +218,12 @@ public:
       
     }
 
+    MetricType::Pointer m_MetricPointer;
+    bool m_MetricPrint;
+    unsigned int m_PrintInterval;
 private:
-  unsigned int m_CumulativeIterationIndex;
+    unsigned int m_CumulativeIterationIndex;
+  
 };
 
 
@@ -747,7 +773,8 @@ int getCommandLine(int argc, char *initFname, vector<string>& fileNames, string&
                    string &mask, string& maskType, unsigned int& threshold1, unsigned int threshold2,
                    string &writeOutputImages, string &writeDeformationFields,
                    unsigned int &NumberOfFixedImages,
-                   unsigned int &numberOfNearestNeigbors, double &errorBound, string &writeMean3DImages);
+                   unsigned int &numberOfNearestNeigbors, double &errorBound,
+                   string &writeMean3DImages, string& metricPrint, unsigned int& printInterval );
 
 
 int main( int argc, char *argv[] )
@@ -760,7 +787,9 @@ int main( int argc, char *argv[] )
   string optimizerType("lineSearch");
   string metricType("entropy");
   string interpolatorType("linear");
+  
   string metricPrint("off");
+  unsigned int printInterval = 500;
   
   int multiLevelAffine = 2;
   int multiLevelBspline = 1;
@@ -847,7 +876,8 @@ int main( int argc, char *argv[] )
         mask, maskType, threshold1, threshold2,
         writeOutputImages, writeDeformationFields,
         NumberOfFixedImages,
-        numberOfNearestNeigbors, errorBound, writeMean3DImages ) )
+        numberOfNearestNeigbors, errorBound,
+        writeMean3DImages, metricPrint, printInterval ) )
     {
       std:: cout << "Error reading parameter file " << std::endl;
       return 1;
@@ -1122,8 +1152,8 @@ int main( int argc, char *argv[] )
         seed.Fill(0);
         connectedThreshold->AddSeed(seed);
 
-        connectedThreshold->SetLower(0);
-        connectedThreshold->SetUpper(9);
+        connectedThreshold->SetLower(threshold1);
+        connectedThreshold->SetUpper(threshold2);
         
         connectedThreshold->ReleaseDataFlagOn();
         connectedThreshold->Update();
@@ -1132,6 +1162,7 @@ int main( int argc, char *argv[] )
         maskImage->SetImage(connectedThreshold->GetOutput());
         registration->SetImageMaskArray(maskImage, i);
 
+        cout << "message: Computing mask " << endl;
       }
       else if( maskType == "neighborhoodConnected" && ((mask == "single" && i==0 ) || mask == "all"))
       {
@@ -1143,8 +1174,8 @@ int main( int argc, char *argv[] )
         seed.Fill(0);
         neighborhoodConnected->SetSeed(seed);
   
-        neighborhoodConnected->SetLower (0);
-        neighborhoodConnected->SetUpper (20);
+        neighborhoodConnected->SetLower (threshold1);
+        neighborhoodConnected->SetUpper (threshold2);
         
         typedef NeighborhoodConnectedImageFilterType::InputImageSizeType SizeType;
         SizeType radius;
@@ -1158,7 +1189,7 @@ int main( int argc, char *argv[] )
         maskImage->SetImage(neighborhoodConnected->GetOutput());
         registration->SetImageMaskArray(maskImage, i);
 
-
+        cout << "message: Computing mask " << endl;
       }
 
       NormalizeFilterType::Pointer normalizeFilter = NormalizeFilterType::New();
@@ -1251,6 +1282,12 @@ int main( int argc, char *argv[] )
   // Create the Command observer and register it with the optimizer.
   // And set output file name
   CommandIterationUpdate::Pointer observer = CommandIterationUpdate::New();
+  observer->m_MetricPointer = metric;
+  observer->m_PrintInterval = printInterval;
+  if( metricPrint == "on")
+  {
+    observer->m_MetricPrint = true;
+  }
   //observer->SetFilename("iterations.txt");
   
   // Set the optimizer parameters
@@ -1331,7 +1368,7 @@ int main( int argc, char *argv[] )
   collector.Stop( "5Image Write " );
 
   //Print out the metric values for translation parameters
-  if( metricPrint == "on")
+  if( 0 && metricPrint == "on")
   {
     cout << "message: Metric Probe " << endl;
     ofstream outputFile("metricOutput.txt");
@@ -2191,7 +2228,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
                           
                           unsigned int &numberOfNearestNeigbors, double &errorBound,
 
-                          string &writeMean3DImages )
+                          string &writeMean3DImages, string& metricPrint, unsigned int& printInterval )
 {
 
 
@@ -2507,6 +2544,18 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       errorBound = atof(dummy.c_str());
     }
 
+    else if (dummy == "-metricPrint")
+    {
+      initFile >> dummy;
+      metricPrint = dummy;
+    }
+    else if( dummy == "-printInterval" )
+    {
+      initFile >> dummy;
+      printInterval = atoi(dummy.c_str());
+    }
+
+    
     else if (dummy == "-f")
     {
       initFile >> dummy;

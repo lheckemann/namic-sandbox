@@ -137,7 +137,7 @@ public:
   typedef typename Superclass::GradientImageType        GradientImageType;
   typedef typename Superclass::GradientImagePointer     GradientImagePointer;
   typedef typename Superclass::GradientPixelType        GradientPixelType;
-  typedef typename Superclass::MovingImagePixelType     ImagePixelType;
+  typedef typename Superclass::PixelType                ImagePixelType;
   typedef typename Superclass::RealType        RealType;
   typedef typename Superclass::GradientOutputType     GradientOutputType;
 
@@ -283,9 +283,6 @@ protected:
 
   mutable std::vector< ParametersType > m_TransformParametersArray;
 
-  bool m_Regularization;
-  double m_RegularizationFactor;
-  
   bool m_UseMask;
   unsigned int m_NumberOfFixedImages;
 
@@ -309,7 +306,7 @@ protected:
   mutable ANNpointArray     dataPts;          // data points
 
   mutable MovingImagePointType**            m_MappedPointsArray;
-  mutable FixedImagePointType*               m_FixedImagePointArray;
+  mutable std::vector<FixedImagePointType>               m_FixedImagePointArray;
 
 };
 

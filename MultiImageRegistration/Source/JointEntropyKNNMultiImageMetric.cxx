@@ -375,7 +375,7 @@ JointEntropyKNNMultiImageMetric < TFixedImage >
   }
   this->m_value[threadId] = 0.0;
   
-  Array<double> weight(this->m_NumberOfImages);
+  Array<ImagePixelType> weight(this->m_NumberOfImages);
 
   // Calculate the derivative
   for (int x_i=threadId; x_i<this->m_NumberOfSpatialSamples; x_i+= this->m_NumberOfThreads )
@@ -391,11 +391,11 @@ JointEntropyKNNMultiImageMetric < TFixedImage >
       const unsigned int x_j = nnIdx[x_i][j];
 
       // Compute d(x_i, x_j)
-      const vnl_vector<double> diff =
+      const vnl_vector<ImagePixelType> diff =
           this->m_Sample[x_i].imageValueArray - this->m_Sample[x_j].imageValueArray;
 
       // Compute G(d(x_i,x_j))
-      const double G = this->m_KernelFunction[threadId]->Evaluate( diff.two_norm() / this->m_ImageStandardDeviation );
+      const ImagePixelType G = this->m_KernelFunction[threadId]->Evaluate( diff.two_norm() / this->m_ImageStandardDeviation );
 
       Wsum += G;
       weight += G * diff;
