@@ -132,7 +132,7 @@ public:
   typedef typename Superclass::GradientImageType        GradientImageType;
   typedef typename Superclass::GradientImagePointer     GradientImagePointer;
   typedef typename Superclass::GradientPixelType        GradientPixelType;
-  typedef typename Superclass::MovingImagePixelType     ImagePixelType;
+  typedef typename Superclass::PixelType                ImagePixelType;
   typedef typename Superclass::RealType        RealType;
 
 
@@ -199,7 +199,7 @@ protected:
   /** computes derivatives in multithreaded fashion */
   void GetValueHelper(int threadId) const;
 
-  mutable std::vector< std::vector< double  > > W;
+  mutable std::vector< std::vector< PixelType  > > W;
 
 private:
   JointEntropyMultiImageMetric(const Self&); //purposely not implemented

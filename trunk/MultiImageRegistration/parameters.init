@@ -86,8 +86,8 @@
 
     -optTranslationLearningRate 1e-4
     -optAffineLearningRate  1e-4
-    -optBsplineLearningRate 1e1
-    -optBsplineHighLearningRate 1.0
+    -optBsplineLearningRate 1e3
+    -optBsplineHighLearningRate 1e1
  
  
  
@@ -97,9 +97,9 @@
 # no other termination options are used
 #
 
-    -optTranslationNumberOfIterations 1
-    -optAffineNumberOfIterations 300
-    -optBsplineNumberOfIterations 100
+    -optTranslationNumberOfIterations 10
+    -optAffineNumberOfIterations 200
+    -optBsplineNumberOfIterations 50
     -optBsplineHighNumberOfIterations 50
 
 
@@ -107,8 +107,8 @@
 # following options define the number of spatial samples
 #
 
-    -numberOfSpatialSamplesTranslation 10000
-    -numberOfSpatialSamplesAffine 20000
+    -numberOfSpatialSamplesTranslation 1000
+    -numberOfSpatialSamplesAffine 5000
     -numberOfSpatialSamplesBspline 100000
     -numberOfSpatialSamplesBsplineHigh 100000
 
@@ -116,14 +116,14 @@
 #
 # defines the initial bspline grid size along each dimension
 #
-    -bsplineInitialGridSize  8
+    -bsplineInitialGridSize  4
     
 #
 # When using Bspline grid refinement, this options defines how many number 
 # of refinements to use
 #
 
-    -numberOfBsplineLevel 2
+    -numberOfBsplineLevel 4
     
 #
 # setting this options to on, introduces regularization
@@ -159,7 +159,7 @@
 #                        only if it is all connected within a radius of one
 #
     -maskType none
-    -threshold1 5 
+    -threshold1 0
     -threshold2 20
 
 
@@ -266,3 +266,12 @@
 #
     -numberOfFixedImages 0
     
+#
+# Prints metric values for all samples
+# Can be used for checking convergence when using subsampling
+#
+
+   -metricPrint on
+   -printInterval 100 
+   
+   

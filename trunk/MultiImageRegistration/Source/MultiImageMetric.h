@@ -76,7 +76,7 @@ public:
   /**  Type of the moving Image. */
   typedef TFixedImage                                TMovingImage;
   typedef TMovingImage                               MovingImageType;
-  typedef typename TMovingImage::PixelType           MovingImagePixelType;
+  typedef typename TMovingImage::PixelType           PixelType;
   typedef typename MovingImageType::ConstPointer     MovingImageConstPointer;
 
   /**  Type of the fixed Image. */
@@ -111,8 +111,8 @@ public:
                                  CoordinateRepresentationType > MutualInformationInterpolatorType;
                                  
   /** Gaussian filter to compute the gradient of the Moving Image */
-  typedef typename NumericTraits<MovingImagePixelType>::RealType RealType;
-  typedef CovariantVector<MovingImagePixelType,itkGetStaticConstMacro(MovingImageDimension)> GradientPixelType;
+  typedef typename NumericTraits<PixelType>::RealType RealType;
+  typedef CovariantVector<PixelType,itkGetStaticConstMacro(MovingImageDimension)> GradientPixelType;
   typedef Image<GradientPixelType,itkGetStaticConstMacro(MovingImageDimension)> GradientImageType;
   typedef typename GradientImageType::Pointer     GradientImagePointer;
   typedef std::vector<GradientImagePointer>   GradientImagePointerArray;
@@ -128,7 +128,7 @@ public:
   /** interpolator for gradient images */
   typedef VectorInterpolateImageFunction<
                                  GradientImageType,
-                                 MovingImagePixelType > GradientInterpolatorType;
+                                 PixelType > GradientInterpolatorType;
   typedef typename GradientInterpolatorType::Pointer         GradientInterpolatorPointer;
   typedef std::vector<GradientInterpolatorPointer>           GradientInterpolatorPointerArray;
   typedef typename GradientInterpolatorType::OutputType                   GradientOutputType;
@@ -343,7 +343,7 @@ protected:
       ~SpatialSample(){};
 
       FixedImagePointType              FixedImagePoint;
-      Array< RealType >                   imageValueArray;
+      Array< PixelType >                   imageValueArray;
       MovingImagePointType *   mappedPointsArray;
       //GradientPixelType*  gradientArray;
 

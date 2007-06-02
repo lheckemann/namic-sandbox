@@ -192,7 +192,7 @@ JointEntropyInterpolateArtefactMultiImageMetric < TFixedImage >
     {
       
       // Compute d(x_i, x_j)
-      const vnl_vector<double> diff =
+      const vnl_vector<PixelType> diff =
           this->m_Sample[x_i].imageValueArray - this->m_Sample[x_j].imageValueArray;
 
       
@@ -304,7 +304,7 @@ JointEntropyInterpolateArtefactMultiImageMetric < TFixedImage >
   }
   this->m_value[threadId] = 0.0;
   
-  Array<double> weight(this->m_NumberOfImages);
+  Array<PixelType> weight(this->m_NumberOfImages);
 
   // Calculate the derivative
   for (int x_i=threadId; x_i<this->m_NumberOfSpatialSamples; x_i+= this->m_NumberOfThreads )
@@ -318,7 +318,7 @@ JointEntropyInterpolateArtefactMultiImageMetric < TFixedImage >
     {
 
       // Compute d(x_i, x_j)
-      const vnl_vector<double> diff =
+      const vnl_vector<PixelType> diff =
           this->m_Sample[x_i].imageValueArray - this->m_Sample[x_j].imageValueArray;
 
       // Compute G(d(x_i,x_j))
@@ -328,7 +328,7 @@ JointEntropyInterpolateArtefactMultiImageMetric < TFixedImage >
         norm += diff[j]*diff[j] /
             (interpolationVariance[x_i][j] + interpolationVariance[x_j][j]);
       }
-      const double G = this->m_KernelFunction[threadId]->Evaluate( sqrt(norm) / this->m_ImageStandardDeviation );
+      const PixelType G = this->m_KernelFunction[threadId]->Evaluate( sqrt(norm) / this->m_ImageStandardDeviation );
 
       Wsum += G;
       weight += G * diff;

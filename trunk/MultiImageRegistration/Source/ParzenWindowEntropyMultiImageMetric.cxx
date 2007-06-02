@@ -164,6 +164,10 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
     bsplineIndexes.set_size(numberOfWeights);
     m_NumberOfParametersPerdimension = this->m_BSplineTransformArray[0]->GetNumberOfParametersPerDimension();
   }
+  else
+  {
+    this->m_Regularization = false;
+  }
 
   // Initialize the variables for regularization term
   if( this->m_Regularization &&

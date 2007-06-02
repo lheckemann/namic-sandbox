@@ -39,12 +39,14 @@
 #define Dimension 3
 
 #include "itkTransformFileReader.h"
-    
+
+#include <itksys/SystemTools.hxx>
+
 using namespace std;
 int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, string& inputFolder, string& outputFolder,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
                           string& useBspline, string& useBsplineHigh,
-                          string& labelFileFolder, vector<string>& labelFileNames )
+                          string& labelFileFolder, vector<string>& labelFileNames, string& labelType )
 {
 
 
@@ -101,6 +103,11 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
     {
       initFile >> dummy;
       fileNames.push_back(dummy); // get file name
+    }
+    else if (dummy == "-labelType")
+    {
+      initFile >> dummy;
+      labelType = dummy; // get file name
     }
     else if (dummy == "-lf")
     {
@@ -194,6 +201,7 @@ int main( int argc, char * argv[] )
   vector<string> labelFileNames;
       
 
+  string labelType("ICC");
     //Get the command line arguments
   for(int i=1; i<argc; i++)
   {
@@ -201,7 +209,7 @@ int main( int argc, char * argv[] )
                   argc, argv[i], fileNames, inputFolder, outputFolder,
                   bsplineInitialGridSize,  numberOfBsplineLevel,
                   useBspline, useBsplineHigh,
-                  labelFileFolder, labelFileNames )
+                  labelFileFolder, labelFileNames, labelType )
        ) 
     {
       std:: cout << "Error reading parameter file " << std::endl;
@@ -279,7 +287,6 @@ int main( int argc, char * argv[] )
   }
 
   ofstream output( (outputFolder + "DiceMeasures.txt").c_str() );
-  output << "\tLabel:25 \tLabel:30 \tLabel:23" << endl;
 
   // Resample the images
   // Read the input transforms and compute the dice measure
@@ -411,11 +418,11 @@ int main( int argc, char * argv[] )
 
       WriterType::Pointer writer = WriterType::New();
       writer->SetFileName("temp3.hdr");
-      writer->SetImageIO(labelReaderArray[j]->GetImageIO());
+      writer->SetImageIO(labelReaderArray[i]->GetImageIO());
       writer->SetInput(resampleArray[j]->GetOutput());
       if(j==0 && i==1)
       {
-        writer->Update();
+        //writer->Update();
       }
       
     }
@@ -424,64 +431,167 @@ int main( int argc, char * argv[] )
     typedef itk::NaryFunctorImageFilter< ImageType,  ImageType,  AND > NaryANDImageFilter;
     NaryANDImageFilter::Pointer naryANDImageFilter = NaryANDImageFilter::New();
 
-    typedef itk::NaryFunctorImageFilter< ImageType,  ImageType,  OR > NaryORImageFilter;
-    NaryORImageFilter::Pointer naryORImageFilter = NaryORImageFilter::New();
-
     for(int j=0; j<N; j++)
     {
       naryANDImageFilter->SetInput(j,resampleArray[j]->GetOutput());
-      naryORImageFilter->SetInput( j,resampleArray[j]->GetOutput());
     }
 
     cout << "Computing dice measure " << endl;
-    output << transformNames[i] << "\t";
-    for(int j=0; j<3 ; j++)
+    //output << transformNames[i] << "\t";
+    if(labelType == "ICC")
     {
-      // Set the labels
-      if(j ==0)
+      for(int j=0; j<3 ; j++)
       {
-        // White Matter
-        naryANDImageFilter->GetFunctor().m_Number = 25;
-        naryORImageFilter->GetFunctor().m_Number = 25;
-        naryANDImageFilter->Modified();
-        naryORImageFilter->Modified();
-      }
-      else if(j==1)
-      {
-        // White Matter
-        naryANDImageFilter->GetFunctor().m_Number = 30;
-        naryORImageFilter->GetFunctor().m_Number = 30;
-        naryANDImageFilter->Modified();
-        naryORImageFilter->Modified();
-      }
-      else
-      {
-        // White Matter
-        naryANDImageFilter->GetFunctor().m_Number = 23;
-        naryORImageFilter->GetFunctor().m_Number = 23;
-        naryANDImageFilter->Modified();
-        naryORImageFilter->Modified();
-      }
-      naryANDImageFilter->Update();
-      naryORImageFilter->Update();
-      
-      typedef itk::ImageRegionIterator<ImageType>  IteratorType;
-    
-      IteratorType andIt(naryANDImageFilter->GetOutput(),naryANDImageFilter->GetOutput()->GetLargestPossibleRegion() );
-      IteratorType orIt( naryORImageFilter->GetOutput(),naryORImageFilter->GetOutput()->GetLargestPossibleRegion() );
+        // Set the labels
+        if(j ==0)
+        {
+          // White Matter
+          naryANDImageFilter->GetFunctor().m_Number = 23;
+          naryANDImageFilter->Modified();
+        }
+        else if(j==1)
+        {
+          // White Matter
+          naryANDImageFilter->GetFunctor().m_Number = 25;
+          naryANDImageFilter->Modified();
+        }
+        else
+        {
+          // White Matter
+          naryANDImageFilter->GetFunctor().m_Number = 30;
+          naryANDImageFilter->Modified();
+        }
+        naryANDImageFilter->Update();
 
-      double andSum = 0;
-      double orSum = 0;
-      for ( andIt.GoToBegin(); !andIt.IsAtEnd(); ++andIt)
-      {
-        andSum += andIt.Get();
-        orSum += orIt.Get();
-        ++orIt;
+        typedef itk::ImageRegionIterator<ImageType>  IteratorType;
+    
+        IteratorType andIt(naryANDImageFilter->GetOutput(),naryANDImageFilter->GetOutput()->GetLargestPossibleRegion() );
+
+        // Write the overlap image
+        WriterType::Pointer writer= WriterType::New();
+        writer->SetInput(naryANDImageFilter->GetOutput());
+
+        // Set the file name
+        string fname = outputFolder;
+        if(i==0)
+        {
+          ostringstream affine;
+          affine << j << ".hdr";
+          fname += "Labels/Affine/";
+          itksys::SystemTools::MakeDirectory( fname.c_str() );
+          fname += affine.str();
+        }
+        else
+        {
+          ostringstream bsplineFolderName;
+          bsplineFolderName << "Labels/Bspline_Grid_" << (int) bsplineInitialGridSize * pow(2.0,i-1) << "/";
+          itksys::SystemTools::MakeDirectory( (fname+bsplineFolderName.str()).c_str() );
+          bsplineFolderName << j << ".hdr";
+          fname += bsplineFolderName.str();
+        }
+        writer->SetFileName(fname.c_str());
+        writer->SetImageIO(labelReaderArray[0]->GetImageIO());
+        writer->Update();
+
+
+        // Compute The histogram
+        vector<double> histogram(N,0.0);
+        double andSum = 0;
+        double orSum = 0;
+        for ( andIt.GoToBegin(); !andIt.IsAtEnd(); ++andIt)
+        {
+          const PixelType  current = andIt.Get();
+          if(current)
+          {
+            histogram[current] += 1.0;
+            orSum++;
+          }
+        }
+
+        output << "Level:" << i << " ";
+        for(int k=0; k<N; k++)
+        {
+          output << histogram[k] << " ";
+        }
+        output << endl;
+        // Write out the prediction percentages
+
       }
-      output << andSum / orSum << "\t";
-      cout << andSum << " " << orSum << endl;
+
     }
-    output << endl;
+    // Compute the overlap measures for hand labels
+    else
+    {
+      for(int j=3; j<=10 ; j++)
+      {
+        // Set the labels
+
+        // White Matter
+        naryANDImageFilter->GetFunctor().m_Number = j;
+        naryANDImageFilter->Modified();
+        naryANDImageFilter->Update();
+
+        typedef itk::ImageRegionIterator<ImageType>  IteratorType;
+    
+        IteratorType andIt(naryANDImageFilter->GetOutput(),naryANDImageFilter->GetOutput()->GetLargestPossibleRegion() );
+
+        // Write the overlap image
+        WriterType::Pointer writer= WriterType::New();
+        writer->SetInput(naryANDImageFilter->GetOutput());
+
+        // Set the file name
+        string fname = outputFolder;
+        if(i==0)
+        {
+          ostringstream affine;
+          affine << j << ".hdr";
+          fname += "HandLabels/Affine/";
+          itksys::SystemTools::MakeDirectory( fname.c_str() );
+          fname += affine.str();
+        }
+        else
+        {
+          ostringstream bsplineFolderName;
+          bsplineFolderName << "HandLabels/Bspline_Grid_" << (int) bsplineInitialGridSize * pow(2.0,i-1) << "/";
+          itksys::SystemTools::MakeDirectory( (fname+bsplineFolderName.str()).c_str() );
+          bsplineFolderName << j << ".hdr";
+          fname += bsplineFolderName.str();
+        }
+        writer->SetFileName(fname.c_str());
+        writer->SetImageIO(labelReaderArray[0]->GetImageIO());
+        writer->Update();
+
+
+        // Compute The histogram
+        vector<double> histogram(N,0.0);
+        double andSum = 0;
+        double orSum = 0;
+        for ( andIt.GoToBegin(); !andIt.IsAtEnd(); ++andIt)
+        {
+          const PixelType  current = andIt.Get();
+          if(current)
+          {
+            histogram[current] += 1.0;
+            orSum++;
+          }
+        }
+
+        // Output histogram counts
+        output << "Level:" << i << " ";
+        double sum = 0.0;
+        for(int k=0; k<N; k++)
+        {
+          sum += histogram[k];
+        }
+        for(int k=0; k<N; k++)
+        {
+          output << histogram[k]/sum << " ";
+        }
+        output << endl;
+        // Write out the prediction percentages
+
+      }
+    }
 
   }
   output.close();
