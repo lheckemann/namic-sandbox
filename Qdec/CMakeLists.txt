@@ -1,7 +1,6 @@
 PROJECT(Qdec)
 
 SET(Qdec_SRCS
-QdecCmd.cpp 
 QdecContrast.cpp 
 QdecDataTable.cpp 
 QdecFactor.cpp 
@@ -15,7 +14,7 @@ QdecUtilities.cpp
 
 INCLUDE_DIRECTORIES(${Qdec_SOURCE_DIR})
 
-ADD_EXECUTABLE(qdecCmd ${Qdec_SRCS})
+ADD_EXECUTABLE(qdecCmd QdecCmd.cpp ${Qdec_SRCS})
 
-
+ADD_LIBRARY(Qdec ${Qdec_SRCS})
 
