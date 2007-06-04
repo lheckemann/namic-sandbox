@@ -37,7 +37,6 @@ MultiImageMetric<TFixedImage>
 //   m_Interpolator  = 0; // has to be provided by the user.
 //  m_GradientImage = 0; // will receive the output of the filter;
   m_NumberOfSpatialSamples = 0;
-  m_Sample = 0;
 
   m_ComputeGradient = false; // metric does not compute gradient by default
   m_UserBsplineDefined = false;
@@ -145,12 +144,11 @@ MultiImageMetric<TFixedImage>
 
 
   // allocate new sample array
-  this->m_Sample = new  SpatialSample[this->m_NumberOfSpatialSamples];
+  this->m_Sample.resize(this->m_NumberOfSpatialSamples);
   for (int i = 0; i < this->m_NumberOfSpatialSamples; i++)
   {
     this->m_Sample[i].imageValueArray.set_size (this->m_NumberOfImages);
-    this->m_Sample[i].mappedPointsArray = new MovingImagePointType[this->m_NumberOfImages];
-    //this->m_Sample[i].gradientArray = new GradientPixelType[this->m_NumberOfImages];
+    this->m_Sample[i].mappedPointsArray.resize(this->m_NumberOfImages);
   }
   
   // Use optimized Bspline derivatives if the tranform type is UserBSplie
@@ -198,19 +196,7 @@ MultiImageMetric<TFixedImage>
 ::Finalize(void)
 {
 
-  // deallocate sample array
-  if(this->m_Sample)
-  {
-    for (int i = 0; i < this->m_NumberOfSpatialSamples; i++)
-    {
-      this->m_Sample[i].imageValueArray.set_size(0);
-      delete [] this->m_Sample[i].mappedPointsArray;
-      //delete [] this->m_Sample[i].gradientArray;
-    }
-    delete [] this->m_Sample;
-    this->m_Sample = 0;
-  }
-  
+
 }
 
 /*
