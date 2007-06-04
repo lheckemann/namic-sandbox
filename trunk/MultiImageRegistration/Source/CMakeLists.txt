@@ -46,6 +46,8 @@ SET(Groupwise_SRCS
   JointEntropyInterpolateArtefactMultiImageMetric.cxx
   RegisterToMeanMultiImageMetric.h
   RegisterToMeanMultiImageMetric.cxx
+  RegisterToMeanKNNMultiImageMetric.h
+  RegisterToMeanKNNMultiImageMetric.cxx
   RegisterToMeanAndVarianceMultiImageMetric.h
   RegisterToMeanAndVarianceMultiImageMetric.cxx
   MutualInformationLinearInterpolateImageFunction.h

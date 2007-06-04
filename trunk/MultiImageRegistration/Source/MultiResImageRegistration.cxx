@@ -39,6 +39,7 @@
 #include "JointEntropyKNNMultiImageMetric.h"
 #include "JointEntropyKNNGraphMultiImageMetric.h"
 #include "RegisterToMeanMultiImageMetric.h"
+#include "RegisterToMeanKNNMultiImageMetric.h"
 #include "RegisterToMeanAndVarianceMultiImageMetric.h"
     
     
@@ -200,7 +201,7 @@ public:
          // Print the metric Value
         unsigned long int numberOfSamples = m_MetricPointer->GetNumberOfSpatialSamples();
         m_MetricPointer->Finalize();
-        m_MetricPointer->SetNumberOfSpatialSamples( m_MetricPointer->GetFixedImageRegion().GetNumberOfPixels() );
+        m_MetricPointer->SetNumberOfSpatialSamples( 1000000 );
         m_MetricPointer->Initialize();
         cout << "ALLSamples: Iter" << m_CumulativeIterationIndex;
         cout << " Value " << m_MetricPointer->GetValue(optimizer->GetCurrentPosition());
@@ -921,6 +922,7 @@ int main( int argc, char *argv[] )
   typedef itk::JointEntropyFixedMultiImageMetric< InternalImageType>    JointEntropyFixedMetricType;
   typedef itk::JointEntropyInterpolateArtefactMultiImageMetric< InternalImageType>    JointEntropyInterpolateArtefactMetricType;
   typedef itk::RegisterToMeanMultiImageMetric< InternalImageType>    RegisterToMeanMetricType;
+  typedef itk::RegisterToMeanKNNMultiImageMetric< InternalImageType>    RegisterToMeanKNNMetricType;
   typedef itk::RegisterToMeanAndVarianceMultiImageMetric< InternalImageType>    RegisterToMeanAndVarianceMetricType;
 
 
@@ -1081,6 +1083,15 @@ int main( int argc, char *argv[] )
     // Set the number of samples to be used by the metric
     registerToMeanMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
     metric = registerToMeanMetric;
+  }
+  else if( metricType == "meanKNN" )
+  {
+    RegisterToMeanKNNMetricType::Pointer registerToMeanKNNMetric        = RegisterToMeanKNNMetricType::New();
+    // Set the number of samples to be used by the metric
+    registerToMeanKNNMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
+    registerToMeanKNNMetric->SetNumberOfNearestNeigbors(numberOfNearestNeigbors);
+    registerToMeanKNNMetric->SetErrorBound(errorBound);
+    metric = registerToMeanKNNMetric;
   }
   else if( metricType == "meanAndVariance" )
   {

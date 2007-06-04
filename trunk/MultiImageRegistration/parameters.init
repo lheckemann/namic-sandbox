@@ -38,6 +38,7 @@
 #   entropy: congealing with entropy along a pixel stack
 #   variance: congealing with variance computed along a pixel stack
 #   mean: each image is registered to the mean of all images. The mean is updated after each iteration
+#   meanKNN: same as mean but uses KNN for entropy estimation
 #   meanAndVariance: each image is registered to the mean and variance images. 
 #                    mean and Variance images are updated after each iteration.
 #                    the registration to the mean and variance are done using mutual information I(X_i;mean,variance)

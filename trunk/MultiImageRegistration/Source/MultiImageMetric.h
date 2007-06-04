@@ -344,11 +344,11 @@ protected:
 
       FixedImagePointType              FixedImagePoint;
       Array< PixelType >                   imageValueArray;
-      MovingImagePointType *   mappedPointsArray;
+      std::vector<MovingImagePointType>   mappedPointsArray;
       //GradientPixelType*  gradientArray;
 
   };
-  mutable SpatialSample*      m_Sample;
+  mutable std::vector<SpatialSample>      m_Sample;
 
   bool m_Regularization;
   double m_RegularizationFactor;
