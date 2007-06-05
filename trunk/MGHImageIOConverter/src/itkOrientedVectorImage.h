@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkVectorImage.h,v $
+  Module:    $RCSfile: itkOrientedVectorImage.h,v $
   Language:  C++
-  Date:      $Date: 2006/03/28 16:02:11 $
-  Version:   $Revision: 1.15 $
+  Date:      $Date: 2006/06/30 18:12:15 $
+  Version:   $Revision: 1.1.1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
