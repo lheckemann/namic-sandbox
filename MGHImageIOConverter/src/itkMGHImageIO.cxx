@@ -2,34 +2,12 @@
 #include <fstream>
 
 #include "itkMGHImageIO.h"
-#include "itkIOCommon.h"
-#include "itkExceptionObject.h"
-#include "itkByteSwapper.h"
-#include "itkMetaDataObject.h"
 
-#include "itkMatrix.h"
-
-#include <vnl/vnl_matrix.h>
-#include <vnl/vnl_vector.h>
-#include <vnl/vnl_cross.h>
 
 #include <cmath>
 
 #include <stdio.h>
 #include <stdlib.h>
-
-const int MRI_UCHAR = 0;
-const int MRI_INT   = 1;
-const int MRI_FLOAT = 3;
-const int MRI_SHORT = 4;
-const int MRI_TENSOR= 6;
-
-const int FS_DIMENSION_HEADER_SIZE = sizeof(int) * 7;
-const int FS_RAS_HEADER_SIZE = (sizeof(float) * 15) + sizeof(short);
-const int FS_UNUSED_HEADER_SIZE = 256 - FS_RAS_HEADER_SIZE;
-const int FS_WHOLE_HEADER_SIZE =
-    FS_RAS_HEADER_SIZE + FS_DIMENSION_HEADER_SIZE + FS_UNUSED_HEADER_SIZE;
-
 
 //-------------------------------
 //
@@ -39,40 +17,17 @@ const int FS_WHOLE_HEADER_SIZE =
 
 template<class T>
 int TReadZ(gzFile iFile,
-     T&     out)
+   T&     out)
 {
   T* pt = new T(0);
   int result;
   result = gzread(iFile,
-      pt,
-      sizeof(T));
+  pt,
+  sizeof(T));
   itk::ByteSwapper<T>::SwapFromSystemToBigEndian(pt);
   out = *pt;
   delete pt;
   return result;
-}
-
-template<class T>
-int TWriteZ(gzFile oFile,
-      T value)
-{
-  T* pt = new T(value);
-  int result;
-  itk::ByteSwapper<T>::SwapFromSystemToBigEndian(pt);
-  result = ::gzwrite(oFile, pt, sizeof(T));
-  delete pt;
-  return result;
-}
-
-template<class T>
-void
-TWrite(std::ostream& os,
-      T value)
-{
-  T* pt = new T(value);
-  itk::ByteSwapper<T>::SwapFromSystemToBigEndian(pt);
-  os.write( (const char*)pt, sizeof(T) );
-  delete pt;
 }
 
 //-------------------------------
@@ -89,6 +44,85 @@ GetExtension( const std::string& filename)
       filename.length());
   return extension;
 }
+
+//============================================================
+
+class STLWrapper
+{
+public:
+  explicit STLWrapper(std::ofstream* p_ofs) 
+    : m_ptrOfs(p_ofs), 
+      m_own(false) {}
+  explicit STLWrapper(const char* fname) 
+    : m_ptrOfs(NULL),
+      m_own(true)
+  {
+    m_ptrOfs = new std::ofstream(fname,
+    std::ios::out | std::ios::binary
+    );
+  }
+  virtual ~STLWrapper()
+  {
+    if ( m_own )
+      delete m_ptrOfs;
+  }
+  
+  template<class T>
+  void Write(T value)
+  {
+    T* pt = new T(value);
+    itk::ByteSwapper<T>::SwapFromSystemToBigEndian(pt);
+    m_ptrOfs->write( (const char*)pt, sizeof(T) );
+    delete pt;
+  }
+  virtual void WriteBuffer(char* buffer, 
+    unsigned int size)
+  {
+    m_ptrOfs->write(buffer, size *sizeof(char));
+  }
+private:
+  std::ofstream* m_ptrOfs;
+  bool m_own;
+};
+
+//========================
+
+class GZWrapper
+{
+public:
+  explicit GZWrapper(gzFile of) 
+    : m_ofs(of), m_own(false) {}
+  explicit GZWrapper(const char* fname) 
+    : m_ofs(NULL), 
+      m_own(true)
+  {
+    m_ofs = gzopen( fname, "wb" );
+  }
+  virtual ~GZWrapper() 
+  {
+    if ( m_own )
+      gzclose(m_ofs);
+  }
+
+  template<class T>
+  void Write(T value)
+  {
+    T* pt = new T(value);
+    itk::ByteSwapper<T>::SwapFromSystemToBigEndian(pt);
+    ::gzwrite(m_ofs, pt, sizeof(T));
+    delete pt;
+  }
+  virtual void WriteBuffer(char* buffer, unsigned int size)
+  {
+    ::gzwrite( m_ofs, buffer, size *sizeof(char) );
+  }
+private:
+  gzFile m_ofs;
+  bool m_own;
+};
+
+//===========================================================================
+
 
 //--------------------------------------
 //
@@ -125,21 +159,20 @@ namespace itk
 
     if ( filename == "" )
       {
-  itkExceptionMacro(<<"A FileName must be specified.");
-  return false;
+      itkExceptionMacro(<<"A FileName must be specified.");
+      return false;
       }
 
     
     // check if the correct extension is given by the user
     std::string extension = GetExtension(filename);
-    if ( extension == std::string("mgh") ||
-   extension == std::string("mgz") )
+    if ( extension == std::string("mgh") || extension == std::string("mgz") )
       return true;
     
     if ( extension == std::string("gz") )
       {
-  if ( filename.substr( filename.size() - 7 ) == std::string(".mgh.gz") )
-    return true;
+      if ( filename.substr( filename.size() - 7 ) == std::string(".mgh.gz") )
+        return true;
       }
     
     return false;
@@ -178,8 +211,8 @@ namespace itk
     fp = gzopen( m_FileName.c_str(), "rb");
     if ( !fp )
       {
-  itkExceptionMacro(<<"Can't find/open file: " << m_FileName);
-  return;
+      itkExceptionMacro(<<"Can't find/open file: " << m_FileName);
+      return;
       }
 
     ReadVolumeHeader(fp);
@@ -200,8 +233,8 @@ namespace itk
 
     if ( !fp )
       {
-  itkExceptionMacro(<< "Can't find/open file: " << this->m_FileName);
-  return;
+      itkExceptionMacro(<< "Can't find/open file: " << this->m_FileName);
+      return;
       }
     TReadZ(fp, version);
     TReadZ(fp, bufInt);   m_Dimensions[0] = (unsigned int)bufInt;
@@ -215,19 +248,19 @@ namespace itk
     // Convert type to an ITK type
     switch( type )
       {
-      case MRI_UCHAR: 
-  m_ComponentType = UCHAR; break;
-      case MRI_INT:
-  m_ComponentType = INT; break;
-      case MRI_FLOAT:
-  m_ComponentType = FLOAT; break;
-      case MRI_SHORT:
-  m_ComponentType = SHORT; break;
-      case MRI_TENSOR:
-  m_ComponentType = FLOAT; m_NumberOfComponents = 9; break;
+      case fs::MRI_UCHAR: 
+        m_ComponentType = UCHAR; break;
+      case fs::MRI_INT:
+        m_ComponentType = INT; break;
+      case fs::MRI_FLOAT:
+        m_ComponentType = FLOAT; break;
+      case fs::MRI_SHORT:
+        m_ComponentType = SHORT; break;
+      case fs::MRI_TENSOR:
+        m_ComponentType = FLOAT; m_NumberOfComponents = 9; break;
       default:
-  itkExceptionMacro(<<" Unknown data type " << type << " using float by default.");
-  m_ComponentType = FLOAT;
+        itkExceptionMacro(<<" Unknown data type " << type << " using float by default.");
+        m_ComponentType = FLOAT;
       }
 
     // Next short says whether RAS registration information is good. 
@@ -236,145 +269,131 @@ namespace itk
     float spacing;
     if ( RASgood )
       {
-  for( int nSpacing = 0; nSpacing<3; ++nSpacing)
+    for( int nSpacing = 0; nSpacing<3; ++nSpacing)
     {
       TReadZ( fp, spacing); // type is different
       m_Spacing[nSpacing] = spacing;
     }
-  /*
-    From http://www.nmr.mgh.harvard.edu/~tosa/#coords:
-    To go from freesurfer voxel coordinates to RAS coordinates, they use:
-    translation:  t_r, t_a, t_s is defined using c_r, c_a, c_s centre voxel position in RAS
-    rotation: direction cosines x_(r,a,s), y_(r,a,s), z_(r,a,s)
-    voxel size for scale: s_x, s_y, s_z
-    
-    [ x_r y_r z_r t_r][s_x  0   0  0]
-    [ x_a y_a z_a t_a][0   s_y  0  0]
-    [ x_s y_s z_s t_s][0    0  s_z 0]
-    [  0   0   0   1 ][0    0   0  1]
-    Voxel center is a column matrix, multipled from the right
-    [v_x]
-    [v_y]
-    [v_z]
-    [ 1 ]
-    
-    In the MGH header, they hold:
-    x_r x_a x_s
-    y_r y_a y_s
-    z_r z_a z_s
-    c_r c_a c_s
-  */
+    /*
+      From http://www.nmr.mgh.harvard.edu/~tosa/#coords:
+      To go from freesurfer voxel coordinates to RAS coordinates, they use:
+      translation:  t_r, t_a, t_s is defined using c_r, c_a, c_s centre voxel position in RAS
+      rotation: direction cosines x_(r,a,s), y_(r,a,s), z_(r,a,s)
+      voxel size for scale: s_x, s_y, s_z
+      
+      [ x_r y_r z_r t_r][s_x  0   0  0]
+      [ x_a y_a z_a t_a][0   s_y  0  0]
+      [ x_s y_s z_s t_s][0    0  s_z 0]
+      [  0   0   0   1 ][0    0   0  1]
+      Voxel center is a column matrix, multipled from the right
+      [v_x]
+      [v_y]
+      [v_z]
+      [ 1 ]
+      
+      In the MGH header, they hold:
+      x_r x_a x_s
+      y_r y_a y_s
+      z_r z_a z_s
+      c_r c_a c_s
+    */
   typedef itk::Matrix<double> MatrixType;
   MatrixType matrix;
   
   float fBuffer;
   float c[3];
+  
   for(unsigned int uj=0; uj<3; ++uj)
     {
       for(unsigned int ui=0; ui<3; ++ui)
         {
-    TReadZ(fp, fBuffer);
-    matrix[ui][uj] = fBuffer;
+        TReadZ(fp, fBuffer);
+        matrix[ui][uj] = fBuffer;
         }
     }
+  
   for(unsigned int ui=0; ui<3; ++ui)
     TReadZ(fp, c[ui]);
-
+  
   for(unsigned int ui=0; ui<3; ++ui)
     {
       std::vector<double> vDir;
       for(unsigned int uj=0; uj<3; ++uj)
-        vDir.push_back( matrix[ui][uj] );
+        vDir.push_back( matrix[uj][ui] );
       SetDirection( ui, vDir );
     }
   
-  //MriDirCos(); // convert direction cosines
-
-  // finally, store the origin of the image -> only works 
-  // if the image is properly orriented in the sequel
-  // 
-  // computed in CORONAL orientation = ITK_COORDINATE_ORIENTATION_LIA
-  float fcx,fcy,fcz;
-  fcx = static_cast<float>(m_Dimensions[0])/2.0f;
-  fcy = static_cast<float>(m_Dimensions[1])/2.0f;
-  fcz = static_cast<float>(m_Dimensions[2])/2.0f;
-
+  float idxCenter[3];
+  for(unsigned int ui=0; ui<3; ++ui)
+    idxCenter[ui] = static_cast<float>(m_Dimensions[ui])/2.0f;
+  
   for( unsigned int ui=0; ui<3; ++ui)
-    m_Origin[ui] = c[ui] -
-      ( matrix[ui][0]*m_Spacing[0]*fcx +
-        matrix[ui][1]*m_Spacing[1]*fcy +
-        matrix[ui][2]*m_Spacing[2]*fcz );
-
+    {
+      m_Origin[ui] = c[ui];
+      for(unsigned int uj=0; uj<3; ++uj)
+        m_Origin[ui] -= matrix[ui][uj]*m_Spacing[uj]*idxCenter[uj];
+    }
       }
    
-    //==================
-    // read tags at the end of file
-
     unsigned long numValues = m_Dimensions[0]*m_Dimensions[1]*m_Dimensions[2];
-    gzseek(fp, FS_WHOLE_HEADER_SIZE + 
+    gzseek(fp, fs::FS_WHOLE_HEADER_SIZE + 
      ( m_NumberOfComponents * numValues * this->GetComponentSize() ),
      SEEK_SET);
-
+  
     float fBuf;
     // read TR, Flip, TE, FI, FOV
     if ( TReadZ( fp, fBuf) )
       {
   itk::MetaDataDictionary &thisDic = this->GetMetaDataDictionary();
-  itk::EncapsulateMetaData<float>(thisDic,
-         std::string("TR"),
-         fBuf);
-
+  itk::EncapsulateMetaData<float>(thisDic, std::string("TR"), fBuf);
+  
   // try to read flipAngle
   if ( TReadZ( fp, fBuf ) )
     {
-      itk::EncapsulateMetaData<float>(thisDic,
-             std::string("FlipAngle"),
-             fBuf);
+      itk::EncapsulateMetaData<float>(thisDic, std::string("FlipAngle"), fBuf);
       // TE
       if ( TReadZ( fp, fBuf ) )
         {
-    itk::EncapsulateMetaData<float>(thisDic,
-           std::string("TE"),
-           fBuf);
-    // TI
-    if ( TReadZ(fp, fBuf) )
-      {
-        itk::EncapsulateMetaData<float>(thisDic,
-               std::string("TI"),
-               fBuf);
-        // FOV
+        itk::EncapsulateMetaData<float>(thisDic, std::string("TE"), fBuf);
+        // TI
         if ( TReadZ(fp, fBuf) )
-          {
-      itk::EncapsulateMetaData<float>(thisDic,
-             std::string("FoV"),
-             fBuf);
+        {
+          itk::EncapsulateMetaData<float>(thisDic, std::string("TI"), fBuf);
+          // FOV
+          if ( TReadZ(fp, fBuf) )
+            {
+            itk::EncapsulateMetaData<float>(thisDic, std::string("FoV"), fBuf);
+            }
           }
-      }
         }
-    }
-      }
-  }
-
-  void
-  MGHImageIO::Read(void* pData)
-  {
+        }
+      } // end if
+  
+    //==================
+    // read tags at the end of file
+    
+}
+  
+void
+MGHImageIO::Read(void* pData)
+{
     gzFile fp;
     fp = gzopen( m_FileName.c_str(), "rb");
     if ( !fp )
       {
-  itkExceptionMacro(<<"Can't find/open file: " << m_FileName);
-  return;
+      itkExceptionMacro(<<"Can't find/open file: " << m_FileName);
+      return;
       }
-
+  
     const unsigned long numPixels = m_Dimensions[0]*m_Dimensions[1]* m_Dimensions[2];
-
+  
     const unsigned int componentSize( this->GetComponentSize() );
     
     // check that the offset is actually computed wrt. the beginning
-    gzseek(fp, FS_WHOLE_HEADER_SIZE, SEEK_SET );
+    gzseek(fp, fs::FS_WHOLE_HEADER_SIZE, SEEK_SET );
     
     const unsigned int frameSize = numPixels*componentSize;
-
+  
     if ( m_NumberOfComponents > 1  )
       {
   char* pBuffer = new char[ frameSize ];
@@ -394,54 +413,51 @@ namespace itk
       
       pDst += frameIndex * componentSize;
       for( unsigned int ui=0;
-     ui < numPixels; 
-     ++ui, pSrc+=componentSize, pDst+=pixelSize)
+        ui < numPixels; 
+        ++ui, pSrc+=componentSize, pDst+=pixelSize)
         {
-    for(unsigned int byteCount = 0;
-        byteCount < componentSize; ++byteCount)
-      *(pDst+byteCount) = *(pSrc+byteCount);
+        for(unsigned int byteCount = 0;
+          byteCount < componentSize; ++byteCount)
+            *(pDst+byteCount) = *(pSrc+byteCount);
         } // next ui
-    } // next frameIndex
-
-  // clear resources
-  delete[] pBuffer;
+      } // next frameIndex
+  
+      // clear resources
+      delete[] pBuffer;
       }
     else
       {
-  gzread( fp, pData, frameSize);
+      gzread( fp, pData, frameSize);
       }
     
     gzclose(fp);
     
     SwapBytesIfNecessary( pData, numPixels*m_NumberOfComponents );
-
+  
   } // end Read function
-
-  void
-  MGHImageIO::SwapBytesIfNecessary(void* buffer,
-           unsigned long numberOfPixels)
-  {
+  
+void
+MGHImageIO::SwapBytesIfNecessary(void* buffer,
+  unsigned long numberOfPixels)
+{
     // NOTE: If machine order is little endian, and the data needs to be
     // swapped, the SwapFromBigEndianToSystem is equivalent to
     // SwapFromSystemToBigEndian.
-
+  
     switch(m_ComponentType)
       {
       case UCHAR:
-  ByteSwapper<unsigned char>::SwapRangeFromSystemToBigEndian((unsigned char*)buffer,
-                   numberOfPixels);
+  ByteSwapper<unsigned char>::SwapRangeFromSystemToBigEndian((unsigned char*)buffer, numberOfPixels);
   break;
       case SHORT:
-  ByteSwapper<short>::SwapRangeFromSystemToBigEndian((short*)buffer,
-                 numberOfPixels);
+  ByteSwapper<short>::SwapRangeFromSystemToBigEndian((short*)buffer, numberOfPixels);
   break;
       case INT:
-  ByteSwapper<int>::SwapRangeFromSystemToBigEndian((int*)buffer,
-               numberOfPixels);
+  ByteSwapper<int>::SwapRangeFromSystemToBigEndian((int*)buffer, numberOfPixels);
   break;
       case FLOAT:
   ByteSwapper<float>::SwapRangeFromSystemToBigEndian((float*)buffer,
-                 numberOfPixels);
+  numberOfPixels);
   break;
       default:
   ExceptionObject exception(__FILE__,__LINE__);
@@ -449,363 +465,88 @@ namespace itk
   throw exception;
       } // end switch
   }
-
-
-  bool
-  MGHImageIO::CanWriteFile(const char* name)
-  {
+  
+  
+bool
+MGHImageIO::CanWriteFile(const char* name)
+{
     std::string filename(name);
-
+  
     if ( filename == "" )
       {
-  itkExceptionMacro(<<"A FileName must be specified.");
-  return false;
+      itkExceptionMacro(<<"A FileName must be specified.");
+      return false;
       }
-
+  
     std::string extension = GetExtension(filename);
     if ( extension != std::string("mgh") &&
    extension != std::string("mgz") )
       return false;
-
+  
     return true;
   }
-
+  
   void
   MGHImageIO::WriteImageInformation()
   {
     std::string extension = GetExtension(m_FileName);
-
+  
     if ( extension == std::string("mgh") )
-      WriteUncompressedHeader();
+      {
+  std::ofstream ofs( m_FileName.c_str(), std::ios::out | std::ios::binary );
+  STLWrapper writer(&ofs);
+  this->WriteHeader( writer );
+      }
     else
       {
   gzFile fp = gzopen(m_FileName.c_str(), "wb");
   if(!fp)
     itkExceptionMacro(<<" Failed to open gzFile for writing");
-  WriteCompressedHeader(fp);
+  GZWrapper writer(fp);
+  this->WriteHeader(writer);
   gzclose(fp);
       }
   }
   
-
+  
   void
   MGHImageIO::Write(const void* buffer)
   {
-    // Write the image information before writing data
-
     std::string extension = GetExtension(m_FileName);
+  
     if ( extension == std::string("mgh") )
       {
-  this->WriteUncompressedHeader();
-  this->WriteUncompressedData(buffer);
-      }
-    else
-      {
-  gzFile file_p = gzopen( m_FileName.c_str(), "wb");
-  if (!file_p)
-    itkExceptionMacro(<<" Failed to open gzFile for writing");
-
-  this->WriteCompressedHeader(file_p);
-  this->WriteCompressedData(file_p, buffer);
-  
-  gzclose(file_p);
-      }
-
-  }
-
-  void
-  MGHImageIO::WriteUncompressedHeader()
-  {
-    const int mghVersion = 1;
-
-    std::ofstream ofs;
-    ofs.open( m_FileName.c_str(),
-        std::ios::out | std::ios::binary );
+      std::ofstream ofs( m_FileName.c_str(), std::ios::out | std::ios::binary );
     if ( ofs.fail() )
-      {
-  itkExceptionMacro(<< " File cannot be written");
-      }
-    
-    // version
-    TWrite( ofs, mghVersion );
-
-    // dimensions
-    for(unsigned int ui=0; ui<3; ++ui)
-      TWrite( ofs, (int)m_Dimensions[ui] );
-    
-    // nframes
-    TWrite( ofs, (int)m_NumberOfComponents );
-
-    // type
-    switch( m_ComponentType )
-      {
-      case UCHAR:
-  TWrite( ofs, MRI_UCHAR); break;
-      case INT:
-  TWrite( ofs, MRI_INT); break;
-      case FLOAT:
-  TWrite( ofs, MRI_FLOAT); break;
-      case SHORT:
-  TWrite( ofs, MRI_SHORT); break;
-      }
-
-    // dof !?! -> default value = 1
-    TWrite( ofs, 1);
-    
-    // write RAS and voxel size info
-    // for now, RAS flag will be good
-    // in the future, check if the m_Directions matrix is a permutation matrix
-    TWrite( ofs, (short)1);
-    
-    // spacing
-    for(unsigned int ui=0; ui<3; ++ui)
-      TWrite( ofs, (float)m_Spacing[ui]);
-         
-    // get directions matrix
-    std::vector<std::vector<double> > vvRas;
-    for(unsigned int ui=0; ui<3; ++ui) vvRas.push_back( GetDirection(ui) );
-    // transpose data before writing it
-    std::vector<float> vBufRas;
-    // transpose the matrix
-    for(unsigned int ui(0), count(0);
-  ui < 3; ++ui)
-      for(unsigned int uj(0); uj<3; ++uj)
-  vBufRas.push_back( (float)vvRas[uj][ui] );
-    
-    for(std::vector<float>::const_iterator cit = vBufRas.begin();
-  cit != vBufRas.end(); ++cit )
-      TWrite( ofs, *cit);
-    
-    // write c_r, c_a, c_s
-    // defined as origin + DC x resolution x ( dim0/2 , dim1/2, dim2/2 )
-    float crasBuf;
-    for(unsigned int ui=0; ui<3; ++ui)
-      {
-  crasBuf = m_Origin[ui];
-  for(unsigned int uj=0; uj<3; ++uj)
-    crasBuf += vvRas[ui][uj]*m_Spacing[uj]*(float)m_Dimensions[uj]/2.0f;
-
-  TWrite( ofs, crasBuf );
-      } // next ui
-    
-    // fill the rest of the buffer with zeros
-    char* buffer = new char[ FS_UNUSED_HEADER_SIZE *sizeof(char) ];
-    memset(buffer, 0, FS_UNUSED_HEADER_SIZE *sizeof(char) );
-    ofs.write( buffer, FS_UNUSED_HEADER_SIZE );
-    delete[] buffer;
-
-    // the stream is automatically closed when quiting
-  }
-
-  void
-  MGHImageIO::WriteCompressedHeader(gzFile file_p)
-  {
-    const int mghVersion = 1;
-
-    // version
-    TWriteZ( file_p, mghVersion);
-
-    // dimensions
-    for(unsigned int ui=0; ui<3; ++ui)
-      TWriteZ( file_p, (int)m_Dimensions[ui]);
-    
-    // nframes
-    TWriteZ( file_p, (int)m_NumberOfComponents);
-
-    // type
-    switch( m_ComponentType )
-      {
-      case UCHAR:
-  TWriteZ( file_p, MRI_UCHAR); break;
-      case INT:
-  TWriteZ( file_p, MRI_INT); break;
-      case FLOAT:
-  TWriteZ( file_p, MRI_FLOAT); break;
-      case SHORT:
-  TWriteZ( file_p, MRI_SHORT); break;
-      } 
-
-    // dof -> default value = 1
-    TWriteZ( file_p, 1 );
-
-    // write RAS and voxel size info
-    // good ras flag
-    TWriteZ( file_p, (short)1 );
-
-    // write the spacing
-    for(unsigned int ui=0; ui<3; ++ui)
-      TWriteZ( file_p, (float)m_Spacing[ui]);
-
-    //===================================================================
-    // get directions matrix
-    std::vector<std::vector<double> > vvRas;
-    for(unsigned int ui=0; ui<3; ++ui) vvRas.push_back( GetDirection(ui) );
-    // transpose data before writing it
-    std::vector<float> vBufRas;
-    // transpose the matrix
-    for(unsigned int ui(0), count(0);
-  ui < 3; ++ui)
-      for(unsigned int uj(0); uj<3; ++uj)
-  vBufRas.push_back( (float)vvRas[uj][ui] );
-    //===================================================================
-
-    for(std::vector<float>::const_iterator cit = vBufRas.begin();
-  cit != vBufRas.end(); ++cit )
-      TWriteZ( file_p, *cit );
-
-    // write c_r, c_a, c_s
-    float crasBuf;
-    for(unsigned int ui=0; ui<3; ++ui)
-      {
-  crasBuf = m_Origin[ui];
-  for(unsigned int uj=0; uj<3; ++uj)
-    crasBuf += vvRas[ui][uj]*m_Spacing[uj]*(float)m_Dimensions[uj]/2.0f;
-  
-  TWriteZ( file_p, crasBuf );
-      }
-    
-    // fill the rest of the buffer with zeros
-    char* buffer = new char[ FS_UNUSED_HEADER_SIZE *sizeof(char) ];
-    memset(buffer, 0, FS_UNUSED_HEADER_SIZE *sizeof(char) );
-    ::gzwrite( file_p, buffer, FS_UNUSED_HEADER_SIZE *sizeof(char) );
-
-    // free resources
-    delete[] buffer;
-
-  }
-
-  void
-  MGHImageIO::WriteCompressedData(gzFile fp,
-          const void* buffer)
-  {
-
-    // swap bytes if necessary
-    const unsigned long int numvalues = m_Dimensions[0]
-      * m_Dimensions[1] * m_Dimensions[2] * m_NumberOfComponents;
-    const unsigned long int numbytes = this->GetComponentSize() * numvalues;
-
-    char* tempmemory = new char[numbytes];
-
-    // re-arrange data in frames
-    if ( m_NumberOfComponents > 1 )
-      {
-  PermuteFrameValues(buffer, tempmemory);
+    {
+      itkExceptionMacro(<< "File cannot be opened for writing");
+    }
+  STLWrapper writer(&ofs);
+  this->WriteHeader(writer);
+  this->WriteData(writer,buffer);
       }
     else
-      memcpy(tempmemory, buffer, numbytes);
-
-
-    this->SwapBytesIfNecessary(tempmemory,numvalues);
-    
-    int result = gzwrite( fp, tempmemory, numbytes );
-
-    delete[] tempmemory;
-
-        itk::MetaDataDictionary &thisDic=this->GetMetaDataDictionary();
-    
-    float fScanBuffer;
-    
-    if ( ExposeMetaData<float>(thisDic, "TR", fScanBuffer) )
       {
-  TWriteZ( fp, fScanBuffer );
-  
-  if ( ExposeMetaData<float>(thisDic, "FlipAngle", fScanBuffer) )
-    {
-      TWriteZ( fp, fScanBuffer);
+      gzFile file_p = gzopen( m_FileName.c_str(), "wb");
+      if (!file_p)
+        itkExceptionMacro(<<" Failed to open gzFile for writing");
+      GZWrapper writer(file_p);
+      this->WriteHeader(writer);
+      this->WriteData(writer, buffer);
       
-      if ( ExposeMetaData<float>(thisDic, "TE", fScanBuffer) )
-        {
-    TWriteZ( fp, fScanBuffer);
-    
-    if ( ExposeMetaData<float>(thisDic, "TI", fScanBuffer) )
-      {
-        TWriteZ( fp, fScanBuffer);
-
-        if ( ExposeMetaData<float>(thisDic, "FoV", fScanBuffer) )
-          TWriteZ( fp, fScanBuffer);
-      } // end TI
-        } // end TE
-    } // end FlipAngle
-      } // end TR
-
-  }
-
-  void
-  MGHImageIO::WriteUncompressedData(const void* buffer)
-  {
-    std::ofstream ofs;
-    ofs.open(m_FileName.c_str(), std::ios::out | std::ios::binary | std::ios::app );
-    if ( ofs.fail() )
-      {
-  itkExceptionMacro( << " failed to open stream for writing uncompressed data");
+      gzclose(file_p);
       }
-    // no need to jump - just append at the end of the stream 
-
-    // swap bytes if necessary
-    const unsigned int numPixels =  m_Dimensions[0]
-      * m_Dimensions[1] * m_Dimensions[2];
-    const unsigned long int numvalues = numPixels * m_NumberOfComponents;
-    const unsigned long int numbytes = this->GetComponentSize() * numvalues;
-
-    char* tempmemory = new char[numbytes];
-
-    // re-arrange data in frames
-    if ( m_NumberOfComponents > 1 )
-      {
-  PermuteFrameValues(buffer, tempmemory);
-      }
-    else
-      memcpy(tempmemory, buffer, numbytes);
-
-    this->SwapBytesIfNecessary(tempmemory, numvalues);
-
-    ofs.write( static_cast<const char*>(tempmemory), this->GetImageSizeInBytes() );
-    delete[] tempmemory;
-
-    // if present, the scan parameters are present at the end of the file, so now's the time to write them
-    itk::MetaDataDictionary &thisDic=this->GetMetaDataDictionary();
-    
-    float fScanBuffer;
-    
-    if ( ExposeMetaData<float>(thisDic, "TR", fScanBuffer) )
-      {
-  TWrite( ofs, fScanBuffer );
   
-  if ( ExposeMetaData<float>(thisDic, "FlipAngle", fScanBuffer) )
-    {
-      TWrite( ofs, fScanBuffer);
-      
-      if ( ExposeMetaData<float>(thisDic, "TE", fScanBuffer) )
-        {
-    TWrite( ofs, fScanBuffer);
-    
-    if ( ExposeMetaData<float>(thisDic, "TI", fScanBuffer) )
-      {
-        TWrite( ofs, fScanBuffer);
-
-        if ( ExposeMetaData<float>(thisDic, "FoV", fScanBuffer) )
-          TWrite( ofs, fScanBuffer);
-      } // end TI
-        } // end TE
-    } // end FlipAngle
-      } // end TR
-
-
-    // no need to close the stream
   }
-
-  void
-  MGHImageIO::PermuteFrameValues(const void* buffer,
-         char* tempmemory)
+  
+void
+MGHImageIO::PermuteFrameValues(const void* buffer, char* tempmemory)
   {
     const unsigned int numPixels =  m_Dimensions[0]
       * m_Dimensions[1] * m_Dimensions[2];
-    const unsigned long int numvalues = numPixels * m_NumberOfComponents;
-    const unsigned long int numbytes = this->GetComponentSize() * numvalues;
-    
-
+  
     const unsigned int valueSize( this->GetComponentSize() );
-
+  
     const unsigned int frameSize = numPixels * valueSize;
     
     const char* pSrc = (const char*)buffer;
@@ -818,25 +559,34 @@ namespace itk
       componentIndex < m_NumberOfComponents;
       ++componentIndex, pSrc+=valueSize)
     {
-      std::copy( pSrc, pSrc+ valueSize,
-           pDst + frameSize*componentIndex );
+      std::copy( pSrc, pSrc+ valueSize, pDst + frameSize*componentIndex );
     } // next component index
       } // next pixelIndex 
   }
-
+  
   unsigned int
   MGHImageIO::GetComponentSize() const
   {
-    unsigned int returnValue;
+    unsigned int returnValue = 0;
     switch ( m_ComponentType )
       {
       case UCHAR: returnValue = sizeof(unsigned char); break;
       case SHORT: returnValue = sizeof(short); break;
       case INT:   returnValue = sizeof(int); break;
       case FLOAT: returnValue = sizeof(float); break;
-      }
-    return returnValue;
+      
+      // DJ -- added this in to get the compiler to shut up
+        case UNKNOWNCOMPONENTTYPE:
+        case CHAR:
+        case USHORT:
+        case UINT:
+        case ULONG:
+        case LONG:
+        case DOUBLE:
+          break;
+        }
+      return returnValue;
   }
-
+  
 } // end NAMESPACE ITK
-
+  
