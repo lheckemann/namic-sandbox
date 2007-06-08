@@ -286,7 +286,15 @@ int main( int argc, char * argv[] )
 
   }
 
-  ofstream output( (outputFolder + "DiceMeasures.txt").c_str() );
+  ofstream output;
+  if(labelType == "ICC")
+  {
+    output.open( (outputFolder + "DiceMeasuresICC.txt").c_str() );
+  }
+  else
+  {
+    output.open( (outputFolder + "DiceMeasuresHandLabel.txt").c_str() );
+  }
 
   // Resample the images
   // Read the input transforms and compute the dice measure
@@ -496,15 +504,12 @@ int main( int argc, char * argv[] )
 
         // Compute The histogram
         vector<double> histogram(N,0.0);
-        double andSum = 0;
-        double orSum = 0;
         for ( andIt.GoToBegin(); !andIt.IsAtEnd(); ++andIt)
         {
           const PixelType  current = andIt.Get();
           if(current)
           {
-            histogram[current] += 1.0;
-            orSum++;
+            histogram[current-1] += 1.0;
           }
         }
 
@@ -564,28 +569,19 @@ int main( int argc, char * argv[] )
 
         // Compute The histogram
         vector<double> histogram(N,0.0);
-        double andSum = 0;
-        double orSum = 0;
         for ( andIt.GoToBegin(); !andIt.IsAtEnd(); ++andIt)
         {
           const PixelType  current = andIt.Get();
           if(current)
           {
-            histogram[current] += 1.0;
-            orSum++;
+            histogram[current-1] += 1.0;
           }
         }
 
-        // Output histogram counts
         output << "Level:" << i << " ";
-        double sum = 0.0;
         for(int k=0; k<N; k++)
         {
-          sum += histogram[k];
-        }
-        for(int k=0; k<N; k++)
-        {
-          output << histogram[k]/sum << " ";
+          output << histogram[k] << " ";
         }
         output << endl;
         // Write out the prediction percentages
