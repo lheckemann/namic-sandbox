@@ -39,6 +39,7 @@
 #include "itkWeightedCovarianceFilter.h"
 #include "itkImageToListSampleFilter.h"
 #include "itkScalarImageToCooccurrenceMatrixFilter.h"
+#include "itkScalarImageToCooccurrenceListSampleFilter.h"
 #include "itkImageToListSampleAdaptor.h"
 #include "itkPointSetToListSampleAdaptor.h"
 #include "itkJointDomainImageToListSampleAdaptor.h"
