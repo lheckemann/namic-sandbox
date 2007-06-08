@@ -342,8 +342,8 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
         
       ImageType::SizeType size = fixedImage->GetLargestPossibleRegion().GetSize();
       ImageType::IndexType start = fixedImage->GetLargestPossibleRegion().GetIndex();
-      start[2] = size[2]/2;
-      size[2] = 0;
+      start[0] = 106;
+      size[0] = 0;
 
         
       ImageType::RegionType extractRegion;
@@ -377,7 +377,7 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
         for ( defIt.GoToBegin(); !defIt.IsAtEnd(); ++defIt)
         {
           index = defIt.GetIndex();
-          if(index[0]%8 == 0 || index[1]%8 ==0 )
+          if(index[2]%8 == 0 || index[1]%8 ==0 )
           {
             defIt.Set( 255 );
           }
@@ -495,6 +495,10 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
       ImageType::SizeType size = fixedImage->GetLargestPossibleRegion().GetSize();
       ImageType::IndexType start = fixedImage->GetLargestPossibleRegion().GetIndex();
       start[index] = size[index]/2;
+      if(index ==0)
+      {
+        start[0] = 106;
+      }
       size[index] = 0;
         
       ImageType::RegionType extractRegion;
@@ -2178,6 +2182,10 @@ int main( int argc, char *argv[] )
       ImageType::SizeType size = imageArrayReader[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
       ImageType::IndexType start = imageArrayReader[0]->GetOutput()->GetLargestPossibleRegion().GetIndex();
       start[index] = size[index]/2;
+      if(index==0)
+      {
+        start[0] = 106;
+      }
       size[index] = 0;
         
       ImageType::RegionType extractRegion;
