@@ -33,6 +33,7 @@
 #include "itkNeighborhoodSampler.h"
 #include "itkImageToListSampleFilter.h"
 #include "itkScalarImageToCooccurrenceMatrixFilter.h"
+#include "itkScalarImageToCooccurrenceListSampleFilter.h"
 #include "itkHistogramToTextureFeaturesFilter.h"
 #include "itkScalarImageToTextureFeaturesFilter.h"
 #include "itkMeanFilter.h"
@@ -79,6 +80,9 @@ int itkStatisticsPrintTest(int , char* [])
 
   typedef itk::Statistics::ScalarImageToCooccurrenceMatrixFilter< 
     ScalarImageType > ScalarImageToCooccurrenceMatrixFilterType;
+
+  typedef itk::Statistics::ScalarImageToCooccurrenceListSampleFilter< 
+    ScalarImageType > ScalarImageToCooccurrenceListSampleFilterType;
 
   typedef itk::Statistics::ScalarImageToTextureFeaturesFilter< 
     ScalarImageType > ScalarImageToTextureFeaturesFilterType;
@@ -147,6 +151,11 @@ int itkStatisticsPrintTest(int , char* [])
     ScalarImageToCooccurrenceMatrixFilterType::New();
   std::cout << "----------ScalarImageToCooccurrenceMatrixFilter ";
   std::cout << ScalarImageToCooccurrenceMatrixFilterObj;
+
+  ScalarImageToCooccurrenceListSampleFilterType::Pointer ScalarImageToCooccurrenceListSampleFilterObj =
+    ScalarImageToCooccurrenceListSampleFilterType::New();
+  std::cout << "----------ScalarImageToCooccurrenceListSampleFilter ";
+  std::cout << ScalarImageToCooccurrenceListSampleFilterObj;
 
   ScalarImageToTextureFeaturesFilterType::Pointer ScalarImageToTextureFeaturesFilterObj =
     ScalarImageToTextureFeaturesFilterType::New();
