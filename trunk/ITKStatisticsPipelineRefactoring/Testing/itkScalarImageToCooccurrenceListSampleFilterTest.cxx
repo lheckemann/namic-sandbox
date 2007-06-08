@@ -35,7 +35,7 @@ int itkScalarImageToCooccurrenceListSampleFilterTest( int argc, char * argv [] )
   //------------------------------------------------------
   //Create a simple test images
   //------------------------------------------------------
-  typedef itk::Image<unsigned char, NDIMENSION> InputImageType;
+  typedef itk::Image<unsigned int, NDIMENSION> InputImageType;
 
   typedef itk::ImageRegionIterator< InputImageType > InputImageIterator;
 
@@ -53,11 +53,11 @@ int itkScalarImageToCooccurrenceListSampleFilterTest( int argc, char * argv [] )
 
   //--------------------------------------------------------------------------
   // Set up the image first. It looks like:
-  //  1 2 1 2 1
-  //  1 2 1 2 1
-  //  1 2 1 2 1
-  //  1 2 1 2 1
-  //  1 2 1 2 1
+  //  4 5 6 7 8
+  //  3 4 5 6 7
+  //  2 3 4 5 6
+  //  1 2 3 4 5
+  //  0 1 2 3 4
   //--------------------------------------------------------------------------
 
   image->SetRegions( region );
@@ -69,35 +69,63 @@ int itkScalarImageToCooccurrenceListSampleFilterTest( int argc, char * argv [] )
   for(int i = 0; i < 5; i++)
     for(int j = 0; j < 5; j++, ++imageIt)
       {
-      imageIt.Set(j % 2 + 1);
+      imageIt.Set(i % 5 + j);
       }
-
-
-  if( argc < 2 )
-    {
-    std::cerr << "Error: argument missing" << std::endl;
-    std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << " inputImageFile " << std::endl;
-    }
 
   typedef itk::Statistics::ScalarImageToCooccurrenceListSampleFilter < 
                                   InputImageType > CooccurrenceListType;
 
-  CooccurrenceListType::Pointer list = CooccurrenceListType::New();
-  list->SetInput(image);
+  CooccurrenceListType::Pointer filter = CooccurrenceListType::New();
 
-  CooccurrenceListType::OffsetType offset0 = {{-1,0}};
-  CooccurrenceListType::OffsetType offset1 = {{1,0}};
-  CooccurrenceListType::OffsetType offset2 = {{0,-1}};
-  CooccurrenceListType::OffsetType offset3 = {{0,1}};
+  filter->Print( std::cout );
+  
+  //Invoke update before adding an input. An exception should be 
+  //thrown.
+  try
+    {
+    filter->Update();
+    std::cerr << "Failed to throw expected exception due to NULL input: " << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cout << "Expected exception caught: " << excp << std::endl;
+    }    
 
-  list->UseNeighbor(offset0);
-  list->UseNeighbor(offset1);
-  list->UseNeighbor(offset2);
-  list->UseNeighbor(offset3);
+  filter->ResetPipeline();
 
-  list->Update();
-  std::cout << "ScalarImageToCooccurrenceListSampleFilterTest [PASSED]" << std::endl;
+  if ( filter->GetInput() != NULL )
+    {
+    std::cerr << "GetInput() should return NULL since the input is\
+                  not set yet " << std::endl;
+    return EXIT_FAILURE;
+    }
+ 
+  filter->SetInput(image);
+
+  CooccurrenceListType::OffsetType offset = {{1,0}};
+
+  filter->UseNeighbor(offset);
+
+  filter->Update();
+
+  const CooccurrenceListType::SampleType * sample = filter->GetOutput();
+
+  typedef CooccurrenceListType::SampleType::ConstIterator ConstIteratorType;
+  
+  ConstIteratorType s_iter = sample->Begin();
+
+  typedef CooccurrenceListType::SampleType::MeasurementVectorType MeasurementVectorType;
+
+  while ( s_iter != sample->End() )
+    {
+
+    MeasurementVectorType  v = s_iter.GetMeasurementVector(); 
+
+    std::cout << "[" << v[0] << "," << v[1] << "]" << std::endl;
+
+    ++s_iter;
+    } 
 
   return EXIT_SUCCESS;
   

@@ -68,6 +68,16 @@ ScalarImageToCooccurrenceListSampleFilter< TImage >
     (this->ProcessObject::GetInput(0) );
 }  
 
+template< class TImage >
+const typename ScalarImageToCooccurrenceListSampleFilter< TImage >::SampleType * 
+ScalarImageToCooccurrenceListSampleFilter< TImage >
+::GetOutput() const
+{
+  const SampleType * output = 
+    static_cast< const SampleType * >( this->ProcessObject::GetOutput(0));
+  return output;
+}
+
 template < class TImage >
 typename ScalarImageToCooccurrenceListSampleFilter< TImage>::DataObjectPointer
 ScalarImageToCooccurrenceListSampleFilter< TImage >
@@ -144,6 +154,7 @@ ScalarImageToCooccurrenceListSampleFilter< TImage >
         coords[1] = pixel_intensity;
 
         output->PushBack(coords);
+        //std::cout << "Pushing: " << coords[0] << "\t" << coords[1] << std::endl;
         ci++;
         }
       }
