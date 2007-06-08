@@ -39,6 +39,7 @@
 #include "JointEntropyKNNMultiImageMetric.h"
 #include "JointEntropyKNNGraphMultiImageMetric.h"
 #include "RegisterToMeanMultiImageMetric.h"
+#include "RegisterToMeanHistogramMultiImageMetric.h"
 #include "RegisterToMeanKNNMultiImageMetric.h"
 #include "RegisterToMeanAndVarianceMultiImageMetric.h"
     
@@ -94,6 +95,8 @@
 //Bspline optimizer and transform
 #include "itkGradientDescentOptimizer.h"
 #include "GradientDescentLineSearchOptimizer.h"
+#include "itkSPSAOptimizer.h"
+#include "itkAmoebaOptimizer.h"
 
 
 //BSpline related headers
@@ -144,6 +147,10 @@ public:
   typedef   const GradientOptimizerType *             GradientOptimizerPointer;
   typedef   itk::GradientDescentLineSearchOptimizer LineSearchOptimizerType;
   typedef   const LineSearchOptimizerType  *          LineSearchOptimizerPointer;
+  typedef   itk::SPSAOptimizer                        SPSAOptimizerType;
+  typedef   const SPSAOptimizerType  *                SPSAOptimizerPointer;
+  typedef   itk::AmoebaOptimizer                        SimplexOptimizerType;
+  typedef   const SimplexOptimizerType  *                SimplexOptimizerTypePointer;
   typedef   itk::MultiImageMetric< itk::Image<InternalPixelType, Dimension > >    MetricType;
 
 
@@ -189,9 +196,56 @@ public:
         std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(3) << lineSearchOptimizerPointer->GetCurrentIteration() << "   ";
         std::cout << std::setw(6) << lineSearchOptimizerPointer->GetValue() << "   " << std::endl;
-        if(lineSearchOptimizerPointer->GetCurrentIteration() % 50 == 0 )
+        if(m_CumulativeIterationIndex % 50 == 0 )
         { 
           //std::cout << std::setw(6) << "Position: " << lineSearchOptimizerPointer->GetCurrentPosition() << std::endl;
+        }
+      }
+
+      else if(!strcmp(optimizer->GetNameOfClass(), "SPSAOptimizer") )
+      {
+        SPSAOptimizerPointer spsaOptimizerPointer =
+            dynamic_cast< SPSAOptimizerPointer >( object );
+        std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
+        std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex << "   ";
+        std::cout << std::setw(3) << spsaOptimizerPointer->GetCurrentIteration() << "   ";
+        std::cout << std::setw(6) << spsaOptimizerPointer->GetValue() << "   " << std::endl;
+        if(m_CumulativeIterationIndex % 100 == 0 )
+        {
+          typedef SPSAOptimizerType::ParametersType ParametersType;
+          ParametersType parameters = spsaOptimizerPointer->GetCurrentPosition();
+          double max = -1e308;
+          for(int i=0; i< parameters.Size(); i++)
+          {
+            if(parameters[i]> max)
+            {
+               max = parameters[i];
+            }
+          }
+          std::cout << std::setw(6) << "Max Parameter: " << max << std::endl;
+        }
+      }
+
+      else if(!strcmp(optimizer->GetNameOfClass(), "AmoebaOptimizer") )
+      {
+        SimplexOptimizerTypePointer simplexOptimizer =
+            dynamic_cast< SimplexOptimizerTypePointer >( object );
+        std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
+        std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex << "   ";
+        std::cout << std::setw(6) << simplexOptimizer->GetCachedValue() << "   " << std::endl;
+        if(m_CumulativeIterationIndex % 100 == 0 )
+        {
+          typedef SimplexOptimizerType::ParametersType ParametersType;
+          ParametersType parameters = simplexOptimizer->GetCurrentPosition();
+          double max = -1e308;
+          for(int i=0; i< parameters.Size(); i++)
+          {
+            if(parameters[i]> max)
+            {
+              max = parameters[i];
+            }
+          }
+          std::cout << std::setw(6) << "Max Parameter: " << max << std::endl;
         }
       }
 
@@ -558,14 +612,12 @@ public:
   typedef   GradientOptimizerType *             GradientOptimizerPointer;
   typedef   itk::GradientDescentLineSearchOptimizer LineSearchOptimizerType;
   typedef   LineSearchOptimizerType  *          LineSearchOptimizerPointer;
-
+  typedef   itk::SPSAOptimizer                  SPSAOptimizerType;
+  typedef   SPSAOptimizerType  *                SPSAOptimizerPointerType;
+  
   typedef   itk::Image< InternalPixelType, Dimension >   InternalImageType;
   typedef   itk::MultiImageMetric< InternalImageType>    MetricType;
   typedef   MetricType *                                 MetricPointer;
-  typedef   itk::VarianceMultiImageMetric< InternalImageType>    VarianceMetricType;
-  typedef   VarianceMetricType *                                 VarianceMetricPointer;
-  typedef   itk::ParzenWindowEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
-  typedef   EntropyMetricType *                                             EntropyMetricPointer;
 
   void Execute(itk::Object * object, const itk::EventObject & event)
   {
@@ -580,7 +632,8 @@ public:
                                          (registration->GetMetric());
 
     // Output message about registration
-    std::cout << "message: Registration using " << registration->GetTransformArray(0)->GetNameOfClass() << std::endl;
+    std::cout << "message: Registration using " << metric->GetNameOfClass() << std::endl;
+    std::cout << "message: Transform Type " << registration->GetTransformArray(0)->GetNameOfClass() << std::endl;
     std::cout << "message: Multiresolution level : " << registration->GetCurrentLevel() << std::endl;
     std::cout << "message: Number of total parameters : " << registration->GetTransformParametersLength() << std::endl;
     std::cout << "message: Optimizertype : " << optimizer->GetNameOfClass() << std::endl;
@@ -588,24 +641,11 @@ public:
     if ( registration->GetCurrentLevel() == 0 )
     {
       // Set the number of spatial samples according to the current level
-      if(  !strcmp(metric->GetNameOfClass(), "VarianceMultiImageMetric" ) )
-      {
-        VarianceMetricPointer  varianceMetric = dynamic_cast< VarianceMetricPointer>
-                                                              (registration->GetMetric());
-        varianceMetric->SetNumberOfSpatialSamples(
-                        (unsigned int) (varianceMetric->GetNumberOfSpatialSamples() /
+      metric->SetNumberOfSpatialSamples(
+                        (unsigned int) (metric->GetNumberOfSpatialSamples() /
                         pow( pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease,
                              (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
-      }
-      else if(!strcmp(metric->GetNameOfClass(), "ParzenWindowEntropyMultiImageMetric") )
-      {
-        EntropyMetricPointer  entropyMetric = dynamic_cast< EntropyMetricPointer>
-                                                            (registration->GetMetric());
-        entropyMetric->SetNumberOfSpatialSamples(
-                           (unsigned int) (entropyMetric->GetNumberOfSpatialSamples() /
-                           pow( pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease,
-                                (double) (registration->GetNumberOfLevels() - 1.0) ) ) );
-      }
+
       
       
       if(  !strcmp(optimizer->GetNameOfClass(), "GradientDescentOptimizer" ) )
@@ -619,7 +659,7 @@ public:
             gradientPointer->GetLearningRate()*pow(m_MultiScaleStepLengthIncrease,
                 (double) (registration->GetNumberOfLevels() - 1.0) )  );
         //print messages
-        std::cout << "message: Optimizer number of Iterations : " << gradientPointer->GetNumberOfIterations() << std::endl;
+        std::cout << "message: Optimizer # of Iter. to go : " << gradientPointer->GetNumberOfIterations() << std::endl;
         std::cout << "message: Learning rate : " << gradientPointer->GetLearningRate() << std::endl;
 
       }
@@ -634,10 +674,31 @@ public:
         lineSearchOptimizerPointer->SetStepLength(lineSearchOptimizerPointer->GetStepLength()*
             pow(m_MultiScaleStepLengthIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) );
         //print messages
-        std::cout << "message: Optimizer number of Iterations : " <<
+        std::cout << "message: Optimizer # of Iter. to go : " <<
             lineSearchOptimizerPointer->GetMaximumIteration() <<std::endl;
         std::cout << "message: Optimizer learning rate : " <<
             lineSearchOptimizerPointer->GetStepLength() << std::endl;
+      }
+
+      else if(!strcmp(optimizer->GetNameOfClass(), "SPSAOptimizer") )
+      {
+        SPSAOptimizerPointerType SPSAOptimizerPointer =
+            dynamic_cast< SPSAOptimizerPointerType >(
+            registration->GetOptimizer() );
+        SPSAOptimizerPointer->SetMaximumNumberOfIterations(
+            (int)(SPSAOptimizerPointer->GetMaximumNumberOfIterations()*pow(m_MultiScaleMaximumIterationIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) ));
+        SPSAOptimizerPointer->Seta(SPSAOptimizerPointer->Geta()*
+            pow(m_MultiScaleStepLengthIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ) );
+        SPSAOptimizerPointer->SetA( SPSAOptimizerPointer->GetMaximumNumberOfIterations()/10.0 );
+        SPSAOptimizerPointer->Setc( SPSAOptimizerPointer->Getc()*
+                                    pow(m_MultiScaleStepLengthIncrease,(double) (registration->GetNumberOfLevels() - 1.0) ));
+        //print messages
+        std::cout << "message: Optimizer # of Iter. to go : " <<
+            SPSAOptimizerPointer->GetMaximumNumberOfIterations() <<std::endl;
+        std::cout << "message: Optimizer a : " <<
+            SPSAOptimizerPointer->Geta() << std::endl;
+        std::cout << "message: Optimizer c : " <<
+            SPSAOptimizerPointer->Getc() << std::endl;
       }
 
       
@@ -645,23 +706,9 @@ public:
     else
     {
       // Set the number of spatial samples according to the current level
-      if(  !strcmp(metric->GetNameOfClass(), "VarianceMultiImageMetric" ) )
-      {
-        VarianceMetricPointer  varianceMetric = dynamic_cast< VarianceMetricPointer>
-            (registration->GetMetric());
-        varianceMetric->SetNumberOfSpatialSamples(
-            (unsigned int) (varianceMetric->GetNumberOfSpatialSamples() *
+      metric->SetNumberOfSpatialSamples(
+            (unsigned int) (metric->GetNumberOfSpatialSamples() *
                   pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease ) );
-      }
-      else if(!strcmp(metric->GetNameOfClass(), "ParzenWindowEntropyMultiImageMetric") )
-      {
-        EntropyMetricPointer  entropyMetric =
-            dynamic_cast< EntropyMetricPointer>
-            (registration->GetMetric());
-        entropyMetric->SetNumberOfSpatialSamples(
-            (unsigned int) (entropyMetric->GetNumberOfSpatialSamples() *
-                   pow(2.0, Dimension )/m_MultiScaleSamplePercentageIncrease ) );
-      }
 
       // Decrease the learning rate at each increasing multiresolution level
       // Increase the number of steps
@@ -675,7 +722,7 @@ public:
         gradientPointer->SetLearningRate(
             gradientPointer->GetLearningRate()/m_MultiScaleStepLengthIncrease  );
         //print messages
-        std::cout << "message: Optimizer number of Iterations : " << gradientPointer->GetNumberOfIterations() << std::endl;
+        std::cout << "message: Optimizer # of Iter. to go : " << gradientPointer->GetNumberOfIterations() << std::endl;
         std::cout << "message: Learning rate : " << gradientPointer->GetLearningRate() << std::endl;
       }
 
@@ -688,37 +735,40 @@ public:
         lineSearchOptimizerPointer->SetStepLength(
             lineSearchOptimizerPointer->GetStepLength()/m_MultiScaleStepLengthIncrease );
         
-        std::cout << "message: Optimizer number of Iterations : " <<
+        std::cout << "message: Optimizer # of Iter. to go : " <<
             lineSearchOptimizerPointer->GetMaximumIteration() << std::endl;
         std::cout << "message: Optimizer learning rate : " <<
             lineSearchOptimizerPointer->GetStepLength() << std::endl;
       }
 
-      /*
-      // Print out the results at current level
-      ostringstream multiScaleFolderName;
-      multiScaleFolderName << registration->GetNumberOfLevels() - registration->GetCurrentLevel()  << "/" ;
-      for(int i=0; i< fileNames.size(); i++)
+      //SPSA
+      else if(!strcmp(optimizer->GetNameOfClass(), "SPSAOptimizer") )
       {
-        transformArray[i] = registration->GetTransformArray(i);
+        SPSAOptimizerPointerType SPSAOptimizerPointer =
+            dynamic_cast< SPSAOptimizerPointerType >(registration->GetOptimizer() );
+        SPSAOptimizerPointer->SetMaximumNumberOfIterations(
+            (int)(SPSAOptimizerPointer->GetMaximumNumberOfIterations()/m_MultiScaleMaximumIterationIncrease ));
+        SPSAOptimizerPointer->Seta(
+            SPSAOptimizerPointer->Geta()/m_MultiScaleStepLengthIncrease );
+        SPSAOptimizerPointer->SetA( SPSAOptimizerPointer->GetMaximumNumberOfIterations()/10.0 );
+        SPSAOptimizerPointer->Setc( SPSAOptimizerPointer->Getc()/m_MultiScaleStepLengthIncrease );
+
+        
+        std::cout << "message: Optimizer # of Iter. to go : " <<
+            SPSAOptimizerPointer->GetMaximumNumberOfIterations() << std::endl;
+        std::cout << "message: Optimizer a : " <<
+            SPSAOptimizerPointer->Geta() << std::endl;
+        std::cout << "message: Optimizer c : " <<
+            SPSAOptimizerPointer->Getc() << std::endl;
       }
-      
-      writeMeanAndSlices( fileNames,
-                          inputFileNames,
-                          outputFileNames,
-                         
-                          outputFolder + multiScaleFolderName.str(),
-                          "no",
-                          "no",
-                                                  
-                          transformArray );
-      */
 
     }
 
-
     std::cout << "message: Number of total pixels : " << metric->GetFixedImageRegion().GetNumberOfPixels() << std::endl;
     std::cout << "message: Number of used pixels : " << metric->GetNumberOfSpatialSamples() << std::endl;
+
+
+
 
   }
   void Execute(const itk::Object * , const itk::EventObject & )
@@ -779,7 +829,8 @@ int getCommandLine(int argc, char *initFname, vector<string>& fileNames, string&
                    string &writeOutputImages, string &writeDeformationFields,
                    unsigned int &NumberOfFixedImages,
                    unsigned int &numberOfNearestNeigbors, double &errorBound,
-                   string &writeMean3DImages, string& metricPrint, unsigned int& printInterval );
+                   string &writeMean3DImages, string& metricPrint, unsigned int& printInterval,
+                   double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation );
 
 
 int main( int argc, char *argv[] )
@@ -863,6 +914,13 @@ int main( int argc, char *argv[] )
   unsigned int numberOfNearestNeigbors = 100;
   double errorBound = 0.1;
 
+  //SPSA related parameters
+  double SPSAalpha = 0.602;
+  double SPSAgamma = 0.101;
+  double SPSAcRel = 0.0001;
+  int    SPSAnumberOfPerturbation = 1;
+
+
   //Get the command line arguments
   for(int i=1; i<argc; i++)
   {
@@ -882,7 +940,8 @@ int main( int argc, char *argv[] )
         writeOutputImages, writeDeformationFields,
         NumberOfFixedImages,
         numberOfNearestNeigbors, errorBound,
-        writeMean3DImages, metricPrint, printInterval ) )
+        writeMean3DImages, metricPrint, printInterval,
+        SPSAalpha , SPSAgamma, SPSAcRel, SPSAnumberOfPerturbation) )
     {
       std:: cout << "Error reading parameter file " << std::endl;
       return 1;
@@ -907,6 +966,9 @@ int main( int argc, char *argv[] )
 
   typedef itk::GradientDescentOptimizer       OptimizerType;
   typedef itk::GradientDescentLineSearchOptimizer LineSearchOptimizerType;
+  typedef itk::SPSAOptimizer                     SPSAOptimizerType;
+  typedef itk::AmoebaOptimizer                     SimplexOptimizerType;
+
 
   // Interpolator typedef
   typedef itk::InterpolateImageFunction<InternalImageType,ScalarType        >  InterpolatorType;
@@ -926,6 +988,7 @@ int main( int argc, char *argv[] )
   typedef itk::JointEntropyFixedMultiImageMetric< InternalImageType>    JointEntropyFixedMetricType;
   typedef itk::JointEntropyInterpolateArtefactMultiImageMetric< InternalImageType>    JointEntropyInterpolateArtefactMetricType;
   typedef itk::RegisterToMeanMultiImageMetric< InternalImageType>    RegisterToMeanMetricType;
+  typedef itk::RegisterToMeanHistogramMultiImageMetric< InternalImageType>    RegisterToMeanHistogramMetricType;
   typedef itk::RegisterToMeanKNNMultiImageMetric< InternalImageType>    RegisterToMeanKNNMetricType;
   typedef itk::RegisterToMeanAndVarianceMultiImageMetric< InternalImageType>    RegisterToMeanAndVarianceMetricType;
 
@@ -979,10 +1042,40 @@ int main( int argc, char *argv[] )
   //Set the optimizerType
   OptimizerType::Pointer      optimizer;
   LineSearchOptimizerType::Pointer lineSearchOptimizer;
+  SPSAOptimizerType::Pointer SPSAOptimizer;
+  SimplexOptimizerType::Pointer simplexOptimizer;
+  
   if(optimizerType == "lineSearch")
   {
     lineSearchOptimizer     = LineSearchOptimizerType::New();
     registration->SetOptimizer(     lineSearchOptimizer     );
+  }
+  else if(optimizerType == "simplex")
+  {
+    simplexOptimizer     = SimplexOptimizerType::New();
+    simplexOptimizer->SetParametersConvergenceTolerance( 1e-100 );
+    simplexOptimizer->SetFunctionConvergenceTolerance( 1e-100 );
+    simplexOptimizer->SetAutomaticInitialSimplex(false);
+    
+    registration->SetOptimizer(     simplexOptimizer     );
+  }
+  else if(optimizerType == "SPSA")
+  {
+    SPSAOptimizer     = SPSAOptimizerType::New();
+    
+    SPSAOptimizer->MinimizeOn();
+    SPSAOptimizer->SetMaximumNumberOfIterations(100);
+    SPSAOptimizer->Seta( 1.0 );
+    SPSAOptimizer->SetA( 20.0 );
+    SPSAOptimizer->SetAlpha( SPSAalpha );
+    SPSAOptimizer->SetGamma( SPSAgamma );
+    SPSAOptimizer->SetTolerance(1e-50);
+    SPSAOptimizer->SetStateOfConvergenceDecayRate(0.5);
+    SPSAOptimizer->SetMinimumNumberOfIterations(100);
+    SPSAOptimizer->SetNumberOfPerturbations(SPSAnumberOfPerturbation);
+
+    registration->SetOptimizer(     SPSAOptimizer     );
+
   } 
   else
   {
@@ -1040,7 +1133,7 @@ int main( int argc, char *argv[] )
   collector.Start( "6Total Time " );
 
 
-    //Set the metric type
+  //Set the metric type
   MetricType::Pointer                 metric;
   if(metricType == "variance")
   {
@@ -1087,6 +1180,13 @@ int main( int argc, char *argv[] )
     // Set the number of samples to be used by the metric
     registerToMeanMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
     metric = registerToMeanMetric;
+  }
+  else if( metricType == "meanHistogram" )
+  {
+    RegisterToMeanHistogramMetricType::Pointer registerToMeanHistogramMetric        = RegisterToMeanHistogramMetricType::New();
+    // Set the number of samples to be used by the metric
+    registerToMeanHistogramMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
+    metric = registerToMeanHistogramMetric;
   }
   else if( metricType == "meanKNN" )
   {
@@ -1304,7 +1404,8 @@ int main( int argc, char *argv[] )
     observer->m_MetricPrint = true;
   }
   //observer->SetFilename("iterations.txt");
-  
+
+
   // Set the optimizer parameters
   if(optimizerType == "lineSearch")
   {
@@ -1314,7 +1415,25 @@ int main( int argc, char *argv[] )
     lineSearchOptimizer->SetMaximumLineIteration( maximumLineIteration );
     lineSearchOptimizer->SetScales( optimizerScales );
     lineSearchOptimizer->AddObserver( itk::IterationEvent(), observer );
-  } 
+  }
+  else if(optimizerType == "simplex")
+  {
+    simplexOptimizer->SetMaximumNumberOfIterations( optTranslationNumberOfIterations );
+    simplexOptimizer->SetScales( optimizerScales );
+
+    simplexOptimizer->AddObserver( itk::IterationEvent(), observer );
+  }
+  else if(optimizerType == "SPSA")
+  {
+    SPSAOptimizer->Seta( optTranslationLearningRate );
+    SPSAOptimizer->SetMaximumNumberOfIterations(optTranslationNumberOfIterations);
+    SPSAOptimizer->SetA( SPSAOptimizer->GetMaximumNumberOfIterations()/10.0 );
+    SPSAOptimizer->Setc( SPSAOptimizer->Geta()*SPSAcRel );
+
+    
+    SPSAOptimizer->SetScales( optimizerScales );
+    SPSAOptimizer->AddObserver( itk::IterationEvent(), observer );
+  }
   else
   {
     optimizer->SetLearningRate( optTranslationLearningRate );
@@ -1359,6 +1478,30 @@ int main( int argc, char *argv[] )
 
   // Write the output images after translation transform
   collector.Start( "5Image Write " );
+
+  // initialize the parameters if using histogram
+  if(metricType == "meanHistogram")
+  {
+    typedef TransformType::ParametersType     TransformParametersType;
+    TransformParametersType meanParameters(translationTransformArray[0]->GetNumberOfParameters());
+    meanParameters.Fill(0.0);
+    for(int i=0; i<N; i++)
+    {
+      meanParameters += translationTransformArray[i]->GetParameters();
+    }
+    meanParameters /= (double) N;
+
+    for(int i=0; i<N; i++)
+    {
+      TransformParametersType parameters = translationTransformArray[i]->GetParameters();
+      for(int j=0; j<translationTransformArray[0]->GetNumberOfParameters(); j++)
+      {
+        parameters[j] -= meanParameters[j];
+      }
+      translationTransformArray[i]->SetParameters(parameters );
+    }
+  }
+  
   std::vector< itk::Transform< double, Dimension,Dimension >* > transformArray(N);
   for(int i=0; i< N; i++)
   {
@@ -1486,6 +1629,20 @@ int main( int argc, char *argv[] )
     lineSearchOptimizer->SetMaximumLineIteration( 10 );
     lineSearchOptimizer->SetScales( optimizerAffineScales );
   }
+  else if(optimizerType == "simplex")
+  {
+    simplexOptimizer->SetMaximumNumberOfIterations( optAffineNumberOfIterations );
+    simplexOptimizer->SetScales( optimizerAffineScales );
+  }
+  else if(optimizerType == "SPSA")
+  {
+    SPSAOptimizer->Seta( optAffineLearningRate );
+    SPSAOptimizer->SetMaximumNumberOfIterations(optAffineNumberOfIterations);
+    SPSAOptimizer->SetA( SPSAOptimizer->GetMaximumNumberOfIterations()/10.0 );
+    SPSAOptimizer->Setc( SPSAOptimizer->Geta()*SPSAcRel );
+    
+    SPSAOptimizer->SetScales( optimizerAffineScales );
+  }
   else
   {
     optimizer->SetLearningRate( optAffineLearningRate );
@@ -1525,6 +1682,33 @@ int main( int argc, char *argv[] )
 
   // Write the output images after affine transform
   collector.Start( "5Image Write " );
+
+  // initialize the parameters if using histogram
+  if(metricType == "meanHistogram")
+  {
+    typedef TransformType::ParametersType     TransformParametersType;
+    TransformParametersType meanParameters(affineTransformArray[0]->GetNumberOfParameters());
+    meanParameters.Fill(0.0);
+    for(int i=0; i<N; i++)
+    {
+      meanParameters += affineTransformArray[i]->GetParameters();
+    }
+    meanParameters /= (double) N;
+    meanParameters[0] -=1.0;
+    meanParameters[4] -=1.0;
+    meanParameters[8] -=1.0;
+    
+    for(int i=0; i<N; i++)
+    {
+      TransformParametersType parameters = affineTransformArray[i]->GetParameters();
+      for(int j=0; j<affineTransformArray[0]->GetNumberOfParameters(); j++)
+      {
+        parameters[j] -= meanParameters[j];
+      }
+      affineTransformArray[i]->SetParameters(parameters );
+    }
+  }
+
   for(int i=0; i< N; i++)
   {
     transformArray[i] = affineTransformArray[i];
@@ -1703,7 +1887,20 @@ int main( int argc, char *argv[] )
       lineSearchOptimizer->SetScales( optimizerScales );
       lineSearchOptimizer->SetStepLength(optBsplineLearningRate);
       lineSearchOptimizer->SetMaximumIteration( optBsplineNumberOfIterations );
-      lineSearchOptimizer->SetScales( optimizerScales );
+    }
+    else if(optimizerType == "simplex")
+    {
+      simplexOptimizer->SetMaximumNumberOfIterations( optBsplineNumberOfIterations );
+      simplexOptimizer->SetScales( optimizerScales );
+    }
+    else if(optimizerType == "SPSA")
+    {
+      SPSAOptimizer->Seta( optBsplineLearningRate );
+      SPSAOptimizer->SetMaximumNumberOfIterations(optBsplineNumberOfIterations);
+      SPSAOptimizer->SetA( SPSAOptimizer->GetMaximumNumberOfIterations()/10.0 );
+      SPSAOptimizer->Setc( SPSAOptimizer->Geta()*SPSAcRel );
+      
+      SPSAOptimizer->SetScales( optimizerScales );
     }
     else
     {
@@ -1743,6 +1940,31 @@ int main( int argc, char *argv[] )
 
     // Write the output images after bspline transform
     collector.Start( "5Image Write " );
+
+    // initialize the parameters if using histogram
+    if(metricType == "meanHistogram")
+    {
+      typedef TransformType::ParametersType     TransformParametersType;
+      TransformParametersType meanParameters(bsplineTransformArrayLow[0]->GetNumberOfParameters());
+      meanParameters.Fill(0.0);
+      for(int i=0; i<N; i++)
+      {
+        meanParameters += bsplineTransformArrayLow[i]->GetParameters();
+      }
+      meanParameters /= (double) N;
+
+      for(int i=0; i<N; i++)
+      {
+        TransformParametersType parameters = bsplineTransformArrayLow[i]->GetParameters();
+        for(int j=0; j<bsplineTransformArrayLow[0]->GetNumberOfParameters(); j++)
+        {
+          parameters[j] -= meanParameters[j];
+        }
+        bsplineTransformArrayLow[i]->SetParametersByValue(parameters );
+      }
+    }
+
+    
     for(int i=0; i< N; i++)
     {
       transformArray[i] = bsplineTransformArrayLow[i];
@@ -1940,8 +2162,20 @@ int main( int argc, char *argv[] )
           lineSearchOptimizer->SetScales( optimizerScales );
           lineSearchOptimizer->SetStepLength(optBsplineHighLearningRate);
           lineSearchOptimizer->SetMaximumIteration( optBsplineHighNumberOfIterations );
-          //lineSearchOptimizer->SetMaximumLineIteration( 1 );
-          lineSearchOptimizer->SetScales( optimizerScales );
+        }
+        else if(optimizerType == "simplex")
+        {
+          simplexOptimizer->SetMaximumNumberOfIterations( optBsplineHighNumberOfIterations );
+          simplexOptimizer->SetScales( optimizerScales );
+        }
+        else if(optimizerType == "SPSA")
+        {
+          SPSAOptimizer->Seta( optBsplineHighLearningRate );
+          SPSAOptimizer->SetMaximumNumberOfIterations(optBsplineHighNumberOfIterations);
+          SPSAOptimizer->SetA( SPSAOptimizer->GetMaximumNumberOfIterations()/10.0 );
+          SPSAOptimizer->Setc( SPSAOptimizer->Geta()*SPSAcRel );
+          
+          SPSAOptimizer->SetScales( optimizerScales );
         }
         else
         {
@@ -1975,6 +2209,30 @@ int main( int argc, char *argv[] )
         
         // Write the output images after bspline transform
         collector.Start( "5Image Write " );
+
+        // initialize the parameters if using histogram
+        if(metricType == "meanHistogram")
+        {
+          typedef TransformType::ParametersType     TransformParametersType;
+          TransformParametersType meanParameters(bsplineTransformArrayHigh[0]->GetNumberOfParameters());
+          meanParameters.Fill(0.0);
+          for(int i=0; i<N; i++)
+          {
+            meanParameters += bsplineTransformArrayHigh[i]->GetParameters();
+          }
+          meanParameters /= (double) N;
+
+          for(int i=0; i<N; i++)
+          {
+            TransformParametersType parameters = bsplineTransformArrayHigh[i]->GetParameters();
+            for(int j=0; j<bsplineTransformArrayHigh[0]->GetNumberOfParameters(); j++)
+            {
+              parameters[j] -= meanParameters[j];
+            }
+            bsplineTransformArrayHigh[i]->SetParametersByValue(parameters );
+          }
+        }
+        
         for(int i=0; i< N; i++)
         {
           transformArray[i] = bsplineTransformArrayHigh[i];
@@ -2028,21 +2286,6 @@ int main( int argc, char *argv[] )
   //
   ParametersType finalParameters = registration->GetLastTransformParameters();
 
-  unsigned int numberOfIterations;
-  double bestValue;
-  if(optimizerType == "lineSearch")
-  {
-    numberOfIterations = lineSearchOptimizer->GetCurrentIteration();
-    bestValue = lineSearchOptimizer->GetValue();
-  }
-  else
-  {
-    numberOfIterations = optimizer->GetCurrentIteration();
-    bestValue = optimizer->GetValue();
-  }
-
-
-  
   // Print out results
   //
   std::cout << "message: Registration Completed " << std::endl;
@@ -2182,7 +2425,7 @@ int main( int argc, char *argv[] )
       ImageType::SizeType size = imageArrayReader[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
       ImageType::IndexType start = imageArrayReader[0]->GetOutput()->GetLargestPossibleRegion().GetIndex();
       start[index] = size[index]/2;
-      if(index==0)
+      if(index ==0)
       {
         start[0] = 106;
       }
@@ -2247,7 +2490,9 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
                           
                           unsigned int &numberOfNearestNeigbors, double &errorBound,
 
-                          string &writeMean3DImages, string& metricPrint, unsigned int& printInterval )
+                          string &writeMean3DImages, string& metricPrint, unsigned int& printInterval,
+
+                          double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation)
 {
 
 
@@ -2338,7 +2583,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       initFile >> dummy;
       optBsplineLearningRate = atof(dummy.c_str());
     }
-    else if (dummy == "-optBsplineHighLearningrate")
+    else if (dummy == "-optBsplineHighLearningRate")
     {
       initFile >> dummy;
       optBsplineHighLearningRate = atof(dummy.c_str());
@@ -2519,6 +2764,30 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       initFile >> dummy;
       threshold2 = atoi(dummy.c_str());
     }
+
+    
+    else if (dummy == "-alpha")
+    {
+      initFile >> dummy;
+      SPSAalpha = atof(dummy.c_str());
+    }
+    else if (dummy == "-gamma")
+    {
+      initFile >> dummy;
+      SPSAgamma = atof(dummy.c_str());
+    }
+    else if (dummy == "-cRel")
+    {
+      initFile >> dummy;
+      SPSAcRel = atof(dummy.c_str());
+    }
+    else if (dummy == "-numberOfPerturbation")
+    {
+      initFile >> dummy;
+      SPSAnumberOfPerturbation = atoi(dummy.c_str());
+    }
+
+    
     
     else if (dummy == "-useBspline")
     {

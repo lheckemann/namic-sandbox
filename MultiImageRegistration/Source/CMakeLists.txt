@@ -46,6 +46,8 @@ SET(Groupwise_SRCS
   JointEntropyInterpolateArtefactMultiImageMetric.cxx
   RegisterToMeanMultiImageMetric.h
   RegisterToMeanMultiImageMetric.cxx
+  RegisterToMeanHistogramMultiImageMetric.h
+  RegisterToMeanHistogramMultiImageMetric.cxx
   RegisterToMeanKNNMultiImageMetric.h
   RegisterToMeanKNNMultiImageMetric.cxx
   RegisterToMeanAndVarianceMultiImageMetric.h
@@ -73,7 +75,7 @@ SET(Pairwise_SRCS
 
 
 ADD_EXECUTABLE(GroupwiseRegistration ${Groupwise_SRCS})
-TARGET_LINK_LIBRARIES(GroupwiseRegistration ITKCommon ITKNumerics ITKIO ITKBasicFilters ANN)
+TARGET_LINK_LIBRARIES(GroupwiseRegistration ITKCommon ITKNumerics ITKIO ITKBasicFilters ITKStatistics ANN)
 
 ADD_EXECUTABLE(TransformImage TransformImage.cxx )
 TARGET_LINK_LIBRARIES(TransformImage ITKCommon ITKBasicFilters ITKIO)

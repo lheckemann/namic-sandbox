@@ -251,30 +251,29 @@ RegisterToMeanKNNMultiImageMetric < TFixedImage >
     {
 
       double movingProbSum = 1e-5;
-      double meanProbSum = 1e-5;
       double jointProbSum = 1e-5;
-
-      for( int j=0; j < m_NumberOfNearestNeigbors; j++)
+      double diff;
+      double diffMean;
+      
+      for (int j=0; j<m_NumberOfNearestNeigbors; j++ )
       {
-
         const unsigned int x_j = nnIdx[l][x_i][j];
+
         // Compute d(x_i, x_j)
-        double diff1 = (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l])
+        diff = (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l])
                               /this->m_ImageStandardDeviation;
 
-        diff1 = this->m_KernelFunction[threadId]->Evaluate( diff1 );
+        diff = this->m_KernelFunction[threadId]->Evaluate( diff );
         
-        double diff2 = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
-        diff2 = this->m_KernelFunction[threadId]->Evaluate( diff2 );
+        diffMean = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
+        diffMean = this->m_KernelFunction[threadId]->Evaluate( diffMean );
 
         // Evaluate the probability of d(x_a, x_b)
-        movingProbSum += diff1;
-        meanProbSum += diff2;
-        jointProbSum += diff1*diff2;
+        movingProbSum += diff;
+        jointProbSum += diff*diffMean;
       }
       
       this->m_value[threadId] += vcl_log( movingProbSum  );
-      //this->m_value[threadId] += vcl_log( meanProbSum );
       this->m_value[threadId] -= vcl_log( jointProbSum );
 
 
@@ -432,31 +431,29 @@ RegisterToMeanKNNMultiImageMetric < TFixedImage >
       // Initialize the weight in the denominator to zero
       W_moving[threadId][x_i] = 1e-5;
       W_joint[threadId][x_i] = 1e-5;
-      double meanProbSum = 1e-5;
+      double diff;
+      double diffMean;
 
-      for( int j=0; j < m_NumberOfNearestNeigbors; j++)
+      
+      for (int j=0; j<m_NumberOfNearestNeigbors; j++ )
       {
         const unsigned int x_j = nnIdx[l][x_i][j];
 
         // Compute d(x_i, x_j)
-        double diff1 = (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l])
+        diff = (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l])
                               /this->m_ImageStandardDeviation;
 
-        diff1 = this->m_KernelFunction[threadId]->Evaluate( diff1 );
+        diff = this->m_KernelFunction[threadId]->Evaluate( diff );
         
-        double diff2 = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
-        diff2 = this->m_KernelFunction[threadId]->Evaluate( diff2 );
-
-        // Evaluate the probability of d(x_a, x_b)
-        meanProbSum += diff2;
+        diffMean = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
+        diffMean = this->m_KernelFunction[threadId]->Evaluate( diffMean );
 
         // Update the weights
-        W_moving[threadId][x_i] += diff1;
-        W_joint[threadId][x_i] += diff1*diff2;
+        W_moving[threadId][x_i] += diff;
+        W_joint[threadId][x_i] += diff*diffMean;
       }
       
       this->m_value[threadId] += vcl_log( W_moving[threadId][x_i] );
-      //this->m_value[threadId] += vcl_log( meanProbSum );
       this->m_value[threadId] -= vcl_log( W_joint[threadId][x_i]  );
 
 
@@ -465,14 +462,17 @@ RegisterToMeanKNNMultiImageMetric < TFixedImage >
 
 
 
+    std::vector<double> derWeights(this->m_NumberOfSpatialSamples, 0.0);
     for (int x_i=0; x_i<this->m_NumberOfSpatialSamples; x_i ++ )
     {
 
       // Sum over the second sample set
       double weightMoving = 0.0;
       double weightJoint = 0.0;
-
-      for( int j=0; j < m_NumberOfNearestNeigbors; j++)
+      double diff;
+      double diffMean;
+      
+      for (int j=0; j<m_NumberOfNearestNeigbors; j++ )
       {
         const unsigned int x_j = nnIdx[l][x_i][j];
 
@@ -480,21 +480,35 @@ RegisterToMeanKNNMultiImageMetric < TFixedImage >
         const double dir1 = (this->m_Sample[x_i].imageValueArray[l] - this->m_Sample[x_j].imageValueArray[l]);
 
         // Compute d(x_i, x_j)
-        double diff1 = dir1 / this->m_ImageStandardDeviation;
+        diff = dir1 / this->m_ImageStandardDeviation;
 
-        diff1 = this->m_KernelFunction[threadId]->Evaluate( diff1 );
-        weightMoving += diff1 / W_moving[threadId][x_i] * dir1;
+        diff = this->m_KernelFunction[threadId]->Evaluate( diff );
+        weightMoving += diff * dir1 ;
         
-        double diff2 = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
-        diff2 = this->m_KernelFunction[threadId]->Evaluate( diff2 );
-        weightJoint += diff1 * diff2 / W_joint[threadId][x_i] * dir1;
+        diffMean = (mean[x_i] - mean[x_j]) / m_MeanStandardDeviation;
+        diffMean = this->m_KernelFunction[threadId]->Evaluate( diffMean );
+        
+        weightJoint += diff * diffMean * dir1;
 
+
+        derWeights[x_j] += diff * dir1 *
+                              ( diffMean   / W_joint[threadId][x_j] -
+                                1.0        / W_moving[threadId][x_j]);
 
       }  // End of sample loop B
+
+      weightMoving /= W_moving[threadId][x_i];
+      weightJoint  /= W_joint[threadId][x_i];
 
       // Get the derivative for this sample
       this->UpdateSingleImageParameters( this->m_DerivativesArray[threadId][l], this->m_Sample[x_i],
                                          weightMoving-weightJoint, l, threadId);
+    }
+
+    for (int x_j=0; x_j<this->m_NumberOfSpatialSamples; x_j ++ )
+    {
+      this->UpdateSingleImageParameters( this->m_DerivativesArray[threadId][l], this->m_Sample[x_j],
+                                         derWeights[x_j], l, threadId);
     }
     
     

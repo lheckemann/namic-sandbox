@@ -22,7 +22,7 @@
 # Currently there are two optimizer types. "gradient" is a fixed step gradient descent search. 
 # "lineSearch" is gradient descent search where step size is determined using line search.
 #
-# optimizerType gradient/lineSearch
+# optimizerType gradient/lineSearch/SPSA/simplex
 #
     
 -optimizerType lineSearch
@@ -33,7 +33,7 @@
 #
 # metricType specifies which objective function to use
 # possible options:
-#   metricType entropy/variance/mean/meanAndVariance/jointEntropy/jointEntropyKNN
+#   metricType entropy/variance/mean/meanAndVariance/jointEntropy/jointEntropyKNN/meanHistogram
 #   
 #   entropy: congealing with entropy along a pixel stack
 #   variance: congealing with variance computed along a pixel stack
@@ -47,6 +47,7 @@
 #                    all possible pairwise combinations.
 #   jointEntropyKNNGraph : Entropy estimate using KNN Graph
 #
+#   meanHistogram:   MI using histogram estimate
     
 -metricType entropy
 
@@ -267,3 +268,11 @@
 #
     -numberOfFixedImages 0
     
+#
+# SPSA related parameters
+#
+
+    -alpha 0.602
+    -gamma 0.101
+    -cRel 1e-1
+    -numberOfPerturbation 1
