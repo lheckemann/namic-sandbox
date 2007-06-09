@@ -65,7 +65,7 @@ public:
 
   /** Standard class typedefs */
   typedef ScalarImageToCooccurrenceListSampleFilter Self;
-  typedef ProcessObject                             SampleType;
+  typedef ProcessObject                             Superclass;
   typedef SmartPointer< Self >                      Pointer;
   typedef SmartPointer<const Self>                  ConstPointer;
 
