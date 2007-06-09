@@ -17,7 +17,7 @@
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-
+#include "itkExtractImageFilter.h"
 #include "itkResampleImageFilter.h"
 
 #include "itkAffineTransform.h"
@@ -25,6 +25,7 @@
 #include "itkBSplineDeformableTransform.h"
 #include "itkTransformFactory.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
+#include "itkLinearInterpolateImageFunction.h"
 
 #include "itkImageRegionIterator.h"
 
@@ -32,6 +33,8 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <vector>
+
 
 //Define the global types for image type
 #define PixelType unsigned short
@@ -151,32 +154,66 @@ public:
   PixelType m_Number;
 };
 
-class OR
+class MEAN
 {
 public:
-  OR() {m_Number=0;};
-  ~OR() {};
-  bool operator!=( const OR & ) const
+  MEAN() {};
+  ~MEAN() {};
+  bool operator!=( const MEAN & ) const
   {
     return false;
   }
-  bool operator==( const OR & other ) const
+  bool operator==( const MEAN & other ) const
   {
     return !(*this != other);
   }
   inline PixelType operator()( const std::vector< PixelType > pixelStack)
   {
+    double sum = 0.0;
     for(int i=0; i<pixelStack.size(); i++)
     {
-      if( pixelStack[i] == m_Number)
-      {
-        return pixelStack.size();
-      }
+      sum += pixelStack[i];
     }
-    return 0;
+    return  (PixelType)(sum/(double)pixelStack.size());
   }
 
-  PixelType m_Number;
+};
+
+class VARIANCE
+{
+public:
+  VARIANCE() {};
+  ~VARIANCE() {};
+  bool operator!=( const VARIANCE & ) const
+  {
+    return false;
+  }
+  bool operator==( const VARIANCE & other ) const
+  {
+    return !(*this != other);
+  }
+  inline PixelType operator()( const std::vector< PixelType > pixelStack)
+  {
+    // Compute mean
+    double sum = 0.0;
+    double squareSum = 0.0;
+    for(int i=0; i<pixelStack.size(); i++)
+    {
+      sum += pixelStack[i];
+      squareSum += pixelStack[i]*pixelStack[i];
+    }
+    sum /= (double)pixelStack.size();
+    squareSum /= (double) pixelStack.size();
+
+    double std = sqrt(squareSum - sum*sum);
+    if(std > 255.0)
+    {
+      std = 255.0;
+    }
+    return (PixelType) (std);
+    
+  }
+
 };
 int main( int argc, char * argv[] )
 {
@@ -240,6 +277,16 @@ int main( int argc, char * argv[] )
     labelReaderArray[i]->SetFileName(fname.c_str());
     labelReaderArray[i]->Update();
   }
+
+  // Read intensity images
+  std::vector< ReaderType::Pointer > imageReaderArray(N);
+  for(int i=0; i<N; i++)
+  {
+    imageReaderArray[i] = ReaderType::New();
+    string fname = inputFolder + fileNames[i];
+    imageReaderArray[i]->SetFileName(fname.c_str());
+    imageReaderArray[i]->Update();
+  } 
   
   // Get the number of tranform levels
   int transformLevels;
@@ -286,8 +333,15 @@ int main( int argc, char * argv[] )
 
   }
 
-  ofstream output( (outputFolder + "DiceMeasures.txt").c_str() );
-
+  ofstream output;
+  if(labelType == "ICC")
+  {
+    output.open(( (outputFolder + "DiceMeasuresICC.txt").c_str() ));
+  }
+  else
+  {
+    output.open(( (outputFolder + "DiceMeasuresHandLabels.txt").c_str() ));
+  }
   // Resample the images
   // Read the input transforms and compute the dice measure
   for(int i=0; i<transformLevels; i++)
@@ -310,6 +364,8 @@ int main( int argc, char * argv[] )
     // Resample the labels according to transforms
     typedef itk::ResampleImageFilter<ImageType,ImageType> ResampleFilterType;
     std::vector<ResampleFilterType::Pointer> resampleArray(N);
+
+    std::vector<ResampleFilterType::Pointer> imageResampleArray(N);
 
     
     for(int j=0; j<N; j++)
@@ -461,11 +517,10 @@ int main( int argc, char * argv[] )
           naryANDImageFilter->GetFunctor().m_Number = 30;
           naryANDImageFilter->Modified();
         }
-        naryANDImageFilter->Update();
+        //naryANDImageFilter->Update();
 
         typedef itk::ImageRegionIterator<ImageType>  IteratorType;
     
-        IteratorType andIt(naryANDImageFilter->GetOutput(),naryANDImageFilter->GetOutput()->GetLargestPossibleRegion() );
 
         // Write the overlap image
         WriterType::Pointer writer= WriterType::New();
@@ -473,6 +528,7 @@ int main( int argc, char * argv[] )
 
         // Set the file name
         string fname = outputFolder;
+
         if(i==0)
         {
           ostringstream affine;
@@ -494,27 +550,64 @@ int main( int argc, char * argv[] )
         writer->Update();
 
 
+        
+        // Extract the central slice
+        typedef itk::Image< unsigned char, 2 >    SliceImageType;
+        typedef itk::ImageFileWriter< SliceImageType >  SliceWriterType;
+        SliceWriterType::Pointer  sliceWriter = SliceWriterType::New();
+        
+        // Filter to extract a slice from an image
+        typedef itk::ExtractImageFilter< ImageType, SliceImageType > SliceExtractFilterType;
+        SliceExtractFilterType::Pointer sliceExtractFilter = SliceExtractFilterType::New();
+
+        //Write the central slice
+
+        ImageType::SizeType size = naryANDImageFilter->GetOutput()->GetLargestPossibleRegion().GetSize();
+        ImageType::IndexType start = naryANDImageFilter->GetOutput()->GetLargestPossibleRegion().GetIndex();
+        start[0] = 106;
+        size[0] = 0;
+
+        
+        ImageType::RegionType extractRegion;
+        extractRegion.SetSize(  size  );
+        extractRegion.SetIndex( start );
+        sliceExtractFilter->SetExtractionRegion( extractRegion );
+      
+        sliceExtractFilter->SetInput( naryANDImageFilter->GetOutput() );
+        sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
+
+        string sliceName = fname;
+        sliceName.replace(sliceName.size()-3, 3, "bmp" );
+
+        sliceWriter->SetFileName( sliceName.c_str() );
+        sliceWriter->Update(); 
+
+        
+        IteratorType andIt(naryANDImageFilter->GetOutput(),naryANDImageFilter->GetOutput()->GetLargestPossibleRegion() );
+
         // Compute The histogram
-        vector<double> histogram(N,0.0);
-        double andSum = 0;
-        double orSum = 0;
+        std::vector<double> histogram(N,0.0);
+        double sum = 0.0;
         for ( andIt.GoToBegin(); !andIt.IsAtEnd(); ++andIt)
         {
           const PixelType  current = andIt.Get();
           if(current)
           {
-            histogram[current] += 1.0;
-            orSum++;
+            histogram[current-1] += 1.0;
+            sum += 1.0;
           }
         }
 
+        
+        // Write ROC curve
         output << "Level:" << i << " ";
+        double cumSum = 0.0;
         for(int k=0; k<N; k++)
         {
-          output << histogram[k] << " ";
+          cumSum += histogram[N-1-k];
+          output << cumSum / sum << " ";
         }
         output << endl;
-        // Write out the prediction percentages
 
       }
 
@@ -533,7 +626,6 @@ int main( int argc, char * argv[] )
 
         typedef itk::ImageRegionIterator<ImageType>  IteratorType;
     
-        IteratorType andIt(naryANDImageFilter->GetOutput(),naryANDImageFilter->GetOutput()->GetLargestPossibleRegion() );
 
         // Write the overlap image
         WriterType::Pointer writer= WriterType::New();
@@ -562,38 +654,133 @@ int main( int argc, char * argv[] )
         writer->Update();
 
 
+        
+        IteratorType andIt(naryANDImageFilter->GetOutput(),naryANDImageFilter->GetOutput()->GetLargestPossibleRegion() );
+
         // Compute The histogram
-        vector<double> histogram(N,0.0);
-        double andSum = 0;
-        double orSum = 0;
+        std::vector<double> histogram(N,0.0);
+        double sum = 0.0;
         for ( andIt.GoToBegin(); !andIt.IsAtEnd(); ++andIt)
         {
           const PixelType  current = andIt.Get();
           if(current)
           {
-            histogram[current] += 1.0;
-            orSum++;
+            histogram[current-1] += 1.0;
+            sum += 1.0;
           }
         }
 
-        // Output histogram counts
+        
+        // Write ROC curve
         output << "Level:" << i << " ";
-        double sum = 0.0;
+        double cumSum = 0.0;
         for(int k=0; k<N; k++)
         {
-          sum += histogram[k];
-        }
-        for(int k=0; k<N; k++)
-        {
-          output << histogram[k]/sum << " ";
+          cumSum += histogram[N-1-k];
+          output << cumSum / sum << " ";
         }
         output << endl;
-        // Write out the prediction percentages
 
       }
     }
 
-  }
+
+
+    // Compute mean and standard deviation
+    typedef itk::NaryFunctorImageFilter< ImageType,  ImageType,  MEAN > NaryMEANImageFilter;
+    NaryMEANImageFilter::Pointer naryMeanImageFilter = NaryMEANImageFilter::New();
+
+    typedef itk::NaryFunctorImageFilter< ImageType,  ImageType,  VARIANCE > NarySTDImageFilter;
+    NarySTDImageFilter::Pointer narySTDImageFilter = NarySTDImageFilter::New();
+    
+    for(int j=0; j<N; j++)
+    {
+      imageResampleArray[j] = ResampleFilterType::New();
+
+      typedef itk::LinearInterpolateImageFunction< ImageType, double >  InterpolatorType;
+      InterpolatorType::Pointer interpolator = InterpolatorType::New();
+      imageResampleArray[j]->SetInterpolator( interpolator );
+      imageResampleArray[j]->SetTransform( transformArray[j] );
+      
+      imageReaderArray[j]->Update();
+      
+      ImageType::Pointer imagePointer = imageReaderArray[j]->GetOutput();
+      ResampleFilterType::OriginPointType  origin = imageReaderArray[j]->GetOutput()->GetOrigin();
+      origin[0] = 111.5625;
+      origin[1] = 111.5625;
+      origin[2] = -138.0;
+      imagePointer->SetOrigin(origin);
+
+      imageResampleArray[j]->SetInput( imagePointer );
+      imageResampleArray[j]->SetSize(    imagePointer->GetLargestPossibleRegion().GetSize() );
+      imageResampleArray[j]->SetOutputOrigin(  imagePointer->GetOrigin() );
+      imageResampleArray[j]->SetOutputSpacing( imagePointer->GetSpacing() );
+      imageResampleArray[j]->SetOutputDirection( imagePointer->GetDirection());
+      imageResampleArray[j]->SetDefaultPixelValue( 0 );
+      
+      naryMeanImageFilter->SetInput(j,imageResampleArray[j]->GetOutput());
+      narySTDImageFilter->SetInput(j,imageResampleArray[j]->GetOutput());
+      
+    }
+
+    // Set the file name
+    string meanFname = outputFolder;
+    string stdFName = outputFolder;
+
+    if(i==0)
+    {
+      meanFname  += "Labels/Affine/MeanSlice.jpg";
+      stdFName   += "Labels/Affine/STDSlice.jpg";
+    }
+    else
+    {
+      ostringstream bsplineFolderName;
+      bsplineFolderName << "Labels/Bspline_Grid_" << (int) bsplineInitialGridSize * pow(2.0,i-1) << "/";
+      meanFname  += bsplineFolderName.str() + "MeanSlice.jpg";
+      stdFName   += bsplineFolderName.str() + "STDSlice.jpg";
+
+    }
+
+    naryMeanImageFilter->Update();
+    narySTDImageFilter->Update();
+        
+    // Extract the central slice
+    typedef itk::Image< unsigned char, 2 >    SliceImageType;
+    typedef itk::ImageFileWriter< SliceImageType >  SliceWriterType;
+    SliceWriterType::Pointer  sliceWriter = SliceWriterType::New();
+        
+        // Filter to extract a slice from an image
+    typedef itk::ExtractImageFilter< ImageType, SliceImageType > SliceExtractFilterType;
+    SliceExtractFilterType::Pointer sliceExtractFilter = SliceExtractFilterType::New();
+
+    //Write the central slice
+    ImageType::SizeType size = naryMeanImageFilter->GetOutput()->GetLargestPossibleRegion().GetSize();
+    ImageType::IndexType start = naryMeanImageFilter->GetOutput()->GetLargestPossibleRegion().GetIndex();
+    start[0] = 106;
+    size[0] = 0;
+
+        
+    ImageType::RegionType extractRegion;
+    extractRegion.SetSize(  size  );
+    extractRegion.SetIndex( start );
+    sliceExtractFilter->SetExtractionRegion( extractRegion );
+      
+    sliceExtractFilter->SetInput( naryMeanImageFilter->GetOutput() );
+    sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
+
+    // write mean image
+    sliceWriter->SetFileName( meanFname.c_str() );
+    sliceWriter->Update();     
+
+    // write std image
+    sliceExtractFilter->SetInput( narySTDImageFilter->GetOutput() );
+    sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
+
+    sliceWriter->SetFileName( stdFName.c_str() );
+    sliceWriter->Update();
+
+    
+  } // End of transform levels
   output.close();
 
   return EXIT_SUCCESS;

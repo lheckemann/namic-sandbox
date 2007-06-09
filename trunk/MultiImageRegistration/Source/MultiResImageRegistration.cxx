@@ -830,7 +830,8 @@ int getCommandLine(int argc, char *initFname, vector<string>& fileNames, string&
                    unsigned int &NumberOfFixedImages,
                    unsigned int &numberOfNearestNeigbors, double &errorBound,
                    string &writeMean3DImages, string& metricPrint, unsigned int& printInterval,
-                   double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation );
+                   double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation,
+                   double& HistogramSamplesPerBin );
 
 
 int main( int argc, char *argv[] )
@@ -893,7 +894,7 @@ int main( int argc, char *argv[] )
   string useBSplineRegularization("on");
   double bsplineRegularizationFactor = 1e-1;
   double parzenWindowStandardDeviation = 0.4;
-
+  double HistogramSamplesPerBin = 50.0;
   string mask("all");
   string maskType("none");
   unsigned int threshold1 = 9;
@@ -941,7 +942,8 @@ int main( int argc, char *argv[] )
         NumberOfFixedImages,
         numberOfNearestNeigbors, errorBound,
         writeMean3DImages, metricPrint, printInterval,
-        SPSAalpha , SPSAgamma, SPSAcRel, SPSAnumberOfPerturbation) )
+        SPSAalpha , SPSAgamma, SPSAcRel, SPSAnumberOfPerturbation,
+        HistogramSamplesPerBin ) )
     {
       std:: cout << "Error reading parameter file " << std::endl;
       return 1;
@@ -1186,6 +1188,7 @@ int main( int argc, char *argv[] )
     RegisterToMeanHistogramMetricType::Pointer registerToMeanHistogramMetric        = RegisterToMeanHistogramMetricType::New();
     // Set the number of samples to be used by the metric
     registerToMeanHistogramMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
+    registerToMeanHistogramMetric->SetHistogramSamplesPerBin(HistogramSamplesPerBin);
     metric = registerToMeanHistogramMetric;
   }
   else if( metricType == "meanKNN" )
@@ -1490,7 +1493,8 @@ int main( int argc, char *argv[] )
       meanParameters += translationTransformArray[i]->GetParameters();
     }
     meanParameters /= (double) N;
-
+    cout << meanParameters << endl;
+    
     for(int i=0; i<N; i++)
     {
       TransformParametersType parameters = translationTransformArray[i]->GetParameters();
@@ -2492,7 +2496,8 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
 
                           string &writeMean3DImages, string& metricPrint, unsigned int& printInterval,
 
-                          double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation)
+                          double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation,
+                          double& HistogramSamplesPerBin)
 {
 
 
@@ -2742,6 +2747,11 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
     {
       initFile >> dummy;
       parzenWindowStandardDeviation = atof(dummy.c_str());
+    }
+    else if (dummy == "-HistogramSamplesPerBin")
+    {
+      initFile >> dummy;
+      HistogramSamplesPerBin = atof(dummy.c_str());
     }
 
     else if (dummy == "-mask")
