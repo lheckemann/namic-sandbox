@@ -23,6 +23,7 @@
 
 #include "itkImageFileReader.h"
 #include "itkScalarImageToCooccurrenceListSampleFilter.h"
+#include <vector>
 
 int itkScalarImageToCooccurrenceListSampleFilterTest( int argc, char * argv [] )
 {
@@ -35,7 +36,7 @@ int itkScalarImageToCooccurrenceListSampleFilterTest( int argc, char * argv [] )
   //------------------------------------------------------
   //Create a simple test images
   //------------------------------------------------------
-  typedef itk::Image<unsigned int, NDIMENSION> InputImageType;
+  typedef itk::Image<int, NDIMENSION> InputImageType;
 
   typedef itk::ImageRegionIterator< InputImageType > InputImageIterator;
 
@@ -72,6 +73,17 @@ int itkScalarImageToCooccurrenceListSampleFilterTest( int argc, char * argv [] )
       imageIt.Set(i % 5 + j);
       }
 
+  imageIt.GoToBegin();
+  for(int i = 0; i < 5; i++)
+    {
+    for(int j = 0; j < 5; j++, ++imageIt)
+      {
+      std::cout << imageIt.Get() << "\t";
+      }
+    std::cout << "\n";
+    }
+
+  
   typedef itk::Statistics::ScalarImageToCooccurrenceListSampleFilter < 
                                   InputImageType > CooccurrenceListType;
 
@@ -117,14 +129,144 @@ int itkScalarImageToCooccurrenceListSampleFilterTest( int argc, char * argv [] )
 
   typedef CooccurrenceListType::SampleType::MeasurementVectorType MeasurementVectorType;
 
+  std::vector< MeasurementVectorType > baselineVectorList;
+
+  int  val[2]; 
+
+  val[0] = 2;
+  val[1] = 3;
+  baselineVectorList.push_back( val );
+
+  val[0] = 3;
+  val[1] = 4;
+  baselineVectorList.push_back( val );
+
+  val[0] = 4;
+  val[1] = 5;
+  baselineVectorList.push_back( val );
+
+  val[0] = 3;
+  val[1] = 4;
+  baselineVectorList.push_back( val );
+
+ 
+  val[0] = 4;
+  val[1] = 5;
+  baselineVectorList.push_back( val );
+
+  val[0] = 5;
+  val[1] = 6;
+  baselineVectorList.push_back( val );
+
+  val[0] = 4;
+  val[1] = 5;
+  baselineVectorList.push_back( val );
+
+  val[0] = 5;
+  val[1] = 6;
+  baselineVectorList.push_back( val );
+
+  val[0] = 6;
+  val[1] = 7;
+  baselineVectorList.push_back( val );
+
+  val[0] = 0;
+  val[1] = 1;
+  baselineVectorList.push_back( val );
+
+  val[0] = 1;
+  val[1] = 2;
+  baselineVectorList.push_back( val );
+
+  val[0] = 2;
+  val[1] = 3;
+  baselineVectorList.push_back( val );
+
+  val[0] = 3;
+  val[1] = 4;
+  baselineVectorList.push_back( val );
+
+  val[0] = 4;
+  val[1] = 5;
+  baselineVectorList.push_back( val );
+
+  val[0] = 4;
+  val[1] = -1;
+  baselineVectorList.push_back( val );
+
+  val[0] = 5;
+  val[1] = -1;
+  baselineVectorList.push_back( val );
+
+  val[0] = 6;
+  val[1] = -1;
+  baselineVectorList.push_back( val );
+
+  val[0] = 7;
+  val[1] = -1;
+  baselineVectorList.push_back( val );
+
+  val[0] = 8;
+  val[1] = -1;
+  baselineVectorList.push_back( val );
+
+  val[0] = 0;
+  val[1] = 1;
+  baselineVectorList.push_back( val );
+
+  val[0] = 1;
+  val[1] = 2;
+  baselineVectorList.push_back( val );
+
+  val[0] = 2;
+  val[1] = 3;
+  baselineVectorList.push_back( val );
+
+  val[0] = 3;
+  val[1] = 4;
+  baselineVectorList.push_back( val );
+
+  val[0] = 4;
+  val[1] = -1;
+  baselineVectorList.push_back( val );
+
+  val[0] = 4;
+  val[1] = 5;
+  baselineVectorList.push_back( val );
+
+  val[0] = 5;
+  val[1] = 6;
+  baselineVectorList.push_back( val );
+
+  val[0] = 6;
+  val[1] = 7;
+  baselineVectorList.push_back( val );
+
+  val[0] = 7;
+  val[1] = 8;
+  baselineVectorList.push_back( val );
+
+  val[0] = 8;
+  val[1] = -1;
+  baselineVectorList.push_back( val );
+
+  std::vector< MeasurementVectorType >::const_iterator it;
+
+  it = baselineVectorList.begin();
+
   while ( s_iter != sample->End() )
     {
 
     MeasurementVectorType  v = s_iter.GetMeasurementVector(); 
+    MeasurementVectorType  vbase = *it;
 
-    std::cout << "[" << v[0] << "," << v[1] << "]" << std::endl;
-
+    if ( vbase != v )
+      {
+      std::cerr << "Cooccurrence list sample content is not correct " << std::endl;
+      return EXIT_FAILURE;
+      }
     ++s_iter;
+    ++it;
     } 
 
   return EXIT_SUCCESS;
