@@ -237,19 +237,19 @@ int main(int argc, char* argv[]){
   unsigned int maxlikelihoodcachesize = atoi(argv[7]);
   */
   //setup output stat files
-  char fafilename[100];
-  sprintf( fafilename, "%s_CONDFAValues.txt", outputprefix.c_str() );
-  char lengthfilename[100];
-  sprintf( lengthfilename, "%s_CONDLENGTHValues.txt", outputprefix.c_str() );
+  std::string fafilename = outputprefix + "_CONDFAValues.txt";
+  //sprintf( fafilename, "%s_CONDFAValues.txt", outputprefix.c_str() );
+  std::string lengthfilename = outputprefix + "_CONDLENGTHValues.txt";
+  //sprintf( lengthfilename, "%s_CONDLENGTHValues.txt", outputprefix.c_str() );
   
   //open these files
-  std::ofstream fafile( fafilename );
+  std::ofstream fafile( fafilename.c_str() );
   if(!fafile.is_open()){
     std::cerr<<"Could not open FA file!\n";
     return EXIT_FAILURE;
   }
   
-  std::ofstream lengthfile( lengthfilename );
+  std::ofstream lengthfile( lengthfilename.c_str() );
   //if(!lengthfile.is_open()){
   //  std::cerr<<"Could not open Length file!\n";
   //  return EXIT_FAILURE;
@@ -481,8 +481,8 @@ int main(int argc, char* argv[]){
               //std::cout<<fafilter->GetOutput()->GetPixel(roitractIt.GetIndex())<<std::endl;
               accumFA+=fafilter->GetOutput()->GetPixel(currtract->EvaluateToIndex(t));
             }
-            fafile<<accumFA/((double)stepcount)<<std::endl << std::flush;
-            lengthfile<<tractcontainer->GetElement(i)->EndOfInput()<<std::endl << std::flush;
+            fafile<<accumFA/((double)stepcount)<<std::endl;
+            lengthfile<<tractcontainer->GetElement(i)->EndOfInput()<<std::endl;
             if(fafile.fail() || lengthfile.fail() ){
               std::cerr<<"Error writing to text files\n";
               return EXIT_FAILURE;
@@ -507,20 +507,20 @@ int main(int argc, char* argv[]){
   std::cout<<"wmp image origin:"<< wmpreader->GetOutput()->GetOrigin() <<std::endl;
   if(outputimageswitch){
     //Write out the Connectivity Map
-    char cfilename[100];
-    sprintf(cfilename, "%s_CMAP.nhdr", outputprefix.c_str() );
+    std::string cfilename = outputprefix + "_CMAP.nhdr";
+    //sprintf(cfilename, "%s_CMAP.nhdr", outputprefix.c_str() );
     CImageWriterType::Pointer writerPtr = CImageWriterType::New();
     writerPtr->SetInput( accumulatedcimagePtr );
-    writerPtr->SetFileName( cfilename );
+    writerPtr->SetFileName( cfilename.c_str() );
     writerPtr->Update();
     
     //Write out TensorImage
-    char tensorimagefilename[100];
-    sprintf(tensorimagefilename, "%s_TENSOR.nhdr", outputprefix.c_str() );
+    std::string tensorimagefilename = outputprefix + "_TENSOR.nhdr";
+    //sprintf(tensorimagefilename, "%s_TENSOR.nhdr", outputprefix.c_str() );
     typedef itk::ImageFileWriter< PTFilterType::OutputTensorImageType > TensorImageWriterType;
     TensorImageWriterType::Pointer tensorwriter = TensorImageWriterType::New();
     tensorwriter->SetInput( ptfilterPtr->GetOutputTensorImage() );
-    tensorwriter->SetFileName( tensorimagefilename );
+    tensorwriter->SetFileName( tensorimagefilename.c_str() );
     tensorwriter->Update();
     
     //Create a default Mask Image which 
@@ -528,18 +528,18 @@ int main(int argc, char* argv[]){
     MultiplyFAFilterType::Pointer multFAfilter = MultiplyFAFilterType::New();
     multFAfilter->SetInput( fafilter->GetOutput() );  
     //write out the FA image
-    char faimagefilename[100];
-    sprintf(faimagefilename, "%s_FA.nhdr", outputprefix.c_str() );
+    std::string faimagefilename = outputprefix + "_FA.nhdr";
+    //sprintf(faimagefilename, "%s_FA.nhdr", outputprefix.c_str() );
     FAImageWriterType::Pointer fawriter = FAImageWriterType::New();
     fawriter->SetInput( multFAfilter->GetOutput() );
-    fawriter->SetFileName( faimagefilename );
+    fawriter->SetFileName( faimagefilename.c_str() );
     fawriter->Update();
     
     //Write out the conditioned connectivity map
     CImageWriterType::Pointer condcmapwriterPtr = CImageWriterType::New();
     condcmapwriterPtr->SetInput( conditionedcimagePtr );
-    char condcmapfilename[100];
-    sprintf(condcmapfilename, "%s_COND.nhdr", outputprefix.c_str());
+    std::string condcmapfilename = outputprefix + "_COND.nhdr";
+    //sprintf(condcmapfilename, "%s_COND.nhdr", outputprefix.c_str());
     condcmapwriterPtr->SetFileName( condcmapfilename );
     condcmapwriterPtr->Update();
   }
