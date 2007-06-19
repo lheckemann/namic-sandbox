@@ -7,58 +7,55 @@ A level-1 auxiliary file: chap2.aux
 A level-1 auxiliary file: chap3.aux
 A level-1 auxiliary file: chap4.aux
 A level-1 auxiliary file: chap4a.aux
-A level-1 auxiliary file: chap5.aux
 A level-1 auxiliary file: chap6.aux
-A level-1 auxiliary file: appa.aux
 A level-1 auxiliary file: appb.aux
 A level-1 auxiliary file: biblio.aux
 The style file: plain.bst
 Database file #1: main.bib
 Warning--empty year in 3Dslicer
 Warning--empty year in itk
-Warning--empty journal in derek
-Warning--empty year in derek
+Warning--there's a number but no volume in derek
 Warning--empty journal in odonnel06
 Warning--empty year in odonnel06
-You've used 11 entries,
+You've used 23 entries,
             2118 wiz_defined-function locations,
-            575 strings with 6430 characters,
-and the built_in function-call counts, 4292 in all, are:
-= -- 389
-> -- 306
-< -- 0
-+ -- 123
-- -- 110
-* -- 362
-:= -- 767
-add.period$ -- 32
-call.type$ -- 11
-change.case$ -- 88
+            651 strings with 8692 characters,
+and the built_in function-call counts, 8811 in all, are:
+= -- 845
+> -- 536
+< -- 3
++ -- 215
+- -- 188
+* -- 691
+:= -- 1507
+add.period$ -- 67
+call.type$ -- 23
+change.case$ -- 163
 chr.to.int$ -- 0
-cite$ -- 17
-duplicate$ -- 116
-empty$ -- 253
-format.name$ -- 110
-if$ -- 817
+cite$ -- 28
+duplicate$ -- 277
+empty$ -- 585
+format.name$ -- 188
+if$ -- 1761
 int.to.chr$ -- 0
-int.to.str$ -- 11
-missing$ -- 11
-newline$ -- 57
-num.names$ -- 22
-pop$ -- 87
+int.to.str$ -- 23
+missing$ -- 22
+newline$ -- 116
+num.names$ -- 46
+pop$ -- 157
 preamble$ -- 1
-purify$ -- 77
+purify$ -- 140
 quote$ -- 0
-skip$ -- 75
+skip$ -- 193
 stack$ -- 0
-substring$ -- 233
-swap$ -- 9
-text.length$ -- 0
+substring$ -- 540
+swap$ -- 47
+text.length$ -- 3
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 44
-warning$ -- 6
-while$ -- 33
-width$ -- 13
-write$ -- 112
-(There were 6 warnings)
+type$ -- 92
+warning$ -- 5
+while$ -- 78
+width$ -- 25
+write$ -- 246
+(There were 5 warnings)
