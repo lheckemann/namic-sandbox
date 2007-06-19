@@ -1,6 +1,6 @@
 \chapter{Implementation}
 \section{Architecture}
-We implemented the algorithm as an extension to the Insight Segmentation and Registration Toolkit (ITK).  The ITK toolkit is a collection of image processing and statistical analysis algorithms for biomedical imaging applications.  Additionally, the ITK toolkit is open-source software, which allows other researchers to learn directly how this system was implemented and make improvements in the future.  Including the algorithm in the ITK toolkit makes the algorithm available to a large existing research community.  Additionally, we created a GUI module for the 3D Slicer medical visualization program that provides easy access to the algorithm via an intuitive visual interface.  We also created a command line interface to the ITK module that can be used to non-interactively process large numbers of data sets.  Choosing to implement the algorithm as an extension of already established tools facilitates adoption of the algorithm in clinical studies.
+We implemented the algorithm as a new filter in the Insight Segmentation and Registration Toolkit (ITK).  The ITK toolkit is a collection of image processing and statistical analysis algorithms for biomedical imaging applications.  Additionally, the ITK toolkit is open-source software, which allows other researchers to learn directly how this system was implemented and make improvements in the future.  Including the algorithm in the ITK toolkit makes it available to a large existing research community.  Additionally, we created a GUI module for the 3D Slicer medical visualization program that provides easy access to the algorithm via an intuitive visual interface.  We also created a command line interface to the ITK filter that can be used to process large numbers of data sets in a batch mode.  Choosing to implement the algorithm as an extension of already established tools facilitates adoption of the algorithm in clinical studies.
 
 The stochastic tractography algorithm is a Monte Carlo algorithm which samples the high dimensional parameter space of fiber tracts.  This parameter space is large because fiber tract are characterized by a sequence of segment orientations, each of which can be considered a separate parameter describing the fiber tract.  As such, it may take many samples to accurately approximate the posterior distribution of these parameters.  However, since these samples are IID, the samples can be generated in parallel.  Implementing the system in a multithreaded fashion enables parallel sampling of the tract distribution.
 
@@ -22,15 +22,15 @@ The cache is implemented as an image whose voxels are re-sizable arrays.  ITK's 
 Using a shared likelihood cache between multiple concurrent threads creates additional complexities.  Simultaneous writes to the cache would cause unexpected behavior.  Additionally there is the possibility of one thread reading an incomplete cache entry while another thread is trying to write it.  One possible solution is to ensure that only one thread can read or write to the likelihood cache at a time.  This is easily implemented by serializing access to the likelihood cache using a mutex.  A mutex serves as a lock on data.  A thread will wait to obtain a lock on the data before it proceeds to the next section of code.  Inside this section, which is called the critical section, the thread holds the lock ensuring exclusive access to the otherwise shared data.  All other threads must wait and idle while the thread which owns the lock finishes it operations.  Since threads must access the likelihood cache very often, this results in a situation where many threads are waiting for other threads to finish accessing the likelihood cache.  The serialized access to the likelihood cache creates a bottleneck, which in the worse case would result in performance that is only marginally better than a single threaded version of the filter.
 \begin{figure}
   \center
-  \includegraphics[trim = 20mm 70mm 20mm 70mm, clip, width=0.5\linewidth]
+  \includegraphics[trim = 20mm 70mm 20mm 70mm, clip, width=0.75\linewidth]
 	  {timepertracts}
 	\caption{A graph displaying the amount of time needed to sample a number of tracts.  Each line represents the algorithm's performance using different numbers of threads.  This test was run on a 4 processor machine.}
 	\label{fig:performance}
 \end{figure}
 
-Access collisions to the likelihood cache can be reduced if we increase the granularity of the lock.  Instead of using one large lock for the entire likelihood cache image, we use a lock for each voxel.  The probability of two threads accessing the same voxel simultaneously is much less than the probability of two threads accessing any part of the likelihood cache.  These per voxel locks are conveniently constructed using an ITK image whose voxel data type is a mutex.  Similar to the likelihood cache, this collection of mutexes is indexed by coordinates which correspond to the coordinates of the voxels in the DWI input data.  Again, access to the mutex image is fast due to ITK's optimized access operators for data types indexed by coordinates.  The only cost to using this high resolution mutex image is the additional memory required to store pixel mutexes.  However this cost is small since a mutex is essentially a boolean variable.  The mutex image allows different voxels in the likelihood cache image to be updated simultaneously, increasing the rate that the likelihood cache is filled.  The advantage of using a mutex image is most evident when tracking in highly isotropic regions,  where collisions are very unlikely to occur, since the sampled paths are very dispersed.  Even on uni-processor systems, using multiple threads may improve performance since the rate of encountering an unvisited voxel may be higher, thus filling the likelihood cache faster. Figure \ref{fig:performance} demonstrates the required computation time for a given number of tracts under different number of threads.
+Access collisions to the likelihood cache can be reduced if we increase the granularity of the lock.  Instead of using one large lock for the entire likelihood cache image, we use a lock for each voxel.  The probability of two threads accessing the same voxel simultaneously is much less than the probability of two threads accessing any part of the likelihood cache.  These per voxel locks are conveniently constructed using an ITK image whose voxel data type is a mutex.  Similar to the likelihood cache, this collection of mutexes is indexed by coordinates which correspond to the coordinates of the voxels in the DWI input data.  Again, access to the mutex image is fast due to ITK's optimized access operators for data types indexed by coordinates.  The only cost to using this high resolution mutex image is the additional memory required to store pixel mutexes.  However this cost is small since a mutex is essentially a Boolean variable.  The mutex image allows different voxels in the likelihood cache image to be updated simultaneously, increasing the rate that the likelihood cache is filled.  The advantage of using a mutex image is most evident when tracking in highly isotropic regions,  where collisions are very unlikely to occur, since the sampled paths are very dispersed.  Even on uni-processor systems, using multiple threads may improve performance since the rate of encountering an unvisited voxel may be higher, thus filling the likelihood cache faster. Figure \ref{fig:performance} demonstrates the required computation time for a given number of tracts under different number of threads.
 
-Additionally, to compute the weighted least squares estimates for the log tensor model parameters, we must first estimate the weights.  These weights are found by calculating a least squares estimate of the true intensities of each voxel.  The $A$ matrix used in this least squares estimation is a function solely of the magnetic gradient directions and associated b-values, which are the same for every voxel in the image.  Since the same $A$ matrix is used for each voxel in the least squares calculation, a common optimization is to orthogonalize the $A$ matrix by computing its QR decomposition.  While this operation is computationally expensive, it is performed only once for the entire DWI image.  The orthogonalized $A$ matrix reduces the cost of computing the weights for every voxel.
+Additionally, to compute the weighted least squares estimates for the log tensor model parameters, we must first estimate the weights.  These weights are found by calculating a least squares estimate of the true intensities of each voxel.  The $\mathbf{A}$ matrix \ref{eq:fulllogtensor} used in this least squares estimation is a function solely of the magnetic gradient directions and associated b-values, which are the same for every voxel in the image.  Since the same $\mathbf{A}$ matrix is used for each voxel in the least squares calculation, a common optimization is to orthogonalize the $\mathbf{A}$ matrix by computing its QR decomposition.  While this operation is computationally expensive, it is performed only once for the entire DWI image.  The orthogonalized $\mathbf{A}$ matrix reduces the cost of computing the weights for every voxel.
 
 \section{ITK Stochastic Tractography Filter}
 The Stochastic Tractography Filter is implemented as a multithreaded image filter in ITK under the class name itk::StochasticTractographyFilter.  The filter is templated over the DWI and white matter probability map input image types and also on the connectivity map image type.  The filter expects the DWI input image type to be an ITK VectorImage Type.  The code below demonstrates how to instantiate the Stochastic Tractography Filter.
@@ -47,11 +47,11 @@ The Stochastic Tractography Filter is implemented as a multithreaded image filte
 
 The filter's required inputs and parameters must be set before it can be run.  Table \ref{tab:filterinputs} lists filter methods that should be called to set the required inputs and parameters,  and a short description of what each methods expects as arguments.
 
-\begin{table} \label{tab:filterinputs}
+\begin{table}
   \center
   \begin{tabular}{| l | p{8cm} |}
     \hline 
-    Filter Member Method & Description\\
+    \textbf{Filter Member Method} & \textbf{Description}\\
     \hline
     \small{SetInput} & DWI Image: An ITK VectorImage consisting of a vector of DWI measurements including the baseline b0 measurements, at each voxel. \\
     \hline
@@ -65,7 +65,7 @@ The filter's required inputs and parameters must be set before it can be run.  T
     \hline
     \small{SetMaxTractLength} & Maximum Tract Length: A positive integer that sets the maximum length of a sampled tract.  This can also be interpreted as the number of segments which comprise the tract when using the default step size of 1 unit in the physical frame of the DWI image. \\
     \hline
-    \small{SetTotalTracts} & Total Sampled Tracts: A postive integer that sets the total number tracts to sample from the seed voxel. \\
+    \small{SetTotalTracts} & Total Sampled Tracts: A positive integer that sets the total number tracts to sample from the seed voxel. \\
     \hline
     \small{SetMaxLikelihoodCachSize} & Maximum Likelihood Cache Size(MB) A positive integer that sets the maximum size of the Likelihood Cache in megabytes.\\
     \hline
@@ -73,6 +73,7 @@ The filter's required inputs and parameters must be set before it can be run.  T
     \hline
   \end{tabular}
   \caption{ITK Stochastic Tractography Filter Required Inputs and Parameters}
+  \label{tab:filterinputs}
 \end{table}
 
 The code below is a continuation of the demonstration above and shows how to setup the filter's required inputs and parameters.  The inputs to these methods are provided by ITK's image readers.
@@ -119,8 +120,9 @@ Let \texttt{case24} be the name of the subject we are interested in analyzing.  
 Assuming that the starting ROI is labeled $15$ inside the labelmap, the stochastic tractography filter can be run by executing the command below within the \texttt{case24} directory: 
 To run the command line module, execute the command:
 \begin{verbatim}
-  StochasticTractographyFilter -c 6500 -m 500 -t 200 -e 15 -l 15 -r -o case24_RUN0
-    case24_DWI.nhdr case24_whitematterPB.nhdr case24_labelmap.nhdr
+  StochasticTractographyFilter -c 6500 -m 500 -t 200 -e 15 -l 15
+  -r -o case24_RUN0 case24_DWI.nhdr case24_whitematterPB.nhdr
+  case24_labelmap.nhdr
 \end{verbatim}
 After the command completes, the \texttt{case24} directory will contain the following additional files:
 \begin{verbatim}
@@ -137,22 +139,22 @@ After the command completes, the \texttt{case24} directory will contain the foll
 The conditioned connectivity map is identical to the normal connectivity map when the start label and end labels are the same.  However, if the label map contains ROIs designated by two labels, the conditioned connectivity map will be generated using only fibers which start in the start ROI and also pass through the second ROI.  Assuming the second ROI is labeled $2$ in the labelmap, the following command will isolate tracts which start in the start ROI and pass through the end ROI:
 \begin{verbatim}
   StochasticTractographyFilter -c 6500 -m 500 -t 200 -e 2 -l 15
-  -r-o case24_RUN0 case24_DWI.nhdr case24_whitematterPB.nhdr
+  -r -o case24_RUN0 case24_DWI.nhdr case24_whitematterPB.nhdr
   case24_labelmap.nhdr
 \end{verbatim}
 
-Now the conditioned connectivity maps and statistics are generated using only tracts which fulfill the condition of passing through both ROI's.  This feature allows us to analyze the particular bundle of tracts which connect two regions.
+Now the conditioned connectivity maps and statistics are generated using only tracts which fulfill the condition of passing through both ROIs.  This feature allows us to analyze the particular bundle of tracts which connect two regions.
  
 \section{3D Slicer Interface}
-\begin{figure}
+\begin{figure}[t]
   \center
-	\includegraphics[width=0.5\linewidth]{slicermodule}
+	\includegraphics[width=0.5\linewidth]{smallslicerinterface}
 	\caption{Stochastic Tractography GUI module within 3D Slicer.}
 	\label{fig:slicermodule}
 \end{figure}
 %slicer3 module
 %include figure
-To encourage the algorithm's adoption in clinical studies, we created an interactive GUI module for the 3D Slicer medical image visualization program was created which interfaces with the ITK stochastic tractography filter.  Figure \ref{fig:slicermodule} demonstrates the interface within the 3D Slicer environment.
+To encourage the algorithm's adoption in clinical studies, we created an interactive GUI module (Figure \ref{fig:slicermodule}) for the 3D Slicer medical image visualization program was created which interfaces with the ITK stochastic tractography filter.
 
 The module was implemented using the command line module interface provided by the 3D Slicer environment.  This interface greatly eased the adaption of the command line interface into a graphical interface that could be included with 3D Slicer.  The command line interface and the graphical interfaces are both completely described using an XML file.  This XML file description is then parsed by a program provided by 3D Slicer which generates code that can be included with the command line interface to create what 3D Slicer refers to as a command line module.  Command line modules can be run independently of 3D Slicer but can also be incorporated in to the 3D Slicer graphical interface.  This enables the stochastic tractography system to function as an easy to use extension in the 3D Slicer program as well as a stand alone program suitable for processing a large numbers of data sets non-interactively.  Appendix A includes a detailed description of the options for the command line module.
 

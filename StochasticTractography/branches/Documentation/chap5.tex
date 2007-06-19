@@ -17,13 +17,13 @@ The fibers that connect the thalamus and the frontal lobe are believed to be inv
 
 %show where the labels are using picture
 \section{Method}
-We will first obtain DWI data sets for as many schizophrenia and control subjects as possible.  Each DWI data set will consist of at least 6 gradient weighted images and 1 baseline image as this is the minimum required for the stochastic tractography system.  Additionally we will create a white matter map for each subject either by a segmentation of an additional anatomical image obtained during the DWI aquisition or through the segmentation of the B0 image.  Labelmaps for the right and left internal capsules for each subject is created through expert manual segmentation.  A additional ROI is placed in the frontal lobe to isolate fibers which originate in the internal capsules and proceed towards the frontal lobe.
+We will first obtain DWI data sets for as many schizophrenia and control subjects as possible.  Each DWI data set will consist of at least 6 gradient weighted images and 1 baseline image as this is the minimum required for the stochastic tractography system.  Additionally we will create a white matter map for each subject either by a segmentation of an additional anatomical image obtained during the DWI acquisition or through the segmentation of the B0 image.  Labelmaps for the right and left internal capsules for each subject is created through expert manual segmentation.  A additional ROI is placed in the frontal lobe to isolate fibers which originate in the internal capsules and proceed towards the frontal lobe.
 
 The stochastic tractography system is then used to generate tract length and tract-averaged FA statistics for tracts which originate in the right internal capsule and pass through the frontal lobe ROI.  The system will be run again for tracts which originate in the left internal capsule and pass through frontal lobe ROI.  These analysis are performed for all subjects.  Tracts will be sampled until the mean of the length and tract-averaged FA distributions show a degree of stability with respect to the number of samples.
 
 Assuming that the mean tract-averaged FA is normally distributed , a t-test is then used to determine whether the mean of the mean tract-averaged FA differs significantly between schizophrenia subjects and normal subjects.  The same is performed for the distribution of tract lengths.
 
-These results will also be compared streamline tractography results which found significant differences in the mean of the mean tract-averaged FA between schizophrenia and control groups\footnote{Streamline tractography results courtesy Gudrun Rosenberger}.
+Finally, these results will be compared with streamline tractography results on the same data set which found significant differences in the mean of the mean tract-averaged FA between schizophrenia and control groups\footnote{Research by Gudrun Rosenberger}.
 %talk about the experimental setup
 %how was the data obtained
 %how many subjects
