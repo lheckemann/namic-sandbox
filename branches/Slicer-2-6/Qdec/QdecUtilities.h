@@ -30,7 +30,7 @@
 
 #include <stdio.h>
 #ifndef MAXPATHLEN
-#ifdef HAVE_SYS_PARAM_H
+#ifndef _WIN32
 #include <sys/param.h>
 #else
 #include <direct.h>
