@@ -51,11 +51,10 @@ QdecUtilities::IsFileReadable ( string const& ifn ) {
 }
 
 const char *
-QdecUtilities::FileNamePath(const char *fname, const char *pathName)
+QdecUtilities::FileNamePath(const char *fname, char *pathName)
 {
   char *slash ;
-
-  strcpy((char*)pathName, fname) ;
+  strcpy(pathName, fname) ;
   slash = strrchr(pathName, '/') ;
   if (slash) *slash = 0 ; /* remove file name */
   else
