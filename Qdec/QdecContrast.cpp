@@ -104,7 +104,7 @@ string QdecContrast::GetContrastStr ( )
 int QdecContrast::WriteDotMatFile ( string ifnWorkingDir )
 {
   string dirName = ifnWorkingDir + "/contrasts/";
-#ifdef HAVE_SYS_PARAM_H
+#ifndef _WIN32
   int err = mkdir( dirName.c_str(), 0777);
 #else
   int err = mkdir (dirName.c_str());
