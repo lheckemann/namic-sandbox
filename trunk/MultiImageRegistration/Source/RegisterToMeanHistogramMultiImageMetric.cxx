@@ -36,7 +36,7 @@ template < class TFixedImage >
 RegisterToMeanHistogramMultiImageMetric < TFixedImage >::
 RegisterToMeanHistogramMultiImageMetric()
 {
-
+   m_HistogramSamplesPerBin = 50;
 
 }
 
@@ -91,7 +91,7 @@ RegisterToMeanHistogramMultiImageMetric<TFixedImage>
   m_LowerBound[1] = min - 0.05;
   m_UpperBound[0] = max + 0.1;
   m_UpperBound[1] = max + 0.1;
-  m_HistogramSize.Fill(256);
+  m_HistogramSize.Fill((int)sqrt(this->m_NumberOfSpatialSamples/m_HistogramSamplesPerBin));
   
 }
 
@@ -188,21 +188,11 @@ RegisterToMeanHistogramMultiImageMetric < TFixedImage >
     this->m_TransformArray[i]->SetParameters(this->m_TransformParametersArray[i]);
   }
   
-  // Update intensity values
-  const int N = this->m_NumberOfImages;
-  for(int i=0; i< this->m_NumberOfSpatialSamples; i++ )
-  {
-    for(int j=0; j<N; j++)
-    {
-      const MovingImagePointType mappedPoint = this->m_TransformArray[j]->TransformPoint(this->m_Sample[i].FixedImagePoint);
-      if(this->m_InterpolatorArray[j]->IsInsideBuffer (mappedPoint) )
-      {
-        this->m_Sample[i].imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(mappedPoint);
-      }
-    }
-  }
+  // collect sample set
+  this->SampleFixedImageDomain (this->m_Sample);
 
   // compute the mean
+  const unsigned int N = this->m_NumberOfImages;
   for(int i=0; i< this->m_NumberOfSpatialSamples; i++ )
   {
     mean[i] = 0.0;
@@ -263,10 +253,23 @@ RegisterToMeanHistogramMultiImageMetric < TFixedImage >
         entropyX += freq*vcl_log(freq);
       }
     }
+    this->m_value[threadId] += -entropyX/static_cast<MeasureType>(totalFreq) + vcl_log(totalFreq);
 
-    this->m_value[threadId] += entropyX/static_cast<MeasureType>(totalFreq) - vcl_log(totalFreq);
 
+    // Compute the probabilities
+    entropyX = NumericTraits<MeasureType>::Zero;
 
+    for (unsigned int i = 0; i < m_HistogramSize[0]; i++)
+    {
+      HistogramFrequencyType freq = m_HistogramArray[threadId]->GetFrequency(i, 0);
+      if (freq > 0)
+      {
+        entropyX += freq*vcl_log(freq);
+      }
+    }
+    this->m_value[threadId] += -entropyX/static_cast<MeasureType>(totalFreq) + vcl_log(totalFreq);
+
+ 
     HistogramIteratorType it = m_HistogramArray[threadId]->Begin();
     HistogramIteratorType end = m_HistogramArray[threadId]->End();
     while (it != end)
@@ -279,8 +282,8 @@ RegisterToMeanHistogramMultiImageMetric < TFixedImage >
       ++it;
     }
 
-    this->m_value[threadId] -= jointEntropy/
-        static_cast<MeasureType>(totalFreq) - vcl_log(totalFreq );
+    this->m_value[threadId] -= -jointEntropy/
+        static_cast<MeasureType>(totalFreq) + vcl_log(totalFreq );
 
   }
 
@@ -302,7 +305,7 @@ RegisterToMeanHistogramMultiImageMetric < TFixedImage >
   {
     value += this->m_value[i];
   }
-  value /= (double)( this->m_NumberOfImages );
+  value /= (double)( -1.0 * this->m_NumberOfImages );
 
   return value;
 }

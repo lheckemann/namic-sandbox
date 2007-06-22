@@ -334,13 +334,19 @@ int main( int argc, char * argv[] )
   }
 
   ofstream output;
+  ofstream dice50;
+  ofstream dice90;
   if(labelType == "ICC")
   {
     output.open(( (outputFolder + "DiceMeasuresICC.txt").c_str() ));
+    dice50.open(( (outputFolder + "DicePredictionICC50.txt").c_str() ));
+    dice90.open(( (outputFolder + "DicePredictionICC90.txt").c_str() ));
   }
   else
   {
     output.open(( (outputFolder + "DiceMeasuresHandLabels.txt").c_str() ));
+    dice50.open(( (outputFolder + "DicePredictionHandLabels50.txt").c_str() ));
+    dice90.open(( (outputFolder + "DicePredictionHandLabels90.txt").c_str() ));
   }
   // Resample the images
   // Read the input transforms and compute the dice measure
@@ -492,6 +498,12 @@ int main( int argc, char * argv[] )
       naryANDImageFilter->SetInput(j,resampleArray[j]->GetOutput());
     }
 
+    NaryANDImageFilter::Pointer naryANDPredictionImageFilter = NaryANDImageFilter::New();
+    for(int j=0; j<N-1; j++)
+    {
+      naryANDPredictionImageFilter->SetInput(j,resampleArray[j]->GetOutput());
+    }
+
     cout << "Computing dice measure " << endl;
     //output << transformNames[i] << "\t";
     if(labelType == "ICC")
@@ -499,23 +511,33 @@ int main( int argc, char * argv[] )
       for(int j=0; j<3 ; j++)
       {
         // Set the labels
+        int currentNumber;
         if(j ==0)
         {
           // White Matter
           naryANDImageFilter->GetFunctor().m_Number = 23;
           naryANDImageFilter->Modified();
+          naryANDPredictionImageFilter->GetFunctor().m_Number = 23;
+          naryANDPredictionImageFilter->Modified();
+          currentNumber = 23;
         }
         else if(j==1)
         {
           // White Matter
           naryANDImageFilter->GetFunctor().m_Number = 25;
           naryANDImageFilter->Modified();
+          naryANDPredictionImageFilter->GetFunctor().m_Number = 25;
+          naryANDPredictionImageFilter->Modified();
+          currentNumber = 25;
         }
         else
         {
           // White Matter
           naryANDImageFilter->GetFunctor().m_Number = 30;
           naryANDImageFilter->Modified();
+          naryANDPredictionImageFilter->GetFunctor().m_Number = 30;
+          naryANDPredictionImageFilter->Modified();
+          currentNumber = 30;
         }
         //naryANDImageFilter->Update();
 
@@ -587,14 +609,11 @@ int main( int argc, char * argv[] )
 
         // Compute The histogram
         std::vector<double> histogram(N,0.0);
-        double sum = 0.0;
         for ( andIt.GoToBegin(); !andIt.IsAtEnd(); ++andIt)
         {
-          const PixelType  current = andIt.Get();
-          if(current)
+          if(andIt.Get())
           {
-            histogram[current-1] += 1.0;
-            sum += 1.0;
+            histogram[andIt.Get()-1] += 1.0;
           }
         }
 
@@ -605,13 +624,94 @@ int main( int argc, char * argv[] )
         for(int k=0; k<N; k++)
         {
           cumSum += histogram[N-1-k];
-          output << cumSum / sum << " ";
+          output << cumSum << " ";
         }
         output << endl;
 
-      }
 
-    }
+        // Write number of nonzero points
+        std::vector<IteratorType> sumIterators(N);
+        for(int k=0; k<N; k++)
+        {
+          sumIterators[k] = IteratorType(resampleArray[k]->GetOutput(),resampleArray[k]->GetOutput()->GetLargestPossibleRegion() );
+        }
+
+        output << "AreaSum: " ;
+        for(int k=0; k<N; k++)
+        {
+          double areaSum = 0.0;
+          for ( sumIterators[k].GoToBegin(); !sumIterators[k].IsAtEnd(); ++sumIterators[k])
+          {
+            if(sumIterators[k].Get() == currentNumber)
+            {
+              areaSum += 1.0;
+            }
+          }
+          output << areaSum << " ";
+        }
+        output << endl;
+
+
+        // Compute prediction overlap
+        dice50 << "Level:" << j << " ";
+        dice90 << "Level:" << j << " ";
+        for(int k=0; k<N; k++)
+        {
+          int count = 0;
+          for(int l=0; l<N; l++)
+          {
+            if( l != k)
+            {
+              naryANDPredictionImageFilter->SetInput(count,resampleArray[l]->GetOutput());
+              count++;
+            }
+          }
+          naryANDPredictionImageFilter->Update();
+
+          // compute dice
+          IteratorType predIt(naryANDPredictionImageFilter->GetOutput(),naryANDPredictionImageFilter->GetOutput()->GetLargestPossibleRegion() );
+          IteratorType imageIt(resampleArray[k]->GetOutput(),resampleArray[k]->GetOutput()->GetLargestPossibleRegion() );
+          double intersection50 = 0.0;
+          double intersection90 = 0.0;
+          double union50 = 0.0;
+          double union90 = 0.0;
+          
+          imageIt.GoToBegin();
+          for ( predIt.GoToBegin(); !predIt.IsAtEnd(); ++predIt)
+          {
+            // intersection 50
+            if( imageIt.Get() == currentNumber)
+            {
+              intersection50 += predIt.Get()/(double)(N-1);
+            }
+            // intersection 90
+            if( predIt.Get() > (N-1)*0.5 && imageIt.Get() == currentNumber)
+            {
+              intersection90 += 1.0;
+            }
+
+            // union 50
+            if( imageIt.Get() == currentNumber)
+            {
+              union50 += 1.0;
+            }
+            // intersection 90
+            if( predIt.Get() > (N-1)*0.5 || imageIt.Get() == currentNumber)
+            {
+              union90 += 1.0;
+            }
+            ++imageIt;
+          }
+          dice50 << intersection50/union50 << " ";
+          dice90 << intersection90/union90 << " ";
+
+        } // end k
+        dice50 << endl;
+        dice90 << endl;
+
+      } // end j
+
+    } // end if
     // Compute the overlap measures for hand labels
     else
     {
@@ -620,6 +720,9 @@ int main( int argc, char * argv[] )
         // Set the labels
 
         // White Matter
+        naryANDPredictionImageFilter->GetFunctor().m_Number = j;
+        naryANDPredictionImageFilter->Modified();
+        naryANDPredictionImageFilter->Update();
         naryANDImageFilter->GetFunctor().m_Number = j;
         naryANDImageFilter->Modified();
         naryANDImageFilter->Update();
@@ -659,14 +762,12 @@ int main( int argc, char * argv[] )
 
         // Compute The histogram
         std::vector<double> histogram(N,0.0);
-        double sum = 0.0;
         for ( andIt.GoToBegin(); !andIt.IsAtEnd(); ++andIt)
         {
           const PixelType  current = andIt.Get();
           if(current)
           {
             histogram[current-1] += 1.0;
-            sum += 1.0;
           }
         }
 
@@ -677,9 +778,90 @@ int main( int argc, char * argv[] )
         for(int k=0; k<N; k++)
         {
           cumSum += histogram[N-1-k];
-          output << cumSum / sum << " ";
+          output << cumSum << " ";
         }
         output << endl;
+
+        // Write number of nonzero points
+        std::vector<IteratorType> sumIterators(N);
+        for(int k=0; k<N; k++)
+        {
+          sumIterators[k] = IteratorType(resampleArray[k]->GetOutput(),resampleArray[k]->GetOutput()->GetLargestPossibleRegion() );
+        }
+
+        output << "AreaSum: " ;
+        for(int k=0; k<N; k++)
+        {
+          double areaSum = 0.0;
+          for ( sumIterators[k].GoToBegin(); !sumIterators[k].IsAtEnd(); ++sumIterators[k])
+          {
+            const PixelType  current = sumIterators[k].Get();
+            if(current == j)
+            {
+              areaSum += 1.0;
+            }
+          }
+          output << areaSum << " ";
+        }
+        output << endl;
+
+
+        // Compute prediction overlap
+        dice50 << "Level:" << j << " ";
+        dice90 << "Level:" << j << " ";
+        for(int k=0; k<N; k++)
+        {
+          int count = 0;
+          for(int l=0; l<N; l++)
+          {
+            if( l != k)
+            {
+              naryANDPredictionImageFilter->SetInput(count,resampleArray[l]->GetOutput());
+              count++;
+            }
+          }
+          naryANDPredictionImageFilter->Update();
+
+          // compute dice
+          IteratorType predIt(naryANDPredictionImageFilter->GetOutput(),naryANDPredictionImageFilter->GetOutput()->GetLargestPossibleRegion() );
+          IteratorType imageIt(resampleArray[k]->GetOutput(),resampleArray[k]->GetOutput()->GetLargestPossibleRegion() );
+          double intersection50 = 0.0;
+          double intersection90 = 0.0;
+          double union50 = 0.0;
+          double union90 = 0.0;
+          
+          imageIt.GoToBegin();
+          for ( predIt.GoToBegin(); !predIt.IsAtEnd(); ++predIt)
+          {
+            // intersection 50
+            if( imageIt.Get() == j)
+            {
+              intersection50 += predIt.Get()/(double)(N-1);
+            }
+            // intersection 90
+            if( predIt.Get() > (N-1)*0.5 && imageIt.Get() == j)
+            {
+              intersection90 += 1.0;
+            }
+
+            // union 50
+            if( imageIt.Get() == j)
+            {
+              union50 += 1.0;
+            }
+            // intersection 90
+            if( predIt.Get() > (N-1)*0.5 || imageIt.Get() == j)
+            {
+              union90 += 1.0;
+            }
+            ++imageIt;
+          }
+          dice50 << intersection50/union50 << " ";
+          dice90 << intersection90/union90 << " ";
+
+        } // end k
+        dice50 << endl;
+        dice90 << endl;
 
       }
     }
@@ -741,8 +923,8 @@ int main( int argc, char * argv[] )
 
     }
 
-    naryMeanImageFilter->Update();
-    narySTDImageFilter->Update();
+    //naryMeanImageFilter->Update();
+    //narySTDImageFilter->Update();
         
     // Extract the central slice
     typedef itk::Image< unsigned char, 2 >    SliceImageType;
@@ -754,8 +936,8 @@ int main( int argc, char * argv[] )
     SliceExtractFilterType::Pointer sliceExtractFilter = SliceExtractFilterType::New();
 
     //Write the central slice
-    ImageType::SizeType size = naryMeanImageFilter->GetOutput()->GetLargestPossibleRegion().GetSize();
-    ImageType::IndexType start = naryMeanImageFilter->GetOutput()->GetLargestPossibleRegion().GetIndex();
+    ImageType::SizeType size = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
+    ImageType::IndexType start = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetIndex();
     start[0] = 106;
     size[0] = 0;
 

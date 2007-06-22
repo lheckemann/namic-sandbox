@@ -1721,7 +1721,7 @@ int main( int argc, char *argv[] )
   command->SetFileNames( fileNames, inputFileNames,
                          outputFileNames, outputFolder + "Affine_MultiScale_");
   
-  writeMeanAndSlices( fileNames,
+  /*writeMeanAndSlices( fileNames,
                       inputFileNames,
 
                       outputFolder + "Affine/",
@@ -1729,7 +1729,7 @@ int main( int argc, char *argv[] )
                       writeDeformationFields,
                       writeMean3DImages,
                                                   
-                      transformArray );
+                      transformArray );*/
     
   //Write the transform files
   itk::TransformFileWriter::Pointer  transformFileWriter = itk::TransformFileWriter::New();
