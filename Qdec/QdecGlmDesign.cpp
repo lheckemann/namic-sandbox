@@ -58,7 +58,11 @@ QdecGlmDesign::QdecGlmDesign ( QdecDataTable* iDataTable )
   this->mfnWorkingDir = getenv("SUBJECTS_DIR");
   this->mfnWorkingDir += "/qdec";
 
+#ifdef HAVE_SYS_PARAM_H
   int err = mkdir( this->mfnWorkingDir.c_str(), 0777);
+#else
+  int err = mkdir (this->mfnWorkingDir.c_str());
+#endif
   if( err != 0 && errno != EEXIST )
   {
     fprintf( stderr,
@@ -232,7 +236,12 @@ int QdecGlmDesign::Create ( QdecDataTable* iDataTable,
     this->mProgressUpdateGUI->UpdateProgressPercent( 20 );
   }
 
+ #ifdef HAVE_SYS_PARAM_H
   int err = mkdir( this->mfnWorkingDir.c_str(), 0777);
+#else
+  int err = mkdir ( this->mfnWorkingDir.c_str());
+#endif
+
   if( err != 0 && errno != EEXIST )
   {
     fprintf( stderr,

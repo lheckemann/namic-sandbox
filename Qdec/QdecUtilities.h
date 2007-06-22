@@ -30,7 +30,12 @@
 
 #include <stdio.h>
 #ifndef MAXPATHLEN
+#ifdef HAVE_SYS_PARAM_H
 #include <sys/param.h>
+#else
+#include <direct.h>
+#define MAXPATHLEN 1024
+#endif
 #endif
 
 #include <string>
@@ -50,7 +55,7 @@ public:
   static bool IsFileReadable ( string const& ifn );
 
   // extract the path name from a file name and return a pointer to it
-  static const char *FileNamePath(const char *fname, const char *pathName);
+  static const char *FileNamePath(const char *fname, char *pathName);
 
 };
 
