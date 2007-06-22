@@ -276,3 +276,9 @@
     -gamma 0.101
     -cRel 1e-1
     -numberOfPerturbation 1
+    
+#
+#  registering to mean using histogram MI related param
+#    
+
+  -HistogramSamplesPerBin 30

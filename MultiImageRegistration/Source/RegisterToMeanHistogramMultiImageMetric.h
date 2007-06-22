@@ -195,6 +195,10 @@ public:
   typedef typename HistogramType::FrequencyType          HistogramFrequencyType;
   typedef typename HistogramType::Iterator               HistogramIteratorType;
 
+  /** Set/Get the regularization factor */
+  itkSetMacro( HistogramSamplesPerBin, double );
+  itkGetMacro( HistogramSamplesPerBin, double );
+  
 protected:
   RegisterToMeanHistogramMultiImageMetric();
   virtual ~RegisterToMeanHistogramMultiImageMetric(){};
@@ -222,6 +226,9 @@ private:
   /** Pointer to the joint histogram. This is updated during every call to
   *   GetValue() */
   std::vector<HistogramPointer>  m_HistogramArray;
+  
+  /** Number of samples per bin */
+  double                         m_HistogramSamplesPerBin;
 };
 
 } // end namespace itk
