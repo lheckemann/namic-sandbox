@@ -23,15 +23,17 @@
 
 #include <fstream>
 #include "itkImageIOBase.h"
-#include <stdio.h>
-#include "itkRGBPixel.h"
 
 namespace itk
 {
 
 /** \class AnalyzeObjectImageIO 
  *
- *  \brief Read BMPImage file format. 
+ *  \brief Read Analyze Object file format. 
+ *
+ *  \author
+ *  
+ *  Credit
  *
  *  \ingroup IOFilters
  *
@@ -40,16 +42,15 @@ class ITK_EXPORT AnalyzeObjectImageIO : public ImageIOBase
 {
 public:
   /** Standard class typedefs. */
-  typedef AnalyzeObjectImageIO              Self;
+  typedef AnalyzeObjectImageIO    Self;
   typedef ImageIOBase             Superclass;
   typedef SmartPointer<Self>      Pointer;
-  typedef RGBPixel<unsigned char> RGBPixelType;
   
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(AnalyzeObjectImageIO, Superclass);
+  itkTypeMacro(AnalyzeObjectImageIO, ImageIOBase);
 
   /*-------- This part of the interfaces deals with reading data. ----- */
 
@@ -85,19 +86,6 @@ private:
   AnalyzeObjectImageIO(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  void SwapBytesIfNecessary(void* buffer, unsigned long numberOfPixels);
- 
-  std::ifstream             m_Ifstream;
-  std::ofstream             m_Ofstream;
-  long                      m_BitMapOffset;
-  bool                      m_FileLowerLeft;
-  short                     m_Depth;
-  bool                      m_Allow8BitBMP;
-  unsigned short            m_NumberOfColors;
-  long                      m_BMPCompression;
-  unsigned long             m_BMPDataSize;
-  std::vector<RGBPixelType> m_ColorPalette;
- 
 };
 
 } // end namespace itk
