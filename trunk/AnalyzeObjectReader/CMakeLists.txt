@@ -1,10 +1,17 @@
 PROJECT(AnalyzeObjectReader)
 
+FIND_PACKAGE(ITK REQUIRED)
+IF(ITK_FOUND)
+  INCLUDE(${ITK_USE_FILE})
+ENDIF(ITK_FOUND)
+
+
 SUBDIRS(Utilities Source Testing)
 
 
 ENABLE_TESTING()
 
+INCLUDE (${CMAKE_ROOT}/Modules/Dart.cmake)
 OPTION(KWSTYLE_USE_VIM_FORMAT "Set KWStyle to generate errors with a VIM-compatible format." OFF)
 OPTION(KWSTYLE_USE_MSVC_FORMAT "Set KWStyle to generate errors with a VisualStudio-compatible format." OFF)
 
