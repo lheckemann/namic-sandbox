@@ -17,6 +17,7 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkImage.h"
+#include "itkAnalyzeObjectImageIO.h"
 #include <fstream>
 
 int itkBMPImageIOTest( int ac, char* av[] )
@@ -29,14 +30,14 @@ int itkBMPImageIOTest( int ac, char* av[] )
     }
 
 
-  // ATTENTION THIS IS THE PIXEL TYPE FOR 
-  // THE RESULTING IMAGE
-  typedef itk::RGBPixel<unsigned char> PixelType;
+  typedef unsigned char            PixelType;
   typedef itk::Image<PixelType, 2> myImage;
 
   itk::ImageFileReader<myImage>::Pointer reader 
                                   = itk::ImageFileReader<myImage>::New();
   
+  reader->SetImageIO( itk::AnalyzeObjectImageIO::New() );
+
   reader->SetFileName(av[1]);
 
   try
