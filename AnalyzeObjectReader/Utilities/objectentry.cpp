@@ -3,16 +3,16 @@ Copyright (c) 2007, Regents of the University of Iowa
 
 All rights reserved.
 
-Redistribution and use in source and binary forms, with or without 
+Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
 
-    * Redistributions of source code must retain the above copyright notice, 
+    * Redistributions of source code must retain the above copyright notice,
       this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright 
-      notice, this list of conditions and the following disclaimer in the 
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
       documentation and/or other materials provided with the distribution.
-    * Neither the name of The University of Iowa nor the names of its 
-      contributors may be used to endorse or promote products derived from 
+    * Neither the name of The University of Iowa nor the names of its
+      contributors may be used to endorse or promote products derived from
       this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -27,669 +27,663 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
-//
-// Name: objectentry.cpp
-// Author: John Dill
-// Date: 5/17/00
-//
-
 #include "objectentry.h"
 
-uiig::CObjectEntry::CObjectEntry( void )
+AnalyzeObjectEntry::AnalyzeObjectEntry( void )
 {
-  for (unsigned int i = 0; i < sizeof(myObject.Name); i++)
+  for (unsigned int i = 0; i < sizeof(this->m_Name); i++)
   {
-    myObject.Name[i] = '\0';
+    this->m_Name[i] = '\0';
   }
-  myObject.DisplayFlag = 1;
-  myObject.CopyFlag = 0;
-  myObject.MirrorFlag = 0;
-  myObject.StatusFlag = 0;
-  myObject.NeighborsUsedFlag = 0;
-  myObject.Shades = 1;
-  myObject.StartRed = 0;
-  myObject.StartGreen = 0;
-  myObject.StartBlue = 0;
-  myObject.EndRed = 0;
-  myObject.EndGreen = 0;
-  myObject.EndBlue = 0;
-  myObject.XRotation = 0;
-  myObject.YRotation = 0;
-  myObject.ZRotation = 0;
-  myObject.XTranslation = 0;
-  myObject.YTranslation = 0;
-  myObject.ZTranslation = 0;
-  myObject.XCenter = 0;
-  myObject.YCenter = 0;
-  myObject.ZCenter = 0;
-  myObject.XRotationIncrement = 0;
-  myObject.YRotationIncrement = 0;
-  myObject.ZRotationIncrement = 0;
-  myObject.XTranslationIncrement = 0;
-  myObject.YTranslationIncrement = 0;
-  myObject.ZTranslationIncrement = 0;
-  myObject.MinimumXValue = 0;
-  myObject.MinimumYValue = 0;
-  myObject.MinimumZValue = 0;
-  myObject.MaximumXValue = 0;
-  myObject.MaximumYValue = 0;
-  myObject.MaximumZValue = 0;
-  myObject.Opacity = 0.5;
-  myObject.OpacityThickness = 1;
-  myObject.Dummy = 0;
+  this->m_DisplayFlag = 1;
+  this->m_CopyFlag = 0;
+  this->m_MirrorFlag = 0;
+  this->m_StatusFlag = 0;
+  this->m_NeighborsUsedFlag = 0;
+  this->m_Shades = 1;
+  this->m_StartRed = 0;
+  this->m_StartGreen = 0;
+  this->m_StartBlue = 0;
+  this->m_EndRed = 0;
+  this->m_EndGreen = 0;
+  this->m_EndBlue = 0;
+  this->m_XRotation = 0;
+  this->m_YRotation = 0;
+  this->m_ZRotation = 0;
+  this->m_XTranslation = 0;
+  this->m_YTranslation = 0;
+  this->m_ZTranslation = 0;
+  this->m_XCenter = 0;
+  this->m_YCenter = 0;
+  this->m_ZCenter = 0;
+  this->m_XRotationIncrement = 0;
+  this->m_YRotationIncrement = 0;
+  this->m_ZRotationIncrement = 0;
+  this->m_XTranslationIncrement = 0;
+  this->m_YTranslationIncrement = 0;
+  this->m_ZTranslationIncrement = 0;
+  this->m_MinimumXValue = 0;
+  this->m_MinimumYValue = 0;
+  this->m_MinimumZValue = 0;
+  this->m_MaximumXValue = 0;
+  this->m_MaximumYValue = 0;
+  this->m_MaximumZValue = 0;
+  this->m_Opacity = 0.5;
+  this->m_OpacityThickness = 1;
+  this->m_BlendFactor = 0;
 }
 
 
-uiig::CObjectEntry::CObjectEntry( const uiig::CObjectEntry & rhs )
+AnalyzeObjectEntry::AnalyzeObjectEntry( const AnalyzeObjectEntry & rhs )
 {
   const char * name = rhs.getNameASCII();
 
-  for (unsigned int i = 0; i < sizeof(myObject.Name); i++)
+  for (unsigned int i = 0; i < sizeof(this->m_Name); i++)
   {
-    myObject.Name[i] = name[i];
+    this->m_Name[i] = name[i];
   }
 
-  myObject.DisplayFlag = rhs.getDisplayFlag();
-  myObject.CopyFlag = rhs.getCopyFlag();
-  myObject.MirrorFlag = rhs.getMirrorFlag();
-  myObject.StatusFlag = rhs.getStatusFlag();
-  myObject.NeighborsUsedFlag = rhs.getNeighborsUsedFlag();
-  myObject.Shades = rhs.getShades();
-  myObject.StartRed = rhs.getStartRed();
-  myObject.StartGreen = rhs.getStartGreen();
-  myObject.StartBlue = rhs.getStartBlue();
-  myObject.EndRed = rhs.getEndRed();
-  myObject.EndGreen = rhs.getEndGreen();
-  myObject.EndBlue = rhs.getEndBlue();
-  myObject.XRotation = rhs.getXRotation();
-  myObject.YRotation = rhs.getYRotation();
-  myObject.ZRotation = rhs.getZRotation();
-  myObject.XTranslation = rhs.getXTranslation();
-  myObject.YTranslation = rhs.getYTranslation();
-  myObject.ZTranslation = rhs.getZTranslation();
-  myObject.XCenter = rhs.getXCenter();
-  myObject.YCenter = rhs.getYCenter();
-  myObject.ZCenter = rhs.getZCenter();
-  myObject.XRotationIncrement = rhs.getXRotationIncrement();
-  myObject.YRotationIncrement = rhs.getYRotationIncrement();
-  myObject.ZRotationIncrement = rhs.getZRotationIncrement();
-  myObject.XTranslationIncrement = rhs.getXTranslationIncrement();
-  myObject.YTranslationIncrement = rhs.getYTranslationIncrement();
-  myObject.ZTranslationIncrement = rhs.getZTranslationIncrement();
-  myObject.MinimumXValue = rhs.getMinimumXValue();
-  myObject.MinimumYValue = rhs.getMinimumYValue();
-  myObject.MinimumZValue = rhs.getMinimumZValue();
-  myObject.MaximumXValue = rhs.getMaximumXValue();
-  myObject.MaximumYValue = rhs.getMaximumYValue();
-  myObject.MaximumZValue = rhs.getMaximumZValue();
-  myObject.Opacity = rhs.getOpacity();
-  myObject.OpacityThickness = rhs.getOpacityThickness();
-  myObject.Dummy = rhs.getDummy();
+  this->m_DisplayFlag = rhs.getDisplayFlag();
+  this->m_CopyFlag = rhs.getCopyFlag();
+  this->m_MirrorFlag = rhs.getMirrorFlag();
+  this->m_StatusFlag = rhs.getStatusFlag();
+  this->m_NeighborsUsedFlag = rhs.getNeighborsUsedFlag();
+  this->m_Shades = rhs.getShades();
+  this->m_StartRed = rhs.getStartRed();
+  this->m_StartGreen = rhs.getStartGreen();
+  this->m_StartBlue = rhs.getStartBlue();
+  this->m_EndRed = rhs.getEndRed();
+  this->m_EndGreen = rhs.getEndGreen();
+  this->m_EndBlue = rhs.getEndBlue();
+  this->m_XRotation = rhs.getXRotation();
+  this->m_YRotation = rhs.getYRotation();
+  this->m_ZRotation = rhs.getZRotation();
+  this->m_XTranslation = rhs.getXTranslation();
+  this->m_YTranslation = rhs.getYTranslation();
+  this->m_ZTranslation = rhs.getZTranslation();
+  this->m_XCenter = rhs.getXCenter();
+  this->m_YCenter = rhs.getYCenter();
+  this->m_ZCenter = rhs.getZCenter();
+  this->m_XRotationIncrement = rhs.getXRotationIncrement();
+  this->m_YRotationIncrement = rhs.getYRotationIncrement();
+  this->m_ZRotationIncrement = rhs.getZRotationIncrement();
+  this->m_XTranslationIncrement = rhs.getXTranslationIncrement();
+  this->m_YTranslationIncrement = rhs.getYTranslationIncrement();
+  this->m_ZTranslationIncrement = rhs.getZTranslationIncrement();
+  this->m_MinimumXValue = rhs.getMinimumXValue();
+  this->m_MinimumYValue = rhs.getMinimumYValue();
+  this->m_MinimumZValue = rhs.getMinimumZValue();
+  this->m_MaximumXValue = rhs.getMaximumXValue();
+  this->m_MaximumYValue = rhs.getMaximumYValue();
+  this->m_MaximumZValue = rhs.getMaximumZValue();
+  this->m_Opacity = rhs.getOpacity();
+  this->m_OpacityThickness = rhs.getOpacityThickness();
+  this->m_BlendFactor = rhs.getBlendFactor();
 }
 
 
-uiig::CObjectEntry::~CObjectEntry( void )
+AnalyzeObjectEntry::~AnalyzeObjectEntry( void )
 {
 
 }
 
 
-uiig::CObjectEntry & uiig::CObjectEntry::operator=( const uiig::CObjectEntry & rhs )
+AnalyzeObjectEntry & AnalyzeObjectEntry::operator=( const AnalyzeObjectEntry & rhs )
 {
   const char * name = rhs.getNameASCII();
 
-  for (unsigned int i = 0; i < sizeof(myObject.Name); i++)
-    myObject.Name[i] = name[i];
+  for (unsigned int i = 0; i < sizeof(this->m_Name); i++)
+    this->m_Name[i] = name[i];
 
-  myObject.DisplayFlag = rhs.getDisplayFlag();
-  myObject.CopyFlag = rhs.getCopyFlag();
-  myObject.MirrorFlag = rhs.getMirrorFlag();
-  myObject.StatusFlag = rhs.getStatusFlag();
-  myObject.NeighborsUsedFlag = rhs.getNeighborsUsedFlag();
-  myObject.Shades = rhs.getShades();
-  myObject.StartRed = rhs.getStartRed();
-  myObject.StartGreen = rhs.getStartGreen();
-  myObject.StartBlue = rhs.getStartBlue();
-  myObject.EndRed = rhs.getEndRed();
-  myObject.EndGreen = rhs.getEndGreen();
-  myObject.EndBlue = rhs.getEndBlue();
-  myObject.XRotation = rhs.getXRotation();
-  myObject.YRotation = rhs.getYRotation();
-  myObject.ZRotation = rhs.getZRotation();
-  myObject.XTranslation = rhs.getXTranslation();
-  myObject.YTranslation = rhs.getYTranslation();
-  myObject.ZTranslation = rhs.getZTranslation();
-  myObject.XCenter = rhs.getXCenter();
-  myObject.YCenter = rhs.getYCenter();
-  myObject.ZCenter = rhs.getZCenter();
-  myObject.XRotationIncrement = rhs.getXRotationIncrement();
-  myObject.YRotationIncrement = rhs.getYRotationIncrement();
-  myObject.ZRotationIncrement = rhs.getZRotationIncrement();
-  myObject.XTranslationIncrement = rhs.getXTranslationIncrement();
-  myObject.YTranslationIncrement = rhs.getYTranslationIncrement();
-  myObject.ZTranslationIncrement = rhs.getZTranslationIncrement();
-  myObject.MinimumXValue = rhs.getMinimumXValue();
-  myObject.MinimumYValue = rhs.getMinimumYValue();
-  myObject.MinimumZValue = rhs.getMinimumZValue();
-  myObject.MaximumXValue = rhs.getMaximumXValue();
-  myObject.MaximumYValue = rhs.getMaximumYValue();
-  myObject.MaximumZValue = rhs.getMaximumZValue();
-  myObject.Opacity = rhs.getOpacity();
-  myObject.OpacityThickness = rhs.getOpacityThickness();
-  myObject.Dummy = rhs.getDummy();
+  this->m_DisplayFlag = rhs.getDisplayFlag();
+  this->m_CopyFlag = rhs.getCopyFlag();
+  this->m_MirrorFlag = rhs.getMirrorFlag();
+  this->m_StatusFlag = rhs.getStatusFlag();
+  this->m_NeighborsUsedFlag = rhs.getNeighborsUsedFlag();
+  this->m_Shades = rhs.getShades();
+  this->m_StartRed = rhs.getStartRed();
+  this->m_StartGreen = rhs.getStartGreen();
+  this->m_StartBlue = rhs.getStartBlue();
+  this->m_EndRed = rhs.getEndRed();
+  this->m_EndGreen = rhs.getEndGreen();
+  this->m_EndBlue = rhs.getEndBlue();
+  this->m_XRotation = rhs.getXRotation();
+  this->m_YRotation = rhs.getYRotation();
+  this->m_ZRotation = rhs.getZRotation();
+  this->m_XTranslation = rhs.getXTranslation();
+  this->m_YTranslation = rhs.getYTranslation();
+  this->m_ZTranslation = rhs.getZTranslation();
+  this->m_XCenter = rhs.getXCenter();
+  this->m_YCenter = rhs.getYCenter();
+  this->m_ZCenter = rhs.getZCenter();
+  this->m_XRotationIncrement = rhs.getXRotationIncrement();
+  this->m_YRotationIncrement = rhs.getYRotationIncrement();
+  this->m_ZRotationIncrement = rhs.getZRotationIncrement();
+  this->m_XTranslationIncrement = rhs.getXTranslationIncrement();
+  this->m_YTranslationIncrement = rhs.getYTranslationIncrement();
+  this->m_ZTranslationIncrement = rhs.getZTranslationIncrement();
+  this->m_MinimumXValue = rhs.getMinimumXValue();
+  this->m_MinimumYValue = rhs.getMinimumYValue();
+  this->m_MinimumZValue = rhs.getMinimumZValue();
+  this->m_MaximumXValue = rhs.getMaximumXValue();
+  this->m_MaximumYValue = rhs.getMaximumYValue();
+  this->m_MaximumZValue = rhs.getMaximumZValue();
+  this->m_Opacity = rhs.getOpacity();
+  this->m_OpacityThickness = rhs.getOpacityThickness();
+  this->m_BlendFactor = rhs.getBlendFactor();
 
   return *this;
 }
 
 
-std::string uiig::CObjectEntry::getName( void ) const
+std::string AnalyzeObjectEntry::getName( void ) const
 {
-  std::string s(myObject.Name);
+  std::string s(this->m_Name);
   return s;
 }
 
 
-const char * uiig::CObjectEntry::getNameASCII( void ) const
+const char * AnalyzeObjectEntry::getNameASCII( void ) const
 {
-  return myObject.Name;
+  return this->m_Name;
 }
 
 
-int uiig::CObjectEntry::getDisplayFlag( void ) const
+int AnalyzeObjectEntry::getDisplayFlag( void ) const
 {
-  return myObject.DisplayFlag;
+  return this->m_DisplayFlag;
 }
 
 
-unsigned char uiig::CObjectEntry::getCopyFlag( void ) const
+unsigned char AnalyzeObjectEntry::getCopyFlag( void ) const
 {
-  return myObject.CopyFlag;
+  return this->m_CopyFlag;
 }
 
 
-unsigned char uiig::CObjectEntry::getMirrorFlag( void ) const
+unsigned char AnalyzeObjectEntry::getMirrorFlag( void ) const
 {
-  return myObject.MirrorFlag;
+  return this->m_MirrorFlag;
 }
 
 
-unsigned char uiig::CObjectEntry::getStatusFlag( void ) const
+unsigned char AnalyzeObjectEntry::getStatusFlag( void ) const
 {
-  return myObject.StatusFlag;
+  return this->m_StatusFlag;
 }
 
 
-unsigned char uiig::CObjectEntry::getNeighborsUsedFlag( void ) const
+unsigned char AnalyzeObjectEntry::getNeighborsUsedFlag( void ) const
 {
-  return myObject.NeighborsUsedFlag;
+  return this->m_NeighborsUsedFlag;
 }
 
 
-int uiig::CObjectEntry::getShades( void ) const
+int AnalyzeObjectEntry::getShades( void ) const
 {
-  return myObject.Shades;
+  return this->m_Shades;
 }
 
 
-int uiig::CObjectEntry::getStartRed( void ) const
+int AnalyzeObjectEntry::getStartRed( void ) const
 {
-  return myObject.StartRed;
+  return this->m_StartRed;
 }
 
 
-int uiig::CObjectEntry::getStartGreen( void ) const
+int AnalyzeObjectEntry::getStartGreen( void ) const
 {
-  return myObject.StartGreen;
+  return this->m_StartGreen;
 }
 
 
-int uiig::CObjectEntry::getStartBlue( void ) const
+int AnalyzeObjectEntry::getStartBlue( void ) const
 {
-  return myObject.StartBlue;
+  return this->m_StartBlue;
 }
 
 
-int uiig::CObjectEntry::getEndRed( void ) const
+int AnalyzeObjectEntry::getEndRed( void ) const
 {
-  return myObject.EndRed;
+  return this->m_EndRed;
 }
 
 
-int uiig::CObjectEntry::getEndGreen( void ) const
+int AnalyzeObjectEntry::getEndGreen( void ) const
 {
-  return myObject.EndGreen;
+  return this->m_EndGreen;
 }
 
 
-int uiig::CObjectEntry::getEndBlue( void ) const
+int AnalyzeObjectEntry::getEndBlue( void ) const
 {
-  return myObject.EndBlue;
+  return this->m_EndBlue;
 }
 
 
-int uiig::CObjectEntry::getXRotation( void ) const
+int AnalyzeObjectEntry::getXRotation( void ) const
 {
-  return myObject.XRotation;
+  return this->m_XRotation;
 }
 
 
-int uiig::CObjectEntry::getYRotation( void ) const
+int AnalyzeObjectEntry::getYRotation( void ) const
 {
-  return myObject.YRotation;
+  return this->m_YRotation;
 }
 
 
-int uiig::CObjectEntry::getZRotation( void ) const
+int AnalyzeObjectEntry::getZRotation( void ) const
 {
-  return myObject.ZRotation;
+  return this->m_ZRotation;
 }
 
 
-int uiig::CObjectEntry::getXTranslation( void ) const
+int AnalyzeObjectEntry::getXTranslation( void ) const
 {
-  return myObject.XTranslation;
+  return this->m_XTranslation;
 }
 
 
-int uiig::CObjectEntry::getYTranslation( void ) const
+int AnalyzeObjectEntry::getYTranslation( void ) const
 {
-  return myObject.YTranslation;
+  return this->m_YTranslation;
 }
 
 
-int uiig::CObjectEntry::getZTranslation( void ) const
+int AnalyzeObjectEntry::getZTranslation( void ) const
 {
-  return myObject.ZTranslation;
+  return this->m_ZTranslation;
 }
 
 
-int uiig::CObjectEntry::getXCenter( void ) const
+int AnalyzeObjectEntry::getXCenter( void ) const
 {
-  return myObject.XCenter;
+  return this->m_XCenter;
 }
 
 
-int uiig::CObjectEntry::getYCenter( void ) const
+int AnalyzeObjectEntry::getYCenter( void ) const
 {
-  return myObject.YCenter;
+  return this->m_YCenter;
 }
 
 
-int uiig::CObjectEntry::getZCenter( void ) const
+int AnalyzeObjectEntry::getZCenter( void ) const
 {
-  return myObject.ZCenter;
+  return this->m_ZCenter;
 }
 
 
-int uiig::CObjectEntry::getXRotationIncrement( void ) const
+int AnalyzeObjectEntry::getXRotationIncrement( void ) const
 {
-  return myObject.XRotationIncrement;
+  return this->m_XRotationIncrement;
 }
 
 
-int uiig::CObjectEntry::getYRotationIncrement( void ) const
+int AnalyzeObjectEntry::getYRotationIncrement( void ) const
 {
-  return myObject.YRotationIncrement;
+  return this->m_YRotationIncrement;
 }
 
 
-int uiig::CObjectEntry::getZRotationIncrement( void ) const
+int AnalyzeObjectEntry::getZRotationIncrement( void ) const
 {
-  return myObject.ZRotationIncrement;
+  return this->m_ZRotationIncrement;
 }
 
 
-int uiig::CObjectEntry::getXTranslationIncrement( void ) const
+int AnalyzeObjectEntry::getXTranslationIncrement( void ) const
 {
-  return myObject.XTranslationIncrement;
+  return this->m_XTranslationIncrement;
 }
 
 
-int uiig::CObjectEntry::getYTranslationIncrement( void ) const
+int AnalyzeObjectEntry::getYTranslationIncrement( void ) const
 {
-  return myObject.YTranslationIncrement;
+  return this->m_YTranslationIncrement;
 }
 
 
-int uiig::CObjectEntry::getZTranslationIncrement( void ) const
+int AnalyzeObjectEntry::getZTranslationIncrement( void ) const
 {
-  return myObject.ZTranslationIncrement;
+  return this->m_ZTranslationIncrement;
 }
 
 
-short int uiig::CObjectEntry::getMinimumXValue( void ) const
+short int AnalyzeObjectEntry::getMinimumXValue( void ) const
 {
-  return myObject.MinimumXValue;
+  return this->m_MinimumXValue;
 }
 
 
-short int uiig::CObjectEntry::getMinimumYValue( void ) const
+short int AnalyzeObjectEntry::getMinimumYValue( void ) const
 {
-  return myObject.MinimumYValue;
+  return this->m_MinimumYValue;
 }
 
 
-short int uiig::CObjectEntry::getMinimumZValue( void ) const
+short int AnalyzeObjectEntry::getMinimumZValue( void ) const
 {
-  return myObject.MinimumZValue;
+  return this->m_MinimumZValue;
 }
 
 
-short int uiig::CObjectEntry::getMaximumXValue( void ) const
+short int AnalyzeObjectEntry::getMaximumXValue( void ) const
 {
-  return myObject.MaximumXValue;
+  return this->m_MaximumXValue;
 }
 
 
-short int uiig::CObjectEntry::getMaximumYValue( void ) const
+short int AnalyzeObjectEntry::getMaximumYValue( void ) const
 {
-  return myObject.MaximumYValue;
+  return this->m_MaximumYValue;
 }
 
 
-short int uiig::CObjectEntry::getMaximumZValue( void ) const
+short int AnalyzeObjectEntry::getMaximumZValue( void ) const
 {
-  return myObject.MaximumZValue;
+  return this->m_MaximumZValue;
 }
 
 
-float uiig::CObjectEntry::getOpacity( void ) const
+float AnalyzeObjectEntry::getOpacity( void ) const
 {
-  return myObject.Opacity;
+  return this->m_Opacity;
 }
 
 
-int uiig::CObjectEntry::getOpacityThickness( void ) const
+int AnalyzeObjectEntry::getOpacityThickness( void ) const
 {
-  return myObject.OpacityThickness;
+  return this->m_OpacityThickness;
 }
 
 
-int uiig::CObjectEntry::getDummy( void ) const
+int AnalyzeObjectEntry::getBlendFactor( void ) const
 {
-  return myObject.Dummy;
+  return this->m_BlendFactor;
 }
 
 
-uiig::Object * uiig::CObjectEntry::getObjectPointer( void )
+Object * AnalyzeObjectEntry::getObjectPointer( void )
 {
   return &(this->myObject);
 }
 
 
-bool uiig::CObjectEntry::setName( const std::string name )
+bool AnalyzeObjectEntry::setName( const std::string name )
 {
-  if (name.size() > sizeof(myObject.Name))
+  if (name.size() > sizeof(this->m_Name))
   {
-    strncpy( myObject.Name, name.c_str(),31 );
-    fprintf(stderr, "String name is too long.  Please limit to %d characters.\n", static_cast<int>(sizeof(myObject.Name)));
+    strncpy( this->m_Name, name.c_str(),31 );
+    fprintf(stderr, "String name is too long.  Please limit to %d characters.\n", static_cast<int>(sizeof(this->m_Name)));
     return false;
   }
   else
   {
-    strcpy( myObject.Name, name.c_str() );
+    strcpy( this->m_Name, name.c_str() );
   }
   return true;
 }
 
 
-bool uiig::CObjectEntry::setDisplayFlag( const int displayflag )
+bool AnalyzeObjectEntry::setDisplayFlag( const int displayflag )
 {
-  myObject.DisplayFlag = displayflag;
+  this->m_DisplayFlag = displayflag;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setCopyFlag( const unsigned char copyflag )
+bool AnalyzeObjectEntry::setCopyFlag( const unsigned char copyflag )
 {
-  myObject.CopyFlag = copyflag;
+  this->m_CopyFlag = copyflag;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setMirrorFlag( const unsigned char mirrorflag )
+bool AnalyzeObjectEntry::setMirrorFlag( const unsigned char mirrorflag )
 {
-  myObject.MirrorFlag = mirrorflag;
+  this->m_MirrorFlag = mirrorflag;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setStatusFlag( const unsigned char statusflag )
+bool AnalyzeObjectEntry::setStatusFlag( const unsigned char statusflag )
 {
-  myObject.StatusFlag = statusflag;
+  this->m_StatusFlag = statusflag;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setNeighborsUsedFlag( const unsigned char neighborsusedflag )
+bool AnalyzeObjectEntry::setNeighborsUsedFlag( const unsigned char neighborsusedflag )
 {
-  myObject.NeighborsUsedFlag = neighborsusedflag;
+  this->m_NeighborsUsedFlag = neighborsusedflag;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setShades( const int shades )
+bool AnalyzeObjectEntry::setShades( const int shades )
 {
   if (shades > 250)
   {
     printf("Maximum number of shades used for an Analyze objectmap is 250 for version 6.\n");
-    myObject.Shades = 250;
+    this->m_Shades = 250;
   }
   else if (shades < 1)
   {
     printf("Object entry must have at least one shade.\n");
-    myObject.Shades = 1;
+    this->m_Shades = 1;
   }
   else
   {
-    myObject.Shades = shades;
+    this->m_Shades = shades;
   }
   return true;
 }
 
 
-bool uiig::CObjectEntry::setStartColor( const int startred, const int startgreen, const int startblue )
+bool AnalyzeObjectEntry::setStartColor( const int startred, const int startgreen, const int startblue )
 {
-  myObject.StartRed = startred;
-  myObject.StartGreen = startgreen;
-  myObject.StartBlue = startblue;
+  this->m_StartRed = startred;
+  this->m_StartGreen = startgreen;
+  this->m_StartBlue = startblue;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setStartRed( const int startred )
+bool AnalyzeObjectEntry::setStartRed( const int startred )
 {
-  myObject.StartRed = startred;
+  this->m_StartRed = startred;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setStartGreen( const int startgreen )
+bool AnalyzeObjectEntry::setStartGreen( const int startgreen )
 {
-  myObject.StartGreen = startgreen;
+  this->m_StartGreen = startgreen;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setStartBlue( const int startblue )
+bool AnalyzeObjectEntry::setStartBlue( const int startblue )
 {
-  myObject.StartBlue = startblue;
+  this->m_StartBlue = startblue;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setEndColor( const int endred,const int endgreen, const int endblue )
+bool AnalyzeObjectEntry::setEndColor( const int endred,const int endgreen, const int endblue )
 {
-  myObject.EndRed = endred;
-  myObject.EndGreen = endgreen;
-  myObject.EndBlue = endblue;
+  this->m_EndRed = endred;
+  this->m_EndGreen = endgreen;
+  this->m_EndBlue = endblue;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setEndRed( const int endred )
+bool AnalyzeObjectEntry::setEndRed( const int endred )
 {
-  myObject.EndRed = endred;
+  this->m_EndRed = endred;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setEndGreen( const int endgreen )
+bool AnalyzeObjectEntry::setEndGreen( const int endgreen )
 {
-  myObject.EndGreen = endgreen;
+  this->m_EndGreen = endgreen;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setEndBlue( const int endblue )
+bool AnalyzeObjectEntry::setEndBlue( const int endblue )
 {
-  myObject.EndBlue = endblue;
+  this->m_EndBlue = endblue;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setRotation( const int xrotation, const int yrotation, const int zrotation )
+bool AnalyzeObjectEntry::setRotation( const int xrotation, const int yrotation, const int zrotation )
 {
-  myObject.XRotation = xrotation;
-  myObject.YRotation = yrotation;
-  myObject.ZRotation = zrotation;
+  this->m_XRotation = xrotation;
+  this->m_YRotation = yrotation;
+  this->m_ZRotation = zrotation;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setTranslation( const int xtranslation, const int ytranslation,const int ztranslation )
+bool AnalyzeObjectEntry::setTranslation( const int xtranslation, const int ytranslation,const int ztranslation )
 {
-  myObject.XTranslation = xtranslation;
-  myObject.YTranslation = ytranslation;
-  myObject.ZTranslation = ztranslation;
+  this->m_XTranslation = xtranslation;
+  this->m_YTranslation = ytranslation;
+  this->m_ZTranslation = ztranslation;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setCenter(const int xcenter,const int ycenter, const int zcenter )
+bool AnalyzeObjectEntry::setCenter(const int xcenter,const int ycenter, const int zcenter )
 {
-  myObject.XCenter = xcenter;
-  myObject.YCenter = ycenter;
-  myObject.ZCenter = zcenter;
+  this->m_XCenter = xcenter;
+  this->m_YCenter = ycenter;
+  this->m_ZCenter = zcenter;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setXCenter( const int xcenter )
+bool AnalyzeObjectEntry::setXCenter( const int xcenter )
 {
-  myObject.XCenter = xcenter;
+  this->m_XCenter = xcenter;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setYCenter( const int ycenter )
+bool AnalyzeObjectEntry::setYCenter( const int ycenter )
 {
-  myObject.YCenter = ycenter;
+  this->m_YCenter = ycenter;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setZCenter( const int zcenter )
+bool AnalyzeObjectEntry::setZCenter( const int zcenter )
 {
-  myObject.ZCenter = zcenter;
+  this->m_ZCenter = zcenter;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setRotationIncrement( const int xrotationincrement, const int yrotationincrement, const int zrotationincrement )
+bool AnalyzeObjectEntry::setRotationIncrement( const int xrotationincrement, const int yrotationincrement, const int zrotationincrement )
 {
-  myObject.XRotationIncrement = xrotationincrement;
-  myObject.YRotationIncrement = yrotationincrement;
-  myObject.ZRotationIncrement = zrotationincrement;
+  this->m_XRotationIncrement = xrotationincrement;
+  this->m_YRotationIncrement = yrotationincrement;
+  this->m_ZRotationIncrement = zrotationincrement;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setTranslationIncrement( const int xtranslationincrement, const int ytranslationincrement, const int ztranslationincrement )
+bool AnalyzeObjectEntry::setTranslationIncrement( const int xtranslationincrement, const int ytranslationincrement, const int ztranslationincrement )
 {
-  myObject.XTranslationIncrement = xtranslationincrement;
-  myObject.YTranslationIncrement = ytranslationincrement;
-  myObject.ZTranslationIncrement = ztranslationincrement;
+  this->m_XTranslationIncrement = xtranslationincrement;
+  this->m_YTranslationIncrement = ytranslationincrement;
+  this->m_ZTranslationIncrement = ztranslationincrement;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setMinimumCoordinate( const int minimumxvalue, const int minimumyvalue, const int minimumzvalue )
+bool AnalyzeObjectEntry::setMinimumCoordinate( const int minimumxvalue, const int minimumyvalue, const int minimumzvalue )
 {
-  myObject.MinimumXValue = minimumxvalue;
-  myObject.MinimumYValue = minimumyvalue;
-  myObject.MinimumZValue = minimumzvalue;
+  this->m_MinimumXValue = minimumxvalue;
+  this->m_MinimumYValue = minimumyvalue;
+  this->m_MinimumZValue = minimumzvalue;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setMinimumXValue( const int minimumxvalue )
+bool AnalyzeObjectEntry::setMinimumXValue( const int minimumxvalue )
 {
-  myObject.MinimumXValue = minimumxvalue;
+  this->m_MinimumXValue = minimumxvalue;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setMinimumYValue( const int minimumyvalue )
+bool AnalyzeObjectEntry::setMinimumYValue( const int minimumyvalue )
 {
-  myObject.MinimumYValue = minimumyvalue;
+  this->m_MinimumYValue = minimumyvalue;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setMinimumZValue( const int minimumzvalue )
+bool AnalyzeObjectEntry::setMinimumZValue( const int minimumzvalue )
 {
-  myObject.MinimumZValue = minimumzvalue;
+  this->m_MinimumZValue = minimumzvalue;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setMaximumCoordinate( const int maximumxvalue, const int maximumyvalue, const int maximumzvalue )
+bool AnalyzeObjectEntry::setMaximumCoordinate( const int maximumxvalue, const int maximumyvalue, const int maximumzvalue )
 {
-  myObject.MaximumXValue = maximumxvalue;
-  myObject.MaximumYValue = maximumyvalue;
-  myObject.MaximumZValue = maximumzvalue;
+  this->m_MaximumXValue = maximumxvalue;
+  this->m_MaximumYValue = maximumyvalue;
+  this->m_MaximumZValue = maximumzvalue;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setMaximumXValue( const int maximumxvalue )
+bool AnalyzeObjectEntry::setMaximumXValue( const int maximumxvalue )
 {
-  myObject.MaximumXValue = maximumxvalue;
+  this->m_MaximumXValue = maximumxvalue;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setMaximumYValue( const int maximumyvalue )
+bool AnalyzeObjectEntry::setMaximumYValue( const int maximumyvalue )
 {
-  myObject.MaximumYValue = maximumyvalue;
+  this->m_MaximumYValue = maximumyvalue;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setMaximumZValue( const int maximumzvalue )
+bool AnalyzeObjectEntry::setMaximumZValue( const int maximumzvalue )
 {
-  myObject.MaximumZValue = maximumzvalue;
+  this->m_MaximumZValue = maximumzvalue;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setOpacity( const float opacity )
+bool AnalyzeObjectEntry::setOpacity( const float opacity )
 {
-  myObject.Opacity = opacity;
+  this->m_Opacity = opacity;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setOpacityThickness( const int opacitythickness )
+bool AnalyzeObjectEntry::setOpacityThickness( const int opacitythickness )
 {
-  myObject.OpacityThickness = opacitythickness;
+  this->m_OpacityThickness = opacitythickness;
   return true;
 }
 
 
-bool uiig::CObjectEntry::setDummy( const int dummy )
+bool AnalyzeObjectEntry::setBlendFactor( const int BlendFactor )
 {
-  myObject.Dummy = dummy;
+  this->m_BlendFactor = BlendFactor;
   return true;
 }
