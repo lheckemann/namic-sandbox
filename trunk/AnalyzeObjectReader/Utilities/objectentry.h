@@ -33,12 +33,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 //#include <vector>
 #include <stdio.h>
-#include <itkDataObject.h>
-
+#include <itkObject.h>
+#include "itkObjectFactory.h"
 // TODO:  Add namespace  namespace itk {
 //TODO:  USE GET/SET methods for member variables needs to be put together along with one set of
 //       documentation that is syncronized syncronized.
-
+namespace itk{
   /**
    * Constant defining the maximum number of shades possible for an object as of Version 6
    */
@@ -64,10 +64,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    * \class AnalyzeObjectEntry
    * \brief This class encapsulates a single object in an Analyze object file
    */
-  //TODO:  derive from itk::DataObject to get these to be formal itk pipeline managable objects.
-class AnalyzeObjectEntry
+  //TODO:  derive from itk::Object to get these to be formal itk pipeline managable objects.
+  class AnalyzeObjectEntry : public itk::Object
 {
 public:
+
+  /** Standard typedefs. */
+  typedef AnalyzeObjectEntry Self;
+  typedef Object  Superclass;
+  typedef SmartPointer<Self>  Pointer;
+  typedef SmartPointer<const Self>  ConstPointer;
+
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
+
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(AnalyzeObjectEntry, Object);
 
   /**
    * \brief AnalyzeObjectEntry( void ) is the default constructor, initializes to 0 or NULL
@@ -121,25 +133,35 @@ public:
    */
   const char * getNameASCII( void ) const;
 
+//  itkGetMacro(getNameASCII, char *);
+
 
   /**
    * \brief getName/setName
+   *
    * The Name member of the AVW_Object structure contains a user
    * defined name for this object. Any zero-terminated string can be used,
    * including stringswith embedded spaces.
    */
   std::string getName( void ) const;
+  itkGetMacro(Name, std::string)
+
   bool setName( const std::string name );
+  //itkSetMacro(Name, char);
 
   /**
    * \brief getDisplayFlag/setDisplayFlag
+   *
    * DisplayFlag is used to enable or disable the display of this
    * particular object. A value of zero value indicates
    * that voxels of this object type are ignored or assumed to be outside
    * the threshold range during the raycasting process.
    */
+  
   int getDisplayFlag( void ) const;
+  itkGetMacro(DisplayFlag, int);
   bool setDisplayFlag( const int displayflag );
+  itkSetMacro(DisplayFlag, int);
 
   /**
    * \brief getCopyFlag gets the Copy Flag
@@ -149,7 +171,9 @@ public:
    * than the object itself. [ANALYZE only]
    */
   unsigned char getCopyFlag( void ) const;
+  itkGetMacro(CopyFlag, unsigned char);
   bool setCopyFlag( const unsigned char copyflag );
+  itkSetMacro(CopyFlag, const unsigned char);
 
 
   /**
@@ -159,7 +183,9 @@ public:
    * [ANALYZE only]
    */
   unsigned char getMirrorFlag( void ) const;
+  itkGetMacro(MirrorFlag, unsigned char);
   bool setMirrorFlag( const unsigned char mirrorflag );
+  itkSetMacro(MirrorFlag, const unsigned char);
 
   /**
    * \brief getStatusFlag/setStatusFlag
@@ -168,7 +194,9 @@ public:
    * need it's minimum bounding box recomputed. [ANALYZE only]
    */
   unsigned char getStatusFlag( void ) const;
+  itkGetMacro(StatusFlag, unsigned char);
   bool setStatusFlag( const unsigned char statusflag );
+  itkSetMacro(StatusFlag, const unsigned char);
 
   /**
    * \brief getNeighborsUsedFlag/setNeighborsUsedFlag
@@ -177,7 +205,9 @@ public:
    * calculating the objects shading. [ANALYZE only]
    */
   unsigned char getNeighborsUsedFlag( void ) const;
+  itkGetMacro(NeighborsUsedFlag, unsigned char);
   bool setNeighborsUsedFlag( const unsigned char neighborsusedflag );
+  itkSetMacro(NeighborsUsedFlag, unsigned char);
 
   /**
    * \brief getShades/setShades
@@ -186,7 +216,9 @@ public:
    * Only 256 (250 in ANALYZE) total shades are available.
    */
   int getShades( void ) const;
+  itkGetMacro(Shades, int);
   bool setShades( const int shades );
+  itkSetMacro(Shades, int);
 
   /**
    * \brief getStartRed/setStartRed
@@ -196,7 +228,9 @@ public:
    * of the ending color.
    */
   int getStartRed( void ) const;
+  itkGetMacro(StartRed, int);
   bool setStartRed( const int startred );
+  itkSetMacro(StartRed, int);
 
   /**
    * \brief getStartGreen/setStartGreen
@@ -206,7 +240,9 @@ public:
    * 10% of the ending color.
    */
   int getStartGreen( void ) const;
+  itkGetMacro(StartGreen, int);
   bool setStartGreen( const int startgreen );
+  itkSetMacro(StartGreen, int);
 
   /**
    * \brief getStartBlue/setStartBlue
@@ -216,7 +252,9 @@ public:
    * of the ending color.
    */
   int getStartBlue( void ) const;
+  itkGetMacro(StartBlue, int);
   bool setStartBlue( const int startblue );
+  itkSetMacro(StartBlue, int);
 
   /**
    * \brief getEndRed/setEndRed
@@ -224,7 +262,9 @@ public:
    * EndRed specify the ending color for this object.
    */
   int getEndRed( void ) const;
+  itkGetMacro(EndRed, int);
   bool setEndRed( const int endred );
+  itkSetMacro(EndRed, int);
 
   /**
    * \brief getEndGreen/setEndGreen
@@ -232,7 +272,9 @@ public:
    * EndGreen specify the ending color for this object.
    */
   int getEndGreen( void ) const;
+  itkGetMacro(EndGreen, int);
   bool setEndGreen( const int endgreen );
+  itkSetMacro(EndGreen, int);
 
   /**
    * \brief getEndBlue/setEndBlue
@@ -240,7 +282,9 @@ public:
    * EndBlue specify the ending color for this object.
    */
   int getEndBlue( void ) const;
+  itkGetMacro(EndBlue, int);
   bool setEndBlue( const int endblue );
+  itkSetMacro(EndBlue, int);
 
   /**
    * \brief getXRotation
@@ -249,6 +293,7 @@ public:
    * [ANALYZE only]
    */
   int getXRotation( void ) const;
+  itkGetMacro(XRotation, int);
 
   /**
    *\brief getXRotationIncrement
@@ -257,6 +302,7 @@ public:
    * YRotation, and ZRotation when making a sequence. [ANALYZE only]
    */
   int getXRotationIncrement( void ) const;
+  itkGetMacro(XRotationIncrement, int);
 
   /**
    * \brief getYRotation
@@ -265,6 +311,7 @@ public:
    * [ANALYZE only]
    */
   int getYRotation( void ) const;
+  itkGetMacro(YRotation, int);
 
   /**
    *\brief getYRotationIncrement
@@ -273,6 +320,7 @@ public:
    * YRotation, and ZRotation when making a sequence. [ANALYZE only]
    */
   int getYRotationIncrement( void ) const;
+  itkGetMacro(YRotationIncrement, int);
 
   /**
    * \brief getZRotation
@@ -281,6 +329,7 @@ public:
    * [ANALYZE only]
    */
   int getZRotation( void ) const;
+  itkGetMacro(ZRotation, int);
 
    /**
     *\brief getZRotationIncrement
@@ -289,6 +338,7 @@ public:
     * YRotation, and ZRotation when making a sequence. [ANALYZE only]
     */
   int getZRotationIncrement( void ) const;
+  itkGetMacro(ZRotationIncrement, int);
 
   /**
    * \brief getXTranslation
@@ -297,6 +347,7 @@ public:
    * [ANALYZE only]
    */
   int getXTranslation( void ) const;
+  itkGetMacro(XTranslation, int);
 
    /**
     \*brief getXTranslation
@@ -306,6 +357,7 @@ public:
     * [ANALYZE only]
     */
   int getXTranslationIncrement( void ) const;
+  itkGetMacro(XTranslationIncrement, int);
 
   /**
    * \brief getYTranslation
@@ -314,6 +366,7 @@ public:
    * [ANALYZE only]
    */
   int getYTranslation( void ) const;
+  itkGetMacro(YTranslation, int);
 
    /**
     *\brief getYTranslationIncrement
@@ -323,6 +376,7 @@ public:
     * [ANALYZE only]
     */
   int getYTranslationIncrement( void ) const;
+  itkGetMacro(YTranslationIncrement, int);
 
   /**
    * \brief getZTranslation
@@ -331,6 +385,7 @@ public:
    * [ANALYZE only]
    */
   int getZTranslation( void ) const;
+  itkGetMacro(ZTranslation, int);
   
   /**
    *\brief getZTranslation
@@ -340,6 +395,7 @@ public:
    * [ANALYZE only]
    */
   int getZTranslationIncrement( void ) const;
+  itkGetMacro(ZTranslationIncrement, int);
 
   /**
    * \brief getXCenter/setXCenter
@@ -349,7 +405,9 @@ public:
    * [ANALYZE only]
    */
   int getXCenter( void ) const;
+  itkGetMacro(XCenter, int);
   bool setXCenter( const int xcenter );
+  itkSetMacro(XCenter, int);
 
   /**
    * \brief getYCenter/setYCenter
@@ -359,7 +417,9 @@ public:
    * [ANALYZE only]
    */
   int getYCenter( void ) const;
+  itkGetMacro(YCenter, int);
   bool setYCenter( const int ycenter );
+  itkSetMacro(YCenter, int);
 
   /**
    * \brief getZCenter/setZCenter
@@ -369,7 +429,9 @@ public:
    * [ANALYZE only]
    */
   int getZCenter( void ) const;
+  itkGetMacro(ZCenter, int);
   bool setZCenter( const int zcenter );
+  itkSetMacro(ZCenter, int);
 
 
   /**
@@ -380,7 +442,9 @@ public:
    * translations and rotations. [ANALYZE only]
    */
   short int getMinimumXValue( void ) const;
+  itkGetMacro(MinimumXValue, short int);
   bool setMinimumXValue( const int minimumxvalue );
+  itkSetMacro(MinimumXValue, int);
 
   /**
    * \brief getMinimumYValue/setMinimumYValue
@@ -390,7 +454,9 @@ public:
    * translations and rotations. [ANALYZE only]
    */
   short int getMinimumYValue( void ) const;
+  itkGetMacro(MinimumYValue, short int);
   bool setMinimumYValue( const int minimumyvalue );
+  itkSetMacro(MinimumYValue, const int);
 
   /**
    * \brief getMinimumZValue/setMinimumZValue
@@ -400,7 +466,9 @@ public:
    * translations and rotations. [ANALYZE only]
    */
   short int getMinimumZValue( void ) const;
+  itkGetMacro(MinimumZValue, short int);
   bool setMinimumZValue( const int minimumzvalue );
+  itkSetMacro(MinimumZValue, const int);
 
   /**
    * \brief getMaximumXValue/setMaximumXValue
@@ -410,7 +478,9 @@ public:
    * translations and rotations. [ANALYZE only]
    */
   short int getMaximumXValue( void ) const;
+  itkGetMacro(MaximumXValue, short int);
   bool setMaximumXValue( const int maximumxvalue );
+  itkSetMacro(MaximumXValue, const int);
 
   /**
    * \brief getMaximumYValue/setMaximumYValue
@@ -420,7 +490,9 @@ public:
    * translations and rotations. [ANALYZE only]
    */
   short int getMaximumYValue( void ) const;
+  itkGetMacro(MaximumYValue, short int);
   bool setMaximumYValue( const int maximumyvalue );
+  itkSetMacro(MaximumYValue, const int);
 
   /**
    * \brief getMaximumZValue/setMaximumZValue
@@ -430,7 +502,9 @@ public:
    * translations and rotations. [ANALYZE only]
    */
   short int getMaximumZValue( void ) const;
+  itkGetMacro(MaximumZValue, short int);
   bool setMaximumZValue( const int maximumzvalue );
+  itkSetMacro(MaximumZValue, const int);
 
   /**
    * \brief getOpacity/setOpacity
@@ -450,7 +524,9 @@ public:
    * contribution.
    */
   float getOpacity( void ) const;
+  itkGetMacro(Opacity, float);
   bool setOpacity( const float opacity );
+  itkSetMacro(Opacity, const float);
 
   /**
    * \brief getOpacityThickness/setOpacityThickness
@@ -458,7 +534,9 @@ public:
    * The thickness of the object
    */
   int getOpacityThickness( void ) const;
+  itkGetMacro(OpacityThickness, int);
   bool setOpacityThickness( const int opacitythickness );
+  itkSetMacro(OpacityThickness, const int);
 
   /**
    * \brief getBlendFactor/setBlendFactor
@@ -470,7 +548,9 @@ public:
    * A value of .5 will cause half to come from each.
    */
   int getBlendFactor( void ) const;
+  itkGetMacro(BlendFactor, int);
   bool setBlendFactor( const int dummy );
+  itkSetMacro(BlendFactor, const int);
   
 
   /**
@@ -584,4 +664,5 @@ private:
   int m_OpacityThickness;
   float m_BlendFactor;
 };
+}
 #endif                           // __OBJECTENTR_H__
