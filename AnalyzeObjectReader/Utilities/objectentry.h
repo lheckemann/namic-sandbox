@@ -31,7 +31,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __OBJECTENTR_H__
 
 #include <string>
-#include <vector>
+//#include <vector>
 #include <stdio.h>
 
 //TODO:  USE GET/SET methods for member variables needs to be put together along with one set of

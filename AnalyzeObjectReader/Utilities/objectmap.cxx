@@ -35,11 +35,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "objectmap.h"
 
-uiig::CObjectMap::CObjectMap( void )
-:uiig::CImageFlat<unsigned char>(),Version(VERSION6),
+AnalyzeObjectMap::AnalyzeObjectMap( void )
+: Version(VERSION7),
 NumberOfObjects(0),NeedsSaving(0), NeedsRegionsCalculated(0)
 {
-  this->ImageClear();
+  //TODO:  Clear the image this->ImageClear();
   {
     for (int i = 0; i < 256; i++)
     {
@@ -51,7 +51,7 @@ NumberOfObjects(0),NeedsSaving(0), NeedsRegionsCalculated(0)
   }
 
   // Setting object zero as the background
-  ObjectArray[0] = new uiig::CObjectEntry();
+  ObjectArray[0] = new AnalyzeObjectEntry();
   this->getObjectEntry(0).setName("Background");
   this->getObjectEntry(0).setDisplayFlag(0);
   this->getObjectEntry(0).setOpacity(0);
@@ -63,11 +63,11 @@ NumberOfObjects(0),NeedsSaving(0), NeedsRegionsCalculated(0)
 }
 
 
-uiig::CObjectMap::CObjectMap( const int _iX, const int _iY, const int _iZ )
-:uiig::CImageFlat<unsigned char>(_iX,_iY,_iZ),Version(VERSION6),
+AnalyzeObjectMap::AnalyzeObjectMap( const int _iX, const int _iY, const int _iZ )
+:Version(VERSION7),
 NumberOfObjects(0),NeedsSaving(0), NeedsRegionsCalculated(0)
 {
-  this->ImageClear();
+  //TODO:  Clear this this->ImageClear();
   {
     for (int i = 0; i < 256; i++)
     {
@@ -79,7 +79,7 @@ NumberOfObjects(0),NeedsSaving(0), NeedsRegionsCalculated(0)
   }
 
   // Setting object zero as the background
-  ObjectArray[0] = new uiig::CObjectEntry();
+  ObjectArray[0] = new AnalyzeObjectEntry();
   this->getObjectEntry(0).setName("Background");
   this->getObjectEntry(0).setDisplayFlag(0);
   this->getObjectEntry(0).setOpacity(0);
@@ -91,7 +91,7 @@ NumberOfObjects(0),NeedsSaving(0), NeedsRegionsCalculated(0)
 }
 
 
-uiig::CObjectMap::CObjectMap( const uiig::CObjectMap & rhs )
+AnalyzeObjectMap::AnalyzeObjectMap( const AnalyzeObjectMap & rhs )
 {
   this->CopyBaseImage( rhs );
   Version=rhs.Version;
@@ -102,7 +102,7 @@ uiig::CObjectMap::CObjectMap( const uiig::CObjectMap & rhs )
   {
     if(rhs.ObjectArray[i] != NULL)
     {
-      ObjectArray[i] = new uiig::CObjectEntry();
+      ObjectArray[i] = new AnalyzeObjectEntry();
       *(ObjectArray[i])=*(rhs.ObjectArray[i]);
     }
     else
@@ -116,7 +116,7 @@ uiig::CObjectMap::CObjectMap( const uiig::CObjectMap & rhs )
 }
 
 
-uiig::CObjectMap::~CObjectMap( void )
+AnalyzeObjectMap::~AnalyzeObjectMap( void )
 {
   for(int i=0; i < 256; i++)
   {
@@ -128,9 +128,11 @@ uiig::CObjectMap::~CObjectMap( void )
 }
 
 
-bool uiig::CObjectMap::CopyBaseImage( const uiig::CObjectMap& rhs )
+bool AnalyzeObjectMap::CopyBaseImage( const AnalyzeObjectMap& rhs )
 {
   // This is the summary of what the CImage's do for their copying
+#if 0
+  //TODO: Initialzie the image size and copy the Lablemap
   this->ImageReinitialize(
     rhs.getXDim(), rhs.getXVox(),
     rhs.getYDim(), rhs.getYVox(),
@@ -139,11 +141,12 @@ bool uiig::CObjectMap::CopyBaseImage( const uiig::CObjectMap& rhs )
   ::memcpy( static_cast<void *>( this->getDataPtr() ), static_cast<void *>(rhs.getDataPtr()) ,
     sizeof(unsigned char)*rhs.getTotalVox() );
   // End of hacked copy method
+#endif
   return true;
 }
 
 
-uiig::CObjectMap &  uiig::CObjectMap::operator=( const uiig::CObjectMap & rhs )
+AnalyzeObjectMap &  AnalyzeObjectMap::operator=( const AnalyzeObjectMap & rhs )
 {
 
   this->CopyBaseImage( rhs );
@@ -156,7 +159,7 @@ uiig::CObjectMap &  uiig::CObjectMap::operator=( const uiig::CObjectMap & rhs )
   {
     if(rhs.ObjectArray[i] != NULL)
     {
-      ObjectArray[i] = new uiig::CObjectEntry();
+      ObjectArray[i] = new AnalyzeObjectEntry();
       *(ObjectArray[i])=*(rhs.ObjectArray[i]);
     }
     else
@@ -174,7 +177,7 @@ uiig::CObjectMap &  uiig::CObjectMap::operator=( const uiig::CObjectMap & rhs )
 }
 
 
-int uiig::CObjectMap::getObjectIndex( const std::string &ObjectName  )
+int AnalyzeObjectMap::getObjectIndex( const std::string &ObjectName  )
 {
   for(int index=0; index<=this->getNumberOfObjects(); index++)
   {
@@ -188,21 +191,21 @@ int uiig::CObjectMap::getObjectIndex( const std::string &ObjectName  )
 }
 
 
-uiig::CObjectEntry & uiig::CObjectMap::getObjectEntry( const int index )
+AnalyzeObjectEntry & AnalyzeObjectMap::getObjectEntry( const int index )
 {
   return *(ObjectArray[index]);
 }
 
-const uiig::CObjectEntry & uiig::CObjectMap::getObjectEntry( const int index ) const
+const AnalyzeObjectEntry & AnalyzeObjectMap::getObjectEntry( const int index ) const
 {
   return *(ObjectArray[index]);
 }
 
 
-void uiig::CObjectMap::ReinitializeObjectMap(const int _iX, const int _iY, const int _iZ)
+void AnalyzeObjectMap::ReinitializeObjectMap(const int _iX, const int _iY, const int _iZ)
 {
-  this->ImageReinitialize(_iX, _iY, _iZ);
-  this->ImageClear();
+//TODO  this->ImageReinitialize(_iX, _iY, _iZ);
+//TODO  this->ImageClear();
   {
     for(int i=0; i < 256; i++)
     {
@@ -223,13 +226,13 @@ void uiig::CObjectMap::ReinitializeObjectMap(const int _iX, const int _iY, const
     }
   }
 
-  Version = VERSION6;
+  Version = VERSION7;
   NumberOfObjects = 0;
   NeedsSaving = 0;
   NeedsRegionsCalculated = 0;
 
   // Setting object zero as the background
-  ObjectArray[0] = new uiig::CObjectEntry();
+  ObjectArray[0] = new AnalyzeObjectEntry();
   this->getObjectEntry(0).setName("Background");
   this->getObjectEntry(0).setDisplayFlag(0);
   this->getObjectEntry(0).setOpacity(0);
@@ -241,9 +244,9 @@ void uiig::CObjectMap::ReinitializeObjectMap(const int _iX, const int _iY, const
 }
 
 
-void SwapObjectEndedness(uiig::Object * ObjToChange)
+void SwapObjectEndedness(Object * ObjToChange)
 {
-  uiig::FileIOUtility util;
+  FileIOUtility util;
   util.FourByteSwap(&(ObjToChange->DisplayFlag));
   util.FourByteSwap(&(ObjToChange->Shades));
   util.FourByteSwap(&(ObjToChange->StartRed));
@@ -279,7 +282,7 @@ void SwapObjectEndedness(uiig::Object * ObjToChange)
 }
 
 
-bool uiig::CObjectMap::ReadObjectFile( const std::string& filename )
+bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
 {
   int header[5];
   int i, j, index;
@@ -303,8 +306,8 @@ bool uiig::CObjectMap::ReadObjectFile( const std::string& filename )
 
   bool NeedByteSwap=false;
   //Do byte swapping if necessary.
-  uiig::FileIOUtility util;
-  if(header[0] == 1323699456 || header[0] == -1913442047)    // Byte swapping needed (Number is byte swapped number of VERSION6 or VERSION8 )
+  FileIOUtility util;
+  if(header[0] == 1323699456 || header[0] == -1913442047)    // Byte swapping needed (Number is byte swapped number of VERSIONy or VERSION8 )
   {
     NeedByteSwap=true;
     util.FourByteSwap(&(header[0]));
@@ -323,7 +326,7 @@ bool uiig::CObjectMap::ReadObjectFile( const std::string& filename )
   const int VolumeSize=XSize*YSize*ZSize;
   printf("TEST. Obj headers: NumberOfObjects %d \n", header[4]);
   // Validating the version number
-  if (Version != VERSION6 && Version != VERSION8)
+  if (Version != VERSION7 )
   {
     ::fprintf( stderr, "Error: Can only process version 6 and version 8 analyze object files.\n" );
     ::fclose( fptr );
@@ -354,7 +357,7 @@ bool uiig::CObjectMap::ReadObjectFile( const std::string& filename )
 
   // Read in the first header to determine whether it is a background defined
   // Analyze object file or not
-  ObjectArray[1] = new uiig::CObjectEntry();
+  ObjectArray[1] = new AnalyzeObjectEntry();
 
   if (ObjectArray[1] == NULL)
   {
@@ -392,7 +395,7 @@ bool uiig::CObjectMap::ReadObjectFile( const std::string& filename )
     for (i = 1; i < NumberOfObjects; i++)
     {
       // Allocating a object to be created
-      ObjectArray[i] = new uiig::CObjectEntry();
+      ObjectArray[i] = new AnalyzeObjectEntry();
 
       // Checking to see if the memory was available
       if (ObjectArray[i] == NULL)
@@ -422,7 +425,7 @@ bool uiig::CObjectMap::ReadObjectFile( const std::string& filename )
     for (i = 1; i < NumberOfObjects; i++)
     {
       // Allocating a object to be created
-      ObjectArray[i+1] = new uiig::CObjectEntry();
+      ObjectArray[i+1] = new AnalyzeObjectEntry();
 
       // Checking to see if the memory was available
       if (ObjectArray[i+1] == NULL)
@@ -507,7 +510,7 @@ bool uiig::CObjectMap::ReadObjectFile( const std::string& filename )
 }
 
 
-bool uiig::CObjectMap::WriteObjectFile( const std::string& filename )
+bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
 {
 
   FILE *fptr;
@@ -542,7 +545,7 @@ bool uiig::CObjectMap::WriteObjectFile( const std::string& filename )
   int header[5];
 
   // Getting the Header of the class
-  //header[0]=VERSION6;
+  //header[0]=VERSION7;
   printf("Version is %d \n", Version);
   header[0]=Version;
   header[1]=this->getXDim();
@@ -554,8 +557,8 @@ bool uiig::CObjectMap::WriteObjectFile( const std::string& filename )
   bool NeedByteSwap = false;
 
   // Byte swapping needed (Analyze files are always written in BIG ENDIAN
-  uiig::FileIOUtility util;
-  if(util.getMachineEndianess() == uiig::FileIOUtility::DT_LITTLE_ENDIAN)
+  FileIOUtility util;
+  if(util.getMachineEndianess() == FileIOUtility::DT_LITTLE_ENDIAN)
   {
     NeedByteSwap=true;
     util.FourByteSwap(&(header[0]));
@@ -602,7 +605,7 @@ bool uiig::CObjectMap::WriteObjectFile( const std::string& filename )
   {
     // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
     // not affect the current object itself
-    uiig::CObjectEntry ObjectWrite = this->getObjectEntry(i);
+    AnalyzeObjectEntry ObjectWrite = this->getObjectEntry(i);
 
     if (NeedByteSwap == true)
     {
@@ -624,7 +627,7 @@ bool uiig::CObjectMap::WriteObjectFile( const std::string& filename )
 }
 
 
-bool uiig::CObjectMap::AddObjectInRange(const uiig::CImage<float> & InputImage,
+bool AnalyzeObjectMap::AddObjectInRange(const CImage<float> & InputImage,
 const float MinRange, const float MaxRange,
 std::string ObjectName, const int EndRed,
 const int EndGreen, const int EndBlue,
@@ -640,7 +643,7 @@ const int Shades, bool OverWriteObjectFlag)
     return false;
   }
   this->NumberOfObjects++;
-  this->ObjectArray[NumberOfObjects]=new uiig::CObjectEntry;
+  this->ObjectArray[NumberOfObjects]=new AnalyzeObjectEntry;
   ObjectArray[NumberOfObjects]->setName(ObjectName);
   ObjectArray[NumberOfObjects]->setEndColor(EndRed,EndGreen,EndBlue);
   ObjectArray[NumberOfObjects]->setStartColor(static_cast<int>(0.1F*EndRed),
@@ -679,7 +682,7 @@ const int Shades, bool OverWriteObjectFlag)
 }
 
 
-bool uiig::CObjectMap::AddObjectInRange(const uiig::CImage<unsigned char> & InputImage,
+bool AnalyzeObjectMap::AddObjectInRange(const CImage<unsigned char> & InputImage,
 const int MinRange, const int MaxRange,
 std::string ObjectName, const int EndRed, const int EndGreen,
 const int EndBlue, const int Shades, bool OverWriteObjectFlag)
@@ -694,7 +697,7 @@ const int EndBlue, const int Shades, bool OverWriteObjectFlag)
     return false;
   }
   this->NumberOfObjects++;
-  this->ObjectArray[NumberOfObjects]=new uiig::CObjectEntry;
+  this->ObjectArray[NumberOfObjects]=new AnalyzeObjectEntry;
   ObjectArray[NumberOfObjects]->setName(ObjectName);
   ObjectArray[NumberOfObjects]->setEndColor(EndRed,EndGreen,EndBlue);
   ObjectArray[NumberOfObjects]->setStartColor(static_cast<int>(0.1F*EndRed),
@@ -731,7 +734,7 @@ const int EndBlue, const int Shades, bool OverWriteObjectFlag)
 }
 
 
-bool uiig::CObjectMap::RemoveObjectByName(const std::string & ObjectName)
+bool AnalyzeObjectMap::RemoveObjectByName(const std::string & ObjectName)
 {
   if (ObjectName == std::string("Background"))
   {
@@ -793,7 +796,7 @@ bool uiig::CObjectMap::RemoveObjectByName(const std::string & ObjectName)
 }
 
 
-bool uiig::CObjectMap::RemoveObjectByRange(const unsigned char MinRange, const unsigned char MaxRange)
+bool AnalyzeObjectMap::RemoveObjectByRange(const unsigned char MinRange, const unsigned char MaxRange)
 {
   int startObjectTag = MinRange;
   int endObjectTag = MaxRange;
@@ -862,7 +865,7 @@ bool uiig::CObjectMap::RemoveObjectByRange(const unsigned char MinRange, const u
 }
 
 
-bool uiig::CObjectMap::CheckObjectOverlap( const uiig::CImage<float> & InputImage, const float MinRange, const float MaxRange, const int MinObjectRange, const int MaxObjectRange )
+bool AnalyzeObjectMap::CheckObjectOverlap( const CImage<float> & InputImage, const float MinRange, const float MaxRange, const int MinObjectRange, const int MaxObjectRange )
 {
   const int nx=InputImage.getXDim();
   const int ny=InputImage.getYDim();
@@ -913,7 +916,7 @@ bool uiig::CObjectMap::CheckObjectOverlap( const uiig::CImage<float> & InputImag
 }
 
 
-bool uiig::CObjectMap::CheckObjectOverlap( const uiig::CImage<unsigned char> & InputImage, const int MinRange, const int MaxRange, const int MinObjectRange, const int MaxObjectRange )
+bool AnalyzeObjectMap::CheckObjectOverlap( const CImage<unsigned char> & InputImage, const int MinRange, const int MaxRange, const int MinObjectRange, const int MaxObjectRange )
 {
   const int nx=InputImage.getXDim();
   const int ny=InputImage.getYDim();
@@ -964,7 +967,7 @@ bool uiig::CObjectMap::CheckObjectOverlap( const uiig::CImage<unsigned char> & I
 }
 
 
-bool uiig::CObjectMap::WriteObjectByName(const std::string & ObjectName, const std::string & filename)
+bool AnalyzeObjectMap::WriteObjectByName(const std::string & ObjectName, const std::string & filename)
 {
   // Finding the object index with the name indicated
   if (ObjectName == std::string("Background"))
@@ -1025,7 +1028,7 @@ bool uiig::CObjectMap::WriteObjectByName(const std::string & ObjectName, const s
   int header[5];
 
   // Reading the Header into the class
-  header[0]=VERSION6;
+  header[0]=VERSION7;
   header[1]=this->getXDim();
   header[2]=this->getYDim();
   header[3]=this->getZDim();
@@ -1033,7 +1036,7 @@ bool uiig::CObjectMap::WriteObjectByName(const std::string & ObjectName, const s
 
   bool NeedByteSwap = false;
 
-  uiig::FileIOUtility util;
+  FileIOUtility util;
   // Byte swapping needed, Analyze object files are always written in BIG ENDIAN format
   if(util.getMachineEndianess() == util.DT_LITTLE_ENDIAN)
   {
@@ -1046,8 +1049,8 @@ bool uiig::CObjectMap::WriteObjectByName(const std::string & ObjectName, const s
   }
 
   // Creating the binary mask
-  uiig::CImageFlat<unsigned char> binaryMask(this->getXDim(), this->getYDim(), this->getZDim());
-  binaryMask.ImageClear();
+  CImageFlat<unsigned char> binaryMask(this->getXDim(), this->getYDim(), this->getZDim());
+//TODO  binaryMask.ImageClear();
 
   // Creating the binary mask
   {
@@ -1073,7 +1076,7 @@ bool uiig::CObjectMap::WriteObjectByName(const std::string & ObjectName, const s
   // Writing the background header
   // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
   // not affect the current object itself
-  uiig::CObjectEntry ObjectWrite = this->getObjectEntry(0);
+  AnalyzeObjectEntry ObjectWrite = this->getObjectEntry(0);
 
   if (NeedByteSwap == true)
   {
@@ -1107,7 +1110,7 @@ bool uiig::CObjectMap::WriteObjectByName(const std::string & ObjectName, const s
 }
 
 
-bool uiig::CObjectMap::WriteDisplayedObjects(const std::string & filenamebase)
+bool AnalyzeObjectMap::WriteDisplayedObjects(const std::string & filenamebase)
 {
   FILE *fptr;
   std::string tempfilename=filenamebase;
@@ -1140,7 +1143,7 @@ bool uiig::CObjectMap::WriteDisplayedObjects(const std::string & filenamebase)
       int header[5];
 
       // Reading the Header into the class
-      header[0]=VERSION6;
+      header[0]=VERSION7;
       header[1]=this->getXDim();
       header[2]=this->getYDim();
       header[3]=this->getZDim();
@@ -1148,7 +1151,7 @@ bool uiig::CObjectMap::WriteDisplayedObjects(const std::string & filenamebase)
 
       bool NeedByteSwap = false;
 
-      uiig::FileIOUtility util;
+      FileIOUtility util;
       // Byte swapping needed, Analyze files are always written in BIG ENDIAN format
       if(util.getMachineEndianess() == util.DT_LITTLE_ENDIAN)
       {
@@ -1161,8 +1164,8 @@ bool uiig::CObjectMap::WriteDisplayedObjects(const std::string & filenamebase)
       }
 
       // Creating the binary mask
-      uiig::CImageFlat<unsigned char> binaryMask(this->getXDim(), this->getYDim(), this->getZDim());
-      binaryMask.ImageClear();
+      CImageFlat<unsigned char> binaryMask(this->getXDim(), this->getYDim(), this->getZDim());
+//TODO      binaryMask.ImageClear();
 
       // Creating the binary mask
       for (int i = 0; i < this->getXDim()*this->getYDim()*this->getZDim(); i++)
@@ -1186,7 +1189,7 @@ bool uiig::CObjectMap::WriteDisplayedObjects(const std::string & filenamebase)
       // Writing the background header
       // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
       // not affect the current object itself
-      uiig::CObjectEntry ObjectWrite = this->getObjectEntry(0);
+      AnalyzeObjectEntry ObjectWrite = this->getObjectEntry(0);
 
       if (NeedByteSwap == true)
       {
@@ -1223,7 +1226,7 @@ bool uiig::CObjectMap::WriteDisplayedObjects(const std::string & filenamebase)
 }
 
 
-bool uiig::CObjectMap::CalculateBoundingRegionAndCenter( void )
+bool AnalyzeObjectMap::CalculateBoundingRegionAndCenter( void )
 {
   for (int i = 0; i < NumberOfObjects; i++)
   {
@@ -1319,7 +1322,7 @@ bool uiig::CObjectMap::CalculateBoundingRegionAndCenter( void )
 }
 
 
-int uiig::CObjectMap::EvenlyShade( void )
+int AnalyzeObjectMap::EvenlyShade( void )
 {
   int NumberOfShades = 255 / this->getNumberOfObjects();
 
@@ -1331,7 +1334,7 @@ int uiig::CObjectMap::EvenlyShade( void )
 }
 
 
-void uiig::CObjectMap::ConstShade( void )
+void AnalyzeObjectMap::ConstShade( void )
 {
   // Not allocating shades to the background object, and setting each shade to 1
   for (int i = 0; i < this->getNumberOfObjects(); i++)
@@ -1339,46 +1342,46 @@ void uiig::CObjectMap::ConstShade( void )
 }
 
 
-int uiig::CObjectMap::getVersion( void ) const
+int AnalyzeObjectMap::getVersion( void ) const
 {
   return Version;
 }
 
 
-int uiig::CObjectMap::getNumberOfObjects( void ) const
+int AnalyzeObjectMap::getNumberOfObjects( void ) const
 {
   return this->NumberOfObjects;
 }
 
 
-unsigned char uiig::CObjectMap::isObjectShown( const unsigned char index ) const
+unsigned char AnalyzeObjectMap::isObjectShown( const unsigned char index ) const
 {
   return ShowObject[index];
 }
 
 
-unsigned char uiig::CObjectMap::getMinimumPixelValue( const unsigned char index ) const
+unsigned char AnalyzeObjectMap::getMinimumPixelValue( const unsigned char index ) const
 {
   return MinimumPixelValue[index];
 }
 
 
-unsigned char uiig::CObjectMap::getMaximumPixelValue( const unsigned char index ) const
+unsigned char AnalyzeObjectMap::getMaximumPixelValue( const unsigned char index ) const
 {
   return MaximumPixelValue[index];
 }
 
-void uiig::CObjectMap::setMinimumPixelValue( const unsigned char index, const unsigned char value )
+void AnalyzeObjectMap::setMinimumPixelValue( const unsigned char index, const unsigned char value )
 {
   MinimumPixelValue[index] = value;
 }
 
-void uiig::CObjectMap::setMaximumPixelValue( const unsigned char index, const unsigned char value )
+void AnalyzeObjectMap::setMaximumPixelValue( const unsigned char index, const unsigned char value )
 {
   MaximumPixelValue[index] = value;
 }
 
-bool RunLengthEncodeImage(const uiig::CImageFlat<unsigned char> & SourceImage, FILE *fptr)
+bool RunLengthEncodeImage(const CImageFlat<unsigned char> & SourceImage, FILE *fptr)
 {
   if (fptr == NULL)
   {

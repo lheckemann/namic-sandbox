@@ -405,12 +405,6 @@ int AnalyzeObjectEntry::getBlendFactor( void ) const
 }
 
 
-Object * AnalyzeObjectEntry::getObjectPointer( void )
-{
-  return &(this->myObject);
-}
-
-
 bool AnalyzeObjectEntry::setName( const std::string name )
 {
   if (name.size() > sizeof(this->m_Name))
