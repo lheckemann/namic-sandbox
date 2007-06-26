@@ -33,7 +33,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 //#include <vector>
 #include <stdio.h>
+#include <itkDataObject.h>
 
+// TODO:  Add namespace  namespace itk {
 //TODO:  USE GET/SET methods for member variables needs to be put together along with one set of
 //       documentation that is syncronized syncronized.
 
@@ -62,6 +64,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    * \class AnalyzeObjectEntry
    * \brief This class encapsulates a single object in an Analyze object file
    */
+  //TODO:  derive from itk::DataObject to get these to be formal itk pipeline managable objects.
 class AnalyzeObjectEntry
 {
 public:

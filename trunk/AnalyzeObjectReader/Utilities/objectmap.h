@@ -30,41 +30,36 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __OBJECTMAP_H_
 #define __OBJECTMAP_H_
 
-/**
- * \todo templetize AddObjectInRange
- * \todo Add getObjectIndex ( object_name )
- */
-//
-// Name: objectmap.h
-// Author: John Dill
-// Date: 5/16/00
-// Classes:
-// AnalyzeObjectMap - Represents an Analyze ObjectMap (defining color coded structures for an image)
-//
-
 #include <stdio.h>
 #include <string>
 #include <vector>
 #include "objectentry.h"
-#include "itkImage.h"
+//TODO:  #include "itkImage.h"
 
-/**
- * \brief This function takes a file pointer and an image and runlength encodes the
- * gray levels to the file
- * \param SourceImage The image to be runlength encoded
- * \param The pointer to the file to be written out.
- * \return returns true if successful
- */
-bool RunLengthEncodeImage(const itk::Image<unsigned char,3>::Pointer SourceImage, FILE *fptr);
+//TODO The following should be private member functions of the AnalyzeObjectMap class
+{
+   /**
+    * \brief This function takes a file pointer and an image and runlength encodes the
+    * gray levels to the file
+    * \param SourceImage The image to be runlength encoded
+    * \param The pointer to the file to be written out.
+    * \return returns true if successful
+    */
+   bool RunLengthEncodeImage(const itk::Image<unsigned char,3>::Pointer SourceImage, FILE *fptr);
 
-/**
- * \brief This function takes a string and removes the spaces
- * \param output the string with the spaces removed
- * \param input the string to remove the spaces
- */
-void RemoveSpaceFromString(std::string & output, const std::string & input);
+   /**
+    * \brief This function takes a string and removes the spaces
+    * \param output the string with the spaces removed
+    * \param input the string to remove the spaces
+    */
+   void RemoveSpaceFromString(std::string & output, const std::string & input);
+}
 
-  class AnalyzeObjectMap
+
+//Need to put this into the ITK namespace.
+
+  //TODO:  derive from itk::Image object so that an AnalyzeObjectMap to get these to be formal itk pipeline managable objects.
+  class AnalyzeObjectMap: public itk::Image<unsigned char,3>
   {
     public:
       /**
