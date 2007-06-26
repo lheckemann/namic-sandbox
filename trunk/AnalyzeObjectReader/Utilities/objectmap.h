@@ -36,24 +36,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "objectentry.h"
 //TODO:  #include "itkImage.h"
 
-//TODO The following should be private member functions of the AnalyzeObjectMap class
-{
-   /**
-    * \brief This function takes a file pointer and an image and runlength encodes the
-    * gray levels to the file
-    * \param SourceImage The image to be runlength encoded
-    * \param The pointer to the file to be written out.
-    * \return returns true if successful
-    */
-   bool RunLengthEncodeImage(const itk::Image<unsigned char,3>::Pointer SourceImage, FILE *fptr);
-
-   /**
-    * \brief This function takes a string and removes the spaces
-    * \param output the string with the spaces removed
-    * \param input the string to remove the spaces
-    */
-   void RemoveSpaceFromString(std::string & output, const std::string & input);
-}
 
 
 //Need to put this into the ITK namespace.
@@ -281,6 +263,25 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       int NeedsSaving;
       int NeedsRegionsCalculated;
       itk::Image<unsigned char, 3>::Pointer m_LableMap;
+
+//TODO The following should be private member functions of the AnalyzeObjectMap class
+{
+   /**
+    * \brief This function takes a file pointer and an image and runlength encodes the
+    * gray levels to the file
+    * \param SourceImage The image to be runlength encoded
+    * \param The pointer to the file to be written out.
+    * \return returns true if successful
+    */
+   bool RunLengthEncodeImage(const itk::Image<unsigned char,3>::Pointer SourceImage, FILE *fptr);
+
+   /**
+    * \brief This function takes a string and removes the spaces
+    * \param output the string with the spaces removed
+    * \param input the string to remove the spaces
+    */
+   void RemoveSpaceFromString(std::string & output, const std::string & input);
+}
 
   };
 #endif                           // __OBJECTMAP_H_
