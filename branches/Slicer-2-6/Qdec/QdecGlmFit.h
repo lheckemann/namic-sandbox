@@ -35,9 +35,11 @@
 #include "QdecGlmDesign.h"
 #include "QdecGlmFitResults.h"
 
+#include "vtkQdec.h"
+
 using namespace std;
 
-class QdecGlmFit
+class  VTK_QDEC_EXPORT QdecGlmFit
 {
 public:
 

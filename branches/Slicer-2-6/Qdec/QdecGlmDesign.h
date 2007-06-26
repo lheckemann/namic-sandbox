@@ -39,9 +39,11 @@
 #include "QdecDataTable.h"
 #include "ProgressUpdateGUI.h"
 
+#include "vtkQdec.h"
+
 using namespace std;
 
-class QdecGlmDesign
+class VTK_QDEC_EXPORT QdecGlmDesign
 {
 public:
 

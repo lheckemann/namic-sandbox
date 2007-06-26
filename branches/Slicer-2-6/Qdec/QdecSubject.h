@@ -32,10 +32,11 @@
 #include <vector>
 
 #include "QdecFactor.h"
+#include "vtkQdec.h"
 
 using namespace std;
 
-class QdecSubject
+class VTK_QDEC_EXPORT QdecSubject
 {
 public:
 

@@ -27,7 +27,9 @@
 #ifndef ProgressUpdateGUI_H
 #define ProgressUpdateGUI_H
 
-class ProgressUpdateGUI {
+#include "vtkQdec.h"
+
+class VTK_QDEC_EXPORT ProgressUpdateGUI {
 public:
   virtual ~ProgressUpdateGUI () {};
   virtual void BeginActionWithProgress ( const char * isTitle ) = 0;
