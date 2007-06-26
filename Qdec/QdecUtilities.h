@@ -40,9 +40,11 @@
 
 #include <string>
 
+#include "vtkQdec.h"
+
 using namespace std;
 
-class QdecUtilities
+class VTK_QDEC_EXPORT QdecUtilities
 {
 
 public:

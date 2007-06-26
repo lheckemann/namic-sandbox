@@ -39,9 +39,11 @@
 #include "QdecGlmFitResults.h"
 #include "ProgressUpdateGUI.h"
 
+#include "vtkQdec.h"
+
 using namespace std;
 
-class QdecProject
+class VTK_QDEC_EXPORT QdecProject
 {
 public:
 

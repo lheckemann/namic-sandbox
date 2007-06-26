@@ -35,9 +35,11 @@
 #include "QdecFactor.h"
 #include "QdecSubject.h"
 
+#include "vtkQdec.h"
+
 using namespace std;
 
-class QdecDataTable
+class VTK_QDEC_EXPORT QdecDataTable
 {
 public:
 

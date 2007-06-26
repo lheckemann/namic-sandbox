@@ -39,10 +39,11 @@
 #else
 #include <direct.h>
 #endif
+#include "vtkQdec.h"
 
 using namespace std;
 
-class QdecContrast
+class  VTK_QDEC_EXPORT QdecContrast
 {
 public:
 

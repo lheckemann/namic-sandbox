@@ -34,9 +34,11 @@
 #include <string>
 #include <cassert>
 
+#include "vtkQdec.h"
+
 using namespace std;
 
-class QdecFactor
+class VTK_QDEC_EXPORT QdecFactor
 {
 public:
 
