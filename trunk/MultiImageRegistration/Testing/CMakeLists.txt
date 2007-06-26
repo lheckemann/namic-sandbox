@@ -9,6 +9,13 @@
 SET(MultiImageRegistration_TEST_OUTPUT_DIR "${MultiImageRegistration_BINARY_DIR}/Testing/Temporary")
 MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR})
 
+SET(MultiImageRegistration_TEST_INPUT_DIR "${MultiImageRegistration_SOURCE_DIR}/Testing/Data/Input")
+
+
+CONFIGURE_FILE( 
+  ${MultiImageRegistration_TEST_INPUT_DIR}/filenamesExperiment001.txt.in
+  ${MultiImageRegistration_TEST_OUTPUT_DIR}/filenamesExperiment001.txt
+  )
 
 #
 #
@@ -27,5 +34,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}
     )
 
+
+  ADD_TEST(AffineRegistrationTest0001 ${EXECUTABLE_OUTPUT_PATH}/GroupwiseRegistration
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/filenamesExperiment001.txt  
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersExperiment001.txt  
+    )
 
 ENDIF(BrainWeb_DATA_ROOT)
