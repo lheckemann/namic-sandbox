@@ -30,6 +30,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "objectentry.h"
 
 namespace itk{
+#if 0
 AnalyzeObjectEntry::AnalyzeObjectEntry( void )
 {
   for (unsigned int i = 0; i < sizeof(this->m_Name); i++)
@@ -79,7 +80,7 @@ AnalyzeObjectEntry::AnalyzeObjectEntry( const AnalyzeObjectEntry & rhs )
 {
 //Copy construction is not allowed, so no need to fill this code in.
 }
-
+#endif
 
 AnalyzeObjectEntry::~AnalyzeObjectEntry( void )
 {
