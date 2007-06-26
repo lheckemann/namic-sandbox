@@ -7,6 +7,7 @@ int main( int argc, char * argv [] )
     {
     std::cout << "Usage: " << argv[0];
     std::cout << " inputImageFile " << std::endl;
+    return EXIT_FAILURE;
     }
 
   typedef itk::Image< char, 3 > ImageType;
