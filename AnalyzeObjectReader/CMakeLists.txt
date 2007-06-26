@@ -6,7 +6,7 @@ IF(ITK_FOUND)
 ENDIF(ITK_FOUND)
 
 
-SUBDIRS(Utilities) #Source Testing)
+SUBDIRS(Utilities Testing )#Source )
 
 
 ENABLE_TESTING()

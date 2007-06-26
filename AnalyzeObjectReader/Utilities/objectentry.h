@@ -67,7 +67,7 @@ namespace itk{
    * \brief This class encapsulates a single object in an Analyze object file
    */
   //TODO:  derive from itk::Object to get these to be formal itk pipeline managable objects.
-  class AnalyzeObjectEntry : public itk::Object
+class AnalyzeObjectEntry : public itk::Object
 {
 public:
 
@@ -550,6 +550,7 @@ public:
   bool setMaximumCoordinate( const int maximumxvalue, const int maximumyvalue, const int maximumzvalue );
 
 protected:
+#if 0
   /**
    * \brief AnalyzeObjectEntry( void ) is the default constructor, initializes to 0 or NULL
    * \param none
@@ -569,7 +570,7 @@ protected:
    * \sa AnalyzeObjectEntry
    */
   AnalyzeObjectEntry( const AnalyzeObjectEntry & rhs );
-
+#endif
 private:
   char m_Name[32];
   int m_DisplayFlag;
