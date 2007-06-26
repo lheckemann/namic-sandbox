@@ -81,7 +81,7 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
 
   // Set the kernel function
   m_KernelFunction.resize(this->m_NumberOfImages);
-  for(int i=0; i<this->m_NumberOfImages; i++)
+  for(unsigned int i=0; i<this->m_NumberOfImages; i++)
   {
     m_KernelFunction[i] =
         dynamic_cast < KernelFunction * >(GaussianKernelFunction::New().GetPointer ());
@@ -93,7 +93,7 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
   }
 
   //check whether there is a mask
-  for (int j = 0; j < this->m_NumberOfImages; j++)
+  for (unsigned int j = 0; j < this->m_NumberOfImages; j++)
   {
     if ( this->m_ImageMaskArray[j] )
     {
@@ -104,7 +104,7 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
 
 
   m_TransformParametersArray.resize(this->m_NumberOfImages);
-  for(int i=0; i<this->m_NumberOfImages; i++)
+  for(unsigned int i=0; i<this->m_NumberOfImages; i++)
   {
     m_TransformParametersArray[i].set_size(this->numberOfParameters);
   }
@@ -118,7 +118,7 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
   for(int i=0; i<m_NumberOfThreads; i++)
   {
     m_DerivativesArray[i].resize(this->m_NumberOfImages);
-    for(int j=0; j<this->m_NumberOfImages; j++)
+    for(unsigned int j=0; j<this->m_NumberOfImages; j++)
     {
       m_DerivativesArray[i][j].SetSize(this->numberOfParameters);
     }
@@ -126,7 +126,7 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
 
   // Each image has its own derivative calculator
   m_DerivativeCalculator.resize(this->m_NumberOfImages);
-  for(int i=0; i<this->m_NumberOfImages; i++)
+  for(unsigned int i=0; i<this->m_NumberOfImages; i++)
   {
     // separate for each thread
     m_DerivativeCalculator[i].resize(m_NumberOfThreads);
@@ -180,7 +180,7 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
   if( this->m_Regularization &&
       !strcmp(this->m_TransformArray[0]->GetNameOfClass(), "BSplineDeformableTransform") )
   {
-    for(int i=0; i<this->m_NumberOfImages;i++)
+    for(unsigned int i=0; i<this->m_NumberOfImages;i++)
     {
       if( !this->m_BSplineTransformArray[i] )
       {
@@ -202,7 +202,7 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
     m_BSplineGradientArray.resize(this->m_NumberOfImages);
     m_BSplineHessianArray.resize(this->m_NumberOfImages);
     m_BSplineGradientImagesArray.resize(this->m_NumberOfImages);
-    for(int i=0; i<this->m_NumberOfImages; i++)
+    for(unsigned int i=0; i<this->m_NumberOfImages; i++)
     {
       m_BSplineGradientArray[i].resize(MovingImageType::ImageDimension);
       m_BSplineHessianArray[i].resize(MovingImageType::ImageDimension);
@@ -318,8 +318,8 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
   unsigned long numberOfFixedImagePixelsVisited = 0;
   unsigned long dryRunTolerance = 3*this->GetFixedImageRegion().GetNumberOfPixels();
 
-
-  for (int i=0; i<this->m_NumberOfSpatialSamples; i++)
+  std::vector<MovingImagePointType>   mappedPointsArray(this->m_NumberOfImages);
+  for(unsigned long int i=0; i<this->m_NumberOfSpatialSamples; i++)
   {
     // Get sampled index
     FixedImageIndexType index = randIter->GetIndex();
@@ -339,23 +339,23 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
     //Check whether all points are inside mask
     bool allPointsInside = true;
     bool pointInsideMask = false;
-    for (int j = 0; j < this->m_NumberOfImages && allPointsInside; j++)
+    for(unsigned int j = 0; j < this->m_NumberOfImages && allPointsInside; j++)
     {
-      this->m_Sample[i].mappedPointsArray[j] = this->m_TransformArray[j]->TransformPoint (this->m_Sample[i].FixedImagePoint);
+      mappedPointsArray[j] = this->m_TransformArray[j]->TransformPoint (this->m_Sample[i].FixedImagePoint);
 
       //check whether sampled point is in one of the masks
       if ( this->m_ImageMaskArray[j] && !this->m_ImageMaskArray[j]
-           ->IsInside (this->m_Sample[i].mappedPointsArray[j])  )
+           ->IsInside (mappedPointsArray[j])  )
       {
         pointInsideMask = true;
       }
 
       allPointsInside = allPointsInside && this->m_InterpolatorArray[j]
-          ->IsInsideBuffer (this->m_Sample[i].mappedPointsArray[j]);
+          ->IsInsideBuffer (mappedPointsArray[j]);
     }
 
     // If not all points are inside continue to the next random sample
-    if (allPointsInside == false || (m_UseMask && pointInsideMask == false) )
+    if(allPointsInside == false || (m_UseMask && pointInsideMask == false) )
     {
       ++(*randIter);
       i--;
@@ -363,9 +363,9 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
     }
 
     // write the mapped samples intensity values inside an array
-    for (int j = 0; j < this->m_NumberOfImages; j++)
+    for(unsigned int j = 0; j < this->m_NumberOfImages; j++)
     {
-      this->m_Sample[i].imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(this->m_Sample[i].mappedPointsArray[j]);
+      this->m_Sample[i].imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(mappedPointsArray[j]);
       //this->m_Sample[i].gradientArray[j] = this->m_GradientInterpolatorArray[j]->Evaluate(this->m_Sample[i].mappedPointsArray[j]);
       allOutside = false;
     }
@@ -374,7 +374,7 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
 
   }
 
-  if (allOutside)
+  if(allOutside)
   {
     // if all the samples mapped to the outside throw an exception
     itkExceptionMacro(<<"All the sampled point mapped to outside of the moving image");
@@ -444,10 +444,10 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 {
   //Make sure that each transform parameters are updated
   // Loop over images
-  for (int i = 0; i < this->m_NumberOfImages; i++)
+  for( unsigned int i = 0; i < this->m_NumberOfImages; i++)
   {
     //Copy the parameters of the current transform
-    for (int j = 0; j < this->numberOfParameters; j++)
+    for (unsigned int j = 0; j < this->numberOfParameters; j++)
     {
       m_TransformParametersArray[i][j] = parameters[this->numberOfParameters * i + j];
     }
@@ -468,9 +468,9 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 
   // Update intensity values
   MovingImagePointType mappedPoint;
-  for(int i=threadId; i< this->m_NumberOfSpatialSamples; i += m_NumberOfThreads )
+  for(unsigned long int i=threadId; i< this->m_NumberOfSpatialSamples; i += m_NumberOfThreads )
   {
-    for(int j=0; j<this->m_NumberOfImages; j++)
+    for(unsigned int j=0; j<this->m_NumberOfImages; j++)
     {
       mappedPoint = this->m_TransformArray[j]->TransformPoint(this->m_Sample[i].FixedImagePoint);
       if(this->m_InterpolatorArray[j]->IsInsideBuffer (mappedPoint) )
@@ -485,14 +485,14 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
   double dSum;
 
   // Loop over the pixel stacks
-  for (int a=threadId; a<this->m_NumberOfSpatialSamples; a += m_NumberOfThreads )
+  for(unsigned long int a=threadId; a<this->m_NumberOfSpatialSamples; a += m_NumberOfThreads )
   {
 
-    for (int j = 0; j < this->m_NumberOfImages; j++)
+    for(unsigned int j = 0; j < this->m_NumberOfImages; j++)
     {
       dSum = 0.0;
       
-      for(int k = 0; k < this->m_NumberOfImages; k++)
+      for(unsigned int k = 0; k < this->m_NumberOfImages; k++)
       {
 
         dSum += m_KernelFunction[threadId]->Evaluate( ( this->m_Sample[a].imageValueArray[j] - this->m_Sample[a].imageValueArray[k] )
@@ -509,17 +509,16 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
   if(this->m_Regularization )
   {
     double sumOfSquares = 0.0;
-    const unsigned int dim = MovingImageType::ImageDimension*(MovingImageType::ImageDimension+1)/2;
-    
+
     typedef typename BSplineTransformType::RegionType RegionType;
     
     GradientPixelType gradientVoxel;
     
-    for (int i=threadId; i<this->m_NumberOfImages; i+= m_NumberOfThreads)
+    for(unsigned int i=threadId; i<this->m_NumberOfImages; i+= m_NumberOfThreads)
     {
       const RegionType region = this->m_BSplineTransformArray[i]->GetGridRegion();
 
-      for(int j=0; j<MovingImageType::ImageDimension; j++)
+      for(unsigned int j=0; j<MovingImageType::ImageDimension; j++)
       {
         
         typedef itk::ImageRegionConstIterator<GradientImageType> GradientIteratorType;
@@ -594,7 +593,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
   MeasureType value = NumericTraits< RealType >::Zero;
 
   // Sum over the values returned by threads
-  for( unsigned int i=0; i < m_NumberOfThreads; i++ )
+  for( int i=0; i < m_NumberOfThreads; i++ )
   {
     value += m_value[i];
   }
@@ -669,10 +668,10 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
   this->SampleFixedImageDomain (this->m_Sample);
 
   // Loop over images
-  for (int i = 0; i < this->m_NumberOfImages; i++)
+  for (unsigned int i = 0; i < this->m_NumberOfImages; i++)
   {
     //Copy the parameters of the current transform
-    for (int j = 0; j < this->numberOfParameters; j++)
+    for (unsigned int j = 0; j < this->numberOfParameters; j++)
     {
       m_TransformParametersArray[i][j] = parameters[this->numberOfParameters * i + j];
     }
@@ -698,12 +697,12 @@ void ParzenWindowEntropyMultiImageMetric < TFixedImage >
   derivative.Fill (0.0);
 
   // Sum over the values returned by threads
-  for( unsigned int i=0; i < m_NumberOfThreads; i++ )
+  for( int i=0; i < m_NumberOfThreads; i++ )
   {
     value += m_value[i];
-    for(int j=0; j<this->m_NumberOfImages; j++)
+    for(unsigned int j=0; j<this->m_NumberOfImages; j++)
     {
-      for(int k=0; k<this->numberOfParameters; k++)
+      for(unsigned int k=0; k<this->numberOfParameters; k++)
       {
         derivative[j * this->numberOfParameters + k] += m_DerivativesArray[i][j][k]; 
       }
@@ -717,16 +716,16 @@ void ParzenWindowEntropyMultiImageMetric < TFixedImage >
   //Remove mean
   DerivativeType sum (this->numberOfParameters);
   sum.Fill(0.0);
-  for (int i = 0; i < this->m_NumberOfImages; i++)
+  for (unsigned int i = 0; i < this->m_NumberOfImages; i++)
   {
-    for (int j = 0; j < this->numberOfParameters; j++)
+    for (unsigned int j = 0; j < this->numberOfParameters; j++)
     {
       sum[j] += derivative[i * this->numberOfParameters + j];
     }
   }
 
   
-  for (int i = 0; i < this->m_NumberOfImages * this->numberOfParameters; i++)
+  for (unsigned int i = 0; i < this->m_NumberOfImages * this->numberOfParameters; i++)
   {
     derivative[i] -= sum[i % this->numberOfParameters] / (double) this->m_NumberOfImages;
   }
@@ -744,10 +743,9 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 ::GetThreadedValueAndDerivative(int threadId) const
 {
   
-  MeasureType value = NumericTraits < MeasureType >::Zero;
 
   //Initialize the derivative array to zero
-  for(int i=0; i<this->m_NumberOfImages;i++)
+  for(unsigned int i=0; i<this->m_NumberOfImages;i++)
   {
     m_DerivativesArray[threadId][i].Fill(0.0);
   }
@@ -758,14 +756,14 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
   std::vector<double> W_j(this->m_NumberOfImages);
 
   // Loop over the pixel stacks
-  for (int x=threadId; x<this->m_NumberOfSpatialSamples; x += m_NumberOfThreads )
+  for(unsigned long int x=threadId; x<this->m_NumberOfSpatialSamples; x += m_NumberOfThreads )
   {
     // Calculate the entropy
-    for (int j = 0; j < this->m_NumberOfImages; j++)
+    for(unsigned int j = 0; j < this->m_NumberOfImages; j++)
     {
       W_j[j] = 0.0;
       
-      for(int k = 0; k < this->m_NumberOfImages; k++)
+      for(unsigned int k = 0; k < this->m_NumberOfImages; k++)
       {
 
         W_j[j] += m_KernelFunction[threadId]->Evaluate( ( this->m_Sample[x].imageValueArray[j] - this->m_Sample[x].imageValueArray[k] ) /
@@ -778,11 +776,11 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 
 
     // Calculate derivative
-    for (int l = 0; l < this->m_NumberOfImages; l++)
+    for(unsigned int l = 0; l < this->m_NumberOfImages; l++)
     {
 
       double weight = 0.0;
-      for(int j=0; j<this->m_NumberOfImages; j++)
+      for(unsigned int j=0; j<this->m_NumberOfImages; j++)
       {
 
         const double diff = (this->m_Sample[x].imageValueArray[l] - this->m_Sample[x].imageValueArray[j] );
@@ -806,7 +804,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
     GradientPixelType gradientVoxel;
     int parametersIndex = 0;
 
-    for (int i=threadId; i<this->m_NumberOfImages; i+= m_NumberOfThreads)
+    for(unsigned int i=threadId; i<this->m_NumberOfImages; i+= m_NumberOfThreads)
     {
       const RegionType region = this->m_BSplineTransformArray[i]->GetGridRegion();
       parametersIndex = 0;
@@ -1071,7 +1069,8 @@ void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
 UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSample& sample, const RealType& weight, const int& imageNumber, const int& threadID) const
 {
 
-  const CovarientType gradient = m_DerivativeCalculator[imageNumber][threadID]->Evaluate(sample.mappedPointsArray[imageNumber]);
+  const CovarientType gradient = m_DerivativeCalculator[imageNumber][threadID]->Evaluate(
+                                                this->m_TransformArray[imageNumber]->TransformPoint (sample.FixedImagePoint) );
   //typedef FixedArray < double, MovingImageDimension > FixedArrayType;
   //const FixedArrayType gradient = this->m_GradientInterpolatorArray[imageNumber]->Evaluate(sample.mappedPointsArray[imageNumber]);
 
@@ -1103,7 +1102,7 @@ UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSamp
     WeigtsType bsplineWeights(numberOfWeights);
     this->m_BSplineTransformArray[imageNumber]->GetJacobian(sample.FixedImagePoint, bsplineIndexes, bsplineWeights);
 
-    for (unsigned int k = 0; k < numberOfWeights; k++)
+    for (int k = 0; k < numberOfWeights; k++)
     {
 
         for (unsigned int j = 0; j < MovingImageDimension; j++)

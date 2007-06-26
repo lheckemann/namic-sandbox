@@ -80,7 +80,7 @@ void MultiResolutionMultiImageRegistrationMethod<ImageType>
   {
     m_GradientImagePyramidArray[i].resize(m_NumberOfLevels);
     
-    for(int j=0; j<m_NumberOfLevels; j++)
+    for(unsigned int j=0; j<m_NumberOfLevels; j++)
     {
       m_GradientImagePyramidArray[i][j]=0;
     }
@@ -335,7 +335,7 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
     m_LastTransformParameters = m_Optimizer->GetCurrentPosition();
     for(int i=0; i<m_NumberOfImages; i++)
     {
-      for(int j=0; j<m_TransformArray[i]->GetNumberOfParameters();j++)
+      for(unsigned int j=0; j<m_TransformArray[i]->GetNumberOfParameters();j++)
       {
         current[j] = m_LastTransformParameters[i*m_TransformArray[i]->GetNumberOfParameters()+j];
       }
@@ -404,7 +404,7 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
 ::SetInitialTransformParameters( const ParametersType & param, int i )
 {
 
-  for(int j=0; j < param.Size(); j++)
+  for(unsigned int j=0; j < param.Size(); j++)
   {
     m_InitialTransformParameters[i*param.Size()+j] = param[j];
   }
@@ -431,7 +431,7 @@ void
 MultiResolutionMultiImageRegistrationMethod<ImageType>
 ::SetInitialTransformParametersOfNextLevel( const ParametersType & param, int i )
 {
-  for(int j=0; j < param.Size(); j++)
+  for(unsigned int j=0; j < param.Size(); j++)
   {
     m_InitialTransformParametersOfNextLevel[i*param.Size()+j] = param[j];
   }

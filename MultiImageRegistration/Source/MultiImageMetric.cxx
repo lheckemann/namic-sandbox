@@ -48,7 +48,6 @@ MultiImageMetric<TFixedImage>
   m_ImageArray.resize(0);
   m_GradientImageArray.resize(0);
   m_InterpolatorArray.resize(0);
-  m_MutualInformationInterpolatorArray.resize(0);
   m_TransformArray.resize(0);
   m_ImageMaskArray.resize(0);
 
@@ -103,7 +102,7 @@ MultiImageMetric<TFixedImage>
 ::Initialize(void) throw ( ExceptionObject )
 {
 
-  for(int i=0; i<this->m_NumberOfImages; i++)
+  for(unsigned int i=0; i<this->m_NumberOfImages; i++)
   {
     if( !m_TransformArray[i] )
     {
@@ -135,7 +134,7 @@ MultiImageMetric<TFixedImage>
     itkExceptionMacro(<<"FixedImageRegion does not overlap the fixed image buffered region" );
   }
 
-  for(int i=0; i < this->m_NumberOfImages; i++)
+  for(unsigned int i=0; i < this->m_NumberOfImages; i++)
   {
     m_InterpolatorArray[i]->SetInputImage( m_ImageArray[i] );
   }
@@ -145,10 +144,10 @@ MultiImageMetric<TFixedImage>
 
   // allocate new sample array
   this->m_Sample.resize(this->m_NumberOfSpatialSamples);
-  for (int i = 0; i < this->m_NumberOfSpatialSamples; i++)
+  for (unsigned int i = 0; i < this->m_NumberOfSpatialSamples; i++)
   {
     this->m_Sample[i].imageValueArray.set_size (this->m_NumberOfImages);
-    this->m_Sample[i].mappedPointsArray.resize(this->m_NumberOfImages);
+    //this->m_Sample[i].mappedPointsArray.resize(this->m_NumberOfImages);
   }
   
   // Use optimized Bspline derivatives if the tranform type is UserBSplie
@@ -165,7 +164,7 @@ MultiImageMetric<TFixedImage>
   // Check whether Bspline tranform are initialized correctly
   if(this->m_UserBsplineDefined == true)
   {
-    for(int i=0; i<this->m_NumberOfImages; i++)
+    for(unsigned int i=0; i<this->m_NumberOfImages; i++)
     {
 
       if( !m_BSplineTransformArray[i] )
@@ -211,7 +210,7 @@ MultiImageMetric<TFixedImage>
   os << indent << "ComputeGradient: "
      << static_cast<typename NumericTraits<bool>::PrintType>(m_ComputeGradient)
      << std::endl;
-  for( int i=0; i<this->m_NumberOfImages; i++)
+  for( unsigned int i=0; i<this->m_NumberOfImages; i++)
   {
     os << indent << "Moving Image: "  << i << " " << m_ImageArray[i].GetPointer()  << std::endl;
     //os << indent << "Gradient Image: "<< i << " " << m_GradientImageArray[i].GetPointer()   << std::endl;
@@ -233,7 +232,6 @@ MultiImageMetric<TFixedImage>
   m_ImageArray.resize(N);
   m_GradientImageArray.resize(N);
   m_InterpolatorArray.resize(N);
-  m_MutualInformationInterpolatorArray.resize(N);
   m_TransformArray.resize(N);
   m_ImageMaskArray.resize(N);
   m_GradientInterpolatorArray.resize(N);
@@ -244,7 +242,6 @@ MultiImageMetric<TFixedImage>
     m_ImageArray[i] =0;
     m_GradientImageArray[i]=0;
     m_InterpolatorArray[i]=0;
-    m_MutualInformationInterpolatorArray[i] = 0;
     m_TransformArray[i]=0;
     m_ImageMaskArray[i]=0;
     m_GradientInterpolatorArray[i] = 0;

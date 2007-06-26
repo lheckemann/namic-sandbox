@@ -141,7 +141,7 @@ public:
   inline PixelType operator()( const std::vector< PixelType > pixelStack)
   {
     PixelType count = 0;
-    for(int i=0; i<pixelStack.size(); i++)
+    for(unsigned int i=0; i<pixelStack.size(); i++)
     {
       if( pixelStack[i] == m_Number)
       {
@@ -170,7 +170,7 @@ public:
   inline PixelType operator()( const std::vector< PixelType > pixelStack)
   {
     double sum = 0.0;
-    for(int i=0; i<pixelStack.size(); i++)
+    for(unsigned int i=0; i<pixelStack.size(); i++)
     {
       sum += pixelStack[i];
     }
@@ -197,7 +197,7 @@ public:
     // Compute mean
     double sum = 0.0;
     double squareSum = 0.0;
-    for(int i=0; i<pixelStack.size(); i++)
+    for(unsigned int i=0; i<pixelStack.size(); i++)
     {
       sum += pixelStack[i];
       squareSum += pixelStack[i]*pixelStack[i];
@@ -254,10 +254,10 @@ int main( int argc, char * argv[] )
     }
   }
 
-  const unsigned int N = fileNames.size();
+  const int N = fileNames.size();
 
   // check whether all labels exist
-  if( N != labelFileNames.size())
+  if( (unsigned int)N != labelFileNames.size())
   {
     cout << " Number of label files do not match number of input files " << endl;
     return 1;

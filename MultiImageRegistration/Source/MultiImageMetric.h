@@ -28,7 +28,6 @@
 #include "itkMultiThreader.h"
 #include "itkImageMaskSpatialObject.h"
 #include "UserBSplineDeformableTransform.h"
-#include "MutualInformationLinearInterpolateImageFunction.h"
 
 #include <vector>
 #include "UserMacro.h"
@@ -106,10 +105,7 @@ public:
                                  MovingImageType,
                                  CoordinateRepresentationType > InterpolatorType;
 
-  typedef MutualInformationLinearInterpolateImageFunction<
-                                 MovingImageType,
-                                 CoordinateRepresentationType > MutualInformationInterpolatorType;
-                                 
+
   /** Gaussian filter to compute the gradient of the Moving Image */
   typedef typename NumericTraits<PixelType>::RealType RealType;
   typedef CovariantVector<PixelType,itkGetStaticConstMacro(MovingImageDimension)> GradientPixelType;
@@ -122,9 +118,6 @@ public:
   typedef typename InterpolatorType::Pointer         InterpolatorPointer;
   typedef std::vector<InterpolatorPointer>           InterpolatorPointerArray;
 
-  typedef typename MutualInformationInterpolatorType::Pointer         MutualInformationInterpolatorPointer;
-  typedef std::vector<MutualInformationInterpolatorPointer>           MutualInformationInterpolatorPointerArray;
-  
   /** interpolator for gradient images */
   typedef VectorInterpolateImageFunction<
                                  GradientImageType,
@@ -176,12 +169,6 @@ public:
   /** Get a pointer to the i'th Interpolator.  */
   UserGetConstObjectMacro( InterpolatorArray, InterpolatorType );
 
-  /** Connect the i'th Mutual Information Interpolator. */
-  UserSetObjectMacro( MutualInformationInterpolatorArray, MutualInformationInterpolatorType );
-
-  /** Get a pointer to the i'th Mutual Information Interpolator.  */
-  UserGetConstObjectMacro( MutualInformationInterpolatorArray, MutualInformationInterpolatorType );
-  
   /** Connect the i'th gradient Interpolator. */
   UserSetObjectMacro( GradientInterpolatorArray, GradientInterpolatorType );
 
@@ -270,8 +257,7 @@ protected:
 
   mutable TransformPointerArray m_TransformArray;
   InterpolatorPointerArray    m_InterpolatorArray;
-  MutualInformationInterpolatorPointerArray m_MutualInformationInterpolatorArray;
-      
+
   GradientInterpolatorPointerArray m_GradientInterpolatorArray;
   
   bool                        m_ComputeGradient;
@@ -329,7 +315,7 @@ protected:
   mutable std::vector<BSplineTransformTypePointer> m_BSplineTransformArray;
   bool m_UserBsplineDefined;
 
-  unsigned int                        m_NumberOfSpatialSamples;
+  unsigned long int                        m_NumberOfSpatialSamples;
 
   /** A spatial sample consists of the fixed domain point, the fixed image value
    *   at that point, and the corresponding moving image value. */
@@ -343,9 +329,8 @@ protected:
       ~SpatialSample(){};
 
       FixedImagePointType              FixedImagePoint;
-      Array< PixelType >                   imageValueArray;
-      std::vector<MovingImagePointType>   mappedPointsArray;
-      //GradientPixelType*  gradientArray;
+      Array< float >                   imageValueArray;
+      //std::vector<MovingImagePointType>   mappedPointsArray;
 
   };
   mutable std::vector<SpatialSample>      m_Sample;
