@@ -87,18 +87,6 @@ public:
   AnalyzeObjectEntry( const AnalyzeObjectEntry & rhs );
 
   /**
-   * \brief AnalyzeObjectEntry( Object & rhs ) is a constructor that creates an ObjectEntry
-   * from an Object structure
-   * \param const Object & rhs
-   * \return none
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa AnalyzeObjectEntry
-   * \sa Object
-   */
-  AnalyzeObjectEntry( const Object & rhs );
-
-  /**
    * \brief ~AnalyzeObjectEntry( void ) is the destructor, which does nothing explicitly due to
    * no use of dynamic allocation
    * \param none
@@ -141,947 +129,309 @@ public:
   bool setName( const std::string name );
 
   /**
-   * \brief getDisplayFlag gets the Display Flag
-   * \param none
-   * \return DisplayFlag integer
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-
-  /**
+   * \brief getDisplayFlag/setDisplayFlag
    * DisplayFlag is used to enable or disable the display of this
    * particular object. A value of zero value indicates
    * that voxels of this object type are ignored or assumed to be outside
    * the threshold range during the raycasting process.
    */
   int getDisplayFlag( void ) const;
-
-  /**
-   * \brief getCopyFlag gets the Copy Flag
-   * \param none
-   * \return CopyFlag unsigned char
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  unsigned char getCopyFlag( void ) const;
-
-  /**
-   * \brief getMirrorFlag gets the Mirror Flag
-   * \param none
-   * \return MirrorFlag unsigned char
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  unsigned char getMirrorFlag( void ) const;
-
-  /**
-   * \brief getStatusFlag gets the Status Flag
-   * \param none
-   * \return StatusFlag unsigned char
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  unsigned char getStatusFlag( void ) const;
-
-  /**
-   * \brief getNeighborsUsedFlag gets the Neighbors Used Flag
-   * \param none
-   * \return NeighborsUsedFlag unsigned char
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  unsigned char getNeighborsUsedFlag( void ) const;
-
-  /**
-   * \brief getShades gets Shades
-   * \param none
-   * \return Shades int, the number of shades for the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getShades( void ) const;
-
-  /**
-   * \brief getStartRed gets StartRed
-   * \param none
-   * \return StartRed int, specifies the starting color for the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getStartRed( void ) const;
-
-  /**
-   * \brief getStartGreen gets StartGreen
-   * \param none
-   * \return StartGreen int, specifies the starting color for the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getStartGreen( void ) const;
-
-  /**
-   * \brief getStartBlue gets StartBlue
-   * \param none
-   * \return StartBlue int, specifies the starting color for the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getStartBlue( void ) const;
-
-  /**
-   * \brief getEndRed gets EndRed
-   * \param none
-   * \return EndRed int, specifies the ending color for the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getEndRed( void ) const;
-
-  /**
-   * \brief getEndGreen gets EndGreen
-   * \param none
-   * \return EndGreen int, specifies the ending color for the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getEndGreen( void ) const;
-
-  /**
-   * \brief getEndBlue gets EndBlue
-   * \param none
-   * \return EndBlue int, specifies the ending color for the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getEndBlue( void ) const;
-
-  /**
-   * \brief getXRotation gets XRotation
-   * \param none
-   * \return getXRotation int, specifies the rotation for the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getXRotation( void ) const;
-
-  /**
-   * \brief getYRotation gets YRotation
-   * \param none
-   * \return getYRotation int, specifies the rotation for the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getYRotation( void ) const;
-
-  /**
-   * \brief getZRotation gets ZRotation
-   * \param none
-   * \return ZRotation int, specifies the rotation for the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getZRotation( void ) const;
-
-  /**
-   * \brief getXTranslation gets XTranslation
-   * \param none
-   * \return XTranslation int, specifies the translation of the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getXTranslation( void ) const;
-
-  /**
-   * \brief getYTranslation gets YTranslation
-   * \param none
-   * \return YTranslation int, specifies the translation of the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getYTranslation( void ) const;
-
-  /**
-   * \brief getZTranslation gets ZTranslation
-   * \param none
-   * \return ZTranslation int, specifies the translation of the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getZTranslation( void ) const;
-
-  /**
-   * \brief getXCenter gets XCenter
-   * \param none
-   * \return XCenter int, specifies the rotation center
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getXCenter( void ) const;
-
-  /**
-   * \brief getYCenter gets YCenter
-   * \param none
-   * \return YCenter int, specifies the rotation center
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getYCenter( void ) const;
-
-  /**
-   * \brief getZCenter gets ZCenter
-   * \param none
-   * \return ZCenter int, specifies the rotation center
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getZCenter( void ) const;
-
-  /**
-   * \brief getXRotationIncrement gets XRotationIncrement
-   * \param none
-   * \return XRotationIncrement int, specifies the rotation increment
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getXRotationIncrement( void ) const;
-
-  /**
-   * \brief getYRotationIncrement gets YRotationIncrement
-   * \param none
-   * \return YRotationIncrement int, specifies the rotation increment
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getYRotationIncrement( void ) const;
-
-  /**
-   * \brief getZRotationIncrement gets ZRotationIncrement
-   * \param none
-   * \return ZRotationIncrement int, specifies the rotation increment
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getZRotationIncrement( void ) const;
-
-  /**
-   * \brief getXTranslationIncrement gets XTranslationIncrement
-   * \param none
-   * \return XTranslationIncrement int, specifies the translation increment
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getXTranslationIncrement( void ) const;
-
-  /**
-   * \brief getYTranslationIncrement gets YTranslationIncrement
-   * \param none
-   * \return YTranslationIncrement int, specifies the translation increment
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getYTranslationIncrement( void ) const;
-
-  /**
-   * \brief getZTranslationIncrement gets ZTranslationIncrement
-   * \param none
-   * \return ZTranslationIncrement int, specifies the translation increment
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getZTranslationIncrement( void ) const;
-
-  /**
-   * \brief getMinimumXValue gets MinimumXValue
-   * \param none
-   * \return MinimumXValue short int, specifies the minimum X coordinate of the enclosing brick of the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  short int getMinimumXValue( void ) const;
-
-  /**
-   * \brief getMinimumYValue gets MinimumYValue
-   * \param none
-   * \return MinimumYValue short int, specifies the minimum Y coordinate of the enclosing brick of the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  short int getMinimumYValue( void ) const;
-
-  /**
-   * \brief getMinimumZValue gets MinimumZValue
-   * \param none
-   * \return MinimumZValue short int, specifies the minimum Z coordinate of the enclosing brick of the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  short int getMinimumZValue( void ) const;
-
-  /**
-   * \brief getMaximumXValue gets MaximumXValue
-   * \param none
-   * \return MaximumXValue short int, specifies the maximum X coordinate of the enclosing brick of the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  short int getMaximumXValue( void ) const;
-
-  /**
-   * \brief getMaximumYValue gets MaximumYValue
-   * \param none
-   * \return MaximumYValue short int, specifies the maximum Y coordinate of the enclosing brick of the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  short int getMaximumYValue( void ) const;
-
-  /**
-   * \brief getMaximumZValue gets MaximumZValue
-   * \param none
-   * \return MaximumZValue short int, specifies the maximum Z coordinate of the enclosing brick of the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  short int getMaximumZValue( void ) const;
-
-  /**
-   * \brief getOpacity gets Opacity
-   * \param none
-   * \return Opacity float, the current opacity setting of the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  float getOpacity( void ) const;
-
-  /**
-   * \brief getOpacityThickness gets OpacityThickness
-   * \param none
-   * \return Opacity int, the current opacity thickness setting of the object
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getOpacityThickness( void ) const;
-
-  /**
-   * \brief getBlendFactor gets BlendFactor
-   * \param none
-   * \return BlendFactor int, room for expansion
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  int getBlendFactor( void ) const;
-
-  /**
-   * \brief setDisplayFlag sets DisplayFlag
-   * \param int displayflag
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
   bool setDisplayFlag( const int displayflag );
 
   /**
-   * \brief setCopyFlag sets CopyFlag
-   * \param unsigned char copyflag
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setCopyFlag( const unsigned char copyflag );
-
-  /**
-   * \brief setMirrorFlag sets MirrorFlag
-   * \param unsigned char mirrorflag
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setMirrorFlag( const unsigned char mirrorflag );
-
-  /**
-   * \brief setStatusFlag sets StatusFlag
-   * \param unsigned char statusflag
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setStatusFlag( const unsigned char statusflag );
-
-  /**
-   * \brief setNeighborsUsedFlag sets NeighborsUsedFlag
-   * \param unsigned char neighborsusedflag
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setNeighborsUsedFlag( const unsigned char neighborsusedflag );
-
-  /**
-   * \brief setShades sets Shades
-   * \param int shades
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - parameter shades exceeds Analyze's limit on shades for an object (256 or 250 in Analyze)
-   * \sa Object
-   */
-  bool setShades( const int shades );
-
-  /**
-   * \brief setStartColor sets StartRed, StartGreen, StartBlue for creating the colormap
-   * \param int startred
-   * \param int startgreen
-   * \param int startblue
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setStartColor( const int startred, const int startgreen, const int startblue );
-
-  /**
-   * \brief setStartRed sets StartRed for creating the colormap
-   * \param int startred
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setStartRed( const int startred );
-
-  /**
-   * \brief setStartGreen sets StartGreen for creating the colormap
-   * \param int startgreen
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setStartGreen( const int startgreen );
-
-  /**
-   * \brief setStartBlue sets StartBlue for creating the colormap
-   * \param int startblue
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setStartBlue( const int startblue );
-
-  /**
-   * \brief setEndColor sets EndRed, EndGreen, EndBlue for creating the colormap
-   * \param int endred
-   * \param int endgreen
-   * \param int endblue
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setEndColor( const int endred, const int endgreen, const int endblue );
-
-  /**
-   * \brief setEndRed sets EndRed for creating the colormap
-   * \param int endred
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setEndRed( const int endred );
-
-  /**
-   * \brief setEndGreen sets EndGreen for creating the colormap
-   * \param int endgreen
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setEndGreen( const int endgreen );
-
-  /**
-   * \brief setEndBlue sets EndBlue for creating the colormap
-   * \param int endblue
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setEndBlue( const int endblue );
-
-  /**
-   * \brief setRotation sets XRotation, YRotation, ZRotation for the rotation of the object
-   * \param int xrotation
-   * \param int yrotation
-   * \param int zrotation
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setRotation( const int xrotation, const int yrotation, const int zrotation );
-
-  /**
-   * \brief setTranslation sets XTranslation, YTranslation, ZTranslation for the translation of the object
-   * \param int xtranslation
-   * \param int ytranslation
-   * \param int ztranslation
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setTranslation( const int xtranslation, const int ytranslation, const int ztranslation );
-
-  /**
-   * \brief setCenter sets XCenter, YCenter, ZCenter for the center of the object
-   * \param int xcenter
-   * \param int ycenter
-   * \param int zcenter
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setCenter( const int xcenter, const int ycenter, const int zcenter );
-
-  /**
-   * \brief setCenter sets XCenter, for the center of the object
-   * \param int xcenter
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setXCenter( const int xcenter );
-
-  /**
-   * \brief setCenter sets YCenter, for the center of the object
-   * \param int ycenter
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setYCenter( const int ycenter );
-
-  /**
-   * \brief setCenter sets ZCenter, for the center of the object
-   * \param int zcenter
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setZCenter( const int zcenter );
-
-  /**
-   * \brief setRotationIncrement sets XRotationIncrement, YRotationIncrement, ZRotationIncrement
-   * for the rotation increment of the object
-   * \param int xrotationincrement
-   * \param int yrotationincrement
-   * \param int zrotationincrement
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setRotationIncrement( const int xrotationincrement,
-    const int yrotationincrement,
-    const int zrotationincrement );
-
-  /**
-   * \brief setTranslationIncrement sets XTranslationIncrement,
-   * YTranslationIncrement, ZTranslationIncrement
-   * for the translation increment of the object
-   * \param int xtranslationincrement
-   * \param int ytranslationincrement
-   * \param int ztranslationincrement
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setTranslationIncrement( const int xtranslationincrement,
-    const int ytranslationincrement,
-    const int ztranslationincrement );
-
-  /**
-   * \brief setMinimumCoordinate sets MinimumXValue, MinimumYValue, MinimumZValue which represents the
-   * minimum coordinate of the bounding brick of the object used for rendering by Analyze
-   * \param int minimumxvalue
-   * \param int minimumyvalue
-   * \param int minimumzvalue
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setMinimumCoordinate( const int minimumxvalue, const int minimumyvalue, const int minimumzvalue );
-
-  /**
-   * \brief setMinimumXValue sets MinimumXValue, the minimum x coordinate of the bounding brick of
-   * the object used for rendering by Analyze
-   * \param int minimumxvalue
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setMinimumXValue( const int minimumxvalue );
-
-  /**
-   * \brief setMinimumYValue sets MinimumYValue, the minimum y coordinate of the bounding brick of
-   * the object used for rendering by Analyze
-   * \param int minimumyvalue
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setMinimumYValue( const int minimumyvalue );
-
-  /**
-   * \brief setMinimumZValue sets MinimumZValue, the minimum z coordinate of the bounding brick of
-   * the object used for rendering by Analyze
-   * \param int minimumzvalue
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setMinimumZValue( const int minimumzvalue );
-
-  /**
-   * \brief setMaximumCoordinate sets MaximumXValue,
-   * MaximumYValue, MaximumZValue which represents the
-   * maximum coordinate of the bounding brick of the object used for rendering by Analyze
-   * \param int maximumxvalue
-   * \param int maximumyvalue
-   * \param int maximumzvalue
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setMaximumCoordinate( const int maximumxvalue, const int maximumyvalue, const int maximumzvalue );
-
-  /**
-   * \brief setMaximumXValue sets MaximumXValue, the maximum x coordinate of the bounding brick of
-   * the object used for rendering by Analyze
-   * \param int maximumxvalue
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setMaximumXValue( const int maximumxvalue );
-
-  /**
-   * \brief setMaximumYValue sets MaximumYValue, the maximum y coordinate of the bounding brick of
-   * the object used for rendering by Analyze
-   * \param int maximumyvalue
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setMaximumYValue( const int maximumyvalue );
-
-  /**
-   * \brief setMaximumZValue sets MaximumZValue, the maximum z coordinate of the bounding brick of
-   * the object used for rendering by Analyze
-   * \param int maximumzvalue
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setMaximumZValue( const int maximumzvalue );
-
-  /**
-   * \brief setOpacity sets the current Opacity for the object
-   * \param float opacity
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setOpacity( const float opacity );
-
-  /**
-   * \brief setOpacity sets the current OpacityThickness for the object
-   * \param int opacitythickness
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setOpacityThickness( const int opacitythickness );
-
-  /**
-   * \brief setBlendFactor sets the dummy variable for the object, used for future expansion
-   * \param int dummy
-   * \return bool, true - success, false - failure
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa Object
-   */
-  bool setBlendFactor( const int dummy );
-
-private:
-  char m_Name[32];
-  int m_DisplayFlag;
-
-  /**
+   * \brief getCopyFlag gets the Copy Flag
+   *
    * CopyFlag indicates object translation, rotation, and mirroring are
    * applied to a copy of the actual object, rather
    * than the object itself. [ANALYZE only]
    */
-  unsigned char m_CopyFlag;
+  unsigned char getCopyFlag( void ) const;
+  bool setCopyFlag( const unsigned char copyflag );
+
 
   /**
+   * \brief getMirrorFlag/setMirrorFlag
+   *
    * MirrorFlag indicates the axis this object is mirrored around.
    * [ANALYZE only]
    */
-  unsigned char m_MirrorFlag;
+  unsigned char getMirrorFlag( void ) const;
+  bool setMirrorFlag( const unsigned char mirrorflag );
 
   /**
+   * \brief getStatusFlag/setStatusFlag
+   *
    * StatusFlag is used to indicate when an object has changed and may
    * need it's minimum bounding box recomputed. [ANALYZE only]
    */
-  unsigned char m_StatusFlag;
+  unsigned char getStatusFlag( void ) const;
+  bool setStatusFlag( const unsigned char statusflag );
 
   /**
+   * \brief getNeighborsUsedFlag/setNeighborsUsedFlag
+   *
    * NeighborsUsedFlag indicates which neighboring voxels are used in
    * calculating the objects shading. [ANALYZE only]
    */
-  unsigned char m_NeighborsUsedFlag;
+  unsigned char getNeighborsUsedFlag( void ) const;
+  bool setNeighborsUsedFlag( const unsigned char neighborsusedflag );
 
   /**
+   * \brief getShades/setShades
+   *
    * Shades indicates the number of shades available for this object.
    * Only 256 (250 in ANALYZE) total shades are available.
    */
-  int m_Shades;
+  int getShades( void ) const;
+  bool setShades( const int shades );
 
   /**
+   * \brief getStartRed/setStartRed
+   *
    * StartRed specify the starting color for this object. This is usually a
    * darker shade of the ending color. ANALYZE defaults these values to 10%
    * of the ending color.
    */
-  int m_StartRed;
+  int getStartRed( void ) const;
+  bool setStartRed( const int startred );
 
   /**
+   * \brief getStartGreen/setStartGreen
+   *
    * StartGreen specify the starting color for this object. This is usually
    * a darker shade of the ending color.  ANALYZE defaults these values to
    * 10% of the ending color.
    */
-  int m_StartGreen;
+  int getStartGreen( void ) const;
+  bool setStartGreen( const int startgreen );
 
   /**
+   * \brief getStartBlue/setStartBlue
+   *
    * StartBlue specify the starting color for this object. This is usually a
    * darker shade of the ending color. ANALYZE defaults these values to 10%
    * of the ending color.
    */
-  int m_StartBlue;
+  int getStartBlue( void ) const;
+  bool setStartBlue( const int startblue );
 
   /**
+   * \brief getEndRed/setEndRed
+   *
    * EndRed specify the ending color for this object.
    */
-  int m_EndRed;
+  int getEndRed( void ) const;
+  bool setEndRed( const int endred );
 
   /**
+   * \brief getEndGreen/setEndGreen
+   *
    * EndGreen specify the ending color for this object.
    */
-  int m_EndGreen;
+  int getEndGreen( void ) const;
+  bool setEndGreen( const int endgreen );
 
   /**
+   * \brief getEndBlue/setEndBlue
+   *
    * EndBlue specify the ending color for this object.
    */
-  int m_EndBlue;
+  int getEndBlue( void ) const;
+  bool setEndBlue( const int endblue );
 
   /**
+   * \brief getXRotation
+   *
    * XRotation specify a rotation which is applied to this object only.
    * [ANALYZE only]
    */
-
-  int m_XRotation;
-
-  /**
-   * YRotation specify a rotation which is applied to this object only.
-   * [ANALYZE only]
-   */
-  int m_YRotation;
+  int getXRotation( void ) const;
 
   /**
-   * ZRotation specify a rotation which is applied to this object only.
-   * [ANALYZE only]
-   */
-  int m_ZRotation;
-
-  /**
-   * XTranslation specify a translation which is applied to this object only.
-   * [ANALYZE only]
-   */
-  int m_XTranslation;
-
-  /**
-   * YTranslation specify a translation which is applied to this object only.
-   * [ANALYZE only]
-   */
-  int m_YTranslation;
-
-  /**
-   * ZTranslation specify a translation which is applied to this object only.
-   * [ANALYZE only]
-   */
-  int m_ZTranslation;
-
-  /**
-   * XCenter specify the rotation center, relative to the volumes center,
-   * which the XRotation, YRotation, and ZRotation are rotated around.
-   * [ANALYZE only]
-   */
-  int m_XCenter;
-
-  /**
-   * YCenter specify the rotation center, relative to the volumes center,
-   * which the XRotation, YRotation, and ZRotation are rotated around.
-   * [ANALYZE only]
-   */
-  int m_YCenter;
-
-  /**
-   * ZCenter specify the rotation center, relative to the volumes center,
-   * which the XRotation, YRotation, and ZRotation are rotated around.
-   * [ANALYZE only]
-   */
-  int m_ZCenter;
-
-  /**
+   *\brief getXRotationIncrement
+   *
    * XRotationIncrement specify increments that are applies to XRotation,
    * YRotation, and ZRotation when making a sequence. [ANALYZE only]
    */
-  int m_XRotationIncrement;
+  int getXRotationIncrement( void ) const;
 
   /**
+   * \brief getYRotation
+   *
+   * YRotation specify a rotation which is applied to this object only.
+   * [ANALYZE only]
+   */
+  int getYRotation( void ) const;
+
+  /**
+   *\brief getYRotationIncrement
+   *
    * YRotationIncrement specify increments that are applies to XRotation,
    * YRotation, and ZRotation when making a sequence. [ANALYZE only]
    */
-  int m_YRotationIncrement;
+  int getYRotationIncrement( void ) const;
 
   /**
-   * ZRotationIncrement specify increments that are applies to XRotation,
-   * YRotation, and ZRotation when making a sequence. [ANALYZE only]
-   */
-  int m_ZRotationIncrement;
-
-  /**
-   * XTranslationIncrement specify increments that are applies to
-   * XTranslation, YTranslation, and ZTranslation when making a sequence.
+   * \brief getZRotation
+   *
+   * ZRotation specify a rotation which is applied to this object only.
    * [ANALYZE only]
    */
-  int m_XTranslationIncrement;
+  int getZRotation( void ) const;
+
+   /**
+    *\brief getZRotationIncrement
+    *
+    * ZRotationIncrement specify increments that are applies to XRotation,
+    * YRotation, and ZRotation when making a sequence. [ANALYZE only]
+    */
+  int getZRotationIncrement( void ) const;
 
   /**
-   * YTranslationIncrement specify increments that are applies to
-   * XTranslation, YTranslation, and ZTranslation when making a sequence.
+   * \brief getXTranslation
+   *
+   * XTranslation specify a translation which is applied to this object only.
    * [ANALYZE only]
    */
-  int m_YTranslationIncrement;
+  int getXTranslation( void ) const;
+
+   /**
+    \*brief getXTranslation
+    *
+    * XTranslationIncrement specify increments that are applies to
+    * XTranslation, YTranslation, and ZTranslation when making a sequence.
+    * [ANALYZE only]
+    */
+  int getXTranslationIncrement( void ) const;
 
   /**
+   * \brief getYTranslation
+   *
+   * YTranslation specify a translation which is applied to this object only.
+   * [ANALYZE only]
+   */
+  int getYTranslation( void ) const;
+
+   /**
+    *\brief getYTranslationIncrement
+    *
+    * YTranslationIncrement specify increments that are applies to
+    * XTranslation, YTranslation, and ZTranslation when making a sequence.
+    * [ANALYZE only]
+    */
+  int getYTranslationIncrement( void ) const;
+
+  /**
+   * \brief getZTranslation
+   *
+   * ZTranslation specify a translation which is applied to this object only.
+   * [ANALYZE only]
+   */
+  int getZTranslation( void ) const;
+  
+  /**
+   *\brief getZTranslation
+   *
    * ZTranslationIncrement specify increments that are applies to
    * XTranslation, YTranslation, and ZTranslation when making a sequence.
    * [ANALYZE only]
    */
-  int m_ZTranslationIncrement;
+  int getZTranslationIncrement( void ) const;
 
   /**
+   * \brief getXCenter/setXCenter
+   *
+   * XCenter specify the rotation center, relative to the volumes center,
+   * which the XRotation, YRotation, and ZRotation are rotated around.
+   * [ANALYZE only]
+   */
+  int getXCenter( void ) const;
+  bool setXCenter( const int xcenter );
+
+  /**
+   * \brief getYCenter/setYCenter
+   *
+   * YCenter specify the rotation center, relative to the volumes center,
+   * which the XRotation, YRotation, and ZRotation are rotated around.
+   * [ANALYZE only]
+   */
+  int getYCenter( void ) const;
+  bool setYCenter( const int ycenter );
+
+  /**
+   * \brief getZCenter/setZCenter
+   *
+   * ZCenter specify the rotation center, relative to the volumes center,
+   * which the XRotation, YRotation, and ZRotation are rotated around.
+   * [ANALYZE only]
+   */
+  int getZCenter( void ) const;
+  bool setZCenter( const int zcenter );
+
+
+  /**
+   * \brief getMinimumXValue/setMinimumXValue
+   *
    * MinimumXValue specify the minimum enclosing brick used by ANALYZE to
    * increase the rendering speed of individual objects during object
    * translations and rotations. [ANALYZE only]
    */
-  short int m_MinimumXValue;
+  short int getMinimumXValue( void ) const;
+  bool setMinimumXValue( const int minimumxvalue );
 
   /**
+   * \brief getMinimumYValue/setMinimumYValue
+   *
    * MinimumYValue specify the minimum enclosing brick used by ANALYZE to
    * increase the rendering speed of individual objects during object
    * translations and rotations. [ANALYZE only]
    */
-  short int m_MinimumYValue;
+  short int getMinimumYValue( void ) const;
+  bool setMinimumYValue( const int minimumyvalue );
 
   /**
+   * \brief getMinimumZValue/setMinimumZValue
+   *
    * MinimumZValue specify the minimum enclosing brick used by ANALYZE to
    * increase the rendering speed of individual objects during object
    * translations and rotations. [ANALYZE only]
    */
-  short int m_MinimumZValue;
+  short int getMinimumZValue( void ) const;
+  bool setMinimumZValue( const int minimumzvalue );
 
   /**
+   * \brief getMaximumXValue/setMaximumXValue
+   *
    * MaximumXValue specify the maximum enclosing brick used by ANALYZE to
    * increase the rendering speed of individual objects during object
    * translations and rotations. [ANALYZE only]
    */
-  short int m_MaximumXValue;
+  short int getMaximumXValue( void ) const;
+  bool setMaximumXValue( const int maximumxvalue );
 
   /**
+   * \brief getMaximumYValue/setMaximumYValue
+   *
    * MaximumYValue specify the maximum enclosing brick used by ANALYZE to
    * increase the rendering speed of individual objects during object
    * translations and rotations. [ANALYZE only]
    */
-  short int m_MaximumYValue;
+  short int getMaximumYValue( void ) const;
+  bool setMaximumYValue( const int maximumyvalue );
 
   /**
+   * \brief getMaximumZValue/setMaximumZValue
+   *
    * MaximumZValue specify the maximum enclosing brick used by ANALYZE to
    * increase the rendering speed of individual objects during object
    * translations and rotations. [ANALYZE only]
    */
-  short int m_MaximumZValue;
+  short int getMaximumZValue( void ) const;
+  bool setMaximumZValue( const int maximumzvalue );
 
   /**
+   * \brief getOpacity/setOpacity
+   *
    * Opacity and OpacityThickness are used only when rendering 24-bit
    * transparency images. Opacity is a floating point value between .0001
    * (very transparent) and 1.0 (opaque). The Opacity value is multiplied
@@ -1096,19 +446,139 @@ private:
    * OpacityThickness results in only the surface of each object having a
    * contribution.
    */
-  float m_Opacity;
+  float getOpacity( void ) const;
+  bool setOpacity( const float opacity );
 
   /**
+   * \brief getOpacityThickness/setOpacityThickness
+   *
    * The thickness of the object
    */
-  int m_OpacityThickness;
+  int getOpacityThickness( void ) const;
+  bool setOpacityThickness( const int opacitythickness );
+
   /**
+   * \brief getBlendFactor/setBlendFactor
+   *
    * Determines the amount of object color verses
    * composite color. A value of 1.0, causes all the
    * color to come from the object. A value of 0.0
    * causes all the color to come from the alpha map.
    * A value of .5 will cause half to come from each.
    */
+  int getBlendFactor( void ) const;
+  bool setBlendFactor( const int dummy );
+  
+
+  /**
+   * \brief setStartColor
+   *
+   * Set the starting colors (red, green, blue) for creating the colormap.
+   */
+  bool setStartColor( const int startred, const int startgreen, const int startblue );
+
+
+  /**
+   * \brief setEndColor
+   *
+   * Set the ending colors (red, green, blue) for creating the colormap.
+   */
+  bool setEndColor( const int endred, const int endgreen, const int endblue );
+
+
+  /**
+   * \brief setRotation
+   *
+   * Set the rotation of the object (xRotation, yRotation, zRotation).
+   */
+  bool setRotation( const int xrotation, const int yrotation, const int zrotation );
+
+  /**
+   * \brief setTranslation
+   * 
+   * Set the translation of the object (xTranslation, yTranslation, zTranslation).
+   */
+  bool setTranslation( const int xtranslation, const int ytranslation, const int ztranslation );
+
+  /**
+   * \brief setCenter
+   *
+   * Set the center of the object (xCenter, yCenter, zCenter).
+   */
+  bool setCenter( const int xcenter, const int ycenter, const int zcenter );
+
+
+  /**
+   * \brief setRotationIncrement
+   *
+   * Set the rotation increment (xRotationIncrement, yRotationIncrement, zRotationIncrement).
+   */
+  bool setRotationIncrement( const int xrotationincrement,
+    const int yrotationincrement,
+    const int zrotationincrement );
+
+  /**
+   * \brief setTranslationIncrement
+   * 
+   * Set the traslation increment of the object (xTranslationIncrement, yTranslationIncrement, zTranslatoinIncrement).
+   */
+  bool setTranslationIncrement( const int xtranslationincrement,
+    const int ytranslationincrement,
+    const int ztranslationincrement );
+
+  /**
+   * \brief setMinimumCoordinate
+   *
+   * Set the minimum coordinate of the bounding brick of the object used for rendering by Analyze
+   */
+  bool setMinimumCoordinate( const int minimumxvalue, const int minimumyvalue, const int minimumzvalue );
+
+
+  /**
+   * \brief setMaximumCoordinate
+   * 
+   * Set the maximum coordinate of the bounding brick of the object used for rendering by Analyze
+   */
+  bool setMaximumCoordinate( const int maximumxvalue, const int maximumyvalue, const int maximumzvalue );
+
+
+private:
+  char m_Name[32];
+  int m_DisplayFlag;
+  unsigned char m_CopyFlag;
+  unsigned char m_MirrorFlag;
+  unsigned char m_StatusFlag;
+  unsigned char m_NeighborsUsedFlag;
+  int m_Shades;
+  int m_StartRed;
+  int m_StartGreen;
+  int m_StartBlue;
+  int m_EndRed;
+  int m_EndGreen;
+  int m_EndBlue;
+  int m_XRotation;
+  int m_YRotation;
+  int m_ZRotation;
+  int m_XTranslation;
+  int m_YTranslation;
+  int m_ZTranslation;
+  int m_XCenter;
+  int m_YCenter;
+  int m_ZCenter;
+  int m_XRotationIncrement;
+  int m_YRotationIncrement;
+  int m_ZRotationIncrement;
+  int m_XTranslationIncrement;
+  int m_YTranslationIncrement;
+  int m_ZTranslationIncrement;
+  short int m_MinimumXValue;
+  short int m_MinimumYValue;
+  short int m_MinimumZValue;
+  short int m_MaximumXValue;
+  short int m_MaximumYValue;
+  short int m_MaximumZValue;
+  float m_Opacity;
+  int m_OpacityThickness;
   float m_BlendFactor;
 };
 #endif                           // __OBJECTENTR_H__
