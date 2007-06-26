@@ -83,8 +83,7 @@ void
 GradientDescentLineSearchOptimizer
 ::StartOptimization()
 {
-  unsigned int i;
-
+  
   if( m_CostFunction.IsNull() )
     {
     return ;

@@ -45,7 +45,6 @@ int main( int argc, char * argv[] )
     }
 
   const     unsigned int   Dimension = 3;
-  const     double   Sigma = 2;
   typedef   unsigned short  InputPixelType;
   typedef   unsigned short  OutputPixelType;
   typedef itk::Image< InputPixelType,  Dimension >   InputImageType;
@@ -108,7 +107,7 @@ int main( int argc, char * argv[] )
     InputImageType::SizeType size = reader->GetOutput()->GetLargestPossibleRegion().GetSize();
 
     AffineTransformType::InputPointType center;
-    for(int j=0; j< Dimension; j++)
+    for(unsigned int j=0; j< Dimension; j++)
     {
       center[j] = origin[j] + spacing[j]*size[j] / 2.0;
     }
@@ -205,14 +204,14 @@ int main( int argc, char * argv[] )
     // Get the size of the image
     size = reader->GetOutput()->GetLargestPossibleRegion().GetSize();
     // Increase the size by 10 pixels (voxels)
-    for(int r=0; r<Dimension; r++)
+    for(unsigned int r=0; r<Dimension; r++)
     {
       //size[r] += 6;
     }
       
 
     // Move the origin 5 spaces
-    for(int r=0; r<Dimension; r++ )
+    for(unsigned int r=0; r<Dimension; r++ )
     {
       //origin[r] -= 3*spacing[r];
     }
@@ -228,7 +227,7 @@ int main( int argc, char * argv[] )
     string fname;
     ostringstream fnameStream;
     fnameStream << argv[2] << "/" << argv[3] <<"_" << affineParameters.GetSize();
-    for(int r=0; r<affineParameters.GetSize(); r++ )
+    for(unsigned int r=0; r<affineParameters.GetSize(); r++ )
     {
       fnameStream << "_" << (affineParameters[r]);
     }

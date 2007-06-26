@@ -28,26 +28,14 @@
 // of each element in the vector.
 
 // Headers for the registration method and the metric
-#include "itkBSplineDeformableTransform.h"
-
 #include "MultiResolutionImageRegistrationMethod.h"
 #include "VarianceMultiImageMetric.h"
 #include "ParzenWindowEntropyMultiImageMetric.h"
-#include "JointEntropyMultiImageMetric.h"
-#include "JointEntropyFixedMultiImageMetric.h"
-#include "JointEntropyInterpolateArtefactMultiImageMetric.h"
-#include "JointEntropyKNNMultiImageMetric.h"
-#include "JointEntropyKNNGraphMultiImageMetric.h"
-#include "RegisterToMeanMultiImageMetric.h"
-#include "RegisterToMeanHistogramMultiImageMetric.h"
-#include "RegisterToMeanKNNMultiImageMetric.h"
-#include "RegisterToMeanAndVarianceMultiImageMetric.h"
-    
-    
+
+
 #include "AddImageFilter.h"
 #include "itkNaryAddImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
-#include "UserBSplineDeformableTransform.h"
 
 // Transform headers    
 #include "itkAffineTransform.h"
@@ -56,18 +44,10 @@
 
 // Interpolator headers    
 #include "itkLinearInterpolateImageFunction.h"
-#include "itkNearestNeighborInterpolateImageFunction.h"
-#include "itkWindowedSincInterpolateImageFunction.h"
-#include "itkBSplineInterpolateImageFunction.h"
-#include "itkVectorLinearInterpolateImageFunction.h"
-#include "itkVectorNearestNeighborInterpolateImageFunction.h"
-#include "MutualInformationLinearInterpolateImageFunction.h"
 
 #include "itkRecursiveMultiResolutionPyramidImageFilter.h"
 #include "itkImage.h"
 #include "itkNormalizeImageFilter.h"
-#include "itkDiscreteGaussianImageFilter.h"
-#include "itkGradientImageFilter.h"
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -76,7 +56,6 @@
 
 #include "itkResampleImageFilter.h"
 #include "itkCastImageFilter.h"
-#include "itkCheckerBoardImageFilter.h"
 
 // Header to collect the time to register the images
 #include "itkTimeProbesCollectorBase.h"
@@ -108,9 +87,11 @@
 //System Related headers
 #include <itksys/SystemTools.hxx>
 
-//transform file writer
+//transform file reader/writer
+#include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
-    
+#include "itkTransformFactory.h"
+
 #include "itkImageRegionIterator.h"
 
 //header for creating mask
@@ -168,7 +149,7 @@ public:
       }
 
       // only print results every ten iterations
-      if(m_CumulativeIterationIndex % 25 != 0 )
+      if(m_CumulativeIterationIndex % 20 != 0 )
       {
         m_CumulativeIterationIndex++;
         return;
@@ -215,7 +196,7 @@ public:
           typedef SPSAOptimizerType::ParametersType ParametersType;
           ParametersType parameters = spsaOptimizerPointer->GetCurrentPosition();
           double max = -1e308;
-          for(int i=0; i< parameters.Size(); i++)
+          for(unsigned int i=0; i< parameters.Size(); i++)
           {
             if(parameters[i]> max)
             {
@@ -238,7 +219,7 @@ public:
           typedef SimplexOptimizerType::ParametersType ParametersType;
           ParametersType parameters = simplexOptimizer->GetCurrentPosition();
           double max = -1e308;
-          for(int i=0; i< parameters.Size(); i++)
+          for(unsigned int i=0; i< parameters.Size(); i++)
           {
             if(parameters[i]> max)
             {
@@ -396,7 +377,7 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
         
       ImageType::SizeType size = fixedImage->GetLargestPossibleRegion().GetSize();
       ImageType::IndexType start = fixedImage->GetLargestPossibleRegion().GetIndex();
-      start[0] = 106;
+      start[0] = size[0]/2;
       size[0] = 0;
 
         
@@ -549,10 +530,6 @@ void writeMeanAndSlices( const std::vector<string> fileNames,
       ImageType::SizeType size = fixedImage->GetLargestPossibleRegion().GetSize();
       ImageType::IndexType start = fixedImage->GetLargestPossibleRegion().GetIndex();
       start[index] = size[index]/2;
-      if(index ==0)
-      {
-        start[0] = 106;
-      }
       size[index] = 0;
         
       ImageType::RegionType extractRegion;
@@ -779,7 +756,7 @@ public:
                         std::vector<string> outputFileNames2,
                         string              outputFolder2)
   {
-    for(int i=0; i<fileNames.size(); i++ )
+    for(unsigned int i=0; i<fileNames.size(); i++ )
     {
       fileNames[i] = fileNames2[i];
       inputFileNames[i] = inputFileNames[i];
@@ -825,13 +802,14 @@ int getCommandLine(int argc, char *initFname, vector<string>& fileNames, string&
                    double& translationMultiScaleMaximumIterationIncrease, double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
                    double& translationMultiScaleStepLengthIncrease, double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease,
                    unsigned int& numberOfSpatialSamplesTranslation, unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh,
-                   string &mask, string& maskType, unsigned int& threshold1, unsigned int threshold2,
+                   string &mask, string& maskType, unsigned int& threshold1, unsigned int& threshold2,
                    string &writeOutputImages, string &writeDeformationFields,
                    unsigned int &NumberOfFixedImages,
                    unsigned int &numberOfNearestNeigbors, double &errorBound,
                    string &writeMean3DImages, string& metricPrint, unsigned int& printInterval,
                    double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation,
-                   double& HistogramSamplesPerBin );
+                   double& HistogramSamplesPerBin,
+                   unsigned int& StartLevel, string& OutputIntermediateResults );
 
 
 int main( int argc, char *argv[] )
@@ -847,6 +825,7 @@ int main( int argc, char *argv[] )
   
   string metricPrint("off");
   unsigned int printInterval = 500;
+  unsigned int startLevel = 0;
   
   int multiLevelAffine = 2;
   int multiLevelBspline = 1;
@@ -908,6 +887,7 @@ int main( int argc, char *argv[] )
   string writeOutputImages("off");
   string writeDeformationFields("off");
   string writeMean3DImages("off");
+  string outputIntermediateResults("on");
   
   unsigned int NumberOfFixedImages = 0;
 
@@ -943,13 +923,13 @@ int main( int argc, char *argv[] )
         numberOfNearestNeigbors, errorBound,
         writeMean3DImages, metricPrint, printInterval,
         SPSAalpha , SPSAgamma, SPSAcRel, SPSAnumberOfPerturbation,
-        HistogramSamplesPerBin ) )
+        HistogramSamplesPerBin,
+        startLevel, outputIntermediateResults ) )
     {
       std:: cout << "Error reading parameter file " << std::endl;
       return 1;
     }
   }
-
 
   // Input Image type typedef
   // const    unsigned int    Dimension = 3;
@@ -975,24 +955,12 @@ int main( int argc, char *argv[] )
   // Interpolator typedef
   typedef itk::InterpolateImageFunction<InternalImageType,ScalarType        >  InterpolatorType;
   typedef itk::LinearInterpolateImageFunction<InternalImageType,ScalarType        > LinearInterpolatorType;
-  typedef itk::NearestNeighborInterpolateImageFunction< InternalImageType, ScalarType >  NearestNeighborInterpolatorType;
-  typedef itk::WindowedSincInterpolateImageFunction< InternalImageType, 5 >    SincInterpolatorType;
-  typedef itk::BSplineInterpolateImageFunction< InternalImageType, ScalarType >  BsplineInterpolatorType;
-  typedef itk::MutualInformationLinearInterpolateImageFunction<InternalImageType,ScalarType        > MutualInformationLinearInterpolatorType;
+
 
   
   typedef itk::MultiImageMetric< InternalImageType>    MetricType;
   typedef itk::VarianceMultiImageMetric< InternalImageType>    VarianceMetricType;
   typedef itk::ParzenWindowEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
-  typedef itk::JointEntropyMultiImageMetric< InternalImageType>    JointEntropyMetricType;
-  typedef itk::JointEntropyKNNMultiImageMetric< InternalImageType>    JointEntropyKNNMetricType;
-  typedef itk::JointEntropyKNNGraphMultiImageMetric< InternalImageType>    JointEntropyKNNGraphMetricType;
-  typedef itk::JointEntropyFixedMultiImageMetric< InternalImageType>    JointEntropyFixedMetricType;
-  typedef itk::JointEntropyInterpolateArtefactMultiImageMetric< InternalImageType>    JointEntropyInterpolateArtefactMetricType;
-  typedef itk::RegisterToMeanMultiImageMetric< InternalImageType>    RegisterToMeanMetricType;
-  typedef itk::RegisterToMeanHistogramMultiImageMetric< InternalImageType>    RegisterToMeanHistogramMetricType;
-  typedef itk::RegisterToMeanKNNMultiImageMetric< InternalImageType>    RegisterToMeanKNNMetricType;
-  typedef itk::RegisterToMeanAndVarianceMultiImageMetric< InternalImageType>    RegisterToMeanAndVarianceMetricType;
 
 
 
@@ -1018,7 +986,7 @@ int main( int argc, char *argv[] )
 
 
   // N is the number of images in the registration
-  const unsigned int N = fileNames.size();
+  const int N = fileNames.size();
   if( N < 2 )
   {
     std::cout << "Not enough filenames " << std::endl;
@@ -1142,70 +1110,6 @@ int main( int argc, char *argv[] )
     metric        = VarianceMetricType::New();
     // Set the number of samples to be used by the metric
   }
-  else if( metricType == "jointEntropy" )
-  {
-    JointEntropyMetricType::Pointer jointEntropyMetric        = JointEntropyMetricType::New();
-    jointEntropyMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
-    metric        = jointEntropyMetric;
-  }
-  else if( metricType == "jointEntropyFixed" )
-  {
-    JointEntropyFixedMetricType::Pointer jointEntropyFixedMetric        = JointEntropyFixedMetricType::New();
-    jointEntropyFixedMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
-    metric        = jointEntropyFixedMetric;
-  }
-  else if( metricType == "jointEntropyArtefact" )
-  {
-    JointEntropyInterpolateArtefactMetricType::Pointer jointEntropyInterpolateArtefactMetric        = JointEntropyInterpolateArtefactMetricType::New();
-    jointEntropyInterpolateArtefactMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
-    metric        = jointEntropyInterpolateArtefactMetric;
-  }
-  else if( metricType == "jointEntropyKNN" )
-  {
-    JointEntropyKNNMetricType::Pointer jointEntropyKNNMetric        = JointEntropyKNNMetricType::New();
-    jointEntropyKNNMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
-    jointEntropyKNNMetric->SetNumberOfNearestNeigbors(numberOfNearestNeigbors);
-    jointEntropyKNNMetric->SetErrorBound(errorBound);
-    metric = jointEntropyKNNMetric;
-  }
-  else if( metricType == "jointEntropyKNNGraph" )
-  {
-    JointEntropyKNNGraphMetricType::Pointer jointEntropyKNNGraphMetric        = JointEntropyKNNGraphMetricType::New();
-    jointEntropyKNNGraphMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
-    jointEntropyKNNGraphMetric->SetNumberOfNearestNeigbors(numberOfNearestNeigbors);
-    jointEntropyKNNGraphMetric->SetErrorBound(errorBound);
-    metric = jointEntropyKNNGraphMetric;
-  }
-  else if( metricType == "mean" )
-  {
-    RegisterToMeanMetricType::Pointer registerToMeanMetric        = RegisterToMeanMetricType::New();
-    // Set the number of samples to be used by the metric
-    registerToMeanMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
-    metric = registerToMeanMetric;
-  }
-  else if( metricType == "meanHistogram" )
-  {
-    RegisterToMeanHistogramMetricType::Pointer registerToMeanHistogramMetric        = RegisterToMeanHistogramMetricType::New();
-    // Set the number of samples to be used by the metric
-    registerToMeanHistogramMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
-    registerToMeanHistogramMetric->SetHistogramSamplesPerBin(HistogramSamplesPerBin);
-    metric = registerToMeanHistogramMetric;
-  }
-  else if( metricType == "meanKNN" )
-  {
-    RegisterToMeanKNNMetricType::Pointer registerToMeanKNNMetric        = RegisterToMeanKNNMetricType::New();
-    // Set the number of samples to be used by the metric
-    registerToMeanKNNMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
-    registerToMeanKNNMetric->SetNumberOfNearestNeigbors(numberOfNearestNeigbors);
-    registerToMeanKNNMetric->SetErrorBound(errorBound);
-    metric = registerToMeanKNNMetric;
-  }
-  else if( metricType == "meanAndVariance" )
-  {
-    RegisterToMeanAndVarianceMetricType::Pointer registerToMeanAndVarianceMetric        = RegisterToMeanAndVarianceMetricType::New();
-    registerToMeanAndVarianceMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
-    metric = registerToMeanAndVarianceMetric;
-  }
   else
   {
     EntropyMetricType::Pointer entropyMetric        = EntropyMetricType::New();
@@ -1219,35 +1123,15 @@ int main( int argc, char *argv[] )
   try
   {
   
-    for( int i=0; i< N; i++ )
+    for(int i=0; i< N; i++ )
     {
       ImageReaderType::Pointer imageReader;
       translationTransformArray[i] = TranslationTransformType::New();
 
       // Get the interpolator type
-      if( interpolatorType == "nearest")
-      {
-        interpolatorArray[i]  = NearestNeighborInterpolatorType::New();
-      }
-      else if( interpolatorType == "sinc" )
-      {
-        interpolatorArray[i]  = SincInterpolatorType::New();
-      }
-      else if ( interpolatorType == "bspline")
-      {
-        interpolatorArray[i]  = BsplineInterpolatorType::New();
-      }
-      else if ( interpolatorType == "mutual")
-      {
-        MutualInformationLinearInterpolatorType::Pointer mutualInformationInterpolator =
-                              MutualInformationLinearInterpolatorType::New();
-        metric->SetMutualInformationInterpolatorArray(mutualInformationInterpolator,i);
-        interpolatorArray[i]  = mutualInformationInterpolator;
-      }
-      else // assume linear by default
-      {
-        interpolatorArray[i]  = LinearInterpolatorType::New();
-      }
+      // assume linear by default
+      interpolatorArray[i]  = LinearInterpolatorType::New();
+
       registration->SetTransformArray(     translationTransformArray[i] ,i    );
       registration->SetInterpolatorArray(     interpolatorArray[i] ,i    );
 
@@ -1280,7 +1164,7 @@ int main( int argc, char *argv[] )
         maskImage->SetImage(connectedThreshold->GetOutput());
         registration->SetImageMaskArray(maskImage, i);
 
-        cout << "message: Computing mask " << endl;
+        cout << "message: Computing mask "  << endl;
       }
       else if( maskType == "neighborhoodConnected" && ((mask == "single" && i==0 ) || mask == "all"))
       {
@@ -1328,25 +1212,6 @@ int main( int argc, char *argv[] )
 
       std::cout << "message: Reading Image: " << inputFileNames[i].c_str() << std::endl;
       imagePyramidArray[i]->Update();
-
-
-      /*
-      // Compute the gradient images
-      typedef    itk::CovariantVector< InternalPixelType, Dimension > GradientPixelType;
-      typedef    itk::Image< GradientPixelType, Dimension >   GradientImageType;
-      
-      for(int j=0; j<multiLevelAffine;j++)
-      {
-        typedef    itk::GradientImageFilter< InternalImageType, InternalPixelType, InternalPixelType >  GradientFilterType;
-        GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
-        gradientFilter->SetInput( imagePyramidArray[i]->GetOutput(j) );
-        registration->SetGradientImagePyramidArray(gradientFilter->GetOutput(),i,j);
-        gradientFilter->Update();
-      }
-      typedef itk::VectorNearestNeighborInterpolateImageFunction<GradientImageType,InternalPixelType> VectorLinearInterpolatorType;
-      VectorLinearInterpolatorType::Pointer vectorLinearInterpolator = VectorLinearInterpolatorType::New();
-      registration->SetGradientInterpolatorArray(vectorLinearInterpolator.GetPointer(),i);
-      */
 
 
       //Set the input into the registration method
@@ -1469,7 +1334,10 @@ int main( int argc, char *argv[] )
   try 
   {
     collector.Start( "2Translation Reg." );
-    registration->StartRegistration();
+    if( startLevel == 0 )
+    {
+      registration->StartRegistration();
+    }
     collector.Stop( "2Translation Reg." );
   } 
   catch( itk::ExceptionObject & err ) 
@@ -1482,29 +1350,6 @@ int main( int argc, char *argv[] )
   // Write the output images after translation transform
   collector.Start( "5Image Write " );
 
-  // initialize the parameters if using histogram
-  if(metricType == "meanHistogram")
-  {
-    typedef TransformType::ParametersType     TransformParametersType;
-    TransformParametersType meanParameters(translationTransformArray[0]->GetNumberOfParameters());
-    meanParameters.Fill(0.0);
-    for(int i=0; i<N; i++)
-    {
-      meanParameters += translationTransformArray[i]->GetParameters();
-    }
-    meanParameters /= (double) N;
-    cout << meanParameters << endl;
-    
-    for(int i=0; i<N; i++)
-    {
-      TransformParametersType parameters = translationTransformArray[i]->GetParameters();
-      for(int j=0; j<translationTransformArray[0]->GetNumberOfParameters(); j++)
-      {
-        parameters[j] -= meanParameters[j];
-      }
-      translationTransformArray[i]->SetParameters(parameters );
-    }
-  }
   
   std::vector< itk::Transform< double, Dimension,Dimension >* > transformArray(N);
   for(int i=0; i< N; i++)
@@ -1514,16 +1359,18 @@ int main( int argc, char *argv[] )
 
   command->SetFileNames( fileNames, inputFileNames,
                          outputFileNames, outputFolder + "Translation_MultiScale_");
-  
-  writeMeanAndSlices( fileNames,
-                      inputFileNames,
+  if(outputIntermediateResults == "on" && startLevel == 0)
+  {
+    writeMeanAndSlices( fileNames,
+                        inputFileNames,
 
-                      outputFolder + "Translation/",
-                      writeOutputImages,
-                      writeDeformationFields,
-                      writeMean3DImages,
+                        outputFolder + "Translation/",
+                        writeOutputImages,
+                        writeDeformationFields,
+                        writeMean3DImages,
                                                   
-                      transformArray );
+                        transformArray );
+  }
 
 
   
@@ -1674,7 +1521,10 @@ int main( int argc, char *argv[] )
   try
   {
     collector.Start( "3Affine Reg." );
-    registration->StartRegistration();
+    if( startLevel == 0 )
+    {
+      registration->StartRegistration();
+    }
     collector.Stop( "3Affine Reg." );
   }
   catch( itk::ExceptionObject & err )
@@ -1687,31 +1537,6 @@ int main( int argc, char *argv[] )
   // Write the output images after affine transform
   collector.Start( "5Image Write " );
 
-  // initialize the parameters if using histogram
-  if(metricType == "meanHistogram")
-  {
-    typedef TransformType::ParametersType     TransformParametersType;
-    TransformParametersType meanParameters(affineTransformArray[0]->GetNumberOfParameters());
-    meanParameters.Fill(0.0);
-    for(int i=0; i<N; i++)
-    {
-      meanParameters += affineTransformArray[i]->GetParameters();
-    }
-    meanParameters /= (double) N;
-    meanParameters[0] -=1.0;
-    meanParameters[4] -=1.0;
-    meanParameters[8] -=1.0;
-    
-    for(int i=0; i<N; i++)
-    {
-      TransformParametersType parameters = affineTransformArray[i]->GetParameters();
-      for(int j=0; j<affineTransformArray[0]->GetNumberOfParameters(); j++)
-      {
-        parameters[j] -= meanParameters[j];
-      }
-      affineTransformArray[i]->SetParameters(parameters );
-    }
-  }
 
   for(int i=0; i< N; i++)
   {
@@ -1720,29 +1545,36 @@ int main( int argc, char *argv[] )
   
   command->SetFileNames( fileNames, inputFileNames,
                          outputFileNames, outputFolder + "Affine_MultiScale_");
-  
-  /*writeMeanAndSlices( fileNames,
-                      inputFileNames,
 
-                      outputFolder + "Affine/",
-                      writeOutputImages,
-                      writeDeformationFields,
-                      writeMean3DImages,
-                                                  
-                      transformArray );*/
-    
-  //Write the transform files
-  itk::TransformFileWriter::Pointer  transformFileWriter = itk::TransformFileWriter::New();
-  itksys::SystemTools::MakeDirectory( (outputFolder + "Affine/TransformFiles/").c_str() );
-  for(int i=0; i<N;i++)
+  if(outputIntermediateResults == "on" && startLevel == 0)
   {
-    string fileName = outputFolder + "Affine/TransformFiles/" + fileNames[i];
-    fileName.replace(fileName.size()-3, 3, "txt" );
-    transformFileWriter->SetFileName(fileName.c_str());
-    transformFileWriter->SetPrecision(12);
-    transformFileWriter->SetInput(affineTransformArray[i]);
-    transformFileWriter->Update();
+    writeMeanAndSlices( fileNames,
+                        inputFileNames,
+
+                        outputFolder + "Affine/",
+                        writeOutputImages,
+                        writeDeformationFields,
+                        writeMean3DImages,
+                                                  
+                        transformArray );
   }
+  
+  if( startLevel == 0 )
+  {
+    // Write the transform files
+    itk::TransformFileWriter::Pointer  transformFileWriter = itk::TransformFileWriter::New();
+    itksys::SystemTools::MakeDirectory( (outputFolder + "Affine/TransformFiles/").c_str() );
+    for(int i=0; i<N;i++)
+    {
+      string fileName = outputFolder + "Affine/TransformFiles/" + fileNames[i];
+      fileName.replace(fileName.size()-3, 3, "txt" );
+      transformFileWriter->SetFileName(fileName.c_str());
+      transformFileWriter->SetPrecision(12);
+      transformFileWriter->SetInput(affineTransformArray[i]);
+      transformFileWriter->Update();
+    }
+  }
+
 
   collector.Stop( "5Image Write " );
 
@@ -1761,8 +1593,8 @@ int main( int argc, char *argv[] )
   typedef ScalarType CoordinateRepType;
 
   typedef itk::UserBSplineDeformableTransform< CoordinateRepType,
-  Dimension,
-  SplineOrder >     BSplineTransformType;
+                                               Dimension,
+                                               SplineOrder >     BSplineTransformType;
 
     // Allocate bspline tranform array for low grid size
   typedef vector<BSplineTransformType::Pointer> BSplineTransformArrayType;
@@ -1796,7 +1628,7 @@ int main( int argc, char *argv[] )
     // Update the affine transform parameters
     for( int i=0; i<N; i++)
     {
-      for(int j=0; j<affineTransformArray[0]->GetNumberOfParameters(); j++)
+      for(unsigned int j=0; j<affineTransformArray[0]->GetNumberOfParameters(); j++)
       {
         affineCurrentParameters[j]=affineParameters[i*affineTransformArray[0]->GetNumberOfParameters()+j];
       }
@@ -1807,7 +1639,38 @@ int main( int argc, char *argv[] )
     registration->SetTransformParametersLength( static_cast<int>( pow( static_cast<double>(bsplineInitialGridSize+SplineOrder),
                                                  static_cast<int>(Dimension))*Dimension*N ));
 
-  
+
+    if( startLevel != 0)
+    {
+      // Read the transform files
+      typedef itk::TransformFileReader    TransformFileReader;
+      typedef TransformFileReader::TransformListType   TransformListType;
+
+      // Create reader factories
+      for(int i=0; i<N; i++)
+      {
+        itk::TransformFactoryBase::Pointer f = itk::TransformFactoryBase::GetFactory();
+        f->RegisterTransform(affineTransformArray[i]->GetTransformTypeAsString().c_str(),
+                             affineTransformArray[i]->GetTransformTypeAsString().c_str(),
+                             affineTransformArray[i]->GetTransformTypeAsString().c_str(),
+                             1,
+                             itk::CreateObjectFunction<TransformType>::New());
+       
+        TransformFileReader::Pointer        transformFileReader = TransformFileReader::New();
+        string fileName = outputFolder + "Affine/TransformFiles/" + fileNames[i];
+        std::cout << "message: Reading " << fileName << endl;
+        fileName.replace(fileName.size()-3, 3, "txt" );
+        transformFileReader->SetFileName(fileName.c_str());
+        
+        // Create the transforms
+        transformFileReader->Update();
+        TransformListType*   transformList = transformFileReader->GetTransformList();
+        
+        affineTransformArray[i]->SetFixedParameters(transformList->front()->GetFixedParameters());
+        affineTransformArray[i]->SetParameters(transformList->front()->GetParameters());
+      }
+
+    }
     //
     // As in the affine registration each image has its own pointers.
     // As we dont change image readers, normalized fileters, Gaussian filters and
@@ -1818,7 +1681,8 @@ int main( int argc, char *argv[] )
     //
     try
     {
-      for( int i=0; i< N; i++ ){
+      for( int i=0; i< N; i++ )
+      {
 
         bsplineTransformArrayLow[i] = BSplineTransformType::New();
       
@@ -1871,6 +1735,7 @@ int main( int argc, char *argv[] )
         registration->SetInitialTransformParameters( bsplineTransformArrayLow[i]->GetParameters(), i);
         registration->SetTransformArray(     bsplineTransformArrayLow[i] ,i    );
         metric->SetBSplineTransformArray(     bsplineTransformArrayLow[i] ,i    );
+
 
       }
     }
@@ -1933,7 +1798,10 @@ int main( int argc, char *argv[] )
 
     try
     {
-      registration->StartRegistration();
+      if(startLevel != 2)
+      {
+         registration->StartRegistration();
+      }
     }
     catch( itk::ExceptionObject & err )
     {
@@ -1945,28 +1813,6 @@ int main( int argc, char *argv[] )
     // Write the output images after bspline transform
     collector.Start( "5Image Write " );
 
-    // initialize the parameters if using histogram
-    if(metricType == "meanHistogram")
-    {
-      typedef TransformType::ParametersType     TransformParametersType;
-      TransformParametersType meanParameters(bsplineTransformArrayLow[0]->GetNumberOfParameters());
-      meanParameters.Fill(0.0);
-      for(int i=0; i<N; i++)
-      {
-        meanParameters += bsplineTransformArrayLow[i]->GetParameters();
-      }
-      meanParameters /= (double) N;
-
-      for(int i=0; i<N; i++)
-      {
-        TransformParametersType parameters = bsplineTransformArrayLow[i]->GetParameters();
-        for(int j=0; j<bsplineTransformArrayLow[0]->GetNumberOfParameters(); j++)
-        {
-          parameters[j] -= meanParameters[j];
-        }
-        bsplineTransformArrayLow[i]->SetParametersByValue(parameters );
-      }
-    }
 
     
     for(int i=0; i< N; i++)
@@ -1978,8 +1824,10 @@ int main( int argc, char *argv[] )
     command->SetFileNames( fileNames, inputFileNames,
                            outputFileNames, outputFolder + bsplineFolderName.str() + "_MultiScale_" );
     bsplineFolderName << "/" ;
-                           
-    writeMeanAndSlices( fileNames,
+
+    if(outputIntermediateResults == "on" && startLevel != 2)
+    {
+      writeMeanAndSlices( fileNames,
                         inputFileNames,
 
                         outputFolder + bsplineFolderName.str(),
@@ -1988,20 +1836,25 @@ int main( int argc, char *argv[] )
                         writeMean3DImages,
                                                   
                         transformArray );
+    }
 
-    //Write the transform files
-    itk::TransformFileWriter::Pointer  transformFileWriter = itk::TransformFileWriter::New();
-    itksys::SystemTools::MakeDirectory( (outputFolder + bsplineFolderName.str() + "TransformFiles/").c_str() );
-    for(int i=0; i<N;i++)
+    if(startLevel != 2)
     {
-      string fileName = outputFolder + bsplineFolderName.str() + "TransformFiles/" + fileNames[i];
-      fileName.replace(fileName.size()-3, 3, "txt" );
-      transformFileWriter->SetFileName(fileName.c_str());
-      transformFileWriter->SetPrecision(12);
-      transformFileWriter->SetInput(bsplineTransformArrayLow[i]);
-      transformFileWriter->Update();
+      //Write the transform files
+      itk::TransformFileWriter::Pointer  transformFileWriter = itk::TransformFileWriter::New();
+      itksys::SystemTools::MakeDirectory( (outputFolder + bsplineFolderName.str() + "TransformFiles/").c_str() );
+      for(int i=0; i<N;i++)
+      {
+        string fileName = outputFolder + bsplineFolderName.str() + "TransformFiles/" + fileNames[i];
+        fileName.replace(fileName.size()-3, 3, "txt" );
+        transformFileWriter->SetFileName(fileName.c_str());
+        transformFileWriter->SetPrecision(12);
+        transformFileWriter->SetInput(bsplineTransformArrayLow[i]);
+        transformFileWriter->Update();
+      }
     }
     collector.Stop( "5Image Write " );
+
     
     // Using the result of the low grid Bspline registration
     // begin a registration on a finer grid.
@@ -2034,9 +1887,38 @@ int main( int argc, char *argv[] )
             currentParametersLow[j] = parametersLow[numberOfParametersLow*i + j];
 
           bsplineTransformArrayLow[i]->SetParametersByValue( currentParametersLow );
+        
+
+          // Read tranforms from file
+          if(startLevel == 2)
+          {
+            typedef itk::TransformFileReader    TransformFileReader;
+            typedef TransformFileReader::TransformListType   TransformListType;
+
+            itk::TransformFactoryBase::Pointer f = itk::TransformFactoryBase::GetFactory();
+          
+            f->RegisterTransform(bsplineTransformArrayLow[i]->GetTransformTypeAsString().c_str(),
+                                 bsplineTransformArrayLow[i]->GetTransformTypeAsString().c_str(),
+                                 bsplineTransformArrayLow[i]->GetTransformTypeAsString().c_str(),
+                                 1,
+                                 itk::CreateObjectFunction<BSplineTransformType>::New());
+
+            TransformFileReader::Pointer        transformFileReader = TransformFileReader::New();
+
+            ostringstream bsplineFolderName;
+            bsplineFolderName << "Bspline_Grid_" << bsplineInitialGridSize << "/";
+            string fileName = outputFolder + bsplineFolderName.str() + "TransformFiles/" + fileNames[i];
+            fileName.replace(fileName.size()-3, 3, "txt" );
+            transformFileReader->SetFileName(fileName.c_str());
+            transformFileReader->Update();
+            TransformListType*   transformList = transformFileReader->GetTransformList();
+        
+            bsplineTransformArrayLow[i]->SetFixedParameters(transformList->front()->GetFixedParameters());
+        
+            bsplineTransformArrayLow[i]->SetParametersByValue(transformList->front()->GetParameters());
+          }
         }
-
-
+        
         // Increase the grid size by a factor of two
         bsplineInitialGridSize = 2*bsplineInitialGridSize;
         
@@ -2214,29 +2096,7 @@ int main( int argc, char *argv[] )
         // Write the output images after bspline transform
         collector.Start( "5Image Write " );
 
-        // initialize the parameters if using histogram
-        if(metricType == "meanHistogram")
-        {
-          typedef TransformType::ParametersType     TransformParametersType;
-          TransformParametersType meanParameters(bsplineTransformArrayHigh[0]->GetNumberOfParameters());
-          meanParameters.Fill(0.0);
-          for(int i=0; i<N; i++)
-          {
-            meanParameters += bsplineTransformArrayHigh[i]->GetParameters();
-          }
-          meanParameters /= (double) N;
 
-          for(int i=0; i<N; i++)
-          {
-            TransformParametersType parameters = bsplineTransformArrayHigh[i]->GetParameters();
-            for(int j=0; j<bsplineTransformArrayHigh[0]->GetNumberOfParameters(); j++)
-            {
-              parameters[j] -= meanParameters[j];
-            }
-            bsplineTransformArrayHigh[i]->SetParametersByValue(parameters );
-          }
-        }
-        
         for(int i=0; i< N; i++)
         {
           transformArray[i] = bsplineTransformArrayHigh[i];
@@ -2247,18 +2107,21 @@ int main( int argc, char *argv[] )
         command->SetFileNames( fileNames, inputFileNames,
                                outputFileNames, outputFolder + bsplineFolderName.str() + "_MultiScale_" );
         bsplineFolderName << "/" ;
-        
-        writeMeanAndSlices( fileNames,
-                            inputFileNames,
 
-                            outputFolder + bsplineFolderName.str(),
-                            writeOutputImages,
-                            writeDeformationFields,
-                            writeMean3DImages,
+        if(outputIntermediateResults == "on" )
+        {
+          writeMeanAndSlices( fileNames,
+                              inputFileNames,
+
+                              outputFolder + bsplineFolderName.str(),
+                              writeOutputImages,
+                              writeDeformationFields,
+                              writeMean3DImages,
                                                   
-                            transformArray );
+                              transformArray );
+        }
             
-        //Write the transform files
+        // Write the transform files
         itk::TransformFileWriter::Pointer  transformFileWriter = itk::TransformFileWriter::New();
         itksys::SystemTools::MakeDirectory( (outputFolder + bsplineFolderName.str() + "TransformFiles/").c_str() );
         for(int i=0; i<N;i++)
@@ -2488,7 +2351,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
                           double& translationMultiScaleStepLengthIncrease, double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease,
                           unsigned int& numberOfSpatialSamplesTranslation, unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh,
 
-                          string &mask, string& maskType, unsigned int& threshold1, unsigned int threshold2,
+                          string &mask, string& maskType, unsigned int& threshold1, unsigned int& threshold2,
                           string &writeOutputImages, string &writeDeformationFields,
                           unsigned int& NumberOfFixedImages,
                           
@@ -2497,7 +2360,8 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
                           string &writeMean3DImages, string& metricPrint, unsigned int& printInterval,
 
                           double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation,
-                          double& HistogramSamplesPerBin)
+                          double& HistogramSamplesPerBin,
+                          unsigned int& StartLevel, string& outputIntermediateResults )
 {
 
 
@@ -2753,7 +2617,12 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       initFile >> dummy;
       HistogramSamplesPerBin = atof(dummy.c_str());
     }
-
+    else if (dummy == "-OutputIntermediateResults")
+    {
+      initFile >> dummy;
+      outputIntermediateResults = dummy;
+    }
+            
     else if (dummy == "-mask")
     {
       initFile >> dummy;
@@ -2852,8 +2721,12 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       initFile >> dummy;
       printInterval = atoi(dummy.c_str());
     }
+    else if( dummy == "-StartLevel" )
+    {
+      initFile >> dummy;
+      StartLevel = atoi(dummy.c_str());
+    }
 
-    
     else if (dummy == "-f")
     {
       initFile >> dummy;
@@ -2864,48 +2737,6 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
 
   initFile.close();
   return 0;
-  // Ignore the output message for right now 
-  if( false )
-  {
-    std::cerr << "Not enough input arguments " << std::endl;
-
-    std::cerr << "\t  imageName [image names does not require any prefix parameters]" << std::endl;
-    std::cerr << "\t -i Input folder for images" << std::endl;
-    std::cerr << "\t -o Output folder for registered images" << std::endl;
-
-    std::cerr << "\t -imageType imageType. 'DICOM' for DICOM images 'normal' otherwise. [default=DICOM]" << std::endl;
-    
-    std::cerr << "\t -multiLevelAffine int. Number of multiresolution levels for affine transform. [default=3]" << std::endl;
-    std::cerr << "\t -multiLevelBspline int. Number of multiresolution levels for Bspline transform. [default=1]" << std::endl;
-    std::cerr << "\t -multiLevelBsplineHigh int. Number of multiresolution levels for Bspline transform (finer grids). [default=1]" << std::endl;
-
-    std::cerr << "\t -optAffineLearningRate double. Learning rate for affine optimizer. [default = 1e-4] " << std::endl;
-    std::cerr << "\t -optBsplineLearningRate double. Learning rate for Bspline optimizer. [default = 1] " << std::endl;
-    std::cerr << "\t -optBsplineHighLearningrate double. Learning rate for Bspline(finer grid) optimizer. [default = 1] " << std::endl;
-    
-    std::cerr << "\t -optAffineNumberOfIterations int. Number of iterations used by affine optimizer. [default = 300]" << std::endl;
-    std::cerr << "\t -optBsplineNumberOfIterations int. Number of iterations used by Bspline optimizer. [default = 300]" << std::endl;
-    std::cerr << "\t -optBsplineHighNumberOfIterations int. Number of iterations used by Bspline(fine grid) optimizer. [default = 300]" << std::endl;
-
-    std::cerr << "\t -numberOfSpatialSamplesAffinePercentage double. Percentage of points used by metric.[default=0.05]" << std::endl;
-    std::cerr << "\t -numberOfSpatialSamplesBsplinePercentage double. Percentage of points used by metric.[default=0.05]" << std::endl;
-    std::cerr << "\t -numberOfSpatialSamplesBsplineHighPercentage double. Percentage of points used by metric.[default=0.05]" << std::endl;
-
-    std::cerr << "\t -bsplineInitialGridSize int. Size of the initial bspline grid size. [default=5]" << std::endl;
-    
-    std::cerr << "\t -numberOfBsplineLevel int. Number of bspline grid refinements. [default = 1]" << std::endl;
-    
-    std::cerr << "\t -useBspline ('on' or 'off). Perform Bspline registration after affine. [default=on]" << std::endl;
-    std::cerr << "\t -useBsplineHigh ('on' or 'off'). Perform Bspline refinement. [default=on]" << std::endl;
-    
-    std::cerr << "\t -opt Optimizer Type" << std::endl;
-    std::cerr << "\t -t Transform Type: Bspline Affine Translation" << std::endl;
-    //std::cerr << std::endl << "Usage: " << std::endl << "\t" << argv[0];
-    std::cerr << " -i folder1/ -f output/ -o gradient -m 4 -t Affine ImageFile1  ImageFile2 ImageFile3 ... " << std::endl << std::endl;
-    return 1;
-  }
-  else
-    return 0;
 
 }
 
