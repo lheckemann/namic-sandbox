@@ -35,6 +35,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <itkObject.h>
 #include "itkObjectFactory.h"
+#include "itkImage.h"
+#include "itkRGBPixel.h"
 // TODO:  Add namespace  namespace itk {
 //TODO:  USE GET/SET methods for member variables needs to be put together along with one set of
 //       documentation that is syncronized syncronized.
@@ -74,6 +76,9 @@ public:
   typedef Object  Superclass;
   typedef SmartPointer<Self>  Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
+  typedef itk::RGBPixel<int> intRGBPixel;
+
+//  RGBPixel::pointer RGBPixelPointer = RGBPixel::New();
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -143,12 +148,25 @@ public:
    * defined name for this object. Any zero-terminated string can be used,
    * including stringswith embedded spaces.
    */
-  std::string getName( void ) const;
-  itkGetMacro(Name, std::string)
+  virtual std::string GetName ( void ) const
+  {
+    itkDebugMacro("returning " << "Name of " << this->m_Name );
+    return std::string(this->m_Name);
+  }
 
-  bool setName( const std::string name );
-  //itkSetMacro(Name, char);
-
+  /** Set built-in type.  Creates member Set"name"() (e.g., SetVisibility()); */
+  virtual void SetName (const std::string _arg)
+  {
+    char temp[32];
+    strncpy(temp,_arg.c_str(),31);
+    temp[31]='\0';
+    itkDebugMacro("setting " << "Name" << " to " << temp);
+    if (strcmp(this->m_Name, temp) != 0)
+      {
+      strncpy(this->m_Name,temp,32);
+      this->Modified();
+      }
+  }
   /**
    * \brief getDisplayFlag/setDisplayFlag
    *
@@ -173,7 +191,7 @@ public:
   unsigned char getCopyFlag( void ) const;
   itkGetMacro(CopyFlag, unsigned char);
   bool setCopyFlag( const unsigned char copyflag );
-  itkSetMacro(CopyFlag, const unsigned char);
+  itkSetMacro(CopyFlag, unsigned char);
 
 
   /**
@@ -185,7 +203,7 @@ public:
   unsigned char getMirrorFlag( void ) const;
   itkGetMacro(MirrorFlag, unsigned char);
   bool setMirrorFlag( const unsigned char mirrorflag );
-  itkSetMacro(MirrorFlag, const unsigned char);
+  itkSetMacro(MirrorFlag, unsigned char);
 
   /**
    * \brief getStatusFlag/setStatusFlag
@@ -196,7 +214,7 @@ public:
   unsigned char getStatusFlag( void ) const;
   itkGetMacro(StatusFlag, unsigned char);
   bool setStatusFlag( const unsigned char statusflag );
-  itkSetMacro(StatusFlag, const unsigned char);
+  itkSetMacro(StatusFlag, unsigned char);
 
   /**
    * \brief getNeighborsUsedFlag/setNeighborsUsedFlag
@@ -456,7 +474,7 @@ public:
   short int getMinimumYValue( void ) const;
   itkGetMacro(MinimumYValue, short int);
   bool setMinimumYValue( const int minimumyvalue );
-  itkSetMacro(MinimumYValue, const int);
+  itkSetMacro(MinimumYValue, int);
 
   /**
    * \brief getMinimumZValue/setMinimumZValue
@@ -468,7 +486,7 @@ public:
   short int getMinimumZValue( void ) const;
   itkGetMacro(MinimumZValue, short int);
   bool setMinimumZValue( const int minimumzvalue );
-  itkSetMacro(MinimumZValue, const int);
+  itkSetMacro(MinimumZValue, int);
 
   /**
    * \brief getMaximumXValue/setMaximumXValue
@@ -480,7 +498,7 @@ public:
   short int getMaximumXValue( void ) const;
   itkGetMacro(MaximumXValue, short int);
   bool setMaximumXValue( const int maximumxvalue );
-  itkSetMacro(MaximumXValue, const int);
+  itkSetMacro(MaximumXValue, int);
 
   /**
    * \brief getMaximumYValue/setMaximumYValue
@@ -492,7 +510,7 @@ public:
   short int getMaximumYValue( void ) const;
   itkGetMacro(MaximumYValue, short int);
   bool setMaximumYValue( const int maximumyvalue );
-  itkSetMacro(MaximumYValue, const int);
+  itkSetMacro(MaximumYValue, int);
 
   /**
    * \brief getMaximumZValue/setMaximumZValue
@@ -504,7 +522,7 @@ public:
   short int getMaximumZValue( void ) const;
   itkGetMacro(MaximumZValue, short int);
   bool setMaximumZValue( const int maximumzvalue );
-  itkSetMacro(MaximumZValue, const int);
+  itkSetMacro(MaximumZValue, int);
 
   /**
    * \brief getOpacity/setOpacity
@@ -526,7 +544,7 @@ public:
   float getOpacity( void ) const;
   itkGetMacro(Opacity, float);
   bool setOpacity( const float opacity );
-  itkSetMacro(Opacity, const float);
+  itkSetMacro(Opacity, float);
 
   /**
    * \brief getOpacityThickness/setOpacityThickness
@@ -536,7 +554,7 @@ public:
   int getOpacityThickness( void ) const;
   itkGetMacro(OpacityThickness, int);
   bool setOpacityThickness( const int opacitythickness );
-  itkSetMacro(OpacityThickness, const int);
+  itkSetMacro(OpacityThickness, int);
 
   /**
    * \brief getBlendFactor/setBlendFactor
@@ -550,7 +568,7 @@ public:
   int getBlendFactor( void ) const;
   itkGetMacro(BlendFactor, int);
   bool setBlendFactor( const int dummy );
-  itkSetMacro(BlendFactor, const int);
+  itkSetMacro(BlendFactor, int);
   
 
   /**
@@ -558,6 +576,9 @@ public:
    *
    * Set the starting colors (red, green, blue) for creating the colormap.
    */
+
+  //RGB::SetRed(startred);
+//const int RGB =  RGBPixel::FixedArray();
   bool setStartColor( const int startred, const int startgreen, const int startblue );
 
 
