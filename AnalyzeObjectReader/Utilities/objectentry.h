@@ -476,17 +476,14 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    *
    * Set the starting colors (red, green, blue) for creating the colormap.
    */
-  //RGB::SetRed(startred);
-//const int RGB =  RGBPixel::FixedArray();
-  bool setStartColor( const int startred, const int startgreen, const int startblue );
-
-
+  itkSetMacro( StartColor, intRGBPixel);
+ 
   /**
    * \brief setEndColor
    *
    * Set the ending colors (red, green, blue) for creating the colormap.
    */
-  bool setEndColor( const int endred, const int endgreen, const int endblue );
+  itkSetMacro(EndColor, intRGBPixal);
 
 
   /**
@@ -577,9 +574,11 @@ private:
   int m_StartRed;
   int m_StartGreen;
   int m_StartBlue;
+  intRGBPixel m_StartColor;  //Three seperate Start Colors (Red, Green, Blue) have been put together to use the set macro.
   int m_EndRed;
   int m_EndGreen;
   int m_EndBlue;
+  intRGBPixal m_EndColor;    //Three seperate End Colors (Red, Green, Blue) have been put together to use the set macro.
   int m_XRotation;
   int m_YRotation;
   int m_ZRotation;
