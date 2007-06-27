@@ -30,7 +30,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "objectentry.h"
 
 namespace itk{
-#if 0
+
+
+
+AnalyzeObjectEntry::AnalyzeObjectEntry( const AnalyzeObjectEntry & rhs )
+{
+//Copy construction is not allowed, so no need to fill this code in.
+}
+
 AnalyzeObjectEntry::AnalyzeObjectEntry( void )
 {
   for (unsigned int i = 0; i < sizeof(this->m_Name); i++)
@@ -75,68 +82,54 @@ AnalyzeObjectEntry::AnalyzeObjectEntry( void )
   this->m_BlendFactor = 0;
 }
 
-
-AnalyzeObjectEntry::AnalyzeObjectEntry( const AnalyzeObjectEntry & rhs )
+//AnalyzeObjectEntry & AnalyzeObjectEntry::operator=( const AnalyzeObjectEntry & rhs )
+void AnalyzeObjectEntry::Copy( AnalyzeObjectEntry::Pointer rhs )
 {
-//Copy construction is not allowed, so no need to fill this code in.
-}
-#endif
-
-AnalyzeObjectEntry::~AnalyzeObjectEntry( void )
-{
-
-}
-
-
-AnalyzeObjectEntry & AnalyzeObjectEntry::operator=( const AnalyzeObjectEntry & rhs )
-{
-
   //TODO:   This needs to be filled in!!!
   assert(0==1);
-#if 0
   for (unsigned int i = 0; i < sizeof(this->m_Name); i++)
     {
-    this->m_Name[i] = name[i];
+    this->SetName(rhs->GetName());
     }
-
-  this->m_DisplayFlag = rhs.getDisplayFlag();
-  this->m_CopyFlag = rhs.getCopyFlag();
-  this->m_MirrorFlag = rhs.getMirrorFlag();
-  this->m_StatusFlag = rhs.getStatusFlag();
-  this->m_NeighborsUsedFlag = rhs.getNeighborsUsedFlag();
-  this->m_Shades = rhs.getShades();
-  this->m_StartRed = rhs.getStartRed();
-  this->m_StartGreen = rhs.getStartGreen();
-  this->m_StartBlue = rhs.getStartBlue();
-  this->m_EndRed = rhs.getEndRed();
-  this->m_EndGreen = rhs.getEndGreen();
-  this->m_EndBlue = rhs.getEndBlue();
-  this->m_XRotation = rhs.getXRotation();
-  this->m_YRotation = rhs.getYRotation();
-  this->m_ZRotation = rhs.getZRotation();
-  this->m_XTranslation = rhs.getXTranslation();
-  this->m_YTranslation = rhs.getYTranslation();
-  this->m_ZTranslation = rhs.getZTranslation();
-  this->m_XCenter = rhs.getXCenter();
-  this->m_YCenter = rhs.getYCenter();
-  this->m_ZCenter = rhs.getZCenter();
-  this->m_XRotationIncrement = rhs.getXRotationIncrement();
-  this->m_YRotationIncrement = rhs.getYRotationIncrement();
-  this->m_ZRotationIncrement = rhs.getZRotationIncrement();
-  this->m_XTranslationIncrement = rhs.getXTranslationIncrement();
-  this->m_YTranslationIncrement = rhs.getYTranslationIncrement();
-  this->m_ZTranslationIncrement = rhs.getZTranslationIncrement();
-  this->m_MinimumXValue = rhs.getMinimumXValue();
-  this->m_MinimumYValue = rhs.getMinimumYValue();
-  this->m_MinimumZValue = rhs.getMinimumZValue();
-  this->m_MaximumXValue = rhs.getMaximumXValue();
-  this->m_MaximumYValue = rhs.getMaximumYValue();
-  this->m_MaximumZValue = rhs.getMaximumZValue();
-  this->m_Opacity = rhs.getOpacity();
-  this->m_OpacityThickness = rhs.getOpacityThickness();
-  this->m_BlendFactor = rhs.getBlendFactor();
+  this->SetDisplayFlag(rhs->GetDisplayFlag());
+#if 0
+  this->m_CopyFlag = rhs->getCopyFlag();
+  this->m_MirrorFlag = rhs->getMirrorFlag();
+  this->m_StatusFlag = rhs->getStatusFlag();
+  this->m_NeighborsUsedFlag = rhs->getNeighborsUsedFlag();
+  this->m_Shades = rhs->getShades();
+  this->m_StartRed = rhs->getStartRed();
+  this->m_StartGreen = rhs->getStartGreen();
+  this->m_StartBlue = rhs->getStartBlue();
+  this->m_EndRed = rhs->getEndRed();
+  this->m_EndGreen = rhs->getEndGreen();
+  this->m_EndBlue = rhs->getEndBlue();
+  this->m_XRotation = rhs->getXRotation();
+  this->m_YRotation = rhs->getYRotation();
+  this->m_ZRotation = rhs->getZRotation();
+  this->m_XTranslation = rhs->getXTranslation();
+  this->m_YTranslation = rhs->getYTranslation();
+  this->m_ZTranslation = rhs->getZTranslation();
+  this->m_XCenter = rhs->getXCenter();
+  this->m_YCenter = rhs->getYCenter();
+  this->m_ZCenter = rhs->getZCenter();
+  this->m_XRotationIncrement = rhs->getXRotationIncrement();
+  this->m_YRotationIncrement = rhs->getYRotationIncrement();
+  this->m_ZRotationIncrement = rhs->getZRotationIncrement();
+  this->m_XTranslationIncrement = rhs->getXTranslationIncrement();
+  this->m_YTranslationIncrement = rhs->getYTranslationIncrement();
+  this->m_ZTranslationIncrement = rhs->getZTranslationIncrement();
+  this->m_MinimumXValue = rhs->getMinimumXValue();
+  this->m_MinimumYValue = rhs->getMinimumYValue();
+  this->m_MinimumZValue = rhs->getMinimumZValue();
+  this->m_MaximumXValue = rhs->getMaximumXValue();
+  this->m_MaximumYValue = rhs->getMaximumYValue();
+  this->m_MaximumZValue = rhs->getMaximumZValue();
+  this->m_Opacity = rhs->getOpacity();
+  this->m_OpacityThickness = rhs->getOpacityThickness();
+  this->m_BlendFactor = rhs->getBlendFactor();
 #endif
-  return *this;
+  return ;
 }
 
 }
