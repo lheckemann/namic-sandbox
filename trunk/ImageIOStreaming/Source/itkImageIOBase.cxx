@@ -824,6 +824,13 @@ void ImageIOBase::ReadBufferAsASCII(std::istream& is, void *buffer,
 
 }
 
+ImageIORegion 
+ImageIOBase::ComputeIORegionGivenRequestedRegion( const ImageIORegion & requested ) const
+{
+  return requested;
+}
+
+
 void ImageIOBase::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
