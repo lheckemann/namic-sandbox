@@ -19,22 +19,22 @@
 #endif
 
 #include "itkImageIOFactory.h"
-#include "itkBioRadImageIOFactory.h"
-#include "itkBMPImageIOFactory.h"
-#include "itkGDCMImageIOFactory.h"
-#include "itkDICOMImageIO2Factory.h"
+// #include "itkBioRadImageIOFactory.h"
+// #include "itkBMPImageIOFactory.h"
+// #include "itkGDCMImageIOFactory.h"
+// #include "itkDICOMImageIO2Factory.h"
 #include "itkNiftiImageIOFactory.h"
-#include "itkAnalyzeImageIOFactory.h"
+// #include "itkAnalyzeImageIOFactory.h"
 #include "itkNiftiImageIOFactory.h"
-#include "itkGiplImageIOFactory.h"
-#include "itkJPEGImageIOFactory.h"
-#include "itkLSMImageIOFactory.h"
-#include "itkMetaImageIOFactory.h"
-#include "itkPNGImageIOFactory.h"
-#include "itkNrrdImageIOFactory.h"
-#include "itkTIFFImageIOFactory.h"
-#include "itkVTKImageIOFactory.h"
-#include "itkStimulateImageIOFactory.h"
+// #include "itkGiplImageIOFactory.h"
+// #include "itkJPEGImageIOFactory.h"
+// #include "itkLSMImageIOFactory.h"
+// #include "itkMetaImageIOFactory.h"
+// #include "itkPNGImageIOFactory.h"
+// #include "itkNrrdImageIOFactory.h"
+// #include "itkTIFFImageIOFactory.h"
+// #include "itkVTKImageIOFactory.h"
+// #include "itkStimulateImageIOFactory.h"
 #include "itkMutexLock.h"
 #include "itkMutexLockHolder.h"
 
@@ -99,21 +99,21 @@ ImageIOFactory::RegisterBuiltInFactories()
     MutexLockHolder<SimpleMutexLock> mutexHolder( mutex );
     if( firstTime )
       {
-      ObjectFactoryBase::RegisterFactory( GDCMImageIOFactory::New() );
-      ObjectFactoryBase::RegisterFactory( MetaImageIOFactory::New() );
-      ObjectFactoryBase::RegisterFactory( PNGImageIOFactory::New() );
-      ObjectFactoryBase::RegisterFactory( VTKImageIOFactory::New() );
-      ObjectFactoryBase::RegisterFactory( GiplImageIOFactory::New() );
-      ObjectFactoryBase::RegisterFactory( BioRadImageIOFactory::New() );
-      ObjectFactoryBase::RegisterFactory( LSMImageIOFactory::New()); //should be before TIFF
+//      ObjectFactoryBase::RegisterFactory( GDCMImageIOFactory::New() );
+//      ObjectFactoryBase::RegisterFactory( MetaImageIOFactory::New() );
+//      ObjectFactoryBase::RegisterFactory( PNGImageIOFactory::New() );
+//      ObjectFactoryBase::RegisterFactory( VTKImageIOFactory::New() );
+//      ObjectFactoryBase::RegisterFactory( GiplImageIOFactory::New() );
+//      ObjectFactoryBase::RegisterFactory( BioRadImageIOFactory::New() );
+//      ObjectFactoryBase::RegisterFactory( LSMImageIOFactory::New()); //should be before TIFF
       ObjectFactoryBase::RegisterFactory( NiftiImageIOFactory::New());
-      ObjectFactoryBase::RegisterFactory( AnalyzeImageIOFactory::New());
-      ObjectFactoryBase::RegisterFactory( StimulateImageIOFactory::New());
-      ObjectFactoryBase::RegisterFactory( JPEGImageIOFactory::New());
-      ObjectFactoryBase::RegisterFactory( TIFFImageIOFactory::New());
-      ObjectFactoryBase::RegisterFactory( NrrdImageIOFactory::New() );
-      ObjectFactoryBase::RegisterFactory( BMPImageIOFactory::New() );
-      ObjectFactoryBase::RegisterFactory( DICOMImageIO2Factory::New() );
+//      ObjectFactoryBase::RegisterFactory( AnalyzeImageIOFactory::New());
+//      ObjectFactoryBase::RegisterFactory( StimulateImageIOFactory::New());
+//      ObjectFactoryBase::RegisterFactory( JPEGImageIOFactory::New());
+//      ObjectFactoryBase::RegisterFactory( TIFFImageIOFactory::New());
+//      ObjectFactoryBase::RegisterFactory( NrrdImageIOFactory::New() );
+//      ObjectFactoryBase::RegisterFactory( BMPImageIOFactory::New() );
+//      ObjectFactoryBase::RegisterFactory( DICOMImageIO2Factory::New() );
       firstTime = false;
       }
     }
