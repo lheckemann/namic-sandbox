@@ -7,7 +7,7 @@
 # this parameter and supply the full pathname
 # as filename.
 #
--i @MultiImageRegistration_TEST_OUTPUT_DIR@/Images/
+-i @MultiImageRegistration_TEST_OUTPUT_DIR@/BsplineSyntheticSet/Images/
 
 
 # 
@@ -15,7 +15,7 @@
 # All outputs are saved to this folder
 #
 #
--o @MultiImageRegistration_TEST_OUTPUT_DIR@/OutputFolder/   
+-o @MultiImageRegistration_TEST_OUTPUT_DIR@/BsplineRegistration001/   
  
  
 # names of the input files

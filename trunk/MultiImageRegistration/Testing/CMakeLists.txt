@@ -12,10 +12,6 @@ MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR})
 SET(MultiImageRegistration_TEST_INPUT_DIR "${MultiImageRegistration_SOURCE_DIR}/Testing/Data")
 
 
-CONFIGURE_FILE( 
-  ${MultiImageRegistration_TEST_INPUT_DIR}/filenamesExperiment001.txt.in
-  ${MultiImageRegistration_TEST_OUTPUT_DIR}/filenamesExperiment001.txt
-  )
 
 #
 #
@@ -31,13 +27,19 @@ IF(BrainWeb_DATA_ROOT)
   #
   ADD_TEST(CreateDeformedImage001 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetBspline  
     ${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha 
-    ${MultiImageRegistration_TEST_OUTPUT_DIR}
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineSyntheticSet/
     )
 
+  MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineRegistration001)
 
-  ADD_TEST(AffineRegistrationTest0001 ${EXECUTABLE_OUTPUT_PATH}/GroupwiseRegistration
-    ${MultiImageRegistration_TEST_OUTPUT_DIR}/filenamesExperiment001.txt  
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersExperiment001.txt  
+  CONFIGURE_FILE( 
+    ${MultiImageRegistration_TEST_INPUT_DIR}/filenamesExperiment001.txt.in
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineRegistration001/filenamesExperiment001.txt
+  )
+
+  ADD_TEST(BsplineRegistrationTest001 ${EXECUTABLE_OUTPUT_PATH}/GroupwiseRegistration
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineRegistration001/filenamesExperiment001.txt  
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersBspline001.txt  
     )
 
 ENDIF(BrainWeb_DATA_ROOT)
