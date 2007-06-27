@@ -299,7 +299,7 @@ public:
     }
 
   /** Method for supporting streaming */
-  ImageIORegion DetermineStreamableRegionFromRequestedRegion( const ImageIORegion & requested ) const;
+  virtual ImageIORegion DetermineStreamableRegionFromRequestedRegion( const ImageIORegion & requested ) const;
 
 
 protected:
