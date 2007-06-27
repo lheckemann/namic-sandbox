@@ -492,7 +492,6 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    *
    * Set the rotation of the object (xRotation, yRotation, zRotation).
    */
-  Index Rotation;
   itkSetMacro(Rotation, Index);
   
   /**
@@ -500,7 +499,6 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    * 
    * Set the translation of the object (xTranslation, yTranslation, zTranslation).
    */
-  Index Translation;
   itkSetMacro(Translation, Index);
   
   /**
@@ -508,7 +506,6 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    *
    * Set the center of the object (xCenter, yCenter, zCenter).
    */
-  Index Center;
   itkSetMacro(Center, Index);
   
 
@@ -517,7 +514,6 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    *
    * Set the rotation increment (xRotationIncrement, yRotationIncrement, zRotationIncrement).
    */
-  Index RotationIncrement;
   itkSetMacro(RotationIncrement, Index);
   
   /**
@@ -525,7 +521,6 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    * 
    * Set the traslation increment of the object (xTranslationIncrement, yTranslationIncrement, zTranslatoinIncrement).
    */
-  Index TranslationIncrement;
   itkSetMacro(TranslationIncrement, Index);
   
   /**
@@ -533,7 +528,6 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    *
    * Set the minimum coordinate of the bounding brick of the object used for rendering by Analyze
    */
-  Index MinimumCoordinateValue;
   itkSetMacro(MinimumCoordinateValue, Index);
   
 
@@ -542,7 +536,6 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    * 
    * Set the maximum coordinate of the bounding brick of the object used for rendering by Analyze
    */
-  Index MaximumCoordinateValue;
   itkSetMacro(MaximumCoordinateValue, Index);
   
 
