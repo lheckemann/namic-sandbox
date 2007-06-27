@@ -2,6 +2,8 @@
 # The path of the input folder for images.
 # All images are assumed to be in the same folder.
 # (don't forget to have backslash as the last character)
+# (don't use space character in folder and file names,
+#  the parser does not handle spaces)
 #
 # If images are in different folders ignore
 # this parameter and supply the full pathname
