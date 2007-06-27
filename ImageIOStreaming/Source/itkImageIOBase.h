@@ -298,6 +298,10 @@ public:
     return (dim == 2);
     }
 
+  /** Method for supporting streaming */
+  ImageIORegion ComputeIORegionGivenRequestedRegion( const ImageIORegion & requested ) const;
+
+
 protected:
   ImageIOBase();
   ~ImageIOBase();

@@ -290,8 +290,12 @@ std::cout "ImageFileReader::EnlargeOutputRequestedRegion()" << std::endl;
     }
   else
     {
-    ImageRegionType ioRegion  = 
-      m_ImageIO->ComputeIORegionGivenRequestedRegion( requestedRegion );
+    ImageIORegion ioRequestedRegion( TOutputImage::ImageDimension );
+
+    ImageIORegion ioEnlargedRequestedRegion  = 
+      m_ImageIO->ComputeIORegionGivenRequestedRegion( ioRequestedRegion );
+
+    ImageRegionType requestedRegion;
 
     if( ioRegion.IsInside( requestedRegion ) )
       {
