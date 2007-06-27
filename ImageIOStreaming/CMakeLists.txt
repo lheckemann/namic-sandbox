@@ -5,6 +5,7 @@ IF(ITK_FOUND)
   INCLUDE(${ITK_USE_FILE})
 ENDIF(ITK_FOUND)
 
+INCLUDE_DIRECTORIES( BEFORE ${StreamingImageViewer}/Source )
 
 SUBDIRS(Testing )
 
