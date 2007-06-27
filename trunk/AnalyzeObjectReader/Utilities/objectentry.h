@@ -478,6 +478,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    * Set the starting colors (red, green, blue) for creating the colormap.
    */
   itkSetMacro( StartColor, intRGBPixel);
+  itkGetConstMacro(StartColor, intRGBPixel);
  
   /**
    * \brief setEndColor
@@ -485,6 +486,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    * Set the ending colors (red, green, blue) for creating the colormap.
    */
   itkSetMacro(EndColor, intRGBPixel);
+  itkGetConstMacro(EndColor, intRGBPixel);
 
 
   /**
@@ -493,6 +495,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    * Set the rotation of the object (xRotation, yRotation, zRotation).
    */
   itkSetMacro(Rotation, Index);
+  itkGetConstMacro(Rotation, Index);
   
   /**
    * \brief setTranslation
@@ -500,6 +503,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    * Set the translation of the object (xTranslation, yTranslation, zTranslation).
    */
   itkSetMacro(Translation, Index);
+  itkGetConstMacro(Translation, Index);
   
   /**
    * \brief setCenter
@@ -507,6 +511,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    * Set the center of the object (xCenter, yCenter, zCenter).
    */
   itkSetMacro(Center, Index);
+  itkGetConstMacro(Center, Index);
   
 
   /**
@@ -515,6 +520,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    * Set the rotation increment (xRotationIncrement, yRotationIncrement, zRotationIncrement).
    */
   itkSetMacro(RotationIncrement, Index);
+  itkGetConstMacro(RotationIncrement, Index);
   
   /**
    * \brief setTranslationIncrement
@@ -522,6 +528,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    * Set the traslation increment of the object (xTranslationIncrement, yTranslationIncrement, zTranslatoinIncrement).
    */
   itkSetMacro(TranslationIncrement, Index);
+  itkGetConstMacro(TranslationIncrement, Index);
   
   /**
    * \brief setMinimumCoordinate
@@ -529,6 +536,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    * Set the minimum coordinate of the bounding brick of the object used for rendering by Analyze
    */
   itkSetMacro(MinimumCoordinateValue, Index);
+  itkGetConstMacro(MinimumCoordinateValue, Index);
   
 
   /**
@@ -537,6 +545,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    * Set the maximum coordinate of the bounding brick of the object used for rendering by Analyze
    */
   itkSetMacro(MaximumCoordinateValue, Index);
+  itkGetConstMacro(MaximumCoordinateValue, Index);
   
 
 
