@@ -494,8 +494,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    */
   Index Rotation;
   itkSetMacro(Rotation, Index);
-  bool setRotation( const int xrotation, const int yrotation, const int zrotation );
-
+  
   /**
    * \brief setTranslation
    * 
@@ -503,8 +502,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    */
   Index Translation;
   itkSetMacro(Translation, Index);
-  bool setTranslation( const int xtranslation, const int ytranslation, const int ztranslation );
-
+  
   /**
    * \brief setCenter
    *
@@ -512,8 +510,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    */
   Index Center;
   itkSetMacro(Center, Index);
-  bool setCenter( const int xcenter, const int ycenter, const int zcenter );
-
+  
 
   /**
    * \brief setRotationIncrement
@@ -522,10 +519,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    */
   Index RotationIncrement;
   itkSetMacro(RotationIncrement, Index);
-  bool setRotationIncrement( const int xrotationincrement,
-    const int yrotationincrement,
-    const int zrotationincrement );
-
+  
   /**
    * \brief setTranslationIncrement
    * 
@@ -533,10 +527,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    */
   Index TranslationIncrement;
   itkSetMacro(TranslationIncrement, Index);
-  bool setTranslationIncrement( const int xtranslationincrement,
-    const int ytranslationincrement,
-    const int ztranslationincrement );
-
+  
   /**
    * \brief setMinimumCoordinate
    *
@@ -544,8 +535,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    */
   Index MinimumCoordinateValue;
   itkSetMacro(MinimumCoordinateValue, Index);
-  bool setMinimumCoordinate( const int minimumxvalue, const int minimumyvalue, const int minimumzvalue );
-
+  
 
   /**
    * \brief setMaximumCoordinate
@@ -554,8 +544,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    */
   Index MaximumCoordinateValue;
   itkSetMacro(MaximumCoordinateValue, Index);
-  bool setMaximumCoordinate( const int maximumxvalue, const int maximumyvalue, const int maximumzvalue );
-
+  
 
 
 protected:
