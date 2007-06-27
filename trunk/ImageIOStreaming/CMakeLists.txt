@@ -7,7 +7,7 @@ ENDIF(ITK_FOUND)
 
 INCLUDE_DIRECTORIES( BEFORE ${StreamingImageViewer}/Source )
 
-SUBDIRS(Testing )
+SUBDIRS(Testing Source)
 
 
 ENABLE_TESTING()
