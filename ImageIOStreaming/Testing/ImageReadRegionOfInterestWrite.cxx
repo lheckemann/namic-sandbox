@@ -22,38 +22,11 @@
 #define ITK_LEAN_AND_MEAN
 #endif
 
-//  Software Guide : BeginLatex
-//
-//  This example should arguably be placed in the previous filtering
-//  chapter. However its usefulness for typical IO operations makes it
-//  interesting to mention here. The purpose of this example is to read and
-//  image, extract a subregion and write this subregion to a file. This is a
-//  common task when we want to apply a computationally intensive method to
-//  the region of interest of an image.
-//
-//  As usual with ITK IO, we begin by including the appropriate header files.
-//
-//  Software Guide : EndLatex 
-
-// Software Guide : BeginCodeSnippet
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-// Software Guide : EndCodeSnippet
 
 
-//  Software Guide : BeginLatex
-//  
-//  The \doxygen{RegionOfInterestImageFilter} is the filter used to extract a
-//  region from an image. Its header is included below.
-//
-//  \index{itk::RegionOfInterestImageFilter!header}
-//
-//  Software Guide : EndLatex 
-
-// Software Guide : BeginCodeSnippet
 #include "itkRegionOfInterestImageFilter.h"
-// Software Guide : EndCodeSnippet
-
 #include "itkImage.h"
 
 
@@ -76,8 +49,8 @@ int main( int argc, char ** argv )
   //  Software Guide : EndLatex 
 
   // Software Guide : BeginCodeSnippet
-  typedef signed short        InputPixelType;
-  typedef signed short        OutputPixelType;
+  typedef unsigned char        InputPixelType;
+  typedef unsigned char OutputPixelType;
   const   unsigned int        Dimension = 2;
 
   typedef itk::Image< InputPixelType,  Dimension >    InputImageType;
