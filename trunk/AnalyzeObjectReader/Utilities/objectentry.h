@@ -75,6 +75,7 @@ public:
   typedef SmartPointer<Self>  Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
   typedef itk::RGBPixel<int> intRGBPixel;
+  typedef itk::Index<3> Index;
 
   // RGBPixel::pointer RGBPixelPointer = RGBPixel::New();
   /** Method for creation through the object factory. */
@@ -491,6 +492,8 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    *
    * Set the rotation of the object (xRotation, yRotation, zRotation).
    */
+  Index Rotation;
+  itkSetMacro(Rotation, Index);
   bool setRotation( const int xrotation, const int yrotation, const int zrotation );
 
   /**
@@ -498,6 +501,8 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    * 
    * Set the translation of the object (xTranslation, yTranslation, zTranslation).
    */
+  Index Translation;
+  itkSetMacro(Translation, Index);
   bool setTranslation( const int xtranslation, const int ytranslation, const int ztranslation );
 
   /**
@@ -505,6 +510,8 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    *
    * Set the center of the object (xCenter, yCenter, zCenter).
    */
+  Index Center;
+  itkSetMacro(Center, Index);
   bool setCenter( const int xcenter, const int ycenter, const int zcenter );
 
 
@@ -513,6 +520,8 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    *
    * Set the rotation increment (xRotationIncrement, yRotationIncrement, zRotationIncrement).
    */
+  Index RotationIncrement;
+  itkSetMacro(RotationIncrement, Index);
   bool setRotationIncrement( const int xrotationincrement,
     const int yrotationincrement,
     const int zrotationincrement );
@@ -522,6 +531,8 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    * 
    * Set the traslation increment of the object (xTranslationIncrement, yTranslationIncrement, zTranslatoinIncrement).
    */
+  Index TranslationIncrement;
+  itkSetMacro(TranslationIncrement, Index);
   bool setTranslationIncrement( const int xtranslationincrement,
     const int ytranslationincrement,
     const int ztranslationincrement );
@@ -531,6 +542,8 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    *
    * Set the minimum coordinate of the bounding brick of the object used for rendering by Analyze
    */
+  Index MinimumCoordinateValue;
+  itkSetMacro(MinimumCoordinateValue, Index);
   bool setMinimumCoordinate( const int minimumxvalue, const int minimumyvalue, const int minimumzvalue );
 
 
@@ -539,6 +552,8 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    * 
    * Set the maximum coordinate of the bounding brick of the object used for rendering by Analyze
    */
+  Index MaximumCoordinateValue;
+  itkSetMacro(MaximumCoordinateValue, Index);
   bool setMaximumCoordinate( const int maximumxvalue, const int maximumyvalue, const int maximumzvalue );
 
 
@@ -582,24 +597,31 @@ private:
   int m_XRotation;
   int m_YRotation;
   int m_ZRotation;
+  Index m_Rotation;          //Three seperate Rotations (x, y, z) have been put together to use the set macro.
   int m_XTranslation;
   int m_YTranslation;
   int m_ZTranslation;
+  Index m_Translation;       //Three seperate Translations (x, y, z) have been put together to use the set macro.
   int m_XCenter;
   int m_YCenter;
   int m_ZCenter;
+  Index m_Center;            //Three seperate Centers (x, y, z) have been put together to use the set macro.
   int m_XRotationIncrement;
   int m_YRotationIncrement;
   int m_ZRotationIncrement;
+  Index m_RotationIncrement;  //Three seperate Rotation Increments (x, y, z) have been put together to use the set macro.
   int m_XTranslationIncrement;
   int m_YTranslationIncrement;
   int m_ZTranslationIncrement;
+  Index m_TranslationIncrement; //Three seperate Translation Increments (x, y, z) have been put together to use the set macro.
   short int m_MinimumXValue;
   short int m_MinimumYValue;
   short int m_MinimumZValue;
+  Index m_MinimumCoordinateValue;  //Three seperate Minimum Coordinate Values (x, y, z) have been put together to use the set macro.
   short int m_MaximumXValue;
   short int m_MaximumYValue;
   short int m_MaximumZValue;
+  Index m_MaximumCoordinateValue;   //Three seperate Maximum Coordiante Values (x, y, z) have been put together to use the set macro.
   float m_Opacity;
   int m_OpacityThickness;
   float m_BlendFactor;
