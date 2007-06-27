@@ -228,6 +228,29 @@ static void dumpdata(const void *x)
 #define dumpdata(x)
 #endif // #if defined(__USE_VERY_VERBOSE_NIFTI_DEBUGGING__)
 
+ImageIORegion NiftiImageIO::DetermineStreamableRegionFromRequestedRegion( const ImageIORegion & requestedRegion ) const
+{
+  //
+  // The implementations determines that the streamable region based on what can be a collaspable region
+  // equal to the largest possible region of the image.
+  //
+  ImageIORegion streamableRegion;
+  for( unsigned int i=0; i < this->m_NumberOfDimensions ; i++ )
+    {
+//    requestedRegion.GetIndex()[i];
+//    if(this->m_Dimensions[i]  != requestedRegion.GetSize()[i] )
+//      {
+//      }
+//    else
+      {
+      streamableRegion.SetSize( i, this->m_Dimensions[i] );
+      streamableRegion.SetIndex( i, 0 );
+      }
+    }
+  return streamableRegion;
+}
+
+
 NiftiImageIO::NiftiImageIO():
   m_NiftiImage(0)
 {
@@ -295,33 +318,34 @@ void RescaleFunction(TBuffer* buffer, double slope, double intercept, size_t siz
 void NiftiImageIO::Read(void* buffer)
 {
   //TODO:  Clean this up  this->m_NiftiImage=nifti_image_read(m_FileName.c_str(),true);
-  void * data=NULL;
-  int CollapsedImageReadStatus=nifti_read_collapsed_image( this->m_NiftiImage, this->m_CollapsedDims, &data);
+  void * CollapsedData=NULL;
+  int CollapsedImageReadStatus=nifti_read_collapsed_image( this->m_NiftiImage, this->m_CollapsedDims, &CollapsedData);
   if (CollapsedImageReadStatus != 0 || this->m_NiftiImage == NULL)
     {
     ExceptionObject exception(__FILE__, __LINE__);
     exception.SetDescription("Read failed");
     throw exception;
     }
+
   const int dims=this->GetNumberOfDimensions();
   size_t numElts = 1;
 
   switch (dims)
     {
     case 7:
-      numElts *= this->m_NiftiImage->nw;
+      numElts *=  (this->m_CollapsedDims[7])?1:this->m_NiftiImage->nw;
     case 6:
-      numElts *= this->m_NiftiImage->nv;
+      numElts *=  (this->m_CollapsedDims[6])?1:this->m_NiftiImage->nv;
     case 5:
-      numElts *= this->m_NiftiImage->nu;
+      numElts *=  (this->m_CollapsedDims[5])?1:this->m_NiftiImage->nu;
     case 4:
-      numElts *= this->m_NiftiImage->nt;
+      numElts *=  (this->m_CollapsedDims[4])?1:this->m_NiftiImage->nt;
     case 3:
-      numElts *= this->m_NiftiImage->nz;
+      numElts *=  (this->m_CollapsedDims[3])?1:this->m_NiftiImage->nz;
     case 2:
-      numElts *= this->m_NiftiImage->ny;
+      numElts *=  (this->m_CollapsedDims[2])?1:this->m_NiftiImage->ny;
     case 1:
-      numElts *= this->m_NiftiImage->nx;
+      numElts *=  (this->m_CollapsedDims[1])?1:this->m_NiftiImage->nx;
       break;
     default:
       numElts = 0;
@@ -330,13 +354,14 @@ void NiftiImageIO::Read(void* buffer)
   if(numComponents == 1 || this->GetPixelType() == COMPLEX)
     {
     const size_t NumBytes=numElts * this->m_NiftiImage->nbyper;
-    memcpy(buffer, this->m_NiftiImage->data, NumBytes);
+    memcpy(buffer, CollapsedData, NumBytes);
     }
   else
     {
     unsigned nbyper = this->m_NiftiImage->nbyper;
+    //TODO:  Need to coerse these dims based on the collapsed areas.
     int *dim = this->m_NiftiImage->dim;
-    const char *frombuf = (const char *)this->m_NiftiImage->data;
+    const char *frombuf = (const char *)CollapsedData;
     char *tobuf = (char *)buffer;
 
     for(unsigned vec = 0; vec < (unsigned)dim[5]; vec++)
@@ -369,7 +394,7 @@ void NiftiImageIO::Read(void* buffer)
         }
       }
     }
-  dumpdata(this->m_NiftiImage->data);
+  dumpdata(CollapsedData);
   dumpdata(buffer);
 
   // If the scl_slope field is nonzero, then rescale each voxel value in the dataset

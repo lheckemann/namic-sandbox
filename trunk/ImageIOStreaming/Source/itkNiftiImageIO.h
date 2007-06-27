@@ -91,6 +91,7 @@ public:
    * that the IORegions has been set properly. */
   virtual void Write(const void* buffer);
 
+  virtual ImageIORegion DetermineStreamableRegionFromRequestedRegion( const ImageIORegion & requestedRegion ) const;
 
 protected:
   NiftiImageIO();
