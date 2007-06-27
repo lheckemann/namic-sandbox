@@ -825,9 +825,20 @@ void ImageIOBase::ReadBufferAsASCII(std::istream& is, void *buffer,
 }
 
 ImageIORegion 
-ImageIOBase::DetermineStreamableRegionFromRequestedRegion( const ImageIORegion & requested ) const
+ImageIOBase
+::DetermineStreamableRegionFromRequestedRegion( const ImageIORegion & itkNotUsed( requested ) ) const
 {
-  return requested;
+  //
+  // The default implementations determines that the streamable region is
+  // equal to the largest possible region of the image.
+  //
+  ImageIORegion streamableRegion;
+  for( unsigned int i=0; i < this->m_NumberOfDimensions ; i++ )
+    {
+    streamableRegion.SetSize( i, this->m_Dimensions[i] );
+    streamableRegion.SetIndex( i, 0 );
+    }
+  return streamableRegion;
 }
 
 
