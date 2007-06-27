@@ -5,9 +5,17 @@
 
 int main (int argc, char * argv[])
 {
-  itk::AnalyzeObjectEntry::Pointer testAOE=itk::AnalyzeObjectEntry::New();
+  int error_count = 0 ;
+  itk::AnalyzeObjectEntry::Pointer testAOE01=itk::AnalyzeObjectEntry::New();
+  testAOE01->SetDisplayFlag(true);
+  testAOE01->SetOpacity(0.123);
 
-  testAOE->SetDisplayFlag(true);
-
-  return 0;
+  itk::AnalyzeObjectEntry::Pointer testAOE02=itk::AnalyzeObjectEntry::New();
+  testAOE02->Copy(testAOE01); //Stress the operator=
+  if( testAOE02->GetOpacity() != 0.123 )
+    {
+    error_count++;
+    }
+  return error_count;
 }
+

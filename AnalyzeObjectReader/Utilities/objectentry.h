@@ -31,14 +31,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __OBJECTENTR_H__
 
 #include <string>
-//#include <vector>
 #include <stdio.h>
 #include <itkObject.h>
-#include "itkObjectFactory.h"
-#include "itkImage.h"
-#include "itkRGBPixel.h"
-// TODO:  Add namespace  namespace itk {
-//TODO:  USE GET/SET methods for member variables needs to be put together along with one set of
+#include <itkObjectFactory.h>
+#include <itkImage.h>
+#include <itkRGBPixel.h>
+// TODO: Add namespace  namespace itk {
+// TODO: USE GET/SET methods for member variables needs to be put together along with one set of
 //       documentation that is syncronized syncronized.
 namespace itk{
   /**
@@ -67,10 +66,9 @@ namespace itk{
    * \brief This class encapsulates a single object in an Analyze object file
    */
   //TODO:  derive from itk::Object to get these to be formal itk pipeline managable objects.
-class AnalyzeObjectEntry : public itk::Object
+class AnalyzeObjectEntry : public Object
 {
 public:
-
   /** Standard typedefs. */
   typedef AnalyzeObjectEntry Self;
   typedef Object  Superclass;
@@ -78,8 +76,7 @@ public:
   typedef SmartPointer<const Self>  ConstPointer;
   typedef itk::RGBPixel<int> intRGBPixel;
 
-//  RGBPixel::pointer RGBPixelPointer = RGBPixel::New();
-
+  // RGBPixel::pointer RGBPixelPointer = RGBPixel::New();
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
@@ -95,7 +92,7 @@ public:
    * - unknown
    * \sa AnalyzeObjectEntry
    */
-  ~AnalyzeObjectEntry( void );
+  virtual ~AnalyzeObjectEntry( void ) { }
 
   /**
    * \brief operator= is the assignment operator, which copies the data values on the
@@ -106,7 +103,7 @@ public:
    * - unknown
    * \sa AnalyzeObjectEntry
    */
-  AnalyzeObjectEntry & operator=( const AnalyzeObjectEntry & rhs );
+void Copy( AnalyzeObjectEntry::Pointer rhs );
 
   /**
    * \brief getName/setName
@@ -142,7 +139,7 @@ public:
    * that voxels of this object type are ignored or assumed to be outside
    * the threshold range during the raycasting process.
    */
-  itkGetMacro(DisplayFlag, int);
+  itkGetConstMacro(DisplayFlag, int);
   itkSetMacro(DisplayFlag, int);
 
   /**
@@ -152,7 +149,7 @@ public:
    * applied to a copy of the actual object, rather
    * than the object itself. [ANALYZE only]
    */
-  itkGetMacro(CopyFlag, unsigned char);
+  itkGetConstMacro(CopyFlag, unsigned char);
   itkSetMacro(CopyFlag, unsigned char);
 
   /**
@@ -161,7 +158,7 @@ public:
    * MirrorFlag indicates the axis this object is mirrored around.
    * [ANALYZE only]
    */
-  itkGetMacro(MirrorFlag, unsigned char);
+  itkGetConstMacro(MirrorFlag, unsigned char);
   itkSetMacro(MirrorFlag, unsigned char);
 
   /**
@@ -170,7 +167,7 @@ public:
    * StatusFlag is used to indicate when an object has changed and may
    * need it's minimum bounding box recomputed. [ANALYZE only]
    */
-  itkGetMacro(StatusFlag, unsigned char);
+  itkGetConstMacro(StatusFlag, unsigned char);
   itkSetMacro(StatusFlag, unsigned char);
 
   /**
@@ -179,7 +176,7 @@ public:
    * NeighborsUsedFlag indicates which neighboring voxels are used in
    * calculating the objects shading. [ANALYZE only]
    */
-  itkGetMacro(NeighborsUsedFlag, unsigned char);
+  itkGetConstMacro(NeighborsUsedFlag, unsigned char);
   itkSetMacro(NeighborsUsedFlag, unsigned char);
 
   /**
@@ -188,7 +185,7 @@ public:
    * Shades indicates the number of shades available for this object.
    * Only 256 (250 in ANALYZE) total shades are available.
    */
-  itkGetMacro(Shades, int);
+  itkGetConstMacro(Shades, int);
   itkSetMacro(Shades, int);
 
   /**
@@ -198,7 +195,7 @@ public:
    * darker shade of the ending color. ANALYZE defaults these values to 10%
    * of the ending color.
    */
-  itkGetMacro(StartRed, int);
+  itkGetConstMacro(StartRed, int);
   itkSetMacro(StartRed, int);
 
   /**
@@ -208,7 +205,7 @@ public:
    * a darker shade of the ending color.  ANALYZE defaults these values to
    * 10% of the ending color.
    */
-  itkGetMacro(StartGreen, int);
+  itkGetConstMacro(StartGreen, int);
   itkSetMacro(StartGreen, int);
 
   /**
@@ -218,7 +215,7 @@ public:
    * darker shade of the ending color. ANALYZE defaults these values to 10%
    * of the ending color.
    */
-  itkGetMacro(StartBlue, int);
+  itkGetConstMacro(StartBlue, int);
   itkSetMacro(StartBlue, int);
 
   /**
@@ -226,7 +223,7 @@ public:
    *
    * EndRed specify the ending color for this object.
    */
-  itkGetMacro(EndRed, int);
+  itkGetConstMacro(EndRed, int);
   itkSetMacro(EndRed, int);
 
   /**
@@ -234,7 +231,7 @@ public:
    *
    * EndGreen specify the ending color for this object.
    */
-  itkGetMacro(EndGreen, int);
+  itkGetConstMacro(EndGreen, int);
   itkSetMacro(EndGreen, int);
 
   /**
@@ -242,7 +239,7 @@ public:
    *
    * EndBlue specify the ending color for this object.
    */
-  itkGetMacro(EndBlue, int);
+  itkGetConstMacro(EndBlue, int);
   itkSetMacro(EndBlue, int);
 
   /**
@@ -251,7 +248,7 @@ public:
    * XRotation specify a rotation which is applied to this object only.
    * [ANALYZE only]
    */
-  itkGetMacro(XRotation, int);
+  itkGetConstMacro(XRotation, int);
 
   /**
    *\brief getXRotationIncrement
@@ -259,7 +256,7 @@ public:
    * XRotationIncrement specify increments that are applies to XRotation,
    * YRotation, and ZRotation when making a sequence. [ANALYZE only]
    */
-  itkGetMacro(XRotationIncrement, int);
+  itkGetConstMacro(XRotationIncrement, int);
 
   /**
    * \brief getYRotation
@@ -267,7 +264,7 @@ public:
    * YRotation specify a rotation which is applied to this object only.
    * [ANALYZE only]
    */
-  itkGetMacro(YRotation, int);
+  itkGetConstMacro(YRotation, int);
 
   /**
    *\brief getYRotationIncrement
@@ -275,7 +272,7 @@ public:
    * YRotationIncrement specify increments that are applies to XRotation,
    * YRotation, and ZRotation when making a sequence. [ANALYZE only]
    */
-  itkGetMacro(YRotationIncrement, int);
+  itkGetConstMacro(YRotationIncrement, int);
 
   /**
    * \brief getZRotation
@@ -283,7 +280,7 @@ public:
    * ZRotation specify a rotation which is applied to this object only.
    * [ANALYZE only]
    */
-  itkGetMacro(ZRotation, int);
+  itkGetConstMacro(ZRotation, int);
 
    /**
     *\brief getZRotationIncrement
@@ -291,7 +288,7 @@ public:
     * ZRotationIncrement specify increments that are applies to XRotation,
     * YRotation, and ZRotation when making a sequence. [ANALYZE only]
     */
-  itkGetMacro(ZRotationIncrement, int);
+  itkGetConstMacro(ZRotationIncrement, int);
 
   /**
    * \brief getXTranslation
@@ -299,7 +296,7 @@ public:
    * XTranslation specify a translation which is applied to this object only.
    * [ANALYZE only]
    */
-  itkGetMacro(XTranslation, int);
+  itkGetConstMacro(XTranslation, int);
 
    /**
     \*brief getXTranslation
@@ -308,7 +305,7 @@ public:
     * XTranslation, YTranslation, and ZTranslation when making a sequence.
     * [ANALYZE only]
     */
-  itkGetMacro(XTranslationIncrement, int);
+  itkGetConstMacro(XTranslationIncrement, int);
 
   /**
    * \brief getYTranslation
@@ -316,7 +313,7 @@ public:
    * YTranslation specify a translation which is applied to this object only.
    * [ANALYZE only]
    */
-  itkGetMacro(YTranslation, int);
+  itkGetConstMacro(YTranslation, int);
 
    /**
     *\brief getYTranslationIncrement
@@ -325,7 +322,7 @@ public:
     * XTranslation, YTranslation, and ZTranslation when making a sequence.
     * [ANALYZE only]
     */
-  itkGetMacro(YTranslationIncrement, int);
+  itkGetConstMacro(YTranslationIncrement, int);
 
   /**
    * \brief getZTranslation
@@ -333,7 +330,7 @@ public:
    * ZTranslation specify a translation which is applied to this object only.
    * [ANALYZE only]
    */
-  itkGetMacro(ZTranslation, int);
+  itkGetConstMacro(ZTranslation, int);
   
   /**
    *\brief getZTranslation
@@ -342,7 +339,7 @@ public:
    * XTranslation, YTranslation, and ZTranslation when making a sequence.
    * [ANALYZE only]
    */
-  itkGetMacro(ZTranslationIncrement, int);
+  itkGetConstMacro(ZTranslationIncrement, int);
 
   /**
    * \brief getXCenter/setXCenter
@@ -351,7 +348,7 @@ public:
    * which the XRotation, YRotation, and ZRotation are rotated around.
    * [ANALYZE only]
    */
-  itkGetMacro(XCenter, int);
+  itkGetConstMacro(XCenter, int);
   itkSetMacro(XCenter, int);
 
   /**
@@ -361,7 +358,7 @@ public:
    * which the XRotation, YRotation, and ZRotation are rotated around.
    * [ANALYZE only]
    */
-  itkGetMacro(YCenter, int);
+  itkGetConstMacro(YCenter, int);
   itkSetMacro(YCenter, int);
 
   /**
@@ -371,7 +368,7 @@ public:
    * which the XRotation, YRotation, and ZRotation are rotated around.
    * [ANALYZE only]
    */
-  itkGetMacro(ZCenter, int);
+  itkGetConstMacro(ZCenter, int);
   itkSetMacro(ZCenter, int);
 
   /**
@@ -381,7 +378,7 @@ public:
    * increase the rendering speed of individual objects during object
    * translations and rotations. [ANALYZE only]
    */
-  itkGetMacro(MinimumXValue, short int);
+  itkGetConstMacro(MinimumXValue, short int);
   itkSetMacro(MinimumXValue, int);
 
   /**
@@ -391,7 +388,7 @@ public:
    * increase the rendering speed of individual objects during object
    * translations and rotations. [ANALYZE only]
    */
-  itkGetMacro(MinimumYValue, short int);
+  itkGetConstMacro(MinimumYValue, short int);
   itkSetMacro(MinimumYValue, int);
 
   /**
@@ -401,7 +398,7 @@ public:
    * increase the rendering speed of individual objects during object
    * translations and rotations. [ANALYZE only]
    */
-  itkGetMacro(MinimumZValue, short int);
+  itkGetConstMacro(MinimumZValue, short int);
   itkSetMacro(MinimumZValue, int);
 
   /**
@@ -411,7 +408,7 @@ public:
    * increase the rendering speed of individual objects during object
    * translations and rotations. [ANALYZE only]
    */
-  itkGetMacro(MaximumXValue, short int);
+  itkGetConstMacro(MaximumXValue, short int);
   itkSetMacro(MaximumXValue, int);
 
   /**
@@ -421,7 +418,7 @@ public:
    * increase the rendering speed of individual objects during object
    * translations and rotations. [ANALYZE only]
    */
-  itkGetMacro(MaximumYValue, short int);
+  itkGetConstMacro(MaximumYValue, short int);
   itkSetMacro(MaximumYValue, int);
 
   /**
@@ -431,7 +428,7 @@ public:
    * increase the rendering speed of individual objects during object
    * translations and rotations. [ANALYZE only]
    */
-  itkGetMacro(MaximumZValue, short int);
+  itkGetConstMacro(MaximumZValue, short int);
   itkSetMacro(MaximumZValue, int);
 
   /**
@@ -451,7 +448,7 @@ public:
    * OpacityThickness results in only the surface of each object having a
    * contribution.
    */
-  itkGetMacro(Opacity, float);
+  itkGetConstMacro(Opacity, float);
   itkSetMacro(Opacity, float);
 
   /**
@@ -459,7 +456,7 @@ public:
    *
    * The thickness of the object
    */
-  itkGetMacro(OpacityThickness, int);
+  itkGetConstMacro(OpacityThickness, int);
   itkSetMacro(OpacityThickness, int);
 
   /**
@@ -471,16 +468,14 @@ public:
    * causes all the color to come from the alpha map.
    * A value of .5 will cause half to come from each.
    */
-  itkGetMacro(BlendFactor, int);
+  itkGetConstMacro(BlendFactor, int);
   itkSetMacro(BlendFactor, int);
-
 
   /**
    * \brief setStartColor
    *
    * Set the starting colors (red, green, blue) for creating the colormap.
    */
-
   //RGB::SetRed(startred);
 //const int RGB =  RGBPixel::FixedArray();
   bool setStartColor( const int startred, const int startgreen, const int startblue );
@@ -549,10 +544,11 @@ public:
    */
   bool setMaximumCoordinate( const int maximumxvalue, const int maximumyvalue, const int maximumzvalue );
 
+
+
 protected:
-#if 0
   /**
-   * \brief AnalyzeObjectEntry( void ) is the default constructor, initializes to 0 or NULL
+   * \brief AnalyzeObjectEntry( ) is the default constructor, initializes to 0 or NULL
    * \param none
    * \return none
    * Possible Causes of Failure:
@@ -570,7 +566,6 @@ protected:
    * \sa AnalyzeObjectEntry
    */
   AnalyzeObjectEntry( const AnalyzeObjectEntry & rhs );
-#endif
 private:
   char m_Name[32];
   int m_DisplayFlag;

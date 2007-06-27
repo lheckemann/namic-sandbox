@@ -22,7 +22,7 @@ SET( ANALYE_OBJECTENTRYTEST_SRC
 itkAnalyzeObjectEntryTest.cxx)
 
 ADD_EXECUTABLE( itkAnalyzeObjectEntryTest ${ANALYE_OBJECTENTRYTEST_SRC} )
-TARGET_LINK_LIBRARIES( itkAnalyzeObjectEntryTest ITKIO )
+TARGET_LINK_LIBRARIES( itkAnalyzeObjectEntryTest AnalyzeObjectIO ITKIO )
 
 ADD_TEST( itkAnalyzeObjectEntryTest01 itkAnalyzeObjectEntryTest )
 
