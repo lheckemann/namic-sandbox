@@ -346,9 +346,7 @@ void ImageFileReader<TOutputImage, ConvertPixelTraits>
 
   // allocate the output buffer
   typedef typename TOutputImage::RegionType ImageRegionType;
-  
   output->SetBufferedRegion( this->m_StreamableRegion );
-
   output->Allocate();
 
   // Test if the file exist and if it can be open.
