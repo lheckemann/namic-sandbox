@@ -278,8 +278,11 @@ ImageFileReader<TOutputImage, ConvertPixelTraits>
   // LargestPossibleRegion
   if (!m_ImageIO->CanStreamRead())
     {
+std::cout << "image IO can't stream" << std::endl;
     if (out)
       {
+      std::cout << "StreamableRegion set to largest possible region =";
+      std::cout << this->m_StreamableRegion << std::endl;
       this->m_StreamableRegion = out->GetLargestPossibleRegion();
       }
     else
@@ -332,6 +335,8 @@ ImageFileReader<TOutputImage, ConvertPixelTraits>
       itkExceptionMacro("ImageIO returns IO region that does not fully contains the requested region");
       }
       
+    std::cout << "StreamableRegion set to largest possible region =";
+    std::cout << this->m_StreamableRegion << std::endl;
     }
 
 }
@@ -346,6 +351,10 @@ void ImageFileReader<TOutputImage, ConvertPixelTraits>
 
   // allocate the output buffer
   typedef typename TOutputImage::RegionType ImageRegionType;
+  std::cout << "ImageFileReader::GenerateData()" <<  std::endl;
+  std::cout << "Allocating the buffer with the StreamableRegion" << std::endl;
+  std::cout << this->m_StreamableRegion << std::endl;
+
   output->SetBufferedRegion( this->m_StreamableRegion );
   output->Allocate();
 
