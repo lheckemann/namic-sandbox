@@ -271,7 +271,7 @@ void
 ImageFileReader<TOutputImage, ConvertPixelTraits>
 ::EnlargeOutputRequestedRegion(DataObject *output)
 {
-std::cout "ImageFileReader::EnlargeOutputRequestedRegion()" << std::endl;
+  std::cout << "ImageFileReader::EnlargeOutputRequestedRegion()" << std::endl;
   typename TOutputImage::Pointer out = dynamic_cast<TOutputImage*>(output);
 
   // the ImageIO object cannot stream, then set the RequestedRegion to the
@@ -318,7 +318,7 @@ std::cout "ImageFileReader::EnlargeOutputRequestedRegion()" << std::endl;
     for( unsigned int i=0; i<TOutputImage::ImageDimension; i++)
       {
       streamableRegionSize[i] =  ioStreamableRegion.GetSize(i);
-      streamableRegionIndex[i] = ioStreamableRegion.SetIndex(i);
+      streamableRegionIndex[i] = ioStreamableRegion.GetIndex(i);
       }
 
     this->m_StreamableRegion.SetSize( streamableRegionSize );
@@ -370,17 +370,16 @@ void ImageFileReader<TOutputImage, ConvertPixelTraits>
   m_ImageIO->SetFileName(m_FileName.c_str());
 
   ImageIORegion ioRegion(TOutputImage::ImageDimension);
-  
+
   ImageIORegion::SizeType ioSize = ioRegion.GetSize();
   ImageIORegion::IndexType ioStart = ioRegion.GetIndex();
 
-  typename TOutputImage
   SizeType dimSize;
   for(unsigned int i=0; i<TOutputImage::ImageDimension; i++)
     {
     if (i < m_ImageIO->GetNumberOfDimensions())
       {
-      dimSize[i] = this->m_StreamableRegion.GetSize()(i);
+      dimSize[i] = this->m_StreamableRegion.GetSize()[i];
       }
     else
       {

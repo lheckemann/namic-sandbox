@@ -231,6 +231,12 @@ static void dumpdata(const void *x)
 NiftiImageIO::NiftiImageIO():
   m_NiftiImage(0)
 {
+  //Set the default collapsed dimensions.
+  m_CollapsedDims[0]=0;
+  for(int d=1; d<8;d++)
+    {
+    m_CollapsedDims[d]=-1;
+    }
   this->SetNumberOfDimensions(3);
   m_RescaleSlope = 1.0;
   m_RescaleIntercept = 0.0;
@@ -240,6 +246,7 @@ NiftiImageIO::NiftiImageIO():
 NiftiImageIO::~NiftiImageIO()
 {
   nifti_image_free(this->m_NiftiImage);
+  //TODO:  May need to free the buffer space memory also!
 }
 
 void NiftiImageIO::PrintSelf(std::ostream& os, Indent indent) const
@@ -269,7 +276,6 @@ bool NiftiImageIO::CanWriteFile(const char * FileNameToWrite)
       return false;
       }
     }
-  
   return (nifti_is_complete_filename(FileNameToWrite) == 1 ) ? true: false;
 }
 
@@ -288,13 +294,14 @@ void RescaleFunction(TBuffer* buffer, double slope, double intercept, size_t siz
 
 void NiftiImageIO::Read(void* buffer)
 {
-  this->m_NiftiImage=nifti_image_read(m_FileName.c_str(),true);
-  if (this->m_NiftiImage == NULL)
+  //TODO:  Clean this up  this->m_NiftiImage=nifti_image_read(m_FileName.c_str(),true);
+  void * data=NULL;
+  int CollapsedImageReadStatus=nifti_read_collapsed_image( this->m_NiftiImage, this->m_CollapsedDims, &data);
+  if (CollapsedImageReadStatus != 0 || this->m_NiftiImage == NULL)
     {
     ExceptionObject exception(__FILE__, __LINE__);
     exception.SetDescription("Read failed");
     throw exception;
-    
     }
   const int dims=this->GetNumberOfDimensions();
   size_t numElts = 1;
