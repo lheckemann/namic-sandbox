@@ -8,5 +8,5 @@ ImageReadRegionOfInterestWrite.cxx)
 ADD_EXECUTABLE( ImageIOStreamingTest ${ImageIOStreamingTest_SRC} )
 TARGET_LINK_LIBRARIES( ImageIOStreamingTest ITKIO )
 
-ADD_TEST( ImageIOStreamingTest01 ImageIOStreamingTest )
+ADD_TEST( ImageIOStreamingTest01 ${ImageIOStreamingTest_BINARY_DIR}/ImageIOStreamingTest ${ImageIOStreamingTest_SOURCE_DIR}/BrainT1Slice.png ${ImageIOStreamingTest_BINARY_DIR}/xx.png 30 40 80 90)
 
