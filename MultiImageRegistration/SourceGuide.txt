@@ -2,18 +2,14 @@
 # How to obtain the source code
 #    
 
-The code is in the ITK's svn repositories under the folder
-   NamicSandBox/trunk/MultiImageRegistration/
+The code is in the ITK's svn repositories at the following link
+http://www.na-mic.org/svn/NAMICSandBox/trunk/MultiImageRegistration/
    
 If you dont have access to ITK's
 svn servers, you can get read access to the repository by simply
 downloading it according to the instructions in the following Wiki page:
 
 http://wiki.na-mic.org/Wiki/index.php/Engineering:SandBox
-
-If you want to only have access to binary files, I will put some
-binary files to 
-   http://people.csail.mit.edu/serdar/groupwise/
 
 #
 #  HOW TO COMPILE
@@ -23,19 +19,13 @@ Libraries:
    ITK: The code was compiled with version 3.0
         to obtain ITK libraries go to http://www.itk.org/HTML/Download.htm
    
-   libANN(not required): This is an open source library implementing nearest neighbor methods
-           This library is required in order to use registration based on joint entropy using KNN.
-           The code was compiled with version 1.1.1
-               this library is available to download at http://www.cs.umd.edu/~mount/ANN/
-               
-           If you dont have ANN libraries the source code will still compile, allowing you to use congealing 
-           and other groupwise registration methods. There are two binary files that are created, one is using 
-           ANN and the other not. If you dont have libANN, you should be able to use the binary which is not using 
-           ANN.
            
 Compilation using cmake:
    The source code can be compiled using cmake. After downloading the code 
-   go to the folder where the code resides. 
+   go to the folder where the code resides. The current parser in the code 
+   does not support folder names with spaces, so locate the folder in path
+   without spaces.
+
               
    Type "ccmake ." in the command line. cmake will generate a makefile for the project. 
    Cmake can be downloaded from http://www.cmake.org/HTML/Download.html.
@@ -43,16 +33,33 @@ Compilation using cmake:
    After running "ccmake ." type "make" in command line. This will compile the code 
    and generate the following binaries
    
-      GroupwiseRegistration  - Binary for group wise registration 
-      PairwiseRegistration   - Binary for pairwise mutual information based registration
+      GroupwiseRegistration  - Binary for groupwise registration 
       TransformImage         - Transforms an image using a transformation file generated 
-                               by GroupwiseRegistration.
+                               by binaries.
       CreateImageSetAffine   - Applies 30 random affine transforms to the input image and saves 
-                               the output.
+                               the output. Used to create a synthetic dataset for testing he code.
       CreateImageSetBspline  - Applies 30 random bspline transforms to the input image and saves 
-                               the output.                               
+                               the output. Used for testing the code.                              
    
-   
+#
+# How to run testing
+# 
+
+Default testing makes use of the 3D images available at ITK's repositories.
+Cmake will ask you about the place of the folder "BrainWeb"
+
+Download the file at the link
+http://public.kitware.com/pub/itk/Data/BrainWeb/BrainPart2.tgz  
+
+Extract the images at a folder and provide cmake with the name of the folder.
+
+After setting the name of the folder for BrainWeb data
+type "ctest" at the project folder.
+
+This will create synthetic data from the given sample image and will run the 
+registration code. The results are placed under the folder
+(project folder)/Testing/Temporary
+
 #
 # How to run the binary "GroupwiseRegistration"
 #
@@ -71,7 +78,7 @@ so only first few parameters at the beginning of file should be changed.
 
 
 When you run GroupwiseRegistration, it displays a bunch of information to std::cout. 
-You will see on output like this
+You will see output like this
    
    Iter number1 number2 number3
 
@@ -81,28 +88,29 @@ number3 shows the value of the objective function.(As we use stochastic subsampl
         might increase for some iterations)
         
 At the end of registration the binary will create a bunch of files and folders in the
-output path specified in "fnames.init"
+output folder specified in "fnames.init"
 
    Foldername:
+
+      Translation: Contains results for translation transform registration
+      Affine:  Contains results for affine registration
+      Bspline_Grid_#: Contains results for B-Spline registration with # denoting number of control points
+      InputImage: Contains results related to Input (slices and mean images)
+
+   Each folder contains subfolders containing the outputs at a stage of the algorithm
    
-   DeformationFields2D: Contains 2D slices of deformation fields.
-                        Useful to visualize the deformation field created by 
-                        Bspline tranform.
-                        
-   DeformationFields3D: Contains 3D deformation field images
+      DeformationFieldSlices: Contains slices of an artificial image. 
+                              Useful in visualizing the deformation field.
+      MeanImages:  Contains the mean of the registered images.
+                   The sharpness of the images gives an idea about the 
+                   accuracy of the registration.
+      Slices:      Contains central slices of the registered images. 
+      TransformFiles: Contains the transformation files. 
+                      Transformation files are written using ITK's default
+                      TransformFileWriter. These files can be read using
+                      itkTransformFileReader.
    
-   MeanImages:          Contains the mean images before and after registration. 
-                        Also 2D slices of mean images are shown.
-   
-   OriginalSlices:      Contains slices of input images
-   
-   RegisteredImages:    Contains output images
-   
-   RegisteredSlices:    Contains slices of registered images
-   
-   RegistrationParameters: Contains text files about the resulting deformation for each input image.
-                        These text files can be given as input to "TransformImage" and applied to 
-                        other images.
+      RegisteredImages:    Contains output images in 3D.
                         
 #
 #  About the implementation

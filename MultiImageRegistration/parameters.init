@@ -1,12 +1,24 @@
 #
 # PARAMETERS OF BINARY FILE
 #
-# 
+
+
+#
+# metricType specifies which objective function to use
+# possible options:
+#   
+#   entropy: congealing with entropy
+#   variance: registering to the mean template image using 
+#             sum of square differences
+    
+-metricType entropy
+
+
 # 
 # If useBpline is set off, only affine registration is done, 
 # if it is on and useBspline high is off, bspline registration 
 # is done with specified grid region. If useBsplineHigh is on
-# bspline registration iwth mesh refinement is performed
+# bspline registration with mesh refinement is performed
 #
 # Options to use:
 #    useBspline on/off
@@ -17,55 +29,18 @@
     -useBsplineHigh on
 
 
+#
+# All objective functions make use of stochastic subsampline
+# following options define the number of spatial samples
+# as percentage of the total number of voxels in the image
+# (Try to increase the number of samples if the registration
+#  accuracy is poor)
+#
 
-#
-# Currently there are two optimizer types. "gradient" is a fixed step gradient descent search. 
-# "lineSearch" is gradient descent search where step size is determined using line search.
-#
-# optimizerType gradient/lineSearch/SPSA/simplex
-#
-    
--optimizerType lineSearch
-    
-
-    
-    
-#
-# metricType specifies which objective function to use
-# possible options:
-#   metricType entropy/variance/mean/meanAndVariance/jointEntropy/jointEntropyKNN/meanHistogram
-#   
-#   entropy: congealing with entropy along a pixel stack
-#   variance: congealing with variance computed along a pixel stack
-#   mean: each image is registered to the mean of all images. The mean is updated after each iteration
-#   meanAndVariance: each image is registered to the mean and variance images. 
-#                    mean and Variance images are updated after each iteration.
-#                    the registration to the mean and variance are done using mutual information I(X_i;mean,variance)
-#   jointEntropy:  objective function is to minimize the joint entropy of all images
-#   jointEntropyKNN: same objective function as jointEntropy. To decrease computational 
-#                    demand approximate nearest neighbors search is done instead of considering
-#                    all possible pairwise combinations.
-#   jointEntropyKNNGraph : Entropy estimate using KNN Graph
-#
-#   meanHistogram:   MI using histogram estimate
-    
--metricType entropy
-
-
-
-#
-# There are three interpolator types
-# possible options:
-#     interpolatoType nearest/sinc/linear
-#
-# nearest: nearest neigbor interpolator
-# sinc: sinc interpolator
-# linear: linear interpolator
-#
- 
--interpolatorType linear
-
-
+    -numberOfSpatialSamplesTranslationPercentage 0.01
+    -numberOfSpatialSamplesAffinePercentage 0.05
+    -numberOfSpatialSamplesBsplinePercentage 0.1
+    -numberOfSpatialSamplesBsplineHighPercentage 0.5
 
 #
 # following options define number of multiresolution levels used in optimization
@@ -73,22 +48,13 @@
 # Affine/Bspline/BsplineHigh define number of multiresolution levels
 # used for each registration stage
 #
+# (For high resolution anatomical images at 256x256x128 voxels
+#  we used 3 levels, decrease the number of levels if the
+#  resolution of the input image is low )
    
 -multiLevelAffine 3
 -multiLevelBspline 3
 -multiLevelBsplineHigh 3
- 
- 
- 
-#
-# Following options define the learning rate of the optimizers 
-# for each stage of the registration
-#
-
-    -optTranslationLearningRate 1e-3
-    -optAffineLearningRate  1e-3
-    -optBsplineLearningRate 1e3
-    -optBsplineHighLearningrate 1e3
  
  
  
@@ -99,46 +65,143 @@
 #
 
     -optTranslationNumberOfIterations 10
-    -optAffineNumberOfIterations 30
+    -optAffineNumberOfIterations 40
     -optBsplineNumberOfIterations 30
     -optBsplineHighNumberOfIterations 30
 
-
-# All objective functions make use of stochastic subsampline
-# following options define the number of spatial samples
+ 
+#
+# Following options define the learning rate of the optimizers 
+# for each stage of the registration
+#
+# (decrease the learning rate if you get 
+#  "all samples mapped outside" error
 #
 
-    -numberOfSpatialSamplesTranslation 1500
-    -numberOfSpatialSamplesAffine 7000
-    -numberOfSpatialSamplesBspline 60000
-    -numberOfSpatialSamplesBsplineHigh 60000
-
+    -optTranslationLearningRate 1e-3
+    -optAffineLearningRate  1e-3
+    -optBsplineLearningRate 1e3
+    -optBsplineHighLearningrate 1e3
+ 
+ 
 
 #
 # defines the initial bspline grid size along each dimension
 #
     -bsplineInitialGridSize  8
      
+
 #
 # When using Bspline grid refinement, this options defines how many number 
-# of refinements to use
+# of refinements to use.
+# After each level number B-spline control points are doubled (8->16->32)
 #
 
     -numberOfBsplineLevel 2
     
-#
-# setting this options to on, introduces regularization
-# to bspline registration
-#
 
-    -useBSplineRegularization off
+
+#
+# Currently there are three optimizer types. 
+# "gradient" is a fixed step gradient descent search. 
+# "lineSearch" is gradient descent search where step size is determined using line search.
+#
+# optimizerType gradient/lineSearch/SPSA/simplex
+#
+    
+-optimizerType lineSearch
+    
+        
+    
+
+    
+   
+###############################
+#
+#  OPTIONS ABOUT THE OUTPUTS  
+# 
+###############################
+
+#
+# set on/off to specify whether the intermediate results
+# should be written. Set "off" if you run into memory 
+# problems. Transform files are always written.
+#
+-OutputIntermediateResults on    
     
 #
-# sets bspline regularization factor
+# the option to specify whether or not to write the output images
+# in 3D
+# possible options
+#     writeOutputImages  on/off
+    -writeOutputImages on
+       
+    
+# 
+# option to specify whether or not to write the deformation fields
+# possible options:
+#     writeDeformationFields  on/off
 #
-    -bsplineRegularizationFactor 50
+    -writeDeformationFields off
+    
+# 
+# option to specify whether or not to write mean images in 3D format
+# possible options:
+#     writeMean3DImages  on/off
+#
+    -writeMean3DImages off
+    
+
+
+
+############################################
+#
+# ADVANCED OPTIONS
+#
+############################################
+
+#
+#  Specifies the percentage increase in the sampling rate
+#  after each multiresolution level
+#
+    -translationMultiScaleSamplePercentageIncrease 8.0 
+    -affineMultiScaleSamplePercentageIncrease 6.0 
+    -bsplineMultiScaleSamplePercentageIncrease 2.0
     
     
+    
+#
+#  Specifies increase in the number of iterations  
+#  after each resolution level
+#
+    -translationMultiScaleMaximumIterationIncrease  1.5
+    -affineMultiScaleMaximumIterationIncrease 1.5
+    -bsplineMultiScaleMaximumIterationIncrease 1.5
+  
+
+#
+# Specifies optimizer step length increase after each multiresolution level
+#
+    -translationMultiScaleStepLengthIncrease 1.0
+    -affineMultiScaleStepLengthIncrease 1.0 
+    -bsplineMultiScaleStepLengthIncrease 1.0
+    
+
+
+# 
+# the level of registration to be started
+# Use this option if you want to start the registration 
+# using the results of a previous registration
+#
+# 0 (default): no initialization, all registrations are performed
+# 1 : Affine parameters are read from the file
+# 2 : Bspline parameters are read from file (initial size should match the transform from file )
+# 
+
+-StartLevel 0
+
+
+
 #
 # Uses a mask on the images. Only pixels inside the mask are considered during the registration
 # possible options 
@@ -147,7 +210,7 @@
 # single: only use mask for the first image
 # all: use mask for all images
 #
-    -mask all
+    -mask none
     
 #
 # specifies the mask type
@@ -161,19 +224,9 @@
 #
     -maskType connectedThreshold
     -threshold1 0
-    -threshold2 0
+    -threshold2 1
 
 
-#
-# normal option reads image formats supported by ITK. Dicom is to read dicom images
-#
-# imageType normal/dicom    -- DO NOT USE
-#
-    
- -imageType normal
-    
-    
-    
    
 #
 # specifies the translation scale coefficients with respect to the affine coefficients
@@ -198,87 +251,5 @@
 # the width of the parzen window to compute the entropy
 # used by all metric types computing entropy
 #
-    -parzenWindowStandardDeviation 0.35
+    -parzenWindowStandardDeviation 0.4
     
-    
-    
-    
-#
-# the option to specify whether or not to write the output images
-# possible options
-#     writeOutputImages  on/off
-    -writeOutputImages off
-    
-    
-    
-    
-# 
-# option to specify whether or not to write the deformation fields
-# possible options:
-#     writeDeformationFields  on/off
-#
-    -writeDeformationFields off
-    
-# 
-# option to specify whether or not to write mean images in 3D format
-# possible options:
-#     writeMean3DImages  on/off
-#
-    -writeMean3DImages off
-    
-# 
-# number of nearest neighbors to compute the joint entropy
-# when using metricType jointEntropyKNN
-# errorbound is the error of nearest neigbor approximation
-#
-    -NumberOfNearestNeigbors 4
-    -errorBound 0.0
-
-
-
-#
-#  Specifies the percentage increase in the sampling for each multiresolution level
-#
-    -translationMultiScaleSamplePercentageIncrease 8.0 
-    -affineMultiScaleSamplePercentageIncrease 8.0 
-    -bsplineMultiScaleSamplePercentageIncrease 4.9
-    
-    
-    
-#
-#  Specifies number of iterations increase for each resolution level
-#
-    -translationMultiScaleMaximumIterationIncrease  1.5
-    -affineMultiScaleMaximumIterationIncrease 1.5
-    -bsplineMultiScaleMaximumIterationIncrease 1.75
-  
-  
-  
-#
-# Specifies optimizer step length increase fo each multiresolution level
-#
-    -translationMultiScaleStepLengthIncrease 1.0
-    -affineMultiScaleStepLengthIncrease 1.0 
-    -bsplineMultiScaleStepLengthIncrease 1.0
-    
-    
-#
-# number of fixed image considered in the registration
-# currently not used by any metric
-#
-    -numberOfFixedImages 0
-    
-#
-# SPSA related parameters
-#
-
-    -alpha 0.602
-    -gamma 0.101
-    -cRel 1e-1
-    -numberOfPerturbation 1
-    
-#
-#  registering to mean using histogram MI related param
-#    
-
-  -HistogramSamplesPerBin 30
