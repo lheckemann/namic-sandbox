@@ -7,8 +7,15 @@ ENDIF(ITK_FOUND)
 
 INCLUDE_DIRECTORIES( BEFORE ${StreamingImageViewer}/Source )
 
-SUBDIRS(Testing Source)
+SUBDIRS(
+  Source
+  Testing
+  )
 
+
+SET(LIBRARY_OUTPUT_PATH ${StreamingImageViewer_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all libraries.")
+
+LINK_DIRECTORIES( ${LIBRARY_OUTPUT_PATH}) 
 
 ENABLE_TESTING()
 
