@@ -280,7 +280,7 @@ std::cout "ImageFileReader::EnlargeOutputRequestedRegion()" << std::endl;
     {
     if (out)
       {
-      out->SetRequestedRegion( out->GetLargestPossibleRegion() );
+      this->m_StreamableRegion = out->GetLargestPossibleRegion();
       }
     else
       {
@@ -290,18 +290,44 @@ std::cout "ImageFileReader::EnlargeOutputRequestedRegion()" << std::endl;
     }
   else
     {
+    //
+    // The following code converts the ImageRegion (templated over dimension)
+    // into an ImageIORegion (not templated over dimension).
+    //
+    // TODO: Create an adaptor for converting ImageRegions into ImageIORegions.
+    //
+    ImageRegionType requestedRegion = out->GetRequestedRegion();
+    SizeType  requestedRegionSize  = requestedRegion.GetSize();
+    IndexType requestedRegionIndex = requestedRegion.GetIndex();
+
     ImageIORegion ioRequestedRegion( TOutputImage::ImageDimension );
 
-    ImageIORegion ioEnlargedRequestedRegion  = 
-      m_ImageIO->ComputeIORegionGivenRequestedRegion( ioRequestedRegion );
-
-    ImageRegionType requestedRegion;
-
-    if( ioRegion.IsInside( requestedRegion ) )
+    for( unsigned int i=0; i<TOutputImage::ImageDimension; i++)
       {
-      output->SetRequestedRegion( ioRegion );
+      ioRequestedRegion.SetSize(i,requestedRegionSize[i] );
+      ioRequestedRegion.SetIndex(i,requestedRegionIndex[i] );
       }
-    else
+    
+    ImageIORegion ioStreamableRegion  = 
+      m_ImageIO->DetermineStreamableRegionFromRequestedRegion( ioRequestedRegion );
+
+    ImageRegionType streamableRegion;
+    SizeType  streamableRegionSize;
+    IndexType streamableRegionIndex;
+
+    for( unsigned int i=0; i<TOutputImage::ImageDimension; i++)
+      {
+      streamableRegionSize[i] =  ioStreamableRegion.GetSize(i);
+      streamableRegionIndex[i] = ioStreamableRegion.SetIndex(i);
+      }
+
+    this->m_StreamableRegion.SetSize( streamableRegionSize );
+    this->m_StreamableRegion.SetIndex( streamableRegionIndex );
+ 
+    //
+    // Check whether the requestedRegion is fully contained inside the
+    // streamable region or not.
+    if( !this->m_StreamableRegion.IsInside( requestedRegion ) )
       {
       itkExceptionMacro("ImageIO returns IO region that does not fully contains the requested region");
       }
@@ -321,7 +347,7 @@ void ImageFileReader<TOutputImage, ConvertPixelTraits>
   // allocate the output buffer
   typedef typename TOutputImage::RegionType ImageRegionType;
   
-  output->SetBufferedRegion( output->GetRequestedRegion() );
+  output->SetBufferedRegion( this->m_StreamableRegion );
 
   output->Allocate();
 
@@ -354,8 +380,7 @@ void ImageFileReader<TOutputImage, ConvertPixelTraits>
     {
     if (i < m_ImageIO->GetNumberOfDimensions())
       {
-      //dimSize[i] = m_ImageIO->GetDimensions(i);
-      dimSize[i] = requestedRegion.GetSize()(i);
+      dimSize[i] = this->m_StreamableRegion.GetSize()(i);
       }
     else
       {
@@ -368,14 +393,12 @@ void ImageFileReader<TOutputImage, ConvertPixelTraits>
 
   for(unsigned int i = 0; i < dimSize.GetSizeDimension(); ++i)
     {
-// AZUCAR !!!
     ioSize[i] = dimSize[i];
-//    ioSize[i] = dimSize[i];
     }
 
   typedef typename TOutputImage::IndexType   IndexType;
-  IndexType start;
-  start.Fill(0);
+  IndexType start = this->m_StreamableRegion.GetIndex();
+
   for(unsigned int i = 0; i < start.GetIndexDimension(); ++i)
     {
     ioStart[i] = start[i];
@@ -386,7 +409,7 @@ void ImageFileReader<TOutputImage, ConvertPixelTraits>
 
   itkDebugMacro (<< "ioRegion: " << ioRegion);
  
-  m_ImageIO->SetIORegion(ioRegion);
+  m_ImageIO->SetIORegion( ioRegion );
 
   if ( m_ImageIO->GetComponentTypeInfo()
        == typeid(ITK_TYPENAME ConvertPixelTraits::ComponentType)
