@@ -13,5 +13,5 @@ TARGET_LINK_LIBRARIES( ImageIOStreamingTest ITKIOStreaming )
 ADD_TEST( ImageIOStreamingTest01 
    ${ImageIOStreamingTest_BINARY_DIR}/ImageIOStreamingTest 
    ${TEST_DATA_ROOT}/tester.nii.gz 
-   ${ImageIOStreamingTest_BINARY_DIR}/xx.png 30 40 80 90)
+   ${ImageIOStreamingTest_BINARY_DIR}/xx.nii.gz 10 10 5 30 40 10)
 
