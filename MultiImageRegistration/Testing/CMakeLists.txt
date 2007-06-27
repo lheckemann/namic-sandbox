@@ -9,7 +9,7 @@
 SET(MultiImageRegistration_TEST_OUTPUT_DIR "${MultiImageRegistration_BINARY_DIR}/Testing/Temporary")
 MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR})
 
-SET(MultiImageRegistration_TEST_INPUT_DIR "${MultiImageRegistration_SOURCE_DIR}/Testing/Data/Input")
+SET(MultiImageRegistration_TEST_INPUT_DIR "${MultiImageRegistration_SOURCE_DIR}/Testing/Data")
 
 
 CONFIGURE_FILE( 
