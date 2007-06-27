@@ -483,7 +483,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    *
    * Set the ending colors (red, green, blue) for creating the colormap.
    */
-  itkSetMacro(EndColor, intRGBPixal);
+  itkSetMacro(EndColor, intRGBPixel);
 
 
   /**
@@ -578,7 +578,7 @@ private:
   int m_EndRed;
   int m_EndGreen;
   int m_EndBlue;
-  intRGBPixal m_EndColor;    //Three seperate End Colors (Red, Green, Blue) have been put together to use the set macro.
+  intRGBPixel m_EndColor;    //Three seperate End Colors (Red, Green, Blue) have been put together to use the set macro.
   int m_XRotation;
   int m_YRotation;
   int m_ZRotation;
