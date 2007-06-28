@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
 #include "objectmap.h"
-
+namespace itk{
 AnalyzeObjectMap::AnalyzeObjectMap( void )
 : Version(VERSION7),
 NumberOfObjects(0),NeedsSaving(0), NeedsRegionsCalculated(0)
@@ -43,7 +43,7 @@ NumberOfObjects(0),NeedsSaving(0), NeedsRegionsCalculated(0)
   {
     for (int i = 0; i < 256; i++)
     {
-      ObjectArray[i] = NULL;
+      AnaylzeObjectEntryArray[i] = NULL;
       ShowObject[i] = 0;
       MinimumPixelValue[i] = 0;
       MaximumPixelValue[i] = 0;
@@ -51,15 +51,15 @@ NumberOfObjects(0),NeedsSaving(0), NeedsRegionsCalculated(0)
   }
 
   // Setting object zero as the background
-  ObjectArray[0] = new AnalyzeObjectEntry();
-  this->getObjectEntry(0).setName("Background");
-  this->getObjectEntry(0).setDisplayFlag(0);
-  this->getObjectEntry(0).setOpacity(0);
-  this->getObjectEntry(0).setOpacityThickness(0);
-  this->getObjectEntry(0).setEndRed(0);
-  this->getObjectEntry(0).setEndGreen(0);
-  this->getObjectEntry(0).setEndBlue(0);
-  this->getObjectEntry(0).setShades(1);
+  AnaylzeObjectEntryArray[0] = AnalyzeObjectEntry::New();
+  this->getObjectEntry(0)->SetName("Background");
+  this->getObjectEntry(0)->SetDisplayFlag(0);
+  this->getObjectEntry(0)->SetOpacity(0);
+  this->getObjectEntry(0)->SetOpacityThickness(0);
+  this->getObjectEntry(0)->SetEndRed(0);
+  this->getObjectEntry(0)->SetEndGreen(0);
+  this->getObjectEntry(0)->SetEndBlue(0);
+  this->getObjectEntry(0)->SetShades(1);
 }
 
 
@@ -71,7 +71,7 @@ NumberOfObjects(0),NeedsSaving(0), NeedsRegionsCalculated(0)
   {
     for (int i = 0; i < 256; i++)
     {
-      ObjectArray[i] = NULL;
+      AnaylzeObjectEntryArray[i] = NULL;
       ShowObject[i] = 0;
       MinimumPixelValue[i] = 0;
       MaximumPixelValue[i] = 0;
@@ -79,15 +79,15 @@ NumberOfObjects(0),NeedsSaving(0), NeedsRegionsCalculated(0)
   }
 
   // Setting object zero as the background
-  ObjectArray[0] = new AnalyzeObjectEntry();
-  this->getObjectEntry(0).setName("Background");
-  this->getObjectEntry(0).setDisplayFlag(0);
-  this->getObjectEntry(0).setOpacity(0);
-  this->getObjectEntry(0).setOpacityThickness(0);
-  this->getObjectEntry(0).setEndRed(0);
-  this->getObjectEntry(0).setEndGreen(0);
-  this->getObjectEntry(0).setEndBlue(0);
-  this->getObjectEntry(0).setShades(1);
+  AnaylzeObjectEntryArray[0] = AnalyzeObjectEntry::New();
+  this->getObjectEntry(0)->SetName("Background");
+  this->getObjectEntry(0)->SetDisplayFlag(0);
+  this->getObjectEntry(0)->SetOpacity(0);
+  this->getObjectEntry(0)->SetOpacityThickness(0);
+  this->getObjectEntry(0)->SetEndRed(0);
+  this->getObjectEntry(0)->SetEndGreen(0);
+  this->getObjectEntry(0)->SetEndBlue(0);
+  this->getObjectEntry(0)->SetShades(1);
 }
 
 
@@ -100,14 +100,14 @@ AnalyzeObjectMap::AnalyzeObjectMap( const AnalyzeObjectMap & rhs )
   NeedsRegionsCalculated=rhs.NeedsRegionsCalculated;
   for(int i=0; i < 256; i++)
   {
-    if(rhs.ObjectArray[i] != NULL)
+    if(rhs.AnaylzeObjectEntryArray[i] != NULL)
     {
-      ObjectArray[i] = new AnalyzeObjectEntry();
-      *(ObjectArray[i])=*(rhs.ObjectArray[i]);
+        AnaylzeObjectEntryArray[i] = AnalyzeObjectEntry::New();
+        AnaylzeObjectEntryArray[i]->Copy(rhs.AnaylzeObjectEntryArray[i]);
     }
     else
     {
-      ObjectArray[i] = NULL;
+      AnaylzeObjectEntryArray[i] = NULL;
     }
     ShowObject[i]=rhs.ShowObject[i];
     MinimumPixelValue[i]=rhs.MinimumPixelValue[i];
@@ -120,9 +120,9 @@ AnalyzeObjectMap::~AnalyzeObjectMap( void )
 {
   for(int i=0; i < 256; i++)
   {
-    if(ObjectArray[i] != NULL)
+    if(AnaylzeObjectEntryArray[i] != NULL)
     {
-      delete ObjectArray[i];
+      delete AnaylzeObjectEntryArray[i];
     }
   }
 }
@@ -157,16 +157,16 @@ AnalyzeObjectMap &  AnalyzeObjectMap::operator=( const AnalyzeObjectMap & rhs )
   NeedsRegionsCalculated=rhs.NeedsRegionsCalculated;
   for(int i=0; i < 256; i++)
   {
-    if(rhs.ObjectArray[i] != NULL)
+    if(rhs.AnaylzeObjectEntryArray[i] != NULL)
     {
-      ObjectArray[i] = new AnalyzeObjectEntry();
-      *(ObjectArray[i])=*(rhs.ObjectArray[i]);
+        AnaylzeObjectEntryArray[i] = AnalyzeObjectEntry::New();
+      AnaylzeObjectEntryArray[i]->Copy(rhs.AnaylzeObjectEntryArray[i]);
     }
     else
     {
-      if(ObjectArray[i] != NULL)
+      if(AnaylzeObjectEntryArray[i] != NULL)
       {
-        delete ObjectArray[i];
+        delete AnaylzeObjectEntryArray[i];
       }
     }
     ShowObject[i]=rhs.ShowObject[i];
@@ -181,7 +181,7 @@ int AnalyzeObjectMap::getObjectIndex( const std::string &ObjectName  )
 {
   for(int index=0; index<=this->getNumberOfObjects(); index++)
   {
-    if(ObjectName == this->getObjectEntry(index).getName() )
+    if(ObjectName == this->getObjectEntry(index)->GetName() )
     {
       return index;
     }
@@ -191,14 +191,14 @@ int AnalyzeObjectMap::getObjectIndex( const std::string &ObjectName  )
 }
 
 
-AnalyzeObjectEntry & AnalyzeObjectMap::getObjectEntry( const int index )
+AnalyzeObjectEntry::Pointer AnalyzeObjectMap::getObjectEntry( const int index )
 {
-  return *(ObjectArray[index]);
+    return AnaylzeObjectEntryArray[index];
 }
 
-const AnalyzeObjectEntry & AnalyzeObjectMap::getObjectEntry( const int index ) const
+const AnalyzeObjectEntry::Pointer  AnalyzeObjectMap::getObjectEntry( const int index ) const
 {
-  return *(ObjectArray[index]);
+  return AnaylzeObjectEntryArray[index];
 }
 
 
@@ -209,9 +209,9 @@ void AnalyzeObjectMap::ReinitializeObjectMap(const int _iX, const int _iY, const
   {
     for(int i=0; i < 256; i++)
     {
-      if(ObjectArray[i] != NULL)
+      if(AnaylzeObjectEntryArray[i] != NULL)
       {
-        delete ObjectArray[i];
+        delete AnaylzeObjectEntryArray[i];
       }
     }
   }
@@ -219,7 +219,7 @@ void AnalyzeObjectMap::ReinitializeObjectMap(const int _iX, const int _iY, const
   {
     for (int i = 0; i < 256; i++)
     {
-      ObjectArray[i] = NULL;
+      AnaylzeObjectEntryArray[i] = NULL;
       ShowObject[i] = 0;
       MinimumPixelValue[i] = 0;
       MaximumPixelValue[i] = 0;
@@ -232,20 +232,22 @@ void AnalyzeObjectMap::ReinitializeObjectMap(const int _iX, const int _iY, const
   NeedsRegionsCalculated = 0;
 
   // Setting object zero as the background
-  ObjectArray[0] = new AnalyzeObjectEntry();
-  this->getObjectEntry(0).setName("Background");
-  this->getObjectEntry(0).setDisplayFlag(0);
-  this->getObjectEntry(0).setOpacity(0);
-  this->getObjectEntry(0).setOpacityThickness(0);
-  this->getObjectEntry(0).setEndRed(0);
-  this->getObjectEntry(0).setEndGreen(0);
-  this->getObjectEntry(0).setEndBlue(0);
-  this->getObjectEntry(0).setShades(1);
+  AnaylzeObjectEntryArray[0] = AnalyzeObjectEntry::New();
+  this->getObjectEntry(0)->SetName("Background");
+  this->getObjectEntry(0)->SetDisplayFlag(0);
+  this->getObjectEntry(0)->SetOpacity(0);
+  this->getObjectEntry(0)->SetOpacityThickness(0);
+  this->getObjectEntry(0)->SetEndRed(0);
+  this->getObjectEntry(0)->SetEndGreen(0);
+  this->getObjectEntry(0)->SetEndBlue(0);
+  this->getObjectEntry(0)->SetShades(1);
 }
 
 
 void SwapObjectEndedness(Object * ObjToChange)
 {
+    return;
+#if 0 //TODO: Figure out byte swapping later
   FileIOUtility util;
   util.FourByteSwap(&(ObjToChange->DisplayFlag));
   util.FourByteSwap(&(ObjToChange->Shades));
@@ -279,6 +281,7 @@ void SwapObjectEndedness(Object * ObjToChange)
   util.FourByteSwap(&(ObjToChange->Opacity));
   util.FourByteSwap(&(ObjToChange->OpacityThickness));
   util.FourByteSwap(&(ObjToChange->Dummy));
+#endif
 }
 
 
@@ -306,15 +309,18 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
 
   bool NeedByteSwap=false;
   //Do byte swapping if necessary.
-  FileIOUtility util;
+
   if(header[0] == 1323699456 || header[0] == -1913442047)    // Byte swapping needed (Number is byte swapped number of VERSIONy or VERSION8 )
   {
+#if 0  //TODO:  Figure out byte swapping later
+      FileIOUtility util;
     NeedByteSwap=true;
     util.FourByteSwap(&(header[0]));
     util.FourByteSwap(&(header[1]));
     util.FourByteSwap(&(header[2]));
     util.FourByteSwap(&(header[3]));
     util.FourByteSwap(&(header[4]));
+#endif
   }
 
   // Reading the Header into the class
@@ -333,11 +339,11 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
     return false;
   }
 
-  // In version 8, the header file has a new field after number of objects, before name,
+  // In version 7, the header file has a new field after number of objects, before name,
   // which is nvols, with type int. This field allows 4D object maps. 
   // Further updating of objectmap related programs are to be developed to 
   // obtain, utilize this field. Xiujuan Geng May 04, 2007
-  if( Version == VERSION8 )
+  if( Version == VERSION7 )
   {
     int nvols[1];
     if ( ::fread( nvols, sizeof(int), 1, fptr) != 1 )
@@ -354,100 +360,18 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
     ::fclose( fptr );
     return false;
   }
-
-  // Read in the first header to determine whether it is a background defined
-  // Analyze object file or not
-  ObjectArray[1] = new AnalyzeObjectEntry();
-
-  if (ObjectArray[1] == NULL)
+  // The background is already defined, so start with the index for 1
+  for (i = 1; i < NumberOfObjects; i++)
   {
-    ::fprintf(stderr, "Unable to allocate memory for object #1.\n");
-    exit(-1);
+    // Allocating a object to be created
+    AnaylzeObjectEntryArray[i] = AnalyzeObjectEntry::New();
+    // Reading the object directly into the ObjectEntry variable
+    AnaylzeObjectEntryArray[i]->ReadFromFilePointer(fptr,NeedByteSwap);
   }
 
-  // Reading the object directly into the ObjectEntry variable
-  if (::fread((ObjectArray[1]->getObjectPointer()), sizeof(Object), 1, fptr) != 1)
-  {
-    ::fprintf(stderr, "6: Unable to read in object #1 description of %s\n", filename.c_str());
-    exit(-1);
-  }
-  if(NeedByteSwap)
-  {
-    SwapObjectEndedness(ObjectArray[1]->getObjectPointer());
-  }
-
-  bool backgroundDefinedObjectMap;
-
-  if (::strcmp(getObjectEntry(1).getName().c_str(),"Background") == 0)
-    backgroundDefinedObjectMap = true;
-  else
-    backgroundDefinedObjectMap = false;
-  
-  //Added temporarilly May 05, 2007
-  backgroundDefinedObjectMap=true;
-
-  if (backgroundDefinedObjectMap == true)
-  {
-    // The background is already defined, so start with the index for 1
-    delete ObjectArray[1];
-    ObjectArray[1] = NULL;
-
-    for (i = 1; i < NumberOfObjects; i++)
-    {
-      // Allocating a object to be created
-      ObjectArray[i] = new AnalyzeObjectEntry();
-
-      // Checking to see if the memory was available
-      if (ObjectArray[i] == NULL)
-      {
-        ::fprintf(stderr, "5: Unable to allocate object #%d description of %s\n", i, filename.c_str());
-        exit(-1);
-      }
-
-      // Reading the object directly into the ObjectEntry variable
-      if (::fread((ObjectArray[i]->getObjectPointer()), sizeof(Object), 1, fptr) != 1)
-      {
-        ::fprintf(stderr, "6: Unable to read in object #%d description of %s\n", i, filename.c_str());
-        exit(-1);
-      }
-      if(NeedByteSwap)
-      {
-        SwapObjectEndedness(ObjectArray[i]->getObjectPointer());
-      }
-    }
-
-    // Since one of the objects read in was declared to be background, take away one object
-    NumberOfObjects = NumberOfObjects - 1;
-  }
-  else
-  {
-    // Zero is already declared background and 1 is not background, so read in everything else
-    for (i = 1; i < NumberOfObjects; i++)
-    {
-      // Allocating a object to be created
-      ObjectArray[i+1] = new AnalyzeObjectEntry();
-
-      // Checking to see if the memory was available
-      if (ObjectArray[i+1] == NULL)
-      {
-        ::fprintf(stderr, "5: Unable to allocate object #%d description of %s\n", i, filename.c_str());
-        exit(-1);
-      }
-
-      // Reading the object directly into the ObjectEntry variable
-      if (::fread((ObjectArray[i+1]->getObjectPointer()), sizeof(Object), 1, fptr) != 1)
-      {
-        ::fprintf(stderr, "6: Unable to read in object #%d description of %s\n", i, filename.c_str());
-        exit(-1);
-      }
-      if(NeedByteSwap)
-      {
-        SwapObjectEndedness(ObjectArray[i+1]->getObjectPointer());
-      }
-    }
-  }
-
+#if 0 //TODO:  Now the file pointer is pointing to the image region
   // Creating the image volume
+  //Set size of the image
   this->ImageReinitialize(XSize, YSize, ZSize, 1);
 
   // Decoding the run length encoded raw data into an unsigned char volume
@@ -457,7 +381,6 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
   // The character pairs have the form of length, tag value.  Note also that the data in
   // Analyze object files are run length encoded a plane at a time.
 
-  if (backgroundDefinedObjectMap == true)
   {
     while (::fread(buffer,1,BUFFERSIZE,fptr) > 0)
     {
@@ -466,30 +389,15 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
         for (j = 0; j < buffer[i]; j++)
         {
           this->operator()(index) = buffer[i+1];
-    index++;
+          index++;
         }
-
         if (index >= VolumeSize)
+        {
           break;
+        }
       }
     }
   }
-  else
-  {
-    while (::fread(buffer,1,BUFFERSIZE,fptr) > 0)
-    {
-      for (i = 0; i < BUFFERSIZE; i+=2)
-      {
-        for (j = 0; j < buffer[i]; j++)
-        {
-          // Copy this information to the index above background (which is at index 0)
-          this->operator()(index) = buffer[i+1] + 1;
-    index++;
-        }
-        if (index >= VolumeSize)
-          break;
-      }
-    }
   }
 
   if (index != VolumeSize)
@@ -505,14 +413,14 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
     }
     return false;
   }
-
+#endif
   return true;
 }
 
 
 bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
 {
-
+#if 0 //TODO:  
   FILE *fptr;
   std::string tempfilename=filename;
 
@@ -605,7 +513,7 @@ bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
   {
     // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
     // not affect the current object itself
-    AnalyzeObjectEntry ObjectWrite = this->getObjectEntry(i);
+      AnalyzeObjectEntry ObjectWrite = this->getObjectEntry(i);
 
     if (NeedByteSwap == true)
     {
@@ -619,10 +527,9 @@ bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
       exit(-1);
     }
   }
-
   RunLengthEncodeImage(*this, fptr);
-
   ::fclose(fptr);
+#endif
   return true;
 }
 
@@ -643,13 +550,13 @@ const int Shades, bool OverWriteObjectFlag)
     return false;
   }
   this->NumberOfObjects++;
-  this->ObjectArray[NumberOfObjects]=new AnalyzeObjectEntry;
-  ObjectArray[NumberOfObjects]->setName(ObjectName);
-  ObjectArray[NumberOfObjects]->setEndColor(EndRed,EndGreen,EndBlue);
-  ObjectArray[NumberOfObjects]->setStartColor(static_cast<int>(0.1F*EndRed),
+  this->AnaylzeObjectEntryArray[NumberOfObjects]= AnalyzeObjectEntry::New();
+  AnaylzeObjectEntryArray[NumberOfObjects]->SetName(ObjectName);
+  AnaylzeObjectEntryArray[NumberOfObjects]->SetEndColor(EndRed,EndGreen,EndBlue);
+  AnaylzeObjectEntryArray[NumberOfObjects]->SetStartColor(static_cast<int>(0.1F*EndRed),
     static_cast<int>(0.1F*EndGreen),
     static_cast<int>(0.1F*EndBlue));
-  ObjectArray[NumberOfObjects]->setShades(Shades);
+  AnaylzeObjectEntryArray[NumberOfObjects]->SetShades(Shades);
 
   for(int k=0; k<nz; k++)
   {
@@ -697,13 +604,13 @@ const int EndBlue, const int Shades, bool OverWriteObjectFlag)
     return false;
   }
   this->NumberOfObjects++;
-  this->ObjectArray[NumberOfObjects]=new AnalyzeObjectEntry;
-  ObjectArray[NumberOfObjects]->setName(ObjectName);
-  ObjectArray[NumberOfObjects]->setEndColor(EndRed,EndGreen,EndBlue);
-  ObjectArray[NumberOfObjects]->setStartColor(static_cast<int>(0.1F*EndRed),
+  this->AnaylzeObjectEntryArray[NumberOfObjects]= AnalyzeObjectEntry::New();
+  AnaylzeObjectEntryArray[NumberOfObjects]->SetName(ObjectName);
+  AnaylzeObjectEntryArray[NumberOfObjects]->SetEndColor(EndRed,EndGreen,EndBlue);
+  AnaylzeObjectEntryArray[NumberOfObjects]->SetStartColor(static_cast<int>(0.1F*EndRed),
     static_cast<int>(0.1F*EndGreen),
     static_cast<int>(0.1F*EndBlue));
-  ObjectArray[NumberOfObjects]->setShades(Shades);
+  AnaylzeObjectEntryArray[NumberOfObjects]->SetShades(Shades);
 
   for(int k=0; k<nz; k++)
   {
@@ -747,7 +654,7 @@ bool AnalyzeObjectMap::RemoveObjectByName(const std::string & ObjectName)
   {
     for (int i = 1; i <= this->getNumberOfObjects(); i++)
     {
-      if (ObjectName == this->getObjectEntry(i).getName())
+      if (ObjectName == this->getObjectEntry(i)->GetName())
       {
         objectTag = i;
         break;
@@ -771,8 +678,8 @@ bool AnalyzeObjectMap::RemoveObjectByName(const std::string & ObjectName)
   }
 
   // Deleting the last extra data structure
-  delete ObjectArray[this->getNumberOfObjects()];
-  ObjectArray[this->getNumberOfObjects()] = NULL;
+  delete AnaylzeObjectEntryArray[this->getNumberOfObjects()];
+  AnaylzeObjectEntryArray[this->getNumberOfObjects()] = NULL;
 
   // Changing the image object identifiers
   {
@@ -838,8 +745,8 @@ bool AnalyzeObjectMap::RemoveObjectByRange(const unsigned char MinRange, const u
   {
     for (int i = this->getNumberOfObjects(); i > this->getNumberOfObjects() - NumberToDelete; i--)
     {
-      delete ObjectArray[i];
-      ObjectArray[i] = NULL;
+      delete AnaylzeObjectEntryArray[i];
+      AnaylzeObjectEntryArray[i] = NULL;
     }
   }
 
@@ -981,7 +888,7 @@ bool AnalyzeObjectMap::WriteObjectByName(const std::string & ObjectName, const s
   {
     for (int i = 1; i <= this->getNumberOfObjects(); i++)
     {
-      if (ObjectName == this->getObjectEntry(i).getName())
+      if (ObjectName == this->getObjectEntry(i)->GetName())
       {
         objectTag = i;
         break;
@@ -1122,7 +1029,7 @@ bool AnalyzeObjectMap::WriteDisplayedObjects(const std::string & filenamebase)
     // Look at the case when the user puts in a file with an .obj extension.  Append the
     // number in the middle of the filename, not at the end
 
-    if (getObjectEntry(objectTag).getDisplayFlag() != 0)
+    if (getObjectEntry(objectTag)->GetDisplayFlag() != 0)
     {
       // Append the object number to the filename
       std::string tempfilenumbername = tempfilename + std::string("_");
@@ -1230,12 +1137,12 @@ bool AnalyzeObjectMap::CalculateBoundingRegionAndCenter( void )
 {
   for (int i = 0; i < NumberOfObjects; i++)
   {
-    ObjectArray[i]->setMinimumXValue(this->getXDim());
-    ObjectArray[i]->setMaximumXValue(0);
-    ObjectArray[i]->setMinimumYValue(this->getYDim());
-    ObjectArray[i]->setMaximumYValue(0);
-    ObjectArray[i]->setMinimumZValue(this->getZDim());
-    ObjectArray[i]->setMaximumZValue(0);
+    AnaylzeObjectEntryArray[i]->SetMinimumXValue(this->getXDim());
+    AnaylzeObjectEntryArray[i]->SetMaximumXValue(0);
+    AnaylzeObjectEntryArray[i]->SetMinimumYValue(this->getYDim());
+    AnaylzeObjectEntryArray[i]->SetMaximumYValue(0);
+    AnaylzeObjectEntryArray[i]->SetMinimumZValue(this->getZDim());
+    AnaylzeObjectEntryArray[i]->SetMaximumZValue(0);
   }
 
   const int PlaneSize = this->getXDim()*this->getYDim();
@@ -1273,20 +1180,20 @@ bool AnalyzeObjectMap::CalculateBoundingRegionAndCenter( void )
           ::fprintf(stderr, "Error: There are greater index than number of objects.\n");
           exit(-1);
         }
-        if (xIndex < getObjectEntry(object).getMinimumXValue())
-          getObjectEntry(object).setMinimumXValue(xIndex);
-        if (xIndex > getObjectEntry(object).getMaximumXValue())
-          getObjectEntry(object).setMaximumXValue(xIndex);
+        if (xIndex < getObjectEntry(object)->GetMinimumXValue())
+          getObjectEntry(object)->SetMinimumXValue(xIndex);
+        if (xIndex > getObjectEntry(object)->GetMaximumXValue())
+          getObjectEntry(object)->SetMaximumXValue(xIndex);
 
-        if (yIndex < getObjectEntry(object).getMinimumYValue())
-          getObjectEntry(object).setMinimumYValue(yIndex);
-        if (yIndex > getObjectEntry(object).getMaximumYValue())
-          getObjectEntry(object).setMaximumYValue(yIndex);
+        if (yIndex < getObjectEntry(object)->GetMinimumYValue())
+          getObjectEntry(object)->SetMinimumYValue(yIndex);
+        if (yIndex > getObjectEntry(object)->GetMaximumYValue()
+          getObjectEntry(object)->SetMaximumYValue(yIndex);
 
-        if (zIndex < getObjectEntry(object).getMinimumZValue())
-          getObjectEntry(object).setMinimumZValue(zIndex);
-        if (zIndex > getObjectEntry(object).getMaximumZValue())
-          getObjectEntry(object).setMaximumZValue(zIndex);
+        if (zIndex < getObjectEntry(object)->GetMinimumZValue())
+          getObjectEntry(object)->SetMinimumZValue(zIndex);
+        if (zIndex > getObjectEntry(object)->GetMaximumZValue())
+          getObjectEntry(object)->SetMaximumZValue(zIndex);
 
         xsum[object]+=xIndex;
         ysum[object]+=yIndex;
@@ -1302,19 +1209,19 @@ bool AnalyzeObjectMap::CalculateBoundingRegionAndCenter( void )
     for (int i = 0; i < this->getNumberOfObjects(); i++)
     {
       if (xnum[i] == 0)
-        getObjectEntry(i).setXCenter(0);
+        getObjectEntry(i)->SetXCenter(0);
       else
-        getObjectEntry(i).setXCenter((short int)(xsum[i]/xnum[i] - this->getXDim()/2));
+        getObjectEntry(i)->SetXCenter((short int)(xsum[i]/xnum[i] - this->getXDim()/2));
 
       if (ynum[i] == 0)
-        getObjectEntry(i).setYCenter(0);
+        getObjectEntry(i)->SetYCenter(0);
       else
-        getObjectEntry(i).setYCenter((short int)(ysum[i]/ynum[i] - this->getYDim()/2));
+        getObjectEntry(i)->SetYCenter((short int)(ysum[i]/ynum[i] - this->getYDim()/2));
 
       if (znum[i] == 0)
-        getObjectEntry(i).setZCenter(0);
+        getObjectEntry(i)->SetZCenter(0);
       else
-        getObjectEntry(i).setZCenter((short int)(zsum[i]/znum[i] - this->getZDim()/2));
+        getObjectEntry(i)->SetZCenter((short int)(zsum[i]/znum[i] - this->getZDim()/2));
     }
   }
 
@@ -1328,7 +1235,7 @@ int AnalyzeObjectMap::EvenlyShade( void )
 
   // Not allocating shades to the background object
   for (int i = 0; i < this->getNumberOfObjects(); i++)
-    getObjectEntry(i+1).setShades(NumberOfShades);
+    getObjectEntry(i+1)->SetShades(NumberOfShades);
 
   return NumberOfShades;
 }
@@ -1338,7 +1245,7 @@ void AnalyzeObjectMap::ConstShade( void )
 {
   // Not allocating shades to the background object, and setting each shade to 1
   for (int i = 0; i < this->getNumberOfObjects(); i++)
-    getObjectEntry(i+1).setShades( 1 );
+    getObjectEntry(i+1)->SetShades( 1 );
 }
 
 
@@ -1492,4 +1399,5 @@ void CompactString( std::string & output, const std::string input )
   output = std::string(buffer);
 
   delete[] buffer;
+}
 }

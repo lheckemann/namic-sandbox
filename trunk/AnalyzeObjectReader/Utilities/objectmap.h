@@ -39,6 +39,30 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 //Need to put this into the ITK namespace.
+namespace itk
+{
+      /**
+   * Constants representing the current version number of the object map file for Analyze
+   */
+  const int VERSION1 = 880102;
+  const int VERSION2 = 880801;
+  const int VERSION3 = 890102;
+  static const int VERSION4 = 900302;
+  static const int VERSION5 = 910402;
+  static const int VERSION6 = 910926;
+  static const int VERSION7 = 20050829;
+
+    /**
+   * Constant defining the maximum number of shades possible for an object as of Version 6
+   */
+  const int MAXANALYZESHADES = 250;
+
+
+
+  /**
+   * Buffer size for reading in the run length encoded object data
+   */
+  const int BUFFERSIZE = 16384;
 
   //TODO:  derive from itk::Image object so that an AnalyzeObjectMap to get these to be formal itk pipeline managable objects.
   class AnalyzeObjectMap: public itk::Image<unsigned char,3>
@@ -90,14 +114,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
        * \param const int index
        * \return AnalyzeObjectEntry &, an object reference from the array of 256 objects in the objectmap
        */
-      AnalyzeObjectEntry & getObjectEntry( const int index );
+      AnalyzeObjectEntry::Pointer getObjectEntry( const int index );
 
       /**
        * \brief returns a reference to an object
        * \param const int index
        * \return AnalyzeObjectEntry &, an object reference from the array of 256 objects in the objectmap
        */
-      const AnalyzeObjectEntry & getObjectEntry( const int index ) const;
+      const AnalyzeObjectEntry::Pointer getObjectEntry( const int index ) const;
 
       /**
        * \brief This function clears an object map and reinitializes it to single background
@@ -255,7 +279,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       /** Number of Objects in the object file */
       int NumberOfObjects;
       /** Pointers to individual objects in the object map, maximum of 256 */
-      AnalyzeObjectEntry * ObjectArray[256];
+      AnalyzeObjectEntry::Pointer AnaylzeObjectEntryArray[256];
       /** Flag to determine the display of the layer */
       unsigned char ShowObject[256];
       unsigned char MinimumPixelValue[256];
@@ -265,7 +289,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       itk::Image<unsigned char, 3>::Pointer m_LableMap;
 
 //TODO The following should be private member functions of the AnalyzeObjectMap class
-{
+
    /**
     * \brief This function takes a file pointer and an image and runlength encodes the
     * gray levels to the file
@@ -281,7 +305,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     * \param input the string to remove the spaces
     */
    void RemoveSpaceFromString(std::string & output, const std::string & input);
-}
+
 
   };
+  }
 #endif                           // __OBJECTMAP_H_
