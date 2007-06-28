@@ -61,6 +61,8 @@ template <class TInputImage>
 ImageToVTKImageFilter<TInputImage>
 ::~ImageToVTKImageFilter()
 {
+  //Only VTK objects must be destroyed
+  m_Importer->Delete();
 }
 
 
