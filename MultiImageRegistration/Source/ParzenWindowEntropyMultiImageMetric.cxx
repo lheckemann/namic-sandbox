@@ -366,7 +366,6 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
     for(unsigned int j = 0; j < this->m_NumberOfImages; j++)
     {
       this->m_Sample[i].imageValueArray[j] = this->m_InterpolatorArray[j]->Evaluate(mappedPointsArray[j]);
-      //this->m_Sample[i].gradientArray[j] = this->m_GradientInterpolatorArray[j]->Evaluate(this->m_Sample[i].mappedPointsArray[j]);
       allOutside = false;
     }
     // Jump to random position

@@ -30,6 +30,9 @@ TARGET_LINK_LIBRARIES(TransformImage ITKCommon ITKBasicFilters ITKIO)
 ADD_EXECUTABLE(ComputeDice ComputeDice.cxx )
 TARGET_LINK_LIBRARIES(ComputeDice ITKCommon ITKBasicFilters ITKIO)
 
+ADD_EXECUTABLE(ComputeOutputs ComputeOutputs.cxx )
+TARGET_LINK_LIBRARIES(ComputeOutputs ITKCommon ITKBasicFilters ITKIO)
+
 ADD_EXECUTABLE(CreateImageSetAffine CreateImageSetAffine.cxx )
 TARGET_LINK_LIBRARIES(CreateImageSetAffine ITKCommon ITKBasicFilters ITKIO ITKStatistics)
     

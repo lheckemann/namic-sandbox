@@ -52,6 +52,12 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/AffineRegistration001/parameters001.txt  
     )
     
+  # Run groupwise registration
+  ADD_TEST(ComputeOutputs001 ${EXECUTABLE_OUTPUT_PATH}/ComputeOutputs
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/AffineRegistration001/filenamesExperiment001.txt  
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/AffineRegistration001/parameters001.txt  
+    )
+    
     
   #
   #  B-spline test
@@ -74,6 +80,11 @@ IF(BrainWeb_DATA_ROOT)
   )
 
   ADD_TEST(RegistrationTest002 ${EXECUTABLE_OUTPUT_PATH}/GroupwiseRegistration
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineRegistration001/filenamesExperiment002.txt  
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineRegistration001/parameters002.txt  
+    )
+    
+  ADD_TEST(ComputeOutputs002 ${EXECUTABLE_OUTPUT_PATH}/ComputeOutputs
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineRegistration001/filenamesExperiment002.txt  
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineRegistration001/parameters002.txt  
     )
