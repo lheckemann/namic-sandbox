@@ -56,6 +56,7 @@ ImageIOFactory::CreateImageIO(const char* path, FileModeType mode)
     ImageIOBase* io = dynamic_cast<ImageIOBase*>(i->GetPointer());
     if(io)
       {
+      std::cout << "Factory Candidate " << io->GetNameOfClass() << std::endl;
       possibleImageIO.push_back(io);
       }
     else
