@@ -234,7 +234,7 @@ ImageIORegion NiftiImageIO::DetermineStreamableRegionFromRequestedRegion( const 
   // The implementations determines that the streamable region based on what can be a collaspable region
   // equal to the largest possible region of the image.
   //
-  ImageIORegion streamableRegion;
+  ImageIORegion streamableRegion(this->m_NumberOfDimensions);
   for( unsigned int i=0; i < this->m_NumberOfDimensions ; i++ )
     {
 //    requestedRegion.GetIndex()[i];
