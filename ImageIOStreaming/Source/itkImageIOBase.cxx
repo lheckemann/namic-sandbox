@@ -824,6 +824,11 @@ void ImageIOBase::ReadBufferAsASCII(std::istream& is, void *buffer,
 
 }
 
+
+/** Given a requested region, determine what could be the region that we can
+ * read from the file. This is called the streamable region, which will be
+ * smaller than the LargestPossibleRegion and greater or equal to the
+ * RequestedRegion */
 ImageIORegion 
 ImageIOBase
 ::DetermineStreamableRegionFromRequestedRegion( const ImageIORegion & itkNotUsed( requested ) ) const

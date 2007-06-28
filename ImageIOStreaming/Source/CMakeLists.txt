@@ -11,10 +11,21 @@ SET(ITKIO_SRCS
 # Add ITKIO library
 ADD_LIBRARY(ITKIOStreaming ${ITKIO_SRCS})
 
+ADD_LIBRARY(ITKIOMetaStreaming SHARED 
+  itkMetaImageIO.cxx
+  itkMetaImageIOFactory.cxx
+  )
+
 TARGET_LINK_LIBRARIES(ITKIOStreaming
   ITKniftiio
   ${ITK_ZLIB_LIBRARIES}
   ITKCommon
+  )
+
+TARGET_LINK_LIBRARIES(ITKIOMetaStreaming
+  ITKIOStreaming
+  ITKCommon
+  ITKMetaIO
   )
 
 IF(ITK_LIBRARY_PROPERTIES)
