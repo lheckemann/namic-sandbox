@@ -74,7 +74,7 @@ AnalyzeObjectEntry::AnalyzeObjectEntry( void )
   this->m_MinimumXValue = 0;
   this->m_MinimumYValue = 0;
   this->m_MinimumZValue = 0;
-  this->m_MaximumXValue = 0;
+  this->m_MaximumXValue = 10;
   this->m_MaximumYValue = 0;
   this->m_MaximumZValue = 0;
   this->m_Opacity = 0.5;
