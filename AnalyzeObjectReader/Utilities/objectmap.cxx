@@ -100,7 +100,7 @@ AnalyzeObjectMap::AnalyzeObjectMap( const AnalyzeObjectMap & rhs )
   NeedsRegionsCalculated=rhs.NeedsRegionsCalculated;
   for(int i=0; i < 256; i++)
   {
-    if(rhs.AnaylzeObjectEntryArray[i] != NULL)
+    if((rhs.AnaylzeObjectEntryArray[i]).IsNotNull())
     {
         AnaylzeObjectEntryArray[i] = AnalyzeObjectEntry::New();
         AnaylzeObjectEntryArray[i]->Copy(rhs.AnaylzeObjectEntryArray[i]);
@@ -120,9 +120,9 @@ AnalyzeObjectMap::~AnalyzeObjectMap( void )
 {
   for(int i=0; i < 256; i++)
   {
-    if(AnaylzeObjectEntryArray[i] != NULL)
+    if(AnaylzeObjectEntryArray[i].IsNotNull())
     {
-      delete AnaylzeObjectEntryArray[i];
+      AnaylzeObjectEntryArray[i] = NULL;
     }
   }
 }
@@ -157,16 +157,16 @@ AnalyzeObjectMap &  AnalyzeObjectMap::operator=( const AnalyzeObjectMap & rhs )
   NeedsRegionsCalculated=rhs.NeedsRegionsCalculated;
   for(int i=0; i < 256; i++)
   {
-    if(rhs.AnaylzeObjectEntryArray[i] != NULL)
+    if(rhs.AnaylzeObjectEntryArray[i].IsNotNull())
     {
-        AnaylzeObjectEntryArray[i] = AnalyzeObjectEntry::New();
+      AnaylzeObjectEntryArray[i] = AnalyzeObjectEntry::New();
       AnaylzeObjectEntryArray[i]->Copy(rhs.AnaylzeObjectEntryArray[i]);
     }
     else
     {
-      if(AnaylzeObjectEntryArray[i] != NULL)
+      if(AnaylzeObjectEntryArray[i].IsNotNull())
       {
-        delete AnaylzeObjectEntryArray[i];
+        AnaylzeObjectEntryArray[i] = NULL;
       }
     }
     ShowObject[i]=rhs.ShowObject[i];
@@ -175,7 +175,6 @@ AnalyzeObjectMap &  AnalyzeObjectMap::operator=( const AnalyzeObjectMap & rhs )
   }
   return *this;
 }
-
 
 int AnalyzeObjectMap::getObjectIndex( const std::string &ObjectName  )
 {
@@ -209,9 +208,9 @@ void AnalyzeObjectMap::ReinitializeObjectMap(const int _iX, const int _iY, const
   {
     for(int i=0; i < 256; i++)
     {
-      if(AnaylzeObjectEntryArray[i] != NULL)
+      if(AnaylzeObjectEntryArray[i].IsNotNull())
       {
-        delete AnaylzeObjectEntryArray[i];
+        AnaylzeObjectEntryArray[i]  =  NULL;
       }
     }
   }
@@ -533,7 +532,7 @@ bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
   return true;
 }
 
-
+#if 0
 bool AnalyzeObjectMap::AddObjectInRange(const CImage<float> & InputImage,
 const float MinRange, const float MaxRange,
 std::string ObjectName, const int EndRed,
@@ -588,7 +587,6 @@ const int Shades, bool OverWriteObjectFlag)
   return true;
 }
 
-
 bool AnalyzeObjectMap::AddObjectInRange(const CImage<unsigned char> & InputImage,
 const int MinRange, const int MaxRange,
 std::string ObjectName, const int EndRed, const int EndGreen,
@@ -639,6 +637,7 @@ const int EndBlue, const int Shades, bool OverWriteObjectFlag)
   }
   return true;
 }
+#endif
 
 
 bool AnalyzeObjectMap::RemoveObjectByName(const std::string & ObjectName)
@@ -681,8 +680,10 @@ bool AnalyzeObjectMap::RemoveObjectByName(const std::string & ObjectName)
   delete AnaylzeObjectEntryArray[this->getNumberOfObjects()];
   AnaylzeObjectEntryArray[this->getNumberOfObjects()] = NULL;
 
+  #if 0
   // Changing the image object identifiers
   {
+
     for (int i = 0; i < this->getXDim()*this->getYDim()*this->getZDim(); i++)
     {
       if (this->ConstPixel(i) == objectTag)
@@ -694,10 +695,12 @@ bool AnalyzeObjectMap::RemoveObjectByName(const std::string & ObjectName)
       {
         this->Pixel(i) = this->Pixel(i) - 1;
       }
+
     }
   }
 
   NumberOfObjects = NumberOfObjects - 1;
+  #endif
 
   return true;
 }
@@ -750,6 +753,7 @@ bool AnalyzeObjectMap::RemoveObjectByRange(const unsigned char MinRange, const u
     }
   }
 
+#if 0
   // Changing the image object identifiers
   {
     for (int i = 0; i < this->getXDim()*this->getYDim()*this->getZDim(); i++)
@@ -767,11 +771,11 @@ bool AnalyzeObjectMap::RemoveObjectByRange(const unsigned char MinRange, const u
   }
 
   NumberOfObjects = NumberOfObjects - NumberToDelete;
-
+#endif
   return true;
 }
 
-
+#if 0
 bool AnalyzeObjectMap::CheckObjectOverlap( const CImage<float> & InputImage, const float MinRange, const float MaxRange, const int MinObjectRange, const int MaxObjectRange )
 {
   const int nx=InputImage.getXDim();
@@ -872,7 +876,7 @@ bool AnalyzeObjectMap::CheckObjectOverlap( const CImage<unsigned char> & InputIm
   }
   return false;
 }
-
+#endif
 
 bool AnalyzeObjectMap::WriteObjectByName(const std::string & ObjectName, const std::string & filename)
 {
@@ -936,6 +940,7 @@ bool AnalyzeObjectMap::WriteObjectByName(const std::string & ObjectName, const s
 
   // Reading the Header into the class
   header[0]=VERSION7;
+#if 0
   header[1]=this->getXDim();
   header[2]=this->getYDim();
   header[3]=this->getZDim();
@@ -957,10 +962,13 @@ bool AnalyzeObjectMap::WriteObjectByName(const std::string & ObjectName, const s
 
   // Creating the binary mask
   CImageFlat<unsigned char> binaryMask(this->getXDim(), this->getYDim(), this->getZDim());
+
+  #endif
 //TODO  binaryMask.ImageClear();
 
   // Creating the binary mask
   {
+#if 0
     for (int i = 0; i < this->getXDim()*this->getYDim()*this->getZDim(); i++)
     {
       if (this->ConstPixel(i) == objectTag)
@@ -968,6 +976,7 @@ bool AnalyzeObjectMap::WriteObjectByName(const std::string & ObjectName, const s
         binaryMask.Pixel(i) = 1;
       }
     }
+#endif
   }
 
   // Writing the header, which contains the version number, the size, and the
@@ -983,12 +992,14 @@ bool AnalyzeObjectMap::WriteObjectByName(const std::string & ObjectName, const s
   // Writing the background header
   // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
   // not affect the current object itself
+#if 0
   AnalyzeObjectEntry ObjectWrite = this->getObjectEntry(0);
 
   if (NeedByteSwap == true)
   {
     SwapObjectEndedness(ObjectWrite.getObjectPointer());
   }
+
 
   if (::fwrite((ObjectWrite.getObjectPointer()), sizeof(Object), 1, fptr) != 1)
   {
@@ -1013,6 +1024,7 @@ bool AnalyzeObjectMap::WriteObjectByName(const std::string & ObjectName, const s
   RunLengthEncodeImage(binaryMask, fptr);
 
   ::fclose(fptr);
+  #endif
   return true;
 }
 
@@ -1051,6 +1063,7 @@ bool AnalyzeObjectMap::WriteDisplayedObjects(const std::string & filenamebase)
 
       // Reading the Header into the class
       header[0]=VERSION7;
+#if 0
       header[1]=this->getXDim();
       header[2]=this->getYDim();
       header[3]=this->getZDim();
@@ -1129,12 +1142,18 @@ bool AnalyzeObjectMap::WriteDisplayedObjects(const std::string & filenamebase)
       fclose(fptr);
     }
   }
+  
+
+#endif
+  }
+  }
   return true;
 }
 
-
+#if 0
 bool AnalyzeObjectMap::CalculateBoundingRegionAndCenter( void )
 {
+
   for (int i = 0; i < NumberOfObjects; i++)
   {
     AnaylzeObjectEntryArray[i]->SetMinimumXValue(this->getXDim());
@@ -1400,4 +1419,5 @@ void CompactString( std::string & output, const std::string input )
 
   delete[] buffer;
 }
+#endif
 }
