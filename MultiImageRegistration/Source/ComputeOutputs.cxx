@@ -431,6 +431,7 @@ int main( int argc, char * argv[] )
       WriterType::Pointer writer= WriterType::New();
       writer->SetInput(imageResampleArray[j]->GetOutput());
 
+      itksys::SystemTools::MakeDirectory( (currentFolderName+"Images/").c_str() );
       writer->SetFileName((currentFolderName+"Images/"+fileNames[j]).c_str());
       writer->SetImageIO(imageReaderArray[j]->GetImageIO());
       
@@ -462,6 +463,7 @@ int main( int argc, char * argv[] )
       sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
 
        // write mean image
+      itksys::SystemTools::MakeDirectory( (currentFolderName+"Slices/").c_str() );
       string sliceName = (currentFolderName+"Slices/"+fileNames[j]);
       sliceName.replace(sliceName.size()-3, 3, "jpg" );
       sliceWriter->SetFileName( sliceName.c_str() );
