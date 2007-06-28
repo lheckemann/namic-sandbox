@@ -24,7 +24,7 @@ PATHS
 
 SET(KWSTYLE_ARGUMENTS
   -xml ${ITK_DIR}/Utilities/KWStyle/ITK.kws.xml -v -D ${ITK_DIR}/Utilities/KWStyle/ITKFiles.txt  
-  -o ${PROJECT_SOURCE_DIR}/Utilities/KWStyle/ITKOverwrite.txt
+  -o ${ITK_DIR}/Utilities/KWStyle/ITKOverwrite.txt
   )
 
 IF(KWSTYLE_USE_VIM_FORMAT)
