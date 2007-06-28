@@ -22,24 +22,52 @@ FIND_PATH(BrainWeb_DATA_ROOT NAMES brainweb165a10f17.mha DOC "Directory containi
 
 IF(BrainWeb_DATA_ROOT)
 
+
+
   #
   #  First, take an input image and generate many instances of artificial deformations.
   #
-  ADD_TEST(CreateDeformedImage001 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetBspline  
+  ADD_TEST(CreateDeformedImage001 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetAffine  
+    ${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha 
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/AffineSyntheticSet/
+    2
+    )
+
+  # Create directory for affine registration 001
+  MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR}/AffineRegistration001)
+
+  # generate filenames for affine
+  CONFIGURE_FILE( 
+    ${MultiImageRegistration_TEST_INPUT_DIR}/filenamesExperiment001.txt.in
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/AffineRegistration001/filenamesExperiment001.txt
+  )
+
+  # Run groupwise registration
+  ADD_TEST(RegistrationTest001 ${EXECUTABLE_OUTPUT_PATH}/GroupwiseRegistration
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/AffineRegistration001/filenamesExperiment001.txt  
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters001.txt  
+    )
+    
+    
+  #
+  #  B-spline test
+  #
+  ADD_TEST(CreateDeformedImage002 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetBspline  
     ${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha 
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineSyntheticSet/
+    2
     )
 
   MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineRegistration001)
 
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/filenamesExperiment001.txt.in
-    ${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineRegistration001/filenamesExperiment001.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/filenamesExperiment002.txt.in
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineRegistration001/filenamesExperiment002.txt
   )
 
-  ADD_TEST(BsplineRegistrationTest001 ${EXECUTABLE_OUTPUT_PATH}/GroupwiseRegistration
-    ${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineRegistration001/filenamesExperiment001.txt  
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersBspline001.txt  
+  ADD_TEST(RegistrationTest002 ${EXECUTABLE_OUTPUT_PATH}/GroupwiseRegistration
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineRegistration001/filenamesExperiment002.txt  
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters002.txt  
     )
 
 ENDIF(BrainWeb_DATA_ROOT)

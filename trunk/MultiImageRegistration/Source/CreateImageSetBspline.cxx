@@ -44,7 +44,7 @@ int main( int argc, char * argv[] )
 if( argc < 3 )
     {
     std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << "  inputImageFile  folderName" << std::endl;
+    std::cerr << argv[0] << "  inputImageFile  folderName numberOfImages" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -61,8 +61,9 @@ if( argc < 3 )
   typedef itk::ImageFileReader< InputImageType  >  ReaderType;
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;
 
+  int numberOfImages = atoi(argv[3]);
 
-  for(int i=0; i<30 ; i++)
+  for(int i=0; i<numberOfImages ; i++)
   {
 
     ReaderType::Pointer reader = ReaderType::New();
@@ -179,12 +180,16 @@ if( argc < 3 )
     
     fname = fname + argv[2] + "/Images/" + fnameStream.str();
     if(Dimension == 2)
+    {
       fname += ".png";
+    }
     else
+    {
       fname += ".mhd";
+    }
     
     writer->SetFileName( fname.c_str() );
-    std::cout << "Writing File = " << fname.c_str() << std::endl;
+    std::cout << "Writing " << fname.c_str() << std::endl;
     writer->Update();
   }
   return EXIT_SUCCESS;
