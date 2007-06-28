@@ -38,9 +38,9 @@
 #
 
     -numberOfSpatialSamplesTranslationPercentage 0.01
-    -numberOfSpatialSamplesAffinePercentage 0.05
+    -numberOfSpatialSamplesAffinePercentage 0.025
     -numberOfSpatialSamplesBsplinePercentage 0.1
-    -numberOfSpatialSamplesBsplineHighPercentage 0.5
+    -numberOfSpatialSamplesBsplineHighPercentage 0.25
 
 #
 # following options define number of multiresolution levels used in optimization
@@ -165,7 +165,7 @@
 #  after each multiresolution level
 #
     -translationMultiScaleSamplePercentageIncrease 8.0 
-    -affineMultiScaleSamplePercentageIncrease 6.0 
+    -affineMultiScaleSamplePercentageIncrease 4.0 
     -bsplineMultiScaleSamplePercentageIncrease 2.0
     
     
