@@ -40,26 +40,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // TODO: USE GET/SET methods for member variables needs to be put together along with one set of
 //       documentation that is syncronized syncronized.
 namespace itk{
-  /**
-   * Constant defining the maximum number of shades possible for an object as of Version 6
-   */
-  const int MAXANALYZESHADES = 250;
-
-  /**
-   * Constants representing the current version number of the object map file for Analyze
-   */
-  const int VERSION1 = 880102;
-  const int VERSION2 = 880801;
-  const int VERSION3 = 890102;
-  const int VERSION4 = 900302;
-  const int VERSION5 = 910402;
-  const int VERSION6 = 910926;
-  const int VERSION7 = 20050829;
-
-  /**
-   * Buffer size for reading in the run length encoded object data
-   */
-  const int BUFFERSIZE = 16384;
+template <typename ReadType>
+void ReadBytes(FILE *fptr,ReadType * dest, const int Replications, const bool NeedByteSwap)
+{
+  if (::fread(dest, sizeof(ReadType), Replications, fptr) != 1)
+  {
+    ::fprintf(stderr, "6: Unable to read in object #1 description.\n");
+    exit(-1);
+  }
+#if 0 //TODO:  Need to fix bug swapping.
+  if(NeedByteSwap)
+  {
+    SwapObjectEndedness(AnaylzeObjectEntryArray[1]->getObjectPointer());
+  }
+#endif
+}
 
   /**
    * \class AnalyzeObjectEntry
@@ -548,7 +543,55 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
   itkGetConstMacro(MaximumCoordinateValue, Index);
   
 
-
+  void ReadFromFilePointer(FILE *fptr, const bool NeedByteSwap ){
+  //IntFunc
+  ReadBytes<char>(fptr, this->m_Name, 32,NeedByteSwap);
+  ReadBytes<int>(fptr, &(this->m_DisplayFlag),1,NeedByteSwap);
+  ReadBytes<unsigned char>(fptr, &m_CopyFlag,1,NeedByteSwap);
+  ReadBytes<unsigned char>(fptr, &m_MirrorFlag,1,NeedByteSwap);
+  ReadBytes<unsigned char>(fptr, &m_StatusFlag,1,NeedByteSwap);
+  ReadBytes<unsigned char>(fptr, &m_NeighborsUsedFlag,1,NeedByteSwap);
+  ReadBytes<int>(fptr, &m_Shades,1,NeedByteSwap);
+  ReadBytes<int>(fptr, &m_StartRed,1,NeedByteSwap);
+  ReadBytes<int>(fptr, &m_StartGreen,1,NeedByteSwap);
+  ReadBytes<int>(fptr, &m_StartBlue,1,NeedByteSwap);
+  ReadBytes<intRGBPixel>(fptr, &m_StartColor,1,NeedByteSwap);  //Three seperate Start Colors (Red, Green, Blue) have been put together to use the set macro.
+  ReadBytes<int>(fptr, &m_EndRed,1,NeedByteSwap);
+  ReadBytes<int>(fptr, &m_EndGreen,1,NeedByteSwap);
+  ReadBytes<int>(fptr, &m_EndBlue,1,NeedByteSwap);
+  ReadBytes<intRGBPixel>(fptr, &m_EndColor,1,NeedByteSwap);    //Three seperate End Colors (Red, Green, Blue) have been put together to use the set macro.
+  ReadBytes<int>(fptr, &m_XRotation,1,NeedByteSwap);
+  ReadBytes<int>(fptr, &m_YRotation,1,NeedByteSwap);
+  ReadBytes<int>(fptr, &m_ZRotation,1,NeedByteSwap);
+  ReadBytes<Index>(fptr, &m_Rotation,1,NeedByteSwap);          //Three seperate Rotations (x, y, z) have been put together to use the set macro.
+  ReadBytes<int>(fptr, &m_XTranslation,1,NeedByteSwap);
+  ReadBytes<int>(fptr, &m_YTranslation,1,NeedByteSwap);
+  ReadBytes<int>(fptr, &m_ZTranslation,1,NeedByteSwap);
+  ReadBytes<Index>(fptr, &m_Translation,1,NeedByteSwap);       //Three seperate Translations (x, y, z) have been put together to use the set macro.
+  ReadBytes<int>(fptr, &m_XCenter,1,NeedByteSwap);
+  ReadBytes<int>(fptr, &m_YCenter,1,NeedByteSwap);
+  ReadBytes<int>(fptr, &m_ZCenter,1,NeedByteSwap);
+  ReadBytes<Index>(fptr, &m_Center,1,NeedByteSwap);            //Three seperate Centers (x, y, z) have been put together to use the set macro.
+  ReadBytes<int>(fptr, &m_XRotationIncrement,1,NeedByteSwap);
+  ReadBytes<int>(fptr, &m_YRotationIncrement,1,NeedByteSwap);
+  ReadBytes<int>(fptr, &m_ZRotationIncrement,1,NeedByteSwap);
+  ReadBytes<Index>(fptr, &m_RotationIncrement,1,NeedByteSwap);  //Three seperate Rotation Increments (x, y, z) have been put together to use the set macro.
+  ReadBytes<int>(fptr, &m_XTranslationIncrement,1,NeedByteSwap);
+  ReadBytes<int>(fptr, &m_YTranslationIncrement,1,NeedByteSwap);
+  ReadBytes<int>(fptr, &m_ZTranslationIncrement,1,NeedByteSwap);
+  ReadBytes<Index>(fptr, &m_TranslationIncrement,1,NeedByteSwap); //Three seperate Translation Increments (x, y, z) have been put together to use the set macro.
+  ReadBytes<short int>(fptr, &m_MinimumXValue,1,NeedByteSwap);
+  ReadBytes<short int>(fptr, &m_MinimumYValue,1,NeedByteSwap);
+  ReadBytes<short int>(fptr, &m_MinimumZValue,1,NeedByteSwap);
+  ReadBytes<Index>(fptr, &m_MinimumCoordinateValue,1,NeedByteSwap);  //Three seperate Minimum Coordinate Values (x, y, z) have been put together to use the set macro.
+  ReadBytes<short int>(fptr, &m_MaximumXValue,1,NeedByteSwap);
+  ReadBytes<short int>(fptr, &m_MaximumYValue,1,NeedByteSwap);
+  ReadBytes<short int>(fptr, &m_MaximumZValue,1,NeedByteSwap);
+  ReadBytes<Index>(fptr, &m_MaximumCoordinateValue,1,NeedByteSwap);   //Three seperate Maximum Coordiante Values (x, y, z) have been put together to use the set macro.
+  ReadBytes<float>(fptr, &m_Opacity,1,NeedByteSwap);
+  ReadBytes<int>(fptr, &m_OpacityThickness,1,NeedByteSwap);
+  ReadBytes<float>(fptr, &m_BlendFactor,1,NeedByteSwap);
+  }
 protected:
   /**
    * \brief AnalyzeObjectEntry( ) is the default constructor, initializes to 0 or NULL
