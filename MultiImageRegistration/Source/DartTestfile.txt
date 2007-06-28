@@ -1,6 +1,6 @@
 # CMake generated Testfile for 
-# Source directory: /home/serdar/Desktop/kdevelop/svn/NAMICSandBox/trunk/MultiImageRegistration/MultiImageRegistration/Source
-# Build directory: /home/serdar/Desktop/kdevelop/svn/NAMICSandBox/trunk/MultiImageRegistration/MultiImageRegistration/Source
+# Source directory: /home/serdar/Desktop/kdevelop/projects/MultiImageRegistration/Source
+# Build directory: /home/serdar/Desktop/kdevelop/projects/MultiImageRegistration/Source
 # 
 # This file replicates the SUBDIRS() and ADD_TEST() commands from the source
 # tree CMakeLists.txt file, skipping any SUBDIRS() or ADD_TEST() commands

@@ -24,10 +24,8 @@
 #include "itkBSplineDeformableTransform.h"
 
 #include "itkLinearInterpolateImageFunction.h"
+#include "itkTransformFileWriter.h"
 
-#include "itkImageRegionIterator.h"
-#include "itkNormalVariateGenerator.h"
-    
 #include <string>
 #include <sstream>
 
@@ -40,13 +38,14 @@ int main( int argc, char * argv[] )
   if( argc < 4 )
     {
     std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << "  inputImageFile  folderName outputImageFile";
+    std::cerr << argv[0] << "  inputImageFile  folderName numberOfImages" << std::endl;
     return EXIT_FAILURE;
     }
 
   const     unsigned int   Dimension = 3;
   typedef   unsigned short  InputPixelType;
   typedef   unsigned short  OutputPixelType;
+
   typedef itk::Image< InputPixelType,  Dimension >   InputImageType;
   typedef itk::Image< OutputPixelType, Dimension >   OutputImageType;
 
@@ -54,17 +53,10 @@ int main( int argc, char * argv[] )
   typedef itk::ImageFileReader< InputImageType  >  ReaderType;
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;
 
-  typedef itk::ImageRegionIterator< InputImageType> IteratorType;
 
-  typedef itk::Statistics::NormalVariateGenerator GeneratorType;
-  
-  GeneratorType::Pointer generator = GeneratorType::New();
-  generator->Initialize(981645);
+  int numberOfImages = atoi(argv[3]);
 
-  //Create the output folder
-  itksys::SystemTools::MakeDirectory( argv[2] );
-  
-  for(int i=0; i<30 ; i++)
+  for(int i=0; i<numberOfImages ; i++)
   {
 
     ReaderType::Pointer reader = ReaderType::New();
@@ -90,13 +82,7 @@ int main( int argc, char * argv[] )
     InterpolatorType::Pointer interpolator = InterpolatorType::New();
     resample->SetInterpolator( interpolator );
     
-    // Add Gaussian Noise to the images
-    IteratorType it( reader->GetOutput(), reader->GetOutput()->GetLargestPossibleRegion());
-    for ( it.GoToBegin(); !it.IsAtEnd(); ++it )
-    {
-      //it.Set( abs( it.Get() + static_cast<int>(generator->GetVariate()*Sigma) ) );
-    }
-    
+
     // Set the parameters of the affine transform
     //Get the spacing
     InputImageType::SpacingType spacing = reader->GetOutput()->GetSpacing();
@@ -116,72 +102,6 @@ int main( int argc, char * argv[] )
     AffineTransformType::ParametersType affineParameters;
     affineParameters = affineTransform->GetParameters();
 
-    /*
-    if(i==1)
-    {
-      if(Dimension == 2)
-      {
-        affineParameters[0] = 1.03;
-        affineParameters[1] = 0.15;
-            
-        affineParameters[2] = -0.15;
-        affineParameters[3] = 1.03;
-
-        affineParameters[4] = 5;
-        affineParameters[5] = 5;
-      }
-      else
-      {
-        affineParameters[0] = 1.03;
-        affineParameters[1] = 0.15;
-        affineParameters[2] = 0.05;
-      
-        affineParameters[3] = -0.15;
-        affineParameters[4] = 1.03;
-        affineParameters[5] = 0.15;
-      
-        affineParameters[6] = -0.05;
-        affineParameters[7] = -0.15;
-        affineParameters[8] = 1.03;
-      
-        affineParameters[9] = 5;
-        affineParameters[10] = 5;
-        affineParameters[11] = 5;
-      }
-    }
-    else if(i==2)
-    {
-      if(Dimension == 2)
-      {
-        affineParameters[0] = 0.97;
-        affineParameters[1] = -0.15;
-            
-        affineParameters[2] = 0.15;
-        affineParameters[3] = 0.97;
-
-        affineParameters[4] = -5;
-        affineParameters[5] = -5;
-      }
-      else
-      {
-        affineParameters[0] = 0.97;
-        affineParameters[1] = -0.15;
-        affineParameters[2] = -0.05;
-      
-        affineParameters[3] = 0.15;
-        affineParameters[4] = 0.97;
-        affineParameters[5] = -0.15;
-      
-        affineParameters[6] = 0.05;
-        affineParameters[7] = 0.15;
-        affineParameters[8] = 0.97;
-      
-        affineParameters[9] = -5;
-        affineParameters[10] = -5;
-        affineParameters[11] = -5;
-      }
-    }
-    */
     affineParameters[0] = 1.0 + (rand()%100/100.0 - 0.5)*0.035;
     affineParameters[1] = (rand()%100/100.0 - 0.5)*0.2;
     affineParameters[2] = (rand()%100/100.0 - 0.5)*0.15;
@@ -203,18 +123,7 @@ int main( int argc, char * argv[] )
     // Initialize the resampler
     // Get the size of the image
     size = reader->GetOutput()->GetLargestPossibleRegion().GetSize();
-    // Increase the size by 10 pixels (voxels)
-    for(unsigned int r=0; r<Dimension; r++)
-    {
-      //size[r] += 6;
-    }
-      
 
-    // Move the origin 5 spaces
-    for(unsigned int r=0; r<Dimension; r++ )
-    {
-      //origin[r] -= 3*spacing[r];
-    }
     resample->SetSize(size);
     resample->SetOutputOrigin(origin);
     resample->SetOutputSpacing(spacing);
@@ -226,20 +135,35 @@ int main( int argc, char * argv[] )
 
     string fname;
     ostringstream fnameStream;
-    fnameStream << argv[2] << "/" << argv[3] <<"_" << affineParameters.GetSize();
-    for(unsigned int r=0; r<affineParameters.GetSize(); r++ )
-    {
-      fnameStream << "_" << (affineParameters[r]);
-    }
-    if(Dimension == 2)
-      fnameStream << ".png";
-    else
-      fnameStream << ".mhd";
-    fname = fnameStream.str();
-    writer->SetFileName( fname.c_str() );
+    fnameStream << i ;
 
-    std::cout << "Result = " << fname.c_str() << std::endl;
+
+    //Write the transform files
+    itk::TransformFileWriter::Pointer  transformFileWriter = itk::TransformFileWriter::New();
+    itksys::SystemTools::MakeDirectory( (fname + argv[2] + "/TransformFiles/").c_str() );
+
+    string fileName = fname + argv[2] + "/TransformFiles/" + fnameStream.str() + ".txt";
+    transformFileWriter->SetFileName(fileName.c_str());
+    transformFileWriter->SetPrecision(12);
+    transformFileWriter->SetInput(affineTransform);
+    transformFileWriter->Update();
+
+    itksys::SystemTools::MakeDirectory( (fname+argv[2]+"/Images/").c_str() );
+    
+    fname = fname + argv[2] + "/Images/" + fnameStream.str();
+    if(Dimension == 2)
+    {
+      fname += ".png";
+    }
+    else
+    {
+      fname += ".mhd";
+    }
+    
+    writer->SetFileName( fname.c_str() );
+    std::cout << "Writing " << fname.c_str() << std::endl;
     writer->Update();
+
   }
   return EXIT_SUCCESS;
 }
