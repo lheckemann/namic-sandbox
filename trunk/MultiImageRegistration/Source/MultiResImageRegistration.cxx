@@ -47,7 +47,6 @@
 
 #include "itkRecursiveMultiResolutionPyramidImageFilter.h"
 #include "itkImage.h"
-#include "itkNormalizeImageFilter.h"
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -132,7 +131,7 @@ public:
   typedef   const SPSAOptimizerType  *                SPSAOptimizerPointer;
   typedef   itk::AmoebaOptimizer                        SimplexOptimizerType;
   typedef   const SimplexOptimizerType  *                SimplexOptimizerTypePointer;
-  typedef   itk::MultiImageMetric< itk::Image<InternalPixelType, Dimension > >    MetricType;
+  typedef   itk::MultiImageMetric< itk::Image<PixelType, Dimension > >    MetricType;
 
 
   void Execute(itk::Object *caller, const itk::EventObject & event)
@@ -261,304 +260,6 @@ private:
     unsigned int m_CumulativeIterationIndex;
   
 };
-
-
-// function to write outputs
-void writeMeanAndSlices( const std::vector<string> fileNames,
-                         const std::vector<string> inputFileNames,
-
-                         const string outputFolder,
-                         const string writeOutputImages,
-                         const string writeDeformationFields,
-                         const string writeMean3DImages,
-                                                  
-                         const std::vector< itk::Transform< double, Dimension,Dimension >* > transformArray )
-{
-  
-  typedef itk::Image< PixelType, Dimension >  ImageType;
-  typedef itk::Image< InternalPixelType, Dimension > InternalImageType;
-
-  // Create a toy image for deformation Field visualization
-  ImageType::Pointer deformationImage = ImageType::New();
-
-  int N = fileNames.size();
-  std::vector<string> outputFileNames(N);
-  
-  typedef itk::ResampleImageFilter<
-                                    InternalImageType,
-                                    InternalImageType >    ResampleFilterType;
-  ResampleFilterType::Pointer resample = ResampleFilterType::New();
-  //resample->ReleaseDataFlagOn();
-
-  // get the image reader
-  typedef itk::ImageFileReader< ImageType  > ImageReaderType;
-  std::vector< ImageReaderType::Pointer > imageArrayReader(N);
-
-  ImageType::Pointer fixedImage;
-
-  typedef itk::ImageFileWriter< ImageType >  WriterType;
-
-  // Extract slices writer type
-  typedef itk::Image< unsigned char, 2 >    SliceImageType;
-  typedef itk::ImageFileWriter< SliceImageType >  SliceWriterType;
-  SliceWriterType::Pointer  sliceWriter = SliceWriterType::New();
-  // Filter to extract a slice from an image
-  typedef itk::ExtractImageFilter< ImageType, SliceImageType > SliceExtractFilterType;
-  SliceExtractFilterType::Pointer sliceExtractFilter = SliceExtractFilterType::New();
-
-
-  WriterType::Pointer      writer =  WriterType::New();
-  //writer->ReleaseDataFlagOn();
-
-  typedef itk::CastImageFilter<ImageType, InternalImageType > InternalImageCasterType;
-  InternalImageCasterType::Pointer internalImageCaster = InternalImageCasterType::New();
-  //internalImageCaster->ReleaseDataFlagOn();
-
-  typedef itk::CastImageFilter<InternalImageType, ImageType > OutputImageCasterType;
-  OutputImageCasterType::Pointer outputImageCaster = OutputImageCasterType::New();
-  //outputImageCaster->ReleaseDataFlagOn();
-  
-  // Loop over images and write output images
-  for(int i=0; i<N; i++)
-  {
-
-    //Set the correct tranform
-    resample->SetTransform( transformArray[i] );
-    
-    //Read the images again for memory efficiency
-    imageArrayReader[i] = ImageReaderType::New();
-    //imageArrayReader[i]->ReleaseDataFlagOn();
-    imageArrayReader[i]->SetFileName( inputFileNames[i].c_str() );
-    imageArrayReader[i]->Update();
-    internalImageCaster->SetInput(imageArrayReader[i]->GetOutput());
-    resample->SetInput( internalImageCaster->GetOutput() );
-    fixedImage = imageArrayReader[i]->GetOutput();
-
-    typedef itk::LinearInterpolateImageFunction< InternalImageType, double >  InterpolatorType;
-    InterpolatorType::Pointer interpolator = InterpolatorType::New();
-
-    resample->SetInterpolator( interpolator );
-    resample->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
-    resample->SetOutputOrigin(  fixedImage->GetOrigin() );
-    resample->SetOutputSpacing( fixedImage->GetSpacing() );
-    resample->SetOutputDirection( fixedImage->GetDirection());
-    resample->SetDefaultPixelValue( 0 );
-
-    itksys::SystemTools::MakeDirectory( outputFolder.c_str() );
-    string registeredImagesFolder("Images/");
-    registeredImagesFolder = outputFolder + registeredImagesFolder;
-    outputFileNames[i] = registeredImagesFolder + fileNames[i];
-      
-    std::cout << "message: Writing images in " << outputFolder << " " << i << std::endl;
-
-    writer->SetImageIO(imageArrayReader[i]->GetImageIO());
-    writer->SetFileName( outputFileNames[i].c_str() );
-    outputImageCaster->SetInput(resample->GetOutput());
-    writer->SetInput( outputImageCaster->GetOutput()   );
-    if(writeOutputImages == "on")
-    {
-      itksys::SystemTools::MakeDirectory( registeredImagesFolder.c_str() );
-      writer->Update();
-    }
-
-    //Extract slices for 3D Images
-    if(Dimension == 3)
-    {
-      //Write the registered images
-      string slices("Slices/");
-      slices = outputFolder + slices;
-      string outputFilename(fileNames[i]);
-      outputFilename[outputFilename.size()-4] = '.';
-      outputFilename[outputFilename.size()-3] = 'j';
-      outputFilename[outputFilename.size()-2] = 'p';
-      outputFilename[outputFilename.size()-1] = 'g';
-      outputFilename = slices + outputFilename;
-      itksys::SystemTools::MakeDirectory( slices.c_str() );
-        
-      ImageType::SizeType size = fixedImage->GetLargestPossibleRegion().GetSize();
-      ImageType::IndexType start = fixedImage->GetLargestPossibleRegion().GetIndex();
-      start[0] = size[0]/2;
-      size[0] = 0;
-
-        
-      ImageType::RegionType extractRegion;
-      extractRegion.SetSize(  size  );
-      extractRegion.SetIndex( start );
-      sliceExtractFilter->SetExtractionRegion( extractRegion );
-      
-      sliceExtractFilter->SetInput( outputImageCaster->GetOutput() );
-      sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
-      sliceWriter->SetFileName( outputFilename.c_str() );
-      sliceWriter->Update();
-
-      // Write the deformation fields for Bsplines
-      string defName("DeformationFieldImage/");
-      defName = outputFolder + defName;
-
-
-      //Create the toy image
-      if(i==0)
-      {
-        deformationImage->SetRegions( imageArrayReader[i]->GetOutput()->GetLargestPossibleRegion() );
-        deformationImage->CopyInformation( imageArrayReader[i]->GetOutput() );
-        deformationImage->Allocate();
-        deformationImage->FillBuffer( 0 );
-
-
-        // Create perpendicular planes in the deformationImage
-        typedef itk::ImageRegionIteratorWithIndex< ImageType > IteratorWithIndexType;
-        IteratorWithIndexType defIt( deformationImage, deformationImage->GetRequestedRegion() );
-        ImageType::IndexType index;
-        for ( defIt.GoToBegin(); !defIt.IsAtEnd(); ++defIt)
-        {
-          index = defIt.GetIndex();
-          if(index[2]%8 == 0 || index[1]%8 ==0 )
-          {
-            defIt.Set( 255 );
-          }
-        }
-      }
-
-      internalImageCaster->SetInput(deformationImage);
-      resample->SetInput( internalImageCaster->GetOutput() );
-
-      // Generate the outputfilename and write the output
-      string defFile(fileNames[i]);
-      defFile = defName + defFile;
-      writer->SetFileName( defFile.c_str() );
-      if(writeDeformationFields =="on")
-      {
-        itksys::SystemTools::MakeDirectory( defName.c_str() );
-        writer->Update();
-      }
-
-      // Extract the central slices of the the deformation field
-      string defName2D("DeformationFieldSlices/");
-      defName2D = outputFolder + defName2D;
-      itksys::SystemTools::MakeDirectory( defName2D.c_str() );
-      string defFile2D(fileNames[i]);
-      defFile2D[defFile2D.size()-4] = '.';
-      defFile2D[defFile2D.size()-3] = 'j';
-      defFile2D[defFile2D.size()-2] = 'p';
-      defFile2D[defFile2D.size()-1] = 'g';
-      defFile2D = defName2D + defFile2D;
-      outputImageCaster->SetInput(resample->GetOutput());
-      sliceExtractFilter->SetInput( outputImageCaster->GetOutput() );
-      sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
-      sliceWriter->SetFileName( defFile2D.c_str() );
-      sliceWriter->Update();
-      
-      
-    }
-  }
-
-  // Compute Mean Images
-  typedef itk::NaryAddImageFilter < InternalImageType,
-                                    InternalImageType > NaryAddFilterType;
-  NaryAddFilterType::Pointer NaryAddfilter = NaryAddFilterType::New();
-
-  typedef ResampleFilterType::Pointer ResampleFilterPointer;
-  std::vector< ResampleFilterPointer > ResampleFilterArray(N);
-
-  typedef std::vector< InternalImageCasterType::Pointer > InternalImageCasterArray;
-  InternalImageCasterArray internalImageCasterArray(N);
-  
-  for(int i=0; i<N; i++)
-  {
-
-    ResampleFilterArray[i] = ResampleFilterType::New();
-    ResampleFilterArray[i]->ReleaseDataFlagOn();
-
-    //Set the first image
-    ResampleFilterArray[i]->SetTransform( transformArray[i] );
-
-    internalImageCasterArray[i] = InternalImageCasterType::New();
-    internalImageCasterArray[i]->SetInput(imageArrayReader[i]->GetOutput() );
-    
-    ResampleFilterArray[i]->SetInput( internalImageCasterArray[i]->GetOutput() );
-    ResampleFilterArray[i]->SetSize(    fixedImage->GetLargestPossibleRegion().GetSize() );
-    ResampleFilterArray[i]->SetOutputOrigin(  fixedImage->GetOrigin() );
-    ResampleFilterArray[i]->SetOutputSpacing( fixedImage->GetSpacing() );
-    ResampleFilterArray[i]->SetOutputDirection( fixedImage->GetDirection());
-    ResampleFilterArray[i]->SetDefaultPixelValue( 0 );
-
-    NaryAddfilter->SetInput(i,ResampleFilterArray[i]->GetOutput());
-
-  }
-
-  
-  
-  //Write the mean image
-  typedef itk::RescaleIntensityImageFilter< InternalImageType, InternalImageType >   RescalerType;
-
-  RescalerType::Pointer intensityRescaler = RescalerType::New();
-  WriterType::Pointer      writer2 =  WriterType::New();
-
-  intensityRescaler->SetInput( NaryAddfilter->GetOutput() );
-  intensityRescaler->SetOutputMinimum(   0 );
-  intensityRescaler->SetOutputMaximum( 255 );
-
-  outputImageCaster->SetInput(intensityRescaler->GetOutput());
-  writer2->SetInput( outputImageCaster->GetOutput()   );
-
-  string meanImageFname;
-  if (Dimension == 2)
-  {
-    meanImageFname = outputFolder + "MeanRegisteredImage.jpg";
-  }
-  else
-  {
-    //Write the registered images
-    // in the format of the input images
-    string meanImages("MeanImages/");
-    meanImageFname = outputFolder + meanImages + "MeanRegisteredImage.";
-    meanImageFname = meanImageFname + inputFileNames[0][inputFileNames[0].size()-3] +
-        inputFileNames[0][inputFileNames[0].size()-2] +inputFileNames[0][inputFileNames[0].size()-1];
-      
-    meanImages = outputFolder + meanImages;
-    itksys::SystemTools::MakeDirectory( meanImages.c_str() );
-
-    vector<string> outputFilenames(Dimension);
-    outputFilenames[0] = "MeanRegisteredSlice1.jpg";
-    outputFilenames[1] = "MeanRegisteredSlice2.jpg";
-    outputFilenames[2] = "MeanRegisteredSlice3.jpg";
-
-    for(int index=0; index<Dimension; index++)
-    {
-      outputFilenames[index] = meanImages + outputFilenames[index];
-
-      ImageType::SizeType size = fixedImage->GetLargestPossibleRegion().GetSize();
-      ImageType::IndexType start = fixedImage->GetLargestPossibleRegion().GetIndex();
-      start[index] = size[index]/2;
-      size[index] = 0;
-        
-      ImageType::RegionType extractRegion;
-      extractRegion.SetSize(  size  );
-      extractRegion.SetIndex( start );
-      sliceExtractFilter->SetExtractionRegion( extractRegion );
-
-      sliceExtractFilter->SetInput( outputImageCaster->GetOutput() );
-      sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
-      sliceWriter->SetFileName( outputFilenames[index].c_str() );
-      sliceWriter->Update();
-    }
-
-  }
-  writer2->SetImageIO(imageArrayReader[0]->GetImageIO());
-  writer2->SetFileName( meanImageFname.c_str() );
-  if(writeMean3DImages == "on")
-  {
-    writer2->Update();
-  }
-
-
-  
-  
-}
-
-
-
-
 
 //  The following section of code implements a Command observer
 //  that will control the modification of optimizer parameters
@@ -953,24 +654,24 @@ int main( int argc, char *argv[] )
 
 
   // Interpolator typedef
-  typedef itk::InterpolateImageFunction<InternalImageType,ScalarType        >  InterpolatorType;
-  typedef itk::LinearInterpolateImageFunction<InternalImageType,ScalarType        > LinearInterpolatorType;
+  typedef itk::InterpolateImageFunction<ImageType,ScalarType        >  InterpolatorType;
+  typedef itk::LinearInterpolateImageFunction<ImageType,ScalarType        > LinearInterpolatorType;
 
 
   
-  typedef itk::MultiImageMetric< InternalImageType>    MetricType;
-  typedef itk::VarianceMultiImageMetric< InternalImageType>    VarianceMetricType;
-  typedef itk::ParzenWindowEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
+  typedef itk::MultiImageMetric< ImageType>    MetricType;
+  typedef itk::VarianceMultiImageMetric< ImageType>    VarianceMetricType;
+  typedef itk::ParzenWindowEntropyMultiImageMetric< ImageType>    EntropyMetricType;
 
 
 
   typedef OptimizerType::ScalesType       OptimizerScalesType;
 
-  typedef itk::MultiResolutionMultiImageRegistrationMethod< InternalImageType >    RegistrationType;
+  typedef itk::MultiResolutionMultiImageRegistrationMethod< ImageType >    RegistrationType;
 
   typedef itk::RecursiveMultiResolutionPyramidImageFilter<
-                                    InternalImageType,
-                                    InternalImageType  >    ImagePyramidType;
+                                    ImageType,
+                                    ImageType  >    ImagePyramidType;
 
 
   //Mask related typedefs
@@ -985,7 +686,7 @@ int main( int argc, char *argv[] )
   RegistrationType::Pointer   registration  = RegistrationType::New();
 
 
-  // N is the number of images in the registration
+ // N is the number of images in the registration
   const int N = fileNames.size();
   if( N < 2 )
   {
@@ -1073,21 +774,6 @@ int main( int argc, char *argv[] )
   ImagePyramidArray imagePyramidArray(N);
 
 
-  // typedef for normalized image filters
-  // the mean and the variance of the images normalized before registering
-  typedef itk::NormalizeImageFilter< ImageType, InternalImageType > NormalizeFilterType;
-  typedef NormalizeFilterType::Pointer NormalizeFilterTypePointer;
-  typedef vector<NormalizeFilterTypePointer> NormalizedFilterArrayType;
-
-
-  // typedefs for Gaussian filters
-  // The normalized images are passed through a Gaussian filter for smoothing
-  typedef itk::DiscreteGaussianImageFilter<
-                                      InternalImageType, 
-                                      InternalImageType
-                                                    > GaussianFilterType;
-  typedef vector< GaussianFilterType::Pointer > GaussianFilterArrayType;
-
   // Begin the registration with the affine transform
   // Connect the compenents together
   //
@@ -1138,7 +824,7 @@ int main( int argc, char *argv[] )
       imageReader = ImageReaderType::New();
       //imageReader->ReleaseDataFlagOn();
       imageReader->SetFileName( inputFileNames[i].c_str() );
-
+      imageReader->Update();
       //Initialize mask filters
       ConnectedThresholdImageFilterType::Pointer connectedThreshold;
       NeighborhoodConnectedImageFilterType::Pointer neighborhoodConnected;
@@ -1194,11 +880,6 @@ int main( int argc, char *argv[] )
         cout << "message: Computing mask " << endl;
       }
 
-      NormalizeFilterType::Pointer normalizeFilter = NormalizeFilterType::New();
-      normalizeFilter->ReleaseDataFlagOn();
-
-      normalizeFilter->SetInput( imageReader->GetOutput() );
-
       //GaussianFilterType::Pointer gaussianFilter = GaussianFilterType::New();
       //gaussianFilter->ReleaseDataFlagOn();
       //gaussianFilter->SetVariance( gaussianFilterVariance );
@@ -1206,9 +887,8 @@ int main( int argc, char *argv[] )
 
       //Set up the Image Pyramid
       imagePyramidArray[i] = ImagePyramidType::New();
-      //imagePyramidArray[i]->ReleaseDataFlagOn();
-      imagePyramidArray[i]->SetNumberOfLevels( multiLevelAffine );
-      imagePyramidArray[i]->SetInput( normalizeFilter->GetOutput() );
+      imagePyramidArray[i]->SetNumberOfLevels( 2 );
+      imagePyramidArray[i]->SetInput( imageReader->GetOutput() );
 
       std::cout << "message: Reading Image: " << inputFileNames[i].c_str() << std::endl;
       imagePyramidArray[i]->Update();
@@ -1359,19 +1039,6 @@ int main( int argc, char *argv[] )
 
   command->SetFileNames( fileNames, inputFileNames,
                          outputFileNames, outputFolder + "Translation_MultiScale_");
-  if(outputIntermediateResults == "on" && startLevel == 0)
-  {
-    writeMeanAndSlices( fileNames,
-                        inputFileNames,
-
-                        outputFolder + "Translation/",
-                        writeOutputImages,
-                        writeDeformationFields,
-                        writeMean3DImages,
-                                                  
-                        transformArray );
-  }
-
 
   
   collector.Stop( "5Image Write " );
@@ -1546,19 +1213,7 @@ int main( int argc, char *argv[] )
   command->SetFileNames( fileNames, inputFileNames,
                          outputFileNames, outputFolder + "Affine_MultiScale_");
 
-  if(outputIntermediateResults == "on" && startLevel == 0)
-  {
-    writeMeanAndSlices( fileNames,
-                        inputFileNames,
 
-                        outputFolder + "Affine/",
-                        writeOutputImages,
-                        writeDeformationFields,
-                        writeMean3DImages,
-                                                  
-                        transformArray );
-  }
-  
   if( startLevel == 0 )
   {
     // Write the transform files
@@ -1825,18 +1480,6 @@ int main( int argc, char *argv[] )
                            outputFileNames, outputFolder + bsplineFolderName.str() + "_MultiScale_" );
     bsplineFolderName << "/" ;
 
-    if(outputIntermediateResults == "on" && startLevel != 2)
-    {
-      writeMeanAndSlices( fileNames,
-                        inputFileNames,
-
-                        outputFolder + bsplineFolderName.str(),
-                        writeOutputImages,
-                        writeDeformationFields,
-                        writeMean3DImages,
-                                                  
-                        transformArray );
-    }
 
     if(startLevel != 2)
     {
@@ -2108,19 +1751,7 @@ int main( int argc, char *argv[] )
                                outputFileNames, outputFolder + bsplineFolderName.str() + "_MultiScale_" );
         bsplineFolderName << "/" ;
 
-        if(outputIntermediateResults == "on" )
-        {
-          writeMeanAndSlices( fileNames,
-                              inputFileNames,
 
-                              outputFolder + bsplineFolderName.str(),
-                              writeOutputImages,
-                              writeDeformationFields,
-                              writeMean3DImages,
-                                                  
-                              transformArray );
-        }
-            
         // Write the transform files
         itk::TransformFileWriter::Pointer  transformFileWriter = itk::TransformFileWriter::New();
         itksys::SystemTools::MakeDirectory( (outputFolder + bsplineFolderName.str() + "TransformFiles/").c_str() );
@@ -2292,10 +1923,6 @@ int main( int argc, char *argv[] )
       ImageType::SizeType size = imageArrayReader[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
       ImageType::IndexType start = imageArrayReader[0]->GetOutput()->GetLargestPossibleRegion().GetIndex();
       start[index] = size[index]/2;
-      if(index ==0)
-      {
-        start[0] = 106;
-      }
       size[index] = 0;
         
       ImageType::RegionType extractRegion;

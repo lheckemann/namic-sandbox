@@ -329,7 +329,7 @@ protected:
       ~SpatialSample(){};
 
       FixedImagePointType              FixedImagePoint;
-      Array< PixelType >                   imageValueArray;
+      Array< double >                   imageValueArray;
       //std::vector<MovingImagePointType>   mappedPointsArray;
 
   };
