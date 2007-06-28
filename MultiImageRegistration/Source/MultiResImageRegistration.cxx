@@ -47,6 +47,7 @@
 
 #include "itkRecursiveMultiResolutionPyramidImageFilter.h"
 #include "itkImage.h"
+#include "itkNormalizeImageFilter.h"
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -131,7 +132,7 @@ public:
   typedef   const SPSAOptimizerType  *                SPSAOptimizerPointer;
   typedef   itk::AmoebaOptimizer                        SimplexOptimizerType;
   typedef   const SimplexOptimizerType  *                SimplexOptimizerTypePointer;
-  typedef   itk::MultiImageMetric< itk::Image<PixelType, Dimension > >    MetricType;
+  typedef   itk::MultiImageMetric< itk::Image<InternalPixelType, Dimension > >    MetricType;
 
 
   void Execute(itk::Object *caller, const itk::EventObject & event)
@@ -260,6 +261,8 @@ private:
     unsigned int m_CumulativeIterationIndex;
   
 };
+
+
 
 //  The following section of code implements a Command observer
 //  that will control the modification of optimizer parameters
@@ -654,24 +657,24 @@ int main( int argc, char *argv[] )
 
 
   // Interpolator typedef
-  typedef itk::InterpolateImageFunction<ImageType,ScalarType        >  InterpolatorType;
-  typedef itk::LinearInterpolateImageFunction<ImageType,ScalarType        > LinearInterpolatorType;
+  typedef itk::InterpolateImageFunction<InternalImageType,ScalarType        >  InterpolatorType;
+  typedef itk::LinearInterpolateImageFunction<InternalImageType,ScalarType        > LinearInterpolatorType;
 
 
   
-  typedef itk::MultiImageMetric< ImageType>    MetricType;
-  typedef itk::VarianceMultiImageMetric< ImageType>    VarianceMetricType;
-  typedef itk::ParzenWindowEntropyMultiImageMetric< ImageType>    EntropyMetricType;
+  typedef itk::MultiImageMetric< InternalImageType>    MetricType;
+  typedef itk::VarianceMultiImageMetric< InternalImageType>    VarianceMetricType;
+  typedef itk::ParzenWindowEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
 
 
 
   typedef OptimizerType::ScalesType       OptimizerScalesType;
 
-  typedef itk::MultiResolutionMultiImageRegistrationMethod< ImageType >    RegistrationType;
+  typedef itk::MultiResolutionMultiImageRegistrationMethod< InternalImageType >    RegistrationType;
 
   typedef itk::RecursiveMultiResolutionPyramidImageFilter<
-                                    ImageType,
-                                    ImageType  >    ImagePyramidType;
+                                    InternalImageType,
+                                    InternalImageType  >    ImagePyramidType;
 
 
   //Mask related typedefs
@@ -686,7 +689,7 @@ int main( int argc, char *argv[] )
   RegistrationType::Pointer   registration  = RegistrationType::New();
 
 
- // N is the number of images in the registration
+  // N is the number of images in the registration
   const int N = fileNames.size();
   if( N < 2 )
   {
@@ -774,6 +777,21 @@ int main( int argc, char *argv[] )
   ImagePyramidArray imagePyramidArray(N);
 
 
+  // typedef for normalized image filters
+  // the mean and the variance of the images normalized before registering
+  typedef itk::NormalizeImageFilter< ImageType, InternalImageType > NormalizeFilterType;
+  typedef NormalizeFilterType::Pointer NormalizeFilterTypePointer;
+  typedef vector<NormalizeFilterTypePointer> NormalizedFilterArrayType;
+
+
+  // typedefs for Gaussian filters
+  // The normalized images are passed through a Gaussian filter for smoothing
+  typedef itk::DiscreteGaussianImageFilter<
+                                      InternalImageType, 
+                                      InternalImageType
+                                                    > GaussianFilterType;
+  typedef vector< GaussianFilterType::Pointer > GaussianFilterArrayType;
+
   // Begin the registration with the affine transform
   // Connect the compenents together
   //
@@ -824,7 +842,7 @@ int main( int argc, char *argv[] )
       imageReader = ImageReaderType::New();
       //imageReader->ReleaseDataFlagOn();
       imageReader->SetFileName( inputFileNames[i].c_str() );
-      imageReader->Update();
+
       //Initialize mask filters
       ConnectedThresholdImageFilterType::Pointer connectedThreshold;
       NeighborhoodConnectedImageFilterType::Pointer neighborhoodConnected;
@@ -880,6 +898,11 @@ int main( int argc, char *argv[] )
         cout << "message: Computing mask " << endl;
       }
 
+      NormalizeFilterType::Pointer normalizeFilter = NormalizeFilterType::New();
+      normalizeFilter->ReleaseDataFlagOn();
+
+      normalizeFilter->SetInput( imageReader->GetOutput() );
+
       //GaussianFilterType::Pointer gaussianFilter = GaussianFilterType::New();
       //gaussianFilter->ReleaseDataFlagOn();
       //gaussianFilter->SetVariance( gaussianFilterVariance );
@@ -887,8 +910,9 @@ int main( int argc, char *argv[] )
 
       //Set up the Image Pyramid
       imagePyramidArray[i] = ImagePyramidType::New();
-      imagePyramidArray[i]->SetNumberOfLevels( 2 );
-      imagePyramidArray[i]->SetInput( imageReader->GetOutput() );
+      //imagePyramidArray[i]->ReleaseDataFlagOn();
+      imagePyramidArray[i]->SetNumberOfLevels( multiLevelAffine );
+      imagePyramidArray[i]->SetInput( normalizeFilter->GetOutput() );
 
       std::cout << "message: Reading Image: " << inputFileNames[i].c_str() << std::endl;
       imagePyramidArray[i]->Update();
@@ -1039,6 +1063,8 @@ int main( int argc, char *argv[] )
 
   command->SetFileNames( fileNames, inputFileNames,
                          outputFileNames, outputFolder + "Translation_MultiScale_");
+
+
 
   
   collector.Stop( "5Image Write " );
@@ -1912,9 +1938,9 @@ int main( int argc, char *argv[] )
     itksys::SystemTools::MakeDirectory( meanImages.c_str() );
 
     vector<string> outputFilenames(Dimension);
-    outputFilenames[0] = "MeanOriginalSlice1.jpg";
-    outputFilenames[1] = "MeanOriginalSlice2.jpg";
-    outputFilenames[2] = "MeanOriginalSlice3.jpg";
+    outputFilenames[0] = "MeanSlice1.jpg";
+    outputFilenames[1] = "MeanSlice2.jpg";
+    outputFilenames[2] = "MeanSlice3.jpg";
 
     for(int index=0; index<Dimension; index++)
     {

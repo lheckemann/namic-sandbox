@@ -29,7 +29,7 @@ IF(BrainWeb_DATA_ROOT)
   #
   ADD_TEST(CreateDeformedImage001 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetAffine  
     ${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha 
-    ${MultiImageRegistration_TEST_OUTPUT_DIR}/AffineSyntheticSet/
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/AffineSyntheticSet
     2
     )
 
@@ -64,7 +64,7 @@ IF(BrainWeb_DATA_ROOT)
   #
   ADD_TEST(CreateDeformedImage002 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetBspline  
     ${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha 
-    ${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineSyntheticSet/
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineSyntheticSet
     2
     )
 
