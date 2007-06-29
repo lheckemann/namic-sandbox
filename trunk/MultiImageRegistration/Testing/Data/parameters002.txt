@@ -64,8 +64,8 @@
 # no other termination options are used
 #
 
-    -optTranslationNumberOfIterations 5
-    -optAffineNumberOfIterations 10
+    -optTranslationNumberOfIterations 3
+    -optAffineNumberOfIterations 5
     -optBsplineNumberOfIterations 20
     -optBsplineHighNumberOfIterations 30
 
@@ -97,7 +97,7 @@
 # After each level number B-spline control points are doubled (8->16->32)
 #
 
-    -numberOfBsplineLevel 2
+    -numberOfBsplineLevel 0
     
 
 
