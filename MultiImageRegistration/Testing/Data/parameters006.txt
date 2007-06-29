@@ -97,7 +97,7 @@
 # After each level number B-spline control points are doubled (8->16->32)
 #
 
-    -numberOfBsplineLevel 2
+    -numberOfBsplineLevel 0
     
 
 

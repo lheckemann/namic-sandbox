@@ -7,7 +7,7 @@
 # this parameter and supply the full pathname
 # as filename.
 #
--i @MultiImageRegistration_TEST_OUTPUT_DIR@/AffineSyntheticSet/Images/
+-i @MultiImageRegistration_TEST_OUTPUT_DIR@/AffineImages_2/Images/
 
 
 # 
@@ -15,7 +15,7 @@
 # All outputs are saved to this folder
 #
 #
--o @MultiImageRegistration_TEST_OUTPUT_DIR@/AffineRegistration001/   
+-o @MultiImageRegistration_TEST_OUTPUT_DIR@/Registration001/   
  
  
 # names of the input files
