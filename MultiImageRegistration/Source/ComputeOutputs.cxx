@@ -20,6 +20,7 @@
 #include "itkExtractImageFilter.h"
 #include "itkResampleImageFilter.h"
 
+#include "itkIdentityTransform.h"
 #include "itkAffineTransform.h"
 #include "UserBSplineDeformableTransform.h"
 #include "itkBSplineDeformableTransform.h"
@@ -164,7 +165,7 @@ public:
     sum /= (double)pixelStack.size();
     squareSum /= (double) pixelStack.size();
 
-    double std = squareSum - sum*sum;
+    double std = sqrt(squareSum - sum*sum);
     if(std > 255.0)
     {
       std = 255.0;
@@ -281,7 +282,7 @@ int main( int argc, char * argv[] )
 
   // Resample the images
   // Read the input transforms and compute the dice measure
-  for(int i=0; i<transformLevels; i++)
+  for(int i=-1; i<transformLevels; i++)
   {
     // typedef for transformation types
     typedef itk::Transform< double, Dimension,Dimension >  TransformType;
@@ -311,9 +312,6 @@ int main( int argc, char * argv[] )
       typedef itk::TransformFileReader    TransformFileReader;
       typedef TransformFileReader::TransformListType   TransformListType;
       
-
-      cout << "Reading Transform" << transformFileNames[i][j] << endl;
-
       // Create reader factories
       itk::TransformFactoryBase::Pointer f = itk::TransformFactoryBase::GetFactory();
       affineTransformArray[j] = AffineTransformType::New();
@@ -329,8 +327,14 @@ int main( int argc, char * argv[] )
                            bsplineTransformArray[j]->GetTransformTypeAsString().c_str(),
                            1,
                            itk::CreateObjectFunction<BSplineTransformType>::New());
-      
-      if( i == 0)
+      // Inpute image, apply identity tranform
+      if( i == -1)
+      {
+        typedef itk::IdentityTransform< double, Dimension >  IdentityTransformType;
+        
+        transformArray[j] = IdentityTransformType::New();
+      }
+      else if( i == 0)
       {
         TransformFileReader::Pointer        transformFileReader = TransformFileReader::New();
         transformFileReader->SetFileName(transformFileNames[i][j].c_str());
@@ -380,7 +384,11 @@ int main( int argc, char * argv[] )
 
     // Create the output folders
     string currentFolderName;
-    if(i==0)
+    if( i==-1)
+    {
+      currentFolderName = outputFolder + "InputImage/";
+    }
+    else if(i==0)
     {
       currentFolderName = outputFolder + "Affine/";
     }
@@ -450,8 +458,8 @@ int main( int argc, char * argv[] )
       //Write the central slice
       ImageType::SizeType size = imageReaderArray[j]->GetOutput()->GetLargestPossibleRegion().GetSize();
       ImageType::IndexType start = imageReaderArray[j]->GetOutput()->GetLargestPossibleRegion().GetIndex();
-      start[0] = size[0]/2;
-      size[0] = 0;
+      start[1] = size[1]/2;
+      size[1] = 0;
 
         
       ImageType::RegionType extractRegion;
@@ -464,15 +472,16 @@ int main( int argc, char * argv[] )
 
        // write mean image
       itksys::SystemTools::MakeDirectory( (currentFolderName+"Slices/").c_str() );
-      string sliceName = (currentFolderName+"Slices/"+fileNames[j]);
-      sliceName.replace(sliceName.size()-3, 3, "jpg" );
+      ostringstream sliceStream;
+      sliceStream << j;
+      string sliceName = currentFolderName+"Slices/"+sliceStream.str()+".jpg";
       sliceWriter->SetFileName( sliceName.c_str() );
       
       cout << "Writing " << sliceName.c_str() << endl;
       sliceWriter->Update();     
 
       // Write visualization images for deformation fields
-      if(Dimension == 3)
+      if(Dimension == 3 && i != -1)
       {
 
         //Create a toy image
@@ -512,8 +521,9 @@ int main( int argc, char * argv[] )
         itksys::SystemTools::MakeDirectory( (currentFolderName+"DeformationSlices/").c_str() );
         sliceExtractFilter->SetInput( imageResampleArray[j]->GetOutput() );
         sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
-        string sliceName = (currentFolderName+"DeformationSlices/"+fileNames[j]);
-        sliceName.replace(sliceName.size()-3, 3, "jpg" );
+        ostringstream sliceStream;
+        sliceStream << j;
+        string sliceName = currentFolderName+"DeformationSlices/"+sliceStream.str()+".jpg";
         sliceWriter->SetFileName( sliceName.c_str() );
         cout << "Writing " << sliceName << endl;
         sliceWriter->Update();
@@ -528,7 +538,7 @@ int main( int argc, char * argv[] )
     
     // Set the folder name
     string meanFolder = currentFolderName + "MeanImages/";
-    string stdFolder = currentFolderName  + "VarianceImages/";
+    string stdFolder = currentFolderName  + "STDImages/";
 
     itksys::SystemTools::MakeDirectory( meanFolder.c_str() );
     itksys::SystemTools::MakeDirectory( stdFolder.c_str() );
@@ -554,8 +564,8 @@ int main( int argc, char * argv[] )
     //Write the central slice
     ImageType::SizeType size = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
     ImageType::IndexType start = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetIndex();
-    start[0] = size[0]/2;
-    size[0] = 0;
+    start[1] = size[1]/2;
+    size[1] = 0;
 
         
     ImageType::RegionType extractRegion;
@@ -573,8 +583,8 @@ int main( int argc, char * argv[] )
 
 
     writer->SetInput(narySTDImageFilter->GetOutput());
-    writer->SetFileName((stdFolder+"Variance.mhd").c_str());
-    cout << "Writing " << (stdFolder+"Variance.mhd").c_str() << endl;
+    writer->SetFileName((stdFolder+"STD.mhd").c_str());
+    cout << "Writing " << (stdFolder+"STD.mhd").c_str() << endl;
 
     writer->Update();
     
@@ -582,8 +592,8 @@ int main( int argc, char * argv[] )
     sliceExtractFilter->SetInput( narySTDImageFilter->GetOutput() );
     sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
 
-    cout << "Writing " << (stdFolder+"VarianceSlice.jpg").c_str() << endl;
-    sliceWriter->SetFileName( (stdFolder+"VarianceSlice.jpg").c_str() );
+    cout << "Writing " << (stdFolder+"STDSlice.jpg").c_str() << endl;
+    sliceWriter->SetFileName( (stdFolder+"STDSlice.jpg").c_str() );
     sliceWriter->Update();
 
     
