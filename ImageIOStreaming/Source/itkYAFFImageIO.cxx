@@ -115,7 +115,26 @@ void YAFFImageIO::ReadImageInformation()
 
 void YAFFImageIO::Read(void* buffer)
 { 
-   // Add read here
+  this->m_InputStream.open( this->m_RawDataFilename.c_str() );
+  
+  ImageIORegion regionToRead = this->GetIORegion();
+
+  ImageIORegion::SizeType  size  = regionToRead.GetSize();
+  ImageIORegion::IndexType start = regionToRead.GetIndex();
+
+  unsigned int mx = start[0];
+  unsigned int my = start[1];
+  unsigned int mz = start[2];
+
+  unsigned int sx = size[0];
+  unsigned int sy = size[1];
+  unsigned int sz = size[2];
+
+  unsigned int pos = mz * ( sx * sy ) + my * sx + mx;
+
+  this->m_InputStream.seekg( pos, std::ios_base::beg );
+
+  this->m_InputStream.close();
 } 
 
 
