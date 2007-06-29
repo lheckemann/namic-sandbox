@@ -230,6 +230,8 @@ static void dumpdata(const void *x)
 
 ImageIORegion NiftiImageIO::DetermineStreamableRegionFromRequestedRegion( const ImageIORegion & requestedRegion ) const
 {
+  std::cout << "NiftiImageIO::DetermineStreamableRegionFromRequestedRegion() " << std::endl;
+  std::cout << "RequestedRegion = " << requestedRegion << std::endl;
   //
   // The implementations determines that the streamable region based on what can be a collaspable region
   // equal to the largest possible region of the image.
@@ -247,6 +249,7 @@ ImageIORegion NiftiImageIO::DetermineStreamableRegionFromRequestedRegion( const 
       streamableRegion.SetIndex( i, 0 );
       }
     }
+  std::cout << "Streamable Region = " << streamableRegion << std::endl;
   return streamableRegion;
 }
 
@@ -470,6 +473,7 @@ void NiftiImageIO::Read(void* buffer)
 bool 
 NiftiImageIO::CanStreamRead() const
 {
+  std::cout << "NiftiImageIO::CanStreamRead() returning true " << std::endl;
   return true;
 }
 
