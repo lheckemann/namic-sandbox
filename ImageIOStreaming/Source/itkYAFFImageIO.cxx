@@ -113,27 +113,43 @@ void YAFFImageIO::ReadImageInformation()
 }
 
 
-void YAFFImageIO::Read(void* buffer)
+void YAFFImageIO::Read( void * buffer)
 { 
   this->m_InputStream.open( this->m_RawDataFilename.c_str() );
-  
+
+  const unsigned int nx = this->GetDimensions( 0 );
+  const unsigned int ny = this->GetDimensions( 1 );
+  const unsigned int nz = this->GetDimensions( 2 );
+ 
   ImageIORegion regionToRead = this->GetIORegion();
 
   ImageIORegion::SizeType  size  = regionToRead.GetSize();
   ImageIORegion::IndexType start = regionToRead.GetIndex();
 
-  unsigned int mx = start[0];
-  unsigned int my = start[1];
-  unsigned int mz = start[2];
+  const unsigned int mx = start[0];
+  const unsigned int my = start[1];
+  const unsigned int mz = start[2];
 
-  unsigned int sx = size[0];
-  unsigned int sy = size[1];
-  unsigned int sz = size[2];
+  const unsigned int sx = size[0];
+  const unsigned int sy = size[1];
+  const unsigned int sz = size[2];
+
+  char * inptr = static_cast< char * >( buffer );
 
   unsigned int pos = mz * ( sx * sy ) + my * sx + mx;
 
   this->m_InputStream.seekg( pos, std::ios_base::beg );
 
+  for( unsigned int iz = 0; iz < mz; iz++ )
+    {
+    for( unsigned int iy = 0; iy < my; iy++ )
+      {
+      this->m_InputStream.read( inptr, mx );
+      this->m_InputStream.seekg( nx - mx, std::ios_base::cur );
+      }
+    this->m_InputStream.seekg( ( ny - my ) * nx, std::ios_base::cur );
+    }
+  
   this->m_InputStream.close();
 } 
 
