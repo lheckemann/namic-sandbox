@@ -100,6 +100,10 @@ private:
   YAFFImageIO(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
   
+  std::ifstream     m_InputStream;
+  std::ofstream     m_OutputStream;
+  std::string       m_RawDataFilename;
+
 };
 
 } // end namespace itk
