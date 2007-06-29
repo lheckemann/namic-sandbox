@@ -1,9 +1,5 @@
-#include "vtkSphereSource.h"
 #include "vtkPolyDataMapper.h"
-#include "vtkLODActor.h"
 #include "vtkCellPicker.h"
-#include "vtkConeSource.h"
-#include "vtkGlyph3D.h"
 #include "vtkTextMapper.h"
 #include "vtkTextProperty.h"
 #include "vtkActor2D.h"
@@ -40,34 +36,20 @@ public:
     }
     else
     {
-      //double selPt[3];
-      //selPt = picker->GetSelectionPoint();
       double *selPt = picker->GetSelectionPoint();
-      double x = selPt[0];
-      double y = selPt[1];
 
-      //double pickPos[3];
-      //pickPos = picker->GetPickPosition();
       double *pickPos = picker->GetPickPosition();
-      double xp = pickPos[0];
-      double yp = pickPos[1];
-      double zp = pickPos[2];
-
-      //char textToPrint[100];
-      //sprintf(textToPrint, "%f %f %f", xp, yp, zp);
 
       std::ostringstream oss;
-      oss << "(" << xp << ", " << yp << ", " << zp << ")";
+      oss << "(" << pickPos[0] << ", " << pickPos[1] << ", " << pickPos[2] << ")";
 
       textMapper->SetInput(oss.str().c_str());
-      textActor->SetPosition(x, y);
+      textActor->SetPosition(selPt[0], selPt[1]);
       textActor->VisibilityOn();
     }
-
     renWin->Render();
   }
-
-  AnnotatePick() {}
+  AnnotatePick() { }
 };
 
 int main( int argc, char * argv[] )
@@ -85,33 +67,9 @@ int main( int argc, char * argv[] )
   // Initialize our Tcl library (i.e. our classes wrapped in Tcl).
   // This *is* required for the C++ methods to be used as callbacks.
   // See comment at the top of this file.
-  Ratlasprototypelib_Init(interp);
+  Polydatapicker_Init(interp);
 */
-  // Create a Sphere Source
-/*
-  vtkSphereSource *sphere = vtkSphereSource::New();
 
-  vtkPolyDataMapper *sphereMapper = vtkPolyDataMapper::New();
-  sphereMapper->SetInputConnection(sphere->GetOutputPort());
-  sphereMapper->GlobalImmediateModeRenderingOn();
-
-  vtkLODActor *sphereActor = vtkLODActor::New();
-  sphereActor->SetMapper(sphereMapper);
-
-  vtkConeSource *cone = vtkConeSource::New();
-  vtkGlyph3D *glyph = vtkGlyph3D::New();
-  glyph->SetInputConnection(sphere->GetOutputPort());
-  glyph->SetSource(cone->GetOutput());
-  glyph->SetVectorModeToUseNormal();
-  glyph->SetScaleModeToScaleByVector();
-  glyph->SetScaleFactor(0.25);
-
-  vtkPolyDataMapper *spikeMapper = vtkPolyDataMapper::New();
-  spikeMapper->SetInputConnection(glyph->GetOutputPort());
-
-  vtkLODActor *spikeActor = vtkLODActor::New();
-  spikeActor->SetMapper(spikeMapper);
-*/
   if(argc != 2)
   {
     std::cout << "USAGE: " << argv[0] << " vtkPolyDataToRender" << std::endl;
@@ -128,10 +86,10 @@ int main( int argc, char * argv[] )
 
   //vtkCellPicker *picker = vtkCellPicker::New();
   picker = vtkCellPicker::New();
-    AnnotatePick * myPick = AnnotatePick::New();
-    picker->AddObserver( vtkCommand::EndPickEvent, myPick);
+  AnnotatePick * myPick = AnnotatePick::New();
+  picker->AddObserver( vtkCommand::EndPickEvent, myPick);
 
-// Create a text mapper and actor to display the results of picking.
+  // Create a text mapper and actor to display the results of picking.
   //vtkTextMapper *textMapper = vtkTextMapper::New();
   textMapper = vtkTextMapper::New();
   vtkTextProperty *tprop = textMapper->GetTextProperty();
@@ -146,7 +104,7 @@ int main( int argc, char * argv[] )
   textActor->VisibilityOff();
   textActor->SetMapper(textMapper);
 
-// Create the Renderer, RenderWindow, and RenderWindowInteractor
+  // Create the Renderer, RenderWindow, and RenderWindowInteractor
   vtkRenderer *ren1 = vtkRenderer::New();
 
   //vtkRenderWindow *renWin = vtkRenderWindow::New();
@@ -157,10 +115,8 @@ int main( int argc, char * argv[] )
     iren->SetRenderWindow(renWin);
     iren->SetPicker(picker);
 
-// Add the actors to the renderer, set the background and size
+  // Add the actors to the renderer, set the background and size
   ren1->AddActor2D(textActor);
-  //ren1->AddActor(sphereActor);
-  //ren1->AddActor(spikeActor);
   ren1->AddActor(actor);
   ren1->SetBackground(1.0, 1.0, 1.0);
   renWin->SetSize(300, 300);
@@ -168,20 +124,13 @@ int main( int argc, char * argv[] )
   ren1->ResetCamera();
 
   vtkCamera *cam1 = ren1->GetActiveCamera();
-  //cam1->Zoom(1.4);
+  cam1->Zoom(1.2);
 
   iren->Initialize();
   iren->Start();
 
   picker->Pick(85, 126, 0, ren1);
 
-  //sphere->Delete();
-  //sphereMapper->Delete();
-  //sphereActor->Delete();
-  //cone->Delete();
-  //glyph->Delete();
-  //spikeMapper->Delete();  
-  //spikeActor->Delete();  
   picker->Delete();
   myPick->Delete();
   textMapper->Delete();
