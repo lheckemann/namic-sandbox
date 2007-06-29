@@ -21,12 +21,15 @@
 #include "itkExceptionObject.h"
 #include "itkIOCommon.h"
 #include "itkYAFFImageIO.h"
+#include "itksys/SystemTools.hxx"
 
 namespace itk
 {
 
 YAFFImageIO::YAFFImageIO()
 {
+  this->SetNumberOfDimensions(3); // YAFF is 3D.
+  this->SetNumberOfComponents(1); // YAFF only has one component.
 } 
 
 YAFFImageIO::~YAFFImageIO()
@@ -41,7 +44,22 @@ void YAFFImageIO::PrintSelf(std::ostream& os, Indent indent) const
 
 bool YAFFImageIO::CanReadFile( const char* filename ) 
 { 
-  // YAFF has no fear !!!
+  std::cout << "YAFFImageIO::CanReadFile() " << std::endl;
+  //
+  // If the file exists, and have extension .yaff, then we are good to read it.
+  //
+  if( !itksys::SystemTools::FileExists( filename ) )
+    {
+    std::cout << "File doesn't exist" << std::endl;
+    return false;
+    }
+std::cout << itksys::SystemTools::GetFilenameLastExtension( filename ) << std::endl;
+  if( itksys::SystemTools::GetFilenameLastExtension( filename ) != ".yaff" )
+    {
+    std::cout << "Wrong extension" << std::endl;
+    return false;
+    }
+ 
   return true;
 }
 
@@ -51,7 +69,48 @@ void YAFFImageIO::ReadImageInformation()
   // YAFF only reads 8-bits unsigned char images.
   this->SetPixelType( SCALAR );
   this->SetComponentType( UCHAR );
-} 
+
+  this->m_InputStream.open( this->m_FileName.c_str() );
+ 
+  if( this->m_InputStream.fail() )
+    {
+    itkExceptionMacro("Failed to open file " << this->m_InputStream );
+    }
+
+  unsigned int nx;
+  unsigned int ny;
+  unsigned int nz;
+
+  double dx;
+  double dy;
+  double dz;
+
+  this->m_InputStream >> nx >> ny >> nz;
+  this->m_InputStream >> dx >> dy >> dz;
+
+  std::string rawFileName;
+  this->m_InputStream >> rawFileName;
+ 
+  this->m_InputStream.close();
+
+  std::cout << "::Read() filename= " << this->m_FileName << std::endl;
+  this->m_RawDataFilename = itksys::SystemTools::GetFilenamePath( this->m_FileName );
+  this->m_RawDataFilename += '/';
+  this->m_RawDataFilename += rawFileName;
+
+  if( !itksys::SystemTools::FileExists( this->m_RawDataFilename.c_str() ) )
+    {
+    itkExceptionMacro("Raw data file does not exist " << this->m_RawDataFilename );
+    }
+ 
+  this->SetDimensions( 0, nx );
+  this->SetDimensions( 1, ny );
+  this->SetDimensions( 2, nz );
+
+  this->SetSpacing( 0, dx );
+  this->SetSpacing( 1, dy );
+  this->SetSpacing( 2, dz );
+}
 
 
 void YAFFImageIO::Read(void* buffer)
@@ -97,15 +156,9 @@ YAFFImageIO
   std::cout << "YAFFImageIO::DetermineStreamableRegionFromRequestedRegion()" << std::endl;
   std::cout << "Requested region = " << requested << std::endl;
   //
-  // The default implementations determines that the streamable region is
-  // equal to the largest possible region of the image.
+  // YAFF is the ultimate streamer.
   //
-  ImageIORegion streamableRegion(this->m_NumberOfDimensions);
-  for( unsigned int i=0; i < this->m_NumberOfDimensions ; i++ )
-    {
-    streamableRegion.SetSize( i, this->m_Dimensions[i] );
-    streamableRegion.SetIndex( i, 0 );
-    }
+  ImageIORegion streamableRegion = requested;
 
   std::cout << "StreamableRegion = " << streamableRegion << std::endl;
 
