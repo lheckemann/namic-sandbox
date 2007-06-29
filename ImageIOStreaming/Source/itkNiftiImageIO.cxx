@@ -467,6 +467,13 @@ void NiftiImageIO::Read(void* buffer)
 }
 
 
+bool 
+NiftiImageIO::CanStreamRead() const
+{
+  return true;
+}
+
+
 // This method will only test if the header looks like an
 // Nifti Header.  Some code is redundant with ReadImageInformation
 // a StateMachine could provide a better implementation

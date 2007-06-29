@@ -41,6 +41,11 @@ void YAFFImageIO::PrintSelf(std::ostream& os, Indent indent) const
   Superclass::PrintSelf(os, indent);
 }
 
+bool 
+YAFFImageIO::CanStreamRead() const
+{
+  return true;
+}
 
 bool YAFFImageIO::CanReadFile( const char* filename ) 
 { 

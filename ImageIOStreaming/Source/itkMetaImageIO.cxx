@@ -52,6 +52,11 @@ void MetaImageIO::PrintSelf(std::ostream& os, Indent indent) const
   m_MetaImage.PrintInfo();
 }
 
+bool 
+MetaImageIO::CanStreamRead() const
+{
+  return true;
+}
 
 void MetaImageIO::SetDataFileName( const char* filename ) 
 { 

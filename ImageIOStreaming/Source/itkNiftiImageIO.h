@@ -93,6 +93,10 @@ public:
 
   virtual ImageIORegion DetermineStreamableRegionFromRequestedRegion( const ImageIORegion & requestedRegion ) const;
 
+  /** Determine if the ImageIO can stream reading from this
+      file. Default is false. */
+  virtual bool CanStreamRead() const;
+
 protected:
   NiftiImageIO();
   ~NiftiImageIO();
