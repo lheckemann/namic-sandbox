@@ -100,10 +100,7 @@ public:
 
   /** Determine if the ImageIO can stream reading from this
       file. Default is false. */
-  virtual bool CanStreamRead()
-    {
-    return true;
-    }
+  virtual bool CanStreamRead() const;
 
 /** Method for supporting streaming.  Given a requested region, determine what
  * could be the region that we can read from the file. This is called the

@@ -251,7 +251,7 @@ public:
 
   /** Determine if the ImageIO can stream reading from this
       file. Default is false. */
-  virtual bool CanStreamRead()
+  virtual bool CanStreamRead() const
     {
     return false;
     }
