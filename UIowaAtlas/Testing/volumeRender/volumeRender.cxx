@@ -17,7 +17,7 @@
 #include "vtkPiecewiseFunction.h"
 #include "vtkColorTransferFunction.h"
 #include "vtkVolumeProperty.h"
-#include "vtkVolumeTextureMapper2D.h"
+#include "vtkVolumeTextureMapper3D.h"
 
 #include "vtkXMLImageDataWriter.h"
 
@@ -58,7 +58,7 @@ int main( int argc, char * argv [] )
       = vtkInteractorStyleTrackballCamera::New();
     iren->SetInteractorStyle( style );
 
-    renderer->SetBackground( 0.5, 0.5, 0.5 );
+    renderer->SetBackground( 1.0, 1.0, 1.0 );
 
     vtkPiecewiseFunction * opacityTransferFunction
       = vtkPiecewiseFunction::New();
@@ -77,8 +77,8 @@ int main( int argc, char * argv [] )
     volumeProperty->ShadeOn();
     volumeProperty->SetInterpolationTypeToLinear();
 
-    vtkVolumeTextureMapper2D * volumeMapper
-      = vtkVolumeTextureMapper2D::New();
+    vtkVolumeTextureMapper3D * volumeMapper
+      = vtkVolumeTextureMapper3D::New();
     volumeMapper->SetInput( connector->GetOutput() );
 
     vtkVolume * volume = vtkVolume::New();
