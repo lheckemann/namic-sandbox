@@ -18,8 +18,6 @@ int main( int argc, char * argv[] )
 
   reader->SetFileName(argv[1]);
 
-  vtkPolyData *data = NULL;
-  
   vtkPolyDataMapper *mapper = vtkPolyDataMapper::New();
 
   mapper->SetInputConnection(reader->GetOutputPort());
