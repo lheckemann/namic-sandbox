@@ -50,9 +50,6 @@
 #include "itkNormalizeImageFilter.h"
 
 #include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkExtractImageFilter.h"
-#include "itkImageRegionIteratorWithIndex.h"
 
 #include "itkResampleImageFilter.h"
 #include "itkCastImageFilter.h"
@@ -91,8 +88,6 @@
 #include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
 #include "itkTransformFactory.h"
-
-#include "itkImageRegionIterator.h"
 
 //header for creating mask
 #include "itkImageMaskSpatialObject.h"
@@ -1799,180 +1794,12 @@ int main( int argc, char *argv[] )
   } // End of Bspline Registration
   collector.Stop( "4Bspline Reg." );
 
-  //
-  //
-  //
-  //
-  // End of registration
-  // The following code gets the last tranform parameters and writes the output images
-  //
-  //
-  //
-  ParametersType finalParameters = registration->GetLastTransformParameters();
 
   // Print out results
   //
   std::cout << "message: Registration Completed " << std::endl;
-
-  // Get the time for the registration
-  collector.Start( "5Image Write " );
-
-
-  // typedefs for output images
-  ImageArrayReader imageArrayReader(N);
-
-  typedef itk::ImageFileWriter< ImageType >  WriterType;
-
-  // Extract slices writer type
-  typedef itk::Image< unsigned char, 2 >    SliceImageType;
-  typedef itk::ImageFileWriter< SliceImageType >  SliceWriterType;
-  SliceWriterType::Pointer  sliceWriter = SliceWriterType::New();
-  // Filter to extract a slice from an image
-  typedef itk::ExtractImageFilter< ImageType, SliceImageType > SliceExtractFilterType;
-  SliceExtractFilterType::Pointer sliceExtractFilter = SliceExtractFilterType::New();
-
-
-  WriterType::Pointer      writer =  WriterType::New();
-  writer->ReleaseDataFlagOn();
-
-
-  // Loop over images and write output images
-  for(int i=0; i<N; i++)
-  {
-
-    //Read the images again for memory efficiency
-    imageArrayReader[i] = ImageReaderType::New();
-    //imageArrayReader[i]->ReleaseDataFlagOn();
-    imageArrayReader[i]->SetFileName( inputFileNames[i].c_str() );
-    imageArrayReader[i]->Update();
-
-    //Extract slices for 3D Images
-    if(Dimension == 3)
-    {
-
-      sliceExtractFilter->SetInput( imageArrayReader[i]->GetOutput() );
-      
-      ImageType::SizeType size = imageArrayReader[i]->GetOutput()->GetLargestPossibleRegion().GetSize();
-      ImageType::IndexType start = imageArrayReader[i]->GetOutput()->GetLargestPossibleRegion().GetIndex();
-      start[2] = size[2]/2;
-      size[2] = 0;
-
-        
-      ImageType::RegionType extractRegion;
-      extractRegion.SetSize(  size  );
-      extractRegion.SetIndex( start );
-      sliceExtractFilter->SetExtractionRegion( extractRegion );
-
-      //Write the original images
-      string slices2("InputImage/Slices/");
-      slices2 = outputFolder + slices2;
-      string outputFilename2(fileNames[i]);
-      outputFilename2[outputFilename2.size()-4] = '.';
-      outputFilename2[outputFilename2.size()-3] = 'j';
-      outputFilename2[outputFilename2.size()-2] = 'p';
-      outputFilename2[outputFilename2.size()-1] = 'g';
-      outputFilename2 = slices2 + outputFilename2;
-      itksys::SystemTools::MakeDirectory( slices2.c_str() );
-
-      sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
-      sliceWriter->SetFileName( outputFilename2.c_str() );
-      sliceWriter->Update();
-
-    }
-  }
-
-  std::cout << "message: Computing mean images" << std::endl;
-      
-  // Compute Mean Images
-  typedef itk::NaryAddImageFilter < InternalImageType,
-                                           InternalImageType > NaryAddFilterType;
-  NaryAddFilterType::Pointer NaryAddfilter = NaryAddFilterType::New();
-
-  typedef itk::CastImageFilter<ImageType, InternalImageType > InternalImageCasterType;
-  typedef std::vector< InternalImageCasterType::Pointer >    InternalImageCasterArray;
-  InternalImageCasterArray  internalImageCasterArray(N);
-  
-  for(int i=0; i<N; i++)
-  {
-    internalImageCasterArray[i] = InternalImageCasterType::New();
-    internalImageCasterArray[i]->ReleaseDataFlagOn();
-    internalImageCasterArray[i]->SetInput(imageArrayReader[i]->GetOutput());
-    NaryAddfilter->SetInput(i,internalImageCasterArray[i]->GetOutput());
-  }
-
-  
-  
-  //Write the mean image
-  typedef itk::RescaleIntensityImageFilter< InternalImageType, InternalImageType >   RescalerType;
-
-  RescalerType::Pointer intensityRescaler = RescalerType::New();
-  WriterType::Pointer      writer3 =  WriterType::New();
-
-  intensityRescaler->SetInput( NaryAddfilter->GetOutput() );
-  intensityRescaler->SetOutputMinimum(   0 );
-  intensityRescaler->SetOutputMaximum( 255 );
-
-
-  string meanImageFname;
-
-  typedef itk::CastImageFilter<InternalImageType, ImageType > OutputImageCasterType;
-  OutputImageCasterType::Pointer  outputImageCaster = OutputImageCasterType::New();
-
-  outputImageCaster->SetInput(intensityRescaler->GetOutput());
-  writer3->SetInput( outputImageCaster->GetOutput()   );
-
-  if (Dimension == 2)
-  {
-    meanImageFname = outputFolder + "InputImage/MeanImages/MeanOriginalImage.jpg";
-  }
-  else
-  {
-    //Write the original images
-    // in the format of the given images
-    string meanImages("InputImage/MeanImages/");
-    meanImageFname = outputFolder + meanImages + "MeanOriginalImage.";
-    meanImageFname = meanImageFname + inputFileNames[0][inputFileNames[0].size()-3] +
-        inputFileNames[0][inputFileNames[0].size()-2] +inputFileNames[0][inputFileNames[0].size()-1];
-
-    meanImages = outputFolder + meanImages;
-    itksys::SystemTools::MakeDirectory( meanImages.c_str() );
-
-    vector<string> outputFilenames(Dimension);
-    outputFilenames[0] = "MeanSlice1.jpg";
-    outputFilenames[1] = "MeanSlice2.jpg";
-    outputFilenames[2] = "MeanSlice3.jpg";
-
-    for(int index=0; index<Dimension; index++)
-    {
-      outputFilenames[index] = meanImages + outputFilenames[index];
-
-      ImageType::SizeType size = imageArrayReader[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
-      ImageType::IndexType start = imageArrayReader[0]->GetOutput()->GetLargestPossibleRegion().GetIndex();
-      start[index] = size[index]/2;
-      size[index] = 0;
-        
-      ImageType::RegionType extractRegion;
-      extractRegion.SetSize(  size  );
-      extractRegion.SetIndex( start );
-      sliceExtractFilter->SetExtractionRegion( extractRegion );
-
-      sliceExtractFilter->SetInput( outputImageCaster->GetOutput() );
-      sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
-      sliceWriter->SetFileName( outputFilenames[index].c_str() );
-      sliceWriter->Update();
-    }
-  }
-  writer3->SetImageIO(imageArrayReader[1]->GetImageIO());
-  writer3->SetFileName( meanImageFname.c_str() );
-  if(writeMean3DImages == "on")
-  {
-    writer3->Update();
-  }
-  collector.Stop( "5Image Write " );
-
   std::cout << "message: Time Report " << std::endl;
-  collector.Stop( "5Image Write " );
-  collector.Stop( "6Total Time " );
+  collector.Stop( "5Total Time " );
   collector.Report();
 
 
