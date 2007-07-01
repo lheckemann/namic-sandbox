@@ -18,11 +18,13 @@ PROJECT(AnalyzeObjectReaderTesting)
 
 INCLUDE_DIRECTORIES( ${AnalyzeObjectLibrary_SOURCE_DIR} )
 
-SET( ANALYE_OBJECTENTRYTEST_SRC
-itkAnalyzeObjectEntryTest.cxx)
+SET( ANALYE_OBJECTMAPTEST_SRC
+itkAnalyzeObjectMapTest.cxx)
 
-ADD_EXECUTABLE( itkAnalyzeObjectEntryTest ${ANALYE_OBJECTENTRYTEST_SRC} )
-TARGET_LINK_LIBRARIES( itkAnalyzeObjectEntryTest AnalyzeObjectIO ITKIO )
+ADD_EXECUTABLE( itkAnalyzeObjectMapTest ${ANALYE_OBJECTMAPTEST_SRC} )
+TARGET_LINK_LIBRARIES( itkAnalyzeObjectMapTest AnalyzeObjectIO ITKIO )
 
-ADD_TEST( itkAnalyzeObjectEntryTest01 itkAnalyzeObjectEntryTest )
+#ADD_EXECUTABLE( ${ANALYE_OBJECTMAPTEST_SRC} )
+
+ADD_TEST( itkAnalyzeObjectMapTest01 itkAnalyzeObjectMapTest )
 

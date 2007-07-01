@@ -34,6 +34,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <vector>
 #include "objectentry.h"
+#include <itkObjectFactory.h>
+#include <itkObject.h>
+#include <itkByteSwapper.h>
 //TODO:  #include "itkImage.h"
 
 
@@ -52,6 +55,7 @@ namespace itk
   static const int VERSION6 = 910926;
   static const int VERSION7 = 20050829;
 
+
     /**
    * Constant defining the maximum number of shades possible for an object as of Version 6
    */
@@ -68,6 +72,21 @@ namespace itk
   class AnalyzeObjectMap: public itk::Image<unsigned char,3>
   {
     public:
+          /** Standard typedefs. */
+  typedef AnalyzeObjectMap Self;
+  typedef Image<unsigned char, 3>  Superclass;
+  typedef SmartPointer<Self>  Pointer;
+  typedef SmartPointer<const Self>  ConstPointer;
+
+    // RGBPixel::pointer RGBPixelPointer = RGBPixel::New();
+  /** Method for creation through the object factory. */
+  itkNewMacro(Self);
+
+  /** Run-time type information (and related methods). */
+  itkTypeMacro(AnalyzeObjectMap, Image<unsigned char, 3> );
+
+
+
       /**
        * \brief the default constructor, initializes to 0 or NULL
        */
@@ -88,7 +107,7 @@ namespace itk
        * \param const int _iZ
        * \sa AnalyzeObjectMap
        */
-      AnalyzeObjectMap(const int _iX, const int _iY, const int _iZ);
+//      AnalyzeObjectMap(const int _iX, const int _iY, const int _iZ);
 
       /**
        * \brief the destructor for AnalyzeObjectMap

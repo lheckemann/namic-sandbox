@@ -35,9 +35,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "objectmap.h"
 namespace itk{
-AnalyzeObjectMap::AnalyzeObjectMap( void )
-: Version(VERSION7),
-NumberOfObjects(0),NeedsSaving(0), NeedsRegionsCalculated(0)
+
+    
+    AnalyzeObjectMap::AnalyzeObjectMap( void ): Version(VERSION7),NumberOfObjects(0),NeedsSaving(0), NeedsRegionsCalculated(0)
 {
   //TODO:  Clear the image this->ImageClear();
   {
@@ -63,32 +63,32 @@ NumberOfObjects(0),NeedsSaving(0), NeedsRegionsCalculated(0)
 }
 
 
-AnalyzeObjectMap::AnalyzeObjectMap( const int _iX, const int _iY, const int _iZ )
-:Version(VERSION7),
-NumberOfObjects(0),NeedsSaving(0), NeedsRegionsCalculated(0)
-{
-  //TODO:  Clear this this->ImageClear();
-  {
-    for (int i = 0; i < 256; i++)
-    {
-      AnaylzeObjectEntryArray[i] = NULL;
-      ShowObject[i] = 0;
-      MinimumPixelValue[i] = 0;
-      MaximumPixelValue[i] = 0;
-    }
-  }
-
-  // Setting object zero as the background
-  AnaylzeObjectEntryArray[0] = AnalyzeObjectEntry::New();
-  this->getObjectEntry(0)->SetName("Background");
-  this->getObjectEntry(0)->SetDisplayFlag(0);
-  this->getObjectEntry(0)->SetOpacity(0);
-  this->getObjectEntry(0)->SetOpacityThickness(0);
-  this->getObjectEntry(0)->SetEndRed(0);
-  this->getObjectEntry(0)->SetEndGreen(0);
-  this->getObjectEntry(0)->SetEndBlue(0);
-  this->getObjectEntry(0)->SetShades(1);
-}
+//AnalyzeObjectMap::AnalyzeObjectMap( const int _iX, const int _iY, const int _iZ )
+//:Version(VERSION7),
+//NumberOfObjects(0),NeedsSaving(0), NeedsRegionsCalculated(0)
+//{
+//  //TODO:  Clear this this->ImageClear();
+//  {
+//    for (int i = 0; i < 256; i++)
+//    {
+//      AnaylzeObjectEntryArray[i] = NULL;
+//      ShowObject[i] = 0;
+//      MinimumPixelValue[i] = 0;
+//      MaximumPixelValue[i] = 0;
+//    }
+//  }
+//
+//  // Setting object zero as the background
+//  AnaylzeObjectEntryArray[0] = AnalyzeObjectEntry::New();
+//  this->getObjectEntry(0)->SetName("Background");
+//  this->getObjectEntry(0)->SetDisplayFlag(0);
+//  this->getObjectEntry(0)->SetOpacity(0);
+//  this->getObjectEntry(0)->SetOpacityThickness(0);
+//  this->getObjectEntry(0)->SetEndRed(0);
+//  this->getObjectEntry(0)->SetEndGreen(0);
+//  this->getObjectEntry(0)->SetEndBlue(0);
+//  this->getObjectEntry(0)->SetShades(1);
+//}
 
 
 AnalyzeObjectMap::AnalyzeObjectMap( const AnalyzeObjectMap & rhs )
@@ -311,6 +311,8 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
 
   if(header[0] == 1323699456 || header[0] == -1913442047)    // Byte swapping needed (Number is byte swapped number of VERSIONy or VERSION8 )
   {
+//      itk::ByteSwapper<Self> swapper = itk::ByteSwapper<Self>::New() ;
+      //itkByteSwapper::Pointer swapper = itkByteSwapper::New();
 #if 0  //TODO:  Figure out byte swapping later
       FileIOUtility util;
     NeedByteSwap=true;
@@ -329,11 +331,21 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
   const int ZSize = header[3];
   this->NumberOfObjects = header[4];
   const int VolumeSize=XSize*YSize*ZSize;
-  printf("TEST. Obj headers: NumberOfObjects %d \n", header[4]);
+  //::fprintf(stderr, "Version: %s", header[0]);
+  std::cout<<"Version: "<<header[0]<<"\n";
+  std::cout<<"header[1] = "<<header[1]<<"\n";
+  std::cout<<"header[2] = "<<header[2]<<"\n";
+  std::cout<<"header[3] = "<<header[3]<<"\n";
+  std::cout<<"header[4] = "<<header[4]<<"\n";
+  std::cout<<"header[5] = "<<header[5]<<"\n";
+  std::cout<<"Test. obj headers: NumberofObjects: "<<header[4]<<"\n";
+  std::cout<<"File: "<<filename<<"\n";
+  //printf("TEST. Obj headers: NumberOfObjects %d \n", header[4]);
   // Validating the version number
   if (Version != VERSION7 )
   {
-    ::fprintf( stderr, "Error: Can only process version 6 and version 8 analyze object files.\n" );
+      std::cout<<"Version: "<<header[0];
+      ::fprintf( stderr, "Error: Can only process version 6 and version 8 analyze object files.\n" );
     ::fclose( fptr );
     return false;
   }
@@ -1272,14 +1284,14 @@ int AnalyzeObjectMap::getVersion( void ) const
 {
   return Version;
 }
-
+#endif
 
 int AnalyzeObjectMap::getNumberOfObjects( void ) const
 {
   return this->NumberOfObjects;
 }
 
-
+#if 0
 unsigned char AnalyzeObjectMap::isObjectShown( const unsigned char index ) const
 {
   return ShowObject[index];
