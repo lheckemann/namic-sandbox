@@ -33,11 +33,7 @@
 #include "ParzenWindowEntropyMultiImageMetric.h"
 
 
-#include "AddImageFilter.h"
-#include "itkNaryAddImageFilter.h"
-#include "itkRescaleIntensityImageFilter.h"
-
-// Transform headers    
+// Transform headers
 #include "itkAffineTransform.h"
 #include "itkTranslationTransform.h"
 #include "UserBSplineDeformableTransform.h"
@@ -46,12 +42,9 @@
 #include "itkLinearInterpolateImageFunction.h"
 
 #include "itkRecursiveMultiResolutionPyramidImageFilter.h"
-#include "itkImage.h"
-#include "itkNormalizeImageFilter.h"
 
 #include "itkImageFileReader.h"
 
-#include "itkResampleImageFilter.h"
 #include "itkCastImageFilter.h"
 
 // Header to collect the time to register the images
@@ -79,6 +72,7 @@
 #include "itkBSplineResampleImageFunction.h"
 #include "itkIdentityTransform.h"
 #include "itkBSplineDecompositionImageFilter.h"
+#include "itkResampleImageFilter.h"
 
 
 //System Related headers
@@ -772,13 +766,6 @@ int main( int argc, char *argv[] )
   ImagePyramidArray imagePyramidArray(N);
 
 
-  // typedef for normalized image filters
-  // the mean and the variance of the images normalized before registering
-  typedef itk::NormalizeImageFilter< ImageType, InternalImageType > NormalizeFilterType;
-  typedef NormalizeFilterType::Pointer NormalizeFilterTypePointer;
-  typedef vector<NormalizeFilterTypePointer> NormalizedFilterArrayType;
-
-
   // typedefs for Gaussian filters
   // The normalized images are passed through a Gaussian filter for smoothing
   typedef itk::DiscreteGaussianImageFilter<
@@ -893,21 +880,16 @@ int main( int argc, char *argv[] )
         cout << "message: Computing mask " << endl;
       }
 
-      NormalizeFilterType::Pointer normalizeFilter = NormalizeFilterType::New();
-      normalizeFilter->ReleaseDataFlagOn();
-
-      normalizeFilter->SetInput( imageReader->GetOutput() );
-
-      //GaussianFilterType::Pointer gaussianFilter = GaussianFilterType::New();
-      //gaussianFilter->ReleaseDataFlagOn();
-      //gaussianFilter->SetVariance( gaussianFilterVariance );
-      //gaussianFilter->SetInput( normalizeFilter->GetOutput() );
+      typedef itk::CastImageFilter<ImageType, InternalImageType> CastImageFilterType;
+      CastImageFilterType::Pointer castFilter = CastImageFilterType::New();
+      castFilter->SetInput(imageReader->GetOutput());
+      castFilter->ReleaseDataFlagOn();
 
       //Set up the Image Pyramid
       imagePyramidArray[i] = ImagePyramidType::New();
       //imagePyramidArray[i]->ReleaseDataFlagOn();
       imagePyramidArray[i]->SetNumberOfLevels( multiLevelAffine );
-      imagePyramidArray[i]->SetInput( normalizeFilter->GetOutput() );
+      imagePyramidArray[i]->SetInput( castFilter->GetOutput() );
 
       std::cout << "message: Reading Image: " << inputFileNames[i].c_str() << std::endl;
       imagePyramidArray[i]->Update();
