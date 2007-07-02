@@ -25,7 +25,7 @@
 #include "itkCentralDifferenceImageFunction.h"
     
 #include "itkGradientImageFilter.h"
-#include "itkImageRandomNonRepeatingConstIteratorWithIndex.h"
+#include "itkImageRandomConstIteratorWithIndex.h"
 
 #include "itkImageRegionIterator.h"
 
@@ -265,8 +265,8 @@ protected:
   bool m_UseMask;
   unsigned int m_NumberOfFixedImages;
 
-  typedef ImageRandomNonRepeatingConstIteratorWithIndex < FixedImageType > NonRepeatingRandomIterator;
-  mutable NonRepeatingRandomIterator* randIter;
+  typedef ImageRandomConstIteratorWithIndex < FixedImageType > RandomIterator;
+  mutable std::vector<RandomIterator> m_RandIterArray;
 
   // Get nonzero indexex
   int numberOfWeights;

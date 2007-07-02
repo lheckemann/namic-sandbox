@@ -129,13 +129,23 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
     m_DerivativeCalculator[i]->SetInputImage(this->m_ImageArray[i]);
   }
 
-  // Sample the image domain
-  randIter = new NonRepeatingRandomIterator(this->m_ImageArray[0], this->GetFixedImageRegion());
+  // Initialize random samplers
+  // Initialize the first sampler
+  m_RandIterArray.push_back( RandomIterator(this->m_ImageArray[0], this->GetFixedImageRegion()) );
+  m_RandIterArray[0].ReinitializeSeed();
+  m_RandIterArray[0].GoToBegin();
+  for(int i=1; i< this->m_NumberOfThreads; i++)
+  {
+    m_RandIterArray.push_back( RandomIterator(m_RandIterArray[0]) );
+    unsigned long int numberOfSkips = (this->GetFixedImageRegion().GetNumberOfPixels()* i) / this->m_NumberOfThreads;
+    // skip a part of the input so that iterators dont overlap
+    for(unsigned long int j=0; j<numberOfSkips; j++) 
+    {
+      ++m_RandIterArray[i];
+    }
+  }
 
-  randIter->SetNumberOfSamples(this->m_NumberOfSpatialSamples);
-  randIter->ReinitializeSeed();
-  randIter->GoToBegin();
-  
+  // Sample the image domain
   this->SampleFixedImageDomain(this->m_Sample);
   
   // Initialize the variables for regularization term
@@ -198,9 +208,6 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
 ::Finalize(void)
 {
 
-  // deallocate randomiterator
-  delete randIter;
-
  //Finalize superclass
   Superclass::Finalize();
 }
@@ -238,7 +245,7 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
   for(unsigned long int i=0; i<this->m_NumberOfSpatialSamples; i++)
   {
     // Get sampled index
-    FixedImageIndexType index = randIter->GetIndex();
+    FixedImageIndexType index = m_RandIterArray[0].GetIndex();
     // Translate index to point
     this->m_ImageArray[0]->TransformIndexToPhysicalPoint(index, this->m_Sample[i].FixedImagePoint);
 
@@ -273,7 +280,7 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
     // If not all points are inside continue to the next random sample
     if(allPointsInside == false || (m_UseMask && pointInsideMask == false) )
     {
-      ++(*randIter);
+      ++(m_RandIterArray[0]);
       i--;
       continue;
     }
@@ -285,7 +292,7 @@ SampleFixedImageDomain (SpatialSampleContainer & samples) const
       allOutside = false;
     }
     // Jump to random position
-    ++(*randIter);
+    ++(m_RandIterArray[0]);
 
   }
 
