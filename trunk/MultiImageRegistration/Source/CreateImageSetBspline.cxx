@@ -41,13 +41,19 @@ using namespace std;
 
 int main( int argc, char * argv[] )
 {
-if( argc < 3 )
-    {
-    std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << "  inputImageFile  folderName numberOfImages" << std::endl;
-    return EXIT_FAILURE;
-    }
 
+  if( argc < 3 )
+  {
+    std::cerr << "Usage: " << std::endl;
+    std::cerr << argv[0] << "  inputImageFile  folderName numberOfImages <on/off (opt: for srand)>" << std::endl;
+    return EXIT_FAILURE;
+  }
+
+  if(argc == 5)
+  {
+    srand(time(NULL));
+  }
+    
   const     unsigned int   Dimension = 3;
   
   typedef   unsigned short  InputPixelType;
@@ -126,7 +132,7 @@ if( argc < 3 )
     //Randomly set the parameters
     for(unsigned int j=0; j<bsplineParameters.GetSize(); j++)
     {
-      bsplineParameters[j] = (rand()%203/203.0 - 0.5)*17.0;;
+      bsplineParameters[j] = (rand()%203/203.0 - 0.5)*23.0;;
     }
 
 

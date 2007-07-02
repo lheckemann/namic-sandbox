@@ -28,6 +28,8 @@
 
 #include <string>
 #include <sstream>
+#include <stdlib.h>
+#include <time.h>
 
 #include <itksys/SystemTools.hxx>
 
@@ -38,10 +40,14 @@ int main( int argc, char * argv[] )
   if( argc < 4 )
     {
     std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << "  inputImageFile  folderName numberOfImages" << std::endl;
+    std::cerr << argv[0] << "  inputImageFile  folderName numberOfImages <on/off (opt: for srand)>" << std::endl;
     return EXIT_FAILURE;
     }
 
+  if(argc == 5)
+  {
+    srand(time(NULL));
+  }
   const     unsigned int   Dimension = 3;
   typedef   unsigned short  InputPixelType;
   typedef   unsigned short  OutputPixelType;
@@ -102,21 +108,21 @@ int main( int argc, char * argv[] )
     AffineTransformType::ParametersType affineParameters;
     affineParameters = affineTransform->GetParameters();
 
-    affineParameters[0] = 1.0 + (rand()%100/100.0 - 0.5)*0.035;
-    affineParameters[1] = (rand()%100/100.0 - 0.5)*0.2;
-    affineParameters[2] = (rand()%100/100.0 - 0.5)*0.15;
+    affineParameters[0] = 1.0 + (rand()%100/100.0 - 0.5)*0.05;
+    affineParameters[1] = (rand()%100/100.0 - 0.5)*0.3;
+    affineParameters[2] = (rand()%100/100.0 - 0.5)*0.2;
       
-    affineParameters[3] = (rand()%100/100.0 - 0.5)*0.2;
-    affineParameters[4] = 1.0 + (rand()%100/100.0 - 0.5)*0.035;
-    affineParameters[5] = (rand()%100/100.0 - 0.5)*0.2;
+    affineParameters[3] = (rand()%100/100.0 - 0.5)*0.3;
+    affineParameters[4] = 1.0 + (rand()%100/100.0 - 0.5)*0.05;
+    affineParameters[5] = (rand()%100/100.0 - 0.5)*0.3;
       
-    affineParameters[6] = (rand()%100/100.0 - 0.5)*0.15;
-    affineParameters[7] = (rand()%100/100.0 - 0.5)*0.2;
-    affineParameters[8] = 1.0 + (rand()%100/100.0 - 0.5)*0.035;
+    affineParameters[6] = (rand()%100/100.0 - 0.5)*0.2;
+    affineParameters[7] = (rand()%100/100.0 - 0.5)*0.3;
+    affineParameters[8] = 1.0 + (rand()%100/100.0 - 0.5)*0.05;
       
-    affineParameters[9] = (rand()%100/100.0 - 0.5)*10.0;
-    affineParameters[10] = (rand()%100/100.0 - 0.5)*10.0;
-    affineParameters[11] = (rand()%100/100.0 - 0.5)*10.0;
+    affineParameters[9] = (rand()%100/100.0 - 0.5)*15.0;
+    affineParameters[10] = (rand()%100/100.0 - 0.5)*15.0;
+    affineParameters[11] = (rand()%100/100.0 - 0.5)*15.0;
     
     affineTransform->SetParameters(affineParameters);
       

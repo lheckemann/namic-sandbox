@@ -29,7 +29,7 @@ IF(BrainWeb_DATA_ROOT)
   #
   ADD_TEST(CreateDeformedImage001 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetAffine  
     ${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha 
-    ${MultiImageRegistration_TEST_OUTPUT_DIR}/AffineImages_2
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImagesAffine_02
     2
     )
 
@@ -69,7 +69,7 @@ IF(BrainWeb_DATA_ROOT)
   #
   ADD_TEST(CreateDeformedImage002 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetBspline  
     ${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha 
-    ${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineImages_2
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImagesBspline_02
     2
     )
 
@@ -103,7 +103,7 @@ IF(BrainWeb_DATA_ROOT)
   #
   ADD_TEST(CreateDeformedImage003 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetAffine
     ${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha 
-    ${MultiImageRegistration_TEST_OUTPUT_DIR}/AffineImages_10
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImagesAffine_10
     10
     )
 
@@ -138,7 +138,7 @@ IF(BrainWeb_DATA_ROOT)
   #
   ADD_TEST(CreateDeformedImage004 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetBspline
     ${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha 
-    ${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineImages_10
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImagesBspline_10
     10
     )
 
@@ -172,7 +172,7 @@ IF(BrainWeb_DATA_ROOT)
   #
   ADD_TEST(CreateDeformedImage005 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetAffine
     ${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha 
-    ${MultiImageRegistration_TEST_OUTPUT_DIR}/AffineImages_30
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImagesAffine_30
     30
     )
 
@@ -207,7 +207,7 @@ IF(BrainWeb_DATA_ROOT)
   #
   ADD_TEST(CreateDeformedImage006 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetBspline
     ${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha 
-    ${MultiImageRegistration_TEST_OUTPUT_DIR}/BsplineImages_30
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImagesBspline_30
     30
     )
 

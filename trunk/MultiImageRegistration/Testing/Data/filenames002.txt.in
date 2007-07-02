@@ -7,7 +7,7 @@
 # this parameter and supply the full pathname
 # as filename.
 #
--i @MultiImageRegistration_TEST_OUTPUT_DIR@/BsplineImages_2/Images/
+-i @MultiImageRegistration_TEST_OUTPUT_DIR@/ImagesBspline_02/Images/
 
 
 # 
