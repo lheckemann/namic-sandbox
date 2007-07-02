@@ -291,13 +291,13 @@ protected:
   FixedImageRegionType        m_FixedImageRegion;  
   
   /** Get/Set the number of threads to create when executing. */
-  itkSetClampMacro( NumberOfThreads, int, 1, ITK_MAX_THREADS );
-  itkGetConstReferenceMacro( NumberOfThreads, int );
+  itkSetClampMacro( NumberOfThreads, unsigned int, 1, ITK_MAX_THREADS );
+  itkGetConstReferenceMacro( NumberOfThreads, unsigned int );
 
   /** Support processing data in multiple threads. Used by subclasses
    * (e.g., ImageSource). */
   mutable MultiThreader::Pointer m_Threader;
-  mutable int m_NumberOfThreads;
+  unsigned int m_NumberOfThreads;
 
   /** Static function used as a "callback" by the MultiThreader.  The threading
    * library will call this routine for each thread, which will delegate the

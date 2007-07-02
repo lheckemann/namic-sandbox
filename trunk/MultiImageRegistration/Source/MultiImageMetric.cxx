@@ -43,7 +43,7 @@ MultiImageMetric<TFixedImage>
   m_CorrectInterpolationArtefact = false;
   m_NumberOfImages = 0;
   m_NumberOfPixelsCounted = 0; // initialize to zero
-//  m_GradientImage = NULL; // computed at initialization
+  //  m_GradientImage = NULL; // computed at initialization
 
   m_ImageArray.resize(0);
   m_GradientImageArray.resize(0);
@@ -101,6 +101,8 @@ void
 MultiImageMetric<TFixedImage>
 ::Initialize(void) throw ( ExceptionObject )
 {
+  // Set Number of Threads
+  this->GetMultiThreader()->SetNumberOfThreads(m_NumberOfThreads);
 
   for(unsigned int i=0; i<this->m_NumberOfImages; i++)
   {
@@ -302,7 +304,7 @@ MultiImageMetric< TFixedImage >
   ThreadStruct str;
   str.Metric = this;
 
-  this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
+  this->GetMultiThreader()->SetNumberOfThreads(m_NumberOfThreads);
   this->GetMultiThreader()->SetSingleMethod(this->ThreaderCallback, &str);
 
   // multithread the execution

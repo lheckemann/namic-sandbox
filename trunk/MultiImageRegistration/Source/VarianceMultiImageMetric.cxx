@@ -73,7 +73,6 @@ GetValue(const ParametersType & parameters) const
   str.Metric =  this;
 
 
-  this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
   this->GetMultiThreader()->SetSingleMethod(this->ThreaderCallbackGetValue, &str);
   
   // multithread the execution
@@ -157,7 +156,6 @@ void VarianceMultiImageMetric < TFixedImage >
   str.Metric =  this;
 
 
-  this->GetMultiThreader()->SetNumberOfThreads(this->GetNumberOfThreads());
   this->GetMultiThreader()->SetSingleMethod(this->ThreaderCallbackGetValueAndDerivative, &str);
   
   // multithread the execution
@@ -178,8 +176,7 @@ VarianceMultiImageMetric < TFixedImage >
 {
 
   double N = (double) this->m_NumberOfImages;
-  int numberOfThreads = this->GetNumberOfThreads();
-  
+
   /** The tranform parameters vector holding i'th images parameters 
   Copy parameters in to a collection of arrays */
   MeasureType value = NumericTraits < MeasureType >::Zero;
@@ -201,7 +198,7 @@ VarianceMultiImageMetric < TFixedImage >
   double sumOfSquares = 0.0;
   DerivativeType deriv(numberOfParameters);
   // Sum over spatial samples
-  for (int a=threadId; a<this->m_Sample.size(); a += numberOfThreads )
+  for (int a=threadId; a<this->m_Sample.size(); a += this->m_NumberOfThreads )
   {
     sumOfSquares = 0.0;
     mean = 0.0;

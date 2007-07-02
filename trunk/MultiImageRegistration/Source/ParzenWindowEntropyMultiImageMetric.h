@@ -257,7 +257,6 @@ protected:
   mutable Array< RealType >   m_value;
   mutable std::vector< std::vector< typename DerivativeFunctionType::Pointer > > m_DerivativeCalculator;
   mutable std::vector< std::vector<DerivativeType> > m_DerivativesArray;
-  int m_NumberOfThreads;
 
   // Bspline optimization
   ParametersType indexes; // Holds nonzeros indexes of Bspline derivatives
@@ -274,15 +273,6 @@ protected:
   int numberOfWeights;
   mutable Array<unsigned long> bsplineIndexes;
   long unsigned int m_NumberOfParametersPerdimension;
-
-  // reguzlarization related
-  mutable std::vector< std::vector< GradientFilterTypePointer > >  m_BSplineGradientArray;
-  mutable std::vector< std::vector< std::vector< GradientFilterTypePointer > > > m_BSplineHessianArray;
-
-  mutable std::vector< std::vector< std::vector< BSplineParametersImagePointer > > > m_BSplineGradientImagesArray;
-
-  mutable std::vector< std::vector< std::vector< GradientFilterTypePointer > > >   m_BSplineGradientUpdateArray;
-  mutable std::vector< std::vector< std::vector< BSplineParametersImagePointer > > >             m_BSplineGradientUpdateImagesArray;
 
 };
 
