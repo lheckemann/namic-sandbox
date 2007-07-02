@@ -35,7 +35,6 @@
 
 // Transform headers
 #include "itkAffineTransform.h"
-#include "itkTranslationTransform.h"
 #include "UserBSplineDeformableTransform.h"
 
 // Interpolator headers    
@@ -483,18 +482,18 @@ public:
 // Get the command line arguments
 int getCommandLine(int argc, char *initFname, vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType,
                    int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh,
-                   double& optTranslationLearningRate, double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate,
-                   int& optTranslationNumberOfIterations, int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
-                   double& numberOfSpatialSamplesTranslationPercentage, double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
+                   double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate,
+                   int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
+                   double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
                    int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
                    string& useBSplineRegularization, double& bsplineRegularizationFactor,
                    string& transformType, string& imageType,string& metricType, string& useBspline, string& useBsplineHigh,
                    double& translationScaleCoeffs,  double& gaussianFilterVariance,
                    int& maximumLineIteration, double& parzenWindowStandardDeviation,
-                   double& translationMultiScaleSamplePercentageIncrease, double& affineMultiScaleSamplePercentageIncrease, double& bsplineMultiScaleSamplePercentageIncrease,
-                   double& translationMultiScaleMaximumIterationIncrease, double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
-                   double& translationMultiScaleStepLengthIncrease, double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease,
-                   unsigned int& numberOfSpatialSamplesTranslation, unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh,
+                   double& affineMultiScaleSamplePercentageIncrease, double& bsplineMultiScaleSamplePercentageIncrease,
+                   double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
+                   double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease,
+                   unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh,
                    string &mask, string& maskType, unsigned int& threshold1, unsigned int& threshold2,
                    string &writeOutputImages, string &writeDeformationFields,
                    unsigned int &NumberOfFixedImages,
@@ -524,36 +523,29 @@ int main( int argc, char *argv[] )
   int multiLevelBspline = 1;
   int multiLevelBsplineHigh = 1;
 
-  double optTranslationLearningRate = 1e5;
   double optAffineLearningRate = 1e-3;
   double optBsplineLearningRate = 1e5;
   double optBsplineHighLearningRate = 1e5;
 
-  int optTranslationNumberOfIterations = 500;
   int optAffineNumberOfIterations = 500;
   int optBsplineNumberOfIterations = 500;
   int optBsplineHighNumberOfIterations = 500;
 
-  double numberOfSpatialSamplesTranslationPercentage = 0;
   double numberOfSpatialSamplesAffinePercentage = 0;
   double numberOfSpatialSamplesBsplinePercentage = 0;
   double numberOfSpatialSamplesBsplineHighPercentage = 0;
 
-  unsigned int numberOfSpatialSamplesTranslation = 2000;
   unsigned int numberOfSpatialSamplesAffine = 2000;
   unsigned int numberOfSpatialSamplesBspline = 4000;
   unsigned int numberOfSpatialSamplesBsplineHigh = 4000;
 
-  double translationMultiScaleSamplePercentageIncrease = 4.0;
   double affineMultiScaleSamplePercentageIncrease = 4.0;
   double bsplineMultiScaleSamplePercentageIncrease = 4.0;
   
-  double translationMultiScaleMaximumIterationIncrease = 1.0;
   double affineMultiScaleMaximumIterationIncrease = 1.0;
   double bsplineMultiScaleMaximumIterationIncrease = 1.0;
 
   
-  double translationMultiScaleStepLengthIncrease = 1e-1;
   double affineMultiScaleStepLengthIncrease = 1e-1;
   double bsplineMultiScaleStepLengthIncrease = 1e-1;
 
@@ -600,16 +592,17 @@ int main( int argc, char *argv[] )
   {
     if( getCommandLine(argc,argv[i], fileNames, inputFolder, outputFolder, optimizerType,
         multiLevelAffine, multiLevelBspline, multiLevelBsplineHigh,
-        optTranslationLearningRate, optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate,
-        optTranslationNumberOfIterations, optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations,
-        numberOfSpatialSamplesTranslationPercentage, numberOfSpatialSamplesAffinePercentage, numberOfSpatialSamplesBsplinePercentage, numberOfSpatialSamplesBsplineHighPercentage,
+        optAffineLearningRate,  optBsplineLearningRate, optBsplineHighLearningRate,
+        optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations,
+        numberOfSpatialSamplesAffinePercentage, numberOfSpatialSamplesBsplinePercentage, numberOfSpatialSamplesBsplineHighPercentage,
         bsplineInitialGridSize, numberOfBsplineLevel,
         useBSplineRegularization, bsplineRegularizationFactor,
         interpolatorType, imageType, metricType, useBspline, useBsplineHigh,
         translationScaleCoeffs,gaussianFilterVariance, maximumLineIteration,  parzenWindowStandardDeviation,
-        translationMultiScaleSamplePercentageIncrease, affineMultiScaleSamplePercentageIncrease, bsplineMultiScaleSamplePercentageIncrease, translationMultiScaleMaximumIterationIncrease, affineMultiScaleMaximumIterationIncrease,  bsplineMultiScaleMaximumIterationIncrease,
-        translationMultiScaleStepLengthIncrease, affineMultiScaleStepLengthIncrease, bsplineMultiScaleStepLengthIncrease,
-        numberOfSpatialSamplesTranslation, numberOfSpatialSamplesAffine, numberOfSpatialSamplesBspline, numberOfSpatialSamplesBsplineHigh,
+        affineMultiScaleSamplePercentageIncrease, bsplineMultiScaleSamplePercentageIncrease,
+        affineMultiScaleMaximumIterationIncrease,  bsplineMultiScaleMaximumIterationIncrease,
+        affineMultiScaleStepLengthIncrease, bsplineMultiScaleStepLengthIncrease,
+        numberOfSpatialSamplesAffine, numberOfSpatialSamplesBspline, numberOfSpatialSamplesBsplineHigh,
         mask, maskType, threshold1, threshold2,
         writeOutputImages, writeDeformationFields,
         NumberOfFixedImages,
@@ -636,7 +629,6 @@ int main( int argc, char *argv[] )
 
 
 
-  typedef itk::TranslationTransform< ScalarType, Dimension > TranslationTransformType;
   typedef itk::AffineTransform< ScalarType, Dimension > TransformType;
 
   typedef itk::GradientDescentOptimizer       OptimizerType;
@@ -746,10 +738,6 @@ int main( int argc, char *argv[] )
     registration->SetOptimizer(     optimizer     );
   }
   
-  //typedefs for translation transform array
-  typedef vector<TranslationTransformType::Pointer> TranslationTransformArrayType;
-  TranslationTransformArrayType      translationTransformArray(N);
-
   //typedefs for affine transform array
   typedef std::vector<TransformType::Pointer> TransformArrayType;
   TransformArrayType      affineTransformArray(N);
@@ -804,13 +792,13 @@ int main( int argc, char *argv[] )
     for(int i=0; i< N; i++ )
     {
       ImageReaderType::Pointer imageReader;
-      translationTransformArray[i] = TranslationTransformType::New();
-
+      affineTransformArray[i]     = TransformType::New();
+      
       // Get the interpolator type
       // assume linear by default
       interpolatorArray[i]  = LinearInterpolatorType::New();
 
-      registration->SetTransformArray(     translationTransformArray[i] ,i    );
+      registration->SetTransformArray(     affineTransformArray[i] ,i    );
       registration->SetInterpolatorArray(     interpolatorArray[i] ,i    );
 
       imageReader = ImageReaderType::New();
@@ -899,39 +887,11 @@ int main( int argc, char *argv[] )
   }
 
 
-  // Set initial parameters of the transform
-  ImageType::RegionType fixedImageRegion =
-      imagePyramidArray[0]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetBufferedRegion();
-  registration->SetFixedImageRegion( fixedImageRegion );
 
 
-  // Allocate the space for tranform parameters used by registration method
-  // We use a large array to concatenate the parameter array of each tranform
-  typedef RegistrationType::ParametersType ParametersType;
-  ParametersType initialParameters( translationTransformArray[0]->GetNumberOfParameters()*N );
-  initialParameters.Fill(0.0);
-  registration->SetInitialTransformParameters( initialParameters );
-
-
-  // Set the scales of the optimizer
-  // We set a large scale for the parameters corresponding to translation
-  typedef OptimizerType::ScalesType       OptimizerScalesType;
-  OptimizerScalesType optimizerScales( translationTransformArray[0]->GetNumberOfParameters()*N );
-  optimizerScales.Fill(1.0);
-
-
-  // Get the number of pixels (voxels) in the images
-  const unsigned int numberOfPixels = fixedImageRegion.GetNumberOfPixels();
-  
-  unsigned int numberOfSamples = numberOfSpatialSamplesTranslation;
-  if( numberOfSpatialSamplesTranslationPercentage > 0 )
-  {
-    numberOfSamples = static_cast< unsigned int >( numberOfPixels * numberOfSpatialSamplesTranslationPercentage );
-  }
 
   // Set the number of samples to be used by the metric
   registration->SetMetric( metric  );
-  metric->SetNumberOfSpatialSamples( numberOfSamples );
 
   
   // Create the Command observer and register it with the optimizer.
@@ -943,56 +903,12 @@ int main( int argc, char *argv[] )
   {
     observer->m_MetricPrint = true;
   }
-  //observer->SetFilename("iterations.txt");
-
-
-  // Set the optimizer parameters
-  if(optimizerType == "lineSearch")
-  {
-    lineSearchOptimizer->SetStepLength(optTranslationLearningRate);
-    lineSearchOptimizer->SetMaximize(false);
-    lineSearchOptimizer->SetMaximumIteration( optTranslationNumberOfIterations );
-    lineSearchOptimizer->SetMaximumLineIteration( maximumLineIteration );
-    lineSearchOptimizer->SetScales( optimizerScales );
-    lineSearchOptimizer->AddObserver( itk::IterationEvent(), observer );
-  }
-  else if(optimizerType == "simplex")
-  {
-    simplexOptimizer->SetMaximumNumberOfIterations( optTranslationNumberOfIterations );
-    simplexOptimizer->SetScales( optimizerScales );
-
-    simplexOptimizer->AddObserver( itk::IterationEvent(), observer );
-  }
-  else if(optimizerType == "SPSA")
-  {
-    SPSAOptimizer->Seta( optTranslationLearningRate );
-    SPSAOptimizer->SetMaximumNumberOfIterations(optTranslationNumberOfIterations);
-    SPSAOptimizer->SetA( SPSAOptimizer->GetMaximumNumberOfIterations()/10.0 );
-    SPSAOptimizer->Setc( SPSAOptimizer->Geta()*SPSAcRel );
-
-    
-    SPSAOptimizer->SetScales( optimizerScales );
-    SPSAOptimizer->AddObserver( itk::IterationEvent(), observer );
-  }
-  else
-  {
-    optimizer->SetLearningRate( optTranslationLearningRate );
-    optimizer->SetNumberOfIterations( optTranslationNumberOfIterations );
-    optimizer->MaximizeOff();
-    optimizer->SetScales( optimizerScales );
-    optimizer->AddObserver( itk::IterationEvent(), observer );
-  }
-
 
 
   // Create the Command interface observer and register it with the optimizer.
   typedef RegistrationInterfaceCommand<RegistrationType> CommandType;
   CommandType::Pointer command = CommandType::New();
-  //Set the parameters of the command observer
-  command->SetMultiScaleSamplePercentageIncrease(translationMultiScaleSamplePercentageIncrease);
-  command->SetMultiScaleMaximumIterationIncrease(translationMultiScaleMaximumIterationIncrease);
-  command->SetMultiScaleStepLengthIncrease(translationMultiScaleStepLengthIncrease);
-  
+
   registration->AddObserver( itk::IterationEvent(), command );
 
   std::cout << "message: Starting Registration " << std::endl;
@@ -1000,60 +916,8 @@ int main( int argc, char *argv[] )
   // Add probe to count the time used by the registration
   collector.Stop( "1Image Read " );
 
-
-
-  // Start registration with translation transform
-  try 
-  {
-    collector.Start( "2Translation Reg." );
-    if( startLevel == 0 )
-    {
-      registration->StartRegistration();
-    }
-    collector.Stop( "2Translation Reg." );
-  } 
-  catch( itk::ExceptionObject & err ) 
-  { 
-    std::cout << "ExceptionObject caught !" << std::endl; 
-    std::cout << err << std::endl; 
-    return -1;
-  }
-
-  // Write the output images after translation transform
-  collector.Start( "5Image Write " );
-
   
-  std::vector< itk::Transform< double, Dimension,Dimension >* > transformArray(N);
-  for(int i=0; i< N; i++)
-  {
-    transformArray[i] = translationTransformArray[i];
-  }
 
-  command->SetFileNames( fileNames, inputFileNames,
-                         outputFileNames, outputFolder + "Translation_MultiScale_");
-
-
-
-  
-  collector.Stop( "5Image Write " );
-
-  //Print out the metric values for translation parameters
-  if( 0 && metricPrint == "on")
-  {
-    cout << "message: Metric Probe " << endl;
-    ofstream outputFile("metricOutput.txt");
-    ParametersType parameters = registration->GetLastTransformParameters();
-    cout << parameters << endl;
-    parameters.Fill(0.0);
-    
-    for(double i=-10.0; i<0.0; i+=0.1)
-    {
-      parameters[0] = i;
-      outputFile << metric->GetValue(parameters) << " ";
-      outputFile << std::endl;
-    }
-    outputFile.close();
-  }
 
   //
   //
@@ -1067,20 +931,10 @@ int main( int argc, char *argv[] )
   //
   //
 
-  
-  // Continue with affine transform using the results of the translation transform
-  //
-  //Get the latest parameters from the registration
-  ParametersType translationParameters = registration->GetLastTransformParameters();
-  
-  for(int i=0; i<N; i++)
-  {
-    affineTransformArray[i]     = TransformType::New();
-    registration->SetTransformArray(     affineTransformArray[i] ,i    );
-  }
-
   // Allocate the space for tranform parameters used by registration method
   // We use a large array to concatenate the parameter array of each tranform
+  typedef RegistrationType::ParametersType ParametersType;
+
   ParametersType initialAffineParameters( affineTransformArray[0]->GetNumberOfParameters()*N );
   initialAffineParameters.Fill(0.0);
   registration->SetInitialTransformParameters( initialAffineParameters );
@@ -1105,17 +959,13 @@ int main( int argc, char *argv[] )
     }
     affineTransformArray[i]->SetCenter(center);
 
-    //Initialize the translation parameters using the results of the tranlation transform
-    ParametersType affineParameters = affineTransformArray[i]->GetParameters();
-    for(int j=Dimension*Dimension; j<Dimension+Dimension*Dimension; j++)
-    {
-      affineParameters[j] = translationParameters[i*Dimension + j-Dimension*Dimension]; // scale for translation on X,Y,Z
-    }
-    affineTransformArray[i]->SetParametersByValue(affineParameters);
-
     registration->SetInitialTransformParameters( affineTransformArray[i]->GetParameters(),i );
   }
 
+  // Set the scales of the optimizer
+  // We set a large scale for the parameters corresponding to translation
+  typedef OptimizerType::ScalesType       OptimizerScalesType;
+  
   // Set the scales of the optimizer
   // We set a large scale for the parameters corresponding to translation
   OptimizerScalesType optimizerAffineScales( affineTransformArray[0]->GetNumberOfParameters()*N );
@@ -1138,13 +988,17 @@ int main( int argc, char *argv[] )
     lineSearchOptimizer->SetStepLength(optAffineLearningRate);
     lineSearchOptimizer->SetMaximize(false);
     lineSearchOptimizer->SetMaximumIteration( optAffineNumberOfIterations );
-    lineSearchOptimizer->SetMaximumLineIteration( 10 );
+    lineSearchOptimizer->SetMaximumLineIteration( maximumLineIteration );
     lineSearchOptimizer->SetScales( optimizerAffineScales );
+    lineSearchOptimizer->AddObserver( itk::IterationEvent(), observer );
+
   }
   else if(optimizerType == "simplex")
   {
     simplexOptimizer->SetMaximumNumberOfIterations( optAffineNumberOfIterations );
     simplexOptimizer->SetScales( optimizerAffineScales );
+    simplexOptimizer->AddObserver( itk::IterationEvent(), observer );
+
   }
   else if(optimizerType == "SPSA")
   {
@@ -1154,6 +1008,7 @@ int main( int argc, char *argv[] )
     SPSAOptimizer->Setc( SPSAOptimizer->Geta()*SPSAcRel );
     
     SPSAOptimizer->SetScales( optimizerAffineScales );
+    SPSAOptimizer->AddObserver( itk::IterationEvent(), observer );
   }
   else
   {
@@ -1161,11 +1016,20 @@ int main( int argc, char *argv[] )
     optimizer->SetNumberOfIterations( optAffineNumberOfIterations );
     optimizer->MaximizeOff();
     optimizer->SetScales( optimizerAffineScales );
-    //optimizer->AddObserver( itk::IterationEvent(), observer );
+    optimizer->AddObserver( itk::IterationEvent(), observer );
   }
 
+  // Set initial parameters of the transform
+  ImageType::RegionType fixedImageRegion =
+      imagePyramidArray[0]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetBufferedRegion();
+  registration->SetFixedImageRegion( fixedImageRegion );
+  
+
+  // Get the number of pixels (voxels) in the images
+  const unsigned int numberOfPixels = fixedImageRegion.GetNumberOfPixels();
+  
   // Set the number of spatial samples for the metric
-  numberOfSamples = numberOfSpatialSamplesAffine;
+  unsigned int numberOfSamples = numberOfSpatialSamplesAffine;
   if( numberOfSpatialSamplesAffinePercentage > 0 )
   {
     numberOfSamples = static_cast< unsigned int >( numberOfPixels * numberOfSpatialSamplesAffinePercentage );
@@ -1198,6 +1062,7 @@ int main( int argc, char *argv[] )
   // Write the output images after affine transform
   collector.Start( "5Image Write " );
 
+  std::vector< itk::Transform< double, Dimension,Dimension >* > transformArray(N);
 
   for(int i=0; i< N; i++)
   {
@@ -1398,7 +1263,7 @@ int main( int argc, char *argv[] )
 
     // Reset the optimizer scales
     // All parameters are set to be equal
-    optimizerScales.SetSize( bsplineTransformArrayLow[0]->GetNumberOfParameters()*N);
+    OptimizerScalesType optimizerScales( bsplineTransformArrayLow[0]->GetNumberOfParameters()*N );
     optimizerScales.Fill( 1.0 );
     if(optimizerType == "lineSearch")
     {
@@ -1784,9 +1649,9 @@ int main( int argc, char *argv[] )
 
 int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType,
                           int& multiLevelAffine, int& multiLevelBspline, int& multiLevelBsplineHigh,
-                          double& optTranslationLearningRate, double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate,
-                          int& optTranslationNumberOfIterations, int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
-                          double& numberOfSpatialSamplesTranslationPercentage, double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
+                          double& optAffineLearningRate, double& optBsplineLearningRate, double& optBsplineHighLearningRate,
+                          int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
+                          double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
                           
                           string& useBSplineRegularization, double& bsplineRegularizationFactor,
@@ -1797,12 +1662,12 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
                           double& translationScaleCoeffs,double& gaussianFilterVariance,
                           int& maximumLineIteration,   double& parzenWindowStandardDeviation,
                           
-                          double& translationMultiScaleSamplePercentageIncrease, double& affineMultiScaleSamplePercentageIncrease, double& bsplineMultiScaleSamplePercentageIncrease,
+                          double& affineMultiScaleSamplePercentageIncrease, double& bsplineMultiScaleSamplePercentageIncrease,
 
-                          double& translationMultiScaleMaximumIterationIncrease, double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
+                          double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
 
-                          double& translationMultiScaleStepLengthIncrease, double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease,
-                          unsigned int& numberOfSpatialSamplesTranslation, unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh,
+                          double& affineMultiScaleStepLengthIncrease, double& bsplineMultiScaleStepLengthIncrease,
+                          unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh,
 
                           string &mask, string& maskType, unsigned int& threshold1, unsigned int& threshold2,
                           string &writeOutputImages, string &writeDeformationFields,
@@ -1890,11 +1755,6 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       multiLevelBsplineHigh = atoi(dummy.c_str());
     }
     
-    else if (dummy == "-optTranslationLearningRate")
-    {
-      initFile >> dummy;
-      optTranslationLearningRate = atof(dummy.c_str());
-    }
     else if (dummy == "-optAffineLearningRate")
     {
       initFile >> dummy;
@@ -1911,11 +1771,6 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       optBsplineHighLearningRate = atof(dummy.c_str());
     }
 
-    else if (dummy == "-optTranslationNumberOfIterations")
-    {
-      initFile >> dummy;
-      optTranslationNumberOfIterations = atoi(dummy.c_str());
-    }
     else if (dummy == "-optAffineNumberOfIterations")
     {
       initFile >> dummy;
@@ -1932,11 +1787,6 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       optBsplineHighNumberOfIterations = atoi(dummy.c_str());
     }
 
-    else if (dummy == "-numberOfSpatialSamplesTranslationPercentage")
-    {
-      initFile >> dummy;
-      numberOfSpatialSamplesTranslationPercentage = atof(dummy.c_str());
-    }
     else if (dummy == "-numberOfSpatialSamplesAffinePercentage")
     {
       initFile >> dummy;
@@ -1954,11 +1804,6 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
     }
 
 
-    else if (dummy == "-numberOfSpatialSamplesTranslation")
-    {
-      initFile >> dummy;
-      numberOfSpatialSamplesTranslation = atoi(dummy.c_str());
-    }
     else if (dummy == "-numberOfSpatialSamplesAffine")
     {
       initFile >> dummy;
@@ -1975,11 +1820,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       numberOfSpatialSamplesBsplineHigh = atoi(dummy.c_str());
     }
     
-    else if (dummy == "-translationMultiScaleSamplePercentageIncrease")
-    {
-      initFile >> dummy;
-      translationMultiScaleSamplePercentageIncrease = atof(dummy.c_str());
-    }
+
     else if (dummy == "-affineMultiScaleSamplePercentageIncrease")
     {
       initFile >> dummy;
@@ -1992,11 +1833,6 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
     }
     
 
-    else if (dummy == "-translationMultiScaleMaximumIterationIncrease")
-    {
-      initFile >> dummy;
-      translationMultiScaleMaximumIterationIncrease = atof(dummy.c_str());
-    }
     else if (dummy == "-affineMultiScaleMaximumIterationIncrease")
     {
       initFile >> dummy;
@@ -2008,11 +1844,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       bsplineMultiScaleMaximumIterationIncrease = atof(dummy.c_str());
     }
 
-    else if (dummy == "-translationMultiScaleStepLengthIncrease")
-    {
-      initFile >> dummy;
-      translationMultiScaleStepLengthIncrease = atof(dummy.c_str());
-    }
+
     else if (dummy == "-affineMultiScaleStepLengthIncrease")
     {
       initFile >> dummy;
