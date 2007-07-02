@@ -25,7 +25,7 @@
 #include "itkCentralDifferenceImageFunction.h"
     
 #include "itkGradientImageFilter.h"
-#include "itkImageRandomConstIteratorWithIndex.h"
+#include "itkImageRandomNonRepeatingConstIteratorWithIndex.h"
 
 #include "itkImageRegionIterator.h"
 
@@ -234,13 +234,15 @@ protected:
   typedef std::vector<SpatialSample>  SpatialSampleContainer;
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueAndDerivative( void *arg );
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValue( void *arg );
+  static ITK_THREAD_RETURN_TYPE ThreaderCallbackSampleFixedImageDomain( void *arg );
 
 
   double                              m_ImageStandardDeviation;
   std::vector<typename KernelFunction::Pointer>    m_KernelFunction;
 
   /** Uniformly select samples from the fixed image buffer. */
-  void SampleFixedImageDomain( SpatialSampleContainer& samples ) const;
+  void SampleFixedImageDomain( ) const;
+  void ThreadedSampleFixedImageDomain( int threadID ) const;
 
   /** Add the derivative update to the current images parameters at a given point and image derivative*/
   typedef CovariantVector < RealType, MovingImageDimension > CovarientType;
@@ -265,8 +267,8 @@ protected:
   bool m_UseMask;
   unsigned int m_NumberOfFixedImages;
 
-  typedef ImageRandomConstIteratorWithIndex < FixedImageType > RandomIterator;
-  mutable std::vector<RandomIterator> m_RandIterArray;
+  typedef ImageRandomNonRepeatingConstIteratorWithIndex < FixedImageType > RandomIterator;
+  mutable std::vector<RandomIterator*> m_RandIterArray;
 
   // Get nonzero indexex
   int numberOfWeights;
