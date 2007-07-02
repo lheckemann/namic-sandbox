@@ -67,27 +67,63 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 % scope of the document.
 \begin{abstract}
 \noindent
-This document describes an improvement in the Image IO implementation of the
-Insight Toolkit ITK. The toolkit as a whole supports streaming data accross
-filters with the purpose of allowing to perform image processing in large
-images by loading them by pieces and processing every piece independently.
+This document describes an improvement to the Image IO infrastructure of the
+Insight Toolkit ITK. The toolkit as a whole was designed and implemented to
+support streaming data accross filters. The purpose fo this functionality was
+to allowing performing image processing in large images without having to load
+the entire image into memory. Instead, the processing can be performed by
+loading smaller pieces of the image and processing every piece independently.
 
-Unfortunately, the implementation of streaming was not usable due to the lack
-of support at the level of the readers. This report describes the modifications
-that must be applied to the Image IO infrastructure in order to support
-streaming at read time. 
+Unfortunately, the implementation of streaming was currently not usable due to
+the lack of streaming support at the level of the readers. This report
+describes the modifications that must be applied to the Image IO infrastructure
+in order to support streaming at read time. 
 \end{abstract}
 
 \tableofcontents
 
-The architecture of ITK supports streaming image data...
-
 \section{Introduction}
 
+One of the initial design requirements of ITK was to be able to process images
+larger than the actual RAM of the computer in which the processing was
+performed. This requirement was motivated by the need of processing the data
+from the Visible Human datasets. In order to satisfy this requirement, the
+pipeline architecture of ITK included the concept of \emph{RequestedRegion},
+that was negotiated filters placed in contiguous locations of the pipeline.
 
-\section{What was missing in the streaming?}
+Typically, the requested region was expected to be smaller than the total size
+of the image, and even smaller than the portion of the image that was loaded
+into memory at that point. By requesting regions smaller than the total size of
+the image, filters in the pipeline were empowered to process large images
+without needing to have the entire image in memory at a given time. The image was
+partitioned in sub-regions and each one of them was processed sequentially.
+
+This streaming architecture, is currently fully implemented in the ITK
+pipeline, but suffers from the limitation that most of the image file readers
+were not supporting it. As a consequence, when the request for a smaller porting
+of the full image arrived to the the ultimate data source: the reader, it was 
+addressed by disregarding the request and loading the full image into memory.
+
+Honoring the request for a smaller region of the image, however, needed only a set
+of relatively minor modifications in the Image IO infrastructure of the toolkit, 
+as well as customized modifications in every one of the ImageIO classes.
+
+This paper describes the modifications required in the basic infrastructure,
+and provide examples on how to modify some of the ImageIO classes. In
+particular the YAFF, MetaImage, FITS and Nifty image IO classes.
 
 
+
+\section{Streaming Architecture}
+
+\subsection{What was missing in the ImageFileReader}
+
+\subsection{YAFF Reader}
+\subsection{FITS Reader}
+\subsection{Nifti Reader}
+\subsection{MetaImage Reader}
+
+\section{Tests and Examples}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
