@@ -38,8 +38,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >::
 {
 
   m_ImageStandardDeviation = 0.4;
-  m_MinProbability = 1e-10;
-  
+
   // Following initialization is related to
   // calculating image derivatives
   this->SetComputeGradient (false);  // don't use the default gradient for now
@@ -126,13 +125,8 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
   m_DerivativeCalculator.resize(this->m_NumberOfImages);
   for(unsigned int i=0; i<this->m_NumberOfImages; i++)
   {
-    // separate for each thread
-    m_DerivativeCalculator[i].resize(this->m_NumberOfThreads);
-    for(int j=0; j<this->m_NumberOfThreads; j++)
-    {
-      m_DerivativeCalculator[i][j] = DerivativeFunctionType::New ();
-      m_DerivativeCalculator[i][j]->SetInputImage(this->m_ImageArray[i]);
-    }
+    m_DerivativeCalculator[i] = DerivativeFunctionType::New ();
+    m_DerivativeCalculator[i]->SetInputImage(this->m_ImageArray[i]);
   }
 
   // Sample the image domain
@@ -677,7 +671,7 @@ void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
 UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSample& sample, const RealType& weight, const int& imageNumber, const int& threadID) const
 {
 
-  const CovarientType gradient = m_DerivativeCalculator[imageNumber][threadID]->Evaluate(
+  const CovarientType gradient = m_DerivativeCalculator[imageNumber]->Evaluate(
                                                 this->m_TransformArray[imageNumber]->TransformPoint (sample.FixedImagePoint) );
   //typedef FixedArray < double, MovingImageDimension > FixedArrayType;
   //const FixedArrayType gradient = this->m_GradientInterpolatorArray[imageNumber]->Evaluate(sample.mappedPointsArray[imageNumber]);

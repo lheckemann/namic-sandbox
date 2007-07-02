@@ -238,7 +238,6 @@ protected:
 
   double                              m_ImageStandardDeviation;
   std::vector<typename KernelFunction::Pointer>    m_KernelFunction;
-  double                              m_MinProbability;
 
   /** Uniformly select samples from the fixed image buffer. */
   void SampleFixedImageDomain( SpatialSampleContainer& samples ) const;
@@ -255,7 +254,7 @@ protected:
   int              m_RandomSeed;
   
   mutable Array< RealType >   m_value;
-  mutable std::vector< std::vector< typename DerivativeFunctionType::Pointer > > m_DerivativeCalculator;
+  mutable std::vector< typename DerivativeFunctionType::Pointer > m_DerivativeCalculator;
   mutable std::vector< std::vector<DerivativeType> > m_DerivativesArray;
 
   // Bspline optimization
