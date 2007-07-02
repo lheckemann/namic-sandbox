@@ -146,7 +146,7 @@ void YAFFImageIO::Read( void * buffer)
 
   char * inptr = static_cast< char * >( buffer );
 
-  unsigned int pos = sz * ( mx * my ) + sy * mx + sx;
+  unsigned int pos = sz * ( nx * ny ) + sy * nx + sx;
 
   this->m_InputStream.seekg( pos, std::ios_base::beg );
 
