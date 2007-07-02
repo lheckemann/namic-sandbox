@@ -766,14 +766,6 @@ int main( int argc, char *argv[] )
   ImagePyramidArray imagePyramidArray(N);
 
 
-  // typedefs for Gaussian filters
-  // The normalized images are passed through a Gaussian filter for smoothing
-  typedef itk::DiscreteGaussianImageFilter<
-                                      InternalImageType, 
-                                      InternalImageType
-                                                    > GaussianFilterType;
-  typedef vector< GaussianFilterType::Pointer > GaussianFilterArrayType;
-
   // Begin the registration with the affine transform
   // Connect the compenents together
   //
@@ -822,7 +814,7 @@ int main( int argc, char *argv[] )
       registration->SetInterpolatorArray(     interpolatorArray[i] ,i    );
 
       imageReader = ImageReaderType::New();
-      //imageReader->ReleaseDataFlagOn();
+      imageReader->ReleaseDataFlagOn();
       imageReader->SetFileName( inputFileNames[i].c_str() );
 
       //Initialize mask filters
@@ -887,7 +879,6 @@ int main( int argc, char *argv[] )
 
       //Set up the Image Pyramid
       imagePyramidArray[i] = ImagePyramidType::New();
-      //imagePyramidArray[i]->ReleaseDataFlagOn();
       imagePyramidArray[i]->SetNumberOfLevels( multiLevelAffine );
       imagePyramidArray[i]->SetInput( castFilter->GetOutput() );
 
