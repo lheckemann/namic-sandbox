@@ -335,7 +335,7 @@ std::cout << "image IO can't stream" << std::endl;
       itkExceptionMacro("ImageIO returns IO region that does not fully contains the requested region");
       }
       
-    std::cout << "StreamableRegion set to largest possible region =";
+    std::cout << "StreamableRegion set to =";
     std::cout << this->m_StreamableRegion << std::endl;
     }
 
