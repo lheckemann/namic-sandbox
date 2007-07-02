@@ -311,7 +311,12 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
 
   if(header[0] == 1323699456 || header[0] == -1913442047)    // Byte swapping needed (Number is byte swapped number of VERSIONy or VERSION8 )
   {
-//      itk::ByteSwapper<Self> swapper = itk::ByteSwapper<Self>::New() ;
+      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
+      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[1]));
+      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[2]));
+      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[3]));
+      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[4]));
+      NeedByteSwap = true;
       //itkByteSwapper::Pointer swapper = itkByteSwapper::New();
 #if 0  //TODO:  Figure out byte swapping later
       FileIOUtility util;
@@ -342,7 +347,7 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
   std::cout<<"File: "<<filename<<"\n";
   //printf("TEST. Obj headers: NumberOfObjects %d \n", header[4]);
   // Validating the version number
-  if (Version != VERSION7 )
+  if (Version != VERSION6 )
   {
       std::cout<<"Version: "<<header[0];
       ::fprintf( stderr, "Error: Can only process version 6 and version 8 analyze object files.\n" );
@@ -380,10 +385,10 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
     AnaylzeObjectEntryArray[i]->ReadFromFilePointer(fptr,NeedByteSwap);
   }
 
-#if 0 //TODO:  Now the file pointer is pointing to the image region
+ //TODO:  Now the file pointer is pointing to the image region
   // Creating the image volume
   //Set size of the image
-  this->ImageReinitialize(XSize, YSize, ZSize, 1);
+  //this->ImageReinitialize(XSize, YSize, ZSize, 1);
 
   // Decoding the run length encoded raw data into an unsigned char volume
   index = 0;
@@ -399,7 +404,7 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
       {
         for (j = 0; j < buffer[i]; j++)
         {
-          this->operator()(index) = buffer[i+1];
+          //this->operator()(index) = buffer[i+1];
           index++;
         }
         if (index >= VolumeSize)
@@ -409,13 +414,15 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
       }
     }
   }
-  }
+  
 
   if (index != VolumeSize)
   {
     ::fprintf(stderr, "Warning: Error decoding run-length encoding.  \n");
     if(index < VolumeSize)
     {
+        std::cout<<index<<"\n";
+        std::cout<<VolumeSize<<"\n";
       ::fprintf(stderr, "Warning: file underrun.  \n");
     }
     else
@@ -424,7 +431,7 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
     }
     return false;
   }
-#endif
+
   return true;
 }
 
