@@ -37,7 +37,6 @@
 #  accuracy is poor)
 #
 
-    -numberOfSpatialSamplesTranslationPercentage 0.001
     -numberOfSpatialSamplesAffinePercentage 0.01
     -numberOfSpatialSamplesBsplinePercentage 0.1
     -numberOfSpatialSamplesBsplineHighPercentage 0.25
@@ -64,8 +63,7 @@
 # no other termination options are used
 #
 
-    -optTranslationNumberOfIterations 5
-    -optAffineNumberOfIterations 30
+    -optAffineNumberOfIterations 20
     -optBsplineNumberOfIterations 30
     -optBsplineHighNumberOfIterations 30
 
@@ -78,8 +76,7 @@
 #  "all samples mapped outside" error
 #
 
-    -optTranslationLearningRate 1e-3
-    -optAffineLearningRate  1e-3
+    -optAffineLearningRate  1e-4
     -optBsplineLearningRate 1e3
     -optBsplineHighLearningrate 1e3
  
@@ -164,7 +161,6 @@
 #  Specifies the percentage increase in the sampling rate
 #  after each multiresolution level
 #
-    -translationMultiScaleSamplePercentageIncrease 8.0 
     -affineMultiScaleSamplePercentageIncrease 4.0 
     -bsplineMultiScaleSamplePercentageIncrease 2.0
     
@@ -174,7 +170,6 @@
 #  Specifies increase in the number of iterations  
 #  after each resolution level
 #
-    -translationMultiScaleMaximumIterationIncrease  1.5
     -affineMultiScaleMaximumIterationIncrease 1.5
     -bsplineMultiScaleMaximumIterationIncrease 1.5
   
@@ -182,7 +177,6 @@
 #
 # Specifies optimizer step length increase after each multiresolution level
 #
-    -translationMultiScaleStepLengthIncrease 1.0
     -affineMultiScaleStepLengthIncrease 1.0 
     -bsplineMultiScaleStepLengthIncrease 1.0
     
@@ -242,7 +236,7 @@
 #  Maximum number of iterations performed for a line search 
 #  if the optimizer is lineSearch
 #    
-    -maximumLineIteration 7
+    -maximumLineIteration 10
     
     
     
@@ -251,5 +245,5 @@
 # the width of the parzen window to compute the entropy
 # used by all metric types computing entropy
 #
-    -parzenWindowStandardDeviation 0.4
+    -parzenWindowStandardDeviation 10
     

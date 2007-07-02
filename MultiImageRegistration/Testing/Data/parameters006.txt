@@ -1,7 +1,6 @@
 #
 # PARAMETERS OF BINARY FILE
 #
- z
 
 #
 # metricType specifies which objective function to use
@@ -37,7 +36,6 @@
 #  accuracy is poor)
 #
 
-    -numberOfSpatialSamplesTranslationPercentage 0.001
     -numberOfSpatialSamplesAffinePercentage 0.01
     -numberOfSpatialSamplesBsplinePercentage 0.05
     -numberOfSpatialSamplesBsplineHighPercentage 0.25
@@ -64,8 +62,7 @@
 # no other termination options are used
 #
 
-    -optTranslationNumberOfIterations 5
-    -optAffineNumberOfIterations 10
+    -optAffineNumberOfIterations 5
     -optBsplineNumberOfIterations 20
     -optBsplineHighNumberOfIterations 30
 
@@ -78,7 +75,6 @@
 #  "all samples mapped outside" error
 #
 
-    -optTranslationLearningRate 1e-3
     -optAffineLearningRate  1e-3
     -optBsplineLearningRate 1e3
     -optBsplineHighLearningrate 1e3
@@ -164,7 +160,6 @@
 #  Specifies the percentage increase in the sampling rate
 #  after each multiresolution level
 #
-    -translationMultiScaleSamplePercentageIncrease 8.0 
     -affineMultiScaleSamplePercentageIncrease 4.0 
     -bsplineMultiScaleSamplePercentageIncrease 2.0
     
@@ -174,7 +169,6 @@
 #  Specifies increase in the number of iterations  
 #  after each resolution level
 #
-    -translationMultiScaleMaximumIterationIncrease  1.5
     -affineMultiScaleMaximumIterationIncrease 1.5
     -bsplineMultiScaleMaximumIterationIncrease 1.5
   
@@ -182,7 +176,6 @@
 #
 # Specifies optimizer step length increase after each multiresolution level
 #
-    -translationMultiScaleStepLengthIncrease 1.0
     -affineMultiScaleStepLengthIncrease 1.0 
     -bsplineMultiScaleStepLengthIncrease 1.0
     
