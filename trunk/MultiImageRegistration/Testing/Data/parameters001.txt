@@ -37,9 +37,9 @@
 #  accuracy is poor)
 #
 
-    -numberOfSpatialSamplesAffinePercentage 0.01
-    -numberOfSpatialSamplesBsplinePercentage 0.1
-    -numberOfSpatialSamplesBsplineHighPercentage 0.25
+    -numberOfSpatialSamplesAffinePercentage      0.0025
+    -numberOfSpatialSamplesBsplinePercentage     0.0050
+    -numberOfSpatialSamplesBsplineHighPercentage 0.0500
 
 #
 # following options define number of multiresolution levels used in optimization
@@ -63,9 +63,9 @@
 # no other termination options are used
 #
 
-    -optAffineNumberOfIterations 20
-    -optBsplineNumberOfIterations 30
-    -optBsplineHighNumberOfIterations 30
+    -optAffineNumberOfIterations 30
+    -optBsplineNumberOfIterations 50
+    -optBsplineHighNumberOfIterations 50
 
  
 #
@@ -77,8 +77,8 @@
 #
 
     -optAffineLearningRate  1e-4
-    -optBsplineLearningRate 1e3
-    -optBsplineHighLearningrate 1e3
+    -optBsplineLearningRate 1e2
+    -optBsplineHighLearningrate 1e2
  
  
 
@@ -111,46 +111,7 @@
         
     
 
-    
    
-###############################
-#
-#  OPTIONS ABOUT THE OUTPUTS  
-# 
-###############################
-
-#
-# set on/off to specify whether the intermediate results
-# should be written. Set "off" if you run into memory 
-# problems. Transform files are always written.
-#
--OutputIntermediateResults on    
-    
-#
-# the option to specify whether or not to write the output images
-# in 3D
-# possible options
-#     writeOutputImages  on/off
-    -writeOutputImages on
-       
-    
-# 
-# option to specify whether or not to write the deformation fields
-# possible options:
-#     writeDeformationFields  on/off
-#
-    -writeDeformationFields off
-    
-# 
-# option to specify whether or not to write mean images in 3D format
-# possible options:
-#     writeMean3DImages  on/off
-#
-    -writeMean3DImages off
-    
-
-
-
 ############################################
 #
 # ADVANCED OPTIONS
@@ -162,7 +123,7 @@
 #  after each multiresolution level
 #
     -affineMultiScaleSamplePercentageIncrease 4.0 
-    -bsplineMultiScaleSamplePercentageIncrease 2.0
+    -bsplineMultiScaleSamplePercentageIncrease 4.0
     
     
     
@@ -170,8 +131,8 @@
 #  Specifies increase in the number of iterations  
 #  after each resolution level
 #
-    -affineMultiScaleMaximumIterationIncrease 1.5
-    -bsplineMultiScaleMaximumIterationIncrease 1.5
+    -affineMultiScaleMaximumIterationIncrease 1.75
+    -bsplineMultiScaleMaximumIterationIncrease 1.75
   
 
 #
