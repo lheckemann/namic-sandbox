@@ -342,7 +342,6 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
   std::cout<<"header[2] = "<<header[2]<<"\n";
   std::cout<<"header[3] = "<<header[3]<<"\n";
   std::cout<<"header[4] = "<<header[4]<<"\n";
-  std::cout<<"header[5] = "<<header[5]<<"\n";
   std::cout<<"Test. obj headers: NumberofObjects: "<<header[4]<<"\n";
   std::cout<<"File: "<<filename<<"\n";
   //printf("TEST. Obj headers: NumberOfObjects %d \n", header[4]);
@@ -377,7 +376,7 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
     return false;
   }
   // The background is already defined, so start with the index for 1
-  for (i = 1; i < NumberOfObjects; i++)
+  for (i = 0; i < NumberOfObjects; i++)
   {
     // Allocating a object to be created
     AnaylzeObjectEntryArray[i] = AnalyzeObjectEntry::New();
@@ -388,6 +387,8 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
  //TODO:  Now the file pointer is pointing to the image region
   // Creating the image volume
   //Set size of the image
+
+
   //this->ImageReinitialize(XSize, YSize, ZSize, 1);
 
   // Decoding the run length encoded raw data into an unsigned char volume
@@ -398,6 +399,7 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
   // Analyze object files are run length encoded a plane at a time.
 
   {
+      std::cout<<::fread(buffer, 1, BUFFERSIZE, fptr);
     while (::fread(buffer,1,BUFFERSIZE,fptr) > 0)
     {
       for (i = 0; i < BUFFERSIZE; i+=2)
