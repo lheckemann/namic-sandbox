@@ -52,11 +52,6 @@ void MetaImageIO::PrintSelf(std::ostream& os, Indent indent) const
   m_MetaImage.PrintInfo();
 }
 
-bool 
-MetaImageIO::CanStreamRead() const
-{
-  return true;
-}
 
 void MetaImageIO::SetDataFileName( const char* filename ) 
 { 
@@ -1381,7 +1376,7 @@ MetaImageIO
 RequestedRegion */
 ImageIORegion 
 MetaImageIO
-::DetermineStreamableRegionFromRequestedRegion( const ImageIORegion & requested ) const
+::DetermineStreamableRegionFromRequestedRegionRead( const ImageIORegion & requested ) const
 {
   std::cout << "MetaImageIO::DetermineStreamableRegionFromRequestedRegion()" << std::endl;
   std::cout << "Requested region = " << requested << std::endl;

@@ -249,13 +249,6 @@ public:
    * file specified. */
   virtual bool CanReadFile(const char*) = 0;
 
-  /** Determine if the ImageIO can stream reading from this
-      file. Default is false. */
-  virtual bool CanStreamRead() const
-    {
-    return false;
-    }
-
   /** Read the spacing and dimentions of the image.
    * Assumes SetFileName has been called with a valid file name. */
   virtual void ReadImageInformation() = 0;
@@ -270,12 +263,6 @@ public:
    * file specified. */
   virtual bool CanWriteFile(const char*)  = 0;
 
-  /** Determine if the ImageIO can stream writing to this
-      file. Default is false. */
-  virtual bool CanStreamWrite()
-    {
-    return false;
-    }
 
   /** Writes the spacing and dimentions of the image.
    * Assumes SetFileName has been called with a valid file name. */
@@ -302,7 +289,8 @@ public:
  * could be the region that we can read from the file. This is called the
  * streamable region, which will be smaller than the LargestPossibleRegion and
  * greater or equal to the RequestedRegion */
-  virtual ImageIORegion DetermineStreamableRegionFromRequestedRegion( const ImageIORegion & requested ) const;
+  virtual ImageIORegion 
+  DetermineStreamableRegionFromRequestedRegionRead( const ImageIORegion & requested ) const;
 
 
 protected:

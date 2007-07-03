@@ -228,7 +228,8 @@ static void dumpdata(const void *x)
 #define dumpdata(x)
 #endif // #if defined(__USE_VERY_VERBOSE_NIFTI_DEBUGGING__)
 
-ImageIORegion NiftiImageIO::DetermineStreamableRegionFromRequestedRegion( const ImageIORegion & requestedRegion ) const
+ImageIORegion NiftiImageIO
+::DetermineStreamableRegionFromRequestedRegionRead( const ImageIORegion & requestedRegion ) const
 {
   std::cout << "NiftiImageIO::DetermineStreamableRegionFromRequestedRegion() " << std::endl;
   std::cout << "RequestedRegion = " << requestedRegion << std::endl;
@@ -467,14 +468,6 @@ void NiftiImageIO::Read(void* buffer)
           }
       }
     }
-}
-
-
-bool 
-NiftiImageIO::CanStreamRead() const
-{
-  std::cout << "NiftiImageIO::CanStreamRead() returning true " << std::endl;
-  return true;
 }
 
 

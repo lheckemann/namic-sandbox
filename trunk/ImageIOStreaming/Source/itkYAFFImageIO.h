@@ -77,15 +77,12 @@ public:
    * that the IORegions has been set properly. */
   virtual void Write(const void* buffer);
 
-  /** Determine if the ImageIO can stream reading from this
-      file. Default is false. */
-  virtual bool CanStreamRead() const;
-
 /** Method for supporting streaming.  Given a requested region, determine what
  * could be the region that we can read from the file. This is called the
  * streamable region, which will be smaller than the LargestPossibleRegion and
  * greater or equal to the RequestedRegion */
-  virtual ImageIORegion DetermineStreamableRegionFromRequestedRegion( const ImageIORegion & requested ) const;
+  virtual ImageIORegion 
+  DetermineStreamableRegionFromRequestedRegionRead( const ImageIORegion & requested ) const;
 
 
 protected:

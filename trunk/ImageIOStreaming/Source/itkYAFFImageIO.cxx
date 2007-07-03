@@ -41,12 +41,6 @@ void YAFFImageIO::PrintSelf(std::ostream& os, Indent indent) const
   Superclass::PrintSelf(os, indent);
 }
 
-bool 
-YAFFImageIO::CanStreamRead() const
-{
-  return true;
-}
-
 bool YAFFImageIO::CanReadFile( const char* filename ) 
 { 
   std::cout << "YAFFImageIO::CanReadFile() " << std::endl;
@@ -199,7 +193,7 @@ YAFFImageIO
 RequestedRegion */
 ImageIORegion 
 YAFFImageIO
-::DetermineStreamableRegionFromRequestedRegion( const ImageIORegion & requested ) const
+::DetermineStreamableRegionFromRequestedRegionRead( const ImageIORegion & requested ) const
 {
   std::cout << "YAFFImageIO::DetermineStreamableRegionFromRequestedRegion()" << std::endl;
   std::cout << "Requested region = " << requested << std::endl;
