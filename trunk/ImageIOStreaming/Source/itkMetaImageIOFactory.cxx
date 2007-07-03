@@ -47,19 +47,4 @@ MetaImageIOFactory::GetDescription() const
   return "Meta ImageIO Factory, allows the loading of Meta images into insight";
 }
 
-//
-// Entry point function for ITK to invoke, in order to create a new instance of
-// a factory.
-//
-extern "C" 
-#ifdef _WIN32
-__declspec( dllexport ) 
-#endif  
-  itk::ObjectFactoryBase* itkLoad()
-{
-  std::cout << "Calling MetaImageIO itkLoad()" << std::endl;
-  return itk::MetaImageIOFactory::FactoryNew();
-}
-
-
 } // end namespace itk

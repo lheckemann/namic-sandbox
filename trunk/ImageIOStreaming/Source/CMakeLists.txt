@@ -3,6 +3,8 @@ SET(ITKIO_SRCS
   itkIOCommon.cxx
   itkNiftiImageIO.cxx
   itkNiftiImageIOFactory.cxx
+  itkMetaImageIO.cxx
+  itkMetaImageIOFactory.cxx
   itkImageIOBase.cxx
   itkImageIOFactory.cxx
   itkImageIORegion.cxx
@@ -11,25 +13,18 @@ SET(ITKIO_SRCS
 # Add ITKIO library
 ADD_LIBRARY(ITKIOStreaming ${ITKIO_SRCS})
 
-ADD_LIBRARY(ITKIOMetaStreaming SHARED 
-  itkMetaImageIO.cxx
-  itkMetaImageIOFactory.cxx
-  )
 
+# 
+# Illustration on how to create a dynamically loadable factory
+#
 ADD_LIBRARY(ITKIOYAFFStreaming SHARED 
   itkYAFFImageIO.cxx
   itkYAFFImageIOFactory.cxx
   )
 
-
 TARGET_LINK_LIBRARIES(ITKIOStreaming
   ITKniftiio
   ${ITK_ZLIB_LIBRARIES}
-  ITKCommon
-  )
-
-TARGET_LINK_LIBRARIES(ITKIOMetaStreaming
-  ITKIOStreaming
   ITKCommon
   ITKMetaIO
   )
@@ -38,7 +33,6 @@ TARGET_LINK_LIBRARIES(ITKIOYAFFStreaming
   ITKIOStreaming
   ITKCommon
   )
-
 
 IF(ITK_LIBRARY_PROPERTIES)
   SET_TARGET_PROPERTIES(ITKIO PROPERTIES ${ITK_LIBRARY_PROPERTIES})
