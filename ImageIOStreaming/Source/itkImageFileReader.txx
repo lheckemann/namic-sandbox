@@ -274,71 +274,53 @@ ImageFileReader<TOutputImage, ConvertPixelTraits>
   std::cout << "ImageFileReader::EnlargeOutputRequestedRegion()" << std::endl;
   typename TOutputImage::Pointer out = dynamic_cast<TOutputImage*>(output);
 
-  // the ImageIO object cannot stream, then set the RequestedRegion to the
-  // LargestPossibleRegion
-  if (!m_ImageIO->CanStreamRead())
+  // Delegate to the ImageIO the computation of how much the 
+  // requested region must be enlarged.
+
+  //
+  // The following code converts the ImageRegion (templated over dimension)
+  // into an ImageIORegion (not templated over dimension).
+  //
+  // TODO: Create an adaptor for converting ImageRegions into ImageIORegions.
+  //
+  ImageRegionType requestedRegion = out->GetRequestedRegion();
+  SizeType  requestedRegionSize  = requestedRegion.GetSize();
+  IndexType requestedRegionIndex = requestedRegion.GetIndex();
+
+  ImageIORegion ioRequestedRegion( TOutputImage::ImageDimension );
+
+  for( unsigned int i=0; i<TOutputImage::ImageDimension; i++)
     {
-std::cout << "image IO can't stream" << std::endl;
-    if (out)
-      {
-      std::cout << "StreamableRegion set to largest possible region =";
-      std::cout << this->m_StreamableRegion << std::endl;
-      this->m_StreamableRegion = out->GetLargestPossibleRegion();
-      }
-    else
-      {
-      throw ImageFileReaderException(__FILE__, __LINE__,
-                                     "Invalid output object type");
-      }
+    ioRequestedRegion.SetSize(i,requestedRegionSize[i] );
+    ioRequestedRegion.SetIndex(i,requestedRegionIndex[i] );
     }
-  else
+  
+  ImageIORegion ioStreamableRegion  = 
+    m_ImageIO->DetermineStreamableRegionFromRequestedRegionRead( ioRequestedRegion );
+
+  ImageRegionType streamableRegion;
+  SizeType  streamableRegionSize;
+  IndexType streamableRegionIndex;
+
+  for( unsigned int i=0; i<TOutputImage::ImageDimension; i++)
     {
-    //
-    // The following code converts the ImageRegion (templated over dimension)
-    // into an ImageIORegion (not templated over dimension).
-    //
-    // TODO: Create an adaptor for converting ImageRegions into ImageIORegions.
-    //
-    ImageRegionType requestedRegion = out->GetRequestedRegion();
-    SizeType  requestedRegionSize  = requestedRegion.GetSize();
-    IndexType requestedRegionIndex = requestedRegion.GetIndex();
+    streamableRegionSize[i] =  ioStreamableRegion.GetSize(i);
+    streamableRegionIndex[i] = ioStreamableRegion.GetIndex(i);
+    }
 
-    ImageIORegion ioRequestedRegion( TOutputImage::ImageDimension );
+  this->m_StreamableRegion.SetSize( streamableRegionSize );
+  this->m_StreamableRegion.SetIndex( streamableRegionIndex );
 
-    for( unsigned int i=0; i<TOutputImage::ImageDimension; i++)
-      {
-      ioRequestedRegion.SetSize(i,requestedRegionSize[i] );
-      ioRequestedRegion.SetIndex(i,requestedRegionIndex[i] );
-      }
+  //
+  // Check whether the requestedRegion is fully contained inside the
+  // streamable region or not.
+  if( !this->m_StreamableRegion.IsInside( requestedRegion ) )
+    {
+    itkExceptionMacro("ImageIO returns IO region that does not fully contains the requested region");
+    }
     
-    ImageIORegion ioStreamableRegion  = 
-      m_ImageIO->DetermineStreamableRegionFromRequestedRegion( ioRequestedRegion );
-
-    ImageRegionType streamableRegion;
-    SizeType  streamableRegionSize;
-    IndexType streamableRegionIndex;
-
-    for( unsigned int i=0; i<TOutputImage::ImageDimension; i++)
-      {
-      streamableRegionSize[i] =  ioStreamableRegion.GetSize(i);
-      streamableRegionIndex[i] = ioStreamableRegion.GetIndex(i);
-      }
-
-    this->m_StreamableRegion.SetSize( streamableRegionSize );
-    this->m_StreamableRegion.SetIndex( streamableRegionIndex );
- 
-    //
-    // Check whether the requestedRegion is fully contained inside the
-    // streamable region or not.
-    if( !this->m_StreamableRegion.IsInside( requestedRegion ) )
-      {
-      itkExceptionMacro("ImageIO returns IO region that does not fully contains the requested region");
-      }
-      
-    std::cout << "StreamableRegion set to =";
-    std::cout << this->m_StreamableRegion << std::endl;
-    }
-
+  std::cout << "StreamableRegion set to =";
+  std::cout << this->m_StreamableRegion << std::endl;
 }
 
 
