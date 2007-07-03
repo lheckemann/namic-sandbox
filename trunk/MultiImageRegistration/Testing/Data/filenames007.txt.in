@@ -7,7 +7,7 @@
 # this parameter and supply the full pathname
 # as filename.
 #
--i @MultiImageRegistration_TEST_OUTPUT_DIR@/ImageData002/Images/
+-i @MultiImageRegistration_TEST_OUTPUT_DIR@/ImageData007/Images/
 
 
 # 
@@ -15,7 +15,7 @@
 # All outputs are saved to this folder
 #
 #
--o @MultiImageRegistration_TEST_OUTPUT_DIR@/Registration002/   
+-o @MultiImageRegistration_TEST_OUTPUT_DIR@/Registration007/   
  
  
 # names of the input files
@@ -24,5 +24,12 @@
 #
  -f  0.mhd
  -f  1.mhd
-
+ -f  2.mhd
+ -f  3.mhd
+ -f  4.mhd
+ -f  5.mhd
+ -f  6.mhd
+ -f  7.mhd
+ -f  8.mhd
+ -f  9.mhd
  

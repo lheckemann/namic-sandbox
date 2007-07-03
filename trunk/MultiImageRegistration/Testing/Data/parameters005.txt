@@ -2,7 +2,6 @@
 # PARAMETERS OF BINARY FILE
 #
 
-
 #
 # metricType specifies which objective function to use
 # possible options:
@@ -25,8 +24,8 @@
 #    useBsplineHigh on/off
 #
     
-    -useBspline off
-    -useBsplineHigh off
+    -useBspline on
+    -useBsplineHigh on
 
 
 #
@@ -38,7 +37,7 @@
 #
 
     -numberOfSpatialSamplesAffinePercentage 0.01
-    -numberOfSpatialSamplesBsplinePercentage 0.1
+    -numberOfSpatialSamplesBsplinePercentage 0.05
     -numberOfSpatialSamplesBsplineHighPercentage 0.25
 
 #
@@ -63,8 +62,8 @@
 # no other termination options are used
 #
 
-    -optAffineNumberOfIterations 30
-    -optBsplineNumberOfIterations 30
+    -optAffineNumberOfIterations 5
+    -optBsplineNumberOfIterations 20
     -optBsplineHighNumberOfIterations 30
 
  
@@ -94,7 +93,7 @@
 # After each level number B-spline control points are doubled (8->16->32)
 #
 
-    -numberOfBsplineLevel 2
+    -numberOfBsplineLevel 0
     
 
 
