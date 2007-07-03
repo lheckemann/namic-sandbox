@@ -11,13 +11,16 @@ MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR})
 
 SET(MultiImageRegistration_TEST_INPUT_DIR "${MultiImageRegistration_SOURCE_DIR}/Testing/Data")
 
-
+CONFIGURE_FILE(
+    ${MultiImageRegistration_TEST_INPUT_DIR}/README.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/README.txt
+)
 
 #
 #
 #  Find the BrainWeb image datasets to use them as input
 #
-FIND_PATH(BrainWeb_DATA_ROOT NAMES brainweb165a10f17.mha DOC "Directory containing image from BrainWeb")
+FIND_PATH(BrainWeb_DATA_ROOT NAMES brainweb165a10f17.mha  DOC "http://public.kitware.com/pub/itk/Data/BrainWeb/BrainPart1.tgz")
 
 
 IF(BrainWeb_DATA_ROOT)
@@ -647,3 +650,221 @@ IF(BrainWeb_DATA_ROOT)
 
 
 ENDIF(BrainWeb_DATA_ROOT)
+
+
+
+
+#
+#
+#  Find the FAImage image datasets to use them as input
+#
+FIND_PATH(FAImage_DATA_ROOT NAMES FA.mhd DOC "Directory containing image from FAImage")
+
+IF(FAImage_DATA_ROOT)
+
+
+  #
+  #  Affine test with 2 input images for FA.mhd
+  #
+  ADD_TEST(CreateRandImages101 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetAffine
+    ${BrainWeb_DATA_ROOT}/FA.mhd
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData101
+    2 on
+    )
+  MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration)
+  CONFIGURE_FILE( 
+    ${MultiImageRegistration_TEST_INPUT_DIR}/filenames101.txt.in
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101/filenames101.txt
+  )
+  CONFIGURE_FILE( 
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters101.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101/parameters.txt
+  )
+  CONFIGURE_FILE(
+    ${MultiImageRegistration_TEST_INPUT_DIR}/README101.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101/README.txt
+  )
+  ADD_TEST(RegistrationTest101 ${EXECUTABLE_OUTPUT_PATH}/GroupwiseRegistration
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101/filenames101.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101/parameters101.txt
+    )
+  ADD_TEST(WriteOutputsTest101 ${EXECUTABLE_OUTPUT_PATH}/ComputeOutputs
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101/filenames101.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101/parameters101.txt
+    )
+  set_tests_properties(CreateRandImages101 PROPERTIES TIMEOUT 3600)
+  set_tests_properties(RegistrationTest101 PROPERTIES TIMEOUT 3600)
+  set_tests_properties(WriteOutputsTest101 PROPERTIES TIMEOUT 3600)
+  
+    
+  #
+  #  B-spline test with 2 images for FA.mhd
+  #
+  ADD_TEST(CreateRandImages102 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetBspline
+    ${BrainWeb_DATA_ROOT}/FA.mhd
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData102
+    2 on
+    )
+  MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration102)
+  CONFIGURE_FILE( 
+    ${MultiImageRegistration_TEST_INPUT_DIR}/filenames102.txt.in
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration102/filenames102.txt
+  )
+  CONFIGURE_FILE( 
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters102.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration102/parameters102.txt
+  )
+  CONFIGURE_FILE(
+    ${MultiImageRegistration_TEST_INPUT_DIR}/README102.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration102/README.txt
+  )
+  ADD_TEST(RegistrationTest102 ${EXECUTABLE_OUTPUT_PATH}/GroupwiseRegistration
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration102/filenames102.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration102/parameters102.txt
+    ) 
+  ADD_TEST(WriteOutputsTest102 ${EXECUTABLE_OUTPUT_PATH}/ComputeOutputs
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration102/filenames102.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration102/parameters102.txt
+    )
+  set_tests_properties(CreateRandImages102 PROPERTIES TIMEOUT 3600)
+  set_tests_properties(RegistrationTest102 PROPERTIES TIMEOUT 7200)
+  set_tests_properties(WriteOutputsTest102 PROPERTIES TIMEOUT 3600)
+
+
+  #
+  #  Affine test with 10 input images for FA.mhd
+  #
+  ADD_TEST(CreateRandImages103 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetAffine
+    ${BrainWeb_DATA_ROOT}/FA.mhd
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData103
+    10 on
+    )
+  MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration)
+  CONFIGURE_FILE( 
+    ${MultiImageRegistration_TEST_INPUT_DIR}/filenames103.txt.in
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103/filenames103.txt
+  )
+  CONFIGURE_FILE( 
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters103.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103/parameters.txt
+  )
+  CONFIGURE_FILE(
+    ${MultiImageRegistration_TEST_INPUT_DIR}/README103.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103/README.txt
+  )
+  ADD_TEST(RegistrationTest103 ${EXECUTABLE_OUTPUT_PATH}/GroupwiseRegistration
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103/filenames103.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103/parameters103.txt
+    )
+  ADD_TEST(WriteOutputsTest103 ${EXECUTABLE_OUTPUT_PATH}/ComputeOutputs
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103/filenames103.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103/parameters103.txt
+    )
+  set_tests_properties(CreateRandImages103 PROPERTIES TIMEOUT 36000)
+  set_tests_properties(RegistrationTest103 PROPERTIES TIMEOUT 36000)
+  set_tests_properties(WriteOutputsTest103 PROPERTIES TIMEOUT 36000)
+  
+    
+  #
+  #  B-spline test with 10 images for FA.mhd
+  #
+  ADD_TEST(CreateRandImages104 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetBspline
+    ${BrainWeb_DATA_ROOT}/FA.mhd
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData104
+    10 on
+    )
+  MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration104)
+  CONFIGURE_FILE( 
+    ${MultiImageRegistration_TEST_INPUT_DIR}/filenames104.txt.in
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration104/filenames104.txt
+  )
+  CONFIGURE_FILE( 
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters104.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration104/parameters104.txt
+  )
+  CONFIGURE_FILE(
+    ${MultiImageRegistration_TEST_INPUT_DIR}/README104.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration104/README.txt
+  )
+  ADD_TEST(RegistrationTest104 ${EXECUTABLE_OUTPUT_PATH}/GroupwiseRegistration
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration104/filenames104.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration104/parameters104.txt
+    ) 
+  ADD_TEST(WriteOutputsTest104 ${EXECUTABLE_OUTPUT_PATH}/ComputeOutputs
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration104/filenames104.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration104/parameters104.txt
+    )
+  set_tests_properties(CreateRandImages104 PROPERTIES TIMEOUT 36000)
+  set_tests_properties(RegistrationTest104 PROPERTIES TIMEOUT 72000)
+  set_tests_properties(WriteOutputsTest104 PROPERTIES TIMEOUT 36000)
+
+
+  #
+  #  Affine test with 30 input images for FA.mhd
+  #
+  ADD_TEST(CreateRandImages105 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetAffine
+    ${BrainWeb_DATA_ROOT}/FA.mhd
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData105
+    30 on
+    )
+  MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration)
+  CONFIGURE_FILE( 
+    ${MultiImageRegistration_TEST_INPUT_DIR}/filenames105.txt.in
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105/filenames105.txt
+  )
+  CONFIGURE_FILE( 
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters105.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105/parameters.txt
+  )
+  CONFIGURE_FILE(
+    ${MultiImageRegistration_TEST_INPUT_DIR}/README105.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105/README.txt
+  )
+  ADD_TEST(RegistrationTest105 ${EXECUTABLE_OUTPUT_PATH}/GroupwiseRegistration
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105/filenames105.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105/parameters105.txt
+    )
+  ADD_TEST(WriteOutputsTest105 ${EXECUTABLE_OUTPUT_PATH}/ComputeOutputs
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105/filenames105.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105/parameters105.txt
+    )
+  set_tests_properties(CreateRandImages105 PROPERTIES TIMEOUT 36000)
+  set_tests_properties(RegistrationTest105 PROPERTIES TIMEOUT 36000)
+  set_tests_properties(WriteOutputsTest105 PROPERTIES TIMEOUT 36000)
+  
+    
+  #
+  #  B-spline test with 30 images for FA.mhd
+  #
+  ADD_TEST(CreateRandImages106 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetBspline
+    ${BrainWeb_DATA_ROOT}/FA.mhd
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData106
+    30 on
+    )
+  MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration106)
+  CONFIGURE_FILE( 
+    ${MultiImageRegistration_TEST_INPUT_DIR}/filenames106.txt.in
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration106/filenames106.txt
+  )
+  CONFIGURE_FILE( 
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters106.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration106/parameters106.txt
+  )
+  CONFIGURE_FILE(
+    ${MultiImageRegistration_TEST_INPUT_DIR}/README106.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration106/README.txt
+  )
+  ADD_TEST(RegistrationTest106 ${EXECUTABLE_OUTPUT_PATH}/GroupwiseRegistration
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration106/filenames106.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration106/parameters106.txt
+    ) 
+  ADD_TEST(WriteOutputsTest106 ${EXECUTABLE_OUTPUT_PATH}/ComputeOutputs
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration106/filenames106.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration106/parameters106.txt
+    )
+  set_tests_properties(CreateRandImages106 PROPERTIES TIMEOUT 36000)
+  set_tests_properties(RegistrationTest106 PROPERTIES TIMEOUT 72000)
+  set_tests_properties(WriteOutputsTest106 PROPERTIES TIMEOUT 36000)
+
+  
+ENDIF(FAImage_DATA_ROOT)
