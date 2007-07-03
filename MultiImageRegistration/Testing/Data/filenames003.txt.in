@@ -7,7 +7,7 @@
 # this parameter and supply the full pathname
 # as filename.
 #
--i @MultiImageRegistration_TEST_OUTPUT_DIR@/ImagesAffine_10/Images/
+-i @MultiImageRegistration_TEST_OUTPUT_DIR@/ImageData003/Images/
 
 
 # 
@@ -24,12 +24,4 @@
 #
  -f  0.mhd
  -f  1.mhd
- -f  2.mhd
- -f  3.mhd
- -f  4.mhd
- -f  5.mhd
- -f  6.mhd
- -f  7.mhd
- -f  8.mhd
- -f  9.mhd
  

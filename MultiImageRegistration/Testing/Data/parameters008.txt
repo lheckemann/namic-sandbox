@@ -2,6 +2,7 @@
 # PARAMETERS OF BINARY FILE
 #
 
+
 #
 # metricType specifies which objective function to use
 # possible options:
@@ -24,8 +25,8 @@
 #    useBsplineHigh on/off
 #
     
-    -useBspline on
-    -useBsplineHigh on
+    -useBspline off
+    -useBsplineHigh off
 
 
 #
@@ -36,8 +37,8 @@
 #  accuracy is poor)
 #
 
-    -numberOfSpatialSamplesAffinePercentage 0.01
-    -numberOfSpatialSamplesBsplinePercentage 0.05
+    -numberOfSpatialSamplesAffinePercentage 0.0025
+    -numberOfSpatialSamplesBsplinePercentage 0.1
     -numberOfSpatialSamplesBsplineHighPercentage 0.25
 
 #
@@ -62,8 +63,8 @@
 # no other termination options are used
 #
 
-    -optAffineNumberOfIterations 5
-    -optBsplineNumberOfIterations 20
+    -optAffineNumberOfIterations 30
+    -optBsplineNumberOfIterations 30
     -optBsplineHighNumberOfIterations 30
 
  
@@ -93,7 +94,7 @@
 # After each level number B-spline control points are doubled (8->16->32)
 #
 
-    -numberOfBsplineLevel 0
+    -numberOfBsplineLevel 2
     
 
 
@@ -169,14 +170,14 @@
 #  Specifies increase in the number of iterations  
 #  after each resolution level
 #
-    -affineMultiScaleMaximumIterationIncrease 1.5
+    -affineMultiScaleMaximumIterationIncrease 2.0
     -bsplineMultiScaleMaximumIterationIncrease 1.5
   
 
 #
 # Specifies optimizer step length increase after each multiresolution level
 #
-    -affineMultiScaleStepLengthIncrease 1.0 
+    -affineMultiScaleStepLengthIncrease 1.0
     -bsplineMultiScaleStepLengthIncrease 1.0
     
 
@@ -235,7 +236,7 @@
 #  Maximum number of iterations performed for a line search 
 #  if the optimizer is lineSearch
 #    
-    -maximumLineIteration 7
+    -maximumLineIteration 10
     
     
     
@@ -244,5 +245,5 @@
 # the width of the parzen window to compute the entropy
 # used by all metric types computing entropy
 #
-    -parzenWindowStandardDeviation 0.4
+    -parzenWindowStandardDeviation 10
     

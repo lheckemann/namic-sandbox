@@ -7,7 +7,7 @@
 # this parameter and supply the full pathname
 # as filename.
 #
--i @MultiImageRegistration_TEST_OUTPUT_DIR@/ImagesAffine_02/Images/
+-i @MultiImageRegistration_TEST_OUTPUT_DIR@/ImageData001/Images/
 
 
 # 

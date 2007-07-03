@@ -37,7 +37,7 @@
 #  accuracy is poor)
 #
 
-    -numberOfSpatialSamplesAffinePercentage 0.0025
+    -numberOfSpatialSamplesAffinePercentage 0.01
     -numberOfSpatialSamplesBsplinePercentage 0.1
     -numberOfSpatialSamplesBsplineHighPercentage 0.25
 
@@ -63,7 +63,7 @@
 # no other termination options are used
 #
 
-    -optAffineNumberOfIterations 30
+    -optAffineNumberOfIterations 20
     -optBsplineNumberOfIterations 30
     -optBsplineHighNumberOfIterations 30
 
@@ -76,7 +76,7 @@
 #  "all samples mapped outside" error
 #
 
-    -optAffineLearningRate  1e-3
+    -optAffineLearningRate  1e-4
     -optBsplineLearningRate 1e3
     -optBsplineHighLearningrate 1e3
  
@@ -170,14 +170,14 @@
 #  Specifies increase in the number of iterations  
 #  after each resolution level
 #
-    -affineMultiScaleMaximumIterationIncrease 2.0
+    -affineMultiScaleMaximumIterationIncrease 1.5
     -bsplineMultiScaleMaximumIterationIncrease 1.5
   
 
 #
 # Specifies optimizer step length increase after each multiresolution level
 #
-    -affineMultiScaleStepLengthIncrease 1.0
+    -affineMultiScaleStepLengthIncrease 1.0 
     -bsplineMultiScaleStepLengthIncrease 1.0
     
 
