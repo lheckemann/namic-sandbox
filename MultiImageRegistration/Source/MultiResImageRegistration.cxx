@@ -88,7 +88,7 @@
 #include "itkNeighborhoodConnectedImageFilter.h"
 
 //Define the global types for image type
-#define PixelType unsigned short
+#define PixelType float
 #define InternalPixelType float
 #define Dimension 3
 
@@ -860,15 +860,10 @@ int main( int argc, char *argv[] )
         cout << "message: Computing mask " << endl;
       }
 
-      typedef itk::CastImageFilter<ImageType, InternalImageType> CastImageFilterType;
-      CastImageFilterType::Pointer castFilter = CastImageFilterType::New();
-      castFilter->SetInput(imageReader->GetOutput());
-      castFilter->ReleaseDataFlagOn();
-
       //Set up the Image Pyramid
       imagePyramidArray[i] = ImagePyramidType::New();
       imagePyramidArray[i]->SetNumberOfLevels( multiLevelAffine );
-      imagePyramidArray[i]->SetInput( castFilter->GetOutput() );
+      imagePyramidArray[i]->SetInput( imageReader->GetOutput() );
 
       std::cout << "message: Reading Image: " << inputFileNames[i].c_str() << std::endl;
       imagePyramidArray[i]->Update();
