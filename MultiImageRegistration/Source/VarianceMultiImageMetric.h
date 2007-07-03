@@ -125,21 +125,19 @@ public:
   typedef typename Superclass::DerivativeType           DerivativeType;
   typedef typename Superclass::ParametersType           ParametersType;
   typedef typename Superclass::ParametersArray          ParametersArray;
-  typedef typename Superclass::FixedImageType           FixedImageType;
-  typedef typename Superclass::MovingImageType          MovingImageType;
-  typedef typename Superclass::FixedImageConstPointer   FixedImageConstPointer;
-  typedef typename Superclass::MovingImageConstPointer  MovingImageCosntPointer;
+  typedef typename Superclass::ImageType                ImageType;
+  typedef typename Superclass::ImageConstPointer        ImageConstPointer;
   typedef typename Superclass::GradientImageType        GradientImageType;
   typedef typename Superclass::GradientImagePointer     GradientImagePointer;
   typedef typename Superclass::GradientPixelType        GradientPixelType;
   typedef typename Superclass::PixelType                ImagePixelType;
-  typedef typename Superclass::RealType        RealType;
+  typedef typename Superclass::RealType                 RealType;
 
 
   /** Index and Point typedef support. */
-  typedef typename FixedImageType::IndexType            FixedImageIndexType;
+  typedef typename ImageType::IndexType            FixedImageIndexType;
   typedef typename FixedImageIndexType::IndexValueType  FixedImageIndexValueType;
-  typedef typename MovingImageType::IndexType           MovingImageIndexType;
+  typedef typename ImageType::IndexType                 MovingImageIndexType;
   typedef typename TransformType::InputPointType        FixedImagePointType;
   typedef typename TransformType::OutputPointType       MovingImagePointType;
 
@@ -149,11 +147,11 @@ public:
   };
 
   /** PixelType */
-  typedef typename FixedImageType::PixelType            PixelType;
+  typedef typename ImageType::PixelType            PixelType;
 
   /** Enum of the moving image dimension. */
   itkStaticConstMacro(MovingImageDimension, unsigned int,
-                      MovingImageType::ImageDimension);
+                      ImageType::ImageDimension);
 
 
 

@@ -124,39 +124,36 @@ public:
   typedef typename Superclass::DerivativeType           DerivativeType;
   typedef typename Superclass::ParametersType           ParametersType;
   typedef typename Superclass::ParametersArray          ParametersArray;
-  typedef typename Superclass::FixedImageType           FixedImageType;
-  typedef typename Superclass::MovingImageType          MovingImageType;
-  typedef typename Superclass::FixedImageConstPointer   FixedImageConstPointer;
-  typedef typename Superclass::MovingImageConstPointer  MovingImageCosntPointer;
+  typedef typename Superclass::ImageType                ImageType;
+  typedef typename Superclass::ImageConstPointer        ImageConstPointer;
   typedef typename Superclass::GradientImageType        GradientImageType;
   typedef typename Superclass::GradientImagePointer     GradientImagePointer;
   typedef typename Superclass::GradientPixelType        GradientPixelType;
   typedef typename Superclass::PixelType                PixelType;
-  typedef typename Superclass::RealType        RealType;
-  typedef typename Superclass::GradientOutputType     GradientOutputType;
+  typedef typename Superclass::RealType                 RealType;
 
   
   struct ThreadStruct
   {
     ConstPointer Metric;
   };
-  //typedef vector<FixedImageType> FixedImageTypeArray;
-  //typedef vector<FixedImageConstPointer> ImageConstPointerArray;
+  //typedef vector<ImageType> ImageTypeArray;
+  //typedef vector<ImageConstPointer> ImageConstPointerArray;
 
   /** Index and Point typedef support. */
-  typedef typename FixedImageType::IndexType            FixedImageIndexType;
+  typedef typename ImageType::IndexType            FixedImageIndexType;
   typedef typename FixedImageIndexType::IndexValueType  FixedImageIndexValueType;
-  typedef typename MovingImageType::IndexType           MovingImageIndexType;
+  typedef typename ImageType::IndexType           MovingImageIndexType;
   typedef typename TransformType::InputPointType        FixedImagePointType;
   typedef typename TransformType::OutputPointType       MovingImagePointType;
 
   /** PixelType */
-  //typedef typename FixedImageType::PixelType            PixelType;
+  //typedef typename ImageType::PixelType            PixelType;
 
 
   /** Enum of the moving image dimension. */
   itkStaticConstMacro(MovingImageDimension, unsigned int,
-                      MovingImageType::ImageDimension);
+                      ImageType::ImageDimension);
 
   /** Get the derivatives of the match measure. */
   void GetDerivative( 
@@ -249,7 +246,7 @@ protected:
   void UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSample& sample, const RealType& weight, const int& imageNumber, const int& threadID) const;
 
   typedef typename Superclass::CoordinateRepresentationType  CoordinateRepresentationType;
-  typedef CentralDifferenceImageFunction< MovingImageType,   CoordinateRepresentationType > DerivativeFunctionType;
+  typedef CentralDifferenceImageFunction< ImageType,   CoordinateRepresentationType > DerivativeFunctionType;
 
 
   bool             m_ReseedIterator;
@@ -267,7 +264,7 @@ protected:
   bool m_UseMask;
   unsigned int m_NumberOfFixedImages;
 
-  typedef ImageRandomNonRepeatingConstIteratorWithIndex < FixedImageType > RandomIterator;
+  typedef ImageRandomNonRepeatingConstIteratorWithIndex < ImageType > RandomIterator;
   mutable std::vector<RandomIterator*> m_RandIterArray;
 
   // Get nonzero indexex
