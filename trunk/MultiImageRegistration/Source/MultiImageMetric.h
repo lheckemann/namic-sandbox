@@ -20,33 +20,33 @@
 #include "itkImageBase.h"
 #include "itkTransform.h"
 #include "itkInterpolateImageFunction.h"
-#include "itkVectorInterpolateImageFunction.h"
 #include "itkSingleValuedCostFunction.h"
 #include "itkExceptionObject.h"
-#include "itkGradientRecursiveGaussianImageFilter.h"
 #include "itkSpatialObject.h"
 #include "itkMultiThreader.h"
 #include "itkImageMaskSpatialObject.h"
-#include "UserBSplineDeformableTransform.h"
 
-#include <vector>
+// Project specific headers
+#include "UserBSplineDeformableTransform.h"
 #include "UserMacro.h"
 
+#include <vector>
 using std::vector;
     
 namespace itk
 {
   
-/** \class CongealingMetric
- * \brief Computes similarity between regions of two images.
+/** \class MultiImageMetric
+ * \brief Computes similarity between regions of a group of images
  *
- * This Class is templated over the type of the two input images.
- * It expects a Transform and an Interpolator to be plugged in.
+ * This Class is templated over the type of an input image.
+ * It expects an array of  Transforms and an array of
+ * Interpolators to be plugged in.
  * This particular class is the base class for a hierarchy of 
  * similarity metrics.
  *
  * This class computes a value that measures the similarity 
- * between the Fixed image and the transformed Moving image.
+ * within a group of images.
  * The Interpolator is used to compute intensity values on 
  * non-grid positions resulting from mapping points through 
  * the Transform.
@@ -56,7 +56,7 @@ namespace itk
  *
  */
 
-template <class TFixedImage> 
+template <class TImage> 
 class ITK_EXPORT MultiImageMetric : public SingleValuedCostFunction 
 {
 public:
@@ -72,21 +72,18 @@ public:
   /** Run-time type information (and related methods). */
   itkTypeMacro( MultiImageMetric, SingleValuedCostFunction);
 
-  /**  Type of the moving Image. */
-  typedef TFixedImage                                TMovingImage;
-  typedef TMovingImage                               MovingImageType;
-  typedef typename TMovingImage::PixelType           PixelType;
-  typedef typename MovingImageType::ConstPointer     MovingImageConstPointer;
+  /**  Type of an input Image. */
+  typedef TImage                                     ImageType;
+  typedef typename ImageType::PixelType              PixelType;
+  typedef typename ImageType::ConstPointer           ImageConstPointer;
 
-  /**  Type of the fixed Image. */
-  typedef TFixedImage                                FixedImageType;
-  typedef typename FixedImageType::ConstPointer      FixedImageConstPointer;
-  typedef typename FixedImageType::RegionType        FixedImageRegionType;
-  typedef std::vector<FixedImageConstPointer>        ImageConstPointerArray;
+  /**  Type of the Image Region */
+  typedef typename ImageType::RegionType        ImageRegionType;
+  typedef std::vector<ImageConstPointer>        ImageConstPointerArray;
 
   /** Constants for the image dimensions */
   itkStaticConstMacro(MovingImageDimension, unsigned int,
-                      TMovingImage::ImageDimension);
+                      ImageType::ImageDimension);
 
   /**  Type of the Transform Base class */
   typedef Transform<CoordinateRepresentationType, 
@@ -102,7 +99,7 @@ public:
 
   /**  Type of the Interpolator Base class */
   typedef InterpolateImageFunction<
-                                 MovingImageType,
+                                 ImageType,
                                  CoordinateRepresentationType > InterpolatorType;
 
 
@@ -112,20 +109,11 @@ public:
   typedef Image<GradientPixelType,itkGetStaticConstMacro(MovingImageDimension)> GradientImageType;
   typedef typename GradientImageType::Pointer     GradientImagePointer;
   typedef std::vector<GradientImagePointer>   GradientImagePointerArray;
-  typedef GradientRecursiveGaussianImageFilter< MovingImageType,GradientImageType > GradientImageFilterType;
 
 
   typedef typename InterpolatorType::Pointer         InterpolatorPointer;
   typedef std::vector<InterpolatorPointer>           InterpolatorPointerArray;
 
-  /** interpolator for gradient images */
-  typedef VectorInterpolateImageFunction<
-                                 GradientImageType,
-                                 PixelType > GradientInterpolatorType;
-  typedef typename GradientInterpolatorType::Pointer         GradientInterpolatorPointer;
-  typedef std::vector<GradientInterpolatorPointer>           GradientInterpolatorPointerArray;
-  typedef typename GradientInterpolatorType::OutputType                   GradientOutputType;
-  
   /**  Type for the mask of the fixed image. Only pixels that are "inside"
        this mask will be considered for the computation of the metric */
   typedef ImageMaskSpatialObject< itkGetStaticConstMacro(MovingImageDimension)
@@ -152,10 +140,10 @@ public:
   typedef std::vector<ParametersType>                ParametersArray;
 
   /** Connect i'th image to Image Array */
-  UserSetConstObjectMacro( ImageArray, FixedImageType );
+  UserSetConstObjectMacro( ImageArray, ImageType );
 
   /**Get the i'th Image */
-  UserGetConstObjectMacro( ImageArray, FixedImageType );
+  UserGetConstObjectMacro( ImageArray, ImageType );
 
   /**Connect the Transform Array */
   UserSetObjectMacro( TransformArray, TransformType );
@@ -169,20 +157,14 @@ public:
   /** Get a pointer to the i'th Interpolator.  */
   UserGetConstObjectMacro( InterpolatorArray, InterpolatorType );
 
-  /** Connect the i'th gradient Interpolator. */
-  UserSetObjectMacro( GradientInterpolatorArray, GradientInterpolatorType );
-
-  /** Get a pointer to the i'th gradient Interpolator.  */
-  UserGetConstObjectMacro( GradientInterpolatorArray, GradientInterpolatorType );
-  
   /** Get the number of pixels considered in the computation. */
   itkGetConstReferenceMacro( NumberOfPixelsCounted, unsigned long );
 
   /** Set the region over which the metric will be computed */
-  itkSetMacro( FixedImageRegion, FixedImageRegionType );
+  itkSetMacro( FixedImageRegion, ImageRegionType );
 
   /** Get the region over which the metric will be computed */
-  itkGetConstReferenceMacro( FixedImageRegion, FixedImageRegionType );
+  itkGetConstReferenceMacro( FixedImageRegion, ImageRegionType );
  
   /** Set/Get the i'th image mask. */
   UserSetObjectMacro( ImageMaskArray, MovingImageMaskType );
@@ -258,8 +240,7 @@ protected:
   mutable TransformPointerArray m_TransformArray;
   InterpolatorPointerArray    m_InterpolatorArray;
 
-  GradientInterpolatorPointerArray m_GradientInterpolatorArray;
-  
+
   bool                        m_ComputeGradient;
   bool                        m_CorrectInterpolationArtefact;
   //GradientImagePointer        m_GradientImage;
@@ -288,7 +269,7 @@ protected:
   MultiImageMetric(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
   
-  FixedImageRegionType        m_FixedImageRegion;  
+  ImageRegionType        m_FixedImageRegion;
   
   /** Get/Set the number of threads to create when executing. */
   itkSetClampMacro( NumberOfThreads, unsigned int, 1, ITK_MAX_THREADS );

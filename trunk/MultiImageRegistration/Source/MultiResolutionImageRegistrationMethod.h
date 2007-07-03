@@ -94,7 +94,6 @@ public:
   /**  Type of the metric. */
   typedef MultiImageMetric< ImageType>       MetricType;
   typedef typename MetricType::Pointer                MetricPointer;
-  typedef typename MetricType::FixedImageRegionType   FixedImageRegionType;
 
   /**  Type of the Transform . */
   typedef typename MetricType::TransformType       TransformType;
@@ -129,11 +128,7 @@ public:
   /** Type used for representing point components  */
   typedef typename MetricType::CoordinateRepresentationType CoordinateRepresentationType;
   
-  /** Typedef for gradient image interpolators */
-  typedef typename  MetricType::GradientInterpolatorType GradientInterpolatorType;
-  typedef typename  MetricType::GradientInterpolatorPointerArray GradientInterpolatorPointerArray;
 
-  
   /** Type of the Transformation parameters This is the same type used to
    *  represent the search space of the optimization algorithm */
   typedef  typename MetricType::TransformParametersType    ParametersType;
@@ -164,10 +159,6 @@ public:
   UserSetObjectMacro( InterpolatorArray, InterpolatorType );
   UserGetObjectMacro( InterpolatorArray, InterpolatorType );
 
-  /** Set/Get the Interpolator. */
-  UserSetObjectMacro( GradientInterpolatorArray, GradientInterpolatorType );
-  UserGetObjectMacro( GradientInterpolatorArray, GradientInterpolatorType );
-  
   /** Set/Get the Fixed image pyramid. */
   UserSetObjectMacro( ImagePyramidArray, ImagePyramidType );
   UserGetObjectMacro( ImagePyramidArray, ImagePyramidType );
@@ -243,8 +234,7 @@ private:
 
   TransformPointerArray            m_TransformArray;
   InterpolatorPointerArray         m_InterpolatorArray;
-  GradientInterpolatorPointerArray m_GradientInterpolatorArray;
-  
+
   ImagePyramidPointerArray         m_ImagePyramidArray;
   GradientImagePyramidArray        m_GradientImagePyramidArray;
   

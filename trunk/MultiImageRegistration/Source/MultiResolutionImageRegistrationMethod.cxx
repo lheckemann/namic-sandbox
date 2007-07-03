@@ -62,15 +62,13 @@ void MultiResolutionMultiImageRegistrationMethod<ImageType>
   m_InterpolatorArray.resize(N);
   m_ImagePyramidArray.resize(N);
   m_ImageMaskArray.resize(N);
-  m_GradientInterpolatorArray.resize(N);
-  
+
   for(int i=m_NumberOfImages; i<N; i++)
   {
     m_TransformArray[i]=0;
     m_InterpolatorArray[i]=0;
     m_ImagePyramidArray[i]=0;
     m_ImageMaskArray[i]=0;
-    m_GradientInterpolatorArray[i] = 0;
   }
 
   //Resize the gradient image container

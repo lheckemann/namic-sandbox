@@ -27,8 +27,8 @@ namespace itk
 /*
  * Constructor
  */
-template <class TFixedImage> 
-MultiImageMetric<TFixedImage>
+template <class TImage>
+MultiImageMetric<TImage>
 ::MultiImageMetric()
 {
 //   m_FixedImage    = 0; // has to be provided by the user.
@@ -62,8 +62,8 @@ MultiImageMetric<TFixedImage>
 /*
  * Constructor
  */
-template <class TFixedImage> 
-MultiImageMetric<TFixedImage>
+template <class TImage>
+MultiImageMetric<TImage>
 ::~MultiImageMetric()
 {
 
@@ -73,9 +73,9 @@ MultiImageMetric<TFixedImage>
 /*
  * Set the parameters that define a unique transform
  */
-template <class TFixedImage> 
+template <class TImage>
 void
-MultiImageMetric<TFixedImage>
+MultiImageMetric<TImage>
 ::SetTransformParameters( const ParametersType & parameters ) const
 {
 
@@ -96,9 +96,9 @@ MultiImageMetric<TFixedImage>
 /*
  * Initialize
  */
-template <class TFixedImage> 
+template <class TImage>
 void
-MultiImageMetric<TFixedImage>
+MultiImageMetric<TImage>
 ::Initialize(void) throw ( ExceptionObject )
 {
   // Set Number of Threads
@@ -191,9 +191,9 @@ MultiImageMetric<TFixedImage>
 /*
  * Finalize
  */
-template <class TFixedImage> 
+template <class TImage>
 void
-MultiImageMetric<TFixedImage>
+MultiImageMetric<TImage>
 ::Finalize(void)
 {
 
@@ -203,9 +203,9 @@ MultiImageMetric<TFixedImage>
 /*
  * PrintSelf
  */
-template <class TFixedImage> 
+template <class TImage>
 void
-MultiImageMetric<TFixedImage>
+MultiImageMetric<TImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf( os, indent );
@@ -225,9 +225,9 @@ MultiImageMetric<TFixedImage>
 
 }
 
-template <class TFixedImage> 
+template <class TImage>
 void 
-MultiImageMetric<TFixedImage>
+MultiImageMetric<TImage>
 ::SetNumberOfImages(int N)
 {
 
@@ -236,7 +236,6 @@ MultiImageMetric<TFixedImage>
   m_InterpolatorArray.resize(N);
   m_TransformArray.resize(N);
   m_ImageMaskArray.resize(N);
-  m_GradientInterpolatorArray.resize(N);
   m_BSplineTransformArray.resize(N);
   
   for(int i=m_NumberOfImages; i<N; i++ )
@@ -246,31 +245,30 @@ MultiImageMetric<TFixedImage>
     m_InterpolatorArray[i]=0;
     m_TransformArray[i]=0;
     m_ImageMaskArray[i]=0;
-    m_GradientInterpolatorArray[i] = 0;
     m_BSplineTransformArray[i] = 0;
   }
     
   m_NumberOfImages = N;
 }
 
-template <class TFixedImage> 
+template <class TImage>
 int
-MultiImageMetric<TFixedImage>
+MultiImageMetric<TImage>
 ::GetNumberOfImages()
 {
   return m_NumberOfImages;
 }
 
-template <class TFixedImage>
+template <class TImage>
 void
-MultiImageMetric<TFixedImage>
+MultiImageMetric<TImage>
   ::BeforeGetThreadedValue(const ParametersType & parameters) const
 {
 }
 
-template <class TFixedImage>
+template <class TImage>
 void
-MultiImageMetric<TFixedImage>
+MultiImageMetric<TImage>
 ::AfterGetThreadedValue(MeasureType & value, DerivativeType & derivative) const
 {
 }
@@ -278,9 +276,9 @@ MultiImageMetric<TFixedImage>
 /*
  * Get the match Measure
  */
-template < class TFixedImage >
+template < class TImage >
 void
-MultiImageMetric < TFixedImage >
+MultiImageMetric < TImage >
 ::GetThreadedValue ( int itkNotUsed( threadId ) ) const
 {
   //int x;
@@ -291,9 +289,9 @@ MultiImageMetric < TFixedImage >
 /*
  * Get the match Measure
  */
-template < class TFixedImage >
-typename MultiImageMetric < TFixedImage >::MeasureType
-MultiImageMetric< TFixedImage >
+template < class TImage >
+typename MultiImageMetric < TImage >::MeasureType
+MultiImageMetric< TImage >
 ::GetValue(const ParametersType & parameters) const
 {
   // Call a method that perform some calculations prior to splitting the main
@@ -325,9 +323,9 @@ MultiImageMetric< TFixedImage >
 // Callback routine used by the threading library. This routine just calls
 // the GetThreadedValue() method after setting the correct partition of data
 // for this thread.
-template < class TFixedImage >
+template < class TImage >
 ITK_THREAD_RETURN_TYPE
-MultiImageMetric< TFixedImage >
+MultiImageMetric< TImage >
 ::ThreaderCallback( void *arg )
 {
   ThreadStruct *str;
