@@ -546,22 +546,31 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
   
 
   void ReadFromFilePointer(FILE *fptr, const bool NeedByteSwap ){
+      int color;
   //IntFunc
-  ReadBytes<char>(fptr, this->m_Name, 32,NeedByteSwap);
+  ReadBytes<char>(fptr, this->m_Name, 32,false);
   ReadBytes<int>(fptr, &(this->m_DisplayFlag),1,NeedByteSwap);
-  ReadBytes<unsigned char>(fptr, &m_CopyFlag,1,NeedByteSwap);
-  ReadBytes<unsigned char>(fptr, &m_MirrorFlag,1,NeedByteSwap);
-  ReadBytes<unsigned char>(fptr, &m_StatusFlag,1,NeedByteSwap);
-  ReadBytes<unsigned char>(fptr, &m_NeighborsUsedFlag,1,NeedByteSwap);
+  ReadBytes<unsigned char>(fptr, &m_CopyFlag,1,false);
+  ReadBytes<unsigned char>(fptr, &m_MirrorFlag,1,false);
+  ReadBytes<unsigned char>(fptr, &m_StatusFlag,1,false);
+  ReadBytes<unsigned char>(fptr, &m_NeighborsUsedFlag,1,false);
   ReadBytes<int>(fptr, &m_Shades,1,NeedByteSwap);
   ReadBytes<int>(fptr, &m_StartRed,1,NeedByteSwap);
   ReadBytes<int>(fptr, &m_StartGreen,1,NeedByteSwap);
   ReadBytes<int>(fptr, &m_StartBlue,1,NeedByteSwap);
+
   //ReadBytes<intRGBPixel>(fptr, &m_StartColor,1,NeedByteSwap);  //Three seperate Start Colors (Red, Green, Blue) have been put together to use the set macro.
+
+  m_StartColor.SetBlue(m_StartBlue);
+  m_StartColor.SetGreen(m_StartGreen);
+  m_StartColor.SetRed(m_StartRed);
+
   ReadBytes<int>(fptr, &m_EndRed,1,NeedByteSwap);
   ReadBytes<int>(fptr, &m_EndGreen,1,NeedByteSwap);
   ReadBytes<int>(fptr, &m_EndBlue,1,NeedByteSwap);
+ 
   //ReadBytes<intRGBPixel>(fptr, &m_EndColor,1,NeedByteSwap);    //Three seperate End Colors (Red, Green, Blue) have been put together to use the set macro.
+
   ReadBytes<int>(fptr, &m_XRotation,1,NeedByteSwap);
   ReadBytes<int>(fptr, &m_YRotation,1,NeedByteSwap);
   ReadBytes<int>(fptr, &m_ZRotation,1,NeedByteSwap);
@@ -592,7 +601,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
   //ReadBytes<Index>(fptr, &m_MaximumCoordinateValue,1,NeedByteSwap);   //Three seperate Maximum Coordiante Values (x, y, z) have been put together to use the set macro.
   ReadBytes<float>(fptr, &m_Opacity,1,NeedByteSwap);
   ReadBytes<int>(fptr, &m_OpacityThickness,1,NeedByteSwap);
-  ReadBytes<float>(fptr, &m_BlendFactor,1,NeedByteSwap);
+  //ReadBytes<float>(fptr, &m_BlendFactor,1,NeedByteSwap);
   }
 protected:
   /**

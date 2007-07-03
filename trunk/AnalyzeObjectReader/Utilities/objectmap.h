@@ -83,7 +83,7 @@ namespace itk
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(AnalyzeObjectMap, Image<unsigned char, 3> );
+  itkTypeMacro(AnalyzeObjectMap, Image );
 
 
 
