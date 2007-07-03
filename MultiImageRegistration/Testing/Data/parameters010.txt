@@ -2,6 +2,7 @@
 # PARAMETERS OF BINARY FILE
 #
 
+
 #
 # metricType specifies which objective function to use
 # possible options:
@@ -25,7 +26,7 @@
 #
     
     -useBspline on
-    -useBsplineHigh on
+    -useBsplineHigh off
 
 
 #
@@ -36,9 +37,9 @@
 #  accuracy is poor)
 #
 
-    -numberOfSpatialSamplesAffinePercentage 0.01
-    -numberOfSpatialSamplesBsplinePercentage 0.05
-    -numberOfSpatialSamplesBsplineHighPercentage 0.25
+    -numberOfSpatialSamplesAffinePercentage      0.0025
+    -numberOfSpatialSamplesBsplinePercentage     0.0050
+    -numberOfSpatialSamplesBsplineHighPercentage 0.0500
 
 #
 # following options define number of multiresolution levels used in optimization
@@ -62,9 +63,9 @@
 # no other termination options are used
 #
 
-    -optAffineNumberOfIterations 5
-    -optBsplineNumberOfIterations 20
-    -optBsplineHighNumberOfIterations 30
+    -optAffineNumberOfIterations 30
+    -optBsplineNumberOfIterations 50
+    -optBsplineHighNumberOfIterations 50
 
  
 #
@@ -75,9 +76,9 @@
 #  "all samples mapped outside" error
 #
 
-    -optAffineLearningRate  1e-3
-    -optBsplineLearningRate 1e3
-    -optBsplineHighLearningrate 1e3
+    -optAffineLearningRate  1e-4
+    -optBsplineLearningRate 1e2
+    -optBsplineHighLearningrate 1e2
  
  
 
@@ -93,7 +94,7 @@
 # After each level number B-spline control points are doubled (8->16->32)
 #
 
-    -numberOfBsplineLevel 0
+    -numberOfBsplineLevel 2
     
 
 
@@ -110,46 +111,7 @@
         
     
 
-    
    
-###############################
-#
-#  OPTIONS ABOUT THE OUTPUTS  
-# 
-###############################
-
-#
-# set on/off to specify whether the intermediate results
-# should be written. Set "off" if you run into memory 
-# problems. Transform files are always written.
-#
--OutputIntermediateResults on    
-    
-#
-# the option to specify whether or not to write the output images
-# in 3D
-# possible options
-#     writeOutputImages  on/off
-    -writeOutputImages on
-       
-    
-# 
-# option to specify whether or not to write the deformation fields
-# possible options:
-#     writeDeformationFields  on/off
-#
-    -writeDeformationFields off
-    
-# 
-# option to specify whether or not to write mean images in 3D format
-# possible options:
-#     writeMean3DImages  on/off
-#
-    -writeMean3DImages off
-    
-
-
-
 ############################################
 #
 # ADVANCED OPTIONS
@@ -161,7 +123,7 @@
 #  after each multiresolution level
 #
     -affineMultiScaleSamplePercentageIncrease 4.0 
-    -bsplineMultiScaleSamplePercentageIncrease 2.0
+    -bsplineMultiScaleSamplePercentageIncrease 4.0
     
     
     
@@ -169,8 +131,8 @@
 #  Specifies increase in the number of iterations  
 #  after each resolution level
 #
-    -affineMultiScaleMaximumIterationIncrease 1.5
-    -bsplineMultiScaleMaximumIterationIncrease 1.5
+    -affineMultiScaleMaximumIterationIncrease 1.75
+    -bsplineMultiScaleMaximumIterationIncrease 1.75
   
 
 #
@@ -235,7 +197,7 @@
 #  Maximum number of iterations performed for a line search 
 #  if the optimizer is lineSearch
 #    
-    -maximumLineIteration 7
+    -maximumLineIteration 10
     
     
     
@@ -244,5 +206,5 @@
 # the width of the parzen window to compute the entropy
 # used by all metric types computing entropy
 #
-    -parzenWindowStandardDeviation 0.4
+    -parzenWindowStandardDeviation 10
     
