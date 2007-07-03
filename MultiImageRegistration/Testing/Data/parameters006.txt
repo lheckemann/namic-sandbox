@@ -37,8 +37,8 @@
 #
 
     -numberOfSpatialSamplesAffinePercentage 0.01
-    -numberOfSpatialSamplesBsplinePercentage 0.05
-    -numberOfSpatialSamplesBsplineHighPercentage 0.25
+    -numberOfSpatialSamplesBsplinePercentage 0.01
+    -numberOfSpatialSamplesBsplineHighPercentage 0.1
 
 #
 # following options define number of multiresolution levels used in optimization
@@ -62,8 +62,8 @@
 # no other termination options are used
 #
 
-    -optAffineNumberOfIterations 5
-    -optBsplineNumberOfIterations 20
+    -optAffineNumberOfIterations  10
+    -optBsplineNumberOfIterations 50
     -optBsplineHighNumberOfIterations 30
 
  
@@ -75,7 +75,7 @@
 #  "all samples mapped outside" error
 #
 
-    -optAffineLearningRate  1e-3
+    -optAffineLearningRate  1e-4
     -optBsplineLearningRate 1e3
     -optBsplineHighLearningrate 1e3
  
@@ -110,45 +110,6 @@
         
     
 
-    
-   
-###############################
-#
-#  OPTIONS ABOUT THE OUTPUTS  
-# 
-###############################
-
-#
-# set on/off to specify whether the intermediate results
-# should be written. Set "off" if you run into memory 
-# problems. Transform files are always written.
-#
--OutputIntermediateResults on    
-    
-#
-# the option to specify whether or not to write the output images
-# in 3D
-# possible options
-#     writeOutputImages  on/off
-    -writeOutputImages on
-       
-    
-# 
-# option to specify whether or not to write the deformation fields
-# possible options:
-#     writeDeformationFields  on/off
-#
-    -writeDeformationFields off
-    
-# 
-# option to specify whether or not to write mean images in 3D format
-# possible options:
-#     writeMean3DImages  on/off
-#
-    -writeMean3DImages off
-    
-
-
 
 ############################################
 #
@@ -161,7 +122,7 @@
 #  after each multiresolution level
 #
     -affineMultiScaleSamplePercentageIncrease 4.0 
-    -bsplineMultiScaleSamplePercentageIncrease 2.0
+    -bsplineMultiScaleSamplePercentageIncrease 4.0
     
     
     
@@ -170,7 +131,7 @@
 #  after each resolution level
 #
     -affineMultiScaleMaximumIterationIncrease 1.5
-    -bsplineMultiScaleMaximumIterationIncrease 1.5
+    -bsplineMultiScaleMaximumIterationIncrease 1.75
   
 
 #
@@ -235,7 +196,7 @@
 #  Maximum number of iterations performed for a line search 
 #  if the optimizer is lineSearch
 #    
-    -maximumLineIteration 7
+    -maximumLineIteration 10
     
     
     
@@ -244,5 +205,5 @@
 # the width of the parzen window to compute the entropy
 # used by all metric types computing entropy
 #
-    -parzenWindowStandardDeviation 0.4
+    -parzenWindowStandardDeviation 10
     
