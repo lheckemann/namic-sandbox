@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
 #include "objectmap.h"
+#include "itkImageRegionIterator.h"
 namespace itk{
 
     
@@ -287,7 +288,7 @@ void SwapObjectEndedness(Object * ObjToChange)
 bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
 {
   int header[5];
-  int i, j, index;
+  int i, j;
   FILE *fptr;
   unsigned char buffer[BUFFERSIZE];
 
@@ -376,7 +377,7 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
     return false;
   }
   // The background is already defined, so start with the index for 1
-  for (i = 0; i < NumberOfObjects; i++)
+  for (i = 1; i < NumberOfObjects; i++)
   {
     // Allocating a object to be created
     AnaylzeObjectEntryArray[i] = AnalyzeObjectEntry::New();
@@ -390,27 +391,62 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
 
 
   //this->ImageReinitialize(XSize, YSize, ZSize, 1);
+  itk::Image<unsigned char,3>::SizeType ImageSize;
+  ImageSize[0]=XSize;
+  ImageSize[1]=YSize;
+  ImageSize[2]=ZSize;
+  itk::Image<unsigned char,3>::IndexType ImageIndex;
+  ImageIndex[0]=0;
+  ImageIndex[1]=0;
+  ImageIndex[2]=0;  
+
+  itk::Image<unsigned char,3>::RegionType ImageRegion;
+  ImageRegion.SetSize(ImageSize);
+  ImageRegion.SetIndex(ImageIndex);
+  this->SetRegions(ImageRegion);
+  
+  //TODO: Image spacing needs fixing
+  itk::Image<unsigned char,3>::SpacingType ImageSpacing;
+  ImageSpacing[0]=1.0F;
+  ImageSpacing[1]=1.0F;
+  ImageSpacing[2]=1.0F;
+  this->SetSpacing(ImageSpacing);
+
+  this->Allocate();
 
   // Decoding the run length encoded raw data into an unsigned char volume
-  index = 0;
-
+  itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexIt(this,this->GetLargestPossibleRegion());
+  int index=0;
   // The file consists of unsigned character pairs which represents the encoding of the data
   // The character pairs have the form of length, tag value.  Note also that the data in
   // Analyze object files are run length encoded a plane at a time.
 
   {
-      std::cout<<::fread(buffer, 1, BUFFERSIZE, fptr);
+      std::cout<<"\n"<<::fread(buffer, 1, BUFFERSIZE, fptr)<<"\n";
     while (::fread(buffer,1,BUFFERSIZE,fptr) > 0)
     {
       for (i = 0; i < BUFFERSIZE; i+=2)
       {
+         // std::cout << "Assigning: " << (int)buffer[i] << " voxels of label " << (int)buffer[i+1] << std::endl;
         for (j = 0; j < buffer[i]; j++)
         {
-          //this->operator()(index) = buffer[i+1];
+            if(buffer[i+1] > 34)
+            {
+                std::cout<<"Invalid object label "<<(int)buffer[i+1]<<std::endl;
+                exit(-1);
+            }
+            if(buffer[i] > 255 || buffer[i] <1)
+            {
+                std::cout<<"Invalid Length "<<(int)buffer[i]<<std::endl;
+                exit(-1);
+            }
+          indexIt.Set(buffer[i+1]) ;
+          indexIt++;
           index++;
         }
-        if (index >= VolumeSize)
+        if ( index > VolumeSize )
         {
+            std::cout<<"BREAK!\n";
           break;
         }
       }
