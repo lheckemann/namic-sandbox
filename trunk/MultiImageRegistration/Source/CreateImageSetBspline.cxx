@@ -28,6 +28,8 @@
 #include "itkNormalVariateGenerator.h"
 
 #include "itkTransformFileWriter.h"
+
+#include "itkRescaleIntensityImageFilter.h"
     
 #include <string>
 #include <sstream>
@@ -42,7 +44,7 @@ using namespace std;
 int main( int argc, char * argv[] )
 {
 
-  if( argc < 3 )
+  if( argc < 4 )
   {
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << "  inputImageFile  folderName numberOfImages <on/off (opt: for srand)>" << std::endl;
@@ -56,7 +58,7 @@ int main( int argc, char * argv[] )
     
   const     unsigned int   Dimension = 3;
   
-  typedef   unsigned short  InputPixelType;
+  typedef   double  InputPixelType;
   typedef   unsigned short  OutputPixelType;
 
   
@@ -67,17 +69,26 @@ int main( int argc, char * argv[] )
   typedef itk::ImageFileReader< InputImageType  >  ReaderType;
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;
 
+  // Read the input image
+  ReaderType::Pointer reader = ReaderType::New();
+  reader->SetFileName( argv[1] );
+  reader->Update();
+  
+  // Rescale the input image to 0-255
+  typedef itk::RescaleIntensityImageFilter<InputImageType, InputImageType >  RescaleFilterType;
+  RescaleFilterType::Pointer    rescaleFilter    = RescaleFilterType::New();
+  rescaleFilter->SetInput(    reader->GetOutput() );
+  rescaleFilter->SetOutputMinimum(0);
+  rescaleFilter->SetOutputMaximum(255);
+  rescaleFilter->Update();
+  
   int numberOfImages = atoi(argv[3]);
 
   for(int i=0; i<numberOfImages ; i++)
   {
 
-    ReaderType::Pointer reader = ReaderType::New();
     WriterType::Pointer writer = WriterType::New();
    
-    reader->SetFileName( argv[1] );
-    reader->Update();
-
     typedef itk::ResampleImageFilter<InputImageType,OutputImageType> ResampleFilterType;
     ResampleFilterType::Pointer resample = ResampleFilterType::New();
 
@@ -163,7 +174,7 @@ int main( int argc, char * argv[] )
     resample->SetOutputDirection( reader->GetOutput()->GetDirection());
     resample->SetDefaultPixelValue( 0 );
       
-    resample->SetInput( reader->GetOutput() );
+    resample->SetInput( rescaleFilter->GetOutput() );
     writer->SetInput( resample->GetOutput() );
       
 
