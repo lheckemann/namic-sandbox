@@ -172,7 +172,7 @@ IF(BrainWeb_DATA_ROOT)
   #
   ADD_TEST(CreateRandImages005 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetBspline
     ${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha 
-    ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData004
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData005
     2 on
     )
   MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration005)
@@ -667,7 +667,7 @@ IF(FAImage_DATA_ROOT)
   #  Affine test with 2 input images for FA.mhd
   #
   ADD_TEST(CreateRandImages101 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetAffine
-    ${BrainWeb_DATA_ROOT}/FA.mhd
+    ${FAImage_DATA_ROOT}/FA.mhd
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData101
     2 on
     )
@@ -701,7 +701,7 @@ IF(FAImage_DATA_ROOT)
   #  B-spline test with 2 images for FA.mhd
   #
   ADD_TEST(CreateRandImages102 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetBspline
-    ${BrainWeb_DATA_ROOT}/FA.mhd
+    ${FAImage_DATA_ROOT}/FA.mhd
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData102
     2 on
     )
@@ -735,7 +735,7 @@ IF(FAImage_DATA_ROOT)
   #  Affine test with 10 input images for FA.mhd
   #
   ADD_TEST(CreateRandImages103 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetAffine
-    ${BrainWeb_DATA_ROOT}/FA.mhd
+    ${FAImage_DATA_ROOT}/FA.mhd
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData103
     10 on
     )
@@ -769,7 +769,7 @@ IF(FAImage_DATA_ROOT)
   #  B-spline test with 10 images for FA.mhd
   #
   ADD_TEST(CreateRandImages104 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetBspline
-    ${BrainWeb_DATA_ROOT}/FA.mhd
+    ${FAImage_DATA_ROOT}/FA.mhd
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData104
     10 on
     )
@@ -803,7 +803,7 @@ IF(FAImage_DATA_ROOT)
   #  Affine test with 30 input images for FA.mhd
   #
   ADD_TEST(CreateRandImages105 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetAffine
-    ${BrainWeb_DATA_ROOT}/FA.mhd
+    ${FAImage_DATA_ROOT}/FA.mhd
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData105
     30 on
     )
@@ -837,7 +837,7 @@ IF(FAImage_DATA_ROOT)
   #  B-spline test with 30 images for FA.mhd
   #
   ADD_TEST(CreateRandImages106 ${EXECUTABLE_OUTPUT_PATH}/CreateImageSetBspline
-    ${BrainWeb_DATA_ROOT}/FA.mhd
+    ${FAImage_DATA_ROOT}/FA.mhd
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData106
     30 on
     )

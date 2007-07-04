@@ -63,7 +63,7 @@
 # no other termination options are used
 #
 
-    -optAffineNumberOfIterations 30
+    -optAffineNumberOfIterations 40
     -optBsplineNumberOfIterations 50
     -optBsplineHighNumberOfIterations 50
 
@@ -77,8 +77,8 @@
 #
 
     -optAffineLearningRate  1e-4
-    -optBsplineLearningRate 1e2
-    -optBsplineHighLearningrate 1e2
+    -optBsplineLearningRate 1e3
+    -optBsplineHighLearningrate 1e3
  
  
 
