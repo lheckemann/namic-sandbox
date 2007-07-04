@@ -671,7 +671,7 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData101
     2 on
     )
-  MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration)
+  MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101)
   CONFIGURE_FILE( 
     ${MultiImageRegistration_TEST_INPUT_DIR}/filenames101.txt.in
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101/filenames101.txt
@@ -739,7 +739,7 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData103
     10 on
     )
-  MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration)
+  MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103)
   CONFIGURE_FILE( 
     ${MultiImageRegistration_TEST_INPUT_DIR}/filenames103.txt.in
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103/filenames103.txt
@@ -807,7 +807,7 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/ImageData105
     30 on
     )
-  MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration)
+  MAKE_DIRECTORY(${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105)
   CONFIGURE_FILE( 
     ${MultiImageRegistration_TEST_INPUT_DIR}/filenames105.txt.in
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105/filenames105.txt
