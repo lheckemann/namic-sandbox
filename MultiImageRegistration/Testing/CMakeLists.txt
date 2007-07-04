@@ -678,7 +678,7 @@ IF(FAImage_DATA_ROOT)
   )
   CONFIGURE_FILE( 
     ${MultiImageRegistration_TEST_INPUT_DIR}/parameters101.txt
-    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101/parameters.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101/parameters101.txt
   )
   CONFIGURE_FILE(
     ${MultiImageRegistration_TEST_INPUT_DIR}/README101.txt
@@ -746,7 +746,7 @@ IF(FAImage_DATA_ROOT)
   )
   CONFIGURE_FILE( 
     ${MultiImageRegistration_TEST_INPUT_DIR}/parameters103.txt
-    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103/parameters.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103/parameters103.txt
   )
   CONFIGURE_FILE(
     ${MultiImageRegistration_TEST_INPUT_DIR}/README103.txt
@@ -814,7 +814,7 @@ IF(FAImage_DATA_ROOT)
   )
   CONFIGURE_FILE( 
     ${MultiImageRegistration_TEST_INPUT_DIR}/parameters105.txt
-    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105/parameters.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105/parameters105.txt
   )
   CONFIGURE_FILE(
     ${MultiImageRegistration_TEST_INPUT_DIR}/README105.txt
