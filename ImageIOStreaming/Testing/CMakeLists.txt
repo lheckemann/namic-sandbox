@@ -5,6 +5,15 @@ SET(TESTING_OUTPUT_DIR ${ImageIOStreamingTest_BINARY_DIR}/Temporary)
 
 INCLUDE_DIRECTORIES( ${ImageIOStreamingTest_SOURCE_DIR} )
 
+#
+#
+#  Find the BrainWeb image datasets to use them as input
+#
+FIND_PATH(BrainWeb_DATA_ROOT 
+  NAMES brainweb165a10f17.mha  
+  DOC "http://public.kitware.com/pub/itk/Data/BrainWeb/BrainPart1.tgz")
+
+
 ADD_EXECUTABLE( ImageIOStreamingTest ImageReadRegionOfInterestWrite.cxx)
 TARGET_LINK_LIBRARIES( ImageIOStreamingTest ITKIOStreaming )
 
@@ -35,4 +44,15 @@ ADD_TEST( ImageStreamedFilteringTest01
    ${TESTING_OUTPUT_DIR}/BrainProtonDensity3SlicesTestOutput04.mha
    3
    )
+
+IF(BrainWeb_DATA_ROOT)
+ADD_TEST( ImageStreamedFilteringTest02 
+   ${ImageIOStreamingTest_BINARY_DIR}/ImageStreamedFilteringTest01 
+   ${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha
+   ${TESTING_OUTPUT_DIR}/BrainProtonDensity3SlicesTestOutput04.mha
+   3
+   )
+
+ENDIF(BrainWeb_DATA_ROOT)
+
 
