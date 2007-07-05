@@ -25,17 +25,19 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 
-#include "itkRegionOfInterestImageFilter.h"
+#include "itkStreamingImageFilter.h"
+#include "itkMedianImageFilter.h"
+
 #include "itkImage.h"
 
 int main( int argc, char ** argv )
 {
   // Verify the number of parameters in the command line
-  if( argc < 9 )
+  if( argc < 3 )
     {
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << " inputImageFile  outputImageFile " << std::endl;
-    std::cerr << " startX startY startZ sizeX sizeY sizeZ" << std::endl;
+    std::cerr << "[numberOfDataPieces]" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -50,36 +52,15 @@ int main( int argc, char ** argv )
   typedef itk::ImageFileReader< InputImageType  >  ReaderType;
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;
 
-  //  The RegionOfInterestImageFilter type is instantiated using
-  //  the input and output image types. A filter object is created with the
-  //  New() method and assigned to a \doxygen{SmartPointer}.
-  typedef itk::RegionOfInterestImageFilter< InputImageType,
+  typedef itk::MedianImageFilter< OutputImageType,
                                             OutputImageType > FilterType;
+
+  typedef itk::StreamingImageFilter< OutputImageType,
+                                            OutputImageType > StreamingFilterType;
+
   FilterType::Pointer filter = FilterType::New();
 
-  //  The RegionOfInterestImageFilter requires a region to be
-  //  defined by the user. The region is specified by an \doxygen{Index}
-  //  indicating the pixel where the region starts and an \doxygen{Size}
-  //  indicating how many pixels the region has along each dimension. In this
-  //  example, the specification of the region is taken from the command line
-  //  arguments (this example assumes that a 2D image is being processed).
-  OutputImageType::IndexType start;
-  start[0] = atoi( argv[3] );
-  start[1] = atoi( argv[4] );
-  start[2] = atoi( argv[5] );
-
-  OutputImageType::SizeType size;
-  size[0] = atoi( argv[6] );
-  size[1] = atoi( argv[7] );
-  size[2] = atoi( argv[8] );
-
-  OutputImageType::RegionType desiredRegion;
-  desiredRegion.SetSize(  size  );
-  desiredRegion.SetIndex( start );
-  //  Then the region is passed to the filter using the
-  //  SetRegionOfInterest() method.
-
-  filter->SetRegionOfInterest( desiredRegion );
+  StreamingFilterType::Pointer streamer = StreamingFilterType::New();
 
   ReaderType::Pointer reader = ReaderType::New();
   WriterType::Pointer writer = WriterType::New();
@@ -90,8 +71,27 @@ int main( int argc, char ** argv )
   reader->SetFileName( inputFilename  );
   writer->SetFileName( outputFilename );
 
+  InputImageType::SizeType indexRadius;
+  
+  indexRadius[0] = 1; // radius along x
+  indexRadius[1] = 1; // radius along y
+  indexRadius[2] = 1; // radius along Z
+
+  filter->SetRadius( indexRadius );
+
   filter->SetInput( reader->GetOutput() );
-  writer->SetInput( filter->GetOutput() );
+  streamer->SetInput( filter->GetOutput() );
+  writer->SetInput( streamer->GetOutput() );
+
+  // By default we decide to use 4 pieces, but this value can
+  // be changed from the command line.
+  unsigned int numberOfDataPieces = 4;
+  if( argc > 3 )
+    {
+    numberOfDataPieces = atoi( argv[3] );
+    }
+
+  streamer->SetNumberOfStreamDivisions( numberOfDataPieces );
 
   try
     {
