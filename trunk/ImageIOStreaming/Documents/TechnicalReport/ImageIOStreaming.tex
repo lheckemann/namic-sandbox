@@ -116,7 +116,144 @@ particular the YAFF, MetaImage, FITS and Nifty image IO classes.
 
 \section{Streaming Architecture}
 
+ When an image is passed through a pipeline, each intermediate filter allocates
+ memory for its output. Normally this results in a memory allocation that is
+ several times the size of the input image. For example, in order to load an
+ image of pixel type \code{signed short} with $256 \times 256 \times 200$
+ pixels, the reader will allocate 12 megabytes. If we pass this image to a
+ \doxygen{MedianImageFilter}, the filter will allocate another 12 megabytes in
+ order to store the output of the median filtering. As we add more and more
+ filters to the pipeline, the memory consumption increases, and the final
+ result is that in many cases, certain images are too large for allowing the
+ entire pipeline to be allocated in memory. In those circumstances, it is
+ useful to be able to cut the image into smaller pieces and process the pieces
+ one by one.  In the case of the previous example, we could cut the image into
+ eight regions of $128 \times 128 \times 100$ pixels each. In this way, the
+ reader only has to allocate 4 megabytes at a time, and so does the median
+ filter. The pipeline will request one after another each one of the eight
+ pieces that are required to complete the output image. 
+ 
+ Note that the blocks that are requested to the reader do not necessarily form
+ a partition of the image, instead they may have overlapping regions. This
+ happens because some filters may need an extra boundary in order to compute
+ the output region. This is the case of the Median filter, for example, if we
+ use a kernel with a radius of 1 pixel, in order to produce a given output region
+ the median filter will need to request an input region that is equal to the
+ output region enlarged by two pixels along every direction. As a result, the
+ regions that are requested to the reader will have overlaps of 2 pixels in the
+ central region.  As more and more pixels are connected in the pipeline, these
+ overlapping regions will grow larger, and may become tens of pixels wide in
+ the final regions requested to the reader. This progressive enlargement of the
+ overlapping regions is an unfortunate consequence of using filters that
+ require extra boundaries, and it is an inherent characteristics of many image
+ processing filters. Of course, there are extreme cases to this situation.
+ There are the nice filters that are pixel-wise in nature and that will request
+ an input region that is identical to their output region. There are also the
+ filters that are not well suited for streaming at all and that will request
+ the entire image at input, regardless of how small the output region might be.
+
+Figure~\ref{fig:StreamingConceptDiagram} illustrates the basic concept of data
+streaming in a $2D$ case in which the input image is divided into four blocks.
+The decision on how the image blocks are going to be requested is made by the
+\doxygen{StreamingImageFilter} at the end of the pipeline. More specifically,
+this filter use a helper class called the \doxygen{ImageRegionSplitter}.
+Different implementations of splitter will cut the image using different
+policies. For example, some splitters may cut the images in a slice-oriented
+fashion, while other splitters may subdivided the image region into smaller
+cubes. Users could implement customized splitting policies by writing their own
+image region splitters and connecting them to the StreamingImageFilter.
+
+The Streaming image filter recompose the output image by pasting together all
+the image blocks. Its output region is, therefore, as large as the size that
+the output image would have been if the pipeline would have taken as input the
+entire image in a single block.
+
+\begin{figure}
+\center
+\includegraphics[width=1.0\textwidth]{StreamingConceptDiagram.eps}
+\itkcaption[Streaming Concept Diagram]{Basic concept of streaming illustrated
+in the case of a $2D$ image. The StreamingImageFilter requests sub-regions of
+the output image region, the upstream filter convey those request to their
+predecessors until the request reaches the data source of the pipeline, that is
+typically an image reader. The reader provides the requested chunk of data, and
+the processing starts going forwards in the pipeline. The image chunks are
+processed one after another, and the final result is recomposed in the output
+of the StreamingImageFilter.}
+\label{fig:StreamingConceptDiagram}
+\end{figure}
+
+
+
 \subsection{What was missing in the ImageFileReader}
+
+The limitation with the current IO infrastructure of ITK is that, when the
+request for subregions reached the ImageFileReader and ImageIO classes, it was
+ignored. Regardless of how much of the image is being requested the reader is
+always providing the entire image as output. Depending on how big the input
+image is, this behavior can easily defeat the entire purpose of the streaming,
+and prevent users from processing large datasets. Certainly datasets with sizes
+similar to the typical modern workstation, one to four gigabytes, would be
+impossible to load in a pipeline, due to the curren limitation of the IO
+infrastructure.
+
+Fortunately, the modifications needed for making this last step of the
+streaming work properly, were rather minor. In fact, that IO infrastructure was
+already aware of the notion of streaming, and it was simply missing to perform
+several key steps needed to honor the request of the filters down the pipeline.
+
+\begin{itemize}
+\item The first of those steps, is that, during the pipeline negociations, the
+\doxygen{ImageFileReader} had the opportunity to indicate how much of a region
+it will provide if asked for a given requested region. This was done in the
+\code{EnlargeOutputRequestedRegion()}. The current implementation of this method
+was reporting that requested region should be enlarged to be equal to the largest
+possible region.
+
+\item The second step was at the top of the \code{GenerateData()} method of the ImageFileReader
+where the previously enlarged requested region is used to allocate the buffer of the output
+image and it is set as the IO region in the ImageIO class that is actually going to read
+the image into memory.
+
+\item The third step was in the \code{Read} method of every ImageIO class, where they should have
+checked for the size of the \code{ImageIORegion} and load only that size of data into the
+buffer.
+\end{itemize}
+
+These three steps has been fixed in different ways in the code that is attached
+to this paper, as follows:
+
+
+\begin{itemize}
+\item First, the ImageFileReader now invokes a new method of the ImageIO family
+in which every ImageIO class reports what would be the appropriate region that
+the ImageIO could return if asked for a specific requested region. This new
+method is called \code{CalculateStreamableReadRegionFromRequestedRegion()}. A
+default implementation of this virtual method is provided in the ImageIOBase
+class, and returns by default the LargestPossibleRegion of the image. In other
+words, the default behavior is \textbf{not to stream}. Specific ImageIO classes
+will provide overload implementation of this method returning the regions that
+are natural for their encoding.
+
+\item The new enlarged regions, are still taken in the GenerateData() method of
+the ImageFileReader and used for allocating the buffer of the output image, as
+well as, for being passes as the ImageIORegion to the ImageIO class.
+
+\item The Read method of the ImageIO classes are now getting the specification
+of the ImageIORegion that the ImageFileReader set and are honoring that request
+by loading into memory only that region of the image. Of course, the details on
+how every ImageIO will grab chunks of data from the image in a file depend on
+the specifica characteristics of the file format, and most likely on the
+intermediate helper library used to interact with the files. For example, the
+way the MetaImageIO class loads pieces of the image, will depend on how the
+actual MetaImage library provides that functionality at the low level.
+\end{itemize}
+
+Since not all image file formats are well suited for supporting streaming, the
+functionality must be configured at the top level in the IO infrastructure,
+tested in several specific ImageIO classes, and progressively be implemented in
+most othere file formats. As a proof of concept, the streaming capabilities
+were implemented here for four different file formats: YAFF, FITS, Nifti and
+MetaImage. The implementation details are described in the following sections.
 
 \subsection{YAFF Reader}
 \subsection{FITS Reader}
