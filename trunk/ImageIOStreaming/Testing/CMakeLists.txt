@@ -64,12 +64,21 @@ ADD_TEST( ImageStreamedFilteringTest02
    )
 
 IF(brainweb165a10f17YAFF_FOUND)
+
   ADD_TEST( ImageStreamedFilteringTest03 
      ${ImageIOStreamingTest_BINARY_DIR}/ImageStreamedFilteringTest01 
      ${BrainWeb_DATA_ROOT}/brainweb165a10f17.yaff
      ${TESTING_OUTPUT_DIR}/ImageStreamedFilteringTest03Output.mha
      3
      )
+
+  ADD_TEST( ImageStreamedFilteringTest04 
+     ${ImageIOStreamingTest_BINARY_DIR}/ImageStreamedFilteringTest01 
+     ${BrainWeb_DATA_ROOT}/brainweb165a10f17.yaff
+     ${TESTING_OUTPUT_DIR}/ImageStreamedFilteringTest04Output.mha
+     6
+     )
+
 ELSE(brainweb165a10f17YAFF_FOUND)
   MESSAGE("The file brainweb165a10f17.yaff was not found in your BrainWeb directory,
            you can copy it from the Testing/Data/Input directory.")
