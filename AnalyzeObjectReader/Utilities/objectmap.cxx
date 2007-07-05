@@ -435,13 +435,13 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
                 std::cout<<"Invalid object label "<<(int)buffer[i+1]<<std::endl;
                 exit(-1);
             }
-            if(buffer[i] > 255 || buffer[i] <1)
+            if( buffer[i] ==0 )
             {
                 std::cout<<"Invalid Length "<<(int)buffer[i]<<std::endl;
                 exit(-1);
             }
           indexIt.Set(buffer[i+1]) ;
-          indexIt++;
+          ++indexIt;
           index++;
         }
         if ( index > VolumeSize )
@@ -452,7 +452,7 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
       }
     }
   }
-  
+
 
   if (index != VolumeSize)
   {
