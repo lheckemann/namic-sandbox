@@ -296,7 +296,7 @@ ImageFileReader<TOutputImage, ConvertPixelTraits>
     }
   
   ImageIORegion ioStreamableRegion  = 
-    m_ImageIO->DetermineStreamableRegionFromRequestedRegionRead( ioRequestedRegion );
+    m_ImageIO->CalculateStreamableReadRegionFromRequestedRegion( ioRequestedRegion );
 
   ImageRegionType streamableRegion;
   SizeType  streamableRegionSize;

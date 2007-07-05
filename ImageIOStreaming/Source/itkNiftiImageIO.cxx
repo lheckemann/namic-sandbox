@@ -229,9 +229,9 @@ static void dumpdata(const void *x)
 #endif // #if defined(__USE_VERY_VERBOSE_NIFTI_DEBUGGING__)
 
 ImageIORegion NiftiImageIO
-::DetermineStreamableRegionFromRequestedRegionRead( const ImageIORegion & requestedRegion ) const
+::CalculateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requestedRegion ) const
 {
-  std::cout << "NiftiImageIO::DetermineStreamableRegionFromRequestedRegion() " << std::endl;
+  std::cout << "NiftiImageIO::CalculateStreamableReadRegionFromRequestedRegion() " << std::endl;
   std::cout << "RequestedRegion = " << requestedRegion << std::endl;
   //
   // The implementations determines that the streamable region based on what can be a collaspable region

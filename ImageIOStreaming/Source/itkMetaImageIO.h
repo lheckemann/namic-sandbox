@@ -98,12 +98,12 @@ public:
     m_MetaImage.SetDoublePrecision(precision);
     }
 
-/** Method for supporting streaming.  Given a requested region, determine what
- * could be the region that we can read from the file. This is called the
- * streamable region, which will be smaller than the LargestPossibleRegion and
- * greater or equal to the RequestedRegion */
+  /** Method for supporting streaming.  Given a requested region, calculate what
+   * could be the region that we can read from the file. This is called the
+   * streamable region, which will be smaller than the LargestPossibleRegion and
+   * greater or equal to the RequestedRegion */
   virtual ImageIORegion 
-  DetermineStreamableRegionFromRequestedRegionRead( const ImageIORegion & requested ) const;
+  CalculateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requested ) const;
 
 
 protected:

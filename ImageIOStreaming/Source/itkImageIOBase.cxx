@@ -831,7 +831,8 @@ void ImageIOBase::ReadBufferAsASCII(std::istream& is, void *buffer,
  * RequestedRegion */
 ImageIORegion 
 ImageIOBase
-::DetermineStreamableRegionFromRequestedRegionRead( const ImageIORegion & itkNotUsed( requested ) ) const
+::CalculateStreamableReadRegionFromRequestedRegion( 
+    const ImageIORegion & itkNotUsed( requested ) ) const
 {
   //
   // The default implementations determines that the streamable region is
