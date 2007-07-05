@@ -5,11 +5,11 @@ SET(TESTING_OUTPUT_DIR ${ImageIOStreamingTest_BINARY_DIR}/Temporary)
 
 INCLUDE_DIRECTORIES( ${ImageIOStreamingTest_SOURCE_DIR} )
 
-SET( ImageIOStreamingTest_SRC
-ImageReadRegionOfInterestWrite.cxx)
-
-ADD_EXECUTABLE( ImageIOStreamingTest ${ImageIOStreamingTest_SRC} )
+ADD_EXECUTABLE( ImageIOStreamingTest ImageReadRegionOfInterestWrite.cxx)
 TARGET_LINK_LIBRARIES( ImageIOStreamingTest ITKIOStreaming )
+
+ADD_EXECUTABLE( ImageStreamedFilteringTest01 ImageStreamedFilteringTest01.cxx )
+TARGET_LINK_LIBRARIES( ImageStreamedFilteringTest01 ITKIOStreaming )
 
 ADD_TEST( ImageIOStreamingTest01 
    ${ImageIOStreamingTest_BINARY_DIR}/ImageIOStreamingTest 
@@ -29,4 +29,10 @@ ADD_TEST( ImageIOStreamingTest03
    ${TESTING_OUTPUT_DIR}/BrainProtonDensity3SlicesTestOutput03.mha
    20 30 1 30 40 1)
 
+ADD_TEST( ImageStreamedFilteringTest01 
+   ${ImageIOStreamingTest_BINARY_DIR}/ImageStreamedFilteringTest01 
+   ${TEST_DATA_ROOT}/BrainProtonDensity3Slices.yaff
+   ${TESTING_OUTPUT_DIR}/BrainProtonDensity3SlicesTestOutput04.mha
+   3
+   )
 
