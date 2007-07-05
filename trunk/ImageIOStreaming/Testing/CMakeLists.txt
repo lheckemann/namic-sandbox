@@ -14,6 +14,15 @@ FIND_PATH(BrainWeb_DATA_ROOT
   DOC "http://public.kitware.com/pub/itk/Data/BrainWeb/BrainPart1.tgz")
 
 
+IF(BrainWeb_DATA_ROOT)
+  FIND_FILE(brainweb165a10f17YAFF_FOUND
+    NAMES brainweb165a10f17.yaff
+    PATHS ${BrainWeb_DATA_ROOT}
+    DOC "YAFF surrogate header for the file brainweb165a10f17.mha"]
+    )
+ENDIF(BrainWeb_DATA_ROOT)
+
+
 ADD_EXECUTABLE( ImageIOStreamingTest ImageReadRegionOfInterestWrite.cxx)
 TARGET_LINK_LIBRARIES( ImageIOStreamingTest ITKIOStreaming )
 
@@ -46,12 +55,25 @@ ADD_TEST( ImageStreamedFilteringTest01
    )
 
 IF(BrainWeb_DATA_ROOT)
+
 ADD_TEST( ImageStreamedFilteringTest02 
    ${ImageIOStreamingTest_BINARY_DIR}/ImageStreamedFilteringTest01 
    ${BrainWeb_DATA_ROOT}/brainweb165a10f17.mha
-   ${TESTING_OUTPUT_DIR}/BrainProtonDensity3SlicesTestOutput04.mha
+   ${TESTING_OUTPUT_DIR}/ImageStreamedFilteringTest02Output.mha
    3
    )
+
+IF(brainweb165a10f17YAFF_FOUND)
+  ADD_TEST( ImageStreamedFilteringTest03 
+     ${ImageIOStreamingTest_BINARY_DIR}/ImageStreamedFilteringTest01 
+     ${BrainWeb_DATA_ROOT}/brainweb165a10f17.yaff
+     ${TESTING_OUTPUT_DIR}/ImageStreamedFilteringTest03Output.mha
+     3
+     )
+ELSE(brainweb165a10f17YAFF_FOUND)
+  MESSAGE("The file brainweb165a10f17.yaff was not found in your BrainWeb directory,
+           you can copy it from the Testing/Data/Input directory.")
+ENDIF(brainweb165a10f17YAFF_FOUND)
 
 ENDIF(BrainWeb_DATA_ROOT)
 
