@@ -91,10 +91,10 @@ public:
    * that the IORegions has been set properly. */
   virtual void Write(const void* buffer);
 
-  /** Determine the region of the image that can be efficiently read 
+  /** Calculate the region of the image that can be efficiently read 
    *  in response to a given requested region. */
   virtual ImageIORegion 
-  DetermineStreamableRegionFromRequestedRegionRead( const ImageIORegion & requestedRegion ) const;
+  CalculateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requestedRegion ) const;
 
 protected:
   NiftiImageIO();

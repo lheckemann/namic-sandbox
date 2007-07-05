@@ -1376,9 +1376,9 @@ MetaImageIO
 RequestedRegion */
 ImageIORegion 
 MetaImageIO
-::DetermineStreamableRegionFromRequestedRegionRead( const ImageIORegion & requested ) const
+::CalculateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requested ) const
 {
-  std::cout << "MetaImageIO::DetermineStreamableRegionFromRequestedRegion()" << std::endl;
+  std::cout << "MetaImageIO::CalculateStreamableReadRegionFromRequestedRegion()" << std::endl;
   std::cout << "Requested region = " << requested << std::endl;
   //
   // The default implementations determines that the streamable region is
