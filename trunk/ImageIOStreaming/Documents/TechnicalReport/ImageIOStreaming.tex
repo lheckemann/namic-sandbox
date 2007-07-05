@@ -168,6 +168,9 @@ the image blocks. Its output region is, therefore, as large as the size that
 the output image would have been if the pipeline would have taken as input the
 entire image in a single block.
 
+The basic infrastructure of the image IO architecture in ITK is described in
+chapter 7 of the ITK Software Guide \cite{ITKSoftwareGuideSecondEdition}.
+
 \begin{figure}
 \center
 \includegraphics[width=1.0\textwidth]{StreamingConceptDiagram.eps}
@@ -261,6 +264,53 @@ MetaImage. The implementation details are described in the following sections.
 \subsection{MetaImage Reader}
 
 \section{Tests and Examples}
+
+A group of tests are included with the code attached to this paper. These tests
+verify the basic functionality of the streaming capabilties in the modified IO
+infrastructure.
+
+The list of test can be found by using the \code{ctest -N} command on the binary
+directory that results from configuring and building the code. The output of this
+command should look like:
+
+\begin{verbatim}
+ctest -N                                                                                                                          ~/bin/NAMIC/NAMICSandbox/ImageIOStreaming
+Start processing tests
+Test project /home/ibanez/bin/NAMIC/NAMICSandbox/ImageIOStreaming
+  1/  8 Testing KWStyleTest
+  2/  8 Testing ImageIOStreamingTest01
+  3/  8 Testing ImageIOStreamingTest02
+  4/  8 Testing ImageIOStreamingTest03
+  5/  8 Testing ImageStreamedFilteringTest01
+  6/  8 Testing ImageStreamedFilteringTest02
+  7/  8 Testing ImageStreamedFilteringTest03
+  8/  8 Testing ImageStreamedFilteringTest04
+\end{verbatim}
+
+Individual tests can be executed with the command \code{ctest -V -R testname}.
+Where \emph{testname} is any of the names listed on the rightmost column of the
+output presented above.
+
+\subsection{ImageIOStreamingTest01}
+This tests uses a small 3D image from the Insight/Examples/Data directory in
+order to illustrate how the streaming capabilities behave in a pipeline
+composed of one reader, the RegionOfInterestImageFilter, and a writer.  In this
+simplified scenario, we use the RegionOfInterestImageFilter as a tool for
+selecting a custom \code{RequestedImage} from the command line. The typical 
+command line will look like:
+
+\begin{verbatim}
+ImageIOStreamingTest inputImage.yaff  outputImage.mha  15 25 3  50 60 40
+\end{verbatim}
+
+Where the input image is supposed to be in one of the file format that supports
+streaming, the output image is in any of the ITK supported formats, the next three 
+numbers are the image index of the first pixel of the region to be extracted, and 
+the last three numbers are the size in pixels of the region of interest.
+
+When runing this test, you should be able to verify that the reader only brings
+into memory the piece of the image that corresponds to the requested reqion
+equal to the output region of the \code{RegionOfInterestImageFilter}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
