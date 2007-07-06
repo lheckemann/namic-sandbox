@@ -287,48 +287,49 @@ void SwapObjectEndedness(Object * ObjToChange)
 
 bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
 {
-  int header[5];
-  int i, j;
-  FILE *fptr;
-  unsigned char buffer[BUFFERSIZE];
-
   // Opening the file
-  if ( ( fptr = ::fopen( filename.c_str(), "rb" ) ) == NULL)
+  FILE *fptr=::fopen( filename.c_str(), "rb" );
+  if ( fptr == NULL)
   {
     ::fprintf( stderr, "Error: Could not open %s\n", filename.c_str());
     exit(-1);
   }
 
+
   // Reading the header, which contains the version number, the size, and the
   // number of objects
-  if ( ::fread( header, sizeof(int), 5, fptr) != 5 )
+  int header[6];
+  if ( ::fread( header, sizeof(int), 1, fptr) !=1  )
   {
     ::fprintf( stderr, "Error: Could not read header of %s\n", filename.c_str());
     exit(-1);
   }
-
   bool NeedByteSwap=false;
   //Do byte swapping if necessary.
-
-  if(header[0] == 1323699456 || header[0] == -1913442047)    // Byte swapping needed (Number is byte swapped number of VERSIONy or VERSION8 )
+  if(header[0] != VERSION7)    // Byte swapping needed (Number is byte swapped number of VERSIONy or VERSION8 )
   {
       itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
+      NeedByteSwap = true;
+  if(header[0] != VERSION7)
+  {
+      std::cout<<"NOT VERSION 7!"<<std::endl;
+      return (-1);
+  } 
+  }
+if(::fread( &(header[1]), sizeof(int), 5, fptr) !=5)
+{
+    std::cout<<"Could not read in the other header information"<<std::endl;
+    exit(-1);
+  
+}
+if(NeedByteSwap)
+{
       itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[1]));
       itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[2]));
       itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[3]));
       itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[4]));
-      NeedByteSwap = true;
-      //itkByteSwapper::Pointer swapper = itkByteSwapper::New();
-#if 0  //TODO:  Figure out byte swapping later
-      FileIOUtility util;
-    NeedByteSwap=true;
-    util.FourByteSwap(&(header[0]));
-    util.FourByteSwap(&(header[1]));
-    util.FourByteSwap(&(header[2]));
-    util.FourByteSwap(&(header[3]));
-    util.FourByteSwap(&(header[4]));
-#endif
-  }
+      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[5]));
+}
 
   // Reading the Header into the class
   this->Version = header[0];
@@ -336,24 +337,28 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
   const int YSize = header[2];
   const int ZSize = header[3];
   this->NumberOfObjects = header[4];
-  const int VolumeSize=XSize*YSize*ZSize;
+  const int nvols = (this->Version == VERSION7)?header[5]:1;
+  const int VolumeSize=XSize*YSize*ZSize*nvols;
   //::fprintf(stderr, "Version: %s", header[0]);
   std::cout<<"Version: "<<header[0]<<"\n";
   std::cout<<"header[1] = "<<header[1]<<"\n";
   std::cout<<"header[2] = "<<header[2]<<"\n";
   std::cout<<"header[3] = "<<header[3]<<"\n";
   std::cout<<"header[4] = "<<header[4]<<"\n";
+  std::cout<<"header[5] = "<<header[5]<<"\n";
   std::cout<<"Test. obj headers: NumberofObjects: "<<header[4]<<"\n";
   std::cout<<"File: "<<filename<<"\n";
+
+#if 0 
   //printf("TEST. Obj headers: NumberOfObjects %d \n", header[4]);
   // Validating the version number
-  if (Version != VERSION6 )
-  {
-      std::cout<<"Version: "<<header[0];
-      ::fprintf( stderr, "Error: Can only process version 6 and version 8 analyze object files.\n" );
-    ::fclose( fptr );
-    return false;
-  }
+  //if (Version != VERSION6 )
+  //{
+  //    std::cout<<"Version: "<<header[0];
+  //    ::fprintf( stderr, "Error: Can only process version 6 and version 8 analyze object files.\n" );
+  //  ::fclose( fptr );
+  //  return false;
+  //}
 
   // In version 7, the header file has a new field after number of objects, before name,
   // which is nvols, with type int. This field allows 4D object maps. 
@@ -367,7 +372,13 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
       ::fprintf( stderr, "Error: Could not read header of %s\n", filename.c_str());
       exit(-1);
     }
+    if(NeedByteSwap)
+    {
+        itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(nvols[0]));
+    }
+    std::cout<<nvols[0]<<std::endl;
   }
+#endif
 
   // Error checking the number of objects in the object file
   if ((NumberOfObjects < 1) || (NumberOfObjects > 255))
@@ -376,14 +387,14 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
     ::fclose( fptr );
     return false;
   }
-  // The background is already defined, so start with the index for 1
-  for (i = 1; i < NumberOfObjects; i++)
+  std::cout<<std::endl<<std::endl<<NumberOfObjects<<std::endl<<std::endl;
+  for (int i = 0; i < NumberOfObjects; i++)
   {
     // Allocating a object to be created
     AnaylzeObjectEntryArray[i] = AnalyzeObjectEntry::New();
-    // Reading the object directly into the ObjectEntry variable
     AnaylzeObjectEntryArray[i]->ReadFromFilePointer(fptr,NeedByteSwap);
   }
+
 
  //TODO:  Now the file pointer is pointing to the image region
   // Creating the image volume
@@ -416,42 +427,57 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
 
   // Decoding the run length encoded raw data into an unsigned char volume
   itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexIt(this,this->GetLargestPossibleRegion());
-  int index=0;
+  struct RunLengthStruct {
+      unsigned char voxel_count;
+      unsigned char voxel_value;
+  } ;
+  typedef struct RunLengthStruct RunLengthElement;
+  RunLengthElement RunLengthArray[BUFFERSIZE];
+
   // The file consists of unsigned character pairs which represents the encoding of the data
   // The character pairs have the form of length, tag value.  Note also that the data in
   // Analyze object files are run length encoded a plane at a time.
 
+  int index=0;
+  int voxel_count_sum=0;
   {
-      std::cout<<"\n"<<::fread(buffer, 1, BUFFERSIZE, fptr)<<"\n";
-    while (::fread(buffer,1,BUFFERSIZE,fptr) > 0)
+        std::ofstream myfile;
+  myfile.open("VoxelInformation2.txt", myfile.app);
+  int ElementsRead=::fread(RunLengthArray,sizeof(RunLengthElement),BUFFERSIZE,fptr);
+    while (ElementsRead > 0)
     {
-      for (i = 0; i < BUFFERSIZE; i+=2)
+      for (int i = 0; i < BUFFERSIZE; i++)
       {
-         // std::cout << "Assigning: " << (int)buffer[i] << " voxels of label " << (int)buffer[i+1] << std::endl;
-        for (j = 0; j < buffer[i]; j++)
+         myfile<< "Assigning: " << (int)RunLengthArray[i].voxel_count 
+             << " voxels of label " << (int)RunLengthArray[i].voxel_value
+             << std::endl;
+        if(RunLengthArray[i].voxel_count == 0)
         {
-            if(buffer[i+1] > 34)
-            {
-                std::cout<<"Invalid object label "<<(int)buffer[i+1]<<std::endl;
+                std::cout<<"Invalid Length "<<(int)RunLengthArray[i].voxel_count<<std::endl;
                 exit(-1);
-            }
-            if( buffer[i] ==0 )
-            {
-                std::cout<<"Invalid Length "<<(int)buffer[i]<<std::endl;
-                exit(-1);
-            }
-          indexIt.Set(buffer[i+1]) ;
+        }
+        for (int j = 0; j < RunLengthArray[i].voxel_count; j++)
+        {
+
+          indexIt.Set(RunLengthArray[i].voxel_value) ;
           ++indexIt;
           index++;
         }
+        voxel_count_sum+=RunLengthArray[i].voxel_count;
+        myfile <<"index = "<<index
+            << " voxel_count_sum= " << voxel_count_sum
+            << " Volume size = "<<VolumeSize<<std::endl;
         if ( index > VolumeSize )
         {
-            std::cout<<"BREAK!\n";
-          break;
+          std::cout<<"BREAK!\n";
+          exit(-1);
         }
       }
+      ElementsRead=::fread(RunLengthArray,sizeof(RunLengthElement),BUFFERSIZE,fptr);
     }
+    myfile.close();
   }
+
 
 
   if (index != VolumeSize)
