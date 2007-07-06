@@ -66,7 +66,7 @@ namespace itk
   /**
    * Buffer size for reading in the run length encoded object data
    */
-  const int BUFFERSIZE = 2;
+  const int NumberOfRunLengthElementsPerRead = 4;
 
   //TODO:  derive from itk::Image object so that an AnalyzeObjectMap to get these to be formal itk pipeline managable objects.
   class AnalyzeObjectMap: public itk::Image<unsigned char,3>

@@ -288,8 +288,9 @@ void SwapObjectEndedness(Object * ObjToChange)
 bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
 {
   // Opening the file
-  FILE *fptr=::fopen( filename.c_str(), "rb" );
-  if ( fptr == NULL)
+  std::ifstream inputFileStream;
+  inputFileStream.open(filename.c_str(), std::ios::binary | std::ios::in);
+  if ( !inputFileStream.is_open())
   {
     ::fprintf( stderr, "Error: Could not open %s\n", filename.c_str());
     exit(-1);
@@ -299,24 +300,30 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
   // Reading the header, which contains the version number, the size, and the
   // number of objects
   int header[6];
-  if ( ::fread( header, sizeof(int), 1, fptr) !=1  )
-  {
-    ::fprintf( stderr, "Error: Could not read header of %s\n", filename.c_str());
-    exit(-1);
-  }
+  //char input[50];
+  //std::cout<<inputFileStream.read(reinterpret_cast<char*>(header),sizeof(int))<<std::endl;
+  //std::cout<<(int)header[0]<<std::endl;
+  inputFileStream.read(reinterpret_cast<char *>(header),sizeof(int)*1);
+  //if ( inputFileStream.read(reinterpret_cast<char *>(header),sizeof(int)*1))
+  //{
+  //  ::fprintf( stderr, "Error: Could not read header of %s\n", filename.c_str());
+  //  exit(-1);
+  //}
   bool NeedByteSwap=false;
   //Do byte swapping if necessary.
   if(header[0] != VERSION7)    // Byte swapping needed (Number is byte swapped number of VERSIONy or VERSION8 )
   {
       itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
       NeedByteSwap = true;
+      std::cout<<header[0]<<std::endl;
   if(header[0] != VERSION7)
   {
       std::cout<<"NOT VERSION 7!"<<std::endl;
       return (-1);
   } 
   }
-if(::fread( &(header[1]), sizeof(int), 5, fptr) !=5)
+  ;
+if(inputFileStream.readsome(reinterpret_cast<char *>(&(header[1])),sizeof(int)*5) != sizeof(int)*5)
 {
     std::cout<<"Could not read in the other header information"<<std::endl;
     exit(-1);
@@ -384,16 +391,22 @@ if(NeedByteSwap)
   if ((NumberOfObjects < 1) || (NumberOfObjects > 255))
   {
     ::fprintf( stderr, "Error: Invalid number of object files.\n" );
-    ::fclose( fptr );
+    inputFileStream.close();
     return false;
   }
   std::cout<<std::endl<<std::endl<<NumberOfObjects<<std::endl<<std::endl;
+
+  std::ofstream myfile;
+  myfile.open("ReadFromFilePointer27.txt", myfile.app); 
   for (int i = 0; i < NumberOfObjects; i++)
   {
     // Allocating a object to be created
     AnaylzeObjectEntryArray[i] = AnalyzeObjectEntry::New();
-    AnaylzeObjectEntryArray[i]->ReadFromFilePointer(fptr,NeedByteSwap);
+    AnaylzeObjectEntryArray[i]->ReadFromFilePointer(inputFileStream,NeedByteSwap);
+      
+    AnaylzeObjectEntryArray[i]->Print(myfile);
   }
+  myfile.close();
 
 
  //TODO:  Now the file pointer is pointing to the image region
@@ -432,7 +445,7 @@ if(NeedByteSwap)
       unsigned char voxel_value;
   } ;
   typedef struct RunLengthStruct RunLengthElement;
-  RunLengthElement RunLengthArray[BUFFERSIZE];
+  RunLengthElement RunLengthArray[NumberOfRunLengthElementsPerRead];
 
   // The file consists of unsigned character pairs which represents the encoding of the data
   // The character pairs have the form of length, tag value.  Note also that the data in
@@ -442,11 +455,10 @@ if(NeedByteSwap)
   int voxel_count_sum=0;
   {
         std::ofstream myfile;
-  myfile.open("VoxelInformation2.txt", myfile.app);
-  int ElementsRead=::fread(RunLengthArray,sizeof(RunLengthElement),BUFFERSIZE,fptr);
-    while (ElementsRead > 0)
+  myfile.open("VoxelInformation7.txt", myfile.app);
+     while (!inputFileStream.read(reinterpret_cast<char *>(RunLengthArray), sizeof(RunLengthElement)*NumberOfRunLengthElementsPerRead).eof())
     {
-      for (int i = 0; i < BUFFERSIZE; i++)
+      for (int i = 0; i < NumberOfRunLengthElementsPerRead; i++)
       {
          myfile<< "Assigning: " << (int)RunLengthArray[i].voxel_count 
              << " voxels of label " << (int)RunLengthArray[i].voxel_value
@@ -473,7 +485,6 @@ if(NeedByteSwap)
           exit(-1);
         }
       }
-      ElementsRead=::fread(RunLengthArray,sizeof(RunLengthElement),BUFFERSIZE,fptr);
     }
     myfile.close();
   }
@@ -495,6 +506,8 @@ if(NeedByteSwap)
     }
     return false;
   }
+
+  inputFileStream.close();
 
   return true;
 }
