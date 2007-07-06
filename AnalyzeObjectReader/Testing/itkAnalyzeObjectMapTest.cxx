@@ -7,7 +7,7 @@ int main (int argc, char * argv[])
 
   itk::AnalyzeObjectMap::Pointer testAOE02 = itk::AnalyzeObjectMap::New();
 
-  testAOE02->ReadObjectFile("D:/Nirep1/data/na0/na01.obj");
+  testAOE02->ReadObjectFile("D:/object_good/Data/test.obj");
 
   //mary = testAOE02->ReadObjectFile("bob");
 

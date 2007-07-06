@@ -37,6 +37,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <itkImage.h>
 #include <itkRGBPixel.h>
 #include <itkByteSwapper.h>
+#include <iostream>
+#include <fstream>
 // TODO: Add namespace  namespace itk {
 // TODO: USE GET/SET methods for member variables needs to be put together along with one set of
 //       documentation that is syncronized syncronized.
@@ -546,29 +548,60 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
   itkGetConstMacro(MaximumCoordinateValue, Index);
   
 
-  void ReadFromFilePointer(FILE *fptr, const bool NeedByteSwap ){
+  void ReadFromFilePointer(FILE *fptr, const bool NeedByteSwap){
       int color;
+      std::ofstream myfile;
+  myfile.open("ReadFromFilePointer27.txt", myfile.app);
   //IntFunc
   ReadBytes<char>(fptr, this->m_Name, 32,NeedByteSwap);
-  std::cout<<this->m_Name<<"\n";
+  
+  myfile<<this->m_Name<<"\n";
+  //std::cout<<this->m_Name<<"\n";
+
+
   ReadBytes<int>(fptr, &(this->m_DisplayFlag),1,NeedByteSwap);
-  std::cout<<m_DisplayFlag<<std::endl;
+  //std::cout<<m_DisplayFlag<<std::endl;
+  myfile<<m_DisplayFlag<<"\n";
+
+
   ReadBytes<unsigned char>(fptr, &m_CopyFlag,1,NeedByteSwap);
-  std::cout<<(int)m_CopyFlag<<std::endl;
+  //std::cout<<(int)m_CopyFlag<<std::endl;
+  myfile<<(int)m_CopyFlag<<"\n";
+
+
   ReadBytes<unsigned char>(fptr, &m_MirrorFlag,1,NeedByteSwap);
-  std::cout<<(int)m_MirrorFlag<<std::endl;
+  //std::cout<<(int)m_MirrorFlag<<std::endl;
+  myfile<<(int)m_MirrorFlag<<"\n";
+
+
   ReadBytes<unsigned char>(fptr, &m_StatusFlag,1,NeedByteSwap);
-  std::cout<<(int)m_StatusFlag<<std::endl;
+  //std::cout<<(int)m_StatusFlag<<std::endl;
+  myfile<<(int)m_StatusFlag<<"\n";
+
+
   ReadBytes<unsigned char>(fptr, &m_NeighborsUsedFlag,1,NeedByteSwap);
-  std::cout<<(int)m_NeighborsUsedFlag<<std::endl;
+  //std::cout<<(int)m_NeighborsUsedFlag<<std::endl;
+  myfile<<(int)m_NeighborsUsedFlag<<"\n";
+
+
   ReadBytes<int>(fptr, &m_Shades,1,NeedByteSwap);
-  std::cout<<(int)m_NeighborsUsedFlag<<std::endl;
+  myfile<<m_Shades<<"\n";
+  //std::cout<<m_Shades<<std::endl;
+
+
   ReadBytes<int>(fptr, &m_StartRed,1,NeedByteSwap);
-  std::cout<<(int)m_NeighborsUsedFlag<<std::endl;
+  //std::cout<<m_StartRed<<std::endl;
+  myfile<<m_StartRed<<"\n";
+
+
   ReadBytes<int>(fptr, &m_StartGreen,1,NeedByteSwap);
-  std::cout<<(int)m_NeighborsUsedFlag<<std::endl;
+  //std::cout<<m_StartGreen<<std::endl;
+  myfile<<m_StartGreen<<"\n";
+
+
   ReadBytes<int>(fptr, &m_StartBlue,1,NeedByteSwap);
-  std::cout<<(int)m_NeighborsUsedFlag<<std::endl;
+  //std::cout<<m_StartBlue<<std::endl;
+  myfile<<m_StartBlue<<"\n";
 
   //ReadBytes<intRGBPixel>(fptr, &m_StartColor,1,NeedByteSwap);  //Three seperate Start Colors (Red, Green, Blue) have been put together to use the set macro.
 
@@ -577,46 +610,125 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
   m_StartColor.SetRed(m_StartRed);
 
   ReadBytes<int>(fptr, &m_EndRed,1,NeedByteSwap);
-  std::cout<<(int)m_NeighborsUsedFlag<<std::endl;
+  //std::cout<<m_EndRed<<std::endl;
+  myfile<<m_EndRed<<"\n";
+
+
   ReadBytes<int>(fptr, &m_EndGreen,1,NeedByteSwap);
-  std::cout<<(int)m_NeighborsUsedFlag<<std::endl;
+  //std::cout<<m_EndGreen<<std::endl;
+  myfile<<m_EndGreen<<"\n";
+
+
   ReadBytes<int>(fptr, &m_EndBlue,1,NeedByteSwap);
-  std::cout<<(int)m_NeighborsUsedFlag<<std::endl;
+  //std::cout<<m_EndBlue<<std::endl;
+  myfile<<m_EndBlue<<"\n";
  
   //ReadBytes<intRGBPixel>(fptr, &m_EndColor,1,NeedByteSwap);    //Three seperate End Colors (Red, Green, Blue) have been put together to use the set macro.
 
   ReadBytes<int>(fptr, &m_XRotation,1,NeedByteSwap);
+  myfile<<this->m_XRotation<<"\n";
+
+
   ReadBytes<int>(fptr, &m_YRotation,1,NeedByteSwap);
+  myfile<<this->m_YRotation<<"\n";
+
+
   ReadBytes<int>(fptr, &m_ZRotation,1,NeedByteSwap);
+  myfile<<this->m_ZRotation<<"\n";
+
+
  // ReadBytes<Index>(fptr, &m_Rotation,1,NeedByteSwap);          //Three seperate Rotations (x, y, z) have been put together to use the set macro.
   ReadBytes<int>(fptr, &m_XTranslation,1,NeedByteSwap);
+  myfile<<this->m_XTranslation<<"\n";
+
+
   ReadBytes<int>(fptr, &m_YTranslation,1,NeedByteSwap);
+  myfile<<this->m_YTranslation<<"\n";
+
+
   ReadBytes<int>(fptr, &m_ZTranslation,1,NeedByteSwap);
+  myfile<<this->m_ZTranslation<<"\n";
+
+
   //ReadBytes<Index>(fptr, &m_Translation,1,NeedByteSwap);       //Three seperate Translations (x, y, z) have been put together to use the set macro.
   ReadBytes<int>(fptr, &m_XCenter,1,NeedByteSwap);
+  myfile<<this->m_XCenter<<"\n";
+
+
   ReadBytes<int>(fptr, &m_YCenter,1,NeedByteSwap);
+  myfile<<this->m_YCenter<<"\n";
+
+
   ReadBytes<int>(fptr, &m_ZCenter,1,NeedByteSwap);
+  myfile<<this->m_ZCenter<<"\n";
+
+
   //ReadBytes<Index>(fptr, &m_Center,1,NeedByteSwap);            //Three seperate Centers (x, y, z) have been put together to use the set macro.
   ReadBytes<int>(fptr, &m_XRotationIncrement,1,NeedByteSwap);
+  myfile<<this->m_XRotationIncrement<<"\n";
+
+
   ReadBytes<int>(fptr, &m_YRotationIncrement,1,NeedByteSwap);
+  myfile<<this->m_YRotationIncrement<<"\n";
+
+
   ReadBytes<int>(fptr, &m_ZRotationIncrement,1,NeedByteSwap);
+  myfile<<this->m_ZRotationIncrement<<"\n";
+
+
   //ReadBytes<Index>(fptr, &m_RotationIncrement,1,NeedByteSwap);  //Three seperate Rotation Increments (x, y, z) have been put together to use the set macro.
   ReadBytes<int>(fptr, &m_XTranslationIncrement,1,NeedByteSwap);
+  myfile<<this->m_XTranslationIncrement<<"\n";
+
+
   ReadBytes<int>(fptr, &m_YTranslationIncrement,1,NeedByteSwap);
+  myfile<<this->m_YTranslationIncrement<<"\n";
+
+
   ReadBytes<int>(fptr, &m_ZTranslationIncrement,1,NeedByteSwap);
+  myfile<<this->m_ZTranslationIncrement<<"\n";
+
+
   //ReadBytes<Index>(fptr, &m_TranslationIncrement,1,NeedByteSwap); //Three seperate Translation Increments (x, y, z) have been put together to use the set macro.
   ReadBytes<short int>(fptr, &m_MinimumXValue,1,NeedByteSwap);
+  myfile<<this->m_MinimumXValue<<"\n";
+
+
   ReadBytes<short int>(fptr, &m_MinimumYValue,1,NeedByteSwap);
+  myfile<<this->m_MinimumYValue<<"\n";
+
+
   ReadBytes<short int>(fptr, &m_MinimumZValue,1,NeedByteSwap);
+  myfile<<this->m_MinimumZValue<<"\n";
+
+
   //ReadBytes<Index>(fptr, &m_MinimumCoordinateValue,1,NeedByteSwap);  //Three seperate Minimum Coordinate Values (x, y, z) have been put together to use the set macro.
   ReadBytes<short int>(fptr, &m_MaximumXValue,1,NeedByteSwap);
+  myfile<<this->m_MaximumXValue<<"\n";
+
+
   ReadBytes<short int>(fptr, &m_MaximumYValue,1,NeedByteSwap);
+  myfile<<this->m_MaximumYValue<<"\n";
+
+
   ReadBytes<short int>(fptr, &m_MaximumZValue,1,NeedByteSwap);
+  myfile<<this->m_MaximumZValue<<"\n";
+
+
   //ReadBytes<Index>(fptr, &m_MaximumCoordinateValue,1,NeedByteSwap);   //Three seperate Maximum Coordiante Values (x, y, z) have been put together to use the set macro.
   ReadBytes<float>(fptr, &m_Opacity,1,NeedByteSwap);
+  myfile<<this->m_Opacity<<"\n";
+
+
   ReadBytes<int>(fptr, &m_OpacityThickness,1,NeedByteSwap);
-  //ReadBytes<float>(fptr, &m_BlendFactor,1,NeedByteSwap);
-  std::cout<<"==========================================================================================="<<std::endl;
+  myfile<<this->m_OpacityThickness<<"\n";
+
+  ReadBytes<float>(fptr, &m_BlendFactor,1,NeedByteSwap);
+  myfile<<m_BlendFactor<<"\n";
+
+  myfile<<"===========================================================================================\n";
+  //std::cout<<"==========================================================================================="<<std::endl;
+  myfile.close();
   }
 protected:
   /**
@@ -639,52 +751,63 @@ protected:
    */
   AnalyzeObjectEntry( const AnalyzeObjectEntry & rhs );
 private:
-  char m_Name[32];
-  int m_DisplayFlag;
-  unsigned char m_CopyFlag;
-  unsigned char m_MirrorFlag;
-  unsigned char m_StatusFlag;
-  unsigned char m_NeighborsUsedFlag;
-  int m_Shades;
-  int m_StartRed;
-  int m_StartGreen;
-  int m_StartBlue;
-  intRGBPixel m_StartColor;  //Three seperate Start Colors (Red, Green, Blue) have been put together to use the set macro.
-  int m_EndRed;
-  int m_EndGreen;
-  int m_EndBlue;
-  intRGBPixel m_EndColor;    //Three seperate End Colors (Red, Green, Blue) have been put together to use the set macro.
-  int m_XRotation;
-  int m_YRotation;
-  int m_ZRotation;
-  Index m_Rotation;          //Three seperate Rotations (x, y, z) have been put together to use the set macro.
-  int m_XTranslation;
-  int m_YTranslation;
-  int m_ZTranslation;
-  Index m_Translation;       //Three seperate Translations (x, y, z) have been put together to use the set macro.
-  int m_XCenter;
-  int m_YCenter;
-  int m_ZCenter;
-  Index m_Center;            //Three seperate Centers (x, y, z) have been put together to use the set macro.
-  int m_XRotationIncrement;
-  int m_YRotationIncrement;
-  int m_ZRotationIncrement;
-  Index m_RotationIncrement;  //Three seperate Rotation Increments (x, y, z) have been put together to use the set macro.
-  int m_XTranslationIncrement;
-  int m_YTranslationIncrement;
-  int m_ZTranslationIncrement;
-  Index m_TranslationIncrement; //Three seperate Translation Increments (x, y, z) have been put together to use the set macro.
-  short int m_MinimumXValue;
-  short int m_MinimumYValue;
-  short int m_MinimumZValue;
-  Index m_MinimumCoordinateValue;  //Three seperate Minimum Coordinate Values (x, y, z) have been put together to use the set macro.
-  short int m_MaximumXValue;
-  short int m_MaximumYValue;
-  short int m_MaximumZValue;
-  Index m_MaximumCoordinateValue;   //Three seperate Maximum Coordiante Values (x, y, z) have been put together to use the set macro.
-  float m_Opacity;
-  int m_OpacityThickness;
-  float m_BlendFactor;
+  char m_Name[33];                     /*bytes   0-31*/
+  int m_DisplayFlag;                   /*bytes  32-35*/
+  unsigned char m_CopyFlag;            /*bytes  36-36*/
+  unsigned char m_MirrorFlag;          /*bytes  37-37*/
+  unsigned char m_StatusFlag;          /*bytes  38-38*/
+  unsigned char m_NeighborsUsedFlag;   /*bytes  39-39*/
+  int m_Shades;                        /*bytes  40-43*/
+  int m_StartRed;                      /*bytes  44-47*/
+  int m_StartGreen;                    /*bytes  48-51*/
+  int m_StartBlue;                     /*bytes  52-55*/
+  int m_EndRed;                        /*bytes  53-58*/
+  int m_EndGreen;                      /*bytes  59-62*/
+  int m_EndBlue;                       /*bytes  63-66*/
+  int m_XRotation;                     /*bytes  67-70*/
+  int m_YRotation;                     /*bytes  71-74*/
+  int m_ZRotation;                     /*bytes  75-78*/  
+  int m_XTranslation;                  /*bytes  79-82*/
+  int m_YTranslation;                  /*bytes  83-86*/
+  int m_ZTranslation;                  /*bytes  87-90*/ 
+  int m_XCenter;                       /*bytes  91-94*/
+  int m_YCenter;                       /*bytes  95-98*/
+  int m_ZCenter;                       /*bytes  99-102*/        
+  int m_XRotationIncrement;            /*bytes  103-106*/
+  int m_YRotationIncrement;            /*bytes  107-110*/
+  int m_ZRotationIncrement;            /*bytes  111-114*/
+  int m_XTranslationIncrement;         /*bytes  115-118*/
+  int m_YTranslationIncrement;         /*bytes  119-121*/
+  int m_ZTranslationIncrement;         /*bytes  122-125*/
+  short int m_MinimumXValue;           /*bytes  126-127*/
+  short int m_MinimumYValue;           /*bytes  128-129*/
+  short int m_MinimumZValue;           /*bytes  130-131*/
+  short int m_MaximumXValue;           /*bytes  132-133*/
+  short int m_MaximumYValue;           /*bytes  134-135*/
+  short int m_MaximumZValue;           /*bytes  136-137*/
+  float m_Opacity;                     /*bytes  138-141*/
+  int m_OpacityThickness;              /*bytes  142-145*/
+  float m_BlendFactor;                 /*bytes  146-149*/
+
+
+  //Three seperate Start Colors (Red, Green, Blue) have been put together to use the set macro.
+  intRGBPixel m_StartColor;  
+    //Three seperate End Colors (Red, Green, Blue) have been put together to use the set macro.
+  intRGBPixel m_EndColor; 
+    //Three seperate Rotations (x, y, z) have been put together to use the set macro.
+  Index m_Rotation;
+  //Three seperate Translations (x, y, z) have been put together to use the set macro.
+  Index m_Translation;  
+  //Three seperate Centers (x, y, z) have been put together to use the set macro.
+  Index m_Center; 
+  //Three seperate Rotation Increments (x, y, z) have been put together to use the set macro.
+  Index m_RotationIncrement; 
+  //Three seperate Translation Increments (x, y, z) have been put together to use the set macro.
+  Index m_TranslationIncrement; 
+  //Three seperate Minimum Coordinate Values (x, y, z) have been put together to use the set macro.
+  Index m_MinimumCoordinateValue; 
+  //Three seperate Maximum Coordiante Values (x, y, z) have been put together to use the set macro.
+  Index m_MaximumCoordinateValue; 
 };
 }
 #endif                           // __OBJECTENTR_H__
