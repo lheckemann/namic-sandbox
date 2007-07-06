@@ -39,18 +39,28 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <itkByteSwapper.h>
 #include <iostream>
 #include <fstream>
+#include <itksys/SystemTools.hxx>
+#include <itkImageIOBase.h>
 // TODO: Add namespace  namespace itk {
 // TODO: USE GET/SET methods for member variables needs to be put together along with one set of
 //       documentation that is syncronized syncronized.
 namespace itk{
 template <typename ReadType>
-void ReadBytes(FILE *fptr,ReadType * dest, const int Replications, const bool NeedByteSwap)
+void ReadBytes(std::ifstream & inputFileStream,ReadType * dest, const int Replications, const bool NeedByteSwap)
 {
-  if (::fread(dest, sizeof(ReadType), Replications, fptr) != Replications)
-  {
-    ::fprintf(stderr, "6: Unable to read in object #1 description.\n");
-    exit(-1);
-  }
+
+    inputFileStream.read(reinterpret_cast<char *>(dest), sizeof(ReadType) * Replications);
+   //if( inputFileStream.readsome(reinterpret_cast<char *>(dest), sizeof(ReadType) * Replications) != sizeof(ReadType)*Replications)
+   //{
+   //    ::fprintf(stderr, "6: Unable to read in object #1 description.\n");
+   //    exit(-1);
+   //}
+
+  //if (::fread(dest, sizeof(ReadType), Replications, fptr) != Replications)
+  //{
+  //  ::fprintf(stderr, "6: Unable to read in object #1 description.\n");
+  //  exit(-1);
+  //}
  //TODO:  Need to fix bug swapping.
   if(NeedByteSwap)
   {
@@ -546,189 +556,94 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    */
   itkSetMacro(MaximumCoordinateValue, Index);
   itkGetConstMacro(MaximumCoordinateValue, Index);
-  
 
-  void ReadFromFilePointer(FILE *fptr, const bool NeedByteSwap){
+ 
+ //void Print(std::ostream myfile) 
+ // {
+//        myfile<<this->m_Name<<"\n";
+//        myfile<<m_DisplayFlag<<"\n";
+//        myfile<<(int)m_CopyFlag<<"\n";
+//        myfile<<(int)m_MirrorFlag<<"\n";
+//        myfile<<(int)m_StatusFlag<<"\n";
+//        myfile<<(int)m_NeighborsUsedFlag<<"\n";
+//        myfile<<m_Shades<<"\n";
+//        myfile<<m_StartRed<<"\n";
+//        myfile<<m_StartGreen<<"\n";
+//        myfile<<m_StartBlue<<"\n";
+//        myfile<<m_EndRed<<"\n";
+//        myfile<<m_EndGreen<<"\n";
+//        myfile<<m_EndBlue<<"\n";
+//        myfile<<m_XRotation<<"\n";
+//        myfile<<this->m_YRotation<<"\n";
+//        myfile<<this->m_ZRotation<<"\n";
+//        myfile<<this->m_XTranslation<<"\n";
+//        myfile<<this->m_YTranslation<<"\n";
+//        myfile<<this->m_ZTranslation<<"\n";
+//        myfile<<this->m_XCenter<<"\n";
+//        myfile<<this->m_YCenter<<"\n";
+//        myfile<<this->m_ZCenter<<"\n";
+//        myfile<<this->m_XRotationIncrement<<"\n";
+//        myfile<<this->m_YRotationIncrement<<"\n";
+//        myfile<<this->m_ZRotationIncrement<<"\n";
+//        myfile<<this->m_XTranslationIncrement<<"\n";
+//        myfile<<this->m_YTranslationIncrement<<"\n";
+//        myfile<<this->m_ZTranslationIncrement<<"\n";
+//        myfile<<this->m_MinimumXValue<<"\n";
+//        myfile<<this->m_MinimumYValue<<"\n";
+//        myfile<<this->m_MinimumZValue<<"\n";
+//        myfile<<this->m_MaximumXValue<<"\n";
+//        myfile<<this->m_MaximumYValue<<"\n";
+//        myfile<<this->m_MaximumZValue<<"\n";
+//        myfile<<this->m_Opacity<<"\n";
+//        myfile<<this->m_OpacityThickness<<"\n";
+//        myfile<<m_BlendFactor<<"\n";
+//        myfile<<"===========================================================================================\n";
+//}
+  void ReadFromFilePointer(std::ifstream & inputFileStream, const bool NeedByteSwap){
       int color;
-      std::ofstream myfile;
-  myfile.open("ReadFromFilePointer27.txt", myfile.app);
+      
+
   //IntFunc
-  ReadBytes<char>(fptr, this->m_Name, 32,NeedByteSwap);
-  
-  myfile<<this->m_Name<<"\n";
-  //std::cout<<this->m_Name<<"\n";
-
-
-  ReadBytes<int>(fptr, &(this->m_DisplayFlag),1,NeedByteSwap);
-  //std::cout<<m_DisplayFlag<<std::endl;
-  myfile<<m_DisplayFlag<<"\n";
-
-
-  ReadBytes<unsigned char>(fptr, &m_CopyFlag,1,NeedByteSwap);
-  //std::cout<<(int)m_CopyFlag<<std::endl;
-  myfile<<(int)m_CopyFlag<<"\n";
-
-
-  ReadBytes<unsigned char>(fptr, &m_MirrorFlag,1,NeedByteSwap);
-  //std::cout<<(int)m_MirrorFlag<<std::endl;
-  myfile<<(int)m_MirrorFlag<<"\n";
-
-
-  ReadBytes<unsigned char>(fptr, &m_StatusFlag,1,NeedByteSwap);
-  //std::cout<<(int)m_StatusFlag<<std::endl;
-  myfile<<(int)m_StatusFlag<<"\n";
-
-
-  ReadBytes<unsigned char>(fptr, &m_NeighborsUsedFlag,1,NeedByteSwap);
-  //std::cout<<(int)m_NeighborsUsedFlag<<std::endl;
-  myfile<<(int)m_NeighborsUsedFlag<<"\n";
-
-
-  ReadBytes<int>(fptr, &m_Shades,1,NeedByteSwap);
-  myfile<<m_Shades<<"\n";
-  //std::cout<<m_Shades<<std::endl;
-
-
-  ReadBytes<int>(fptr, &m_StartRed,1,NeedByteSwap);
-  //std::cout<<m_StartRed<<std::endl;
-  myfile<<m_StartRed<<"\n";
-
-
-  ReadBytes<int>(fptr, &m_StartGreen,1,NeedByteSwap);
-  //std::cout<<m_StartGreen<<std::endl;
-  myfile<<m_StartGreen<<"\n";
-
-
-  ReadBytes<int>(fptr, &m_StartBlue,1,NeedByteSwap);
-  //std::cout<<m_StartBlue<<std::endl;
-  myfile<<m_StartBlue<<"\n";
-
-  //ReadBytes<intRGBPixel>(fptr, &m_StartColor,1,NeedByteSwap);  //Three seperate Start Colors (Red, Green, Blue) have been put together to use the set macro.
-
+  ReadBytes<char>(inputFileStream, this->m_Name, 32,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &(this->m_DisplayFlag),1,NeedByteSwap);
+  ReadBytes<unsigned char>(inputFileStream, &m_CopyFlag,1,NeedByteSwap);
+  ReadBytes<unsigned char>(inputFileStream, &m_MirrorFlag,1,NeedByteSwap);
+  ReadBytes<unsigned char>(inputFileStream, &m_StatusFlag,1,NeedByteSwap);
+  ReadBytes<unsigned char>(inputFileStream, &m_NeighborsUsedFlag,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_Shades,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_StartRed,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_StartGreen,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_StartBlue,1,NeedByteSwap);
   m_StartColor.SetBlue(m_StartBlue);
   m_StartColor.SetGreen(m_StartGreen);
   m_StartColor.SetRed(m_StartRed);
-
-  ReadBytes<int>(fptr, &m_EndRed,1,NeedByteSwap);
-  //std::cout<<m_EndRed<<std::endl;
-  myfile<<m_EndRed<<"\n";
-
-
-  ReadBytes<int>(fptr, &m_EndGreen,1,NeedByteSwap);
-  //std::cout<<m_EndGreen<<std::endl;
-  myfile<<m_EndGreen<<"\n";
-
-
-  ReadBytes<int>(fptr, &m_EndBlue,1,NeedByteSwap);
-  //std::cout<<m_EndBlue<<std::endl;
-  myfile<<m_EndBlue<<"\n";
- 
-  //ReadBytes<intRGBPixel>(fptr, &m_EndColor,1,NeedByteSwap);    //Three seperate End Colors (Red, Green, Blue) have been put together to use the set macro.
-
-  ReadBytes<int>(fptr, &m_XRotation,1,NeedByteSwap);
-  myfile<<this->m_XRotation<<"\n";
-
-
-  ReadBytes<int>(fptr, &m_YRotation,1,NeedByteSwap);
-  myfile<<this->m_YRotation<<"\n";
-
-
-  ReadBytes<int>(fptr, &m_ZRotation,1,NeedByteSwap);
-  myfile<<this->m_ZRotation<<"\n";
-
-
- // ReadBytes<Index>(fptr, &m_Rotation,1,NeedByteSwap);          //Three seperate Rotations (x, y, z) have been put together to use the set macro.
-  ReadBytes<int>(fptr, &m_XTranslation,1,NeedByteSwap);
-  myfile<<this->m_XTranslation<<"\n";
-
-
-  ReadBytes<int>(fptr, &m_YTranslation,1,NeedByteSwap);
-  myfile<<this->m_YTranslation<<"\n";
-
-
-  ReadBytes<int>(fptr, &m_ZTranslation,1,NeedByteSwap);
-  myfile<<this->m_ZTranslation<<"\n";
-
-
-  //ReadBytes<Index>(fptr, &m_Translation,1,NeedByteSwap);       //Three seperate Translations (x, y, z) have been put together to use the set macro.
-  ReadBytes<int>(fptr, &m_XCenter,1,NeedByteSwap);
-  myfile<<this->m_XCenter<<"\n";
-
-
-  ReadBytes<int>(fptr, &m_YCenter,1,NeedByteSwap);
-  myfile<<this->m_YCenter<<"\n";
-
-
-  ReadBytes<int>(fptr, &m_ZCenter,1,NeedByteSwap);
-  myfile<<this->m_ZCenter<<"\n";
-
-
-  //ReadBytes<Index>(fptr, &m_Center,1,NeedByteSwap);            //Three seperate Centers (x, y, z) have been put together to use the set macro.
-  ReadBytes<int>(fptr, &m_XRotationIncrement,1,NeedByteSwap);
-  myfile<<this->m_XRotationIncrement<<"\n";
-
-
-  ReadBytes<int>(fptr, &m_YRotationIncrement,1,NeedByteSwap);
-  myfile<<this->m_YRotationIncrement<<"\n";
-
-
-  ReadBytes<int>(fptr, &m_ZRotationIncrement,1,NeedByteSwap);
-  myfile<<this->m_ZRotationIncrement<<"\n";
-
-
-  //ReadBytes<Index>(fptr, &m_RotationIncrement,1,NeedByteSwap);  //Three seperate Rotation Increments (x, y, z) have been put together to use the set macro.
-  ReadBytes<int>(fptr, &m_XTranslationIncrement,1,NeedByteSwap);
-  myfile<<this->m_XTranslationIncrement<<"\n";
-
-
-  ReadBytes<int>(fptr, &m_YTranslationIncrement,1,NeedByteSwap);
-  myfile<<this->m_YTranslationIncrement<<"\n";
-
-
-  ReadBytes<int>(fptr, &m_ZTranslationIncrement,1,NeedByteSwap);
-  myfile<<this->m_ZTranslationIncrement<<"\n";
-
-
-  //ReadBytes<Index>(fptr, &m_TranslationIncrement,1,NeedByteSwap); //Three seperate Translation Increments (x, y, z) have been put together to use the set macro.
-  ReadBytes<short int>(fptr, &m_MinimumXValue,1,NeedByteSwap);
-  myfile<<this->m_MinimumXValue<<"\n";
-
-
-  ReadBytes<short int>(fptr, &m_MinimumYValue,1,NeedByteSwap);
-  myfile<<this->m_MinimumYValue<<"\n";
-
-
-  ReadBytes<short int>(fptr, &m_MinimumZValue,1,NeedByteSwap);
-  myfile<<this->m_MinimumZValue<<"\n";
-
-
-  //ReadBytes<Index>(fptr, &m_MinimumCoordinateValue,1,NeedByteSwap);  //Three seperate Minimum Coordinate Values (x, y, z) have been put together to use the set macro.
-  ReadBytes<short int>(fptr, &m_MaximumXValue,1,NeedByteSwap);
-  myfile<<this->m_MaximumXValue<<"\n";
-
-
-  ReadBytes<short int>(fptr, &m_MaximumYValue,1,NeedByteSwap);
-  myfile<<this->m_MaximumYValue<<"\n";
-
-
-  ReadBytes<short int>(fptr, &m_MaximumZValue,1,NeedByteSwap);
-  myfile<<this->m_MaximumZValue<<"\n";
-
-
-  //ReadBytes<Index>(fptr, &m_MaximumCoordinateValue,1,NeedByteSwap);   //Three seperate Maximum Coordiante Values (x, y, z) have been put together to use the set macro.
-  ReadBytes<float>(fptr, &m_Opacity,1,NeedByteSwap);
-  myfile<<this->m_Opacity<<"\n";
-
-
-  ReadBytes<int>(fptr, &m_OpacityThickness,1,NeedByteSwap);
-  myfile<<this->m_OpacityThickness<<"\n";
-
-  ReadBytes<float>(fptr, &m_BlendFactor,1,NeedByteSwap);
-  myfile<<m_BlendFactor<<"\n";
-
-  myfile<<"===========================================================================================\n";
-  //std::cout<<"==========================================================================================="<<std::endl;
-  myfile.close();
+  ReadBytes<int>(inputFileStream, &m_EndRed,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_EndGreen,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_EndBlue,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_XRotation,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_YRotation,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_ZRotation,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_XTranslation,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_YTranslation,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_ZTranslation,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_XCenter,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_YCenter,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_ZCenter,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_XRotationIncrement,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_YRotationIncrement,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_ZRotationIncrement,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_XTranslationIncrement,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_YTranslationIncrement,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_ZTranslationIncrement,1,NeedByteSwap);
+  ReadBytes<short int>(inputFileStream, &m_MinimumXValue,1,NeedByteSwap);
+  ReadBytes<short int>(inputFileStream, &m_MinimumYValue,1,NeedByteSwap);
+  ReadBytes<short int>(inputFileStream, &m_MinimumZValue,1,NeedByteSwap);
+  ReadBytes<short int>(inputFileStream, &m_MaximumXValue,1,NeedByteSwap);
+  ReadBytes<short int>(inputFileStream, &m_MaximumYValue,1,NeedByteSwap);
+  ReadBytes<short int>(inputFileStream, &m_MaximumZValue,1,NeedByteSwap);
+  ReadBytes<float>(inputFileStream, &m_Opacity,1,NeedByteSwap);
+  ReadBytes<int>(inputFileStream, &m_OpacityThickness,1,NeedByteSwap);
+  ReadBytes<float>(inputFileStream, &m_BlendFactor,1,NeedByteSwap);
   }
 protected:
   /**
