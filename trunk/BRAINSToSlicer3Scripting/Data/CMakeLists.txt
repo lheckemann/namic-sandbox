@@ -3,5 +3,5 @@
 # of tests that are designed to stress
 # test the Slicer-3 architechture.
 #
-PROJECT(BRAINS_SLICER_TEST_DATA)
+PROJECT(BRAINS_SLICER3_TEST_DATA)
 
