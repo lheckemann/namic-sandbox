@@ -1,0 +1,12 @@
+# Build a testing suite for Slicer-3
+# This directory will build up a series
+# of tests that are designed to stress
+# test the Slicer-3 architechture.
+#
+# For all cases where Slicer-3 has undesirable
+# behavior (SegFaults, or Bus Errors) a test will
+# be written.
+#
+PROJECT(BRAINS_SLICER_TEST_SUITE)
+
+SUBDIRS(Shell Tcl Python)
