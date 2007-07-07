@@ -1,0 +1,25 @@
+######
+# Need to source the BRAINS wrapper scripts.
+source @COMMON_INCLUDE_SCRIPT@
+
+#######
+####### The Real Work
+
+
+
+set fileName /Users/hjohnson/Desktop/TRACKHD_3TStudy/HDNI1/2007.05.04_09.22/ANONRAW/AVG_T1.nii.gz
+set inputImage [ b3_load_image ${fileName} ]
+set outputCopyFileName /Users/hjohnson/Desktop/NewCopyFile.nii.gz
+b3_save_image ${inputImage} ${outputCopyFileName}
+######   Create Gaussian Image
+set GaussianImage [b3_gaussian_filter ${inputImage} ]
+set outputGaussianFileName /Users/hjohnson/Desktop/NewGaussianFile.nii.gz
+b3_save_image ${GaussianImage} ${outputGaussianFileName}
+
+${inputImage} Delete
+${GaussianImage} Delete
+
+DestroyBatchMRMLScene
+
+exit 0
+

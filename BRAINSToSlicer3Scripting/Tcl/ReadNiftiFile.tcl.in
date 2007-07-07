@@ -1,0 +1,12 @@
+######
+# Need to source the BRAINS wrapper scripts.
+source @COMMON_INCLUDE_SCRIPT@
+
+## Author Hans J. Johnson
+## This simple script is causing Slicer to SegmentationFault
+## This file can be read in other ITK applications
+
+set fileName @COMMON_DATA_DIR@/AVG_T1.nii.gz
+set inputImage [ b3_load_image ${fileName} ]
+${inputImage} Delete
+

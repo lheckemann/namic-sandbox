@@ -9,4 +9,10 @@
 #
 PROJECT(BRAINS_SLICER_TEST_SUITE)
 
-SUBDIRS(Shell Tcl Python)
+FIND_PACKAGE(BrainsRegressionData)
+    IF(NOT BrainsRegressionData_FOUND)
+      MESSAGE(FATAL_ERROR "Cannot test brains2 without the regressiontest tree.")
+ENDIF(NOT BrainsRegressionData_FOUND)
+
+
+SUBDIRS(Common Shell Tcl Python Data)
