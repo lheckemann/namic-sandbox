@@ -7,7 +7,7 @@ source @COMMON_INCLUDE_SCRIPT@
 
 
 
-set fileName /Users/hjohnson/Desktop/TRACKHD_3TStudy/HDNI1/2007.05.04_09.22/ANONRAW/AVG_T1.nii.gz
+set fileName @COMMON_DATA_DIR@/AVG_T1.nii.gz
 set inputImage [ b3_load_image ${fileName} ]
 set outputCopyFileName /Users/hjohnson/Desktop/NewCopyFile.nii.gz
 b3_save_image ${inputImage} ${outputCopyFileName}

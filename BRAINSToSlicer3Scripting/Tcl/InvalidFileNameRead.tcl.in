@@ -10,7 +10,7 @@ source @COMMON_INCLUDE_SCRIPT@
 
 set fileName @COMMON_DATA_DIR@/XYZ_THIS_FILE_DOES_NOT_EXISTS.nii.gz
 set inputImage [ b3_load_image ${fileName} ]
-${inputImage} Delete
+#${inputImage} Delete
 
 ## TODO:  New test needs to be written to test cases where file exist, but no permissions are valid to read
 ## Read image, write to temporary binary tree, change permissions to remove read permissions, try to read file
