@@ -6,6 +6,12 @@ source @COMMON_INCLUDE_SCRIPT@
 ## This simple script is causing Slicer to SegmentationFault
 ## This file can be read in other ITK applications
 
+puts "Executing Commands From @EXECUTABLE_OUTPUT_PATH@/@SCRIPT_TO_GENERATE@.tcl"
+puts "Executing Commands From @EXECUTABLE_OUTPUT_PATH@/@SCRIPT_TO_GENERATE@.tcl"
+puts "Executing Commands From @EXECUTABLE_OUTPUT_PATH@/@SCRIPT_TO_GENERATE@.tcl"
+puts "Executing Commands From @EXECUTABLE_OUTPUT_PATH@/@SCRIPT_TO_GENERATE@.tcl"
+puts "Executing Commands From @EXECUTABLE_OUTPUT_PATH@/@SCRIPT_TO_GENERATE@.tcl"
+
 set fileName @COMMON_DATA_DIR@/AVG_T1.nii.gz
 set inputImage [ b3_load_image ${fileName} ]
 ${inputImage} Delete

@@ -1,38 +1,48 @@
-##Note: This needs to be sourced first.
-
-## Run with ~/src/Slicer3-build/Slicer3 -f ~/NewScript.tcl
+## Note: This needs to be sourced first.
+## NOTE:  The DISPLAY environmental variable MUST BE SET TO A VALID DISPLAY!
+## Run with ~/src/Slicer3-build/Slicer3 --no_splash -f ~/NewScript.tcl
 #### UGLY GLOBAL VARIABLES
-## If in gui mode
-#if { HaveSlicerGUI then use that } {
-#  set Scene $::slicer3::MRMLScene
-#  set volumesLogic [ $::slicer3::VolumesGUI GetLogic]
-#  set colorLogic [$::slicer3::ColorGUI GetLogic]
-#   set MRMLisGUI "true"
-
-## If not in gui mode (--no_splash -f )
-  set Scene [ vtkMRMLScene New ]
-  set volumesLogic [ vtkSlicerVolumesLogic New ]
-  ${volumesLogic} SetMRMLScene $Scene
-  set MRMLisGUI "false"
+## The following logic seems wrong, but appears to work in GUI mode, but not batch mode.
+if { [ info exists  $::slicer3::MRMLScene ] == 0 } {
+  ## If in gui mode
+  puts "SETTING MRML TO THE DEFAULT SLICER SCENE"
+  puts "SETTING MRML TO THE DEFAULT SLICER SCENE"
+  puts "SETTING MRML TO THE DEFAULT SLICER SCENE"
+  puts "SETTING MRML TO THE DEFAULT SLICER SCENE"
+  set BRAINSScriptingScene $::slicer3::MRMLScene
+  set BRAINSScriptingVolumesLogic [ $::slicer3::VolumesGUI GetLogic]
+  set BRAINSScriptingColorLogic [$::slicer3::ColorGUI GetLogic]
+  set BRAINSScriptingMRMLisGUI "true"
+} else {
+  ## If not in gui mode (--no_splash -f )
+  puts "SETTING MRML TO THE BATCH MODE New Instance of a SLICER SCENE"
+  puts "SETTING MRML TO THE BATCH MODE New Instance of a SLICER SCENE"
+  puts "SETTING MRML TO THE BATCH MODE New Instance of a SLICER SCENE"
+  puts "SETTING MRML TO THE BATCH MODE New Instance of a SLICER SCENE"
+  set BRAINSScriptingScene [ vtkMRMLScene New ]
+  set BRAINSScriptingVolumesLogic [ vtkSlicerVolumesLogic New ]
+  ${BRAINSScriptingVolumesLogic} SetMRMLScene $BRAINSScriptingScene
+  set BRAINSScriptingMRMLisGUI "false"
+}
 
 #### CREATE A BATCHMODE MRML FOR DOING ALL PROCESSING like a singleton
 proc GetBatchVolumesLogic {} {
-#  global volumesLogic
-#  ${volumesLogic}
-  return $::volumesLogic
+#  global BRAINSScriptingVolumesLogic
+#  ${BRAINSScriptingVolumesLogic}
+  return $::BRAINSScriptingVolumesLogic
 }
 
 proc GetBatchMRMLScene {} {
-#  global Scene
-#  ${Scene}
-  return $::Scene
+#  global BRAINSScriptingScene
+#  ${BRAINSScriptingScene}
+  return $::BRAINSScriptingScene
 }
 
 proc DestroyBatchMRMLScene {} {
 ## Only delete if not in gui mode, else let the gui handle destruction.
-  if {$::MRMLisGUI == "false" } {
+  if {$::BRAINSScriptingMRMLisGUI == "false" } {
      [ GetBatchMRMLScene ]  Delete
-     ${volumesLogic} Delete
+     ${BRAINSScriptingVolumesLogic} Delete
   }
 }
 
@@ -43,9 +53,10 @@ proc DestroyBatchMRMLScene {} {
 ############
 ############
 ## Simple Load image
-proc b3_load_image { fileName {centered 1} {lableimage 0} {NodeName brain} } {
+proc b3_load_image { fileName {centered 1} {labelimage 0} {NodeName brain} } {
 #  puts [ GetBatchVolumesLogic ]
-  set volumeNode [ [ GetBatchVolumesLogic ] AddArchetypeVolume $fileName $centered ${lableimage} ${NodeName} ]
+  puts "set volumeNode [ [ GetBatchVolumesLogic ] AddArchetypeVolume $fileName $centered ${labelimage} ${NodeName} ]"
+  set volumeNode [ [ GetBatchVolumesLogic ] AddArchetypeVolume $fileName $centered ${labelimage} ${NodeName} ]
   return ${volumeNode}
 }
 
@@ -56,7 +67,7 @@ proc b3_gaussian_filter { volumeNode {RadiusFactor 2.0} } {
   ${GFilter} SetRadiusFactor ${RadiusFactor}
   ${GFilter} Update
   set GFilterOutput [ ${GFilter} GetOutput ]
-  set NewObjName NewObjName
+  set NewObjName GaussianObjectOutput
 ##Clone the input information
   set outputVolumeNode [ [ GetBatchVolumesLogic ] CloneVolume [ GetBatchMRMLScene ] ${volumeNode} ${NewObjName} ]
 ##Attach the image info
@@ -71,4 +82,11 @@ proc b3_save_image { ImageToSave outputFileName } {
     $VolumeStorageNode WriteData ${ImageToSave}
     $VolumeStorageNode Delete
 }
+
+set filename /Users/hjohnson/TESTER/BRAINSToSlicer3Scripting/Data/AVG_T1.nii.gz
+set NodeName GoodBrain
+set centered 1
+set labelimage 0
+set logic [ $::slicer3::VolumesGUI GetLogic]
+set volumeNode [${logic} AddArchetypeVolume $fileName $centered ${labelimage} ${NodeName} ]
 
