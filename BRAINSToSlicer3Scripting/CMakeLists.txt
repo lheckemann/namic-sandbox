@@ -12,11 +12,15 @@ PROJECT(BRAINS_SLICER3_TEST_SUITE)
 ENABLE_TESTING()
 
 FIND_PROGRAM(SLICER3_BIN Slicer3 ../Slicer3-bin ../../Slicer3-bin ../../../Slicer3-bin)
+
+OPTION(BRAINS_TESTING_DATA "Determine if extended BRAINS test suite data 1.2GB should be found" OFF)
+IF(BRAINS_TESTING_DATA)
 ## Needed to find the 1.2GB of BRAINS Regression data needed for extensive testing.
-#FIND_PACKAGE(BrainsRegressionData)
-#    IF(NOT BrainsRegressionData_FOUND)
-#      MESSAGE(FATAL_ERROR "Cannot test brains2 without the regressiontest tree.")
-#ENDIF(NOT BrainsRegressionData_FOUND)
+FIND_PACKAGE(BrainsRegressionData)
+    IF(NOT BrainsRegressionData_FOUND)
+      MESSAGE(FATAL_ERROR "Cannot test brains2 without the regressiontest tree.")
+ENDIF(NOT BrainsRegressionData_FOUND)
+ENDIF(BRAINS_TESTING_DATA)
 
 SET(EXECUTABLE_OUTPUT_PATH ${BRAINS_SLICER3_TEST_SUITE_BINARY_DIR})
 
