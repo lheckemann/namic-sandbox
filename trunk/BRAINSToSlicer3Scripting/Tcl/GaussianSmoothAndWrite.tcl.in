@@ -20,6 +20,3 @@ ${inputImage} Delete
 ${GaussianImage} Delete
 
 DestroyBatchMRMLScene
-
-exit 0
-
