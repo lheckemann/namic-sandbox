@@ -31,7 +31,7 @@
 #include <string>
 #include <sstream>
 #include <stdlib.h>
-#include <time.h>
+#include <ctime>
 
 #include <itksys/SystemTools.hxx>
 

@@ -36,6 +36,7 @@
 #include <fstream>
 
 #include <cstdlib>
+#include <ctime>
 
 #include <itksys/SystemTools.hxx>
 
