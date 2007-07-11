@@ -233,25 +233,7 @@ ImageIORegion NiftiImageIO
 {
   std::cout << "NiftiImageIO::CalculateStreamableReadRegionFromRequestedRegion() " << std::endl;
   std::cout << "RequestedRegion = " << requestedRegion << std::endl;
-  //
-  // The implementations determines that the streamable region based on what can be a collaspable region
-  // equal to the largest possible region of the image.
-  //
-  ImageIORegion streamableRegion(this->m_NumberOfDimensions);
-  for( unsigned int i=0; i < this->m_NumberOfDimensions ; i++ )
-    {
-//    requestedRegion.GetIndex()[i];
-//    if(this->m_Dimensions[i]  != requestedRegion.GetSize()[i] )
-//      {
-//      }
-//    else
-      {
-      streamableRegion.SetSize( i, this->m_Dimensions[i] );
-      streamableRegion.SetIndex( i, 0 );
-      }
-    }
-  std::cout << "Streamable Region = " << streamableRegion << std::endl;
-  return streamableRegion;
+  return requestedRegion;
 }
 
 
@@ -259,11 +241,6 @@ NiftiImageIO::NiftiImageIO():
   m_NiftiImage(0)
 {
   //Set the default collapsed dimensions.
-  m_CollapsedDims[0]=0;
-  for(int d=1; d<8;d++)
-    {
-    m_CollapsedDims[d]=-1;
-    }
   this->SetNumberOfDimensions(3);
   m_RescaleSlope = 1.0;
   m_RescaleIntercept = 0.0;
@@ -283,6 +260,8 @@ void NiftiImageIO::PrintSelf(std::ostream& os, Indent indent) const
 
 bool NiftiImageIO::CanWriteFile(const char * FileNameToWrite)
 {
+  return nifti_is_complete_filename(FileNameToWrite) > 0;
+#if 0
   std::string fname(FileNameToWrite);
   std::string::size_type ext = fname.rfind('.');
   //
@@ -304,6 +283,7 @@ bool NiftiImageIO::CanWriteFile(const char * FileNameToWrite)
       }
     }
   return (nifti_is_complete_filename(FileNameToWrite) == 1 ) ? true: false;
+#endif
 }
 
 
@@ -321,76 +301,77 @@ void RescaleFunction(TBuffer* buffer, double slope, double intercept, size_t siz
 
 void NiftiImageIO::Read(void* buffer)
 {
-  //TODO:  Clean this up  this->m_NiftiImage=nifti_image_read(m_FileName.c_str(),true);
-  void * CollapsedData=NULL;
-  int CollapsedImageReadStatus=nifti_read_collapsed_image( this->m_NiftiImage, this->m_CollapsedDims, &CollapsedData);
-  if (CollapsedImageReadStatus != 0 || this->m_NiftiImage == NULL)
+  void *data = 0;
+
+  ImageIORegion regionToRead = this->GetIORegion();
+  ImageIORegion::SizeType size = regionToRead.GetSize();
+  ImageIORegion::IndexType start = regionToRead.GetIndex();
+  const int dims = this->GetNumberOfDimensions();
+  int numElts = 1;
+  int _origin[8];
+  int _size[8];
+  int i;
+  for(i = 0; i < this->GetNumberOfDimensions(); i++)
+    {
+    _origin[i] = start[i];
+    _size[i] = size[i];
+    numElts *= _size[i];
+    }
+  for( ; i < 8; i++)
+    {
+    _origin[i] = 0;
+    _size[i] = 1;
+    }
+  //
+  // allocate nifti image...
+  this->m_NiftiImage = nifti_image_read(m_FileName.c_str(),false);
+
+  if(nifti_read_subregion_image(this->m_NiftiImage,
+                                _origin,
+                                _size,
+                                &data) == -1 || this->m_NiftiImage == NULL)
     {
     ExceptionObject exception(__FILE__, __LINE__);
     exception.SetDescription("Read failed");
     throw exception;
     }
-
-  const int dims=this->GetNumberOfDimensions();
-  size_t numElts = 1;
-
-  switch (dims)
-    {
-    case 7:
-      numElts *=  (this->m_CollapsedDims[7])?1:this->m_NiftiImage->nw;
-    case 6:
-      numElts *=  (this->m_CollapsedDims[6])?1:this->m_NiftiImage->nv;
-    case 5:
-      numElts *=  (this->m_CollapsedDims[5])?1:this->m_NiftiImage->nu;
-    case 4:
-      numElts *=  (this->m_CollapsedDims[4])?1:this->m_NiftiImage->nt;
-    case 3:
-      numElts *=  (this->m_CollapsedDims[3])?1:this->m_NiftiImage->nz;
-    case 2:
-      numElts *=  (this->m_CollapsedDims[2])?1:this->m_NiftiImage->ny;
-    case 1:
-      numElts *=  (this->m_CollapsedDims[1])?1:this->m_NiftiImage->nx;
-      break;
-    default:
-      numElts = 0;
-    }
   unsigned numComponents = this->GetNumberOfComponents();
   if(numComponents == 1 || this->GetPixelType() == COMPLEX)
     {
     const size_t NumBytes=numElts * this->m_NiftiImage->nbyper;
-    memcpy(buffer, CollapsedData, NumBytes);
+    memcpy(buffer, data, NumBytes);
     }
   else
     {
     unsigned nbyper = this->m_NiftiImage->nbyper;
     //TODO:  Need to coerse these dims based on the collapsed areas.
     int *dim = this->m_NiftiImage->dim;
-    const char *frombuf = (const char *)CollapsedData;
+    const char *frombuf = (const char *)data;
     char *tobuf = (char *)buffer;
 
-    for(unsigned vec = 0; vec < (unsigned)dim[5]; vec++)
+    for(unsigned vec = 0; vec < (unsigned)_size[5]; vec++)
       {
-      for(unsigned t = 0; t < (unsigned)dim[4]; t++)
+      for(unsigned t = 0; t < (unsigned)_size[4]; t++)
         {
-        for(unsigned z = 0; z < (unsigned)dim[3]; z++)
+        for(unsigned z = 0; z < (unsigned)_size[3]; z++)
           {
-          for(unsigned y = 0; y < (unsigned)dim[2]; y++)
+          for(unsigned y = 0; y < (unsigned)_size[2]; y++)
             {
-            for(unsigned x = 0; x < (unsigned)dim[1]; x++)
+            for(unsigned x = 0; x < (unsigned)_size[1]; x++)
               {
               // to[t][z][y][x][vec] = from[vec][t][z][y][x]
               const char *from = frombuf +
                 (x * nbyper) +
-                (y * dim[1] * nbyper) +
-                (z * dim[1] * dim[2] * nbyper) +
-                (t * dim[1] * dim[2] * dim[3] * nbyper) +
-                (vec * dim[1] * dim[2] * dim[3] * dim[4] * nbyper);
+                (y * _size[1] * nbyper) +
+                (z * _size[1] * _size[2] * nbyper) +
+                (t * _size[1] * _size[2] * _size[3] * nbyper) +
+                (vec * _size[1] * _size[2] * _size[3] * _size[4] * nbyper);
               char *to = tobuf +
                 (vec * nbyper) +
-                (x * dim[5] * nbyper) +
-                (y * dim[5] * dim[1] * nbyper) +
-                (z * dim[5] * dim[1] * dim[2] * nbyper) +
-                (t * dim[5] * dim[1] * dim[2] * dim[3] * nbyper);
+                (x * _size[5] * nbyper) +
+                (y * _size[5] * _size[1] * nbyper) +
+                (z * _size[5] * _size[1] * _size[2] * nbyper) +
+                (t * _size[5] * _size[1] * _size[2] * _size[3] * nbyper);
               memcpy(to,from,nbyper);
               }
             }
@@ -398,7 +379,7 @@ void NiftiImageIO::Read(void* buffer)
         }
       }
     }
-  dumpdata(CollapsedData);
+  dumpdata(data);
   dumpdata(buffer);
 
   // If the scl_slope field is nonzero, then rescale each voxel value in the dataset
