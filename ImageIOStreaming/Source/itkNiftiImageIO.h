@@ -130,8 +130,7 @@ private:
   nifti_image * m_NiftiImage;
   double        m_RescaleSlope;
   double        m_RescaleIntercept;
-  int           m_CollapsedDims[8];
-
+  //  int           m_CollapsedDims[8];
   NiftiImageIO(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 };
