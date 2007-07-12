@@ -17,7 +17,7 @@
 #ifndef _MultiResolutionMultiImageRegistrationMethod_cxx
 #define _MultiResolutionMultiImageRegistrationMethod_cxx
 
-#include "MultiResolutionImageRegistrationMethod.h"
+#include "MultiResolutionMultiImageRegistrationMethod.h"
 #include "itkRecursiveMultiResolutionPyramidImageFilter.h"
 
 namespace itk
@@ -137,13 +137,13 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
   m_Metric->SetNumberOfImages(m_NumberOfImages);
   for(int i=0; i<m_NumberOfImages; i++)
   {
-    m_Metric->SetImageArray( m_ImagePyramidArray[i]->GetOutput(m_CurrentLevel), i);
-    m_Metric->SetInterpolatorArray( m_InterpolatorArray[i], i );
-    m_Metric->SetTransformArray( m_TransformArray[i], i );
+    m_Metric->SetImageArray( i, m_ImagePyramidArray[i]->GetOutput(m_CurrentLevel));
+    m_Metric->SetInterpolatorArray( i, m_InterpolatorArray[i]);
+    m_Metric->SetTransformArray( i, m_TransformArray[i]);
     //Connect the mask
     if(m_ImageMaskArray[i])
     {
-      m_Metric->SetImageMaskArray( m_ImageMaskArray[i], i );
+      m_Metric->SetImageMaskArray( i, m_ImageMaskArray[i]);
     }
     //m_GradientInterpolatorArray[i]->SetInputImage(m_GradientImagePyramidArray[i][m_CurrentLevel]);
     //m_Metric->SetGradientInterpolatorArray( m_GradientInterpolatorArray[i], i );

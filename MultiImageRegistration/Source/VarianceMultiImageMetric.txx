@@ -19,11 +19,7 @@
 
 #include "VarianceMultiImageMetric.h"
 
-
-#include "itkCovariantVector.h"
-#include "itkImageRandomConstIteratorWithIndex.h"
 #include "vnl/vnl_math.h"
-#include "itkGaussianKernelFunction.h"
 #include <cmath>
 
 namespace itk
@@ -32,35 +28,31 @@ namespace itk
 /*
  * Constructor
  */
-template < class TFixedImage >
-VarianceMultiImageMetric < TFixedImage >::
+template < class TImage >
+VarianceMultiImageMetric < TImage >::
 VarianceMultiImageMetric()
 {
-
-
 }
 
 
 /*
  * Initialize
  */
-template <class TFixedImage> 
+template <class TImage> 
 void
-VarianceMultiImageMetric<TFixedImage>
+VarianceMultiImageMetric<TImage>
 ::Initialize(void) throw ( ExceptionObject )
 {
-
   //First intialize the superclass
   Superclass::Initialize();
-
 }
 
 /*
  * Get the match Measure
  */
-template < class TFixedImage >
-typename VarianceMultiImageMetric < TFixedImage >::MeasureType
-VarianceMultiImageMetric <TFixedImage >::
+template < class TImage >
+typename VarianceMultiImageMetric < TImage >::MeasureType
+VarianceMultiImageMetric <TImage >::
 GetValue(const ParametersType & parameters) const
 {
   // Call a method that perform some calculations prior to splitting the main
@@ -89,9 +81,9 @@ GetValue(const ParametersType & parameters) const
 /*
  * Get the match Measure
  */
-template < class TFixedImage >
+template < class TImage >
 void
-VarianceMultiImageMetric < TFixedImage >
+VarianceMultiImageMetric < TImage >
 ::GetThreadedValue(int threadId) const
 {
 
@@ -104,7 +96,7 @@ VarianceMultiImageMetric < TFixedImage >
       this->m_TransformArray[0]->GetNumberOfParameters();
 
   // Update intensity values
-  MovingImagePointType mappedPoint;
+  ImagePointType mappedPoint;
   for(int i=threadId; i< size; i += this->m_NumberOfThreads )
   {
     for(int j=0; j<N; j++)
@@ -119,7 +111,8 @@ VarianceMultiImageMetric < TFixedImage >
 
   //Calculate variance and mean
   this->m_value[threadId] = 0.0;
-  double squareSum, meanSum;
+  double squareSum;
+  double meanSum;
 
   for(int i=threadId; i< size; i+=this->m_NumberOfThreads )
   {
@@ -129,19 +122,19 @@ VarianceMultiImageMetric < TFixedImage >
     {
       const double currentValue = this->m_Sample[i].imageValueArray[j];
       squareSum += currentValue * currentValue;
-      meanSum += currentValue;
+      meanSum   += currentValue;
     }
 
     meanSum /= (double) N;
     squareSum /= (double) N;
     this->m_value[threadId] += squareSum - meanSum * meanSum;
-  }        // end of sample loop
+  }  
 
 }
 
 
-template < class TFixedImage >
-void VarianceMultiImageMetric < TFixedImage >
+template < class TImage >
+void VarianceMultiImageMetric < TImage >
 ::GetValueAndDerivative(const ParametersType & parameters,
                           MeasureType & value,
                           DerivativeType & derivative) const
@@ -169,13 +162,13 @@ void VarianceMultiImageMetric < TFixedImage >
 /*
  * Get the match Measure
  */
-template < class TFixedImage >
+template < class TImage >
 void 
-VarianceMultiImageMetric < TFixedImage >
+VarianceMultiImageMetric < TImage >
 ::GetThreadedValueAndDerivative(int threadId) const
 {
 
-  double N = (double) this->m_NumberOfImages;
+  const double N = (double) this->m_NumberOfImages;
 
   /** The tranform parameters vector holding i'th images parameters 
   Copy parameters in to a collection of arrays */
@@ -194,7 +187,6 @@ VarianceMultiImageMetric < TFixedImage >
   //Calculate metric value
   double measure = 0.0;
   double mean;
-  double variance;
   double sumOfSquares = 0.0;
   DerivativeType deriv(numberOfParameters);
   // Sum over spatial samples
@@ -211,8 +203,7 @@ VarianceMultiImageMetric < TFixedImage >
     }
     mean /= N;
     sumOfSquares /= N;
-    variance = sumOfSquares - mean*mean;
-    measure += variance;
+    measure += sumOfSquares - mean*mean;
 
     // Calculate derivative
     for (int i = 0; i < this->m_NumberOfImages; i++)
@@ -228,10 +219,6 @@ VarianceMultiImageMetric < TFixedImage >
   this->m_value[threadId] = measure;
 
 }
-
-
-
-
 
 }        // end namespace itk
 

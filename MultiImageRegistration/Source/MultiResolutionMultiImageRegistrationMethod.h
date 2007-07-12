@@ -24,10 +24,7 @@
 #include "itkNumericTraits.h"
 
 //user defined headers
-#include "VarianceMultiImageMetric.h"
-#include "UserMacro.h"
-#include <vector>
-using namespace std;
+#include "MultiImageMetric.h"
 
 namespace itk
 {
@@ -62,8 +59,7 @@ namespace itk
  * opportunity for a user interface to change any of the components,
  * change component parameters, or stop the registration.
  *
- * This class is templated over the fixed image type and the moving image
- * type.
+ * This class is templated over the image type.
  *
  * \sa ImageRegistrationMethod
  * \ingroup RegistrationFilters
@@ -74,9 +70,9 @@ class ITK_EXPORT MultiResolutionMultiImageRegistrationMethod : public ProcessObj
 public:
   /** Standard class typedefs. */
   typedef MultiResolutionMultiImageRegistrationMethod  Self;
-  typedef ProcessObject  Superclass;
-  typedef SmartPointer<Self>   Pointer;
-  typedef SmartPointer<const Self>  ConstPointer;
+  typedef ProcessObject                                Superclass;
+  typedef SmartPointer<Self>                           Pointer;
+  typedef SmartPointer<const Self>                     ConstPointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -85,44 +81,43 @@ public:
   itkTypeMacro(MultiResolutionMultiImageRegistrationMethod, ProcessObject);
 
   /**  Type of the Fixed image. */
-  typedef          TImage                     ImageType;
-  typedef typename ImageType::ConstPointer    ImageConstPointer;
-  typedef        vector<ImageConstPointer>    ImageArrayPointer;
-  typedef typename ImageType::RegionType      ImageRegionType;
+  typedef          TImage                               ImageType;
+  typedef typename ImageType::ConstPointer              ImageConstPointer;
+  typedef          std::vector<ImageConstPointer>       ImageArrayPointer;
+  typedef typename ImageType::RegionType                ImageRegionType;
 
 
   /**  Type of the metric. */
-  typedef MultiImageMetric< ImageType>       MetricType;
-  typedef typename MetricType::Pointer                MetricPointer;
+  typedef MultiImageMetric< ImageType>                  MetricType;
+  typedef typename MetricType::Pointer                  MetricPointer;
 
   /**  Type of the Transform . */
-  typedef typename MetricType::TransformType       TransformType;
-  typedef typename TransformType::Pointer          TransformPointer;
-  typedef  vector<TransformPointer>                TransformPointerArray;
+  typedef typename MetricType::TransformType            TransformType;
+  typedef typename TransformType::Pointer               TransformPointer;
+  typedef  std::vector<TransformPointer>                TransformPointerArray;
 
   /**  Type of the Interpolator. */
-  typedef typename MetricType::InterpolatorType    InterpolatorType;
-  typedef typename InterpolatorType::Pointer       InterpolatorPointer;
-  typedef  vector<InterpolatorPointer>             InterpolatorPointerArray;
+  typedef typename MetricType::InterpolatorType         InterpolatorType;
+  typedef typename InterpolatorType::Pointer            InterpolatorPointer;
+  typedef  std::vector<InterpolatorPointer>             InterpolatorPointerArray;
 
   /**  Type of the optimizer. */
-  typedef SingleValuedNonLinearOptimizer           OptimizerType;
+  typedef SingleValuedNonLinearOptimizer                OptimizerType;
 
   /** Type of the Fixed image multiresolution pyramid. */
   typedef MultiResolutionPyramidImageFilter< ImageType,
-                                             ImageType >
-  ImagePyramidType;
-  typedef typename ImagePyramidType::Pointer  ImagePyramidPointer;
-  typedef  vector<ImagePyramidPointer>                ImagePyramidPointerArray;
+                                             ImageType >   ImagePyramidType;
+  typedef typename ImagePyramidType::Pointer               ImagePyramidPointer;
+  typedef  std::vector<ImagePyramidPointer>                ImagePyramidPointerArray;
 
   /** Typedef for image masks */
-  typedef typename  MetricType::MovingImageMaskType ImageMaskType;
-  typedef typename  MetricType::MovingImageMaskPointer ImageMaskPointer;
-  typedef typename  std::vector< ImageMaskPointer > ImageMaskPointerArray;
+  typedef typename  MetricType::ImageMaskType              ImageMaskType;
+  typedef typename  MetricType::ImageMaskPointer           ImageMaskPointer;
+  typedef typename  std::vector< ImageMaskPointer >        ImageMaskPointerArray;
 
   /** Typedef for gradient image */
-  typedef typename  MetricType::GradientImageType GradientImageType;
-  typedef typename  MetricType::GradientImagePointerArray GradientImagePointerArray;
+  typedef typename  MetricType::GradientImageType          GradientImageType;
+  typedef typename  MetricType::GradientImagePointerArray  GradientImagePointerArray;
   typedef typename  std::vector<GradientImagePointerArray> GradientImagePyramidArray;
 
   /** Type used for representing point components  */
@@ -184,7 +179,6 @@ public:
   virtual int GetTransformParametersLength( );
   
   /** Set/Get the initial transformation parameters. */
-  //itkSetMacro( InitialTransformParameters, ParametersType );
   itkGetConstReferenceMacro( InitialTransformParameters, ParametersType );
   virtual void SetInitialTransformParameters( const ParametersType & param , int i );
   virtual void SetInitialTransformParameters( const ParametersType & param );
@@ -193,7 +187,6 @@ public:
   /** Set/Get the initial transformation parameters of the next resolution
    level to be processed. The default is the last set of parameters of
    the last resolution level. */
-  //itkSetMacro( InitialTransformParametersOfNextLevel, ParametersType );
   itkGetConstReferenceMacro( InitialTransformParametersOfNextLevel, ParametersType );
   virtual void SetInitialTransformParametersOfNextLevel( const ParametersType & param , int i );
   virtual void SetInitialTransformParametersOfNextLevel( const ParametersType & param );
@@ -251,7 +244,7 @@ private:
 
   bool                             m_Stop;
 
-  int            m_NumberOfImages;
+  int                              m_NumberOfImages;
 
   
 };
@@ -261,7 +254,7 @@ private:
 
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "MultiResolutionImageRegistrationMethod.cxx"
+#include "MultiResolutionMultiImageRegistrationMethod.txx"
 #endif
 
 #endif

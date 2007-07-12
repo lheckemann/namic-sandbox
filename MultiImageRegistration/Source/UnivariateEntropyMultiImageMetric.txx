@@ -14,10 +14,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _ParzenWindowEntropyMultiImageMetric_cxx
-#define _ParzenWindowEntropyMultiImageMetric_cxx
+#ifndef _UnivariateEntropyMultiImageMetric_cxx
+#define _UnivariateEntropyMultiImageMetric_cxx
 
-#include "ParzenWindowEntropyMultiImageMetric.h"
+#include "UnivariateEntropyMultiImageMetric.h"
 
 
 #include "itkCovariantVector.h"
@@ -34,12 +34,12 @@ namespace itk
 /*
  * Constructor
  */
-template < class TFixedImage >
-ParzenWindowEntropyMultiImageMetric < TFixedImage >::
-    ParzenWindowEntropyMultiImageMetric()
+template < class TImage >
+UnivariateEntropyMultiImageMetric < TImage >::
+    UnivariateEntropyMultiImageMetric()
 {
 
-  m_ImageStandardDeviation = 0.4;
+  m_ImageStandardDeviation = 10.0;
 
   // Following initialization is related to
   // calculating image derivatives
@@ -49,7 +49,6 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >::
   
 
   m_UseMask = false;
-  m_NumberOfFixedImages = 0;
   m_NumberOfParametersPerdimension = 0;
 
 }
@@ -57,12 +56,10 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >::
 /*
  * Constructor
  */
-template < class TFixedImage >
-ParzenWindowEntropyMultiImageMetric < TFixedImage >::
-~ParzenWindowEntropyMultiImageMetric()
+template < class TImage >
+UnivariateEntropyMultiImageMetric < TImage >::
+~UnivariateEntropyMultiImageMetric()
 {
-  
-
 
 }
 
@@ -71,9 +68,9 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >::
 /*
  * Initialize
  */
-template <class TFixedImage> 
+template <class TImage> 
 void
-ParzenWindowEntropyMultiImageMetric<TFixedImage>
+UnivariateEntropyMultiImageMetric<TImage>
 ::Initialize(void) throw ( ExceptionObject )
 {
 
@@ -107,7 +104,7 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
   m_TransformParametersArray.resize(this->m_NumberOfImages);
   for(unsigned int i=0; i<this->m_NumberOfImages; i++)
   {
-    m_TransformParametersArray[i].set_size(this->numberOfParameters);
+    m_TransformParametersArray[i].set_size(this->m_NumberOfParameters);
   }
 
   m_value.SetSize( this->m_NumberOfThreads );
@@ -119,7 +116,7 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
     m_DerivativesArray[i].resize(this->m_NumberOfImages);
     for(unsigned int j=0; j<this->m_NumberOfImages; j++)
     {
-      m_DerivativesArray[i][j].SetSize(this->numberOfParameters);
+      m_DerivativesArray[i][j].SetSize(this->m_NumberOfParameters);
     }
   }
 
@@ -151,14 +148,6 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
 
   // Sample the image domain
   this->SampleFixedImageDomain();
-  
-  // Initialize the variables for regularization term
-  if( this->m_UserBsplineDefined && this->m_Regularization &&
-      strcmp(this->m_TransformArray[0]->GetNameOfClass(), "UserBSplineDeformableTransform") )
-  {
-    itkExceptionMacro(<<"Cannot use regularization with transforms" <<
-        " other than BSplineDeformableTransform" );
-  }
 
 
   // Initialize the variables for regularization term
@@ -168,47 +157,15 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
     numberOfWeights = this->m_BSplineTransformArray[0]->GetNumberOfAffectedWeights();
     bsplineIndexes.set_size(numberOfWeights);
     m_NumberOfParametersPerdimension = this->m_BSplineTransformArray[0]->GetNumberOfParametersPerDimension();
-  }
-  else
-  {
-    this->m_Regularization = false;
-  }
-
-  // Initialize the variables for regularization term
-  if( this->m_Regularization &&
-      strcmp(this->m_TransformArray[0]->GetNameOfClass(), "UserBSplineDeformableTransform") )
-  {
-    itkExceptionMacro(<<"Cannot use regularization with transforms" <<
-        " other than BSplineDeformableTransform" );
-  }
-
-  // If using regularization check that the Bspline Transform is supplied
-  if( this->m_Regularization &&
-      !strcmp(this->m_TransformArray[0]->GetNameOfClass(), "BSplineDeformableTransform") )
-  {
-    for(unsigned int i=0; i<this->m_NumberOfImages;i++)
-    {
-      if( !this->m_BSplineTransformArray[i] )
-      {
-        itkExceptionMacro(<<"Bspline Transform Array not initialized" );
-      }
-      
-      if( (void *) this->m_BSplineTransformArray[i] != (void*)this->m_TransformArray[i])
-      {
-        itkExceptionMacro(<<"While using Bspline regularization transform array and Bspline array should have the pointers to the same transform" );
-      }
-    }
-
-  }
-  
+  }  
 }
 
 /*
  * Finalize
  */
-template <class TFixedImage> 
+template <class TImage> 
 void
-ParzenWindowEntropyMultiImageMetric<TFixedImage>
+UnivariateEntropyMultiImageMetric<TImage>
 ::Finalize(void)
 {
 
@@ -216,25 +173,24 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
   Superclass::Finalize();
 }
 
-template < class TFixedImage >
-void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
+template < class TImage >
+void UnivariateEntropyMultiImageMetric < TImage >::
 PrintSelf (std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf (os, indent);
   os << indent << "NumberOfSpatialSamples: ";
   os << this->m_NumberOfSpatialSamples << std::endl;
-  os << indent << "FixedImageStandardDeviation: ";
+  os << indent << "ImageStandardDeviation: ";
   os << m_ImageStandardDeviation << std::endl;
-  os << indent << "MovingImageStandardDeviation: ";
 }
 
 
 // Callback routine used by the threading library. This routine just calls
 // the GetThreadedValue() method after setting the correct partition of data
 // for this thread.
-template < class TFixedImage >
+template < class TImage >
 ITK_THREAD_RETURN_TYPE
-ParzenWindowEntropyMultiImageMetric< TFixedImage >
+UnivariateEntropyMultiImageMetric< TImage >
 ::ThreaderCallbackSampleFixedImageDomain( void *arg )
 {
   ThreadStruct *str;
@@ -245,7 +201,6 @@ ParzenWindowEntropyMultiImageMetric< TFixedImage >
 
   str->Metric->ThreadedSampleFixedImageDomain( threadId );
 
-
   return ITK_THREAD_RETURN_VALUE;
 }
 
@@ -255,8 +210,8 @@ ParzenWindowEntropyMultiImageMetric< TFixedImage >
  *  - the sampled point
  *  - Corresponding moving image intensity values
  */
-template < class TFixedImage >
-void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
+template < class TImage >
+void UnivariateEntropyMultiImageMetric < TImage >::
 ThreadedSampleFixedImageDomain( int threadID ) const
 {
 
@@ -266,11 +221,11 @@ ThreadedSampleFixedImageDomain( int threadID ) const
   unsigned long numberOfFixedImagePixelsVisited = 0;
   unsigned long dryRunTolerance = (3*this->GetFixedImageRegion().GetNumberOfPixels()) / this->m_NumberOfThreads;
 
-  std::vector<MovingImagePointType>   mappedPointsArray(this->m_NumberOfImages);
+  std::vector<ImagePointType>   mappedPointsArray(this->m_NumberOfImages);
   for(unsigned long int i=threadID; i<this->m_NumberOfSpatialSamples; i += this->m_NumberOfThreads)
   {
     // Get sampled index
-    FixedImageIndexType index = m_RandIterArray[threadID]->GetIndex();
+    ImageIndexType index = m_RandIterArray[threadID]->GetIndex();
     // Translate index to point
     this->m_ImageArray[0]->TransformIndexToPhysicalPoint(index, this->m_Sample[i].FixedImagePoint);
 
@@ -336,8 +291,8 @@ ThreadedSampleFixedImageDomain( int threadID ) const
  *  - the sampled point
  *  - Corresponding moving image intensity values
  */
-template < class TFixedImage >
-void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
+template < class TImage >
+void UnivariateEntropyMultiImageMetric < TImage >::
 SampleFixedImageDomain( ) const
 {
 
@@ -356,9 +311,9 @@ SampleFixedImageDomain( ) const
 /*
  * Get the match Measure
  */
-template < class TFixedImage >
-typename ParzenWindowEntropyMultiImageMetric < TFixedImage >::MeasureType
-ParzenWindowEntropyMultiImageMetric <TFixedImage >::
+template < class TImage >
+typename UnivariateEntropyMultiImageMetric < TImage >::MeasureType
+UnivariateEntropyMultiImageMetric <TImage >::
 GetValue(const ParametersType & parameters) const
 {
   // Call a method that perform some calculations prior to splitting the main
@@ -385,9 +340,9 @@ GetValue(const ParametersType & parameters) const
 // Callback routine used by the threading library. This routine just calls
 // the GetThreadedValue() method after setting the correct partition of data
 // for this thread.
-template < class TFixedImage >
+template < class TImage >
 ITK_THREAD_RETURN_TYPE
-ParzenWindowEntropyMultiImageMetric< TFixedImage >
+UnivariateEntropyMultiImageMetric< TImage >
 ::ThreaderCallbackGetValue( void *arg )
 {
   ThreadStruct *str;
@@ -398,7 +353,6 @@ ParzenWindowEntropyMultiImageMetric< TFixedImage >
 
   str->Metric->GetThreadedValue( threadId );
 
-
   return ITK_THREAD_RETURN_VALUE;
 }
 
@@ -406,9 +360,9 @@ ParzenWindowEntropyMultiImageMetric< TFixedImage >
 /**
  * Prepare auxiliary variables before starting the threads
  */
-template < class TFixedImage >
+template < class TImage >
 void 
-ParzenWindowEntropyMultiImageMetric < TFixedImage >
+UnivariateEntropyMultiImageMetric < TImage >
 ::BeforeGetThreadedValue(const ParametersType & parameters) const
 {
   //Make sure that each transform parameters are updated
@@ -416,9 +370,9 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
   for( unsigned int i = 0; i < this->m_NumberOfImages; i++)
   {
     //Copy the parameters of the current transform
-    for (unsigned int j = 0; j < this->numberOfParameters; j++)
+    for (unsigned int j = 0; j < this->m_NumberOfParameters; j++)
     {
-      m_TransformParametersArray[i][j] = parameters[this->numberOfParameters * i + j];
+      m_TransformParametersArray[i][j] = parameters[this->m_NumberOfParameters * i + j];
     }
     this->m_TransformArray[i]->SetParameters(m_TransformParametersArray[i]);
   }
@@ -429,14 +383,14 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 /*
  * Get the match Measure
  */
-template < class TFixedImage >
+template < class TImage >
 void 
-ParzenWindowEntropyMultiImageMetric < TFixedImage >
+UnivariateEntropyMultiImageMetric < TImage >
 ::GetThreadedValue(int threadId) const
 {
 
   // Update intensity values
-  MovingImagePointType mappedPoint;
+  ImagePointType mappedPoint;
   for(unsigned long int i=threadId; i< this->m_NumberOfSpatialSamples; i += this->m_NumberOfThreads )
   {
     for(unsigned int j=0; j<this->m_NumberOfImages; j++)
@@ -481,9 +435,9 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 /**
  * Consolidate auxiliary variables after finishing the threads
  */
-template < class TFixedImage >
-typename ParzenWindowEntropyMultiImageMetric < TFixedImage >::MeasureType
-ParzenWindowEntropyMultiImageMetric < TFixedImage >
+template < class TImage >
+typename UnivariateEntropyMultiImageMetric < TImage >::MeasureType
+UnivariateEntropyMultiImageMetric < TImage >
 ::AfterGetThreadedValue() const
 {
 
@@ -503,8 +457,8 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 /*
  * Get the match Measure
  */
-template < class TFixedImage >
-void ParzenWindowEntropyMultiImageMetric < TFixedImage >
+template < class TImage >
+void UnivariateEntropyMultiImageMetric < TImage >
 ::GetValueAndDerivative(const ParametersType & parameters,
                           MeasureType & value,
                           DerivativeType & derivative) const
@@ -533,9 +487,9 @@ void ParzenWindowEntropyMultiImageMetric < TFixedImage >
 // Callback routine used by the threading library. This routine just calls
 // the GetThreadedValue() method after setting the correct partition of data
 // for this thread.
-template < class TFixedImage >
+template < class TImage >
 ITK_THREAD_RETURN_TYPE
-ParzenWindowEntropyMultiImageMetric< TFixedImage >
+UnivariateEntropyMultiImageMetric< TImage >
 ::ThreaderCallbackGetValueAndDerivative( void *arg )
 {
   ThreadStruct *str;
@@ -554,9 +508,9 @@ ParzenWindowEntropyMultiImageMetric< TFixedImage >
 /**
  * Prepare auxiliary variables before starting the threads
  */
-template < class TFixedImage >
+template < class TImage >
 void 
-ParzenWindowEntropyMultiImageMetric < TFixedImage >
+UnivariateEntropyMultiImageMetric < TImage >
 ::BeforeGetThreadedValueAndDerivative(const ParametersType & parameters) const
 {
   // cout << "checking derivative" << endl;
@@ -567,9 +521,9 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
   for (unsigned int i = 0; i < this->m_NumberOfImages; i++)
   {
     //Copy the parameters of the current transform
-    for (unsigned int j = 0; j < this->numberOfParameters; j++)
+    for (unsigned int j = 0; j < this->m_NumberOfParameters; j++)
     {
-      m_TransformParametersArray[i][j] = parameters[this->numberOfParameters * i + j];
+      m_TransformParametersArray[i][j] = parameters[this->m_NumberOfParameters * i + j];
     }
     // cout << currentParam << endl;
     this->m_TransformArray[i]->SetParameters(m_TransformParametersArray[i]);
@@ -581,15 +535,15 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 /**
  * Consolidate auxiliary variables after finishing the threads
  */
-template < class TFixedImage >
-void ParzenWindowEntropyMultiImageMetric < TFixedImage >
+template < class TImage >
+void UnivariateEntropyMultiImageMetric < TImage >
 ::AfterGetThreadedValueAndDerivative(MeasureType & value,
                            DerivativeType & derivative) const
 {
 
   value = NumericTraits< RealType >::Zero;
 
-  derivative.set_size(this->numberOfParameters * this->m_NumberOfImages);
+  derivative.set_size(this->m_NumberOfParameters * this->m_NumberOfImages);
   derivative.Fill (0.0);
 
   // Sum over the values returned by threads
@@ -598,9 +552,9 @@ void ParzenWindowEntropyMultiImageMetric < TFixedImage >
     value += m_value[i];
     for(unsigned int j=0; j<this->m_NumberOfImages; j++)
     {
-      for(unsigned int k=0; k<this->numberOfParameters; k++)
+      for(unsigned int k=0; k<this->m_NumberOfParameters; k++)
       {
-        derivative[j * this->numberOfParameters + k] += m_DerivativesArray[i][j][k]; 
+        derivative[j * this->m_NumberOfParameters + k] += m_DerivativesArray[i][j][k]; 
       }
     }
   }
@@ -610,20 +564,20 @@ void ParzenWindowEntropyMultiImageMetric < TFixedImage >
   
   //Set the mean to zero
   //Remove mean
-  DerivativeType sum (this->numberOfParameters);
+  DerivativeType sum (this->m_NumberOfParameters);
   sum.Fill(0.0);
   for (unsigned int i = 0; i < this->m_NumberOfImages; i++)
   {
-    for (unsigned int j = 0; j < this->numberOfParameters; j++)
+    for (unsigned int j = 0; j < this->m_NumberOfParameters; j++)
     {
-      sum[j] += derivative[i * this->numberOfParameters + j];
+      sum[j] += derivative[i * this->m_NumberOfParameters + j];
     }
   }
 
   
-  for (unsigned int i = 0; i < this->m_NumberOfImages * this->numberOfParameters; i++)
+  for (unsigned int i = 0; i < this->m_NumberOfImages * this->m_NumberOfParameters; i++)
   {
-    derivative[i] -= sum[i % this->numberOfParameters] / (double) this->m_NumberOfImages;
+    derivative[i] -= sum[i % this->m_NumberOfParameters] / (double) this->m_NumberOfImages;
   }
 
 
@@ -633,9 +587,9 @@ void ParzenWindowEntropyMultiImageMetric < TFixedImage >
 /*
  * Get the match Measure
  */
-template < class TFixedImage >
+template < class TImage >
 void 
-ParzenWindowEntropyMultiImageMetric < TFixedImage >
+UnivariateEntropyMultiImageMetric < TImage >
 ::GetThreadedValueAndDerivative(int threadId) const
 {
   
@@ -699,8 +653,8 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
 /*
  * Get the match measure derivative
  */
-template < class TFixedImage >
-void ParzenWindowEntropyMultiImageMetric < TFixedImage >
+template < class TImage >
+void UnivariateEntropyMultiImageMetric < TImage >
 ::GetDerivative (const ParametersType & parameters,
           DerivativeType & derivative) const
 {
@@ -721,15 +675,13 @@ void ParzenWindowEntropyMultiImageMetric < TFixedImage >
  * in the mapper. This solution only works for any transform
  * that support GetJacobian()
  */
-template < class TFixedImage >
-void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
+template < class TImage >
+void UnivariateEntropyMultiImageMetric < TImage >::
 UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSample& sample, const RealType& weight, const int& imageNumber, const int& threadID) const
 {
 
   const CovarientType gradient = m_DerivativeCalculator[imageNumber]->Evaluate(
                                                 this->m_TransformArray[imageNumber]->TransformPoint (sample.FixedImagePoint) );
-  //typedef FixedArray < double, MovingImageDimension > FixedArrayType;
-  //const FixedArrayType gradient = this->m_GradientInterpolatorArray[imageNumber]->Evaluate(sample.mappedPointsArray[imageNumber]);
 
   typedef typename TransformType::JacobianType JacobianType;
 
@@ -740,10 +692,10 @@ UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSamp
         this->m_TransformArray[imageNumber]->GetJacobian( sample.FixedImagePoint);
 
     double currentValue;
-    for (unsigned int k = 0; k < this->numberOfParameters; k++)
+    for (unsigned int k = 0; k < this->m_NumberOfParameters; k++)
     {
       currentValue = 0.0;
-      for (unsigned int j = 0; j < MovingImageDimension; j++)
+      for (unsigned int j = 0; j < ImageDimension; j++)
       {
         currentValue += jacobian[j][k] * gradient[j];
       }
@@ -762,9 +714,8 @@ UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSamp
     for (int k = 0; k < numberOfWeights; k++)
     {
 
-        for (unsigned int j = 0; j < MovingImageDimension; j++)
+        for (unsigned int j = 0; j < ImageDimension; j++)
         {
-
           inputDerivative[j*m_NumberOfParametersPerdimension + bsplineIndexes[k]] += bsplineWeights[k] * gradient[j] * weight;
         }
 

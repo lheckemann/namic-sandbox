@@ -31,19 +31,13 @@ template <class TImage>
 MultiImageMetric<TImage>
 ::MultiImageMetric()
 {
-//   m_FixedImage    = 0; // has to be provided by the user.
-//   m_MovingImage   = 0; // has to be provided by the user.
-//   m_Transform     = 0; // has to be provided by the user.
-//   m_Interpolator  = 0; // has to be provided by the user.
-//  m_GradientImage = 0; // will receive the output of the filter;
-  m_NumberOfSpatialSamples = 0;
+  m_NumberOfSpatialSamples = 100;
 
   m_ComputeGradient = false; // metric does not compute gradient by default
   m_UserBsplineDefined = false;
-  m_CorrectInterpolationArtefact = false;
+
   m_NumberOfImages = 0;
   m_NumberOfPixelsCounted = 0; // initialize to zero
-  //  m_GradientImage = NULL; // computed at initialization
 
   m_ImageArray.resize(0);
   m_GradientImageArray.resize(0);
@@ -54,13 +48,11 @@ MultiImageMetric<TImage>
   m_Threader = MultiThreader::New();
   m_NumberOfThreads = m_Threader->GetNumberOfThreads();
 
-  m_Regularization = false;
-  m_RegularizationFactor = 1e-5;
 }
 
 
 /*
- * Constructor
+ * Destructor
  */
 template <class TImage>
 MultiImageMetric<TImage>
@@ -108,18 +100,18 @@ MultiImageMetric<TImage>
   {
     if( !m_TransformArray[i] )
     {
-      itkExceptionMacro(<<"Transform is not present");
+      itkExceptionMacro(<<"Transform " << i << " is not present");
     }
 
   
     if( !m_InterpolatorArray[i] )
     {
-      itkExceptionMacro(<<"Interpolator is not present");
+      itkExceptionMacro(<<"Interpolator " << i << " is not present");
     }
     
     if( !m_ImageArray[i] )
     {
-      itkExceptionMacro(<<"FixedImage is not present");
+      itkExceptionMacro(<<"Image " << i << " is not present");
     }
     
   }
@@ -130,10 +122,10 @@ MultiImageMetric<TImage>
     itkExceptionMacro(<<"FixedImageRegion is empty");
   }
 
-  // Make sure the FixedImageRegion is within the FixedImage buffered region
+  // Make sure the FixedImageRegion is within the Image buffered region
   if ( !m_FixedImageRegion.Crop( m_ImageArray[0]->GetBufferedRegion() ) )
   {
-    itkExceptionMacro(<<"FixedImageRegion does not overlap the fixed image buffered region" );
+    itkExceptionMacro(<<"FixedImageRegion does not overlap the image buffered region" );
   }
 
   for(unsigned int i=0; i < this->m_NumberOfImages; i++)
@@ -141,7 +133,7 @@ MultiImageMetric<TImage>
     m_InterpolatorArray[i]->SetInputImage( m_ImageArray[i] );
   }
 
-  numberOfParameters = m_TransformArray[0]->GetNumberOfParameters();
+  m_NumberOfParameters = m_TransformArray[0]->GetNumberOfParameters();
 
 
   // allocate new sample array
@@ -149,11 +141,10 @@ MultiImageMetric<TImage>
   for (unsigned int i = 0; i < this->m_NumberOfSpatialSamples; i++)
   {
     this->m_Sample[i].imageValueArray.set_size (this->m_NumberOfImages);
-    //this->m_Sample[i].mappedPointsArray.resize(this->m_NumberOfImages);
   }
   
   // Use optimized Bspline derivatives if the tranform type is UserBSplie
-  if( !strcmp(this->m_TransformArray[0]->GetNameOfClass(), "UserBSplineDeformableTransform") )
+  if( !strcmp(this->m_TransformArray[0]->GetNameOfClass(), "BSplineDeformableTransformOpt") )
   {
     this->m_UserBsplineDefined = true;
   }
@@ -197,7 +188,6 @@ MultiImageMetric<TImage>
 ::Finalize(void)
 {
 
-
 }
 
 /*
@@ -214,11 +204,10 @@ MultiImageMetric<TImage>
      << std::endl;
   for( unsigned int i=0; i<this->m_NumberOfImages; i++)
   {
-    os << indent << "Moving Image: "  << i << " " << m_ImageArray[i].GetPointer()  << std::endl;
-    //os << indent << "Gradient Image: "<< i << " " << m_GradientImageArray[i].GetPointer()   << std::endl;
+    os << indent << "Image: "  << i << " " << m_ImageArray[i].GetPointer()  << std::endl;
     os << indent << "Transform:    "  << i << " " << m_TransformArray[i].GetPointer()    << std::endl;
     os << indent << "Interpolator: "  << i << " " << m_InterpolatorArray[i].GetPointer() << std::endl;
-    os << indent << "Moving Image Mask: " << i << " " << m_ImageMaskArray[i].GetPointer() << std::endl;
+    os << indent << "Image Mask: " << i << " " << m_ImageMaskArray[i].GetPointer() << std::endl;
   }
   os << indent << "FixedImageRegion: " << m_FixedImageRegion << std::endl;
   os << indent << "Number of Pixels Counted: " << m_NumberOfPixelsCounted << std::endl;
@@ -262,7 +251,7 @@ MultiImageMetric<TImage>
 template <class TImage>
 void
 MultiImageMetric<TImage>
-  ::BeforeGetThreadedValue(const ParametersType & parameters) const
+::BeforeGetThreadedValue(const ParametersType & parameters) const
 {
 }
 
@@ -281,8 +270,7 @@ void
 MultiImageMetric < TImage >
 ::GetThreadedValue ( int itkNotUsed( threadId ) ) const
 {
-  //int x;
-  //std::cin >> x;
+
 }
 
 
