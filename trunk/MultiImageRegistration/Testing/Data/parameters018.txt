@@ -38,7 +38,7 @@
 #
 
     -numberOfSpatialSamplesAffinePercentage      0.0025
-    -numberOfSpatialSamplesBsplinePercentage     0.0100
+    -numberOfSpatialSamplesBsplinePercentage     0.0050
     -numberOfSpatialSamplesBsplineHighPercentage 0.0200
 
 #
@@ -64,7 +64,7 @@
 #
 
     -optAffineNumberOfIterations 10
-    -optBsplineNumberOfIterations 125
+    -optBsplineNumberOfIterations 100
     -optBsplineHighNumberOfIterations 50
 
  
@@ -132,7 +132,7 @@
 #  after each resolution level
 #
     -affineMultiScaleMaximumIterationIncrease 1.75
-    -bsplineMultiScaleMaximumIterationIncrease 1.75
+    -bsplineMultiScaleMaximumIterationIncrease 1.50
   
 
 #
