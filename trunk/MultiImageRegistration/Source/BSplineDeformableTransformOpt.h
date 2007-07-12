@@ -15,8 +15,8 @@
 
 =========================================================================*/
 
-#ifndef __UserBSplineDeformableTransform_h
-#define __UserBSplineDeformableTransform_h
+#ifndef __BSplineDeformableTransformOpt_h
+#define __BSplineDeformableTransformOpt_h
 
 #include <iostream>
 #include "itkTransform.h"
@@ -28,79 +28,17 @@ namespace itk
 {
 
 /** \class BSplineDeformableTransform
- * \brief Deformable transform using a BSpline representation
+ * \brief Bspline with optimization
  *
- * This class encapsulates a deformable transform of points from one 
- * N-dimensional one space to another N-dimensional space.
- * The deformation field is modeled using B-splines. 
- * A deformation is defined on a sparse regular grid of control points
- * \f$ \vec{\lambda}_j \f$ and is varied by defining a deformation 
- * \f$ \vec{g}(\vec{\lambda}_j) \f$ of each control point. 
- * The deformation \f$ D(\vec{x}) \f$ at any point \f$ \vec{x} \f$
- * is obtained by using a B-spline interpolation kernel.
+ * This class computes the jacobian locally.
+ * It does not need to store the jacobian field.
+ * 
+ * GetJacobian( point, indexes, weights )
+ * returns the nonzero indexes and coressponding weights 
+ * for the jacobian at a given point.
  *
- * The deformation field grid is defined by a user specified GridRegion, 
- * GridSpacing and GridOrigin. Each grid/control point has associated with it
- * N deformation coefficients \f$ \vec{\delta}_j \f$, representing the N 
- * directional components of the deformation. Deformation outside the grid
- * plus support region for the BSpline interpolation is assumed to be zero.
- *
- * Additionally, the user can specified an addition bulk transform \f$ B \f$
- * such that the transformed point is given by:
- * \f[ \vec{y} = B(\vec{x}) + D(\vec{x}) \f]
- *
- * The parameters for this transform is N x N-D grid of spline coefficients.
- * The user specifies the parameters as one flat array: each N-D grid
- * is represented by an array in the same way an N-D image is represented
- * in the buffer; the N arrays are then concatentated together on form
- * a single array.
- *
- * For efficiency, this transform does not make a copy of the parameters.
- * It only keeps a pointer to the input parameters and assumes that the memory
- * is managed by the caller.
- *
- * The following illustrates the typical usage of this class:
- * \verbatim
- * typedef BSplineDeformableTransform<double,2,3> TransformType;
- * TransformType::Pointer transform = TransformType::New();
- *
- * transform->SetGridRegion( region );
- * transform->SetGridSpacing( spacing );
- * transform->SetGridOrigin( origin );
- *
- * // NB: the region must be set first before setting the parameters
- *
- * TransformType::ParametersType parameters( 
- *                                       transform->GetNumberOfParameters() );
- *
- * // Fill the parameters with values
- *
- * transform->SetParameters( parameters )
- *
- * outputPoint = transform->TransformPoint( inputPoint );
- *
- * \endverbatim
- *
- * An alternative way to set the B-spline coefficients is via array of
- * images. The grid region, spacing and origin information is taken
- * directly from the first image. It is assumed that the subsequent images
- * are the same buffered region. The following illustrates the API:
- * \verbatim
- *
- * TransformType::ImageConstPointer images[2];
- *
- * // Fill the images up with values
- *
- * transform->SetCoefficientImages( images ); 
- * outputPoint = transform->TransformPoint( inputPoint );
- *
- * \endverbatim
- *
- * Warning: use either the SetParameters() or SetCoefficientImage()
- * API. Mixing the two modes may results in unexpected results.
- *
- * The class is templated coordinate representation type (float or double),
- * the space dimension and the spline order.
+ * This class is backward compatible as it also provides
+ * GetJacobian( point)
  *
  * \ingroup Transforms
  */
@@ -108,12 +46,12 @@ template <
     class TScalarType = double,          // Data type for scalars
     unsigned int NDimensions = 3,        // Number of dimensions
     unsigned int VSplineOrder = 3 >      // Spline order
-class ITK_EXPORT UserBSplineDeformableTransform :
+class ITK_EXPORT BSplineDeformableTransformOpt :
           public Transform< TScalarType, NDimensions, NDimensions >
 {
 public:
   /** Standard class typedefs. */
-  typedef UserBSplineDeformableTransform                         Self;
+  typedef BSplineDeformableTransformOpt                         Self;
   typedef Transform< TScalarType, NDimensions, NDimensions > Superclass;
   typedef SmartPointer<Self>                                 Pointer;
   typedef SmartPointer<const Self>                           ConstPointer;
@@ -122,7 +60,7 @@ public:
   itkNewMacro( Self );
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( UserBSplineDeformableTransform, Transform );
+  itkTypeMacro( BSplineDeformableTransformOpt, Transform );
 
   /** Dimension of the domain space. */
   itkStaticConstMacro(SpaceDimension, unsigned int, NDimensions);
@@ -375,8 +313,8 @@ protected:
   void PrintSelf(std::ostream &os, Indent indent) const;
 
 
-  UserBSplineDeformableTransform();
-  virtual ~UserBSplineDeformableTransform();
+  BSplineDeformableTransformOpt();
+  virtual ~BSplineDeformableTransformOpt();
 
   /** Allow subclasses to access and manipulate the weights function. */
   itkSetObjectMacro( WeightsFunction, WeightsFunctionType );
@@ -386,7 +324,7 @@ protected:
   void WrapAsImages();
 
 private:
-  UserBSplineDeformableTransform(const Self&); //purposely not implemented
+  BSplineDeformableTransformOpt(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
   /** The bulk transform. */
@@ -437,14 +375,14 @@ private:
   bool InsideValidRegion( const ContinuousIndexType& index ) const;
 
 
-}; //class UserBSplineDeformableTransform
+}; //class BSplineDeformableTransformOpt
 
 
 }  // namespace itk
 
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "UserBSplineDeformableTransform.cxx"
+#include "BSplineDeformableTransformOpt.txx"
 #endif
 
 #endif /* __itkBSplineDeformableTransform_h */

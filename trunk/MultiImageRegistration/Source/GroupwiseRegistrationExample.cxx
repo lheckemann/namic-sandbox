@@ -28,14 +28,14 @@
 // of each element in the vector.
 
 // Headers for the registration method and the metric
-#include "MultiResolutionImageRegistrationMethod.h"
+#include "MultiResolutionMultiImageRegistrationMethod.h"
 #include "VarianceMultiImageMetric.h"
-#include "ParzenWindowEntropyMultiImageMetric.h"
+#include "UnivariateEntropyMultiImageMetric.h"
 
 
 // Transform headers
 #include "itkAffineTransform.h"
-#include "UserBSplineDeformableTransform.h"
+#include "BSplineDeformableTransformOpt.h"
 
 // Interpolator headers    
 #include "itkLinearInterpolateImageFunction.h"
@@ -86,6 +86,8 @@
 #include "itkImageMaskSpatialObject.h"
 #include "itkConnectedThresholdImageFilter.h"
 #include "itkNeighborhoodConnectedImageFilter.h"
+
+using namespace std;
 
 //Define the global types for image type
 #define PixelType float
@@ -147,7 +149,7 @@ public:
       {
         GradientOptimizerPointer gradientPointer =
             dynamic_cast< GradientOptimizerPointer >(object );
-        std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
+        std::cout << std::setiosflags(std::ios::fixed) << std::showpoint << std::setfill('0');
         std::cout << "Iter " << std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(3) << gradientPointer->GetCurrentIteration() << "   ";
         std::cout << std::setw(6) << gradientPointer->GetValue() << "   " << std::endl;
@@ -161,7 +163,7 @@ public:
       {
         LineSearchOptimizerPointer lineSearchOptimizerPointer =
             dynamic_cast< LineSearchOptimizerPointer >( object );
-        std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
+        std::cout << std::setiosflags(std::ios::fixed) << std::showpoint << std::setfill('0');
         std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(3) << lineSearchOptimizerPointer->GetCurrentIteration() << "   ";
         std::cout << std::setw(6) << lineSearchOptimizerPointer->GetValue() << "   " << std::endl;
@@ -175,7 +177,7 @@ public:
       {
         SPSAOptimizerPointer spsaOptimizerPointer =
             dynamic_cast< SPSAOptimizerPointer >( object );
-        std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
+        std::cout << std::setiosflags(std::ios::fixed) << std::showpoint << std::setfill('0');
         std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(3) << spsaOptimizerPointer->GetCurrentIteration() << "   ";
         std::cout << std::setw(6) << spsaOptimizerPointer->GetValue() << "   " << std::endl;
@@ -199,7 +201,7 @@ public:
       {
         SimplexOptimizerTypePointer simplexOptimizer =
             dynamic_cast< SimplexOptimizerTypePointer >( object );
-        std::cout << std::setiosflags(ios::fixed) << std::showpoint << std::setfill('0');
+        std::cout << std::setiosflags(std::ios::fixed) << std::showpoint << std::setfill('0');
         std::cout << "Iter "<< std::setw(3) << m_CumulativeIterationIndex << "   ";
         std::cout << std::setw(6) << simplexOptimizer->GetCachedValue() << "   " << std::endl;
         if(m_CumulativeIterationIndex % 100 == 0 )
@@ -226,9 +228,9 @@ public:
         m_MetricPointer->Finalize();
         m_MetricPointer->SetNumberOfSpatialSamples( 1000000 );
         m_MetricPointer->Initialize();
-        cout << "ALLSamples: Iter" << m_CumulativeIterationIndex;
-        cout << " Value " << m_MetricPointer->GetValue(optimizer->GetCurrentPosition());
-        cout << " # of samples " << m_MetricPointer->GetFixedImageRegion().GetNumberOfPixels()/2 << endl;
+        std::cout << "ALLSamples: Iter" << m_CumulativeIterationIndex;
+        std::cout << " Value " << m_MetricPointer->GetValue(optimizer->GetCurrentPosition());
+        std::cout << " # of samples " << m_MetricPointer->GetFixedImageRegion().GetNumberOfPixels()/2 << std::endl;
         m_MetricPointer->Finalize();
         m_MetricPointer->SetNumberOfSpatialSamples(numberOfSamples);
         m_MetricPointer->Initialize();
@@ -443,10 +445,10 @@ public:
   void Execute(const itk::Object * , const itk::EventObject & )
     { return; }
 
-  void SetFileNames(    std::vector<string> fileNames2,
-                        std::vector<string> inputFileNames2,
-                        std::vector<string> outputFileNames2,
-                        string              outputFolder2)
+  void SetFileNames(    std::vector<std::string> fileNames2,
+                        std::vector<std::string> inputFileNames2,
+                        std::vector<std::string> outputFileNames2,
+                        std::string              outputFolder2)
   {
     for(unsigned int i=0; i<fileNames.size(); i++ )
     {
@@ -645,7 +647,7 @@ int main( int argc, char *argv[] )
   
   typedef itk::MultiImageMetric< InternalImageType>    MetricType;
   typedef itk::VarianceMultiImageMetric< InternalImageType>    VarianceMetricType;
-  typedef itk::ParzenWindowEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
+  typedef itk::UnivariateEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
 
 
 
@@ -782,7 +784,6 @@ int main( int argc, char *argv[] )
     entropyMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
     metric = entropyMetric;
   }
-  metric->SetRegularizationFactor(bsplineRegularizationFactor);
   metric->SetNumberOfImages(N);
 
   
@@ -798,8 +799,8 @@ int main( int argc, char *argv[] )
       // assume linear by default
       interpolatorArray[i]  = LinearInterpolatorType::New();
 
-      registration->SetTransformArray(     affineTransformArray[i] ,i    );
-      registration->SetInterpolatorArray(     interpolatorArray[i] ,i    );
+      registration->SetTransformArray( i, affineTransformArray[i]);
+      registration->SetInterpolatorArray( i,interpolatorArray[i]);
 
       imageReader = ImageReaderType::New();
       imageReader->ReleaseDataFlagOn();
@@ -828,7 +829,7 @@ int main( int argc, char *argv[] )
         
         ImageMaskSpatialObject::Pointer maskImage = ImageMaskSpatialObject::New();
         maskImage->SetImage(connectedThreshold->GetOutput());
-        registration->SetImageMaskArray(maskImage, i);
+        registration->SetImageMaskArray(i, maskImage);
 
         cout << "message: Computing mask "  << endl;
       }
@@ -855,7 +856,7 @@ int main( int argc, char *argv[] )
         
         ImageMaskSpatialObject::Pointer maskImage = ImageMaskSpatialObject::New();
         maskImage->SetImage(neighborhoodConnected->GetOutput());
-        registration->SetImageMaskArray(maskImage, i);
+        registration->SetImageMaskArray(i, maskImage);
 
         cout << "message: Computing mask " << endl;
       }
@@ -870,7 +871,7 @@ int main( int argc, char *argv[] )
 
 
       //Set the input into the registration method
-      registration->SetImagePyramidArray(imagePyramidArray[i],i);
+      registration->SetImagePyramidArray(i, imagePyramidArray[i]);
 
     }
   }
@@ -1101,7 +1102,7 @@ int main( int argc, char *argv[] )
   const unsigned int SplineOrder = 3;
   typedef ScalarType CoordinateRepType;
 
-  typedef itk::UserBSplineDeformableTransform< CoordinateRepType,
+  typedef itk::BSplineDeformableTransformOpt<  CoordinateRepType,
                                                Dimension,
                                                SplineOrder >     BSplineTransformType;
 
@@ -1119,10 +1120,6 @@ int main( int argc, char *argv[] )
   
   if( useBspline == "on" )
   {
-    if(useBSplineRegularization == "on")
-    {
-      metric->SetRegularization(true);
-    }
     
     // typdefs for region, spacing and origin of the Bspline coefficient images
     typedef BSplineTransformType::RegionType RegionType;
@@ -1242,9 +1239,8 @@ int main( int argc, char *argv[] )
 
         // register Bspline pointers with the registration method
         registration->SetInitialTransformParameters( bsplineTransformArrayLow[i]->GetParameters(), i);
-        registration->SetTransformArray(     bsplineTransformArrayLow[i] ,i    );
-        metric->SetBSplineTransformArray(     bsplineTransformArrayLow[i] ,i    );
-
+        registration->SetTransformArray(i, bsplineTransformArrayLow[i]);
+        metric->SetBSplineTransformArray(i, bsplineTransformArrayLow[i]);
 
       }
     }
@@ -1528,8 +1524,8 @@ int main( int argc, char *argv[] )
 
           // Set initial parameters of the registration
           registration->SetInitialTransformParameters( bsplineTransformArrayHigh[i]->GetParameters() , i );
-          registration->SetTransformArray( bsplineTransformArrayHigh[i], i );
-          metric->SetBSplineTransformArray(     bsplineTransformArrayHigh[i] ,i    );
+          registration->SetTransformArray(i, bsplineTransformArrayHigh[i]);
+          metric->SetBSplineTransformArray(i, bsplineTransformArrayHigh[i]);
 
         }
 

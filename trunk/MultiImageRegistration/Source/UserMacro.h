@@ -37,7 +37,7 @@
 
 /** Set built-in type.  Creates member Set"name"() (e.g., SetVisibility()); */
 #define UserSetMacro(name,type) \
-  virtual void Set##name (const type _arg, int i) \
+  virtual void Set##name (int i, const type _arg) \
   { \
     itkDebugMacro("setting " #name " to " << _arg); \
     if (this->m_##name[i] != _arg) \
@@ -52,7 +52,7 @@
  * smart pointers requires using real pointers when setting input,
  * but returning smart pointers on output. */
 #define UserSetObjectMacro(name,type) \
-  virtual void Set##name (type* _arg, int i) \
+  virtual void Set##name (int i, type* _arg ) \
   { \
     if (this->m_##name[i] != _arg) \
       { \
@@ -75,7 +75,7 @@
  * smart pointers requires using real pointers when setting input,
  * but returning smart pointers on output. */
 #define UserSetConstObjectMacro(name,type) \
-  virtual void Set##name (const type* _arg, int i) \
+  virtual void Set##name (int i, const type* _arg) \
   { \
     itkDebugMacro("setting " << #name " to " << _arg ); \
     if (this->m_##name[i] != _arg) \
