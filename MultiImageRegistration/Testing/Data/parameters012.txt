@@ -38,8 +38,8 @@
 #
 
     -numberOfSpatialSamplesAffinePercentage      0.0025
-    -numberOfSpatialSamplesBsplinePercentage     0.0050
-    -numberOfSpatialSamplesBsplineHighPercentage 0.0500
+    -numberOfSpatialSamplesBsplinePercentage     0.0100
+    -numberOfSpatialSamplesBsplineHighPercentage 0.0200
 
 #
 # following options define number of multiresolution levels used in optimization
@@ -64,7 +64,7 @@
 #
 
     -optAffineNumberOfIterations 10
-    -optBsplineNumberOfIterations 60
+    -optBsplineNumberOfIterations 100
     -optBsplineHighNumberOfIterations 50
 
  
@@ -139,7 +139,7 @@
 # Specifies optimizer step length increase after each multiresolution level
 #
     -affineMultiScaleStepLengthIncrease 1.0 
-    -bsplineMultiScaleStepLengthIncrease 1.0
+    -bsplineMultiScaleStepLengthIncrease 4.0
     
 
 

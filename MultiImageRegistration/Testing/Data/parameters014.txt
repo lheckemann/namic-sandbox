@@ -63,7 +63,7 @@
 # no other termination options are used
 #
 
-    -optAffineNumberOfIterations 40
+    -optAffineNumberOfIterations 125
     -optBsplineNumberOfIterations 50
     -optBsplineHighNumberOfIterations 50
 
