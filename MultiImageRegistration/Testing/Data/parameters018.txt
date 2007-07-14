@@ -77,8 +77,8 @@
 #
 
     -optAffineLearningRate  1e-4
-    -optBsplineLearningRate 1e3
-    -optBsplineHighLearningrate 1e3
+    -optBsplineLearningRate 1e4
+    -optBsplineHighLearningrate 1e4
  
  
 
@@ -139,7 +139,7 @@
 # Specifies optimizer step length increase after each multiresolution level
 #
     -affineMultiScaleStepLengthIncrease 1.0 
-    -bsplineMultiScaleStepLengthIncrease 4.0
+    -bsplineMultiScaleStepLengthIncrease 0.25
     
 
 

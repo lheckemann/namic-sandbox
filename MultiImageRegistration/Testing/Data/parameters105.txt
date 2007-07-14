@@ -37,7 +37,7 @@
 #  accuracy is poor)
 #
 
-    -numberOfSpatialSamplesAffinePercentage      0.0025
+    -numberOfSpatialSamplesAffinePercentage      0.0050
     -numberOfSpatialSamplesBsplinePercentage     0.0050
     -numberOfSpatialSamplesBsplineHighPercentage 0.0500
 
@@ -63,7 +63,7 @@
 # no other termination options are used
 #
 
-    -optAffineNumberOfIterations 125
+    -optAffineNumberOfIterations 75
     -optBsplineNumberOfIterations 50
     -optBsplineHighNumberOfIterations 50
 
