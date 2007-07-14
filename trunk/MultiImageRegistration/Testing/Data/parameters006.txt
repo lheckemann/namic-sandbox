@@ -38,7 +38,7 @@
 #
 
     -numberOfSpatialSamplesAffinePercentage      0.0025
-    -numberOfSpatialSamplesBsplinePercentage     0.0100
+    -numberOfSpatialSamplesBsplinePercentage     0.0050
     -numberOfSpatialSamplesBsplineHighPercentage 0.0200
 
 #
@@ -77,8 +77,8 @@
 #
 
     -optAffineLearningRate  1e-4
-    -optBsplineLearningRate 1e3
-    -optBsplineHighLearningrate 1e3
+    -optBsplineLearningRate 1e4
+    -optBsplineHighLearningrate 1e4
  
  
 
@@ -132,14 +132,14 @@
 #  after each resolution level
 #
     -affineMultiScaleMaximumIterationIncrease 1.75
-    -bsplineMultiScaleMaximumIterationIncrease 1.75
+    -bsplineMultiScaleMaximumIterationIncrease 1.50
   
 
 #
 # Specifies optimizer step length increase after each multiresolution level
 #
     -affineMultiScaleStepLengthIncrease 1.0 
-    -bsplineMultiScaleStepLengthIncrease 4.0
+    -bsplineMultiScaleStepLengthIncrease 0.25
     
 
 

@@ -37,7 +37,7 @@
 #  accuracy is poor)
 #
 
-    -numberOfSpatialSamplesAffinePercentage      0.0025
+    -numberOfSpatialSamplesAffinePercentage      0.0050
     -numberOfSpatialSamplesBsplinePercentage     0.0050
     -numberOfSpatialSamplesBsplineHighPercentage 0.0500
 
