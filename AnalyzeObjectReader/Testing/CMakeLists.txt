@@ -26,5 +26,5 @@ TARGET_LINK_LIBRARIES( itkAnalyzeObjectMapTest AnalyzeObjectIO ITKIO )
 
 #ADD_EXECUTABLE( ${ANALYE_OBJECTMAPTEST_SRC} )
 
-ADD_TEST( itkAnalyzeObjectMapTest01 itkAnalyzeObjectMapTest )
+ADD_TEST( itkAnalyzeObjectMapTest01 itkAnalyzeObjectMapTest ${AnalyzeObjectReader_SOURCE_DIR}/Data/test.obj)
 
