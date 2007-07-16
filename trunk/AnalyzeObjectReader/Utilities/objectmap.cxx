@@ -246,42 +246,39 @@ void AnalyzeObjectMap::ReinitializeObjectMap(const int _iX, const int _iY, const
 
 void SwapObjectEndedness(Object * ObjToChange)
 {
-    return;
-#if 0 //TODO: Figure out byte swapping later
-  FileIOUtility util;
-  util.FourByteSwap(&(ObjToChange->DisplayFlag));
-  util.FourByteSwap(&(ObjToChange->Shades));
-  util.FourByteSwap(&(ObjToChange->StartRed));
-  util.FourByteSwap(&(ObjToChange->StartGreen));
-  util.FourByteSwap(&(ObjToChange->StartBlue));
-  util.FourByteSwap(&(ObjToChange->EndRed));
-  util.FourByteSwap(&(ObjToChange->EndGreen));
-  util.FourByteSwap(&(ObjToChange->EndBlue));
-  util.FourByteSwap(&(ObjToChange->XRotation));
-  util.FourByteSwap(&(ObjToChange->YRotation));
-  util.FourByteSwap(&(ObjToChange->ZRotation));
-  util.FourByteSwap(&(ObjToChange->XTranslation));
-  util.FourByteSwap(&(ObjToChange->YTranslation));
-  util.FourByteSwap(&(ObjToChange->ZTranslation));
-  util.FourByteSwap(&(ObjToChange->XCenter));
-  util.FourByteSwap(&(ObjToChange->YCenter));
-  util.FourByteSwap(&(ObjToChange->ZCenter));
-  util.FourByteSwap(&(ObjToChange->XRotationIncrement));
-  util.FourByteSwap(&(ObjToChange->YRotationIncrement));
-  util.FourByteSwap(&(ObjToChange->ZRotationIncrement));
-  util.FourByteSwap(&(ObjToChange->XTranslationIncrement));
-  util.FourByteSwap(&(ObjToChange->YTranslationIncrement));
-  util.FourByteSwap(&(ObjToChange->ZTranslationIncrement));
-  util.TwoByteSwap(&(ObjToChange->MinimumXValue));
-  util.TwoByteSwap(&(ObjToChange->MinimumYValue));
-  util.TwoByteSwap(&(ObjToChange->MinimumZValue));
-  util.TwoByteSwap(&(ObjToChange->MaximumXValue));
-  util.TwoByteSwap(&(ObjToChange->MaximumYValue));
-  util.TwoByteSwap(&(ObjToChange->MaximumZValue));
-  util.FourByteSwap(&(ObjToChange->Opacity));
-  util.FourByteSwap(&(ObjToChange->OpacityThickness));
-  util.FourByteSwap(&(ObjToChange->Dummy));
-#endif
+
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->DisplayFlag));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->Shades));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->StartRed));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->StartGreen));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->StartBlue));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->EndRed));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->EndGreen));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->EndBlue));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->XRotation));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->YRotation));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->ZRotation));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->XTranslation));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->YTranslation));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->ZTranslation));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->XCenter));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->YCenter));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->ZCenter));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->XRotationIncrement));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->YRotationIncrement));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->ZRotationIncrement));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->XTranslationIncrement));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->YTranslationIncrement));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->ZTranslationIncrement));
+  itk::ByteSwapper<short int>::SwapFromSystemToBigEndian(&(ObjToChange->MinimumXValue));
+  itk::ByteSwapper<short int>::SwapFromSystemToBigEndian(&(ObjToChange->MinimumYValue));
+  itk::ByteSwapper<short int>::SwapFromSystemToBigEndian(&(ObjToChange->MinimumZValue));
+  itk::ByteSwapper<short int>::SwapFromSystemToBigEndian(&(ObjToChange->MaximumXValue));
+  itk::ByteSwapper<short int>::SwapFromSystemToBigEndian(&(ObjToChange->MaximumYValue));
+  itk::ByteSwapper<short int>::SwapFromSystemToBigEndian(&(ObjToChange->MaximumZValue));
+  itk::ByteSwapper<float>::SwapFromSystemToBigEndian(&(ObjToChange->Opacity));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->OpacityThickness));
+  itk::ByteSwapper<float>::SwapFromSystemToBigEndian(&(ObjToChange->BlendFactor));
 }
 
 
@@ -515,18 +512,19 @@ if(NeedByteSwap)
 
 bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
 {
-#if 0 //TODO:  
-  FILE *fptr;
-  std::string tempfilename=filename;
-
+  
+  
   // This assumes that the final '.' in a file name is the delimiter
   // for the file's extension type
   const std::string::size_type it = filename.find_last_of( "." );
 
+  std::string tempfilename=filename;
+
   //Note: if there is no extension, then it=basic_string::npos;
   if (it > filename.length())
   {
-    tempfilename+=".obj";
+
+    temhpfilename+=".obj";
   }
   else
   {
@@ -538,68 +536,77 @@ bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
       tempfilename+=".obj";
     }
   }
-  // Opening the file
-  if ( ( fptr = ::fopen( tempfilename.c_str(), "wb" ) ) == NULL)
+
+
+
+    // Opening the file
+  std::fstream inputFileStream;
+  inputFileStream.open(filename.c_str(), std::ios::binary | std::ios::in);
+  if ( !inputFileStream.is_open())
   {
     ::fprintf( stderr, "Error: Could not open %s\n", filename.c_str());
     exit(-1);
   }
 
-  int header[5];
+  bool NeedByteSwap=false;
 
-  // Getting the Header of the class
-  //header[0]=VERSION7;
-  printf("Version is %d \n", Version);
+  //Do byte swapping if necessary.
+  if(header[0] != VERSION7)    // Byte swapping needed (Number is byte swapped number of VERSIONy or VERSION8 )
+  {
+    itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
+    NeedByteSwap = true;
+    std::cout<<header[0]<<std::endl;
+    if(header[0] != VERSION7)
+    {
+        std::cout<<"NOT VERSION 7!"<<std::endl;
+        return (-1);
+    } 
+  }
   header[0]=Version;
   header[1]=this->getXDim();
   header[2]=this->getYDim();
   header[3]=this->getZDim();
-                                 // Include the background object when writing the .obj file
-  header[4]=this->NumberOfObjects + 1;
+  header[4]=this->NumberOfObjects + 1;     // Include the background object when writing the .obj file
 
-  bool NeedByteSwap = false;
+  int header[5];
 
-  // Byte swapping needed (Analyze files are always written in BIG ENDIAN
-  FileIOUtility util;
-  if(util.getMachineEndianess() == FileIOUtility::DT_LITTLE_ENDIAN)
-  {
-    NeedByteSwap=true;
-    util.FourByteSwap(&(header[0]));
-    util.FourByteSwap(&(header[1]));
-    util.FourByteSwap(&(header[2]));
-    util.FourByteSwap(&(header[3]));
-    util.FourByteSwap(&(header[4]));
-  }
+    if(NeedByteSwap)
+    {
+          itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[1]));
+          itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[2]));
+          itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[3]));
+          itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[4]));
+    }
+
 
   // Writing the header, which contains the version number, the size, and the
   // number of objects
+    inputFileStream.write(header, sizeof(int)*5);
+#if 0
   if ( ::fwrite( header, sizeof(int), 5, fptr) != 5 )
   {
     ::fprintf( stderr, "Error: Could not write header of %s\n", filename.c_str());
     exit(-1);
   }
+#endif
 
-  if( Version == VERSION8 )
+  if( Version == VERSION7 )
   {
     // Set number of volumes to be 1. Need be changed later on. Xiujuan Geng, May 04, 2007
     int nvols[1];    
     nvols[0] = 1; 
     if( NeedByteSwap )
     {
-      util.FourByteSwap(&(nvols[0]));
+      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(nvols[0]));
     }
-    if ( ::fwrite( nvols, sizeof(int), 1, fptr) != 1 )
-    {
-      ::fprintf( stderr, "Error: Could not write header of %s\n", filename.c_str());
-      exit(-1);
-    }    
+    inputFileStream.write(nvols, sizeof(int));    
   }
 
   // Error checking the number of objects in the object file
   if ((NumberOfObjects < 0) || (NumberOfObjects > 255))
   {
-    ::fprintf( stderr, "Error: Invalid number of object files.\n" );
-    ::fclose( fptr );
+      std::cout<<( stderr, "Error: Invalid number of object files.\n" );
+    inputFileStream.close();
     return false;
   }
 
@@ -615,6 +622,8 @@ bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
       SwapObjectEndedness(ObjectWrite.getObjectPointer());
     }
 
+    inputFileStream.write();
+
     // Writing the ObjectEntry structures
     if (::fwrite(ObjectWrite.getObjectPointer(), sizeof(Object), 1, fptr) != 1)
     {
@@ -624,7 +633,6 @@ bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
   }
   RunLengthEncodeImage(*this, fptr);
   ::fclose(fptr);
-#endif
   return true;
 }
 
