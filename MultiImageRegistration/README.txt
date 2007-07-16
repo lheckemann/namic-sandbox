@@ -1,18 +1,25 @@
-This project by Polina Golland, and implemented by
+This project is implemented by
 
 + Serdar K Balci (serdar at csail.mit.edu)
 
-The goal of the project is to register a collection
-of images simultaneously, instead of pair-wise.
-Currently, implemented methods are
-    Congealing with entropy 
-    Congealing with variance
-    
-Currently supported deformation models
-    Affine transform
-    Affine followed by cubic BSpline with mesh refinement
-    
+and supervised by
+
++ Polina Golland
++ William M. Wells
+
+
+The goal of the project is to provide an open source 
+implementation of a non-rigid groupwise registration method.
+
    
+#
+#
+#  DOCUMENTATION
+#
+#        
+    
+    For documentation check SourceGuide.txt   
+
 #
 #
 # DATA
@@ -20,18 +27,12 @@ Currently supported deformation models
 #    
     
 Obtain test data at
+
 http://public.kitware.com/pub/itk/Data/BrainWeb/BrainPart1.tgz
 http://public.kitware.com/pub/itk/Data/BrainWeb/BrainPart2.tgz
 http://public.kitware.com/pub/itk/Data/BrainWeb/BrainPart3.tgz
 http://public.kitware.com/pub/itk/Data/DTI/Reconstructed/FAImage.tar.gz    
     
-Extract files and provide path to cmake for testing.
+Extract files and point the path of the folders to cmake for testing.
 Type ctest or "make test" to run the tests    
-    
-#
-#
-#  DOCUMENTATION
-#
-#        
-    
-    For the use of the binary file see SourceGuide.txt
+ 

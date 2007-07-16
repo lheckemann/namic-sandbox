@@ -1,8 +1,11 @@
+#
 #   
 # How to obtain the source code
+#
 #    
 
 The code is in the ITK's svn repositories at the following link
+
 http://www.na-mic.org/svn/NAMICSandBox/trunk/MultiImageRegistration/
    
 If you dont have access to ITK's
@@ -12,7 +15,9 @@ downloading it according to the instructions in the following Wiki page:
 http://wiki.na-mic.org/Wiki/index.php/Engineering:SandBox
 
 #
-#  HOW TO COMPILE
+#
+#  How to compile
+#
 #
 
 Libraries:
@@ -36,13 +41,18 @@ Compilation using cmake:
       GroupwiseRegistration  - Binary for groupwise registration 
       TransformImage         - Transforms an image using a transformation file generated 
                                by binaries.
-      CreateImageSetAffine   - Applies 30 random affine transforms to the input image and saves 
+      CreateImageSetAffine   - Applies random affine transforms to the input image and saves 
                                the output. Used to create a synthetic dataset for testing he code.
-      CreateImageSetBspline  - Applies 30 random bspline transforms to the input image and saves 
-                               the output. Used for testing the code.                              
+      CreateImageSetBspline  - Applies random bspline transforms to the input image and saves 
+                               the output.
+      ComputeOutputs         - Command line module to visualize registration results in 3D. This module 
+                               outputs the transformed images, mean and standard deviation images
+                               along with central slices.
    
 #
+#
 # How to run testing
+#
 # 
 
 Default testing makes use of the 3D images available at ITK's repositories.
@@ -65,19 +75,22 @@ registration code. The results are placed under the folder
 (project folder)/Testing/Temporary
 
 #
+#
 # How to run the binary "GroupwiseRegistration"
+#
 #
 
 Type in the command line
 
-   GroupwiseRegistration fnames.init parameters.init
+   GroupwiseRegistration filenames.txt parameters.txt
 
-"fnames.init" contains the names of the input files and the path for the output files. 
-See "fnames.init" for an example.
+"filenames.txt" contains the names of the input files and the path for the output files. 
+See files in folders \Testing\Temporary\ for examples.
 
-"parameters.init" contains the parameters of the groupwise registration. It allows you to 
+"parameters.txt" contains the parameters of the groupwise registration. It allows you to 
 select which objective function and transformation model to use. For more information
-about the use of parameters See example "parameters.init" file. Most parameters have default values
+about the use of parameters check example files in folders \Testing\Temporary\. 
+Most parameters have default values
 so only first few parameters at the beginning of file should be changed.
 
 
@@ -92,34 +105,20 @@ number3 shows the value of the objective function.(As we use stochastic subsampl
         might increase for some iterations)
         
 At the end of registration the binary will create a bunch of files and folders in the
-output folder specified in "fnames.init"
+output folder specified in "filenames.txt"
 
    Foldername:
 
-      Translation: Contains results for translation transform registration
       Affine:  Contains results for affine registration
       Bspline_Grid_#: Contains results for B-Spline registration with # denoting number of control points
-      InputImage: Contains results related to Input (slices and mean images)
 
-   Each folder contains subfolders containing the outputs at a stage of the algorithm
-   
-      DeformationFieldSlices: Contains slices of an artificial image. 
-                              Useful in visualizing the deformation field.
-      MeanImages:  Contains the mean of the registered images.
-                   The sharpness of the images gives an idea about the 
-                   accuracy of the registration.
-      Slices:      Contains central slices of the registered images. 
-      TransformFiles: Contains the transformation files. 
-                      Transformation files are written using ITK's default
-                      TransformFileWriter. These files can be read using
-                      itkTransformFileReader.
-   
-      RegisteredImages:    Contains output images in 3D.
-                        
+
+#                        
 #
 #  About the implementation
+#
 #                        
 
-All metrics are implementing in a multi-threaded fashion. So the algorithm will run faster on
+All metrics are implementing in a multi-threaded fashion. The algorithm will run faster on
 computers with multiple CPU's.
 
