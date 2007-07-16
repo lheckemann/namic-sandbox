@@ -151,7 +151,7 @@ UnivariateEntropyMultiImageMetric<TImage>
 
 
   // Initialize the variables for regularization term
-  if( this->m_UserBsplineDefined )
+  if( this->m_BsplineDefined )
   {
     // Get nonzero indexes
     numberOfWeights = this->m_BSplineTransformArray[0]->GetNumberOfAffectedWeights();

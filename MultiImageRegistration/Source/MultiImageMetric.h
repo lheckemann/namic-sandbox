@@ -272,7 +272,7 @@ protected:
   // Bspline transform
   // Provided to optimize for bsplines
   mutable std::vector<BSplineTransformTypePointer> m_BSplineTransformArray;
-  bool m_UserBsplineDefined;
+  bool m_BsplineDefined;
 
   unsigned long int                                m_NumberOfSpatialSamples;
 

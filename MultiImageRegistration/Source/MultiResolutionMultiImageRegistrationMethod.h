@@ -180,7 +180,7 @@ public:
   
   /** Set/Get the initial transformation parameters. */
   itkGetConstReferenceMacro( InitialTransformParameters, ParametersType );
-  virtual void SetInitialTransformParameters( const ParametersType & param , int i );
+  virtual void SetInitialTransformParameters( int i, const ParametersType & param );
   virtual void SetInitialTransformParameters( const ParametersType & param );
 
 
