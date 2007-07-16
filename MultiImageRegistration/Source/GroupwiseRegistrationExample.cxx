@@ -611,12 +611,10 @@ int main( int argc, char *argv[] )
         writeMean3DImages, metricPrint, printInterval,
         SPSAalpha , SPSAgamma, SPSAcRel, SPSAnumberOfPerturbation,
         HistogramSamplesPerBin,
-        startLevel, outputIntermediateResults ) )
+        startLevel, outputIntermediateResults ) == EXIT_FAILURE )
     {
       std:: cout << "Error reading parameter file " << std::endl;
-      std::cout << " Usage: " << std::endl;
-       std::cout << argv[0] << " filenames.txt parameters.txt " << std::endl;
-      return 1;
+      return EXIT_FAILURE;
     }
   }
 
@@ -650,7 +648,9 @@ int main( int argc, char *argv[] )
   if( N < 2 )
   {
     std::cout << "Not enough filenames " << std::endl;
-    return 1;
+    std::cout << " Usage: " << std::endl;
+    std::cout << argv[0] << " filenames.txt parameters.txt " << std::endl;
+    return EXIT_FAILURE;
   }
   
   //generate filenames
@@ -864,7 +864,7 @@ int main( int argc, char *argv[] )
   {
     std::cout << "ExceptionObject caught !" << std::endl;
     std::cout << err << std::endl;
-    return -1;
+    return EXIT_FAILURE;
   }
 
 
@@ -1035,7 +1035,7 @@ int main( int argc, char *argv[] )
   {
     std::cout << "ExceptionObject caught !" << std::endl;
     std::cout << err << std::endl;
-    return -1;
+    return EXIT_FAILURE;
   }
 
   // Write the output images after affine transform
@@ -1232,7 +1232,7 @@ int main( int argc, char *argv[] )
     {
       std::cout << "ExceptionObject caught !" << std::endl;
       std::cout << err << std::endl;
-      return -1;
+      return EXIT_FAILURE;
     }
 
 
@@ -1296,7 +1296,7 @@ int main( int argc, char *argv[] )
     {
       std::cerr << "ExceptionObject caught !" << std::endl;
       std::cerr << err << std::endl;
-      return -1;
+      return EXIT_FAILURE;
     }
 
     // Write the output images after bspline transform
@@ -1564,7 +1564,7 @@ int main( int argc, char *argv[] )
         {
           std::cerr << "ExceptionObject caught !" << std::endl;
           std::cerr << err << std::endl;
-          return -1;
+          return EXIT_FAILURE;
         }
         
         // Write the output images after bspline transform
@@ -1613,7 +1613,7 @@ int main( int argc, char *argv[] )
   collector.Report();
 
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 
@@ -1659,7 +1659,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
   if( initFile.fail() )
   {
     std::cout << "could not open file: " << initFname << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   while( !initFile.eof() )
@@ -1993,7 +1993,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
   }
 
   initFile.close();
-  return 0;
+  return EXIT_SUCCESS;
 
 }
 

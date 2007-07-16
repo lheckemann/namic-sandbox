@@ -686,7 +686,7 @@ UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSamp
   typedef typename TransformType::JacobianType JacobianType;
 
 
-  if(this->m_UserBsplineDefined == false )
+  if(this->m_BsplineDefined == false )
   {
     const JacobianType & jacobian =
         this->m_TransformArray[imageNumber]->GetJacobian( sample.FixedImagePoint);
