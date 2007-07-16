@@ -31,11 +31,12 @@
 #include "MultiResolutionMultiImageRegistrationMethod.h"
 #include "VarianceMultiImageMetric.h"
 #include "UnivariateEntropyMultiImageMetric.h"
-
+#include "BSplineDeformableTransformOpt.h"
+#include "GradientDescentLineSearchOptimizer.h"
 
 // Transform headers
 #include "itkAffineTransform.h"
-#include "BSplineDeformableTransformOpt.h"
+
 
 // Interpolator headers    
 #include "itkLinearInterpolateImageFunction.h"
@@ -62,7 +63,6 @@
     
 //Bspline optimizer and transform
 #include "itkGradientDescentOptimizer.h"
-#include "GradientDescentLineSearchOptimizer.h"
 #include "itkSPSAOptimizer.h"
 #include "itkAmoebaOptimizer.h"
 
@@ -90,9 +90,8 @@
 using namespace std;
 
 //Define the global types for image type
-#define PixelType float
 #define InternalPixelType float
-#define Dimension 3
+#define Dimension         3
 
 //  The following section of code implements an observer
 //  that will monitor the evolution of the registration process.
@@ -277,14 +276,14 @@ public:
   typedef   TRegistration                              RegistrationType;
   typedef   RegistrationType *                         RegistrationPointer;
   
-  typedef   itk::SingleValuedNonLinearOptimizer   OptimizerType;
+  typedef   itk::SingleValuedNonLinearOptimizer        OptimizerType;
   typedef   OptimizerType *                            OptimizerPointer;
-  typedef   itk::GradientDescentOptimizer       GradientOptimizerType;
-  typedef   GradientOptimizerType *             GradientOptimizerPointer;
-  typedef   itk::GradientDescentLineSearchOptimizer LineSearchOptimizerType;
-  typedef   LineSearchOptimizerType  *          LineSearchOptimizerPointer;
-  typedef   itk::SPSAOptimizer                  SPSAOptimizerType;
-  typedef   SPSAOptimizerType  *                SPSAOptimizerPointerType;
+  typedef   itk::GradientDescentOptimizer              GradientOptimizerType;
+  typedef   GradientOptimizerType *                    GradientOptimizerPointer;
+  typedef   itk::GradientDescentLineSearchOptimizer    LineSearchOptimizerType;
+  typedef   LineSearchOptimizerType  *                 LineSearchOptimizerPointer;
+  typedef   itk::SPSAOptimizer                         SPSAOptimizerType;
+  typedef   SPSAOptimizerType  *                       SPSAOptimizerPointerType;
   
   typedef   itk::Image< InternalPixelType, Dimension >   InternalImageType;
   typedef   itk::MultiImageMetric< InternalImageType>    MetricType;
@@ -615,60 +614,34 @@ int main( int argc, char *argv[] )
         startLevel, outputIntermediateResults ) )
     {
       std:: cout << "Error reading parameter file " << std::endl;
+      std::cout << " Usage: " << std::endl;
+       std::cout << argv[0] << " filenames.txt parameters.txt " << std::endl;
       return 1;
     }
   }
 
-  // Input Image type typedef
-  // const    unsigned int    Dimension = 3;
-  // typedef  unsigned short  PixelType;
-  typedef itk::Image< PixelType, Dimension >  ImageType;
-
-  //Internal Image Type typedef
-  //typedef double InternalPixelType;
+  // Image typedef
   typedef double ScalarType;
-  typedef itk::Image< InternalPixelType, Dimension > InternalImageType;
+  typedef itk::Image< InternalPixelType, Dimension >      InternalImageType;
 
 
-
-  typedef itk::AffineTransform< ScalarType, Dimension > TransformType;
-
-  typedef itk::GradientDescentOptimizer       OptimizerType;
-  typedef itk::GradientDescentLineSearchOptimizer LineSearchOptimizerType;
-  typedef itk::SPSAOptimizer                     SPSAOptimizerType;
-  typedef itk::AmoebaOptimizer                     SimplexOptimizerType;
-
-
-  // Interpolator typedef
-  typedef itk::InterpolateImageFunction<InternalImageType,ScalarType        >  InterpolatorType;
-  typedef itk::LinearInterpolateImageFunction<InternalImageType,ScalarType        > LinearInterpolatorType;
-
-
-  
-  typedef itk::MultiImageMetric< InternalImageType>    MetricType;
-  typedef itk::VarianceMultiImageMetric< InternalImageType>    VarianceMetricType;
-  typedef itk::UnivariateEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
-
-
-
-  typedef OptimizerType::ScalesType       OptimizerScalesType;
-
-  typedef itk::MultiResolutionMultiImageRegistrationMethod< InternalImageType >    RegistrationType;
-
-  typedef itk::RecursiveMultiResolutionPyramidImageFilter<
-                                    InternalImageType,
-                                    InternalImageType  >    ImagePyramidType;
+  typedef itk::GradientDescentOptimizer                   OptimizerType;
+  typedef itk::GradientDescentLineSearchOptimizer         LineSearchOptimizerType;
+  typedef itk::SPSAOptimizer                              SPSAOptimizerType;
+  typedef itk::AmoebaOptimizer                            SimplexOptimizerType;
+  typedef OptimizerType::ScalesType                       OptimizerScalesType;
 
 
   //Mask related typedefs
   typedef itk::Image< unsigned char, Dimension > ImageMaskType;
-  typedef itk::ConnectedThresholdImageFilter< ImageType,ImageMaskType >
+  typedef itk::ConnectedThresholdImageFilter< InternalImageType,ImageMaskType >
                                         ConnectedThresholdImageFilterType;
-  typedef itk::NeighborhoodConnectedImageFilter< ImageType,ImageMaskType >
+  typedef itk::NeighborhoodConnectedImageFilter< InternalImageType,ImageMaskType >
                                         NeighborhoodConnectedImageFilterType;
   typedef itk::ImageMaskSpatialObject<Dimension> ImageMaskSpatialObject;
 
 
+  typedef itk::MultiResolutionMultiImageRegistrationMethod< InternalImageType >    RegistrationType;
   RegistrationType::Pointer   registration  = RegistrationType::New();
 
 
@@ -697,6 +670,12 @@ int main( int argc, char *argv[] )
   registration->ReleaseDataFlagOn();
 
   //Set the optimizerType
+  typedef itk::GradientDescentOptimizer                   OptimizerType;
+  typedef itk::GradientDescentLineSearchOptimizer         LineSearchOptimizerType;
+  typedef itk::SPSAOptimizer                              SPSAOptimizerType;
+  typedef itk::AmoebaOptimizer                            SimplexOptimizerType;
+  typedef OptimizerType::ScalesType                       OptimizerScalesType;
+
   OptimizerType::Pointer      optimizer;
   LineSearchOptimizerType::Pointer lineSearchOptimizer;
   SPSAOptimizerType::Pointer SPSAOptimizer;
@@ -739,21 +718,6 @@ int main( int argc, char *argv[] )
     optimizer     = OptimizerType::New();
     registration->SetOptimizer(     optimizer     );
   }
-  
-  //typedefs for affine transform array
-  typedef std::vector<TransformType::Pointer> TransformArrayType;
-  TransformArrayType      affineTransformArray(N);
-
-  //typedefs for intorpolater array
-  typedef vector<InterpolatorType::Pointer>  InterpolatorArrayType;
-  InterpolatorArrayType      interpolatorArray(N);
-
-  // typedefs for image file readers
-  typedef itk::ImageFileReader< ImageType  > ImageReaderType;
-  typedef vector< ImageReaderType::Pointer > ImageArrayReader;
-
-  typedef  vector<ImagePyramidType::Pointer>                ImagePyramidArray;
-  ImagePyramidArray imagePyramidArray(N);
 
 
   // Begin the registration with the affine transform
@@ -771,37 +735,58 @@ int main( int argc, char *argv[] )
   collector.Start( "6Total Time " );
 
 
-  //Set the metric type
+  // Metric typedefs 
+  typedef itk::MultiImageMetric< InternalImageType>                                 MetricType;
+  typedef itk::VarianceMultiImageMetric< InternalImageType>                         VarianceMetricType;
+  typedef itk::UnivariateEntropyMultiImageMetric< InternalImageType>                EntropyMetricType;
+
   MetricType::Pointer                 metric;
   if(metricType == "variance")
   {
     metric        = VarianceMetricType::New();
-    // Set the number of samples to be used by the metric
   }
   else
   {
     EntropyMetricType::Pointer entropyMetric        = EntropyMetricType::New();
     entropyMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
     metric = entropyMetric;
-  }
-  metric->SetNumberOfImages(N);
-
+  }  
+  // Set the number of samples to be used by the metric
+  registration->SetMetric( metric  );
   
+
+  //typedefs for affine transform array
+  typedef itk::AffineTransform< ScalarType, Dimension >   TransformType;
+  typedef std::vector<TransformType::Pointer>             TransformArrayType;
+  TransformArrayType                          affineTransformArray(N);
+  
+  // Interpolator typedef
+  typedef itk::LinearInterpolateImageFunction<InternalImageType,ScalarType>      InterpolatorType;
+  typedef vector<InterpolatorType::Pointer>                           InterpolatorArrayType;
+  InterpolatorArrayType      interpolatorArray(N);
+
+  // typedefs for image file readers
+  typedef itk::ImageFileReader< InternalImageType  > ImageReaderType;
+  typedef vector< ImageReaderType::Pointer > ImageArrayReader;
+
+  typedef itk::RecursiveMultiResolutionPyramidImageFilter<
+                                    InternalImageType,
+                                    InternalImageType  >    ImagePyramidType;
+  typedef  vector<ImagePyramidType::Pointer>                ImagePyramidArray;
+  ImagePyramidArray imagePyramidArray(N);
+
   try
   {
   
     for(int i=0; i< N; i++ )
     {
-      ImageReaderType::Pointer imageReader;
       affineTransformArray[i]     = TransformType::New();
-      
-      // Get the interpolator type
-      // assume linear by default
-      interpolatorArray[i]  = LinearInterpolatorType::New();
-
       registration->SetTransformArray( i, affineTransformArray[i]);
-      registration->SetInterpolatorArray( i,interpolatorArray[i]);
 
+      interpolatorArray[i]  = InterpolatorType::New();
+      registration->SetInterpolatorArray( i,interpolatorArray[i]);
+       
+      ImageReaderType::Pointer imageReader;
       imageReader = ImageReaderType::New();
       imageReader->ReleaseDataFlagOn();
       imageReader->SetFileName( inputFileNames[i].c_str() );
@@ -886,8 +871,6 @@ int main( int argc, char *argv[] )
 
 
 
-  // Set the number of samples to be used by the metric
-  registration->SetMetric( metric  );
 
   
   // Create the Command observer and register it with the optimizer.
@@ -944,9 +927,9 @@ int main( int argc, char *argv[] )
     affineTransformArray[i]->SetIdentity();
     TransformType::InputPointType center;
     // Get spacing, origin and size of the images
-    ImageType::SpacingType spacing = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetSpacing();
+    InternalImageType::SpacingType spacing = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetSpacing();
     itk::Point<double, Dimension> origin = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetOrigin();
-    ImageType::SizeType size = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetLargestPossibleRegion().GetSize();
+    InternalImageType::SizeType size = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetLargestPossibleRegion().GetSize();
 
     // Place the center of rotation to the center of the image
     for(int j=0; j< Dimension; j++)
@@ -955,7 +938,7 @@ int main( int argc, char *argv[] )
     }
     affineTransformArray[i]->SetCenter(center);
 
-    registration->SetInitialTransformParameters( affineTransformArray[i]->GetParameters(),i );
+    registration->SetInitialTransformParameters( i, affineTransformArray[i]->GetParameters() );
   }
 
   // Set the scales of the optimizer
@@ -1016,7 +999,7 @@ int main( int argc, char *argv[] )
   }
 
   // Set initial parameters of the transform
-  ImageType::RegionType fixedImageRegion =
+  InternalImageType::RegionType fixedImageRegion =
       imagePyramidArray[0]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetBufferedRegion();
   registration->SetFixedImageRegion( fixedImageRegion );
   
@@ -1099,33 +1082,31 @@ int main( int argc, char *argv[] )
 
   collector.Start( "4Bspline Reg." );
 
-  const unsigned int SplineOrder = 3;
-  typedef ScalarType CoordinateRepType;
-
-  typedef itk::BSplineDeformableTransformOpt<  CoordinateRepType,
-                                               Dimension,
-                                               SplineOrder >     BSplineTransformType;
-
-    // Allocate bspline tranform array for low grid size
-  typedef vector<BSplineTransformType::Pointer> BSplineTransformArrayType;
-  BSplineTransformArrayType      bsplineTransformArrayLow(N);
-
-  BSplineTransformArrayType bsplineTransformArrayHigh(N);
-
-  // Allocate the vector holding Bspline transform parameters for low resolution
-  typedef BSplineTransformType::ParametersType     BSplineParametersType;
-  vector<BSplineParametersType> bsplineParametersArrayLow(N);
-  vector<BSplineParametersType> bsplineParametersArrayHigh(N);
-
   
   if( useBspline == "on" )
   {
-    
-    // typdefs for region, spacing and origin of the Bspline coefficient images
-    typedef BSplineTransformType::RegionType RegionType;
-    typedef BSplineTransformType::SpacingType SpacingType;
-    typedef BSplineTransformType::OriginType OriginType;
+    const unsigned int SplineOrder = 3;
+    typedef double CoordinateRepType;
 
+    typedef itk::BSplineDeformableTransformOpt<  CoordinateRepType,
+                                                 Dimension,
+                                                 SplineOrder >     BSplineTransformType;
+
+    // Allocate bspline tranform array for low grid size
+    typedef vector<BSplineTransformType::Pointer> BSplineTransformArrayType;
+    BSplineTransformArrayType      bsplineTransformArrayLow(N);
+
+    // Initialize the size of the parameters array
+    registration->SetTransformParametersLength( static_cast<int>( pow( static_cast<double>(bsplineInitialGridSize+SplineOrder),
+                                                 static_cast<int>(Dimension))*Dimension*N ));
+
+
+    BSplineTransformArrayType bsplineTransformArrayHigh(N);
+
+    // Allocate the vector holding Bspline transform parameters for low resolution
+    typedef BSplineTransformType::ParametersType     BSplineParametersType;
+    vector<BSplineParametersType> bsplineParametersArrayLow(N);
+    vector<BSplineParametersType> bsplineParametersArrayHigh(N);
 
     // Get the latest transform parameters of affine transfom
     ParametersType affineParameters = registration->GetLastTransformParameters();
@@ -1140,10 +1121,13 @@ int main( int argc, char *argv[] )
       }
       affineTransformArray[i]->SetParametersByValue(affineCurrentParameters);
     }
+  
+    
+    // typdefs for region, spacing and origin of the Bspline coefficient images
+    typedef BSplineTransformType::RegionType RegionType;
+    typedef BSplineTransformType::SpacingType SpacingType;
+    typedef BSplineTransformType::OriginType OriginType;
 
-    // Initialize the size of the parameters array
-    registration->SetTransformParametersLength( static_cast<int>( pow( static_cast<double>(bsplineInitialGridSize+SplineOrder),
-                                                 static_cast<int>(Dimension))*Dimension*N ));
 
 
     if( startLevel != 0)
@@ -1206,9 +1190,9 @@ int main( int argc, char *argv[] )
         // Get the spacing, origin and imagesize form the image readers
         SpacingType spacing = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetSpacing();
         OriginType origin   = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetOrigin();
-        ImageType::RegionType fixedRegion = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetBufferedRegion();
+        InternalImageType::RegionType fixedRegion = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetBufferedRegion();
 
-        ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
+        InternalImageType::SizeType fixedImageSize = fixedRegion.GetSize();
 
         // Calculate the spacing for the Bspline grid
         for(unsigned int r=0; r<Dimension; r++)
@@ -1238,7 +1222,7 @@ int main( int argc, char *argv[] )
         bsplineTransformArrayLow[i]->SetParameters( bsplineParametersArrayLow[i] );
 
         // register Bspline pointers with the registration method
-        registration->SetInitialTransformParameters( bsplineTransformArrayLow[i]->GetParameters(), i);
+        registration->SetInitialTransformParameters( i, bsplineTransformArrayLow[i]->GetParameters());
         registration->SetTransformArray(i, bsplineTransformArrayLow[i]);
         metric->SetBSplineTransformArray(i, bsplineTransformArrayLow[i]);
 
@@ -1439,13 +1423,13 @@ int main( int argc, char *argv[] )
 
           SpacingType spacingHigh;
           OriginType  originHigh;
-          ImageType::RegionType fixedRegion;
+          InternalImageType::RegionType fixedRegion;
 
           spacingHigh = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetSpacing();
           originHigh  = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetOrigin();
           fixedRegion = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetBufferedRegion();
           
-          ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
+          InternalImageType::SizeType fixedImageSize = fixedRegion.GetSize();
     
           for(unsigned int rh=0; rh<Dimension; rh++)
           {
@@ -1507,9 +1491,6 @@ int main( int argc, char *argv[] )
               ++it;
             }
 
-
-
-
           }
 
           bsplineTransformArrayHigh[i]->SetBulkTransform( affineTransformArray[i] );
@@ -1523,7 +1504,7 @@ int main( int argc, char *argv[] )
 
 
           // Set initial parameters of the registration
-          registration->SetInitialTransformParameters( bsplineTransformArrayHigh[i]->GetParameters() , i );
+          registration->SetInitialTransformParameters( i, bsplineTransformArrayHigh[i]->GetParameters());
           registration->SetTransformArray(i, bsplineTransformArrayHigh[i]);
           metric->SetBSplineTransformArray(i, bsplineTransformArrayHigh[i]);
 

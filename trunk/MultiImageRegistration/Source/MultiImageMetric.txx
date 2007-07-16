@@ -34,7 +34,7 @@ MultiImageMetric<TImage>
   m_NumberOfSpatialSamples = 100;
 
   m_ComputeGradient = false; // metric does not compute gradient by default
-  m_UserBsplineDefined = false;
+  m_BsplineDefined = false;
 
   m_NumberOfImages = 0;
   m_NumberOfPixelsCounted = 0; // initialize to zero
@@ -146,16 +146,16 @@ MultiImageMetric<TImage>
   // Use optimized Bspline derivatives if the tranform type is UserBSplie
   if( !strcmp(this->m_TransformArray[0]->GetNameOfClass(), "BSplineDeformableTransformOpt") )
   {
-    this->m_UserBsplineDefined = true;
+    this->m_BsplineDefined = true;
   }
   else
   {
-    this->m_UserBsplineDefined = false;
+    this->m_BsplineDefined = false;
   }
 
   
   // Check whether Bspline tranform are initialized correctly
-  if(this->m_UserBsplineDefined == true)
+  if(this->m_BsplineDefined == true)
   {
     for(unsigned int i=0; i<this->m_NumberOfImages; i++)
     {

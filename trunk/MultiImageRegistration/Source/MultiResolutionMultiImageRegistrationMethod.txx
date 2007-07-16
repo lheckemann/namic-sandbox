@@ -399,7 +399,7 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
 template < typename ImageType >
 void
 MultiResolutionMultiImageRegistrationMethod<ImageType>
-::SetInitialTransformParameters( const ParametersType & param, int i )
+::SetInitialTransformParameters( int i, const ParametersType & param )
 {
 
   for(unsigned int j=0; j < param.Size(); j++)
