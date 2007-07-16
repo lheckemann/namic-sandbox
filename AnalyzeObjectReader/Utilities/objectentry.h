@@ -87,7 +87,6 @@ public:
   typedef itk::RGBPixel<int> intRGBPixel;
   typedef itk::Index<3> Index;
 
-  // RGBPixel::pointer RGBPixelPointer = RGBPixel::New();
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
@@ -556,7 +555,6 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    */
   itkSetMacro(MaximumCoordinateValue, Index);
   itkGetConstMacro(MaximumCoordinateValue, Index);
-
  
  //void Print(std::ostream myfile) 
  // {
