@@ -1,4 +1,4 @@
-Tests from 001 to 018 are groupwise registrations of T1-T2 MR images.
+Tests from 001 to 018 are groupwise registrations of PD, T1, T2 images.
 Tests from 101 to 106 are groupwise registration of FA images.
     
 For more information about the individual tests, see README files in subdirectories.
