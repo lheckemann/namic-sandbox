@@ -11,7 +11,7 @@ int main (int argc, char * argv[])
   //const bool objectReadStatus = testAOE02->ReadObjectFile(argv[1]);
   const bool objectReadStatus = testAOE02->ReadObjectFile("D:/object_good/Data/test.obj");
 
-  if(objectReadStatus)
+  if(!objectReadStatus)
   {
       error_count++;
   }

@@ -71,6 +71,12 @@ void ReadBytes(std::ifstream & inputFileStream,ReadType * dest, const int Replic
 
 }
 
+template <typename ReadType>
+void WriteObject(std::fstream & inputFileStream, ReadType * dest)
+{
+    inputFileStream.write(reinterpret_cast<char *>(dest), sizeof(ReadType));
+}
+
   /**
    * \class AnalyzeObjectEntry
    * \brief This class encapsulates a single object in an Analyze object file
@@ -478,8 +484,8 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
    * causes all the color to come from the alpha map.
    * A value of .5 will cause half to come from each.
    */
-  itkGetConstMacro(BlendFactor, int);
-  itkSetMacro(BlendFactor, int);
+  itkGetConstMacro(BlendFactor, float);
+  itkSetMacro(BlendFactor, float);
 
   /**
    * \brief setStartColor
@@ -556,50 +562,48 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
   itkSetMacro(MaximumCoordinateValue, Index);
   itkGetConstMacro(MaximumCoordinateValue, Index);
  
- //void Print(std::ostream myfile) 
- // {
-//        myfile<<this->m_Name<<"\n";
-//        myfile<<m_DisplayFlag<<"\n";
-//        myfile<<(int)m_CopyFlag<<"\n";
-//        myfile<<(int)m_MirrorFlag<<"\n";
-//        myfile<<(int)m_StatusFlag<<"\n";
-//        myfile<<(int)m_NeighborsUsedFlag<<"\n";
-//        myfile<<m_Shades<<"\n";
-//        myfile<<m_StartRed<<"\n";
-//        myfile<<m_StartGreen<<"\n";
-//        myfile<<m_StartBlue<<"\n";
-//        myfile<<m_EndRed<<"\n";
-//        myfile<<m_EndGreen<<"\n";
-//        myfile<<m_EndBlue<<"\n";
-//        myfile<<m_XRotation<<"\n";
-//        myfile<<this->m_YRotation<<"\n";
-//        myfile<<this->m_ZRotation<<"\n";
-//        myfile<<this->m_XTranslation<<"\n";
-//        myfile<<this->m_YTranslation<<"\n";
-//        myfile<<this->m_ZTranslation<<"\n";
-//        myfile<<this->m_XCenter<<"\n";
-//        myfile<<this->m_YCenter<<"\n";
-//        myfile<<this->m_ZCenter<<"\n";
-//        myfile<<this->m_XRotationIncrement<<"\n";
-//        myfile<<this->m_YRotationIncrement<<"\n";
-//        myfile<<this->m_ZRotationIncrement<<"\n";
-//        myfile<<this->m_XTranslationIncrement<<"\n";
-//        myfile<<this->m_YTranslationIncrement<<"\n";
-//        myfile<<this->m_ZTranslationIncrement<<"\n";
-//        myfile<<this->m_MinimumXValue<<"\n";
-//        myfile<<this->m_MinimumYValue<<"\n";
-//        myfile<<this->m_MinimumZValue<<"\n";
-//        myfile<<this->m_MaximumXValue<<"\n";
-//        myfile<<this->m_MaximumYValue<<"\n";
-//        myfile<<this->m_MaximumZValue<<"\n";
-//        myfile<<this->m_Opacity<<"\n";
-//        myfile<<this->m_OpacityThickness<<"\n";
-//        myfile<<m_BlendFactor<<"\n";
-//        myfile<<"===========================================================================================\n";
-//}
-  void ReadFromFilePointer(std::ifstream & inputFileStream, const bool NeedByteSwap){
-      int color;
-      
+ void Print(std::ostream &myfile) 
+  {
+        myfile<<this->m_Name<<"\n";
+        myfile<<m_DisplayFlag<<"\n";
+        myfile<<(int)m_CopyFlag<<"\n";
+        myfile<<(int)m_MirrorFlag<<"\n";
+        myfile<<(int)m_StatusFlag<<"\n";
+        myfile<<(int)m_NeighborsUsedFlag<<"\n";
+        myfile<<m_Shades<<"\n";
+        myfile<<m_StartRed<<"\n";
+        myfile<<m_StartGreen<<"\n";
+        myfile<<m_StartBlue<<"\n";
+        myfile<<m_EndRed<<"\n";
+        myfile<<m_EndGreen<<"\n";
+        myfile<<m_EndBlue<<"\n";
+        myfile<<m_XRotation<<"\n";
+        myfile<<this->m_YRotation<<"\n";
+        myfile<<this->m_ZRotation<<"\n";
+        myfile<<this->m_XTranslation<<"\n";
+        myfile<<this->m_YTranslation<<"\n";
+        myfile<<this->m_ZTranslation<<"\n";
+        myfile<<this->m_XCenter<<"\n";
+        myfile<<this->m_YCenter<<"\n";
+        myfile<<this->m_ZCenter<<"\n";
+        myfile<<this->m_XRotationIncrement<<"\n";
+        myfile<<this->m_YRotationIncrement<<"\n";
+        myfile<<this->m_ZRotationIncrement<<"\n";
+        myfile<<this->m_XTranslationIncrement<<"\n";
+        myfile<<this->m_YTranslationIncrement<<"\n";
+        myfile<<this->m_ZTranslationIncrement<<"\n";
+        myfile<<this->m_MinimumXValue<<"\n";
+        myfile<<this->m_MinimumYValue<<"\n";
+        myfile<<this->m_MinimumZValue<<"\n";
+        myfile<<this->m_MaximumXValue<<"\n";
+        myfile<<this->m_MaximumYValue<<"\n";
+        myfile<<this->m_MaximumZValue<<"\n";
+        myfile<<this->m_Opacity<<"\n";
+        myfile<<this->m_OpacityThickness<<"\n";
+        myfile<<m_BlendFactor<<"\n";
+        myfile<<"===========================================================================================\n";
+}
+  void ReadFromFilePointer(std::ifstream & inputFileStream, const bool NeedByteSwap){      
 
   //IntFunc
   ReadBytes<char>(inputFileStream, this->m_Name, 32,NeedByteSwap);
@@ -642,6 +646,86 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
   ReadBytes<float>(inputFileStream, &m_Opacity,1,NeedByteSwap);
   ReadBytes<int>(inputFileStream, &m_OpacityThickness,1,NeedByteSwap);
   ReadBytes<float>(inputFileStream, &m_BlendFactor,1,NeedByteSwap);
+  }
+
+  void SwapObjectEndedness()
+{
+
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_DisplayFlag));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_Shades));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_StartRed));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_StartGreen));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_StartBlue));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_EndRed));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_EndGreen));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_EndBlue));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_XRotation));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_YRotation));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_ZRotation));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_XTranslation));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_YTranslation));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_ZTranslation));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_XCenter));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_YCenter));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_ZCenter));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_XRotationIncrement));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_YRotationIncrement));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_ZRotationIncrement));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_XTranslationIncrement));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_YTranslationIncrement));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_ZTranslationIncrement));
+  itk::ByteSwapper<short int>::SwapFromSystemToBigEndian(&(this->m_MinimumXValue));
+  itk::ByteSwapper<short int>::SwapFromSystemToBigEndian(&(this->m_MinimumYValue));
+  itk::ByteSwapper<short int>::SwapFromSystemToBigEndian(&(this->m_MinimumZValue));
+  itk::ByteSwapper<short int>::SwapFromSystemToBigEndian(&(this->m_MaximumXValue));
+  itk::ByteSwapper<short int>::SwapFromSystemToBigEndian(&(this->m_MaximumYValue));
+  itk::ByteSwapper<short int>::SwapFromSystemToBigEndian(&(this->m_MaximumZValue));
+  itk::ByteSwapper<float>::SwapFromSystemToBigEndian(&(this->m_Opacity));
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_OpacityThickness));
+  itk::ByteSwapper<float>::SwapFromSystemToBigEndian(&(this->m_BlendFactor));
+}
+
+  void Write(std::fstream &inputFileStream)
+  {
+    inputFileStream.write(reinterpret_cast<char *>(&(m_Name)), sizeof(m_Name));
+    inputFileStream.write(reinterpret_cast<char *>(m_DisplayFlag), sizeof(m_DisplayFlag));
+    inputFileStream.write(reinterpret_cast<char *>(m_CopyFlag), sizeof(m_CopyFlag));
+    inputFileStream.write(reinterpret_cast<char *>(m_MirrorFlag), sizeof(m_MirrorFlag));
+    inputFileStream.write(reinterpret_cast<char *>(m_StatusFlag), sizeof(m_StatusFlag));
+    inputFileStream.write(reinterpret_cast<char *>(m_NeighborsUsedFlag), sizeof(m_NeighborsUsedFlag));
+    inputFileStream.write(reinterpret_cast<char *>(m_Shades), sizeof(m_Shades));
+    inputFileStream.write(reinterpret_cast<char *>(m_StartRed), sizeof(m_StartRed));
+    inputFileStream.write(reinterpret_cast<char *>(m_StartGreen), sizeof(m_StartGreen));
+    inputFileStream.write(reinterpret_cast<char *>(m_StartBlue), sizeof(m_StartBlue));
+    inputFileStream.write(reinterpret_cast<char *>(m_EndRed), sizeof(m_EndRed));
+    inputFileStream.write(reinterpret_cast<char *>(m_EndGreen), sizeof(m_EndGreen));
+    inputFileStream.write(reinterpret_cast<char *>(m_EndBlue), sizeof(m_EndBlue));
+    inputFileStream.write(reinterpret_cast<char *>(m_XRotation), sizeof(m_XRotation));
+    inputFileStream.write(reinterpret_cast<char *>(m_YRotation), sizeof(m_YRotation));
+    inputFileStream.write(reinterpret_cast<char *>(m_ZRotation), sizeof(m_ZRotation));
+    inputFileStream.write(reinterpret_cast<char *>(m_XTranslation), sizeof(m_XTranslation));
+    inputFileStream.write(reinterpret_cast<char *>(m_YTranslation), sizeof(m_YTranslation));
+    inputFileStream.write(reinterpret_cast<char *>(m_ZTranslation), sizeof(m_ZTranslation));
+    inputFileStream.write(reinterpret_cast<char *>(m_XCenter), sizeof(m_XCenter));
+    inputFileStream.write(reinterpret_cast<char *>(m_YCenter), sizeof(m_YCenter));
+    inputFileStream.write(reinterpret_cast<char *>(m_ZCenter), sizeof(m_ZCenter));
+    inputFileStream.write(reinterpret_cast<char *>(m_XRotationIncrement), sizeof(m_XRotationIncrement));
+    inputFileStream.write(reinterpret_cast<char *>(m_YRotationIncrement), sizeof(m_YRotationIncrement));
+    inputFileStream.write(reinterpret_cast<char *>(m_ZRotationIncrement), sizeof(m_ZRotationIncrement));
+    inputFileStream.write(reinterpret_cast<char *>(m_XTranslationIncrement), sizeof(m_XTranslationIncrement));
+    inputFileStream.write(reinterpret_cast<char *>(m_YTranslationIncrement), sizeof(m_YTranslationIncrement));
+    inputFileStream.write(reinterpret_cast<char *>(m_ZTranslationIncrement), sizeof(m_ZTranslationIncrement));
+    inputFileStream.write(reinterpret_cast<char *>(m_MinimumXValue), sizeof(m_MinimumXValue));
+    inputFileStream.write(reinterpret_cast<char *>(m_MinimumYValue), sizeof(m_MinimumYValue));
+    inputFileStream.write(reinterpret_cast<char *>(m_MinimumZValue), sizeof(m_MinimumZValue));
+    inputFileStream.write(reinterpret_cast<char *>(m_MaximumXValue), sizeof(m_MaximumXValue));
+    inputFileStream.write(reinterpret_cast<char *>(m_MaximumYValue), sizeof(m_MaximumYValue));
+    inputFileStream.write(reinterpret_cast<char *>(m_MaximumZValue), sizeof(m_MaximumZValue));
+    WriteObject<float>(inputFileStream,&m_Opacity);
+    //inputFileStream.write(reinterpret_cast<char *>(m_Opacity), sizeof(m_Opacity));
+    inputFileStream.write(reinterpret_cast<char *>(m_OpacityThickness), sizeof(m_OpacityThickness));
+    WriteObject<float>(inputFileStream, &m_BlendFactor);
+    //inputFileStream.write(reinterpret_cast<char *>(m_BlendFactor), sizeof(m_BlendFactor));
   }
 protected:
   /**
