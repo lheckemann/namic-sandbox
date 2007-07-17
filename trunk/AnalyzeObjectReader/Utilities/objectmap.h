@@ -328,7 +328,7 @@ namespace itk
     * \param The pointer to the file to be written out.
     * \return returns true if successful
     */
-      bool RunLengthEncodeImage(itk::AnalyzeObjectMap SourceImage, std::fstream &inputFileStream);
+      bool RunLengthEncodeImage(itk::AnalyzeObjectMap SourceImage, std::ofstream &inputFileStream);
 
    /**
     * \brief This function takes a string and removes the spaces
