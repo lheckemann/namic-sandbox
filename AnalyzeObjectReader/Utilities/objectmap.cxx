@@ -493,10 +493,10 @@ bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
 
     // Opening the file
   std::fstream inputFileStream;
-  inputFileStream.open(filename.c_str(), std::ios::binary | std::ios::in);
+  inputFileStream.open(tempfilename.c_str(), std::ios::binary | std::ios::in);
   if ( !inputFileStream.is_open())
   {
-    ::fprintf( stderr, "Error: Could not open %s\n", filename.c_str());
+      std::cout<<"Error: Could not open "<< filename.c_str()<<std::endl;
     exit(-1);
   }
 
@@ -523,61 +523,58 @@ bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
 
   // Writing the header, which contains the version number, the size, and the
   // number of objects
-    inputFileStream.write(reinterpret_cast<char *>(header), sizeof(int)*5);
-#if 0
-  if ( ::fwrite( header, sizeof(int), 5, fptr) != 5 )
-  {
-    ::fprintf( stderr, "Error: Could not write header of %s\n", filename.c_str());
-    exit(-1);
-  }
-#endif
-
-  if( Version == VERSION7 )
-  {
-    // Set number of volumes to be 1. Need be changed later on. Xiujuan Geng, May 04, 2007
-    int nvols[1];    
-    nvols[0] = 1; 
-    if( NeedByteSwap )
+    if(inputFileStream.write(reinterpret_cast<char *>(header), sizeof(int)*5).fail())
     {
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(nvols[0]));
+        std::cout<<"Error: Could not write header of "<< filename.c_str()<<std::endl;
+        exit(-1);
     }
-    inputFileStream.write(reinterpret_cast<char *>(nvols), sizeof(int));    
-  }
-
-  // Error checking the number of objects in the object file
-  if ((NumberOfObjects < 0) || (NumberOfObjects > 255))
-  {
-      std::cout<<( stderr, "Error: Invalid number of object files.\n" );
-    inputFileStream.close();
-    return false;
-  }
-
-  // Since the NumberOfObjects does not reflect the background, the background will be included
-  for (int i = 0; i < NumberOfObjects + 1; i++)
-  {
-    // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
-    // not affect the current object itself
-      AnalyzeObjectEntry *ObjectWrite = this->getObjectEntry(i);
-
-    if (NeedByteSwap == true)
-    {
-      ObjectWrite->SwapObjectEndedness();
-    }
-
-   ObjectWrite->Write(inputFileStream); 
-
-    
-    
-#if 0
-    // Writing the ObjectEntry structures
-    if (::fwrite(ObjectWrite.getObjectPointer(), sizeof(Object), 1, fptr) != 1)
-    {
-      ::fprintf(stderr, "13: Unable to write in object #%d description of %s\n", i, filename.c_str());
-      exit(-1);
-    }
-#endif
-  }
-  RunLengthEncodeImage(*this, inputFileStream);
+//
+//  if( Version == VERSION7 )
+//  {
+//    // Set number of volumes to be 1. Need be changed later on. Xiujuan Geng, May 04, 2007
+//    int nvols[1];    
+//    nvols[0] = 1; 
+//    if( NeedByteSwap )
+//    {
+//      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(nvols[0]));
+//    }
+//    inputFileStream.write(reinterpret_cast<char *>(nvols), sizeof(int));    
+//  }
+//
+//  // Error checking the number of objects in the object file
+//  if ((NumberOfObjects < 0) || (NumberOfObjects > 255))
+//  {
+//      std::cout<<( stderr, "Error: Invalid number of object files.\n" );
+//    inputFileStream.close();
+//    return false;
+//  }
+//
+//  // Since the NumberOfObjects does not reflect the background, the background will be included
+//  for (int i = 0; i < NumberOfObjects + 1; i++)
+//  {
+//    // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
+//    // not affect the current object itself
+//      AnalyzeObjectEntry *ObjectWrite = this->getObjectEntry(i);
+//
+//    if (NeedByteSwap == true)
+//    {
+//      ObjectWrite->SwapObjectEndedness();
+//    }
+//
+//   ObjectWrite->Write(inputFileStream); 
+//
+//    
+//    
+//#if 0
+//    // Writing the ObjectEntry structures
+//    if (::fwrite(ObjectWrite.getObjectPointer(), sizeof(Object), 1, fptr) != 1)
+//    {
+//      ::fprintf(stderr, "13: Unable to write in object #%d description of %s\n", i, filename.c_str());
+//      exit(-1);
+//    }
+//#endif
+//  }
+//  RunLengthEncodeImage(*this, inputFileStream);
   inputFileStream.close();
   return true;
 }
@@ -1373,87 +1370,83 @@ bool itk::AnalyzeObjectMap::RunLengthEncodeImage(itk::AnalyzeObjectMap SourceIma
   int bufferindex=0;
   int planeindex=0;
   int runlength=0;
-  int CurrentObjIndex=0;
+  unsigned char CurrentObjIndex=0;
   const  int buffer_size=16384;
                                  //NOTE: This is probably overkill, but it will work
   unsigned char buffer[buffer_size];
   //for almost all cases
 
-  for(int VolumeIndex=0;VolumeIndex<VolumeSize;VolumeIndex++)
+  itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexIt(this,this->GetLargestPossibleRegion());
+  for(indexIt.GoToBegin();!indexIt.IsAtEnd();++indexIt)
   {
-    //if (runlength==0)
-    //{
-    //  CurrentObjIndex=SourceImage.ConstPixel(VolumeIndex);
-    //  runlength=1;
-    //}
-    //else
-    //{
-    //  if (CurrentObjIndex==SourceImage.ConstPixel(VolumeIndex))
-    //  {
-    //    runlength++;
-    //    if (runlength==255)
-    //    {
-    //      buffer[bufferindex]=runlength;
-    //      buffer[bufferindex+1]=CurrentObjIndex;
-    //      bufferindex+=2;
-    //      runlength=0;
-    //    }
-    //  }
-    //  else
-    //  {
-    //    buffer[bufferindex]=runlength;
-    //    buffer[bufferindex+1]=CurrentObjIndex;
-    //    bufferindex+=2;
-    //    CurrentObjIndex=SourceImage.ConstPixel(VolumeIndex);
-    //    runlength=1;
-    //  }
-    }
-    planeindex++;
-    if (planeindex==PlaneSize)
-    {
-      // Just finished with a plane of data, so encode it
-      planeindex=0;
-      if (runlength!=0)
-      {
-        buffer[bufferindex]=runlength;
-        buffer[bufferindex+1]=CurrentObjIndex;
-        bufferindex+=2;
-        runlength=0;
-      }
-    }
-    if (bufferindex==buffer_size)
-    {
-      // buffer full
-        fptr.write(reinterpret_cast<char *>(buffer), buffer_size);
-#if 0
-      if (fwrite(buffer,1,buffer_size,fptr)!=static_cast<unsigned int>(buffer_size))
-      {
-        printf("error: could not write buffer\n");
-        exit(-1);
-      }
-#endif
-      bufferindex=0;
-    }
+        if (runlength==0)
+        {
+            CurrentObjIndex = indexIt.Get();
+          runlength=1;
+        }
+        else
+        {
+          if (CurrentObjIndex==indexIt.Get())
+          {
+            runlength++;
+            if (runlength==255)
+            {
+              buffer[bufferindex]=runlength;
+              buffer[bufferindex+1]=CurrentObjIndex;
+              bufferindex+=2;
+              runlength=0;
+            }
+          }
+          else
+          {
+            buffer[bufferindex]=runlength;
+            buffer[bufferindex+1]=CurrentObjIndex;
+            bufferindex+=2;
+            CurrentObjIndex=indexIt.Get();
+            runlength=1;
+          }
+        }
+
+        planeindex++;
+        if (planeindex==PlaneSize)
+        {
+          // Just finished with a plane of data, so encode it
+          planeindex=0;
+          if (runlength!=0)
+          {
+            buffer[bufferindex]=runlength;
+            buffer[bufferindex+1]=CurrentObjIndex;
+            bufferindex+=2;
+            runlength=0;
+          }
+        }
+        if (bufferindex==buffer_size)
+        {
+          // buffer full
+          if (fptr.write(reinterpret_cast<char *>(buffer), buffer_size).fail())
+          {
+              std::cout<<"error: could not write buffer"<<std::endl;
+              exit(-1);
+          }
+          bufferindex=0;
+        }
 
 
-  if (bufferindex!=0)
-  {
-    if (runlength!=0)
-    {
-      buffer[bufferindex]=runlength;
-      buffer[bufferindex+1]=CurrentObjIndex;
-      bufferindex+=2;
-    }
-    fptr.write(reinterpret_cast<char *>(buffer), bufferindex);
-#if 0
-    if (fwrite(buffer,1,bufferindex,fptr)!=static_cast<unsigned int>(bufferindex))
-    {
-      printf("error: could not write buffer\n");
-      exit(-1);
-    }
-#endif
+        if (bufferindex!=0)
+        {
+            if (runlength!=0)
+            {
+              buffer[bufferindex]=runlength;
+              buffer[bufferindex+1]=CurrentObjIndex;
+              bufferindex+=2;
+            }
+             if(fptr.write(reinterpret_cast<char *>(buffer), bufferindex).fail())
+             {
+                 std::cout<<"error: could not write buffer"<<std::endl;
+                 exit(-1);
+             }
+        }
   }
-
   return true;
 }
 #if 0
