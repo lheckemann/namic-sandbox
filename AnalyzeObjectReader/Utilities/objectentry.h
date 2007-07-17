@@ -72,7 +72,7 @@ void ReadBytes(std::ifstream & inputFileStream,ReadType * dest, const int Replic
 }
 
 template <typename ReadType>
-void WriteObject(std::fstream & inputFileStream, ReadType * dest)
+void WriteObject(std::ofstream & inputFileStream, ReadType * dest)
 {
     inputFileStream.write(reinterpret_cast<char *>(dest), sizeof(ReadType));
 }
@@ -688,7 +688,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
   itk::ByteSwapper<float>::SwapFromSystemToBigEndian(&(this->m_BlendFactor));
 }
 
-  void Write(std::fstream &inputFileStream)
+  void Write(std::ofstream &inputFileStream)
   {
     inputFileStream.write(reinterpret_cast<char *>(&(m_Name)), sizeof(m_Name));
     inputFileStream.write(reinterpret_cast<char *>(m_DisplayFlag), sizeof(m_DisplayFlag));
