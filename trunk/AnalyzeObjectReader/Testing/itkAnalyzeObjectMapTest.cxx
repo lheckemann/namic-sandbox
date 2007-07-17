@@ -10,6 +10,7 @@ int main (int argc, char * argv[])
 
   //const bool objectReadStatus = testAOE02->ReadObjectFile(argv[1]);
   const bool objectReadStatus = testAOE02->ReadObjectFile("D:/object_good/Data/test.obj");
+  const bool objectWriteStatus = testAOE02->WriteObjectFile("D:/object_good/Data/testWrite.obj");
 
   if(!objectReadStatus)
   {
