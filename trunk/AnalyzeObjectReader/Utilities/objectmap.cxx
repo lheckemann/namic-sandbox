@@ -261,93 +261,82 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
 
   // Reading the header, which contains the version number, the size, and the
   // number of objects
-  int header[6];
-  //char input[50];
-  //std::cout<<inputFileStream.read(reinterpret_cast<char*>(header),sizeof(int))<<std::endl;
-  //std::cout<<(int)header[0]<<std::endl;
-  inputFileStream.read(reinterpret_cast<char *>(header),sizeof(int)*1);
-  //if ( inputFileStream.read(reinterpret_cast<char *>(header),sizeof(int)*1))
-  //{
-  //  ::fprintf( stderr, "Error: Could not read header of %s\n", filename.c_str());
-  //  exit(-1);
-  //}
-  bool NeedByteSwap=false;
-  //Do byte swapping if necessary.
-  if(header[0] != VERSION7)    // Byte swapping needed (Number is byte swapped number of VERSIONy or VERSION8 )
+  int header[5];
+  if ( inputFileStream.read(reinterpret_cast<char *>(header),sizeof(int)*1).fail())
   {
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
-      NeedByteSwap = true;
-      std::cout<<header[0]<<std::endl;
-  if(header[0] != VERSION7)
-  {
-      std::cout<<"NOT VERSION 7!"<<std::endl;
-      return (-1);
-  } 
-  }
-  ;
-if(inputFileStream.readsome(reinterpret_cast<char *>(&(header[1])),sizeof(int)*5) != sizeof(int)*5)
-{
-    std::cout<<"Could not read in the other header information"<<std::endl;
+      std::cout<<"Error: Could not read header of "<<filename.c_str()<<std::endl;
     exit(-1);
-  
-}
-if(NeedByteSwap)
-{
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[1]));
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[2]));
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[3]));
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[4]));
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[5]));
-}
+  }
+  bool NeedByteSwap=false;
+  std::cout<<header[0]<<std::endl;
+  //Do byte swapping if necessary.
+    if(header[0] == -1913442047|| header[0] ==33333333 )    // Byte swapping needed (Number is byte swapped number of VERSIONy or VERSION8 )
+    {
+        if(itk::ByteSwapper<int>::SystemIsLittleEndian())
+        {
+            itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
+        }
+        NeedByteSwap = true;
+    }
 
-  // Reading the Header into the class
-  this->Version = header[0];
-  this->SetXDim(header[1]);
-  this->SetYDim(header[2]);
-  this->SetZDim(header[3]);
-  this->NumberOfObjects = header[4];
-  const int nvols = (this->Version == VERSION7)?header[5]:1;
-  const int VolumeSize=this->GetXDim() * this->GetYDim() * this->GetZDim() *nvols;
-  //::fprintf(stderr, "Version: %s", header[0]);
-  std::cout<<"Version: "<<header[0]<<"\n";
-  std::cout<<"header[1] = "<<header[1]<<"\n";
-  std::cout<<"header[2] = "<<header[2]<<"\n";
-  std::cout<<"header[3] = "<<header[3]<<"\n";
-  std::cout<<"header[4] = "<<header[4]<<"\n";
-  std::cout<<"header[5] = "<<header[5]<<"\n";
-  std::cout<<"Test. obj headers: NumberofObjects: "<<header[4]<<"\n";
-  std::cout<<"File: "<<filename<<"\n";
+    if(inputFileStream.readsome(reinterpret_cast<char *>(&(header[1])),sizeof(int)*4) != sizeof(int)*4)
+    {
+        std::cout<<"Could not read in the other header information"<<std::endl;
+        exit(-1);
+      
+    }
 
-#if 0 
-  //printf("TEST. Obj headers: NumberOfObjects %d \n", header[4]);
-  // Validating the version number
-  //if (Version != VERSION6 )
-  //{
-  //    std::cout<<"Version: "<<header[0];
-  //    ::fprintf( stderr, "Error: Can only process version 6 and version 8 analyze object files.\n" );
-  //  ::fclose( fptr );
-  //  return false;
-  //}
+    if(NeedByteSwap)
+    {
+        if(itk::ByteSwapper<int>::SystemIsLittleEndian())
+        {
+          itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[1]));
+          itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[2]));
+          itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[3]));
+          itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[4]));
+          //itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[5]));
+        }
+    }
+
+    // Reading the Header into the class
+    this->Version = header[0];
+    this->SetXDim(header[1]);
+    this->SetYDim(header[2]);
+    this->SetZDim(header[3]);
+    this->NumberOfObjects = header[4];
+    
+    
+
+
+
 
   // In version 7, the header file has a new field after number of objects, before name,
   // which is nvols, with type int. This field allows 4D object maps. 
   // Further updating of objectmap related programs are to be developed to 
   // obtain, utilize this field. Xiujuan Geng May 04, 2007
+  int nvols[1] = {1};
+  bool NeedBlendFactor = false;
   if( Version == VERSION7 )
   {
-    int nvols[1];
-    if ( ::fread( nvols, sizeof(int), 1, fptr) != 1 )
+    
+    if ( (inputFileStream.read(reinterpret_cast<char *>(nvols),sizeof(int)*1)).fail() )
     {
-      ::fprintf( stderr, "Error: Could not read header of %s\n", filename.c_str());
+        std::cout<<"Error: Could not read header of "<< filename.c_str()<<std::endl;
       exit(-1);
     }
     if(NeedByteSwap)
     {
+        if(itk::ByteSwapper<int>::SystemIsLittleEndian())
+        {
         itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(nvols[0]));
+        }
     }
-    std::cout<<nvols[0]<<std::endl;
+    NeedBlendFactor = true;
+
   }
-#endif
+
+  const int VolumeSize=this->GetXDim() * this->GetYDim() * this->GetZDim() *nvols[0];
+
 
   // Error checking the number of objects in the object file
   if ((NumberOfObjects < 1) || (NumberOfObjects > 255))
@@ -356,15 +345,14 @@ if(NeedByteSwap)
     inputFileStream.close();
     return false;
   }
-  std::cout<<std::endl<<std::endl<<NumberOfObjects<<std::endl<<std::endl;
 
   std::ofstream myfile;
-  myfile.open("ReadFromFilePointer28.txt", myfile.app); 
+  myfile.open("ReadFromFilePointer29.txt", myfile.app); 
   for (int i = 0; i < NumberOfObjects; i++)
   {
     // Allocating a object to be created
     AnaylzeObjectEntryArray[i] = AnalyzeObjectEntry::New();
-    AnaylzeObjectEntryArray[i]->ReadFromFilePointer(inputFileStream,NeedByteSwap);
+    AnaylzeObjectEntryArray[i]->ReadFromFilePointer(inputFileStream,NeedByteSwap, NeedBlendFactor);
       
     AnaylzeObjectEntryArray[i]->Print(myfile);
   }
@@ -376,7 +364,6 @@ if(NeedByteSwap)
   //Set size of the image
 
 
-  //this->ImageReinitialize(XSize, YSize, ZSize, 1);
   itk::Image<unsigned char,3>::SizeType ImageSize;
   ImageSize[0]=this->GetXDim();
   ImageSize[1]=this->GetYDim();
@@ -417,7 +404,7 @@ if(NeedByteSwap)
   int voxel_count_sum=0;
   {
         std::ofstream myfile;
-  myfile.open("VoxelInformation8.txt", myfile.app);
+  myfile.open("VoxelInformation9.txt", myfile.app);
      while (!inputFileStream.read(reinterpret_cast<char *>(RunLengthArray), sizeof(RunLengthElement)*NumberOfRunLengthElementsPerRead).eof())
     {
       for (int i = 0; i < NumberOfRunLengthElementsPerRead; i++)

@@ -603,7 +603,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
         myfile<<m_BlendFactor<<"\n";
         myfile<<"===========================================================================================\n";
 }
-  void ReadFromFilePointer(std::ifstream & inputFileStream, const bool NeedByteSwap){      
+  void ReadFromFilePointer(std::ifstream & inputFileStream, const bool NeedByteSwap, const bool NeedBlendFactor){      
 
   //IntFunc
   ReadBytes<char>(inputFileStream, this->m_Name, 32,NeedByteSwap);
@@ -645,7 +645,10 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
   ReadBytes<short int>(inputFileStream, &m_MaximumZValue,1,NeedByteSwap);
   ReadBytes<float>(inputFileStream, &m_Opacity,1,NeedByteSwap);
   ReadBytes<int>(inputFileStream, &m_OpacityThickness,1,NeedByteSwap);
-  ReadBytes<float>(inputFileStream, &m_BlendFactor,1,NeedByteSwap);
+  if(NeedBlendFactor)
+  {
+    ReadBytes<float>(inputFileStream, &m_BlendFactor,1,NeedByteSwap);
+  }
   }
 
   void SwapObjectEndedness()
