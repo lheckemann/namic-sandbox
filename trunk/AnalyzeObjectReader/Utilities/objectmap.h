@@ -291,6 +291,15 @@ namespace itk
      */
     void setMaximumPixelValue( const unsigned char index, const unsigned char value );
 
+    itkSetMacro(XDim, int);
+    itkGetMacro(XDim, int);
+
+    itkSetMacro(YDim, int);
+    itkGetMacro(YDim, int);
+
+    itkSetMacro(ZDim, int);
+    itkGetMacro(ZDim, int);
+
     private:
       bool CopyBaseImage( const AnalyzeObjectMap& rhs );
       /** Version of object file */
@@ -306,6 +315,9 @@ namespace itk
       int NeedsSaving;
       int NeedsRegionsCalculated;
       itk::Image<unsigned char, 3>::Pointer m_LableMap;
+      int m_XDim;
+      int m_YDim;
+      int m_ZDim;
 
 //TODO The following should be private member functions of the AnalyzeObjectMap class
 
@@ -316,7 +328,7 @@ namespace itk
     * \param The pointer to the file to be written out.
     * \return returns true if successful
     */
-   bool RunLengthEncodeImage(const itk::Image<unsigned char,3>::Pointer SourceImage, FILE *fptr);
+      bool RunLengthEncodeImage(itk::AnalyzeObjectMap SourceImage, std::fstream &inputFileStream);
 
    /**
     * \brief This function takes a string and removes the spaces

@@ -244,42 +244,7 @@ void AnalyzeObjectMap::ReinitializeObjectMap(const int _iX, const int _iY, const
 }
 
 
-void SwapObjectEndedness(Object * ObjToChange)
-{
 
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->DisplayFlag));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->Shades));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->StartRed));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->StartGreen));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->StartBlue));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->EndRed));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->EndGreen));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->EndBlue));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->XRotation));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->YRotation));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->ZRotation));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->XTranslation));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->YTranslation));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->ZTranslation));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->XCenter));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->YCenter));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->ZCenter));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->XRotationIncrement));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->YRotationIncrement));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->ZRotationIncrement));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->XTranslationIncrement));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->YTranslationIncrement));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->ZTranslationIncrement));
-  itk::ByteSwapper<short int>::SwapFromSystemToBigEndian(&(ObjToChange->MinimumXValue));
-  itk::ByteSwapper<short int>::SwapFromSystemToBigEndian(&(ObjToChange->MinimumYValue));
-  itk::ByteSwapper<short int>::SwapFromSystemToBigEndian(&(ObjToChange->MinimumZValue));
-  itk::ByteSwapper<short int>::SwapFromSystemToBigEndian(&(ObjToChange->MaximumXValue));
-  itk::ByteSwapper<short int>::SwapFromSystemToBigEndian(&(ObjToChange->MaximumYValue));
-  itk::ByteSwapper<short int>::SwapFromSystemToBigEndian(&(ObjToChange->MaximumZValue));
-  itk::ByteSwapper<float>::SwapFromSystemToBigEndian(&(ObjToChange->Opacity));
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(ObjToChange->OpacityThickness));
-  itk::ByteSwapper<float>::SwapFromSystemToBigEndian(&(ObjToChange->BlendFactor));
-}
 
 
 bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
@@ -337,12 +302,12 @@ if(NeedByteSwap)
 
   // Reading the Header into the class
   this->Version = header[0];
-  const int XSize = header[1];
-  const int YSize = header[2];
-  const int ZSize = header[3];
+  this->SetXDim(header[1]);
+  this->SetYDim(header[2]);
+  this->SetZDim(header[3]);
   this->NumberOfObjects = header[4];
   const int nvols = (this->Version == VERSION7)?header[5]:1;
-  const int VolumeSize=XSize*YSize*ZSize*nvols;
+  const int VolumeSize=this->GetXDim() * this->GetYDim() * this->GetZDim() *nvols;
   //::fprintf(stderr, "Version: %s", header[0]);
   std::cout<<"Version: "<<header[0]<<"\n";
   std::cout<<"header[1] = "<<header[1]<<"\n";
@@ -394,7 +359,7 @@ if(NeedByteSwap)
   std::cout<<std::endl<<std::endl<<NumberOfObjects<<std::endl<<std::endl;
 
   std::ofstream myfile;
-  myfile.open("ReadFromFilePointer27.txt", myfile.app); 
+  myfile.open("ReadFromFilePointer28.txt", myfile.app); 
   for (int i = 0; i < NumberOfObjects; i++)
   {
     // Allocating a object to be created
@@ -413,9 +378,9 @@ if(NeedByteSwap)
 
   //this->ImageReinitialize(XSize, YSize, ZSize, 1);
   itk::Image<unsigned char,3>::SizeType ImageSize;
-  ImageSize[0]=XSize;
-  ImageSize[1]=YSize;
-  ImageSize[2]=ZSize;
+  ImageSize[0]=this->GetXDim();
+  ImageSize[1]=this->GetYDim();
+  ImageSize[2]=this->GetZDim();
   itk::Image<unsigned char,3>::IndexType ImageIndex;
   ImageIndex[0]=0;
   ImageIndex[1]=0;
@@ -452,7 +417,7 @@ if(NeedByteSwap)
   int voxel_count_sum=0;
   {
         std::ofstream myfile;
-  myfile.open("VoxelInformation7.txt", myfile.app);
+  myfile.open("VoxelInformation8.txt", myfile.app);
      while (!inputFileStream.read(reinterpret_cast<char *>(RunLengthArray), sizeof(RunLengthElement)*NumberOfRunLengthElementsPerRead).eof())
     {
       for (int i = 0; i < NumberOfRunLengthElementsPerRead; i++)
@@ -524,7 +489,7 @@ bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
   if (it > filename.length())
   {
 
-    temhpfilename+=".obj";
+    tempfilename+=".obj";
   }
   else
   {
@@ -550,27 +515,17 @@ bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
 
   bool NeedByteSwap=false;
 
-  //Do byte swapping if necessary.
-  if(header[0] != VERSION7)    // Byte swapping needed (Number is byte swapped number of VERSIONy or VERSION8 )
-  {
-    itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
-    NeedByteSwap = true;
-    std::cout<<header[0]<<std::endl;
-    if(header[0] != VERSION7)
-    {
-        std::cout<<"NOT VERSION 7!"<<std::endl;
-        return (-1);
-    } 
-  }
-  header[0]=Version;
-  header[1]=this->getXDim();
-  header[2]=this->getYDim();
-  header[3]=this->getZDim();
-  header[4]=this->NumberOfObjects + 1;     // Include the background object when writing the .obj file
 
   int header[5];
+  header[0]=Version;
+  header[1]=this->GetXDim();
+  header[2]=this->GetYDim();
+  header[3]=this->GetZDim();
+  header[4]=this->NumberOfObjects + 1;     // Include the background object when writing the .obj file
 
-    if(NeedByteSwap)
+  
+
+  if(itk::ByteSwapper<int>::SystemIsLittleEndian())
     {
           itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[1]));
           itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[2]));
@@ -581,7 +536,7 @@ bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
 
   // Writing the header, which contains the version number, the size, and the
   // number of objects
-    inputFileStream.write(header, sizeof(int)*5);
+    inputFileStream.write(reinterpret_cast<char *>(header), sizeof(int)*5);
 #if 0
   if ( ::fwrite( header, sizeof(int), 5, fptr) != 5 )
   {
@@ -599,7 +554,7 @@ bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
     {
       itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(nvols[0]));
     }
-    inputFileStream.write(nvols, sizeof(int));    
+    inputFileStream.write(reinterpret_cast<char *>(nvols), sizeof(int));    
   }
 
   // Error checking the number of objects in the object file
@@ -615,26 +570,31 @@ bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
   {
     // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
     // not affect the current object itself
-      AnalyzeObjectEntry ObjectWrite = this->getObjectEntry(i);
+      AnalyzeObjectEntry *ObjectWrite = this->getObjectEntry(i);
 
     if (NeedByteSwap == true)
     {
-      SwapObjectEndedness(ObjectWrite.getObjectPointer());
+      ObjectWrite->SwapObjectEndedness();
     }
 
-    inputFileStream.write();
+   ObjectWrite->Write(inputFileStream); 
 
+    
+    
+#if 0
     // Writing the ObjectEntry structures
     if (::fwrite(ObjectWrite.getObjectPointer(), sizeof(Object), 1, fptr) != 1)
     {
       ::fprintf(stderr, "13: Unable to write in object #%d description of %s\n", i, filename.c_str());
       exit(-1);
     }
+#endif
   }
-  RunLengthEncodeImage(*this, fptr);
-  ::fclose(fptr);
+  RunLengthEncodeImage(*this, inputFileStream);
+  inputFileStream.close();
   return true;
 }
+
 
 #if 0
 bool AnalyzeObjectMap::AddObjectInRange(const CImage<float> & InputImage,
@@ -1410,8 +1370,9 @@ void AnalyzeObjectMap::setMaximumPixelValue( const unsigned char index, const un
 {
   MaximumPixelValue[index] = value;
 }
+#endif
 
-bool RunLengthEncodeImage(const CImageFlat<unsigned char> & SourceImage, FILE *fptr)
+bool itk::AnalyzeObjectMap::RunLengthEncodeImage(itk::AnalyzeObjectMap SourceImage, std::fstream &fptr)
 {
   if (fptr == NULL)
   {
@@ -1420,8 +1381,8 @@ bool RunLengthEncodeImage(const CImageFlat<unsigned char> & SourceImage, FILE *f
   }
 
   // Encoding the run length encoded raw data into an unsigned char volume
-  const int VolumeSize=SourceImage.getXDim()*SourceImage.getYDim()*SourceImage.getZDim();
-  const int PlaneSize = SourceImage.getXDim()*SourceImage.getYDim();
+  const int VolumeSize=SourceImage.GetXDim()*SourceImage.GetYDim()*SourceImage.GetZDim();
+  const int PlaneSize = SourceImage.GetXDim()*SourceImage.GetYDim();
   int bufferindex=0;
   int planeindex=0;
   int runlength=0;
@@ -1433,32 +1394,32 @@ bool RunLengthEncodeImage(const CImageFlat<unsigned char> & SourceImage, FILE *f
 
   for(int VolumeIndex=0;VolumeIndex<VolumeSize;VolumeIndex++)
   {
-    if (runlength==0)
-    {
-      CurrentObjIndex=SourceImage.ConstPixel(VolumeIndex);
-      runlength=1;
-    }
-    else
-    {
-      if (CurrentObjIndex==SourceImage.ConstPixel(VolumeIndex))
-      {
-        runlength++;
-        if (runlength==255)
-        {
-          buffer[bufferindex]=runlength;
-          buffer[bufferindex+1]=CurrentObjIndex;
-          bufferindex+=2;
-          runlength=0;
-        }
-      }
-      else
-      {
-        buffer[bufferindex]=runlength;
-        buffer[bufferindex+1]=CurrentObjIndex;
-        bufferindex+=2;
-        CurrentObjIndex=SourceImage.ConstPixel(VolumeIndex);
-        runlength=1;
-      }
+    //if (runlength==0)
+    //{
+    //  CurrentObjIndex=SourceImage.ConstPixel(VolumeIndex);
+    //  runlength=1;
+    //}
+    //else
+    //{
+    //  if (CurrentObjIndex==SourceImage.ConstPixel(VolumeIndex))
+    //  {
+    //    runlength++;
+    //    if (runlength==255)
+    //    {
+    //      buffer[bufferindex]=runlength;
+    //      buffer[bufferindex+1]=CurrentObjIndex;
+    //      bufferindex+=2;
+    //      runlength=0;
+    //    }
+    //  }
+    //  else
+    //  {
+    //    buffer[bufferindex]=runlength;
+    //    buffer[bufferindex+1]=CurrentObjIndex;
+    //    bufferindex+=2;
+    //    CurrentObjIndex=SourceImage.ConstPixel(VolumeIndex);
+    //    runlength=1;
+    //  }
     }
     planeindex++;
     if (planeindex==PlaneSize)
@@ -1476,15 +1437,18 @@ bool RunLengthEncodeImage(const CImageFlat<unsigned char> & SourceImage, FILE *f
     if (bufferindex==buffer_size)
     {
       // buffer full
+        fptr.write(reinterpret_cast<char *>(buffer), buffer_size);
+#if 0
       if (fwrite(buffer,1,buffer_size,fptr)!=static_cast<unsigned int>(buffer_size))
       {
         printf("error: could not write buffer\n");
         exit(-1);
       }
+#endif
       bufferindex=0;
     }
 
-  }
+
   if (bufferindex!=0)
   {
     if (runlength!=0)
@@ -1493,16 +1457,19 @@ bool RunLengthEncodeImage(const CImageFlat<unsigned char> & SourceImage, FILE *f
       buffer[bufferindex+1]=CurrentObjIndex;
       bufferindex+=2;
     }
+    fptr.write(reinterpret_cast<char *>(buffer), bufferindex);
+#if 0
     if (fwrite(buffer,1,bufferindex,fptr)!=static_cast<unsigned int>(bufferindex))
     {
       printf("error: could not write buffer\n");
       exit(-1);
     }
+#endif
   }
 
   return true;
 }
-
+#if 0
 
 void CompactString( std::string & output, const std::string input )
 {
