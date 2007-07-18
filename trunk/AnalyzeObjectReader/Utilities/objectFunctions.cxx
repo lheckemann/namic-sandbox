@@ -426,3 +426,372 @@ void AnalyzeObjectMap::setMaximumPixelValue( const unsigned char index, const un
   MaximumPixelValue[index] = value;
 }
 #endif
+
+#if 0
+void CompactString( std::string & output, const std::string input )
+{
+  char *buffer = new char(input.length() + 1);
+  int count = 0;
+
+  for (unsigned int i = 0; i < input.length(); i++)
+  {
+    if (input[i] != ' ')
+    {
+      buffer[count] = input[i];
+    }
+  }
+
+  buffer[input.length()] = '\0';
+
+  output = std::string(buffer);
+
+  delete[] buffer;
+}
+#endif
+
+#if 0
+bool AnalyzeObjectMap::AddObjectInRange(const CImage<float> & InputImage,
+const float MinRange, const float MaxRange,
+std::string ObjectName, const int EndRed,
+const int EndGreen, const int EndBlue,
+const int Shades, bool OverWriteObjectFlag)
+{
+  const int nx=InputImage.getXDim();
+  const int ny=InputImage.getYDim();
+  const int nz=InputImage.getZDim();
+  if(nx != this->getXDim() ||
+    ny != this->getYDim() ||
+    nz != this->getZDim())
+  {
+    return false;
+  }
+  this->NumberOfObjects++;
+  this->AnaylzeObjectEntryArray[NumberOfObjects]= AnalyzeObjectEntry::New();
+  AnaylzeObjectEntryArray[NumberOfObjects]->SetName(ObjectName);
+  AnaylzeObjectEntryArray[NumberOfObjects]->SetEndColor(EndRed,EndGreen,EndBlue);
+  AnaylzeObjectEntryArray[NumberOfObjects]->SetStartColor(static_cast<int>(0.1F*EndRed),
+    static_cast<int>(0.1F*EndGreen),
+    static_cast<int>(0.1F*EndBlue));
+  AnaylzeObjectEntryArray[NumberOfObjects]->SetShades(Shades);
+
+  for(int k=0; k<nz; k++)
+  {
+    for( int j=0; j< ny ; j++)
+    {
+      for( int i=0; i<nx; i++)
+      {
+        const float CurrentValue=InputImage(i,j,k);
+
+        if(CurrentValue>=MinRange && CurrentValue<=MaxRange)
+        {
+          // Check to see if there is another object here (not background)
+          if (this->Pixel(i,j,k) > 0)
+          {
+            // This pixel has already been assigned an object
+            if (OverWriteObjectFlag == true)
+              this->Pixel(i,j,k)=NumberOfObjects;
+            // else do nothing
+          }
+          else
+          {
+            // Must be background
+            this->Pixel(i,j,k)=NumberOfObjects;
+          }
+        }
+      }
+    }
+  }
+  return true;
+}
+
+bool AnalyzeObjectMap::AddObjectInRange(const CImage<unsigned char> & InputImage,
+const int MinRange, const int MaxRange,
+std::string ObjectName, const int EndRed, const int EndGreen,
+const int EndBlue, const int Shades, bool OverWriteObjectFlag)
+{
+  const int nx=InputImage.getXDim();
+  const int ny=InputImage.getYDim();
+  const int nz=InputImage.getZDim();
+  if(nx != this->getXDim() ||
+    ny != this->getYDim() ||
+    nz != this->getZDim())
+  {
+    return false;
+  }
+  this->NumberOfObjects++;
+  this->AnaylzeObjectEntryArray[NumberOfObjects]= AnalyzeObjectEntry::New();
+  AnaylzeObjectEntryArray[NumberOfObjects]->SetName(ObjectName);
+  AnaylzeObjectEntryArray[NumberOfObjects]->SetEndColor(EndRed,EndGreen,EndBlue);
+  AnaylzeObjectEntryArray[NumberOfObjects]->SetStartColor(static_cast<int>(0.1F*EndRed),
+    static_cast<int>(0.1F*EndGreen),
+    static_cast<int>(0.1F*EndBlue));
+  AnaylzeObjectEntryArray[NumberOfObjects]->SetShades(Shades);
+
+  for(int k=0; k<nz; k++)
+  {
+    for( int j=0; j<ny ; j++)
+    {
+      for( int i=0; i<nx; i++)
+      {
+        const int CurrentValue=InputImage(i,j,k);
+        if(CurrentValue>=MinRange && CurrentValue<=MaxRange)
+        {
+          if (this->Pixel(i,j,k) > 0)
+          {
+            // This pixel has already been assigned an object
+            if (OverWriteObjectFlag == true)
+              this->Pixel(i,j,k)=NumberOfObjects;
+            // else do nothing
+          }
+          else
+          {
+            // Must be background
+            this->Pixel(i,j,k)=NumberOfObjects;
+          }
+        }
+      }
+    }
+  }
+  return true;
+}
+#endif
+
+
+bool AnalyzeObjectMap::RemoveObjectByName(const std::string & ObjectName)
+{
+  if (ObjectName == std::string("Background"))
+  {
+    // Can not delete background object
+    ::fprintf(stderr, "Can not remove the background object.\n");
+    return false;
+  }
+
+  int objectTag = 0;
+  {
+    for (int i = 1; i <= this->GetNumberOfObjects(); i++)
+    {
+      if (ObjectName == this->getObjectEntry(i)->GetName())
+      {
+        objectTag = i;
+        break;
+      }
+    }
+  }
+
+  if (objectTag == 0)
+  {
+    // Object name not found
+    printf("Object name %s was not found.\n", ObjectName.c_str());
+    return false;
+  }
+
+  // Go through all the object headers and shift them down
+  {
+    for (int j = objectTag; j < this->GetNumberOfObjects(); j++)
+    {
+      this->getObjectEntry(j) = this->getObjectEntry(j+1);
+    }
+  }
+
+  // Deleting the last extra data structure
+  delete AnaylzeObjectEntryArray[this->GetNumberOfObjects()];
+  AnaylzeObjectEntryArray[this->GetNumberOfObjects()] = NULL;
+
+  #if 0
+  // Changing the image object identifiers
+  {
+
+    for (int i = 0; i < this->getXDim()*this->getYDim()*this->getZDim(); i++)
+    {
+      if (this->ConstPixel(i) == objectTag)
+      {
+        // Assign to the background
+        this->Pixel(i) = 0;
+      }
+      else if (this->ConstPixel(i) > objectTag)
+      {
+        this->Pixel(i) = this->Pixel(i) - 1;
+      }
+
+    }
+  }
+
+  NumberOfObjects = NumberOfObjects - 1;
+  #endif
+
+  return true;
+}
+
+
+bool AnalyzeObjectMap::RemoveObjectByRange(const unsigned char MinRange, const unsigned char MaxRange)
+{
+  int startObjectTag = MinRange;
+  int endObjectTag = MaxRange;
+
+  // Validating ranges
+  if (MinRange == 0)
+  {
+    // Do not delete background object, but continue with the rest of the objects in range
+    printf("Can not delete the background object.\n");
+    startObjectTag = 1;
+  }
+
+  if (MaxRange > this->GetNumberOfObjects())
+  {
+    // Set the end to the number of objects
+    printf("Max Range too large.  Setting it too maximum number of objects in the objectmap.\n");
+    endObjectTag = this->GetNumberOfObjects();
+  }
+
+  if (MinRange > MaxRange)
+  {
+    // Parameters are backwards
+    ::fprintf(stderr, "Minimum Range %d and Maximum Range %d for removing objects are invalid.\n",
+      MinRange, MaxRange);
+    return false;
+  }
+
+  int NumberToDelete = endObjectTag - startObjectTag + 1;
+
+  // Go through all the object headers and shift them down
+  {
+    for (int j = endObjectTag + 1; j <= this->GetNumberOfObjects(); j++)
+    {
+      this->getObjectEntry(j-NumberToDelete) = this->getObjectEntry(j);
+    }
+  }
+
+  // Deleting the last extra data structure
+  {
+    for (int i = this->GetNumberOfObjects(); i > this->GetNumberOfObjects() - NumberToDelete; i--)
+    {
+      delete AnaylzeObjectEntryArray[i];
+      AnaylzeObjectEntryArray[i] = NULL;
+    }
+  }
+
+#if 0
+  // Changing the image object identifiers
+  {
+    for (int i = 0; i < this->getXDim()*this->getYDim()*this->getZDim(); i++)
+    {
+      if ((this->ConstPixel(i) >= startObjectTag) && (this->ConstPixel(i) <= endObjectTag))
+      {
+        // Assign to the background
+        this->Pixel(i) = 0;
+      }
+      else if (this->ConstPixel(i) > endObjectTag)
+      {
+        this->Pixel(i) = this->Pixel(i) - NumberToDelete;
+      }
+    }
+  }
+
+  NumberOfObjects = NumberOfObjects - NumberToDelete;
+#endif
+  return true;
+}
+
+#if 0
+bool AnalyzeObjectMap::CheckObjectOverlap( const CImage<float> & InputImage, const float MinRange, const float MaxRange, const int MinObjectRange, const int MaxObjectRange )
+{
+  const int nx=InputImage.getXDim();
+  const int ny=InputImage.getYDim();
+  const int nz=InputImage.getZDim();
+  if(nx != this->getXDim() ||
+    ny != this->getYDim() ||
+    nz != this->getZDim())
+  {
+    return false;
+  }
+
+  // Error checking
+  if ( MinObjectRange < 0 )
+  {
+    ::fprintf( stderr, "Error. Can not have a MinObjectRange < 0!\n" );
+    exit(-1);
+  }
+  if ( MaxObjectRange < 0 )
+  {
+    ::fprintf( stderr, "Error. Can not have a MaxObjectRange < 0!\n" );
+    exit(-1);
+  }
+  if ( MaxObjectRange < MinObjectRange )
+  {
+    fprintf( stderr, "Error. MaxObjectRange can not be less than MinObjectRange!\n" );
+    exit(-1);
+  }
+
+  for(int k=0; k<nz; k++)
+  {
+    for( int j=0; j<ny ; j++)
+    {
+      for( int i=0; i<nx; i++)
+      {
+        const float CurrentValue=InputImage(i,j,k);
+        if(CurrentValue>=MinRange && CurrentValue<=MaxRange)
+        {
+          if (this->Pixel(i,j,k) >= MinObjectRange && this->Pixel(i,j,k) <= MaxObjectRange)
+          {
+            // This pixel has already been assigned an object in the defined range, overlap occuring
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
+
+bool AnalyzeObjectMap::CheckObjectOverlap( const CImage<unsigned char> & InputImage, const int MinRange, const int MaxRange, const int MinObjectRange, const int MaxObjectRange )
+{
+  const int nx=InputImage.getXDim();
+  const int ny=InputImage.getYDim();
+  const int nz=InputImage.getZDim();
+  if(nx != this->getXDim() ||
+    ny != this->getYDim() ||
+    nz != this->getZDim())
+  {
+    return false;
+  }
+
+  // Error checking
+  if ( MinObjectRange < 0 )
+  {
+    ::fprintf( stderr, "Error. Can not have a MinObjectRange < 0!\n" );
+    exit(-1);
+  }
+  if ( MaxObjectRange < 0 )
+  {
+    ::fprintf( stderr, "Error. Can not have a MaxObjectRange < 0!\n" );
+    exit(-1);
+  }
+  if ( MaxObjectRange < MinObjectRange )
+  {
+    fprintf( stderr, "Error. MaxObjectRange can not be less than MinObjectRange!\n" );
+    exit(-1);
+  }
+
+  for(int k=0; k<nz; k++)
+  {
+    for( int j=0; j<ny ; j++)
+    {
+      for( int i=0; i<nx; i++)
+      {
+        const int CurrentValue=InputImage(i,j,k);
+        if(CurrentValue>=MinRange && CurrentValue<=MaxRange)
+        {
+          if (this->Pixel(i,j,k) >= MinObjectRange && this->Pixel(i,j,k) <= MaxObjectRange)
+          {
+            // This pixel has already been assigned an object in the defined range, overlap occuring
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+#endif
+
