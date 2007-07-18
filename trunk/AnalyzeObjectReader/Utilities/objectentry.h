@@ -647,11 +647,10 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
   {
     ReadBytes<float>(inputFileStream, &m_BlendFactor,1,NeedByteSwap);
   }
-  }
+}
 
   void SwapObjectEndedness()
-{
-
+  {
   itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_DisplayFlag));
   itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_Shades));
   itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_StartRed));

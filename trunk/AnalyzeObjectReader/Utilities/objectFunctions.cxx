@@ -794,4 +794,20 @@ bool AnalyzeObjectMap::CheckObjectOverlap( const CImage<unsigned char> & InputIm
   return false;
 }
 #endif
+int AnalyzeObjectMap::getObjectIndex( const std::string &ObjectName  )
+{
+  for(int index=0; index<=this->GetNumberOfObjects(); index++)
+  {
+    if(ObjectName == this->getObjectEntry(index)->GetName() )
+    {
+      return index;
+    }
+  }
+  //Failure if not found.
+  return -1;
+}
 
+    /**
+   * Constant defining the maximum number of shades possible for an object as of Version 6
+   */
+  const int MAXANALYZESHADES = 250;

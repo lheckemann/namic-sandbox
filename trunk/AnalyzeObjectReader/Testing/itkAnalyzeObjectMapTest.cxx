@@ -31,17 +31,14 @@ int main (int argc, char * argv[])
       if(ReferenceBytes != WrittenBytes)
       {
           error_count++;
-          //std::cout<<"Testing does not equal WrittenBytes"<<std::endl;
           myfile<<count<< ":" << (int)ReferenceBytes << ":" << (int)WrittenBytes << std::endl;
-          //myfile<<(int)ReferenceBytes<<std::endl;
-          //myfile<<(int)WrittenBytes<<std::endl;
       }
   }
 
   if(!ReferenceFile.eof())
   {
       error_count++;
-      std::cout<<"Test is not at end of file"<<std::endl;
+      std::cout<<"ReferenceFile is not at end of file"<<std::endl;
   }
   if(!WrittenFile.eof())
   {
@@ -52,6 +49,11 @@ int main (int argc, char * argv[])
   ReferenceFile.close();
   WrittenFile.close();
   if(!objectReadStatus)
+  {
+      error_count++;
+  }
+
+  if(!objectWriteStatus)
   {
       error_count++;
   }
