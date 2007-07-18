@@ -49,7 +49,10 @@ template <typename ReadType>
 void ReadBytes(std::ifstream & inputFileStream,ReadType * dest, const int Replications, const bool NeedByteSwap)
 {
 
-    inputFileStream.read(reinterpret_cast<char *>(dest), sizeof(ReadType) * Replications);
+    if(inputFileStream.read(reinterpret_cast<char *>(dest), sizeof(ReadType) * Replications).fail())
+    {
+        std::cout<<"6: Unable to read in object #1 description."<<std::endl;
+    }
    //if( inputFileStream.readsome(reinterpret_cast<char *>(dest), sizeof(ReadType) * Replications) != sizeof(ReadType)*Replications)
    //{
    //    ::fprintf(stderr, "6: Unable to read in object #1 description.\n");
@@ -71,11 +74,6 @@ void ReadBytes(std::ifstream & inputFileStream,ReadType * dest, const int Replic
 
 }
 
-template <typename ReadType>
-void WriteObject(std::ofstream & inputFileStream, ReadType * dest)
-{
-    inputFileStream.write(reinterpret_cast<char *>(dest), sizeof(ReadType));
-}
 
   /**
    * \class AnalyzeObjectEntry
@@ -690,45 +688,43 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
 
   void Write(std::ofstream &inputFileStream)
   {
-    inputFileStream.write(reinterpret_cast<char *>(&(m_Name)), sizeof(m_Name));
-    inputFileStream.write(reinterpret_cast<char *>(m_DisplayFlag), sizeof(m_DisplayFlag));
-    inputFileStream.write(reinterpret_cast<char *>(m_CopyFlag), sizeof(m_CopyFlag));
-    inputFileStream.write(reinterpret_cast<char *>(m_MirrorFlag), sizeof(m_MirrorFlag));
-    inputFileStream.write(reinterpret_cast<char *>(m_StatusFlag), sizeof(m_StatusFlag));
-    inputFileStream.write(reinterpret_cast<char *>(m_NeighborsUsedFlag), sizeof(m_NeighborsUsedFlag));
-    inputFileStream.write(reinterpret_cast<char *>(m_Shades), sizeof(m_Shades));
-    inputFileStream.write(reinterpret_cast<char *>(m_StartRed), sizeof(m_StartRed));
-    inputFileStream.write(reinterpret_cast<char *>(m_StartGreen), sizeof(m_StartGreen));
-    inputFileStream.write(reinterpret_cast<char *>(m_StartBlue), sizeof(m_StartBlue));
-    inputFileStream.write(reinterpret_cast<char *>(m_EndRed), sizeof(m_EndRed));
-    inputFileStream.write(reinterpret_cast<char *>(m_EndGreen), sizeof(m_EndGreen));
-    inputFileStream.write(reinterpret_cast<char *>(m_EndBlue), sizeof(m_EndBlue));
-    inputFileStream.write(reinterpret_cast<char *>(m_XRotation), sizeof(m_XRotation));
-    inputFileStream.write(reinterpret_cast<char *>(m_YRotation), sizeof(m_YRotation));
-    inputFileStream.write(reinterpret_cast<char *>(m_ZRotation), sizeof(m_ZRotation));
-    inputFileStream.write(reinterpret_cast<char *>(m_XTranslation), sizeof(m_XTranslation));
-    inputFileStream.write(reinterpret_cast<char *>(m_YTranslation), sizeof(m_YTranslation));
-    inputFileStream.write(reinterpret_cast<char *>(m_ZTranslation), sizeof(m_ZTranslation));
-    inputFileStream.write(reinterpret_cast<char *>(m_XCenter), sizeof(m_XCenter));
-    inputFileStream.write(reinterpret_cast<char *>(m_YCenter), sizeof(m_YCenter));
-    inputFileStream.write(reinterpret_cast<char *>(m_ZCenter), sizeof(m_ZCenter));
-    inputFileStream.write(reinterpret_cast<char *>(m_XRotationIncrement), sizeof(m_XRotationIncrement));
-    inputFileStream.write(reinterpret_cast<char *>(m_YRotationIncrement), sizeof(m_YRotationIncrement));
-    inputFileStream.write(reinterpret_cast<char *>(m_ZRotationIncrement), sizeof(m_ZRotationIncrement));
-    inputFileStream.write(reinterpret_cast<char *>(m_XTranslationIncrement), sizeof(m_XTranslationIncrement));
-    inputFileStream.write(reinterpret_cast<char *>(m_YTranslationIncrement), sizeof(m_YTranslationIncrement));
-    inputFileStream.write(reinterpret_cast<char *>(m_ZTranslationIncrement), sizeof(m_ZTranslationIncrement));
-    inputFileStream.write(reinterpret_cast<char *>(m_MinimumXValue), sizeof(m_MinimumXValue));
-    inputFileStream.write(reinterpret_cast<char *>(m_MinimumYValue), sizeof(m_MinimumYValue));
-    inputFileStream.write(reinterpret_cast<char *>(m_MinimumZValue), sizeof(m_MinimumZValue));
-    inputFileStream.write(reinterpret_cast<char *>(m_MaximumXValue), sizeof(m_MaximumXValue));
-    inputFileStream.write(reinterpret_cast<char *>(m_MaximumYValue), sizeof(m_MaximumYValue));
-    inputFileStream.write(reinterpret_cast<char *>(m_MaximumZValue), sizeof(m_MaximumZValue));
-    WriteObject<float>(inputFileStream,&m_Opacity);
-    //inputFileStream.write(reinterpret_cast<char *>(m_Opacity), sizeof(m_Opacity));
-    inputFileStream.write(reinterpret_cast<char *>(m_OpacityThickness), sizeof(m_OpacityThickness));
-    WriteObject<float>(inputFileStream, &m_BlendFactor);
-    //inputFileStream.write(reinterpret_cast<char *>(m_BlendFactor), sizeof(m_BlendFactor));
+    inputFileStream.write(reinterpret_cast<char *>(m_Name), sizeof(m_Name));
+    inputFileStream.write(reinterpret_cast<char *>(&m_DisplayFlag), sizeof(m_DisplayFlag));
+    inputFileStream.write(reinterpret_cast<char *>(&m_CopyFlag), sizeof(m_CopyFlag));
+    inputFileStream.write(reinterpret_cast<char *>(&m_MirrorFlag), sizeof(m_MirrorFlag));
+    inputFileStream.write(reinterpret_cast<char *>(&m_StatusFlag), sizeof(m_StatusFlag));
+    inputFileStream.write(reinterpret_cast<char *>(&m_NeighborsUsedFlag), sizeof(m_NeighborsUsedFlag));
+    inputFileStream.write(reinterpret_cast<char *>(&m_Shades), sizeof(m_Shades));
+    inputFileStream.write(reinterpret_cast<char *>(&m_StartRed), sizeof(m_StartRed));
+    inputFileStream.write(reinterpret_cast<char *>(&m_StartGreen), sizeof(m_StartGreen));
+    inputFileStream.write(reinterpret_cast<char *>(&m_StartBlue), sizeof(m_StartBlue));
+    inputFileStream.write(reinterpret_cast<char *>(&m_EndRed), sizeof(m_EndRed));
+    inputFileStream.write(reinterpret_cast<char *>(&m_EndGreen), sizeof(m_EndGreen));
+    inputFileStream.write(reinterpret_cast<char *>(&m_EndBlue), sizeof(m_EndBlue));
+    inputFileStream.write(reinterpret_cast<char *>(&m_XRotation), sizeof(m_XRotation));
+    inputFileStream.write(reinterpret_cast<char *>(&m_YRotation), sizeof(m_YRotation));
+    inputFileStream.write(reinterpret_cast<char *>(&m_ZRotation), sizeof(m_ZRotation));
+    inputFileStream.write(reinterpret_cast<char *>(&m_XTranslation), sizeof(m_XTranslation));
+    inputFileStream.write(reinterpret_cast<char *>(&m_YTranslation), sizeof(m_YTranslation));
+    inputFileStream.write(reinterpret_cast<char *>(&m_ZTranslation), sizeof(m_ZTranslation));
+    inputFileStream.write(reinterpret_cast<char *>(&m_XCenter), sizeof(m_XCenter));
+    inputFileStream.write(reinterpret_cast<char *>(&m_YCenter), sizeof(m_YCenter));
+    inputFileStream.write(reinterpret_cast<char *>(&m_ZCenter), sizeof(m_ZCenter));
+    inputFileStream.write(reinterpret_cast<char *>(&m_XRotationIncrement), sizeof(m_XRotationIncrement));
+    inputFileStream.write(reinterpret_cast<char *>(&m_YRotationIncrement), sizeof(m_YRotationIncrement));
+    inputFileStream.write(reinterpret_cast<char *>(&m_ZRotationIncrement), sizeof(m_ZRotationIncrement));
+    inputFileStream.write(reinterpret_cast<char *>(&m_XTranslationIncrement), sizeof(m_XTranslationIncrement));
+    inputFileStream.write(reinterpret_cast<char *>(&m_YTranslationIncrement), sizeof(m_YTranslationIncrement));
+    inputFileStream.write(reinterpret_cast<char *>(&m_ZTranslationIncrement), sizeof(m_ZTranslationIncrement));
+    inputFileStream.write(reinterpret_cast<char *>(&m_MinimumXValue), sizeof(m_MinimumXValue));
+    inputFileStream.write(reinterpret_cast<char *>(&m_MinimumYValue), sizeof(m_MinimumYValue));
+    inputFileStream.write(reinterpret_cast<char *>(&m_MinimumZValue), sizeof(m_MinimumZValue));
+    inputFileStream.write(reinterpret_cast<char *>(&m_MaximumXValue), sizeof(m_MaximumXValue));
+    inputFileStream.write(reinterpret_cast<char *>(&m_MaximumYValue), sizeof(m_MaximumYValue));
+    inputFileStream.write(reinterpret_cast<char *>(&m_MaximumZValue), sizeof(m_MaximumZValue));
+    inputFileStream.write(reinterpret_cast<char *>(&m_Opacity), sizeof(m_Opacity));
+    inputFileStream.write(reinterpret_cast<char *>(&m_OpacityThickness), sizeof(m_OpacityThickness));
+    inputFileStream.write(reinterpret_cast<char *>(&m_BlendFactor), sizeof(m_BlendFactor));
   }
 protected:
   /**
