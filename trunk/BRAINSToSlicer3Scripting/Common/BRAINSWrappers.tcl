@@ -3,7 +3,7 @@
 ## Run with ~/src/Slicer3-build/Slicer3 --no_splash -f ~/NewScript.tcl
 #### UGLY GLOBAL VARIABLES
 ## The following logic seems wrong, but appears to work in GUI mode, but not batch mode.
-if { [ info exists  $::slicer3::MRMLScene ] == 0 } {
+if { [ info exists ::slicer3::MRMLScene ] == 1 } {
   ## If in gui mode
   puts "SETTING MRML TO THE DEFAULT SLICER SCENE"
   puts "SETTING MRML TO THE DEFAULT SLICER SCENE"
@@ -42,7 +42,12 @@ proc DestroyBatchMRMLScene {} {
 ## Only delete if not in gui mode, else let the gui handle destruction.
   if {$::BRAINSScriptingMRMLisGUI == "false" } {
      [ GetBatchMRMLScene ]  Delete
-     ${BRAINSScriptingVolumesLogic} Delete
+     if { [ info exists BRAINSScriptingVolumesLogic ] } {
+       puts "Deleting BRAINSScriptingVolumesLogic"
+       ${BRAINSScriptingVolumesLogic} Delete
+     } else {
+       puts "Not deleting BRAINSScriptingVolumesLogic"
+     }
   }
 }
 
@@ -82,11 +87,4 @@ proc b3_save_image { ImageToSave outputFileName } {
     $VolumeStorageNode WriteData ${ImageToSave}
     $VolumeStorageNode Delete
 }
-
-set filename /Users/hjohnson/TESTER/BRAINSToSlicer3Scripting/Data/AVG_T1.nii.gz
-set NodeName GoodBrain
-set centered 1
-set labelimage 0
-set logic [ $::slicer3::VolumesGUI GetLogic]
-set volumeNode [${logic} AddArchetypeVolume $fileName $centered ${labelimage} ${NodeName} ]
 
