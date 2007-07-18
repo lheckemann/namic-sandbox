@@ -249,12 +249,12 @@ namespace itk
       /**
        * \brief This function is used to get the Analyze version of the object
        */
-      int getVersion( void ) const;
+  //    int getVersion( void ) const;
 
       /**
        * \brief This function is used to determine the number of objects in the Object map
        */
-      int getNumberOfObjects( void ) const;
+//      int getNumberOfObjects( void ) const;
 
       /**
        * \brief This function is used to determine if the object at the specific index is
@@ -292,32 +292,50 @@ namespace itk
     void setMaximumPixelValue( const unsigned char index, const unsigned char value );
 
     itkSetMacro(XDim, int);
-    itkGetMacro(XDim, int);
+    itkGetConstMacro(XDim, int);
 
     itkSetMacro(YDim, int);
-    itkGetMacro(YDim, int);
+    itkGetConstMacro(YDim, int);
 
     itkSetMacro(ZDim, int);
-    itkGetMacro(ZDim, int);
+    itkGetConstMacro(ZDim, int);
 
+    itkSetMacro(Version, int);
+    itkGetConstMacro(Version, int);
+
+    itkSetMacro(NumberOfObjects, int);
+    itkGetConstMacro(NumberOfObjects, int);
+
+    itkSetMacro(NumberOfVolumes, int);
+    itkGetConstMacro(NumberOfVolumes, int);
+/*TODO: Orgainze Set/Get macros as ordered in ivar's*/
     private:
-      bool CopyBaseImage( const AnalyzeObjectMap& rhs );
+      
       /** Version of object file */
-      int Version;
-      /** Number of Objects in the object file */
-      int NumberOfObjects;
-      /** Pointers to individual objects in the object map, maximum of 256 */
-      AnalyzeObjectEntry::Pointer AnaylzeObjectEntryArray[256];
-      /** Flag to determine the display of the layer */
-      unsigned char ShowObject[256];
-      unsigned char MinimumPixelValue[256];
-      unsigned char MaximumPixelValue[256];
-      int NeedsSaving;
-      int NeedsRegionsCalculated;
-      itk::Image<unsigned char, 3>::Pointer m_LableMap;
+      int m_Version;
       int m_XDim;
       int m_YDim;
       int m_ZDim;
+      /** Number of Objects in the object file */
+      int m_NumberOfObjects;
+
+      int m_NumberOfVolumes;
+      /** Pointers to individual objects in the object map, maximum of 256 */
+      AnalyzeObjectEntry::Pointer AnaylzeObjectEntryArray[256];
+
+    //  itk::Image<unsigned char, 3>::Pointer m_LableMap;
+
+      bool CopyBaseImage( const AnalyzeObjectMap& rhs );
+
+
+      /** Flag to determine the display of the layer */
+      //unsigned char ShowObject[256];
+      //unsigned char MinimumPixelValue[256];
+      //unsigned char MaximumPixelValue[256];
+      //int NeedsSaving;
+      //int NeedsRegionsCalculated;
+      
+      
 
 //TODO The following should be private member functions of the AnalyzeObjectMap class
 
@@ -328,7 +346,7 @@ namespace itk
     * \param The pointer to the file to be written out.
     * \return returns true if successful
     */
-      bool RunLengthEncodeImage(itk::AnalyzeObjectMap SourceImage, std::ofstream &inputFileStream);
+      bool RunLengthEncodeImage(std::ofstream &inputFileStream);
 
    /**
     * \brief This function takes a string and removes the spaces

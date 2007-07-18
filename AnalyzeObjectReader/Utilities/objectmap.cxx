@@ -37,17 +37,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "itkImageRegionIterator.h"
 namespace itk{
 
-    
-    AnalyzeObjectMap::AnalyzeObjectMap( void ): Version(VERSION7),NumberOfObjects(0),NeedsSaving(0), NeedsRegionsCalculated(0)
+   
+    AnalyzeObjectMap::AnalyzeObjectMap( void ): m_Version(VERSION7),m_NumberOfObjects(0)
 {
   //TODO:  Clear the image this->ImageClear();
   {
     for (int i = 0; i < 256; i++)
     {
       AnaylzeObjectEntryArray[i] = NULL;
-      ShowObject[i] = 0;
-      MinimumPixelValue[i] = 0;
-      MaximumPixelValue[i] = 0;
+//      ShowObject[i] = 0;
+  //    MinimumPixelValue[i] = 0;
+    //  MaximumPixelValue[i] = 0;
     }
   }
 
@@ -62,7 +62,6 @@ namespace itk{
   this->getObjectEntry(0)->SetEndBlue(0);
   this->getObjectEntry(0)->SetShades(1);
 }
-
 
 //AnalyzeObjectMap::AnalyzeObjectMap( const int _iX, const int _iY, const int _iZ )
 //:Version(VERSION7),
@@ -95,10 +94,10 @@ namespace itk{
 AnalyzeObjectMap::AnalyzeObjectMap( const AnalyzeObjectMap & rhs )
 {
   this->CopyBaseImage( rhs );
-  Version=rhs.Version;
-  NumberOfObjects=rhs.NumberOfObjects;
-  NeedsSaving=rhs.NeedsSaving;
-  NeedsRegionsCalculated=rhs.NeedsRegionsCalculated;
+  this->SetVersion(rhs.m_Version);
+  this->SetNumberOfObjects(rhs.GetNumberOfObjects());
+//  NeedsSaving=rhs.NeedsSaving;
+//  NeedsRegionsCalculated=rhs.NeedsRegionsCalculated;
   for(int i=0; i < 256; i++)
   {
     if((rhs.AnaylzeObjectEntryArray[i]).IsNotNull())
@@ -110,9 +109,9 @@ AnalyzeObjectMap::AnalyzeObjectMap( const AnalyzeObjectMap & rhs )
     {
       AnaylzeObjectEntryArray[i] = NULL;
     }
-    ShowObject[i]=rhs.ShowObject[i];
-    MinimumPixelValue[i]=rhs.MinimumPixelValue[i];
-    MaximumPixelValue[i]=rhs.MaximumPixelValue[i];
+//    ShowObject[i]=rhs.ShowObject[i];
+  //  MinimumPixelValue[i]=rhs.MinimumPixelValue[i];
+    //MaximumPixelValue[i]=rhs.MaximumPixelValue[i];
   }
 }
 
@@ -152,10 +151,10 @@ AnalyzeObjectMap &  AnalyzeObjectMap::operator=( const AnalyzeObjectMap & rhs )
 
   this->CopyBaseImage( rhs );
 
-  Version=rhs.Version;
-  NumberOfObjects=rhs.NumberOfObjects;
-  NeedsSaving=rhs.NeedsSaving;
-  NeedsRegionsCalculated=rhs.NeedsRegionsCalculated;
+  this->SetVersion(rhs.GetVersion());
+  this->SetNumberOfObjects(rhs.GetNumberOfObjects());
+  //NeedsSaving=rhs.NeedsSaving;
+  //NeedsRegionsCalculated=rhs.NeedsRegionsCalculated;
   for(int i=0; i < 256; i++)
   {
     if(rhs.AnaylzeObjectEntryArray[i].IsNotNull())
@@ -170,16 +169,16 @@ AnalyzeObjectMap &  AnalyzeObjectMap::operator=( const AnalyzeObjectMap & rhs )
         AnaylzeObjectEntryArray[i] = NULL;
       }
     }
-    ShowObject[i]=rhs.ShowObject[i];
-    MinimumPixelValue[i]=rhs.MinimumPixelValue[i];
-    MaximumPixelValue[i]=rhs.MaximumPixelValue[i];
+    //ShowObject[i]=rhs.ShowObject[i];
+    //MinimumPixelValue[i]=rhs.MinimumPixelValue[i];
+    //MaximumPixelValue[i]=rhs.MaximumPixelValue[i];
   }
   return *this;
 }
 
 int AnalyzeObjectMap::getObjectIndex( const std::string &ObjectName  )
 {
-  for(int index=0; index<=this->getNumberOfObjects(); index++)
+  for(int index=0; index<=this->GetNumberOfObjects(); index++)
   {
     if(ObjectName == this->getObjectEntry(index)->GetName() )
     {
@@ -220,16 +219,16 @@ void AnalyzeObjectMap::ReinitializeObjectMap(const int _iX, const int _iY, const
     for (int i = 0; i < 256; i++)
     {
       AnaylzeObjectEntryArray[i] = NULL;
-      ShowObject[i] = 0;
-      MinimumPixelValue[i] = 0;
-      MaximumPixelValue[i] = 0;
+//      ShowObject[i] = 0;
+  //    MinimumPixelValue[i] = 0;
+    //  MaximumPixelValue[i] = 0;
     }
   }
 
-  Version = VERSION7;
-  NumberOfObjects = 0;
-  NeedsSaving = 0;
-  NeedsRegionsCalculated = 0;
+this->SetVersion(VERSION7);
+this->SetNumberOfObjects(0);
+ // NeedsSaving = 0;
+  //NeedsRegionsCalculated = 0;
 
   // Setting object zero as the background
   AnaylzeObjectEntryArray[0] = AnalyzeObjectEntry::New();
@@ -299,11 +298,11 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
     }
 
     // Reading the Header into the class
-    this->Version = header[0];
+    this->SetVersion(header[0]);
     this->SetXDim(header[1]);
     this->SetYDim(header[2]);
     this->SetZDim(header[3]);
-    this->NumberOfObjects = header[4];
+    this->SetNumberOfObjects(header[4]);
     
     
 
@@ -316,7 +315,7 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
   // obtain, utilize this field. Xiujuan Geng May 04, 2007
   int nvols[1] = {1};
   bool NeedBlendFactor = false;
-  if( Version == VERSION7 )
+  if( this->GetVersion() == VERSION7 )
   {
     
     if ( (inputFileStream.read(reinterpret_cast<char *>(nvols),sizeof(int)*1)).fail() )
@@ -324,6 +323,7 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
         std::cout<<"Error: Could not read header of "<< filename.c_str()<<std::endl;
       exit(-1);
     }
+
     if(NeedByteSwap)
     {
         if(itk::ByteSwapper<int>::SystemIsLittleEndian())
@@ -331,6 +331,7 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
         itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(nvols[0]));
         }
     }
+    this->SetNumberOfVolumes(nvols[0]);
     NeedBlendFactor = true;
 
   }
@@ -345,7 +346,7 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
   std::cout<<header[4]<<std::endl;
   std::cout<<nvols[0]<<std::endl;
   // Error checking the number of objects in the object file
-  if ((NumberOfObjects < 1) || (NumberOfObjects > 255))
+  if ((this->GetNumberOfObjects() < 1) || (this->GetNumberOfObjects() > 255))
   {
     ::fprintf( stderr, "Error: Invalid number of object files.\n" );
     inputFileStream.close();
@@ -354,7 +355,7 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
 
   std::ofstream myfile;
   myfile.open("ReadFromFilePointer30.txt", myfile.app); 
-  for (int i = 0; i < NumberOfObjects; i++)
+  for (int i = 0; i < this->GetNumberOfObjects(); i++)
   {
     // Allocating a object to be created
     AnaylzeObjectEntryArray[i] = AnalyzeObjectEntry::New();
@@ -498,65 +499,71 @@ bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
 
 
     // Opening the file
-  std::ofstream inputFileStream;
-  inputFileStream.open(tempfilename.c_str(), std::ios::binary | std::ios::in);
-  if ( !inputFileStream.is_open())
+  std::ofstream outputFileStream;
+  outputFileStream.open(tempfilename.c_str());
+  if ( !outputFileStream.is_open())
   {
       std::cout<<"Error: Could not open "<< filename.c_str()<<std::endl;
     exit(-1);
   }
 
-  bool NeedByteSwap=false;
+  
 
 
   int header[5];
-  header[0]=Version;
+  header[0]=this->GetVersion();
   header[1]=this->GetXDim();
   header[2]=this->GetYDim();
   header[3]=this->GetZDim();
-  header[4]=this->NumberOfObjects + 1;     // Include the background object when writing the .obj file
+  header[4]=this->GetNumberOfObjects();     // Include the background object when writing the .obj file
 
   
-
+bool NeedByteSwap=false;
   if(itk::ByteSwapper<int>::SystemIsLittleEndian())
     {
+  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
           itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[1]));
           itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[2]));
           itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[3]));
           itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[4]));
+          NeedByteSwap = true;
     }
 
 
   // Writing the header, which contains the version number, the size, and the
   // number of objects
-    if(inputFileStream.write(reinterpret_cast<char *>(header), sizeof(int)*5).fail())
+    if(outputFileStream.write(reinterpret_cast<char *>(header), sizeof(header)).fail())
     {
         std::cout<<"Error: Could not write header of "<< filename.c_str()<<std::endl;
         exit(-1);
     }
 
-  if( Version == VERSION7 )
+    std::cout<<"verision = "<<this->GetVersion()<<std::endl;
+  if( this->GetVersion() == VERSION7 )
   {
     // Set number of volumes to be 1. Need be changed later on. Xiujuan Geng, May 04, 2007
     int nvols[1];    
-    nvols[0] = 1; 
+    nvols[0] = this->GetNumberOfVolumes(); 
     if( NeedByteSwap )
     {
       itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(nvols[0]));
     }
-    inputFileStream.write(reinterpret_cast<char *>(nvols), sizeof(int));    
+    if(outputFileStream.write(reinterpret_cast<char *>(&(nvols[0])), sizeof(int)).fail())
+    {
+        std::cout<<"Could not write the number of volumes to the file"<<std::endl;
+    }    
   }
 
   // Error checking the number of objects in the object file
-  if ((NumberOfObjects < 0) || (NumberOfObjects > 255))
+  if ((this->GetNumberOfObjects() < 0) || (this->GetNumberOfObjects() > 255))
   {
       std::cout<<( stderr, "Error: Invalid number of object files.\n" );
-    inputFileStream.close();
+    outputFileStream.close();
     return false;
   }
 
   // Since the NumberOfObjects does not reflect the background, the background will be included
-  for (int i = 0; i < NumberOfObjects + 1; i++)
+  for (int i = 0; i < this->GetNumberOfObjects(); i++)
   {
     // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
     // not affect the current object itself
@@ -570,21 +577,11 @@ bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
     //std::ofstream myfile;
     //myfile.open("ObjectWrite");
     //ObjectWrite->Print(myfile);
-   //ObjectWrite->Write(inputFileStream); 
+   ObjectWrite->Write(outputFileStream); 
 
-    
-    
-#if 0
-    // Writing the ObjectEntry structures
-    if (::fwrite(ObjectWrite.getObjectPointer(), sizeof(Object), 1, fptr) != 1)
-    {
-      ::fprintf(stderr, "13: Unable to write in object #%d description of %s\n", i, filename.c_str());
-      exit(-1);
-    }
-#endif
   }
-  RunLengthEncodeImage(*this, inputFileStream);
-  inputFileStream.close();
+  RunLengthEncodeImage(outputFileStream);
+  outputFileStream.close();
   return true;
 }
 
@@ -708,7 +705,7 @@ bool AnalyzeObjectMap::RemoveObjectByName(const std::string & ObjectName)
 
   int objectTag = 0;
   {
-    for (int i = 1; i <= this->getNumberOfObjects(); i++)
+    for (int i = 1; i <= this->GetNumberOfObjects(); i++)
     {
       if (ObjectName == this->getObjectEntry(i)->GetName())
       {
@@ -727,15 +724,15 @@ bool AnalyzeObjectMap::RemoveObjectByName(const std::string & ObjectName)
 
   // Go through all the object headers and shift them down
   {
-    for (int j = objectTag; j < this->getNumberOfObjects(); j++)
+    for (int j = objectTag; j < this->GetNumberOfObjects(); j++)
     {
       this->getObjectEntry(j) = this->getObjectEntry(j+1);
     }
   }
 
   // Deleting the last extra data structure
-  delete AnaylzeObjectEntryArray[this->getNumberOfObjects()];
-  AnaylzeObjectEntryArray[this->getNumberOfObjects()] = NULL;
+  delete AnaylzeObjectEntryArray[this->GetNumberOfObjects()];
+  AnaylzeObjectEntryArray[this->GetNumberOfObjects()] = NULL;
 
   #if 0
   // Changing the image object identifiers
@@ -776,11 +773,11 @@ bool AnalyzeObjectMap::RemoveObjectByRange(const unsigned char MinRange, const u
     startObjectTag = 1;
   }
 
-  if (MaxRange > this->getNumberOfObjects())
+  if (MaxRange > this->GetNumberOfObjects())
   {
     // Set the end to the number of objects
     printf("Max Range too large.  Setting it too maximum number of objects in the objectmap.\n");
-    endObjectTag = this->getNumberOfObjects();
+    endObjectTag = this->GetNumberOfObjects();
   }
 
   if (MinRange > MaxRange)
@@ -795,7 +792,7 @@ bool AnalyzeObjectMap::RemoveObjectByRange(const unsigned char MinRange, const u
 
   // Go through all the object headers and shift them down
   {
-    for (int j = endObjectTag + 1; j <= this->getNumberOfObjects(); j++)
+    for (int j = endObjectTag + 1; j <= this->GetNumberOfObjects(); j++)
     {
       this->getObjectEntry(j-NumberToDelete) = this->getObjectEntry(j);
     }
@@ -803,7 +800,7 @@ bool AnalyzeObjectMap::RemoveObjectByRange(const unsigned char MinRange, const u
 
   // Deleting the last extra data structure
   {
-    for (int i = this->getNumberOfObjects(); i > this->getNumberOfObjects() - NumberToDelete; i--)
+    for (int i = this->GetNumberOfObjects(); i > this->GetNumberOfObjects() - NumberToDelete; i--)
     {
       delete AnaylzeObjectEntryArray[i];
       AnaylzeObjectEntryArray[i] = NULL;
@@ -947,7 +944,7 @@ bool AnalyzeObjectMap::WriteObjectByName(const std::string & ObjectName, const s
 
   int objectTag = 0;
   {
-    for (int i = 1; i <= this->getNumberOfObjects(); i++)
+    for (int i = 1; i <= this->GetNumberOfObjects(); i++)
     {
       if (ObjectName == this->getObjectEntry(i)->GetName())
       {
@@ -1091,7 +1088,7 @@ bool AnalyzeObjectMap::WriteDisplayedObjects(const std::string & filenamebase)
   FILE *fptr;
   std::string tempfilename=filenamebase;
 
-  for (int objectTag = 1; objectTag <= this->getNumberOfObjects(); objectTag++)
+  for (int objectTag = 1; objectTag <= this->GetNumberOfObjects(); objectTag++)
   {
 
     // DEBUG
@@ -1223,15 +1220,15 @@ bool AnalyzeObjectMap::CalculateBoundingRegionAndCenter( void )
 
   const int PlaneSize = this->GetXDim()*this->GetYDim();
 
-  std::vector<long int> xsum(this->getNumberOfObjects());
-  std::vector<long int> ysum(this->getNumberOfObjects());
-  std::vector<long int> zsum(this->getNumberOfObjects());
-  std::vector<long int> xnum(this->getNumberOfObjects());
-  std::vector<long int> ynum(this->getNumberOfObjects());
-  std::vector<long int> znum(this->getNumberOfObjects());
+  std::vector<long int> xsum(this->GetNumberOfObjects());
+  std::vector<long int> ysum(this->GetNumberOfObjects());
+  std::vector<long int> zsum(this->GetNumberOfObjects());
+  std::vector<long int> xnum(this->GetNumberOfObjects());
+  std::vector<long int> ynum(this->GetNumberOfObjects());
+  std::vector<long int> znum(this->GetNumberOfObjects());
 
   {
-    for (int i = 0; i < this->getNumberOfObjects(); i++)
+    for (int i = 0; i < this->GetNumberOfObjects(); i++)
     {
       xsum[i] = 0;
       ysum[i] = 0;
@@ -1251,7 +1248,7 @@ bool AnalyzeObjectMap::CalculateBoundingRegionAndCenter( void )
       for (xIndex=0, r=s; xIndex < this->GetXDim(); xIndex++, r++)
       {
         int object = this->ConstPixel(r);
-        if (object > this->getNumberOfObjects())
+        if (object > this->GetNumberOfObjects())
         {
           ::fprintf(stderr, "Error: There are greater index than number of objects.\n");
           exit(-1);
@@ -1282,7 +1279,7 @@ bool AnalyzeObjectMap::CalculateBoundingRegionAndCenter( void )
   }
 
   {
-    for (int i = 0; i < this->getNumberOfObjects(); i++)
+    for (int i = 0; i < this->GetNumberOfObjects(); i++)
     {
       if (xnum[i] == 0)
         getObjectEntry(i)->SetXCenter(0);
@@ -1303,14 +1300,14 @@ bool AnalyzeObjectMap::CalculateBoundingRegionAndCenter( void )
 
   return true;
 }
-#endif
+
 
 int AnalyzeObjectMap::EvenlyShade( void )
 {
-  int NumberOfShades = 255 / this->getNumberOfObjects();
+  int NumberOfShades = 255 / this->GetNumberOfObjects();
 
   // Not allocating shades to the background object
-  for (int i = 0; i < this->getNumberOfObjects(); i++)
+  for (int i = 0; i < this->GetNumberOfObjects(); i++)
     getObjectEntry(i+1)->SetShades(NumberOfShades);
 
   return NumberOfShades;
@@ -1320,7 +1317,7 @@ int AnalyzeObjectMap::EvenlyShade( void )
 void AnalyzeObjectMap::ConstShade( void )
 {
   // Not allocating shades to the background object, and setting each shade to 1
-  for (int i = 0; i < this->getNumberOfObjects(); i++)
+  for (int i = 0; i < this->GetNumberOfObjects(); i++)
     getObjectEntry(i+1)->SetShades( 1 );
 }
 
@@ -1330,8 +1327,7 @@ int AnalyzeObjectMap::getVersion( void ) const
   return Version;
 }
 
-
-int AnalyzeObjectMap::getNumberOfObjects( void ) const
+int AnalyzeObjectMap::GetNumberOfObjects( void ) const
 {
   return this->NumberOfObjects;
 }
@@ -1363,19 +1359,19 @@ void AnalyzeObjectMap::setMaximumPixelValue( const unsigned char index, const un
 {
   MaximumPixelValue[index] = value;
 }
+#endif
 
-
-bool itk::AnalyzeObjectMap::RunLengthEncodeImage(itk::AnalyzeObjectMap SourceImage, std::ofstream &fptr)
+bool itk::AnalyzeObjectMap::RunLengthEncodeImage(std::ofstream &fptr)
 {
   if (fptr == NULL)
   {
-    fprintf(stderr, "Error: Null file pointer for runlength encoding data.\n");
+      std::cout<<"Error: Null file pointer for runlength encoding data."<<std::endl;
     return false;
   }
 
-  // Encoding the run length encoded raw data into an unsigned char volume
-  const int VolumeSize=SourceImage.GetXDim()*SourceImage.GetYDim()*SourceImage.GetZDim();
-  const int PlaneSize = SourceImage.GetXDim()*SourceImage.GetYDim();
+//   Encoding the run length encoded raw data into an unsigned char volume
+  const int VolumeSize=this->GetXDim()*this->GetYDim()*this->GetZDim();
+  const int PlaneSize = this->GetXDim()*this->GetYDim();
   int bufferindex=0;
   int planeindex=0;
   int runlength=0;
@@ -1383,10 +1379,10 @@ bool itk::AnalyzeObjectMap::RunLengthEncodeImage(itk::AnalyzeObjectMap SourceIma
   const  int buffer_size=16384;
                                  //NOTE: This is probably overkill, but it will work
   unsigned char buffer[buffer_size];
-  //for almost all cases
+ // for almost all cases
 
   itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexIt(this,this->GetLargestPossibleRegion());
-  for(indexIt.GoToEnd();!indexIt.IsAtBegin();--indexIt)
+  for(indexIt.GoToBegin();!indexIt.IsAtEnd();++indexIt)
   {
         if (runlength==0)
         {
@@ -1440,7 +1436,7 @@ bool itk::AnalyzeObjectMap::RunLengthEncodeImage(itk::AnalyzeObjectMap SourceIma
           bufferindex=0;
         }
 
-
+  }
         if (bufferindex!=0)
         {
             if (runlength!=0)
@@ -1455,11 +1451,11 @@ bool itk::AnalyzeObjectMap::RunLengthEncodeImage(itk::AnalyzeObjectMap SourceIma
                  exit(-1);
              }
         }
-  }
+  
   return true;
 }
 
-
+#if 0
 void CompactString( std::string & output, const std::string input )
 {
   char *buffer = new char(input.length() + 1);
@@ -1479,5 +1475,5 @@ void CompactString( std::string & output, const std::string input )
 
   delete[] buffer;
 }
-
+#endif
 }
