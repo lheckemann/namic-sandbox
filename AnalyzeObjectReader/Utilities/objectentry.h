@@ -688,7 +688,7 @@ void Copy( AnalyzeObjectEntry::Pointer rhs );
 
   void Write(std::ofstream &inputFileStream)
   {
-    inputFileStream.write(reinterpret_cast<char *>(m_Name), sizeof(m_Name));
+    inputFileStream.write(reinterpret_cast<char *>(m_Name), sizeof(char)*32);
     inputFileStream.write(reinterpret_cast<char *>(&m_DisplayFlag), sizeof(m_DisplayFlag));
     inputFileStream.write(reinterpret_cast<char *>(&m_CopyFlag), sizeof(m_CopyFlag));
     inputFileStream.write(reinterpret_cast<char *>(&m_MirrorFlag), sizeof(m_MirrorFlag));

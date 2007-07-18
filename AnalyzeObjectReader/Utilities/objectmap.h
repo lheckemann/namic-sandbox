@@ -87,32 +87,11 @@ namespace itk
 
 
 
-      /**
-       * \brief the default constructor, initializes to 0 or NULL
-       */
-      AnalyzeObjectMap( void );
-
-      /**
-       * \brief the copy constructor,
-       * initializes to an existing object
-       * \param AnalyzeObjectMap & rhs
-       * \sa AnalyzeObjectMap
-       */
-      AnalyzeObjectMap( const AnalyzeObjectMap & rhs );
-
-      /**
-       * \brief the constructor that creates and ObjectMap
-       * \param const int _iX
-       * \param const int _iY
-       * \param const int _iZ
-       * \sa AnalyzeObjectMap
-       */
-//      AnalyzeObjectMap(const int _iX, const int _iY, const int _iZ);
 
       /**
        * \brief the destructor for AnalyzeObjectMap
        */
-      ~AnalyzeObjectMap( void );
+      virtual ~AnalyzeObjectMap( void );
 
       /**
        * \brief an assignment operator
@@ -148,7 +127,7 @@ namespace itk
        * \param _iY y dimension
        * \param _iZ z dimension
        */
-      void ReinitializeObjectMap(const int _iX, const int _iY, const int _iZ);
+      void CreateEmptyObjectMap(const int _iX, const int _iY, const int _iZ);
 
       /**
        * \brief This function is used to read in the object file
@@ -309,6 +288,21 @@ namespace itk
     itkSetMacro(NumberOfVolumes, int);
     itkGetConstMacro(NumberOfVolumes, int);
 /*TODO: Orgainze Set/Get macros as ordered in ivar's*/
+
+       protected:
+       /**
+       * \brief the default constructor, initializes to 0 or NULL
+       */
+      AnalyzeObjectMap( void );
+
+      /**
+       * \brief the copy constructor,
+       * initializes to an existing object
+       * \param AnalyzeObjectMap & rhs
+       * \sa AnalyzeObjectMap
+       */
+      AnalyzeObjectMap( const AnalyzeObjectMap & rhs ) { /*Explicitly not allowd*/ };
+
     private:
       
       /** Version of object file */
@@ -318,26 +312,9 @@ namespace itk
       int m_ZDim;
       /** Number of Objects in the object file */
       int m_NumberOfObjects;
-
       int m_NumberOfVolumes;
       /** Pointers to individual objects in the object map, maximum of 256 */
       AnalyzeObjectEntry::Pointer AnaylzeObjectEntryArray[256];
-
-    //  itk::Image<unsigned char, 3>::Pointer m_LableMap;
-
-      bool CopyBaseImage( const AnalyzeObjectMap& rhs );
-
-
-      /** Flag to determine the display of the layer */
-      //unsigned char ShowObject[256];
-      //unsigned char MinimumPixelValue[256];
-      //unsigned char MaximumPixelValue[256];
-      //int NeedsSaving;
-      //int NeedsRegionsCalculated;
-      
-      
-
-//TODO The following should be private member functions of the AnalyzeObjectMap class
 
    /**
     * \brief This function takes a file pointer and an image and runlength encodes the

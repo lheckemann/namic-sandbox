@@ -12,45 +12,45 @@ int main (int argc, char * argv[])
   const bool objectReadStatus = testAOE02->ReadObjectFile("C:/Documents and Settings/woofton/Desktop/object_good/Data/test.obj");
   const bool objectWriteStatus = testAOE02->WriteObjectFile("C:/Documents and Settings/woofton/Desktop/object_good/Data/testWrite6.obj");
 
-  std::ifstream test;
-  test.open("C:/Documents and Settings/woofton/Desktop/object_good/Data/test.obj", std::ios::binary | std::ios::in);
+  std::ifstream ReferenceFile;
+  ReferenceFile.open("C:/Documents and Settings/woofton/Desktop/object_good/Data/test.obj", std::ios::binary | std::ios::in);
 
-  std::ifstream testWrite;
-  testWrite.open("C:/Documents and Settings/woofton/Desktop/object_good/Data/testWrite6.obj", std::ios::binary | std::ios::in);
+  std::ifstream WrittenFile;
+  WrittenFile.open("C:/Documents and Settings/woofton/Desktop/object_good/Data/testWrite6.obj", std::ios::binary | std::ios::in);
 
-  char testing;
-  char testing2;
+  char ReferenceBytes;
+  char WrittenBytes;
   int count = 0;
   std::ofstream myfile;
-  myfile.open("testing.txt");
-  while(!test.eof()  && !testWrite.eof())
+  myfile.open("testing1.txt");
+  while(!ReferenceFile.eof()  && !WrittenFile.eof())
   {
       count++;
-      test.read(&testing, sizeof(char));
-      testWrite.read(&testing2, sizeof(char));
-      if(testing != testing2)
+      ReferenceFile.read(reinterpret_cast<char *> (&ReferenceBytes), sizeof(char));
+      WrittenFile.read(reinterpret_cast<char *>(&WrittenBytes), sizeof(char));
+      if(ReferenceBytes != WrittenBytes)
       {
           error_count++;
-          //std::cout<<"Testing does not equal testing2"<<std::endl;
-          myfile<<count<<std::endl;
-          myfile<<testing<<std::endl;
-          myfile<<testing2<<std::endl;
+          //std::cout<<"Testing does not equal WrittenBytes"<<std::endl;
+          myfile<<count<< ":" << (int)ReferenceBytes << ":" << (int)WrittenBytes << std::endl;
+          //myfile<<(int)ReferenceBytes<<std::endl;
+          //myfile<<(int)WrittenBytes<<std::endl;
       }
   }
 
-  if(!test.eof())
+  if(!ReferenceFile.eof())
   {
       error_count++;
       std::cout<<"Test is not at end of file"<<std::endl;
   }
-  if(!testWrite.eof())
+  if(!WrittenFile.eof())
   {
       error_count++;
-      std::cout<<"testWrite is not at end of file"<<std::endl;
+      std::cout<<"WrittenFile is not at end of file"<<std::endl;
   }
 
-  test.close();
-  testWrite.close();
+  ReferenceFile.close();
+  WrittenFile.close();
   if(!objectReadStatus)
   {
       error_count++;
