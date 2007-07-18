@@ -14,3 +14,12 @@ proc dummy {} {
 #  set OutputStorageNodeID [ ${OutputStorageNode} GetID ]
 #  ${outputVolumeNode} SetReferenceStorageNodeID ${OutputStorageNodeID}
 }
+
+
+set filename /Users/hjohnson/TESTER/BRAINSToSlicer3Scripting/Data/AVG_T1.nii.gz
+set NodeName GoodBrain
+set centered 1
+set labelimage 0
+##set logic [ $::slicer3::VolumesGUI GetLogic]
+set logic ${BRAINSScriptingVolumesLogic}
+set volumeNode [${logic} AddArchetypeVolume $fileName $centered ${labelimage} ${NodeName} ]
