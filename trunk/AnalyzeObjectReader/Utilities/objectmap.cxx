@@ -91,31 +91,6 @@ namespace itk{
 //}
 
 
-AnalyzeObjectMap::AnalyzeObjectMap( const AnalyzeObjectMap & rhs )
-{
-  this->CopyBaseImage( rhs );
-  this->SetVersion(rhs.m_Version);
-  this->SetNumberOfObjects(rhs.GetNumberOfObjects());
-//  NeedsSaving=rhs.NeedsSaving;
-//  NeedsRegionsCalculated=rhs.NeedsRegionsCalculated;
-  for(int i=0; i < 256; i++)
-  {
-    if((rhs.AnaylzeObjectEntryArray[i]).IsNotNull())
-    {
-        AnaylzeObjectEntryArray[i] = AnalyzeObjectEntry::New();
-        AnaylzeObjectEntryArray[i]->Copy(rhs.AnaylzeObjectEntryArray[i]);
-    }
-    else
-    {
-      AnaylzeObjectEntryArray[i] = NULL;
-    }
-//    ShowObject[i]=rhs.ShowObject[i];
-  //  MinimumPixelValue[i]=rhs.MinimumPixelValue[i];
-    //MaximumPixelValue[i]=rhs.MaximumPixelValue[i];
-  }
-}
-
-
 AnalyzeObjectMap::~AnalyzeObjectMap( void )
 {
   for(int i=0; i < 256; i++)
@@ -128,33 +103,16 @@ AnalyzeObjectMap::~AnalyzeObjectMap( void )
 }
 
 
-bool AnalyzeObjectMap::CopyBaseImage( const AnalyzeObjectMap& rhs )
-{
-  // This is the summary of what the CImage's do for their copying
-#if 0
-  //TODO: Initialzie the image size and copy the Lablemap
-  this->ImageReinitialize(
-    rhs.getXDim(), rhs.getXVox(),
-    rhs.getYDim(), rhs.getYVox(),
-    rhs.getZDim(), rhs.getZVox(),
-    rhs.getTDim(), rhs.getTVox());
-  ::memcpy( static_cast<void *>( this->getDataPtr() ), static_cast<void *>(rhs.getDataPtr()) ,
-    sizeof(unsigned char)*rhs.getTotalVox() );
-  // End of hacked copy method
-#endif
-  return true;
-}
-
 
 AnalyzeObjectMap &  AnalyzeObjectMap::operator=( const AnalyzeObjectMap & rhs )
 {
-
-  this->CopyBaseImage( rhs );
+ //Not yet implemented
+  exit(-1);
+#if 0 // The following is incomplete
+  //this->CopyBaseImage( rhs );
 
   this->SetVersion(rhs.GetVersion());
   this->SetNumberOfObjects(rhs.GetNumberOfObjects());
-  //NeedsSaving=rhs.NeedsSaving;
-  //NeedsRegionsCalculated=rhs.NeedsRegionsCalculated;
   for(int i=0; i < 256; i++)
   {
     if(rhs.AnaylzeObjectEntryArray[i].IsNotNull())
@@ -169,10 +127,8 @@ AnalyzeObjectMap &  AnalyzeObjectMap::operator=( const AnalyzeObjectMap & rhs )
         AnaylzeObjectEntryArray[i] = NULL;
       }
     }
-    //ShowObject[i]=rhs.ShowObject[i];
-    //MinimumPixelValue[i]=rhs.MinimumPixelValue[i];
-    //MaximumPixelValue[i]=rhs.MaximumPixelValue[i];
   }
+#endif
   return *this;
 }
 
@@ -201,50 +157,6 @@ const AnalyzeObjectEntry::Pointer  AnalyzeObjectMap::getObjectEntry( const int i
 }
 
 
-void AnalyzeObjectMap::ReinitializeObjectMap(const int _iX, const int _iY, const int _iZ)
-{
-//TODO  this->ImageReinitialize(_iX, _iY, _iZ);
-//TODO  this->ImageClear();
-  {
-    for(int i=0; i < 256; i++)
-    {
-      if(AnaylzeObjectEntryArray[i].IsNotNull())
-      {
-        AnaylzeObjectEntryArray[i]  =  NULL;
-      }
-    }
-  }
-
-  {
-    for (int i = 0; i < 256; i++)
-    {
-      AnaylzeObjectEntryArray[i] = NULL;
-//      ShowObject[i] = 0;
-  //    MinimumPixelValue[i] = 0;
-    //  MaximumPixelValue[i] = 0;
-    }
-  }
-
-this->SetVersion(VERSION7);
-this->SetNumberOfObjects(0);
- // NeedsSaving = 0;
-  //NeedsRegionsCalculated = 0;
-
-  // Setting object zero as the background
-  AnaylzeObjectEntryArray[0] = AnalyzeObjectEntry::New();
-  this->getObjectEntry(0)->SetName("Background");
-  this->getObjectEntry(0)->SetDisplayFlag(0);
-  this->getObjectEntry(0)->SetOpacity(0);
-  this->getObjectEntry(0)->SetOpacityThickness(0);
-  this->getObjectEntry(0)->SetEndRed(0);
-  this->getObjectEntry(0)->SetEndGreen(0);
-  this->getObjectEntry(0)->SetEndBlue(0);
-  this->getObjectEntry(0)->SetShades(1);
-}
-
-
-
-
 
 bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
 {
@@ -260,91 +172,63 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
 
   // Reading the header, which contains the version number, the size, and the
   // number of objects
-  int header[5];
-  if ( inputFileStream.read(reinterpret_cast<char *>(header),sizeof(int)*1).fail())
+  bool NeedByteSwap=false;
   {
-      std::cout<<"Error: Could not read header of "<<filename.c_str()<<std::endl;
+  int header[5];
+  if ( inputFileStream.read(reinterpret_cast<char *>(header),sizeof(int)*5).fail())
+  {
+    std::cout<<"Error: Could not read header of "<<filename.c_str()<<std::endl;
     exit(-1);
   }
-  bool NeedByteSwap=false;
-  std::cout<<header[0]<<std::endl;
   //Do byte swapping if necessary.
-    if(header[0] == -1913442047|| header[0] ==1323699456 )    // Byte swapping needed (Number is byte swapped number of VERSIONy or VERSION8 )
+    if(header[0] == -1913442047|| header[0] ==1323699456 )    // Byte swapping needed (Number is byte swapped number of VERSION7 )
     {
-        if(itk::ByteSwapper<int>::SystemIsLittleEndian())
-        {
-            itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
-        }
         NeedByteSwap = true;
+        //NOTE: All analyze object maps should be big endian on disk in order to be valid
+        //      The following function calls will swap the bytes when on little endian machines.
+        itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
+        itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[1]));
+        itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[2]));
+        itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[3]));
+        itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[4]));
     }
-
-    if(inputFileStream.readsome(reinterpret_cast<char *>(&(header[1])),sizeof(int)*4) != sizeof(int)*4)
-    {
-        std::cout<<"Could not read in the other header information"<<std::endl;
-        exit(-1);
-      
-    }
-
-    if(NeedByteSwap)
-    {
-        if(itk::ByteSwapper<int>::SystemIsLittleEndian())
-        {
-          itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[1]));
-          itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[2]));
-          itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[3]));
-          itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[4]));
-          //itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[5]));
-        }
-    }
-
     // Reading the Header into the class
     this->SetVersion(header[0]);
     this->SetXDim(header[1]);
     this->SetYDim(header[2]);
     this->SetZDim(header[3]);
     this->SetNumberOfObjects(header[4]);
-    
-    
-
-
-
-
+  }
   // In version 7, the header file has a new field after number of objects, before name,
   // which is nvols, with type int. This field allows 4D object maps. 
   // Further updating of objectmap related programs are to be developed to 
   // obtain, utilize this field. Xiujuan Geng May 04, 2007
-  int nvols[1] = {1};
   bool NeedBlendFactor = false;
   if( this->GetVersion() == VERSION7 )
   {
-    
-    if ( (inputFileStream.read(reinterpret_cast<char *>(nvols),sizeof(int)*1)).fail() )
+    int nvols = 1;
+    if ( (inputFileStream.read(reinterpret_cast<char *>(&nvols),sizeof(int)*1)).fail() )
     {
-        std::cout<<"Error: Could not read header of "<< filename.c_str()<<std::endl;
+      std::cout<<"Error: Could not read header of "<< filename.c_str()<<std::endl;
       exit(-1);
     }
 
     if(NeedByteSwap)
     {
-        if(itk::ByteSwapper<int>::SystemIsLittleEndian())
-        {
-        itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(nvols[0]));
-        }
+        itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&nvols);
     }
-    this->SetNumberOfVolumes(nvols[0]);
+    this->SetNumberOfVolumes(nvols);
     NeedBlendFactor = true;
-
   }
 
-  const int VolumeSize=this->GetXDim() * this->GetYDim() * this->GetZDim() *nvols[0];
-
-
-  std::cout<<header[0]<<std::endl;
-  std::cout<<header[1]<<std::endl;
-  std::cout<<header[2]<<std::endl;
-  std::cout<<header[3]<<std::endl;
-  std::cout<<header[4]<<std::endl;
-  std::cout<<nvols[0]<<std::endl;
+  const int VolumeSize=this->GetXDim() * this->GetYDim() * this->GetZDim() *this->GetNumberOfVolumes();
+  
+  std::cout<<this->GetVersion()<<std::endl;
+  std::cout<<this->GetXDim()<<std::endl;
+  std::cout<<this->GetYDim()<<std::endl;
+  std::cout<<this->GetZDim()<<std::endl;
+  std::cout<<this->GetNumberOfObjects()<<std::endl;
+  std::cout<<this->GetNumberOfVolumes()<<std::endl;
   // Error checking the number of objects in the object file
   if ((this->GetNumberOfObjects() < 1) || (this->GetNumberOfObjects() > 255))
   {
@@ -354,7 +238,7 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
   }
 
   std::ofstream myfile;
-  myfile.open("ReadFromFilePointer30.txt", myfile.app); 
+  myfile.open("ReadFromFilePointer35.txt", myfile.app); 
   for (int i = 0; i < this->GetNumberOfObjects(); i++)
   {
     // Allocating a object to be created
@@ -365,12 +249,7 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
   }
   myfile.close();
 
-
- //TODO:  Now the file pointer is pointing to the image region
-  // Creating the image volume
-  //Set size of the image
-
-
+ //Now the file pointer is pointing to the image region
   itk::Image<unsigned char,3>::SizeType ImageSize;
   ImageSize[0]=this->GetXDim();
   ImageSize[1]=this->GetYDim();
@@ -385,13 +264,15 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
   ImageRegion.SetIndex(ImageIndex);
   this->SetRegions(ImageRegion);
   
-  //TODO: Image spacing needs fixing
+  //TODO: Image spacing needs fixing.  Will need to look to see if a 
+  //      .nii, .nii.gz, or a .hdr file
+  //      exists for the same .obj file.
+  //      If so, then read in the spacing for those images.
   itk::Image<unsigned char,3>::SpacingType ImageSpacing;
   ImageSpacing[0]=1.0F;
   ImageSpacing[1]=1.0F;
   ImageSpacing[2]=1.0F;
   this->SetSpacing(ImageSpacing);
-
   this->Allocate();
 
   // Decoding the run length encoded raw data into an unsigned char volume
@@ -411,7 +292,7 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
   int voxel_count_sum=0;
   {
         std::ofstream myfile;
-  myfile.open("VoxelInformation10.txt", myfile.app);
+  myfile.open("VoxelInformation15.txt", myfile.app);
      while (!inputFileStream.read(reinterpret_cast<char *>(RunLengthArray), sizeof(RunLengthElement)*NumberOfRunLengthElementsPerRead).eof())
     {
       for (int i = 0; i < NumberOfRunLengthElementsPerRead; i++)
@@ -471,44 +352,27 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
 
 bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
 {
-  
+  std::string tempfilename=filename;
   
   // This assumes that the final '.' in a file name is the delimiter
   // for the file's extension type
   const std::string::size_type it = filename.find_last_of( "." );
-
-  std::string tempfilename=filename;
-
-  //Note: if there is no extension, then it=basic_string::npos;
-  if (it > filename.length())
+  // Now we have the index of the extension, make a new string
+  // that extends from the first letter of the extension to the end of filename
+  std::string fileExt( filename, it, filename.length() );
+  if (fileExt != ".obj")
   {
-
-    tempfilename+=".obj";
-  }
-  else
-  {
-    // Now we have the index of the extension, make a new string
-    // that extends from the first letter of the extension to the end of filename
-    std::string fileExt( filename, it, filename.length() );
-    if (fileExt != ".obj")
-    {
-      tempfilename+=".obj";
-    }
+    tempfilename=filename+".obj";
   }
 
-
-
-    // Opening the file
+  // Opening the file
   std::ofstream outputFileStream;
-  outputFileStream.open(tempfilename.c_str());
+  outputFileStream.open(tempfilename.c_str(), std::ios::binary | std::ios::out | std::ios::trunc);
   if ( !outputFileStream.is_open())
   {
-      std::cout<<"Error: Could not open "<< filename.c_str()<<std::endl;
+    std::cout<<"Error: Could not open "<< tempfilename.c_str()<<std::endl;
     exit(-1);
   }
-
-  
-
 
   int header[5];
   header[0]=this->GetVersion();
@@ -517,41 +381,38 @@ bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
   header[3]=this->GetZDim();
   header[4]=this->GetNumberOfObjects();     // Include the background object when writing the .obj file
 
-  
-bool NeedByteSwap=false;
-  if(itk::ByteSwapper<int>::SystemIsLittleEndian())
+  //All object maps are written in BigEndian format as required by the AnalyzeObjectMap documentation.
+  bool NeedByteSwap=itk::ByteSwapper<int>::SystemIsLittleEndian();
+  if(NeedByteSwap)
     {
-  itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
+          itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
           itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[1]));
           itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[2]));
           itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[3]));
           itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[4]));
-          NeedByteSwap = true;
     }
-
 
   // Writing the header, which contains the version number, the size, and the
   // number of objects
-    if(outputFileStream.write(reinterpret_cast<char *>(header), sizeof(header)).fail())
+    if(outputFileStream.write(reinterpret_cast<char *>(header), sizeof(int)*5).fail())
     {
         std::cout<<"Error: Could not write header of "<< filename.c_str()<<std::endl;
         exit(-1);
     }
 
-    std::cout<<"verision = "<<this->GetVersion()<<std::endl;
-  if( this->GetVersion() == VERSION7 )
+  std::cout<<"version = "<<this->GetVersion()<<std::endl;
+  if(this->GetVersion() == VERSION7 )
   {
-    // Set number of volumes to be 1. Need be changed later on. Xiujuan Geng, May 04, 2007
-    int nvols[1];    
-    nvols[0] = this->GetNumberOfVolumes(); 
+    int nvols = this->GetNumberOfVolumes(); 
     if( NeedByteSwap )
     {
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(nvols[0]));
+      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&nvols);
     }
-    if(outputFileStream.write(reinterpret_cast<char *>(&(nvols[0])), sizeof(int)).fail())
+    if(outputFileStream.write(reinterpret_cast<char *>(&nvols), sizeof(int)).fail())
     {
         std::cout<<"Could not write the number of volumes to the file"<<std::endl;
-    }    
+    }
+    std::cout << "WROTE: " << nvols << "for big endian respresntation of " << this->GetNumberOfVolumes() <<std::endl;
   }
 
   // Error checking the number of objects in the object file
@@ -567,8 +428,7 @@ bool NeedByteSwap=false;
   {
     // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
     // not affect the current object itself
-      AnalyzeObjectEntry *ObjectWrite = this->getObjectEntry(i);
-
+    AnalyzeObjectEntry *ObjectWrite = this->getObjectEntry(i);
     if (NeedByteSwap == true)
     {
       ObjectWrite->SwapObjectEndedness();
@@ -932,434 +792,6 @@ bool AnalyzeObjectMap::CheckObjectOverlap( const CImage<unsigned char> & InputIm
 }
 #endif
 
-bool AnalyzeObjectMap::WriteObjectByName(const std::string & ObjectName, const std::string & filename)
-{
-  // Finding the object index with the name indicated
-  if (ObjectName == std::string("Background"))
-  {
-    // Can not write a background object
-    ::fprintf(stderr, "Error: Can not write out a background object.\n");
-    return false;
-  }
-
-  int objectTag = 0;
-  {
-    for (int i = 1; i <= this->GetNumberOfObjects(); i++)
-    {
-      if (ObjectName == this->getObjectEntry(i)->GetName())
-      {
-        objectTag = i;
-        break;
-      }
-    }
-  }
-
-  if (objectTag == 0)
-  {
-    ::fprintf(stderr, "Error.  Object name not found in current objectmap.\n");
-    return false;
-  }
-
-  FILE *fptr;
-  std::string tempfilename=filename;
-
-  // This assumes that the final '.' in a file name is the delimiter
-  // for the file's extension type
-  const std::string::size_type it = filename.find_last_of( "." );
-
-  //Note: if there is no extension, then it=basic_string::npos;
-  if(it > filename.length())
-  {
-    tempfilename+=".obj";
-  }
-  else
-  {
-    // Now we have the index of the extension, make a new string
-    // that extends from the first letter of the extension to the end of filename
-    std::string fileExt( filename, it, filename.length() );
-    if(fileExt != ".obj")
-    {
-      tempfilename+=".obj";
-    }
-  }
-
-  // Opening the file
-  if ( ( fptr = ::fopen( tempfilename.c_str(), "wb" ) ) == NULL)
-  {
-    ::fprintf( stderr, "Error: Could not open %s\n", filename.c_str() );
-    exit(-1);
-  }
-
-  int header[5];
-
-  // Reading the Header into the class
-  header[0]=VERSION7;
-#if 0
-  header[1]=this->getXDim();
-  header[2]=this->getYDim();
-  header[3]=this->getZDim();
-  header[4]=2;                   // Including the background object when writing the .obj file
-
-  bool NeedByteSwap = false;
-
-  FileIOUtility util;
-  // Byte swapping needed, Analyze object files are always written in BIG ENDIAN format
-  if(util.getMachineEndianess() == util.DT_LITTLE_ENDIAN)
-  {
-    NeedByteSwap=true;
-    util.FourByteSwap(&(header[0]));
-    util.FourByteSwap(&(header[1]));
-    util.FourByteSwap(&(header[2]));
-    util.FourByteSwap(&(header[3]));
-    util.FourByteSwap(&(header[4]));
-  }
-
-  // Creating the binary mask
-  CImageFlat<unsigned char> binaryMask(this->getXDim(), this->getYDim(), this->getZDim());
-
-  #endif
-//TODO  binaryMask.ImageClear();
-
-  // Creating the binary mask
-  {
-#if 0
-    for (int i = 0; i < this->getXDim()*this->getYDim()*this->getZDim(); i++)
-    {
-      if (this->ConstPixel(i) == objectTag)
-      {
-        binaryMask.Pixel(i) = 1;
-      }
-    }
-#endif
-  }
-
-  // Writing the header, which contains the version number, the size, and the
-  // number of objects
-  if ( ::fwrite( header, sizeof(int), 5, fptr) != 5 )
-  {
-    ::fprintf( stderr, "Error: Could not write header of %s\n", filename.c_str());
-    exit(-1);
-  }
-
-  // Since the NumberOfObjects does not reflect the background, the background will be written out
-
-  // Writing the background header
-  // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
-  // not affect the current object itself
-#if 0
-  AnalyzeObjectEntry ObjectWrite = this->getObjectEntry(0);
-
-  if (NeedByteSwap == true)
-  {
-    SwapObjectEndedness(ObjectWrite.getObjectPointer());
-  }
-
-
-  if (::fwrite((ObjectWrite.getObjectPointer()), sizeof(Object), 1, fptr) != 1)
-  {
-    ::fprintf(stderr, "13: Unable to write object background of %s\n", filename.c_str());
-    exit(-1);
-  }
-
-  ObjectWrite = this->getObjectEntry(objectTag);
-
-  if (NeedByteSwap == true)
-  {
-    SwapObjectEndedness(ObjectWrite.getObjectPointer());
-  }
-
-  // Writing the object header
-  if (::fwrite((ObjectWrite.getObjectPointer()), sizeof(Object), 1, fptr) != 1)
-  {
-    ::fprintf(stderr, "13: Unable to write in object #%d description of %s\n", objectTag, filename.c_str());
-    exit(-1);
-  }
-
-  RunLengthEncodeImage(binaryMask, fptr);
-
-  ::fclose(fptr);
-  #endif
-  return true;
-}
-
-
-bool AnalyzeObjectMap::WriteDisplayedObjects(const std::string & filenamebase)
-{
-  FILE *fptr;
-  std::string tempfilename=filenamebase;
-
-  for (int objectTag = 1; objectTag <= this->GetNumberOfObjects(); objectTag++)
-  {
-
-    // DEBUG
-    // Look at the case when the user puts in a file with an .obj extension.  Append the
-    // number in the middle of the filename, not at the end
-
-    if (getObjectEntry(objectTag)->GetDisplayFlag() != 0)
-    {
-      // Append the object number to the filename
-      std::string tempfilenumbername = tempfilename + std::string("_");
-
-      std::string filenumber("#");
-      filenumber[0] = (char)((int)'0' + objectTag);
-      tempfilenumbername += filenumber;
-
-      tempfilenumbername+=".obj";
-
-      // Opening the file
-      if ( ( fptr = ::fopen( tempfilenumbername.c_str(), "wb" ) ) == NULL)
-      {
-        ::fprintf( stderr, "Error: Could not open %s\n", tempfilenumbername.c_str());
-        exit(-1);
-      }
-
-      int header[5];
-
-      // Reading the Header into the class
-      header[0]=VERSION7;
-#if 0
-      header[1]=this->getXDim();
-      header[2]=this->getYDim();
-      header[3]=this->getZDim();
-      header[4]=2;               // Including the background object when writing the .obj file
-
-      bool NeedByteSwap = false;
-
-      FileIOUtility util;
-      // Byte swapping needed, Analyze files are always written in BIG ENDIAN format
-      if(util.getMachineEndianess() == util.DT_LITTLE_ENDIAN)
-      {
-        NeedByteSwap=true;
-        util.FourByteSwap(&(header[0]));
-        util.FourByteSwap(&(header[1]));
-        util.FourByteSwap(&(header[2]));
-        util.FourByteSwap(&(header[3]));
-        util.FourByteSwap(&(header[4]));
-      }
-
-      // Creating the binary mask
-      CImageFlat<unsigned char> binaryMask(this->getXDim(), this->getYDim(), this->getZDim());
-//TODO      binaryMask.ImageClear();
-
-      // Creating the binary mask
-      for (int i = 0; i < this->getXDim()*this->getYDim()*this->getZDim(); i++)
-      {
-        if (this->ConstPixel(i) == objectTag)
-        {
-          binaryMask.Pixel(i) = 1;
-        }
-      }
-
-      // Writing the header, which contains the version number, the size, and the
-      // number of objects
-      if ( ::fwrite( header, sizeof(int), 5, fptr) != 5 )
-      {
-        ::fprintf( stderr, "Error: Could not write header of %s\n", tempfilenumbername.c_str());
-        exit(-1);
-      }
-
-      // Since the NumberOfObjects does not reflect the background, the background will be written out
-
-      // Writing the background header
-      // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
-      // not affect the current object itself
-      AnalyzeObjectEntry ObjectWrite = this->getObjectEntry(0);
-
-      if (NeedByteSwap == true)
-      {
-        SwapObjectEndedness(ObjectWrite.getObjectPointer());
-      }
-
-      if (::fwrite((ObjectWrite.getObjectPointer()), sizeof(Object), 1, fptr) != 1)
-      {
-        ::fprintf(stderr, "13: Unable to write object background of %s\n", tempfilenumbername.c_str());
-        exit(-1);
-      }
-
-      ObjectWrite = this->getObjectEntry(objectTag);
-
-      if (NeedByteSwap == true)
-      {
-        SwapObjectEndedness(ObjectWrite.getObjectPointer());
-      }
-
-      // Writing the object header
-      if (::fwrite((ObjectWrite.getObjectPointer()), sizeof(Object), 1, fptr) != 1)
-      {
-        ::fprintf(stderr, "13: Unable to write in object #%d description of %s\n",
-          objectTag, tempfilenumbername.c_str());
-        exit(-1);
-      }
-
-      RunLengthEncodeImage(binaryMask, fptr);
-
-      fclose(fptr);
-    }
-  }
-  
-
-#endif
-  }
-  }
-  return true;
-}
-
-#if 0
-bool AnalyzeObjectMap::CalculateBoundingRegionAndCenter( void )
-{
-
-  for (int i = 0; i < NumberOfObjects; i++)
-  {
-    AnaylzeObjectEntryArray[i]->SetMinimumXValue(this->GetXDim());
-    AnaylzeObjectEntryArray[i]->SetMaximumXValue(0);
-    AnaylzeObjectEntryArray[i]->SetMinimumYValue(this->GetYDim());
-    AnaylzeObjectEntryArray[i]->SetMaximumYValue(0);
-    AnaylzeObjectEntryArray[i]->SetMinimumZValue(this->GetZDim());
-    AnaylzeObjectEntryArray[i]->SetMaximumZValue(0);
-  }
-
-  const int PlaneSize = this->GetXDim()*this->GetYDim();
-
-  std::vector<long int> xsum(this->GetNumberOfObjects());
-  std::vector<long int> ysum(this->GetNumberOfObjects());
-  std::vector<long int> zsum(this->GetNumberOfObjects());
-  std::vector<long int> xnum(this->GetNumberOfObjects());
-  std::vector<long int> ynum(this->GetNumberOfObjects());
-  std::vector<long int> znum(this->GetNumberOfObjects());
-
-  {
-    for (int i = 0; i < this->GetNumberOfObjects(); i++)
-    {
-      xsum[i] = 0;
-      ysum[i] = 0;
-      zsum[i] = 0;
-      xnum[i] = 0;
-      ynum[i] = 0;
-      znum[i] = 0;
-    }
-  }
-
-  int xIndex, yIndex, zIndex, r, s, t;
-
-  for (zIndex=0, t=0; zIndex < this->GetZDim(); zIndex++, t+=PlaneSize)
-  {
-    for (yIndex=0, s=t; yIndex < this->GetYDim(); yIndex++, s+=this->GetXDim())
-    {
-      for (xIndex=0, r=s; xIndex < this->GetXDim(); xIndex++, r++)
-      {
-        int object = this->ConstPixel(r);
-        if (object > this->GetNumberOfObjects())
-        {
-          ::fprintf(stderr, "Error: There are greater index than number of objects.\n");
-          exit(-1);
-        }
-        if (xIndex < getObjectEntry(object)->GetMinimumXValue())
-          getObjectEntry(object)->SetMinimumXValue(xIndex);
-        if (xIndex > getObjectEntry(object)->GetMaximumXValue())
-          getObjectEntry(object)->SetMaximumXValue(xIndex);
-
-        if (yIndex < getObjectEntry(object)->GetMinimumYValue())
-          getObjectEntry(object)->SetMinimumYValue(yIndex);
-        if (yIndex > getObjectEntry(object)->GetMaximumYValue()
-          getObjectEntry(object)->SetMaximumYValue(yIndex);
-
-        if (zIndex < getObjectEntry(object)->GetMinimumZValue())
-          getObjectEntry(object)->SetMinimumZValue(zIndex);
-        if (zIndex > getObjectEntry(object)->GetMaximumZValue())
-          getObjectEntry(object)->SetMaximumZValue(zIndex);
-
-        xsum[object]+=xIndex;
-        ysum[object]+=yIndex;
-        zsum[object]+=zIndex;
-        xnum[object]++;
-        ynum[object]++;
-        znum[object]++;
-      }
-    }
-  }
-
-  {
-    for (int i = 0; i < this->GetNumberOfObjects(); i++)
-    {
-      if (xnum[i] == 0)
-        getObjectEntry(i)->SetXCenter(0);
-      else
-        getObjectEntry(i)->SetXCenter((short int)(xsum[i]/xnum[i] - this->GetXDim()/2));
-
-      if (ynum[i] == 0)
-        getObjectEntry(i)->SetYCenter(0);
-      else
-        getObjectEntry(i)->SetYCenter((short int)(ysum[i]/ynum[i] - this->GetYDim()/2));
-
-      if (znum[i] == 0)
-        getObjectEntry(i)->SetZCenter(0);
-      else
-        getObjectEntry(i)->SetZCenter((short int)(zsum[i]/znum[i] - this->GetZDim()/2));
-    }
-  }
-
-  return true;
-}
-
-
-int AnalyzeObjectMap::EvenlyShade( void )
-{
-  int NumberOfShades = 255 / this->GetNumberOfObjects();
-
-  // Not allocating shades to the background object
-  for (int i = 0; i < this->GetNumberOfObjects(); i++)
-    getObjectEntry(i+1)->SetShades(NumberOfShades);
-
-  return NumberOfShades;
-}
-
-
-void AnalyzeObjectMap::ConstShade( void )
-{
-  // Not allocating shades to the background object, and setting each shade to 1
-  for (int i = 0; i < this->GetNumberOfObjects(); i++)
-    getObjectEntry(i+1)->SetShades( 1 );
-}
-
-
-int AnalyzeObjectMap::getVersion( void ) const
-{
-  return Version;
-}
-
-int AnalyzeObjectMap::GetNumberOfObjects( void ) const
-{
-  return this->NumberOfObjects;
-}
-
-
-unsigned char AnalyzeObjectMap::isObjectShown( const unsigned char index ) const
-{
-  return ShowObject[index];
-}
-
-
-unsigned char AnalyzeObjectMap::getMinimumPixelValue( const unsigned char index ) const
-{
-  return MinimumPixelValue[index];
-}
-
-
-unsigned char AnalyzeObjectMap::getMaximumPixelValue( const unsigned char index ) const
-{
-  return MaximumPixelValue[index];
-}
-
-void AnalyzeObjectMap::setMinimumPixelValue( const unsigned char index, const unsigned char value )
-{
-  MinimumPixelValue[index] = value;
-}
-
-void AnalyzeObjectMap::setMaximumPixelValue( const unsigned char index, const unsigned char value )
-{
-  MaximumPixelValue[index] = value;
-}
-#endif
 
 bool itk::AnalyzeObjectMap::RunLengthEncodeImage(std::ofstream &fptr)
 {
