@@ -40,9 +40,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace itk
 {
-      /**
-   * Constants representing the current version number of the object map file for Analyze
-   */
+  /**
+  * Constants representing the current version number of the object map file for Analyze
+  */
   const int VERSION1 = 880102;
   const int VERSION2 = 880801;
   const int VERSION3 = 890102;
@@ -52,28 +52,24 @@ namespace itk
   static const int VERSION7 = 20050829;
 
   /**
-   * Buffer size for reading in the run length encoded object data
-   */
+  * Buffer size for reading in the run length encoded object data
+  */
   const int NumberOfRunLengthElementsPerRead = 4;
 
   class AnalyzeObjectMap: public itk::Image<unsigned char,3>
   {
     public:
-          /** Standard typedefs. */
-  typedef AnalyzeObjectMap Self;
-  typedef Image<unsigned char, 3>  Superclass;
-  typedef SmartPointer<Self>  Pointer;
-  typedef SmartPointer<const Self>  ConstPointer;
+      /** Standard typedefs. */
+      typedef AnalyzeObjectMap Self;
+      typedef Image<unsigned char, 3>  Superclass;
+      typedef SmartPointer<Self>  Pointer;
+      typedef SmartPointer<const Self>  ConstPointer;
+      
+      /** Method for creation through the object factory. */
+      itkNewMacro(Self);
 
-    // RGBPixel::pointer RGBPixelPointer = RGBPixel::New();
-  /** Method for creation through the object factory. */
-  itkNewMacro(Self);
-
-  /** Run-time type information (and related methods). */
-  itkTypeMacro(AnalyzeObjectMap, Image );
-
-
-
+      /** Run-time type information (and related methods). */
+      itkTypeMacro(AnalyzeObjectMap, Image );
 
       /**
        * \brief the destructor for AnalyzeObjectMap
@@ -116,33 +112,57 @@ namespace itk
 
 
       /**
-       * \brief This function is used to get the Analyze version of the object
+       * \brief GetVersion/SetVersion
+       *
+       * This function is used to Get/Set the Analyze version of the object
        */
-    itkSetMacro(Version, int);
-    itkGetConstMacro(Version, int);
+      itkSetMacro(Version, int);
+      itkGetConstMacro(Version, int);
 
-    itkSetMacro(XDim, int);
-    itkGetConstMacro(XDim, int);
-
-    itkSetMacro(YDim, int);
-    itkGetConstMacro(YDim, int);
-
-    itkSetMacro(ZDim, int);
-    itkGetConstMacro(ZDim, int);
-
-    /**
-       * \brief This function is used to determine the number of objects in the Object map
+      /**
+       * \brief GetXDim/SetXDim
+       *
+       * This function is used to Get/Set the width of an object
        */
-    itkSetMacro(NumberOfObjects, int);
-    itkGetConstMacro(NumberOfObjects, int);
+      itkSetMacro(XDim, int);
+      itkGetConstMacro(XDim, int);
 
-    itkSetMacro(NumberOfVolumes, int);
-    itkGetConstMacro(NumberOfVolumes, int);
+      /**
+       * \brief GetYDim/SetYDim
+       *
+       * This function is used to Get/Set the height of an object
+       */
+      itkSetMacro(YDim, int);
+      itkGetConstMacro(YDim, int);
 
-       protected:
+      /**
+       * \brief GetZDim/SetZDim
+       *
+       * This function is used to Get/Set the depth of an object
+       */
+      itkSetMacro(ZDim, int);
+      itkGetConstMacro(ZDim, int);
+
+      /**
+       * \brief GetNumberOfObjects/SetNumberOfObjects
+       *
+       * This function is used to Get/Set the number of objects in the Object map
+       */
+      itkSetMacro(NumberOfObjects, int);
+      itkGetConstMacro(NumberOfObjects, int);
+
+      /**
+       * \brief GetNumberOfVolumes/SetNumberOfVolumes
+       * 
+       * This function is used to Get/Set the number of object volumes
+       */
+      itkSetMacro(NumberOfVolumes, int);
+      itkGetConstMacro(NumberOfVolumes, int);
+
+     protected:
        /**
-       * \brief the default constructor, initializes to 0 or NULL
-       */
+        * \brief the default constructor, initializes to 0 or NULL
+        */
       AnalyzeObjectMap( void );
 
       /**
@@ -154,7 +174,7 @@ namespace itk
       AnalyzeObjectMap( const AnalyzeObjectMap & rhs ) { /*Explicitly not allowd*/ };
 
     private:
-      
+
       /** Version of object file */
       int m_Version;
       int m_XDim;
@@ -166,23 +186,23 @@ namespace itk
       /** Pointers to individual objects in the object map, maximum of 256 */
       AnalyzeObjectEntry::Pointer AnaylzeObjectEntryArray[256];
 
-   /**
-    * \brief This function takes a file pointer and an image and runlength encodes the
-    * gray levels to the file
-    * \param SourceImage The image to be runlength encoded
-    * \param The pointer to the file to be written out.
-    * \return returns true if successful
-    */
+      /**
+       * \brief This function takes a file pointer and an image and runlength encodes the
+       * gray levels to the file
+       * \param SourceImage The image to be runlength encoded
+       * \param The pointer to the file to be written out.
+       * \return returns true if successful
+       */
       bool RunLengthEncodeImage(std::ofstream &inputFileStream);
 
-   /**
-    * \brief This function takes a string and removes the spaces
-    * \param output the string with the spaces removed
-    * \param input the string to remove the spaces
-    */
-   void RemoveSpaceFromString(std::string & output, const std::string & input);
+      /**
+       * \brief This function takes a string and removes the spaces
+       * \param output the string with the spaces removed
+       * \param input the string to remove the spaces
+       */
+      void RemoveSpaceFromString(std::string & output, const std::string & input);
 
 
   };
-  }
+}
 #endif                           // __OBJECTMAP_H_

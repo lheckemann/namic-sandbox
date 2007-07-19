@@ -36,62 +36,31 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "objectmap.h"
 #include "itkImageRegionIterator.h"
 namespace itk{
-
-   
-    AnalyzeObjectMap::AnalyzeObjectMap( void ): m_Version(VERSION7),m_NumberOfObjects(0)
-{
-  //TODO:  Clear the image this->ImageClear();
+  AnalyzeObjectMap::AnalyzeObjectMap( void ): m_Version(VERSION7),m_NumberOfObjects(0)
   {
-    for (int i = 0; i < 256; i++)
+    //TODO:  Clear the image this->ImageClear();
     {
-      AnaylzeObjectEntryArray[i] = NULL;
+      for (int i = 0; i < 256; i++)
+      {
+        AnaylzeObjectEntryArray[i] = NULL;
+      }
     }
+
+    // Setting object zero as the background
+    AnaylzeObjectEntryArray[0] = AnalyzeObjectEntry::New();
+    this->getObjectEntry(0)->SetName("Background");
+    this->getObjectEntry(0)->SetDisplayFlag(0);
+    this->getObjectEntry(0)->SetOpacity(0);
+    this->getObjectEntry(0)->SetOpacityThickness(0);
+    this->getObjectEntry(0)->SetEndRed(0);
+    this->getObjectEntry(0)->SetEndGreen(0);
+    this->getObjectEntry(0)->SetEndBlue(0);
+    this->getObjectEntry(0)->SetShades(1);
   }
 
-  // Setting object zero as the background
-  AnaylzeObjectEntryArray[0] = AnalyzeObjectEntry::New();
-  this->getObjectEntry(0)->SetName("Background");
-  this->getObjectEntry(0)->SetDisplayFlag(0);
-  this->getObjectEntry(0)->SetOpacity(0);
-  this->getObjectEntry(0)->SetOpacityThickness(0);
-  this->getObjectEntry(0)->SetEndRed(0);
-  this->getObjectEntry(0)->SetEndGreen(0);
-  this->getObjectEntry(0)->SetEndBlue(0);
-  this->getObjectEntry(0)->SetShades(1);
-}
-
-
-
-AnalyzeObjectMap::~AnalyzeObjectMap( void )
-{
-  for(int i=0; i < 256; i++)
+  AnalyzeObjectMap::~AnalyzeObjectMap( void )
   {
-    if(AnaylzeObjectEntryArray[i].IsNotNull())
-    {
-      AnaylzeObjectEntryArray[i] = NULL;
-    }
-  }
-}
-
-
-
-AnalyzeObjectMap &  AnalyzeObjectMap::operator=( const AnalyzeObjectMap & rhs )
-{
- //Not yet implemented
-  exit(-1);
-#if 0 // The following is incomplete
-  //this->CopyBaseImage( rhs );
-
-  this->SetVersion(rhs.GetVersion());
-  this->SetNumberOfObjects(rhs.GetNumberOfObjects());
-  for(int i=0; i < 256; i++)
-  {
-    if(rhs.AnaylzeObjectEntryArray[i].IsNotNull())
-    {
-      AnaylzeObjectEntryArray[i] = AnalyzeObjectEntry::New();
-      AnaylzeObjectEntryArray[i]->Copy(rhs.AnaylzeObjectEntryArray[i]);
-    }
-    else
+    for(int i=0; i < 256; i++)
     {
       if(AnaylzeObjectEntryArray[i].IsNotNull())
       {
@@ -99,58 +68,77 @@ AnalyzeObjectMap &  AnalyzeObjectMap::operator=( const AnalyzeObjectMap & rhs )
       }
     }
   }
-#endif
-  return *this;
-}
 
+  AnalyzeObjectMap &  AnalyzeObjectMap::operator=( const AnalyzeObjectMap & rhs )
+  {
+    //Not yet implemented
+    exit(-1);
+    #if 0 // The following is incomplete
+    //this->CopyBaseImage( rhs );
 
+    this->SetVersion(rhs.GetVersion());
+    this->SetNumberOfObjects(rhs.GetNumberOfObjects());
+    for(int i=0; i < 256; i++)
+    {
+      if(rhs.AnaylzeObjectEntryArray[i].IsNotNull())
+      {
+        AnaylzeObjectEntryArray[i] = AnalyzeObjectEntry::New();
+        AnaylzeObjectEntryArray[i]->Copy(rhs.AnaylzeObjectEntryArray[i]);
+      }
+      else
+      {
+        if(AnaylzeObjectEntryArray[i].IsNotNull())
+        {
+          AnaylzeObjectEntryArray[i] = NULL;
+        }
+      }
+    }
+    #endif
+    return *this;
+  }
 
-
-AnalyzeObjectEntry::Pointer AnalyzeObjectMap::getObjectEntry( const int index )
-{
+  AnalyzeObjectEntry::Pointer AnalyzeObjectMap::getObjectEntry( const int index )
+  {
     return AnaylzeObjectEntryArray[index];
-}
-
-const AnalyzeObjectEntry::Pointer  AnalyzeObjectMap::getObjectEntry( const int index ) const
-{
-  return AnaylzeObjectEntryArray[index];
-}
-
-
-
-bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
-{
-  // Opening the file
-  std::ifstream inputFileStream;
-  inputFileStream.open(filename.c_str(), std::ios::binary | std::ios::in);
-  if ( !inputFileStream.is_open())
-  {
-    std::cout<< "Error: Could not open %s\n", filename.c_str();
-    exit(-1);
   }
 
-
-  // Reading the header, which contains the version number, the size, and the
-  // number of objects
-  bool NeedByteSwap=false;
+  const AnalyzeObjectEntry::Pointer  AnalyzeObjectMap::getObjectEntry( const int index ) const
   {
-  int header[5];
-  if ( inputFileStream.read(reinterpret_cast<char *>(header),sizeof(int)*5).fail())
-  {
-    std::cout<<"Error: Could not read header of "<<filename.c_str()<<std::endl;
-    exit(-1);
+    return AnaylzeObjectEntryArray[index];
   }
-  //Do byte swapping if necessary.
+
+  bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
+  {
+    // Opening the file
+    std::ifstream inputFileStream;
+    inputFileStream.open(filename.c_str(), std::ios::binary | std::ios::in);
+    if ( !inputFileStream.is_open())
+    {
+      std::cout<< "Error: Could not open %s\n", filename.c_str();
+      exit(-1);
+    }
+
+    // Reading the header, which contains the version number, the size, and the
+    // number of objects
+    bool NeedByteSwap=false;
+    {
+    int header[5];
+    if ( inputFileStream.read(reinterpret_cast<char *>(header),sizeof(int)*5).fail())
+    {
+      std::cout<<"Error: Could not read header of "<<filename.c_str()<<std::endl;
+      exit(-1);
+    }
+    //Do byte swapping if necessary.
     if(header[0] == -1913442047|| header[0] ==1323699456 )    // Byte swapping needed (Number is byte swapped number of VERSION7 )
     {
-        NeedByteSwap = true;
-        //NOTE: All analyze object maps should be big endian on disk in order to be valid
-        //      The following function calls will swap the bytes when on little endian machines.
-        itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
-        itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[1]));
-        itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[2]));
-        itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[3]));
-        itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[4]));
+      NeedByteSwap = true;
+      //NOTE: All analyze object maps should be big endian on disk in order to be valid
+      //      The following function calls will swap the bytes when on little endian machines.
+      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
+      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[1]));
+      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[2]));
+      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[3]));
+      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[4]));
     }
     // Reading the Header into the class
     this->SetVersion(header[0]);
@@ -189,101 +177,101 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
         inputFileStream.close();
         return false;
     }
-  }
-  // In version 7, the header file has a new field after number of objects, before name,
-  // which is nvols, with type int. This field allows 4D object maps. 
-  // Further updating of objectmap related programs are to be developed to 
-  // obtain, utilize this field. Xiujuan Geng May 04, 2007
-  bool NeedBlendFactor = false;
-  if( this->GetVersion() == VERSION7 )
-  {
-    int nvols = 1;
-    if ( (inputFileStream.read(reinterpret_cast<char *>(&nvols),sizeof(int)*1)).fail() )
+    }
+    // In version 7, the header file has a new field after number of objects, before name,
+    // which is nvols, with type int. This field allows 4D object maps. 
+    // Further updating of objectmap related programs are to be developed to 
+    // obtain, utilize this field. Xiujuan Geng May 04, 2007
+    bool NeedBlendFactor = false;
+    if( this->GetVersion() == VERSION7 )
     {
-      std::cout<<"Error: Could not read header of "<< filename.c_str()<<std::endl;
-      exit(-1);
+      int nvols = 1;
+      if ( (inputFileStream.read(reinterpret_cast<char *>(&nvols),sizeof(int)*1)).fail() )
+      {
+        std::cout<<"Error: Could not read header of "<< filename.c_str()<<std::endl;
+        exit(-1);
+      }
+
+      if(NeedByteSwap)
+      {
+          itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&nvols);
+      }
+      this->SetNumberOfVolumes(nvols);
+      if(this->GetNumberOfVolumes() != nvols)
+      {
+          std::cout<<"GetNumberOfVolumes() does not equal what was read in."<<std::endl;
+      }
+      NeedBlendFactor = true;
     }
 
-    if(NeedByteSwap)
+    const int VolumeSize=this->GetXDim() * this->GetYDim() * this->GetZDim() *this->GetNumberOfVolumes();
+
+    // Error checking the number of objects in the object file
+    if ((this->GetNumberOfObjects() < 1) || (this->GetNumberOfObjects() > 255))
     {
-        itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&nvols);
+      std::cout<< "Error: Invalid number of object files.\n";
+      inputFileStream.close();
+      return false;
     }
-    this->SetNumberOfVolumes(nvols);
-    if(this->GetNumberOfVolumes() != nvols)
+
+    //std::ofstream myfile;
+    //myfile.open("ReadFromFilePointer35.txt", myfile.app); 
+    for (int i = 0; i < this->GetNumberOfObjects(); i++)
     {
-        std::cout<<"GetNumberOfVolumes() does not equal what was read in."<<std::endl;
+      // Allocating a object to be created
+      AnaylzeObjectEntryArray[i] = AnalyzeObjectEntry::New();
+      AnaylzeObjectEntryArray[i]->ReadFromFilePointer(inputFileStream,NeedByteSwap, NeedBlendFactor);
+        
+      //AnaylzeObjectEntryArray[i]->Print(myfile);
     }
-    NeedBlendFactor = true;
-  }
+    //myfile.close();
 
-  const int VolumeSize=this->GetXDim() * this->GetYDim() * this->GetZDim() *this->GetNumberOfVolumes();
+    //Now the file pointer is pointing to the image region
+    itk::Image<unsigned char,3>::SizeType ImageSize;
+    ImageSize[0]=this->GetXDim();
+    ImageSize[1]=this->GetYDim();
+    ImageSize[2]=this->GetZDim();
+    itk::Image<unsigned char,3>::IndexType ImageIndex;
+    ImageIndex[0]=0;
+    ImageIndex[1]=0;
+    ImageIndex[2]=0;  
 
-  // Error checking the number of objects in the object file
-  if ((this->GetNumberOfObjects() < 1) || (this->GetNumberOfObjects() > 255))
-  {
-    std::cout<< "Error: Invalid number of object files.\n";
-    inputFileStream.close();
-    return false;
-  }
+    itk::Image<unsigned char,3>::RegionType ImageRegion;
+    ImageRegion.SetSize(ImageSize);
+    ImageRegion.SetIndex(ImageIndex);
+    this->SetRegions(ImageRegion);
+    
+    //TODO: Image spacing needs fixing.  Will need to look to see if a 
+    //      .nii, .nii.gz, or a .hdr file
+    //      exists for the same .obj file.
+    //      If so, then read in the spacing for those images.
+    itk::Image<unsigned char,3>::SpacingType ImageSpacing;
+    ImageSpacing[0]=1.0F;
+    ImageSpacing[1]=1.0F;
+    ImageSpacing[2]=1.0F;
+    this->SetSpacing(ImageSpacing);
+    this->Allocate();
 
-  //std::ofstream myfile;
-  //myfile.open("ReadFromFilePointer35.txt", myfile.app); 
-  for (int i = 0; i < this->GetNumberOfObjects(); i++)
-  {
-    // Allocating a object to be created
-    AnaylzeObjectEntryArray[i] = AnalyzeObjectEntry::New();
-    AnaylzeObjectEntryArray[i]->ReadFromFilePointer(inputFileStream,NeedByteSwap, NeedBlendFactor);
-      
-    //AnaylzeObjectEntryArray[i]->Print(myfile);
-  }
-  //myfile.close();
+    // Decoding the run length encoded raw data into an unsigned char volume
+    itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexIt(this,this->GetLargestPossibleRegion());
+    struct RunLengthStruct {
+        unsigned char voxel_count;
+        unsigned char voxel_value;
+    } ;
+    typedef struct RunLengthStruct RunLengthElement;
+    RunLengthElement RunLengthArray[NumberOfRunLengthElementsPerRead];
 
- //Now the file pointer is pointing to the image region
-  itk::Image<unsigned char,3>::SizeType ImageSize;
-  ImageSize[0]=this->GetXDim();
-  ImageSize[1]=this->GetYDim();
-  ImageSize[2]=this->GetZDim();
-  itk::Image<unsigned char,3>::IndexType ImageIndex;
-  ImageIndex[0]=0;
-  ImageIndex[1]=0;
-  ImageIndex[2]=0;  
+    // The file consists of unsigned character pairs which represents the encoding of the data
+    // The character pairs have the form of length, tag value.  Note also that the data in
+    // Analyze object files are run length encoded a plane at a time.
 
-  itk::Image<unsigned char,3>::RegionType ImageRegion;
-  ImageRegion.SetSize(ImageSize);
-  ImageRegion.SetIndex(ImageIndex);
-  this->SetRegions(ImageRegion);
-  
-  //TODO: Image spacing needs fixing.  Will need to look to see if a 
-  //      .nii, .nii.gz, or a .hdr file
-  //      exists for the same .obj file.
-  //      If so, then read in the spacing for those images.
-  itk::Image<unsigned char,3>::SpacingType ImageSpacing;
-  ImageSpacing[0]=1.0F;
-  ImageSpacing[1]=1.0F;
-  ImageSpacing[2]=1.0F;
-  this->SetSpacing(ImageSpacing);
-  this->Allocate();
-
-  // Decoding the run length encoded raw data into an unsigned char volume
-  itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexIt(this,this->GetLargestPossibleRegion());
-  struct RunLengthStruct {
-      unsigned char voxel_count;
-      unsigned char voxel_value;
-  } ;
-  typedef struct RunLengthStruct RunLengthElement;
-  RunLengthElement RunLengthArray[NumberOfRunLengthElementsPerRead];
-
-  // The file consists of unsigned character pairs which represents the encoding of the data
-  // The character pairs have the form of length, tag value.  Note also that the data in
-  // Analyze object files are run length encoded a plane at a time.
-
-  int index=0;
-  int voxel_count_sum=0;
-  {
-     //std::ofstream myfile;
-     //myfile.open("VoxelInformation15.txt", myfile.app);
-     while (!inputFileStream.read(reinterpret_cast<char *>(RunLengthArray), sizeof(RunLengthElement)*NumberOfRunLengthElementsPerRead).eof())
-     {
+    int index=0;
+    int voxel_count_sum=0;
+    {
+      //std::ofstream myfile;
+      //myfile.open("VoxelInformation15.txt", myfile.app);
+      while (!inputFileStream.read(reinterpret_cast<char *>(RunLengthArray), sizeof(RunLengthElement)*NumberOfRunLengthElementsPerRead).eof())
+      {
         for (int i = 0; i < NumberOfRunLengthElementsPerRead; i++)
         {
            //myfile<< "Assigning: " << (int)RunLengthArray[i].voxel_count 
@@ -310,147 +298,142 @@ bool AnalyzeObjectMap::ReadObjectFile( const std::string& filename )
             std::cout<<"BREAK!\n";
             exit(-1);
           }
+        }
       }
+      //myfile.close();
     }
-    //myfile.close();
-  }
 
-
-
-  if (index != VolumeSize)
-  {
-    std::cout<< "Warning: Error decoding run-length encoding."<<std::endl;
-    if(index < VolumeSize)
+    if (index != VolumeSize)
     {
+      std::cout<< "Warning: Error decoding run-length encoding."<<std::endl;
+      if(index < VolumeSize)
+      {
         std::cout<<"Warning: file underrun."<<std::endl;
-    }
-    else
-    {
+      }
+      else
+      {
         std::cout<<"Warning: file overrun."<<std::endl;
+      }
+      return false;
     }
-    return false;
+
+    inputFileStream.close();
+
+    return true;
   }
 
-  inputFileStream.close();
 
-  return true;
-}
-
-
-bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
-{
-  std::string tempfilename=filename;
-  
-  // This assumes that the final '.' in a file name is the delimiter
-  // for the file's extension type
-  const std::string::size_type it = filename.find_last_of( "." );
-  // Now we have the index of the extension, make a new string
-  // that extends from the first letter of the extension to the end of filename
-  std::string fileExt( filename, it, filename.length() );
-  if (fileExt != ".obj")
+  bool AnalyzeObjectMap::WriteObjectFile( const std::string& filename )
   {
-    tempfilename=filename+".obj";
-  }
+    std::string tempfilename=filename;
+    
+    // This assumes that the final '.' in a file name is the delimiter
+    // for the file's extension type
+    const std::string::size_type it = filename.find_last_of( "." );
+    // Now we have the index of the extension, make a new string
+    // that extends from the first letter of the extension to the end of filename
+    std::string fileExt( filename, it, filename.length() );
+    if (fileExt != ".obj")
+    {
+      tempfilename=filename+".obj";
+    }
 
-  // Opening the file
-  std::ofstream outputFileStream;
-  outputFileStream.open(tempfilename.c_str(), std::ios::binary | std::ios::out | std::ios::trunc);
-  if ( !outputFileStream.is_open())
-  {
-    std::cout<<"Error: Could not open "<< tempfilename.c_str()<<std::endl;
-    exit(-1);
-  }
+    // Opening the file
+    std::ofstream outputFileStream;
+    outputFileStream.open(tempfilename.c_str(), std::ios::binary | std::ios::out | std::ios::trunc);
+    if ( !outputFileStream.is_open())
+    {
+      std::cout<<"Error: Could not open "<< tempfilename.c_str()<<std::endl;
+      exit(-1);
+    }
 
-  int header[5];
-  header[0]=this->GetVersion();
-  header[1]=this->GetXDim();
-  header[2]=this->GetYDim();
-  header[3]=this->GetZDim();
-  header[4]=this->GetNumberOfObjects();     // Include the background object when writing the .obj file
+    int header[5];
+    header[0]=this->GetVersion();
+    header[1]=this->GetXDim();
+    header[2]=this->GetYDim();
+    header[3]=this->GetZDim();
+    header[4]=this->GetNumberOfObjects();
 
-  //All object maps are written in BigEndian format as required by the AnalyzeObjectMap documentation.
-  bool NeedByteSwap=itk::ByteSwapper<int>::SystemIsLittleEndian();
-  if(NeedByteSwap)
-  {
+    //All object maps are written in BigEndian format as required by the AnalyzeObjectMap documentation.
+    bool NeedByteSwap=itk::ByteSwapper<int>::SystemIsLittleEndian();
+    if(NeedByteSwap)
+    {
       itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
       itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[1]));
       itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[2]));
       itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[3]));
       itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[4]));
-  }
-
-  // Writing the header, which contains the version number, the size, and the
-  // number of objects
-  if(outputFileStream.write(reinterpret_cast<char *>(header), sizeof(int)*5).fail())
-  {
-    std::cout<<"Error: Could not write header of "<< filename.c_str()<<std::endl;
-    exit(-1);
-  }
-
-  std::cout<<"version = "<<this->GetVersion()<<std::endl;
-  if(this->GetVersion() == VERSION7 )
-  {
-    int nvols = this->GetNumberOfVolumes(); 
-    if( NeedByteSwap )
-    {
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&nvols);
     }
-    if(outputFileStream.write(reinterpret_cast<char *>(&nvols), sizeof(int)).fail())
+
+    // Writing the header, which contains the version number, the size, and the
+    // number of objects
+    if(outputFileStream.write(reinterpret_cast<char *>(header), sizeof(int)*5).fail())
     {
+      std::cout<<"Error: Could not write header of "<< filename.c_str()<<std::endl;
+      exit(-1);
+    }
+
+    if(this->GetVersion() == VERSION7 )
+    {
+      int nvols = this->GetNumberOfVolumes(); 
+      if( NeedByteSwap )
+      {
+        itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&nvols);
+      }
+      if(outputFileStream.write(reinterpret_cast<char *>(&nvols), sizeof(int)).fail())
+      {
         std::cout<<"Could not write the number of volumes to the file"<<std::endl;
+      }
     }
-    std::cout << "WROTE: " << nvols << "for big endian respresntation of " << this->GetNumberOfVolumes() <<std::endl;
-  }
 
-  // Error checking the number of objects in the object file
-  if ((this->GetNumberOfObjects() < 0) || (this->GetNumberOfObjects() > 255))
-  {
-      std::cout<<( stderr, "Error: Invalid number of object files.\n" );
-    outputFileStream.close();
-    return false;
-  }
-
-  // Since the NumberOfObjects does not reflect the background, the background will be included
-  for (int i = 0; i < this->GetNumberOfObjects(); i++)
-  {
-    // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
-    // not affect the current object itself
-    AnalyzeObjectEntry *ObjectWrite = this->getObjectEntry(i);
-    if (NeedByteSwap == true)
+    // Error checking the number of objects in the object file
+    if ((this->GetNumberOfObjects() < 0) || (this->GetNumberOfObjects() > 255))
     {
-      ObjectWrite->SwapObjectEndedness();
+      std::cout<<( stderr, "Error: Invalid number of object files.\n" );
+      outputFileStream.close();
+      return false;
     }
-  ObjectWrite->Write(outputFileStream); 
 
+    // Since the NumberOfObjects does not reflect the background, the background will be included
+    for (int i = 0; i < this->GetNumberOfObjects(); i++)
+    {
+      // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
+      // not affect the current object itself
+      AnalyzeObjectEntry *ObjectWrite = this->getObjectEntry(i);
+      if (NeedByteSwap == true)
+      {
+        ObjectWrite->SwapObjectEndedness();
+      }
+      ObjectWrite->Write(outputFileStream); 
+
+    }
+    RunLengthEncodeImage(outputFileStream);
+    outputFileStream.close();
+    return true;
   }
-  RunLengthEncodeImage(outputFileStream);
-  outputFileStream.close();
-  return true;
-}
 
 
-bool itk::AnalyzeObjectMap::RunLengthEncodeImage(std::ofstream &fptr)
-{
-  if (fptr == NULL)
+  bool itk::AnalyzeObjectMap::RunLengthEncodeImage(std::ofstream &fptr)
   {
+    if (fptr == NULL)
+    {
       std::cout<<"Error: Null file pointer for runlength encoding data."<<std::endl;
-    return false;
-  }
+      return false;
+    }
 
-  //   Encoding the run length encoded raw data into an unsigned char volume
-  const int VolumeSize=this->GetXDim()*this->GetYDim()*this->GetZDim();
-  const int PlaneSize = this->GetXDim()*this->GetYDim();
-  int bufferindex=0;
-  int planeindex=0;
-  int runlength=0;
-  unsigned char CurrentObjIndex=0;
-  const  int buffer_size=16384;      //NOTE: This is probably overkill, but it will work
-  unsigned char buffer[buffer_size];
-  // for almost all cases
+    // Encoding the run length encoded raw data into an unsigned char volume
+    const int VolumeSize=this->GetXDim()*this->GetYDim()*this->GetZDim();
+    const int PlaneSize = this->GetXDim()*this->GetYDim();
+    int bufferindex=0;
+    int planeindex=0;
+    int runlength=0;
+    unsigned char CurrentObjIndex=0;
+    const  int buffer_size=16384;      //NOTE: This is probably overkill, but it will work
+    unsigned char buffer[buffer_size];
 
-  itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexIt(this,this->GetLargestPossibleRegion());
-  for(indexIt.GoToBegin();!indexIt.IsAtEnd();++indexIt)
-  {
+    itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexIt(this,this->GetLargestPossibleRegion());
+    for(indexIt.GoToBegin();!indexIt.IsAtEnd();++indexIt)
+    {
       if (runlength==0)
       {
           CurrentObjIndex = indexIt.Get();
@@ -503,22 +486,22 @@ bool itk::AnalyzeObjectMap::RunLengthEncodeImage(std::ofstream &fptr)
         bufferindex=0;
       }
 
-  }
-      if (bufferindex!=0)
+    }
+    if (bufferindex!=0)
+    {
+      if (runlength!=0)
       {
-          if (runlength!=0)
-          {
-            buffer[bufferindex]=runlength;
-            buffer[bufferindex+1]=CurrentObjIndex;
-            bufferindex+=2;
-          }
-          if(fptr.write(reinterpret_cast<char *>(buffer), bufferindex).fail())
-          {
-             std::cout<<"error: could not write buffer"<<std::endl;
-             exit(-1);
-          }
+        buffer[bufferindex]=runlength;
+        buffer[bufferindex+1]=CurrentObjIndex;
+        bufferindex+=2;
       }
-  
-  return true;
-}
+      if(fptr.write(reinterpret_cast<char *>(buffer), bufferindex).fail())
+      {
+        std::cout<<"error: could not write buffer"<<std::endl;
+        exit(-1);
+      }
+    }
+    
+    return true;
+  }
 }
