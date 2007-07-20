@@ -167,11 +167,9 @@ namespace itk
 
       /**
        * \brief the copy constructor,
-       * initializes to an existing object
-       * \param AnalyzeObjectMap & rhs
-       * \sa AnalyzeObjectMap
+       * THIS IS NOT ALLOWED
        */
-      AnalyzeObjectMap( const AnalyzeObjectMap & rhs ) { /*Explicitly not allowd*/ };
+      AnalyzeObjectMap( const AnalyzeObjectMap & rhs ) { /*Explicitly not allowed*/ };
 
     private:
 
@@ -189,7 +187,6 @@ namespace itk
       /**
        * \brief This function takes a file pointer and an image and runlength encodes the
        * gray levels to the file
-       * \param SourceImage The image to be runlength encoded
        * \param The pointer to the file to be written out.
        * \return returns true if successful
        */

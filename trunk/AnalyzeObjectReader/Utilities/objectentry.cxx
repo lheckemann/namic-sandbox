@@ -85,7 +85,6 @@ AnalyzeObjectEntry::AnalyzeObjectEntry( void )
 //AnalyzeObjectEntry & AnalyzeObjectEntry::operator=( const AnalyzeObjectEntry & rhs )
 void AnalyzeObjectEntry::Copy( AnalyzeObjectEntry::Pointer rhs )
 {
-  //TODO:   This needs to be filled in!!!
   this->SetBlendFactor(rhs->GetBlendFactor());
   this->SetCenter(rhs->GetCenter());
   this->SetCopyFlag(rhs->GetCopyFlag());
