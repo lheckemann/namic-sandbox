@@ -7,6 +7,8 @@ ENDIF(ITK_FOUND)
 
 INCLUDE_DIRECTORIES( BEFORE ${StreamingImageViewer_SOURCE_DIR}/Source )
 
+OPTION(USE_YAFF "Testing the YAFF File Format that is dynamicly loaded" OFF)
+
 SUBDIRS(
   Source
   Testing

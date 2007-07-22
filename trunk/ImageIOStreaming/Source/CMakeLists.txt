@@ -3,6 +3,8 @@ SET(ITKIO_SRCS
   itkIOCommon.cxx
   itkNiftiImageIO.cxx
   itkNiftiImageIOFactory.cxx
+  itkAnalyzeObjectLabelMapImageIO.cxx
+  itkAnalyzeObjectLabelMapImageIOFactory.cxx
   itkMetaImageIO.cxx
   itkMetaImageIOFactory.cxx
   itkImageIOBase.cxx
@@ -14,10 +16,10 @@ SET(ITKIO_SRCS
 ADD_LIBRARY(ITKIOStreaming ${ITKIO_SRCS})
 
 
-# 
+#
 # Illustration on how to create a dynamically loadable factory
 #
-ADD_LIBRARY(ITKIOYAFFStreaming SHARED 
+ADD_LIBRARY(ITKIOYAFFStreaming SHARED
   itkYAFFImageIO.cxx
   itkYAFFImageIOFactory.cxx
   )
