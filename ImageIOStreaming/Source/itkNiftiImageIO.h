@@ -96,6 +96,10 @@ public:
   virtual ImageIORegion 
   CalculateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requestedRegion ) const;
 
+  virtual bool CanStreamRead()
+    {
+    return true;
+    }
 protected:
   NiftiImageIO();
   ~NiftiImageIO();

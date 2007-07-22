@@ -25,6 +25,7 @@
 #include "itkDICOMImageIO2Factory.h"
 #include "itkNiftiImageIOFactory.h"
 #include "itkAnalyzeImageIOFactory.h"
+#include "itkAnalyzeObjectLabelMapImageIOFactory.h"
 #include "itkGiplImageIOFactory.h"
 #include "itkJPEGImageIOFactory.h"
 #include "itkLSMImageIOFactory.h"
@@ -99,14 +100,19 @@ ImageIOFactory::RegisterBuiltInFactories()
     MutexLockHolder<SimpleMutexLock> mutexHolder( mutex );
     if( firstTime )
       {
+#if 0
      ObjectFactoryBase::RegisterFactory( GDCMImageIOFactory::New() );
+#endif
      ObjectFactoryBase::RegisterFactory( MetaImageIOFactory::New() );
+#if 0
      ObjectFactoryBase::RegisterFactory( PNGImageIOFactory::New() );
      ObjectFactoryBase::RegisterFactory( VTKImageIOFactory::New() );
      ObjectFactoryBase::RegisterFactory( GiplImageIOFactory::New() );
      ObjectFactoryBase::RegisterFactory( BioRadImageIOFactory::New() );
      ObjectFactoryBase::RegisterFactory( LSMImageIOFactory::New()); //should be before TIFF
+#endif
       ObjectFactoryBase::RegisterFactory( NiftiImageIOFactory::New());
+#if 0
      ObjectFactoryBase::RegisterFactory( AnalyzeImageIOFactory::New());
      ObjectFactoryBase::RegisterFactory( StimulateImageIOFactory::New());
      ObjectFactoryBase::RegisterFactory( JPEGImageIOFactory::New());
@@ -114,6 +120,8 @@ ImageIOFactory::RegisterBuiltInFactories()
      ObjectFactoryBase::RegisterFactory( NrrdImageIOFactory::New() );
      ObjectFactoryBase::RegisterFactory( BMPImageIOFactory::New() );
      ObjectFactoryBase::RegisterFactory( DICOMImageIO2Factory::New() );
+#endif
+      ObjectFactoryBase::RegisterFactory( AnalyzeObjectLabelMapImageIOFactory::New() );
       firstTime = false;
       }
     }
