@@ -39,6 +39,11 @@ ImageIORegion AnalyzeObjectLabelMapImageIO
   return requestedRegion;
 }
 
+AnalyzeObjectLabelMapImageIO::AnalyzeObjectLabelMapImageIO()
+{
+  //Nothing to do during initialization.
+}
+
 AnalyzeObjectLabelMapImageIO::~AnalyzeObjectLabelMapImageIO()
 {
 }
