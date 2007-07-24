@@ -15,12 +15,6 @@ PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
 
-/**
- *         The specification for this file format is taken from the
- *         web site http://www.mayo.edu/bir/PDF/ANALYZE75.pdf.
- * \author Hans J. Johnson
- *         The University of Iowa 2002
- */
 
 #ifndef __itkAnalyzeObjectLabelMapImageIO_h
 #define __itkAnalyzeObjectLabelMapImageIO_h
@@ -31,18 +25,15 @@ PURPOSE.  See the above copyright notices for more information.
 
 #include <fstream>
 #include "itkImageIOBase.h"
-#include <nifti1_io.h>
+#include <objectmap.h>
+#include <itkImageRegionIterator.h>
+#include <objectentry.h>
 
 namespace itk
 {
 
 /** \class AnalyzeObjectLabelMapImageIO
  *
- * \author Hans J. Johnson
- * \brief Class that defines how to read Nifti file format.
- * Nifti IMAGE FILE FORMAT - As much information as I can determine from sourceforge.net/projects/Niftilib
- *
- * \ingroup IOFilters
  */
 class ITK_EXPORT AnalyzeObjectLabelMapImageIO : public ImageIOBase
 {
@@ -98,42 +89,15 @@ public:
 
   virtual bool CanStreamRead()
     {
-    return true;
+    return false;
     }
 protected:
   AnalyzeObjectLabelMapImageIO();
   ~AnalyzeObjectLabelMapImageIO();
   void PrintSelf(std::ostream& os, Indent indent) const;
 private:
-  void  DefineHeaderObjectDataType();
-
-  /**
-   * \enum ValidAnalyzeOrientationFlags
-   * Valid Orientation values for objects
-   * - Key  Description           Origin   dims[1]  dims[2]  dims[3]
-   * - =================================================================
-   * - 0    transverse-unflipped   IRP       R->L     P->A    I->S
-   * - 1    coronal-unflipped      IRP       R->L     I->S    P->A
-   * - 2    sagittal-unflipped     IRP       P->A     I->S    R->L
-   * - 3    transverse-flipped     IRA       R->L     A->P    I->S
-   * - 4    coronal-flipped        SRP       R->L     S->I    P->A
-   * - 5    sagittal-flipped       ILP       P->A     I->S    L->R
-   * - Where the Origin disignators are with respect to the patient
-   * - [(I)nferior|(S)uperior] [(L)eft|(R)ight] [(A)nterior|(P)osterior]
-   * \note Key's 0-5 correspond to the Nifti v7.5 orientations, and should not be changed.
-   */
-  typedef enum {
-    ITK_ANALYZE_ORIENTATION_RPI_TRANSVERSE=0,        /**< Denotes a transverse data orientation Right-->Left, */
-    ITK_ANALYZE_ORIENTATION_RIP_CORONAL   =1,        /**< Denotes a coronal data orientation */
-    ITK_ANALYZE_ORIENTATION_PIR_SAGITTAL  =2,        /**< Denotes a sagittal data orientation */
-    ITK_ANALYZE_ORIENTATION_RAI_TRANSVERSE_FLIPPED=3,/**<  */
-    ITK_ANALYZE_ORIENTATION_RSP_CORONAL_FLIPPED=4,   /**<  */
-    ITK_ANALYZE_ORIENTATION_PIL_SAGITTAL_FLIPPED=5   /**<  */
-  } ValidNiftiOrientationFlags;
-
-  nifti_image * m_AnalyzeObjectLabelMapImage;
-  double        m_RescaleSlope;
-  double        m_RescaleIntercept;
+  AnalyzeObjectEntry::Pointer AnaylzeObjectEntryArray[256];
+  itk::AnalyzeObjectMap::Pointer m_AnalyzeObjectLabelMapImage;
   //  int           m_CollapsedDims[8];
   AnalyzeObjectLabelMapImageIO(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
