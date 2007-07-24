@@ -32,7 +32,7 @@ AnalyzeObjectLabelMapImageIOFactory::AnalyzeObjectLabelMapImageIOFactory()
 {
   this->RegisterOverride("itkImageIOBase",
                          "itkAnalyzeObjectLabelMapImageIO",
-                         "Nifti Image IO",
+                         "Anaylze Object Label Map IO",
                          1,
                          CreateObjectFunction<AnalyzeObjectLabelMapImageIO>::New());
 }
@@ -50,7 +50,7 @@ AnalyzeObjectLabelMapImageIOFactory::GetITKSourceVersion(void) const
 const char*
 AnalyzeObjectLabelMapImageIOFactory::GetDescription() const
 {
-  return "Nifti ImageIO Factory, allows the loading of Nifti images into insight";
+  return "Anaylyze Object Map ImageIO Factory, allows the loading of Object Maps images into insight";
 }
 
 } // end namespace itk
