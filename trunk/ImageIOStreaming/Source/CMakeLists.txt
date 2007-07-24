@@ -10,6 +10,8 @@ SET(ITKIO_SRCS
   itkImageIOBase.cxx
   itkImageIOFactory.cxx
   itkImageIORegion.cxx
+  objectentry.cxx
+  objectmap.cxx
 )
 
 # Add ITKIO library
