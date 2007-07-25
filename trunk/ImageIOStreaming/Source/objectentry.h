@@ -32,15 +32,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <string>
 #include <stdio.h>
-#include <itkObject.h>
-#include <itkObjectFactory.h>
-#include <itkImage.h>
-#include <itkRGBPixel.h>
-#include <itkByteSwapper.h>
 #include <iostream>
 #include <fstream>
-#include <itksys/SystemTools.hxx>
-#include <itkImageIOBase.h>
+
+#include "itkObject.h"
+#include "itkObjectFactory.h"
+#include "itkImage.h"
+#include "itkRGBPixel.h"
+#include "itkByteSwapper.h"
+#include "itksys/SystemTools.hxx"
+#include "itkImageIOBase.h"
 
 namespace itk{
   template <typename ReadType>
