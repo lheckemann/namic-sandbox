@@ -30,7 +30,8 @@ PURPOSE.  See the above copyright notices for mwore information.
 
 namespace itk
 {
-
+  //Streaming not yet supported, so use the default base class to return the LargestPossibleRegion
+#if _USE_STREAMABLE_REGION_FOR_AOLM
 ImageIORegion AnalyzeObjectLabelMapImageIO
 ::CalculateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requestedRegion ) const
 {
@@ -38,6 +39,7 @@ ImageIORegion AnalyzeObjectLabelMapImageIO
   std::cout << "RequestedRegion = " << requestedRegion << std::endl;
   return requestedRegion;
 }
+#endif
 
 AnalyzeObjectLabelMapImageIO::AnalyzeObjectLabelMapImageIO()
 {
@@ -80,11 +82,13 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
       std::cout<< "Error: Could not open %s\n", m_FileName.c_str();
       exit(-1);
     }
+    //this->m_AnalyzeObjectLabelMapImage = itk::AnalyzeObjectMap::New();
     int version = this->m_AnalyzeObjectLabelMapImage->GetVersion();
     int setPointerOfInputImage;
     if(version == VERSION7)
     {
-      setPointerOfInputImage = 24 + this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() * 150;
+      std::cout<<this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects()<<std::endl;
+      setPointerOfInputImage = 24 + this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() * 152;
     }
     else
     {
@@ -136,18 +140,18 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     char *tobuf = (char *)buffer;
     const int VolumeSize=this->m_AnalyzeObjectLabelMapImage->GetXDim() * this->m_AnalyzeObjectLabelMapImage->GetYDim() * this->m_AnalyzeObjectLabelMapImage->GetZDim() *this->m_AnalyzeObjectLabelMapImage->GetNumberOfVolumes();
     {
-      //std::ofstream myfile;
-      //myfile.open("VoxelInformation15.txt", myfile.app);
+      std::ofstream myfile;
+      myfile.open("VoxelInformation15.txt", myfile.app);
       while (!inputFileStream.read(reinterpret_cast<char *>(RunLengthArray), sizeof(RunLengthElement)*NumberOfRunLengthElementsPerRead).eof())
       {
         for (int i = 0; i < NumberOfRunLengthElementsPerRead; i++)
         {
-           //myfile<< "Assigning: " << (int)RunLengthArray[i].voxel_count 
-           //  << " voxels of label " << (int)RunLengthArray[i].voxel_value
-           //  << std::endl;
+           myfile<< "Assigning: " << (int)RunLengthArray[i].voxel_count 
+             << " voxels of label " << (int)RunLengthArray[i].voxel_value
+             << std::endl;
           if(RunLengthArray[i].voxel_count == 0)
           {
-                std::cout<<"Invalid Length "<<(int)RunLengthArray[i].voxel_count<<std::endl;
+                std::cout<<"Inside AnaylzeObjectLabelMap Invalid Length "<<(int)RunLengthArray[i].voxel_count<<std::endl;
                 exit(-1);
           }
           for (int j = 0; j < RunLengthArray[i].voxel_count; j++)
@@ -195,6 +199,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
 // a StateMachine could provide a better implementation
 bool AnalyzeObjectLabelMapImageIO::CanReadFile( const char* FileNameToRead )
 {
+  std::cout<<"I am in Can Read File for AnalyzeObjectLabelMapImageIO"<<std::endl;
   std::string filename = FileNameToRead;
     // This assumes that the final '.' in a file name is the delimiter
     // for the file's extension type
@@ -214,6 +219,9 @@ bool AnalyzeObjectLabelMapImageIO::CanReadFile( const char* FileNameToRead )
     
 void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
 {
+  m_ComponentType = CHAR;
+  m_PixelType = SCALAR;
+  std::cout<<"I am now in the ReadImageInformation for ObjectLabelMap"<<std::endl;
   // Opening the file
     std::ifstream inputFileStream;
     inputFileStream.open(m_FileName.c_str(), std::ios::binary | std::ios::in);
@@ -245,12 +253,30 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
       itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[3]));
       itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[4]));
     }
+
+    this->m_AnalyzeObjectLabelMapImage = itk::AnalyzeObjectMap::New();
     // Reading the Header into the class
     this->m_AnalyzeObjectLabelMapImage->SetVersion(header[0]);
     this->m_AnalyzeObjectLabelMapImage->SetXDim(header[1]);
     this->m_AnalyzeObjectLabelMapImage->SetYDim(header[2]);
     this->m_AnalyzeObjectLabelMapImage->SetZDim(header[3]);
     this->m_AnalyzeObjectLabelMapImage->SetNumberOfObjects(header[4]);
+
+    if(this->m_AnalyzeObjectLabelMapImage->GetXDim() != 1 && this->m_AnalyzeObjectLabelMapImage->GetYDim() != 1 && this->m_AnalyzeObjectLabelMapImage->GetZDim() != 1)
+    {
+      this->SetNumberOfDimensions(3);
+    }
+    else
+    {
+      this->SetNumberOfDimensions(2);
+    }
+    this->SetDimensions(2,this->m_AnalyzeObjectLabelMapImage->GetZDim());
+    this->SetSpacing(2, 1);
+    this->SetDimensions(1,this->m_AnalyzeObjectLabelMapImage->GetYDim());
+    this->SetSpacing(1,1);
+    this->SetDimensions(0, this->m_AnalyzeObjectLabelMapImage->GetXDim());
+    this->SetSpacing(0,1);
+
 
     if(this->m_AnalyzeObjectLabelMapImage->GetVersion() != header[0])
     {
@@ -321,8 +347,10 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
         
       //AnaylzeObjectEntryArray[i]->Print(myfile);
     }
+  //      MetaDataDictionary &thisDic=this->GetMetaDataDictionary();
+  //std::string objectEntry(this->AnaylzeObjectEntryArray);
+  //EncapsulateMetaData<std::string>(thisDic,ITK_InputFilterName, objectEntry);
     //myfile.close();
-
     inputFileStream.close();
 }
 

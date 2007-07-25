@@ -82,11 +82,13 @@ public:
   /** Writes the data to disk from the memory buffer provided. Make sure
    * that the IORegions has been set properly. */
   virtual void Write(const void* buffer);
-
+  //Streaming not yet supported, so use the default base class to return the LargestPossibleRegion
+#if _USE_STREAMABLE_REGION_FOR_AOLM
   /** Calculate the region of the image that can be efficiently read 
    *  in response to a given requested region. */
   virtual ImageIORegion 
   CalculateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requestedRegion ) const;
+#endif
 
   virtual bool CanStreamRead()
     {

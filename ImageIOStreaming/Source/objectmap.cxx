@@ -38,34 +38,34 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace itk{
   AnalyzeObjectMap::AnalyzeObjectMap( void ): m_Version(VERSION7),m_NumberOfObjects(0)
   {
-    //TODO:  Clear the image this->ImageClear();
-    {
-      for (int i = 0; i < 256; i++)
-      {
-        AnaylzeObjectEntryArray[i] = NULL;
-      }
-    }
+    ////TODO:  Clear the image this->ImageClear();
+    //{
+    //  for (int i = 0; i < 256; i++)
+    //  {
+    //    AnaylzeObjectEntryArray[i] = NULL;
+    //  }
+    //}
 
-    // Setting object zero as the background
-    AnaylzeObjectEntryArray[0] = AnalyzeObjectEntry::New();
-    this->getObjectEntry(0)->SetName("Background");
-    this->getObjectEntry(0)->SetDisplayFlag(0);
-    this->getObjectEntry(0)->SetOpacity(0);
-    this->getObjectEntry(0)->SetOpacityThickness(0);
-    this->getObjectEntry(0)->SetEndRed(0);
-    this->getObjectEntry(0)->SetEndGreen(0);
-    this->getObjectEntry(0)->SetEndBlue(0);
-    this->getObjectEntry(0)->SetShades(1);
+    //// Setting object zero as the background
+    //AnaylzeObjectEntryArray[0] = AnalyzeObjectEntry::New();
+    //this->getObjectEntry(0)->SetName("Background");
+    //this->getObjectEntry(0)->SetDisplayFlag(0);
+    //this->getObjectEntry(0)->SetOpacity(0);
+    //this->getObjectEntry(0)->SetOpacityThickness(0);
+    //this->getObjectEntry(0)->SetEndRed(0);
+    //this->getObjectEntry(0)->SetEndGreen(0);
+    //this->getObjectEntry(0)->SetEndBlue(0);
+    //this->getObjectEntry(0)->SetShades(1);
   }
 
   AnalyzeObjectMap::~AnalyzeObjectMap( void )
   {
-    for(int i=0; i < 256; i++)
+    /*for(int i=0; i < 256; i++)
     {
       if(AnaylzeObjectEntryArray[i].IsNotNull())
       {
         AnaylzeObjectEntryArray[i] = NULL;
       }
-    }
+    }*/
   }
 }
