@@ -25,9 +25,10 @@ PURPOSE.  See the above copyright notices for more information.
 
 #include <fstream>
 #include "itkImageIOBase.h"
-#include <objectmap.h>
-#include <itkImageRegionIterator.h>
-#include <objectentry.h>
+#include "itkImageRegionIterator.h"
+
+#include "objectmap.h"
+#include "objectentry.h"
 
 namespace itk
 {

@@ -31,6 +31,10 @@ TARGET_LINK_LIBRARIES( ImageIOStreamingTest ITKIOStreaming )
 ADD_EXECUTABLE( ImageStreamedFilteringTest01 ImageStreamedFilteringTest01.cxx )
 TARGET_LINK_LIBRARIES( ImageStreamedFilteringTest01 ITKIOStreaming )
 
+ADD_EXECUTABLE( AnalyzeObjectMapTest AnalyzeObjectMapTest.cxx )
+TARGET_LINK_LIBRARIES( AnalyzeObjectMapTest ITKIOStreaming )
+
+
 ADD_TEST( ImageIOStreamingTest01 
    ${ImageIOStreamingTest_BINARY_DIR}/ImageIOStreamingTest 
    ${TEST_DATA_ROOT}/tester.nii.gz 
@@ -42,6 +46,7 @@ ADD_TEST( ImageIOStreamingTest02
    ${TEST_DATA_ROOT}/BrainProtonDensity3Slices.mhd
    ${TESTING_OUTPUT_DIR}/BrainProtonDensity3SlicesTestOutput02.mha
    20 30 1 30 40 1)
+
 
 IF(USE_YAFF)
 ADD_TEST( ImageIOStreamingTest03 
