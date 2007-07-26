@@ -461,6 +461,7 @@ bool NiftiImageIO::CanReadFile( const char* FileNameToRead )
 }
 
 
+#if 0 //No longer needed.
 namespace
 {
 inline double determinant(const std::vector<double> &dirx,
@@ -476,6 +477,7 @@ inline double determinant(const std::vector<double> &dirx,
     dirz[0]*diry[1]*dirx[2];
 }
 }
+#endif
 
 //
 // shorthand for SpatialOrientation types
@@ -762,23 +764,31 @@ void NiftiImageIO::ReadImageInformation()
       m_Origin[2] = theMat.m[2][3];
       }
     }
-  
-  std::vector<double> dirx(dims,0), diry(dims,0), dirz(dims,0);
-  dirx[0] = dir[0][0]; dirx[1] = dir[1][0]; dirx[2] = dir[2][0];
-  diry[0] = dir[0][1]; diry[1] = dir[1][1]; diry[2] = dir[2][1];
-  dirz[0] = dir[0][2]; dirz[1] = dir[1][2]; dirz[2] = dir[2][2];
 
-//   std::cerr << "read: dirx " << dirx[0] << " " << dirx[1] << " " << dirx[2] << std::endl;
-//   std::cerr << "read: diry " << diry[0] << " " << diry[1] << " " << diry[2] << std::endl;
-//   std::cerr << "read: dirz " << dirz[0] << " " << dirz[1] << " " << dirz[2] << std::endl;
-  this->SetDirection(0,dirx);
-  this->SetDirection(1,diry);
-  if(dims > 2)
+  std::vector<double> dirx(dims,0);
+  for (unsigned int i =0; i < dims ; i++)
     {
+    dirx[i] = dir[i][0];
+    }
+  this->SetDirection(0,dirx);
+  if(dims > 1 )
+    {
+    std::vector<double> diry(dims,0);
+    for (unsigned int i =0; i < dims ; i++)
+      {
+      diry[i] = dir[i][1];
+      }
+    this->SetDirection(1,diry);
+    }
+  if(dims > 2 )
+    {
+    std::vector<double> dirz(dims,0);
+    for (unsigned int i =0; i < dims ; i++)
+      {
+      dirz[i] = dir[i][2];
+      }
     this->SetDirection(2,dirz);
     }
-                                             
-  
 
   //Important hist fields
   std::string description(this->m_NiftiImage->descrip);
@@ -1057,27 +1067,29 @@ NiftiImageIO
 
   //
   // set the quarternions, from the direction vectors
-  std::vector<double> dirx = this->GetDirection(0);
-  //  negateifXorY(dirx);
-  std::vector<double> diry  = this->GetDirection(1);
+  std::vector<double> dirx(3,0); //Initialize to size 3 with values of 0
+  std::vector<double> diry(3,0);
+  std::vector<double> dirz(3,0);
 
-  std::vector<double> dirz;
+  for(unsigned i=0; i < this->GetDirection(0).size(); i++)
+    {
+    dirx[i] = -this->GetDirection(0)[i];
+    }
+  if(dims > 1)
+    {
+    for(unsigned i=0; i < this->GetDirection(1).size(); i++)
+      {
+      diry[i] = -this->GetDirection(1)[i];
+      }
+    }
   if(dims > 2)
     {
-    dirz = this->GetDirection(2);
+    for(unsigned i=0; i < this->GetDirection(2).size(); i++)
+      {
+      dirz[i] = -this->GetDirection(2)[i];
+      }
     }
-  else
-    {
-    dirz.push_back(0);  dirz.push_back(0); dirz.push_back(0);
-    }
-
-  for(unsigned i=0; i < 2; i++)
-    {
-    dirx[i] = -dirx[i];
-    diry[i] = -diry[i];
-    dirz[i] = -dirz[i];
-    }
-  mat44 matrix = 
+  mat44 matrix =
     nifti_make_orthog_mat44(dirx[0],dirx[1],dirx[2],
                             diry[0],diry[1],diry[2],
                             dirz[0],dirz[1],dirz[2]);
