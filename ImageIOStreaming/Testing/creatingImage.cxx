@@ -43,10 +43,10 @@ static void makeEllipse(UC2ImageType::Pointer image, const UC2ImageType::IndexTy
       const UC2ImageType::IndexType currentIndex = {i, j};
       if(IsInsideEllipse(currentIndex, center, size))
       {
-        
+
         image->SetPixel(currentIndex,200);
       }
-      
+
     }
   }
 }
@@ -54,15 +54,22 @@ static void makeEllipse(UC2ImageType::Pointer image, const UC2ImageType::IndexTy
 
 int main( int argc, char ** argv )
 {
- 
+
+  if ( argc != 3 )
+    {
+    std::cerr << "USAGE: " << argv[0] << "<OutputNiftiFileName> <OutputAnalzyeObjectLabelMapFileName>" << std::endl;
+    }
+  const std::string OutputNiftiFileName(argv[1]);
+  const std::string OutputAnalyzeObjectLabelMapFileName(argv[2]);
+    std::cout << "" << argv[0] << " " << OutputNiftiFileName << " " << OutputAnalyzeObjectLabelMapFileName << std::endl;
 // Software Guide : BeginLatex
 //
-// Next, we create a SpatialObjectWriter that is templated over the dimension 
+// Next, we create a SpatialObjectWriter that is templated over the dimension
 // of the object(s) we want to write.
-// 
-// Software Guide : EndLatex 
+//
+// Software Guide : EndLatex
 
-  
+
   UC2ImageType::Pointer image = UC2ImageType::New();
   const UC2ImageType::SizeType size = {{20,20}};
   const UC2ImageType::IndexType orgin = {{0,0}};
@@ -82,14 +89,14 @@ int main( int argc, char ** argv )
   //makeEllipse(image, CircleOrgin, Circle);
 
 
-  
+
 
   typedef itk::ImageFileWriter<UC2ImageType> Writer;
 
   Writer::Pointer writer = Writer::New();
 
   writer->SetInput(image);
-  writer->SetFileName("testing.nii.gz");
+  writer->SetFileName(OutputNiftiFileName);
   try
     {
     writer->Update();

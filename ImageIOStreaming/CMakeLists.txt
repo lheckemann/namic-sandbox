@@ -31,6 +31,7 @@ PATHS
 /usr/local/bin
 )
 
+IF(EXISTS ${KWSTYLE_EXECUTABLE})
 
 SET(KWSTYLE_ARGUMENTS
   -xml ${ITK_DIR}/Utilities/KWStyle/ITK.kws.xml -v -D ${ITK_DIR}/Utilities/KWStyle/ITKFiles.txt
@@ -51,6 +52,7 @@ ADD_CUSTOM_COMMAND(
   ARGS    ${KWSTYLE_ARGUMENTS}
   COMMENT "Coding Style Checker"
   )
-ADD_CUSTOM_TARGET(StyleCheck DEPENDS ${StatisticsRefactoring_BINARY_DIR}/KWStyleReport.txt)
-ADD_TEST(KWStyleTest ${KWSTYLE_EXECUTABLE} ${KWSTYLE_ARGUMENTS})
+  ADD_CUSTOM_TARGET(StyleCheck DEPENDS ${StatisticsRefactoring_BINARY_DIR}/KWStyleReport.txt)
+  ADD_TEST(KWStyleTest ${KWSTYLE_EXECUTABLE} ${KWSTYLE_ARGUMENTS})
+ENDIF(EXISTS ${KWSTYLE_EXECUTABLE})
 
