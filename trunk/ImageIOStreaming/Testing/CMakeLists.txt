@@ -34,6 +34,9 @@ TARGET_LINK_LIBRARIES( ImageStreamedFilteringTest01 ITKIOStreaming )
 ADD_EXECUTABLE( AnalyzeObjectMapTest AnalyzeObjectMapTest.cxx )
 TARGET_LINK_LIBRARIES( AnalyzeObjectMapTest ITKIOStreaming )
 
+ADD_EXECUTABLE( creatingImage creatingImage.cxx )
+TARGET_LINK_LIBRARIES( creatingImage  ITKCommon ITKIO )
+
 
 ADD_TEST( ImageIOStreamingTest01 
    ${ImageIOStreamingTest_BINARY_DIR}/ImageIOStreamingTest 
