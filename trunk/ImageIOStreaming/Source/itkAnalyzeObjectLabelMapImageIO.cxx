@@ -33,9 +33,9 @@ namespace itk
   //Streaming not yet supported, so use the default base class to return the LargestPossibleRegion
 #if _USE_STREAMABLE_REGION_FOR_AOLM
 ImageIORegion AnalyzeObjectLabelMapImageIO
-::CalculateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requestedRegion ) const
+::GenerateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requestedRegion ) const
 {
-  std::cout << "AnalyzeObjectLabelMapImageIO::CalculateStreamableReadRegionFromRequestedRegion() " << std::endl;
+  std::cout << "AnalyzeObjectLabelMapImageIO::GenerateStreamableReadRegionFromRequestedRegion() " << std::endl;
   std::cout << "RequestedRegion = " << requestedRegion << std::endl;
   return requestedRegion;
 }

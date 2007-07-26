@@ -230,7 +230,7 @@ to this paper, as follows:
 \item First, the ImageFileReader now invokes a new method of the ImageIO family
 in which every ImageIO class reports what would be the appropriate region that
 the ImageIO could return if asked for a specific requested region. This new
-method is called \code{CalculateStreamableReadRegionFromRequestedRegion()}. A
+method is called \code{GenerateStreamableReadRegionFromRequestedRegion()}. A
 default implementation of this virtual method is provided in the ImageIOBase
 class, and returns by default the LargestPossibleRegion of the image. In other
 words, the default behavior is \textbf{not to stream}. Specific ImageIO classes

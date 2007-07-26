@@ -193,9 +193,9 @@ YAFFImageIO
 RequestedRegion */
 ImageIORegion 
 YAFFImageIO
-::CalculateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requested ) const
+::GenerateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requested ) const
 {
-  std::cout << "YAFFImageIO::CalculateStreamableReadRegionFromRequestedRegion()" << std::endl;
+  std::cout << "YAFFImageIO::GenerateStreamableReadRegionFromRequestedRegion()" << std::endl;
   std::cout << "Requested region = " << requested << std::endl;
   //
   // YAFF is the ultimate streamer.
