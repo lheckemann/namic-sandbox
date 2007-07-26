@@ -89,7 +89,7 @@ int main( int argc, char ** argv )
   Writer::Pointer writer = Writer::New();
 
   writer->SetInput(image);
-  writer->SetFileName(argc[1]);
+  writer->SetFileName("testing.nii.gz");
   try
     {
     writer->Update();
