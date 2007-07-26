@@ -82,7 +82,7 @@ public:
  * streamable region, which will be smaller than the LargestPossibleRegion and
  * greater or equal to the RequestedRegion */
   virtual ImageIORegion 
-  CalculateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requested ) const;
+  GenerateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requested ) const;
 
 
 protected:

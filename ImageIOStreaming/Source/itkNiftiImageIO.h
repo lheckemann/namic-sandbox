@@ -94,7 +94,7 @@ public:
   /** Calculate the region of the image that can be efficiently read 
    *  in response to a given requested region. */
   virtual ImageIORegion 
-  CalculateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requestedRegion ) const;
+  GenerateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requestedRegion ) const;
 
   virtual bool CanStreamRead()
     {
