@@ -220,8 +220,10 @@ static void dumpdata(const void *x)
   
   //    typedef const float (*itkarray)[1][2][2][2][3];
   const float *a = (const float *)x;
-  for(unsigned i = 0; i < 24; i++)         // t
+  for(unsigned int i = 0; i < 24; i++)         // t
+    {
     std::cerr << a[i] << std::endl;
+    }
 }
 }
 #else
@@ -695,7 +697,6 @@ void NiftiImageIO::ReadImageInformation()
   typedef SpatialOrientationAdapter OrientAdapterType;
 
   SpatialOrientationAdapter::DirectionType dir;
-
   //
   // in the case of an Analyze75 file, use old analyze orient method.
   if(this->m_NiftiImage->qform_code == 0 && this->m_NiftiImage->sform_code == 0)
@@ -762,12 +763,14 @@ void NiftiImageIO::ReadImageInformation()
       }
     }
 
-  std::vector<double> dirx(dims,0);
-  for (unsigned int i =0; i < dims ; i++)
     {
-    dirx[i] = dir[i][0];
+    std::vector<double> dirx(dims,0);
+    for (unsigned int i =0; i < dims ; i++)
+      {
+      dirx[i] = dir[i][0];
+      }
+    this->SetDirection(0,dirx);
     }
-  this->SetDirection(0,dirx);
   if(dims > 1 )
     {
     std::vector<double> diry(dims,0);
@@ -801,9 +804,9 @@ namespace {
 inline mat44 mat44_transpose(mat44 in)
 {
   mat44 out;
-  for(unsigned i = 0; i < 4; i++)
+  for(unsigned int i = 0; i < 4; i++)
     {
-    for(unsigned j = 0; j < 4; j++)
+    for(unsigned int j = 0; j < 4; j++)
       {
       out.m[i][j] = in.m[j][i];
       }
@@ -1065,23 +1068,22 @@ NiftiImageIO
   //
   // set the quarternions, from the direction vectors
   std::vector<double> dirx(3,0); //Initialize to size 3 with values of 0
-  std::vector<double> diry(3,0);
-  std::vector<double> dirz(3,0);
-
-  for(unsigned i=0; i < this->GetDirection(0).size(); i++)
+  for(unsigned int i=0; i < this->GetDirection(0).size(); i++)
     {
     dirx[i] = -this->GetDirection(0)[i];
     }
+  std::vector<double> diry(3,0);
   if(dims > 1)
     {
-    for(unsigned i=0; i < this->GetDirection(1).size(); i++)
+    for(unsigned int i=0; i < this->GetDirection(1).size(); i++)
       {
       diry[i] = -this->GetDirection(1)[i];
       }
     }
+  std::vector<double> dirz(3,0);
   if(dims > 2)
     {
-    for(unsigned i=0; i < this->GetDirection(2).size(); i++)
+    for(unsigned int i=0; i < this->GetDirection(2).size(); i++)
       {
       dirz[i] = -this->GetDirection(2)[i];
       }
@@ -1092,7 +1094,7 @@ NiftiImageIO
                             dirz[0],dirz[1],dirz[2]);
   matrix = mat44_transpose(matrix);
   // Fill in origin.
-  for(unsigned i = 0; i < 2; i++)
+  for(unsigned int i = 0; i < 2; i++)
     {
     matrix.m[i][3] = -this->GetOrigin(i);
     }
@@ -1112,9 +1114,9 @@ NiftiImageIO
   // copy q matrix to s matrix
   this->m_NiftiImage->qto_xyz =  matrix;
   this->m_NiftiImage->sto_xyz =  matrix;
-  for(unsigned i = 0; i < 3; i++)
+  for(unsigned int i = 0; i < 3; i++)
     {
-    for(unsigned j = 0; j < 3; j++)
+    for(unsigned int j = 0; j < 3; j++)
       {
       this->m_NiftiImage->sto_xyz.m[i][j] = this->GetSpacing(j) *
         this->m_NiftiImage->sto_xyz.m[i][j];
@@ -1160,7 +1162,7 @@ NiftiImageIO
       nbyper /= numComponents;
       }
     int *dim = this->m_NiftiImage->dim;
-    for(unsigned i = 1; i < 6; i++)
+    for(unsigned int i = 1; i < 6; i++)
       {
       if(dim[i] == 0)
         {
