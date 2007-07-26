@@ -221,7 +221,6 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
 {
   m_ComponentType = CHAR;
   m_PixelType = SCALAR;
-  std::cout<<"I am now in the ReadImageInformation for ObjectLabelMap"<<std::endl;
   // Opening the file
     std::ifstream inputFileStream;
     inputFileStream.open(m_FileName.c_str(), std::ios::binary | std::ios::in);
@@ -270,14 +269,39 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     {
       this->SetNumberOfDimensions(2);
     }
-    this->SetDimensions(2,this->m_AnalyzeObjectLabelMapImage->GetZDim());
-    this->SetSpacing(2, 1);
-    this->SetDimensions(1,this->m_AnalyzeObjectLabelMapImage->GetYDim());
-    this->SetSpacing(1,1);
-    this->SetDimensions(0, this->m_AnalyzeObjectLabelMapImage->GetXDim());
-    this->SetSpacing(0,1);
 
+    switch(this->GetNumberOfDimensions())
+    {
+    case 3:
+      this->SetDimensions(2,this->m_AnalyzeObjectLabelMapImage->GetZDim());
+      this->SetSpacing(2, 1);
+    case 2:
+      this->SetDimensions(1,this->m_AnalyzeObjectLabelMapImage->GetYDim());
+      this->SetSpacing(1,1);
+    case 1:
+      this->SetDimensions(0, this->m_AnalyzeObjectLabelMapImage->GetXDim());
+      this->SetSpacing(0,1);
+    }
 
+    MetaDataDictionary &thisDic=this->GetMetaDataDictionary();
+    EncapsulateMetaData<std::string>(thisDic,ITK_OnDiskStorageTypeName,std::string(typeid(unsigned char).name()));
+    
+    m_Origin[0] = m_Origin[1] = 0;
+    if(this->GetNumberOfDimensions() > 2)
+      {
+      m_Origin[2] = 0;
+      }
+    std::vector<double> dirx(this->GetNumberOfDimensions(),0), diry(this->GetNumberOfDimensions(),0), dirz(this->GetNumberOfDimensions(),0);
+  dirx[0] = 1; dirx[1] = 0; dirx[2] = 0;
+  diry[0] = 0; diry[1] = 1; diry[2] = 0;
+  dirz[0] = 0; dirz[1] = 0; dirz[2] = 1;
+
+  this->SetDirection(0,dirx);
+  this->SetDirection(1,diry);
+  if(this->GetNumberOfDimensions() > 2)
+    {
+    this->SetDirection(2,dirz);
+    }
     if(this->m_AnalyzeObjectLabelMapImage->GetVersion() != header[0])
     {
         std::cout<<"GetVersion() does not equal what was read in."<<std::endl;
