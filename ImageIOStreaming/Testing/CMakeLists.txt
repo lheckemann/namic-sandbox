@@ -50,6 +50,10 @@ ADD_TEST( ImageIOStreamingTest02
    ${TESTING_OUTPUT_DIR}/BrainProtonDensity3SlicesTestOutput02.mha
    20 30 1 30 40 1)
 
+ADD_TEST( ImageIOStreamingTest05 
+   ${ImageIOStreamingTest_BINARY_DIR}/creatingImage 
+   ${TEST_DATA_ROOT}/test.obj)
+
 
 IF(USE_YAFF)
 ADD_TEST( ImageIOStreamingTest03 

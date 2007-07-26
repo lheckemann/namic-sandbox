@@ -52,7 +52,7 @@ static void makeEllipse(UC2ImageType::Pointer image, const UC2ImageType::IndexTy
 }
 
 
-int main( int , char *[] )
+int main( int argc, char ** argv )
 {
  
 // Software Guide : BeginLatex
@@ -89,7 +89,7 @@ int main( int , char *[] )
   Writer::Pointer writer = Writer::New();
 
   writer->SetInput(image);
-  writer->SetFileName("testing.nii.gz");
+  writer->SetFileName(argc[1]);
   try
     {
     writer->Update();
