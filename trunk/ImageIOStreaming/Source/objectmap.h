@@ -53,6 +53,7 @@ namespace itk
   static const int VERSION7 = 20050829;
 
   typedef std::vector<AnalyzeObjectEntry::Pointer>  AnalyzeObjectEntryArrayType;
+  const char *const ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY = "ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY";
 
   /**
   * Buffer size for reading in the run length encoded object data
@@ -62,7 +63,7 @@ namespace itk
   class AnalyzeObjectMap: public itk::Image<unsigned char,3>
   {
     public:
-      const std::string ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY("ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY");
+      
 
       /** Standard typedefs. */
       typedef AnalyzeObjectMap Self;
@@ -89,7 +90,7 @@ namespace itk
       AnalyzeObjectMap & operator=( const AnalyzeObjectMap & rhs );
 
       
-      AnalyzeObjectEntryArrayType GetAnalyzeObjectEntryArrayPointer();
+      AnalyzeObjectEntryArrayType * GetAnalyzeObjectEntryArrayPointer();
       /**
        * \brief returns a reference to an object
        * \param const int index
