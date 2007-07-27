@@ -3,8 +3,8 @@
 Program:   Insight Segmentation & Registration Toolkit
 Module:    $RCSfile: itkNiftiImageIO.cxx,v $
 Language:  C++
-Date:      $Date: 2007/03/29 18:39:28 $
-Version:   $Revision: 1.32 $
+Date:      $Date: 2007/07/26 13:10:07 $
+Version:   $Revision: 1.36 $
 
 Copyright (c) Insight Software Consortium. All rights reserved.
 See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -46,7 +46,7 @@ int print_hex_vals( char const * const data, const int nbytes, FILE * const fp )
   fputs("0x", fp);
   for ( c = 0; c < nbytes; c++ )
     fprintf(fp, " %x", data[c]);
-  
+
   return 0;
 }
 static char *str_intent(unsigned int intent)
@@ -139,7 +139,7 @@ int DumpNiftiHeader( const std::string &fname )
   hp = nifti_read_header(fname.c_str(),&swap,true);
   fputs( "-------------------------------------------------------\n", stderr );
   if ( !hp  ){ fputs(" ** no nifti_1_header to display!\n",stderr); return 1; }
-  
+
   fprintf(stderr," nifti_1_header :\n"
           "    sizeof_hdr     = %d\n"
           "    data_type[10]  = ", hp->sizeof_hdr);
@@ -211,13 +211,13 @@ int DumpNiftiHeader( const std::string &fname )
           hp->intent_name, hp->magic);
   fputs( "-------------------------------------------------------\n", stderr );
   fflush(stderr);
-  
+
   return 0;
 }
 static void dumpdata(const void *x)
 {
   std::cerr << "----------------------" << std::endl;
-  
+
   //    typedef const float (*itkarray)[1][2][2][2][3];
   const float *a = (const float *)x;
   for(unsigned int i = 0; i < 24; i++)         // t
@@ -325,21 +325,57 @@ void NiftiImageIO::Read(void* buffer)
   //
   // allocate nifti image...
   this->m_NiftiImage = nifti_image_read(m_FileName.c_str(),false);
-
-  if(nifti_read_subregion_image(this->m_NiftiImage,
-                                _origin,
-                                _size,
-                                &data) == -1 || this->m_NiftiImage == NULL)
+  if (this->m_NiftiImage == NULL)
     {
     ExceptionObject exception(__FILE__, __LINE__);
     exception.SetDescription("Read failed");
     throw exception;
+    }
+
+  //
+  // decide whether to read whole region or subregion
+  for(i = 0; i < this->GetNumberOfDimensions(); i++)
+    {
+    if(this->m_NiftiImage->dim[i+1] != _size[i])
+      {
+      break;
+      }
+    }
+  if(i == this->GetNumberOfDimensions())
+    {
+    if(nifti_image_load(this->m_NiftiImage) == -1)
+      {
+      ExceptionObject exception(__FILE__, __LINE__);
+      exception.SetDescription("Read failed");
+      throw exception;
+
+      }
+    data = this->m_NiftiImage->data;
+    }
+  else
+    {
+    if(nifti_read_subregion_image(this->m_NiftiImage,
+                                  _origin,
+                                  _size,
+                                  &data) == -1 || this->m_NiftiImage == NULL)
+      {
+      ExceptionObject exception(__FILE__, __LINE__);
+      exception.SetDescription("Read failed");
+      throw exception;
+      }
     }
   unsigned numComponents = this->GetNumberOfComponents();
   if(numComponents == 1 || this->GetPixelType() == COMPLEX)
     {
     const size_t NumBytes=numElts * this->m_NiftiImage->nbyper;
     memcpy(buffer, data, NumBytes);
+    //
+    // if read_subregion was called it allocates a buffer that needs to be
+    // freed.
+    if(data != this->m_NiftiImage->data)
+      {
+      free(data);
+      }
     }
   else
     {
@@ -377,8 +413,14 @@ void NiftiImageIO::Read(void* buffer)
           }
         }
       }
+    // if read_subregion was called it allocates a buffer that needs to be
+    // freed.
+    if(data != this->m_NiftiImage->data)
+      {
+      free(data);
+      }
     }
-  dumpdata(data);
+  // dumpdata(data);
   dumpdata(buffer);
 
   // If the scl_slope field is nonzero, then rescale each voxel value in the dataset
@@ -460,29 +502,12 @@ bool NiftiImageIO::CanReadFile( const char* FileNameToRead )
 }
 
 
-#if 0 //No longer needed.
-namespace
-{
-inline double determinant(const std::vector<double> &dirx,
-                          const std::vector<double> &diry,
-                          const std::vector<double> &dirz)
-{
-  return
-    dirx[0]*diry[1]*dirz[2]-
-    dirx[0]*dirz[1]*diry[2]-
-    diry[0]*dirx[1]*dirz[2]+
-    diry[0]*dirz[1]*dirx[2]+
-    dirz[0]*dirx[1]*diry[2]-
-    dirz[0]*diry[1]*dirx[2];
-}
-}
-#endif
 
 //
 // shorthand for SpatialOrientation types
-typedef itk::SpatialOrientation::CoordinateTerms 
+typedef itk::SpatialOrientation::CoordinateTerms
 SO_CoordTermsType;
-typedef itk::SpatialOrientation::ValidCoordinateOrientationFlags 
+typedef itk::SpatialOrientation::ValidCoordinateOrientationFlags
 SO_OrientationType;
 
 /** Convert from NIFTI orientation codes to ITK orientation codes.
@@ -510,8 +535,8 @@ Nifti2SO_Coord(int i, int j, int k)
      (NiftiOrient2SO_CoordinateTerms[k] << itk::SpatialOrientation::ITK_COORDINATE_TertiaryMinor));
 
 }
-                              
-    
+
+
 void NiftiImageIO::ReadImageInformation()
 {
   this->m_NiftiImage=nifti_image_read(m_FileName.c_str(),false);
@@ -617,7 +642,7 @@ void NiftiImageIO::ReadImageInformation()
       break;
     }
   int dims=this->GetNumberOfDimensions();
-  // vector images? 
+  // vector images?
   if((this->m_NiftiImage->dim[0] == 5 && this->m_NiftiImage->dim[5] > 1))
     {
     dims = 4;                   // as far as ITK is concerned, the dimension
@@ -657,7 +682,7 @@ void NiftiImageIO::ReadImageInformation()
   MetaDataDictionary &thisDic=this->GetMetaDataDictionary();
   std::string classname(this->GetNameOfClass());
   EncapsulateMetaData<std::string>(thisDic,ITK_InputFilterName, classname);
-  
+
   switch( this->m_NiftiImage->datatype)
     {
     case NIFTI_TYPE_INT8:
@@ -711,7 +736,7 @@ void NiftiImageIO::ReadImageInformation()
         orient = SpatialOrientation::ITK_COORDINATE_ORIENTATION_PIR;
         break;
         // according to analyze documents, you don't see flipped
-        // orientation in the wild 
+        // orientation in the wild
       case a75_transverse_flipped:
       case a75_coronal_flipped:
       case a75_sagittal_flipped:
@@ -925,7 +950,7 @@ NiftiImageIO
       this->m_NiftiImage->nz =
       this->m_NiftiImage->dim[3] = 1;
       }
-    dims = this->m_NiftiImage->ndim = this->m_NiftiImage->dim[0] = 5; // has to be 5 
+    dims = this->m_NiftiImage->ndim = this->m_NiftiImage->dim[0] = 5; // has to be 5
     this->m_NiftiImage->nu =
     this->m_NiftiImage->dim[5] = this->GetNumberOfComponents();
     }
@@ -1092,7 +1117,6 @@ NiftiImageIO
     nifti_make_orthog_mat44(dirx[0],dirx[1],dirx[2],
                             diry[0],diry[1],diry[2],
                             dirz[0],dirz[1],dirz[2]);
-  
   matrix = mat44_transpose(matrix);
   // Fill in origin.
   matrix.m[0][3]=               -this->GetOrigin(0);
@@ -1110,7 +1134,6 @@ NiftiImageIO
                          0,
                          0,
                          &(this->m_NiftiImage->qfac));
-  
   // copy q matrix to s matrix
   this->m_NiftiImage->qto_xyz =  matrix;
   this->m_NiftiImage->sto_xyz =  matrix;
@@ -1120,7 +1143,7 @@ NiftiImageIO
       {
       this->m_NiftiImage->sto_xyz.m[i][j] = this->GetSpacing(j) *
         this->m_NiftiImage->sto_xyz.m[i][j];
-      this->m_NiftiImage->sto_ijk.m[i][j] = 
+      this->m_NiftiImage->sto_ijk.m[i][j] =
         this->m_NiftiImage->sto_xyz.m[i][j] / this->GetSpacing(j);
       }
     }
@@ -1130,15 +1153,15 @@ NiftiImageIO
       {
       this->m_NiftiImage->sto_xyz.m[i][j] = 1.0 *
         this->m_NiftiImage->sto_xyz.m[i][j];
-      this->m_NiftiImage->sto_ijk.m[i][j] = 
+      this->m_NiftiImage->sto_ijk.m[i][j] =
         this->m_NiftiImage->sto_xyz.m[i][j] / 1.0;
       }
     }
-  this->m_NiftiImage->sto_ijk =  
+  this->m_NiftiImage->sto_ijk =
     nifti_mat44_inverse(this->m_NiftiImage->sto_xyz);
-  this->m_NiftiImage->qto_ijk =  
+  this->m_NiftiImage->qto_ijk =
     nifti_mat44_inverse(this->m_NiftiImage->qto_xyz);
-  
+
   this->m_NiftiImage->pixdim[0] = this->m_NiftiImage->qfac;
   this->m_NiftiImage->qform_code = NIFTI_XFORM_SCANNER_ANAT;
   //  this->m_NiftiImage->sform_code = 0;
@@ -1180,11 +1203,11 @@ NiftiImageIO
         dim[i] = 1;
         }
       }
-    unsigned buffer_size = dim[1] * 
-      dim[2] * 
-      dim[3] * 
-      dim[4] * 
-      dim[5] * 
+    unsigned buffer_size = dim[1] *
+      dim[2] *
+      dim[3] *
+      dim[4] *
+      dim[5] *
       nbyper;
     char *tobuffer = new char[buffer_size];
     for(unsigned t = 0; t < (unsigned)dim[4]; t++)
