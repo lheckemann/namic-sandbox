@@ -38,6 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "itkObject.h"
 #include "itkByteSwapper.h"
 
+
 namespace itk
 {
   /**
@@ -51,6 +52,8 @@ namespace itk
   static const int VERSION6 = 910926;
   static const int VERSION7 = 20050829;
 
+  typedef std::vector<AnalyzeObjectEntry::Pointer>  AnalyzeObjectEntryArrayType;
+
   /**
   * Buffer size for reading in the run length encoded object data
   */
@@ -59,6 +62,8 @@ namespace itk
   class AnalyzeObjectMap: public itk::Image<unsigned char,3>
   {
     public:
+      const std::string ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY("ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY");
+
       /** Standard typedefs. */
       typedef AnalyzeObjectMap Self;
       typedef Image<unsigned char, 3>  Superclass;
@@ -83,7 +88,8 @@ namespace itk
        */
       AnalyzeObjectMap & operator=( const AnalyzeObjectMap & rhs );
 
-
+      
+      AnalyzeObjectEntryArrayType GetAnalyzeObjectEntryArrayPointer();
       /**
        * \brief returns a reference to an object
        * \param const int index
@@ -172,26 +178,6 @@ namespace itk
       AnalyzeObjectMap( const AnalyzeObjectMap & rhs ) { /*Explicitly not allowed*/ };
 
     private:
-
-      /** Version of object file */
-      int m_Version;
-      int m_XDim;
-      int m_YDim;
-      int m_ZDim;
-      /** Number of Objects in the object file */
-      int m_NumberOfObjects;
-      int m_NumberOfVolumes;
-      /** Pointers to individual objects in the object map, maximum of 256 */
-      AnalyzeObjectEntry::Pointer AnaylzeObjectEntryArray[256];
-
-      /**
-       * \brief This function takes a file pointer and an image and runlength encodes the
-       * gray levels to the file
-       * \param The pointer to the file to be written out.
-       * \return returns true if successful
-       */
-      bool RunLengthEncodeImage(std::ofstream &inputFileStream);
-
       /**
        * \brief This function takes a string and removes the spaces
        * \param output the string with the spaces removed
@@ -200,6 +186,20 @@ namespace itk
       void RemoveSpaceFromString(std::string & output, const std::string & input);
 
 
+      /** Version of object file */
+      int m_Version;
+      /** Number of Objects in the object file */
+      int m_NumberOfObjects;
+      /** Pointers to individual objects in the object map, maximum of 256 */
+      AnalyzeObjectEntryArrayType m_AnaylzeObjectEntryArray;
+
+
+///HACK--DELETE THESE LATER
+      //TODO:  The next 4 ivars need to be removed!!  They are aliases to the image dimensions.
+      int m_XDim;
+      int m_YDim;
+      int m_ZDim;
+      int m_NumberOfVolumes;
   };
 }
 #endif                           // __OBJECTMAP_H_
