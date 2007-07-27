@@ -1095,11 +1095,9 @@ NiftiImageIO
   
   matrix = mat44_transpose(matrix);
   // Fill in origin.
-  for(unsigned int i = 0; i < 2; i++)
-    {
-    matrix.m[i][3] = -this->GetOrigin(i);
-    }
-  matrix.m[2][3] = (dims > 2) ? this->GetOrigin(2) : 0.0;
+  matrix.m[0][3]=               -this->GetOrigin(0);
+  matrix.m[1][3] = (dims > 1) ? -this->GetOrigin(1) : 0.0;
+  matrix.m[2][3] = (dims > 2) ? -this->GetOrigin(2) : 0.0;
 
   nifti_mat44_to_quatern(matrix,
                          &(this->m_NiftiImage->quatern_b),
@@ -1116,14 +1114,24 @@ NiftiImageIO
   // copy q matrix to s matrix
   this->m_NiftiImage->qto_xyz =  matrix;
   this->m_NiftiImage->sto_xyz =  matrix;
-  for(unsigned int i = 0; i < 3; i++)
+  for(unsigned int i = 0; i < dims; i++)
     {
-    for(unsigned int j = 0; j < 3; j++)
+    for(unsigned int j = 0; j < dims; j++)
       {
       this->m_NiftiImage->sto_xyz.m[i][j] = this->GetSpacing(j) *
         this->m_NiftiImage->sto_xyz.m[i][j];
       this->m_NiftiImage->sto_ijk.m[i][j] = 
         this->m_NiftiImage->sto_xyz.m[i][j] / this->GetSpacing(j);
+      }
+    }
+  for(unsigned int i = dims; i < 3; i++)
+    {
+    for(unsigned int j = dims; j < 3; j++)
+      {
+      this->m_NiftiImage->sto_xyz.m[i][j] = 1.0 *
+        this->m_NiftiImage->sto_xyz.m[i][j];
+      this->m_NiftiImage->sto_ijk.m[i][j] = 
+        this->m_NiftiImage->sto_xyz.m[i][j] / 1.0;
       }
     }
   this->m_NiftiImage->sto_ijk =  
