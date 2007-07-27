@@ -63,21 +63,24 @@ int main( int argc, char ** argv )
     return EXIT_FAILURE;
     }
 
-  //writer->SetFileName(OuptputObjectFileName);
-  writer->SetFileName("objectLabelTest2.obj");
-  writer->SetInput(reader->GetOutput());
-  try
-    {
-    writer->Update();
-    }
-  catch( itk::ExceptionObject & err )
-    {
-    std::cerr << "ExceptionObject caught !" << std::endl;
-    std::cerr << err << std::endl;
-    return EXIT_FAILURE;
-    }
+  InputImageType::Pointer IsOurDataCorrect = reader->GetOutput();
+  //itk::AnalyzeObjectMap::Pointer = itkTOAnaylzeObjectMap(reader->GetOutput());
 
-  reader->SetFileName("objectLabelTest2.obj");
-  reader->Update();
-  return EXIT_SUCCESS;
+  //writer->SetFileName(OuptputObjectFileName);
+  //writer->SetFileName("objectLabelTest2.obj");
+  //writer->SetInput(reader->GetOutput());
+  //try
+  //  {
+  //  writer->Update();
+  //  }
+  //catch( itk::ExceptionObject & err )
+  //  {
+  //  std::cerr << "ExceptionObject caught !" << std::endl;
+  //  std::cerr << err << std::endl;
+  //  return EXIT_FAILURE;
+  //  }
+
+  //reader->SetFileName("objectLabelTest2.obj");
+  //reader->Update();
+  //return EXIT_SUCCESS;
 }

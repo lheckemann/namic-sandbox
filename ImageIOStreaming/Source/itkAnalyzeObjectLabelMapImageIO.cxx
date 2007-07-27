@@ -377,13 +377,13 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
 
     //std::ofstream myfile;
     //myfile.open("ReadFromFilePointer35.txt", myfile.app);
-    itk::AnalyzeObjectEntryArrayType my_reference=this->m_AnalyzeObjectLabelMapImage->GetAnalyzeObjectEntryArrayPointer();
-    (my_reference).resize(this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects());
+    itk::AnalyzeObjectEntryArrayType *my_reference=this->m_AnalyzeObjectLabelMapImage->GetAnalyzeObjectEntryArrayPointer();
+    (*my_reference).resize(this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects());
     for (int i = 0; i < this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects(); i++)
     {
       // Allocating a object to be created
-      (my_reference)[i] = AnalyzeObjectEntry::New();
-      (my_reference)[i]->ReadFromFilePointer(inputFileStream,NeedByteSwap, NeedBlendFactor);
+      (*my_reference)[i] = AnalyzeObjectEntry::New();
+      (*my_reference)[i]->ReadFromFilePointer(inputFileStream,NeedByteSwap, NeedBlendFactor);
     }
 
   //      MetaDataDictionary &thisDic=this->GetMetaDataDictionary();
@@ -394,7 +394,7 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     //Now fill out the MetaDataHeader
     MetaDataDictionary &thisDic=this->GetMetaDataDictionary();
     EncapsulateMetaData<std::string>(thisDic,ITK_OnDiskStorageTypeName,std::string(typeid(unsigned char).name()));
-    EncapsulateMetaData<itk::AnalyzeObjectEntryArrayType>(thisDic,&AnalyzeObjectMap::ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY,my_reference);
+    EncapsulateMetaData<itk::AnalyzeObjectEntryArrayType>(thisDic,ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY,*my_reference);
 }
 
 /**

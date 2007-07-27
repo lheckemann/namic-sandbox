@@ -68,8 +68,8 @@ namespace itk{
       }
     }*/
   }
-  AnalyzeObjectEntryArrayType AnalyzeObjectMap::GetAnalyzeObjectEntryArrayPointer()
+  AnalyzeObjectEntryArrayType *AnalyzeObjectMap::GetAnalyzeObjectEntryArrayPointer()
   {
-    return (this->m_AnaylzeObjectEntryArray);
+    return &(this->m_AnaylzeObjectEntryArray);
   }
 }
