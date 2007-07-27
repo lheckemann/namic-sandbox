@@ -31,11 +31,12 @@
 #include "itkAnalyzeObjectLabelMapImageIO.h"
 int main( int argc, char ** argv )
 {
-  /*if ( argc != 2 )
+  if ( argc != 2 )
     {
     std::cerr << "USAGE: " << argv[0] << "<inputFileName>" << std::endl;
-    }*/
-  //const std::string InputObjectFileName(argv[1]);
+    }
+  const std::string InputObjectFileName(argv[1]);
+  const std::string OuptputObjectFileName(argv[2]);
   typedef unsigned char       InputPixelType;
   typedef unsigned char       OutputPixelType;
   const   unsigned int        Dimension = 3;
@@ -49,10 +50,7 @@ int main( int argc, char ** argv )
   ReaderType::Pointer reader = ReaderType::New();
   WriterType::Pointer writer = WriterType::New();
 
-  //itkAnalyzeObjectLabelMapImageIO *ObjectMapTest = itkAnalyzeObjectLabelMapImageIO::New();
-
-  reader->SetFileName( "C:/Documents and Settings/woofton/Desktop/object_good/Data/test.obj"  );
-  //reader->SetFileName( InputObjectFileName);
+  reader->SetFileName( InputObjectFileName);
    try
     {
     reader->Update();
@@ -64,7 +62,7 @@ int main( int argc, char ** argv )
     return EXIT_FAILURE;
     }
 
-  writer->SetFileName("TestingAnalyzeObjectMap.obj");
+  writer->SetFileName(OuptputObjectFileName);
   writer->SetInput(reader->GetOutput());
   try
     {
