@@ -35,7 +35,7 @@ ADD_EXECUTABLE( AnalyzeObjectMapTest AnalyzeObjectMapTest.cxx )
 TARGET_LINK_LIBRARIES( AnalyzeObjectMapTest ITKIOStreaming )
 
 ADD_EXECUTABLE( creatingImage creatingImage.cxx )
-TARGET_LINK_LIBRARIES( creatingImage  ITKCommon ITKIO )
+TARGET_LINK_LIBRARIES( creatingImage  ITKCommon ITKIOStreaming )
 
 
 ADD_TEST( ImageIOStreamingNIFTITest01
