@@ -18,9 +18,9 @@ static void makeRectangle(UC2ImageType::Pointer image, const UC2ImageType::Index
 }
 static bool IsInsideEllipse(const UC2ImageType::IndexType &currentLocation, const UC2ImageType::IndexType &center, const UC2ImageType::SizeType &size)
 {
-  const float x = static_cast<float>(currentLocation[0] - center[0]) / (static_cast<float>(size[0])/4.0F);
-  const float y = static_cast<float>(currentLocation[1] - center[1]) / (static_cast<float>(size[1])/4.0F);
-  if((x*x + y*y)>(sqrt((float)(size[0]*size[1]))))
+  const float x = static_cast<float>(currentLocation[0] - center[0]) / (static_cast<float>(size[0]));///2.0F);
+  const float y = static_cast<float>(currentLocation[1] - center[1]) / (static_cast<float>(size[1]));///2.0F);
+  if((x*x + y*y)<1.0F)
   {
     return true;
   }
@@ -28,9 +28,9 @@ static bool IsInsideEllipse(const UC2ImageType::IndexType &currentLocation, cons
 }
 static void makeEllipse(UC2ImageType::Pointer image, const UC2ImageType::IndexType &center, const UC2ImageType::SizeType &size)
 {
-  for(int i = center[0]-size[0]/2; i< center[0] + size[0]/2; i++)
+  for(int i = center[0]-size[0]; i< center[0] + size[0]; i++)
   {
-    for(int j = center[1] - size[1]/2; j < center[1] + size[1]/2; j++)
+    for(int j = center[1] - size[1]; j < center[1] + size[1]; j++)
     {
       const UC2ImageType::IndexType currentIndex = {i, j};
       if(IsInsideEllipse(currentIndex, center, size))
@@ -69,7 +69,7 @@ int main( int argc, char ** argv )
   const UC2ImageType::IndexType SquareOrgin = {3,15};
   makeRectangle(image, SquareOrgin, Square );
 
-  const UC2ImageType::SizeType Circle = {{6,6}};
+  const UC2ImageType::SizeType Circle = {{5,5}};
   const UC2ImageType::IndexType CircleOrgin = {15,14};
   makeEllipse(image, CircleOrgin, Circle);
 
