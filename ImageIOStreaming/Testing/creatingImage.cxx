@@ -1,11 +1,6 @@
 #include <itkBoxSpatialObject.h>
 #include <itkEllipseSpatialObject.h>
 
-// Software Guide : BeginCodeSnippet
-#include "itkSpatialObjectWriter.h"
-#include "itkSpatialObjectReader.h"
-// Software Guide : EndCodeSnippet
-
 #include <itkImageRegionIterator.h>
 #include <itkImageFileWriter.h>
 

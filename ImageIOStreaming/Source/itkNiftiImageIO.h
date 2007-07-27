@@ -3,8 +3,8 @@
 Program:   Insight Segmentation & Registration Toolkit
 Module:    $RCSfile: itkNiftiImageIO.h,v $
 Language:  C++
-Date:      $Date: 2007/03/29 20:11:16 $
-Version:   $Revision: 1.5 $
+Date:      $Date: 2007/07/23 12:43:50 $
+Version:   $Revision: 1.6 $
 
 Copyright (c) Insight Software Consortium. All rights reserved.
 See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -96,10 +96,6 @@ public:
   virtual ImageIORegion 
   GenerateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requestedRegion ) const;
 
-  virtual bool CanStreamRead()
-    {
-    return true;
-    }
 protected:
   NiftiImageIO();
   ~NiftiImageIO();
@@ -134,7 +130,7 @@ private:
   nifti_image * m_NiftiImage;
   double        m_RescaleSlope;
   double        m_RescaleIntercept;
-  //  int           m_CollapsedDims[8];
+
   NiftiImageIO(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 };

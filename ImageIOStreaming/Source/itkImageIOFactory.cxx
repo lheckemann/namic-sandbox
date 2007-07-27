@@ -19,22 +19,30 @@
 #endif
 
 #include "itkImageIOFactory.h"
+#if 0
 #include "itkBioRadImageIOFactory.h"
 #include "itkBMPImageIOFactory.h"
 #include "itkGDCMImageIOFactory.h"
 #include "itkDICOMImageIO2Factory.h"
+#endif
 #include "itkNiftiImageIOFactory.h"
+#if 0
 #include "itkAnalyzeImageIOFactory.h"
+#endif
 #include "itkAnalyzeObjectLabelMapImageIOFactory.h"
+#if 0
 #include "itkGiplImageIOFactory.h"
 #include "itkJPEGImageIOFactory.h"
 #include "itkLSMImageIOFactory.h"
+#endif
 #include "itkMetaImageIOFactory.h"
+#if 0
 #include "itkPNGImageIOFactory.h"
 #include "itkNrrdImageIOFactory.h"
 #include "itkTIFFImageIOFactory.h"
 #include "itkVTKImageIOFactory.h"
 #include "itkStimulateImageIOFactory.h"
+#endif
 #include "itkMutexLock.h"
 #include "itkMutexLockHolder.h"
 
