@@ -764,30 +764,30 @@ void NiftiImageIO::ReadImageInformation()
     }
 
     {
-    std::vector<double> dirx(dims,0);
+    std::vector<double> xDirection(dims,0);
     for (unsigned int i =0; i < dims ; i++)
       {
-      dirx[i] = dir[i][0];
+      xDirection[i] = dir[i][0];
       }
-    this->SetDirection(0,dirx);
+    this->SetDirection(0,xDirection);
     }
   if(dims > 1 )
     {
-    std::vector<double> diry(dims,0);
+    std::vector<double> yDirection(dims,0);
     for (unsigned int i =0; i < dims ; i++)
       {
-      diry[i] = dir[i][1];
+      yDirection[i] = dir[i][1];
       }
-    this->SetDirection(1,diry);
+    this->SetDirection(1,yDirection);
     }
   if(dims > 2 )
     {
-    std::vector<double> dirz(dims,0);
+    std::vector<double> zDirection(dims,0);
     for (unsigned int i =0; i < dims ; i++)
       {
-      dirz[i] = dir[i][2];
+      zDirection[i] = dir[i][2];
       }
-    this->SetDirection(2,dirz);
+    this->SetDirection(2,zDirection);
     }
 
   //Important hist fields
@@ -1064,7 +1064,7 @@ NiftiImageIO
   // use NIFTI method 2
   this->m_NiftiImage->sform_code = NIFTI_XFORM_SCANNER_ANAT;
   this->m_NiftiImage->qform_code = NIFTI_XFORM_ALIGNED_ANAT;
-
+  {
   //
   // set the quarternions, from the direction vectors
   std::vector<double> dirx(3,0); //Initialize to size 3 with values of 0
@@ -1092,6 +1092,7 @@ NiftiImageIO
     nifti_make_orthog_mat44(dirx[0],dirx[1],dirx[2],
                             diry[0],diry[1],diry[2],
                             dirz[0],dirz[1],dirz[2]);
+  
   matrix = mat44_transpose(matrix);
   // Fill in origin.
   for(unsigned int i = 0; i < 2; i++)
@@ -1111,6 +1112,7 @@ NiftiImageIO
                          0,
                          0,
                          &(this->m_NiftiImage->qfac));
+  
   // copy q matrix to s matrix
   this->m_NiftiImage->qto_xyz =  matrix;
   this->m_NiftiImage->sto_xyz =  matrix;
@@ -1132,6 +1134,7 @@ NiftiImageIO
   this->m_NiftiImage->pixdim[0] = this->m_NiftiImage->qfac;
   this->m_NiftiImage->qform_code = NIFTI_XFORM_SCANNER_ANAT;
   //  this->m_NiftiImage->sform_code = 0;
+  }
   return;
 }
 

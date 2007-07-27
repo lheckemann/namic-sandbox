@@ -385,77 +385,77 @@ void
 AnalyzeObjectLabelMapImageIO
 ::WriteImageInformation(void) //For Nifti this does not write a file, it only fills in the appropriate header information.
 {
-  std::string tempfilename = this->GetFileName();
-  // Opening the file
-    std::ofstream outputFileStream;
-    outputFileStream.open(tempfilename.c_str(), std::ios::binary | std::ios::out | std::ios::trunc);
-    if ( !outputFileStream.is_open())
-    {
-      std::cout<<"Error: Could not open "<< tempfilename.c_str()<<std::endl;
-      exit(-1);
-    }
+  //std::string tempfilename = this->GetFileName();
+  //// Opening the file
+  //  std::ofstream outputFileStream;
+  //  outputFileStream.open(tempfilename.c_str(), std::ios::binary | std::ios::out | std::ios::trunc);
+  //  if ( !outputFileStream.is_open())
+  //  {
+  //    std::cout<<"Error: Could not open "<< tempfilename.c_str()<<std::endl;
+  //    exit(-1);
+  //  }
 
-    int header[5];
-    header[0]=this->m_AnalyzeObjectLabelMapImage->GetVersion();
-    header[1]=this->m_AnalyzeObjectLabelMapImage->GetXDim();
-    header[2]=this->m_AnalyzeObjectLabelMapImage->GetYDim();
-    header[3]=this->m_AnalyzeObjectLabelMapImage->GetZDim();
-    header[4]=this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects();
+  //  int header[5];
+  //  header[0]=this->m_AnalyzeObjectLabelMapImage->GetVersion();
+  //  header[1]=this->m_AnalyzeObjectLabelMapImage->GetXDim();
+  //  header[2]=this->m_AnalyzeObjectLabelMapImage->GetYDim();
+  //  header[3]=this->m_AnalyzeObjectLabelMapImage->GetZDim();
+  //  header[4]=this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects();
 
-    //All object maps are written in BigEndian format as required by the AnalyzeObjectMap documentation.
-    bool NeedByteSwap=itk::ByteSwapper<int>::SystemIsLittleEndian();
-    if(NeedByteSwap)
-    {
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[1]));
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[2]));
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[3]));
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[4]));
-    }
+  //  //All object maps are written in BigEndian format as required by the AnalyzeObjectMap documentation.
+  //  bool NeedByteSwap=itk::ByteSwapper<int>::SystemIsLittleEndian();
+  //  if(NeedByteSwap)
+  //  {
+  //    itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
+  //    itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[1]));
+  //    itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[2]));
+  //    itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[3]));
+  //    itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[4]));
+  //  }
 
-    // Writing the header, which contains the version number, the size, and the
-    // number of objects
-    if(outputFileStream.write(reinterpret_cast<char *>(header), sizeof(int)*5).fail())
-    {
-      std::cout<<"Error: Could not write header of "<< tempfilename.c_str()<<std::endl;
-      exit(-1);
-    }
+  //  // Writing the header, which contains the version number, the size, and the
+  //  // number of objects
+  //  if(outputFileStream.write(reinterpret_cast<char *>(header), sizeof(int)*5).fail())
+  //  {
+  //    std::cout<<"Error: Could not write header of "<< tempfilename.c_str()<<std::endl;
+  //    exit(-1);
+  //  }
 
-    if(this->m_AnalyzeObjectLabelMapImage->GetVersion() == VERSION7 )
-    {
-      int nvols = this->m_AnalyzeObjectLabelMapImage->GetNumberOfVolumes(); 
-      if( NeedByteSwap )
-      {
-        itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&nvols);
-      }
-      if(outputFileStream.write(reinterpret_cast<char *>(&nvols), sizeof(int)).fail())
-      {
-        std::cout<<"Could not write the number of volumes to the file"<<std::endl;
-      }
-    }
+  //  if(this->m_AnalyzeObjectLabelMapImage->GetVersion() == VERSION7 )
+  //  {
+  //    int nvols = this->m_AnalyzeObjectLabelMapImage->GetNumberOfVolumes(); 
+  //    if( NeedByteSwap )
+  //    {
+  //      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&nvols);
+  //    }
+  //    if(outputFileStream.write(reinterpret_cast<char *>(&nvols), sizeof(int)).fail())
+  //    {
+  //      std::cout<<"Could not write the number of volumes to the file"<<std::endl;
+  //    }
+  //  }
 
-    // Error checking the number of objects in the object file
-    if ((this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() < 0) || (this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() > 255))
-    {
-      std::cout<<( stderr, "Error: Invalid number of object files.\n" );
-      outputFileStream.close();
-    }
+  //  // Error checking the number of objects in the object file
+  //  if ((this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() < 0) || (this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() > 255))
+  //  {
+  //    std::cout<<( stderr, "Error: Invalid number of object files.\n" );
+  //    outputFileStream.close();
+  //  }
 
-    // Since the NumberOfObjects does not reflect the background, the background will be included
-    for (int i = 0; i < this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects(); i++)
-    {
-      // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
-      // not affect the current object itself
-      AnalyzeObjectEntry *ObjectWrite = this->AnaylzeObjectEntryArray[i];
-      if (NeedByteSwap == true)
-      {
-        ObjectWrite->SwapObjectEndedness();
-      }
-      ObjectWrite->Write(outputFileStream); 
+  //  // Since the NumberOfObjects does not reflect the background, the background will be included
+  //  for (int i = 0; i < this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects(); i++)
+  //  {
+  //    // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
+  //    // not affect the current object itself
+  //    AnalyzeObjectEntry *ObjectWrite = this->AnaylzeObjectEntryArray[i];
+  //    if (NeedByteSwap == true)
+  //    {
+  //      ObjectWrite->SwapObjectEndedness();
+  //    }
+  //    ObjectWrite->Write(outputFileStream); 
 
-    }
+  //  }
 
-  outputFileStream.close();
+  //outputFileStream.close();
 }
 
 
@@ -476,17 +476,17 @@ AnalyzeObjectLabelMapImageIO
       std::cout<<"Error: Could not open "<< tempfilename.c_str()<<std::endl;
       exit(-1);
     }
-    int version = this->m_AnalyzeObjectLabelMapImage->GetVersion();
-    int setPointerOfInputImage;
-    if(version == VERSION7)
+    //int version = this->m_AnalyzeObjectLabelMapImage->GetVersion();
+    //int setPointerOfInputImage;
+    /*if(version == VERSION7)
     {
       setPointerOfInputImage = 24 + this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() * 150;
     }
     else
     {
       setPointerOfInputImage = 20 + this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() * 146;
-    }
-    outputFileStream.seekp(setPointerOfInputImage);
+    }*/
+//    outputFileStream.seekp(setPointerOfInputImage);
   // Encoding the run length encoded raw data into an unsigned char volume
     const int VolumeSize=this->m_AnalyzeObjectLabelMapImage->GetXDim()*this->m_AnalyzeObjectLabelMapImage->GetYDim()*this->m_AnalyzeObjectLabelMapImage->GetZDim();
     const int PlaneSize = this->m_AnalyzeObjectLabelMapImage->GetXDim()*this->m_AnalyzeObjectLabelMapImage->GetYDim();
@@ -497,6 +497,7 @@ AnalyzeObjectLabelMapImageIO
     const  int buffer_size=16384;      //NOTE: This is probably overkill, but it will work
     unsigned char bufferObjectMap[buffer_size];
 
+#if 0
     itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexIt(this->m_AnalyzeObjectLabelMapImage,this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion());
     for(indexIt.GoToBegin();!indexIt.IsAtEnd();++indexIt)
     {
@@ -524,6 +525,79 @@ AnalyzeObjectLabelMapImageIO
           bufferObjectMap[bufferindex+1]=CurrentObjIndex;
           bufferindex+=2;
           CurrentObjIndex=indexIt.Get();
+          runlength=1;
+        }
+      }
+
+      planeindex++;
+      if (planeindex==PlaneSize)
+      {
+        // Just finished with a plane of data, so encode it
+        planeindex=0;
+        if (runlength!=0)
+        {
+          bufferObjectMap[bufferindex]=runlength;
+          bufferObjectMap[bufferindex+1]=CurrentObjIndex;
+          bufferindex+=2;
+          runlength=0;
+        }
+      }
+      if (bufferindex==buffer_size)
+      {
+        // buffer full
+        if (outputFileStream.write(reinterpret_cast<char *>(bufferObjectMap), buffer_size).fail())
+        {
+            std::cout<<"error: could not write buffer"<<std::endl;
+            exit(-1);
+        }
+        bufferindex=0;
+      }
+
+    }
+    if (bufferindex!=0)
+    {
+      if (runlength!=0)
+      {
+        bufferObjectMap[bufferindex]=runlength;
+        bufferObjectMap[bufferindex+1]=CurrentObjIndex;
+        bufferindex+=2;
+      }
+      if(outputFileStream.write(reinterpret_cast<char *>(bufferObjectMap), bufferindex).fail())
+      {
+        std::cout<<"error: could not write buffer"<<std::endl;
+        exit(-1);
+      }
+    }
+#endif
+
+    unsigned char *bufferChar = (unsigned char *)buffer;
+
+    for(int i;i<sizeof(bufferChar);i++)
+    {
+      if (runlength==0)
+      {
+          CurrentObjIndex = bufferChar[i];
+          runlength=1;
+      }
+      else
+      {
+        if (CurrentObjIndex==bufferChar[i])
+        {
+          runlength++;
+          if (runlength==255)
+          {
+            bufferObjectMap[bufferindex]=runlength;
+            bufferObjectMap[bufferindex+1]=CurrentObjIndex;
+            bufferindex+=2;
+            runlength=0;
+          }
+        }
+        else
+        {
+          bufferObjectMap[bufferindex]=runlength;
+          bufferObjectMap[bufferindex+1]=CurrentObjIndex;
+          bufferindex+=2;
+          CurrentObjIndex=bufferChar[i];
           runlength=1;
         }
       }
