@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkImageIOBase.h,v $
   Language:  C++
-  Date:      $Date: 2007/03/29 18:39:27 $
-  Version:   $Revision: 1.43 $
+  Date:      $Date: 2007/07/23 12:43:50 $
+  Version:   $Revision: 1.44 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -249,6 +249,13 @@ public:
    * file specified. */
   virtual bool CanReadFile(const char*) = 0;
 
+  /** Determine if the ImageIO can stream reading from this
+      file. Default is false. */
+  virtual bool CanStreamRead()
+    {
+    return false;
+    }
+
   /** Read the spacing and dimentions of the image.
    * Assumes SetFileName has been called with a valid file name. */
   virtual void ReadImageInformation() = 0;
@@ -263,6 +270,12 @@ public:
    * file specified. */
   virtual bool CanWriteFile(const char*)  = 0;
 
+  /** Determine if the ImageIO can stream writing to this
+      file. Default is false. */
+  virtual bool CanStreamWrite()
+    {
+    return false;
+    }
 
   /** Writes the spacing and dimentions of the image.
    * Assumes SetFileName has been called with a valid file name. */

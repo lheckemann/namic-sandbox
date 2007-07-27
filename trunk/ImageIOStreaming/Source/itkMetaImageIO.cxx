@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkMetaImageIO.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/03/29 18:39:28 $
-  Version:   $Revision: 1.69 $
+  Date:      $Date: 2007/07/26 18:04:20 $
+  Version:   $Revision: 1.72 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -1372,14 +1372,16 @@ MetaImageIO
   delete []eOrigin;
 }
 
-/** Given a requested region, determine what could be the region that we can read from the file. This is called the streamable region, which will be smaller than the LargestPossibleRegion and greater or equal to the 
+/** Given a requested region, determine what could be the region that we can
+ * read from the file. This is called the streamable region, which will be
+ * smaller than the LargestPossibleRegion and greater or equal to the 
 RequestedRegion */
 ImageIORegion 
 MetaImageIO
-::GenerateStreamableReadRegionFromRequestedRegion( const ImageIORegion & requested ) const
+::GenerateStreamableReadRegionFromRequestedRegion( const ImageIORegion & itkNotUsed( requestedRegion ) ) const
 {
-  std::cout << "MetaImageIO::GenerateStreamableReadRegionFromRequestedRegion()" << std::endl;
-  std::cout << "Requested region = " << requested << std::endl;
+  // std::cout << "MetaImageIO::GenerateStreamableReadRegionFromRequestedRegion()" << std::endl;
+  // std::cout << "Requested region = " << requested << std::endl;
   //
   // The default implementations determines that the streamable region is
   // equal to the largest possible region of the image.
@@ -1391,8 +1393,7 @@ MetaImageIO
     streamableRegion.SetIndex( i, 0 );
     }
 
-  std::cout << "StreamableRegion = " << streamableRegion << std::endl;
-
+  // std::cout << "StreamableRegion = " << streamableRegion << std::endl;
   return streamableRegion;
 }
  
