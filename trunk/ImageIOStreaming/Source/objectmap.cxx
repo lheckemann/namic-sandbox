@@ -42,12 +42,12 @@ namespace itk{
     //{
     //  for (int i = 0; i < 256; i++)
     //  {
-    //    AnaylzeObjectEntryArray[i] = NULL;
+    //    m_AnaylzeObjectEntryArray[i] = NULL;
     //  }
     //}
 
     //// Setting object zero as the background
-    //AnaylzeObjectEntryArray[0] = AnalyzeObjectEntry::New();
+    //m_AnaylzeObjectEntryArray[0] = AnalyzeObjectEntry::New();
     //this->getObjectEntry(0)->SetName("Background");
     //this->getObjectEntry(0)->SetDisplayFlag(0);
     //this->getObjectEntry(0)->SetOpacity(0);
@@ -62,10 +62,14 @@ namespace itk{
   {
     /*for(int i=0; i < 256; i++)
     {
-      if(AnaylzeObjectEntryArray[i].IsNotNull())
+      if(m_AnaylzeObjectEntryArray[i].IsNotNull())
       {
-        AnaylzeObjectEntryArray[i] = NULL;
+        m_AnaylzeObjectEntryArray[i] = NULL;
       }
     }*/
+  }
+  AnalyzeObjectEntryArrayType AnalyzeObjectMap::GetAnalyzeObjectEntryArrayPointer()
+  {
+    return (this->m_AnaylzeObjectEntryArray);
   }
 }
