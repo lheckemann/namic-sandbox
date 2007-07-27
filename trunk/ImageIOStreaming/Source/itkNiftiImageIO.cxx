@@ -3,8 +3,8 @@
 Program:   Insight Segmentation & Registration Toolkit
 Module:    $RCSfile: itkNiftiImageIO.cxx,v $
 Language:  C++
-Date:      $Date: 2007/07/26 13:10:07 $
-Version:   $Revision: 1.36 $
+Date:      $Date: 2007/07/27 18:00:56 $
+Version:   $Revision: 1.37 $
 
 Copyright (c) Insight Software Consortium. All rights reserved.
 See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -311,7 +311,7 @@ void NiftiImageIO::Read(void* buffer)
   int _origin[8];
   int _size[8];
   unsigned int i;
-  for(i = 0; i < this->GetNumberOfDimensions(); i++)
+  for(i = 0; i < start.size(); i++)
     {
     _origin[i] = start[i];
     _size[i] = size[i];
@@ -327,9 +327,8 @@ void NiftiImageIO::Read(void* buffer)
   this->m_NiftiImage = nifti_image_read(m_FileName.c_str(),false);
   if (this->m_NiftiImage == NULL)
     {
-    ExceptionObject exception(__FILE__, __LINE__);
-    exception.SetDescription("Read failed");
-    throw exception;
+    itkExceptionMacro(<< "nifti_read_subregion_image failed for file: "
+                      << this->GetFileName());
     }
 
   //
@@ -484,9 +483,9 @@ void NiftiImageIO::Read(void* buffer)
       default:
         if(this->GetPixelType() == SCALAR)
           {
-          ExceptionObject exception(__FILE__, __LINE__);
-          exception.SetDescription("Datatype not supported");
-          throw exception;
+          itkExceptionMacro(<< "Datatype: "
+                            << this->GetComponentTypeAsString(m_ComponentType)
+                            << " not supported");
           }
       }
     }
@@ -550,12 +549,7 @@ void NiftiImageIO::ReadImageInformation()
     }
   if(this->m_NiftiImage == 0)
     {
-    ExceptionObject exception(__FILE__, __LINE__);
-    std::string ErrorMessage(m_FileName);
-    ErrorMessage += " is not recognized as a NIFTI file";
-    exception.SetDescription(ErrorMessage.c_str());
-    throw exception;
-
+    itkExceptionMacro(<< m_FileName << " is not recognized as a NIFTI file");
     }
   this->SetNumberOfDimensions(this->m_NiftiImage->ndim);
   switch( this->m_NiftiImage->datatype )
@@ -863,12 +857,8 @@ NiftiImageIO
   std::string::size_type ext = FName.rfind('.');
   if(ext == std::string::npos)
     {
-      ExceptionObject exception(__FILE__, __LINE__);
-      std::string ErrorMessage("Bad Nifti file name ");
-      ErrorMessage += FName;
-      exception.SetDescription(ErrorMessage.c_str());
-      throw exception;
-
+    itkExceptionMacro(<< "Bad Nifti file name. No extension found for file: "
+                      << FName);
     }
   std::string Ext = FName.substr(ext);
   //
@@ -908,11 +898,7 @@ NiftiImageIO
     }
   else
     {
-    ExceptionObject exception(__FILE__, __LINE__);
-    std::string ErrorMessage("Bad Nifti file name ");
-    ErrorMessage += FName;
-    exception.SetDescription(ErrorMessage.c_str());
-    throw exception;
+    itkExceptionMacro(<< "Bad Nifti file name: " << FName);
     }
   unsigned short dims =
     this->m_NiftiImage->ndim =
@@ -1038,11 +1024,7 @@ NiftiImageIO
     case UNKNOWNCOMPONENTTYPE:
     default:
       {
-      ExceptionObject exception(__FILE__, __LINE__);
-      std::string ErrorMessage=
-        "More than one component per pixel not supported";
-      exception.SetDescription(ErrorMessage.c_str());
-      throw exception;
+      itkExceptionMacro(<< "More than one component per pixel not supported");
       }
     }
   switch(this->GetPixelType())
@@ -1065,11 +1047,7 @@ NiftiImageIO
           break;
         default:
           {
-          ExceptionObject exception(__FILE__, __LINE__);
-          std::string ErrorMessage=
-            "Only float or double precision complex type supported";
-          exception.SetDescription(ErrorMessage.c_str());
-          throw exception;
+          itkExceptionMacro(<< "Only float or double precision complex type supported");
           }
         }
       break;
@@ -1112,6 +1090,30 @@ NiftiImageIO
       {
       dirz[i] = -this->GetDirection(2)[i];
       }
+/*  Extracted from nifti1.h line 1152
+   The DICOM attribute (0020,0037) "Image Orientation (Patient)" gives the
+   orientation of the x- and y-axes of the image data in terms of 2 3-vectors.
+   The first vector is a unit vector along the x-axis, and the second is
+   along the y-axis.  If the (0020,0037) attribute is extracted into the
+   value (xa,xb,xc,ya,yb,yc), then the first two columns of the R matrix
+   would be
+              [ -xa  -ya ]
+              [ -xb  -yb ]
+              [  xc   yc ]
+   The negations are because DICOM's x- and y-axes are reversed relative
+   to NIFTI's.  The third column of the R matrix gives the direction of
+   displacement (relative to the subject) along the slice-wise direction.
+   This orientation is not encoded in the DICOM standard in a simple way;
+   DICOM is mostly concerned with 2D images.  The third column of R will be
+   either the cross-product of the first 2 columns or its negative.  It is
+   possible to infer the sign of the 3rd column by examining the coordinates
+   in DICOM attribute (0020,0032) "Image Position (Patient)" for successive
+   slices.  However, this method occasionally fails for reasons that I
+   (RW Cox) do not understand.
+*/
+    dirx[2] = - dirx[2];
+    diry[2] = - diry[2];
+    dirz[2] = - dirz[2];
     }
   mat44 matrix =
     nifti_make_orthog_mat44(dirx[0],dirx[1],dirx[2],
@@ -1121,7 +1123,8 @@ NiftiImageIO
   // Fill in origin.
   matrix.m[0][3]=               -this->GetOrigin(0);
   matrix.m[1][3] = (dims > 1) ? -this->GetOrigin(1) : 0.0;
-  matrix.m[2][3] = (dims > 2) ? -this->GetOrigin(2) : 0.0;
+  //NOTE:  The final dimension is not negated!
+  matrix.m[2][3] = (dims > 2) ? this->GetOrigin(2) : 0.0;
 
   nifti_mat44_to_quatern(matrix,
                          &(this->m_NiftiImage->quatern_b),
