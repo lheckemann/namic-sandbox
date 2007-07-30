@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "itkObjectFactory.h"
 #include "itkObject.h"
 #include "itkByteSwapper.h"
+#include <itkMetaDataDictionary.h>
 
 
 namespace itk
@@ -177,6 +178,8 @@ namespace itk
        * THIS IS NOT ALLOWED
        */
       AnalyzeObjectMap( const AnalyzeObjectMap & rhs ) { /*Explicitly not allowed*/ };
+
+      
 
     private:
       /**

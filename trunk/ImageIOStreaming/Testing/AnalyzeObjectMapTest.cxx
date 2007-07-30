@@ -29,14 +29,15 @@
 #include "itkImage.h"
 
 #include "itkAnalyzeObjectLabelMapImageIO.h"
+#include "ImageToObjectmap.h"
 int main( int argc, char ** argv )
 {
-  /*if ( argc != 3 )
+  if ( argc != 3 )
     {
     std::cerr << "USAGE: " << argv[0] << "<inputFileName> <outputFileName>" << std::endl;
-    }*/
-  //const std::string InputObjectFileName(argv[1]);
-  //const std::string OuptputObjectFileName(argv[2]);
+    }
+  const std::string InputObjectFileName(argv[1]);
+  const std::string OuptputObjectFileName(argv[2]);
   typedef unsigned char       InputPixelType;
   typedef unsigned char       OutputPixelType;
   const   unsigned int        Dimension = 3;
@@ -47,11 +48,15 @@ int main( int argc, char ** argv )
   typedef itk::ImageFileReader< InputImageType  >  ReaderType;
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;
 
+  typedef itk::ImageToObjectMap<InputImageType> ConvertObjectType;
+
+  ConvertObjectType::Pointer ImageConvertor = ConvertObjectType::New();;
+
   ReaderType::Pointer reader = ReaderType::New();
   WriterType::Pointer writer = WriterType::New();
 
-  //reader->SetFileName( InputObjectFileName);
-  reader->SetFileName("C:/Documents and Settings/woofton/Desktop/imageIOStreaming/Testing/Data/Input/test.obj");
+  reader->SetFileName( InputObjectFileName);
+  //reader->SetFileName("C:/Documents and Settings/woofton/Desktop/imageIOStreaming/Testing/Data/Input/test.obj");
    try
     {
     reader->Update();
@@ -64,7 +69,8 @@ int main( int argc, char ** argv )
     }
 
   InputImageType::Pointer IsOurDataCorrect = reader->GetOutput();
-  //itk::AnalyzeObjectMap::Pointer = itkTOAnaylzeObjectMap(reader->GetOutput());
+  //ImageConvertor->TransformImage(reader->GetOutput());
+  //itk::AnalyzeObjectMap::Pointer = ItkImageToAnaylzeObjectMap(reader->GetOutput());
 
   //writer->SetFileName(OuptputObjectFileName);
   //writer->SetFileName("objectLabelTest2.obj");
