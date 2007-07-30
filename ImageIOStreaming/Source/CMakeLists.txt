@@ -12,6 +12,7 @@ SET(ITKIO_SRCS
   itkImageIORegion.cxx
   objectentry.cxx
   objectmap.cxx
+  ImageToObjectmap.cxx
 )
 
 # Add ITKIO library

@@ -72,4 +72,5 @@ namespace itk{
   {
     return &(this->m_AnaylzeObjectEntryArray);
   }
+
 }
