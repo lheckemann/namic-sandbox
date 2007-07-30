@@ -1,45 +1,52 @@
+#ifndef __ImageToObjectMap_h
+#define __ImageToObjectMap_h
+
 #include "itkImageSource.h"
 #include <itkMetaDataObject.h>
 #include "objectmap.h"
 #include "itkImage.h"
 #include "itkExceptionObject.h"
+#include <itkObjectfactory.h>
+#include <itkImageIterator.h>
+
 
 namespace itk
 {
 
-template <class ConvertImage>
+template <class TConvertImage>
 
-class ITK_EXPORT ImageToObjectMap : public ProcessObject
+class ITK_EXPORT ImageToObjectMap : public ImageSource<TConvertImage>
 {
 
   public:
   /** Standard class typedefs */
-  typedef ImageToObjectMap               Self;
-  typedef ProcessObject  Superclass;
+  typedef ImageToObjectMap    Self;
+  typedef ImageSource<TConvertImage>       Superclass;
   typedef SmartPointer<Self>  Pointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  typedef ConvertImage InputImageType;
-  //typedef SmartPointer<const Self>  ConstPointer;
-
-  
-
   /** Run-time type information (and related methods). */
   itkTypeMacro(ImageToObjectMap, ImageSource);
 
-  void TransformImage(InputImageType *image);
+  typedef TConvertImage InputImageType;
+  //typedef SmartPointer<const Self>  ConstPointer;
 
-  
+  static void TransformImage(InputImageType *image);
 
 protected:
   ImageToObjectMap();
 ~ImageToObjectMap();
 
 private:
-  ImageToObjectMap(const Self&); //purposely not implemented
+  //ImageToObjectMap(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
   
 };
 }
+
+#ifndef ITK_MANUAL_INSTANTIATION
+#include "ImageToObjectmap.cxx"
+#endif
+#endif
