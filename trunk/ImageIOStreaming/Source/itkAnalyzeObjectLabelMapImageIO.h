@@ -30,15 +30,17 @@ PURPOSE.  See the above copyright notices for more information.
 #include "objectmap.h"
 #include "objectentry.h"
 
+#include "ImageToObjectmap.h"
+
 namespace itk
 {
-
 /** \class AnalyzeObjectLabelMapImageIO
  *
  */
 class ITK_EXPORT AnalyzeObjectLabelMapImageIO : public ImageIOBase
 {
 public:
+  
   /** Standard class typedefs. */
   typedef AnalyzeObjectLabelMapImageIO       Self;
   typedef ImageIOBase        Superclass;

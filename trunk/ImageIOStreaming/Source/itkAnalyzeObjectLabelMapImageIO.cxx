@@ -415,6 +415,39 @@ AnalyzeObjectLabelMapImageIO
       exit(-1);
     }
 
+    if(this->GetNumberOfDimensions() == 4)
+    {
+     typedef itk::Image< unsigned char,  4 > InputImageType;
+     typedef itk::ImageToObjectMap<InputImageType> ImageToObjectMapType;
+     ImageToObjectMapType::Pointer imageToObjectMap = ImageToObjectMapType::New();
+    }
+    else if(this->GetNumberOfDimensions() == 3)
+    {
+      typedef itk::Image< unsigned char,  3 >    InputImageType;
+      typedef itk::ImageToObjectMap<InputImageType> ImageToObjectMapType;
+      ImageToObjectMapType::Pointer imageToObjectMap = ImageToObjectMapType::New();
+    }
+    else if(this->GetNumberOfDimensions() == 2)
+    {
+      typedef itk::Image< unsigned char,  2 >    InputImageType;
+      typedef itk::ImageToObjectMap<InputImageType> ImageToObjectMapType;
+      ImageToObjectMapType::Pointer imageToObjectMap = ImageToObjectMapType::New();
+    }
+    else if(this->GetNumberOfDimensions() == 1)
+    {
+      typedef itk::Image< unsigned char,  1 >    InputImageType;
+      typedef itk::ImageToObjectMap<InputImageType> ImageToObjectMapType;
+      ImageToObjectMapType::Pointer imageToObjectMap = ImageToObjectMapType::New();
+    }
+    else
+    {
+      std::cout<<"Error: Can not take care of the Dimensions of the image"<<std::endl;
+      exit(-1);
+    }
+    //imageToObjectMap->TransformImage(this->geti);
+    
+
+
     int header[6];
     header[0]=VERSION7;
     header[1]=this->GetDimensions(0);
