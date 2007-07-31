@@ -7,7 +7,7 @@
 #include "itkImage.h"
 #include "itkExceptionObject.h"
 #include <itkObjectfactory.h>
-#include <itkImageIterator.h>
+#include <itkImageRegionIterator.h>
 
 
 namespace itk
@@ -33,7 +33,7 @@ class ITK_EXPORT ImageToObjectMap : public ImageSource<TConvertImage>
   typedef TConvertImage InputImageType;
   //typedef SmartPointer<const Self>  ConstPointer;
 
-  static void TransformImage(InputImageType *image);
+  itk::AnalyzeObjectMap * TransformImage(InputImageType *image);
 
 protected:
   ImageToObjectMap();
@@ -42,6 +42,8 @@ protected:
 private:
   //ImageToObjectMap(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
+
+  itk::AnalyzeObjectMap::Pointer ObjectMap;
   
 };
 }

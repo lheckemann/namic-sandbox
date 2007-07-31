@@ -30,7 +30,6 @@
 
 #include "itkAnalyzeObjectLabelMapImageIO.h"
 #include <ImageToObjectmap.h>
-#include "Test.h"
 int main( int argc, char ** argv )
 {
   if ( argc != 3 )
@@ -48,12 +47,9 @@ int main( int argc, char ** argv )
 
   typedef itk::ImageFileReader< InputImageType  >  ReaderType;
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;
-  typedef itk::Test<InputImageType > Bill;
+  typedef itk::ImageToObjectMap<InputImageType> ImageToObjectMapType;
 
-  Bill::Pointer biff = Bill::New();
-  typedef itk::ImageToObjectMap<InputImageType> Bop;
-
-  Bop::Pointer bipp = Bop::New();
+  ImageToObjectMapType::Pointer ImageToObjectConvertor = ImageToObjectMapType::New();
 
   ReaderType::Pointer reader = ReaderType::New();
   WriterType::Pointer writer = WriterType::New();
@@ -71,7 +67,7 @@ int main( int argc, char ** argv )
     return EXIT_FAILURE;
     }
 
-  Bop::TransformImage(reader->GetOutput());
+  itk::AnalyzeObjectMap::Pointer ObjectMap = ImageToObjectConvertor->TransformImage(reader->GetOutput());
   //bipp->TrasformImage(reader->GetOutput());
 
   //InputImageType::Pointer IsOurDataCorrect = reader->GetOutput();

@@ -27,43 +27,24 @@ ImageToObjectMap<TConvertImage>
 
 
 template<class TConvertImage>
-void
+itk::AnalyzeObjectMap *
 ImageToObjectMap<TConvertImage>
 ::TransformImage(InputImageType *image)
 {
-//  itk::MetaDataObjectBase::Pointer lib = itk::MetaDataObjectBase::New();
+  this->ObjectMap = itk::AnalyzeObjectMap::New();
+  this->ObjectMap->SetRegions(image->GetLargestPossibleRegion());
+  this->ObjectMap->Allocate();
+  itk::ImageRegionIterator<TConvertImage> ImageIndexIT(image, image->GetLargestPossibleRegion());
+  itk::ImageRegionIterator<TConvertImage> ObjectmapIndexIT(this->ObjectMap, image->GetLargestPossibleRegion());
+  for(ImageIndexIT.GoToBegin(); !ImageIndexIT.IsAtEnd(); ++ImageIndexIT, ++ObjectmapIndexIT)
+  {
+    this->ObjectMap->SetPixel(ImageIndexIT.GetIndex(), ImageIndexIT.Get());
+    //ObjectmapIndexIT.Set(ImageIndexIT.Get());
+  }
+  itk::AnalyzeObjectEntryArrayType *my_reference = this->ObjectMap->GetAnalyzeObjectEntryArrayPointer();
+  itk::ExposeMetaData<itk::AnalyzeObjectEntryArrayType>(image->GetMetaDataDictionary(),ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY, *my_reference);
 
-  //itk::MetaDataDictionary data = image->GetMetaDataDictionary();
-  //itk::AnalyzeObjectMap::Pointer objectMap = itk::AnalyzeObjectMap::New();
-  //std::vector<std::string> stringData = data.GetKeys();
-  //itk::AnalyzeObjectEntryArrayType my_reference=data.GetKeys()[1][2];//objectMap->GetAnalyzeObjectEntryArrayPointer();
-  //my_reference = data.GetKeys();
-//  data::Iterator iteratorForData;
-//  itk::ImageIterator<TConvertImage> bob = data->Begin();
-  //itk::ImageIterator<TConvertImage> ImageIteratorType;
-  //int i = data.Begin();
-  //data.Find("ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY");
-  //typedef itk::MetaDataDictionary::Iterator dataIterator = data.Begin();
-  //dataIterator = data.Begin();
-  //dataIterator
-  //data::Iterator piff;
-  //dataIterator::Pointer = dataIterator::New();
-  //= data->Begin();
-  //itk::AnalyzeObjectMap *ObjectMap = itk::AnalyzeObjectMap::New();
-
-  //for(int i=0, data.Begin();!data.End();++data, i++)
-  //{
-  //  ObjectMap->getObjectEntry(i) = data; 
-  //}
-  //itk::ImageRegionIterator<ConvertImage > indexIt(image,image->GetLargetRegion());
-  //itk::ImageRegionIterator<itk::Image<unsigned char,image->GetDimensions() > > indexObjectMap(ObjectMap,image->GetLargetRegion());
-
-  //for(indexIt->GoToBegin();!indexIt->IsAtEnd(); ++indexIt, ++indexObjectMap)
-  //{
-  //  indexObjectMap->Set(indexIt->Get());
-  //}
-
-
+  return this->ObjectMap;
 }
 
 
