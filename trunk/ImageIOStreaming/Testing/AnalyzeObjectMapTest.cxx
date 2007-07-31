@@ -68,26 +68,20 @@ int main( int argc, char ** argv )
     }
 
   itk::AnalyzeObjectMap::Pointer ObjectMap = ImageToObjectConvertor->TransformImage(reader->GetOutput());
-  //bipp->TrasformImage(reader->GetOutput());
 
-  //InputImageType::Pointer IsOurDataCorrect = reader->GetOutput();
-//  itk::ImageToObjectMap<InputImageType>::TransformImage(reader->GetOutput());
-  //ImageConvertor->TransformImage(reader->GetOutput());
-  //itk::AnalyzeObjectMap::Pointer = ItkImageToAnaylzeObjectMap(reader->GetOutput());
-
-  //writer->SetFileName(OuptputObjectFileName);
+  writer->SetFileName(OuptputObjectFileName);
   //writer->SetFileName("objectLabelTest2.obj");
-  //writer->SetInput(reader->GetOutput());
-  //try
-  //  {
-  //  writer->Update();
-  //  }
-  //catch( itk::ExceptionObject & err )
-  //  {
-  //  std::cerr << "ExceptionObject caught !" << std::endl;
-  //  std::cerr << err << std::endl;
-  //  return EXIT_FAILURE;
-  //  }
+  writer->SetInput(reader->GetOutput());
+  try
+    {
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    std::cerr << "ExceptionObject caught !" << std::endl;
+    std::cerr << err << std::endl;
+    return EXIT_FAILURE;
+    }
 
   //reader->SetFileName("objectLabelTest2.obj");
   //reader->Update();

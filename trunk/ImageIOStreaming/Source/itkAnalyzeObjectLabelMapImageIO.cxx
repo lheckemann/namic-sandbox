@@ -74,7 +74,10 @@ bool AnalyzeObjectLabelMapImageIO::CanWriteFile(const char * FileNameToWrite)
 
 
 void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
-{
+{  
+
+
+  
   std::ifstream inputFileStream;
     inputFileStream.open(m_FileName.c_str(), std::ios::binary | std::ios::in);
     if ( !inputFileStream.is_open())
@@ -138,12 +141,65 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     int index=0;
     int voxel_count_sum=0;
     char *tobuf = (char *)buffer;
+
+  //    ImageIORegion regionToRead = this->GetIORegion();
+  //ImageIORegion::SizeType size = regionToRead.GetSize();
+  //ImageIORegion::IndexType start = regionToRead.GetIndex();
+  //const int DimensionSize = regionToRead.GetImageDimension();
+  //int dimensions[4] = {1};
+  //int startPoint[4] = {1};
+  //for(int i = 0; i<4; i ++)
+  //{
+  //  dimensions[i] = regionToRead.GetSize(i);
+  //  startPoint[i] = regionToRead.GetIndex(i);
+  //}
+  //  int xDim = 1;
+  //  int yDim = 1;
+  //  int zDim = 1;
+  //  switch (regionToRead.GetImageDimension())
+  //  {
+  //    case 3:
+  //      zDim = regionToRead.GetSize(2);
+  //    case 2:
+  //      yDim = regionToRead.GetSize(1);
+  //    case 1:
+  //      xDim = regionToRead.GetSize(0);
+  //      break;
+  //    default:
+  //      break;
+  //  }
+
+    /*const int numberOfBytesToRead = 2 * startPoint[0] * startPoint[1] * startPoint[2];
+        int *cornersOfRegion;
+        cornersOfRegion = new int(numberOfBytesToRead);
+        for(int i = 1; i <zDim+1; i++)
+        {
+          for(int j = 1; j<(2 * startPoint[0] * startPoint[1] * startPoint[2]); j++)
+          {
+            if((j-1)%2 != 2 && j!=1)
+            {
+              cornersOfRegion[j] = (startPoint[0] * startPoint[1] * startPoint[2] + xDim * (j/2) + startPoint[1] + (j-1)/2) * i;
+            }
+            else if(j%2 != 2)
+            {
+              cornersOfRegion[j] = (startPoint[0] * startPoint[1] * startPoint[2] + xDim * (j/2)) * i;
+            }
+            else
+            {
+              cornersOfRegion[0] = startPoint[0] * startPoint[1] * startPoint[2]; 
+            }
+          }
+        }
+        std::cout<<"Can not deal with the image size right now"<<std::endl;*/
     const int VolumeSize=this->m_AnalyzeObjectLabelMapImage->GetXDim() * this->m_AnalyzeObjectLabelMapImage->GetYDim() * this->m_AnalyzeObjectLabelMapImage->GetZDim() *this->m_AnalyzeObjectLabelMapImage->GetNumberOfVolumes();
+    //const int VolumeSize = zDim * yDim *xDim;
     {
       std::ofstream myfile;
       myfile.open("VoxelInformation15.txt", myfile.app);
+      int n= 0;
       while (!inputFileStream.read(reinterpret_cast<char *>(RunLengthArray), sizeof(RunLengthElement)*NumberOfRunLengthElementsPerRead).eof())
       {
+        n++;
         for (int i = 0; i < NumberOfRunLengthElementsPerRead; i++)
         {
            myfile<< "Assigning: " << (int)RunLengthArray[i].voxel_count 
@@ -174,8 +230,10 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
         }
       }
       myfile.close();
+      n++;
     }
 
+        
     if (index != VolumeSize)
     {
       std::cout<< "Warning: Error decoding run-length encoding."<<std::endl;
@@ -190,6 +248,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
       //return false;
     }
 
+    //cornersOfRegion
     inputFileStream.close();
 }
 
@@ -385,10 +444,6 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
       (*my_reference)[i] = AnalyzeObjectEntry::New();
       (*my_reference)[i]->ReadFromFilePointer(inputFileStream,NeedByteSwap, NeedBlendFactor);
     }
-
-  //      MetaDataDictionary &thisDic=this->GetMetaDataDictionary();
-  //std::string objectEntry(this->AnaylzeObjectEntryArray);
-  //EncapsulateMetaData<std::string>(thisDic,ITK_InputFilterName, objectEntry);
     //myfile.close();
     inputFileStream.close();
     //Now fill out the MetaDataHeader
@@ -414,46 +469,14 @@ AnalyzeObjectLabelMapImageIO
       std::cout<<"Error: Could not open "<< tempfilename.c_str()<<std::endl;
       exit(-1);
     }
-
-    if(this->GetNumberOfDimensions() == 4)
-    {
-     typedef itk::Image< unsigned char,  4 > InputImageType;
-     typedef itk::ImageToObjectMap<InputImageType> ImageToObjectMapType;
-     ImageToObjectMapType::Pointer imageToObjectMap = ImageToObjectMapType::New();
-    }
-    else if(this->GetNumberOfDimensions() == 3)
-    {
-      typedef itk::Image< unsigned char,  3 >    InputImageType;
-      typedef itk::ImageToObjectMap<InputImageType> ImageToObjectMapType;
-      ImageToObjectMapType::Pointer imageToObjectMap = ImageToObjectMapType::New();
-    }
-    else if(this->GetNumberOfDimensions() == 2)
-    {
-      typedef itk::Image< unsigned char,  2 >    InputImageType;
-      typedef itk::ImageToObjectMap<InputImageType> ImageToObjectMapType;
-      ImageToObjectMapType::Pointer imageToObjectMap = ImageToObjectMapType::New();
-    }
-    else if(this->GetNumberOfDimensions() == 1)
-    {
-      typedef itk::Image< unsigned char,  1 >    InputImageType;
-      typedef itk::ImageToObjectMap<InputImageType> ImageToObjectMapType;
-      ImageToObjectMapType::Pointer imageToObjectMap = ImageToObjectMapType::New();
-    }
-    else
-    {
-      std::cout<<"Error: Can not take care of the Dimensions of the image"<<std::endl;
-      exit(-1);
-    }
-    //imageToObjectMap->TransformImage(this->geti);
-    
-
-
+    itk::AnalyzeObjectEntryArrayType my_reference;
+    itk::ExposeMetaData<itk::AnalyzeObjectEntryArrayType>(this->GetMetaDataDictionary(),ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY, my_reference);
     int header[6];
     header[0]=VERSION7;
     header[1]=this->GetDimensions(0);
     header[2]=this->GetDimensions(1);
     header[3]=this->GetDimensions(2);
-    header[4]=10;//this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects();
+    header[4]=my_reference.size();
     header[5]=1;
 
     //All object maps are written in BigEndian format as required by the AnalyzeObjectMap documentation.
@@ -475,21 +498,21 @@ AnalyzeObjectLabelMapImageIO
       std::cout<<"Error: Could not write header of "<< tempfilename.c_str()<<std::endl;
       exit(-1);
     }
-#if 0
+
     // Error checking the number of objects in the object file
-    if ((this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() < 0) || (this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() > 255))
+    if ((my_reference.size() < 0) || (my_reference.size() > 255))
     {
       std::cout<<( stderr, "Error: Invalid number of object files.\n" );
       outputFileStream.close();
     }
+  
 
-
-    // Since the NumberOfObjects does not reflect the background, the background will be included
-    for (int i = 0; i < this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects(); i++)
+  // Since the NumberOfObjects does not reflect the background, the background will be included
+    for (int i = 0; i < my_reference.size(); i++)
     {
       // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
       // not affect the current object itself
-      AnalyzeObjectEntry *ObjectWrite = this->AnaylzeObjectEntryArray[i];
+      AnalyzeObjectEntry *ObjectWrite = my_reference[i];
       if (NeedByteSwap == true)
       {
         ObjectWrite->SwapObjectEndedness();
@@ -497,7 +520,6 @@ AnalyzeObjectLabelMapImageIO
       ObjectWrite->Write(outputFileStream); 
 
     }
-#endif
 
   outputFileStream.close();
 }
@@ -515,13 +537,18 @@ AnalyzeObjectLabelMapImageIO
   std::string tempfilename = this->GetFileName();
   // Opening the file
     std::ofstream outputFileStream;
-    outputFileStream.open(tempfilename.c_str(), std::ios::binary | std::ios::out);
+    outputFileStream.open(tempfilename.c_str(), std::ios::binary | std::ios::out | std::ios::app);
     if ( !outputFileStream.is_open())
     {
       std::cout<<"Error: Could not open "<< tempfilename.c_str()<<std::endl;
       exit(-1);
     }
-    int setPointerOfInputImage = 24 + 10*152;//this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() * 152;;
+    itk::AnalyzeObjectEntryArrayType my_reference;
+    itk::ExposeMetaData<itk::AnalyzeObjectEntryArrayType>(this->GetMetaDataDictionary(),ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY, my_reference);
+    //int setPointerOfInputImage = 24 + (my_reference.size())*152;//this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() * 152;;
+    
+    //outputFileStream.seekp(1550);
+    
 
   // Encoding the run length encoded raw data into an unsigned char volume
     const int VolumeSize=this->GetDimensions(0)*this->GetDimensions(1)*this->GetDimensions(2);
@@ -534,8 +561,9 @@ AnalyzeObjectLabelMapImageIO
     unsigned char bufferObjectMap[buffer_size];
 
     unsigned char *bufferChar = (unsigned char *)buffer;
+    std::cout<<"Size of bufferChar: "<<sizeof(buffer);
 
-    for(int i=0;i<sizeof(bufferChar);i++)
+    for(int i=0;i<VolumeSize;i++)
     {
       if (runlength==0)
       {
