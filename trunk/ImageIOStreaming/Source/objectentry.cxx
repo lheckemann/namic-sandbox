@@ -37,6 +37,157 @@ AnalyzeObjectEntry::AnalyzeObjectEntry( const AnalyzeObjectEntry & rhs )
 {
 //Copy construction is not allowed, so no need to fill this code in.
 }
+AnalyzeObjectEntry::~AnalyzeObjectEntry( void )
+{
+  //if(this->m_Name)
+  //{
+  //  this->m_Name = "";
+  //}
+  if(this->m_DisplayFlag)
+  {
+    this->m_DisplayFlag = NULL;
+  }  
+  if(this->m_CopyFlag)
+  {
+    this->m_CopyFlag = NULL;
+  }
+  if(this->m_MirrorFlag)
+  {
+    this->m_MirrorFlag = NULL;
+  }
+  if(this->m_StatusFlag)
+  {
+    this->m_StatusFlag = NULL;
+  }
+  if(this->m_NeighborsUsedFlag)
+  {
+    this->m_NeighborsUsedFlag = NULL;
+  }
+  if(this->m_Shades)
+  {
+    this->m_Shades = NULL;
+  }
+  if(this->m_StartRed)
+  {
+    this->m_StartRed = NULL;
+  }
+  if(this->m_StartGreen)
+  {
+    this->m_StartGreen = NULL;
+  }
+  if(this->m_StartBlue)
+  {
+    this->m_StartBlue = NULL;
+  }
+  if(this->m_EndRed)
+  {
+    this->m_EndRed = NULL;
+  }
+  if(this->m_EndGreen)
+  {
+    this->m_EndGreen = NULL;
+  }
+  if(this->m_EndBlue)
+  {
+    this->m_EndBlue = NULL;
+  }
+  if(this->m_XRotation)
+  {
+    this->m_XRotation = NULL;
+  }
+  if(this->m_YRotation)
+  {
+    this->m_YRotation = NULL;
+  }
+  if(this->m_ZRotation)
+  {
+    this->m_ZRotation = NULL;
+  }
+  if(this->m_XTranslation)
+  {
+    this->m_XTranslation = NULL;
+  }
+  if(this->m_YTranslation)
+  {
+    this->m_YTranslation = NULL;
+  }
+  if(this->m_ZTranslation)
+  {
+    this->m_ZTranslation = NULL;
+  }
+  if(this->m_XCenter)
+  {
+    this->m_XCenter = NULL;
+  }
+  if(this->m_YCenter)
+  {
+    this->m_YCenter = NULL;
+  }
+  if(this->m_ZCenter)
+  {
+    this->m_ZCenter = NULL;
+  }
+  if(this->m_XRotationIncrement)
+  {
+    this->m_XRotationIncrement = NULL;
+  }
+  if(this->m_YRotationIncrement)
+  {
+    this->m_YRotationIncrement = NULL;
+  }
+  if(this->m_ZRotationIncrement)
+  {
+    this->m_ZRotationIncrement = NULL;
+  }
+  if(this->m_XTranslationIncrement)
+  {
+    this->m_XTranslationIncrement = NULL;
+  }
+  if(this->m_YTranslationIncrement)
+  {
+    this->m_YTranslationIncrement = NULL;
+  }
+  if(this->m_ZTranslationIncrement)
+  {
+    this->m_ZTranslationIncrement = NULL;
+  }
+  if(this->m_MinimumXValue)
+  {
+    this->m_MinimumXValue = NULL;
+  }
+  if(this->m_MinimumYValue)
+  {
+    this->m_MinimumYValue = NULL;
+  }
+  if(this->m_MinimumZValue)
+  {
+    this->m_MinimumZValue = NULL;
+  }
+  if(this->m_MaximumXValue)
+  {
+    this->m_MaximumXValue = NULL;
+  }
+  if(this->m_MaximumYValue)
+  {
+    this->m_MaximumYValue = NULL;
+  }
+  if(this->m_MaximumZValue)
+  {
+    this->m_MaximumZValue = NULL;
+  }
+  if(this->m_Opacity)
+  {
+    this->m_Opacity = NULL;
+  }
+  if(this->m_OpacityThickness)
+  {
+    this->m_OpacityThickness = NULL;
+  }
+  if(this->m_BlendFactor)
+  {
+    this->m_BlendFactor = NULL;
+  }
+}
 
 AnalyzeObjectEntry::AnalyzeObjectEntry( void )
 {
