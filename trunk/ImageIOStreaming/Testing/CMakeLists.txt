@@ -59,6 +59,8 @@ ADD_TEST( ImageIOStreamingCreateAnalyzeObjectLabelMapTest01
 ADD_TEST( ImageIOStreamingAnalyzeObjectLabelMapTest01
    ${ImageIOStreamingTest_BINARY_DIR}/AnalyzeObjectMapTest
    ${TEST_DATA_ROOT}/test.obj
+   ${TESTING_OUTPUT_DIR}/objectLabelTest.obj
+   ${TEST_DATA_ROOT}/2dtest.nii
    )
 
 
