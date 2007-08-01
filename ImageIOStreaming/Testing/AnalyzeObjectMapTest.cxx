@@ -33,12 +33,13 @@
 int main( int argc, char ** argv )
 {
   int error_count = 0;
-  if ( argc != 3 )
+  if ( argc != 4 )
     {
-    std::cerr << "USAGE: " << argv[0] << "<inputFileName> <outputFileName>" << std::endl;
+    std::cerr << "USAGE: " << argv[0] << "<inputFileName> <outputFileName> <Nifti file>" << std::endl;
     }
   const char *InputObjectFileName = argv[1];
   const char *OuptputObjectFileName = argv[2];
+  const char *NiftiFile = argv[3];
   typedef unsigned char       InputPixelType;
   typedef unsigned char       OutputPixelType;
   const   unsigned int        Dimension = 3;
@@ -53,6 +54,7 @@ int main( int argc, char ** argv )
   ImageToObjectMapType::Pointer ImageToObjectConvertor = ImageToObjectMapType::New();
 
   ReaderType::Pointer reader = ReaderType::New();
+  ReaderType::Pointer readerTwo = ReaderType::New();
   WriterType::Pointer writer = WriterType::New();
 
   reader->SetFileName( InputObjectFileName);
@@ -120,6 +122,37 @@ int main( int argc, char ** argv )
 
   ReferenceFile.close();
   WrittenFile.close();
+
+  readerTwo->SetFileName(NiftiFile);
+  try
+    {
+    readerTwo->Update();
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    std::cerr << "ExceptionObject caught !" << std::endl;
+    std::cerr << err << std::endl;
+    return EXIT_FAILURE;
+    }
+  itk::AnalyzeObjectMap::Pointer CreateObjectMap = itk::AnalyzeObjectMap::New();
+
+  CreateObjectMap->AddObjectBasedOnImagePixel(reader->GetOutput(), 200, "Square");
+  CreateObjectMap->AddObjectBasedOnImagePixel(reader->GetOutput(), 128, "Circle");
+  CreateObjectMap->PlaceObjectMapEntriesIntoMetaData();
+
+  writer->SetInput(CreateObjectMap);
+  writer->SetFileName("CreatingObjectMap.obj");
+
+  try
+    {
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    std::cerr << "ExceptionObject caught !" << std::endl;
+    std::cerr << err << std::endl;
+    return EXIT_FAILURE;
+    }
 
   if( error_count )
   {
