@@ -118,12 +118,14 @@ namespace itk{
     {
       return;
     }
-    for(int j = i; j < this->GetNumberOfObjects()-1; j++)
+    for(int j = i-1; j < this->GetNumberOfObjects()-1; j++)
     {
       this->m_AnaylzeObjectEntryArray[j] = this->m_AnaylzeObjectEntryArray[j+1];
     }
-    this->m_AnaylzeObjectEntryArray[this->GetNumberOfObjects()]->Delete();
+    
+    this->m_AnaylzeObjectEntryArray.erase(this->m_AnaylzeObjectEntryArray.end()-1);
     this->SetNumberOfObjects(this->GetNumberOfObjects()-1);
+    this->m_AnaylzeObjectEntryArray.resize(this->GetNumberOfObjects());
     itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexIt(this,this->GetLargestPossibleRegion());
     for(indexIt.Begin();!indexIt.IsAtEnd(); ++indexIt)
     {

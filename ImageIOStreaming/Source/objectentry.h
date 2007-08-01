@@ -88,7 +88,7 @@ namespace itk{
        * - unknown
        * \sa AnalyzeObjectEntry
        */
-      virtual ~AnalyzeObjectEntry( void ) { }
+      virtual ~AnalyzeObjectEntry( void );
 
       /**
        * \brief operator= is the assignment operator, which copies the data values on the

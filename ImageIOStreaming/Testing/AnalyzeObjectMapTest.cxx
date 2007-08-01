@@ -154,6 +154,8 @@ int main( int argc, char ** argv )
     return EXIT_FAILURE;
     }
 
+  CreateObjectMap->DeleteObject("Square");
+
   if( error_count )
   {
   return EXIT_FAILURE;
