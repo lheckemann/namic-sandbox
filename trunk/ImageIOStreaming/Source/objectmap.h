@@ -167,6 +167,8 @@ namespace itk
       itkSetMacro(NumberOfVolumes, int);
       itkGetConstMacro(NumberOfVolumes, int);
 
+      void AddObjectBasedOnImagePixel(itk::Image<unsigned char, 3>::Pointer Image);
+
       void AddObject();
 
       void DeleteObject(std::string ObjectName);

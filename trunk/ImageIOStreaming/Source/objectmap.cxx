@@ -40,7 +40,7 @@ namespace itk{
   {
     this->SetNumberOfObjects(0);
     this->SetNumberOfVolumes(0);
-    this->SetVersion(VERISON7);
+    this->SetVersion(VERSION7);
     this->SetXDim(0);
     this->SetYDim(0);
     this->SetZDim(0);
@@ -77,6 +77,10 @@ namespace itk{
   AnalyzeObjectEntryArrayType *AnalyzeObjectMap::GetAnalyzeObjectEntryArrayPointer()
   {
     return &(this->m_AnaylzeObjectEntryArray);
+  }
+
+  void AnalyzeObjectMap::AddObjectBasedOnImagePixel(itk::Image<unsigned char, 3>::Pointer Image)
+  {
   }
 
   /*NOTE: This function will add an object entry to the end of the vector.  However, you will still have to fill in the values that you would like stored.
