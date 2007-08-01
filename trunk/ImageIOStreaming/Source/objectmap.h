@@ -38,6 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "itkObject.h"
 #include "itkByteSwapper.h"
 #include <itkMetaDataDictionary.h>
+#include "itkMetaDataObject.h"
 
 
 namespace itk
@@ -167,13 +168,15 @@ namespace itk
       itkSetMacro(NumberOfVolumes, int);
       itkGetConstMacro(NumberOfVolumes, int);
 
-      void AddObjectBasedOnImagePixel(itk::Image<unsigned char, 3>::Pointer Image);
+      void AddObjectBasedOnImagePixel(itk::Image<unsigned char, 3>::Pointer Image,unsigned char value, std::string ObjectName);
 
-      void AddObject();
+      void AddObject(std::string ObjectName);
 
       void DeleteObject(std::string ObjectName);
 
       int FindObject(std::string ObjectName);
+
+      void PlaceObjectMapEntriesIntoMetaData();
 
      protected:
        /**

@@ -79,15 +79,34 @@ namespace itk{
     return &(this->m_AnaylzeObjectEntryArray);
   }
 
-  void AnalyzeObjectMap::AddObjectBasedOnImagePixel(itk::Image<unsigned char, 3>::Pointer Image)
+  void AnalyzeObjectMap::AddObjectBasedOnImagePixel(itk::Image<unsigned char, 3>::Pointer Image, unsigned char value, std::string ObjectName)
   {
+    itk::ImageRegion<3> ObjectMapRegion = this->GetLargestPossibleRegion();
+    itk::ImageRegion<3> ImageRegion = Image->GetLargestPossibleRegion();
+    if(  !ImageRegion.IsInside(ObjectMapRegion))
+    {
+      this->SetRegions(Image->GetLargestPossibleRegion());
+      this->Allocate();
+    }
+    itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexObjectMap(this,Image->GetLargestPossibleRegion());
+    itk::ImageRegionIterator<itk::Image<unsigned char,3>> indexImage(Image, Image->GetLargestPossibleRegion());
+    this->AddObject(ObjectName);
+    int i = this->GetNumberOfObjects();
+    for(indexImage.Begin();!indexImage.IsAtEnd(); ++indexImage, ++indexObjectMap)
+    {
+      if(indexImage.Get() == value)
+      {
+        indexObjectMap.Set(i);
+      }
+    }
   }
 
   /*NOTE: This function will add an object entry to the end of the vector.  However, you will still have to fill in the values that you would like stored.
   TODO: Rastor through the image to place the value at the specifed locations.*/
-  void AnalyzeObjectMap::AddObject()
+  void AnalyzeObjectMap::AddObject(std::string ObjectName)
   {
-    this->m_AnaylzeObjectEntryArray[this->GetNumberOfObjects()+1] = itk::AnalyzeObjectEntry::New();
+    this->m_AnaylzeObjectEntryArray.insert(this->m_AnaylzeObjectEntryArray.end(), itk::AnalyzeObjectEntry::New());
+    this->m_AnaylzeObjectEntryArray[this->GetNumberOfObjects()]->SetName(ObjectName);
     this->SetNumberOfObjects(this->GetNumberOfObjects()+1);
   }
 
@@ -130,6 +149,14 @@ namespace itk{
     }
     //If not found return -1
     return -1;
+  }
+
+  void AnalyzeObjectMap::PlaceObjectMapEntriesIntoMetaData()
+  {
+    itk::AnalyzeObjectEntryArrayType *my_reference=this->GetAnalyzeObjectEntryArrayPointer();
+
+    MetaDataDictionary &thisDic=this->GetMetaDataDictionary();
+    itk::EncapsulateMetaData<itk::AnalyzeObjectEntryArrayType>(thisDic,ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY,*my_reference);
   }
 
 }
