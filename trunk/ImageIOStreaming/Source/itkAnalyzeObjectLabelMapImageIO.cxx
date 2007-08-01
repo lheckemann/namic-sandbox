@@ -126,7 +126,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     this->m_AnalyzeObjectLabelMapImage->Allocate();
 
     // Decoding the run length encoded raw data into an unsigned char volume
-    itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexIt(this->m_AnalyzeObjectLabelMapImage,this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion());
+    //itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexIt(this->m_AnalyzeObjectLabelMapImage,this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion());
     struct RunLengthStruct {
         unsigned char voxel_count;
         unsigned char voxel_value;
@@ -140,7 +140,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
 
     int index=0;
     int voxel_count_sum=0;
-    char *tobuf = (char *)buffer;
+    unsigned char *tobuf = (unsigned char *)buffer;
 
   //    ImageIORegion regionToRead = this->GetIORegion();
   //ImageIORegion::SizeType size = regionToRead.GetSize();
@@ -195,7 +195,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     //const int VolumeSize = zDim * yDim *xDim;
     {
       std::ofstream myfile;
-      myfile.open("VoxelInformation15.txt", myfile.app);
+      myfile.open("VoxelInformation16.txt", myfile.app);
       int n= 0;
       while (!inputFileStream.read(reinterpret_cast<char *>(RunLengthArray), sizeof(RunLengthElement)*NumberOfRunLengthElementsPerRead).eof())
       {
@@ -213,9 +213,9 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
           for (int j = 0; j < RunLengthArray[i].voxel_count; j++)
           {
 
-            indexIt.Set(RunLengthArray[i].voxel_value) ;
-            tobuf[(i+1) * j+i] = RunLengthArray[i].voxel_value;
-            ++indexIt;
+            //indexIt.Set(RunLengthArray[i].voxel_value) ;
+            tobuf[index] = RunLengthArray[i].voxel_value;
+            //++indexIt;
             index++;
           }
           voxel_count_sum+=RunLengthArray[i].voxel_count;
@@ -250,6 +250,14 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
 
     //cornersOfRegion
     inputFileStream.close();
+
+    std::ofstream check;
+    check.open("CheckBuffer.txt");
+    for(int i=0; i<VolumeSize;i++)
+    {
+      check<<(int)tobuf[i]<<std::endl;
+    }
+    check.close();
 }
 
 
@@ -561,7 +569,6 @@ AnalyzeObjectLabelMapImageIO
     unsigned char bufferObjectMap[buffer_size];
 
     unsigned char *bufferChar = (unsigned char *)buffer;
-    std::cout<<"Size of bufferChar: "<<sizeof(buffer);
 
     for(int i=0;i<VolumeSize;i++)
     {
