@@ -38,6 +38,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace itk{
   AnalyzeObjectMap::AnalyzeObjectMap( void ): m_Version(VERSION7),m_NumberOfObjects(0)
   {
+    this->SetNumberOfObjects(0);
+    this->SetNumberOfVolumes(0);
+    this->SetVersion(VERISON7);
+    this->SetXDim(0);
+    this->SetYDim(0);
+    this->SetZDim(0);
     ////TODO:  Clear the image this->ImageClear();
     //{
     //  for (int i = 0; i < 256; i++)
@@ -71,6 +77,55 @@ namespace itk{
   AnalyzeObjectEntryArrayType *AnalyzeObjectMap::GetAnalyzeObjectEntryArrayPointer()
   {
     return &(this->m_AnaylzeObjectEntryArray);
+  }
+
+  /*NOTE: This function will add an object entry to the end of the vector.  However, you will still have to fill in the values that you would like stored.
+  TODO: Rastor through the image to place the value at the specifed locations.*/
+  void AnalyzeObjectMap::AddObject()
+  {
+    this->m_AnaylzeObjectEntryArray[this->GetNumberOfObjects()+1] = itk::AnalyzeObjectEntry::New();
+    this->SetNumberOfObjects(this->GetNumberOfObjects()+1);
+  }
+
+  /*NOTE: This function will move all object entry's so that the vector stays in the smallest order starting from 0.*/
+  void AnalyzeObjectMap::DeleteObject(std::string ObjectName)
+  {
+    int i = this->FindObject(ObjectName);
+    if(i == -1)
+    {
+      return;
+    }
+    for(int j = i; j < this->GetNumberOfObjects()-1; j++)
+    {
+      this->m_AnaylzeObjectEntryArray[j] = this->m_AnaylzeObjectEntryArray[j+1];
+    }
+    this->m_AnaylzeObjectEntryArray[this->GetNumberOfObjects()]->Delete();
+    this->SetNumberOfObjects(this->GetNumberOfObjects()-1);
+    itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexIt(this,this->GetLargestPossibleRegion());
+    for(indexIt.Begin();!indexIt.IsAtEnd(); ++indexIt)
+    {
+      if(indexIt.Get() == i)
+      {
+        indexIt.Set(0);
+      }
+      else if(indexIt.Get()>i)
+      {
+        indexIt.Set(indexIt.Get()-1);
+      }
+    }
+  }
+
+  int AnalyzeObjectMap::FindObject(std::string ObjectName)
+  {
+    for(int i=0; i < this->GetNumberOfObjects(); i++)
+    {
+      if(ObjectName.compare(this->m_AnaylzeObjectEntryArray[i]->GetName()))
+      {
+        return i;
+      }
+    }
+    //If not found return -1
+    return -1;
   }
 
 }

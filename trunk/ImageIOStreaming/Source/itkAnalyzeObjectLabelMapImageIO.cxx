@@ -126,7 +126,6 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     this->m_AnalyzeObjectLabelMapImage->Allocate();
 
     // Decoding the run length encoded raw data into an unsigned char volume
-    //itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexIt(this->m_AnalyzeObjectLabelMapImage,this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion());
     struct RunLengthStruct {
         unsigned char voxel_count;
         unsigned char voxel_value;
