@@ -118,7 +118,7 @@ namespace itk{
     {
       return;
     }
-    for(int j = i-1; j < this->GetNumberOfObjects()-1; j++)
+    for(int j = i; j < this->GetNumberOfObjects()-1; j++)
     {
       this->m_AnaylzeObjectEntryArray[j] = this->m_AnaylzeObjectEntryArray[j+1];
     }
@@ -144,7 +144,7 @@ namespace itk{
   {
     for(int i=0; i < this->GetNumberOfObjects(); i++)
     {
-      if(ObjectName.compare(this->m_AnaylzeObjectEntryArray[i]->GetName()))
+      if(!ObjectName.compare(this->m_AnaylzeObjectEntryArray.at(i)->GetName()))
       {
         return i;
       }
