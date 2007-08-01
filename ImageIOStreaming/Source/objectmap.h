@@ -167,6 +167,12 @@ namespace itk
       itkSetMacro(NumberOfVolumes, int);
       itkGetConstMacro(NumberOfVolumes, int);
 
+      void AddObject();
+
+      void DeleteObject(std::string ObjectName);
+
+      int FindObject(std::string ObjectName);
+
      protected:
        /**
         * \brief the default constructor, initializes to 0 or NULL
@@ -179,9 +185,7 @@ namespace itk
        */
       AnalyzeObjectMap( const AnalyzeObjectMap & rhs ) { /*Explicitly not allowed*/ };
 
-      
-
-    private:
+   private:
       /**
        * \brief This function takes a string and removes the spaces
        * \param output the string with the spaces removed
