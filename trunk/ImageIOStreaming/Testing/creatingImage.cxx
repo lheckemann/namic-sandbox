@@ -5,14 +5,14 @@
 #include "itkImageFileWriter.h"
 
 typedef itk::Image<unsigned char, 2> UC2ImageType;
-static void makeRectangle(UC2ImageType::Pointer image, const UC2ImageType::IndexType &center, const UC2ImageType::SizeType &size)
+static void makeRectangle(UC2ImageType::Pointer image, const UC2ImageType::IndexType &center, const UC2ImageType::SizeType &size, int pixelValue)
 {
   for(int i = center[0]-size[0]/2; i< center[0] + size[0]/2; i++)
   {
     for(int j = center[1] - size[1]/2; j < center[1] + size[1]/2; j++)
     {
       const UC2ImageType::IndexType currentIndex = {i, j};
-      image->SetPixel(currentIndex,200);
+      image->SetPixel(currentIndex,pixelValue);
     }
   }
 }
@@ -26,7 +26,7 @@ static bool IsInsideEllipse(const UC2ImageType::IndexType &currentLocation, cons
   }
   return false;
 }
-static void makeEllipse(UC2ImageType::Pointer image, const UC2ImageType::IndexType &center, const UC2ImageType::SizeType &size)
+static void makeEllipse(UC2ImageType::Pointer image, const UC2ImageType::IndexType &center, const UC2ImageType::SizeType &size, int pixelValue)
 {
   for(int i = center[0]-size[0]; i< center[0] + size[0]; i++)
   {
@@ -35,7 +35,7 @@ static void makeEllipse(UC2ImageType::Pointer image, const UC2ImageType::IndexTy
       const UC2ImageType::IndexType currentIndex = {i, j};
       if(IsInsideEllipse(currentIndex, center, size))
       {
-        image->SetPixel(currentIndex,128);
+        image->SetPixel(currentIndex,pixelValue);
       }
 
     }
@@ -67,11 +67,15 @@ int main( int argc, char ** argv )
 
   const UC2ImageType::SizeType Square = {{4,4}};
   const UC2ImageType::IndexType SquareOrgin = {3,15};
-  makeRectangle(image, SquareOrgin, Square );
+  makeRectangle(image, SquareOrgin, Square, 200 );
 
   const UC2ImageType::SizeType Circle = {{5,5}};
   const UC2ImageType::IndexType CircleOrgin = {15,14};
-  makeEllipse(image, CircleOrgin, Circle);
+  makeEllipse(image, CircleOrgin, Circle, 128);
+
+  const UC2ImageType::SizeType Square2 = {{2,2}};
+  const UC2ImageType::IndexType Square2Orgin = {6,3};
+  makeRectangle(image, Square2Orgin, Square2, 45);
 
   typedef itk::ImageFileWriter<UC2ImageType> Writer;
   Writer::Pointer writer = Writer::New();

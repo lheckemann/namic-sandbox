@@ -136,8 +136,11 @@ int main( int argc, char ** argv )
     }
   itk::AnalyzeObjectMap::Pointer CreateObjectMap = itk::AnalyzeObjectMap::New();
 
+  CreateObjectMap->AddObject("You Can Delete Me");
   CreateObjectMap->AddObjectBasedOnImagePixel(reader->GetOutput(), 200, "Square");
   CreateObjectMap->AddObjectBasedOnImagePixel(reader->GetOutput(), 128, "Circle");
+  CreateObjectMap->AddObject("Nothing In Here");
+  CreateObjectMap->DeleteObject("Nothing In Here");
   CreateObjectMap->PlaceObjectMapEntriesIntoMetaData();
 
   writer->SetInput(CreateObjectMap);
