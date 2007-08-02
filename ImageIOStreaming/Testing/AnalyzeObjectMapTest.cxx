@@ -72,6 +72,8 @@ int main( int argc, char ** argv )
 
   itk::AnalyzeObjectMap::Pointer ObjectMap = ImageToObjectConvertor->TransformImage(reader->GetOutput());
 
+  itk::Image<itk::RGBPixel<unsigned short>, 3>::Pointer RGBImage = ObjectMap->ObjectMapToRGBImage();
+
   writer->SetFileName(OuptputObjectFileName);
   //writer->SetFileName("objectLabelTest2.obj");
   writer->SetInput(reader->GetOutput());

@@ -79,7 +79,39 @@ namespace itk{
     return &(this->m_AnaylzeObjectEntryArray);
   }
 
-  void AnalyzeObjectMap::AddObjectBasedOnImagePixel(itk::Image<unsigned char, 3>::Pointer Image, unsigned char value, std::string ObjectName)
+  itk::Image<itk::RGBPixel<unsigned short>, 3>::Pointer AnalyzeObjectMap::ObjectMapToRGBImage()
+  {
+    RGBImageType::Pointer RGBImage = RGBImageType::New();
+    RGBImage->SetRegions(this->GetLargestPossibleRegion());
+    RGBImage->Allocate();
+    itk::ImageRegionIterator<RGBImageType> RGBIterator(RGBImage, RGBImage->GetLargestPossibleRegion());
+    itk::ImageRegionIterator<itk::Image<unsigned char, 3>> ObjectIterator(this, this->GetLargestPossibleRegion());
+
+    for(ObjectIterator.Begin(); !ObjectIterator.IsAtEnd(); ++ObjectIterator, ++RGBIterator)
+    {
+      RGBPixelType setColors;
+
+      if(ObjectIterator.Get()!= 0)
+      {
+        setColors.SetBlue(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get() - 1]->GetEndBlue());
+        setColors.SetGreen(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get() - 1]->GetEndBlue());
+        setColors.SetRed(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get() - 1]->GetEndRed());
+
+        RGBIterator.Set(setColors);
+      }
+      else
+      {
+        setColors.SetBlue(0);
+        setColors.SetGreen(0);
+        setColors.SetRed(0);
+        RGBIterator.Set(setColors);
+      }
+
+    }
+    return RGBImage;
+  }
+
+  void AnalyzeObjectMap::AddObjectBasedOnImagePixel(itk::Image<unsigned char, 3>::Pointer Image, unsigned char value, std::string ObjectName, int Red, int Green, int Blue)
   {
     itk::ImageRegion<3> ObjectMapRegion = this->GetLargestPossibleRegion();
     itk::ImageRegion<3> ImageRegion = Image->GetLargestPossibleRegion();
@@ -92,6 +124,9 @@ namespace itk{
     itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexImage(Image, Image->GetLargestPossibleRegion());
     this->AddObject(ObjectName);
     int i = this->GetNumberOfObjects();
+    this->m_AnaylzeObjectEntryArray[i-1]->SetEndRed(Red);
+    this->m_AnaylzeObjectEntryArray[i-1]->SetEndGreen(Green);
+    this->m_AnaylzeObjectEntryArray[i-1]->SetEndBlue(Blue);
     for(indexImage.Begin();!indexImage.IsAtEnd(); ++indexImage, ++indexObjectMap)
     {
       if(indexImage.Get() == value)

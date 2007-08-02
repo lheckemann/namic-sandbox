@@ -211,10 +211,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
           }
           for (int j = 0; j < RunLengthArray[i].voxel_count; j++)
           {
-
-            //indexIt.Set(RunLengthArray[i].voxel_value) ;
             tobuf[index] = RunLengthArray[i].voxel_value;
-            //++indexIt;
             index++;
           }
           voxel_count_sum+=RunLengthArray[i].voxel_count;
