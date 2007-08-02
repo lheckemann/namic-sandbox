@@ -72,6 +72,10 @@ namespace itk
       typedef Image<unsigned char, 3>  Superclass;
       typedef SmartPointer<Self>  Pointer;
       typedef SmartPointer<const Self>  ConstPointer;
+
+      typedef itk::RGBPixel<unsigned short> RGBPixelType;
+
+      typedef itk::Image<RGBPixelType, 3> RGBImageType;
       
       /** Method for creation through the object factory. */
       itkNewMacro(Self);
@@ -168,7 +172,9 @@ namespace itk
       itkSetMacro(NumberOfVolumes, int);
       itkGetConstMacro(NumberOfVolumes, int);
 
-      void AddObjectBasedOnImagePixel(itk::Image<unsigned char, 3>::Pointer Image,unsigned char value, std::string ObjectName);
+      itk::Image<RGBPixelType, 3>::Pointer ObjectMapToRGBImage();
+
+      void AddObjectBasedOnImagePixel(itk::Image<unsigned char, 3>::Pointer Image,unsigned char value, std::string ObjectName, int Red = 0, int Green = 0, int Blue = 0);
 
       void AddObject(std::string ObjectName);
 
@@ -213,6 +219,8 @@ namespace itk
       int m_YDim;
       int m_ZDim;
       int m_NumberOfVolumes;
+
+      
   };
 }
 #endif                           // __OBJECTMAP_H_

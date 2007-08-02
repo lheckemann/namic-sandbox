@@ -46,6 +46,8 @@ public:
   typedef ImageIOBase        Superclass;
   typedef SmartPointer<Self> Pointer;
 
+  typedef itk::RGBPixel<int> RGBPixelType;
+
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
