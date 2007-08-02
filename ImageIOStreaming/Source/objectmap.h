@@ -73,7 +73,7 @@ namespace itk
       typedef SmartPointer<Self>  Pointer;
       typedef SmartPointer<const Self>  ConstPointer;
 
-      typedef itk::RGBPixel<unsigned short> RGBPixelType;
+      typedef itk::RGBPixel<unsigned char> RGBPixelType;
 
       typedef itk::Image<RGBPixelType, 3> RGBImageType;
       

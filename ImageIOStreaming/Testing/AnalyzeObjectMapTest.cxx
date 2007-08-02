@@ -33,13 +33,14 @@
 int main( int argc, char ** argv )
 {
   int error_count = 0;
-  if ( argc != 4 )
+  if ( argc != 5 )
     {
     std::cerr << "USAGE: " << argv[0] << "<inputFileName> <outputFileName> <Nifti file>" << std::endl;
     }
   const char *InputObjectFileName = argv[1];
   const char *OuptputObjectFileName = argv[2];
   const char *NiftiFile = argv[3];
+  const char *CreatingObject = argv[4];
   typedef unsigned char       InputPixelType;
   typedef unsigned char       OutputPixelType;
   const   unsigned int        Dimension = 3;
@@ -72,7 +73,7 @@ int main( int argc, char ** argv )
 
   itk::AnalyzeObjectMap::Pointer ObjectMap = ImageToObjectConvertor->TransformImage(reader->GetOutput());
 
-  itk::Image<itk::RGBPixel<unsigned short>, 3>::Pointer RGBImage = ObjectMap->ObjectMapToRGBImage();
+  itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer RGBImage = ObjectMap->ObjectMapToRGBImage();
 
   writer->SetFileName(OuptputObjectFileName);
   //writer->SetFileName("objectLabelTest2.obj");
@@ -146,7 +147,7 @@ int main( int argc, char ** argv )
   CreateObjectMap->PlaceObjectMapEntriesIntoMetaData();
 
   writer->SetInput(CreateObjectMap);
-  writer->SetFileName("CreatingObjectMap.obj");
+  writer->SetFileName(CreatingObject);
 
   try
     {
@@ -159,7 +160,23 @@ int main( int argc, char ** argv )
     return EXIT_FAILURE;
     }
 
-  CreateObjectMap->DeleteObject("Square");
+  reader->SetFileName(CreatingObject);
+  try
+    {
+    reader->Update();
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    std::cerr << "ExceptionObject caught !" << std::endl;
+    std::cerr << err << std::endl;
+    return EXIT_FAILURE;
+    }
+  itk::AnalyzeObjectMap::Pointer TestCreatingObject = ImageToObjectConvertor->TransformImage(reader->GetOutput());
+
+  /*if(CreateObjectMap->GetNumberOfObjects() != TestCreatingObject->GetNumberOfObjects())
+  {
+    error_count++;
+  }*/
 
   if( error_count )
   {

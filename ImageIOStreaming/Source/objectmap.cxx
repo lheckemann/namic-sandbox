@@ -79,7 +79,7 @@ namespace itk{
     return &(this->m_AnaylzeObjectEntryArray);
   }
 
-  itk::Image<itk::RGBPixel<unsigned short>, 3>::Pointer AnalyzeObjectMap::ObjectMapToRGBImage()
+  itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer AnalyzeObjectMap::ObjectMapToRGBImage()
   {
     RGBImageType::Pointer RGBImage = RGBImageType::New();
     RGBImage->SetRegions(this->GetLargestPossibleRegion());
@@ -90,23 +90,11 @@ namespace itk{
     for(ObjectIterator.Begin(); !ObjectIterator.IsAtEnd(); ++ObjectIterator, ++RGBIterator)
     {
       RGBPixelType setColors;
-
-      if(ObjectIterator.Get()!= 0)
-      {
-        setColors.SetBlue(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get() - 1]->GetEndBlue());
-        setColors.SetGreen(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get() - 1]->GetEndBlue());
-        setColors.SetRed(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get() - 1]->GetEndRed());
+      setColors.SetBlue(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
+      setColors.SetGreen(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
+      setColors.SetRed(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndRed());
 
         RGBIterator.Set(setColors);
-      }
-      else
-      {
-        setColors.SetBlue(0);
-        setColors.SetGreen(0);
-        setColors.SetRed(0);
-        RGBIterator.Set(setColors);
-      }
-
     }
     return RGBImage;
   }
