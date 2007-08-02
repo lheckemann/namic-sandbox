@@ -89,7 +89,7 @@ namespace itk{
       this->Allocate();
     }
     itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexObjectMap(this,Image->GetLargestPossibleRegion());
-    itk::ImageRegionIterator<itk::Image<unsigned char,3>> indexImage(Image, Image->GetLargestPossibleRegion());
+    itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexImage(Image, Image->GetLargestPossibleRegion());
     this->AddObject(ObjectName);
     int i = this->GetNumberOfObjects();
     for(indexImage.Begin();!indexImage.IsAtEnd(); ++indexImage, ++indexObjectMap)
