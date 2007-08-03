@@ -11,6 +11,15 @@ INCLUDE(Dart)
 #examples include: ITK, VTK, JPEG, PNG, OpenGL, ZLIB, Perl, Java
 #If you're not sure what name to use, look in the Modules directory of your
 #cmake install and check that a file named Find(Package).cmake exists
+#
+# The packages can be specified with a version number, for example:
+#
+# ITK 2.8.1
+# ITK 3.0
+# ITK 3.2 
+#
+# If no version is specified, the most recent release of the package
+# will be used.
 SET(Required_Packages
 ITK
 )
