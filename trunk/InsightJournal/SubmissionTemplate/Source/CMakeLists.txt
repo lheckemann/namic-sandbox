@@ -15,8 +15,7 @@ INCLUDE(Dart)
 # The packages can be specified with a version number, for example:
 #
 # ITK 2.8.1
-# ITK 3.0
-# ITK 3.2 
+# ITK 3.2.0
 #
 # If no version is specified, the most recent release of the package
 # will be used.
