@@ -56,6 +56,7 @@ int main( int argc, char ** argv )
 
   ReaderType::Pointer reader = ReaderType::New();
   ReaderType::Pointer readerTwo = ReaderType::New();
+  ReaderType::Pointer readerThree = ReaderType::New();
   WriterType::Pointer writer = WriterType::New();
 
   reader->SetFileName( InputObjectFileName);
@@ -140,10 +141,10 @@ int main( int argc, char ** argv )
   itk::AnalyzeObjectMap::Pointer CreateObjectMap = itk::AnalyzeObjectMap::New();
 
   CreateObjectMap->AddObject("You Can Delete Me");
-  CreateObjectMap->AddObjectBasedOnImagePixel(reader->GetOutput(), 200, "Square");
-  CreateObjectMap->AddObjectBasedOnImagePixel(reader->GetOutput(), 128, "Circle");
-  CreateObjectMap->AddObject("Nothing In Here");
-  CreateObjectMap->DeleteObject("Nothing In Here");
+  CreateObjectMap->AddObjectBasedOnImagePixel(readerTwo->GetOutput(), 200, "Square", 250, 0, 0);
+  //CreateObjectMap->AddObjectBasedOnImagePixel(readerTwo->GetOutput(), 128, "Circle", 0, 250,0);
+  //CreateObjectMap->AddObject("Nothing In Here");
+  ////CreateObjectMap->DeleteObject("Nothing In Here");
   CreateObjectMap->PlaceObjectMapEntriesIntoMetaData();
 
   writer->SetInput(CreateObjectMap);
@@ -160,10 +161,10 @@ int main( int argc, char ** argv )
     return EXIT_FAILURE;
     }
 
-  reader->SetFileName(CreatingObject);
+  readerThree->SetFileName(CreatingObject);
   try
     {
-    reader->Update();
+    readerThree->Update();
     }
   catch( itk::ExceptionObject & err )
     {
@@ -171,7 +172,7 @@ int main( int argc, char ** argv )
     std::cerr << err << std::endl;
     return EXIT_FAILURE;
     }
-  itk::AnalyzeObjectMap::Pointer TestCreatingObject = ImageToObjectConvertor->TransformImage(reader->GetOutput());
+  //itk::AnalyzeObjectMap::Pointer TestCreatingObject = ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
 
   /*if(CreateObjectMap->GetNumberOfObjects() != TestCreatingObject->GetNumberOfObjects())
   {
