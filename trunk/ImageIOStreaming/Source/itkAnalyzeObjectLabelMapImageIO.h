@@ -104,6 +104,8 @@ protected:
   void PrintSelf(std::ostream& os, Indent indent) const;
 private:
   
+  std::ifstream inputFileStream;
+  int locationOfFile;
   itk::AnalyzeObjectMap::Pointer m_AnalyzeObjectLabelMapImage;
   //  int           m_CollapsedDims[8];
   AnalyzeObjectLabelMapImageIO(const Self&); //purposely not implemented

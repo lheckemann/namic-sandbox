@@ -78,17 +78,18 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
 
 
   
-  std::ifstream inputFileStream;
-    inputFileStream.open(m_FileName.c_str(), std::ios::binary | std::ios::in);
+  //std::ifstream inputFileStream;
+  inputFileStream.open(m_FileName.c_str(), std::ios::binary | std::ios::in);
+  inputFileStream.seekg(locationOfFile);
     if ( !inputFileStream.is_open())
     {
-      std::cout<< "Error: Could not open %s\n", m_FileName.c_str();
+      std::cout<< "Error: Could not open "<< m_FileName.c_str();
       exit(-1);
     }
     //this->m_AnalyzeObjectLabelMapImage = itk::AnalyzeObjectMap::New();
     int version = this->m_AnalyzeObjectLabelMapImage->GetVersion();
     int setPointerOfInputImage;
-    if(version == VERSION7)
+    /*if(version == VERSION7)
     {
       std::cout<<this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects()<<std::endl;
       setPointerOfInputImage = 24 + this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() * 152;
@@ -97,7 +98,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     {
       setPointerOfInputImage = 20 + this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() * 146;
     }
-    inputFileStream.seekg(setPointerOfInputImage);
+    inputFileStream.seekg(setPointerOfInputImage);*/
 
   //Now the file pointer is pointing to the image region
     itk::Image<unsigned char,3>::SizeType ImageSize;
@@ -194,7 +195,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     //const int VolumeSize = zDim * yDim *xDim;
     {
       std::ofstream myfile;
-      myfile.open("VoxelInformation16.txt", myfile.app);
+      myfile.open("VoxelInformation19.txt", myfile.app);
       int n= 0;
       while (!inputFileStream.read(reinterpret_cast<char *>(RunLengthArray), sizeof(RunLengthElement)*NumberOfRunLengthElementsPerRead).eof())
       {
@@ -394,9 +395,25 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
       m_Origin[2] = 0;
       }
     std::vector<double> dirx(this->GetNumberOfDimensions(),0), diry(this->GetNumberOfDimensions(),0), dirz(this->GetNumberOfDimensions(),0);
-  dirx[0] = 1; dirx[1] = 0; dirx[2] = 0;
-  diry[0] = 0; diry[1] = 1; diry[2] = 0;
-  dirz[0] = 0; dirz[1] = 0; dirz[2] = 1;
+    switch(this->GetNumberOfDimensions())
+    {
+    case 3:
+      dirx[2] = 0;
+      diry[2] = 0;
+      dirz[2] = 1;
+    case 2:
+      dirx[1] = 0;
+      diry[1] = 1;
+      dirz[1] = 0;
+    case 1:
+      dirx[0] = 1;
+      diry[0] = 0;
+      dirz[0] = 0;
+      break;
+    default:
+      std::cout<<"Error:  Setting the steps has an error"<<std::endl;
+      break;
+    }
 
   this->SetDirection(0,dirx);
   this->SetDirection(1,diry);
@@ -432,10 +449,11 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     
 
     // Error checking the number of objects in the object file
-    if ((this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() < 1) || (this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() > 255))
+    if ((this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() < 1) || (this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() > 256))
     {
       std::cout<< "Error: Invalid number of object files.\n";
       inputFileStream.close();
+      exit(-1);
     }
 
     //std::ofstream myfile;
@@ -449,6 +467,7 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
       (*my_reference)[i]->ReadFromFilePointer(inputFileStream,NeedByteSwap, NeedBlendFactor);
     }
     //myfile.close();
+    locationOfFile = inputFileStream.tellg();
     inputFileStream.close();
     //Now fill out the MetaDataHeader
     MetaDataDictionary &thisDic=this->GetMetaDataDictionary();
@@ -566,8 +585,10 @@ AnalyzeObjectLabelMapImageIO
 
     unsigned char *bufferChar = (unsigned char *)buffer;
 
+    int check = 0;
     for(int i=0;i<VolumeSize;i++)
     {
+      check++;
       if (runlength==0)
       {
           CurrentObjIndex = bufferChar[i];
@@ -621,6 +642,7 @@ AnalyzeObjectLabelMapImageIO
       }
 
     }
+    check++;
     if (bufferindex!=0)
     {
       if (runlength!=0)
