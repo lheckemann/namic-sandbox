@@ -39,6 +39,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "itkByteSwapper.h"
 #include <itkMetaDataDictionary.h>
 #include "itkMetaDataObject.h"
+#include <itkUnaryFunctorImageFilter.h>
+#include <itkScalarToRGBPixelFunctor.h>
 
 
 namespace itk

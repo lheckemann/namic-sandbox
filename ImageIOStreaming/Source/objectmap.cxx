@@ -55,6 +55,7 @@ namespace itk{
     this->SetRegions(region);
     this->Allocate();
     this->FillBuffer(0);
+
     ////TODO:  Clear the image this->ImageClear();
     //{
     //  for (int i = 0; i < 256; i++)
@@ -101,9 +102,19 @@ namespace itk{
     for(ObjectIterator.Begin(); !ObjectIterator.IsAtEnd(); ++ObjectIterator, ++RGBIterator)
     {
       RGBPixelType setColors;
-      setColors.SetBlue(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
-      setColors.SetGreen(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
-      setColors.SetRed(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndRed());
+      int i = ObjectIterator.Get();
+      if(ObjectIterator.Get() < this->GetNumberOfObjects())
+      {
+        setColors.SetBlue(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()-1]->GetEndBlue());
+        setColors.SetGreen(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()-1]->GetEndBlue());
+        setColors.SetRed(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()-1]->GetEndRed());
+      }
+      else
+      {
+        setColors.SetBlue(this->m_AnaylzeObjectEntryArray[0]->GetEndBlue());
+        setColors.SetGreen(this->m_AnaylzeObjectEntryArray[0]->GetEndBlue());
+        setColors.SetRed(this->m_AnaylzeObjectEntryArray[0]->GetEndRed());
+      }
 
         RGBIterator.Set(setColors);
     }
@@ -132,18 +143,26 @@ namespace itk{
     this->m_AnaylzeObjectEntryArray[i-1]->SetEndBlue(Blue);
     for(indexImage.Begin(), indexObjectMap.Begin();!indexImage.IsAtEnd(); ++indexImage, ++indexObjectMap)
     {
-      if(indexImage.Get() == value  && indexObjectMap.Get() != 0)
+      int k = indexObjectMap.Get();
+      //int j = indexImage.Get();
+      /*if(indexImage.Get() == value  && indexObjectMap.Get() != 0)
       {
-        int k = indexObjectMap.Get();
+        
         std::cout<<"Oh my, I have problems"<<std::endl;
-      }
+      }*/
+      /*if(indexObjectMap.Get() > i)
+      {
+        indexObjectMap.Set(0);
+      }*/
       if(indexImage.Get() == value  && indexObjectMap.Get() == 0)
       {
         indexObjectMap.Set(i);
       }
-      
+
     }
+
   }
+  
 
   /*NOTE: This function will add an object entry to the end of the vector.  However, you will still have to fill in the values that you would like stored.
   TODO: Rastor through the image to place the value at the specifed locations.*/

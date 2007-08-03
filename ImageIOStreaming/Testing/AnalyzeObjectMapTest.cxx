@@ -72,9 +72,9 @@ int main( int argc, char ** argv )
     return EXIT_FAILURE;
     }
 
-  itk::AnalyzeObjectMap::Pointer ObjectMap = ImageToObjectConvertor->TransformImage(reader->GetOutput());
+  /*itk::AnalyzeObjectMap::Pointer ObjectMap = ImageToObjectConvertor->TransformImage(reader->GetOutput());
 
-  itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer RGBImage = ObjectMap->ObjectMapToRGBImage();
+  itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer RGBImage = ObjectMap->ObjectMapToRGBImage();*/
 
   writer->SetFileName(OuptputObjectFileName);
   //writer->SetFileName("objectLabelTest2.obj");
@@ -172,7 +172,9 @@ int main( int argc, char ** argv )
     std::cerr << err << std::endl;
     return EXIT_FAILURE;
     }
-  //itk::AnalyzeObjectMap::Pointer TestCreatingObject = ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
+  itk::AnalyzeObjectMap::Pointer TestCreatingObject = ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
+
+  itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer rgbImageTest = TestCreatingObject->ObjectMapToRGBImage();
 
   /*if(CreateObjectMap->GetNumberOfObjects() != TestCreatingObject->GetNumberOfObjects())
   {
