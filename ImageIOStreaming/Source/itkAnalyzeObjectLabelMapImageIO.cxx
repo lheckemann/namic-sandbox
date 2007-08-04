@@ -248,6 +248,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     //cornersOfRegion
     inputFileStream.close();
 
+#if 0 
     std::ofstream check;
     check.open("CheckBuffer.txt");
     for(int i=0; i<VolumeSize;i++)
@@ -255,6 +256,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
       check<<(int)tobuf[i]<<std::endl;
     }
     check.close();
+#endif
 }
 
 
@@ -389,9 +391,10 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
       this->SetSpacing(0,1);
     }
 
-    m_Origin[0] = m_Origin[1] = 0;
+    m_Origin[0] = 0;
     if(this->GetNumberOfDimensions() > 2)
       {
+        m_Origin[1] = 0;
       m_Origin[2] = 0;
       }
     std::vector<double> dirx(this->GetNumberOfDimensions(),0), diry(this->GetNumberOfDimensions(),0), dirz(this->GetNumberOfDimensions(),0);
