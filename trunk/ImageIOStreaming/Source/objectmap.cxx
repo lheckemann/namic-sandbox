@@ -44,11 +44,11 @@ namespace itk{
     this->SetNumberOfObjects(1);
     this->SetNumberOfVolumes(0);
     this->SetVersion(VERSION7);
-    this->SetXDim(20);
-    this->SetYDim(20);
+    this->SetXDim(1);
+    this->SetYDim(1);
     this->SetZDim(1);
-    itk::Image<unsigned char,3>::SizeType size = {{20,20}};
-    itk::Image<unsigned char,3>::IndexType orgin = {{0,0}};
+    itk::Image<unsigned char,3>::SizeType size = {{1,1,1}};
+    itk::Image<unsigned char,3>::IndexType orgin = {{0,0,0}};
     itk::Image<unsigned char,3>::RegionType region;
     region.SetSize(size);
     region.SetIndex(orgin);
@@ -105,9 +105,9 @@ namespace itk{
       int i = ObjectIterator.Get();
       if(ObjectIterator.Get() < this->GetNumberOfObjects())
       {
-        setColors.SetBlue(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()-1]->GetEndBlue());
-        setColors.SetGreen(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()-1]->GetEndBlue());
-        setColors.SetRed(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()-1]->GetEndRed());
+        setColors.SetBlue(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
+        setColors.SetGreen(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
+        setColors.SetRed(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndRed());
       }
       else
       {
@@ -123,17 +123,19 @@ namespace itk{
 
   void AnalyzeObjectMap::AddObjectBasedOnImagePixel(itk::Image<unsigned char, 3>::Pointer Image, unsigned char value, std::string ObjectName, int Red, int Green, int Blue)
   {
-    /*itk::ImageRegion<3> ObjectMapRegion = this->GetLargestPossibleRegion();
-    itk::ImageRegion<3> ImageRegion = Image->GetLargestPossibleRegion();*/
-    //if(  !ImageRegion.IsInside(ObjectMapRegion)  && ImageRegion.)
-    //{
-    //  this->SetRegions(Image->GetLargestPossibleRegion());
-    //  this->Allocate();
-    //  this->FillBuffer(0);
-    //  this->SetXDim(this->GetLargestPossibleRegion().GetSize(0));
-    //  this->SetYDim(this->GetLargestPossibleRegion().GetSize(1));
-    //  this->SetZDim(this->GetLargestPossibleRegion().GetSize(2));
-    //}
+    itk::ImageRegion<3> ObjectMapRegion = this->GetLargestPossibleRegion();
+    itk::ImageRegion<3> ImageRegion = Image->GetLargestPossibleRegion();
+    if(  !ImageRegion.IsInside(ObjectMapRegion)  && ImageRegion != ObjectMapRegion)
+    {
+      this->Graft(Image);
+      //this->SetRegions(Image->GetLargestPossibleRegion());
+      
+      this->Allocate();
+      this->FillBuffer(0);
+      this->SetXDim(this->GetLargestPossibleRegion().GetSize(0));
+      this->SetYDim(this->GetLargestPossibleRegion().GetSize(1));
+      this->SetZDim(this->GetLargestPossibleRegion().GetSize(2));
+    }
     itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexObjectMap(this,Image->GetLargestPossibleRegion());
     itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexImage(Image, Image->GetLargestPossibleRegion());
     this->AddObject(ObjectName);
@@ -144,16 +146,10 @@ namespace itk{
     for(indexImage.Begin(), indexObjectMap.Begin();!indexImage.IsAtEnd(); ++indexImage, ++indexObjectMap)
     {
       int k = indexObjectMap.Get();
-      //int j = indexImage.Get();
-      /*if(indexImage.Get() == value  && indexObjectMap.Get() != 0)
-      {
-        
-        std::cout<<"Oh my, I have problems"<<std::endl;
-      }*/
-      /*if(indexObjectMap.Get() > i)
+      if(indexObjectMap.Get() > i)
       {
         indexObjectMap.Set(0);
-      }*/
+      }
       if(indexImage.Get() == value  && indexObjectMap.Get() == 0)
       {
         indexObjectMap.Set(i);
