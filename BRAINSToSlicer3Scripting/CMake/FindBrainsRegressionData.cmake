@@ -8,14 +8,14 @@ IF(UNIX)
 ENDIF(UNIX)
 
   FIND_PATH( BrainsRegressionData_DATA_PATH README.txt
-    ${BRAINS_Complete_SOURCE_DIR}/regressiontest
-    ${BRAINS_Complete_SOURCE_DIR}/../regressiontest
-    ${BRAINS_Complete_SOURCE_DIR}/../../regressiontest
-    ${BRAINS_Complete_SOURCE_DIR}/../../../regressiontest
-    ${BRAINS_Complete_SOURCE_DIR}/../../../../regressiontest
-    ${BRAINS_Complete_SOURCE_DIR}/../../../../../regressiontest
-    ${BRAINS_Complete_SOURCE_DIR}/../../../../../../regressiontest
-    ${BRAINS_Complete_SOURCE_DIR}/../../../../../../../regressiontest
+    ${BRAINS_SLICER3_TEST_SUITE_SOURCE_DIR}/regressiontest
+    ${BRAINS_SLICER3_TEST_SUITE_SOURCE_DIR}/../regressiontest
+    ${BRAINS_SLICER3_TEST_SUITE_SOURCE_DIR}/../../regressiontest
+    ${BRAINS_SLICER3_TEST_SUITE_SOURCE_DIR}/../../../regressiontest
+    ${BRAINS_SLICER3_TEST_SUITE_SOURCE_DIR}/../../../../regressiontest
+    ${BRAINS_SLICER3_TEST_SUITE_SOURCE_DIR}/../../../../../regressiontest
+    ${BRAINS_SLICER3_TEST_SUITE_SOURCE_DIR}/../../../../../../regressiontest
+    ${BRAINS_SLICER3_TEST_SUITE_SOURCE_DIR}/../../../../../../../regressiontest
   )
 
 
