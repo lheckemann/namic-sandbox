@@ -96,14 +96,20 @@ namespace itk{
     RGBImageType::Pointer RGBImage = RGBImageType::New();
     RGBImage->SetRegions(this->GetLargestPossibleRegion());
     RGBImage->Allocate();
-    itk::ImageRegionIterator<RGBImageType> RGBIterator(RGBImage, RGBImage->GetLargestPossibleRegion());
+    itk::ImageRegionIterator<RGBImageType> RGBIterator(RGBImage, this->GetLargestPossibleRegion());
     itk::ImageRegionIterator<itk::Image<unsigned char, 3>> ObjectIterator(this, this->GetLargestPossibleRegion());
 
-    for(ObjectIterator.Begin(); !ObjectIterator.IsAtEnd(); ++ObjectIterator, ++RGBIterator)
+    std::ofstream myfile;
+    myfile.open("RGBImageVoxels.txt");
+    for(ObjectIterator.Begin(), RGBIterator.Begin(); !ObjectIterator.IsAtEnd(); ++ObjectIterator, ++RGBIterator)
     {
       RGBPixelType setColors;
       int i = ObjectIterator.Get();
-      if(ObjectIterator.Get() < this->GetNumberOfObjects())
+      if(i != 0)
+      {
+        int j =1;
+      }
+      if(ObjectIterator.Get() <= this->GetNumberOfObjects())
       {
         setColors.SetBlue(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
         setColors.SetGreen(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
@@ -117,7 +123,9 @@ namespace itk{
       }
 
         RGBIterator.Set(setColors);
+        myfile<<RGBIterator.Get()<<std::endl;
     }
+    myfile.close();
     return RGBImage;
   }
 

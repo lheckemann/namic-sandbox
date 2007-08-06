@@ -142,8 +142,8 @@ int main( int argc, char ** argv )
 
   CreateObjectMap->AddObject("You Can Delete Me");
   CreateObjectMap->AddObjectBasedOnImagePixel(readerTwo->GetOutput(), 200, "Square", 250, 0, 0);
-  ////CreateObjectMap->AddObjectBasedOnImagePixel(readerTwo->GetOutput(), 128, "Circle", 0, 250,0);
-  ////CreateObjectMap->AddObject("Nothing In Here");
+  CreateObjectMap->AddObjectBasedOnImagePixel(readerTwo->GetOutput(), 128, "Circle", 0, 250,0);
+  CreateObjectMap->AddObject("Nothing In Here");
   //////CreateObjectMap->DeleteObject("Nothing In Here");
   CreateObjectMap->PlaceObjectMapEntriesIntoMetaData();
 
@@ -172,6 +172,9 @@ int main( int argc, char ** argv )
     std::cerr << err << std::endl;
     return EXIT_FAILURE;
     }
+  itk::AnalyzeObjectMap::Pointer ObjectMap = ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
+
+  itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer RGBImage = ObjectMap->ObjectMapToRGBImage();
 
 
   if( error_count )

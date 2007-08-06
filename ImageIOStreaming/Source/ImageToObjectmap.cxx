@@ -43,6 +43,10 @@ ImageToObjectMap<TConvertImage>
   }
   itk::AnalyzeObjectEntryArrayType *my_reference = this->ObjectMap->GetAnalyzeObjectEntryArrayPointer();
   itk::ExposeMetaData<itk::AnalyzeObjectEntryArrayType>(image->GetMetaDataDictionary(),ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY, *my_reference);
+  this->ObjectMap->SetNumberOfObjects(this->ObjectMap->GetAnalyzeObjectEntryArrayPointer()->size());
+  this->ObjectMap->SetXDim(this->ObjectMap->GetLargestPossibleRegion().GetSize(0));
+  this->ObjectMap->SetYDim(this->ObjectMap->GetLargestPossibleRegion().GetSize(1));
+  this->ObjectMap->SetZDim(this->ObjectMap->GetLargestPossibleRegion().GetSize(2));
 
   return this->ObjectMap;
 }
