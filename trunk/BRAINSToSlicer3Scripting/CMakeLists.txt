@@ -13,6 +13,8 @@ ENABLE_TESTING()
 
 FIND_PROGRAM(SLICER3_BIN Slicer3 ../Slicer3-bin ../../Slicer3-bin ../../../Slicer3-bin)
 
+SET(CMAKE_MODULE_PATH ${BRAINS_SLICER3_TEST_SUITE_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
+
 OPTION(BRAINS_TESTING_DATA "Determine if extended BRAINS test suite data 1.2GB should be found" OFF)
 IF(BRAINS_TESTING_DATA)
 ## Needed to find the 1.2GB of BRAINS Regression data needed for extensive testing.
