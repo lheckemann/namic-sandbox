@@ -195,7 +195,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     //const int VolumeSize = zDim * yDim *xDim;
     {
       std::ofstream myfile;
-      myfile.open("VoxelInformation19.txt", myfile.app);
+      myfile.open("VoxelInformation24.txt", myfile.app);
       int n= 0;
       while (!inputFileStream.read(reinterpret_cast<char *>(RunLengthArray), sizeof(RunLengthElement)*NumberOfRunLengthElementsPerRead).eof())
       {
@@ -459,8 +459,8 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
       exit(-1);
     }
 
-    //std::ofstream myfile;
-    //myfile.open("ReadFromFilePointer35.txt", myfile.app);
+    std::ofstream myfile;
+    myfile.open("ReadFromFilePointer35.txt", myfile.app);
     itk::AnalyzeObjectEntryArrayType *my_reference=this->m_AnalyzeObjectLabelMapImage->GetAnalyzeObjectEntryArrayPointer();
     (*my_reference).resize(this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects());
     for (int i = 0; i < this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects(); i++)
@@ -468,8 +468,9 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
       // Allocating a object to be created
       (*my_reference)[i] = AnalyzeObjectEntry::New();
       (*my_reference)[i]->ReadFromFilePointer(inputFileStream,NeedByteSwap, NeedBlendFactor);
+      (*my_reference)[i]->Print(myfile);
     }
-    //myfile.close();
+    myfile.close();
     locationOfFile = inputFileStream.tellg();
     inputFileStream.close();
     //Now fill out the MetaDataHeader

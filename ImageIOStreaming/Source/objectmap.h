@@ -62,7 +62,7 @@ namespace itk
   /**
   * Buffer size for reading in the run length encoded object data
   */
-  const int NumberOfRunLengthElementsPerRead = 4;
+  const int NumberOfRunLengthElementsPerRead = 1;
 
   class AnalyzeObjectMap: public itk::Image<unsigned char,3>
   {

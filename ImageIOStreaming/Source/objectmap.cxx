@@ -41,7 +41,7 @@ namespace itk{
     this->m_AnaylzeObjectEntryArray.resize(1);
    this->m_AnaylzeObjectEntryArray[0] = itk::AnalyzeObjectEntry::New();
     this->m_AnaylzeObjectEntryArray[0]->SetName("Original");
-    this->SetNumberOfObjects(1);
+    this->SetNumberOfObjects(0);
     this->SetNumberOfVolumes(0);
     this->SetVersion(VERSION7);
     this->SetXDim(1);
@@ -123,36 +123,44 @@ namespace itk{
 
   void AnalyzeObjectMap::AddObjectBasedOnImagePixel(itk::Image<unsigned char, 3>::Pointer Image, unsigned char value, std::string ObjectName, int Red, int Green, int Blue)
   {
+    
     itk::ImageRegion<3> ObjectMapRegion = this->GetLargestPossibleRegion();
     itk::ImageRegion<3> ImageRegion = Image->GetLargestPossibleRegion();
-    if(  !ImageRegion.IsInside(ObjectMapRegion)  && ImageRegion != ObjectMapRegion)
+    if(  ImageRegion != ObjectMapRegion)
     {
       this->Graft(Image);
       //this->SetRegions(Image->GetLargestPossibleRegion());
       
       this->Allocate();
-      this->FillBuffer(0);
+      //this->FillBuffer(0);
       this->SetXDim(this->GetLargestPossibleRegion().GetSize(0));
       this->SetYDim(this->GetLargestPossibleRegion().GetSize(1));
       this->SetZDim(this->GetLargestPossibleRegion().GetSize(2));
     }
-    itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexObjectMap(this,Image->GetLargestPossibleRegion());
     itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexImage(Image, Image->GetLargestPossibleRegion());
+
+    itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexObjectMap(this,Image->GetLargestPossibleRegion());
+    
     this->AddObject(ObjectName);
     int i = this->GetNumberOfObjects();
-    this->m_AnaylzeObjectEntryArray[i-1]->SetEndRed(Red);
-    this->m_AnaylzeObjectEntryArray[i-1]->SetEndGreen(Green);
-    this->m_AnaylzeObjectEntryArray[i-1]->SetEndBlue(Blue);
-    for(indexImage.Begin(), indexObjectMap.Begin();!indexImage.IsAtEnd(); ++indexImage, ++indexObjectMap)
+    this->m_AnaylzeObjectEntryArray[i]->SetEndRed(Red);
+    this->m_AnaylzeObjectEntryArray[i]->SetEndGreen(Green);
+    this->m_AnaylzeObjectEntryArray[i]->SetEndBlue(Blue);
+    for(indexImage.Begin();!indexImage.IsAtEnd(); ++indexImage, ++indexObjectMap)
     {
-      int k = indexObjectMap.Get();
+      int k = indexImage.Get();
+      if(k!=0)
+      {
+        int j =1;
+      }
+      
+      if(indexImage.Get() == value)
+      {
+        indexObjectMap.Set(i);
+      }
       if(indexObjectMap.Get() > i)
       {
         indexObjectMap.Set(0);
-      }
-      if(indexImage.Get() == value  && indexObjectMap.Get() == 0)
-      {
-        indexObjectMap.Set(i);
       }
 
     }
@@ -165,8 +173,8 @@ namespace itk{
   void AnalyzeObjectMap::AddObject(std::string ObjectName)
   {
     this->m_AnaylzeObjectEntryArray.insert(this->m_AnaylzeObjectEntryArray.end(), itk::AnalyzeObjectEntry::New());
-    this->m_AnaylzeObjectEntryArray[this->GetNumberOfObjects()]->SetName(ObjectName);
     this->SetNumberOfObjects(this->GetNumberOfObjects()+1);
+    this->m_AnaylzeObjectEntryArray[this->GetNumberOfObjects()]->SetName(ObjectName);
   }
 
   /*NOTE: This function will move all object entry's so that the vector stays in the smallest order starting from 0.*/
