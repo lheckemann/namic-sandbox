@@ -85,16 +85,16 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     int version = this->m_AnalyzeObjectLabelMapImage->GetVersion();
 
   //Now the file pointer is pointing to the image region
-    itk::Image<unsigned char,3>::SizeType ImageSize;
+    ImageType::SizeType ImageSize;
     ImageSize[0]=this->m_AnalyzeObjectLabelMapImage->GetXDim();
     ImageSize[1]=this->m_AnalyzeObjectLabelMapImage->GetYDim();
     ImageSize[2]=this->m_AnalyzeObjectLabelMapImage->GetZDim();
-    itk::Image<unsigned char,3>::IndexType ImageIndex;
+    ImageType::IndexType ImageIndex;
     ImageIndex[0]=0;
     ImageIndex[1]=0;
     ImageIndex[2]=0;  
 
-    itk::Image<unsigned char,3>::RegionType ImageRegion;
+    ImageType::RegionType ImageRegion;
     ImageRegion.SetSize(ImageSize);
     ImageRegion.SetIndex(ImageIndex);
     this->m_AnalyzeObjectLabelMapImage->SetRegions(ImageRegion);
@@ -103,7 +103,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     //      .nii, .nii.gz, or a .hdr file
     //      exists for the same .obj file.
     //      If so, then read in the spacing for those images.
-    itk::Image<unsigned char,3>::SpacingType ImageSpacing;
+    ImageType::SpacingType ImageSpacing;
     ImageSpacing[0]=1.0F;
     ImageSpacing[1]=1.0F;
     ImageSpacing[2]=1.0F;

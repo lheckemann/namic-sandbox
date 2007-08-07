@@ -47,9 +47,9 @@ namespace itk{
     this->SetXDim(1);
     this->SetYDim(1);
     this->SetZDim(1);
-    itk::Image<unsigned char,3>::SizeType size = {{1,1,1}};
-    itk::Image<unsigned char,3>::IndexType orgin = {{0,0,0}};
-    itk::Image<unsigned char,3>::RegionType region;
+    ImageType::SizeType size = {{1,1,1}};
+    ImageType::IndexType orgin = {{0,0,0}};
+    ImageType::RegionType region;
     region.SetSize(size);
     region.SetIndex(orgin);
     this->SetRegions(region);
@@ -98,7 +98,7 @@ namespace itk{
     newObjectMap->Allocate();
     newObjectMap->AddObject(this->m_AnaylzeObjectEntryArray[numberOfEntry]->GetName());
     newObjectMap->m_AnaylzeObjectEntryArray[1] = this->m_AnaylzeObjectEntryArray[numberOfEntry];
-    itk::ThresholdImageFilter<itk::Image<unsigned char, 3>>::Pointer changeOldObjectMap = itk::ThresholdImageFilter<itk::Image<unsigned char, 3>>::New();
+    itk::ThresholdImageFilter<ImageType>::Pointer changeOldObjectMap = itk::ThresholdImageFilter<ImageType>::New();
     
     changeOldObjectMap->SetInput(this);
     changeOldObjectMap->SetOutsideValue(0);
@@ -107,7 +107,7 @@ namespace itk{
     changeOldObjectMap->SetInput(changeOldObjectMap->GetOutput());
     changeOldObjectMap->SetOutsideValue(1);
     changeOldObjectMap->ThresholdAbove(numberOfEntry-1);
-    itk::Image<unsigned char, 3>::Pointer newestObjectMapImage = changeOldObjectMap->GetOutput();
+    ImageType::Pointer newestObjectMapImage = changeOldObjectMap->GetOutput();
     changeOldObjectMap->Update();
     newObjectMap->SetPixelContainer(newestObjectMapImage->GetPixelContainer());
     return newObjectMap;
@@ -119,7 +119,7 @@ namespace itk{
     RGBImage->SetRegions(this->GetLargestPossibleRegion());
     RGBImage->Allocate();
     itk::ImageRegionIterator<RGBImageType> RGBIterator(RGBImage, this->GetLargestPossibleRegion());
-    itk::ImageRegionIterator<itk::Image<unsigned char, 3>> ObjectIterator(this, this->GetLargestPossibleRegion());
+    itk::ImageRegionIterator<ImageType> ObjectIterator(this, this->GetLargestPossibleRegion());
 
     /*std::ofstream myfile;
     myfile.open("RGBImageVoxels2.txt");*/
@@ -142,7 +142,7 @@ namespace itk{
     return RGBImage;
   }
 
-  void AnalyzeObjectMap::AddObjectBasedOnImagePixel(itk::Image<unsigned char, 3>::Pointer Image, int value, std::string ObjectName, int Red, int Green, int Blue)
+  void AnalyzeObjectMap::AddObjectBasedOnImagePixel(ImageType::Pointer Image, int value, std::string ObjectName, int Red, int Green, int Blue)
   {
     
     itk::ImageRegion<3> ObjectMapRegion = this->GetLargestPossibleRegion();
@@ -155,9 +155,9 @@ namespace itk{
       this->SetYDim(this->GetLargestPossibleRegion().GetSize(1));
       this->SetZDim(this->GetLargestPossibleRegion().GetSize(2));
     }
-    itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexImage(Image, Image->GetLargestPossibleRegion());
+    itk::ImageRegionIterator<ImageType > indexImage(Image, Image->GetLargestPossibleRegion());
 
-    itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexObjectMap(this,Image->GetLargestPossibleRegion());
+    itk::ImageRegionIterator<ImageType > indexObjectMap(this,Image->GetLargestPossibleRegion());
     
     this->AddObject(ObjectName);
     int i = this->GetNumberOfObjects();
@@ -211,7 +211,7 @@ namespace itk{
     this->m_AnaylzeObjectEntryArray.erase(this->m_AnaylzeObjectEntryArray.end()-1);
     this->SetNumberOfObjects(this->GetNumberOfObjects()-1);
     this->m_AnaylzeObjectEntryArray.resize(this->GetNumberOfObjects());
-    itk::ImageRegionIterator<itk::Image<unsigned char,3 > > indexIt(this,this->GetLargestPossibleRegion());
+    itk::ImageRegionIterator<ImageType > indexIt(this,this->GetLargestPossibleRegion());
     for(indexIt.Begin();!indexIt.IsAtEnd(); ++indexIt)
     {
       if(indexIt.Get() == i)
