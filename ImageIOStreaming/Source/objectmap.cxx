@@ -42,7 +42,7 @@ namespace itk{
    this->m_AnaylzeObjectEntryArray[0] = itk::AnalyzeObjectEntry::New();
     this->m_AnaylzeObjectEntryArray[0]->SetName("Original");
     this->SetNumberOfObjects(0);
-    this->SetNumberOfVolumes(0);
+    this->SetNumberOfVolumes(1);
     this->SetVersion(VERSION7);
     this->SetXDim(1);
     this->SetYDim(1);
@@ -133,11 +133,11 @@ namespace itk{
     for(ObjectIterator.Begin(), RGBIterator.Begin(); !ObjectIterator.IsAtEnd(); ++ObjectIterator, ++RGBIterator)
     {
       RGBPixelType setColors;
-      /*int i = ObjectIterator.Get();
+      int i = ObjectIterator.Get();
       if(i != 0)
       {
         int j =1;
-      }*/
+      }
       setColors.SetBlue(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
       setColors.SetGreen(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndGreen());
       setColors.SetRed(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndRed());
