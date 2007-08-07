@@ -41,6 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "itkMetaDataObject.h"
 #include <itkUnaryFunctorImageFilter.h>
 #include <itkScalarToRGBPixelFunctor.h>
+#include <itkThresholdImageFilter.h>
 
 
 namespace itk
@@ -174,9 +175,11 @@ namespace itk
       itkSetMacro(NumberOfVolumes, int);
       itkGetConstMacro(NumberOfVolumes, int);
 
+      itk::AnalyzeObjectMap::Pointer PickOneEntry(int numberOfEntry);
+
       itk::Image<RGBPixelType, 3>::Pointer ObjectMapToRGBImage();
 
-      void AddObjectBasedOnImagePixel(itk::Image<unsigned char, 3>::Pointer Image,unsigned char value, std::string ObjectName, int Red = 0, int Green = 0, int Blue = 0);
+      void AddObjectBasedOnImagePixel(itk::Image<unsigned char, 3>::Pointer Image,int value, std::string ObjectName, int Red = 0, int Green = 0, int Blue = 0);
 
       void AddObject(std::string ObjectName);
 
