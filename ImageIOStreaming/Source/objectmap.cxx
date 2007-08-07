@@ -87,7 +87,7 @@ namespace itk{
     return &(this->m_AnaylzeObjectEntryArray);
   }
 
-  itk::AnalyzeObjectMap::Pointer AnalyzeObjectMap::PickOneEntry(int numberOfEntry)
+  itk::AnalyzeObjectMap::Pointer AnalyzeObjectMap::PickOneEntry(const int numberOfEntry)
   {
     itk::AnalyzeObjectMap::Pointer newObjectMap = itk::AnalyzeObjectMap::New();
     newObjectMap->SetRegions(this->GetLargestPossibleRegion());
@@ -138,7 +138,7 @@ namespace itk{
     return RGBImage;
   }
 
-  void AnalyzeObjectMap::AddObjectBasedOnImagePixel(ImageType::Pointer Image, int value, std::string ObjectName, int Red, int Green, int Blue)
+  void AnalyzeObjectMap::AddObjectBasedOnImagePixel(const ImageType::Pointer Image, const int value, const std::string ObjectName, const int Red,const int Green,const int Blue)
   {
     
     itk::ImageRegion<3> ObjectMapRegion = this->GetLargestPossibleRegion();
@@ -181,7 +181,7 @@ namespace itk{
 
   /*NOTE: This function will add an object entry to the end of the vector.  However, you will still have to fill in the values that you would like stored.
   TODO: Rastor through the image to place the value at the specifed locations.*/
-  void AnalyzeObjectMap::AddObject(std::string ObjectName)
+  void AnalyzeObjectMap::AddObject(const std::string ObjectName)
   {
     this->m_AnaylzeObjectEntryArray.insert(this->m_AnaylzeObjectEntryArray.end(), itk::AnalyzeObjectEntry::New());
     this->SetNumberOfObjects(this->GetNumberOfObjects()+1);
@@ -189,7 +189,7 @@ namespace itk{
   }
 
   /*NOTE: This function will move all object entry's so that the vector stays in the smallest order starting from 0.*/
-  void AnalyzeObjectMap::DeleteObject(std::string ObjectName)
+  void AnalyzeObjectMap::DeleteObject(const std::string ObjectName)
   {
     int i = this->FindObject(ObjectName);
     if(i == -1)
@@ -218,7 +218,7 @@ namespace itk{
     }
   }
 
-  int AnalyzeObjectMap::FindObject(std::string ObjectName)
+  int AnalyzeObjectMap::FindObject(const std::string ObjectName)
   {
     for(int i=0; i < this->GetNumberOfObjects(); i++)
     {
