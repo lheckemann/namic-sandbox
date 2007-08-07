@@ -154,7 +154,7 @@ namespace itk{
     
     itk::ImageRegion<3> ObjectMapRegion = this->GetLargestPossibleRegion();
     itk::ImageRegion<3> ImageRegion = Image->GetLargestPossibleRegion();
-    if(  ImageRegion != ObjectMapRegion)
+    if(  ImageRegion != ObjectMapRegion && ImageRegion.IsInside(ObjectMapRegion))
     {
       //this->Graft(Image);
       this->SetRegions(Image->GetLargestPossibleRegion());
