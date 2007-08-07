@@ -176,7 +176,7 @@ int main( int argc, char ** argv )
 
   itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer RGBImageTwo = ObjectMapTwo->ObjectMapToRGBImage();
 
-  itk::AnalyzeObjectMap::Pointer circleObjectMap = CreateObjectMap->PickOneEntry(3);
+  itk::AnalyzeObjectMap::Pointer circleObjectMap = ObjectMapTwo->PickOneEntry(3);
 
   circleObjectMap->PlaceObjectMapEntriesIntoMetaData();
 
