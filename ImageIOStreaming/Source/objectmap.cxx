@@ -97,26 +97,19 @@ namespace itk{
     newObjectMap->SetRegions(this->GetLargestPossibleRegion());
     newObjectMap->Allocate();
     newObjectMap->AddObject(this->m_AnaylzeObjectEntryArray[numberOfEntry]->GetName());
-    //itk::AnalyzeObjectEntry::Pointer newObjectEntry = this->getObjectEntry(numberOfEntry);
     newObjectMap->m_AnaylzeObjectEntryArray[1] = this->m_AnaylzeObjectEntryArray[numberOfEntry];
-    //newObjectMap = this;
     itk::ThresholdImageFilter<itk::Image<unsigned char, 3>>::Pointer changeOldObjectMap = itk::ThresholdImageFilter<itk::Image<unsigned char, 3>>::New();
     
     changeOldObjectMap->SetInput(this);
     changeOldObjectMap->SetOutsideValue(0);
     changeOldObjectMap->ThresholdOutside(numberOfEntry,numberOfEntry);
-//    itk::Image<unsigned char,3> newestObjectMap = changeOldObjectMap->m;
     changeOldObjectMap->Update();
     changeOldObjectMap->SetInput(changeOldObjectMap->GetOutput());
     changeOldObjectMap->SetOutsideValue(1);
     changeOldObjectMap->ThresholdAbove(numberOfEntry-1);
     itk::Image<unsigned char, 3>::Pointer newestObjectMapImage = changeOldObjectMap->GetOutput();
     changeOldObjectMap->Update();
-
     newObjectMap->SetPixelContainer(newestObjectMapImage->GetPixelContainer());
-    //changeOldObjectMap->SetOutsideValue(1);
-    //changeOldObjectMap->ThresholdOutside(0,0);
-    //changeOldObjectMap->Update();
     return newObjectMap;
   }
 
@@ -156,11 +149,8 @@ namespace itk{
     itk::ImageRegion<3> ImageRegion = Image->GetLargestPossibleRegion();
     if(  ImageRegion != ObjectMapRegion && ImageRegion.IsInside(ObjectMapRegion))
     {
-      //this->Graft(Image);
       this->SetRegions(Image->GetLargestPossibleRegion());
-      
       this->Allocate();
-      //this->FillBuffer(0);
       this->SetXDim(this->GetLargestPossibleRegion().GetSize(0));
       this->SetYDim(this->GetLargestPossibleRegion().GetSize(1));
       this->SetZDim(this->GetLargestPossibleRegion().GetSize(2));
@@ -176,11 +166,11 @@ namespace itk{
     this->m_AnaylzeObjectEntryArray[i]->SetEndBlue(Blue);
     for(indexImage.Begin();!indexImage.IsAtEnd(); ++indexImage, ++indexObjectMap)
     {
-      int k = indexImage.Get();
+      /*int k = indexImage.Get();
       if(k!=0)
       {
         int j =1;
-      }
+      }*/
       
       if(indexImage.Get() == value)
       {
