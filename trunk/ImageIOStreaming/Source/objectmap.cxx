@@ -42,11 +42,7 @@ namespace itk{
    this->m_AnaylzeObjectEntryArray[0] = itk::AnalyzeObjectEntry::New();
     this->m_AnaylzeObjectEntryArray[0]->SetName("Original");
     this->SetNumberOfObjects(0);
-    this->SetNumberOfVolumes(1);
     this->SetVersion(VERSION7);
-    this->SetXDim(1);
-    this->SetYDim(1);
-    this->SetZDim(1);
     ImageType::SizeType size = {{1,1,1}};
     ImageType::IndexType orgin = {{0,0,0}};
     ImageType::RegionType region;
@@ -151,9 +147,6 @@ namespace itk{
     {
       this->SetRegions(Image->GetLargestPossibleRegion());
       this->Allocate();
-      this->SetXDim(this->GetLargestPossibleRegion().GetSize(0));
-      this->SetYDim(this->GetLargestPossibleRegion().GetSize(1));
-      this->SetZDim(this->GetLargestPossibleRegion().GetSize(2));
     }
     itk::ImageRegionIterator<ImageType > indexImage(Image, Image->GetLargestPossibleRegion());
 

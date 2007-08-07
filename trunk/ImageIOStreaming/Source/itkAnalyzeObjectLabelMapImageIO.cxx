@@ -84,20 +84,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     }
     int version = this->m_AnalyzeObjectLabelMapImage->GetVersion();
 
-  //Now the file pointer is pointing to the image region
-    ImageType::SizeType ImageSize;
-    ImageSize[0]=this->m_AnalyzeObjectLabelMapImage->GetXDim();
-    ImageSize[1]=this->m_AnalyzeObjectLabelMapImage->GetYDim();
-    ImageSize[2]=this->m_AnalyzeObjectLabelMapImage->GetZDim();
-    ImageType::IndexType ImageIndex;
-    ImageIndex[0]=0;
-    ImageIndex[1]=0;
-    ImageIndex[2]=0;  
-
-    ImageType::RegionType ImageRegion;
-    ImageRegion.SetSize(ImageSize);
-    ImageRegion.SetIndex(ImageIndex);
-    this->m_AnalyzeObjectLabelMapImage->SetRegions(ImageRegion);
+  
     
     //TODO: Image spacing needs fixing.  Will need to look to see if a 
     //      .nii, .nii.gz, or a .hdr file
@@ -108,7 +95,6 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     ImageSpacing[1]=1.0F;
     ImageSpacing[2]=1.0F;
     this->m_AnalyzeObjectLabelMapImage->SetSpacing(ImageSpacing);
-    this->m_AnalyzeObjectLabelMapImage->Allocate();
 
     // Decoding the run length encoded raw data into an unsigned char volume
     struct RunLengthStruct {
@@ -175,20 +161,35 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
           }
         }
         std::cout<<"Can not deal with the image size right now"<<std::endl;*/
-    const int VolumeSize=this->m_AnalyzeObjectLabelMapImage->GetXDim() * this->m_AnalyzeObjectLabelMapImage->GetYDim() * this->m_AnalyzeObjectLabelMapImage->GetZDim() *this->m_AnalyzeObjectLabelMapImage->GetNumberOfVolumes();
+
+    int VolumeSize;
+    if(this->GetNumberOfDimensions() >3)
+    {
+      VolumeSize = this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(0) * this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(1) * this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(2) *this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(3);
+    }
+    else if(this->GetNumberOfDimensions() == 3)
+    {
+      VolumeSize = this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(0) * this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(1) * this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(2);
+    }
+    else if(this->GetNumberOfDimensions() == 2)
+    {
+      VolumeSize = this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(0) * this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(1);
+    }
+    else
+    {
+      VolumeSize = VolumeSize = this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(0);
+    }
     //const int VolumeSize = zDim * yDim *xDim;
     {
-      std::ofstream myfile;
-      myfile.open("VoxelInformation26.txt", myfile.app);
-      int n= 0;
+//      std::ofstream myfile;
+//      myfile.open("VoxelInformation26.txt", myfile.app);
       while (!inputFileStream.read(reinterpret_cast<char *>(RunLengthArray), sizeof(RunLengthElement)*NumberOfRunLengthElementsPerRead).eof())
       {
-        n++;
         for (int i = 0; i < NumberOfRunLengthElementsPerRead; i++)
         {
-           myfile<< "Assigning: " << (int)RunLengthArray[i].voxel_count 
-             << " voxels of label " << (int)RunLengthArray[i].voxel_value
-             << std::endl;
+//           myfile<< "Assigning: " << (int)RunLengthArray[i].voxel_count 
+//             << " voxels of label " << (int)RunLengthArray[i].voxel_value
+//             << std::endl;
           if(RunLengthArray[i].voxel_count == 0)
           {
                 std::cout<<"Inside AnaylzeObjectLabelMap Invalid Length "<<(int)RunLengthArray[i].voxel_count<<std::endl;
@@ -200,9 +201,9 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
             index++;
           }
           voxel_count_sum+=RunLengthArray[i].voxel_count;
-          myfile <<"index = "<<index
-            << " voxel_count_sum= " << voxel_count_sum
-            << " Volume size = "<<VolumeSize<<std::endl;
+//          myfile <<"index = "<<index
+//            << " voxel_count_sum= " << voxel_count_sum
+//            << " Volume size = "<<VolumeSize<<std::endl;
           if ( index > VolumeSize )
           {
             std::cout<<"BREAK!\n";
@@ -210,8 +211,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
           }
         }
       }
-      myfile.close();
-      n++;
+//      myfile.close();
     }
 
         
@@ -229,7 +229,6 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
       //return false;
     }
 
-    //cornersOfRegion
     inputFileStream.close();
 
 #if 0 
@@ -244,9 +243,6 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
 }
 
 
-// This method will only test if the header looks like an
-// Nifti Header.  Some code is redundant with ReadImageInformation
-// a StateMachine could provide a better implementation
 bool AnalyzeObjectLabelMapImageIO::CanReadFile( const char* FileNameToRead )
 {
   std::cout<<"I am in Can Read File for AnalyzeObjectLabelMapImageIO"<<std::endl;
@@ -284,7 +280,7 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     // number of objects
     bool NeedByteSwap=false;
     
-    int header[5];
+    int header[6] = {1};
     if ( inputFileStream.read(reinterpret_cast<char *>(header),sizeof(int)*5).fail())
     {
       std::cout<<"Error: Could not read header of "<<m_FileName.c_str()<<std::endl;
@@ -311,20 +307,12 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     this->m_AnalyzeObjectLabelMapImage = itk::AnalyzeObjectMap::New();
     // Reading the Header into the class
     this->m_AnalyzeObjectLabelMapImage->SetVersion(header[0]);
-    this->m_AnalyzeObjectLabelMapImage->SetXDim(header[1]);
-    this->m_AnalyzeObjectLabelMapImage->SetYDim(header[2]);
-    this->m_AnalyzeObjectLabelMapImage->SetZDim(header[3]);
     this->m_AnalyzeObjectLabelMapImage->SetNumberOfObjects(header[4]);
 
-    // In version 7, the header file has a new field after number of objects, before name,
-    // which is nvols, with type int. This field allows 4D object maps. 
-    // Further updating of objectmap related programs are to be developed to 
-    // obtain, utilize this field. Xiujuan Geng May 04, 2007
     bool NeedBlendFactor = false;
     if( this->m_AnalyzeObjectLabelMapImage->GetVersion() == VERSION7 )
     {
-      int nvols = 1;
-      if ( (inputFileStream.read(reinterpret_cast<char *>(&nvols),sizeof(int)*1)).fail() )
+      if ( (inputFileStream.read(reinterpret_cast<char *>(&(header[5])),sizeof(int)*1)).fail() )
       {
         std::cout<<"Error: Could not read header of "<< m_FileName.c_str()<<std::endl;
         exit(-1);
@@ -332,29 +320,69 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
 
       if(NeedByteSwap)
       {
-          itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&nvols);
-      }
-      this->m_AnalyzeObjectLabelMapImage->SetNumberOfVolumes(nvols);
-      if(this->m_AnalyzeObjectLabelMapImage->GetNumberOfVolumes() != nvols)
-      {
-          std::cout<<"GetNumberOfVolumes() does not equal what was read in."<<std::endl;
+          itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[5]));
       }
       NeedBlendFactor = true;
     }
+    //Now the file pointer is pointing to the image region
+    ImageType::SizeType ImageSize;
+    ImageType::IndexType ImageIndex;
     
-    if(this->m_AnalyzeObjectLabelMapImage->GetNumberOfVolumes() >1 )
+    if(header[5]>1)
+    {
+      ImageIndex[3]=0;
+      ImageIndex[2]=0;
+      ImageIndex[1]=0;
+      ImageIndex[0]=0;
+
+      ImageSize[0]=header[1];
+      ImageSize[1]=header[2];
+      ImageSize[2]=header[3];
+      ImageSize[3]=header[5];
+    }
+    else if(header[3]>1)
+    {
+      ImageIndex[2]=0;
+      ImageIndex[1]=0;
+      ImageIndex[0]=0;
+
+      ImageSize[0]=header[1];
+      ImageSize[1]=header[2];
+      ImageSize[2]=header[3];
+    }
+    else if(header[2]>1)
+    {
+      ImageIndex[1]=0;
+      ImageIndex[0]=0;
+
+      ImageSize[0]=header[1];
+      ImageSize[1]=header[2];
+    }
+    else
+    {
+      ImageIndex[0]=0;
+
+      ImageSize[0]=header[1]; 
+    }
+
+    ImageType::RegionType ImageRegion;
+    ImageRegion.SetSize(ImageSize);
+    ImageRegion.SetIndex(ImageIndex);
+    this->m_AnalyzeObjectLabelMapImage->SetRegions(ImageRegion);
+    
+    if(header[5] >1 )
     {
       this->SetNumberOfDimensions(4);
     }
-    else if(this->m_AnalyzeObjectLabelMapImage->GetZDim() >1 )
+    else if(header[3] >1 )
     {
       this->SetNumberOfDimensions(3);
     }
-    else if(this->m_AnalyzeObjectLabelMapImage->GetYDim() >1 )
+    else if(header[2] >1 )
     {
       this->SetNumberOfDimensions(2);
     }
-    else if(this->m_AnalyzeObjectLabelMapImage->GetXDim() >1 )
+    else if(header[1] >1 )
     {
       this->SetNumberOfDimensions(1);
     }
@@ -362,16 +390,16 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     switch(this->GetNumberOfDimensions())
     {
     case 4:
-      this->SetDimensions(3,this->m_AnalyzeObjectLabelMapImage->GetNumberOfVolumes());
+      this->SetDimensions(3,this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(3));
       this->SetSpacing(3, 1);
     case 3:
-      this->SetDimensions(2,this->m_AnalyzeObjectLabelMapImage->GetZDim());
+      this->SetDimensions(2,this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(2));
       this->SetSpacing(2, 1);
     case 2:
-      this->SetDimensions(1,this->m_AnalyzeObjectLabelMapImage->GetYDim());
+      this->SetDimensions(1,this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(1));
       this->SetSpacing(1,1);
     case 1:
-      this->SetDimensions(0, this->m_AnalyzeObjectLabelMapImage->GetXDim());
+      this->SetDimensions(0, this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(0));
       this->SetSpacing(0,1);
     }
 
@@ -413,21 +441,6 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
         std::cout<<"GetVersion() does not equal what was read in."<<std::endl;
         inputFileStream.close();
     }
-    if(this->m_AnalyzeObjectLabelMapImage->GetXDim() != header[1])
-    {
-        std::cout<<"GetXDim() does not equal what was read in."<<std::endl;
-        inputFileStream.close();
-    }
-    if(this->m_AnalyzeObjectLabelMapImage->GetYDim() != header[2])
-    {
-        std::cout<<"GetYDim() does not equal what was read in."<<std::endl;
-        inputFileStream.close();
-     }
-    if(this->m_AnalyzeObjectLabelMapImage->GetZDim() != header[3])
-    {
-        std::cout<<"GetZDim() does not equal what was read in."<<std::endl;
-        inputFileStream.close();
-    }
     if(this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() != header[4])
     {
         std::cout<<"GetNumberOfObjects() does not equal what was read in."<<std::endl;
@@ -443,8 +456,8 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
       exit(-1);
     }
 
-    std::ofstream myfile;
-    myfile.open("ReadFromFilePointer35.txt", myfile.app);
+    /*std::ofstream myfile;
+    myfile.open("ReadFromFilePointer35.txt", myfile.app);*/
     itk::AnalyzeObjectEntryArrayType *my_reference=this->m_AnalyzeObjectLabelMapImage->GetAnalyzeObjectEntryArrayPointer();
     (*my_reference).resize(this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects());
     for (int i = 0; i < this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects(); i++)
@@ -452,12 +465,12 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
       // Allocating a object to be created
       (*my_reference)[i] = AnalyzeObjectEntry::New();
       (*my_reference)[i]->ReadFromFilePointer(inputFileStream,NeedByteSwap, NeedBlendFactor);
-      (*my_reference)[i]->Print(myfile);
+      //(*my_reference)[i]->Print(myfile);
     }
-    myfile.close();
+    //myfile.close();
     locationOfFile = inputFileStream.tellg();
     inputFileStream.close();
-    //Now fill out the MetaDataHeader
+    //Now fill out the MetaData
     MetaDataDictionary &thisDic=this->GetMetaDataDictionary();
     EncapsulateMetaData<std::string>(thisDic,ITK_OnDiskStorageTypeName,std::string(typeid(unsigned char).name()));
     EncapsulateMetaData<itk::AnalyzeObjectEntryArrayType>(thisDic,ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY,*my_reference);
@@ -468,7 +481,7 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
  */
 void
 AnalyzeObjectLabelMapImageIO
-::WriteImageInformation(void) //For Nifti this does not write a file, it only fills in the appropriate header information.
+::WriteImageInformation(void)
 {
   std::cout<<"I am in the writeimageinformaton"<<std::endl;
   std::string tempfilename = this->GetFileName();
@@ -556,10 +569,6 @@ AnalyzeObjectLabelMapImageIO
     }
     itk::AnalyzeObjectEntryArrayType my_reference;
     itk::ExposeMetaData<itk::AnalyzeObjectEntryArrayType>(this->GetMetaDataDictionary(),ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY, my_reference);
-    //int setPointerOfInputImage = 24 + (my_reference.size())*152;//this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() * 152;;
-    
-    //outputFileStream.seekp(1550);
-    
 
   // Encoding the run length encoded raw data into an unsigned char volume
     const int VolumeSize=this->GetDimensions(0)*this->GetDimensions(1)*this->GetDimensions(2);
