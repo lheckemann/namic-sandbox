@@ -75,10 +75,6 @@ bool AnalyzeObjectLabelMapImageIO::CanWriteFile(const char * FileNameToWrite)
 
 void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
 {  
-
-
-  
-  //std::ifstream inputFileStream;
   inputFileStream.open(m_FileName.c_str(), std::ios::binary | std::ios::in);
   inputFileStream.seekg(locationOfFile);
     if ( !inputFileStream.is_open())
@@ -86,19 +82,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
       std::cout<< "Error: Could not open "<< m_FileName.c_str();
       exit(-1);
     }
-    //this->m_AnalyzeObjectLabelMapImage = itk::AnalyzeObjectMap::New();
     int version = this->m_AnalyzeObjectLabelMapImage->GetVersion();
-    int setPointerOfInputImage;
-    /*if(version == VERSION7)
-    {
-      std::cout<<this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects()<<std::endl;
-      setPointerOfInputImage = 24 + this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() * 152;
-    }
-    else
-    {
-      setPointerOfInputImage = 20 + this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() * 146;
-    }
-    inputFileStream.seekg(setPointerOfInputImage);*/
 
   //Now the file pointer is pointing to the image region
     itk::Image<unsigned char,3>::SizeType ImageSize;
