@@ -176,6 +176,40 @@ int main( int argc, char ** argv )
 
   itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer RGBImage = ObjectMap->ObjectMapToRGBImage();
 
+  itk::AnalyzeObjectMap::Pointer circleObjectMap = CreateObjectMap->PickOneEntry(3);
+
+  circleObjectMap->PlaceObjectMapEntriesIntoMetaData();
+
+  writer->SetInput(circleObjectMap);
+  writer->SetFileName("circle.obj");
+
+  try
+    {
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    std::cerr << "ExceptionObject caught !" << std::endl;
+    std::cerr << err << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  readerThree->SetFileName("circle.obj");
+  try
+    {
+    readerThree->Update();
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    std::cerr << "ExceptionObject caught !" << std::endl;
+    std::cerr << err << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  itk::AnalyzeObjectMap::Pointer ObjectMapTwo = ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
+
+  itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer RGBImageTwo = ObjectMapTwo->ObjectMapToRGBImage();
+
 
   if( error_count )
   {

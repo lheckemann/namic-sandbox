@@ -91,6 +91,27 @@ namespace itk{
     return &(this->m_AnaylzeObjectEntryArray);
   }
 
+  itk::AnalyzeObjectMap::Pointer AnalyzeObjectMap::PickOneEntry(int numberOfEntry)
+  {
+    itk::AnalyzeObjectMap::Pointer newObjectMap = itk::AnalyzeObjectMap::New();
+    newObjectMap->SetRegions(this->GetLargestPossibleRegion());
+    newObjectMap->SetPixelContainer(this->GetPixelContainer());
+    newObjectMap->AddObject(this->m_AnaylzeObjectEntryArray[numberOfEntry]->GetName());
+    //itk::AnalyzeObjectEntry::Pointer newObjectEntry = this->getObjectEntry(numberOfEntry);
+    newObjectMap->m_AnaylzeObjectEntryArray[1] = this->m_AnaylzeObjectEntryArray[numberOfEntry];
+    //newObjectMap = this;
+    itk::ThresholdImageFilter<itk::Image<unsigned char, 3>>::Pointer changeOldObjectMap = itk::ThresholdImageFilter<itk::Image<unsigned char, 3>>::New();
+    changeOldObjectMap->SetInput(newObjectMap);
+    changeOldObjectMap->SetOutsideValue(0);
+    changeOldObjectMap->ThresholdOutside(numberOfEntry,numberOfEntry);
+//    itk::Image<unsigned char,3> newestObjectMap = changeOldObjectMap->m;
+    changeOldObjectMap->Update();
+    //changeOldObjectMap->SetOutsideValue(1);
+    //changeOldObjectMap->ThresholdOutside(0,0);
+    //changeOldObjectMap->Update();
+    return this;
+  }
+
   itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer AnalyzeObjectMap::ObjectMapToRGBImage()
   {
     RGBImageType::Pointer RGBImage = RGBImageType::New();
@@ -100,7 +121,7 @@ namespace itk{
     itk::ImageRegionIterator<itk::Image<unsigned char, 3>> ObjectIterator(this, this->GetLargestPossibleRegion());
 
     std::ofstream myfile;
-    myfile.open("RGBImageVoxels.txt");
+    myfile.open("RGBImageVoxels2.txt");
     for(ObjectIterator.Begin(), RGBIterator.Begin(); !ObjectIterator.IsAtEnd(); ++ObjectIterator, ++RGBIterator)
     {
       RGBPixelType setColors;
@@ -109,35 +130,35 @@ namespace itk{
       {
         int j =1;
       }
-      if(ObjectIterator.Get() <= this->GetNumberOfObjects())
+      /*if(ObjectIterator.Get() <= this->GetNumberOfObjects())
       {
         setColors.SetBlue(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
-        setColors.SetGreen(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
+        setColors.SetGreen(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndGreen());
         setColors.SetRed(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndRed());
       }
       else
       {
         setColors.SetBlue(this->m_AnaylzeObjectEntryArray[0]->GetEndBlue());
-        setColors.SetGreen(this->m_AnaylzeObjectEntryArray[0]->GetEndBlue());
+        setColors.SetGreen(this->m_AnaylzeObjectEntryArray[0]->GetEndGreen());
         setColors.SetRed(this->m_AnaylzeObjectEntryArray[0]->GetEndRed());
       }
 
         RGBIterator.Set(setColors);
-        myfile<<RGBIterator.Get()<<std::endl;
+        myfile<<RGBIterator.Get()<<std::endl;*/
     }
     myfile.close();
     return RGBImage;
   }
 
-  void AnalyzeObjectMap::AddObjectBasedOnImagePixel(itk::Image<unsigned char, 3>::Pointer Image, unsigned char value, std::string ObjectName, int Red, int Green, int Blue)
+  void AnalyzeObjectMap::AddObjectBasedOnImagePixel(itk::Image<unsigned char, 3>::Pointer Image, int value, std::string ObjectName, int Red, int Green, int Blue)
   {
     
     itk::ImageRegion<3> ObjectMapRegion = this->GetLargestPossibleRegion();
     itk::ImageRegion<3> ImageRegion = Image->GetLargestPossibleRegion();
     if(  ImageRegion != ObjectMapRegion)
     {
-      this->Graft(Image);
-      //this->SetRegions(Image->GetLargestPossibleRegion());
+      //this->Graft(Image);
+      this->SetRegions(Image->GetLargestPossibleRegion());
       
       this->Allocate();
       //this->FillBuffer(0);
