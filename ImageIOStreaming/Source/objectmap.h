@@ -58,6 +58,7 @@ namespace itk
   static const int VERSION7 = 20050829;
 
   typedef std::vector<AnalyzeObjectEntry::Pointer>  AnalyzeObjectEntryArrayType;
+  
   const char *const ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY = "ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY";
 
   /**
@@ -79,6 +80,8 @@ namespace itk
       typedef itk::RGBPixel<unsigned char> RGBPixelType;
 
       typedef itk::Image<RGBPixelType, 3> RGBImageType;
+      
+      typedef itk::Image<unsigned char, 3> ImageType;
       
       /** Method for creation through the object factory. */
       itkNewMacro(Self);
