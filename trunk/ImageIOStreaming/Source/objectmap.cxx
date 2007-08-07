@@ -95,21 +95,29 @@ namespace itk{
   {
     itk::AnalyzeObjectMap::Pointer newObjectMap = itk::AnalyzeObjectMap::New();
     newObjectMap->SetRegions(this->GetLargestPossibleRegion());
-    newObjectMap->SetPixelContainer(this->GetPixelContainer());
+    newObjectMap->Allocate();
     newObjectMap->AddObject(this->m_AnaylzeObjectEntryArray[numberOfEntry]->GetName());
     //itk::AnalyzeObjectEntry::Pointer newObjectEntry = this->getObjectEntry(numberOfEntry);
     newObjectMap->m_AnaylzeObjectEntryArray[1] = this->m_AnaylzeObjectEntryArray[numberOfEntry];
     //newObjectMap = this;
     itk::ThresholdImageFilter<itk::Image<unsigned char, 3>>::Pointer changeOldObjectMap = itk::ThresholdImageFilter<itk::Image<unsigned char, 3>>::New();
-    changeOldObjectMap->SetInput(newObjectMap);
+    
+    changeOldObjectMap->SetInput(this);
     changeOldObjectMap->SetOutsideValue(0);
     changeOldObjectMap->ThresholdOutside(numberOfEntry,numberOfEntry);
 //    itk::Image<unsigned char,3> newestObjectMap = changeOldObjectMap->m;
     changeOldObjectMap->Update();
+    changeOldObjectMap->SetInput(changeOldObjectMap->GetOutput());
+    changeOldObjectMap->SetOutsideValue(1);
+    changeOldObjectMap->ThresholdAbove(numberOfEntry-1);
+    itk::Image<unsigned char, 3>::Pointer newestObjectMapImage = changeOldObjectMap->GetOutput();
+    changeOldObjectMap->Update();
+
+    newObjectMap->SetPixelContainer(newestObjectMapImage->GetPixelContainer());
     //changeOldObjectMap->SetOutsideValue(1);
     //changeOldObjectMap->ThresholdOutside(0,0);
     //changeOldObjectMap->Update();
-    return this;
+    return newObjectMap;
   }
 
   itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer AnalyzeObjectMap::ObjectMapToRGBImage()
@@ -130,7 +138,7 @@ namespace itk{
       {
         int j =1;
       }
-      /*if(ObjectIterator.Get() <= this->GetNumberOfObjects())
+      if(ObjectIterator.Get() <= this->GetNumberOfObjects())
       {
         setColors.SetBlue(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
         setColors.SetGreen(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndGreen());
@@ -144,7 +152,7 @@ namespace itk{
       }
 
         RGBIterator.Set(setColors);
-        myfile<<RGBIterator.Get()<<std::endl;*/
+        myfile<<RGBIterator.Get()<<std::endl;
     }
     myfile.close();
     return RGBImage;

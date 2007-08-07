@@ -34,13 +34,14 @@ ImageToObjectMap<TConvertImage>
   this->ObjectMap = itk::AnalyzeObjectMap::New();
   this->ObjectMap->SetRegions(image->GetLargestPossibleRegion());
   this->ObjectMap->Allocate();
-  itk::ImageRegionIterator<TConvertImage> ImageIndexIT(image, image->GetLargestPossibleRegion());
-  itk::ImageRegionIterator<TConvertImage> ObjectmapIndexIT(this->ObjectMap, image->GetLargestPossibleRegion());
-  for(ImageIndexIT.GoToBegin(); !ImageIndexIT.IsAtEnd(); ++ImageIndexIT, ++ObjectmapIndexIT)
-  {
-    this->ObjectMap->SetPixel(ImageIndexIT.GetIndex(), ImageIndexIT.Get());
-    //ObjectmapIndexIT.Set(ImageIndexIT.Get());
-  }
+  this->ObjectMap->SetPixelContainer(image->GetPixelContainer());
+  //itk::ImageRegionIterator<TConvertImage> ImageIndexIT(image, image->GetLargestPossibleRegion());
+  //itk::ImageRegionIterator<TConvertImage> ObjectmapIndexIT(this->ObjectMap, image->GetLargestPossibleRegion());
+  //for(ImageIndexIT.GoToBegin(); !ImageIndexIT.IsAtEnd(); ++ImageIndexIT, ++ObjectmapIndexIT)
+  //{
+  //  this->ObjectMap->SetPixel(ImageIndexIT.GetIndex(), ImageIndexIT.Get());
+  //  //ObjectmapIndexIT.Set(ImageIndexIT.Get());
+  //}
   itk::AnalyzeObjectEntryArrayType *my_reference = this->ObjectMap->GetAnalyzeObjectEntryArrayPointer();
   itk::ExposeMetaData<itk::AnalyzeObjectEntryArrayType>(image->GetMetaDataDictionary(),ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY, *my_reference);
   this->ObjectMap->SetNumberOfObjects(this->ObjectMap->GetAnalyzeObjectEntryArrayPointer()->size());

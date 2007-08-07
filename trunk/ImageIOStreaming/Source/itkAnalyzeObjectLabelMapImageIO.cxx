@@ -195,7 +195,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     //const int VolumeSize = zDim * yDim *xDim;
     {
       std::ofstream myfile;
-      myfile.open("VoxelInformation24.txt", myfile.app);
+      myfile.open("VoxelInformation26.txt", myfile.app);
       int n= 0;
       while (!inputFileStream.read(reinterpret_cast<char *>(RunLengthArray), sizeof(RunLengthElement)*NumberOfRunLengthElementsPerRead).eof())
       {
