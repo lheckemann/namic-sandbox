@@ -118,19 +118,6 @@ namespace itk
       const AnalyzeObjectEntry::Pointer getObjectEntry( const int index ) const;
 
       /**
-       * \brief This function is used to read in the object file
-       * \param const std::string & filename
-       */
-      bool ReadObjectFile( const std::string& filename );
-
-      /**
-       * \brief This function is used to write the object file
-       * \param const std:: string & filename
-       */
-      bool WriteObjectFile( const std::string& filename );
-
-
-      /**
        * \brief GetVersion/SetVersion
        *
        * This function is used to Get/Set the Analyze version of the object
@@ -146,17 +133,17 @@ namespace itk
       itkSetMacro(NumberOfObjects, int);
       itkGetConstMacro(NumberOfObjects, int);
 
-      itk::AnalyzeObjectMap::Pointer PickOneEntry(int numberOfEntry);
+      itk::AnalyzeObjectMap::Pointer PickOneEntry(const int numberOfEntry);
 
       itk::Image<RGBPixelType, 3>::Pointer ObjectMapToRGBImage();
 
-      void AddObjectBasedOnImagePixel(itk::Image<unsigned char, 3>::Pointer Image,int value, std::string ObjectName, int Red = 0, int Green = 0, int Blue = 0);
+      void AddObjectBasedOnImagePixel(const itk::Image<unsigned char, 3>::Pointer Image,const int value,const std::string ObjectName,const int Red = 0,const int Green = 0,const int Blue = 0);
 
-      void AddObject(std::string ObjectName);
+      void AddObject(const std::string ObjectName);
 
-      void DeleteObject(std::string ObjectName);
+      void DeleteObject(const std::string ObjectName);
 
-      int FindObject(std::string ObjectName);
+      int FindObject(const std::string ObjectName);
 
       void PlaceObjectMapEntriesIntoMetaData();
 
@@ -173,14 +160,6 @@ namespace itk
       AnalyzeObjectMap( const AnalyzeObjectMap & rhs ) { /*Explicitly not allowed*/ };
 
    private:
-      /**
-       * \brief This function takes a string and removes the spaces
-       * \param output the string with the spaces removed
-       * \param input the string to remove the spaces
-       */
-      void RemoveSpaceFromString(std::string & output, const std::string & input);
-
-
       /** Version of object file */
       int m_Version;
       /** Number of Objects in the object file */
