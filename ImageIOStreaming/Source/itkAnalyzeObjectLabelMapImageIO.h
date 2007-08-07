@@ -111,6 +111,8 @@ private:
   //  int           m_CollapsedDims[8];
   AnalyzeObjectLabelMapImageIO(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
+
+
 };
 
 } // end namespace itk

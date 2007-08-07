@@ -139,44 +139,12 @@ namespace itk
       itkGetConstMacro(Version, int);
 
       /**
-       * \brief GetXDim/SetXDim
-       *
-       * This function is used to Get/Set the width of an object
-       */
-      itkSetMacro(XDim, int);
-      itkGetConstMacro(XDim, int);
-
-      /**
-       * \brief GetYDim/SetYDim
-       *
-       * This function is used to Get/Set the height of an object
-       */
-      itkSetMacro(YDim, int);
-      itkGetConstMacro(YDim, int);
-
-      /**
-       * \brief GetZDim/SetZDim
-       *
-       * This function is used to Get/Set the depth of an object
-       */
-      itkSetMacro(ZDim, int);
-      itkGetConstMacro(ZDim, int);
-
-      /**
        * \brief GetNumberOfObjects/SetNumberOfObjects
        *
        * This function is used to Get/Set the number of objects in the Object map
        */
       itkSetMacro(NumberOfObjects, int);
       itkGetConstMacro(NumberOfObjects, int);
-
-      /**
-       * \brief GetNumberOfVolumes/SetNumberOfVolumes
-       * 
-       * This function is used to Get/Set the number of object volumes
-       */
-      itkSetMacro(NumberOfVolumes, int);
-      itkGetConstMacro(NumberOfVolumes, int);
 
       itk::AnalyzeObjectMap::Pointer PickOneEntry(int numberOfEntry);
 
@@ -219,14 +187,6 @@ namespace itk
       int m_NumberOfObjects;
       /** Pointers to individual objects in the object map, maximum of 256 */
       AnalyzeObjectEntryArrayType m_AnaylzeObjectEntryArray;
-
-
-///HACK--DELETE THESE LATER
-      //TODO:  The next 4 ivars need to be removed!!  They are aliases to the image dimensions.
-      int m_XDim;
-      int m_YDim;
-      int m_ZDim;
-      int m_NumberOfVolumes;
 
       
   };
