@@ -527,7 +527,7 @@ AnalyzeObjectLabelMapImageIO
     }
 
     // Error checking the number of objects in the object file
-    if ((my_reference.size() < 0) || (my_reference.size() > 255))
+    if ((my_reference.size() < 0) || (my_reference.size() > 256))
     {
       std::cout<<( stderr, "Error: Invalid number of object files.\n" );
       outputFileStream.close();
