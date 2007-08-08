@@ -15,7 +15,6 @@ template<class TConvertImage>
 ImageToObjectMap<TConvertImage>
 ::ImageToObjectMap()
 {
-  std::cout<<"I am actually in here"<<std::endl;
 }
 
 template<class TConvertImage>
@@ -25,7 +24,8 @@ ImageToObjectMap<TConvertImage>
   
 }
 
-
+//TODO: Check the meta data to see if it contains the anaylze object map entries.
+//Right now I am assuming what is passed in has the analyze object map entries in the meta data.
 template<class TConvertImage>
 itk::AnalyzeObjectMap *
 ImageToObjectMap<TConvertImage>

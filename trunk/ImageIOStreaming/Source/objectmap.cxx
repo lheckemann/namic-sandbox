@@ -27,6 +27,8 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
+
+//TODO: Ask Hans if we should keep this in.
 //
 // Name: objectmap.cpp
 // Author: John Dill
@@ -38,8 +40,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace itk{
   AnalyzeObjectMap::AnalyzeObjectMap( void ): m_Version(VERSION7),m_NumberOfObjects(0)
   {
+    //Create an object map of size 1,1,1 and have the pixles be 0.  Also, create one
+    //object entry just like Analyze does with the name "Original", this entry
+    //is usually the background.
     this->m_AnaylzeObjectEntryArray.resize(1);
-   this->m_AnaylzeObjectEntryArray[0] = itk::AnalyzeObjectEntry::New();
+    this->m_AnaylzeObjectEntryArray[0] = itk::AnalyzeObjectEntry::New();
     this->m_AnaylzeObjectEntryArray[0]->SetName("Original");
     this->SetNumberOfObjects(0);
     this->SetVersion(VERSION7);
@@ -51,42 +56,20 @@ namespace itk{
     this->SetRegions(region);
     this->Allocate();
     this->FillBuffer(0);
-
-    ////TODO:  Clear the image this->ImageClear();
-    //{
-    //  for (int i = 0; i < 256; i++)
-    //  {
-    //    m_AnaylzeObjectEntryArray[i] = NULL;
-    //  }
-    //}
-
-    //// Setting object zero as the background
-    //m_AnaylzeObjectEntryArray[0] = AnalyzeObjectEntry::New();
-    //this->getObjectEntry(0)->SetName("Background");
-    //this->getObjectEntry(0)->SetDisplayFlag(0);
-    //this->getObjectEntry(0)->SetOpacity(0);
-    //this->getObjectEntry(0)->SetOpacityThickness(0);
-    //this->getObjectEntry(0)->SetEndRed(0);
-    //this->getObjectEntry(0)->SetEndGreen(0);
-    //this->getObjectEntry(0)->SetEndBlue(0);
-    //this->getObjectEntry(0)->SetShades(1);
   }
 
   AnalyzeObjectMap::~AnalyzeObjectMap( void )
   {
-    /*for(int i=0; i < 256; i++)
-    {
-      if(m_AnaylzeObjectEntryArray[i].IsNotNull())
-      {
-        m_AnaylzeObjectEntryArray[i] = NULL;
-      }
-    }*/
   }
   AnalyzeObjectEntryArrayType *AnalyzeObjectMap::GetAnalyzeObjectEntryArrayPointer()
   {
     return &(this->m_AnaylzeObjectEntryArray);
   }
 
+  //This function will have the user pick which entry they want to be placed into
+  //a new object map that will be returned.  The function will also go through the image
+  //and change the values so that there is either 0 or 1.  1 corresponds to the entry
+  //the user specified and 0 is the background.
   itk::AnalyzeObjectMap::Pointer AnalyzeObjectMap::PickOneEntry(const int numberOfEntry)
   {
     itk::AnalyzeObjectMap::Pointer newObjectMap = itk::AnalyzeObjectMap::New();
@@ -109,6 +92,8 @@ namespace itk{
     return newObjectMap;
   }
 
+  //This function will convert an object map into an unsigned char RGB image.
+  //TODO: Need to include the object entries into the meta data.
   itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer AnalyzeObjectMap::ObjectMapToRGBImage()
   {
     RGBImageType::Pointer RGBImage = RGBImageType::New();
@@ -138,9 +123,11 @@ namespace itk{
     return RGBImage;
   }
 
-  void AnalyzeObjectMap::AddObjectBasedOnImagePixel(const ImageType::Pointer Image, const int value, const std::string ObjectName, const int Red,const int Green,const int Blue)
+  //This function will take in an unsigned char of dimension size 3 and go through it and figure out the value the user wants picked out.  The user will also have to
+  //specify what they want the new entry's name to be.  The user can also specify what RGB values they want but if they are not speficied the default values
+  //are 0.
+  void AnalyzeObjectMap::AddObjectEntryBasedOnImagePixel(const ImageType::Pointer Image, const int value, const std::string ObjectName, const int Red,const int Green,const int Blue)
   {
-    
     itk::ImageRegion<3> ObjectMapRegion = this->GetLargestPossibleRegion();
     itk::ImageRegion<3> ImageRegion = Image->GetLargestPossibleRegion();
     if(  ImageRegion != ObjectMapRegion && ImageRegion.IsInside(ObjectMapRegion))
@@ -159,12 +146,6 @@ namespace itk{
     this->m_AnaylzeObjectEntryArray[i]->SetEndBlue(Blue);
     for(indexImage.Begin();!indexImage.IsAtEnd(); ++indexImage, ++indexObjectMap)
     {
-      /*int k = indexImage.Get();
-      if(k!=0)
-      {
-        int j =1;
-      }*/
-      
       if(indexImage.Get() == value)
       {
         indexObjectMap.Set(i);
@@ -173,9 +154,7 @@ namespace itk{
       {
         indexObjectMap.Set(0);
       }
-
     }
-
   }
   
 
@@ -200,7 +179,6 @@ namespace itk{
     {
       this->m_AnaylzeObjectEntryArray[j] = this->m_AnaylzeObjectEntryArray[j+1];
     }
-    
     this->m_AnaylzeObjectEntryArray.erase(this->m_AnaylzeObjectEntryArray.end()-1);
     this->SetNumberOfObjects(this->GetNumberOfObjects()-1);
     this->m_AnaylzeObjectEntryArray.resize(this->GetNumberOfObjects());
@@ -218,6 +196,8 @@ namespace itk{
     }
   }
 
+  //This function will go through the entries looking for the specfic name.  If no name was found then the function
+  //will return -1.  So, if you use this, then make sure you check to see if -1 was returned.
   int AnalyzeObjectMap::FindObject(const std::string ObjectName)
   {
     for(int i=0; i < this->GetNumberOfObjects(); i++)
