@@ -88,3 +88,13 @@ proc b3_save_image { ImageToSave outputFileName } {
     $VolumeStorageNode Delete
 }
 
+proc b2_get_image_res { volumeNode } {
+
+}
+
+proc b2_get_image_dims { volumeNode } {
+
+}
+
+
+
