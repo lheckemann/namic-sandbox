@@ -89,11 +89,11 @@ proc b3_save_image { ImageToSave outputFileName } {
 }
 
 proc b2_get_image_res { volumeNode } {
-
+set res [ $volumeNode GetSpacing ];
 }
 
 proc b2_get_image_dims { volumeNode } {
-
+set dims [ [ $volumeNode GetImageData ] GetDimensions ];
 }
 
 
