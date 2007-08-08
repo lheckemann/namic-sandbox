@@ -59,7 +59,12 @@ bool AnalyzeObjectLabelMapImageIO::CanWriteFile(const char * FileNameToWrite)
 {
     // This assumes that the final '.' in a file name is the delimiter
     // for the file's extension type
-  std::string filename = FileNameToWrite;
+    std::string filename = FileNameToWrite;
+    if(  filename == "" )
+    {
+    itkDebugMacro(<<"No filename specified.");
+    return false;
+    }
     const std::string::size_type it = filename.find_last_of( "." );
     // Now we have the index of the extension, make a new string
     // that extends from the first letter of the extension to the end of filename
@@ -75,16 +80,13 @@ bool AnalyzeObjectLabelMapImageIO::CanWriteFile(const char * FileNameToWrite)
 
 void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
 {  
-  inputFileStream.open(m_FileName.c_str(), std::ios::binary | std::ios::in);
-  inputFileStream.seekg(locationOfFile);
+    inputFileStream.open(m_FileName.c_str(), std::ios::binary | std::ios::in);
+    inputFileStream.seekg(locationOfFile);
     if ( !inputFileStream.is_open())
     {
-      std::cout<< "Error: Could not open "<< m_FileName.c_str();
+      itkDebugMacro(<< "Error: Could not open "<< m_FileName.c_str());
       exit(-1);
     }
-    int version = this->m_AnalyzeObjectLabelMapImage->GetVersion();
-
-  
     
     //TODO: Image spacing needs fixing.  Will need to look to see if a 
     //      .nii, .nii.gz, or a .hdr file
@@ -96,7 +98,8 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     ImageSpacing[2]=1.0F;
     this->m_AnalyzeObjectLabelMapImage->SetSpacing(ImageSpacing);
 
-    // Decoding the run length encoded raw data into an unsigned char volume
+    //When this function decods the run length encoded raw data into an unsigned char volume
+    //store the values into this structure.
     struct RunLengthStruct {
         unsigned char voxel_count;
         unsigned char voxel_value;
@@ -111,6 +114,8 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     int index=0;
     int voxel_count_sum=0;
     unsigned char *tobuf = (unsigned char *)buffer;
+
+    //The following commented out code is a starting attempt at streaming.
 
   //    ImageIORegion regionToRead = this->GetIORegion();
   //ImageIORegion::SizeType size = regionToRead.GetSize();
@@ -179,10 +184,12 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     {
       VolumeSize = VolumeSize = this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(0);
     }
-    //const int VolumeSize = zDim * yDim *xDim;
     {
+
+      //You can uncomment the following commented out code to have a file written with the exact values that are read in.
+
 //      std::ofstream myfile;
-//      myfile.open("VoxelInformation26.txt", myfile.app);
+//      myfile.open("VoxelInformation.txt", myfile.app);
       while (!inputFileStream.read(reinterpret_cast<char *>(RunLengthArray), sizeof(RunLengthElement)*NumberOfRunLengthElementsPerRead).eof())
       {
         for (int i = 0; i < NumberOfRunLengthElementsPerRead; i++)
@@ -192,7 +199,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
 //             << std::endl;
           if(RunLengthArray[i].voxel_count == 0)
           {
-                std::cout<<"Inside AnaylzeObjectLabelMap Invalid Length "<<(int)RunLengthArray[i].voxel_count<<std::endl;
+                itkDebugMacro(<<"Inside AnaylzeObjectLabelMap Invalid Length "<<(int)RunLengthArray[i].voxel_count<<std::endl);
                 exit(-1);
           }
           for (int j = 0; j < RunLengthArray[i].voxel_count; j++)
@@ -206,7 +213,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
 //            << " Volume size = "<<VolumeSize<<std::endl;
           if ( index > VolumeSize )
           {
-            std::cout<<"BREAK!\n";
+            itkDebugMacro(<<"BREAK!\n");
             exit(-1);
           }
         }
@@ -217,36 +224,37 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
         
     if (index != VolumeSize)
     {
-      std::cout<< "Warning: Error decoding run-length encoding."<<std::endl;
+      itkDebugMacro(<< "Warning: Error decoding run-length encoding."<<std::endl);
       if(index < VolumeSize)
       {
-        std::cout<<"Warning: file underrun."<<std::endl;
+        itkDebugMacro(<<"Warning: file underrun."<<std::endl);
       }
       else
       {
-        std::cout<<"Warning: file overrun."<<std::endl;
+        itkDebugMacro(<<"Warning: file overrun."<<std::endl);
       }
-      //return false;
+      exit(-1);
     }
 
     inputFileStream.close();
 
-#if 0 
-    std::ofstream check;
-    check.open("CheckBuffer.txt");
-    for(int i=0; i<VolumeSize;i++)
-    {
-      check<<(int)tobuf[i]<<std::endl;
-    }
-    check.close();
-#endif
+//The following commented code will run through all of the values and write them to a file.
+
+//    std::ofstream check;
+//    check.open("CheckBuffer.txt");
+//    for(int i=0; i<VolumeSize;i++)
+//    {
+//      check<<(int)tobuf[i]<<std::endl;
+//    }
+//    check.close();
+
 }
 
 
 bool AnalyzeObjectLabelMapImageIO::CanReadFile( const char* FileNameToRead )
 {
-  std::cout<<"I am in Can Read File for AnalyzeObjectLabelMapImageIO"<<std::endl;
-  std::string filename = FileNameToRead;
+    itkDebugMacro(<<"I am in Can Read File for AnalyzeObjectLabelMapImageIO"<<std::endl);
+    std::string filename = FileNameToRead;
     // This assumes that the final '.' in a file name is the delimiter
     // for the file's extension type
     const std::string::size_type it = filename.find_last_of( "." );
@@ -265,14 +273,14 @@ bool AnalyzeObjectLabelMapImageIO::CanReadFile( const char* FileNameToRead )
     
 void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
 {
-  m_ComponentType = CHAR;
-  m_PixelType = SCALAR;
-  // Opening the file
+    m_ComponentType = CHAR;
+    m_PixelType = SCALAR;
+    // Opening the file
     std::ifstream inputFileStream;
     inputFileStream.open(m_FileName.c_str(), std::ios::binary | std::ios::in);
     if ( !inputFileStream.is_open())
     {
-      std::cout<< "Error: Could not open %s\n", m_FileName.c_str();
+      itkDebugMacro(<< "Error: Could not open: "<< m_FileName.c_str()<<std::endl);
       exit(-1);
     }
 
@@ -283,16 +291,16 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     int header[6] = {1};
     if ( inputFileStream.read(reinterpret_cast<char *>(header),sizeof(int)*5).fail())
     {
-      std::cout<<"Error: Could not read header of "<<m_FileName.c_str()<<std::endl;
-      std::cout<<header[0]<<std::endl;
-      std::cout<<header[1]<<std::endl;
-      std::cout<<header[2]<<std::endl;
-      std::cout<<header[3]<<std::endl;
-      std::cout<<header[4]<<std::endl;
+      itkDebugMacro(<<"Error: Could not read header of "<<m_FileName.c_str()<<std::endl);
+      itkDebugMacro(<<header[0]<<std::endl);
+      itkDebugMacro(<<header[1]<<std::endl);
+      itkDebugMacro(<<header[2]<<std::endl);
+      itkDebugMacro(<<header[3]<<std::endl);
+      itkDebugMacro(<<header[4]<<std::endl);
       exit(-1);
     }
     //Do byte swapping if necessary.
-    if(header[0] == -1913442047|| header[0] ==1323699456 )    // Byte swapping needed (Number is byte swapped number of VERSION7 )
+    if(header[0] == -1913442047|| header[0] ==1323699456 )    // Byte swapping needed (Number is byte swapped number of VERSION7)
     {
       NeedByteSwap = true;
       //NOTE: All analyze object maps should be big endian on disk in order to be valid
@@ -305,16 +313,14 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     }
 
     this->m_AnalyzeObjectLabelMapImage = itk::AnalyzeObjectMap::New();
-    // Reading the Header into the class
-    this->m_AnalyzeObjectLabelMapImage->SetVersion(header[0]);
-    this->m_AnalyzeObjectLabelMapImage->SetNumberOfObjects(header[4]);
+    
 
     bool NeedBlendFactor = false;
-    if( this->m_AnalyzeObjectLabelMapImage->GetVersion() == VERSION7 )
+    if(header[0] == VERSION7 )
     {
       if ( (inputFileStream.read(reinterpret_cast<char *>(&(header[5])),sizeof(int)*1)).fail() )
       {
-        std::cout<<"Error: Could not read header of "<< m_FileName.c_str()<<std::endl;
+        itkDebugMacro(<<"Error: Could not read header of "<< m_FileName.c_str()<<std::endl);
         exit(-1);
       }
 
@@ -426,7 +432,7 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
       dirz[0] = 0;
       break;
     default:
-      std::cout<<"Error:  Setting the steps has an error"<<std::endl;
+      itkDebugMacro(<<"Error:  Setting the steps has an error"<<std::endl);
       break;
     }
 
@@ -436,22 +442,12 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     {
     this->SetDirection(2,dirz);
     }
-    if(this->m_AnalyzeObjectLabelMapImage->GetVersion() != header[0])
-    {
-        std::cout<<"GetVersion() does not equal what was read in."<<std::endl;
-        inputFileStream.close();
-    }
-    if(this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() != header[4])
-    {
-        std::cout<<"GetNumberOfObjects() does not equal what was read in."<<std::endl;
-        inputFileStream.close();
-    }
     
 
     // Error checking the number of objects in the object file
-    if ((this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() < 1) || (this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects() > 256))
+    if ((header[4] < 1) || (header[4] > 256))
     {
-      std::cout<< "Error: Invalid number of object files.\n";
+      itkDebugMacro(<< "Error: Invalid number of object files.\n");
       inputFileStream.close();
       exit(-1);
     }
@@ -459,8 +455,8 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     /*std::ofstream myfile;
     myfile.open("ReadFromFilePointer35.txt", myfile.app);*/
     itk::AnalyzeObjectEntryArrayType *my_reference=this->m_AnalyzeObjectLabelMapImage->GetAnalyzeObjectEntryArrayPointer();
-    (*my_reference).resize(this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects());
-    for (int i = 0; i < this->m_AnalyzeObjectLabelMapImage->GetNumberOfObjects(); i++)
+    (*my_reference).resize(header[4]);
+    for (int i = 0; i < header[4]; i++)
     {
       // Allocating a object to be created
       (*my_reference)[i] = AnalyzeObjectEntry::New();
@@ -483,14 +479,14 @@ void
 AnalyzeObjectLabelMapImageIO
 ::WriteImageInformation(void)
 {
-  std::cout<<"I am in the writeimageinformaton"<<std::endl;
+  itkDebugMacro(<<"I am in the writeimageinformaton"<<std::endl);
   std::string tempfilename = this->GetFileName();
   // Opening the file
     std::ofstream outputFileStream;
     outputFileStream.open(tempfilename.c_str(), std::ios::binary | std::ios::out | std::ios::trunc);
     if ( !outputFileStream.is_open())
     {
-      std::cout<<"Error: Could not open "<< tempfilename.c_str()<<std::endl;
+      itkDebugMacro(<<"Error: Could not open "<< tempfilename.c_str()<<std::endl);
       exit(-1);
     }
     itk::AnalyzeObjectEntryArrayType my_reference;
@@ -519,14 +515,14 @@ AnalyzeObjectLabelMapImageIO
     // number of objects
     if(outputFileStream.write(reinterpret_cast<char *>(header), sizeof(int)*6).fail())
     {
-      std::cout<<"Error: Could not write header of "<< tempfilename.c_str()<<std::endl;
+      itkDebugMacro(<<"Error: Could not write header of "<< tempfilename.c_str()<<std::endl);
       exit(-1);
     }
 
     // Error checking the number of objects in the object file
     if ((my_reference.size() < 0) || (my_reference.size() > 256))
     {
-      std::cout<<( stderr, "Error: Invalid number of object files.\n" );
+      itkDebugMacro(<<"Error: Invalid number of object files.\n" );
       outputFileStream.close();
     }
   
@@ -564,7 +560,7 @@ AnalyzeObjectLabelMapImageIO
     outputFileStream.open(tempfilename.c_str(), std::ios::binary | std::ios::out | std::ios::app);
     if ( !outputFileStream.is_open())
     {
-      std::cout<<"Error: Could not open "<< tempfilename.c_str()<<std::endl;
+      itkDebugMacro(<<"Error: Could not open "<< tempfilename.c_str()<<std::endl);
       exit(-1);
     }
     itk::AnalyzeObjectEntryArrayType my_reference;
@@ -632,7 +628,7 @@ AnalyzeObjectLabelMapImageIO
         // buffer full
         if (outputFileStream.write(reinterpret_cast<char *>(bufferObjectMap), buffer_size).fail())
         {
-            std::cout<<"error: could not write buffer"<<std::endl;
+            itkDebugMacro(<<"error: could not write buffer"<<std::endl);
             exit(-1);
         }
         bufferindex=0;
@@ -650,7 +646,7 @@ AnalyzeObjectLabelMapImageIO
       }
       if(outputFileStream.write(reinterpret_cast<char *>(bufferObjectMap), bufferindex).fail())
       {
-        std::cout<<"error: could not write buffer"<<std::endl;
+        itkDebugMacro(<<"error: could not write buffer"<<std::endl);
         exit(-1);
       }
     }

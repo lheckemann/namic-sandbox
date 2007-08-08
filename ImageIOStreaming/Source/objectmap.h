@@ -137,7 +137,7 @@ namespace itk
 
       itk::Image<RGBPixelType, 3>::Pointer ObjectMapToRGBImage();
 
-      void AddObjectBasedOnImagePixel(const itk::Image<unsigned char, 3>::Pointer Image,const int value,const std::string ObjectName,const int Red = 0,const int Green = 0,const int Blue = 0);
+      void AddObjectEntryBasedOnImagePixel(const itk::Image<unsigned char, 3>::Pointer Image,const int value,const std::string ObjectName,const int Red = 0,const int Green = 0,const int Blue = 0);
 
       void AddObject(const std::string ObjectName);
 

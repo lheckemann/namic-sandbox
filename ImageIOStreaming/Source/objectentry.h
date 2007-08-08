@@ -49,7 +49,7 @@ namespace itk{
   {
     if(inputFileStream.read(reinterpret_cast<char *>(dest), sizeof(ReadType) * Replications).fail())
     {
-        std::cout<<"6: Unable to read in object #1 description."<<std::endl;
+      std::cout<<"6: Unable to read in object #1 description."<<std::endl;
     }
     if(NeedByteSwap)
     {

@@ -35,7 +35,7 @@ int main( int argc, char ** argv )
   int error_count = 0;
   if ( argc != 5 )
     {
-    std::cerr << "USAGE: " << argv[0] << "<inputFileName> <outputFileName> <Nifti file>" << std::endl;
+    std::cerr << "USAGE: " << argv[0] << "<inputFileName> <outputFileName> <Nifti file> <outputFileName>" << std::endl;
     }
   const char *InputObjectFileName = argv[1];
   const char *OuptputObjectFileName = argv[2];
@@ -60,7 +60,6 @@ int main( int argc, char ** argv )
   WriterType::Pointer writer = WriterType::New();
 
   reader->SetFileName( InputObjectFileName);
-  //reader->SetFileName("C:/Documents and Settings/woofton/Desktop/imageIOStreaming/Testing/Data/Input/test.obj");
    try
     {
     reader->Update();
@@ -72,12 +71,14 @@ int main( int argc, char ** argv )
     return EXIT_FAILURE;
     }
 
+  //Now that we have an itk image now we need to make the image an object map
   itk::AnalyzeObjectMap::Pointer ObjectMap = ImageToObjectConvertor->TransformImage(reader->GetOutput());
 
+  //Now we can change the object map into an itk RGB image, we then can send this image to the itk-vtk
+  //converter and show the image if we wanted to.
   itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer RGBImage = ObjectMap->ObjectMapToRGBImage();
 
   writer->SetFileName(OuptputObjectFileName);
-  //writer->SetFileName("objectLabelTest2.obj");
   writer->SetInput(reader->GetOutput());
   try
     {
@@ -90,6 +91,7 @@ int main( int argc, char ** argv )
     return EXIT_FAILURE;
     }
 
+  //Check the original file against the file that was written out to see if they are the exact same files.
   std::ifstream ReferenceFile;
   ReferenceFile.open(InputObjectFileName, std::ios::binary | std::ios::in);
 
@@ -127,6 +129,9 @@ int main( int argc, char ** argv )
   ReferenceFile.close();
   WrittenFile.close();
 
+  //End of checking the original versus what was written
+
+  //Now we bring in a nifti file that Hans and Jeffrey created, the image as two squares and a circle in it of different intensity values.
   readerTwo->SetFileName(NiftiFile);
   try
     {
@@ -141,8 +146,8 @@ int main( int argc, char ** argv )
   itk::AnalyzeObjectMap::Pointer CreateObjectMap = itk::AnalyzeObjectMap::New();
 
   CreateObjectMap->AddObject("You Can Delete Me");
-  CreateObjectMap->AddObjectBasedOnImagePixel(readerTwo->GetOutput(), 200, "Square", 250, 0, 0);
-  CreateObjectMap->AddObjectBasedOnImagePixel(readerTwo->GetOutput(), 128, "Circle", 0, 250,0);
+  CreateObjectMap->AddObjectEntryBasedOnImagePixel(readerTwo->GetOutput(), 200, "Square", 250, 0, 0);
+  CreateObjectMap->AddObjectEntryBasedOnImagePixel(readerTwo->GetOutput(), 128, "Circle", 0, 250,0);
   CreateObjectMap->AddObject("Nothing In Here");
   //////CreateObjectMap->DeleteObject("Nothing In Here");
   CreateObjectMap->PlaceObjectMapEntriesIntoMetaData();
