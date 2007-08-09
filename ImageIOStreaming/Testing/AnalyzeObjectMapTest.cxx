@@ -59,7 +59,7 @@ int main( int argc, char ** argv )
   ReaderType::Pointer readerThree = ReaderType::New();
   WriterType::Pointer writer = WriterType::New();
 
-  reader->SetFileName( InputObjectFileName);
+  reader->SetFileName( "2dtest.nii");
    try
     {
     reader->Update();
@@ -71,14 +71,14 @@ int main( int argc, char ** argv )
     return EXIT_FAILURE;
     }
 
-  //Now that we have an itk image now we need to make the image an object map
-  itk::AnalyzeObjectMap::Pointer ObjectMap = ImageToObjectConvertor->TransformImage(reader->GetOutput());
+  ////Now that we have an itk image now we need to make the image an object map
+  //itk::AnalyzeObjectMap::Pointer ObjectMap = ImageToObjectConvertor->TransformImage(reader->GetOutput());
 
-  //Now we can change the object map into an itk RGB image, we then can send this image to the itk-vtk
-  //converter and show the image if we wanted to.
-  itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer RGBImage = ObjectMap->ObjectMapToRGBImage();
+  ////Now we can change the object map into an itk RGB image, we then can send this image to the itk-vtk
+  ////converter and show the image if we wanted to.
+  //itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer RGBImage = ObjectMap->ObjectMapToRGBImage();
 
-  writer->SetFileName(OuptputObjectFileName);
+  writer->SetFileName("2dtest.jpeg");
   writer->SetInput(reader->GetOutput());
   try
     {
@@ -91,129 +91,129 @@ int main( int argc, char ** argv )
     return EXIT_FAILURE;
     }
 
-  //Check the original file against the file that was written out to see if they are the exact same files.
-  std::ifstream ReferenceFile;
-  ReferenceFile.open(InputObjectFileName, std::ios::binary | std::ios::in);
+  ////Check the original file against the file that was written out to see if they are the exact same files.
+  //std::ifstream ReferenceFile;
+  //ReferenceFile.open(InputObjectFileName, std::ios::binary | std::ios::in);
 
-  std::ifstream WrittenFile;
-  WrittenFile.open(OuptputObjectFileName, std::ios::binary | std::ios::in);
+  //std::ifstream WrittenFile;
+  //WrittenFile.open(OuptputObjectFileName, std::ios::binary | std::ios::in);
 
-  char ReferenceBytes;
-  char WrittenBytes;
-  int count = 0;
-  std::ofstream myfile;
-  myfile.open("testing1.txt");
-  while(!ReferenceFile.eof()  && !WrittenFile.eof())
-  {
-    count++;
-    ReferenceFile.read(reinterpret_cast<char *> (&ReferenceBytes), sizeof(char));
-    WrittenFile.read(reinterpret_cast<char *>(&WrittenBytes), sizeof(char));
-    if(ReferenceBytes != WrittenBytes)
-    {
-        error_count++;
-        myfile<<count<< ":" << (int)ReferenceBytes << ":" << (int)WrittenBytes << std::endl;
-    }
-  }
+  //char ReferenceBytes;
+  //char WrittenBytes;
+  //int count = 0;
+  //std::ofstream myfile;
+  //myfile.open("testing1.txt");
+  //while(!ReferenceFile.eof()  && !WrittenFile.eof())
+  //{
+  //  count++;
+  //  ReferenceFile.read(reinterpret_cast<char *> (&ReferenceBytes), sizeof(char));
+  //  WrittenFile.read(reinterpret_cast<char *>(&WrittenBytes), sizeof(char));
+  //  if(ReferenceBytes != WrittenBytes)
+  //  {
+  //      error_count++;
+  //      myfile<<count<< ":" << (int)ReferenceBytes << ":" << (int)WrittenBytes << std::endl;
+  //  }
+  //}
 
-  if(!ReferenceFile.eof())
-  {
-      error_count++;
-      std::cout<<"ReferenceFile is not at end of file"<<std::endl;
-  }
-  if(!WrittenFile.eof())
-  {
-      error_count++;
-      std::cout<<"WrittenFile is not at end of file"<<std::endl;
-  }
+  //if(!ReferenceFile.eof())
+  //{
+  //    error_count++;
+  //    std::cout<<"ReferenceFile is not at end of file"<<std::endl;
+  //}
+  //if(!WrittenFile.eof())
+  //{
+  //    error_count++;
+  //    std::cout<<"WrittenFile is not at end of file"<<std::endl;
+  //}
 
-  ReferenceFile.close();
-  WrittenFile.close();
+  //ReferenceFile.close();
+  //WrittenFile.close();
 
-  //End of checking the original versus what was written
+  ////End of checking the original versus what was written
 
-  //Now we bring in a nifti file that Hans and Jeffrey created, the image as two squares and a circle in it of different intensity values.
-  readerTwo->SetFileName(NiftiFile);
-  try
-    {
-    readerTwo->Update();
-    }
-  catch( itk::ExceptionObject & err )
-    {
-    std::cerr << "ExceptionObject caught !" << std::endl;
-    std::cerr << err << std::endl;
-    return EXIT_FAILURE;
-    }
-  itk::AnalyzeObjectMap::Pointer CreateObjectMap = itk::AnalyzeObjectMap::New();
+  ////Now we bring in a nifti file that Hans and Jeffrey created, the image as two squares and a circle in it of different intensity values.
+  //readerTwo->SetFileName(NiftiFile);
+  //try
+  //  {
+  //  readerTwo->Update();
+  //  }
+  //catch( itk::ExceptionObject & err )
+  //  {
+  //  std::cerr << "ExceptionObject caught !" << std::endl;
+  //  std::cerr << err << std::endl;
+  //  return EXIT_FAILURE;
+  //  }
+  //itk::AnalyzeObjectMap::Pointer CreateObjectMap = itk::AnalyzeObjectMap::New();
 
-  CreateObjectMap->AddObject("You Can Delete Me");
-  CreateObjectMap->AddObjectEntryBasedOnImagePixel(readerTwo->GetOutput(), 200, "Square", 250, 0, 0);
-  CreateObjectMap->AddObjectEntryBasedOnImagePixel(readerTwo->GetOutput(), 128, "Circle", 0, 250,0);
-  CreateObjectMap->AddObject("Nothing In Here");
-  //////CreateObjectMap->DeleteObject("Nothing In Here");
-  CreateObjectMap->PlaceObjectMapEntriesIntoMetaData();
+  //CreateObjectMap->AddObject("You Can Delete Me");
+  //CreateObjectMap->AddObjectEntryBasedOnImagePixel(readerTwo->GetOutput(), 200, "Square", 250, 0, 0);
+  //CreateObjectMap->AddObjectEntryBasedOnImagePixel(readerTwo->GetOutput(), 128, "Circle", 0, 250,0);
+  //CreateObjectMap->AddObject("Nothing In Here");
+  ////////CreateObjectMap->DeleteObject("Nothing In Here");
+  //CreateObjectMap->PlaceObjectMapEntriesIntoMetaData();
 
-  writer->SetInput(CreateObjectMap);
-  writer->SetFileName(CreatingObject);
+  //writer->SetInput(CreateObjectMap);
+  //writer->SetFileName(CreatingObject);
 
-  try
-    {
-    writer->Update();
-    }
-  catch( itk::ExceptionObject & err )
-    {
-    std::cerr << "ExceptionObject caught !" << std::endl;
-    std::cerr << err << std::endl;
-    return EXIT_FAILURE;
-    }
+  //try
+  //  {
+  //  writer->Update();
+  //  }
+  //catch( itk::ExceptionObject & err )
+  //  {
+  //  std::cerr << "ExceptionObject caught !" << std::endl;
+  //  std::cerr << err << std::endl;
+  //  return EXIT_FAILURE;
+  //  }
 
-  readerThree->SetFileName(CreatingObject);
-  try
-    {
-    readerThree->Update();
-    }
-  catch( itk::ExceptionObject & err )
-    {
-    std::cerr << "ExceptionObject caught !" << std::endl;
-    std::cerr << err << std::endl;
-    return EXIT_FAILURE;
-    }
-  itk::AnalyzeObjectMap::Pointer ObjectMapTwo = ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
+  //readerThree->SetFileName(CreatingObject);
+  //try
+  //  {
+  //  readerThree->Update();
+  //  }
+  //catch( itk::ExceptionObject & err )
+  //  {
+  //  std::cerr << "ExceptionObject caught !" << std::endl;
+  //  std::cerr << err << std::endl;
+  //  return EXIT_FAILURE;
+  //  }
+  //itk::AnalyzeObjectMap::Pointer ObjectMapTwo = ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
 
-  itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer RGBImageTwo = ObjectMapTwo->ObjectMapToRGBImage();
+  //itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer RGBImageTwo = ObjectMapTwo->ObjectMapToRGBImage();
 
-  itk::AnalyzeObjectMap::Pointer circleObjectMap = ObjectMapTwo->PickOneEntry(3);
+  //itk::AnalyzeObjectMap::Pointer circleObjectMap = ObjectMapTwo->PickOneEntry(3);
 
-  circleObjectMap->PlaceObjectMapEntriesIntoMetaData();
+  //circleObjectMap->PlaceObjectMapEntriesIntoMetaData();
 
-  writer->SetInput(circleObjectMap);
-  writer->SetFileName("circle.obj");
+  //writer->SetInput(circleObjectMap);
+  //writer->SetFileName("circle.obj");
 
-  try
-    {
-    writer->Update();
-    }
-  catch( itk::ExceptionObject & err )
-    {
-    std::cerr << "ExceptionObject caught !" << std::endl;
-    std::cerr << err << std::endl;
-    return EXIT_FAILURE;
-    }
+  //try
+  //  {
+  //  writer->Update();
+  //  }
+  //catch( itk::ExceptionObject & err )
+  //  {
+  //  std::cerr << "ExceptionObject caught !" << std::endl;
+  //  std::cerr << err << std::endl;
+  //  return EXIT_FAILURE;
+  //  }
 
-  readerThree->SetFileName("circle.obj");
-  try
-    {
-    readerThree->Update();
-    }
-  catch( itk::ExceptionObject & err )
-    {
-    std::cerr << "ExceptionObject caught !" << std::endl;
-    std::cerr << err << std::endl;
-    return EXIT_FAILURE;
-    }
+  //readerThree->SetFileName("circle.obj");
+  //try
+  //  {
+  //  readerThree->Update();
+  //  }
+  //catch( itk::ExceptionObject & err )
+  //  {
+  //  std::cerr << "ExceptionObject caught !" << std::endl;
+  //  std::cerr << err << std::endl;
+  //  return EXIT_FAILURE;
+  //  }
 
-  itk::AnalyzeObjectMap::Pointer ObjectMapThree = ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
+  //itk::AnalyzeObjectMap::Pointer ObjectMapThree = ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
 
-  itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer RGBImageThree = ObjectMapThree->ObjectMapToRGBImage();
+  //itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer RGBImageThree = ObjectMapThree->ObjectMapToRGBImage();
 
 
   if( error_count )

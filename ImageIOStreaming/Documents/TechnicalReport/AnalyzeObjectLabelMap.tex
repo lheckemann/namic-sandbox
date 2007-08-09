@@ -77,8 +77,23 @@ added into ITK and how to use the code.
 \tableofcontents
 
 \section{Description}
+There are two utility files (objectmap and objectentry) and the main IO file (itkAnalyzeObjectLabelMapImageIO) and the corresponding
+IO factory file (itkAnalyzeObjectLabelMapImageIOFactory).  The IO file takes care of reading and writing out an object file.  Whenever
+you read or write an object file you have at the very beginning information about the object map.  The very first data is the version
+of the object map, next you have the x,y,z size of the object map, the number of object entries and finally for version 7 (the newest
+version) number of volumes.  After you have the beginning information there is the information about each object file, that means that
+there is going to have to be a vector of all of the entries.  That is why there is a utility file called objectentry that stores the
+information for one specific entry, if you make a vector of the file then you have all of the object entries for an object map.  There
+are also some other functions in the objectentry that will read or write the information for the object entry.
 
-\section{Object Maps}
+\section{Analyze Object Maps}
+
+WHAT ARE OBJECT MAPS?  AFTER THAT, WHY ARE THEY USEFUL?
+
+An Analyze object map is a series of user specified regions.  Each region that is specfied has a name, a specific red, green, and blue (RGB) color, a display flag determining wether the region should be shown or not and other information about what was done with the region.  With each region
+specified there is a new image that is created that is just of the background and each region that is specified.  This image is written to a file by run length encoding it.
+
+
 
 \section{Examples}
 
@@ -102,6 +117,8 @@ then add entries to the object map and then finally write the object map out to 
 Command:
 
 \textbf{AnalyzeObjectExample2.exe 2dtest.nii creatingObject.obj}
+
+
 \end{itemize}
 
 \section{Testing}
