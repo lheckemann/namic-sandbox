@@ -25,7 +25,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
 ::StochasticTractographyFilter():
   m_TotalTracts(0),m_MaxTractLength(0),m_Gradients(NULL), m_TransformedGradients(NULL),m_bValues(NULL),
   m_SampleDirections(NULL), m_A(NULL), m_Aqr(NULL), m_LikelihoodCachePtr(NULL),
-  m_MaxLikelihoodCacheSize(0), m_CurrentLikelihoodCacheElements(0),
+  m_MaxLikelihoodCacheSize(0), m_CurrentLikelihoodCacheElements(0), m_StepSize(0), m_Gamma(0),
   m_ClockPtr(NULL), m_TotalDelegatedTracts(0), m_OutputTractContainer(NULL){
   this->m_SeedIndex[0]=0;
   this->m_SeedIndex[1]=0;
@@ -304,8 +304,6 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
 ::CalculatePrior( TractOrientationContainerType::Element v_prev, 
     TractOrientationContainerType::ConstPointer orientations,
     ProbabilityDistributionImageType::PixelType& prior ){
-    
-  const double gamma = 1;
           
   for(unsigned int i=0; i < orientations->Size(); i++){
     if(v_prev.squared_magnitude()==0){
@@ -317,7 +315,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
         prior[i]=0;
       }
       else{
-        prior[i]=vcl_pow(prior[i],gamma);
+        prior[i]=vcl_pow(prior[i],m_Gamma);
       }
     }
   }
@@ -431,8 +429,11 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
       this->SampleTractOrientation(randomgenerator, posterior_curr,
         this->m_SampleDirections, v_curr);
       
+      //scale v_curr by the StepSize
+      v_curr=v_curr*m_StepSize;
+      
       //takes into account voxels of different sizes
-      //converts from a step length of 1 mm to the corresponding length in IJK space
+      //converts from a step length to corresponding length in IJK space
       const typename InputDWIImageType::SpacingType& spacing = dwiimagePtr->GetSpacing();
       cindex_curr[0]+=v_curr[0]/spacing[0];
       cindex_curr[1]+=v_curr[1]/spacing[1];

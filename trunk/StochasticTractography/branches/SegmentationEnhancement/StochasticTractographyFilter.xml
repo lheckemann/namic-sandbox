@@ -69,7 +69,7 @@
         <step>1</step>
       </constraints>
     </integer>
-    <integer>
+    <double>
       <name>stepsize</name>
       <flag>s</flag>
       <longflag>stepsize</longflag>
@@ -80,7 +80,15 @@
         <minimum>0.1</minimum>
         <step>0.1</step>
       </constraints>
-    </integer>
+    </double>
+    <double>
+      <name>gamma</name>
+      <flag>g</flag>
+      <longflag>gamma</longflag>
+      <description>A prior parameter controlling the smoothness of the tracts. Larger values reduce probability of sharp turns</description>
+      <label>Gamma</label>
+      <default>1</default>
+    </double>
     <integer>
       <name>maxlikelihoodcachesize</name>
       <flag>c</flag>
