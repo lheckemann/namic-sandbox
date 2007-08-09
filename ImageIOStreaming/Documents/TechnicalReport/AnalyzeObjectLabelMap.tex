@@ -25,7 +25,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 %  This is a template for Papers to the Insight Journal. 
 %  It is comparable to a technical report format.
-\title{Adding a Reader/Writer into Insight Toolkit to Read/Write Analyze Object Maps}
+\title{Reader/Writer for Analyze Object Maps for ITK}
 
 % Increment the release number whenever significant changes are made.
 % The author and/or editor can define 'significant' however they like.
@@ -33,9 +33,8 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 % At minimum, give your name and an email address.  You can include a
 % snail-mail address if you like.
-\author{Jeffrey Hawley$^{1}$, Hans Johnson$^{2}$ }
-\authoraddress{$^{1}$University of Iowa\\
-               $^{2}$University of Iowa}
+\author{Jeffrey Hawley, Hans Johnson }
+\authoraddress{University of Iowa}
 
 \begin{document}
 
@@ -66,24 +65,46 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 % scope of the document.
 \begin{abstract}
 \noindent
-This document describes an addition to the Image IO Source of the Insight Toolkit ITK.
+This document describes an addition to the Image IO Library of the Insight Toolkit (ITK).
 ITK has been able to read in Anaylze image files but not the object maps that correspond
 to the images.  Without the object maps, regions of interest were not being shown.
-These regions of interest are helpful in desginating locations and giving a name to those
-locations, which is useful if you are trying to tell someone where to look in an image.
-This report describes the reason why this code should be added into ITK and how to use the code.
+These regions of interest are helpful in desginating locations, giving a name to those
+locations, as well as colors and other informatoin, which is useful if you are trying to tell
+someone where to look in an image.  This report describes the reason why this code should be
+added into ITK and how to use the code.
 \end{abstract}
 
 \tableofcontents
 
-\section{Introduction}
-
-
-\section{Analyze Files}
+\section{Description}
 
 \section{Object Maps}
 
 \section{Examples}
+
+This section provides some examples on how to use the programs.
+\begin{itemize}
+\item Example 1 
+
+This example is for reading in an Analyze object map and
+then use vtk to display the object map.  The user will need ITK,
+Insight Applications (for itkImageToVTKImageFilter), and VTK.
+
+Command:
+
+\textbf{AnalyzeObjectExample1.exe test.obj 0}  
+
+\item Example 2
+
+This example is for reading in any file, then creating a new object map,
+then add entries to the object map and then finally write the object map out to a file.
+
+Command:
+
+\textbf{AnalyzeObjectExample2.exe 2dtest.nii creatingObject.obj}
+\end{itemize}
+
+\section{Testing}
 
 
 
