@@ -15,7 +15,6 @@
 # Requires the image loader to have already been sourced to define CoreImageTest
 #
 
-
 proc getDimsResImage {pathToRegressionDir dateString} {
 
     set ModuleName "getDimsResImage"
@@ -31,9 +30,6 @@ proc getDimsResImage {pathToRegressionDir dateString} {
 ########################################
 ########################################
 
-
-
-
     ############################### Load an Image ###########################################
     ## Set known information about mask
     set ImageType "T1"
@@ -47,41 +43,38 @@ proc getDimsResImage {pathToRegressionDir dateString} {
         return $MODULE_FAILURE
     }
 
-
     # First Test for invalid arguements
     set SubTestDes "(dims) required arguement test"
-    set errorTest [b2 get dims image]
+    set errorTest [b2_get_dims_image]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(dims) arguement number test"
-    set errorTest [b2 get dims image $TestImageID junk= ]
+    set errorTest [b2_get_dims_image $TestImageID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(dims) optional arguement test"
-    set errorTest [b2 get dims image $TestImageID junk= test]
+    set errorTest [b2_get_dims_image $TestImageID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(dims) invalid mask test"
-    set errorTest [b2 get dims image -1]
+    set errorTest [b2_get_dims_image -1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
-
-
 
     ########## Res Command
     set SubTestDes "(res) required arguement test"
-    set errorTest [b2 get res image]
+    set errorTest [b2_get_res_image]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(res) arguement number test"
-    set errorTest [b2 get res image $TestImageID junk= ]
+    set errorTest [b2_get_res_image $TestImageID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(res) optional arguement test"
-    set errorTest [b2 get res image $TestImageID junk= test]
+    set errorTest [b2_get_res_image $TestImageID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(res) invalid mask test"
-    set errorTest [b2 get res image -1]
+    set errorTest [b2_get_res_image -1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     CoreImageTest "Image Dims/Res" $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
@@ -92,4 +85,3 @@ proc getDimsResImage {pathToRegressionDir dateString} {
 
     return $MODULE_SUCCESS
 }
-

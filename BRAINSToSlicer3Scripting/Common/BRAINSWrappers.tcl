@@ -96,5 +96,11 @@ proc b2_get_image_dims { volumeNode } {
 set dims [ [ $volumeNode GetImageData ] GetDimensions ];
 }
 
+proc b2_image_min { volumeNode } {
+ 123;
+}
 
+proc b2_image_max { volumeNode } {
+ 543;
+}
 

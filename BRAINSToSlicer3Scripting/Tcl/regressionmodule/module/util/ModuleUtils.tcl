@@ -132,8 +132,8 @@ proc CoreImageTest { ImageTypeName TestImageID ImageType ImageMin ImageMax Dimen
     global MODULE_FAILURE ;
 
         set lentype [llength  $ImageType] ;
-        set testimageMin [b2 image min $TestImageID] ;
-        set testimageMax [b2 image max $TestImageID] ;
+        set testimageMin [b2_image_min $TestImageID] ;
+        set testimageMax [b2_image_max $TestImageID] ;
         set Epsilon 0.001 ;
         # Epsilon has the same value as in ExpandedImageTest for calling CoreMeasuresEpsilonTest
 
@@ -153,7 +153,7 @@ proc CoreImageTest { ImageTypeName TestImageID ImageType ImageMin ImageMax Dimen
             ReportTestStatus $LogFile  [ expr { abs([lindex $testimageMax $currtype] - [lindex $ImageMax $currtype]) <=  $Criterion } ] $ModuleName $SubTestDes ;
         }
 
-        set dims [b2 get dims image $TestImageID] ;
+        set dims [b2_get_dims_image $TestImageID] ;
         puts "dims is $dims" ;
         set lendims [llength $Dimensions] ;
         set SubTestDes "$ImageTypeName $ImageType  num dims image: does [llength $dims] equal $lendims" ;
@@ -164,7 +164,7 @@ proc CoreImageTest { ImageTypeName TestImageID ImageType ImageMin ImageMax Dimen
             ReportTestStatus $LogFile  [ expr  {[lindex $dims $currdim] == [lindex $Dimensions $currdim]}   ] $ModuleName $SubTestDes ;
         }
 
-        set res [b2 get res image $TestImageID] ;
+        set res [b2_get_res_image $TestImageID] ;
         puts "res is $res" ;
         set lenres [llength $Resolutions] ;
         set SubTestDes "$ImageTypeName $ImageType num res image: does [llength $res] equal $lenres" ;
