@@ -402,6 +402,8 @@ int main(int argc, char* argv[]){
   ptfilterPtr->SetMaxTractLength( maxtractlength );
   ptfilterPtr->SetTotalTracts( totaltracts );
   ptfilterPtr->SetMaxLikelihoodCacheSize( maxlikelihoodcachesize );
+  ptfilterPtr->SetStepSize( stepsize );
+  ptfilterPtr->SetGamma( gamma );
   if(totalthreads!=0) ptfilterPtr->SetNumberOfThreads( totalthreads );
   
   //calculate the tensor image

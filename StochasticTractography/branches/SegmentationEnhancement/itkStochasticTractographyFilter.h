@@ -129,6 +129,14 @@ public:
   /** Set/Get the Maximum Likelihood Cache Size, the max num. of cached voxels **/
   itkSetMacro( MaxLikelihoodCacheSize, unsigned int );
   itkGetMacro( MaxLikelihoodCacheSize, unsigned int );
+  
+  /** Set/Get the tract segment size **/
+  itkSetMacro( StepSize, double );
+  itkGetMacro( StepSize, double );
+  
+  /** Set/Get Gamma, a prior parameter controlling the smoothness of the tracts **/
+  itkSetMacro( Gamma, double );
+  itkGetMacro( Gamma, double );
             
   /** Get the Tracts that are generated **/
   itkGetObjectMacro( OutputTractContainer, TractContainerType );
@@ -256,6 +264,9 @@ protected:
   unsigned long m_MaxLikelihoodCacheElements;  //in Elements (Voxels)
   unsigned long m_CurrentLikelihoodCacheElements;
   SimpleFastMutexLock m_LikelihoodCacheMutex;
+  
+  double m_StepSize;
+  double m_Gamma;
   
   unsigned int m_TotalDelegatedTracts;
   SimpleFastMutexLock m_TotalDelegatedTractsMutex;
