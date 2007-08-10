@@ -101,16 +101,6 @@ This section provides some examples on how to use the programs.
 \begin{itemize}
 \item Example 1 
 
-This example is for reading in an Analyze object map and
-then use vtk to display the object map.  The user will need ITK,
-Insight Applications (for itkImageToVTKImageFilter), and VTK.
-
-Command:
-
-\textbf{AnalyzeObjectExample1.exe test.obj 0}  
-
-\item Example 2
-
 This example is for reading in any file, then creating a new object map,
 then add entries to the object map and then finally write the object map out to a file.
 
@@ -119,9 +109,58 @@ Command:
 \textbf{AnalyzeObjectExample2.exe 2dtest.nii creatingObject.obj}
 
 
+\begin{figure}[h]
+  \hfill
+  \begin{minipage}[t]{.45\textwidth}
+    \begin{center}  
+      \includegraphics[width=.5\textwidth]{2dtest.eps}
+      \caption{2dtest.nii}
+      \label{fig-tc}
+    \end{center}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{.45\textwidth}
+    \begin{center}  
+      \includegraphics[width=.5\textwidth]{creatingObject.eps}
+      \caption{creatingObject.obj, this is what it should look like when you convert it to an RGB image.  See next example on how to display 
+    object maps.}
+      \label{fig-tc}
+    \end{center}
+  \end{minipage}
+  \hfill
+\end{figure}
+  
+
+\item Example 2
+
+
+This example is for reading in an Analyze object map and
+then use vtk to display the object map.  The user will need ITK,
+Insight Applications (for itkImageToVTKImageFilter), and VTK.
+
+Command:
+
+\textbf{AnalyzeObjectExample1.exe test.obj 0}
+
+\item Example 3
+
+This example is for reading in any file, then creating a new object map, then add entries to the object map, pick one entry and then write out the new object map with the one entry only.
+
+Command:
+
+\textbf{AnalyzeObjectExample2.exe 2dtest.nii creatingObjectTwo.obj}
+
+\begin{figure}[h]
+\center
+\includegraphics[width=.25\textwidth]{creatingObjectTwo.eps}
+\itkcaption[Streaming Concept Diagram]{creatingObjectTwo.obj, this is what it should look like when it is converted to an RGB image.  Also, see the first example to see what 2dtest.nii should look like.}
+\label{fig:StreamingConceptDiagram}
+\end{figure}
 \end{itemize}
 
 \section{Testing}
+
+Right now we have one test that tests a lot of the code.  The filename for the test is 
 
 
 
