@@ -44,17 +44,23 @@ int main( int argc, char ** argv )
     }
   itk::AnalyzeObjectMap::Pointer CreateObjectMap = itk::AnalyzeObjectMap::New();
 
-  //Add one entry to the object map named "You Can Delete Me"
+  //Add one entry to the object map named "You Can Delete Me", this entry corresponds to 1 if you do a pickOneEntry
   CreateObjectMap->AddObject("You Can Delete Me");
 
   //Add another two entries that will be based on the image that is passed into 
   //the function, also, the intensity that you would like searched for, the name of the entry and then finally the RGB values
   //you would like the entry to have for the regions that are found.
+
+  //This entry corrsponds to 2 if you do a pickOneEntry
   CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 200, "Square", 250, 0, 0);
+
+  //This entry corrsponds to 3 if you do a pickOneEntry
   CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 128, "Circle", 0, 250,0);
+
+  //This entry corrsponds to 4 if you do a pickOneEntry
   CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 45,  "SquareTwo", 0, 0, 250);
 
-  //Then anoter entry is added
+  //Then anoter entry is added, this entry corrsponds to 5 if you do a pickOneEntry
   CreateObjectMap->AddObject("Nothing In Here");
 
   //The entry that was just added is deleted
