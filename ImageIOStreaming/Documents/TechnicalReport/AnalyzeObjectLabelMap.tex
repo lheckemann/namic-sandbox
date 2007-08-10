@@ -160,7 +160,8 @@ Command:
 
 \section{Testing}
 
-Right now we have one test that tests a lot of the code.  The filename for the test is 
+Right now we have one test that does all of the testing.  The filename for the test is AnalyzeObjectMapTest.cxx.  The file takes in five arguments.
+Each argument corresponds to a certain name of another file.  For the first argument it should be the name of test.obj and that file is a 3-Dimensional object file that Hans created.  The file is read in, then converted into an object map and finally an RGB image is created from the object map.  This was just to make sure that everything worked without any errors.  After that the output of the reader is sent to a writer to write out the exact copy of the argument but with a different file name.  That is where the second argument comes in.  Once the file is written out then both files are opened up and compared to make sure they have the exact same bit by bit data.  After that the third argument that corresponds to the name of a nifti file that Hans and I created which is the same image seen in example 1 is read in.  With that nifti file read in we create a new object map with some extra entries and other entries based on the nifti file that was read in.  That new object map is written out a file as an object file that corresponds to the fourth argument read in.  That file that was just written out is then read back in where the reader output is then converted into an object map and finally an RGB image is created from the object map.  Then from that object map one entry is picked and new object map is created with just the one entry in it.  This object map with the one entry is written to file that corresponds with the fith argument.  The file that was just written out is read back in and then converted into an object map and finally an RGB image is created from the object map.
 
 
 

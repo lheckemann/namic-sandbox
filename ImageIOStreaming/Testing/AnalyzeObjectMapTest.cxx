@@ -33,14 +33,15 @@
 int main( int argc, char ** argv )
 {
   int error_count = 0;
-  if ( argc != 5 )
+  if ( argc != 6 )
     {
-    std::cerr << "USAGE: " << argv[0] << "<inputFileName> <outputFileName> <Nifti file> <outputFileName>" << std::endl;
+    std::cerr << "USAGE: " << argv[0] << "<inputFileName> <outputFileName> <Nifti file> <NewObjectMapFileName> <oneObjectEntryFileName>" << std::endl;
     }
   const char *InputObjectFileName = argv[1];
   const char *OuptputObjectFileName = argv[2];
   const char *NiftiFile = argv[3];
   const char *CreatingObject = argv[4];
+  const char *oneObjectEntryFileName = argv[5];
   typedef unsigned char       InputPixelType;
   typedef unsigned char       OutputPixelType;
   const   unsigned int        Dimension = 3;
@@ -184,7 +185,7 @@ int main( int argc, char ** argv )
   circleObjectMap->PlaceObjectMapEntriesIntoMetaData();
 
   writer->SetInput(circleObjectMap);
-  writer->SetFileName("circle.obj");
+  writer->SetFileName(oneObjectEntryFileName);
 
   try
     {
@@ -197,7 +198,7 @@ int main( int argc, char ** argv )
     return EXIT_FAILURE;
     }
 
-  readerThree->SetFileName("circle.obj");
+  readerThree->SetFileName(oneObjectEntryFileName);
   try
     {
     readerThree->Update();
