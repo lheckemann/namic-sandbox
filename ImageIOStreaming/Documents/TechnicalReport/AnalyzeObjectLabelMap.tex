@@ -78,16 +78,23 @@ added into ITK and how to use the code.
 
 \section{Description}
 There are two utility files (objectmap and objectentry) and the main IO file (itkAnalyzeObjectLabelMapImageIO) and the corresponding
-IO factory file (itkAnalyzeObjectLabelMapImageIOFactory).  The IO file takes care of reading and writing out an object file.  Whenever
+IO factory file (itkAnalyzeObjectLabelMapImageIOFactory).  
+
+The IO file takes care of reading and writing out an object file.  Whenever
 you read or write an object file you have at the very beginning information about the object map.  The very first data is the version
 of the object map, next you have the x,y,z size of the object map, the number of object entries and finally for version 7 (the newest
 version) number of volumes.  After you have the beginning information there is the information about each object file, that means that
-there is going to have to be a vector of all of the entries.  That is why there is a utility file called objectentry that stores the
+there is going to have to be a vector of all of the entries.  
+
+That is why there is a utility file called objectentry that stores the
 information for one specific entry, if you make a vector of the file then you have all of the object entries for an object map.  There
-are also some other functions in the objectentry that will read or write the information for the object entry.  Finally, after you have
-all of the entries you have a run length encoding.  The run length encoding corresponds to an image of the numbers of the entries starting
-from 0 and going all the way up to the number of object entries.  The objectmap file has functions that take care of doing things to an
-object map once it is created. The one other file that is included is ImageToObjectMap, this file takes care of converting an image with the meta data information for object entries into an object map.
+are also some other functions in the objectentry that will read or write the information for the object entry.  
+
+Finally, after you have all of the entries you have a run length encoding.  The run length encoding corresponds to an image of the numbers of the entries starting from 0 and going all the way up to the number of object entries.  
+
+The objectmap file has functions that take care of doing things to an object map once it is created - such as converting the objectmap to an RGB Image. 
+
+The one other file that is included is ImageToObjectMap, this file takes care of converting an image with the meta data information for object entries into an object map.
 
 \section{Examples}
 
@@ -156,7 +163,15 @@ Command:
 \section{Testing}
 
 Right now we have one test that does all of the testing.  The filename for the test is AnalyzeObjectMapTest.cxx.  The file takes in five arguments.
-Each argument corresponds to a certain name of another file.  For the first argument it should be the name of test.obj and that file is a 3-Dimensional object file that Hans created.  The file is read in, then converted into an object map and finally an RGB image is created from the object map.  This was just to make sure that everything worked without any errors.  After that the output of the reader is sent to a writer to write out the exact copy of the argument but with a different file name.  That is where the second argument comes in.  Once the file is written out then both files are opened up and compared to make sure they have the exact same bit by bit data.  After that the third argument that corresponds to the name of a nifti file that Hans and I created which is the same image seen in example 1 is read in.  With that nifti file read in we create a new object map with some extra entries and other entries based on the nifti file that was read in.  That new object map is written out a file as an object file that corresponds to the fourth argument read in.  That file that was just written out is then read back in where the reader output is then converted into an object map and finally an RGB image is created from the object map.  Then from that object map one entry is picked and new object map is created with just the one entry in it.  This object map with the one entry is written to file that corresponds with the fifth argument.  The file that was just written out is read back in and then converted into an object map and finally an RGB image is created from the object map.
+Each argument corresponds to a certain name of another file.  
+
+For the first argument it should be the name of test.obj and that file is a 3-Dimensional object file that Hans created.  The file is read in, then converted into an object map and finally an RGB image is created from the object map.  This was just to make sure that everything worked without any errors.  
+
+After that the output of the reader is sent to a writer to write out the exact copy of the argument but with a different file name.  That is where the second argument comes in.  Once the file is written out then both files are opened up and compared to make sure they have the exact same bit by bit data.  
+
+After that the third argument that corresponds to the name of a nifti file that Hans and I created which is the same image seen in example 1 is read in.  With that nifti file read in we create a new object map with some extra entries and other entries based on the nifti file that was read in.  That new object map is written out a file as an object file that corresponds to the fourth argument read in.  That file that was just written out is then read back in where the reader output is then converted into an object map and finally an RGB image is created from the object map.  
+
+Then from that object map one entry is picked and new object map is created with just the one entry in it.  This object map with the one entry is written to file that corresponds with the fifth argument.  The file that was just written out is read back in and then converted into an object map and finally an RGB image is created from the object map.
 
 
 
