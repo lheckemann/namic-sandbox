@@ -28,12 +28,18 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
 
-//TODO: Ask Hans if we should keep this in.
-//
-// Name: objectmap.cpp
-// Author: John Dill
-// Date: 5/17/00
-//
+//Acknowdlegment: Biomedical Imaging Resource
+//         Mayo Foundation
+//For lending us documention about the layout of an object map and the entries that correspond with the object map
+
+
+
+//Also, do we need a printself?  Yes, and we will have to change a lot of naming, and stuff to meet ITK specifics.
+
+//Example 4 erroding
+//WHY should we care?
+//Add in code snippets into the latex file
+
 
 #include "objectmap.h"
 #include "itkImageRegionIterator.h"

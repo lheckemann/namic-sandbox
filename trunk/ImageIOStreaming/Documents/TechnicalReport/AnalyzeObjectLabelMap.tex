@@ -102,13 +102,57 @@ This section provides some examples on how to use the programs.
 \begin{itemize}
 \item Example 1 
 
-This example is for reading in any file, then creating a new object map,
-then add entries to the object map and then finally write the object map out to a file.
+This example is for reading in any file, then creating a new object map, then add entries to the object map, pick one entry and then write out the new object map with the one entry only.
+
 
 Command:
 
-\textbf{AnalyzeObjectExample2.exe 2dtest.nii creatingObject.obj}
+\textbf{AnalyzeObjectExample1.exe 2dtest.nii creatingObject.obj}\\
 
+
+\mcode{int main( int argc, char ** argv )\\
+  \{\\
+  typedef unsigned char       InputPixelType;
+
+  typedef unsigned char       OutputPixelType;
+
+  const   unsigned int        Dimension = 3;
+
+  typedef itk::Image$<$ InputPixelType,  Dimension $>$    InputImageType;
+
+  typedef itk::Image$<$ OutputPixelType, Dimension $>$    OutputImageType;
+
+  typedef itk::ImageFileReader$<$ InputImageType  $>$  ReaderType;
+
+  typedef itk::ImageFileWriter$<$ OutputImageType $>$  WriterType;\\
+  ReaderType::Pointer reader = ReaderType::New();\\
+  WriterType::Pointer writer = WriterType::New();\\
+  ...\\
+  reader-$>$SetFileName(NiftiFile);\\
+  ...\\
+  reader-$>$Update();\\
+  ...\\
+  itk::AnalyzeObjectMap::Pointer CreateObjectMap = itk::AnalyzeObjectMap::New();
+
+  ...
+
+  CreateObjectMap-$>$AddObjectEntryBasedOnImagePixel(reader-$>$GetOutput(), 200, "Square", 250, 0, 0); \\        
+  CreateObjectMap-$>$AddObjectEntryBasedOnImagePixel(reader-$>$GetOutput(), 128, "Circle", 0, 250,0); \\   
+  CreateObjectMap-$>$AddObjectEntryBasedOnImagePixel(reader-$>$GetOutput(), 45,  "SquareTwo", 0, 0, 250);\\
+
+  ...
+
+  CreateObjectMapTwo-$>$PlaceObjectMapEntriesIntoMetaData();
+
+  ...\\
+  writer-$>$SetInput(CreateObjectMapTwo);\\
+  ...
+
+  writer-$>$Update();\\
+  ...\\
+  \}
+  }
+  
 
 \begin{figure}[h]
   \hfill
@@ -129,8 +173,7 @@ Command:
     \end{center}
   \end{minipage}
   \hfill
-\end{figure}
-  
+\end{figure}  
 
 \item Example 2
 
@@ -140,7 +183,7 @@ Insight Applications (for itkImageToVTKImageFilter), and VTK.
 
 Command:
 
-\textbf{AnalyzeObjectExample1.exe test.obj 0}
+\textbf{AnalyzeObjectExample2.exe test.obj 0}
 
 \item Example 3
 
