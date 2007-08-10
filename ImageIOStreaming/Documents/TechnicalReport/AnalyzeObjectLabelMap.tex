@@ -66,10 +66,10 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 \begin{abstract}
 \noindent
 This document describes an addition to the Image IO Library of the Insight Toolkit (ITK).
-ITK has been able to read in Anaylze image files but not the object maps that correspond
+ITK has been able to read in Analyze image files but not the object maps that correspond
 to the images.  Without the object maps, regions of interest were not being shown.
-These regions of interest are helpful in desginating locations, giving a name to those
-locations, as well as colors and other informatoin, which is useful if you are trying to tell
+These regions of interest are helpful in designating locations, giving a name to those
+locations, as well as colors and other information, which is useful if you are trying to tell
 someone where to look in an image.  This report describes the reason why this code should be
 added into ITK and how to use the code.
 \end{abstract}
@@ -84,16 +84,10 @@ of the object map, next you have the x,y,z size of the object map, the number of
 version) number of volumes.  After you have the beginning information there is the information about each object file, that means that
 there is going to have to be a vector of all of the entries.  That is why there is a utility file called objectentry that stores the
 information for one specific entry, if you make a vector of the file then you have all of the object entries for an object map.  There
-are also some other functions in the objectentry that will read or write the information for the object entry.
-
-\section{Analyze Object Maps}
-
-WHAT ARE OBJECT MAPS?  AFTER THAT, WHY ARE THEY USEFUL?
-
-An Analyze object map is a series of user specified regions.  Each region that is specfied has a name, a specific red, green, and blue (RGB) color, a display flag determining wether the region should be shown or not and other information about what was done with the region.  With each region
-specified there is a new image that is created that is just of the background and each region that is specified.  This image is written to a file by run length encoding it.
-
-
+are also some other functions in the objectentry that will read or write the information for the object entry.  Finally, after you have
+all of the entries you have a run length encoding.  The run length encoding corresponds to an image of the numbers of the entries starting
+from 0 and going all the way up to the number of object entries.  The objectmap file has functions that take care of doing things to an
+object map once it is created. The one other file that is included is ImageToObjectMap, this file takes care of converting an image with the meta data information for object entries into an object map.
 
 \section{Examples}
 
@@ -135,7 +129,7 @@ Command:
 
 
 This example is for reading in an Analyze object map and
-then use vtk to display the object map.  The user will need ITK,
+then use VTK to display the object map.  The user will need ITK,
 Insight Applications (for itkImageToVTKImageFilter), and VTK.
 
 Command:
@@ -161,7 +155,7 @@ Command:
 \section{Testing}
 
 Right now we have one test that does all of the testing.  The filename for the test is AnalyzeObjectMapTest.cxx.  The file takes in five arguments.
-Each argument corresponds to a certain name of another file.  For the first argument it should be the name of test.obj and that file is a 3-Dimensional object file that Hans created.  The file is read in, then converted into an object map and finally an RGB image is created from the object map.  This was just to make sure that everything worked without any errors.  After that the output of the reader is sent to a writer to write out the exact copy of the argument but with a different file name.  That is where the second argument comes in.  Once the file is written out then both files are opened up and compared to make sure they have the exact same bit by bit data.  After that the third argument that corresponds to the name of a nifti file that Hans and I created which is the same image seen in example 1 is read in.  With that nifti file read in we create a new object map with some extra entries and other entries based on the nifti file that was read in.  That new object map is written out a file as an object file that corresponds to the fourth argument read in.  That file that was just written out is then read back in where the reader output is then converted into an object map and finally an RGB image is created from the object map.  Then from that object map one entry is picked and new object map is created with just the one entry in it.  This object map with the one entry is written to file that corresponds with the fith argument.  The file that was just written out is read back in and then converted into an object map and finally an RGB image is created from the object map.
+Each argument corresponds to a certain name of another file.  For the first argument it should be the name of test.obj and that file is a 3-Dimensional object file that Hans created.  The file is read in, then converted into an object map and finally an RGB image is created from the object map.  This was just to make sure that everything worked without any errors.  After that the output of the reader is sent to a writer to write out the exact copy of the argument but with a different file name.  That is where the second argument comes in.  Once the file is written out then both files are opened up and compared to make sure they have the exact same bit by bit data.  After that the third argument that corresponds to the name of a nifti file that Hans and I created which is the same image seen in example 1 is read in.  With that nifti file read in we create a new object map with some extra entries and other entries based on the nifti file that was read in.  That new object map is written out a file as an object file that corresponds to the fourth argument read in.  That file that was just written out is then read back in where the reader output is then converted into an object map and finally an RGB image is created from the object map.  Then from that object map one entry is picked and new object map is created with just the one entry in it.  This object map with the one entry is written to file that corresponds with the fifth argument.  The file that was just written out is read back in and then converted into an object map and finally an RGB image is created from the object map.
 
 
 
