@@ -50,17 +50,13 @@ ADD_TEST( ImageIOStreamingMETATest02
    ${TESTING_OUTPUT_DIR}/BrainProtonDensity3SlicesTestOutput02.mha
    20 30 1 30 40 1)
 
-ADD_TEST( ImageIOStreamingCreateAnalyzeObjectLabelMapTest01
-   ${ImageIOStreamingTest_BINARY_DIR}/creatingImage
-   ${TESTING_OUTPUT_DIR}/2DTestData.nii.gz
-   ${TESTING_OUTPUT_DIR}/2DTestData.obj
-   )
-
 ADD_TEST( ImageIOStreamingAnalyzeObjectLabelMapTest01
    ${ImageIOStreamingTest_BINARY_DIR}/AnalyzeObjectMapTest
    ${TEST_DATA_ROOT}/test.obj
    ${TESTING_OUTPUT_DIR}/objectLabelTest.obj
    ${TEST_DATA_ROOT}/2dtest.nii
+   ${TEST_OUTPUT_DIR}/creatingObject.obj
+   ${TEST_OUTPUT_DIR}/circle.obj
    )
 
 
