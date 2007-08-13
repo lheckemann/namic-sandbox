@@ -1,7 +1,7 @@
 #ifndef __ImageToObjectMap_cxx
 #define __ImageToObjectMap_cxx
 
-#include "ImageToObjectmap.h"
+#include "itkImageToAnalyzeObjectmap.h"
 
 
 

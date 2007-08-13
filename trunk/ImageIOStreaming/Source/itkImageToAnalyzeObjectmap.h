@@ -3,7 +3,7 @@
 
 #include "itkImageSource.h"
 #include <itkMetaDataObject.h>
-#include "objectmap.h"
+#include "itkAnalyzeObjectMap.h"
 #include "itkImage.h"
 #include "itkExceptionObject.h"
 #include <itkObjectfactory.h>
@@ -49,6 +49,6 @@ private:
 }
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "ImageToObjectmap.cxx"
+#include "itkImageToAnalyzeObjectmap.cxx"
 #endif
 #endif

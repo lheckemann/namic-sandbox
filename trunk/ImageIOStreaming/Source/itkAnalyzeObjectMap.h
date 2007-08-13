@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <string>
 #include <vector>
-#include "objectentry.h"
+#include "itkAnalyzeObjectEntry.h"
 #include "itkObjectFactory.h"
 #include "itkObject.h"
 #include "itkByteSwapper.h"
