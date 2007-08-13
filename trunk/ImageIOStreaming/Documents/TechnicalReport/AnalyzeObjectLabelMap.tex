@@ -76,6 +76,10 @@ added into ITK and how to use the code.
 
 \tableofcontents
 
+\section{Anaylze Object Maps}
+Analyze Object Maps is an image that is plotted with numbers from 0-255 that correspond to an Analyze Object Entry.  Each Analyze Object Entry
+is a specific Region of Interest that a user has specified. With these Regions of Interest the user can put a name to the Region, a specfic color and be able to communicate to other people what areas to look at or know which Regions they are talking about.  Regions of Interest could be differentating a part of the brain, marking a location where someone thinks a tumor is or many other ways to group a specfic area to a name and color.  The Analyze Object Maps can be shown by themselves or layed over the top of another image, such as the original image that was the basis of the Analyze Object Map, to show which areas were highlighted.
+  
 \section{Description}
 There are two utility files (objectmap and objectentry) and the main IO file (itkAnalyzeObjectLabelMapImageIO) and the corresponding
 IO factory file (itkAnalyzeObjectLabelMapImageIOFactory).  
@@ -250,6 +254,41 @@ Command:
 
 \textbf{AnalyzeObjectExample2.exe 2dtest.nii circle.obj}
 
+\mode{int main( int argc, char ** argv )\\
+\{\\
+...\\
+//Now we bring in a nifti file that Hans and Jeffrey created, the image as two squares and a circle in it of different intensity values.\\
+reader-$>$SetFileName(NiftiFile);\\
+...\\
+reader-$>$Update();\\
+...\\
+
+itk::AnalyzeObjectMap::Pointer CreateObjectMap = itk::AnalyzeObjectMap::New();\\
+
+//Add another two entries that will be based on the image that is passed into \\
+//the function, also, the intensity that you would like searched for, the name of the entry and then finally the RGB values\\
+//you would like the entry to have for the regions that are found.\\
+CreateObjectMap-$>$AddObjectEntryBasedOnImagePixel(reader-$>$GetOutput(), 200, "Square", 250, 0, 0);\\
+CreateObjectMap-$>$AddObjectEntryBasedOnImagePixel(reader-$>$GetOutput(), 128, "Circle", 0, 250,0);\\
+CreateObjectMap-$>$AddObjectEntryBasedOnImagePixel(reader-$>$GetOutput(), 45,  "SquareTwo", 0, 0, 250);\\
+
+//Pick the circle entry and have it put into CreateObjectMap two.  These means
+  //that there is only one entry in CreateObjectMapTwo and the image has also\\
+//been taken care of.\\
+itk::AnalyzeObjectMap::Pointer CreateObjectMapTwo = CreateObjectMap-$>$PickOneEntry(2);\\
+
+//Place all of the entries into the meta data so that the entries can be written\\
+//out to an object file.\\
+CreateObjectMapTwo-$>$PlaceObjectMapEntriesIntoMetaData();\\
+
+//Now write out an object file\\
+writer-$>$SetInput(CreateObjectMapTwo);\\
+writer-$>$SetFileName(CreatingObject);\\
+...\\
+writer-$>$Update();\\
+...\\
+\}
+}
 \begin{figure}[h]
 \center
 \includegraphics[width=.14\textwidth]{circle.eps}
