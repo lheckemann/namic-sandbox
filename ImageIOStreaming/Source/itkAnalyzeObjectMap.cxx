@@ -41,7 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //Add in code snippets into the latex file
 
 
-#include "objectmap.h"
+#include "itkAnalyzeObjectMap.h"
 #include "itkImageRegionIterator.h"
 namespace itk{
   AnalyzeObjectMap::AnalyzeObjectMap( void ): m_Version(VERSION7),m_NumberOfObjects(0)

@@ -29,7 +29,7 @@
 #include "itkImage.h"
 
 #include "itkAnalyzeObjectLabelMapImageIO.h"
-#include <ImageToObjectmap.h>
+#include "itkImageToAnalyzeObjectmap.h"
 int main( int argc, char ** argv )
 {
   int error_count = 0;
