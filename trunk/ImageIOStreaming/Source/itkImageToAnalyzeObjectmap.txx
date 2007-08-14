@@ -1,5 +1,5 @@
-#ifndef __ImageToObjectMap_cxx
-#define __ImageToObjectMap_cxx
+#ifndef __itkImageToObjectMap_txx
+#define __itkImageToObjectMap_txx
 
 #include "itkImageToAnalyzeObjectmap.h"
 
