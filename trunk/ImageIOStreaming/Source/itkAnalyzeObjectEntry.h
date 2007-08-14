@@ -79,16 +79,7 @@ namespace itk{
       /** Run-time type information (and related methods). */
       itkTypeMacro(AnalyzeObjectEntry, Object);
 
-      /**
-       * \brief ~AnalyzeObjectEntry( void ) is the destructor, which does nothing explicitly due to
-       * no use of dynamic allocation
-       * \param none
-       * \return none
-       * Possible Causes of Failure:
-       * - unknown
-       * \sa AnalyzeObjectEntry
-       */
-      virtual ~AnalyzeObjectEntry( void );
+      
 
       /**
        * \brief operator= is the assignment operator, which copies the data values on the
@@ -729,6 +720,19 @@ namespace itk{
        * \sa AnalyzeObjectEntry
        */
       AnalyzeObjectEntry( const AnalyzeObjectEntry & rhs );
+
+      /**
+       * \brief ~AnalyzeObjectEntry( void ) is the destructor, which does nothing explicitly due to
+       * no use of dynamic allocation
+       * \param none
+       * \return none
+       * Possible Causes of Failure:
+       * - unknown
+       * \sa AnalyzeObjectEntry
+       */
+      virtual ~AnalyzeObjectEntry( void );
+
+      void PrintSelf(std::ostream& os, Indent indent) const;
     private:
       char m_Name[33];                     /*bytes   0-31*/
       int m_DisplayFlag;                   /*bytes  32-35*/

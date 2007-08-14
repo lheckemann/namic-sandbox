@@ -49,6 +49,13 @@ ImageToObjectMap<TConvertImage>
   return this->ObjectMap;
 }
 
+template<class TConvertImage>
+void
+ImageToObjectMap<TConvertImage>
+::PrintSelf(std::ostream& os, Indent indent) const
+  {
+    Superclass::PrintSelf(os, indent);
+  }
 
 }
 

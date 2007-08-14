@@ -225,4 +225,9 @@ namespace itk{
     itk::EncapsulateMetaData<itk::AnalyzeObjectEntryArrayType>(thisDic,ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY,*my_reference);
   }
 
+  void AnalyzeObjectMap::PrintSelf(std::ostream& os, Indent indent) const
+  {
+    Superclass::PrintSelf(os, indent);
+  }
+
 }

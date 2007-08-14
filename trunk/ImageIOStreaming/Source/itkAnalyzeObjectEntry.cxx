@@ -272,4 +272,9 @@ void AnalyzeObjectEntry::Copy( AnalyzeObjectEntry::Pointer rhs )
   this->SetZCenter(rhs->GetZCenter());
 }
 
+void AnalyzeObjectEntry::PrintSelf(std::ostream& os, Indent indent) const
+{
+  Superclass::PrintSelf(os, indent);
+}
+
 }
