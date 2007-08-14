@@ -89,10 +89,7 @@ namespace itk
       /** Run-time type information (and related methods). */
       itkTypeMacro(AnalyzeObjectMap, Image );
 
-      /**
-       * \brief the destructor for AnalyzeObjectMap
-       */
-      virtual ~AnalyzeObjectMap( void );
+      
 
       /**
        * \brief an assignment operator
@@ -103,19 +100,7 @@ namespace itk
 
       
       AnalyzeObjectEntryArrayType * GetAnalyzeObjectEntryArrayPointer();
-      /**
-       * \brief returns a reference to an object
-       * \param const int index
-       * \return AnalyzeObjectEntry &, an object reference from the array of 256 objects in the objectmap
-       */
-      AnalyzeObjectEntry::Pointer getObjectEntry( const int index );
 
-      /**
-       * \brief returns a reference to an object
-       * \param const int index
-       * \return AnalyzeObjectEntry &, an object reference from the array of 256 objects in the objectmap
-       */
-      const AnalyzeObjectEntry::Pointer getObjectEntry( const int index ) const;
 
       /**
        * \brief GetVersion/SetVersion
@@ -154,10 +139,17 @@ namespace itk
       AnalyzeObjectMap( void );
 
       /**
+       * \brief the destructor for AnalyzeObjectMap
+       */
+      virtual ~AnalyzeObjectMap( void );
+
+      /**
        * \brief the copy constructor,
        * THIS IS NOT ALLOWED
        */
       AnalyzeObjectMap( const AnalyzeObjectMap & rhs ) { /*Explicitly not allowed*/ };
+
+      void PrintSelf(std::ostream& os, Indent indent) const;
 
    private:
       /** Version of object file */

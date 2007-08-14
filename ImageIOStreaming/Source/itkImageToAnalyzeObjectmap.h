@@ -2,12 +2,12 @@
 #define __ImageToObjectMap_h
 
 #include "itkImageSource.h"
-#include <itkMetaDataObject.h>
+#include "itkMetaDataObject.h"
 #include "itkAnalyzeObjectMap.h"
 #include "itkImage.h"
 #include "itkExceptionObject.h"
-#include <itkObjectfactory.h>
-#include <itkImageRegionIterator.h>
+#include "itkObjectfactory.h"
+#include "itkImageRegionIterator.h"
 
 
 namespace itk
@@ -38,6 +38,7 @@ class ITK_EXPORT ImageToObjectMap : public ImageSource<TConvertImage>
 protected:
   ImageToObjectMap();
 ~ImageToObjectMap();
+void PrintSelf(std::ostream& os, Indent indent) const;
 
 private:
   //ImageToObjectMap(const Self&); //purposely not implemented
