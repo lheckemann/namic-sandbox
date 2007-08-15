@@ -14,7 +14,7 @@ then showing how to use vtk to display the object map.
 //#include <vtkImageViewer2.h>
 
 
-#include <ImageToObjectmap.h>
+#include <ImageToAnalyzeObjectMap.h>
 #include "objectmap.h"
 
 
@@ -49,7 +49,7 @@ int main(int argc, char * argv [] )
     reader->Update();
   
     //This will convert the output of the reader into an object map
-    itk::ImageToObjectMap<ImageType>::Pointer ConvertImage = itk::ImageToObjectMap<ImageType>::New();
+    itk::ImageToAnalyzeObjectMap<ImageType>::Pointer ConvertImage = itk::ImageToAnalyzeObjectMap<ImageType>::New();
     itk::AnalyzeObjectMap::Pointer Objectmap = ConvertImage->TransformImage(reader->GetOutput());
 
     //If you have vtk and itkApplications installed then you can uncomment this out to display
