@@ -98,7 +98,7 @@ Finally, after you have all of the entries you have a run length encoding.  The 
 
 The objectmap file has functions that take care of doing things to an object map once it is created - such as converting the objectmap to an RGB Image. 
 
-The one other file that is included is ImageToObjectMap, this file takes care of converting an image with the meta data information for object entries into an object map.
+The one other file that is included is ImageToAnalyzeObjectMap, this file takes care of converting an image with the meta data information for object entries into an object map.
 
 \section{Examples}
 
@@ -209,7 +209,7 @@ int main(int argc, char * argv [] )\\
 		     
 		     reader-$>$Update();\\
 		     ...\\
-		     itk::ImageToObjectMap$<$ImageType$>$::Pointer ConvertImage = itk::ImageToObjectMap$<$ImageType$>$::New();\\
+		     itk::ImageToAnalyzeObjectMap$<$ImageType$>$::Pointer ConvertImage = itk::ImageToAnalyzeObjectMap$<$ImageType$>$::New();\\
 		     
 		itk::AnalyzeObjectMap::Pointer Objectmap = ConvertImage-$>$TransformImage(reader-$>$GetOutput());\\
 		
