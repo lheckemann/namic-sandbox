@@ -16,7 +16,7 @@ namespace itk
 template <class TConvertImage>
 
 /**
-   * \class ImageToObjectMap
+   * \class ImageToAnalyzeObjectMap
    * \brief This class changes any Image with a meta data dictionary of Analyze Object Entries and changes it into
    *an Analyze Object Map.
    */
@@ -24,7 +24,7 @@ class ITK_EXPORT ImageToAnalyzeObjectMap : public ImageSource<TConvertImage>
 {
   public:
   /** Standard class typedefs */
-  typedef ImageToObjectMap    Self;
+  typedef ImageToAnalyzeObjectMap    Self;
   typedef ImageSource<TConvertImage>       Superclass;
   typedef SmartPointer<Self>  Pointer;
 
@@ -32,19 +32,19 @@ class ITK_EXPORT ImageToAnalyzeObjectMap : public ImageSource<TConvertImage>
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageToObjectMap, ImageSource);
+  itkTypeMacro(ImageToAnalyzeObjectMap, ImageSource);
 
   typedef TConvertImage InputImageType;
 
   itk::AnalyzeObjectMap * TransformImage(InputImageType *image);
 
 protected:
-  ImageToObjectMap();
-~ImageToObjectMap();
+  ImageToAnalyzeObjectMap();
+~ImageToAnalyzeObjectMap();
 void PrintSelf(std::ostream& os, Indent indent) const;
 
 private:
-  //ImageToObjectMap(const Self&); //purposely not implemented
+  //ImageToAnalyzeObjectMap(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
   itk::AnalyzeObjectMap::Pointer ObjectMap;

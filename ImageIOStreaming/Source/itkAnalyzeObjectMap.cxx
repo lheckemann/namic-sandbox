@@ -81,7 +81,7 @@ namespace itk{
     itk::AnalyzeObjectMap::Pointer newObjectMap = itk::AnalyzeObjectMap::New();
     newObjectMap->SetRegions(this->GetLargestPossibleRegion());
     newObjectMap->Allocate();
-    newObjectMap->AddObject(this->m_AnaylzeObjectEntryArray[numberOfEntry]->GetName());
+    newObjectMap->AddObjectEntry(this->m_AnaylzeObjectEntryArray[numberOfEntry]->GetName());
     newObjectMap->m_AnaylzeObjectEntryArray[1] = this->m_AnaylzeObjectEntryArray[numberOfEntry];
     itk::ThresholdImageFilter<ImageType>::Pointer changeOldObjectMap = itk::ThresholdImageFilter<ImageType>::New();
     
@@ -145,7 +145,7 @@ namespace itk{
 
     itk::ImageRegionIterator<ImageType > indexObjectMap(this,Image->GetLargestPossibleRegion());
     
-    this->AddObject(ObjectName);
+    this->AddObjectEntry(ObjectName);
     int i = this->GetNumberOfObjects();
     this->m_AnaylzeObjectEntryArray[i]->SetEndRed(Red);
     this->m_AnaylzeObjectEntryArray[i]->SetEndGreen(Green);
