@@ -6,7 +6,7 @@
 #include "itkAnalyzeObjectMap.h"
 #include "itkImage.h"
 #include "itkExceptionObject.h"
-#include "itkObjectfactory.h"
+#include "itkObjectFactory.h"
 #include "itkImageRegionIterator.h"
 
 
@@ -53,6 +53,6 @@ private:
 }
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkImageToAnalyzeObjectmap.cxx"
+#include "itkImageToAnalyzeObjectmap.txx"
 #endif
 #endif
