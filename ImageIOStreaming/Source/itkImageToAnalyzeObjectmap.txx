@@ -12,13 +12,13 @@ namespace itk
  *
  */
 template<class TConvertImage>
-ImageToObjectMap<TConvertImage>
+ImageToAnalyzeObjectMap<TConvertImage>
 ::ImageToObjectMap()
 {
 }
 
 template<class TConvertImage>
-ImageToObjectMap<TConvertImage>
+ImageToAnalyzeObjectMap<TConvertImage>
 ::~ImageToObjectMap()
 {
   
@@ -28,7 +28,7 @@ ImageToObjectMap<TConvertImage>
 //Right now I am assuming what is passed in has the analyze object map entries in the meta data.
 template<class TConvertImage>
 itk::AnalyzeObjectMap *
-ImageToObjectMap<TConvertImage>
+ImageToAnalyzeObjectMap<TConvertImage>
 ::TransformImage(InputImageType *image)
 {
   this->ObjectMap = itk::AnalyzeObjectMap::New();
@@ -51,7 +51,7 @@ ImageToObjectMap<TConvertImage>
 
 template<class TConvertImage>
 void
-ImageToObjectMap<TConvertImage>
+ImageToAnalyzeObjectMap<TConvertImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
   {
     Superclass::PrintSelf(os, indent);

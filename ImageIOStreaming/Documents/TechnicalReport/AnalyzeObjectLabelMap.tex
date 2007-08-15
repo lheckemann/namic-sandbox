@@ -111,7 +111,7 @@ This example is for reading in any file, then creating a new object map, then ad
 
 Command:
 
-\textbf{AnalyzeObjectExample1.exe 2dtest.nii creatingObject.obj}\\
+\textbf{CreatingObjects.exe 2dtest.nii creatingObjects.obj}\\
 
 
 \mcode{int main( int argc, char ** argv )\\
@@ -171,7 +171,7 @@ Command:
   \begin{minipage}[t]{.45\textwidth}
     \begin{center}  
       \includegraphics[width=.28\textwidth]{creatingObject.eps}
-      \caption{creatingObject.obj, this is what it should look like when you convert it to an RGB image.  See next example on how to display 
+      \caption{creatingObjects.obj, this is what it should look like when you convert it to an RGB image.  See next example on how to display 
     object maps.}
       \label{fig-tc}
     \end{center}
@@ -187,7 +187,7 @@ Insight Applications (for itkImageToVTKImageFilter), and VTK.
 
 Command:
 
-\textbf{AnalyzeObjectExample2.exe test.obj 0}
+\textbf{DisplayingObjectMaps.exe creatingObjects.obj 0}
 
 \mcode{typedef unsigned char PixelType;\\
 const unsigned int Dimension = 3;\\
@@ -252,7 +252,7 @@ This example is for reading in any file, then creating a new object map, then ad
 
 Command:
 
-\textbf{AnalyzeObjectExample2.exe 2dtest.nii circle.obj}
+\textbf{PickOneObjectEntry.exe 2dtest.nii circle.obj}
 
 \mode{int main( int argc, char ** argv )\\
 \{\\
