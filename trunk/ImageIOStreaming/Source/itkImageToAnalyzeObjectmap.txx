@@ -13,13 +13,13 @@ namespace itk
  */
 template<class TConvertImage>
 ImageToAnalyzeObjectMap<TConvertImage>
-::ImageToObjectMap()
+::ImageToAnalyzeObjectMap()
 {
 }
 
 template<class TConvertImage>
 ImageToAnalyzeObjectMap<TConvertImage>
-::~ImageToObjectMap()
+::~ImageToAnalyzeObjectMap()
 {
   
 }

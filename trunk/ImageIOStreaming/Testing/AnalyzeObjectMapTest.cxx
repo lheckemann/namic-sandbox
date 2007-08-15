@@ -51,7 +51,7 @@ int main( int argc, char ** argv )
 
   typedef itk::ImageFileReader< InputImageType  >  ReaderType;
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;
-  typedef itk::ImageToObjectMap<InputImageType> ImageToObjectMapType;
+  typedef itk::ImageToAnalyzeObjectMap<InputImageType> ImageToObjectMapType;
 
   ImageToObjectMapType::Pointer ImageToObjectConvertor = ImageToObjectMapType::New();
 
@@ -144,11 +144,11 @@ int main( int argc, char ** argv )
     }
   itk::AnalyzeObjectMap::Pointer CreateObjectMap = itk::AnalyzeObjectMap::New();
 
-  CreateObjectMap->AddObject("You Can Delete Me");
+  CreateObjectMap->AddObjectEntry("You Can Delete Me");
   CreateObjectMap->AddObjectEntryBasedOnImagePixel(readerTwo->GetOutput(), 200, "Square", 250, 0, 0);
   CreateObjectMap->AddObjectEntryBasedOnImagePixel(readerTwo->GetOutput(), 128, "Circle", 0, 250,0);
-  CreateObjectMap->AddObject("Nothing In Here");
-  CreateObjectMap->DeleteObject("Nothing In Here");
+  CreateObjectMap->AddObjectEntry("Nothing In Here");
+  CreateObjectMap->DeleteObjectEntry("Nothing In Here");
   CreateObjectMap->PlaceObjectMapEntriesIntoMetaData();
 
   writer->SetInput(CreateObjectMap);

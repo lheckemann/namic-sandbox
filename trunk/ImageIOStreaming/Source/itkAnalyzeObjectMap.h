@@ -139,12 +139,12 @@ namespace itk
       void AddObjectEntryBasedOnImagePixel(const itk::Image<unsigned char, 3>::Pointer Image,const int value,const std::string ObjectName,const int Red = 0,const int Green = 0,const int Blue = 0);
 
       /**
-       * \brief AddObject
+       * \brief AddObjectEntry
        */
       void AddObjectEntry(const std::string ObjectName);
 
       /**
-       * \brief DeleteObject
+       * \brief DeleteObjectEntry
        *
        * This function will move all object entry's so that the vector stays in the smallest order starting from 0.
        */
