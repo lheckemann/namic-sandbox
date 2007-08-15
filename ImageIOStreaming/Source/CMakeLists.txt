@@ -18,6 +18,14 @@ SET(ITKIO_SRCS
 ADD_LIBRARY(ITKIOStreaming ${ITKIO_SRCS})
 
 
+TARGET_LINK_LIBRARIES(ITKIOStreaming
+  ITKniftiio
+  ${ITK_ZLIB_LIBRARIES}
+  ITKCommon
+  ITKMetaIO
+  )
+
+IF(USE_YAFF)
 #
 # Illustration on how to create a dynamically loadable factory
 #
@@ -26,17 +34,11 @@ ADD_LIBRARY(ITKIOYAFFStreaming SHARED
   itkYAFFImageIOFactory.cxx
   )
 
-TARGET_LINK_LIBRARIES(ITKIOStreaming
-  ITKniftiio
-  ${ITK_ZLIB_LIBRARIES}
-  ITKCommon
-  ITKMetaIO
-  )
-
 TARGET_LINK_LIBRARIES(ITKIOYAFFStreaming
   ITKIOStreaming
   ITKCommon
   )
+ENDIF(USE_YAFF)
 
 IF(ITK_LIBRARY_PROPERTIES)
   SET_TARGET_PROPERTIES(ITKIO PROPERTIES ${ITK_LIBRARY_PROPERTIES})
