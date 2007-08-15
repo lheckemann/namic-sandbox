@@ -15,9 +15,13 @@ namespace itk
 
 template <class TConvertImage>
 
-class ITK_EXPORT ImageToObjectMap : public ImageSource<TConvertImage>
+/**
+   * \class ImageToObjectMap
+   * \brief This class changes any Image with a meta data dictionary of Analyze Object Entries and changes it into
+   *an Analyze Object Map.
+   */
+class ITK_EXPORT ImageToAnalyzeObjectMap : public ImageSource<TConvertImage>
 {
-
   public:
   /** Standard class typedefs */
   typedef ImageToObjectMap    Self;
@@ -31,7 +35,6 @@ class ITK_EXPORT ImageToObjectMap : public ImageSource<TConvertImage>
   itkTypeMacro(ImageToObjectMap, ImageSource);
 
   typedef TConvertImage InputImageType;
-  //typedef SmartPointer<const Self>  ConstPointer;
 
   itk::AnalyzeObjectMap * TransformImage(InputImageType *image);
 

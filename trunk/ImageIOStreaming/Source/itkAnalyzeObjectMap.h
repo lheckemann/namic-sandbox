@@ -46,6 +46,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace itk
 {
+  /** \class AnalyzeObjectMap
+ * \brief A class that is an image with functions that let the user change aspects of the class.
+ */
+
+
   /**
   * Constants representing the current version number of the object map file for Analyze
   */
@@ -118,18 +123,41 @@ namespace itk
       itkSetMacro(NumberOfObjects, int);
       itkGetConstMacro(NumberOfObjects, int);
 
+      /**
+       * \brief PickOneEntry
+       */
       itk::AnalyzeObjectMap::Pointer PickOneEntry(const int numberOfEntry);
 
+      /**
+       * \brief ObjectMapToRGBImage
+       */
       itk::Image<RGBPixelType, 3>::Pointer ObjectMapToRGBImage();
 
+      /**
+       * \brief AddObjectEntryBasedOnImagePixel
+       */
       void AddObjectEntryBasedOnImagePixel(const itk::Image<unsigned char, 3>::Pointer Image,const int value,const std::string ObjectName,const int Red = 0,const int Green = 0,const int Blue = 0);
 
-      void AddObject(const std::string ObjectName);
+      /**
+       * \brief AddObject
+       */
+      void AddObjectEntry(const std::string ObjectName);
 
-      void DeleteObject(const std::string ObjectName);
+      /**
+       * \brief DeleteObject
+       *
+       * This function will move all object entry's so that the vector stays in the smallest order starting from 0.
+       */
+      void DeleteObjectEntry(const std::string ObjectName);
 
-      int FindObject(const std::string ObjectName);
+      /**
+       * \brief FindObject
+       */
+      int FindObjectEntry(const std::string ObjectName);
 
+      /**
+       * \brief PlaceObjectMapEntriesIntoMetaData
+       */
       void PlaceObjectMapEntriesIntoMetaData();
 
      protected:

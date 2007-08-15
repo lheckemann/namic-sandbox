@@ -166,7 +166,7 @@ namespace itk{
 
   /*NOTE: This function will add an object entry to the end of the vector.  However, you will still have to fill in the values that you would like stored.
   TODO: Rastor through the image to place the value at the specifed locations.*/
-  void AnalyzeObjectMap::AddObject(const std::string ObjectName)
+  void AnalyzeObjectMap::AddObjectEntry(const std::string ObjectName)
   {
     this->m_AnaylzeObjectEntryArray.insert(this->m_AnaylzeObjectEntryArray.end(), itk::AnalyzeObjectEntry::New());
     this->SetNumberOfObjects(this->GetNumberOfObjects()+1);
@@ -174,9 +174,9 @@ namespace itk{
   }
 
   /*NOTE: This function will move all object entry's so that the vector stays in the smallest order starting from 0.*/
-  void AnalyzeObjectMap::DeleteObject(const std::string ObjectName)
+  void AnalyzeObjectMap::DeleteObjectEntry(const std::string ObjectName)
   {
-    int i = this->FindObject(ObjectName);
+    int i = this->FindObjectEntry(ObjectName);
     if(i == -1)
     {
       return;
@@ -204,7 +204,7 @@ namespace itk{
 
   //This function will go through the entries looking for the specfic name.  If no name was found then the function
   //will return -1.  So, if you use this, then make sure you check to see if -1 was returned.
-  int AnalyzeObjectMap::FindObject(const std::string ObjectName)
+  int AnalyzeObjectMap::FindObjectEntry(const std::string ObjectName)
   {
     for(int i=0; i < this->GetNumberOfObjects(); i++)
     {
