@@ -100,7 +100,7 @@ namespace itk{
 
   //This function will convert an object map into an unsigned char RGB image.
   //TODO: Need to include the object entries into the meta data.
-  itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer AnalyzeObjectMap::ObjectMapToRGBImage()
+  itk::Image<itk::RGBPixel<unsigned char>, 4>::Pointer AnalyzeObjectMap::ObjectMapToRGBImage()
   {
     RGBImageType::Pointer RGBImage = RGBImageType::New();
     RGBImage->SetRegions(this->GetLargestPossibleRegion());
@@ -129,12 +129,13 @@ namespace itk{
   //are 0.
   void AnalyzeObjectMap::AddObjectEntryBasedOnImagePixel(const ImageType::Pointer Image, const int value, const std::string ObjectName, const int Red,const int Green,const int Blue)
   {
-    itk::ImageRegion<3> ObjectMapRegion = this->GetLargestPossibleRegion();
-    itk::ImageRegion<3> ImageRegion = Image->GetLargestPossibleRegion();
+    itk::ImageRegion<4> ObjectMapRegion = this->GetLargestPossibleRegion();
+    itk::ImageRegion<4> ImageRegion = Image->GetLargestPossibleRegion();
     if(  ImageRegion != ObjectMapRegion && ImageRegion.IsInside(ObjectMapRegion))
     {
       this->SetRegions(Image->GetLargestPossibleRegion());
       this->Allocate();
+      this->FillBuffer(0);
     }
     itk::ImageRegionIterator<ImageType > indexImage(Image, Image->GetLargestPossibleRegion());
 
@@ -150,10 +151,6 @@ namespace itk{
       if(indexImage.Get() == value)
       {
         indexObjectMap.Set(i);
-      }
-      if(indexObjectMap.Get() > i)
-      {
-        indexObjectMap.Set(0);
       }
     }
   }

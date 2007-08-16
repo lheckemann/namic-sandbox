@@ -471,6 +471,8 @@ namespace itk{
       itkGetConstMacro(BlendFactor, float);
       itkSetMacro(BlendFactor, float);
 
+//TODO: Need to use these at some point or maybe just delete them
+#if 0
       /**
        * \brief setStartColor
        *
@@ -545,7 +547,7 @@ namespace itk{
        */
       itkSetMacro(MaximumCoordinateValue, Index);
       itkGetConstMacro(MaximumCoordinateValue, Index);
-
+#endif
       void Print(std::ostream &myfile) 
       {
         myfile<<this->m_Name<<"\n";
@@ -601,9 +603,6 @@ namespace itk{
         ReadBytes<int>(inputFileStream, &m_StartRed,1,NeedByteSwap);
         ReadBytes<int>(inputFileStream, &m_StartGreen,1,NeedByteSwap);
         ReadBytes<int>(inputFileStream, &m_StartBlue,1,NeedByteSwap);
-        m_StartColor.SetBlue(m_StartBlue);
-        m_StartColor.SetGreen(m_StartGreen);
-        m_StartColor.SetRed(m_StartRed);
         ReadBytes<int>(inputFileStream, &m_EndRed,1,NeedByteSwap);
         ReadBytes<int>(inputFileStream, &m_EndGreen,1,NeedByteSwap);
         ReadBytes<int>(inputFileStream, &m_EndBlue,1,NeedByteSwap);
@@ -784,7 +783,8 @@ namespace itk{
       int m_OpacityThickness;              /*bytes  142-145*/
       float m_BlendFactor;                 /*bytes  146-149*/
 
-
+//TODO: Need to use these at some point or maybe just delete them
+#if 0
       //Three seperate Start Colors (Red, Green, Blue) have been put together to use the set macro.
       intRGBPixel m_StartColor;  
         //Three seperate End Colors (Red, Green, Blue) have been put together to use the set macro.
@@ -803,6 +803,7 @@ namespace itk{
       Index m_MinimumCoordinateValue; 
       //Three seperate Maximum Coordiante Values (x, y, z) have been put together to use the set macro.
       Index m_MaximumCoordinateValue; 
+#endif
   };
 }
 #endif                           // __OBJECTENTR_H__

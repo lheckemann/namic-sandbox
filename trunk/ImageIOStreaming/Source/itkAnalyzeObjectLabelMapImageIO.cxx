@@ -96,6 +96,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     ImageSpacing[0]=1.0F;
     ImageSpacing[1]=1.0F;
     ImageSpacing[2]=1.0F;
+    ImageSpacing[3]=1.0F;
     this->m_AnalyzeObjectLabelMapImage->SetSpacing(ImageSpacing);
 
     //When this function decods the run length encoded raw data into an unsigned char volume
@@ -331,45 +332,19 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
       NeedBlendFactor = true;
     }
     //Now the file pointer is pointing to the image region
-    ImageType::SizeType ImageSize;
-    ImageType::IndexType ImageIndex;
     
-    if(header[5]>1)
-    {
-      ImageIndex[3]=0;
-      ImageIndex[2]=0;
-      ImageIndex[1]=0;
-      ImageIndex[0]=0;
+    ImageType::IndexType ImageIndex;
+    ImageIndex[3]=0;
+    ImageIndex[2]=0;
+    ImageIndex[1]=0;
+    ImageIndex[0]=0;
+    
+    ImageType::SizeType ImageSize;
+    ImageSize[0]=header[1];
+    ImageSize[1]=header[2];
+    ImageSize[2]=header[3];
+    ImageSize[3]=header[5];
 
-      ImageSize[0]=header[1];
-      ImageSize[1]=header[2];
-      ImageSize[2]=header[3];
-      ImageSize[3]=header[5];
-    }
-    else if(header[3]>1)
-    {
-      ImageIndex[2]=0;
-      ImageIndex[1]=0;
-      ImageIndex[0]=0;
-
-      ImageSize[0]=header[1];
-      ImageSize[1]=header[2];
-      ImageSize[2]=header[3];
-    }
-    else if(header[2]>1)
-    {
-      ImageIndex[1]=0;
-      ImageIndex[0]=0;
-
-      ImageSize[0]=header[1];
-      ImageSize[1]=header[2];
-    }
-    else
-    {
-      ImageIndex[0]=0;
-
-      ImageSize[0]=header[1]; 
-    }
 
     ImageType::RegionType ImageRegion;
     ImageRegion.SetSize(ImageSize);
@@ -407,6 +382,8 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     case 1:
       this->SetDimensions(0, this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(0));
       this->SetSpacing(0,1);
+    default:
+      break;
     }
 
     m_Origin[0] = 0;
@@ -415,6 +392,10 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
         m_Origin[1] = 0;
       m_Origin[2] = 0;
       }
+if(this->GetNumberOfDimensions()>3)
+{
+m_Origin[3]=0;
+}
     std::vector<double> dirx(this->GetNumberOfDimensions(),0), diry(this->GetNumberOfDimensions(),0), dirz(this->GetNumberOfDimensions(),0);
     switch(this->GetNumberOfDimensions())
     {
