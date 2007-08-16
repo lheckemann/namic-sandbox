@@ -182,7 +182,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     }
     else
     {
-      VolumeSize = VolumeSize = this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(0);
+      VolumeSize = this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(0);
     }
     {
 
@@ -528,7 +528,7 @@ AnalyzeObjectLabelMapImageIO
   
 
   // Since the NumberOfObjects does not reflect the background, the background will be included
-    for (int i = 0; i < my_reference.size(); i++)
+    for (unsigned int i = 0; i < my_reference.size(); i++)
     {
       // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
       // not affect the current object itself
@@ -574,7 +574,7 @@ AnalyzeObjectLabelMapImageIO
     int runlength=0;
     unsigned char CurrentObjIndex=0;
     const  int buffer_size=16384;      //NOTE: This is probably overkill, but it will work
-    unsigned char bufferObjectMap[buffer_size];
+    unsigned char bufferObjectMap[buffer_size] = {0};
 
     unsigned char *bufferChar = (unsigned char *)buffer;
 
