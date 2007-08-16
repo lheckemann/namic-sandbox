@@ -142,7 +142,7 @@ namespace itk{
     itk::ImageRegionIterator<ImageType > indexObjectMap(this,Image->GetLargestPossibleRegion());
     
     this->AddObjectEntry(ObjectName);
-    int i = this->GetNumberOfObjects();
+    unsigned int i = this->GetNumberOfObjects();
     this->m_AnaylzeObjectEntryArray[i]->SetEndRed(Red);
     this->m_AnaylzeObjectEntryArray[i]->SetEndGreen(Green);
     this->m_AnaylzeObjectEntryArray[i]->SetEndBlue(Blue);
