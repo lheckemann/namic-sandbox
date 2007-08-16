@@ -11,7 +11,7 @@ static void makeRectangle(UC2ImageType::Pointer image, const UC2ImageType::Index
   {
     for(unsigned int j = center[1] - size[1]/2; j < center[1] + size[1]/2; j++)
     {
-      const UC2ImageType::IndexType currentIndex = {i, j};
+      const UC2ImageType::IndexType currentIndex = {{i, j}};
       image->SetPixel(currentIndex,pixelValue);
     }
   }
@@ -32,7 +32,7 @@ static void makeEllipse(UC2ImageType::Pointer image, const UC2ImageType::IndexTy
   {
     for(unsigned int j = center[1] - size[1]; j < center[1] + size[1]; j++)
     {
-      const UC2ImageType::IndexType currentIndex = {i, j};
+      const UC2ImageType::IndexType currentIndex = {{i, j}};
       if(IsInsideEllipse(currentIndex, center, size))
       {
         image->SetPixel(currentIndex,pixelValue);
@@ -66,15 +66,15 @@ int main( int argc, char ** argv )
   image->FillBuffer(0);
 
   const UC2ImageType::SizeType Square = {{4,4}};
-  const UC2ImageType::IndexType SquareOrgin = {3,15};
+  const UC2ImageType::IndexType SquareOrgin = {{3,15}};
   makeRectangle(image, SquareOrgin, Square, 200 );
 
   const UC2ImageType::SizeType Circle = {{5,5}};
-  const UC2ImageType::IndexType CircleOrgin = {15,14};
+  const UC2ImageType::IndexType CircleOrgin = {{15,14}};
   makeEllipse(image, CircleOrgin, Circle, 128);
 
   const UC2ImageType::SizeType Square2 = {{2,2}};
-  const UC2ImageType::IndexType Square2Orgin = {6,3};
+  const UC2ImageType::IndexType Square2Orgin = {{6,3}};
   makeRectangle(image, Square2Orgin, Square2, 45);
 
   typedef itk::ImageFileWriter<UC2ImageType> Writer;

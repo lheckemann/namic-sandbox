@@ -71,22 +71,24 @@ namespace itk
   */
   const int NumberOfRunLengthElementsPerRead = 1;
 
-  class AnalyzeObjectMap: public itk::Image<unsigned char,3>
+//We are initialzing the object map to dimension 4 to take care of the highest possible dimension that an
+//object map can be.
+  class AnalyzeObjectMap: public itk::Image<unsigned char,4>
   {
     public:
       
 
       /** Standard typedefs. */
       typedef AnalyzeObjectMap Self;
-      typedef Image<unsigned char, 3>  Superclass;
+      typedef Image<unsigned char, 4>  Superclass;
       typedef SmartPointer<Self>  Pointer;
       typedef SmartPointer<const Self>  ConstPointer;
 
       typedef itk::RGBPixel<unsigned char> RGBPixelType;
 
-      typedef itk::Image<RGBPixelType, 3> RGBImageType;
+      typedef itk::Image<RGBPixelType, 4> RGBImageType;
       
-      typedef itk::Image<unsigned char, 3> ImageType;
+      typedef itk::Image<unsigned char, 4> ImageType;
       
       /** Method for creation through the object factory. */
       itkNewMacro(Self);
@@ -131,12 +133,12 @@ namespace itk
       /**
        * \brief ObjectMapToRGBImage
        */
-      itk::Image<RGBPixelType, 3>::Pointer ObjectMapToRGBImage();
+      itk::Image<RGBPixelType, 4>::Pointer ObjectMapToRGBImage();
 
       /**
        * \brief AddObjectEntryBasedOnImagePixel
        */
-      void AddObjectEntryBasedOnImagePixel(const itk::Image<unsigned char, 3>::Pointer Image,const int value = -1,const std::string ObjectName = "",const int Red = 0,const int Green = 0,const int Blue = 0);
+      void AddObjectEntryBasedOnImagePixel(const itk::Image<unsigned char, 4>::Pointer Image,const int value = -1,const std::string ObjectName = "",const int Red = 0,const int Green = 0,const int Blue = 0);
 
       /**
        * \brief AddObjectEntry
@@ -200,8 +202,6 @@ namespace itk
       int m_NumberOfObjects;
       /** Pointers to individual objects in the object map, maximum of 256 */
       AnalyzeObjectEntryArrayType m_AnaylzeObjectEntryArray;
-
-      
   };
 }
 #endif                           // __OBJECTMAP_H_

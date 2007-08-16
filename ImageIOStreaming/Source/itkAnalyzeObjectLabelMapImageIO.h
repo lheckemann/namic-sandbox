@@ -47,7 +47,7 @@ public:
   typedef SmartPointer<Self> Pointer;
 
   typedef itk::RGBPixel<int> RGBPixelType;
-  typedef itk::Image<unsigned char, 3> ImageType;
+  typedef itk::Image<unsigned char, 4> ImageType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);

@@ -44,7 +44,7 @@ int main( int argc, char ** argv )
   const char *oneObjectEntryFileName = argv[5];
   typedef unsigned char       InputPixelType;
   typedef unsigned char       OutputPixelType;
-  const   unsigned int        Dimension = 3;
+  const   unsigned int        Dimension = 4;
 
   typedef itk::Image< InputPixelType,  Dimension >    InputImageType;
   typedef itk::Image< OutputPixelType, Dimension >    OutputImageType;
@@ -77,7 +77,7 @@ int main( int argc, char ** argv )
 
   //Now we can change the object map into an itk RGB image, we then can send this image to the itk-vtk
   //converter and show the image if we wanted to.
-  itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer RGBImage = ObjectMap->ObjectMapToRGBImage();
+  itk::Image<itk::RGBPixel<unsigned char>, 4>::Pointer RGBImage = ObjectMap->ObjectMapToRGBImage();
 
   writer->SetFileName(OuptputObjectFileName);
   writer->SetInput(reader->GetOutput());
@@ -179,7 +179,7 @@ int main( int argc, char ** argv )
     }
   itk::AnalyzeObjectMap::Pointer ObjectMapTwo = ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
 
-  itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer RGBImageTwo = ObjectMapTwo->ObjectMapToRGBImage();
+  itk::Image<itk::RGBPixel<unsigned char>, 4>::Pointer RGBImageTwo = ObjectMapTwo->ObjectMapToRGBImage();
 
   itk::AnalyzeObjectMap::Pointer circleObjectMap = ObjectMapTwo->PickOneEntry(3);
 
@@ -213,7 +213,7 @@ int main( int argc, char ** argv )
 
   itk::AnalyzeObjectMap::Pointer ObjectMapThree = ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
 
-  itk::Image<itk::RGBPixel<unsigned char>, 3>::Pointer RGBImageThree = ObjectMapThree->ObjectMapToRGBImage();
+  itk::Image<itk::RGBPixel<unsigned char>, 4>::Pointer RGBImageThree = ObjectMapThree->ObjectMapToRGBImage();
 
 
   if( error_count )
