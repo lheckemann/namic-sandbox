@@ -160,6 +160,20 @@ namespace itk
        */
       void PlaceObjectMapEntriesIntoMetaData();
 
+      /**
+       * \brief returns a reference to an object
+       * \param const int index
+       * \return AnalyzeObjectEntry &, an object reference from the array of 256 objects in the objectmap
+       */
+      AnalyzeObjectEntry::Pointer GetObjectEntry( const int index );
+
+      /**
+       * \brief returns a reference to an object
+       * \param const int index
+       * \return AnalyzeObjectEntry &, an object reference from the array of 256 objects in the objectmap
+       */
+      const AnalyzeObjectEntry::Pointer GetObjectEntry( const int index ) const;
+
      protected:
        /**
         * \brief the default constructor, initializes to 0 or NULL

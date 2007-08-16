@@ -148,6 +148,7 @@ int main( int argc, char ** argv )
   CreateObjectMap->AddObjectEntryBasedOnImagePixel(readerTwo->GetOutput(), 200, "Square", 250, 0, 0);
   CreateObjectMap->AddObjectEntryBasedOnImagePixel(readerTwo->GetOutput(), 128, "Circle", 0, 250,0);
   CreateObjectMap->AddObjectEntry("Nothing In Here");
+  CreateObjectMap->GetObjectEntry(4)->Copy(CreateObjectMap->GetObjectEntry(1));
   CreateObjectMap->DeleteObjectEntry("Nothing In Here");
   CreateObjectMap->PlaceObjectMapEntriesIntoMetaData();
 

@@ -47,45 +47,47 @@ AnalyzeObjectEntry::AnalyzeObjectEntry( void )
   {
     this->m_Name[i] = '\0';
   }
-  this->m_DisplayFlag = 1;
-  this->m_CopyFlag = 0;
-  this->m_MirrorFlag = 0;
-  this->m_StatusFlag = 0;
-  this->m_NeighborsUsedFlag = 0;
-  this->m_Shades = 1;
-  this->m_StartRed = 0;
-  this->m_StartGreen = 0;
-  this->m_StartBlue = 0;
-  this->m_EndRed = 0;
-  this->m_EndGreen = 0;
-  this->m_EndBlue = 0;
-  this->m_XRotation = 0;
-  this->m_YRotation = 0;
-  this->m_ZRotation = 0;
-  this->m_XTranslation = 0;
-  this->m_YTranslation = 0;
-  this->m_ZTranslation = 0;
-  this->m_XCenter = 0;
-  this->m_YCenter = 0;
-  this->m_ZCenter = 0;
-  this->m_XRotationIncrement = 0;
-  this->m_YRotationIncrement = 0;
-  this->m_ZRotationIncrement = 0;
-  this->m_XTranslationIncrement = 0;
-  this->m_YTranslationIncrement = 0;
-  this->m_ZTranslationIncrement = 0;
-  this->m_MinimumXValue = 0;
-  this->m_MinimumYValue = 0;
-  this->m_MinimumZValue = 0;
-  this->m_MaximumXValue = 10;
-  this->m_MaximumYValue = 0;
-  this->m_MaximumZValue = 0;
-  this->m_Opacity = 0.5;
-  this->m_OpacityThickness = 1;
-  this->m_BlendFactor = 0;
+  this->SetDisplayFlag(1);
+  this->SetCopyFlag(0);
+  this->SetMirrorFlag(0);
+  this->SetStatusFlag(0);
+  this->SetNeighborsUsedFlag(0);
+  this->SetShades(1);
+  this->SetStartRed(0);
+  this->SetStartGreen(0);
+  this->SetStartBlue(0);
+  this->SetEndRed(0);
+  this->SetEndGreen(0);
+  this->SetEndBlue(0);
+  this->SetXRotation(0);
+  this->SetYRotation(0);
+  this->SetZRotation(0);
+  this->SetXTranslation(0);
+  this->SetYTranslation(0);
+  this->SetZTranslation(0);
+  this->SetXCenter(0);
+  this->SetYCenter(0);
+  this->SetZCenter(0);
+  this->SetXRotationIncrement(0);
+  this->SetYRotationIncrement(0);
+  this->SetZRotationIncrement(0);
+  this->SetXTranslationIncrement(0);
+  this->SetYTranslationIncrement(0);
+  this->SetZTranslationIncrement(0);
+  this->SetMinimumXValue(0);
+  this->SetMinimumYValue(0);
+  this->SetMinimumZValue(0);
+  this->SetMaximumXValue(0);
+  this->SetMaximumYValue(0);
+  this->SetMaximumZValue(0);
+  this->SetOpacity(0.5);
+  this->SetOpacityThickness(1);
+  this->SetBlendFactor(0);
 }
 
 //AnalyzeObjectEntry & AnalyzeObjectEntry::operator=( const AnalyzeObjectEntry & rhs )
+
+//Copy everything but the name.  Each ObjectEntry must have a unique name.
 void AnalyzeObjectEntry::Copy( AnalyzeObjectEntry::Pointer rhs )
 {
   this->SetBlendFactor(rhs->GetBlendFactor());
@@ -105,7 +107,6 @@ void AnalyzeObjectEntry::Copy( AnalyzeObjectEntry::Pointer rhs )
   this->SetMinimumYValue(rhs->GetMinimumYValue());
   this->SetMinimumZValue(rhs->GetMinimumZValue());
   this->SetMirrorFlag(rhs->GetMirrorFlag());
-  this->SetName(rhs->GetName());
   this->SetNeighborsUsedFlag(rhs->GetNeighborsUsedFlag());
   this->SetOpacity(rhs->GetOpacity());
   this->SetOpacityThickness(rhs->GetOpacityThickness());
