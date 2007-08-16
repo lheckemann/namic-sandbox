@@ -7,9 +7,9 @@
 typedef itk::Image<unsigned char, 2> UC2ImageType;
 static void makeRectangle(UC2ImageType::Pointer image, const UC2ImageType::IndexType &center, const UC2ImageType::SizeType &size, int pixelValue)
 {
-  for(int i = center[0]-size[0]/2; i< center[0] + size[0]/2; i++)
+  for(unsigned int i = center[0]-size[0]/2; i< center[0] + size[0]/2; i++)
   {
-    for(int j = center[1] - size[1]/2; j < center[1] + size[1]/2; j++)
+    for(unsigned int j = center[1] - size[1]/2; j < center[1] + size[1]/2; j++)
     {
       const UC2ImageType::IndexType currentIndex = {i, j};
       image->SetPixel(currentIndex,pixelValue);
@@ -28,9 +28,9 @@ static bool IsInsideEllipse(const UC2ImageType::IndexType &currentLocation, cons
 }
 static void makeEllipse(UC2ImageType::Pointer image, const UC2ImageType::IndexType &center, const UC2ImageType::SizeType &size, int pixelValue)
 {
-  for(int i = center[0]-size[0]; i< center[0] + size[0]; i++)
+  for(unsigned int i = center[0]-size[0]; i< center[0] + size[0]; i++)
   {
-    for(int j = center[1] - size[1]; j < center[1] + size[1]; j++)
+    for(unsigned int j = center[1] - size[1]; j < center[1] + size[1]; j++)
     {
       const UC2ImageType::IndexType currentIndex = {i, j};
       if(IsInsideEllipse(currentIndex, center, size))

@@ -59,6 +59,12 @@ ADD_TEST( ImageIOStreamingAnalyzeObjectLabelMapTest01
    ${TESTING_OUTPUT_DIR}/circle.obj
    )
 
+ADD_TEST( ImageIOStreamingAnalyzeObjectLabelMapCreateImageTest01
+   ${ImageIOStreamingTest_BINARY_DIR}/creatingImage
+   ${TESTING_OUTPUT_DIR}/2dtest.nii
+   ${TESTING_OUTPUT_DIR}/newObject.obj
+   )
+
 
 IF(USE_YAFF)
 ADD_TEST( ImageIOStreamingYAFFTest01

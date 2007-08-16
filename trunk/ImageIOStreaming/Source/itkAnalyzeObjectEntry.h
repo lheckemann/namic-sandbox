@@ -294,7 +294,7 @@ namespace itk{
       itkSetMacro(XTranslation, int);
 
        /**
-        \*brief getXTranslation
+        *\brief getXTranslation
         *
         * XTranslationIncrement specify increments that are applies to
         * XTranslation, YTranslation, and ZTranslation when making a sequence.

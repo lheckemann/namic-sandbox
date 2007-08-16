@@ -126,7 +126,7 @@ namespace itk
       /**
        * \brief PickOneEntry
        */
-      itk::AnalyzeObjectMap::Pointer PickOneEntry(const int numberOfEntry);
+      itk::AnalyzeObjectMap::Pointer PickOneEntry(const int numberOfEntry = -1);
 
       /**
        * \brief ObjectMapToRGBImage
@@ -136,24 +136,24 @@ namespace itk
       /**
        * \brief AddObjectEntryBasedOnImagePixel
        */
-      void AddObjectEntryBasedOnImagePixel(const itk::Image<unsigned char, 3>::Pointer Image,const int value,const std::string ObjectName,const int Red = 0,const int Green = 0,const int Blue = 0);
+      void AddObjectEntryBasedOnImagePixel(const itk::Image<unsigned char, 3>::Pointer Image,const int value = -1,const std::string ObjectName = "",const int Red = 0,const int Green = 0,const int Blue = 0);
 
       /**
        * \brief AddObjectEntry
        */
-      void AddObjectEntry(const std::string ObjectName);
+      void AddObjectEntry(const std::string ObjectName = "");
 
       /**
        * \brief DeleteObjectEntry
        *
        * This function will move all object entry's so that the vector stays in the smallest order starting from 0.
        */
-      void DeleteObjectEntry(const std::string ObjectName);
+      void DeleteObjectEntry(const std::string ObjectName = "");
 
       /**
        * \brief FindObject
        */
-      int FindObjectEntry(const std::string ObjectName);
+      int FindObjectEntry(const std::string ObjectName = "");
 
       /**
        * \brief PlaceObjectMapEntriesIntoMetaData
