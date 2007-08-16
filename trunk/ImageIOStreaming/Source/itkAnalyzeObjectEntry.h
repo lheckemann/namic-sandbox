@@ -237,6 +237,7 @@ namespace itk{
        * [ANALYZE only]
        */
       itkGetConstMacro(XRotation, int);
+      itkSetMacro(XRotation, int);
 
       /**
        *\brief getXRotationIncrement
@@ -245,6 +246,7 @@ namespace itk{
        * YRotation, and ZRotation when making a sequence. [ANALYZE only]
        */
       itkGetConstMacro(XRotationIncrement, int);
+      itkSetMacro(XRotationIncrement, int);
 
       /**
        * \brief getYRotation
@@ -253,6 +255,7 @@ namespace itk{
        * [ANALYZE only]
        */
       itkGetConstMacro(YRotation, int);
+      itkSetMacro(YRotation, int);
 
       /**
        *\brief getYRotationIncrement
@@ -261,6 +264,7 @@ namespace itk{
        * YRotation, and ZRotation when making a sequence. [ANALYZE only]
        */
       itkGetConstMacro(YRotationIncrement, int);
+      itkSetMacro(YRotationIncrement, int);
 
       /**
        * \brief getZRotation
@@ -269,6 +273,7 @@ namespace itk{
        * [ANALYZE only]
        */
       itkGetConstMacro(ZRotation, int);
+      itkSetMacro(ZRotation, int);
 
        /**
         *\brief getZRotationIncrement
@@ -277,6 +282,7 @@ namespace itk{
         * YRotation, and ZRotation when making a sequence. [ANALYZE only]
         */
       itkGetConstMacro(ZRotationIncrement, int);
+      itkSetMacro(ZRotationIncrement, int);
 
       /**
        * \brief getXTranslation
@@ -285,6 +291,7 @@ namespace itk{
        * [ANALYZE only]
        */
       itkGetConstMacro(XTranslation, int);
+      itkSetMacro(XTranslation, int);
 
        /**
         \*brief getXTranslation
@@ -294,6 +301,7 @@ namespace itk{
         * [ANALYZE only]
         */
       itkGetConstMacro(XTranslationIncrement, int);
+      itkSetMacro(XTranslationIncrement, int);
 
       /**
        * \brief getYTranslation
@@ -302,6 +310,7 @@ namespace itk{
        * [ANALYZE only]
        */
       itkGetConstMacro(YTranslation, int);
+      itkSetMacro(YTranslation, int);
 
        /**
         *\brief getYTranslationIncrement
@@ -311,6 +320,7 @@ namespace itk{
         * [ANALYZE only]
         */
       itkGetConstMacro(YTranslationIncrement, int);
+      itkSetMacro(YTranslationIncrement, int);
 
       /**
        * \brief getZTranslation
@@ -319,6 +329,7 @@ namespace itk{
        * [ANALYZE only]
        */
       itkGetConstMacro(ZTranslation, int);
+      itkSetMacro(ZTranslation, int);
 
       /**
        *\brief getZTranslation
@@ -328,6 +339,7 @@ namespace itk{
        * [ANALYZE only]
        */
       itkGetConstMacro(ZTranslationIncrement, int);
+      itkSetMacro(ZTranslationIncrement, int);
 
       /**
        * \brief getXCenter/setXCenter
