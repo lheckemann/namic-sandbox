@@ -27,11 +27,11 @@ ImageToAnalyzeObjectMap<TConvertImage>
 //TODO: Check the meta data to see if it contains the anaylze object map entries.
 //Right now I am assuming what is passed in has the analyze object map entries in the meta data.
 template<class TConvertImage>
-itk::AnalyzeObjectMap *
+itk::AnalyzeObjectMap<TConvertImage> *
 ImageToAnalyzeObjectMap<TConvertImage>
 ::TransformImage(InputImageType *image)
 {
-  this->ObjectMap = itk::AnalyzeObjectMap::New();
+  this->ObjectMap = itk::AnalyzeObjectMap<TConvertImage>::New();
   this->ObjectMap->SetRegions(image->GetLargestPossibleRegion());
   this->ObjectMap->Allocate();
   this->ObjectMap->SetPixelContainer(image->GetPixelContainer());

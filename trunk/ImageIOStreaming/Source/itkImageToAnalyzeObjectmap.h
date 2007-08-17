@@ -36,7 +36,7 @@ class ITK_EXPORT ImageToAnalyzeObjectMap : public ImageSource<TConvertImage>
 
   typedef TConvertImage InputImageType;
 
-  itk::AnalyzeObjectMap * TransformImage(InputImageType *image);
+  itk::AnalyzeObjectMap<TConvertImage> * TransformImage(InputImageType *image);
 
 protected:
   ImageToAnalyzeObjectMap();
@@ -47,7 +47,7 @@ private:
   //ImageToAnalyzeObjectMap(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  itk::AnalyzeObjectMap::Pointer ObjectMap;
+  itk::AnalyzeObjectMap<TConvertImage> *ObjectMap;
   
 };
 }

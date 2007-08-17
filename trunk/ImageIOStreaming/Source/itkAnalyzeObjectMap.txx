@@ -75,28 +75,28 @@ template<class TImage>
   //a new object map that will be returned.  The function will also go through the image
   //and change the values so that there is either 0 or 1.  1 corresponds to the entry
   //the user specified and 0 is the background.
-template<class TImage>
-  itk::AnalyzeObjectMap::Pointer AnalyzeObjectMap<TImage>::PickOneEntry(const int numberOfEntry)
-  {
-    itk::AnalyzeObjectMap::Pointer newObjectMap = itk::AnalyzeObjectMap::New();
-    newObjectMap->SetRegions(this->GetLargestPossibleRegion());
-    newObjectMap->Allocate();
-    newObjectMap->AddObjectEntry(this->m_AnaylzeObjectEntryArray[numberOfEntry]->GetName());
-    newObjectMap->m_AnaylzeObjectEntryArray[1] = this->m_AnaylzeObjectEntryArray[numberOfEntry];
-    itk::ThresholdImageFilter<ImageType>::Pointer changeOldObjectMap = itk::ThresholdImageFilter<ImageType>::New();
+//template<class TImage>
+//  itk::AnalyzeObjectMap<TImage>::Pointer AnalyzeObjectMap<TImage>::PickOneEntry(const int numberOfEntry)
+//  {
+//    itk::AnalyzeObjectMap::Pointer newObjectMap = itk::AnalyzeObjectMap::New();
+//    newObjectMap->SetRegions(this->GetLargestPossibleRegion());
+//    newObjectMap->Allocate();
+//    newObjectMap->AddObjectEntry(this->m_AnaylzeObjectEntryArray[numberOfEntry]->GetName());
+//    newObjectMap->m_AnaylzeObjectEntryArray[1] = this->m_AnaylzeObjectEntryArray[numberOfEntry];
+//    itk::ThresholdImageFilter<ImageType>::Pointer changeOldObjectMap = itk::ThresholdImageFilter<ImageType>::New();
     
-    changeOldObjectMap->SetInput(this);
-    changeOldObjectMap->SetOutsideValue(0);
-    changeOldObjectMap->ThresholdOutside(numberOfEntry,numberOfEntry);
-    changeOldObjectMap->Update();
-    changeOldObjectMap->SetInput(changeOldObjectMap->GetOutput());
-    changeOldObjectMap->SetOutsideValue(1);
-    changeOldObjectMap->ThresholdAbove(numberOfEntry-1);
-    ImageType::Pointer newestObjectMapImage = changeOldObjectMap->GetOutput();
-    changeOldObjectMap->Update();
-    newObjectMap->SetPixelContainer(newestObjectMapImage->GetPixelContainer());
-    return newObjectMap;
-  }
+//    changeOldObjectMap->SetInput(this);
+//    changeOldObjectMap->SetOutsideValue(0);
+//    changeOldObjectMap->ThresholdOutside(numberOfEntry,numberOfEntry);
+//    changeOldObjectMap->Update();
+//    changeOldObjectMap->SetInput(changeOldObjectMap->GetOutput());
+//    changeOldObjectMap->SetOutsideValue(1);
+//    changeOldObjectMap->ThresholdAbove(numberOfEntry-1);
+//    ImageType::Pointer newestObjectMapImage = changeOldObjectMap->GetOutput();
+//    changeOldObjectMap->Update();
+//    newObjectMap->SetPixelContainer(newestObjectMapImage->GetPixelContainer());
+//    return newObjectMap;
+//  }
 
   //This function will convert an object map into an unsigned char RGB image.
   //TODO: Need to include the object entries into the meta data.
@@ -129,7 +129,7 @@ template<class TImage>
   //specify what they want the new entry's name to be.  The user can also specify what RGB values they want but if they are not speficied the default values
   //are 0.
 template<class TImage>
-  void AnalyzeObjectMap<TImage>::AddObjectEntryBasedOnImagePixel(const ImageType::Pointer Image, const int value, const std::string ObjectName, const int Red,const int Green,const int Blue)
+  void AnalyzeObjectMap<TImage>::AddObjectEntryBasedOnImagePixel(const ImageType *Image, const int value, const std::string ObjectName, const int Red,const int Green,const int Blue)
   {
     itk::ImageRegion<4> ObjectMapRegion = this->GetLargestPossibleRegion();
     itk::ImageRegion<4> ImageRegion = Image->GetLargestPossibleRegion();
@@ -228,6 +228,29 @@ template<class TImage>
   {
     return this->m_AnaylzeObjectEntryArray.at(index);
   }
+
+template<class TImage>
+itk::AnalyzeObjectMap<TConvertImage> *
+AnalyzeObjectMap<TImage>
+::TransformImage(ImageType *image)
+{
+  itk::AnalyzeObjectMap<TImage> *ObjectMap = itk::AnalyzeObjectMap<TConvertImage>::New();
+  ObjectMap->SetRegions(image->GetLargestPossibleRegion());
+  ObjectMap->Allocate();
+  ObjectMap->SetPixelContainer(image->GetPixelContainer());
+  //itk::ImageRegionIterator<TConvertImage> ImageIndexIT(image, image->GetLargestPossibleRegion());
+  //itk::ImageRegionIterator<TConvertImage> ObjectmapIndexIT(this->ObjectMap, image->GetLargestPossibleRegion());
+  //for(ImageIndexIT.GoToBegin(); !ImageIndexIT.IsAtEnd(); ++ImageIndexIT, ++ObjectmapIndexIT)
+  //{
+  //  this->ObjectMap->SetPixel(ImageIndexIT.GetIndex(), ImageIndexIT.Get());
+  //  //ObjectmapIndexIT.Set(ImageIndexIT.Get());
+  //}
+  itk::AnalyzeObjectEntryArrayType *my_reference = ObjectMap->GetAnalyzeObjectEntryArrayPointer();
+  itk::ExposeMetaData<itk::AnalyzeObjectEntryArrayType>(image->GetMetaDataDictionary(),ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY, *my_reference);
+  this->ObjectMap->SetNumberOfObjects(ObjectMap->GetAnalyzeObjectEntryArrayPointer()->size());
+
+  return ObjectMap;
+}
 
 template<class TImage>
   void AnalyzeObjectMap<TImage>::PrintSelf(std::ostream& os, Indent indent) const
