@@ -43,15 +43,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <itkScalarToRGBPixelFunctor.h>
 #include <itkThresholdImageFilter.h>
 
-
-namespace itk
-{
-  /** \class AnalyzeObjectMap
- * \brief A class that is an image with functions that let the user change aspects of the class.
- */
-
-
-  /**
+const char *const ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY = "ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY";
+/**
   * Constants representing the current version number of the object map file for Analyze
   */
   const int VERSION1 = 880102;
@@ -61,26 +54,28 @@ namespace itk
   static const int VERSION5 = 910402;
   static const int VERSION6 = 910926;
   static const int VERSION7 = 20050829;
+namespace itk
+{
+  template <class TImage>
 
   typedef std::vector<AnalyzeObjectEntry::Pointer>  AnalyzeObjectEntryArrayType;
   
-  const char *const ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY = "ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY";
+  
 
-  /**
-  * Buffer size for reading in the run length encoded object data
-  */
-  const int NumberOfRunLengthElementsPerRead = 1;
 
+/** \class AnalyzeObjectMap
+ * \brief A class that is an image with functions that let the user change aspects of the class.
+ */
 //We are initialzing the object map to dimension 4 to take care of the highest possible dimension that an
 //object map can be.
-  class AnalyzeObjectMap: public itk::Image<unsigned char,4>
+  class AnalyzeObjectMap: public TImage
   {
     public:
       
 
       /** Standard typedefs. */
       typedef AnalyzeObjectMap Self;
-      typedef Image<unsigned char, 4>  Superclass;
+      typedef TImage  Superclass;
       typedef SmartPointer<Self>  Pointer;
       typedef SmartPointer<const Self>  ConstPointer;
 
@@ -88,7 +83,7 @@ namespace itk
 
       typedef itk::Image<RGBPixelType, 4> RGBImageType;
       
-      typedef itk::Image<unsigned char, 4> ImageType;
+      typedef TImage ImageType;
       
       /** Method for creation through the object factory. */
       itkNewMacro(Self);
@@ -138,7 +133,7 @@ namespace itk
       /**
        * \brief AddObjectEntryBasedOnImagePixel
        */
-      void AddObjectEntryBasedOnImagePixel(const itk::Image<unsigned char, 4>::Pointer Image,const int value = -1,const std::string ObjectName = "",const int Red = 0,const int Green = 0,const int Blue = 0);
+      void AddObjectEntryBasedOnImagePixel(const TImage::Pointer Image,const int value = -1,const std::string ObjectName = "",const int Red = 0,const int Green = 0,const int Blue = 0);
 
       /**
        * \brief AddObjectEntry
