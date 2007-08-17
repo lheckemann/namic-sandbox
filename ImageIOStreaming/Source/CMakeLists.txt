@@ -11,7 +11,6 @@ SET(ITKIO_SRCS
   itkImageIOFactory.cxx
   itkImageIORegion.cxx
   itkAnalyzeObjectEntry.cxx
-  itkAnalyzeObjectMap.cxx
 )
 
 # Add ITKIO library

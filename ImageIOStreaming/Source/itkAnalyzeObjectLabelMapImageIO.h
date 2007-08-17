@@ -27,13 +27,28 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkImageIOBase.h"
 #include "itkImageRegionIterator.h"
 
-#include "itkAnalyzeObjectMap.h"
 #include "itkAnalyzeObjectEntry.h"
-
-#include "itkImageToAnalyzeObjectmap.h"
 
 namespace itk
 {
+typedef std::vector<AnalyzeObjectEntry::Pointer>  AnalyzeObjectEntryArrayType;
+const char *const ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY = "ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY";
+  /**
+  * Constants representing the current version number of the object map file for Analyze
+  */
+  const int VERSION1 = 880102;
+  const int VERSION2 = 880801;
+  const int VERSION3 = 890102;
+  static const int VERSION4 = 900302;
+  static const int VERSION5 = 910402;
+  static const int VERSION6 = 910926;
+  static const int VERSION7 = 20050829;
+
+/**
+  * Buffer size for reading in the run length encoded object data
+  */
+  const int NumberOfRunLengthElementsPerRead = 1;
+
 /** \class AnalyzeObjectLabelMapImageIO
  *
  */
@@ -107,7 +122,6 @@ private:
   
   std::ifstream inputFileStream;
   int locationOfFile;
-  itk::AnalyzeObjectMap::Pointer m_AnalyzeObjectLabelMapImage;
   //  int           m_CollapsedDims[8];
   AnalyzeObjectLabelMapImageIO(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented

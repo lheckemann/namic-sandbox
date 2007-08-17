@@ -87,24 +87,17 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
       itkDebugMacro(<< "Error: Could not open "<< m_FileName.c_str());
       exit(-1);
     }
-    
     //TODO: Image spacing needs fixing.  Will need to look to see if a 
     //      .nii, .nii.gz, or a .hdr file
     //      exists for the same .obj file.
     //      If so, then read in the spacing for those images.
-    ImageType::SpacingType ImageSpacing;
-    ImageSpacing[0]=1.0F;
-    ImageSpacing[1]=1.0F;
-    ImageSpacing[2]=1.0F;
-    ImageSpacing[3]=1.0F;
-    this->m_AnalyzeObjectLabelMapImage->SetSpacing(ImageSpacing);
 
     //When this function decods the run length encoded raw data into an unsigned char volume
     //store the values into this structure.
     struct RunLengthStruct {
         unsigned char voxel_count;
         unsigned char voxel_value;
-    } ;
+    };
     typedef struct RunLengthStruct RunLengthElement;
     RunLengthElement RunLengthArray[NumberOfRunLengthElementsPerRead];
 
@@ -171,19 +164,19 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     int VolumeSize;
     if(this->GetNumberOfDimensions() >3)
     {
-      VolumeSize = this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(0) * this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(1) * this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(2) *this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(3);
+      VolumeSize = this->GetDimensions(0) * this->GetDimensions(1) * this->GetDimensions(2) *this->GetDimensions(3);
     }
     else if(this->GetNumberOfDimensions() == 3)
     {
-      VolumeSize = this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(0) * this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(1) * this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(2);
+      VolumeSize = this->GetDimensions(0) * this->GetDimensions(1) * this->GetDimensions(2);
     }
     else if(this->GetNumberOfDimensions() == 2)
     {
-      VolumeSize = this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(0) * this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(1);
+      VolumeSize = this->GetDimensions(0) * this->GetDimensions(1);
     }
     else
     {
-      VolumeSize = this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(0);
+      VolumeSize = this->GetDimensions(0);
     }
     {
 
@@ -313,9 +306,6 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
       itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[4]));
     }
 
-    this->m_AnalyzeObjectLabelMapImage = itk::AnalyzeObjectMap::New();
-    
-
     bool NeedBlendFactor = false;
     if(header[0] == VERSION7 )
     {
@@ -332,24 +322,6 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
       NeedBlendFactor = true;
     }
     //Now the file pointer is pointing to the image region
-    
-    ImageType::IndexType ImageIndex;
-    ImageIndex[3]=0;
-    ImageIndex[2]=0;
-    ImageIndex[1]=0;
-    ImageIndex[0]=0;
-    
-    ImageType::SizeType ImageSize;
-    ImageSize[0]=header[1];
-    ImageSize[1]=header[2];
-    ImageSize[2]=header[3];
-    ImageSize[3]=header[5];
-
-
-    ImageType::RegionType ImageRegion;
-    ImageRegion.SetSize(ImageSize);
-    ImageRegion.SetIndex(ImageIndex);
-    this->m_AnalyzeObjectLabelMapImage->SetRegions(ImageRegion);
     
     if(header[5] >1 )
     {
@@ -371,16 +343,16 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     switch(this->GetNumberOfDimensions())
     {
     case 4:
-      this->SetDimensions(3,this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(3));
+      this->SetDimensions(3,header[5]);
       this->SetSpacing(3, 1);
     case 3:
-      this->SetDimensions(2,this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(2));
+      this->SetDimensions(2,header[3]);
       this->SetSpacing(2, 1);
     case 2:
-      this->SetDimensions(1,this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(1));
+      this->SetDimensions(1,header[2]);
       this->SetSpacing(1,1);
     case 1:
-      this->SetDimensions(0, this->m_AnalyzeObjectLabelMapImage->GetLargestPossibleRegion().GetSize(0));
+      this->SetDimensions(0, header[1]);
       this->SetSpacing(0,1);
     default:
       break;
@@ -435,7 +407,7 @@ m_Origin[3]=0;
 
     /*std::ofstream myfile;
     myfile.open("ReadFromFilePointer35.txt", myfile.app);*/
-    itk::AnalyzeObjectEntryArrayType *my_reference=this->m_AnalyzeObjectLabelMapImage->GetAnalyzeObjectEntryArrayPointer();
+    itk::AnalyzeObjectEntryArrayType *my_reference;
     (*my_reference).resize(header[4]);
     for (int i = 0; i < header[4]; i++)
     {
