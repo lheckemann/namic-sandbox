@@ -76,16 +76,15 @@ template<class TImage>
   //and change the values so that there is either 0 or 1.  1 corresponds to the entry
   //the user specified and 0 is the background.
 template<class TImage>
-  itk::AnalyzeObjectMap<TImage> * AnalyzeObjectMap<TImage>::PickOneEntry(const int numberOfEntry)
+  void AnalyzeObjectMap<TImage>::PickOneEntry(itk::AnalyzeObjectMap<TImage> *ObjectMapNew, const int numberOfEntry)
   {
-    itk::AnalyzeObjectMap::Pointer newObjectMap = itk::AnalyzeObjectMap::New();
-    newObjectMap->SetRegions(this->GetLargestPossibleRegion());
-    newObjectMap->Allocate();
-    newObjectMap->AddObjectEntry(this->m_AnaylzeObjectEntryArray[numberOfEntry]->GetName());
-    newObjectMap->m_AnaylzeObjectEntryArray[1] = this->m_AnaylzeObjectEntryArray[numberOfEntry];
+    this->SetRegions(ObjectMapNew->GetLargestPossibleRegion());
+    this->Allocate();
+    this->AddObjectEntry(ObjectMapNew->GetObjectEntry(numberOfEntry)->GetName());
+    this->m_AnaylzeObjectEntryArray[1] = ObjectMapNew->m_AnaylzeObjectEntryArray[numberOfEntry];
     itk::ThresholdImageFilter<ImageType>::Pointer changeOldObjectMap = itk::ThresholdImageFilter<ImageType>::New();
     
-    changeOldObjectMap->SetInput(this);
+    changeOldObjectMap->SetInput(ObjectMapNew);
     changeOldObjectMap->SetOutsideValue(0);
     changeOldObjectMap->ThresholdOutside(numberOfEntry,numberOfEntry);
     changeOldObjectMap->Update();
@@ -94,8 +93,7 @@ template<class TImage>
     changeOldObjectMap->ThresholdAbove(numberOfEntry-1);
     ImageType::Pointer newestObjectMapImage = changeOldObjectMap->GetOutput();
     changeOldObjectMap->Update();
-    newObjectMap->SetPixelContainer(newestObjectMapImage->GetPixelContainer());
-    return newObjectMap;
+    this->SetPixelContainer(newestObjectMapImage->GetPixelContainer());
   }
 
   //This function will convert an object map into an unsigned char RGB image.

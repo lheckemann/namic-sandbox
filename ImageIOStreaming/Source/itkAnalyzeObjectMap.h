@@ -86,6 +86,7 @@ namespace itk
       typedef itk::Image<RGBPixelType, 4> RGBImageType;
       
       typedef TImage ImageType;
+      typedef itk::AnalyzeObjectMap<TImage> ObjectMapType;
       
       /** Method for creation through the object factory. */
       itkNewMacro(Self);
@@ -125,7 +126,7 @@ namespace itk
       /**
        * \brief PickOneEntry
        */
-      itk::AnalyzeObjectMap<TImage> * PickOneEntry(const int numberOfEntry = -1);
+      void PickOneEntry(ObjectMapType *ObjectMapNew, const int numberOfEntry = -1);
 
       /**
        * \brief ObjectMapToRGBImage
