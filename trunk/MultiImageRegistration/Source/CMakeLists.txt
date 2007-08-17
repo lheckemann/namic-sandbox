@@ -39,4 +39,5 @@ TARGET_LINK_LIBRARIES(CreateImageSetAffine ITKCommon ITKBasicFilters ITKIO ITKSt
 ADD_EXECUTABLE(CreateImageSetBspline CreateImageSetBspline.cxx )
 TARGET_LINK_LIBRARIES(CreateImageSetBspline ITKCommon ITKBasicFilters ITKIO ITKStatistics)
 
-
+ADD_EXECUTABLE(ComputeJacobianField ComputeJacobianField.cxx )
+TARGET_LINK_LIBRARIES(ComputeJacobianField ITKCommon ITKBasicFilters ITKIO ITKStatistics)
