@@ -76,7 +76,21 @@ GetValue(const ParametersType & parameters) const
 
 }
 
+template < class TImage >
+ITK_THREAD_RETURN_TYPE
+VarianceMultiImageMetric< TImage >
+::ThreaderCallbackGetValue( void *arg )
+{
+  ThreadStruct *str;
 
+  int threadId = ((MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
+
+  str = (ThreadStruct *)(((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
+
+  str->Metric->GetThreadedValue( threadId );
+
+  return ITK_THREAD_RETURN_VALUE;
+}
 
 /*
  * Get the match Measure
@@ -87,19 +101,12 @@ VarianceMultiImageMetric < TImage >
 ::GetThreadedValue(int threadId) const
 {
 
-  const int N = this->m_NumberOfImages;
-  const unsigned int size = this->m_Sample.size();
-  /** The tranform parameters vector holding i'th images parameters 
-  Copy parameters in to a collection of arrays */
-
-  const unsigned int numberOfParameters =
-      this->m_TransformArray[0]->GetNumberOfParameters();
 
   // Update intensity values
   ImagePointType mappedPoint;
-  for(int i=threadId; i< size; i += this->m_NumberOfThreads )
+  for(unsigned long int i=threadId; i< this->m_NumberOfSpatialSamples; i += this->m_NumberOfThreads )
   {
-    for(int j=0; j<N; j++)
+    for(unsigned int j=0; j<this->m_NumberOfImages; j++)
     {
       mappedPoint = this->m_TransformArray[j]->TransformPoint(this->m_Sample[i].FixedImagePoint);
       if(this->m_InterpolatorArray[j]->IsInsideBuffer (mappedPoint) )
@@ -109,27 +116,65 @@ VarianceMultiImageMetric < TImage >
     }
   }
 
-  //Calculate variance and mean
+  //Calculate metric value
   this->m_value[threadId] = 0.0;
-  double squareSum;
-  double meanSum;
-
-  for(int i=threadId; i< size; i+=this->m_NumberOfThreads )
+  double mean;
+  double sumOfSquares;
+  
+  // Sum over spatial samples
+  for (int a=threadId; a<this->m_NumberOfSpatialSamples; a += this->m_NumberOfThreads )
   {
-    squareSum = 0.0;
-    meanSum = 0.0;
+    sumOfSquares = 0.0;
+    mean = 0.0;
+    // Sum over images
     for (int j = 0; j < this->m_NumberOfImages; j++)
     {
-      const double currentValue = this->m_Sample[i].imageValueArray[j];
-      squareSum += currentValue * currentValue;
-      meanSum   += currentValue;
+      const double currentValue = this->m_Sample[a].imageValueArray[j];
+      sumOfSquares += currentValue*currentValue;
+      mean += currentValue;
     }
+    mean /= (double) this->m_NumberOfImages;
+    sumOfSquares /= (double) this->m_NumberOfImages;
+    this->m_value[threadId] += sumOfSquares - mean*mean;
 
-    meanSum /= (double) N;
-    squareSum /= (double) N;
-    this->m_value[threadId] += squareSum - meanSum * meanSum;
-  }  
+  } // End of sample Loop  
 
+}
+
+template < class TImage >
+typename ParzenWindowEntropyMultiImageMetric < TImage >::MeasureType
+VarianceMultiImageMetric < TImage >
+::AfterGetThreadedValue() const
+{
+
+  MeasureType value = NumericTraits< RealType >::Zero;
+
+  // Sum over the values returned by threads
+  for( int i=0; i < this->m_NumberOfThreads; i++ )
+  {
+    value += this->m_value[i];
+  }
+  value /= (double) this->m_NumberOfSpatialSamples * this->m_NumberOfImages;
+  
+  return value;
+}
+
+
+template < class TImage >
+ITK_THREAD_RETURN_TYPE
+VarianceMultiImageMetric< TImage >
+::ThreaderCallbackGetValueAndDerivative( void *arg )
+{
+  ThreadStruct *str;
+
+  int threadId = ((MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
+
+  str = (ThreadStruct *)(((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
+
+  str->Metric->GetThreadedValueAndDerivative( threadId );
+
+
+  return ITK_THREAD_RETURN_VALUE;
 }
 
 
@@ -168,14 +213,11 @@ VarianceMultiImageMetric < TImage >
 ::GetThreadedValueAndDerivative(int threadId) const
 {
 
-  const double N = (double) this->m_NumberOfImages;
 
   /** The tranform parameters vector holding i'th images parameters 
   Copy parameters in to a collection of arrays */
   MeasureType value = NumericTraits < MeasureType >::Zero;
 
-  unsigned int numberOfParameters =
-      this->m_TransformArray[0]->GetNumberOfParameters();
 
   //Initialize the derivative array to zero
   for(int i=0; i<this->m_NumberOfImages;i++)
@@ -185,12 +227,12 @@ VarianceMultiImageMetric < TImage >
 
   
   //Calculate metric value
-  double measure = 0.0;
+  this->m_value[threadId] = 0.0;
   double mean;
-  double sumOfSquares = 0.0;
-  DerivativeType deriv(numberOfParameters);
+  double sumOfSquares;
+  
   // Sum over spatial samples
-  for (int a=threadId; a<this->m_Sample.size(); a += this->m_NumberOfThreads )
+  for (int a=threadId; a<this->m_NumberOfSpatialSamples; a += this->m_NumberOfThreads )
   {
     sumOfSquares = 0.0;
     mean = 0.0;
@@ -201,22 +243,70 @@ VarianceMultiImageMetric < TImage >
       sumOfSquares += currentValue*currentValue;
       mean += currentValue;
     }
-    mean /= N;
-    sumOfSquares /= N;
-    measure += sumOfSquares - mean*mean;
+    mean /= (double) this->m_NumberOfImages;
+    sumOfSquares /= (double) this->m_NumberOfImages;
+    this->m_value[threadId] += sumOfSquares - mean*mean;
 
     // Calculate derivative
     for (int i = 0; i < this->m_NumberOfImages; i++)
     {
       //calculate the derivative weight
-      const double weight = 2.0 / static_cast<double>(this->m_NumberOfImages) *
+      const double weight = 2.0 / (double) this->m_NumberOfImages * 
                       (this->m_Sample[a].imageValueArray[i] - mean);
       
       // Get the derivative for this sample
       UpdateSingleImageParameters( this->m_DerivativesArray[threadId][i], this->m_Sample[a], weight, i, threadId);
     }
   } // End of sample Loop
-  this->m_value[threadId] = measure;
+
+}
+
+/**
+ * Consolidate auxiliary variables after finishing the threads
+ */
+template < class TImage >
+void VarianceMultiImageMetric < TImage >
+::AfterGetThreadedValueAndDerivative(MeasureType & value,
+                           DerivativeType & derivative) const
+{
+
+  value = NumericTraits< RealType >::Zero;
+
+  derivative.set_size(this->numberOfParameters * this->m_NumberOfImages);
+  derivative.Fill (0.0);
+
+  // Sum over the values returned by threads
+  for( int i=0; i < this->m_NumberOfThreads; i++ )
+  {
+    value += this->m_value[i];
+    for(unsigned int j=0; j<this->m_NumberOfImages; j++)
+    {
+      for(unsigned int k=0; k<this->numberOfParameters; k++)
+      {
+        derivative[j * this->numberOfParameters + k] += this->m_DerivativesArray[i][j][k]; 
+      }
+    }
+  }
+  value /= (double) this->m_NumberOfSpatialSamples * this->m_NumberOfImages;
+  derivative /= (double) this->m_NumberOfSpatialSamples * this->m_NumberOfImages;
+
+  //Set the mean to zero
+  //Remove mean
+  DerivativeType sum (this->numberOfParameters);
+  sum.Fill(0.0);
+  for (unsigned int i = 0; i < this->m_NumberOfImages; i++)
+  {
+    for (unsigned int j = 0; j < this->numberOfParameters; j++)
+    {
+      sum[j] += derivative[i * this->numberOfParameters + j];
+    }
+  }
+
+  
+  for (unsigned int i = 0; i < this->m_NumberOfImages * this->numberOfParameters; i++)
+  {
+    derivative[i] -= sum[i % this->numberOfParameters] / (double) this->m_NumberOfImages;
+  }
 
 }
 

@@ -3,19 +3,20 @@
 #
 
 SET(Groupwise_SRCS 
-  GroupwiseRegistrationExample.cxx 
-  MultiResolutionMultiImageRegistrationMethod.txx 
-  MultiResolutionMultiImageRegistrationMethod.h 
+  MultiResImageRegistration.cxx 
+  MultiResolutionImageRegistrationMethod.cxx 
+  MultiResolutionImageRegistrationMethod.h 
   VarianceMultiImageMetric.txx 
   VarianceMultiImageMetric.h 
-  UnivariateEntropyMultiImageMetric.h
-  UnivariateEntropyMultiImageMetric.txx
+  ParzenWindowEntropyMultiImageMetric.h
+  ParzenWindowEntropyMultiImageMetric.cxx
   GradientDescentLineSearchOptimizer.h
   GradientDescentLineSearchOptimizer.cxx
-  BSplineDeformableTransformOpt.h
-  BSplineDeformableTransformOpt.txx
-  MultiImageMetric.txx 
+  UserBSplineDeformableTransform.h
+  UserBSplineDeformableTransform.cxx
+  MultiImageMetric.cxx 
   MultiImageMetric.h 
+  AddImageFilter.h
   UserMacro.h
  )
   

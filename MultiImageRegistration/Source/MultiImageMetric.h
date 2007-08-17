@@ -27,10 +27,11 @@
 #include "itkImageMaskSpatialObject.h"
 
 // Project specific headers
-#include "BSplineDeformableTransformOpt.h"
+#include "UserBSplineDeformableTransform.h"
 #include "UserMacro.h"
 
 #include <vector>
+using std::vector;
     
 namespace itk
 {
@@ -81,13 +82,13 @@ public:
   typedef std::vector<ImageConstPointer>        ImageConstPointerArray;
 
   /** Constants for the image dimensions */
-  itkStaticConstMacro(ImageDimension, unsigned int,
+  itkStaticConstMacro(MovingImageDimension, unsigned int,
                       ImageType::ImageDimension);
 
   /**  Type of the Transform Base class */
   typedef Transform<CoordinateRepresentationType, 
-                    itkGetStaticConstMacro(ImageDimension),
-                    itkGetStaticConstMacro(ImageDimension)> TransformType;
+                    itkGetStaticConstMacro(MovingImageDimension),
+                    itkGetStaticConstMacro(MovingImageDimension)> TransformType;
 
   typedef typename TransformType::Pointer            TransformPointer;
   typedef typename TransformType::InputPointType     InputPointType;
@@ -101,25 +102,32 @@ public:
                                  ImageType,
                                  CoordinateRepresentationType > InterpolatorType;
 
-  typedef typename InterpolatorType::Pointer         InterpolatorPointer;
-  typedef std::vector<InterpolatorPointer>           InterpolatorPointerArray;
 
   /** Gaussian filter to compute the gradient of the Moving Image */
   typedef typename NumericTraits<PixelType>::RealType RealType;
-  typedef CovariantVector<PixelType,itkGetStaticConstMacro(ImageDimension)> GradientPixelType;
-  typedef Image<GradientPixelType,itkGetStaticConstMacro(ImageDimension)> GradientImageType;
+  typedef CovariantVector<PixelType,itkGetStaticConstMacro(MovingImageDimension)> GradientPixelType;
+  typedef Image<GradientPixelType,itkGetStaticConstMacro(MovingImageDimension)> GradientImageType;
   typedef typename GradientImageType::Pointer     GradientImagePointer;
   typedef std::vector<GradientImagePointer>   GradientImagePointerArray;
 
 
+  typedef typename InterpolatorType::Pointer         InterpolatorPointer;
+  typedef std::vector<InterpolatorPointer>           InterpolatorPointerArray;
 
   /**  Type for the mask of the fixed image. Only pixels that are "inside"
        this mask will be considered for the computation of the metric */
-  typedef ImageMaskSpatialObject< itkGetStaticConstMacro(ImageDimension)
-                                             >       ImageMaskType;
-  typedef typename  ImageMaskType::Pointer           ImageMaskPointer;
-  typedef std::vector<ImageMaskPointer>              ImageMaskPointerArray;
-  
+  typedef ImageMaskSpatialObject< itkGetStaticConstMacro(MovingImageDimension)
+                                             >       FixedImageMaskType;
+  typedef typename  FixedImageMaskType::Pointer      FixedImageMaskPointer;
+
+  /**  Type for the mask of the moving image. Only pixels that are "inside"
+       this mask will be considered for the computation of the metric */
+  typedef ImageMaskSpatialObject< itkGetStaticConstMacro(MovingImageDimension)
+                                             >      MovingImageMaskType;
+  typedef typename  MovingImageMaskType::Pointer     MovingImageMaskPointer;
+  typedef std::vector<MovingImageMaskPointer>              ImageMaskPointerArray;
+
+
 
   /**  Type of the measure. */
   typedef Superclass::MeasureType                    MeasureType;
@@ -159,15 +167,13 @@ public:
   itkGetConstReferenceMacro( FixedImageRegion, ImageRegionType );
  
   /** Set/Get the i'th image mask. */
-  UserSetObjectMacro( ImageMaskArray, ImageMaskType );
-  UserGetConstObjectMacro( ImageMaskArray, ImageMaskType );
+  UserSetObjectMacro( ImageMaskArray, MovingImageMaskType );
+  UserGetConstObjectMacro( ImageMaskArray, MovingImageMaskType );
 
-  typedef itk::BSplineDeformableTransformOpt<double,   itkGetStaticConstMacro(ImageDimension), 3> BSplineTransformType;
+  typedef itk::UserBSplineDeformableTransform<double,   itkGetStaticConstMacro(MovingImageDimension), 3> BSplineTransformType;
   typedef typename BSplineTransformType::Pointer BSplineTransformTypePointer;
   
-  /** Set/Get the i'th Bspline Transform Pointer. 
-  *   For B-Spline optimization B-Spline pointers should
-  *   be defined separately      */
+  /** Set/Get the i'th Bspline Transform Pointer. */
   UserSetObjectMacro( BSplineTransformArray, BSplineTransformType );
   UserGetConstObjectMacro( BSplineTransformArray, BSplineTransformType );
   
@@ -181,7 +187,8 @@ public:
   UserGetObjectMacro( GradientImageArray, GradientImageType );
 
   /** Set the number of spatial samples. This is the number of image
-   * samples used to calculate the cost function.
+   * samples used to calculate the joint probability distribution.
+   * The number of spatial samples is clamped to be a minimum of 1.
    * Default value is 50. */
   itkSetMacro( NumberOfSpatialSamples, unsigned int);
   itkGetMacro( NumberOfSpatialSamples, unsigned int);
@@ -210,6 +217,16 @@ public:
   /**  Get the value. Method that provides the infrastructure for supporting Multi-Threading. */
   MeasureType GetValue( const ParametersType& parameters ) const;
 
+  /** Set/Get the regularization factor */
+  itkSetMacro( RegularizationFactor, RealType );
+  itkGetMacro( RegularizationFactor, RealType );
+
+  /** Turn regularization on/off: Default off (true=on) */
+  itkSetMacro( Regularization, bool );
+  
+  /** Get regularization on/off */
+  itkGetMacro( Regularization, bool );
+
   
 protected:
   MultiImageMetric();
@@ -225,15 +242,19 @@ protected:
 
 
   bool                        m_ComputeGradient;
+  bool                        m_CorrectInterpolationArtefact;
+  //GradientImagePointer        m_GradientImage;
   GradientImagePointerArray   m_GradientImageArray;
-  
-  ImageMaskPointerArray       m_ImageMaskArray;
 
-  unsigned int                m_NumberOfImages;
+  //mutable FixedImageMaskPointer   m_FixedImageMask;
+  //mutable MovingImageMaskPointer  m_MovingImageMask;
+  ImageMaskPointerArray   m_ImageMaskArray;
 
-  unsigned int                m_NumberOfParameters;
+  /** Number of images */
+  unsigned int m_NumberOfImages;
 
-  ImageRegionType             m_FixedImageRegion;
+  /** number of total parameters */
+  unsigned int numberOfParameters;
 
   /** Return the multithreader used by this class. */
   MultiThreader * GetMultiThreader() const
@@ -248,6 +269,7 @@ protected:
   MultiImageMetric(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
   
+  ImageRegionType        m_FixedImageRegion;
   
   /** Get/Set the number of threads to create when executing. */
   itkSetClampMacro( NumberOfThreads, unsigned int, 1, ITK_MAX_THREADS );
@@ -272,16 +294,15 @@ protected:
   // Bspline transform
   // Provided to optimize for bsplines
   mutable std::vector<BSplineTransformTypePointer> m_BSplineTransformArray;
-  bool m_BsplineDefined;
+  bool m_UserBsplineDefined;
 
-  unsigned long int                                m_NumberOfSpatialSamples;
+  unsigned long int                        m_NumberOfSpatialSamples;
 
   /** A spatial sample consists of the fixed domain point, the fixed image value
    *   at that point, and the corresponding moving image value. */
   typedef typename TransformType::InputPointType        FixedImagePointType;
   typedef typename TransformType::OutputPointType       MovingImagePointType;
 
-  /* A single sample to hold a point and an intensity value array */
   class SpatialSample
   {
     public:
@@ -289,16 +310,20 @@ protected:
       ~SpatialSample(){};
 
       FixedImagePointType              FixedImagePoint;
-      Array< float >                   imageValueArray;
-  };
-  mutable std::vector<SpatialSample>              m_Sample;
+      Array< double >                   imageValueArray;
+      //std::vector<MovingImagePointType>   mappedPointsArray;
 
+  };
+  mutable std::vector<SpatialSample>      m_Sample;
+
+  bool m_Regularization;
+  double m_RegularizationFactor;
 };
 
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "MultiImageMetric.txx"
+#include "MultiImageMetric.cxx"
 #endif
 
 #endif
