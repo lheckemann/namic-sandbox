@@ -125,7 +125,7 @@ namespace itk
       /**
        * \brief PickOneEntry
        */
-     // itk::AnalyzeObjectMap<itk::Image<unsigned char, 4>>::Pointer PickOneEntry(const int numberOfEntry = -1);
+      itk::AnalyzeObjectMap<TImage> * PickOneEntry(const int numberOfEntry = -1);
 
       /**
        * \brief ObjectMapToRGBImage
