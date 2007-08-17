@@ -73,7 +73,9 @@ int main( int argc, char ** argv )
     }
 
   //Now that we have an itk image now we need to make the image an object map
-  itk::AnalyzeObjectMap<InputImageType>::Pointer ObjectMap = itk::AnalyzeObjectMap<InputImageType>.TransformImage(reader->GetOutput());
+  itk::AnalyzeObjectMap<InputImageType>::Pointer ObjectMap = itk::AnalyzeObjectMap<InputImageType>::New();//TransformImage(reader->GetOutput());
+
+  ObjectMap->TransformImage(reader->GetOutput());
 
   //Now we can change the object map into an itk RGB image, we then can send this image to the itk-vtk
   //converter and show the image if we wanted to.
@@ -177,8 +179,9 @@ int main( int argc, char ** argv )
     std::cerr << err << std::endl;
     return EXIT_FAILURE;
     }
-  itk::AnalyzeObjectMap<InputImageType>::Pointer ObjectMapTwo = itk::AnalyzeObjectMap<InputImageType>.TransformImage(readerThree->GetOutput());
+  itk::AnalyzeObjectMap<InputImageType>::Pointer ObjectMapTwo = itk::AnalyzeObjectMap<InputImageType>::New();//.TransformImage(readerThree->GetOutput());
 
+  ObjectMapTwo->TransformImage(readerThree->GetOutput());
   itk::Image<itk::RGBPixel<unsigned char>, 4>::Pointer RGBImageTwo = ObjectMapTwo->ObjectMapToRGBImage();
 
   //itk::AnalyzeObjectMap circleObjectMap = ObjectMapTwo->PickOneEntry(3);

@@ -129,7 +129,7 @@ template<class TImage>
   //specify what they want the new entry's name to be.  The user can also specify what RGB values they want but if they are not speficied the default values
   //are 0.
 template<class TImage>
-  void AnalyzeObjectMap<TImage>::AddObjectEntryBasedOnImagePixel(const ImageType *Image, const int value, const std::string ObjectName, const int Red,const int Green,const int Blue)
+  void AnalyzeObjectMap<TImage>::AddObjectEntryBasedOnImagePixel(ImageType *Image, const int value, const std::string ObjectName, const int Red,const int Green,const int Blue)
   {
     itk::ImageRegion<4> ObjectMapRegion = this->GetLargestPossibleRegion();
     itk::ImageRegion<4> ImageRegion = Image->GetLargestPossibleRegion();
@@ -230,14 +230,13 @@ template<class TImage>
   }
 
 template<class TImage>
-itk::AnalyzeObjectMap<TConvertImage> *
+void
 AnalyzeObjectMap<TImage>
 ::TransformImage(ImageType *image)
 {
-  itk::AnalyzeObjectMap<TImage> *ObjectMap = itk::AnalyzeObjectMap<TConvertImage>::New();
-  ObjectMap->SetRegions(image->GetLargestPossibleRegion());
-  ObjectMap->Allocate();
-  ObjectMap->SetPixelContainer(image->GetPixelContainer());
+  this->SetRegions(image->GetLargestPossibleRegion());
+  this->Allocate();
+  this->SetPixelContainer(image->GetPixelContainer());
   //itk::ImageRegionIterator<TConvertImage> ImageIndexIT(image, image->GetLargestPossibleRegion());
   //itk::ImageRegionIterator<TConvertImage> ObjectmapIndexIT(this->ObjectMap, image->GetLargestPossibleRegion());
   //for(ImageIndexIT.GoToBegin(); !ImageIndexIT.IsAtEnd(); ++ImageIndexIT, ++ObjectmapIndexIT)
@@ -245,11 +244,10 @@ AnalyzeObjectMap<TImage>
   //  this->ObjectMap->SetPixel(ImageIndexIT.GetIndex(), ImageIndexIT.Get());
   //  //ObjectmapIndexIT.Set(ImageIndexIT.Get());
   //}
-  itk::AnalyzeObjectEntryArrayType *my_reference = ObjectMap->GetAnalyzeObjectEntryArrayPointer();
+  itk::AnalyzeObjectEntryArrayType *my_reference = this->GetAnalyzeObjectEntryArrayPointer();
   itk::ExposeMetaData<itk::AnalyzeObjectEntryArrayType>(image->GetMetaDataDictionary(),ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY, *my_reference);
-  this->ObjectMap->SetNumberOfObjects(ObjectMap->GetAnalyzeObjectEntryArrayPointer()->size());
+  this->SetNumberOfObjects(this->GetAnalyzeObjectEntryArrayPointer()->size());
 
-  return ObjectMap;
 }
 
 template<class TImage>
@@ -259,3 +257,4 @@ template<class TImage>
   }
 
 }
+#endif
