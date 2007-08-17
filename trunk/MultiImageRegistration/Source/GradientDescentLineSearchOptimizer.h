@@ -25,8 +25,8 @@ namespace itk
 {
 
 /** \class FRPROptimizer
- * \brief Implements gradient descent optimization using 
- * line search .
+ * \brief Implements Fletch-Reeves & Polak-Ribiere optimization using dBrent
+ * line search - adapted from Numerical Recipes in C (first edition).
  *
  * This optimizer needs a cost function.
  * This optimizer needs to be able to compute partial derivatives of the 

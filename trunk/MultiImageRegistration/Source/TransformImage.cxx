@@ -21,7 +21,7 @@
 #include "itkResampleImageFilter.h"
 
 #include "itkAffineTransform.h"
-#include "BSplineDeformableTransformOpt.h"
+#include "UserBSplineDeformableTransform.h"
 #include "itkTransformFactory.h"
 
 #include "itkLinearInterpolateImageFunction.h"
@@ -58,7 +58,7 @@ int main( int argc, char * argv[] )
   // typedef for transformation types
   typedef itk::Transform< double, Dimension >  TransformType;
   typedef itk::AffineTransform< double, Dimension >  AffineTransformType;
-  typedef itk::BSplineDeformableTransformOpt< double,
+  typedef itk::UserBSplineDeformableTransform< double,
                                            Dimension,
                                            3 >     BSplineTransformType;
                                            

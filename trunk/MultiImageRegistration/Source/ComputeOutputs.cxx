@@ -22,7 +22,7 @@
 
 #include "itkIdentityTransform.h"
 #include "itkAffineTransform.h"
-#include "BSplineDeformableTransformOpt.h"
+#include "UserBSplineDeformableTransform.h"
 #include "itkBSplineDeformableTransform.h"
 #include "itkTransformFactory.h"
 #include "itkLinearInterpolateImageFunction.h"
@@ -287,7 +287,7 @@ int main( int argc, char * argv[] )
     // typedef for transformation types
     typedef itk::Transform< double, Dimension,Dimension >  TransformType;
     typedef itk::AffineTransform< double, Dimension >  AffineTransformType;
-    typedef itk::BSplineDeformableTransformOpt< double,
+    typedef itk::UserBSplineDeformableTransform< double,
                                              Dimension,
                                              3 >     BSplineTransformType;
 
@@ -444,7 +444,7 @@ int main( int argc, char * argv[] )
       writer->SetImageIO(imageReaderArray[j]->GetImageIO());
       
       cout << "Writing " << (currentFolderName+"Images/"+fileNames[j]).c_str() << endl;
-      writer->Update();
+      //writer->Update();
 
       // Extract the central slice
       typedef itk::Image< unsigned char, 2 >    SliceImageType;
@@ -458,8 +458,12 @@ int main( int argc, char * argv[] )
       //Write the central slice
       ImageType::SizeType size = imageReaderArray[j]->GetOutput()->GetLargestPossibleRegion().GetSize();
       ImageType::IndexType start = imageReaderArray[j]->GetOutput()->GetLargestPossibleRegion().GetIndex();
-      start[1] = size[1]/2;
-      size[1] = 0;
+      /** change here */
+      //start[1] = size[1]/2;
+      //size[1] = 0;
+      // these are user specific
+      start[0] = 106;
+      size[0] = 0;
 
         
       ImageType::RegionType extractRegion;
@@ -477,7 +481,7 @@ int main( int argc, char * argv[] )
       string sliceName = currentFolderName+"Slices/"+sliceStream.str()+".jpg";
       sliceWriter->SetFileName( sliceName.c_str() );
       
-      cout << "Writing " << sliceName.c_str() << endl;
+      cout << "Writing " << sliceName.c_str() << endl; 
       sliceWriter->Update();     
 
       // Write visualization images for deformation fields
@@ -514,7 +518,7 @@ int main( int argc, char * argv[] )
         {
           itksys::SystemTools::MakeDirectory( (currentFolderName+"DeformationImage/").c_str() );
           writer->SetFileName( (currentFolderName+"DeformationImage/"+fileNames[j]).c_str() );
-          writer->Update();
+          //writer->Update();
         }
 
         // Extract the central slices of the the deformation field
@@ -550,7 +554,7 @@ int main( int argc, char * argv[] )
     writer->SetFileName((meanFolder+"Mean.mhd").c_str());
     
     cout << "Writing " << (meanFolder+"Mean.mhd").c_str() << endl;
-    writer->Update();
+    //writer->Update();
     
     // Extract the central slice
     typedef itk::Image< unsigned char, 2 >    SliceImageType;
@@ -564,10 +568,14 @@ int main( int argc, char * argv[] )
     //Write the central slice
     ImageType::SizeType size = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
     ImageType::IndexType start = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetIndex();
-    start[1] = size[1]/2;
-    size[1] = 0;
-
-        
+    
+    /** change here */
+    //start[1] = size[1]/2;
+    //size[1] = 0;
+    // these are user specific
+    start[0] = 106;
+    size[0] = 0;
+                
     ImageType::RegionType extractRegion;
     extractRegion.SetSize(  size  );
     extractRegion.SetIndex( start );
@@ -586,7 +594,7 @@ int main( int argc, char * argv[] )
     writer->SetFileName((stdFolder+"STD.mhd").c_str());
     cout << "Writing " << (stdFolder+"STD.mhd").c_str() << endl;
 
-    writer->Update();
+    //writer->Update();
     
     // write std image
     sliceExtractFilter->SetInput( narySTDImageFilter->GetOutput() );
