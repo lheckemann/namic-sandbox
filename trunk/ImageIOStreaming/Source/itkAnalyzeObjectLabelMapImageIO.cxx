@@ -358,31 +358,32 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
       break;
     }
 
-    m_Origin[0] = 0;
-    if(this->GetNumberOfDimensions() > 2)
-      {
-        m_Origin[1] = 0;
-      m_Origin[2] = 0;
-      }
-if(this->GetNumberOfDimensions()>3)
-{
-m_Origin[3]=0;
-}
+
     std::vector<double> dirx(this->GetNumberOfDimensions(),0), diry(this->GetNumberOfDimensions(),0), dirz(this->GetNumberOfDimensions(),0);
     switch(this->GetNumberOfDimensions())
     {
+    case 4:
+      m_Origin[3] = 0;
     case 3:
       dirx[2] = 0;
       diry[2] = 0;
       dirz[2] = 1;
+
+      dirz[1] = 0;
+
+      dirz[0] = 0;
+
+      m_Origin[2] = 0;
     case 2:
       dirx[1] = 0;
       diry[1] = 1;
-      dirz[1] = 0;
+      diry[0] = 0;
+
+      m_Origin[1] = 0;
     case 1:
       dirx[0] = 1;
-      diry[0] = 0;
-      dirz[0] = 0;
+      m_Origin[0] = 0;
+       
       break;
     default:
       itkDebugMacro(<<"Error:  Setting the steps has an error"<<std::endl);
@@ -407,13 +408,13 @@ m_Origin[3]=0;
 
     /*std::ofstream myfile;
     myfile.open("ReadFromFilePointer35.txt", myfile.app);*/
-    itk::AnalyzeObjectEntryArrayType *my_reference;
-    (*my_reference).resize(header[4]);
+    itk::AnalyzeObjectEntryArrayType my_reference;
+    (my_reference).resize(header[4]);
     for (int i = 0; i < header[4]; i++)
     {
       // Allocating a object to be created
-      (*my_reference)[i] = AnalyzeObjectEntry::New();
-      (*my_reference)[i]->ReadFromFilePointer(inputFileStream,NeedByteSwap, NeedBlendFactor);
+      (my_reference)[i] = AnalyzeObjectEntry::New();
+      (my_reference)[i]->ReadFromFilePointer(inputFileStream,NeedByteSwap, NeedBlendFactor);
       //(*my_reference)[i]->Print(myfile);
     }
     //myfile.close();
@@ -422,7 +423,7 @@ m_Origin[3]=0;
     //Now fill out the MetaData
     MetaDataDictionary &thisDic=this->GetMetaDataDictionary();
     EncapsulateMetaData<std::string>(thisDic,ITK_OnDiskStorageTypeName,std::string(typeid(unsigned char).name()));
-    EncapsulateMetaData<itk::AnalyzeObjectEntryArrayType>(thisDic,ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY,*my_reference);
+    EncapsulateMetaData<itk::AnalyzeObjectEntryArrayType>(thisDic,ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY,my_reference);
 }
 
 /**
