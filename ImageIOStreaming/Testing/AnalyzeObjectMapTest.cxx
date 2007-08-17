@@ -53,7 +53,7 @@ int main( int argc, char ** argv )
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;
   typedef itk::ImageToAnalyzeObjectMap<InputImageType> ImageToObjectMapType;
 
-  ImageToObjectMapType::Pointer ImageToObjectConvertor = ImageToObjectMapType::New();
+  //ImageToObjectMapType::Pointer ImageToObjectConvertor = ImageToObjectMapType::New();
 
   ReaderType::Pointer reader = ReaderType::New();
   ReaderType::Pointer readerTwo = ReaderType::New();
@@ -73,7 +73,7 @@ int main( int argc, char ** argv )
     }
 
   //Now that we have an itk image now we need to make the image an object map
-  itk::AnalyzeObjectMap::Pointer ObjectMap = ImageToObjectConvertor->TransformImage(reader->GetOutput());
+  itk::AnalyzeObjectMap<InputImageType>::Pointer ObjectMap = itk::AnalyzeObjectMap<InputImageType>.TransformImage(reader->GetOutput());
 
   //Now we can change the object map into an itk RGB image, we then can send this image to the itk-vtk
   //converter and show the image if we wanted to.
@@ -142,7 +142,7 @@ int main( int argc, char ** argv )
     std::cerr << err << std::endl;
     return EXIT_FAILURE;
     }
-  itk::AnalyzeObjectMap::Pointer CreateObjectMap = itk::AnalyzeObjectMap::New();
+  itk::AnalyzeObjectMap<InputImageType>::Pointer CreateObjectMap = itk::AnalyzeObjectMap<InputImageType>::New();
 
   CreateObjectMap->AddObjectEntry("You Can Delete Me");
   CreateObjectMap->AddObjectEntryBasedOnImagePixel(readerTwo->GetOutput(), 200, "Square", 250, 0, 0);
@@ -177,43 +177,43 @@ int main( int argc, char ** argv )
     std::cerr << err << std::endl;
     return EXIT_FAILURE;
     }
-  itk::AnalyzeObjectMap::Pointer ObjectMapTwo = ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
+  itk::AnalyzeObjectMap<InputImageType>::Pointer ObjectMapTwo = itk::AnalyzeObjectMap<InputImageType>.TransformImage(readerThree->GetOutput());
 
   itk::Image<itk::RGBPixel<unsigned char>, 4>::Pointer RGBImageTwo = ObjectMapTwo->ObjectMapToRGBImage();
 
-  itk::AnalyzeObjectMap::Pointer circleObjectMap = ObjectMapTwo->PickOneEntry(3);
+  //itk::AnalyzeObjectMap circleObjectMap = ObjectMapTwo->PickOneEntry(3);
 
-  circleObjectMap->PlaceObjectMapEntriesIntoMetaData();
+  //circleObjectMap->PlaceObjectMapEntriesIntoMetaData();
 
-  writer->SetInput(circleObjectMap);
-  writer->SetFileName(oneObjectEntryFileName);
+  //writer->SetInput(circleObjectMap);
+  //writer->SetFileName(oneObjectEntryFileName);
 
-  try
-    {
-    writer->Update();
-    }
-  catch( itk::ExceptionObject & err )
-    {
-    std::cerr << "ExceptionObject caught !" << std::endl;
-    std::cerr << err << std::endl;
-    return EXIT_FAILURE;
-    }
+  //try
+    //{
+    //writer->Update();
+    //}
+  //catch( itk::ExceptionObject & err )
+   // {
+    //std::cerr << "ExceptionObject caught !" << std::endl;
+    //std::cerr << err << std::endl;
+    //return EXIT_FAILURE;
+   // }
 
-  readerThree->SetFileName(oneObjectEntryFileName);
-  try
-    {
-    readerThree->Update();
-    }
-  catch( itk::ExceptionObject & err )
-    {
-    std::cerr << "ExceptionObject caught !" << std::endl;
-    std::cerr << err << std::endl;
-    return EXIT_FAILURE;
-    }
+  //readerThree->SetFileName(oneObjectEntryFileName);
+  //try
+    //{
+    //readerThree->Update();
+   // }
+  //catch( itk::ExceptionObject & err )
+   // {
+    //std::cerr << "ExceptionObject caught !" << std::endl;
+//    std::cerr << err << std::endl;
+  //  return EXIT_FAILURE;
+    //}
 
-  itk::AnalyzeObjectMap::Pointer ObjectMapThree = ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
+  //itk::AnalyzeObjectMap<InputImageType>::Pointer ObjectMapThree = ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
 
-  itk::Image<itk::RGBPixel<unsigned char>, 4>::Pointer RGBImageThree = ObjectMapThree->ObjectMapToRGBImage();
+//  itk::Image<itk::RGBPixel<unsigned char>, 4>::Pointer RGBImageThree = ObjectMapThree->ObjectMapToRGBImage();
 
 
   if( error_count )
