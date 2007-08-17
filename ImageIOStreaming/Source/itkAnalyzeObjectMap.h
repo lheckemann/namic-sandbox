@@ -56,9 +56,11 @@ const char *const ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY = "ANALYZE_OBJECT_LABEL_M
   static const int VERSION7 = 20050829;
 namespace itk
 {
-  template <class TImage>
 
   typedef std::vector<AnalyzeObjectEntry::Pointer>  AnalyzeObjectEntryArrayType;
+  template <class TImage>
+
+  
   
   
 
@@ -89,7 +91,7 @@ namespace itk
       itkNewMacro(Self);
 
       /** Run-time type information (and related methods). */
-      itkTypeMacro(AnalyzeObjectMap, Image );
+      itkTypeMacro(AnalyzeObjectMap, TImage );
 
       
 
@@ -123,7 +125,7 @@ namespace itk
       /**
        * \brief PickOneEntry
        */
-      itk::AnalyzeObjectMap::Pointer PickOneEntry(const int numberOfEntry = -1);
+     // itk::AnalyzeObjectMap<itk::Image<unsigned char, 4>>::Pointer PickOneEntry(const int numberOfEntry = -1);
 
       /**
        * \brief ObjectMapToRGBImage
@@ -133,7 +135,7 @@ namespace itk
       /**
        * \brief AddObjectEntryBasedOnImagePixel
        */
-      void AddObjectEntryBasedOnImagePixel(const TImage::Pointer Image,const int value = -1,const std::string ObjectName = "",const int Red = 0,const int Green = 0,const int Blue = 0);
+      void AddObjectEntryBasedOnImagePixel(const ImageType *Image,const int value = -1,const std::string ObjectName = "",const int Red = 0,const int Green = 0,const int Blue = 0);
 
       /**
        * \brief AddObjectEntry
@@ -170,6 +172,8 @@ namespace itk
        * \return AnalyzeObjectEntry &, an object reference from the array of 256 objects in the objectmap
        */
       const AnalyzeObjectEntry::Pointer GetObjectEntry( const int index ) const;
+
+itk::AnalyzeObjectMap<TImage> * TransformImage(ImageType *image);
 
      protected:
        /**
