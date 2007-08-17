@@ -135,7 +135,7 @@ namespace itk
       /**
        * \brief AddObjectEntryBasedOnImagePixel
        */
-      void AddObjectEntryBasedOnImagePixel(const ImageType *Image,const int value = -1,const std::string ObjectName = "",const int Red = 0,const int Green = 0,const int Blue = 0);
+      void AddObjectEntryBasedOnImagePixel(ImageType *Image,const int value = -1,const std::string ObjectName = "",const int Red = 0,const int Green = 0,const int Blue = 0);
 
       /**
        * \brief AddObjectEntry
@@ -173,7 +173,8 @@ namespace itk
        */
       const AnalyzeObjectEntry::Pointer GetObjectEntry( const int index ) const;
 
-itk::AnalyzeObjectMap<TImage> * TransformImage(ImageType *image);
+//itk::AnalyzeObjectMap<TImage> * TransformImage(ImageType *image);
+      void TransformImage(ImageType *image);
 
      protected:
        /**
@@ -203,4 +204,7 @@ itk::AnalyzeObjectMap<TImage> * TransformImage(ImageType *image);
       AnalyzeObjectEntryArrayType m_AnaylzeObjectEntryArray;
   };
 }
+#ifndef ITK_MANUAL_INSTANTIATION
+#include "itkAnalyzeObjectMap.txx"
+#endif
 #endif                           // __OBJECTMAP_H_
