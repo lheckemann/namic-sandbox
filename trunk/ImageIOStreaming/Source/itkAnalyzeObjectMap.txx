@@ -50,9 +50,9 @@ AnalyzeObjectMap<TImage>
     this->m_AnaylzeObjectEntryArray[0]->SetName("Original");
     this->SetNumberOfObjects(0);
     this->SetVersion(VERSION7);
-    ImageType::SizeType size = {{1,1,1}};
-    ImageType::IndexType orgin = {{0,0,0}};
-    ImageType::RegionType region;
+    typename ImageType::SizeType size = {{1,1,1}};
+    typename ImageType::IndexType orgin = {{0,0,0}};
+    typename ImageType::RegionType region;
     region.SetSize(size);
     region.SetIndex(orgin);
     this->SetRegions(region);
@@ -76,24 +76,28 @@ template<class TImage>
   //and change the values so that there is either 0 or 1.  1 corresponds to the entry
   //the user specified and 0 is the background.
 template<class TImage>
-  void AnalyzeObjectMap<TImage>::PickOneEntry(itk::AnalyzeObjectMap<TImage> *ObjectMapNew, const int numberOfEntry)
+  typename itk::AnalyzeObjectMap<TImage>::Pointer AnalyzeObjectMap<TImage>::PickOneEntry(const int numberOfEntry)
   {
-    this->SetRegions(ObjectMapNew->GetLargestPossibleRegion());
-    this->Allocate();
-    this->AddObjectEntry(ObjectMapNew->GetObjectEntry(numberOfEntry)->GetName());
-    this->m_AnaylzeObjectEntryArray[1] = ObjectMapNew->m_AnaylzeObjectEntryArray[numberOfEntry];
-    itk::ThresholdImageFilter<ImageType>::Pointer changeOldObjectMap = itk::ThresholdImageFilter<ImageType>::New();
+    typename itk::AnalyzeObjectMap<TImage>::Pointer ObjectMapNew = itk::AnalyzeObjectMap<TImage>::New();
+    ObjectMapNew->SetRegions(ObjectMapNew->GetLargestPossibleRegion());
+    ObjectMapNew->Allocate();
+    ObjectMapNew->AddObjectEntry(this->GetObjectEntry(numberOfEntry)->GetName());
+    ObjectMapNew->m_AnaylzeObjectEntryArray[1] = this->m_AnaylzeObjectEntryArray[numberOfEntry];
+    typename itk::ThresholdImageFilter<ImageType>::Pointer changeOldObjectMap = itk::ThresholdImageFilter<ImageType>::New();
     
-    changeOldObjectMap->SetInput(ObjectMapNew);
+    changeOldObjectMap->SetInput(this);
     changeOldObjectMap->SetOutsideValue(0);
     changeOldObjectMap->ThresholdOutside(numberOfEntry,numberOfEntry);
     changeOldObjectMap->Update();
     changeOldObjectMap->SetInput(changeOldObjectMap->GetOutput());
     changeOldObjectMap->SetOutsideValue(1);
     changeOldObjectMap->ThresholdAbove(numberOfEntry-1);
-    ImageType::Pointer newestObjectMapImage = changeOldObjectMap->GetOutput();
+    typename ImageType::Pointer newestObjectMapImage = changeOldObjectMap->GetOutput();
     changeOldObjectMap->Update();
-    this->SetPixelContainer(newestObjectMapImage->GetPixelContainer());
+    ObjectMapNew->SetPixelContainer(newestObjectMapImage->GetPixelContainer());
+    ObjectMapNew->PlaceObjectMapEntriesIntoMetaData();
+
+   return ObjectMapNew;
   }
 
   //This function will convert an object map into an unsigned char RGB image.
@@ -164,6 +168,7 @@ template<class TImage>
     this->m_AnaylzeObjectEntryArray.insert(this->m_AnaylzeObjectEntryArray.end(), itk::AnalyzeObjectEntry::New());
     this->SetNumberOfObjects(this->GetNumberOfObjects()+1);
     this->m_AnaylzeObjectEntryArray[this->GetNumberOfObjects()]->SetName(ObjectName);
+    this->PlaceObjectMapEntriesIntoMetaData();
   }
 
   /*NOTE: This function will move all object entry's so that the vector stays in the smallest order starting from 0.*/
@@ -194,6 +199,7 @@ template<class TImage>
         indexIt.Set(indexIt.Get()-1);
       }
     }
+    this->PlaceObjectMapEntriesIntoMetaData();
   }
 
   //This function will go through the entries looking for the specfic name.  If no name was found then the function
@@ -230,22 +236,16 @@ template<class TImage>
 template<class TImage>
 void
 AnalyzeObjectMap<TImage>
-::TransformImage(ImageType *image)
+::TransformImage(TImage *image)
 {
   this->SetRegions(image->GetLargestPossibleRegion());
   this->Allocate();
   this->SetPixelContainer(image->GetPixelContainer());
-  //itk::ImageRegionIterator<TConvertImage> ImageIndexIT(image, image->GetLargestPossibleRegion());
-  //itk::ImageRegionIterator<TConvertImage> ObjectmapIndexIT(this->ObjectMap, image->GetLargestPossibleRegion());
-  //for(ImageIndexIT.GoToBegin(); !ImageIndexIT.IsAtEnd(); ++ImageIndexIT, ++ObjectmapIndexIT)
-  //{
-  //  this->ObjectMap->SetPixel(ImageIndexIT.GetIndex(), ImageIndexIT.Get());
-  //  //ObjectmapIndexIT.Set(ImageIndexIT.Get());
-  //}
   itk::AnalyzeObjectEntryArrayType *my_reference = this->GetAnalyzeObjectEntryArrayPointer();
-  itk::ExposeMetaData<itk::AnalyzeObjectEntryArrayType>(image->GetMetaDataDictionary(),ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY, *my_reference);
-  this->SetNumberOfObjects(this->GetAnalyzeObjectEntryArrayPointer()->size());
-
+  if(itk::ExposeMetaData<itk::AnalyzeObjectEntryArrayType>(image->GetMetaDataDictionary(),ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY, *my_reference))
+  {
+    this->SetNumberOfObjects(this->GetAnalyzeObjectEntryArrayPointer()->size());
+  }
 }
 
 template<class TImage>

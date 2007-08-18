@@ -29,7 +29,7 @@
 #include "itkImage.h"
 
 #include "itkAnalyzeObjectLabelMapImageIO.h"
-#include "itkImageToAnalyzeObjectmap.h"
+#include "itkAnalyzeObjectMap.h"
 int main( int argc, char ** argv )
 {
   int error_count = 0;
@@ -51,9 +51,6 @@ int main( int argc, char ** argv )
 
   typedef itk::ImageFileReader< InputImageType  >  ReaderType;
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;
-  typedef itk::ImageToAnalyzeObjectMap<InputImageType> ImageToObjectMapType;
-
-  //ImageToObjectMapType::Pointer ImageToObjectConvertor = ImageToObjectMapType::New();
 
   ReaderType::Pointer reader = ReaderType::New();
   ReaderType::Pointer readerTwo = ReaderType::New();
@@ -73,7 +70,7 @@ int main( int argc, char ** argv )
     }
 
   //Now that we have an itk image now we need to make the image an object map
-  itk::AnalyzeObjectMap<InputImageType>::Pointer ObjectMap = itk::AnalyzeObjectMap<InputImageType>::New();//TransformImage(reader->GetOutput());
+  itk::AnalyzeObjectMap<InputImageType>::Pointer ObjectMap = itk::AnalyzeObjectMap<InputImageType>::New();
 
   ObjectMap->TransformImage(reader->GetOutput());
 
@@ -152,7 +149,6 @@ int main( int argc, char ** argv )
   CreateObjectMap->AddObjectEntry("Nothing In Here");
   CreateObjectMap->GetObjectEntry(4)->Copy(CreateObjectMap->GetObjectEntry(1));
   CreateObjectMap->DeleteObjectEntry("Nothing In Here");
-  CreateObjectMap->PlaceObjectMapEntriesIntoMetaData();
 
   writer->SetInput(CreateObjectMap);
   writer->SetFileName(CreatingObject);
@@ -184,13 +180,7 @@ int main( int argc, char ** argv )
   ObjectMapTwo->TransformImage(readerThree->GetOutput());
   itk::Image<itk::RGBPixel<unsigned char>, 4>::Pointer RGBImageTwo = ObjectMapTwo->ObjectMapToRGBImage();
 
-  itk::AnalyzeObjectMap<InputImageType>::Pointer circleObjectMap = itk::AnalyzeObjectMap<InputImageType>::New();
-  circleObjectMap->PickOneEntry(ObjectMapTwo, 3);
-  //ObjectMapTwo->PickOneEntry(3);
-
-  circleObjectMap->PlaceObjectMapEntriesIntoMetaData();
-
-  writer->SetInput(circleObjectMap);
+  writer->SetInput(ObjectMapTwo->PickOneEntry(3));
   writer->SetFileName(oneObjectEntryFileName);
 
   try
@@ -228,5 +218,4 @@ int main( int argc, char ** argv )
   }
 
   return EXIT_SUCCESS;
-
 }
