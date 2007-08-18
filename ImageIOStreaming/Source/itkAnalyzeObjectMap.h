@@ -60,10 +60,6 @@ namespace itk
   typedef std::vector<AnalyzeObjectEntry::Pointer>  AnalyzeObjectEntryArrayType;
   template <class TImage>
 
-  
-  
-  
-
 
 /** \class AnalyzeObjectMap
  * \brief A class that is an image with functions that let the user change aspects of the class.
@@ -126,7 +122,7 @@ namespace itk
       /**
        * \brief PickOneEntry
        */
-      void PickOneEntry(ObjectMapType *ObjectMapNew, const int numberOfEntry = -1);
+      typename itk::AnalyzeObjectMap<TImage>::Pointer PickOneEntry(const int numberOfEntry = -1);
 
       /**
        * \brief ObjectMapToRGBImage
@@ -174,7 +170,6 @@ namespace itk
        */
       const AnalyzeObjectEntry::Pointer GetObjectEntry( const int index ) const;
 
-//itk::AnalyzeObjectMap<TImage> * TransformImage(ImageType *image);
       void TransformImage(ImageType *image);
 
      protected:

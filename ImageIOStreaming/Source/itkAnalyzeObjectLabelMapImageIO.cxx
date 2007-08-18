@@ -286,11 +286,6 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     if ( inputFileStream.read(reinterpret_cast<char *>(header),sizeof(int)*5).fail())
     {
       itkDebugMacro(<<"Error: Could not read header of "<<m_FileName.c_str()<<std::endl);
-      itkDebugMacro(<<header[0]<<std::endl);
-      itkDebugMacro(<<header[1]<<std::endl);
-      itkDebugMacro(<<header[2]<<std::endl);
-      itkDebugMacro(<<header[3]<<std::endl);
-      itkDebugMacro(<<header[4]<<std::endl);
       exit(-1);
     }
     //Do byte swapping if necessary.
@@ -450,7 +445,7 @@ AnalyzeObjectLabelMapImageIO
     header[1]=this->GetDimensions(0);
     header[2]=this->GetDimensions(1);
     header[3]=this->GetDimensions(2);
-    bool MetaDataCheck = itk::ExposeMetaData<itk::AnalyzeObjectEntryArrayType>(this->GetMetaDataDictionary(),ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY, my_reference)
+    bool MetaDataCheck = itk::ExposeMetaData<itk::AnalyzeObjectEntryArrayType>(this->GetMetaDataDictionary(),ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY, my_reference);
     if(MetaDataCheck)
     {
     header[4]=my_reference.size();
@@ -507,12 +502,12 @@ AnalyzeObjectLabelMapImageIO
     }
     else
     {
-      for (unsigned int i = 0; i 256; i++)
+      for (unsigned int i = 0; i < 256; i++)
     {
       // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
       // not affect the current object itself
       AnalyzeObjectEntry *ObjectWrite = AnalyzeObjectEntry::New();
-      AnalyzeObjectMap->SetName("Blank Object"+i);
+      ObjectWrite->SetName("Blank Object"+i);
       if (NeedByteSwap == true)
       {
         ObjectWrite->SwapObjectEndedness();
