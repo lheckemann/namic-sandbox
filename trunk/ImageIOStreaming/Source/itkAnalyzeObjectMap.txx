@@ -79,7 +79,7 @@ template<class TImage>
   typename itk::AnalyzeObjectMap<TImage>::Pointer AnalyzeObjectMap<TImage>::PickOneEntry(const int numberOfEntry)
   {
     typename itk::AnalyzeObjectMap<TImage>::Pointer ObjectMapNew = itk::AnalyzeObjectMap<TImage>::New();
-    ObjectMapNew->SetRegions(ObjectMapNew->GetLargestPossibleRegion());
+    ObjectMapNew->SetRegions(this->GetLargestPossibleRegion());
     ObjectMapNew->Allocate();
     ObjectMapNew->AddObjectEntry(this->GetObjectEntry(numberOfEntry)->GetName());
     ObjectMapNew->m_AnaylzeObjectEntryArray[1] = this->m_AnaylzeObjectEntryArray[numberOfEntry];
@@ -101,9 +101,8 @@ template<class TImage>
   }
 
   //This function will convert an object map into an unsigned char RGB image.
-  //TODO: Need to include the object entries into the meta data.
 template<class TImage>
-  itk::Image<itk::RGBPixel<unsigned char>, 4>::Pointer AnalyzeObjectMap<TImage>::ObjectMapToRGBImage()
+  itk::Image<itk::RGBPixel<unsigned char>, TImage::ImageDimension>::Pointer AnalyzeObjectMap<TImage>::ObjectMapToRGBImage()
   {
     RGBImageType::Pointer RGBImage = RGBImageType::New();
     RGBImage->SetRegions(this->GetLargestPossibleRegion());
@@ -246,6 +245,7 @@ AnalyzeObjectMap<TImage>
   {
     this->SetNumberOfObjects(this->GetAnalyzeObjectEntryArrayPointer()->size());
   }
+  this->PlaceObjectMapEntriesIntoMetaData();
 }
 
 template<class TImage>
