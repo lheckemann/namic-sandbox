@@ -62,10 +62,9 @@ namespace itk
 
 
 /** \class AnalyzeObjectMap
- * \brief A class that is an image with functions that let the user change aspects of the class.
+ * \brief A class that is an image with functions that let the user change aspects of the class.  This
+ * is a templated class where most everything will depend on the Image type that is used.
  */
-//We are initialzing the object map to dimension 4 to take care of the highest possible dimension that an
-//object map can be.
   class AnalyzeObjectMap: public TImage
   {
     public:
@@ -127,7 +126,7 @@ namespace itk
       /**
        * \brief ObjectMapToRGBImage
        */
-      itk::Image<RGBPixelType, 4>::Pointer ObjectMapToRGBImage();
+      itk::Image<RGBPixelType, TImage::ImageDimension>::Pointer ObjectMapToRGBImage();
 
       /**
        * \brief AddObjectEntryBasedOnImagePixel
