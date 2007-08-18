@@ -1,3 +1,176 @@
+
+######## Adapted from http://wiki.tcl.tk/14770
+# The argument processor.
+proc userargs {_arglist _args} {
+ set _init [list]
+ set _initv [list]
+
+#START-INIT
+ foreach _a $_arglist {
+   lappend _names [lindex $_a 0]
+   switch [llength $_a] {
+     1 {
+     }
+     2 {
+       foreach {_n _d} $_a {break}
+       lappend _init $_n
+       lappend _initv $_d
+     }
+     3 {
+       foreach {_n _d _e} $_a {break}
+       if {$_d ne {-}} {
+         lappend _init $_n
+         lappend _initv $_d
+       }
+       switch $_e {
+         required {
+           lappend _rq $_n
+         }
+       }
+     }
+     default {
+       error "Dont know what to do with 3+ options for $a"
+     }
+   }
+ }
+
+#END-INIT
+
+ if {[llength $_init]} {
+   uplevel 1   [list foreach $_init  $_initv {break}]
+ }
+
+#START-ARGS
+ set _ai -1
+ set _fnd [list]
+ for {set _i 0} {$_i < [llength $_args]} {incr _i} {
+   switch -- [set _v [lindex $_args $_i]] {
+     - {
+       incr _ai
+     }
+     -- {
+       uplevel 1 [list set [lindex $_names [set _ai [expr {($_ai+1) % [llength $_names]}]]] [lindex $_args [incr _i]] ]
+       lappend _fnd [lindex $_names $_ai]
+     }
+     default {
+       if {[lsearch -exact $_names $_v] != -1 } {
+         uplevel 1 [list set $_v [lindex $_args [incr _i]]]
+         lappend _fnd $_v
+       } else {
+         uplevel 1 [list set [lindex $_names [set _ai [expr {($_ai+1) % [llength $_names]}]]] $_v ]
+         lappend _fnd [lindex $_names $_ai]
+
+       }
+     }
+   }
+ }
+
+#END-ARGS
+ if {[llength $_rq]} {
+#START-REQUIRED
+   foreach _i $_rq {
+     if {[lsearch $_fnd $_i] == -1} {
+       uplevel 1 [list error "missing argument $_i"]
+     }
+   }
+#END-REQUIRED
+ }
+}
+# The TCL Way
+proc b2_proc_generator {name _arglist body} {
+# get the text of the userargs procedure
+  set b [info body userargs]
+## Initialize to empty lists so that they exists
+  set _init [list]
+  set _rq [list]
+# pull out the two sections of interest
+  foreach {- init} [regexp -inline {#START-INIT(.*?)#END-INIT} $b] {break}
+  foreach {- loop} [regexp -inline {#START-ARGS(.*?)#END-ARGS} $b] {break}
+  foreach {- required} [regexp -inline {#START-REQUIRED(.*?)#END-REQUIRED} $b] {break}
+
+# process the arguments using the code from userargs
+  eval $init
+
+  set newbody {}
+  if {[llength $_init]} {
+    append newbody "\n#Initialise arguments\n"
+      append newbody "foreach {$_init} {$_initv} {break}\n\n"
+      puts "init $_init val $_initv"
+  }
+
+# specialise length of named arguments
+  regsub -all {[[]llength [$]_names[]]} $loop [llength $_names] loop
+# redefine the args variable
+  regsub -all {_args} $loop {args} loop
+# replace names with actual names
+  regsub -all {\$_names} $loop "{$_names}" loop
+# remove uplevel
+  regsub -all -lineanchor {uplevel 1 [[]list (.*?)[]]$} $loop {\1} loop
+  append newbody "# Process arguments\n"
+  append newbody $loop
+  if {[llength $_rq]} {
+    regsub -all {\$_rq} $required "{$_rq}" required
+    regsub -all -lineanchor {uplevel 1 [[]list (.*?)[]]$} $required {\1} required
+    append newbody "\n#Check on required arguments"
+    append newbody $required
+  }
+  append newbody "\n#Start of body code\n\n"
+  append newbody $body
+# Now define the proc
+  proc $name {args} $newbody
+  puts "$name:\n[info body $name]"
+}
+
+## Each of imageNodeID, printstring1, and printstring2 may be assumed as first unnamed positional, or as named arguments
+## imageNodeID is required
+## printstring1 is defined always, but does is not explicitly required (defaults to p1)
+## printstring2 is defined always, but does is not explicitly required (defaults to p2)
+## printstring3 is only defined when the the argument is named
+## printstring4 is only defined when the the argument is named
+b2_proc_generator b2_tester { {imageNodeID - required} {printstring1 - required} {printstring2 p2 } printstring3 printstring4 } {
+##### Body stuff here
+  puts "imageNodeID ${imageNodeID}"
+    puts "printstring1 ${printstring1}"
+    puts "printstring2 ${printstring2}"
+    if { [ info exists printstring3 ] } then {
+      puts "printstring3 ${printstring3}"
+    }
+  if { [ info exists printstring4 ] } then {
+    puts "printstring4 ${printstring4}"
+  }
+}
+
+b2_proc_generator b2_tester2 { {imageNodeID - required} {printstring1 - required} } {
+##### Body stuff here
+  puts "imageNodeID ${imageNodeID}"
+  puts "printstring1 ${printstring1}"
+}
+
+b2_proc_generator b2_tester3 { {imageNodeID - required} } {
+##### Body stuff here
+  puts "imageNodeID ${imageNodeID}"
+  puts "printstring1 ${printstring1}"
+}
+
+## Each of imageNodeID, printstring1, and printstring2 may be assumed as first unnamed positional, or as named arguments
+## imageNodeID is required
+## printstring1 is defined always, but does is not explicitly required (defaults to p1)
+## printstring2 is defined always, but does is not explicitly required (defaults to p2)
+## printstring3 is only defined when the the argument is named
+## printstring4 is only defined when the the argument is named
+b2_proc_generator b2_tester { {imageNodeID - required} {printstring1 p1 } {printstring2 p2 } printstring3 printstring4 } {
+##### Body stuff here
+  puts "imageNodeID ${imageNodeID}"
+    puts "printstring1 ${printstring1}"
+    puts "printstring2 ${printstring2}"
+    if { [ info exists printstring3 ] } then {
+      puts "printstring3 ${printstring3}"
+    }
+  if { [ info exists printstring4 ] } then {
+    puts "printstring4 ${printstring4}"
+  }
+}
+
 ## Note: This needs to be sourced first.
 ## NOTE:  The DISPLAY environmental variable MUST BE SET TO A VALID DISPLAY!
 ## Run with ~/src/Slicer3-build/Slicer3 --no_splash -f ~/NewScript.tcl
@@ -40,9 +213,9 @@ proc GetBatchMRMLScene {} {
 
 proc DestroyBatchMRMLScene {} {
 ## Only delete if not in gui mode, else let the gui handle destruction.
-  if {$::BRAINSScriptingMRMLisGUI == "false" } {
+  if {$::BRAINSScriptingMRMLisGUI == "false" } then {
      [ GetBatchMRMLScene ]  Delete
-     if { [ info exists BRAINSScriptingVolumesLogic ] } {
+     if { [ info exists BRAINSScriptingVolumesLogic ] } then {
        puts "Deleting BRAINSScriptingVolumesLogic"
        ${BRAINSScriptingVolumesLogic} Delete
      } else {
@@ -57,19 +230,30 @@ proc DestroyBatchMRMLScene {} {
 ############
 ############
 ############
+set FileReaderIncrementUniqueIdCounter 0;
 ## Simple Load image
-proc b2_load_image { fileName {centered 1} {labelimage 0} {NodeName EmptyStringValue} } {
+b2_proc_generator b2_load_image { { fileName - required }  {centered 1} {labelimage 0} {NodeName EmptyStringValue} } {
 #  puts [ GetBatchVolumesLogic ]
   if { "${NodeName}" == "EmptyStringValue" } then {
-    set NodeName [ file tail $fileName];
+    set NodeName [file tail $fileName]_$::FileReaderIncrementUniqueIdCounter;
+
+    incr ::FileReaderIncrementUniqueIdCounter;
   }
   puts "set volumeNode [ [ GetBatchVolumesLogic ] AddArchetypeVolume $fileName $centered ${labelimage} ${NodeName} ]"
   set volumeNode [ [ GetBatchVolumesLogic ] AddArchetypeVolume $fileName $centered ${labelimage} ${NodeName} ]
   return ${volumeNode}
 }
 
+b2_proc_generator b2_save_image { { ImageToSave - required } { outputFileName - required } } {
+    set VolumeStorageNode [ vtkMRMLVolumeArchetypeStorageNode New ]
+    $VolumeStorageNode SetFileName ${outputFileName}
+    $VolumeStorageNode WriteData ${ImageToSave}
+    $VolumeStorageNode Delete
+}
+
+
 ## Simple Gaussian
-proc b2_gaussian_filter { volumeNode {RadiusFactor 2.0} } {
+b2_proc_generator b2_gaussian_filter { { volumeNode - required } { RadiusFactor 2.0 } } {
   set GFilter [ vtkImageGaussianSmooth  New ]
   ${GFilter} SetInput [ ${volumeNode} GetImageData ]
   ${GFilter} SetRadiusFactor ${RadiusFactor}
@@ -84,22 +268,7 @@ proc b2_gaussian_filter { volumeNode {RadiusFactor 2.0} } {
   return ${outputVolumeNode}
 }
 
-proc b2_save_image { ImageToSave outputFileName } {
-    set VolumeStorageNode [ vtkMRMLVolumeArchetypeStorageNode New ]
-    $VolumeStorageNode SetFileName ${outputFileName}
-    $VolumeStorageNode WriteData ${ImageToSave}
-    $VolumeStorageNode Delete
-}
-
-proc b2_get_dims_image args {
-  if { [ llength $args ] != 1 } then {
-    puts "USAGE: b2_get_dims_image <volumeNode>"
-    return -1;
-  }
-  return [ real_b2_get_dims_image [split $args] ];
-}
-
-proc real_b2_get_dims_image { volumeNode } {
+b2_proc_generator b2_get_dims_image { { volumeNode - required } } {
   set statusvalue [catch { [ $volumeNode GetImageData ] GetDimensions } dims ];
   if { $statusvalue } then {
     puts "b2_get_dims_image failed";
@@ -108,15 +277,7 @@ proc real_b2_get_dims_image { volumeNode } {
   return $dims;
 }
 
-proc b2_get_res_image args {
-  if { [ llength $args ] != 1 } then {
-    puts "USAGE: b2_get_res_image <volumeNode>"
-    return -1;
-  }
-  return [ real_b2_get_res_image [split $args] ];
-}
-
-proc real_b2_get_res_image { volumeNode } {
+b2_proc_generator b2_get_res_image { { volumeNode - required } } {
   set statusvalue [ catch { $volumeNode GetSpacing  } res ];
   if { $statusvalue } then {
     puts "b2_get_res_image failed";
@@ -125,20 +286,13 @@ proc real_b2_get_res_image { volumeNode } {
   return $res;
 }
 
-proc b2_destroy_image args {
-  if { [ llength $args ] != 1 } then {
-    puts "USAGE: b2_destroy_image <volumeNode>"
-    return -1;
-  }
-  return [ real_b2_destroy_image [split $args] ];
-}
-
-proc real_b2_destroy_image { volumeNode } {
+b2_proc_generator b2_destroy_image { { volumeNode - required } } {
   set statusvalue [ catch { $volumeNode Delete  } returnvalue ];
   if { $statusvalue } then {
     puts "b2_destroy_image failed";
     return -1;
   }
+  puts "Removed ${volumeNode} with message $returnvalue"
   return 0;
 }
 
@@ -425,4 +579,7 @@ proc b2_active_cerebellum-parameters args { foreach arg $args { puts $arg }; ret
 proc b2_active_hippocampus-parameters args { foreach arg $args { puts $arg }; return -1; };
 proc b2_active_landmark args { foreach arg $args { puts $arg }; return -1; };
 proc b2_active_roi args { foreach arg $args { puts $arg }; return -1; };
-proc b2_exit args { foreach arg $args { puts $arg }; return -1; };
+
+proc b2_exit {} {
+  DestroyBatchMRMLScene;
+}
