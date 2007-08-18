@@ -24,6 +24,7 @@ export currwrapper=${outpath}/${currmod}_wrapper.b2
 cat > ${currwrapper} << EOF
 source ${modpath}/module/util/DateStamp.tcl
 source ${modpath}/module/util/ModuleUtils.tcl
+source ${modpath}/../../Common/BRAINSWrappers.tcl
 global OUTPUT_DIR
 set OUTPUT_DIR ${outpath}
 set DATA_PATH ${regressiontestpathbase}
@@ -46,7 +47,7 @@ if { \$tclStatus == 0  &&  \$moduleStatus == 0} {
    }
    set status 1
 }
-b2 exit \$status 0
+b2_exit \$status 0
 EOF
 # exit staus of success is currently set to 1
-#should be b2 exit, but thie status is not working properly
+#should be b2_exit, but thie status is not working properly

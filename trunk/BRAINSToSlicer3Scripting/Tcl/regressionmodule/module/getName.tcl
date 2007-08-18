@@ -1,6 +1,6 @@
 # \author    Hans J. Johnson"
 # \date        $Date: 2007-02-02 07:22:38 -0600 (Fri, 02 Feb 2007) $
-# \brief    This module tests the b2 get name command
+# \brief    This module tests the b2_get_name command
 # \fn        proc getName {pathToRegressionDir dateString}
 # \param    string pathToRegressionDir    - Path to the regresssion test directory
 # \param    string dateString            - String to label output file
@@ -8,7 +8,7 @@
 #
 # Test Performed
 # -----------------------------------------------------------------------
-# Test the b2 get landmark names command
+# Test the b2_get_landmark_names command
 #
 # To Do
 #------------------------------------------------------------------------
@@ -21,7 +21,7 @@ proc getName {pathToRegressionDir dateString} {
 
     set ModuleName "getName"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 get name command"
+    set ModuleDescription "Test the b2_get_name command"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -78,11 +78,11 @@ proc getName {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "required arguement test"
-    set errorTest [b2 get name image]
+    set errorTest [b2_get_name image]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "arguement object type test"
-    set errorTest [b2 get name test ]
+    set errorTest [b2_get_name test ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
@@ -96,8 +96,8 @@ proc getName {pathToRegressionDir dateString} {
         set testObjectId [b2 load [lindex $objectTypes $i] [lindex $objectFiles $i]]
         ReportTestStatus $LogFile  [ expr {$testObjectId != -1 } ] $ModuleName $SubTestDes
 
-        set SubTestDes "Get Object Name [lindex $objectTypes $i] test:b2 get name [lindex $objectTypes $i] $testObjectId"
-        set name [b2 get name [lindex $objectTypes $i] $testObjectId]
+        set SubTestDes "Get Object Name [lindex $objectTypes $i] test:b2_get_name [lindex $objectTypes $i] $testObjectId"
+        set name [b2_get_name [lindex $objectTypes $i] $testObjectId]
         ReportTestStatus $LogFile  [ expr {$name == [lindex $objectNames $i ]} ] $ModuleName $SubTestDes
 
         ReportTestStatus $LogFile  [ expr { [ b2 destroy  [lindex $objectTypes $i] $testObjectId ] != -1 } ] $ModuleName "Destroying  [lindex $objectTypes $i] $testObjectId"

@@ -9,7 +9,7 @@ foreach t (module/*.tcl)
   echo "source $t" >> tmp.tcl
   set r  = ${t:t}
   echo ${r:r} ' $pathToRegressionDir $dateString' >> tmp.tcl
-  echo "b2 exit" >> tmp.tcl
+  echo "b2_exit" >> tmp.tcl
   echo "STARTING ${r:r}" > test/${r:r}.out
   $RESEARCHHOME/$ARCH/$ABI/bin/brains2 -c tmp.tcl >>& test/${r:r}.out
   echo "END ${r:r}" >> test/${r:r}.out

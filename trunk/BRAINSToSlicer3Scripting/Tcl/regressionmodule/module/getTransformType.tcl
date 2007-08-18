@@ -1,6 +1,6 @@
 # \author    Greg Harris"
 # \date        $Date: 2005-03-08 16:40:34 -0600 (Tue, 08 Mar 2005) $
-# \brief    This module tests the b2 get transform type command
+# \brief    This module tests the b2_get_transform_type command
 # \fn        proc getTransformType {pathToRegressionDir dateString}
 # \param    string pathToRegressionDir    - Path to the regresssion test directory
 # \param    string dateString            - String to label output file
@@ -21,7 +21,7 @@ proc getTransformType {pathToRegressionDir dateString} {
 
     set ModuleName "getTransformType"
     set ModuleAuthor "Greg Harris"
-    set ModuleDescription "Test the b2 get transform type command "
+    set ModuleDescription "Test the b2_get_transform_type command "
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -34,7 +34,7 @@ proc getTransformType {pathToRegressionDir dateString} {
 ########################################
 
     set SubTestDes "Get transform type - Load transform test"
-    set TestXfrmId [b2 load transform $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/resample_parameters]
+    set TestXfrmId [b2_load_transform $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/resample_parameters]
     if { [ ReportTestStatus $LogFile  [ expr {$TestXfrmId != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
@@ -43,26 +43,26 @@ proc getTransformType {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "Required arguement test"
-    set errorTest [b2 get transform type]
+    set errorTest [b2_get_transform_type]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "Invalid arguement number test"
-    set errorTest [b2 get transform type $TestXfrmId junk=]
+    set errorTest [b2_get_transform_type $TestXfrmId junk=]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "Invalid optional arguement test"
-    set errorTest [b2 get transform type $TestXfrmId junk= test]
+    set errorTest [b2_get_transform_type $TestXfrmId junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "Invalid object test"
-    set errorTest [b2 get transform type -1]
+    set errorTest [b2_get_transform_type -1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "Transform Type test"
-    set XfrmType [b2 get transform type $TestXfrmId ]
+    set XfrmType [b2_get_transform_type $TestXfrmId ]
     ReportTestStatus $LogFile  [ expr {$XfrmType == "Affine" } ] $ModuleName $SubTestDes
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy transform $TestXfrmId ] != -1 } ] $ModuleName "Destroying transform $TestXfrmId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_transform $TestXfrmId ] != -1 } ] $ModuleName "Destroying transform $TestXfrmId"
 
 
     return [ StopModule  $LogFile $ModuleName ]

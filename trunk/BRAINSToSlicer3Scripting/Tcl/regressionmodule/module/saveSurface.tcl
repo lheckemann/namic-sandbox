@@ -77,7 +77,7 @@ proc saveSurface {pathToRegressionDir dateString} {
     }
 
     set SubTestDes "Save Surface - Load Mask test"
-    set TestMaskID [b2 load mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
+    set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
     if { [ ReportTestStatus $LogFile  [ expr {$TestMaskID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
@@ -142,7 +142,7 @@ proc saveSurface {pathToRegressionDir dateString} {
 
 
     ReportTestStatus $LogFile  [ expr { [ b2 destroy surface $TestSurfaceID ] != -1 } ] $ModuleName "Destroying surface $TestSurfaceID"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
 
 
     return [ StopModule  $LogFile $ModuleName ]

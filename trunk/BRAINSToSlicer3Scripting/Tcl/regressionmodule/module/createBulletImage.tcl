@@ -1,6 +1,6 @@
 # \author        Greg Harris"
 # \date
-# \brief        b2 create bullet-image
+# \brief        b2_create_bullet-image
 # \fn                proc createBulletImage {pathToRegressionDir dateString}
 # \param        string pathToRegressionDir        - Path to the regresssion test directory
 # \param        string dateString                - String to label output file
@@ -8,8 +8,8 @@
 #
 # Test Performed
 # -----------------------------------------------------------------------
-# 'b2 create bullet-image' -- b2 invalid arguments
-# 'b2 create bullet-image' -- run without error signal
+# 'b2_create_bullet-image' -- b2 invalid arguments
+# 'b2_create_bullet-image' -- run without error signal
 # resulting image's parameters
 # threshold and mask: parameters, volumes
 # boxed bullet: parameters, volumes
@@ -30,7 +30,7 @@ proc createBulletImage {pathToRegressionDir dateString} {
 
     set ModuleName "createBulletImage"
     set ModuleAuthor "Greg Harris"
-    set ModuleDescription "Testing of b2 create bullet-image"
+    set ModuleDescription "Testing of b2_create_bullet-image"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -42,40 +42,40 @@ proc createBulletImage {pathToRegressionDir dateString} {
 
 # Run Tests
 
-        set num_ret [b2 create bullet-image]
-        set SubTestDes "required argument test: \[b2 create bullet-image\]"
+        set num_ret [b2_create_bullet-image]
+        set SubTestDes "required argument test: \[b2_create_bullet-image\]"
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-        set num_ret [b2 create bullet-image 200 0 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0]
-        set SubTestDes "required argument test: \[b2 create bullet-image 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0\]"
+        set num_ret [b2_create_bullet-image 200 0 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0]
+        set SubTestDes "required argument test: \[b2_create_bullet-image 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0\]"
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-        set num_ret [b2 create bullet-image 200 0 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0 4.0 5]
-        set SubTestDes "required argument test: \[b2 create bullet-image 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0 4.0 5\]"
+        set num_ret [b2_create_bullet-image 200 0 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0 4.0 5]
+        set SubTestDes "required argument test: \[b2_create_bullet-image 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0 4.0 5\]"
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
 
         set SubTestDes "optional argument number test"
-        set num_ret [b2 create bullet-image 200 0 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0 4.0 junk= ]
+        set num_ret [b2_create_bullet-image 200 0 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0 4.0 junk= ]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
         set SubTestDes "unknown optional argument test"
-        set num_ret [b2 create bullet-image 200 0 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0 4.0 junk= test]
+        set num_ret [b2_create_bullet-image 200 0 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0 4.0 junk= test]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
 
-        set img_ret [b2 create bullet-image 200 0 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0 4.0]
-        set SubTestDes "correct response test: \[b2 create bullet-image 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0 4.0\]"
+        set img_ret [b2_create_bullet-image 200 0 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0 4.0]
+        set SubTestDes "correct response test: \[b2_create_bullet-image 256 256 192 1.015625 1.015625 1.015625 120 100 75 2.0 1.0 4.0\]"
         if {[ReportTestStatus $LogFile  [ expr {$img_ret >= 0} ] $ModuleName $SubTestDes] == 0} {
 }
 
         if {$img_ret >= 0} {
-                set dim_ret [b2 get dims image $img_ret]
+                set dim_ret [b2_get_dims_image $img_ret]
                 set SubTestDes "num dims test"
                 if {[ReportTestStatus $LogFile  [ expr {[llength $dim_ret] == 3 } ] $ModuleName $SubTestDes] == 0} {
 }
@@ -92,7 +92,7 @@ proc createBulletImage {pathToRegressionDir dateString} {
                 if {[ReportTestStatus $LogFile  [ expr {[lindex $dim_ret 2] == 192 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-                set test_res [b2 get res image $img_ret]
+                set test_res [b2_get_res_image $img_ret]
 
                 set SubTestDes "num res test"
                 if {[ReportTestStatus $LogFile  [ expr {[llength $test_res] == 3 } ] $ModuleName $SubTestDes] == 0} {
@@ -111,20 +111,20 @@ proc createBulletImage {pathToRegressionDir dateString} {
 }
 
 
-        set imageMin [b2 image min  $img_ret]
+        set imageMin [b2_image_min  $img_ret]
               if {[SingleMeasureEpsilonTest "bullet image min" 0.00001 $imageMin 0.000000 $LogFile $ModuleName] == 0} {
 }
 
-        set imageMax [b2 image max   $img_ret]
+        set imageMax [b2_image_max   $img_ret]
               if {[SingleMeasureEpsilonTest "bullet image max" 0.00001 $imageMax 200.000000 $LogFile $ModuleName] == 0} {
 }
 
 
-        set thresh_mask [b2 threshold image $img_ret 1.0]
-        set meas_tbl [b2 measure volume mask $thresh_mask]
+        set thresh_mask [b2_threshold_image $img_ret 1.0]
+        set meas_tbl [b2_measure_volume_mask $thresh_mask]
 
 
-                set dim_ret [b2 get dims mask $thresh_mask]
+                set dim_ret [b2_get_dims_mask $thresh_mask]
                 set SubTestDes "thresh mask num dims test"
                 if {[ReportTestStatus $LogFile  [ expr {[llength $dim_ret] == 3 } ] $ModuleName $SubTestDes] == 0} {
 }
@@ -141,7 +141,7 @@ proc createBulletImage {pathToRegressionDir dateString} {
                 if {[ReportTestStatus $LogFile  [ expr {[lindex $dim_ret 2] == 192 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-                set test_res [b2 get res mask $thresh_mask]
+                set test_res [b2_get_res_mask $thresh_mask]
 
                 set SubTestDes "thresh mask num res test"
                 if {[ReportTestStatus $LogFile  [ expr {[llength $test_res] == 3 } ] $ModuleName $SubTestDes] == 0} {
@@ -165,7 +165,7 @@ proc createBulletImage {pathToRegressionDir dateString} {
 }
 
 
-        set meas_tbl [b2 measure image mask $thresh_mask $img_ret]
+        set meas_tbl [b2_measure_image_mask $thresh_mask $img_ret]
 #puts $meas_tbl
               set standards {
 {Mean 200.000000000000000} {Mean-Absolute-Deviation 0.000000000000000} {Variance 0.000000000000000} {Standard-Deviation 0.000000000000000} {Skewness 0.000000000000000} {Kurtosis 0.000000000000000} {Minimum 200.000000000000000} {Maximum 200.000000000000000}
@@ -174,11 +174,11 @@ proc createBulletImage {pathToRegressionDir dateString} {
 }
 
 
-        set pair_ret [b2 create boxed-image $img_ret threshold= 1.0]
-        b2 set transform -1 image [lindex ${pair_ret} 0]
+        set pair_ret [b2_create_boxed-image $img_ret threshold= 1.0]
+        b2_set_transform -1 image [lindex ${pair_ret} 0]
 
 
-        set dim_ret [b2 get dims image [lindex ${pair_ret} 0]]
+        set dim_ret [b2_get_dims_image [lindex ${pair_ret} 0]]
 
         set SubTestDes "boxed bullet num dims test"
         if {[ReportTestStatus $LogFile  [ expr {[llength $dim_ret] == 3 } ] $ModuleName $SubTestDes] == 0} {
@@ -196,7 +196,7 @@ proc createBulletImage {pathToRegressionDir dateString} {
         if {[ReportTestStatus $LogFile  [ expr {[lindex $dim_ret 2] == 6 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-        set test_res [b2 get res image [lindex ${pair_ret} 0]]
+        set test_res [b2_get_res_image [lindex ${pair_ret} 0]]
 
                 set SubTestDes "boxed bullet num res test"
                 if {[ReportTestStatus $LogFile  [ expr {[llength $test_res] == 3 } ] $ModuleName $SubTestDes] == 0} {
@@ -218,10 +218,10 @@ proc createBulletImage {pathToRegressionDir dateString} {
 # Clean up Files
 
 # Free memory
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image [lindex ${pair_ret} 0] ] != -1 } ] $ModuleName "Destroying image [lindex ${pair_ret} 0]"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy transform [lindex ${pair_ret} 1] ] != -1 } ] $ModuleName "Destroying transform [lindex ${pair_ret} 1]"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image ${img_ret} ] != -1 } ] $ModuleName "Destroying image ${img_ret}"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask ${thresh_mask} ] != -1 } ] $ModuleName "Destroying mask ${thresh_mask}"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image [lindex ${pair_ret} 0] ] != -1 } ] $ModuleName "Destroying image [lindex ${pair_ret} 0]"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_transform [lindex ${pair_ret} 1] ] != -1 } ] $ModuleName "Destroying transform [lindex ${pair_ret} 1]"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image ${img_ret} ] != -1 } ] $ModuleName "Destroying image ${img_ret}"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask ${thresh_mask} ] != -1 } ] $ModuleName "Destroying mask ${thresh_mask}"
 
         }
 

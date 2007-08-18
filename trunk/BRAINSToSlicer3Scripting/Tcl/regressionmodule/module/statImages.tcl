@@ -1,6 +1,6 @@
 # \author    Greg Harris
 # \date        $Date: 2005-07-30 14:38:45 -0500 (Sat, 30 Jul 2005) $
-# \brief    This module tests the "b2 stat images"
+# \brief    This module tests the "b2_stat_images"
 # \fn        proc GetImageValue { Image xloc yloc zloc } 
 # \param    string pathToRegressionDir    - Path to the regresssion test directory
 # \param    string dateString            - String to label output file
@@ -8,7 +8,7 @@
 #
 # Test Performed
 # -----------------------------------------------------------------------
-# Test the b2 stat images command
+# Test the b2_stat_images command
 #
 # To Do
 #------------------------------------------------------------------------
@@ -17,24 +17,24 @@
 
 ####
 proc GetImageValue { ImageList xloc yloc zloc } {
-    set dim [ b2 get dims image [ lindex $ImageList 0] ];
+    set dim [ b2_get_dims_image [ lindex $ImageList 0] ];
     set dim0 [ lindex $dim 0 ];
     set dim1 [ lindex $dim 1 ];
     set dim2 [ lindex $dim 2 ];
-    set res [ b2 get res image [ lindex $ImageList 0] ];
+    set res [ b2_get_res_image [ lindex $ImageList 0] ];
     set res0 [ lindex $res 0 ];
     set res1 [ lindex $res 1 ];
     set res2 [ lindex $res 2 ];
-    set bullet [b2 create bullet-image 1 0 $dim0 $dim1 $dim2 $res0 $res1 $res2 $xloc $yloc $zloc 1 1 1];
-    set bmask [ b2 threshold image $bullet 1];
+    set bullet [b2_create_bullet-image 1 0 $dim0 $dim1 $dim2 $res0 $res1 $res2 $xloc $yloc $zloc 1 1 1];
+    set bmask [ b2_threshold_image $bullet 1];
 
     foreach currImage $ImageList {
-        set stats [ b2 measure image mask $bmask $currImage ];
+        set stats [ b2_measure_image_mask $bmask $currImage ];
         array set stats_list [ join $stats ];
         lappend values $stats_list(Mean);
     }
-    b2 destroy image $bullet;
-    b2 destroy mask $bmask;
+    b2_destroy_image $bullet;
+    b2_destroy_mask $bmask;
     return $values;
 }
 
@@ -43,7 +43,7 @@ proc statImages {pathToRegressionDir dateString} {
 
     set ModuleName "statImages"
     set ModuleAuthor "Greg Harris"
-    set ModuleDescription "Test the b2 stat images command"
+    set ModuleDescription "Test the b2_stat_images command"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -72,7 +72,7 @@ proc statImages {pathToRegressionDir dateString} {
         set size [ expr $dims/$scales ]
         set fg [expr 255/$scales]
         set zero_corner [expr $center-$size/2 ]
-        set currImage [b2 create bullet-image $fg $bg $dims $dims $dims 1.0 1.0 1.0 $zero_corner $zero_corner $zero_corner $size $size $size ]
+        set currImage [b2_create_bullet-image $fg $bg $dims $dims $dims 1.0 1.0 1.0 $zero_corner $zero_corner $zero_corner $size $size $size ]
         set SubTestDes "stat images - create phantom image test"
         if { [ ReportTestStatus $LogFile  [ expr {$currImage  != -1 } ] $ModuleName $SubTestDes] == 0} {
             continue
@@ -81,7 +81,7 @@ proc statImages {pathToRegressionDir dateString} {
         if { $zero_corner <= $off_center } {
            lappend offvalues [ GetImageValue $currImage $off_center $off_center $off_center ]
         }
-        set currMask [ b2 threshold image $currImage 1 ]
+        set currMask [ b2_threshold_image $currImage 1 ]
         set SubTestDes "stat images - create phantom mask test"
         if { [ ReportTestStatus $LogFile  [ expr {$currMask  != -1 } ] $ModuleName $SubTestDes] == 0} {
             continue
@@ -98,42 +98,42 @@ proc statImages {pathToRegressionDir dateString} {
 
     # First, test for invalid arguments
     set SubTestDes "required argument test"
-    set errorTest [b2 stat images]
+    set errorTest [b2_stat_images]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "argument number test"
-    set errorTest [b2 stat images $Images junk= ]
+    set errorTest [b2_stat_images $Images junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional argument test"
-    set errorTest [b2 stat images $Images junk= test]
+    set errorTest [b2_stat_images $Images junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "invalid image test"
-    set errorTest [b2 stat images 65536]
+    set errorTest [b2_stat_images 65536]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "invalid mask test (1)"
-    set errorTest [b2 stat images [lindex $Images 0] supplied-masks= 65536]
+    set errorTest [b2_stat_images [lindex $Images 0] supplied-masks= 65536]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "invalid mask test (11)"
-    set errorTest [b2 stat images $Images supplied-masks= "65536 [lrange $Masks 1 end]"]
+    set errorTest [b2_stat_images $Images supplied-masks= "65536 [lrange $Masks 1 end]"]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "wrong number of masks test"
-    set errorTest [b2 stat images $Images supplied-masks= [lrange $Masks 1 end]]
+    set errorTest [b2_stat_images $Images supplied-masks= [lrange $Masks 1 end]]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "no requests test"
-    set errorTest [b2 stat images $Images supplied-masks= $Masks]
+    set errorTest [b2_stat_images $Images supplied-masks= $Masks]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
 
     ############################ BRAINS2 stat images -- Mean thru T-test #####################################
-    set stat_results_list [ b2 stat images $Images supplied-masks= $Masks requests= {Mean Variance StandardDeviation Skewness Kurtosis Cardinality PairedDifferenceT PairedDifferenceTProbability } ]
-    puts "++++++++++++++++++++++++++++++++++++++++++++++++ 'b2 stat images' produced:"
+    set stat_results_list [ b2_stat_images $Images supplied-masks= $Masks requests= {Mean Variance StandardDeviation Skewness Kurtosis Cardinality PairedDifferenceT PairedDifferenceTProbability } ]
+    puts "++++++++++++++++++++++++++++++++++++++++++++++++ 'b2_stat_images' produced:"
     puts "$stat_results_list"
     set SubTestDes "stat images - generate statistical results test Long Test"
     if { [ ReportTestStatus $LogFile  [ expr {$stat_results_list != -1 } ] $ModuleName $SubTestDes] != 0} {
@@ -233,14 +233,14 @@ proc statImages {pathToRegressionDir dateString} {
 
         foreach LabelImagePair $stat_results_list {
             set TestImageId [lindex $LabelImagePair 1]
-            ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageId ] != -1 } ] $ModuleName "Destroying image $TestImageId"
+            ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageId ] != -1 } ] $ModuleName "Destroying image $TestImageId"
         }
     }
 
 
     ############################ BRAINS2 stat images -- Min, Max, and Median #################################
-    set stat_results_list [ b2 stat images $Images supplied-masks= $Masks requests= { Median Min Max } ]
-    puts "++++++++++++++++++++++++++++++++++++++++++++++++ 'b2 stat images' produced:"
+    set stat_results_list [ b2_stat_images $Images supplied-masks= $Masks requests= { Median Min Max } ]
+    puts "++++++++++++++++++++++++++++++++++++++++++++++++ 'b2_stat_images' produced:"
     puts "$stat_results_list"
     set SubTestDes "stat images - generate statistical results test Short Test"
     if { [ ReportTestStatus $LogFile  [ expr {$stat_results_list != -1 } ] $ModuleName $SubTestDes] != 0} {
@@ -296,7 +296,7 @@ proc statImages {pathToRegressionDir dateString} {
 
         foreach LabelImagePair $stat_results_list {
             set TestImageId [lindex $LabelImagePair 1]
-            ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageId ] != -1 } ] $ModuleName "Destroying image $TestImageId"
+            ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageId ] != -1 } ] $ModuleName "Destroying image $TestImageId"
         }
     }
 
@@ -304,10 +304,10 @@ proc statImages {pathToRegressionDir dateString} {
     ############################ Free up the test images and masks ########################################
 
     foreach TestMaskId $Masks {
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
     }
     foreach TestImageId $Images {
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageId ] != -1 } ] $ModuleName "Destroying image $TestImageId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageId ] != -1 } ] $ModuleName "Destroying image $TestImageId"
     }
 
 

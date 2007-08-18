@@ -1,6 +1,6 @@
 # \author    Hans J. Johnson"
 # \date        $Date: 2005-03-08 16:40:34 -0600 (Tue, 08 Mar 2005) $
-# \brief    This module tests the b2 get mask color command
+# \brief    This module tests the b2_get_mask_color command
 # \fn        proc getMaskColor {pathToRegressionDir dateString}
 # \param    string pathToRegressionDir    - Path to the regresssion test directory
 # \param    string dateString            - String to label output file
@@ -8,7 +8,7 @@
 #
 # Test Performed
 # -----------------------------------------------------------------------
-# Test the b2 get mask color command
+# Test the b2_get_mask_color command
 #
 # To Do
 #------------------------------------------------------------------------
@@ -21,7 +21,7 @@ proc getMaskColor {pathToRegressionDir dateString} {
 
     set ModuleName "getMaskColor"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 get mask color command"
+    set ModuleDescription "Test the b2_get_mask_color command"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -34,7 +34,7 @@ proc getMaskColor {pathToRegressionDir dateString} {
 ########################################
 
     set SubTestDes "Get mask color load test"
-    set TestMaskID [b2 load mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
+    set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
     if { [ ReportTestStatus $LogFile  [ expr {$TestMaskID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
@@ -42,27 +42,27 @@ proc getMaskColor {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "required arguement test"
-    set errorTest [b2 get mask color]
+    set errorTest [b2_get_mask_color]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "arguement number test"
-    set errorTest [b2 get mask color $TestMaskID junk= ]
+    set errorTest [b2_get_mask_color $TestMaskID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional arguement test"
-    set errorTest [b2 get mask color $TestMaskID junk= test]
+    set errorTest [b2_get_mask_color $TestMaskID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "invalid mask test"
-    set errorTest [b2 get mask color -1]
+    set errorTest [b2_get_mask_color -1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
     set SubTestDes "Get mask color test"
-    set errorTest [b2 get mask color $TestMaskID]
+    set errorTest [b2_get_mask_color $TestMaskID]
     ReportTestStatus $LogFile  [ expr {[llength $errorTest] == 4 } ] $ModuleName $SubTestDes
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
 
     return [ StopModule  $LogFile $ModuleName ]
 

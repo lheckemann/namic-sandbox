@@ -14,7 +14,7 @@ puts "Executing Commands From @EXECUTABLE_OUTPUT_PATH@/@SCRIPT_TO_GENERATE@.tcl"
 
 foreach  CurrFile  { SGI/MR/NIfTITypes/Compliant/10_ACPC/char_bigendian.nii.gz SGI/MR/NIfTITypes/Compliant/10_ACPC/char_littleendian.nii.gz SGI/MR/NIfTITypes/Compliant/10_ACPC/float_bigendian.nii.gz SGI/MR/NIfTITypes/Compliant/10_ACPC/float_littleendian.nii.gz SGI/MR/NIfTITypes/Compliant/10_ACPC/signed16_bigendian.nii.gz SGI/MR/NIfTITypes/Compliant/10_ACPC/signed16_littleendian.nii.gz } {
    set fileName @BrainsRegressionData_DATA_PATH@/${CurrFile}
-   set inputImage [ b3_load_image ${fileName} ]
+   set inputImage [ b2_load_image ${fileName} ]
    ${inputImage} Delete
 }
 

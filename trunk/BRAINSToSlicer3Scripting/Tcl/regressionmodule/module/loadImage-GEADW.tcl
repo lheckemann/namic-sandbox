@@ -14,7 +14,7 @@ proc loadImage-GEADW {pathToRegressionDir dateString} {
 ########################################
         set ModuleName "loadImage-GEADW"
         set ModuleAuthor "Hans J. Johnson"
-        set ModuleDescription "Test the b2 load image command and loading various image file formats"
+        set ModuleDescription "Test the b2_load_image command and loading various image file formats"
         global MODULE_SUCCESS
         global MODULE_FAILURE
         set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -36,10 +36,10 @@ proc loadImage-GEADW {pathToRegressionDir dateString} {
         set Dimensions "256 256 120"
         set Resolutions "0.625000 0.625000 1.500000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/GE-Adw/TEST/Series2/I.074]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/GE-Adw/TEST/Series2/I.074]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
+                ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
         }
 
 ##################### Test Loading Various Data Types Image ###########################################

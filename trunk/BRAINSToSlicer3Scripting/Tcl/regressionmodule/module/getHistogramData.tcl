@@ -1,6 +1,6 @@
 # \author    Hans J. Johnson"
 # \date        $Date: 2005-03-08 16:40:34 -0600 (Tue, 08 Mar 2005) $
-# \brief    This module tests the b2 get histogram data command
+# \brief    This module tests the b2_get_histogram_data command
 # \fn        proc getHistogramData {pathToRegressionDir dateString}
 # \param    string pathToRegressionDir    - Path to the regresssion test directory
 # \param    string dateString            - String to label output file
@@ -8,7 +8,7 @@
 #
 # Test Performed
 # -----------------------------------------------------------------------
-# Test the b2 get histogram data command
+# Test the b2_get_histogram_data command
 #
 # To Do
 #------------------------------------------------------------------------
@@ -20,7 +20,7 @@ proc getHistogramData {pathToRegressionDir dateString} {
 
     set ModuleName "getHistogramData"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 get histogram data command"
+    set ModuleDescription "Test the b2_get_histogram_data command"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -122,7 +122,7 @@ proc getHistogramData {pathToRegressionDir dateString} {
 
 
     set SubTestDes "Get histogram data - Load Histogram test"
-    set TestHistID [b2 load histogram $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/user/cran_histogram]
+    set TestHistID [b2_load_histogram $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/user/cran_histogram]
     if { [ ReportTestStatus $LogFile  [ expr {$TestHistID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
@@ -130,20 +130,20 @@ proc getHistogramData {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "required arguement test (1)"
-    set errorTest [b2 get histogram data]
+    set errorTest [b2_get_histogram_data]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "arguement number test"
-    set errorTest [b2 get histogram data $TestHistID -1 junk= ]
+    set errorTest [b2_get_histogram_data $TestHistID -1 junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional arguement test"
-    set errorTest [b2 get histogram data $TestHistID -1 junk= test]
+    set errorTest [b2_get_histogram_data $TestHistID -1 junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
     set SubTestDes "Histogram Data test"
-    set histData [b2 get histogram data $TestHistID]
+    set histData [b2_get_histogram_data $TestHistID]
     ReportTestStatus $LogFile  [ expr {[llength $histData] == 256 } ] $ModuleName $SubTestDes
 
     for {set i 0} {$i < [llength $ExpectData]} {incr i} {
@@ -153,7 +153,7 @@ proc getHistogramData {pathToRegressionDir dateString} {
     }
 
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy histogram $TestHistID ] != -1 } ] $ModuleName "Destroying histogram $TestHistID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_histogram $TestHistID ] != -1 } ] $ModuleName "Destroying histogram $TestHistID"
 
     return [ StopModule  $LogFile $ModuleName ]
 

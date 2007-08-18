@@ -1,6 +1,6 @@
 # \author    Greg Harris"
 # \date        $Date: 2006-01-30 13:34:07 -0600 (Mon, 30 Jan 2006) $
-# \brief    This module tests the "b2 convert class-image to discrete"
+# \brief    This module tests the "b2_convert_class-image_to_discrete"
 # \fn        proc convertClassImageToDiscrete {pathToRegressionDir dateString}
 # \param    string pathToRegressionDir    - Path to the regresssion test directory
 # \param    string dateString            - String to label output file
@@ -8,7 +8,7 @@
 #
 # Test Performed
 # -----------------------------------------------------------------------
-# Test the b2 convert class-image to discrete command
+# Test the b2_convert_class-image_to_discrete command
 #
 # To Do
 #------------------------------------------------------------------------
@@ -21,7 +21,7 @@ proc convertClassImageToDiscrete {pathToRegressionDir dateString} {
 
     set ModuleName "convertClassImageToDiscrete"
     set ModuleAuthor "Greg Harris"
-    set ModuleDescription "Test the b2 convert class-image to discrete command"
+    set ModuleDescription "Test the b2_convert_class-image_to_discrete command"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -39,28 +39,28 @@ proc convertClassImageToDiscrete {pathToRegressionDir dateString} {
 
     ############################### Load a Tissue Class Image ###########################################
     set SubTestDes "Convert Class Image to discerete - Load Class Image test"
-    set ImageId [b2 load image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_stereo.hdr]
+    set ImageId [b2_load_image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_stereo.hdr]
     if { [ ReportTestStatus $LogFile  [ expr {$ImageId != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
 
     ############################### Load Talairach Parameters ###########################################
     set SubTestDes "Convert Class Image to discerete - Load Talairach Parameter test"
-    set TalParId [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters]
+    set TalParId [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters]
     if { [ ReportTestStatus $LogFile  [ expr {$TalParId != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
 
     ############################### Load the Basal Box Image ###########################################
     set SubTestDes "Convert Class Image to discerete - Load Talairach Box test"
-    set TalBoxId [b2 load talairach-box $B2_TALAIRACH_DIR/basal_box]
+    set TalBoxId [b2_load_talairach-box $B2_TALAIRACH_DIR/basal_box]
     if { [ ReportTestStatus $LogFile  [ expr {$TalBoxId != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
 
     ############################### Convert the Box to a Mask ###########################################
     set SubTestDes "Convert Class Image to discerete - Convert Talairach Box to Mask test"
-    set MaskId [b2 convert talairach-box to mask $TalBoxId $TalParId]
+    set MaskId [b2_convert_talairach-box_to_mask $TalBoxId $TalParId]
     if { [ ReportTestStatus $LogFile  [ expr {$MaskId != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
@@ -68,21 +68,21 @@ proc convertClassImageToDiscrete {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "required arguement test (1)"
-    set errorTest [b2 convert class-image to discrete]
+    set errorTest [b2_convert_class-image_to_discrete]
     if { [ ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes] == 0} {
 
 
     }
 
     set SubTestDes "arguement number test"
-    set errorTest [b2 convert class-image to discrete $ImageId junk=]
+    set errorTest [b2_convert_class-image_to_discrete $ImageId junk=]
     if { [ ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes] == 0} {
 
 
     }
 
     set SubTestDes "optional arguement test"
-    set errorTest [b2 convert class-image to discrete $ImageId junk= test]
+    set errorTest [b2_convert_class-image_to_discrete $ImageId junk= test]
     if { [ ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes] == 0} {
 
 
@@ -91,78 +91,78 @@ proc convertClassImageToDiscrete {pathToRegressionDir dateString} {
 
     ########################## BRAINS2 Convert Class Image to Discrete ##############################
     set SubTestDes "B2 CONVERT CLASS-IMAGE TO DISCRETE with Mask test"
-    set TestImageId [b2 convert class-image to discrete $ImageId mask= $MaskId]
+    set TestImageId [b2_convert_class-image_to_discrete $ImageId mask= $MaskId]
     if { [ ReportTestStatus $LogFile  [ expr {$TestImageId != -1 } ] $ModuleName $SubTestDes] == 0} {
 
 
     }
-#b2 save image /usr/warp/purify/src/regressiontest/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_10_Discrete.hdr strictAnalyze75 $TestImageId
+#b2_save_image /usr/warp/purify/src/regressiontest/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_10_Discrete.hdr strictAnalyze75 $TestImageId
 
     ###################### BRAINS2 Load Discrete Image generated by BRAINS ##########################
     set SubTestDes "B2 CONVERT CLASS-IMAGE TO DISCRETE load BRAINS Discrete Image test"
-    set CheckImageId [b2 load image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_10_Discrete.hdr]
+    set CheckImageId [b2_load_image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_10_Discrete.hdr]
     if { [ ReportTestStatus $LogFile  [ expr {$CheckImageId != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
 
     #### Compare results to BRAINS
     set SubTestDes "B2 CONVERT CLASS-IMAGE TO DISCRETE Subtract Image test"
-    set diffImage [b2 subtract images [list $TestImageId $CheckImageId]]
+    set diffImage [b2_subtract_images [list $TestImageId $CheckImageId]]
     if { [ ReportTestStatus $LogFile  [ expr {$diffImage != -1 } ] $ModuleName $SubTestDes] == 0} {
 
 
     }
 
     set SubTestDes "B2 CONVERT CLASS-IMAGE TO DISCRETE Generate Difference Mask test"
-    set diffMask [b2 threshold image $diffImage 0.5 absolute-value= True]
+    set diffMask [b2_threshold_image $diffImage 0.5 absolute-value= True]
     if { [ ReportTestStatus $LogFile  [ expr {$diffMask != -1 } ] $ModuleName $SubTestDes] == 0} {
 
 
     }
 
-    set volume [b2 measure volume mask $diffMask]
+    set volume [b2_measure_volume_mask $diffMask]
     set SubTestDes "B2 CONVERT CLASS-IMAGE TO DISCRETE Measure Difference Volume [lindex [lindex $volume 0] 1] test"
     if { [ ReportTestStatus $LogFile  [ expr {[lindex [lindex $volume 0] 1] == 0.000000 } ] $ModuleName $SubTestDes] == 0} {
 
 
     }
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $diffMask ] != -1 } ] $ModuleName "Destroying mask $diffMask"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageId ] != -1 } ] $ModuleName "Destroying image $TestImageId"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image $CheckImageId ] != -1 } ] $ModuleName "Destroying image $CheckImageId"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image $diffImage ] != -1 } ] $ModuleName "Destroying image $diffImage"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $diffMask ] != -1 } ] $ModuleName "Destroying mask $diffMask"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageId ] != -1 } ] $ModuleName "Destroying image $TestImageId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $CheckImageId ] != -1 } ] $ModuleName "Destroying image $CheckImageId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $diffImage ] != -1 } ] $ModuleName "Destroying image $diffImage"
 
 
     ########################## BRAINS2 Convert Class Image to Discrete ##############################
     set SubTestDes "B2 CONVERT CLASS-IMAGE TO DISCRETE test"
-    set TestImageId [b2 convert class-image to discrete $ImageId]
+    set TestImageId [b2_convert_class-image_to_discrete $ImageId]
     if { [ ReportTestStatus $LogFile  [ expr {$TestImageId != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
 
     #### Continuous and Discrete Threshold mask should be the same
     set SubTestDes "B2 CONVERT CLASS-IMAGE TO DISCRETE mask test"
-    set discMask [b2 threshold image $TestImageId 190]
+    set discMask [b2_threshold_image $TestImageId 190]
     if { [ ReportTestStatus $LogFile  [ expr {$discMask != -1 } ] $ModuleName $SubTestDes] == 0} {
 
 
     }
 
     set SubTestDes "B2 CONVERT CLASS-IMAGE TO DISCRETE continuous mask test"
-    set contMask [b2 threshold image $ImageId 190]
+    set contMask [b2_threshold_image $ImageId 190]
     if { [ ReportTestStatus $LogFile  [ expr {$contMask != -1 } ] $ModuleName $SubTestDes] == 0} {
 
 
     }
 
     set SubTestDes "B2 CONVERT CLASS-IMAGE TO DISCRETE difference mask test"
-    set diffMask [ b2 xor masks $discMask $contMask]
+    set diffMask [ b2_xor_masks $discMask $contMask]
     if { [ ReportTestStatus $LogFile  [ expr {$diffMask != -1 } ] $ModuleName $SubTestDes] == 0} {
 
 
     }
 
-    set volume [b2 measure volume mask $diffMask]
+    set volume [b2_measure_volume_mask $diffMask]
     set SubTestDes "B2 CONVERT CLASS-IMAGE TO DISCRETE measure mask volume [lindex [lindex $volume 0] 1] test"
     if { [ ReportTestStatus $LogFile  [ expr {[lindex [lindex $volume 0] 1] == 0.000000 } ] $ModuleName $SubTestDes] == 0} {
 
@@ -170,14 +170,14 @@ proc convertClassImageToDiscrete {pathToRegressionDir dateString} {
     }
 
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $discMask ] != -1 } ] $ModuleName "Destroying mask $discMask"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $contMask ] != -1 } ] $ModuleName "Destroying mask $contMask"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $diffMask ] != -1 } ] $ModuleName "Destroying mask $diffMask"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageId ] != -1 } ] $ModuleName "Destroying image $TestImageId"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TalParId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TalParId"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-box $TalBoxId ] != -1 } ] $ModuleName "Destroying talairach-box $TalBoxId"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $MaskId ] != -1 } ] $ModuleName "Destroying mask $MaskId"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image $ImageId ] != -1 } ] $ModuleName "Destroying image $ImageId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $discMask ] != -1 } ] $ModuleName "Destroying mask $discMask"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $contMask ] != -1 } ] $ModuleName "Destroying mask $contMask"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $diffMask ] != -1 } ] $ModuleName "Destroying mask $diffMask"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageId ] != -1 } ] $ModuleName "Destroying image $TestImageId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TalParId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TalParId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-box $TalBoxId ] != -1 } ] $ModuleName "Destroying talairach-box $TalBoxId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $MaskId ] != -1 } ] $ModuleName "Destroying mask $MaskId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $ImageId ] != -1 } ] $ModuleName "Destroying image $ImageId"
 
 
 

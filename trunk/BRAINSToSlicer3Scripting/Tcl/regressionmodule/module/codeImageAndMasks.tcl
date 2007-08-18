@@ -1,6 +1,6 @@
 # \author        Greg Harris"
 # \date
-# \brief        Testing of 'b2 convert mask-set to code-image' and 'b2 convert code-image to mask-set'
+# \brief        Testing of 'b2_convert_mask-set_to_code-image' and 'b2_convert_code-image_to_mask-set'
 # \fn                proc codeImageAndMasks {pathToRegressionDir dateString}
 # \param        string pathToRegressionDir        - Path to the regresssion test directory
 # \param        string dateString                - String to label output file
@@ -20,7 +20,7 @@
 proc codeImageAndMasks {pathToRegressionDir dateString} {
     set ModuleName "codeImageAndMasks"
     set ModuleAuthor "Greg Harris"
-    set ModuleDescription "Testing of 'b2 convert mask-set to code-image' and 'b2 convert code-image to mask-set'"
+    set ModuleDescription "Testing of 'b2_convert_mask-set_to_code-image' and 'b2_convert_code-image_to_mask-set'"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -36,8 +36,8 @@ proc codeImageAndMasks {pathToRegressionDir dateString} {
     set crbl_params [b2 load Talairach-Parameters "${pathToRegressionDir}/SGI/MR/B2-Crbl/TEST/10_ACPC/cerebellum_parameters"]
     set crbl_lndmrks [b2 load Landmark "${pathToRegressionDir}/SGI/MR/B2-Crbl/TEST/10_ACPC/Cerebellum.lnd"]
     set avg_lndmrks [b2 load Landmark "${pathToRegressionDir}/SGI/MR/B2-Crbl/TEST/10_ACPC/Cerebellum_space_average.lnd"]
-    set avg_lndmrks_acq [b2 convert talairach-landmark to landmark $avg_lndmrks $crbl_params]
-    set unwarp [b2 convert landmarks to bookstein-transform $avg_lndmrks_acq $crbl_lndmrks ]
+    set avg_lndmrks_acq [b2_convert_talairach-landmark_to_landmark $avg_lndmrks $crbl_params]
+    set unwarp [b2_convert_landmarks_to_bookstein-transform $avg_lndmrks_acq $crbl_lndmrks ]
 
     set l_ant_warp [b2 load Mask "${pathToRegressionDir}/SGI/MR/B2-Crbl/TEST/10_ACPC/crbl_reg_warp_its1000.mask4"]
     set r_ant_warp [b2 load Mask "${pathToRegressionDir}/SGI/MR/B2-Crbl/TEST/10_ACPC/crbl_reg_warp_its1000.mask0"]
@@ -48,36 +48,36 @@ proc codeImageAndMasks {pathToRegressionDir dateString} {
     set l_suppost_warp [b2 load Mask "${pathToRegressionDir}/SGI/MR/B2-Crbl/TEST/10_ACPC/crbl_reg_warp_its1000.mask7"]
     set r_suppost_warp [b2 load Mask "${pathToRegressionDir}/SGI/MR/B2-Crbl/TEST/10_ACPC/crbl_reg_warp_its1000.mask3"]
 
-    b2 set interpolation nearest_neighbor
+    b2_set_interpolation nearest_neighbor
     set atlasList [list $l_ant_warp $r_ant_warp $l_corpus_warp $r_corpus_warp $l_infpost_warp $r_infpost_warp $l_suppost_warp $r_suppost_warp]
 
-    set codeImage [b2 convert mask-set to code-image ${atlasList}]
-    set SubTestDes "correct response test: \[b2 convert mask-set to code-image <atlasList>\] "
+    set codeImage [b2_convert_mask-set_to_code-image ${atlasList}]
+    set SubTestDes "correct response test: \[b2_convert_mask-set_to_code-image <atlasList>\] "
     if {[ReportTestStatus $LogFile  [ expr { ${codeImage} >= 0} ] $ModuleName $SubTestDes] == 0} {
 }
 
-    b2 set transform $unwarp image $codeImage
+    b2_set_transform $unwarp image $codeImage
     set nameList {l_ant r_ant l_corpus r_corpus l_infpost r_infpost l_suppost r_suppost}
-    set maskList [b2 convert code-image to mask-set $codeImage $nameList]
-    set SubTestDes "correct response test: \[b2 convert code-image to mask-set <transformed-code-image>\]"
+    set maskList [b2_convert_code-image_to_mask-set $codeImage $nameList]
+    set SubTestDes "correct response test: \[b2_convert_code-image_to_mask-set <transformed-code-image>\]"
     if {[ReportTestStatus $LogFile  [ expr { ${maskList} != -1} ] $ModuleName $SubTestDes] == 0} {
 }
-    set SubTestDes "correct length test: \[b2 convert code-image to mask-set <transformed-code-image>\]"
+    set SubTestDes "correct length test: \[b2_convert_code-image_to_mask-set <transformed-code-image>\]"
     if {[ReportTestStatus $LogFile  [ expr { [llength ${maskList}] == [llength ${atlasList}]} ] $ModuleName $SubTestDes] == 0} {
 }
 
-    set union_form "b2 or masks"
+    set union_form "b2_or_masks"
     foreach pair $maskList {
      set union_form "$union_form [lindex $pair 1]"
     }
     set union_mask [eval ${union_form}]
 
 
-    set union_tbl [b2 measure volume mask ${union_mask}]
+    set union_tbl [b2_measure_volume_mask ${union_mask}]
     set total [lindex [lindex ${union_tbl} 0] 1]
     set sum 0
     foreach pair ${maskList} {
-    set part_tbl [b2 measure volume mask [lindex $pair 1]]
+    set part_tbl [b2_measure_volume_mask [lindex $pair 1]]
     set sum [expr $sum + [lindex [lindex ${part_tbl} 0] 1]]
     }
 puts $LogFile "- - - - - - - - - -:"
@@ -91,57 +91,57 @@ puts "Difference Fraction:   ${control_ratio}"
 }
 
 
-    set num_ret [b2 convert mask-set to code-image]
-    set SubTestDes "required argument test: \[b2 convert mask-set to code-image\]"
+    set num_ret [b2_convert_mask-set_to_code-image]
+    set SubTestDes "required argument test: \[b2_convert_mask-set_to_code-image\]"
     if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
     set SubTestDes "optional argument number test"
-    set num_ret [b2 convert mask-set to code-image ${atlasList} junk= ]
+    set num_ret [b2_convert_mask-set_to_code-image ${atlasList} junk= ]
     if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
     set SubTestDes "unknown optional argument test"
-    set num_ret [b2 convert mask-set to code-image ${atlasList} junk= test]
+    set num_ret [b2_convert_mask-set_to_code-image ${atlasList} junk= test]
     if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
 
-    set num_ret [b2 convert code-image to  mask-set]
-    set SubTestDes "required argument test: \[b2 convert code-image to  mask-set\]"
+    set num_ret [b2_convert_code-image_to_mask-set]
+    set SubTestDes "required argument test: \[b2_convert_code-image_to_mask-set\]"
     if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-    set num_ret [b2 convert code-image to  mask-set ${codeImage}]
-    set SubTestDes "insufficient argument test: \[b2 convert code-image to  mask-set <img>\]"
+    set num_ret [b2_convert_code-image_to_mask-set ${codeImage}]
+    set SubTestDes "insufficient argument test: \[b2_convert_code-image_to_mask-set <img>\]"
     if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
     set SubTestDes "optional argument number test"
-    set num_ret [b2 convert code-image to mask-set $codeImage $nameList junk= ]
+    set num_ret [b2_convert_code-image_to_mask-set $codeImage $nameList junk= ]
     if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
     set SubTestDes "unknown optional argument test"
-    set num_ret [b2 convert code-image to mask-set $codeImage $nameList junk= test]
+    set num_ret [b2_convert_code-image_to_mask-set $codeImage $nameList junk= test]
     if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
 
     foreach mask ${atlasList} {
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask ${mask} ] != -1 } ] $ModuleName "Destroying mask ${mask}"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask ${mask} ] != -1 } ] $ModuleName "Destroying mask ${mask}"
     }
     foreach pair ${maskList} {
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask [lindex $pair 1] ] != -1 } ] $ModuleName "Destroying mask [lindex $pair 1]"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask [lindex $pair 1] ] != -1 } ] $ModuleName "Destroying mask [lindex $pair 1]"
     }
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask ${union_mask} ] != -1 } ] $ModuleName "Destroying mask ${union_mask}"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters ${crbl_params} ] != -1 } ] $ModuleName "Destroying talairach-parameters ${crbl_params}"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark ${crbl_lndmrks} ] != -1 } ] $ModuleName "Destroying landmark ${crbl_lndmrks}"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark ${avg_lndmrks} ] != -1 } ] $ModuleName "Destroying landmark ${avg_lndmrks}"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark ${avg_lndmrks_acq} ] != -1 } ] $ModuleName "Destroying landmark ${avg_lndmrks_acq}"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy transform ${unwarp} ] != -1 } ] $ModuleName "Destroying transform ${unwarp}"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image $codeImage ] != -1 } ] $ModuleName "Destroying image $codeImage"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask ${union_mask} ] != -1 } ] $ModuleName "Destroying mask ${union_mask}"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters ${crbl_params} ] != -1 } ] $ModuleName "Destroying talairach-parameters ${crbl_params}"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark ${crbl_lndmrks} ] != -1 } ] $ModuleName "Destroying landmark ${crbl_lndmrks}"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark ${avg_lndmrks} ] != -1 } ] $ModuleName "Destroying landmark ${avg_lndmrks}"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark ${avg_lndmrks_acq} ] != -1 } ] $ModuleName "Destroying landmark ${avg_lndmrks_acq}"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_transform ${unwarp} ] != -1 } ] $ModuleName "Destroying transform ${unwarp}"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $codeImage ] != -1 } ] $ModuleName "Destroying image $codeImage"
 
 
     return [ StopModule  $LogFile $ModuleName ]

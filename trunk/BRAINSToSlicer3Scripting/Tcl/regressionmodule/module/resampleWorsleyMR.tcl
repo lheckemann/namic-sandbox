@@ -37,13 +37,13 @@ proc resampleWorsleyMR {pathToRegressionDir dateString} {
 
     ############################### Load an Image ###########################################
     set SubTestDes "Resample Image - Load Image test"
-    set ImageId [b2 load image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_T1.hdr]
+    set ImageId [b2_load_image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_T1.hdr]
     if { [ ReportTestStatus $LogFile  [ expr {$ImageId != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
 
     set SubTestDes "Resample Image - Load Talairach Parameters test"
-    set TalairachId [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters]
+    set TalairachId [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters]
     if { [ ReportTestStatus $LogFile  [ expr {$ImageId != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
@@ -77,15 +77,15 @@ proc resampleWorsleyMR {pathToRegressionDir dateString} {
     ReportTestStatus $LogFile  [ expr {$TestImageId != -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "B2 RESAMPLE Worsley-MR test - Mask Generation"
-    set TestMaskId [b2 threshold image $TestImageId 100]
+    set TestMaskId [b2_threshold_image $TestImageId 100]
     ReportTestStatus $LogFile  [ expr {$TestImageId != -1 } ] $ModuleName $SubTestDes
 
-    set result [b2 measure volume mask $TestMaskId]
+    set result [b2_measure_volume_mask $TestMaskId]
     set standard 1814.667518846690655
     set SubTestDes "B2 RESAMPLE IMAGE test - Image Measurement - does [lindex [lindex $result 0] 1] approximate $standard"
     ReportTestStatus $LogFile  [ expr {abs([lindex [lindex $result 0] 1] - $standard) / $standard < 0.00001} ] $ModuleName $SubTestDes
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageId ] != -1 } ] $ModuleName "Destroying image $TestImageId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageId ] != -1 } ] $ModuleName "Destroying image $TestImageId"
 
     ############################ BRAINS2 Resample Worsley-MR ########################################
     set SubTestDes "B2 RESAMPLE Worsley-MR test with options"
@@ -93,15 +93,15 @@ proc resampleWorsleyMR {pathToRegressionDir dateString} {
     ReportTestStatus $LogFile  [ expr {$TestImageId != -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "B2 RESAMPLE Worsley-MR test with options- Mask Generation"
-    set TestMaskId [b2 threshold image $TestImageId 100]
+    set TestMaskId [b2_threshold_image $TestImageId 100]
     ReportTestStatus $LogFile  [ expr {$TestImageId != -1 } ] $ModuleName $SubTestDes
 
-    set result [b2 measure volume mask $TestMaskId]
+    set result [b2_measure_volume_mask $TestMaskId]
     set standard 1814.667518846690655
     set SubTestDes "B2 RESAMPLE IMAGE test - Image Measurement - does [lindex [lindex $result 0] 1] approximate $standard"
     ReportTestStatus $LogFile  [ expr {abs([lindex [lindex $result 0] 1] - $standard) / $standard < 0.00001} ] $ModuleName $SubTestDes
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageId ] != -1 } ] $ModuleName "Destroying image $TestImageId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageId ] != -1 } ] $ModuleName "Destroying image $TestImageId"
 
     ############################ BRAINS2 Resample Worsley-MR ########################################
     set SubTestDes "B2 RESAMPLE Worsley-MR test no histogram equalization"
@@ -109,18 +109,18 @@ proc resampleWorsleyMR {pathToRegressionDir dateString} {
     ReportTestStatus $LogFile  [ expr {$TestImageId != -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "B2 RESAMPLE Worsley-MR test no histogram equalization Mask Generation"
-    set TestMaskId [b2 threshold image $TestImageId 60]
+    set TestMaskId [b2_threshold_image $TestImageId 60]
     ReportTestStatus $LogFile  [ expr {$TestImageId != -1 } ] $ModuleName $SubTestDes
 
-    set result [b2 measure volume mask $TestMaskId]
+    set result [b2_measure_volume_mask $TestMaskId]
     set standard 1498.442462087259628
     set SubTestDes "B2 RESAMPLE IMAGE test no histogram equalization- Image Measurement - does [lindex [lindex $result 0] 1] approximate $standard"
     ReportTestStatus $LogFile  [ expr {abs([lindex [lindex $result 0] 1] - $standard) / $standard < 0.00001} ] $ModuleName $SubTestDes
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageId ] != -1 } ] $ModuleName "Destroying image $TestImageId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageId ] != -1 } ] $ModuleName "Destroying image $TestImageId"
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image $ImageId ] != -1 } ] $ModuleName "Destroying image $ImageId"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TalairachId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TalairachId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $ImageId ] != -1 } ] $ModuleName "Destroying image $ImageId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TalairachId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TalairachId"
 
     return [ StopModule  $LogFile $ModuleName ]
 

@@ -29,13 +29,13 @@ proc measureSurface { pathToRegressionDir dateString } {
           puts "Error creating surface(s).\nFailed to load surface)."
       }
     set SubTestDes "Load requisite objects for surface creation - brainMask"
-      set brainMask [b2 load mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment ]
+      set brainMask [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment ]
       if { ! [ ReportTestStatus $LogFile  [ expr {$brainMask != -1 } ] $ModuleName $SubTestDes ]} {
           puts "Error creating surface(s).\nFailed to load mask."
       }
 
     set SubTestDes "Load requisite objects for surface creation - hemRoi"
-      set hemRoi [b2 convert mask to roi Axial $brainMask  ]
+      set hemRoi [b2_convert_mask_to_roi Axial $brainMask  ]
       if { ! [ ReportTestStatus $LogFile  [ expr {$hemRoi != -1 } ] $ModuleName $SubTestDes ]} {
           puts "Error creating surface(s).\nFailed to create ROI from mask."
       }
@@ -109,10 +109,10 @@ foreach {key} [array names KnownValueArray] {
 # Clean up Files
     b2 destroy surface $surfacel
     b2 destroy surface $surfacer
-    b2 destroy mask  $brainMask
+    b2_destroy_mask  $brainMask
 #HACK!!!  This should probably be cleaned up in the code itself
-    b2 destroy mask  [expr $brainMask + 1]
-    b2 destroy roi $hemRoi
+    b2_destroy_mask  [expr $brainMask + 1]
+    b2_destroy_roi $hemRoi
 
 
 # Free memory

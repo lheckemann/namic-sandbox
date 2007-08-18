@@ -13,7 +13,7 @@ proc loadImage-GEDICOM {pathToRegressionDir dateString} {
 ########################################
     set ModuleName "loadImage-GEDICOM";
     set ModuleAuthor "Hans J. Johnson";
-    set ModuleDescription "Test the b2 load image command and loading various image file formats";
+    set ModuleDescription "Test the b2_load_image command and loading various image file formats";
     global MODULE_SUCCESS;
     global MODULE_FAILURE;
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString];
@@ -38,10 +38,10 @@ proc loadImage-GEDICOM {pathToRegressionDir dateString} {
             {Mean 242.382122774631426} {Mean-Absolute-Deviation 179.541083326200862} {Variance 46300.339129506850441} {Standard-Deviation 215.175135946295740} {Skewness 1.725237378945965} {Kurtosis 1.145818817081402} {Minimum 0.000000000000000} {Maximum 1151.000000000000000} {Min-Loc-X 252} {Min-Loc-Y 252} {Min-Loc-Z 104} {Max-Loc-X 145} {Max-Loc-Y 216} {Max-Loc-Z 68}
     };
     set SubTestDes "load $ImageTypeName $ImageType test";
-    set TestImageID [b2 load image ${pathToRegressionDir}/SGI/MR/B2-InterleaveFit/TEST/T2_003/006839.003.002 filter= xmedcon ];
+    set TestImageID [b2_load_image ${pathToRegressionDir}/SGI/MR/B2-InterleaveFit/TEST/T2_003/006839.003.002 filter= xmedcon ];
     if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
         ExpandedImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $PixelValueStats $LogFile $ModuleName $SubTestDes;
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID";
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID";
     }
 
 ## Set known information about this test image
@@ -66,18 +66,18 @@ proc loadImage-GEDICOM {pathToRegressionDir dateString} {
 
     set ImageTypeName "GE-Dicom-xmedconIPLfilter";
     set SubTestDes "load $ImageTypeName $ImageType test";
-    set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/T1_002/006872.002.078 filter= xmedcon];
+    set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/T1_002/006872.002.078 filter= xmedcon];
     if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
         ExpandedImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $PixelValueStats $LogFile $ModuleName $SubTestDes;
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID";
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID";
     }
 
     set ImageTypeName "GE-Dicom-dicomIPLfilter";
     set SubTestDes "load $ImageTypeName $ImageType test";
-    set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/T1_002/006872.002.078 filter= dicom];
+    set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/T1_002/006872.002.078 filter= dicom];
     if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
         ExpandedImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $PixelValueStats $LogFile $ModuleName $SubTestDes;
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID";
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID";
     }
 #
 # do same sort of thing with the DICOM Digital Jacket file
@@ -93,18 +93,18 @@ proc loadImage-GEDICOM {pathToRegressionDir dateString} {
 
     set ImageTypeName "GE-DICOM-DIGITAL-JACKET-xmedconIPLfilter";
     set SubTestDes "load $ImageTypeName $ImageType test";
-    set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/DICOM-DIGITAL-JACKET/TEST/T1_002/MR00010002.dcm filter= xmedcon];
+    set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/DICOM-DIGITAL-JACKET/TEST/T1_002/MR00010002.dcm filter= xmedcon];
     if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
         ExpandedImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $PixelValueStats $LogFile $ModuleName $SubTestDes;
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID";
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID";
     }
 
 ##dicomIPLfitler can not read DIGITAL JACKET    set ImageTypeName "GE-DICOM-DIGITAL-JACKET-dicomIPLfilter";
 ##dicomIPLfitler can not read DIGITAL JACKET    set SubTestDes "load $ImageTypeName $ImageType test";
-##dicomIPLfitler can not read DIGITAL JACKET    set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/DICOM-DIGITAL-JACKET/TEST/T1_002/MR00010002.dcm filter= dicom];
+##dicomIPLfitler can not read DIGITAL JACKET    set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/DICOM-DIGITAL-JACKET/TEST/T1_002/MR00010002.dcm filter= dicom];
 ##dicomIPLfitler can not read DIGITAL JACKET    if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
 ##dicomIPLfitler can not read DIGITAL JACKET        ExpandedImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $PixelValueStats $LogFile $ModuleName $SubTestDes;
-##dicomIPLfitler can not read DIGITAL JACKET        ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID";
+##dicomIPLfitler can not read DIGITAL JACKET        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID";
 ##dicomIPLfitler can not read DIGITAL JACKET    }
 
 ########################################

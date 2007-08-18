@@ -22,7 +22,7 @@ proc loadTalairachBox {pathToRegressionDir dateString} {
 
     set ModuleName "loadTalairachBox"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 load talairach-box command and loading various Talairach-Box file formats"
+    set ModuleDescription "Test the b2_load_talairach-box command and loading various Talairach-Box file formats"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -37,19 +37,19 @@ proc loadTalairachBox {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "required arguement test"
-    set errorTest [b2 load talairach-box]
+    set errorTest [b2_load_talairach-box]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "arguement number test"
-    set errorTest [b2 load talairach-box $B2_TALAIRACH_DIR/nfrontal_box junk= ]
+    set errorTest [b2_load_talairach-box $B2_TALAIRACH_DIR/nfrontal_box junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional arguement test"
-    set errorTest [b2 load talairach-box $B2_TALAIRACH_DIR/nfrontal_box junk= test]
+    set errorTest [b2_load_talairach-box $B2_TALAIRACH_DIR/nfrontal_box junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "invalid file test"
-    set errorTest [b2 load talairach-box /invalid_directory_name/nfrontal_box]
+    set errorTest [b2_load_talairach-box /invalid_directory_name/nfrontal_box]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
@@ -57,16 +57,16 @@ proc loadTalairachBox {pathToRegressionDir dateString} {
 
     ############################### BRAINS Talairach Box #############################################
     set SubTestDes "BRAINS2 Talairach Box Load test"
-    set TestBoxId [b2 load talairach-box $B2_TALAIRACH_DIR/nfrontal_box]
+    set TestBoxId [b2_load_talairach-box $B2_TALAIRACH_DIR/nfrontal_box]
     if { [ ReportTestStatus $LogFile  [ expr {$TestBoxId != -1 } ] $ModuleName $SubTestDes] } {
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-box $TestBoxId ] != -1 } ] $ModuleName "Destroying talairach-box $TestBoxId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-box $TestBoxId ] != -1 } ] $ModuleName "Destroying talairach-box $TestBoxId"
     }
 
     ############################### BRAINS Talairach Box with FIlter #################################
     set SubTestDes "BRAINS2 Talairach Box with Filter Load test"
-    set TestBoxId [b2 load talairach-box $B2_TALAIRACH_DIR/nfrontal_box filter= brains1]
+    set TestBoxId [b2_load_talairach-box $B2_TALAIRACH_DIR/nfrontal_box filter= brains1]
     if { [ ReportTestStatus $LogFile  [ expr {$TestBoxId != -1 } ] $ModuleName $SubTestDes] } {
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-box $TestBoxId ] != -1 } ] $ModuleName "Destroying talairach-box $TestBoxId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-box $TestBoxId ] != -1 } ] $ModuleName "Destroying talairach-box $TestBoxId"
     }
 
     return [ StopModule  $LogFile $ModuleName ]

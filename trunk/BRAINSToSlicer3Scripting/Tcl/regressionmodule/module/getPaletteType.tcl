@@ -1,6 +1,6 @@
 # \author    Hans J. Johnson"
 # \date        $Date: 2005-03-08 16:40:34 -0600 (Tue, 08 Mar 2005) $
-# \brief    This module tests the b2 get palette type command
+# \brief    This module tests the b2_get_palette_type command
 # \fn        proc getPaletteType {pathToRegressionDir dateString}
 # \param    string pathToRegressionDir    - Path to the regresssion test directory
 # \param    string dateString            - String to label output file
@@ -21,7 +21,7 @@ proc getPaletteType {pathToRegressionDir dateString} {
 
     set ModuleName "getPaletteType"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 get palette type command "
+    set ModuleDescription "Test the b2_get_palette_type command "
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -34,33 +34,33 @@ proc getPaletteType {pathToRegressionDir dateString} {
 ########################################
 
     set SubTestDes "Get palette type - Load palette test"
-    set TestPalId [b2 load palette $B2_TALAIRACH_DIR/../palette/pet.pal]
+    set TestPalId [b2_load_palette $B2_TALAIRACH_DIR/../palette/pet.pal]
     if { [ ReportTestStatus $LogFile  [ expr {$TestPalId != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
 
     # First Test for invalid arguements
     set SubTestDes "Required arguement test"
-    set errorTest [b2 get palette type]
+    set errorTest [b2_get_palette_type]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "Invalid arguement number test"
-    set errorTest [b2 get palette type $TestPalId junk=]
+    set errorTest [b2_get_palette_type $TestPalId junk=]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "Invalid optional arguement test"
-    set errorTest [b2 get palette type $TestPalId junk= test]
+    set errorTest [b2_get_palette_type $TestPalId junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "Invalid object test"
-    set errorTest [b2 get palette type -1]
+    set errorTest [b2_get_palette_type -1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "Palette Type test"
-    set PalType [b2 get palette type $TestPalId ]
+    set PalType [b2_get_palette_type $TestPalId ]
     ReportTestStatus $LogFile  [ expr {$PalType == "RGB" } ] $ModuleName $SubTestDes
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy palette $TestPalId ] != -1 } ] $ModuleName "Destroying palette $TestPalId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_palette $TestPalId ] != -1 } ] $ModuleName "Destroying palette $TestPalId"
 
 
     return [ StopModule  $LogFile $ModuleName ]

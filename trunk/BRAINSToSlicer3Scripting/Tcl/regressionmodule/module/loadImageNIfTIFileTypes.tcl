@@ -13,7 +13,7 @@ proc loadImageNIfTIFileTypes {pathToRegressionDir dateString} {
 ########################################
         set ModuleName "loadImageNIfTIFileTypes"
         set ModuleAuthor "Hans J. Johnson"
-        set ModuleDescription "Test the b2 load image command and loading various image file formats"
+        set ModuleDescription "Test the b2_load_image command and loading various image file formats"
         global MODULE_SUCCESS
         global MODULE_FAILURE
         set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -33,10 +33,10 @@ proc loadImageNIfTIFileTypes {pathToRegressionDir dateString} {
         set Dimensions "256 256 192 1"
         set Resolutions "1.015625 1.015625 1.015625 1.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/NIfTITypes/Compliant/10_ACPC/char_bigendian.nii.gz]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/NIfTITypes/Compliant/10_ACPC/char_bigendian.nii.gz]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
+                ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
         }
 
     set ImageTypeName "NIfTI"
@@ -46,10 +46,10 @@ proc loadImageNIfTIFileTypes {pathToRegressionDir dateString} {
         set Dimensions "320 320 384 1"
         set Resolutions "0.500000 0.500000 0.500000 1.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/NIfTITypes/Compliant/10_ACPC/char_littleendian.nii.gz]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/NIfTITypes/Compliant/10_ACPC/char_littleendian.nii.gz]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
+                ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
         }
 
     set ImageTypeName "NIfTI"
@@ -59,10 +59,10 @@ proc loadImageNIfTIFileTypes {pathToRegressionDir dateString} {
         set Dimensions "256 17 256 1"
         set Resolutions "0.937500 6.500000 0.937500 1.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/NIfTITypes/Compliant/10_ACPC/float_bigendian.nii.gz]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/NIfTITypes/Compliant/10_ACPC/float_bigendian.nii.gz]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
+                ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
         }
 
     set ImageTypeName "NIfTI"
@@ -72,10 +72,10 @@ proc loadImageNIfTIFileTypes {pathToRegressionDir dateString} {
         set Dimensions "320 320 384 1"
         set Resolutions "0.500000 0.500000 0.500000 1.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/NIfTITypes/Compliant/10_ACPC/float_littleendian.nii.gz]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/NIfTITypes/Compliant/10_ACPC/float_littleendian.nii.gz]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
+                ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
         }
 
     set ImageTypeName "NIfTI"
@@ -85,10 +85,10 @@ proc loadImageNIfTIFileTypes {pathToRegressionDir dateString} {
         set Dimensions "256 17 256 1"
         set Resolutions "0.937500 6.500000 0.937500 1.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/NIfTITypes/Compliant/10_ACPC/signed16_bigendian.nii.gz]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/NIfTITypes/Compliant/10_ACPC/signed16_bigendian.nii.gz]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
+                ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
         }
 
     set ImageTypeName "NIfTI"
@@ -98,10 +98,10 @@ proc loadImageNIfTIFileTypes {pathToRegressionDir dateString} {
         set Dimensions "256 256 124 1"
         set Resolutions "0.703125 0.703125 1.500000 1.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/NIfTITypes/Compliant/10_ACPC/signed16_littleendian.nii.gz]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/NIfTITypes/Compliant/10_ACPC/signed16_littleendian.nii.gz]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
+                ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
         }
 
 

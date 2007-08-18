@@ -1,6 +1,6 @@
 # \author    Hans J. Johnson"
 # \date        $Date: 2005-03-08 16:40:34 -0600 (Tue, 08 Mar 2005) $
-# \brief    This module tests the b2 get landmark location command
+# \brief    This module tests the b2_get_landmark_location command
 # \fn        proc getLandmarkNames {pathToRegressionDir dateString}
 # \param    string pathToRegressionDir    - Path to the regresssion test directory
 # \param    string dateString            - String to label output file
@@ -8,7 +8,7 @@
 #
 # Test Performed
 # -----------------------------------------------------------------------
-# Test the b2 get landmark location command
+# Test the b2_get_landmark_location command
 #
 # To Do
 #------------------------------------------------------------------------
@@ -20,7 +20,7 @@ proc getLandmarkLocation {pathToRegressionDir dateString} {
 
     set ModuleName "getLandmarkLocation"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 get landmark location command"
+    set ModuleDescription "Test the b2_get_landmark_location command"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -53,7 +53,7 @@ proc getLandmarkLocation {pathToRegressionDir dateString} {
                     {78.000000 99.000000 46.000000} }
 
     set SubTestDes "Get Landmark location - Load Landmark test"
-    set TestLandID [b2 load landmark $pathToRegressionDir/SGI/MR/B2-Land/TEST/10_ACPC/user/lewarpCln.lnd]
+    set TestLandID [b2_load_landmark $pathToRegressionDir/SGI/MR/B2-Land/TEST/10_ACPC/user/lewarpCln.lnd]
     if { [ ReportTestStatus $LogFile  [ expr {$TestLandID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
@@ -61,31 +61,31 @@ proc getLandmarkLocation {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "required arguement test (1)"
-    set errorTest [b2 get landmark location]
+    set errorTest [b2_get_landmark_location]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "required arguement test (2)"
-    set errorTest [b2 get landmark location $TestLandID]
+    set errorTest [b2_get_landmark_location $TestLandID]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "arguement number test"
-    set errorTest [b2 get landmark names $TestLandID -1 junk= ]
+    set errorTest [b2_get_landmark_names $TestLandID -1 junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional arguement test"
-    set errorTest [b2 get landmark location $TestLandID -1 junk= test]
+    set errorTest [b2_get_landmark_location $TestLandID -1 junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "invalid landmark test"
-    set errorTest [b2 get landmark location -1 -1]
+    set errorTest [b2_get_landmark_location -1 -1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "invalid location test"
-    set errorTest [b2 get landmark location -1 256]
+    set errorTest [b2_get_landmark_location -1 256]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "Landmark location All test"
-    set landLocs [b2 get landmark location $TestLandID -1]
+    set landLocs [b2_get_landmark_location $TestLandID -1]
     ReportTestStatus $LogFile  [ expr {[llength $landLocs] == 35 } ] $ModuleName $SubTestDes
 
     for {set i 0} {$i < [llength $ExpectLocs]} {incr i} {
@@ -96,7 +96,7 @@ proc getLandmarkLocation {pathToRegressionDir dateString} {
 
     for {set i 0} {$i < [llength $ExpectLocs]} {incr i} {
         set SubTestDes "Landmark location Index($i) Length test"
-        set landLocs [b2 get landmark location $TestLandID $i]
+        set landLocs [b2_get_landmark_location $TestLandID $i]
         ReportTestStatus $LogFile  [ expr {[llength $landLocs] == 1 } ] $ModuleName $SubTestDes
         set SubTestDes "Landmark location Index($i) location $j test"
         for {set j 0} {$j < 3} {incr j} {
@@ -105,7 +105,7 @@ proc getLandmarkLocation {pathToRegressionDir dateString} {
     }
 
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark $TestLandID ] != -1 } ] $ModuleName "Destroying landmark $TestLandID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark $TestLandID ] != -1 } ] $ModuleName "Destroying landmark $TestLandID"
 
     return [ StopModule  $LogFile $ModuleName ]
 

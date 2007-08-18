@@ -24,7 +24,7 @@ proc loadMask {pathToRegressionDir dateString} {
 
     set ModuleName "loadMask"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 load mask command and loading various Mask file formats"
+    set ModuleDescription "Test the b2_load_mask command and loading various Mask file formats"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -38,19 +38,19 @@ proc loadMask {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "required arguement test"
-    set errorTest [b2 load mask]
+    set errorTest [b2_load_mask]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "arguement number test"
-    set errorTest [b2 load mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment junk= ]
+    set errorTest [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional arguement test"
-    set errorTest [b2 load mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment junk= test]
+    set errorTest [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "invalid file test"
-    set errorTest [b2 load mask /invalid_directory_name/cran_mask.segment]
+    set errorTest [b2_load_mask /invalid_directory_name/cran_mask.segment]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
@@ -67,10 +67,10 @@ proc loadMask {pathToRegressionDir dateString} {
     set YRes 1.015625
     set ZRes 1.015625
     set SubTestDes "load $MaskTypeName test"
-    set TestMaskID [b2 load mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
+    set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
     if { [ ReportTestStatus $LogFile  [ expr {$TestMaskID != -1 } ] $ModuleName $SubTestDes ]} {
         CoreMaskTest $MaskTypeName $TestMaskID $NumDims $XDims $YDims $ZDims $NumRes $XRes $YRes $ZRes $LogFile $ModuleName $SubTestDes
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
     }
 
 
@@ -86,10 +86,10 @@ proc loadMask {pathToRegressionDir dateString} {
     set YRes 1.015625
     set ZRes 1.015625
     set SubTestDes "load $MaskTypeName test"
-    set TestMaskID [b2 load mask $pathToRegressionDir/SGI/MR/5x-B2/TEST/10_ACPC/ANON0009_brain_trim.mask]
+    set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/5x-B2/TEST/10_ACPC/ANON0009_brain_trim.mask]
     if { [ ReportTestStatus $LogFile  [ expr {$TestMaskID != -1 } ] $ModuleName $SubTestDes ]} {
         CoreMaskTest $MaskTypeName $TestMaskID $NumDims $XDims $YDims $ZDims $NumRes $XRes $YRes $ZRes $LogFile $ModuleName $SubTestDes
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
     }
 
     ############################### BRAINS2 Load Mask With FIlter ###########################################
@@ -104,10 +104,10 @@ proc loadMask {pathToRegressionDir dateString} {
     set YRes 1.015625
     set ZRes 1.015625
     set SubTestDes "load $MaskTypeName test"
-    set TestMaskID [b2 load mask $pathToRegressionDir/SGI/MR/5x-B2/TEST/10_ACPC/ANON0009_brain_trim.mask filter= brains2]
+    set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/5x-B2/TEST/10_ACPC/ANON0009_brain_trim.mask filter= brains2]
     if { [ ReportTestStatus $LogFile  [ expr {$TestMaskID != -1 } ] $ModuleName $SubTestDes ]} {
         CoreMaskTest $MaskTypeName $TestMaskID $NumDims $XDims $YDims $ZDims $NumRes $XRes $YRes $ZRes $LogFile $ModuleName $SubTestDes
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
     }
 
 

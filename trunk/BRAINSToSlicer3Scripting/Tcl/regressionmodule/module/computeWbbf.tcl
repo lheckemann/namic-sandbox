@@ -37,13 +37,13 @@ proc computeWbbf {pathToRegressionDir dateString} {
 
     ############################### Load an Image ###########################################
     set SubTestDes "Compute WBBF - Load Image (IMF) test"
-    set ImfImageId [b2 load image $pathToRegressionDir/SGI/pet_images/ge-4096/TEST/pcanonimiz__426.imf data-type= float-single]
+    set ImfImageId [b2_load_image $pathToRegressionDir/SGI/pet_images/ge-4096/TEST/pcanonimiz__426.imf data-type= float-single]
     if { [ ReportTestStatus $LogFile  [ expr {$ImfImageId != -1 } ] $ModuleName $SubTestDes] == 0} {
 #return $MODULE_FAILURE
     }
 
     set SubTestDes "Compute WBBF - Load Image (IMA) test"
-    set ImaImageId [b2 load image $pathToRegressionDir/SGI/pet_images/ge-4096/TEST/pcanonimiz__426.ima data-type= float-single]
+    set ImaImageId [b2_load_image $pathToRegressionDir/SGI/pet_images/ge-4096/TEST/pcanonimiz__426.ima data-type= float-single]
     if { [ ReportTestStatus $LogFile  [ expr {$ImaImageId != -1 } ] $ModuleName $SubTestDes] == 0} {
 #return $MODULE_FAILURE
     }
@@ -79,8 +79,8 @@ proc computeWbbf {pathToRegressionDir dateString} {
 
 
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image $ImfImageId ] != -1 } ] $ModuleName "Destroying image $ImfImageId"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image $ImaImageId ] != -1 } ] $ModuleName "Destroying image $ImaImageId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $ImfImageId ] != -1 } ] $ModuleName "Destroying image $ImfImageId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $ImaImageId ] != -1 } ] $ModuleName "Destroying image $ImaImageId"
 
 
 

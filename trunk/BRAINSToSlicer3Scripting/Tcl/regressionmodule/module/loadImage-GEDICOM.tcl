@@ -13,7 +13,7 @@ proc loadImage-GEDICOM {pathToRegressionDir dateString} {
 ########################################
     set ModuleName "loadImage-GEDICOM";
     set ModuleAuthor "Hans J. Johnson";
-    set ModuleDescription "Test the b2 load image command and loading various image file formats";
+    set ModuleDescription "Test the b2_load_image command and loading various image file formats";
     global MODULE_SUCCESS;
     global MODULE_FAILURE;
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString];
@@ -39,10 +39,10 @@ proc loadImage-GEDICOM {pathToRegressionDir dateString} {
             {Mean 114.382122145036604} {Mean-Absolute-Deviation 179.541084048784143} {Variance 46300.339318235506653} {Standard-Deviation 215.175136384842347} {Skewness 1.725237372612797} {Kurtosis 1.145818781621366} {Minimum -128.000000000000000} {Maximum 1023.000000000000000} {Min-Loc-X 252} {Min-Loc-Y 252} {Min-Loc-Z 104} {Max-Loc-X 145} {Max-Loc-Y 216} {Max-Loc-Z 68} {Center-Of-Mass-X 126.922773446698045} {Center-Of-Mass-Y 110.043127158855455} {Center-Of-Mass-Z 54.698290884231611}
     };
     set SubTestDes "load $ImageTypeName $ImageType test";
-    set TestImageID [b2 load image ${pathToRegressionDir}/SGI/MR/B2-InterleaveFit/TEST/T2_003/006839.003.002 filter= gdcm ];
+    set TestImageID [b2_load_image ${pathToRegressionDir}/SGI/MR/B2-InterleaveFit/TEST/T2_003/006839.003.002 filter= gdcm ];
     if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
         ExpandedImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $PixelValueStats $LogFile $ModuleName $SubTestDes;
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID";
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID";
     }
 
 ###### Next 3 test use the same values
@@ -57,10 +57,10 @@ proc loadImage-GEDICOM {pathToRegressionDir dateString} {
 
     set ImageTypeName "GE-Dicom-gdcmIPLfilter";
     set SubTestDes "load $ImageTypeName $ImageType test";
-    set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/T1_002/006872.002.078 filter= gdcm];
+    set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/T1_002/006872.002.078 filter= gdcm];
     if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
         ExpandedImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $PixelValueStats $LogFile $ModuleName $SubTestDes;
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID";
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID";
     }
 
 #
@@ -77,10 +77,10 @@ proc loadImage-GEDICOM {pathToRegressionDir dateString} {
 
     set ImageTypeName "GE-DICOM-DIGITAL-JACKET-gdcmIPLfilter";
     set SubTestDes "load $ImageTypeName $ImageType test";
-    set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/DICOM-DIGITAL-JACKET/TEST/T1_002/MR00010002.dcm filter= gdcm];
+    set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/DICOM-DIGITAL-JACKET/TEST/T1_002/MR00010002.dcm filter= gdcm];
     if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
         ExpandedImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $PixelValueStats $LogFile $ModuleName $SubTestDes;
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID";
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID";
     }
 
 ########################################

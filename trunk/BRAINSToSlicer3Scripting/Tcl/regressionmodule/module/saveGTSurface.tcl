@@ -3,11 +3,11 @@ proc CoreSaveGTSurfaceTest {filterName SaveFileName TestMaskID LogFile ModuleNam
     global MODULE_SUCCESS;
     global MODULE_FAILURE
     set SubTestDes "$filterName Save GTSurface - Load saved GTSurface"
-    set SaveSurfID [b2 load GTSurface $SaveFileName]
+    set SaveSurfID [b2_load_GTSurface $SaveFileName]
     ReportTestStatus $LogFile  [ expr {$SaveSurfID != -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "$filterName Save GTSurface - Measure GTSurface Mask Test"
-    set result [b2 measure GTSurface mask $TestMaskID $SaveSurfID]
+    set result [b2_measure_GTSurface_mask $TestMaskID $SaveSurfID]
     ReportTestStatus $LogFile  [ expr {$result !=  -1} ] $ModuleName $SubTestDes
 #puts $result
     set SubTestDes "$filterName Save GTSurface - Fundal Area Test"
@@ -28,7 +28,7 @@ proc CoreSaveGTSurfaceTest {filterName SaveFileName TestMaskID LogFile ModuleNam
     set SubTestDes "$filterName Save GTSurface - Gyral Mean Depth Test"
     ReportTestStatus $LogFile  [ expr {abs([lindex [lindex $result 26] 1] - 2.317714) / 2.317714 < 0.0001} ] $ModuleName $SubTestDes
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy GTSurface $SaveSurfID ] != -1 } ] $ModuleName "Destroying GTSurface $SaveSurfID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_GTSurface $SaveSurfID ] != -1 } ] $ModuleName "Destroying GTSurface $SaveSurfID"
 
 }
 
@@ -57,7 +57,7 @@ proc saveGTSurface {pathToRegressionDir dateString} {
 
     set ModuleName "saveGTSurface"
     set ModuleAuthor "Greg Harris"
-    set ModuleDescription "Test the b2 save GTSurface command and saving various file formats"
+    set ModuleDescription "Test the b2_save_GTSurface command and saving various file formats"
     global OUTPUT_DIR;
     global MODULE_SUCCESS;
     global MODULE_FAILURE
@@ -73,13 +73,13 @@ proc saveGTSurface {pathToRegressionDir dateString} {
 ########################################
 
     set SubTestDes "Save GTSurface - Load GTSurface test"
-    set TestSurfaceID [b2 load GTSurface $pathToRegressionDir/SGI/MR/Surface-Gen/TEST/10_ACPC/ANON0008_l_dec.gts]
+    set TestSurfaceID [b2_load_GTSurface $pathToRegressionDir/SGI/MR/Surface-Gen/TEST/10_ACPC/ANON0008_l_dec.gts]
     if { [ ReportTestStatus $LogFile  [ expr {$TestSurfaceID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
 
     set SubTestDes "Save GTSurface - Load Mask test"
-    set TestMaskID [b2 load mask $pathToRegressionDir/SGI/MR/Surface-Gen/TEST/10_ACPC/ANON0008_brain_trim.mask]
+    set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/Surface-Gen/TEST/10_ACPC/ANON0008_brain_trim.mask]
     if { [ ReportTestStatus $LogFile  [ expr {$TestMaskID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
@@ -89,45 +89,45 @@ proc saveGTSurface {pathToRegressionDir dateString} {
 
     # First Test for invalid arguments
     set SubTestDes "required argument test (1)"
-    set errorTest [b2 save GTSurface]
+    set errorTest [b2_save_GTSurface]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "required argument test (2)"
-    set errorTest [b2 save GTSurface ${OUTPUT_DIR}/TEST/10_ACPC/junk.gts ]
+    set errorTest [b2_save_GTSurface ${OUTPUT_DIR}/TEST/10_ACPC/junk.gts ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "required argument test (3)"
-    set errorTest [b2 save GTSurface ${OUTPUT_DIR}/TEST/10_ACPC/junk.gts GTS ]
+    set errorTest [b2_save_GTSurface ${OUTPUT_DIR}/TEST/10_ACPC/junk.gts GTS ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "argument number test"
-    set errorTest [b2 save GTSurface ${OUTPUT_DIR}/TEST/10_ACPC/junk.gts GTS $TestSurfaceID junk= ]
+    set errorTest [b2_save_GTSurface ${OUTPUT_DIR}/TEST/10_ACPC/junk.gts GTS $TestSurfaceID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional argument test"
-    set errorTest [b2 save GTSurface ${OUTPUT_DIR}/TEST/10_ACPC/junk.gts GTS $TestSurfaceID junk= test]
+    set errorTest [b2_save_GTSurface ${OUTPUT_DIR}/TEST/10_ACPC/junk.gts GTS $TestSurfaceID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
     ############################### BRAINS2 GTSurface ###########################################
     set SubTestDes "Save BRAINS2 GTSurface test"
-    set errorTest [b2 save GTSurface ${OUTPUT_DIR}/TEST/10_ACPC/junk.gts GTS $TestSurfaceID]
+    set errorTest [b2_save_GTSurface ${OUTPUT_DIR}/TEST/10_ACPC/junk.gts GTS $TestSurfaceID]
     if { [ ReportTestStatus $LogFile  [ expr {$errorTest != -1 } ] $ModuleName $SubTestDes ]} {
 
         CoreSaveGTSurfaceTest "BRAINS2" ${OUTPUT_DIR}/TEST/10_ACPC/junk.gts $TestMaskID $LogFile $ModuleName
 
-        set errorTest [b2 save GTSurface /invalid_directory_nametmp/SGI/MR/4x-B1/TEST/10_ACPC/junk.gts GTS $TestSurfaceID]
+        set errorTest [b2_save_GTSurface /invalid_directory_nametmp/SGI/MR/4x-B1/TEST/10_ACPC/junk.gts GTS $TestSurfaceID]
         set SubTestDes "BRAINS2 invalid filename test -- return was $errorTest"
         ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
-        set errorTest [b2 save GTSurface ${OUTPUT_DIR}/TEST/10_ACPC/junk.gts GTS $TestSurfaceID filter-suffix= -invalid]
+        set errorTest [b2_save_GTSurface ${OUTPUT_DIR}/TEST/10_ACPC/junk.gts GTS $TestSurfaceID filter-suffix= -invalid]
         set SubTestDes "BRAINS2 invalid filter-suffix test -- return was $errorTest"
         ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
     }
 
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy GTSurface $TestSurfaceID ] != -1 } ] $ModuleName "Destroying GTSurface $TestSurfaceID"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_GTSurface $TestSurfaceID ] != -1 } ] $ModuleName "Destroying GTSurface $TestSurfaceID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
 
 
     return [ StopModule  $LogFile $ModuleName ]

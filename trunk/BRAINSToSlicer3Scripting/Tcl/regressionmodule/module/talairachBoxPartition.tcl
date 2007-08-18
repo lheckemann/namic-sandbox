@@ -33,25 +33,25 @@ proc talairachBoxPartition {pathToRegressionDir dateString} {
 # Run Tests
 
 
-    set class_image [b2 load image "${pathToRegressionDir}/SGI/MR/5x-B2/TEST/10_ACPC/ANON0009_10_segment.hdr"]
-    set brain_mask [b2 load mask "${pathToRegressionDir}/SGI/MR/5x-B2/TEST/10_ACPC/ANON0009_brain_trim.mask"]
-    set tal_par [b2 load talairach-parameters "${pathToRegressionDir}/SGI/MR/5x-B2/TEST/10_ACPC/Talairach.bnd"]
+    set class_image [b2_load_image "${pathToRegressionDir}/SGI/MR/5x-B2/TEST/10_ACPC/ANON0009_10_segment.hdr"]
+    set brain_mask [b2_load_mask "${pathToRegressionDir}/SGI/MR/5x-B2/TEST/10_ACPC/ANON0009_brain_trim.mask"]
+    set tal_par [b2_load_talairach-parameters "${pathToRegressionDir}/SGI/MR/5x-B2/TEST/10_ACPC/Talairach.bnd"]
     set box_file_list [glob "${pathToRegressionDir}/tal_boxes/*_box"]
     set box_masks_form "list"
     set tissue_masks_form "list"
     foreach box_name ${box_file_list} {
-        set box_num [b2 load talairach-box ${box_name}]
+        set box_num [b2_load_talairach-box ${box_name}]
         set box_mask [b2 convert Talairach-Box to Mask ${box_num} ${tal_par}]
         if { ${box_mask} != -1 } {
             set box_masks_form "${box_masks_form} ${box_mask}"
-            set tissue_mask [b2 and masks ${box_mask} ${brain_mask}]
+            set tissue_mask [b2_and_masks ${box_mask} ${brain_mask}]
             if { ${tissue_mask} != -1 } {
                 set tissue_masks_form "${tissue_masks_form} ${tissue_mask}"
             }
         }
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-box $box_num ] != -1 } ] $ModuleName "Destroying talairach-box $box_num"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-box $box_num ] != -1 } ] $ModuleName "Destroying talairach-box $box_num"
     }
-    set box_num_brainstem [b2 load talairach-box ${pathToRegressionDir}/tal_boxes/brainstem_box ]
+    set box_num_brainstem [b2_load_talairach-box ${pathToRegressionDir}/tal_boxes/brainstem_box ]
     set box_masks [eval ${box_masks_form}]
     set tissue_masks [eval ${tissue_masks_form}]
 
@@ -69,16 +69,16 @@ proc talairachBoxPartition {pathToRegressionDir dateString} {
         puts "Original:  ${box_masks}  Clipped:  ${tissue_masks}"
     }
 
-    set union_form "b2 or masks ${tissue_masks}"
+    set union_form "b2_or_masks ${tissue_masks}"
     set union_tissue_mask [eval ${union_form}]
 
-    set union_tbl [b2 measure class-volume mask ${union_tissue_mask} ${class_image}]
+    set union_tbl [b2_measure_class-volume_mask ${union_tissue_mask} ${class_image}]
     for {set i 0} { ${i} < [llength ${union_tbl}] } {incr i} {
         set total(${i}) [lindex [lindex ${union_tbl} ${i}] 1]
         set sum(${i}) 0
     }
     foreach tissue_mask ${tissue_masks} {
-        set part_tbl [b2 measure class-volume mask ${tissue_mask} ${class_image}]
+        set part_tbl [b2_measure_class-volume_mask ${tissue_mask} ${class_image}]
         for {set i 0} {${i} < [llength ${part_tbl}]} {incr i} {
             set sum(${i}) [expr $sum(${i}) + [lindex [lindex ${part_tbl} ${i}] 1]]
         }
@@ -122,19 +122,19 @@ puts "Difference Fraction:   ${control_ratio}"
     if {[ReportTestStatus $LogFile  [ expr { ${num_ret} >= 0} ] $ModuleName $SubTestDes] == 0} {
 }
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask ${num_ret} ] != -1 } ] $ModuleName "Destroying mask ${num_ret}"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask ${num_ret} ] != -1 } ] $ModuleName "Destroying mask ${num_ret}"
     foreach box_mask $box_masks {
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask ${box_mask} ] != -1 } ] $ModuleName "Destroying mask ${box_mask}"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask ${box_mask} ] != -1 } ] $ModuleName "Destroying mask ${box_mask}"
     }
     foreach tissue_mask $tissue_masks {
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask ${tissue_mask} ] != -1 } ] $ModuleName "Destroying mask ${tissue_mask}"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask ${tissue_mask} ] != -1 } ] $ModuleName "Destroying mask ${tissue_mask}"
     }
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask ${union_tissue_mask} ] != -1 } ] $ModuleName "Destroying mask ${union_tissue_mask}"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters ${tal_par} ] != -1 } ] $ModuleName "Destroying talairach-parameters ${tal_par}"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask ${brain_mask} ] != -1 } ] $ModuleName "Destroying mask ${brain_mask}"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image ${class_image} ] != -1 } ] $ModuleName "Destroying image ${class_image}"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-box ${box_num_brainstem} ] != -1 } ] $ModuleName "Destroying talairach-box ${box_num_brainstem}"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask ${union_tissue_mask} ] != -1 } ] $ModuleName "Destroying mask ${union_tissue_mask}"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters ${tal_par} ] != -1 } ] $ModuleName "Destroying talairach-parameters ${tal_par}"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask ${brain_mask} ] != -1 } ] $ModuleName "Destroying mask ${brain_mask}"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image ${class_image} ] != -1 } ] $ModuleName "Destroying image ${class_image}"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-box ${box_num_brainstem} ] != -1 } ] $ModuleName "Destroying talairach-box ${box_num_brainstem}"
 
     return [ StopModule  $LogFile $ModuleName ]
 }

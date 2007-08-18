@@ -1,6 +1,6 @@
 # \author        Greg Harris"
 # \date
-# \brief        b2 average landmarks
+# \brief        b2_average_landmarks
 # \fn                proc averageLandmarks {pathToRegressionDir dateString}
 # \param        string pathToRegressionDir        - Path to the regresssion test directory
 # \param        string dateString                - String to label output file
@@ -20,7 +20,7 @@
 proc averageLandmarks {pathToRegressionDir dateString} {
     set ModuleName "averageLandmarks"
     set ModuleAuthor "Greg Harris"
-    set ModuleDescription "Testing of b2 average landmarks"
+    set ModuleDescription "Testing of b2_average_landmarks"
 
     global MODULE_SUCCESS
     global MODULE_FAILURE
@@ -32,12 +32,12 @@ proc averageLandmarks {pathToRegressionDir dateString} {
 
 
 # Run Tests
-    set num_ret [b2 average landmarks]
-    set SubTestDes "required argument test: \[b2 average landmarks\]"
+    set num_ret [b2_average_landmarks]
+    set SubTestDes "required argument test: \[b2_average_landmarks\]"
     if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-    set avg_cmd "b2 average landmarks"
+    set avg_cmd "b2_average_landmarks"
     set irp_x "expr (0.0"
     set irp_y "expr (0.0"
     set irp_z "expr (0.0"
@@ -49,19 +49,19 @@ proc averageLandmarks {pathToRegressionDir dateString} {
         set PC {127.00000 127.00000 84.00000}
         set IRP {55.00000 83.00000 12.00000}
         set SLA {199.00000 206.00000 172.00000}
-    set TestParamId [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters]
+    set TestParamId [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters]
     if { [ ReportTestStatus $LogFile  [ expr {$TestParamId != -1 } ] $ModuleName $SubTestDes] == 0 } {
 }
     set SubTestDes "BRAINS Talairach-Parameters convert to landmarks test"
-    set TestLand [b2 convert talairach-parameters to cortical-landmark ${TestParamId}]
+    set TestLand [b2_convert_talairach-parameters_to_cortical-landmark ${TestParamId}]
     if { [ ReportTestStatus $LogFile  [ expr {$TestLand != -1 } ] $ModuleName $SubTestDes] == 0 } {
 }
     set avg_cmd "${avg_cmd} ${TestLand}"
-    set locations [b2 get talairach points $TestParamId]
+    set locations [b2_get_talairach_points $TestParamId]
     set irp_x "${irp_x} + [lindex [lindex ${locations} 3] 0]"
     set irp_y "${irp_y} + [lindex [lindex ${locations} 3] 1]"
     set irp_z "${irp_z} + [lindex [lindex ${locations} 3] 2]"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
 
     ############################### BRAINS Picked By Hand Talairach Parameters ############################
     set SubTestDes "BRAINS Picked by hand Talairach-Parameters Load test"
@@ -70,19 +70,19 @@ proc averageLandmarks {pathToRegressionDir dateString} {
         set PC {127.00000 127.00000 83.00000}
         set IRP {63.00000 87.00000 10.00000}
         set SLA {193.00000 196.00000 174.00000}
-    set TestParamId [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/5x-B1/TEST/10_ACPC/talairach_parameters]
+    set TestParamId [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/5x-B1/TEST/10_ACPC/talairach_parameters]
     if { [ ReportTestStatus $LogFile  [ expr {$TestParamId != -1 } ] $ModuleName $SubTestDes] == 0 } {
 }
     set SubTestDes "BRAINS Picked by hand Talairach-Parameters convert to landmarks test"
-    set TestLand [b2 convert talairach-parameters to cortical-landmark ${TestParamId}]
+    set TestLand [b2_convert_talairach-parameters_to_cortical-landmark ${TestParamId}]
     if { [ ReportTestStatus $LogFile  [ expr {$TestLand != -1 } ] $ModuleName $SubTestDes] == 0 } {
 }
     set avg_cmd "${avg_cmd} ${TestLand}"
-    set locations [b2 get talairach points $TestParamId]
+    set locations [b2_get_talairach_points $TestParamId]
     set irp_x "${irp_x} + [lindex [lindex ${locations} 3] 0]"
     set irp_y "${irp_y} + [lindex [lindex ${locations} 3] 1]"
     set irp_z "${irp_z} + [lindex [lindex ${locations} 3] 2]"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
 
     ############################### BRAINS Adjust Talairach Parameters ############################
     set SubTestDes "BRAINS Adjust Talairach Parameters Load test"
@@ -91,19 +91,19 @@ proc averageLandmarks {pathToRegressionDir dateString} {
         set PC {127.00000 127.00000 83.00000}
         set IRP {60.00000 79.00000 6.00000}
         set SLA {198.00000 206.00000 174.00000}
-    set TestParamId [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/B1-Adj-TalPar/TEST/10_ACPC/talairach_parameters]
+    set TestParamId [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/B1-Adj-TalPar/TEST/10_ACPC/talairach_parameters]
     if { [ ReportTestStatus $LogFile  [ expr {$TestParamId != -1 } ] $ModuleName $SubTestDes] == 0 } {
 }
     set SubTestDes "BRAINS Adjust Talairach Parameters convert to landmarks test"
-    set TestLand [b2 convert talairach-parameters to cortical-landmark ${TestParamId}]
+    set TestLand [b2_convert_talairach-parameters_to_cortical-landmark ${TestParamId}]
     if { [ ReportTestStatus $LogFile  [ expr {$TestLand != -1 } ] $ModuleName $SubTestDes] == 0 } {
 }
     set avg_cmd "${avg_cmd} ${TestLand}"
-    set locations [b2 get talairach points $TestParamId]
+    set locations [b2_get_talairach_points $TestParamId]
     set irp_x "${irp_x} + [lindex [lindex ${locations} 3] 0]"
     set irp_y "${irp_y} + [lindex [lindex ${locations} 3] 1]"
     set irp_z "${irp_z} + [lindex [lindex ${locations} 3] 2]"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
 
     ############################### BRAINS2 MR5 Talairach Parameters ############################
     set SubTestDes "BRAINS2 MR5 Talairach Parameters Load test"
@@ -112,19 +112,19 @@ proc averageLandmarks {pathToRegressionDir dateString} {
         set PC {127.00000 127.00000 82.00000}
         set IRP {65.00000 87.00000 3.00000}
         set SLA {190.00000 201.00000 179.00000}
-    set TestParamId [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/5x-B2/TEST/10_ACPC/Talairach.bnd]
+    set TestParamId [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/5x-B2/TEST/10_ACPC/Talairach.bnd]
     if { [ ReportTestStatus $LogFile  [ expr {$TestParamId != -1 } ] $ModuleName $SubTestDes] == 0 } {
 }
     set SubTestDes "BRAINS2 MR5 Talairach-Parameters convert to landmarks test"
-    set TestLand [b2 convert talairach-parameters to cortical-landmark ${TestParamId}]
+    set TestLand [b2_convert_talairach-parameters_to_cortical-landmark ${TestParamId}]
     if { [ ReportTestStatus $LogFile  [ expr {$TestLand != -1 } ] $ModuleName $SubTestDes] == 0 } {
 }
     set avg_cmd "${avg_cmd} ${TestLand}"
-    set locations [b2 get talairach points $TestParamId]
+    set locations [b2_get_talairach_points $TestParamId]
     set irp_x "${irp_x} + [lindex [lindex ${locations} 3] 0]"
     set irp_y "${irp_y} + [lindex [lindex ${locations} 3] 1]"
     set irp_z "${irp_z} + [lindex [lindex ${locations} 3] 2]"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
 
 
     set irp_x "${irp_x})/4.0"
@@ -137,7 +137,7 @@ proc averageLandmarks {pathToRegressionDir dateString} {
 
     set lnd [eval $avg_cmd]
 
-    set lnd_locs [b2 get landmark location $lnd -1]
+    set lnd_locs [b2_get_landmark_location $lnd -1]
     set irp_loc [expr [llength $lnd_locs] - 1 - 9]
     set lnd_irp [lindex ${lnd_locs} ${irp_loc}]
     set lnd_x [lindex ${lnd_irp} 0]
@@ -163,11 +163,11 @@ proc averageLandmarks {pathToRegressionDir dateString} {
     if {[ReportTestStatus $LogFile  [ expr {${lnd_z} == ${std_z} } ] $ModuleName $SubTestDes] == 0} {
 }
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark $lnd ] != -1 } ] $ModuleName "Destroying landmark $lnd"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark [lindex ${avg_cmd} 3] ] != -1 } ] $ModuleName "Destroying landmark [lindex ${avg_cmd} 3]"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark [lindex ${avg_cmd} 4] ] != -1 } ] $ModuleName "Destroying landmark [lindex ${avg_cmd} 4]"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark [lindex ${avg_cmd} 5] ] != -1 } ] $ModuleName "Destroying landmark [lindex ${avg_cmd} 5]"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark [lindex ${avg_cmd} 6] ] != -1 } ] $ModuleName "Destroying landmark [lindex ${avg_cmd} 6]"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark $lnd ] != -1 } ] $ModuleName "Destroying landmark $lnd"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark [lindex ${avg_cmd} 3] ] != -1 } ] $ModuleName "Destroying landmark [lindex ${avg_cmd} 3]"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark [lindex ${avg_cmd} 4] ] != -1 } ] $ModuleName "Destroying landmark [lindex ${avg_cmd} 4]"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark [lindex ${avg_cmd} 5] ] != -1 } ] $ModuleName "Destroying landmark [lindex ${avg_cmd} 5]"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark [lindex ${avg_cmd} 6] ] != -1 } ] $ModuleName "Destroying landmark [lindex ${avg_cmd} 6]"
 
     return [ StopModule    $LogFile $ModuleName ]
 }

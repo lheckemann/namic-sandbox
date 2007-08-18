@@ -19,98 +19,98 @@ proc createSurface { pathToRegressionDir dateString } {
 # Run Tests
 ############ load prerequisite files ###################
         set SubTestDes "Load requisite objects for surface creation - classImage"
-        set classImage [b2 load image $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/ANON0019_05_segment.img ]
+        set classImage [b2_load_image $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/ANON0019_05_segment.img ]
         if { ! [ ReportTestStatus $LogFile  [ expr {$classImage != -1 } ] $ModuleName $SubTestDes ]} {
             puts "Error creating surface(s).\nFailed to load mask ($pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/ANON0019_brain_trim.mask)."
         }
     set SubTestDes "Load requisite objects for surface creation - brainMask"
-        set brainMask [b2 load mask $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/ANON0019_brain_trim.mask ]
+        set brainMask [b2_load_mask $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/ANON0019_brain_trim.mask ]
         if { ! [ ReportTestStatus $LogFile  [ expr {$brainMask != -1 } ] $ModuleName $SubTestDes ]} {
             puts "Error creating surface(s).\nFailed to load mask ($pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/ANON0019_brain_trim.mask)."
         }
 
     set SubTestDes "Load requisite objects for surface creation - hemRoi"
-        set hemRoi [b2 load roi $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/user/surf_midline.yroi ]
+        set hemRoi [b2_load_roi $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/user/surf_midline.yroi ]
         if { ! [ ReportTestStatus $LogFile  [ expr {$hemRoi != -1 } ] $ModuleName $SubTestDes ]} {
             puts "Error creating surface(s).\nFailed to load $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/user/surf_midline.yroi."
         }
 
     set SubTestDes "Load requisite objects for surface creation - cerebellumRoi"
-        set cerebellumRoi [b2 load roi $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/user/crbl_gross_seg_trim.xroi ]
+        set cerebellumRoi [b2_load_roi $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/user/crbl_gross_seg_trim.xroi ]
         if { ! [ ReportTestStatus $LogFile  [ expr {$cerebellumRoi != -1 } ] $ModuleName $SubTestDes ]} {
             puts "Error creating surface(s).\nFailed to load $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/user/crbl_gross_seg_trim.xroi."
         }
 
     set SubTestDes "Load requisite objects for surface creation - brainstemRoi"
-        set brainstemRoi [b2 load roi $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/user/surf_brainstem.yroi ]
+        set brainstemRoi [b2_load_roi $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/user/surf_brainstem.yroi ]
         if { ! [ ReportTestStatus $LogFile  [ expr {$brainstemRoi != -1 } ] $ModuleName $SubTestDes ]} {
             puts "Error creating surface(s).\nFailed to load $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/user/surf_brainstem.yroi."
         }
 
 
-    set SubTestDes "b2 extrude roi hemRoi 2 0 0"
-        set hemMask1 [b2 extrude roi $hemRoi 2 0 0 ]
+    set SubTestDes "b2_extrude_roi hemRoi 2 0 0"
+        set hemMask1 [b2_extrude_roi $hemRoi 2 0 0 ]
         ReportTestStatus $LogFile  [ expr {$hemMask1 != -1 } ] $ModuleName $SubTestDes
 
-        set SubTestDes "b2 extrude roi hemRoi -1 0 0"
-        set hemMask2 [b2 extrude roi $hemRoi -1 0 0 ]
+        set SubTestDes "b2_extrude_roi hemRoi -1 0 0"
+        set hemMask2 [b2_extrude_roi $hemRoi -1 0 0 ]
         ReportTestStatus $LogFile  [ expr {$hemMask2 != -1 } ] $ModuleName $SubTestDes
 
-        set SubTestDes "b2 convert roi to mask brainstemRoi"
-        set brainstemMask [b2 convert roi to mask $brainstemRoi ]
+        set SubTestDes "b2_convert_roi_to_mask brainstemRoi"
+        set brainstemMask [b2_convert_roi_to_mask $brainstemRoi ]
         ReportTestStatus $LogFile  [ expr {$brainstemMask != -1 } ] $ModuleName $SubTestDes
 
-        b2 destroy roi $hemRoi
-        b2 destroy roi $brainstemRoi
+        b2_destroy_roi $hemRoi
+        b2_destroy_roi $brainstemRoi
 
-        set SubTestDes "b2 erode surface mask brainMask classImage 131"
-        set errodeBrainMask [b2 erode surface mask $brainMask $classImage 131]
+        set SubTestDes "b2_erode_surface_mask brainMask classImage 131"
+        set errodeBrainMask [b2_erode_surface_mask $brainMask $classImage 131]
         ReportTestStatus $LogFile  [ expr {$errodeBrainMask != -1 } ] $ModuleName $SubTestDes
 
-        set SubTestDes "b2 or masks hemMask2 hemMask2"
-        set hemMask [b2 or masks $hemMask1 $hemMask2]
+        set SubTestDes "b2_or_masks hemMask2 hemMask2"
+        set hemMask [b2_or_masks $hemMask1 $hemMask2]
         ReportTestStatus $LogFile  [ expr {$hemMask != -1 } ] $ModuleName $SubTestDes
 
-        set SubTestDes "b2 not mask hemMask]"
-        set hemMaskInv [b2 not mask $hemMask]
+        set SubTestDes "b2_not_mask hemMask]"
+        set hemMaskInv [b2_not_mask $hemMask]
         ReportTestStatus $LogFile  [ expr {$hemMaskInv != -1 } ] $ModuleName $SubTestDes
 
-        set SubTestDes "b2 convert roi to mask cerebellumRoi"
-        set cerebellumMask [b2 convert roi to mask $cerebellumRoi]
+        set SubTestDes "b2_convert_roi_to_mask cerebellumRoi"
+        set cerebellumMask [b2_convert_roi_to_mask $cerebellumRoi]
         ReportTestStatus $LogFile  [ expr {$cerebellumMask != -1 } ] $ModuleName $SubTestDes
 
-        set SubTestDes "b2 not mask cerebellumMask"
-        set cerebellumMaskInv [b2 not mask $cerebellumMask]
+        set SubTestDes "b2_not_mask cerebellumMask"
+        set cerebellumMaskInv [b2_not_mask $cerebellumMask]
         ReportTestStatus $LogFile  [ expr {$cerebellumMaskInv != -1 } ] $ModuleName $SubTestDes
 
-        set SubTestDes "b2 not mask brainstemMask"
-        set brainstemMaskInv [b2 not mask $brainstemMask]
+        set SubTestDes "b2_not_mask brainstemMask"
+        set brainstemMaskInv [b2_not_mask $brainstemMask]
         ReportTestStatus $LogFile  [ expr {$brainstemMaskInv != -1 } ] $ModuleName $SubTestDes
 
-        set SubTestDes "b2 and masks hemMaskInv cerebellumMaskInv"
-        set excludePartMask [b2 and masks $hemMaskInv $cerebellumMaskInv]
+        set SubTestDes "b2_and_masks hemMaskInv cerebellumMaskInv"
+        set excludePartMask [b2_and_masks $hemMaskInv $cerebellumMaskInv]
         ReportTestStatus $LogFile  [ expr {$excludePartMask != -1 } ] $ModuleName $SubTestDes
 
-        set SubTestDes "b2 and masks excludePartMask brainstemMaskInv"
-        set excludeRoiMask [b2 and masks $excludePartMask $brainstemMaskInv]
+        set SubTestDes "b2_and_masks excludePartMask brainstemMaskInv"
+        set excludeRoiMask [b2_and_masks $excludePartMask $brainstemMaskInv]
         ReportTestStatus $LogFile  [ expr {$excludeRoiMask != -1 } ] $ModuleName $SubTestDes
 
-        set SubTestDes "b2 and masks errodeBrainMask excludeRoiMask"
-        set surfaceRegionMask [b2 and masks $errodeBrainMask $excludeRoiMask]
+        set SubTestDes "b2_and_masks errodeBrainMask excludeRoiMask"
+        set surfaceRegionMask [b2_and_masks $errodeBrainMask $excludeRoiMask]
         ReportTestStatus $LogFile  [ expr {$surfaceRegionMask != -1 } ] $ModuleName $SubTestDes
 
 
-        b2 destroy mask $hemMask
-        b2 destroy mask $hemMask1
-        b2 destroy mask $hemMask2
-        b2 destroy mask $hemMaskInv
-        b2 destroy mask $cerebellumMask
-        b2 destroy mask $cerebellumMaskInv
-        b2 destroy mask $brainstemMask
-        b2 destroy mask $brainstemMaskInv
-        b2 destroy mask $excludePartMask
-        b2 destroy mask $excludeRoiMask
-        b2 destroy mask $errodeBrainMask
+        b2_destroy_mask $hemMask
+        b2_destroy_mask $hemMask1
+        b2_destroy_mask $hemMask2
+        b2_destroy_mask $hemMaskInv
+        b2_destroy_mask $cerebellumMask
+        b2_destroy_mask $cerebellumMaskInv
+        b2_destroy_mask $brainstemMask
+        b2_destroy_mask $brainstemMaskInv
+        b2_destroy_mask $excludePartMask
+        b2_destroy_mask $excludeRoiMask
+        b2_destroy_mask $errodeBrainMask
 
 #######################################################################################################################
 #######################################################################################################################
@@ -289,10 +289,10 @@ foreach {key} [array names KnownValueArray2] {
 # Clean up Files
     b2 destroy surface $surfacel
     b2 destroy surface $surfacer
-    b2 destroy image $classImage
-    b2 destroy mask  $brainMask
-    b2 destroy roi $cerebellumRoi
-    b2 destroy mask $surfaceRegionMask
+    b2_destroy_image $classImage
+    b2_destroy_mask  $brainMask
+    b2_destroy_roi $cerebellumRoi
+    b2_destroy_mask $surfaceRegionMask
 
 
 # Free memory

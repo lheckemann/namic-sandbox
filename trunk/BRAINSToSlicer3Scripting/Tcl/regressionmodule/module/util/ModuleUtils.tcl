@@ -73,8 +73,6 @@ if { 0 == 1 } {
     }
 }
 #Make sure we have a clean slate, but do not destroy displays
-    DestroyAllObjects
-
     set LogFile stdout
     puts $LogFile "Starting Regression Test Module - $ModuleName"
     puts $LogFile "Regression Test Author - $ModuleAuthor"
@@ -102,14 +100,14 @@ proc StopModule { LogFile ModuleName } {
     puts "------------------------------------------------------------------------------"
     puts "------------------------------------------------------------------------------"
 
-    set objecttypes { image  roi  mask  gtsurface  transform talairach-parameters  talairach-box  histogram  landmark  palette  table  tissue-class  blob }
-    foreach {currentobjtype} $objecttypes  {
-          set objectlist [ b2 object-list $currentobjtype ]
-          set SubTestDescription "List of $currentobjtype destroyed implicitly destroyed: $objectlist"
-          puts "$SubTestDescription  length  [llength $objectlist ]"
-          ReportTestStatus  $LogFile  [expr { [llength $objectlist ] == 0 }]  $ModuleName $SubTestDescription
-          b2 destroy every $currentobjtype
-    }
+#    set objecttypes { image  roi  mask  gtsurface  transform talairach-parameters  talairach-box  histogram  landmark  palette  table  tissue-class  blob }
+#    foreach {currentobjtype} $objecttypes  {
+#          set objectlist [ b2_object-list $currentobjtype ]
+#          set SubTestDescription "List of $currentobjtype destroyed implicitly destroyed: $objectlist"
+#          puts "$SubTestDescription  length  [llength $objectlist ]"
+#          ReportTestStatus  $LogFile  [expr { [llength $objectlist ] == 0 }]  $ModuleName $SubTestDescription
+#          b2_destroy_every $currentobjtype
+#    }
 
     puts -nonewline  $LogFile "Ending Time "
     puts $LogFile [exec date]
@@ -138,7 +136,7 @@ proc CoreImageTest { ImageTypeName TestImageID ImageType ImageMin ImageMax Dimen
         # Epsilon has the same value as in ExpandedImageTest for calling CoreMeasuresEpsilonTest
 
         for {set currtype 0} { $currtype < $lentype } {incr currtype} {
-            set type [b2 get image type $TestImageID $currtype] ;
+            set type [b2_get_image_type $TestImageID $currtype] ;
             set SubTestDes "$ImageTypeName type($currtype): does [lindex $ImageType $currtype] equal $type" ;
             ReportTestStatus $LogFile  [ expr  {$type == [lindex $ImageType $currtype]}   ] $ModuleName $SubTestDes ;
 
@@ -190,8 +188,8 @@ proc ExpandedImageTest { ImageTypeName TestImageID ImageType ImageMin ImageMax D
 
     CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions  $LogFile $ModuleName $SubTestDes
 
-    set FullMask [ b2 threshold image $TestImageID 0.0 absolute-value= True ]
-    set output_measures [ b2 measure image mask $FullMask $TestImageID ]
+    set FullMask [ b2_threshold_image $TestImageID 0.0 absolute-value= True ]
+    set output_measures [ b2_measure_image_mask $FullMask $TestImageID ]
     puts "$SubTestDes PIXELVALUES $output_measures"
 
     set Epsilon 0.001
@@ -199,7 +197,7 @@ proc ExpandedImageTest { ImageTypeName TestImageID ImageType ImageMin ImageMax D
 
     CoreMeasuresEpsilonTest $SubTestDes $Epsilon $KnownPixelValues $output_measures  $LogFile $ModuleName
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $FullMask ] != -1 } ] $ModuleName "Destroying FullMask $FullMask"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $FullMask ] != -1 } ] $ModuleName "Destroying FullMask $FullMask"
 
     return $MODULE_SUCCESS
 }
@@ -215,7 +213,7 @@ proc ExpandedImageTest { ImageTypeName TestImageID ImageType ImageMin ImageMax D
 proc CoreMaskTest { TestMaskName TestMaskID NumDims XDims YDims ZDims NumRes XRes YRes ZRes LogFile ModuleName SubTestDes} {
     global MODULE_SUCCESS
     global MODULE_FAILURE
-        set dims [b2 get dims mask $TestMaskID]
+        set dims [b2_get_dims_mask $TestMaskID]
         set SubTestDes "$TestMaskName dims mask: does [llength $dims] equal $NumDims"
         ReportTestStatus $LogFile  [ expr {[llength $dims] == $NumDims} ] $ModuleName $SubTestDes
 
@@ -228,7 +226,7 @@ proc CoreMaskTest { TestMaskName TestMaskID NumDims XDims YDims ZDims NumRes XRe
         set SubTestDes "$TestMaskName dim(2): does [lindex $dims 2] equal $ZDims"
         ReportTestStatus $LogFile  [ expr  {[lindex $dims 2] == $ZDims}   ] $ModuleName $SubTestDes
 
-        set res [b2 get res mask $TestMaskID]
+        set res [b2_get_res_mask $TestMaskID]
         set SubTestDes "$TestMaskName res mask: does [llength $res] equal $NumRes"
         ReportTestStatus $LogFile  [ expr  {[llength $res] == $NumRes}   ] $ModuleName $SubTestDes
 
@@ -296,18 +294,18 @@ proc SingleMeasureEpsilonTest { TestMeasuresName Epsilon ObservedValue KnownValu
 # \fn        proc SumSquared  {}
 # \result    the sum of squares.
 proc RootSumSquared { DifferenceImage {minY 0}} {
-    set DiffSquaredImage [b2 multiply images [list $DifferenceImage $DifferenceImage]]
-    set EveryVoxelMask [b2 threshold image $DiffSquaredImage 0 absolute-value= true]
+    set DiffSquaredImage [b2_multiply_images [list $DifferenceImage $DifferenceImage]]
+    set EveryVoxelMask [b2_threshold_image $DiffSquaredImage 0 absolute-value= true]
     if {$minY != 0} {
-        set UpperVoxelMask [b2 split mask $EveryVoxelMask y $minY +]
-        b2 destroy mask $EveryVoxelMask
+        set UpperVoxelMask [b2_split_mask $EveryVoxelMask y $minY +]
+        b2_destroy_mask $EveryVoxelMask
     } else {
         set UpperVoxelMask $EveryVoxelMask
     }
-    set meas_vol [b2 measure volume mask $UpperVoxelMask]
+    set meas_vol [b2_measure_volume_mask $UpperVoxelMask]
     set meas_tbl [b2 measure Image Mask $UpperVoxelMask $DiffSquaredImage]
-    b2 destroy image $DiffSquaredImage
-    b2 destroy mask $UpperVoxelMask
+    b2_destroy_image $DiffSquaredImage
+    b2_destroy_mask $UpperVoxelMask
     set Volume [lindex [lindex $meas_vol 0] 1]
     set Mean [lindex [lindex $meas_tbl 0] 1]
     return [expr sqrt($Volume * $Mean)]

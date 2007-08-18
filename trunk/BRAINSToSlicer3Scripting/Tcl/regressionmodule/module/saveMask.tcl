@@ -4,19 +4,19 @@ proc CoreSaveMaskTest {filterName TestMaskID SaveFileName LogFile ModuleName} {
     global MODULE_FAILURE
 
     set SubTestDes "$filterName Save Mask - Load saved Mask"
-    set SaveMaskID [b2 load mask $SaveFileName]
+    set SaveMaskID [b2_load_mask $SaveFileName]
     ReportTestStatus $LogFile  [ expr {$SaveMaskID != -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "$filterName Save Mask - Difference saved Mask"
-    set diffMask [b2 xor masks $SaveMaskID $TestMaskID]
+    set diffMask [b2_xor_masks $SaveMaskID $TestMaskID]
     ReportTestStatus $LogFile  [ expr {$diffMask != -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "$filterName Save Mask - Difference volume saved Mask"
-    set volume [b2 measure volume mask $diffMask]
+    set volume [b2_measure_volume_mask $diffMask]
     ReportTestStatus $LogFile  [ expr {[lindex [lindex $volume 0] 1] == 0.000000 } ] $ModuleName $SubTestDes
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $SaveMaskID ] != -1 } ] $ModuleName "Destroying mask $SaveMaskID"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $diffMask ] != -1 } ] $ModuleName "Destroying mask $diffMask"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $SaveMaskID ] != -1 } ] $ModuleName "Destroying mask $SaveMaskID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $diffMask ] != -1 } ] $ModuleName "Destroying mask $diffMask"
 }
 
 
@@ -44,7 +44,7 @@ proc saveMask {pathToRegressionDir dateString} {
 
     set ModuleName "saveMask"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 save mask command and loading various Mask file formats"
+    set ModuleDescription "Test the b2_save_mask command and loading various Mask file formats"
     global OUTPUT_DIR;
     global MODULE_SUCCESS;
     global MODULE_FAILURE
@@ -67,7 +67,7 @@ proc saveMask {pathToRegressionDir dateString} {
     set YRes 1.015625
     set ZRes 1.015625
     set SubTestDes "load $MaskTypeName test"
-    set TestMaskID [b2 load mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
+    set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
     if { [ ReportTestStatus $LogFile  [ expr {$TestMaskID != -1 } ] $ModuleName $SubTestDes ] ==0} {
         return $MODULE_FAILURE
     }
@@ -77,61 +77,61 @@ proc saveMask {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "required arguement test (1)"
-    set errorTest [b2 save mask]
+    set errorTest [b2_save_mask]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "required arguement test (2)"
-    set errorTest [b2 save mask ${OUTPUT_DIR}/TEST/10_ACPC/cran_mask.junk]
+    set errorTest [b2_save_mask ${OUTPUT_DIR}/TEST/10_ACPC/cran_mask.junk]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "required arguement test (3)"
-    set errorTest [b2 save mask ${OUTPUT_DIR}/TEST/10_ACPC/cran_mask.junk cran]
+    set errorTest [b2_save_mask ${OUTPUT_DIR}/TEST/10_ACPC/cran_mask.junk cran]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "arguement number test"
-    set errorTest [b2 save mask ${OUTPUT_DIR}/TEST/10_ACPC/cran_mask.junk brains1 $TestMaskID junk= ]
+    set errorTest [b2_save_mask ${OUTPUT_DIR}/TEST/10_ACPC/cran_mask.junk brains1 $TestMaskID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional arguement test"
-    set errorTest [b2 save mask ${OUTPUT_DIR}/TEST/10_ACPC/cran_mask.junk brains1 $TestMaskID junk= test]
+    set errorTest [b2_save_mask ${OUTPUT_DIR}/TEST/10_ACPC/cran_mask.junk brains1 $TestMaskID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
 
     ############################### BRAINS RLE Masks ###########################################
     set SubTestDes "Save BRAINS Mask test"
-    set errorTest [b2 save mask ${OUTPUT_DIR}/TEST/10_ACPC/cran_mask.junk brains1 $TestMaskID]
+    set errorTest [b2_save_mask ${OUTPUT_DIR}/TEST/10_ACPC/cran_mask.junk brains1 $TestMaskID]
     if { [ ReportTestStatus $LogFile  [ expr {$errorTest != -1 } ] $ModuleName $SubTestDes ]} {
 
         CoreSaveMaskTest "BRAINS" $TestMaskID ${OUTPUT_DIR}/TEST/10_ACPC/cran_mask.junk $LogFile $ModuleName
 
         set SubTestDes "BRAINS invalid filename test"
-        set errorTest [b2 save mask /invalid_directory_nametmp/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.junk brains1 $TestMaskID]
+        set errorTest [b2_save_mask /invalid_directory_nametmp/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.junk brains1 $TestMaskID]
         ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "BRAINS invalid filter-suffix test"
-        set errorTest [b2 save mask ${OUTPUT_DIR}/TEST/10_ACPC/cran_mask.junk brains1 $TestMaskID filter-suffix= -invalid]
+        set errorTest [b2_save_mask ${OUTPUT_DIR}/TEST/10_ACPC/cran_mask.junk brains1 $TestMaskID filter-suffix= -invalid]
         ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
     }
 
 
     ############################### BRAINS2 Octree Masks ###########################################
     set SubTestDes "Save BRAINS2 Mask test"
-    set errorTest [b2 save mask ${OUTPUT_DIR}/TEST/10_ACPC/junk.mask brains2 $TestMaskID]
+    set errorTest [b2_save_mask ${OUTPUT_DIR}/TEST/10_ACPC/junk.mask brains2 $TestMaskID]
     if { [ ReportTestStatus $LogFile  [ expr {$errorTest != -1 } ] $ModuleName $SubTestDes ]} {
 
         CoreSaveMaskTest "BRAINS2" $TestMaskID ${OUTPUT_DIR}/TEST/10_ACPC/junk.mask $LogFile $ModuleName
 
         set SubTestDes "BRAINS2 invalid filename test"
-        set errorTest [b2 save mask /invalid_directory_nametmp/SGI/MR/4x-B1/TEST/10_ACPC/junk.mask brains2 $TestMaskID]
+        set errorTest [b2_save_mask /invalid_directory_nametmp/SGI/MR/4x-B1/TEST/10_ACPC/junk.mask brains2 $TestMaskID]
         ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "BRAINS2 invalid filter-suffix test"
-        set errorTest [b2 save mask ${OUTPUT_DIR}/TEST/10_ACPC/junk.mask brains2 $TestMaskID filter-suffix= -invalid]
+        set errorTest [b2_save_mask ${OUTPUT_DIR}/TEST/10_ACPC/junk.mask brains2 $TestMaskID filter-suffix= -invalid]
         ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
     }
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
 
 
     return [ StopModule  $LogFile $ModuleName ]

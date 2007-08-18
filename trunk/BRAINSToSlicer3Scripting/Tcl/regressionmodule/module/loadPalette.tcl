@@ -22,7 +22,7 @@ proc loadPalette {pathToRegressionDir dateString} {
 
     set ModuleName "loadPalette"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 load palette command and loading various Palette file formats"
+    set ModuleDescription "Test the b2_load_palette command and loading various Palette file formats"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -37,34 +37,34 @@ proc loadPalette {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "required arguement test"
-    set errorTest [b2 load palette]
+    set errorTest [b2_load_palette]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "arguement number test"
-    set errorTest [b2 load palette $B2_TALAIRACH_DIR/../palette/pet.pal junk= ]
+    set errorTest [b2_load_palette $B2_TALAIRACH_DIR/../palette/pet.pal junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional arguement test"
-    set errorTest [b2 load palette $B2_TALAIRACH_DIR/../palette/pet.pal junk= test]
+    set errorTest [b2_load_palette $B2_TALAIRACH_DIR/../palette/pet.pal junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "invalid file test"
-    set errorTest [b2 load palette /invalid_directory_name/pet.pal]
+    set errorTest [b2_load_palette /invalid_directory_name/pet.pal]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
     ############################### BRAINS2 Palette ###########################################
     set SubTestDes "BRAINS2 Palette Load test"
-    set pal [b2 load palette $B2_TALAIRACH_DIR/../palette/pet.pal]
+    set pal [b2_load_palette $B2_TALAIRACH_DIR/../palette/pet.pal]
     if { [ ReportTestStatus $LogFile  [ expr {$pal != -1 } ] $ModuleName $SubTestDes] } {
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy palette $pal ] != -1 } ] $ModuleName "Destroying palette $pal"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_palette $pal ] != -1 } ] $ModuleName "Destroying palette $pal"
     }
 
     ############################### BRAINS2 Palette With Filter ##############################
     set SubTestDes "BRAINS2 Palette Load with filter test"
-    set pal [b2 load palette $B2_TALAIRACH_DIR/../palette/pet.pal filter= brains2]
+    set pal [b2_load_palette $B2_TALAIRACH_DIR/../palette/pet.pal filter= brains2]
     if { [ ReportTestStatus $LogFile  [ expr {$pal != -1 } ] $ModuleName $SubTestDes] } {
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy palette $pal ] != -1 } ] $ModuleName "Destroying palette $pal"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_palette $pal ] != -1 } ] $ModuleName "Destroying palette $pal"
     }
 
     return [ StopModule  $LogFile $ModuleName ]

@@ -43,7 +43,7 @@ proc getDimsResMask {pathToRegressionDir dateString} {
     set YRes 1.015625
     set ZRes 1.015625
     set SubTestDes "Get DIMS/RES load Mask test"
-    set TestMaskID [b2 load mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
+    set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
     if { [ ReportTestStatus $LogFile  [ expr {$TestMaskID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
@@ -51,38 +51,38 @@ proc getDimsResMask {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "(dims) required arguement test"
-    set errorTest [b2 get dims mask]
+    set errorTest [b2_get_dims_mask]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(dims) arguement number test"
-    set errorTest [b2 get dims mask $TestMaskID junk= ]
+    set errorTest [b2_get_dims_mask $TestMaskID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(dims) optional arguement test"
-    set errorTest [b2 get dims mask $TestMaskID junk= test]
+    set errorTest [b2_get_dims_mask $TestMaskID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(dims) invalid mask test"
-    set errorTest [b2 get dims mask -1]
+    set errorTest [b2_get_dims_mask -1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
 
     ########## Res Command
     set SubTestDes "(res) required arguement test"
-    set errorTest [b2 get res mask]
+    set errorTest [b2_get_res_mask]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(res) arguement number test"
-    set errorTest [b2 get res mask $TestMaskID junk= ]
+    set errorTest [b2_get_res_mask $TestMaskID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(res) optional arguement test"
-    set errorTest [b2 get res mask $TestMaskID junk= test]
+    set errorTest [b2_get_res_mask $TestMaskID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(res) invalid mask test"
-    set errorTest [b2 get res mask -1]
+    set errorTest [b2_get_res_mask -1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
@@ -90,7 +90,7 @@ proc getDimsResMask {pathToRegressionDir dateString} {
     CoreMaskTest "get Dims/Res mask" $TestMaskID $NumDims $XDims $YDims $ZDims $NumRes $XRes $YRes $ZRes $LogFile $ModuleName $SubTestDes
 
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
 
     return [ StopModule  $LogFile $ModuleName ]
 }

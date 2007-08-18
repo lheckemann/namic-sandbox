@@ -14,7 +14,7 @@ proc loadImage-PetFlow {pathToRegressionDir dateString} {
 ########################################
         set ModuleName "loadImage-PetFlow"
         set ModuleAuthor "Hans J. Johnson"
-        set ModuleDescription "Test the b2 load image command and loading various image file formats"
+        set ModuleDescription "Test the b2_load_image command and loading various image file formats"
         global MODULE_SUCCESS
         global MODULE_FAILURE
         set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -39,10 +39,10 @@ proc loadImage-PetFlow {pathToRegressionDir dateString} {
         set Dimensions "128 15 128"
         set Resolutions "2.000000 6.500000 2.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/pet_images/worsley-test/TEST/images/pckja10cn01_416.imf data-type= float-single]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/pet_images/worsley-test/TEST/images/pckja10cn01_416.imf data-type= float-single]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
+                ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
         }
 
 ##################### Test Loading Various Data Types Image ###########################################

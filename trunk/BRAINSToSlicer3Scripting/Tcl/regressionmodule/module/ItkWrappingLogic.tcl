@@ -75,7 +75,7 @@ proc ItkWrappingLogic {pathToRegressionDir dateString} {
     }
 
 
-    set b2RGaussian [b2 itkRecursiveGaussian $b2Image 6.0 data-type= float-single];
+    set b2RGaussian [b2_itkRecursiveGaussian $b2Image 6.0 data-type= float-single];
     set ImageTypeName "b2-itkRecursiveGaussian-6.0";
     set ImageType "Classified";
     set Dimensions "256 256 192 1" ;
@@ -87,10 +87,10 @@ proc ItkWrappingLogic {pathToRegressionDir dateString} {
 
     set SubTestDes "Both RecursiveGaussian images should be available for diff image test";
     if { [ ReportTestStatus $LogFile  [ expr { ([string equal [string index $itkRGaussian 0] "i"]) && ([string equal [string index $b2RGaussian 0] "i"]) } ] $ModuleName $SubTestDes ]} {
-        set subImage [b2 subtract images [list $b2RGaussian $itkRGaussian ] ];
+        set subImage [b2_subtract_images [list $b2RGaussian $itkRGaussian ] ];
 
-        set leastError [b2 image min $subImage];
-        set greatestError [b2 image max $subImage];
+        set leastError [b2_image_min $subImage];
+        set greatestError [b2_image_max $subImage];
         set playEnvelopeError [expr $greatestError - $leastError];
         set guideline 0.0001;
         set SubTestDes "Recursive Gaussian Both Ways: Comparing the maximum range of errors, does new ($playEnvelopeError) fall within guideline ($guideline)";
@@ -100,10 +100,10 @@ proc ItkWrappingLogic {pathToRegressionDir dateString} {
         set guideline 0.00001;
         set SubTestDes "Recursive Gaussian Both Ways: Comparing the integral of squared errors over the difference image, does new ($rmsError) fall within guideline ($guideline)";
         ReportTestStatus $LogFile  [ expr { $rmsError <=  $guideline } ] $ModuleName $SubTestDes;
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image $subImage ] != -1 } ] $ModuleName "Destroying image $subImage";
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $subImage ] != -1 } ] $ModuleName "Destroying image $subImage";
     }
     foreach TestImageID [list $b2Image $b2RGaussian $itkRGaussian ] {
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID";
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID";
     }
 
 ##################### Test Loading Various Data Types Image ###########################################
