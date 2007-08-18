@@ -8,7 +8,7 @@
 #
 # Test Performed
 # -----------------------------------------------------------------------
-# Tests the command "b2 set standard-size"
+# Tests the command "b2_set_standard-size"
 #
 # To Do
 #------------------------------------------------------------------------
@@ -34,51 +34,51 @@ proc getSetThreshold {pathToRegressionDir dateString} {
 ########################################
 
     set SubTestDes "Get/Set Mask Threshold - Load Mask Test"
-    set TestMaskID [b2 load mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
+    set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
     if { [ ReportTestStatus $LogFile  [ expr {$TestMaskID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
 
     # First Test for invalid arguements
     set SubTestDes "(set) required arguement test (1)"
-    set errorTest [b2 set threshold]
+    set errorTest [b2_set_threshold]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(set) required arguement test (2)"
-    set errorTest [b2 set threshold mask]
+    set errorTest [b2_set_threshold mask]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(set) required arguement test (3)"
-    set errorTest [b2 set threshold mask $TestMaskID]
+    set errorTest [b2_set_threshold mask $TestMaskID]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(set) required invalid type test"
-    set errorTest [b2 set threshold image]
+    set errorTest [b2_set_threshold image]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
     set SubTestDes "Set Threshold Mask Test"
-    set TestResult [b2 set threshold mask $TestMaskID 100]
+    set TestResult [b2_set_threshold mask $TestMaskID 100]
     ReportTestStatus $LogFile  [ expr {$TestResult == 100.000000 } ] $ModuleName $SubTestDes
 
     ######### Get Threshold
     set SubTestDes "(get) required arguement test (1)"
-    set errorTest [b2 get threshold]
+    set errorTest [b2_get_threshold]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(get) required arguement test (2)"
-    set errorTest [b2 get threshold mask]
+    set errorTest [b2_get_threshold mask]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(set) required invalid type test"
-    set errorTest [b2 get threshold image]
+    set errorTest [b2_get_threshold image]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "Get Threshold Mask Test"
-    set errorTest [b2 get threshold mask $TestMaskID]
+    set errorTest [b2_get_threshold mask $TestMaskID]
     ReportTestStatus $LogFile  [ expr {$errorTest == 100.000000 } ] $ModuleName $SubTestDes
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
 
     return [ StopModule  $LogFile $ModuleName ]
 

@@ -38,7 +38,7 @@ proc getDimsResRoi {pathToRegressionDir dateString} {
     ############################### Load an Image ###########################################
     ## Set known information about mask
     set SubTestDes "Get Image Dims/Res Load 10_ACPC ROI Test"
-    set TestRoiID [b2 load roi $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/user/101tricia_rcaud.zroi]
+    set TestRoiID [b2_load_roi $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/user/101tricia_rcaud.zroi]
     if { [ ReportTestStatus $LogFile  [ expr {$TestRoiID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
@@ -46,42 +46,42 @@ proc getDimsResRoi {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "(dims) required arguement test"
-    set errorTest [b2 get dims roi]
+    set errorTest [b2_get_dims_roi]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(dims) arguement number test"
-    set errorTest [b2 get dims roi $TestRoiID junk= ]
+    set errorTest [b2_get_dims_roi $TestRoiID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(dims) optional arguement test"
-    set errorTest [b2 get dims roi $TestRoiID junk= test]
+    set errorTest [b2_get_dims_roi $TestRoiID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(dims) invalid roi test"
-    set errorTest [b2 get dims roi -1]
+    set errorTest [b2_get_dims_roi -1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
 
     ########## Res Command
     set SubTestDes "(res) required arguement test"
-    set errorTest [b2 get res roi]
+    set errorTest [b2_get_res_roi]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(res) arguement number test"
-    set errorTest [b2 get res roi $TestRoiID junk= ]
+    set errorTest [b2_get_res_roi $TestRoiID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(res) optional arguement test"
-    set errorTest [b2 get res roi $TestRoiID junk= test]
+    set errorTest [b2_get_res_roi $TestRoiID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(res) invalid roi test"
-    set errorTest [b2 get res roi -1]
+    set errorTest [b2_get_res_roi -1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
-    set RoiDims [ b2 get dims roi $TestRoiID]
-    set RoiRes [ b2 get res roi $TestRoiID]
+    set RoiDims [ b2_get_dims_roi $TestRoiID]
+    set RoiRes [ b2_get_res_roi $TestRoiID]
 
     set ExpectDims {256 256 192}
     set ExpectRes {1.015625  1.015625 1.015625}
@@ -92,16 +92,16 @@ proc getDimsResRoi {pathToRegressionDir dateString} {
         ReportTestStatus $LogFile  [ expr {[lindex $RoiRes $i] == [lindex $ExpectRes $i] } ] $ModuleName $SubTestDes
     }
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy roi $TestRoiID ] != -1 } ] $ModuleName "Destroying roi $TestRoiID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_roi $TestRoiID ] != -1 } ] $ModuleName "Destroying roi $TestRoiID"
 
     set SubTestDes "Get Image Dims/Res Load 05_ACPC ROI Test"
-    set TestRoiID [b2 load roi $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/user/brain.zroi]
+    set TestRoiID [b2_load_roi $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/user/brain.zroi]
     if { [ ReportTestStatus $LogFile  [ expr {$TestRoiID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
 
-    set RoiDims [ b2 get dims roi $TestRoiID]
-    set RoiRes [ b2 get res roi $TestRoiID]
+    set RoiDims [ b2_get_dims_roi $TestRoiID]
+    set RoiRes [ b2_get_res_roi $TestRoiID]
 
     set ExpectDims {320 320 384}
     set ExpectRes {0.500000  0.500000 0.500000}
@@ -112,7 +112,7 @@ proc getDimsResRoi {pathToRegressionDir dateString} {
         ReportTestStatus $LogFile  [ expr {[lindex $RoiRes $i] == [lindex $ExpectRes $i] } ] $ModuleName $SubTestDes
     }
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy roi $TestRoiID ] != -1 } ] $ModuleName "Destroying roi $TestRoiID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_roi $TestRoiID ] != -1 } ] $ModuleName "Destroying roi $TestRoiID"
 
 
 

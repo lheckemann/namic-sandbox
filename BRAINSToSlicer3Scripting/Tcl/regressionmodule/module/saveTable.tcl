@@ -4,11 +4,11 @@ proc CoreSaveTableTest {filterName TestTableID SaveFileName LogFile ModuleName} 
     global MODULE_FAILURE
 
     set SubTestDes "Save Table - Load saved $filterName Table"
-    set SaveTableID [b2 load table $SaveFileName]
+    set SaveTableID [b2_load_table $SaveFileName]
     ReportTestStatus $LogFile  [ expr {$SaveTableID != -1 } ] $ModuleName $SubTestDes
 
-    set origTableData [b2 get table data $TestTableID ]
-    set newTableData [b2 get table data $SaveTableID]
+    set origTableData [b2_get_table_data $TestTableID ]
+    set newTableData [b2_get_table_data $SaveTableID]
 
     set SubTestDes "Save Table - $filterName Row Check Table"
     ReportTestStatus $LogFile  [ expr {[llength $origTableData] == [llength $newTableData] } ] $ModuleName $SubTestDes
@@ -23,7 +23,7 @@ proc CoreSaveTableTest {filterName TestTableID SaveFileName LogFile ModuleName} 
     }
 
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy table $SaveTableID ] != -1 } ] $ModuleName "Destroying table $SaveTableID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_table $SaveTableID ] != -1 } ] $ModuleName "Destroying table $SaveTableID"
 }
 
 
@@ -53,7 +53,7 @@ proc saveTable {pathToRegressionDir dateString} {
 
     set ModuleName "saveTable"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 save table command and saving various file formats"
+    set ModuleDescription "Test the b2_save_table command and saving various file formats"
     global OUTPUT_DIR;
     global MODULE_SUCCESS;
     global MODULE_FAILURE
@@ -69,7 +69,7 @@ proc saveTable {pathToRegressionDir dateString} {
 ########################################
 
     set SubTestDes "Save Table - Load Table test"
-    set TestTableID [b2 load table $B2_TALAIRACH_DIR/../tables/pseudoPD.tbl]
+    set TestTableID [b2_load_table $B2_TALAIRACH_DIR/../tables/pseudoPD.tbl]
     if { [ ReportTestStatus $LogFile  [ expr {$TestTableID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
@@ -80,45 +80,45 @@ proc saveTable {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "required arguement test (1)"
-    set errorTest [b2 save table]
+    set errorTest [b2_save_table]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "required arguement test (2)"
-    set errorTest [b2 save table ${OUTPUT_DIR}/TEST/10_ACPC/junk.tbl]
+    set errorTest [b2_save_table ${OUTPUT_DIR}/TEST/10_ACPC/junk.tbl]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "required arguement test (3)"
-    set errorTest [b2 save table ${OUTPUT_DIR}/TEST/10_ACPC/junk.tbl brains]
+    set errorTest [b2_save_table ${OUTPUT_DIR}/TEST/10_ACPC/junk.tbl brains]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "arguement number test"
-    set errorTest [b2 save table ${OUTPUT_DIR}/TEST/10_ACPC/junk.tbl brains $TestTableID junk= ]
+    set errorTest [b2_save_table ${OUTPUT_DIR}/TEST/10_ACPC/junk.tbl brains $TestTableID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional arguement test"
-    set errorTest [b2 save table ${OUTPUT_DIR}/TEST/10_ACPC/junk.tbl brains $TestTableID junk= test]
+    set errorTest [b2_save_table ${OUTPUT_DIR}/TEST/10_ACPC/junk.tbl brains $TestTableID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
     ############################### BRAINS2 Palette ###########################################
     set SubTestDes "Save BRAINS2 Table test"
-    set errorTest [b2 save table ${OUTPUT_DIR}/TEST/10_ACPC/junk.tbl brains2 $TestTableID]
+    set errorTest [b2_save_table ${OUTPUT_DIR}/TEST/10_ACPC/junk.tbl brains2 $TestTableID]
     if { [ ReportTestStatus $LogFile  [ expr {$errorTest != -1 } ] $ModuleName $SubTestDes ]} {
 
         CoreSaveTableTest "BRAINS2" $TestTableID ${OUTPUT_DIR}/TEST/10_ACPC/junk.tbl $LogFile $ModuleName
 
         set SubTestDes "BRAINS2 invalid filename test"
-        set errorTest [b2 save table /invalid_directory_nametmp/SGI/MR/4x-B1/TEST/10_ACPC/junk.tbl brains2 $TestTableID]
+        set errorTest [b2_save_table /invalid_directory_nametmp/SGI/MR/4x-B1/TEST/10_ACPC/junk.tbl brains2 $TestTableID]
         ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "BRAINS2 invalid filter-suffix test"
-        set errorTest [b2 save table ${OUTPUT_DIR}/TEST/10_ACPC/junk.tbl brains2 $TestTableID filter-suffix= -invalid]
+        set errorTest [b2_save_table ${OUTPUT_DIR}/TEST/10_ACPC/junk.tbl brains2 $TestTableID filter-suffix= -invalid]
         ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
     }
 
 
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy table $TestTableID ] != -1 } ] $ModuleName "Destroying table $TestTableID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_table $TestTableID ] != -1 } ] $ModuleName "Destroying table $TestTableID"
 
     return [ StopModule  $LogFile $ModuleName ]
 

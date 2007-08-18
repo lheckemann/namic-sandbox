@@ -1,6 +1,6 @@
 # \author        Greg Harris"
 # \date
-# \brief        b2 create boxed-image
+# \brief        b2_create_boxed-image
 # \fn                proc createBoxedImage {pathToRegressionDir dateString}
 # \param        string pathToRegressionDir        - Path to the regresssion test directory
 # \param        string dateString                - String to label output file
@@ -8,8 +8,8 @@
 #
 # Test Performed
 # -----------------------------------------------------------------------
-# 'b2 create boxed-image' -- b2 invalid arguments
-# 'b2 create boxed-image' -- run without error signal
+# 'b2_create_boxed-image' -- b2 invalid arguments
+# 'b2_create_boxed-image' -- run without error signal
 # resulting image's parameters
 # threshold and mask: parameters, volumes
 # boxed bullet: parameters, volumes
@@ -30,7 +30,7 @@ proc createBoxedImage {pathToRegressionDir dateString} {
 
     set ModuleName "createBoxedImage"
     set ModuleAuthor "Greg Harris"
-    set ModuleDescription "Testing of b2 create boxed-image"
+    set ModuleDescription "Testing of b2_create_boxed-image"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -42,39 +42,39 @@ proc createBoxedImage {pathToRegressionDir dateString} {
 
 # Run Tests
 
-        set img1 [b2 create bullet-image 20 0 256 256 192 1.015625 1.015625 1.015625 120 100 75 8 3 1]
-        set img2 [b2 create bullet-image 18 0 256 256 192 1.015625 1.015625 1.015625 126 108 73 1 2 9]
-    set imgN [b2 sum images [list $img1 $img2]]
+        set img1 [b2_create_bullet-image 20 0 256 256 192 1.015625 1.015625 1.015625 120 100 75 8 3 1]
+        set img2 [b2_create_bullet-image 18 0 256 256 192 1.015625 1.015625 1.015625 126 108 73 1 2 9]
+    set imgN [b2_sum_images [list $img1 $img2]]
 
 
-        set num_ret [b2 create boxed-image]
-        set SubTestDes "required argument test: \[b2 create boxed-image\]"
+        set num_ret [b2_create_boxed-image]
+        set SubTestDes "required argument test: \[b2_create_boxed-image\]"
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
           }
 
         set SubTestDes "optional argument number test"
-        set num_ret [b2 create boxed-image $imgN junk= ]
+        set num_ret [b2_create_boxed-image $imgN junk= ]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
           }
 
         set SubTestDes "unknown optional argument test"
-        set num_ret [b2 create boxed-image junk= test]
+        set num_ret [b2_create_boxed-image junk= test]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
           }
 
 
-        set pair_ret [b2 create boxed-image $imgN threshold= 1.0]
-        set SubTestDes "correct response test: \[b2 create boxed-image <some-phantom> threshold= 1.0\]"
+        set pair_ret [b2_create_boxed-image $imgN threshold= 1.0]
+        set SubTestDes "correct response test: \[b2_create_boxed-image <some-phantom> threshold= 1.0\]"
         if {[ReportTestStatus $LogFile  [ expr {[llength $pair_ret] == 2} ] $ModuleName $SubTestDes] == 0} {
 }
 
         if {[llength $pair_ret] == 2} {
         set img_ret [lindex $pair_ret 0]
         set trans_ret [lindex $pair_ret 1]
-        b2 set transform -1 image $img_ret
+        b2_set_transform -1 image $img_ret
 
 
-                set dim_ret [b2 get dims image $img_ret]
+                set dim_ret [b2_get_dims_image $img_ret]
                 set SubTestDes "num dims test"
                 if {[ReportTestStatus $LogFile  [ expr {[llength $dim_ret] == 3 } ] $ModuleName $SubTestDes] == 0} {
                     }
@@ -91,7 +91,7 @@ proc createBoxedImage {pathToRegressionDir dateString} {
                 if {[ReportTestStatus $LogFile  [ expr {[lindex $dim_ret 2] == 11 } ] $ModuleName $SubTestDes] == 0} {
                     }
 
-                set test_res [b2 get res image $img_ret]
+                set test_res [b2_get_res_image $img_ret]
 
                 set SubTestDes "num res test"
                 if {[ReportTestStatus $LogFile  [ expr {[llength $test_res] == 3 } ] $ModuleName $SubTestDes] == 0} {
@@ -110,25 +110,25 @@ proc createBoxedImage {pathToRegressionDir dateString} {
                     }
 
 
-        set imageMin [b2 image min  $img_ret]
+        set imageMin [b2_image_min  $img_ret]
               if {[SingleMeasureEpsilonTest "boxed image min" 0.00001 $imageMin 0.000000 $LogFile $ModuleName] == 0} {
                     }
 
         set SubTestDes "boxed image max test"
-        set imageMax [b2 image max   $img_ret]
+        set imageMax [b2_image_max   $img_ret]
               if {[SingleMeasureEpsilonTest "boxed image max" 0.00001 $imageMax 20.000000 $LogFile $ModuleName] == 0} {
                     }
 
 
-        b2 set transform $trans_ret image $img_ret
-        set thresh_mask [b2 threshold image $img_ret 1.0]
-        set meas_tbl [b2 measure volume mask $thresh_mask]
+        b2_set_transform $trans_ret image $img_ret
+        set thresh_mask [b2_threshold_image $img_ret 1.0]
+        set meas_tbl [b2_measure_volume_mask $thresh_mask]
 
               if {[SingleMeasureEpsilonTest "threshold 1.0 mask volume" 0.00001 [lindex [lindex $meas_tbl 0] 1]  0.044000 $LogFile $ModuleName] == 0} {
                     }
 
 
-#        set meas_tbl [b2 measure image mask $thresh_mask $img_ret]
+#        set meas_tbl [b2_measure_image_mask $thresh_mask $img_ret]
 #        set SubTestDes "boxed image measure mean test"
 #        if {[ReportTestStatus $LogFile  [ expr {[lindex [lindex $meas_tbl 0] 1] == 244.285714 } ] $ModuleName $SubTestDes] == 0} {
 #                   }
@@ -140,14 +140,14 @@ proc createBoxedImage {pathToRegressionDir dateString} {
 # Clean up Files
 
 # Free memory
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image ${img_ret} ] != -1 } ] $ModuleName "Destroying image ${img_ret}"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy transform ${trans_ret} ] != -1 } ] $ModuleName "Destroying transform ${trans_ret}"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask ${thresh_mask} ] != -1 } ] $ModuleName "Destroying mask ${thresh_mask}"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image ${img_ret} ] != -1 } ] $ModuleName "Destroying image ${img_ret}"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_transform ${trans_ret} ] != -1 } ] $ModuleName "Destroying transform ${trans_ret}"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask ${thresh_mask} ] != -1 } ] $ModuleName "Destroying mask ${thresh_mask}"
 
         }
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image ${img1} ] != -1 } ] $ModuleName "Destroying image ${img1}"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image ${img2} ] != -1 } ] $ModuleName "Destroying image ${img2}"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image ${imgN} ] != -1 } ] $ModuleName "Destroying image ${imgN}"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image ${img1} ] != -1 } ] $ModuleName "Destroying image ${img1}"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image ${img2} ] != -1 } ] $ModuleName "Destroying image ${img2}"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image ${imgN} ] != -1 } ] $ModuleName "Destroying image ${imgN}"
 
         return [ StopModule  $LogFile $ModuleName ]
 }

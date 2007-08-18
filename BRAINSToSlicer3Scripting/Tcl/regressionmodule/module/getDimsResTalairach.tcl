@@ -38,7 +38,7 @@ proc getDimsResTalairach {pathToRegressionDir dateString} {
     ############################### Load an Image ###########################################
     ## Set known information about mask
     set SubTestDes "Get talairach-parameters Dims/Res Load talairach-parameters Test"
-    set TestTalBndID [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters]
+    set TestTalBndID [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters]
     if { [ ReportTestStatus $LogFile  [ expr {$TestTalBndID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
@@ -46,38 +46,38 @@ proc getDimsResTalairach {pathToRegressionDir dateString} {
 
     ########## Standard Dims
     set SubTestDes "(standard-dims) required arguement test"
-    set errorTest [b2 get standard-dims talairach-parameters]
+    set errorTest [b2_get_standard-dims_talairach-parameters]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(standard-dims) arguement number test"
-    set errorTest [b2 get standard-dims talairach-parameters $TestTalBndID junk= ]
+    set errorTest [b2_get_standard-dims_talairach-parameters $TestTalBndID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(standard-dims) optional arguement test"
-    set errorTest [b2 get standard-dims talairach-parameters $TestTalBndID junk= test]
+    set errorTest [b2_get_standard-dims_talairach-parameters $TestTalBndID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(standard-dims) invalid roi test"
-    set errorTest [b2 get standard-dims talairach-parameters -1]
+    set errorTest [b2_get_standard-dims_talairach-parameters -1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
 
     ########## Standard Res
     set SubTestDes "(standard-res) required arguement test"
-    set errorTest [b2 get standard-res talairach-parameters]
+    set errorTest [b2_get_standard-res_talairach-parameters]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(standard-res) arguement number test"
-    set errorTest [b2 get standard-res talairach-parameters $TestTalBndID junk= ]
+    set errorTest [b2_get_standard-res_talairach-parameters $TestTalBndID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(standard-res) optional arguement test"
-    set errorTest [b2 get standard-res talairach-parameters $TestTalBndID junk= test]
+    set errorTest [b2_get_standard-res_talairach-parameters $TestTalBndID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(standard-res) invalid roi test"
-    set errorTest [b2 get standard-res talairach-parameters -1]
+    set errorTest [b2_get_standard-res_talairach-parameters -1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
@@ -85,45 +85,45 @@ proc getDimsResTalairach {pathToRegressionDir dateString} {
 
     ############# Reslice Dims
     set SubTestDes "(reslice-dims) required arguement test"
-    set errorTest [b2 get reslice-dims talairach-parameters]
+    set errorTest [b2_get_reslice-dims_talairach-parameters]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(reslice-dims) arguement number test"
-    set errorTest [b2 get reslice-dims talairach-parameters $TestTalBndID junk= ]
+    set errorTest [b2_get_reslice-dims_talairach-parameters $TestTalBndID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(reslice-dims) optional arguement test"
-    set errorTest [b2 get reslice-dims talairach-parameters $TestTalBndID junk= test]
+    set errorTest [b2_get_reslice-dims_talairach-parameters $TestTalBndID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(reslice-dims) invalid roi test"
-    set errorTest [b2 get reslice-dims talairach-parameters -1]
+    set errorTest [b2_get_reslice-dims_talairach-parameters -1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
 
     ########## Reslice Res
     set SubTestDes "(reslice-res) required arguement test"
-    set errorTest [b2 get reslice-res talairach-parameters]
+    set errorTest [b2_get_reslice-res_talairach-parameters]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(reslice-res) arguement number test"
-    set errorTest [b2 get standard-res talairach-parameters $TestTalBndID junk= ]
+    set errorTest [b2_get_standard-res_talairach-parameters $TestTalBndID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(reslice-res) optional arguement test"
-    set errorTest [b2 get reslice-res talairach-parameters $TestTalBndID junk= test]
+    set errorTest [b2_get_reslice-res_talairach-parameters $TestTalBndID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(reslice-res) invalid roi test"
-    set errorTest [b2 get reslice-res talairach-parameters -1]
+    set errorTest [b2_get_reslice-res_talairach-parameters -1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
-    set StandardDims [ b2 get standard-dims talairach-parameters $TestTalBndID]
-    set StandardRes [ b2 get standard-res talairach-parameters $TestTalBndID]
-    set ResliceDims [ b2 get reslice-dims talairach-parameters $TestTalBndID]
-    set ResliceRes [ b2 get reslice-res talairach-parameters $TestTalBndID]
+    set StandardDims [ b2_get_standard-dims_talairach-parameters $TestTalBndID]
+    set StandardRes [ b2_get_standard-res_talairach-parameters $TestTalBndID]
+    set ResliceDims [ b2_get_reslice-dims_talairach-parameters $TestTalBndID]
+    set ResliceRes [ b2_get_reslice-res_talairach-parameters $TestTalBndID]
 
     set ExpectStandardDims {172 176 195}
     set ExpectStandardRes {1.000000  1.000000 1.00000}
@@ -140,7 +140,7 @@ proc getDimsResTalairach {pathToRegressionDir dateString} {
         ReportTestStatus $LogFile  [ expr {[lindex $ResliceRes $i] == [lindex $ExpectResliceRes $i] } ] $ModuleName $SubTestDes
     }
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TestTalBndID ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestTalBndID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TestTalBndID ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestTalBndID"
 
 
     return [ StopModule  $LogFile $ModuleName ]

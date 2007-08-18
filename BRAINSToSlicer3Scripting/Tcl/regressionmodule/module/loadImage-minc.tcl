@@ -14,7 +14,7 @@ proc loadImage-minc {pathToRegressionDir dateString} {
 ########################################
         set ModuleName "loadImage-minc"
         set ModuleAuthor "Hans J. Johnson"
-        set ModuleDescription "Test the b2 load image command and loading minc image file format"
+        set ModuleDescription "Test the b2_load_image command and loading minc image file format"
         global OUTPUT_DIR;
         global MODULE_SUCCESS
         global MODULE_FAILURE
@@ -37,18 +37,18 @@ proc loadImage-minc {pathToRegressionDir dateString} {
         set Dimensions "91 91 109"
         set Resolutions "2.000000 2.000000 2.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/spm2/canonical/avg305T1.mnc ]
+        set TestImageID [b2_load_image $pathToRegressionDir/spm2/canonical/avg305T1.mnc ]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-            ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
+            ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
         }
 
-    set anisotropic [b2 load image $pathToRegressionDir/SGI/MR/B2-downsampled/TEST/20_ACPC/harris/ANON0006_T2_downsampled.hdr ]
+    set anisotropic [b2_load_image $pathToRegressionDir/SGI/MR/B2-downsampled/TEST/20_ACPC/harris/ANON0006_T2_downsampled.hdr ]
     if {[file exists ${OUTPUT_DIR}/ANON0006_T2_downsampled.mnc ] == 1} {
         file delete ${OUTPUT_DIR}/ANON0006_T2_downsampled.mnc
     }
-    b2 save image ${OUTPUT_DIR}/ANON0006_T2_downsampled.mnc minc $anisotropic
-    b2 destroy image $anisotropic
+    b2_save_image ${OUTPUT_DIR}/ANON0006_T2_downsampled.mnc minc $anisotropic
+    b2_destroy_image $anisotropic
     set ImageTypeName "minc-T2-anisotropic"
         set ImageType "UNKNOWN"
         set ImageMin 0.000000000000000
@@ -56,10 +56,10 @@ proc loadImage-minc {pathToRegressionDir dateString} {
         set Dimensions "100 100 66"
         set Resolutions "2.0 2.0 3.0"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image ${OUTPUT_DIR}/ANON0006_T2_downsampled.mnc ]
+        set TestImageID [b2_load_image ${OUTPUT_DIR}/ANON0006_T2_downsampled.mnc ]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-            ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
+            ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
         }
         
 

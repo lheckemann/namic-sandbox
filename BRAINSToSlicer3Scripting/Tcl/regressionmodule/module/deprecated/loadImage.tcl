@@ -18,7 +18,7 @@ proc loadImage {pathToRegressionDir dateString} {
 ########################################
         set ModuleName "loadImage"
         set ModuleAuthor "Hans J. Johnson"
-        set ModuleDescription "Test the b2 load image command and loading various image file formats"
+        set ModuleDescription "Test the b2_load_image command and loading various image file formats"
         set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
 #    close $LogFile
 #    set LogFile stderr
@@ -30,15 +30,15 @@ proc loadImage {pathToRegressionDir dateString} {
 ########################################
 # First Test for invalid arguments
         set SubTestDes "required argument test"
-        set ErrorReturnOK [b2 load image]
+        set ErrorReturnOK [b2_load_image]
         ReportTestStatus $LogFile  [ expr {$ErrorReturnOK == -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "argument number test"
-        set ErrorReturnOK [b2 load image SGI/MR/4x-B1/TEST/15_002/19771.002.096 junk= ]
+        set ErrorReturnOK [b2_load_image SGI/MR/4x-B1/TEST/15_002/19771.002.096 junk= ]
         ReportTestStatus $LogFile  [ expr {$ErrorReturnOK == -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "optional argument test"
-        set ErrorReturnOK [b2 load image SGI/MR/4x-B1/TEST/15_002/19771.002.096 junk= test]
+        set ErrorReturnOK [b2_load_image SGI/MR/4x-B1/TEST/15_002/19771.002.096 junk= test]
         ReportTestStatus $LogFile  [ expr {$ErrorReturnOK == -1 } ] $ModuleName $SubTestDes
 
 
@@ -51,11 +51,11 @@ proc loadImage {pathToRegressionDir dateString} {
         set Dimensions "256 256 124"
         set Resolutions "1.015625 1.015625 1.500000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/4x-B1/TEST/15_002/19771.002.096]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/4x-B1/TEST/15_002/19771.002.096]
 #only continue upon success
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                b2 destroy image $TestImageID
+                b2_destroy_image $TestImageID
         }
 
 
@@ -68,11 +68,11 @@ proc loadImage {pathToRegressionDir dateString} {
         set Dimensions "256 256 124"
         set Resolutions "1.015625 1.015625 1.500000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/5x-B1/TEST/15_002/113766.002.099]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/5x-B1/TEST/15_002/113766.002.099]
 #only continue upon success
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                b2 destroy image $TestImageID
+                b2_destroy_image $TestImageID
         }
 
 ## Set known information about this test image
@@ -83,10 +83,10 @@ proc loadImage {pathToRegressionDir dateString} {
         set Dimensions "256 256 59"
         set Resolutions "1.015625 1.015625 3.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/5x-B1/TEST/31_003/113766.003.070]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/5x-B1/TEST/31_003/113766.003.070]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                b2 destroy image $TestImageID
+                b2_destroy_image $TestImageID
         }
 
 ## Set known information about this test image
@@ -97,10 +97,10 @@ proc loadImage {pathToRegressionDir dateString} {
         set Dimensions "256 256 59"
         set Resolutions "1.015625 1.015625 3.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/5x-B1/TEST/31_003/113766.003.071]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/5x-B1/TEST/31_003/113766.003.071]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                b2 destroy image $TestImageID
+                b2_destroy_image $TestImageID
         }
 
 
@@ -113,10 +113,10 @@ proc loadImage {pathToRegressionDir dateString} {
         set Dimensions "256 256 120"
         set Resolutions "0.625000 0.625000 1.500000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/GE-Adw/TEST/Series2/I.074]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/GE-Adw/TEST/Series2/I.074]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                b2 destroy image $TestImageID
+                b2_destroy_image $TestImageID
         }
 
 ############################### GE DICOM Images ###########################################
@@ -128,10 +128,10 @@ proc loadImage {pathToRegressionDir dateString} {
         set Dimensions "256 256 124"
         set Resolutions "0.664062 0.664062 1.500000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/T1_002/006872.002.078]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/T1_002/006872.002.078]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                b2 destroy image $TestImageID
+                b2_destroy_image $TestImageID
         }
 
 ############################### Digital Jacket DICOM Images ###########################################
@@ -148,10 +148,10 @@ proc loadImage {pathToRegressionDir dateString} {
         set Dimensions "256 256 192"
         set Resolutions "1.015625 1.015625 1.015625"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/MR-PIC/TEST/10_ACPC/ACPC_ANON011_127.pic]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/MR-PIC/TEST/10_ACPC/ACPC_ANON011_127.pic]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                b2 destroy image $TestImageID
+                b2_destroy_image $TestImageID
         }
 
 
@@ -164,10 +164,10 @@ proc loadImage {pathToRegressionDir dateString} {
         set Dimensions "256 64 256 1"
         set Resolutions "0.859375 2.999992 0.859375 9.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/varian/TEST/mpflash_T1/image0016.fdf data-type= float-single filter-suffix= "-c on"]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/varian/TEST/mpflash_T1/image0016.fdf data-type= float-single filter-suffix= "-c on"]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                b2 destroy image $TestImageID
+                b2_destroy_image $TestImageID
         }
 
 
@@ -180,10 +180,10 @@ proc loadImage {pathToRegressionDir dateString} {
         set Dimensions "512 24 512 1"
         set Resolutions "0.390625 5.000000 0.390625 10000.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/varian/TEST/fse_T2/image0009.fdf data-type= float-single filter-suffix= "-c on"]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/varian/TEST/fse_T2/image0009.fdf data-type= float-single filter-suffix= "-c on"]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                b2 destroy image $TestImageID
+                b2_destroy_image $TestImageID
         }
         
 ############################### Varian EPI fMR Image Set ###########################################
@@ -195,10 +195,10 @@ proc loadImage {pathToRegressionDir dateString} {
         set Dimensions "64 24 64 120"
         set Resolutions "3.437500 5.000000 3.437500 2000.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/varian/TEST/epi_fMR/image0009.fdf data-type= float-single filter-suffix= "-c on"]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/varian/TEST/epi_fMR/image0009.fdf data-type= float-single filter-suffix= "-c on"]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                b2 destroy image $TestImageID
+                b2_destroy_image $TestImageID
         }
 
 
@@ -211,10 +211,10 @@ proc loadImage {pathToRegressionDir dateString} {
         set Dimensions "256 256 192 1"
         set Resolutions "1.016000 1.016000 1.016000 1.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_stereo.hdr]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_stereo.hdr]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                b2 destroy image $TestImageID
+                b2_destroy_image $TestImageID
         }
 
 ############################### Analyze T1 Image ###########################################
@@ -226,10 +226,10 @@ proc loadImage {pathToRegressionDir dateString} {
         set Dimensions "256 256 192 1"
         set Resolutions "1.016000 1.016000 1.016000 1.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_T1.hdr]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_T1.hdr]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                b2 destroy image $TestImageID
+                b2_destroy_image $TestImageID
         }
 
 ############################### Analyze T1 Image - Strict Format ###########################################
@@ -241,10 +241,10 @@ proc loadImage {pathToRegressionDir dateString} {
         set Dimensions "256 256 192 1"
         set Resolutions "1.016000 1.016000 1.016000 1.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/strict_analyze_T1.hdr filter-suffix= "-s on"]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/strict_analyze_T1.hdr filter-suffix= "-s on"]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                b2 destroy image $TestImageID
+                b2_destroy_image $TestImageID
         }
         
         
@@ -257,10 +257,10 @@ proc loadImage {pathToRegressionDir dateString} {
         set Dimensions "256 256 192 1"
         set Resolutions "1.016000 1.016000 1.016000 1.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_t2_fit.hdr]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_t2_fit.hdr]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                b2 destroy image $TestImageID
+                b2_destroy_image $TestImageID
         }
 
 ############################### Trimodal Image ###########################################
@@ -272,7 +272,7 @@ proc loadImage {pathToRegressionDir dateString} {
         set Dimensions "256 256 192 1"
         set Resolutions "1.016000 1.016000 1.016000 1.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set b2cmd [format "b2 load image {%s %s %s}" \
+        set b2cmd [format "b2_load_image {%s %s %s}" \
               $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_T1.hdr \
                     $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_t2_fit.hdr \
                     $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_pd_fit.hdr]
@@ -280,7 +280,7 @@ proc loadImage {pathToRegressionDir dateString} {
 #only continue upon success
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                b2 destroy image $TestImageID
+                b2_destroy_image $TestImageID
         }
         
         
@@ -290,87 +290,87 @@ proc loadImage {pathToRegressionDir dateString} {
 ##################### Test Loading Various Data Types Image ###########################################
 ##################### Test Loading Various Data Types Image ###########################################
     set SubTestDes "load Varian 8 bit T2 test"
-        set varian8bitT2 [b2 load image $pathToRegressionDir/SGI/MR/varian/TEST/fse_T2/image0009.fdf filter-suffix= "-c on"]
+        set varian8bitT2 [b2_load_image $pathToRegressionDir/SGI/MR/varian/TEST/fse_T2/image0009.fdf filter-suffix= "-c on"]
         if { [ReportTestStatus $LogFile  [ expr  {$varian8bitT2 != -1}   ] $ModuleName $SubTestDes ]} {
 
             set SubTestDes "Varian 8 bit T2 image min"
-                set imageMin [b2 image min $varian8bitT2]
+                set imageMin [b2_image_min $varian8bitT2]
                 ReportTestStatus $LogFile  [ expr  {$imageMin == 0.000000}   ] $ModuleName $SubTestDes
 
                 set SubTestDes "Varian 8 bit T2 image max"
-                set imageMax [b2 image max $varian8bitT2]
+                set imageMax [b2_image_max $varian8bitT2]
                 ReportTestStatus $LogFile  [ expr  {$imageMax == 0.052734}   ] $ModuleName $SubTestDes
-                b2 destroy image $varian8bitT2
+                b2_destroy_image $varian8bitT2
         }
 
     set SubTestDes "load GE 4x US 16 bit T1 test"
-        set ge4xU16bitT1 [b2 load image $pathToRegressionDir/SGI/MR/4x-B1/TEST/15_002/19771.002.096 data-type= unsigned-16bit]
+        set ge4xU16bitT1 [b2_load_image $pathToRegressionDir/SGI/MR/4x-B1/TEST/15_002/19771.002.096 data-type= unsigned-16bit]
         if { [ ReportTestStatus $LogFile  [ expr  {$ge4xU16bitT1 != -1}   ] $ModuleName $SubTestDes ] } {
 
             set SubTestDes "GE 4x US 16 bit T1 image min"
-                set imageMin [b2 image min $ge4xU16bitT1]
+                set imageMin [b2_image_min $ge4xU16bitT1]
                 ReportTestStatus $LogFile  [ expr  {$imageMin == 0.000000}   ] $ModuleName $SubTestDes
 
                 set SubTestDes "GE 4x US 16 bit T1 image max"
-                set imageMax [b2 image max $ge4xU16bitT1]
+                set imageMax [b2_image_max $ge4xU16bitT1]
                 ReportTestStatus $LogFile  [ expr  {$imageMax == 200.000000}   ] $ModuleName $SubTestDes
-                b2 destroy image $ge4xU16bitT1
+                b2_destroy_image $ge4xU16bitT1
         }
 
     set SubTestDes "load GE 4x S 16 bit T1 test"
-        set ge4xS16bitT1 [b2 load image $pathToRegressionDir/SGI/MR/4x-B1/TEST/15_002/19771.002.096 data-type= signed-16bit]
+        set ge4xS16bitT1 [b2_load_image $pathToRegressionDir/SGI/MR/4x-B1/TEST/15_002/19771.002.096 data-type= signed-16bit]
         if { [ ReportTestStatus $LogFile  [ expr  {$ge4xS16bitT1 != -1}   ] $ModuleName $SubTestDes ] } {
 
             set SubTestDes "GE 4x S 16 bit T1 image min"
-                set imageMin [b2 image min $ge4xS16bitT1]
+                set imageMin [b2_image_min $ge4xS16bitT1]
                 ReportTestStatus $LogFile  [ expr  {$imageMin == 0.000000}   ] $ModuleName $SubTestDes
 
                 set SubTestDes "GE 4x S 16 bit T1 image max"
-                set imageMax [b2 image max $ge4xS16bitT1]
+                set imageMax [b2_image_max $ge4xS16bitT1]
                 ReportTestStatus $LogFile  [ expr  {$imageMax == 200.000000}   ] $ModuleName $SubTestDes
-                b2 destroy image $ge4xS16bitT1
+                b2_destroy_image $ge4xS16bitT1
         }
 
     set SubTestDes "load GE 5x Float T1 test"
-        set ge5xFloatT1 [b2 load image $pathToRegressionDir/SGI/MR/5x-B1/TEST/15_002/113766.002.099 data-type= float-single]
+        set ge5xFloatT1 [b2_load_image $pathToRegressionDir/SGI/MR/5x-B1/TEST/15_002/113766.002.099 data-type= float-single]
         if { [ ReportTestStatus $LogFile  [ expr  {$ge5xFloatT1 != -1}   ] $ModuleName $SubTestDes ] } {
 
             set SubTestDes "GE 5x Float T1 image min"
-                set imageMin [b2 image min $ge5xFloatT1]
+                set imageMin [b2_image_min $ge5xFloatT1]
                 ReportTestStatus $LogFile  [ expr  {$imageMin == 0.000000}   ] $ModuleName $SubTestDes
 
                 set SubTestDes "GE 5x Float T1 image max"
-                set imageMax [b2 image max $ge5xFloatT1]
+                set imageMax [b2_image_max $ge5xFloatT1]
                 ReportTestStatus $LogFile  [ expr  {$imageMax == 2337.000000}   ] $ModuleName $SubTestDes
-                b2 destroy image $ge5xFloatT1
+                b2_destroy_image $ge5xFloatT1
         }
 
     set SubTestDes "load GE 5x US 32 T1 test"
-        set ge5xU32bitT1 [b2 load image $pathToRegressionDir/SGI/MR/5x-B1/TEST/15_002/113766.002.099 data-type= unsigned-32bit]
+        set ge5xU32bitT1 [b2_load_image $pathToRegressionDir/SGI/MR/5x-B1/TEST/15_002/113766.002.099 data-type= unsigned-32bit]
         if { [ ReportTestStatus $LogFile  [ expr  {$ge5xU32bitT1 != -1}   ] $ModuleName $SubTestDes ] } {
 
             set SubTestDes "GE 5x US 32 T1 image min"
-                set imageMin [b2 image min $ge5xU32bitT1]
+                set imageMin [b2_image_min $ge5xU32bitT1]
                 ReportTestStatus $LogFile  [ expr  {$imageMin == 0.000000}   ] $ModuleName $SubTestDes
 
                 set SubTestDes "GE 5x US 32 T1 image max"
-                set imageMax [b2 image max $ge5xU32bitT1]
+                set imageMax [b2_image_max $ge5xU32bitT1]
                 ReportTestStatus $LogFile  [ expr  {$imageMax == 2337.000000}   ] $ModuleName $SubTestDes
-                b2 destroy image $ge5xU32bitT1
+                b2_destroy_image $ge5xU32bitT1
         }
 
     set SubTestDes "load GE 5x S 32 T1 test"
-        set ge5xS32bitT1 [b2 load image $pathToRegressionDir/SGI/MR/5x-B1/TEST/15_002/113766.002.099 data-type= signed-32bit]
+        set ge5xS32bitT1 [b2_load_image $pathToRegressionDir/SGI/MR/5x-B1/TEST/15_002/113766.002.099 data-type= signed-32bit]
         if { [ ReportTestStatus $LogFile  [ expr  {$ge5xS32bitT1 != -1}   ] $ModuleName $SubTestDes ] } {
 
             set SubTestDes "GE 5x S 32 T1 image min"
-                set imageMin [b2 image min $ge5xS32bitT1]
+                set imageMin [b2_image_min $ge5xS32bitT1]
                 ReportTestStatus $LogFile  [ expr  {$imageMin == 0.000000}   ] $ModuleName $SubTestDes
 
                 set SubTestDes "GE 5x S 32 T1 image max"
-                set imageMax [b2 image max $ge5xS32bitT1]
+                set imageMax [b2_image_max $ge5xS32bitT1]
                 ReportTestStatus $LogFile  [ expr  {$imageMax == 2337.000000}   ] $ModuleName $SubTestDes
-                b2 destroy image $ge5xS32bitT1
+                b2_destroy_image $ge5xS32bitT1
         }
 
 

@@ -15,13 +15,13 @@ proc CoreSaveImageTest { ImageTypeName SaveFileName TestMaskID ImageType ImageMi
 #   that converting storage types from signed (on disk) to unsigned (in memory) and
 #   then back to signed (in the measurement slices) throws away the valid offset information.
 #   ((But maybe this can be corrected.))
-    set SaveImageID [b2 load image $SaveFileName data-type= F32] ;
+    set SaveImageID [b2_load_image $SaveFileName data-type= F32] ;
     ReportTestStatus $LogFile  [ expr  {$SaveImageID != -1}   ] $ModuleName $SubTestDes;
     if  {$SaveImageID == -1} {
         return $MODULE_FAILURE;
     }
 
-    set type [b2 get image type $SaveImageID 0] ;
+    set type [b2_get_image_type $SaveImageID 0] ;
     puts "XX type = $type"
     puts "XX ImageType = $ImageType"
     set lentype [llength  $ImageType] ;
@@ -35,7 +35,7 @@ proc CoreSaveImageTest { ImageTypeName SaveFileName TestMaskID ImageType ImageMi
     }
     
     set SubTestDes "$ImageTypeName $ImageType image min" ;
-    set testimageMin [b2 image min $SaveImageID] ;
+    set testimageMin [b2_image_min $SaveImageID] ;
     set lentype [llength  $ImageMin] ;
     ReportTestStatus $LogFile  [ expr { [llength $testimageMin] == $lentype } ] $ModuleName $SubTestDes ;
     for {set currtype 0} { $currtype < $lentype } {incr currtype} {
@@ -44,7 +44,7 @@ proc CoreSaveImageTest { ImageTypeName SaveFileName TestMaskID ImageType ImageMi
     }
 
     set SubTestDes "$ImageTypeName $ImageType image max" ;
-    set testimageMax [b2 image max $SaveImageID] ;
+    set testimageMax [b2_image_max $SaveImageID] ;
     set lentype [llength  $ImageMax] ;
     ReportTestStatus $LogFile  [ expr { [llength $testimageMax] == $lentype } ] $ModuleName $SubTestDes ;
     for {set currtype 0} { $currtype < $lentype } {incr currtype} {
@@ -53,7 +53,7 @@ proc CoreSaveImageTest { ImageTypeName SaveFileName TestMaskID ImageType ImageMi
     }
 
     set SubTestDes "$ImageTypeName $ImageType dims image" ;
-    set dims [b2 get dims image $SaveImageID] ;
+    set dims [b2_get_dims_image $SaveImageID] ;
     set lendims [llength $Dimensions] ;
     ReportTestStatus $LogFile  [ expr { [llength $dims] == $lendims } ] $ModuleName $SubTestDes ;
 
@@ -65,7 +65,7 @@ proc CoreSaveImageTest { ImageTypeName SaveFileName TestMaskID ImageType ImageMi
     }
 
     set SubTestDes "$ImageTypeName $ImageType res image" ;
-    set res [b2 get res image $SaveImageID] ;
+    set res [b2_get_res_image $SaveImageID] ;
     set lenres [llength $Resolutions] ;
     ReportTestStatus $LogFile  [ expr  {[llength $res] == $lenres}   ] $ModuleName $SubTestDes ;
 
@@ -76,7 +76,7 @@ proc CoreSaveImageTest { ImageTypeName SaveFileName TestMaskID ImageType ImageMi
         ReportTestStatus $LogFile  [ expr  {$newres == $knownres}   ] $ModuleName $SubTestDes ;
     }
 
-    set result [b2 measure image mask $TestMaskID $SaveImageID] ;
+    set result [b2_measure_image_mask $TestMaskID $SaveImageID] ;
     set SubTestDes "$ImageTypeName Save Image - Measure Saved Image" ;
     ReportTestStatus $LogFile  [ expr  {$result != -1}   ] $ModuleName $SubTestDes ;
     set SubTestDes "$ImageTypeName Save Image - Measured Image Mean (new: [lindex [lindex $result 0] 1]; expected: $ImageMean)" ;
@@ -84,7 +84,7 @@ proc CoreSaveImageTest { ImageTypeName SaveFileName TestMaskID ImageType ImageMi
     set SubTestDes "$ImageTypeName Save Image - Measured Image StdDev  (new: [lindex [lindex $result 3] 1]; expected: $ImageStd)" ;
     ReportTestStatus $LogFile  [ expr  {abs([lindex [lindex $result 3] 1] - $ImageStd) / $ImageStd < 0.0001}   ] $ModuleName $SubTestDes ;
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image $SaveImageID ] != -1 } ] $ModuleName "Destroying image $SaveImageID" ;
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $SaveImageID ] != -1 } ] $ModuleName "Destroying image $SaveImageID" ;
     puts "Released memory for $SaveFileName" ;
 
     return $MODULE_SUCCESS ;
@@ -107,7 +107,7 @@ proc saveImage {pathToRegressionDir dateString} {
 ########################################
         set ModuleName "saveImage" ;
         set ModuleAuthor "Hans J. Johnson" ;
-        set ModuleDescription "Test the b2 save image command and saving various image file formats" ;
+        set ModuleDescription "Test the b2_save_image command and saving various image file formats" ;
         global OUTPUT_DIR;
         global MODULE_SUCCESS;
         global MODULE_FAILURE ;
@@ -121,7 +121,7 @@ proc saveImage {pathToRegressionDir dateString} {
 
 ## TODO:  Read in a smaller set of trimodal images
     set SubTestDes "saveImage - Load RGB Image test" ;
-    set b2cmd [format "b2 load image {%s %s %s}" \
+    set b2cmd [format "b2_load_image {%s %s %s}" \
               $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_T1.hdr \
               $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_t2_fit.hdr \
               $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_pd_fit.hdr]
@@ -129,7 +129,7 @@ proc saveImage {pathToRegressionDir dateString} {
     if { [ ReportTestStatus $LogFile  [ expr {$RgbTestImageID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
-    set RgbTestMaskID [ b2 threshold image $RgbTestImageID 0 absolute-value= True ] ;
+    set RgbTestMaskID [ b2_threshold_image $RgbTestImageID 0 absolute-value= True ] ;
     set RgbImageType "T1" ;
     set RgbImageMin {0.000000 0.000000 0.000000} ;
     set RgbImageMax  {255.000000 255.000000 255.000000} ;
@@ -143,17 +143,17 @@ proc saveImage {pathToRegressionDir dateString} {
 
 
     set SubTestDes "Save Image - Load Image test" ;
-    set FullTestImageID [b2 load image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_T1.hdr] ;
+    set FullTestImageID [b2_load_image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_T1.hdr] ;
     if { [ ReportTestStatus $LogFile  [ expr {$FullTestImageID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE ;
     }
-    set ScaleReductionTransform [ b2 create affine-transform  { 23 17 11 } { 5 6 7 }  [b2 get dims image i1] [b2 get res image i1 ] dx= 30 ] ;
+    set ScaleReductionTransform [ b2_create_affine-transform  { 23 17 11 } { 5 6 7 }  [b2_get_dims_image i1] [b2_get_res_image i1 ] dx= 30 ] ;
     b2 set Transform $ScaleReductionTransform image $FullTestImageID ;
-    set TestImageID [ b2 resample image $FullTestImageID plane= coronal ] ;
-    set TestMaskID [ b2 threshold image $TestImageID 0 absolute-value= True ] ;
+    set TestImageID [ b2_resample_image $FullTestImageID plane= coronal ] ;
+    set TestMaskID [ b2_threshold_image $TestImageID 0 absolute-value= True ] ;
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image     ${FullTestImageID} ] != -1 } ] $ModuleName "Destroying image $FullTestImageID" ;
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy transform ${ScaleReductionTransform} ] != -1 } ] $ModuleName "Destroying transform $ScaleReductionTransform" ;
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image     ${FullTestImageID} ] != -1 } ] $ModuleName "Destroying image $FullTestImageID" ;
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_transform ${ScaleReductionTransform} ] != -1 } ] $ModuleName "Destroying transform $ScaleReductionTransform" ;
 ##Set values common to all single modal images
     set ImageType "T1";
     set ImageMin 0.000000;
@@ -197,29 +197,29 @@ proc saveImage {pathToRegressionDir dateString} {
         set ImageTypeName "ORIENT-DEFAULT-${curr_filter}" ;
         set SaveFileName ${OUTPUT_DIR}/TEST/10_ACPC/strict_analyze_T1.hdr ;
         set SubTestDes "Save $ImageTypeName $ImageType test" ;
-        set errorTest [b2 save image $SaveFileName strictAnalyze75 $TestImageID ] ;
+        set errorTest [b2_save_image $SaveFileName strictAnalyze75 $TestImageID ] ;
         if { [ ReportTestStatus $LogFile  [ expr {$errorTest != -1 } ] $ModuleName $SubTestDes ]} {
             CoreSaveImageTest $ImageTypeName $SaveFileName $TestMaskID $ImageType $ImageMin $ImageMax $ImageMean $ImageStd $Dimensions $Resolutions 1 $LogFile $ModuleName ;
         }
 
 ############################### NN_INTERPOLATION Images ###########################################
 
-        b2 set interpolation nearest-neighbor
+        b2_set_interpolation nearest-neighbor
         set ImageTypeName "ORIENT-nearest-neighbor-${curr_filter}" ;
         set SaveFileName ${OUTPUT_DIR}/TEST/10_ACPC/analyze_T1_nearest-neighbor.hdr ;
         set SubTestDes "Save $ImageTypeName $ImageType test" ;
-        set errorTest [b2 save image $SaveFileName strictAnalyze75 $TestImageID ] ;
+        set errorTest [b2_save_image $SaveFileName strictAnalyze75 $TestImageID ] ;
         if { [ ReportTestStatus $LogFile  [ expr {$errorTest != -1 } ] $ModuleName $SubTestDes ]} {
             CoreSaveImageTest $ImageTypeName $SaveFileName $TestMaskID $ImageType $ImageMin $ImageMax $ImageMean $ImageStd $Dimensions $Resolutions 0 $LogFile $ModuleName ;
         }
-        b2 set interpolation trilinear
+        b2_set_interpolation trilinear
 
 ############################### Orient Images ###########################################
         foreach {curr_orient} { "Coronal" "Axial" "Sagittal" } {
             set ImageTypeName "ORIENT-${curr_orient}-${curr_filter}" ;
             set SaveFileName ${OUTPUT_DIR}/TEST/10_ACPC/analyze_T1_${curr_orient}.hdr ;
             set SubTestDes "Save $ImageTypeName $ImageType test" ;
-            set errorTest [b2 save image $SaveFileName strictAnalyze75 $TestImageID plane= ${curr_orient}] ;
+            set errorTest [b2_save_image $SaveFileName strictAnalyze75 $TestImageID plane= ${curr_orient}] ;
             if { [ ReportTestStatus $LogFile  [ expr {$errorTest != -1 } ] $ModuleName $SubTestDes ]} {
                 CoreSaveImageTest $ImageTypeName $SaveFileName $TestMaskID $ImageType $ImageMin $ImageMax $ImageMean $ImageStd $Dimensions $Resolutions 0 $LogFile $ModuleName ;
             }
@@ -258,7 +258,7 @@ proc saveImage {pathToRegressionDir dateString} {
             set ImageTypeName "STORAGE-${curr_filter}-${curr_datatype}" ;
             set SaveFileName ${OUTPUT_DIR}/TEST/10_ACPC/${curr_filter}-${curr_datatype}_T1.${FileExt} ;
             set SubTestDes "Save $ImageTypeName $ImageType test" ;
-            set errorTest [b2 save image $SaveFileName  ${curr_filter} $TestImageID data-type= ${curr_datatype}] ;
+            set errorTest [b2_save_image $SaveFileName  ${curr_filter} $TestImageID data-type= ${curr_datatype}] ;
             if { [ ReportTestStatus $LogFile  [ expr {$errorTest != -1 } ] $ModuleName $SubTestDes ]} {
                 CoreSaveImageTest $ImageTypeName $SaveFileName $TestMaskID $ImageType $ImageMin $ImageMax $ImageMean $ImageStd $Dimensions $Resolutions 0 $LogFile $ModuleName ;
             }
@@ -269,7 +269,7 @@ proc saveImage {pathToRegressionDir dateString} {
           set RgbImageTypeName "Trimodal ${curr_filter}" ;
           set SaveFileName ${OUTPUT_DIR}/TEST/10_ACPC/rgb_${curr_filter}_T1.${FileExt} ;
           set SubTestDes "Save $ImageTypeName $ImageType test" ;
-          set errorTest [b2 save image $SaveFileName  ${curr_filter} $RgbTestImageID] ;
+          set errorTest [b2_save_image $SaveFileName  ${curr_filter} $RgbTestImageID] ;
           if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
               CoreSaveImageTest $RgbImageTypeName $SaveFileName $RgbTestMaskID $RgbImageType $RgbImageMin $RgbImageMax $RgbImageMean $RgbImageStd $RgbDimensions $RgbResolutions 0 $LogFile $ModuleName ;
           }
@@ -279,48 +279,48 @@ proc saveImage {pathToRegressionDir dateString} {
 
 ################################# Test for invalid arguements in saving Images ###############
     set SubTestDes "required arguement test (1)" ;
-    set errorTest [b2 save image] ;
+    set errorTest [b2_save_image] ;
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes ;
 
 
     set SubTestDes "required arguement test (2)" ;
-    set errorTest [b2 save image ${OUTPUT_DIR}/TEST/10_ACPC/junk.hdr] ;
+    set errorTest [b2_save_image ${OUTPUT_DIR}/TEST/10_ACPC/junk.hdr] ;
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes ;
 
     set SubTestDes "required arguement test (3)" ;
-    set errorTest [b2 save image ${OUTPUT_DIR}/TEST/10_ACPC/junk.hdr strictAnalyze75] ;
+    set errorTest [b2_save_image ${OUTPUT_DIR}/TEST/10_ACPC/junk.hdr strictAnalyze75] ;
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes ;
 
     set SubTestDes "arguement number test" ;
-    set errorTest [b2 save image ${OUTPUT_DIR}/TEST/10_ACPC/junk.hdr strictAnalyze75 $TestImageID junk= ] ;
+    set errorTest [b2_save_image ${OUTPUT_DIR}/TEST/10_ACPC/junk.hdr strictAnalyze75 $TestImageID junk= ] ;
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes ;
 
     set SubTestDes "optional arguement test" ;
-    set errorTest [b2 save image ${OUTPUT_DIR}/TEST/10_ACPC/junk.hdr strictAnalyze75 $TestImageID junk= test] ;
+    set errorTest [b2_save_image ${OUTPUT_DIR}/TEST/10_ACPC/junk.hdr strictAnalyze75 $TestImageID junk= test] ;
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes ;
 
     set SubTestDes "ANALYZE invalid filename test";
-    set errorTest [b2 save image /invalid_directory_name/TEST/10_ACPC/junk.hdr strictAnalyze75 $TestImageID];
+    set errorTest [b2_save_image /invalid_directory_name/TEST/10_ACPC/junk.hdr strictAnalyze75 $TestImageID];
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes;
 
     set SubTestDes "ANALYZE invalid filter-suffix test";
-    set errorTest [b2 save image ${OUTPUT_DIR}/TEST/10_ACPC/junk.hdr strictAnalyze75 $TestImageID filter-suffix= -invalid];
+    set errorTest [b2_save_image ${OUTPUT_DIR}/TEST/10_ACPC/junk.hdr strictAnalyze75 $TestImageID filter-suffix= -invalid];
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes;
 
     set SubTestDes "BRAINS2 invalid filename test" ;
-    set errorTest [b2 save image /invalid_directory_name/TEST/10_ACPC/junk.hdr brains2 $TestImageID] ;
+    set errorTest [b2_save_image /invalid_directory_name/TEST/10_ACPC/junk.hdr brains2 $TestImageID] ;
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes ;
 
     set SubTestDes "BRAINS2 invalid filter-suffix test" ;
-    set errorTest [b2 save image ${OUTPUT_DIR}/TEST/10_ACPC/junk.hdr brains2 $TestImageID filter-suffix= -invalid] ;
+    set errorTest [b2_save_image ${OUTPUT_DIR}/TEST/10_ACPC/junk.hdr brains2 $TestImageID filter-suffix= -invalid] ;
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes ;
 
 #### Cleaning up
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $RgbTestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID" ;
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID" ;
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID" ;
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image $RgbTestImageID ] != -1 } ] $ModuleName "Destroying image $RgbTestImageID" ;
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy every image ] != -1 } ] $ModuleName "Destroying every image" ;
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $RgbTestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID" ;
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID" ;
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID" ;
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $RgbTestImageID ] != -1 } ] $ModuleName "Destroying image $RgbTestImageID" ;
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_every image ] != -1 } ] $ModuleName "Destroying every image" ;
     #We're not "supposed" to do this but StopModule will flag an error if we don't.
 
 ########################################

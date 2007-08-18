@@ -13,7 +13,7 @@ proc loadImageTrimodal {pathToRegressionDir dateString} {
 ########################################
         set ModuleName "loadImageTrimodal"
         set ModuleAuthor "Hans J. Johnson"
-        set ModuleDescription "Test the b2 load image command and loading various image file formats"
+        set ModuleDescription "Test the b2_load_image command and loading various image file formats"
         global MODULE_SUCCESS
         global MODULE_FAILURE
         set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -35,7 +35,7 @@ proc loadImageTrimodal {pathToRegressionDir dateString} {
         set Dimensions "256 256 192 1"
         set Resolutions "1.015625 1.015625 1.015625 1.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set b2cmd [format "b2 load image {%s %s %s}" \
+        set b2cmd [format "b2_load_image {%s %s %s}" \
               $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_T1.hdr \
                     $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_t2_fit.hdr \
                     $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_pd_fit.hdr]
@@ -43,7 +43,7 @@ proc loadImageTrimodal {pathToRegressionDir dateString} {
 #only continue upon success
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
+                ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
         }
 
 ############################### Strict Analyze Image ###########################################

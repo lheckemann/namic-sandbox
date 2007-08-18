@@ -1,6 +1,6 @@
 # \author    Hans J. Johnson"
 # \date        $Date: 2007-06-14 17:10:49 +0200 (Thu, 14 Jun 2007) $
-# \brief    This module tests the b2 get palette data command
+# \brief    This module tests the b2_get_palette_data command
 # \fn        proc getPaletteData {pathToRegressionDir dateString}
 # \param    string pathToRegressionDir    - Path to the regresssion test directory
 # \param    string dateString            - String to label output file
@@ -8,7 +8,7 @@
 #
 # Test Performed
 # -----------------------------------------------------------------------
-# Test the b2 get palette data command
+# Test the b2_get_palette_data command
 #
 # To Do
 #------------------------------------------------------------------------
@@ -21,7 +21,7 @@ proc getPaletteData {pathToRegressionDir dateString} {
 
     set ModuleName "getPaletteData"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 get palette data command"
+    set ModuleDescription "Test the b2_get_palette_data command"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -63,7 +63,7 @@ proc getPaletteData {pathToRegressionDir dateString} {
     }
 
     set SubTestDes "Get palette data - Load Palette test"
-    set TestPalID [b2 load palette $B2_TALAIRACH_DIR/../palette/pet.pal]
+    set TestPalID [b2_load_palette $B2_TALAIRACH_DIR/../palette/pet.pal]
     if { [ ReportTestStatus $LogFile  [ expr {$TestPalID != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
@@ -71,20 +71,20 @@ proc getPaletteData {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "required arguement test (1)"
-    set errorTest [b2 get palette data]
+    set errorTest [b2_get_palette_data]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "arguement number test"
-    set errorTest [b2 get palette data $TestPalID -1 junk= ]
+    set errorTest [b2_get_palette_data $TestPalID -1 junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional arguement test"
-    set errorTest [b2 get palette data $TestPalID -1 junk= test]
+    set errorTest [b2_get_palette_data $TestPalID -1 junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
     set SubTestDes "Palette Data test"
-    set histData [b2 get palette data $TestPalID]
+    set histData [b2_get_palette_data $TestPalID]
     ReportTestStatus $LogFile  [ expr {[llength $histData] == 256 } ] $ModuleName $SubTestDes
 
     for {set i 0} {$i < [llength $ExpectData]} {incr i} {
@@ -94,7 +94,7 @@ proc getPaletteData {pathToRegressionDir dateString} {
     }
 
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy palette $TestPalID ] != -1 } ] $ModuleName "Destroying palette $TestPalID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_palette $TestPalID ] != -1 } ] $ModuleName "Destroying palette $TestPalID"
 
     return [ StopModule  $LogFile $ModuleName ]
 }

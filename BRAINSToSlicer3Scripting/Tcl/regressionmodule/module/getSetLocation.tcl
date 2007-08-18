@@ -36,34 +36,34 @@ proc getSetLocation {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "required arguement test (set location 1)"
-    set errorTest [b2 set location]
+    set errorTest [b2_set_location]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "required arguement test (set location 2)"
-    set errorTest [b2 set location 128]
+    set errorTest [b2_set_location 128]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "required arguement test (set location 3)"
-    set errorTest [b2 set location 128 128]
+    set errorTest [b2_set_location 128 128]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "arguement number test (set location)"
-    set errorTest [b2 set location 128 128 128 junk= ]
+    set errorTest [b2_set_location 128 128 128 junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional arguement test (set location)"
-    set errorTest [b2 set location 128 128 128 junk= test]
+    set errorTest [b2_set_location 128 128 128 junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
 
     set SubTestDes "Set Location Test"
-    set TestResult [b2 set location 128 129 130]
+    set TestResult [b2_set_location 128 129 130]
     ReportTestStatus $LogFile  [ expr {$TestResult != 0 } ] $ModuleName $SubTestDes
 
 
     set SubTestDes "Get Location Test"
-    set TestResult [b2 get location]
+    set TestResult [b2_get_location]
     ReportTestStatus $LogFile  [ expr {[llength $TestResult] == 3 } ] $ModuleName $SubTestDes
     set SubTestDes "Get Location Test - X"
     ReportTestStatus $LogFile  [ expr {[lindex $TestResult 0] == 128 } ] $ModuleName $SubTestDes
@@ -73,7 +73,7 @@ proc getSetLocation {pathToRegressionDir dateString} {
     ReportTestStatus $LogFile  [ expr {[lindex $TestResult 2] == 130 } ] $ModuleName $SubTestDes
 
     set SubTestDes "Get Location Test Invalid arguement test"
-    set TestResult [b2 get location 1]
+    set TestResult [b2_get_location 1]
     ReportTestStatus $LogFile  [ expr {$TestResult == -1 } ] $ModuleName $SubTestDes
 
 

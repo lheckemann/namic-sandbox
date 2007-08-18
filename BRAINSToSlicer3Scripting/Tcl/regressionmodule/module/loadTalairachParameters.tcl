@@ -10,7 +10,7 @@ proc CoreTalParTest { TalTypeName TestTalID AC PC IRP SLA LogFile ModuleName Sub
     global MODULE_FAILURE
 
         set SubTestDes "$TalTypeName Talairach Parameters Location test"
-        set locations [b2 get talairach points $TestTalID]
+        set locations [b2_get_talairach_points $TestTalID]
         set lentype [llength  $locations]
         ReportTestStatus $LogFile  [ expr { [llength $locations] == 4 } ] $ModuleName $SubTestDes
 
@@ -76,7 +76,7 @@ proc loadTalairachParameters {pathToRegressionDir dateString} {
 
     set ModuleName "loadTalairachParameters"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 load talairach-parameters command and loading various Talairach-Parameter file formats"
+    set ModuleDescription "Test the b2_load_talairach-parameters command and loading various Talairach-Parameter file formats"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -91,19 +91,19 @@ proc loadTalairachParameters {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "required arguement test"
-    set errorTest [b2 load talairach-parameters]
+    set errorTest [b2_load_talairach-parameters]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "arguement number test"
-    set errorTest [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters junk= ]
+    set errorTest [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional arguement test"
-    set errorTest [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters junk= test]
+    set errorTest [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "invalid file test"
-    set errorTest [b2 load talairach-parameters /invalid_directory_name/talairach_parameters]
+    set errorTest [b2_load_talairach-parameters /invalid_directory_name/talairach_parameters]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
@@ -116,10 +116,10 @@ proc loadTalairachParameters {pathToRegressionDir dateString} {
     set PC {127.00000 127.00000 84.00000}
     set IRP {55.00000 83.00000 12.00000}
     set SLA {199.00000 206.00000 172.00000}
-    set TestParamId [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters]
+    set TestParamId [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters]
     if { [ ReportTestStatus $LogFile  [ expr {$TestParamId != -1 } ] $ModuleName $SubTestDes] } {
         CoreTalParTest $TalTypeName $TestParamId $AC $PC $IRP $SLA $LogFile $ModuleName $SubTestDes
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
     }
 
     ############################### BRAINS Picked By Hand Talairach Parameters ############################
@@ -129,10 +129,10 @@ proc loadTalairachParameters {pathToRegressionDir dateString} {
     set PC {127.00000 127.00000 83.00000}
     set IRP {63.00000 87.00000 10.00000}
     set SLA {193.00000 196.00000 174.00000}
-    set TestParamId [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/5x-B1/TEST/10_ACPC/talairach_parameters]
+    set TestParamId [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/5x-B1/TEST/10_ACPC/talairach_parameters]
     if { [ ReportTestStatus $LogFile  [ expr {$TestParamId != -1 } ] $ModuleName $SubTestDes] } {
         CoreTalParTest $TalTypeName $TestParamId $AC $PC $IRP $SLA $LogFile $ModuleName $SubTestDes
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
     }
 
     ############################### BRAINS Adjust Talairach Parameters ############################
@@ -142,10 +142,10 @@ proc loadTalairachParameters {pathToRegressionDir dateString} {
     set PC {127.00000 127.00000 78.00000}
     set IRP {60.00000 79.00000 6.00000}
     set SLA {198.00000 206.00000 174.00000}
-    set TestParamId [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/B1-Adj-TalPar/TEST/10_ACPC/talairach_parameters]
+    set TestParamId [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/B1-Adj-TalPar/TEST/10_ACPC/talairach_parameters]
     if { [ ReportTestStatus $LogFile  [ expr {$TestParamId != -1 } ] $ModuleName $SubTestDes] } {
         CoreTalParTest $TalTypeName $TestParamId $AC $PC $IRP $SLA $LogFile $ModuleName $SubTestDes
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
     }
 
     ############################### BRAINS2 MR5 Talairach Parameters ############################
@@ -155,10 +155,10 @@ proc loadTalairachParameters {pathToRegressionDir dateString} {
     set PC {127.00000 127.00000 82.00000}
     set IRP {65.00000 87.00000 3.00000}
     set SLA {190.00000 201.00000 179.00000}
-    set TestParamId [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/5x-B2/TEST/10_ACPC/Talairach.bnd]
+    set TestParamId [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/5x-B2/TEST/10_ACPC/Talairach.bnd]
     if { [ ReportTestStatus $LogFile  [ expr {$TestParamId != -1 } ] $ModuleName $SubTestDes] } {
         CoreTalParTest $TalTypeName $TestParamId $AC $PC $IRP $SLA $LogFile $ModuleName $SubTestDes
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
     }
 
     ############################### BRAINS Bogus Left Talairach Parameters ###########################################
@@ -168,10 +168,10 @@ proc loadTalairachParameters {pathToRegressionDir dateString} {
     set PC {127.00000 127.00000 84.00000}
     set IRP {55.00000 83.00000 12.00000}
     set SLA {248.00000 206.00000 172.00000}
-    set TestParamId [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/bogus_left_parameters]
+    set TestParamId [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/bogus_left_parameters]
     if { [ ReportTestStatus $LogFile  [ expr {$TestParamId != -1 } ] $ModuleName $SubTestDes] } {
         CoreTalParTest $TalTypeName $TestParamId $AC $PC $IRP $SLA $LogFile $ModuleName $SubTestDes
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
     }
 
     ############################### BRAINS Bogus Right Talairach Parameters ###########################################
@@ -181,10 +181,10 @@ proc loadTalairachParameters {pathToRegressionDir dateString} {
     set PC {127.00000 127.00000 84.00000}
     set IRP {13.00000 83.00000 12.00000}
     set SLA {199.00000 206.00000 172.00000}
-    set TestParamId [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/bogus_right_parameters]
+    set TestParamId [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/bogus_right_parameters]
     if { [ ReportTestStatus $LogFile  [ expr {$TestParamId != -1 } ] $ModuleName $SubTestDes] } {
         CoreTalParTest $TalTypeName $TestParamId $AC $PC $IRP $SLA $LogFile $ModuleName $SubTestDes
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
     }
 
     ############################### BRAINS2 MR6 Talairach Parameters ############################
@@ -194,18 +194,18 @@ proc loadTalairachParameters {pathToRegressionDir dateString} {
     set PC {159.00000 159.00000 164.00000}
     set IRP {24.00000 76.00000 9.00000}
     set SLA {293.00000 307.00000 363.00000}
-    set TestParamId [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/Talairach.bnd]
+    set TestParamId [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/Talairach.bnd]
     if { [ ReportTestStatus $LogFile  [ expr {$TestParamId != -1 } ] $ModuleName $SubTestDes] } {
         CoreTalParTest $TalTypeName $TestParamId $AC $PC $IRP $SLA $LogFile $ModuleName $SubTestDes
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
     }
 
     ############################### BRAINS2 MR5 Talairach Parameters with FIlter ############################
     set SubTestDes "BRAINS2 MR5 Talairach Parameters Load test"
-    set TestParamId [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/5x-B2/TEST/10_ACPC/Talairach.bnd filter= brains2]
+    set TestParamId [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/5x-B2/TEST/10_ACPC/Talairach.bnd filter= brains2]
     if { [ ReportTestStatus $LogFile  [ expr {$TestParamId != -1 } ] $ModuleName $SubTestDes] } {
-        # set talPoints [b2 get talairach points $b1TalPar]
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
+        # set talPoints [b2_get_talairach_points $b1TalPar]
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TestParamId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestParamId"
     }
 
 

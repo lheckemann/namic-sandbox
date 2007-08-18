@@ -34,13 +34,13 @@ proc getSetTalairach {pathToRegressionDir dateString} {
 ########################################
 
     set SubTestDes "Get/Set Talairach - Load Image test"
-    set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/4x-B1/TEST/15_002/19771.002.096]
+    set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/4x-B1/TEST/15_002/19771.002.096]
     if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
 
     set SubTestDes "Get/Set Talairach - Load Talairach test"
-    set TestTalBndID [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters]
+    set TestTalBndID [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters]
     if { [ ReportTestStatus $LogFile  [ expr {$TestTalBndID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
@@ -48,46 +48,46 @@ proc getSetTalairach {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "(set) required arguement test (1)"
-    set errorTest [b2 set talairach-parameters]
+    set errorTest [b2_set_talairach-parameters]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(set) required arguement test (2)"
-    set errorTest [b2 set talairach-parameters $TestTalBndID]
+    set errorTest [b2_set_talairach-parameters $TestTalBndID]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(set) required arguement test (2)"
-    set errorTest [b2 set talairach-parameters $TestTalBndID image]
+    set errorTest [b2_set_talairach-parameters $TestTalBndID image]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(set) required invalid type test"
-    set errorTest [b2 set talairach-parameters $TestTalBndID mask]
+    set errorTest [b2_set_talairach-parameters $TestTalBndID mask]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
     set SubTestDes "Set Transform Image Test"
-    set TestResult [b2 set talairach-parameters $TestTalBndID image $TestImageID]
+    set TestResult [b2_set_talairach-parameters $TestTalBndID image $TestImageID]
     ReportTestStatus $LogFile  [ expr {$TestResult != -1 } ] $ModuleName $SubTestDes
 
 
     ###### Get Image Transform
     set SubTestDes "(get) required arguement test (1)"
-    set errorTest [b2 get image talairach-parameters]
+    set errorTest [b2_get_image_talairach-parameters]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(get) invalid arguement number test"
-    set errorTest [b2 get image talairach-parameters $TestImageID junk= ]
+    set errorTest [b2_get_image_talairach-parameters $TestImageID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(get) invalid optional arguement test"
-    set errorTest [b2 get image talairach-parameters $TestImageID junk= test]
+    set errorTest [b2_get_image_talairach-parameters $TestImageID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "Get Image transform test"
-    set TalBndId [b2 get image talairach-parameters $TestImageID]
+    set TalBndId [b2_get_image_talairach-parameters $TestImageID]
     ReportTestStatus $LogFile  [ expr {$TalBndId == $TestTalBndID } ] $ModuleName $SubTestDes
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TestTalBndID ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestTalBndID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TestTalBndID ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestTalBndID"
 
     return [ StopModule  $LogFile $ModuleName ]
 

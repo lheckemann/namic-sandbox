@@ -23,11 +23,11 @@ proc CoreSaveTalBnd {filterType OrigTalBndID NewTalBndID LogFile ModuleName} {
     global MODULE_FAILURE
 
     set SubTestDes "$filterType Get Original Talairach Point Locations"
-    set origPoints [b2 get talairach points $OrigTalBndID]
+    set origPoints [b2_get_talairach_points $OrigTalBndID]
     ReportTestStatus $LogFile  [ expr {$origPoints != -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "$filterType Get New Talairach Point Locations"
-    set newPoints [b2 get talairach points $NewTalBndID]
+    set newPoints [b2_get_talairach_points $NewTalBndID]
     ReportTestStatus $LogFile  [ expr {$newPoints != -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "$filterType Get Talairach Point Number"
@@ -40,15 +40,15 @@ proc CoreSaveTalBnd {filterType OrigTalBndID NewTalBndID LogFile ModuleName} {
         }
     }
     puts "Get Dims"
-    set origStandardDims [b2 get standard-dims talairach-parameters $OrigTalBndID]
-    set newStandardDims [b2 get standard-dims talairach-parameters $NewTalBndID]
-    set origResliceDims [b2 get reslice-dims talairach-parameters $OrigTalBndID]
-    set newResliceDims [b2 get reslice-dims talairach-parameters $NewTalBndID]
+    set origStandardDims [b2_get_standard-dims_talairach-parameters $OrigTalBndID]
+    set newStandardDims [b2_get_standard-dims_talairach-parameters $NewTalBndID]
+    set origResliceDims [b2_get_reslice-dims_talairach-parameters $OrigTalBndID]
+    set newResliceDims [b2_get_reslice-dims_talairach-parameters $NewTalBndID]
     puts "Get Res"
-    set origStandardRes [b2 get standard-res talairach-parameters $OrigTalBndID]
-    set newStandardRes [b2 get standard-res talairach-parameters $NewTalBndID]
-    set origResliceRes [b2 get reslice-res talairach-parameters $OrigTalBndID]
-    set newResliceRes [b2 get reslice-res talairach-parameters $NewTalBndID]
+    set origStandardRes [b2_get_standard-res_talairach-parameters $OrigTalBndID]
+    set newStandardRes [b2_get_standard-res_talairach-parameters $NewTalBndID]
+    set origResliceRes [b2_get_reslice-res_talairach-parameters $OrigTalBndID]
+    set newResliceRes [b2_get_reslice-res_talairach-parameters $NewTalBndID]
     puts "Check Dims Res"
     for {set i 0} {$i < 3} {incr i} {
         set SubTestDes "$filterType Talairach Parameter Standard Dims Index $i"
@@ -101,7 +101,7 @@ proc saveTalairachParameters {pathToRegressionDir dateString} {
 ########################################
 
     set SubTestDes "Save Talairach Parameters - Load Talairach Parameters test"
-    set TestTalBndID [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters]
+    set TestTalBndID [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters]
     if { [ ReportTestStatus $LogFile  [ expr {$TestTalBndID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
@@ -111,71 +111,71 @@ proc saveTalairachParameters {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "required arguement test (1)"
-    set errorTest [b2 save talairach-parameters]
+    set errorTest [b2_save_talairach-parameters]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "required arguement test (2)"
-    set errorTest [b2 save talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk_parameters]
+    set errorTest [b2_save_talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk_parameters]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "required arguement test (3)"
-    set errorTest [b2 save talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk_parameters brains1]
+    set errorTest [b2_save_talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk_parameters brains1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "arguement number test"
-    set errorTest [b2 save talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk_parameters brains1 $TestTalBndID junk= ]
+    set errorTest [b2_save_talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk_parameters brains1 $TestTalBndID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional arguement test"
-    set errorTest [b2 save talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk_parameters brains1 $TestTalBndID junk= test]
+    set errorTest [b2_save_talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk_parameters brains1 $TestTalBndID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
 
     ############################### BRAINS Talairach Parameters ###########################################
     set SubTestDes "Save BRAINS Talairach Parameter test"
-    set errorTest [b2 save talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk_parameters brains1 $TestTalBndID]
+    set errorTest [b2_save_talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk_parameters brains1 $TestTalBndID]
     if { [ ReportTestStatus $LogFile  [ expr {$errorTest != -1 } ] $ModuleName $SubTestDes ]} {
         set SubTestDes "Save Talairach Parameters - Load saved BRAINS Talairach Parameters"
-        set SaveTalBndID [b2 load talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk_parameters]
+        set SaveTalBndID [b2_load_talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk_parameters]
         ReportTestStatus $LogFile  [ expr {$SaveTalBndID != -1 } ] $ModuleName $SubTestDes
 
         CoreSaveTalBnd "BRAINS" $TestTalBndID $SaveTalBndID $LogFile $ModuleName
 
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $SaveTalBndID ] != -1 } ] $ModuleName "Destroying talairach-parameters $SaveTalBndID"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $SaveTalBndID ] != -1 } ] $ModuleName "Destroying talairach-parameters $SaveTalBndID"
 
         set SubTestDes "BRAINS invalid filename test"
-        set errorTest [b2 save talairach-parameters /invalid_directory_nametmp/SGI/MR/4x-B1/TEST/10_ACPC/junk_parameters brains1 $TestTalBndID]
+        set errorTest [b2_save_talairach-parameters /invalid_directory_nametmp/SGI/MR/4x-B1/TEST/10_ACPC/junk_parameters brains1 $TestTalBndID]
         ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "BRAINS invalid filter-suffix test"
-        set errorTest [b2 save talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk_parameters brains1 $TestTalBndID filter-suffix= -invalid]
+        set errorTest [b2_save_talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk_parameters brains1 $TestTalBndID filter-suffix= -invalid]
         ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
     }
 
 
     ############################### BRAINS2 Talairach Parameters ###########################################
     set SubTestDes "Save BRAINS2 Talairach Parameter test"
-    set errorTest [b2 save talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk.bnd brains2 $TestTalBndID]
+    set errorTest [b2_save_talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk.bnd brains2 $TestTalBndID]
     if { [ ReportTestStatus $LogFile  [ expr {$errorTest != -1 } ] $ModuleName $SubTestDes ]} {
         set SubTestDes "Save Talairach Parameter - Load saved BRAINS2 Talairach Parameter"
-        set SaveTalBndID [b2 load talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk.bnd]
+        set SaveTalBndID [b2_load_talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk.bnd]
         ReportTestStatus $LogFile  [ expr {$SaveTalBndID != -1 } ] $ModuleName $SubTestDes
 
         CoreSaveTalBnd "BRAINS2" $TestTalBndID $SaveTalBndID $LogFile $ModuleName
 
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $SaveTalBndID ] != -1 } ] $ModuleName "Destroying talairach-parameters $SaveTalBndID"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $SaveTalBndID ] != -1 } ] $ModuleName "Destroying talairach-parameters $SaveTalBndID"
 
         set SubTestDes "BRAINS2 invalid filename test"
-        set errorTest [b2 save talairach-parameters /invalid_directory_nametmp/SGI/MR/4x-B1/TEST/10_ACPC/junk.bnd brains2 $TestTalBndID]
+        set errorTest [b2_save_talairach-parameters /invalid_directory_nametmp/SGI/MR/4x-B1/TEST/10_ACPC/junk.bnd brains2 $TestTalBndID]
         ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "BRAINS2 invalid filter-suffix test"
-        set errorTest [b2 save talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk.bnd brains2 $TestTalBndID filter-suffix= -invalid]
+        set errorTest [b2_save_talairach-parameters ${OUTPUT_DIR}/TEST/10_ACPC/junk.bnd brains2 $TestTalBndID filter-suffix= -invalid]
         ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
     }
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TestTalBndID ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestTalBndID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TestTalBndID ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestTalBndID"
 
     return [ StopModule  $LogFile $ModuleName ]
 

@@ -19,7 +19,7 @@ proc CoreTalParConvTest { LocationName ExpectedLoc TestLoc LogFile ModuleName Su
 
 
 
-# set talPoints [b2 get talairach points $b1TalPar]
+# set talPoints [b2_get_talairach_points $b1TalPar]
 
 
 # \author    Hans J. Johnson"
@@ -50,7 +50,7 @@ proc convertTalairachParameters {pathToRegressionDir dateString} {
 
     set ModuleName "convertTalairachParameters"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 convert talairach-parameters to cerebellum-landmark | cortical-landmark | talairach-transform commands"
+    set ModuleDescription "Test the b2_convert_talairach-parameters_to_cerebellum-landmark | cortical-landmark | talairach-transform commands"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -64,13 +64,13 @@ proc convertTalairachParameters {pathToRegressionDir dateString} {
 
 
     set SubTestDes "Convert Talairach-Parameters to ... Load test (1)"
-    set TestCrblBndId [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/Cerebellum.bnd]
+    set TestCrblBndId [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/Cerebellum.bnd]
     if { [ ReportTestStatus $LogFile  [ expr {$TestCrblBndId != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
 
     set SubTestDes "Convert Talairach-Parameters to ... Load test (2)"
-    set TestTalBndId [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/Talairach.bnd]
+    set TestTalBndId [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/Talairach.bnd]
     if { [ ReportTestStatus $LogFile  [ expr {$TestTalBndId != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
@@ -81,56 +81,56 @@ proc convertTalairachParameters {pathToRegressionDir dateString} {
 
     ######### Cerebellum Landmarks
     set SubTestDes "required argument test (cerebellum-landmark)"
-    set errorTest [b2 convert talairach-parameters to cerebellum-landmark]
+    set errorTest [b2_convert_talairach-parameters_to_cerebellum-landmark]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "argument number test (cerebellum-landmark)"
-    set errorTest [b2 convert talairach-parameters to cerebellum-landmark $TestTalBndId junk= ]
+    set errorTest [b2_convert_talairach-parameters_to_cerebellum-landmark $TestTalBndId junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional argument test (cerebellum-landmark)"
-    set errorTest [b2 convert talairach-parameters to cerebellum-landmark $TestTalBndId  junk= test]
+    set errorTest [b2_convert_talairach-parameters_to_cerebellum-landmark $TestTalBndId  junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "invalid Talairach-Parameter test (cerebellum-landmark)"
-    set errorTest [b2 convert talairach-parameters to cerebellum-landmark -100]
+    set errorTest [b2_convert_talairach-parameters_to_cerebellum-landmark -100]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
 
     ######### Cortical Landmarks
     set SubTestDes "required argument test (cortical-landmark)"
-    set errorTest [b2 convert talairach-parameters to cortical-landmark]
+    set errorTest [b2_convert_talairach-parameters_to_cortical-landmark]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "argument number test (cortical-landmark)"
-    set errorTest [b2 convert talairach-parameters to cortical-landmark $TestTalBndId junk= ]
+    set errorTest [b2_convert_talairach-parameters_to_cortical-landmark $TestTalBndId junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional argument test (cortical-landmark)"
-    set errorTest [b2 convert talairach-parameters to cortical-landmark $TestTalBndId  junk= test]
+    set errorTest [b2_convert_talairach-parameters_to_cortical-landmark $TestTalBndId  junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "invalid Talairach-Parameter test (cortical-landmark)"
-    set errorTest [b2 convert talairach-parameters to cortical-landmark -100]
+    set errorTest [b2_convert_talairach-parameters_to_cortical-landmark -100]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
     ######### Talairach Transform
     set SubTestDes "required argument test (talairach-transform)"
-    set errorTest [b2 convert talairach-parameters to talairach-transform]
+    set errorTest [b2_convert_talairach-parameters_to_talairach-transform]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "argument number test (talairach-transform)"
-    set errorTest [b2 convert talairach-parameters to talairach-transform $TestTalBndId junk= ]
+    set errorTest [b2_convert_talairach-parameters_to_talairach-transform $TestTalBndId junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional argument test (talairach-transform)"
-    set errorTest [b2 convert talairach-parameters to talairach-transform $TestTalBndId  junk= test]
+    set errorTest [b2_convert_talairach-parameters_to_talairach-transform $TestTalBndId  junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "invalid Talairach-Parameter test (talairach-transform)"
-    set errorTest [b2 convert talairach-parameters to talairach-transform -100]
+    set errorTest [b2_convert_talairach-parameters_to_talairach-transform -100]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
@@ -142,11 +142,11 @@ proc convertTalairachParameters {pathToRegressionDir dateString} {
     set V4 {161.000000 119.000000 114.000000}
     set IRP {67.000000 55.000000 28.000000}
     set SLA {259.000000 180.000000 193.000000}
-    set TestLandId [b2 convert talairach-parameters to cerebellum-landmark $TestCrblBndId]
+    set TestLandId [b2_convert_talairach-parameters_to_cerebellum-landmark $TestCrblBndId]
     if { [ ReportTestStatus $LogFile  [ expr {$TestLandId != -1 } ] $ModuleName $SubTestDes] } {
         set SubTestDes "Convert Talairach-Parameters To Cerebellum Landmarks location test"
-        set locations [b2 get landmark location $TestLandId -1]
-                puts "Cerebellum location name list: [b2 get landmark names $TestLandId]"
+        set locations [b2_get_landmark_location $TestLandId -1]
+                puts "Cerebellum location name list: [b2_get_landmark_names $TestLandId]"
         ReportTestStatus $LogFile  [ expr {$locations != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "Convert Talairach-Parameters To Cerebellum Landmarks location number test -- Does [llength  $locations] == 37 ?"
@@ -161,7 +161,7 @@ proc convertTalairachParameters {pathToRegressionDir dateString} {
         set SubTestDes "Convert Talairach-Parameters To Cerebellum Landmarks IRP test"
         CoreTalParConvTest "IRP" $IRP [lindex  $locations 8] $LogFile $ModuleName $SubTestDes
 
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark $TestLandId ] != -1 } ] $ModuleName "Destroying landmark $TestLandId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark $TestLandId ] != -1 } ] $ModuleName "Destroying landmark $TestLandId"
     }
 
     ############################### Convert Talairach Parameters To Cortical Landmarks ###########################################
@@ -171,11 +171,11 @@ proc convertTalairachParameters {pathToRegressionDir dateString} {
     set PC {159.000000 159.000000 164.000000}
     set IRP {24.000000 76.000000 9.000000}
     set SLA {293.000000 307.000000 363.000000}
-    set TestLandId [b2 convert talairach-parameters to cortical-landmark $TestTalBndId]
+    set TestLandId [b2_convert_talairach-parameters_to_cortical-landmark $TestTalBndId]
     if { [ ReportTestStatus $LogFile  [ expr {$TestLandId != -1 } ] $ModuleName $SubTestDes] } {
         set SubTestDes "Convert Talairach-Parameters To Cortical Landmarks location test"
-        set locations [b2 get landmark location $TestLandId -1]
-                puts "Cerebral location name list: [b2 get landmark names $TestLandId]"
+        set locations [b2_get_landmark_location $TestLandId -1]
+                puts "Cerebral location name list: [b2_get_landmark_names $TestLandId]"
         ReportTestStatus $LogFile  [ expr {$locations != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "Convert Talairach-Parameters To Cortical Landmarks location number test -- Does [llength  $locations] == 28 ?"
@@ -193,7 +193,7 @@ proc convertTalairachParameters {pathToRegressionDir dateString} {
         set SubTestDes "Convert Talairach-Parameters To Cortical Landmarks IRP test"
         CoreTalParConvTest "IRP" $IRP [lindex  $locations 9] $LogFile $ModuleName $SubTestDes
 
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark $TestLandId ] != -1 } ] $ModuleName "Destroying landmark $TestLandId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark $TestLandId ] != -1 } ] $ModuleName "Destroying landmark $TestLandId"
     }
 
 
@@ -201,14 +201,14 @@ proc convertTalairachParameters {pathToRegressionDir dateString} {
     ############################### Convert Talairach Parameters To Talairach Transform ###########################################
     set SubTestDes "Convert Talairach-Parameters To Talairach Transform test"
     set convertType "Talairach Transform"
-    set TestXfrmId [b2 convert talairach-parameters to talairach-transform $TestTalBndId]
+    set TestXfrmId [b2_convert_talairach-parameters_to_talairach-transform $TestTalBndId]
     if { [ ReportTestStatus $LogFile  [ expr {$TestXfrmId != -1 } ] $ModuleName $SubTestDes] } {
         # Do We have a way to test the result??????
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy transform $TestXfrmId ] != -1 } ] $ModuleName "Destroying transform $TestXfrmId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_transform $TestXfrmId ] != -1 } ] $ModuleName "Destroying transform $TestXfrmId"
     }
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TestCrblBndId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestCrblBndId"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TestTalBndId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestTalBndId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TestCrblBndId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestCrblBndId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TestTalBndId ] != -1 } ] $ModuleName "Destroying talairach-parameters $TestTalBndId"
 
 
     return [ StopModule  $LogFile $ModuleName ]

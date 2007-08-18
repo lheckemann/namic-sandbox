@@ -13,7 +13,7 @@ foreach ts (`cat runModules.list`)
   echo 'set pathToRegressionDir ../../../regressiontest' >> drive.${n}.tcl
   echo "source $t" >> drive.${n}.tcl
   echo ${n} ' $pathToRegressionDir $dateString' >> drive.${n}.tcl
-  echo "b2 exit" >> drive.${n}.tcl
+  echo "b2_exit" >> drive.${n}.tcl
 #  echo "STARTING ${n}" > test/${n}.out
 #  $RESEARCHHOME/$ARCH/$ABI/bin/brains2 -c ${r}.tcl >>& test/${r:r}.out
   echo $RESEARCHHOME/$ARCH/$ABI/bin/brains2 -c drive.${n}.tcl \|\& tee drive.${n}.${ARCH}.${ABI}.1.out\; tail -1 drive.${n}.${ARCH}.${ABI}.1.out \| grep Completed \>\> ${ARCH}/${ABI}/regr.out

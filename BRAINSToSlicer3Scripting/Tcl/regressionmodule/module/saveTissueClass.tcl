@@ -21,7 +21,7 @@ proc saveTissueClass {pathToRegressionDir dateString} {
 
     set ModuleName "saveTissueClass"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 save tissue-class command and saving various file formats"
+    set ModuleDescription "Test the b2_save_tissue-class command and saving various file formats"
     global OUTPUT_DIR;
     global MODULE_SUCCESS;
     global MODULE_FAILURE
@@ -35,7 +35,7 @@ proc saveTissueClass {pathToRegressionDir dateString} {
 ########################################
 
     set SubTestDes "Save Tissue-Class - Load Tissue-Class test"
-    set TestTissueID [b2 load tissue-class $pathToRegressionDir/SGI/MR/B2-downsampled/TEST/20_ACPC/STD_20_Tissue_Class.mdl]
+    set TestTissueID [b2_load_tissue-class $pathToRegressionDir/SGI/MR/B2-downsampled/TEST/20_ACPC/STD_20_Tissue_Class.mdl]
     if { [ ReportTestStatus $LogFile  [ expr {$TestTissueID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
@@ -45,85 +45,85 @@ proc saveTissueClass {pathToRegressionDir dateString} {
 
     # First Test for invalid arguments
     set SubTestDes "required argument test (1)"
-    set errorTest [b2 save tissue-class]
+    set errorTest [b2_save_tissue-class]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "required argument test (2)"
-    set errorTest [b2 save tissue-class ${OUTPUT_DIR}/TEST/20_ACPC/ANON0006_20_junk.mdl]
+    set errorTest [b2_save_tissue-class ${OUTPUT_DIR}/TEST/20_ACPC/ANON0006_20_junk.mdl]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "required argument test (3)"
-    set errorTest [b2 save tissue-class ${OUTPUT_DIR}/TEST/20_ACPC/ANON0006_20_junk.mdl brains2]
+    set errorTest [b2_save_tissue-class ${OUTPUT_DIR}/TEST/20_ACPC/ANON0006_20_junk.mdl brains2]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "argument number test"
-    set errorTest [b2 save tissue-class ${OUTPUT_DIR}/TEST/20_ACPC/ANON0006_20_junk.mdl brains2 $TestTissueID junk= ]
+    set errorTest [b2_save_tissue-class ${OUTPUT_DIR}/TEST/20_ACPC/ANON0006_20_junk.mdl brains2 $TestTissueID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional argument test"
-    set errorTest [b2 save tissue-class ${OUTPUT_DIR}/TEST/20_ACPC/ANON0006_20_junk.mdl brains2 $TestTissueID junk= test]
+    set errorTest [b2_save_tissue-class ${OUTPUT_DIR}/TEST/20_ACPC/ANON0006_20_junk.mdl brains2 $TestTissueID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
     ############################### BRAINS2 Tissue Class ###########################################
     set SubTestDes "Save BRAINS2 Tissue-Class test"
-    set errorTest [b2 save tissue-class ${OUTPUT_DIR}/ANON0006_20_Tissue_Class.mdl brains2 $TestTissueID]
+    set errorTest [b2_save_tissue-class ${OUTPUT_DIR}/ANON0006_20_Tissue_Class.mdl brains2 $TestTissueID]
     if { [ ReportTestStatus $LogFile  [ expr {$errorTest != -1 } ] $ModuleName $SubTestDes ]} {
         set SubTestDes "Save BRAINS2 Tissue-Class - Load Model test"
-        set SaveTissueID [b2 load tissue-class ${OUTPUT_DIR}/ANON0006_20_Tissue_Class.mdl]
+        set SaveTissueID [b2_load_tissue-class ${OUTPUT_DIR}/ANON0006_20_Tissue_Class.mdl]
         ReportTestStatus $LogFile  [ expr {$SaveTissueID != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "Save BRAINS2 Tissue-Class - Load T1 test"
-        set T1ImageID [b2 load image $pathToRegressionDir/SGI/MR/B2-downsampled/TEST/20_ACPC/ANON0006_20_T1.hdr]
+        set T1ImageID [b2_load_image $pathToRegressionDir/SGI/MR/B2-downsampled/TEST/20_ACPC/ANON0006_20_T1.hdr]
         ReportTestStatus $LogFile  [ expr {$T1ImageID != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "Save BRAINS2 Tissue-Class - Load T2 test"
-        set T2ImageID [b2 load image $pathToRegressionDir/SGI/MR/B2-downsampled/TEST/20_ACPC/ANON0006_20_T2.hdr]
+        set T2ImageID [b2_load_image $pathToRegressionDir/SGI/MR/B2-downsampled/TEST/20_ACPC/ANON0006_20_T2.hdr]
         ReportTestStatus $LogFile  [ expr {$T2ImageID != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "Save BRAINS2 Tissue-Class - Load PD test"
-        set PDImageID [b2 load image $pathToRegressionDir/SGI/MR/B2-downsampled/TEST/20_ACPC/ANON0006_20_PD.hdr]
+        set PDImageID [b2_load_image $pathToRegressionDir/SGI/MR/B2-downsampled/TEST/20_ACPC/ANON0006_20_PD.hdr]
         ReportTestStatus $LogFile  [ expr {$PDImageID != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "Save BRAINS2 Tissue-Class - Load Class Image test"
-        set ClassImageID [b2 load image $pathToRegressionDir/SGI/MR/B2-downsampled/TEST/20_ACPC/STD_20_segment.hdr]
+        set ClassImageID [b2_load_image $pathToRegressionDir/SGI/MR/B2-downsampled/TEST/20_ACPC/STD_20_segment.hdr]
         ReportTestStatus $LogFile  [ expr {$ClassImageID != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "Save BRAINS2 Tissue-Class - Load Brain Mask test"
-        set brainMaskID [b2 load mask $pathToRegressionDir/SGI/MR/B2-downsampled/TEST/20_ACPC/ANON0006_brain_cut.mask]
+        set brainMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/B2-downsampled/TEST/20_ACPC/ANON0006_brain_cut.mask]
         ReportTestStatus $LogFile  [ expr {$brainMaskID != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "Save BRAINS2 Tissue-Class - Classify test"
-        set newImageId [b2 apply class-model {T1 T2 PD} [list $T1ImageID $T2ImageID $PDImageID] $SaveTissueID cth= 197]
+        set newImageId [b2_apply_class-model {T1 T2 PD} [list $T1ImageID $T2ImageID $PDImageID] $SaveTissueID cth= 197]
         ReportTestStatus $LogFile  [ expr {$newImageId != -1 } ] $ModuleName $SubTestDes
 
-        set expectClassVolume [ b2 measure class-volume mask $brainMaskID $ClassImageID]
-        set newClassVolume [ b2 measure class-volume mask $brainMaskID $newImageId]
+        set expectClassVolume [ b2_measure_class-volume_mask $brainMaskID $ClassImageID]
+        set newClassVolume [ b2_measure_class-volume_mask $brainMaskID $newImageId]
 
         for {set i 0} {$i < 5} {incr i} {
             set SubTestDes "Save BRAINS2 Tissue-Class - Measurement Difference [lindex $expectClassVolume $i] == [lindex $newClassVolume $i] test"
             ReportTestStatus $LogFile  [ expr {abs([lindex [lindex $expectClassVolume $i] 1] - [lindex [lindex $newClassVolume $i] 1]) < 1.0 } ] $ModuleName $SubTestDes
         }
 
-        set errorTest [b2 save tissue-class /invalid_directory_nametmp/SGI/MR/B2-downsampled/TEST/20_ACPC/junk.mdl brains2 $TestTissueID]
+        set errorTest [b2_save_tissue-class /invalid_directory_nametmp/SGI/MR/B2-downsampled/TEST/20_ACPC/junk.mdl brains2 $TestTissueID]
         set SubTestDes "BRAINS2 invalid filename test; return: '$errorTest'"
         ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
-        set errorTest [b2 save tissue-class ${OUTPUT_DIR}/ANON0006_20_Tissue_Class.mdl brains2 $TestTissueID filter-suffix= -invalid]
+        set errorTest [b2_save_tissue-class ${OUTPUT_DIR}/ANON0006_20_Tissue_Class.mdl brains2 $TestTissueID filter-suffix= -invalid]
         set SubTestDes "BRAINS2 invalid filter-suffix test; return: '$errorTest'"
         ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image $T1ImageID ] != -1 } ] $ModuleName "Destroying image $T1ImageID"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image $T2ImageID ] != -1 } ] $ModuleName "Destroying image $T2ImageID"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image $PDImageID ] != -1 } ] $ModuleName "Destroying image $PDImageID"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image $ClassImageID ] != -1 } ] $ModuleName "Destroying image $ClassImageID"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $brainMaskID ] != -1 } ] $ModuleName "Destroying mask $brainMaskID"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy tissue-class $SaveTissueID ] != -1 } ] $ModuleName "Destroying tissue-class $SaveTissueID"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image $newImageId ] != -1 } ] $ModuleName "Destroying image $newImageId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $T1ImageID ] != -1 } ] $ModuleName "Destroying image $T1ImageID"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $T2ImageID ] != -1 } ] $ModuleName "Destroying image $T2ImageID"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $PDImageID ] != -1 } ] $ModuleName "Destroying image $PDImageID"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $ClassImageID ] != -1 } ] $ModuleName "Destroying image $ClassImageID"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $brainMaskID ] != -1 } ] $ModuleName "Destroying mask $brainMaskID"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_tissue-class $SaveTissueID ] != -1 } ] $ModuleName "Destroying tissue-class $SaveTissueID"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $newImageId ] != -1 } ] $ModuleName "Destroying image $newImageId"
 
     }
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy tissue-class $TestTissueID ] != -1 } ] $ModuleName "Destroying tissue-class $TestTissueID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_tissue-class $TestTissueID ] != -1 } ] $ModuleName "Destroying tissue-class $TestTissueID"
 
     return [ StopModule  $LogFile $ModuleName ]
 

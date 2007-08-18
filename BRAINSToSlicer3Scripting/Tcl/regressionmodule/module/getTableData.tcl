@@ -1,6 +1,6 @@
 # \author    Greg Harris"
 # \date        $Date: 2007-06-14 17:10:49 +0200 (Thu, 14 Jun 2007) $
-# \brief    This module tests the b2 get table data command
+# \brief    This module tests the b2_get_table_data command
 # \fn        proc getTableData {pathToRegressionDir dateString}
 # \param    string pathToRegressionDir    - Path to the regresssion test directory
 # \param    string dateString            - String to label output file
@@ -8,7 +8,7 @@
 #
 # Test Performed
 # -----------------------------------------------------------------------
-# Test the b2 get table data command
+# Test the b2_get_table_data command
 #
 # To Do
 #------------------------------------------------------------------------
@@ -22,7 +22,7 @@ proc getTableData {pathToRegressionDir dateString} {
 
     set ModuleName "getTableData"
     set ModuleAuthor "Greg Harris"
-    set ModuleDescription "Test the b2 get table data command"
+    set ModuleDescription "Test the b2_get_table_data command"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -66,7 +66,7 @@ proc getTableData {pathToRegressionDir dateString} {
 
 
     set SubTestDes "Get table data - Load Table test"
-    set TestTableId [b2 load table $B2_TALAIRACH_DIR/../tables/pseudoPD.tbl]
+    set TestTableId [b2_load_table $B2_TALAIRACH_DIR/../tables/pseudoPD.tbl]
     if { [ ReportTestStatus $LogFile  [ expr {$TestTableId != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
@@ -74,20 +74,20 @@ proc getTableData {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "required arguement test (1)"
-    set errorTest [b2 get table data]
+    set errorTest [b2_get_table_data]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "arguement number test"
-    set errorTest [b2 get table data $TestTableId -1 junk= ]
+    set errorTest [b2_get_table_data $TestTableId -1 junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional arguement test"
-    set errorTest [b2 get table data $TestTableId -1 junk= test]
+    set errorTest [b2_get_table_data $TestTableId -1 junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
     set SubTestDes "Table Data test"
-    set tableData [b2 get table data $TestTableId]
+    set tableData [b2_get_table_data $TestTableId]
     ReportTestStatus $LogFile  [ expr {[llength $tableData] == 256 } ] $ModuleName $SubTestDes
 
     for {set i 0} {$i < [llength $ExpectData]} {incr i} {
@@ -99,7 +99,7 @@ proc getTableData {pathToRegressionDir dateString} {
     }
 
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy table $TestTableId ] != -1 } ] $ModuleName "Destroying table $TestTableId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_table $TestTableId ] != -1 } ] $ModuleName "Destroying table $TestTableId"
 
     return [ StopModule  $LogFile $ModuleName ]
 }

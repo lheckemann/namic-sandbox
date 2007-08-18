@@ -1,6 +1,6 @@
 # \author    Hans J. Johnson"
 # \date        $Date: 2007-02-02 07:20:50 -0600 (Fri, 02 Feb 2007) $
-# \brief    This module tests the b2 get name command
+# \brief    This module tests the b2_get_name command
 # \fn        proc getIds {pathToRegressionDir dateString}
 # \param    string pathToRegressionDir    - Path to the regresssion test directory
 # \param    string dateString            - String to label output file
@@ -8,7 +8,7 @@
 #
 # Test Performed
 # -----------------------------------------------------------------------
-# Test the b2 get patient-id |scan-id commands
+# Test the b2_get_patient-id |scan-id commands
 #
 # To Do
 #------------------------------------------------------------------------
@@ -21,7 +21,7 @@ proc getId {pathToRegressionDir dateString} {
 
     set ModuleName "getId"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 get patient-id and b2 get scan-id commands"
+    set ModuleDescription "Test the b2_get_patient-id and b2_get_scan-id commands"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -79,19 +79,19 @@ proc getId {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "Patient-Id required arguement test"
-    set errorTest [b2 get patient-id image]
+    set errorTest [b2_get_patient-id image]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "Patient-Id arguement object type test"
-    set errorTest [b2 get patient-id test ]
+    set errorTest [b2_get_patient-id test ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "Scan-Id required arguement test"
-    set errorTest [b2 get scan-id image]
+    set errorTest [b2_get_scan-id image]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "Scan-Id arguement object type test"
-    set errorTest [b2 get scan-id test ]
+    set errorTest [b2_get_scan-id test ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
@@ -105,12 +105,12 @@ proc getId {pathToRegressionDir dateString} {
         set testObjectId [b2 load [lindex $objectTypes $i] [lindex $objectFiles $i]]
         ReportTestStatus $LogFile  [ expr {$testObjectId != -1 } ] $ModuleName $SubTestDes
 
-        set SubTestDes "Get Patient-Id [lindex $objectTypes $i] test: b2 get patient-id [lindex $objectTypes $i] $testObjectId"
-        set name [b2 get patient-id [lindex $objectTypes $i] $testObjectId]
+        set SubTestDes "Get Patient-Id [lindex $objectTypes $i] test: b2_get_patient-id [lindex $objectTypes $i] $testObjectId"
+        set name [b2_get_patient-id [lindex $objectTypes $i] $testObjectId]
         ReportTestStatus $LogFile  [ expr {$name == [lindex $patientIds $i ]} ] $ModuleName $SubTestDes
 
-        set SubTestDes "Get Scan-Id [lindex $objectTypes $i] test: b2 get scan-id [lindex $objectTypes $i] $testObjectId"
-        set name [b2 get scan-id [lindex $objectTypes $i] $testObjectId]
+        set SubTestDes "Get Scan-Id [lindex $objectTypes $i] test: b2_get_scan-id [lindex $objectTypes $i] $testObjectId"
+        set name [b2_get_scan-id [lindex $objectTypes $i] $testObjectId]
         ReportTestStatus $LogFile  [ expr {$name == [lindex $scanIds $i ]} ] $ModuleName $SubTestDes
 
         ReportTestStatus $LogFile  [ expr { [ b2 destroy  [lindex $objectTypes $i] $testObjectId ] != -1 } ] $ModuleName "Destroying  [lindex $objectTypes $i] $testObjectId"

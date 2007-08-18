@@ -2,18 +2,18 @@ proc CoreSavePaletteTest {filterName TestPaletteID SaveFileName LogFile ModuleNa
     global MODULE_FAILURE
 
     set SubTestDes "$filterName Save Palette - Load saved Palette"
-    set SavePaletteID [b2 load palette $SaveFileName]
+    set SavePaletteID [b2_load_palette $SaveFileName]
     ReportTestStatus $LogFile  [ expr {$SavePaletteID != -1 } ] $ModuleName $SubTestDes
 
-    set origPaletteType [b2 get palette type $TestPaletteID ]
-    set newPaletteType [b2 get palette type $SavePaletteID]
+    set origPaletteType [b2_get_palette_type $TestPaletteID ]
+    set newPaletteType [b2_get_palette_type $SavePaletteID]
 
     set SubTestDes "$filterName Save Palette - Palette Type Test"
     ReportTestStatus $LogFile  [ expr {$origPaletteType == $newPaletteType } ] $ModuleName $SubTestDes
 
 
-    set origPaletteData [b2 get palette data $TestPaletteID ]
-    set newPaletteData [b2 get palette data $SavePaletteID]
+    set origPaletteData [b2_get_palette_data $TestPaletteID ]
+    set newPaletteData [b2_get_palette_data $SavePaletteID]
 
     set SubTestDes "$filterName Save Palette - Palette Size Test"
     ReportTestStatus $LogFile  [ expr {[llength $origPaletteData] == [llength $newPaletteData] } ] $ModuleName $SubTestDes
@@ -26,7 +26,7 @@ proc CoreSavePaletteTest {filterName TestPaletteID SaveFileName LogFile ModuleNa
     }
 
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy palette $SavePaletteID ] != -1 } ] $ModuleName "Destroying palette $SavePaletteID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_palette $SavePaletteID ] != -1 } ] $ModuleName "Destroying palette $SavePaletteID"
 }
 
 
@@ -54,7 +54,7 @@ proc savePalette {pathToRegressionDir dateString} {
 
     set ModuleName "savePalette"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 save palette command and saving various file formats"
+    set ModuleDescription "Test the b2_save_palette command and saving various file formats"
     global OUTPUT_DIR;
     global MODULE_SUCCESS;
     global MODULE_FAILURE
@@ -68,7 +68,7 @@ proc savePalette {pathToRegressionDir dateString} {
 ########################################
 
     set SubTestDes "Save Palette - Load Palette test"
-    set TestPalID [b2 load palette $B2_TALAIRACH_DIR/../palette/pet.pal]
+    set TestPalID [b2_load_palette $B2_TALAIRACH_DIR/../palette/pet.pal]
     if { [ ReportTestStatus $LogFile  [ expr {$TestPalID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
@@ -78,46 +78,46 @@ proc savePalette {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "required arguement test (1)"
-    set errorTest [b2 save palette]
+    set errorTest [b2_save_palette]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "required arguement test (2)"
-    set errorTest [b2 save palette ${OUTPUT_DIR}/TEST/10_ACPC/junk.pal]
+    set errorTest [b2_save_palette ${OUTPUT_DIR}/TEST/10_ACPC/junk.pal]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "required arguement test (3)"
-    set errorTest [b2 save palette ${OUTPUT_DIR}/TEST/10_ACPC/junk.pal brains2]
+    set errorTest [b2_save_palette ${OUTPUT_DIR}/TEST/10_ACPC/junk.pal brains2]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "arguement number test"
-    set errorTest [b2 save palette ${OUTPUT_DIR}/TEST/10_ACPC/junk.pal brains2 $TestPalID junk= ]
+    set errorTest [b2_save_palette ${OUTPUT_DIR}/TEST/10_ACPC/junk.pal brains2 $TestPalID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional arguement test"
-    set errorTest [b2 save palette ${OUTPUT_DIR}/TEST/10_ACPC/junk.pal brains2 $TestPalID junk= test]
+    set errorTest [b2_save_palette ${OUTPUT_DIR}/TEST/10_ACPC/junk.pal brains2 $TestPalID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
     ############################### BRAINS2 Palette ###########################################
     set SubTestDes "Save BRAINS2 Palette test"
-    set errorTest [b2 save palette ${OUTPUT_DIR}/TEST/10_ACPC/junk.pal  brains2 $TestPalID]
+    set errorTest [b2_save_palette ${OUTPUT_DIR}/TEST/10_ACPC/junk.pal  brains2 $TestPalID]
     if { [ ReportTestStatus $LogFile  [ expr {$errorTest != -1 } ] $ModuleName $SubTestDes ]} {
 
         CoreSavePaletteTest "BRAINS2" $TestPalID ${OUTPUT_DIR}/TEST/10_ACPC/junk.pal $LogFile $ModuleName
 
         set SubTestDes "BRAINS2 invalid filename test"
-        set errorTest [b2 save palette /invalid_directory_nametmp/SGI/MR/4x-B1/TEST/10_ACPC/junk.pal brains2 $TestPalID]
+        set errorTest [b2_save_palette /invalid_directory_nametmp/SGI/MR/4x-B1/TEST/10_ACPC/junk.pal brains2 $TestPalID]
         ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "BRAINS2 invalid filter-suffix test"
-        set errorTest [b2 save palette ${OUTPUT_DIR}/TEST/10_ACPC/junk.pal brains2 $TestPalID filter-suffix= -invalid]
+        set errorTest [b2_save_palette ${OUTPUT_DIR}/TEST/10_ACPC/junk.pal brains2 $TestPalID filter-suffix= -invalid]
         ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
     }
 
 
 
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy palette $TestPalID ] != -1 } ] $ModuleName "Destroying palette $TestPalID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_palette $TestPalID ] != -1 } ] $ModuleName "Destroying palette $TestPalID"
 
     return [ StopModule  $LogFile $ModuleName ]
 

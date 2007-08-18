@@ -38,7 +38,7 @@ proc getDimsResTransform {pathToRegressionDir dateString} {
     ############################### Load an Image ###########################################
     ## Set known information about mask
     set SubTestDes "Get Transform Dims/Res Load Transform Test"
-    set TestXfrmID [b2 load transform $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/resample_parameters]
+    set TestXfrmID [b2_load_transform $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/resample_parameters]
     if { [ ReportTestStatus $LogFile  [ expr {$TestXfrmID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
@@ -46,38 +46,38 @@ proc getDimsResTransform {pathToRegressionDir dateString} {
 
     ########## Standard Dims
     set SubTestDes "(standard-dims) required arguement test"
-    set errorTest [b2 get standard-dims transform]
+    set errorTest [b2_get_standard-dims_transform]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(standard-dims) arguement number test"
-    set errorTest [b2 get standard-dims transform $TestXfrmID junk= ]
+    set errorTest [b2_get_standard-dims_transform $TestXfrmID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(standard-dims) optional arguement test"
-    set errorTest [b2 get standard-dims transform $TestXfrmID junk= test]
+    set errorTest [b2_get_standard-dims_transform $TestXfrmID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(standard-dims) invalid roi test"
-    set errorTest [b2 get standard-dims transform -1]
+    set errorTest [b2_get_standard-dims_transform -1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
 
     ########## Standard Res
     set SubTestDes "(standard-res) required arguement test"
-    set errorTest [b2 get standard-res transform]
+    set errorTest [b2_get_standard-res_transform]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(standard-res) arguement number test"
-    set errorTest [b2 get standard-res transform $TestXfrmID junk= ]
+    set errorTest [b2_get_standard-res_transform $TestXfrmID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(standard-res) optional arguement test"
-    set errorTest [b2 get standard-res transform $TestXfrmID junk= test]
+    set errorTest [b2_get_standard-res_transform $TestXfrmID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(standard-res) invalid roi test"
-    set errorTest [b2 get standard-res transform -1]
+    set errorTest [b2_get_standard-res_transform -1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
@@ -85,45 +85,45 @@ proc getDimsResTransform {pathToRegressionDir dateString} {
 
     ############# Reslice Dims
     set SubTestDes "(reslice-dims) required arguement test"
-    set errorTest [b2 get reslice-dims transform]
+    set errorTest [b2_get_reslice-dims_transform]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(reslice-dims) arguement number test"
-    set errorTest [b2 get reslice-dims transform $TestXfrmID junk= ]
+    set errorTest [b2_get_reslice-dims_transform $TestXfrmID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(reslice-dims) optional arguement test"
-    set errorTest [b2 get reslice-dims transform $TestXfrmID junk= test]
+    set errorTest [b2_get_reslice-dims_transform $TestXfrmID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(reslice-dims) invalid roi test"
-    set errorTest [b2 get reslice-dims transform -1]
+    set errorTest [b2_get_reslice-dims_transform -1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
 
     ########## Reslice Res
     set SubTestDes "(reslice-res) required arguement test"
-    set errorTest [b2 get reslice-res transform]
+    set errorTest [b2_get_reslice-res_transform]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(reslice-res) arguement number test"
-    set errorTest [b2 get standard-res transform $TestXfrmID junk= ]
+    set errorTest [b2_get_standard-res_transform $TestXfrmID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(reslice-res) optional arguement test"
-    set errorTest [b2 get reslice-res transform $TestXfrmID junk= test]
+    set errorTest [b2_get_reslice-res_transform $TestXfrmID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(reslice-res) invalid roi test"
-    set errorTest [b2 get reslice-res transform -1]
+    set errorTest [b2_get_reslice-res_transform -1]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
-    set StandardDims [ b2 get standard-dims transform $TestXfrmID]
-    set StandardRes [ b2 get standard-res transform $TestXfrmID]
-    set ResliceDims [ b2 get reslice-dims transform $TestXfrmID]
-    set ResliceRes [ b2 get reslice-res transform $TestXfrmID]
+    set StandardDims [ b2_get_standard-dims_transform $TestXfrmID]
+    set StandardRes [ b2_get_standard-res_transform $TestXfrmID]
+    set ResliceDims [ b2_get_reslice-dims_transform $TestXfrmID]
+    set ResliceRes [ b2_get_reslice-res_transform $TestXfrmID]
 
     set ExpectStandardDims {256 256 192}
     set ExpectStandardRes {1.015625  1.015625 1.015625}
@@ -140,7 +140,7 @@ proc getDimsResTransform {pathToRegressionDir dateString} {
         ReportTestStatus $LogFile  [ expr {[lindex $ResliceRes $i] == [lindex $ExpectResliceRes $i] } ] $ModuleName $SubTestDes
     }
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy transform $TestXfrmID ] != -1 } ] $ModuleName "Destroying transform $TestXfrmID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_transform $TestXfrmID ] != -1 } ] $ModuleName "Destroying transform $TestXfrmID"
 
 
     return [ StopModule  $LogFile $ModuleName ]

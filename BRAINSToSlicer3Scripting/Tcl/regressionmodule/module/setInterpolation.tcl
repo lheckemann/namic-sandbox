@@ -1,6 +1,6 @@
 # \author    Greg Harris"
 # \date        $Date: 2005-03-08 16:40:34 -0600 (Tue, 08 Mar 2005) $
-# \brief    This module tests the brains2 command "b2 set interpolation"
+# \brief    This module tests the brains2 command "b2_set_interpolation"
 # \fn        proc loadTalairachParameter {pathToRegressionDir dateString}
 # \param    string pathToRegressionDir    - Path to the regresssion test directory
 # \param    string dateString            - String to label output file
@@ -8,7 +8,7 @@
 #
 # Test Performed
 # -----------------------------------------------------------------------
-# Tests the brains2 command "b2 set interpolation"
+# Tests the brains2 command "b2_set_interpolation"
 #
 # To Do
 #------------------------------------------------------------------------
@@ -22,7 +22,7 @@ proc setInterpolation {pathToRegressionDir dateString} {
 
     set ModuleName "setInterpolation"
     set ModuleAuthor "Greg Harris"
-    set ModuleDescription "Test the b2 set interpolation command"
+    set ModuleDescription "Test the b2_set_interpolation command"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -36,7 +36,7 @@ proc setInterpolation {pathToRegressionDir dateString} {
 
 
     # First Test for invalid arguements
-    set errorTest [b2 set interpolation]
+    set errorTest [b2_set_interpolation]
 
     set SubTestDes "return of Interpolation Mode default is list of length 1 test"
     ReportTestStatus $LogFile  [ expr {[llength $errorTest] == 1 } ] $ModuleName $SubTestDes
@@ -45,17 +45,17 @@ proc setInterpolation {pathToRegressionDir dateString} {
 
 
     set SubTestDes "arguement number test (interpolation)"
-    set errorTest [b2 set interpolation nearest junk= ]
+    set errorTest [b2_set_interpolation nearest junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional arguement test (interpolation)"
-    set errorTest [b2 set interpolation nearest junk= test]
+    set errorTest [b2_set_interpolation nearest junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
 
 #    set SubTestDes "Set Interpolation Nearest-Neighbor Test"
-    set TestResult [b2 set interpolation nearest-neighbor]
+    set TestResult [b2_set_interpolation nearest-neighbor]
     puts "'$TestResult'"
 
     set SubTestDes "change of Interpolation to Nearest-Neighbor is list of length 1 test"
@@ -64,7 +64,7 @@ proc setInterpolation {pathToRegressionDir dateString} {
     ReportTestStatus $LogFile  [ expr {[lindex $TestResult 0] == "nearest-neighbor" } ] $ModuleName $SubTestDes
 
 #    set SubTestDes "Set Interpolation Trilinear Test"
-    set TestResult [b2 set interpolation trilinear]
+    set TestResult [b2_set_interpolation trilinear]
     puts "'$TestResult'"
 
     set SubTestDes "change of Interpolation to Trilinear is list of length 1 test"

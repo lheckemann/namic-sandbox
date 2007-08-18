@@ -11,7 +11,7 @@
 proc measureStudentT { pathToRegressionDir dateString } {
         set ModuleName "measureStudentT"
         set ModuleAuthor "Hans J. Johnson"
-        set ModuleDescription "Testing of b2 student-T"
+        set ModuleDescription "Testing of b2_student-T"
         global MODULE_SUCCESS
         global MODULE_FAILURE
         set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -22,7 +22,7 @@ proc measureStudentT { pathToRegressionDir dateString } {
 #######################################################################################################################
 #######################################################################################################################
 
-    set output [ b2 student-T { 1.0 2.0 -100 54 } { 1 2 3 4 5 6 7 8 9 10 11 12 13 } ]
+    set output [ b2_student-T { 1.0 2.0 -100 54 } { 1 2 3 4 5 6 7 8 9 10 11 12 13 } ]
 #puts $output
     set standards {
     {ave1 -10.750000} {ave2 7.000000} {T -1.069387} {p 0.301803}

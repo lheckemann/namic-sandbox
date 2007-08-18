@@ -1,6 +1,6 @@
 # \author    Hans J. Johnson"
 # \date        $Date: 2005-03-08 16:40:34 -0600 (Tue, 08 Mar 2005) $
-# \brief    This module tests the "b2 convert mask to roi"
+# \brief    This module tests the "b2_convert_mask_to_roi"
 # \fn        proc convertMaskToRoi {pathToRegressionDir dateString}
 # \param    string pathToRegressionDir    - Path to the regresssion test directory
 # \param    string dateString            - String to label output file
@@ -8,7 +8,7 @@
 #
 # Test Performed
 # -----------------------------------------------------------------------
-# Test the b2 convert mask to roi command
+# Test the b2_convert_mask_to_roi command
 #
 # Note: Conversion of a Mask to an ROI back to a mask may produce
 #         different measurements based on the plane that the ROI
@@ -24,7 +24,7 @@ proc convertMaskToRoi {pathToRegressionDir dateString} {
 
     set ModuleName "convertMaskToRoi"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 convert mask to roi command"
+    set ModuleDescription "Test the b2_convert_mask_to_roi command"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -41,7 +41,7 @@ proc convertMaskToRoi {pathToRegressionDir dateString} {
 
     ############################### Load a Mask ###########################################
     set SubTestDes "Convert Mask To ROI Load Mask test"
-    set MaskId [b2 load mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
+    set MaskId [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
     if { [ ReportTestStatus $LogFile  [ expr {$MaskId != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
@@ -66,125 +66,125 @@ proc convertMaskToRoi {pathToRegressionDir dateString} {
 
     ########################## BRAINS2 Convert Mask To Coronal ROI ##############################
     set SubTestDes "B2 CONVERT MASK To ROI Coronal test"
-    set TestRoiId [b2 convert mask to roi coronal $MaskId]
+    set TestRoiId [b2_convert_mask_to_roi coronal $MaskId]
     if { [ ReportTestStatus $LogFile  [ expr {$TestRoiId != -1 } ] $ModuleName $SubTestDes] } {
         set SubTestDes "B2 CONVERT MASK TO ROI Conversion to mask test"
-        set TestMaskId [b2 convert roi to mask $TestRoiId]
+        set TestMaskId [b2_convert_roi_to_mask $TestRoiId]
         ReportTestStatus $LogFile  [ expr {$TestMaskId != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "B2 CONVERT MASK TO ROI Difference mask test"
-        set diffMask [ b2 xor masks $MaskId $TestMaskId]
+        set diffMask [ b2_xor_masks $MaskId $TestMaskId]
         ReportTestStatus $LogFile  [ expr {$diffMask != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "B2 CONVERT MASK TO ROI Difference mask volume test"
-        set volume [b2 measure volume mask $diffMask]
+        set volume [b2_measure_volume_mask $diffMask]
         ReportTestStatus $LogFile  [ expr {[lindex [lindex $volume 0] 1] == 0.000000 } ] $ModuleName $SubTestDes
         puts "$volume [llength $volume]"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy roi $TestRoiId ] != -1 } ] $ModuleName "Destroying roi $TestRoiId"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $diffMask ] != -1 } ] $ModuleName "Destroying mask $diffMask"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_roi $TestRoiId ] != -1 } ] $ModuleName "Destroying roi $TestRoiId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $diffMask ] != -1 } ] $ModuleName "Destroying mask $diffMask"
     }
 
     ########################## BRAINS2 Convert Mask To Sagittal ROI ##############################
     set SubTestDes "B2 CONVERT MASK TO ROI Sagittal test"
-    set TestRoiId [b2 convert mask to roi sagittal $MaskId]
+    set TestRoiId [b2_convert_mask_to_roi sagittal $MaskId]
     if { [ ReportTestStatus $LogFile  [ expr {$TestRoiId != -1 } ] $ModuleName $SubTestDes] } {
         set SubTestDes "B2 CONVERT MASK TO ROI Sagittal Conversion to mask test"
-        set TestMaskId [b2 convert roi to mask $TestRoiId]
+        set TestMaskId [b2_convert_roi_to_mask $TestRoiId]
         ReportTestStatus $LogFile  [ expr {$TestMaskId != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "B2 CONVERT MASK TO ROI Sagittal Difference mask test"
-        set diffMask [ b2 xor masks $MaskId $TestMaskId]
+        set diffMask [ b2_xor_masks $MaskId $TestMaskId]
         ReportTestStatus $LogFile  [ expr {$diffMask != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "B2 CONVERT MASK TO ROI Sagittal Difference mask volume test"
-        set volume [b2 measure volume mask $diffMask]
+        set volume [b2_measure_volume_mask $diffMask]
         ReportTestStatus $LogFile  [ expr {abs([lindex [lindex $volume 0] 1] - 0.826565) / 0.826565 < 0.0001 } ] $ModuleName $SubTestDes
 
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy roi $TestRoiId ] != -1 } ] $ModuleName "Destroying roi $TestRoiId"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $diffMask ] != -1 } ] $ModuleName "Destroying mask $diffMask"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_roi $TestRoiId ] != -1 } ] $ModuleName "Destroying roi $TestRoiId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $diffMask ] != -1 } ] $ModuleName "Destroying mask $diffMask"
     }
 
     ########################## BRAINS2 Convert Mask To Axial ROI ##############################
     set SubTestDes "B2 CONVERT MASK TO ROI Axial test"
-    set TestRoiId [b2 convert mask to roi axial $MaskId]
+    set TestRoiId [b2_convert_mask_to_roi axial $MaskId]
     if { [ ReportTestStatus $LogFile  [ expr {$TestRoiId != -1 } ] $ModuleName $SubTestDes] } {
         set SubTestDes "B2 CONVERT MASK TO ROI Axial Conversion to mask test"
-        set TestMaskId [b2 convert roi to mask $TestRoiId]
+        set TestMaskId [b2_convert_roi_to_mask $TestRoiId]
         ReportTestStatus $LogFile  [ expr {$TestMaskId != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "B2 CONVERT MASK TO ROI Axial Difference mask test"
-        set diffMask [ b2 xor masks $MaskId $TestMaskId]
+        set diffMask [ b2_xor_masks $MaskId $TestMaskId]
         ReportTestStatus $LogFile  [ expr {$diffMask != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "B2 CONVERT MASK TO ROI Axial Difference mask volume test"
-        set volume [b2 measure volume mask $diffMask]
+        set volume [b2_measure_volume_mask $diffMask]
         ReportTestStatus $LogFile  [ expr {abs([lindex [lindex $volume 0] 1] - 4.812726) / 4.812726 < 0.0001 } ] $ModuleName $SubTestDes
 
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy roi $TestRoiId ] != -1 } ] $ModuleName "Destroying roi $TestRoiId"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $diffMask ] != -1 } ] $ModuleName "Destroying mask $diffMask"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_roi $TestRoiId ] != -1 } ] $ModuleName "Destroying roi $TestRoiId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $diffMask ] != -1 } ] $ModuleName "Destroying mask $diffMask"
     }
 
 
     ########################## BRAINS2 Convert Mask To ROI Range Check ##############################
     set SubTestDes "B2 CONVERT MASK TO ROI Coronal Slice Range Check test"
-    set TestRoiId [b2 convert mask to roi coronal $MaskId min= 95 max= 97]
+    set TestRoiId [b2_convert_mask_to_roi coronal $MaskId min= 95 max= 97]
     if { [ ReportTestStatus $LogFile  [ expr {$TestRoiId != -1 } ] $ModuleName $SubTestDes] } {
         set SubTestDes "B2 CONVERT MASK TO ROI Coronal Range Check mask generation test(1)"
-        set RoiMaskId [b2 convert roi to mask $TestRoiId min= 95 max= 97]
+        set RoiMaskId [b2_convert_roi_to_mask $TestRoiId min= 95 max= 97]
         ReportTestStatus $LogFile  [ expr {$TestMaskId != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "B2 CONVERT MASK TO ROI Coronal Range Check mask generation test(2)"
-        set TestMaskId [b2 convert roi to mask $TestRoiId min= 95 max= 97]
+        set TestMaskId [b2_convert_roi_to_mask $TestRoiId min= 95 max= 97]
         ReportTestStatus $LogFile  [ expr {$TestMaskId != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "B2 CONVERT MASK TO ROI Coronal Range Check Difference mask test"
-        set diffMask [ b2 xor masks $RoiMaskId $TestMaskId]
+        set diffMask [ b2_xor_masks $RoiMaskId $TestMaskId]
         ReportTestStatus $LogFile  [ expr {$diffMask != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "B2 CONVERT MASK TO ROI Coronal Range Check Difference mask volume test"
-        set volume [b2 measure volume mask $diffMask]
+        set volume [b2_measure_volume_mask $diffMask]
         ReportTestStatus $LogFile  [ expr {[lindex [lindex $volume 0] 1] == 0.000000 } ] $ModuleName $SubTestDes
 
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy roi $TestRoiId ] != -1 } ] $ModuleName "Destroying roi $TestRoiId"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $RoiMaskId ] != -1 } ] $ModuleName "Destroying mask $RoiMaskId"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $diffMask ] != -1 } ] $ModuleName "Destroying mask $diffMask"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_roi $TestRoiId ] != -1 } ] $ModuleName "Destroying roi $TestRoiId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $RoiMaskId ] != -1 } ] $ModuleName "Destroying mask $RoiMaskId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $diffMask ] != -1 } ] $ModuleName "Destroying mask $diffMask"
     }
 
     ########################## BRAINS2 Convert Mask To ROI Slice Skip ##############################
     set SubTestDes "B2 CONVERT MASK TO ROI Coronal Slice Skip Check test"
-    set TestRoiId [b2 convert mask to roi coronal $MaskId skip= 2]
+    set TestRoiId [b2_convert_mask_to_roi coronal $MaskId skip= 2]
     if { [ ReportTestStatus $LogFile  [ expr {$TestRoiId != -1 } ] $ModuleName $SubTestDes] } {
         set SubTestDes "B2 CONVERT MASK TO ROI Coronal Slice skip mask generation test"
-        set TestMaskId [b2 convert roi to mask $TestRoiId]
+        set TestMaskId [b2_convert_roi_to_mask $TestRoiId]
         ReportTestStatus $LogFile  [ expr {$TestMaskId != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "B2 CONVERT MASK TO ROI Coronal Slice Skip Difference mask test"
-        set diffMask [ b2 xor masks $TestMaskId $MaskId]
+        set diffMask [ b2_xor_masks $TestMaskId $MaskId]
         ReportTestStatus $LogFile  [ expr {$diffMask != -1 } ] $ModuleName $SubTestDes
 
         set SubTestDes "B2 CONVERT MASK TO ROI Coronal Slice Skip Difference mask volume test"
-        set volume [b2 measure volume mask $diffMask]
+        set volume [b2_measure_volume_mask $diffMask]
         ReportTestStatus $LogFile  [ expr {abs([lindex [lindex $volume 0] 1] - 11.657818) / 11.657818  < 0.0001 } ] $ModuleName $SubTestDes
 
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $diffMask ] != -1 } ] $ModuleName "Destroying mask $diffMask"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy roi $TestRoiId ] != -1 } ] $ModuleName "Destroying roi $TestRoiId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $diffMask ] != -1 } ] $ModuleName "Destroying mask $diffMask"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_roi $TestRoiId ] != -1 } ] $ModuleName "Destroying roi $TestRoiId"
     }
 
     ########################## BRAINS2 Convert Class Image to Discrete ##############################
     set SubTestDes "B2 CONVERT MASK TO ROI Coronal Slice Skip Check test"
-    set TestRoiId [b2 convert mask to roi coronal $MaskId skip= 2 name= test.zroi]
+    set TestRoiId [b2_convert_mask_to_roi coronal $MaskId skip= 2 name= test.zroi]
     if { [ ReportTestStatus $LogFile  [ expr {$TestRoiId != -1 } ] $ModuleName $SubTestDes] } {
-        set name [ b2 get name roi $TestRoiId]
+        set name [ b2_get_name roi $TestRoiId]
         ReportTestStatus $LogFile  [ expr {$TestRoiId != "test.zroi" } ] $ModuleName $SubTestDes
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy roi $TestRoiId ] != -1 } ] $ModuleName "Destroying roi $TestRoiId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_roi $TestRoiId ] != -1 } ] $ModuleName "Destroying roi $TestRoiId"
     }
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $MaskId ] != -1 } ] $ModuleName "Destroying mask $MaskId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $MaskId ] != -1 } ] $ModuleName "Destroying mask $MaskId"
 
 
     return [ StopModule  $LogFile $ModuleName ]

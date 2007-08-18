@@ -25,7 +25,7 @@ proc checkCloseROI {pathToRegressionDir dateString} {
 
     set ModuleName "checkCloseROI"
     set ModuleAuthor "Greg Harris"
-    set ModuleDescription "Testing of b2 close ROI and b2 check ROI"
+    set ModuleDescription "Testing of b2_close_ROI and b2_check_ROI"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -37,9 +37,9 @@ proc checkCloseROI {pathToRegressionDir dateString} {
 
     # Run Tests
 
-    set traceZ [b2 load roi "${pathToRegressionDir}/SGI/MR/5x-B2/TEST/10_ACPC/user/unclosed_A.zroi"]
-    set traceY [b2 load roi "${pathToRegressionDir}/SGI/MR/5x-B2/TEST/10_ACPC/user/unclosed_B.yroi"]
-    set traceX [b2 load roi "${pathToRegressionDir}/SGI/MR/5x-B2/TEST/10_ACPC/user/unclosed_C.xroi"]
+    set traceZ [b2_load_roi "${pathToRegressionDir}/SGI/MR/5x-B2/TEST/10_ACPC/user/unclosed_A.zroi"]
+    set traceY [b2_load_roi "${pathToRegressionDir}/SGI/MR/5x-B2/TEST/10_ACPC/user/unclosed_B.yroi"]
+    set traceX [b2_load_roi "${pathToRegressionDir}/SGI/MR/5x-B2/TEST/10_ACPC/user/unclosed_C.xroi"]
 
     set num_ret [b2 check roi]
     set SubTestDes "required argument test: \[b2 check roi\]"
@@ -51,8 +51,8 @@ proc checkCloseROI {pathToRegressionDir dateString} {
     if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-    set orig_dims [b2 get dims roi ${traceZ}]
-    set orig_res [b2 get res roi ${traceZ}]
+    set orig_dims [b2_get_dims_roi ${traceZ}]
+    set orig_res [b2_get_res_roi ${traceZ}]
 
     set list_ret [b2 check roi ${traceZ}]
 puts "traceZ checked as '${list_ret}'"
@@ -101,19 +101,19 @@ puts "traceA checked as '${list_ret}'"
     if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-    set mod_dims [b2 get dims roi ${traceA}]
+    set mod_dims [b2_get_dims_roi ${traceA}]
     set SubTestDes "converted roi test for same dims list"
     if {[ReportTestStatus $LogFile  [ expr {[string compare ${mod_dims} ${orig_dims}] == 0 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-    set mod_res [b2 get res roi ${traceA}]
+    set mod_res [b2_get_res_roi ${traceA}]
     set SubTestDes "converted roi test for same res list"
     if {[ReportTestStatus $LogFile  [ expr {[string compare ${mod_res} ${orig_res}] == 0 } ] $ModuleName $SubTestDes] == 0} {
 }
 
 
-    set orig_dims [b2 get dims roi ${traceY}]
-    set orig_res [b2 get res roi ${traceY}]
+    set orig_dims [b2_get_dims_roi ${traceY}]
+    set orig_res [b2_get_res_roi ${traceY}]
 
     set list_ret [b2 check roi ${traceY}]
 puts "traceY checked as '${list_ret}'"
@@ -152,19 +152,19 @@ puts "traceB checked as '${list_ret}'"
     if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-    set mod_dims [b2 get dims roi ${traceB}]
+    set mod_dims [b2_get_dims_roi ${traceB}]
     set SubTestDes "converted roi test for same dims list"
     if {[ReportTestStatus $LogFile  [ expr {[string compare ${mod_dims} ${orig_dims}] == 0 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-    set mod_res [b2 get res roi ${traceB}]
+    set mod_res [b2_get_res_roi ${traceB}]
     set SubTestDes "converted roi test for same res list"
     if {[ReportTestStatus $LogFile  [ expr {[string compare ${mod_res} ${orig_res}] == 0 } ] $ModuleName $SubTestDes] == 0} {
 }
 
 
-    set orig_dims [b2 get dims roi ${traceX}]
-    set orig_res [b2 get res roi ${traceX}]
+    set orig_dims [b2_get_dims_roi ${traceX}]
+    set orig_res [b2_get_res_roi ${traceX}]
 
     set list_ret [b2 check roi ${traceX}]
 puts "traceX checked as '${list_ret}'"
@@ -203,19 +203,19 @@ puts "traceC checked as '${list_ret}'"
     if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-    set mod_dims [b2 get dims roi ${traceC}]
+    set mod_dims [b2_get_dims_roi ${traceC}]
     set SubTestDes "converted roi test for same dims list"
     if {[ReportTestStatus $LogFile  [ expr {[string compare ${mod_dims} ${orig_dims}] == 0 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-    set mod_res [b2 get res roi ${traceC}]
+    set mod_res [b2_get_res_roi ${traceC}]
     set SubTestDes "converted roi test for same res list"
     if {[ReportTestStatus $LogFile  [ expr {[string compare ${mod_res} ${orig_res}] == 0 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy roi ${traceA} ] != -1 } ] $ModuleName "Destroying roi ${traceA}"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy roi ${traceB} ] != -1 } ] $ModuleName "Destroying roi ${traceB}"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy roi ${traceC} ] != -1 } ] $ModuleName "Destroying roi ${traceC}"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_roi ${traceA} ] != -1 } ] $ModuleName "Destroying roi ${traceA}"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_roi ${traceB} ] != -1 } ] $ModuleName "Destroying roi ${traceB}"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_roi ${traceC} ] != -1 } ] $ModuleName "Destroying roi ${traceC}"
 
     return [ StopModule  $LogFile $ModuleName ]
 }

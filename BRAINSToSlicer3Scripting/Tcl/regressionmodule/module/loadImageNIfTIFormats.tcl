@@ -47,10 +47,10 @@ for {set currfilename 0} { $currfilename < $lenfilelist } {incr currfilename} {
         set Dimensions "256 256 192 1"
         set Resolutions "1.015625 1.015625 1.015625 1.00000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/phantom/NIfTIImages/$FileName]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/phantom/NIfTIImages/$FileName]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-            ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
+            ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
         }
 }
 

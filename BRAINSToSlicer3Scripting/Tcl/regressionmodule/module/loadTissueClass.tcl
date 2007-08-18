@@ -22,7 +22,7 @@ proc loadTissueClass {pathToRegressionDir dateString} {
 
     set ModuleName "loadTissueClass"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 load tissue-class command and loading various Tissue Class file formats"
+    set ModuleDescription "Test the b2_load_tissue-class command and loading various Tissue Class file formats"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -37,28 +37,28 @@ proc loadTissueClass {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "required arguement test"
-    set errorTest [b2 load tissue-class]
+    set errorTest [b2_load_tissue-class]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "arguement number test"
-    set errorTest [b2 load tissue-class $pathToRegressionDir/SGI/MR/B2-Class-Mdl/TEST/05_ACPC/ANON0017_05_Tissue_Class.mdl junk= ]
+    set errorTest [b2_load_tissue-class $pathToRegressionDir/SGI/MR/B2-Class-Mdl/TEST/05_ACPC/ANON0017_05_Tissue_Class.mdl junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "optional arguement test"
-    set errorTest [b2 load tissue-class $pathToRegressionDir/SGI/MR/B2-Class-Mdl/TEST/05_ACPC/ANON0017_05_Tissue_Class.mdl junk= test]
+    set errorTest [b2_load_tissue-class $pathToRegressionDir/SGI/MR/B2-Class-Mdl/TEST/05_ACPC/ANON0017_05_Tissue_Class.mdl junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "invalid file test"
-    set errorTest [b2 load tissue-class /invalid_directory_name/ANON0017_05_Tissue_Class.mdl]
+    set errorTest [b2_load_tissue-class /invalid_directory_name/ANON0017_05_Tissue_Class.mdl]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
 
     ############################### BRAINS2 Tissue Class ###########################################
     set SubTestDes "BRAINS2 Tissue Class Load test"
-    set TestClassId [b2 load tissue-class $pathToRegressionDir/SGI/MR/B2-Class-Mdl/TEST/05_ACPC/ANON0017_05_Tissue_Class.mdl]
+    set TestClassId [b2_load_tissue-class $pathToRegressionDir/SGI/MR/B2-Class-Mdl/TEST/05_ACPC/ANON0017_05_Tissue_Class.mdl]
     if { [ ReportTestStatus $LogFile  [ expr {$TestClassId != -1 } ] $ModuleName $SubTestDes] } {
-        set kappa [b2 get tissue-class kappa $TestClassId]
+        set kappa [b2_get_tissue-class_kappa $TestClassId]
 #puts "kappa value is $kappa"
         set SubTestDes "BRAINS2 Tissue Class Kappa test"
         ReportTestStatus $LogFile  [ expr {[llength $kappa] == 4 } ] $ModuleName $SubTestDes
@@ -70,7 +70,7 @@ proc loadTissueClass {pathToRegressionDir dateString} {
         ReportTestStatus $LogFile  [ expr {[lindex [lindex $kappa 2] 1] == 0.999960005283356 } ] $ModuleName $SubTestDes
         set SubTestDes "BRAINS2 Tissue Class VB Kappa test"
         ReportTestStatus $LogFile  [ expr {[lindex [lindex $kappa 3] 1] == 0.591979980468750 } ] $ModuleName $SubTestDes
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy tissue-class $TestClassId ] != -1 } ] $ModuleName "Destroying tissue-class $TestClassId"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_tissue-class $TestClassId ] != -1 } ] $ModuleName "Destroying tissue-class $TestClassId"
     }
 
 

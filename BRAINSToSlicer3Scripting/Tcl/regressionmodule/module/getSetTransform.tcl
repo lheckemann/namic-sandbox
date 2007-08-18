@@ -34,13 +34,13 @@ proc getSetTransform {pathToRegressionDir dateString} {
 ########################################
 
     set SubTestDes "Get/Set Transform Load Image Test"
-    set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/4x-B1/TEST/15_002/19771.002.096]
+    set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/4x-B1/TEST/15_002/19771.002.096]
     if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
 
     set SubTestDes "Get/Set Transform Load Transform Test"
-    set TestXfrmID [b2 load transform $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/resample_parameters]
+    set TestXfrmID [b2_load_transform $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/resample_parameters]
     if { [ ReportTestStatus $LogFile  [ expr {$TestXfrmID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }
@@ -48,46 +48,46 @@ proc getSetTransform {pathToRegressionDir dateString} {
 
     # First Test for invalid arguements
     set SubTestDes "(set) required arguement test (1)"
-    set errorTest [b2 set transform]
+    set errorTest [b2_set_transform]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(set) required arguement test (2)"
-    set errorTest [b2 set transform $TestXfrmID]
+    set errorTest [b2_set_transform $TestXfrmID]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(set) required arguement test (2)"
-    set errorTest [b2 set transform $TestXfrmID image]
+    set errorTest [b2_set_transform $TestXfrmID image]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(set) required invalid type test"
-    set errorTest [b2 set transform $TestXfrmID mask]
+    set errorTest [b2_set_transform $TestXfrmID mask]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
 
     set SubTestDes "Set Transform Image Test"
-    set TestResult [b2 set transform $TestXfrmID image $TestImageID]
+    set TestResult [b2_set_transform $TestXfrmID image $TestImageID]
     ReportTestStatus $LogFile  [ expr {$TestResult == 1 } ] $ModuleName $SubTestDes
 
 
     ###### Get Image Transform
     set SubTestDes "(get) required arguement test"
-    set errorTest [b2 get image transform]
+    set errorTest [b2_get_image_transform]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(get) invalid arguement number test"
-    set errorTest [b2 get image transform $TestImageID junk= ]
+    set errorTest [b2_get_image_transform $TestImageID junk= ]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "(get) invalid optional arguement test"
-    set errorTest [b2 get image transform $TestImageID junk= test]
+    set errorTest [b2_get_image_transform $TestImageID junk= test]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "Get Image transform test"
-    set XfrmId [b2 get image transform $TestImageID]
+    set XfrmId [b2_get_image_transform $TestImageID]
     ReportTestStatus $LogFile  [ expr {$XfrmId == $TestXfrmID } ] $ModuleName $SubTestDes
 
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy transform $TestXfrmID ] != -1 } ] $ModuleName "Destroying transform $TestXfrmID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_transform $TestXfrmID ] != -1 } ] $ModuleName "Destroying transform $TestXfrmID"
 
     return [ StopModule  $LogFile $ModuleName ]
 

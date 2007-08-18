@@ -36,49 +36,49 @@ proc worsleyAverageMR {pathToRegressionDir dateString} {
 
     ############################### Load an Image ###########################################
     set SubTestDes "Worsley Average MR - Load Image test (1)"
-    set ImageId(1) [b2 load image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_T1.hdr]
+    set ImageId(1) [b2_load_image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_T1.hdr]
     if { [ ReportTestStatus $LogFile  [ expr {$ImageId(1) != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
 
     set SubTestDes "Resample Image - Load Talairach Parameters test (1)"
-    set TalairachId(1) [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters]
+    set TalairachId(1) [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/talairach_parameters]
     if { [ ReportTestStatus $LogFile  [ expr {$TalairachId(1) != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
 
     set SubTestDes "Worsley Average MR - Load Image test (2)"
-    set ImageId(2) [b2 load image $pathToRegressionDir/SGI/MR/5x-B1/TEST/10_ACPC/ANON0007_T1.hdr]
+    set ImageId(2) [b2_load_image $pathToRegressionDir/SGI/MR/5x-B1/TEST/10_ACPC/ANON0007_T1.hdr]
     if { [ ReportTestStatus $LogFile  [ expr {$ImageId(2) != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
 
     set SubTestDes "Resample Image - Load Talairach Parameters test (2)"
-    set TalairachId(2) [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/5x-B1/TEST/10_ACPC/talairach_parameters]
+    set TalairachId(2) [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/5x-B1/TEST/10_ACPC/talairach_parameters]
     if { [ ReportTestStatus $LogFile  [ expr {$TalairachId(2) != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
 
     set SubTestDes "Worsley Average MR - Load Image test (3)"
-    set ImageId(3) [b2 load image $pathToRegressionDir/SGI/MR/5x-B2/TEST/10_ACPC/ANON0009_10_T1.hdr]
+    set ImageId(3) [b2_load_image $pathToRegressionDir/SGI/MR/5x-B2/TEST/10_ACPC/ANON0009_10_T1.hdr]
     if { [ ReportTestStatus $LogFile  [ expr {$ImageId(3) != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
 
     set SubTestDes "Resample Image - Load Talairach Parameters test (3)"
-    set TalairachId(3) [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/5x-B2/TEST/10_ACPC/Talairach.bnd]
+    set TalairachId(3) [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/5x-B2/TEST/10_ACPC/Talairach.bnd]
     if { [ ReportTestStatus $LogFile  [ expr {$TalairachId(3) != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
 
     set SubTestDes "Worsley Average MR - Load Image test (4)"
-    set ImageId(4) [b2 load image $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/ANON0019_05_T1.hdr]
+    set ImageId(4) [b2_load_image $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/ANON0019_05_T1.hdr]
     if { [ ReportTestStatus $LogFile  [ expr {$ImageId(4) != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
 
     set SubTestDes "Resample Image - Load Talairach Parameters test (4)"
-    set TalairachId(4) [b2 load talairach-parameters $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/Talairach.bnd]
+    set TalairachId(4) [b2_load_talairach-parameters $pathToRegressionDir/SGI/MR/DICOM-GE-B2/TEST/05_ACPC/Talairach.bnd]
     if { [ ReportTestStatus $LogFile  [ expr {$TalairachId(4) != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }
@@ -111,22 +111,22 @@ proc worsleyAverageMR {pathToRegressionDir dateString} {
     ReportTestStatus $LogFile  [ expr {$TestImageId != -1 } ] $ModuleName $SubTestDes
 
     set SubTestDes "B2 RESAMPLE Worsley-MR test - Mask Generation"
-    set TestMaskId [b2 threshold image [lindex $TestImageId 0] 100]
+    set TestMaskId [b2_threshold_image [lindex $TestImageId 0] 100]
     ReportTestStatus $LogFile  [ expr {$TestImageId != -1 } ] $ModuleName $SubTestDes
 
-    set result [b2 measure volume mask $TestMaskId]
+    set result [b2_measure_volume_mask $TestMaskId]
 #   SGI: 1970.431105
     set SubTestDes "B2 RESAMPLE IMAGE test - Image Measurement -- is [lindex [lindex $result 0] 1] nearly equal to 1867.024723"
     ReportTestStatus $LogFile  [ expr {abs([lindex [lindex $result 0] 1] - 1867.024723) / 1867.024723 < 0.0553856522231 * 1.01} ] $ModuleName $SubTestDes
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image [lindex $TestImageId 0] ] != -1 } ] $ModuleName "Destroying image [lindex $TestImageId 0]"
-    ReportTestStatus $LogFile  [ expr { [ b2 destroy image [lindex $TestImageId 1] ] != -1 } ] $ModuleName "Destroying image [lindex $TestImageId 1]"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskId ] != -1 } ] $ModuleName "Destroying mask $TestMaskId"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image [lindex $TestImageId 0] ] != -1 } ] $ModuleName "Destroying image [lindex $TestImageId 0]"
+    ReportTestStatus $LogFile  [ expr { [ b2_destroy_image [lindex $TestImageId 1] ] != -1 } ] $ModuleName "Destroying image [lindex $TestImageId 1]"
 
 
     for {set i 1} {$i <= 4} {incr i} {
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image $ImageId($i) ] != -1 } ] $ModuleName "Destroying image $ImageId($i)"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy image $worsMrImage($i) ] != -1 } ] $ModuleName "Destroying image $worsMrImage($i)"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $TalairachId($i) ] != -1 } ] $ModuleName "Destroying talairach-parameters $TalairachId($i)"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $ImageId($i) ] != -1 } ] $ModuleName "Destroying image $ImageId($i)"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $worsMrImage($i) ] != -1 } ] $ModuleName "Destroying image $worsMrImage($i)"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $TalairachId($i) ] != -1 } ] $ModuleName "Destroying talairach-parameters $TalairachId($i)"
     }
 
     return [ StopModule  $LogFile $ModuleName ]

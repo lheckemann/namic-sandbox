@@ -13,7 +13,7 @@ proc loadImageVarianEPI {pathToRegressionDir dateString} {
 ########################################
         set ModuleName "loadImageVarianEPI"
         set ModuleAuthor "Hans J. Johnson"
-        set ModuleDescription "Test the b2 load image command and loading various image file formats"
+        set ModuleDescription "Test the b2_load_image command and loading various image file formats"
         global MODULE_SUCCESS
         global MODULE_FAILURE
         set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -35,10 +35,10 @@ proc loadImageVarianEPI {pathToRegressionDir dateString} {
         set Dimensions "64 24 64 120"
         set Resolutions "3.437500 5.000000 3.437500 2000.000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
-        set TestImageID [b2 load image $pathToRegressionDir/SGI/MR/varian/TEST/epi_fMR/image0009.fdf data-type= float-single filter-suffix= "-c on"]
+        set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/varian/TEST/epi_fMR/image0009.fdf data-type= float-single filter-suffix= "-c on"]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
             CoreImageTest $ImageTypeName $TestImageID $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes
-                ReportTestStatus $LogFile  [ expr { [ b2 destroy image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
+                ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
         }
 
 ############################### Strict Analyze Image ###########################################

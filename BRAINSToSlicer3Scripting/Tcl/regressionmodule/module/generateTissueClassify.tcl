@@ -90,7 +90,7 @@ proc testbrains2TissueClassify {genPlugs genModel applyModel t1 t2 pd pickTrainR
 #    centers[4][3] = 40.471096;
 
     if {$t1 != "."} {
-        set T1 [b2 load image $t1]
+        set T1 [b2_load_image $t1]
         set SubTestDes "load T1 image $t1"
         ReportTestStatus $LogFile  [ expr {$T1 != -1 } ] $ModuleName $SubTestDes
         lappend imageList $T1
@@ -99,7 +99,7 @@ proc testbrains2TissueClassify {genPlugs genModel applyModel t1 t2 pd pickTrainR
     }
 
     if {$t2 != "."} {
-        set T2 [b2 load image $t2]
+        set T2 [b2_load_image $t2]
         set SubTestDes "load T2 image $t2"
         ReportTestStatus $LogFile  [ expr {$T2 != -1 } ] $ModuleName $SubTestDes
         lappend imageList $T2
@@ -108,7 +108,7 @@ proc testbrains2TissueClassify {genPlugs genModel applyModel t1 t2 pd pickTrainR
     }
 
     if {$pd != "."} {
-        set PD [b2 load image $pd]
+        set PD [b2_load_image $pd]
         set SubTestDes "load PD image $pd"
         ReportTestStatus $LogFile  [ expr {$PD != -1 } ] $ModuleName $SubTestDes
         lappend imageList $PD
@@ -118,38 +118,38 @@ proc testbrains2TissueClassify {genPlugs genModel applyModel t1 t2 pd pickTrainR
 
     if {$genPlugs == 1} {
         if {$pickTrainRegion == "box"} {
-            set talPar [b2 load talairach-parameters $talairach]
+            set talPar [b2_load_talairach-parameters $talairach]
         set SubTestDes "load Talairach parameters $talairach."
         ReportTestStatus $LogFile  [ expr {$talPar != -1 } ] $ModuleName $SubTestDes
-            set brainBox [b2 load talairach-box $talairachBox]
-            set brainMask [b2 convert talairach-box to mask $talPar $brainBox]
-            ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $talPar ] != -1 } ] $ModuleName "Destroying talairach-parameters $talPar"
-            ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-box $brainBox ] != -1 } ] $ModuleName "Destroying talairach-box $brainBox"
+            set brainBox [b2_load_talairach-box $talairachBox]
+            set brainMask [b2_convert_talairach-box_to_mask $talPar $brainBox]
+            ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $talPar ] != -1 } ] $ModuleName "Destroying talairach-parameters $talPar"
+            ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-box $brainBox ] != -1 } ] $ModuleName "Destroying talairach-box $brainBox"
         } else {
-            set brainMask [b2 load mask $regionMask]
+            set brainMask [b2_load_mask $regionMask]
         }
-        set sResult [b2 save mask $brainMaskName brains2 $brainMask]
+        set sResult [b2_save_mask $brainMaskName brains2 $brainMask]
         if {$sResult == -1} {
         }
 
 
         if {$vbMethod == "traces"} {
             if {$vb1 != "."} {
-                set vbRoi1 [b2 load roi $vb1]
-                set vbMask1 [b2 convert roi to mask $vbRoi1]
-                ReportTestStatus $LogFile  [ expr { [ b2 destroy roi $vbRoi1 ] != -1 } ] $ModuleName "Destroying roi $vbRoi1"
+                set vbRoi1 [b2_load_roi $vb1]
+                set vbMask1 [b2_convert_roi_to_mask $vbRoi1]
+                ReportTestStatus $LogFile  [ expr { [ b2_destroy_roi $vbRoi1 ] != -1 } ] $ModuleName "Destroying roi $vbRoi1"
             }
 
             if {$vb2 != "."} {
-                set vbRoi2 [b2 load roi $vb2]
-                set vbMask2 [b2 convert roi to mask $vbRoi2]
-                ReportTestStatus $LogFile  [ expr { [ b2 destroy roi $vbRoi2 ] != -1 } ] $ModuleName "Destroying roi $vbRoi2"
+                set vbRoi2 [b2_load_roi $vb2]
+                set vbMask2 [b2_convert_roi_to_mask $vbRoi2]
+                ReportTestStatus $LogFile  [ expr { [ b2_destroy_roi $vbRoi2 ] != -1 } ] $ModuleName "Destroying roi $vbRoi2"
             }
 
             if {($vb1 != ".") && ($vb2 != ".")} {
-                set vbMask [b2 or masks $vbMask1 $vbMask2]
-                ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $vbMask1 ] != -1 } ] $ModuleName "Destroying mask $vbMask1"
-                ReportTestStatus $LogFile  [ expr { [ b2 destroy mask $vbMask2 ] != -1 } ] $ModuleName "Destroying mask $vbMask2"
+                set vbMask [b2_or_masks $vbMask1 $vbMask2]
+                ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $vbMask1 ] != -1 } ] $ModuleName "Destroying mask $vbMask1"
+                ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $vbMask2 ] != -1 } ] $ModuleName "Destroying mask $vbMask2"
             } elseif {$vb1 != "."} {
                 set vbMask $vbMask1
             } else {
@@ -177,7 +177,7 @@ proc testbrains2TissueClassify {genPlugs genModel applyModel t1 t2 pd pickTrainR
             set plugArgs "pb= $vbMask"
         }
 
-        set com1 "set plugList \[b2 generate class-plugs \{$imageList\} {gm wm csf} \{$meanRankTable\} $brainMask r= $random n= $numPlugs \
+        set com1 "set plugList \[b2_generate_class-plugs \{$imageList\} {gm wm csf} \{$meanRankTable\} $brainMask r= $random n= $numPlugs \
                         c= $coverage p= $permissiveness mo= $meanOutlier vo= $varOutlier ps= $plugSize dx= $numXpart \
                         dy= $numYpart dz= $numZpart gm= $numGrey wm= $numWhite csf= $numCsf $plugArgs\]"
         eval $com1
@@ -186,61 +186,61 @@ proc testbrains2TissueClassify {genPlugs genModel applyModel t1 t2 pd pickTrainR
         if {$plugList == -1} {
         }
 
-        set sResult [b2 save mask $greyMaskName brains2 [lindex $plugList 0]]
+        set sResult [b2_save_mask $greyMaskName brains2 [lindex $plugList 0]]
         if {$sResult == -1} {
         }
-        set sResult [b2 save mask $whiteMaskName brains2 [lindex $plugList 1]]
+        set sResult [b2_save_mask $whiteMaskName brains2 [lindex $plugList 1]]
         if {$sResult == -1} {
         }
-        set sResult [b2 save mask $csfMaskName brains2 [lindex $plugList 2]]
+        set sResult [b2_save_mask $csfMaskName brains2 [lindex $plugList 2]]
         if {$sResult == -1} {
         }
-        set sResult [b2 save mask $bloodMaskName brains2 [lindex $plugList 3]]
+        set sResult [b2_save_mask $bloodMaskName brains2 [lindex $plugList 3]]
         if {$sResult == -1} {
         }
     }
 
     if {($genPlugs == 0) && ($genModel == 1)} {
-        set mask [ b2 load mask $greyMaskName]
+        set mask [ b2_load_mask $greyMaskName]
         if {$mask == -1} {
         }
         lappend plugList $mask
 
-        set mask [ b2 load mask $whiteMaskName]
+        set mask [ b2_load_mask $whiteMaskName]
         if {$mask == -1} {
         }
         lappend plugList $mask
 
-        set mask [ b2 load mask $csfMaskName]
+        set mask [ b2_load_mask $csfMaskName]
         if {$mask == -1} {
         }
         lappend plugList $mask
 
-        set mask [ b2 load mask $bloodMaskName]
+        set mask [ b2_load_mask $bloodMaskName]
         if {$mask == -1} {
         }
         lappend plugList $mask
 
         if {$pickTrainRegion == "box"} {
-            set talPar [b2 load talairach-parameters $talairach]
+            set talPar [b2_load_talairach-parameters $talairach]
             if {$talPar == -1} {
             }
 
-            set brainBox [b2 load talairach-box $talairachBox]
+            set brainBox [b2_load_talairach-box $talairachBox]
             if {$brainBox == -1} {
             }
-            set brainMask [b2 convert talairach-box to mask $talPar $brainBox]
-            ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $talPar ] != -1 } ] $ModuleName "Destroying talairach-parameters $talPar"
-            ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-box $brainBox ] != -1 } ] $ModuleName "Destroying talairach-box $brainBox"
+            set brainMask [b2_convert_talairach-box_to_mask $talPar $brainBox]
+            ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $talPar ] != -1 } ] $ModuleName "Destroying talairach-parameters $talPar"
+            ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-box $brainBox ] != -1 } ] $ModuleName "Destroying talairach-box $brainBox"
         } else {
-            set brainMask [b2 load mask $regionMask]
+            set brainMask [b2_load_mask $regionMask]
             if {$brainMask == -1} {
             }
         }
     }
 
     if {$genModel == 1} {
-            set com2 " set classModel \[b2 generate class-model \{$imageNameList\} \{$imageList\} {gm wm csf vb} \{$plugList\} $brainMask \
+            set com2 " set classModel \[b2_generate_class-model \{$imageNameList\} \{$imageList\} {gm wm csf vb} \{$plugList\} $brainMask \
                     hist-eq= $histEqual tg= $trimGross ts= $trimSpatial x= $spatial_X y= $spatial_Y z= $spatial_Z \
                     xx= $spatial_XX yy= $spatial_YY zz= $spatial_ZZ xy= $spatial_XY xz= $spatial_XZ yz= $spatial_YZ\]"
 
@@ -249,55 +249,55 @@ proc testbrains2TissueClassify {genPlugs genModel applyModel t1 t2 pd pickTrainR
         if {$classModel == -1} {
         }
 
-        set sResult [b2 save tissue-class $modelName brains2 $classModel]
+        set sResult [b2_save_tissue-class $modelName brains2 $classModel]
         if {$sResult == -1} {
         }
     }
 
     if {($genModel == 0) && ($applyModel == 1)} {
-        set classModel [b2 load tissue-class $modelName]
+        set classModel [b2_load_tissue-class $modelName]
         if {$classModel == -1} {
         }
     }
 
     if {$applyModel == 1} {
         if {$excludeMask != "."} {
-            set t1ExcludeMask [b2 load mask $excludeMask]
+            set t1ExcludeMask [b2_load_mask $excludeMask]
             if {$t1ExcludeMask == -1} {
             }
             append classifyArgs "ex_t1= $t1ExcludeMask "
         }
 
         if {$bgbwVals == "traces"} {
-            set bgRoi [b2 load roi $bg]
+            set bgRoi [b2_load_roi $bg]
             if {$bgRoi == -1} {
             }
 
-            set bwRoi [b2 load roi $bw]
+            set bwRoi [b2_load_roi $bw]
             if {$bwRoi == -1} {
             }
 
-            set bgMask [b2 convert roi to mask $bgRoi]
+            set bgMask [b2_convert_roi_to_mask $bgRoi]
             if {$bgMask == -1} {
             }
-            set bwMask [b2 convert roi to mask $bwRoi]
+            set bwMask [b2_convert_roi_to_mask $bwRoi]
             if {$bwMask == -1} {
             }
 
-            ReportTestStatus $LogFile  [ expr { [ b2 destroy roi $bgRoi ] != -1 } ] $ModuleName "Destroying roi $bgRoi"
-            ReportTestStatus $LogFile  [ expr { [ b2 destroy roi $bwRoi ] != -1 } ] $ModuleName "Destroying roi $bwRoi"
+            ReportTestStatus $LogFile  [ expr { [ b2_destroy_roi $bgRoi ] != -1 } ] $ModuleName "Destroying roi $bgRoi"
+            ReportTestStatus $LogFile  [ expr { [ b2_destroy_roi $bwRoi ] != -1 } ] $ModuleName "Destroying roi $bwRoi"
 
             set classifyArgs "bg= $bgMask bw= $bwMask"
         } else {
             set classifyArgs "cth= $threshold "
         }
 
-        set com3 "set classImage \[b2 apply class-model \{$imageNameList\} \{$imageList\} $classModel $classifyArgs\]"
+        set com3 "set classImage \[b2_apply_class-model \{$imageNameList\} \{$imageList\} $classModel $classifyArgs\]"
         eval $com3
         if {$classImage == -1} {
         }
 
-        set sResult [b2 save image $segmentImage strictAnalyze75 $classImage]
+        set sResult [b2_save_image $segmentImage strictAnalyze75 $classImage]
         if {$sResult == -1} {
         }
 
@@ -307,25 +307,25 @@ proc testbrains2TissueClassify {genPlugs genModel applyModel t1 t2 pd pickTrainR
             if {$errorFlag != 0} {
                 return
             }
-            puts $f "set class \[b2 load image $segmentImage\]"
+            puts $f "set class \[b2_load_image $segmentImage\]"
             if {$t1 != "."} {
-                puts $f "set t1 \[b2 load image $t1\]"
+                puts $f "set t1 \[b2_load_image $t1\]"
             }
             if {$t2 != "."} {
-                puts $f "set t2 \[b2 load image $t2\]"
+                puts $f "set t2 \[b2_load_image $t2\]"
             }
             if {$pd != "."} {
-                puts $f "set pd \[b2 load image $pd\]"
+                puts $f "set pd \[b2_load_image $pd\]"
             }
-            puts $f "set model \[b2 load tissue-class $modelName\]"
-            puts $f "set gm \[b2 load mask $greyMaskName\]"
-            puts $f "set wm \[b2 load mask $whiteMaskName\]"
-            puts $f "set csf \[b2 load mask $csfMaskName\]"
-            puts $f "set blood \[b2 load mask $bloodMaskName\]"
+            puts $f "set model \[b2_load_tissue-class $modelName\]"
+            puts $f "set gm \[b2_load_mask $greyMaskName\]"
+            puts $f "set wm \[b2_load_mask $whiteMaskName\]"
+            puts $f "set csf \[b2_load_mask $csfMaskName\]"
+            puts $f "set blood \[b2_load_mask $bloodMaskName\]"
             puts $f "make_discrete_image \$class"
             puts $f "b2 show tracker"
-            puts $f "set kappa \[b2 get tissue-class kappa \$model\]"
-            puts $f "dialog_measuregui \"Tissue Class Model kappas \[b2 object-name tissue-class \$model\]:\\n\[lindex \$kappa 0\]\\n\[lindex \$kappa 1\]\\n\[lindex \$kappa 2\]\\n\[lindex \$kappa 3\]\\n"
+            puts $f "set kappa \[b2_get_tissue-class_kappa \$model\]"
+            puts $f "dialog_measuregui \"Tissue Class Model kappas \[b2_object-name tissue-class \$model\]:\\n\[lindex \$kappa 0\]\\n\[lindex \$kappa 1\]\\n\[lindex \$kappa 2\]\\n\[lindex \$kappa 3\]\\n"
             puts $f "set qa \[checkSegmentQuality\]"
             puts $f "if \{\$qa == -1\} \{tk_dialog .qaerror \"Error\" \"Failed to record segment check\" \"\" 0 \"Cancel\" \}"
             close $f
@@ -447,19 +447,19 @@ array set MinValueArray [ join  {
 }
 ]
 
-set output [ b2  get tissue-class kappa $classModel ]
+set output [ b2_get_tissue-class_kappa $classModel ]
 array set ValueArray [ join $output ]
 foreach {key} [array names MinValueArray] {
           set SubTestDes "Comparing to kappa values for $key, is $MinValueArray($key)  <= $ValueArray($key)  "
           ReportTestStatus $LogFile  [expr { $MinValueArray($key) <= $ValueArray($key) }] $ModuleName $SubTestDes
 }
 
-set stdClassified [b2 load image ${orig_results_dir}/STD_20_segment.hdr]
-set clipToBrainOnly [b2 erode mask $brainMask 1]
+set stdClassified [b2_load_image ${orig_results_dir}/STD_20_segment.hdr]
+set clipToBrainOnly [b2_erode_mask $brainMask 1]
 
 
-set shouldbezero [b2 subtract images [list $classImage $stdClassified]]
-set volumetable [b2 measure image mask $clipToBrainOnly $shouldbezero]
+set shouldbezero [b2_subtract_images [list $classImage $stdClassified]]
+set volumetable [b2_measure_image_mask $clipToBrainOnly $shouldbezero]
           set SubTestDes "Check whether error mean=[lindex [lindex $volumetable 0] 1] is close to zero."
           ReportTestStatus $LogFile  [expr {abs([lindex [lindex $volumetable 0] 1]) <= 0.5 }] $ModuleName $SubTestDes
 
@@ -468,7 +468,7 @@ set volumetable [b2 measure image mask $clipToBrainOnly $shouldbezero]
 
    set objecttypes { image  roi  mask  gtsurface  transform  talairach-parameters  talairach-box  histogram  landmark  palette  table  tissue-class }
    foreach {currentobjtype} $objecttypes  {
-          ReportTestStatus $LogFile  [expr {[b2 destroy every $currentobjtype ] != -1 }] $ModuleName "Destroying every $currentobjtype"
+          ReportTestStatus $LogFile  [expr {[b2_destroy_every $currentobjtype ] != -1 }] $ModuleName "Destroying every $currentobjtype"
    }
           return [ StopModule  $LogFile $ModuleName ]
 }

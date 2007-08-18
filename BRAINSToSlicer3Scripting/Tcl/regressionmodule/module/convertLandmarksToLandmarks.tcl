@@ -1,9 +1,9 @@
 # \author        Greg Harris"
 # \date
-# \brief        b2 convert talairach-landmark to landmark
-#        b2 convert landmark to talairach-landmark
-#        b2 convert location to talairach-mm
-#        b2 convert talairach-mm to location
+# \brief        b2_convert_talairach-landmark_to_landmark
+#        b2_convert_landmark_to_talairach-landmark
+#        b2_convert_location_to_talairach-mm
+#        b2_convert_talairach-mm_to_location
 # \fn                proc convertLandmarksToLandmarks {pathToRegressionDir dateString}
 # \param        string pathToRegressionDir        - Path to the regresssion test directory
 # \param        string dateString                - String to label output file
@@ -11,17 +11,17 @@
 #
 # Test Performed
 # -----------------------------------------------------------------------
-# 'b2 convert talairach-landmark to landmark' -- b2 invalid arguments
-# 'b2 convert landmark to talairach-landmark' -- b2 invalid arguments
-# 'b2 convert location to talairach-mm' -- b2 invalid arguments
-# 'b2 convert talairach-mm to location' -- b2 invalid arguments
-# 'b2 convert talairach-landmark to landmark' -- run without error signal
-# 'b2 convert landmark to talairach-landmark' -- run without error signal
-# 'b2 convert location to talairach-mm' -- run without error signal
-# 'b2 convert talairach-mm to location' -- run without error signal
-# b2 get landmark count
-# b2 get landmark names
-# b2 get landmark location
+# 'b2_convert_talairach-landmark_to_landmark' -- b2 invalid arguments
+# 'b2_convert_landmark_to_talairach-landmark' -- b2 invalid arguments
+# 'b2_convert_location_to_talairach-mm' -- b2 invalid arguments
+# 'b2_convert_talairach-mm_to_location' -- b2 invalid arguments
+# 'b2_convert_talairach-landmark_to_landmark' -- run without error signal
+# 'b2_convert_landmark_to_talairach-landmark' -- run without error signal
+# 'b2_convert_location_to_talairach-mm' -- run without error signal
+# 'b2_convert_talairach-mm_to_location' -- run without error signal
+# b2_get_landmark_count
+# b2_get_landmark_names
+# b2_get_landmark_location
 # idempotencies all around.
 #
 # To Do
@@ -48,64 +48,64 @@ proc convertLandmarksToLandmarks {pathToRegressionDir dateString} {
 
 set ModuleName "convertLandmarksToLandmarks\[WholeBrain\]"
 
-#     set img [b2 load image "${pathToRegressionDir}/SGI/MR/5x-B2/TEST/10_ACPC/ANON0009_10_T1.hdr"]
-    set tal_par [b2 load talairach-parameters "${pathToRegressionDir}/SGI/MR/5x-B2/TEST/10_ACPC/Talairach.bnd"]
-    set tal_land [b2 load landmark "${pathToRegressionDir}/SGI/MR/b2-parcellation/TEST/10_ACPC/Average_left_morph1_grooves.lnd"]
+#     set img [b2_load_image "${pathToRegressionDir}/SGI/MR/5x-B2/TEST/10_ACPC/ANON0009_10_T1.hdr"]
+    set tal_par [b2_load_talairach-parameters "${pathToRegressionDir}/SGI/MR/5x-B2/TEST/10_ACPC/Talairach.bnd"]
+    set tal_land [b2_load_landmark "${pathToRegressionDir}/SGI/MR/b2-parcellation/TEST/10_ACPC/Average_left_morph1_grooves.lnd"]
 
 
-        set num_ret [b2 convert talairach-landmark to landmark]
-        set SubTestDes "required argument test: \[b2 convert talairach-landmark to landmark\]"
+        set num_ret [b2_convert_talairach-landmark_to_landmark]
+        set SubTestDes "required argument test: \[b2_convert_talairach-landmark_to_landmark\]"
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
         set SubTestDes "optional argument number test"
-        set num_ret [b2 convert talairach-landmark to landmark $tal_land $tal_par junk= ]
+        set num_ret [b2_convert_talairach-landmark_to_landmark $tal_land $tal_par junk= ]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
         set SubTestDes "unknown optional argument test"
-        set num_ret [b2 convert talairach-landmark to landmark $tal_land $tal_par junk= test]
+        set num_ret [b2_convert_talairach-landmark_to_landmark $tal_land $tal_par junk= test]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-        set SubTestDes "correct response test: \[b2 convert talairach-landmark to landmark <tal_land> <tal_par>\]"
-    set acq_land [b2 convert talairach-landmark to landmark $tal_land $tal_par]
+        set SubTestDes "correct response test: \[b2_convert_talairach-landmark_to_landmark <tal_land> <tal_par>\]"
+    set acq_land [b2_convert_talairach-landmark_to_landmark $tal_land $tal_par]
         if {[ReportTestStatus $LogFile  [ expr {$acq_land >= 0 } ] $ModuleName $SubTestDes] == 0} {
 }
 
 
-        set num_ret [b2 convert landmark to talairach-landmark]
-        set SubTestDes "required argument test: \[b2 convert landmark to talairach-landmark\]"
+        set num_ret [b2_convert_landmark_to_talairach-landmark]
+        set SubTestDes "required argument test: \[b2_convert_landmark_to_talairach-landmark\]"
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
         set SubTestDes "optional argument number test"
-        set num_ret [b2 convert landmark to talairach-landmark $acq_land $tal_par junk= ]
+        set num_ret [b2_convert_landmark_to_talairach-landmark $acq_land $tal_par junk= ]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
         set SubTestDes "unknown optional argument test"
-        set num_ret [b2 convert landmark to talairach-landmark $acq_land $tal_par junk= test]
+        set num_ret [b2_convert_landmark_to_talairach-landmark $acq_land $tal_par junk= test]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-        set SubTestDes "correct response test: \[b2 convert landmark to talairach-landmark <acq_land> <tal_par>\]"
-    set idem_tal_land [b2 convert landmark to talairach-landmark $acq_land $tal_par]
+        set SubTestDes "correct response test: \[b2_convert_landmark_to_talairach-landmark <acq_land> <tal_par>\]"
+    set idem_tal_land [b2_convert_landmark_to_talairach-landmark $acq_land $tal_par]
         if {[ReportTestStatus $LogFile  [ expr {$idem_tal_land >= 0 } ] $ModuleName $SubTestDes] == 0} {
 }
 
 
-        set SubTestDes "correct response test: \[b2 convert talairach-landmark to landmark <idem_tal_land> <tal_par>\]"
-    set idem_acq_land [b2 convert talairach-landmark to landmark $idem_tal_land $tal_par]
+        set SubTestDes "correct response test: \[b2_convert_talairach-landmark_to_landmark <idem_tal_land> <tal_par>\]"
+    set idem_acq_land [b2_convert_talairach-landmark_to_landmark $idem_tal_land $tal_par]
         if {[ReportTestStatus $LogFile  [ expr {$idem_acq_land >= 0 } ] $ModuleName $SubTestDes] == 0} {
 }
 
     if {($idem_tal_land >=0) && ($idem_acq_land >= 0)} {
 
-        set ct1 [b2 get landmark count $tal_land]
-        set ct2 [b2 get landmark count $acq_land]
-        set ct3 [b2 get landmark count $idem_tal_land]
-        set ct4 [b2 get landmark count $idem_acq_land]
+        set ct1 [b2_get_landmark_count $tal_land]
+        set ct2 [b2_get_landmark_count $acq_land]
+        set ct3 [b2_get_landmark_count $idem_tal_land]
+        set ct4 [b2_get_landmark_count $idem_acq_land]
 
         set SubTestDes "tal count == acq count test"
         if {[ReportTestStatus $LogFile  [ expr {$ct1 == $ct2 } ] $ModuleName $SubTestDes] == 0} {
@@ -120,10 +120,10 @@ set ModuleName "convertLandmarksToLandmarks\[WholeBrain\]"
 }
 
 
-        set nl1 [b2 get landmark names $tal_land]
-        set nl2 [b2 get landmark names $acq_land]
-        set nl3 [b2 get landmark names $idem_tal_land]
-        set nl4 [b2 get landmark names $idem_acq_land]
+        set nl1 [b2_get_landmark_names $tal_land]
+        set nl2 [b2_get_landmark_names $acq_land]
+        set nl3 [b2_get_landmark_names $idem_tal_land]
+        set nl4 [b2_get_landmark_names $idem_acq_land]
 
         set SubTestDes "tal names == acq names test"
         if {[ReportTestStatus $LogFile  [ expr {[string compare $nl1 $nl2] == 0} ] $ModuleName $SubTestDes] == 0} {
@@ -137,65 +137,65 @@ set ModuleName "convertLandmarksToLandmarks\[WholeBrain\]"
         if {[ReportTestStatus $LogFile  [ expr {[string compare $nl2 $nl4] == 0} ] $ModuleName $SubTestDes] == 0} {
 }
 
-        set pl1 [b2 get landmark location $tal_land -1]
-        set pl2 [b2 get landmark location $acq_land -1]
-        set pl3 [b2 get landmark location $idem_tal_land -1]
-        set pl4 [b2 get landmark location $idem_acq_land -1]
+        set pl1 [b2_get_landmark_location $tal_land -1]
+        set pl2 [b2_get_landmark_location $acq_land -1]
+        set pl3 [b2_get_landmark_location $idem_tal_land -1]
+        set pl4 [b2_get_landmark_location $idem_acq_land -1]
 
 
         set i [expr $ct1 / 2]
         set acq_q [lindex $pl2 $i]
 
-        set num_ret [b2 convert location to talairach-mm]
-        set SubTestDes "required argument test: \[b2 convert location to talairach-mm\]"
+        set num_ret [b2_convert_location_to_talairach-mm]
+        set SubTestDes "required argument test: \[b2_convert_location_to_talairach-mm\]"
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-        set num_ret [b2 convert location to talairach-mm $acq_q]
-        set SubTestDes "required argument test: \[b2 convert location to talairach-mm <acq_q>\]"
+        set num_ret [b2_convert_location_to_talairach-mm $acq_q]
+        set SubTestDes "required argument test: \[b2_convert_location_to_talairach-mm <acq_q>\]"
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
         set SubTestDes "optional argument number test location to talairach"
-        set num_ret [b2 convert location to talairach-mm $acq_q $tal_par junk= ]
+        set num_ret [b2_convert_location_to_talairach-mm $acq_q $tal_par junk= ]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
         set SubTestDes "unknown optional argument test location to talairach"
-        set num_ret [b2 convert location to talairach-mm $acq_q $tal_par junk= test]
+        set num_ret [b2_convert_location_to_talairach-mm $acq_q $tal_par junk= test]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
 
-        set num_ret [b2 convert talairach-mm to location]
-        set SubTestDes "required argument test: \[b2 convert talairach-mm to location\]"
+        set num_ret [b2_convert_talairach-mm_to_location]
+        set SubTestDes "required argument test: \[b2_convert_talairach-mm_to_location\]"
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-        set num_ret [b2 convert talairach-mm to location $acq_q]
-        set SubTestDes "required argument test: \[b2 convert talairach-mm to location <acq_q>\]"
+        set num_ret [b2_convert_talairach-mm_to_location $acq_q]
+        set SubTestDes "required argument test: \[b2_convert_talairach-mm_to_location <acq_q>\]"
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
         set SubTestDes "optional argument number test talairach to location"
-        set num_ret [b2 convert talairach-mm to location $acq_q $tal_par junk= ]
+        set num_ret [b2_convert_talairach-mm_to_location $acq_q $tal_par junk= ]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
         set SubTestDes "unknown optional argument test talairach to location"
-        set num_ret [b2 convert talairach-mm to location $acq_q $tal_par junk= test]
+        set num_ret [b2_convert_talairach-mm_to_location $acq_q $tal_par junk= test]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-        set tal_q [b2 convert location to talairach-mm $acq_q $tal_par]
+        set tal_q [b2_convert_location_to_talairach-mm $acq_q $tal_par]
         set SubTestDes "tal_q point location to talairach correct response"
         if {[ReportTestStatus $LogFile  [ expr {[llength $tal_q] == 3} ] $ModuleName $SubTestDes] == 0} {
 }
-        set idem_acq_q [b2 convert talairach-mm to location $tal_q $tal_par]
+        set idem_acq_q [b2_convert_talairach-mm_to_location $tal_q $tal_par]
         set SubTestDes "idem_acq_q point talairach to location correct response"
         if {[ReportTestStatus $LogFile  [ expr {[llength $idem_acq_q] == 3} ] $ModuleName $SubTestDes] == 0} {
 }
-        set idem_tal_q [b2 convert location to talairach-mm $idem_acq_q $tal_par]
+        set idem_tal_q [b2_convert_location_to_talairach-mm $idem_acq_q $tal_par]
         set SubTestDes "idem_tal_q point location to talairach correct response"
         if {[ReportTestStatus $LogFile  [ expr {[llength $idem_tal_q] == 3} ] $ModuleName $SubTestDes] == 0} {
 }
@@ -237,9 +237,9 @@ set ModuleName "convertLandmarksToLandmarks\[WholeBrain\]"
             }
 
             set acq_q [lindex $pl2 $i]
-            set tal_q [b2 convert location to talairach-mm $acq_q $tal_par]
-            set idem_acq_q [b2 convert talairach-mm to location $tal_q $tal_par]
-            set idem_tal_q [b2 convert location to talairach-mm $idem_acq_q $tal_par]
+            set tal_q [b2_convert_location_to_talairach-mm $acq_q $tal_par]
+            set idem_acq_q [b2_convert_talairach-mm_to_location $tal_q $tal_par]
+            set idem_tal_q [b2_convert_location_to_talairach-mm $idem_acq_q $tal_par]
 
             for {set j 0} {$j < 3} {incr j} {
             set n [expr [lindex $acq_q $j] - [lindex $idem_acq_q $j]]
@@ -293,8 +293,8 @@ set ModuleName "convertLandmarksToLandmarks\[WholeBrain\]"
 
         set acq_pc {128.000000 127.000000 82.000000}
         set acq_ac {128.000000 127.000000 108.000000}
-        set test_acq_pc [b2 convert talairach-mm to location {0.000000 0.000000 -24.000000} $tal_par]
-        set test_acq_ac [b2 convert talairach-mm to location {0.000000 0.000000 0.000000} $tal_par]
+        set test_acq_pc [b2_convert_talairach-mm_to_location {0.000000 0.000000 -24.000000} $tal_par]
+        set test_acq_ac [b2_convert_talairach-mm_to_location {0.000000 0.000000 0.000000} $tal_par]
         puts "test_acq_pc is $test_acq_pc"
         puts "test_acq_ac is $test_acq_ac"
 
@@ -335,14 +335,14 @@ set ModuleName "convertLandmarksToLandmarks\[WholeBrain\]"
 }
         if {([string compare $sla_name SLAcorner] == 0) && ([string compare $irp_name IRPcorner] == 0)} {
             set acq_sla [lindex $pl2 $sla_num]
-            set tal_sla [b2 convert location to talairach-mm $acq_sla $tal_par]
-            set idem_acq_sla [b2 convert talairach-mm to location $tal_sla $tal_par]
-            set idem_tal_sla [b2 convert location to talairach-mm $idem_acq_sla $tal_par]
+            set tal_sla [b2_convert_location_to_talairach-mm $acq_sla $tal_par]
+            set idem_acq_sla [b2_convert_talairach-mm_to_location $tal_sla $tal_par]
+            set idem_tal_sla [b2_convert_location_to_talairach-mm $idem_acq_sla $tal_par]
 
             set acq_irp [lindex $pl2 $irp_num]
-            set tal_irp [b2 convert location to talairach-mm $acq_irp $tal_par]
-            set idem_acq_irp [b2 convert talairach-mm to location $tal_irp $tal_par]
-            set idem_tal_irp [b2 convert location to talairach-mm $idem_acq_irp $tal_par]
+            set tal_irp [b2_convert_location_to_talairach-mm $acq_irp $tal_par]
+            set idem_acq_irp [b2_convert_talairach-mm_to_location $tal_irp $tal_par]
+            set idem_tal_irp [b2_convert_location_to_talairach-mm $idem_acq_irp $tal_par]
 
             puts "acq_sla is $acq_sla"
             puts "acq_irp is $acq_irp"
@@ -391,75 +391,75 @@ set ModuleName "convertLandmarksToLandmarks\[WholeBrain\]"
 # Free memory
 
         }
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $tal_par ] != -1 } ] $ModuleName "Destroying talairach-parameters $tal_par"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark $tal_land ] != -1 } ] $ModuleName "Destroying landmark $tal_land"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark $acq_land ] != -1 } ] $ModuleName "Destroying landmark $acq_land"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark $idem_tal_land ] != -1 } ] $ModuleName "Destroying landmark $idem_tal_land"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark $idem_acq_land ] != -1 } ] $ModuleName "Destroying landmark $idem_acq_land"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $tal_par ] != -1 } ] $ModuleName "Destroying talairach-parameters $tal_par"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark $tal_land ] != -1 } ] $ModuleName "Destroying landmark $tal_land"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark $acq_land ] != -1 } ] $ModuleName "Destroying landmark $acq_land"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark $idem_tal_land ] != -1 } ] $ModuleName "Destroying landmark $idem_tal_land"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark $idem_acq_land ] != -1 } ] $ModuleName "Destroying landmark $idem_acq_land"
 
 # Run Cerebellar Tests
 
 set ModuleName "convertLandmarksToLandmarks\[Cerebellum\]"
-#     set img [b2 load image "${pathToRegressionDir}/SGI/MR/B2-Crbl/ANON015/10_ACPC/ANON015_stereo.hdr"]
-    set tal_par [b2 load talairach-parameters "${pathToRegressionDir}/SGI/MR/B2-Crbl/ANON015/10_ACPC/Cerebellum.bnd"]
-    set tal_land [b2 load landmark "${pathToRegressionDir}/SGI/MR/B2-Crbl/ANON015/10_ACPC/ronald/Crbl_warp.lnd"]
+#     set img [b2_load_image "${pathToRegressionDir}/SGI/MR/B2-Crbl/ANON015/10_ACPC/ANON015_stereo.hdr"]
+    set tal_par [b2_load_talairach-parameters "${pathToRegressionDir}/SGI/MR/B2-Crbl/ANON015/10_ACPC/Cerebellum.bnd"]
+    set tal_land [b2_load_landmark "${pathToRegressionDir}/SGI/MR/B2-Crbl/ANON015/10_ACPC/ronald/Crbl_warp.lnd"]
 
-#set nl1 [b2 get landmark names $tal_land]
+#set nl1 [b2_get_landmark_names $tal_land]
 #puts "Name list: $nl1"
 
-        set num_ret [b2 convert talairach-landmark to landmark]
-        set SubTestDes "required argument test: \[b2 convert talairach-landmark to landmark\]"
+        set num_ret [b2_convert_talairach-landmark_to_landmark]
+        set SubTestDes "required argument test: \[b2_convert_talairach-landmark_to_landmark\]"
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
         set SubTestDes "optional argument number test"
-        set num_ret [b2 convert talairach-landmark to landmark $tal_land $tal_par junk= ]
+        set num_ret [b2_convert_talairach-landmark_to_landmark $tal_land $tal_par junk= ]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
         set SubTestDes "unknown optional argument test"
-        set num_ret [b2 convert talairach-landmark to landmark $tal_land $tal_par junk= test]
+        set num_ret [b2_convert_talairach-landmark_to_landmark $tal_land $tal_par junk= test]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-        set SubTestDes "correct response test: \[b2 convert talairach-landmark to landmark <tal_land> <tal_par>\]"
-    set acq_land [b2 convert talairach-landmark to landmark $tal_land $tal_par]
+        set SubTestDes "correct response test: \[b2_convert_talairach-landmark_to_landmark <tal_land> <tal_par>\]"
+    set acq_land [b2_convert_talairach-landmark_to_landmark $tal_land $tal_par]
         if {[ReportTestStatus $LogFile  [ expr {$acq_land >= 0 } ] $ModuleName $SubTestDes] == 0} {
 }
 
 
-        set num_ret [b2 convert landmark to talairach-landmark]
-        set SubTestDes "required argument test: \[b2 convert landmark to talairach-landmark\]"
+        set num_ret [b2_convert_landmark_to_talairach-landmark]
+        set SubTestDes "required argument test: \[b2_convert_landmark_to_talairach-landmark\]"
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
         set SubTestDes "optional argument number test"
-        set num_ret [b2 convert landmark to talairach-landmark $acq_land $tal_par junk= ]
+        set num_ret [b2_convert_landmark_to_talairach-landmark $acq_land $tal_par junk= ]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
         set SubTestDes "unknown optional argument test"
-        set num_ret [b2 convert landmark to talairach-landmark $acq_land $tal_par junk= test]
+        set num_ret [b2_convert_landmark_to_talairach-landmark $acq_land $tal_par junk= test]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-        set SubTestDes "correct response test: \[b2 convert landmark to talairach-landmark <acq_land> <tal_par>\]"
-    set idem_tal_land [b2 convert landmark to talairach-landmark $acq_land $tal_par]
+        set SubTestDes "correct response test: \[b2_convert_landmark_to_talairach-landmark <acq_land> <tal_par>\]"
+    set idem_tal_land [b2_convert_landmark_to_talairach-landmark $acq_land $tal_par]
         if {[ReportTestStatus $LogFile  [ expr {$idem_tal_land >= 0 } ] $ModuleName $SubTestDes] == 0} {
 }
 
 
-        set SubTestDes "correct response test: \[b2 convert talairach-landmark to landmark <idem_tal_land> <tal_par>\]"
-    set idem_acq_land [b2 convert talairach-landmark to landmark $idem_tal_land $tal_par]
+        set SubTestDes "correct response test: \[b2_convert_talairach-landmark_to_landmark <idem_tal_land> <tal_par>\]"
+    set idem_acq_land [b2_convert_talairach-landmark_to_landmark $idem_tal_land $tal_par]
         if {[ReportTestStatus $LogFile  [ expr {$idem_acq_land >= 0 } ] $ModuleName $SubTestDes] == 0} {
 }
 
     if {($idem_tal_land >=0) && ($idem_acq_land >= 0)} {
 
-        set ct1 [b2 get landmark count $tal_land]
-        set ct2 [b2 get landmark count $acq_land]
-        set ct3 [b2 get landmark count $idem_tal_land]
-        set ct4 [b2 get landmark count $idem_acq_land]
+        set ct1 [b2_get_landmark_count $tal_land]
+        set ct2 [b2_get_landmark_count $acq_land]
+        set ct3 [b2_get_landmark_count $idem_tal_land]
+        set ct4 [b2_get_landmark_count $idem_acq_land]
 
         set SubTestDes "tal count == acq count test"
         if {[ReportTestStatus $LogFile  [ expr {$ct1 == $ct2 } ] $ModuleName $SubTestDes] == 0} {
@@ -474,10 +474,10 @@ set ModuleName "convertLandmarksToLandmarks\[Cerebellum\]"
 }
 
 
-        set nl1 [b2 get landmark names $tal_land]
-        set nl2 [b2 get landmark names $acq_land]
-        set nl3 [b2 get landmark names $idem_tal_land]
-        set nl4 [b2 get landmark names $idem_acq_land]
+        set nl1 [b2_get_landmark_names $tal_land]
+        set nl2 [b2_get_landmark_names $acq_land]
+        set nl3 [b2_get_landmark_names $idem_tal_land]
+        set nl4 [b2_get_landmark_names $idem_acq_land]
 
         set SubTestDes "tal names == acq names test"
         if {[ReportTestStatus $LogFile  [ expr {[string compare $nl1 $nl2] == 0} ] $ModuleName $SubTestDes] == 0} {
@@ -491,65 +491,65 @@ set ModuleName "convertLandmarksToLandmarks\[Cerebellum\]"
         if {[ReportTestStatus $LogFile  [ expr {[string compare $nl2 $nl4] == 0} ] $ModuleName $SubTestDes] == 0} {
 }
 
-        set pl1 [b2 get landmark location $tal_land -1]
-        set pl2 [b2 get landmark location $acq_land -1]
-        set pl3 [b2 get landmark location $idem_tal_land -1]
-        set pl4 [b2 get landmark location $idem_acq_land -1]
+        set pl1 [b2_get_landmark_location $tal_land -1]
+        set pl2 [b2_get_landmark_location $acq_land -1]
+        set pl3 [b2_get_landmark_location $idem_tal_land -1]
+        set pl4 [b2_get_landmark_location $idem_acq_land -1]
 
 
         set i [expr $ct1 / 2]
         set acq_q [lindex $pl2 $i]
 
-        set num_ret [b2 convert location to talairach-mm]
-        set SubTestDes "required argument test: \[b2 convert location to talairach-mm\]"
+        set num_ret [b2_convert_location_to_talairach-mm]
+        set SubTestDes "required argument test: \[b2_convert_location_to_talairach-mm\]"
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-        set num_ret [b2 convert location to talairach-mm $acq_q]
-        set SubTestDes "required argument test: \[b2 convert location to talairach-mm <acq_q>\]"
+        set num_ret [b2_convert_location_to_talairach-mm $acq_q]
+        set SubTestDes "required argument test: \[b2_convert_location_to_talairach-mm <acq_q>\]"
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
         set SubTestDes "optional argument number test location to talairach"
-        set num_ret [b2 convert location to talairach-mm $acq_q $tal_par junk= ]
+        set num_ret [b2_convert_location_to_talairach-mm $acq_q $tal_par junk= ]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
         set SubTestDes "unknown optional argument test location to talairach"
-        set num_ret [b2 convert location to talairach-mm $acq_q $tal_par junk= test]
+        set num_ret [b2_convert_location_to_talairach-mm $acq_q $tal_par junk= test]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
 
-        set num_ret [b2 convert talairach-mm to location]
-        set SubTestDes "required argument test: \[b2 convert talairach-mm to location\]"
+        set num_ret [b2_convert_talairach-mm_to_location]
+        set SubTestDes "required argument test: \[b2_convert_talairach-mm_to_location\]"
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-        set num_ret [b2 convert talairach-mm to location $acq_q]
-        set SubTestDes "required argument test: \[b2 convert talairach-mm to location <acq_q>\]"
+        set num_ret [b2_convert_talairach-mm_to_location $acq_q]
+        set SubTestDes "required argument test: \[b2_convert_talairach-mm_to_location <acq_q>\]"
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
         set SubTestDes "optional argument number test talairach to location"
-        set num_ret [b2 convert talairach-mm to location $acq_q $tal_par junk= ]
+        set num_ret [b2_convert_talairach-mm_to_location $acq_q $tal_par junk= ]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
         set SubTestDes "unknown optional argument test talairach to location"
-        set num_ret [b2 convert talairach-mm to location $acq_q $tal_par junk= test]
+        set num_ret [b2_convert_talairach-mm_to_location $acq_q $tal_par junk= test]
         if {[ReportTestStatus $LogFile  [ expr {$num_ret == -1 } ] $ModuleName $SubTestDes] == 0} {
 }
 
-        set tal_q [b2 convert location to talairach-mm $acq_q $tal_par]
+        set tal_q [b2_convert_location_to_talairach-mm $acq_q $tal_par]
         set SubTestDes "tal_q point location to talairach correct response"
         if {[ReportTestStatus $LogFile  [ expr {[llength $tal_q] == 3} ] $ModuleName $SubTestDes] == 0} {
 }
-        set idem_acq_q [b2 convert talairach-mm to location $tal_q $tal_par]
+        set idem_acq_q [b2_convert_talairach-mm_to_location $tal_q $tal_par]
         set SubTestDes "idem_acq_q point talairach to location correct response"
         if {[ReportTestStatus $LogFile  [ expr {[llength $idem_acq_q] == 3} ] $ModuleName $SubTestDes] == 0} {
 }
-        set idem_tal_q [b2 convert location to talairach-mm $idem_acq_q $tal_par]
+        set idem_tal_q [b2_convert_location_to_talairach-mm $idem_acq_q $tal_par]
         set SubTestDes "idem_tal_q point location to talairach correct response"
         if {[ReportTestStatus $LogFile  [ expr {[llength $idem_tal_q] == 3} ] $ModuleName $SubTestDes] == 0} {
 }
@@ -591,9 +591,9 @@ set ModuleName "convertLandmarksToLandmarks\[Cerebellum\]"
             }
 
             set acq_q [lindex $pl2 $i]
-            set tal_q [b2 convert location to talairach-mm $acq_q $tal_par]
-            set idem_acq_q [b2 convert talairach-mm to location $tal_q $tal_par]
-            set idem_tal_q [b2 convert location to talairach-mm $idem_acq_q $tal_par]
+            set tal_q [b2_convert_location_to_talairach-mm $acq_q $tal_par]
+            set idem_acq_q [b2_convert_talairach-mm_to_location $tal_q $tal_par]
+            set idem_tal_q [b2_convert_location_to_talairach-mm $idem_acq_q $tal_par]
 
             for {set j 0} {$j < 3} {incr j} {
             set n [expr [lindex $acq_q $j] - [lindex $idem_acq_q $j]]
@@ -647,8 +647,8 @@ set ModuleName "convertLandmarksToLandmarks\[Cerebellum\]"
 
         set acq_pc {129.000000 109.000000 57.000000}
         set acq_ac {129.000000 109.000000 57.000000}
-        set test_acq_pc [b2 convert talairach-mm to location {0.000000 0.000000 -24.000000} $tal_par]
-        set test_acq_ac [b2 convert talairach-mm to location {0.000000 0.000000 0.000000} $tal_par]
+        set test_acq_pc [b2_convert_talairach-mm_to_location {0.000000 0.000000 -24.000000} $tal_par]
+        set test_acq_ac [b2_convert_talairach-mm_to_location {0.000000 0.000000 0.000000} $tal_par]
         puts "test_acq_pc is $test_acq_pc"
         puts "test_acq_ac is $test_acq_ac"
 
@@ -690,14 +690,14 @@ set ModuleName "convertLandmarksToLandmarks\[Cerebellum\]"
 }
         if {([string compare $sla_name SLAcorner] == 0) && ([string compare $irp_name IRPcorner] == 0)} {
             set acq_sla [lindex $pl2 $sla_num]
-            set tal_sla [b2 convert location to talairach-mm $acq_sla $tal_par]
-            set idem_acq_sla [b2 convert talairach-mm to location $tal_sla $tal_par]
-            set idem_tal_sla [b2 convert location to talairach-mm $idem_acq_sla $tal_par]
+            set tal_sla [b2_convert_location_to_talairach-mm $acq_sla $tal_par]
+            set idem_acq_sla [b2_convert_talairach-mm_to_location $tal_sla $tal_par]
+            set idem_tal_sla [b2_convert_location_to_talairach-mm $idem_acq_sla $tal_par]
 
             set acq_irp [lindex $pl2 $irp_num]
-            set tal_irp [b2 convert location to talairach-mm $acq_irp $tal_par]
-            set idem_acq_irp [b2 convert talairach-mm to location $tal_irp $tal_par]
-            set idem_tal_irp [b2 convert location to talairach-mm $idem_acq_irp $tal_par]
+            set tal_irp [b2_convert_location_to_talairach-mm $acq_irp $tal_par]
+            set idem_acq_irp [b2_convert_talairach-mm_to_location $tal_irp $tal_par]
+            set idem_tal_irp [b2_convert_location_to_talairach-mm $idem_acq_irp $tal_par]
 
             puts "acq_sla is $acq_sla"
             puts "acq_irp is $acq_irp"
@@ -746,11 +746,11 @@ set ModuleName "convertLandmarksToLandmarks\[Cerebellum\]"
 # Free memory
 
         }
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy talairach-parameters $tal_par ] != -1 } ] $ModuleName "Destroying talairach-parameters $tal_par"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark $tal_land ] != -1 } ] $ModuleName "Destroying landmark $tal_land"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark $acq_land ] != -1 } ] $ModuleName "Destroying landmark $acq_land"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark $idem_tal_land ] != -1 } ] $ModuleName "Destroying landmark $idem_tal_land"
-        ReportTestStatus $LogFile  [ expr { [ b2 destroy landmark $idem_acq_land ] != -1 } ] $ModuleName "Destroying landmark $idem_acq_land"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_talairach-parameters $tal_par ] != -1 } ] $ModuleName "Destroying talairach-parameters $tal_par"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark $tal_land ] != -1 } ] $ModuleName "Destroying landmark $tal_land"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark $acq_land ] != -1 } ] $ModuleName "Destroying landmark $acq_land"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark $idem_tal_land ] != -1 } ] $ModuleName "Destroying landmark $idem_tal_land"
+        ReportTestStatus $LogFile  [ expr { [ b2_destroy_landmark $idem_acq_land ] != -1 } ] $ModuleName "Destroying landmark $idem_acq_land"
 
         return [ StopModule  $LogFile $ModuleName ]
 }

@@ -125,7 +125,7 @@ b2 default mask
 b2 configuration list [roinames | landmarks]
 
 NEEDS TO BE PART OF INTERACTIVE TESTS  b2 dirty-list [roi | landmarks]
-NEEDS TO BE PART OF INTERACTIVE TESTS  b2 exit <status-int>, i.e. after brains2 quits, make sure that there are no zombie processes.
+NEEDS TO BE PART OF INTERACTIVE TESTS  b2_exit <status-int>, i.e. after brains2 quits, make sure that there are no zombie processes.
 b2 echo [string] <more-strings>
 b2 snap tiff [pathname] [viewer]
 b2 apropos [string]
