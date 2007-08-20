@@ -42,7 +42,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration001/filenames001.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters001.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersAffine.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration001/parameters001.txt
   )
   CONFIGURE_FILE(
@@ -59,10 +59,6 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration001/filenames001.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration001/parameters001.txt
     )
-  # Increase test times
-  set_tests_properties(CreateRandImages001 PROPERTIES TIMEOUT 3600)
-  set_tests_properties(RegistrationTest001 PROPERTIES TIMEOUT 3600)
-  set_tests_properties(WriteOutputsTest001 PROPERTIES TIMEOUT 3600)
 
 
   #
@@ -79,7 +75,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration002/filenames002.txt
   )
   CONFIGURE_FILE(
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters002.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersAffine.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration002/parameters002.txt
   )
   CONFIGURE_FILE(
@@ -94,9 +90,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration002/filenames002.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration002/parameters002.txt
     )
-  set_tests_properties(CreateRandImages002 PROPERTIES TIMEOUT 3600)
-  set_tests_properties(RegistrationTest002 PROPERTIES TIMEOUT 3600)
-  set_tests_properties(WriteOutputsTest002 PROPERTIES TIMEOUT 3600)
+
 
   #
   #  Affine test with 2 input images for BrainPart3.tgz
@@ -112,7 +106,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration003/filenames003.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters003.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersAffine.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration003/parameters003.txt
   )
   CONFIGURE_FILE(
@@ -127,9 +121,6 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration003/filenames003.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration003/parameters003.txt
     )
-  set_tests_properties(CreateRandImages003 PROPERTIES TIMEOUT 3600)
-  set_tests_properties(RegistrationTest003 PROPERTIES TIMEOUT 3600)
-  set_tests_properties(WriteOutputsTest003 PROPERTIES TIMEOUT 3600)
   
     
   #
@@ -146,7 +137,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration004/filenames004.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters004.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersBspline.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration004/parameters004.txt
   )
   CONFIGURE_FILE(
@@ -161,9 +152,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration004/filenames004.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration004/parameters004.txt
     )
-  set_tests_properties(CreateRandImages004 PROPERTIES TIMEOUT 3600)
-  set_tests_properties(RegistrationTest004 PROPERTIES TIMEOUT 7200)
-  set_tests_properties(WriteOutputsTest004 PROPERTIES TIMEOUT 3600)
+
 
 
     
@@ -181,7 +170,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration005/filenames005.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters005.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersBspline.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration005/parameters005.txt
   )
   CONFIGURE_FILE(
@@ -196,9 +185,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration005/filenames005.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration005/parameters005.txt
     )
-  set_tests_properties(CreateRandImages005 PROPERTIES TIMEOUT 3600)
-  set_tests_properties(RegistrationTest005 PROPERTIES TIMEOUT 7200)
-  set_tests_properties(WriteOutputsTest005 PROPERTIES TIMEOUT 3600)
+
 
     
   #
@@ -215,7 +202,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration006/filenames006.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters006.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersBspline.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration006/parameters006.txt
   )
   CONFIGURE_FILE(
@@ -230,9 +217,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration006/filenames006.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration006/parameters006.txt
     )
-  set_tests_properties(CreateRandImages006 PROPERTIES TIMEOUT 3600)
-  set_tests_properties(RegistrationTest006 PROPERTIES TIMEOUT 7200)
-  set_tests_properties(WriteOutputsTest006 PROPERTIES TIMEOUT 3600)
+
 
 
 
@@ -252,7 +237,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration007/filenames007.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters007.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersAffine.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration007/parameters007.txt
   )
   CONFIGURE_FILE(
@@ -267,9 +252,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration007/filenames007.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration007/parameters007.txt
     )
-  set_tests_properties(CreateRandImages007 PROPERTIES TIMEOUT 7200)
-  set_tests_properties(RegistrationTest007 PROPERTIES TIMEOUT 7200)
-  set_tests_properties(WriteOutputsTest007 PROPERTIES TIMEOUT 7200)
+
 
 
   #
@@ -286,7 +269,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration008/filenames008.txt
   )
   CONFIGURE_FILE(
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters008.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersAffine.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration008/parameters008.txt
   )
   CONFIGURE_FILE(
@@ -301,9 +284,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration008/filenames008.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration008/parameters008.txt
     )
-  set_tests_properties(CreateRandImages008 PROPERTIES TIMEOUT 7200)
-  set_tests_properties(RegistrationTest008 PROPERTIES TIMEOUT 7200)
-  set_tests_properties(WriteOutputsTest008 PROPERTIES TIMEOUT 7200)
+
 
   #
   #  Affine test with 10 input images for BrainPart3.tgz
@@ -319,7 +300,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration009/filenames009.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters009.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersAffine.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration009/parameters009.txt
   )
   CONFIGURE_FILE(
@@ -353,7 +334,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration010/filenames010.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters010.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersBspline.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration010/parameters010.txt
   )
   CONFIGURE_FILE(
@@ -368,9 +349,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration010/filenames010.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration010/parameters010.txt
     )
-  set_tests_properties(CreateRandImages010 PROPERTIES TIMEOUT 36000)
-  set_tests_properties(RegistrationTest010 PROPERTIES TIMEOUT 36000)
-  set_tests_properties(WriteOutputsTest010 PROPERTIES TIMEOUT 36000)
+
 
 
     
@@ -388,7 +367,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration011/filenames011.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters011.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersBspline.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration011/parameters011.txt
   )
   CONFIGURE_FILE(
@@ -403,9 +382,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration011/filenames011.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration011/parameters011.txt
     )
-  set_tests_properties(CreateRandImages011 PROPERTIES TIMEOUT 36000)
-  set_tests_properties(RegistrationTest011 PROPERTIES TIMEOUT 36000)
-  set_tests_properties(WriteOutputsTest011 PROPERTIES TIMEOUT 36000)
+
 
     
   #
@@ -422,7 +399,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration012/filenames012.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters012.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersBspline.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration012/parameters012.txt
   )
   CONFIGURE_FILE(
@@ -437,9 +414,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration012/filenames012.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration012/parameters012.txt
     )
-  set_tests_properties(CreateRandImages012 PROPERTIES TIMEOUT 36000)
-  set_tests_properties(RegistrationTest012 PROPERTIES TIMEOUT 36000)
-  set_tests_properties(WriteOutputsTest012 PROPERTIES TIMEOUT 36000)
+
 
 
 
@@ -458,7 +433,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration013/filenames013.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters013.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersAffine.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration013/parameters013.txt
   )
   CONFIGURE_FILE(
@@ -473,9 +448,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration013/filenames013.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration013/parameters013.txt
     )
-  set_tests_properties(CreateRandImages013 PROPERTIES TIMEOUT 72000)
-  set_tests_properties(RegistrationTest013 PROPERTIES TIMEOUT 72000)
-  set_tests_properties(WriteOutputsTest013 PROPERTIES TIMEOUT 72000)
+
 
 
   #
@@ -492,7 +465,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration014/filenames014.txt
   )
   CONFIGURE_FILE(
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters014.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersAffine.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration014/parameters014.txt
   )
   CONFIGURE_FILE(
@@ -507,9 +480,6 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration014/filenames014.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration014/parameters014.txt
     )
-  set_tests_properties(CreateRandImages014 PROPERTIES TIMEOUT 72000)
-  set_tests_properties(RegistrationTest014 PROPERTIES TIMEOUT 72000)
-  set_tests_properties(WriteOutputsTest014 PROPERTIES TIMEOUT 72000)
 
   #
   #  Affine test with 30 input images for BrainPart3.tgz
@@ -525,7 +495,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration015/filenames015.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters015.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersAffine.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration015/parameters015.txt
   )
   CONFIGURE_FILE(
@@ -540,9 +510,6 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration015/filenames015.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration015/parameters015.txt
     )
-  set_tests_properties(CreateRandImages015 PROPERTIES TIMEOUT 72000)
-  set_tests_properties(RegistrationTest015 PROPERTIES TIMEOUT 72000)
-  set_tests_properties(WriteOutputsTest015 PROPERTIES TIMEOUT 72000)
   
     
   #
@@ -559,7 +526,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration016/filenames016.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters016.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersBspline.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration016/parameters016.txt
   )
   CONFIGURE_FILE(
@@ -574,9 +541,6 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration016/filenames016.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration016/parameters016.txt
     )
-  set_tests_properties(CreateRandImages016 PROPERTIES TIMEOUT 360000)
-  set_tests_properties(RegistrationTest016 PROPERTIES TIMEOUT 360000)
-  set_tests_properties(WriteOutputsTest016 PROPERTIES TIMEOUT 360000)
 
 
     
@@ -594,7 +558,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration017/filenames017.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters017.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersBspline.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration017/parameters017.txt
   )
   CONFIGURE_FILE(
@@ -609,9 +573,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration017/filenames017.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration017/parameters017.txt
     )
-  set_tests_properties(CreateRandImages017 PROPERTIES TIMEOUT 360000)
-  set_tests_properties(RegistrationTest017 PROPERTIES TIMEOUT 360000)
-  set_tests_properties(WriteOutputsTest017 PROPERTIES TIMEOUT 360000)
+
 
     
   #
@@ -628,7 +590,7 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration018/filenames018.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters018.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersBspline.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration018/parameters018.txt
   )
   CONFIGURE_FILE(
@@ -643,9 +605,6 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration018/filenames018.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration018/parameters018.txt
     )
-  set_tests_properties(CreateRandImages018 PROPERTIES TIMEOUT 360000)
-  set_tests_properties(RegistrationTest018 PROPERTIES TIMEOUT 360000)
-  set_tests_properties(WriteOutputsTest018 PROPERTIES TIMEOUT 360000)
 
 
 
@@ -677,7 +636,7 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101/filenames101.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters101.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersAffine.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101/parameters101.txt
   )
   CONFIGURE_FILE(
@@ -692,9 +651,6 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101/filenames101.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101/parameters101.txt
     )
-  set_tests_properties(CreateRandImages101 PROPERTIES TIMEOUT 3600)
-  set_tests_properties(RegistrationTest101 PROPERTIES TIMEOUT 3600)
-  set_tests_properties(WriteOutputsTest101 PROPERTIES TIMEOUT 3600)
   
     
   #
@@ -711,7 +667,7 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration102/filenames102.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters102.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersBspline.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration102/parameters102.txt
   )
   CONFIGURE_FILE(
@@ -726,9 +682,6 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration102/filenames102.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration102/parameters102.txt
     )
-  set_tests_properties(CreateRandImages102 PROPERTIES TIMEOUT 3600)
-  set_tests_properties(RegistrationTest102 PROPERTIES TIMEOUT 7200)
-  set_tests_properties(WriteOutputsTest102 PROPERTIES TIMEOUT 3600)
 
 
   #
@@ -745,7 +698,7 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103/filenames103.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters103.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersAffine.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103/parameters103.txt
   )
   CONFIGURE_FILE(
@@ -760,9 +713,6 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103/filenames103.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103/parameters103.txt
     )
-  set_tests_properties(CreateRandImages103 PROPERTIES TIMEOUT 36000)
-  set_tests_properties(RegistrationTest103 PROPERTIES TIMEOUT 36000)
-  set_tests_properties(WriteOutputsTest103 PROPERTIES TIMEOUT 36000)
   
     
   #
@@ -779,7 +729,7 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration104/filenames104.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters104.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersBspline.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration104/parameters104.txt
   )
   CONFIGURE_FILE(
@@ -794,9 +744,6 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration104/filenames104.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration104/parameters104.txt
     )
-  set_tests_properties(CreateRandImages104 PROPERTIES TIMEOUT 36000)
-  set_tests_properties(RegistrationTest104 PROPERTIES TIMEOUT 72000)
-  set_tests_properties(WriteOutputsTest104 PROPERTIES TIMEOUT 36000)
 
 
   #
@@ -813,7 +760,7 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105/filenames105.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters105.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersAffine.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105/parameters105.txt
   )
   CONFIGURE_FILE(
@@ -828,9 +775,6 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105/filenames105.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105/parameters105.txt
     )
-  set_tests_properties(CreateRandImages105 PROPERTIES TIMEOUT 36000)
-  set_tests_properties(RegistrationTest105 PROPERTIES TIMEOUT 36000)
-  set_tests_properties(WriteOutputsTest105 PROPERTIES TIMEOUT 36000)
   
     
   #
@@ -847,7 +791,7 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration106/filenames106.txt
   )
   CONFIGURE_FILE( 
-    ${MultiImageRegistration_TEST_INPUT_DIR}/parameters106.txt
+    ${MultiImageRegistration_TEST_INPUT_DIR}/parametersBspline.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration106/parameters106.txt
   )
   CONFIGURE_FILE(
@@ -862,9 +806,7 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration106/filenames106.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration106/parameters106.txt
     )
-  set_tests_properties(CreateRandImages106 PROPERTIES TIMEOUT 36000)
-  set_tests_properties(RegistrationTest106 PROPERTIES TIMEOUT 72000)
-  set_tests_properties(WriteOutputsTest106 PROPERTIES TIMEOUT 36000)
+
 
   
 ENDIF(FAImage_DATA_ROOT)
