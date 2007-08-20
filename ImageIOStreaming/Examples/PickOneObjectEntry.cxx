@@ -42,7 +42,7 @@ int main( int argc, char ** argv )
     std::cerr << err << std::endl;
     return EXIT_FAILURE;
     }
-  itk::AnalyzeObjectMap::Pointer CreateObjectMap = itk::AnalyzeObjectMap::New();
+  itk::AnalyzeObjectMap<InputImageType>::Pointer CreateObjectMap = itk::AnalyzeObjectMap<InputImageType>::New();
 
   //Add another two entries that will be based on the image that is passed into 
   //the function, also, the intensity that you would like searched for, the name of the entry and then finally the RGB values
@@ -54,11 +54,7 @@ int main( int argc, char ** argv )
   //Pick the circle entry and have it put into CreateObjectMap two.  These means
   //that there is only one entry in CreateObjectMapTwo and the image has also
   //been taken care of.
-  itk::AnalyzeObjectMap::Pointer CreateObjectMapTwo = CreateObjectMap->PickOneEntry(2);
-
-  //Place all of the entries into the meta data so that the entries can be written
-  //out to an object file.
-  CreateObjectMapTwo->PlaceObjectMapEntriesIntoMetaData();
+  itk::AnalyzeObjectMap<InputImageType>::Pointer CreateObjectMapTwo = CreateObjectMap->PickOneEntry(2);
 
   //Now write out an object file
   writer->SetInput(CreateObjectMapTwo);
