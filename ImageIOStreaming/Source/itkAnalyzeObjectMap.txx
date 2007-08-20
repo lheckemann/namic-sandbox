@@ -82,7 +82,7 @@ template<class TImage, class TRGBImage>
     ObjectMapNew->SetRegions(this->GetLargestPossibleRegion());
     ObjectMapNew->Allocate();
     ObjectMapNew->AddObjectEntry(this->GetObjectEntry(numberOfEntry)->GetName());
-    ObjectMapNew->m_AnaylzeObjectEntryArray[1] = this->m_AnaylzeObjectEntryArray[numberOfEntry];
+    ObjectMapNew->GetObjectEntry(1)->Copy(this->m_AnaylzeObjectEntryArray[numberOfEntry]);
     typename itk::ThresholdImageFilter<ImageType>::Pointer changeOldObjectMap = itk::ThresholdImageFilter<ImageType>::New();
     
     changeOldObjectMap->SetInput(this);
@@ -114,12 +114,13 @@ template<class TImage, class TRGBImage>
     myfile.open("RGBImageVoxels2.txt");*/
     for(ObjectIterator.Begin(), RGBIterator.Begin(); !ObjectIterator.IsAtEnd(); ++ObjectIterator, ++RGBIterator)
     {
+        itk::ImageRegionIterator<TRGBImage>::PixelType setColors;
 //      typename RGBImage->ImageType setColors;
-  //    setColors.SetBlue(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
-    //  setColors.SetGreen(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndGreen());
-      //setColors.SetRed(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndRed());
+      setColors.SetBlue(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
+      setColors.SetGreen(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndGreen());
+      setColors.SetRed(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndRed());
 
-      RGBIterator.Set(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndRed(), this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndGreen(), this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
+      RGBIterator.Set(setColors);
       //myfile<<RGBIterator.Get()<<std::endl;
     }
     //myfile.close();
