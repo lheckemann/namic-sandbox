@@ -65,8 +65,8 @@ int main( int argc, char ** argv )
     }
   catch( itk::ExceptionObject & err )
     {
-    std::cerr << "ExceptionObject caught !" << std::endl;
-    std::cerr << err << std::endl;
+    std::cerr << "ExceptionObject caught !" << std::endl
+    << err << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -87,8 +87,8 @@ int main( int argc, char ** argv )
     }
   catch( itk::ExceptionObject & err )
     {
-    std::cerr << "ExceptionObject caught !" << std::endl;
-    std::cerr << err << std::endl;
+    std::cerr << "ExceptionObject caught !" << std::endl
+    << err << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -138,8 +138,8 @@ int main( int argc, char ** argv )
     }
   catch( itk::ExceptionObject & err )
     {
-    std::cerr << "ExceptionObject caught !" << std::endl;
-    std::cerr << err << std::endl;
+    std::cerr << "ExceptionObject caught !" << std::endl
+    << err << std::endl;
     return EXIT_FAILURE;
     }
   itk::AnalyzeObjectMap<InputImageType, RGBImageType>::Pointer CreateObjectMap = itk::AnalyzeObjectMap<InputImageType, RGBImageType>::New();
@@ -160,8 +160,8 @@ int main( int argc, char ** argv )
     }
   catch( itk::ExceptionObject & err )
     {
-    std::cerr << "ExceptionObject caught !" << std::endl;
-    std::cerr << err << std::endl;
+    std::cerr << "ExceptionObject caught !" << std::endl
+    << err << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -172,8 +172,8 @@ int main( int argc, char ** argv )
     }
   catch( itk::ExceptionObject & err )
     {
-    std::cerr << "ExceptionObject caught !" << std::endl;
-    std::cerr << err << std::endl;
+    std::cerr << "ExceptionObject caught !" << std::endl
+    << err << std::endl;
     return EXIT_FAILURE;
     }
   itk::AnalyzeObjectMap<InputImageType, RGBImageType>::Pointer ObjectMapTwo = itk::AnalyzeObjectMap<InputImageType, RGBImageType>::New();//.TransformImage(readerThree->GetOutput());
@@ -190,8 +190,8 @@ int main( int argc, char ** argv )
     }
   catch( itk::ExceptionObject & err )
     {
-    std::cerr << "ExceptionObject caught !" << std::endl;
-    std::cerr << err << std::endl;
+    std::cerr << "ExceptionObject caught !" << std::endl
+    << err << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -202,8 +202,8 @@ int main( int argc, char ** argv )
     }
   catch( itk::ExceptionObject & err )
     {
-    std::cerr << "ExceptionObject caught !" << std::endl;
-    std::cerr << err << std::endl;
+    std::cerr << "ExceptionObject caught !" << std::endl
+    << err << std::endl;
     return EXIT_FAILURE;
     }
 
