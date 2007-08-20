@@ -40,7 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace itk{
 template<class TImage, class TRGBImage>
 AnalyzeObjectMap<TImage, TRGBImage>
-::AnalyzeObjectMap()
+::AnalyzeObjectMap(): m_Version(VERSION7),m_NumberOfObjects(0)
   {
     //Create an object map of size 1,1,1 and have the pixles be 0.  Also, create one
     //object entry just like Analyze does with the name "Original", this entry
@@ -48,8 +48,6 @@ AnalyzeObjectMap<TImage, TRGBImage>
     this->m_AnaylzeObjectEntryArray.resize(1);
     this->m_AnaylzeObjectEntryArray[0] = itk::AnalyzeObjectEntry::New();
     this->m_AnaylzeObjectEntryArray[0]->SetName("Original");
-    this->SetNumberOfObjects(1);
-    this->SetVersion(VERSION7);
     typename ImageType::SizeType size = {{1,1,1}};
     typename ImageType::IndexType orgin = {{0,0,0}};
     typename ImageType::RegionType region;
@@ -114,7 +112,7 @@ template<class TImage, class TRGBImage>
     myfile.open("RGBImageVoxels2.txt");*/
     for(ObjectIterator.Begin(), RGBIterator.Begin(); !ObjectIterator.IsAtEnd(); ++ObjectIterator, ++RGBIterator)
     {
-        itk::ImageRegionIterator<TRGBImage>::PixelType setColors;
+        typename itk::ImageRegionIterator<TRGBImage>::PixelType setColors;
 //      typename RGBImage->ImageType setColors;
       setColors.SetBlue(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
       setColors.SetGreen(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndGreen());
@@ -146,7 +144,7 @@ template<class TImage, class TRGBImage>
     itk::ImageRegionIterator<ImageType > indexObjectMap(this,Image->GetLargestPossibleRegion());
     
     this->AddObjectEntry(ObjectName);
-    unsigned int i = this->GetNumberOfObjects() - 1;
+    unsigned int i = this->GetNumberOfObjects();
     this->m_AnaylzeObjectEntryArray[i]->SetEndRed(Red);
     this->m_AnaylzeObjectEntryArray[i]->SetEndGreen(Green);
     this->m_AnaylzeObjectEntryArray[i]->SetEndBlue(Blue);
@@ -167,7 +165,7 @@ template<class TImage, class TRGBImage>
   {
     this->m_AnaylzeObjectEntryArray.insert(this->m_AnaylzeObjectEntryArray.end(), itk::AnalyzeObjectEntry::New());
     this->SetNumberOfObjects(this->GetNumberOfObjects()+1);
-    this->m_AnaylzeObjectEntryArray[this->GetNumberOfObjects()-1]->SetName(ObjectName);
+    this->m_AnaylzeObjectEntryArray[this->GetNumberOfObjects()]->SetName(ObjectName);
     this->PlaceObjectMapEntriesIntoMetaData();
   }
 
