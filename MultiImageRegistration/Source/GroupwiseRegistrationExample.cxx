@@ -28,14 +28,14 @@
 // of each element in the vector.
 
 // Headers for the registration method and the metric
-#include "MultiResolutionImageRegistrationMethod.h"
+#include "MultiResolutionMultiImageRegistrationMethod.h"
 #include "VarianceMultiImageMetric.h"
-#include "ParzenWindowEntropyMultiImageMetric.h"
+#include "UnivariateEntropyMultiImageMetric.h"
 
 
 // Transform headers
 #include "itkAffineTransform.h"
-#include "UserBSplineDeformableTransform.h"
+#include "BSplineDeformableTransformOpt.h"
 
 // Interpolator headers    
 #include "itkLinearInterpolateImageFunction.h"
@@ -649,7 +649,7 @@ int main( int argc, char *argv[] )
   
   typedef itk::MultiImageMetric< InternalImageType>    MetricType;
   typedef itk::VarianceMultiImageMetric< InternalImageType>    VarianceMetricType;
-  typedef itk::ParzenWindowEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
+  typedef itk::UnivariateEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
 
 
 
@@ -1122,7 +1122,7 @@ int main( int argc, char *argv[] )
   const unsigned int SplineOrder = 3;
   typedef ScalarType CoordinateRepType;
 
-  typedef itk::UserBSplineDeformableTransform< CoordinateRepType,
+  typedef itk::BSplineDeformableTransformOpt< CoordinateRepType,
                                                Dimension,
                                                SplineOrder >     BSplineTransformType;
 

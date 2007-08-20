@@ -22,7 +22,7 @@
 
 #include "itkResampleImageFilter.h"
 
-#include "UserBSplineDeformableTransform.h"
+#include "BSplineDeformableTransformOpt.h"
 #include "itkTransformFactory.h"
 
 #include <string>
@@ -53,7 +53,7 @@ int main( int argc, char * argv[] )
 
   // typedef for transformation types
   typedef itk::Transform< InputPixelType, Dimension >  TransformType;
-  typedef itk::UserBSplineDeformableTransform< InputPixelType, Dimension, 3 >     BSplineTransformType;
+  typedef itk::BSplineDeformableTransformOpt< InputPixelType, Dimension, 3 >     BSplineTransformType;
                                              
   itk::TransformFactoryBase::Pointer f = itk::TransformFactoryBase::GetFactory();
   BSplineTransformType::Pointer  bsplineTransform = BSplineTransformType::New();

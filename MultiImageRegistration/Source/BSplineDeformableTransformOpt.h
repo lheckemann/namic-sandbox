@@ -15,8 +15,8 @@
 
 =========================================================================*/
 
-#ifndef __UserBSplineDeformableTransform_h
-#define __UserBSplineDeformableTransform_h
+#ifndef __BSplineDeformableTransformOpt_h
+#define __BSplineDeformableTransformOpt_h
 
 #include <iostream>
 #include "itkTransform.h"
@@ -108,12 +108,12 @@ template <
     class TScalarType = double,          // Data type for scalars
     unsigned int NDimensions = 3,        // Number of dimensions
     unsigned int VSplineOrder = 3 >      // Spline order
-class ITK_EXPORT UserBSplineDeformableTransform :
+class ITK_EXPORT BSplineDeformableTransformOpt :
           public Transform< TScalarType, NDimensions, NDimensions >
 {
 public:
   /** Standard class typedefs. */
-  typedef UserBSplineDeformableTransform                         Self;
+  typedef BSplineDeformableTransformOpt                         Self;
   typedef Transform< TScalarType, NDimensions, NDimensions > Superclass;
   typedef SmartPointer<Self>                                 Pointer;
   typedef SmartPointer<const Self>                           ConstPointer;
@@ -122,7 +122,7 @@ public:
   itkNewMacro( Self );
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( UserBSplineDeformableTransform, Transform );
+  itkTypeMacro( BSplineDeformableTransformOpt, Transform );
 
   /** Dimension of the domain space. */
   itkStaticConstMacro(SpaceDimension, unsigned int, NDimensions);
@@ -375,8 +375,8 @@ protected:
   void PrintSelf(std::ostream &os, Indent indent) const;
 
 
-  UserBSplineDeformableTransform();
-  virtual ~UserBSplineDeformableTransform();
+  BSplineDeformableTransformOpt();
+  virtual ~BSplineDeformableTransformOpt();
 
   /** Allow subclasses to access and manipulate the weights function. */
   itkSetObjectMacro( WeightsFunction, WeightsFunctionType );
@@ -386,7 +386,7 @@ protected:
   void WrapAsImages();
 
 private:
-  UserBSplineDeformableTransform(const Self&); //purposely not implemented
+  BSplineDeformableTransformOpt(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
   /** The bulk transform. */
@@ -437,14 +437,14 @@ private:
   bool InsideValidRegion( const ContinuousIndexType& index ) const;
 
 
-}; //class UserBSplineDeformableTransform
+}; //class BSplineDeformableTransformOpt
 
 
 }  // namespace itk
 
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "UserBSplineDeformableTransform.cxx"
+#include "BSplineDeformableTransformOpt.txx"
 #endif
 
 #endif /* __itkBSplineDeformableTransform_h */

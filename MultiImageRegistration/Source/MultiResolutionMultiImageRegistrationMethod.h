@@ -261,7 +261,7 @@ private:
 
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "MultiResolutionImageRegistrationMethod.cxx"
+#include "MultiResolutionMultiImageRegistrationMethod.txx"
 #endif
 
 #endif

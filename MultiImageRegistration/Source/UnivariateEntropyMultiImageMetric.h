@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __ParzenWindowEntropyMultiImageMetric_h
-#define __ParzenWindowEntropyMultiImageMetric_h
+#ifndef __UnivariateEntropyMultiImageMetric_h
+#define __UnivariateEntropyMultiImageMetric_h
 
 #include "itkCovariantVector.h"
 #include "itkPoint.h"
@@ -38,7 +38,7 @@ using namespace std;
 namespace itk
 {
 
-/** \class ParzenWindowEntropyImageToImageMetric
+/** \class UnivariateEntropyImageToImageMetric
  * \brief Computes the mutual information between two images to be registered
  *
  * MutualInformationImageToImageMetric computes the mutual information
@@ -97,13 +97,13 @@ namespace itk
  * \ingroup RegistrationMetrics
  */
 template <class TFixedImage>
-class ITK_EXPORT ParzenWindowEntropyMultiImageMetric :
+class ITK_EXPORT UnivariateEntropyMultiImageMetric :
     public MultiImageMetric< TFixedImage>
 {
 public:
 
   /** Standard class typedefs. */
-  typedef ParzenWindowEntropyMultiImageMetric  Self;
+  typedef UnivariateEntropyMultiImageMetric  Self;
   typedef MultiImageMetric< TFixedImage > Superclass;
   //typedef CongealingMetric< TFixedImage, TFixedImage > Superclass;
   typedef SmartPointer<Self>  Pointer;
@@ -113,7 +113,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ParzenWindowEntropyMultiImageMetric, MultiImageMetric);
+  itkTypeMacro(UnivariateEntropyMultiImageMetric, MultiImageMetric);
 
   /** Types inherited from Superclass. */
   typedef typename Superclass::TransformType            TransformType;
@@ -199,9 +199,9 @@ public:
   /** Define the bspline tranform type for regularization
   For Regularization BsplineTransfromPointer must be explicitly
   provided */
-  typedef itk::UserBSplineDeformableTransform<double,   itkGetStaticConstMacro(MovingImageDimension), 3> BSplineTransformType;
-  typedef typename BSplineTransformType::Pointer BSplineTransformTypePointer;
-  
+  typedef typename Superclass::BSplineTransformType BSplineTransformType;
+  typedef typename Superclass::BSplineTransformTypePointer BSplineTransformTypePointer;
+
   typedef typename BSplineTransformType::ImageType BSplineParametersImageType;
   typedef typename BSplineParametersImageType::Pointer BSplineParametersImagePointer;
   
@@ -218,11 +218,11 @@ public:
 
 
 protected:
-  ParzenWindowEntropyMultiImageMetric();
-  virtual ~ParzenWindowEntropyMultiImageMetric();
+  UnivariateEntropyMultiImageMetric();
+  virtual ~UnivariateEntropyMultiImageMetric();
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-  ParzenWindowEntropyMultiImageMetric(const Self&); //purposely not implemented
+  UnivariateEntropyMultiImageMetric(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
   
   
@@ -277,7 +277,7 @@ protected:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "ParzenWindowEntropyMultiImageMetric.cxx"
+#include "UnivariateEntropyMultiImageMetric.txx"
 #endif
 
 #endif

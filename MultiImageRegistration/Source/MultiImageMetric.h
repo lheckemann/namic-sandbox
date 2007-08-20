@@ -27,7 +27,7 @@
 #include "itkImageMaskSpatialObject.h"
 
 // Project specific headers
-#include "UserBSplineDeformableTransform.h"
+#include "BSplineDeformableTransformOpt.h"
 #include "UserMacro.h"
 
 #include <vector>
@@ -170,7 +170,7 @@ public:
   UserSetObjectMacro( ImageMaskArray, MovingImageMaskType );
   UserGetConstObjectMacro( ImageMaskArray, MovingImageMaskType );
 
-  typedef itk::UserBSplineDeformableTransform<double,   itkGetStaticConstMacro(MovingImageDimension), 3> BSplineTransformType;
+  typedef itk::BSplineDeformableTransformOpt<double,   itkGetStaticConstMacro(MovingImageDimension), 3> BSplineTransformType;
   typedef typename BSplineTransformType::Pointer BSplineTransformTypePointer;
   
   /** Set/Get the i'th Bspline Transform Pointer. */
@@ -323,7 +323,7 @@ protected:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "MultiImageMetric.cxx"
+#include "MultiImageMetric.txx"
 #endif
 
 #endif
