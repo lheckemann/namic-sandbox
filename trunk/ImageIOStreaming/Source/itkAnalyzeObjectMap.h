@@ -78,6 +78,8 @@ namespace itk
       
       typedef TImage ImageType;
       typedef itk::AnalyzeObjectMap<TImage> ObjectMapType;
+
+      typedef typename TImage::PixelType PixelType;
       
       /** Method for creation through the object factory. */
       itkNewMacro(Self);
