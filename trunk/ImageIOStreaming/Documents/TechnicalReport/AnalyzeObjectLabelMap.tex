@@ -118,17 +118,17 @@ Command:
 int main( int argc, char ** argv )
 {
   typedef unsigned char       InputPixelType;
-
+  
   typedef unsigned char       OutputPixelType;
-
+  
   const   unsigned int        Dimension = 3;
-
+  
   typedef itk::Image< InputPixelType,  Dimension >    InputImageType;
-
+  
   typedef itk::Image< OutputPixelType, Dimension >    OutputImageType;
-
+  
   typedef itk::ImageFileReader< InputImageType  >  ReaderType;
-
+  
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;
   ReaderType::Pointer reader = ReaderType::New();
   WriterType::Pointer writer = WriterType::New();
@@ -137,22 +137,36 @@ int main( int argc, char ** argv )
   ...
   reader->Update();
   ...
-  itk::AnalyzeObjectMap::Pointer CreateObjectMap = itk::AnalyzeObjectMap::New();
-
+  itk::AnalyzeObjectMap<InputImageType>::Pointer CreateObjectMap = itk::AnalyzeObjectMap<InputImageType>::New();
+  
   ...
+  
+  //Add one entry to the object map named "You Can Delete Me", this entry corresponds to 1 if you do a pickOneEntry
+  CreateObjectMap->AddObject("You Can Delete Me");
 
-  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 200, "Square", 250, 0, 0);         
-  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 128, "Circle", 0, 250,0);    
+  //Add another two entries that will be based on the image that is passed into 
+  //the function, also, the intensity that you would like searched for, the name of the entry and then finally the RGB values
+  //you would like the entry to have for the regions that are found.
+
+  //This entry corrsponds to 2 if you do a pickOneEntry
+  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 200, "Square", 250, 0, 0);
+
+  //This entry corrsponds to 3 if you do a pickOneEntry
+  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 128, "Circle", 0, 250,0);
+
+  //This entry corrsponds to 4 if you do a pickOneEntry
   CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 45,  "SquareTwo", 0, 0, 250);
 
-  ...
+  //Then anoter entry is added, this entry corrsponds to 5 if you do a pickOneEntry
+  CreateObjectMap->AddObject("Nothing In Here");
 
-  CreateObjectMapTwo->PlaceObjectMapEntriesIntoMetaData();
-
+  //The entry that was just added is deleted
+  CreateObjectMap->DeleteObject("Nothing In Here");
+  
   ...
   writer->SetInput(CreateObjectMapTwo);
   ...
-
+  
   writer->Update();
   ...
 }
@@ -203,47 +217,47 @@ typedef itk::ImageFileReader< ImageType > ReaderType;
 
 int main(int argc, char * argv [] )
 {
-	ReaderType::Pointer reader  = ReaderType::New();
-	
-	//The input should be an Anaylze Object Map file
-	reader->SetFileName( DisplayImage );
-	...
-	
-	reader->Update();
-	...
-	itk::ImageToAnalyzeObjectMap<ImageType>::Pointer ConvertImage = itk::ImageToAnalyzeObjectMap<ImageType>::New();
-	     
-	itk::AnalyzeObjectMap::Pointer Objectmap = ConvertImage->TransformImage(reader->GetOutput());
-	
-	//If you have vtk and itkApplications installed then you can uncomment this out to display
-	//an object map to the screen.  Otherwise you can see how to display an object map using vtk.
-	
-	//Set the input, to the connector connecting itk with vtk, with an RGB image of the specific
-	//colors that corresponds to each entry in the object map.
-	
-	//vtkRenderWindowInteractor *windowInteractor = vtkRenderWindowInteractor::New();
-	//ConnectorType::Pointer connector= ConnectorType::New();
-	//connector->SetInput( Objectmap->ObjectMapToRGBImage() );
-	
-	//connector->Update();
-	
-	//Display a two dimensional view of the object map that was read in
-	//vtkImageViewer2 * twodimage = vtkImageViewer2::New();
-	
-	//const int SliceNumber = argv[2];
-	//twodimage->SetInput(connector->GetOutput());
-	//twodimage->SetSlice(sliceNumber);
-	//twodimage->SetSliceOrientationToXY();
-	
-	//Set the background of the renderer to a grayish color so that it is easier to see
-	//the outline of the object map since it is usually black
-	//twodimage->GetRenderer()->SetBackground(0.4392, 0.5020, 0.5647);
-	
-	
-	//twodimage->SetupInteractor(windowInteractor);
-	
-	//twodimage->Render();
-	//windowInteractor->Start();
+  ReaderType::Pointer reader  = ReaderType::New();
+  
+  //The input should be an Anaylze Object Map file
+  reader->SetFileName( DisplayImage );
+  ...
+  
+  reader->Update();
+          
+  //This will convert the output of the reader into an object map
+  itk::AnalyzeObjectMap<ImageType>::Pointer Objectmap = itk::AnalyzeObjectMap<ImageType>::New();
+  ObjectMap->TransformImage(reader->GetOutput());
+  
+  //If you have vtk and itkApplications installed then you can uncomment this out to display
+  //an object map to the screen.  Otherwise you can see how to display an object map using vtk.
+  
+  //Set the input, to the connector connecting itk with vtk, with an RGB image of the specific
+  //colors that corresponds to each entry in the object map.
+  
+  //vtkRenderWindowInteractor *windowInteractor = vtkRenderWindowInteractor::New();
+  //ConnectorType::Pointer connector= ConnectorType::New();
+  //connector->SetInput( Objectmap->ObjectMapToRGBImage() );
+  
+  //connector->Update();
+  
+  //Display a two dimensional view of the object map that was read in
+  //vtkImageViewer2 * twodimage = vtkImageViewer2::New();
+  
+  //const int SliceNumber = argv[2];
+  //twodimage->SetInput(connector->GetOutput());
+  //twodimage->SetSlice(sliceNumber);
+  //twodimage->SetSliceOrientationToXY();
+  
+  //Set the background of the renderer to a grayish color so that it is easier to see
+  //the outline of the object map since it is usually black
+  //twodimage->GetRenderer()->SetBackground(0.4392, 0.5020, 0.5647);
+  
+  
+  //twodimage->SetupInteractor(windowInteractor);
+  
+  //twodimage->Render();
+  //windowInteractor->Start();
 	...
 }
 \end{verbatim} \normalsize
@@ -259,39 +273,39 @@ Command:
 \small \begin{verbatim}
 int main( int argc, char ** argv )
 {
-	...
-	//Now we bring in a nifti file that Hans and Jeffrey created, 
-	//the image as two squares and a circle in it of different intensity values.
-	reader->SetFileName(NiftiFile);
-	...
-	reader->Update();
-	...
-	
-	itk::AnalyzeObjectMap::Pointer CreateObjectMap = itk::AnalyzeObjectMap::New();
-	
-	//Add another two entries that will be based on the image that is passed into 
-	//the function, also, the intensity that you would like searched for, 
-	//the name of the entry and then finally the RGB values
-	//you would like the entry to have for the regions that are found.
-	CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 200, "Square", 250, 0, 0);
-	CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 128, "Circle", 0, 250,0);
-	CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 45,  "SquareTwo", 0, 0, 250);
-	
-	//Pick the circle entry and have it put into CreateObjectMap two.  These means
-	//that there is only one entry in CreateObjectMapTwo and the image has also
-	//been taken care of.
-	itk::AnalyzeObjectMap::Pointer CreateObjectMapTwo = CreateObjectMap->PickOneEntry(2);
-	
-	//Place all of the entries into the meta data so that the entries can be written
-	//out to an object file.
-	CreateObjectMapTwo->PlaceObjectMapEntriesIntoMetaData();
-	
-	//Now write out an object file
-	writer->SetInput(CreateObjectMapTwo);
-	writer->SetFileName(CreatingObject);
-	...
-	writer->Update();
-	...
+  ...
+  //Now we bring in a nifti file that Hans and Jeffrey created, 
+  //the image as two squares and a circle in it of different intensity values.
+  reader->SetFileName(NiftiFile);
+  ...
+  reader->Update();
+  ...
+  
+  itk::AnalyzeObjectMap<InputImageType>::Pointer CreateObjectMap = itk::AnalyzeObjectMap<InputImageType>::New();
+  
+  //Add another two entries that will be based on the image that is passed into 
+  //the function, also, the intensity that you would like searched for, 
+  //the name of the entry and then finally the RGB values
+  //you would like the entry to have for the regions that are found.
+  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 200, "Square", 250, 0, 0);
+  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 128, "Circle", 0, 250,0);
+  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 45,  "SquareTwo", 0, 0, 250);
+  
+  //Pick the circle entry and have it put into CreateObjectMap two.  These means
+  //that there is only one entry in CreateObjectMapTwo and the image has also
+  //been taken care of.
+  itk::AnalyzeObjectMap<InputImageType>::Pointer CreateObjectMapTwo = CreateObjectMap->PickOneEntry(2);
+  
+  //Place all of the entries into the meta data so that the entries can be written
+  //out to an object file.
+  CreateObjectMapTwo->PlaceObjectMapEntriesIntoMetaData();
+  
+  //Now write out an object file
+  writer->SetInput(CreateObjectMapTwo);
+  writer->SetFileName(CreatingObject);
+  ...
+  writer->Update();
+  ...
 }
 \end{verbatim} \normalsize
 

@@ -42,7 +42,7 @@ int main( int argc, char ** argv )
     std::cerr << err << std::endl;
     return EXIT_FAILURE;
     }
-  itk::AnalyzeObjectMap::Pointer CreateObjectMap = itk::AnalyzeObjectMap::New();
+  itk::AnalyzeObjectMap<InputImageType>::Pointer CreateObjectMap = itk::AnalyzeObjectMap<InputImageType>::New();
 
   //Add one entry to the object map named "You Can Delete Me", this entry corresponds to 1 if you do a pickOneEntry
   CreateObjectMap->AddObject("You Can Delete Me");
@@ -65,10 +65,6 @@ int main( int argc, char ** argv )
 
   //The entry that was just added is deleted
   CreateObjectMap->DeleteObject("Nothing In Here");
-
-  //Place all of the entries into the meta data so that the entries can be written
-  //out to an object file.
-  CreateObjectMap->PlaceObjectMapEntriesIntoMetaData();
 
   //Now write out an object file
   writer->SetInput(CreateObjectMap);
