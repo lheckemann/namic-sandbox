@@ -14,10 +14,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __UserBSplineDeformableTransform_txx
-#define __UserBSplineDeformableTransform_txx
+#ifndef __BSplineDeformableTransformOpt_txx
+#define __BSplineDeformableTransformOpt_txx
 
-#include "UserBSplineDeformableTransform.h"
+#include "BSplineDeformableTransformOpt.h"
 #include "itkContinuousIndex.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIterator.h"
@@ -29,8 +29,8 @@ namespace itk
 
 // Constructor with default arguments
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
-::UserBSplineDeformableTransform():Superclass(SpaceDimension,0)
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
+::BSplineDeformableTransformOpt():Superclass(SpaceDimension,0)
 {
 
   // Instantiate a weights function
@@ -102,8 +102,8 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 
 // Destructor
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
-::~UserBSplineDeformableTransform()
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
+::~BSplineDeformableTransformOpt()
 {
 
 }
@@ -112,7 +112,7 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 // Get the number of parameters
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 unsigned int
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::GetNumberOfParameters(void) const
 {
 
@@ -127,7 +127,7 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 // Get the number of parameters per dimension
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 unsigned int
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::GetNumberOfParametersPerDimension(void) const
 {
   // The number of parameters per dimension equal number of
@@ -140,7 +140,7 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 // Set the grid region
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 void
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::SetGridRegion( const RegionType& region )
 {
   if ( m_GridRegion != region )
@@ -186,7 +186,7 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 // Set the grid spacing
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 void
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::SetGridSpacing( const SpacingType& spacing )
 {
   if ( m_GridSpacing != spacing )
@@ -209,7 +209,7 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 // Set the grid origin
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 void
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::SetGridOrigin( const OriginType& origin )
 {
   if ( m_GridOrigin != origin )
@@ -232,7 +232,7 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 // Set the parameters
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 void
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::SetIdentity()
 {
   if( m_InputParametersPointer )
@@ -252,7 +252,7 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 // Set the parameters
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 void
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::SetParameters( const ParametersType & parameters )
 {
 
@@ -283,7 +283,7 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 // Set the Fixed Parameters
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 void
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::SetFixedParameters( const ParametersType & parameters )
 {
  
@@ -340,7 +340,7 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 // Wrap flat parameters as images
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 void
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::WrapAsImages()
 {
 
@@ -385,7 +385,7 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 // Set the parameters by value
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 void
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::SetParametersByValue( const ParametersType & parameters )
 {
 
@@ -415,9 +415,9 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 // Get the parameters
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 const 
-typename UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+typename BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::ParametersType &
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::GetParameters( void ) const
 {
   /** NOTE: For efficiency, this class does not keep a copy of the parameters - 
@@ -430,9 +430,9 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 // Get the parameters
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 const 
-typename UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+typename BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::ParametersType &
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::GetFixedParameters( void ) const
 {
   RegionType resRegion = this->GetGridRegion(  );
@@ -458,7 +458,7 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 // Set the B-Spline coefficients using input images
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 void 
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::SetCoefficientImage( ImagePointer images[] )
 {
   if ( images[0] )
@@ -483,7 +483,7 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 // Print self
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 void
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::PrintSelf(std::ostream &os, Indent indent) const
 {
 
@@ -529,7 +529,7 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 // Transform a point
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 bool 
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::InsideValidRegion( 
   const ContinuousIndexType& index ) const
 {
@@ -559,7 +559,7 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 // Transform a point
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 void 
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::TransformPoint( 
   const InputPointType & point, 
   OutputPointType & outputPoint, 
@@ -657,9 +657,9 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 
 // Transform a point
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
-typename UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+typename BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::OutputPointType
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::TransformPoint(const InputPointType &point) const 
 {
   
@@ -676,9 +676,9 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 // Compute the Jacobian in one position 
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 const 
-typename UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+typename BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::JacobianType & 
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::GetJacobian( const InputPointType & point ) const
 {
   // Can only compute Jacobian if parameters are set via
@@ -777,7 +777,7 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 // Compute the Jacobian in one position 
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 void
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::GetJacobian( const InputPointType & point, ParameterIndexArrayType& indexes, WeightsType& weights )
 {
 
@@ -833,7 +833,7 @@ UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
 
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 unsigned int 
-UserBSplineDeformableTransform<TScalarType, NDimensions,VSplineOrder>
+BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
 ::GetNumberOfAffectedWeights() const
 {
   return m_WeightsFunction->GetNumberOfWeights();

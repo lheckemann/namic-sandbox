@@ -18,14 +18,14 @@
 #define __VarianceMultiImageMetric_h
 
 //user defined headers
-#include "ParzenWindowEntropyMultiImageMetric.h"
+#include "UnivariateEntropyMultiImageMetric.h"
 
 namespace itk
 {
-/** \class ParzenWindowEntropyImageToImageMetric
+/** \class UnivariateEntropyImageToImageMetric
  * \brief Computes sum of variances along pixel stacks
  *
- * ParzenWindowEntropyImageToImageMetric computes sum of variances 
+ * UnivariateEntropyImageToImageMetric computes sum of variances 
  * along pixel stacks. This corresponds to registering images
  * to a mean template image.
  *
@@ -61,13 +61,13 @@ namespace itk
  */
 template <class TImage>
 class ITK_EXPORT VarianceMultiImageMetric :
-    public ParzenWindowEntropyMultiImageMetric< TImage>
+    public UnivariateEntropyMultiImageMetric< TImage>
 {
 public:
 
   /** Standard class typedefs. */
   typedef VarianceMultiImageMetric                    Self;
-  typedef ParzenWindowEntropyMultiImageMetric< TImage > Superclass;
+  typedef UnivariateEntropyMultiImageMetric< TImage > Superclass;
   typedef SmartPointer<Self>                          Pointer;
   typedef SmartPointer<const Self>                    ConstPointer;
 
@@ -75,7 +75,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(VarianceMultiImageMetric, ParzenWindowEntropyMultiImageMetric);
+  itkTypeMacro(VarianceMultiImageMetric, UnivariateEntropyMultiImageMetric);
 
   /** Types inherited from Superclass. */
   typedef typename Superclass::TransformType            TransformType;

@@ -14,10 +14,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _ParzenWindowEntropyMultiImageMetric_cxx
-#define _ParzenWindowEntropyMultiImageMetric_cxx
+#ifndef _UnivariateEntropyMultiImageMetric_cxx
+#define _UnivariateEntropyMultiImageMetric_cxx
 
-#include "ParzenWindowEntropyMultiImageMetric.h"
+#include "UnivariateEntropyMultiImageMetric.h"
 
 
 #include "itkCovariantVector.h"
@@ -35,8 +35,8 @@ namespace itk
  * Constructor
  */
 template < class TFixedImage >
-ParzenWindowEntropyMultiImageMetric < TFixedImage >::
-    ParzenWindowEntropyMultiImageMetric()
+UnivariateEntropyMultiImageMetric < TFixedImage >::
+    UnivariateEntropyMultiImageMetric()
 {
 
   m_ImageStandardDeviation = 0.4;
@@ -58,8 +58,8 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >::
  * Constructor
  */
 template < class TFixedImage >
-ParzenWindowEntropyMultiImageMetric < TFixedImage >::
-~ParzenWindowEntropyMultiImageMetric()
+UnivariateEntropyMultiImageMetric < TFixedImage >::
+~UnivariateEntropyMultiImageMetric()
 {
   
 
@@ -73,7 +73,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >::
  */
 template <class TFixedImage> 
 void
-ParzenWindowEntropyMultiImageMetric<TFixedImage>
+UnivariateEntropyMultiImageMetric<TFixedImage>
 ::Initialize(void) throw ( ExceptionObject )
 {
 
@@ -154,10 +154,10 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
   
   // Initialize the variables for regularization term
   if( this->m_UserBsplineDefined && this->m_Regularization &&
-      strcmp(this->m_TransformArray[0]->GetNameOfClass(), "UserBSplineDeformableTransform") )
+      strcmp(this->m_TransformArray[0]->GetNameOfClass(), "BSplineDeformableTransformOpt") )
   {
     itkExceptionMacro(<<"Cannot use regularization with transforms" <<
-        " other than BSplineDeformableTransform" );
+        " other than BSplineDeformableTransformOpt" );
   }
 
 
@@ -176,7 +176,7 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
 
   // Initialize the variables for regularization term
   if( this->m_Regularization &&
-      strcmp(this->m_TransformArray[0]->GetNameOfClass(), "UserBSplineDeformableTransform") )
+      strcmp(this->m_TransformArray[0]->GetNameOfClass(), "BSplineDeformableTransformOpt") )
   {
     itkExceptionMacro(<<"Cannot use regularization with transforms" <<
         " other than BSplineDeformableTransform" );
@@ -184,7 +184,7 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
 
   // If using regularization check that the Bspline Transform is supplied
   if( this->m_Regularization &&
-      !strcmp(this->m_TransformArray[0]->GetNameOfClass(), "BSplineDeformableTransform") )
+      !strcmp(this->m_TransformArray[0]->GetNameOfClass(), "BSplineDeformableTransformOpt") )
   {
     for(unsigned int i=0; i<this->m_NumberOfImages;i++)
     {
@@ -208,7 +208,7 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
  */
 template <class TFixedImage> 
 void
-ParzenWindowEntropyMultiImageMetric<TFixedImage>
+UnivariateEntropyMultiImageMetric<TFixedImage>
 ::Finalize(void)
 {
 
@@ -217,7 +217,7 @@ ParzenWindowEntropyMultiImageMetric<TFixedImage>
 }
 
 template < class TFixedImage >
-void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
+void UnivariateEntropyMultiImageMetric < TFixedImage >::
 PrintSelf (std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf (os, indent);
@@ -234,7 +234,7 @@ PrintSelf (std::ostream & os, Indent indent) const
 // for this thread.
 template < class TFixedImage >
 ITK_THREAD_RETURN_TYPE
-ParzenWindowEntropyMultiImageMetric< TFixedImage >
+UnivariateEntropyMultiImageMetric< TFixedImage >
 ::ThreaderCallbackSampleFixedImageDomain( void *arg )
 {
   ThreadStruct *str;
@@ -256,7 +256,7 @@ ParzenWindowEntropyMultiImageMetric< TFixedImage >
  *  - Corresponding moving image intensity values
  */
 template < class TFixedImage >
-void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
+void UnivariateEntropyMultiImageMetric < TFixedImage >::
 ThreadedSampleFixedImageDomain( int threadID ) const
 {
 
@@ -337,7 +337,7 @@ ThreadedSampleFixedImageDomain( int threadID ) const
  *  - Corresponding moving image intensity values
  */
 template < class TFixedImage >
-void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
+void UnivariateEntropyMultiImageMetric < TFixedImage >::
 SampleFixedImageDomain( ) const
 {
 
@@ -357,8 +357,8 @@ SampleFixedImageDomain( ) const
  * Get the match Measure
  */
 template < class TFixedImage >
-typename ParzenWindowEntropyMultiImageMetric < TFixedImage >::MeasureType
-ParzenWindowEntropyMultiImageMetric <TFixedImage >::
+typename UnivariateEntropyMultiImageMetric < TFixedImage >::MeasureType
+UnivariateEntropyMultiImageMetric <TFixedImage >::
 GetValue(const ParametersType & parameters) const
 {
   // Call a method that perform some calculations prior to splitting the main
@@ -387,7 +387,7 @@ GetValue(const ParametersType & parameters) const
 // for this thread.
 template < class TFixedImage >
 ITK_THREAD_RETURN_TYPE
-ParzenWindowEntropyMultiImageMetric< TFixedImage >
+UnivariateEntropyMultiImageMetric< TFixedImage >
 ::ThreaderCallbackGetValue( void *arg )
 {
   ThreadStruct *str;
@@ -408,7 +408,7 @@ ParzenWindowEntropyMultiImageMetric< TFixedImage >
  */
 template < class TFixedImage >
 void 
-ParzenWindowEntropyMultiImageMetric < TFixedImage >
+UnivariateEntropyMultiImageMetric < TFixedImage >
 ::BeforeGetThreadedValue(const ParametersType & parameters) const
 {
   //Make sure that each transform parameters are updated
@@ -431,7 +431,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
  */
 template < class TFixedImage >
 void 
-ParzenWindowEntropyMultiImageMetric < TFixedImage >
+UnivariateEntropyMultiImageMetric < TFixedImage >
 ::GetThreadedValue(int threadId) const
 {
 
@@ -482,8 +482,8 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
  * Consolidate auxiliary variables after finishing the threads
  */
 template < class TFixedImage >
-typename ParzenWindowEntropyMultiImageMetric < TFixedImage >::MeasureType
-ParzenWindowEntropyMultiImageMetric < TFixedImage >
+typename UnivariateEntropyMultiImageMetric < TFixedImage >::MeasureType
+UnivariateEntropyMultiImageMetric < TFixedImage >
 ::AfterGetThreadedValue() const
 {
 
@@ -504,7 +504,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
  * Get the match Measure
  */
 template < class TFixedImage >
-void ParzenWindowEntropyMultiImageMetric < TFixedImage >
+void UnivariateEntropyMultiImageMetric < TFixedImage >
 ::GetValueAndDerivative(const ParametersType & parameters,
                           MeasureType & value,
                           DerivativeType & derivative) const
@@ -535,7 +535,7 @@ void ParzenWindowEntropyMultiImageMetric < TFixedImage >
 // for this thread.
 template < class TFixedImage >
 ITK_THREAD_RETURN_TYPE
-ParzenWindowEntropyMultiImageMetric< TFixedImage >
+UnivariateEntropyMultiImageMetric< TFixedImage >
 ::ThreaderCallbackGetValueAndDerivative( void *arg )
 {
   ThreadStruct *str;
@@ -556,7 +556,7 @@ ParzenWindowEntropyMultiImageMetric< TFixedImage >
  */
 template < class TFixedImage >
 void 
-ParzenWindowEntropyMultiImageMetric < TFixedImage >
+UnivariateEntropyMultiImageMetric < TFixedImage >
 ::BeforeGetThreadedValueAndDerivative(const ParametersType & parameters) const
 {
   // cout << "checking derivative" << endl;
@@ -582,7 +582,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
  * Consolidate auxiliary variables after finishing the threads
  */
 template < class TFixedImage >
-void ParzenWindowEntropyMultiImageMetric < TFixedImage >
+void UnivariateEntropyMultiImageMetric < TFixedImage >
 ::AfterGetThreadedValueAndDerivative(MeasureType & value,
                            DerivativeType & derivative) const
 {
@@ -634,7 +634,7 @@ void ParzenWindowEntropyMultiImageMetric < TFixedImage >
  */
 template < class TFixedImage >
 void 
-ParzenWindowEntropyMultiImageMetric < TFixedImage >
+UnivariateEntropyMultiImageMetric < TFixedImage >
 ::GetThreadedValueAndDerivative(int threadId) const
 {
   
@@ -699,7 +699,7 @@ ParzenWindowEntropyMultiImageMetric < TFixedImage >
  * Get the match measure derivative
  */
 template < class TFixedImage >
-void ParzenWindowEntropyMultiImageMetric < TFixedImage >
+void UnivariateEntropyMultiImageMetric < TFixedImage >
 ::GetDerivative (const ParametersType & parameters,
           DerivativeType & derivative) const
 {
@@ -721,7 +721,7 @@ void ParzenWindowEntropyMultiImageMetric < TFixedImage >
  * that support GetJacobian()
  */
 template < class TFixedImage >
-void ParzenWindowEntropyMultiImageMetric < TFixedImage >::
+void UnivariateEntropyMultiImageMetric < TFixedImage >::
 UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSample& sample, const RealType& weight, const int& imageNumber, const int& threadID) const
 {
 

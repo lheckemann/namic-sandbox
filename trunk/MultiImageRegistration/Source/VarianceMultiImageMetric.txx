@@ -142,7 +142,7 @@ VarianceMultiImageMetric < TImage >
 }
 
 template < class TImage >
-typename ParzenWindowEntropyMultiImageMetric < TImage >::MeasureType
+typename UnivariateEntropyMultiImageMetric < TImage >::MeasureType
 VarianceMultiImageMetric < TImage >
 ::AfterGetThreadedValue() const
 {
