@@ -38,9 +38,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "itkAnalyzeObjectMap.h"
 #include "itkImageRegionIterator.h"
 namespace itk{
-template<class TImage>
-AnalyzeObjectMap<TImage>
-::AnalyzeObjectMap( void ): m_Version(VERSION7),m_NumberOfObjects(0)
+template<class TImage, class TRGBImage>
+AnalyzeObjectMap<TImage, TRGBImage>
+::AnalyzeObjectMap()
   {
     //Create an object map of size 1,1,1 and have the pixles be 0.  Also, create one
     //object entry just like Analyze does with the name "Original", this entry
@@ -60,13 +60,13 @@ AnalyzeObjectMap<TImage>
     this->FillBuffer(0);
   }
 
-  template<class TImage>
-AnalyzeObjectMap<TImage>
+  template<class TImage, class TRGBImage>
+AnalyzeObjectMap<TImage, TRGBImage>
 ::~AnalyzeObjectMap( void )
   {
   }
-template<class TImage>
-  AnalyzeObjectEntryArrayType *AnalyzeObjectMap<TImage>::GetAnalyzeObjectEntryArrayPointer()
+template<class TImage, class TRGBImage>
+  AnalyzeObjectEntryArrayType *AnalyzeObjectMap<TImage, TRGBImage>::GetAnalyzeObjectEntryArrayPointer()
   {
     return &(this->m_AnaylzeObjectEntryArray);
   }
@@ -75,8 +75,8 @@ template<class TImage>
   //a new object map that will be returned.  The function will also go through the image
   //and change the values so that there is either 0 or 1.  1 corresponds to the entry
   //the user specified and 0 is the background.
-template<class TImage>
-  typename itk::AnalyzeObjectMap<TImage>::Pointer AnalyzeObjectMap<TImage>::PickOneEntry(const int numberOfEntry)
+template<class TImage, class TRGBImage>
+  typename itk::AnalyzeObjectMap<TImage>::Pointer AnalyzeObjectMap<TImage, TRGBImage>::PickOneEntry(const int numberOfEntry)
   {
     typename itk::AnalyzeObjectMap<TImage>::Pointer ObjectMapNew = itk::AnalyzeObjectMap<TImage>::New();
     ObjectMapNew->SetRegions(this->GetLargestPossibleRegion());
@@ -101,25 +101,25 @@ template<class TImage>
   }
 
   //This function will convert an object map into an unsigned char RGB image.
-template<class TImage>
-  itk::Image<itk::RGBPixel<unsigned char>, TImage::ImageDimension>::Pointer AnalyzeObjectMap<TImage>::ObjectMapToRGBImage()
+template<class TImage, class TRGBImage>
+  typename TRGBImage::Pointer AnalyzeObjectMap<TImage, TRGBImage>::ObjectMapToRGBImage()
   {
-    RGBImageType::Pointer RGBImage = RGBImageType::New();
+    typename TRGBImage::Pointer RGBImage = TRGBImage::New();
     RGBImage->SetRegions(this->GetLargestPossibleRegion());
     RGBImage->Allocate();
-    itk::ImageRegionIterator<RGBImageType> RGBIterator(RGBImage, this->GetLargestPossibleRegion());
+    itk::ImageRegionIterator<TRGBImage> RGBIterator(RGBImage, this->GetLargestPossibleRegion());
     itk::ImageRegionIterator<ImageType> ObjectIterator(this, this->GetLargestPossibleRegion());
 
     /*std::ofstream myfile;
     myfile.open("RGBImageVoxels2.txt");*/
     for(ObjectIterator.Begin(), RGBIterator.Begin(); !ObjectIterator.IsAtEnd(); ++ObjectIterator, ++RGBIterator)
     {
-      RGBPixelType setColors;
-      setColors.SetBlue(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
-      setColors.SetGreen(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndGreen());
-      setColors.SetRed(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndRed());
+//      typename RGBImage->ImageType setColors;
+  //    setColors.SetBlue(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
+    //  setColors.SetGreen(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndGreen());
+      //setColors.SetRed(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndRed());
 
-      RGBIterator.Set(setColors);
+      RGBIterator.Set(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndRed(), this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndGreen(), this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
       //myfile<<RGBIterator.Get()<<std::endl;
     }
     //myfile.close();
@@ -129,8 +129,8 @@ template<class TImage>
   //This function will take in an unsigned char of dimension size 3 and go through it and figure out the value the user wants picked out.  The user will also have to
   //specify what they want the new entry's name to be.  The user can also specify what RGB values they want but if they are not speficied the default values
   //are 0.
-template<class TImage>
-  void AnalyzeObjectMap<TImage>::AddObjectEntryBasedOnImagePixel(ImageType *Image, const int value, const std::string ObjectName, const int Red,const int Green,const int Blue)
+template<class TImage, class TRGBImage>
+  void AnalyzeObjectMap<TImage, TRGBImage>::AddObjectEntryBasedOnImagePixel(ImageType *Image, const int value, const std::string ObjectName, const int Red,const int Green,const int Blue)
   {
     itk::ImageRegion<TImage::ImageDimension> ObjectMapRegion = this->GetLargestPossibleRegion();
     itk::ImageRegion<TImage::ImageDimension> ImageRegion = Image->GetLargestPossibleRegion();
@@ -161,8 +161,8 @@ template<class TImage>
 
   /*NOTE: This function will add an object entry to the end of the vector.  However, you will still have to fill in the values that you would like stored.
   TODO: Rastor through the image to place the value at the specifed locations.*/
-template<class TImage>
-  void AnalyzeObjectMap<TImage>::AddObjectEntry(const std::string ObjectName)
+template<class TImage, class TRGBImage>
+  void AnalyzeObjectMap<TImage, TRGBImage>::AddObjectEntry(const std::string ObjectName)
   {
     this->m_AnaylzeObjectEntryArray.insert(this->m_AnaylzeObjectEntryArray.end(), itk::AnalyzeObjectEntry::New());
     this->SetNumberOfObjects(this->GetNumberOfObjects()+1);
@@ -171,8 +171,8 @@ template<class TImage>
   }
 
   /*NOTE: This function will move all object entry's so that the vector stays in the smallest order starting from 0.*/
-template<class TImage>
-  void AnalyzeObjectMap<TImage>::DeleteObjectEntry(const std::string ObjectName)
+template<class TImage, class TRGBImage>
+  void AnalyzeObjectMap<TImage, TRGBImage>::DeleteObjectEntry(const std::string ObjectName)
   {
     int i = this->FindObjectEntry(ObjectName);
     if(i == -1)
@@ -203,8 +203,8 @@ template<class TImage>
 
   //This function will go through the entries looking for the specfic name.  If no name was found then the function
   //will return -1.  So, if you use this, then make sure you check to see if -1 was returned.
-template<class TImage>
-  int AnalyzeObjectMap<TImage>::FindObjectEntry(const std::string ObjectName)
+template<class TImage, class TRGBImage>
+  int AnalyzeObjectMap<TImage, TRGBImage>::FindObjectEntry(const std::string ObjectName)
   {
     for(int i=0; i < this->GetNumberOfObjects(); i++)
     {
@@ -217,8 +217,8 @@ template<class TImage>
     return -1;
   }
 
-template<class TImage>
-  void AnalyzeObjectMap<TImage>::PlaceObjectMapEntriesIntoMetaData()
+template<class TImage, class TRGBImage>
+  void AnalyzeObjectMap<TImage, TRGBImage>::PlaceObjectMapEntriesIntoMetaData()
   {
     itk::AnalyzeObjectEntryArrayType *my_reference=this->GetAnalyzeObjectEntryArrayPointer();
 
@@ -226,15 +226,15 @@ template<class TImage>
     itk::EncapsulateMetaData<itk::AnalyzeObjectEntryArrayType>(thisDic,ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY,*my_reference);
   }
 
-template<class TImage>
-  AnalyzeObjectEntry::Pointer AnalyzeObjectMap<TImage>::GetObjectEntry( const int index )
+template<class TImage, class TRGBImage>
+  AnalyzeObjectEntry::Pointer AnalyzeObjectMap<TImage, TRGBImage>::GetObjectEntry( const int index )
   {
     return this->m_AnaylzeObjectEntryArray.at(index);
   }
 
-template<class TImage>
+template<class TImage, class TRGBImage>
 void
-AnalyzeObjectMap<TImage>
+AnalyzeObjectMap<TImage, TRGBImage>
 ::TransformImage(TImage *image)
 {
   this->SetRegions(image->GetLargestPossibleRegion());
@@ -248,8 +248,8 @@ AnalyzeObjectMap<TImage>
   this->PlaceObjectMapEntriesIntoMetaData();
 }
 
-template<class TImage>
-  void AnalyzeObjectMap<TImage>::PrintSelf(std::ostream& os, Indent indent) const
+template<class TImage, class TRGBImage>
+  void AnalyzeObjectMap<TImage, TRGBImage>::PrintSelf(std::ostream& os, Indent indent) const
   {
     Superclass::PrintSelf(os, indent);
   }

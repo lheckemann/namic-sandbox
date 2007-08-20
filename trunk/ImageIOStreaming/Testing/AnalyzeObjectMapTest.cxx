@@ -44,10 +44,11 @@ int main( int argc, char ** argv )
   const char *oneObjectEntryFileName = argv[5];
   typedef unsigned char       InputPixelType;
   typedef unsigned char       OutputPixelType;
-  const   unsigned int        Dimension = 4;
+  const   unsigned int        Dimension = 3;
 
   typedef itk::Image< InputPixelType,  Dimension >    InputImageType;
   typedef itk::Image< OutputPixelType, Dimension >    OutputImageType;
+  typedef itk::Image<itk::RGBPixel<InputPixelType>, Dimension> RGBImageType;
 
   typedef itk::ImageFileReader< InputImageType  >  ReaderType;
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;
@@ -70,13 +71,13 @@ int main( int argc, char ** argv )
     }
 
   //Now that we have an itk image now we need to make the image an object map
-  itk::AnalyzeObjectMap<InputImageType>::Pointer ObjectMap = itk::AnalyzeObjectMap<InputImageType>::New();
+  itk::AnalyzeObjectMap<InputImageType, RGBImageType>::Pointer ObjectMap = itk::AnalyzeObjectMap<InputImageType, RGBImageType>::New();
 
   ObjectMap->TransformImage(reader->GetOutput());
 
   //Now we can change the object map into an itk RGB image, we then can send this image to the itk-vtk
   //converter and show the image if we wanted to.
-  itk::Image<itk::RGBPixel<unsigned char>, 4>::Pointer RGBImage = ObjectMap->ObjectMapToRGBImage();
+  RGBImageType::Pointer RGBImage = ObjectMap->ObjectMapToRGBImage();
 
   writer->SetFileName(OuptputObjectFileName);
   writer->SetInput(reader->GetOutput());
@@ -141,7 +142,7 @@ int main( int argc, char ** argv )
     std::cerr << err << std::endl;
     return EXIT_FAILURE;
     }
-  itk::AnalyzeObjectMap<InputImageType>::Pointer CreateObjectMap = itk::AnalyzeObjectMap<InputImageType>::New();
+  itk::AnalyzeObjectMap<InputImageType, RGBImageType>::Pointer CreateObjectMap = itk::AnalyzeObjectMap<InputImageType, RGBImageType>::New();
 
   CreateObjectMap->AddObjectEntry("You Can Delete Me");
   CreateObjectMap->AddObjectEntryBasedOnImagePixel(readerTwo->GetOutput(), 200, "Square", 250, 0, 0);
@@ -175,10 +176,10 @@ int main( int argc, char ** argv )
     std::cerr << err << std::endl;
     return EXIT_FAILURE;
     }
-  itk::AnalyzeObjectMap<InputImageType>::Pointer ObjectMapTwo = itk::AnalyzeObjectMap<InputImageType>::New();//.TransformImage(readerThree->GetOutput());
+  itk::AnalyzeObjectMap<InputImageType, RGBImageType>::Pointer ObjectMapTwo = itk::AnalyzeObjectMap<InputImageType, RGBImageType>::New();//.TransformImage(readerThree->GetOutput());
 
   ObjectMapTwo->TransformImage(readerThree->GetOutput());
-  itk::Image<itk::RGBPixel<unsigned char>, 4>::Pointer RGBImageTwo = ObjectMapTwo->ObjectMapToRGBImage();
+  RGBImageType::Pointer RGBImageTwo = ObjectMapTwo->ObjectMapToRGBImage();
 
   writer->SetInput(ObjectMapTwo->PickOneEntry(3));
   writer->SetFileName(oneObjectEntryFileName);
@@ -206,10 +207,10 @@ int main( int argc, char ** argv )
     return EXIT_FAILURE;
     }
 
-  itk::AnalyzeObjectMap<InputImageType>::Pointer ObjectMapThree = itk::AnalyzeObjectMap<InputImageType>::New();//ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
+  itk::AnalyzeObjectMap<InputImageType, RGBImageType>::Pointer ObjectMapThree = itk::AnalyzeObjectMap<InputImageType, RGBImageType>::New();//ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
 
   ObjectMapThree->TransformImage(readerThree->GetOutput());
-  itk::Image<itk::RGBPixel<unsigned char>, 4>::Pointer RGBImageThree = ObjectMapThree->ObjectMapToRGBImage();
+  RGBImageType::Pointer RGBImageThree = ObjectMapThree->ObjectMapToRGBImage();
 
 
   if( error_count )
