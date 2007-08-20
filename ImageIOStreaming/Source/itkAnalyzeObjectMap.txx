@@ -48,7 +48,7 @@ AnalyzeObjectMap<TImage, TRGBImage>
     this->m_AnaylzeObjectEntryArray.resize(1);
     this->m_AnaylzeObjectEntryArray[0] = itk::AnalyzeObjectEntry::New();
     this->m_AnaylzeObjectEntryArray[0]->SetName("Original");
-    this->SetNumberOfObjects(0);
+    this->SetNumberOfObjects(1);
     this->SetVersion(VERSION7);
     typename ImageType::SizeType size = {{1,1,1}};
     typename ImageType::IndexType orgin = {{0,0,0}};
@@ -146,7 +146,7 @@ template<class TImage, class TRGBImage>
     itk::ImageRegionIterator<ImageType > indexObjectMap(this,Image->GetLargestPossibleRegion());
     
     this->AddObjectEntry(ObjectName);
-    unsigned int i = this->GetNumberOfObjects();
+    unsigned int i = this->GetNumberOfObjects() - 1;
     this->m_AnaylzeObjectEntryArray[i]->SetEndRed(Red);
     this->m_AnaylzeObjectEntryArray[i]->SetEndGreen(Green);
     this->m_AnaylzeObjectEntryArray[i]->SetEndBlue(Blue);
@@ -167,7 +167,7 @@ template<class TImage, class TRGBImage>
   {
     this->m_AnaylzeObjectEntryArray.insert(this->m_AnaylzeObjectEntryArray.end(), itk::AnalyzeObjectEntry::New());
     this->SetNumberOfObjects(this->GetNumberOfObjects()+1);
-    this->m_AnaylzeObjectEntryArray[this->GetNumberOfObjects()]->SetName(ObjectName);
+    this->m_AnaylzeObjectEntryArray[this->GetNumberOfObjects()-1]->SetName(ObjectName);
     this->PlaceObjectMapEntriesIntoMetaData();
   }
 
