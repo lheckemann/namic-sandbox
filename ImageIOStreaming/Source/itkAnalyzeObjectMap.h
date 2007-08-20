@@ -39,9 +39,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "itkByteSwapper.h"
 #include <itkMetaDataDictionary.h>
 #include "itkMetaDataObject.h"
-#include <itkUnaryFunctorImageFilter.h>
-#include <itkScalarToRGBPixelFunctor.h>
-#include <itkThresholdImageFilter.h>
+#include "itkThresholdImageFilter.h"
+#include "itkImage.h"
 
 const char *const ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY = "ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY";
 /**
@@ -54,11 +53,12 @@ const char *const ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY = "ANALYZE_OBJECT_LABEL_M
   static const int VERSION5 = 910402;
   static const int VERSION6 = 910926;
   static const int VERSION7 = 20050829;
+
 namespace itk
 {
 
   typedef std::vector<AnalyzeObjectEntry::Pointer>  AnalyzeObjectEntryArrayType;
-  template <class TImage>
+  template <class TImage = itk::Image<unsigned char, 4>, class TRGBImage = itk::Image<itk::RGBPixel<unsigned char>,4> >
 
 
 /** \class AnalyzeObjectMap
@@ -75,10 +75,6 @@ namespace itk
       typedef TImage  Superclass;
       typedef SmartPointer<Self>  Pointer;
       typedef SmartPointer<const Self>  ConstPointer;
-
-      typedef itk::RGBPixel<unsigned char> RGBPixelType;
-
-      typedef itk::Image<RGBPixelType, 4> RGBImageType;
       
       typedef TImage ImageType;
       typedef itk::AnalyzeObjectMap<TImage> ObjectMapType;
@@ -126,7 +122,7 @@ namespace itk
       /**
        * \brief ObjectMapToRGBImage
        */
-      itk::Image<RGBPixelType, TImage::ImageDimension>::Pointer ObjectMapToRGBImage();
+      typename TRGBImage::Pointer ObjectMapToRGBImage();
 
       /**
        * \brief AddObjectEntryBasedOnImagePixel
