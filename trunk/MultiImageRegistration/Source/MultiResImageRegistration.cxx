@@ -502,7 +502,8 @@ int getCommandLine(int argc, char *initFname, vector<string>& fileNames, string&
                    string &writeMean3DImages, string& metricPrint, unsigned int& printInterval,
                    double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation,
                    double& HistogramSamplesPerBin,
-                   unsigned int& StartLevel, string& OutputIntermediateResults );
+                   unsigned int& StartLevel, string& OutputIntermediateResults,
+                   string& useNormalizeFilter );
 
 
 int main( int argc, char *argv[] )
@@ -517,6 +518,7 @@ int main( int argc, char *argv[] )
   string interpolatorType("linear");
   
   string metricPrint("off");
+  string useNormalizeFilter("off");
   unsigned int printInterval = 500;
   unsigned int startLevel = 0;
   
@@ -611,7 +613,8 @@ int main( int argc, char *argv[] )
         writeMean3DImages, metricPrint, printInterval,
         SPSAalpha , SPSAgamma, SPSAcRel, SPSAnumberOfPerturbation,
         HistogramSamplesPerBin,
-        startLevel, outputIntermediateResults ) )
+        startLevel, outputIntermediateResults,
+        useNormalizeFilter ) )
     {
       std:: cout << "Error reading parameter file " << std::endl;
       return 1;
@@ -874,7 +877,14 @@ int main( int argc, char *argv[] )
       //Set up the Image Pyramid
       imagePyramidArray[i] = ImagePyramidType::New();
       imagePyramidArray[i]->SetNumberOfLevels( multiLevelAffine );
-      imagePyramidArray[i]->SetInput( normalizeFilter->GetOutput() );
+      if(useNormalizeFilter == "on")
+      {
+        imagePyramidArray[i]->SetInput( normalizeFilter->GetOutput() );
+      }
+      else
+      {
+        imagePyramidArray[i]->SetInput( imageReader->GetOutput() );  
+      }
 
       std::cout << "message: Reading Image: " << inputFileNames[i].c_str() << std::endl;
       imagePyramidArray[i]->Update();
@@ -1685,7 +1695,8 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
 
                           double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation,
                           double& HistogramSamplesPerBin,
-                          unsigned int& StartLevel, string& outputIntermediateResults )
+                          unsigned int& StartLevel, string& outputIntermediateResults,
+                          string& useNormalizeFilter )
 {
 
 
@@ -1913,7 +1924,13 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       initFile >> dummy;
       outputIntermediateResults = dummy;
     }
+    else if (dummy == "-useNormalizeFilter")
+    {
+      initFile >> dummy;
+      useNormalizeFilter = dummy;
+    }
             
+    
     else if (dummy == "-mask")
     {
       initFile >> dummy;
