@@ -366,7 +366,6 @@ BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
      * Allocate memory for Jacobian and wrap into SpaceDimension number
      * of ITK images
    */
-    /*
     this->m_Jacobian.set_size( SpaceDimension, this->GetNumberOfParameters() );
     this->m_Jacobian.Fill( NumericTraits<JacobianPixelType>::Zero );
     m_LastJacobianIndex = m_ValidRegion.GetIndex();
@@ -378,7 +377,7 @@ BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
           SetImportPointer( jacobianDataPointer, numberOfPixels );
       jacobianDataPointer += this->GetNumberOfParameters() + numberOfPixels;
     }
-    */
+    
 }
 
 
@@ -784,7 +783,6 @@ BSplineDeformableTransformOpt<TScalarType, NDimensions,VSplineOrder>
   RegionType supportRegion;
   supportRegion.SetSize( m_SupportSize );
   const PixelType * basePointer = m_CoefficientImage[0]->GetBufferPointer();
-  //indices[counter] = &(m_Iterator[0].Value()) - basePointer;
 
   unsigned int j;
 

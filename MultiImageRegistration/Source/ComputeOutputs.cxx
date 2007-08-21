@@ -459,11 +459,11 @@ int main( int argc, char * argv[] )
       ImageType::SizeType size = imageReaderArray[j]->GetOutput()->GetLargestPossibleRegion().GetSize();
       ImageType::IndexType start = imageReaderArray[j]->GetOutput()->GetLargestPossibleRegion().GetIndex();
       /** change here */
-      //start[1] = size[1]/2;
-      //size[1] = 0;
+      start[1] = size[1]/2;
+      size[1] = 0;
       // these are user specific
-      start[0] = 106;
-      size[0] = 0;
+      //start[0] = 106;
+      //size[0] = 0;
 
         
       ImageType::RegionType extractRegion;
@@ -570,11 +570,11 @@ int main( int argc, char * argv[] )
     ImageType::IndexType start = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetIndex();
     
     /** change here */
-    //start[1] = size[1]/2;
-    //size[1] = 0;
+    start[1] = size[1]/2;
+    size[1] = 0;
     // these are user specific
-    start[0] = 106;
-    size[0] = 0;
+    //start[0] = 106;
+    //size[0] = 0;
                 
     ImageType::RegionType extractRegion;
     extractRegion.SetSize(  size  );

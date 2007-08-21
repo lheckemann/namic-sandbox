@@ -62,8 +62,7 @@ namespace itk
  * opportunity for a user interface to change any of the components,
  * change component parameters, or stop the registration.
  *
- * This class is templated over the fixed image type and the moving image
- * type.
+ * This class is templated over the image type.
  *
  * \sa ImageRegistrationMethod
  * \ingroup RegistrationFilters
@@ -186,7 +185,7 @@ public:
   /** Set/Get the initial transformation parameters. */
   //itkSetMacro( InitialTransformParameters, ParametersType );
   itkGetConstReferenceMacro( InitialTransformParameters, ParametersType );
-  virtual void SetInitialTransformParameters( const ParametersType & param , int i );
+  virtual void SetInitialTransformParameters( int i, const ParametersType & param );
   virtual void SetInitialTransformParameters( const ParametersType & param );
 
 
