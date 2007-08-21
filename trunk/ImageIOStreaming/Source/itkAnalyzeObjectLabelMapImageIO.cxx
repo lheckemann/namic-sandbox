@@ -507,7 +507,7 @@ AnalyzeObjectLabelMapImageIO
       // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
       // not affect the current object itself
       AnalyzeObjectEntry *ObjectWrite = AnalyzeObjectEntry::New();
-      ObjectWrite->SetName("Blank Object"+i);
+      ObjectWrite->SetName("Blank Object");
       if (NeedByteSwap == true)
       {
         ObjectWrite->SwapObjectEndedness();
