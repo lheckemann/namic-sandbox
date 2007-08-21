@@ -24,7 +24,6 @@ namespace itk
 {
 void AnalyzeObjectLabelMapImageIOFactory::PrintSelf(std::ostream&, Indent) const
 {
-
 }
 
 
