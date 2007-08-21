@@ -49,7 +49,7 @@ using namespace std;
 int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, string& inputFolder, string& outputFolder,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
                           string& useBspline, string& useBsplineHigh,
-                          string& writeDeformationFields )
+                          string& writeDeformationFields, string& write3DImages )
 {
 
 
@@ -57,7 +57,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
   if( initFile.fail() )
   {
     std::cout << "could not open file: " << initFname << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   while( !initFile.eof() )
@@ -102,15 +102,21 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       initFile >> dummy;
       writeDeformationFields = dummy;
     }
+    else if (dummy == "-write3DImages")
+    {
+      initFile >> dummy;
+      write3DImages = dummy;
+    }    
     else if (dummy == "-f")
     {
       initFile >> dummy;
       fileNames.push_back(dummy); // get file name
     }
+    
   }
 
   initFile.close();
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // And function
@@ -189,6 +195,8 @@ int main( int argc, char * argv[] )
   string inputFolder;
   string outputFolder;
   string writeDeformationFields = "off";
+  string write3DImages = "off";
+  
   int bsplineInitialGridSize = 4;
   int numberOfBsplineLevel = 0;
     
@@ -203,11 +211,11 @@ int main( int argc, char * argv[] )
                   argc, argv[i], fileNames, inputFolder, outputFolder,
                   bsplineInitialGridSize,  numberOfBsplineLevel,
                   useBspline, useBsplineHigh,
-                  writeDeformationFields )
+                  writeDeformationFields, write3DImages )
        ) 
     {
       std:: cout << "Error reading parameter file " << std::endl;
-      return 1;
+      return EXIT_FAILURE;
     }
   }
 
@@ -443,8 +451,11 @@ int main( int argc, char * argv[] )
       writer->SetFileName((currentFolderName+"Images/"+fileNames[j]).c_str());
       writer->SetImageIO(imageReaderArray[j]->GetImageIO());
       
-      cout << "Writing " << (currentFolderName+"Images/"+fileNames[j]).c_str() << endl;
-      //writer->Update();
+      if(write3DImages == "on")
+      {
+        cout << "Writing " << (currentFolderName+"Images/"+fileNames[j]).c_str() << endl;
+        writer->Update();
+      }
 
       // Extract the central slice
       typedef itk::Image< unsigned char, 2 >    SliceImageType;
@@ -458,7 +469,7 @@ int main( int argc, char * argv[] )
       //Write the central slice
       ImageType::SizeType size = imageReaderArray[j]->GetOutput()->GetLargestPossibleRegion().GetSize();
       ImageType::IndexType start = imageReaderArray[j]->GetOutput()->GetLargestPossibleRegion().GetIndex();
-      /** change here */
+      /** change here for slice direction */
       start[1] = size[1]/2;
       size[1] = 0;
       // these are user specific
@@ -518,7 +529,7 @@ int main( int argc, char * argv[] )
         {
           itksys::SystemTools::MakeDirectory( (currentFolderName+"DeformationImage/").c_str() );
           writer->SetFileName( (currentFolderName+"DeformationImage/"+fileNames[j]).c_str() );
-          //writer->Update();
+          writer->Update();
         }
 
         // Extract the central slices of the the deformation field
@@ -553,8 +564,11 @@ int main( int argc, char * argv[] )
     writer->SetInput(naryMeanImageFilter->GetOutput());
     writer->SetFileName((meanFolder+"Mean.mhd").c_str());
     
-    cout << "Writing " << (meanFolder+"Mean.mhd").c_str() << endl;
-    //writer->Update();
+    if(write3DImages == "on")
+    {
+      cout << "Writing " << (meanFolder+"Mean.mhd").c_str() << endl;
+      writer->Update();
+    }
     
     // Extract the central slice
     typedef itk::Image< unsigned char, 2 >    SliceImageType;
@@ -569,7 +583,7 @@ int main( int argc, char * argv[] )
     ImageType::SizeType size = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
     ImageType::IndexType start = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetIndex();
     
-    /** change here */
+    /** change here for slice direction */
     start[1] = size[1]/2;
     size[1] = 0;
     // these are user specific
@@ -592,10 +606,11 @@ int main( int argc, char * argv[] )
 
     writer->SetInput(narySTDImageFilter->GetOutput());
     writer->SetFileName((stdFolder+"STD.mhd").c_str());
-    cout << "Writing " << (stdFolder+"STD.mhd").c_str() << endl;
-
-    //writer->Update();
-    
+    if(write3DImages == "on")
+    {
+      cout << "Writing " << (stdFolder+"STD.mhd").c_str() << endl;
+      writer->Update();
+    }    
     // write std image
     sliceExtractFilter->SetInput( narySTDImageFilter->GetOutput() );
     sliceWriter->SetInput( sliceExtractFilter->GetOutput() );

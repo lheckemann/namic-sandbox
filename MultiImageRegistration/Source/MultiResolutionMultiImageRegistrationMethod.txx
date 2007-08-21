@@ -71,19 +71,6 @@ void MultiResolutionMultiImageRegistrationMethod<ImageType>
     m_ImageMaskArray[i]=0;
   }
 
-  //Resize the gradient image container
-  m_GradientImagePyramidArray.resize(N);
-
-  for(int i=0; i<N; i++)
-  {
-    m_GradientImagePyramidArray[i].resize(m_NumberOfLevels);
-    
-    for(unsigned int j=0; j<m_NumberOfLevels; j++)
-    {
-      m_GradientImagePyramidArray[i][j]=0;
-    }
-  }
-
   m_NumberOfImages  = N;
   
 }
@@ -464,15 +451,6 @@ MultiResolutionMultiImageRegistrationMethod<ImageType>
   return m_InitialTransformParameters.GetSize();
   
 }
-
-template < typename ImageType >
-void
-MultiResolutionMultiImageRegistrationMethod<ImageType>
-::SetGradientImagePyramidArray(GradientImageType* gradientImage, int i, int j)
-{
-  m_GradientImagePyramidArray[i][j] = gradientImage;
-}
-
 
 } // end namespace itk
 

@@ -115,14 +115,9 @@ public:
   typedef  vector<ImagePyramidPointer>                ImagePyramidPointerArray;
 
   /** Typedef for image masks */
-  typedef typename  MetricType::MovingImageMaskType ImageMaskType;
-  typedef typename  MetricType::MovingImageMaskPointer ImageMaskPointer;
+  typedef typename  MetricType::ImageMaskType ImageMaskType;
+  typedef typename  MetricType::ImageMaskPointer ImageMaskPointer;
   typedef typename  std::vector< ImageMaskPointer > ImageMaskPointerArray;
-
-  /** Typedef for gradient image */
-  typedef typename  MetricType::GradientImageType GradientImageType;
-  typedef typename  MetricType::GradientImagePointerArray GradientImagePointerArray;
-  typedef typename  std::vector<GradientImagePointerArray> GradientImagePyramidArray;
 
   /** Type used for representing point components  */
   typedef typename MetricType::CoordinateRepresentationType CoordinateRepresentationType;
@@ -166,9 +161,6 @@ public:
   UserSetObjectMacro( ImageMaskArray, ImageMaskType );
   UserGetObjectMacro( ImageMaskArray, ImageMaskType );
 
-  /** Set the gradient image of i'th image at j'th level */
-  void SetGradientImagePyramidArray(GradientImageType* gradientImage, int i, int j);
-  
   /** Set/Get the number of multi-resolution levels. */
   itkSetClampMacro( NumberOfLevels, unsigned long, 1,
                     NumericTraits<unsigned long>::max() );
@@ -235,7 +227,6 @@ private:
   InterpolatorPointerArray         m_InterpolatorArray;
 
   ImagePyramidPointerArray         m_ImagePyramidArray;
-  GradientImagePyramidArray        m_GradientImagePyramidArray;
   
   ParametersType                   m_InitialTransformParameters;
   ParametersType                   m_InitialTransformParametersOfNextLevel;

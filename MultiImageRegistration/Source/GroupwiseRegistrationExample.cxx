@@ -138,7 +138,7 @@ public:
       }
 
       // only print results every ten iterations
-      if(m_CumulativeIterationIndex % 10 != 0 )
+      if(m_CumulativeIterationIndex % 5 != 0 )
       {
         m_CumulativeIterationIndex++;
         return;
@@ -488,8 +488,8 @@ int getCommandLine(int argc, char *initFname, vector<string>& fileNames, string&
                    double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
                    int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
                    string& useBSplineRegularization, double& bsplineRegularizationFactor,
-                   string& transformType, string& imageType,string& metricType, string& useBspline, string& useBsplineHigh,
-                   double& translationScaleCoeffs,  double& gaussianFilterVariance,
+                   string& transformType,string& metricType, string& useBspline, string& useBsplineHigh,
+                   double& translationScaleCoeffs,
                    int& maximumLineIteration, double& parzenWindowStandardDeviation,
                    double& affineMultiScaleSamplePercentageIncrease, double& bsplineMultiScaleSamplePercentageIncrease,
                    double& affineMultiScaleMaximumIterationIncrease, double& bsplineMultiScaleMaximumIterationIncrease,
@@ -497,12 +497,9 @@ int getCommandLine(int argc, char *initFname, vector<string>& fileNames, string&
                    unsigned int& numberOfSpatialSamplesAffine, unsigned int& numberOfSpatialSamplesBspline, unsigned int& numberOfSpatialSamplesBsplineHigh,
                    string &mask, string& maskType, unsigned int& threshold1, unsigned int& threshold2,
                    string &writeOutputImages, string &writeDeformationFields,
-                   unsigned int &NumberOfFixedImages,
-                   unsigned int &numberOfNearestNeigbors, double &errorBound,
                    string &writeMean3DImages, string& metricPrint, unsigned int& printInterval,
                    double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation,
-                   double& HistogramSamplesPerBin,
-                   unsigned int& StartLevel, string& OutputIntermediateResults,
+                   unsigned int& StartLevel,
                    string& useNormalizeFilter );
 
 
@@ -519,6 +516,7 @@ int main( int argc, char *argv[] )
   
   string metricPrint("off");
   string useNormalizeFilter("off");
+  
   unsigned int printInterval = 500;
   unsigned int startLevel = 0;
   
@@ -538,9 +536,9 @@ int main( int argc, char *argv[] )
   double numberOfSpatialSamplesBsplinePercentage = 0;
   double numberOfSpatialSamplesBsplineHighPercentage = 0;
 
-  unsigned int numberOfSpatialSamplesAffine = 2000;
-  unsigned int numberOfSpatialSamplesBspline = 4000;
-  unsigned int numberOfSpatialSamplesBsplineHigh = 4000;
+  unsigned int numberOfSpatialSamplesAffine = 0;
+  unsigned int numberOfSpatialSamplesBspline = 0;
+  unsigned int numberOfSpatialSamplesBsplineHigh = 0;
 
   double affineMultiScaleSamplePercentageIncrease = 4.0;
   double bsplineMultiScaleSamplePercentageIncrease = 4.0;
@@ -548,41 +546,32 @@ int main( int argc, char *argv[] )
   double affineMultiScaleMaximumIterationIncrease = 1.0;
   double bsplineMultiScaleMaximumIterationIncrease = 1.0;
 
-  
-  double affineMultiScaleStepLengthIncrease = 1e-1;
-  double bsplineMultiScaleStepLengthIncrease = 1e-1;
+  double affineMultiScaleStepLengthIncrease = 1.0;
+  double bsplineMultiScaleStepLengthIncrease = 1.0;
 
-  double translationScaleCoeffs = 1e-5;
-  double gaussianFilterVariance = 2.0;
-  int maximumLineIteration = 10;
+  double translationScaleCoeffs = 1e-4;
+  int maximumLineIteration = 7;
   
-  int bsplineInitialGridSize = 5;
+  int bsplineInitialGridSize = 4;
   int numberOfBsplineLevel = 1;
+  
   string useBSplineRegularization("on");
   double bsplineRegularizationFactor = 1e-1;
+  
   double parzenWindowStandardDeviation = 0.4;
-  double HistogramSamplesPerBin = 50.0;
+    
   string mask("all");
   string maskType("none");
   unsigned int threshold1 = 9;
   unsigned int threshold2 = 20;
       
-  string imageType = "normal";
-
   string useBspline("off");
   string useBsplineHigh("off");
 
   string writeOutputImages("off");
   string writeDeformationFields("off");
   string writeMean3DImages("off");
-  string outputIntermediateResults("on");
   
-  unsigned int NumberOfFixedImages = 0;
-
-  //KNN related parameters
-  unsigned int numberOfNearestNeigbors = 100;
-  double errorBound = 0.1;
-
   //SPSA related parameters
   double SPSAalpha = 0.602;
   double SPSAgamma = 0.101;
@@ -600,20 +589,17 @@ int main( int argc, char *argv[] )
         numberOfSpatialSamplesAffinePercentage, numberOfSpatialSamplesBsplinePercentage, numberOfSpatialSamplesBsplineHighPercentage,
         bsplineInitialGridSize, numberOfBsplineLevel,
         useBSplineRegularization, bsplineRegularizationFactor,
-        interpolatorType, imageType, metricType, useBspline, useBsplineHigh,
-        translationScaleCoeffs,gaussianFilterVariance, maximumLineIteration,  parzenWindowStandardDeviation,
+        interpolatorType, metricType, useBspline, useBsplineHigh,
+        translationScaleCoeffs, maximumLineIteration,  parzenWindowStandardDeviation,
         affineMultiScaleSamplePercentageIncrease, bsplineMultiScaleSamplePercentageIncrease,
         affineMultiScaleMaximumIterationIncrease,  bsplineMultiScaleMaximumIterationIncrease,
         affineMultiScaleStepLengthIncrease, bsplineMultiScaleStepLengthIncrease,
         numberOfSpatialSamplesAffine, numberOfSpatialSamplesBspline, numberOfSpatialSamplesBsplineHigh,
         mask, maskType, threshold1, threshold2,
         writeOutputImages, writeDeformationFields,
-        NumberOfFixedImages,
-        numberOfNearestNeigbors, errorBound,
         writeMean3DImages, metricPrint, printInterval,
         SPSAalpha , SPSAgamma, SPSAcRel, SPSAnumberOfPerturbation,
-        HistogramSamplesPerBin,
-        startLevel, outputIntermediateResults,
+        startLevel,
         useNormalizeFilter ) )
     {
       std:: cout << "Error reading parameter file " << std::endl;
@@ -621,52 +607,52 @@ int main( int argc, char *argv[] )
     }
   }
 
-  //Internal Image Type typedef
+  // Image typedef
   typedef double ScalarType;
   typedef itk::Image< InternalPixelType, Dimension > ImageType;
 
 
 
-  typedef itk::AffineTransform< ScalarType, Dimension > TransformType;
+  typedef itk::AffineTransform< ScalarType, Dimension > AffineTransformType;
 
-  typedef itk::GradientDescentOptimizer       OptimizerType;
-  typedef itk::GradientDescentLineSearchOptimizer LineSearchOptimizerType;
-  typedef itk::SPSAOptimizer                     SPSAOptimizerType;
-  typedef itk::AmoebaOptimizer                     SimplexOptimizerType;
+  // Optimizer types
+  typedef itk::GradientDescentOptimizer                OptimizerType;
+  typedef itk::GradientDescentLineSearchOptimizer      LineSearchOptimizerType;
+  typedef itk::SPSAOptimizer                           SPSAOptimizerType;
+  typedef itk::AmoebaOptimizer                         SimplexOptimizerType;
 
 
   // Interpolator typedef
-  typedef itk::InterpolateImageFunction<ImageType,ScalarType        >  InterpolatorType;
-  typedef itk::LinearInterpolateImageFunction<ImageType,ScalarType        > LinearInterpolatorType;
+  typedef itk::InterpolateImageFunction<ImageType,ScalarType        >       InterpolatorType;
+  typedef itk::LinearInterpolateImageFunction<ImageType,ScalarType  >       LinearInterpolatorType;
 
 
-  
-  typedef itk::MultiImageMetric< ImageType>    MetricType;
-  typedef itk::VarianceMultiImageMetric< ImageType>    VarianceMetricType;
-  typedef itk::UnivariateEntropyMultiImageMetric< ImageType>    EntropyMetricType;
+  // Metric typedefs
+  typedef itk::MultiImageMetric< ImageType>                        MetricType;
+  typedef itk::VarianceMultiImageMetric< ImageType>                VarianceMetricType;
+  typedef itk::UnivariateEntropyMultiImageMetric< ImageType>       EntropyMetricType;
 
 
 
-  typedef OptimizerType::ScalesType       OptimizerScalesType;
+  typedef OptimizerType::ScalesType                                        OptimizerScalesType;
 
   typedef itk::MultiResolutionMultiImageRegistrationMethod< ImageType >    RegistrationType;
 
   typedef itk::RecursiveMultiResolutionPyramidImageFilter<
                                     ImageType,
-                                    ImageType  >    ImagePyramidType;
+                                    ImageType  >                           ImagePyramidType;
 
 
-  //Mask related typedefs
-  typedef itk::Image< unsigned char, Dimension > ImageMaskType;
+  // Mask related typedefs
+  typedef itk::Image< unsigned char, Dimension >                         ImageMaskType;
   typedef itk::ConnectedThresholdImageFilter< ImageType,ImageMaskType >
-                                        ConnectedThresholdImageFilterType;
+                                                                         ConnectedThresholdImageFilterType;
   typedef itk::NeighborhoodConnectedImageFilter< ImageType,ImageMaskType >
-                                        NeighborhoodConnectedImageFilterType;
-  typedef itk::ImageMaskSpatialObject<Dimension> ImageMaskSpatialObject;
+                                                                         NeighborhoodConnectedImageFilterType;
+  typedef itk::ImageMaskSpatialObject<Dimension>                         ImageMaskSpatialObject;
 
 
   RegistrationType::Pointer   registration  = RegistrationType::New();
-
 
   // N is the number of images in the registration
   const int N = fileNames.size();
@@ -693,10 +679,10 @@ int main( int argc, char *argv[] )
   registration->ReleaseDataFlagOn();
 
   //Set the optimizerType
-  OptimizerType::Pointer      optimizer;
-  LineSearchOptimizerType::Pointer lineSearchOptimizer;
-  SPSAOptimizerType::Pointer SPSAOptimizer;
-  SimplexOptimizerType::Pointer simplexOptimizer;
+  OptimizerType::Pointer               optimizer;
+  LineSearchOptimizerType::Pointer     lineSearchOptimizer;
+  SPSAOptimizerType::Pointer           SPSAOptimizer;
+  SimplexOptimizerType::Pointer        simplexOptimizer;
   
   if(optimizerType == "lineSearch")
   {
@@ -737,25 +723,25 @@ int main( int argc, char *argv[] )
   }
   
   //typedefs for affine transform array
-  typedef std::vector<TransformType::Pointer> TransformArrayType;
-  TransformArrayType      affineTransformArray(N);
+  typedef std::vector<AffineTransformType::Pointer> AffineTransformArrayType;
+  AffineTransformArrayType                          affineTransformArray(N);
 
   //typedefs for intorpolater array
   typedef vector<InterpolatorType::Pointer>  InterpolatorArrayType;
-  InterpolatorArrayType      interpolatorArray(N);
+  InterpolatorArrayType                      interpolatorArray(N);
 
   // typedefs for image file readers
   typedef itk::ImageFileReader< ImageType  > ImageReaderType;
   typedef vector< ImageReaderType::Pointer > ImageArrayReader;
 
-  typedef  vector<ImagePyramidType::Pointer>                ImagePyramidArray;
-  ImagePyramidArray imagePyramidArray(N);
+  typedef  vector<ImagePyramidType::Pointer> ImagePyramidArray;
+  ImagePyramidArray                          imagePyramidArray(N);
 
   // typedef for normalized image filters
   // the mean and the variance of the images normalized before registering
-  typedef itk::NormalizeImageFilter< ImageType, ImageType > NormalizeFilterType;
-  typedef NormalizeFilterType::Pointer NormalizeFilterTypePointer;
-  typedef vector<NormalizeFilterTypePointer> NormalizedFilterArrayType;
+  typedef itk::NormalizeImageFilter< ImageType, ImageType >   NormalizeFilterType;
+  typedef NormalizeFilterType::Pointer                        NormalizeFilterTypePointer;
+  typedef vector<NormalizeFilterTypePointer>                  NormalizedFilterArrayType;
   
   // Begin the registration with the affine transform
   // Connect the compenents together
@@ -777,7 +763,6 @@ int main( int argc, char *argv[] )
   if(metricType == "variance")
   {
     metric        = VarianceMetricType::New();
-    // Set the number of samples to be used by the metric
   }
   else
   {
@@ -785,7 +770,6 @@ int main( int argc, char *argv[] )
     entropyMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
     metric = entropyMetric;
   }
-  metric->SetRegularizationFactor(bsplineRegularizationFactor);
   metric->SetNumberOfImages(N);
 
   
@@ -795,7 +779,7 @@ int main( int argc, char *argv[] )
     for(int i=0; i< N; i++ )
     {
       ImageReaderType::Pointer imageReader;
-      affineTransformArray[i]     = TransformType::New();
+      affineTransformArray[i]     = AffineTransformType::New();
       
       // Get the interpolator type
       // assume linear by default
@@ -812,8 +796,8 @@ int main( int argc, char *argv[] )
       ConnectedThresholdImageFilterType::Pointer connectedThreshold;
       NeighborhoodConnectedImageFilterType::Pointer neighborhoodConnected;
 
-      //if mask is single only mask the first image
-      //else mask all images
+      // if mask is single only mask the first image
+      // else mask all images
       if(maskType == "connectedThreshold" && ((mask == "single" && i==0 ) || mask == "all"))
       {
         connectedThreshold =ConnectedThresholdImageFilterType::New();
@@ -956,7 +940,7 @@ int main( int argc, char *argv[] )
   for(int i=0; i<N; i++)
   {
     affineTransformArray[i]->SetIdentity();
-    TransformType::InputPointType center;
+    AffineTransformType::InputPointType center;
     // Get spacing, origin and size of the images
     ImageType::SpacingType spacing = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetSpacing();
     itk::Point<double, Dimension> origin = imagePyramidArray[i]->GetOutput(imagePyramidArray[0]->GetNumberOfLevels()-1)->GetOrigin();
@@ -1130,11 +1114,7 @@ int main( int argc, char *argv[] )
   
   if( useBspline == "on" )
   {
-    if(useBSplineRegularization == "on")
-    {
-      metric->SetRegularization(true);
-    }
-    
+   
     // typdefs for region, spacing and origin of the Bspline coefficient images
     typedef BSplineTransformType::RegionType RegionType;
     typedef BSplineTransformType::SpacingType SpacingType;
@@ -1174,7 +1154,7 @@ int main( int argc, char *argv[] )
                              affineTransformArray[i]->GetTransformTypeAsString().c_str(),
                              affineTransformArray[i]->GetTransformTypeAsString().c_str(),
                              1,
-                             itk::CreateObjectFunction<TransformType>::New());
+                             itk::CreateObjectFunction<AffineTransformType>::New());
        
         TransformFileReader::Pointer        transformFileReader = TransformFileReader::New();
         string fileName = outputFolder + "Affine/TransformFiles/" + fileNames[i];
@@ -1453,9 +1433,12 @@ int main( int argc, char *argv[] )
           OriginType  originHigh;
           ImageType::RegionType fixedRegion;
 
-          spacingHigh = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetSpacing();
-          originHigh  = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetOrigin();
-          fixedRegion = imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetBufferedRegion();
+          spacingHigh =
+              imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetSpacing();
+          originHigh  =
+              imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetOrigin();
+          fixedRegion =
+              imagePyramidArray[i]->GetOutput(imagePyramidArray[i]->GetNumberOfLevels()-1)->GetBufferedRegion();
           
           ImageType::SizeType fixedImageSize = fixedRegion.GetSize();
     
@@ -1655,10 +1638,10 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
                           
                           string& useBSplineRegularization, double& bsplineRegularizationFactor,
 
-                          string& interpolatorType, string& imageType,string& metricType,
+                          string& interpolatorType, string& metricType,
                           string& useBspline, string& useBsplineHigh,
                           
-                          double& translationScaleCoeffs,double& gaussianFilterVariance,
+                          double& translationScaleCoeffs,
                           int& maximumLineIteration,   double& parzenWindowStandardDeviation,
                           
                           double& affineMultiScaleSamplePercentageIncrease, double& bsplineMultiScaleSamplePercentageIncrease,
@@ -1670,15 +1653,11 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
 
                           string &mask, string& maskType, unsigned int& threshold1, unsigned int& threshold2,
                           string &writeOutputImages, string &writeDeformationFields,
-                          unsigned int& NumberOfFixedImages,
                           
-                          unsigned int &numberOfNearestNeigbors, double &errorBound,
-
                           string &writeMean3DImages, string& metricPrint, unsigned int& printInterval,
 
                           double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation,
-                          double& HistogramSamplesPerBin,
-                          unsigned int& StartLevel, string& outputIntermediateResults,
+                          unsigned int& StartLevel,
                           string& useNormalizeFilter )
 {
 
@@ -1717,11 +1696,6 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       optimizerType == dummy;
     }
     
-    else if (dummy == "-imageType")
-    {
-      initFile >> dummy;
-      imageType = dummy;
-    }
     else if (dummy == "-metricType")
     {
       initFile >> dummy;
@@ -1882,11 +1856,6 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       initFile >> dummy;
       translationScaleCoeffs = atof(dummy.c_str());
     }
-    else if (dummy == "-gaussianFilterVariance")
-    {
-      initFile >> dummy;
-      gaussianFilterVariance = atof(dummy.c_str());
-    }
     else if (dummy == "-maximumLineIteration")
     {
       initFile >> dummy;
@@ -1896,16 +1865,6 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
     {
       initFile >> dummy;
       parzenWindowStandardDeviation = atof(dummy.c_str());
-    }
-    else if (dummy == "-HistogramSamplesPerBin")
-    {
-      initFile >> dummy;
-      HistogramSamplesPerBin = atof(dummy.c_str());
-    }
-    else if (dummy == "-OutputIntermediateResults")
-    {
-      initFile >> dummy;
-      outputIntermediateResults = dummy;
     }
     else if (dummy == "-useNormalizeFilter")
     {
@@ -1985,22 +1944,6 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       writeMean3DImages = dummy;
     }
     
-    else if (dummy == "-NumberOfFixedImages")
-    {
-      initFile >> dummy;
-      NumberOfFixedImages = atoi(dummy.c_str());
-    }
-
-    else if (dummy == "-NumberOfNearestNeigbors")
-    {
-      initFile >> dummy;
-      numberOfNearestNeigbors = atoi(dummy.c_str());
-    }
-    else if (dummy == "-errorBound")
-    {
-      initFile >> dummy;
-      errorBound = atof(dummy.c_str());
-    }
 
     else if (dummy == "-metricPrint")
     {

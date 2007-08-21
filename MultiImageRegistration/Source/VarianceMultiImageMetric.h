@@ -22,10 +22,10 @@
 
 namespace itk
 {
-/** \class UnivariateEntropyImageToImageMetric
+/** \class VarianceMultiImageMetric
  * \brief Computes sum of variances along pixel stacks
  *
- * UnivariateEntropyImageToImageMetric computes sum of variances 
+ * VarianceMultiImageMetric computes sum of variances 
  * along pixel stacks. This corresponds to registering images
  * to a mean template image.
  *
@@ -88,46 +88,27 @@ public:
   typedef typename Superclass::ParametersArray          ParametersArray;
   typedef typename Superclass::ImageType                ImageType;
   typedef typename Superclass::ImageConstPointer        ImageConstPointer;
-  typedef typename Superclass::GradientImageType        GradientImageType;
-  typedef typename Superclass::GradientImagePointer     GradientImagePointer;
-  typedef typename Superclass::GradientPixelType        GradientPixelType;
   typedef typename Superclass::PixelType                ImagePixelType;
   typedef typename Superclass::RealType                 RealType;
-  typedef typename Superclass::FixedImagePointType      ImagePointType;
+  typedef typename Superclass::ImagePointType           ImagePointType;
   struct ThreadStruct
   {
     ConstPointer Metric;
   };
 
 
-
-
-  /** Define the bspline tranform type for regularization
-   */
-  typedef typename Superclass::BSplineTransformType BSplineTransformType;
-  typedef typename BSplineTransformType::Pointer    BSplineTransformTypePointer;
-  
-  typedef typename Superclass::BSplineParametersImageType    BSplineParametersImageType;
-  typedef typename Superclass::BSplineParametersImagePointer BSplineParametersImagePointer;
-  
-
   /** Initialize the Metric by making sure that all the components
    *  are present and plugged together correctly     */
   virtual void Initialize(void) throw ( ExceptionObject );
 
-  /**  Get the value. */
+  /**  Get the metric value. */
   MeasureType GetValue( const ParametersType& parameters ) const;
-  /** Methods added for supporting multi-threading GetValue */
-  void GetThreadedValue( int threadID ) const;
-  MeasureType AfterGetThreadedValue() const;
+
 
   /**  Get the value and derivatives for single valued optimizers. */
   void GetValueAndDerivative( const ParametersType& parameters,
                               MeasureType& Value, DerivativeType& Derivative ) const;
-  /** Methods added for supporting multi-threading GetValueAndDerivative */
-  void GetThreadedValueAndDerivative( int threadID ) const;
-  void AfterGetThreadedValueAndDerivative(MeasureType & value,
-                                          DerivativeType & derivative) const;
+
 
 
 protected:
@@ -138,6 +119,15 @@ protected:
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueAndDerivative( void *arg );
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValue( void *arg );
 
+  /** Methods added for supporting multi-threading GetValue */
+  void GetThreadedValue( int threadID ) const;
+  MeasureType AfterGetThreadedValue() const;
+  
+  /** Methods added for supporting multi-threading GetValueAndDerivative */
+  void GetThreadedValueAndDerivative( int threadID ) const;
+  void AfterGetThreadedValueAndDerivative(MeasureType & value,
+                                          DerivativeType & derivative) const;
+  
 private:
   VarianceMultiImageMetric(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented

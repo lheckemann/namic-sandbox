@@ -161,24 +161,6 @@ VarianceMultiImageMetric < TImage >
 
 
 template < class TImage >
-ITK_THREAD_RETURN_TYPE
-VarianceMultiImageMetric< TImage >
-::ThreaderCallbackGetValueAndDerivative( void *arg )
-{
-  ThreadStruct *str;
-
-  int threadId = ((MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
-
-  str = (ThreadStruct *)(((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
-
-  str->Metric->GetThreadedValueAndDerivative( threadId );
-
-
-  return ITK_THREAD_RETURN_VALUE;
-}
-
-
-template < class TImage >
 void VarianceMultiImageMetric < TImage >
 ::GetValueAndDerivative(const ParametersType & parameters,
                           MeasureType & value,
@@ -204,6 +186,28 @@ void VarianceMultiImageMetric < TImage >
   this->AfterGetThreadedValueAndDerivative(value, derivative);
 
 }
+
+
+
+template < class TImage >
+ITK_THREAD_RETURN_TYPE
+VarianceMultiImageMetric< TImage >
+::ThreaderCallbackGetValueAndDerivative( void *arg )
+{
+  ThreadStruct *str;
+
+  int threadId = ((MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
+
+  str = (ThreadStruct *)(((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
+
+  str->Metric->GetThreadedValueAndDerivative( threadId );
+
+
+  return ITK_THREAD_RETURN_VALUE;
+}
+
+
+
 /*
  * Get the match Measure
  */
@@ -255,7 +259,11 @@ VarianceMultiImageMetric < TImage >
                       (this->m_Sample[a].imageValueArray[i] - mean);
       
       // Get the derivative for this sample
-      UpdateSingleImageParameters( this->m_DerivativesArray[threadId][i], this->m_Sample[a], weight, i, threadId);
+      UpdateSingleImageParameters( this->m_DerivativesArray[threadId][i], 
+                                   this->m_Sample[a], 
+                                   weight, 
+                                   i, 
+                                   threadId);
     }
   } // End of sample Loop
 
@@ -272,7 +280,7 @@ void VarianceMultiImageMetric < TImage >
 
   value = NumericTraits< RealType >::Zero;
 
-  derivative.set_size(this->numberOfParameters * this->m_NumberOfImages);
+  derivative.set_size(this->m_NumberOfParameters * this->m_NumberOfImages);
   derivative.Fill (0.0);
 
   // Sum over the values returned by threads
@@ -281,9 +289,9 @@ void VarianceMultiImageMetric < TImage >
     value += this->m_value[i];
     for(unsigned int j=0; j<this->m_NumberOfImages; j++)
     {
-      for(unsigned int k=0; k<this->numberOfParameters; k++)
+      for(unsigned int k=0; k<this->m_NumberOfParameters; k++)
       {
-        derivative[j * this->numberOfParameters + k] += this->m_DerivativesArray[i][j][k]; 
+        derivative[j * this->m_NumberOfParameters + k] += this->m_DerivativesArray[i][j][k]; 
       }
     }
   }
@@ -292,20 +300,20 @@ void VarianceMultiImageMetric < TImage >
 
   //Set the mean to zero
   //Remove mean
-  DerivativeType sum (this->numberOfParameters);
+  DerivativeType sum (this->m_NumberOfParameters);
   sum.Fill(0.0);
   for (unsigned int i = 0; i < this->m_NumberOfImages; i++)
   {
-    for (unsigned int j = 0; j < this->numberOfParameters; j++)
+    for (unsigned int j = 0; j < this->m_NumberOfParameters; j++)
     {
-      sum[j] += derivative[i * this->numberOfParameters + j];
+      sum[j] += derivative[i * this->m_NumberOfParameters + j];
     }
   }
 
   
-  for (unsigned int i = 0; i < this->m_NumberOfImages * this->numberOfParameters; i++)
+  for (unsigned int i = 0; i < this->m_NumberOfImages * this->m_NumberOfParameters; i++)
   {
-    derivative[i] -= sum[i % this->numberOfParameters] / (double) this->m_NumberOfImages;
+    derivative[i] -= sum[i % this->m_NumberOfParameters] / (double) this->m_NumberOfImages;
   }
 
 }

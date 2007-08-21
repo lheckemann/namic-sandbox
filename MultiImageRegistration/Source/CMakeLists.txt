@@ -16,7 +16,6 @@ SET(Groupwise_SRCS
   BSplineDeformableTransformOpt.txx
   MultiImageMetric.txx 
   MultiImageMetric.h 
-  AddImageFilter.h
   UserMacro.h
  )
   
