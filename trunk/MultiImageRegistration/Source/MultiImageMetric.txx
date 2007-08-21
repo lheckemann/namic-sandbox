@@ -31,12 +31,8 @@ template <class TImage>
 MultiImageMetric<TImage>
 ::MultiImageMetric()
 {
-//   m_FixedImage    = 0; // has to be provided by the user.
-//   m_MovingImage   = 0; // has to be provided by the user.
-//   m_Transform     = 0; // has to be provided by the user.
-//   m_Interpolator  = 0; // has to be provided by the user.
-//  m_GradientImage = 0; // will receive the output of the filter;
-  m_NumberOfSpatialSamples = 0;
+  
+  m_NumberOfSpatialSamples = 100;
 
   m_ComputeGradient = false; // metric does not compute gradient by default
   m_UserBsplineDefined = false;

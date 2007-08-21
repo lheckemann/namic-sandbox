@@ -49,7 +49,6 @@ UnivariateEntropyMultiImageMetric < TFixedImage >::
   
 
   m_UseMask = false;
-  m_NumberOfFixedImages = 0;
   m_NumberOfParametersPerdimension = 0;
 
 }

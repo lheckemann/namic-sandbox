@@ -39,60 +39,48 @@ namespace itk
 {
 
 /** \class UnivariateEntropyImageToImageMetric
- * \brief Computes the mutual information between two images to be registered
+ * \brief Computes sum of one dimensional entropies along pixel stacks
  *
- * MutualInformationImageToImageMetric computes the mutual information
- * between a fixed and moving image to be registered.
+ * UnivariateEntropyImageToImageMetric computes sum of one dimensional 
+ * entropies along pixel stacks.
  *
- * This class is templated over the FixedImage type and the MovingImage type.
+ * This class is templated over the Image type.
  *
- * The fixed and moving images are set via methods SetFixedImage() and
- * SetMovingImage(). This metric makes use of user specified Transform and
- * Interpolator. The Transform is used to map points from the fixed image to
- * the moving image domain. The Interpolator is used to evaluate the image
- * intensity at user specified geometric points in the moving image.
- * The Transform and Interpolator are set via methods SetTransform() and
- * SetInterpolator().
+ * The images are set via methods SetImageArray(int, image. 
+ * This metric makes use of user specified Transform and
+ * Interpolator arrays. The Transform is used to map points from a given fixed region to
+ * the domain of each image. The Interpolator is used to evaluate the image
+ * intensity at user specified geometric points.
+ * The Transform and Interpolator arrays are set via methods SetTransformArray(int, transform) and
+ * SetInterpolatorArray(int, interpolator).
  *
- * \warning This metric assumes that the moving image has already been
+ * \warning This metric assumes that the images has already been
  * connected to the interpolator outside of this class. 
+ * MultiResolutionMultiImageRegistrationMethod can be used to handle the connections.
  *
- * The method GetValue() computes of the mutual information
+ * The method GetValue() computes of the sum of univariate entropies
  * while method GetValueAndDerivative() computes
- * both the mutual information and its derivatives with respect to the
+ * both the sum of univariate entropies and its derivatives with respect to the
  * transform parameters.
  *
  * The calculations are based on the method of Viola and Wells
  * where the probability density distributions are estimated using
  * Parzen windows.
  *
- * By default a Gaussian kernel is used in the density estimation.
- * Other option include Cauchy and spline-based. A user can specify
- * the kernel passing in a pointer a KernelFunction using the
- * SetKernelFunction() method.
+ * By default a Gaussian kernel is used in the density estimation
  *
- * Mutual information is estimated using two sample sets: one to calculate
- * the singular and joint pdf's and one to calculate the entropy
- * integral. By default 50 samples points are used in each set.
+ * A stochastic function evaluation is used to increase the computational efficiency.
+ * At each iteration a random sample set is drawn from the image 
+ * and the objective function is evaluated on that sample set.
+ * By default 100 samples points are used in each set.
  * Other values can be set via the SetNumberOfSpatialSamples() method.
  *
  * Quality of the density estimate depends on the choice of the
  * kernel's standard deviation. Optimal choice will depend on the images.
- * It is can be shown that around the optimal variance, the mutual
- * information estimate is relatively insensitive to small changes
- * of the standard deviation. In our experiments, we have found that a
- * standard deviation of 0.4 works well for images normalized to have a mean
- * of zero and standard deviation of 1.0.
- * The variance can be set via methods SetFixedImageStandardDeviation()
- * and SetMovingImageStandardDeviation().
+ * In our experiments, we have found that a
+ * standard deviation of 10 percent of the range of the intensity values works well.
+ * The variance can be set via method SetImageStandardDeviation().
  *
- * Implementaton of this class is based on:
- * Viola, P. and Wells III, W. (1997).
- * "Alignment by Maximization of Mutual Information"
- * International Journal of Computer Vision, 24(2):137-154
- *
- * \sa KernelFunction
- * \sa GaussianKernelFunction
  *
  * \ingroup RegistrationMetrics
  */
@@ -210,13 +198,6 @@ public:
 
 
 
-  /** Set/Get the number of fixed images */
-  itkSetMacro( NumberOfFixedImages, unsigned int );
-  itkGetMacro( NumberOfFixedImages, unsigned int );
-  
-
-
-
 protected:
   UnivariateEntropyMultiImageMetric();
   virtual ~UnivariateEntropyMultiImageMetric();
@@ -262,7 +243,6 @@ protected:
   mutable std::vector< ParametersType > m_TransformParametersArray;
 
   bool m_UseMask;
-  unsigned int m_NumberOfFixedImages;
 
   typedef ImageRandomNonRepeatingConstIteratorWithIndex < ImageType > RandomIterator;
   mutable std::vector<RandomIterator*> m_RandIterArray;

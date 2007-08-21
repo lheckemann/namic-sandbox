@@ -285,8 +285,8 @@ public:
   typedef   itk::SPSAOptimizer                  SPSAOptimizerType;
   typedef   SPSAOptimizerType  *                SPSAOptimizerPointerType;
   
-  typedef   itk::Image< InternalPixelType, Dimension >   InternalImageType;
-  typedef   itk::MultiImageMetric< InternalImageType>    MetricType;
+  typedef   itk::Image< InternalPixelType, Dimension >   ImageType;
+  typedef   itk::MultiImageMetric< ImageType>    MetricType;
   typedef   MetricType *                                 MetricPointer;
 
   void Execute(itk::Object * object, const itk::EventObject & event)
@@ -617,19 +617,13 @@ int main( int argc, char *argv[] )
         useNormalizeFilter ) )
     {
       std:: cout << "Error reading parameter file " << std::endl;
-      return 1;
+      return EXIT_FAILURE;
     }
   }
 
-  // Input Image type typedef
-  // const    unsigned int    Dimension = 3;
-  // typedef  unsigned short  PixelType;
-  typedef itk::Image< PixelType, Dimension >  ImageType;
-
   //Internal Image Type typedef
-  //typedef double InternalPixelType;
   typedef double ScalarType;
-  typedef itk::Image< InternalPixelType, Dimension > InternalImageType;
+  typedef itk::Image< InternalPixelType, Dimension > ImageType;
 
 
 
@@ -642,24 +636,24 @@ int main( int argc, char *argv[] )
 
 
   // Interpolator typedef
-  typedef itk::InterpolateImageFunction<InternalImageType,ScalarType        >  InterpolatorType;
-  typedef itk::LinearInterpolateImageFunction<InternalImageType,ScalarType        > LinearInterpolatorType;
+  typedef itk::InterpolateImageFunction<ImageType,ScalarType        >  InterpolatorType;
+  typedef itk::LinearInterpolateImageFunction<ImageType,ScalarType        > LinearInterpolatorType;
 
 
   
-  typedef itk::MultiImageMetric< InternalImageType>    MetricType;
-  typedef itk::VarianceMultiImageMetric< InternalImageType>    VarianceMetricType;
-  typedef itk::UnivariateEntropyMultiImageMetric< InternalImageType>    EntropyMetricType;
+  typedef itk::MultiImageMetric< ImageType>    MetricType;
+  typedef itk::VarianceMultiImageMetric< ImageType>    VarianceMetricType;
+  typedef itk::UnivariateEntropyMultiImageMetric< ImageType>    EntropyMetricType;
 
 
 
   typedef OptimizerType::ScalesType       OptimizerScalesType;
 
-  typedef itk::MultiResolutionMultiImageRegistrationMethod< InternalImageType >    RegistrationType;
+  typedef itk::MultiResolutionMultiImageRegistrationMethod< ImageType >    RegistrationType;
 
   typedef itk::RecursiveMultiResolutionPyramidImageFilter<
-                                    InternalImageType,
-                                    InternalImageType  >    ImagePyramidType;
+                                    ImageType,
+                                    ImageType  >    ImagePyramidType;
 
 
   //Mask related typedefs
@@ -679,7 +673,7 @@ int main( int argc, char *argv[] )
   if( N < 2 )
   {
     std::cout << "Not enough filenames " << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
   
   //generate filenames
@@ -759,7 +753,7 @@ int main( int argc, char *argv[] )
 
   // typedef for normalized image filters
   // the mean and the variance of the images normalized before registering
-  typedef itk::NormalizeImageFilter< ImageType, InternalImageType > NormalizeFilterType;
+  typedef itk::NormalizeImageFilter< ImageType, ImageType > NormalizeFilterType;
   typedef NormalizeFilterType::Pointer NormalizeFilterTypePointer;
   typedef vector<NormalizeFilterTypePointer> NormalizedFilterArrayType;
   
@@ -775,7 +769,7 @@ int main( int argc, char *argv[] )
   itk::TimeProbesCollectorBase collector;
   
   collector.Start( "1Image Read " );
-  collector.Start( "6Total Time " );
+  collector.Start( "5Total Time " );
 
 
   //Set the metric type
@@ -807,8 +801,8 @@ int main( int argc, char *argv[] )
       // assume linear by default
       interpolatorArray[i]  = LinearInterpolatorType::New();
 
-      registration->SetTransformArray(     affineTransformArray[i] ,i    );
-      registration->SetInterpolatorArray(     interpolatorArray[i] ,i    );
+      registration->SetTransformArray(i, affineTransformArray[i] );
+      registration->SetInterpolatorArray(i, interpolatorArray[i] );
 
       imageReader = ImageReaderType::New();
       imageReader->ReleaseDataFlagOn();
@@ -837,7 +831,7 @@ int main( int argc, char *argv[] )
         
         ImageMaskSpatialObject::Pointer maskImage = ImageMaskSpatialObject::New();
         maskImage->SetImage(connectedThreshold->GetOutput());
-        registration->SetImageMaskArray(maskImage, i);
+        registration->SetImageMaskArray(i, maskImage);
 
         cout << "message: Computing mask "  << endl;
       }
@@ -864,7 +858,7 @@ int main( int argc, char *argv[] )
         
         ImageMaskSpatialObject::Pointer maskImage = ImageMaskSpatialObject::New();
         maskImage->SetImage(neighborhoodConnected->GetOutput());
-        registration->SetImageMaskArray(maskImage, i);
+        registration->SetImageMaskArray(i, maskImage);
 
         cout << "message: Computing mask " << endl;
       }
@@ -891,7 +885,7 @@ int main( int argc, char *argv[] )
 
 
       //Set the input into the registration method
-      registration->SetImagePyramidArray(imagePyramidArray[i],i);
+      registration->SetImagePyramidArray(i, imagePyramidArray[i] );
 
     }
   }
@@ -975,7 +969,7 @@ int main( int argc, char *argv[] )
     }
     affineTransformArray[i]->SetCenter(center);
 
-    registration->SetInitialTransformParameters( affineTransformArray[i]->GetParameters(),i );
+    registration->SetInitialTransformParameters( i, affineTransformArray[i]->GetParameters() );
   }
 
   // Set the scales of the optimizer
@@ -1076,8 +1070,6 @@ int main( int argc, char *argv[] )
   }
 
   // Write the output images after affine transform
-  collector.Start( "5Image Write " );
-
   std::vector< itk::Transform< double, Dimension,Dimension >* > transformArray(N);
 
   for(int i=0; i< N; i++)
@@ -1105,8 +1097,6 @@ int main( int argc, char *argv[] )
     }
   }
 
-
-  collector.Stop( "5Image Write " );
 
   
 
@@ -1262,9 +1252,9 @@ int main( int argc, char *argv[] )
         bsplineTransformArrayLow[i]->SetParameters( bsplineParametersArrayLow[i] );
 
         // register Bspline pointers with the registration method
-        registration->SetInitialTransformParameters( bsplineTransformArrayLow[i]->GetParameters(), i);
-        registration->SetTransformArray(     bsplineTransformArrayLow[i] ,i    );
-        metric->SetBSplineTransformArray(     bsplineTransformArrayLow[i] ,i    );
+        registration->SetInitialTransformParameters( i, bsplineTransformArrayLow[i]->GetParameters() );
+        registration->SetTransformArray(i, bsplineTransformArrayLow[i] );
+        metric->SetBSplineTransformArray(i, bsplineTransformArrayLow[i] );
 
 
       }
@@ -1341,8 +1331,6 @@ int main( int argc, char *argv[] )
     }
 
     // Write the output images after bspline transform
-    collector.Start( "5Image Write " );
-
 
     
     for(int i=0; i< N; i++)
@@ -1371,7 +1359,6 @@ int main( int argc, char *argv[] )
         transformFileWriter->Update();
       }
     }
-    collector.Stop( "5Image Write " );
 
     
     // Using the result of the low grid Bspline registration
@@ -1548,9 +1535,9 @@ int main( int argc, char *argv[] )
 
 
           // Set initial parameters of the registration
-          registration->SetInitialTransformParameters( bsplineTransformArrayHigh[i]->GetParameters() , i );
-          registration->SetTransformArray( bsplineTransformArrayHigh[i], i );
-          metric->SetBSplineTransformArray(     bsplineTransformArrayHigh[i] ,i    );
+          registration->SetInitialTransformParameters( i, bsplineTransformArrayHigh[i]->GetParameters() );
+          registration->SetTransformArray(i, bsplineTransformArrayHigh[i] );
+          metric->SetBSplineTransformArray(i, bsplineTransformArrayHigh[i] );
 
         }
 
@@ -1612,8 +1599,6 @@ int main( int argc, char *argv[] )
         }
         
         // Write the output images after bspline transform
-        collector.Start( "5Image Write " );
-
 
         for(int i=0; i< N; i++)
         {
@@ -1639,8 +1624,6 @@ int main( int argc, char *argv[] )
           transformFileWriter->SetInput(bsplineTransformArrayHigh[i]);
           transformFileWriter->Update();
         }
-        collector.Stop( "5Image Write " );
-
       }
 
     } // End of BsplineHigh registration
@@ -1657,7 +1640,7 @@ int main( int argc, char *argv[] )
   collector.Report();
 
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 
@@ -1704,7 +1687,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
   if( initFile.fail() )
   {
     std::cout << "could not open file: " << initFname << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   while( !initFile.eof() )
@@ -2044,7 +2027,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
   }
 
   initFile.close();
-  return 0;
+  return EXIT_SUCCESS;
 
 }
 
