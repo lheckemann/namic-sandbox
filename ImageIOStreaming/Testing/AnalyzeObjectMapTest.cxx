@@ -234,7 +234,7 @@ int main( int argc, char ** argv )
 
   try
     {
-    writer->Update();
+    FourDimensionWriter->Update();
     }
   catch( itk::ExceptionObject & err )
     {
@@ -247,24 +247,7 @@ int main( int argc, char ** argv )
   FourDimensionReader->SetFileName("blankImage.obj");
   try
     {
-    readerThree->Update();
-    }
-  catch( itk::ExceptionObject & err )
-    {
-    std::cerr << "ExceptionObject caught !" << std::endl
-    << err << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  itk::AnalyzeObjectMap< itk::Image<double, 3> >::Pointer DoubleObjectMap = itk::AnalyzeObjectMap< itk::Image<double, 3> >::New();
-
-DoubleWriterType::Pointer DoubleWriter = DoubleWriterType::New();
-DoubleWriter->SetInput(DoubleObjectMap);
-DoubleWriter->SetFileName("DoulbeObjectMap.obj");
-
-   try
-    {
-    DoubleWriter->Update();
+    FourDimensionReader->Update();
     }
   catch( itk::ExceptionObject & err )
     {
