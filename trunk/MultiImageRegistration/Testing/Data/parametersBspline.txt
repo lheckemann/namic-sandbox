@@ -30,6 +30,20 @@
 
 
 #
+# defines the initial bspline grid size along each dimension
+#
+    -bsplineInitialGridSize  8
+     
+
+#
+# When using Bspline grid refinement, this options defines how many number 
+# of refinements to use.
+# After each level number B-spline control points are doubled (8->16->32)
+#
+
+    -numberOfBsplineLevel 2
+
+#
 # All objective functions make use of stochastic subsampline
 # following options define the number of spatial samples
 # as percentage of the total number of voxels in the image
@@ -51,9 +65,9 @@
 #  we used 3 levels, decrease the number of levels if the
 #  resolution of the input image is low )
    
--multiLevelAffine 3
--multiLevelBspline 3
--multiLevelBsplineHigh 3
+     -multiLevelAffine 3
+     -multiLevelBspline 3
+     -multiLevelBsplineHigh 3
  
  
  
@@ -82,42 +96,19 @@
  
  
 
-#
-# defines the initial bspline grid size along each dimension
-#
-    -bsplineInitialGridSize  8
-     
-
-#
-# When using Bspline grid refinement, this options defines how many number 
-# of refinements to use.
-# After each level number B-spline control points are doubled (8->16->32)
-#
-
-    -numberOfBsplineLevel 2
-    
-
 
 #
 # Currently there are three optimizer types. 
 # "gradient" is a fixed step gradient descent search. 
 # "lineSearch" is gradient descent search where step size is determined using line search.
 #
-# optimizerType gradient/lineSearch/SPSA/simplex
+# optimizerType gradient/lineSearch/SPSA
 #
     
--optimizerType lineSearch
+    -optimizerType lineSearch
     
         
     
-
-   
-############################################
-#
-# ADVANCED OPTIONS
-#
-############################################
-
 #
 #  Specifies the percentage increase in the sampling rate
 #  after each multiresolution level
@@ -140,9 +131,36 @@
 #
     -affineMultiScaleStepLengthIncrease 4.0 
     -bsplineMultiScaleStepLengthIncrease 4.0
+
+#
+# the width of the parzen window to compute the entropy
+# used by all metric types computing entropy
+#
+    -parzenWindowStandardDeviation 10.0
+
+   
+#
+#  Use normalize filter to normalize input images 
+#  to have mean zero and standard deviation 1.
+#
+   -useNormalizeFilter off
     
+#
+#  Write 3D images to file. 
+#  turn off to save disk space
+#
+
+   -write3DImages on
 
 
+############################################
+#
+# ADVANCED OPTIONS
+#
+############################################
+
+
+    
 # 
 # the level of registration to be started
 # Use this option if you want to start the registration 
@@ -153,7 +171,7 @@
 # 2 : Bspline parameters are read from file (initial size should match the transform from file )
 # 
 
--StartLevel 0
+    -StartLevel 0
 
 
 
@@ -199,17 +217,3 @@
 #    
     -maximumLineIteration 6
     
-    
-    
-    
-#
-# the width of the parzen window to compute the entropy
-# used by all metric types computing entropy
-#
-    -parzenWindowStandardDeviation 10.0
-    
-#
-#  Use normalize filter to normalize input images 
-#  to have mean zero and standard deviation 1.
-#
-   -useNormalizeFilter off
