@@ -504,10 +504,8 @@ void
 UnivariateEntropyMultiImageMetric < TFixedImage >
 ::BeforeGetThreadedValueAndDerivative(const ParametersType & parameters) const
 {
-  // collect sample set
-  this->SampleFixedImageDomain();
 
-  // Loop over images
+  // update parameters
   for (unsigned int i = 0; i < this->m_NumberOfImages; i++)
   {
     //Copy the parameters of the current transform
@@ -517,6 +515,9 @@ UnivariateEntropyMultiImageMetric < TFixedImage >
     }
     this->m_TransformArray[i]->SetParameters(m_TransformParametersArray[i]);
   }
+  
+  // collect sample set
+  this->SampleFixedImageDomain();
 
 }
 

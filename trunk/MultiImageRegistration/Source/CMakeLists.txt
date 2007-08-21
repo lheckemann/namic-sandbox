@@ -26,8 +26,8 @@ TARGET_LINK_LIBRARIES(GroupwiseRegistration ITKCommon ITKNumerics ITKIO ITKBasic
 ADD_EXECUTABLE(TransformImage TransformImage.cxx )
 TARGET_LINK_LIBRARIES(TransformImage ITKCommon ITKBasicFilters ITKIO)
 
-#ADD_EXECUTABLE(ComputeDice ComputeDice.cxx )
-#TARGET_LINK_LIBRARIES(ComputeDice ITKCommon ITKBasicFilters ITKIO)
+ADD_EXECUTABLE(ComputeDice ComputeDice.cxx )
+TARGET_LINK_LIBRARIES(ComputeDice ITKCommon ITKBasicFilters ITKIO)
 
 ADD_EXECUTABLE(ComputeOutputs ComputeOutputs.cxx )
 TARGET_LINK_LIBRARIES(ComputeOutputs ITKCommon ITKBasicFilters ITKIO)
@@ -38,5 +38,5 @@ TARGET_LINK_LIBRARIES(CreateImageSetAffine ITKCommon ITKBasicFilters ITKIO ITKSt
 ADD_EXECUTABLE(CreateImageSetBspline CreateImageSetBspline.cxx )
 TARGET_LINK_LIBRARIES(CreateImageSetBspline ITKCommon ITKBasicFilters ITKIO ITKStatistics)
 
-#ADD_EXECUTABLE(ComputeJacobianField ComputeJacobianField.cxx )
-#TARGET_LINK_LIBRARIES(ComputeJacobianField ITKCommon ITKBasicFilters ITKIO ITKStatistics)
+ADD_EXECUTABLE(ComputeJacobianField ComputeJacobianField.cxx )
+TARGET_LINK_LIBRARIES(ComputeJacobianField ITKCommon ITKBasicFilters ITKIO ITKStatistics)
