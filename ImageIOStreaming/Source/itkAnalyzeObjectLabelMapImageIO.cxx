@@ -440,11 +440,24 @@ AnalyzeObjectLabelMapImageIO
     }
     itk::AnalyzeObjectEntryArrayType my_reference;
     
-    int header[6];
+    int header[6] = {1};
     header[0]=VERSION7;
-    header[1]=this->GetDimensions(0);
-    header[2]=this->GetDimensions(1);
-    header[3]=this->GetDimensions(2);
+    switch(this->GetNumberOfDimensions())
+    {
+      case 4:
+        header[5] = this->GetDimensions(3);
+      case 3:
+        header[3] = this->GetDimensions(2);
+      case 2:
+        header[2] = this->GetDimensions(1);
+      case 1:
+        header[1] = this->GetDimensions(0);
+        break;
+      default:
+        itkDebugMacro(<<"There is an error in writing the header for the Dimensions");
+        exit(-1);
+    }
+
     bool MetaDataCheck = itk::ExposeMetaData<itk::AnalyzeObjectEntryArrayType>(this->GetMetaDataDictionary(),ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY, my_reference);
     if(MetaDataCheck)
     {
@@ -454,7 +467,6 @@ AnalyzeObjectLabelMapImageIO
     {
       header[4] = 256;
     }
-    header[5]=1;
 
     //All object maps are written in BigEndian format as required by the AnalyzeObjectMap documentation.
     bool NeedByteSwap=itk::ByteSwapper<int>::SystemIsLittleEndian();
