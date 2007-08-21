@@ -518,7 +518,7 @@ AnalyzeObjectLabelMapImageIO
     {
       // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
       // not affect the current object itself
-      AnalyzeObjectEntry *ObjectWrite = AnalyzeObjectEntry::New();
+      AnalyzeObjectEntry::Pointer ObjectWrite = AnalyzeObjectEntry::New();
       ObjectWrite->SetName("Blank Object");
       if (NeedByteSwap == true)
       {
@@ -555,7 +555,23 @@ AnalyzeObjectLabelMapImageIO
     itk::ExposeMetaData<itk::AnalyzeObjectEntryArrayType>(this->GetMetaDataDictionary(),ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY, my_reference);
 
   // Encoding the run length encoded raw data into an unsigned char volume
-    const int VolumeSize=this->GetDimensions(0)*this->GetDimensions(1)*this->GetDimensions(2);
+    int VolumeSize;
+    if(this->GetNumberOfDimensions() >3)
+    {
+      VolumeSize = this->GetDimensions(0) * this->GetDimensions(1) * this->GetDimensions(2) *this->GetDimensions(3);
+    }
+    else if(this->GetNumberOfDimensions() == 3)
+    {
+      VolumeSize = this->GetDimensions(0) * this->GetDimensions(1) * this->GetDimensions(2);
+    }
+    else if(this->GetNumberOfDimensions() == 2)
+    {
+      VolumeSize = this->GetDimensions(0) * this->GetDimensions(1);
+    }
+    else
+    {
+      VolumeSize = this->GetDimensions(0);
+    }
     const int PlaneSize = this->GetDimensions(0)*this->GetDimensions(1);
     int bufferindex=0;
     int planeindex=0;
