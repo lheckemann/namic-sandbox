@@ -33,15 +33,16 @@
 int main( int argc, char ** argv )
 {
   int error_count = 0;
-  if ( argc != 6 )
+  if ( argc != 7 )
     {
-    std::cerr << "USAGE: " << argv[0] << "<inputFileName> <outputFileName> <Nifti file> <NewObjectMapFileName> <oneObjectEntryFileName>" << std::endl;
+    std::cerr << "USAGE: " << argv[0] << "<inputFileName> <outputFileName> <Nifti file> <NewObjectMapFileName> <oneObjectEntryFileName> <blankImageFileName>" << std::endl;
     }
   const char *InputObjectFileName = argv[1];
   const char *OuptputObjectFileName = argv[2];
   const char *NiftiFile = argv[3];
   const char *CreatingObject = argv[4];
   const char *oneObjectEntryFileName = argv[5];
+  const char *blankImageFileName = argv[6];
   typedef unsigned char       InputPixelType;
   typedef unsigned char       OutputPixelType;
   const   unsigned int        Dimension = 3;
@@ -230,7 +231,7 @@ int main( int argc, char ** argv )
   BlankImage->FillBuffer(50);
   FourDimensionWriterType::Pointer FourDimensionWriter = FourDimensionWriterType::New();
   FourDimensionWriter->SetInput(BlankImage);
-  FourDimensionWriter->SetFileName("blankImage.obj");
+  FourDimensionWriter->SetFileName(blankImageFileName);
 
   try
     {
@@ -244,7 +245,7 @@ int main( int argc, char ** argv )
     }
 
   FourDimensionReaderType::Pointer FourDimensionReader = FourDimensionReaderType::New();
-  FourDimensionReader->SetFileName("blankImage.obj");
+  FourDimensionReader->SetFileName(blankImageFileName);
   try
     {
     FourDimensionReader->Update();
