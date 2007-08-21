@@ -23,7 +23,7 @@
 #include "itkCovariantVector.h"
 
     
-#include <ctime>    // For time()
+#include <ctime> 
 #include "vnl/vnl_math.h"
 #include "itkGaussianKernelFunction.h"
 #include <cmath>
@@ -36,18 +36,13 @@ namespace itk
  */
 template < class TFixedImage >
 UnivariateEntropyMultiImageMetric < TFixedImage >::
-    UnivariateEntropyMultiImageMetric()
+UnivariateEntropyMultiImageMetric()
 {
 
   m_ImageStandardDeviation = 0.4;
 
-  // Following initialization is related to
-  // calculating image derivatives
-  this->SetComputeGradient (false);  // don't use the default gradient for now
-
   this->m_BSplineTransformArray.resize(0);
-  
-
+ 
   m_UseMask = false;
   m_NumberOfParametersPerdimension = 0;
 
@@ -60,9 +55,6 @@ template < class TFixedImage >
 UnivariateEntropyMultiImageMetric < TFixedImage >::
 ~UnivariateEntropyMultiImageMetric()
 {
-  
-
-
 }
 
 
@@ -87,11 +79,6 @@ UnivariateEntropyMultiImageMetric<TFixedImage>
         dynamic_cast < KernelFunction * >(GaussianKernelFunction::New().GetPointer ());
   }
 
-  if (this->m_NumberOfSpatialSamples == 0)
-  {
-    this->SetNumberOfSpatialSamples(50);
-  }
-
   //check whether there is a mask
   for (unsigned int j = 0; j < this->m_NumberOfImages; j++)
   {
@@ -106,7 +93,7 @@ UnivariateEntropyMultiImageMetric<TFixedImage>
   m_TransformParametersArray.resize(this->m_NumberOfImages);
   for(unsigned int i=0; i<this->m_NumberOfImages; i++)
   {
-    m_TransformParametersArray[i].set_size(this->numberOfParameters);
+    m_TransformParametersArray[i].set_size(this->m_NumberOfParameters);
   }
 
   m_value.SetSize( this->m_NumberOfThreads );
@@ -118,7 +105,7 @@ UnivariateEntropyMultiImageMetric<TFixedImage>
     m_DerivativesArray[i].resize(this->m_NumberOfImages);
     for(unsigned int j=0; j<this->m_NumberOfImages; j++)
     {
-      m_DerivativesArray[i][j].SetSize(this->numberOfParameters);
+      m_DerivativesArray[i][j].SetSize(this->m_NumberOfParameters);
     }
   }
 
@@ -152,15 +139,6 @@ UnivariateEntropyMultiImageMetric<TFixedImage>
   this->SampleFixedImageDomain();
   
   // Initialize the variables for regularization term
-  if( this->m_UserBsplineDefined && this->m_Regularization &&
-      strcmp(this->m_TransformArray[0]->GetNameOfClass(), "BSplineDeformableTransformOpt") )
-  {
-    itkExceptionMacro(<<"Cannot use regularization with transforms" <<
-        " other than BSplineDeformableTransformOpt" );
-  }
-
-
-  // Initialize the variables for regularization term
   if( this->m_UserBsplineDefined )
   {
     // Get nonzero indexes
@@ -168,38 +146,8 @@ UnivariateEntropyMultiImageMetric<TFixedImage>
     bsplineIndexes.set_size(numberOfWeights);
     m_NumberOfParametersPerdimension = this->m_BSplineTransformArray[0]->GetNumberOfParametersPerDimension();
   }
-  else
-  {
-    this->m_Regularization = false;
-  }
 
-  // Initialize the variables for regularization term
-  if( this->m_Regularization &&
-      strcmp(this->m_TransformArray[0]->GetNameOfClass(), "BSplineDeformableTransformOpt") )
-  {
-    itkExceptionMacro(<<"Cannot use regularization with transforms" <<
-        " other than BSplineDeformableTransform" );
-  }
 
-  // If using regularization check that the Bspline Transform is supplied
-  if( this->m_Regularization &&
-      !strcmp(this->m_TransformArray[0]->GetNameOfClass(), "BSplineDeformableTransformOpt") )
-  {
-    for(unsigned int i=0; i<this->m_NumberOfImages;i++)
-    {
-      if( !this->m_BSplineTransformArray[i] )
-      {
-        itkExceptionMacro(<<"Bspline Transform Array not initialized" );
-      }
-      
-      if( (void *) this->m_BSplineTransformArray[i] != (void*)this->m_TransformArray[i])
-      {
-        itkExceptionMacro(<<"While using Bspline regularization transform array and Bspline array should have the pointers to the same transform" );
-      }
-    }
-
-  }
-  
 }
 
 /*
@@ -210,7 +158,6 @@ void
 UnivariateEntropyMultiImageMetric<TFixedImage>
 ::Finalize(void)
 {
-
  //Finalize superclass
   Superclass::Finalize();
 }
@@ -222,9 +169,8 @@ PrintSelf (std::ostream & os, Indent indent) const
   Superclass::PrintSelf (os, indent);
   os << indent << "NumberOfSpatialSamples: ";
   os << this->m_NumberOfSpatialSamples << std::endl;
-  os << indent << "FixedImageStandardDeviation: ";
+  os << indent << "ImageStandardDeviation: ";
   os << m_ImageStandardDeviation << std::endl;
-  os << indent << "MovingImageStandardDeviation: ";
 }
 
 
@@ -244,13 +190,12 @@ UnivariateEntropyMultiImageMetric< TFixedImage >
 
   str->Metric->ThreadedSampleFixedImageDomain( threadId );
 
-
   return ITK_THREAD_RETURN_VALUE;
 }
 
 
 /*
- * Uniformly sample the fixed image domain. Each sample consists of:
+ *  Uniformly sample the fixed image domain. Each sample consists of:
  *  - the sampled point
  *  - Corresponding moving image intensity values
  */
@@ -263,13 +208,16 @@ ThreadedSampleFixedImageDomain( int threadID ) const
 
   // Number of random picks made from the portion of fixed image within the fixed mask
   unsigned long numberOfFixedImagePixelsVisited = 0;
-  unsigned long dryRunTolerance = (3*this->GetFixedImageRegion().GetNumberOfPixels()) / this->m_NumberOfThreads;
+  unsigned long dryRunTolerance = (3*this->GetFixedImageRegion().GetNumberOfPixels()) 
+                                   / this->m_NumberOfThreads;
 
-  std::vector<MovingImagePointType>   mappedPointsArray(this->m_NumberOfImages);
+  std::vector<ImagePointType>   mappedPointsArray(this->m_NumberOfImages);
+  
   for(unsigned long int i=threadID; i<this->m_NumberOfSpatialSamples; i += this->m_NumberOfThreads)
   {
     // Get sampled index
-    FixedImageIndexType index = m_RandIterArray[threadID]->GetIndex();
+    ImageIndexType index = m_RandIterArray[threadID]->GetIndex();
+    
     // Translate index to point
     this->m_ImageArray[0]->TransformIndexToPhysicalPoint(index, this->m_Sample[i].FixedImagePoint);
 
@@ -281,7 +229,6 @@ ThreadedSampleFixedImageDomain( int threadID ) const
       // region.. Too may samples mapped outside.. go change your transform
       itkExceptionMacro(<<"Too many samples mapped outside the moving buffer");
     }
-
 
     //Check whether all points are inside mask
     bool allPointsInside = true;
@@ -369,7 +316,6 @@ GetValue(const ParametersType & parameters) const
   ThreadStruct str;
   str.Metric =  this;
 
-
   this->GetMultiThreader()->SetSingleMethod(ThreaderCallbackGetValue, &str);
   
   // multithread the execution
@@ -410,14 +356,14 @@ void
 UnivariateEntropyMultiImageMetric < TFixedImage >
 ::BeforeGetThreadedValue(const ParametersType & parameters) const
 {
-  //Make sure that each transform parameters are updated
+  // Make sure that each transform parameters are updated
   // Loop over images
   for( unsigned int i = 0; i < this->m_NumberOfImages; i++)
   {
     //Copy the parameters of the current transform
-    for (unsigned int j = 0; j < this->numberOfParameters; j++)
+    for (unsigned int j = 0; j < this->m_NumberOfParameters; j++)
     {
-      m_TransformParametersArray[i][j] = parameters[this->numberOfParameters * i + j];
+      m_TransformParametersArray[i][j] = parameters[this->m_NumberOfParameters * i + j];
     }
     this->m_TransformArray[i]->SetParameters(m_TransformParametersArray[i]);
   }
@@ -435,7 +381,7 @@ UnivariateEntropyMultiImageMetric < TFixedImage >
 {
 
   // Update intensity values
-  MovingImagePointType mappedPoint;
+  ImagePointType mappedPoint;
   for(unsigned long int i=threadId; i< this->m_NumberOfSpatialSamples; i += this->m_NumberOfThreads )
   {
     for(unsigned int j=0; j<this->m_NumberOfImages; j++)
@@ -558,7 +504,6 @@ void
 UnivariateEntropyMultiImageMetric < TFixedImage >
 ::BeforeGetThreadedValueAndDerivative(const ParametersType & parameters) const
 {
-  // cout << "checking derivative" << endl;
   // collect sample set
   this->SampleFixedImageDomain();
 
@@ -566,11 +511,10 @@ UnivariateEntropyMultiImageMetric < TFixedImage >
   for (unsigned int i = 0; i < this->m_NumberOfImages; i++)
   {
     //Copy the parameters of the current transform
-    for (unsigned int j = 0; j < this->numberOfParameters; j++)
+    for (unsigned int j = 0; j < this->m_NumberOfParameters; j++)
     {
-      m_TransformParametersArray[i][j] = parameters[this->numberOfParameters * i + j];
+      m_TransformParametersArray[i][j] = parameters[this->m_NumberOfParameters * i + j];
     }
-    // cout << currentParam << endl;
     this->m_TransformArray[i]->SetParameters(m_TransformParametersArray[i]);
   }
 
@@ -588,7 +532,7 @@ void UnivariateEntropyMultiImageMetric < TFixedImage >
 
   value = NumericTraits< RealType >::Zero;
 
-  derivative.set_size(this->numberOfParameters * this->m_NumberOfImages);
+  derivative.set_size(this->m_NumberOfParameters * this->m_NumberOfImages);
   derivative.Fill (0.0);
 
   // Sum over the values returned by threads
@@ -597,9 +541,9 @@ void UnivariateEntropyMultiImageMetric < TFixedImage >
     value += m_value[i];
     for(unsigned int j=0; j<this->m_NumberOfImages; j++)
     {
-      for(unsigned int k=0; k<this->numberOfParameters; k++)
+      for(unsigned int k=0; k<this->m_NumberOfParameters; k++)
       {
-        derivative[j * this->numberOfParameters + k] += m_DerivativesArray[i][j][k]; 
+        derivative[j * this->m_NumberOfParameters + k] += m_DerivativesArray[i][j][k]; 
       }
     }
   }
@@ -609,20 +553,20 @@ void UnivariateEntropyMultiImageMetric < TFixedImage >
   
   //Set the mean to zero
   //Remove mean
-  DerivativeType sum (this->numberOfParameters);
+  DerivativeType sum (this->m_NumberOfParameters);
   sum.Fill(0.0);
   for (unsigned int i = 0; i < this->m_NumberOfImages; i++)
   {
-    for (unsigned int j = 0; j < this->numberOfParameters; j++)
+    for (unsigned int j = 0; j < this->m_NumberOfParameters; j++)
     {
-      sum[j] += derivative[i * this->numberOfParameters + j];
+      sum[j] += derivative[i * this->m_NumberOfParameters + j];
     }
   }
 
   
-  for (unsigned int i = 0; i < this->m_NumberOfImages * this->numberOfParameters; i++)
+  for (unsigned int i = 0; i < this->m_NumberOfImages * this->m_NumberOfParameters; i++)
   {
-    derivative[i] -= sum[i % this->numberOfParameters] / (double) this->m_NumberOfImages;
+    derivative[i] -= sum[i % this->m_NumberOfParameters] / (double) this->m_NumberOfImages;
   }
 
 }
@@ -684,7 +628,11 @@ UnivariateEntropyMultiImageMetric < TFixedImage >
       }
       
       // Get the derivative for this sample
-      UpdateSingleImageParameters( m_DerivativesArray[threadId][l], this->m_Sample[x], weight, l, threadId);
+      UpdateSingleImageParameters( m_DerivativesArray[threadId][l], 
+                                   this->m_Sample[x], 
+                                   weight, 
+                                   l, 
+                                   threadId);
     }
   }  // End of sample loop
 
@@ -708,29 +656,17 @@ void UnivariateEntropyMultiImageMetric < TFixedImage >
 }
 
 
-
-/*
- * Calculate derivatives of the image intensity with respect
- * to the transform parmeters.
- *
- * This should really be done by the mapper.
- *
- * This is a temporary solution until this feature is implemented
- * in the mapper. This solution only works for any transform
- * that support GetJacobian()
- */
 template < class TFixedImage >
 void UnivariateEntropyMultiImageMetric < TFixedImage >::
 UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSample& sample, const RealType& weight, const int& imageNumber, const int& threadID) const
 {
 
   const CovarientType gradient = m_DerivativeCalculator[imageNumber]->Evaluate(
-                                                this->m_TransformArray[imageNumber]->TransformPoint (sample.FixedImagePoint) );
-  //typedef FixedArray < double, MovingImageDimension > FixedArrayType;
-  //const FixedArrayType gradient = this->m_GradientInterpolatorArray[imageNumber]->Evaluate(sample.mappedPointsArray[imageNumber]);
+                                                this->m_TransformArray[imageNumber]->TransformPoint
+                                                (sample.FixedImagePoint) );
+
 
   typedef typename TransformType::JacobianType JacobianType;
-
 
   if(this->m_UserBsplineDefined == false )
   {
@@ -738,10 +674,10 @@ UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSamp
         this->m_TransformArray[imageNumber]->GetJacobian( sample.FixedImagePoint);
 
     double currentValue;
-    for (unsigned int k = 0; k < this->numberOfParameters; k++)
+    for (unsigned int k = 0; k < this->m_NumberOfParameters; k++)
     {
       currentValue = 0.0;
-      for (unsigned int j = 0; j < MovingImageDimension; j++)
+      for (unsigned int j = 0; j < ImageDimension; j++)
       {
         currentValue += jacobian[j][k] * gradient[j];
       }
@@ -755,15 +691,17 @@ UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSamp
     // Get nonzero indexes
     typedef itk::Array<RealType> WeigtsType;
     WeigtsType bsplineWeights(numberOfWeights);
-    this->m_BSplineTransformArray[imageNumber]->GetJacobian(sample.FixedImagePoint, bsplineIndexes, bsplineWeights);
+    this->m_BSplineTransformArray[imageNumber]->GetJacobian(
+                                sample.FixedImagePoint, bsplineIndexes, bsplineWeights);
 
     for (int k = 0; k < numberOfWeights; k++)
     {
 
-        for (unsigned int j = 0; j < MovingImageDimension; j++)
+        for (unsigned int j = 0; j < ImageDimension; j++)
         {
 
-          inputDerivative[j*m_NumberOfParametersPerdimension + bsplineIndexes[k]] += bsplineWeights[k] * gradient[j] * weight;
+          inputDerivative[j*m_NumberOfParametersPerdimension + bsplineIndexes[k]] += 
+                                               bsplineWeights[k] * gradient[j] * weight;
         }
 
     }
@@ -774,7 +712,7 @@ UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSamp
 
 
 
-}        // end namespace itk
+}// end namespace itk
 
 
 #endif

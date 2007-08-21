@@ -34,15 +34,11 @@ MultiImageMetric<TImage>
   
   m_NumberOfSpatialSamples = 100;
 
-  m_ComputeGradient = false; // metric does not compute gradient by default
   m_UserBsplineDefined = false;
-  m_CorrectInterpolationArtefact = false;
   m_NumberOfImages = 0;
   m_NumberOfPixelsCounted = 0; // initialize to zero
-  //  m_GradientImage = NULL; // computed at initialization
 
   m_ImageArray.resize(0);
-  m_GradientImageArray.resize(0);
   m_InterpolatorArray.resize(0);
   m_TransformArray.resize(0);
   m_ImageMaskArray.resize(0);
@@ -50,8 +46,6 @@ MultiImageMetric<TImage>
   m_Threader = MultiThreader::New();
   m_NumberOfThreads = m_Threader->GetNumberOfThreads();
 
-  m_Regularization = false;
-  m_RegularizationFactor = 1e-5;
 }
 
 
@@ -100,6 +94,7 @@ MultiImageMetric<TImage>
   // Set Number of Threads
   this->GetMultiThreader()->SetNumberOfThreads(m_NumberOfThreads);
 
+  // Check for components
   for(unsigned int i=0; i<this->m_NumberOfImages; i++)
   {
     if( !m_TransformArray[i] )
@@ -107,7 +102,6 @@ MultiImageMetric<TImage>
       itkExceptionMacro(<<"Transform is not present");
     }
 
-  
     if( !m_InterpolatorArray[i] )
     {
       itkExceptionMacro(<<"Interpolator is not present");
@@ -137,7 +131,7 @@ MultiImageMetric<TImage>
     m_InterpolatorArray[i]->SetInputImage( m_ImageArray[i] );
   }
 
-  numberOfParameters = m_TransformArray[0]->GetNumberOfParameters();
+  m_NumberOfParameters = m_TransformArray[0]->GetNumberOfParameters();
 
 
   // allocate new sample array
@@ -145,10 +139,9 @@ MultiImageMetric<TImage>
   for (unsigned int i = 0; i < this->m_NumberOfSpatialSamples; i++)
   {
     this->m_Sample[i].imageValueArray.set_size (this->m_NumberOfImages);
-    //this->m_Sample[i].mappedPointsArray.resize(this->m_NumberOfImages);
   }
   
-  // Use optimized Bspline derivatives if the tranform type is UserBSplie
+  // Use optimized Bspline derivatives 
   if( !strcmp(this->m_TransformArray[0]->GetNameOfClass(), "BSplineDeformableTransformOpt") )
   {
     this->m_UserBsplineDefined = true;
@@ -205,16 +198,12 @@ MultiImageMetric<TImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf( os, indent );
-  os << indent << "ComputeGradient: "
-     << static_cast<typename NumericTraits<bool>::PrintType>(m_ComputeGradient)
-     << std::endl;
   for( unsigned int i=0; i<this->m_NumberOfImages; i++)
   {
-    os << indent << "Moving Image: "  << i << " " << m_ImageArray[i].GetPointer()  << std::endl;
-    //os << indent << "Gradient Image: "<< i << " " << m_GradientImageArray[i].GetPointer()   << std::endl;
+    os << indent << "Image: "  << i << " " << m_ImageArray[i].GetPointer()  << std::endl;
     os << indent << "Transform:    "  << i << " " << m_TransformArray[i].GetPointer()    << std::endl;
     os << indent << "Interpolator: "  << i << " " << m_InterpolatorArray[i].GetPointer() << std::endl;
-    os << indent << "Moving Image Mask: " << i << " " << m_ImageMaskArray[i].GetPointer() << std::endl;
+    os << indent << "Image Mask: " << i << " " << m_ImageMaskArray[i].GetPointer() << std::endl;
   }
   os << indent << "FixedImageRegion: " << m_FixedImageRegion << std::endl;
   os << indent << "Number of Pixels Counted: " << m_NumberOfPixelsCounted << std::endl;
@@ -228,7 +217,6 @@ MultiImageMetric<TImage>
 {
 
   m_ImageArray.resize(N);
-  m_GradientImageArray.resize(N);
   m_InterpolatorArray.resize(N);
   m_TransformArray.resize(N);
   m_ImageMaskArray.resize(N);
@@ -237,7 +225,6 @@ MultiImageMetric<TImage>
   for(int i=m_NumberOfImages; i<N; i++ )
   {
     m_ImageArray[i] =0;
-    m_GradientImageArray[i]=0;
     m_InterpolatorArray[i]=0;
     m_TransformArray[i]=0;
     m_ImageMaskArray[i]=0;
@@ -277,8 +264,6 @@ void
 MultiImageMetric < TImage >
 ::GetThreadedValue ( int itkNotUsed( threadId ) ) const
 {
-  //int x;
-  //std::cin >> x;
 }
 
 
@@ -327,10 +312,8 @@ MultiImageMetric< TImage >
   ThreadStruct *str;
 
   int threadId;
-  int threadCount;
 
   threadId = ((MultiThreader::ThreadInfoStruct *)(arg))->ThreadID;
-  threadCount = ((MultiThreader::ThreadInfoStruct *)(arg))->NumberOfThreads;
 
   str = (ThreadStruct *)(((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
 

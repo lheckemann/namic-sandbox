@@ -57,7 +57,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
   if( initFile.fail() )
   {
     std::cout << "could not open file: " << initFname << std::endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   while( !initFile.eof() )
@@ -121,7 +121,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
   }
 
   initFile.close();
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // And function
@@ -189,7 +189,7 @@ int main( int argc, char * argv[] )
        ) 
     {
       std:: cout << "Error reading parameter file " << std::endl;
-      return 1;
+      return EXIT_FAILURE;
     }
   }
 
@@ -199,7 +199,7 @@ int main( int argc, char * argv[] )
   if( (unsigned int)N != labelFileNames.size())
   {
     cout << " Number of label files do not match number of input files " << endl;
-    return 1;
+    return EXIT_FAILURE;
   }
 
   typedef itk::Image< PixelType,  Dimension >   ImageType;

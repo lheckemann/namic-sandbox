@@ -93,7 +93,6 @@ public:
   /** Standard class typedefs. */
   typedef UnivariateEntropyMultiImageMetric  Self;
   typedef MultiImageMetric< TFixedImage > Superclass;
-  //typedef CongealingMetric< TFixedImage, TFixedImage > Superclass;
   typedef SmartPointer<Self>  Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
 
@@ -114,9 +113,6 @@ public:
   typedef typename Superclass::ParametersArray          ParametersArray;
   typedef typename Superclass::ImageType                ImageType;
   typedef typename Superclass::ImageConstPointer        ImageConstPointer;
-  typedef typename Superclass::GradientImageType        GradientImageType;
-  typedef typename Superclass::GradientImagePointer     GradientImagePointer;
-  typedef typename Superclass::GradientPixelType        GradientPixelType;
   typedef typename Superclass::PixelType                PixelType;
   typedef typename Superclass::RealType                 RealType;
 
@@ -125,53 +121,34 @@ public:
   {
     ConstPointer Metric;
   };
-  //typedef vector<ImageType> ImageTypeArray;
-  //typedef vector<ImageConstPointer> ImageConstPointerArray;
 
   /** Index and Point typedef support. */
-  typedef typename ImageType::IndexType            FixedImageIndexType;
-  typedef typename FixedImageIndexType::IndexValueType  FixedImageIndexValueType;
-  typedef typename ImageType::IndexType           MovingImageIndexType;
-  typedef typename TransformType::InputPointType        FixedImagePointType;
-  typedef typename TransformType::OutputPointType       MovingImagePointType;
-
-  /** PixelType */
-  //typedef typename ImageType::PixelType            PixelType;
+  typedef typename ImageType::IndexType                 ImageIndexType;
+  typedef typename ImageIndexType::IndexValueType       ImageIndexValueType;
+  typedef typename TransformType::InputPointType        ImagePointType;
 
 
   /** Enum of the moving image dimension. */
-  itkStaticConstMacro(MovingImageDimension, unsigned int,
+  itkStaticConstMacro(ImageDimension, unsigned int,
                       ImageType::ImageDimension);
+  
 
   /** Get the derivatives of the match measure. */
   void GetDerivative( 
     const ParametersType& parameters,
     DerivativeType & Derivative ) const;
 
-  /**  Get the value. */
+  /**  Get the metric value. */
   MeasureType GetValue( const ParametersType& parameters ) const;
-  /** Methods added for supporting multi-threading GetValue */
-  void GetThreadedValue( int threadID ) const;
-  void BeforeGetThreadedValue(const ParametersType & parameters) const;
-  MeasureType AfterGetThreadedValue() const;
 
   /**  Get the value and derivatives for single valued optimizers. */
   void GetValueAndDerivative( const ParametersType& parameters, 
                               MeasureType& Value, DerivativeType& Derivative ) const;
 
-
-  /** Methods added for supporting multi-threading GetValueAndDerivative */
-  void GetThreadedValueAndDerivative( int threadID ) const;
-  void BeforeGetThreadedValueAndDerivative(const ParametersType & parameters) const;
-  void AfterGetThreadedValueAndDerivative(MeasureType & value,
-                             DerivativeType & derivative) const;
-  
-
   /** Set/Get the moving image intensitiy standard deviation. This defines
    * the kernel bandwidth used in the joint probability distribution
-   * calculation. Default value is 0.4 which works well for image intensities
-   * normalized to a mean of 0 and standard deviation of 1.0.  
-   * Value is clamped to be always greater than zero. */
+   * calculation. Default value is 10.0 which works well for image intensities
+   * having a range of 0-255 */
   itkSetClampMacro( ImageStandardDeviation, double,
                     NumericTraits<double>::NonpositiveMin(), NumericTraits<double>::max() );
   itkGetConstReferenceMacro( ImageStandardDeviation, double );
@@ -185,69 +162,76 @@ public:
   virtual void Finalize(void);
   
   /** Define the bspline tranform type for regularization
-  For Regularization BsplineTransfromPointer must be explicitly
-  provided */
+   *  For Regularization BsplineTransfromPointer must be explicitly
+   *  provided */
   typedef typename Superclass::BSplineTransformType BSplineTransformType;
   typedef typename Superclass::BSplineTransformTypePointer BSplineTransformTypePointer;
-
-  typedef typename BSplineTransformType::ImageType BSplineParametersImageType;
-  typedef typename BSplineParametersImageType::Pointer BSplineParametersImagePointer;
-  
-  typedef itk::GradientImageFilter<BSplineParametersImageType, PixelType, PixelType> GradientFilterType;
-  typedef typename GradientFilterType::Pointer GradientFilterTypePointer;
-
 
 
 protected:
   UnivariateEntropyMultiImageMetric();
   virtual ~UnivariateEntropyMultiImageMetric();
-  void PrintSelf(std::ostream& os, Indent indent) const;
 
   UnivariateEntropyMultiImageMetric(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
   
+  void PrintSelf(std::ostream& os, Indent indent) const;
+
+  /** Methods added for supporting multi-threading GetValue */
+  void GetThreadedValue( int threadID ) const;
+  void BeforeGetThreadedValue(const ParametersType & parameters) const;
+  MeasureType AfterGetThreadedValue() const;
   
-  /** SpatialSampleContainer typedef support. */
-  typedef typename Superclass::SpatialSample SpatialSample;
-  typedef std::vector<SpatialSample>  SpatialSampleContainer;
+  /** Methods added for supporting multi-threading GetValueAndDerivative */
+  void GetThreadedValueAndDerivative( int threadID ) const;
+  void BeforeGetThreadedValueAndDerivative(const ParametersType & parameters) const;
+  void AfterGetThreadedValueAndDerivative(MeasureType & value,
+                                          DerivativeType & derivative) const;
+  /** Static members for multi-threading */
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValueAndDerivative( void *arg );
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackGetValue( void *arg );
   static ITK_THREAD_RETURN_TYPE ThreaderCallbackSampleFixedImageDomain( void *arg );
-
-
-  double                              m_ImageStandardDeviation;
-  std::vector<typename KernelFunction::Pointer>    m_KernelFunction;
+  
+  /** SpatialSampleContainer typedef support. */
+  typedef typename Superclass::SpatialSample SpatialSample;
+  typedef std::vector<SpatialSample>         SpatialSampleContainer;
 
   /** Uniformly select samples from the fixed image buffer. */
   void SampleFixedImageDomain( ) const;
   void ThreadedSampleFixedImageDomain( int threadID ) const;
 
+  typedef CovariantVector < RealType, ImageDimension > CovarientType;
+
   /** Add the derivative update to the current images parameters at a given point and image derivative*/
-  typedef CovariantVector < RealType, MovingImageDimension > CovarientType;
-  void UpdateSingleImageParameters( DerivativeType & inputDerivative, const SpatialSample& sample, const RealType& weight, const int& imageNumber, const int& threadID) const;
+  void UpdateSingleImageParameters( DerivativeType & inputDerivative, 
+                                    const SpatialSample& sample, 
+                                    const RealType& weight, 
+                                    const int& imageNumber, 
+                                    const int& threadID) const;
 
   typedef typename Superclass::CoordinateRepresentationType  CoordinateRepresentationType;
-  typedef CentralDifferenceImageFunction< ImageType,   CoordinateRepresentationType > DerivativeFunctionType;
+  typedef CentralDifferenceImageFunction< ImageType,   
+                                          CoordinateRepresentationType > 
+                                                             DerivativeFunctionType;
 
-
-  bool             m_ReseedIterator;
-  int              m_RandomSeed;
-  
-  mutable Array< RealType >   m_value;
   mutable std::vector< typename DerivativeFunctionType::Pointer > m_DerivativeCalculator;
-  mutable std::vector< std::vector<DerivativeType> > m_DerivativesArray;
+  mutable std::vector< std::vector<DerivativeType> >              m_DerivativesArray;
 
-  // Bspline optimization
-  ParametersType indexes; // Holds nonzeros indexes of Bspline derivatives
-
+  double                                           m_ImageStandardDeviation;
+  std::vector<typename KernelFunction::Pointer>    m_KernelFunction;
+  
+  bool                        m_ReseedIterator;
+  int                         m_RandomSeed;
+  bool                        m_UseMask;  
+  mutable Array< RealType >   m_value;
+  
   mutable std::vector< ParametersType > m_TransformParametersArray;
-
-  bool m_UseMask;
 
   typedef ImageRandomNonRepeatingConstIteratorWithIndex < ImageType > RandomIterator;
   mutable std::vector<RandomIterator*> m_RandIterArray;
 
-  // Get nonzero indexex
+  
+  // Bspline optimization
   int numberOfWeights;
   mutable Array<unsigned long> bsplineIndexes;
   long unsigned int m_NumberOfParametersPerdimension;
