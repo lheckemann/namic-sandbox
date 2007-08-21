@@ -48,10 +48,15 @@ int main( int argc, char ** argv )
 
   typedef itk::Image< InputPixelType,  Dimension >    InputImageType;
   typedef itk::Image< OutputPixelType, Dimension >    OutputImageType;
+  typedef itk::Image< InputPixelType, 4 > FourDimensionImageType;
   typedef itk::Image<itk::RGBPixel<InputPixelType>, Dimension> RGBImageType;
+  typedef itk::Image< double, 3 > DoubleImageType;
 
   typedef itk::ImageFileReader< InputImageType  >  ReaderType;
   typedef itk::ImageFileWriter< OutputImageType >  WriterType;
+  typedef itk::ImageFileWriter< FourDimensionImageType > FourDimensionWriterType;
+  typedef itk::ImageFileReader< FourDimensionImageType > FourDimensionReaderType;
+  typedef itk::ImageFileWriter< DoubleImageType > DoubleWriterType;
 
   ReaderType::Pointer reader = ReaderType::New();
   ReaderType::Pointer readerTwo = ReaderType::New();
@@ -142,7 +147,7 @@ int main( int argc, char ** argv )
     << err << std::endl;
     return EXIT_FAILURE;
     }
-  itk::AnalyzeObjectMap<InputImageType, RGBImageType>::Pointer CreateObjectMap = itk::AnalyzeObjectMap<InputImageType, RGBImageType>::New();
+  itk::AnalyzeObjectMap<InputImageType>::Pointer CreateObjectMap = itk::AnalyzeObjectMap<InputImageType>::New();
 
   CreateObjectMap->AddObjectEntry("You Can Delete Me");
   CreateObjectMap->AddObjectEntryBasedOnImagePixel(readerTwo->GetOutput(), 200, "Square", 250, 0, 0);
@@ -176,7 +181,7 @@ int main( int argc, char ** argv )
     << err << std::endl;
     return EXIT_FAILURE;
     }
-  itk::AnalyzeObjectMap<InputImageType, RGBImageType>::Pointer ObjectMapTwo = itk::AnalyzeObjectMap<InputImageType, RGBImageType>::New();//.TransformImage(readerThree->GetOutput());
+  itk::AnalyzeObjectMap<InputImageType, RGBImageType>::Pointer ObjectMapTwo = itk::AnalyzeObjectMap<InputImageType, RGBImageType>::New();
 
   ObjectMapTwo->TransformImage(readerThree->GetOutput());
   RGBImageType::Pointer RGBImageTwo = ObjectMapTwo->ObjectMapToRGBImage();
@@ -211,6 +216,62 @@ int main( int argc, char ** argv )
 
   ObjectMapThree->TransformImage(readerThree->GetOutput());
   RGBImageType::Pointer RGBImageThree = ObjectMapThree->ObjectMapToRGBImage();
+
+
+  FourDimensionImageType::Pointer BlankImage = FourDimensionImageType::New();
+  const FourDimensionImageType::SizeType size = {{20,20,20,2}};
+  const FourDimensionImageType::IndexType orgin = {{0,0,0,0}};
+
+  FourDimensionImageType::RegionType region;
+  region.SetSize(size);
+  region.SetIndex(orgin);
+  BlankImage->SetRegions(region);
+  BlankImage->Allocate();
+  BlankImage->FillBuffer(50);
+  FourDimensionWriterType::Pointer FourDimensionWriter = FourDimensionWriterType::New();
+  FourDimensionWriter->SetInput(BlankImage);
+  FourDimensionWriter->SetFileName("blankImage.obj");
+
+  try
+    {
+    writer->Update();
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    std::cerr << "ExceptionObject caught !" << std::endl
+    << err << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  FourDimensionReaderType::Pointer FourDimensionReader = FourDimensionReaderType::New();
+  FourDimensionReader->SetFileName("blankImage.obj");
+  try
+    {
+    readerThree->Update();
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    std::cerr << "ExceptionObject caught !" << std::endl
+    << err << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  itk::AnalyzeObjectMap< itk::Image<double, 3> >::Pointer DoubleObjectMap = itk::AnalyzeObjectMap< itk::Image<double, 3> >::New();
+
+DoubleWriterType::Pointer DoubleWriter = DoubleWriterType::New();
+DoubleWriter->SetInput(DoubleObjectMap);
+DoubleWriter->SetFileName("DoulbeObjectMap.obj");
+
+   try
+    {
+    DoubleWriter->Update();
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    std::cerr << "ExceptionObject caught !" << std::endl
+    << err << std::endl;
+    return EXIT_FAILURE;
+    }
 
 
   if( error_count )
