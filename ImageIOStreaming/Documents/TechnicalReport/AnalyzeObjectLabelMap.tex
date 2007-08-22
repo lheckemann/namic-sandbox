@@ -142,7 +142,7 @@ int main( int argc, char ** argv )
   ...
   
   //Add one entry to the object map named "You Can Delete Me", this entry corresponds to 1 if you do a pickOneEntry
-  CreateObjectMap->AddObject("You Can Delete Me");
+  CreateObjectMap->AddAnalyzeObject("You Can Delete Me");
 
   //Add another two entries that will be based on the image that is passed into 
   //the function, also, the intensity that you would like searched for, the name of the entry and then finally the RGB values
@@ -158,10 +158,10 @@ int main( int argc, char ** argv )
   CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 45,  "SquareTwo", 0, 0, 250);
 
   //Then anoter entry is added, this entry corrsponds to 5 if you do a pickOneEntry
-  CreateObjectMap->AddObject("Nothing In Here");
+  CreateObjectMap->AddAnalyzeObject("Nothing In Here");
 
   //The entry that was just added is deleted
-  CreateObjectMap->DeleteObject("Nothing In Here");
+  CreateObjectMap->DeleteAnalyzeObject("Nothing In Here");
   
   ...
   writer->SetInput(CreateObjectMapTwo);
@@ -224,10 +224,10 @@ int main(int argc, char * argv [] )
   ...
   
   reader->Update();
-          
+  
   //This will convert the output of the reader into an object map
-  itk::AnalyzeObjectMap<ImageType>::Pointer Objectmap = itk::AnalyzeObjectMap<ImageType>::New();
-  ObjectMap->TransformImage(reader->GetOutput());
+  itk::AnalyzeObjectMap<ImageType, RGBImageType>::Pointer Objectmap = itk::AnalyzeObjectMap<ImageType, RGBImageType>::New();
+  Objectmap->TransformImage(reader->GetOutput());
   
   //If you have vtk and itkApplications installed then you can uncomment this out to display
   //an object map to the screen.  Otherwise you can see how to display an object map using vtk.
@@ -244,20 +244,18 @@ int main(int argc, char * argv [] )
   //Display a two dimensional view of the object map that was read in
   //vtkImageViewer2 * twodimage = vtkImageViewer2::New();
   
-  //const int SliceNumber = argv[2];
+  //const int SliceNumber = 0;
   //twodimage->SetInput(connector->GetOutput());
-  //twodimage->SetSlice(sliceNumber);
+  //twodimage->SetSlice(SliceNumber);
   //twodimage->SetSliceOrientationToXY();
   
   //Set the background of the renderer to a grayish color so that it is easier to see
   //the outline of the object map since it is usually black
-  //twodimage->GetRenderer()->SetBackground(0.4392, 0.5020, 0.5647);
-  
-  
-  //twodimage->SetupInteractor(windowInteractor);
-  
-  //twodimage->Render();
-  //windowInteractor->Start();
+  // twodimage->GetRenderer()->SetBackground(0.4392, 0.5020, 0.5647);
+  // twodimage->SetupInteractor(windowInteractor);
+   
+  // twodimage->Render();
+  // windowInteractor->Start();
 	...
 }
 \end{verbatim} \normalsize
