@@ -43,31 +43,28 @@ int main( int argc, char ** argv )
   const char *CreatingObject = argv[4];
   const char *oneObjectEntryFileName = argv[5];
   const char *blankImageFileName = argv[6];
-  typedef unsigned char       InputPixelType;
-  typedef unsigned char       OutputPixelType;
-  const   unsigned int        Dimension = 3;
+  typedef unsigned char       PixelType;
 
-  typedef itk::Image< InputPixelType,  Dimension >    InputImageType;
-  typedef itk::Image< OutputPixelType, Dimension >    OutputImageType;
-  typedef itk::Image< InputPixelType, 4 > FourDimensionImageType;
-  typedef itk::Image<itk::RGBPixel<InputPixelType>, Dimension> RGBImageType;
-  typedef itk::Image< double, 3 > DoubleImageType;
+  typedef itk::Image< PixelType,  3 >    ThreeDimensionImageType;
+  typedef itk::Image< PixelType, 4 > FourDimensionImageType;
+  typedef itk::Image< PixelType, 2 > TwoDimensionImageType;
+  typedef itk::Image<itk::RGBPixel<PixelType>, 2> TwoDimensionRGBImageType;
+  typedef itk::Image<itk::RGBPixel<PixelType>, 3> ThreeDimensionRGBImageType;
 
-  typedef itk::ImageFileReader< InputImageType  >  ReaderType;
-  typedef itk::ImageFileWriter< OutputImageType >  WriterType;
+  typedef itk::ImageFileReader< ThreeDimensionImageType  >  ThreeDimensionReaderType;
+  typedef itk::ImageFileWriter< ThreeDimensionImageType >  ThreeDimensionWriterType;
   typedef itk::ImageFileWriter< FourDimensionImageType > FourDimensionWriterType;
   typedef itk::ImageFileReader< FourDimensionImageType > FourDimensionReaderType;
-  typedef itk::ImageFileWriter< DoubleImageType > DoubleWriterType;
+  typedef itk::ImageFileWriter< TwoDimensionImageType > TwoDimensionWriterType;
+  typedef itk::ImageFileReader< TwoDimensionImageType > TwoDimensionReaderType;
 
-  ReaderType::Pointer reader = ReaderType::New();
-  ReaderType::Pointer readerTwo = ReaderType::New();
-  ReaderType::Pointer readerThree = ReaderType::New();
-  WriterType::Pointer writer = WriterType::New();
+  ThreeDimensionReaderType::Pointer ThreeDimensionReader = ThreeDimensionReaderType::New();
+  ThreeDimensionWriterType::Pointer ThreeDimensionWriter = ThreeDimensionWriterType::New();
 
-  reader->SetFileName( InputObjectFileName);
+  ThreeDimensionReader->SetFileName( InputObjectFileName);
    try
     {
-    reader->Update();
+    ThreeDimensionReader->Update();
     }
   catch( itk::ExceptionObject & err )
     {
@@ -77,19 +74,19 @@ int main( int argc, char ** argv )
     }
 
   //Now that we have an itk image now we need to make the image an object map
-  itk::AnalyzeObjectMap<InputImageType, RGBImageType>::Pointer ObjectMap = itk::AnalyzeObjectMap<InputImageType, RGBImageType>::New();
+  itk::AnalyzeObjectMap<ThreeDimensionImageType, ThreeDimensionRGBImageType>::Pointer ObjectMap = itk::AnalyzeObjectMap<ThreeDimensionImageType, ThreeDimensionRGBImageType>::New();
 
-  ObjectMap->TransformImage(reader->GetOutput());
+  ObjectMap->TransformImage(ThreeDimensionReader->GetOutput());
 
   //Now we can change the object map into an itk RGB image, we then can send this image to the itk-vtk
   //converter and show the image if we wanted to.
-  RGBImageType::Pointer RGBImage = ObjectMap->ObjectMapToRGBImage();
+  ThreeDimensionRGBImageType::Pointer RGBImage = ObjectMap->ObjectMapToRGBImage();
 
-  writer->SetFileName(OuptputObjectFileName);
-  writer->SetInput(reader->GetOutput());
+  ThreeDimensionWriter->SetFileName(OuptputObjectFileName);
+  ThreeDimensionWriter->SetInput(ThreeDimensionReader->GetOutput());
   try
     {
-    writer->Update();
+    ThreeDimensionWriter->Update();
     }
   catch( itk::ExceptionObject & err )
     {
@@ -137,10 +134,12 @@ int main( int argc, char ** argv )
 
   //Now we bring in a nifti file that Hans and Jeffrey created, the image is two squares and a circle of different intensity values.
   //See the paper in the Insight Journal named "AnalyzeObjectLabelMap" for a picutre of the nifti file.
-  readerTwo->SetFileName(NiftiFile);
+  TwoDimensionReaderType::Pointer TwoDimensionReader = TwoDimensionReaderType::New();
+
+  TwoDimensionReader->SetFileName(NiftiFile);
   try
     {
-    readerTwo->Update();
+    TwoDimensionReader->Update();
     }
   catch( itk::ExceptionObject & err )
     {
@@ -148,21 +147,22 @@ int main( int argc, char ** argv )
     << err << std::endl;
     return EXIT_FAILURE;
     }
-  itk::AnalyzeObjectMap<InputImageType>::Pointer CreateObjectMap = itk::AnalyzeObjectMap<InputImageType>::New();
+  itk::AnalyzeObjectMap<TwoDimensionImageType>::Pointer CreateObjectMap = itk::AnalyzeObjectMap<TwoDimensionImageType>::New();
 
   CreateObjectMap->AddObjectEntry("You Can Delete Me");
-  CreateObjectMap->AddObjectEntryBasedOnImagePixel(readerTwo->GetOutput(), 200, "Square", 250, 0, 0);
-  CreateObjectMap->AddObjectEntryBasedOnImagePixel(readerTwo->GetOutput(), 128, "Circle", 0, 250,0);
+  CreateObjectMap->AddObjectEntryBasedOnImagePixel(TwoDimensionReader->GetOutput(), 200, "Square", 250, 0, 0);
+  CreateObjectMap->AddObjectEntryBasedOnImagePixel(TwoDimensionReader->GetOutput(), 128, "Circle", 0, 250,0);
   CreateObjectMap->AddObjectEntry("Nothing In Here");
   CreateObjectMap->GetObjectEntry(4)->Copy(CreateObjectMap->GetObjectEntry(1));
   CreateObjectMap->DeleteObjectEntry("Nothing In Here");
 
-  writer->SetInput(CreateObjectMap);
-  writer->SetFileName(CreatingObject);
+  TwoDimensionWriterType::Pointer TwoDimensionWriter = TwoDimensionWriterType::New();
+  TwoDimensionWriter->SetInput(CreateObjectMap);
+  TwoDimensionWriter->SetFileName(CreatingObject);
 
   try
     {
-    writer->Update();
+    TwoDimensionWriter->Update();
     }
   catch( itk::ExceptionObject & err )
     {
@@ -171,10 +171,10 @@ int main( int argc, char ** argv )
     return EXIT_FAILURE;
     }
 
-  readerThree->SetFileName(CreatingObject);
+  TwoDimensionReader->SetFileName(CreatingObject);
   try
     {
-    readerThree->Update();
+    TwoDimensionReader->Update();
     }
   catch( itk::ExceptionObject & err )
     {
@@ -182,29 +182,17 @@ int main( int argc, char ** argv )
     << err << std::endl;
     return EXIT_FAILURE;
     }
-  itk::AnalyzeObjectMap<InputImageType, RGBImageType>::Pointer ObjectMapTwo = itk::AnalyzeObjectMap<InputImageType, RGBImageType>::New();
+  itk::AnalyzeObjectMap<TwoDimensionImageType, TwoDimensionRGBImageType>::Pointer ObjectMapTwo = itk::AnalyzeObjectMap<TwoDimensionImageType, TwoDimensionRGBImageType>::New();
 
-  ObjectMapTwo->TransformImage(readerThree->GetOutput());
-  RGBImageType::Pointer RGBImageTwo = ObjectMapTwo->ObjectMapToRGBImage();
+  ObjectMapTwo->TransformImage(TwoDimensionReader->GetOutput());
+  TwoDimensionRGBImageType::Pointer RGBImageTwo = ObjectMapTwo->ObjectMapToRGBImage();
 
-  writer->SetInput(ObjectMapTwo->PickOneEntry(3));
-  writer->SetFileName(oneObjectEntryFileName);
+  TwoDimensionWriter->SetInput(ObjectMapTwo->PickOneEntry(3));
+  TwoDimensionWriter->SetFileName(oneObjectEntryFileName);
 
   try
     {
-    writer->Update();
-    }
-  catch( itk::ExceptionObject & err )
-    {
-    std::cerr << "ExceptionObject caught !" << std::endl
-    << err << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  readerThree->SetFileName(oneObjectEntryFileName);
-  try
-    {
-    readerThree->Update();
+    TwoDimensionWriter->Update();
     }
   catch( itk::ExceptionObject & err )
     {
@@ -213,14 +201,26 @@ int main( int argc, char ** argv )
     return EXIT_FAILURE;
     }
 
-  itk::AnalyzeObjectMap<InputImageType, RGBImageType>::Pointer ObjectMapThree = itk::AnalyzeObjectMap<InputImageType, RGBImageType>::New();//ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
+  TwoDimensionReader->SetFileName(oneObjectEntryFileName);
+  try
+    {
+    TwoDimensionReader->Update();
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    std::cerr << "ExceptionObject caught !" << std::endl
+    << err << std::endl;
+    return EXIT_FAILURE;
+    }
 
-  ObjectMapThree->TransformImage(readerThree->GetOutput());
-  RGBImageType::Pointer RGBImageThree = ObjectMapThree->ObjectMapToRGBImage();
+  itk::AnalyzeObjectMap<TwoDimensionImageType, TwoDimensionRGBImageType>::Pointer ObjectMapThree = itk::AnalyzeObjectMap<TwoDimensionImageType, TwoDimensionRGBImageType>::New();//ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
+
+  ObjectMapThree->TransformImage(TwoDimensionReader->GetOutput());
+  TwoDimensionRGBImageType::Pointer RGBImageThree = ObjectMapThree->ObjectMapToRGBImage();
 
 
   FourDimensionImageType::Pointer BlankImage = FourDimensionImageType::New();
-  const FourDimensionImageType::SizeType size = {{20,20,20,2}};
+  const FourDimensionImageType::SizeType size = {{20,20,20,3}};
   const FourDimensionImageType::IndexType orgin = {{0,0,0,0}};
 
   FourDimensionImageType::RegionType region;

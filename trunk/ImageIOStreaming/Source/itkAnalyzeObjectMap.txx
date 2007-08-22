@@ -48,8 +48,13 @@ AnalyzeObjectMap<TImage, TRGBImage>
     this->m_AnaylzeObjectEntryArray.resize(1);
     this->m_AnaylzeObjectEntryArray[0] = itk::AnalyzeObjectEntry::New();
     this->m_AnaylzeObjectEntryArray[0]->SetName("Original");
-    typename ImageType::SizeType size = {{1,1,1}};
-    typename ImageType::IndexType orgin = {{0,0,0}};
+    typename ImageType::SizeType size;
+    typename ImageType::IndexType orgin;
+    for(int i = 0; i < TImage::GetImageDimension(); i++)
+    {
+      size[i] = 1;
+      orgin[i] = 0;
+    }
     typename ImageType::RegionType region;
     region.SetSize(size);
     region.SetIndex(orgin);
