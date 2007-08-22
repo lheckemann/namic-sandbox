@@ -386,11 +386,15 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     }
 
   this->SetDirection(0,dirx);
-  this->SetDirection(1,diry);
+  if(this->GetNumberOfDimensions() > 1)
+  {
+    this->SetDirection(1,diry);
+  }
+  
   if(this->GetNumberOfDimensions() > 2)
-    {
-    this->SetDirection(2,dirz);
-    }
+  {
+   this->SetDirection(2,dirz);
+  }
     
 
     // Error checking the number of objects in the object file
@@ -572,7 +576,15 @@ AnalyzeObjectLabelMapImageIO
     {
       VolumeSize = this->GetDimensions(0);
     }
-    const int PlaneSize = this->GetDimensions(0)*this->GetDimensions(1);
+    int PlaneSize;
+    if(this->GetNumberOfDimensions() > 1)
+    {
+      PlaneSize = this->GetDimensions(0)*this->GetDimensions(1);
+    }
+    else
+    {
+      PlaneSize = this->GetDimensions(0);
+    }
     int bufferindex=0;
     int planeindex=0;
     int runlength=0;

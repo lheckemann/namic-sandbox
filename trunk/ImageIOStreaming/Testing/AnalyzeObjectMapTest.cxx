@@ -50,6 +50,7 @@ int main( int argc, char ** argv )
   typedef itk::Image< PixelType, 2 > TwoDimensionImageType;
   typedef itk::Image<itk::RGBPixel<PixelType>, 2> TwoDimensionRGBImageType;
   typedef itk::Image<itk::RGBPixel<PixelType>, 3> ThreeDimensionRGBImageType;
+  typedef itk::Image< PixelType, 1> OneDimensionImageType;
 
   typedef itk::ImageFileReader< ThreeDimensionImageType  >  ThreeDimensionReaderType;
   typedef itk::ImageFileWriter< ThreeDimensionImageType >  ThreeDimensionWriterType;
@@ -57,6 +58,8 @@ int main( int argc, char ** argv )
   typedef itk::ImageFileReader< FourDimensionImageType > FourDimensionReaderType;
   typedef itk::ImageFileWriter< TwoDimensionImageType > TwoDimensionWriterType;
   typedef itk::ImageFileReader< TwoDimensionImageType > TwoDimensionReaderType;
+  typedef itk::ImageFileWriter< OneDimensionImageType > OneDimensionWriterType;
+  typedef itk::ImageFileReader< OneDimensionImageType > OneDimensionReaderType;
 
   ThreeDimensionReaderType::Pointer ThreeDimensionReader = ThreeDimensionReaderType::New();
   ThreeDimensionWriterType::Pointer ThreeDimensionWriter = ThreeDimensionWriterType::New();
@@ -220,7 +223,7 @@ int main( int argc, char ** argv )
 
 
   FourDimensionImageType::Pointer BlankImage = FourDimensionImageType::New();
-  const FourDimensionImageType::SizeType size = {{20,20,20,3}};
+  const FourDimensionImageType::SizeType size = {{50,20,20,3}};
   const FourDimensionImageType::IndexType orgin = {{0,0,0,0}};
 
   FourDimensionImageType::RegionType region;
@@ -249,6 +252,45 @@ int main( int argc, char ** argv )
   try
     {
     FourDimensionReader->Update();
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    std::cerr << "ExceptionObject caught !" << std::endl
+    << err << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  OneDimensionImageType::Pointer OneDimensionImage = OneDimensionImageType::New();
+  const OneDimensionImageType::SizeType sizeOne = {{1}};
+  const OneDimensionImageType::IndexType orginOne = {{0}};
+
+  OneDimensionImageType::RegionType regionOne;
+  regionOne.SetSize(sizeOne);
+  regionOne.SetIndex(orginOne);
+  OneDimensionImage->SetRegions(regionOne);
+  OneDimensionImage->Allocate();
+  OneDimensionImage->FillBuffer(230);
+  OneDimensionWriterType::Pointer OneDimensionWriter = OneDimensionWriterType::New();
+  OneDimensionWriter->SetInput(OneDimensionImage);
+  OneDimensionWriter->SetFileName("OneDimensionImage.obj");
+
+  try
+    {
+    OneDimensionWriter->Update();
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    std::cerr << "ExceptionObject caught !" << std::endl
+    << err << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  OneDimensionReaderType::Pointer OneDimensionReader = OneDimensionReaderType::New();
+  OneDimensionReader->SetFileName("OneDimensionImage.obj");
+  try
+    {
+    OneDimensionReader->Update();
     }
   catch( itk::ExceptionObject & err )
     {

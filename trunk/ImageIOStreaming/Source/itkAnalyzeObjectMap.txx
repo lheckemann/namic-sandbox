@@ -50,7 +50,7 @@ AnalyzeObjectMap<TImage, TRGBImage>
     this->m_AnaylzeObjectEntryArray[0]->SetName("Original");
     typename ImageType::SizeType size;
     typename ImageType::IndexType orgin;
-    for(int i = 0; i < TImage::GetImageDimension(); i++)
+    for(unsigned int i = 0; i < TImage::GetImageDimension(); i++)
     {
       size[i] = 1;
       orgin[i] = 0;
