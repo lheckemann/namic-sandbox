@@ -11,7 +11,7 @@ See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
 This software is distributed WITHOUT ANY WARRANTY; without even
 the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-PURPOSE.  See the above copyright notices for mwore information.
+PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
 
@@ -80,9 +80,9 @@ bool AnalyzeObjectLabelMapImageIO::CanWriteFile(const char * FileNameToWrite)
 
 void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
 {  
-    inputFileStream.open(m_FileName.c_str(), std::ios::binary | std::ios::in);
-    inputFileStream.seekg(locationOfFile);
-    if ( !inputFileStream.is_open())
+     m_InputFileStream.open(m_FileName.c_str(), std::ios::binary | std::ios::in);
+     m_InputFileStream.seekg( m_LocationOfFile);
+    if ( ! m_InputFileStream.is_open())
     {
       itkDebugMacro(<< "Error: Could not open "<< m_FileName.c_str());
       exit(-1);
@@ -166,54 +166,52 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
     {
       VolumeSize = this->GetDimensions(0) * this->GetDimensions(1) * this->GetDimensions(2) *this->GetDimensions(3);
     }
-    else if(this->GetNumberOfDimensions() == 3)
+  else if(this->GetNumberOfDimensions() == 3)
     {
       VolumeSize = this->GetDimensions(0) * this->GetDimensions(1) * this->GetDimensions(2);
     }
-    else if(this->GetNumberOfDimensions() == 2)
+  else if(this->GetNumberOfDimensions() == 2)
     {
       VolumeSize = this->GetDimensions(0) * this->GetDimensions(1);
     }
-    else
+  else
     {
-      VolumeSize = this->GetDimensions(0);
+    VolumeSize = this->GetDimensions(0);
     }
-    {
 
       //You can uncomment the following commented out code to have a file written with the exact values that are read in.
 
-//      std::ofstream myfile;
-//      myfile.open("VoxelInformationReader.txt", myfile.app);
-      while (!inputFileStream.read(reinterpret_cast<char *>(RunLengthArray), sizeof(RunLengthElement)*NumberOfRunLengthElementsPerRead).eof())
+  //      std::ofstream myfile;
+  //      myfile.open("VoxelInformationReader.txt", myfile.app);
+  while (! m_InputFileStream.read(reinterpret_cast<char *>(RunLengthArray), sizeof(RunLengthElement)*NumberOfRunLengthElementsPerRead).eof())
+  {
+    for (int i = 0; i < NumberOfRunLengthElementsPerRead; i++)
+    {
+    //           myfile<< "Assigning: " << (int)RunLengthArray[i].voxel_count 
+    //             << " voxels of label " << (int)RunLengthArray[i].voxel_value
+    //             << std::endl;
+    if(RunLengthArray[i].voxel_count == 0)
       {
-        for (int i = 0; i < NumberOfRunLengthElementsPerRead; i++)
-        {
-//           myfile<< "Assigning: " << (int)RunLengthArray[i].voxel_count 
-//             << " voxels of label " << (int)RunLengthArray[i].voxel_value
-//             << std::endl;
-          if(RunLengthArray[i].voxel_count == 0)
-          {
-                itkDebugMacro(<<"Inside AnaylzeObjectLabelMap Invalid Length "<<(int)RunLengthArray[i].voxel_count<<std::endl);
-                exit(-1);
-          }
-          for (int j = 0; j < RunLengthArray[i].voxel_count; j++)
-          {
-            tobuf[index] = RunLengthArray[i].voxel_value;
-            index++;
-          }
-          voxel_count_sum+=RunLengthArray[i].voxel_count;
-//          myfile <<"index = "<<index
-//            << " voxel_count_sum= " << voxel_count_sum
-//            << " Volume size = "<<VolumeSize<<std::endl;
-          if ( index > VolumeSize )
-          {
-            itkDebugMacro(<<"BREAK!\n");
-            exit(-1);
-          }
-        }
+      itkDebugMacro(<<"Inside AnaylzeObjectLabelMap Invalid Length "<<(int)RunLengthArray[i].voxel_count<<std::endl);
+      exit(-1);
       }
-//      myfile.close();
-    }
+    for (int j = 0; j < RunLengthArray[i].voxel_count; j++)
+      {
+      tobuf[index] = RunLengthArray[i].voxel_value;
+      index++;
+      }
+     voxel_count_sum += RunLengthArray[i].voxel_count;
+     //          myfile <<"index = "<<index
+     //            << " voxel_count_sum= " << voxel_count_sum
+     //            << " Volume size = "<<VolumeSize<<std::endl;
+     if ( index > VolumeSize )
+        {
+        itkDebugMacro(<<"BREAK!\n");
+        exit(-1);
+        }
+     }
+  }
+  //      myfile.close();
 
         
     if (index != VolumeSize)
@@ -230,7 +228,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
       exit(-1);
     }
 
-    inputFileStream.close();
+     m_InputFileStream.close();
 
 //The following commented code will run through all of the values and write them to a file.
 
@@ -270,9 +268,9 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     m_ComponentType = CHAR;
     m_PixelType = SCALAR;
     // Opening the file
-    std::ifstream inputFileStream;
-    inputFileStream.open(m_FileName.c_str(), std::ios::binary | std::ios::in);
-    if ( !inputFileStream.is_open())
+    std::ifstream  m_InputFileStream;
+     m_InputFileStream.open(m_FileName.c_str(), std::ios::binary | std::ios::in);
+    if ( ! m_InputFileStream.is_open())
     {
       itkDebugMacro(<< "Error: Could not open: "<< m_FileName.c_str()<<std::endl);
       exit(-1);
@@ -283,7 +281,7 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     bool NeedByteSwap=false;
     
     int header[6] = {1};
-    if ( inputFileStream.read(reinterpret_cast<char *>(header),sizeof(int)*5).fail())
+    if (  m_InputFileStream.read(reinterpret_cast<char *>(header),sizeof(int)*5).fail())
     {
       itkDebugMacro(<<"Error: Could not read header of "<<m_FileName.c_str()<<std::endl);
       exit(-1);
@@ -304,7 +302,7 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     bool NeedBlendFactor = false;
     if(header[0] == VERSION7 )
     {
-      if ( (inputFileStream.read(reinterpret_cast<char *>(&(header[5])),sizeof(int)*1)).fail() )
+      if ( ( m_InputFileStream.read(reinterpret_cast<char *>(&(header[5])),sizeof(int)*1)).fail() )
       {
         itkDebugMacro(<<"Error: Could not read header of "<< m_FileName.c_str()<<std::endl);
         exit(-1);
@@ -320,22 +318,22 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     
     if(header[5] >1 )
     {
-      this->SetNumberOfDimensions(4);
+    this->SetNumberOfDimensions(4);
     }
-    else if(header[3] >1 )
+  else if(header[3] >1 )
     {
-      this->SetNumberOfDimensions(3);
+    this->SetNumberOfDimensions(3);
     }
-    else if(header[2] >1 )
+  else if(header[2] >1 )
     {
-      this->SetNumberOfDimensions(2);
+    this->SetNumberOfDimensions(2);
     }
-    else
+  else
     {
-      this->SetNumberOfDimensions(1);
+    this->SetNumberOfDimensions(1);
     }
 
-    switch(this->GetNumberOfDimensions())
+  switch(this->GetNumberOfDimensions())
     {
     case 4:
       this->SetDimensions(3,header[5]);
@@ -387,21 +385,21 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
 
   this->SetDirection(0,dirx);
   if(this->GetNumberOfDimensions() > 1)
-  {
+    {
     this->SetDirection(1,diry);
-  }
+    }
   
   if(this->GetNumberOfDimensions() > 2)
-  {
-   this->SetDirection(2,dirz);
-  }
+    {
+    this->SetDirection(2,dirz);
+    }
     
 
-    // Error checking the number of objects in the object file
+  // Error checking the number of objects in the object file
     if ((header[4] < 1) || (header[4] > 256))
     {
-      itkDebugMacro(<< "Error: Invalid number of object files.\n");
-      inputFileStream.close();
+    itkDebugMacro(<< "Error: Invalid number of object files.\n");
+       m_InputFileStream.close();
       exit(-1);
     }
 
@@ -413,12 +411,12 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     {
       // Allocating a object to be created
       (my_reference)[i] = AnalyzeObjectEntry::New();
-      (my_reference)[i]->ReadFromFilePointer(inputFileStream,NeedByteSwap, NeedBlendFactor);
+      (my_reference)[i]->ReadFromFilePointer( m_InputFileStream,NeedByteSwap, NeedBlendFactor);
       //(*my_reference)[i]->Print(myfile);
     }
     //myfile.close();
-    locationOfFile = inputFileStream.tellg();
-    inputFileStream.close();
+     m_LocationOfFile =  m_InputFileStream.tellg();
+     m_InputFileStream.close();
     //Now fill out the MetaData
     MetaDataDictionary &thisDic=this->GetMetaDataDictionary();
     EncapsulateMetaData<std::string>(thisDic,ITK_OnDiskStorageTypeName,std::string(typeid(unsigned char).name()));
@@ -448,16 +446,16 @@ AnalyzeObjectLabelMapImageIO
     header[0]=VERSION7;
     switch(this->GetNumberOfDimensions())
     {
-      case 4:
+    case 4:
         header[5] = this->GetDimensions(3);
-      case 3:
+    case 3:
         header[3] = this->GetDimensions(2);
-      case 2:
+    case 2:
         header[2] = this->GetDimensions(1);
-      case 1:
+    case 1:
         header[1] = this->GetDimensions(0);
         break;
-      default:
+    default:
         itkDebugMacro(<<"There is an error in writing the header for the Dimensions");
         exit(-1);
     }
@@ -467,21 +465,21 @@ AnalyzeObjectLabelMapImageIO
     {
     header[4]=my_reference.size();
     }
-    else
+  else
     {
-      header[4] = 256;
+    header[4] = 256;
     }
 
     //All object maps are written in BigEndian format as required by the AnalyzeObjectMap documentation.
     bool NeedByteSwap=itk::ByteSwapper<int>::SystemIsLittleEndian();
     if(NeedByteSwap)
     {
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[1]));
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[2]));
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[3]));
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[4]));
-      itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[5]));
+    itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[0]));
+    itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[1]));
+    itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[2]));
+    itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[3]));
+    itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[4]));
+    itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(header[5]));
     }
 
     // Writing the header, which contains the version number, the size, and the
@@ -495,8 +493,8 @@ AnalyzeObjectLabelMapImageIO
     // Error checking the number of objects in the object file
     if ((my_reference.size() < 0) || (my_reference.size() > 256))
     {
-      itkDebugMacro(<<"Error: Invalid number of object files.\n" );
-      outputFileStream.close();
+    itkDebugMacro(<<"Error: Invalid number of object files.\n" );
+    outputFileStream.close();
     }
   
 
@@ -509,28 +507,28 @@ AnalyzeObjectLabelMapImageIO
       // not affect the current object itself
       AnalyzeObjectEntry *ObjectWrite = my_reference[i];
       if (NeedByteSwap == true)
-      {
+        {
         ObjectWrite->SwapObjectEndedness();
-      }
+        }
       ObjectWrite->Write(outputFileStream); 
 
+      }
     }
-    }
-    else
+  else
     {
-      for (unsigned int i = 0; i < 256; i++)
-    {
+    for (unsigned int i = 0; i < 256; i++)
+      {
       // Using a temporary so that the object file is always written in BIG_ENDIAN mode but does
       // not affect the current object itself
       AnalyzeObjectEntry::Pointer ObjectWrite = AnalyzeObjectEntry::New();
       ObjectWrite->SetName("Blank Object");
       if (NeedByteSwap == true)
-      {
+        {
         ObjectWrite->SwapObjectEndedness();
-      }
+        }
       ObjectWrite->Write(outputFileStream); 
 
-    }
+      }
     }
 
   outputFileStream.close();
@@ -569,37 +567,37 @@ AnalyzeObjectLabelMapImageIO
     {
       VolumeSize = this->GetDimensions(0) * this->GetDimensions(1) * this->GetDimensions(2) *this->GetDimensions(3);
     }
-    else if(this->GetNumberOfDimensions() == 3)
+  else if(this->GetNumberOfDimensions() == 3)
     {
       VolumeSize = this->GetDimensions(0) * this->GetDimensions(1) * this->GetDimensions(2);
     }
-    else if(this->GetNumberOfDimensions() == 2)
+  else if(this->GetNumberOfDimensions() == 2)
     {
       VolumeSize = this->GetDimensions(0) * this->GetDimensions(1);
     }
-    else
+  else
     {
-      VolumeSize = this->GetDimensions(0);
+    VolumeSize = this->GetDimensions(0);
     }
-    int PlaneSize;
-    if(this->GetNumberOfDimensions() > 1)
+  int PlaneSize;
+  if(this->GetNumberOfDimensions() > 1)
     {
-      PlaneSize = this->GetDimensions(0)*this->GetDimensions(1);
+    PlaneSize = this->GetDimensions(0)*this->GetDimensions(1);
     }
-    else
+  else
     {
-      PlaneSize = this->GetDimensions(0);
+    PlaneSize = this->GetDimensions(0);
     }
-    int bufferindex=0;
-    int planeindex=0;
-    int runlength=0;
-    unsigned char CurrentObjIndex=0;
-    const  int buffer_size=16384;      //NOTE: This is probably overkill, but it will work
-    unsigned char bufferObjectMap[buffer_size] = {0};
+  int bufferindex=0;
+  int planeindex=0;
+  int runlength=0;
+  unsigned char CurrentObjIndex=0;
+  const  int buffer_size=16384;      //NOTE: This is probably overkill, but it will work
+  unsigned char bufferObjectMap[buffer_size] = {0};
 
-    unsigned char *bufferChar = (unsigned char *)buffer;
+  unsigned char *bufferChar = (unsigned char *)buffer;
 
-    for(int i=0;i<VolumeSize;i++)
+  for(int i=0;i<VolumeSize;i++)
     {
       if (runlength==0)
       {
@@ -615,7 +613,7 @@ AnalyzeObjectLabelMapImageIO
           {
             bufferObjectMap[bufferindex]=runlength;
             bufferObjectMap[bufferindex+1]=CurrentObjIndex;
-            bufferindex+=2;
+            bufferindex += 2;
             runlength=0;
           }
         }
@@ -623,7 +621,7 @@ AnalyzeObjectLabelMapImageIO
         {
           bufferObjectMap[bufferindex]=runlength;
           bufferObjectMap[bufferindex+1]=CurrentObjIndex;
-          bufferindex+=2;
+          bufferindex += 2;
           CurrentObjIndex=bufferChar[i];
           runlength=1;
         }
@@ -638,7 +636,7 @@ AnalyzeObjectLabelMapImageIO
         {
           bufferObjectMap[bufferindex]=runlength;
           bufferObjectMap[bufferindex+1]=CurrentObjIndex;
-          bufferindex+=2;
+          bufferindex += 2;
           runlength=0;
         }
       }
@@ -660,12 +658,12 @@ AnalyzeObjectLabelMapImageIO
       {
         bufferObjectMap[bufferindex]=runlength;
         bufferObjectMap[bufferindex+1]=CurrentObjIndex;
-        bufferindex+=2;
+        bufferindex += 2;
       }
       if(outputFileStream.write(reinterpret_cast<char *>(bufferObjectMap), bufferindex).fail())
       {
-        itkDebugMacro(<<"error: could not write buffer"<<std::endl);
-        exit(-1);
+      itkDebugMacro(<<"error: could not write buffer"<<std::endl);
+      exit(-1);
       }
     }
 }

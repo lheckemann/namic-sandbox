@@ -57,12 +57,12 @@ class ITK_EXPORT AnalyzeObjectLabelMapImageIO : public ImageIOBase
 public:
   
   /** Standard class typedefs. */
-  typedef AnalyzeObjectLabelMapImageIO       Self;
-  typedef ImageIOBase        Superclass;
-  typedef SmartPointer<Self> Pointer;
+  typedef AnalyzeObjectLabelMapImageIO  Self;
+  typedef ImageIOBase                   Superclass;
+  typedef SmartPointer<Self>            Pointer;
 
-  typedef itk::RGBPixel<int> RGBPixelType;
-  typedef itk::Image<unsigned char, 4> ImageType;
+  typedef itk::RGBPixel<int>            RGBPixelType;
+  typedef itk::Image<unsigned char, 4>  ImageType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -115,13 +115,13 @@ public:
     return false;
     }
 protected:
-  AnalyzeObjectLabelMapImageIO() ;
+  AnalyzeObjectLabelMapImageIO();
   ~AnalyzeObjectLabelMapImageIO();
   void PrintSelf(std::ostream& os, Indent indent) const;
 private:
   
-  std::ifstream inputFileStream;
-  int locationOfFile;
+  std::ifstream m_InputFileStream;
+  int           m_LocationOfFile;
   //  int           m_CollapsedDims[8];
   AnalyzeObjectLabelMapImageIO(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented

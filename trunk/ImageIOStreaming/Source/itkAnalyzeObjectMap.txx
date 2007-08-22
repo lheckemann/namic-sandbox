@@ -1,32 +1,19 @@
-/*************************************************************************
-Copyright (c) 2007, Regents of the University of Iowa
+/*=========================================================================
 
-All rights reserved.
+Program:   Insight Segmentation & Registration Toolkit
+Module:    $RCSfile: itkNiftiImageIO.cxx,v $
+Language:  C++
+Date:      $Date: 2007/07/27 18:00:56 $
+Version:   $Revision: 1.37 $
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
+Copyright (c) Insight Software Consortium. All rights reserved.
+See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of The University of Iowa nor the names of its
-      contributors may be used to endorse or promote products derived from
-      this software without specific prior written permission.
+This software is distributed WITHOUT ANY WARRANTY; without even
+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE.  See the above copyright notices for more information.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*************************************************************************/
+=========================================================================*/
 
 //Acknowdlegment: Biomedical Imaging Resource
 //         Mayo Foundation
@@ -37,16 +24,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "itkAnalyzeObjectMap.h"
 #include "itkImageRegionIterator.h"
-namespace itk{
+namespace itk
+{
 template<class TImage, class TRGBImage>
 AnalyzeObjectMap<TImage, TRGBImage>
 ::AnalyzeObjectMap(): m_Version(VERSION7),m_NumberOfObjects(0)
-  {
+{
     //Create an object map of size 1,1,1 and have the pixles be 0.  Also, create one
     //object entry just like Analyze does with the name "Original", this entry
     //is usually the background.
-    this->m_AnaylzeObjectEntryArray.resize(1);
-    this->m_AnaylzeObjectEntryArray[0] = itk::AnalyzeObjectEntry::New();
+  this->m_AnaylzeObjectEntryArray.resize(1);
+  this->m_AnaylzeObjectEntryArray[0] = itk::AnalyzeObjectEntry::New();
     this->m_AnaylzeObjectEntryArray[0]->SetName("Original");
     typename ImageType::SizeType size;
     typename ImageType::IndexType orgin;
@@ -61,18 +49,18 @@ AnalyzeObjectMap<TImage, TRGBImage>
     this->SetRegions(region);
     this->Allocate();
     this->FillBuffer(0);
-  }
+}
 
   template<class TImage, class TRGBImage>
 AnalyzeObjectMap<TImage, TRGBImage>
 ::~AnalyzeObjectMap( void )
-  {
-  }
+{
+}
 template<class TImage, class TRGBImage>
   AnalyzeObjectEntryArrayType *AnalyzeObjectMap<TImage, TRGBImage>::GetAnalyzeObjectEntryArrayPointer()
   {
-    return &(this->m_AnaylzeObjectEntryArray);
-  }
+  return &(this->m_AnaylzeObjectEntryArray);
+}
 
   //This function will have the user pick which entry they want to be placed into
   //a new object map that will be returned.  The function will also go through the image
@@ -101,13 +89,13 @@ template<class TImage, class TRGBImage>
     ObjectMapNew->PlaceObjectMapEntriesIntoMetaData();
 
    return ObjectMapNew;
-  }
+}
 
   //This function will convert an object map into an unsigned char RGB image.
 template<class TImage, class TRGBImage>
   typename TRGBImage::Pointer AnalyzeObjectMap<TImage, TRGBImage>::ObjectMapToRGBImage()
   {
-    typename TRGBImage::Pointer RGBImage = TRGBImage::New();
+  typename TRGBImage::Pointer RGBImage = TRGBImage::New();
     RGBImage->SetRegions(this->GetLargestPossibleRegion());
     RGBImage->Allocate();
     itk::ImageRegionIterator<TRGBImage> RGBIterator(RGBImage, this->GetLargestPossibleRegion());
@@ -117,7 +105,7 @@ template<class TImage, class TRGBImage>
     myfile.open("RGBImageVoxels2.txt");*/
     for(ObjectIterator.Begin(), RGBIterator.Begin(); !ObjectIterator.IsAtEnd(); ++ObjectIterator, ++RGBIterator)
     {
-        typename itk::ImageRegionIterator<TRGBImage>::PixelType setColors;
+    typename itk::ImageRegionIterator<TRGBImage>::PixelType setColors;
 //      typename RGBImage->ImageType setColors;
       setColors.SetBlue(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndBlue());
       setColors.SetGreen(this->m_AnaylzeObjectEntryArray[ObjectIterator.Get()]->GetEndGreen());
@@ -128,7 +116,7 @@ template<class TImage, class TRGBImage>
     }
     //myfile.close();
     return RGBImage;
-  }
+}
 
   //This function will take in an unsigned char of dimension size 3 and go through it and figure out the value the user wants picked out.  The user will also have to
   //specify what they want the new entry's name to be.  The user can also specify what RGB values they want but if they are not speficied the default values
@@ -141,8 +129,8 @@ template<class TImage, class TRGBImage>
     if(  ImageRegion != ObjectMapRegion)
     {
       this->SetRegions(Image->GetLargestPossibleRegion());
-      this->Allocate();
-      this->FillBuffer(0);
+    this->Allocate();
+    this->FillBuffer(0);
     }
     itk::ImageRegionIterator<ImageType > indexImage(Image, Image->GetLargestPossibleRegion());
 
@@ -155,12 +143,12 @@ template<class TImage, class TRGBImage>
     this->m_AnaylzeObjectEntryArray[i]->SetEndBlue(Blue);
     for(indexImage.Begin(), indexObjectMap.Begin();!indexImage.IsAtEnd() && !indexObjectMap.IsAtEnd(); ++indexImage, ++indexObjectMap)
     {
-      if(indexImage.Get() == value)
+    if(indexImage.Get() == value)
       {
         indexObjectMap.Set(i);
       }
     }
-  }
+}
   
 
   /*NOTE: This function will add an object entry to the end of the vector.  However, you will still have to fill in the values that you would like stored.
@@ -172,54 +160,54 @@ template<class TImage, class TRGBImage>
     this->SetNumberOfObjects(this->GetNumberOfObjects()+1);
     this->m_AnaylzeObjectEntryArray[this->GetNumberOfObjects()]->SetName(ObjectName);
     this->PlaceObjectMapEntriesIntoMetaData();
-  }
+}
 
   /*NOTE: This function will move all object entry's so that the vector stays in the smallest order starting from 0.*/
 template<class TImage, class TRGBImage>
   void AnalyzeObjectMap<TImage, TRGBImage>::DeleteAnalyzeObjectEntry(const std::string ObjectName)
   {
-    int i = this->FindObjectEntry(ObjectName);
-    if(i == -1)
+  int i = this->FindObjectEntry(ObjectName);
+  if(i == -1)
     {
       return;
     }
-    for(int j = i; j < this->GetNumberOfObjects()-1; j++)
+  for(int j = i; j < this->GetNumberOfObjects()-1; j++)
     {
-      this->m_AnaylzeObjectEntryArray[j] = this->m_AnaylzeObjectEntryArray[j+1];
+    this->m_AnaylzeObjectEntryArray[j] = this->m_AnaylzeObjectEntryArray[j+1];
     }
     this->m_AnaylzeObjectEntryArray.erase(this->m_AnaylzeObjectEntryArray.end()-1);
-    this->SetNumberOfObjects(this->GetNumberOfObjects()-1);
-    this->m_AnaylzeObjectEntryArray.resize(this->GetNumberOfObjects());
-    itk::ImageRegionIterator<ImageType > indexIt(this,this->GetLargestPossibleRegion());
+  this->SetNumberOfObjects(this->GetNumberOfObjects()-1);
+  this->m_AnaylzeObjectEntryArray.resize(this->GetNumberOfObjects());
+  itk::ImageRegionIterator<ImageType > indexIt(this,this->GetLargestPossibleRegion());
     for(indexIt.Begin();!indexIt.IsAtEnd(); ++indexIt)
     {
-      if(indexIt.Get() == i)
+    if(indexIt.Get() == i)
       {
         indexIt.Set(0);
       }
-      else if(indexIt.Get()>i)
+    else if(indexIt.Get()>i)
       {
-        indexIt.Set(indexIt.Get()-1);
+      indexIt.Set(indexIt.Get()-1);
       }
     }
-    this->PlaceObjectMapEntriesIntoMetaData();
-  }
+  this->PlaceObjectMapEntriesIntoMetaData();
+}
 
   //This function will go through the entries looking for the specfic name.  If no name was found then the function
   //will return -1.  So, if you use this, then make sure you check to see if -1 was returned.
 template<class TImage, class TRGBImage>
   int AnalyzeObjectMap<TImage, TRGBImage>::FindObjectEntry(const std::string ObjectName)
   {
-    for(int i=0; i < this->GetNumberOfObjects(); i++)
+  for(int i=0; i < this->GetNumberOfObjects(); i++)
     {
-      if(!ObjectName.compare(this->m_AnaylzeObjectEntryArray.at(i)->GetName()))
+    if(!ObjectName.compare(this->m_AnaylzeObjectEntryArray.at(i)->GetName()))
       {
-        return i;
+      return i;
       }
     }
     //If not found return -1
-    return -1;
-  }
+  return -1;
+}
 
 template<class TImage, class TRGBImage>
   void AnalyzeObjectMap<TImage, TRGBImage>::PlaceObjectMapEntriesIntoMetaData()
@@ -228,13 +216,13 @@ template<class TImage, class TRGBImage>
 
     MetaDataDictionary &thisDic=this->GetMetaDataDictionary();
     itk::EncapsulateMetaData<itk::AnalyzeObjectEntryArrayType>(thisDic,ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY,*my_reference);
-  }
+}
 
 template<class TImage, class TRGBImage>
   AnalyzeObjectEntry::Pointer AnalyzeObjectMap<TImage, TRGBImage>::GetObjectEntry( const int index )
   {
-    return this->m_AnaylzeObjectEntryArray.at(index);
-  }
+  return this->m_AnaylzeObjectEntryArray.at(index);
+}
 
 template<class TImage, class TRGBImage>
 void
@@ -248,15 +236,15 @@ AnalyzeObjectMap<TImage, TRGBImage>
   if(itk::ExposeMetaData<itk::AnalyzeObjectEntryArrayType>(image->GetMetaDataDictionary(),ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY, *my_reference))
   {
     this->SetNumberOfObjects(this->GetAnalyzeObjectEntryArrayPointer()->size());
-  }
+    }
   this->PlaceObjectMapEntriesIntoMetaData();
 }
 
 template<class TImage, class TRGBImage>
   void AnalyzeObjectMap<TImage, TRGBImage>::PrintSelf(std::ostream& os, Indent indent) const
   {
-    Superclass::PrintSelf(os, indent);
-  }
+  Superclass::PrintSelf(os, indent);
+}
 
 }
 #endif
