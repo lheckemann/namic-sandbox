@@ -330,7 +330,7 @@ void AnalyzeObjectLabelMapImageIO::ReadImageInformation()
     {
       this->SetNumberOfDimensions(2);
     }
-    else if(header[1] >1 )
+    else
     {
       this->SetNumberOfDimensions(1);
     }
