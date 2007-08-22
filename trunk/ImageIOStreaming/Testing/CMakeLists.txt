@@ -58,6 +58,7 @@ ADD_TEST( ImageIOStreamingAnalyzeObjectLabelMapTest01
    ${TESTING_OUTPUT_DIR}/creatingObject.obj
    ${TESTING_OUTPUT_DIR}/circle.obj
    ${TESTING_OUTPUT_DIR}/blankImage.obj
+   ${TESTING_OUTPUT_DIR}/OneDimensionImage.obj
    )
 
 ADD_TEST( ImageIOStreamingAnalyzeObjectLabelMapCreateImageTest01

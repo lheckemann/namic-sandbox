@@ -33,9 +33,9 @@
 int main( int argc, char ** argv )
 {
   int error_count = 0;
-  if ( argc != 7 )
+  if ( argc != 8 )
     {
-    std::cerr << "USAGE: " << argv[0] << "<inputFileName> <outputFileName> <Nifti file> <NewObjectMapFileName> <oneObjectEntryFileName> <blankImageFileName>" << std::endl;
+    std::cerr << "USAGE: " << argv[0] << "<inputFileName> <outputFileName> <Nifti file> <NewObjectMapFileName> <oneObjectEntryFileName> <blankImageFileName> <OneDimensionFileName>" << std::endl;
     }
   const char *InputObjectFileName = argv[1];
   const char *OuptputObjectFileName = argv[2];
@@ -43,6 +43,7 @@ int main( int argc, char ** argv )
   const char *CreatingObject = argv[4];
   const char *oneObjectEntryFileName = argv[5];
   const char *blankImageFileName = argv[6];
+  const char *OneDimensionFileName = argv[7]
   typedef unsigned char       PixelType;
 
   typedef itk::Image< PixelType,  3 >    ThreeDimensionImageType;
@@ -273,7 +274,7 @@ int main( int argc, char ** argv )
   OneDimensionImage->FillBuffer(230);
   OneDimensionWriterType::Pointer OneDimensionWriter = OneDimensionWriterType::New();
   OneDimensionWriter->SetInput(OneDimensionImage);
-  OneDimensionWriter->SetFileName("OneDimensionImage.obj");
+  OneDimensionWriter->SetFileName(OneDimensionFileName);
 
   try
     {
@@ -287,7 +288,7 @@ int main( int argc, char ** argv )
     }
 
   OneDimensionReaderType::Pointer OneDimensionReader = OneDimensionReaderType::New();
-  OneDimensionReader->SetFileName("OneDimensionImage.obj");
+  OneDimensionReader->SetFileName(OneDimensionFileName);
   try
     {
     OneDimensionReader->Update();
