@@ -84,7 +84,7 @@ template<class TImage, class TRGBImage>
     typename itk::AnalyzeObjectMap<TImage>::Pointer ObjectMapNew = itk::AnalyzeObjectMap<TImage>::New();
     ObjectMapNew->SetRegions(this->GetLargestPossibleRegion());
     ObjectMapNew->Allocate();
-    ObjectMapNew->AddObjectEntry(this->GetObjectEntry(numberOfEntry)->GetName());
+    ObjectMapNew->AddAnalyzeObjectEntry(this->GetObjectEntry(numberOfEntry)->GetName());
     ObjectMapNew->GetObjectEntry(1)->Copy(this->m_AnaylzeObjectEntryArray[numberOfEntry]);
     typename itk::ThresholdImageFilter<ImageType>::Pointer changeOldObjectMap = itk::ThresholdImageFilter<ImageType>::New();
     
@@ -148,7 +148,7 @@ template<class TImage, class TRGBImage>
 
     itk::ImageRegionIterator<ImageType > indexObjectMap(this,Image->GetLargestPossibleRegion());
     
-    this->AddObjectEntry(ObjectName);
+    this->AddAnalyzeObjectEntry(ObjectName);
     unsigned int i = this->GetNumberOfObjects();
     this->m_AnaylzeObjectEntryArray[i]->SetEndRed(Red);
     this->m_AnaylzeObjectEntryArray[i]->SetEndGreen(Green);
@@ -166,7 +166,7 @@ template<class TImage, class TRGBImage>
   /*NOTE: This function will add an object entry to the end of the vector.  However, you will still have to fill in the values that you would like stored.
   TODO: Rastor through the image to place the value at the specifed locations.*/
 template<class TImage, class TRGBImage>
-  void AnalyzeObjectMap<TImage, TRGBImage>::AddObjectEntry(const std::string ObjectName)
+  void AnalyzeObjectMap<TImage, TRGBImage>::AddAnalyzeObjectEntry(const std::string ObjectName)
   {
     this->m_AnaylzeObjectEntryArray.insert(this->m_AnaylzeObjectEntryArray.end(), itk::AnalyzeObjectEntry::New());
     this->SetNumberOfObjects(this->GetNumberOfObjects()+1);
@@ -176,7 +176,7 @@ template<class TImage, class TRGBImage>
 
   /*NOTE: This function will move all object entry's so that the vector stays in the smallest order starting from 0.*/
 template<class TImage, class TRGBImage>
-  void AnalyzeObjectMap<TImage, TRGBImage>::DeleteObjectEntry(const std::string ObjectName)
+  void AnalyzeObjectMap<TImage, TRGBImage>::DeleteAnalyzeObjectEntry(const std::string ObjectName)
   {
     int i = this->FindObjectEntry(ObjectName);
     if(i == -1)

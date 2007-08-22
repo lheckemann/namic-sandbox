@@ -43,8 +43,8 @@ int main( int argc, char ** argv )
   const char *CreatingObject = argv[4];
   const char *oneObjectEntryFileName = argv[5];
   const char *blankImageFileName = argv[6];
-  const char *OneDimensionFileName = argv[7]
-  typedef unsigned char       PixelType;
+  const char *OneDimensionFileName = argv[7];
+  typedef unsigned char PixelType;
 
   typedef itk::Image< PixelType,  3 >    ThreeDimensionImageType;
   typedef itk::Image< PixelType, 4 > FourDimensionImageType;
@@ -153,12 +153,12 @@ int main( int argc, char ** argv )
     }
   itk::AnalyzeObjectMap<TwoDimensionImageType>::Pointer CreateObjectMap = itk::AnalyzeObjectMap<TwoDimensionImageType>::New();
 
-  CreateObjectMap->AddObjectEntry("You Can Delete Me");
+  CreateObjectMap->AddAnalyzeObjectEntry("You Can Delete Me");
   CreateObjectMap->AddObjectEntryBasedOnImagePixel(TwoDimensionReader->GetOutput(), 200, "Square", 250, 0, 0);
   CreateObjectMap->AddObjectEntryBasedOnImagePixel(TwoDimensionReader->GetOutput(), 128, "Circle", 0, 250,0);
-  CreateObjectMap->AddObjectEntry("Nothing In Here");
+  CreateObjectMap->AddAnalyzeObjectEntry("Nothing In Here");
   CreateObjectMap->GetObjectEntry(4)->Copy(CreateObjectMap->GetObjectEntry(1));
-  CreateObjectMap->DeleteObjectEntry("Nothing In Here");
+  CreateObjectMap->DeleteAnalyzeObjectEntry("Nothing In Here");
 
   TwoDimensionWriterType::Pointer TwoDimensionWriter = TwoDimensionWriterType::New();
   TwoDimensionWriter->SetInput(CreateObjectMap);

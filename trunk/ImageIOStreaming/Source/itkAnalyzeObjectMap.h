@@ -134,14 +134,14 @@ namespace itk
       /**
        * \brief AddObjectEntry
        */
-      void AddObjectEntry(const std::string ObjectName = "");
+      void AddAnalyzeObjectEntry(const std::string ObjectName = "");
 
       /**
        * \brief DeleteObjectEntry
        *
        * This function will move all object entry's so that the vector stays in the smallest order starting from 0.
        */
-      void DeleteObjectEntry(const std::string ObjectName = "");
+      void DeleteAnalyzeObjectEntry(const std::string ObjectName = "");
 
       /**
        * \brief FindObject
