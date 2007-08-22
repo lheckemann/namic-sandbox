@@ -1,34 +1,21 @@
-/*************************************************************************
-Copyright (c) 2007, Regents of the University of Iowa
+/*=========================================================================
 
-All rights reserved.
+Program:   Insight Segmentation & Registration Toolkit
+Module:    $RCSfile: itkNiftiImageIO.cxx,v $
+Language:  C++
+Date:      $Date: 2007/07/27 18:00:56 $
+Version:   $Revision: 1.37 $
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
+Copyright (c) Insight Software Consortium. All rights reserved.
+See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of The University of Iowa nor the names of its
-      contributors may be used to endorse or promote products derived from
-      this software without specific prior written permission.
+This software is distributed WITHOUT ANY WARRANTY; without even
+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE.  See the above copyright notices for more information.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*************************************************************************/
-#ifndef __OBJECTMAP_H_
-#define __OBJECTMAP_H_
+=========================================================================*/
+#ifndef __itkAnalyzeObjectMap_h
+#define __itkAnalyzeObjectMap_h
 
 #include <stdio.h>
 #include <string>
@@ -46,19 +33,19 @@ const char *const ANALYZE_OBJECT_LABEL_MAP_ENTRY_ARRAY = "ANALYZE_OBJECT_LABEL_M
 /**
   * Constants representing the current version number of the object map file for Analyze
   */
-  const int VERSION1 = 880102;
-  const int VERSION2 = 880801;
-  const int VERSION3 = 890102;
-  static const int VERSION4 = 900302;
-  static const int VERSION5 = 910402;
-  static const int VERSION6 = 910926;
-  static const int VERSION7 = 20050829;
+const int VERSION1 = 880102;
+const int VERSION2 = 880801;
+const int VERSION3 = 890102;
+static const int VERSION4 = 900302;
+static const int VERSION5 = 910402;
+static const int VERSION6 = 910926;
+static const int VERSION7 = 20050829;
 
 namespace itk
 {
 
-  typedef std::vector<AnalyzeObjectEntry::Pointer>  AnalyzeObjectEntryArrayType;
-  template <class TImage = itk::Image<unsigned char, 4>, class TRGBImage = itk::Image<itk::RGBPixel<unsigned char>,4> >
+typedef std::vector<AnalyzeObjectEntry::Pointer>  AnalyzeObjectEntryArrayType;
+template <class TImage = itk::Image<unsigned char, 4>, class TRGBImage = itk::Image<itk::RGBPixel<unsigned char>,4> >
 
 
 /** \class AnalyzeObjectMap
@@ -66,20 +53,20 @@ namespace itk
  * is a templated class where most everything will depend on the Image type that is used.
  */
   class AnalyzeObjectMap: public TImage
-  {
+{
     public:
       
 
       /** Standard typedefs. */
-      typedef AnalyzeObjectMap Self;
-      typedef TImage  Superclass;
-      typedef SmartPointer<Self>  Pointer;
-      typedef SmartPointer<const Self>  ConstPointer;
+      typedef AnalyzeObjectMap              Self;
+      typedef TImage                        Superclass;
+      typedef SmartPointer<Self>            Pointer;
+      typedef SmartPointer<const Self>      ConstPointer;
       
-      typedef TImage ImageType;
+      typedef TImage                        ImageType;
       typedef itk::AnalyzeObjectMap<TImage> ObjectMapType;
 
-      typedef typename TImage::PixelType PixelType;
+      typedef typename TImage::PixelType    PixelType;
       
       /** Method for creation through the object factory. */
       itkNewMacro(Self);
@@ -186,17 +173,17 @@ namespace itk
        */
       AnalyzeObjectMap( const AnalyzeObjectMap & rhs ) { /*Explicitly not allowed*/ };
 
-      void PrintSelf(std::ostream& os, Indent indent) const;
+    void PrintSelf(std::ostream& os, Indent indent) const;
 
    private:
-      /** Version of object file */
-      int m_Version;
-      /** Number of Objects in the object file */
-      int m_NumberOfObjects;
-      /** Pointers to individual objects in the object map, maximum of 256 */
-      AnalyzeObjectEntryArrayType m_AnaylzeObjectEntryArray;
+    /** Version of object file */
+    int m_Version;
+    /** Number of Objects in the object file */
+    int m_NumberOfObjects;
+    /** Pointers to individual objects in the object map, maximum of 256 */
+    AnalyzeObjectEntryArrayType m_AnaylzeObjectEntryArray;
   };
-}
+  }
 #ifndef ITK_MANUAL_INSTANTIATION
 #include "itkAnalyzeObjectMap.txx"
 #endif

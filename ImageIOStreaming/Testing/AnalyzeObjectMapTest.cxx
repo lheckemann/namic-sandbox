@@ -44,23 +44,23 @@ int main( int argc, char ** argv )
   const char *oneObjectEntryFileName = argv[5];
   const char *blankImageFileName = argv[6];
   const char *OneDimensionFileName = argv[7];
-  typedef unsigned char PixelType;
+  typedef                                                   unsigned char PixelType;
 
-  typedef itk::Image< PixelType,  3 >    ThreeDimensionImageType;
-  typedef itk::Image< PixelType, 4 > FourDimensionImageType;
-  typedef itk::Image< PixelType, 2 > TwoDimensionImageType;
-  typedef itk::Image<itk::RGBPixel<PixelType>, 2> TwoDimensionRGBImageType;
-  typedef itk::Image<itk::RGBPixel<PixelType>, 3> ThreeDimensionRGBImageType;
-  typedef itk::Image< PixelType, 1> OneDimensionImageType;
+  typedef itk::Image< PixelType,  3 >                       ThreeDimensionImageType;
+  typedef itk::Image< PixelType, 4 >                        FourDimensionImageType;
+  typedef itk::Image< PixelType, 2 >                        TwoDimensionImageType;
+  typedef itk::Image<itk::RGBPixel<PixelType>, 2>           TwoDimensionRGBImageType;
+  typedef itk::Image<itk::RGBPixel<PixelType>, 3>           ThreeDimensionRGBImageType;
+  typedef itk::Image< PixelType, 1>                         OneDimensionImageType;
 
   typedef itk::ImageFileReader< ThreeDimensionImageType  >  ThreeDimensionReaderType;
-  typedef itk::ImageFileWriter< ThreeDimensionImageType >  ThreeDimensionWriterType;
-  typedef itk::ImageFileWriter< FourDimensionImageType > FourDimensionWriterType;
-  typedef itk::ImageFileReader< FourDimensionImageType > FourDimensionReaderType;
-  typedef itk::ImageFileWriter< TwoDimensionImageType > TwoDimensionWriterType;
-  typedef itk::ImageFileReader< TwoDimensionImageType > TwoDimensionReaderType;
-  typedef itk::ImageFileWriter< OneDimensionImageType > OneDimensionWriterType;
-  typedef itk::ImageFileReader< OneDimensionImageType > OneDimensionReaderType;
+  typedef itk::ImageFileWriter< ThreeDimensionImageType >   ThreeDimensionWriterType;
+  typedef itk::ImageFileWriter< FourDimensionImageType >    FourDimensionWriterType;
+  typedef itk::ImageFileReader< FourDimensionImageType >    FourDimensionReaderType;
+  typedef itk::ImageFileWriter< TwoDimensionImageType >     TwoDimensionWriterType;
+  typedef itk::ImageFileReader< TwoDimensionImageType >     TwoDimensionReaderType;
+  typedef itk::ImageFileWriter< OneDimensionImageType >     OneDimensionWriterType;
+  typedef itk::ImageFileReader< OneDimensionImageType >     OneDimensionReaderType;
 
   ThreeDimensionReaderType::Pointer ThreeDimensionReader = ThreeDimensionReaderType::New();
   ThreeDimensionWriterType::Pointer ThreeDimensionWriter = ThreeDimensionWriterType::New();
@@ -110,21 +110,21 @@ int main( int argc, char ** argv )
   char WrittenBytes;
   int count = 0;
   while(!ReferenceFile.eof()  && !WrittenFile.eof())
-  {
+    {
     count++;
     ReferenceFile.read(reinterpret_cast<char *> (&ReferenceBytes), sizeof(char));
     WrittenFile.read(reinterpret_cast<char *>(&WrittenBytes), sizeof(char));
     if(ReferenceBytes != WrittenBytes)
-    {
+      {
         error_count++;
+      }
     }
-  }
 
   if(!ReferenceFile.eof())
-  {
-      error_count++;
-      std::cout<<"ReferenceFile is not at end of file"<<std::endl;
-  }
+    {
+    error_count++;
+    std::cout<<"ReferenceFile is not at end of file"<<std::endl;
+    }
   if(!WrittenFile.eof())
   {
       error_count++;
@@ -302,9 +302,9 @@ int main( int argc, char ** argv )
 
 
   if( error_count )
-  {
-  return EXIT_FAILURE;
-  }
+    {
+    return EXIT_FAILURE;
+    }
 
   return EXIT_SUCCESS;
 }
