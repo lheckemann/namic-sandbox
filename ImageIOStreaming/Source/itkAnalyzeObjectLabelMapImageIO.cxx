@@ -182,15 +182,15 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
 
       //You can uncomment the following commented out code to have a file written with the exact values that are read in.
 
-      std::ofstream myfile;
-      myfile.open("VoxelInformationReader.txt", myfile.app);
+//      std::ofstream myfile;
+//      myfile.open("VoxelInformationReader.txt", myfile.app);
       while (!inputFileStream.read(reinterpret_cast<char *>(RunLengthArray), sizeof(RunLengthElement)*NumberOfRunLengthElementsPerRead).eof())
       {
         for (int i = 0; i < NumberOfRunLengthElementsPerRead; i++)
         {
-           myfile<< "Assigning: " << (int)RunLengthArray[i].voxel_count 
-             << " voxels of label " << (int)RunLengthArray[i].voxel_value
-             << std::endl;
+//           myfile<< "Assigning: " << (int)RunLengthArray[i].voxel_count 
+//             << " voxels of label " << (int)RunLengthArray[i].voxel_value
+//             << std::endl;
           if(RunLengthArray[i].voxel_count == 0)
           {
                 itkDebugMacro(<<"Inside AnaylzeObjectLabelMap Invalid Length "<<(int)RunLengthArray[i].voxel_count<<std::endl);
@@ -202,9 +202,9 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
             index++;
           }
           voxel_count_sum+=RunLengthArray[i].voxel_count;
-          myfile <<"index = "<<index
-            << " voxel_count_sum= " << voxel_count_sum
-            << " Volume size = "<<VolumeSize<<std::endl;
+//          myfile <<"index = "<<index
+//            << " voxel_count_sum= " << voxel_count_sum
+//            << " Volume size = "<<VolumeSize<<std::endl;
           if ( index > VolumeSize )
           {
             itkDebugMacro(<<"BREAK!\n");
@@ -212,7 +212,7 @@ void AnalyzeObjectLabelMapImageIO::Read(void* buffer)
           }
         }
       }
-      myfile.close();
+//      myfile.close();
     }
 
         
@@ -582,13 +582,8 @@ AnalyzeObjectLabelMapImageIO
 
     unsigned char *bufferChar = (unsigned char *)buffer;
 
-    std::ofstream myfile;
-    myfile.open("VoxelInformationWriter.txt", myfile.app);
-    int index = 0;
-    int voxel_count_sum = 0;
     for(int i=0;i<VolumeSize;i++)
     {
-      index++;
       if (runlength==0)
       {
           CurrentObjIndex = bufferChar[i];
@@ -601,13 +596,6 @@ AnalyzeObjectLabelMapImageIO
           runlength++;
           if (runlength==255)
           {
-            myfile<< "Assigning: " << runlength
-             << " voxels of label " << (int)CurrentObjIndex
-             << std::endl;
-            voxel_count_sum += runlength;
-            myfile <<"index = "<<index
-            << " voxel_count_sum= " << voxel_count_sum
-            << " Volume size = "<<VolumeSize<<std::endl;
             bufferObjectMap[bufferindex]=runlength;
             bufferObjectMap[bufferindex+1]=CurrentObjIndex;
             bufferindex+=2;
@@ -616,13 +604,6 @@ AnalyzeObjectLabelMapImageIO
         }
         else
         {
-          myfile<< "Assigning: " << runlength 
-             << " voxels of label " << (int)CurrentObjIndex
-             << std::endl;
-          voxel_count_sum += runlength;
-          myfile <<"index = "<<index
-            << " voxel_count_sum= " << voxel_count_sum
-            << " Volume size = "<<VolumeSize<<std::endl;
           bufferObjectMap[bufferindex]=runlength;
           bufferObjectMap[bufferindex+1]=CurrentObjIndex;
           bufferindex+=2;
@@ -638,13 +619,6 @@ AnalyzeObjectLabelMapImageIO
         planeindex=0;
         if (runlength!=0)
         {
-          myfile<< "Assigning: " << runlength 
-             << " voxels of label " << (int)CurrentObjIndex
-             << std::endl;
-          voxel_count_sum += runlength;
-          myfile <<"index = "<<index
-            << " voxel_count_sum= " << voxel_count_sum
-            << " Volume size = "<<VolumeSize<<std::endl;
           bufferObjectMap[bufferindex]=runlength;
           bufferObjectMap[bufferindex+1]=CurrentObjIndex;
           bufferindex+=2;
@@ -667,13 +641,6 @@ AnalyzeObjectLabelMapImageIO
     {
       if (runlength!=0)
       {
-        myfile<< "Assigning: " << runlength 
-             << " voxels of label " << (int)CurrentObjIndex
-             << std::endl;
-        voxel_count_sum += runlength;
-        myfile <<"index = "<<index
-            << " voxel_count_sum= " << voxel_count_sum
-            << " Volume size = "<<VolumeSize<<std::endl;
         bufferObjectMap[bufferindex]=runlength;
         bufferObjectMap[bufferindex+1]=CurrentObjIndex;
         bufferindex+=2;
@@ -684,7 +651,6 @@ AnalyzeObjectLabelMapImageIO
         exit(-1);
       }
     }
-    myfile.close();
 }
 
 } // end namespace itk
