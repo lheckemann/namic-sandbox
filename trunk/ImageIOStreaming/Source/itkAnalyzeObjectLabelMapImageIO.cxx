@@ -545,6 +545,11 @@ AnalyzeObjectLabelMapImageIO
 
 ::Write( const void* buffer)
 {
+  if(this->GetComponentType() != UCHAR)
+  {
+    std::cerr<<"Error: The pixel type needs to be an unsigned char."<<std::endl;
+    exit(-1);
+  }
   this->WriteImageInformation();
   std::string tempfilename = this->GetFileName();
   // Opening the file
