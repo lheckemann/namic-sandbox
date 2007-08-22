@@ -6,7 +6,7 @@ write the object map out to a file.
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkImage.h"
-#include "objectmap.h"
+#include "itkAnalyzeObjectMap.h"
 
 int main( int argc, char ** argv )
 {
@@ -45,7 +45,7 @@ int main( int argc, char ** argv )
   itk::AnalyzeObjectMap<InputImageType>::Pointer CreateObjectMap = itk::AnalyzeObjectMap<InputImageType>::New();
 
   //Add one entry to the object map named "You Can Delete Me", this entry corresponds to 1 if you do a pickOneEntry
-  CreateObjectMap->AddObject("You Can Delete Me");
+  CreateObjectMap->AddAnalyzeObjectEntry("You Can Delete Me");
 
   //Add another two entries that will be based on the image that is passed into 
   //the function, also, the intensity that you would like searched for, the name of the entry and then finally the RGB values
@@ -61,10 +61,10 @@ int main( int argc, char ** argv )
   CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 45,  "SquareTwo", 0, 0, 250);
 
   //Then anoter entry is added, this entry corrsponds to 5 if you do a pickOneEntry
-  CreateObjectMap->AddObject("Nothing In Here");
+  CreateObjectMap->AddAnalyzeObjectEntry("Nothing In Here");
 
   //The entry that was just added is deleted
-  CreateObjectMap->DeleteObject("Nothing In Here");
+  CreateObjectMap->DeleteAnalyzeObjectEntry("Nothing In Here");
 
   //Now write out an object file
   writer->SetInput(CreateObjectMap);

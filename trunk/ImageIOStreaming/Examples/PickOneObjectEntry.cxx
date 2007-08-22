@@ -6,7 +6,7 @@ then write out the new object map with the one entry only.
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkImage.h"
-#include "objectmap.h"
+#include "itkAnalyzeObjectMap.h"
 
 int main( int argc, char ** argv )
 {
