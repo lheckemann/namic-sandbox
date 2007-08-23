@@ -88,6 +88,40 @@ is a specific Region of Interest that a user has specified. With these Regions o
 
 Functions:
 \begin{itemize}
+\item CanReadFile
+
+This checks to see if the filename ends with an obj extension.  If it does then return true that this class can read the file.
+
+\item ReadImageInformation
+
+This reads in the header information.  It first reads in the verision of the object map, then the x,y,z sizes, then the number of objects and for verision 7 object maps the number of volumes.  Then the function reads in each object entry and stores them into a vector of object entries.
+
+\item Read
+
+This will read in and decipher the run length encoded image.
+
+\item CanWriteFile
+
+This checks to see if the filename ends with an obj extension.  If it does then return true that this class can write the file.
+
+\item WriteImageInformation
+
+This writes out the header information.  It first writes out the verision of the object map (which is verisoin 7 right now), the x,y,z sizes, the number of objects and for verision 7 object maps the number of volumes.  Then the function writes out each object entry to the file.  The object entry will most likly take up the most room of the file.  If an image was created without any object entries then the writer will write out 256 object entries.
+
+\item Write
+
+This will comprese the image by run length encoding the image and then write the run length encoding to the specified file.
+
+\item CanStreamRead
+
+This is set to false right now because the reader can not stream data.  This is something that will be worked on in the future.
+
+\end{itemize}
+
+\item itkAnalyzeObjectEntry
+
+Functions:
+\begin{itemize}
         \item operator=
 
         This function is the assignment operator, which copies itself from the left side to the AnalyzeObjectEntry variable on the right side.
@@ -115,13 +149,38 @@ Functions:
 
   \item Write
 \end{itemize}
-\item itkAnalyzeObjectEntry
-  Functions:
-    
 
 \item itkAnalyzeObjectMap
-  Functions;
-    
+
+  Functions:
+\begin{itemize}
+\item AnalyzeObjectMap & operator=
+
+\item GetAnalyzeObjectEntryArrayPointer
+
+
+\item GetVersion/SetVersion
+
+\item GetNumberOfObjects/SetNumberOfObjects
+
+\item PickOneEntry
+
+\item ObjectMapToRGBImage
+
+\item AddObjectEntryBasedOnImagePixel
+
+\item AddAnalyzeObjectEntry
+
+\item DeleteAnalyzeObjectEntry
+
+\item FindObjectEntry
+
+\item PlaceObjectMapEntriesIntoMetaData
+
+\item GetObjectEntry
+
+\item TransformImage
+\end{itemize}
 \end{itemize}
 
 There are two utility files (objectmap and objectentry) and the main IO file (itkAnalyzeObjectLabelMapImageIO) and the corresponding
