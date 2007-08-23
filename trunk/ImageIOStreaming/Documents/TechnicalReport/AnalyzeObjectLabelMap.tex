@@ -78,9 +78,52 @@ added into ITK and how to use the code.
 
 \section{Anaylze Object Maps}
 An Analyze Object Map is an image that is plotted with numbers from 0-255 that correspond to an Analyze Object(or, as will be referred to in this paper as, Analyze Object Entry).  Each Analyze Object Entry
-is a specific Region of Interest that a user has specified. With these Regions of Interest the user can put a name to the Region, a specific color and be able to communicate to other people what areas to look at or know which Regions they are talking about.  Regions of Interest could be differentiating a part of the brain, marking a location where someone thinks a tumor is or many other ways to group a specific area to a name and color.  The Analyze Object Maps can be shown by themselves or overlaid of another image, such as the original image that was the basis of the Analyze Object Map, to show which areas were highlighted.
+is a specific Region of Interest that a user has specified. With these Regions of Interest the user can put a name to the Region, a specific color and be able to communicate to other people what areas to look at or know which Regions they are talking about.  Regions of Interest could be differentiating a part of the brain, marking a location where someone thinks a tumor is or many other ways to group a specific area to a name and color.  The Analyze Object Maps can be shown by themselves or overlaid of another image, such as the original image that was the basis of the Analyze Object Map, to show which areas were highlighted.  
   
-\section{Description}
+\section{Files}
+
+*How to include the files into ITK
+\begin{itemize}
+\item itkAnalyzeObjectLabelMapIO
+
+Functions:
+\begin{itemize}
+        \item operator=
+
+        This function is the assignment operator, which copies itself from the left side to the AnalyzeObjectEntry variable on the right side.
+        
+       
+      \item Copy
+       
+      This function will copy all of the ivars except the name of the entry.  The reason why the function does not copy the name, is that each object entry should have a unique name.
+
+      \item These next functions are get/set macros that will get/set most of the ivars.\\ \\
+
+         getName/setName, getDisplayFlag/setDisplayFlag, getCopyFlag/setCopyFlag, getMirrorFlag/setMirrorFlag, getStatusFlag/setStatusFlag, getNeighborsUsedFlag/setNeighborsUsedFlag, getShades/setShades, getStartRed/setStartRed, getStartGreen/setStartGreen, getStartBlue/setStartBlue, getEndRed/setEndRed, getEndGreen/setEndGreen, getEndBlue/setEndBlue, getXRotation/setXRotation, getXRotationIncrement/setXRotationIncrement, getYRotation/setYRotation, getYRotationIncrement/setYRotationIncrement, getZRotation/setZRotation, getZRotationIncrement/setZRotationIncrement, getXTranslation/setXTranslation, getXTranslation/setXTranslation, getYTranslation/setYTranslation, getYTranslationIncrement/setYTranslationIncrement, getZTranslation/setZTranslation, getZTranslation/setZTranslation, getXCenter/setXCenter, getYCenter/setYCenter, getZCenter/setZCenter, getMinimumXValue/setMinimumXValue, getMinimumYValue/setMinimumYValue, getMinimumZValue/setMinimumZValue, getMaximumXValue/setMaximumXValue, getMaximumYValue/setMaximumYValue, getMaximumZValue/setMaximumZValue, getOpacity/setOpacity,   GetOpacityThickness/SetOpacityThickness, GetBlendFactor/SetBlendFactor\\ \\
+
+  \item Print
+
+    This function will print out all of the ivars out to any file that the user wants.  This is mostly used for debugging purposes.
+
+  \item ReadFromFilePointer
+    
+    This function will read in all of the ivars from a file location that is passed into it.
+
+  \item SwapObjectEndedness
+
+    This function will change the object endedness if the computer is a little endian machine, since the object maps are written in big endian.
+
+  \item Write
+\end{itemize}
+\item itkAnalyzeObjectEntry
+  Functions:
+    
+
+\item itkAnalyzeObjectMap
+  Functions;
+    
+\end{itemize}
+
 There are two utility files (objectmap and objectentry) and the main IO file (itkAnalyzeObjectLabelMapImageIO) and the corresponding
 IO factory file (itkAnalyzeObjectLabelMapImageIOFactory).  
 
@@ -330,6 +373,9 @@ After that the third argument that corresponds to the name of a nifti file that 
 
 Then from that object map one entry is picked and new object map is created with just the one entry in it.  This object map with the one entry is written to file that corresponds with the fifth argument.  The file that was just written out is read back in and then converted into an object map and finally an RGB image is created from the object map.
 
+\section{Future Work}
+
+We will make the writer and reader streamable in the future.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
