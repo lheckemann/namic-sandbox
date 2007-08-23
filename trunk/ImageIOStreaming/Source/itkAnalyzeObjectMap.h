@@ -88,14 +88,6 @@ template <class TImage = itk::Image<unsigned char, 4>, class TRGBImage = itk::Im
 
 
       /**
-       * \brief GetVersion/SetVersion
-       *
-       * This function is used to Get/Set the Analyze version of the object
-       */
-      itkSetMacro(Version, int);
-      itkGetConstMacro(Version, int);
-
-      /**
        * \brief GetNumberOfObjects/SetNumberOfObjects
        *
        * This function is used to Get/Set the number of objects in the Object map
@@ -154,7 +146,7 @@ template <class TImage = itk::Image<unsigned char, 4>, class TRGBImage = itk::Im
        */
       const AnalyzeObjectEntry::Pointer GetObjectEntry( const int index ) const;
 
-      void TransformImage(ImageType *image);
+      void ImageToObjectMap(ImageType *image);
 
      protected:
        /**
@@ -176,8 +168,6 @@ template <class TImage = itk::Image<unsigned char, 4>, class TRGBImage = itk::Im
     void PrintSelf(std::ostream& os, Indent indent) const;
 
    private:
-    /** Version of object file */
-    int m_Version;
     /** Number of Objects in the object file */
     int m_NumberOfObjects;
     /** Pointers to individual objects in the object map, maximum of 256 */

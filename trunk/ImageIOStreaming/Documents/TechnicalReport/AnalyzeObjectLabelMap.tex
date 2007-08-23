@@ -124,7 +124,7 @@ Functions:
 \begin{itemize}
         \item operator=
 
-        This function is the assignment operator, which copies itself from the left side to the AnalyzeObjectEntry variable on the right side.
+        This function is the assignment operator, which copies a new object entry from the right side to the AnalyzeObjectEntry variable on the left side.
         
        
       \item Copy
@@ -156,30 +156,51 @@ Functions:
 \begin{itemize}
 \item AnalyzeObjectMap & operator=
 
+This function is the assignment operator, which copies a new object map from the right side to the AnalyzeObjectMap variable on the left side.
+
 \item GetAnalyzeObjectEntryArrayPointer
 
-
-\item GetVersion/SetVersion
+This will return a pointer to the vector of object entries that an object map has.
 
 \item GetNumberOfObjects/SetNumberOfObjects
 
+This will get/set the number of object entries that an object map has.
+
 \item PickOneEntry
+
+The user will input the number of the Object entry that they would like to pick.  Then the function will create a new object map that will re returned.  Then the function will go through the original object map image and get rid of all of the other object numbers and change the number of the object entry the user specified to one.  Then the new image will be outputted to the new Object map.  After that the object entry from the original object map will be copied over to the new object map's vector of object entries. 
 
 \item ObjectMapToRGBImage
 
+This will convert the object map into an RGB Image based on the end red, end green and end blue specified for each object entry.  That means that the function will have to go through the object map image, get the value at each pixel, find the object entry that corresponds to the value of the pixel and then pull out the end red, end green and end blue and set that as the pixel color for the RGB Image.  Then that RGB Image will be returned.
+
 \item AddObjectEntryBasedOnImagePixel
+
+This will go through an image that the user inputs, find the specific pixel value the user inputs and then create an object map at the location that it finds the specific pixel value.  The user will also have the option of inputing the red, green and blue they want the object map to be.
 
 \item AddAnalyzeObjectEntry
 
+This will just add an object entry to the end of the vector of object entries that an object map has.
+
 \item DeleteAnalyzeObjectEntry
+
+This will delete an object entry that a user specifies.  The function will go through the image and delete the number that corresponds to the object entry.  Then the function will move all of the object entry numbers above the object entry that was deleted down one number.  Then the function will move all of the object entries above the object entry that was deleted in the vector one number down.
 
 \item FindObjectEntry
 
+This function will find an object entry based on the name that the user inputs.  If the function finds the object entry then it will return the number of the vector of the object entry.  If the function does not find the object entry then the function will return -1.
+
 \item PlaceObjectMapEntriesIntoMetaData
+
+This function will place the object entries into the meta data so that the object map can be moved around just like a normal image.  This function is normally called in the functions that are in this class.
 
 \item GetObjectEntry
 
-\item TransformImage
+This function will return the smart pointer of the object entry the user inputs.
+
+\item ImageToObjectMap
+
+This function will take an image and make it into an object map.  If there is data for object entries in the meta data then extract that data.  Then take the pixel container of the image and place it into the object map's pixel container.
 \end{itemize}
 \end{itemize}
 

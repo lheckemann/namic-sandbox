@@ -28,7 +28,7 @@ namespace itk
 {
 template<class TImage, class TRGBImage>
 AnalyzeObjectMap<TImage, TRGBImage>
-::AnalyzeObjectMap(): m_Version(VERSION7),m_NumberOfObjects(0)
+::AnalyzeObjectMap(): m_NumberOfObjects(0)
 {
     //Create an object map of size 1,1,1 and have the pixles be 0.  Also, create one
     //object entry just like Analyze does with the name "Original", this entry
@@ -227,7 +227,7 @@ template<class TImage, class TRGBImage>
 template<class TImage, class TRGBImage>
 void
 AnalyzeObjectMap<TImage, TRGBImage>
-::TransformImage(TImage *image)
+::ImageToObjectMap(TImage *image)
 {
   this->SetRegions(image->GetLargestPossibleRegion());
   this->Allocate();

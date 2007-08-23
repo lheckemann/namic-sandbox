@@ -80,7 +80,7 @@ int main( int argc, char ** argv )
   //Now that we have an itk image now we need to make the image an object map
   itk::AnalyzeObjectMap<ThreeDimensionImageType, ThreeDimensionRGBImageType>::Pointer ObjectMap = itk::AnalyzeObjectMap<ThreeDimensionImageType, ThreeDimensionRGBImageType>::New();
 
-  ObjectMap->TransformImage(ThreeDimensionReader->GetOutput());
+  ObjectMap->ImageToObjectMap(ThreeDimensionReader->GetOutput());
 
   //Now we can change the object map into an itk RGB image, we then can send this image to the itk-vtk
   //converter and show the image if we wanted to.
@@ -188,7 +188,7 @@ int main( int argc, char ** argv )
     }
   itk::AnalyzeObjectMap<TwoDimensionImageType, TwoDimensionRGBImageType>::Pointer ObjectMapTwo = itk::AnalyzeObjectMap<TwoDimensionImageType, TwoDimensionRGBImageType>::New();
 
-  ObjectMapTwo->TransformImage(TwoDimensionReader->GetOutput());
+  ObjectMapTwo->ImageToObjectMap(TwoDimensionReader->GetOutput());
   TwoDimensionRGBImageType::Pointer RGBImageTwo = ObjectMapTwo->ObjectMapToRGBImage();
 
   TwoDimensionWriter->SetInput(ObjectMapTwo->PickOneEntry(3));
@@ -217,9 +217,9 @@ int main( int argc, char ** argv )
     return EXIT_FAILURE;
     }
 
-  itk::AnalyzeObjectMap<TwoDimensionImageType, TwoDimensionRGBImageType>::Pointer ObjectMapThree = itk::AnalyzeObjectMap<TwoDimensionImageType, TwoDimensionRGBImageType>::New();//ImageToObjectConvertor->TransformImage(readerThree->GetOutput());
+  itk::AnalyzeObjectMap<TwoDimensionImageType, TwoDimensionRGBImageType>::Pointer ObjectMapThree = itk::AnalyzeObjectMap<TwoDimensionImageType, TwoDimensionRGBImageType>::New();
 
-  ObjectMapThree->TransformImage(TwoDimensionReader->GetOutput());
+  ObjectMapThree->ImageToObjectMap(TwoDimensionReader->GetOutput());
   TwoDimensionRGBImageType::Pointer RGBImageThree = ObjectMapThree->ObjectMapToRGBImage();
 
 
