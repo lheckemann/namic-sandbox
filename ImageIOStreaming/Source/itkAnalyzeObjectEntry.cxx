@@ -18,10 +18,6 @@
 
 namespace itk{
 
-AnalyzeObjectEntry::AnalyzeObjectEntry( const AnalyzeObjectEntry & rhs )
-{
-  //Copy construction is not allowed, so no need to fill this code in.
-}
 AnalyzeObjectEntry::~AnalyzeObjectEntry( void )
 {
 }

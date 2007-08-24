@@ -81,14 +81,34 @@ An Analyze Object Map is an image that is plotted with numbers from 0-255 that c
 is a specific Region of Interest that a user has specified. With these Regions of Interest the user can put a name to the Region, a specific color and be able to communicate to other people what areas to look at or know which Regions they are talking about.  Regions of Interest could be differentiating a part of the brain, marking a location where someone thinks a tumor is or many other ways to group a specific area to a name and color.  The Analyze Object Maps can be shown by themselves or overlaid of another image, such as the original image that was the basis of the Analyze Object Map, to show which areas were highlighted.  
   
 \section{Files}
+There are two utility files (objectmap and objectentry) and the main IO file (itkAnalyzeObjectLabelMapImageIO) and the corresponding
+IO factory file (itkAnalyzeObjectLabelMapImageIOFactory).  
 
-*How to include the files into ITK
-The way to include all of the files we have written will go like this.
+The IO file takes care of reading and writing out an object file.  Whenever
+you read or write an object file you have at the very beginning information about the object map.  The very first data is the version
+of the object map, next you have the x,y,z size of the object map, the number of object entries and finally for version 7 (the newest
+version) number of volumes.  After you have the beginning information there is the information about each object file, that means that
+there is going to have to be a vector of all of the entries.  
 
-You will have to place itkAnalyzeObjectLabelMapImageIO.h, itkAnalyzeObjectLabelMapImageIO.cxx, itkAnalyzeObjectLabelMapImageIOFactory.h, itkAnalyzeObjectLabelMapImageIOFactory.cxx into the source of ITK-$>$Code-$>$IO.  While in the source of ITK-$>$Code-$>$IO you will want to change the cmake file so that SET{...} has itkAnalyzeObjectLabelMapImageIOFactory.cxx and itkAnalyzeObjectLabelMapImageIO.cxx in it.  Then you will need to modify itkImageIOFactory.cxx, you will want place \#inlcude "itkAnalyzeObjectLabelMapImageIOFactory.h", with the includes, then add in the function RegisterBuiltInFactories the following code: ObjectFactoryBase::RegisterFactory( AnalyzeObjectLabelMapImageIOFactory::New() );
+That is why there is a utility file called objectentry that stores the
+information for one specific entry, if you make a vector of the file then you have all of the object entries for an object map.  There
+are also some other functions in the objectentry that will read or write the information for the object entry.  
 
-Then you will have to place the folder called AnalyzeObjectMap into the source of ITK-$>$Utilities.  You will also have to modfify the CMakeLists to include SUBDIRS(AnalyzeObjectMap)
+Finally, after you have all of the entries you have a run length encoding.  The run length encoding corresponds to an image of the numbers of the entries starting from 0 and going all the way up to the number of object entries.  
+
+The objectmap file has functions that take care of doing things to an object map once it is created - such as converting the objectmap to an RGB Image. 
+
+The following bullets are the instructions on how to incorprate the files into itk and the functions inside of each file.
+
 \begin{itemize}
+\item How to include the files into ITK.
+
+The way to include all of the files we have written will go like this:
+
+You will have to place itkAnalyzeObjectLabelMapImageIO.h, itkAnalyzeObjectLabelMapImageIO.cxx, itkAnalyzeObjectLabelMapImageIOFactory.h, itkAnalyzeObjectLabelMapImageIOFactory.cxx into the source of ITK-$>$Code-$>$IO.  While in the source of ITK-$>$Code-$>$IO you will want to change the CMakeLists file so that SET{...} has itkAnalyzeObjectLabelMapImageIOFactory.cxx and itkAnalyzeObjectLabelMapImageIO.cxx in it.  Then you will need to modify itkImageIOFactory.cxx, you will want place \#inlcude "itkAnalyzeObjectLabelMapImageIOFactory.h", with the includes, then add in the function RegisterBuiltInFactories the following code: ObjectFactoryBase::RegisterFactory( AnalyzeObjectLabelMapImageIOFactory::New() );
+
+Then you will have to place the contents of the folder called AnalyzeObjectMap into the source of ITK-$>$Code-&>&Common.  You will also have to modfify the CMakeLists file so that SET{...} has itkAnalyzeObjectEntry.cxx in it.
+
 \item itkAnalyzeObjectLabelMapIO
 
 Functions:
@@ -127,11 +147,7 @@ This is set to false right now because the reader can not stream data.  This is 
 
 Functions:
 \begin{itemize}
-        \item operator=
-
-        This function is the assignment operator, which copies a new object entry from the right side to the AnalyzeObjectEntry variable on the left side.
-        
-       
+      
       \item Copy
        
       This function will copy all of the ivars except the name of the entry.  The reason why the function does not copy the name, is that each object entry should have a unique name.
@@ -153,6 +169,8 @@ Functions:
     This function will change the object endedness if the computer is a little endian machine, since the object maps are written in big endian.
 
   \item Write
+  
+    This function will write out all of the ivars to a file location that is passed into it.
 \end{itemize}
 
 \item itkAnalyzeObjectMap
@@ -209,24 +227,6 @@ This function will take an image and make it into an object map.  If there is da
 \end{itemize}
 \end{itemize}
 
-There are two utility files (objectmap and objectentry) and the main IO file (itkAnalyzeObjectLabelMapImageIO) and the corresponding
-IO factory file (itkAnalyzeObjectLabelMapImageIOFactory).  
-
-The IO file takes care of reading and writing out an object file.  Whenever
-you read or write an object file you have at the very beginning information about the object map.  The very first data is the version
-of the object map, next you have the x,y,z size of the object map, the number of object entries and finally for version 7 (the newest
-version) number of volumes.  After you have the beginning information there is the information about each object file, that means that
-there is going to have to be a vector of all of the entries.  
-
-That is why there is a utility file called objectentry that stores the
-information for one specific entry, if you make a vector of the file then you have all of the object entries for an object map.  There
-are also some other functions in the objectentry that will read or write the information for the object entry.  
-
-Finally, after you have all of the entries you have a run length encoding.  The run length encoding corresponds to an image of the numbers of the entries starting from 0 and going all the way up to the number of object entries.  
-
-The objectmap file has functions that take care of doing things to an object map once it is created - such as converting the objectmap to an RGB Image. 
-
-The one other file that is included is ImageToAnalyzeObjectMap, this file takes care of converting an image with the meta data information for object entries into an object map.
 
 \section{Examples}
 
@@ -234,7 +234,7 @@ This section provides some examples on how to use the programs.
 \begin{itemize}
 \item Example 1 
 
-This example is for reading in any file, then creating a new object map, then add entries to the object map, pick one entry and then write out the new object map with the one entry only.
+This example is for reading in any file, then creating a new object map, then add entries to the object map and finally writing the new object map out to file.
 
 
 Command:
@@ -270,25 +270,31 @@ int main( int argc, char ** argv )
   ...
   reader->Update();
   ...
-  itk::AnalyzeObjectMap<InputImageType>::Pointer CreateObjectMap = itk::AnalyzeObjectMap<InputImageType>::New();
+  itk::AnalyzeObjectMap<InputImageType>::Pointer CreateObjectMap = itk::AnalyzeObjectMap
+  <InputImageType>::New();
   
   ...
   
-  //Add one entry to the object map named "You Can Delete Me", this entry corresponds to 1 if you do a pickOneEntry
+  //Add one entry to the object map named "You Can Delete Me", this entry corresponds to 1
+  if you do a pickOneEntry
   CreateObjectMap->AddAnalyzeObject("You Can Delete Me");
 
   //Add another two entries that will be based on the image that is passed into 
-  //the function, also, the intensity that you would like searched for, the name of the entry and then finally the RGB values
+  //the function, also, the intensity that you would like searched for, the name of the entry
+  and then finally the RGB values
   //you would like the entry to have for the regions that are found.
 
   //This entry corrsponds to 2 if you do a pickOneEntry
-  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 200, "Square", 250, 0, 0);
+  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 200, "Square", 250,
+  0, 0);
 
   //This entry corrsponds to 3 if you do a pickOneEntry
-  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 128, "Circle", 0, 250,0);
+  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 128, "Circle", 0,
+  250, 0);
 
   //This entry corrsponds to 4 if you do a pickOneEntry
-  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 45,  "SquareTwo", 0, 0, 250);
+  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 45,  "SquareTwo",
+  0, 0, 250);
 
   //Then anoter entry is added, this entry corrsponds to 5 if you do a pickOneEntry
   CreateObjectMap->AddAnalyzeObject("Nothing In Here");
@@ -304,28 +310,6 @@ int main( int argc, char ** argv )
   ...
 }
 \end{verbatim} \normalsize
-  
-
-\begin{figure}[h]
-  \hfill
-  \begin{minipage}[t]{.45\textwidth}
-    \begin{center}  
-      \includegraphics[width=.28\textwidth]{2dtest.eps}
-      \caption{2dtest.nii}
-      \label{fig-tc}
-    \end{center}
-  \end{minipage}
-  \hfill
-  \begin{minipage}[t]{.45\textwidth}
-    \begin{center}  
-      \includegraphics[width=.28\textwidth]{creatingObject.eps}
-      \caption{creatingObjects.obj, this is what it should look like when you convert it to an RGB image.  See next example on how to display 
-    object maps.}
-      \label{fig-tc}
-    \end{center}
-  \end{minipage}
-  \hfill
-\end{figure}  
 
 \item Example 2
 
@@ -370,13 +354,16 @@ int main(int argc, char * argv [] )
   reader->Update();
   
   //This will convert the output of the reader into an object map
-  itk::AnalyzeObjectMap<ImageType, RGBImageType>::Pointer Objectmap = itk::AnalyzeObjectMap<ImageType, RGBImageType>::New();
+  itk::AnalyzeObjectMap<ImageType, RGBImageType>::Pointer Objectmap = itk::AnalyzeObjectMap
+  <ImageType, RGBImageType>::New();
   Objectmap->ImageToObjectMap(reader->GetOutput());
   
   //If you have vtk and itkApplications installed then you can uncomment this out to display
-  //an object map to the screen.  Otherwise you can see how to display an object map using vtk.
+  //an object map to the screen.  Otherwise you can see how to display an object map using 
+  vtk.
   
-  //Set the input, to the connector connecting itk with vtk, with an RGB image of the specific
+  //Set the input, to the connector connecting itk with vtk, with an RGB image of the 
+  specific
   //colors that corresponds to each entry in the object map.
   
   //vtkRenderWindowInteractor *windowInteractor = vtkRenderWindowInteractor::New();
@@ -428,20 +415,25 @@ int main( int argc, char ** argv )
   reader->Update();
   ...
   
-  itk::AnalyzeObjectMap<InputImageType>::Pointer CreateObjectMap = itk::AnalyzeObjectMap<InputImageType>::New();
+  itk::AnalyzeObjectMap<InputImageType>::Pointer CreateObjectMap = itk::AnalyzeObjectMap
+  <InputImageType>::New();
   
   //Add another two entries that will be based on the image that is passed into 
   //the function, also, the intensity that you would like searched for, 
   //the name of the entry and then finally the RGB values
   //you would like the entry to have for the regions that are found.
-  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 200, "Square", 250, 0, 0);
-  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 128, "Circle", 0, 250,0);
-  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 45,  "SquareTwo", 0, 0, 250);
+  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 200, "Square", 250,
+  0, 0);
+  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 128, "Circle", 0,
+  250,0);
+  CreateObjectMap->AddObjectEntryBasedOnImagePixel(reader->GetOutput(), 45,  "SquareTwo", 
+  0, 0, 250);
   
   //Pick the circle entry and have it put into CreateObjectMap two.  These means
   //that there is only one entry in CreateObjectMapTwo and the image has also
   //been taken care of.
-  itk::AnalyzeObjectMap<InputImageType>::Pointer CreateObjectMapTwo = CreateObjectMap->PickOneEntry(2);
+  itk::AnalyzeObjectMap<InputImageType>::Pointer CreateObjectMapTwo = CreateObjectMap->
+  PickOneEntry(2);
   
   //Place all of the entries into the meta data so that the entries can be written
   //out to an object file.
@@ -455,14 +447,6 @@ int main( int argc, char ** argv )
   ...
 }
 \end{verbatim} \normalsize
-
-\begin{figure}[h]
-\center
-\includegraphics[width=.14\textwidth]{circle.eps}
-\itkcaption[Streaming Concept Diagram]{circle.obj, this is what it should look like when it is converted to an RGB image.  Also, see the first example to see what 2dtest.nii should look like.}
-\label{fig:StreamingConceptDiagram}
-\end{figure}
-
 
 \end{itemize}
 

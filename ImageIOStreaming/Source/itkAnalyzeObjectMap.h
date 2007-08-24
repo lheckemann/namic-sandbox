@@ -83,7 +83,11 @@ template <class TImage = itk::Image<unsigned char, 4>, class TRGBImage = itk::Im
        */
       AnalyzeObjectMap & operator=( const AnalyzeObjectMap & rhs );
 
-      
+      /**
+       *\brief GetAnalyzeObjectEntryArrayPointer
+       *
+       *This will return a pointer to the vector of object entries that an object map has.
+       */
       AnalyzeObjectEntryArrayType * GetAnalyzeObjectEntryArrayPointer();
 
 
@@ -97,60 +101,97 @@ template <class TImage = itk::Image<unsigned char, 4>, class TRGBImage = itk::Im
 
       /**
        * \brief PickOneEntry
+       *
+       *The user will input the number of the Object entry that they would like to pick.  
+       *Then the function will create a new object map that will re returned.  
+       *Then the function will go through the original object map image and get rid of 
+       *all of the other object numbers and change the number of the object entry the 
+       *user specified to one.  Then the new image will be outputted to the new Object map.  
+       *After that the object entry from the original object map will be copied over to the 
+       *new object map's vector of object entries.
        */
       typename itk::AnalyzeObjectMap<TImage>::Pointer PickOneEntry(const int numberOfEntry = -1);
 
       /**
        * \brief ObjectMapToRGBImage
+       *
+       *This will convert the object map into an RGB Image based on the end red, end green and 
+       *end blue specified for each object entry.  That means that the function will have to go 
+       *through the object map image, get the value at each pixel, find the object entry that 
+       *corresponds to the value of the pixel and then pull out the end red, end green and end 
+       *blue and set that as the pixel color for the RGB Image.  Then that RGB Image will be returned.
        */
       typename TRGBImage::Pointer ObjectMapToRGBImage();
 
       /**
        * \brief AddObjectEntryBasedOnImagePixel
+       *
+       *This will go through an image that the user inputs, find the specific pixel value the user 
+       *inputs and then create an object map at the location that it finds the specific pixel value.  
+       The user will also have the option of inputing the red, green and blue they want the object map to be.
        */
       void AddObjectEntryBasedOnImagePixel(ImageType *Image,const int value = -1,const std::string ObjectName = "",const int Red = 0,const int Green = 0,const int Blue = 0);
 
       /**
        * \brief AddObjectEntry
+       *
+       *This will just add an object entry to the end of the vector of object entries that an object map has.
        */
       void AddAnalyzeObjectEntry(const std::string ObjectName = "");
 
       /**
        * \brief DeleteObjectEntry
        *
-       * This function will move all object entry's so that the vector stays in the smallest order starting from 0.
+       * This will delete an object entry that a user specifies.  
+       *The function will go through the image and delete the number that corresponds to the object entry.  
+       *Then the function will move all of the object entry numbers above the object entry that was deleted down one number.  
+       *Then the function will move all of the object entries above the object entry that was deleted in the vector one number down.
        */
       void DeleteAnalyzeObjectEntry(const std::string ObjectName = "");
 
       /**
        * \brief FindObject
+       *
+       *This function will find an object entry based on the name that the user inputs.  
+       *If the function finds the object entry then it will return the number of the vector of the object entry.  
+       *If the function does not find the object entry then the function will return -1.
        */
       int FindObjectEntry(const std::string ObjectName = "");
 
       /**
        * \brief PlaceObjectMapEntriesIntoMetaData
+       *
+       *This function will place the object entries into the meta data so that the object map can be moved around 
+       *just like a normal image.  This function is normally called in the functions that are in this class.
        */
       void PlaceObjectMapEntriesIntoMetaData();
 
       /**
-       * \brief returns a reference to an object
-       * \param const int index
-       * \return AnalyzeObjectEntry &, an object reference from the array of 256 objects in the objectmap
+       * \brief GetObjectEntry
+       * 
+       * This function will return the smart pointer of the object entry the user inputs.
        */
       AnalyzeObjectEntry::Pointer GetObjectEntry( const int index );
 
       /**
-       * \brief returns a reference to an object
-       * \param const int index
-       * \return AnalyzeObjectEntry &, an object reference from the array of 256 objects in the objectmap
+       * \brief GetObjectEntry const
+       *
+       * This function will return the smart pointer of the object entry the user inputs.
        */
       const AnalyzeObjectEntry::Pointer GetObjectEntry( const int index ) const;
 
+      /**
+       *\brief ImageToObjectMap
+       *
+       *This function will take an image and make it into an object map.  
+       *If there is data for object entries in the meta data then extract that data.  
+       *Then take the pixel container of the image and place it into the object map's pixel container.
+       */
       void ImageToObjectMap(ImageType *image);
 
      protected:
        /**
-        * \brief the default constructor, initializes to 0 or NULL
+        * \brief the default constructor
         */
       AnalyzeObjectMap( void );
 
