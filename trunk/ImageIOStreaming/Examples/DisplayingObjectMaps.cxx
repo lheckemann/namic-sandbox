@@ -47,7 +47,7 @@ int main(int argc, char * argv [] )
   
     //This will convert the output of the reader into an object map
     itk::AnalyzeObjectMap<ImageType, RGBImageType>::Pointer Objectmap = itk::AnalyzeObjectMap<ImageType, RGBImageType>::New();
-    Objectmap->TransformImage(reader->GetOutput());
+    Objectmap->ImageToObjectMap(reader->GetOutput());
 
     //If you have vtk and itkApplications installed then you can uncomment this out to display
     //an object map to the screen.  Otherwise you can see how to display an object map using vtk.

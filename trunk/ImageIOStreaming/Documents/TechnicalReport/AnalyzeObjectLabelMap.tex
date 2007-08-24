@@ -83,6 +83,11 @@ is a specific Region of Interest that a user has specified. With these Regions o
 \section{Files}
 
 *How to include the files into ITK
+The way to include all of the files we have written will go like this.
+
+You will have to place itkAnalyzeObjectLabelMapImageIO.h, itkAnalyzeObjectLabelMapImageIO.cxx, itkAnalyzeObjectLabelMapImageIOFactory.h, itkAnalyzeObjectLabelMapImageIOFactory.cxx into the source of ITK-$>$Code-$>$IO.  While in the source of ITK-$>$Code-$>$IO you will want to change the cmake file so that SET{...} has itkAnalyzeObjectLabelMapImageIOFactory.cxx and itkAnalyzeObjectLabelMapImageIO.cxx in it.  Then you will need to modify itkImageIOFactory.cxx, you will want place \#inlcude "itkAnalyzeObjectLabelMapImageIOFactory.h", with the includes, then add in the function RegisterBuiltInFactories the following code: ObjectFactoryBase::RegisterFactory( AnalyzeObjectLabelMapImageIOFactory::New() );
+
+Then you will have to place the folder called AnalyzeObjectMap into the source of ITK-$>$Utilities.  You will also have to modfify the CMakeLists to include SUBDIRS(AnalyzeObjectMap)
 \begin{itemize}
 \item itkAnalyzeObjectLabelMapIO
 
@@ -154,7 +159,7 @@ Functions:
 
   Functions:
 \begin{itemize}
-\item AnalyzeObjectMap & operator=
+\item AnalyzeObjectMap operator=
 
 This function is the assignment operator, which copies a new object map from the right side to the AnalyzeObjectMap variable on the left side.
 
@@ -238,6 +243,11 @@ Command:
 
 
 \small \begin{verbatim}
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
+#include "itkImage.h"
+#include "itkAnalyzeObjectMap.h"
+
 int main( int argc, char ** argv )
 {
   typedef unsigned char       InputPixelType;
@@ -328,6 +338,17 @@ Command:
 \textbf{DisplayingObjectMaps.exe creatingObjects.obj 0}
 
 \small \begin{verbatim}
+#include "itkImage.h"
+#include "itkRGBPixel.h"
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
+#include "itkAnalyzeObjectMap.h"
+
+//#include "itkImageToVTKImageFilter.h"
+//#include "vtkRenderer.h"
+//#include "vtkRenderWindowInteractor.h"
+//#include <vtkImageViewer2.h>
+
 typedef unsigned char PixelType;
 const unsigned int Dimension = 3;
 typedef itk::Image< PixelType, Dimension > ImageType;
@@ -350,7 +371,7 @@ int main(int argc, char * argv [] )
   
   //This will convert the output of the reader into an object map
   itk::AnalyzeObjectMap<ImageType, RGBImageType>::Pointer Objectmap = itk::AnalyzeObjectMap<ImageType, RGBImageType>::New();
-  Objectmap->TransformImage(reader->GetOutput());
+  Objectmap->ImageToObjectMap(reader->GetOutput());
   
   //If you have vtk and itkApplications installed then you can uncomment this out to display
   //an object map to the screen.  Otherwise you can see how to display an object map using vtk.
@@ -392,6 +413,11 @@ Command:
 \textbf{PickOneObjectEntry.exe 2dtest.nii circle.obj}
 
 \small \begin{verbatim}
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
+#include "itkImage.h"
+#include "itkAnalyzeObjectMap.h"
+
 int main( int argc, char ** argv )
 {
   ...
