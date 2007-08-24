@@ -71,13 +71,10 @@ public:
       
 
       /**
-       * \brief operator= is the assignment operator, which copies the data values on the
-       * right hand side to the AnalyzeObjectEntry variable on the left
-       * \param const AnalyzeObjectEntry & rhs
-       * \return none
-       * Possible Causes of Failure:
-       * - unknown
-       * \sa AnalyzeObjectEntry
+       * \brief Copy
+       *
+       *This function will copy all of the ivars except the name of the entry.
+       *The reason why the function does not copy the name, is that each object entry should have a unique name.
        */
       void Copy( AnalyzeObjectEntry::Pointer rhs );
 
@@ -108,13 +105,13 @@ public:
       }
     }
 
-      /**
-       * \brief getDisplayFlag/setDisplayFlag
+  /**
+   * \brief getDisplayFlag/setDisplayFlag
    *
    * DisplayFlag is used to enable or disable the display of this
-       * particular object. A value of zero value indicates
-       * that voxels of this object type are ignored or assumed to be outside
-       * the threshold range during the raycasting process.
+   * particular object. A value of zero value indicates
+   * that voxels of this object type are ignored or assumed to be outside
+   * the threshold range during the raycasting process.
    */
   itkGetConstMacro(DisplayFlag, int);
   itkSetMacro(DisplayFlag, int);
@@ -123,8 +120,8 @@ public:
    * \brief getCopyFlag gets the Copy Flag
    *
    * CopyFlag indicates object translation, rotation, and mirroring are
-       * applied to a copy of the actual object, rather
-       * than the object itself. [ANALYZE only]
+   * applied to a copy of the actual object, rather
+   * than the object itself. [ANALYZE only]
    */
   itkGetConstMacro(CopyFlag, unsigned char);
   itkSetMacro(CopyFlag, unsigned char);
@@ -133,7 +130,7 @@ public:
    * \brief getMirrorFlag/setMirrorFlag
    *
    * MirrorFlag indicates the axis this object is mirrored around.
-       * [ANALYZE only]
+   * [ANALYZE only]
    */
   itkGetConstMacro(MirrorFlag, unsigned char);
   itkSetMacro(MirrorFlag, unsigned char);
@@ -142,7 +139,7 @@ public:
    * \brief getStatusFlag/setStatusFlag
    *
    * StatusFlag is used to indicate when an object has changed and may
-       * need it's minimum bounding box recomputed. [ANALYZE only]
+   * need it's minimum bounding box recomputed. [ANALYZE only]
    */
   itkGetConstMacro(StatusFlag, unsigned char);
   itkSetMacro(StatusFlag, unsigned char);
@@ -151,7 +148,7 @@ public:
    * \brief getNeighborsUsedFlag/setNeighborsUsedFlag
    *
    * NeighborsUsedFlag indicates which neighboring voxels are used in
-       * calculating the objects shading. [ANALYZE only]
+   * calculating the objects shading. [ANALYZE only]
    */
   itkGetConstMacro(NeighborsUsedFlag, unsigned char);
   itkSetMacro(NeighborsUsedFlag, unsigned char);
@@ -160,7 +157,7 @@ public:
    * \brief getShades/setShades
    *
    * Shades indicates the number of shades available for this object.
-       * Only 256 (250 in ANALYZE) total shades are available.
+   * Only 256 (250 in ANALYZE) total shades are available.
    */
   itkGetConstMacro(Shades, int);
   itkSetMacro(Shades, int);
@@ -169,8 +166,8 @@ public:
    * \brief getStartRed/setStartRed
    *
    * StartRed specify the starting color for this object. This is usually a
-       * darker shade of the ending color. ANALYZE defaults these values to 10%
-       * of the ending color.
+   * darker shade of the ending color. ANALYZE defaults these values to 10%
+   * of the ending color.
    */
   itkGetConstMacro(StartRed, int);
   itkSetMacro(StartRed, int);
@@ -179,8 +176,8 @@ public:
    * \brief getStartGreen/setStartGreen
    *
    * StartGreen specify the starting color for this object. This is usually
-       * a darker shade of the ending color.  ANALYZE defaults these values to
-       * 10% of the ending color.
+   * a darker shade of the ending color.  ANALYZE defaults these values to
+   * 10% of the ending color.
    */
   itkGetConstMacro(StartGreen, int);
   itkSetMacro(StartGreen, int);
@@ -189,8 +186,8 @@ public:
    * \brief getStartBlue/setStartBlue
    *
    * StartBlue specify the starting color for this object. This is usually a
-       * darker shade of the ending color. ANALYZE defaults these values to 10%
-       * of the ending color.
+   * darker shade of the ending color. ANALYZE defaults these values to 10%
+   * of the ending color.
    */
   itkGetConstMacro(StartBlue, int);
   itkSetMacro(StartBlue, int);
@@ -537,6 +534,13 @@ public:
   itkSetMacro(MaximumCoordinateValue, Index);
   itkGetConstMacro(MaximumCoordinateValue, Index);
   #endif
+
+  /**
+   *\brief Print
+   *
+   *This function will print out all of the ivars out to any file that the user wants.  
+   *This is mostly used for debugging purposes.
+  */
   void Print(std::ostream &myfile) 
     {
     myfile<<this->m_Name<<"\n";
@@ -579,9 +583,13 @@ public:
     myfile<<"= \n";
     }
 
+  /**
+   *\brief ReadFromFilePointer
+   *
+   *This function will read in all of the ivars from a file location that is passed into it.
+   */
   void ReadFromFilePointer(std::ifstream & inputFileStream, const bool NeedByteSwap, const bool NeedBlendFactor)
   {
-    //IntFunc
     ReadBytes<char>(inputFileStream, this->m_Name, 32,NeedByteSwap);
     ReadBytes<int>(inputFileStream, &(this->m_DisplayFlag),1,NeedByteSwap);
     ReadBytes<unsigned char>(inputFileStream, &m_CopyFlag,1,NeedByteSwap);
@@ -624,6 +632,12 @@ public:
       }
     }
 
+  /**
+   *\brief SwapObjectEndeness
+   *
+   *This function will change the object endedness if the computer is a little endian machine,
+   *since the object maps are written in big endian.
+   */
   void SwapObjectEndedness()
     {
     itk::ByteSwapper<int>::SwapFromSystemToBigEndian(&(this->m_DisplayFlag));
@@ -660,6 +674,11 @@ public:
     itk::ByteSwapper<float>::SwapFromSystemToBigEndian(&(this->m_BlendFactor));
   }
 
+  /**
+   *\brief Write
+   *
+   *This function will write out all of the ivars to a file location that is passed into it.
+   */
   void Write(std::ofstream &outputFileStream)
     {
     outputFileStream.write(reinterpret_cast<char *>(m_Name), sizeof(char)*32);
@@ -709,17 +728,6 @@ protected:
    * - unknown
    */
   AnalyzeObjectEntry( void );
-  
-  /**
-   * \brief AnalyzeObjectEntry( const AnalyzeObjectEntry & rhs ) is the copy constructor,
-   * initializes to an existing object
-   * \param const CObject & rhs
-   * \return none
-   * Possible Causes of Failure:
-   * - unknown
-   * \sa AnalyzeObjectEntry
-   */
-  AnalyzeObjectEntry( const AnalyzeObjectEntry & rhs );
   
   /**
    * \brief ~AnalyzeObjectEntry( void ) is the destructor, which does nothing explicitly due to

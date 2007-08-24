@@ -28,7 +28,7 @@ namespace itk
 {
 template<class TImage, class TRGBImage>
 AnalyzeObjectMap<TImage, TRGBImage>
-::AnalyzeObjectMap(): m_NumberOfObjects(0)
+::AnalyzeObjectMap(): m_NumberOfObjects(1)
 {
     //Create an object map of size 1,1,1 and have the pixles be 0.  Also, create one
     //object entry just like Analyze does with the name "Original", this entry
@@ -137,7 +137,7 @@ template<class TImage, class TRGBImage>
     itk::ImageRegionIterator<ImageType > indexObjectMap(this,Image->GetLargestPossibleRegion());
     
     this->AddAnalyzeObjectEntry(ObjectName);
-    unsigned int i = this->GetNumberOfObjects();
+    unsigned int i = this->GetNumberOfObjects()-1;
     this->m_AnaylzeObjectEntryArray[i]->SetEndRed(Red);
     this->m_AnaylzeObjectEntryArray[i]->SetEndGreen(Green);
     this->m_AnaylzeObjectEntryArray[i]->SetEndBlue(Blue);
@@ -158,7 +158,7 @@ template<class TImage, class TRGBImage>
   {
     this->m_AnaylzeObjectEntryArray.insert(this->m_AnaylzeObjectEntryArray.end(), itk::AnalyzeObjectEntry::New());
     this->SetNumberOfObjects(this->GetNumberOfObjects()+1);
-    this->m_AnaylzeObjectEntryArray[this->GetNumberOfObjects()]->SetName(ObjectName);
+    this->m_AnaylzeObjectEntryArray[this->GetNumberOfObjects()-1]->SetName(ObjectName);
     this->PlaceObjectMapEntriesIntoMetaData();
 }
 
@@ -177,7 +177,7 @@ template<class TImage, class TRGBImage>
     }
     this->m_AnaylzeObjectEntryArray.erase(this->m_AnaylzeObjectEntryArray.end()-1);
   this->SetNumberOfObjects(this->GetNumberOfObjects()-1);
-  this->m_AnaylzeObjectEntryArray.resize(this->GetNumberOfObjects());
+  //this->m_AnaylzeObjectEntryArray.resize(this->GetNumberOfObjects());
   itk::ImageRegionIterator<ImageType > indexIt(this,this->GetLargestPossibleRegion());
     for(indexIt.Begin();!indexIt.IsAtEnd(); ++indexIt)
     {
