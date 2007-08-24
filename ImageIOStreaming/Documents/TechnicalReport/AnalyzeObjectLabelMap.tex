@@ -107,7 +107,7 @@ The way to include all of the files we have written will go like this:
 
 You will have to place itkAnalyzeObjectLabelMapImageIO.h, itkAnalyzeObjectLabelMapImageIO.cxx, itkAnalyzeObjectLabelMapImageIOFactory.h, itkAnalyzeObjectLabelMapImageIOFactory.cxx into the source of ITK-$>$Code-$>$IO.  While in the source of ITK-$>$Code-$>$IO you will want to change the CMakeLists file so that SET{...} has itkAnalyzeObjectLabelMapImageIOFactory.cxx and itkAnalyzeObjectLabelMapImageIO.cxx in it.  Then you will need to modify itkImageIOFactory.cxx, you will want place \#inlcude "itkAnalyzeObjectLabelMapImageIOFactory.h", with the includes, then add in the function RegisterBuiltInFactories the following code: ObjectFactoryBase::RegisterFactory( AnalyzeObjectLabelMapImageIOFactory::New() );
 
-Then you will have to place the contents of the folder called AnalyzeObjectMap into the source of ITK-$>$Code-&>&Common.  You will also have to modfify the CMakeLists file so that SET{...} has itkAnalyzeObjectEntry.cxx in it.
+Then you will have to place the contents of the folder called AnalyzeObjectMap into the source of ITK-$>$Code-$>$Common.  You will also have to modfify the CMakeLists file so that SET{...} has itkAnalyzeObjectEntry.cxx in it.
 
 \item itkAnalyzeObjectLabelMapIO
 
@@ -139,7 +139,7 @@ This will comprese the image by run length encoding the image and then write the
 
 \item CanStreamRead
 
-This is set to false right now because the reader can not stream data.  This is something that will be worked on in the future.
+This will return false right now because the reader can not stream data.  This is something that will be worked on in the future.
 
 \end{itemize}
 
@@ -239,8 +239,7 @@ This example is for reading in any file, then creating a new object map, then ad
 
 Command:
 
-\textbf{CreatingObjects.exe 2dtest.nii creatingObjects.obj}\\
-
+\textbf{CreatingObjects.exe  [source\_directory/Data/Input]/2dtest.nii creatingObjects.obj}\\
 
 \small \begin{verbatim}
 #include "itkImageFileReader.h"
@@ -319,7 +318,7 @@ then showing how to use vtk to display the object map.
 
 Command:
 
-\textbf{DisplayingObjectMaps.exe creatingObjects.obj 0}
+\textbf{DisplayingObjectMaps.exe creatingObjects.obj}
 
 \small \begin{verbatim}
 #include "itkImage.h"
@@ -397,7 +396,7 @@ This example is for reading in any file, then creating a new object map, then ad
 
 Command:
 
-\textbf{PickOneObjectEntry.exe 2dtest.nii circle.obj}
+\textbf{PickOneObjectEntry.exe [source\_directory/Data/Input]/2dtest.nii circle.obj}
 
 \small \begin{verbatim}
 #include "itkImageFileReader.h"
@@ -452,7 +451,7 @@ int main( int argc, char ** argv )
 
 \section{Testing}
 
-Right now we have one test that does all of the testing.  The filename for the test is AnalyzeObjectMapTest.cxx.  The file takes in five arguments.
+Right now we have one test that does all of the testing.  The filename for the test is AnalyzeObjectMapTest.cxx.  The file takes in seven arguments.
 Each argument corresponds to a certain name of another file.  
 
 For the first argument it should be the name of test.obj and that file is a 3-Dimensional object file that Hans created.  The file is read in, then converted into an object map and finally an RGB image is created from the object map.  This was just to make sure that everything worked without any errors.  
@@ -462,6 +461,10 @@ After that the output of the reader is sent to a writer to write out the exact c
 After that the third argument that corresponds to the name of a nifti file that Hans and I created which is the same image seen in example 1 is read in.  With that nifti file read in we create a new object map with some extra entries and other entries based on the nifti file that was read in.  That new object map is written out a file as an object file that corresponds to the fourth argument read in.  That file that was just written out is then read back in where the reader output is then converted into an object map and finally an RGB image is created from the object map.  
 
 Then from that object map one entry is picked and new object map is created with just the one entry in it.  This object map with the one entry is written to file that corresponds with the fifth argument.  The file that was just written out is read back in and then converted into an object map and finally an RGB image is created from the object map.
+
+From there, the sitxh argument corresponds to a name for a four dimensional object name that will be written out.  A four dimensional image is created and then sent to the writer and then is read back in.
+
+Finally, the seventh argument corresponds to a name for a one dimensional object name that will be written out.  A one dimensional image is created and then sent to the writer and then is read back in.
 
 \section{Future Work}
 
