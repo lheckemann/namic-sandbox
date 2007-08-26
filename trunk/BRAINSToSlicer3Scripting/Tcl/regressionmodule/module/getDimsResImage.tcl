@@ -81,7 +81,7 @@ proc getDimsResImage {pathToRegressionDir dateString} {
 
     ReportTestStatus $LogFile  [ expr { [ b2_destroy_image $TestImageID ] != -1 } ] $ModuleName "Destroying image $TestImageID"
 
-    return [ StopModule  $LogFile $ModuleName ]
-
-    return $MODULE_SUCCESS
+    set returnvalues [ StopModule  $LogFile $ModuleName ];
+    puts "============================== ${returnvalues}"
+    return ${returnvalues};
 }

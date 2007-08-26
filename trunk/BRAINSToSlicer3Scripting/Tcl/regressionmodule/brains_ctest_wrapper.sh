@@ -36,7 +36,7 @@ set moduleStatus \$MODULE_FAILURE
 set tclStatus [ catch { set moduleStatus [ ${currmod} \$DATA_PATH \$dateString ] } message ]
 if { \$tclStatus == 0  &&  \$moduleStatus == 0} {
    puts stderr "Successful execution"
-   set status 0
+   set status \${MODULE_SUCCESS}
 } else {
    puts stderr \$message
    if { \$tclStatus != 0 } { 
@@ -45,9 +45,10 @@ if { \$tclStatus == 0  &&  \$moduleStatus == 0} {
    if { \$moduleStatus != \$MODULE_SUCCESS } {
       puts stderr "moduleStatus (test violation) == \$moduleStatus" 
    }
-   set status 1
+   set status \${MODULE_FAILURE}
+   NEED_SYNTAX_ERROR_TO_FORCE_FAILURE
 }
-b2_exit \$status 0
+#b2_exit \$status 0
 EOF
 # exit staus of success is currently set to 1
 #should be b2_exit, but thie status is not working properly
