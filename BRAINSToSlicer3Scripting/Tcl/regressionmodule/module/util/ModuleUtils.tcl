@@ -14,7 +14,7 @@ global MODULE_SUCCESS
 global MODULE_FAILURE
 
 set MODULE_SUCCESS 0
-set MODULE_FAILURE 1
+set MODULE_FAILURE -1
 
 # \author  Hans J. Johnson
 # \date    3/14/2002
