@@ -167,7 +167,10 @@ public:
   typedef typename Superclass::BSplineTransformType BSplineTransformType;
   typedef typename Superclass::BSplineTransformTypePointer BSplineTransformTypePointer;
 
-
+  /** Set/Get the width of kernel used for BSpline smoothing. */
+  itkSetMacro( GaussianFilterKernelWidth, double);
+  itkGetMacro( GaussianFilterKernelWidth, double);
+  
 protected:
   UnivariateEntropyMultiImageMetric();
   virtual ~UnivariateEntropyMultiImageMetric();
@@ -236,6 +239,8 @@ protected:
   mutable Array<unsigned long> bsplineIndexes;
   long unsigned int m_NumberOfParametersPerdimension;
 
+  // Bspline regularization, kernel width
+  double m_GaussianFilterKernelWidth;
 };
 
 } // end namespace itk
