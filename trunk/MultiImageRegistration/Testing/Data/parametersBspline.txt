@@ -43,6 +43,14 @@
 
     -numberOfBsplineLevel 2
 
+
+#
+# Bspline regularization
+# the width of the Gaussian kernel (in pixels)
+# higher values yield smoother deformation fields
+#
+    -gaussianFilterKernelWidth 2.0
+
 #
 # All objective functions make use of stochastic subsampline
 # following options define the number of spatial samples

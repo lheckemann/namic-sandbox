@@ -18,7 +18,7 @@
 #define _UnivariateEntropyMultiImageMetric_cxx
 
 #include "UnivariateEntropyMultiImageMetric.h"
-
+#include "itkDiscreteGaussianImageFilter.h"
 
 #include "itkCovariantVector.h"
 
@@ -45,6 +45,7 @@ UnivariateEntropyMultiImageMetric()
  
   m_UseMask = false;
   m_NumberOfParametersPerdimension = 0;
+  m_GaussianFilterKernelWidth = 5.0;
 
 }
 
@@ -547,7 +548,7 @@ void UnivariateEntropyMultiImageMetric < TFixedImage >
         derivative[j * this->m_NumberOfParameters + k] += m_DerivativesArray[i][j][k]; 
       }
     }
-  }
+  } 
   value /= (double) ( -1.0 * this->m_NumberOfSpatialSamples * this->m_NumberOfImages );
   derivative /= (double) (this->m_NumberOfSpatialSamples * this->m_NumberOfImages *
                      m_ImageStandardDeviation * m_ImageStandardDeviation );
@@ -570,6 +571,51 @@ void UnivariateEntropyMultiImageMetric < TFixedImage >
     derivative[i] -= sum[i % this->m_NumberOfParameters] / (double) this->m_NumberOfImages;
   }
 
+  // BSpline regularization
+  if(this->m_UserBsplineDefined)
+  {
+    // Smooth the deformation field
+    typedef typename BSplineTransformType::ImageType ParametersImageType;
+
+    typename ParametersImageType::Pointer parametersImage = ParametersImageType::New();
+    parametersImage->SetRegions( this->m_BSplineTransformArray[0]->GetGridRegion() );
+    parametersImage->CopyInformation( this->m_BSplineTransformArray[0]->GetCoefficientImage()[0] );
+    parametersImage->Allocate();
+    
+    //gaussian filter
+    typedef itk::DiscreteGaussianImageFilter<ParametersImageType,ParametersImageType> GaussianFilterType;
+    typename GaussianFilterType::Pointer gaussianFilter = GaussianFilterType::New();
+    gaussianFilter->SetInput(parametersImage);
+    gaussianFilter->SetUseImageSpacingOff();
+    gaussianFilter->SetVariance(m_GaussianFilterKernelWidth);
+    gaussianFilter->Update();
+
+    typedef itk::ImageRegionIterator<ParametersImageType> ParametersImageIteratorType;
+    ParametersImageIteratorType parametersIt(parametersImage, parametersImage->GetLargestPossibleRegion() );
+    ParametersImageIteratorType filterIt(gaussianFilter->GetOutput(), gaussianFilter->GetOutput()->GetLargestPossibleRegion() );
+    
+    //Set the parametersImage to current Image
+    unsigned int count = 0;
+    for(int i=0; i<this->m_NumberOfImages*itkGetStaticConstMacro(ImageDimension); i++)
+    {
+      for( parametersIt.GoToBegin(); !parametersIt.IsAtEnd(); ++parametersIt)
+      {
+        parametersIt.Set(derivative[count]);
+        count++; 
+      }
+      count -= this->m_NumberOfParameters/itkGetStaticConstMacro(ImageDimension);
+      gaussianFilter->Modified();
+      gaussianFilter->Update();
+      for( filterIt.GoToBegin(); !filterIt.IsAtEnd(); ++filterIt)
+      {
+        derivative[count] = filterIt.Get();
+        count++; 
+      } 
+
+    }
+    
+    // filter
+  }
 }
 
 

@@ -500,7 +500,7 @@ int getCommandLine(int argc, char *initFname, vector<string>& fileNames, string&
                    string &writeMean3DImages, string& metricPrint, unsigned int& printInterval,
                    double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation,
                    unsigned int& StartLevel,
-                   string& useNormalizeFilter );
+                   string& useNormalizeFilter, double& gaussianFilterKernelWidth );
 
 
 int main( int argc, char *argv[] )
@@ -559,7 +559,7 @@ int main( int argc, char *argv[] )
   double bsplineRegularizationFactor = 1e-1;
   
   double parzenWindowStandardDeviation = 0.4;
-    
+  double gaussianFilterKernelWidth = 3.0;
   string mask("all");
   string maskType("none");
   unsigned int threshold1 = 9;
@@ -600,7 +600,7 @@ int main( int argc, char *argv[] )
         writeMean3DImages, metricPrint, printInterval,
         SPSAalpha , SPSAgamma, SPSAcRel, SPSAnumberOfPerturbation,
         startLevel,
-        useNormalizeFilter ) )
+        useNormalizeFilter, gaussianFilterKernelWidth ) )
     {
       std:: cout << "Error reading parameter file " << std::endl;
       return EXIT_FAILURE;
@@ -768,6 +768,7 @@ int main( int argc, char *argv[] )
   {
     EntropyMetricType::Pointer entropyMetric        = EntropyMetricType::New();
     entropyMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
+    entropyMetric->SetGaussianFilterKernelWidth(gaussianFilterKernelWidth);
     metric = entropyMetric;
   }
   metric->SetNumberOfImages(N);
@@ -1658,7 +1659,8 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
 
                           double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation,
                           unsigned int& StartLevel,
-                          string& useNormalizeFilter )
+                          string& useNormalizeFilter,
+                          double& gaussianFilterKernelWidth)
 {
 
 
@@ -1865,6 +1867,11 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
     {
       initFile >> dummy;
       parzenWindowStandardDeviation = atof(dummy.c_str());
+    }
+    else if (dummy == "-gaussianFilterKernelWidth")
+    {
+      initFile >> dummy;
+      gaussianFilterKernelWidth = atof(dummy.c_str());
     }
     else if (dummy == "-useNormalizeFilter")
     {
