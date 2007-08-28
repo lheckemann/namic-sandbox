@@ -540,7 +540,7 @@ public:
    *
    *This function will print out all of the ivars out to any file that the user wants.  
    *This is mostly used for debugging purposes.
-  */
+   */
   void Print(std::ostream &myfile) 
     {
     myfile<<this->m_Name<<"\n";
