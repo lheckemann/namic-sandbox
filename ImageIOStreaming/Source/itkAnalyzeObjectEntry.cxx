@@ -69,7 +69,7 @@ AnalyzeObjectEntry::AnalyzeObjectEntry( void )
 //AnalyzeObjectEntry & AnalyzeObjectEntry
 //::operator=( const AnalyzeObjectEntry & rhs )
 
-//Copy everything but the name.  Each ObjectEntry must have a unique name.
+//Copy everything but the name.  Each AnalyzeObjectEntry must have a unique name.
 void AnalyzeObjectEntry::Copy( AnalyzeObjectEntry::Pointer rhs )
 {
   this->SetBlendFactor(rhs->GetBlendFactor());

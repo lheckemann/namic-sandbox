@@ -69,7 +69,8 @@ This document describes an addition to the Image IO Library of the Insight Toolk
 ITK has been able to read in Analyze image files but not the object maps that correspond
 to the images.  Object maps define regions of interest that are helpful in designating locations, giving a name to those
 locations, as well as display characteristics.  Object maps are useful to tell
-someone where to look in an image.
+someone where to look in an image.  With the lack of not being able to read/write object maps a new set of classes have been
+developed to read/write object maps and manipulate the object maps.
 \end{abstract}
 
 \tableofcontents
@@ -79,22 +80,22 @@ An Analyze Object Map is an image where an index from 0-255 correspond to an Ana
 is a specific Region of Interest that a user has specified. With these Regions of Interest the user can put a name to the Region, a specific color and be able to communicate to other people what areas to look at or know which Regions they are talking about.  Regions of Interest could be differentiating a part of the brain, marking a location where someone thinks a tumor is or many other ways to group a specific area to a name and color.  The Analyze Object Maps can be shown by themselves or overlaid of another image, such as the original image that was the basis of the Analyze Object Map, to show which areas were highlighted.
 
 \section{Files}
-There are two utility classes (objectmap and objectentry) and the main IO file (itkAnalyzeObjectLabelMapImageIO) and the corresponding
+There are two utility classes (itkAnalyzeObjectMap and itkAnalyzeObjectEntry) and the main IO file (itkAnalyzeObjectLabelMapImageIO) and the corresponding
 IO factory file (itkAnalyzeObjectLabelMapImageIOFactory).
 
 The IO file takes care of reading and writing out an object file.  Whenever
-you read or write an object file you have at the very beginning information about the object map.  The very first data is the version
-of the object map, next you have the x,y,z size of the object map, the number of object entries and finally for version 7 (the newest
-version) number of volumes.  After you have the beginning information there is the information about each object file, that means that
+a file is read or writen an object file will have at the very beginning information about the object map.  The very first data is the version
+of the object map, next there is the x,y,z size of the object map, the number of object entries and finally for version 7 (the newest
+version) number of volumes.  After the beginning information there is the information about each object file, that means that
 there is going to have to be a vector of all of the entries.  
 
-That is why there is a utility file called objectentry that stores the
+The utility file called itkAnalyzeObjectEntry stores all of the
 information for one specific entry, if you make a vector of the file then you have all of the object entries for an object map.  There
-are also some other functions in the objectentry that will read or write the information for the object entry.  
+are also some other functions in the itkAnalyzeObjectEntry that will read or write the information for the object entry.  
 
 Finally, after you have all of the entries you have a run length encoding.  The run length encoding corresponds to an image of the numbers of the entries starting from 0 and going all the way up to the number of object entries.  
 
-The objectmap file has functions that take care of doing things to an object map once it is created - such as converting the objectmap to an RGB Image. 
+The itkAnalyzeObjectMap file has functions that take care of doing things to an object map once it is created - such as converting the itkAnalyzeObjectMap to an RGB Image. 
 
 The following bullets are the instructions on how to incorprate the files into itk and the functions inside of each file.
 
@@ -103,9 +104,9 @@ The following bullets are the instructions on how to incorprate the files into i
 
 The way to include all of the files we have written will go like this:
 
-You will have to place itkAnalyzeObjectLabelMapImageIO.h, itkAnalyzeObjectLabelMapImageIO.cxx, itkAnalyzeObjectLabelMapImageIOFactory.h, itkAnalyzeObjectLabelMapImageIOFactory.cxx into the source of ITK-$>$Code-$>$IO.  While in the source of ITK-$>$Code-$>$IO you will want to change the CMakeLists file so that SET{...} has itkAnalyzeObjectLabelMapImageIOFactory.cxx and itkAnalyzeObjectLabelMapImageIO.cxx in it.  Then you will need to modify itkImageIOFactory.cxx, you will want place \#inlcude "itkAnalyzeObjectLabelMapImageIOFactory.h", with the includes, then add in the function RegisterBuiltInFactories the following code: ObjectFactoryBase::RegisterFactory( AnalyzeObjectLabelMapImageIOFactory::New() );
+itkAnalyzeObjectLabelMapImageIO.h, itkAnalyzeObjectLabelMapImageIO.cxx, itkAnalyzeObjectLabelMapImageIOFactory.h, itkAnalyzeObjectLabelMapImageIOFactory.cxx will need to be placed into the source of ITK-$>$Code-$>$IO.  While in the source of ITK-$>$Code-$>$IO the CMakeLists file will need to be changed so that SET{...} has itkAnalyzeObjectLabelMapImageIOFactory.cxx and itkAnalyzeObjectLabelMapImageIO.cxx in it.  Then itkImageIOFactory.cxx will need to be modified so that \code{\#inlcude "itkAnalyzeObjectLabelMapImageIOFactory.h"} is placed with the includes, then add \code{ObjectFactoryBase::RegisterFactory( AnalyzeObjectLabelMapImageIOFactory::New() );} in the function RegisterBuiltInFactories.
 
-Then you will have to place the contents of the folder called AnalyzeObjectMap into the source of ITK-$>$Code-$>$Common.  You will also have to modfify the CMakeLists file so that SET{...} has itkAnalyzeObjectEntry.cxx in it.
+Then the folder called AnalyzeObjectMap will need to be placed into the source of ITK-$>$Code-$>$Common.  Also the CMakeLists file will need to be changed so that SET{...} has itkAnalyzeObjectEntry.cxx in it.
 
 \item itkAnalyzeObjectLabelMapIO
 
