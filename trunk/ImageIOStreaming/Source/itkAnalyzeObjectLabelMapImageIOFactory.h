@@ -34,9 +34,9 @@ class ITK_EXPORT AnalyzeObjectLabelMapImageIOFactory : public ObjectFactoryBase
 public:
   /** Standard class typedefs. */
   typedef AnalyzeObjectLabelMapImageIOFactory      Self;
-  typedef ObjectFactoryBase        Superclass;
-  typedef SmartPointer<Self>       Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
+  typedef ObjectFactoryBase                        Superclass;
+  typedef SmartPointer<Self>                       Pointer;
+  typedef SmartPointer<const Self>                 ConstPointer;
 
   /** Class methods used to interface with the registered factories. */
   virtual const char* GetITKSourceVersion(void) const;
