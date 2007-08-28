@@ -40,8 +40,8 @@ int main(int argc, char * argv [] )
   reader->SetFileName( "creatingObject.obj" );
   
 
-  try
-    {
+  //try
+   // {
 
     reader->Update();
   
@@ -84,5 +84,4 @@ int main(int argc, char * argv [] )
   //  {
   //  std::cerr << "Exception catched !! " << e << std::endl;
   //  }
-  }
 }
