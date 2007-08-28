@@ -34,7 +34,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 % At minimum, give your name and an email address.  You can include a
 % snail-mail address if you like.
 \author{Jeffrey Hawley, Hans Johnson }
-\authoraddress{University of Iowa}
+\authoraddress{The University of Iowa}
 
 \begin{document}
 
@@ -67,22 +67,20 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 \noindent
 This document describes an addition to the Image IO Library of the Insight Toolkit (ITK).
 ITK has been able to read in Analyze image files but not the object maps that correspond
-to the images.  Without the object maps, regions of interest were not being shown.
-These regions of interest are helpful in designating locations, giving a name to those
-locations, as well as colors and other information, which is useful if you are trying to tell
-someone where to look in an image.  This report describes the reason why this code should be
-added into ITK and how to use the code.
+to the images.  Object maps define regions of interest that are helpful in designating locations, giving a name to those
+locations, as well as display characteristics.  Object maps are useful to tell
+someone where to look in an image.
 \end{abstract}
 
 \tableofcontents
 
 \section{Anaylze Object Maps}
-An Analyze Object Map is an image that is plotted with numbers from 0-255 that correspond to an Analyze Object(or, as will be referred to in this paper as, Analyze Object Entry).  Each Analyze Object Entry
-is a specific Region of Interest that a user has specified. With these Regions of Interest the user can put a name to the Region, a specific color and be able to communicate to other people what areas to look at or know which Regions they are talking about.  Regions of Interest could be differentiating a part of the brain, marking a location where someone thinks a tumor is or many other ways to group a specific area to a name and color.  The Analyze Object Maps can be shown by themselves or overlaid of another image, such as the original image that was the basis of the Analyze Object Map, to show which areas were highlighted.  
-  
+An Analyze Object Map is an image where an index from 0-255 correspond to an Analyze Object(or, as will be referred to in this paper as, Analyze Object Entry).  Each Analyze Object Entry
+is a specific Region of Interest that a user has specified. With these Regions of Interest the user can put a name to the Region, a specific color and be able to communicate to other people what areas to look at or know which Regions they are talking about.  Regions of Interest could be differentiating a part of the brain, marking a location where someone thinks a tumor is or many other ways to group a specific area to a name and color.  The Analyze Object Maps can be shown by themselves or overlaid of another image, such as the original image that was the basis of the Analyze Object Map, to show which areas were highlighted.
+
 \section{Files}
-There are two utility files (objectmap and objectentry) and the main IO file (itkAnalyzeObjectLabelMapImageIO) and the corresponding
-IO factory file (itkAnalyzeObjectLabelMapImageIOFactory).  
+There are two utility classes (objectmap and objectentry) and the main IO file (itkAnalyzeObjectLabelMapImageIO) and the corresponding
+IO factory file (itkAnalyzeObjectLabelMapImageIOFactory).
 
 The IO file takes care of reading and writing out an object file.  Whenever
 you read or write an object file you have at the very beginning information about the object map.  The very first data is the version
