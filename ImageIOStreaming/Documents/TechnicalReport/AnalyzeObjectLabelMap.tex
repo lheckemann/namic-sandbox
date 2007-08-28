@@ -66,11 +66,11 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 \begin{abstract}
 \noindent
 This document describes an addition to the Image IO Library of the Insight Toolkit (ITK).
-ITK has been able to read in Analyze image files but not the object maps that correspond
-to the images.  Object maps define regions of interest that are helpful in designating locations, giving a name to those
-locations, as well as display characteristics.  Object maps are useful to tell
-someone where to look in an image.  With the lack of not being able to read/write object maps a new set of classes have been
-developed to read/write object maps and manipulate the object maps.
+ITK has been able to read in Analyze image files but not the Analyze Object Maps that correspond
+to the images.  Analyze Object maps define regions of interest that are helpful in designating locations, giving a name to those
+locations, as well as display characteristics.  Also, Analyze Object Maps are useful to tell
+someone where to look in an image.  With the lack of not being able to read/write Analyze Object Maps, a new set of classes have been
+developed to read/write Analyze Object Maps and manipulate the object maps.
 \end{abstract}
 
 \tableofcontents
@@ -90,10 +90,10 @@ version) number of volumes.  After the beginning information there is the inform
 there is going to have to be a vector of all of the entries.  
 
 The utility file called itkAnalyzeObjectEntry stores all of the
-information for one specific entry, if you make a vector of the file then you have all of the object entries for an object map.  There
+information for one specific entry, if a vector is made of all of the entries of the file then it is easy to pick out the object entries.  There
 are also some other functions in the itkAnalyzeObjectEntry that will read or write the information for the object entry.  
 
-Finally, after you have all of the entries you have a run length encoding.  The run length encoding corresponds to an image of the numbers of the entries starting from 0 and going all the way up to the number of object entries.  
+Finally, after all of the entries there is a run length encoding of the image.  The run length encoding corresponds to an image of the numbers of the entries starting from 0 and going all the way up to the number of object entries.  
 
 The itkAnalyzeObjectMap file has functions that take care of doing things to an object map once it is created - such as converting the itkAnalyzeObjectMap to an RGB Image. 
 
@@ -322,7 +322,7 @@ int main( int argc, char ** argv )
   \begin{minipage}[t]{.45\textwidth}
     \begin{center}  
       \includegraphics[width=.28\textwidth]{creatingObject.eps}
-      \caption{creatingObjects.obj, this is what it should look like when you convert it to an RGB image.  See next example on how to display 
+      \caption{creatingObjects.obj, this is what it should look like when the image is converted it to an RGB image.  See next example on how to display 
     object maps.}
       \label{fig-tc}
     \end{center}
