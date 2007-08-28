@@ -84,4 +84,5 @@ int main(int argc, char * argv [] )
   //  {
   //  std::cerr << "Exception catched !! " << e << std::endl;
   //  }
+  }
 }
