@@ -17,160 +17,7 @@
 #include "vtkPolyDataWriter.h"
 #include "vtkPolyData.h"
 #include "vtkCellArray.h"
-#include "vtkPoints.h"
-
-std::string stripExtension(const std::string& fileName){
-  const int length = fileName.length();
-  for (int i=0; i!=length; ++i){
-    if (fileName[i]=='.'){
-      return fileName.substr(0,i);
-    }
-  } 
-  return fileName; 
-}
-
-
-template< class TTOContainerType >
-bool SamplingDirections(const char* fn, typename TTOContainerType::Pointer directions){
-  char str[100];
-  double x,y,z;
-  std::ifstream m_file;
-  typename TTOContainerType::Element direction;
-
-  //open the file
-  m_file.open(fn);
-  if(!m_file.is_open()){
-    std::cerr<<"Problems opening: "<< fn << std::endl;
-    return false;
-  }
-  else{
-    //load file info into valid itk representation
-    //assume all entries in the file describe a vector of length 1
-    //each line is arranged [x, y, z]
-    unsigned int directioncount=0;
-
-    while(!m_file.getline(str, 100, '\n').eof()){
-      for(int i=0;i<3;i++){
-          sscanf(str,"%lf %lf %lf",&x,&y,&z);
-          direction[0]=x;
-          direction[1]=y;
-          direction[2]=z;
-        }
-        directions->InsertElement(directioncount++,direction);
-    }
-  }
-  
-  //close file
-  m_file.close();
-  return true;
-}
-
-template< class TractContainerType >
-bool WriteTractContainerToFile( const char* fn, TractContainerType* tractcontainer ){
-  std::ofstream tractfile( fn, std::ios::out | std::ios::binary );
-  tractfile.seekp(0);
-  if(tractfile.is_open()){
-    for(int i=0; i<tractcontainer->Size(); i++ ){
-      typename TractContainerType::Element tract =
-        tractcontainer->GetElement(i);
-      
-      typename TractContainerType::Element::ObjectType::VertexListType::ConstPointer vertexlist = 
-        tract->GetVertexList();
-      
-      for(int j=0; j<vertexlist->Size(); j++){
-        typename TractContainerType::Element::ObjectType::VertexListType::Element vertex =
-          vertexlist->GetElement(j);
-        tractfile.write((char*)&vertex[0], sizeof(vertex[0]));
-        tractfile.write((char*)&vertex[1], sizeof(vertex[1]));
-        tractfile.write((char*)&vertex[2], sizeof(vertex[2]));
-      }
-      double endoftractsymbol = 0.0;
-      tractfile.write((char*)&endoftractsymbol, sizeof(endoftractsymbol));
-      tractfile.write((char*)&endoftractsymbol, sizeof(endoftractsymbol));
-      tractfile.write((char*)&endoftractsymbol, sizeof(endoftractsymbol));
-    }
-    
-    tractfile.close();
-    return true;
-  }
-  else{
-    std::cerr<<"Problems opening file to write tracts\n";
-    return false;
-  }
-}
-template< class FAContainerType >
-bool WriteScalarContainerToFile( const char* fn, FAContainerType* facontainer ){
-  std::ofstream fafile( fn, std::ios::out );
-  if(fafile.is_open()){
-    for(int i=0; i<facontainer->Size(); i++){
-      fafile<<facontainer->GetElement(i)<<std::endl;
-    }
-    fafile.close();
-    return true;
-  }
-  else{
-    std::cerr<<"Problems opening file to write FA value\n";
-    return false;
-  }
-}
-
-namespace Functor {  
-   
-template< class TInput, class TOutput>
-class ZeroDWITest
-{
-public:
-  ZeroDWITest() {};
-  ~ZeroDWITest() {};
-  bool operator!=( const ZeroDWITest & ) const
-  {
-    return false;
-  }
-  bool operator==( const ZeroDWITest & other ) const
-  {
-    return !(*this != other);
-  }
-  inline TOutput operator()( const TInput & A )
-  {
-    /*for(int i=0;i<A.GetSize();i++){
-      if(A[0]<100){
-        std::cout<<"Invalid Voxel\n";
-        return 0;
-      }
-    }
-    */
-    return 10;
-  }
-}; 
-
-template< class TInput, class TOutput>
-class ScalarMultiply
-{
-public:
-  ScalarMultiply() {};
-  ~ScalarMultiply() {};
-  bool operator!=( const ScalarMultiply & ) const
-  {
-    return false;
-  }
-  bool operator==( const ScalarMultiply & other ) const
-  {
-    return !(*this != other);
-  }
-  inline TOutput operator()( const TInput & A )
-  {
-    /*for(int i=0;i<A.GetSize();i++){
-      if(A[0]<100){
-        std::cout<<"Invalid Voxel\n";
-        return 0;
-      }
-    }
-    */
-    return A*1000;
-  }
-}; 
-
-}
+#include "vtkPoints.h" 
 
 int main(int argc, char* argv[]){
   PARSE_ARGS;
@@ -197,51 +44,14 @@ int main(int argc, char* argv[]){
   //define a probabilistic tractography filter type and associated bValue,
   //gradient direction, and measurement frame types
   typedef itk::StochasticTractographyFilter< DWIVectorImageType, WMPImageType,
-    CImageType > 
-    PTFilterType;
-  typedef PTFilterType::bValueContainerType bValueContainerType;
-  typedef PTFilterType::GradientDirectionContainerType GDContainerType;
-  typedef PTFilterType::MeasurementFrameType MeasurementFrameType;
+    ROIImageType >
+    STFilterType;
+  typedef STFilterType::bValueContainerType bValueContainerType;
+  typedef STFilterType::GradientDirectionContainerType GDContainerType;
+  typedef STFilterType::MeasurementFrameType MeasurementFrameType;
   
-  //define a filter to generate a mask image that excludes zero dwi values
-  typedef Functor::ZeroDWITest< DWIVectorImageType::PixelType, WMPImageType::PixelType >
-    ZeroDWITestType;
-  typedef itk::UnaryFunctorImageFilter< DWIVectorImageType, WMPImageType, 
-    ZeroDWITestType > ExcludeZeroDWIFilterType;
-  
-  //FA stuff
-  typedef itk::Image< double, 3 > FAImageType;
-  typedef itk::TensorFractionalAnisotropyImageFilter< PTFilterType::OutputTensorImageType,
-    FAImageType > FAFilterType;
-  typedef itk::ImageFileWriter< FAImageType > FAImageWriterType;
-    
-  //define a filter to multiply a FA image by 1000
-  typedef Functor::ScalarMultiply< FAImageType::PixelType, FAImageType::PixelType >
-    ScalarMultiplyType;
-  typedef itk::UnaryFunctorImageFilter< FAImageType, FAImageType,
-    ScalarMultiplyType > MultiplyFAFilterType;
-    
   //define AddImageFilterType to accumulate the connectivity maps of the pixels in the ROI
   typedef itk::AddImageFilter< CImageType, CImageType, CImageType> AddImageFilterType;
-
-  //setup output stat files
-  //std::string fafilename = outputprefix + "_CONDFAValues.txt";
-  //sprintf( fafilename, "%s_CONDFAValues.txt", outputprefix.c_str() );
-  //std::string lengthfilename = outputprefix + "_CONDLENGTHValues.txt";
-  //sprintf( lengthfilename, "%s_CONDLENGTHValues.txt", outputprefix.c_str() );
-  
-  //open these files
-  //std::ofstream fafile( fafilename.c_str() );
-  //if(!fafile.is_open()){
-  //  std::cerr<<"Could not open FA file!\n";
-  //  return EXIT_FAILURE;
-  //}
-  
-  //std::ofstream lengthfile( lengthfilename.c_str() );
-  //if(!lengthfile.is_open()){
-  //  std::cerr<<"Could not open Length file!\n";
-  //  return EXIT_FAILURE;
- // }
   
   //read in the DWI image
   DWIVectorImageReaderType::Pointer dwireaderPtr = DWIVectorImageReaderType::New();
@@ -300,13 +110,10 @@ int main(int argc, char* argv[]){
     std::cerr <<"no measurement frame was found!";
     return EXIT_FAILURE;
   }
-  //correct the measurement frame
-  
+ 
   std::cout << scaling_bValue << std::endl;
   for(unsigned int i=0; i<gradientsPtr->Size(); i++)
     std::cout << gradientsPtr->GetElement(i) << std::endl;
-  
-  //std::cout << measurement_frame <<std::endl;
   
   for(unsigned int i=0; i<measurement_frame.rows(); i++){
     for(unsigned int j=0; j<measurement_frame.columns(); j++){
@@ -315,9 +122,6 @@ int main(int argc, char* argv[]){
     std::cout << std::endl;
   }
  
-  //correct the measurement frame since the image is now in LPS from RAS frame
-  //NRRDIO should do this, but we do it here as a work around
-  
   //fill up bValue container with the scaling_bValue;
   for(unsigned int i=0; i<gradientsPtr->Size() ;i++){
     if(gradientsPtr->GetElement(i).squared_magnitude() == 0){
@@ -345,65 +149,52 @@ int main(int argc, char* argv[]){
     roireaderPtr->GetOutput()->SetOrigin( dwireaderPtr->GetOutput()->GetOrigin() );
     wmpreader->GetOutput()->SetOrigin( dwireaderPtr->GetOutput()->GetOrigin() );
   }
- 
-  std::cout<<"Create PTFilter\n";
-  //Setup the PTFilter
-  PTFilterType::Pointer ptfilterPtr = PTFilterType::New();
-  ptfilterPtr->SetInput( dwireaderPtr->GetOutput() );
-  //ptfilterPtr->SetMaskImageInput( ezdwifilter->GetOutput() );
-  ptfilterPtr->SetWhiteMatterProbabilityImageInput( wmpreader->GetOutput() );
-  ptfilterPtr->SetbValues(bValuesPtr);
-  ptfilterPtr->SetGradients( gradientsPtr );
-  ptfilterPtr->SetMeasurementFrame( measurement_frame );
-  //ptfilterPtr->SetSampleDirections(directionsPtr);
-  ptfilterPtr->SetMaxTractLength( maxtractlength );
-  ptfilterPtr->SetTotalTracts( totaltracts );
-  ptfilterPtr->SetMaxLikelihoodCacheSize( maxlikelihoodcachesize );
-  ptfilterPtr->SetStepSize( stepsize );
-  ptfilterPtr->SetGamma( gamma );
-  if(totalthreads!=0) ptfilterPtr->SetNumberOfThreads( totalthreads );
+  std::cout<<"DWI image origin:"<< dwireaderPtr->GetOutput()->GetOrigin() <<std::endl;
+  std::cout<<"ROI image origin:"<< roireaderPtr->GetOutput()->GetOrigin() <<std::endl;
+  std::cout<<"wmp image origin:"<< wmpreader->GetOutput()->GetOrigin() <<std::endl;
+
+  std::cout<<"Create STFilter\n";
+  //Setup the Stochastic Tractography Filter
+  STFilterType::Pointer stfilterPtr = STFilterType::New();
+  stfilterPtr->SetDWIImageInput( dwireaderPtr->GetOutput() );
+  stfilterPtr->SetWhiteMatterProbabilityImageInput( wmpreader->GetOutput() );
+  stfilterPtr->SetROIImageInput( roireaderPtr->GetOutput() );
+  stfilterPtr->SetbValues(bValuesPtr);
+  stfilterPtr->SetGradients( gradientsPtr );
+  stfilterPtr->SetMeasurementFrame( measurement_frame );
+  stfilterPtr->SetMaxTractLength( maxtractlength );
+  stfilterPtr->SetTotalTracts( totaltracts );
+  stfilterPtr->SetMaxLikelihoodCacheSize( maxlikelihoodcachesize );
+  stfilterPtr->SetStepSize( stepsize );
+  stfilterPtr->SetROILabel( labelnumber );
+  stfilterPtr->SetGamma( gamma );
+  if(totalthreads!=0) stfilterPtr->SetNumberOfThreads( totalthreads );
+  
+  stfilterPtr->Update();
+  STFilterType::TractContainerType::Pointer tractcontainer = 
+    stfilterPtr->GetOutputDiscreteTractContainer();
   
   //allocate the VTK Polydata to output the tracts
   vtkPolyData* vtktracts = vtkPolyData::New();
   vtkPoints* points = vtkPoints::New();
   vtkCellArray* vtktractarray = vtkCellArray::New();
   
-  ROIImageIteratorType ROIImageIt( roireaderPtr->GetOutput(),
-    roireaderPtr->GetOutput()->GetRequestedRegion() );
-  for(ROIImageIt.GoToBegin(); !ROIImageIt.IsAtEnd(); ++ROIImageIt){
-    if(ROIImageIt.Get() == labelnumber){
-      std::cout << "PixelIndex: "<< ROIImageIt.GetIndex() << std::endl;
-      ptfilterPtr->SetSeedIndex( ROIImageIt.GetIndex() );
-      //ptfilterPtr->GenerateTractContainerOutput();
-      //write out the tract info
+  for(int i=0; i<tractcontainer->Size(); i++ ){
+    STFilterType::TractContainerType::Element tract =
+      tractcontainer->GetElement(i);
 
-      //WriteTractContainerToFile( filename, ptfilterPtr->GetOutputTractContainer() );
-      ptfilterPtr->Update();
+    STFilterType::TractContainerType::Element::ObjectType::VertexListType::ConstPointer vertexlist = 
+      tract->GetVertexList();
+        
+    //create a new cell
+    vtktractarray->InsertNextCell(vertexlist->Size());
 
-      PTFilterType::TractContainerType::Pointer tractcontainer = 
-        ptfilterPtr->GetOutputDiscreteTractContainer();
-        
-      for(int i=0; i<tractcontainer->Size(); i++ ){
-        PTFilterType::TractContainerType::Element tract =
-          tractcontainer->GetElement(i);
-        
-        //std::cout<<i<<":"<<tract<<std::endl;
-        PTFilterType::TractContainerType::Element::ObjectType::VertexListType::ConstPointer vertexlist = 
-          tract->GetVertexList();
-        
-        //create a new cell
-        vtktractarray->InsertNextCell(vertexlist->Size());
-        //std::cout<<tract->EndOfInput()<<std::endl;
-        for(int j=0; j<vertexlist->Size(); j++){
+    for(int j=0; j<vertexlist->Size(); j++){
+      STFilterType::TractContainerType::Element::ObjectType::VertexListType::Element vertex =
+        vertexlist->GetElement(j);
           
-          PTFilterType::TractContainerType::Element::ObjectType::VertexListType::Element vertex =
-            vertexlist->GetElement(j);
-          
-          points->InsertNextPoint(vertex[0], vertex[1], vertex[2]);
-          vtktractarray->InsertCellPoint(points->GetNumberOfPoints()-1);
-        }
-      }
-      
+      points->InsertNextPoint(vertex[0], vertex[1], vertex[2]);
+      vtktractarray->InsertCellPoint(points->GetNumberOfPoints()-1);
     }
   }        
   
@@ -416,11 +207,63 @@ int main(int argc, char* argv[]){
   std::string tractsfilename = outputprefix + "_TRACTS.vtk";
   vtktractswriter->SetFileName( tractsfilename.c_str() );
   vtktractswriter->Write();
-  
-  
-  std::cout<<"DWI image origin:"<< dwireaderPtr->GetOutput()->GetOrigin() <<std::endl;
-  std::cout<<"ROI image origin:"<< roireaderPtr->GetOutput()->GetOrigin() <<std::endl;
-  std::cout<<"wmp image origin:"<< wmpreader->GetOutput()->GetOrigin() <<std::endl;
+  if(outputimageswitch){
+    //Setup the AddImageFilter
+    AddImageFilterType::Pointer addimagefilterPtr = AddImageFilterType::New();
+    
+    //Create a temporary Connectivity Image
+    CImageType::Pointer tempcimagePtr = CImageType::New();
+    tempcimagePtr->CopyInformation( dwireaderPtr->GetOutput() );
+    tempcimagePtr->SetBufferedRegion( dwireaderPtr->GetOutput()->GetBufferedRegion() );
+    tempcimagePtr->SetRequestedRegion( dwireaderPtr->GetOutput()->GetRequestedRegion() );
+    tempcimagePtr->Allocate();
+    tempcimagePtr->FillBuffer(0);
+    
+    //Create a zeroed accumulated Connectivity Image
+    CImageType::Pointer accumulatedcimagePtr = CImageType::New();
+    accumulatedcimagePtr->CopyInformation( dwireaderPtr->GetOutput() );
+    accumulatedcimagePtr->SetBufferedRegion( dwireaderPtr->GetOutput()->GetBufferedRegion() );
+    accumulatedcimagePtr->SetRequestedRegion( dwireaderPtr->GetOutput()->GetRequestedRegion() );
+    accumulatedcimagePtr->Allocate();
+    accumulatedcimagePtr->FillBuffer(0);
+      
+    //graft this onto the output of the addimagefilter
+    addimagefilterPtr->GraftOutput( accumulatedcimagePtr );
+    addimagefilterPtr->SetInput1( tempcimagePtr );
+    addimagefilterPtr->SetInput2( addimagefilterPtr->GetOutput() );
+    
+    //write tracts to connectivity image
+    for(int i=0; i<tractcontainer->Size(); i++ ){
+      tempcimagePtr->FillBuffer(0);
+      STFilterType::TractContainerType::Element tract =
+        tractcontainer->GetElement(i);
+         
+      STFilterType::TractContainerType::Element::ObjectType::VertexListType::ConstPointer vertexlist = 
+        tract->GetVertexList();
+      
+      for(int j=0; j<vertexlist->Size(); j++){
+        STFilterType::TractContainerType::Element::ObjectType::VertexListType::Element vertex =
+          vertexlist->GetElement(j);
+        CImageType::IndexType index;
+        index[0]=static_cast<long int>(vertex[0]);
+        index[1]=static_cast<long int>(vertex[1]);
+        index[2]=static_cast<long int>(vertex[2]);
+        
+        CImageType::PixelType& tempcimagepix = tempcimagePtr->GetPixel( index );
+        if(tempcimagepix == 0){
+          tempcimagepix++;
+        }
+      }
+      addimagefilterPtr->Update();
+    }
+    
+    //Write out the Connectivity Map
+    std::string cfilename = outputprefix + "_CMAP.nhdr";
 
+    CImageWriterType::Pointer writerPtr = CImageWriterType::New();
+    writerPtr->SetInput( accumulatedcimagePtr );
+    writerPtr->SetFileName( cfilename.c_str() );
+    writerPtr->Update();
+  }
   return EXIT_SUCCESS;
 }

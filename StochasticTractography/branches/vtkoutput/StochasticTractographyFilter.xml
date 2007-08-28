@@ -75,7 +75,7 @@
       <longflag>stepsize</longflag>
       <description>The length of each segment of the tract in mm</description>
       <label>Step Size(mm)</label>
-      <default>1</default>
+      <default>0.5</default>
       <constraints>
         <minimum>0.1</minimum>
         <step>0.1</step>

@@ -12,7 +12,9 @@
 #include "itkSimpleFastMutexLock.h"
 #include "itkRealTimeClock.h"
 #include "itkDiffusionTensor3D.h"
-#include <stack>
+#include "itkPolyLineParametricPath.h"
+#include "itkImage.h"
+#include <vector>
 
 namespace itk{
 
@@ -83,6 +85,10 @@ public:
   itkSetConstObjectMacro( Gradients, GradientDirectionContainerType );
   itkGetConstObjectMacro( Gradients, GradientDirectionContainerType );
   
+  /** Set/Get the DWI Input Image **/
+  itkSetInputMacro(DWIImage, InputDWIImageType, 0);
+  itkGetInputMacro(DWIImage, InputDWIImageType, 0);
+  
   /** Set/Get the White Matter Probability Input image **/
   /* At each voxel specifies the probability of a mylinated fiber existing
      at that location.  This probability is interpreted to be the probability
@@ -90,6 +96,10 @@ public:
      */
   itkSetInputMacro(WhiteMatterProbabilityImage, InputWhiteMatterProbabilityImageType, 1);
   itkGetInputMacro(WhiteMatterProbabilityImage, InputWhiteMatterProbabilityImageType, 1);
+  
+  /** Set/Get the ROI Input Image **/
+  itkSetInputMacro(ROIImage, InputROIImageType, 2);
+  itkGetInputMacro(ROIImage, InputROIImageType, 2)
   
   /** Set/Get the list of directions to sample **/
   itkSetConstObjectMacro( SampleDirections, TractOrientationContainerType );
@@ -112,8 +122,8 @@ public:
   itkGetMacro( Gamma, double );
             
   /** Set/Get ROI Label **/
-  itkSetMacro( unsigned int ROILabel );
-  itkGetMacro( unsigned int ROILabel );
+  itkSetMacro( ROILabel, unsigned int );
+  itkGetMacro( ROILabel, unsigned int );
   
   /** Get the Continuous Tracts that are generated **/
   itkGetObjectMacro( OutputContinuousTractContainer, TractContainerType );
@@ -217,12 +227,15 @@ protected:
     Pointer Filter;
   };
 
+  /** Allocates the tract output container **/
+  void AllocateOutputs();
+  
   /** Thread Safe Function to check/update an entry in the likelihood cache **/
   ProbabilityDistributionImageType::PixelType& 
     AccessLikelihoodCache( typename InputDWIImageType::IndexType index );
     
   /** Thread Safe Function to delegate a tract and obtain a randomseed to start tracking **/
-  bool DelegateTract(unsigned long& randomseed, InputDWIImageType::IndexType& index);
+  bool DelegateTract(unsigned long& randomseed, typename InputDWIImageType::IndexType& index);
   
   /** Thread Safe Function to store a tract to a TractContainer **/
   void StoreContinuousTract(TractType::Pointer tract);
@@ -269,7 +282,7 @@ protected:
   OutputTensorImageType::Pointer m_OutputTensorImage;
   vnl_random m_RandomGenerator;
   
-  std::stack<InputDWIImageType::IndexType>::Pointer m_SeedIndexStack;
+  std::vector< typename InputDWIImageType::IndexType > m_SeedIndices;
 };
 
 }
