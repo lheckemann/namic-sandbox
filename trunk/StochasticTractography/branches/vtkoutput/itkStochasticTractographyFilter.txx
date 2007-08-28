@@ -18,19 +18,16 @@
 
 namespace itk{
 
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::StochasticTractographyFilter():
   m_TotalTracts(0),m_MaxTractLength(0),m_Gradients(NULL), m_TransformedGradients(NULL),m_bValues(NULL),
   m_SampleDirections(NULL), m_A(NULL), m_Aqr(NULL), m_LikelihoodCachePtr(NULL),
   m_MaxLikelihoodCacheSize(0), m_CurrentLikelihoodCacheElements(0), m_StepSize(0), m_Gamma(0),
   m_ClockPtr(NULL), m_TotalDelegatedTracts(0), m_OutputContinuousTractContainer(NULL),
   m_OutputDiscreteTractContainer(NULL){
-  this->m_SeedIndex[0]=0;
-  this->m_SeedIndex[1]=0;
-  this->m_SeedIndex[2]=0;
   this->m_MeasurementFrame.set_identity();
-  this->SetNumberOfRequiredInputs(2); //Filter needs a DWI image and a Mask Image
+  this->SetNumberOfRequiredInputs(3); //Filter needs a DWI image, Mask Image, ROI Image
   
   m_ClockPtr = RealTimeClock::New();
   this->m_RandomGenerator.reseed( ((unsigned long) this->m_ClockPtr->GetTimeStamp()) );
@@ -39,19 +36,19 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   this->LoadDefaultSampleDirections();
 } 
 
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::~StochasticTractographyFilter(){
   delete this->m_A;
   delete this->m_Aqr;
 } 
 
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
-::ProbabilisticallyInterpolate( vnl_random& randomgenerator, 
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
+::ProbabilisticallyInterpolate( vnl_random& randomgenerator,
   const TractType::ContinuousIndexType& cindex,
-  typename InputDWIImageType::IndexType& index){
+  typename InputDWIImageType::IndexType& index ){
                       
   for(int i=0; i<3; i++){
     if ((vcl_ceil(cindex[i]+vnl_math::eps)-cindex[i]) < randomgenerator.drand64())
@@ -60,9 +57,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   }
 }
 
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::UpdateGradientDirections(void){
   //the gradient direction is transformed into IJK space
   //by moving into the image space and then to IJK space
@@ -77,14 +74,14 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
     /** The correction to LPS space is not neccessary as of itk 3.2 **/
     //g_i[0] = -g_i[0];
     //g_i[1] = -g_i[1];
-    g_i = this->GetInput()->GetDirection().GetInverse() * g_i;  
+    g_i = this->GetDWIImageInput()->GetDirection().GetInverse() * g_i;  
     this->m_TransformedGradients->InsertElement(i, g_i);
   }
 }
 
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::UpdateTensorModelFittingMatrices( void ){
   //std::cout<<"UpdateTensorFittingMatrix\n";
   //estimate the parameters using linear LS estimation
@@ -119,9 +116,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   this->m_Aqr = new vnl_qr< double >(A);  //potential memory leak here
 }
 
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::CalculateTensorModelParameters( const DWIVectorImageType::PixelType& dwivalues,
   vnl_diag_matrix<double>& W,
   TensorModelParamType& tensormodelparams){
@@ -162,9 +159,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   //tensormodelparams = vnl_qr< double >((W*A)).solve(W*logPhi);
 }
 
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::CalculateConstrainedModelParameters( const TensorModelParamType& tensormodelparams,
     ConstrainedModelParamType& constrainedmodelparams){          
               
@@ -204,9 +201,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   constrainedmodelparams[5] = S[2][2];                  
 }
               
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::CalculateNoiseFreeDWIFromConstrainedModel( const ConstrainedModelParamType& constrainedmodelparams,
     DWIVectorImageType::PixelType& noisefreedwi){
     
@@ -228,9 +225,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   }     
 }
 
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::CalculateResidualVariance( const DWIVectorImageType::PixelType& noisydwi,
     const DWIVectorImageType::PixelType& noisefreedwi,
     const vnl_diag_matrix< double >& W,
@@ -249,9 +246,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   residualvariance/=(N-numberofparameters);
 }
                                  
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::CalculateLikelihood( const DWIVectorImageType::PixelType &dwipixel, 
     TractOrientationContainerType::ConstPointer orientations,
     ProbabilityDistributionImageType::PixelType& likelihood){
@@ -297,9 +294,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   }
 }
 
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::CalculatePrior( TractOrientationContainerType::Element v_prev, 
     TractOrientationContainerType::ConstPointer orientations,
     ProbabilityDistributionImageType::PixelType& prior ){
@@ -320,9 +317,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   }
 }
 
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::CalculatePosterior( const ProbabilityDistributionImageType::PixelType& likelihood,
     const ProbabilityDistributionImageType::PixelType& prior,
     ProbabilityDistributionImageType::PixelType& posterior){
@@ -336,32 +333,33 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
     }
 }
 
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::SampleTractOrientation( vnl_random& randomgenerator, 
-    const ProbabilityDistributionImageType::PixelType& posterior,
-    TractOrientationContainerType::ConstPointer orientations,
-    TractOrientationContainerType::Element& choosendirection ){
+  const ProbabilityDistributionImageType::PixelType& posterior,
+  TractOrientationContainerType::ConstPointer orientations,
+  TractOrientationContainerType::Element& choosendirection ){
     
-      double randomnum = randomgenerator.drand64();
-      int i=0;
-      double cumsum=0;
+  double randomnum = randomgenerator.drand64();
+  int i=0;
+  double cumsum=0;
       
-      //will crash in the unlikely case that 0 was choosen as the randomnum
-      while(cumsum < randomnum){
-        cumsum+=posterior[i];
-        i++;
-      }
-      choosendirection = orientations->GetElement(i-1);
+  //will crash in the unlikely case that 0 was choosen as the randomnum
+  while(cumsum < randomnum){
+    cumsum+=posterior[i];
+    i++;
+  }
+  choosendirection = orientations->GetElement(i-1);
       
-      //std::cout<< "cumsum: " << cumsum<<std::endl;
-      //std::cout<<"selected orientation:( " << (i-1) 
-      //  <<") "<<choosendirection<< std::endl;
+  //std::cout<< "cumsum: " << cumsum<<std::endl;
+  //std::cout<<"selected orientation:( " << (i-1) 
+  //  <<") "<<choosendirection<< std::endl;
 }
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 bool
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::FiberExistenceTest( vnl_random& randomgenerator,
   typename InputWhiteMatterProbabilityImageType::ConstPointer wmpimage,
   typename InputWhiteMatterProbabilityImageType::IndexType index ){
@@ -372,9 +370,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
     return false;
 }
 //the seedindex is in continuous IJK coordinates
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::StochasticTractGeneration( typename InputDWIImageType::ConstPointer dwiimagePtr,
   typename InputWhiteMatterProbabilityImageType::ConstPointer wmpimagePtr,
   typename InputDWIImageType::IndexType seedindex,
@@ -451,15 +449,17 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   }
 }
 
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 void
-StochasticTractographyFilter<
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::AllocateOutputs(){
   this->m_OutputContinuousTractContainer = TractContainerType::New();
   this->m_OutputDiscreteTractContainer = TractContainerType::New();
 }
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::GenerateData(){
   //Generate the tracts
   //allocate tractcontainer
@@ -467,17 +467,17 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
 
   //initialize the likelihood cache
   this->m_LikelihoodCachePtr = ProbabilityDistributionImageType::New();
-  this->m_LikelihoodCachePtr->CopyInformation( this->GetInput() );
-  this->m_LikelihoodCachePtr->SetBufferedRegion( this->GetInput()->GetBufferedRegion() );
-  this->m_LikelihoodCachePtr->SetRequestedRegion( this->GetInput()->GetRequestedRegion() );
+  this->m_LikelihoodCachePtr->CopyInformation( this->GetDWIImageInput() );
+  this->m_LikelihoodCachePtr->SetBufferedRegion( this->GetDWIImageInput()->GetBufferedRegion() );
+  this->m_LikelihoodCachePtr->SetRequestedRegion( this->GetDWIImageInput()->GetRequestedRegion() );
   this->m_LikelihoodCachePtr->Allocate();
   this->m_CurrentLikelihoodCacheElements = 0;
   
   //initialize the likelihoodcache mutex image
   this->m_LikelihoodCacheMutexImagePtr = LikelihoodCacheMutexImageType::New();
-  this->m_LikelihoodCacheMutexImagePtr->CopyInformation( this->GetInput() );
-  this->m_LikelihoodCacheMutexImagePtr->SetBufferedRegion( this->GetInput()->GetBufferedRegion() );
-  this->m_LikelihoodCacheMutexImagePtr->SetRequestedRegion( this->GetInput()->GetRequestedRegion() );
+  this->m_LikelihoodCacheMutexImagePtr->CopyInformation( this->GetDWIImageInput() );
+  this->m_LikelihoodCacheMutexImagePtr->SetBufferedRegion( this->GetDWIImageInput()->GetBufferedRegion() );
+  this->m_LikelihoodCacheMutexImagePtr->SetRequestedRegion( this->GetDWIImageInput()->GetRequestedRegion() );
   this->m_LikelihoodCacheMutexImagePtr->Allocate();
   
   //prepare the matrices used to fit the tensor model
@@ -498,11 +498,14 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
     << std::endl;
   
   //make a list of ROI voxels
-  ROIImageIteratorType ROIImageIt( this->GetROIInput(),
-    this->GetROIInput()->GetRequestedRegion() );  
+  this->m_SeedIndices.clear();
+  
+  typedef itk::ImageRegionConstIterator< InputROIImageType > ROIImageIteratorType;
+  ROIImageIteratorType ROIImageIt( this->GetROIImageInput(),
+    this->GetROIImageInput()->GetRequestedRegion() );  
   for(ROIImageIt.GoToBegin(); !ROIImageIt.IsAtEnd(); ++ROIImageIt){
-    if(ROIImageIt.Get() == m_ROILabel){
-      this->m_SeedIndexStack->push(ROIImageIt.GetIndex());
+    if(ROIImageIt.Get() == this->m_ROILabel){
+      this->m_SeedIndices.push_back(ROIImageIt.GetIndex());
     }
   }
   
@@ -521,30 +524,30 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
 
 }
 
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 ITK_THREAD_RETURN_TYPE 
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::StochasticTractGenerationCallback( void *arg )
 {
   StochasticTractGenerationCallbackStruct* str=
     (StochasticTractGenerationCallbackStruct *)
       (((MultiThreader::ThreadInfoStruct *)(arg))->UserData);
 
-  typename InputDWIImageType::ConstPointer inputDWIImagePtr = str->Filter->GetInput();
+  typename InputDWIImageType::ConstPointer inputDWIImagePtr = str->Filter->GetDWIImageInput();
   typename InputWhiteMatterProbabilityImageType::ConstPointer inputWMPImage = 
     str->Filter->GetWhiteMatterProbabilityImageInput();
 
   unsigned long randomseed=0;
-  
-  while(str->Filter->DelegateTract(randomseed)){
-    //std::cout<<randomseed<<std::endl;
+  typename InputDWIImageType::IndexType seedindex;
+  seedindex.Fill( 0 );
+  while(str->Filter->DelegateTract(randomseed, seedindex)){
     //generate the tract
     TractType::Pointer conttract = TractType::New();
     TractType::Pointer discretetract = TractType::New();
     
     str->Filter->StochasticTractGeneration( inputDWIImagePtr,
       inputWMPImage,
-      str->Filter->GetSeedIndex(),
+      seedindex,
       randomseed,
       conttract, discretetract);
     
@@ -561,15 +564,15 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   return ITK_THREAD_RETURN_VALUE;
 }
 
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 ProbabilityDistributionImageType::PixelType&
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::AccessLikelihoodCache( typename InputDWIImageType::IndexType index ){
   this->m_LikelihoodCacheMutexImagePtr->GetPixel(index).Lock();
   
   ProbabilityDistributionImageType::PixelType& likelihood = 
     m_LikelihoodCachePtr->GetPixel( index );
-  typename InputDWIImageType::ConstPointer inputDWIImagePtr = this->GetInput();
+  typename InputDWIImageType::ConstPointer inputDWIImagePtr = this->GetDWIImageInput();
   
   if( likelihood.GetSize() !=0){
     //entry found in cache
@@ -598,15 +601,15 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   this->m_LikelihoodCacheMutexImagePtr->GetPixel(index).Unlock();
 }
 
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 bool
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
-::DelegateTract(unsigned long& randomseed, InputDWIImageType::IndexType& index){
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
+::DelegateTract(unsigned long& randomseed, typename InputDWIImageType::IndexType& index){
   bool success = false;
   this->m_TotalDelegatedTractsMutex.Lock();
-  while(!this->m_SeedIndexStack->empty()){
+  while(!this->m_SeedIndices.empty()){
     if(this->m_TotalDelegatedTracts < this->m_TotalTracts){
-      index = m_SeedIndexStack->top();
+      index = this->m_SeedIndices.back();
       randomseed = this->m_RandomGenerator.lrand32();
       this->m_TotalDelegatedTracts++;
       success = true;
@@ -614,16 +617,16 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
     }
     else{
       this->m_TotalDelegatedTracts = 0;
-      this->m_SeedIndexStack->pop();
+      this->m_SeedIndices.pop_back();
     }
   }
   this->m_TotalDelegatedTractsMutex.Unlock();
   return success;   //returns false from the initialization
 }
 
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::StoreContinuousTract(TractType::Pointer tract){
     this->m_OutputContinuousTractContainerMutex.Lock();
     this->m_OutputContinuousTractContainer->InsertElement( 
@@ -632,9 +635,9 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
     this->m_OutputContinuousTractContainerMutex.Unlock();
 }
 
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::StoreDiscreteTract(TractType::Pointer tract){
     this->m_OutputDiscreteTractContainerMutex.Lock();
     this->m_OutputDiscreteTractContainer->InsertElement( 
@@ -643,18 +646,18 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
     this->m_OutputDiscreteTractContainerMutex.Unlock();
 }
 
-template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TOutputConnectivityImage >
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 void
-StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TOutputConnectivityImage >
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::GenerateTensorImageOutput(void){
   this->UpdateGradientDirections();
   this->UpdateTensorModelFittingMatrices();
   
   //allocate the tensor image
   this->m_OutputTensorImage = OutputTensorImageType::New();
-  m_OutputTensorImage->CopyInformation( this->GetInput() );
-  m_OutputTensorImage->SetBufferedRegion( this->GetInput()->GetBufferedRegion() );
-  m_OutputTensorImage->SetRequestedRegion( this->GetInput()->GetRequestedRegion() );
+  m_OutputTensorImage->CopyInformation( this->GetDWIImageInput() );
+  m_OutputTensorImage->SetBufferedRegion( this->GetDWIImageInput()->GetBufferedRegion() );
+  m_OutputTensorImage->SetRequestedRegion( this->GetDWIImageInput()->GetRequestedRegion() );
   m_OutputTensorImage->Allocate();
   
   //define an iterator for the input and output images
@@ -662,7 +665,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   typedef itk::ImageRegionIterator< OutputTensorImageType > TensorImageIteratorType;
   
   DWIImageIteratorType 
-  inputDWIit( this->GetInput(), m_OutputTensorImage->GetRequestedRegion() );
+  inputDWIit( this->GetDWIImageInput(), m_OutputTensorImage->GetRequestedRegion() );
   
   TensorImageIteratorType outputtensorit
     ( m_OutputTensorImage, m_OutputTensorImage->GetRequestedRegion() );
@@ -687,8 +690,6 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
     D(2,0) = tensormodelparams[5];
     D(2,1) = tensormodelparams[6];
     D(2,2) = tensormodelparams[3];
-    
-    //std::cout<<D;
   }
 }
 
