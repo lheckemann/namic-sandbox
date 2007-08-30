@@ -461,6 +461,7 @@ template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class T
 void
 StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::GenerateData(){
+  std::cout << "Generate Data\n";
   //Generate the tracts
   //allocate tractcontainer
   this->AllocateOutputs();
@@ -607,6 +608,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
 ::DelegateTract(unsigned long& randomseed, typename InputDWIImageType::IndexType& index){
   bool success = false;
   this->m_TotalDelegatedTractsMutex.Lock();
+  
   while(!this->m_SeedIndices.empty()){
     if(this->m_TotalDelegatedTracts < this->m_TotalTracts){
       index = this->m_SeedIndices.back();
@@ -616,6 +618,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
       break;
     }
     else{
+      std::cout << "Remaining Seed Voxels:" << this->m_SeedIndices.size() << std::endl;
       this->m_TotalDelegatedTracts = 0;
       this->m_SeedIndices.pop_back();
     }
