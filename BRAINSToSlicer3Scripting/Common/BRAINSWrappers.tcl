@@ -2601,6 +2601,17 @@ b2_proc_generator b2_get_dims_GTSurface { { volumeNode - required }  {arugment2d
   return -1;
 }
 
+
+## A procedure to remove trailing ones from list
+proc remove_trailing_ones_from_list { mylist } {
+  for { set idx [ expr [ llength $x ] -1 ] } { $idx > 0 } { incr idx -1 } {
+    if { [ lindex $x $idx ] > 1 } {
+      break;
+    }
+  }
+  return [ lrange $mylist 0 $idx ];
+}
+
 #Usage  b2 get dims image  <imageID>
 #Description  This command returns the dimension of an image
 #       (i.e. size in voxels) in a list. The length of the
@@ -2615,7 +2626,7 @@ b2_proc_generator b2_get_dims_image { { volumeNode - required } } {
     puts "b2_get_dims_image failed";
     return -1;
   }
-  return $dims;
+  return [ remove_trailing_ones_from_list $dims ];
 }
 
 #Usage  b2 get dims mask  <maskID>
@@ -2893,7 +2904,9 @@ b2_proc_generator b2_get_res_image { { volumeNode - required } } {
     puts "b2_get_res_image Failed";
     return -1;
   }
-  return $res;
+  #Need to get the real dims (i.e. trailing dimensions of 1 don't count) so that only that many resolutions are reported.
+  set tempdims [b2_get_dims_image ${volumeNode} ]
+  return [ lrange $res 0 [ expr [ llength $tempdims ] - 1 ] ];
 }
 
 #Usage  b2 get res mask  <maskID>
