@@ -13,7 +13,7 @@
 #include "itkTensorFractionalAnisotropyImageFilter.h"
 #include "itkPathIterator.h"
 #include <string>
-#include <fstream>
+#include "itkShiftScaleImageFilter.h"
 #include "vtkPolyDataWriter.h"
 #include "vtkPolyData.h"
 #include "vtkCellArray.h"
@@ -26,6 +26,7 @@ int main(int argc, char* argv[]){
   typedef itk::Image< float, 3 > WMPImageType;
   typedef itk::Image< short int, 3 > ROIImageType;
   typedef itk::Image< unsigned int, 3 > CImageType;
+  typedef itk::Image< float, 3 > NormalizedCImageType;
 
   //define an iterator for the ROI image
   typedef itk::ImageRegionConstIterator< ROIImageType > ROIImageIteratorType;
@@ -35,7 +36,7 @@ int main(int argc, char* argv[]){
   typedef itk::ImageFileReader< WMPImageType > WMPImageReaderType;
   typedef itk::ImageFileReader< ROIImageType > ROIImageReaderType;
   typedef itk::ImageFileWriter< CImageType > CImageWriterType;
-  typedef itk::ImageFileWriter< WMPImageType > WMPImageWriterType;
+  typedef itk::ImageFileWriter< NormalizedCImageType > NormalizedCImageWriterType;
   
   //define metadata dictionary types
   typedef itk::MetaDataDictionary DictionaryType;
@@ -53,6 +54,10 @@ int main(int argc, char* argv[]){
   //define AddImageFilterType to accumulate the connectivity maps of the pixels in the ROI
   typedef itk::AddImageFilter< CImageType, CImageType, CImageType> AddImageFilterType;
   
+  //define a filter to normalize the connectivity map
+  typedef itk::ShiftScaleImageFilter< CImageType, NormalizedCImageType >
+    NormalizeCImageFilterType;
+    
   //read in the DWI image
   DWIVectorImageReaderType::Pointer dwireaderPtr = DWIVectorImageReaderType::New();
   dwireaderPtr->SetFileName(dwifilename);
@@ -170,7 +175,10 @@ int main(int argc, char* argv[]){
   stfilterPtr->SetGamma( gamma );
   if(totalthreads!=0) stfilterPtr->SetNumberOfThreads( totalthreads );
   
+  //Run the filter
   stfilterPtr->Update();
+  
+  //Get the resulting tracts
   STFilterType::TractContainerType::Pointer tractcontainer = 
     stfilterPtr->GetOutputDiscreteTractContainer();
   
@@ -201,12 +209,20 @@ int main(int argc, char* argv[]){
   //finish up the vtk polydata
   vtktracts->SetPoints( points );
   vtktracts->SetLines( vtktractarray );
+  
   //output the vtk tract container
   vtkPolyDataWriter* vtktractswriter = vtkPolyDataWriter::New();
   vtktractswriter->SetInput( vtktracts );
   std::string tractsfilename = outputprefix + "_TRACTS.vtk";
   vtktractswriter->SetFileName( tractsfilename.c_str() );
   vtktractswriter->Write();
+  
+  //cleanup vtk stuff
+  vtktracts->Delete();
+  points->Delete();
+  vtktractarray->Delete();
+  vtktractswriter->Delete();
+  
   if(outputimageswitch){
     //Setup the AddImageFilter
     AddImageFilterType::Pointer addimagefilterPtr = AddImageFilterType::New();
@@ -233,7 +249,11 @@ int main(int argc, char* argv[]){
     addimagefilterPtr->SetInput2( addimagefilterPtr->GetOutput() );
     
     //write tracts to connectivity image
+    CImageType::IndexType index;  //preallocate for efficiency
+    std::cout<<"Tractcontainer Size: "<<tractcontainer->Size()<<std::endl;
+    
     for(int i=0; i<tractcontainer->Size(); i++ ){
+      std::cout<<"Tract Number: "<<i<<std::endl;
       tempcimagePtr->FillBuffer(0);
       STFilterType::TractContainerType::Element tract =
         tractcontainer->GetElement(i);
@@ -244,26 +264,34 @@ int main(int argc, char* argv[]){
       for(int j=0; j<vertexlist->Size(); j++){
         STFilterType::TractContainerType::Element::ObjectType::VertexListType::Element vertex =
           vertexlist->GetElement(j);
-        CImageType::IndexType index;
+        
         index[0]=static_cast<long int>(vertex[0]);
         index[1]=static_cast<long int>(vertex[1]);
         index[2]=static_cast<long int>(vertex[2]);
         
         CImageType::PixelType& tempcimagepix = tempcimagePtr->GetPixel( index );
-        if(tempcimagepix == 0){
-          tempcimagepix++;
-        }
+        if(tempcimagepix == 0) tempcimagepix++;
       }
       addimagefilterPtr->Update();
     }
     
     //Write out the Connectivity Map
     std::string cfilename = outputprefix + "_CMAP.nhdr";
-
     CImageWriterType::Pointer writerPtr = CImageWriterType::New();
     writerPtr->SetInput( accumulatedcimagePtr );
     writerPtr->SetFileName( cfilename.c_str() );
     writerPtr->Update();
+    
+    //Write the normalized connectivity map
+    NormalizeCImageFilterType::Pointer ncifilterPtr = NormalizeCImageFilterType::New();
+    ncifilterPtr->SetInput( accumulatedcimagePtr );
+    ncifilterPtr->SetScale( static_cast< double >(1/tractcontainer->Size()) );
+    
+    std::string ncifilename = outputprefix + "_NCMAP.nhdr";
+    NormalizedCImageWriterType::Pointer nciwriterPtr = NormalizedCImageWriterType::New();
+    nciwriterPtr->SetInput( ncifilterPtr->GetOutput() );
+    nciwriterPtr->SetFileName( ncifilename.c_str() );
+    nciwriterPtr->Update();
   }
   return EXIT_SUCCESS;
 }

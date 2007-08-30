@@ -136,8 +136,18 @@ public:
   /** Get TensorImage **/
   itkGetObjectMacro( OutputTensorImage, OutputTensorImageType );
   
+
   void GenerateData();
   void GenerateTensorImageOutput( void );
+  
+  /** override the Proccess Object Update because we don't have a
+      dataobject as an output.  We can change this later by wrapping the
+      tractcontainer in a dataobject decorator and letting the Superclass
+      know about it.
+  **/
+  virtual void Update(){
+    this->GenerateData();
+  }
   
 protected:
   /** Convenience Types used only inside the filter **/
