@@ -136,9 +136,9 @@ proc CoreImageTest { ImageTypeName TestImageID ImageType ImageMin ImageMax Dimen
         # Epsilon has the same value as in ExpandedImageTest for calling CoreMeasuresEpsilonTest
 
         for {set currtype 0} { $currtype < $lentype } {incr currtype} {
-            set type [b2_get_image_type $TestImageID $currtype] ;
-            set SubTestDes "$ImageTypeName type($currtype): does [lindex $ImageType $currtype] equal $type" ;
-            ReportTestStatus $LogFile  [ expr  {$type == [lindex $ImageType $currtype]}   ] $ModuleName $SubTestDes ;
+#            set type [b2_get_image_type $TestImageID $currtype] ;
+#            set SubTestDes "$ImageTypeName type($currtype): does [lindex $ImageType $currtype] equal $type" ;
+#            ReportTestStatus $LogFile  [ expr  {$type == [lindex $ImageType $currtype]}   ] $ModuleName $SubTestDes ;
 
             set Criterion [expr { abs([lindex $ImageMin $currtype] * $Epsilon) }] ;
             if { $Criterion < $Epsilon } { set Criterion $Epsilon }

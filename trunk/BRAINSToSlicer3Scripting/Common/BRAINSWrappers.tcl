@@ -4010,13 +4010,14 @@ b2_proc_generator b2_histogram-equalize_image { { volumeNode - required }  {arug
 #       in the image. If an error occurs, then the error
 #       status of -1 is returned.
 b2_proc_generator b2_image_min { { volumeNode - required } } {
+#  vtkImageData::GetScalarRange
 #   Place body of command here.
-  set statusvalue [ catch { $volumeNode FAILED_CASE  } res ];
+  set statusvalue [catch { [ $volumeNode GetImageData ] GetScalarRange } range ];
   if { $statusvalue } then {
     puts "b2_image_min Failed";
     return -1;
   }
-  return -1;
+  return [lindex ${range} 0 ];
 }
 
 #Usage  b2 image max <imageID>
@@ -4030,12 +4031,12 @@ b2_proc_generator b2_image_min { { volumeNode - required } } {
 #       status of -1 is returned.
 b2_proc_generator b2_image_max { { volumeNode - required }  } {
 #   Place body of command here.
-  set statusvalue [ catch { $volumeNode FAILED_CASE  } res ];
+  set statusvalue [catch { [ $volumeNode GetImageData ] GetScalarRange } range ];
   if { $statusvalue } then {
     puts "b2_image_max Failed";
     return -1;
   }
-  return -1;
+  return [lindex ${range} 1 ];
 }
 
 #Usage  b2 intensity-rescale image <imageID> <old-lower-bound> <old-upper-bound> <new-lower-bound> <new-upper-bound> <no-clipping= true|false> <data-type= type>

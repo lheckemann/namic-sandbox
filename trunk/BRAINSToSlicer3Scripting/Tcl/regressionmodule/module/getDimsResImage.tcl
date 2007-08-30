@@ -34,7 +34,7 @@ proc getDimsResImage {pathToRegressionDir dateString} {
     ## Set known information about image
     set ImageType "T1"
     set ImageMin 0.000000
-    set ImageMax  2337.000000
+    set ImageMax  4095.000000
     set Dimensions "256 256 124"
     set Resolutions "1.015625 1.015625 1.500000"
     set SubTestDes "Get Image Dims/Res load $ImageType test"
