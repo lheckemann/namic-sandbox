@@ -30,8 +30,8 @@ proc loadImageNIfTIFileTypes {pathToRegressionDir dateString} {
         set ImageType "UNKNOWN"
         set ImageMin 0.000000
         set ImageMax  255.000000
-        set Dimensions "256 256 192 1"
-        set Resolutions "1.015625 1.015625 1.015625 1.000000"
+        set Dimensions "256 256 192"
+        set Resolutions "1.015625 1.015625 1.015625"
         set SubTestDes "load $ImageTypeName $ImageType test"
         set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/NIfTITypes/Compliant/10_ACPC/char_bigendian.nii.gz]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
@@ -43,8 +43,8 @@ proc loadImageNIfTIFileTypes {pathToRegressionDir dateString} {
         set ImageType "UNKNOWN"
         set ImageMin 0.000000
         set ImageMax  250.000000
-        set Dimensions "320 320 384 1"
-        set Resolutions "0.500000 0.500000 0.500000 1.000000"
+        set Dimensions "320 320 384"
+        set Resolutions "0.500000 0.500000 0.500000"
         set SubTestDes "load $ImageTypeName $ImageType test"
         set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/NIfTITypes/Compliant/10_ACPC/char_littleendian.nii.gz]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
@@ -56,8 +56,8 @@ proc loadImageNIfTIFileTypes {pathToRegressionDir dateString} {
         set ImageType "UNKNOWN"
         set ImageMin 0.000000
         set ImageMax  1.000000
-        set Dimensions "256 17 256 1"
-        set Resolutions "0.937500 6.500000 0.937500 1.000000"
+        set Dimensions "256 17 256"
+        set Resolutions "0.937500 6.500000 0.937500"
         set SubTestDes "load $ImageTypeName $ImageType test"
         set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/NIfTITypes/Compliant/10_ACPC/float_bigendian.nii.gz]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
@@ -69,8 +69,8 @@ proc loadImageNIfTIFileTypes {pathToRegressionDir dateString} {
         set ImageType "UNKNOWN"
         set ImageMin 0.000000
         set ImageMax  1.000000
-        set Dimensions "320 320 384 1"
-        set Resolutions "0.500000 0.500000 0.500000 1.000000"
+        set Dimensions "320 320 384"
+        set Resolutions "0.500000 0.500000 0.500000"
         set SubTestDes "load $ImageTypeName $ImageType test"
         set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/NIfTITypes/Compliant/10_ACPC/float_littleendian.nii.gz]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
@@ -82,8 +82,8 @@ proc loadImageNIfTIFileTypes {pathToRegressionDir dateString} {
         set ImageType "UNKNOWN"
         set ImageMin 0.000000
         set ImageMax  2379.000000
-        set Dimensions "256 17 256 1"
-        set Resolutions "0.937500 6.500000 0.937500 1.000000"
+        set Dimensions "256 17 256"
+        set Resolutions "0.937500 6.500000 0.937500"
         set SubTestDes "load $ImageTypeName $ImageType test"
         set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/NIfTITypes/Compliant/10_ACPC/signed16_bigendian.nii.gz]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
@@ -95,8 +95,8 @@ proc loadImageNIfTIFileTypes {pathToRegressionDir dateString} {
         set ImageType "UNKNOWN"
         set ImageMin 0.000000
         set ImageMax  300.000000
-        set Dimensions "256 256 124 1"
-        set Resolutions "0.703125 0.703125 1.500000 1.000000"
+        set Dimensions "256 256 124"
+        set Resolutions "0.703125 0.703125 1.500000"
         set SubTestDes "load $ImageTypeName $ImageType test"
         set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/NIfTITypes/Compliant/10_ACPC/signed16_littleendian.nii.gz]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {

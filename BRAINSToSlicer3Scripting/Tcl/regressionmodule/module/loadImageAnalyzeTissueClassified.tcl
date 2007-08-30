@@ -32,8 +32,8 @@ proc loadImageAnalyzeTissueClassified {pathToRegressionDir dateString} {
         set ImageType "Classified"
         set ImageMin 0.000000
         set ImageMax  250.000000
-        set Dimensions "256 256 192 1"
-        set Resolutions "1.015625 1.015625 1.015625 1.000000"
+        set Dimensions "256 256 192"
+        set Resolutions "1.015625 1.015625 1.015625"
         set SubTestDes "load $ImageTypeName $ImageType test"
         set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_stereo.hdr]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {

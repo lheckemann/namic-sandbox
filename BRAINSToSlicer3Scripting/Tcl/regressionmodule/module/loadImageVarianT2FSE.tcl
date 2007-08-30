@@ -32,8 +32,8 @@ proc loadImageVarianT2FSE {pathToRegressionDir dateString} {
         set ImageType "PD"
         set ImageMin 0.000000
         set ImageMax 0.052734
-        set Dimensions "512 24 512 1"
-        set Resolutions "0.390625 5.000000 0.390625 10000.000000"
+        set Dimensions "512 24 512"
+        set Resolutions "0.390625 5.000000 0.390625"
         set SubTestDes "load $ImageTypeName $ImageType test"
         set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/varian/TEST/fse_T2/image0009.fdf data-type= float-single filter-suffix= "-c on"]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {
