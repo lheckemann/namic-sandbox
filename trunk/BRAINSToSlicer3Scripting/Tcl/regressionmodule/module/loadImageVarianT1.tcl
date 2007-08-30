@@ -32,8 +32,8 @@ proc loadImageVarianT1 {pathToRegressionDir dateString} {
         set ImageType "T1"
         set ImageMin 0.000000
         set ImageMax  0.078125
-        set Dimensions "256 64 256 1"
-        set Resolutions "0.859375000000000 2.999991893768311 0.859375000000000 9.000000000000000"
+        set Dimensions "256 64 256"
+        set Resolutions "0.859375000000000 2.999991893768311 0.859375000000000"
         set SubTestDes "load $ImageTypeName $ImageType test"
         set TestImageID [b2_load_image $pathToRegressionDir/SGI/MR/varian/TEST/mpflash_T1/image0016.fdf data-type= float-single filter-suffix= "-c on"]
         if { [ ReportTestStatus $LogFile  [ expr {$TestImageID != -1 } ] $ModuleName $SubTestDes ]} {

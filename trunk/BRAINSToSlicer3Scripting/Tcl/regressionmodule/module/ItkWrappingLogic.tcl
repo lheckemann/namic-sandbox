@@ -78,8 +78,8 @@ proc ItkWrappingLogic {pathToRegressionDir dateString} {
     set b2RGaussian [b2_itkRecursiveGaussian $b2Image 6.0 data-type= float-single];
     set ImageTypeName "b2-itkRecursiveGaussian-6.0";
     set ImageType "Classified";
-    set Dimensions "256 256 192 1" ;
-    set Resolutions "1.015625 1.015625 1.015625 1.0" ;
+    set Dimensions "256 256 192" ;
+    set Resolutions "1.015625 1.015625 1.015625" ;
     set SubTestDes "take data (result: $b2RGaussian) from the brains2 kernel test";
     if { [ ReportTestStatus $LogFile  [ expr {[string equal [string index $b2RGaussian 0] "i"] } ] $ModuleName $SubTestDes ]} {
         CoreImageTest $ImageTypeName $b2RGaussian $ImageType $ImageMin $ImageMax $Dimensions $Resolutions $LogFile $ModuleName $SubTestDes;

@@ -2604,8 +2604,8 @@ b2_proc_generator b2_get_dims_GTSurface { { volumeNode - required }  {arugment2d
 
 ## A procedure to remove trailing ones from list
 proc remove_trailing_ones_from_list { mylist } {
-  for { set idx [ expr [ llength $x ] -1 ] } { $idx > 0 } { incr idx -1 } {
-    if { [ lindex $x $idx ] > 1 } {
+  for { set idx [ expr [ llength $mylist ] -1 ] } { $idx > 0 } { incr idx -1 } {
+    if { [ lindex $mylist $idx ] > 1 } {
       break;
     }
   }

@@ -137,8 +137,8 @@ proc saveImage {pathToRegressionDir dateString} {
 #        set RgbImageMean  27.045659780502319 ;
     set RgbImageStd  43.517092386806489 ;
 #        set RgbImageStd  45.373369306353894 ;
-    set RgbDimensions "256 256 192 1" ;
-    set RgbResolutions "1.015625 1.015625 1.015625 1.000000" ;
+    set RgbDimensions "256 256 192" ;
+    set RgbResolutions "1.015625 1.015625 1.015625" ;
 
 
 
@@ -163,8 +163,8 @@ proc saveImage {pathToRegressionDir dateString} {
     set ImageMean 62.192513368983960 ;
 #    set ImageStd 39.841412773156328 ;
     set ImageStd 39.754369655775093 ;
-    set Dimensions "23 17 11 1" ;
-    set Resolutions "5.000000000000000 6.000000000000000 7.000000000000000 1.000000" ;
+    set Dimensions "23 17 11" ;
+    set Resolutions "5.000000000000000 6.000000000000000 7.000000000000000" ;
 
     ### Create Directories
     if {[catch { exec mkdir -p ${OUTPUT_DIR}/TEST/10_ACPC } squabble] != 0 } {puts "exec failed: $squabble" } ;
