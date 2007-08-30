@@ -626,10 +626,14 @@ public:
     ReadBytes<short int>(inputFileStream, &m_MaximumZValue,1,NeedByteSwap);
     ReadBytes<float>(inputFileStream, &m_Opacity,1,NeedByteSwap);
     ReadBytes<int>(inputFileStream, &m_OpacityThickness,1,NeedByteSwap);
-    if(NeedBlendFactor)
-      {
+    //I am going to comment this if-statment out for right now, so the the program reads in
+    //the Blend Factor for any version.  The documentation that I got said that the Blend
+    //Factor should not be in the files for version 6 or earlier but I guess it is.  
+    //I tried opening up some version six object maps and they were erroring out because they were 4 bits off.
+    //if(NeedBlendFactor)
+    //  {
       ReadBytes<float>(inputFileStream, &m_BlendFactor,1,NeedByteSwap);
-      }
+      //}
     }
 
   /**
