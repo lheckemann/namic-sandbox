@@ -171,6 +171,10 @@ public:
   itkSetMacro( GaussianFilterKernelWidth, double);
   itkGetMacro( GaussianFilterKernelWidth, double);
   
+  /** Set/Get the BSpline regularization flag. */
+  itkSetMacro( BSplineRegularizationFlag, bool);
+  itkGetMacro( BSplineRegularizationFlag, bool);
+  
 protected:
   UnivariateEntropyMultiImageMetric();
   virtual ~UnivariateEntropyMultiImageMetric();
@@ -226,6 +230,7 @@ protected:
   bool                        m_ReseedIterator;
   int                         m_RandomSeed;
   bool                        m_UseMask;  
+  bool                        m_BSplineRegularizationFlag;
   mutable Array< RealType >   m_value;
   
   mutable std::vector< ParametersType > m_TransformParametersArray;

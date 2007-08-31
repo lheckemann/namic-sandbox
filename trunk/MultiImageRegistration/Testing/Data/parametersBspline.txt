@@ -43,6 +43,11 @@
 
     -numberOfBsplineLevel 2
 
+#
+#  Set BSpline regularization on/off
+#
+
+    -BSplineRegularizationFlag on
 
 #
 # Bspline regularization
@@ -50,6 +55,7 @@
 # higher values yield smoother deformation fields
 #
     -gaussianFilterKernelWidth 2.0
+
 
 #
 # All objective functions make use of stochastic subsampline
@@ -60,8 +66,8 @@
 #
 
     -numberOfSpatialSamplesAffinePercentage      0.001
-    -numberOfSpatialSamplesBsplinePercentage     0.002
-    -numberOfSpatialSamplesBsplineHighPercentage 0.004
+    -numberOfSpatialSamplesBsplinePercentage     0.001
+    -numberOfSpatialSamplesBsplineHighPercentage 0.001
 
 #
 # following options define number of multiresolution levels used in optimization
@@ -85,9 +91,9 @@
 # no other termination options are used
 #
 
-    -optAffineNumberOfIterations 20
-    -optBsplineNumberOfIterations 20
-    -optBsplineHighNumberOfIterations 20
+    -optAffineNumberOfIterations 15
+    -optBsplineNumberOfIterations 15
+    -optBsplineHighNumberOfIterations 15
 
  
 #
@@ -131,7 +137,7 @@
 #  after each resolution level
 #
     -affineMultiScaleMaximumIterationIncrease 2.5
-    -bsplineMultiScaleMaximumIterationIncrease 2.5
+    -bsplineMultiScaleMaximumIterationIncrease 3.0
   
 
 #
@@ -158,7 +164,7 @@
 #  turn off to save disk space
 #
 
-   -write3DImages on
+   -write3DImages off
 
 
 ############################################
@@ -214,7 +220,7 @@
 # smaller values mean larger step size along translation directions
 # 1/scale is used!
 
-    -translationScaleCoeffs 1e-4
+    -translationScaleCoeffs 1e-3
     
     
     

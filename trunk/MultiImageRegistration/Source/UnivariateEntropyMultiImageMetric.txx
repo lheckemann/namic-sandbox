@@ -46,7 +46,7 @@ UnivariateEntropyMultiImageMetric()
   m_UseMask = false;
   m_NumberOfParametersPerdimension = 0;
   m_GaussianFilterKernelWidth = 5.0;
-
+  m_BSplineRegularizationFlag = false;
 }
 
 /*
@@ -553,26 +553,8 @@ void UnivariateEntropyMultiImageMetric < TFixedImage >
   derivative /= (double) (this->m_NumberOfSpatialSamples * this->m_NumberOfImages *
                      m_ImageStandardDeviation * m_ImageStandardDeviation );
   
-  //Set the mean to zero
-  //Remove mean
-  DerivativeType sum (this->m_NumberOfParameters);
-  sum.Fill(0.0);
-  for (unsigned int i = 0; i < this->m_NumberOfImages; i++)
-  {
-    for (unsigned int j = 0; j < this->m_NumberOfParameters; j++)
-    {
-      sum[j] += derivative[i * this->m_NumberOfParameters + j];
-    }
-  }
-
-  
-  for (unsigned int i = 0; i < this->m_NumberOfImages * this->m_NumberOfParameters; i++)
-  {
-    derivative[i] -= sum[i % this->m_NumberOfParameters] / (double) this->m_NumberOfImages;
-  }
-
   // BSpline regularization
-  if(this->m_UserBsplineDefined)
+  if(this->m_UserBsplineDefined && m_BSplineRegularizationFlag)
   {
     // Smooth the deformation field
     typedef typename BSplineTransformType::ImageType ParametersImageType;
@@ -614,8 +596,26 @@ void UnivariateEntropyMultiImageMetric < TFixedImage >
 
     }
     
-    // filter
   }
+  
+  //Set the mean to zero
+  //Remove mean
+  DerivativeType sum (this->m_NumberOfParameters);
+  sum.Fill(0.0);
+  for (unsigned int i = 0; i < this->m_NumberOfImages; i++)
+  {
+    for (unsigned int j = 0; j < this->m_NumberOfParameters; j++)
+    {
+      sum[j] += derivative[i * this->m_NumberOfParameters + j];
+    }
+  }
+
+  
+  for (unsigned int i = 0; i < this->m_NumberOfImages * this->m_NumberOfParameters; i++)
+  {
+    derivative[i] -= sum[i % this->m_NumberOfParameters] / (double) this->m_NumberOfImages;
+  }
+  
 }
 
 
