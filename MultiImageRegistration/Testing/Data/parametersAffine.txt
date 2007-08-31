@@ -52,8 +52,8 @@
 #
 
     -numberOfSpatialSamplesAffinePercentage      0.001
-    -numberOfSpatialSamplesBsplinePercentage     0.002
-    -numberOfSpatialSamplesBsplineHighPercentage 0.004
+    -numberOfSpatialSamplesBsplinePercentage     0.001
+    -numberOfSpatialSamplesBsplineHighPercentage 0.001
 
 #
 # following options define number of multiresolution levels used in optimization
@@ -150,7 +150,7 @@
 #  turn off to save disk space
 #
 
-   -write3DImages on
+   -write3DImages off
 
 
 ############################################
@@ -206,7 +206,7 @@
 # smaller values mean larger step size along translation directions
 # 1/scale is used!
 
-    -translationScaleCoeffs 1e-4
+    -translationScaleCoeffs 1e-3
     
     
     

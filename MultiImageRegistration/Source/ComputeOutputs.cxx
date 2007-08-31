@@ -515,7 +515,7 @@ int main( int argc, char * argv[] )
           for ( defIt.GoToBegin(); !defIt.IsAtEnd(); ++defIt)
           {
             index = defIt.GetIndex();
-            if(index[2]%8 == 0 || index[1]%8 ==0 )
+            if(index[2]%8 == 0 || index[0]%8 ==0 )
             {
               defIt.Set( 255 );
             }

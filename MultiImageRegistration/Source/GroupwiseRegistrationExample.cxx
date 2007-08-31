@@ -487,7 +487,7 @@ int getCommandLine(int argc, char *initFname, vector<string>& fileNames, string&
                    int& optAffineNumberOfIterations, int& optBsplineNumberOfIterations, int& optBsplineHighNumberOfIterations,
                    double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
                    int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
-                   string& useBSplineRegularization, double& bsplineRegularizationFactor,
+                   string& BSplineRegularizationFlag, double& bsplineRegularizationFactor,
                    string& transformType,string& metricType, string& useBspline, string& useBsplineHigh,
                    double& translationScaleCoeffs,
                    int& maximumLineIteration, double& parzenWindowStandardDeviation,
@@ -555,7 +555,7 @@ int main( int argc, char *argv[] )
   int bsplineInitialGridSize = 4;
   int numberOfBsplineLevel = 1;
   
-  string useBSplineRegularization("on");
+  string BSplineRegularizationFlag("off");
   double bsplineRegularizationFactor = 1e-1;
   
   double parzenWindowStandardDeviation = 0.4;
@@ -588,7 +588,7 @@ int main( int argc, char *argv[] )
         optAffineNumberOfIterations, optBsplineNumberOfIterations, optBsplineHighNumberOfIterations,
         numberOfSpatialSamplesAffinePercentage, numberOfSpatialSamplesBsplinePercentage, numberOfSpatialSamplesBsplineHighPercentage,
         bsplineInitialGridSize, numberOfBsplineLevel,
-        useBSplineRegularization, bsplineRegularizationFactor,
+        BSplineRegularizationFlag, bsplineRegularizationFactor,
         interpolatorType, metricType, useBspline, useBsplineHigh,
         translationScaleCoeffs, maximumLineIteration,  parzenWindowStandardDeviation,
         affineMultiScaleSamplePercentageIncrease, bsplineMultiScaleSamplePercentageIncrease,
@@ -769,6 +769,10 @@ int main( int argc, char *argv[] )
     EntropyMetricType::Pointer entropyMetric        = EntropyMetricType::New();
     entropyMetric->SetImageStandardDeviation(parzenWindowStandardDeviation);
     entropyMetric->SetGaussianFilterKernelWidth(gaussianFilterKernelWidth);
+    if( BSplineRegularizationFlag == "on" )
+    {
+      entropyMetric->SetBSplineRegularizationFlag(true);
+    }
     metric = entropyMetric;
   }
   metric->SetNumberOfImages(N);
@@ -1637,7 +1641,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
                           double& numberOfSpatialSamplesAffinePercentage, double& numberOfSpatialSamplesBsplinePercentage, double& numberOfSpatialSamplesBsplineHighPercentage,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
                           
-                          string& useBSplineRegularization, double& bsplineRegularizationFactor,
+                          string& BSplineRegularizationFlag, double& bsplineRegularizationFactor,
 
                           string& interpolatorType, string& metricType,
                           string& useBspline, string& useBsplineHigh,
@@ -1842,10 +1846,10 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
       initFile >> dummy;
       numberOfBsplineLevel = atoi(dummy.c_str());
     }
-    else if (dummy == "-useBSplineRegularization")
+    else if (dummy == "-BSplineRegularizationFlag")
     {
       initFile >> dummy;
-      useBSplineRegularization = dummy;
+      BSplineRegularizationFlag = dummy;
     }
     else if (dummy == "-bsplineRegularizationFactor")
     {
