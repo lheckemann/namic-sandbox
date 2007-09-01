@@ -181,7 +181,7 @@ int main(int argc, char* argv[]){
   //Get the resulting tracts
   STFilterType::TractContainerType::Pointer tractcontainer = 
     stfilterPtr->GetOutputDiscreteTractContainer();
-  
+  /*
   //allocate the VTK Polydata to output the tracts
   vtkPolyData* vtktracts = vtkPolyData::New();
   vtkPoints* points = vtkPoints::New();
@@ -222,7 +222,7 @@ int main(int argc, char* argv[]){
   points->Delete();
   vtktractarray->Delete();
   vtktractswriter->Delete();
-  
+  */
   if(outputimageswitch){
     //Setup the AddImageFilter
     AddImageFilterType::Pointer addimagefilterPtr = AddImageFilterType::New();
@@ -250,11 +250,11 @@ int main(int argc, char* argv[]){
     
     //write tracts to connectivity image
     CImageType::IndexType index;  //preallocate for efficiency
-    std::cout<<"Tractcontainer Size: "<<tractcontainer->Size()<<std::endl;
+    std::cout<<"Writing Tracts to Image, Tractcontainer Size: "<<tractcontainer->Size()<<std::endl;
     
     for(int i=0; i<tractcontainer->Size(); i++ ){
-      std::cout<<"Tract Number: "<<i<<std::endl;
-      tempcimagePtr->FillBuffer(0);
+      //std::cout<<"Tract Number: "<<i<<std::endl;
+      //tempcimagePtr->FillBuffer(0);
       STFilterType::TractContainerType::Element tract =
         tractcontainer->GetElement(i);
          
@@ -262,7 +262,7 @@ int main(int argc, char* argv[]){
         tract->GetVertexList();
       
       for(int j=0; j<vertexlist->Size(); j++){
-        STFilterType::TractContainerType::Element::ObjectType::VertexListType::Element vertex =
+        const STFilterType::TractContainerType::Element::ObjectType::VertexListType::Element& vertex =
           vertexlist->GetElement(j);
         
         index[0]=static_cast<long int>(vertex[0]);
@@ -273,6 +273,17 @@ int main(int argc, char* argv[]){
         if(tempcimagepix == 0) tempcimagepix++;
       }
       addimagefilterPtr->Update();
+      for(int j=0; j<vertexlist->Size(); j++){
+        const STFilterType::TractContainerType::Element::ObjectType::VertexListType::Element& vertex =
+          vertexlist->GetElement(j);
+        
+        index[0]=static_cast<long int>(vertex[0]);
+        index[1]=static_cast<long int>(vertex[1]);
+        index[2]=static_cast<long int>(vertex[2]);
+        
+        CImageType::PixelType& tempcimagepix = tempcimagePtr->GetPixel( index );
+        tempcimagepix = 0;
+      }
     }
     
     //Write out the Connectivity Map
@@ -285,7 +296,7 @@ int main(int argc, char* argv[]){
     //Write the normalized connectivity map
     NormalizeCImageFilterType::Pointer ncifilterPtr = NormalizeCImageFilterType::New();
     ncifilterPtr->SetInput( accumulatedcimagePtr );
-    ncifilterPtr->SetScale( static_cast< double >(1/tractcontainer->Size()) );
+    ncifilterPtr->SetScale( 1.0f/static_cast< double >(tractcontainer->Size()) );
     
     std::string ncifilename = outputprefix + "_NCMAP.nhdr";
     NormalizedCImageWriterType::Pointer nciwriterPtr = NormalizedCImageWriterType::New();
