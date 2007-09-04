@@ -29,7 +29,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 % Increment the release number whenever significant changes are made.
 % The author and/or editor can define 'significant' however they like.
-\release{1.00}
+\release{1.1}
 
 % At minimum, give your name and an email address.  You can include a
 % snail-mail address if you like.
@@ -112,31 +112,31 @@ Then the folder called AnalyzeObjectMap will need to be placed into the source o
 
 Functions:
 \begin{itemize}
-\item CanReadFile
+\item bool CanReadFile(const char* FileNameToRead)
 
-This checks to see if the filename ends with an obj extension.  If it does then return true that this class can read the file.
+This checks to see if the filename, that was passed in, ends with an obj extension.  If it does then return true that this class can read the file else return false stating that the reader can not read the file.
 
-\item ReadImageInformation
+\item void ReadImageInformation()
 
 This reads in the header information.  It first reads in the verision of the object map, then the x,y,z sizes, then the number of objects and for verision 7 object maps the number of volumes.  Then the function reads in each object entry and stores them into a vector of object entries.
 
-\item Read
+\item void Read(void* buffer)
 
-This will read in and decipher the run length encoded image.
+This will read in and decipher the run length encoded image.  The expanded image will be stored in the void pointer that was passed in and which will be used for the call GetOutput().
 
-\item CanWriteFile
+\item bool CanWriteFile(const char * FileNameToWrite)
 
-This checks to see if the filename ends with an obj extension.  If it does then return true that this class can write the file.
+This checks to see if the filename, that was passed in, ends with an obj extension.  If it does then return true that this class can write the file else return false stating that the writer can not read the file.
 
-\item WriteImageInformation
+\item void WriteImageInformation()
 
-This writes out the header information.  It first writes out the verision of the object map (which is verisoin 7 right now), the x,y,z sizes, the number of objects and for verision 7 object maps the number of volumes.  Then the function writes out each object entry to the file.  The object entry will most likly take up the most room of the file.  If an image was created without any object entries then the writer will write out 256 object entries.
+This writes out the header information.  It first writes out the verision of the object map (which is verisoin 7 right now), the x,y,z sizes of the image, the number of objects and for verision 7 object maps the number of volumes.  Then the function writes out each object entry to the file.  The object entry will most likly take up the most room of the file.  If an image was created without any object entries then the writer will write out 256 object entries.
 
-\item Write
+\item void Write(const void* buffer)
 
-This will comprese the image by run length encoding the image and then write the run length encoding to the specified file.
+This will comprese the the void pointer (which is the image and is changed to an unsigned char within the function) that was passed in by run length encoding the void pointer and then write the run length encoding to the specified file.
 
-\item CanStreamRead
+\item bool CanStreamRead()
 
 This will return false right now because the reader can not stream data.  This is something that will be worked on in the future.
 
@@ -147,27 +147,27 @@ This will return false right now because the reader can not stream data.  This i
 Functions:
 \begin{itemize}
       
-      \item Copy
+      \item void Copy( AnalyzeObjectEntry::Pointer rhs )
        
-      This function will copy all of the ivars except the name of the entry.  The reason why the function does not copy the name, is that each object entry should have a unique name.
+      This function will copy all of the ivars except the name of the entry from the Analyze Object Entry that was passed in to the current Analyze Object Entry.  The reason why the function does not copy the name, is that each object entry should have a unique name.
 
       \item These next functions are get/set macros that will get/set most of the ivars.\\ \\
 
          getName/setName, getDisplayFlag/setDisplayFlag, getCopyFlag/setCopyFlag, getMirrorFlag/setMirrorFlag, getStatusFlag/setStatusFlag, getNeighborsUsedFlag/setNeighborsUsedFlag, getShades/setShades, getStartRed/setStartRed, getStartGreen/setStartGreen, getStartBlue/setStartBlue, getEndRed/setEndRed, getEndGreen/setEndGreen, getEndBlue/setEndBlue, getXRotation/setXRotation, getXRotationIncrement/setXRotationIncrement, getYRotation/setYRotation, getYRotationIncrement/setYRotationIncrement, getZRotation/setZRotation, getZRotationIncrement/setZRotationIncrement, getXTranslation/setXTranslation, getXTranslation/setXTranslation, getYTranslation/setYTranslation, getYTranslationIncrement/setYTranslationIncrement, getZTranslation/setZTranslation, getZTranslation/setZTranslation, getXCenter/setXCenter, getYCenter/setYCenter, getZCenter/setZCenter, getMinimumXValue/setMinimumXValue, getMinimumYValue/setMinimumYValue, getMinimumZValue/setMinimumZValue, getMaximumXValue/setMaximumXValue, getMaximumYValue/setMaximumYValue, getMaximumZValue/setMaximumZValue, getOpacity/setOpacity,   GetOpacityThickness/SetOpacityThickness, GetBlendFactor/SetBlendFactor\\ \\
 
-  \item Print
+  \item void Print(std::ostream \&myfile) 
 
     This function will print out all of the ivars out to any file that the user wants.  This is mostly used for debugging purposes.
 
-  \item ReadFromFilePointer
+  \item void ReadFromFilePointer(std::ifstream \& inputFileStream, const bool NeedByteSwap, const bool NeedBlendFactor)
     
-    This function will read in all of the ivars from a file location that is passed into it.
+    This function will read in all of the ivars from a file location that is passed into it.  Also, if the computer is little endian then pass in a bool value of true so that the data is swapped from big endian to little endian else pass in false.  Finally, it was stated in the documentation from the Mayo Foundation that Analyze Object Entry's don't have Blend Factor in verisions prior to Verision 7, so that is the reason for const bool NeedBlendFactor, but right now the code does read in Blend Factor no matter what because some verision 6 files were tried and they needed the extra 4 bits.
 
-  \item SwapObjectEndedness
+  \item void SwapObjectEndedness()
 
     This function will change the object endedness if the computer is a little endian machine, since the object maps are written in big endian.
 
-  \item Write
+  \item void Write(std::ofstream \&outputFileStream)
   
     This function will write out all of the ivars to a file location that is passed into it.
 \end{itemize}
@@ -180,7 +180,7 @@ Functions:
 
 This function is the assignment operator, which copies a new object map from the right side to the AnalyzeObjectMap variable on the left side.
 
-\item GetAnalyzeObjectEntryArrayPointer
+\item AnalyzeObjectEntryArrayType * GetAnalyzeObjectEntryArrayPointer()
 
 This will return a pointer to the vector of object entries that an object map has.
 
@@ -188,39 +188,39 @@ This will return a pointer to the vector of object entries that an object map ha
 
 This will get/set the number of object entries that an object map has.
 
-\item PickOneEntry
+\item itk::AnalyzeObjectMap$<$TImage$>$::Pointer PickOneEntry(const int numberOfEntry = -1)
 
-The user will input the number of the Object entry that they would like to pick.  Then the function will create a new object map that will re returned.  Then the function will go through the original object map image and get rid of all of the other object numbers and change the number of the object entry the user specified to one.  Then the new image will be outputted to the new Object map.  After that the object entry from the original object map will be copied over to the new object map's vector of object entries. 
+The user will input the number of the Object entry that they would like to pick.  Then the function will create a new object map that will re returned.  Then the function will go through the original object map image and get rid of all of the other object numbers and change the number of the object entry the user specified to one.  Then the new image will be outputted to the new Object map.  After that the object entry from the original object map will be copied over to the new object map's vector of object entries. Finally, the new object map is returned.
 
-\item ObjectMapToRGBImage
+\item TRGBImage::Pointer ObjectMapToRGBImage()
 
 This will convert the object map into an RGB Image based on the end red, end green and end blue specified for each object entry.  That means that the function will have to go through the object map image, get the value at each pixel, find the object entry that corresponds to the value of the pixel and then pull out the end red, end green and end blue and set that as the pixel color for the RGB Image.  Then that RGB Image will be returned.
 
-\item AddObjectEntryBasedOnImagePixel
+\item void AddObjectEntryBasedOnImagePixel(ImageType *Image,const int value = -1,const std::string ObjectName = "",const int Red = 0,const int Green = 0,const int Blue = 0)
 
 This will go through an image that the user inputs, find the specific pixel value the user inputs and then create an object map at the location that it finds the specific pixel value.  The user will also have the option of inputing the red, green and blue they want the object map to be.
 
-\item AddAnalyzeObjectEntry
+\item void AddAnalyzeObjectEntry(const std::string ObjectName = "")
 
-This will just add an object entry to the end of the vector of object entries that an object map has.
+This will just add an object entry to the end of the vector of object entries that an object map has with the specific name the user passes in.
 
-\item DeleteAnalyzeObjectEntry
+\item void DeleteAnalyzeObjectEntry(const std::string ObjectName = "")
 
-This will delete an object entry that a user specifies.  The function will go through the image and delete the number that corresponds to the object entry.  Then the function will move all of the object entry numbers above the object entry that was deleted down one number.  Then the function will move all of the object entries above the object entry that was deleted in the vector one number down.
+This will delete an object entry that a user specifies by inputting the name.  The function will go through the image and delete the number that corresponds to the object entry.  Then the function will move all of the object entry numbers above the object entry that was deleted down one number.  Then the function will move all of the object entries above the object entry that was deleted in the vector one number down.
 
-\item FindObjectEntry
+\item int FindObjectEntry(const std::string ObjectName = "")
 
 This function will find an object entry based on the name that the user inputs.  If the function finds the object entry then it will return the number of the vector of the object entry.  If the function does not find the object entry then the function will return -1.
 
-\item PlaceObjectMapEntriesIntoMetaData
+\item void PlaceObjectMapEntriesIntoMetaData()
 
 This function will place the object entries into the meta data so that the object map can be moved around just like a normal image.  This function is normally called in the functions that are in this class.
 
-\item GetObjectEntry
+\item AnalyzeObjectEntry::Pointer GetObjectEntry( const int index )
 
-This function will return the smart pointer of the object entry the user inputs.
+This function will return the smart pointer of the object entry number the user inputs.
 
-\item ImageToObjectMap
+\item void ImageToObjectMap(ImageType *image)
 
 This function will take an image and make it into an object map.  If there is data for object entries in the meta data then extract that data.  Then take the pixel container of the image and place it into the object map's pixel container.
 \end{itemize}
@@ -238,7 +238,8 @@ This example is for reading in any file, then creating a new object map, then ad
 
 Command:
 
-\textbf{CreatingObjects.exe  [source\_directory/Data/Input]/2dtest.nii creatingObjects.obj}\\
+\textbf{CreatingObjects.exe [input image] [output Analyze Object Map file]}\\
+\emph{CreatingObjects.exe  2dtest.nii creatingObjects.obj}\\
 
 \small \begin{verbatim}
 #include "itkImageFileReader.h"
@@ -338,7 +339,8 @@ then showing how to use vtk to display the object map.
 
 Command:
 
-\textbf{DisplayingObjectMaps.exe [source\_directory/Data/Input]Circle.obj}
+\textbf{DisplayingObjectMaps.exe [input Analyze Object Map file]}\\
+\emph{DisplayingObjectMaps.exe Circle.obj}
 
 \small \begin{verbatim}
 #include "itkImage.h"
@@ -416,7 +418,8 @@ This example is for reading in any file, then creating a new object map, then ad
 
 Command:
 
-\textbf{PickOneObjectEntry.exe [source\_directory/Data/Input]/2dtest.nii circle.obj}
+\textbf{PickOneObjectEntry.exe [input image file] [output Analyze Object Map file]}\\
+\emph{PickOneObjectEntry.exe 2dtest.nii circle.obj}
 
 \small \begin{verbatim}
 #include "itkImageFileReader.h"
