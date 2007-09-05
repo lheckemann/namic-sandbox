@@ -291,6 +291,7 @@ int main(int argc, char* argv[]){
     CImageWriterType::Pointer writerPtr = CImageWriterType::New();
     writerPtr->SetInput( accumulatedcimagePtr );
     writerPtr->SetFileName( cfilename.c_str() );
+    writerPtr->SetUseCompression( true );
     writerPtr->Update();
     
     //Write the normalized connectivity map
@@ -302,6 +303,7 @@ int main(int argc, char* argv[]){
     NormalizedCImageWriterType::Pointer nciwriterPtr = NormalizedCImageWriterType::New();
     nciwriterPtr->SetInput( ncifilterPtr->GetOutput() );
     nciwriterPtr->SetFileName( ncifilename.c_str() );
+    nciwriterPtr->SetUseCompression( true );
     nciwriterPtr->Update();
   }
   return EXIT_SUCCESS;
