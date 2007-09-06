@@ -13,7 +13,7 @@
 #include "itkPathIterator.h"
 #include <string>
 #include "itkShiftScaleImageFilter.h"
-#include "vtkPolyDataWriter.h"
+#include "vtkXMLPolyDataReader.h"
 #include "vtkPolyData.h"
 #include "vtkCellArray.h"
 #include "vtkPoints.h" 
@@ -44,8 +44,7 @@ int main(int argc, char* argv[]){
   //define a probabilistic tractography filter type and associated bValue,
   //gradient direction, and measurement frame types
   typedef itk::StochasticTractographyFilter< DWIVectorImageType, WMPImageType,
-    ROIImageType >
-    STFilterType;
+    ROIImageType > STFilterType;
   typedef STFilterType::bValueContainerType bValueContainerType;
   typedef STFilterType::GradientDirectionContainerType GDContainerType;
   typedef STFilterType::MeasurementFrameType MeasurementFrameType;
@@ -156,28 +155,11 @@ int main(int argc, char* argv[]){
   std::cout<<"DWI image origin:"<< dwireaderPtr->GetOutput()->GetOrigin() <<std::endl;
   std::cout<<"ROI image origin:"<< roireaderPtr->GetOutput()->GetOrigin() <<std::endl;
   std::cout<<"wmp image origin:"<< wmpreader->GetOutput()->GetOrigin() <<std::endl;
-
-  std::cout<<"Create STFilter\n";
-  //Setup the Stochastic Tractography Filter
-  STFilterType::Pointer stfilterPtr = STFilterType::New();
-  stfilterPtr->SetDWIImageInput( dwireaderPtr->GetOutput() );
-  stfilterPtr->SetWhiteMatterProbabilityImageInput( wmpreader->GetOutput() );
-  stfilterPtr->SetROIImageInput( roireaderPtr->GetOutput() );
-  stfilterPtr->SetbValues(bValuesPtr);
-  stfilterPtr->SetGradients( gradientsPtr );
-  stfilterPtr->SetMeasurementFrame( measurement_frame );
-  stfilterPtr->SetMaxTractLength( maxtractlength );
-  stfilterPtr->SetTotalTracts( totaltracts );
-  stfilterPtr->SetMaxLikelihoodCacheSize( maxlikelihoodcachesize );
-  stfilterPtr->SetStepSize( stepsize );
-  stfilterPtr->SetROILabel( labelnumber );
-  stfilterPtr->SetGamma( gamma );
-  if(totalthreads!=0) stfilterPtr->SetNumberOfThreads( totalthreads );
   
-  //Run the filter
-  stfilterPtr->Update();
+  //Load in the vtk tracts
+  vtkXMLPolyDataReader* tractreader = vtkXMLPolyDataReader::New();
+  tractreader->SetFileName( tractfilename );
   
-  //Get the resulting tracts
   STFilterType::TractContainerType::Pointer tractcontainer = 
     stfilterPtr->GetOutputDiscreteTractContainer();
   
@@ -204,23 +186,6 @@ int main(int argc, char* argv[]){
       vtktractarray->InsertCellPoint(points->GetNumberOfPoints()-1);
     }
   }        
-  
-  //finish up the vtk polydata
-  vtktracts->SetPoints( points );
-  vtktracts->SetLines( vtktractarray );
-  
-  //output the vtk tract container
-  vtkPolyDataWriter* vtktractswriter = vtkPolyDataWriter::New();
-  vtktractswriter->SetInput( vtktracts );
-  std::string tractsfilename = outputprefix + "_TRACTS.vtk";
-  vtktractswriter->SetFileName( tractsfilename.c_str() );
-  vtktractswriter->Write();
-  
-  //cleanup vtk stuff
-  vtktracts->Delete();
-  points->Delete();
-  vtktractarray->Delete();
-  vtktractswriter->Delete();
 
   return EXIT_SUCCESS;
 }
