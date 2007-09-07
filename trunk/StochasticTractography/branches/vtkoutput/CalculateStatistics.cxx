@@ -159,10 +159,91 @@ int main(int argc, char* argv[]){
   //Load in the vtk tracts
   vtkXMLPolyDataReader* tractreader = vtkXMLPolyDataReader::New();
   tractreader->SetFileName( tractfilename );
+  tractreader->Update();
+  vtkCellArray* loadedtracts = trackreader->GetOutput()->GetLines();
+
+  //Setup the AddImageFilter
+  AddImageFilterType::Pointer addimagefilterPtr = AddImageFilterType::New();
+
+  //Create a temporary Connectivity Image
+  CImageType::Pointer tempcimagePtr = CImageType::New();
+  tempcimagePtr->CopyInformation( dwireaderPtr->GetOutput() );
+  tempcimagePtr->SetBufferedRegion( dwireaderPtr->GetOutput()->GetBufferedRegion() );
+  tempcimagePtr->SetRequestedRegion( dwireaderPtr->GetOutput()->GetRequestedRegion() );
+  tempcimagePtr->Allocate();
+  tempcimagePtr->FillBuffer(0);
+   
+  //Create a zeroed accumulated Connectivity Image
+  CImageType::Pointer accumulatedcimagePtr = CImageType::New();
+  accumulatedcimagePtr->CopyInformation( dwireaderPtr->GetOutput() );
+  accumulatedcimagePtr->SetBufferedRegion( dwireaderPtr->GetOutput()->GetBufferedRegion() );
+  accumulatedcimagePtr->SetRequestedRegion( dwireaderPtr->GetOutput()->GetRequestedRegion() );
+  accumulatedcimagePtr->Allocate();
+  accumulatedcimagePtr->FillBuffer(0);
+      
+  //graft this onto the output of the addimagefilter
+  addimagefilterPtr->GraftOutput( accumulatedcimagePtr );
+  addimagefilterPtr->SetInput1( tempcimagePtr );
+  addimagefilterPtr->SetInput2( addimagefilterPtr->GetOutput() );
+   
+  //write tracts to connectivity image
+  CImageType::IndexType index;  //preallocate for efficiency
+  std::cout<<"Writing Tracts to Image, Tractcontainer Size: "<<tractcontainer->Size()<<std::endl;
   
-  STFilterType::TractContainerType::Pointer tractcontainer = 
-    stfilterPtr->GetOutputDiscreteTractContainer();
+  for(int i=0; i<tractcontainer->Size(); i++ ){
+    //std::cout<<"Tract Number: "<<i<<std::endl;
+    //tempcimagePtr->FillBuffer(0);
+    STFilterType::TractContainerType::Element tract =
+      tractcontainer->GetElement(i);
+      
+    STFilterType::TractContainerType::Element::ObjectType::VertexListType::ConstPointer vertexlist = 
+      tract->GetVertexList();
+   
+    for(int j=0; j<vertexlist->Size(); j++){
+      const STFilterType::TractContainerType::Element::ObjectType::VertexListType::Element& vertex =
+        vertexlist->GetElement(j);
+                
+      index[0]=static_cast<long int>(vertex[0]);
+      index[1]=static_cast<long int>(vertex[1]);
+      index[2]=static_cast<long int>(vertex[2]);
+     
+      CImageType::PixelType& tempcimagepix = tempcimagePtr->GetPixel( index );
+      if(tempcimagepix == 0) tempcimagepix++;
+    }
+    addimagefilterPtr->Update();
+    for(int j=0; j<vertexlist->Size(); j++){
+      const STFilterType::TractContainerType::Element::ObjectType::VertexListType::Element& vertex =
+        vertexlist->GetElement(j);
+     
+      index[0]=static_cast<long int>(vertex[0]);
+      index[1]=static_cast<long int>(vertex[1]);
+      index[2]=static_cast<long int>(vertex[2]);
+     
+      CImageType::PixelType& tempcimagepix = tempcimagePtr->GetPixel( index );
+      tempcimagepix = 0;
+    }
+  }
   
+  //Write out the Connectivity Map
+  std::string cfilename = outputprefix + "_CMAP.nhdr";
+  CImageWriterType::Pointer writerPtr = CImageWriterType::New();
+  writerPtr->SetInput( accumulatedcimagePtr );
+  writerPtr->SetFileName( cfilename.c_str() );
+  writerPtr->SetUseCompression( true );
+  writerPtr->Update();
+
+  //Write the normalized connectivity map
+  NormalizeCImageFilterType::Pointer ncifilterPtr = NormalizeCImageFilterType::New();
+  ncifilterPtr->SetInput( accumulatedcimagePtr );
+  ncifilterPtr->SetScale( 1.0f/static_cast< double >(tractcontainer->Size()) );
+
+  std::string ncifilename = outputprefix + "_NCMAP.nhdr";
+  NormalizedCImageWriterType::Pointer nciwriterPtr = NormalizedCImageWriterType::New();
+  nciwriterPtr->SetInput( ncifilterPtr->GetOutput() );
+  nciwriterPtr->SetFileName( ncifilename.c_str() );
+  nciwriterPtr->SetUseCompression( true );
+  nciwriterPtr->Update();
+
   //allocate the VTK Polydata to output the tracts
   vtkPolyData* vtktracts = vtkPolyData::New();
   vtkPoints* points = vtkPoints::New();
