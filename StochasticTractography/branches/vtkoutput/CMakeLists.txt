@@ -16,8 +16,13 @@ INCLUDE(${VTK_USE_FILE})
 #INCLUDE(/home/tringo/Meng/Code/subversion/GenerateCLP/UseGenerateCLP.cmake)
 INCLUDE(${CMAKE_SOURCE_DIR}/../../../GenerateCLP/UseGenerateCLP.cmake)
 #INCLUDE(/afs/csail.mit.edu/u/t/tringo/subversion/Slicer3/Libs/GenerateCLP/UseGenerateCLP.cmake)
+
 SET(StochasticTractographyFilter_SOURCE StochasticTractographyFilter.cxx)
 GENERATECLP(StochasticTractographyFilter_SOURCE StochasticTractographyFilter.xml)
-
 ADD_EXECUTABLE(StochasticTractographyFilter ${StochasticTractographyFilter_SOURCE})
 TARGET_LINK_LIBRARIES(StochasticTractographyFilter ITKIO ITKBasicFilters ITKCommon vtkIO vtkCommon)
+
+SET(CalculateStatistics_SOURCE CalculateStatistics)
+GENERATECLP(CalculateStatistics CalculateStatistics.xml)
+ADD_EXECUTABLE(CalculateStatistics ${CalculateStatistics_SOURCE})
+TARGET_LINK_LIBRARIES(CalculateStatistics ITKIO ITKBasicFilters ITKCommon vtkIO vtkCommon)

@@ -13,10 +13,11 @@
 #include "itkPathIterator.h"
 #include <string>
 #include "itkShiftScaleImageFilter.h"
-#include "vtkPolyDataWriter.h"
+#include "vtkXMLPolyDataWriter.h"
 #include "vtkPolyData.h"
 #include "vtkCellArray.h"
 #include "vtkPoints.h" 
+#include "vtkZLibDataCompressor.h"
 
 int main(int argc, char* argv[]){
   PARSE_ARGS;
@@ -210,17 +211,19 @@ int main(int argc, char* argv[]){
   vtktracts->SetLines( vtktractarray );
   
   //output the vtk tract container
-  vtkPolyDataWriter* vtktractswriter = vtkPolyDataWriter::New();
-  vtktractswriter->SetInput( vtktracts );
-  std::string tractsfilename = outputprefix + "_TRACTS.vtk";
-  vtktractswriter->SetFileName( tractsfilename.c_str() );
-  vtktractswriter->Write();
+  vtkZLibDataCompressor* compressor = vtkZLibDataCompressor::New();
+  vtkXMLPolyDataWriter* tractswriter = vtkXMLPolyDataWriter::New();
+  tractswriter->SetCompressor( compressor );
+  tractswriter->SetInput( vtktracts );
+  tractswriter->SetFileName( tractsfilename.c_str() );
+  tractswriter->Write();
   
   //cleanup vtk stuff
   vtktracts->Delete();
   points->Delete();
   vtktractarray->Delete();
-  vtktractswriter->Delete();
+  tractswriter->Delete();
+  compressor->Delete();
 
   return EXIT_SUCCESS;
 }

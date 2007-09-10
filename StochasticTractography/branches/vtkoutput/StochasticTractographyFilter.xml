@@ -30,19 +30,6 @@
         <step>1</step>
       </constraints>
     </integer>
-    
-    <integer>
-      <name>endlabelnumber</name>
-      <flag>e</flag>
-      <longflag>endlabelnumber</longflag>
-      <description>Label Number to use as end region</description>
-      <label>End Region Label Number</label>
-      <default>1</default>
-      <constraints>
-        <minimum>0</minimum>
-        <step>1</step>
-      </constraints>
-    </integer>
        
     <integer>
       <name>totaltracts</name>
@@ -101,22 +88,6 @@
         <step>1</step>
       </constraints>
     </integer>
-    <string>
-      <name>outputprefix</name>
-      <flag>o</flag>
-      <longflag>outputprefix</longflag>
-      <description>Prefix for the output files</description>
-      <label>Output Filename Prefix</label>
-      <default>"Output"</default>
-    </string>
-    <boolean>
-      <name>outputimageswitch</name>
-      <flag>i</flag>
-      <default>false</default>
-      <longflag>outputimageswitch</longflag>
-      <label>Produce Output Images</label>
-      <description>Output Tensor, FA maps and Connectivity Maps</description>
-    </boolean>
     <boolean>
       <name>recenteroriginswitch</name>
       <flag>r</flag>
@@ -163,6 +134,13 @@
       <index>2</index>
       <description>Input ROI volume used to seed algorithm</description>
     </image>
+    <file>
+      <name>tractsfilename</name>
+      <label>Output Tracts</label>
+      <channel>output</channel>
+      <index>3</index>
+      <description>Output tracts as VTK XML Polydata file</description>
+    </file>
   </parameters>
 
 </executable>
