@@ -1,0 +1,80 @@
+\documentclass{article}
+
+\author{Tri M. Ngo}
+\title{Probabilisitic Tractography and Its Applications in Neurological Studies}
+
+\bibliographystyle{plain}
+
+\usepackage{fullpage}
+
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Abstract
+\end{abstract}
+
+\section{Methods}
+%Also decribe rationale for decisions.
+
+%Scanning method
+%  type of aquisition (i.e. Line scanning diffusion imaging)
+%  machine type, characteristics
+%  In which plane were the images acquired, etc.
+%  Parameters of acquisition, b value, etc
+%  Other images that were acquired.
+%Describe subjects
+%  Age, characteristics
+  
+%ROIs
+%  how were they defined
+%    segmented by an expert, Gudrun, with reference to the FA image
+%    left and right IC's (more details on how they were defined)
+%   An roi in prefrontal cortex (details on how this was defined)
+%    Other ROIs used by the streamline tractography system
+%    These voxels were used as seeds.
+
+%Describe Streamline Method
+
+%Describe Tractography Method
+%  General Outline
+%  Stopping Criteria
+%  Prior on tract bending
+  
+%Analysis Method
+%  ANOVA
+%  T-Tests
+
+\subsection{Stochastic Tractography}
+%need to place in past tense, algorithm already implemented
+%Remove comparisons with Behrens
+The stochastic tractography algorithm implemented in this thesis is based on Friman's \cite{frimanTMI06} approach with some modifications to the stopping criteria.
+
+%elaborate on the prior
+%give a more outline feel
+A fiber tract is modeled as a sequence of unit vectors.  The orientation of these unit vectors is determined by sampling a posterior fiber orientation distribution which is dependent on the local diffusion data as well as the orientation of the unit vector in the previous step.  The posterior distribution is the normalized product of the prior likelihood of the fiber orientation and the likelihood of that fiber orientation given the local diffusion data.
+%show image of posterior distribution
+
+For the observation model, the algorithm uses a subset of the tensor model which is called the constrained diffusion model.  In this model, the two smallest eigenvectors of diffusion tensor are equal, constraining the shape of the diffusion tensor to be linearly anisotropic.  The constrained model rules out the possibility of nonlinear, or non-cylindrical anisotropic diffusion distributions.  Deviations from linearly anisotropic diffusion distributions are captured as uncertainty in the fiber orientation.  The constrained model is combined with a Gaussian DWI noise model to obtain a fiber orientation likelihood function.  The parameters for the constrained model are derived from a weighted least squares estimation of the parameters for the log tensor model.
+
+The orientation of each vector depends only on the previous vector.  This dependency is formulated in the prior on the fiber orientation.  Prior knowledge about the regularity of the fiber tract can encoded in this prior probability.  The prior also serves to prevent the fiber from backtracking, since the likelihood distribution alone is axially symmetric.
+
+Friman's approach is a Bayesian inference algorithm similar to Behrens's but with some important optimizations \cite{frimanTMI06}.  In contrast with Behrens's two-compartment observation model, the constrained model used by Friman is derived from the thoroughly studied tensor model of diffusion.  The advantage of using the constrained model is that it is relatively easy to estimate the parameters for the model.  The parameters for the constrained model are obtained after the tensor model has been fit to the diffusion data.  Since the parameters for the tensor model are easily obtained through many computationally efficient ways, the constrained model's parameters are likewise easy to obtain.  The constrained model can be fit to every voxel within a matter of seconds whereas Behrens's model takes a couple of hours \cite{frimanTMI06}.  Additionally Friman avoids using MCMC techniques by assuming that parameters other than the principle diffusion direction take on their ML estimates with certainty within each voxel.  Friman demonstrates that eliminating this source of uncertainty has little effect on the resulting posterior fiber orientation distribution.
+
+In Friman's paper on stochastic tractography, the tracking is terminated when an encountered voxel's diffusion distribution is below a minimal measure of anisotropy.  However, since the stochastic tractography algorithm takes into account this uncertainty with an increase in the spatial variance of sampled fibers, this termination criterion seems arbitrary and contradictory with the goals of stochastic tractography, which is to enable sampling of tracts in regions of uncertainty.  Thus we replace this termination criterion with one which terminates tractography based on the posterior probability that a fiber tract exists within the current voxel.  The posterior probability that a fiber tract exists in a given voxel can be obtained by performing a soft segmentation of white matter on an anatomical image co-registered with the DWI data.  Alternatively, the soft segmentation can also be performed on the B0 image of the DWI data set, thus eliminating the need for additional data.  While this may seem equivalent to using an anisotropy threshold criterion, since white matter generally has higher anisotropy than gray matter, it does not exclude regions of white matter which have low anisotropy due to crossing fibers.  This criteria should enable the algorithm to detect more tracts than under the anisotropy termination criteria.
+
+Generation of Statistics
+  Connectivity Image
+  Tract-averaged FA
+  Frontal Lobe Fiber Ratio Calculation
+
+\section{Acknowledgements}
+\section{References}
+\bibliography{main}
+
+\end{document}
