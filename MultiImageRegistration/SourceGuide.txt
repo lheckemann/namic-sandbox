@@ -14,6 +14,8 @@ downloading it according to the instructions in the following Wiki page:
 
 http://wiki.na-mic.org/Wiki/index.php/Engineering:SandBox
 
+The code was compiled with ITK 3.2.0 - which is essential for the optimizer.
+
 #
 #
 #  How to compile

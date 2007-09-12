@@ -47,7 +47,7 @@
 #  Set BSpline regularization on/off
 #
 
-    -BSplineRegularizationFlag on
+    -BSplineRegularizationFlag off
 
 #
 # Bspline regularization

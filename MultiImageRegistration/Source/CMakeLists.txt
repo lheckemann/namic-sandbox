@@ -29,6 +29,9 @@ TARGET_LINK_LIBRARIES(TransformImage ITKCommon ITKBasicFilters ITKIO)
 ADD_EXECUTABLE(ComputeDice ComputeDice.cxx )
 TARGET_LINK_LIBRARIES(ComputeDice ITKCommon ITKBasicFilters ITKIO)
 
+ADD_EXECUTABLE(CompareDeformationFields CompareDeformationFields.cxx )
+TARGET_LINK_LIBRARIES(CompareDeformationFields ITKCommon ITKBasicFilters ITKIO)
+
 ADD_EXECUTABLE(ComputeOutputs ComputeOutputs.cxx )
 TARGET_LINK_LIBRARIES(ComputeOutputs ITKCommon ITKBasicFilters ITKIO)
 
