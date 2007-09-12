@@ -203,6 +203,10 @@ int main( int argc, char * argv[] )
   vector< vector < string > >  transformFileNames(transformLevels);
   vector < string >   syntheticTransformFileNames(N);
 
+  if( syntheticFolderName == "" )
+  {
+    syntheticFolderName = inputFolder + "../";
+  }
   for(int i=0; i<N;i++)
   {
     syntheticTransformFileNames[i] = syntheticFolderName + "TransformFiles/" + fileNames[i];
@@ -258,6 +262,7 @@ int main( int argc, char * argv[] )
     typedef BSplineTransformType::ParametersType BsplineParametersType;
     std::vector< BsplineParametersType > bsplineParametersArray(N);
     std::vector< BsplineParametersType > syntheticBsplineParametersArray(N);
+    BsplineParametersType meanParameters;
     
     // Resample the labels according to transforms
     typedef itk::ResampleImageFilter<ImageType,ImageType> ResampleFilterType;
@@ -292,6 +297,7 @@ int main( int argc, char * argv[] )
       // Inpute image, apply identity tranform
       if( i == 0)
       {
+        cout << "Reading " << transformFileNames[i][j].c_str() << endl;
         TransformFileReader::Pointer        transformFileReader = TransformFileReader::New();
         transformFileReader->SetFileName(transformFileNames[i][j].c_str());
         
@@ -306,7 +312,8 @@ int main( int argc, char * argv[] )
       else
       {
 
-        
+        cout << "Reading " << transformFileNames[i][j].c_str() << endl;
+
         // Get Affine transform
         TransformFileReader::Pointer        affineTransformFileReader = TransformFileReader::New();
         affineTransformFileReader->SetFileName(transformFileNames[0][j].c_str());
@@ -336,6 +343,7 @@ int main( int argc, char * argv[] )
 
       }
       
+      cout << "Reading " << syntheticTransformFileNames[j] << endl;
       // Read the synthetic transforms from file
       if( useBspline != "on" ) // affine
       {
@@ -369,10 +377,6 @@ int main( int argc, char * argv[] )
       }
 
     }
-    
-    // subtract the mean from the synthetic results - later
-
-    
 
     // Create the output folders
     string currentFolderName;
@@ -391,11 +395,13 @@ int main( int argc, char * argv[] )
     string diffFolderName = currentFolderName+"DefFieldDifference/";
     itksys::SystemTools::MakeDirectory( diffFolderName.c_str() );
     
-    ImageType::Pointer imagePointer = imageReaderArray[0]->GetOutput();
-
     // compare the deformation fields and compute the magnitude difference images
-    for(int i=0; i<N; i++)
+    ofstream maxMeanDefFile((diffFolderName+"meanMax.txt").c_str());
+    for(int j=0; j<N; j++)
     {
+      cout << "Writing" << (diffFolderName+fileNames[j]).c_str() << endl;
+      ImageType::Pointer imagePointer = imageReaderArray[j]->GetOutput();
+
       typedef itk::ImageRegionIteratorWithIndex< ImageType > IteratorWithIndexType;
       IteratorWithIndexType it(imagePointer, imagePointer->GetLargestPossibleRegion());
       ImageType::IndexType index;
@@ -403,6 +409,8 @@ int main( int argc, char * argv[] )
       ImagePointType point;
       ImagePointType mappedPoint;
       
+      double max = 0.0;
+      double mean = 0.0;
       for ( it.GoToBegin(); !it.IsAtEnd(); ++it)
       {
         // Get sampled index
@@ -412,10 +420,10 @@ int main( int argc, char * argv[] )
         imagePointer->TransformIndexToPhysicalPoint(index, point);
         
         // transform the point
-        mappedPoint = syntheticTransformArray[i]->TransformPoint(point);
+        mappedPoint = syntheticTransformArray[j]->TransformPoint(point);
 
         // transform the point again
-        mappedPoint = transformArray[i]->TransformPoint(mappedPoint);
+        mappedPoint = transformArray[j]->TransformPoint(mappedPoint);
         
        double diff = 0.0;
        for(int j=0; j<Dimension; j++)
@@ -423,15 +431,28 @@ int main( int argc, char * argv[] )
          diff += (point[j] - mappedPoint[j])*(point[j] - mappedPoint[j]);
        }
        
-       it.Set(sqrt(diff));
+       diff = sqrt(diff);
+       
+       it.Set(diff);
+       
+       // Find mean max
+       if(diff > max )
+       {
+         max = diff;
+       }
+       mean += diff;
        
       }
+      
+      maxMeanDefFile << mean /
+                     (double)(imagePointer->GetLargestPossibleRegion().GetNumberOfPixels())
+                     << " " << max << endl;
       
       // Write the output image
       WriterType::Pointer  writer = WriterType::New();
       writer->SetInput(imagePointer);
-      writer->SetImageIO(imageReaderArray[0]->GetImageIO());
-      writer->SetFileName( (diffFolderName+fileNames[i]).c_str() );
+      writer->SetImageIO(imageReaderArray[j]->GetImageIO());
+      writer->SetFileName( (diffFolderName+fileNames[j]).c_str() );
       writer->Update();
       
     }

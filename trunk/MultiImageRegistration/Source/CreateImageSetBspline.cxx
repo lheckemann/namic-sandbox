@@ -34,12 +34,14 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <vector>
 
 #include <cstdlib>
 #include <ctime>
 
 #include <itksys/SystemTools.hxx>
 
+#define TOTNUM 100000
 using namespace std;
 
 int main( int argc, char * argv[] )
@@ -85,6 +87,27 @@ int main( int argc, char * argv[] )
   
   int numberOfImages = atoi(argv[3]);
 
+  std::vector<double> randomOffsetNumbers(numberOfImages*TOTNUM);
+  for(long int i=0;i<TOTNUM*numberOfImages; i++)
+  {
+    randomOffsetNumbers[i] = (rand()%203/203.0 - 0.5)*23.0;
+  }
+  for(long int i=0;i<TOTNUM; i++)
+  {
+    // Make the mean zero along images
+    double mean = 0.0; 
+    for(int j=0; j<numberOfImages;j++)
+    {
+      mean += randomOffsetNumbers[TOTNUM*j+i];
+    }
+    mean /= (double) numberOfImages;
+    for(int j=0; j<numberOfImages;j++)
+    {
+      randomOffsetNumbers[TOTNUM*j+i] -= mean;
+    } 
+  }
+  
+  
   for(int i=0; i<numberOfImages ; i++)
   {
 
@@ -142,9 +165,11 @@ int main( int argc, char * argv[] )
     bsplineParameters.Fill( 0.0 );
 
     //Randomly set the parameters
+    int count = 0;
     for(unsigned int j=0; j<bsplineParameters.GetSize(); j++)
     {
-      bsplineParameters[j] = (rand()%203/203.0 - 0.5)*23.0;;
+      bsplineParameters[j] = randomOffsetNumbers[TOTNUM*i+count];
+      count = (count+1) % TOTNUM;
     }
 
 
