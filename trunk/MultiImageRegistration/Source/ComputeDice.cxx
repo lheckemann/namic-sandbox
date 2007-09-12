@@ -389,11 +389,6 @@ int main( int argc, char * argv[] )
       labelReaderArray[j]->Update();
       
       ImageType::Pointer imagePointer = labelReaderArray[j]->GetOutput();
-      ResampleFilterType::OriginPointType  origin = labelReaderArray[j]->GetOutput()->GetOrigin();
-      origin[0] = 111.5625;
-      origin[1] = 111.5625;
-      origin[2] = -138.0;
-      imagePointer->SetOrigin(origin);
 
       resampleArray[j]->SetInput( imagePointer );
       resampleArray[j]->SetSize(    imagePointer->GetLargestPossibleRegion().GetSize() );
