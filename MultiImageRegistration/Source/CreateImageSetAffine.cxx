@@ -76,6 +76,27 @@ int main( int argc, char * argv[] )
 
   int numberOfImages = atoi(argv[3]);
 
+  // Create numbers with zero mean
+  std::vector<double> randomOffsetNumbers(numberOfImages*12);
+  for(long int i=0;i<12*numberOfImages; i++)
+  {
+    randomOffsetNumbers[i] = (rand()%100/100.0 - 0.5);
+  }
+  for(long int i=0;i<12; i++)
+  {
+    // Make the mean zero along images
+    double mean = 0.0; 
+    for(int j=0; j<numberOfImages;j++)
+    {
+      mean += randomOffsetNumbers[12*j+i];
+    }
+    mean /= (double) numberOfImages;
+    for(int j=0; j<numberOfImages;j++)
+    {
+      randomOffsetNumbers[12*j+i] -= mean;
+    } 
+  }
+  
   for(int i=0; i<numberOfImages ; i++)
   {
 
@@ -118,21 +139,21 @@ int main( int argc, char * argv[] )
     AffineTransformType::ParametersType affineParameters;
     affineParameters = affineTransform->GetParameters();
 
-    affineParameters[0] = 1.0 + (rand()%100/100.0 - 0.5)*0.05;
-    affineParameters[1] = (rand()%100/100.0 - 0.5)*0.3;
-    affineParameters[2] = (rand()%100/100.0 - 0.5)*0.2;
+    affineParameters[0] = 1.0 + randomOffsetNumbers[12*i+0]*0.05;
+    affineParameters[1] = randomOffsetNumbers[12*i+1]*0.3;
+    affineParameters[2] = randomOffsetNumbers[12*i+2]*0.2;
       
-    affineParameters[3] = (rand()%100/100.0 - 0.5)*0.3;
-    affineParameters[4] = 1.0 + (rand()%100/100.0 - 0.5)*0.05;
-    affineParameters[5] = (rand()%100/100.0 - 0.5)*0.3;
+    affineParameters[3] = randomOffsetNumbers[12*i+3]*0.3;
+    affineParameters[4] = 1.0 + randomOffsetNumbers[12*i+4]*0.05;
+    affineParameters[5] = randomOffsetNumbers[12*i+5]*0.3;
       
-    affineParameters[6] = (rand()%100/100.0 - 0.5)*0.2;
-    affineParameters[7] = (rand()%100/100.0 - 0.5)*0.3;
-    affineParameters[8] = 1.0 + (rand()%100/100.0 - 0.5)*0.05;
+    affineParameters[6] = randomOffsetNumbers[12*i+6]*0.2;
+    affineParameters[7] = randomOffsetNumbers[12*i+7]*0.3;
+    affineParameters[8] = 1.0 + randomOffsetNumbers[12*i+8]*0.05;
       
-    affineParameters[9] = (rand()%100/100.0 - 0.5)*15.0;
-    affineParameters[10] = (rand()%100/100.0 - 0.5)*15.0;
-    affineParameters[11] = (rand()%100/100.0 - 0.5)*15.0;
+    affineParameters[9] = randomOffsetNumbers[12*i+9]*15.0;
+    affineParameters[10] = randomOffsetNumbers[12*i+10]*15.0;
+    affineParameters[11] = randomOffsetNumbers[12*i+11]*15.0;
     
     affineTransform->SetParameters(affineParameters);
       

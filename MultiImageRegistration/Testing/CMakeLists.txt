@@ -59,7 +59,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration001/filenames001.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration001/parameters001.txt
     )
-
+  ADD_TEST(CompareDeformation001 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration001/filenames001.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration001/parameters001.txt
+    )
 
   #
   #  Affine test with 2 input images for BrainPart2.tgz
@@ -90,7 +93,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration002/filenames002.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration002/parameters002.txt
     )
-
+  ADD_TEST(CompareDeformation002 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration002/filenames002.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration002/parameters002.txt
+    )
 
   #
   #  Affine test with 2 input images for BrainPart3.tgz
@@ -121,7 +127,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration003/filenames003.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration003/parameters003.txt
     )
-  
+  ADD_TEST(CompareDeformation003 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration003/filenames003.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration003/parameters003.txt
+    )
     
   #
   #  B-spline test with 2 images for BrainPart1.tgz
@@ -152,7 +161,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration004/filenames004.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration004/parameters004.txt
     )
-
+  ADD_TEST(CompareDeformation004 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration004/filenames004.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration004/parameters004.txt
+    )
 
 
     
@@ -185,7 +197,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration005/filenames005.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration005/parameters005.txt
     )
-
+  ADD_TEST(CompareDeformation005 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration005/filenames005.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration005/parameters005.txt
+    )
 
     
   #
@@ -217,7 +232,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration006/filenames006.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration006/parameters006.txt
     )
-
+  ADD_TEST(CompareDeformation006 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration006/filenames006.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration006/parameters006.txt
+    )
 
 
 
@@ -252,7 +270,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration007/filenames007.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration007/parameters007.txt
     )
-
+  ADD_TEST(CompareDeformation007 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration007/filenames007.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration007/parameters007.txt
+    )
 
 
   #
@@ -284,7 +305,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration008/filenames008.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration008/parameters008.txt
     )
-
+  ADD_TEST(CompareDeformation008 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration008/filenames008.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration008/parameters008.txt
+    )
 
   #
   #  Affine test with 10 input images for BrainPart3.tgz
@@ -315,9 +339,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration009/filenames009.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration009/parameters009.txt
     )
-  set_tests_properties(CreateRandImages009 PROPERTIES TIMEOUT 7200)
-  set_tests_properties(RegistrationTest009 PROPERTIES TIMEOUT 7200)
-  set_tests_properties(WriteOutputsTest009 PROPERTIES TIMEOUT 7200)
+  ADD_TEST(CompareDeformation009 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration009/filenames009.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration009/parameters009.txt
+    )
   
     
   #
@@ -349,7 +374,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration010/filenames010.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration010/parameters010.txt
     )
-
+  ADD_TEST(CompareDeformation010 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration010/filenames010.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration010/parameters010.txt
+    )
 
 
     
@@ -382,7 +410,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration011/filenames011.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration011/parameters011.txt
     )
-
+  ADD_TEST(CompareDeformation011 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration011/filenames011.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration011/parameters011.txt
+    )
 
     
   #
@@ -414,7 +445,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration012/filenames012.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration012/parameters012.txt
     )
-
+  ADD_TEST(CompareDeformation012 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration012/filenames012.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration012/parameters012.txt
+    )
 
 
 
@@ -448,7 +482,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration013/filenames013.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration013/parameters013.txt
     )
-
+  ADD_TEST(CompareDeformation013 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration013/filenames013.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration013/parameters013.txt
+    )
 
 
   #
@@ -480,7 +517,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration014/filenames014.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration014/parameters014.txt
     )
-
+  ADD_TEST(CompareDeformation014 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration014/filenames014.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration014/parameters014.txt
+    )
   #
   #  Affine test with 30 input images for BrainPart3.tgz
   #
@@ -510,7 +550,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration015/filenames015.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration015/parameters015.txt
     )
-  
+  ADD_TEST(CompareDeformation015 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration015/filenames015.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration015/parameters015.txt
+    )
     
   #
   #  B-spline test with 30 images for BrainPart1.tgz
@@ -541,7 +584,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration016/filenames016.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration016/parameters016.txt
     )
-
+  ADD_TEST(CompareDeformation016 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration016/filenames016.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration016/parameters016.txt
+    )
 
     
   #
@@ -573,7 +619,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration017/filenames017.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration017/parameters017.txt
     )
-
+  ADD_TEST(CompareDeformation017 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration017/filenames017.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration017/parameters017.txt
+    )
 
     
   #
@@ -605,7 +654,10 @@ IF(BrainWeb_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration018/filenames018.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration018/parameters018.txt
     )
-
+  ADD_TEST(CompareDeformation018 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration018/filenames018.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration018/parameters018.txt
+    )
 
 
 ENDIF(BrainWeb_DATA_ROOT)
@@ -651,7 +703,10 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101/filenames101.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101/parameters101.txt
     )
-  
+  ADD_TEST(CompareDeformation101 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101/filenames101.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration101/parameters101.txt
+    )
     
   #
   #  B-spline test with 2 images for FA.mhd
@@ -682,7 +737,10 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration102/filenames102.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration102/parameters102.txt
     )
-
+  ADD_TEST(CompareDeformation102 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration102/filenames102.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration102/parameters102.txt
+    )
 
   #
   #  Affine test with 10 input images for FA.mhd
@@ -713,7 +771,10 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103/filenames103.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103/parameters103.txt
     )
-  
+  ADD_TEST(CompareDeformation103 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103/filenames103.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration103/parameters103.txt
+    )
     
   #
   #  B-spline test with 10 images for FA.mhd
@@ -744,7 +805,10 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration104/filenames104.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration104/parameters104.txt
     )
-
+  ADD_TEST(CompareDeformation104 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration104/filenames104.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration104/parameters104.txt
+    )
 
   #
   #  Affine test with 30 input images for FA.mhd
@@ -775,7 +839,10 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105/filenames105.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105/parameters105.txt
     )
-  
+  ADD_TEST(CompareDeformation105 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105/filenames105.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration105/parameters105.txt
+    )
     
   #
   #  B-spline test with 30 images for FA.mhd
@@ -806,7 +873,10 @@ IF(FAImage_DATA_ROOT)
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration106/filenames106.txt
     ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration106/parameters106.txt
     )
-
+  ADD_TEST(CompareDeformation106 ${EXECUTABLE_OUTPUT_PATH}/CompareDeformationFields
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration106/filenames106.txt
+    ${MultiImageRegistration_TEST_OUTPUT_DIR}/Registration106/parameters106.txt
+    )
 
   
 ENDIF(FAImage_DATA_ROOT)
