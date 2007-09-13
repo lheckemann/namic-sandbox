@@ -1,7 +1,7 @@
 \documentclass{article}
 
 \author{Tri M. Ngo}
-\title{Probabilisitic Tractography and Its Applications in Neurological Studies}
+\title{Study of Thalamo-Cortical White Matter Fiber Tract Projections in Schizophrenia Using Diffusion Stochastic Tractography }
 
 \bibliographystyle{plain}
 
@@ -16,8 +16,9 @@
 \maketitle
 
 \begin{abstract}
-Abstract
+Neuroanatomical differences associated with white matter fiber connections have been hypothesized as being implicated in schizophrenia. Thalamo-cortical projections traveling through the anterior limb of the internal capsule are the last step of higher order cognitive and limbic feedback loops, and are believed to be involved in schizophrenia pathophysiology. In this study, we used a novel white matter tractography method to study abnormalities in these fiber tracts.
 \end{abstract}
+Neuroanatomical differences associated with white matter fiber connections have been hypothesized as being implicated in schizophrenia. Thalamo-cortical projections traveling through the anterior limb of the internal capsule are the last step of higher order cognitive and limbic feedback loops, and are believed to be involved in schizophrenia pathophysiology. In this study, we used a novel white matter tractography method to study abnormalities in these fiber tracts.  Using this method, we found a statistically significant decrease in mean tract-averaged FA in the schizophrenia group.  Additionally, we found an uncorrelated statistically significant decrease in the ratio of fibers which project to the prefrontal cortex to total fibers.  In contrast, analysis of the same data using streamline tractography revealed no significant differences.
 
 \section{Methods}
 %Also decribe rationale for decisions.
@@ -56,6 +57,7 @@ Diffusion weighted images (DWI) and anatomical magnetic resonance images (MRI) w
 For all subjects, the left and the right internal capsules were segmented by an expert using Fractional Anisotropy (FA) images obtained from the DWI images as a reference. Additionally, a second, large region of interest (ROI) was placed within the prefrontal cortex.  Every voxel in the internal capsule segmentation was used as seeds for stochastic tractography.  The tracts of interests are defined as tracts which start in the internal capsule and eventually pass throught the prefrontal cortex ROI.
 
 \subsection{Preprocessing}
+For each subject, an image of posterior white matter probability was generated using the FSL FAST segmentation tool.
 %generating the white matter masks
 %algorithm and steps used
 
@@ -74,13 +76,13 @@ For the observation model, the algorithm uses a subset of the tensor model which
 
 The orientation of each vector depends only on the previous vector.  This dependency is formulated in the prior on the fiber orientation.  Prior knowledge about the regularity of the fiber tract can encoded in this prior probability.  The prior also serves to prevent the fiber from backtracking, since the likelihood distribution alone is axially symmetric.
 
-In streamline tractography, tract generation terminated when an encountered voxel's fiber orientation is uncertain due to low FA.  However, since FA is a statistic which is analyzed for group differences, it should not be used in tractography as that may bias the results.  Since the stochastic tractography algorithm explicitly takes into account this uncertainty with an increase in the spatial variance of sampled fibers, this termination criterion is unneccesary and contradictory with the goals of stochastic tractography, which is to enable sampling of tracts in regions of uncertainty.  Thus our version of stochastic tractography terminates tracking based on the posterior probability that a fiber tract exists within the current voxel.  The posterior probability that a fiber tract exists in a given voxel can be obtained by performing a soft segmentation of white matter on an anatomical image co-registered with the DWI data.  Alternatively, the soft segmentation can also be performed on the B0 image of the DWI data set, thus eliminating the need for additional data.  While this may seem equivalent to using an anisotropy threshold criterion, since white matter generally has higher anisotropy than gray matter, it does not exclude regions of white matter which have low anisotropy due to crossing fibers.  This criteria should enable the algorithm to detect more tracts than under the anisotropy termination criteria.
+In streamline tractography, tract generation terminated when an encountered voxel's fiber orientation is uncertain due to low FA.  However, since FA is a statistic which is analyzed for group differences, it should not be used in tractography as that may bias the results.  Since the stochastic tractography algorithm explicitly takes into account this uncertainty with an increase in the spatial variance of sampled fibers, this termination criterion is unneccesary and contradictory with the goals of stochastic tractography, which is to enable sampling of tracts in regions of uncertainty.  Thus our version of stochastic tractography terminates tracking based on the posterior probability that a fiber tract exists within the current voxel.  This posterior probability that a fiber tract exists in a given voxel is equivalent to the probability that the voxel is white matter and can thus be obtained from the probabilistic white matter image.  While this may seem equivalent to using an anisotropy threshold criterion, since white matter generally has higher anisotropy than gray matter, it does not exclude regions of white matter which have low anisotropy due to crossing fibers.  This criteria should enable the algorithm to detect more tracts than under an anisotropy termination criteria.
 
 \subsection{Statistical Analysis}
-ANOVA with side as a within subject factor, group as a between subject factor, and age as a covariate revealed a group effect for both the connectivity ratio (P=0.052) and the mean FA (P=0.048). In addition, these two measures were not correlated with each other. In contrast, the same ANOVA test for the streamline tractography generated fibers did not reveal group effects for FA (P=0.198). Additionally, using the streamline tractography method, we found that the number of fibers, as well as their length, was strongly correlated with FA.
-  Connectivity Image
-  Tract-averaged FA
-  Frontal Lobe Fiber Ratio Calculation
+For the stochastic tractography data, we used an ANOVA with side as a within subject factor, group as a between subject factor, and age as a covariate to find differences in mean tract-averaged FA and connectivity ratio.  For streamline tractography data, we did not have connectivity ratio data and ran the same ANOVA only on mean tract-averaged FA.
+%Connectivity Image
+%Tract-averaged FA
+%Frontal Lobe Fiber Ratio Calculation
 
 \section{Acknowledgements}
 \section{References}
