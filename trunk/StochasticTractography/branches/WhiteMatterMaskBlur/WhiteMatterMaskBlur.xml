@@ -29,6 +29,18 @@
         <step>1</step>
       </constraints>
     </integer>
+    <integer>
+      <name>threshold</name>
+      <flag>t</flag>
+      <longflag>threshold</longflag>
+      <description>Bluring cuttoff distance</description>
+      <label>Threshold</label>
+      <default>2</default>
+      <constraints>
+        <minimum>0</minimum>
+        <step>1</step>
+      </constraints>
+    </integer>
   </parameters>
 
   <parameters>
