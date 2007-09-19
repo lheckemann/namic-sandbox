@@ -4,7 +4,6 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkMetaDataDictionary.h"
-#include "itkAddImageFilter.h"
 #include <iostream>
 #include <vector>
 #include "itkImageRegionConstIterator.h"
@@ -23,15 +22,13 @@ int main(int argc, char* argv[]){
   //define the input/output types
   typedef itk::VectorImage< unsigned short int, 3 > DWIVectorImageType;
   typedef itk::Image< unsigned int, 3 > CImageType;
+  typedef itk::Image< bool, 3 > BooleanImageType;
   typedef itk::Image< float, 3 > NormalizedCImageType;
 
   //define reader and writer
   typedef itk::ImageFileReader< DWIVectorImageType > DWIVectorImageReaderType;
   typedef itk::ImageFileWriter< CImageType > CImageWriterType;
   typedef itk::ImageFileWriter< NormalizedCImageType > NormalizedCImageWriterType;
-  
-  //define AddImageFilterType to accumulate the connectivity maps of the pixels in the ROI
-  typedef itk::AddImageFilter< CImageType, CImageType, CImageType> AddImageFilterType;
   
   //define a filter to normalize the connectivity map
   typedef itk::ShiftScaleImageFilter< CImageType, NormalizedCImageType >
@@ -47,30 +44,23 @@ int main(int argc, char* argv[]){
   tractsreader->SetFileName( tractsfilename.c_str() );
   tractsreader->Update();
   vtkCellArray* loadedtracts = tractsreader->GetOutput()->GetLines();
-  
-  //Setup the AddImageFilter
-  AddImageFilterType::Pointer addimagefilterPtr = AddImageFilterType::New();
 
-  //Create a temporary Connectivity Image
-  CImageType::Pointer tempcimagePtr = CImageType::New();
-  tempcimagePtr->CopyInformation( dwireaderPtr->GetOutput() );
-  tempcimagePtr->SetBufferedRegion( dwireaderPtr->GetOutput()->GetBufferedRegion() );
-  tempcimagePtr->SetRequestedRegion( dwireaderPtr->GetOutput()->GetRequestedRegion() );
-  tempcimagePtr->Allocate();
-  tempcimagePtr->FillBuffer(0);
+  //Create a Connectivity Image
+  BooleanImageType::Pointer bimagePtr = BooleanImageType::New();
+  bimagePtr->CopyInformation( dwireaderPtr->GetOutput() );
+  bimagePtr->SetBufferedRegion( dwireaderPtr->GetOutput()->GetBufferedRegion() );
+  bimagePtr->SetRequestedRegion( dwireaderPtr->GetOutput()->GetRequestedRegion() );
+  bimagePtr->Allocate();
+  bimagePtr->FillBuffer(false);
    
   //Create a zeroed accumulated Connectivity Image
-  CImageType::Pointer accumulatedcimagePtr = CImageType::New();
-  accumulatedcimagePtr->CopyInformation( dwireaderPtr->GetOutput() );
-  accumulatedcimagePtr->SetBufferedRegion( dwireaderPtr->GetOutput()->GetBufferedRegion() );
-  accumulatedcimagePtr->SetRequestedRegion( dwireaderPtr->GetOutput()->GetRequestedRegion() );
-  accumulatedcimagePtr->Allocate();
-  accumulatedcimagePtr->FillBuffer(0);
+  CImageType::Pointer cimagePtr = CImageType::New();
+  cimagePtr->CopyInformation( dwireaderPtr->GetOutput() );
+  cimagePtr->SetBufferedRegion( dwireaderPtr->GetOutput()->GetBufferedRegion() );
+  cimagePtr->SetRequestedRegion( dwireaderPtr->GetOutput()->GetRequestedRegion() );
+  cimagePtr->Allocate();
+  cimagePtr->FillBuffer(0);
       
-  //graft this onto the output of the addimagefilter
-  addimagefilterPtr->GraftOutput( accumulatedcimagePtr );
-  addimagefilterPtr->SetInput1( tempcimagePtr );
-  addimagefilterPtr->SetInput2( addimagefilterPtr->GetOutput() );
    
   //write tracts to connectivity image
   CImageType::IndexType index;  //preallocate for efficiency
@@ -89,10 +79,14 @@ int main(int argc, char* argv[]){
       index[1]=static_cast<long int>(vertex[1]);
       index[2]=static_cast<long int>(vertex[2]);
      
-      CImageType::PixelType& tempcimagepix = tempcimagePtr->GetPixel( index );
-      if(tempcimagepix == 0) tempcimagepix++;
+      BooleanImageType::PixelType& bimagepix = bimagePtr->GetPixel( index );
+      CImageType::PixelType& cimagepix = cimagePtr->GetPixel( index );
+      if(bimagepix == false){ 
+        bimagepix=true;
+        cimagepix++;
+      }
     }
-    addimagefilterPtr->Update();
+    //clear boolean image
     for( int i=0; i<npts; i++ ){
       double* vertex = points->GetPoint( pts[i] );
      
@@ -100,14 +94,14 @@ int main(int argc, char* argv[]){
       index[1]=static_cast<long int>(vertex[1]);
       index[2]=static_cast<long int>(vertex[2]);
      
-      CImageType::PixelType& tempcimagepix = tempcimagePtr->GetPixel( index );
-      tempcimagepix = 0;
+      BooleanImageType::PixelType& bimagepix = bimagePtr->GetPixel( index );
+      bimagepix = false;
     }
   }
 
   //Write the normalized connectivity map
   NormalizeCImageFilterType::Pointer ncifilterPtr = NormalizeCImageFilterType::New();
-  ncifilterPtr->SetInput( accumulatedcimagePtr );
+  ncifilterPtr->SetInput( cimagePtr );
   ncifilterPtr->SetScale( 1.0f/static_cast< double >(loadedtracts->GetNumberOfCells()) );
 
   NormalizedCImageWriterType::Pointer nciwriterPtr = NormalizedCImageWriterType::New();
