@@ -49,7 +49,7 @@
       <longflag>maxtractlength</longflag>
       <description>Maximum Length of Sample Tract</description>
       <label>Maximum Tract Length</label>
-      <default>100</default>
+      <default>200</default>
       <constraints>
         <minimum>0</minimum>
         <step>1</step>
@@ -90,7 +90,7 @@
     <boolean>
       <name>recenteroriginswitch</name>
       <flag>r</flag>
-      <default>false</default>
+      <default>true</default>
       <longflag>recenteroriginswitch</longflag>
       <label>Recenter Image Origins</label>
       <description>Ignore the origins of the ROI and WM mask and set it to be the same as the DWI image origin</description>
@@ -138,7 +138,7 @@
       <label>Output Tracts</label>
       <channel>output</channel>
       <index>3</index>
-      <description>Output tracts as VTK XML Polydata file</description>
+      <description>Output tracts as VTK XML Polydata file (.vtp extension)</description>
     </file>
   </parameters>
 
