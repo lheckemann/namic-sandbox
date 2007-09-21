@@ -22,7 +22,12 @@ GENERATECLP(StochasticTractographyFilter_SOURCE StochasticTractographyFilter.xml
 ADD_EXECUTABLE(StochasticTractographyFilter ${StochasticTractographyFilter_SOURCE})
 TARGET_LINK_LIBRARIES(StochasticTractographyFilter ITKIO ITKBasicFilters ITKCommon vtkIO vtkCommon)
 
-SET(CalculateStatistics_SOURCE CalculateStatistics)
+SET(CalculateStatistics_SOURCE CalculateStatistics.cxx)
 GENERATECLP(CalculateStatistics CalculateStatistics.xml)
 ADD_EXECUTABLE(CalculateStatistics ${CalculateStatistics_SOURCE})
 TARGET_LINK_LIBRARIES(CalculateStatistics ITKIO ITKBasicFilters ITKCommon vtkIO vtkCommon)
+
+SET(ROITractFilter_SOURCE ROITractFilter.cxx)
+GENERATECLP(ROITractFilter ROITractFilter.xml)
+ADD_EXECUTABLE(ROITractFilter ${ROITractFilter_SOURCE})
+TARGET_LINK_LIBRARIES(ROITractFilter ITKIO ITKBasicFilters ITKCommon vtkIO vtkCommon)

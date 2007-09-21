@@ -214,7 +214,7 @@ int main(int argc, char* argv[]){
   vtkZLibDataCompressor* compressor = vtkZLibDataCompressor::New();
   vtkXMLPolyDataWriter* tractswriter = vtkXMLPolyDataWriter::New();
   tractswriter->SetCompressor( compressor );
-  tractswriter->SetDataModeToBinary();
+  //tractswriter->SetDataModeToBinary();
   tractswriter->SetInput( vtktracts );
   tractswriter->SetFileName( tractsfilename.c_str() );
   tractswriter->Write();
