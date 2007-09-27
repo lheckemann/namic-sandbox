@@ -39,8 +39,8 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
 template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::~StochasticTractographyFilter(){
-  delete this->m_A;
-  delete this->m_Aqr;
+  if(this->m_A) delete this->m_A;
+  if(this->m_Aqr) delete this->m_Aqr;
 } 
 
 template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
@@ -155,8 +155,6 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   // Now solve for parameters using the estimated weighing matrix
   tensormodelparams = vnl_qr< double >((W*A).transpose()*W*A).solve(
     (W*A).transpose()*W*logPhi);
-  int a;
-  //tensormodelparams = vnl_qr< double >((W*A)).solve(W*logPhi);
 }
 
 template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
