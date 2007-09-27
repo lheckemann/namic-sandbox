@@ -1,4 +1,3 @@
-#include "itkStochasticTractographyFilter.h"
 #include "itkVectorImage.h"
 #include "itkImageSeriesReader.h"  //this is needed for itk::ExposeMetaData()
 #include "itkImageFileReader.h"
