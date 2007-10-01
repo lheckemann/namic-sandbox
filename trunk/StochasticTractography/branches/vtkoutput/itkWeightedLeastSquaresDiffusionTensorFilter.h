@@ -7,14 +7,15 @@
 namespace itk
 {
 
+//the tensor model contains 7 parameters: the tensor and the b0 intensity 
+typedef vnl_vector_fixed< double, 7 > TensorModelParamType;
+ 
 namespace Functor {
 
+//rename to WLSDiffusionTensorFit
 template< class TInput, class TOutput >
 class WeightedLeastSquaresDiffusionTensor{
 public:
-  /** Type for the Transformation Matrix for the gradient directions **/
-  typedef vnl_matrix_fixed< double, 3, 3 > TransformMatrixType;
-  
   /** Type for the sample directions **/
   typedef VectorContainer< unsigned int, vnl_vector_fixed< double, 3 > > 
     TractOrientationContainerType;
@@ -32,7 +33,7 @@ public:
   ~WeightedLeastSquaresDiffusionTensor(){
     if(this->m_A) delete this->m_A;
     if(this->m_Aqr) delete this->m_Aqr;
-  };
+  }
   bool operator!=( const WeightedLeastSquaresDiffusionTensor & ) const{
     return false;
   }
@@ -109,7 +110,7 @@ public:
   }
   
 protected:
-  // it is assumed that these gradient directions are in IJK image space
+  // it is assumed that these gradient directions are already in IJK image space
   GradientDirectionContainerType::ConstPointer m_Gradients;
   bValueContainerType::ConstPointer m_bValues;
   
@@ -123,6 +124,14 @@ class WeightedLeastSquaresDiffusionTensorFilter :
     Functor::WeightedLeastSquaresDiffusionTensor< typename TInputImage::PixelType,
       typename TOutputImage::PixelType > >{
 public:
+  /** Type for the sample directions **/
+  typedef VectorContainer< unsigned int, vnl_vector_fixed< double, 3 > > 
+    TractOrientationContainerType;
+  
+  /** Types for the Image-wide bValues **/
+  typedef double bValueType;
+  
+  typedef VectorContainer< unsigned int, bValueType > bValueContainerType;
   typedef WeightedLeastSquaresDiffusionTensorFilter Self;
   typedef UnaryFunctorImageFilter< TInputImage, TOutputImage,
     Functor::WeightedLeastSquaresDiffusionTensorFilter<
@@ -137,7 +146,6 @@ public:
 protected:
   WeightedLeastSquaresDiffusionTensorFilter();
   virtual ~WeightedLeastSquaresDiffusionTensorFilter() {}
-  virtual void BeforeThreadedGenerateData();
   void SetScanParameters( GradientDirectionContainerType::Pointer gradients,
     bValueContainerType::Pointer bvalues ){
     this->GetFunctor().SetScanParameters( gradients, bvalues );

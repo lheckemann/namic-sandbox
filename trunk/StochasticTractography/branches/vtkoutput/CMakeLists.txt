@@ -31,3 +31,12 @@ SET(ROITractFilter_SOURCE ROITractFilter.cxx)
 GENERATECLP(ROITractFilter ROITractFilter.xml)
 ADD_EXECUTABLE(ROITractFilter ${ROITractFilter_SOURCE})
 TARGET_LINK_LIBRARIES(ROITractFilter ITKIO ITKBasicFilters ITKCommon vtkIO vtkCommon)
+
+SET(CalculateTractAveragedFA_SOURCE CalculateTractAveragedFA.cxx)
+GENERATECLP(CalculateTractAveragedFA CalculateTractAveragedFA.xml)
+ADD_EXECUTABLE(CalculateTractAveragedFA ${CalculateTractAveragedFA_SOURCE})
+TARGET_LINK_LIBRARIES(CalculateTractAveragedFA ITKIO ITKBasicFilters ITKCommon vtkIO vtkCommon)
+
+SET(GradientMagnitudeImageFilter_SOURCE GradientMagnitudeImageFilter.cxx)
+ADD_EXECUTABLE(GradientMagnitudeImageFilter ${GradientMagnitudeImageFilter_SOURCE})
+TARGET_LINK_LIBRARIES(GradientMagnitudeImageFilter ITKIO ITKBasicFilters ITKCommon)

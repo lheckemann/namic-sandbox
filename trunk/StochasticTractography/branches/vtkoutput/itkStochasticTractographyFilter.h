@@ -52,7 +52,7 @@ public:
     TractContainerType;
   
   /** Types for Tensor Output Image **/
-  typedef Image< DiffusionTensor3D< double >, 3 > OutputTensorImageType;
+  typedef Image< DiffusionTensor3D< float >, 3 > OutputTensorImageType;
   
   /** Types for the Image-wide Magnetic Field Gradient Directions **/
   typedef VectorContainer< unsigned int, vnl_vector_fixed< double, 3 > >
