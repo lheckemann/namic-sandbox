@@ -78,7 +78,7 @@ int main( int argc, char *argv[] )
 
 
   shapeDetectionFilter->SetMaximumRMSError( 0.001 );
-  shapeDetectionFilter->SetMaximumIterations( atoi( argv[8] ) );
+  shapeDetectionFilter->SetNumberOfIterations( atoi( argv[8] ) );
 
   smoothing->SetInput( reader2->GetOutput() );
 
