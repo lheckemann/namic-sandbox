@@ -101,12 +101,12 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
     const bValueType&  b_i = m_bValues->GetElement(j);
     
     A(j,0)=1.0;
-    A(j,1)=-1*b_i*(g[0]*g[0]);
-    A(j,2)=-1*b_i*(g[1]*g[1]);
-    A(j,3)=-1*b_i*(g[2]*g[2]);
-    A(j,4)=-1*b_i*(2*g[0]*g[1]);
-    A(j,5)=-1*b_i*(2*g[0]*g[2]);
-    A(j,6)=-1*b_i*(2*g[1]*g[2]);
+    A(j,1)=-1.0*b_i*(g[0]*g[0]);
+    A(j,2)=-1.0*b_i*(g[1]*g[1]);
+    A(j,3)=-1.0*b_i*(g[2]*g[2]);
+    A(j,4)=-1.0*b_i*(2*g[0]*g[1]);
+    A(j,5)=-1.0*b_i*(2*g[0]*g[2]);
+    A(j,6)=-1.0*b_i*(2*g[1]*g[2]);
   }
   
   //Store a QR decomposition to quickly estimate
@@ -146,7 +146,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   //vnl_vector< double > QtB = Aqr.Q().transpose()*logPhi;
   //vnl_vector< double > QTB = Aqr.QtB(logPhi);
   //vnl_matrix< double > R = Aqr.R(); 
-  W = A* vnl_qr< double >(Aqr.R()).solve(Aqr.QtB(logPhi));
+  W = A*vnl_qr< double >(Aqr.R()).solve(Aqr.QtB(logPhi));
   //W = A * Aqr.solve(logPhi);  
   for(vnl_diag_matrix< double >::iterator i = W.begin();i!=W.end(); i++){
     *i = vcl_exp( *i );
@@ -239,15 +239,54 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   /** Not sure if we should be taking difference of log or nonlog intensities **/
   /** residual variance is too low if we take the difference of log intensities **/
   /** perhaps using WLS will correct this problem **/
+  //computed according to Salvador
   for(unsigned int i=0; i<N; i++)
     residualvariance+=vnl_math_sqr(W(i,i) * (vcl_log(noisydwi[i]/noisefreedwi[i])));
   residualvariance/=(N-numberofparameters);
 }
-                                 
+
 template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
 void
 StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
-::CalculateLikelihood( const DWIVectorImageType::PixelType &dwipixel, 
+::CalculateNuisanceParameters( const DWIVectorImageType::PixelType& dwivalues,
+  const vnl_diag_matrix< double >& W,
+  ConstrainedModelParamType& constrainedparams ){
+  unsigned int N = this->m_TransformedGradients->Size();
+  
+  vnl_vector< double > logPhi( N );
+  
+  for(unsigned int j=0; j< N ; j++){
+    //fill up the logPhi vector using log(dwi) values
+    logPhi.put(j, vcl_log(static_cast<double>(dwivalues[j]) + vnl_math::eps));
+  }
+
+  vnl_matrix< double > A(N, 3);
+  vnl_vector< double > v(3);
+  v(0)=constrainedparams(3);
+  v(1)=constrainedparams(4);
+  v(2)=constrainedparams(5);
+  
+  for(unsigned int j=0; j<N; j++){
+    GradientDirectionContainerType::Element g = m_TransformedGradients->GetElement(j);
+    const bValueType&  b_i = m_bValues->GetElement(j);
+    
+    A(j,0)=1;
+    A(j,1)=-b_i;
+    A(j,2)=-b_i*vnl_math_sqr( dot_product(g,v) );
+  }
+  
+  vnl_vector< double > nuisanceparameters(3);
+  nuisanceparameters = vnl_qr< double >((W*A).transpose()*W*A).solve(
+    (W*A).transpose()*W*logPhi);
+  constrainedparams(0)=nuisanceparameters(0);
+  constrainedparams(1)=nuisanceparameters(1);
+  constrainedparams(2)=nuisanceparameters(2);
+}
+                              
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
+void
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
+::CalculateLikelihood( const DWIVectorImageType::PixelType& dwipixel, 
     TractOrientationContainerType::ConstPointer orientations,
     ProbabilityDistributionImageType::PixelType& likelihood){
     
@@ -270,10 +309,14 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
       while preserving the best estimate for the other parameters **/
     TractOrientationContainerType::Element currentdir = orientations->GetElement(i);
     
-    /** Incorporate the current sample direction into the secondary parameters **/
+    /** Incorporate the current sample direction with the secondary parameters **/
     constrainedparams[3]=currentdir[0];
     constrainedparams[4]=currentdir[1];
     constrainedparams[5]=currentdir[2];
+    
+    //recalculate nuisence parameters
+    //function expects fiber direction already set in elements 3,4,5
+    CalculateNuisanceParameters( dwipixel, W, constrainedparams );
     
     /** Obtain the estimated
       intensity for this choice of Tract direction **/
@@ -283,6 +326,8 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
     for(unsigned int j=0; j<N; j++){
       /** Calculate the likelihood given the residualvariance,
         estimated intensity and the actual intensity (refer to Friman) **/
+     
+      //refit tensor model
       jointlikelihood *= 
         (noisefreedwi[j]/vcl_sqrt(2*vnl_math::pi*residualvariance))*
           vcl_exp(-vnl_math_sqr(noisefreedwi[j]*vcl_log(dwipixel[j]/noisefreedwi[j]))/

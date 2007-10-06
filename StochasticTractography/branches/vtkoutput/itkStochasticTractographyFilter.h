@@ -227,6 +227,10 @@ protected:
     unsigned long randomseed,
     TractType::Pointer conttract,
     TractType::Pointer discretetract );
+    
+  void CalculateNuisanceParameters( const DWIVectorImageType::PixelType& dwivalues,
+    const vnl_diag_matrix< double >& W,
+    ConstrainedModelParamType& constrainedparams );
 
   /** Callback routine used by the threading library. This routine just calls
       the ThreadedGenerateData method after setting the correct region for this
@@ -268,7 +272,7 @@ protected:
   unsigned int m_MaxTractLength;
   unsigned int m_TotalTracts;
 
-  TractOrientationContainerType::ConstPointer m_SampleDirections;
+  TractOrientationContainerType::ConstPointer   m_SampleDirections;
   unsigned long m_MaxLikelihoodCacheSize;   //in Megabytes
   unsigned long m_MaxLikelihoodCacheElements;  //in Elements (Voxels)
   unsigned long m_CurrentLikelihoodCacheElements;
