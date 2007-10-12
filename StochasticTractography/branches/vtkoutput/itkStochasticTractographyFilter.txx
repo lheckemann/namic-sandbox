@@ -34,6 +34,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   
   //load in default sample directions
   this->LoadDefaultSampleDirections();
+  //std::cout<<"Old version\n";
 } 
 
 template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
@@ -243,6 +244,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   for(unsigned int i=0; i<N; i++)
     residualvariance+=vnl_math_sqr(W(i,i) * (vcl_log(noisydwi[i]/noisefreedwi[i])));
   residualvariance/=(N-numberofparameters);
+  //residualvariance*=0.01f;
 }
 
 template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
@@ -278,6 +280,23 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   vnl_vector< double > nuisanceparameters(3);
   nuisanceparameters = vnl_qr< double >((W*A).transpose()*W*A).solve(
     (W*A).transpose()*W*logPhi);
+  if( nuisanceparameters(0)<0 ){
+    std::cout<<"logu0 less than zero: "<< nuisanceparameters(0) <<std::endl;
+  }
+  if( nuisanceparameters(1)< 0 ){
+    std::cout<<"alpha less than zero: "<< nuisanceparameters(1) <<std::endl;
+    nuisanceparameters(1)=0;
+  }
+  if( nuisanceparameters(2)< 0 ){
+    //std::cout<<"beta less than zero: "<< nuisanceparameters(2);
+    nuisanceparameters(2)=0;
+    //refit other parameters
+    
+  }
+  else{
+    //std::cout<<"beta greater than zero: "<< nuisanceparameters(2) <<std::endl;
+  }
+  
   constrainedparams(0)=nuisanceparameters(0);
   constrainedparams(1)=nuisanceparameters(1);
   constrainedparams(2)=nuisanceparameters(2);
@@ -316,7 +335,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
     
     //recalculate nuisence parameters
     //function expects fiber direction already set in elements 3,4,5
-    CalculateNuisanceParameters( dwipixel, W, constrainedparams );
+    //CalculateNuisanceParameters( dwipixel, W, constrainedparams );
     
     /** Obtain the estimated
       intensity for this choice of Tract direction **/

@@ -36,8 +36,3 @@ SET(CalculateTractAveragedFA_SOURCE CalculateTractAveragedFA.cxx)
 GENERATECLP(CalculateTractAveragedFA CalculateTractAveragedFA.xml)
 ADD_EXECUTABLE(CalculateTractAveragedFA ${CalculateTractAveragedFA_SOURCE})
 TARGET_LINK_LIBRARIES(CalculateTractAveragedFA ITKIO ITKBasicFilters ITKCommon vtkIO vtkCommon)
-
-SET(CalculateFAImage_SOURCE CalculateFAImage.cxx)
-GENERATECLP(CalculateFAImage CalculateFAImage.xml)
-ADD_EXECUTABLE(CalculateFAImage ${CalculateFAImage_SOURCE})
-TARGET_LINK_LIBRARIES(CalculateFAImage ITKIO ITKBasicFilters ITKCommon vtkIO vtkCommon)

@@ -19,7 +19,7 @@
 int main(int argc, char* argv[]){
   PARSE_ARGS;
   //define the input/output types
-  typedef itk::Image< unsigned int, 3 > FAImageType;
+  typedef itk::Image< float, 3 > FAImageType;
 
   //define reader and writer
   typedef itk::ImageFileReader< FAImageType > FAImageReaderType;
@@ -64,6 +64,7 @@ int main(int argc, char* argv[]){
       index[2]=static_cast<long int>(vertex[2]);
      
       accumFA+=fareaderPtr->GetOutput()->GetPixel( index );
+      //std::cout<<accumFA<<std::endl;
     }
     fafile<<(double)accumFA/(double)npts<<std::endl;
   }
