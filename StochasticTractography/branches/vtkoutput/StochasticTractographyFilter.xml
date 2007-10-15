@@ -107,6 +107,15 @@
         <step>1</step>
       </constraints>
     </integer>
+    <boolean>
+      <name>continuoustractsswitch</name>
+      <flag>d</flag>
+      <longflag>continuous</longflag>
+      <description>Output tracts in continuous instead of discretized IJK space.</description>
+      <label>continuoustractsswitch</label>
+      <default>false</default>
+    </boolean>
+    
   </parameters>
 
   <parameters>

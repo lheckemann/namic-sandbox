@@ -178,15 +178,23 @@ int main(int argc, char* argv[]){
   //Run the filter
   stfilterPtr->Update();
   
-  //Get the resulting tracts
-  STFilterType::TractContainerType::Pointer tractcontainer = 
-    stfilterPtr->GetOutputDiscreteTractContainer();
-  
   //allocate the VTK Polydata to output the tracts
   vtkPolyData* vtktracts = vtkPolyData::New();
   vtkPoints* points = vtkPoints::New();
   vtkCellArray* vtktractarray = vtkCellArray::New();
+  STFilterType::TractContainerType::Pointer tractcontainer = NULL;
   
+  if(continuoustractsswitch){
+    points->SetDataTypeToFloat();
+    //Get the resulting continuous IJK tracts
+    tractcontainer = stfilterPtr->GetOutputContinuousTractContainer();
+  }
+  else{
+    points->SetDataTypeToUnsignedShort();
+    //Get the resulting discretized IJK tracts
+    tractcontainer = stfilterPtr->GetOutputDiscreteTractContainer();
+  }
+
   for(int i=0; i<tractcontainer->Size(); i++ ){
     STFilterType::TractContainerType::Element tract =
       tractcontainer->GetElement(i);
@@ -215,6 +223,7 @@ int main(int argc, char* argv[]){
   vtkXMLPolyDataWriter* tractswriter = vtkXMLPolyDataWriter::New();
   tractswriter->SetCompressor( compressor );
   //tractswriter->SetDataModeToBinary();
+  tractswriter->EncodeAppendedDataOff();
   tractswriter->SetInput( vtktracts );
   tractswriter->SetFileName( tractsfilename.c_str() );
   tractswriter->Write();
