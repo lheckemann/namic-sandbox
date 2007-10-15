@@ -150,6 +150,10 @@ public:
     this->GenerateData();
   }
   
+  /* Extract the likelihood from one voxel, more for debugging purposes */
+  void ExtractVoxelLikelihood( const typename InputDWIImageType::IndexType seedindex,
+    ProbabilityDistributionImageType::PixelType& likelihood );
+  
 protected:
   /** Convenience Types used only inside the filter **/
     
@@ -224,7 +228,7 @@ protected:
   
   void StochasticTractGeneration( typename InputDWIImageType::ConstPointer dwiimagePtr,
     typename InputWhiteMatterProbabilityImageType::ConstPointer maskimagePtr,
-    typename InputDWIImageType::IndexType seedindex,
+    typename InputDWIImageType::IndexType index,
     unsigned long randomseed,
     TractType::Pointer conttract,
     TractType::Pointer discretetract );
