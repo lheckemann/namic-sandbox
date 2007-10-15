@@ -8,6 +8,7 @@
 #include "itkArray.h"
 #include "itkVectorContainer.h"
 #include "vnl/algo/vnl_qr.h"
+#include "vnl/algo/vnl_svd.h"
 #include "itkVariableLengthVector.h"
 #include "itkSimpleFastMutexLock.h"
 #include "itkRealTimeClock.h"
@@ -190,7 +191,7 @@ protected:
   //in this case we solve instead:
   //R*Beta = Q'logPhi
   vnl_matrix< double >* m_A;
-  vnl_qr< double >* m_Aqr;    
+  vnl_matrix< double >* m_AApinverse;   
   
   void CalculateConstrainedModelParameters( const TensorModelParamType& tensormodelparams,
     ConstrainedModelParamType& constrainedmodelparams);

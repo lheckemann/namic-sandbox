@@ -7,6 +7,7 @@
 #include "vnl/vnl_vector.h"
 #include "vnl/vnl_diag_matrix.h"
 #include "vnl/algo/vnl_qr.h"
+#include "vnl/algo/vnl_svd.h"
 #include "vnl/algo/vnl_matrix_inverse.h"
 #include "itkSymmetricEigenAnalysis.h"
 #include "vnl/vnl_transpose.h"
@@ -22,7 +23,7 @@ template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class T
 StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::StochasticTractographyFilter():
   m_TotalTracts(0),m_MaxTractLength(0),m_Gradients(NULL), m_TransformedGradients(NULL),m_bValues(NULL),
-  m_SampleDirections(NULL), m_A(NULL), m_Aqr(NULL), m_LikelihoodCachePtr(NULL),
+  m_SampleDirections(NULL), m_A(NULL), m_AApinverse(NULL), m_LikelihoodCachePtr(NULL),
   m_MaxLikelihoodCacheSize(0), m_CurrentLikelihoodCacheElements(0), m_StepSize(0), m_Gamma(0),
   m_ClockPtr(NULL), m_TotalDelegatedTracts(0), m_OutputContinuousTractContainer(NULL),
   m_OutputDiscreteTractContainer(NULL){
@@ -41,7 +42,7 @@ template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class T
 StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
 ::~StochasticTractographyFilter(){
   if(this->m_A) delete this->m_A;
-  if(this->m_Aqr) delete this->m_Aqr;
+  //if(this->m_Aqr) delete this->m_Aqr;
 } 
 
 template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
@@ -95,26 +96,27 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   if(this->m_A!=NULL)
     delete this->m_A;
   this->m_A = new vnl_matrix< double >(N, 7); //potential memory leak here
-  vnl_matrix< double >& A = *(this->m_A);
+  //vnl_matrix< double >& A = *(this->m_A);
   
   for(unsigned int j=0; j< N ; j++){
     GradientDirectionContainerType::Element g = m_TransformedGradients->GetElement(j);
     const bValueType&  b_i = m_bValues->GetElement(j);
     
-    A(j,0)=1.0;
-    A(j,1)=-1.0*b_i*(g[0]*g[0]);
-    A(j,2)=-1.0*b_i*(g[1]*g[1]);
-    A(j,3)=-1.0*b_i*(g[2]*g[2]);
-    A(j,4)=-1.0*b_i*(2*g[0]*g[1]);
-    A(j,5)=-1.0*b_i*(2*g[0]*g[2]);
-    A(j,6)=-1.0*b_i*(2*g[1]*g[2]);
+    (*this->m_A)(j,0)=1.0;
+    (*this->m_A)(j,1)=-1.0*b_i*(g[0]*g[0]);
+    (*this->m_A)(j,2)=-1.0*b_i*(g[1]*g[1]);
+    (*this->m_A)(j,3)=-1.0*b_i*(g[2]*g[2]);
+    (*this->m_A)(j,4)=-1.0*b_i*(2*g[0]*g[1]);
+    (*this->m_A)(j,5)=-1.0*b_i*(2*g[0]*g[2]);
+    (*this->m_A)(j,6)=-1.0*b_i*(2*g[1]*g[2]);
   }
   
-  //Store a QR decomposition to quickly estimate
-  //the weighing matrix for each voxel
-  if(this->m_Aqr!=NULL)
-    delete this->m_Aqr;
-  this->m_Aqr = new vnl_qr< double >(A);  //potential memory leak here
+  //Calculate pseudoinverse of A
+  if(this->m_AApinverse!=NULL)
+    delete this->m_AApinverse;
+  this->m_AApinverse = new vnl_matrix< double >;  //potential memory leak here
+  vnl_svd< double > Asvd(*this->m_A);
+  *this->m_AApinverse = (*m_A)*Asvd.pinverse();
 }
 
 template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
@@ -128,7 +130,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   
   //setup const references for code clarity
   const vnl_matrix< double >& A = *(this->m_A);
-  const vnl_qr< double >& Aqr = *(this->m_Aqr);
+  //const vnl_qr< double >& Aqr = *(this->m_Aqr);
   
   //vnl_vector is used because the itk vector is limited in its methods and does not
   //contain an internal vnl class like VariableSizematrix
@@ -146,16 +148,30 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   //vnl_matrix< double > Q = Aqr.Q();
   //vnl_vector< double > QtB = Aqr.Q().transpose()*logPhi;
   //vnl_vector< double > QTB = Aqr.QtB(logPhi);
-  //vnl_matrix< double > R = Aqr.R(); 
-  W = A*vnl_qr< double >(Aqr.R()).solve(Aqr.QtB(logPhi));
+  //vnl_matrix< double > R = Aqr.R();
+  //vnl_vector< double > temp;
+  //temp = (*this->m_A)*((*this->m_Asvd).solve(logPhi));
+  //if(temp[0]<1)std::cout<<
+  //W = A*Aqr.solve(logPhi); 
+  //std::cout<<temp<<"\n\n";
+  //W = A*vnl_qr< double >(Aqr.R()).solve(Aqr.QtB(logPhi));
+  W = (*m_AApinverse)*logPhi;
   //W = A * Aqr.solve(logPhi);  
+  /*
+  for(int i=0; i<N; i++){
+    W(i,i) = vcl_exp( temp[i] );
+  }
+  */
+  
   for(vnl_diag_matrix< double >::iterator i = W.begin();i!=W.end(); i++){
     *i = vcl_exp( *i );
   }
-  
+  //std::cout<<W<<std::endl;
   // Now solve for parameters using the estimated weighing matrix
-  tensormodelparams = vnl_qr< double >((W*A).transpose()*W*A).solve(
-    (W*A).transpose()*W*logPhi);
+  //tensormodelparams = vnl_qr< double >((W*A).transpose()*W*A).solve(
+    //(W*A).transpose()*W*logPhi);
+  //std::cout<<W;
+  tensormodelparams = vnl_qr< double >(W*A).solve(W*logPhi);
 }
 
 template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
