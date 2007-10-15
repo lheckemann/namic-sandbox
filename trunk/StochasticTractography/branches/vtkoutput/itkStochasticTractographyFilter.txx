@@ -272,7 +272,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
     GradientDirectionContainerType::Element g = m_TransformedGradients->GetElement(j);
     const bValueType&  b_i = m_bValues->GetElement(j);
     
-    A(j,0)=1;
+    A(j,0)=1.0;
     A(j,1)=-b_i;
     A(j,2)=-b_i*vnl_math_sqr( dot_product(g,v) );
   }
@@ -457,7 +457,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   vnl_random randomgenerator(randomseed);
   //std::cout<<randomseed<<std::endl;
   
-  for(unsigned int j=0; j<this->m_MaxTractLength; j++){
+  for(unsigned int j=0; j<this->(double)m_MaxTractLength/m_StepSize; j++){
     this->ProbabilisticallyInterpolate( randomgenerator, cindex_curr, index_curr );
     
     if(!dwiimagePtr->GetLargestPossibleRegion().IsInside(index_curr)){
