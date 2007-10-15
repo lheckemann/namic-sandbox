@@ -473,7 +473,7 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   vnl_random randomgenerator(randomseed);
   //std::cout<<randomseed<<std::endl;
   
-  for(unsigned int j=0; j<this->(double)m_MaxTractLength/m_StepSize; j++){
+  for(unsigned int j=0; j < double(this->m_MaxTractLength)/m_StepSize; j++){
     this->ProbabilisticallyInterpolate( randomgenerator, cindex_curr, index_curr );
     
     if(!dwiimagePtr->GetLargestPossibleRegion().IsInside(index_curr)){
@@ -772,6 +772,20 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
     D(2,1) = tensormodelparams[6];
     D(2,2) = tensormodelparams[3];
   }
+}
+template< class TInputDWIImage, class TInputWhiteMatterProbabilityImage, class TInputROIImage >
+void
+StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage, TInputROIImage >
+::ExtractVoxelLikelihood( const typename InputDWIImageType::IndexType index,
+  ProbabilityDistributionImageType::PixelType& likelihood ){
+  this->UpdateGradientDirections();
+  this->UpdateTensorModelFittingMatrices();
+  
+  typename InputDWIImageType::ConstPointer dwiimagePtr = this->GetDWIImageInput();
+  CalculateLikelihood( static_cast< DWIVectorImageType::PixelType >(
+      dwiimagePtr->GetPixel(index)), 
+    this->m_SampleDirections,
+    likelihood);
 }
 
 }

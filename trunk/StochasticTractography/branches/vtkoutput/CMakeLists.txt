@@ -36,3 +36,8 @@ SET(CalculateTractAveragedFA_SOURCE CalculateTractAveragedFA.cxx)
 GENERATECLP(CalculateTractAveragedFA CalculateTractAveragedFA.xml)
 ADD_EXECUTABLE(CalculateTractAveragedFA ${CalculateTractAveragedFA_SOURCE})
 TARGET_LINK_LIBRARIES(CalculateTractAveragedFA ITKIO ITKBasicFilters ITKCommon vtkIO vtkCommon)
+
+SET(ExtractVoxelLikelihood_SOURCE ExtractVoxelLikelihood.cxx)
+GENERATECLP(ExtractVoxelLikelihood_SOURCE ExtractVoxelLikelihood.xml)
+ADD_EXECUTABLE(ExtractVoxelLikelihood ${ExtractVoxelLikelihood_SOURCE})
+TARGET_LINK_LIBRARIES(ExtractVoxelLikelihood ITKIO ITKBasicFilters ITKCommon vtkIO vtkCommon)
