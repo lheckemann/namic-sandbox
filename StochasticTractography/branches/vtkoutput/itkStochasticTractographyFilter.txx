@@ -781,6 +781,8 @@ StochasticTractographyFilter< TInputDWIImage, TInputWhiteMatterProbabilityImage,
   this->UpdateGradientDirections();
   this->UpdateTensorModelFittingMatrices();
   
+  likelihood.SetSize(this->m_SampleDirections->Size());
+  
   typename InputDWIImageType::ConstPointer dwiimagePtr = this->GetDWIImageInput();
   CalculateLikelihood( static_cast< DWIVectorImageType::PixelType >(
       dwiimagePtr->GetPixel(index)), 
