@@ -175,7 +175,7 @@ b2_proc_generator b2_tester { {imageNodeID - required} {printstring1 p1 } {print
 
 ## Note: This needs to be sourced first.
 ## NOTE:  The DISPLAY environmental variable MUST BE SET TO A VALID DISPLAY!
-## Run with ~/src/Slicer3-build/Slicer3 --no_splash -f ~/NewScript.tcl
+## Run with ~/src/Slicer3-build/Slicer3 --no-splash -f ~/NewScript.tcl
 #### UGLY GLOBAL VARIABLES
 ## The following logic seems wrong, but appears to work in GUI mode, but not batch mode.
 if { [ info exists ::slicer3::MRMLScene ] == 1 } {
@@ -189,7 +189,7 @@ if { [ info exists ::slicer3::MRMLScene ] == 1 } {
   set BRAINSScriptingColorLogic [$::slicer3::ColorGUI GetLogic]
   set BRAINSScriptingMRMLisGUI "true"
 } else {
-  ## If not in gui mode (--no_splash -f )
+  ## If not in gui mode (--no-splash -f )
   puts "SETTING MRML TO THE BATCH MODE New Instance of a SLICER SCENE"
   puts "SETTING MRML TO THE BATCH MODE New Instance of a SLICER SCENE"
   puts "SETTING MRML TO THE BATCH MODE New Instance of a SLICER SCENE"
@@ -329,7 +329,7 @@ b2_proc_generator b2_load_image { { fileName - required }  {centered 1} {labelim
 
     incr ::FileReaderIncrementUniqueIdCounter;
   }
-  puts "set volumeNode [ [ GetBatchVolumesLogic ] AddArchetypeVolume $fileName $centered ${labelimage} ${NodeName} ]"
+#  puts "set volumeNode \[ \[ GetBatchVolumesLogic \] AddArchetypeVolume $fileName $centered ${labelimage} ${NodeName} \]"
   set volumeNode [ [ GetBatchVolumesLogic ] AddArchetypeVolume $fileName $centered ${labelimage} ${NodeName} ]
   return ${volumeNode}
 }
