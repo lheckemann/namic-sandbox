@@ -285,7 +285,7 @@ proc interactiveShowHide {pathToRegressionDir dateString} {
         }
 
 #run Class Volumes
-    set brainMask2 [ b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
+    set brainMask2 [ b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment.mask]
         if {$brainMask == -1} {
             puts stderr "ERROR: Failed to load BRAINS mask (.segment)"
         } else {

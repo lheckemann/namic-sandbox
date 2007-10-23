@@ -41,38 +41,9 @@ proc loadMask {pathToRegressionDir dateString} {
     set errorTest [b2_load_mask]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
 
-    set SubTestDes "arguement number test"
-    set errorTest [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment junk= ]
-    ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
-
-    set SubTestDes "optional arguement test"
-    set errorTest [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment junk= test]
-    ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
-
     set SubTestDes "invalid file test"
-    set errorTest [b2_load_mask /invalid_directory_name/cran_mask.segment]
+    set errorTest [b2_load_mask /invalid_directory_name/cran_mask.dummy]
     ReportTestStatus $LogFile  [ expr {$errorTest == -1 } ] $ModuleName $SubTestDes
-
-
-
-    ############################### BRAINS RLE Masks ###########################################
-    ## Set known information about mask
-    set MaskTypeName "BRAINS-RLE-MASK"
-    set NumDims 3
-    set XDims 256
-    set YDims 256
-    set ZDims 192
-    set NumRes 3
-    set XRes 1.015625
-    set YRes 1.015625
-    set ZRes 1.015625
-    set SubTestDes "load $MaskTypeName test"
-    set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
-    if { [ ReportTestStatus $LogFile  [ expr {$TestMaskID != -1 } ] $ModuleName $SubTestDes ]} {
-        CoreMaskTest $MaskTypeName $TestMaskID $NumDims $XDims $YDims $ZDims $NumRes $XRes $YRes $ZRes $LogFile $ModuleName $SubTestDes
-        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
-    }
-
 
     ############################### BRAINS2 Octree Masks ###########################################
     ## Set known information about mask
@@ -82,9 +53,9 @@ proc loadMask {pathToRegressionDir dateString} {
     set YDims 256
     set ZDims 192
     set NumRes 3
-    set XRes 1.015625
-    set YRes 1.015625
-    set ZRes 1.015625
+    set XRes 1.01562
+    set YRes 1.01562
+    set ZRes 1.01562
     set SubTestDes "load $MaskTypeName test"
     set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/5x-B2/TEST/10_ACPC/ANON0009_brain_trim.mask]
     if { [ ReportTestStatus $LogFile  [ expr {$TestMaskID != -1 } ] $ModuleName $SubTestDes ]} {
@@ -92,32 +63,9 @@ proc loadMask {pathToRegressionDir dateString} {
         ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
     }
 
-    ############################### BRAINS2 Load Mask With FIlter ###########################################
-    ## Set known information about mask
-    set MaskTypeName "BRAINS2-OCTREE-MASK-WITH-FILTER"
-    set NumDims 3
-    set XDims 256
-    set YDims 256
-    set ZDims 192
-    set NumRes 3
-    set XRes 1.015625
-    set YRes 1.015625
-    set ZRes 1.015625
-    set SubTestDes "load $MaskTypeName test"
-    set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/5x-B2/TEST/10_ACPC/ANON0009_brain_trim.mask filter= brains2]
-    if { [ ReportTestStatus $LogFile  [ expr {$TestMaskID != -1 } ] $ModuleName $SubTestDes ]} {
-        CoreMaskTest $MaskTypeName $TestMaskID $NumDims $XDims $YDims $ZDims $NumRes $XRes $YRes $ZRes $LogFile $ModuleName $SubTestDes
-        ReportTestStatus $LogFile  [ expr { [ b2_destroy_mask $TestMaskID ] != -1 } ] $ModuleName "Destroying mask $TestMaskID"
-    }
-
-
     ############################### BRAINS Bit Packed Mask ################################################
     # Do we have any of these on the system
     #######################################################################################################
-
-
     return [ StopModule  $LogFile $ModuleName ]
-
-    return $MODULE_SUCCESS
 }
 

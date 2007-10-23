@@ -299,26 +299,10 @@ b2_proc_generator b2_load_histogram { { volumeNode - required }  {arugment2defau
   return -1;
 }
 
-#Usage  b2 load image  <<image-file1> ...> <data-type= data-type> <filter= filter-name> <filter-suffix= filter-suffix>
+#Usage  b2 load image  <<image-file1>
 #Description  Loads a small set of images for 1- or 3-color display.
 #<<image-file1> ...>  up to 5 (IPL_MAX_CHANNELS) of display information.
 #       A single name counts as a singleton list.
-#<data-type= ..>  Default type  Unsigned-8bit;
-#       data-type may be one of:
-#          signed-8bit
-#          unsigned-8bit
-#          signed-16bit
-#          unsigned-16bit
-#          signed-32bit
-#          unsigned-32bit
-#          signed-64bit
-#          unsigned-64bit
-#          float-single
-#          float-double
-#<filter= ..>  Used to explicitly specify a non-default filter
-#       for loading or saving a file from disk.
-#<filter-suffix= ..>  Used to specify a filter command line suffix
-#        when creating the I/O pipe.
 #Return  Upon successful completion a newly created image
 #       object identifier is returned,  otherwise an error
 #       status of -1 is returned.
@@ -326,11 +310,14 @@ b2_proc_generator b2_load_image { { fileName - required }  {centered 1} {labelim
 #  puts [ GetBatchVolumesLogic ]
   if { "${NodeName}" == "EmptyStringValue" } then {
     set NodeName [file tail $fileName]_$::FileReaderIncrementUniqueIdCounter;
-
     incr ::FileReaderIncrementUniqueIdCounter;
   }
 #  puts "set volumeNode \[ \[ GetBatchVolumesLogic \] AddArchetypeVolume $fileName $centered ${labelimage} ${NodeName} \]"
   set volumeNode [ [ GetBatchVolumesLogic ] AddArchetypeVolume $fileName $centered ${labelimage} ${NodeName} ]
+  if { [ llength $volumeNode ] == 0 } {
+    puts "ERROR in reading file $fileName"
+    return -1;
+  }
   return ${volumeNode}
 }
 
@@ -359,21 +346,15 @@ b2_proc_generator b2_load_landmark { { volumeNode - required }  {arugment2defaul
 #Usage  b2 load mask  <mask-file> <filter= filter-name> <filter-suffix= filter-suffix>
 #Description  Loads a 'mask' for selecting a portion of image space.
 #<mask-file>  The full or relative path to the mask file to load.
-#<filter= ..>  Used to explicitly specify a non-default filter
-#       for loading or saving a file from disk.
-#<filter-suffix= ..>  Used to specify a filter command line suffix
-#        when creating the I/O pipe.
 #Return  Upon successful completion a newly created mask
 #       object identifier is returned,  otherwise an error
 #       status of -1 is returned.
-b2_proc_generator b2_load_mask { { volumeNode - required }  {arugment2defaultvalue 1} {argument3defaultvalue 0} } {
-#   Place body of command here.
-  set statusvalue [ catch { $volumeNode FAILED_CASE  } res ];
-  if { $statusvalue } then {
-    puts "XXXX Failed";
-    return -1;
+b2_proc_generator b2_load_mask { { fileName - required } {NodeName EmptyStringValue} } {
+  if { "${NodeName}" == "EmptyStringValue" } then {
+    set NodeName [file tail $fileName]_m$::FileReaderIncrementUniqueIdCounter;
+    incr ::FileReaderIncrementUniqueIdCounter;
   }
-  return -1;
+  return [ b2_load_image  ${fileName} 1 1 ${NodeName} ];
 }
 
 #Usage  b2 load palette  <palette-file> <filter= filter-name> <filter-suffix= filter-suffix>
@@ -2315,14 +2296,8 @@ b2_proc_generator b2_destroy_landmark { { volumeNode - required }  {arugment2def
 #<maskID>  An identifier for a mask
 #Return    Upon successful completion, 0 is returned,
 #        otherwise an error status of -1 is returned
-b2_proc_generator b2_destroy_mask { { volumeNode - required }  {arugment2defaultvalue 1} {argument3defaultvalue 0} } {
-#   Place body of command here.
-  set statusvalue [ catch { $volumeNode FAILED_CASE  } res ];
-  if { $statusvalue } then {
-    puts "XXXX Failed";
-    return -1;
-  }
-  return -1;
+b2_proc_generator b2_destroy_mask { { volumeNode - required } } {
+  return [b2_destroy_image ${volumeNode} ];
 }
 
 #Usage  b2 destroy palette  <paletteID>
@@ -2637,14 +2612,8 @@ b2_proc_generator b2_get_dims_image { { volumeNode - required } } {
 #Return  Upon successful completion, a list of dimensions are
 #       returned, otherwise an error status of -1 is
 #       returned.
-b2_proc_generator b2_get_dims_mask { { volumeNode - required }  {arugment2defaultvalue 1} {argument3defaultvalue 0} } {
-#   Place body of command here.
-  set statusvalue [ catch { $volumeNode FAILED_CASE  } res ];
-  if { $statusvalue } then {
-    puts "XXXX Failed";
-    return -1;
-  }
-  return -1;
+b2_proc_generator b2_get_dims_mask { { volumeNode - required } } {
+  return [ b2_get_dims_image ${volumeNode} ];
 }
 
 #Usage  b2 get dims landmark  <landmarkID>
@@ -2906,7 +2875,8 @@ b2_proc_generator b2_get_res_image { { volumeNode - required } } {
   }
   #Need to get the real dims (i.e. trailing dimensions of 1 don't count) so that only that many resolutions are reported.
   set tempdims [b2_get_dims_image ${volumeNode} ]
-  return [ lrange $res 0 [ expr [ llength $tempdims ] - 1 ] ];
+  set trunc_res [ lrange $res 0 [ expr [ llength $tempdims ] - 1 ] ];
+  return ${trunc_res};
 }
 
 #Usage  b2 get res mask  <maskID>
@@ -2916,14 +2886,8 @@ b2_proc_generator b2_get_res_image { { volumeNode - required } } {
 #Return  Upon successful completion, mask resolutions are returned in a list. The
 #       length of the list corresponds to the number of dimensions in the mask.
 #       If an error occurs, then the error status of -1 is returned.
-b2_proc_generator b2_get_res_mask { { volumeNode - required }  {arugment2defaultvalue 1} {argument3defaultvalue 0} } {
-#   Place body of command here.
-  set statusvalue [ catch { $volumeNode FAILED_CASE  } res ];
-  if { $statusvalue } then {
-    puts "XXXX Failed";
-    return -1;
-  }
-  return -1;
+b2_proc_generator b2_get_res_mask { { volumeNode - required } } {
+  return [ b2_get_res_image ${volumeNode} ];
 }
 
 #Usage  b2 get res roi  <roiID>

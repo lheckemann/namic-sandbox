@@ -48,7 +48,7 @@ proc getName {pathToRegressionDir dateString} {
                         table }
 
     set objectFiles "   $pathToRegressionDir/SGI/MR/4x-B1/TEST/15_002/19771.002.096 \
-                        $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment \
+                        $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment.mask \
                         $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/user/96tricia_rcaud.zroi \
                         $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/ANON013_130_l_dec35.gts \
                         $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/resample_parameters \

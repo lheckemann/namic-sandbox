@@ -63,11 +63,11 @@ proc saveMask {pathToRegressionDir dateString} {
     set YDims 256
     set ZDims 192
     set NumRes 3
-    set XRes 1.015625
-    set YRes 1.015625
-    set ZRes 1.015625
+    set XRes 1.01562
+    set YRes 1.01562
+    set ZRes 1.01562
     set SubTestDes "load $MaskTypeName test"
-    set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
+    set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment.mask]
     if { [ ReportTestStatus $LogFile  [ expr {$TestMaskID != -1 } ] $ModuleName $SubTestDes ] ==0} {
         return $MODULE_FAILURE
     }
