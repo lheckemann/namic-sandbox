@@ -33,7 +33,7 @@ proc measureImageVolume { pathToRegressionDir dateString } {
           puts "Error reading image.\nFailed to load Image."
       }
     set SubTestDes "Load requisite objects for volume creation - brainMask"
-      set brainMask [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment ]
+      set brainMask [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment.mask ]
       if { ! [ ReportTestStatus $LogFile  [ expr {$brainMask != -1 } ] $ModuleName $SubTestDes ]} {
           puts "Error creating volume(s).\nFailed to load mask."
       }

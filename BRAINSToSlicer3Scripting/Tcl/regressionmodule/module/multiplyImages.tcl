@@ -59,7 +59,7 @@ proc multiplyImages {pathToRegressionDir dateString} {
 
     ############################### Load a Mask ###########################################
     set SubTestDes "Multiply images - Load Mask test"
-    set MaskId [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
+    set MaskId [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment.mask]
     if { [ ReportTestStatus $LogFile  [ expr {$MaskId != -1 } ] $ModuleName $SubTestDes] == 0} {
         return $MODULE_FAILURE
     }

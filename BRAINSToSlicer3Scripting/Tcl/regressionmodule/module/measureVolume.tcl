@@ -26,7 +26,7 @@ proc measureVolume { pathToRegressionDir dateString } {
 ##ReportTestStatus $LogFile  [ expr { [ b2_destroy_every gtsurface ] != -1 } ] $ModuleName "Destroying every gtsurface"
 
     set SubTestDes "Load requisite objects for volume creation - brainMask"
-      set brainMask [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment ]
+      set brainMask [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment.mask ]
       if { ! [ ReportTestStatus $LogFile  [ expr {$brainMask != -1 } ] $ModuleName $SubTestDes ]} {
           puts "Error creating volume(s).\nFailed to load mask."
       }

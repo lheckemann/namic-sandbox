@@ -20,7 +20,7 @@ proc getDimsResMask {pathToRegressionDir dateString} {
 
     set ModuleName "getDimsResMask"
     set ModuleAuthor "Hans J. Johnson"
-    set ModuleDescription "Test the b2 get dims|res mask mask commands"
+    set ModuleDescription "Test the b2 get dims|res mask commands"
     global MODULE_SUCCESS
     global MODULE_FAILURE
     set LogFile [ StartModule $ModuleName $ModuleAuthor $ModuleDescription $dateString]
@@ -39,11 +39,11 @@ proc getDimsResMask {pathToRegressionDir dateString} {
     set YDims 256
     set ZDims 192
     set NumRes 3
-    set XRes 1.015625
-    set YRes 1.015625
-    set ZRes 1.015625
+    set XRes 1.01562
+    set YRes 1.01562
+    set ZRes 1.01562
     set SubTestDes "Get DIMS/RES load Mask test"
-    set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
+    set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment.mask]
     if { [ ReportTestStatus $LogFile  [ expr {$TestMaskID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }

@@ -34,7 +34,7 @@ proc getMaskColor {pathToRegressionDir dateString} {
 ########################################
 
     set SubTestDes "Get mask color load test"
-    set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment]
+    set TestMaskID [b2_load_mask $pathToRegressionDir/SGI/MR/4x-B1/TEST/10_ACPC/cran_mask.segment.mask]
     if { [ ReportTestStatus $LogFile  [ expr {$TestMaskID != -1 } ] $ModuleName $SubTestDes ] == 0} {
         return $MODULE_FAILURE
     }

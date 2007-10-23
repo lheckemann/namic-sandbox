@@ -34,7 +34,7 @@ proc resampleMask {pathToRegressionDir dateString} {
 # Run Tests
 
 
-    set acq_brain_mask [b2_load_mask "${pathToRegressionDir}/SGI/MR/B2-Bookstein/TEST/10_ACPC/cran_mask.segment"]
+    set acq_brain_mask [b2_load_mask "${pathToRegressionDir}/SGI/MR/B2-Bookstein/TEST/10_ACPC/cran_mask.segment.mask"]
     set orig_dims [b2_get_dims_mask ${acq_brain_mask}]
     set orig_res [b2_get_res_mask ${acq_brain_mask}]
 
