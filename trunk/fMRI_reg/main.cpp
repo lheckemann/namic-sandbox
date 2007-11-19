@@ -100,10 +100,15 @@ try{
 
         FloatVolumeType::SpacingType spacing = current_vol->GetSpacing();
 
-        FloatVolumeType::SizeType size =
-                    current_vol->GetLargestPossibleRegion().GetSize();
-        size[0] = ceil(size[0]*spacing[0]); // number of pixels along X
-        size[1] = ceil(size[1]*spacing[1]); // number of pixels along Y
+        typedef FloatVolumeType::SizeType  SizeType;
+
+        SizeType size = current_vol->GetLargestPossibleRegion().GetSize();
+
+        typedef SizeType::SizeValueType   SizeValueType;
+
+        // number of pixels along X and Y respectively
+        size[0] = static_cast< SizeValueType >( ceil(size[0]*spacing[0]) ); 
+        size[1] = static_cast< SizeValueType >( ceil(size[1]*spacing[1]) ); 
         resamp_volume->SetSize( size );
 
         spacing[0] = 1.0; // pixel spacing in millimeters along X
