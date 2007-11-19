@@ -134,8 +134,6 @@
 #include <math.h>
 
 
-
-using namespace std;
 #include "types.h"
 #include "itk2vtk.h"
 
