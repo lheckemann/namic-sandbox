@@ -210,13 +210,13 @@ protected:
 
         //compare the type of the received event with an IterationEvent
         if( ! itk::IterationEvent().CheckEvent( &event ) ){
-            cerr<<endl<<__FILE__<<__LINE__<<"::bad event received";
+            std::cerr<<endl<<__FILE__<<__LINE__<<"::bad event received";
             return;
         }
-        cerr<<".";
-//      cerr<<endl<<optimizer->GetCurrentIteration()<< " = ";
-//      cerr<<optimizer->GetValue()<< " : ";
-//      cerr<<optimizer->GetCurrentPosition()<<endl;
+        std::cerr<<".";
+//      std::cerr<<endl<<optimizer->GetCurrentIteration()<< " = ";
+//      std::cerr<<optimizer->GetValue()<< " : ";
+//      std::cerr<<optimizer->GetCurrentPosition()<<endl;
     }
 
 };

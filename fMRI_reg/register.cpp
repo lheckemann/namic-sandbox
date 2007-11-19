@@ -62,12 +62,12 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
     float size_mm[2];
     size_mm[0] = ceil(size_pxl[0]*spacing[0]); // R in mm
     size_mm[1] = ceil(size_pxl[1]*spacing[1]); // A in mm
-    cerr<<"volume size in mm  "<<size_mm;
+    std::cerr<<"volume size in mm  "<<size_mm;
 
     //set up the transform
     switch(transform_type){
     case 0:
-        cerr<<endl<<"translation transform";
+        std::cerr<<endl<<"translation transform";
         trans_xform = TranslationTransform::New();
         xform = trans_xform;
         registration->SetTransform( trans_xform );
@@ -86,7 +86,7 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
     case 1:
         affine_xform = AffineTransform::New();
         xform = affine_xform;
-        cerr<<endl<<"affine transform with "
+        std::cerr<<endl<<"affine transform with "
               <<affine_xform->GetNumberOfParameters()
               <<" params";
         registration->SetTransform( affine_xform );
@@ -110,7 +110,7 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
     case 2: //centered transform
         centered_xform = CenteredRigid2DTransform::New();
         xform = centered_xform;
-        cerr<<endl<<"centered rigid 2d transform with "
+        std::cerr<<endl<<"centered rigid 2d transform with "
               <<centered_xform->GetNumberOfParameters()
               <<" params";
         registration->SetTransform( centered_xform );
@@ -135,14 +135,14 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
         break;
 
     default:
-        cerr<<endl<<"transform option not supported";
+        std::cerr<<endl<<"transform option not supported";
         return -1;
     }
 
     // setup the metric
     switch(metric_type){
     case 0: //wells
-        cerr<<endl<<"viola wells metric";
+        std::cerr<<endl<<"viola wells metric";
         vw_mi_metric = VW_MIMetric::New();
         registration->SetMetric( vw_mi_metric );
         vw_mi_metric->SetNumberOfSpatialSamples(1024);
@@ -152,7 +152,7 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
         break;
 
     case 1: //matts
-        cerr<<endl<<"mattes metric";
+        std::cerr<<endl<<"mattes metric";
         mattes_metric = MattesMetric::New();
         registration->SetMetric( mattes_metric );
         //set this high in order to over-sample the probability distribution for now
@@ -163,14 +163,14 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
         break;
 
     case 2: //mean squares
-        cerr<<endl<<"mean squares metric";
+        std::cerr<<endl<<"mean squares metric";
         ms_metric = MSMetric::New();
         registration->SetMetric( ms_metric );
         metric = ms_metric;
         break;
 
     case 3: //kl
-        cerr<<endl<<"kl divergence";
+        std::cerr<<endl<<"kl divergence";
         kl_metric = KLMetric::New();
         registration->SetMetric( kl_metric );
         metric = kl_metric;
@@ -178,7 +178,7 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
         break;
 
     default:
-        cerr<<endl<<"metric option not supported";
+        std::cerr<<endl<<"metric option not supported";
         return -1;
     }
 
@@ -189,7 +189,7 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
     // setup the optimizer
     switch(opt_type){
     case 0: //gradient descent
-        cerr<<endl<<"regular step gradient descent optimizer";
+        std::cerr<<endl<<"regular step gradient descent optimizer";
         rsgd_optimizer = RSGDOptimizer::New();
         optimizer = rsgd_optimizer;
         registration->SetOptimizer( rsgd_optimizer );
@@ -206,7 +206,7 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
 
         break;
     case 1: //conj grad des
-        cerr<<endl<<"conjugate gradient descent optimizer";
+        std::cerr<<endl<<"conjugate gradient descent optimizer";
         cgd_optimizer = CGDOptimizer::New();
         optimizer = cgd_optimizer;
         registration->SetOptimizer( cgd_optimizer );
@@ -221,7 +221,7 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
 
     case 2: //amoeba
 
-        cerr<<endl<<"conjugate gradient descent optimizer";
+        std::cerr<<endl<<"conjugate gradient descent optimizer";
         amoeba_optimizer = AmoebaOptimizer::New();
         optimizer = amoeba_optimizer;
         registration->SetOptimizer( amoeba_optimizer );
@@ -235,26 +235,26 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
         break;
 
     default:
-        cerr<<endl<<"optimizer option not supported";
+        std::cerr<<endl<<"optimizer option not supported";
         return -1;
     }
-    cerr<<endl<<"optimizer scales "<<optimizer->GetScales();
+    std::cerr<<endl<<"optimizer scales "<<optimizer->GetScales();
 
     // setup the interpolater
     switch(interp_type){
     case 0:
-        cerr<<endl<<"linear interp";
+        std::cerr<<endl<<"linear interp";
         lerp = LinearInterpolator::New();
         registration->SetInterpolator( lerp );
         break;
     case 1:
-        cerr<<endl<<"bspline interp";
+        std::cerr<<endl<<"bspline interp";
         burp = BSplineInterpolator::New();
         registration->SetInterpolator( burp);
         break;
 
     default:
-        cerr<<endl<<"optimizer option not supported";
+        std::cerr<<endl<<"optimizer option not supported";
         return -1;
     }
 
@@ -272,7 +272,7 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
     FloatVolumeType::IndexType start = input_rgn.GetIndex();
 
     unsigned int num_slices = size[2];
-    cerr<<endl<<"total number of slices is "<<num_slices;
+    std::cerr<<endl<<"total number of slices is "<<num_slices;
 
     // collapse the Z dimension to set slice region
     size[2] = 0;
@@ -309,7 +309,7 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
 #if DEBUG_FJ_
     //write out the img
     char *output_file_name = "grid_image.png";
-    cerr<<endl<<"--Writing grid image file "<<output_file_name;
+    std::cerr<<endl<<"--Writing grid image file "<<output_file_name;
 
     // set the file name
     flt_2_us_cast->SetInput(grid_image);
@@ -317,12 +317,12 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
     image_writer->SetFileName(output_file_name);
 
     // write out the image
-    cerr<<endl<<"start ...";
+    std::cerr<<endl<<"start ...";
     image_writer->Update();
-    cerr<<"... done ";
+    std::cerr<<"... done ";
 
     // test the moving image and fixed image spacing and origin
-    cerr<<endl<<"\tFixed Image:"
+    std::cerr<<endl<<"\tFixed Image:"
         <<" Size "<<prev_slice->GetLargestPossibleRegion().GetSize()
         <<" Origin "<<prev_slice->GetOrigin()
         <<" Spacing "<< prev_slice->GetSpacing()<<endl;
@@ -333,7 +333,7 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
                      slice_num  < num_slices + start_slice;
                      slice_num ++ ){
 
-        cerr<<endl<<"slc: "<<slice_num;
+        std::cerr<<endl<<"slc: "<<slice_num;
 
         // extract the current slice
         start[2] = slice_num;
@@ -343,7 +343,7 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
         curr_slice = slicer->GetOutput();
 
 #if DEBUG_FJ_
-        cerr<<endl<<"\tMoving Image:"
+        std::cerr<<endl<<"\tMoving Image:"
             <<" Size "<<curr_slice->GetLargestPossibleRegion().GetSize()
             <<" Origin "<<curr_slice->GetOrigin()
             <<" Spacing "<< curr_slice->GetSpacing()<<endl;
@@ -460,12 +460,12 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
             break;
 
         default:
-            cerr<<endl<<"optimizer option not supported";
+            std::cerr<<endl<<"optimizer option not supported";
             return -1;
         }
 
-        cerr<<" its: "<<num_its;
-        cerr<<" error: "<<best_value;
+        std::cerr<<" its: "<<num_its;
+        std::cerr<<" error: "<<best_value;
 
         // rigid registration
         if(!deformable_flag){
@@ -514,7 +514,7 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
         image_writer->SetInput(flt_2_us_cast->GetOutput());
         image_writer->SetFileName(output_file_name);
         image_writer->Update();
-        cerr<<" ... done ";
+        std::cerr<<" ... done ";
 
         //update for next iteration
         prev_slice = curr_slice;

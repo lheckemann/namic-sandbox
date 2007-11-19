@@ -13,16 +13,16 @@ int registerSlices(FloatVolumeType::Pointer volume, char transform_type,
 
 int main(int argc, char *argv[])
 {
-    cout<<"Build date "<<__DATE__<<" and time "<<__TIME__<<endl<<endl;
+    std::cout<<"Build date "<<__DATE__<<" and time "<<__TIME__<<endl<<endl;
 
     if( 1+7 != argc  ){
-        cerr<<endl<<"Insufficient number of arguments";
-        cerr<<endl<<argv[0]
-            <<endl<<"   -input "<<"<input hdr file name>"
-            <<endl<<"   -output "<<"<output hdr file name>"
-            <<endl<<"   -reg <metric> <optimizer>"
-            <<endl<<"        <metric> 0-wells/1-matts/2-mean squares/3-kl"
-            <<endl<<"        <optimizer> 0-gradient_descent/1-cong gradient/2-amoeba";
+     std::cerr<<endl<<"Insufficient number of arguments" 
+              <<endl<<argv[0]
+              <<endl<<"   -input "<<"<input hdr file name>"
+              <<endl<<"   -output "<<"<output hdr file name>"
+              <<endl<<"   -reg <metric> <optimizer>"
+              <<endl<<"        <metric> 0-wells/1-matts/2-mean squares/3-kl"
+              <<endl<<"        <optimizer> 0-gradient_descent/1-cong gradient/2-amoeba";
         return EXIT_FAILURE;
     }
 
@@ -62,28 +62,28 @@ try{
 
 
     // -- input the volume --
-         cerr<<endl<<"--Reading analyze file "<<input_file_name;
+         std::cerr<<endl<<"--Reading analyze file "<<input_file_name;
 
         // set the file name
         volume_reader->SetFileName(input_file_name);
         us_2_flt_cast->SetInput(volume_reader->GetOutput());
 
         // read in the images
-        cerr<<endl<<"start ...";
+        std::cerr<<endl<<"start ...";
         us_2_flt_cast->Update();
-        cerr<<"... done ";
+        std::cerr<<"... done ";
 
         input_vol =  volume_reader->GetOutput();
         current_vol = us_2_flt_cast->GetOutput();
 
-        cerr<<endl<<"\t-- Volume Information --"
+        std::cerr<<endl<<"\t-- Volume Information --"
             <<endl<<"Size "
                     <<current_vol->GetLargestPossibleRegion().GetSize()
             <<endl<<"Origin "<<current_vol->GetOrigin()
             <<endl<<"Spacing "<< current_vol->GetSpacing()<<endl;
 
     //--resample to 1mm dimensions--
-        cerr<<"\n+ Resampling to 1mm in axial plane{  ";
+        std::cerr<<"\n+ Resampling to 1mm in axial plane{  ";
 
         resamp_volume->SetInput(current_vol);
 
@@ -125,7 +125,7 @@ try{
         resamp_volume->Update();
         current_vol = resamp_volume->GetOutput();
 
-        cerr<<"\n } END Resampling -  ";
+        std::cerr<<"\n } END Resampling -  ";
 
 
         //--normalzie the volume --
@@ -134,14 +134,14 @@ try{
             current_vol = normalizer->GetOutput();
 
         //-- perform slice to slice registration
-            cerr<<endl<<"--Registration operation ";
-            cerr<<endl<<endl<<"\t translation transform ";
+            std::cerr<<endl<<"--Registration operation ";
+            std::cerr<<endl<<endl<<"\t translation transform ";
             registerSlices(current_vol, 0, metric_type, opt_type);
-//          cerr<<endl<<endl<<"\t centered 2d rigid transform ";
+//          std::cerr<<endl<<endl<<"\t centered 2d rigid transform ";
 //          registerSlices(current_vol, 2, metric_type, opt_type);
-            cerr<<endl<<endl<<"\t affine transform ";
+            std::cerr<<endl<<endl<<"\t affine transform ";
             registerSlices(current_vol, 1, metric_type, opt_type);
-            cerr<<endl<<"registration done --";
+            std::cerr<<endl<<"registration done --";
 
         //--undo the normalization of the volume --
             rescaler->SetInput( current_vol );
@@ -152,21 +152,21 @@ try{
 
         //-- write out the result
 
-            cerr<<endl<<"--Writing analyze file "<<output_file_name;
+            std::cerr<<endl<<"--Writing analyze file "<<output_file_name;
             // set the file name
             flt_2_us_cast->SetInput(current_vol);
             volume_writer->SetInput(flt_2_us_cast->GetOutput());
             volume_writer->SetFileName(output_file_name);
             volume_writer->SetImageIO( image_io );
             // write out the volume
-            cerr<<endl<<"start ...";
+            std::cerr<<endl<<"start ...";
             volume_writer->Update();
-            cerr<<"... done ";
+            std::cerr<<"... done ";
 
 }// try
 catch( itk::ExceptionObject & err ) {
-    cerr << "EXCEPTION!" << endl;
-    cerr << err << endl;
+    std::cerr << "EXCEPTION!" << endl;
+    std::cerr << err << endl;
     return EXIT_FAILURE;
 }
 
