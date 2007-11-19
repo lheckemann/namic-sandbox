@@ -67,3 +67,6 @@ TARGET_LINK_LIBRARIES(ConvertVolumeToSeriesOfSlices ITKIO)
 ADD_EXECUTABLE(ImageRegistration16 ImageRegistration16.cxx)
 TARGET_LINK_LIBRARIES(ImageRegistration16 ITKIO ITKNumerics)
 
+ADD_EXECUTABLE(ImageRegistration9 ImageRegistration9.cxx)
+TARGET_LINK_LIBRARIES(ImageRegistration9 ITKIO ITKNumerics)
+
