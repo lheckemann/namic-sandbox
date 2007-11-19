@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkImageToVTKImageFilter.txx,v $
   Language:  C++
-  Date:      $Date: 2003/06/08 04:33:09 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2005/06/12 01:23:44 $
+  Version:   $Revision: 1.7 $
 
   Copyright (c) 2002 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -61,8 +61,11 @@ template <class TInputImage>
 ImageToVTKImageFilter<TInputImage>
 ::~ImageToVTKImageFilter()
 {
-  //Only VTK objects must be destroyed
-  m_Importer->Delete();
+  if( m_Importer )
+    {
+    m_Importer->Delete();
+    m_Importer = 0;
+    }
 }
 
 
@@ -117,6 +120,20 @@ ImageToVTKImageFilter<TInputImage>
 {
   return m_Exporter.GetPointer();
 }
+
+
+
+/**
+ * Delegate the Update to the importer
+ */
+template <class TInputImage>
+void
+ImageToVTKImageFilter<TInputImage>
+::Update()
+{
+  m_Importer->Update();
+}
+
 
 
 
