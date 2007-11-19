@@ -59,3 +59,8 @@ ADD_EXECUTABLE(fmri_reg main.cpp register.cpp types.h includes.h itk2vtk.h)
 INCLUDE_DIRECTORIES(${../inc})
 
 TARGET_LINK_LIBRARIES(fmri_reg ITKBasicFilters ITKAlgorithms ITKStatistics ITKNumerics ITKCommon ITKIO vtkVolumeRendering vtkRendering vtkHybrid vtkGraphics vtkImaging vtkIO vtkFiltering vtkCommon)
+
+
+ADD_EXECUTABLE(ConvertVolumeToSeriesOfSlices ImageReadImageSeriesWrite.cxx)
+TARGET_LINK_LIBRARIES(ConvertVolumeToSeriesOfSlices ITKIO)
+
