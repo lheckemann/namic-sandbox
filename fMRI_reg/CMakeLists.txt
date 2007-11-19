@@ -64,3 +64,6 @@ TARGET_LINK_LIBRARIES(fmri_reg ITKBasicFilters ITKAlgorithms ITKStatistics ITKNu
 ADD_EXECUTABLE(ConvertVolumeToSeriesOfSlices ImageReadImageSeriesWrite.cxx)
 TARGET_LINK_LIBRARIES(ConvertVolumeToSeriesOfSlices ITKIO)
 
+ADD_EXECUTABLE(ImageRegistration16 ImageRegistration16.cxx)
+TARGET_LINK_LIBRARIES(ImageRegistration16 ITKIO ITKNumerics)
+
