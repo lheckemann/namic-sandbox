@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkImageToVTKImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2003/06/08 04:33:09 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2004/02/19 03:47:59 $
+  Version:   $Revision: 1.6 $
 
   Copyright (c) 2002 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -55,7 +55,7 @@ public:
   /** Some typedefs. */
   typedef TInputImage InputImageType;
   typedef typename    InputImageType::ConstPointer    InputImagePointer;
-  typedef VTKImageExport< InputImageType >            ExporterFilterType; 
+  typedef VTKImageExport< InputImageType>            ExporterFilterType; 
   typedef typename ExporterFilterType::Pointer        ExporterFilterPointer;
  
   /** Get the output in the form of a vtkImage. 
@@ -74,6 +74,9 @@ public:
       This is intended to facilitate users the access 
       to methods in the exporter */
   ExporterFilterType * GetExporter() const;
+  
+  /** This call delegate the update to the importer */
+  void Update();
   
 protected:
   ImageToVTKImageFilter(); 
