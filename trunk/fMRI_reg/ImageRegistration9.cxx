@@ -51,7 +51,6 @@
 #include "itkImageFileWriter.h"
 
 #include "itkResampleImageFilter.h"
-#include "itkCastImageFilter.h"
 #include "itkSubtractImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 
@@ -331,26 +330,16 @@ int main( int argc, char *argv[] )
   resampler->SetOutputSpacing( fixedImage->GetSpacing() );
   resampler->SetDefaultPixelValue( 100 );
   
-  typedef  unsigned char  OutputPixelType;
-
-  typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
-  
-  typedef itk::CastImageFilter< 
-                        FixedImageType,
-                        OutputImageType > CastFilterType;
-                    
-  typedef itk::ImageFileWriter< OutputImageType >  WriterType;
+  typedef itk::ImageFileWriter< MovingImageType >  WriterType;
 
 
-  WriterType::Pointer      writer =  WriterType::New();
-  CastFilterType::Pointer  caster =  CastFilterType::New();
+  WriterType::Pointer  writer =  WriterType::New();
 
 
   writer->SetFileName( argv[3] );
 
 
-  caster->SetInput( resampler->GetOutput() );
-  writer->SetInput( caster->GetOutput()   );
+  writer->SetInput( resampler->GetOutput() );
   writer->Update();
 
 
@@ -366,17 +355,7 @@ int main( int argc, char *argv[] )
 
   WriterType::Pointer writer2 = WriterType::New();
   
-  typedef itk::RescaleIntensityImageFilter< 
-                                  FixedImageType, 
-                                  OutputImageType >   RescalerType;
-
-  RescalerType::Pointer intensityRescaler = RescalerType::New();
-
-  intensityRescaler->SetInput( difference->GetOutput() );
-  intensityRescaler->SetOutputMinimum(   0 );
-  intensityRescaler->SetOutputMaximum( 255 );
-  
-  writer2->SetInput( intensityRescaler->GetOutput() );  
+  writer2->SetInput( difference->GetOutput() );  
   resampler->SetDefaultPixelValue( 1 );
   
   // Compute the difference image between the 
