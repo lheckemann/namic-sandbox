@@ -189,8 +189,6 @@
       ++pixel;
       }
 
-    std::cout << "We were done !" << std::endl;
-
     if( m_ImageRegionDefined )
       {
       // If a region is defined to constrain classification to, we need to label
