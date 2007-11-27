@@ -19,3 +19,6 @@ TARGET_LINK_LIBRARIES( ImageKmeansModelEstimator ITKStatistics ITKIO ITKCommon )
 ADD_EXECUTABLE( ImageKmeansModelClassifier ImageKmeansModelClassifier.cxx )
 TARGET_LINK_LIBRARIES( ImageKmeansModelClassifier ITKStatistics ITKIO ITKCommon )
 
+ADD_EXECUTABLE( ImageMarkovRandomField ImageMarkovRandomField.cxx )
+TARGET_LINK_LIBRARIES( ImageMarkovRandomField ITKStatistics ITKIO ITKCommon )
+
