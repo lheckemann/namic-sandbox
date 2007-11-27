@@ -24,8 +24,6 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 
-#include "itkRescaleIntensityImageFilter.h"
-
 #include "itkMRFImageFilter.h"
 #include "itkDistanceToCentroidMembershipFunction.h"
 #include "itkMinimumDecisionRule.h"
