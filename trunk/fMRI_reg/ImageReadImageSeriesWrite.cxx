@@ -25,6 +25,7 @@
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageSeriesWriter.h"
+#include "itkAnalyzeImageIO.h"
 #include "itkNumericSeriesFileNames.h"
 
 int main( int argc, char *argv[] )
@@ -37,11 +38,12 @@ int main( int argc, char *argv[] )
 
 
   typedef itk::Image< unsigned short, 3 >     ImageType;
+  typedef itk::AnalyzeImageIO                      AnalyzeImageIOType;
   typedef itk::ImageFileReader< ImageType >   ReaderType;
 
+  AnalyzeImageIOType::Pointer image_io = AnalyzeImageIOType::New();
   ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[1] );
-
 
   typedef itk::Image< unsigned short, 2 >     Image2DType;
 
