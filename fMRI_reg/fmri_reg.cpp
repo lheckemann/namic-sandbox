@@ -227,8 +227,8 @@ try{
 //    centered_xform_scales[2] = 1.0/size_mm[0]/1.414;
     //translation terms
     //the range of 1.0 / the image diag size (in millimeters).
-    centered_xform_scales[3] = 1.0/size_mm[0]/1.414;
-    centered_xform_scales[4] = 1.0/size_mm[0]/1.414;
+    centered_xform_scales[1] = 1.0/size_mm[0]/1.414;
+    centered_xform_scales[2] = 1.0/size_mm[0]/1.414;
   cgd_optimizer->SetScales(centered_xform_scales); //optimizer scale
 
   cgd_optimizer->SetMaximumStepLength( 5.0 ); 
