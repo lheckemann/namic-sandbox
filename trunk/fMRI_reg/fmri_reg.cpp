@@ -231,7 +231,7 @@ try{
     centered_xform_scales[2] = 1.0/size_mm[0]/1.414;
   cgd_optimizer->SetScales(centered_xform_scales); //optimizer scale
 
-  cgd_optimizer->SetMaximumStepLength( 5.0 ); 
+  cgd_optimizer->SetMaximumStepLength( 0.5 ); 
 
   //set fixed and moving images
     registration->SetFixedImage( fixed_img );
