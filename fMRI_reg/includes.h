@@ -65,6 +65,7 @@
 #include <itkTranslationTransform.h>
 #include <itkAffineTransform.h>
 #include <itkCenteredRigid2DTransform.h>
+#include <itkEuler2DTransform.h>
 #include <itkIdentityTransform.h>
 #include <itkImageToImageMetric.h>
 #include <itkMutualInformationImageToImageMetric.h>
