@@ -221,7 +221,7 @@ try{
     // The first parameter is the angle in  radians. Second and third are the
     // center of rotation coordinates and the last two parameters are the
     // translation in each dimension.
-    centered_xform_scales[0] = 1.000;
+    centered_xform_scales[0] = 1.0;
     // ra plane center - in space coordinates
 //    centered_xform_scales[1] = 1.0/size_mm[0]/1.414;
 //    centered_xform_scales[2] = 1.0/size_mm[0]/1.414;
@@ -253,6 +253,7 @@ try{
     std::cerr<<" error: "<<best_value;
 
   // apply the transform to the moving image
+  /*
     image_resampler->SetInput(moving_img);
     image_resampler->SetTransform( registration->GetOutput()->Get() );
     image_resampler->SetSize(
@@ -262,6 +263,7 @@ try{
     image_resampler->SetDefaultPixelValue( 0 );
     image_resampler->Update();
     moving_img = image_resampler->GetOutput();
+    */
 
     // apply the transform to the grid image and save it
     grid_resampler->SetInput(grid_image);
@@ -280,15 +282,10 @@ try{
 
   registration->SetTransform( affine_xform );
   // setup transform parameters
-    AffineTransform::InputPointType aff_center__;
-    AffineTransform::OutputVectorType aff_translation__;
-    aff_translation__[0] = 0.0;
-    aff_translation__[1] = 0.0;
-    aff_center__[0] = orgn[0] + size_pxl[0] / 2.0;
-    aff_center__[1] = orgn[1] + size_pxl[1] / 2.0;
     affine_xform->SetIdentity();
-    affine_xform->SetCenter( aff_center__ );
-    affine_xform->SetTranslation(aff_translation__);
+    affine_xform->SetCenter( centered_xform->GetCenter() );
+    affine_xform->SetMatrix( centered_xform->GetMatrix() );
+    affine_xform->SetTranslation( centered_xform->GetTranslation() );
     registration->SetInitialTransformParameters( affine_xform->GetParameters() );
 
   // set the scales of the parameter space
@@ -310,6 +307,8 @@ try{
     registration->SetFixedImageRegion(
                             fixed_img->GetBufferedRegion() );
 
+  cgd_optimizer->SetMaximumStepLength( 0.5 ); 
+
   // do registration
   registration->Update();
 
@@ -321,6 +320,7 @@ try{
     std::cerr<<" error: "<<best_value;
 
   // apply the transform to the moving image
+  // /*
     image_resampler->SetInput(moving_img);
     image_resampler->SetTransform( registration->GetOutput()->Get() );
     image_resampler->SetSize(
