@@ -30,7 +30,7 @@ int main( int argc, char * argv [] )
     {
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0];
-    std::cerr << " inputImage outputLabeledImage numberOfClasses contiguousLabels";
+    std::cerr << " inputImage outputLabeledImage numberOfClasses useNonContiguousLabels";
     return EXIT_FAILURE;
     }
 
