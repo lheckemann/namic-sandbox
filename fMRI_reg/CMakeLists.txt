@@ -54,7 +54,7 @@ IF(OPENGL_INCLUDE_PATH)
   INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_PATH})
 ENDIF(OPENGL_INCLUDE_PATH)
 
-ADD_EXECUTABLE(fmri_reg main.cpp register.cpp types.h includes.h itk2vtk.h)
+ADD_EXECUTABLE(fmri_reg fmri_reg.cpp register.cpp types.h includes.h itk2vtk.h)
 
 INCLUDE_DIRECTORIES(${../inc})
 
