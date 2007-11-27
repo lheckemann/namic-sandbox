@@ -59,88 +59,10 @@ try{
 
 
   // -- put optional code to do resampling here --
-  ImageResampleFilter::Pointer resamp_fixed_img = ImageResampleFilter::New();
-    ImageResampleFilter::Pointer resamp_moving_img = ImageResampleFilter::New();
     ImageBSplineInterpolator::Pointer bspline_fixed_img =
                                             ImageBSplineInterpolator::New();
     ImageBSplineInterpolator::Pointer bspline_moving_img =
                                             ImageBSplineInterpolator::New();
-
-  std::cerr<<"\n+ Resampling to 1mm in axial plane{  ";
-
-    resamp_fixed_img->SetInput(fixed_img);
-
-    IdentityTransform::Pointer eye = IdentityTransform::New();
-    resamp_fixed_img->SetTransform(eye);
-    //set the interpolator
-    resamp_fixed_img->SetInterpolator( bspline_fixed_img );
-    resamp_fixed_img->SetDefaultPixelValue( 0 );
-    resamp_fixed_img->SetOutputOrigin(
-          fixed_img->GetOrigin() );
-
-    FloatImageType::SpacingType fixed_img_spacing = fixed_img->GetSpacing();
-
-    SizeType fixed_img_size = fixed_img->GetLargestPossibleRegion().GetSize();
-
-    // number of pixels along X and Y respectively
-    fixed_img_size[0] = static_cast< SizeValueType >( 
-          ceil(fixed_img_size[0]*fixed_img_spacing[0]) ); 
-    fixed_img_size[1] = static_cast< SizeValueType >( 
-          ceil(fixed_img_size[1]*fixed_img_spacing[1]) ); 
-    resamp_fixed_img->SetSize( fixed_img_size );
-
-    fixed_img_spacing[0] = 1.0; // pixel spacing in millimeters along X
-    fixed_img_spacing[1] = 1.0; // pixel spacing in millimeters along Y
-    resamp_fixed_img->SetOutputSpacing( fixed_img_spacing );
-
-    ProgressDisplay progressDisplay_1(resamp_fixed_img);
-    itk::SimpleMemberCommand<ProgressDisplay>::Pointer progressEvent_1 =
-                    itk::SimpleMemberCommand<ProgressDisplay>::New();
-    progressEvent_1->SetCallbackFunction(&progressDisplay_1,
-                                        &ProgressDisplay::Display);
-    resamp_fixed_img->AddObserver(itk::ProgressEvent(), progressEvent_1);
-
-    resamp_fixed_img->Update();
-    fixed_img = resamp_fixed_img->GetOutput();
-
-
-  resamp_moving_img->SetInput(moving_img);
-
-    resamp_moving_img->SetTransform(eye);
-    //set the interpolator
-    resamp_moving_img->SetInterpolator( bspline_moving_img );
-    resamp_moving_img->SetDefaultPixelValue( 0 );
-    resamp_moving_img->SetOutputOrigin(
-          moving_img->GetOrigin() );
-
-    FloatImageType::SpacingType moving_img_spacing = moving_img->GetSpacing();
-
-    SizeType moving_img_size = moving_img->GetLargestPossibleRegion().GetSize();
-
-    // number of pixels along X and Y respectively
-    moving_img_size[0] = static_cast< SizeValueType >( 
-          ceil(moving_img_size[0]*moving_img_spacing[0]) ); 
-    moving_img_size[1] = static_cast< SizeValueType >( 
-          ceil(moving_img_size[1]*moving_img_spacing[1]) ); 
-    resamp_fixed_img->SetSize( moving_img_size );
-
-    moving_img_spacing[0] = 1.0; // pixel spacing in millimeters along X
-    moving_img_spacing[1] = 1.0; // pixel spacing in millimeters along Y
-    resamp_moving_img->SetOutputSpacing( moving_img_spacing );
-
-    ProgressDisplay progressDisplay_2(resamp_moving_img);
-    itk::SimpleMemberCommand<ProgressDisplay>::Pointer progressEvent_2 =
-                    itk::SimpleMemberCommand<ProgressDisplay>::New();
-    progressEvent_2->SetCallbackFunction(&progressDisplay_2,
-                                        &ProgressDisplay::Display);
-    resamp_moving_img->AddObserver(itk::ProgressEvent(), progressEvent_2);
-
-    resamp_moving_img->Update();
-    moving_img = resamp_moving_img->GetOutput();
-
-    std::cerr<<"\n } END Resampling -  ";
-
-
 
 
   // -- register the slices --
