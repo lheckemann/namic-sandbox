@@ -107,8 +107,6 @@ int main( int argc, char * argv [] )
   EstimatorType::ParametersType initialMeans( numberOfClasses * NumberOfComponents );
   initialMeans.Fill( 0.0 );
 
-  std::cout << "Initial Means = " << initialMeans << std::endl;
-
   estimator->SetParameters( initialMeans );
   
   estimator->SetKdTree( treeGenerator->GetOutput() );
