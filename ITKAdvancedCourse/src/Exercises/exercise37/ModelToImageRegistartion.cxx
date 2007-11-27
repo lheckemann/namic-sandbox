@@ -23,7 +23,7 @@
 #include "itkImageToSpatialObjectRegistrationMethod.h"
 
 #include "itkLinearInterpolateImageFunction.h"
-#include "itkEuler2DTransform.h"
+#include "itkTranslationTransform.h"
 #include "itkOnePlusOneEvolutionaryOptimizer.h"
 #include "itkNormalVariateGenerator.h" 
 
@@ -103,7 +103,7 @@ public:
   typedef itk::SmartPointer<Self>   Pointer;
   typedef itk::SmartPointer<const Self>  ConstPointer;
 
-  typedef itk::Point<double,2>   PointType;
+  typedef itk::Point<double,3>   PointType;
   typedef std::list<PointType> PointListType;
   typedef TMovingSpatialObject MovingSpatialObjectType;
   typedef typename Superclass::ParametersType ParametersType;
@@ -202,20 +202,21 @@ int main( int argc, char *argv[] )
     std::cerr << "Usage: " << argv[0] <<  " inputImage" << std::endl;
     }
 
-  typedef itk::Image< float, 2 >      ImageType;
+  typedef itk::Image< float, 3 >      ImageType;
 
   typedef itk::ImageFileReader< ImageType > ReaderType;
 
-  typedef itk::EllipseSpatialObject< 2 >   EllipseType;
+  typedef itk::EllipseSpatialObject< 3 >   EllipseType;
 
   EllipseType::Pointer ellipse = EllipseType::New();
 
-  ellipse->SetRadius(  10.0  );
+  ellipse->SetRadius( 45.0 );
 
 
   EllipseType::TransformType::OffsetType offset;
-  offset[ 0 ] = 100.0;
-  offset[ 1 ] =  40.0;
+  offset[ 0 ] =  70.0;
+  offset[ 1 ] =  50.0;
+  offset[ 2 ] =  50.0;
 
   ellipse->GetObjectToParentTransform()->SetOffset(offset);
   ellipse->ComputeObjectToWorldTransform();
@@ -240,7 +241,7 @@ int main( int argc, char *argv[] )
 
 
 
-  typedef itk::Euler2DTransform<> TransformType;
+  typedef itk::TranslationTransform<> TransformType;
   TransformType::Pointer transform = TransformType::New();
 
 
@@ -257,14 +258,9 @@ int main( int argc, char *argv[] )
   optimizer->SetMaximumIteration( 400 );
 
  
-  TransformType::ParametersType parametersScale;
-  parametersScale.set_size(3);
-  parametersScale[0] = 1000; // angle scale
+  TransformType::ParametersType parametersScale(3);
+  parametersScale.Fill(1.0);
 
-  for( unsigned int i=1; i<3; i++ )
-    {
-    parametersScale[i] = 2; // offset scale
-    }
   optimizer->SetScales( parametersScale );
 
 
@@ -296,12 +292,12 @@ int main( int argc, char *argv[] )
   registration->SetMetric( metric );
 
 
-  TransformType::ParametersType initialParameters( 
-    transform->GetNumberOfParameters() );
+  TransformType::ParametersType initialParameters( transform->GetNumberOfParameters() );
   
-  initialParameters[0] = 0.2;     // Angle
-  initialParameters[1] = 7.0;     // Offset X
-  initialParameters[2] = 6.0;     // Offset Y 
+  initialParameters[0] = 0.0;     // Offset x
+  initialParameters[1] = 0.0;     // Offset y
+  initialParameters[2] = 0.0;     // Offset z 
+
   registration->SetInitialTransformParameters(initialParameters);
 
   std::cout << "Initial Parameters  : " << initialParameters << std::endl;
