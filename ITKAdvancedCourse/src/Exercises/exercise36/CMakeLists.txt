@@ -13,3 +13,9 @@ INCLUDE_DIRECTORIES(
 ADD_EXECUTABLE( ConvertImagesToVectorImage ConvertImagesToVectorImage.cxx )
 TARGET_LINK_LIBRARIES( ConvertImagesToVectorImage ITKIO ITKCommon )
 
+ADD_EXECUTABLE( ImageKmeansModelEstimator ImageKmeansModelEstimator.cxx )
+TARGET_LINK_LIBRARIES( ImageKmeansModelEstimator ITKStatistics ITKIO ITKCommon )
+
+ADD_EXECUTABLE( ImageKmeansModelClassifier ImageKmeansModelClassifier.cxx )
+TARGET_LINK_LIBRARIES( ImageKmeansModelClassifier ITKStatistics ITKIO ITKCommon )
+
