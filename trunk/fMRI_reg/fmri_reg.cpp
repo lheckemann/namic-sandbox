@@ -228,7 +228,7 @@ try{
   num_its = cgd_optimizer->GetCurrentIteration();
     best_value = cgd_optimizer->GetValue();
 
-  std::cerr<<endl<<" After translation transform";
+  std::cerr<<endl<<" After rotation transform";
   std::cerr<<" its: "<<num_its;
     std::cerr<<" error: "<<best_value;
 
@@ -295,7 +295,7 @@ try{
   num_its = cgd_optimizer->GetCurrentIteration();
     best_value = cgd_optimizer->GetValue();
 
-  std::cerr<<endl<<" After translation transform";
+  std::cerr<<endl<<" After affine transform";
   std::cerr<<" its: "<<num_its;
     std::cerr<<" error: "<<best_value;
 
