@@ -1,5 +1,5 @@
 /** simplified pipeline for 2-slice fmri registration
- **/ 
+ **/
 
 #include "includes.h"
 
@@ -12,13 +12,13 @@ int main(int argc, char *argv[])
   std::cout<<"Build date "<<__DATE__<<" and time "<<__TIME__<<endl<<endl;
 
   if( 1+3 != argc  ){
-     std::cerr<<endl<<"Insufficient number of arguments" 
+     std::cerr<<endl<<"Insufficient number of arguments"
               <<endl<<argv[0]
               <<endl<<"   <fixed_img> "<<"<moving_img>"
           <<"   <output_img>";
         return EXIT_FAILURE;
     }
-  
+
   typedef itk::ResampleImageFilter
                 <FloatImageType,FloatImageType>   ImageResampleFilter;
   typedef itk::NormalizeImageFilter
@@ -40,7 +40,7 @@ try{
   fixed_img_reader->SetFileName(  argv[1] );
   moving_img_reader->SetFileName( argv[2] );
 
-  UShortToFloatImageCast::Pointer fixed_us_2_flt_cast 
+  UShortToFloatImageCast::Pointer fixed_us_2_flt_cast
                 = UShortToFloatImageCast::New();
   UShortToFloatImageCast::Pointer moving_us_2_flt_cast
                 = UShortToFloatImageCast::New() ;
@@ -75,7 +75,7 @@ try{
     // spacing
     FloatImageType::SpacingType spacing = fixed_img->GetSpacing();
     // size in pixels
-    FloatImageType::SizeType size_pxl = 
+    FloatImageType::SizeType size_pxl =
           fixed_img->GetLargestPossibleRegion().GetSize();
     // size in mm
     float size_mm[2];
@@ -119,24 +119,25 @@ try{
   BSplineInterpolator::Pointer burp= BSplineInterpolator::New();
     registration->SetInterpolator( burp);
 
-  CGDOptimizer::Pointer cgd_optimizer= CGDOptimizer::New();  
+  CGDOptimizer::Pointer cgd_optimizer= CGDOptimizer::New();
     registration->SetOptimizer( cgd_optimizer );
-    CommandIterationUpdate<CGDOptimizer>::Pointer cgd_observer =  
+    CommandIterationUpdate<CGDOptimizer>::Pointer cgd_observer =
                     CommandIterationUpdate<CGDOptimizer>::New();
   cgd_optimizer->AddObserver( itk::IterationEvent(), cgd_observer);
 
 
   MSMetric::Pointer ms_metric = MSMetric::New();
     registration->SetMetric( ms_metric );
-    
-  
+
+
   // -- Apply Translation Transform --
+    std::cerr<<endl<<" -- Starting Translation Transform ... ";
   TranslationTransform::Pointer trans_xform = TranslationTransform::New();
   registration->SetTransform( trans_xform );
 
   // setup transform parameters
   trans_xform->SetIdentity();
-    registration->SetInitialTransformParameters( trans_xform->GetParameters() ); 
+    registration->SetInitialTransformParameters( trans_xform->GetParameters() );
 
   // set the scales of the parameter space
   TranslationTransform::ParametersType trans_xform_scales(
@@ -145,7 +146,7 @@ try{
     trans_xform_scales[0] = 1.0;
     trans_xform_scales[1] = 1.0;
     cgd_optimizer->SetScales(trans_xform_scales); //optimizer scale
-  
+
   //set fixed and moving images
     registration->SetFixedImage( fixed_img );
     registration->SetMovingImage( moving_img );
@@ -185,6 +186,7 @@ try{
     grid_image = grid_resampler->GetOutput();
 
   // -- Apply Centered Rigid 2D Transform --
+    std::cerr<<endl<<" -- Starting CenteredRigid2DTransform Transform ... ";
     CenteredRigid2DTransform::Pointer centered_xform
                       = CenteredRigid2DTransform::New();
     registration->SetTransform( centered_xform );
@@ -255,6 +257,7 @@ try{
     grid_image = grid_resampler->GetOutput();
 
   // -- Apply Affine Transform --
+    std::cerr<<endl<<" -- Starting Affine Transform  ... ";
     AffineTransform::Pointer affine_xform = AffineTransform::New();
 
   registration->SetTransform( affine_xform );
