@@ -109,12 +109,6 @@ public:
 
   typedef typename EstimatorType::ParametersType ParametersType;
 
-  typedef typename InputImageType::RegionType        ImageRegionType;
-  
-  typedef RegionOfInterestImageFilter< 
-                                 InputImageType,
-                                 InputImageType  > RegionOfInterestFilterType;
-
 
   /** Add a new class to the classification by specifying its initial mean. */
   void AddClassWithInitialMean( const RealPixelType & mean );
@@ -131,12 +125,7 @@ public:
   itkGetConstReferenceMacro( UseNonContiguousLabels, bool );
   itkBooleanMacro( UseNonContiguousLabels );
 
-  /** Set Region method to constrain classfication to a certain region */
-  void SetImageRegion( const ImageRegionType & region );
-  
-  /** Get the region over which the statistics will be computed */
-  itkGetConstReferenceMacro( ImageRegion, ImageRegionType );
-  
+ 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputHasNumericTraitsCheck,
@@ -168,9 +157,6 @@ private:
 
   bool m_UseNonContiguousLabels;
 
-  ImageRegionType m_ImageRegion;
-
-  bool m_ImageRegionDefined;
 };
   
 } // end namespace itk
