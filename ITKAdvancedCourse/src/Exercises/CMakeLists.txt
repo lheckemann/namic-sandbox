@@ -33,6 +33,7 @@ SUBDIRS(
   exercise33
   exercise34
   exercise36
+  exercise37
   )
 
 IF(WIN32)
