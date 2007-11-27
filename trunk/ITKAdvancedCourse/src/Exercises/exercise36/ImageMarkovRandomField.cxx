@@ -96,9 +96,8 @@ int main( int argc, char * argv [] )
 
   mrfFilter->SetNumberOfClasses( numberOfClasses );
   mrfFilter->SetMaximumNumberOfIterations( numberOfIterations );
-  mrfFilter->SetErrorTolerance( 1e-7 );
- 
   mrfFilter->SetSmoothingFactor( smoothingFactor );
+  mrfFilter->SetErrorTolerance( 1e-7 );
 
 
   typedef itk::ImageClassifierBase< 
@@ -141,8 +140,6 @@ int main( int argc, char * argv [] )
     }
   meanDistance /= numberOfClasses;
 
- 
-  mrfFilter->SetSmoothingFactor( smoothingFactor );
 
   mrfFilter->SetNeighborhoodRadius( 1 );
 
@@ -172,7 +169,6 @@ int main( int argc, char * argv [] )
     }
 
   mrfFilter->SetMRFNeighborhoodWeight( weights );
-
   mrfFilter->SetClassifier( classifier );
 
   typedef MRFFilterType::OutputImageType  OutputImageType;
@@ -200,10 +196,19 @@ int main( int argc, char * argv [] )
 
   std::cout << "Number of Iterations : ";
   std::cout << mrfFilter->GetNumberOfIterations() << std::endl;
-  std::cout << "Stop condition: " << std::endl;
-  std::cout << "  (1) Maximum number of iterations " << std::endl;
-  std::cout << "  (2) Error tolerance:  "  << std::endl;
-  std::cout << mrfFilter->GetStopCondition() << std::endl;
+  std::cout << std::endl;
+
+  std::cout << "Stopping condition: " << std::endl;
+
+  switch( mrfFilter->GetStopCondition() )
+    {
+    case 1:
+      std::cout << "  (1) Maximum number of iterations " << std::endl;
+      break;
+    case 2:
+      std::cout << "  (2) Error tolerance:  "  << std::endl;
+      break;
+    }
 
   return EXIT_SUCCESS;
   
