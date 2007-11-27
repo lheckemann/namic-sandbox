@@ -102,7 +102,7 @@ int main( int argc, char * argv [] )
 
   unsigned int numberOfClasses = atoi( argv[2] );
 
-  std::cout << "Number of Classes = " << numberOfClasses std::endl;
+  std::cout << "Number of Classes = " << numberOfClasses << std::endl;
 
   EstimatorType::ParametersType initialMeans( numberOfClasses * NumberOfComponents );
   initialMeans.Fill( 0.0 );
