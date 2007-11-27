@@ -169,9 +169,13 @@ try{
 
   std::cerr<<endl<<" After translation transform";
   std::cerr<<" its: "<<num_its;
-    std::cerr<<" error: "<<best_value;
+  std::cerr<<" error: "<<best_value;
+  std::cerr<<" solution: "<< cgd_optimizer->GetCurrentPosition() << std::endl;
+
+  trans_xform->SetParameters( cgd_optimizer->GetCurrentPosition() );
 
   // apply the transform to the moving image
+  /*
     image_resampler->SetInput(moving_img);
     image_resampler->SetTransform( registration->GetOutput()->Get() );
     image_resampler->SetSize(
@@ -181,6 +185,7 @@ try{
     image_resampler->SetDefaultPixelValue( 0 );
     image_resampler->Update();
     moving_img = image_resampler->GetOutput();
+    */
 
     // apply the transform to the grid image and save it
     grid_resampler->SetInput(grid_image);
@@ -201,8 +206,8 @@ try{
   // set initial parameters of transform
     CenteredRigid2DTransform::InputPointType center__;
     CenteredRigid2DTransform::OutputVectorType translation__;
-    translation__[0] = 0.0;
-    translation__[1] = 0.0;
+    translation__[0] = trans_xform->GetParameters()[0];
+    translation__[1] = trans_xform->GetParameters()[1];
     center__[0] = orgn[0] + size_pxl[0] / 2.0;
     center__[1] = orgn[1] + size_pxl[1] / 2.0;
     centered_xform->SetCenter( center__ );
@@ -235,6 +240,9 @@ try{
   // do registration
   registration->Update();
 
+  centered_xform->SetParameters( cgd_optimizer->GetCurrentPosition() );
+  
+  std::cout << "End of centered transform: " << centered_xform->GetParameters() << std::endl;
   num_its = cgd_optimizer->GetCurrentIteration();
     best_value = cgd_optimizer->GetValue();
 
