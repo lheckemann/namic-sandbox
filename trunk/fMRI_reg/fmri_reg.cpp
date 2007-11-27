@@ -312,6 +312,10 @@ try{
   // do registration
   registration->Update();
 
+  affine_xform->SetParameters( cgd_optimizer->GetCurrentPosition() );
+  
+  std::cout << "End of Affine Transform: " << affine_xform->GetParameters() << std::endl;
+
   num_its = cgd_optimizer->GetCurrentIteration();
     best_value = cgd_optimizer->GetValue();
 
