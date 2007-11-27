@@ -26,20 +26,21 @@
 
 int main( int argc, char * argv [] )
 {
-  if( argc < 5 )
+  if( argc < 4 )
     {
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0];
-    std::cerr << " inputImage outputLabeledImage contiguousLabels";
-    std::cerr << " mean1 mean2... mean3 " << std::endl;
+    std::cerr << " inputImage outputLabeledImage numberOfClasses contiguousLabels";
     return EXIT_FAILURE;
     }
 
-  const char * inputImageFileName = argv[1];
+  const char * inputImageFileName  = argv[1];
+  const char * outputImageFileName = argv[2];
 
+  const unsigned int numberOfClasses = atoi( argv[3] );
 
+  const unsigned int useNonContiguousLabels = atoi( argv[4] );
 
-  
   typedef unsigned char                     PixelValueType;
   const unsigned int                        NumberOfComponents = 3;
 
@@ -47,14 +48,11 @@ int main( int argc, char * argv [] )
 
   const unsigned int                        Dimension = 2;
 
-  typedef itk::Image<PixelType, Dimension > ImageType;
+  typedef itk::Image< PixelType, Dimension > ImageType;
 
   typedef itk::ImageFileReader< ImageType > ReaderType;
   ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( inputImageFileName );
-
-
-
 
 
   typedef itk::ImageKmeansImageFilter< ImageType > KMeansFilterType;
@@ -63,41 +61,16 @@ int main( int argc, char * argv [] )
 
   kmeansFilter->SetInput( reader->GetOutput() );
 
-  const unsigned int numberOfInitialClasses = atoi( argv[4] );
-
-
-
-
-
-  const unsigned int useNonContiguousLabels = atoi( argv[3] );
-
   kmeansFilter->SetUseNonContiguousLabels( useNonContiguousLabels );
 
 
-  const unsigned int argoffset = 5;
+  KMeansFilterType::RealPixelType initialMean;
+  initialMean.Fill(0.0);
 
-  if( static_cast<unsigned int>(argc) <
-      numberOfInitialClasses + argoffset )
+  for( unsigned int cc = 0; cc < numberOfClasses; ++cc )
     {
-    std::cerr << "Error: " << std::endl;
-    std::cerr << numberOfInitialClasses << " classes has been specified ";
-    std::cerr << "but no enough means have been provided in the command ";
-    std::cerr << "line arguments " << std::endl;
-    return EXIT_FAILURE;
+    kmeansFilter->AddClassWithInitialMean( initialMean );
     }
-
-
-
-
-  for( unsigned k=0; k < numberOfInitialClasses; k++ )
-    {
-    const double userProvidedInitialMean = atof( argv[k+argoffset] );
-    kmeansFilter->AddClassWithInitialMean( userProvidedInitialMean );
-    }
-
-
-  const char * outputImageFileName = argv[2];
-
 
 
   typedef KMeansFilterType::OutputImageType  OutputImageType;
@@ -109,10 +82,6 @@ int main( int argc, char * argv [] )
   writer->SetInput( kmeansFilter->GetOutput() );
 
   writer->SetFileName( outputImageFileName );
-
-
-
-
 
 
   try
@@ -128,21 +97,20 @@ int main( int argc, char * argv [] )
     }
 
   
-
-
-
   KMeansFilterType::ParametersType estimatedMeans = 
                                             kmeansFilter->GetFinalMeans();
 
-  const unsigned int numberOfClasses = estimatedMeans.Size();
 
   for ( unsigned int i = 0 ; i < numberOfClasses ; ++i )
     {
     std::cout << "cluster[" << i << "] ";
-    std::cout << "    estimated mean : " << estimatedMeans[i] << std::endl;
+    std::cout << "  estimated mean : ";
+    for ( unsigned int j = 0 ; j < NumberOfComponents ; ++j )
+      {
+      std::cout << "    " << estimatedMeans[i*NumberOfComponents +j];
+      }
+    std::cout << std::endl;
     }
-
-
 
   return EXIT_SUCCESS;
   
