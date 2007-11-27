@@ -22,7 +22,7 @@
 #include "itkImageToSpatialObjectMetric.h"
 #include "itkImageToSpatialObjectRegistrationMethod.h"
 
-#include "itkLinearInterpolateImageFunction.h"
+#include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkTranslationTransform.h"
 #include "itkAmoebaOptimizer.h"
 
@@ -201,7 +201,7 @@ int main( int argc, char *argv[] )
     std::cerr << "Usage: " << argv[0] <<  " inputImage initialDelta" << std::endl;
     }
 
-  typedef itk::Image< float, 3 >      ImageType;
+  typedef itk::Image< unsigned char, 3 >      ImageType;
 
   typedef itk::ImageFileReader< ImageType > ReaderType;
 
