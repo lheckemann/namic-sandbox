@@ -119,11 +119,19 @@ try{
   BSplineInterpolator::Pointer burp= BSplineInterpolator::New();
     registration->SetInterpolator( burp);
 
-  CGDOptimizer::Pointer cgd_optimizer= CGDOptimizer::New();
+  //typedef CGDOptimizer  OptimizerType;
+  typedef RSGDOptimizer  OptimizerType;
+
+  OptimizerType::Pointer cgd_optimizer= OptimizerType::New();
     registration->SetOptimizer( cgd_optimizer );
-    CommandIterationUpdate<CGDOptimizer>::Pointer cgd_observer =
-                    CommandIterationUpdate<CGDOptimizer>::New();
+    CommandIterationUpdate<OptimizerType>::Pointer cgd_observer =
+                    CommandIterationUpdate<OptimizerType>::New();
   cgd_optimizer->AddObserver( itk::IterationEvent(), cgd_observer);
+
+  cgd_optimizer->SetMaximumStepLength( 5.0 ); 
+  cgd_optimizer->SetMinimumStepLength( 0.0001 );
+  cgd_optimizer->SetNumberOfIterations( 400 );
+  cgd_optimizer->MinimizeOn();
 
 
   MSMetric::Pointer ms_metric = MSMetric::New();
