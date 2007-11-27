@@ -76,7 +76,9 @@
 
     const unsigned int numberOfClasses = this->m_InitialMeans.size();
 
-    ParametersType  initialMeans( numberOfClasses );
+    const unsigned int numberOfComponents = adaptor->GetMeasurementVectorSize();
+
+    ParametersType  initialMeans( numberOfClasses * numberOfComponents );
     unsigned int pm = 0;
     for( unsigned int cl=0; cl < numberOfClasses; cl++ )
       {
@@ -130,13 +132,17 @@
     typedef typename MembershipFunctionType::Pointer     MembershipFunctionPointer;
     typedef typename MembershipFunctionType::OriginType  MembershipFunctionOriginType;
 
+    unsigned int mm = 0;
     for(unsigned int k=0; k<numberOfClasses; k++)
       {
       classLabels[k] = label;
       label += labelInterval;
       MembershipFunctionPointer membershipFunction = MembershipFunctionType::New();
       MembershipFunctionOriginType origin( adaptor->GetMeasurementVectorSize() );
-      origin[0] = this->m_FinalMeans[k]; // A scalar image has a MeasurementVector of dimension 1
+      for(unsigned int j=0; j<numberOfComponents; j++)
+        {
+        origin[j] = this->m_FinalMeans[mm++];
+        }
       membershipFunction->SetOrigin( origin );
       classifier->AddMembershipFunction( membershipFunction.GetPointer() );
       }
@@ -182,6 +188,8 @@
       ++iter;
       ++pixel;
       }
+
+    std::cout << "We were done !" << std::endl;
 
     if( m_ImageRegionDefined )
       {
