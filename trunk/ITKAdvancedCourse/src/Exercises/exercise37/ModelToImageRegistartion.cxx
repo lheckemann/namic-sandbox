@@ -24,8 +24,7 @@
 
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkTranslationTransform.h"
-#include "itkOnePlusOneEvolutionaryOptimizer.h"
-#include "itkNormalVariateGenerator.h" 
+#include "itkAmoebaOptimizer.h"
 
 #include "itkImageFileReader.h"
 
@@ -69,16 +68,14 @@ public:
         }    
       else if( typeid( event ) == typeid( itk::IterationEvent ) )
         {
-        std::cout << m_Optimizer->GetCurrentIteration() << "   ";
-        std::cout << m_Optimizer->GetValue() << "   ";
-        std::cout << m_Optimizer->GetCurrentPosition() << std::endl;
+        std::cout << m_Optimizer->GetCachedValue() << "   ";
+        std::cout << m_Optimizer->GetCachedCurrentPosition() << std::endl;
         }
       else if( typeid( event ) == typeid( itk::EndEvent ) )
         {
         std::cout << std::endl << std::endl;
-        std::cout << "After " << m_Optimizer->GetCurrentIteration();
-        std::cout << "  iterations " << std::endl;
-        std::cout << "Solution is    = " << m_Optimizer->GetCurrentPosition();
+        std::cout << "Solution is    = ";
+        std::cout << m_Optimizer->GetCachedCurrentPosition() << std::endl;
         std::cout << std::endl;
         }
     }
@@ -123,7 +120,7 @@ public:
     {
       if(!this->m_FixedImage)
         {
-        std::cout << "Please set the image before the moving spatial object" << std::endl;
+        std::cerr << "Please set the image before the moving spatial object" << std::endl;
         return;
         }
       this->m_MovingSpatialObject = object;
@@ -160,6 +157,7 @@ public:
   /** Get the value for SingleValue optimizers. */
   MeasureType    GetValue( const ParametersType & parameters ) const
     {   
+    std::cout << "GetValue(" << parameters << " ) = ";
       double value;
       this->m_Transform->SetParameters( parameters );
     
@@ -175,6 +173,7 @@ public:
           }
         it++;
         }
+      std::cout << value << std::endl;
       return value;
     }
 
@@ -196,10 +195,10 @@ private:
 int main( int argc, char *argv[] )
 {
 
-  if( argc < 2 )
+  if( argc < 3 )
     {
     std::cerr << "Missing parameters " << std::endl;
-    std::cerr << "Usage: " << argv[0] <<  " inputImage" << std::endl;
+    std::cerr << "Usage: " << argv[0] <<  " inputImage initialDelta" << std::endl;
     }
 
   typedef itk::Image< float, 3 >      ImageType;
@@ -210,7 +209,7 @@ int main( int argc, char *argv[] )
 
   EllipseType::Pointer ellipse = EllipseType::New();
 
-  ellipse->SetRadius( 45.0 );
+  ellipse->SetRadius( 50.0 );
 
 
   EllipseType::TransformType::OffsetType offset;
@@ -235,34 +234,28 @@ int main( int argc, char *argv[] )
   InterpolatorType::Pointer interpolator = InterpolatorType::New();
 
 
-
-  typedef itk::OnePlusOneEvolutionaryOptimizer  OptimizerType;
+  typedef itk::AmoebaOptimizer  OptimizerType;
   OptimizerType::Pointer optimizer  = OptimizerType::New();
-
 
 
   typedef itk::TranslationTransform<> TransformType;
   TransformType::Pointer transform = TransformType::New();
 
 
+  OptimizerType::ParametersType simplexDelta( transform->GetNumberOfParameters() );
+  simplexDelta.Fill( atof( argv[2] )  );
 
-  itk::Statistics::NormalVariateGenerator::Pointer generator 
-    = itk::Statistics::NormalVariateGenerator::New();
+  optimizer->AutomaticInitialSimplexOff();
+  optimizer->SetInitialSimplexDelta( simplexDelta );
+  optimizer->SetParametersConvergenceTolerance( 0.25 ); // quarter pixel
+  optimizer->SetFunctionConvergenceTolerance(0.001); // 0.1%
+  optimizer->SetMaximumNumberOfIterations( 200 );
 
 
-  generator->Initialize(12345);
-
-
-  optimizer->SetNormalVariateGenerator( generator );
-  optimizer->Initialize( 10 );
-  optimizer->SetMaximumIteration( 400 );
-
- 
-  TransformType::ParametersType parametersScale(3);
+  TransformType::ParametersType parametersScale( transform->GetNumberOfParameters() );
   parametersScale.Fill(1.0);
 
   optimizer->SetScales( parametersScale );
-
 
 
   typedef IterationCallback< OptimizerType >   IterationCallbackType;
