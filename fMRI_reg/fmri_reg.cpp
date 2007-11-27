@@ -142,8 +142,8 @@ try{
   TranslationTransform::ParametersType trans_xform_scales(
                       trans_xform->GetNumberOfParameters());
     // the range of 1.0 / the image diag size (in millimeters).
-    trans_xform_scales[0] = 1.0/size_mm[0]/1.414;
-    trans_xform_scales[1] = 1.0/size_mm[0]/1.414;
+    trans_xform_scales[0] = 1.0;
+    trans_xform_scales[1] = 1.0;
     cgd_optimizer->SetScales(trans_xform_scales); //optimizer scale
   
   //set fixed and moving images
