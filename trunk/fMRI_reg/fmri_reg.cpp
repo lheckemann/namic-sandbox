@@ -199,13 +199,13 @@ try{
     grid_image = grid_resampler->GetOutput();
 
   // -- Apply Centered Rigid 2D Transform --
-    std::cerr<<endl<<" -- Starting CenteredRigid2DTransform Transform ... ";
-    CenteredRigid2DTransform::Pointer centered_xform
-                      = CenteredRigid2DTransform::New();
+    std::cerr<<endl<<" -- Starting Euler2DTransform Transform ... ";
+    Euler2DTransform::Pointer centered_xform
+                      = Euler2DTransform::New();
     registration->SetTransform( centered_xform );
   // set initial parameters of transform
-    CenteredRigid2DTransform::InputPointType center__;
-    CenteredRigid2DTransform::OutputVectorType translation__;
+    Euler2DTransform::InputPointType center__;
+    Euler2DTransform::OutputVectorType translation__;
     translation__[0] = trans_xform->GetParameters()[0];
     translation__[1] = trans_xform->GetParameters()[1];
     center__[0] = orgn[0] + size_pxl[0] / 2.0;
@@ -216,20 +216,22 @@ try{
     registration->SetInitialTransformParameters( centered_xform->GetParameters() );
 
   //setup optimizer scales
-    CenteredRigid2DTransform::ParametersType centered_xform_scales(
+    Euler2DTransform::ParametersType centered_xform_scales(
                     centered_xform->GetNumberOfParameters());
     // The first parameter is the angle in  radians. Second and third are the
     // center of rotation coordinates and the last two parameters are the
     // translation in each dimension.
-    centered_xform_scales[0] = 1.0;
+    centered_xform_scales[0] = 1.000;
     // ra plane center - in space coordinates
-    centered_xform_scales[1] = 1.0/size_mm[0]/1.414;
-    centered_xform_scales[2] = 1.0/size_mm[0]/1.414;
+//    centered_xform_scales[1] = 1.0/size_mm[0]/1.414;
+//    centered_xform_scales[2] = 1.0/size_mm[0]/1.414;
     //translation terms
     //the range of 1.0 / the image diag size (in millimeters).
     centered_xform_scales[3] = 1.0/size_mm[0]/1.414;
     centered_xform_scales[4] = 1.0/size_mm[0]/1.414;
   cgd_optimizer->SetScales(centered_xform_scales); //optimizer scale
+
+  cgd_optimizer->SetMaximumStepLength( 5.0 ); 
 
   //set fixed and moving images
     registration->SetFixedImage( fixed_img );

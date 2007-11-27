@@ -125,6 +125,7 @@ struct CallPacket
 typedef itk::TranslationTransform< double, 2 >      TranslationTransform;
 typedef itk::AffineTransform< double, 2 >           AffineTransform;
 typedef itk::CenteredRigid2DTransform<double>       CenteredRigid2DTransform;
+typedef itk::Euler2DTransform<double>               Euler2DTransform;
 typedef itk::Transform< double, 2, 2>               Transform;
 
 typedef itk::RegularStepGradientDescentOptimizer    RSGDOptimizer;
