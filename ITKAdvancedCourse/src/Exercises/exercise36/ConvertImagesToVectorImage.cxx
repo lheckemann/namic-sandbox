@@ -29,10 +29,10 @@ int main(int argc, char*argv[])
     std::cerr << 
       "  ConvertImagesToVectorImage image-1.mhd image-2.mhd image-3.mhd ..... " 
      <<  "image-N.mhd outputVectorImage.mhd " << std::endl;
+    std::cerr << "Make sure all the images are of pixel type unsigned char and same dimensions " << std::endl;
     return EXIT_FAILURE;
     }
 
-  std::cout << "Make sure the images are of pixel type unsigned char and same dimensions " << std::endl;
 
   typedef unsigned char PixelType;
   const unsigned int    Dimension = 2;
@@ -51,16 +51,6 @@ int main(int argc, char*argv[])
     reader->SetFileName( argv[k] );
     reader->Update();
     filter->SetNthInput( k-1, reader->GetOutput() );
-    }
-
-  try
-    {
-    filter->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
     }
 
   WriterType::Pointer writer = WriterType::New();
