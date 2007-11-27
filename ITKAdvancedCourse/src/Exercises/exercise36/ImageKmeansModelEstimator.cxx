@@ -23,10 +23,6 @@
 #include "itkKdTreeBasedKmeansEstimator.h"
 #include "itkWeightedCentroidKdTreeGenerator.h"
 
-#include "itkMinimumDecisionRule.h"
-#include "itkEuclideanDistance.h"
-#include "itkSampleClassifier.h"
-
 #include "itkImageToListAdaptor.h"
 
 #include "itkImage.h"
