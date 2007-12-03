@@ -3,7 +3,8 @@
   <category>filtering</category>
   <title>Calculate Statistics</title>
   <description>
-  Calculates various statistics for tracts generated with Stochastic Tractography Filter.
+  Generates a volume where the value of each voxel is the number of fibers which pass through that voxel divided by the total number of sampled fibers.
+  This value can been interpreted as the probability that a particular voxel is connected to the seed ROI by a fiber tract.
   </description>
   <version>1.0</version>
   <license></license>
