@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <executable>
-  <category>filtering</category>
+  <category>Tractography.Stochastic</category>
   <title>Stochastic Tractography Filter</title>
   <description>
-  Generates a map of connectivity probabilities from a DWI volume.
+  Generates a VTK XML polydata file that contains a collection of sampled fiber tracts.
+  Each fiber tract is a sample from the fiber tract posterior probability distribution.
   </description>
   <version>1.0</version>
   <license></license>

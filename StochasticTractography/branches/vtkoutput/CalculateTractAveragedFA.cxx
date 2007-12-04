@@ -68,7 +68,7 @@ int main(int argc, char* argv[]){
     }
     fafile<<(double)accumFA/(double)npts<<std::endl;
   }
-
+  fafile.close();
   //clean up vtk stuff
   tractsreader->Delete();
   
