@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <executable>
-  <category>filtering</category>
+  <category>Tractography.Stochastic</category>
   <title>ROI Tract Filter</title>
   <description>
   Creates a new tract container containing only tracts which pass through the selected ROI's

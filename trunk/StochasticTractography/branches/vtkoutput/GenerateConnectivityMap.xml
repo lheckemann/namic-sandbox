@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <executable>
-  <category>filtering</category>
-  <title>Calculate Statistics</title>
+  <category>Tractography.Stochastic</category>
+  <title>Generate Connectivity Map</title>
   <description>
   Generates a volume where the value of each voxel is the number of fibers which pass through that voxel divided by the total number of sampled fibers.
   This value can been interpreted as the probability that a particular voxel is connected to the seed ROI by a fiber tract.
