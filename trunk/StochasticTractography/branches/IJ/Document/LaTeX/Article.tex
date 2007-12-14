@@ -28,7 +28,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 % The title should be descriptive enough for people to be able to find
 % the relevant document. 
-\title{White Matter Stochastic Tractography}
+\title{A White Matter Stochastic Tractography System}
 
 % Increment the release number whenever significant changes are made.
 % The author and/or editor can define 'significant' however they like.
@@ -37,8 +37,8 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 % At minimum, give your name and an email address.  You can include a
 % snail-mail address if you like.
 \author{Tri M. Ngo$^{1}$, Carl-Fredrik Westin$^{2}$ and Polina Golland$^{3}$}
-\authoraddress{$^{1}$BWH, Boston\\
-               $^{2}$BWH, Boston\\
+\authoraddress{$^{1}$MIT, Cambridge\\
+               $^{2}$Harvard, Cambridge\\
                $^{3}$MIT, Cambridge}
 
 \begin{document}
@@ -70,7 +70,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 % scope of the document.
 \begin{abstract}
 \noindent
-White matter tractography enables studies of fiber bundle characteristics.  Stochastic tractography facilitates these investigations by providing a measure of confidence regarding the inferred fiber bundles.  This article presents a multithreaded ITK stochastic tractography filter that will enable novel studies of fiber tract abnormalities.  Additionally, we provide an easy to use command line interface for the filter that is compatible with the 3D Slicer visualization environment. Finally, we demonstrate an application of the filter on real DTI images.
+White matter tractography enables studies of fiber bundle characteristics.  Stochastic tractography facilitates these investigations by providing a measure of confidence regarding the inferred fiber bundles.  This article presents a multithreaded ITK stochastic tractography filter that will enable novel studies of fiber tract abnormalities.  Additionally, we provide an easy to use command line interface for the filter that is compatible with the 3D Slicer visualization environment.
 \end{abstract}
 
 \tableofcontents
@@ -80,33 +80,25 @@ White matter tractography enables studies of fiber bundle characteristics.  Stoc
 \begin{figure}
 \center
 	\includegraphics[width=0.75\linewidth]{slicerinterface}
-	\caption{3D Slicer environment displaying the Stochastic Tractography Module interface and a connectivity map overlaid on a fractional anisotropy image.}
+	\itkcaption{3D Slicer environment displaying the Stochastic Tractography Module interface and a connectivity map overlaid on a fractional anisotropy image.}
 	\label{fig:Intro}
 \end{figure}
 
-Magnetic Resonance Imaging (MRI) is a valuable imaging modality for studying the brain in-vivo.  We can use use MRI to differentiate between tissue types, which is useful in anatomical studies.  Diffusion Tensor Imaging (DTI) provides a method to characterize white matter tracts, enabling studies of white matter architecture.
+DTI data sets provide information about the diffusion of water at each voxel, or volume element, in the form of diffusion tensors.  This information can be used to extract the underlying fiber tracks which produced the observations.  This technique is known as DTI Tractography.
 
-We can visualize DTI data sets using a number of methods.  DTI data sets provide information about the diffusion of water at each voxel, or volume element, in the form of diffusion tensors.  A popular technique to visualize these diffusion tensors is to extract fiber tracts which summarize the diffusion information across many voxels.  This technique is known as DTI Tractography.
+One possible method of performing tractography is to generate tracts which follow the direction of maximal water diffusion of the voxels they pass through \cite{Mori99, Basser00}.  This method is sometimes called streamline tractography.  Unfortunately streamline tractography does not provide information about the uncertainty of the generated tracks caused by noise or insufficient spatial resolution.  Bayesian white matter tractography methods try to address this problem by performing tractography under a probabilistic framework.  Several formulations of stochastic/probabilistic tractography have been suggested \cite{bjornemoMICCAI02,behrensMRM03,Tuch01,derek,Lazar05}, however tools which enable widespread adoption of stochastic tractography in clinical studies are not currently available.
 
-One possible method of performing tractography is to generate tracts which follow the direction of maximal water diffusion of the voxels they pass through \cite{Mori99, Basser00}.  This method is known as streamline tractography.  However, this method does not provide information about the uncertainty of the generated tracks due to noise or insufficient spatial resolution.  Stochastic white matter tractography methods try to address this problem by performing tractography under a probabilistic framework.  Stochastic methods provide additional information that enables clinical researchers to perform novel studies.  Several formulations of probabilistic tractography have been suggested \cite{bjornemoMICCAI02,behrensMRM03,Tuch01,derek,Lazar05}, however tools which enable widespread adoption of stochastic tractography in clinical studies are not currently available.  This thesis implements an easy to use system for performing stochastic white matter tractography based on the algorithm described by Friman et al. \cite{frimanMICCAI05, frimanTMI06}.
-
-Researchers have hypothesized that white matter abnormalities may underlie some neurological conditions.  For instance, people characterize schizophrenia by its behavioral symptoms.  These symptoms include auditory hallucinations, disordered thinking and delusion \cite{kubickiNYAS05}.  Studies have suggested that these behavioral symptoms have some connection with the neuroanatomical abnormalities observed in schizophrenia patients\cite{kubickiNYAS05}.  Researchers can noninvasively investigate the relationship between brain white matter abnormalities and schizophrenia by using white matter tractography.
-
-Ultimately the success of the system developed in this thesis will depend on its use in the research community.  To this end, we implement the system within the open source ITK Segmentation and Registration Toolkit \cite{itk} framework.  ITK is currently used in many medical data processing applications.  ITK's large existing user base will encourage the system's use in the research community.  Additionally, implementing the stochastic tractography algorithm within ITK facilitates its integration into the 3D Slicer \cite{3Dslicer} for medical data visualization environment.  This thesis also implements a 3D Slicer graphical user interface module for the stochastic tractography system, increasing its ease of use and further encouraging its application in clinical research (figure \ref{fig:Intro}).
-
-Finally, we have applied this system towards the analysis of real DTI data.  Originally, the data was investigated using non-stochastic tractography methods.  We present a new analysis of the data using the system implemented in this research.  We also compare and contrast the results obtain from stochastic tractography and non-stochastic methods.
-
-In this thesis we describe the motivation and implementation of the stochastic tractography system followed by a demonstration of possible applications of the system.  The next chapter  provides a background on nerve fiber tracts, DTI and prior work in white matter tractography.  After the background, the following chapter provides a detailed explanation of the stochastic tractography algorithm.  Then, we describe the implementation of the algorithm within the ITK framework and optimizations used to improve performance.  Next, we demonstrate the system through an example analysis of frontal lobe nerve fiber bundles.  We conclude by discussing a potential study enabled by the algorithm.
+This paper presents an easy to use, multithreaded ITK filter for performing stochastic white matter tractography based on the algorithm described by Friman et al. \cite{frimanMICCAI05, frimanTMI06}.  Additionally, we present a 3D Slicer \cite{3DSlicer} graphical user interface module which uses the stochastic tractography filter, further increasing its ease of use and further encouraging its application in clinical research (figure \ref{fig:Intro}).
 
 \section{Algorithm Overview}
 
 \begin{figure}
-  \center 
+  \center
 	\includegraphics[width=\linewidth]{stflowsmall}
-	\caption{A flow chart demonstrating key steps in the stochastic tractography algorithm}
+	\itkcaption{A flow chart demonstrating key steps in the stochastic tractography algorithm}
 	 \label{fig:stflow}
 \end{figure}
-The stochastic tractography algorithm implemented in this thesis is based on Friman's \cite{frimanTMI06} approach with some modifications to the stopping criteria.  Figure \ref{fig:stflow} provides a flow chart demonstrating key steps in the algorithm. 
+The stochastic tractography algorithm implemented in this paper is based on Friman's \cite{frimanTMI06} approach with some modifications to the stopping criteria.  This paper provides a brief overview of the algorithm.  Please refer to Friman's \cite{frimanTMI06} original paper for a more complete explanation of the theory.  Figure \ref{fig:stflow} provides a flow chart demonstrating key steps in the algorithm.
 
 A fiber tract is modeled as a sequence of unit vectors.  The orientation of these unit vectors is determined by sampling a posterior fiber orientation distribution which is dependent on the local diffusion data as well as the orientation of the unit vector in the previous step.  The posterior distribution is a normalized product of the prior likelihood of the fiber orientation and the likelihood of that fiber orientation given the local diffusion data.
 
@@ -116,21 +108,19 @@ The orientation of each vector depends only on the previous vector.  This depend
 
 Friman's approach is a Bayesian inference algorithm similar to Behrens's but with some important optimizations \cite{frimanTMI06}.  In contrast with Behrens's two-compartment observation model, the constrained model used by Friman is derived from the thoroughly studied tensor model of diffusion.  The advantage of using the constrained model is that it is relatively easy to estimate the parameters for the model.  The parameters for the constrained model are obtained after the tensor model has been fit to the diffusion data.  Since the parameters for the tensor model are easily obtained through many computationally efficient ways, the constrained model's parameters are likewise easy to obtain.  The constrained model can be fit to every voxel within a matter of seconds whereas Behrens's model takes a couple of hours \cite{frimanTMI06}.  Additionally Friman avoids using MCMC techniques by assuming that parameters other than the principle diffusion direction take on their ML estimates with certainty within each voxel.  Friman demonstrates that eliminating this source of uncertainty has little effect on the resulting posterior fiber orientation distribution.
 
-In Friman's paper on stochastic tractography, the tracking is terminated when an encountered voxel's diffusion distribution below a minimal measure of anisotropy.  However, since the stochastic tractography algorithm takes into account this uncertainty with an increase in the spatial variance of sampled fibers, this termination criterion seems arbitrary and contradictory with the goals of stochastic tractography, which is to enable sampling of tracts in regions of uncertainty.  Thus we replace this termination criterion with one which terminates tractography based on the posterior probability that a fiber tract exists within the current voxel.  The posterior probability that a fiber tract exists in a given voxel can be obtained by performing a soft segmentation of white matter on an anatomical image co-registered with the DWI data.  Alternatively, the soft segmentation can also be performed on the B0 image of the DWI data set, thus eliminating the need for additional data.  While this may seem equivalent to using an anisotropy threshold criterion, since white matter generally has higher anisotropy than gray matter, it does not exclude regions of white matter which have low anisotropy due to crossing fibers.  This criteria should enable the algorithm to detect more tracts than under the anisotropy termination criteria.
+In Friman's paper, tracking is terminated when an encountered voxel's diffusion distribution anisotropy is below some threshold.  However, since the stochastic tractography algorithm takes into account this uncertainty with an increase in the spatial variance of sampled fibers, this termination criterion seems arbitrary and contradictory with the goals of stochastic tractography, which is to enable sampling of white matter fiber tracts in regions of uncertainty.  Thus we replace this termination criterion with one which terminates tractography based on the posterior probability that a fiber tract exists within the current voxel.  This probability is equivalent to the probability that the current voxel is in white matter.  A map of white matter posterior probability can be obtained through a soft segmentation of an anatomical image of the brain co-registered with the DWI data.  Alternatively, the soft segmentation can also be performed on the B0 image of the DWI data set, thus eliminating the need for additional data.  Although this alternative termination criteria may seem equivalent to using an anisotropy threshold criterion, because white matter generally has higher anisotropy than gray matter, the alternative method does not exclude regions of white matter which have low anisotropy due to crossing fibers.  This criteria should enable the algorithm to detect more tracts in white matter than under the anisotropy termination criteria.
 
 
 \section{Implementation Details}
 
-We implemented the algorithm as a new filter in the Insight Segmentation and Registration Toolkit (ITK).  The ITK toolkit is a collection of image processing and statistical analysis algorithms for biomedical imaging applications.  Additionally, the ITK toolkit is open-source software, which allows other researchers to learn directly how this system was implemented and make improvements in the future.  Including the algorithm in the ITK toolkit makes it available to a large existing research community.  Additionally, we created a GUI module for the 3D Slicer medical visualization program that provides easy access to the algorithm via an intuitive visual interface.  We also created a command line interface to the ITK filter that can be used to process large numbers of data sets in a batch mode.  Choosing to implement the algorithm as an extension of already established tools facilitates adoption of the algorithm in clinical studies.
+The stochastic tractography algorithm is a Monte Carlo algorithm which samples the high dimensional parameter space of fiber tracts.  This is a large space because fiber tracts are characterized by a sequence of segment orientations, each of which is a separate parameter describing the fiber tract.  As such, it may take many samples to accurately approximate the posterior distribution of these parameters.  However, since these samples are IID, they can be generated in parallel.  Implementing the filter in a multithreaded fashion enables parallel sampling of the tract distribution.
 
-The stochastic tractography algorithm is a Monte Carlo algorithm which samples the high dimensional parameter space of fiber tracts.  This parameter space is large because fiber tract are characterized by a sequence of segment orientations, each of which can be considered a separate parameter describing the fiber tract.  As such, it may take many samples to accurately approximate the posterior distribution of these parameters.  However, since these samples are IID, the samples can be generated in parallel.  Implementing the system in a multithreaded fashion enables parallel sampling of the tract distribution.
-
-ITK  provides a framework for implementing multithreaded algorithms.  The ITK multithreading framework assumes that the output region can be divided into disjoint sections with each thread working exclusively on their own section of the output image.  This design prevents threads from simultaneously writing to the same memory region, which may cause unexpected results.  However, since the stochastic tractography algorithm generates tracts that may span the entire output image, dividing the output region into disjoint sections is not possible.  Additionally, in order to obtain statistics on these tracts, we need to output the generated tracts as well as the resultant connectivity image.  Thus the existing ITK framework for implementing multithreaded filters is not very useful for our stochastic tractography filter.  Fortunately ITK also provides basic multithreading functions which allowed us to create a custom multithreaded design for the stochastic tractography system that is still within the ITK framework. 
+ITK provides a framework for implementing multithreaded algorithms.  The ITK multithreading framework assumes that the output region can be divided into disjoint sections with each thread working exclusively on their own section of the output image.  This design prevents threads from simultaneously writing to the same memory region, which may cause unexpected results.  However, since the stochastic tractography algorithm generates tracts that may span the entire output image, dividing the output region into disjoint sections is not possible.  Additionally, in order to obtain statistics on these tracts, we need to output the generated tracts as well as the resultant connectivity image.  Thus the existing ITK framework for implementing multithreaded filters is not very useful for our stochastic tractography filter.  Fortunately ITK also provides basic multithreading functions which allowed us to create a custom multithreaded design that is still within the ITK framework. 
 
 \begin{figure}[t]
   \center
 	\includegraphics[width=\linewidth]{filterblock}
-	\caption{A block diagram of the filter showing its shared likelihood cache and multithreaded architecture.}
+	\itkcaption{A block diagram of the filter showing its shared likelihood cache and multithreaded architecture.}
 	\label{fig:filterblock}
 \end{figure}
 
@@ -145,18 +135,18 @@ Using a shared likelihood cache between multiple concurrent threads creates addi
   \center
   \includegraphics[trim = 20mm 70mm 20mm 70mm, clip, width=0.75\linewidth]
 	  {timepertracts}
-	\caption{A graph displaying the amount of time needed to sample a number of tracts.  Each line represents the algorithm's performance using different numbers of threads.  This test was run on a 4 processor machine.}
+	\itkcaption{A graph displaying the amount of time needed to sample a number of tracts.  Each line represents the algorithm's performance using different numbers of threads.  This test was run on a 4 processor machine.}
 	\label{fig:performance}
 \end{figure}
 
 Access collisions to the likelihood cache can be reduced if we increase the granularity of the lock.  Instead of using one large lock for the entire likelihood cache image, we use a lock for each voxel.  The probability of two threads accessing the same voxel simultaneously is much less than the probability of two threads accessing any part of the likelihood cache.  These per voxel locks are conveniently constructed using an ITK image whose voxel data type is a mutex.  Similar to the likelihood cache, this collection of mutexes is indexed by coordinates which correspond to the coordinates of the voxels in the DWI input data.  Again, access to the mutex image is fast due to ITK's optimized access operators for data types indexed by coordinates.  The only cost to using this high resolution mutex image is the additional memory required to store pixel mutexes.  However this cost is small since a mutex is essentially a Boolean variable.  The mutex image allows different voxels in the likelihood cache image to be updated simultaneously, increasing the rate that the likelihood cache is filled.  The advantage of using a mutex image is most evident when tracking in highly isotropic regions,  where collisions are very unlikely to occur, since the sampled paths are very dispersed.  Even on uni-processor systems, using multiple threads may improve performance since the rate of encountering an unvisited voxel may be higher, thus filling the likelihood cache faster. Figure \ref{fig:performance} demonstrates the required computation time for a given number of tracts under different number of threads.
 
-Additionally, to compute the weighted least squares estimates for the log tensor model parameters, we must first estimate the weights.  These weights are found by calculating a least squares estimate of the true intensities of each voxel.  The $\mathbf{A}$ matrix \ref{eq:fulllogtensor} used in this least squares estimation is a function solely of the magnetic gradient directions and associated b-values, which are the same for every voxel in the image.  Since the same $\mathbf{A}$ matrix is used for each voxel in the least squares calculation, a common optimization is to orthogonalize the $\mathbf{A}$ matrix by computing its QR decomposition.  While this operation is computationally expensive, it is performed only once for the entire DWI image.  The orthogonalized $\mathbf{A}$ matrix reduces the cost of computing the weights for every voxel.
-
+Additionally, to compute the weighted least squares estimates for the log tensor model parameters, we must first estimate the weights.  These weights are found by calculating a least squares estimate of the true intensities of each voxel.  The design matrix used in this least squares estimation is a function solely of the magnetic gradient directions and associated b-values, which are the same for every voxel in the image.  Since the same design matrix is used for each voxel in the least squares calculation, a common optimization is to orthogonalize the design matrix by computing its QR decomposition.  While this operation is computationally expensive, it is performed only once for the entire DWI image.  The orthogonalized design matrix reduces the cost of computing the weights for every voxel.
 
 
 \section{User's Guide}
 
+\subsection{ITK Stochastic Tractography Filter}
 The Stochastic Tractography Filter is implemented as a multithreaded image filter in ITK under the class name itk::StochasticTractographyFilter.  The filter is templated over the DWI and white matter probability map input image types and also on the connectivity map image type.  The filter expects the DWI input image type to be an ITK VectorImage Type.  The code below demonstrates how to instantiate the Stochastic Tractography Filter.
 \begin{verbatim}
   //Define Types
@@ -225,22 +215,57 @@ For the specified seed voxel, the filter outputs a connectivity map and a contai
   CImageType::Pointer cmap = ptfilterPtr->GetOutput();
 \end{verbatim}
 
+\subsection{Command Line Module Interface}
+The command line module interface provides an easy to use method of performing common tasks which use the ITK stochastic tractography filter.  The command line module takes as input a DWI volume, a white matter probability map and a label map to produce a connectivity probability map and fractional anisotropy and length statistics for a selected seed region in the label map.  Currently the command line module is designed to work only with NRRD formatted volumes due to its support of the diffusion measurement frame, but future revisions of the software will extend support to other formats.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%  Example on how to insert a figure
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The command line module is named \texttt{StochasticTractographyFilter}.  Calling the executable with the \texttt{--help} flag will list all available inputs and options as well as a short description of each item.  This section will demonstrate two typical usages of the command line module interface.
 
-%\begin{figure}
-%\center
-%\includegraphics[width=0.8\textwidth]{RegistrationComponentsDiagram.eps}
-%\itkcaption[Registration Framework Components]{The basic components of the
-%registration framework are two input images, a transform, a metric, an
-%interpolator and an optimizer.}
-%\label{fig:RegistrationComponents}
-%\end{figure}
+Given a DWI volume, an associated white matter probability map and a label map, the command line module can be used to generate an image that provides the probability of connectivity from an ROI in the label map to all other voxels in the DWI.  The label map is an integer valued image that segments voxels into different classes or labels.
 
+Let \texttt{case24} be the name of the subject we are interested in analyzing.  The directory \texttt{case24} contains all relevant files for that subject.  It will also hold the output files generated by the command line module.  Before executing the command line module interface, a possible list of files in the \texttt{case24} directory may include:
+\begin{verbatim}
+  case24_DWI.nhdr (DWI NRRD header)
+  case24_DWI.raw (DWI NRRD data)
+  case24_whitematterPB.nhdr (White Matter Probability Map NRRD header)
+  case24_whitematterPB.raw (White Matter Probability Map NRRD data)
+  case24_labelmap.nhdr (Label Map NRRD data)
+  case24_labelmap.raw (Label Map NRRD data)
+\end{verbatim}
+Assuming that the starting ROI is labeled $15$ inside the labelmap, the stochastic tractography filter can be run by executing the command below within the \texttt{case24} directory: 
+To run the command line module, execute the command:
+\begin{verbatim}
+  StochasticTractographyFilter -c 6500 -m 500 -t 200 -e 15 -l 15
+  -r -o case24_RUN0 case24_DWI.nhdr case24_whitematterPB.nhdr
+  case24_labelmap.nhdr
+\end{verbatim}
+After the command completes, the \texttt{case24} directory will contain the following additional files:
+\begin{verbatim}
+  case24_RUN0_CMAP.nhdr (Connectivity Map NRRD header)
+  case24_RUN0_CMAP.raw (Connectivity Map NRRD data)
+  case24_RUN0_TENSOR.nhdr (Tensor image NRRD header)
+  case24_RUN0_TENSOR.raw (Tensor image NRRD data)
+  case24_RUN0_COND.nhdr (Conditioned Connectivity Map NRRD header)
+  case24_RUN0_COND.raw (Conditioned Connectivity Map NRRD data)
+  case24_RUN0_CONDFAValues.txt (Conditioned Tract-Averaged FA values)
+  case24_RUN0_CONDLENGTHValues.txt (Conditioned Tract Length values)
+\end{verbatim}
+
+The conditioned connectivity map is identical to the normal connectivity map when the start label and end labels are the same.  However, if the label map contains ROIs designated by two labels, the conditioned connectivity map will be generated using only fibers which start in the start ROI and also pass through the second ROI.  Assuming the second ROI is labeled $2$ in the labelmap, the following command will isolate tracts which start in the start ROI and pass through the end ROI:
+\begin{verbatim}
+  StochasticTractographyFilter -c 6500 -m 500 -t 200 -e 2 -l 15
+  -r -o case24_RUN0 case24_DWI.nhdr case24_whitematterPB.nhdr
+  case24_labelmap.nhdr
+\end{verbatim}
+
+Now the conditioned connectivity maps and statistics are generated using only tracts which fulfill the condition of passing through both ROIs.  This feature allows us to analyze the particular bundle of tracts which connect two regions.
+ 
+\subsection{3D Slicer Interface}
+To encourage the algorithm's adoption in clinical studies, we created an interactive GUI module for the 3D Slicer medical image visualization program was created which interfaces with the ITK stochastic tractography filter.
+
+The module was implemented using the command line module interface provided by the 3D Slicer environment.  This interface greatly eased the adaption of the command line interface into a graphical interface that could be included with 3D Slicer.  The command line interface and the graphical interfaces are both completely described using an XML file.  This XML file description is then parsed by a program provided by 3D Slicer which generates code that can be included with the command line interface to create what 3D Slicer refers to as a command line module.  Command line modules can be run independently of 3D Slicer but can also be incorporated in to the 3D Slicer graphical interface.  This enables the stochastic tractography algorithm to function as an easy to use extension in the 3D Slicer program as well as a stand alone program suitable for processing a large numbers of data sets non-interactively.
+
+\section{Conclusion}
+In this paper we have implemented a stochastic tractography system that can be used to analyze white matter architecture from DTI images.  The multithreaded stochastic tractography ITK filter allows parallel sampling of fiber tracts, reducing computation time on multi-processor systems.  Finally, we have created easy to use command line and 3D Slicer graphical interfaces to facilitate algorithm's use in clinical studies.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %  Insert the bibliography using BibTeX
