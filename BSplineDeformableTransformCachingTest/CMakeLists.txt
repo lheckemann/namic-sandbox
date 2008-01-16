@@ -9,10 +9,10 @@ ADD_EXECUTABLE(MattesMetricCachingTest MattesMetricCachingTest.cxx )
 
 TARGET_LINK_LIBRARIES(MattesMetricCachingTest ITKIO ITKAlgorithms ITKNumerics)
 
-FIND_FILE(INPUT_TEST_IMAGE inputImage.mha ~/data)
-
 ENABLE_TESTING()
 
-ADD_TEST( MattesWithCaching    MattesMetricCachingTest ${INPUT_TEST_IMAGE} 1000 1 )
+SET(NUMBER_OF_CALLS 1000)
 
-ADD_TEST( MattesWithoutCaching MattesMetricCachingTest ${INPUT_TEST_IMAGE} 1000 0 )
+ADD_TEST( MattesWithCaching    MattesMetricCachingTest  ${NUMBER_OF_CALLS} 1 )
+
+ADD_TEST( MattesWithoutCaching MattesMetricCachingTest  ${NUMBER_OF_CALLS} 0 )
