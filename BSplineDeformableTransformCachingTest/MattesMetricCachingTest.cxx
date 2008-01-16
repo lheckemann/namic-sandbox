@@ -27,7 +27,6 @@
 #include "itkMattesMutualInformationImageToImageMetric2.h"
 #include "itkMattesNoCachingMutualInformationImageToImageMetric.h"
 
-#include "itkBSplineDeformableTransform.h"
 #include "itkBSplineDeformableTransform2.h"
 
 
@@ -109,9 +108,22 @@ int main( int argc, char *argv[] )
   image->Allocate();
 
 
+  // Initialize the content of the image.
+  typedef itk::ImageRegionIterator< ImageType >  IteratorType;
+
+  IteratorType itr( image, region );
+
+  itr.GoToBegin();
+
+  while( !itr.IsAtEnd() )
+    {
+    // put the x index value as pixel value
+    itr.Set( itr.GetIndex()[0] ); 
+    ++itr;
+    }
+
   ImageType::RegionType fixedRegion = image->GetBufferedRegion();
   
-
 
   typedef TransformType::RegionType RegionType;
   RegionType bsplineRegion;
