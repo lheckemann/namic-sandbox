@@ -148,7 +148,11 @@ int main( int argc, char *argv[] )
   typedef TransformType::ParametersType     ParametersType;
 
   
-  const unsigned int numberOfSamples = fixedRegion.GetNumberOfPixels() * 0.20;
+  const unsigned int totalNumberOfPixels = fixedRegion.GetNumberOfPixels();
+
+  const unsigned int numberOfSamples = 
+    static_cast< unsigned int >( totalNumberOfPixels * 0.20 );
+
   const unsigned int numberOfHistogramBins = 50;
   const unsigned int seed = 76926294;
 
@@ -163,6 +167,7 @@ int main( int argc, char *argv[] )
   itk::TimeProbesCollectorBase collector;
 
   std::cout << std::endl << "Starting Benchmark" << std::endl;
+  std::cout << "Number of Samples " << numberOfSamples << std::endl;
 
   TransformType::ParametersType parameters;
 
