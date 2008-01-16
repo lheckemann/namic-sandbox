@@ -226,6 +226,7 @@ int main( int argc, char *argv[] )
   for(unsigned int i=0; i<numberOfIterations; i++)
     {
     collector.Start("GetValueAndDerivative");
+    std::cout << "Iteration " << i << " of " << numberOfIterations << std::endl;
     metric->GetValueAndDerivative( parameters, value, derivative );
     collector.Stop("GetValueAndDerivative");
     }
