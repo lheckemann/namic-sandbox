@@ -13,6 +13,12 @@ ENABLE_TESTING()
 
 SET(NUMBER_OF_CALLS 1000)
 
-ADD_TEST( MattesWithCaching    MattesMetricCachingTest  ${NUMBER_OF_CALLS} 1 )
+SET( IMAGE_SIZE_X  50 )
+SET( IMAGE_SIZE_Y  50 )
+SET( IMAGE_SIZE_Z  50 )
 
-ADD_TEST( MattesWithoutCaching MattesMetricCachingTest  ${NUMBER_OF_CALLS} 0 )
+SET( IMAGE_SIZE ${IMAGE_SIZE_X} ${IMAGE_SIZE_Y} ${IMAGE_SIZE_Z} )
+
+ADD_TEST( MattesWithCaching    MattesMetricCachingTest  ${IMAGE_SIZE} ${NUMBER_OF_CALLS} 1 )
+
+ADD_TEST( MattesWithoutCaching MattesMetricCachingTest  ${IMAGE_SIZE} ${NUMBER_OF_CALLS} 0 )
