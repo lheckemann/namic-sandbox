@@ -4,6 +4,7 @@ SUBDIRS(
   Source
   Testing
   Tools
+  Documents
   )
 
 
