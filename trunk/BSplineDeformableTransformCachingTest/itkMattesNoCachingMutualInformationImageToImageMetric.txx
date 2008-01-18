@@ -141,7 +141,11 @@ MattesNoCachingMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 {
   std::cout << "MattesNoCachingMutualInformationImageToImageMetric::Initialize()" << std::endl;
 
+  MemoryUseCollector memCollector;
+
+  memCollector.Start( "Superclass::Initialize" );
   this->Superclass::Initialize();
+  memCollector.Stop( "Superclass::Initialize" );
   
   // Cache the number of transformation parameters
   m_NumberOfParameters = this->m_Transform->GetNumberOfParameters();
@@ -260,12 +264,17 @@ MattesNoCachingMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
    */
   m_FixedImageSamples.resize( m_NumberOfSpatialSamples );
 
+  memCollector.Start( "Marginal PDF" );
+
   /**
    * Allocate memory for the marginal PDF and initialize values
    * to zero. The marginal PDFs are stored as std::vector.
    */
   m_FixedImageMarginalPDF.resize( m_NumberOfHistogramBins, 0.0 );
   m_MovingImageMarginalPDF.resize( m_NumberOfHistogramBins, 0.0 );
+
+  memCollector.Stop( "Marginal PDF" );
+  memCollector.Start( "Joint PDF" );
 
   /**
    * Allocate memory for the joint PDF and joint PDF derivatives.
@@ -297,6 +306,9 @@ MattesNoCachingMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   m_JointPDF->SetRegions( jointPDFRegion );
   m_JointPDF->Allocate();
 
+  memCollector.Stop( "Joint PDF" );
+  memCollector.Start( "Joint PDF Deriv" );
+
   // For the derivatives of the joint PDF define a region starting from {0,0,0} 
   // with size {m_NumberOfParameters,m_NumberOfHistogramBins, 
   // m_NumberOfHistogramBins}. The dimension represents transform parameters,
@@ -314,10 +326,13 @@ MattesNoCachingMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   m_JointPDFDerivatives->SetRegions( jointPDFDerivativesRegion );
   m_JointPDFDerivatives->Allocate();
 
+  memCollector.Stop( "Joint PDF Deriv" );
 
   /**
    * Setup the kernels used for the Parzen windows.
    */
+  memCollector.Start( "Kernels" );
+
   m_CubicBSplineKernel = CubicBSplineFunctionType::New();
   m_CubicBSplineDerivativeKernel = CubicBSplineDerivativeFunctionType::New();    
 
@@ -344,7 +359,9 @@ MattesNoCachingMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
    * each point of the fixed image sample points list.
    */
   this->ComputeFixedImageParzenWindowIndices( m_FixedImageSamples );
-  
+
+  memCollector.Stop( "Kernels" );
+
   /**
    * Check if the interpolator is of type BSplineInterpolateImageFunction.
    * If so, we can make use of its EvaluateDerivatives method.
@@ -355,6 +372,8 @@ MattesNoCachingMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
    * provided by the superclass.
    *
    */
+  memCollector.Start( "Interpolator" );
+
   m_InterpolatorIsBSpline = true;
 
   BSplineInterpolatorType * testPtr = dynamic_cast<BSplineInterpolatorType *>(
@@ -386,6 +405,8 @@ MattesNoCachingMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     itkDebugMacro( "Interpolator is BSpline" );
     }
 
+  memCollector.Stop( "Interpolator" );
+
   /** 
    * Check if the transform is of type BSplineDeformableTransform.
    *
@@ -396,6 +417,8 @@ MattesNoCachingMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
    * [3] Precomputing the indices of the parameters within the 
    *     the support region of each sample point.
    */
+  memCollector.Start( "Transform" );
+
   m_TransformIsBSpline = true;
 
   BSplineTransformType * testPtr2 = dynamic_cast<BSplineTransformType *>(
@@ -435,6 +458,8 @@ MattesNoCachingMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       }
     }
 
+  memCollector.Stop( "Transform" );
+  memCollector.Report( std::cout );
 }
 
 
