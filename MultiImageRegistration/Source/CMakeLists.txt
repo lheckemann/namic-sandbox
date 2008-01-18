@@ -43,3 +43,7 @@ TARGET_LINK_LIBRARIES(CreateImageSetBspline ITKCommon ITKBasicFilters ITKIO ITKS
 
 ADD_EXECUTABLE(ComputeJacobianField ComputeJacobianField.cxx )
 TARGET_LINK_LIBRARIES(ComputeJacobianField ITKCommon ITKBasicFilters ITKIO ITKStatistics)
+
+ADD_EXECUTABLE(ComputeDeformationFields ComputeDeformationFields.cxx )
+TARGET_LINK_LIBRARIES(ComputeDeformationFields ITKCommon ITKBasicFilters ITKIO)
+
