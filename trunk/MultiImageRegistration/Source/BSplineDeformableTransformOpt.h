@@ -183,6 +183,9 @@ public:
   /** Get the array of coefficient images. */
   virtual ImagePointer * GetCoefficientImage()
     { return m_CoefficientImage; }
+  virtual const ImagePointer * GetCoefficientImage() const
+    { return m_CoefficientImage; }
+
 
   /** Set the array of coefficient images.
    *
