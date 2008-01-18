@@ -6,7 +6,7 @@
 #include <string>
 #include <iostream>
 
-//#define MEMORY_USE_KW_SYS
+#define MEMORY_USE_KW_SYS
 
 #ifdef MEMORY_USE_KW_SYS
 #include <itksys/SystemInformation.hxx>
@@ -32,7 +32,9 @@ public:
   {
 #ifdef MEMORY_USE_KW_SYS
     this->m_SystemInformation.QueryMemory();
-    return this->m_SystemInformation.GetAvailableVirtualMemory() * 1024;
+    // Careful about overflow.
+    return 1024 * (this->m_SystemInformation.GetAvailableVirtualMemory() + 
+                   this->m_SystemInformation.GetAvailablePhysicalMemory());
 #else
 #ifdef WIN32
     DWORD pid = GetCurrentProcessId();
