@@ -15,17 +15,14 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 ]{hyperref}
 
 
-\title{Estimation of Memory and Computation Time Trade-Off for Deformable
+\title{Estimation of Memory and Computation Time Trade-Offs for Deformable
 Registration Based on Mattes Mutual Information and BSpline Deformable
 Transforms}
 
-% Increment the release number whenever significant changes are made.
-% The author and/or editor can define 'significant' however they like.
 \release{1.00}
 
-% At minimum, give your name and an email address.  You can include a
-% snail-mail address if you like.
-\author{Matt Turek$^{1}$, Brad Davis$^{1}$, Serdar Balci$^{2}$, Luis Ibanez$^{1}$, Polina Golland $^{1}$, Stephen Aylward$^{2}$}
+\author{Matt Turek$^{1}$, Brad Davis$^{1}$, Serdar Balci$^{2}$, Luis
+Ibanez$^{1}$, Polina Golland $^{1}$, Stephen Aylward$^{2}$}
 \authoraddress{$^{1}$Kitware Inc., Clifton Park, NY\\
                $^{2}$CSAL MIT, Boston, MA}
 
@@ -58,137 +55,189 @@ Transforms}
 % scope of the document.
 \begin{abstract}
 \noindent
-This document describes the trade-offs between memory consumption and
-computation time that must be considered when performing deformable
-registration using the MattesMutualInformationImageMetric.
-ITK \url{www.itk.org}.  The code of the algorithm is written following the 
-ITK CodingStyle as described in the directory
-
-\code{Insight/Documentation/Style.pdf}
+This document describes the most significant trade-offs between memory
+consumption and computation time that must be considered when performing
+deformable registration using the Mattes Mutual Information Metric and BSpline
+Deformable Transform classes available in ITK.
 
 This paper is accompanied with the source code, input data, parameters and
-output data that the authors used for validating the algorithm described in
-this paper. This adheres to the fundamental principle that scientific
-publications must facilitate reproducibility of the reported results.
+output data that we used for validating the algorithm described in this paper.
+This adheres to the fundamental principle that scientific publications must
+facilitate \textbf{reproducibility} of the reported results.
 \end{abstract}
 
 \tableofcontents
 
-Using filters from the Insight Toolkit, we develop an algorithm for detecting
-and tracking thje movement of solar spots. As it is widely known, celestial
-objects such as the sun are ethereal and perfect, and therefore can not harbor
-artifacts such as spots. However, observations performed with our open source
-telescope have revealed the presence of such spots. The spots seems to continuously change positions on the solar surface. 
+\section{Introduction}
 
-Automatic detection and tracking of the solar spot movements are of fundamental
-importance for allowing the authors to dedicate more time to perfectioning
-optical instruments and less time to the supervised acquisition of reliable
-data.
-
-The reader should be warned that direct observation of the sun without proper
-equipment may result in personal injury, loss of vision and burned brains.
-
-\section{Principles of Solar Spot Detection}
-
-Solar spots can be classified as the darkest objects present on an image of the
-solar surface. Algorithms such as watersheds, statistical classification and
-mathematical morphology are suitable for automatically detecting these features
-in images of the solar surface.
+Deformable registration of images is a computationally demanding task. It
+usually involves a large number of parameters that users must select, and for
+which, there is not always a clear set of guidelines avalable. This report
+intendes to provide some of such guidelines. In particular we are interested on
+analyzing how the choices of specific parameters affects the memory
+requirements of the registration versus the time that it will require to run.
 
 
-\section{Why Image Processing Papers must include Source Code, Images and Parameters }
+\section{Components used in Deformable Image Registration}
 
-Modern Image Processing is most of the time performed with computers. An
-attempt to replicate the results of an algorithm described in a paper entails
-to reimplement the algorithm into source code. This task is far from trivial
-and consumes months of work. The final result can not be guarranted to be
-equivalent to the actual code that was used for testing the algorithm when the
-paper was written, and therefore it cannot be considered a baseline for
-comparing the algoritm with other algorithms availble to the reader.
+When performing image registration in ITK with a deformable Trasnsform, the
+following combination of components is usually employed.
 
-Papers to the Insight Journal are written in the spirit of facilitating and
-encouraging readers to perform replication of work. In this sense, the Insight
-Journal is compliant with essential concepts of the scientific method.
+\begin{itemize}
+\item \doxygen{MattesMutualInformationImageToImageMetric}
+\item \doxygen{BSplineDeformableTransform}
+\item \doxygen{LFBGSBOptimizer}
+\item \doxygen{LinearInterpolator}
+\end{itemize}
 
-Since the code is included with the paper, less time has to be spent in
-describing the code, and more time can be used for describing how to use the
-algorithm in particular types of images.
+Of course, variations of this combinations are also possible, and sometimes
+desirable. However, for the purpose of this study we focus on this particular
+combination of software components.
 
-For questions on the basis of the scientific method the reader is refered to
-\cite{Popper2002,Popper1971}.
-
-
-
-\section{Pointing to other material}
-
-The format of this LaTeX file, allows authors to include code snippets, like
-the following
-
-\small
-\begin{verbatim}
-typedef itk::Image< unsigned char, 3 > ImageType;
-
-ImageType::Pointer image = ImageType::New();
-\end{verbatim}
-\normalsize
-
-and to cite the online documentation of the Insitght Toolkit, for example, the
-link to the doxygen documentation of the ImageToImageFilter
-
-\doxygen{ImageToImageFilter}
-
-LaTeX macros are also available for typesetting code in familiar courier fonts.
-Like the following method of an ITK class.
-
-\code{SetNumberOfIterations()}
+The ITK implementation of Mattes Mutual Information Metric is based on the
+description of the algorimth presented in \cite{Mattes2001,Mattes2003}. Its
+usage is described in the ITK Software Guide
+\cite{ITKSoftwareGuideSecondEdition}.
 
 
+\section{Critical Parameters in Deformable Registration}
+\label{sec:CriticalParameters}
+
+Given the combination of software components described above, the following
+items are the critical parameters that will dominate the memory requirements
+and computational time of the registration.
+
+\begin{itemize}
+\item NSS: Number of Spatial Samples
+\item NHB: Number of Histogram Bins
+\item NBN: Number of BSpline Grid Nodes
+\item BSO: Order of the BSpline
+\item ID:  Image Dimension
+\end{itemize}
+
+\subsection{Number of Spatial Samples}
+
+The samples are a set of randomly selected pixels from the Fixed image, that
+are used as a \emph{representative} set for the entire image.
+
+The number of spatial samples is usually computed as a fraction of the total
+number of pixels in the input image.  In the case of the Mattes mutual
+information metric implementation, these samples are selected at the very
+beginning of the registration process and they remain unchanged during the
+subsequent iterations of the registration.
+
+It is typical to use numbers in the range of $1\%$ to $20\%$ of the Fixed image
+pixels. Using a number of spatial samples that is too low will result in noisy
+evaluations of the Metric and therefore in an unstable behavior of the
+Optimizer when it is walking the parametric space of the Transform. In some
+cases, it may be desirable to raise the number of spatial samples above the
+$20\%$ of the image pixels, in order to gain stability, but this is done at the
+expense of memory consumption and computation time.
+
+\subsection{Number of Histogram Bins}
+
+Mutual Information is computed based on the joint histogram of the Fixed and
+Moving images. The number of bins used in this Histogram is a critical
+parameter of the Metric because it influences the precision at which the Joint
+Entropy of the images is estimated.
+
+In principle, the number of bins required for a reliable estimation of Joint 
+Histogram could be computed based on the Entropy of each one of the images.
+
+However, users, must note that this should be restricted to the \emph{useful}
+section of the intensity distributions of the Fixed and Moving images. For
+example, when registering PET images to MRI images, it is desirable to exclude
+the high intensities from the PET image since those values relate to function
+and metabolism rather than carrying anatomical structural information that we
+could expect to be correlated to the MRI image. In this situation, the
+brightest pixels from the PET image should be excluded, and the Entropy of the
+remaining intensity values is the one that should be used for choosing the
+number of bins to use in the joint histogram.
+
+\subsection{Number of BSpline Grid Nodes}
+
+A BSpline deformable transform is basically defined as BSpline interpolation
+computed from a collection of nodes in which deformation vectors are known.
+The collection of components from the deformation vectors located in the grid
+nodes form the set of Transform parameters. In the context of the ITK image
+registration framework, finding an optimal combination of this set of
+parameters is the final goal of the registration process.
+
+\subsection{Order of the BSpline}
+
+BSplines interpolation kernels can be seen as sucessive convolutions of the box
+car kernel. The box car kernel is considered to be a BSpline interpolator of
+order zero. A common interpolation order ot use is $3$, and it is commonly
+referred as \emph{cubic} BSpline interpolation.
+
+The most significant effect of the BSpline order is that it defines the support
+size for the interpolation kernel. In a one-dimensional grid, a zero order
+BSpline will have kernel whose support has the same size as the separation
+between two consecutive grid nodes. A first order BSpline will have a kernel
+with a support that is twice as long as the support for order zero. In general,
+the support size of a BSpline kernel will be equal to the BSpline order plus
+one, times the separation between two consecutive grid nodes.
+
+\subsection{Image Dimension}
+
+The image dimension, independently of the image size (number of pixels along
+each dimension), is significant because it defines how many BSpline grid nodes
+can affect the location of a given point in space.
+
+\section{Memory Requirements}
+\label{sec:MemoryRequirements}
+
+Our review of the ITK implementation of the Mattes Mutual Information Metric
+revealed several relationships between memory requirements and the critical
+parameters listed in the previous section.
+
+\subsection{Data Structures}
+
+Memory allocation is dominated by the following data structures used inside the
+\doxygen{MattesMutualInformationImageToImageMetric}. They are not listed in a 
+particular order, given that their actual memory demands depend on the specific
+numerical values of the critical parameters.
+
+
+\begin{itemize}
+\item BIWS: BSpline Interpolation Weights per Sample
+\item BNIS: BSpline Node Indices per sample
+\item PDFDerivatives
+\end{itemize}
+
+
+\subsubsection{BSpline Interpolation Weights per Sample}
+\subsubsection{BSpline Node Indices per Sample}
+\subsubsection{PDF Derivatives}
+
+\subsection{Memory Relationships}
+
+The relationships between the critical parameters and the memory footprint of
+the data structures are listed below.
+
+\begin{equation}
+\end{equation}
 
 \section{Software Requirements}
 
-You need to have the following software installed:
+
+In order to reproduce the results described in this report you need to have the
+following software installed:
 
 % The {itemize} environment uses a bullet for each \item.  If you want the 
 % \item's numbered, use the {enumerate} environment instead.
 \begin{itemize}
-  \item  Insight Toolkit 2.4.
-  \item  CMake 2.2
+  \item  Insight Toolkit 3.4.
+  \item  CMake 2.6
 \end{itemize}
 
-Note that other versions of the Insight Toolkit are also available in the
-testing framework of the Insight Journal. Please refere to the following page
-for details
-
-\url{http://www.insightsoftwareconsortium.org/wiki/index.php/IJ-Testing-Environment}
-
-
-% The preceding sections will have been written in a gentler,
-% introductory style.  You may also wish to include a reference
-% section, documenting all the functions/exceptions/constants.
-% Often, these will be placed in separate files and input like this:
-
-
 
 \appendix
 
-\section{This is an Appendix}
+\section{Results}
 
-To create an appendix in a Insight HOWTO document, use markup like
-this:
-
-\begin{verbatim}
-\appendix
-
-\section{This is an Appendix}
-
-To create an appendix in a Insight HOWTO document, ....
-
-
-\section{This is another}
-
-Just add another \section{}, but don't say \appendix again.
-\end{verbatim}
-
+The results described in this section can be reproduced by running the Tests in
+the \code{Testing} subdirectory of this report.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
