@@ -6,6 +6,12 @@
 #include <string>
 #include <iostream>
 
+//#define MEMORY_USE_KW_SYS
+
+#ifdef MEMORY_USE_KW_SYS
+#include <itksys/SystemInformation.hxx>
+#endif 
+
 #ifdef WIN32
   #include <windows.h>
   #include <psapi.h>
@@ -15,58 +21,19 @@
 //  #include <unistd.h>
 #endif
 
+
 class MemoryUsage
 {
 public:
   typedef unsigned long SizeType;
 
-#ifdef WIN32
-  static void PrintMemoryInfo( DWORD processID )
-  {
-  // From MS example
-  // http://msdn2.microsoft.com/en-us/library/ms682050(VS.85).aspx
-  //
-      HANDLE hProcess;
-      PROCESS_MEMORY_COUNTERS pmc;
-
-      // Print the process identifier.
-
-      printf( "\nProcess ID: %u\n", processID );
-
-      // Print information about the memory usage of the process.
-
-      hProcess = OpenProcess(  PROCESS_QUERY_INFORMATION |
-                                      PROCESS_VM_READ,
-                                      FALSE, processID );
-      if (NULL == hProcess)
-          return;
-
-      if ( GetProcessMemoryInfo( hProcess, &pmc, sizeof(pmc)) )
-      {
-          printf( "\tPageFaultCount: %lu\n", pmc.PageFaultCount);
-          printf( "\tPeakWorkingSetSize: %f kb\n", 
-                    static_cast<double>( pmc.PeakWorkingSetSize )/ 1024.0);
-          printf( "\tWorkingSetSize: %f kb\n", static_cast<double>( pmc.WorkingSetSize )/ 1024.0);
-          printf( "\tQuotaPeakPagedPoolUsage: %f kb\n", 
-                    static_cast<double>( pmc.QuotaPeakPagedPoolUsage )/ 1024.0);
-          printf( "\tQuotaPagedPoolUsage: %f kb\n", 
-                    static_cast<double>( pmc.QuotaPagedPoolUsage )/ 1024.0);
-          printf( "\tQuotaPeakNonPagedPoolUsage: %f kb\n", 
-                    static_cast<double>( pmc.QuotaPeakNonPagedPoolUsage )/ 1024.0);
-          printf( "\tQuotaNonPagedPoolUsage: %f kb\n", 
-                    static_cast<double>( pmc.QuotaNonPagedPoolUsage )/ 1024.0 );
-          printf( "\tPagefileUsage: %f kb\n", static_cast<double>( pmc.PagefileUsage )/ 1024.0); 
-          printf( "\tPeakPagefileUsage: %f kb\n", 
-                    static_cast<double>( pmc.PeakPagefileUsage )/ 1024.0 );
-      }
-
-      CloseHandle( hProcess );
-  }
-#endif
-
   // Memory usage in kilobytes.
-  static SizeType GetMemoryUsage()
+  SizeType GetMemoryUsage()
   {
+#ifdef MEMORY_USE_KW_SYS
+    this->m_SystemInformation.QueryMemory();
+    return this->m_SystemInformation.GetAvailableVirtualMemory() * 1024;
+#else
 #ifdef WIN32
     DWORD pid = GetCurrentProcessId();
     PROCESS_MEMORY_COUNTERS memoryCounters;
@@ -100,6 +67,7 @@ public:
 
     return 0;
 #endif
+#endif
   }
 
   MemoryUsage()
@@ -124,7 +92,12 @@ public:
 
   double GetMeanMemoryChange() const
     {
+#ifdef MEMORY_USE_KW_SYS
+    // KWSys gives available memory, not memory use.
+    return (static_cast<double>(m_StartMemory) - static_cast<double>(m_StopMemory))/static_cast<double>(m_Starts);
+#else
     return (static_cast<double>(m_StopMemory) - static_cast<double>(m_StartMemory))/static_cast<double>(m_Starts);
+#endif
     }
 
   SizeType GetNumberOfStarts() const
@@ -143,6 +116,11 @@ protected:
   SizeType m_StopMemory;
   SizeType m_Starts;
   SizeType m_Stops;
+
+#ifdef MEMORY_USE_KW_SYS
+  itksys::SystemInformation m_SystemInformation;
+#endif
+
 };
 
 class MemoryUseCollector
@@ -211,7 +189,6 @@ public:
 protected:
 
   MapType   m_Probes;
-
 };
 
 #endif //  __MEMORY_USAGE_H_
