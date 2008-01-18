@@ -202,7 +202,7 @@ numerical values of the critical parameters.
 \begin{itemize}
 \item BIWS: BSpline Interpolation Weights per Sample
 \item BNIS: BSpline Node Indices per sample
-\item PDFDerivatives
+\item PDFD: Probability Density Function Derivatives
 \end{itemize}
 
 
@@ -216,7 +216,18 @@ The relationships between the critical parameters and the memory footprint of
 the data structures are listed below.
 
 \begin{equation}
+\mbox{BIWS} = \mbox{BSO}^{\mbox{ID}} \times \mbox{NSS} \times \mbox{sizeof(double)}
 \end{equation}
+
+\begin{equation}
+\mbox{BNIS} = \mbox{BSO}^{\mbox{ID}} \times \mbox{NSS} \times \mbox{sizeof(long int)}
+\end{equation}
+
+\begin{equation}
+\mbox{PDFD} = \mbox{NBN} \times \mbox{NHB} \times  \mbox{sizeof(double)}
+\end{equation}
+
+
 
 \section{Software Requirements}
 
