@@ -25,7 +25,7 @@ FOREACH(SOURCE_FILE ${REPORT_SRCS})
    ADD_CUSTOM_COMMAND(
      OUTPUT   ${MattesMetricCachingTestReport_BINARY_DIR}/${SOURCE_FILE}
      DEPENDS  ${MattesMetricCachingTestReport_SOURCE_DIR}/${SOURCE_FILE}
-     COMMAND ${CMAKE_COMMAND} -E copy ${MattesMetricCachingTestReport_SOURCE_DIR}/${SOURCE_FILE} ${MattesMetricCachingTestReport_BINARY_DIR}/${SOURCE_FILE}
+     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${MattesMetricCachingTestReport_SOURCE_DIR}/${SOURCE_FILE} ${MattesMetricCachingTestReport_BINARY_DIR}/${SOURCE_FILE}
     )
    SET(COPY_RESULTS ${COPY_RESULTS} ${MattesMetricCachingTestReport_BINARY_DIR}/${SOURCE_FILE})
 ENDFOREACH(SOURCE_FILE ${REPORT_SRCS})
