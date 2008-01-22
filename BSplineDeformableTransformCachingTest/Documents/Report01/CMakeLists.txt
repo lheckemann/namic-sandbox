@@ -22,16 +22,19 @@ SET(REPORT_SRCS
   )
 
 FOREACH(SOURCE_FILE ${REPORT_SRCS})
-#   ${CMAKE_COMMAND} "-E copy  ${MattesMetricCachingTestReport_SOURCE_DIR}/${SOURCE_FILE} ${MattesMetricCachingTestReport_BINARY_DIR}/${SOURCE_FILE}"
-#   MESSAGE(${SOURCE_FILE})
-   CONFIGURE_FILE("${MattesMetricCachingTestReport_SOURCE_DIR}/${SOURCE_FILE}" "${MattesMetricCachingTestReport_BINARY_DIR}/${SOURCE_FILE}" COPYONLY)
+   ADD_CUSTOM_COMMAND(
+     OUTPUT   ${MattesMetricCachingTestReport_BINARY_DIR}/${SOURCE_FILE}
+     DEPENDS  ${MattesMetricCachingTestReport_SOURCE_DIR}/${SOURCE_FILE}
+     COMMAND ${CMAKE_COMMAND} -E copy ${MattesMetricCachingTestReport_SOURCE_DIR}/${SOURCE_FILE} ${MattesMetricCachingTestReport_BINARY_DIR}/${SOURCE_FILE}
+    )
+   SET(COPY_RESULTS ${COPY_RESULTS} ${MattesMetricCachingTestReport_BINARY_DIR}/${SOURCE_FILE})
 ENDFOREACH(SOURCE_FILE ${REPORT_SRCS})
 
 ADD_CUSTOM_TARGET(ReportIJ ALL 
    COMMAND ${PDFLATEX_COMPILER} 
         ${MattesMetricCachingTestReport_SOURCE_DIR}/Report01.tex 
         -output-directory ${MattesMetricCachingTestReport_BINARY_DIR}
-   DEPENDS ${MattesMetricCachingTestReport_SOURCE_DIR}/Report01.tex
+   DEPENDS ${COPY_RESULTS}
    WORKING_DIRECTORY ${MattesMetricCachingTestReport_BINARY_DIR}
    )
 
