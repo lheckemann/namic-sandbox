@@ -29,6 +29,10 @@
 
 #include "itkBSplineDeformableTransform2.h"
 
+#include <fstream>
+#include <string>
+
+#include "itkExperimentTimeProbesCollector.h"
 
 int main( int argc, char *argv[] )
 {
@@ -36,10 +40,15 @@ int main( int argc, char *argv[] )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " imagesizeX imagesizeY imagesizeZ  numberOfIterations useCaching";
+    std::cerr << " imagesizeX imagesizeY imagesizeZ  numberOfIterations useCaching [timing_file]";
     return EXIT_FAILURE;
     }
   
+  for (unsigned int i = 0; i < argc; i++)
+    {
+    std::cout << i << " : " << argv[i] << std::endl;
+    }
+
   const    unsigned int    ImageDimension = 3;
   typedef  float           PixelType;
 
@@ -76,15 +85,19 @@ int main( int argc, char *argv[] )
 
   TransformType::Pointer  transform = TransformType::New();
 
+  std::string cachingString;
+
   if( atoi( argv[5] ) )
     {
     std::cout << "Using Caching Metric" << std::endl;
     metric = cachingMetric;
+    cachingString = "Caching";
     }
   else
     {
     std::cout << "Using No Caching Metric" << std::endl;
     metric = noCachingMetric;
+    cachingString = "NoCaching";
     }
 
   InterpolatorType::Pointer   interpolator  = InterpolatorType::New();
@@ -176,7 +189,7 @@ int main( int argc, char *argv[] )
   noCachingMetric->SetNumberOfSpatialSamples( numberOfSamples );
   noCachingMetric->ReinitializeSeed( seed );
 
-  itk::TimeProbesCollectorBase collector;
+  itk::ExperimentTimeProbesCollector collector;
 
   std::cout << std::endl << "Starting Benchmark" << std::endl;
   std::cout << "Number of Samples " << numberOfSamples << std::endl;
@@ -202,9 +215,9 @@ int main( int argc, char *argv[] )
     metric->SetFixedImageRegion( fixedRegion );
 
 
-    collector.Start("Initialize");
+    //collector.Start("Initialize");
     metric->Initialize(); 
-    collector.Stop("Initialize");
+    //collector.Stop("Initialize");
     } 
   catch( itk::ExceptionObject & err ) 
     { 
@@ -234,7 +247,26 @@ int main( int argc, char *argv[] )
     std::cout << "Value :  " << value << std::endl;
     // std::cout << "Derivative :  " << derivative << std::endl;
 
-  collector.Report( std::cout );
+  //collector.Report( std::cout );
+  char numberOfSamplesString[16];
+  sprintf(numberOfSamplesString, "%d", numberOfSamples);
+  collector.SetExperimentString( cachingString + "\t" + argv[1] + "\t" + argv[2] + "\t" + argv[3] + "\t" + numberOfSamplesString );
+  std::string outputFileName;
+  if ( argc > 6)
+    {
+    outputFileName = argv[6];
+    }
+  else
+    {
+    outputFileName = "MattesMetricCachingTestResult-" + cachingString;
+    outputFileName = outputFileName + "-volumesize-";
+    outputFileName = outputFileName + argv[1];
+    outputFileName = outputFileName + "x" + argv[2] + "x" + argv[3];
+    outputFileName = outputFileName + ".txt";
+    }
+  // Note: open append
+  std::ofstream outputFile( outputFileName.c_str(), std::ios_base::app );
+  collector.Report( outputFile );
 
   return EXIT_SUCCESS;
 }
