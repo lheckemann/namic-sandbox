@@ -250,7 +250,8 @@ int main( int argc, char *argv[] )
   //collector.Report( std::cout );
   char numberOfSamplesString[16];
   sprintf(numberOfSamplesString, "%d", numberOfSamples);
-  collector.SetExperimentString( cachingString + "\t" + argv[1] + "\t" + argv[2] + "\t" + argv[3] + "\t" + numberOfSamplesString );
+  std::string experimentString =  cachingString + "\t" + argv[1] + "\t" + argv[2] + "\t" + argv[3] + "\t" + numberOfSamplesString ;  
+  collector.SetExperimentString( experimentString );
   std::string outputFileName;
   if ( argc > 6)
     {
