@@ -6,7 +6,7 @@ IF(NOT PDFLATEX_COMPILER)
   MESSAGE("pdflatex compiler was not found. Please pass to advanced mode and provide its full path")
 ENDIF(NOT PDFLATEX_COMPILER)
 
-FIND_PACKAGE(GNUPLOT)
+FIND_PACKAGE(Gnuplot)
 
 #
 # Set some directories that we use below.
@@ -15,18 +15,22 @@ SET(PLOT_DIR ${MattesMetricCachingTestReport_BINARY_DIR})
 # FIXME - Testing/release
 # Not the Report binary dir
 # CMAKE_BUILD_TYPE
+IF(WIN32)
 SET(MATTES_EXECUTABLE_DIR ${MattesMetricCachingTest_BINARY_DIR}/Testing/release)
+ELSE(WIN32)
+SET(MATTES_EXECUTABLE_DIR ${MattesMetricCachingTest_BINARY_DIR}/Testing)
+ENDIF(WIN32)
 SET(MATTES_EXECUTABLE ${MATTES_EXECUTABLE_DIR}/MattesMetricCachingTest)
 #GET_TARGET_PROPERTY(MattesMetricCachingTest MATTES_EXECUTABLE LOCATION)
 
 #
 # Add custom targets that delete output files.
 #
-ADD_CUSTOM_TARGET( EraseCachingResults
+ADD_CUSTOM_COMMAND( OUTPUT EraseCachingResults
   COMMAND ${CMAKE_COMMAND} -E remove ${PLOT_DIR}/AllCachingResults.txt
 )
 
-ADD_CUSTOM_TARGET( EraseNoCachingResults
+ADD_CUSTOM_COMMAND( OUTPUT EraseNoCachingResults
   COMMAND ${CMAKE_COMMAND} -E remove ${PLOT_DIR}/AllNoCachingResults.txt 
 )
 
@@ -58,7 +62,6 @@ FOREACH(USE_CACHING ${CACHING_LIST})
     
     ADD_CUSTOM_COMMAND( 
       OUTPUT  ${EXPERIMENT_TARGET_NAME}
-#      COMMAND ${CMAKE_COMMAND} -E chdir ${PLOT_DIR} ${MATTES_EXECUTABLE_DIR}/MattesMetricCachingTest ${IMAGE_SIZE} ${NUMBER_OF_CALLS} ${USE_CACHING} ${OUTPUT_FILE}
       COMMAND ${CMAKE_COMMAND} -E chdir ${PLOT_DIR} ${MATTES_EXECUTABLE} ${IMAGE_SIZE} ${NUMBER_OF_CALLS} ${USE_CACHING} ${OUTPUT_FILE}
       DEPENDS ${DEPENDENCY_VAR}
     )
@@ -108,6 +111,7 @@ SET(REPORT_SRCS
   InsightJournal.sty
   Report01.tex
   times.sty
+  picins.sty
   )
 
 #
@@ -143,7 +147,12 @@ ADD_CUSTOM_TARGET(ReportIJ ALL
 #  
 # This adds a custom target that will display the report.
 #   
+IF(WIN32)
 SET(PDF_READER "c:\\Program Files\\Adobe\\Reader 8.0\\Reader\\AcroRd32.exe")
+ELSE(WIN32)
+SET(PDF_READER "/usr/bin/acroread")
+ENDIF(WIN32)
+
 #MESSAGE("${MattesMetricCachingTestReport_BINARY_DIR}/Report01.pdf")
 #ADD_CUSTOM_TARGET(ViewReport ALL
 #  COMMAND ${PDF_READER} ${MattesMetricCachingTestReport_BINARY_DIR}/Report01.pdf
