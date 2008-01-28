@@ -6,7 +6,7 @@
 #include <string>
 #include <iostream>
 
-#define MEMORY_USE_KW_SYS
+//#define MEMORY_USE_KW_SYS
 
 #ifdef MEMORY_USE_KW_SYS
 #include <itksys/SystemInformation.hxx>
@@ -15,6 +15,8 @@
 #ifdef WIN32
   #include <windows.h>
   #include <psapi.h>
+#elif __linux
+#include "ParseSmaps.h"
 #else
   #include <sys/time.h>
   #include <sys/resource.h>
@@ -28,89 +30,19 @@ public:
   typedef unsigned long SizeType;
 
   // Memory usage in kilobytes.
-  SizeType GetMemoryUsage()
-  {
-#ifdef MEMORY_USE_KW_SYS
-    this->m_SystemInformation.QueryMemory();
-    // Careful about overflow.
-    return 1024 * (this->m_SystemInformation.GetAvailableVirtualMemory() + 
-                   this->m_SystemInformation.GetAvailablePhysicalMemory());
-#else
-#ifdef WIN32
-    DWORD pid = GetCurrentProcessId();
-    PROCESS_MEMORY_COUNTERS memoryCounters;
+  SizeType GetMemoryUsage();
 
-    HANDLE  hProcess = OpenProcess(  PROCESS_QUERY_INFORMATION |
-                                     PROCESS_VM_READ,
-                                     FALSE, pid );
+  MemoryUsage();
 
-    if (NULL == hProcess)
-      {
-      // Can't determine memory usage.
-      return 0;
-      }
-  
-    GetProcessMemoryInfo( hProcess, &memoryCounters, sizeof(memoryCounters));
+  void Start();
 
-    SizeType mem = static_cast<SizeType>( 
-                            static_cast<double>( memoryCounters.PagefileUsage )
-                                                                            / 1024.0 );
+  void Stop();
 
-    return mem;
-#else
-    // Maybe use getrusage() ??
-    rusage resourceInfo;
+  double GetMeanMemoryChange() const;
 
-    int who = RUSAGE_SELF;
-    if (getrusage(who, &resourceInfo) == 0)
-      {
-      return resourceInfo.ru_ixrss;
-      }
+  SizeType GetNumberOfStarts() const;
 
-    return 0;
-#endif
-#endif
-  }
-
-  MemoryUsage()
-    {
-    m_StartMemory = 0;
-    m_StopMemory = 0;
-    m_Starts = 0;
-    m_Stops = 0;
-    }
-
-  void Start()
-    {
-    m_Starts++;
-    m_StartMemory += GetMemoryUsage();
-    }
-
-  void Stop()
-    {
-    m_Stops++;
-    m_StopMemory += GetMemoryUsage();
-    }
-
-  double GetMeanMemoryChange() const
-    {
-#ifdef MEMORY_USE_KW_SYS
-    // KWSys gives available memory, not memory use.
-    return (static_cast<double>(m_StartMemory) - static_cast<double>(m_StopMemory))/static_cast<double>(m_Starts);
-#else
-    return (static_cast<double>(m_StopMemory) - static_cast<double>(m_StartMemory))/static_cast<double>(m_Starts);
-#endif
-    }
-
-  SizeType GetNumberOfStarts() const
-    {
-    return m_Starts;
-    }
-
-  SizeType GetNumberOfStops() const
-    {
-    return m_Stops;
-    }
+  SizeType GetNumberOfStops() const;
 
 protected:
 
@@ -121,6 +53,10 @@ protected:
 
 #ifdef MEMORY_USE_KW_SYS
   itksys::SystemInformation m_SystemInformation;
+#endif
+
+#ifdef __linux
+  ParseSmaps m_ParseSmaps;
 #endif
 
 };
