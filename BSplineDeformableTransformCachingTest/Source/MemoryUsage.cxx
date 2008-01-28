@@ -47,7 +47,7 @@ MemoryUsage::GetMemoryUsage()
 #elif __linux
 
     int pid = getpid();
-    std::cout << "Process id : " << pid << std::endl;
+    //std::cout << "Process id : " << pid << std::endl;
 
     std::stringstream filenameBuf;
     filenameBuf << "/proc/" << pid << "/smaps";
