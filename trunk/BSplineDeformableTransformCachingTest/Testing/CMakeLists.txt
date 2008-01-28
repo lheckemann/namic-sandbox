@@ -16,9 +16,14 @@ TARGET_LINK_LIBRARIES(MattesMetricCachingTest ITKIO ITKAlgorithms ITKNumerics ${
 ADD_EXECUTABLE(MemoryUsageExample MemoryUsageExample.cxx)
 TARGET_LINK_LIBRARIES(MemoryUsageExample ITKIO ITKAlgorithms ITKNumerics ${MEMORY_LIBS})
 
+ADD_EXECUTABLE(MachineInformationExample MachineInformationExample.cxx MachineInformation.cxx)
+TARGET_LINK_LIBRARIES(MachineInformationExample itksys)
+
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" )
   ADD_EXECUTABLE(TestParseSmaps TestParseSmaps.cxx)
 ENDIF(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" )
+
+#ADD_EXECUTABLE(TestParseSmaps2 TestParseSmaps2.cxx)
 
 # Set in top-level CMakeLists.txt
 #SET(NUMBER_OF_CALLS 10)
