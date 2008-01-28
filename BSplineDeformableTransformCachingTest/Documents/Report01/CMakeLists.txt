@@ -35,6 +35,15 @@ ADD_CUSTOM_COMMAND( OUTPUT EraseNoCachingResults
 )
 
 #
+# Add custom command to make the system information file.
+#
+ADD_CUSTOM_COMMAND( OUTPUT ${PLOT_DIR}/SystemInformation.tex
+  COMMAND ${MATTES_EXECUTABLE_DIR}/MachineInformationExample SystemInformation.tex
+  WORKING_DIRECTORY ${PLOT_DIR}
+)
+
+
+#
 # Here we walk through the combination of volume sizes and caching/nocaching
 # to generate a custom command for each experiment. For example, we create a
 # custom command that runs a specific volume size with caching off. Each
@@ -140,7 +149,7 @@ ADD_CUSTOM_TARGET(ReportIJ ALL
    COMMAND ${PDFLATEX_COMPILER} 
         ${MattesMetricCachingTestReport_SOURCE_DIR}/Report01.tex 
         -output-directory ${MattesMetricCachingTestReport_BINARY_DIR}
-   DEPENDS ${COPY_RESULTS} ${PLOT_DIR}/CachingTiming.pdf
+   DEPENDS ${COPY_RESULTS} ${PLOT_DIR}/CachingTiming.pdf ${PLOT_DIR}/SystemInformation.tex
    WORKING_DIRECTORY ${MattesMetricCachingTestReport_BINARY_DIR}
    )
  
@@ -154,8 +163,9 @@ SET(PDF_READER "/usr/bin/acroread")
 ENDIF(WIN32)
 
 #MESSAGE("${MattesMetricCachingTestReport_BINARY_DIR}/Report01.pdf")
-#ADD_CUSTOM_TARGET(ViewReport ALL
-#  COMMAND ${PDF_READER} ${MattesMetricCachingTestReport_BINARY_DIR}/Report01.pdf
-#  DEPENDS ReportIJ
-#)
+ADD_CUSTOM_TARGET(ViewReport ALL
+  COMMAND ${CMAKE_COMMAND} -E echo ${MattesMetricCachingTestReport_BINARY_DIR}/Report01.pdf
+#  COMMAND ${PDF_READER} 
+#  ARGS ${MattesMetricCachingTestReport_BINARY_DIR}/Report01.pdf
+)
 
