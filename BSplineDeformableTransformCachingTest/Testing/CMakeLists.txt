@@ -1,12 +1,12 @@
 # Testing directory
 
-ADD_EXECUTABLE(MattesMetricCachingTest MattesMetricCachingTest.cxx itkExperimentTimeProbesCollector.cxx)
+ADD_EXECUTABLE(MattesMetricCachingTest MattesMetricCachingTest.cxx itkExperimentTimeProbesCollector.cxx )
 
 # Win32 only
 IF (WIN32)
-  SET( MEMORY_LIBS Psapi.lib )
+  SET( MEMORY_LIBS MemoryUsage Psapi.lib )
 ELSE (WIN32)
-  SET( MEMORY_LIBS  )
+  SET( MEMORY_LIBS MemoryUsage )
 ENDIF (WIN32)
 
 INCLUDE_DIRECTORIES(${MattesMetricCachingTest_SOURCE_DIR}/Source)
