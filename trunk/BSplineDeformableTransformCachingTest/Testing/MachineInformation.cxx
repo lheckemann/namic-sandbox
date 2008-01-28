@@ -63,7 +63,7 @@ MachineInformation::DescribeMachineLatex( std::ostream& os )
   os << "OS &                          " << systemInformation.GetOSName() << "\\\\ \\hline" << std::endl;
   os << "Hostname &                    " << systemInformation.GetHostname() << "\\\\ \\hline" << std::endl;
   os << "OS Release &                  " << systemInformation.GetOSRelease() << "\\\\ \\hline" << std::endl;
-  os << "OS Version &                  " << systemInformation.GetOSVersion() << "\\\\ \\hline" << std::endl;
+  //os << "OS Version &                  " << systemInformation.GetOSVersion() << "\\\\ \\hline" << std::endl;
   os << "OS Platform &                 " << systemInformation.GetOSPlatform() << "\\\\ \\hline" << std::endl;
   os << "64 bit &                      " << ( systemInformation.Is64Bits() ? "Yes" : "No") << "\\\\ \\hline" << std::endl;
   os << "Logical CPUs / physical &     " << systemInformation.GetNumberOfLogicalCPU() << "\\\\ \\hline" << std::endl;
