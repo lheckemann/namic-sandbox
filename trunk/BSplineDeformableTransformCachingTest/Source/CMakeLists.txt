@@ -1,3 +1,2 @@
-#
-# Nothing here by now...
-#
+
+ADD_LIBRARY( MemoryUsage MemoryUsage.cxx )
