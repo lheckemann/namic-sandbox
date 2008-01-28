@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <algorithm>
 
 class SmapRecord
 {
@@ -42,6 +43,13 @@ public:
   ParseSmaps() : m_SizeToken("Size"), m_HeapToken("heap")
     {
     m_HeapUsage = 0;
+    m_TokenVector.push_back("Size");
+    m_TokenVector.push_back("Rss");
+    m_TokenVector.push_back("Shared_Clean");
+    m_TokenVector.push_back("Shared_Dirty");
+    m_TokenVector.push_back("Private_Clean");
+    m_TokenVector.push_back("Private_Dirty");
+    m_TokenVector.push_back("Referenced");
     }
 
   void ParseFile(std::string& filename)
@@ -49,6 +57,12 @@ public:
     this->Initialize();
 
     std::ifstream inputFile( filename.c_str() );
+
+    if ( inputFile.is_open() == false )
+      {
+      std::cerr << "Could not open : " << filename << std::endl;
+      return;
+      }
 
     StringVectorType stringVector;
 
@@ -112,6 +126,16 @@ public:
       }    
     }
 
+  void PrintMemoryUsage2()
+    {
+    for (RecordVectorType::iterator riter = m_Records.begin();
+          riter != m_Records.end();
+          riter++)
+      {
+      std::cout << (*riter).Header << " : " << (*riter).Size << " kB." << std::endl;
+      }
+    }
+
 protected:
 
   void Initialize()
@@ -121,45 +145,62 @@ protected:
     m_Records.clear();
     }
 
-  /*
-  bool IsHeapRecord( RecordType& record )
+  bool StartsWithToken( std::string& aString )
     {
-    if ( record.Header.find( m_HeapToken ) != std::string::npos )
+    // Terminate at ':'
+    std::string bString;
+    for (std::string::iterator siter = aString.begin();
+          siter != aString.end();
+          siter++)
+      {
+      if ( *siter != ':' )
+        {
+        bString.push_back( *siter );
+        }
+      else
+        {
+        break;
+        }
+      }
+
+    if ( std::find( m_TokenVector.begin(), m_TokenVector.end(), bString ) 
+            != m_TokenVector.end() )
       {
       return true;
       }
     else
       {
-      //b6f67000-b7c6a000 rw-p b6f67000 00:00 0
-      char first[256];
-      char second[256];
-      char third[256];
-      char time[256];
-      unsigned int val = 0;
-      char name[512];
-      memset( name, 0, 512 );
-      sscanf( record.Header.c_str(), "%s %s %s %s %d %s", &first, &second, &third, &time, &val, &name );
-      if ( strcmp( name, "" ) == 0 )
-        {
-        return true;
-        }
-      else
-        {
-        return false;
-        }
+      return false;
       }
     }
-  */
 
   bool ReadRecord( std::ifstream& inputFile, StringVectorType& stringVector )
     {
     stringVector.clear();
-    for (unsigned int i = 0; i < 8; i++)
+
+    std::string aString;
+
+    // Header line
+    getline( inputFile, aString );
+    stringVector.push_back( aString );
+
+    int lastPos = inputFile.tellg();
+
+    for (unsigned int i = 1; i < 8; i++) // at most 8 lines
       {
       std::string aString;
       getline( inputFile, aString );
-      // Inefficient copy.
-      stringVector.push_back( aString );
+      if (this->StartsWithToken( aString ) == true )
+        {
+        // Inefficient copy.
+        stringVector.push_back( aString );
+        }
+      else
+        {
+        // Break out early if the line does not contain a token.
+        inputFile.seekg (lastPos, std::ios::beg);
+        break;
+        }
       }
 
     return true; 
@@ -220,11 +261,17 @@ protected:
     return true;
     }
 
-  std::string       m_SizeToken;
-  std::string       m_HeapToken;
+  typedef std::string           TokenType;
+
+  TokenType         m_SizeToken;
+  TokenType         m_HeapToken;
   RecordVectorType  m_Records;
   unsigned long     m_HeapUsage;
   bool              m_HeapFound;
+
+  typedef std::vector< TokenType > TokenVectorType;
+  TokenVectorType   m_TokenVector;
+
 };
 
 #endif // __ParseSmaps__h_
