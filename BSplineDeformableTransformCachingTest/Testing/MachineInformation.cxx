@@ -26,7 +26,7 @@ MachineInformation::DescribeMachine( std::ostream& os )
   os << "OS :                          " << systemInformation.GetOSName() << std::endl;
   os << "Hostname :                    " << systemInformation.GetHostname() << std::endl;
   os << "OS Release :                  " << systemInformation.GetOSRelease() << std::endl;
-  os << "OS Version :                  " << systemInformation.GetOSVersion() << std::endl;
+  //os << "OS Version :                  " << systemInformation.GetOSVersion() << std::endl;
   os << "OS Platform :                 " << systemInformation.GetOSPlatform() << std::endl;
   os << "64 bit :                      " << ( systemInformation.Is64Bits() ? "Yes" : "No") << std::endl;
   os << "Logical CPUs / physical :     " << systemInformation.GetNumberOfLogicalCPU() << std::endl;
