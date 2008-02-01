@@ -1,0 +1,22 @@
+SET(IGTLUTIL_HEADS
+  igtl_header.h
+  igtl_image.h
+  igtl_transform.h
+  igtl_util.h
+)
+
+SET(IGTUTIL_SRCS
+  igtl_header.c
+  igtl_image.c
+  igtl_transform.c
+  igtl_util.c
+)       
+
+ADD_LIBRARY(igtlutil
+  ${IGTLUTIL_HEADS}
+  ${IGTLUTIL_SRCS}
+)
+
+#TARGET_LINK_LIBRARIES(igtlutil
+#  ${LIBS}
+#)
