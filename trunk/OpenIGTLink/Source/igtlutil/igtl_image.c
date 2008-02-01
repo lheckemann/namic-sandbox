@@ -15,6 +15,7 @@
 =========================================================================*/
 
 #include <string.h>
+
 #include "igtl_image.h"
 #include "igtl_util.h"
 
@@ -25,7 +26,6 @@ long long igtl_image_get_data_size(struct igtl_image_header* header)
   si = header->subvol_size[0];
   sj = header->subvol_size[1];
   sk = header->subvol_size[2];
-  printf ("si = %d   sj = %d   sk = %d\n", si, sj, sk);
 
   switch (header->scalar_type) {
   case IGTL_IMAGE_STYPE_TYPE_INT8:

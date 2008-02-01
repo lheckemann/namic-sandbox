@@ -1,3 +1,5 @@
+SET(IGTL_UTIL_PROTOCOL_VERSION "1")
+
 SET(IGTLUTIL_HEADS
   igtl_header.h
   igtl_image.h
@@ -5,7 +7,7 @@ SET(IGTLUTIL_HEADS
   igtl_util.h
 )
 
-SET(IGTUTIL_SRCS
+SET(IGTLUTIL_SRCS
   igtl_header.c
   igtl_image.c
   igtl_transform.c
