@@ -46,7 +46,6 @@
 extern "C" {
 #endif
 
-
 #pragma pack(1)     /* For 1-byte boundary in memroy */
 
 struct igtl_image_header {
@@ -70,6 +69,7 @@ void igtl_image_get_matrix(float spacing[3], float origin[3],
                             float norm_i[3], float norm_j[3], float norm_k[3],
                             struct igtl_image_header* header);
 void igtl_image_convert_byte_order(struct igtl_image_header* header);
+unsigned long igtl_image_get_crc(struct igtl_image_header* header, void* image);
 
 #ifdef __cplusplus
 }
