@@ -48,7 +48,7 @@ extern "C" {
 
 #pragma pack(1)     /* For 1-byte boundary in memroy */
 
-struct igtl_image_header {
+typedef struct {
   unsigned short version;
   unsigned char  data_type;
   unsigned char  scalar_type;
@@ -58,18 +58,18 @@ struct igtl_image_header {
   float          matrix[12];
   unsigned short subvol_offset[3];
   unsigned short subvol_size[3];
-};
+} igtl_image_header;
 
 #pragma pack(0)
 
 
 
-long long igtl_image_get_data_size(struct igtl_image_header* header);
+long long igtl_image_get_data_size(igtl_image_header * header);
 void igtl_image_get_matrix(float spacing[3], float origin[3],
                             float norm_i[3], float norm_j[3], float norm_k[3],
-                            struct igtl_image_header* header);
-void igtl_image_convert_byte_order(struct igtl_image_header* header);
-unsigned long igtl_image_get_crc(struct igtl_image_header* header, void* image);
+                            igtl_image_header * header);
+void igtl_image_convert_byte_order(igtl_image_header * header);
+unsigned long igtl_image_get_crc(igtl_image_header * header, void* image);
 
 #ifdef __cplusplus
 }
