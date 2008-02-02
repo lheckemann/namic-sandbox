@@ -28,7 +28,6 @@ SET(REPORT_SRCS
   InsightJournal.bib
   InsightJournal.ist
   InsightJournal.sty
-  Makefile
   OpenIGTLinkIJ2008.tex
   times.sty
   picins.sty
