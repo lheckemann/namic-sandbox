@@ -18,6 +18,7 @@
 
 #include "igtl_image.h"
 #include "igtl_util.h"
+#include "crc32.h"
 
 long long igtl_image_get_data_size(struct igtl_image_header* header)
 {
@@ -87,3 +88,18 @@ void igtl_image_convert_byte_order(struct igtl_image_header* header)
   }
 }
 
+unsigned long igtl_image_get_crc(struct igtl_image_header* header, void* image)
+{
+  unsigned long crc = crc32(0L, Z_NULL, 0);
+  unsigned int  img_size =  igtl_image_get_data_size(struct igtl_image_header* header);
+
+  crc = crc32(crc, (unsigned char*)header, IGTL_IMAGE_HEADER_SIZE);
+
+  /*
+   * NOTE: OpenIGTLink protocol supports 64-bit size info but here only allows 32-bit value;
+   *       This have to be fixed in the future.
+   */
+  crc = crc32(crc, (unsigned char*)image, img_size);
+
+  return crc;
+}

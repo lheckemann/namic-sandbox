@@ -29,8 +29,8 @@ extern "C" {
 typedef float[12] transform;
 */
 
-
 void igtl_transform_convert_byte_order(float* transform);
+unsigned long igtl_transform_get_crc(float* transform);
 
 #ifdef __cplusplus
 }
