@@ -28,6 +28,7 @@ extern "C" {
 #define BYTE_SWAP_INT64(LL) ((BYTE_SWAP_INT32 ((LL) & 0xFFFFFFFF) << 32) \
                              | BYTE_SWAP_INT32 (((LL) >> 32) & 0xFFFFFFFF))
 
+/** FIXME: Documentation needed here */
 int igtl_is_little_endian();
 
 #ifdef __cplusplus
@@ -35,6 +36,4 @@ int igtl_is_little_endian();
 #endif
 
 #endif  /*__IGTL_UTIL_H*/
-
-
 

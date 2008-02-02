@@ -22,7 +22,11 @@
 
 long long igtl_image_get_data_size(igtl_image_header * header)
 {
-  long long si, sj, sk, sp;
+  long long si;
+  long long sj;
+  long long sk;
+  long long sp;
+  long long data_size;
 
   si = header->subvol_size[0];
   sj = header->subvol_size[1];
@@ -46,7 +50,8 @@ long long igtl_image_get_data_size(igtl_image_header * header)
     break;
   }
 
-  return si*sj*sk*sp;
+  data_size = si*sj*sk*sp;
+  return data_size;
 }
 
 
@@ -73,17 +78,24 @@ void igtl_image_convert_byte_order(igtl_image_header * header)
   int i;
   long tmp[12];
 
-  if (igtl_is_little_endian()) {
+  if (igtl_is_little_endian()) 
+    {
+
     header->version = BYTE_SWAP_INT16(header->version);
-    for (i = 0; i < 3; i ++) {
+
+    for (i = 0; i < 3; i ++) 
+      {
       header->size[i] = BYTE_SWAP_INT16(header->size[i]);
       header->subvol_size[i] = BYTE_SWAP_INT16(header->subvol_size[i]);
       header->subvol_offset[i] = BYTE_SWAP_INT16(header->subvol_offset[i]);
-    }
+      }
     memcpy((void*)tmp, (void*)(header->matrix), sizeof(float)*12);
-    for (i = 0; i < 12; i ++) {
+
+    for (i = 0; i < 12; i ++) 
+      {
       tmp[i] = BYTE_SWAP_INT32(tmp[i]);
-    }
+      }
+
     memcpy((void*)(header->matrix), (void*)tmp, sizeof(float)*12);
   }
 }

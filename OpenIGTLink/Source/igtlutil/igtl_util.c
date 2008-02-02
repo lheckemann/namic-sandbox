@@ -18,5 +18,6 @@
 
 int igtl_is_little_endian()
 {
-  short a = 1; return ((char*)&a)[0];
+  short a = 1; 
+  return ((char*)&a)[0];
 }
