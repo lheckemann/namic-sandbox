@@ -29,12 +29,15 @@ extern "C" {
 typedef float[12] transform;
 */
 
+/** FIXME: Documentation needed here */
 void igtl_transform_convert_byte_order(float* transform);
+
+
+/** FIXME: Documentation needed here */
 unsigned long igtl_transform_get_crc(float* transform);
 
 #ifdef __cplusplus
 }
 #endif
 #endif /*__IGTL_TRANSFORM_H*/
-
 
