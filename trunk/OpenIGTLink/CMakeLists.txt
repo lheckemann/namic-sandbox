@@ -1,6 +1,8 @@
 PROJECT( OpenIGTLink )
 
 ENABLE_TESTING()
+INCLUDE (${CMAKE_ROOT}/Modules/Dart.cmake)
+
 
 #
 #  There should be only one INCLUDE_DIRECTORIES command 
