@@ -4,9 +4,7 @@ SET(OpenIGTLink_SOURCES
   igtlSocket.cxx
   )
 
-SUBDIRS(
-  igtlutil
-  )
+ADD_SUBDIRECTORY( igtlutil )
 
 ADD_LIBRARY(OpenIGTLink
   ${OpenIGTLink_SOURCES}
