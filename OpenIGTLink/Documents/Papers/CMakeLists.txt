@@ -1,5 +1,3 @@
-SUBDIRS(
-  InsightJournal2008
-  )
+ADD_SUBDIRECTORY( InsightJournal2008 )
 
 

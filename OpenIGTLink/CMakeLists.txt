@@ -15,11 +15,9 @@ INCLUDE_DIRECTORIES(
   ${OpenIGTLink_SOURCE_DIR}/Tools 
   )
 
-SUBDIRS(
-  Source
-  Testing
-  Tools
-  Documents
-  )
+ADD_SUBDIRECTORY( Source    )
+ADD_SUBDIRECTORY( Testing   )
+ADD_SUBDIRECTORY( Tools     )
+ADD_SUBDIRECTORY( Documents )
 
 
