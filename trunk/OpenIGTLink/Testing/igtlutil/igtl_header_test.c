@@ -15,6 +15,7 @@
 =========================================================================*/
 
 #include "igtl_header.h"
+#include <string.h>
 
 #define EXIT_SUCCESS 0
 #define EXIT_FAILURE 1
@@ -22,5 +23,22 @@
 int main( int argc, char * argv [] )
 {
 
-  return EXIT_SUCCESS;
+  igtl_header  header;
+
+  header.version = 1;
+  strncpy( header.name, "Name", 8 );
+  strncpy( header.device_name, "DeviceName", 20 );
+  header.timestamp = 12345;
+  header.body_size = 234567;
+  header.crc = 1343143;
+
+  igtl_header_convert_byte_order( &header );
+
+  //
+  // FIXME: Test the outcome of the 
+  // byte order conversion for correctness.
+  // until then, we mark this test as failing.
+  //
+
+  return EXIT_FAILURE;
 }
