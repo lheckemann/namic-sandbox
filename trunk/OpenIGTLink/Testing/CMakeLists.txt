@@ -7,3 +7,4 @@ TARGET_LINK_LIBRARIES(igtlSocketTest OpenIGTLink)
 
 ADD_TEST(igtlSocketTest igtlSocketTest)
 
+ADD_SUBDIRECTORY( igtlutil )
