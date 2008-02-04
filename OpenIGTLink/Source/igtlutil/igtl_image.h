@@ -60,7 +60,7 @@ typedef struct {
   unsigned short subvol_size[3];
 } igtl_image_header;
 
-#pragma pack(0)
+#pragma pack()
 
 
 /** FIXME: Documentation needed here */

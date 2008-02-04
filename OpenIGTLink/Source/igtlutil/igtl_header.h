@@ -36,7 +36,7 @@ typedef struct {
   long long      crc;
 } igtl_header;
 
-#pragma pack(0)
+#pragma pack()
 
 /** FIXME: Documentation needed here */
 void igtl_header_convert_byte_order(igtl_header * header);
