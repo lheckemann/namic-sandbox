@@ -26,19 +26,34 @@ extern "C" {
 
 #pragma pack(1)     /* For 1-byte boundary in memroy */
 
-/** FIXME: Documentation needed here */
+/*
+ * Message header of OpenIGTLink message.
+ *
+ * igtl_header is an overall data header for OpenIGTLink protocol.
+ * It is transfered at beginning of every OpenIGTLink message to give
+ * type and size of following data body to a receiver.
+ * These parameters allow the receiver to parse or skip the data body.
+ */
+
 typedef struct {
-  unsigned short version;
-  char           name[8];
-  char           device_name[20];
-  long long      timestamp;
-  long long      body_size;
-  long long      crc;
+  unsigned short version;          /* protocol version number */
+  char           name[8];          /* data type name          */
+  char           device_name[20];  /* device name             */
+  long long      timestamp;        /* time stamp message      */
+  long long      body_size;        /* size of the body        */
+  long long      crc;              /* CRC                     */
 } igtl_header;
 
 #pragma pack()
 
-/** FIXME: Documentation needed here */
+/*
+ * Byte order converter for the header structre
+ * 
+ * igtl_header_convert_byte_order convers endianness of each
+ * member variable in igtl_header structre from host byte order
+ * to network byte order, or vice versa.
+ *
+ */
 void igtl_header_convert_byte_order(igtl_header * header);
 
 #ifdef __cplusplus
