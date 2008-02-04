@@ -21,6 +21,11 @@
 extern "C" {
 #endif
 
+/*
+ * Byte order conversion macros
+ *
+ */
+
 #define BYTE_SWAP_INT16(S) (((S) & 0xFF) << 8 \
                             | (((S) >> 8) & 0xFF))
 #define BYTE_SWAP_INT32(L) ((BYTE_SWAP_INT16 ((L) & 0xFFFF) << 16) \
@@ -28,7 +33,9 @@ extern "C" {
 #define BYTE_SWAP_INT64(LL) ((BYTE_SWAP_INT32 ((LL) & 0xFFFFFFFF) << 32) \
                              | BYTE_SWAP_INT32 (((LL) >> 32) & 0xFFFFFFFF))
 
-/** FIXME: Documentation needed here */
+/*
+ * Test endian of the host
+ */
 int igtl_is_little_endian();
 
 #ifdef __cplusplus

@@ -29,11 +29,24 @@ extern "C" {
 typedef float[12] transform;
 */
 
-/** FIXME: Documentation needed here */
-void igtl_transform_convert_byte_order(float* transform);
+/*
+ * Byte order conversion for the header structure
+ *
+ * This function converts endianness of each member variable
+ * in igtl_image_header from host byte order to network byte order,
+ * or vice versa.
+ */
+
+1void igtl_transform_convert_byte_order(float* transform);
 
 
-/** FIXME: Documentation needed here */
+/*
+ * CRC calculation
+ *
+ * This function calculates CRC of transform data.
+ *
+ */
+
 unsigned long igtl_transform_get_crc(float* transform);
 
 #ifdef __cplusplus
