@@ -1,4 +1,4 @@
-# Install script for directory: /Users/junichi/igtdev/BRP/ScannerSim/libs/ace
+# Install script for directory: /Users/junichi/igtdev/NAMICSandBox/BRPTools/ScannerIO/libs/ace
 
 # Set the install prefix
 IF(NOT DEFINED CMAKE_INSTALL_PREFIX)
