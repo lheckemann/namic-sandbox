@@ -37,7 +37,7 @@ typedef float[12] transform;
  * or vice versa.
  */
 
-1void igtl_transform_convert_byte_order(float* transform);
+void igtl_transform_convert_byte_order(float* transform);
 
 
 /*
