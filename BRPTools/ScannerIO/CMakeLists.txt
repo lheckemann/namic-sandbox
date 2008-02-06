@@ -22,7 +22,8 @@ SET(WIN32 1)
 ENDIF(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
 INCLUDE_DIRECTORIES(
-${CMAKE_CURRENT_SOURCE_DIR}/include
+${CMAKE_CURRENT_SOURCE_DIR}/src/
+${CMAKE_CURRENT_SOURCE_DIR}/src/igtlutil
 libs/
 )
 
@@ -35,10 +36,15 @@ libs/ace
 )
 
 SET(SOURCES
-src/igtl_util.c
-src/igtl_header.c
-src/igtl_image.c
-src/igtl_transform.c
+src/ScannerBase.cxx
+src/ScannerSim.cxx
+src/igtlImage.cxx
+src/igtlMath.cxx
+src/igtlObject.cxx
+src/igtlutil/igtl_util.c
+src/igtlutil/igtl_header.c
+src/igtlutil/igtl_image.c
+src/igtlutil/igtl_transform.c
 )
 
 SUBDIRS(
@@ -78,7 +84,7 @@ TARGET_LINK_LIBRARIES(ScannerSimLib
 ${LIBS}
 )
 
-ADD_EXECUTABLE(ScannerSim src/ScannerSim.cxx)
+ADD_EXECUTABLE(ScannerSim src/main.cxx)
 
 TARGET_LINK_LIBRARIES(ScannerSim
 ${EXTRA_LIBS}
