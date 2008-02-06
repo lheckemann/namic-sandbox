@@ -1,15 +1,36 @@
+/*=========================================================================
+
+  Program:   Open ITK Link Library
+  Module:    $RCSfile: $
+  Language:  C
+  Date:      $Date: $
+  Version:   $Revision: $
+
+  Copyright (c) Insight Software Consortium. All rights reserved.
+
+  This software is distributed WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+  PURPOSE.  See the above copyright notices for more information.
+
+=========================================================================*/
+
 #include <string.h>
+
 #include "igtl_image.h"
 #include "igtl_util.h"
+#include "crc32.h"
 
-long long igtl_image_get_data_size(struct igtl_image_header* header)
+long long igtl_image_get_data_size(igtl_image_header * header)
 {
-  long long si, sj, sk, sp;
+  long long si;
+  long long sj;
+  long long sk;
+  long long sp;
+  long long data_size;
 
   si = header->subvol_size[0];
   sj = header->subvol_size[1];
   sk = header->subvol_size[2];
-  printf ("si = %d   sj = %d   sk = %d\n", si, sj, sk);
 
   switch (header->scalar_type) {
   case IGTL_IMAGE_STYPE_TYPE_INT8:
@@ -29,13 +50,14 @@ long long igtl_image_get_data_size(struct igtl_image_header* header)
     break;
   }
 
-  return si*sj*sk*sp;
+  data_size = si*sj*sk*sp;
+  return data_size;
 }
 
 
 void igtl_image_get_matrix(float spacing[3], float origin[3],
                             float norm_i[3], float norm_j[3], float norm_k[3],
-                            struct igtl_image_header* header)
+                            igtl_image_header * header)
 {
   header->matrix[0]  = norm_i[0] * spacing[0];
   header->matrix[1]  = norm_i[1] * spacing[0];
@@ -51,23 +73,45 @@ void igtl_image_get_matrix(float spacing[3], float origin[3],
   header->matrix[11] = origin[2];
 }
 
-void igtl_image_convert_byte_order(struct igtl_image_header* header)
+void igtl_image_convert_byte_order(igtl_image_header * header)
 {
   int i;
   long tmp[12];
 
-  if (igtl_is_little_endian()) {
+  if (igtl_is_little_endian()) 
+    {
+
     header->version = BYTE_SWAP_INT16(header->version);
-    for (i = 0; i < 3; i ++) {
+
+    for (i = 0; i < 3; i ++) 
+      {
       header->size[i] = BYTE_SWAP_INT16(header->size[i]);
       header->subvol_size[i] = BYTE_SWAP_INT16(header->subvol_size[i]);
       header->subvol_offset[i] = BYTE_SWAP_INT16(header->subvol_offset[i]);
-    }
+      }
     memcpy((void*)tmp, (void*)(header->matrix), sizeof(float)*12);
-    for (i = 0; i < 12; i ++) {
+
+    for (i = 0; i < 12; i ++) 
+      {
       tmp[i] = BYTE_SWAP_INT32(tmp[i]);
-    }
+      }
+
     memcpy((void*)(header->matrix), (void*)tmp, sizeof(float)*12);
   }
 }
 
+unsigned long igtl_image_get_crc(igtl_image_header * header, void* image)
+{
+  unsigned long crc = crc32(0L, Z_NULL, 0);
+  unsigned int  img_size =  igtl_image_get_data_size(header);
+
+  crc = crc32(crc, (unsigned char*)header, IGTL_IMAGE_HEADER_SIZE);
+
+  /*
+   * NOTE: OpenIGTLink protocol supports 64-bit size info but here only allows 32-bit value;
+   *       This have to be fixed in the future.
+   */
+  crc = crc32(crc, (unsigned char*)image, img_size);
+
+  return crc;
+}
