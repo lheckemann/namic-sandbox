@@ -28,7 +28,7 @@
 #include "itkLinearInterpolateImageFunction.h"
 
 #include "itkImageRegionIterator.h"
-
+#include "itkRescaleIntensityImageFilter.h"
 #include "itkNaryFunctorImageFilter.h"
 #include <string>
 #include <sstream>
@@ -37,7 +37,7 @@
 
 
 //Define the global types for image type
-#define PixelType unsigned short
+#define PixelType short
 #define InternalPixelType float
 #define Dimension 3
 
@@ -239,6 +239,7 @@ int main( int argc, char * argv[] )
     imageReaderArray[i] = ReaderType::New();
     string fname = inputFolder + fileNames[i];
     imageReaderArray[i]->SetFileName(fname.c_str());
+    std::cout << "Reading " << fname.c_str() << std::endl;
     imageReaderArray[i]->Update();
   } 
   
@@ -426,9 +427,7 @@ int main( int argc, char * argv[] )
       InterpolatorType::Pointer interpolator = InterpolatorType::New();
       imageResampleArray[j]->SetInterpolator( interpolator );
       imageResampleArray[j]->SetTransform( transformArray[j] );
-      
-      imageReaderArray[j]->Update();
-      
+           
       ImageType::Pointer imagePointer = imageReaderArray[j]->GetOutput();
       ResampleFilterType::OriginPointType  origin = imageReaderArray[j]->GetOutput()->GetOrigin();
       imagePointer->SetOrigin(origin);
@@ -470,30 +469,63 @@ int main( int argc, char * argv[] )
       ImageType::SizeType size = imageReaderArray[j]->GetOutput()->GetLargestPossibleRegion().GetSize();
       ImageType::IndexType start = imageReaderArray[j]->GetOutput()->GetLargestPossibleRegion().GetIndex();
       /** change here for slice direction */
-      start[1] = size[1]/2;
-      size[1] = 0;
+      start[0] = size[0]/2;
+      size[0] = 0;
       // these are user specific
       //start[0] = 106;
       //size[0] = 0;
 
+      // Rescale the input image to 0-255
+      typedef itk::RescaleIntensityImageFilter<ImageType, ImageType >  RescaleFilterType;
+      RescaleFilterType::Pointer    rescaleFilter    = RescaleFilterType::New();
+      rescaleFilter->SetInput(    imageResampleArray[j]->GetOutput() );
+      rescaleFilter->SetOutputMinimum(0);
+      rescaleFilter->SetOutputMaximum(255);
         
       ImageType::RegionType extractRegion;
       extractRegion.SetSize(  size  );
       extractRegion.SetIndex( start );
       sliceExtractFilter->SetExtractionRegion( extractRegion );
       
-      sliceExtractFilter->SetInput( imageResampleArray[j]->GetOutput() );
+      sliceExtractFilter->SetInput( rescaleFilter->GetOutput() );
       sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
 
        // write mean image
       itksys::SystemTools::MakeDirectory( (currentFolderName+"Slices/").c_str() );
       ostringstream sliceStream;
       sliceStream << j;
-      string sliceName = currentFolderName+"Slices/"+sliceStream.str()+".jpg";
+      string sliceName = currentFolderName+"Slices/x"+sliceStream.str()+".jpg";
       sliceWriter->SetFileName( sliceName.c_str() );
       
       cout << "Writing " << sliceName.c_str() << endl; 
       sliceWriter->Update();     
+
+      // Do the same for other slices
+      size = imageReaderArray[j]->GetOutput()->GetLargestPossibleRegion().GetSize();
+      start = imageReaderArray[j]->GetOutput()->GetLargestPossibleRegion().GetIndex();
+      /** change here for slice direction */
+      start[2] = size[2]/2;
+      size[2] = 0;
+      extractRegion.SetSize(  size  );
+      extractRegion.SetIndex( start );
+      sliceExtractFilter->SetExtractionRegion( extractRegion );
+      sliceName = currentFolderName+"Slices/z"+sliceStream.str()+".jpg";
+      sliceWriter->SetFileName( sliceName.c_str() );
+      sliceWriter->Update();     
+
+      // Do the same for other slices
+      size = imageReaderArray[j]->GetOutput()->GetLargestPossibleRegion().GetSize();
+      start = imageReaderArray[j]->GetOutput()->GetLargestPossibleRegion().GetIndex();
+      /** change here for slice direction */
+      start[1] = size[1]/2;
+      size[1] = 0;
+      extractRegion.SetSize(  size  );
+      extractRegion.SetIndex( start );
+      sliceExtractFilter->SetExtractionRegion( extractRegion );
+      sliceName = currentFolderName+"Slices/y"+sliceStream.str()+".jpg";
+      sliceWriter->SetFileName( sliceName.c_str() );
+      sliceWriter->Update();     
+
 
       // Write visualization images for deformation fields
       if(Dimension == 3 && i != -1)
@@ -561,12 +593,13 @@ int main( int argc, char * argv[] )
 
     // Write the mean image
     WriterType::Pointer writer= WriterType::New();
-    writer->SetInput(naryMeanImageFilter->GetOutput());
-    writer->SetFileName((meanFolder+"Mean.mhd").c_str());
     
     if(write3DImages == "on")
     {
-      cout << "Writing " << (meanFolder+"Mean.mhd").c_str() << endl;
+      cout << "Writing " << (meanFolder+"Mean.hdr").c_str() << endl;
+      writer->SetInput(naryMeanImageFilter->GetOutput());
+      writer->SetFileName((meanFolder+"Mean.hdr").c_str());
+      writer->SetImageIO(imageReaderArray[0]->GetImageIO());
       writer->Update();
     }
     
@@ -579,6 +612,13 @@ int main( int argc, char * argv[] )
     typedef itk::ExtractImageFilter< ImageType, SliceImageType > SliceExtractFilterType;
     SliceExtractFilterType::Pointer sliceExtractFilter = SliceExtractFilterType::New();
 
+    // Rescale the input image to 0-255
+    typedef itk::RescaleIntensityImageFilter<ImageType, ImageType >  RescaleFilterType;
+    RescaleFilterType::Pointer    rescaleFilter    = RescaleFilterType::New();
+    rescaleFilter->SetInput(    naryMeanImageFilter->GetOutput() );
+    rescaleFilter->SetOutputMinimum(0);
+    rescaleFilter->SetOutputMaximum(255);
+    
     //Write the central slice
     ImageType::SizeType size = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
     ImageType::IndexType start = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetIndex();
@@ -595,7 +635,7 @@ int main( int argc, char * argv[] )
     extractRegion.SetIndex( start );
     sliceExtractFilter->SetExtractionRegion( extractRegion );
       
-    sliceExtractFilter->SetInput( naryMeanImageFilter->GetOutput() );
+    sliceExtractFilter->SetInput( rescaleFilter->GetOutput() );
     sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
 
     // write mean image
@@ -604,11 +644,11 @@ int main( int argc, char * argv[] )
     sliceWriter->Update();     
 
 
-    writer->SetInput(narySTDImageFilter->GetOutput());
-    writer->SetFileName((stdFolder+"STD.mhd").c_str());
     if(write3DImages == "on")
     {
-      cout << "Writing " << (stdFolder+"STD.mhd").c_str() << endl;
+      cout << "Writing " << (stdFolder+"STD.hdr").c_str() << endl;
+      writer->SetInput(narySTDImageFilter->GetOutput());
+      writer->SetFileName((stdFolder+"STD.hdr").c_str());
       writer->Update();
     }    
     // write std image
