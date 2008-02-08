@@ -624,8 +624,8 @@ int main( int argc, char * argv[] )
     ImageType::IndexType start = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetIndex();
     
     /** change here for slice direction */
-    start[1] = size[1]/2;
-    size[1] = 0;
+    start[0] = size[0]/2;
+    size[0] = 0;
     // these are user specific
     //start[0] = 106;
     //size[0] = 0;
@@ -639,8 +639,30 @@ int main( int argc, char * argv[] )
     sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
 
     // write mean image
-    cout << "Writing " << (meanFolder+"MeanSlice.jpg").c_str() << endl;
-    sliceWriter->SetFileName( (meanFolder+"MeanSlice.jpg").c_str() );
+    cout << "Writing " << (meanFolder+"MeanSliceX.jpg").c_str() << endl;
+    sliceWriter->SetFileName( (meanFolder+"MeanSliceX.jpg").c_str() );
+    sliceWriter->Update();     
+
+    // Do the same for other slices
+    size = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
+    start = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetIndex();
+    start[1] = size[1]/2;
+    size[1] = 0;
+    extractRegion.SetSize(  size  );
+    extractRegion.SetIndex( start );
+    sliceExtractFilter->SetExtractionRegion( extractRegion );
+    sliceWriter->SetFileName( (meanFolder+"MeanSliceY.jpg").c_str() );
+    sliceWriter->Update();     
+
+    // Do the same for other slices
+    size = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
+    start = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetIndex();
+    start[2] = size[2]/2;
+    size[2] = 0;
+    extractRegion.SetSize(  size  );
+    extractRegion.SetIndex( start );
+    sliceExtractFilter->SetExtractionRegion( extractRegion );
+    sliceWriter->SetFileName( (meanFolder+"MeanSliceZ.jpg").c_str() );
     sliceWriter->Update();     
 
 
@@ -656,9 +678,37 @@ int main( int argc, char * argv[] )
     sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
 
     cout << "Writing " << (stdFolder+"STDSlice.jpg").c_str() << endl;
-    sliceWriter->SetFileName( (stdFolder+"STDSlice.jpg").c_str() );
+    size = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
+    start = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetIndex();
+    start[0] = size[0]/2;
+    size[0] = 0;
+    extractRegion.SetSize(  size  );
+    extractRegion.SetIndex( start );
+    sliceExtractFilter->SetExtractionRegion( extractRegion );
+    sliceWriter->SetFileName( (stdFolder+"STDSliceX.jpg").c_str() );
     sliceWriter->Update();
 
+    // Do the same for other slices
+    size = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
+    start = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetIndex();
+    start[1] = size[1]/2;
+    size[1] = 0;
+    extractRegion.SetSize(  size  );
+    extractRegion.SetIndex( start );
+    sliceExtractFilter->SetExtractionRegion( extractRegion );
+    sliceWriter->SetFileName( (stdFolder+"STDSliceY.jpg").c_str() );
+    sliceWriter->Update();     
+
+    // Do the same for other slices
+    size = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
+    start = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetIndex();
+    start[2] = size[2]/2;
+    size[2] = 0;
+    extractRegion.SetSize(  size  );
+    extractRegion.SetIndex( start );
+    sliceExtractFilter->SetExtractionRegion( extractRegion );
+    sliceWriter->SetFileName( (stdFolder+"STDSliceZ.jpg").c_str() );
+    sliceWriter->Update();         
     
   } // End of transform levels
 
