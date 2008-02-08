@@ -37,8 +37,7 @@
 
 
 //Define the global types for image type
-#define PixelType unsigned short
-#define InternalPixelType float
+#define PixelType unsigned char
 #define Dimension 3
 
 #include "itkTransformFileReader.h"
@@ -214,6 +213,7 @@ int main( int argc, char * argv[] )
     labelReaderArray[i] = ReaderType::New();
     string fname = labelFileFolder + labelFileNames[i];
     labelReaderArray[i]->SetFileName(fname.c_str());
+    std::cout << "Reading  " << fname.c_str() << std::endl;
     labelReaderArray[i]->Update();
   }
 
@@ -224,9 +224,10 @@ int main( int argc, char * argv[] )
     imageReaderArray[i] = ReaderType::New();
     string fname = inputFolder + fileNames[i];
     imageReaderArray[i]->SetFileName(fname.c_str());
+    std::cout << "Reading  " << fname.c_str() << std::endl; 
     imageReaderArray[i]->Update();
   } 
-  
+   
   // Get the number of tranform levels
   int transformLevels;
   if( useBsplineHigh == "on")
@@ -493,9 +494,8 @@ int main( int argc, char * argv[] )
 
         ImageType::SizeType size = naryANDImageFilter->GetOutput()->GetLargestPossibleRegion().GetSize();
         ImageType::IndexType start = naryANDImageFilter->GetOutput()->GetLargestPossibleRegion().GetIndex();
-        start[0] = 106;
+        start[0] = size[0]/2;
         size[0] = 0;
-
         
         ImageType::RegionType extractRegion;
         extractRegion.SetSize(  size  );
@@ -506,12 +506,36 @@ int main( int argc, char * argv[] )
         sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
 
         string sliceName = fname;
-        sliceName.replace(sliceName.size()-3, 3, "bmp" );
+        sliceName.replace(sliceName.size()-4, 4, "_X.jpg" );
 
         sliceWriter->SetFileName( sliceName.c_str() );
         sliceWriter->Update(); 
 
-        
+        // Write y direction
+        size = naryANDImageFilter->GetOutput()->GetLargestPossibleRegion().GetSize();
+        start = naryANDImageFilter->GetOutput()->GetLargestPossibleRegion().GetIndex();
+        start[1] = size[1]/2;
+        size[1] = 0;
+        extractRegion.SetSize(  size  );
+        extractRegion.SetIndex( start );
+        sliceExtractFilter->SetExtractionRegion( extractRegion );
+        sliceName = fname;
+        sliceName.replace(sliceName.size()-4, 4, "_Y.jpg" );
+        sliceWriter->SetFileName( sliceName.c_str() );
+        sliceWriter->Update(); 
+                
+        // Write y direction
+        size = naryANDImageFilter->GetOutput()->GetLargestPossibleRegion().GetSize();
+        start = naryANDImageFilter->GetOutput()->GetLargestPossibleRegion().GetIndex();
+        start[2] = size[2]/2;
+        size[2] = 0;
+        extractRegion.SetSize(  size  );
+        extractRegion.SetIndex( start );
+        sliceExtractFilter->SetExtractionRegion( extractRegion );
+        sliceName = fname;
+        sliceName.replace(sliceName.size()-4, 4, "_Z.jpg" );
+        sliceWriter->SetFileName( sliceName.c_str() );
+        sliceWriter->Update(); 
 
         
         // Compute prediction overlap
@@ -537,14 +561,17 @@ int main( int argc, char * argv[] )
             {
               currentLabel = 0;
             }
-            // intersection 90
+
             if( predIt.Get() - currentLabel > (N-1)*0.5  && imageIt.Get() == currentNumber)
             {
-              predIntersection += 1.0;
+              predIntersection += 2.0;
             }
 
-            // intersection 90
-            if( predIt.Get() - currentLabel > (N-1)*0.5  || imageIt.Get() == currentNumber)
+            if( predIt.Get() - currentLabel > (N-1)*0.5 )
+            {
+              predUnion += 1.0;
+            }
+            if( imageIt.Get() == currentNumber)
             {
               predUnion += 1.0;
             }
@@ -626,11 +653,15 @@ int main( int argc, char * argv[] )
             // intersection 90
             if( predIt.Get() - currentLabel > (N-1)*0.5 && imageIt.Get() == j)
             {
-              predIntersection += 1.0;
+              predIntersection += 2.0;
             }
 
             // intersection 90
-            if( predIt.Get() - currentLabel > (N-1)*0.5 || imageIt.Get() == j)
+            if( predIt.Get() - currentLabel > (N-1)*0.5 )
+            {
+              predUnion += 1.0;
+            }
+            if( imageIt.Get() == j)
             {
               predUnion += 1.0;
             }
