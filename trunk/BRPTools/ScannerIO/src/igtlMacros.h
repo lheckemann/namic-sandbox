@@ -63,7 +63,7 @@ static Pointer New(void) \
   Pointer smartPtr; \
   x *rawPtr = new x; \
   smartPtr = rawPtr; \
-  rawPtr->UnRegister(); \
+  /*rawPtr->UnRegister();*/                     \
   return smartPtr; \
 } 
 

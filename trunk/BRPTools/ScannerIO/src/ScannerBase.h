@@ -1,18 +1,16 @@
 #ifndef __SCANNER_BASE_H
 #define __SCANNER_BASE_H
 
-#include "igtlImage.h"
 #include "igtlMath.h"
+#include "igtlImage.h"
 
 class ScannerBase
 {
 public:
-
-public:
 //  static ScannerBase* New();
 //  static void Delete();
-
-  virtual igtl::Image* GetCurrentFrame() {};
+  
+  virtual ::igtl::Image::Pointer GetCurrentFrame() {};
 
   virtual int Init()   {};
   virtual int Start()  {};
@@ -29,7 +27,7 @@ protected:
 };
 
 
-#endif __IMAGE_H
+#endif// ScannerBase
 
 
 

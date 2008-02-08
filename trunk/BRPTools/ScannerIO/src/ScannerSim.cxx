@@ -7,20 +7,25 @@
 
 ScannerSim::ScannerSim()
 {
-  numImages = 0;
-  image = NULL;
+  currentFrame = 0;
+  imageArray.clear();
 }
 
 ScannerSim::~ScannerSim()
 {
 }
 
-igtl::Image* ScannerSim::GetCurrentFrame()
+igtl::Image::Pointer ScannerSim::GetCurrentFrame()
 {
+  if (currentFrame < imageArray.size())
+    {
+      return imageArray[currentFrame++];
+    }
 }
 
 int ScannerSim::Init()
 {
+  currentFrame = 0;
 }
 
 int ScannerSim::Start()
@@ -42,24 +47,19 @@ int ScannerSim::SetMatrix(float* matrix)
 int ScannerSim::LoadImageData(char* fnameTemp, int bindex, int eindex,
                               int scalarType, int size[3], float spacing[3])
 {
-  if (numImages > 0)
-    {
-      DeleteImages();
-    }
+  DeleteImages();
 
   char filename[128];
   int nframes = eindex - bindex + 1;
 
-  image = new igtl::Image*[nframes];
-  
   for (int i = 0; i < nframes; i ++)
     {
-      // allocate new igtl::Image
-      image[i] = igtl::Image::New();
-      image[i]->SetDimensions(size);
-      image[i]->SetSpacing(spacing);
-      image[i]->SetScalarType(scalarType);
-      image[i]->AllocateScalars();
+      igtl::Image::Pointer im = igtl::Image::New();
+      imageArray.push_back(im);
+      im->SetDimensions(size);
+      im->SetSpacing(spacing);
+      im->SetScalarType(scalarType);
+      im->AllocateScalars();
 
       // generate file name
       sprintf(filename, fnameTemp, i+bindex);
@@ -71,8 +71,8 @@ int ScannerSim::LoadImageData(char* fnameTemp, int bindex, int eindex,
       }
 
       // read image from raw data
-      int fsize = size[0]*size[1]*size[2]*image[i]->GetScalarSize();
-      size_t b = fread(image[i]->GetScalarPointer(), 1, fsize, fp);
+      int fsize = im->GetImageSize();
+      size_t b = fread(im->GetScalarPointer(), 1, fsize, fp);
       fclose(fp);
       if (b != fsize)
         {
@@ -87,13 +87,13 @@ int ScannerSim::LoadImageData(char* fnameTemp, int bindex, int eindex,
 
 int ScannerSim::DeleteImages()
 {
-  for (int i = 0; i < numImages; i ++)
+  std::vector<igtl::Image::Pointer>::iterator iter;
+  for (iter = imageArray.begin(); iter != imageArray.end(); iter ++)
     {
-      image[i]->Delete();
+      (*iter)->Delete();
     }
 
-  delete image;
-  numImages = 0;
+  imageArray.clear();
+  currentFrame = 0;
 }
-
 
