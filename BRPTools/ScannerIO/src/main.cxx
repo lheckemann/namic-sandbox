@@ -65,6 +65,17 @@ int   session(ScannerSim* scanner, int intv_ms);
 //int session(char* data, int psize, int* size, int t, float* spacing, int intv_ms);
 
 
+
+void printMatrix(igtl::Matrix4x4 &matrix)
+{
+  std::cout << "=============" << std::endl;
+  std::cout << matrix[0][0] << ", " << matrix[0][1] << ", " << matrix[0][2] << std::endl;
+  std::cout << matrix[1][0] << ", " << matrix[1][1] << ", " << matrix[1][2] << std::endl;
+  std::cout << matrix[2][0] << ", " << matrix[2][1] << ", " << matrix[2][2] << std::endl;
+  std::cout << "=============" << std::endl;
+}
+
+
 bool checkAndConnect()
 {
   ACE_Time_Value timeOut(5,0);
@@ -213,6 +224,7 @@ int session(ScannerSim* scanner, int intv_ms)
       matrix[2][3] = position[2];
       //frame->SetNormals(matrix);
       //frame->SetOrigin(position);
+      printMatrix(matrix);
       frame->SetMatrix(matrix);
 
       igtl_header header;
@@ -222,7 +234,6 @@ int session(ScannerSim* scanner, int intv_ms)
       header.timestamp = 0;
       header.body_size = frame->GetPackSize();
       header.crc       = 0;
-      
       igtl_header_convert_byte_order(&header);
 
       int ret;
@@ -236,7 +247,7 @@ int session(ScannerSim* scanner, int intv_ms)
         ACE_DEBUG((LM_ERROR, ACE_TEXT("Error %d : Connection Lost!\n"), errno));
       }
     }
-    
+
     ACE_Time_Value timeVal(0, (int)(intv_ms)*1000 );
     ACE_OS::sleep( timeVal );
   }
@@ -292,7 +303,10 @@ int main(int argc, char **argv)
 
   int interval_ms = (int) (1000 / fps);
 
+  std::cerr << "Creating new Scanner..." << std::endl;
+
   ScannerSim* scanner = new ScannerSim();
+  std::cerr << "Loading data..." << std::endl;
   int r = scanner->LoadImageData(filenameTemp, bindex, eindex,
                                  type, size, spacing);
   if (r == 0) {
@@ -304,10 +318,12 @@ int main(int argc, char **argv)
   bool connected = false;
   mutex = new ACE_Thread_Mutex;
 
+  std::cerr << "Connecting to the 3D Slicer..." << std::endl;
   connectToSlicer(host, 18944);
+  std::cerr << "Starting session..." << std::endl;
   session(scanner,  interval_ms);
 
-    // Stop thread
+  // Stop thread
 #ifdef WIN32
   ACE_Thread::join( (ACE_thread_t*)thread );
 #else

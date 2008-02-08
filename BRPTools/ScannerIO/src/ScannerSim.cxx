@@ -17,10 +17,15 @@ ScannerSim::~ScannerSim()
 
 igtl::Image::Pointer ScannerSim::GetCurrentFrame()
 {
-  if (currentFrame < imageArray.size())
+  igtl::Image::Pointer ptr;
+
+  ptr = imageArray[currentFrame];
+  currentFrame ++;
+  if (currentFrame >= imageArray.size())
     {
-      return imageArray[currentFrame++];
+      currentFrame = 0;
     }
+  return ptr;
 }
 
 int ScannerSim::Init()
@@ -92,7 +97,6 @@ int ScannerSim::DeleteImages()
     {
       (*iter)->Delete();
     }
-
   imageArray.clear();
   currentFrame = 0;
 }

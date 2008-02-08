@@ -41,7 +41,7 @@ Image::Image()
     }
   for (int i = 0; i < 3; i ++)
     {
-      for (int j = 0; j < 4; j )
+      for (int j = 0; j < 4; j ++)
         {
           matrix[i][j] = 0.0;
         }
@@ -200,6 +200,9 @@ void Image::SetMatrix(Matrix4x4& mat)
   matrix[0][2] = mat[0][2];
   matrix[1][2] = mat[1][2];
   matrix[2][2] = mat[2][2];
+  matrix[0][3] = mat[0][3];
+  matrix[1][3] = mat[1][3];
+  matrix[2][3] = mat[2][3];
 }
 
 void Image::AllocateScalars()
@@ -235,7 +238,25 @@ void* Image::GetPackPointer()
   image_header->subvol_size[0] = this->subDimensions[0];
   image_header->subvol_size[1] = this->subDimensions[1];
   image_header->subvol_size[2] = this->subDimensions[2];
+
+  float origin[3];
+  float norm_i[3];
+  float norm_j[3];
+  float norm_k[3];
+
+  for (int i = 0; i < 3; i ++) {
+    norm_i[i] = matrix[i][0];
+    norm_j[i] = matrix[i][1];
+    norm_k[i] = matrix[i][2];
+    origin[i] = matrix[i][3];
+  }
+
+  igtl_image_set_matrix(this->spacing, origin,
+                        norm_i, norm_j, norm_k,
+                        image_header);
+
   igtl_image_convert_byte_order(image_header);
+
 
   return (void*)image_header;
 }
