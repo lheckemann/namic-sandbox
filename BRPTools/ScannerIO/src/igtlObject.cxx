@@ -24,6 +24,7 @@ Object::Object()
 
 void Object::Delete() 
 {
+  delete this;
 }
 
 void Object::Print(std::ostream& os)

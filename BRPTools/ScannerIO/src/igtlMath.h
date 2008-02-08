@@ -14,10 +14,11 @@
 
 =========================================================================*/
 
-#ifndef __IGTL_MATH_H
-#define __IGTL_MATH_H
+#ifndef __igtlMath_h
+#define __igtlMath_h
 
-namespace igtl {
+namespace igtl
+{
 
 typedef float  Matrix4x4[4][4];
 
@@ -25,7 +26,7 @@ void QuaternionToMatrix(float* q, Matrix4x4& m);
 
 }
 
-#endif // __IGTL_MATH_H
+#endif // __igtlMath_h
 
 
 

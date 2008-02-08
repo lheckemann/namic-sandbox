@@ -2,14 +2,15 @@
 #define __SCANNER_SIM_H
 
 #include "ScannerBase.h"
+#include "igtlImage.h"
 
-class ScannerSim : public ScannerBase
+#include <vector>
+
+class ScannerSim: public ScannerBase
 {
 public:
 
-public:
-
-  virtual igtl::Image* GetCurrentFrame();
+  virtual igtl::Image::Pointer GetCurrentFrame();
   virtual int Init();
   virtual int Start();
   virtual int Pause();
@@ -20,17 +21,18 @@ public:
                     int scalarType, int size[3], float spacing[3]);
 
   int DeleteImages();
-
   void Delete();
 
-protected:
+public:
   ScannerSim();
+
+protected:
   virtual ~ScannerSim();
   
 protected:
 
-  int numImages;
-  igtl::Image** image;
+  int currentFrame;
+  std::vector<igtl::Image::Pointer> imageArray;
 
 };
 

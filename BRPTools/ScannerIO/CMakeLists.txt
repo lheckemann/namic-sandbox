@@ -36,15 +36,16 @@ libs/ace
 )
 
 SET(SOURCES
-src/ScannerBase.cxx
-src/ScannerSim.cxx
-src/igtlImage.cxx
-src/igtlMath.cxx
-src/igtlObject.cxx
 src/igtlutil/igtl_util.c
 src/igtlutil/igtl_header.c
 src/igtlutil/igtl_image.c
 src/igtlutil/igtl_transform.c
+src/igtlutil/crc32.c
+src/igtlImage.cxx
+src/igtlMath.cxx
+src/igtlObject.cxx
+src/ScannerBase.cxx
+src/ScannerSim.cxx
 )
 
 SUBDIRS(

@@ -14,17 +14,24 @@
 
 =========================================================================*/
 
-#ifndef __IGTL_OBJECT_H
-#define __IGTL_OBJECT_H
+#ifndef __igtlObject_h
+#define __igtlObject_h
 
 #include <iostream>
+#include "igtlSmartPointer.h"
+#include "igtlMacros.h"
 
-namespace igtl {
+namespace igtl
+{
 
 class Object
 {
 public:
-  static Object* New() { return new Object; };
+  typedef Object              Self;
+  typedef SmartPointer<Self>  Pointer;
+  typedef SmartPointer<const Self>  ConstPointer;
+
+  igtlNewMacro(Object);
   virtual void Delete();
 
 #ifdef _WIN32
@@ -46,4 +53,4 @@ protected:
 
 } // namespace igtl
 
-#endif // __IGTL_OBJECT_H
+#endif // __igtlObject_h
