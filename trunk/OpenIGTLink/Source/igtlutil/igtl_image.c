@@ -15,6 +15,7 @@
 =========================================================================*/
 
 #include <string.h>
+#include <math.h>
 
 #include "igtl_image.h"
 #include "igtl_util.h"
@@ -55,7 +56,7 @@ long long igtl_image_get_data_size(igtl_image_header * header)
 }
 
 
-void igtl_image_get_matrix(float spacing[3], float origin[3],
+void igtl_image_Set_matrix(float spacing[3], float origin[3],
                             float norm_i[3], float norm_j[3], float norm_k[3],
                             igtl_image_header * header)
 {
@@ -71,7 +72,57 @@ void igtl_image_get_matrix(float spacing[3], float origin[3],
   header->matrix[9]  = origin[0];
   header->matrix[10] = origin[1];
   header->matrix[11] = origin[2];
+
 }
+
+void igtl_image_get_matrix(float spacing[3], float origin[3],
+                            float norm_i[3], float norm_j[3], float norm_k[3],
+                            igtl_image_header * header)
+{
+  float tx;
+  float ty;
+  float tz;
+  float sx;
+  float sy;
+  float sz;
+  float nx;
+  float ny;
+  float nz;
+  float px;
+  float py;
+  float pz;
+
+  tx = header->matrix[0];
+  ty = header->matrix[1];
+  tz = header->matrix[2];
+  sx = header->matrix[3];
+  sy = header->matrix[4];
+  sz = header->matrix[5];
+  nx = header->matrix[6];
+  ny = header->matrix[7];
+  nz = header->matrix[8];
+  px = header->matrix[9];
+  py = header->matrix[10];
+  pz = header->matrix[11];
+
+  spacing[0] = sqrt(tx*tx + ty*ty + tz*tz);
+  spacing[1] = sqrt(sx*sx + sy*sy + sz*sz);
+  spacing[2] = sqrt(nx*nx + ny*ny + nz*nz);
+  norm_i[0] = header->matrix[0]  / spacing[0];
+  norm_i[1] = header->matrix[1]  / spacing[0];
+  norm_i[2] = header->matrix[2]  / spacing[0];
+  norm_j[0] = - header->matrix[3] / spacing[1];
+  norm_j[1] = - header->matrix[4] / spacing[1];
+  norm_j[2] = - header->matrix[5] / spacing[1];
+  norm_k[0] = - header->matrix[6] / spacing[2];
+  norm_k[1] = - header->matrix[7] / spacing[2];
+  norm_k[2] = - header->matrix[8] / spacing[2];
+  origin[0] = header->matrix[9];
+  origin[1] = header->matrix[10];
+  origin[2] = header->matrix[11];
+
+}
+
 
 void igtl_image_convert_byte_order(igtl_image_header * header)
 {
