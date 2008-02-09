@@ -14,14 +14,14 @@
 
 =========================================================================*/
 
-#include "igtlImage.h"
+#include "igtlImageMessage.h"
 
 #include "igtl_header.h"
 #include "igtl_image.h"
 
 namespace igtl {
 
-const int Image::ScalarSizeTable[] = 
+const int ImageMessage::ScalarSizeTable[] = 
   {
     0, 0,
     1, 1,   // INT8 / UINT8
@@ -30,8 +30,10 @@ const int Image::ScalarSizeTable[] =
   };
 
 
-Image::Image()
+ImageMessage::ImageMessage()
 {
+  m_BodyType = "IMAGE";
+
   for (int i = 0; i < 3; i ++)
     {
       dimensions[i] = 0;
@@ -51,19 +53,19 @@ Image::Image()
   dataType   = DTYPE_SCALAR;
   coordinate = COORDINATE_RAS;
   scalarType = TYPE_UINT8;
-  header     = NULL;
-  image      = NULL;
+  m_ImageHeader = NULL;
+  m_Image       = NULL;
 }
 
-Image::~Image()
+ImageMessage::~ImageMessage()
 {
-  if (header)
+  if (m_ImageHeader)
     {
-      delete header;
+      delete m_ImageHeader;
     }
 }
 
-void Image::SetDimensions(int s[3])
+void ImageMessage::SetDimensions(int s[3])
 {
   dimensions[0] = s[0];
   dimensions[1] = s[1];
@@ -78,7 +80,7 @@ void Image::SetDimensions(int s[3])
   subOffset[2] = 0;
 }
 
-void Image::SetDimensions(int i, int j, int k)
+void ImageMessage::SetDimensions(int i, int j, int k)
 {
   dimensions[0] = i;
   dimensions[1] = j;
@@ -93,7 +95,7 @@ void Image::SetDimensions(int i, int j, int k)
   subOffset[2] = 0;
 }
 
-int Image::SetSubVolume(int dim[3], int off[3])
+int ImageMessage::SetSubVolume(int dim[3], int off[3])
 {
   // make sure that sub-volume fits in the dimensions
   if (off[0] + dim[0] <= dimensions[0] &&
@@ -114,7 +116,7 @@ int Image::SetSubVolume(int dim[3], int off[3])
     }
 }
 
-int Image::SetSubVolume(int dimi, int dimj, int dimk, int offi, int offj, int offk)
+int ImageMessage::SetSubVolume(int dimi, int dimj, int dimk, int offi, int offj, int offk)
 {
   // make sure that sub-volume fits in the dimensions
   if (offi + dimi <= dimensions[0] &&
@@ -135,35 +137,35 @@ int Image::SetSubVolume(int dimi, int dimj, int dimk, int offi, int offj, int of
     }
 }
 
-void Image::SetSpacing(float s[3])
+void ImageMessage::SetSpacing(float s[3])
 {
   spacing[0] = s[0];
   spacing[1] = s[1];
   spacing[2] = s[2];
 }
 
-void Image::SetSpacing(float si, float sj, float sk)
+void ImageMessage::SetSpacing(float si, float sj, float sk)
 {
   spacing[0] = si;
   spacing[1] = sj;
   spacing[2] = sk;
 }
 
-void Image::SetOrigin(float p[3])
+void ImageMessage::SetOrigin(float p[3])
 {
   matrix[0][3] = p[0];
   matrix[1][3] = p[1];
   matrix[2][3] = p[2];
 }
 
-void Image::SetOrigin(float px, float py, float pz)
+void ImageMessage::SetOrigin(float px, float py, float pz)
 {
   matrix[0][3] = px;
   matrix[1][3] = py;
   matrix[2][3] = pz;
 }
 
-void Image::SetNormals(float o[3][3])
+void ImageMessage::SetNormals(float o[3][3])
 {
   matrix[0][0] = o[0][0];
   matrix[0][1] = o[0][1];
@@ -176,7 +178,7 @@ void Image::SetNormals(float o[3][3])
   matrix[2][2] = o[2][2];
 }
 
-void Image::SetNormals(float t[3], float s[3], float n[3])
+void ImageMessage::SetNormals(float t[3], float s[3], float n[3])
 {
   matrix[0][0] = t[0];
   matrix[1][0] = t[1];
@@ -189,7 +191,7 @@ void Image::SetNormals(float t[3], float s[3], float n[3])
   matrix[2][2] = n[2];
 }
 
-void Image::SetMatrix(Matrix4x4& mat)
+void ImageMessage::SetMatrix(Matrix4x4& mat)
 {
   matrix[0][0] = mat[0][0];
   matrix[1][0] = mat[1][0];
@@ -205,24 +207,29 @@ void Image::SetMatrix(Matrix4x4& mat)
   matrix[2][3] = mat[2][3];
 }
 
-void Image::AllocateScalars()
+void ImageMessage::AllocateScalars()
 {
-  // Calculate memory size
-  // Both header and image areas are allocated at the same time
-  int size = GetImageSize() + IGTL_IMAGE_HEADER_SIZE;
-  
-  header = new unsigned char[size];
-  image  = (unsigned char*)&header[IGTL_IMAGE_HEADER_SIZE];
+  // Memory area to store image scalar is allocated with
+  // message and image header, by using AllocatePack() implemented
+  // in the parent class.
+  AllocatePack();
+  m_ImageHeader = m_Body;
+  m_Image  = &m_ImageHeader[IGTL_IMAGE_HEADER_SIZE];
 }
 
-void* Image::GetScalarPointer()
+void* ImageMessage::GetScalarPointer()
 {
-  return (void*)image;
+  return (void*)m_Image;
 }
 
-void* Image::GetPackPointer()
+int ImageMessage::GetBodyPackSize()
 {
-  igtl_image_header* image_header = (igtl_image_header*)header;
+  return GetImageSize() + IGTL_IMAGE_HEADER_SIZE;
+}
+
+void ImageMessage::PackBody()
+{
+  igtl_image_header* image_header = (igtl_image_header*)m_ImageHeader;
 
   image_header->version     = IGTL_IMAGE_HEADER_VERSION;
   image_header->data_type   = this->dataType;
@@ -257,13 +264,6 @@ void* Image::GetPackPointer()
 
   igtl_image_convert_byte_order(image_header);
 
-
-  return (void*)image_header;
-}
-
-int Image::GetPackSize()
-{
-  return GetImageSize() + IGTL_IMAGE_HEADER_SIZE;
 }
 
 

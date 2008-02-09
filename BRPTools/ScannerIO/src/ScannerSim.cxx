@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "igtlImage.h"
+#include "igtlImageMessage.h"
 #include "ScannerSim.h"
 
 ScannerSim::ScannerSim()
@@ -15,9 +15,9 @@ ScannerSim::~ScannerSim()
 {
 }
 
-igtl::Image::Pointer ScannerSim::GetCurrentFrame()
+igtl::ImageMessage::Pointer ScannerSim::GetCurrentFrame()
 {
-  igtl::Image::Pointer ptr;
+  igtl::ImageMessage::Pointer ptr;
 
   ptr = imageArray[currentFrame];
   currentFrame ++;
@@ -59,11 +59,12 @@ int ScannerSim::LoadImageData(char* fnameTemp, int bindex, int eindex,
 
   for (int i = 0; i < nframes; i ++)
     {
-      igtl::Image::Pointer im = igtl::Image::New();
+      igtl::ImageMessage::Pointer im = igtl::ImageMessage::New();
       imageArray.push_back(im);
       im->SetDimensions(size);
       im->SetSpacing(spacing);
       im->SetScalarType(scalarType);
+      im->SetDeviceName("Scanner");
       im->AllocateScalars();
 
       // generate file name
@@ -92,7 +93,7 @@ int ScannerSim::LoadImageData(char* fnameTemp, int bindex, int eindex,
 
 int ScannerSim::DeleteImages()
 {
-  std::vector<igtl::Image::Pointer>::iterator iter;
+  std::vector<igtl::ImageMessage::Pointer>::iterator iter;
   for (iter = imageArray.begin(); iter != imageArray.end(); iter ++)
     {
       (*iter)->Delete();

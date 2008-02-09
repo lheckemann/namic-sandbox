@@ -2,7 +2,7 @@
 #define __SCANNER_SIM_H
 
 #include "ScannerBase.h"
-#include "igtlImage.h"
+#include "igtlImageMessage.h"
 
 #include <vector>
 
@@ -10,7 +10,7 @@ class ScannerSim: public ScannerBase
 {
 public:
 
-  virtual igtl::Image::Pointer GetCurrentFrame();
+  virtual igtl::ImageMessage::Pointer GetCurrentFrame();
   virtual int Init();
   virtual int Start();
   virtual int Pause();
@@ -32,7 +32,7 @@ protected:
 protected:
 
   int currentFrame;
-  std::vector<igtl::Image::Pointer> imageArray;
+  std::vector<igtl::ImageMessage::Pointer> imageArray;
 
 };
 

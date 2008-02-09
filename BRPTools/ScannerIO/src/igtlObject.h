@@ -48,6 +48,7 @@ protected:
   Object(const Object&) {}
   virtual ~Object() {};
   void operator=(const Object&) {}
+
 };
 
 
