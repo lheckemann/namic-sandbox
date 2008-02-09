@@ -18,7 +18,7 @@
 #define __IGTL_HEADER_H
 
 #define IGTL_HEADER_VERSION   1
-#define IGTL_HEADER_SIZE      58
+#define IGTL_HEADER_SIZE      54
 
 #ifdef __cplusplus
 extern "C" {

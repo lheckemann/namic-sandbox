@@ -14,25 +14,26 @@
 
 =========================================================================*/
 
-#ifndef __igtlImage_h
-#define __igtlImage_h
+#ifndef __igtlImageMessage_h
+#define __igtlImageMessage_h
 
 #include "igtlObject.h"
 #include "igtlMacros.h"
 #include "igtlMath.h"
+#include "igtlMessageBase.h"
 
 namespace igtl
 {
 
-class Image: public Object
+class ImageMessage: public MessageBase
 {
 public:
-  typedef Image               Self;
+  typedef ImageMessage               Self;
   typedef SmartPointer<Self>  Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
 
-  igtlTypeMacro(igtl::Image, igtl::Object)
-  igtlNewMacro(igtl::Image);
+  igtlTypeMacro(igtl::ImageMessage, igtl::Object)
+  igtlNewMacro(igtl::ImageMessage);
 
 public:
 
@@ -96,17 +97,18 @@ public:
     return dimensions[0]*dimensions[1]*dimensions[2]*GetScalarSize();
   };
 
-  void AllocateScalars();
+  void  AllocateScalars();
   void* GetScalarPointer();
 
-  void* GetPackPointer();
-  int   GetPackSize();
-
 protected:
-  Image();
-  ~Image();
+  ImageMessage();
+  ~ImageMessage();
   
 protected:
+
+  virtual int GetBodyPackSize();
+  virtual void PackBody();
+  
   int    dimensions[3];
   float  spacing[3];
   int    subDimensions[3];
@@ -119,21 +121,14 @@ protected:
   int    scalarType;
   int    coordinate;
 
-  // Pointers to header and image
-  //  To prevent large copy of byte array in GetPack() function,
-  //  header byte array is concatinated to that of image.
-  //  Consequently,
-  //     scalar = header + sizeof (igtl_image_header)
-  //  after these areas are allocated.
-  //
-  unsigned char*  header;
-  unsigned char*  image;
+  unsigned char*  m_ImageHeader;
+  unsigned char*  m_Image;
 
 };
 
 
 } // namespace igtl
 
-#endif // _igtlImage_h
+#endif // _igtlImageMessage_h
 
 

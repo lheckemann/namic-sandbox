@@ -60,11 +60,7 @@ bool  checkAndConnect();
 void  serverMonitor();
 int   connectToSlicer(const char* hostname, int port);
 void  disconnect();
-char* loadImageData(char* fnameTemp, int bindex, int eindex, size_t fsize);
 int   session(ScannerSim* scanner, int intv_ms);
-//int session(char* data, int psize, int* size, int t, float* spacing, int intv_ms);
-
-
 
 void printMatrix(igtl::Matrix4x4 &matrix)
 {
@@ -164,35 +160,6 @@ void disconnect()
 }
 
 
-char* loadImageData(char* fnameTemp, int bindex, int eindex, size_t fsize)
-{
-  char filename[128];
-
-  int nframes = eindex - bindex + 1;
-  char* data = new char[nframes*fsize];
-
-  for (int i = 0; i < nframes; i ++) {
-    sprintf(filename, fnameTemp, i+bindex);
-    std::cerr << "Reading " << filename << std::endl;
-    FILE *fp = fopen(filename, "rb");
-    if (fp == NULL) {
-      std::cerr << "File opeining error: " << filename << std::endl;
-      return NULL;
-    }
-    size_t b = fread(&data[i*fsize], 1, fsize, fp);
-    fclose(fp);
-    if (b != fsize) {
-      std::cerr << "File reading error: " << filename << std::endl;
-      std::cerr << "   File size: " << fsize << std::endl;
-      std::cerr << "   Read data: " << b << std::endl;
-
-      return NULL;
-    }
-  }
-  return data;
-}
-
-
 int session(ScannerSim* scanner, int intv_ms)
 {
 
@@ -217,29 +184,19 @@ int session(ScannerSim* scanner, int intv_ms)
       // convert them for Slicer Daemon
       igtl::Matrix4x4 matrix;
       igtl::QuaternionToMatrix(orientation, matrix);
-      igtl::Image::Pointer frame = scanner->GetCurrentFrame();
+      igtl::ImageMessage::Pointer frame = scanner->GetCurrentFrame();
 
       matrix[0][3] = position[0];
       matrix[1][3] = position[1];
       matrix[2][3] = position[2];
-      //frame->SetNormals(matrix);
-      //frame->SetOrigin(position);
       printMatrix(matrix);
       frame->SetMatrix(matrix);
-
-      igtl_header header;
-      header.version = IGTL_HEADER_VERSION;
-      memcpy(header.name, "IMAGE", 6);
-      memcpy(header.device_name, "NaviTrackRTImage", 17);
-      header.timestamp = 0;
-      header.body_size = frame->GetPackSize();
-      header.crc       = 0;
-      igtl_header_convert_byte_order(&header);
+      frame->Pack();
 
       int ret;
       ACE_Time_Value timeOut(1,0);
   
-      ret = sock.send_n(&header, IGTL_HEADER_SIZE, &timeOut); 
+      /*ret = sock.send_n(&header, IGTL_HEADER_SIZE, &timeOut); */
       ret = sock.send_n(frame->GetPackPointer(), frame->GetPackSize(), &timeOut);
 
       if (ret <= 0) {

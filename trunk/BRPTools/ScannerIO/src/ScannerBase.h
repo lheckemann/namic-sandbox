@@ -2,7 +2,7 @@
 #define __SCANNER_BASE_H
 
 #include "igtlMath.h"
-#include "igtlImage.h"
+#include "igtlImageMessage.h"
 
 class ScannerBase
 {
@@ -10,7 +10,7 @@ public:
 //  static ScannerBase* New();
 //  static void Delete();
   
-  virtual ::igtl::Image::Pointer GetCurrentFrame() {};
+  virtual ::igtl::ImageMessage::Pointer GetCurrentFrame() {};
 
   virtual int Init()   {};
   virtual int Start()  {};

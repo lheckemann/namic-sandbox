@@ -16,6 +16,8 @@
 
 #include "igtlObject.h"
 
+#include "igtl_header.h"
+
 namespace igtl {
 
 Object::Object()
@@ -32,7 +34,7 @@ void Object::Print(std::ostream& os)
   //os << "  " << this->GetClassName() << " (" << this << ")\n";
   PrintSelf(os, 4);
 }
-
+  
 void Object::PrintSelf(std::ostream& os, int indent)
 {
 }
@@ -51,4 +53,6 @@ void Object::operator delete( void *p )
 }
 #endif 
 
-}
+} // namespace igtl
+
+
