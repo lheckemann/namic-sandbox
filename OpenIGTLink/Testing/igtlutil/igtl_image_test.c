@@ -28,6 +28,7 @@ int main( int argc, char * argv [] )
   float norm_j[3];
   float norm_k[3];
   unsigned long crc;
+  char * image;
 
   igtl_image_header  header;
 
@@ -38,7 +39,7 @@ int main( int argc, char * argv [] )
   igtl_image_convert_byte_order( & header);
   // FIXME: verify the outcome
 
-  char * image;
+  
   crc = igtl_image_get_crc( &header, (void*) image);
   // FIXME: verify the outcome
 
