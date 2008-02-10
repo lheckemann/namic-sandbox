@@ -37,7 +37,7 @@ extern "C" {
 
 typedef struct {
   unsigned short version;          /* protocol version number */
-  char           name[8];          /* data type name          */
+  char           name[12];          /* data type name          */
   char           device_name[20];  /* device name             */
   long long      timestamp;        /* time stamp message      */
   long long      body_size;        /* size of the body        */
