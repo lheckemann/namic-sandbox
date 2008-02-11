@@ -1,6 +1,7 @@
 # Testing directory
 
 ADD_EXECUTABLE(MattesMetricCachingTest MattesMetricCachingTest.cxx itkExperimentTimeProbesCollector.cxx )
+ADD_EXECUTABLE(MattesMetricPDFJacobianFlatteningTest MattesMetricPDFJacobianFlatteningTest.cxx itkExperimentTimeProbesCollector.cxx )
 
 # Win32 only
 IF (WIN32)
@@ -12,6 +13,7 @@ ENDIF (WIN32)
 INCLUDE_DIRECTORIES(${MattesMetricCachingTest_SOURCE_DIR}/Source)
 
 TARGET_LINK_LIBRARIES(MattesMetricCachingTest ITKIO ITKAlgorithms ITKNumerics ${MEMORY_LIBS})
+TARGET_LINK_LIBRARIES(MattesMetricPDFJacobianFlatteningTest ITKIO ITKAlgorithms ITKNumerics ${MEMORY_LIBS})
 
 ADD_EXECUTABLE(MemoryUsageExample MemoryUsageExample.cxx)
 TARGET_LINK_LIBRARIES(MemoryUsageExample ITKIO ITKAlgorithms ITKNumerics ${MEMORY_LIBS})
@@ -33,5 +35,7 @@ FOREACH( SIZE ${SIZE_LIST} )
   SET( IMAGE_SIZE ${SIZE} ${SIZE} ${SIZE} )
   ADD_TEST( MattesWithCaching${SIZE} MattesMetricCachingTest  ${IMAGE_SIZE} ${NUMBER_OF_CALLS} 1 )
   ADD_TEST( MattesWithoutCaching${SIZE} MattesMetricCachingTest  ${IMAGE_SIZE} ${NUMBER_OF_CALLS} 0 )
+  ADD_TEST( MattesWithPDFJacobian${SIZE} MattesMetricPDFJacobianFlatteningTest  ${IMAGE_SIZE} ${NUMBER_OF_CALLS} 1 )
+  ADD_TEST( MattesWithoutPDFJacobian${SIZE} MattesMetricPDFJacobianFlatteningTest  ${IMAGE_SIZE} ${NUMBER_OF_CALLS} 0 )
 ENDFOREACH( SIZE ${SIZE_LIST} )
 

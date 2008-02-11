@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkMattesMutualInformationImageToImageMetric_h
-#define __itkMattesMutualInformationImageToImageMetric_h
+#ifndef __itkMattesNoPDFJacobianMutualInformationImageToImageMetric_h
+#define __itkMattesNoPDFJacobianMutualInformationImageToImageMetric_h
 
 // First make sure that the configuration is available.
 // This line can be removed once the optimized versions
@@ -40,11 +40,11 @@
 namespace itk
 {
 
-/** \class MattesMutualInformationImageToImageMetric
+/** \class MattesNoPDFJacobianMutualInformationImageToImageMetric
  * \brief Computes the mutual information between two images to be 
  * registered using the method of Mattes et al.
  *
- * MattesMutualInformationImageToImageMetric computes the mutual 
+ * MattesNoPDFJacobianMutualInformationImageToImageMetric computes the mutual 
  * information between a fixed and moving image to be registered.
  *
  * This class is templated over the FixedImage type and the MovingImage 
@@ -122,13 +122,13 @@ namespace itk
  * \ingroup ThreadUnSafe
  */
 template <class TFixedImage,class TMovingImage >
-class ITK_EXPORT MattesMutualInformationImageToImageMetric :
+class ITK_EXPORT MattesNoPDFJacobianMutualInformationImageToImageMetric :
     public ImageToImageMetric< TFixedImage, TMovingImage >
 {
 public:
 
   /** Standard class typedefs. */
-  typedef MattesMutualInformationImageToImageMetric  Self;
+  typedef MattesNoPDFJacobianMutualInformationImageToImageMetric  Self;
   typedef ImageToImageMetric< TFixedImage, TMovingImage > Superclass;
   typedef SmartPointer<Self>  Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
@@ -137,7 +137,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(MattesMutualInformationImageToImageMetric, ImageToImageMetric);
+  itkTypeMacro(MattesNoPDFJacobianMutualInformationImageToImageMetric, ImageToImageMetric);
 
   /** Types inherited from Superclass. */
   typedef typename Superclass::TransformType            TransformType;
@@ -217,8 +217,8 @@ public:
 
 protected:
 
-  MattesMutualInformationImageToImageMetric();
-  virtual ~MattesMutualInformationImageToImageMetric() {};
+  MattesNoPDFJacobianMutualInformationImageToImageMetric();
+  virtual ~MattesNoPDFJacobianMutualInformationImageToImageMetric() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   /**
@@ -264,7 +264,7 @@ protected:
 private:
 
   //purposely not implemented
-  MattesMutualInformationImageToImageMetric(const Self&); 
+  MattesNoPDFJacobianMutualInformationImageToImageMetric(const Self&); 
   //purposely not implemented
   void operator=(const Self&); 
 
@@ -442,7 +442,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkMattesMutualInformationImageToImageMetric3.txx"
+#include "itkMattesNoPDFJacobianMutualInformationImageToImageMetric.txx"
 #endif
 
 #endif
