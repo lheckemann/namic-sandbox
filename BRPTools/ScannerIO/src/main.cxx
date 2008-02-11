@@ -166,18 +166,29 @@ int session(ScannerSim* scanner, int intv_ms)
   while (1) {
     float position[3];
     float orientation[4];
+    /*  // random position
     static float phi = 0.0;
     position[0] = 50.0 * cos(phi);
     position[1] = 50.0 * sin(phi);
     position[2] = 0;
     phi = phi + 0.2;
-    
+    */
+    position[0] = 0;
+    position[1] = 0;
+    position[2] = 0;
+
+    /* // random orientation
     static float theta = 0.0;
     orientation[0]=0.0;
     orientation[1]=0.6666666666*cos(theta);
     orientation[2]=0.577350269189626;
     orientation[3]=0.6666666666*sin(theta);
     theta = theta + 0.1;
+    */
+    orientation[0]=0.0;
+    orientation[1]=0.0;
+    orientation[2]=0.0;
+    orientation[3]=1.0;
     
     if (connected) {
       // Get position/orientation from the NaviTrack stream and
@@ -185,19 +196,22 @@ int session(ScannerSim* scanner, int intv_ms)
       igtl::Matrix4x4 matrix;
       igtl::QuaternionToMatrix(orientation, matrix);
       igtl::ImageMessage::Pointer frame = scanner->GetCurrentFrame();
-
+      
       matrix[0][3] = position[0];
       matrix[1][3] = position[1];
       matrix[2][3] = position[2];
+
       printMatrix(matrix);
       frame->SetMatrix(matrix);
       frame->Pack();
+      std::cerr << "packed" <<std::endl;
 
       int ret;
       ACE_Time_Value timeOut(1,0);
   
       /*ret = sock.send_n(&header, IGTL_HEADER_SIZE, &timeOut); */
       ret = sock.send_n(frame->GetPackPointer(), frame->GetPackSize(), &timeOut);
+      std::cerr << "done";
 
       if (ret <= 0) {
         disconnect();
