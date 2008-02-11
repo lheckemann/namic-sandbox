@@ -19,7 +19,7 @@ void
 ExperimentTimeProbesCollector::
 WriteReportHeader( std::ostream & os ) const
 {
-  unsigned int experimentWidth = m_ExperimentString.length()+5;
+  size_t experimentWidth = m_ExperimentString.length()+5;
   os << "#";
   os.width(experimentWidth);
   os <<  " Experiment name " << m_Delimeter;
@@ -41,7 +41,7 @@ WriteReportBody( std::ostream & os ) const
   MapType::const_iterator probe = m_Probes.begin();
   MapType::const_iterator end   = m_Probes.end();
 
-  unsigned int experimentWidth = m_ExperimentString.length()+5;
+  size_t experimentWidth = m_ExperimentString.length()+5;
 
   while( probe != end )
     {

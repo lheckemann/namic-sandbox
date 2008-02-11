@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMattesMutualInformationImageToImageMetric.txx,v $
+  Module:    $RCSfile: itkMattesNoPDFJacobianMutualInformationImageToImageMetric.txx,v $
   Language:  C++
   Date:      $Date: 2007/11/14 18:55:19 $
   Version:   $Revision: 1.41 $
@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkMattesMutualInformationImageToImageMetric_txx
-#define _itkMattesMutualInformationImageToImageMetric_txx
+#ifndef _itkMattesNoPDFJacobianMutualInformationImageToImageMetric_txx
+#define _itkMattesNoPDFJacobianMutualInformationImageToImageMetric_txx
 
 
 // First make sure that the configuration is available.
@@ -28,7 +28,7 @@
 #else
 
 
-#include "itkMattesMutualInformationImageToImageMetric3.h"
+#include "itkMattesNoPDFJacobianMutualInformationImageToImageMetric.h"
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkCovariantVector.h"
 #include "itkImageRandomConstIteratorWithIndex.h"
@@ -48,8 +48,8 @@ namespace itk
  * Constructor
  */
 template < class TFixedImage, class TMovingImage >
-MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
-::MattesMutualInformationImageToImageMetric()
+MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+::MattesNoPDFJacobianMutualInformationImageToImageMetric()
 {
 
   m_NumberOfSpatialSamples = 500;
@@ -97,7 +97,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
  */
 template < class TFixedImage, class TMovingImage  >
 void
-MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   
@@ -138,7 +138,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
  */
 template <class TFixedImage, class TMovingImage> 
 void
-MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::Initialize(void) throw ( ExceptionObject )
 {
   MemoryUseCollector memCollector;
@@ -437,7 +437,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   if ( m_TransformIsBSpline )
     {
 
-std::cout << "MattesMutualInformationImageToImageMetric::Initialize()" << std::endl;
+std::cout << "MattesNoPDFJacobianMutualInformationImageToImageMetric::Initialize()" << std::endl;
 std::cout << "Allocating weights for " << m_NumberOfSpatialSamples * m_NumBSplineWeights * sizeof( WeightsValueType ) / ( 1024.0 * 1024.0 ) << " Mega bytes " << std::endl;
 std::cout << "Allocating indices for " << m_NumberOfSpatialSamples * m_NumBSplineWeights * sizeof( IndexValueType ) / ( 1024.0 * 1024.0 ) << " Mega bytes " << std::endl;
 
@@ -467,7 +467,7 @@ std::cout << "Allocating indices for " << m_NumberOfSpatialSamples * m_NumBSplin
  */
 template < class TFixedImage, class TMovingImage >
 void
-MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::SampleFixedImageDomain( FixedImageSpatialSampleContainer& samples )
 {
 
@@ -552,7 +552,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
  */
 template < class TFixedImage, class TMovingImage >
 void
-MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::SampleFullFixedImageDomain( FixedImageSpatialSampleContainer& samples )
 {
 
@@ -635,7 +635,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
  */
 template < class TFixedImage, class TMovingImage >
 void
-MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::ComputeFixedImageParzenWindowIndices( 
            FixedImageSpatialSampleContainer& samples )
 {
@@ -672,9 +672,9 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
  * Get the match Measure
  */
 template < class TFixedImage, class TMovingImage  >
-typename MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+typename MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::MeasureType
-MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::GetValue( const ParametersType& parameters ) const
 {
 
@@ -931,7 +931,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
  */
 template < class TFixedImage, class TMovingImage  >
 void
-MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::GetValueAndDerivative(
   const ParametersType& parameters,
   MeasureType& value,
@@ -1254,7 +1254,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
  */
 template < class TFixedImage, class TMovingImage  >
 void
-MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::GetDerivative( const ParametersType& parameters,
                  DerivativeType & derivative ) const
 {
@@ -1271,7 +1271,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
  */
 template < class TFixedImage, class TMovingImage >
 void
-MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::ComputeImageDerivatives( 
   const MovingImagePointType& mappedPoint, 
   ImageDerivativesType& gradient ) const
@@ -1297,7 +1297,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
  */
 template < class TFixedImage, class TMovingImage >
 void
-MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::TransformPoint( 
   unsigned int sampleNumber, 
   const ParametersType& parameters,
@@ -1381,7 +1381,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
  */
 template < class TFixedImage, class TMovingImage >
 void
-MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::ComputePDFDerivatives( 
   unsigned int sampleNumber, 
   int pdfMovingIndex,
@@ -1462,7 +1462,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
 // Method to reinitialize the seed of the random number generator
 template < class TFixedImage, class TMovingImage  > void
-MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::ReinitializeSeed()
 {
   Statistics::MersenneTwisterRandomVariateGenerator::GetInstance()->SetSeed();
@@ -1470,7 +1470,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
 // Method to reinitialize the seed of the random number generator
 template < class TFixedImage, class TMovingImage  > void
-MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::ReinitializeSeed(int seed)
 {
   Statistics::MersenneTwisterRandomVariateGenerator::GetInstance()->SetSeed(
@@ -1483,7 +1483,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
  */
 template < class TFixedImage, class TMovingImage >
 void
-MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::PreComputeTransformValues()
 {
   // Create all zero dummy transform parameters
