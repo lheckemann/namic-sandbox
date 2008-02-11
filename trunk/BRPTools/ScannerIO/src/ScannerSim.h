@@ -31,7 +31,9 @@ protected:
   
 protected:
 
-  int currentFrame;
+  int currentFrameIndex;
+  int currentFrameSliceIndex;
+  igtl::ImageMessage::Pointer currentFrame;
   std::vector<igtl::ImageMessage::Pointer> imageArray;
 
 };

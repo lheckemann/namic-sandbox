@@ -88,6 +88,11 @@ public:
   void SetScalarTypeToInt32()  { scalarType = TYPE_INT32; };
   void SetScalarTypeToUint32() { scalarType = TYPE_UINT32; };
 
+  void GetDimensions(int s[3]);
+  void GetDimensions(int &i, int &j, int &k);
+  void GetSubVolume(int dim[3], int off[3]);
+  void GetSubVolume(int &dimi, int &dimj, int &dimk, int &offi, int &offj, int &offk);
+
   int  GetScalarSize()         { return ScalarSizeTable[scalarType]; };
   int  GetScalarSize(int type) { return ScalarSizeTable[type]; };
 
@@ -95,6 +100,11 @@ public:
   int  GetImageSize()
   {
     return dimensions[0]*dimensions[1]*dimensions[2]*GetScalarSize();
+  };
+
+  int  GetSubVolumeImageSize()
+  {
+    return subDimensions[0]*subDimensions[1]*subDimensions[2]*GetScalarSize();
   };
 
   void  AllocateScalars();

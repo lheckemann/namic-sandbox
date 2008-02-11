@@ -207,6 +207,41 @@ void ImageMessage::SetMatrix(Matrix4x4& mat)
   matrix[2][3] = mat[2][3];
 }
 
+void ImageMessage::GetDimensions(int s[3])
+{
+  s[0] = dimensions[0];
+  s[1] = dimensions[1];
+  s[2] = dimensions[2];
+}
+
+void ImageMessage::GetDimensions(int &i, int &j, int &k)
+{
+  i = dimensions[0];
+  j = dimensions[1];
+  k = dimensions[2];
+}
+
+void ImageMessage::GetSubVolume(int dim[3], int off[3])
+{
+  dim[0] = subDimensions[0];
+  dim[1] = subDimensions[1];
+  dim[2] = subDimensions[2];
+  off[0] = subOffset[0];
+  off[1] = subOffset[1];
+  off[2] = subOffset[2];
+}
+
+void ImageMessage::GetSubVolume(int &dimi, int &dimj, int &dimk,
+                                int &offi, int &offj, int &offk)
+{
+  dimi = subDimensions[0];
+  dimj = subDimensions[1];
+  dimk = subDimensions[2];
+  offi = subOffset[0];
+  offj = subOffset[1];
+  offk = subOffset[2];
+}
+
 void ImageMessage::AllocateScalars()
 {
   // Memory area to store image scalar is allocated with
@@ -224,7 +259,7 @@ void* ImageMessage::GetScalarPointer()
 
 int ImageMessage::GetBodyPackSize()
 {
-  return GetImageSize() + IGTL_IMAGE_HEADER_SIZE;
+  return GetSubVolumeImageSize() + IGTL_IMAGE_HEADER_SIZE;
 }
 
 void ImageMessage::PackBody()
