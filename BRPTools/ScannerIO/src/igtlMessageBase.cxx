@@ -33,6 +33,7 @@ MessageBase::MessageBase()
 
 MessageBase::~MessageBase()
 {
+  // TBD
 }
 
 int MessageBase::SetDeviceName(std::string name)

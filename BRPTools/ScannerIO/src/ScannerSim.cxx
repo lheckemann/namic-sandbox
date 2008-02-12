@@ -145,7 +145,7 @@ int ScannerSim::LoadImageData(char* fnameTemp, int bindex, int eindex,
       currentFrame->SetDimensions(size);
       currentFrame->SetSpacing(spacing);
       currentFrame->SetScalarType(scalarType);
-      currentFrame->SetSubVolume(size[0], size[1], 1, 0, 0, 0);
+      currentFrame->SetSubVolume(size[0], size[1], 10, 0, 0, 0);
       currentFrame->SetDeviceName("Scanner");
       currentFrame->AllocateScalars();
 
