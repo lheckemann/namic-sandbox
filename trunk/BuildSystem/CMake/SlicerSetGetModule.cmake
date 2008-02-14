@@ -79,3 +79,92 @@ MACRO(SLICER_UNSET_MODULE_VALUE module_varname key)
   SET(${module_varname}_${key})
 
 ENDMACRO(SLICER_UNSET_MODULE_VALUE)
+
+# ---------------------------------------------------------------------------
+# SLICER_GET_MODULE_SHORT_DESCRIPTION: Get a module short description.
+#
+# This macro uses the module variables to create a short module description.
+#
+# Arguments:
+#   module_varname (string): variable name used to store the module keys/values
+#   desc_varname (string):   variable name used to store the short description
+# 
+# Example:
+#   SLICER_GET_MODULE_SHORT_DESCRIPTION(TestModule desc)
+#   MESSAGE("TestModule Short Description: ${desc}")
+#
+# See also:
+#   SLICER_GET_MODULE_VALUE
+#   SLICER_SET_MODULE_VALUE
+# ---------------------------------------------------------------------------
+
+FUNCTION(SLICER_GET_MODULE_SHORT_DESCRIPTION module_varname desc_varname)
+
+  SLICER_GET_MODULE_VALUE(${module_varname} "Name" name)
+  IF(name)
+    SET(short_desc "${name}")
+  ELSE(name)
+    SET(short_desc "<Unknown>")
+  ENDIF(name)
+
+  SLICER_GET_MODULE_VALUE(${module_varname} "Version" version)
+  IF(version)
+    SET(short_desc "${short_desc} ${version}")
+  ENDIF(version)
+
+  SLICER_GET_MODULE_VALUE(${module_varname} "Author" authors)
+  IF(authors)
+    SET(short_desc "${short_desc} (${authors})")
+  ENDIF(authors)
+
+  SET(short_desc "${short_desc}.")
+
+  SLICER_GET_MODULE_VALUE(${module_varname} "Description" desc)
+  IF(desc)
+    SET(short_desc "${short_desc} ${desc}")
+  ENDIF(desc)
+
+  SET(${desc_varname} ${short_desc} PARENT_SCOPE)
+
+ENDFUNCTION(SLICER_GET_MODULE_SHORT_DESCRIPTION)
+
+# ---------------------------------------------------------------------------
+# SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE: Get a module source repository type.
+#
+# This macro can be used to retrieve the type of source repository the 
+# module is using.
+# Will return either "cvs", "svn", or unset the var if unknown.
+#
+# Arguments:
+#   module_varname (string): variable name used to store the module keys/values
+#   type_varname (string):   variable name used to store the type
+# 
+# Example:
+#   SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE(TestModule type)
+#   IF(type STREQUAL "svn")
+#     ...
+#   ENDIF(type STREQUAL "svn")
+#
+# See also:
+#   SLICER_GET_MODULE_VALUE
+#   SLICER_SET_MODULE_VALUE
+# ---------------------------------------------------------------------------
+
+FUNCTION(SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE module_varname type_varname)
+
+  SLICER_GET_MODULE_VALUE(${module_varname} "SourceLocation" source_loc)
+  IF(source_loc)
+    STRING(REGEX MATCH "^http://.+$" found_svn "${source_loc}")
+    IF(found_svn)
+      SET(${type_varname} "svn" PARENT_SCOPE)
+    ELSE(found_svn)
+      STRING(REGEX MATCH "^:.+:.+:.+$" found_cvs "${source_loc}")
+      IF(found_cvs)
+        SET(${type_varname} "cvs" PARENT_SCOPE)
+      ENDIF(found_cvs)
+    ENDIF(found_svn)
+  ELSE(source_loc)
+    SET(${type_varname} PARENT_SCOPE)
+  ENDIF(source_loc)
+
+ENDFUNCTION(SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE)
