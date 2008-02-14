@@ -1,10 +1,10 @@
 <Name>TestModule1</Name>
 <Group>Segmentation</Group>
-<Description>A test module.</Description>
-<SourceLocation>http://foo.bar</SourceLocation>
-<HomePage>http://foo.bar</HomePage>
+<Description>Test module #1</Description>
+<SourceLocation>http://www.na-mic.org/svn/NAMICSandBox/trunk/BuildSystem/Modules/TestModule1</SourceLocation>
+<HomePage>http://na-mic.org/Wiki/index.php/Slicer3:Build/Modules</HomePage>
 <Version>1.0</Version>
-<Icon>TestModule.png</Icon>
+<Icon>TestModule1.png</Icon>
 <Dependency>VTK</Dependency>
 <Dependency>ITK</Dependency>
 <Author>Sebastien BARRE</Author>

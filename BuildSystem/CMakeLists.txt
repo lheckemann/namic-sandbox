@@ -1,6 +1,8 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.5)
 PROJECT(BuildSystem)
 
+# We are not building anything in this pass
+
 MARK_AS_ADVANCED(
   CMAKE_BACKWARDS_COMPATIBILITY
   CMAKE_BUILD_TYPE
@@ -10,13 +12,24 @@ MARK_AS_ADVANCED(
   )
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
-
 SET(SLICER_TEST_MODULES_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Modules")
 
+# Bring the macros
+
 INCLUDE(SlicerParseModule)
+INCLUDE(SlicerEnableModule)
 
-SLICER_PARSE_MODULE_FILE("${SLICER_TEST_MODULES_PATH}/TestModule1/TestModule1.xml" TestModule1)
+# Parse a module
 
-MESSAGE("${TestModule1_Name}")
-MESSAGE("${TestModule1_Dependency}")
-MESSAGE("${TestModule1_Author}")
+SLICER_PARSE_MODULE_FILE(
+  "${SLICER_TEST_MODULES_PATH}/TestModule1/TestModule1.xml" TestModule1)
+
+SLICER_GET_MODULE_VALUE(TestModule1 "Name" name)
+SLICER_GET_MODULE_VALUE(TestModule1 "Dependency" deps)
+SLICER_GET_MODULE_VALUE(TestModule1 "Author" authors)
+
+#MESSAGE("Name: ${name}")
+#MESSAGE("Dependency: ${deps}")
+#MESSAGE("Author: ${authors}")
+
+SLICER_CREATE_MODULE_OPTION(TestModule1 option_name)
