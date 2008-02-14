@@ -32,4 +32,4 @@ SLICER_GET_MODULE_VALUE(TestModule1 "Author" authors)
 #MESSAGE("Dependency: ${deps}")
 #MESSAGE("Author: ${authors}")
 
-SLICER_CREATE_MODULE_OPTION(TestModule1 option_name)
+SLICER_CREATE_USE_MODULE_OPTION(TestModule1 option_name)
