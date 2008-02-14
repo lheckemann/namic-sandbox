@@ -1,24 +1,25 @@
+INCLUDE(SlicerSetGetModule)
+
 # ---------------------------------------------------------------------------
 # SLICER_PARSE_MODULE: Parse a module.
 #
-# This macro parses a module and creates the corresponding key/value
-# variables.
+# This macro parses a module and creates the corresponding key/value pairs.
 #
 # Arguments:
 #   module_contents (string): contents of the module
-#   varname (string):         variable name to store the module keys/values
+#   module_varname (string): variable name used to store the module values
 # 
 # Example:
 #   SET(module_contents "<Name>TestModule</Name><Group>Segmentation</Group>")
 #   SLICER_PARSE_MODULE("${module_contents}" TestModule)
-#   MESSAGE("Module name: ${TestModule_Name}")
-#   MESSAGE("Module group: ${TestModule_Group}")
+#   SLICER_GET_MODULE_VALUE(TestModule "Name" name)
+#   MESSAGE("Module name: ${name}")
 #
 # See also:
 #   SLICER_PARSE_MODULE_FILE
 # ---------------------------------------------------------------------------
 
-MACRO(SLICER_PARSE_MODULE module_contents varname)
+MACRO(SLICER_PARSE_MODULE module_contents module_varname)
   
   # The XML elements to parse
   # This doesn't take into account any attributes at the moment
@@ -42,16 +43,17 @@ MACRO(SLICER_PARSE_MODULE module_contents varname)
   # - loop over each match:
   #   * extract the value itself (i.e. Bar1, then Bar2)
   #   * insert the value at the end of the list for that element variable 
-  #     (i.e. TestModule_Author = Bar1;Bar2
 
   FOREACH(elem ${elems})
-    SET(${varname}_${elem})
+    SLICER_UNSET_MODULE_VALUE(${module_varname} ${elem})
     SET(regexp "<${elem}>([^<]*)</${elem}>")
     STRING(REGEX MATCHALL "${regexp}" matches "${module_contents}")
     FOREACH(match ${matches})
       STRING(REGEX MATCH "${regexp}" value "${match}")
       IF(CMAKE_MATCH_1)
-        SET(${varname}_${elem} ${${varname}_${elem}} "${CMAKE_MATCH_1}")
+        SLICER_GET_MODULE_VALUE(${module_varname} ${elem} var)
+        SET(var ${var} "${CMAKE_MATCH_1}")
+        SLICER_SET_MODULE_VALUE(${module_varname} ${elem} "${var}")
       ENDIF(CMAKE_MATCH_1)
     ENDFOREACH(match)
   ENDFOREACH(elem)
@@ -66,19 +68,21 @@ ENDMACRO(SLICER_PARSE_MODULE)
 #
 # Arguments:
 #   module_filename (filename): filename for the module
-#   varname (string):           variable name to store the module keys/values
+#   module_varname (string): variable name used to store the module values
 # 
 # Example:
 #   SLICER_PARSE_MODULE_FILE("TestModule.xml" TestModule)
+#   SLICER_GET_MODULE_VALUE(TestModule "Name" name)
+#   MESSAGE("Module name: ${name}")
 #
 # See also:
 #   SLICER_PARSE_MODULE
 # ---------------------------------------------------------------------------
 
-MACRO(SLICER_PARSE_MODULE_FILE module_filename varname)
+MACRO(SLICER_PARSE_MODULE_FILE module_filename module_varname)
   IF(EXISTS "${module_filename}")
     FILE(READ "${module_filename}" module_contents)
-    SLICER_PARSE_MODULE("${module_contents}" ${varname})
+    SLICER_PARSE_MODULE("${module_contents}" ${module_varname})
   ELSE(EXISTS "${module_filename}")
     MESSAGE("Unable to load and parse module ${module_filename}!")
   ENDIF(EXISTS "${module_filename}")
