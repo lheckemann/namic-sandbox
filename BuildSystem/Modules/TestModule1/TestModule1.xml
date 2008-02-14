@@ -1,0 +1,13 @@
+<Name>TestModule1</Name>
+<Group>Segmentation</Group>
+<Description>A test module.</Description>
+<SourceLocation>http://foo.bar</SourceLocation>
+<HomePage>http://foo.bar</HomePage>
+<Version>1.0</Version>
+<Icon>TestModule.png</Icon>
+<Dependency>VTK</Dependency>
+<Dependency>ITK</Dependency>
+<Author>Sebastien BARRE</Author>
+<Author>John Doe</Author>
+<Acknowledgement>NA-MIC</Acknowledgement>
+<Acknowledgement>Kitware, Inc.</Acknowledgement>
