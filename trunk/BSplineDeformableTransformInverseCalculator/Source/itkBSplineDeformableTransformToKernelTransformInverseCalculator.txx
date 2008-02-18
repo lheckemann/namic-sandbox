@@ -18,7 +18,7 @@
 #ifndef __BSplineDeformableTransformToKernelTransformInverseCalculator_txx
 #define __BSplineDeformableTransformToKernelTransformInverseCalculator_txx
 
-#include "BSplineDeformableTransformToKernelTransformInverseCalculator.h"
+#include "itkBSplineDeformableTransformToKernelTransformInverseCalculator.h"
 #include "itkElasticBodySplineKernelTransform.h"
 
 namespace itk
