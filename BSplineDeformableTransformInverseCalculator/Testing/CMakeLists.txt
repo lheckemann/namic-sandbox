@@ -8,7 +8,8 @@ TARGET_LINK_LIBRARIES(BSplineDeformableTransformInverseCalculatorTest
 ENABLE_TESTING()
 
 INCLUDE_DIRECTORIES( 
-  ${BSplineDeformableTransformInverseCalculator_SOURCE_DIR}/Source )
+  ${BSplineDeformableTransformInverseCalculators_SOURCE_DIR}/Testing
+  )
 
 
 ADD_EXECUTABLE(MachineInformationExample MachineInformationExample.cxx MachineInformation.cxx)
