@@ -5,8 +5,6 @@ ADD_EXECUTABLE(BSplineDeformableTransformInverseCalculatorTest
 TARGET_LINK_LIBRARIES(BSplineDeformableTransformInverseCalculatorTest
    ITKIO ITKNumerics)
 
-ENABLE_TESTING()
-
 INCLUDE_DIRECTORIES( 
   ${BSplineDeformableTransformInverseCalculators_SOURCE_DIR}/Testing
   )

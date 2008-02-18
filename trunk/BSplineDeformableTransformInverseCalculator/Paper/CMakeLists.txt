@@ -61,6 +61,11 @@ FOREACH(SOURCE_FILE ${REPORT_SRCS})
    SET(COPY_RESULTS ${COPY_RESULTS} ${BSplineDeformableTransformInverseCalculatorsReport_BINARY_DIR}/${SOURCE_FILE})
 ENDFOREACH(SOURCE_FILE ${REPORT_SRCS})
 
+
+SET(REPORT_ELEMENTS 
+  ${PLOT_DIR}/SystemInformation.tex
+  )
+
 #
 # This adds a custom target that generates BSplineDeformableTransformInverseCalculators.pdf
 # This target depends on the list of copied files created
@@ -73,7 +78,7 @@ ADD_CUSTOM_TARGET(ReportIJ ALL
    COMMAND ${PDFLATEX_COMPILER} 
         ${BSplineDeformableTransformInverseCalculatorsReport_SOURCE_DIR}/BSplineDeformableTransformInverseCalculators.tex 
         -output-directory ${BSplineDeformableTransformInverseCalculatorsReport_BINARY_DIR}
-   DEPENDS ${COPY_RESULTS} ${PLOT_DIR}/CachingTiming.pdf ${PLOT_DIR}/SystemInformation.tex
+   DEPENDS ${COPY_RESULTS} ${REPORT_ELEMENTS} 
    WORKING_DIRECTORY ${BSplineDeformableTransformInverseCalculatorsReport_BINARY_DIR}
    )
  

@@ -8,6 +8,8 @@ ENDIF(ITK_FOUND)
 SET(EXECUTABLE_OUTPUT_PATH ${BSplineDeformableTransformInverseCalculators_BINARY_DIR}/bin CACHE INTERNAL "Where to put the executables") 
 SET(LIBRARY_OUTPUT_PATH ${BSplineDeformableTransformInverseCalculators_BINARY_DIR}/bin CACHE INTERNAL "Where to put the libraries") 
 
+ENABLE_TESTING()
+
 INCLUDE_DIRECTORIES(
   ${BSplineDeformableTransformInverseCalculators_SOURCE_DIR}/Source
   )
