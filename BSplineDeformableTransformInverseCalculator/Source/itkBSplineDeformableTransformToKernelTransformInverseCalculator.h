@@ -73,7 +73,7 @@ class BSplineDeformableTransformToKernelTransformInverseCalculator : public Obje
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "BSplineDeformableTransformToKernelTransformInverseCalculator.txx"
+#include "itkBSplineDeformableTransformToKernelTransformInverseCalculator.txx"
 #endif
 
 #endif //__BSplineDeformableTransformToKernelTransformInverseCalculator_H
