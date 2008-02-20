@@ -373,7 +373,8 @@ private:
                                       int movingImageParzenWindowIndex,
                                       const ImageDerivativesType&
                                                 movingImageGradientValue,
-                                      double cubicBSplineDerivativeValue 
+                                      double cubicBSplineDerivativeValue,
+                                      DerivativeType & derivative2
                                       ) const;
 
   /**
