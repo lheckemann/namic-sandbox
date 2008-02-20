@@ -952,6 +952,8 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   derivative = DerivativeType( this->GetNumberOfParameters() );
   derivative.Fill( NumericTraits< MeasureType >::Zero );
 
+  DerivativeType derivative2( this->GetNumberOfParameters() );
+  derivative2.Fill( NumericTraits< MeasureType >::Zero );
 
   // Reset marginal pdf to all zeros.
   // Assumed the size has already been set to NumberOfHistogramBins
@@ -1352,7 +1354,8 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
         this->ComputePDFDerivativesFlat( nFixedImageSamples,
                                      pdfMovingIndex, 
                                      movingImageGradientValue, 
-                                     cubicBSplineDerivativeValue );
+                                     cubicBSplineDerivativeValue,
+                                     derivative2 );
 
 
         }  //end parzen windowing for loop
@@ -1365,6 +1368,15 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   value = static_cast<MeasureType>( -1.0 * sum );
 
+  for(unsigned int dd=0; dd < this->GetNumberOfParameters(); dd++ )
+    {
+    if( vnl_math_abs( derivative[dd] - derivative2[dd] ) > vnl_math::eps )
+      {
+      std::cerr << "Derivative component " << dd << " differs " << std::endl;
+      std::cerr << "derivative [" << dd << "] = " << derivative[dd]  << std::endl;
+      std::cerr << "derivatives[" << dd << "] = " << derivative2[dd] << std::endl;
+      }
+    }
 }
 
 
@@ -1589,7 +1601,8 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   unsigned int sampleNumber, 
   int pdfMovingIndex,
   const ImageDerivativesType& movingImageGradientValue,
-  double cubicBSplineDerivativeValue ) const
+  double cubicBSplineDerivativeValue,
+  DerivativeType & derivative2) const
 {
 
 
