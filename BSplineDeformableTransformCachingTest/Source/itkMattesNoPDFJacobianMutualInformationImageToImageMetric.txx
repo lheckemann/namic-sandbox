@@ -1261,6 +1261,7 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   // EXPERIMENTAL CODE
   // Retrospective computation of derivatives
 
+  nFixedImageSamples = 0;
 
   for ( fiter = m_FixedImageSamples.begin(); fiter != fend; ++fiter )
     {
@@ -1608,16 +1609,20 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   const int pdfFixedIndex = 
     m_FixedImageSamples[sampleNumber].FixedImageParzenWindowIndex;
 
-  // Location of the bin in the joint histogram:
+  // Location of the bin in the joint pdf derivatives 3D image:
   const int linearHistogramBinIndex =
     ( pdfFixedIndex  * m_JointPDFDerivatives->GetOffsetTable()[2] ) +
     ( pdfMovingIndex * m_JointPDFDerivatives->GetOffsetTable()[1] );
+
+  // Location of the bin in the derivatives array
+  const int linearHistogramBinIndex2 =
+    ( pdfFixedIndex  * this->m_NumberOfHistogramBins ) + pdfMovingIndex;
 
   // Update bins in the PDF derivatives for the current intensity pair
   JointPDFValueType * derivPtr = 
     m_JointPDFDerivatives->GetBufferPointer() + linearHistogramBinIndex;
 
-  const double precomputedWeight = m_PRatioArray[linearHistogramBinIndex];
+  const double precomputedWeight = m_PRatioArray[linearHistogramBinIndex2];
 
   if( !m_TransformIsBSpline )
     {
