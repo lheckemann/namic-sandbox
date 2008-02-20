@@ -1605,12 +1605,19 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   DerivativeType & derivative2) const
 {
 
+  const int pdfFixedIndex = 
+    m_FixedImageSamples[sampleNumber].FixedImageParzenWindowIndex;
+
+  // Location of the bin in the joint histogram:
+  const int linearHistogramBinIndex =
+    ( pdfFixedIndex  * m_JointPDFDerivatives->GetOffsetTable()[2] ) +
+    ( pdfMovingIndex * m_JointPDFDerivatives->GetOffsetTable()[1] );
 
   // Update bins in the PDF derivatives for the current intensity pair
-  JointPDFValueType * derivPtr = m_JointPDFDerivatives->GetBufferPointer() +
-    ( m_FixedImageSamples[sampleNumber].FixedImageParzenWindowIndex
-        * m_JointPDFDerivatives->GetOffsetTable()[2] ) +
-    ( pdfMovingIndex * m_JointPDFDerivatives->GetOffsetTable()[1] );
+  JointPDFValueType * derivPtr = 
+    m_JointPDFDerivatives->GetBufferPointer() + linearHistogramBinIndex;
+
+  const double precomputedWeight = m_PRatioArray[linearHistogramBinIndex];
 
   if( !m_TransformIsBSpline )
     {
@@ -1635,7 +1642,6 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
         }
 
       *(derivPtr) -= innerProduct * cubicBSplineDerivativeValue;
-
       }
 
     }
@@ -1663,11 +1669,20 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
          * gradient. */
         double innerProduct = movingImageGradientValue[dim] * weights[mu];
 
-        JointPDFValueType * ptr = derivPtr 
-                                   + indices[mu] 
-                                   + m_ParametersOffset[dim];
-        *(ptr) -= innerProduct * cubicBSplineDerivativeValue;
-            
+        const int parameterIndex = indices[mu] + m_ParametersOffset[dim];
+
+//  Don't touch the m_JointPDFDerivatives:
+//  
+//      JointPDFValueType * ptr = derivPtr + parameterIndex;
+//      *(ptr) -= innerProduct * cubicBSplineDerivativeValue;
+//            
+//  Instead, accumulate in the derivative2 using the precomputed weights
+//
+        const double derivativeContribution =
+          innerProduct * cubicBSplineDerivativeValue;
+
+        derivative2[parameterIndex] -= precomputedWeight * derivativeContribution;
+
         } //end mu for loop
       } //end dim for loop
 
