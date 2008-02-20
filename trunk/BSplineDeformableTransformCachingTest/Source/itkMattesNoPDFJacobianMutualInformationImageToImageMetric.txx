@@ -276,7 +276,7 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   /** Allocate memory for helper array that will contain the pRatios
    *  for each bin of the joint histogram. This is part of the effort
-   *  for flattening the computatino of the PDF Jacobians.
+   *  for flattening the computation of the PDF Jacobians.
    */
   memCollector.Start("PRatio Array");
   m_PRatioArray.resize( m_NumberOfHistogramBins * m_NumberOfHistogramBins );
@@ -1349,7 +1349,7 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
                                                movingImageParzenWindowArg );
 
         // Compute PDF derivative contribution.
-        this->ComputePDFDerivatives( nFixedImageSamples,
+        this->ComputePDFDerivativesFlat( nFixedImageSamples,
                                      pdfMovingIndex, 
                                      movingImageGradientValue, 
                                      cubicBSplineDerivativeValue );
