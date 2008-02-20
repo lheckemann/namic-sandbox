@@ -1227,7 +1227,12 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
         double pRatio = vcl_log(jointPDFValue / movingImagePDFValue );
 
-        this->m_PRatioArray[fixedIndex] = pRatio;
+        // Location of the bin in the derivatives array
+        const int linearHistogramBinIndex2 =
+          ( fixedIndex  * this->m_NumberOfHistogramBins ) + movingIndex;
+
+        this->m_PRatioArray[linearHistogramBinIndex2] = pRatio;
+        std::cout << "m_PRatioArray[ " << linearHistogramBinIndex2 << " ] = " << this->m_PRatioArray[linearHistogramBinIndex2] << std::endl;
 
         if( fixedImagePDFValue > 1e-16)
           {
@@ -1623,6 +1628,8 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     m_JointPDFDerivatives->GetBufferPointer() + linearHistogramBinIndex;
 
   const double precomputedWeight = m_PRatioArray[linearHistogramBinIndex2];
+
+std::cout << "precomputedWeight [ " << linearHistogramBinIndex2 << " ] = " << precomputedWeight << std::endl;
 
   if( !m_TransformIsBSpline )
     {
