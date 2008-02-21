@@ -285,19 +285,13 @@ private:
 
   /** Typedef for the joint PDF and PDF derivatives are stored as ITK Images. */
   typedef Image<PDFValueType,2> JointPDFType;
-  typedef Image<PDFValueType,3> JointPDFDerivativesType;
   typedef JointPDFType::IndexType                JointPDFIndexType;
   typedef JointPDFType::PixelType                JointPDFValueType;
   typedef JointPDFType::RegionType              JointPDFRegionType;
   typedef JointPDFType::SizeType                JointPDFSizeType;
-  typedef JointPDFDerivativesType::IndexType    JointPDFDerivativesIndexType;
-  typedef JointPDFDerivativesType::PixelType    JointPDFDerivativesValueType;
-  typedef JointPDFDerivativesType::RegionType    JointPDFDerivativesRegionType;
-  typedef JointPDFDerivativesType::SizeType      JointPDFDerivativesSizeType;
 
   /** The joint PDF and PDF derivatives. */
   typename JointPDFType::Pointer m_JointPDF;
-  typename JointPDFDerivativesType::Pointer m_JointPDFDerivatives;
 
   unsigned long m_NumberOfSpatialSamples;
   unsigned long m_NumberOfParameters;
@@ -362,14 +356,6 @@ private:
 
   /** Compute PDF derivative contribution for each parameter. */
   virtual void ComputePDFDerivatives( unsigned int sampleNumber,
-                                      int movingImageParzenWindowIndex,
-                                      const ImageDerivativesType&
-                                                movingImageGradientValue,
-                                      double cubicBSplineDerivativeValue 
-                                      ) const;
-
-  /** Compute PDF derivative contribution for each parameter. */
-  virtual void ComputePDFDerivativesFlat( unsigned int sampleNumber,
                                       int movingImageParzenWindowIndex,
                                       const ImageDerivativesType&
                                                 movingImageGradientValue,
