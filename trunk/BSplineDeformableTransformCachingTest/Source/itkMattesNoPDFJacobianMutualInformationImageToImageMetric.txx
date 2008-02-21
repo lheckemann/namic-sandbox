@@ -1491,8 +1491,7 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       const double derivativeContribution =
         innerProduct * cubicBSplineDerivativeValue;
 
-      // const int parameterIndex = indices[mu];  // FIXME : Double check...
-      // FIXME: derivative[parameterIndex] += precomputedWeight * derivativeContribution;
+      derivative[mu] += precomputedWeight * derivativeContribution;
       }
 
     }
