@@ -952,8 +952,8 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   derivative = DerivativeType( this->GetNumberOfParameters() );
   derivative.Fill( NumericTraits< MeasureType >::Zero );
 
-  DerivativeType derivative2( this->GetNumberOfParameters() );
-  derivative2.Fill( NumericTraits< MeasureType >::Zero );
+//  DerivativeType derivative2( this->GetNumberOfParameters() );
+//  derivative2.Fill( NumericTraits< MeasureType >::Zero );
 
   // Reset marginal pdf to all zeros.
   // Assumed the size has already been set to NumberOfHistogramBins
@@ -1366,7 +1366,7 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
                                      pdfMovingIndex, 
                                      movingImageGradientValue, 
                                      cubicBSplineDerivativeValue,
-                                     derivative2 );
+                                     derivative );
 
 
         }  //end parzen windowing for loop
