@@ -196,26 +196,26 @@ int main( int argc, char *argv[] )
 
   TransformType::ParametersType parameters;
 
+  transform->SetGridSpacing( spacing );
+  transform->SetGridOrigin( origin );
+  transform->SetGridRegion( bsplineRegion );
+
   const unsigned int numberOfParameters = transform->GetNumberOfParameters();
   std::cout << "numberOfParameters " << numberOfParameters << std::endl;
 
+  parameters.SetSize( numberOfParameters );
+  parameters.Fill( 0.0 );
+  transform->SetParameters( parameters );
+  metric->SetTransform( transform );
+
+  metric->SetInterpolator( interpolator );
+  metric->SetFixedImage(  image   );
+  metric->SetMovingImage(  image );
+  metric->SetFixedImageRegion( fixedRegion );
+
+
   try 
     { 
-
-    transform->SetGridSpacing( spacing );
-    transform->SetGridOrigin( origin );
-    transform->SetGridRegion( bsplineRegion );
-    parameters.SetSize( numberOfParameters );
-    parameters.Fill( 0.0 );
-    transform->SetParameters( parameters );
-    metric->SetTransform( transform );
-
-    metric->SetInterpolator( interpolator );
-    metric->SetFixedImage(  image   );
-    metric->SetMovingImage(  image );
-    metric->SetFixedImageRegion( fixedRegion );
-
-
     //collector.Start("Initialize");
     metric->Initialize(); 
     //collector.Stop("Initialize");
