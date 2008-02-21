@@ -6,11 +6,6 @@
 #include <string>
 #include <iostream>
 
-//#define MEMORY_USE_KW_SYS
-
-#ifdef MEMORY_USE_KW_SYS
-#include <itksys/SystemInformation.hxx>
-#endif 
 
 #ifdef WIN32
   #include <windows.h>
