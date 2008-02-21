@@ -21,6 +21,9 @@ TARGET_LINK_LIBRARIES(MemoryUsageExample ITKIO ITKAlgorithms ITKNumerics ${MEMOR
 ADD_EXECUTABLE(MachineInformationExample MachineInformationExample.cxx MachineInformation.cxx)
 TARGET_LINK_LIBRARIES(MachineInformationExample itksys)
 
+ADD_EXECUTABLE(MultiThreadedMIMetricTest MultiThreadedMIMetricTest.cxx itkExperimentTimeProbesCollector.cxx itkExperimentMemoryProbesCollector.cxx)
+TARGET_LINK_LIBRARIES(MultiThreadedMIMetricTest ITKIO ITKAlgorithms ITKNumerics ${MEMORY_LIBS})
+
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" )
   ADD_EXECUTABLE(TestParseSmaps TestParseSmaps.cxx)
 ENDIF(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" )
