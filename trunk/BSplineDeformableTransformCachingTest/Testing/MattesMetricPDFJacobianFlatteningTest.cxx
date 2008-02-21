@@ -196,14 +196,15 @@ int main( int argc, char *argv[] )
 
   TransformType::ParametersType parameters;
 
+  const unsigned int numberOfParameters = transform->GetNumberOfParameters();
+  std::cout << "numberOfParameters " << numberOfParameters << std::endl;
+
   try 
     { 
 
     transform->SetGridSpacing( spacing );
     transform->SetGridOrigin( origin );
     transform->SetGridRegion( bsplineRegion );
-    const unsigned int numberOfParameters = transform->GetNumberOfParameters();
-    std::cout << "numberOfParameters " << numberOfParameters << std::endl;
     parameters.SetSize( numberOfParameters );
     parameters.Fill( 0.0 );
     transform->SetParameters( parameters );
@@ -246,6 +247,11 @@ int main( int argc, char *argv[] )
 
     std::cout << "Value :  " << value << std::endl;
     // std::cout << "Derivative :  " << derivative << std::endl;
+
+  for(unsigned int pp=0; pp < numberOfParameters; ++pp)
+    {
+    std::cout << "derivative[" << pp << "] = " << derivative[pp] << std::endl;
+    }
 
   //collector.Report( std::cout );
   char numberOfSamplesString[16];
