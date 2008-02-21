@@ -17,12 +17,6 @@ MemoryUsage::MemoryUsage()
 MemoryUsage::SizeType 
 MemoryUsage::GetMemoryUsage()
   {
-#ifdef MEMORY_USE_KW_SYS
-    this->m_SystemInformation.QueryMemory();
-    // Careful about overflow.
-    return 1024 * (this->m_SystemInformation.GetAvailableVirtualMemory() + 
-                   this->m_SystemInformation.GetAvailablePhysicalMemory());
-#else
 #ifdef WIN32
     DWORD pid = GetCurrentProcessId();
     PROCESS_MEMORY_COUNTERS memoryCounters;
@@ -69,7 +63,6 @@ MemoryUsage::GetMemoryUsage()
 
     return 0;
 #endif
-#endif
 }
 
 void
@@ -89,12 +82,7 @@ MemoryUsage::Stop()
 double 
 MemoryUsage::GetMeanMemoryChange() const
 {
-#ifdef MEMORY_USE_KW_SYS
-  // KWSys gives available memory, not memory use.
-  return (static_cast<double>(m_StartMemory) - static_cast<double>(m_StopMemory))/static_cast<double>(m_Starts);
-#else
   return (static_cast<double>(m_StopMemory) - static_cast<double>(m_StartMemory))/static_cast<double>(m_Starts);
-#endif
 }
 
 MemoryUsage::SizeType
@@ -108,4 +96,3 @@ MemoryUsage::GetNumberOfStops() const
 {
   return m_Stops;
 }
-
