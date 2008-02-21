@@ -279,9 +279,13 @@ private:
   /** The moving image marginal PDF. */
   mutable MarginalPDFType m_MovingImageMarginalPDF;
 
+  /** Helper array for storing the values of the JointPDF ratios. */
   typedef double                      PRatioType;
   typedef std::vector< PRatioType >   PRatioArrayType;
-  mutable PRatioArrayType m_PRatioArray;
+  mutable PRatioArrayType             m_PRatioArray;
+
+  /** Helper variable for accumulating the derivative of the metric. */
+  mutable DerivativeType              m_MetricDerivative;
 
   /** Typedef for the joint PDF and PDF derivatives are stored as ITK Images. */
   typedef Image<PDFValueType,2> JointPDFType;
@@ -359,8 +363,7 @@ private:
                                       int movingImageParzenWindowIndex,
                                       const ImageDerivativesType&
                                                 movingImageGradientValue,
-                                      double cubicBSplineDerivativeValue,
-                                      DerivativeType & derivative2
+                                      double cubicBSplineDerivativeValue
                                       ) const;
 
   /**

@@ -311,6 +311,7 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   memCollector.Stop( "Joint PDF" );
 
   memCollector.Start( "Joint PDF Deriv" );
+  this->m_MetricDerivative = DerivativeType( this->GetNumberOfParameters() );
   memCollector.Stop( "Joint PDF Deriv" );
 
   /**
@@ -926,8 +927,7 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   // Set output values to zero
   value = NumericTraits< MeasureType >::Zero;
-  derivative = DerivativeType( this->GetNumberOfParameters() );
-  derivative.Fill( NumericTraits< MeasureType >::Zero );
+  this->m_MetricDerivative.Fill( NumericTraits< MeasureType >::Zero );
 
   // Reset marginal pdf to all zeros.
   // Assumed the size has already been set to NumberOfHistogramBins
@@ -1301,8 +1301,7 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
         this->ComputePDFDerivatives( nFixedImageSamples,
                                      pdfMovingIndex, 
                                      movingImageGradientValue, 
-                                     cubicBSplineDerivativeValue,
-                                     derivative );
+                                     cubicBSplineDerivativeValue );
 
 
         }  //end parzen windowing for loop
@@ -1314,6 +1313,8 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     } // end iterating over fixed image spatial sample container for loop
 
   value = static_cast<MeasureType>( -1.0 * sum );
+ 
+  derivative = this->m_MetricDerivative;
   
 }
 
@@ -1455,8 +1456,7 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   unsigned int sampleNumber, 
   int pdfMovingIndex,
   const ImageDerivativesType& movingImageGradientValue,
-  double cubicBSplineDerivativeValue,
-  DerivativeType & derivative) const
+  double cubicBSplineDerivativeValue ) const
 {
 
   const int pdfFixedIndex = 
@@ -1491,7 +1491,7 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       const double derivativeContribution =
         innerProduct * cubicBSplineDerivativeValue;
 
-      derivative[mu] += precomputedWeight * derivativeContribution;
+      this->m_MetricDerivative[mu] += precomputedWeight * derivativeContribution;
       }
 
     }
@@ -1524,7 +1524,7 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
         const double derivativeContribution =
           innerProduct * cubicBSplineDerivativeValue;
 
-        derivative[parameterIndex] += precomputedWeight * derivativeContribution;
+        this->m_MetricDerivative[parameterIndex] += precomputedWeight * derivativeContribution;
 
         } //end mu for loop
       } //end dim for loop
