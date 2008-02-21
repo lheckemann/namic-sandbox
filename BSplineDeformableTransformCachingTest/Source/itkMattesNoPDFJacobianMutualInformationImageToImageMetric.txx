@@ -331,8 +331,8 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   jointPDFDerivativesRegion.SetSize( jointPDFDerivativesSize );
 
   // Set the regions and allocate
-  m_JointPDFDerivatives->SetRegions( jointPDFDerivativesRegion );
-  m_JointPDFDerivatives->Allocate();
+//  m_JointPDFDerivatives->SetRegions( jointPDFDerivativesRegion );
+//  m_JointPDFDerivatives->Allocate();
 
   memCollector.Stop( "Joint PDF Deriv" );
 
@@ -966,7 +966,7 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   // Reset the joint pdfs to zero
   m_JointPDF->FillBuffer( 0.0 );
-  m_JointPDFDerivatives->FillBuffer( 0.0 );
+//  m_JointPDFDerivatives->FillBuffer( 0.0 );
 
 
   // Set up the parameters in the transform
@@ -1070,10 +1070,10 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
                                                movingImageParzenWindowArg );
 
         // Compute PDF derivative contribution.
-        this->ComputePDFDerivatives( nFixedImageSamples,
-                                     pdfMovingIndex, 
-                                     movingImageGradientValue, 
-                                     cubicBSplineDerivativeValue );
+//     this->ComputePDFDerivatives( nFixedImageSamples,
+//                                  pdfMovingIndex, 
+//                                  movingImageGradientValue, 
+//                                  cubicBSplineDerivativeValue );
 
 
         }  //end parzen windowing for loop
@@ -1192,11 +1192,11 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   double nFactor = 1.0 / ( m_MovingImageBinSize 
                            * static_cast<double>( nSamples ) );
 
-  while( !jointPDFDerivativesIterator.IsAtEnd() )
-    {
-    jointPDFDerivativesIterator.Value() *= nFactor;
-    ++jointPDFDerivativesIterator;
-    }
+// while( !jointPDFDerivativesIterator.IsAtEnd() )
+//   {
+//   jointPDFDerivativesIterator.Value() *= nFactor;
+//   ++jointPDFDerivativesIterator;
+//   }
 
 
   /**
@@ -1240,24 +1240,24 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
           }
 
         // move joint pdf derivative pointer to the right position
-        JointPDFValueType * derivPtr = 
-                              m_JointPDFDerivatives->GetBufferPointer() 
-                              + ( fixedIndex 
-                                   * m_JointPDFDerivatives->GetOffsetTable()[2] 
-                                ) 
-                              + ( movingIndex 
-                                   * m_JointPDFDerivatives->GetOffsetTable()[1] 
-                                );
-
-        for( unsigned int parameter=0;
-             parameter < m_NumberOfParameters; 
-             ++parameter, derivPtr++ )
-          {
-
-          // Ref: eqn 23 of Thevenaz & Unser paper [3]
-          derivative[parameter] -= (*derivPtr) * pRatio;
-
-          }  // end for-loop over parameters
+//       JointPDFValueType * derivPtr = 
+//                             m_JointPDFDerivatives->GetBufferPointer() 
+//                             + ( fixedIndex 
+//                                  * m_JointPDFDerivatives->GetOffsetTable()[2] 
+//                               ) 
+//                             + ( movingIndex 
+//                                  * m_JointPDFDerivatives->GetOffsetTable()[1] 
+//                               );
+//
+//       for( unsigned int parameter=0;
+//            parameter < m_NumberOfParameters; 
+//            ++parameter, derivPtr++ )
+//         {
+//
+//         // Ref: eqn 23 of Thevenaz & Unser paper [3]
+//         derivative[parameter] -= (*derivPtr) * pRatio;
+//
+//         }  // end for-loop over parameters
         }  // end if-block to check non-zero bin contribution
       else
         {
@@ -1383,12 +1383,13 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   for(unsigned int dd=0; dd < this->GetNumberOfParameters(); dd++ )
     {
-    if( vnl_math_abs( derivative[dd] - derivative2[dd] ) > derivativeTolerance )
-      {
-      std::cerr << "Derivative component " << dd << " differs " << std::endl;
-      std::cerr << "derivative [" << dd << "] = " << derivative[dd]  << std::endl;
-      std::cerr << "derivatives[" << dd << "] = " << derivative2[dd] << std::endl;
-      }
+//    if( vnl_math_abs( derivative[dd] - derivative2[dd] ) > derivativeTolerance )
+//      {
+//      std::cerr << "Derivative component " << dd << " differs " << std::endl;
+//      std::cerr << "derivative [" << dd << "] = " << derivative[dd]  << std::endl;
+//      std::cerr << "derivatives[" << dd << "] = " << derivative2[dd] << std::endl;
+//      }
+      std::cout << "derivative[" << dd << "] = " << derivative2[dd] << std::endl;
     }
 }
 
@@ -1624,17 +1625,17 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     m_FixedImageSamples[sampleNumber].FixedImageParzenWindowIndex;
 
   // Location of the bin in the joint pdf derivatives 3D image:
-  const int linearHistogramBinIndex =
-    ( pdfFixedIndex  * m_JointPDFDerivatives->GetOffsetTable()[2] ) +
-    ( pdfMovingIndex * m_JointPDFDerivatives->GetOffsetTable()[1] );
+// const int linearHistogramBinIndex =
+//   ( pdfFixedIndex  * m_JointPDFDerivatives->GetOffsetTable()[2] ) +
+//   ( pdfMovingIndex * m_JointPDFDerivatives->GetOffsetTable()[1] );
 
   // Location of the bin in the derivatives array
   const int linearHistogramBinIndex2 =
     ( pdfFixedIndex  * this->m_NumberOfHistogramBins ) + pdfMovingIndex;
 
   // Update bins in the PDF derivatives for the current intensity pair
-  JointPDFValueType * derivPtr = 
-    m_JointPDFDerivatives->GetBufferPointer() + linearHistogramBinIndex;
+// JointPDFValueType * derivPtr = 
+//   m_JointPDFDerivatives->GetBufferPointer() + linearHistogramBinIndex;
 
   const double precomputedWeight = m_PRatioArray[linearHistogramBinIndex2];
 
@@ -1654,7 +1655,8 @@ std::cerr << "ERROR: using the non BSpline branch" << std::endl;
       this->m_Transform->GetJacobian( 
         m_FixedImageSamples[sampleNumber].FixedImagePointValue );
 
-    for ( unsigned int mu = 0; mu < m_NumberOfParameters; mu++, derivPtr++ )
+//    for ( unsigned int mu = 0; mu < m_NumberOfParameters; mu++, derivPtr++ )
+    for ( unsigned int mu = 0; mu < m_NumberOfParameters; mu++ )
       {
       double innerProduct = 0.0;
       for ( unsigned int dim = 0; dim < FixedImageDimension; dim++ )
@@ -1663,7 +1665,7 @@ std::cerr << "ERROR: using the non BSpline branch" << std::endl;
           movingImageGradientValue[dim];
         }
 
-      *(derivPtr) -= innerProduct * cubicBSplineDerivativeValue;
+//      *(derivPtr) -= innerProduct * cubicBSplineDerivativeValue;
       }
 
     }
@@ -1709,17 +1711,17 @@ std::cerr << "ERROR: using the non BSpline branch" << std::endl;
         pdfDerivativeIndex[1] = pdfMovingIndex;
         pdfDerivativeIndex[2] = pdfFixedIndex;
 
-        const double precomputedDerivativeContribution1 =
-          m_JointPDFDerivatives->GetPixel( pdfDerivativeIndex );
+//       const double precomputedDerivativeContribution1 =
+//         m_JointPDFDerivatives->GetPixel( pdfDerivativeIndex );
 
-        JointPDFValueType * ptr = derivPtr + parameterIndex;
-        const double precomputedDerivativeContribution2 = *ptr;
+//       JointPDFValueType * ptr = derivPtr + parameterIndex;
+//       const double precomputedDerivativeContribution2 = *ptr;
 
-        if( vnl_math_abs( precomputedDerivativeContribution1 - precomputedDerivativeContribution2 ) > vnl_math::eps )
-          {
-          std::cerr << parameterIndex << ", " << pdfMovingIndex << ", " << pdfFixedIndex;
-          std::cerr << " = " << precomputedDerivativeContribution1 << " != " << precomputedDerivativeContribution2 << std::endl;
-          }
+//    if( vnl_math_abs( precomputedDerivativeContribution1 - precomputedDerivativeContribution2 ) > vnl_math::eps )
+//      {
+//      std::cerr << parameterIndex << ", " << pdfMovingIndex << ", " << pdfFixedIndex;
+//      std::cerr << " = " << precomputedDerivativeContribution1 << " != " << precomputedDerivativeContribution2 << std::endl;
+//      }
 //       if( vnl_math_abs( derivativeContribution - precomputedDerivativeContribution ) > vnl_math::eps )
 //         {
 //         std::cerr << parameterIndex << ", " << pdfMovingIndex << ", " << pdfFixedIndex;
