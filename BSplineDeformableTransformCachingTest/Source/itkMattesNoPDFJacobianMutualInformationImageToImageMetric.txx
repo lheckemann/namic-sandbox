@@ -1381,16 +1381,16 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   
   const double derivativeTolerance = 1e-10; // vnl_math::eps
 
-  for(unsigned int dd=0; dd < this->GetNumberOfParameters(); dd++ )
-    {
+//  for(unsigned int dd=0; dd < this->GetNumberOfParameters(); dd++ )
+//    {
 //    if( vnl_math_abs( derivative[dd] - derivative2[dd] ) > derivativeTolerance )
 //      {
 //      std::cerr << "Derivative component " << dd << " differs " << std::endl;
 //      std::cerr << "derivative [" << dd << "] = " << derivative[dd]  << std::endl;
 //      std::cerr << "derivatives[" << dd << "] = " << derivative2[dd] << std::endl;
 //      }
-      std::cout << "derivative[" << dd << "] = " << derivative2[dd] << std::endl;
-    }
+//      std::cout << "derivative[" << dd << "] = " << derivative2[dd] << std::endl;
+//    }
 }
 
 
