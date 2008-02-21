@@ -335,6 +335,8 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   m_CubicBSplineKernel = CubicBSplineFunctionType::New();
   m_CubicBSplineDerivativeKernel = CubicBSplineDerivativeFunctionType::New();    
 
+  memCollector.Stop( "Kernels" );
+  memCollector.Start( "Samples" );
 
   if( m_UseAllPixels )
     {
@@ -358,8 +360,9 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
    * each point of the fixed image sample points list.
    */
   this->ComputeFixedImageParzenWindowIndices( m_FixedImageSamples );
-  memCollector.Stop( "Kernels" );
-  
+  memCollector.Stop( "Samples" );
+
+
   memCollector.Start( "Interpolator" );
 
   /**
