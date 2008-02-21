@@ -62,7 +62,6 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   // Initialize PDFs to NULL
   m_JointPDF = NULL;
-  m_JointPDFDerivatives = NULL;
 
   typename BSplineTransformType::Pointer transformer =
            BSplineTransformType::New();
@@ -289,16 +288,11 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
    */
   memCollector.Start( "Joint PDF" );
   m_JointPDF = JointPDFType::New();
-  m_JointPDFDerivatives = JointPDFDerivativesType::New();
 
   // Instantiate a region, index, size
   JointPDFRegionType            jointPDFRegion;
   JointPDFIndexType              jointPDFIndex;
   JointPDFSizeType              jointPDFSize;
-
-  JointPDFDerivativesRegionType  jointPDFDerivativesRegion;
-  JointPDFDerivativesIndexType  jointPDFDerivativesIndex;
-  JointPDFDerivativesSizeType    jointPDFDerivativesSize;
 
   // For the joint PDF define a region starting from {0,0} 
   // with size {m_NumberOfHistogramBins, m_NumberOfHistogramBins}.
@@ -315,25 +309,8 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   m_JointPDF->Allocate();
 
   memCollector.Stop( "Joint PDF" );
+
   memCollector.Start( "Joint PDF Deriv" );
-
-  // For the derivatives of the joint PDF define a region starting from {0,0,0} 
-  // with size {m_NumberOfParameters,m_NumberOfHistogramBins, 
-  // m_NumberOfHistogramBins}. The dimension represents transform parameters,
-  // fixed image parzen window index and moving image parzen window index,
-  // respectively. 
-  jointPDFDerivativesIndex.Fill( 0 ); 
-  jointPDFDerivativesSize[0] = m_NumberOfParameters;
-  jointPDFDerivativesSize[1] = m_NumberOfHistogramBins;
-  jointPDFDerivativesSize[2] = m_NumberOfHistogramBins;
-
-  jointPDFDerivativesRegion.SetIndex( jointPDFDerivativesIndex );
-  jointPDFDerivativesRegion.SetSize( jointPDFDerivativesSize );
-
-  // Set the regions and allocate
-//  m_JointPDFDerivatives->SetRegions( jointPDFDerivativesRegion );
-//  m_JointPDFDerivatives->Allocate();
-
   memCollector.Stop( "Joint PDF Deriv" );
 
   /**
@@ -952,9 +929,6 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   derivative = DerivativeType( this->GetNumberOfParameters() );
   derivative.Fill( NumericTraits< MeasureType >::Zero );
 
-//  DerivativeType derivative2( this->GetNumberOfParameters() );
-//  derivative2.Fill( NumericTraits< MeasureType >::Zero );
-
   // Reset marginal pdf to all zeros.
   // Assumed the size has already been set to NumberOfHistogramBins
   // in Initialize().
@@ -966,7 +940,6 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   // Reset the joint pdfs to zero
   m_JointPDF->FillBuffer( 0.0 );
-//  m_JointPDFDerivatives->FillBuffer( 0.0 );
 
 
   // Set up the parameters in the transform
@@ -1178,26 +1151,8 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
     }
 
-
-  // Normalize the joint PDF derivatives by the test image binsize and nSamples
-  typedef ImageRegionIterator<JointPDFDerivativesType> 
-                                               JointPDFDerivativesIteratorType;
-  JointPDFDerivativesIteratorType jointPDFDerivativesIterator (
-                                    m_JointPDFDerivatives, 
-                                    m_JointPDFDerivatives->GetBufferedRegion() 
-                                    );
-
-  jointPDFDerivativesIterator.GoToBegin();
-  
   double nFactor = 1.0 / ( m_MovingImageBinSize 
                            * static_cast<double>( nSamples ) );
-
-// while( !jointPDFDerivativesIterator.IsAtEnd() )
-//   {
-//   jointPDFDerivativesIterator.Value() *= nFactor;
-//   ++jointPDFDerivativesIterator;
-//   }
-
 
   /**
    * Compute the metric by double summation over histogram.
@@ -1239,25 +1194,6 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
           sum += jointPDFValue * ( pRatio - vcl_log(fixedImagePDFValue ) );
           }
 
-        // move joint pdf derivative pointer to the right position
-//       JointPDFValueType * derivPtr = 
-//                             m_JointPDFDerivatives->GetBufferPointer() 
-//                             + ( fixedIndex 
-//                                  * m_JointPDFDerivatives->GetOffsetTable()[2] 
-//                               ) 
-//                             + ( movingIndex 
-//                                  * m_JointPDFDerivatives->GetOffsetTable()[1] 
-//                               );
-//
-//       for( unsigned int parameter=0;
-//            parameter < m_NumberOfParameters; 
-//            ++parameter, derivPtr++ )
-//         {
-//
-//         // Ref: eqn 23 of Thevenaz & Unser paper [3]
-//         derivative[parameter] -= (*derivPtr) * pRatio;
-//
-//         }  // end for-loop over parameters
         }  // end if-block to check non-zero bin contribution
       else
         {
@@ -1362,7 +1298,7 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
                                                movingImageParzenWindowArg );
 
         // Compute PDF derivative contribution.
-        this->ComputePDFDerivativesFlat( nFixedImageSamples,
+        this->ComputePDFDerivatives( nFixedImageSamples,
                                      pdfMovingIndex, 
                                      movingImageGradientValue, 
                                      cubicBSplineDerivativeValue,
@@ -1379,18 +1315,6 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   value = static_cast<MeasureType>( -1.0 * sum );
   
-  const double derivativeTolerance = 1e-10; // vnl_math::eps
-
-//  for(unsigned int dd=0; dd < this->GetNumberOfParameters(); dd++ )
-//    {
-//    if( vnl_math_abs( derivative[dd] - derivative2[dd] ) > derivativeTolerance )
-//      {
-//      std::cerr << "Derivative component " << dd << " differs " << std::endl;
-//      std::cerr << "derivative [" << dd << "] = " << derivative[dd]  << std::endl;
-//      std::cerr << "derivatives[" << dd << "] = " << derivative2[dd] << std::endl;
-//      }
-//      std::cout << "derivative[" << dd << "] = " << derivative2[dd] << std::endl;
-//    }
 }
 
 
@@ -1522,7 +1446,7 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
 
 /**
- * Compute PDF derivatives contribution for each parameter
+ * Compute PDF derivatives contribution for each parameter in Flat form.
  */
 template < class TFixedImage, class TMovingImage >
 void
@@ -1531,120 +1455,21 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   unsigned int sampleNumber, 
   int pdfMovingIndex,
   const ImageDerivativesType& movingImageGradientValue,
-  double cubicBSplineDerivativeValue ) const
-{
-
-
-  // Update bins in the PDF derivatives for the current intensity pair
-  JointPDFValueType * derivPtr = m_JointPDFDerivatives->GetBufferPointer() +
-    ( m_FixedImageSamples[sampleNumber].FixedImageParzenWindowIndex
-        * m_JointPDFDerivatives->GetOffsetTable()[2] ) +
-    ( pdfMovingIndex * m_JointPDFDerivatives->GetOffsetTable()[1] );
-
-  if( !m_TransformIsBSpline )
-    {
-
-    /**
-     * Generic version which works for all transforms.
-     */
-
-    // Compute the transform Jacobian.
-    typedef typename TransformType::JacobianType JacobianType;
-    const JacobianType& jacobian = 
-      this->m_Transform->GetJacobian( 
-        m_FixedImageSamples[sampleNumber].FixedImagePointValue );
-
-    for ( unsigned int mu = 0; mu < m_NumberOfParameters; mu++, derivPtr++ )
-      {
-      double innerProduct = 0.0;
-      for ( unsigned int dim = 0; dim < FixedImageDimension; dim++ )
-        {
-        innerProduct += jacobian[dim][mu] * 
-          movingImageGradientValue[dim];
-        }
-
-      *(derivPtr) -= innerProduct * cubicBSplineDerivativeValue;
-
-      }
-
-    }
-  else
-    {
-
-    /**
-    * If the transform is of type BSplineDeformableTransform,
-    * we can obtain a speed up by only processing the affected parameters.
-    */
-    const WeightsValueType * weights = 
-                                 m_BSplineTransformWeightsArray[sampleNumber];
-    const IndexValueType   * indices = 
-                                 m_BSplineTransformIndicesArray[sampleNumber];
-
-    for( unsigned int dim = 0; dim < FixedImageDimension; dim++ )
-      {
-
-      for( unsigned int mu = 0; mu < m_NumBSplineWeights; mu++ )
-        {
-
-        /* The array weights contains the Jacobian values in a 1-D array 
-         * (because for each parameter the Jacobian is non-zero in only 1 of the
-         * possible dimensions) which is multiplied by the moving image 
-         * gradient. */
-        double innerProduct = movingImageGradientValue[dim] * weights[mu];
-
-        JointPDFValueType * ptr = derivPtr 
-                                   + indices[mu] 
-                                   + m_ParametersOffset[dim];
-        *(ptr) -= innerProduct * cubicBSplineDerivativeValue;
-            
-        } //end mu for loop
-      } //end dim for loop
-
-    } // end if-block transform is BSpline
-
-}
-
-
-/**
- * Compute PDF derivatives contribution for each parameter in Flat form.
- */
-template < class TFixedImage, class TMovingImage >
-void
-MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
-::ComputePDFDerivativesFlat( 
-  unsigned int sampleNumber, 
-  int pdfMovingIndex,
-  const ImageDerivativesType& movingImageGradientValue,
   double cubicBSplineDerivativeValue,
-  DerivativeType & derivative2) const
+  DerivativeType & derivative) const
 {
 
-//    std::cout << "m_JointPDFDerivatives->GetOffsetTable()[2] " <<  m_JointPDFDerivatives->GetOffsetTable()[2] << std::endl;
-//    std::cout << "m_JointPDFDerivatives->GetOffsetTable()[1] " <<  m_JointPDFDerivatives->GetOffsetTable()[1] << std::endl;
   const int pdfFixedIndex = 
     m_FixedImageSamples[sampleNumber].FixedImageParzenWindowIndex;
-
-  // Location of the bin in the joint pdf derivatives 3D image:
-// const int linearHistogramBinIndex =
-//   ( pdfFixedIndex  * m_JointPDFDerivatives->GetOffsetTable()[2] ) +
-//   ( pdfMovingIndex * m_JointPDFDerivatives->GetOffsetTable()[1] );
 
   // Location of the bin in the derivatives array
   const int linearHistogramBinIndex2 =
     ( pdfFixedIndex  * this->m_NumberOfHistogramBins ) + pdfMovingIndex;
 
-  // Update bins in the PDF derivatives for the current intensity pair
-// JointPDFValueType * derivPtr = 
-//   m_JointPDFDerivatives->GetBufferPointer() + linearHistogramBinIndex;
-
   const double precomputedWeight = m_PRatioArray[linearHistogramBinIndex2];
-
-// std::cout << "precomputedWeight [ " << linearHistogramBinIndex2 << " ] = " << precomputedWeight << std::endl;
 
   if( !m_TransformIsBSpline )
     {
-
-std::cerr << "ERROR: using the non BSpline branch" << std::endl;
     /**
      * Generic version which works for all transforms.
      */
@@ -1655,17 +1480,19 @@ std::cerr << "ERROR: using the non BSpline branch" << std::endl;
       this->m_Transform->GetJacobian( 
         m_FixedImageSamples[sampleNumber].FixedImagePointValue );
 
-//    for ( unsigned int mu = 0; mu < m_NumberOfParameters; mu++, derivPtr++ )
     for ( unsigned int mu = 0; mu < m_NumberOfParameters; mu++ )
       {
       double innerProduct = 0.0;
       for ( unsigned int dim = 0; dim < FixedImageDimension; dim++ )
         {
-        innerProduct += jacobian[dim][mu] * 
-          movingImageGradientValue[dim];
+        innerProduct += jacobian[dim][mu] * movingImageGradientValue[dim];
         }
 
-//      *(derivPtr) -= innerProduct * cubicBSplineDerivativeValue;
+      const double derivativeContribution =
+        innerProduct * cubicBSplineDerivativeValue;
+
+      // const int parameterIndex = indices[mu];  // FIXME : Double check...
+      // FIXME: derivative[parameterIndex] += precomputedWeight * derivativeContribution;
       }
 
     }
@@ -1695,41 +1522,10 @@ std::cerr << "ERROR: using the non BSpline branch" << std::endl;
 
         const int parameterIndex = indices[mu] + m_ParametersOffset[dim];
 
-//  Don't touch the m_JointPDFDerivatives:
-//  
-//      JointPDFValueType * ptr = derivPtr + parameterIndex;
-//      *(ptr) -= innerProduct * cubicBSplineDerivativeValue;
-//            
-//  Instead, accumulate in the derivative2 using the precomputed weights
-//
         const double derivativeContribution =
           innerProduct * cubicBSplineDerivativeValue;
 
-        // DEBUGGING ERASE ME BEGIN
-        JointPDFDerivativesIndexType pdfDerivativeIndex;
-        pdfDerivativeIndex[0] = parameterIndex;
-        pdfDerivativeIndex[1] = pdfMovingIndex;
-        pdfDerivativeIndex[2] = pdfFixedIndex;
-
-//       const double precomputedDerivativeContribution1 =
-//         m_JointPDFDerivatives->GetPixel( pdfDerivativeIndex );
-
-//       JointPDFValueType * ptr = derivPtr + parameterIndex;
-//       const double precomputedDerivativeContribution2 = *ptr;
-
-//    if( vnl_math_abs( precomputedDerivativeContribution1 - precomputedDerivativeContribution2 ) > vnl_math::eps )
-//      {
-//      std::cerr << parameterIndex << ", " << pdfMovingIndex << ", " << pdfFixedIndex;
-//      std::cerr << " = " << precomputedDerivativeContribution1 << " != " << precomputedDerivativeContribution2 << std::endl;
-//      }
-//       if( vnl_math_abs( derivativeContribution - precomputedDerivativeContribution ) > vnl_math::eps )
-//         {
-//         std::cerr << parameterIndex << ", " << pdfMovingIndex << ", " << pdfFixedIndex;
-//         std::cerr << " = " << precomputedDerivativeContribution << " != " << derivativeContribution << std::endl;
-//         }
-        // DEBUGGING ERASE ME END
-
-        derivative2[parameterIndex] += precomputedWeight * derivativeContribution;
+        derivative[parameterIndex] += precomputedWeight * derivativeContribution;
 
         } //end mu for loop
       } //end dim for loop
