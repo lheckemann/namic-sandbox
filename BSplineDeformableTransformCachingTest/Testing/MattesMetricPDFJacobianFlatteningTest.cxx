@@ -253,7 +253,9 @@ int main( int argc, char *argv[] )
     std::cout << "derivative[" << pp << "] = " << derivative[pp] << std::endl;
     }
 
-  //collector.Report( std::cout );
+  std::cout << std::endl << std::endl;
+  collector.Report( std::cout );
+
   char numberOfSamplesString[16];
   sprintf(numberOfSamplesString, "%d", numberOfSamples);
   std::string experimentString;
