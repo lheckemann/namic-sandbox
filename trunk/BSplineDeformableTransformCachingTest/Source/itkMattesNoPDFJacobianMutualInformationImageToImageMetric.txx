@@ -1221,18 +1221,18 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       double movingImagePDFValue = m_MovingImageMarginalPDF[movingIndex];
       double jointPDFValue = *(jointPDFPtr);
 
+      // Location of the bin in the derivatives array
+      const int linearHistogramBinIndex2 =
+        ( fixedIndex  * this->m_NumberOfHistogramBins ) + movingIndex;
+
       // check for non-zero bin contribution
       if( jointPDFValue > 1e-16 &&  movingImagePDFValue > 1e-16 )
         {
 
         double pRatio = vcl_log(jointPDFValue / movingImagePDFValue );
 
-        // Location of the bin in the derivatives array
-        const int linearHistogramBinIndex2 =
-          ( fixedIndex  * this->m_NumberOfHistogramBins ) + movingIndex;
-
-        this->m_PRatioArray[linearHistogramBinIndex2] = pRatio;
-        std::cout << "m_PRatioArray[ " << linearHistogramBinIndex2 << " ] = " << this->m_PRatioArray[linearHistogramBinIndex2] << std::endl;
+        this->m_PRatioArray[linearHistogramBinIndex2] = pRatio * nFactor;
+//        std::cout << "m_PRatioArray[ " << linearHistogramBinIndex2 << " ] = [ " << fixedIndex << " , " << movingIndex << " ] = " << this->m_PRatioArray[linearHistogramBinIndex2] << std::endl;
 
         if( fixedImagePDFValue > 1e-16)
           {
@@ -1259,6 +1259,11 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
           }  // end for-loop over parameters
         }  // end if-block to check non-zero bin contribution
+      else
+        {
+        this->m_PRatioArray[linearHistogramBinIndex2] = 0.0;
+//        std::cout << "m_PRatioArray[ " << linearHistogramBinIndex2 << " ] = [ " << fixedIndex << " , " << movingIndex << " ] = " << this->m_PRatioArray[linearHistogramBinIndex2] << std::endl;
+        }
       }  // end for-loop over moving index
     }  // end for-loop over fixed index
 
@@ -1373,10 +1378,12 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     } // end iterating over fixed image spatial sample container for loop
 
   value = static_cast<MeasureType>( -1.0 * sum );
+  
+  const double derivativeTolerance = 1e-10; // vnl_math::eps
 
   for(unsigned int dd=0; dd < this->GetNumberOfParameters(); dd++ )
     {
-    if( vnl_math_abs( derivative[dd] - derivative2[dd] ) > vnl_math::eps )
+    if( vnl_math_abs( derivative[dd] - derivative2[dd] ) > derivativeTolerance )
       {
       std::cerr << "Derivative component " << dd << " differs " << std::endl;
       std::cerr << "derivative [" << dd << "] = " << derivative[dd]  << std::endl;
@@ -1611,6 +1618,8 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   DerivativeType & derivative2) const
 {
 
+//    std::cout << "m_JointPDFDerivatives->GetOffsetTable()[2] " <<  m_JointPDFDerivatives->GetOffsetTable()[2] << std::endl;
+//    std::cout << "m_JointPDFDerivatives->GetOffsetTable()[1] " <<  m_JointPDFDerivatives->GetOffsetTable()[1] << std::endl;
   const int pdfFixedIndex = 
     m_FixedImageSamples[sampleNumber].FixedImageParzenWindowIndex;
 
@@ -1629,11 +1638,12 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   const double precomputedWeight = m_PRatioArray[linearHistogramBinIndex2];
 
-std::cout << "precomputedWeight [ " << linearHistogramBinIndex2 << " ] = " << precomputedWeight << std::endl;
+// std::cout << "precomputedWeight [ " << linearHistogramBinIndex2 << " ] = " << precomputedWeight << std::endl;
 
   if( !m_TransformIsBSpline )
     {
 
+std::cerr << "ERROR: using the non BSpline branch" << std::endl;
     /**
      * Generic version which works for all transforms.
      */
@@ -1693,7 +1703,31 @@ std::cout << "precomputedWeight [ " << linearHistogramBinIndex2 << " ] = " << pr
         const double derivativeContribution =
           innerProduct * cubicBSplineDerivativeValue;
 
-        derivative2[parameterIndex] -= precomputedWeight * derivativeContribution;
+        // DEBUGGING ERASE ME BEGIN
+        JointPDFDerivativesIndexType pdfDerivativeIndex;
+        pdfDerivativeIndex[0] = parameterIndex;
+        pdfDerivativeIndex[1] = pdfMovingIndex;
+        pdfDerivativeIndex[2] = pdfFixedIndex;
+
+        const double precomputedDerivativeContribution1 =
+          m_JointPDFDerivatives->GetPixel( pdfDerivativeIndex );
+
+        JointPDFValueType * ptr = derivPtr + parameterIndex;
+        const double precomputedDerivativeContribution2 = *ptr;
+
+        if( vnl_math_abs( precomputedDerivativeContribution1 - precomputedDerivativeContribution2 ) > vnl_math::eps )
+          {
+          std::cerr << parameterIndex << ", " << pdfMovingIndex << ", " << pdfFixedIndex;
+          std::cerr << " = " << precomputedDerivativeContribution1 << " != " << precomputedDerivativeContribution2 << std::endl;
+          }
+//       if( vnl_math_abs( derivativeContribution - precomputedDerivativeContribution ) > vnl_math::eps )
+//         {
+//         std::cerr << parameterIndex << ", " << pdfMovingIndex << ", " << pdfFixedIndex;
+//         std::cerr << " = " << precomputedDerivativeContribution << " != " << derivativeContribution << std::endl;
+//         }
+        // DEBUGGING ERASE ME END
+
+        derivative2[parameterIndex] += precomputedWeight * derivativeContribution;
 
         } //end mu for loop
       } //end dim for loop
