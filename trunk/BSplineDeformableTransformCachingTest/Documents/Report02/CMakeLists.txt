@@ -48,6 +48,7 @@ ADD_CUSTOM_COMMAND( OUTPUT EraseDefaultMemoryResults
 ADD_CUSTOM_COMMAND( OUTPUT ${PLOT_DIR}/SystemInformation.tex
   COMMAND ${TEST_EXECUTABLE_DIR}/MachineInformationExample SystemInformation.tex
   WORKING_DIRECTORY ${PLOT_DIR}
+  DEPENDS MachineInformationExample
 )
 
 
@@ -70,7 +71,7 @@ FOREACH(USE_THREADING ${THREADING_LIST})
     SET(THREADING_STRING Default)
   ENDIF(${USE_THREADING} EQUAL 1)
   
-  SET( DEPENDENCY_VAR MultiThreadedMIMetricTestReport Erase${THREADING_STRING}Results Erase${THREADING_STRING}MemoryResults )
+  SET( DEPENDENCY_VAR MultiThreadedMIMetricTestReport Erase${THREADING_STRING}Results Erase${THREADING_STRING}MemoryResults MultiThreadedMIMetricTest )
   
   FOREACH(SIZE ${SIZE_LIST})
   
