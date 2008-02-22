@@ -100,7 +100,7 @@ ADD_CUSTOM_COMMAND(
    DEPENDS ${EXPERIMENT_DEPENDENCIES}
 )
 
-ADD_CUSTOM_TARGET(Plots ALL
+ADD_CUSTOM_TARGET(Plots01 ALL
   DEPENDS ${PLOT_DIR}/CachingTiming.pdf
 )
 
@@ -142,7 +142,7 @@ ENDFOREACH(SOURCE_FILE ${REPORT_SRCS})
 # This target depends on the list of copied files created
 # with the custom command above and the Plots target.
 #
-ADD_CUSTOM_TARGET(ReportIJ ALL 
+ADD_CUSTOM_TARGET(Report01 ALL 
    COMMAND ${PDFLATEX_COMPILER} 
         ${MattesMetricCachingTestReport_SOURCE_DIR}/Report01.tex 
         -output-directory ${MattesMetricCachingTestReport_BINARY_DIR}
@@ -163,7 +163,7 @@ SET(PDF_READER "/usr/bin/acroread")
 ENDIF(WIN32)
 
 #MESSAGE("${MattesMetricCachingTestReport_BINARY_DIR}/Report01.pdf")
-ADD_CUSTOM_TARGET(ViewReport ALL
+ADD_CUSTOM_TARGET(ViewReport01 ALL
   COMMAND ${CMAKE_COMMAND} -E echo ${MattesMetricCachingTestReport_BINARY_DIR}/Report01.pdf
 #  COMMAND ${PDF_READER} 
 #  ARGS ${MattesMetricCachingTestReport_BINARY_DIR}/Report01.pdf
