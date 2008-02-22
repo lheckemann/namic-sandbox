@@ -50,18 +50,15 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 % scope of the document.
 \begin{abstract}
 \noindent
+This report compares the execution time and memory usage of the default ITK implementation of Viola-Wells Mutual Information
+and a multi-threaded implementation of Viola-Wells Mutual Information. The comparison is done in the context of b-spline
+deformable registration.
 \end{abstract}
 
 \tableofcontents
 
 \section{Introduction}
 
-Deformable registration of images is a computationally demanding task. It
-usually involves a large number of parameters that users must select, and for
-which, there is not always a clear set of guidelines available. This report
-provides some of such guidelines. In particular we are interested on analyzing
-how the choices of specific parameters affects the memory requirements of the
-registration versus the time that it will require to run.
 
 
 \section{Components used in Deformable Image Registration}
@@ -80,8 +77,8 @@ Of course, variations of this combinations are also possible, and sometimes
 desirable. However, for the purpose of this study we focus on this particular
 combination of software components.
 
-The ITK implementation of Mattes Mutual Information Metric is based on the
-description of the algorimth presented in \cite{Mattes2001,Mattes2003}. Its
+The ITK implementation of Viola-Wells Mutual Information Metric is based on the
+description of the algorimth presented in \cite{}. Its
 usage is described in the ITK Software Guide
 \cite{ITKSoftwareGuideSecondEdition}.
 
@@ -95,7 +92,6 @@ and computational time of the registration.
 
 \begin{itemize}
 \item \textbf{NSS}: Number of Spatial Samples
-\item \textbf{NHB}: Number of Histogram Bins
 \item \textbf{NBN}: Number of BSpline Grid Nodes
 \item \textbf{BSO}: Order of the BSpline
 \item \textbf{ID}:  Image Dimension
@@ -202,67 +198,6 @@ can affect the location of a given point in space. See description in section
 Our review of the ITK implementation of the Mattes Mutual Information Metric
 revealed several relationships between memory requirements and the critical
 parameters listed in the previous section.
-
-\subsection{Data Structures}
-
-Memory allocation is dominated by the following data structures used inside the
-\doxygen{MattesMutualInformationImageToImageMetric}. They are not listed in a 
-particular order, given that their actual memory demands depend on the specific
-numerical values of the critical parameters.
-
-
-\begin{itemize}
-\item \textbf{BIWS}: BSpline Interpolation Weights per Sample
-\item \textbf{BNIS}: BSpline Node Indices per sample
-\item \textbf{PDFD}: Probability Density Function Derivatives
-\end{itemize}
-
-
-\subsubsection{BSpline Interpolation Weights per Sample}
-\subsubsection{BSpline Node Indices per Sample}
-\subsubsection{PDF Derivatives}
-
-\subsection{Memory Relationships}
-
-The relationships between the critical parameters and the memory footprint of
-the data structures are listed below.
-
-\begin{equation}
-\mbox{BIWS} = \mbox{BSO}^{\mbox{ID}} \times \mbox{NSS} \times \mbox{sizeof(double)}
-\end{equation}
-
-\begin{equation}
-\mbox{BNIS} = \mbox{BSO}^{\mbox{ID}} \times \mbox{NSS} \times \mbox{sizeof(long int)}
-\end{equation}
-
-\begin{equation}
-\mbox{PDFD} = \mbox{NBN} \times \mbox{ID} \times \mbox{NHB} \times  \mbox{sizeof(double)}
-\end{equation}
-
-
-\subsubsection{Numerical Examples}
-
-In order to put in context the relationships listed above we provide here some
-concrete numerical examples.
-
-\begin{itemize}
-\item Image Size: 256 256 20
-\item BSpline Order: 3
-\item Image Dimension: 3
-\item BSpline Grid: 32 32 16
-\item Percent of Samples: $20\%$
-\end{itemize}
-
-With these parameters, the memory allocations for significant data structures
-are the following:
-
-
-\begin{itemize}
-\item BIWS: $(3+1)^3 \times (256 \times 256 \times 200 ) \times 0.2 \times 8 $ = 1.34 Gigabytes 
-\item BNIS: $(3+1)^3 \times (256 \times 256 \times 200 ) \times 0.2 \times 4 $ = 0.67 Gigabytes 
-\item PDFD: $(32 \time 32 \times 16 ) \times 3 \times ( 50 \times 50 ) \times 8$ = 0.96 Gigabytes
-\end{itemize}
-
 
 \section{Software Requirements}
 
