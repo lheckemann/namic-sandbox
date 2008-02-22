@@ -28,7 +28,7 @@ int main( int argc, char* argv[] )
     {
     std::cerr << "Missing Parameters " << std::endl;
     std::cerr << "Usage: " << argv[0];
-    std::cerr << " imagesizeX imagesizeY imagesizeZ  numberOfIterations [timing_file] [memory_file]";
+    std::cerr << " imagesizeX imagesizeY imagesizeZ  numberOfIterations useThreading [timing_file] [memory_file]";
     return EXIT_FAILURE;
     }
   
@@ -38,13 +38,9 @@ int main( int argc, char* argv[] )
   typedef double                                            CoordinateRepType;
   typedef itk::ImageToImageMetric< ImageType, ImageType >   MetricType;
 
-#ifdef USE_MULTITHREADED
   typedef itk::MultiThreadedMutualInformationImageToImageMetric< ImageType, ImageType > ThreadMetricType;
-  std::string threadingString = "Multithreaded";
-#else
-  typedef itk::MutualInformationImageToImageMetric< ImageType, ImageType > ThreadMetricType;
-  std::string threadingString = "Default";
-#endif
+  typedef itk::MutualInformationImageToImageMetric< ImageType, ImageType >              DefaultMetricType;
+  typedef itk::ImageToImageMetric< ImageType, ImageType >                               CommonMetricType;
   
   typedef ThreadMetricType::ParametersType ParametersType;
 
@@ -63,7 +59,23 @@ int main( int argc, char* argv[] )
   itk::ExperimentMemoryProbesCollector      memoryCollector;
   memoryCollector.Start("MultiThreadMI");
 
-  ThreadMetricType::Pointer  metric = ThreadMetricType::New();
+  ThreadMetricType::Pointer  threadMetric = ThreadMetricType::New();
+  DefaultMetricType::Pointer defaultMetric = DefaultMetricType::New();
+  CommonMetricType::Pointer metric;
+  std::string threadingString;
+  int useThreading = atoi(argv[5]);
+
+  if ( useThreading )
+    {
+    threadingString = "Multithreaded";
+    metric = threadMetric;
+    }
+  else
+    {
+    threadingString = "Default";
+    metric = defaultMetric;
+    }
+
 
   TransformType::Pointer  transform = TransformType::New();
 
@@ -80,6 +92,8 @@ int main( int argc, char* argv[] )
   size[0] = atoi( argv[1] );
   size[1] = atoi( argv[2] );
   size[2] = atoi( argv[3] );
+
+  const unsigned int numberOfIterations = atoi( argv[4] );
 
   region.SetSize( size );
   region.SetIndex( start );
@@ -142,15 +156,15 @@ int main( int argc, char* argv[] )
   
   const unsigned int totalNumberOfPixels = fixedRegion.GetNumberOfPixels();
 
-  // FIXME 
-  const unsigned int numberOfSamples = 5000; 
-    //static_cast< unsigned int >( totalNumberOfPixels * 0.20 );
+  const unsigned int numberOfSamples = static_cast< unsigned int >( totalNumberOfPixels * 0.20 );
 
   const unsigned int numberOfHistogramBins = 50;
   const unsigned int seed = 76926294;
 
-  metric->SetNumberOfSpatialSamples( numberOfSamples );
-  metric->ReinitializeSeed( seed );
+  threadMetric->SetNumberOfSpatialSamples( numberOfSamples );
+  threadMetric->ReinitializeSeed( seed );
+  defaultMetric->SetNumberOfSpatialSamples( numberOfSamples );
+  defaultMetric->ReinitializeSeed( seed );
 
   itk::ExperimentTimeProbesCollector        timeCollector;
 
@@ -190,9 +204,7 @@ int main( int argc, char* argv[] )
     std::cerr << "Problem allocating memory" << std::endl;
     return EXIT_FAILURE;
     }
-  
-  const unsigned int numberOfIterations = atoi( argv[4] );
- 
+   
   ThreadMetricType::MeasureType     value; 
   ThreadMetricType::DerivativeType  derivative;
 
@@ -200,13 +212,11 @@ int main( int argc, char* argv[] )
     {
     std::cout << "Iteration " << i << " of " << numberOfIterations << std::endl;
 
-    memoryCollector.Start("GetValue");
     timeCollector.Start("GetValue");
 
     value = metric->GetValue( parameters );
 
     timeCollector.Stop("GetValue");
-    memoryCollector.Stop("GetValue");
 
     std::cout << threadingString;
     std::cout << " value :  ";
@@ -226,14 +236,14 @@ int main( int argc, char* argv[] )
   memoryCollector.SetExperimentString( experimentString );
   std::string outputFileName;
   std::string memOutputFileName;
-  if ( argc > 6)
+  if ( argc > 7)
     {
-    outputFileName = argv[5];
-    memOutputFileName = argv[6];
+    outputFileName = argv[6];
+    memOutputFileName = argv[7];
     }
-  else if ( argc > 5 )
+  else if ( argc > 6 )
     {
-    outputFileName = argv[5];
+    outputFileName = argv[6];
 
     memOutputFileName = "MattesMetricCachingMemoryTestResult-" + threadingString;
     memOutputFileName = memOutputFileName + "-volumesize-";
