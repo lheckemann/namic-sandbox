@@ -133,8 +133,8 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   randIter.SetNumberOfSamples( m_NumberOfSpatialSamples );
   randIter.GoToBegin();
 
-  typename SpatialSampleContainer::iterator iter;
-  typename SpatialSampleContainer::const_iterator end = samples.end();
+  SamplesIterator iter;
+  SamplesConstIterator end = samples.end();
 
   bool allOutside = true;
 
@@ -250,10 +250,10 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   double dLogSumMoving    = 0.0;
   double dLogSumJoint  = 0.0;
 
-  typename SpatialSampleContainer::const_iterator aiter;
-  typename SpatialSampleContainer::const_iterator aend = m_SampleA.end();
-  typename SpatialSampleContainer::const_iterator biter;
-  typename SpatialSampleContainer::const_iterator bend = m_SampleB.end();
+  SamplesConstIterator aiter;
+  SamplesConstIterator aend = m_SampleA.end();
+  SamplesConstIterator biter;
+  SamplesConstIterator bend = m_SampleB.end();
 
   unsigned long totalSamples = 0;
 
@@ -337,8 +337,10 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   this->SampleFixedImageDomain( m_SampleB );
 
   // Setup the sample iterators for each thread.
-  unsigned int samplesPerThread  = vcl_floor(static_cast<double>(this->m_NumberOfSpatialSamples) /
-                                              static_cast<double>(m_NumberOfThreads));
+  unsigned int samplesPerThread  = static_cast< unsigned int >( 
+    vcl_floor(static_cast<double>(this->m_NumberOfSpatialSamples) /
+              static_cast<double>(m_NumberOfThreads)) );
+
   // The last thread needs to handle more/fewer samples depending on how the 
   // samples are divided by the threads.
   unsigned int lastThreadSamples = this->m_NumberOfSpatialSamples - (m_NumberOfThreads -1) * samplesPerThread;
@@ -484,12 +486,12 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   double dLogSumJoint  = 0.0;
 
   // These need to point to our samples....
-  typename SpatialSampleContainer::const_iterator aiter;
-  typename SpatialSampleContainer::const_iterator astart = m_SampleAStartIterators[threadID];
-  typename SpatialSampleContainer::const_iterator aend   = m_SampleAEndIterators[threadID];
-  typename SpatialSampleContainer::const_iterator biter;
-  typename SpatialSampleContainer::const_iterator bstart = m_SampleBStartIterators[threadID];
-  typename SpatialSampleContainer::const_iterator bend   = m_SampleBEndIterators[threadID];
+  SamplesConstIterator aiter;
+  SamplesConstIterator astart = m_SampleAStartIterators[threadID];
+  SamplesConstIterator aend   = m_SampleAEndIterators[threadID];
+  SamplesConstIterator biter;
+  SamplesConstIterator bstart = m_SampleBStartIterators[threadID];
+  SamplesConstIterator bend   = m_SampleBEndIterators[threadID];
 
   for( biter = bstart ; biter != bend; ++biter )
     {
@@ -567,10 +569,10 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   double dLogSumMoving    = 0.0;
   double dLogSumJoint  = 0.0;
 
-  typename SpatialSampleContainer::iterator aiter;
-  typename SpatialSampleContainer::const_iterator aend = m_SampleA.end();
-  typename SpatialSampleContainer::iterator biter;
-  typename SpatialSampleContainer::const_iterator bend = m_SampleB.end();
+  SamplesIterator aiter;
+  SamplesConstIterator aend = m_SampleA.end();
+  SamplesIterator biter;
+  SamplesConstIterator bend = m_SampleB.end();
 
   // precalculate all the image derivatives for sample A
   typedef std::vector<DerivativeType> DerivativeContainer;
@@ -827,10 +829,10 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     }
 
   // These itertators point to the start/end A & B samples for each thread.
-  this->m_SampleAStartIterators = new SpatialSampleContainer::const_iterator[this->m_NumberOfThreads];
-  this->m_SampleBStartIterators = new SpatialSampleContainer::const_iterator[this->m_NumberOfThreads];
-  this->m_SampleAEndIterators   = new SpatialSampleContainer::const_iterator[this->m_NumberOfThreads];
-  this->m_SampleBEndIterators   = new SpatialSampleContainer::const_iterator[this->m_NumberOfThreads];
+  this->m_SampleAStartIterators = new SamplesConstIterator[this->m_NumberOfThreads];
+  this->m_SampleBStartIterators = new SamplesConstIterator[this->m_NumberOfThreads];
+  this->m_SampleAEndIterators   = new SamplesConstIterator[this->m_NumberOfThreads];
+  this->m_SampleBEndIterators   = new SamplesConstIterator[this->m_NumberOfThreads];
 
 }
 

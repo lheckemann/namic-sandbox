@@ -217,6 +217,8 @@ private:
 
   /** SpatialSampleContainer typedef support. */
   typedef std::vector<SpatialSample>  SpatialSampleContainer;
+  typedef typename SpatialSampleContainer::iterator         SamplesIterator;
+  typedef typename SpatialSampleContainer::const_iterator   SamplesConstIterator;
 
   /** Container to store sample set  A - used to approximate the probability
    * density function (pdf). */
