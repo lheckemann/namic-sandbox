@@ -110,7 +110,7 @@ void TransferOpenIGTLink::Process()
   this->SetTriggerMode(COUNT_WITH_ARG);
   while (1)
     {
-      int id = (int) WaitForTrigger();
+      int id =(long) WaitForTrigger(); 
       std::cerr << "TransferOpenIGTLink::Process(): Triggered." << std::endl;
       if (this->AcquisitionThread)
         {
