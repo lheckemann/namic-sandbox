@@ -41,26 +41,30 @@ AcquisitionSimulator::~AcquisitionSimulator()
 
 int AcquisitionSimulator::Init()
 {
-  
+  return 1;
 }
 
 int AcquisitionSimulator::StartScan()
 {
   this->Run();
+  return 1;
 }
 
 int AcquisitionSimulator::PauseScan()
 {
   this->Sleep();
+  return 1;
 }
 
 int AcquisitionSimulator::StopScan()
 {
   this->Stop();
+  return 1;
 }
 
 int AcquisitionSimulator::SetMatrix(float* matrix)
 {
+  return 1;
 }
 
 void AcquisitionSimulator::Process()
@@ -146,6 +150,7 @@ int AcquisitionSimulator::SetSubVolumeDimension(int dim[3])
   this->SubVolumeDimension[0] = dim[0];
   this->SubVolumeDimension[1] = dim[1];
   this->SubVolumeDimension[2] = dim[2];
+  return 1;
 }
 
 void printMatrix(igtl::Matrix4x4 &matrix)
@@ -306,6 +311,7 @@ int AcquisitionSimulator::DeleteImages()
       this->CurrentFrame = NULL;
     }
   */
+  return 1;
 }
 
 
