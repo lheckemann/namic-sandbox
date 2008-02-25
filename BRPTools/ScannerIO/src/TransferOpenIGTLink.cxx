@@ -121,8 +121,10 @@ void TransferOpenIGTLink::Process()
               int ret;
               ACE_Time_Value timeOut(1,0);
 
+              std::cerr << "PackSize:  " << frame->GetPackSize() << std::endl;
+
               ret = sock.send_n(frame->GetPackPointer(), frame->GetPackSize(), &timeOut);
-              if (ret <= 0) {
+              if (ret < frame->GetPackSize()) {
                 Disconnect();
                 ACE_DEBUG((LM_ERROR, ACE_TEXT("Error %d : Connection Lost!\n"), errno));
               }
