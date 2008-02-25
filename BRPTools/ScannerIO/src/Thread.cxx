@@ -16,7 +16,7 @@
 
 #include <iostream>
 #include <stdio.h>
-#include "thread.h"
+#include "Thread.h"
 
 using namespace std;
 
