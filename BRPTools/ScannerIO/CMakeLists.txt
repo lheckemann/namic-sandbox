@@ -1,4 +1,4 @@
-PROJECT(ScannerSim)
+PROJECT(ScannerIO)
 
 INCLUDE (CheckIncludeFiles)
 
@@ -59,11 +59,11 @@ libs/ace
 )
 
 IF(BUILD_SHARED)
-ADD_LIBRARY(ScannerSimLib SHARED
+ADD_LIBRARY(ScannerIOLib SHARED
 ${SOURCES}
 )
 ELSE(BUILD_SHARED)
-ADD_LIBRARY(ScannerSimLib
+ADD_LIBRARY(ScannerIOLib
 ${SOURCES}
 )
 ENDIF(BUILD_SHARED)
@@ -87,21 +87,27 @@ rt
 ENDIF(LINUX)
 ENDIF(NOT WIN32)
 
-TARGET_LINK_LIBRARIES(ScannerSimLib
+TARGET_LINK_LIBRARIES(ScannerIOLib
 ${LIBS}
 )
 
 ADD_EXECUTABLE(ScannerSim src/main.cxx)
 ADD_EXECUTABLE(TrackerSim src/tracker.cxx)
+ADD_EXECUTABLE(GEExciteIGTL src/GEExciteIGTL.cxx)
 
 TARGET_LINK_LIBRARIES(ScannerSim
 ${EXTRA_LIBS}
-ScannerSimLib
+ScannerIOLib
 )
 
 TARGET_LINK_LIBRARIES(TrackerSim
 ${EXTRA_LIBS}
-ScannerSimLib
+ScannerIOLib
+)
+
+TARGET_LINK_LIBRARIES(GEExciteIGTL
+${EXTRA_LIBS}
+ScannerIOLib
 )
 
 SET(EXECUTABLE_OUTPUT_PATH
