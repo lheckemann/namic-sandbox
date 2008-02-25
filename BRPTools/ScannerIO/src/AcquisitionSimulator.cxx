@@ -279,7 +279,7 @@ void AcquisitionSimulator::GetCurrentFrame(igtl::ImageMessage::Pointer& cf)
   std::cerr << "packed" <<std::endl;
   
   this->CurrentFrameSliceIndex ++;
-  if (this->CurrentFrameSliceIndex*(this->SubVolumeDimension[2]+1) > dim[2])
+  if ((this->CurrentFrameSliceIndex+1)*(this->SubVolumeDimension[2]) > dim[2])
     {
       this->CurrentFrameIndex ++;
       this->CurrentFrameSliceIndex = 0;
