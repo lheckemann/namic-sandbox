@@ -42,11 +42,16 @@ src/igtlutil/igtl_image.c
 src/igtlutil/igtl_transform.c
 src/igtlutil/crc32.c
 src/igtlImageMessage.cxx
+src/igtlTransformMessage.cxx
 src/igtlMath.cxx
 src/igtlMessageBase.cxx
 src/igtlObject.cxx
+src/Thread.cxx
+src/AcquisitionBase.cxx
+src/AcquisitionSimulator.cxx
+src/TransferBase.cxx
+src/TransferOpenIGTLink.cxx
 src/ScannerBase.cxx
-src/ScannerSim.cxx
 )
 
 SUBDIRS(
@@ -87,8 +92,14 @@ ${LIBS}
 )
 
 ADD_EXECUTABLE(ScannerSim src/main.cxx)
+ADD_EXECUTABLE(TrackerSim src/tracker.cxx)
 
 TARGET_LINK_LIBRARIES(ScannerSim
+${EXTRA_LIBS}
+ScannerSimLib
+)
+
+TARGET_LINK_LIBRARIES(TrackerSim
 ${EXTRA_LIBS}
 ScannerSimLib
 )

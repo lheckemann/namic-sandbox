@@ -28,8 +28,8 @@ namespace igtl
 class ImageMessage: public MessageBase
 {
 public:
-  typedef ImageMessage               Self;
-  typedef SmartPointer<Self>  Pointer;
+  typedef ImageMessage              Self;
+  typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
 
   igtlTypeMacro(igtl::ImageMessage, igtl::Object)
@@ -90,6 +90,10 @@ public:
 
   void GetDimensions(int s[3]);
   void GetDimensions(int &i, int &j, int &k);
+  void GetSpacing(float s[3]);
+  void GetSpacing(float &si, int &sj, int &sk);
+  int  GetScalarType()         { return scalarType; };
+
   void GetSubVolume(int dim[3], int off[3]);
   void GetSubVolume(int &dimi, int &dimj, int &dimk, int &offi, int &offj, int &offk);
 
@@ -116,7 +120,7 @@ protected:
   
 protected:
 
-  virtual int GetBodyPackSize();
+  virtual int  GetBodyPackSize();
   virtual void PackBody();
   
   int    dimensions[3];

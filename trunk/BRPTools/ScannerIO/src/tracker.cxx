@@ -36,7 +36,6 @@
 
 #include "igtlMath.h"
 #include "igtlTransformMessage.h"
-#include "ScannerSim.h"
 
 
 class ACE_Thread_Mutex;

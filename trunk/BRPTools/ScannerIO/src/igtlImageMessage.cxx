@@ -221,6 +221,20 @@ void ImageMessage::GetDimensions(int &i, int &j, int &k)
   k = dimensions[2];
 }
 
+void ImageMessage::GetSpacing(float s[3])
+{
+  s[0] = spacing[0];
+  s[1] = spacing[1];
+  s[2] = spacing[2];
+}
+
+void ImageMessage::GetSpacing(float &si, int &sj, int &sk)
+{
+  si = spacing[0];
+  sj = spacing[1];
+  sk = spacing[2];
+}
+  
 void ImageMessage::GetSubVolume(int dim[3], int off[3])
 {
   dim[0] = subDimensions[0];
