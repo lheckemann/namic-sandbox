@@ -35,6 +35,9 @@ AcquisitionGEExcite::AcquisitionGEExcite()
   this->Interval_ms = 100;  // default
   this->CurrentFrame = igtl::ImageMessage::New();
   this->gemutex = new ACE_Thread_Mutex;
+  this->channels = 1;
+  this->viewsxfer = 1;
+  this->validate = false;
 }
 
 
@@ -128,11 +131,6 @@ void AcquisitionGEExcite::SetValidate(bool s)
   this->validate = s;
 }
 
-void AcquisitionGEExcite::SetDataOrder(std::string o)
-{
-  this->data_order = o;
-}
-
 void AcquisitionGEExcite::SetLineOrder(std::string l)
 {
   this->lineorder = l;
@@ -163,7 +161,6 @@ void AcquisitionGEExcite::Process()
 #else
   unsigned int trans_bytes = 0;
 #endif
-  
 
   for(int c=0;c<channels;c++)
     {
@@ -172,20 +169,18 @@ void AcquisitionGEExcite::Process()
     }
 
   this->full_data=(short**)malloc(channels*sizeof(short*));
-  
 
   int row=0;
   int pass=0;
-  
   xsize=0;
   ysize=0;
   
-  
   for(int c=0;c<this->channels;c++)
     raw_data[c]=NULL;
-  
+
   this->m_Stop = 0;
 
+  ACE_DEBUG((LM_INFO, ACE_TEXT("Start looping....\n")));
   while (!this->m_Stop)
     {
       // Get header
@@ -239,7 +234,7 @@ void AcquisitionGEExcite::Process()
               packet.start_offset = ntohl(packet.start_offset);
               packet.control_flags = ntohl(packet.control_flags);
             }
-          
+
           totalSize = packet.raw_size + packet.msg_size;
           
           if(datakey != packet.seq_num) {
@@ -254,6 +249,7 @@ void AcquisitionGEExcite::Process()
             }
           }
           datakey++;
+
           // Get Packet
           if(totalSize>0)
             {
@@ -292,7 +288,6 @@ void AcquisitionGEExcite::Process()
                 this->filehandle.write(this->pByteArray,packet.raw_size);
               gemutex->acquire();
               xsize = packet.raw_size / (sizeof(short)*2*channels*this->viewsxfer);
-              
               for(int c=0;c<channels;c++)
                 {
                   if(row+viewsxfer>ysize)
@@ -303,7 +298,6 @@ void AcquisitionGEExcite::Process()
               gemutex->release();
               free(this->pByteArray);
               row+=this->viewsxfer;
-              
             }
           if(packet.control_flags & RDS_DATA_SEND_EOP)
             {
@@ -323,15 +317,47 @@ void AcquisitionGEExcite::Process()
               gemutex->release();
               row=0;
 
-              for (int c = 0; c < channels; c ++)
+              std::cerr << "have PostProcessThread?" << std::endl;
+
+              if (this->PostProcessThread)
                 {
-                  Reconstruct(xsize, ysize, channels, c, raw_data[c]);
+                  int dim[3];
+                  dim[0] = xsize;
+                  dim[1] = ysize;
+                  dim[2] = 1;
+                  float spacing[3];
+                  spacing[0] = 1.0;
+                  spacing[1] = 1.0;
+                  spacing[2] = 5.0;
+                  int off[3];
+                  off[0] = 0;
+                  off[1] = 0;
+                  off[2] = 0;
+
+                  this->CurrentFrame->SetDimensions(dim);
+                  this->CurrentFrame->SetSpacing(spacing);
+                  this->CurrentFrame->SetSubVolume(dim, off);
+                  this->CurrentFrame->SetScalarType(4);
+                  this->CurrentFrame->SetDeviceName("Scanner");
+                  this->CurrentFrame->AllocateScalars();
+
+                  for (int c = 0; c < channels; c ++)
+                    {
+                      Reconstruct(xsize, ysize, channels, c, raw_data[c],
+                                  (short*)this->CurrentFrame->GetScalarPointer());
+                    }
+
+                  int scalarSize = this->CurrentFrame->GetScalarSize();
+                  igtl::Matrix4x4 matrix;
+                  GetScanPlane(matrix);
+                  this->CurrentFrame->SetMatrix(matrix);
+                  this->CurrentFrame->Pack();
+                  int id = this->PutFrameToBuffer(this->CurrentFrame);
+                  std::cerr << "Process(): frame in bffer #" <<  id << std::endl;
+                  this->PostProcessThread->PullTrigger((void*)id);
                 }
-
-              // /// //// 
-
-
             }
+
           if(packet.control_flags & RDS_DATA_SEND_EOS)
             std::cout << "RDS_DATA_SEND_EOS" << std::endl;
           if(packet.control_flags & RDS_DATA_SEND_NEWPATH)
@@ -480,7 +506,7 @@ int AcquisitionGEExcite::validateData(RDS_RAW_READY_PKT * rdsRawReadyPkt)
 }
 
 
-void AcquisitionGEExcite::Reconstruct(int xsize, int ysize, int channels, int c, short* raw)
+void AcquisitionGEExcite::Reconstruct(int xsize, int ysize, int channels, int c, short* raw, short* final_image)
 {
   /*
   short **real_data;
@@ -532,7 +558,7 @@ void AcquisitionGEExcite::Reconstruct(int xsize, int ysize, int channels, int c,
       Matrix imgI;
       imgR.ReSize(xsize,ysize);
       imgI.ReSize(xsize,ysize);
-      short* final_image = (short*)malloc(xsize*ysize*sizeof(short));
+      //short* final_image = (short*)malloc(xsize*ysize*sizeof(short));
       memset(final_image,0,xsize*ysize*sizeof(short));
       for(int k=0;k<channels;k++)
         {
@@ -591,10 +617,7 @@ void AcquisitionGEExcite::Reconstruct(int xsize, int ysize, int channels, int c,
 
 }
 
-
-
-
-void AcquisitionGEExcite::GetRandomTestMatrix(igtl::Matrix4x4& matrix)
+void AcquisitionGEExcite::GetScanPlane(igtl::Matrix4x4& matrix)
 {
   float position[3];
   float orientation[4];
