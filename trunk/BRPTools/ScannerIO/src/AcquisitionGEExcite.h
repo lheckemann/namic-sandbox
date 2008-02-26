@@ -72,6 +72,14 @@ public:
   int StopScan();
   int SetMatrix(float* matrix);
 
+  void SetRdsHost(std::string host, int port);
+  void SetConsolHost(std::string address);
+  void SetRevision(int revision);  // REV_12_X or REV_14_X
+  void SetChannels(int ch);
+  void SetViewsXfer(int v);
+  void SetValidate(bool s);
+  void SetLineOrder(std::string l);
+
 public:
   AcquisitionGEExcite();
 
@@ -82,22 +90,10 @@ protected:
   // for RDS
   int Connect();
   int validateData(RDS_RAW_READY_PKT * rdsRawReadyPkt);
-  void Reconstruct(int xsize, int ysize, int channels, int c, short* raw);
+  void Reconstruct(int xsize, int ysize, int channels, int c, short* raw, short* final_image);
 
-
-  void GetRandomTestMatrix(igtl::Matrix4x4& matrix);
+  void GetScanPlane(igtl::Matrix4x4& matrix);
   void GetCurrentFrame(igtl::ImageMessage::Pointer& cf);
-
-  void SetRdsHost(std::string host, int port);
-  void SetConsolHost(std::string address);
-  void SetRevision(int revision);  // REV_12_X or REV_14_X
-  void SetChannels(int ch);
-  void SetViewsXfer(int v);
-  void SetValidate(bool s);
-  void SetDataOrder(std::string o);
-  void SetLineOrder(std::string l);
-
-
 
 protected:
 
@@ -123,7 +119,6 @@ protected:
   int ysize;
   bool write_raw_data;
 
-  std::string data_order;
   std::string raw_file;
   std::ofstream filehandle;
 
@@ -133,7 +128,6 @@ protected:
   MatrixMap I;
   short **full_data;
   std::string lineorder;
-
 
   // for image buffer
 
