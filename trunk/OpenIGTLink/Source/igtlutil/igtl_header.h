@@ -19,12 +19,14 @@
 
 #define IGTL_HEADER_VERSION   1
 #define IGTL_HEADER_SIZE      58
+#define IGTL_HEADER_NAMESIZE  12
+#define IGTL_HEADER_DEVSIZE   20
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#pragma pack(1)     /* For 1-byte boundary in memroy */
+#pragma pack(1)     /* For 1-byte boundary in memory */
 
 /*
  * Message header of OpenIGTLink message.
@@ -37,8 +39,8 @@ extern "C" {
 
 typedef struct {
   unsigned short version;          /* protocol version number */
-  char           name[12];          /* data type name          */
-  char           device_name[20];  /* device name             */
+  char           name[IGTL_HEADER_NAMESIZE];          /* data type name          */
+  char           device_name[IGTL_HEADER_DEVSIZE];  /* device name             */
   long long      timestamp;        /* time stamp message      */
   long long      body_size;        /* size of the body        */
   long long      crc;              /* CRC                     */
