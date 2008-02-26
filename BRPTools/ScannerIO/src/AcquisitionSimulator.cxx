@@ -122,7 +122,7 @@ int AcquisitionSimulator::LoadImageData(char* fnameTemp, int bindex, int eindex,
       FILE *fp = fopen(filename, "rb");
       if (fp == NULL) {
         std::cerr << "File opeining error: " << filename << std::endl;
-        return NULL;
+        return 0;
       }
 
       // read image from raw data
@@ -134,7 +134,7 @@ int AcquisitionSimulator::LoadImageData(char* fnameTemp, int bindex, int eindex,
           std::cerr << "File reading error: " << filename << std::endl;
           std::cerr << "   File size: " << fsize << std::endl;
           std::cerr << "   Read data: " << b << std::endl;
-          return NULL;
+          return 0;
         }
       
     }
@@ -151,15 +151,6 @@ int AcquisitionSimulator::SetSubVolumeDimension(int dim[3])
   this->SubVolumeDimension[1] = dim[1];
   this->SubVolumeDimension[2] = dim[2];
   return 1;
-}
-
-void printMatrix(igtl::Matrix4x4 &matrix)
-{
-  std::cout << "=============" << std::endl;
-  std::cout << matrix[0][0] << ", " << matrix[0][1] << ", " << matrix[0][2] << std::endl;
-  std::cout << matrix[1][0] << ", " << matrix[1][1] << ", " << matrix[1][2] << std::endl;
-  std::cout << matrix[2][0] << ", " << matrix[2][1] << ", " << matrix[2][2] << std::endl;
-  std::cout << "=============" << std::endl;
 }
 
 void AcquisitionSimulator::GetRandomTestMatrix(igtl::Matrix4x4& matrix)
@@ -198,7 +189,7 @@ void AcquisitionSimulator::GetRandomTestMatrix(igtl::Matrix4x4& matrix)
   matrix[1][3] = position[1];
   matrix[2][3] = position[2];
   
-  printMatrix(matrix);
+  igtl::PrintMatrix(matrix);
 }
 
 void AcquisitionSimulator::GetCurrentFrame(igtl::ImageMessage::Pointer& cf)

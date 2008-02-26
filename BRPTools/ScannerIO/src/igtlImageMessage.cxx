@@ -228,7 +228,7 @@ void ImageMessage::GetSpacing(float s[3])
   s[2] = spacing[2];
 }
 
-void ImageMessage::GetSpacing(float &si, int &sj, int &sk)
+void ImageMessage::GetSpacing(float &si, float &sj, float &sk)
 {
   si = spacing[0];
   sj = spacing[1];

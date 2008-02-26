@@ -14,10 +14,20 @@
 
 =========================================================================*/
 
+#include <iostream>
 #include <math.h>
 #include "igtlMath.h"
 
 namespace igtl {
+
+void PrintMatrix(igtl::Matrix4x4 &matrix)
+{
+  std::cout << "=============" << std::endl;
+  std::cout << matrix[0][0] << ", " << matrix[0][1] << ", " << matrix[0][2] << std::endl;
+  std::cout << matrix[1][0] << ", " << matrix[1][1] << ", " << matrix[1][2] << std::endl;
+  std::cout << matrix[2][0] << ", " << matrix[2][1] << ", " << matrix[2][2] << std::endl;
+  std::cout << "=============" << std::endl;
+}
 
 void QuaternionToMatrix(float* q, Matrix4x4& m)
 {

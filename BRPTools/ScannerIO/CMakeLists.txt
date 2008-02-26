@@ -33,6 +33,7 @@ OPTION(BUILD_SHARED "Build Shared Libraries" ON)
 
 LINK_DIRECTORIES(
 libs/ace
+libs/newmat
 )
 
 SET(SOURCES
@@ -49,6 +50,7 @@ src/igtlObject.cxx
 src/Thread.cxx
 src/AcquisitionBase.cxx
 src/AcquisitionSimulator.cxx
+src/AcquisitionGEExcite.cxx
 src/TransferBase.cxx
 src/TransferOpenIGTLink.cxx
 src/ScannerBase.cxx
@@ -56,6 +58,7 @@ src/ScannerBase.cxx
 
 SUBDIRS(
 libs/ace
+libs/newmat
 )
 
 IF(BUILD_SHARED)
@@ -71,6 +74,7 @@ ENDIF(BUILD_SHARED)
 SET(LIBS
 ${LIBS}
 ACE
+newmat
 )
 
 IF(NOT WIN32)
