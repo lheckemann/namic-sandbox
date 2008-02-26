@@ -91,7 +91,7 @@ public:
   void GetDimensions(int s[3]);
   void GetDimensions(int &i, int &j, int &k);
   void GetSpacing(float s[3]);
-  void GetSpacing(float &si, int &sj, int &sk);
+  void GetSpacing(float &si, float &sj, float &sk);
   int  GetScalarType()         { return scalarType; };
 
   void GetSubVolume(int dim[3], int off[3]);
