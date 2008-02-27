@@ -1,4 +1,4 @@
-# Install script for directory: /projects/igtdev/tokuda/BRPTools/ScannerIO/libs/ace
+# Install script for directory: /home/tokuda/work/BRPTools/ScannerIO/libs/ace
 
 # Set the install prefix
 IF(NOT DEFINED CMAKE_INSTALL_PREFIX)
