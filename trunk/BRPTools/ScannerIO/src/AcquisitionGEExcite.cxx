@@ -26,6 +26,38 @@
 
 #include "igtlImageMessage.h"
 #include "AcquisitionGEExcite.h"
+#include "igtlMath.h"
+
+#define FLOWCOMP_REALTIME 0x01
+#define SPGR_REALTIME 0x2
+#define FATSAT_REALTIME 0x4
+#define SPATIAL_SAT_REALTIME 0x8
+#define IR_REALTIME 0x10
+#define FOV_REALTIME 0x20
+#define SWAP_PF_REALTIME 0x40
+#define AUTO_NEX_REALTIME 0x80
+#define ROTATE_REALTIME 0x100
+#define TRANSLATE_REALTIME 0x200
+#define FOV_ADDINFO_REALTIME 0x400
+#define SLTHICK_REALTIME 0x800
+#define FLIP_REALTIME 0x1000
+#define SPECTRAL_SPATIAL_REALTIME 0x2000
+#define HIRES3D_REALTIME 0x4000
+#define TAGGING_TYPE_RT 0x8000
+#define TAGGING_ANGLE_RT 0x10000
+
+
+#ifdef _RSP_CONTROL
+extern "C" {
+  int read_rsp_s(char*,int*);
+  int read_rsp_i(char*,int*);
+  int read_rsp_f(char*,float*);
+  int set_rsp_s(char*,int*);
+  int set_rsp_i(char*,int*);
+  int set_rsp_f(char*,float*);
+}
+#endif
+
 
 AcquisitionGEExcite::AcquisitionGEExcite()
 {
@@ -68,6 +100,7 @@ int AcquisitionGEExcite::Init()
   return 1;
 }
 
+
 int AcquisitionGEExcite::StartScan()
 {
   this->Connect();
@@ -75,11 +108,13 @@ int AcquisitionGEExcite::StartScan()
   return 1;
 }
 
+
 int AcquisitionGEExcite::PauseScan()
 {
   this->Sleep();
   return 1;
 }
+
 
 int AcquisitionGEExcite::StopScan()
 {
@@ -88,8 +123,164 @@ int AcquisitionGEExcite::StopScan()
   return 1;
 }
 
-int AcquisitionGEExcite::SetMatrix(float* matrix)
+
+int AcquisitionGEExcite::SetMatrix(float* rmatrix)
 {
+
+  std::cerr << "AcquisitionGEExcite::SetMatrix() called." << std::endl;
+  std::cerr << "matrix = " << std::endl;
+  std::cerr << "    " << rmatrix[0] << ", " << rmatrix[1] << ", " << rmatrix[2] << std::endl;
+  std::cerr << "    " << rmatrix[3] << ", " << rmatrix[4] << ", " << rmatrix[5] << std::endl;
+  std::cerr << "    " << rmatrix[6] << ", " << rmatrix[7] << ", " << rmatrix[8] << std::endl;
+  std::cerr << "    " << rmatrix[9] << ", " << rmatrix[10] << ", " << rmatrix[11] << std::endl;
+
+#ifdef _RSP_CONTROL
+
+  float tx = rmatrix[0];
+  float ty = rmatrix[1];
+  float tz = rmatrix[2];
+  float sx = rmatrix[3];
+  float sy = rmatrix[4];
+  float sz = rmatrix[5];
+  float nx = rmatrix[6];
+  float ny = rmatrix[7];
+  float nz = rmatrix[8];
+  float px = rmatrix[9];
+  float py = rmatrix[10];
+  float pz = rmatrix[11];
+  
+
+  igtl::Matrix4x4 matrix;
+  float position[3];
+  position[0] = px;
+  position[1] = py;
+  position[2] = pz;
+
+  matrix[0][0] = tx;
+  matrix[1][0] = ty;
+  matrix[2][0] = tz;
+  matrix[0][1] = sx;
+  matrix[1][1] = sy;
+  matrix[2][1] = sz;
+  matrix[0][2] = nx;
+  matrix[1][2] = ny;
+  matrix[2][2] = nz;
+
+  // check if frequency and phase encodings are flipped.
+  int swap;
+  read_rsp_i("cont_swap_pf",&swap);
+  
+  if(swap)
+    {
+      // flipped
+    }
+  else
+    {
+      // not flipped
+    }
+
+
+  /* from RAS to image */
+  /* inv(R)*T */
+  int Px, Py, Pz;
+  Px=matrix[0][0]*(position[0])+matrix[1][0]*(position[1])+matrix[2][0]*(position[2]);
+  Py=matrix[0][1]*(position[0])+matrix[1][1]*(position[1])+matrix[2][1]*(position[2]);
+  Pz=matrix[0][2]*(position[0])+matrix[1][2]*(position[1])+matrix[2][2]*(position[2]);
+  Ix=lrintf(Px);
+  Iy=lrintf(Py);
+  Iz=lrintf(Pz);
+  
+
+  // Check which feature is available for  real-time RSP updaate
+  read_rsp_i("cont_avail_flag",&feature_available);
+  if(feature_available & TRANSLATE_REALTIME)
+    {
+      /*
+      set_rsp_i("cont_GWRloc",&px);
+      set_rsp_i("cont_GWPloc",&py);
+      set_rsp_i("cont_GWTloc",&pz);
+      */
+      set_rsp_i("cont_GWRloc",&Ix);
+      set_rsp_i("cont_GWPloc",&Iy);
+      set_rsp_i("cont_GWTloc",&Iz);
+  
+      int fov;
+      /* read field-of-view */
+      read_rsp_i("cont_fov",&fov);
+      event.setAttribute("FOV",fov);
+      MathUtils::quaternionToMatrix(orientation,matrix);
+      
+      /* from image to RAS */
+      /* T*R */
+      float value = matrix[0][0]*fov/2+matrix[0][1]*fov/2+position[0];
+      set_rsp_f("cont_image_p0x",&value);
+      value = matrix[1][0]*fov/2+matrix[1][1]*fov/2+position[1];
+      set_rsp_f("cont_image_p0y",&value);
+      value = matrix[2][0]*fov/2+matrix[2][1]*fov/2+position[2];
+      set_rsp_f("cont_image_p0z",&value);
+      
+      
+      value = matrix[0][0]*(-fov/2)+matrix[0][1]*fov/2+position[0];
+      set_rsp_f("cont_image_p1x",&value);
+      
+      value = matrix[1][0]*(-fov/2)+matrix[1][1]*fov/2+position[1];
+      set_rsp_f("cont_image_p1y",&value);
+      
+      value = matrix[2][0]*(-fov/2)+matrix[2][1]*fov/2+position[2];
+      set_rsp_f("cont_image_p1z",&value);
+      
+      value = matrix[0][0]*(-fov/2)+matrix[0][1]*(-fov/2)+position[0];
+      set_rsp_f("cont_image_p2x",&value);
+      
+      value = matrix[1][0]*(-fov/2)+matrix[1][1]*(-fov/2)+position[1];
+      set_rsp_f("cont_image_p2y",&value);
+      
+      value = matrix[2][0]*(-fov/2)+matrix[2][1]*(-fov/2)+position[2];
+      set_rsp_f("cont_image_p2z",&value);
+    }
+  else
+    {
+      std::cout << "PDS does not support feature TRANSLATE_REALTIME" << std::endl;
+    }
+  
+  if(feature_available & ROTATE_REALTIME)
+    {
+      // rotation
+      float value = (float)matrix[0][0];
+      set_rsp_f("cont_Rot00",&value);
+      
+      value = (float)matrix[1][0];
+      set_rsp_f("cont_Rot01",&value);
+      
+      value = (float)matrix[2][0];
+      set_rsp_f("cont_Rot02",&value);
+      
+      value = (float)matrix[0][1];
+      set_rsp_f("cont_Rot10",&value);
+      
+      value = (float)matrix[1][1];
+      set_rsp_f("cont_Rot11",&value);
+      
+      value = (float)matrix[2][1];
+      set_rsp_f("cont_Rot12",&value);
+      
+      value = (float)matrix[0][2];
+      set_rsp_f("cont_Rot20",&value);
+      
+      value = (float)matrix[1][2];
+      set_rsp_f("cont_Rot21",&value);
+      
+      value = (float)matrix[2][2];
+      set_rsp_f("cont_Rot22",&value);
+    }
+  else
+    {
+      std::cout << "PSD does not support feature ROTATE_REALTIME" << std::endl;
+    }
+
+
+#endif //_RSP_CONTROL
+
   return 1;
 }
 
@@ -155,6 +346,20 @@ void AcquisitionGEExcite::Process()
   unsigned int totalSize;
   byte datakey_waitfornext = 0;
   unsigned long datakey = 0;
+
+  float tx;
+  float ty;
+  float tz;
+  float sx;
+  float sy;
+  float sz;
+  float nx;
+  float ny;
+  float nz;
+  float px;
+  float py;
+  float pz;
+  
   
 #ifdef USE_64_BIT
   unsigned long trans_bytes = 0;
@@ -298,6 +503,51 @@ void AcquisitionGEExcite::Process()
               gemutex->release();
               free(this->pByteArray);
               row+=this->viewsxfer;
+
+#ifdef _RSP_CONTROL
+
+              read_rsp_f("cont_xoffset",   &imgInfo.xoffset  );
+              read_rsp_f("cont_yoffset",   &imgInfo.yoffset  );
+              read_rsp_f("cont_zoffset",   &imgInfo.zoffset  );
+              read_rsp_f("cont_alpha",     &imgInfo.alpha    );
+              read_rsp_f("cont_beta",      &imgInfo.beta     );
+              read_rsp_f("cont_gamma",     &imgInfo.gamma    );
+              read_rsp_f("cont_slthick",   &imgInfo.slthick  );
+              //read_rsp_i("cont_time_sec",  &imgInfo.time_sec );
+              //read_rsp_i("cont_time_usec", &imgInfo.time_usec);
+              //read_rsp_i("cont_rtia_mode", &imgInfo.rtia_mode);
+              read_rsp_i("cont_fov",       &imgInfo.fov      );
+              read_rsp_i("cont_TR",        &imgInfo.tr       );
+              read_rsp_i("cont_TI",        &imgInfo.ti       );
+              read_rsp_i("cont_TE",        &imgInfo.te       );
+              read_rsp_i("cont_rotate",    &imgInfo.rotate   );
+              read_rsp_i("cont_transpose", &imgInfo.transpose);
+              read_rsp_f("cont_image_p0x", &imgInfo.image_p0x);
+              read_rsp_f("cont_image_p0y", &imgInfo.image_p0y);
+              read_rsp_f("cont_image_p0z", &imgInfo.image_p0z);
+              read_rsp_f("cont_image_p1x", &imgInfo.image_p1x);
+              read_rsp_f("cont_image_p1y", &imgInfo.image_p1y);
+              read_rsp_f("cont_image_p1z", &imgInfo.image_p1z);
+              read_rsp_f("cont_image_p2x", &imgInfo.image_p2x);
+              read_rsp_f("cont_image_p2y", &imgInfo.image_p2y);
+              read_rsp_f("cont_image_p2z", &imgInfo.image_p2z);
+
+              float tx;
+              float ty;
+              float tz;
+              float sx;
+              float sy;
+              float sz;
+              float nx;
+              float ny;
+              float nz;
+              float px;
+              float py;
+              float pz;
+              
+
+#endif // _RSP_CONTROL
+
             }
           if(packet.control_flags & RDS_DATA_SEND_EOP)
             {

@@ -31,11 +31,14 @@
 #include <ace/Log_Msg.h>
 
 
+#include "igtl_header.h"
+#include "igtl_transform.h"
+
+
 TransferOpenIGTLink::TransferOpenIGTLink()
 {
   this->Hostname = "";
   this->Port = -1;
-    
 }
 
 int TransferOpenIGTLink::Init()
@@ -66,6 +69,9 @@ int TransferOpenIGTLink::Disconnect()
       sock.close();
     }
   //mutex->release();  //unlock
+
+  this->StopReceiveThread = false;
+
 }
 
 void TransferOpenIGTLink::SetServer(std::string hostname, int port)
@@ -95,10 +101,87 @@ bool TransferOpenIGTLink::CheckAndConnect()
             }
         }
       //mutex->release();  //unlock
+      // launch receive thread
+      ACE_Thread::spawn((ACE_THR_FUNC)CallReceiveProcess, 
+                        (void*)this, 
+                        THR_NEW_LWP | THR_JOINABLE,
+                        &ReceiveThread, &ReceiveHthread);
+
       return connected;
     }
 
+  return false;
+
 }
+
+
+void* TransferOpenIGTLink::CallReceiveProcess(void*ptr)
+{
+  TransferOpenIGTLink* pRT = reinterpret_cast<TransferOpenIGTLink*>(ptr);
+  pRT->StopReceiveThread = false;
+  pRT->ReceiveProcess();
+  return (void*) 0;
+}
+
+
+void TransferOpenIGTLink::ReceiveProcess()
+{
+  int retval;
+  ACE_Time_Value timeOut( 10, 0 );
+  unsigned int trans_bytes = 0;
+
+  while (!this->StopReceiveThread)
+    {
+      // J. Tokuda 02/26/2007
+      // igtl_header should be wrapped by C++ class in future.
+      igtl_header header;
+
+      if((retval = this->sock.recv_n((char*)&header, IGTL_HEADER_SIZE, &timeOut,(size_t*)&trans_bytes )) == -1)
+        {
+          if( errno != ETIME && errno != 0 )
+            {
+              ACE_DEBUG((LM_ERROR, ACE_TEXT("ot:Error %d receiving header data !\n"), errno));
+              this->Disconnect();
+              return;
+            }
+          
+        }
+      igtl_header_convert_byte_order(&header);
+      if (header.version != IGTL_HEADER_VERSION)
+        {
+          std::cerr << "Unsupported OpenIGTLink version." << std::endl;
+        }
+
+      char deviceType[13];
+      deviceType[12] = 0;
+      memcpy((void*)deviceType, header.name, 8);
+      if (strcmp("TRANSFORM", deviceType))
+        {
+          float matrix[12];
+          if((retval = sock.recv_n((char*)matrix, IGTL_TRANSFORM_SIZE, &timeOut,(size_t*)&trans_bytes )) == -1)
+            {
+              if( errno != ETIME && errno != 0 )
+                {
+                  ACE_DEBUG((LM_ERROR, ACE_TEXT("ot:Error %d receiving header data !\n"), errno));
+                  this->Disconnect();
+                  return;
+                }
+              
+            }
+
+          // J. Tokuda 02/26/2008
+          // CRC should be checked here...
+
+          if (this->AcquisitionThread)
+            {
+              this->AcquisitionThread->SetMatrix(matrix);
+            }
+          
+        }
+        
+    }
+}
+
 
 void TransferOpenIGTLink::Process()
 {

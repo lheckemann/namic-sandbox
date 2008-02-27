@@ -64,6 +64,13 @@ int AcquisitionSimulator::StopScan()
 
 int AcquisitionSimulator::SetMatrix(float* matrix)
 {
+  std::cerr << "AcquisitionGEExcite::SetMatrix() called." << std::endl;
+  std::cerr << "matrix = " << std::endl;
+  std::cerr << "    " << matrix[0] << ", " << matrix[1] << ", " << matrix[2] << std::endl;
+  std::cerr << "    " << matrix[3] << ", " << matrix[4] << ", " << matrix[5] << std::endl;
+  std::cerr << "    " << matrix[6] << ", " << matrix[7] << ", " << matrix[8] << std::endl;
+  std::cerr << "    " << matrix[9] << ", " << matrix[10] << ", " << matrix[11] << std::endl;
+
   return 1;
 }
 

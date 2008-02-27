@@ -47,6 +47,9 @@ protected:
   
   virtual void Process();
   bool CheckAndConnect();
+
+  void ReceiveProcess();
+  static void* CallReceiveProcess(void*);
   
 protected:
   std::string Hostname;
@@ -58,6 +61,13 @@ protected:
   ACE_SOCK_Connector connector;
 
   bool connected;
+
+  // for Receive Thread
+  ACE_thread_t    ReceiveThread;
+  ACE_hthread_t   ReceiveHthread;
+  bool            StopReceiveThread;
+  
+
 };
 
 
