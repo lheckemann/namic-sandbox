@@ -67,7 +67,33 @@ src/ScannerBase.cxx
 )
 
 
+IF(BUILD_SHARED)
+ADD_LIBRARY(ScannerIOLib SHARED
+${SOURCES}
+)
+ELSE(BUILD_SHARED)
+ADD_LIBRARY(ScannerIOLib
+${SOURCES}
+)
+ENDIF(BUILD_SHARED)
+
+
+
+
+
 IF(RSP_FILES)
+
+SET(LIBS
+${LIBS}
+mrmailc
+CnvEndianBase
+eventmgr
+cupfound
+cupipc
+msghand
+gemshid
+readableString
+)
 
 IF(EXISTS ${RSP_FILES}/GEMS_Include_11.03)
 SET(SOURCES
@@ -87,15 +113,6 @@ libs/ace
 libs/newmat
 )
 
-IF(BUILD_SHARED)
-ADD_LIBRARY(ScannerIOLib SHARED
-${SOURCES}
-)
-ELSE(BUILD_SHARED)
-ADD_LIBRARY(ScannerIOLib
-${SOURCES}
-)
-ENDIF(BUILD_SHARED)
 
 SET(LIBS
 ${LIBS}
@@ -116,6 +133,18 @@ rt
 )
 ENDIF(LINUX)
 ENDIF(NOT WIN32)
+
+
+
+
+
+
+
+
+
+
+
+
 
 TARGET_LINK_LIBRARIES(ScannerIOLib
 ${LIBS}
