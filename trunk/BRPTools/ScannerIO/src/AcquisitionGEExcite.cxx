@@ -182,15 +182,18 @@ int AcquisitionGEExcite::SetMatrix(float* rmatrix)
 
   /* from RAS to image */
   /* inv(R)*T */
-  int Px, Py, Pz;
+  float Px, Py, Pz;
+  int Ix, Iy, Iz;
   Px=matrix[0][0]*(position[0])+matrix[1][0]*(position[1])+matrix[2][0]*(position[2]);
   Py=matrix[0][1]*(position[0])+matrix[1][1]*(position[1])+matrix[2][1]*(position[2]);
   Pz=matrix[0][2]*(position[0])+matrix[1][2]*(position[1])+matrix[2][2]*(position[2]);
+
   Ix=lrintf(Px);
   Iy=lrintf(Py);
   Iz=lrintf(Pz);
   
 
+  int feature_available;
   // Check which feature is available for  real-time RSP updaate
   read_rsp_i("cont_avail_flag",&feature_available);
   if(feature_available & TRANSLATE_REALTIME)
@@ -207,8 +210,10 @@ int AcquisitionGEExcite::SetMatrix(float* rmatrix)
       int fov;
       /* read field-of-view */
       read_rsp_i("cont_fov",&fov);
+      /*
       event.setAttribute("FOV",fov);
       MathUtils::quaternionToMatrix(orientation,matrix);
+      */
       
       /* from image to RAS */
       /* T*R */
@@ -505,7 +510,7 @@ void AcquisitionGEExcite::Process()
               row+=this->viewsxfer;
 
 #ifdef _RSP_CONTROL
-
+              /*
               read_rsp_f("cont_xoffset",   &imgInfo.xoffset  );
               read_rsp_f("cont_yoffset",   &imgInfo.yoffset  );
               read_rsp_f("cont_zoffset",   &imgInfo.zoffset  );
@@ -531,6 +536,7 @@ void AcquisitionGEExcite::Process()
               read_rsp_f("cont_image_p2x", &imgInfo.image_p2x);
               read_rsp_f("cont_image_p2y", &imgInfo.image_p2y);
               read_rsp_f("cont_image_p2z", &imgInfo.image_p2z);
+              */
 
               float tx;
               float ty;
