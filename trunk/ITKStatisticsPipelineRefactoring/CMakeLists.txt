@@ -13,6 +13,10 @@ INCLUDE_DIRECTORIES( BEFORE
   ${StatisticsRefactoring_SOURCE_DIR}/Testing
   )
 
+IF(NOT EXECUTABLE_OUTPUT_PATH)
+  SET (EXECUTABLE_OUTPUT_PATH ${StatisticsRefactoring_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all executables.")
+ENDIF(NOT EXECUTABLE_OUTPUT_PATH)
+
 CONFIGURE_FILE(
   DartConfiguration.tcl.in
   ${PROJECT_BINARY_DIR}/CTestConfiguration.ini )
