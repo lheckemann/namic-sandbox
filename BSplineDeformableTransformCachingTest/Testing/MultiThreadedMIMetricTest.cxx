@@ -32,6 +32,11 @@ int main( int argc, char* argv[] )
     return EXIT_FAILURE;
     }
   
+  for (unsigned int i = 0; i < argc; i++)
+    {
+    std::cout << i << " : " << argv[i] << std::endl;
+    }
+
   const unsigned int                                        ImageDimension = 3;
   typedef float                                             PixelType;
   typedef itk::Image< PixelType, ImageDimension >           ImageType;
@@ -226,6 +231,25 @@ int main( int argc, char* argv[] )
 
     }
 
+  for(unsigned int i=0; i<numberOfIterations; i++)
+    {
+    std::cout << "Iteration " << i << " of " << numberOfIterations << std::endl;
+
+    //timeCollector.Start("GetValueAndDerivative");
+
+    metric->GetValueAndDerivative( parameters, value, derivative );
+
+    //timeCollector.Stop("GetValueAndDerivative");
+
+    std::cout << threadingString;
+    std::cout << " value :  ";
+    std::cout.width(20);
+    std::cout.precision(17);
+    std::cout << value << std::endl;
+    std::cout << "Derivative : ";
+    std::cout << derivative << std::endl;
+    }
+
   memoryCollector.Stop("MultiThreadMI");
 
   char numberOfSamplesString[16];
@@ -245,7 +269,7 @@ int main( int argc, char* argv[] )
     {
     outputFileName = argv[6];
 
-    memOutputFileName = "MattesMetricCachingMemoryTestResult-" + threadingString;
+    memOutputFileName = "MultiThreadedMIMetricMemoryTestResult-" + threadingString;
     memOutputFileName = memOutputFileName + "-volumesize-";
     memOutputFileName = memOutputFileName + argv[1];
     memOutputFileName = memOutputFileName + "x" + argv[2] + "x" + argv[3];
@@ -253,13 +277,13 @@ int main( int argc, char* argv[] )
     }
   else
     {
-    outputFileName = "MattesMetricCachingTimingTestResult-" + threadingString;
+    outputFileName = "MultiThreadedMIMetricTimingTestResult-" + threadingString;
     outputFileName = outputFileName + "-volumesize-";
     outputFileName = outputFileName + argv[1];
     outputFileName = outputFileName + "x" + argv[2] + "x" + argv[3];
     outputFileName = outputFileName + ".txt";
 
-    memOutputFileName = "MattesMetricCachingMemoryTestResult-" + threadingString;
+    memOutputFileName = "MultiThreadedMIMetricMemoryTestResult-" + threadingString;
     memOutputFileName = memOutputFileName + "-volumesize-";
     memOutputFileName = memOutputFileName + argv[1];
     memOutputFileName = memOutputFileName + "x" + argv[2] + "x" + argv[3];
