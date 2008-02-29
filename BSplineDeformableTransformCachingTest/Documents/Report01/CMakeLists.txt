@@ -8,6 +8,7 @@ ENDIF(NOT PDFLATEX_COMPILER)
 
 FIND_PACKAGE(Gnuplot)
 
+SET(REPORT_NAME Report01.pdf)
 #
 # Set some directories that we use below.
 #
@@ -34,12 +35,21 @@ ADD_CUSTOM_COMMAND( OUTPUT EraseNoCachingResults
   COMMAND ${CMAKE_COMMAND} -E remove ${PLOT_DIR}/AllNoCachingResults.txt 
 )
 
+ADD_CUSTOM_COMMAND( OUTPUT EraseCachingMemoryResults
+  COMMAND ${CMAKE_COMMAND} -E remove ${PLOT_DIR}/AllCachingMemoryResults.txt
+)
+
+ADD_CUSTOM_COMMAND( OUTPUT EraseNoCachingMemoryResults
+  COMMAND ${CMAKE_COMMAND} -E remove ${PLOT_DIR}/AllNoCachingMemoryResults.txt 
+)
+
 #
 # Add custom command to make the system information file.
 #
 ADD_CUSTOM_COMMAND( OUTPUT ${PLOT_DIR}/SystemInformation.tex
   COMMAND ${MATTES_EXECUTABLE_DIR}/MachineInformationExample SystemInformation.tex
   WORKING_DIRECTORY ${PLOT_DIR}
+  DEPENDS MachineInformationExample  
 )
 
 
@@ -55,23 +65,25 @@ SET(CACHING_LIST 0 1)
 FOREACH(USE_CACHING ${CACHING_LIST})
 
   IF(${USE_CACHING} EQUAL 1)
-    SET(CACHING_STRING CachingResults)
+    SET(CACHING_STRING Caching)
   ELSE(${USE_CACHING} EQUAL 1)
-    SET(CACHING_STRING NoCachingResults)
+    SET(CACHING_STRING NoCaching)
   ENDIF(${USE_CACHING} EQUAL 1)
   
-  SET( DEPENDENCY_VAR MattesMetricCachingTest Erase${CACHING_STRING})
+  SET( DEPENDENCY_VAR MattesMetricCachingTest Erase${CACHING_STRING}Results Erase${CACHING_STRING}MemoryResults)
   
   FOREACH(SIZE ${SIZE_LIST})
   
     SET(IMAGE_SIZE ${SIZE} ${SIZE} ${SIZE})
 
-    SET(OUTPUT_FILE "All${CACHING_STRING}.txt" )
+    SET(OUTPUT_FILE "All${CACHING_STRING}Results.txt" )
+    SET(MEMORY_OUTPUT_FILE "All${CACHING_STRING}MemoryResults.txt" )
+    
     SET(EXPERIMENT_TARGET_NAME "${CACHING_STRING}${SIZE}" )
     
     ADD_CUSTOM_COMMAND( 
       OUTPUT  ${EXPERIMENT_TARGET_NAME}
-      COMMAND ${CMAKE_COMMAND} -E chdir ${PLOT_DIR} ${MATTES_EXECUTABLE} ${IMAGE_SIZE} ${NUMBER_OF_CALLS} ${USE_CACHING} ${OUTPUT_FILE}
+      COMMAND ${CMAKE_COMMAND} -E chdir ${PLOT_DIR} ${MATTES_EXECUTABLE} ${IMAGE_SIZE} ${NUMBER_OF_CALLS} ${USE_CACHING} ${OUTPUT_FILE} ${MEMORY_OUTPUT_FILE}
       DEPENDS ${DEPENDENCY_VAR}
     )
     
@@ -100,8 +112,16 @@ ADD_CUSTOM_COMMAND(
    DEPENDS ${EXPERIMENT_DEPENDENCIES}
 )
 
+ADD_CUSTOM_COMMAND(
+   OUTPUT ${PLOT_DIR}/CachingMemory.pdf
+   COMMAND ${GNUPLOT} ${MattesMetricCachingTestReport_SOURCE_DIR}/MakeCachingMemoryPlots.plt
+   COMMAND ${PS2PDF_CONVERTER} CachingMemory.ps CachingMemory.pdf
+   WORKING_DIRECTORY ${PLOT_DIR}
+   DEPENDS ${EXPERIMENT_DEPENDENCIES}
+)
+
 ADD_CUSTOM_TARGET(Plots01 ALL
-  DEPENDS ${PLOT_DIR}/CachingTiming.pdf
+  DEPENDS ${PLOT_DIR}/CachingTiming.pdf ${PLOT_DIR}/CachingMemory.pdf
 )
 
 #
@@ -121,6 +141,7 @@ SET(REPORT_SRCS
   Report01.tex
   times.sty
   picins.sty
+  authors.tex
   )
 
 #
@@ -149,23 +170,16 @@ ADD_CUSTOM_TARGET(Report01 ALL
    COMMAND ${PDFLATEX_COMPILER} 
         ${MattesMetricCachingTestReport_SOURCE_DIR}/Report01.tex 
         -output-directory ${MattesMetricCachingTestReport_BINARY_DIR}
-   DEPENDS ${COPY_RESULTS} ${PLOT_DIR}/CachingTiming.pdf ${PLOT_DIR}/SystemInformation.tex
+   DEPENDS ${COPY_RESULTS} ${PLOT_DIR}/CachingTiming.pdf ${PLOT_DIR}/CachingMemory.pdf ${PLOT_DIR}/SystemInformation.tex
    WORKING_DIRECTORY ${MattesMetricCachingTestReport_BINARY_DIR}
    )
  
 #  
 # This adds a custom target that will display the report.
 #   
-IF(WIN32)
-SET(PDF_READER "c:\\Program Files\\Adobe\\Reader 8.0\\Reader\\AcroRd32.exe")
-ELSE(WIN32)
-SET(PDF_READER "/usr/bin/acroread")
-ENDIF(WIN32)
-
-#MESSAGE("${MattesMetricCachingTestReport_BINARY_DIR}/Report01.pdf")
-ADD_CUSTOM_TARGET(ViewReport01 ALL
-  COMMAND ${CMAKE_COMMAND} -E echo ${MattesMetricCachingTestReport_BINARY_DIR}/Report01.pdf
-#  COMMAND ${PDF_READER} 
-#  ARGS ${MattesMetricCachingTestReport_BINARY_DIR}/Report01.pdf
+ADD_CUSTOM_TARGET(ViewReport01
+  COMMAND ${CMAKE_COMMAND} -E echo ${MattesMetricCachingTestReport_BINARY_DIR}/${REPORT_NAME}
+  COMMAND ${PDF_READER} ${REPORT_NAME}
+  WORKING_DIRECTORY ${MattesMetricCachingTestReport_BINARY_DIR}
 )
 
