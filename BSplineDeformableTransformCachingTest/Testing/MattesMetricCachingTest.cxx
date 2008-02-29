@@ -33,6 +33,7 @@
 #include <string>
 
 #include "itkExperimentTimeProbesCollector.h"
+#include "itkExperimentMemoryProbesCollector.h"
 
 int main( int argc, char *argv[] )
 {
@@ -78,6 +79,9 @@ int main( int argc, char *argv[] )
   typedef itk:: LinearInterpolateImageFunction< 
                                     ImageType,
                                     double >    InterpolatorType;
+
+  itk::ExperimentMemoryProbesCollector      memoryCollector;
+  memoryCollector.Start("MattesMetricCaching");
 
   MetricType::Pointer  metric;
   CachingMetricType::Pointer   cachingMetric   = CachingMetricType::New();
@@ -244,8 +248,9 @@ int main( int argc, char *argv[] )
     collector.Stop("GetValueAndDerivative");
     }
 
-    std::cout << "Value :  " << value << std::endl;
-    // std::cout << "Derivative :  " << derivative << std::endl;
+  std::cout << "Value :  " << value << std::endl;
+  // std::cout << "Derivative :  " << derivative << std::endl;
+  memoryCollector.Stop("MattesMetricCaching");
 
   //collector.Report( std::cout );
   char numberOfSamplesString[16];
@@ -253,22 +258,47 @@ int main( int argc, char *argv[] )
   std::string experimentString;
   experimentString = cachingString + "\t" + argv[1] + "\t" + argv[2] + "\t" + argv[3] + "\t" + numberOfSamplesString;  
   collector.SetExperimentString( experimentString );
+  memoryCollector.SetExperimentString( experimentString );
+//    outputFileName = "MattesMetricCachingTestResult-" + cachingString;
   std::string outputFileName;
-  if ( argc > 6)
+  std::string memOutputFileName;
+  if ( argc > 7)
     {
     outputFileName = argv[6];
+    memOutputFileName = argv[7];
+    }
+  else if ( argc > 6 )
+    {
+    outputFileName = argv[6];
+
+    memOutputFileName = "MattesMetricCachingMemoryTestResult-" + cachingString;
+    memOutputFileName = memOutputFileName + "-volumesize-";
+    memOutputFileName = memOutputFileName + argv[1];
+    memOutputFileName = memOutputFileName + "x" + argv[2] + "x" + argv[3];
+    memOutputFileName = memOutputFileName + ".txt";
     }
   else
     {
-    outputFileName = "MattesMetricCachingTestResult-" + cachingString;
+    outputFileName = "MattesMetricCachingTimingTestResult-" + cachingString;
     outputFileName = outputFileName + "-volumesize-";
     outputFileName = outputFileName + argv[1];
     outputFileName = outputFileName + "x" + argv[2] + "x" + argv[3];
     outputFileName = outputFileName + ".txt";
+
+    memOutputFileName = "MattesMetricCachingMemoryTestResult-" + cachingString;
+    memOutputFileName = memOutputFileName + "-volumesize-";
+    memOutputFileName = memOutputFileName + argv[1];
+    memOutputFileName = memOutputFileName + "x" + argv[2] + "x" + argv[3];
+    memOutputFileName = memOutputFileName + ".txt";
     }
   // Note: open append
   std::ofstream outputFile( outputFileName.c_str(), std::ios_base::app );
   collector.Report( outputFile );
+
+  memoryCollector.Report( std::cout );
+  std::ofstream memOutputFile( memOutputFileName.c_str(), std::ios_base::app );
+  memoryCollector.Report( memOutputFile );
+  std::cout << "Memory report written to : " << memOutputFileName << std::endl;
 
   return EXIT_SUCCESS;
 }

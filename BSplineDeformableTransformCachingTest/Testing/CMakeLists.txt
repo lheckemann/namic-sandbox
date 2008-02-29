@@ -1,6 +1,6 @@
 # Testing directory
 
-ADD_EXECUTABLE(MattesMetricCachingTest MattesMetricCachingTest.cxx itkExperimentTimeProbesCollector.cxx )
+ADD_EXECUTABLE(MattesMetricCachingTest MattesMetricCachingTest.cxx itkExperimentTimeProbesCollector.cxx itkExperimentMemoryProbesCollector.cxx)
 ADD_EXECUTABLE(MattesMetricPDFJacobianFlatteningTest MattesMetricPDFJacobianFlatteningTest.cxx itkExperimentTimeProbesCollector.cxx )
 
 # Win32 only
