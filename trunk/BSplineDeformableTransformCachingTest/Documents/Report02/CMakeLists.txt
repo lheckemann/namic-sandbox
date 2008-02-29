@@ -71,8 +71,9 @@ FOREACH(USE_THREADING ${THREADING_LIST})
     SET(THREADING_STRING Default)
   ENDIF(${USE_THREADING} EQUAL 1)
   
-  SET( DEPENDENCY_VAR MultiThreadedMIMetricTestReport Erase${THREADING_STRING}Results Erase${THREADING_STRING}MemoryResults MultiThreadedMIMetricTest )
-  
+#  SET( DEPENDENCY_VAR MultiThreadedMIMetricTestReport Erase${THREADING_STRING}Results Erase${THREADING_STRING}MemoryResults MultiThreadedMIMetricTest )
+  SET( DEPENDENCY_VAR MultiThreadedMIMetricTest Erase${THREADING_STRING}Results Erase${THREADING_STRING}MemoryResults )
+    
   FOREACH(SIZE ${SIZE_LIST})
   
     SET(IMAGE_SIZE ${SIZE} ${SIZE} ${SIZE})
@@ -179,16 +180,9 @@ ADD_CUSTOM_TARGET(Report02 ALL
 #  
 # This adds a custom target that will display the report.
 #   
-IF(WIN32)
-SET(PDF_READER "c:\\Program Files\\Adobe\\Reader 8.0\\Reader\\AcroRd32.exe")
-ELSE(WIN32)
-SET(PDF_READER "/usr/bin/acroread")
-ENDIF(WIN32)
-
-#MESSAGE("${MultiThreadedMIMetricTestReport_BINARY_DIR}/${REPORT_NAME}")
-ADD_CUSTOM_TARGET(ViewReport02 ALL
+ADD_CUSTOM_TARGET(ViewReport02
   COMMAND ${CMAKE_COMMAND} -E echo ${MultiThreadedMIMetricTestReport_BINARY_DIR}/${REPORT_NAME}
-#  COMMAND ${PDF_READER} 
-#  ARGS ${MultiThreadedMIMetricTestReport_BINARY_DIR}/${REPORT_NAME}
+  COMMAND ${PDF_READER} ${REPORT_NAME}
+  WORKING_DIRECTORY ${MultiThreadedMIMetricTestReport_BINARY_DIR}
 )
 
