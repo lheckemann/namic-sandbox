@@ -18,6 +18,7 @@ SET(SLICER_TEST_MODULES_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Modules")
 
 INCLUDE(SlicerParseModule)
 INCLUDE(SlicerEnableModule)
+INCLUDE(SlicerDownloadModule)
 
 # Parse a module
 
@@ -33,3 +34,5 @@ SLICER_GET_MODULE_VALUE(TestModule1 "Author" authors)
 #MESSAGE("Author: ${authors}")
 
 SLICER_CREATE_USE_MODULE_OPTION(TestModule1 option_name)
+
+SLICER_CREATE_DOWNLOAD_MODULE_TARGET(TestModule1 TestModule1_download "${CMAKE_CURRENT_BINARY_DIR}/Modules/TestModule1")

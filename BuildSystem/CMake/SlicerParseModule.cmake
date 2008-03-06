@@ -1,13 +1,16 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.5)
 INCLUDE(SlicerSetGetModule)
 
 # ---------------------------------------------------------------------------
 # SLICER_PARSE_MODULE: Parse a module.
 #
-# This macro parses a module and creates the corresponding key/value pairs.
+# This function parses a module and creates the corresponding key/value pairs.
 #
 # Arguments:
+# in:
 #   module_contents (string): contents of the module
-#   module_varname (string): variable name used to store the module values
+# in/out:
+#   module_varname (string): variable name to use to store the module values
 # 
 # Example:
 #   SET(module_contents "<Name>TestModule</Name><Group>Segmentation</Group>")
@@ -19,7 +22,7 @@ INCLUDE(SlicerSetGetModule)
 #   SLICER_PARSE_MODULE_FILE
 # ---------------------------------------------------------------------------
 
-MACRO(SLICER_PARSE_MODULE module_contents module_varname)
+FUNCTION(SLICER_PARSE_MODULE module_contents module_varname)
   
   # The XML elements to parse
   # This doesn't take into account any attributes at the moment
@@ -58,17 +61,19 @@ MACRO(SLICER_PARSE_MODULE module_contents module_varname)
     ENDFOREACH(match)
   ENDFOREACH(elem)
 
-ENDMACRO(SLICER_PARSE_MODULE)
+ENDFUNCTION(SLICER_PARSE_MODULE)
 
 # ---------------------------------------------------------------------------
 # SLICER_PARSE_MODULE_FILE: Load and parse a module.
 #
-# This macro loads a module into a variable and parse its contents by calling
-# the SLICER_PARSE_MODULE macro.
+# This function loads a module into a variable and parse its contents by calling
+# the SLICER_PARSE_MODULE function.
 #
 # Arguments:
+# in:
 #   module_filename (filename): filename for the module
-#   module_varname (string): variable name used to store the module values
+# in/out:
+#   module_varname (string): variable name to use to store the module values
 # 
 # Example:
 #   SLICER_PARSE_MODULE_FILE("TestModule.xml" TestModule)
@@ -79,11 +84,14 @@ ENDMACRO(SLICER_PARSE_MODULE)
 #   SLICER_PARSE_MODULE
 # ---------------------------------------------------------------------------
 
-MACRO(SLICER_PARSE_MODULE_FILE module_filename module_varname)
-  IF(EXISTS "${module_filename}")
-    FILE(READ "${module_filename}" module_contents)
-    SLICER_PARSE_MODULE("${module_contents}" ${module_varname})
-  ELSE(EXISTS "${module_filename}")
-    MESSAGE("Unable to load and parse module ${module_filename}!")
-  ENDIF(EXISTS "${module_filename}")
-ENDMACRO(SLICER_PARSE_MODULE_FILE)
+FUNCTION(SLICER_PARSE_MODULE_FILE module_filename module_varname)
+
+  IF(NOT EXISTS "${module_filename}")
+    MESSAGE(SEND_ERROR "Unable to load and parse module ${module_filename}!")
+    RETURN()
+  ENDIF(NOT EXISTS "${module_filename}")
+
+  FILE(READ "${module_filename}" module_contents)
+  SLICER_PARSE_MODULE("${module_contents}" ${module_varname})
+
+ENDFUNCTION(SLICER_PARSE_MODULE_FILE)
