@@ -1,14 +1,18 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.5)
+
 # ---------------------------------------------------------------------------
 # SLICER_SET_MODULE_VALUE: Set a module value.
 #
-# This macro can be used to set a module value without worrying too much
+# This function can be used to set a module value without worrying too much
 # about the underlying data structure. 
-# Values are stored as key/value pairs at the moment.
+# Implementation: values are stored as key/value pairs at the moment.
 #
 # Arguments:
-#   module_varname (string): variable name used to store the module values
+# in:
 #   key (string): key
 #   value (string): value
+# in/out:
+#   module_varname (string): variable name to use to store the module value
 # 
 # Example:
 #   SLICER_SET_MODULE_VALUE(TestModule "Author" "John Doe")
@@ -18,23 +22,26 @@
 #   SLICER_UNSET_MODULE_VALUE
 # ---------------------------------------------------------------------------
 
-MACRO(SLICER_SET_MODULE_VALUE module_varname key value)
+FUNCTION(SLICER_SET_MODULE_VALUE module_varname key value)
   
-  SET(${module_varname}_${key} ${value})
+  SET_PROPERTY(GLOBAL PROPERTY "_${module_varname}_${key}" ${value})
 
-ENDMACRO(SLICER_SET_MODULE_VALUE)
+ENDFUNCTION(SLICER_SET_MODULE_VALUE)
 
 # ---------------------------------------------------------------------------
 # SLICER_GET_MODULE_VALUE: Get a module value.
 #
-# This macro can be used to retrieve a module value without worrying too much
+# This function can be used to retrieve a module value without worrying too much
 # about the underlying data structure. 
-# Values are stored as key/value pairs at the moment.
+# Implementation: values are stored as key/value pairs at the moment.
+# If the module has no value for that key, the resulting variable is unset.
 #
 # Arguments:
+# in:
 #   module_varname (string): variable name used to store the module values
 #   key (string): key
-#   value_varname (string): variable name used to store the value
+# in/out:
+#   value_varname (string): variable name to use to store the specific value
 # 
 # Example:
 #   SLICER_GET_MODULE_VALUE(TestModule "Author" authors)
@@ -45,26 +52,31 @@ ENDMACRO(SLICER_SET_MODULE_VALUE)
 #   SLICER_UNSET_MODULE_VALUE
 # ---------------------------------------------------------------------------
 
-MACRO(SLICER_GET_MODULE_VALUE module_varname key value_varname)
+FUNCTION(SLICER_GET_MODULE_VALUE module_varname key value_varname)
 
-  IF(DEFINED ${module_varname}_${key})
-    SET(${value_varname} ${${module_varname}_${key}})
-  ELSE(DEFINED ${module_varname}_${key})
-    SET(${value_varname})
-  ENDIF(DEFINED ${module_varname}_${key})
+  GET_PROPERTY(defined GLOBAL PROPERTY "_${module_varname}_${key}" DEFINED)
 
-ENDMACRO(SLICER_GET_MODULE_VALUE)
+  IF(defined)
+    GET_PROPERTY(value GLOBAL PROPERTY "_${module_varname}_${key}")
+    SET(${value_varname} ${value} PARENT_SCOPE)
+  ELSE(defined)
+    SET(${value_varname} PARENT_SCOPE)
+  ENDIF(defined)
+
+ENDFUNCTION(SLICER_GET_MODULE_VALUE)
 
 # ---------------------------------------------------------------------------
 # SLICER_UNSET_MODULE_VALUE: unset a module value.
 #
-# This macro can be used to unset a module value without worrying too much
+# This function can be used to unset a module value without worrying too much
 # about the underlying data structure. 
-# Values are stored as key/value pairs at the moment.
+# Implementation: values are stored as key/value pairs at the moment.
 #
 # Arguments:
-#   module_varname (string): variable name used to store the module values
+# in:
 #   key (string): key
+# in/out:
+#   module_varname (string): variable name used to store the module values
 # 
 # Example:
 #   SLICER_UNSET_MODULE_VALUE(TestModule "Author")
@@ -74,20 +86,61 @@ ENDMACRO(SLICER_GET_MODULE_VALUE)
 #   SLICER_SET_MODULE_VALUE
 # ---------------------------------------------------------------------------
 
-MACRO(SLICER_UNSET_MODULE_VALUE module_varname key)
+FUNCTION(SLICER_UNSET_MODULE_VALUE module_varname key)
   
-  SET(${module_varname}_${key})
+  SET_PROPERTY(GLOBAL PROPERTY "_${module_varname}_${key}")
 
-ENDMACRO(SLICER_UNSET_MODULE_VALUE)
+ENDFUNCTION(SLICER_UNSET_MODULE_VALUE)
+
+# ---------------------------------------------------------------------------
+# SLICER_IS_MODULE_UNKNOWN: check if a module is unknown.
+#
+# This function can be used to check if a module is unknown, i.e. if
+# some of its core values are not in memory (most likely the module name was
+# mistyped, or the module was not parsed yet).
+# If the module is unknown and an optional error message is passed, it will
+# be output using MESSAGE(SEND_ERROR ...) .
+#
+# Arguments:
+# in:
+#   module_varname (string): variable name used to store the module values
+# out:
+#   bool_varname (string): variable name to store if module is unknown
+# optional in:
+#   error_msg (string): optional error message
+# 
+# Example:
+#   SLICER_IS_MODULE_UNKNOWN(TestModule unknown "Can't do that!")
+#
+# See also:
+#   SLICER_GET_MODULE_VALUE
+#   SLICER_SET_MODULE_VALUE
+# ---------------------------------------------------------------------------
+
+FUNCTION(SLICER_IS_MODULE_UNKNOWN module_varname bool_varname)
+  
+  SLICER_GET_MODULE_VALUE(${module_varname} "Name" name)
+  IF(NOT name)
+    SET(${bool_varname} 1 PARENT_SCOPE)
+    IF(ARGN)
+      MESSAGE(SEND_ERROR "Unknown module ${module_varname}. ${ARGN}")
+    ENDIF(ARGN)
+  ELSE(NOT name)
+    SET(${bool_varname} 0 PARENT_SCOPE)
+  ENDIF(NOT name)
+
+ENDFUNCTION(SLICER_IS_MODULE_UNKNOWN)
 
 # ---------------------------------------------------------------------------
 # SLICER_GET_MODULE_SHORT_DESCRIPTION: Get a module short description.
 #
-# This macro uses the module variables to create a short module description.
+# This function uses the module variables to create a short module description.
 #
 # Arguments:
+# in:
 #   module_varname (string): variable name used to store the module keys/values
-#   desc_varname (string):   variable name used to store the short description
+# out:
+#   desc_varname (string): variable name to use to store the short description
 # 
 # Example:
 #   SLICER_GET_MODULE_SHORT_DESCRIPTION(TestModule desc)
@@ -100,11 +153,19 @@ ENDMACRO(SLICER_UNSET_MODULE_VALUE)
 
 FUNCTION(SLICER_GET_MODULE_SHORT_DESCRIPTION module_varname desc_varname)
 
+  # Unknown module? Bail.
+
+  SLICER_IS_MODULE_UNKNOWN(
+    ${module_varname} unknown "Unable to create short description!")
+  IF(unknown)
+    RETURN()
+  ENDIF(unknown)
+
+  # Create the short description by assembling various values
+
   SLICER_GET_MODULE_VALUE(${module_varname} "Name" name)
   IF(name)
     SET(short_desc "${name}")
-  ELSE(name)
-    SET(short_desc "<Unknown>")
   ENDIF(name)
 
   SLICER_GET_MODULE_VALUE(${module_varname} "Version" version)
@@ -131,13 +192,15 @@ ENDFUNCTION(SLICER_GET_MODULE_SHORT_DESCRIPTION)
 # ---------------------------------------------------------------------------
 # SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE: Get a module source repository type.
 #
-# This macro can be used to retrieve the type of source repository the 
+# This function can be used to retrieve the type of source repository the 
 # module is using.
 # Will return either "cvs", "svn", or unset the var if unknown.
 #
 # Arguments:
+# in:
 #   module_varname (string): variable name used to store the module keys/values
-#   type_varname (string):   variable name used to store the type
+# out:
+#   type_varname (string): variable name to use to store the type
 # 
 # Example:
 #   SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE(TestModule type)
@@ -151,6 +214,16 @@ ENDFUNCTION(SLICER_GET_MODULE_SHORT_DESCRIPTION)
 # ---------------------------------------------------------------------------
 
 FUNCTION(SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE module_varname type_varname)
+
+  # Unknown module? Bail.
+
+  SLICER_IS_MODULE_UNKNOWN(
+    ${module_varname} unknown "Unable to get repository type!")
+  IF(unknown)
+    RETURN()
+  ENDIF(unknown)
+
+  # Parse the SourceLocation for some hings about the repository type
 
   SLICER_GET_MODULE_VALUE(${module_varname} "SourceLocation" source_loc)
   IF(source_loc)

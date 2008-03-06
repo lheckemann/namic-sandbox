@@ -1,14 +1,17 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.5)
 INCLUDE(SlicerSetGetModule)
 
 # ---------------------------------------------------------------------------
 # SLICER_CREATE_USE_MODULE_OPTION: Create an option to use a module.
 #
-# This macro can be used to create a boolean OPTION variable to control if
+# This function can be used to create a boolean OPTION variable to control if
 # a module should be used or not.
 #
 # Arguments:
+# in:
 #   module_varname (string): variable name used to store the module keys/values
-#   option_varname (string): variable name used to store the option name
+# out:
+#   option_varname (string): variable name to use to store the option name
 # 
 # Example:
 #   SLICER_CREATE_USE_MODULE_OPTION(TestModule use_module)
@@ -24,12 +27,19 @@ INCLUDE(SlicerSetGetModule)
 
 FUNCTION(SLICER_CREATE_USE_MODULE_OPTION module_varname option_varname)
 
-  SLICER_GET_MODULE_VALUE(${module_varname} "Name" name)
-  IF(name)
-    SET(option_name "SLICER_USE_MODULE_${name}")
-    SLICER_GET_MODULE_SHORT_DESCRIPTION(${module_varname} short_desc)
-    OPTION(${option_name} "Use ${short_desc}." OFF)
-    SET(${option_varname} ${option_name} PARENT_SCOPE)
-  ENDIF(name)
+  # Unknown module? Bail.
+
+  SLICER_IS_MODULE_UNKNOWN(
+    ${module_varname} unknown "Unable to create option!")
+  IF(unknown)
+    RETURN()
+  ENDIF(unknown)
+
+  # Create the option
+
+  SET(option_name "SLICER_USE_MODULE_${name}")
+  SLICER_GET_MODULE_SHORT_DESCRIPTION(${module_varname} short_desc)
+  OPTION(${option_name} "Use ${short_desc}." OFF)
+  SET(${option_varname} ${option_name} PARENT_SCOPE)
 
 ENDFUNCTION(SLICER_CREATE_USE_MODULE_OPTION)
