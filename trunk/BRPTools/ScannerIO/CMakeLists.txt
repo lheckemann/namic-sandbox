@@ -56,6 +56,8 @@ src/igtlutil/igtl_header.c
 src/igtlutil/igtl_image.c
 src/igtlutil/igtl_transform.c
 src/igtlutil/crc32.c
+src/io_base.c
+src/io_signa5.c
 src/igtlImageMessage.cxx
 src/igtlTransformMessage.cxx
 src/igtlMath.cxx
@@ -64,6 +66,7 @@ src/igtlObject.cxx
 src/Thread.cxx
 src/AcquisitionBase.cxx
 src/AcquisitionSimulator.cxx
+src/AcquisitionSignaSPSimulator.cxx
 src/AcquisitionGEExcite.cxx
 src/TransferBase.cxx
 src/TransferOpenIGTLink.cxx
@@ -155,10 +158,16 @@ ENDIF(LINK_W_O_FILES)
 
 
 ADD_EXECUTABLE(ScannerSim src/main.cxx)
+ADD_EXECUTABLE(SignaSPSim src/signasp.cxx)
 ADD_EXECUTABLE(TrackerSim src/tracker.cxx)
 ADD_EXECUTABLE(GEExciteIGTL src/GEExciteIGTL.cxx)
 
 TARGET_LINK_LIBRARIES(ScannerSim
+${EXTRA_LIBS}
+ScannerIOLib
+)
+
+TARGET_LINK_LIBRARIES(SignaSPSim
 ${EXTRA_LIBS}
 ScannerIOLib
 )

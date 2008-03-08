@@ -23,9 +23,10 @@ namespace igtl {
 void PrintMatrix(igtl::Matrix4x4 &matrix)
 {
   std::cout << "=============" << std::endl;
-  std::cout << matrix[0][0] << ", " << matrix[0][1] << ", " << matrix[0][2] << std::endl;
-  std::cout << matrix[1][0] << ", " << matrix[1][1] << ", " << matrix[1][2] << std::endl;
-  std::cout << matrix[2][0] << ", " << matrix[2][1] << ", " << matrix[2][2] << std::endl;
+  std::cout << matrix[0][0] << ", " << matrix[0][1] << ", " << matrix[0][2] << ", " << matrix[0][3] << std::endl;
+  std::cout << matrix[1][0] << ", " << matrix[1][1] << ", " << matrix[1][2] << ", " << matrix[1][3] << std::endl;
+  std::cout << matrix[2][0] << ", " << matrix[2][1] << ", " << matrix[2][2] << ", " << matrix[2][3] << std::endl;
+  std::cout << matrix[3][0] << ", " << matrix[3][1] << ", " << matrix[3][2] << ", " << matrix[3][3] << std::endl;
   std::cout << "=============" << std::endl;
 }
 
@@ -71,6 +72,13 @@ void QuaternionToMatrix(float* q, Matrix4x4& m)
   m[2][2] = 1.0 - (xx + yy);
   
   m[3][3] = 1;
+}
+
+void Cross(float *a, float *b, float *c)
+{
+    a[0] = b[1]*c[2] - c[1]*b[2];
+    a[1] = c[0]*b[2] - b[0]*c[2];
+    a[2] = b[0]*c[1] - c[0]*b[1];
 }
 
 } // namespace igtl
