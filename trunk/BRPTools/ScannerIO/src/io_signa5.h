@@ -143,6 +143,7 @@ int  readExamHeader(FILE *fp, ExamHeader *header, int baseOffset);
 int  readSeriesHeader(FILE *fp, SeriesHeader *header, int baseOffset);
 int  readImageHeader(FILE *fp,ImageHeader *header, int baseOffset);
 int  readGenesisFile(char* filename, GenesisImageInfo *imageInfo);
+int  freeGenesisImageData(GenesisImageInfo *imageInfo);
 void printGenesisImageInfo(GenesisImageInfo* imageInfo);
 int  convertByteOrder(GenesisImageInfo *imageInfo);
 

@@ -112,7 +112,7 @@ int AcquisitionSignaSPSimulator::LoadImageData(char* fnameTemp, int bindex, int 
   int nframes = eindex - bindex + 1;
 
   int size[3];
-  int scalarType = 6;
+  //int scalarType = 6;
   float spacing[3];
   float origin[3];
 
@@ -121,6 +121,8 @@ int AcquisitionSignaSPSimulator::LoadImageData(char* fnameTemp, int bindex, int 
   float v1[3];
   float v2[3];
   float l;
+
+  GenesisImageInfo* imageInfo;
   
   this->imageArray.clear();
   for (int i = 0; i < nframes; i ++)
@@ -131,7 +133,6 @@ int AcquisitionSignaSPSimulator::LoadImageData(char* fnameTemp, int bindex, int 
       sprintf(filename, fnameTemp, i+bindex);
       std::cerr << "Reading " << filename << "..." << std::endl;
 
-      GenesisImageInfo imageInfo;
       struct stat st;
       if(stat(filename,&st) != 0)
         {
@@ -139,24 +140,25 @@ int AcquisitionSignaSPSimulator::LoadImageData(char* fnameTemp, int bindex, int 
           continue;
         }
 
-      readGenesisFile(filename, &imageInfo);
-      printGenesisImageInfo(&imageInfo);
+      imageInfo = (GenesisImageInfo*)malloc(sizeof(GenesisImageInfo));
+      readGenesisFile(filename, imageInfo);
+      printGenesisImageInfo(imageInfo);
 
-      size[0] = imageInfo.ih.matrixX;
-      size[1] = imageInfo.ih.matrixY;
+      size[0] = imageInfo->ih.matrixX;
+      size[1] = imageInfo->ih.matrixY;
       size[2] = 1;
 
-      spacing[0] = imageInfo.ih.pixSizeX;
-      spacing[1] = imageInfo.ih.pixSizeY;
-      spacing[2] = imageInfo.ih.sliceThick;
+      spacing[0] = imageInfo->ih.pixSizeX;
+      spacing[1] = imageInfo->ih.pixSizeY;
+      spacing[2] = imageInfo->ih.sliceThick;
 
-      origin[0] = imageInfo.ih.imgCR;
-      origin[1] = imageInfo.ih.imgCA;
-      origin[2] = imageInfo.ih.imgCS;
+      origin[0] = imageInfo->ih.imgCR;
+      origin[1] = imageInfo->ih.imgCA;
+      origin[2] = imageInfo->ih.imgCS;
 
-      v0[0] = imageInfo.ih.imgTrhcR - imageInfo.ih.imgTlhcR;
-      v0[1] = imageInfo.ih.imgTrhcA - imageInfo.ih.imgTlhcA;
-      v0[2] = imageInfo.ih.imgTrhcS - imageInfo.ih.imgTlhcS;
+      v0[0] = imageInfo->ih.imgTrhcR - imageInfo->ih.imgTlhcR;
+      v0[1] = imageInfo->ih.imgTrhcA - imageInfo->ih.imgTlhcA;
+      v0[2] = imageInfo->ih.imgTrhcS - imageInfo->ih.imgTlhcS;
       l = sqrt(v0[0]*v0[0] + v0[1]*v0[1] + v0[2]*v0[2]);
       v0[0] /= l;
       v0[1] /= l;
@@ -165,9 +167,9 @@ int AcquisitionSignaSPSimulator::LoadImageData(char* fnameTemp, int bindex, int 
       matrix[1][0] = v0[1];  // AP
       matrix[2][0] = v0[2];  // SI
       
-      v1[0] = imageInfo.ih.imgTrhcR - imageInfo.ih.imgBrhcR;
-      v1[1] = imageInfo.ih.imgTrhcA - imageInfo.ih.imgBrhcA;
-      v1[2] = imageInfo.ih.imgTrhcS - imageInfo.ih.imgBrhcS;
+      v1[0] = imageInfo->ih.imgTrhcR - imageInfo->ih.imgBrhcR;
+      v1[1] = imageInfo->ih.imgTrhcA - imageInfo->ih.imgBrhcA;
+      v1[2] = imageInfo->ih.imgTrhcS - imageInfo->ih.imgBrhcS;
       l = sqrt(v1[0]*v1[0] + v1[1]*v1[1] + v1[2]*v1[2]);
       v1[0] /= l;
       v1[1] /= l;
@@ -191,15 +193,20 @@ int AcquisitionSignaSPSimulator::LoadImageData(char* fnameTemp, int bindex, int 
       imageArray.push_back(im);
       im->SetDimensions(size);
       im->SetSpacing(spacing);
-      im->SetScalarType(scalarType);
+      //im->SetScalarType(scalarType);
+      im->SetScalarTypeToInt16();
       im->SetOrigin(origin);
       im->SetMatrix(matrix);
       im->SetDeviceName("Scanner");
       im->AllocateScalars();
 
       // read image from raw data
-      memcpy(im->GetScalarPointer(), imageInfo.imageData, im->GetImageSize());
+      memcpy(im->GetScalarPointer(), imageInfo->imageData, im->GetImageSize());
       im->Pack();
+
+      freeGenesisImageData(imageInfo);
+      free(imageInfo);
+      
     }
 
   // Set sub-volume size / offset /step
