@@ -518,6 +518,8 @@ int readGenesisFile(char* filename, GenesisImageInfo *imageInfo)
   int imgSize;
   ControlHeader ch;
 
+  imageInfo->imageData = NULL;
+
   if ((fp = fopen(filename, "r")) == NULL) {
     DBG_PRINT("Cannot open file.\n");
     return 0;
@@ -553,6 +555,13 @@ int readGenesisFile(char* filename, GenesisImageInfo *imageInfo)
 
 }
 
+int freeGenesisImageData(GenesisImageInfo* imageInfo)
+{
+  if (imageInfo->imageData)
+    free(imageInfo->imageData);
+  imageInfo->imageData = NULL;
+  return 1;
+}
 
 void printGenesisImageInfo(GenesisImageInfo* imageInfo)
 {
