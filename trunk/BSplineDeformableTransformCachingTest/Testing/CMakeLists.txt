@@ -11,6 +11,7 @@ ELSE (WIN32)
 ENDIF (WIN32)
 
 SET(TEMP ${MattesMetricCachingTest_BINARY_DIR}/Testing/Temporary)
+SET(BASELINE ${ITK_SOURCE_DIR}/Testing/Data/Baseline/Registration)
 
 SET(REGISTRATION_EXAMPLES ${EXECUTABLE_OUTPUT_PATH}/RegistrationExamplesTests)
 
