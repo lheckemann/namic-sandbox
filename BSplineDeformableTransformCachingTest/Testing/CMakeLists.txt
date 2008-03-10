@@ -30,10 +30,10 @@ ADD_EXECUTABLE(MultiThreadedMIMetricTest MultiThreadedMIMetricTest.cxx itkExperi
 TARGET_LINK_LIBRARIES(MultiThreadedMIMetricTest ITKIO ITKAlgorithms ITKNumerics ${MEMORY_LIBS})
 
 ADD_EXECUTABLE(RegistrationExamplesTests RegistrationExamplesTests.cxx )
-TARGET_LINK_LIBRARIES(RegistrationExamplesTests ITKStatistics ITKIO ITKNumerics)
+TARGET_LINK_LIBRARIES(RegistrationExamplesTests ITKStatistics ITKIO ITKNumerics ${MEMORY_LIBS})
 
 ADD_EXECUTABLE(ImageRegistration13 ImageRegistration13.cxx )
-TARGET_LINK_LIBRARIES(ImageRegistration13 ITKStatistics ITKIO ITKNumerics)
+TARGET_LINK_LIBRARIES(ImageRegistration13 ITKStatistics ITKIO ITKNumerics ${MEMORY_LIBS})
 
 ADD_TEST(ImageRegistration13Test ${REGISTRATION_EXAMPLES}
   --compare ${BASELINE}/ImageRegistration13Test.png
@@ -44,6 +44,23 @@ ADD_TEST(ImageRegistration13Test ${REGISTRATION_EXAMPLES}
         ${TEMP}/ImageRegistration13Test.png
 )
 
+ADD_TEST(ImageRegistration13TestNoPDFJacobian ${REGISTRATION_EXAMPLES}
+  --compare ${BASELINE}/ImageRegistration13Test.png
+            ${TEMP}/ImageRegistration13TestNoPDFJacobian.png
+  ImageRegistration13TestNoPDFJacobian
+        ${ITK_SOURCE_DIR}/Examples/Data/BrainProtonDensitySliceBorder20.png
+        ${ITK_SOURCE_DIR}/Examples/Data/BrainProtonDensitySliceR10X13Y17.png
+        ${TEMP}/ImageRegistration13TestNoPDFJacobian.png
+)
+
+ADD_TEST(ImageRegistration13TestNoCaching ${REGISTRATION_EXAMPLES}
+  --compare ${BASELINE}/ImageRegistration13Test.png
+            ${TEMP}/ImageRegistration13TestNoCaching.png
+  ImageRegistration13TestNoCaching
+        ${ITK_SOURCE_DIR}/Examples/Data/BrainProtonDensitySliceBorder20.png
+        ${ITK_SOURCE_DIR}/Examples/Data/BrainProtonDensitySliceR10X13Y17.png
+        ${TEMP}/ImageRegistration13TestNoCaching.png
+)
 
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" )
   ADD_EXECUTABLE(TestParseSmaps TestParseSmaps.cxx)
