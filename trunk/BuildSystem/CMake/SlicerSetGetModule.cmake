@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.5)
+cmake_minimum_required(VERSION 2.5)
 
 # ---------------------------------------------------------------------------
 # SLICER_SET_MODULE_VALUE: Set a module value.
@@ -22,11 +22,11 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.5)
 #   SLICER_UNSET_MODULE_VALUE
 # ---------------------------------------------------------------------------
 
-FUNCTION(SLICER_SET_MODULE_VALUE module_varname key value)
+function(SLICER_SET_MODULE_VALUE module_varname key value)
   
-  SET_PROPERTY(GLOBAL PROPERTY "_${module_varname}_${key}" ${value})
+  set_property(GLOBAL PROPERTY "_${module_varname}_${key}" ${value})
 
-ENDFUNCTION(SLICER_SET_MODULE_VALUE)
+endfunction(SLICER_SET_MODULE_VALUE)
 
 # ---------------------------------------------------------------------------
 # SLICER_GET_MODULE_VALUE: Get a module value.
@@ -52,18 +52,18 @@ ENDFUNCTION(SLICER_SET_MODULE_VALUE)
 #   SLICER_UNSET_MODULE_VALUE
 # ---------------------------------------------------------------------------
 
-FUNCTION(SLICER_GET_MODULE_VALUE module_varname key value_varname)
+function(SLICER_GET_MODULE_VALUE module_varname key value_varname)
 
-  GET_PROPERTY(defined GLOBAL PROPERTY "_${module_varname}_${key}" DEFINED)
+  get_property(defined GLOBAL PROPERTY "_${module_varname}_${key}" DEFINED)
 
-  IF(defined)
-    GET_PROPERTY(value GLOBAL PROPERTY "_${module_varname}_${key}")
-    SET(${value_varname} ${value} PARENT_SCOPE)
-  ELSE(defined)
-    SET(${value_varname} PARENT_SCOPE)
-  ENDIF(defined)
+  if(defined)
+    get_property(value GLOBAL PROPERTY "_${module_varname}_${key}")
+    set(${value_varname} ${value} PARENT_SCOPE)
+  else(defined)
+    set(${value_varname} PARENT_SCOPE)
+  endif(defined)
 
-ENDFUNCTION(SLICER_GET_MODULE_VALUE)
+endfunction(SLICER_GET_MODULE_VALUE)
 
 # ---------------------------------------------------------------------------
 # SLICER_UNSET_MODULE_VALUE: unset a module value.
@@ -86,11 +86,11 @@ ENDFUNCTION(SLICER_GET_MODULE_VALUE)
 #   SLICER_SET_MODULE_VALUE
 # ---------------------------------------------------------------------------
 
-FUNCTION(SLICER_UNSET_MODULE_VALUE module_varname key)
+function(SLICER_UNSET_MODULE_VALUE module_varname key)
   
-  SET_PROPERTY(GLOBAL PROPERTY "_${module_varname}_${key}")
+  set_property(GLOBAL PROPERTY "_${module_varname}_${key}")
 
-ENDFUNCTION(SLICER_UNSET_MODULE_VALUE)
+endfunction(SLICER_UNSET_MODULE_VALUE)
 
 # ---------------------------------------------------------------------------
 # SLICER_IS_MODULE_UNKNOWN: check if a module is unknown.
@@ -117,19 +117,19 @@ ENDFUNCTION(SLICER_UNSET_MODULE_VALUE)
 #   SLICER_SET_MODULE_VALUE
 # ---------------------------------------------------------------------------
 
-FUNCTION(SLICER_IS_MODULE_UNKNOWN module_varname bool_varname)
+function(SLICER_IS_MODULE_UNKNOWN module_varname bool_varname)
   
-  SLICER_GET_MODULE_VALUE(${module_varname} "Name" name)
-  IF(NOT name)
-    SET(${bool_varname} 1 PARENT_SCOPE)
-    IF(ARGN)
-      MESSAGE(SEND_ERROR "Unknown module ${module_varname}. ${ARGN}")
-    ENDIF(ARGN)
-  ELSE(NOT name)
-    SET(${bool_varname} 0 PARENT_SCOPE)
-  ENDIF(NOT name)
+  slicer_get_module_value(${module_varname} "Name" name)
+  if(NOT name)
+    set(${bool_varname} 1 PARENT_SCOPE)
+    if(ARGN)
+      message(SEND_ERROR "Unknown module ${module_varname}. ${ARGN}")
+    endif(ARGN)
+  else(NOT name)
+    set(${bool_varname} 0 PARENT_SCOPE)
+  endif(NOT name)
 
-ENDFUNCTION(SLICER_IS_MODULE_UNKNOWN)
+endfunction(SLICER_IS_MODULE_UNKNOWN)
 
 # ---------------------------------------------------------------------------
 # SLICER_GET_MODULE_SHORT_DESCRIPTION: Get a module short description.
@@ -151,43 +151,43 @@ ENDFUNCTION(SLICER_IS_MODULE_UNKNOWN)
 #   SLICER_SET_MODULE_VALUE
 # ---------------------------------------------------------------------------
 
-FUNCTION(SLICER_GET_MODULE_SHORT_DESCRIPTION module_varname desc_varname)
+function(SLICER_GET_MODULE_SHORT_DESCRIPTION module_varname desc_varname)
 
   # Unknown module? Bail.
 
-  SLICER_IS_MODULE_UNKNOWN(
+  slicer_is_module_unknown(
     ${module_varname} unknown "Unable to create short description!")
-  IF(unknown)
-    RETURN()
-  ENDIF(unknown)
+  if(unknown)
+    return()
+  endif(unknown)
 
   # Create the short description by assembling various values
 
-  SLICER_GET_MODULE_VALUE(${module_varname} "Name" name)
-  IF(name)
-    SET(short_desc "${name}")
-  ENDIF(name)
+  slicer_get_module_value(${module_varname} "Name" name)
+  if(name)
+    set(short_desc "${name}")
+  endif(name)
 
-  SLICER_GET_MODULE_VALUE(${module_varname} "Version" version)
-  IF(version)
-    SET(short_desc "${short_desc} ${version}")
-  ENDIF(version)
+  slicer_get_module_value(${module_varname} "Version" version)
+  if(version)
+    set(short_desc "${short_desc} ${version}")
+  endif(version)
 
-  SLICER_GET_MODULE_VALUE(${module_varname} "Author" authors)
-  IF(authors)
-    SET(short_desc "${short_desc} (${authors})")
-  ENDIF(authors)
+  slicer_get_module_value(${module_varname} "Author" authors)
+  if(authors)
+    set(short_desc "${short_desc} (${authors})")
+  endif(authors)
 
-  SET(short_desc "${short_desc}.")
+  set(short_desc "${short_desc}.")
 
-  SLICER_GET_MODULE_VALUE(${module_varname} "Description" desc)
-  IF(desc)
-    SET(short_desc "${short_desc} ${desc}")
-  ENDIF(desc)
+  slicer_get_module_value(${module_varname} "Description" desc)
+  if(desc)
+    set(short_desc "${short_desc} ${desc}")
+  endif(desc)
 
-  SET(${desc_varname} ${short_desc} PARENT_SCOPE)
+  set(${desc_varname} ${short_desc} PARENT_SCOPE)
 
-ENDFUNCTION(SLICER_GET_MODULE_SHORT_DESCRIPTION)
+endfunction(SLICER_GET_MODULE_SHORT_DESCRIPTION)
 
 # ---------------------------------------------------------------------------
 # SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE: Get a module source repository type.
@@ -213,31 +213,31 @@ ENDFUNCTION(SLICER_GET_MODULE_SHORT_DESCRIPTION)
 #   SLICER_SET_MODULE_VALUE
 # ---------------------------------------------------------------------------
 
-FUNCTION(SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE module_varname type_varname)
+function(SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE module_varname type_varname)
 
   # Unknown module? Bail.
 
-  SLICER_IS_MODULE_UNKNOWN(
+  slicer_is_module_unknown(
     ${module_varname} unknown "Unable to get repository type!")
-  IF(unknown)
-    RETURN()
-  ENDIF(unknown)
+  if(unknown)
+    return()
+  endif(unknown)
 
   # Parse the SourceLocation for some hings about the repository type
 
-  SLICER_GET_MODULE_VALUE(${module_varname} "SourceLocation" source_loc)
-  IF(source_loc)
-    STRING(REGEX MATCH "^http://.+$" found_svn "${source_loc}")
-    IF(found_svn)
-      SET(${type_varname} "svn" PARENT_SCOPE)
-    ELSE(found_svn)
-      STRING(REGEX MATCH "^:.+:.+:.+$" found_cvs "${source_loc}")
-      IF(found_cvs)
-        SET(${type_varname} "cvs" PARENT_SCOPE)
-      ENDIF(found_cvs)
-    ENDIF(found_svn)
-  ELSE(source_loc)
-    SET(${type_varname} PARENT_SCOPE)
-  ENDIF(source_loc)
+  slicer_get_module_value(${module_varname} "SourceLocation" source_loc)
+  if(source_loc)
+    string(REGEX MATCH "^http://.+$" found_svn "${source_loc}")
+    if(found_svn)
+      set(${type_varname} "svn" PARENT_SCOPE)
+    else(found_svn)
+      string(REGEX MATCH "^:.+:.+:.+$" found_cvs "${source_loc}")
+      if(found_cvs)
+        set(${type_varname} "cvs" PARENT_SCOPE)
+      endif(found_cvs)
+    endif(found_svn)
+  else(source_loc)
+    set(${type_varname} PARENT_SCOPE)
+  endif(source_loc)
 
-ENDFUNCTION(SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE)
+endfunction(SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE)

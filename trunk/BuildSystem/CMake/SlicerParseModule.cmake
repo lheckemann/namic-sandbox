@@ -1,5 +1,5 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.5)
-INCLUDE(SlicerSetGetModule)
+cmake_minimum_required(VERSION 2.5)
+include(SlicerSetGetModule)
 
 # ---------------------------------------------------------------------------
 # SLICER_PARSE_MODULE: Parse a module.
@@ -22,12 +22,12 @@ INCLUDE(SlicerSetGetModule)
 #   SLICER_PARSE_MODULE_FILE
 # ---------------------------------------------------------------------------
 
-FUNCTION(SLICER_PARSE_MODULE module_contents module_varname)
+function(SLICER_PARSE_MODULE module_contents module_varname)
   
   # The XML elements to parse
   # This doesn't take into account any attributes at the moment
 
-  SET(elems 
+  set(elems 
     Acknowledgement
     Author
     Dependency
@@ -47,21 +47,21 @@ FUNCTION(SLICER_PARSE_MODULE module_contents module_varname)
   #   * extract the value itself (i.e. Bar1, then Bar2)
   #   * insert the value at the end of the list for that element variable 
 
-  FOREACH(elem ${elems})
-    SLICER_UNSET_MODULE_VALUE(${module_varname} ${elem})
-    SET(regexp "<${elem}>([^<]*)</${elem}>")
-    STRING(REGEX MATCHALL "${regexp}" matches "${module_contents}")
-    FOREACH(match ${matches})
-      STRING(REGEX MATCH "${regexp}" value "${match}")
-      IF(CMAKE_MATCH_1)
-        SLICER_GET_MODULE_VALUE(${module_varname} ${elem} var)
-        SET(var ${var} "${CMAKE_MATCH_1}")
-        SLICER_SET_MODULE_VALUE(${module_varname} ${elem} "${var}")
-      ENDIF(CMAKE_MATCH_1)
-    ENDFOREACH(match)
-  ENDFOREACH(elem)
+  foreach(elem ${elems})
+    slicer_unset_module_value(${module_varname} ${elem})
+    set(regexp "<${elem}>([^<]*)</${elem}>")
+    string(REGEX MATCHALL "${regexp}" matches "${module_contents}")
+    foreach(match ${matches})
+      string(REGEX MATCH "${regexp}" value "${match}")
+      if(CMAKE_MATCH_1)
+        slicer_get_module_value(${module_varname} ${elem} var)
+        set(var ${var} "${CMAKE_MATCH_1}")
+        slicer_set_module_value(${module_varname} ${elem} "${var}")
+      endif(CMAKE_MATCH_1)
+    endforeach(match)
+  endforeach(elem)
 
-ENDFUNCTION(SLICER_PARSE_MODULE)
+endfunction(SLICER_PARSE_MODULE)
 
 # ---------------------------------------------------------------------------
 # SLICER_PARSE_MODULE_FILE: Load and parse a module.
@@ -84,14 +84,14 @@ ENDFUNCTION(SLICER_PARSE_MODULE)
 #   SLICER_PARSE_MODULE
 # ---------------------------------------------------------------------------
 
-FUNCTION(SLICER_PARSE_MODULE_FILE module_filename module_varname)
+function(SLICER_PARSE_MODULE_FILE module_filename module_varname)
 
-  IF(NOT EXISTS "${module_filename}")
-    MESSAGE(SEND_ERROR "Unable to load and parse module ${module_filename}!")
-    RETURN()
-  ENDIF(NOT EXISTS "${module_filename}")
+  if(NOT EXISTS "${module_filename}")
+    message(SEND_ERROR "Unable to load and parse module ${module_filename}!")
+    return()
+  endif(NOT EXISTS "${module_filename}")
 
-  FILE(READ "${module_filename}" module_contents)
-  SLICER_PARSE_MODULE("${module_contents}" ${module_varname})
+  file(READ "${module_filename}" module_contents)
+  slicer_parse_module("${module_contents}" ${module_varname})
 
-ENDFUNCTION(SLICER_PARSE_MODULE_FILE)
+endfunction(SLICER_PARSE_MODULE_FILE)
