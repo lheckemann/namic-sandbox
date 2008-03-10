@@ -1,6 +1,7 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.5)
-INCLUDE(SlicerSetGetModule)
-INCLUDE(FindSubversion)
+cmake_minimum_required(VERSION 2.5)
+include(SlicerSetGetModule)
+find_package(Subversion)
+find_package(CVS)
 
 # ---------------------------------------------------------------------------
 # SLICER_CREATE_DOWNLOAD_MODULE_TARGET: Create a download module target.
@@ -20,39 +21,39 @@ INCLUDE(FindSubversion)
 #   SLICER_PARSE_MODULE_FILE
 # ---------------------------------------------------------------------------
 
-FUNCTION(SLICER_CREATE_DOWNLOAD_MODULE_TARGET module_varname target_name dir)
+function(SLICER_CREATE_DOWNLOAD_MODULE_TARGET module_varname target_name dir)
 
   # Unknown module? Bail.
 
-  SET(err_msg "Unable to create download target!")
-  SLICER_IS_MODULE_UNKNOWN(${module_varname} unknown ${err_msg})
-  IF(unknown)
-    RETURN()
-  ENDIF(unknown)
+  set(err_msg "Unable to create download target!")
+  slicer_is_module_unknown(${module_varname} unknown ${err_msg})
+  if(unknown)
+    return()
+  endif(unknown)
 
   # Missing source location? Bye.
 
-  SLICER_GET_MODULE_VALUE(${module_varname} "SourceLocation" source_loc)
-  IF(NOT source_loc)
-    MESSAGE(SEND_ERROR 
+  slicer_get_module_value(${module_varname} "SourceLocation" source_loc)
+  if(NOT source_loc)
+    message(SEND_ERROR 
       "Unknown source location for module ${module_varname}. ${err_msg}")
-    RETURN()
-  ENDIF(NOT source_loc)
+    return()
+  endif(NOT source_loc)
 
-  SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE(TestModule1 type)
-  IF(type STREQUAL "svn")
+  slicer_get_module_source_repository_type(TestModule1 type)
+  if(type STREQUAL "svn")
     # Missing subversion? Gone. Otherwise create a command to checkout
     # the repository, assume it is there if the .svn directory was found.
-    IF(NOT Subversion_FOUND)
-      MESSAGE(SEND_ERROR "Subversion was not found. ${err_msg}")
-      RETURN()
-    ENDIF(NOT Subversion_FOUND)
-    ADD_CUSTOM_COMMAND(
+    if(NOT Subversion_FOUND)
+      message(SEND_ERROR "Subversion was not found. ${err_msg}")
+      return()
+    endif(NOT Subversion_FOUND)
+    add_custom_command(
       OUTPUT "${dir}/.svn"
       COMMAND "${Subversion_SVN_EXECUTABLE}"
       ARGS "co" "${source_loc}" "${dir}"
       )
-    ADD_CUSTOM_TARGET(${target_name} DEPENDS "${dir}/.svn")
-  ENDIF(type STREQUAL "svn")
+    add_custom_target(${target_name} DEPENDS "${dir}/.svn")
+  endif(type STREQUAL "svn")
 
-ENDFUNCTION(SLICER_CREATE_DOWNLOAD_MODULE_TARGET)
+endfunction(SLICER_CREATE_DOWNLOAD_MODULE_TARGET)

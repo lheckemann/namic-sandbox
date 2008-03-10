@@ -1,5 +1,5 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.5)
-INCLUDE(SlicerSetGetModule)
+cmake_minimum_required(VERSION 2.5)
+include(SlicerSetGetModule)
 
 # ---------------------------------------------------------------------------
 # SLICER_CREATE_USE_MODULE_OPTION: Create an option to use a module.
@@ -25,21 +25,21 @@ INCLUDE(SlicerSetGetModule)
 #   SLICER_GET_MODULE_SHORT_DESCRIPTION
 # ---------------------------------------------------------------------------
 
-FUNCTION(SLICER_CREATE_USE_MODULE_OPTION module_varname option_varname)
+function(SLICER_CREATE_USE_MODULE_OPTION module_varname option_varname)
 
   # Unknown module? Bail.
 
-  SLICER_IS_MODULE_UNKNOWN(
+  slicer_is_module_unknown(
     ${module_varname} unknown "Unable to create option!")
-  IF(unknown)
-    RETURN()
-  ENDIF(unknown)
+  if(unknown)
+    return()
+  endif(unknown)
 
   # Create the option
 
-  SET(option_name "SLICER_USE_MODULE_${name}")
-  SLICER_GET_MODULE_SHORT_DESCRIPTION(${module_varname} short_desc)
-  OPTION(${option_name} "Use ${short_desc}." OFF)
-  SET(${option_varname} ${option_name} PARENT_SCOPE)
+  set(option_name "SLICER_USE_MODULE_${name}")
+  slicer_get_module_short_description(${module_varname} short_desc)
+  option(${option_name} "Use ${short_desc}." OFF)
+  set(${option_varname} ${option_name} PARENT_SCOPE)
 
-ENDFUNCTION(SLICER_CREATE_USE_MODULE_OPTION)
+endfunction(SLICER_CREATE_USE_MODULE_OPTION)
