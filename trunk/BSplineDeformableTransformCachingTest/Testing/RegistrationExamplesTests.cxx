@@ -29,11 +29,29 @@
 void RegisterTests()
 {
   REGISTER_TEST(ImageRegistration13Test);
+  REGISTER_TEST(ImageRegistration13TestNoPDFJacobian);
+  REGISTER_TEST(ImageRegistration13TestNoCaching);
 }
 
 #undef main
 #define main  ImageRegistration13Test
 #undef CommandIterationUpdate
-#define CommandIterationUpdate CommandIterationUpdate5
+#define CommandIterationUpdate CommandIterationUpdate13
 #include "ImageRegistration13.cxx"
+
+#undef main
+#define MattesNoPDFJacobian
+#define main  ImageRegistration13TestNoPDFJacobian
+#undef CommandIterationUpdate
+#define CommandIterationUpdate CommandIterationUpdate13NoPDFJacobian
+#include "ImageRegistration13.cxx"
+#undef MattesNoPDFJacobian
+
+#undef main
+#define MattesNoCaching
+#define main  ImageRegistration13TestNoCaching
+#undef CommandIterationUpdate
+#define CommandIterationUpdate CommandIterationUpdate13NoCaching
+#include "ImageRegistration13.cxx"
+#undef MattesNoCaching
 

@@ -36,7 +36,15 @@
 #include "itkCenteredTransformInitializer.h"
 
 // Software Guide : BeginCodeSnippet
+#if defined(MattesNoPDFJacobian)
+#include "itkMattesNoPDFJacobianMutualInformationImageToImageMetric.h"
+#else
+#if defined(MattesNoCaching)
+#include "itkMattesNoCachingMutualInformationImageToImageMetric.h"
+#else
 #include "itkMattesMutualInformationImageToImageMetric.h"
+#endif
+#endif
 // Software Guide : EndCodeSnippet
 
 #include "itkLinearInterpolateImageFunction.h"
@@ -122,9 +130,22 @@ int main( int argc, char *argv[] )
 
 
   // Software Guide : BeginCodeSnippet
+#if defined(MattesNoPDF)
+  typedef itk::MattesNoPDFJacobianMutualInformationImageToImageMetric< 
+                                          FixedImageType, 
+                                          MovingImageType >    MetricType;
+#else
+#if defined(MattesNoCaching)
+  typedef itk::MattesNoCachingMutualInformationImageToImageMetric< 
+                                          FixedImageType, 
+                                          MovingImageType >    MetricType;
+#else
   typedef itk::MattesMutualInformationImageToImageMetric< 
                                           FixedImageType, 
                                           MovingImageType >    MetricType;
+#endif
+#endif
+
   // Software Guide : EndCodeSnippet
 
 
