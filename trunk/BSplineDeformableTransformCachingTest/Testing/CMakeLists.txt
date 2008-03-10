@@ -35,6 +35,9 @@ TARGET_LINK_LIBRARIES(RegistrationExamplesTests ITKStatistics ITKIO ITKNumerics 
 ADD_EXECUTABLE(ImageRegistration13 ImageRegistration13.cxx )
 TARGET_LINK_LIBRARIES(ImageRegistration13 ITKStatistics ITKIO ITKNumerics ${MEMORY_LIBS})
 
+ADD_EXECUTABLE(MultiResImageRegistration2 MultiResImageRegistration2.cxx )
+TARGET_LINK_LIBRARIES(MultiResImageRegistration2 ITKStatistics ITKIO ITKNumerics ${MEMORY_LIBS})
+
 ADD_TEST(ImageRegistration13Test ${REGISTRATION_EXAMPLES}
   --compare ${BASELINE}/ImageRegistration13Test.png
             ${TEMP}/ImageRegistration13Test.png
@@ -67,6 +70,16 @@ ADD_TEST(ImageRegistration13TestNoCaching ${REGISTRATION_EXAMPLES}
         ${ITK_SOURCE_DIR}/Examples/Data/BrainProtonDensitySliceBorder20.png
         ${ITK_SOURCE_DIR}/Examples/Data/BrainProtonDensitySliceR10X13Y17.png
         ${TEMP}/ImageRegistration13TestNoCaching.png
+)
+
+ADD_TEST(MultiResImageRegistration2Test ${REGISTRATION_EXAMPLES}
+  --compare ${BASELINE}/MultiResImageRegistration2Test.png
+            ${TEMP}/MultiResImageRegistration2Test.png
+  --compareNumberOfPixelsTolerance 100
+  MultiResImageRegistration2Test
+        ${ITK_SOURCE_DIR}/Examples/Data/BrainT1SliceBorder20.png
+        ${ITK_SOURCE_DIR}/Examples/Data/BrainProtonDensitySliceShifted13x17y.png
+        ${TEMP}/MultiResImageRegistration2Test.png  0
 )
 
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" )
