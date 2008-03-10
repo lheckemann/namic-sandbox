@@ -36,6 +36,7 @@
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkBSplineDeformableTransform2.h"
 #include "itkArray2D.h"
+#include "itkTimeProbesCollectorBase.h"
 
 namespace itk
 {
@@ -218,7 +219,10 @@ public:
 protected:
 
   MattesNoPDFJacobianMutualInformationImageToImageMetric();
-  virtual ~MattesNoPDFJacobianMutualInformationImageToImageMetric() {};
+  virtual ~MattesNoPDFJacobianMutualInformationImageToImageMetric() 
+    {
+    this->m_Chronometer.Report( std::cout );
+    };
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   /**
@@ -438,6 +442,7 @@ private:
   bool             m_ReseedIterator;
   int              m_RandomSeed;
   
+  mutable TimeProbesCollectorBase     m_Chronometer;
 };
 
 } // end namespace itk

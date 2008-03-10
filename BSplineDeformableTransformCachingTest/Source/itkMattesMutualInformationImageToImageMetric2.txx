@@ -680,6 +680,7 @@ typename MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::GetValue( const ParametersType& parameters ) const
 {
+  this->m_Chronometer.Start("GV");
 
   // Reset marginal pdf to all zeros.
   // Assumed the size has already been set to NumberOfHistogramBins
@@ -926,6 +927,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   return static_cast<MeasureType>( -1.0 * sum );
 
+  this->m_Chronometer.Stop("GV");
 }
 
 
@@ -940,6 +942,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   MeasureType& value,
   DerivativeType& derivative) const
 {
+  this->m_Chronometer.Start("GVAD");
 
   // Set output values to zero
   value = NumericTraits< MeasureType >::Zero;
@@ -1249,6 +1252,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   value = static_cast<MeasureType>( -1.0 * sum );
 
+  this->m_Chronometer.Stop("GVAD");
 }
 
 
