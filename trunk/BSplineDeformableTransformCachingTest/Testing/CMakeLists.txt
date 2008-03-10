@@ -72,7 +72,7 @@ ADD_TEST(ImageRegistration13TestNoCaching ${REGISTRATION_EXAMPLES}
         ${TEMP}/ImageRegistration13TestNoCaching.png
 )
 
-ADD_TEST(MultiResImageRegistration2Test ${REGISTRATION_EXAMPLES}
+ADD_TEST(MultiRes2Test ${REGISTRATION_EXAMPLES}
   --compare ${BASELINE}/MultiResImageRegistration2Test.png
             ${TEMP}/MultiResImageRegistration2Test.png
   --compareNumberOfPixelsTolerance 100
@@ -81,6 +81,24 @@ ADD_TEST(MultiResImageRegistration2Test ${REGISTRATION_EXAMPLES}
         ${ITK_SOURCE_DIR}/Examples/Data/BrainProtonDensitySliceShifted13x17y.png
         ${TEMP}/MultiResImageRegistration2Test.png  0
 )
+
+ADD_TEST(MultiRes2TestNoPDFJacobian ${REGISTRATION_EXAMPLES}
+  --compare ${BASELINE}/MultiResImageRegistration2Test.png
+            ${TEMP}/MultiResImageRegistration2TestNoPDFJacobian.png
+  --compareNumberOfPixelsTolerance 100
+  MultiResImageRegistration2TestNoPDFJacobian
+        ${ITK_SOURCE_DIR}/Examples/Data/BrainT1SliceBorder20.png
+        ${ITK_SOURCE_DIR}/Examples/Data/BrainProtonDensitySliceShifted13x17y.png
+        ${TEMP}/MultiResImageRegistration2TestNoPDFJacobian.png  0
+)
+
+ADD_TEST(MultiRes2TestNoPDFJacobianB ${REGISTRATION_EXAMPLES}
+  MultiResImageRegistration2TestNoPDFJacobian
+        ${ITK_SOURCE_DIR}/Examples/Data/BrainT1SliceBorder20.png
+        ${ITK_SOURCE_DIR}/Examples/Data/BrainProtonDensitySliceShifted13x17y.png
+        ${TEMP}/MultiResImageRegistration2TestNoPDFJacobian.png  0
+)
+
 
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" )
   ADD_EXECUTABLE(TestParseSmaps TestParseSmaps.cxx)
