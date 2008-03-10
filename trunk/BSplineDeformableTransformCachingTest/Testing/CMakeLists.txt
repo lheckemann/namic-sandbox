@@ -10,6 +10,10 @@ ELSE (WIN32)
   SET( MEMORY_LIBS MemoryUsage )
 ENDIF (WIN32)
 
+SET(TEMP ${MattesMetricCachingTest_BINARY_DIR}/Testing/Temporary)
+
+SET(REGISTRATION_EXAMPLES ${EXECUTABLE_OUTPUT_PATH}/RegistrationExamplesTests)
+
 INCLUDE_DIRECTORIES(${MattesMetricCachingTest_SOURCE_DIR}/Source)
 
 TARGET_LINK_LIBRARIES(MattesMetricCachingTest ITKIO ITKAlgorithms ITKNumerics ${MEMORY_LIBS})
@@ -23,6 +27,22 @@ TARGET_LINK_LIBRARIES(MachineInformationExample itksys)
 
 ADD_EXECUTABLE(MultiThreadedMIMetricTest MultiThreadedMIMetricTest.cxx itkExperimentTimeProbesCollector.cxx itkExperimentMemoryProbesCollector.cxx)
 TARGET_LINK_LIBRARIES(MultiThreadedMIMetricTest ITKIO ITKAlgorithms ITKNumerics ${MEMORY_LIBS})
+
+ADD_EXECUTABLE(RegistrationExamplesTests RegistrationExamplesTests.cxx )
+TARGET_LINK_LIBRARIES(RegistrationExamplesTests ITKStatistics ITKIO ITKNumerics)
+
+ADD_EXECUTABLE(ImageRegistration13 ImageRegistration13.cxx )
+TARGET_LINK_LIBRARIES(ImageRegistration13 ITKStatistics ITKIO ITKNumerics)
+
+ADD_TEST(ImageRegistration13Test ${REGISTRATION_EXAMPLES}
+  --compare ${BASELINE}/ImageRegistration13Test.png
+            ${TEMP}/ImageRegistration13Test.png
+  ImageRegistration13Test
+        ${ITK_SOURCE_DIR}/Examples/Data/BrainProtonDensitySliceBorder20.png
+        ${ITK_SOURCE_DIR}/Examples/Data/BrainProtonDensitySliceR10X13Y17.png
+        ${TEMP}/ImageRegistration13Test.png
+)
+
 
 IF(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" )
   ADD_EXECUTABLE(TestParseSmaps TestParseSmaps.cxx)
