@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkMattesNoPDFJacobianMutualInformationImageToImageMetric.txx,v $
   Language:  C++
-  Date:      $Date: 2007/11/14 18:55:19 $
-  Version:   $Revision: 1.41 $
+  Date:      $Date: 2008/02/28 14:13:40 $
+  Version:   $Revision: 1.45 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -24,7 +24,7 @@
 #include "itkConfigure.h"
 
 #ifdef ITK_USE_OPTIMIZED_REGISTRATION_METHODS
-#include "itkOptMattesMutualInformationImageToImageMetric.txx"
+#include "itkOptMattesNoPDFJacobianMutualInformationImageToImageMetric.txx"
 #else
 
 
@@ -278,7 +278,7 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
    *  for flattening the computation of the PDF Jacobians.
    */
   memCollector.Start("PRatio Array");
-  m_PRatioArray.resize( m_NumberOfHistogramBins * m_NumberOfHistogramBins );
+  m_PRatioArray.SetSize( m_NumberOfHistogramBins, m_NumberOfHistogramBins );
   memCollector.Stop("PRatio Array");
 
 
@@ -423,11 +423,6 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   if ( m_TransformIsBSpline )
     {
-
-std::cout << "MattesNoPDFJacobianMutualInformationImageToImageMetric::Initialize()" << std::endl;
-std::cout << "Allocating weights for " << m_NumberOfSpatialSamples * m_NumBSplineWeights * sizeof( WeightsValueType ) / ( 1024.0 * 1024.0 ) << " Mega bytes " << std::endl;
-std::cout << "Allocating indices for " << m_NumberOfSpatialSamples * m_NumBSplineWeights * sizeof( IndexValueType ) / ( 1024.0 * 1024.0 ) << " Mega bytes " << std::endl;
-
     m_BSplineTransformWeightsArray.SetSize( m_NumberOfSpatialSamples, 
                                             m_NumBSplineWeights );
     m_BSplineTransformIndicesArray.SetSize( m_NumberOfSpatialSamples,
@@ -1029,25 +1024,13 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
              pdfMovingIndex++, pdfPtr++ )
         {
 
-          // Update PDF for the current intensity pair
+        // Update PDF for the current intensity pair
         double movingImageParzenWindowArg = 
           static_cast<double>( pdfMovingIndex ) - 
           static_cast<double>(movingImageParzenWindowTerm);
 
         *(pdfPtr) += static_cast<PDFValueType>( 
           m_CubicBSplineKernel->Evaluate( movingImageParzenWindowArg ) );
-
-        // Compute the cubicBSplineDerivative for later repeated use.
-        double cubicBSplineDerivativeValue = 
-          m_CubicBSplineDerivativeKernel->Evaluate( 
-                                               movingImageParzenWindowArg );
-
-        // Compute PDF derivative contribution.
-//     this->ComputePDFDerivatives( nFixedImageSamples,
-//                                  pdfMovingIndex, 
-//                                  movingImageGradientValue, 
-//                                  cubicBSplineDerivativeValue );
-
 
         }  //end parzen windowing for loop
 
@@ -1176,18 +1159,13 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       double movingImagePDFValue = m_MovingImageMarginalPDF[movingIndex];
       double jointPDFValue = *(jointPDFPtr);
 
-      // Location of the bin in the derivatives array
-      const int linearHistogramBinIndex2 =
-        ( fixedIndex  * this->m_NumberOfHistogramBins ) + movingIndex;
-
       // check for non-zero bin contribution
       if( jointPDFValue > 1e-16 &&  movingImagePDFValue > 1e-16 )
         {
 
         double pRatio = vcl_log(jointPDFValue / movingImagePDFValue );
 
-        this->m_PRatioArray[linearHistogramBinIndex2] = pRatio * nFactor;
-//        std::cout << "m_PRatioArray[ " << linearHistogramBinIndex2 << " ] = [ " << fixedIndex << " , " << movingIndex << " ] = " << this->m_PRatioArray[linearHistogramBinIndex2] << std::endl;
+        this->m_PRatioArray[fixedIndex][movingIndex] = pRatio * nFactor;
 
         if( fixedImagePDFValue > 1e-16)
           {
@@ -1197,15 +1175,14 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
         }  // end if-block to check non-zero bin contribution
       else
         {
-        this->m_PRatioArray[linearHistogramBinIndex2] = 0.0;
-//        std::cout << "m_PRatioArray[ " << linearHistogramBinIndex2 << " ] = [ " << fixedIndex << " , " << movingIndex << " ] = " << this->m_PRatioArray[linearHistogramBinIndex2] << std::endl;
+        this->m_PRatioArray[fixedIndex][movingIndex] = 0.0;
         }
       }  // end for-loop over moving index
     }  // end for-loop over fixed index
 
 
-  // EXPERIMENTAL CODE
-  // Retrospective computation of derivatives
+  // Second pass: This one is done for accumulating the contributions
+  //              to the derivative array.
 
   nFixedImageSamples = 0;
 
@@ -1222,8 +1199,6 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
     if( sampleOk )
       {
-      ++nSamples; 
-
       // Get moving image derivative at the mapped position
       ImageDerivativesType movingImageGradientValue;
       this->ComputeImageDerivatives( mappedPoint, movingImageGradientValue );
@@ -1252,45 +1227,18 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
         }
 
 
-      // Since a zero-order BSpline (box car) kernel is used for
-      // the fixed image marginal pdf, we need only increment the
-      // fixedImageParzenWindowIndex by value of 1.0.
-     m_FixedImageMarginalPDF[(*fiter).FixedImageParzenWindowIndex] +=
-        static_cast<PDFValueType>( 1 );
-        
-      /**
-        * The region of support of the parzen window determines which bins
-        * of the joint PDF are effected by the pair of image values.
-        * Since we are using a cubic spline for the moving image parzen
-        * window, four bins are effected.  The fixed image parzen window is
-        * a zero-order spline (box car) and thus effects only one bin.
-        *
-        *  The PDF is arranged so that moving image bins corresponds to the 
-        * zero-th (column) dimension and the fixed image bins corresponds
-        * to the first (row) dimension.
-        *
-        */
-
-      // Pointer to affected bin to be updated
-      JointPDFValueType *pdfPtr = m_JointPDF->GetBufferPointer() +
-        ( (*fiter).FixedImageParzenWindowIndex * m_NumberOfHistogramBins );
- 
       // Move the pointer to the fist affected bin
       int pdfMovingIndex = static_cast<int>( movingImageParzenWindowIndex ) - 1;
-      pdfPtr += pdfMovingIndex;
 
       for (; pdfMovingIndex <= static_cast<int>( movingImageParzenWindowIndex )
                                 + 2;
-             pdfMovingIndex++, pdfPtr++ )
+             pdfMovingIndex++ )
         {
 
-          // Update PDF for the current intensity pair
+        // Update PDF for the current intensity pair
         double movingImageParzenWindowArg = 
           static_cast<double>( pdfMovingIndex ) - 
           static_cast<double>(movingImageParzenWindowTerm);
-
-        *(pdfPtr) += static_cast<PDFValueType>( 
-          m_CubicBSplineKernel->Evaluate( movingImageParzenWindowArg ) );
 
         // Compute the cubicBSplineDerivative for later repeated use.
         double cubicBSplineDerivativeValue = 
@@ -1462,11 +1410,7 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   const int pdfFixedIndex = 
     m_FixedImageSamples[sampleNumber].FixedImageParzenWindowIndex;
 
-  // Location of the bin in the derivatives array
-  const int linearHistogramBinIndex2 =
-    ( pdfFixedIndex  * this->m_NumberOfHistogramBins ) + pdfMovingIndex;
-
-  const double precomputedWeight = m_PRatioArray[linearHistogramBinIndex2];
+  const double precomputedWeight = this->m_PRatioArray[pdfFixedIndex][pdfMovingIndex];
 
   if( !m_TransformIsBSpline )
     {
