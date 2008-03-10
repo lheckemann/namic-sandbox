@@ -31,6 +31,8 @@ void RegisterTests()
   REGISTER_TEST(ImageRegistration13Test);
   REGISTER_TEST(ImageRegistration13TestNoPDFJacobian);
   REGISTER_TEST(ImageRegistration13TestNoCaching);
+  REGISTER_TEST(MultiResImageRegistration2Test);
+  REGISTER_TEST(MultiResImageRegistration2TestNoPDFJacobian);
 }
 
 #undef main
@@ -54,4 +56,20 @@ void RegisterTests()
 #define CommandIterationUpdate CommandIterationUpdate13NoCaching
 #include "ImageRegistration13.cxx"
 #undef MattesNoCaching
+
+#undef main
+#define main  MultiResImageRegistration2Test
+#undef CommandIterationUpdate
+#define CommandIterationUpdate CommandIterationUpdateM2a
+#undef RegistrationInterfaceCommand
+#define RegistrationInterfaceCommand RegistrationInterfaceCommandM2a
+#include "MultiResImageRegistration2.cxx"
+
+#undef main
+#define main  MultiResImageRegistration2TestNoPDFJacobian
+#undef CommandIterationUpdate
+#define CommandIterationUpdate CommandIterationUpdateM2b
+#undef RegistrationInterfaceCommand
+#define RegistrationInterfaceCommand RegistrationInterfaceCommandM2b
+#include "MultiResImageRegistration2.cxx"
 
