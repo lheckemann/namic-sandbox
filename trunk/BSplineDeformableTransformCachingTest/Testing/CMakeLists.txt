@@ -53,6 +53,13 @@ ADD_TEST(ImageRegistration13TestNoPDFJacobian ${REGISTRATION_EXAMPLES}
         ${TEMP}/ImageRegistration13TestNoPDFJacobian.png
 )
 
+ADD_TEST(ImageRegistration13TestNoPDFJacobianB ${REGISTRATION_EXAMPLES}
+  ImageRegistration13TestNoPDFJacobian
+        ${ITK_SOURCE_DIR}/Examples/Data/BrainProtonDensitySliceBorder20.png
+        ${ITK_SOURCE_DIR}/Examples/Data/BrainProtonDensitySliceR10X13Y17.png
+        ${TEMP}/ImageRegistration13TestNoPDFJacobian.png
+)
+
 ADD_TEST(ImageRegistration13TestNoCaching ${REGISTRATION_EXAMPLES}
   --compare ${BASELINE}/ImageRegistration13Test.png
             ${TEMP}/ImageRegistration13TestNoCaching.png
