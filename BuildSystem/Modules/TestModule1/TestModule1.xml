@@ -4,7 +4,6 @@
 <SourceLocation>http://www.na-mic.org/svn/NAMICSandBox/trunk/BuildSystem/Modules/TestModule1</SourceLocation>
 <HomePage>http://na-mic.org/Wiki/index.php/Slicer3:Build/Modules</HomePage>
 <Version>1.0</Version>
-<Icon>TestModule1.png</Icon>
 <Dependency>VTK</Dependency>
 <Dependency>ITK</Dependency>
 <Author>Sebastien BARRE</Author>
