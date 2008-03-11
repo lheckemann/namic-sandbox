@@ -1,0 +1,11 @@
+<Name>TestModule2</Name>
+<Group>Segmentation</Group>
+<Description>Test module #2</Description>
+<SourceLocation>:pserver:anoncvs@www.kwwidgets.org:/cvsroot/KWWidgets</SourceLocation>
+<CVSModule>KWWidgets/CMake/ExportConfiguration</CVSModule>
+<CVSBranch>Slicer-3-0</CVSBranch>
+<HomePage>http://na-mic.org/Wiki/index.php/Slicer3:Build/Modules</HomePage>
+<Version>1.0</Version>
+<Dependency>VTK</Dependency>
+<Author>Sebastien BARRE</Author>
+<Acknowledgement>Kitware, Inc.</Acknowledgement>
