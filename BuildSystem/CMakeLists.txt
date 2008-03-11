@@ -33,7 +33,15 @@ slicer_get_module_value(TestModule1 "Author" authors)
 #MESSAGE("Dependency: ${deps}")
 #MESSAGE("Author: ${authors}")
 
-slicer_create_use_module_option(TestModule1 option_name)
+slicer_create_use_module_option(TestModule1 USE_TESTMODULE1)
 
-slicer_create_download_module_target(TestModule1 TestModule1_download "${CMAKE_CURRENT_BINARY_DIR}/Modules/TestModule1")
+slicer_create_download_module_target(TestModule1 M1_download "${CMAKE_CURRENT_BINARY_DIR}/Modules/TestModule1")
+slicer_create_update_module_target(TestModule1 M1_update "${CMAKE_CURRENT_BINARY_DIR}/Modules/TestModule1")
 
+# Another one
+
+slicer_parse_module_file(
+  "${SLICER_TEST_MODULES_PATH}/TestModule2/" TestModule2)
+
+slicer_create_download_module_target(TestModule2 M2_download "${CMAKE_CURRENT_BINARY_DIR}/Modules/TestModule2")
+slicer_create_update_module_target(TestModule2 M2_update "${CMAKE_CURRENT_BINARY_DIR}/Modules/TestModule2")
