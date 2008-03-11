@@ -10,14 +10,13 @@ include(SlicerSetGetModule)
 # Arguments:
 # in:
 #   module_varname (string): variable name used to store the module keys/values
-# out:
-#   option_varname (string): variable name to use to store the option name
+#   option_name (string): name to use to for the option
 # 
 # Example:
-#   SLICER_CREATE_USE_MODULE_OPTION(TestModule use_module)
-#   IF(use_module)
+#   SLICER_CREATE_USE_MODULE_OPTION(TestModule USE_TEST_MODULE)
+#   IF(USE_TEST_MODULE)
 #     ...
-#   ENDIF(use_module)
+#   ENDIF(USE_TEST_MODULE)
 #
 # See also:
 #   SLICER_GET_MODULE_VALUE
@@ -25,7 +24,7 @@ include(SlicerSetGetModule)
 #   SLICER_GET_MODULE_SHORT_DESCRIPTION
 # ---------------------------------------------------------------------------
 
-function(SLICER_CREATE_USE_MODULE_OPTION module_varname option_varname)
+function(SLICER_CREATE_USE_MODULE_OPTION module_varname option_name)
 
   # Unknown module? Bail.
 
@@ -37,9 +36,7 @@ function(SLICER_CREATE_USE_MODULE_OPTION module_varname option_varname)
 
   # Create the option
 
-  set(option_name "SLICER_USE_MODULE_${name}")
   slicer_get_module_short_description(${module_varname} short_desc)
   option(${option_name} "Use ${short_desc}." OFF)
-  set(${option_varname} ${option_name} PARENT_SCOPE)
 
 endfunction(SLICER_CREATE_USE_MODULE_OPTION)
