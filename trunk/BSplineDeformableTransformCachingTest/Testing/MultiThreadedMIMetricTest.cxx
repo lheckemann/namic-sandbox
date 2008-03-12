@@ -52,7 +52,7 @@ int main( int argc, char* argv[] )
   const unsigned int SpaceDimension = ImageDimension;
   const unsigned int SplineOrder = 3;
 
-  typedef itk::BSplineDeformableTransform<
+  typedef itk::BSplineDeformableTransform2<
                             CoordinateRepType,
                             SpaceDimension,
                             SplineOrder >     TransformType;
@@ -130,9 +130,10 @@ int main( int argc, char* argv[] )
   RegionType::SizeType   gridBorderSize;
   RegionType::SizeType   totalGridSize;
 
-  gridSizeOnImage[0] = 32;
-  gridSizeOnImage[1] = 32;
-  gridSizeOnImage[2] = 16;
+  // was 2 2 2
+  gridSizeOnImage[0] = 2; //32
+  gridSizeOnImage[1] = 2; //32
+  gridSizeOnImage[2] = 2; //16
 
   gridBorderSize.Fill( 3 );    // Border for spline order = 3 ( 1 lower, 2 upper )
   totalGridSize = gridSizeOnImage + gridBorderSize;
@@ -161,6 +162,7 @@ int main( int argc, char* argv[] )
   
   const unsigned int totalNumberOfPixels = fixedRegion.GetNumberOfPixels();
 
+  // FIX ME
   const unsigned int numberOfSamples = static_cast< unsigned int >( totalNumberOfPixels * 0.20 );
 
   const unsigned int numberOfHistogramBins = 50;
@@ -213,6 +215,7 @@ int main( int argc, char* argv[] )
   ThreadMetricType::MeasureType     value; 
   ThreadMetricType::DerivativeType  derivative;
 
+#if 0
   for(unsigned int i=0; i<numberOfIterations; i++)
     {
     std::cout << "Iteration " << i << " of " << numberOfIterations << std::endl;
@@ -230,16 +233,17 @@ int main( int argc, char* argv[] )
     std::cout << value << std::endl;
 
     }
+#endif
 
   for(unsigned int i=0; i<numberOfIterations; i++)
     {
     std::cout << "Iteration " << i << " of " << numberOfIterations << std::endl;
 
-    //timeCollector.Start("GetValueAndDerivative");
+    timeCollector.Start("GetValueAndDerivative");
 
     metric->GetValueAndDerivative( parameters, value, derivative );
 
-    //timeCollector.Stop("GetValueAndDerivative");
+    timeCollector.Stop("GetValueAndDerivative");
 
     std::cout << threadingString;
     std::cout << " value :  ";
