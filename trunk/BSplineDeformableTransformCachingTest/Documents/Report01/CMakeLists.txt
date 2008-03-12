@@ -17,7 +17,7 @@ SET(PLOT_DIR ${MattesMetricCachingTestReport_BINARY_DIR})
 # Not the Report binary dir
 # CMAKE_BUILD_TYPE
 IF(WIN32)
-SET(MATTES_EXECUTABLE_DIR ${MattesMetricCachingTest_BINARY_DIR}/Testing/release)
+SET(MATTES_EXECUTABLE_DIR ${MattesMetricCachingTest_BINARY_DIR}/bin/release)
 ELSE(WIN32)
 SET(MATTES_EXECUTABLE_DIR ${MattesMetricCachingTest_BINARY_DIR}/bin)
 ENDIF(WIN32)
