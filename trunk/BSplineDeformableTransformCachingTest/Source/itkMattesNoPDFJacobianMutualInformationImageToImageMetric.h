@@ -219,10 +219,7 @@ public:
 protected:
 
   MattesNoPDFJacobianMutualInformationImageToImageMetric();
-  virtual ~MattesNoPDFJacobianMutualInformationImageToImageMetric() 
-    {
-    this->m_Chronometer.Report( std::cout );
-    };
+  virtual ~MattesNoPDFJacobianMutualInformationImageToImageMetric() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   /**

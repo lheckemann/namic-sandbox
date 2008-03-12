@@ -219,10 +219,7 @@ public:
 protected:
 
   MattesMutualInformationImageToImageMetric();
-  virtual ~MattesMutualInformationImageToImageMetric() 
-    {
-    this->m_Chronometer.Report( std::cout );
-    };
+  virtual ~MattesMutualInformationImageToImageMetric() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   /**
