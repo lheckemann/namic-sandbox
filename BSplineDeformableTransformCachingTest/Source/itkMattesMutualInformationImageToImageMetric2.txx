@@ -130,6 +130,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   os << indent << "TransformIsBSpline: ";
   os << m_TransformIsBSpline << std::endl;
   
+  this->m_Chronometer.Report( os );
 }
 
 

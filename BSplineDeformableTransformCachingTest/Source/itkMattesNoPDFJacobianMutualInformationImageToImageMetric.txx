@@ -129,6 +129,8 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   os << indent << "TransformIsBSpline: ";
   os << m_TransformIsBSpline << std::endl;
   
+  os << "TIMING: " << std::endl;
+  this->m_Chronometer.Report( os );
 }
 
 
