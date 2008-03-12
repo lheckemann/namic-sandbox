@@ -297,7 +297,6 @@ BSplineDeformableTransform2<TScalarType, NDimensions,VSplineOrder>
   // parameters and cannot know if the parameters have changed.
   this->Modified();
 }
-
 // Set the Fixed Parameters
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 void
@@ -353,7 +352,6 @@ BSplineDeformableTransform2<TScalarType, NDimensions,VSplineOrder>
 
   this->Modified();
 }
-
 
 // Wrap flat parameters as images
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
@@ -856,6 +854,14 @@ BSplineDeformableTransform2<TScalarType, NDimensions,VSplineOrder>
     
     }
 
+}
+
+template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
+unsigned int 
+BSplineDeformableTransform2<TScalarType, NDimensions,VSplineOrder>
+::GetNumberOfAffectedWeights() const
+{
+  return m_WeightsFunction->GetNumberOfWeights();
 }
 
 } // namespace

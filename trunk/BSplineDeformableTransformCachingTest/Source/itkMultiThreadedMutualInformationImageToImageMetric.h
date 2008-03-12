@@ -24,6 +24,7 @@
 #include "itkIndex.h"
 #include "itkKernelFunction.h"
 #include "itkCentralDifferenceImageFunction.h"
+#include "itkSparseVector.h"
 
 namespace itk
 {
@@ -141,6 +142,10 @@ public:
   void GetValueAndDerivative( const ParametersType& parameters, 
                               MeasureType& Value, DerivativeType& Derivative ) const;
 
+  void GetValueAndDerivativeDefault( const ParametersType& parameters, 
+                                     MeasureType& Value, DerivativeType& Derivative ) const;
+
+
   /** Set the number of spatial samples. This is the number of image
    * samples used to calculate the joint probability distribution.
    * The number of spatial samples is clamped to be a minimum of 1.
@@ -207,12 +212,13 @@ private:
   {
   public:
     SpatialSample():FixedImageValue(0.0),MovingImageValue(0.0)
-    { FixedImagePointValue.Fill( 0.0 ); }
+    { FixedImagePointValue.Fill( 0.0 ); MovingImagePointValue.Fill( 0.0 ); }
     ~SpatialSample(){};
 
     FixedImagePointType              FixedImagePointValue;
     double                           FixedImageValue;
     double                           MovingImageValue;
+    MovingImagePointType             MovingImagePointValue;
   };
 
   /** SpatialSampleContainer typedef support. */
@@ -283,8 +289,8 @@ private:
   typename SpatialSampleContainer::const_iterator*  m_SampleAEndIterators;
   typename SpatialSampleContainer::const_iterator*  m_SampleBEndIterators;
 
-  std::vector<unsigned long>::iterator*       m_SampleAVisitCountStartIterators;
-  std::vector<unsigned long>::iterator*       m_SampleAVisitCountEndIterators;
+  std::vector<unsigned long>::iterator*             m_SampleAVisitCountStartIterators;
+  std::vector<unsigned long>::iterator*             m_SampleAVisitCountEndIterators;
 
   unsigned int m_NumberOfThreads;
 
@@ -293,9 +299,92 @@ private:
 
   void ClearPartialResults() const;
 
+  static ITK_THREAD_RETURN_TYPE GetValueAndDerivativePhase1ThreadCallback( void * arg );
+  void GetValueAndDerivativePhase1ThreadedInitiate( void ) const;  
+
+  static ITK_THREAD_RETURN_TYPE GetValueAndDerivativePhase2ThreadCallback( void * arg );
+  void GetValueAndDerivativePhase2ThreadedInitiate( void ) const;  
+
+  static ITK_THREAD_RETURN_TYPE GetValueAndDerivativePhase3ThreadCallback( void * arg );
+  void GetValueAndDerivativePhase3ThreadedInitiate( void ) const;  
+
 public:
   MeasureType GetValueMultiThreaded( const ParametersType& parameters ) const;
 
+  void GetValueAndDerivativeThreaded( const ParametersType& parameters, 
+                                     MeasureType& Value, DerivativeType& Derivative ) const;
+
+  void GetValueAndDerivativeThreaded2( const ParametersType& parameters, 
+                                     MeasureType& Value, DerivativeType& Derivative ) const;
+
+private:
+  void CalculateDerivativesThreaded( const FixedImagePointType& ,
+                                     const MovingImagePointType& mappedPoint,
+                                     DerivativeType& derivative,
+                                     unsigned int threadID ) const;
+
+  void CalculateDerivativesThreadedBSplineSparse( const FixedImagePointType& ,
+                                            const MovingImagePointType& mappedPoint,
+                                            SparseVector< double > & ) const;
+  void CalculateDerivativesThreadedDefaultTransform( const FixedImagePointType& ,
+                                                     const MovingImagePointType& mappedPoint,
+                                                     DerivativeType& ) const;
+
+  /*
+  bool m_TransformParametersHaveLocalInfluence;
+  */
+  mutable bool m_TransformIsBSpline;
+
+  // Bspline optimization
+  // Get nonzero indexex
+  int m_NumberOfWeights;
+  //mutable Array<unsigned long> m_JacobianIndexes;
+  long unsigned int m_NumberOfParametersPerdimension;
+
+  ParametersType m_Indexes; // Holds nonzeros indexes of Bspline derivatives
+
+  void SetupSampleThreadIterators() const;
+  double CombineASampleResults();
+  void GetValueAndDerivativeMultiThreadedInternalPhase1( unsigned int threadID ) const;
+  void GetValueAndDerivativeMultiThreadedInternalPhase1Combine( MeasureType& measure ) const;
+  void GetValueAndDerivativeMultiThreadedInternalPhase2( unsigned int threadID ) const;
+  void GetValueAndDerivativeMultiThreadedInternalPhase2Combine( DerivativeType& derivative ) const;
+
+  // DerivativeType* m_Derivative;
+
+  /*
+  typedef std::vector< DerivativeType > DerivativePartialResultsType;
+  mutable DerivativePartialResultsType m_DerivativePartialResult;
+  mutable DerivativePartialResultsType m_DerivativeBPartialResult;
+  mutable DerivativePartialResultsType m_TotalWeightPartialResult;
+  */
+
+  typedef std::vector< double > WeightPartialResultType;
+  mutable std::vector< WeightPartialResultType > m_TotalWeightBSamplePartialResult;
+
+  void SetupDerivativePartialResults() const;
+
+  typedef std::vector< DerivativeType > DerivativePartialResultsType; 
+  mutable DerivativePartialResultsType m_ThreadDerivatives;
+
+  void GetValueAndDerivativeMultiThreadedInternalPhase3(unsigned int thread) const;
+  void GetValueAndDerivativeMultiThreadedInternalPhase3Combine( DerivativeType& derivative ) const;
+
+  typedef std::vector< SamplesConstIterator > ThreadSampleIteratorContainerType;
+  mutable ThreadSampleIteratorContainerType m_SampleBPhase3StartIterators;
+  mutable ThreadSampleIteratorContainerType m_SampleBPhase3EndIterators;
+
+  mutable unsigned int m_NumberOfParameters;
+
+  void SetupPhase3BSampleIterators() const;
+
+  bool ValidatePartialResultSizes() const;
+
+  void SetupThreadTransforms() const;
+  void SynchronizeTransforms() const;
+
+  //mutable TransformType** m_ThreaderTransform;
+  mutable TransformPointer* m_TransformArray;
 };
 
 } // end namespace itk
