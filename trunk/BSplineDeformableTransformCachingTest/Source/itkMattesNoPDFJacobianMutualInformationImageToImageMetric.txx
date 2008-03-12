@@ -954,17 +954,17 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   unsigned long nSamples=0;
   unsigned long nFixedImageSamples=0;
 
+  // Keep these variables outside of the inner loops
   MovingImagePointType mappedPoint;
   ImageDerivativesType movingImageGradientValue;
+  double movingImageValue;
+  bool sampleOk;
 
   this->m_Chronometer.Start("P1");
   for ( fiter = m_FixedImageSamples.begin(); fiter != fend; ++fiter )
     {
 
     // Get moving image value
-    bool sampleOk;
-    double movingImageValue;
-
     this->TransformPoint( nFixedImageSamples, parameters, mappedPoint, 
                           sampleOk, movingImageValue );
 
@@ -1201,22 +1201,17 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     {
     this->m_Chronometer.Start("PI2");
 
-    this->m_Chronometer.Start("TRF");
+    this->m_Chronometer.Start("TRF");  // 10%
     // Get moving image value
-    MovingImagePointType mappedPoint;
-    bool sampleOk;
-    double movingImageValue;
-
     this->TransformPoint( nFixedImageSamples, parameters, mappedPoint, 
                           sampleOk, movingImageValue );
     this->m_Chronometer.Stop("TRF");
 
-    this->m_Chronometer.Start("SOK");
+    this->m_Chronometer.Start("SOK");  // 60%
     if( sampleOk )
       {
       this->m_Chronometer.Start("PCD2"); // NON Negligible time = 4.14466e-06 * 632719 / 77
       // Get moving image derivative at the mapped position
-      ImageDerivativesType movingImageGradientValue;
       this->ComputeImageDerivatives( mappedPoint, movingImageGradientValue );
       this->m_Chronometer.Stop("PCD2");
 
