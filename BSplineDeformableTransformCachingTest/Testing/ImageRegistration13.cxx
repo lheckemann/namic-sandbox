@@ -167,6 +167,7 @@ int main( int argc, char *argv[] )
   MetricType::Pointer metric = MetricType::New();
   registration->SetMetric( metric  );
 
+  std::cout << "METRIC = " << metric->GetNameOfClass() << std::endl;
 
 
   metric->SetNumberOfHistogramBins( 20 );
