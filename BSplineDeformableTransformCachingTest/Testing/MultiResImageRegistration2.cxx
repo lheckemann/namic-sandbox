@@ -641,6 +641,7 @@ int main( int argc, char *argv[] )
     writer->Update();
     }
 
+  metric->Print( std::cout );
 
   return EXIT_SUCCESS;
 }
