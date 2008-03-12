@@ -42,7 +42,7 @@
 #if defined(MattesNoCaching)
 #include "itkMattesNoCachingMutualInformationImageToImageMetric.h"
 #else
-#include "itkMattesMutualInformationImageToImageMetric.h"
+#include "itkMattesMutualInformationImageToImageMetric2.h"
 #endif
 #endif
 // Software Guide : EndCodeSnippet
@@ -130,7 +130,7 @@ int main( int argc, char *argv[] )
 
 
   // Software Guide : BeginCodeSnippet
-#if defined(MattesNoPDF)
+#if defined(MattesNoPDFJacobian)
   typedef itk::MattesNoPDFJacobianMutualInformationImageToImageMetric< 
                                           FixedImageType, 
                                           MovingImageType >    MetricType;
