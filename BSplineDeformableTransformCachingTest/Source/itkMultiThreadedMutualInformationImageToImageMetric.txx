@@ -22,6 +22,7 @@
 #include "itkImageRandomConstIteratorWithIndex.h"
 #include "vnl/vnl_math.h"
 #include "itkGaussianKernelFunction.h"
+#include "itkBSplineDeformableTransform2.h"
 
 // For debugging.
 // This allows us to turn off the execution
@@ -743,7 +744,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
                                       3 >             BSplineTransformType;
 
   BSplineTransformType* bSplineTransformPtr = dynamic_cast<BSplineTransformType *>(
-                                               m_Transform.GetPointer() );
+                                               this->m_Transform.GetPointer() );
   if (bSplineTransformPtr != NULL)
     {
     m_TransformIsBSpline = true;
@@ -1080,10 +1081,10 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     int numberOfParametersPerDimension = bSplineTransformPtr->GetNumberOfParametersPerDimension();
 
     // THREAD: Need thread safe GetJacobian( point )
-    typedef BSplineTransformType::WeightsType JacobianValueArrayType;
+    typedef typename BSplineTransformType::WeightsType JacobianValueArrayType;
     JacobianValueArrayType jacobianValues(numberOfContributions);
     
-    typedef BSplineTransformType::ParameterIndexArrayType JacobianIndexType;
+    typedef typename BSplineTransformType::ParameterIndexArrayType JacobianIndexType;
     JacobianIndexType jacobianIndices(numberOfContributions);
     //jacobianIndices.set_size(numberOfContributions);
 
@@ -1291,16 +1292,16 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   // THREAD: We know before calling this method that the transform is a b-spline
   BSplineTransformType* bSplineTransformPtr = dynamic_cast<BSplineTransformType *>(
-                                                           m_Transform.GetPointer() );
+                                                           this->m_Transform.GetPointer() );
 
   int numberOfContributions = bSplineTransformPtr->GetNumberOfAffectedWeights();
   int numberOfParametersPerDimension = bSplineTransformPtr->GetNumberOfParametersPerDimension();
 
   // THREAD: Need thread safe GetJacobian( point )
-  typedef BSplineTransformType::WeightsType JacobianValueArrayType;
+  typedef typename BSplineTransformType::WeightsType JacobianValueArrayType;
   JacobianValueArrayType jacobianValues(numberOfContributions);
   
-  typedef BSplineTransformType::ParameterIndexArrayType JacobianIndexType;
+  typedef typename BSplineTransformType::ParameterIndexArrayType JacobianIndexType;
   JacobianIndexType jacobianIndices(numberOfContributions);
 
   bSplineTransformPtr->GetJacobian( point, 
@@ -1424,7 +1425,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
                                       3 >             BSplineTransformType;
 
   BSplineTransformType* bSplineTransformPtr = dynamic_cast<BSplineTransformType *>(
-                                               m_Transform.GetPointer() );
+                                               this->m_Transform.GetPointer() );
   if (bSplineTransformPtr != NULL)
     {
     m_TransformIsBSpline = true;
