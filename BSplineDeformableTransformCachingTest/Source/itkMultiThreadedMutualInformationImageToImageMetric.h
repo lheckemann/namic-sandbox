@@ -24,7 +24,6 @@
 #include "itkIndex.h"
 #include "itkKernelFunction.h"
 #include "itkCentralDifferenceImageFunction.h"
-#include "itkSparseVector.h"
 
 namespace itk
 {
@@ -323,9 +322,6 @@ private:
                                      DerivativeType& derivative,
                                      unsigned int threadID ) const;
 
-  void CalculateDerivativesThreadedBSplineSparse( const FixedImagePointType& ,
-                                            const MovingImagePointType& mappedPoint,
-                                            SparseVector< double > & ) const;
   void CalculateDerivativesThreadedDefaultTransform( const FixedImagePointType& ,
                                                      const MovingImagePointType& mappedPoint,
                                                      DerivativeType& ) const;

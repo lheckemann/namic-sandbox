@@ -788,6 +788,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   typename SpatialSampleContainer::const_iterator bend = m_SampleB.end();
 
   // precalculate all the image derivatives for sample A
+#if 0
   typedef SparseVector< double > SparseDerivativeType;
 
   // typedef std::vector<DerivativeType> DerivativeContainer;
@@ -799,7 +800,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   // SparseDerivativeType tempDeriv; //( numberOfParameters );
 
   // THREAD: This could be done in separate threads if CalculateDerivative is thread safe
-#if 0
   for( aiter = m_SampleA.begin(), aditer = sampleADerivatives.begin();
        aiter != aend; ++aiter, ++aditer )
     {
@@ -1242,6 +1242,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     }
 }
 
+#if 0
 template < class TFixedImage, class TMovingImage  >
 void
 MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
@@ -1326,6 +1327,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     }
 
 }
+#endif 
 
 template < class TFixedImage, class TMovingImage  >
 void
