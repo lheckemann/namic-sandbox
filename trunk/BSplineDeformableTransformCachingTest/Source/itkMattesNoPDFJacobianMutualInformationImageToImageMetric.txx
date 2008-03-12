@@ -954,11 +954,14 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   unsigned long nSamples=0;
   unsigned long nFixedImageSamples=0;
 
+  MovingImagePointType mappedPoint;
+  ImageDerivativesType movingImageGradientValue;
+
+  this->m_Chronometer.Start("P1");
   for ( fiter = m_FixedImageSamples.begin(); fiter != fend; ++fiter )
     {
 
     // Get moving image value
-    MovingImagePointType mappedPoint;
     bool sampleOk;
     double movingImageValue;
 
@@ -970,7 +973,6 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       ++nSamples; 
 
       // Get moving image derivative at the mapped position
-      ImageDerivativesType movingImageGradientValue;
       this->ComputeImageDerivatives( mappedPoint, movingImageGradientValue );
 
 
@@ -1024,6 +1026,7 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       int pdfMovingIndex = static_cast<int>( movingImageParzenWindowIndex ) - 1;
       pdfPtr += pdfMovingIndex;
 
+      // this->m_Chronometer.Start("PW1"); // Negligible time = 3.87333e-06 sec
       for (; pdfMovingIndex <= static_cast<int>( movingImageParzenWindowIndex )
                                 + 2;
              pdfMovingIndex++, pdfPtr++ )
@@ -1038,12 +1041,14 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
           m_CubicBSplineKernel->Evaluate( movingImageParzenWindowArg ) );
 
         }  //end parzen windowing for loop
+      // this->m_Chronometer.Stop("PW1");
 
       } //end if-block check sampleOk
 
     ++nFixedImageSamples;
 
     } // end iterating over fixed image spatial sample container for loop
+  this->m_Chronometer.Stop("P1");
 
   itkDebugMacro( "Ratio of voxels mapping into moving image buffer: " 
                  << nSamples << " / " << m_NumberOfSpatialSamples 
@@ -1189,11 +1194,14 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   // Second pass: This one is done for accumulating the contributions
   //              to the derivative array.
 
+  this->m_Chronometer.Start("P2");
   nFixedImageSamples = 0;
 
   for ( fiter = m_FixedImageSamples.begin(); fiter != fend; ++fiter )
     {
+    this->m_Chronometer.Start("PI2");
 
+    this->m_Chronometer.Start("TRF");
     // Get moving image value
     MovingImagePointType mappedPoint;
     bool sampleOk;
@@ -1201,12 +1209,18 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
     this->TransformPoint( nFixedImageSamples, parameters, mappedPoint, 
                           sampleOk, movingImageValue );
+    this->m_Chronometer.Stop("TRF");
 
+    this->m_Chronometer.Start("SOK");
     if( sampleOk )
       {
+      this->m_Chronometer.Start("PCD2"); // NON Negligible time = 4.14466e-06 * 632719 / 77
       // Get moving image derivative at the mapped position
       ImageDerivativesType movingImageGradientValue;
       this->ComputeImageDerivatives( mappedPoint, movingImageGradientValue );
+      this->m_Chronometer.Stop("PCD2");
+
+      this->m_Chronometer.Start("PSC2"); // Negligible time =  1265438            0                 0
 
 
       /**
@@ -1235,6 +1249,9 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       // Move the pointer to the fist affected bin
       int pdfMovingIndex = static_cast<int>( movingImageParzenWindowIndex ) - 1;
 
+      this->m_Chronometer.Start("PSC2");
+
+      this->m_Chronometer.Start("PW2"); // Negligible time = 5.84698e-06
       for (; pdfMovingIndex <= static_cast<int>( movingImageParzenWindowIndex )
                                 + 2;
              pdfMovingIndex++ )
@@ -1258,12 +1275,16 @@ MattesNoPDFJacobianMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
 
         }  //end parzen windowing for loop
+        this->m_Chronometer.Stop("PW2");
 
       } //end if-block check sampleOk
+    this->m_Chronometer.Stop("SOK");
 
     ++nFixedImageSamples;
 
+    this->m_Chronometer.Stop("PI2");
     } // end iterating over fixed image spatial sample container for loop
+  this->m_Chronometer.Stop("P2");
 
   value = static_cast<MeasureType>( -1.0 * sum );
  
