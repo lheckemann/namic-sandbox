@@ -376,6 +376,8 @@ public:
    */
   virtual bool IsLinear() const { return false; }
 
+  unsigned int GetNumberOfAffectedWeights() const;
+
 protected:
   /** Print contents of an BSplineDeformableTransform2. */
   void PrintSelf(std::ostream &os, Indent indent) const;
