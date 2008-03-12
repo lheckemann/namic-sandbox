@@ -13,6 +13,7 @@ public:
 
   // Fast access. Allow non-unique elements.
   typedef std::vector< PairType > ContainerType;
+  typedef typename ContainerType::iterator ContainerIterator;
 
   SparseVector() : m_Container()
     {
@@ -28,7 +29,7 @@ public:
   /*
   bool IsInContainer( IndexType index )
     {
-    ContainerType::iterator iter = m_Container.find( index );
+    ContainerIterator iter = m_Container.find( index );
     if ( iter == m_Container.end() )
       {
       return false;
@@ -49,9 +50,9 @@ public:
     }
 
   template <class NonSparseVectorType>
-  void AddToNonSparse( NonSparseVectorType& inVec )
+  void AddToNonSparse( NonSparseVectorType& inVect )
     {
-    for (ContainerType::iterator iter = m_Container.begin();
+    for ( ContainerIterator iter = m_Container.begin();
           iter != m_Container.end();
           ++iter)
       {
@@ -60,9 +61,9 @@ public:
     }
 
   template <class NonSparseVectorType>
-  void AddToNonSparseWithWeight( NonSparseVectorType& inVec, double weight )
+  void AddToNonSparseWithWeight( NonSparseVectorType& inVect, double weight )
     {
-    for (ContainerType::iterator iter = m_Container.begin();
+    for (ContainerIterator iter = m_Container.begin();
           iter != m_Container.end();
           ++iter)
       {
@@ -73,7 +74,7 @@ public:
   template <class NonSparseVectorType>
   void SubtractFromNonSparse( NonSparseVectorType& inVect )
     {
-    for (ContainerType::iterator iter = m_Container.begin();
+    for (ContainerIterator iter = m_Container.begin();
           iter != m_Container.end();
           ++iter)
       {
@@ -84,7 +85,7 @@ public:
   template <class NonSparseVectorType>
   void SubtractFromNonSparseWithWeight( NonSparseVectorType& inVect, double weight )
     {
-    for (ContainerType::iterator iter = m_Container.begin();
+    for (ContainerIterator iter = m_Container.begin();
           iter != m_Container.end();
           ++iter)
       {
