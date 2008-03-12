@@ -4,12 +4,14 @@ find_package(Subversion)
 find_package(CVS)
 
 # ---------------------------------------------------------------------------
-# SLICER_CREATE_DOWNLOAD_MODULE_TARGET: Create a download module target.
+# slicer_create_download_module_target: Create a download module target.
 #
 # This function can be used to create a target to download a module
 # repository (CVS or SVN).
-# Note: you probably would want to use SLICER_CREATE_UPDATE_MODULE_TARGET
-# which will update the repository, and download it if it doesn't exist.
+#
+# Note: while one could create multiple download targets with different 
+# names, it is assumed that only one is needed; the name of this download
+# target can be later on retrieved using slicer_get_download_module_target.
 #
 # Arguments:
 # in:
@@ -18,13 +20,14 @@ find_package(CVS)
 #   dir (string): where the module should be downloaded
 # 
 # Example:
-#   SLICER_CREATE_DOWNLOAD_MODULE_TARGET(TestModule testmodule_download)
+#   slicer_create_download_module_target(TestModule testmodule_download)
 #
 # See also:
-#   SLICER_CREATE_UPDATE_MODULE_TARGET
+#   slicer_get_download_module_target
+#   slicer_create_update_module_target
 # ---------------------------------------------------------------------------
 
-function(SLICER_CREATE_DOWNLOAD_MODULE_TARGET module_varname target_name dir)
+function(slicer_create_download_module_target module_varname target_name dir)
 
   # Unknown module? Bail.
 
@@ -36,7 +39,7 @@ function(SLICER_CREATE_DOWNLOAD_MODULE_TARGET module_varname target_name dir)
 
   # Missing source location? Bye.
 
-  slicer_get_module_value(${module_varname} "SourceLocation" source_loc)
+  slicer_get_module_value(${module_varname} SourceLocation source_loc)
   if(NOT source_loc)
     message(SEND_ERROR 
       "Unknown source location for module ${module_varname}. ${err_msg}")
@@ -55,14 +58,17 @@ function(SLICER_CREATE_DOWNLOAD_MODULE_TARGET module_varname target_name dir)
       return()
     endif(NOT Subversion_FOUND)
     
-    set(args "checkout" "${source_loc}" "${dir}")
+    set(svn_args "checkout" "${source_loc}" "${dir}")
 
     add_custom_command(
       OUTPUT "${dir}/.svn/entries"
       COMMAND "${Subversion_SVN_EXECUTABLE}"
-      ARGS ${args}
+      ARGS ${svn_args}
       )
     add_custom_target(${target_name} DEPENDS "${dir}/.svn/entries")
+
+    slicer_set_module_value(
+      ${module_varname} __DownloadTarget__ ${target_name})
 
   # If CVS create a command to checkout the repository, assume it is
   # there if CVS/ sub-directory can be found.
@@ -76,33 +82,46 @@ function(SLICER_CREATE_DOWNLOAD_MODULE_TARGET module_varname target_name dir)
       return()
     endif(NOT CVS_FOUND)
 
-    slicer_get_module_value(${module_varname} "CVSModule" cvs_module)
+    slicer_get_module_value(${module_varname} CVSModule cvs_module)
     if(NOT cvs_module)
       message(SEND_ERROR 
         "Unknown CVS module for module ${module_varname}. ${err_msg}")
       return()
     endif(NOT cvs_module)
 
-    if(NOT EXISTS "${dir}")
-      file(MAKE_DIRECTORY "${dir}")
-    endif(NOT EXISTS "${dir}")
-      
-    set(args "-d" "${source_loc}" "checkout" "-d" "${dir}")
+    # Make sure the directory exists (actually only the parent needs to exist)
 
-    slicer_get_module_value(${module_varname} "CVSBranch" cvs_branch)
+    set(cmake_args "-E" "make_directory" "${dir}")
+
+    add_custom_command(
+      OUTPUT "${dir}"
+      COMMAND "${CMAKE_COMMAND}"
+      ARGS ${cmake_args}
+      )
+
+    # Checkout
+
+    set(cvs_args "-d" "${source_loc}" "checkout" "-d" "${dir}")
+
+    slicer_get_module_value(${module_varname} CVSBranch cvs_branch)
     if(cvs_branch)
-      set(args ${args} "-r" "${cvs_branch}")
+      set(cvs_args ${cvs_args} "-r" "${cvs_branch}")
     endif(cvs_branch)
 
-    set(args ${args} "${cvs_module}")
+    set(cvs_args ${cvs_args} "${cvs_module}")
 
     add_custom_command(
       OUTPUT "${dir}/CVS/Root"
+      DEPENDS "${dir}"
       COMMAND "${CVS_EXECUTABLE}"
-      ARGS ${args}
+      ARGS ${cvs_args}
       )
+
     add_custom_target(${target_name} DEPENDS "${dir}/CVS/Root")
   
+    slicer_set_module_value(
+      ${module_varname} __DownloadTarget__ ${target_name})
+
   # Don't know the repository
 
   else(type STREQUAL "svn")
@@ -110,16 +129,50 @@ function(SLICER_CREATE_DOWNLOAD_MODULE_TARGET module_varname target_name dir)
       message(SEND_ERROR "Unknown repository type. ${err_msg}")
       return()
 
+    slicer_unset_module_value(
+      ${module_varname} __DownloadTarget__)
+
   endif(type STREQUAL "svn")
 
-endfunction(SLICER_CREATE_DOWNLOAD_MODULE_TARGET)
+endfunction(slicer_create_download_module_target)
 
 # ---------------------------------------------------------------------------
-# SLICER_CREATE_UPDATE_MODULE_TARGET: Create an update module target.
+# slicer_get_download_module_target: get the name of a download module target.
+#
+# This function can be used to retrieve the name of the download target
+# associated to a module, if any.
+#
+# Arguments:
+# in:
+#   module_varname (string): variable name used to store the module values
+# out:
+#   target_varname (string): variable name to use to store the target name
+# 
+# Example:
+#   slicer_get_download_module_target(TestModule download_target_name)
+#
+# See also:
+#   slicer_create_download_module_target
+# ---------------------------------------------------------------------------
+
+function(slicer_get_download_module_target module_varname target_varname)
+
+  slicer_get_module_value(${module_varname} __DownloadTarget__ value)
+  set(${target_varname} ${value} PARENT_SCOPE)
+
+endfunction(slicer_get_download_module_target)
+
+# ---------------------------------------------------------------------------
+# slicer_create_update_module_target: Create an update module target.
 #
 # This function can be used to create a target to update a module 
 # repository (CVS or SVN).
+#
 # Note: this function does not automatically create a download target.
+#
+# Note: while one could create multiple update targets with different 
+# names, it is assumed that only one is needed; the name of this update
+# target can be later on retrieved using slicer_get_update_module_target.
 #
 # Arguments:
 # in:
@@ -128,13 +181,14 @@ endfunction(SLICER_CREATE_DOWNLOAD_MODULE_TARGET)
 #   dir (string): where the module has been downloaded/checked out
 # 
 # Example:
-#   SLICER_CREATE_UPDATE_MODULE_TARGET(TestModule testmodule_update)
+#   slicer_create_update_module_target(TestModule testmodule_update)
 #
 # See also:
-#   SLICER_CREATE_DOWNLOAD_MODULE_TARGET
+#   slicer_create_download_module_target
+#   slicer_get_update_module_target
 # ---------------------------------------------------------------------------
 
-function(SLICER_CREATE_UPDATE_MODULE_TARGET module_varname target_name dir)
+function(slicer_create_update_module_target module_varname target_name dir)
 
   # Unknown module? Bail.
 
@@ -155,13 +209,19 @@ function(SLICER_CREATE_UPDATE_MODULE_TARGET module_varname target_name dir)
       return()
     endif(NOT Subversion_FOUND)
     
-    set(args "update" "--non-interactive" "${dir}")
+    set(svn_args "update" "--non-interactive" "${dir}")
 
     add_custom_target(${target_name}
-      "${Subversion_SVN_EXECUTABLE}" ${args}
+      "${Subversion_SVN_EXECUTABLE}" ${svn_args}
       )
 
+    slicer_set_module_value(
+      ${module_varname} __UpdateTarget__ ${target_name})
+
   # If CVS create a command to update the repository.
+  # CVS can not update a specific directory, one has to chdir in the directory
+  # to update. Use the CMake command-line client in Execute mode (-E) to
+  # change to the directory, and run the CVS update command.
 
   elseif(type STREQUAL "cvs")
 
@@ -170,12 +230,15 @@ function(SLICER_CREATE_UPDATE_MODULE_TARGET module_varname target_name dir)
       return()
     endif(NOT CVS_FOUND)
 
-    set(args "-E" "chdir" "${dir}" "${CVS_EXECUTABLE}" "update" "-dP")
+    set(cmake_args "-E" "chdir" "${dir}" "${CVS_EXECUTABLE}" "update" "-dP")
 
     add_custom_target(${target_name}
-      ${CMAKE_COMMAND} ${args}
+      ${CMAKE_COMMAND} ${cmake_args}
       )
   
+    slicer_set_module_value(
+      ${module_varname} __UpdateTarget__ ${target_name})
+
   # Don't know the repository
 
   else(type STREQUAL "svn")
@@ -183,6 +246,36 @@ function(SLICER_CREATE_UPDATE_MODULE_TARGET module_varname target_name dir)
       message(SEND_ERROR "Unknown repository type. ${err_msg}")
       return()
 
+    slicer_unset_module_value(
+      ${module_varname} __UpdateTarget__)
+
   endif(type STREQUAL "svn")
 
-endfunction(SLICER_CREATE_UPDATE_MODULE_TARGET)
+endfunction(slicer_create_update_module_target)
+
+# ---------------------------------------------------------------------------
+# slicer_get_update_module_target: get the name of a update module target.
+#
+# This function can be used to retrieve the name of the update target
+# associated to a module, if any.
+#
+# Arguments:
+# in:
+#   module_varname (string): variable name used to store the module values
+# out:
+#   target_varname (string): variable name to use to store the target name
+# 
+# Example:
+#   slicer_get_update_module_target(TestModule update_target_name)
+#
+# See also:
+#   slicer_create_update_module_target
+# ---------------------------------------------------------------------------
+
+function(slicer_get_update_module_target module_varname target_varname)
+
+  slicer_get_module_value(${module_varname} __UpdateTarget__ value)
+  set(${target_varname} ${value} PARENT_SCOPE)
+
+endfunction(slicer_get_update_module_target)
+

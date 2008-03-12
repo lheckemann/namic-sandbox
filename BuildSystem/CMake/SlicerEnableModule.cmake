@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.5)
 include(SlicerSetGetModule)
 
 # ---------------------------------------------------------------------------
-# SLICER_CREATE_USE_MODULE_OPTION: Create an option to use a module.
+# slicer_create_use_module_option: Create an option to use a module.
 #
 # This function can be used to create a boolean OPTION variable to control if
 # a module should be used or not.
@@ -13,18 +13,18 @@ include(SlicerSetGetModule)
 #   option_name (string): name to use to for the option
 # 
 # Example:
-#   SLICER_CREATE_USE_MODULE_OPTION(TestModule USE_TEST_MODULE)
-#   IF(USE_TEST_MODULE)
+#   slicer_create_use_module_option(TestModule USE_TEST_MODULE)
+#   if(USE_TEST_MODULE)
 #     ...
-#   ENDIF(USE_TEST_MODULE)
+#   endif(USE_TEST_MODULE)
 #
 # See also:
-#   SLICER_GET_MODULE_VALUE
-#   SLICER_SET_MODULE_VALUE
-#   SLICER_GET_MODULE_SHORT_DESCRIPTION
+#   slicer_get_module_value
+#   slicer_set_module_value
+#   slicer_get_module_short_description
 # ---------------------------------------------------------------------------
 
-function(SLICER_CREATE_USE_MODULE_OPTION module_varname option_name)
+function(slicer_create_use_module_option module_varname option_name)
 
   # Unknown module? Bail.
 
@@ -39,4 +39,4 @@ function(SLICER_CREATE_USE_MODULE_OPTION module_varname option_name)
   slicer_get_module_short_description(${module_varname} short_desc)
   option(${option_name} "Use ${short_desc}." OFF)
 
-endfunction(SLICER_CREATE_USE_MODULE_OPTION)
+endfunction(slicer_create_use_module_option)

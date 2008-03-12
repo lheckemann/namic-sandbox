@@ -2,9 +2,12 @@ cmake_minimum_required(VERSION 2.5)
 include(SlicerSetGetModule)
 
 # ---------------------------------------------------------------------------
-# SLICER_PARSE_MODULE: Parse a module.
+# slicer_parse_module: Parse a module.
 #
 # This function parses a module and creates the corresponding key/value pairs.
+#
+# Note: the list of modules that have been parsed so far can be retrieved
+# using slicer_get_parsed_modules_list
 #
 # Arguments:
 # in:
@@ -14,15 +17,16 @@ include(SlicerSetGetModule)
 # 
 # Example:
 #   SET(module_contents "<Name>TestModule</Name><Group>Segmentation</Group>")
-#   SLICER_PARSE_MODULE("${module_contents}" TestModule)
-#   SLICER_GET_MODULE_VALUE(TestModule "Name" name)
-#   MESSAGE("Module name: ${name}")
+#   slicer_parse_module("${module_contents}" TestModule)
+#   slicer_get_module_value(TestModule Name name)
+#   message("Module name: ${name}")
 #
 # See also:
-#   SLICER_PARSE_MODULE_FILE
+#   slicer_parse_module_file
+#   slicer_get_parsed_modules_list
 # ---------------------------------------------------------------------------
 
-function(SLICER_PARSE_MODULE module_contents module_varname)
+function(slicer_parse_module module_contents module_varname)
   
   # The XML elements to parse
   # This doesn't take into account any attributes at the moment
@@ -58,20 +62,31 @@ function(SLICER_PARSE_MODULE module_contents module_varname)
       if(CMAKE_MATCH_1)
         slicer_get_module_value(${module_varname} ${elem} var)
         set(var ${var} "${CMAKE_MATCH_1}")
-        slicer_set_module_value(${module_varname} ${elem} "${var}")
+        slicer_set_module_value(${module_varname} ${elem} ${var})
       endif(CMAKE_MATCH_1)
     endforeach(match)
   endforeach(elem)
 
-endfunction(SLICER_PARSE_MODULE)
+  # Keep track of the modules parsed so far
+
+  slicer_get_module_value(__Meta__ ParsedModules parsed_modules)
+  set(parsed_modules ${parsed_modules} ${module_varname})
+  list(REMOVE_DUPLICATES parsed_modules)
+  slicer_set_module_value(__Meta__ ParsedModules ${parsed_modules})
+
+endfunction(slicer_parse_module)
 
 # ---------------------------------------------------------------------------
-# SLICER_PARSE_MODULE_FILE: Load and parse a module.
+# slicer_parse_module_file: Load and parse a module.
 #
 # This function loads a module into a variable and parse its contents by calling
-# the SLICER_PARSE_MODULE function.
+# the slicer_parse_module function.
+#
 # Note: the file name can be a directory, say /home/foo/module1, in that case
 # this function will try to read /home/foo/module1/module1.xml
+#
+# Note: the list of modules that have been parsed so far can be retrieved
+# using slicer_get_parsed_modules_list
 #
 # Arguments:
 # in:
@@ -80,15 +95,16 @@ endfunction(SLICER_PARSE_MODULE)
 #   module_varname (string): variable name to use to store the module values
 # 
 # Example:
-#   SLICER_PARSE_MODULE_FILE("TestModule.xml" TestModule)
-#   SLICER_GET_MODULE_VALUE(TestModule "Name" name)
-#   MESSAGE("Module name: ${name}")
+#   slicer_parse_module_file("TestModule.xml" TestModule)
+#   slicer_get_module_value(TestModule Name name)
+#   message("Module name: ${name}")
 #
 # See also:
-#   SLICER_PARSE_MODULE
+#   slicer_parse_module
+#   slicer_get_parsed_modules_list
 # ---------------------------------------------------------------------------
 
-function(SLICER_PARSE_MODULE_FILE module_filename module_varname)
+function(slicer_parse_module_file module_filename module_varname)
 
   # If filename is a directory, try to look for a XML file inside it with
   # the same name as the directory...
@@ -110,4 +126,32 @@ function(SLICER_PARSE_MODULE_FILE module_filename module_varname)
   file(READ "${module_filename}" module_contents)
   slicer_parse_module("${module_contents}" ${module_varname})
 
-endfunction(SLICER_PARSE_MODULE_FILE)
+endfunction(slicer_parse_module_file)
+
+# ---------------------------------------------------------------------------
+# slicer_get_parsed_modules_list: Parse a module.
+#
+# This function can be used to retrieve the list of modules that have
+# been parsed so far.
+#
+# Arguments:
+# out:
+#   list_varname (string): variable name to use to store the modules list
+# 
+# Example:
+#   slicer_parse_module_file("TestModule.xml" TestModule)
+#   slicer_parse_module_file("TestModule2.xml" TestModule2)
+#   slicer_get_parsed_modules_list(modules_list)
+#
+# See also:
+#   slicer_parse_module
+#   slicer_parse_module_file
+# ---------------------------------------------------------------------------
+
+function(slicer_get_parsed_modules_list list_varname)
+
+  slicer_get_module_value(__Meta__ ParsedModules value)
+  set(${list_varname} ${value} PARENT_SCOPE)
+  
+endfunction(slicer_get_parsed_modules_list)
+
