@@ -25,9 +25,9 @@ include(SlicerDownloadModule)
 slicer_parse_module_file(
   "${SLICER_TEST_MODULES_PATH}/TestModule1/TestModule1.xml" TestModule1)
 
-slicer_get_module_value(TestModule1 "Name" name)
-slicer_get_module_value(TestModule1 "Dependency" deps)
-slicer_get_module_value(TestModule1 "Author" authors)
+slicer_get_module_value(TestModule1 Name name)
+slicer_get_module_value(TestModule1 Dependency deps)
+slicer_get_module_value(TestModule1 Author authors)
 
 #MESSAGE("Name: ${name}")
 #MESSAGE("Dependency: ${deps}")
@@ -40,8 +40,10 @@ slicer_create_update_module_target(TestModule1 M1_update "${CMAKE_CURRENT_BINARY
 
 # Another one
 
-slicer_parse_module_file(
-  "${SLICER_TEST_MODULES_PATH}/TestModule2/" TestModule2)
+slicer_parse_module_file("${SLICER_TEST_MODULES_PATH}/TestModule2/" TestModule2)
 
 slicer_create_download_module_target(TestModule2 M2_download "${CMAKE_CURRENT_BINARY_DIR}/Modules/TestModule2")
 slicer_create_update_module_target(TestModule2 M2_update "${CMAKE_CURRENT_BINARY_DIR}/Modules/TestModule2")
+
+#slicer_get_parsed_modules_list(foo)
+#message("list: ${foo}")

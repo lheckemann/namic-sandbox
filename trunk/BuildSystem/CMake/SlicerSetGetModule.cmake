@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.5)
 
 # ---------------------------------------------------------------------------
-# SLICER_SET_MODULE_VALUE: Set a module value.
+# slicer_set_module_value: Set a module value.
 #
 # This function can be used to set a module value without worrying too much
 # about the underlying data structure. 
@@ -9,27 +9,28 @@ cmake_minimum_required(VERSION 2.5)
 #
 # Arguments:
 # in:
-#   key (string): key
-#   value (string): value
+#   key (string): key (no spaces, should be similar to a variable name)
+#   value (string): value (or list of values)
 # in/out:
 #   module_varname (string): variable name to use to store the module value
 # 
 # Example:
-#   SLICER_SET_MODULE_VALUE(TestModule "Author" "John Doe")
+#   slicer_set_module_value(TestModule Author "John Doe")
+#   slicer_set_module_value(TestModule MyList Elem1 Elem2 Elem3)
 #
 # See also:
-#   SLICER_GET_MODULE_VALUE
-#   SLICER_UNSET_MODULE_VALUE
+#   slicer_get_module_value
+#   slicer_unset_module_value
 # ---------------------------------------------------------------------------
 
-function(SLICER_SET_MODULE_VALUE module_varname key value)
+function(slicer_set_module_value module_varname key)
   
-  set_property(GLOBAL PROPERTY "_${module_varname}_${key}" ${value})
+  set_property(GLOBAL PROPERTY "_${module_varname}_${key}" ${ARGN})
 
-endfunction(SLICER_SET_MODULE_VALUE)
+endfunction(slicer_set_module_value)
 
 # ---------------------------------------------------------------------------
-# SLICER_GET_MODULE_VALUE: Get a module value.
+# slicer_get_module_value: Get a module value.
 #
 # This function can be used to retrieve a module value without worrying too much
 # about the underlying data structure. 
@@ -44,15 +45,15 @@ endfunction(SLICER_SET_MODULE_VALUE)
 #   value_varname (string): variable name to use to store the specific value
 # 
 # Example:
-#   SLICER_GET_MODULE_VALUE(TestModule "Author" authors)
-#   MESSAGE("Author(s): ${author}")
+#   slicer_get_module_value(TestModule Author authors)
+#   message("Author(s): ${author}")
 #
 # See also:
-#   SLICER_SET_MODULE_VALUE
-#   SLICER_UNSET_MODULE_VALUE
+#   slicer_set_module_value
+#   slicer_unset_module_value
 # ---------------------------------------------------------------------------
 
-function(SLICER_GET_MODULE_VALUE module_varname key value_varname)
+function(slicer_get_module_value module_varname key value_varname)
 
   get_property(defined GLOBAL PROPERTY "_${module_varname}_${key}" DEFINED)
 
@@ -63,10 +64,10 @@ function(SLICER_GET_MODULE_VALUE module_varname key value_varname)
     set(${value_varname} PARENT_SCOPE)
   endif(defined)
 
-endfunction(SLICER_GET_MODULE_VALUE)
+endfunction(slicer_get_module_value)
 
 # ---------------------------------------------------------------------------
-# SLICER_UNSET_MODULE_VALUE: unset a module value.
+# slicer_unset_module_value: unset a module value.
 #
 # This function can be used to unset a module value without worrying too much
 # about the underlying data structure. 
@@ -79,21 +80,22 @@ endfunction(SLICER_GET_MODULE_VALUE)
 #   module_varname (string): variable name used to store the module values
 # 
 # Example:
-#   SLICER_UNSET_MODULE_VALUE(TestModule "Author")
+#   slicer_unset_module_value(TestModule "Author")
 #
 # See also:
-#   SLICER_GET_MODULE_VALUE
-#   SLICER_SET_MODULE_VALUE
+#   slicer_get_module_value
+#   slicer_set_module_value
 # ---------------------------------------------------------------------------
 
-function(SLICER_UNSET_MODULE_VALUE module_varname key)
-  
+function(slicer_unset_module_value module_varname key)
+ 
+  # until Ken gets one 
   set_property(GLOBAL PROPERTY "_${module_varname}_${key}")
 
-endfunction(SLICER_UNSET_MODULE_VALUE)
+endfunction(slicer_unset_module_value)
 
 # ---------------------------------------------------------------------------
-# SLICER_IS_MODULE_UNKNOWN: check if a module is unknown.
+# slicer_is_module_unknown: check if a module is unknown.
 #
 # This function can be used to check if a module is unknown, i.e. if
 # some of its core values are not in memory (most likely the module name was
@@ -110,16 +112,16 @@ endfunction(SLICER_UNSET_MODULE_VALUE)
 #   error_msg (string): optional error message
 # 
 # Example:
-#   SLICER_IS_MODULE_UNKNOWN(TestModule unknown "Can't do that!")
+#   slicer_is_module_unknown(TestModule unknown "Can't do that!")
 #
 # See also:
-#   SLICER_GET_MODULE_VALUE
-#   SLICER_SET_MODULE_VALUE
+#   slicer_get_module_value
+#   slicer_set_module_value
 # ---------------------------------------------------------------------------
 
-function(SLICER_IS_MODULE_UNKNOWN module_varname bool_varname)
+function(slicer_is_module_unknown module_varname bool_varname)
   
-  slicer_get_module_value(${module_varname} "Name" name)
+  slicer_get_module_value(${module_varname} Name name)
   if(NOT name)
     set(${bool_varname} 1 PARENT_SCOPE)
     if(ARGN)
@@ -129,10 +131,10 @@ function(SLICER_IS_MODULE_UNKNOWN module_varname bool_varname)
     set(${bool_varname} 0 PARENT_SCOPE)
   endif(NOT name)
 
-endfunction(SLICER_IS_MODULE_UNKNOWN)
+endfunction(slicer_is_module_unknown)
 
 # ---------------------------------------------------------------------------
-# SLICER_GET_MODULE_SHORT_DESCRIPTION: Get a module short description.
+# slicer_get_module_short_description: Get a module short description.
 #
 # This function uses the module variables to create a short module description.
 #
@@ -143,15 +145,15 @@ endfunction(SLICER_IS_MODULE_UNKNOWN)
 #   desc_varname (string): variable name to use to store the short description
 # 
 # Example:
-#   SLICER_GET_MODULE_SHORT_DESCRIPTION(TestModule desc)
-#   MESSAGE("TestModule Short Description: ${desc}")
+#   slicer_get_module_short_description(TestModule desc)
+#   message("TestModule Short Description: ${desc}")
 #
 # See also:
-#   SLICER_GET_MODULE_VALUE
-#   SLICER_SET_MODULE_VALUE
+#   slicer_get_module_value
+#   slicer_set_module_value
 # ---------------------------------------------------------------------------
 
-function(SLICER_GET_MODULE_SHORT_DESCRIPTION module_varname desc_varname)
+function(slicer_get_module_short_description module_varname desc_varname)
 
   # Unknown module? Bail.
 
@@ -163,34 +165,34 @@ function(SLICER_GET_MODULE_SHORT_DESCRIPTION module_varname desc_varname)
 
   # Create the short description by assembling various values
 
-  slicer_get_module_value(${module_varname} "Name" name)
+  slicer_get_module_value(${module_varname} Name name)
   if(name)
     set(short_desc "${name}")
   endif(name)
 
-  slicer_get_module_value(${module_varname} "Version" version)
+  slicer_get_module_value(${module_varname} Version version)
   if(version)
     set(short_desc "${short_desc} ${version}")
   endif(version)
 
-  slicer_get_module_value(${module_varname} "Author" authors)
+  slicer_get_module_value(${module_varname} Author authors)
   if(authors)
     set(short_desc "${short_desc} (${authors})")
   endif(authors)
 
   set(short_desc "${short_desc}.")
 
-  slicer_get_module_value(${module_varname} "Description" desc)
+  slicer_get_module_value(${module_varname} Description desc)
   if(desc)
     set(short_desc "${short_desc} ${desc}")
   endif(desc)
 
   set(${desc_varname} ${short_desc} PARENT_SCOPE)
 
-endfunction(SLICER_GET_MODULE_SHORT_DESCRIPTION)
+endfunction(slicer_get_module_short_description)
 
 # ---------------------------------------------------------------------------
-# SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE: Get a module source repository type.
+# slicer_get_module_source_repository_type: Get a module source repository type.
 #
 # This function can be used to retrieve the type of source repository the 
 # module is using.
@@ -203,17 +205,17 @@ endfunction(SLICER_GET_MODULE_SHORT_DESCRIPTION)
 #   type_varname (string): variable name to use to store the type
 # 
 # Example:
-#   SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE(TestModule type)
-#   IF(type STREQUAL "svn")
+#   slicer_get_module_source_repository_type(TestModule type)
+#   if(type STREQUAL "svn")
 #     ...
-#   ENDIF(type STREQUAL "svn")
+#   endif(type STREQUAL "svn")
 #
 # See also:
-#   SLICER_GET_MODULE_VALUE
-#   SLICER_SET_MODULE_VALUE
+#   slicer_get_module_value
+#   slicer_set_module_value
 # ---------------------------------------------------------------------------
 
-function(SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE module_varname type_varname)
+function(slicer_get_module_source_repository_type module_varname type_varname)
 
   # Unknown module? Bail.
 
@@ -225,7 +227,7 @@ function(SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE module_varname type_varname)
 
   # Parse the SourceLocation for some hings about the repository type
 
-  slicer_get_module_value(${module_varname} "SourceLocation" source_loc)
+  slicer_get_module_value(${module_varname} SourceLocation source_loc)
   if(source_loc)
     string(REGEX MATCH "^http://.+$" found_svn "${source_loc}")
     if(found_svn)
@@ -240,4 +242,4 @@ function(SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE module_varname type_varname)
     set(${type_varname} PARENT_SCOPE)
   endif(source_loc)
 
-endfunction(SLICER_GET_MODULE_SOURCE_REPOSITORY_TYPE)
+endfunction(slicer_get_module_source_repository_type)
