@@ -977,6 +977,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   unsigned long nSamples=0;
   unsigned long nFixedImageSamples=0;
 
+  this->m_Chronometer.Start("P1");
   for ( fiter = m_FixedImageSamples.begin(); fiter != fend; ++fiter )
     {
 
@@ -1079,6 +1080,7 @@ MattesMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     ++nFixedImageSamples;
 
     } // end iterating over fixed image spatial sample container for loop
+  this->m_Chronometer.Stop("P1");
 
   itkDebugMacro( "Ratio of voxels mapping into moving image buffer: " 
                  << nSamples << " / " << m_NumberOfSpatialSamples 
