@@ -29,6 +29,7 @@
 void RegisterTests()
 {
   REGISTER_TEST(ImageRegistration13Test);
+  REGISTER_TEST(ImageRegistration13TestITKCVS);
   REGISTER_TEST(ImageRegistration13TestNoPDFJacobian);
   REGISTER_TEST(ImageRegistration13TestNoCaching);
   REGISTER_TEST(MultiResImageRegistration2Test);
