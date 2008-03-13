@@ -326,15 +326,11 @@ private:
                                                      const MovingImagePointType& mappedPoint,
                                                      DerivativeType& ) const;
 
-  /*
-  bool m_TransformParametersHaveLocalInfluence;
-  */
   mutable bool m_TransformIsBSpline;
 
   // Bspline optimization
   // Get nonzero indexex
   int m_NumberOfWeights;
-  //mutable Array<unsigned long> m_JacobianIndexes;
   long unsigned int m_NumberOfParametersPerdimension;
 
   ParametersType m_Indexes; // Holds nonzeros indexes of Bspline derivatives
@@ -346,17 +342,14 @@ private:
   void GetValueAndDerivativeMultiThreadedInternalPhase2( unsigned int threadID ) const;
   void GetValueAndDerivativeMultiThreadedInternalPhase2Combine( DerivativeType& derivative ) const;
 
-  // DerivativeType* m_Derivative;
-
-  /*
-  typedef std::vector< DerivativeType > DerivativePartialResultsType;
-  mutable DerivativePartialResultsType m_DerivativePartialResult;
-  mutable DerivativePartialResultsType m_DerivativeBPartialResult;
-  mutable DerivativePartialResultsType m_TotalWeightPartialResult;
-  */
-
   typedef std::vector< double > WeightPartialResultType;
+  // Maybe should make const_iterator
+  typedef WeightPartialResultType::iterator WeightPartialResultIterator;
+  typedef std::vector< WeightPartialResultIterator > WeightIteratorContainerType;
+  
   mutable std::vector< WeightPartialResultType > m_TotalWeightBSamplePartialResult;
+  mutable WeightIteratorContainerType m_TotalWeightPhase3StartIterators;
+  mutable WeightIteratorContainerType m_TotalWeightPhase3EndIterators;
 
   void SetupDerivativePartialResults() const;
 
@@ -379,8 +372,9 @@ private:
   void SetupThreadTransforms() const;
   void SynchronizeTransforms() const;
 
-  //mutable TransformType** m_ThreaderTransform;
   mutable TransformPointer* m_TransformArray;
+public:
+  bool CompareDerivatives( ParametersType& parameters );
 };
 
 } // end namespace itk

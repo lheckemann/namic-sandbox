@@ -29,7 +29,7 @@
 // of multiple threads and instead call the thread
 // callback functions for each threadID, one after
 // the other.
-//#define SYNCHRONOUS_COMPUTATION
+#define SYNCHRONOUS_COMPUTATION
 
 namespace itk
 {
@@ -497,7 +497,9 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   SamplesConstIterator bstart = m_SampleBStartIterators[threadID];
   SamplesConstIterator bend   = m_SampleBEndIterators[threadID];
 
-  for( biter = bstart ; biter != bend; ++biter )
+  unsigned int bSampleCount = 0;
+
+  for( biter = bstart ; biter != bend; ++biter,++bSampleCount )
     {
     double dSumFixed  = m_MinProbability;
     double dSumMoving     = m_MinProbability;
@@ -527,11 +529,17 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       } // end of sample A loop
 
     // Log must be done later since log(A + B) neq log(A) + log(B).
+#if 0
     std::cout << " FIX PUSH_BACK in GetValueMultiThreadedInternal " << std::endl;
     m_SumFixedPartialAResults[threadID].push_back( dSumFixed );
     m_SumMovingPartialAResults[threadID].push_back( dSumMoving );
     m_SumJointPartialAResults[threadID].push_back( dSumJoint );
-
+#else
+    std::cout << " Make sure partial results are pre allocated in GetValueMultiThreadedInternal " << std::endl;
+    m_SumFixedPartialAResults[threadID][bSampleCount] = dSumFixed ;
+    m_SumMovingPartialAResults[threadID][bSampleCount] = dSumMoving;
+    m_SumJointPartialAResults[threadID][bSampleCount] = dSumJoint;
+#endif
     } // end of sample B loop
 
   return;
@@ -611,6 +619,8 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     (*aditer) = tempDeriv;
     }
 
+  std::ofstream output("default_weights.txt", std::ios::app);
+  output << "---------" << std::endl;
 
   DerivativeType derivB(numberOfParameters);
 
@@ -681,6 +691,8 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
       weight = ( weightMoving - weightJoint );
       weight *= (*biter).MovingImageValue - (*aiter).MovingImageValue;
+
+      output << weight << std::endl;
 
       totalWeight += weight;
       derivative -= (*aditer) * weight;
@@ -1512,6 +1524,11 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     std::cerr << "Partial result size error after phase 3" << std::endl;
     }
 
+  double nsamp   = double( m_NumberOfSpatialSamples );
+
+  derivative  /= nsamp;
+  derivative  /= vnl_math_sqr( m_MovingImageStandardDeviation );
+
 }
 
 template < class TFixedImage, class TMovingImage  >
@@ -1618,11 +1635,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       } // end of sample A loop
 
     // Cache results across threads.
-    /*
-    m_SumFixedPartialAResults[threadID].push_back( dSumFixed );
-    m_SumMovingPartialAResults[threadID].push_back( dDenominatorMoving );
-    m_SumJointPartialAResults[threadID].push_back( dDenominatorJoint );
-    */
     m_SumFixedPartialAResults[threadID][bSampleCount] = dSumFixed ;
     m_SumMovingPartialAResults[threadID][bSampleCount] = dDenominatorMoving;
     m_SumJointPartialAResults[threadID][bSampleCount] = dDenominatorJoint;
@@ -1655,6 +1667,8 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       m_SumJointPartialAResults[0][bSample]  += m_SumJointPartialAResults[thread][bSample];
       }
     }
+
+  /** The remaining part below is needed to compute the value of the metric. */
 
   //
   // We've combined across threads. Now we need to combine across the bsamples, as in 
@@ -1835,8 +1849,13 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   // alway dereference.
   DerivativeType& threadDerivative = this->m_ThreadDerivatives[ threadID ];
 
+  std::ofstream output("thread_weights.txt", std::ios::app);
+  output << "----" << threadID << "-----" << std::endl;
+
   unsigned int bSampleCount = 0;
-  for( biter = bstart; biter != bend; ++biter, ++miter, ++jiter, ++bSampleCount )
+  for( biter = bstart; 
+        biter != bend; 
+        ++biter, ++miter, ++jiter, ++bSampleCount )
     {
     double totalWeight = 0.0;
 
@@ -1870,6 +1889,8 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       weight = ( weightMoving - weightJoint );
       weight *= (*biter).MovingImageValue - (*aiter).MovingImageValue;
 
+      output << weight << std::endl;
+
       totalWeight += weight;
 
       this->CalculateDerivativesThreaded( (*aiter).FixedImagePointValue, 
@@ -1886,7 +1907,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
       } // end of sample A loop
 
-    // THREAD: Cache totalWeight per b-sample totalWeight is summed over all 
+    // THREAD: Cache totalWeight per b-sample. totalWeight is summed over all 
     //         A samples, so one totalWeight per B sample per thread. 
     //         Need to combine over threads later.
     this->m_TotalWeightBSamplePartialResult[ threadID ][bSampleCount] = totalWeight;
@@ -1948,6 +1969,9 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 {
   this->m_SampleBPhase3StartIterators.resize( this->m_NumberOfThreads );
   this->m_SampleBPhase3EndIterators.resize( this->m_NumberOfThreads );
+  
+  this->m_TotalWeightPhase3StartIterators.resize( this->m_NumberOfThreads );
+  this->m_TotalWeightPhase3EndIterators.resize( this->m_NumberOfThreads );
 
   // Setup the sample iterators for each thread.
   unsigned int samplesPerThread  = static_cast< unsigned int >( 
@@ -1963,6 +1987,9 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     {
     this->m_SampleBPhase3StartIterators[t] = m_SampleB.begin() + t * samplesPerThread;
     this->m_SampleBPhase3EndIterators[t]   = m_SampleB.begin() + (t + 1) * samplesPerThread;
+
+    this->m_TotalWeightPhase3StartIterators[t] = this->m_TotalWeightBSamplePartialResult[0].begin() + t * samplesPerThread;
+    this->m_TotalWeightPhase3EndIterators[t]   = this->m_TotalWeightBSamplePartialResult[0].begin() + (t + 1) * samplesPerThread;
     }
 
   //  Set the iterators for the last thread. Last thread 
@@ -1970,6 +1997,9 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   // number of threads.
   this->m_SampleBPhase3StartIterators[m_NumberOfThreads - 1] = m_SampleB.begin() + (m_NumberOfThreads - 1) * samplesPerThread;
   this->m_SampleBPhase3EndIterators[m_NumberOfThreads - 1] = m_SampleB.begin() + (m_NumberOfThreads - 1) * samplesPerThread + lastThreadSamples;
+
+  this->m_TotalWeightPhase3StartIterators[m_NumberOfThreads - 1] = this->m_TotalWeightBSamplePartialResult[0].begin() + (m_NumberOfThreads - 1) * samplesPerThread;
+  this->m_TotalWeightPhase3EndIterators[m_NumberOfThreads - 1]   = this->m_TotalWeightBSamplePartialResult[0].begin() + (m_NumberOfThreads - 1) * samplesPerThread + lastThreadSamples;
 
 }
 
@@ -1979,7 +2009,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::GetValueAndDerivativeMultiThreadedInternalPhase3( unsigned int threadID ) const
 {
   std::stringstream msg;
-  msg << "Phase 1 - thread " << threadID << "\n";
+  msg << "Phase 3 - thread " << threadID << "\n";
   std::cout << msg.str();
 
   memset( this->m_ThreadDerivatives[threadID].data_block(),
@@ -1998,9 +2028,19 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   SamplesConstIterator bstart = this->m_SampleBPhase3StartIterators[threadID];
   SamplesConstIterator bend   = this->m_SampleBPhase3EndIterators[threadID];
 
-  std::vector<double>::iterator twiter = this->m_TotalWeightBSamplePartialResult[ threadID ].begin();
+  WeightPartialResultIterator twiter;
+  WeightPartialResultIterator twstart = this->m_TotalWeightPhase3StartIterators[threadID];
+  WeightPartialResultIterator twend   = this->m_TotalWeightPhase3EndIterators[threadID];
 
-  for( biter = bstart; biter != bend; ++biter, ++twiter )
+  // All totalWeights per bsample are combined into the partial result at thread 0.
+  // std::vector<double>::iterator twiter = this->m_TotalWeightBSamplePartialResult[ 0 ].begin();
+
+  // !!!!! FIXME - totalWeight needs to match where we are in the bSample array, not start from 
+  // the beginning !!!!
+  twiter = twstart;
+  biter = bstart;
+
+  for( ; biter != bend && twiter != twend; ++biter, ++twiter )
     {
     // get the image derivative for this B sample
     this->CalculateDerivativesThreaded( (*biter).FixedImagePointValue, 
@@ -2011,7 +2051,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     // totalWeight is summed over all A samples, so one totalWeight per B sample
     
     double totalWeight = *twiter;
-    //this->m_ThreadDerivatives[ threadID ] += derivB * totalWeight;
+
     threadDerivatives += derivB * totalWeight;
     }
 
@@ -2187,7 +2227,66 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     }
 }
 
+template < class TFixedImage, class TMovingImage  >
+bool
+MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+::CompareDerivatives( ParametersType& parameters )
+{
+  // make sure the transform has the current parameters
+  this->m_Transform->SetParameters( parameters );
+  this->SetupThreadTransforms();
+  this->SynchronizeTransforms();
 
+  // set the DerivativeCalculator
+  m_DerivativeCalculator->SetInputImage( this->m_MovingImage );
+
+  // collect sample set A
+  this->SampleFixedImageDomain( m_SampleA );
+
+  // collect sample set B
+  this->SampleFixedImageDomain( m_SampleB );
+
+  unsigned int numberOfParameters = this->m_Transform->GetNumberOfParameters();
+
+  DerivativeType derivA( numberOfParameters );
+  DerivativeType derivB( numberOfParameters );
+  DerivativeType derivAThread( numberOfParameters );
+  DerivativeType derivBThread( numberOfParameters );
+
+  SamplesConstIterator aiter;
+  SamplesConstIterator aend = m_SampleA.end();
+  SamplesConstIterator biter;
+  SamplesConstIterator bend = m_SampleB.end();
+
+  for( biter = m_SampleB.begin(); biter != bend; ++biter )
+    {
+    this->CalculateDerivatives( (*biter).FixedImagePointValue, derivB );
+    this->CalculateDerivativesThreaded( (*biter).FixedImagePointValue, 
+                                        (*biter).MovingImagePointValue, 
+                                        derivBThread,
+                                        1 );
+    if ( derivB != derivBThread )
+      {
+      return false;
+      }
+    } // B samples
+
+  for ( aiter = m_SampleA.begin(); aiter != aend; ++aiter )
+    {
+    this->CalculateDerivatives( (*aiter).FixedImagePointValue, derivA );
+    this->CalculateDerivativesThreaded( (*aiter).FixedImagePointValue, 
+                                        (*aiter).MovingImagePointValue, 
+                                        derivAThread,
+                                        1 );
+
+    if ( derivA != derivAThread )
+      {
+      return false;
+      }
+    } // A samples
+
+  return true;
+}
 
 } // end namespace itk
 
