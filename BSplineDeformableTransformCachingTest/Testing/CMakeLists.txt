@@ -47,6 +47,16 @@ ADD_TEST(ImageRegistration13Test ${REGISTRATION_EXAMPLES}
         ${TEMP}/ImageRegistration13Test.png
 )
 
+ADD_TEST(ImageRegistration13TestITKCVS ${REGISTRATION_EXAMPLES}
+  --compare ${BASELINE}/ImageRegistration13Test.png
+            ${TEMP}/ImageRegistration13TestITKCVS.png
+  ImageRegistration13TestITKCVS
+        ${ITK_SOURCE_DIR}/Examples/Data/BrainProtonDensitySliceBorder20.png
+        ${ITK_SOURCE_DIR}/Examples/Data/BrainProtonDensitySliceR10X13Y17.png
+        ${TEMP}/ImageRegistration13TestITKCVS.png
+)
+
+
 ADD_TEST(ImageRegistration13TestNoPDFJacobian ${REGISTRATION_EXAMPLES}
   --compare ${BASELINE}/ImageRegistration13Test.png
             ${TEMP}/ImageRegistration13TestNoPDFJacobian.png

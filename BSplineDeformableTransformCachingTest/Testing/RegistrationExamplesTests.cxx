@@ -42,6 +42,14 @@ void RegisterTests()
 #include "ImageRegistration13.cxx"
 
 #undef main
+#define MattesInITKCVS
+#define main  ImageRegistration13TestITKCVS
+#undef CommandIterationUpdate
+#define CommandIterationUpdate CommandIterationUpdate13ITKCVS
+#include "ImageRegistration13.cxx"
+#undef MattesInITKCVS
+
+#undef main
 #define MattesNoPDFJacobian
 #define main  ImageRegistration13TestNoPDFJacobian
 #undef CommandIterationUpdate
