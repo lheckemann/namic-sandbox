@@ -42,7 +42,11 @@
 #if defined(MattesNoCaching)
 #include "itkMattesNoCachingMutualInformationImageToImageMetric.h"
 #else
+#if defined(MattesInITKCVS)
+#include "itkMattesMutualInformationImageToImageMetric.h"
+#else
 #include "itkMattesMutualInformationImageToImageMetric2.h"
+#endif
 #endif
 #endif
 // Software Guide : EndCodeSnippet
