@@ -4,7 +4,7 @@ find_package(Subversion)
 find_package(CVS)
 
 # ---------------------------------------------------------------------------
-# slicer_create_download_module_target: Create a download module target.
+# slicer_create_download_module_target: create a download module target.
 #
 # This function can be used to create a target to download a module
 # repository (CVS or SVN).
@@ -173,7 +173,7 @@ function(slicer_get_download_module_target module_varname target_varname)
 endfunction(slicer_get_download_module_target)
 
 # ---------------------------------------------------------------------------
-# slicer_create_update_module_target: Create an update module target.
+# slicer_create_update_module_target: create an update module target.
 #
 # This function can be used to create a target to update a module 
 # repository (CVS or SVN).
@@ -184,8 +184,8 @@ endfunction(slicer_get_download_module_target)
 #
 # Note: this function does not automatically create a download target. This
 # can however be done using the add_dependencies() command; the name of
-# the download target itself, if any for that module, can be retrieved using
-# slicer_get_download_module_target.
+# the download target itself, if any for that module, can be retrieved
+# using slicer_get_download_module_target.
 #
 # Arguments:
 # in:
@@ -303,8 +303,7 @@ function(slicer_get_update_module_target module_varname target_varname)
 endfunction(slicer_get_update_module_target)
 
 # ---------------------------------------------------------------------------
-# slicer_create_download_and_update_modules_targets: 
-#                  create download and update targets for all known modules.
+# slicer_create_download_and_update_modules_targets: create download and update targets for all known modules.
 #
 # This function can be used to create and connect both download and update
 # targets for all known modules.
@@ -318,8 +317,8 @@ endfunction(slicer_get_update_module_target)
 # Each module's update target will depend on the module's download target
 # so that downloading occurs automatically when the repository is not found.
 #
-# A unique "download" and "update" target will be created that will
-# depend on all modules download and update targets (respectively).
+# A unique "download_modules" and "update_modules" target will be created
+# that will depend on all modules download and update targets (respectively).
 #
 # Each module is downloaded/checked out in its own sub-directory, named after
 # the module's name.
@@ -339,8 +338,11 @@ function(slicer_create_download_and_update_modules_targets dir)
 
   # Create the global download and update targets
 
-  add_custom_target(download)
-  add_custom_target(update)
+  set(download_modules_target download_modules)
+  add_custom_target(${download_modules_target})
+
+  set(update_modules_target update_modules)
+  add_custom_target(${update_modules_target})
 
   # Retrieve all the modules parsed so far and iterate
 
@@ -356,7 +358,7 @@ function(slicer_create_download_and_update_modules_targets dir)
       slicer_create_download_module_target(
         ${module} ${download_target} "${dir}/${module}")
     endif(NOT download_target)
-    add_dependencies(download ${download_target})
+    add_dependencies(${download_modules_target} ${download_target})
 
     # Find and/or create update target
     
@@ -366,7 +368,7 @@ function(slicer_create_download_and_update_modules_targets dir)
       slicer_create_update_module_target(
         ${module} ${update_target} "${dir}/${module}")
     endif(NOT update_target)
-    add_dependencies(update ${update_target})
+    add_dependencies(${update_modules_target} ${update_target})
 
     # Attach download to update
 

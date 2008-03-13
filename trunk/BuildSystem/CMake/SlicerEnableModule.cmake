@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.5)
 include(SlicerSetGetModule)
 
 # ---------------------------------------------------------------------------
-# slicer_create_use_module_option: Create an option to use a module.
+# slicer_create_use_module_option: create an option to use a module.
 #
 # This function can be used to create a boolean OPTION variable to control if
 # a module should be used or not.
