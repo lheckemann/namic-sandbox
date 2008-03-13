@@ -13,6 +13,7 @@ mark_as_advanced(
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 set(SLICER_TEST_MODULES_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Modules")
+set(SLICER_MODULES_SOURCE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Sources")
 
 # Bring the macros
 
@@ -20,30 +21,28 @@ include(SlicerParseModule)
 include(SlicerEnableModule)
 include(SlicerDownloadModule)
 
-# Parse a module
+# Parse core modules
 
-slicer_parse_module_file(
-  "${SLICER_TEST_MODULES_PATH}/TestModule1/TestModule1.xml" TestModule1)
+foreach(module ITK KWWidgets Slicer3 Teem VTK)
+  slicer_parse_module_file("${SLICER_TEST_MODULES_PATH}/${module}")
+endforeach(module)
 
-slicer_get_module_value(TestModule1 Name name)
-slicer_get_module_value(TestModule1 Dependency deps)
-slicer_get_module_value(TestModule1 Author authors)
+# Parse test modules
 
-#MESSAGE("Name: ${name}")
-#MESSAGE("Dependency: ${deps}")
-#MESSAGE("Author: ${authors}")
+slicer_parse_module_file("${SLICER_TEST_MODULES_PATH}/TestModule1")
 
-slicer_create_use_module_option(TestModule1 USE_TESTMODULE1)
+#slicer_get_module_value(TestModule1 Name name)
+#slicer_get_module_value(TestModule1 Dependency deps)
+#slicer_get_module_value(TestModule1 Author authors)
+#message("Name: ${name}")
+#message("Dependency: ${deps}")
+#message("Author: ${authors}")
+#slicer_create_use_module_option(TestModule1 USE_TESTMODULE1)
 
-slicer_create_download_module_target(TestModule1 M1_download "${CMAKE_CURRENT_BINARY_DIR}/Modules/TestModule1")
-slicer_create_update_module_target(TestModule1 M1_update "${CMAKE_CURRENT_BINARY_DIR}/Modules/TestModule1")
+slicer_parse_module_file("${SLICER_TEST_MODULES_PATH}/TestModule2/")
 
-# Another one
+# Create all download/update targets
+# "make update" will download everything
 
-slicer_parse_module_file("${SLICER_TEST_MODULES_PATH}/TestModule2/" TestModule2)
-
-slicer_create_download_module_target(TestModule2 M2_download "${CMAKE_CURRENT_BINARY_DIR}/Modules/TestModule2")
-slicer_create_update_module_target(TestModule2 M2_update "${CMAKE_CURRENT_BINARY_DIR}/Modules/TestModule2")
-
-#slicer_get_parsed_modules_list(foo)
-#message("list: ${foo}")
+slicer_create_download_and_update_modules_targets(
+  ${SLICER_MODULES_SOURCE_DIRECTORY})

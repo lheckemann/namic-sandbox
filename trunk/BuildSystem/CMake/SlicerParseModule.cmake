@@ -81,6 +81,8 @@ endfunction(slicer_parse_module)
 #
 # This function loads a module into a variable and parse its contents by calling
 # the slicer_parse_module function.
+# The name of the file (without extension) will be used if the variable name
+# to use to store the module values is ommitted.
 #
 # Note: the file name can be a directory, say /home/foo/module1, in that case
 # this function will try to read /home/foo/module1/module1.xml
@@ -91,20 +93,24 @@ endfunction(slicer_parse_module)
 # Arguments:
 # in:
 #   module_filename (filename): full path (filename) to the module
-# in/out:
+# optional in/out:
 #   module_varname (string): variable name to use to store the module values
 # 
 # Example:
-#   slicer_parse_module_file("TestModule.xml" TestModule)
+#   slicer_parse_module_file("C:/foo/TestModule/TestModule.xml" TestModule)
 #   slicer_get_module_value(TestModule Name name)
 #   message("Module name: ${name}")
+#
+#   slicer_parse_module_file("C:/foo/TestModule2/")
+#   slicer_get_module_value(TestModule2 Name name)
+#   message("Module2 name: ${name}")
 #
 # See also:
 #   slicer_parse_module
 #   slicer_get_parsed_modules_list
 # ---------------------------------------------------------------------------
 
-function(slicer_parse_module_file module_filename module_varname)
+function(slicer_parse_module_file module_filename)
 
   # If filename is a directory, try to look for a XML file inside it with
   # the same name as the directory...
@@ -120,6 +126,14 @@ function(slicer_parse_module_file module_filename module_varname)
     message(SEND_ERROR "Unable to load and parse module ${module_filename}!")
     return()
   endif(NOT EXISTS "${module_filename}")
+
+  # Module varname variable (use the filename if not found)
+
+  if(ARG1)
+    set(module_varname ${ARGV1})
+  else(ARG1)
+    get_filename_component(module_varname "${module_filename}" NAME_WE)
+  endif(ARG1)
 
   # Parse it
 
