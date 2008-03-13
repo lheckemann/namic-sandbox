@@ -42,10 +42,10 @@
 #if defined(MattesNoCaching)
 #include "itkMattesNoCachingMutualInformationImageToImageMetric.h"
 #else
-#if defined(MattesInITKCVS)
-#include "itkMattesMutualInformationImageToImageMetric.h"
-#else
+#if defined(MattesInNAMICSandbox)
 #include "itkMattesMutualInformationImageToImageMetric2.h"
+#else
+#include "itkMattesMutualInformationImageToImageMetric.h"
 #endif
 #endif
 #endif
