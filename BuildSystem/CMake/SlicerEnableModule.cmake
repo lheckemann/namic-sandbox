@@ -13,6 +13,7 @@ include(SlicerSetGetModule)
 #   option_name (string): name to use to for the option
 # 
 # Example:
+#   slicer_parse_module_file("C:/foo/TestModule/TestModule.xml" TestModule)
 #   slicer_create_use_module_option(TestModule USE_TEST_MODULE)
 #   if(USE_TEST_MODULE)
 #     ...
