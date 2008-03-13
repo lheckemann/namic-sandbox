@@ -20,7 +20,8 @@ find_package(CVS)
 #   dir (string): where the module should be downloaded
 # 
 # Example:
-#   slicer_create_download_module_target(TestModule testmodule_download)
+#   slicer_create_download_module_target(
+#       TestModule testmodule_download "/src/")
 #
 # See also:
 #   slicer_get_download_module_target
@@ -150,12 +151,21 @@ endfunction(slicer_create_download_module_target)
 # 
 # Example:
 #   slicer_get_download_module_target(TestModule download_target_name)
+#   message("download target for TestModule: ${download_target_name}")
 #
 # See also:
 #   slicer_create_download_module_target
 # ---------------------------------------------------------------------------
 
 function(slicer_get_download_module_target module_varname target_varname)
+
+  # Unknown module? Bail.
+
+  set(err_msg "Unable to get download module target!")
+  slicer_is_module_unknown(${module_varname} unknown ${err_msg})
+  if(unknown)
+    return()
+  endif(unknown)
 
   slicer_get_module_value(${module_varname} __DownloadTarget__ value)
   set(${target_varname} ${value} PARENT_SCOPE)
@@ -168,11 +178,14 @@ endfunction(slicer_get_download_module_target)
 # This function can be used to create a target to update a module 
 # repository (CVS or SVN).
 #
-# Note: this function does not automatically create a download target.
-#
 # Note: while one could create multiple update targets with different 
 # names, it is assumed that only one is needed; the name of this update
 # target can be later on retrieved using slicer_get_update_module_target.
+#
+# Note: this function does not automatically create a download target. This
+# can however be done using the add_dependencies() command; the name of
+# the download target itself, if any for that module, can be retrieved using
+# slicer_get_download_module_target.
 #
 # Arguments:
 # in:
@@ -181,7 +194,8 @@ endfunction(slicer_get_download_module_target)
 #   dir (string): where the module has been downloaded/checked out
 # 
 # Example:
-#   slicer_create_update_module_target(TestModule testmodule_update)
+#   slicer_create_update_module_target(
+#       TestModule testmodule_update "/src/")
 #
 # See also:
 #   slicer_create_download_module_target
@@ -267,6 +281,7 @@ endfunction(slicer_create_update_module_target)
 # 
 # Example:
 #   slicer_get_update_module_target(TestModule update_target_name)
+#   message("update target for TestModule: ${update_target_name}")
 #
 # See also:
 #   slicer_create_update_module_target
@@ -274,8 +289,90 @@ endfunction(slicer_create_update_module_target)
 
 function(slicer_get_update_module_target module_varname target_varname)
 
+  # Unknown module? Bail.
+
+  set(err_msg "Unable to get update module target!")
+  slicer_is_module_unknown(${module_varname} unknown ${err_msg})
+  if(unknown)
+    return()
+  endif(unknown)
+
   slicer_get_module_value(${module_varname} __UpdateTarget__ value)
   set(${target_varname} ${value} PARENT_SCOPE)
 
 endfunction(slicer_get_update_module_target)
+
+# ---------------------------------------------------------------------------
+# slicer_create_download_and_update_modules_targets: 
+#                  create download and update targets for all known modules.
+#
+# This function can be used to create and connect both download and update
+# targets for all known modules.
+#
+# The download target name will be created by appending "_download" to the
+# module name, unless that target exists already.
+#
+# The update target name will be created by appending "_update" to the
+# module name, unless that target exists already.
+#
+# Each module's update target will depend on the module's download target
+# so that downloading occurs automatically when the repository is not found.
+#
+# A unique "download" and "update" target will be created that will
+# depend on all modules download and update targets (respectively).
+#
+# Each module is downloaded/checked out in its own sub-directory, named after
+# the module's name.
+#
+# Arguments:
+# in:
+#   dir (string): where the modules should be downloaded (parent dir)
+# 
+# Example:
+#   slicer_get_update_module_target(TestModule update_target_name)
+#
+# See also:
+#   slicer_create_update_module_target
+# ---------------------------------------------------------------------------
+
+function(slicer_create_download_and_update_modules_targets dir)
+
+  # Create the global download and update targets
+
+  add_custom_target(download)
+  add_custom_target(update)
+
+  # Retrieve all the modules parsed so far and iterate
+
+  slicer_get_parsed_modules_list(modules)
+
+  foreach(module ${modules})
+
+    # Find and/or create download target
+    
+    slicer_get_download_module_target(${module} download_target)
+    if(NOT download_target)
+      set(download_target "${module}_download")
+      slicer_create_download_module_target(
+        ${module} ${download_target} "${dir}/${module}")
+    endif(NOT download_target)
+    add_dependencies(download ${download_target})
+
+    # Find and/or create update target
+    
+    slicer_get_update_module_target(${module} update_target)
+    if(NOT update_target)
+      set(update_target "${module}_update")
+      slicer_create_update_module_target(
+        ${module} ${update_target} "${dir}/${module}")
+    endif(NOT update_target)
+    add_dependencies(update ${update_target})
+
+    # Attach download to update
+
+    add_dependencies(${update_target} ${download_target})
+    
+  endforeach(module)
+
+endfunction(slicer_create_download_and_update_modules_targets)
 
