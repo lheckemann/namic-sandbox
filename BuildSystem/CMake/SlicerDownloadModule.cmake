@@ -102,20 +102,23 @@ function(slicer_create_download_module_target module_varname target_name dir)
 
     # Checkout
 
-    set(cvs_args "-d" "${source_loc}" "checkout" "-d" "${dir}")
+    get_filename_component(dirname "${dir}" NAME)
+    get_filename_component(dirpath "${dir}" PATH)
+
+    set(cmake_args "-E" "chdir" "${dirpath}" "${CVS_EXECUTABLE}" "-d" "${source_loc}" "checkout" "-d" "${dirname}")
 
     slicer_get_module_value(${module_varname} CVSBranch cvs_branch)
     if(cvs_branch)
-      set(cvs_args ${cvs_args} "-r" "${cvs_branch}")
+      set(cmake_args ${cmake_args} "-r" "${cvs_branch}")
     endif(cvs_branch)
 
-    set(cvs_args ${cvs_args} "${cvs_module}")
+    set(cmake_args ${cmake_args} "${cvs_module}")
 
     add_custom_command(
       OUTPUT "${dir}/CVS/Root"
       DEPENDS "${dir}"
-      COMMAND "${CVS_EXECUTABLE}"
-      ARGS ${cvs_args}
+      COMMAND "${CMAKE_COMMAND}"
+      ARGS ${cmake_args}
       )
 
     add_custom_target(${target_name} DEPENDS "${dir}/CVS/Root")
