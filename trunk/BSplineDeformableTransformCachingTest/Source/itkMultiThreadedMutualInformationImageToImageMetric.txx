@@ -29,7 +29,7 @@
 // of multiple threads and instead call the thread
 // callback functions for each threadID, one after
 // the other.
-#define SYNCHRONOUS_COMPUTATION
+//#define SYNCHRONOUS_COMPUTATION
 
 namespace itk
 {
