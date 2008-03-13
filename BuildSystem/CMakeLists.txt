@@ -28,7 +28,7 @@ foreach(module ITK KWWidgets Slicer3 Teem VTK)
   slicer_parse_module_file("${SLICER_LOCAL_MODULES_PATH}/${module}")
 endforeach(module)
 
-# Parse test modules
+# Parse a remote module
 
 slicer_parse_module_url("http://www.na-mic.org/ViewVC/index.cgi/trunk/BuildSystem/Modules/TestModule1/TestModule1.xml?root=NAMICSandBox&view=co")
 
@@ -43,10 +43,11 @@ if(NOT unknown)
   #slicer_create_use_module_option(TestModule1 USE_TESTMODULE1)
 endif(NOT unknown)
 
+# Parse a local module
+
 slicer_parse_module_file("${SLICER_LOCAL_MODULES_PATH}/TestModule2/")
 
 # Create all download/update targets
-# "make update_modules" will download everything
+# "make update_modules" will download and update everything
 
-slicer_create_download_and_update_modules_targets(
-  ${SLICER_DOWNLOADED_SOURCES_DIRECTORY})
+slicer_create_download_and_update_modules_targets(${SLICER_DOWNLOADED_SOURCES_DIRECTORY})

@@ -7,7 +7,7 @@ include(SlicerSetGetModule)
 # This function parses a module and creates the corresponding key/value pairs.
 #
 # Note: the list of modules that have been parsed so far can be retrieved
-# using slicer_get_parsed_modules_list
+# using slicer_get_modules_list
 #
 # Arguments:
 # in:
@@ -23,7 +23,7 @@ include(SlicerSetGetModule)
 #
 # See also:
 #   slicer_parse_module_file
-#   slicer_get_parsed_modules_list
+#   slicer_get_modules_list
 # ---------------------------------------------------------------------------
 
 function(slicer_parse_module module_contents module_varname)
@@ -101,7 +101,7 @@ endfunction(slicer_parse_module)
 # this function will try to read /home/foo/module1/module1.xml
 #
 # Note: the list of modules that have been parsed so far can be retrieved
-# using slicer_get_parsed_modules_list
+# using slicer_get_modules_list
 #
 # Arguments:
 # in:
@@ -120,7 +120,7 @@ endfunction(slicer_parse_module)
 #
 # See also:
 #   slicer_parse_module
-#   slicer_get_parsed_modules_list
+#   slicer_get_modules_list
 # ---------------------------------------------------------------------------
 
 function(slicer_parse_module_file module_filename)
@@ -168,7 +168,7 @@ endfunction(slicer_parse_module_file)
 # the ${CMAKE_CURRENT_BINARY_DIR}/ModuleCache directory.
 # 
 # Note: the list of modules that have been parsed so far can be retrieved
-# using slicer_get_parsed_modules_list
+# using slicer_get_modules_list
 #
 # Arguments:
 # in:
@@ -177,17 +177,13 @@ endfunction(slicer_parse_module_file)
 #   module_varname (string): variable name to use to store the module values
 # 
 # Example:
-#   slicer_parse_module_url("" TestModule)
+#   slicer_parse_module_url("http://www.na-mic.org/modules/test/test.xml" TestModule)
 #   slicer_get_module_value(TestModule Name name)
 #   message("Module name: ${name}")
 #
-#   slicer_parse_module_file()
-#   slicer_get_module_value(TestModule2 Name name)
-#   message("Module2 name: ${name}")
-#
 # See also:
 #   slicer_parse_module
-#   slicer_get_parsed_modules_list
+#   slicer_get_modules_list
 # ---------------------------------------------------------------------------
 
 function(slicer_parse_module_url module_url)
@@ -232,7 +228,7 @@ function(slicer_parse_module_url module_url)
 endfunction(slicer_parse_module_url)
 
 # ---------------------------------------------------------------------------
-# slicer_get_parsed_modules_list: get the list of parsed modules.
+# slicer_get_modules_list: get the list of parsed modules.
 #
 # This function can be used to retrieve the list of modules that have
 # been parsed so far.
@@ -244,17 +240,17 @@ endfunction(slicer_parse_module_url)
 # Example:
 #   slicer_parse_module_file("TestModule.xml" TestModule)
 #   slicer_parse_module_file("TestModule2.xml" TestModule2)
-#   slicer_get_parsed_modules_list(modules_list)
+#   slicer_get_modules_list(modules_list)
 #
 # See also:
 #   slicer_parse_module
 #   slicer_parse_module_file
 # ---------------------------------------------------------------------------
 
-function(slicer_get_parsed_modules_list list_varname)
+function(slicer_get_modules_list list_varname)
 
   slicer_get_module_value(__Meta__ ParsedModules value)
   set(${list_varname} ${value} PARENT_SCOPE)
   
-endfunction(slicer_get_parsed_modules_list)
+endfunction(slicer_get_modules_list)
 

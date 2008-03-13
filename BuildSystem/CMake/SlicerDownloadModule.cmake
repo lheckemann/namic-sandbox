@@ -20,8 +20,7 @@ find_package(CVS)
 #   dir (string): where the module should be downloaded
 # 
 # Example:
-#   slicer_create_download_module_target(
-#       TestModule testmodule_download "/src/")
+#   slicer_create_download_module_target(TestModule testmodule_download "/src/TestModule")
 #
 # See also:
 #   slicer_get_download_module_target
@@ -197,8 +196,7 @@ endfunction(slicer_get_download_module_target)
 #   dir (string): where the module has been downloaded/checked out
 # 
 # Example:
-#   slicer_create_update_module_target(
-#       TestModule testmodule_update "/src/")
+#   slicer_create_update_module_target(TestModule testmodule_update "/src/TestModule")
 #
 # See also:
 #   slicer_create_download_module_target
@@ -331,7 +329,10 @@ endfunction(slicer_get_update_module_target)
 #   dir (string): where the modules should be downloaded (parent dir)
 # 
 # Example:
-#   slicer_get_update_module_target(TestModule update_target_name)
+#   slicer_parse_module_file("C:/foo/TestModule/TestModule.xml" TestModule)
+#   slicer_parse_module_url("http://foo/bar/module/module2.xml" module2)
+#   ...
+#   slicer_create_download_and_update_modules_targets("/src")
 #
 # See also:
 #   slicer_create_update_module_target
@@ -349,7 +350,7 @@ function(slicer_create_download_and_update_modules_targets dir)
 
   # Retrieve all the modules parsed so far and iterate
 
-  slicer_get_parsed_modules_list(modules)
+  slicer_get_modules_list(modules)
 
   foreach(module ${modules})
 
