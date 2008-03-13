@@ -1,7 +1,7 @@
 <Name>KWWidgets</Name>
 <Group>Core</Group>
 <Description>KWWidgets, a free, cross-platform and open-license GUI toolkit</Description>
-<SourceLocation>:pserver:anoncvs@www.kwwidgets.org:/cvsroot/KWWidgets</SourceLocation>
+<SourceLocation>:pserver:anoncvs:@www.kwwidgets.org:/cvsroot/KWWidgets</SourceLocation>
 <CVSModule>KWWidgets</CVSModule>
 <CVSBranch>Slicer-3-0</CVSBranch>
 <HomePage>http://kwwidgets.org</HomePage>
