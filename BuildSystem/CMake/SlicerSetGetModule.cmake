@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.5)
 
 # ---------------------------------------------------------------------------
-# slicer_set_module_value: Set a module value.
+# slicer_set_module_value: set a module value.
 #
 # This function can be used to set a module value without worrying too much
 # about the underlying data structure. 
@@ -30,7 +30,7 @@ function(slicer_set_module_value module_varname key)
 endfunction(slicer_set_module_value)
 
 # ---------------------------------------------------------------------------
-# slicer_get_module_value: Get a module value.
+# slicer_get_module_value: get a module value.
 #
 # This function can be used to retrieve a module value without worrying too much
 # about the underlying data structure. 
@@ -134,7 +134,7 @@ function(slicer_is_module_unknown module_varname bool_varname)
 endfunction(slicer_is_module_unknown)
 
 # ---------------------------------------------------------------------------
-# slicer_get_module_short_description: Get a module short description.
+# slicer_get_module_short_description: get a module short description.
 #
 # This function uses the module variables to create a short module description.
 #
@@ -192,7 +192,7 @@ function(slicer_get_module_short_description module_varname desc_varname)
 endfunction(slicer_get_module_short_description)
 
 # ---------------------------------------------------------------------------
-# slicer_get_module_source_repository_type: Get a module source repository type.
+# slicer_get_module_source_repository_type: get a module source repository type.
 #
 # This function can be used to retrieve the type of source repository the 
 # module is using.

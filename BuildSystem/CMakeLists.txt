@@ -29,20 +29,23 @@ endforeach(module)
 
 # Parse test modules
 
-slicer_parse_module_file("${SLICER_TEST_MODULES_PATH}/TestModule1")
+slicer_parse_module_url("http://www.na-mic.org/ViewVC/index.cgi/trunk/BuildSystem/Modules/TestModule1/TestModule1.xml?root=NAMICSandBox&view=co")
 
-#slicer_get_module_value(TestModule1 Name name)
-#slicer_get_module_value(TestModule1 Dependency deps)
-#slicer_get_module_value(TestModule1 Author authors)
-#message("Name: ${name}")
-#message("Dependency: ${deps}")
-#message("Author: ${authors}")
-#slicer_create_use_module_option(TestModule1 USE_TESTMODULE1)
+slicer_is_module_unknown(TestModule1 unknown)
+if(NOT unknown)
+  #slicer_get_module_value(TestModule1 Name name)
+  #slicer_get_module_value(TestModule1 Dependency deps)
+  #slicer_get_module_value(TestModule1 Author authors)
+  #message("Name: ${name}")
+  #message("Dependency: ${deps}")
+  #message("Author: ${authors}")
+  #slicer_create_use_module_option(TestModule1 USE_TESTMODULE1)
+endif(NOT unknown)
 
 slicer_parse_module_file("${SLICER_TEST_MODULES_PATH}/TestModule2/")
 
 # Create all download/update targets
-# "make update" will download everything
+# "make update_modules" will download everything
 
 slicer_create_download_and_update_modules_targets(
   ${SLICER_MODULES_SOURCE_DIRECTORY})
