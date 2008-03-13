@@ -23,6 +23,7 @@
 #include "vnl/vnl_math.h"
 #include "itkGaussianKernelFunction.h"
 #include "itkBSplineDeformableTransform2.h"
+#include <fstream>
 
 // For debugging.
 // This allows us to turn off the execution
