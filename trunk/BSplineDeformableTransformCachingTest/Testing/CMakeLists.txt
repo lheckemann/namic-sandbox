@@ -38,13 +38,13 @@ TARGET_LINK_LIBRARIES(ImageRegistration13 ITKStatistics ITKIO ITKNumerics ${MEMO
 ADD_EXECUTABLE(MultiResImageRegistration2 MultiResImageRegistration2.cxx )
 TARGET_LINK_LIBRARIES(MultiResImageRegistration2 ITKStatistics ITKIO ITKNumerics ${MEMORY_LIBS})
 
-ADD_TEST(ImageRegistration13Test ${REGISTRATION_EXAMPLES}
+ADD_TEST(ImageRegistration13TestNAMICSandbox ${REGISTRATION_EXAMPLES}
   --compare ${BASELINE}/ImageRegistration13Test.png
-            ${TEMP}/ImageRegistration13Test.png
-  ImageRegistration13Test
+            ${TEMP}/ImageRegistration13TestNAMICSandbox.png
+  ImageRegistration13TestNAMICSandbox
         ${ITK_SOURCE_DIR}/Examples/Data/BrainProtonDensitySliceBorder20.png
         ${ITK_SOURCE_DIR}/Examples/Data/BrainProtonDensitySliceR10X13Y17.png
-        ${TEMP}/ImageRegistration13Test.png
+        ${TEMP}/ImageRegistration13TestNAMICSandbox.png
 )
 
 ADD_TEST(ImageRegistration13TestITKCVS ${REGISTRATION_EXAMPLES}

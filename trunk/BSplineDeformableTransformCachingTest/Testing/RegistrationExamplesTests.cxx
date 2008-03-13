@@ -28,7 +28,7 @@
 
 void RegisterTests()
 {
-  REGISTER_TEST(ImageRegistration13Test);
+  REGISTER_TEST(ImageRegistration13TestNAMICSandbox);
   REGISTER_TEST(ImageRegistration13TestITKCVS);
   REGISTER_TEST(ImageRegistration13TestNoPDFJacobian);
   REGISTER_TEST(ImageRegistration13TestNoCaching);
@@ -37,18 +37,18 @@ void RegisterTests()
 }
 
 #undef main
-#define main  ImageRegistration13Test
+#define MattesInNAMICSandbox
+#define main  ImageRegistration13TestNAMICSandbox
 #undef CommandIterationUpdate
 #define CommandIterationUpdate CommandIterationUpdate13
 #include "ImageRegistration13.cxx"
+#undef MattesInNAMICSandbox
 
 #undef main
-#define MattesInITKCVS
 #define main  ImageRegistration13TestITKCVS
 #undef CommandIterationUpdate
 #define CommandIterationUpdate CommandIterationUpdate13ITKCVS
 #include "ImageRegistration13.cxx"
-#undef MattesInITKCVS
 
 #undef main
 #define MattesNoPDFJacobian
