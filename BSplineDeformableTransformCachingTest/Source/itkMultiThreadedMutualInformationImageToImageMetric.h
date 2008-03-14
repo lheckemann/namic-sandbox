@@ -25,6 +25,8 @@
 #include "itkKernelFunction.h"
 #include "itkCentralDifferenceImageFunction.h"
 
+#include "itk_hash_map.h"
+
 namespace itk
 {
 
@@ -204,16 +206,16 @@ protected:
 private:
   MultiThreadedMutualInformationImageToImageMetric(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
-  
+
   /** A spatial sample consists of the fixed domain point, the fixed image value
    *   at that point, and the corresponding moving image value. */
   class SpatialSample
   {
   public:
     SpatialSample():FixedImageValue(0.0),MovingImageValue(0.0)
-    { FixedImagePointValue.Fill( 0.0 ); MovingImagePointValue.Fill( 0.0 ); }
+    { FixedImagePointValue.Fill( 0.0 ); MovingImagePointValue.Fill( 0.0 ); FixedImageIndex.Fill( 0 ); }
     ~SpatialSample(){};
-
+    FixedImageIndexType              FixedImageIndex;
     FixedImagePointType              FixedImagePointValue;
     double                           FixedImageValue;
     double                           MovingImageValue;
@@ -373,8 +375,45 @@ private:
   void SynchronizeTransforms() const;
 
   mutable TransformPointer* m_TransformArray;
+
+  bool IsDerivativeCached( const SpatialSample& sample ) const;
+  bool RetreiveCachedDerivative( const SpatialSample& sample, DerivativeType& deriv ) const;
+
+  class SpatialSampleCompare
+    {
+    public:
+    bool operator()(const SpatialSample& s1, const SpatialSample& s2) const
+      {
+      // FIXME
+      //return s1.FixedImageValue < s2.FixedImageValue;
+        std::cout << "Fix SpatialSampleCompare" << std::endl;
+        return false;
+      }
+    }; // SpatialSampleCompare
+
+
+  // typedef std::map< SpatialSample, DerivativeType, SpatialSampleCompare > DerivativeMapType;
+  // Hash map -- element access is fast. Stored in no particular order.
+  // Need a hash function?
+  //typedef long FixedImageLinearOffsetType;
+  // typedef FixedImageType footype;
+
+  // FIXME
+  typedef long FixedImageLinearOffsetType;
+  typedef itk::hash_map< FixedImageLinearOffsetType, DerivativeType, itk::hash< FixedImageLinearOffsetType > > DerivativeMapType;
+
+
+  mutable DerivativeMapType m_DerivativeMap;
+
+  void CacheSampleADerivatives() const;
+
+  // Size of derivative cache in bytes.
+  unsigned long m_DerivativeCacheSize;
+
+  inline void UpdateDerivative( DerivativeType& threadDerivative, const SpatialSample& sample, double weight, unsigned int threadID ) const;
 public:
   bool CompareDerivatives( ParametersType& parameters );
+
 };
 
 } // end namespace itk

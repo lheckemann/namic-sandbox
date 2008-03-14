@@ -30,7 +30,8 @@
 // of multiple threads and instead call the thread
 // callback functions for each threadID, one after
 // the other.
-//#define SYNCHRONOUS_COMPUTATION
+// #define SYNCHRONOUS_COMPUTATION
+#define USE_CACHED_DERIVATIVES
 
 namespace itk
 {
@@ -69,6 +70,10 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   this->m_ThreaderParameter.metric = this;
   this->m_TransformIsBSpline = false;
   this->m_TransformArray = NULL;
+
+  // One GB derivative cache.
+  this->m_DerivativeCacheSize = 2048UL * 1024UL * 1024UL;
+  //m_DerivativeCacheSize = 0;
 }
 
 
@@ -156,6 +161,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     FixedImageIndexType index = randIter.GetIndex();
     // Get sampled fixed image value
     (*iter).FixedImageValue = randIter.Get();
+    (*iter).FixedImageIndex = index;
     // Translate index to point
     this->m_FixedImage->TransformIndexToPhysicalPoint( index,
                                                  (*iter).FixedImagePointValue );
@@ -620,8 +626,8 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     (*aditer) = tempDeriv;
     }
 
-  std::ofstream output("default_weights.txt", std::ios::app);
-  output << "---------" << std::endl;
+  // std::ofstream output("default_weights.txt", std::ios::app);
+  // output << "---------" << std::endl;
 
   DerivativeType derivB(numberOfParameters);
 
@@ -693,7 +699,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       weight = ( weightMoving - weightJoint );
       weight *= (*biter).MovingImageValue - (*aiter).MovingImageValue;
 
-      output << weight << std::endl;
+      // output << weight << std::endl;
 
       totalWeight += weight;
       derivative -= (*aditer) * weight;
@@ -1467,6 +1473,10 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   // DEBUG
   this->SetupDerivativePartialResults();
 
+#ifdef USE_CACHED_DERIVATIVES
+  this->CacheSampleADerivatives();
+#endif
+
   if (false == this->ValidatePartialResultSizes())
     {
     std::cerr << "Partial result size error before phase 1" << std::endl;
@@ -1850,8 +1860,8 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   // alway dereference.
   DerivativeType& threadDerivative = this->m_ThreadDerivatives[ threadID ];
 
-  std::ofstream output("thread_weights.txt", std::ios::app);
-  output << "----" << threadID << "-----" << std::endl;
+  // std::ofstream output("thread_weights.txt", std::ios::app);
+  // output << "----" << threadID << "-----" << std::endl;
 
   unsigned int bSampleCount = 0;
   for( biter = bstart; 
@@ -1890,22 +1900,25 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       weight = ( weightMoving - weightJoint );
       weight *= (*biter).MovingImageValue - (*aiter).MovingImageValue;
 
-      output << weight << std::endl;
+      // output << weight << std::endl;
 
       totalWeight += weight;
 
+#ifdef USE_CACHED_DERIVATIVES
+      this->UpdateDerivative( threadDerivative, *aiter, weight, threadID );
+#else
       this->CalculateDerivativesThreaded( (*aiter).FixedImagePointValue, 
                                           (*aiter).MovingImagePointValue, 
                                           derivA,
                                           threadID );
-
+ 
       // THREAD: Just need to make sure that weight is correct and that the 
       // thread derivative is initialized correctly. We will combine them
       // later.
       //derivative -= derivA * weight;
       //this->m_ThreadDerivatives[ threadID ] -= derivA * weight;
       threadDerivative -= derivA * weight;
-
+#endif
       } // end of sample A loop
 
     // THREAD: Cache totalWeight per b-sample. totalWeight is summed over all 
@@ -2287,6 +2300,104 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     } // A samples
 
   return true;
+}
+
+template < class TFixedImage, class TMovingImage  >
+bool
+MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+::IsDerivativeCached( const SpatialSample& sample ) const
+{
+  long sampleLinearOffset = this->m_FixedImage->ComputeOffset( sample.FixedImageIndex );
+  
+  DerivativeMapType::const_iterator iter = this->m_DerivativeMap.find( sampleLinearOffset );
+  if ( iter == this->m_DerivativeMap.end() )
+    {
+    return false;
+    }
+  else
+    {
+    return true;
+    }
+}
+
+template < class TFixedImage, class TMovingImage  >
+bool
+MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+::RetreiveCachedDerivative( const SpatialSample& sample, DerivativeType& deriv ) const
+{
+  FixedImageLinearOffsetType sampleLinearOffset = this->m_FixedImage->ComputeOffset( sample.FixedImageIndex );
+  
+  DerivativeMapType::const_iterator iter = this->m_DerivativeMap.find( sampleLinearOffset );
+  if ( iter == this->m_DerivativeMap.end() )
+    {
+    return false;
+    }
+  else
+    {
+    deriv = (*iter).second;
+    return true;
+    }  
+}
+
+template < class TFixedImage, class TMovingImage  >
+void
+MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+::CacheSampleADerivatives() const
+{
+  /** This method assumes that the samples have been generated already and 
+      that the transform has been set. **/
+
+  // Derivative size in bytes
+  unsigned long derivativeSize = sizeof( double ) * this->m_Transform->GetNumberOfParameters();
+
+  // How many derivatives can we fit in the derivative cache
+  unsigned long numberOfCachedDerivatives = m_DerivativeCacheSize / derivativeSize;
+
+  if ( numberOfCachedDerivatives > this->m_SampleA.size() )
+    {
+    numberOfCachedDerivatives = this->m_SampleA.size();
+    }
+
+  DerivativeType derivA( this->m_Transform->GetNumberOfParameters() );
+
+  for ( SamplesConstIterator aiter = m_SampleA.begin();
+          aiter != (m_SampleA.begin() + numberOfCachedDerivatives );
+          ++aiter)
+    {
+    this->CalculateDerivativesThreaded( (*aiter).FixedImagePointValue, 
+                                        (*aiter).MovingImagePointValue, 
+                                        derivA,
+                                        0 );
+
+    long sampleLinearOffset = this->m_FixedImage->ComputeOffset( (*aiter).FixedImageIndex );
+
+    // COPY of derivative!
+    this->m_DerivativeMap[ sampleLinearOffset ] = derivA;
+    }
+}
+
+template < class TFixedImage, class TMovingImage  >
+void
+MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+::UpdateDerivative( DerivativeType& threadDerivative, const SpatialSample& sample, double weight, unsigned int threadID ) const
+{
+  FixedImageLinearOffsetType sampleLinearOffset = this->m_FixedImage->ComputeOffset( sample.FixedImageIndex );
+  
+  DerivativeMapType::const_iterator iter = this->m_DerivativeMap.find( sampleLinearOffset );
+  if ( iter == this->m_DerivativeMap.end() )
+    {
+    DerivativeType derivA( this->m_Transform->GetNumberOfParameters() );
+    this->CalculateDerivativesThreaded( sample.FixedImagePointValue, 
+                                        sample.MovingImagePointValue, 
+                                        derivA,
+                                        threadID );
+
+    threadDerivative -= derivA * weight;
+    }
+  else
+    {
+    threadDerivative -= (*iter).second * weight;
+    }  
 }
 
 } // end namespace itk
