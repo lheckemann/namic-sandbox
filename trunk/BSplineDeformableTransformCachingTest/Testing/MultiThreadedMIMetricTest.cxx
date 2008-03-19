@@ -131,9 +131,9 @@ int main( int argc, char* argv[] )
   RegionType::SizeType   totalGridSize;
 
   // was 2 2 2
-  gridSizeOnImage[0] = 2; //32
-  gridSizeOnImage[1] = 2; //32
-  gridSizeOnImage[2] = 2; //16
+  gridSizeOnImage[0] = 32; //32
+  gridSizeOnImage[1] = 32; //32
+  gridSizeOnImage[2] = 16; //16
 
   gridBorderSize.Fill( 3 );    // Border for spline order = 3 ( 1 lower, 2 upper )
   totalGridSize = gridSizeOnImage + gridBorderSize;
@@ -163,7 +163,7 @@ int main( int argc, char* argv[] )
   const unsigned int totalNumberOfPixels = fixedRegion.GetNumberOfPixels();
 
   // FIX ME
-  const unsigned int numberOfSamples = static_cast< unsigned int >( totalNumberOfPixels * 0.20 );
+  const unsigned int numberOfSamples = static_cast< unsigned int >( totalNumberOfPixels * 0.05 );
 
   const unsigned int numberOfHistogramBins = 50;
   const unsigned int seed = 76926294;
