@@ -213,9 +213,11 @@ private:
   {
   public:
     SpatialSample():FixedImageValue(0.0),MovingImageValue(0.0)
-    { FixedImagePointValue.Fill( 0.0 ); MovingImagePointValue.Fill( 0.0 ); FixedImageIndex.Fill( 0 ); }
+    { FixedImagePointValue.Fill( 0.0 ); MovingImagePointValue.Fill( 0.0 ); FixedImageLinearOffset = 0;}//FixedImageIndex.Fill( 0 ); }
     ~SpatialSample(){};
-    FixedImageIndexType              FixedImageIndex;
+    //FixedImageIndexType              FixedImageIndex;
+    // FIXME -- Check offset type
+    long                             FixedImageLinearOffset;
     FixedImagePointType              FixedImagePointValue;
     double                           FixedImageValue;
     double                           MovingImageValue;
@@ -384,10 +386,8 @@ private:
     public:
     bool operator()(const SpatialSample& s1, const SpatialSample& s2) const
       {
-      // FIXME
-      //return s1.FixedImageValue < s2.FixedImageValue;
-        std::cout << "Fix SpatialSampleCompare" << std::endl;
-        return false;
+      std::cout << "Fix SpatialSampleCompare" << std::endl;
+      return s1.FixedImageLinearOffset < s2.FixedImageLinearOffset;
       }
     }; // SpatialSampleCompare
 

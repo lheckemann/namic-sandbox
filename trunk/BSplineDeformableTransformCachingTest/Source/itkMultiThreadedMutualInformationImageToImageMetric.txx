@@ -31,6 +31,8 @@
 // callback functions for each threadID, one after
 // the other.
 // #define SYNCHRONOUS_COMPUTATION
+
+// Turn on or off derivative caching
 #define USE_CACHED_DERIVATIVES
 
 namespace itk
@@ -72,7 +74,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   this->m_TransformArray = NULL;
 
   // One GB derivative cache.
-  this->m_DerivativeCacheSize = 2048UL * 1024UL * 1024UL;
+  this->m_DerivativeCacheSize = 1024UL * 1024UL * 1024UL;//2048UL * 1024UL * 1024UL;
   //m_DerivativeCacheSize = 0;
 }
 
@@ -161,7 +163,8 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     FixedImageIndexType index = randIter.GetIndex();
     // Get sampled fixed image value
     (*iter).FixedImageValue = randIter.Get();
-    (*iter).FixedImageIndex = index;
+    //(*iter).FixedImageIndex = index;
+    (*iter).FixedImageLinearOffset = this->m_FixedImage->ComputeOffset( index );
     // Translate index to point
     this->m_FixedImage->TransformIndexToPhysicalPoint( index,
                                                  (*iter).FixedImagePointValue );
@@ -2307,9 +2310,9 @@ bool
 MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::IsDerivativeCached( const SpatialSample& sample ) const
 {
-  long sampleLinearOffset = this->m_FixedImage->ComputeOffset( sample.FixedImageIndex );
+  //long sampleLinearOffset = this->m_FixedImage->ComputeOffset( sample.FixedImageIndex );
   
-  DerivativeMapType::const_iterator iter = this->m_DerivativeMap.find( sampleLinearOffset );
+  DerivativeMapType::const_iterator iter = this->m_DerivativeMap.find( sample.FixedImageLinearOffset );
   if ( iter == this->m_DerivativeMap.end() )
     {
     return false;
@@ -2325,9 +2328,9 @@ bool
 MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::RetreiveCachedDerivative( const SpatialSample& sample, DerivativeType& deriv ) const
 {
-  FixedImageLinearOffsetType sampleLinearOffset = this->m_FixedImage->ComputeOffset( sample.FixedImageIndex );
+  //FixedImageLinearOffsetType sampleLinearOffset = this->m_FixedImage->ComputeOffset( sample.FixedImageIndex );
   
-  DerivativeMapType::const_iterator iter = this->m_DerivativeMap.find( sampleLinearOffset );
+  DerivativeMapType::const_iterator iter = this->m_DerivativeMap.find( sample.FixedImageLinearOffset );
   if ( iter == this->m_DerivativeMap.end() )
     {
     return false;
@@ -2353,9 +2356,11 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   // How many derivatives can we fit in the derivative cache
   unsigned long numberOfCachedDerivatives = m_DerivativeCacheSize / derivativeSize;
 
-  if ( numberOfCachedDerivatives > this->m_SampleA.size() )
+  // Equality is for debug message
+  if ( numberOfCachedDerivatives >= this->m_SampleA.size() )
     {
     numberOfCachedDerivatives = this->m_SampleA.size();
+    std::cout << "**** All derivatives fit in cache. ****" << std::endl;
     }
 
   DerivativeType derivA( this->m_Transform->GetNumberOfParameters() );
@@ -2369,10 +2374,10 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
                                         derivA,
                                         0 );
 
-    long sampleLinearOffset = this->m_FixedImage->ComputeOffset( (*aiter).FixedImageIndex );
+    //long sampleLinearOffset = this->m_FixedImage->ComputeOffset( (*aiter).FixedImageIndex );
 
     // COPY of derivative!
-    this->m_DerivativeMap[ sampleLinearOffset ] = derivA;
+    this->m_DerivativeMap[ (*aiter).FixedImageLinearOffset ] = derivA;
     }
 }
 
@@ -2381,9 +2386,9 @@ void
 MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::UpdateDerivative( DerivativeType& threadDerivative, const SpatialSample& sample, double weight, unsigned int threadID ) const
 {
-  FixedImageLinearOffsetType sampleLinearOffset = this->m_FixedImage->ComputeOffset( sample.FixedImageIndex );
+  //FixedImageLinearOffsetType sampleLinearOffset = this->m_FixedImage->ComputeOffset( sample.FixedImageIndex );
   
-  DerivativeMapType::const_iterator iter = this->m_DerivativeMap.find( sampleLinearOffset );
+  DerivativeMapType::const_iterator iter = this->m_DerivativeMap.find( sample.FixedImageLinearOffset );
   if ( iter == this->m_DerivativeMap.end() )
     {
     DerivativeType derivA( this->m_Transform->GetNumberOfParameters() );
@@ -2396,6 +2401,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     }
   else
     {
+    // FIXME: Is this making a temporary derivative?
     threadDerivative -= (*iter).second * weight;
     }  
 }
