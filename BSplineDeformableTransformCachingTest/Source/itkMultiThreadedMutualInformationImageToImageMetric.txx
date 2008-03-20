@@ -75,6 +75,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   // One GB derivative cache.
   this->m_DerivativeCacheSize = 1024UL * 1024UL * 1024UL;//2048UL * 1024UL * 1024UL;
+  // this->m_DerivativeCacheSize += 600UL * 1024UL * 1024UL; // Add 600 more MB
   //m_DerivativeCacheSize = 0;
 }
 
@@ -227,7 +228,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     // if all the samples mapped to the outside throw an exception
     itkExceptionMacro(<<"All the sampled point mapped to outside of the moving image" );
     }
-
 }
 
 template < class TFixedImage, class TMovingImage  >
@@ -2069,7 +2069,8 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     
     double totalWeight = *twiter;
 
-    threadDerivatives += derivB * totalWeight;
+    // threadDerivatives += derivB * totalWeight;
+    this->FastDerivativeAddWithWeight( threadDerivatives, derivB, totalWeight );
     }
 
 }
@@ -2362,6 +2363,13 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     numberOfCachedDerivatives = this->m_SampleA.size();
     std::cout << "**** All derivatives fit in cache. ****" << std::endl;
     }
+  else
+    {
+    std::cout << "**** " << numberOfCachedDerivatives << " of " << this->m_SampleA.size();
+    std::cout << " derivatives fit in cache. ****" << std::endl;
+    std::cout << "**** An additional " << derivativeSize * (this->m_SampleA.size() - numberOfCachedDerivatives ) / (1024*1024);
+    std::cout << " MB of derivative cache are required to fit all A sample derivatives. ****" << std::endl;
+    }
 
   DerivativeType derivA( this->m_Transform->GetNumberOfParameters() );
 
@@ -2397,12 +2405,14 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
                                         derivA,
                                         threadID );
 
-    threadDerivative -= derivA * weight;
+    // threadDerivative -= derivA * weight;
+    this->FastDerivativeSubtractWithWeight( threadDerivative, derivA, weight );
     }
   else
     {
     // FIXME: Is this making a temporary derivative?
-    threadDerivative -= (*iter).second * weight;
+    // threadDerivative -= (*iter).second * weight;
+    this->FastDerivativeSubtractWithWeight( threadDerivative, (*iter).second, weight );
     }  
 }
 
