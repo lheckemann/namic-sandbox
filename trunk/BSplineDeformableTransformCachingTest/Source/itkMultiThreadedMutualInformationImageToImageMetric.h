@@ -411,6 +411,31 @@ private:
   unsigned long m_DerivativeCacheSize;
 
   inline void UpdateDerivative( DerivativeType& threadDerivative, const SpatialSample& sample, double weight, unsigned int threadID ) const;
+
+  inline void FastDerivativeSubtractWithWeight( DerivativeType& in, const DerivativeType& subtrahend, const double subtractWeight ) const
+    {
+    //data, num_elmts
+    double* inData = in.data_block();
+    const double* subtrahendData = subtrahend.data_block();
+
+    for (unsigned int i = 0; i < in.size(); i++ )
+      {
+      inData[i] -= (subtrahendData[i] * subtractWeight);
+      }
+    }
+
+  inline void FastDerivativeAddWithWeight( DerivativeType& in, const DerivativeType& subtrahend, const double subtractWeight ) const
+    {
+    //data, num_elmts
+    double* inData = in.data_block();
+    const double* subtrahendData = subtrahend.data_block();
+
+    for (unsigned int i = 0; i < in.size(); i++ )
+      {
+      inData[i] += (subtrahendData[i] * subtractWeight);
+      }
+    }
+
 public:
   bool CompareDerivatives( ParametersType& parameters );
 
