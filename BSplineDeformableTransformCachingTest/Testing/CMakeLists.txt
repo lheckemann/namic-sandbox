@@ -29,6 +29,9 @@ TARGET_LINK_LIBRARIES(MachineInformationExample itksys)
 ADD_EXECUTABLE(MultiThreadedMIMetricTest MultiThreadedMIMetricTest.cxx itkExperimentTimeProbesCollector.cxx itkExperimentMemoryProbesCollector.cxx)
 TARGET_LINK_LIBRARIES(MultiThreadedMIMetricTest ITKIO ITKAlgorithms ITKNumerics ${MEMORY_LIBS})
 
+ADD_EXECUTABLE(MultiThreadedMIMetricTest2 MultiThreadedMIMetricTest2.cxx itkExperimentTimeProbesCollector.cxx itkExperimentMemoryProbesCollector.cxx)
+TARGET_LINK_LIBRARIES(MultiThreadedMIMetricTest2 ITKCommon ITKIO ITKAlgorithms ITKNumerics ${MEMORY_LIBS})
+
 ADD_EXECUTABLE(RegistrationExamplesTests RegistrationExamplesTests.cxx )
 TARGET_LINK_LIBRARIES(RegistrationExamplesTests ITKStatistics ITKIO ITKNumerics ${MEMORY_LIBS})
 
