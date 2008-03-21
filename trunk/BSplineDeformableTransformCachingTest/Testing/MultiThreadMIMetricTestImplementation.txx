@@ -242,9 +242,14 @@ MultiThreadMIMetricTestImplementation<Dimension>
     }
 #endif
 
+  char derivIterFileName[256];
+
   for(unsigned int i=0; i<numberOfIterations; i++)
     {
     std::cout << "Iteration " << i << " of " << numberOfIterations << std::endl;
+    
+    threadMetric->ReinitializeSeed( seed );
+    defaultMetric->ReinitializeSeed( seed );
 
     timeCollector.Start("GetValueAndDerivative");
 
@@ -259,6 +264,12 @@ MultiThreadMIMetricTestImplementation<Dimension>
     std::cout << value << std::endl;
     // std::cout << "Derivative : ";
     // std::cout << derivative << std::endl;
+
+    sprintf(derivIterFileName, "deriv.%d.out.txt", i);
+    std::ofstream derivativeOutputFile2( derivIterFileName, std::ios_base::app );
+    derivativeOutputFile2 << derivative << std::endl;
+    std::cout << "Derivative written to : " << derivIterFileName << std::endl;
+
     }
 
   memoryCollector.Stop("MultiThreadMI");
