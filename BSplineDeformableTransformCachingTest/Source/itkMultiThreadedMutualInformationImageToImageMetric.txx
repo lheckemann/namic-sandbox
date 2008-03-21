@@ -34,6 +34,7 @@
 
 // Turn on or off derivative caching
 #define USE_CACHED_DERIVATIVES
+#define USE_SPARSE_CACHED_DERIVATIVES
 
 namespace itk
 {
@@ -75,7 +76,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   // One GB derivative cache.
   this->m_DerivativeCacheSize = 1024UL * 1024UL * 1024UL;//2048UL * 1024UL * 1024UL;
-  // this->m_DerivativeCacheSize += 600UL * 1024UL * 1024UL; // Add 600 more MB
+  this->m_DerivativeCacheSize += 600UL * 1024UL * 1024UL; // Add 600 more MB
   //m_DerivativeCacheSize = 0;
 }
 
@@ -1156,6 +1157,107 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
 }
 
+template < class TFixedImage, class TMovingImage  >
+void
+MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+::CalculateDerivativesThreadedSparse(
+  const FixedImagePointType& point,
+  const MovingImagePointType& mappedPoint,
+  SparseDerivativeType& derivatives,
+  unsigned int threadID ) const
+{
+  // THREAD: To be thread safe
+  // THREAD: m_Transform->TransformPoint needs to be thread safe (NOT OK)
+  //            BSpline transform point may not be thread safe
+  //              Non-caching BSpline may be thread safe.
+  // THREAD: m_Transform->GetJacobian( point ) needs to be thread safe. (???)
+  // THREAD: m_Transform->GetNumberOfParameters() needs to be thread safe.
+  // THREAD: that m_DerivativeCalculator->IsInsideBuffer needs to be thread safe (LOOKS OK)
+  // THREAD: that m_DerivativeCalculator->Evaluate needs to be thread safe (LOOKS OK).
+  //            ConvertPointToNearestIndex - Look ok
+  //            EvaluateAtIndex - Look ok
+  // THREAD: Is mappedPoint already available somewhere else?
+  //            Computed during sampling, but thrown out.
+
+
+  // THREAD: We will keep the mapping from when the samples are drawn, so 
+  // we don't need to recompute it here.
+  // MovingImagePointType mappedPoint = this->m_Transform->TransformPoint( point );
+  
+  CovariantVector<double,MovingImageDimension> imageDerivatives;
+
+  if ( m_DerivativeCalculator->IsInsideBuffer( mappedPoint ) )
+    {
+    imageDerivatives = m_DerivativeCalculator->Evaluate( mappedPoint );
+    }
+  else
+    {
+    // Put nothing in the sparse derivative
+    return;
+    }
+
+  typedef typename TransformType::JacobianType JacobianType;
+
+  if ( true == m_TransformIsBSpline )
+    {
+    /** FIXME -- hardcoded spline order*/
+    typedef BSplineDeformableTransform2< CoordinateRepresentationType,
+                        ::itk::GetImageDimension<FixedImageType>::ImageDimension,
+                                        3 >             BSplineTransformType;
+
+    BSplineTransformType* bSplineTransformPtr = dynamic_cast<BSplineTransformType *>(
+                                                               m_TransformArray[threadID].GetPointer() );
+    //                                                         m_Transform.GetPointer() );
+
+    int numberOfContributions = bSplineTransformPtr->GetNumberOfAffectedWeights();
+    int numberOfParametersPerDimension = bSplineTransformPtr->GetNumberOfParametersPerDimension();
+
+    // THREAD: Need thread safe GetJacobian( point )
+    typedef typename BSplineTransformType::WeightsType JacobianValueArrayType;
+    JacobianValueArrayType jacobianValues(numberOfContributions);
+    
+    typedef typename BSplineTransformType::ParameterIndexArrayType JacobianIndexType;
+    JacobianIndexType jacobianIndices(numberOfContributions);
+    //jacobianIndices.set_size(numberOfContributions);
+
+    // FIXME -- Need to duplicate transforms for GetJacobian to be thread safe
+    bSplineTransformPtr->GetJacobian( point, 
+                                      jacobianValues,
+                                      jacobianIndices 
+                                      );
+
+    for ( unsigned int k = 0; k < numberOfContributions; k++ )
+      {
+      for ( unsigned int j = 0; j < MovingImageDimension; j++ )
+        {
+        SparseDerivativeIndexType derivativeIndex = j*numberOfParametersPerDimension + jacobianIndices[k];
+        derivatives.push_back( SparseDerivativeEntryType( derivativeIndex, jacobianValues[k] * imageDerivatives[j] ) );
+        }
+      }
+    }
+  else // Default implementation
+    {
+    // THREAD: Need thread safe GetJacobian( point )
+    // FIXME -- Need to duplicate transforms for GetJacobian to be thread safe
+    // const JacobianType& jacobian = this->m_Transform->GetJacobian( point );
+    const JacobianType& jacobian = this->m_TransformArray[threadID]->GetJacobian( point );
+
+    unsigned int numberOfParameters = this->m_Transform->GetNumberOfParameters();
+
+    for ( unsigned int k = 0; k < numberOfParameters; k++ )
+      {
+      // derivatives[k] = 0.0;
+      for ( unsigned int j = 0; j < MovingImageDimension; j++ )
+        {
+        // This will consume a lot of memory if the derivative is large...
+        SparseDerivativeIndexType derivativeIndex = k;
+        derivatives.push_back( SparseDerivativeEntryType( derivativeIndex, jacobian[j][k] * imageDerivatives[j] ) );
+        }
+      } 
+    }
+
+}
+
 /*
  * Reinitialize the seed of the random number generator
  */
@@ -1477,7 +1579,11 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   this->SetupDerivativePartialResults();
 
 #ifdef USE_CACHED_DERIVATIVES
+#ifdef USE_SPARSE_CACHED_DERIVATIVES
+  this->CacheSparseSampleADerivatives();
+#else
   this->CacheSampleADerivatives();
+#endif
 #endif
 
   if (false == this->ValidatePartialResultSizes())
@@ -1908,7 +2014,11 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       totalWeight += weight;
 
 #ifdef USE_CACHED_DERIVATIVES
+#ifdef USE_SPARSE_CACHED_DERIVATIVES      
+      this->UpdateDerivativeSparse( threadDerivative, *aiter, weight, threadID );
+#else
       this->UpdateDerivative( threadDerivative, *aiter, weight, threadID );
+#endif
 #else
       this->CalculateDerivativesThreaded( (*aiter).FixedImagePointValue, 
                                           (*aiter).MovingImagePointValue, 
@@ -2392,10 +2502,62 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 template < class TFixedImage, class TMovingImage  >
 void
 MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
-::UpdateDerivative( DerivativeType& threadDerivative, const SpatialSample& sample, double weight, unsigned int threadID ) const
+::CacheSparseSampleADerivatives() const
 {
-  //FixedImageLinearOffsetType sampleLinearOffset = this->m_FixedImage->ComputeOffset( sample.FixedImageIndex );
-  
+  /** This method assumes that the samples have been generated already and 
+      that the transform has been set. **/
+
+  unsigned long currentCacheSize = 0;
+  unsigned long numberOfCachedDerivatives = 0;
+
+  SparseDerivativeType derivA;
+
+  for ( SamplesConstIterator aiter = m_SampleA.begin();
+          aiter != m_SampleA.end();
+          ++aiter)
+    {
+    
+    derivA.clear();
+
+    // THIS NEEDS TO BE SPARSIFIED
+    this->CalculateDerivativesThreadedSparse( (*aiter).FixedImagePointValue, 
+                                              (*aiter).MovingImagePointValue, 
+                                              derivA,
+                                              0 );
+
+    unsigned long derivSize = derivA.size() * sizeof( SparseDerivativeEntryType );
+    currentCacheSize += derivSize;
+    if (currentCacheSize <= m_DerivativeCacheSize)
+      {
+      // COPY of derivative!
+      this->m_SparseDerivativeMap[ (*aiter).FixedImageLinearOffset ] = derivA;
+      numberOfCachedDerivatives++;
+      }
+    else
+      {
+      break;
+      }
+    }
+
+  // Equality is for debug message
+  if ( numberOfCachedDerivatives >= this->m_SampleA.size() )
+    {
+    numberOfCachedDerivatives = this->m_SampleA.size();
+    std::cout << "**** All sparse derivatives fit in cache. ****" << std::endl;
+    }
+  else
+    {
+    std::cout << "**** " << numberOfCachedDerivatives << " of " << this->m_SampleA.size();
+    std::cout << " derivatives fit in cache size " << m_DerivativeCacheSize << " ****" << std::endl;
+    }
+
+}
+
+template < class TFixedImage, class TMovingImage  >
+void
+MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+::UpdateDerivative( DerivativeType& threadDerivative, const SpatialSample& sample, double weight, unsigned int threadID ) const
+{  
   DerivativeMapType::const_iterator iter = this->m_DerivativeMap.find( sample.FixedImageLinearOffset );
   if ( iter == this->m_DerivativeMap.end() )
     {
@@ -2413,6 +2575,31 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     // FIXME: Is this making a temporary derivative?
     // threadDerivative -= (*iter).second * weight;
     this->FastDerivativeSubtractWithWeight( threadDerivative, (*iter).second, weight );
+    }  
+}
+
+template < class TFixedImage, class TMovingImage  >
+void
+MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+::UpdateDerivativeSparse( DerivativeType& threadDerivative, const SpatialSample& sample, double weight, unsigned int threadID ) const
+{  
+  SparseDerivativeMapType::const_iterator iter = this->m_SparseDerivativeMap.find( sample.FixedImageLinearOffset );
+  if ( iter == this->m_SparseDerivativeMap.end() )
+    {
+    DerivativeType derivA( this->m_Transform->GetNumberOfParameters() );
+    this->CalculateDerivativesThreaded( sample.FixedImagePointValue, 
+                                        sample.MovingImagePointValue, 
+                                        derivA,
+                                        threadID );
+
+    // threadDerivative -= derivA * weight;
+    this->FastDerivativeSubtractWithWeight( threadDerivative, derivA, weight );
+    }
+  else
+    {
+    // FIXME: Is this making a temporary derivative?
+    // threadDerivative -= (*iter).second * weight;
+    this->FastSparseDerivativeSubtractWithWeight( threadDerivative, (*iter).second, weight );
     }  
 }
 

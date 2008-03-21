@@ -391,26 +391,36 @@ private:
       }
     }; // SpatialSampleCompare
 
-
-  // typedef std::map< SpatialSample, DerivativeType, SpatialSampleCompare > DerivativeMapType;
-  // Hash map -- element access is fast. Stored in no particular order.
-  // Need a hash function?
-  //typedef long FixedImageLinearOffsetType;
-  // typedef FixedImageType footype;
+  // Sparse derivative
+  typedef unsigned long SparseDerivativeIndexType;
+  typedef DerivativeType::ValueType SparseDerivativeValueType;
+  typedef std::pair< SparseDerivativeIndexType, SparseDerivativeValueType > SparseDerivativeEntryType;
+  typedef std::vector< SparseDerivativeEntryType > SparseDerivativeType;
 
   // FIXME
-  typedef long FixedImageLinearOffsetType;
+  typedef long FixedImageLinearOffsetType; // Should this be unsigned, what type is the linear offset for itk::Image?
+  // Hash map -- element access is fast. Stored in no particular order.
   typedef itk::hash_map< FixedImageLinearOffsetType, DerivativeType, itk::hash< FixedImageLinearOffsetType > > DerivativeMapType;
-
+  typedef itk::hash_map< FixedImageLinearOffsetType, SparseDerivativeType, itk::hash< FixedImageLinearOffsetType > > SparseDerivativeMapType;
 
   mutable DerivativeMapType m_DerivativeMap;
+  mutable SparseDerivativeMapType m_SparseDerivativeMap;
 
   void CacheSampleADerivatives() const;
+
+  void CacheSparseSampleADerivatives() const;
+
+  void CalculateDerivativesThreadedSparse( const FixedImagePointType& ,
+                                           const MovingImagePointType& mappedPoint,
+                                           SparseDerivativeType& derivative,
+                                           unsigned int threadID ) const;
+
 
   // Size of derivative cache in bytes.
   unsigned long m_DerivativeCacheSize;
 
   inline void UpdateDerivative( DerivativeType& threadDerivative, const SpatialSample& sample, double weight, unsigned int threadID ) const;
+  inline void UpdateDerivativeSparse( DerivativeType& threadDerivative, const SpatialSample& sample, double weight, unsigned int threadID ) const;
 
   inline void FastDerivativeSubtractWithWeight( DerivativeType& in, const DerivativeType& subtrahend, const double subtractWeight ) const
     {
@@ -421,6 +431,11 @@ private:
     for (unsigned int i = 0; i < in.size(); i++ )
       {
       inData[i] -= (subtrahendData[i] * subtractWeight);
+      /*
+      *inData = *inData - (*subtrahendData * subtractWeight);
+      inData++;
+      subtrahendData++;
+      */
       }
     }
 
@@ -433,6 +448,23 @@ private:
     for (unsigned int i = 0; i < in.size(); i++ )
       {
       inData[i] += (subtrahendData[i] * subtractWeight);
+      /*
+      *inData = *inData + (*subtrahendData * subtractWeight);
+      inData++;
+      subtrahendData++;
+      */
+      }
+    }
+
+  inline void FastSparseDerivativeSubtractWithWeight( DerivativeType& in, const SparseDerivativeType& subtrahend, const double subtractWeight ) const
+    {
+    double* inData = in.data_block();
+
+    for (SparseDerivativeType::const_iterator siter = subtrahend.begin();
+                                              siter != subtrahend.end();
+                                              ++siter )
+      {
+      inData[ (*siter).first ] -= ( (*siter).second * subtractWeight );
       }
     }
 
