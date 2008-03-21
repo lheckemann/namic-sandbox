@@ -2423,7 +2423,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 {
   //long sampleLinearOffset = this->m_FixedImage->ComputeOffset( sample.FixedImageIndex );
   
-  DerivativeMapType::const_iterator iter = this->m_DerivativeMap.find( sample.FixedImageLinearOffset );
+  typename DerivativeMapType::const_iterator iter = this->m_DerivativeMap.find( sample.FixedImageLinearOffset );
   if ( iter == this->m_DerivativeMap.end() )
     {
     return false;
@@ -2441,7 +2441,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 {
   //FixedImageLinearOffsetType sampleLinearOffset = this->m_FixedImage->ComputeOffset( sample.FixedImageIndex );
   
-  DerivativeMapType::const_iterator iter = this->m_DerivativeMap.find( sample.FixedImageLinearOffset );
+  typename DerivativeMapType::const_iterator iter = this->m_DerivativeMap.find( sample.FixedImageLinearOffset );
   if ( iter == this->m_DerivativeMap.end() )
     {
     return false;
@@ -2558,7 +2558,7 @@ void
 MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::UpdateDerivative( DerivativeType& threadDerivative, const SpatialSample& sample, double weight, unsigned int threadID ) const
 {  
-  DerivativeMapType::const_iterator iter = this->m_DerivativeMap.find( sample.FixedImageLinearOffset );
+  typename DerivativeMapType::const_iterator iter = this->m_DerivativeMap.find( sample.FixedImageLinearOffset );
   if ( iter == this->m_DerivativeMap.end() )
     {
     DerivativeType derivA( this->m_Transform->GetNumberOfParameters() );
@@ -2583,7 +2583,7 @@ void
 MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::UpdateDerivativeSparse( DerivativeType& threadDerivative, const SpatialSample& sample, double weight, unsigned int threadID ) const
 {  
-  SparseDerivativeMapType::const_iterator iter = this->m_SparseDerivativeMap.find( sample.FixedImageLinearOffset );
+  typename SparseDerivativeMapType::const_iterator iter = this->m_SparseDerivativeMap.find( sample.FixedImageLinearOffset );
   if ( iter == this->m_SparseDerivativeMap.end() )
     {
     DerivativeType derivA( this->m_Transform->GetNumberOfParameters() );
