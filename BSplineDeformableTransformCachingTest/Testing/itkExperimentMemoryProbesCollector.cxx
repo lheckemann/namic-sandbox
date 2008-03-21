@@ -70,16 +70,17 @@ Report( std::ostream & os ) const
 
 void 
 ExperimentMemoryProbesCollector::
-SetExperimentString( std::string& inString )
+SetExperimentString( const std::string& inString )
 {
   m_ExperimentString = inString;
 }
 
 void 
 ExperimentMemoryProbesCollector::
-SetDelimeterString( std::string& delim )
+SetDelimeterString( const std::string& delim )
 {
   m_Delimeter = delim;
 }
 
 } // end namespace itk
+

@@ -19,8 +19,8 @@ public:
   /** Report the summary of results from the time probes */
   virtual void Report( std::ostream & os = std::cout ) const;
 
-  void SetExperimentString( std::string& );
-  void SetDelimeterString( std::string& );
+  void SetExperimentString( const std::string& );
+  void SetDelimeterString( const std::string& );
 
 protected:
   void WriteReportHeader( std::ostream & os = std::cout ) const;

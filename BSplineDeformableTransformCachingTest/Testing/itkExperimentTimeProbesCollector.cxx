@@ -70,14 +70,14 @@ Report( std::ostream & os ) const
 
 void 
 ExperimentTimeProbesCollector::
-SetExperimentString( std::string& inString )
+SetExperimentString( const std::string& inString )
 {
   m_ExperimentString = inString;
 }
 
 void 
 ExperimentTimeProbesCollector::
-SetDelimeterString( std::string& delim )
+SetDelimeterString( const std::string& delim )
 {
   m_Delimeter = delim;
 }
