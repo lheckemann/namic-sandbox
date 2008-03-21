@@ -41,6 +41,9 @@ TARGET_LINK_LIBRARIES(ImageRegistration13 ITKStatistics ITKIO ITKNumerics ${MEMO
 ADD_EXECUTABLE(MultiResImageRegistration2 MultiResImageRegistration2.cxx )
 TARGET_LINK_LIBRARIES(MultiResImageRegistration2 ITKStatistics ITKIO ITKNumerics ${MEMORY_LIBS})
 
+ADD_EXECUTABLE(DeformableRegistration12 DeformableRegistration12.cxx )
+TARGET_LINK_LIBRARIES(DeformableRegistration12 ITKStatistics ITKIO ITKNumerics ${MEMORY_LIBS})
+
 ADD_TEST(ImageRegistration13TestNAMICSandbox ${REGISTRATION_EXAMPLES}
   --compare ${BASELINE}/ImageRegistration13Test.png
             ${TEMP}/ImageRegistration13TestNAMICSandbox.png
