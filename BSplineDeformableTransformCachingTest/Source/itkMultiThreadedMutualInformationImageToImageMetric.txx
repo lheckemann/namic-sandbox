@@ -1722,10 +1722,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   DerivativeContainer sampleADerivatives;
   sampleADerivatives.resize( m_NumberOfSpatialSamples );
 
-  //unsigned int numberOfParameters = this->m_Transform->GetNumberOfParameters();
-  DerivativeType derivA( m_NumberOfParameters );
-  DerivativeType derivB( m_NumberOfParameters );
-
   // Break into two B sample loops?
   unsigned int bSampleCount = 0;
   for( biter = bstart; biter != bend; ++biter, ++bSampleCount )
@@ -1760,8 +1756,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     m_SumJointPartialAResults[threadID][bSampleCount] = dDenominatorJoint;
 
     } // end of sample B loop
-
-
 }
 
 template < class TFixedImage, class TMovingImage  >
@@ -2460,6 +2454,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 {
   /** This method assumes that the samples have been generated already and 
       that the transform has been set. **/
+  this->m_DerivativeMap.clear();
 
   // Derivative size in bytes
   unsigned long derivativeSize = sizeof( double ) * this->m_Transform->GetNumberOfParameters();
@@ -2506,6 +2501,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 {
   /** This method assumes that the samples have been generated already and 
       that the transform has been set. **/
+  this->m_SparseDerivativeMap.clear();
 
   unsigned long currentCacheSize = 0;
   unsigned long numberOfCachedDerivatives = 0;
