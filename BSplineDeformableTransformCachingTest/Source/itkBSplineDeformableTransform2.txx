@@ -799,7 +799,6 @@ BSplineDeformableTransform2<TScalarType, NDimensions,VSplineOrder>
 }
 
 
-
 // Compute the Jacobian in one position 
 template<class TScalarType, unsigned int NDimensions, unsigned int VSplineOrder>
 void

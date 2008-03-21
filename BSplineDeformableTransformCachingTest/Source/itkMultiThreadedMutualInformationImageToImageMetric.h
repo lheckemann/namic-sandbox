@@ -393,7 +393,7 @@ private:
 
   // Sparse derivative
   typedef unsigned long SparseDerivativeIndexType;
-  typedef DerivativeType::ValueType SparseDerivativeValueType;
+  typedef typename DerivativeType::ValueType SparseDerivativeValueType;
   typedef std::pair< SparseDerivativeIndexType, SparseDerivativeValueType > SparseDerivativeEntryType;
   typedef std::vector< SparseDerivativeEntryType > SparseDerivativeType;
 
@@ -459,10 +459,12 @@ private:
   inline void FastSparseDerivativeSubtractWithWeight( DerivativeType& in, const SparseDerivativeType& subtrahend, const double subtractWeight ) const
     {
     double* inData = in.data_block();
+ 
+    typedef typename SparseDerivativeType::const_iterator SparseDerivativeIterator;
 
-    for (SparseDerivativeType::const_iterator siter = subtrahend.begin();
-                                              siter != subtrahend.end();
-                                              ++siter )
+    for ( SparseDerivativeIterator siter = subtrahend.begin();
+                                   siter != subtrahend.end();
+                                   ++siter )
       {
       inData[ (*siter).first ] -= ( (*siter).second * subtractWeight );
       }
