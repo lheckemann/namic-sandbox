@@ -21,9 +21,11 @@ int main( int argc, char* argv[] )
   testImplementation.SetBSplineGridOnImageSize( bsplineSize );
   
   testImplementation.SetNumberOfIterations( atoi( argv[7] ) );
-  testImplementation.SetUseThreading( atoi( argv[8] ) > 0 );
+  testImplementation.SetUseThreading( atoi( argv[8] ) );
 
-  testImplementation.SetNumberOfSamples( size[0] * size[1] * size[2] * 0.05 );
+  // size[0] * size[1] * size[2]
+  testImplementation.SetNumberOfSamples( 32 * 32 * 32 * 0.05 );
+  //testImplementation.SetNumberOfSamples( 5000 );
 
   if (argc > 10)
     {
