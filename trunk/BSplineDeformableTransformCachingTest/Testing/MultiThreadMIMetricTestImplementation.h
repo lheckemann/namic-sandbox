@@ -24,7 +24,7 @@ public:
   void SetImageSize( SizeType& size );
   void SetBSplineGridOnImageSize( SizeType& size );
   void SetNumberOfSamples( unsigned long samples );
-  void SetUseThreading( bool threading );
+  void SetUseThreading( int threading );
   void CreateTimingOutputFileName();
   void CreateMemoryOutputFileName();
   void SetTimingOutputFileName( const char* );
@@ -36,7 +36,7 @@ protected:
   std::string m_MemOutputFileName;
   std::string m_DerivativeOutputFileName;
 
-  bool        m_UseThreading;
+  int        m_UseThreading;
 
   SizeType m_ImageSize;
   SizeType m_BSplineSize;

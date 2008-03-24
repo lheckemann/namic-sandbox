@@ -10,8 +10,7 @@
 
 #include "itkTimeProbesCollectorBase.h"
 
-#include "itkMattesMutualInformationImageToImageMetric2.h"
-#include "itkMattesNoCachingMutualInformationImageToImageMetric.h"
+#include "itkMattesMutualInformationImageToImageMetric.h"
 
 #include "itkBSplineDeformableTransform2.h"
 
@@ -51,7 +50,8 @@ MultiThreadMIMetricTestImplementation<Dimension>
   typedef itk::MultiThreadedMutualInformationImageToImageMetric< ImageType, ImageType > ThreadMetricType;
   typedef itk::MutualInformationImageToImageMetric< ImageType, ImageType >              DefaultMetricType;
   typedef itk::ImageToImageMetric< ImageType, ImageType >                               CommonMetricType;
-  
+  typedef itk::MattesMutualInformationImageToImageMetric< ImageType, ImageType>         MattesMetricType;
+ 
   typedef ThreadMetricType::ParametersType ParametersType;
 
   const unsigned int SpaceDimension = ImageDimension;
@@ -71,14 +71,21 @@ MultiThreadMIMetricTestImplementation<Dimension>
 
   ThreadMetricType::Pointer  threadMetric = ThreadMetricType::New();
   DefaultMetricType::Pointer defaultMetric = DefaultMetricType::New();
+  MattesMetricType::Pointer  mattesMetric = MattesMetricType::New();
+
   CommonMetricType::Pointer metric;
   std::string threadingString;
   int useThreading = m_UseThreading; //atoi(argv[5]);
 
-  if ( useThreading )
+  if ( 1 == useThreading )
     {
     threadingString = "Multithreaded";
     metric = threadMetric;
+    }
+  else if ( 2 == useThreading )
+    {
+    threadingString = "Mattes";
+    metric = mattesMetric;
     }
   else
     {
@@ -179,6 +186,8 @@ MultiThreadMIMetricTestImplementation<Dimension>
   threadMetric->ReinitializeSeed( seed );
   defaultMetric->SetNumberOfSpatialSamples( numberOfSamples );
   defaultMetric->ReinitializeSeed( seed );
+  mattesMetric->SetNumberOfSpatialSamples( numberOfSamples );
+  mattesMetric->SetNumberOfHistogramBins( 50 );
 
   itk::ExperimentTimeProbesCollector        timeCollector;
 
@@ -279,10 +288,12 @@ MultiThreadMIMetricTestImplementation<Dimension>
   // std::stringstr
   //std::string experimentString;
   //experimentString = threadingString + "\t" + m_ImageSize[0] + "\t" + m_ImageSize[1] + "\t" + m_ImageSize[2] + "\t" + numberOfSamplesString;  
+
+  // FIXME - Assumes 3D input image.
   std::stringstream experimentStringStream;
   experimentStringStream << threadingString << "\t" << m_ImageSize[0] << "\t" << m_ImageSize[1] << "\t" << m_ImageSize[2];
   experimentStringStream << "\t" << m_BSplineSize[0] << "\t" << m_BSplineSize[1] << "\t" << m_BSplineSize[2];
-  experimentStringStream << "\t" << numberOfSamples;
+  experimentStringStream << "\t" << numberOfSamples << "\t" << m_BSplineSize[0] * m_BSplineSize[1] * m_BSplineSize[2];
 
   timeCollector.SetExperimentString( experimentStringStream.str() );
   memoryCollector.SetExperimentString( experimentStringStream.str() );
@@ -384,7 +395,7 @@ MultiThreadMIMetricTestImplementation<Dimension>
 template <unsigned int Dimension>
 void 
 MultiThreadMIMetricTestImplementation<Dimension>
-::SetUseThreading( bool threading )
+::SetUseThreading( int threading )
 {
   m_UseThreading = threading;
 }
