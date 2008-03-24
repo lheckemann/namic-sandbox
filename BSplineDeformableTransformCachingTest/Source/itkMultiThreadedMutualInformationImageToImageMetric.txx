@@ -1184,6 +1184,9 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   // we don't need to recompute it here.
   // MovingImagePointType mappedPoint = this->m_Transform->TransformPoint( point );
   
+  // FIXME: does input derivative need to be cleared?
+  // FIXME: derivatives.clear();
+
   CovariantVector<double,MovingImageDimension> imageDerivatives;
 
   if ( m_DerivativeCalculator->IsInsideBuffer( mappedPoint ) )
@@ -2137,10 +2140,14 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
           0,
           this->m_NumberOfParameters * sizeof(double) );
 
+#ifdef USE_SPARSE_CACHED_DERIVATIVES
+  SparseDerivativeType derivB;
+#else
   DerivativeType derivB( this->m_NumberOfParameters );
   memset( derivB.data_block(),
           0,
           this->m_NumberOfParameters * sizeof(double) );
+#endif
 
   // Alias for convenience
   DerivativeType& threadDerivatives = this->m_ThreadDerivatives[ threadID ];
@@ -2164,17 +2171,28 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   for( ; biter != bend && twiter != twend; ++biter, ++twiter )
     {
     // get the image derivative for this B sample
+    // FIXME: SPARSIFY
+#ifdef USE_SPARSE_CACHED_DERIVATIVES
+    this->CalculateDerivativesThreadedSparse( (*biter).FixedImagePointValue, 
+                                              (*biter).MovingImagePointValue, 
+                                              derivB,
+                                              threadID );
+#else
     this->CalculateDerivativesThreaded( (*biter).FixedImagePointValue, 
                                         (*biter).MovingImagePointValue, 
                                         derivB,
                                         threadID );
-    
+#endif
     // totalWeight is summed over all A samples, so one totalWeight per B sample
     
     double totalWeight = *twiter;
 
     // threadDerivatives += derivB * totalWeight;
+#ifdef USE_SPARSE_CACHED_DERIVATIVES
+    this->FastSparseDerivativeAddWithWeight( threadDerivatives, derivB, totalWeight );
+#else
     this->FastDerivativeAddWithWeight( threadDerivatives, derivB, totalWeight );
+#endif
     }
 
 }
@@ -2188,7 +2206,8 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   for (unsigned int t = 0; t < m_NumberOfThreads; t++)
     {
-    derivative += this->m_ThreadDerivatives[ t ];
+    //derivative += this->m_ThreadDerivatives[ t ];
+    this->FastDerivativeAdd( derivative, this->m_ThreadDerivatives[t] );
     }
 }
 
