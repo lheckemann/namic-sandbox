@@ -470,6 +470,32 @@ private:
       }
     }
 
+  inline void FastDerivativeAdd( DerivativeType& in, const DerivativeType& addend ) const
+    {
+    double* inData = in.data_block();
+    const double* addendData = addend.data_block();
+
+    for (unsigned int i = 0; i < in.size(); i++ )
+      {
+      inData[i] += addendData[i];
+      }
+    }
+
+  inline void FastSparseDerivativeAddWithWeight( DerivativeType& in, const SparseDerivativeType& addend, const double weight ) const
+    {
+    double* inData = in.data_block();
+ 
+    typedef typename SparseDerivativeType::const_iterator SparseDerivativeIterator;
+
+    for ( SparseDerivativeIterator siter = addend.begin();
+                                   siter != addend.end();
+                                   ++siter )
+      {
+      inData[ (*siter).first ] += ( (*siter).second * weight );
+      }
+    }
+
+
 public:
   bool CompareDerivatives( ParametersType& parameters );
 
