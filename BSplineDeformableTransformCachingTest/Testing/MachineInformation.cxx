@@ -63,6 +63,7 @@ MachineInformation::DescribeMachineLatex( std::ostream& os )
   systemInformation.RunOSCheck();
   systemInformation.RunMemoryCheck();
   
+  os << "\\begin{table}" << std::endl;
   os << "\\begin{center}" << std::endl;
   os << "\\begin{tabular}{ | l | c | }" << std::endl;
   os << "\\hline" << std::endl;
@@ -90,5 +91,8 @@ MachineInformation::DescribeMachineLatex( std::ostream& os )
   os << "Available Physical Memory (MB)&   " << systemInformation.GetAvailablePhysicalMemory() << "\\\\ \\hline" << std::endl;
   os << "\\end{tabular}" << std::endl;
   os << "\\end{center}" << std::endl;
+  os << "\\label{tab:system_information}" << std::endl;
+  os << "\\caption{Test system configuration.}" << std::endl;
+  os << "\\end{table}" << std::endl;
 
 }
