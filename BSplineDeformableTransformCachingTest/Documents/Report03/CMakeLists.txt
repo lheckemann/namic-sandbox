@@ -1,23 +1,26 @@
 PROJECT(MultiThreadedMIMetricTestReport03)
 
-
+# Name of the report
 SET(REPORT_NAME Report03.pdf)
-#
+
 # Set some directories that we use below.
-#
+SET(REPORT_BINARY_DIR ${MultiThreadedMIMetricTestReport03_BINARY_DIR})
+SET(REPORT_SOURCE_DIR ${MultiThreadedMIMetricTestReport03_SOURCE_DIR})
 SET(PLOT_DIR ${MultiThreadedMIMetricTestReport03_BINARY_DIR})
 
-# FIXME - Testing/release
-# Not the Report binary dir
-# CMAKE_BUILD_TYPE
+#
+# The TEST_EXECUTABLE_DIR points to the binary directory for the 
+# top-level project. Not this report project.
+#
 IF(WIN32)
 SET(TEST_EXECUTABLE_DIR ${MattesMetricCachingTest_BINARY_DIR}/bin/release)
 ELSE(WIN32)
 SET(TEST_EXECUTABLE_DIR ${MattesMetricCachingTest_BINARY_DIR}/bin)
 ENDIF(WIN32)
 
-SET(TEST_EXECUTABLE ${TEST_EXECUTABLE_DIR}/MultiThreadedMIMetricTest2)
-#GET_TARGET_PROPERTY(MultiThreadedMIMetricTestReport TEST_EXECUTABLE LOCATION)
+# The executable we want to test.
+SET(TEST_EXECUTABLE_NAME MultiThreadedMIMetricTest2)
+SET(TEST_EXECUTABLE ${TEST_EXECUTABLE_DIR}/${TEST_EXECUTABLE_NAME})
 
 #
 # Add custom targets that delete output files.
@@ -85,7 +88,7 @@ FOREACH(USE_THREADING ${THREADING_LIST})
     SET(THREADING_STRING Default)
   ENDIF(${USE_THREADING} EQUAL 1)
   
-  SET( DEPENDENCY_VAR MultiThreadedMIMetricTest Erase${THREADING_STRING}Results Erase${THREADING_STRING}MemoryResults )
+  SET( DEPENDENCY_VAR ${TEST_EXECUTABLE_NAME} Erase${THREADING_STRING}Results Erase${THREADING_STRING}MemoryResults )
   
   FOREACH(SIZE ${SIZE_LIST})
   
@@ -126,14 +129,12 @@ SET(SIZE_LIST ${REPORT03_NEW_IMPLEMENTATION_GRID_SIZE_LIST})
 FOREACH(USE_THREADING ${THREADING_LIST})
 
   IF(${USE_THREADING} EQUAL 1)
-    #SET(THREADING_STRING ThreadingResults)
     SET(THREADING_STRING Threading)    
   ELSE(${USE_THREADING} EQUAL 1)
-    #SET(THREADING_STRING DefaultResults)
     SET(THREADING_STRING Default)
   ENDIF(${USE_THREADING} EQUAL 1)
   
-  SET( DEPENDENCY_VAR MultiThreadedMIMetricTest Erase${THREADING_STRING}Results2 Erase${THREADING_STRING}MemoryResults2 )
+  SET( DEPENDENCY_VAR ${TEST_EXECUTABLE_NAME} Erase${THREADING_STRING}Results2 Erase${THREADING_STRING}MemoryResults2 )
   
   FOREACH(SIZE ${SIZE_LIST})
   
@@ -172,7 +173,7 @@ ENDFOREACH(USE_THREADING ${THREADING_LIST})
 #
 ADD_CUSTOM_COMMAND(
    OUTPUT ${PLOT_DIR}/ThreadingTiming.pdf
-   COMMAND ${GNUPLOT} ${MultiThreadedMIMetricTestReport03_SOURCE_DIR}/MakeThreadingPlots.plt
+   COMMAND ${GNUPLOT} ${REPORT_SOURCE_DIR}/MakeThreadingPlots.plt
    COMMAND ${PS2PDF_CONVERTER} ThreadingTiming.ps ThreadingTiming.pdf
    WORKING_DIRECTORY ${PLOT_DIR}
    DEPENDS ${EXPERIMENT_DEPENDENCIES}
@@ -180,7 +181,7 @@ ADD_CUSTOM_COMMAND(
 
 ADD_CUSTOM_COMMAND(
    OUTPUT ${PLOT_DIR}/ThreadingMemory.pdf
-   COMMAND ${GNUPLOT} ${MultiThreadedMIMetricTestReport03_SOURCE_DIR}/MakeThreadingMemoryPlots.plt
+   COMMAND ${GNUPLOT} ${REPORT_SOURCE_DIR}/MakeThreadingMemoryPlots.plt
    COMMAND ${PS2PDF_CONVERTER} ThreadingMemory.ps ThreadingMemory.pdf
    WORKING_DIRECTORY ${PLOT_DIR}
    DEPENDS ${EXPERIMENT_DEPENDENCIES}
@@ -188,7 +189,7 @@ ADD_CUSTOM_COMMAND(
 
 ADD_CUSTOM_COMMAND(
    OUTPUT ${PLOT_DIR}/ThreadingTiming2.pdf
-   COMMAND ${GNUPLOT} ${MultiThreadedMIMetricTestReport03_SOURCE_DIR}/MakeThreadingPlots2.plt
+   COMMAND ${GNUPLOT} ${REPORT_SOURCE_DIR}/MakeThreadingPlots2.plt
    COMMAND ${PS2PDF_CONVERTER} ThreadingTiming2.ps ThreadingTiming2.pdf
    WORKING_DIRECTORY ${PLOT_DIR}
    DEPENDS ${EXPERIMENT_DEPENDENCIES}
@@ -196,7 +197,7 @@ ADD_CUSTOM_COMMAND(
 
 ADD_CUSTOM_COMMAND(
    OUTPUT ${PLOT_DIR}/ThreadingMemory2.pdf
-   COMMAND ${GNUPLOT} ${MultiThreadedMIMetricTestReport03_SOURCE_DIR}/MakeThreadingMemoryPlots2.plt
+   COMMAND ${GNUPLOT} ${REPORT_SOURCE_DIR}/MakeThreadingMemoryPlots2.plt
    COMMAND ${PS2PDF_CONVERTER} ThreadingMemory2.ps ThreadingMemory2.pdf
    WORKING_DIRECTORY ${PLOT_DIR}
    DEPENDS ${EXPERIMENT_DEPENDENCIES}
@@ -233,11 +234,11 @@ SET(REPORT_SRCS
 #
 FOREACH(SOURCE_FILE ${REPORT_SRCS})
    ADD_CUSTOM_COMMAND(
-     OUTPUT   ${MultiThreadedMIMetricTestReport03_BINARY_DIR}/${SOURCE_FILE}
-     DEPENDS  ${MultiThreadedMIMetricTestReport03_SOURCE_DIR}/${SOURCE_FILE}
-     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${MultiThreadedMIMetricTestReport03_SOURCE_DIR}/${SOURCE_FILE} ${MultiThreadedMIMetricTestReport03_BINARY_DIR}/${SOURCE_FILE}
+     OUTPUT   ${REPORT_BINARY_DIR}/${SOURCE_FILE}
+     DEPENDS  ${REPORT_SOURCE_DIR}/${SOURCE_FILE}
+     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${REPORT_SOURCE_DIR}/${SOURCE_FILE} ${REPORT_BINARY_DIR}/${SOURCE_FILE}
     )
-   SET(COPY_RESULTS ${COPY_RESULTS} ${MultiThreadedMIMetricTestReport03_BINARY_DIR}/${SOURCE_FILE})
+   SET(COPY_RESULTS ${COPY_RESULTS} ${REPORT_BINARY_DIR}/${SOURCE_FILE})
 ENDFOREACH(SOURCE_FILE ${REPORT_SRCS})
 
 #
@@ -247,22 +248,22 @@ ENDFOREACH(SOURCE_FILE ${REPORT_SRCS})
 #
 ADD_CUSTOM_TARGET(Report03 ALL 
    COMMAND ${PDFLATEX_COMPILER} 
-        ${MultiThreadedMIMetricTestReport03_SOURCE_DIR}/Report03.tex 
-        -output-directory ${MultiThreadedMIMetricTestReport03_BINARY_DIR}
+        ${REPORT_SOURCE_DIR}/Report03.tex 
+        -output-directory ${REPORT_BINARY_DIR}
    COMMAND ${PDFLATEX_COMPILER} 
-        ${MultiThreadedMIMetricTestReport03_SOURCE_DIR}/Report03.tex 
-        -output-directory ${MultiThreadedMIMetricTestReport03_BINARY_DIR}
+        ${REPORT_SOURCE_DIR}/Report03.tex 
+        -output-directory ${REPORT_BINARY_DIR}
    # Should depend on plots target?
    DEPENDS ${COPY_RESULTS} ${PLOT_DIR}/ThreadingTiming.pdf ${PLOT_DIR}/ThreadingMemory.pdf ${PLOT_DIR}/ThreadingTiming2.pdf ${PLOT_DIR}/ThreadingMemory2.pdf ${PLOT_DIR}/SystemInformation.tex
-   WORKING_DIRECTORY ${MultiThreadedMIMetricTestReport03_BINARY_DIR}
+   WORKING_DIRECTORY ${REPORT_BINARY_DIR}
    )
  
 #  
 # This adds a custom target that will display the report.
 #   
 ADD_CUSTOM_TARGET(ViewReport03
-  COMMAND ${CMAKE_COMMAND} -E echo ${MultiThreadedMIMetricTestReport03_BINARY_DIR}/${REPORT_NAME}
+  COMMAND ${CMAKE_COMMAND} -E echo ${REPORT_BINARY_DIR}/${REPORT_NAME}
   COMMAND ${PDF_READER} ${REPORT_NAME}
-  WORKING_DIRECTORY ${MultiThreadedMIMetricTestReport03_BINARY_DIR}
+  WORKING_DIRECTORY ${REPORT_BINARY_DIR}
 )
 
