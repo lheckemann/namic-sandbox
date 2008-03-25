@@ -338,7 +338,8 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 {
   // FIXME: Partial results containers need to be cleaned up.
   // FIXME: This probably could be done in each thread...
-  this->ClearPartialResults();
+  // NOW WE WRITE OVER THE RESULTS...
+  // this->ClearPartialResults();
 
   // Before multithreading make sure the transform has the current parameters
   this->m_Transform->SetParameters( parameters );
@@ -546,7 +547,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     m_SumMovingPartialAResults[threadID].push_back( dSumMoving );
     m_SumJointPartialAResults[threadID].push_back( dSumJoint );
 #else
-    std::cout << " Make sure partial results are pre allocated in GetValueMultiThreadedInternal " << std::endl;
+    // std::cout << " Make sure partial results are pre allocated in GetValueMultiThreadedInternal " << std::endl;
     m_SumFixedPartialAResults[threadID][bSampleCount] = dSumFixed ;
     m_SumMovingPartialAResults[threadID][bSampleCount] = dSumMoving;
     m_SumJointPartialAResults[threadID][bSampleCount] = dSumJoint;
