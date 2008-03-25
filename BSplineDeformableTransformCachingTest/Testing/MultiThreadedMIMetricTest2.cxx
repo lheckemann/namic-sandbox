@@ -20,21 +20,21 @@ int main( int argc, char* argv[] )
   bsplineSize[2] = atoi(argv[6]);
   testImplementation.SetBSplineGridOnImageSize( bsplineSize );
   
-  testImplementation.SetNumberOfIterations( atoi( argv[7] ) );
-  testImplementation.SetUseThreading( atoi( argv[8] ) );
+  testImplementation.SetNumberOfIterations( atoi( argv[8] ) );
+  testImplementation.SetUseThreading( atoi( argv[9] ) );
 
   // size[0] * size[1] * size[2]
-  testImplementation.SetNumberOfSamples( 32 * 32 * 32 * 0.05 );
+  testImplementation.SetNumberOfSamples( atoi( argv[7] ) );
   //testImplementation.SetNumberOfSamples( 5000 );
 
-  if (argc > 10)
+  if (argc > 11)
     {
-    testImplementation.SetTimingOutputFileName( argv[9] );
-    testImplementation.SetMemoryOutputFileName( argv[10] );
+    testImplementation.SetTimingOutputFileName( argv[10] );
+    testImplementation.SetMemoryOutputFileName( argv[11] );
     }
-  else if (argc > 9)
+  else if (argc > 10)
     {
-    testImplementation.SetTimingOutputFileName( argv[9] );
+    testImplementation.SetTimingOutputFileName( argv[10] );
     testImplementation.CreateMemoryOutputFileName();
     }
   else
@@ -46,6 +46,8 @@ int main( int argc, char* argv[] )
   testImplementation.SetDerivativeOutputFileName( "derivative.out.txt" );
 
   testImplementation.RunTest();
+
+  //testImplementation.TestNumericsOfValueAndDerivative( 1e-10 );
 
   return EXIT_SUCCESS;
 }
