@@ -35,6 +35,7 @@
 // Turn on or off derivative caching
 #define USE_CACHED_DERIVATIVES
 #define USE_SPARSE_CACHED_DERIVATIVES
+#define USE_SPARSE_BSAMPLE_DERIVATIVES
 
 namespace itk
 {
@@ -2141,7 +2142,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
           0,
           this->m_NumberOfParameters * sizeof(double) );
 
-#ifdef USE_SPARSE_CACHED_DERIVATIVES
+#ifdef USE_SPARSE_BSAMPLE_DERIVATIVES
   SparseDerivativeType derivB;
 #else
   DerivativeType derivB( this->m_NumberOfParameters );
@@ -2173,7 +2174,8 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     {
     // get the image derivative for this B sample
     // FIXME: SPARSIFY
-#ifdef USE_SPARSE_CACHED_DERIVATIVES
+#ifdef USE_SPARSE_BSAMPLE_DERIVATIVES
+    derivB.clear();
     this->CalculateDerivativesThreadedSparse( (*biter).FixedImagePointValue, 
                                               (*biter).MovingImagePointValue, 
                                               derivB,
@@ -2189,7 +2191,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     double totalWeight = *twiter;
 
     // threadDerivatives += derivB * totalWeight;
-#ifdef USE_SPARSE_CACHED_DERIVATIVES
+#ifdef USE_SPARSE_BSAMPLE_DERIVATIVES
     this->FastSparseDerivativeAddWithWeight( threadDerivatives, derivB, totalWeight );
 #else
     this->FastDerivativeAddWithWeight( threadDerivatives, derivB, totalWeight );
