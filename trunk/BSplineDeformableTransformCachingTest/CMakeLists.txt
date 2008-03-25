@@ -15,6 +15,7 @@ SET( REPORT03_NEW_IMPLEMENTATION_GRID_SIZE_LIST "4;8;16;32;48;64;80;96;100" CACH
 SET( REPORT03_OLD_IMPLEMENTATION_GRID_SIZE_LIST "4;8;16" CACHE STRING "BSpline grid sizes to test for Report03. Each entry is one side of the grid." )
 SET( REPORT03_NUMBER_OF_SPATIAL_SAMPLES 1638 CACHE STRING "Number of spatial samples for experiments in Report03." )
 SET( REPORT03_VOLUME_SIZE 100 CACHE STRING "Volume size for experiments in Report03." )
+SET( REPORT03_NUMBER_OF_CALLS 1 CACHE STRING "Number of repeated calls to GetValueAndDerivative.")
 
 # SIZE MUST BE LARGER THAN 32x32x16 (B-spline grid size)
 SET( REPORT02_VOLUME_SIZE_LIST "32;48" CACHE STRING "Volume sizes to test for Report02" )
