@@ -1,5 +1,5 @@
 
-  plot "AllCachingMemoryResults.txt" using 5:9 with linespoints title 'Caching', "AllNoCachingMemoryResults.txt" using 5:9 with linespoints  title 'NoCaching'
+  plot "AllCachingMemoryResults.txt" using 5:9 with linespoints lw 3 title 'Caching', "AllNoCachingMemoryResults.txt" using 5:9 with linespoints lw 3 title 'NoCaching'
   set xlabel "Number of Samples"
   show xlabel
   set ylabel "Memory Usage (kB)"
