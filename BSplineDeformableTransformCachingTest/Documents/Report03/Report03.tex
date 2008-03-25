@@ -19,7 +19,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 \release{1.00}
 
-\include{authors}
+\input{authors}
 
 \begin{document}
 
@@ -179,44 +179,43 @@ following software installed:
   \item  CMake 2.6
 \end{itemize}
 
-
-\appendix
-
 \section{Results}
 
 The results described in this section can be reproduced by running the Tests in
 the \code{Testing} subdirectory of this report.
 
-\begin{figure}[ht]
+\input{ExperimentInformation}
+
+\begin{figure}[h]
 \centering
-\includegraphics[width=0.85\textwidth]{ThreadingTiming.pdf}
+\includegraphics[width=0.8\textwidth]{ThreadingTiming.pdf}
 \caption{Timing Results for GetValueAndDerivative Calls}
 \label{fig:GetValueTiming}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[h]
 \centering
-\includegraphics[width=0.85\textwidth]{ThreadingMemory.pdf}
+\includegraphics[width=0.8\textwidth]{ThreadingMemory.pdf}
 \label{fig:GetValueMemory}
 \caption{Memory Usage for GetValueAndDerivative Calls}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[h]
 \centering
-\includegraphics[width=0.85\textwidth]{ThreadingTiming2.pdf}
-\caption{Timing Results for GetValueAndDerivative Calls for New Implementation on Larger Problems}
+\includegraphics[width=0.8\textwidth]{ThreadingTiming2.pdf}
+\caption{Timing results for GetValueAndDerivative using the new implementation.}
 \label{fig:GetValueTiming2}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[h]
 \centering
-\includegraphics[width=0.85\textwidth]{ThreadingMemory2.pdf}
+\includegraphics[width=0.8\textwidth]{ThreadingMemory2.pdf}
 \label{fig:GetValueMemory2}
-\caption{Memory Usage for GetValueAndDerivative Calls for New Implementation on Larger Problems}
+\caption{Memory usage for GetValueAndDerivative using the new implementation.}
 \end{figure}
 
 
-\include{SystemInformation}
+\input{SystemInformation}
 
 \end{document}
 
