@@ -1,5 +1,5 @@
 
-  plot "AllThreadingResults.txt" using 5:9 with linespoints title 'Threading', "AllDefaultResults.txt" using 5:9 with linespoints  title 'NoThreading'
+  plot "AllThreadingResults.txt" using 5:9 with linespoints lw 3 title 'Threading', "AllDefaultResults.txt" using 5:9 with linespoints lw 3 title 'NoThreading'
   set xlabel "Number of Samples"
   show xlabel
   set ylabel "Execution Time (secs)"
