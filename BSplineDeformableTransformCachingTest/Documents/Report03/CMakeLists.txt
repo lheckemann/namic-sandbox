@@ -57,13 +57,33 @@ ADD_CUSTOM_COMMAND( OUTPUT EraseDefaultMemoryResults2
   COMMAND ${CMAKE_COMMAND} -E remove ${PLOT_DIR}/AllDefaultMemoryResults2.txt 
 )
 
+ADD_CUSTOM_COMMAND( OUTPUT EraseSystemInformation
+  COMMAND ${CMAKE_COMMAND} -E remove ${PLOT_DIR}/SystemInformation.tex 
+)
+
+ADD_CUSTOM_COMMAND( OUTPUT EraseExperimentInformation
+  COMMAND ${CMAKE_COMMAND} -E remove ${PLOT_DIR}/ExperimentInformation.tex 
+)
+
 #
 # Add custom command to make the system information file.
 #
 ADD_CUSTOM_COMMAND( OUTPUT ${PLOT_DIR}/SystemInformation.tex
   COMMAND ${TEST_EXECUTABLE_DIR}/MachineInformationExample SystemInformation.tex
   WORKING_DIRECTORY ${PLOT_DIR}
-  DEPENDS MachineInformationExample
+  DEPENDS MachineInformationExample EraseSystemInformation
+)
+
+#
+# Add custom command to make the experiment information file.
+#
+ADD_CUSTOM_COMMAND( OUTPUT ${PLOT_DIR}/ExperimentInformation.tex
+
+  COMMAND ${TEST_EXECUTABLE_DIR}/WriteCommandLineToAFileAsLatexTable ExperimentInformation.tex REPORT03_NEW_IMPLEMENTATION_GRID_SIZE_LIST \"${REPORT03_NEW_IMPLEMENTATION_GRID_SIZE_LIST}\" REPORT03_OLD_IMPLEMENTATION_GRID_SIZE_LIST \"${REPORT03_OLD_IMPLEMENTATION_GRID_SIZE_LIST}\" REPORT03_NUMBER_OF_SPATIAL_SAMPLES \"${REPORT03_NUMBER_OF_SPATIAL_SAMPLES}\" REPORT03_VOLUME_SIZE \"${REPORT03_VOLUME_SIZE}\" lab:experiment_information "Experiment configuration."
+
+#  COMMAND ${CMAKE_COMMAND} -e echo ${TEST_EXECUTABLE_DIR}/WriteCommandLineToAFileAsLatexTable ExperimentInformation.tex REPORT03_NEW_IMPLEMENTATION_GRID_SIZE_LIST "${REPORT03_NEW_IMPLEMENTATION_GRID_SIZE_LIST}" REPORT03_OLD_IMPLEMENTATION_GRID_SIZE_LIST "${REPORT03_OLD_IMPLEMENTATION_GRID_SIZE_LIST}" REPORT03_NUMBER_OF_SPATIAL_SAMPLES \"${REPORT03_NUMBER_OF_SPATIAL_SAMPLES}\" REPORT03_VOLUME_SIZE \"${REPORT03_VOLUME_SIZE}\" lab:experiment_information "Experiment configuration."
+  WORKING_DIRECTORY ${PLOT_DIR}
+  DEPENDS WriteCommandLineToAFileAsLatexTable EraseExperimentInformation
 )
 
 
@@ -76,6 +96,7 @@ ADD_CUSTOM_COMMAND( OUTPUT ${PLOT_DIR}/SystemInformation.tex
 # the custom commands depends on the MultiThreadedMIMetricTestReport
 #
 SET(THREADING_LIST 0 1)
+SET(NUMBER_OF_SAMPLES ${REPORT03_NUMBER_OF_SPATIAL_SAMPLES})
 SET(SIZE_LIST ${REPORT03_OLD_IMPLEMENTATION_GRID_SIZE_LIST})
 
 FOREACH(USE_THREADING ${THREADING_LIST})
@@ -102,7 +123,7 @@ FOREACH(USE_THREADING ${THREADING_LIST})
     
     ADD_CUSTOM_COMMAND( 
       OUTPUT  ${EXPERIMENT_TARGET_NAME}
-      COMMAND ${CMAKE_COMMAND} -E chdir ${PLOT_DIR} ${TEST_EXECUTABLE} ${IMAGE_SIZE} ${BSPLINE_SIZE} ${NUMBER_OF_CALLS} ${USE_THREADING} ${OUTPUT_FILE} ${MEMORY_OUTPUT_FILE}
+      COMMAND ${CMAKE_COMMAND} -E chdir ${PLOT_DIR} ${TEST_EXECUTABLE} ${IMAGE_SIZE} ${BSPLINE_SIZE} ${NUMBER_OF_SAMPLES} ${NUMBER_OF_CALLS} ${USE_THREADING} ${OUTPUT_FILE} ${MEMORY_OUTPUT_FILE}
       DEPENDS ${DEPENDENCY_VAR}
     )
     
@@ -148,7 +169,7 @@ FOREACH(USE_THREADING ${THREADING_LIST})
     
     ADD_CUSTOM_COMMAND( 
       OUTPUT  ${EXPERIMENT_TARGET_NAME}
-      COMMAND ${CMAKE_COMMAND} -E chdir ${PLOT_DIR} ${TEST_EXECUTABLE} ${IMAGE_SIZE} ${BSPLINE_SIZE} ${NUMBER_OF_CALLS} ${USE_THREADING} ${OUTPUT_FILE} ${MEMORY_OUTPUT_FILE}
+      COMMAND ${CMAKE_COMMAND} -E chdir ${PLOT_DIR} ${TEST_EXECUTABLE} ${IMAGE_SIZE} ${BSPLINE_SIZE} ${NUMBER_OF_SAMPLES} ${NUMBER_OF_CALLS} ${USE_THREADING} ${OUTPUT_FILE} ${MEMORY_OUTPUT_FILE}
       DEPENDS ${DEPENDENCY_VAR}
     )
     
@@ -254,7 +275,7 @@ ADD_CUSTOM_TARGET(Report03 ALL
         ${REPORT_SOURCE_DIR}/Report03.tex 
         -output-directory ${REPORT_BINARY_DIR}
    # Should depend on plots target?
-   DEPENDS ${COPY_RESULTS} ${PLOT_DIR}/ThreadingTiming.pdf ${PLOT_DIR}/ThreadingMemory.pdf ${PLOT_DIR}/ThreadingTiming2.pdf ${PLOT_DIR}/ThreadingMemory2.pdf ${PLOT_DIR}/SystemInformation.tex
+   DEPENDS ${COPY_RESULTS} ${PLOT_DIR}/ThreadingTiming.pdf ${PLOT_DIR}/ThreadingMemory.pdf ${PLOT_DIR}/ThreadingTiming2.pdf ${PLOT_DIR}/ThreadingMemory2.pdf ${PLOT_DIR}/SystemInformation.tex ${PLOT_DIR}/ExperimentInformation.tex
    WORKING_DIRECTORY ${REPORT_BINARY_DIR}
    )
  
