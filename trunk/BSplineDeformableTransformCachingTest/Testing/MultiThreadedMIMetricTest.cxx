@@ -215,7 +215,7 @@ int main( int argc, char* argv[] )
   ThreadMetricType::MeasureType     value; 
   ThreadMetricType::DerivativeType  derivative;
 
-#if 0
+#if 1
   for(unsigned int i=0; i<numberOfIterations; i++)
     {
     std::cout << "Iteration " << i << " of " << numberOfIterations << std::endl;
@@ -233,7 +233,8 @@ int main( int argc, char* argv[] )
     std::cout << value << std::endl;
 
     }
-#endif
+
+#else
 
   for(unsigned int i=0; i<numberOfIterations; i++)
     {
@@ -253,6 +254,7 @@ int main( int argc, char* argv[] )
     std::cout << "Derivative : ";
     std::cout << derivative << std::endl;
     }
+#endif
 
   memoryCollector.Stop("MultiThreadMI");
 
