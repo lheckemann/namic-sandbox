@@ -134,3 +134,4 @@ FOREACH( SIZE ${SIZE_LIST} )
   ADD_TEST( MattesWithoutPDFJacobian${SIZE} MattesMetricPDFJacobianFlatteningTest  ${IMAGE_SIZE} ${NUMBER_OF_CALLS} 0 )
 ENDFOREACH( SIZE ${SIZE_LIST} )
 
+ADD_EXECUTABLE(WriteCommandLineToAFileAsLatexTable WriteCommandLineToAFileAsLatexTable.cxx)
