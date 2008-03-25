@@ -44,7 +44,7 @@ int main( int argc, char* argv[] )
   outputFile << "\\begin{center}" << std::endl;
   outputFile << "\\begin{tabular}{ | l | c | }" << std::endl;
   outputFile << "\\hline" << std::endl;
-  outputFile << "\\multicolumn{2}{|c|}{Test System Information} \\\\ \\hline" << std::endl;
+  outputFile << "\\multicolumn{2}{|c|}{ " << argv[2] << " } \\\\ \\hline" << std::endl;
 
   // Row name, row value. Assumes no spaces in either.
   std::string string1;
@@ -52,7 +52,7 @@ int main( int argc, char* argv[] )
   std::string rstring1;
   std::string rstring2;
 
-  for ( int i = 2; i < argc - 3; i += 2 )
+  for ( int i = 3; i < argc - 3; i += 2 )
     {
     string1 = argv[ i ];
     string2 = argv[ i+1 ];
