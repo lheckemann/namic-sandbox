@@ -483,7 +483,7 @@ MultiThreadMIMetricTestImplementation<Dimension>
 template <unsigned int Dimension>
 bool 
 MultiThreadMIMetricTestImplementation<Dimension>
-::TestNumericsOfValueAndDerivative( const double tol = 1e-12)
+::TestNumericsOfValueAndDerivative( const double tol ) 
 {
   const unsigned int                                        ImageDimension = 3;
   typedef float                                             PixelType;
