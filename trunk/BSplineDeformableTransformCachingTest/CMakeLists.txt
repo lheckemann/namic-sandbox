@@ -11,8 +11,15 @@ ENDIF(NOT EXECUTABLE_OUTPUT_PATH)
 
 ENABLE_TESTING()
 
+SET( REPORT03_NEW_IMPLEMENTATION_GRID_SIZE_LIST "4;8;16;32;48;64;80;96;100" CACHE STRING "BSpline grid sizes to test for Report03. Each entry is one side of the grid." )
+SET( REPORT03_OLD_IMPLEMENTATION_GRID_SIZE_LIST "4;8;16" CACHE STRING "BSpline grid sizes to test for Report03. Each entry is one side of the grid." )
+SET( REPORT03_NUMBER_OF_SPATIAL_SAMPLES 5000 CACHE STRING "Number of spatial samples for experiments in Report03." )
+SET( REPORT03_VOLUME_SIZE 100 CACHE STRING "Volume size for experiments in Report03." )
+
 # SIZE MUST BE LARGER THAN 32x32x16 (B-spline grid size)
-SET( SIZE_LIST 32 48 )
+SET( REPORT02_VOLUME_SIZE_LIST "32;48" CACHE STRING "Volume sizes to test for Report02" )
+SET( SIZE_LIST 32;48 )
+
 #SET( SIZE_LIST 8 16 32 )
 #SET( SIZE_LIST 32 50 70 80 90 100 110 )
 #SET( SIZE_LIST 256 )

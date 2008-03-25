@@ -1,13 +1,5 @@
 PROJECT(MattesMetricCachingTestReport)
 
-FIND_PACKAGE(LATEX)
-
-IF(NOT PDFLATEX_COMPILER)
-  MESSAGE("pdflatex compiler was not found. Please pass to advanced mode and provide its full path")
-ENDIF(NOT PDFLATEX_COMPILER)
-
-FIND_PACKAGE(Gnuplot)
-
 SET(REPORT_NAME Report01.pdf)
 #
 # Set some directories that we use below.
