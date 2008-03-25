@@ -31,6 +31,8 @@ public:
   void SetMemoryOutputFileName( const char* );
   void SetDerivativeOutputFileName( const char* );
 
+  bool TestNumericsOfValueAndDerivative( const double tol = 1e-12);
+
 protected:
   std::string m_OutputFileName;
   std::string m_MemOutputFileName;
