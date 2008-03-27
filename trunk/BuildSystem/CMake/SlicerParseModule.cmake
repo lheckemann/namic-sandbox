@@ -7,7 +7,7 @@ include(SlicerSetGetModule)
 # This function parses a module and creates the corresponding key/value pairs.
 #
 # Note: the list of modules that have been parsed so far can be retrieved
-# using slicer_get_modules_list
+# using slicer_get_parsed_modules
 #
 # Arguments:
 # in:
@@ -16,7 +16,7 @@ include(SlicerSetGetModule)
 #   module_varname (string): variable name to use to store the module values
 # 
 # Example:
-#   SET(module_contents "<Name>TestModule</Name><Group>Segmentation</Group>")
+#   set(module_contents "<Name>TestModule</Name><Group>Segmentation</Group>")
 #   slicer_parse_module("${module_contents}" TestModule)
 #   slicer_get_module_value(TestModule Name name)
 #   message("Module name: ${name}")
@@ -25,7 +25,7 @@ include(SlicerSetGetModule)
 #   slicer_parse_module_file
 #   slicer_parse_module_url
 #   slicer_parse_modules_directory
-#   slicer_get_modules_list
+#   slicer_get_parsed_modules
 # ---------------------------------------------------------------------------
 
 function(slicer_parse_module module_contents module_varname)
@@ -106,7 +106,7 @@ endfunction(slicer_parse_module)
 # quietly if none was found.
 #
 # Note: the list of modules that have been parsed so far can be retrieved
-# using slicer_get_modules_list
+# using slicer_get_parsed_modules
 #
 # Arguments:
 # in:
@@ -127,7 +127,7 @@ endfunction(slicer_parse_module)
 #   slicer_parse_module
 #   slicer_parse_module_url
 #   slicer_parse_modules_directory
-#   slicer_get_modules_list
+#   slicer_get_parsed_modules
 # ---------------------------------------------------------------------------
 
 function(slicer_parse_module_file module_filename)
@@ -180,7 +180,7 @@ endfunction(slicer_parse_module_file)
 # slicer_get_module_cache_directory)
 # 
 # Note: the list of modules that have been parsed so far can be retrieved
-# using slicer_get_modules_list
+# using slicer_get_parsed_modules
 #
 # Arguments:
 # in:
@@ -197,7 +197,7 @@ endfunction(slicer_parse_module_file)
 #   slicer_parse_module
 #   slicer_parse_module_file
 #   slicer_parse_modules_directory
-#   slicer_get_modules_list
+#   slicer_get_parsed_modules
 #   slicer_get_module_cache_directory
 # ---------------------------------------------------------------------------
 
@@ -253,7 +253,7 @@ endfunction(slicer_parse_module_url)
 # /home/foo/module1/module1.xml module file).
 #
 # Note: the list of modules that have been parsed so far can be retrieved
-# using slicer_get_modules_list
+# using slicer_get_parsed_modules
 #
 # Arguments:
 # in:
@@ -268,7 +268,7 @@ endfunction(slicer_parse_module_url)
 #   slicer_parse_module
 #   slicer_parse_module_file
 #   slicer_parse_module_url
-#   slicer_get_modules_list
+#   slicer_get_parsed_modules
 # ---------------------------------------------------------------------------
 
 function(slicer_parse_modules_directory dir)
@@ -290,7 +290,7 @@ function(slicer_parse_modules_directory dir)
 endfunction(slicer_parse_modules_directory)
 
 # ---------------------------------------------------------------------------
-# slicer_get_modules_list: get the list of parsed modules.
+# slicer_get_parsed_modules: get the list of parsed modules.
 #
 # This function can be used to retrieve the list of modules that have
 # been parsed so far.
@@ -302,17 +302,17 @@ endfunction(slicer_parse_modules_directory)
 # Example:
 #   slicer_parse_module_file("TestModule.xml" TestModule)
 #   slicer_parse_module_file("TestModule2.xml" TestModule2)
-#   slicer_get_modules_list(modules_list)
+#   slicer_get_parsed_modules(modules)
 #
 # See also:
 #   slicer_parse_module
 #   slicer_parse_module_file
 # ---------------------------------------------------------------------------
 
-function(slicer_get_modules_list list_varname)
+function(slicer_get_parsed_modules list_varname)
 
   slicer_get_module_value(__Meta__ ParsedModules value)
   set(${list_varname} ${value} PARENT_SCOPE)
   
-endfunction(slicer_get_modules_list)
+endfunction(slicer_get_parsed_modules)
 

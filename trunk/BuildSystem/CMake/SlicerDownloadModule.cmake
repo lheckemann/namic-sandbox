@@ -390,7 +390,7 @@ endfunction(slicer_get_update_module_target)
 #   slicer_parse_module_file("C:/foo/TestModule/TestModule.xml" TestModule)
 #   slicer_parse_module_url("http://foo/bar/module/module2.xml" module2)
 #   ...
-#   slicer_get_modules_list(modules)
+#   slicer_get_parsed_modules(modules)
 #   slicer_create_download_and_update_modules_targets("${modules}" "/src")
 #
 # See also:
