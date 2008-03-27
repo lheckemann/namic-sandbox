@@ -48,8 +48,7 @@ function(slicer_create_download_module_target module_varname target_name dir)
 
   slicer_get_module_source_repository_type(${module_varname} type)
 
-  # If SVN create a command to checkout the repository, assume it is
-  # there if the .svn/ sub-directory can be found.
+  # If SVN create a command to checkout the repository, or a switch
 
   if(type STREQUAL "svn")
 
@@ -58,14 +57,75 @@ function(slicer_create_download_module_target module_varname target_name dir)
       return()
     endif(NOT Subversion_FOUND)
     
-    set(svn_args "checkout" "${source_loc}" "${dir}")
+    set(svn_args)
 
-    add_custom_command(
-      OUTPUT "${dir}/.svn/entries"
-      COMMAND "${Subversion_SVN_EXECUTABLE}"
-      ARGS ${svn_args}
+    # username/password, if any
+
+    slicer_get_module_value(${module_varname} SVNUsername svn_username)
+    if(svn_username)
+      set(svn_args ${svn_args} "--username" "${svn_username}")
+    endif(svn_username)
+
+    slicer_get_module_value(${module_varname} SVNPassword svn_password)
+    if(svn_password)
+      set(svn_args ${svn_args} "--password" "${svn_password}")
+    endif(svn_password)
+
+    get_filename_component(abs_dir "${dir}" ABSOLUTE)
+
+    # We need those args in both lists form and flattened string form
+
+    set(svn_args ${svn_args} "${source_loc}" "${abs_dir}")
+    foreach(svn_arg ${svn_args})
+      set(svn_args_flat "${svn_args_flat} ${svn_arg}")
+    endforeach(svn_arg)
+
+    # Create a CMake script that will checkout the SVN repository
+    # if it doesn't exist. This can't be done just by adding a custom
+    # command which OUTPUT would be a hand-picked file in the repository
+    # (i.e. a command that would semantically represent: "check the repo
+    # out, and by doing so guarantee that this hand-picked file exist", then
+    # by creating a custom target which dependencies would be that OUTPUT.
+    # This can not be done because the OUTPUT file always depends on the
+    # build.cmake file, i.e. the Makefile that stores the rules to build 
+    # the custom target. This is done so that changing the command itself
+    # would ensure the target/command is re-run (i.e., if you change the tool
+    # that is supposed to produce this OUTPUT, you probably want that OUTPUT
+    # to be re-generated). However, anything that would update the build.cmake
+    # file would then force the target to be *always* re-run, since the OUTPUT
+    # file, i.e. a file in the repository, will *not* be rechecked again (it
+    # exists already), and therefore would never be newer than build.cmake.
+    # That's because 99% of the time the OUTPUT of a custom command is 
+    # assumed to be always up-to-date.
+    # Solve this by creating a CMake script that will actually perform
+    # the checkout only if that hand-picked file in the repo is not found
+    # *and* will create a dummy up-to-date file that will act as our 
+    # real dependency and *will* be newer than build.cmake if it is ever
+    # modified.
+
+    slicer_get_module_cache_directory(${module_varname} module_cache_dir)
+
+    set(dep_file "${module_cache_dir}/${target_name}.uptodate")
+    set(svn_dep_file "${abs_dir}/.svn")
+   
+    set(cmake_script "${module_cache_dir}/${target_name}.cmake")
+    file(WRITE "${cmake_script}"
+      "if(NOT EXISTS \"${svn_dep_file}\") 
+         execute_process(COMMAND \"${Subversion_SVN_EXECUTABLE}\" checkout ${svn_args_flat}) 
+       else(NOT EXISTS \"${svn_dep_file}\")
+         execute_process(COMMAND \"${Subversion_SVN_EXECUTABLE}\" switch ${svn_args_flat}) 
+       endif(NOT EXISTS \"${svn_dep_file}\")
+       file(WRITE \"${dep_file}\" \"\")"
       )
-    add_custom_target(${target_name} DEPENDS "${dir}/.svn/entries")
+    
+    add_custom_command(
+      OUTPUT "${dep_file}"
+      COMMAND "${CMAKE_COMMAND}" ARGS "-P" "${cmake_script}"
+      )
+
+    add_custom_target(${target_name}
+      DEPENDS "${dep_file}"
+      )
 
     slicer_set_module_value(
       ${module_varname} __DownloadTarget__ ${target_name})
@@ -73,7 +133,6 @@ function(slicer_create_download_module_target module_varname target_name dir)
   # If CVS create a command to checkout the repository, assume it is
   # there if CVS/ sub-directory can be found.
   # Use the CVSModule parameter to get the module to checkout
-  # Use the optional CVSBranch parameter to get the branch to checkout
 
   elseif(type STREQUAL "cvs")
 
@@ -95,8 +154,7 @@ function(slicer_create_download_module_target module_varname target_name dir)
 
     add_custom_command(
       OUTPUT "${dir}"
-      COMMAND "${CMAKE_COMMAND}"
-      ARGS ${cmake_args}
+      COMMAND "${CMAKE_COMMAND}" ARGS ${cmake_args}
       )
 
     # Checkout
@@ -106,18 +164,17 @@ function(slicer_create_download_module_target module_varname target_name dir)
 
     set(cmake_args "-E" "chdir" "${dirpath}" "${CVS_EXECUTABLE}" "-d" "${source_loc}" "checkout" "-d" "${dirname}")
 
-    slicer_get_module_value(${module_varname} CVSBranch cvs_branch)
-    if(cvs_branch)
-      set(cmake_args ${cmake_args} "-r" "${cvs_branch}")
-    endif(cvs_branch)
+    slicer_get_module_source_tag(${module_varname} cvs_tag)
+    if(cvs_tag)
+      set(cmake_args ${cmake_args} "-r" "${cvs_tag}")
+    endif(cvs_tag)
 
     set(cmake_args ${cmake_args} "${cvs_module}")
 
     add_custom_command(
       OUTPUT "${dir}/CVS/Root"
       DEPENDS "${dir}"
-      COMMAND "${CMAKE_COMMAND}"
-      ARGS ${cmake_args}
+      COMMAND "${CMAKE_COMMAND}" ARGS ${cmake_args}
       )
 
     add_custom_target(${target_name} DEPENDS "${dir}/CVS/Root")
@@ -129,7 +186,7 @@ function(slicer_create_download_module_target module_varname target_name dir)
 
   else(type STREQUAL "svn")
 
-      message(SEND_ERROR "Unknown repository type. ${err_msg}")
+      message(SEND_ERROR "Unknown source repository type for module ${module_varname}. ${err_msg}")
       return()
 
     slicer_unset_module_value(
@@ -258,7 +315,7 @@ function(slicer_create_update_module_target module_varname target_name dir)
 
   else(type STREQUAL "svn")
 
-      message(SEND_ERROR "Unknown repository type. ${err_msg}")
+      message(SEND_ERROR "Unknown source repository type for module ${module_varname}. ${err_msg}")
       return()
 
     slicer_unset_module_value(
