@@ -74,12 +74,58 @@ function(slicer_create_use_modules_options modules)
     slicer_get_module_value(${module_varname} Name name)
     if(name)
       string(TOUPPER "${name}" upper_name)
-      slicer_create_use_module_option(${module_varname} "USE_${upper_name}")
+      set(option_name "USE_${upper_name}")
+      slicer_create_use_module_option(${module_varname} ${option_name})
     endif(name)
     
   endforeach(module_varname)
 
 endfunction(slicer_create_use_modules_options)
+
+# ---------------------------------------------------------------------------
+# slicer_get_used_modules_list: get the list of used modules.
+#
+# This function can be used to retrieve the list of modules which 
+# "USE_" option is set to ON, among a list of modules.
+#
+# Arguments:
+# in:
+#   modules (string): list of module variable names (*has* to be quoted)
+# out:
+#   list_varname (string): variable name to use to store the used modules list
+# 
+# Example:
+#   slicer_parse_module_file("TestModule.xml" TestModule)
+#   slicer_parse_module_file("TestModule2.xml" TestModule2)
+#
+#   slicer_get_modules_list(modules)
+#   slicer_create_use_modules_options("${modules}")
+#   slicer_get_used_modules_list("${modules}" used_modules)
+#
+# See also:
+#   slicer_parse_module
+#   slicer_parse_module_file
+# ---------------------------------------------------------------------------
+
+function(slicer_get_used_modules_list modules list_varname)
+
+  set(used_modules)
+  foreach(module_varname ${modules})
+
+    slicer_get_module_value(${module_varname} Name name)
+    if(name)
+      string(TOUPPER "${name}" upper_name)
+      set(option_name "USE_${upper_name}")
+      if(${option_name})
+        set(used_modules ${used_modules} ${module_varname})
+      endif(${option_name})
+    endif(name)
+    
+  endforeach(module_varname)
+
+  set(${list_varname} ${used_modules} PARENT_SCOPE)
+  
+endfunction(slicer_get_used_modules_list)
 
 # ---------------------------------------------------------------------------
 # slicer_check_modules_dependencies: check dependencies for specific modules 
@@ -94,7 +140,8 @@ endfunction(slicer_create_use_modules_options)
 #   ...
 #   slicer_get_modules_list(modules)
 #   slicer_create_use_modules_options("${modules}")
-#   slicer_check_modules_dependencies("${modules}")
+#   slicer_get_used_modules_list("${modules}" used_modules)
+#   slicer_check_modules_dependencies("${used_modules}")
 #
 # See also:
 #   slicer_create_use_module_option
