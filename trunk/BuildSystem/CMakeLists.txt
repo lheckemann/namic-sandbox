@@ -22,11 +22,9 @@ include(SlicerParseModule)
 include(SlicerEnableModule)
 include(SlicerDownloadModule)
 
-# Parse core modules
+# Parse all modules subdirs in a dir
 
-foreach(module ITK KWWidgets Slicer3 Teem VTK)
-  slicer_parse_module_file("${SLICER_LOCAL_MODULES_PATH}/${module}")
-endforeach(module)
+slicer_parse_modules_directory("${SLICER_LOCAL_MODULES_PATH}")
 
 # Parse a remote module
 
