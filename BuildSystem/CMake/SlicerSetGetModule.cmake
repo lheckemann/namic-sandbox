@@ -227,9 +227,11 @@ function(slicer_get_module_source_repository_type module_varname type_varname)
 
   # Parse the SourceLocation for some hings about the repository type
 
+  set(${type_varname} PARENT_SCOPE)
+
   slicer_get_module_value(${module_varname} SourceLocation source_loc)
   if(source_loc)
-    string(REGEX MATCH "^http://.+$" found_svn "${source_loc}")
+    string(REGEX MATCH "^https?://.+$" found_svn "${source_loc}")
     if(found_svn)
       set(${type_varname} "svn" PARENT_SCOPE)
     else(found_svn)
@@ -238,8 +240,108 @@ function(slicer_get_module_source_repository_type module_varname type_varname)
         set(${type_varname} "cvs" PARENT_SCOPE)
       endif(found_cvs)
     endif(found_svn)
-  else(source_loc)
-    set(${type_varname} PARENT_SCOPE)
   endif(source_loc)
 
 endfunction(slicer_get_module_source_repository_type)
+
+# ---------------------------------------------------------------------------
+# slicer_get_module_source_tag: get a module source tag.
+#
+# This function can be used to retrieve the tag/branch for the source 
+# repository the module is using (if any).
+# Will return either the tag, or unset the var if unknown.
+#
+# Arguments:
+# in:
+#   module_varname (string): variable name used to store the module keys/values
+# out:
+#   tag_varname (string): variable name to use to store the type
+# 
+# Example:
+#   slicer_get_module_source_repository_type(TestModule type)
+#   if(type STREQUAL "svn")
+#     ...
+#   endif(type STREQUAL "svn")
+#
+# See also:
+#   slicer_get_module_value
+#   slicer_set_module_value
+# ---------------------------------------------------------------------------
+
+function(slicer_get_module_source_tag module_varname tag_varname)
+
+  # Unknown module? Bail.
+
+  slicer_is_module_unknown(
+    ${module_varname} unknown "Unable to get repository type!")
+  if(unknown)
+    return()
+  endif(unknown)
+
+  slicer_get_module_source_repository_type(${module_varname} type)
+
+  set(${tag_varname} PARENT_SCOPE)
+
+  # If SVN 
+
+  if(type STREQUAL "svn")
+
+    slicer_get_module_value(${module_varname} SourceLocation source_loc)
+    if(source_loc)
+      string(REGEX MATCH "/branches/([^/]+)/?$" tag "${source_loc}")
+      message("${tag}; ${CMAKE_MATCH_0}; ${CMAKE_MATCH_1}")
+    endif(source_loc)
+
+  # If CVS
+
+  elseif(type STREQUAL "cvs")
+
+    slicer_get_module_value(${module_varname} CVSTag cvs_tag)
+    if(cvs_tag)
+      set(${tag_varname} ${cvs_tag} PARENT_SCOPE)
+    endif(cvs_tag)
+
+  endif(type STREQUAL "svn")
+
+endfunction(slicer_get_module_source_tag)
+
+# ---------------------------------------------------------------------------
+# slicer_get_module_cache_directory: get a module cache directory.
+#
+# This function can be used to get the path to a local cache directory where
+# module-specific files can be stored. This can be used to write configured
+# file for a specific module, or intermediate CMake scripts that are used
+# in module targets, etc.
+#
+# Note: this function does not create the cache directory automatically.
+#
+# Arguments:
+# in:
+#   module_varname (string): variable name used to store the module keys/values
+# out:
+#   dir_varname (string): variable name to use to store the module car dir
+# 
+# Example:
+#   slicer_get_module_cache_directory(TestModule dir)
+#   configure_file("${CMAKE_CURRENT_SOURCE_DIR}/foo.in" "${dir}/foo")
+#
+# See also:
+#   slicer_get_module_value
+#   slicer_set_module_value
+# ---------------------------------------------------------------------------
+
+function(slicer_get_module_cache_directory module_varname dir_varname)
+
+  # Unknown module? Bail.
+
+  slicer_is_module_unknown(
+    ${module_varname} unknown "Unable to get cache directory!")
+  if(unknown)
+    return()
+  endif(unknown)
+
+  set(${dir_varname} 
+    "${PROJECT_BINARY_DIR}/ModuleCache/${module_varname}" PARENT_SCOPE)
+  
+endfunction(slicer_get_module_cache_directory)
+
