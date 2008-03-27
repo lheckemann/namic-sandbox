@@ -48,4 +48,8 @@ slicer_parse_module_file("${SLICER_LOCAL_MODULES_PATH}/TestModule2/")
 # Create all download/update targets
 # "make update_modules" will download and update everything
 
-slicer_create_download_and_update_modules_targets(${SLICER_DOWNLOADED_SOURCES_DIRECTORY})
+slicer_get_modules_list(modules)
+slicer_create_use_modules_options("${modules}")
+
+slicer_create_download_and_update_modules_targets(
+  "${modules}" "${SLICER_DOWNLOADED_SOURCES_DIRECTORY}")

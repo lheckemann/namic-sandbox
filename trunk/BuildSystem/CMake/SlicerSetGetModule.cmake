@@ -289,6 +289,7 @@ function(slicer_get_module_source_tag module_varname tag_varname)
     slicer_get_module_value(${module_varname} SourceLocation source_loc)
     if(source_loc)
       string(REGEX MATCH "/branches/([^/]+)/?$" tag "${source_loc}")
+      # TODO!!
       message("${tag}; ${CMAKE_MATCH_0}; ${CMAKE_MATCH_1}")
     endif(source_loc)
 

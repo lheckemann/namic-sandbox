@@ -41,3 +41,70 @@ function(slicer_create_use_module_option module_varname option_name)
   option(${option_name} "Use ${short_desc}." OFF)
 
 endfunction(slicer_create_use_module_option)
+
+# ---------------------------------------------------------------------------
+# slicer_create_use_modules_options: create options to use specific modules.
+#
+# This function can be used to create a boolean OPTION variable to control if
+# a module should be used or not, for a list of specific modules.
+#
+# The option name will be created by prefixing the uppercase module name
+# with "USE_". The option itself is created by calling 
+# slicer_create_use_module_option
+#
+# Arguments:
+# in:
+#   modules (string): list of module variable names (*has* to be quoted)
+# 
+# Example:
+#   slicer_parse_module_file("C:/foo/TestModule/TestModule.xml" TestModule)
+#   slicer_parse_module_url("http://foo/bar/module/module2.xml" module2)
+#   ...
+#   slicer_get_modules_list(modules)
+#   slicer_create_use_modules_options("${modules}")
+#
+# See also:
+#   slicer_create_use_module_option
+# ---------------------------------------------------------------------------
+
+function(slicer_create_use_modules_options modules)
+
+  foreach(module_varname ${modules})
+
+    slicer_get_module_value(${module_varname} Name name)
+    if(name)
+      string(TOUPPER "${name}" upper_name)
+      slicer_create_use_module_option(${module_varname} "USE_${upper_name}")
+    endif(name)
+    
+  endforeach(module_varname)
+
+endfunction(slicer_create_use_modules_options)
+
+# ---------------------------------------------------------------------------
+# slicer_check_modules_dependencies: check dependencies for specific modules 
+#
+# Arguments:
+# in:
+#   modules (string): list of module variable names (*has* to be quoted)
+# 
+# Example:
+#   slicer_parse_module_file("C:/foo/TestModule/TestModule.xml" TestModule)
+#   slicer_parse_module_url("http://foo/bar/module/module2.xml" module2)
+#   ...
+#   slicer_get_modules_list(modules)
+#   slicer_create_use_modules_options("${modules}")
+#   slicer_check_modules_dependencies("${modules}")
+#
+# See also:
+#   slicer_create_use_module_option
+# ---------------------------------------------------------------------------
+
+function(slicer_check_modules_dependencies modules)
+
+  foreach(module_varname ${modules})
+
+  endforeach(module_varname)
+
+endfunction(slicer_check_modules_dependencies)
+
