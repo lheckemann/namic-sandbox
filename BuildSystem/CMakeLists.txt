@@ -48,12 +48,13 @@ slicer_parse_module_file("${SLICER_LOCAL_MODULES_PATH}/TestModule2/")
 # Create all download/update targets
 # "make update_modules" will download and update everything
 
-slicer_get_modules_list(modules)
+slicer_get_parsed_modules(modules)
 slicer_create_use_modules_options("${modules}")
-slicer_get_used_modules_list("${modules}" used_modules)
-#message("used: ${used_modules}")
+slicer_get_used_modules("${modules}" used_modules)
 slicer_get_unresolved_modules_dependencies(
   "${used_modules}" unresolved_dependencies)
-message("unresolved: ${unresolved_dependencies}")
+slicer_get_resolved_modules("${used_modules}" resolved_modules)
 slicer_create_download_and_update_modules_targets(
-  "${used_modules}" "${SLICER_DOWNLOADED_SOURCES_DIRECTORY}")
+  "${resolved_modules}" "${SLICER_DOWNLOADED_SOURCES_DIRECTORY}")
+
+message("used: ${used_modules}\n\nunresolved dependencies: ${unresolved_dependencies}\n\nresolved modules: ${resolved_modules}")
