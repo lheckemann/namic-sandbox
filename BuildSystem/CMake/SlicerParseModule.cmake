@@ -23,6 +23,8 @@ include(SlicerSetGetModule)
 #
 # See also:
 #   slicer_parse_module_file
+#   slicer_parse_module_url
+#   slicer_parse_modules_directory
 #   slicer_get_modules_list
 # ---------------------------------------------------------------------------
 
@@ -34,7 +36,7 @@ function(slicer_parse_module module_contents module_varname)
   set(elems 
     Acknowledgement
     Author
-    CVSBranch
+    CVSTag
     CVSModule
     Dependency
     Description 
@@ -43,6 +45,8 @@ function(slicer_parse_module module_contents module_varname)
     Icon 
     Name 
     SourceLocation 
+    SVNUsername
+    SVNPassword
     Version 
     )
 
@@ -95,10 +99,11 @@ endfunction(slicer_parse_module)
 # calling the slicer_parse_module function.
 #
 # The name of the file (without extension) will be used if the variable name
-# to use to store the module values is ommitted.
+# to use to store the module values is omitted.
 #
 # Note: the file name can be a directory, say /home/foo/module1, in that case
-# this function will try to read /home/foo/module1/module1.xml
+# this function will try to read /home/foo/module1/module1.xml and exit
+# quietly if none was found.
 #
 # Note: the list of modules that have been parsed so far can be retrieved
 # using slicer_get_modules_list
@@ -120,6 +125,8 @@ endfunction(slicer_parse_module)
 #
 # See also:
 #   slicer_parse_module
+#   slicer_parse_module_url
+#   slicer_parse_modules_directory
 #   slicer_get_modules_list
 # ---------------------------------------------------------------------------
 
@@ -128,15 +135,19 @@ function(slicer_parse_module_file module_filename)
   # If filename is a directory, try to look for a XML file inside it with
   # the same name as the directory...
 
+  set(module_filename_was_directory 0)
   if(IS_DIRECTORY "${module_filename}")
     get_filename_component(abs "${module_filename}" ABSOLUTE)
     get_filename_component(dirname "${abs}" NAME)
     get_filename_component(dirpath "${abs}" PATH)
     set(module_filename "${dirpath}/${dirname}/${dirname}.xml")
+    set(module_filename_was_directory 1)
   endif(IS_DIRECTORY "${module_filename}")
     
   if(NOT EXISTS "${module_filename}")
-    message(SEND_ERROR "Unable to load and parse module ${module_filename}!")
+    if(NOT module_filename_was_directory)
+      message(SEND_ERROR "Unable to load and parse module ${module_filename}!")
+    endif(NOT module_filename_was_directory)
     return()
   endif(NOT EXISTS "${module_filename}")
 
@@ -162,10 +173,11 @@ endfunction(slicer_parse_module_file)
 # contents by calling the slicer_parse_module function.
 #
 # The last component of the url (without extension) will be used if the
-# variable name to use to store the module values is ommitted.
+# variable name to use to store the module values is omitted.
 #
-# Note: the remote file is first downloaded to a local file in
-# the ${CMAKE_CURRENT_BINARY_DIR}/ModuleCache directory.
+# Note: the remote file is first downloaded to a local file that will be
+# stored in the local module's cache directory (as retrieved by
+# slicer_get_module_cache_directory)
 # 
 # Note: the list of modules that have been parsed so far can be retrieved
 # using slicer_get_modules_list
@@ -183,7 +195,10 @@ endfunction(slicer_parse_module_file)
 #
 # See also:
 #   slicer_parse_module
+#   slicer_parse_module_file
+#   slicer_parse_modules_directory
 #   slicer_get_modules_list
+#   slicer_get_module_cache_directory
 # ---------------------------------------------------------------------------
 
 function(slicer_parse_module_url module_url)
@@ -206,8 +221,10 @@ function(slicer_parse_module_url module_url)
   if(NOT module_filename)
     set(module_filename "${module_varname}.xml")
   endif(NOT module_filename)
-  set(module_filename 
-    "${CMAKE_CURRENT_BINARY_DIR}/ModuleCache/${module_filename}")
+
+  slicer_get_module_cache_directory(${module_varname} module_cache_dir)
+
+  set(module_filename "${module_cache_dir}/${module_filename}")
 
   file(DOWNLOAD "${module_url}" "${module_filename}" 
     TIMEOUT 30 
@@ -226,6 +243,51 @@ function(slicer_parse_module_url module_url)
   slicer_parse_module_file("${module_filename}" ${module_varname})
 
 endfunction(slicer_parse_module_url)
+
+# ---------------------------------------------------------------------------
+# slicer_parse_modules_directory: parse modules sub-directories in a directory.
+#
+# This function goes through every sub-directories in a given directory
+# and tries to parse the corresponding module files (i.e. in a /home/foo
+# directory, the /home/foo/module1 sub-directory will be inspected for a
+# /home/foo/module1/module1.xml module file).
+#
+# Note: the list of modules that have been parsed so far can be retrieved
+# using slicer_get_modules_list
+#
+# Arguments:
+# in:
+#   dir (string): full path to a directory
+# 
+# Example:
+#   slicer_parse_modules_directory("/home/foo/")
+#   slicer_get_module_value(module1 Name name)
+#   message("Module name: ${name}")
+#
+# See also:
+#   slicer_parse_module
+#   slicer_parse_module_file
+#   slicer_parse_module_url
+#   slicer_get_modules_list
+# ---------------------------------------------------------------------------
+
+function(slicer_parse_modules_directory dir)
+
+  # Is it really a directory?
+
+  if(NOT IS_DIRECTORY "${dir}")
+    message(SEND_ERROR "Unable to access non-existing directory ${dir}!")
+  endif(NOT IS_DIRECTORY "${dir}")
+    
+  # Glob the directory and inspect each subdirs
+
+  get_filename_component(abs_dir "${dir}" ABSOLUTE)
+  file(GLOB files "${abs_dir}/*")
+  foreach(file ${files})
+    slicer_parse_module_file(${file})
+  endforeach(file ${files})
+
+endfunction(slicer_parse_modules_directory)
 
 # ---------------------------------------------------------------------------
 # slicer_get_modules_list: get the list of parsed modules.
