@@ -128,11 +128,18 @@ function(slicer_get_used_modules_list modules list_varname)
 endfunction(slicer_get_used_modules_list)
 
 # ---------------------------------------------------------------------------
-# slicer_check_modules_dependencies: check dependencies for specific modules 
+# slicer_get_unresolved_modules_dependencies: get the unresolved modules dependencies for specific modules 
+#
+# This function can be used to retrieve the list of unique unresolved modules 
+# dependencies among a list of specific modules; this is the list of 
+# dependent modules that are not part of the list of modules passed as 
+# parameter itself.
 #
 # Arguments:
 # in:
 #   modules (string): list of module variable names (*has* to be quoted)
+# out:
+#   list_varname (string): variable name to use to store the unresolved list
 # 
 # Example:
 #   slicer_parse_module_file("C:/foo/TestModule/TestModule.xml" TestModule)
@@ -141,17 +148,33 @@ endfunction(slicer_get_used_modules_list)
 #   slicer_get_modules_list(modules)
 #   slicer_create_use_modules_options("${modules}")
 #   slicer_get_used_modules_list("${modules}" used_modules)
-#   slicer_check_modules_dependencies("${used_modules}")
+#   slicer_get_unresolved_modules_dependencies("${used_modules}" unresolved_modules)
 #
 # See also:
 #   slicer_create_use_module_option
 # ---------------------------------------------------------------------------
 
-function(slicer_check_modules_dependencies modules)
+function(slicer_get_unresolved_modules_dependencies modules list_varname)
+
+  set(unresolved_modules)
 
   foreach(module_varname ${modules})
 
+    slicer_get_module_value(${module_varname} Dependency dependencies)
+    if(dependencies)
+      foreach(dependency ${dependencies})
+
+        list(FIND "${modules}" ${dependency} index)
+        if(index EQUAL -1)
+          set(unresolved_modules ${unresolved_modules} ${dependency})
+        endif(index EQUAL -1)
+
+      endforeach(dependency)
+    endif(dependencies)
+    
   endforeach(module_varname)
 
-endfunction(slicer_check_modules_dependencies)
+  set(${list_varname} ${unresolved_modules} PARENT_SCOPE)
+
+endfunction(slicer_get_unresolved_modules_dependencies)
 
