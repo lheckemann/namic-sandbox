@@ -148,7 +148,7 @@ endfunction(slicer_get_used_modules_list)
 #   slicer_get_modules_list(modules)
 #   slicer_create_use_modules_options("${modules}")
 #   slicer_get_used_modules_list("${modules}" used_modules)
-#   slicer_get_unresolved_modules_dependencies("${used_modules}" unresolved_modules)
+#   slicer_get_unresolved_modules_dependencies("${used_modules}" unresolved_dependencies)
 #
 # See also:
 #   slicer_create_use_module_option
@@ -156,25 +156,24 @@ endfunction(slicer_get_used_modules_list)
 
 function(slicer_get_unresolved_modules_dependencies modules list_varname)
 
-  set(unresolved_modules)
+  set(unresolved_dependencies)
 
   foreach(module_varname ${modules})
 
     slicer_get_module_value(${module_varname} Dependency dependencies)
-    if(dependencies)
-      foreach(dependency ${dependencies})
+    foreach(dependency ${dependencies})
 
-        list(FIND "${modules}" ${dependency} index)
-        if(index EQUAL -1)
-          set(unresolved_modules ${unresolved_modules} ${dependency})
-        endif(index EQUAL -1)
-
-      endforeach(dependency)
-    endif(dependencies)
+      list(FIND "${modules}" ${dependency} index)
+      if(index EQUAL -1)
+        set(unresolved_dependencies ${unresolved_dependencies} ${dependency})
+      endif(index EQUAL -1)
+      
+    endforeach(dependency)
     
   endforeach(module_varname)
 
-  set(${list_varname} ${unresolved_modules} PARENT_SCOPE)
+  list(REMOVE_DUPLICATES unresolved_dependencies)
+  set(${list_varname} ${unresolved_dependencies} PARENT_SCOPE)
 
 endfunction(slicer_get_unresolved_modules_dependencies)
 

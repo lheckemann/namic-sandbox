@@ -5,6 +5,6 @@
 <CVSModule>Sandbox/barre/slicer3/TestModule2</CVSModule>
 <HomePage>http://na-mic.org/Wiki/index.php/Slicer3:Build/Modules</HomePage>
 <Version>1.0</Version>
-<Dependency>TestModule1</Dependency>
+<Dependency>TestModule3</Dependency>
 <Author>Sebastien BARRE</Author>
 <Acknowledgement>Kitware, Inc.</Acknowledgement>
