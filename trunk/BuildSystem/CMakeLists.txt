@@ -28,7 +28,7 @@ slicer_parse_modules_directory("${SLICER_LOCAL_MODULES_PATH}")
 
 # Parse a remote module
 
-slicer_parse_module_url("http://www.na-mic.org/ViewVC/index.cgi/trunk/BuildSystem/Modules/TestModule1/TestModule1.xml?root=NAMICSandBox&view=co")
+#slicer_parse_module_url("http://www.na-mic.org/ViewVC/index.cgi/trunk/BuildSystem/Modules/TestModule1/TestModule1.xml?root=NAMICSandBox&view=co")
 
 slicer_is_module_unknown(TestModule1 unknown)
 if(NOT unknown)
@@ -51,9 +51,9 @@ slicer_parse_module_file("${SLICER_LOCAL_MODULES_PATH}/TestModule2/")
 slicer_get_modules_list(modules)
 slicer_create_use_modules_options("${modules}")
 slicer_get_used_modules_list("${modules}" used_modules)
-message("used: ${used_modules}")
+#message("used: ${used_modules}")
 slicer_get_unresolved_modules_dependencies(
-  "${used_modules}" unresolved_modules)
-message("unresolved: ${unresolved_modules}")
+  "${used_modules}" unresolved_dependencies)
+message("unresolved: ${unresolved_dependencies}")
 slicer_create_download_and_update_modules_targets(
   "${used_modules}" "${SLICER_DOWNLOADED_SOURCES_DIRECTORY}")
