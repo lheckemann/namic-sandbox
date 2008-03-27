@@ -93,8 +93,8 @@ function(slicer_create_download_module_target module_varname target_name dir)
     # that is supposed to produce this OUTPUT, you probably want that OUTPUT
     # to be re-generated). However, anything that would update the build.cmake
     # file would then force the target to be *always* re-run, since the OUTPUT
-    # file, i.e. a file in the repository, will *not* be rechecked again (it
-    # exists already), and therefore would never be newer than build.cmake.
+    # file, i.e. a file in the repository, will *not* be re-downloaded again 
+    # (it exists already), and therefore would never be newer than build.cmake.
     # That's because 99% of the time the OUTPUT of a custom command is 
     # assumed to be always up-to-date.
     # Solve this by creating a CMake script that will actually perform
@@ -361,10 +361,10 @@ function(slicer_get_update_module_target module_varname target_varname)
 endfunction(slicer_get_update_module_target)
 
 # ---------------------------------------------------------------------------
-# slicer_create_download_and_update_modules_targets: create download and update targets for all known modules.
+# slicer_create_download_and_update_modules_targets: create download and update targets for specific modules.
 #
 # This function can be used to create and connect both download and update
-# targets for all known modules.
+# targets for a list of specific modules.
 #
 # The download target name will be created by appending "_download" to the
 # module name, unless that target exists already.
@@ -383,19 +383,21 @@ endfunction(slicer_get_update_module_target)
 #
 # Arguments:
 # in:
+#   modules (string): list of module variable names (*has* to be quoted)
 #   dir (string): where the modules should be downloaded (parent dir)
 # 
 # Example:
 #   slicer_parse_module_file("C:/foo/TestModule/TestModule.xml" TestModule)
 #   slicer_parse_module_url("http://foo/bar/module/module2.xml" module2)
 #   ...
-#   slicer_create_download_and_update_modules_targets("/src")
+#   slicer_get_modules_list(modules)
+#   slicer_create_download_and_update_modules_targets("${modules}" "/src")
 #
 # See also:
 #   slicer_create_update_module_target
 # ---------------------------------------------------------------------------
 
-function(slicer_create_download_and_update_modules_targets dir)
+function(slicer_create_download_and_update_modules_targets modules dir)
 
   # Create the global download and update targets
 
@@ -405,29 +407,25 @@ function(slicer_create_download_and_update_modules_targets dir)
   set(update_modules_target update_modules)
   add_custom_target(${update_modules_target})
 
-  # Retrieve all the modules parsed so far and iterate
-
-  slicer_get_modules_list(modules)
-
-  foreach(module ${modules})
+  foreach(module_varname ${modules})
 
     # Find and/or create download target
     
-    slicer_get_download_module_target(${module} download_target)
+    slicer_get_download_module_target(${module_varname} download_target)
     if(NOT download_target)
-      set(download_target "${module}_download")
+      set(download_target "${module_varname}_download")
       slicer_create_download_module_target(
-        ${module} ${download_target} "${dir}/${module}")
+        ${module_varname} ${download_target} "${dir}/${module_varname}")
     endif(NOT download_target)
     add_dependencies(${download_modules_target} ${download_target})
 
     # Find and/or create update target
     
-    slicer_get_update_module_target(${module} update_target)
+    slicer_get_update_module_target(${module_varname} update_target)
     if(NOT update_target)
-      set(update_target "${module}_update")
+      set(update_target "${module_varname}_update")
       slicer_create_update_module_target(
-        ${module} ${update_target} "${dir}/${module}")
+        ${module_varname} ${update_target} "${dir}/${module_varname}")
     endif(NOT update_target)
     add_dependencies(${update_modules_target} ${update_target})
 
@@ -435,7 +433,7 @@ function(slicer_create_download_and_update_modules_targets dir)
 
     add_dependencies(${update_target} ${download_target})
     
-  endforeach(module)
+  endforeach(module_varname)
 
 endfunction(slicer_create_download_and_update_modules_targets)
 
