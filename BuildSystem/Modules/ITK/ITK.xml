@@ -3,7 +3,7 @@
 <Description>ITK, a free, cross-platform and open-license toolkit for performing registration and segmentation.</Description>
 <SourceLocation>:pserver:anonymous:insight@www.itk.org:/cvsroot/Insight</SourceLocation>
 <CVSModule>Insight</CVSModule>
-<CVSBranch>ITK-3-4</CVSBranch>
+<CVSTag>ITK-3-4</CVSTag>
 <HomePage>http://itk.org</HomePage>
 <Version>3.4</Version>
 <Acknowledgement>Kitware, Inc.</Acknowledgement>
