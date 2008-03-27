@@ -50,6 +50,7 @@ slicer_parse_module_file("${SLICER_LOCAL_MODULES_PATH}/TestModule2/")
 
 slicer_get_modules_list(modules)
 slicer_create_use_modules_options("${modules}")
-
+slicer_get_used_modules_list("${modules}" used_modules)
+message("used: ${used_modules}")
 slicer_create_download_and_update_modules_targets(
-  "${modules}" "${SLICER_DOWNLOADED_SOURCES_DIRECTORY}")
+  "${used_modules}" "${SLICER_DOWNLOADED_SOURCES_DIRECTORY}")
