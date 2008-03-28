@@ -18,7 +18,8 @@
 #define __igtlImageMessage_h
 
 #include "igtlObject.h"
-#include "igtlMacros.h"
+//#include "igtlMacros.h"
+#include "igtlMacro.h"
 #include "igtlMath.h"
 #include "igtlMessageBase.h"
 

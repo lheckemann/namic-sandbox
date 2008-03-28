@@ -7,6 +7,21 @@
   Version:   $Revision: $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
+
+  This software is distributed WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+  PURPOSE.  See the above copyright notices for more information.
+
+=========================================================================*/
+/*=========================================================================
+
+  Program:   Insight Segmentation & Registration Toolkit
+  Module:    $RCSfile: itkSmartPointer.h,v $
+  Language:  C++
+  Date:      $Date: 2006-03-06 15:07:34 $
+  Version:   $Revision: 1.38 $
+
+  Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
      This software is distributed WITHOUT ANY WARRANTY; without even 
@@ -17,7 +32,7 @@
 #ifndef __igtlSmartPointer_h
 #define __igtlSmartPointer_h
 
-//#include "igtlMacro.h"
+#include "igtlMacro.h"
 #include <iostream>
 
 namespace igtl
@@ -40,8 +55,7 @@ namespace igtl
  * \ingroup DataAccess
  */
 template <class TObjectType>
-  //class IGTL_EXPORT SmartPointer 
-class SmartPointer 
+class IGTL_EXPORT SmartPointer 
 {
 public:
   typedef TObjectType ObjectType;
@@ -122,7 +136,7 @@ public:
       ObjectType* tmp = m_Pointer; //avoid recursive unregisters by retaining temporarily
       m_Pointer = r;
       this->Register();
-      /*      if ( tmp ) { tmp->UnRegister(); } */  // temporaly erased by J.Tokuda
+      if ( tmp ) { tmp->UnRegister(); }
       }
     return *this;
     }
@@ -141,12 +155,12 @@ private:
 
   void Register()
     { 
-      //if(m_Pointer) { m_Pointer->Register(); } //temporally erased by J.Tokuda
+    if(m_Pointer) { m_Pointer->Register(); }
     }
   
   void UnRegister()
     {
-      //if(m_Pointer) { m_Pointer->UnRegister(); } // temporally erased by J.Tokuda
+    if(m_Pointer) { m_Pointer->UnRegister(); }
     }
 };  
 
@@ -161,5 +175,3 @@ std::ostream& operator<< (std::ostream& os, SmartPointer<T> p)
 } // end namespace igtl
   
 #endif
-
-

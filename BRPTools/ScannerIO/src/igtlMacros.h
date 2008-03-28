@@ -89,7 +89,7 @@ static Pointer New(void) \
       { \
       this->m_##name = ""; \
       } \
-    this->Modified(); \
+    //    this->Modified();                     \
   }
 
 }
