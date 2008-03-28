@@ -18,7 +18,9 @@
 #define __igtlMessageBase_h
 
 #include "igtlObject.h"
-#include "igtlMacros.h"
+#include "igtlObjectFactory.h"
+//#include "igtlMacros.h"
+#include "igtlMacro.h"
 #include "igtlMath.h"
 
 namespace igtl

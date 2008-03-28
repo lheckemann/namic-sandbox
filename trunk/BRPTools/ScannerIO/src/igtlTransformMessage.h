@@ -18,7 +18,7 @@
 #define __igtlTransformMessage_h
 
 #include "igtlObject.h"
-#include "igtlMacros.h"
+//#include "igtlMacros.h"
 #include "igtlMath.h"
 #include "igtlMessageBase.h"
 

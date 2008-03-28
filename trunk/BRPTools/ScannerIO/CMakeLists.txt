@@ -4,6 +4,7 @@ INCLUDE (CheckIncludeFiles)
 
 IF(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   ADD_DEFINITIONS(-DPLATFORM_OSX)
+  ADD_DEFINITIONS(-DIGTL_USE_PTHREADS)
   IF(CMAKE_SYSTEM_VERSION MATCHES "9\\.[0-9]*\\.[0-9]*")
     ADD_DEFINITIONS(-DPLATFORM_OSX_LEOPARD)
   ENDIF(CMAKE_SYSTEM_VERSION MATCHES "9\\.[0-9]*\\.[0-9]*")
@@ -11,6 +12,7 @@ ENDIF(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 
 IF(CMAKE_SYSTEM_NAME MATCHES Linux)
 ADD_DEFINITIONS(-DPLATFORM_LINUX)
+ADD_DEFINITIONS(-DIGTL_USE_WIN32_THREADS)
 SET(LINUX 1)
 SET(CMAKE_C_FLAGS -fPIC)
 SET(CMAKE_CXX_FLAGS -fPIC)
@@ -18,6 +20,7 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES Linux)
 
 IF(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 ADD_DEFINITIONS(-DPLATFORM_WIN32)
+ADD_DEFINITIONS(-IGTL_USE_WIN32_THREADS)
 SET(WIN32 1)
 ENDIF(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
@@ -63,6 +66,13 @@ src/igtlTransformMessage.cxx
 src/igtlMath.cxx
 src/igtlMessageBase.cxx
 src/igtlObject.cxx
+src/igtlLightObject.cxx
+src/igtlObjectFactoryBase.cxx
+src/igtlSimpleFastMutexLock.cxx
+src/igtlFastMutexLock.cxx
+src/igtlSocket.cxx
+src/igtlMultiThreader.cxx
+src/igtlMutexLock.cxx
 src/Thread.cxx
 src/AcquisitionBase.cxx
 src/AcquisitionSimulator.cxx
