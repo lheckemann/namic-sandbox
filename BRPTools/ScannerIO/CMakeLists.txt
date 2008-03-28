@@ -167,7 +167,7 @@ ENDIF(LINK_W_O_FILES)
 
 
 
-ADD_EXECUTABLE(ScannerSim src/main.cxx)
+ADD_EXECUTABLE(ScannerSim src/simulator.cxx)
 ADD_EXECUTABLE(SignaSPSim src/signasp.cxx)
 ADD_EXECUTABLE(TrackerSim src/tracker.cxx)
 ADD_EXECUTABLE(GEExciteIGTL src/GEExciteIGTL.cxx)
