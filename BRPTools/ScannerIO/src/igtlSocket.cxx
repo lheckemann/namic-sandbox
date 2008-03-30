@@ -356,5 +356,11 @@ int Socket::Receive(void* data, int length, int readFully/*=1*/)
   return total;
 }
 
+//-----------------------------------------------------------------------------
+void Socket::PrintSelf(std::ostream& os)
+{
+  this->Superclass::PrintSelf(os);
+}
+
 
 } // end of igtl namespace

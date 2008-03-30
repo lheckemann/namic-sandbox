@@ -56,9 +56,11 @@ protected:
   int Port;
 
   // for TCP/IP connection
+
   ACE_INET_Addr   address;
   ACE_SOCK_Stream sock;
   ACE_SOCK_Connector connector;
+
 
   bool connected;
 

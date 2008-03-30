@@ -71,6 +71,8 @@ src/igtlObjectFactoryBase.cxx
 src/igtlSimpleFastMutexLock.cxx
 src/igtlFastMutexLock.cxx
 src/igtlSocket.cxx
+src/igtlClientSocket.cxx
+src/igtlServerSocket.cxx
 src/igtlMultiThreader.cxx
 src/igtlMutexLock.cxx
 src/Thread.cxx
