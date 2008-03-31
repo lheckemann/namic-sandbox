@@ -24,6 +24,7 @@
 #include "itkIndex.h"
 #include "itkKernelFunction.h"
 #include "itkCentralDifferenceImageFunction.h"
+#include "itkBSplineDeformableTransform2.h"
 
 #include "itk_hash_map.h"
 
@@ -136,16 +137,11 @@ public:
     DerivativeType & Derivative ) const;
 
   /**  Get the value. */
-  MeasureType GetValue( const ParametersType& parameters ) const; // threaded
-  MeasureType GetValueDefault( const ParametersType& parameters ) const; // previous implementation
+  MeasureType GetValue( const ParametersType& parameters ) const;
 
   /**  Get the value and derivatives for single valued optimizers. */
   void GetValueAndDerivative( const ParametersType& parameters, 
                               MeasureType& Value, DerivativeType& Derivative ) const;
-
-  void GetValueAndDerivativeDefault( const ParametersType& parameters, 
-                                     MeasureType& Value, DerivativeType& Derivative ) const;
-
 
   /** Set the number of spatial samples. This is the number of image
    * samples used to calculate the joint probability distribution.
@@ -215,7 +211,6 @@ private:
     SpatialSample():FixedImageValue(0.0),MovingImageValue(0.0)
     { FixedImagePointValue.Fill( 0.0 ); MovingImagePointValue.Fill( 0.0 ); FixedImageLinearOffset = 0;}//FixedImageIndex.Fill( 0 ); }
     ~SpatialSample(){};
-    //FixedImageIndexType              FixedImageIndex;
     // FIXME -- Check offset type
     long                             FixedImageLinearOffset;
     FixedImagePointType              FixedImagePointValue;
@@ -255,8 +250,7 @@ private:
    */
   void CalculateDerivatives( const FixedImagePointType& , DerivativeType& ) const;
 
-  typedef typename Superclass::CoordinateRepresentationType  
-  CoordinateRepresentationType;
+  typedef typename Superclass::CoordinateRepresentationType  CoordinateRepresentationType;
   typedef CentralDifferenceImageFunction< MovingImageType, 
                                           CoordinateRepresentationType > DerivativeFunctionType;
 
@@ -266,130 +260,17 @@ private:
   int              m_RandomSeed;
   
 
-  /** Multithreading stuff starts here - FIXME - cleanup. */
-  typedef itk::MultiThreader               MultiThreaderType;
+  /* Multithreading stuff starts here. */
+  /* FIXME - CLEANUP */
 
-  struct MultiThreaderParameterType
-    {
-    Self                   * metric;
-    };
+  typedef itk::MultiThreader                MultiThreaderType;
+  typedef std::vector<double>               PartialResultsType;
+  typedef std::vector<PartialResultsType>   PartialResultsContainerType;
 
-  MultiThreaderType::Pointer               m_Threader;
-  MultiThreaderParameterType               m_ThreaderParameter;
-
-  void GetValueMultiThreadedInternal( unsigned int threadID ) const;
-
-  typedef std::vector<double>             PartialResultsType;
-
-  mutable std::vector<PartialResultsType>           m_SumFixedPartialAResults;
-  mutable std::vector<PartialResultsType>           m_SumMovingPartialAResults;
-  mutable std::vector<PartialResultsType>           m_SumJointPartialAResults;
-
-  mutable std::vector<unsigned long>                m_SampleAVisitCount;
-
-  typename SpatialSampleContainer::const_iterator*  m_SampleAStartIterators;
-  typename SpatialSampleContainer::const_iterator*  m_SampleBStartIterators;
-  typename SpatialSampleContainer::const_iterator*  m_SampleAEndIterators;
-  typename SpatialSampleContainer::const_iterator*  m_SampleBEndIterators;
-
-  std::vector<unsigned long>::iterator*             m_SampleAVisitCountStartIterators;
-  std::vector<unsigned long>::iterator*             m_SampleAVisitCountEndIterators;
-
-  unsigned int m_NumberOfThreads;
-
-  static ITK_THREAD_RETURN_TYPE GetValueThreadCallback( void * arg );
-  void GetValueThreadedInitiate( void ) const;
-
-  void ClearPartialResults() const;
-
-  static ITK_THREAD_RETURN_TYPE GetValueAndDerivativePhase1ThreadCallback( void * arg );
-  void GetValueAndDerivativePhase1ThreadedInitiate( void ) const;  
-
-  static ITK_THREAD_RETURN_TYPE GetValueAndDerivativePhase2ThreadCallback( void * arg );
-  void GetValueAndDerivativePhase2ThreadedInitiate( void ) const;  
-
-  static ITK_THREAD_RETURN_TYPE GetValueAndDerivativePhase3ThreadCallback( void * arg );
-  void GetValueAndDerivativePhase3ThreadedInitiate( void ) const;  
-
-public:
-  MeasureType GetValueMultiThreaded( const ParametersType& parameters ) const;
-
-  void GetValueAndDerivativeThreaded( const ParametersType& parameters, 
-                                     MeasureType& Value, DerivativeType& Derivative ) const;
-
-  void GetValueAndDerivativeThreaded2( const ParametersType& parameters, 
-                                     MeasureType& Value, DerivativeType& Derivative ) const;
-
-private:
-  void CalculateDerivativesThreaded( const FixedImagePointType& ,
-                                     const MovingImagePointType& mappedPoint,
-                                     DerivativeType& derivative,
-                                     unsigned int threadID ) const;
-
-  void CalculateDerivativesThreadedDefaultTransform( const FixedImagePointType& ,
-                                                     const MovingImagePointType& mappedPoint,
-                                                     DerivativeType& ) const;
-
-  mutable bool m_TransformIsBSpline;
-
-  // Bspline optimization
-  // Get nonzero indexex
-  int m_NumberOfWeights;
-  long unsigned int m_NumberOfParametersPerdimension;
-
-  ParametersType m_Indexes; // Holds nonzeros indexes of Bspline derivatives
-
-  void SetupSampleThreadIterators() const;
-  double CombineASampleResults();
-  void GetValueAndDerivativeMultiThreadedInternalPhase1( unsigned int threadID ) const;
-  void GetValueAndDerivativeMultiThreadedInternalPhase1Combine( MeasureType& measure ) const;
-  void GetValueAndDerivativeMultiThreadedInternalPhase2( unsigned int threadID ) const;
-  void GetValueAndDerivativeMultiThreadedInternalPhase2Combine( DerivativeType& derivative ) const;
-
-  typedef std::vector< double > WeightPartialResultType;
-  // Maybe should make const_iterator
-  typedef WeightPartialResultType::iterator WeightPartialResultIterator;
+  typedef std::vector< double >                      WeightPartialResultType;
+  typedef WeightPartialResultType::iterator          WeightPartialResultIterator;
+  typedef WeightPartialResultType::const_iterator    WeightPartialResultConstIterator;
   typedef std::vector< WeightPartialResultIterator > WeightIteratorContainerType;
-  
-  mutable std::vector< WeightPartialResultType > m_TotalWeightBSamplePartialResult;
-  mutable WeightIteratorContainerType m_TotalWeightPhase3StartIterators;
-  mutable WeightIteratorContainerType m_TotalWeightPhase3EndIterators;
-
-  void SetupDerivativePartialResults() const;
-
-  typedef std::vector< DerivativeType > DerivativePartialResultsType; 
-  mutable DerivativePartialResultsType m_ThreadDerivatives;
-
-  void GetValueAndDerivativeMultiThreadedInternalPhase3(unsigned int thread) const;
-  void GetValueAndDerivativeMultiThreadedInternalPhase3Combine( DerivativeType& derivative ) const;
-
-  typedef std::vector< SamplesConstIterator > ThreadSampleIteratorContainerType;
-  mutable ThreadSampleIteratorContainerType m_SampleBPhase3StartIterators;
-  mutable ThreadSampleIteratorContainerType m_SampleBPhase3EndIterators;
-
-  mutable unsigned int m_NumberOfParameters;
-
-  void SetupPhase3BSampleIterators() const;
-
-  bool ValidatePartialResultSizes() const;
-
-  void SetupThreadTransforms() const;
-  void SynchronizeTransforms() const;
-
-  mutable TransformPointer* m_TransformArray;
-
-  bool IsDerivativeCached( const SpatialSample& sample ) const;
-  bool RetreiveCachedDerivative( const SpatialSample& sample, DerivativeType& deriv ) const;
-
-  class SpatialSampleCompare
-    {
-    public:
-    bool operator()(const SpatialSample& s1, const SpatialSample& s2) const
-      {
-      std::cout << "Fix SpatialSampleCompare" << std::endl;
-      return s1.FixedImageLinearOffset < s2.FixedImageLinearOffset;
-      }
-    }; // SpatialSampleCompare
 
   // Sparse derivative
   typedef unsigned long SparseDerivativeIndexType;
@@ -397,71 +278,178 @@ private:
   typedef std::pair< SparseDerivativeIndexType, SparseDerivativeValueType > SparseDerivativeEntryType;
   typedef std::vector< SparseDerivativeEntryType > SparseDerivativeType;
 
-  // FIXME
-  typedef long FixedImageLinearOffsetType; // Should this be unsigned, what type is the linear offset for itk::Image?
+  // FIXME - Should this be unsigned, what type is the linear offset for itk::Image?
+  typedef long FixedImageLinearOffsetType; 
+
   // Hash map -- element access is fast. Stored in no particular order.
-  typedef itk::hash_map< FixedImageLinearOffsetType, DerivativeType, itk::hash< FixedImageLinearOffsetType > > DerivativeMapType;
-  typedef itk::hash_map< FixedImageLinearOffsetType, SparseDerivativeType, itk::hash< FixedImageLinearOffsetType > > SparseDerivativeMapType;
+  typedef itk::hash_map< FixedImageLinearOffsetType, 
+                         DerivativeType,
+                         itk::hash< FixedImageLinearOffsetType > > DerivativeMapType;
 
-  mutable DerivativeMapType m_DerivativeMap;
-  mutable SparseDerivativeMapType m_SparseDerivativeMap;
+  typedef itk::hash_map< FixedImageLinearOffsetType,
+                         SparseDerivativeType, 
+                         itk::hash< FixedImageLinearOffsetType > > SparseDerivativeMapType;
 
+  typedef std::vector< DerivativeType > DerivativePartialResultsType; 
+
+  /** FIXME -- hardcoded spline order*/
+  typedef BSplineDeformableTransform2< 
+                            CoordinateRepresentationType,
+                            ::itk::GetImageDimension<FixedImageType>::ImageDimension,
+                            3 >                                                       BSplineTransformType;
+
+  typedef typename SparseDerivativeType::const_iterator SparseDerivativeIterator;
+  typedef std::vector< SamplesConstIterator > ThreadSampleIteratorContainerType;
+
+  struct MultiThreaderParameterType
+    {
+    Self                   * metric;
+    };
+
+  // --------------- Class Variables --------------------------------------
+
+  MultiThreaderType::Pointer                        m_Threader;
+  MultiThreaderParameterType                        m_ThreaderParameter;
+
+  mutable PartialResultsContainerType               m_SumFixedPartialAResults;
+  mutable PartialResultsContainerType               m_SumMovingPartialAResults;
+  mutable PartialResultsContainerType               m_SumJointPartialAResults;
+
+  typename SpatialSampleContainer::const_iterator*  m_SampleAStartIterators;
+  typename SpatialSampleContainer::const_iterator*  m_SampleBStartIterators;
+  typename SpatialSampleContainer::const_iterator*  m_SampleAEndIterators;
+  typename SpatialSampleContainer::const_iterator*  m_SampleBEndIterators;
+
+  unsigned int                                      m_NumberOfThreads;
+
+  mutable bool                                      m_TransformIsBSpline;
+  // Bspline optimization
+  // Get nonzero indexes
+  int                                               m_NumberOfWeights;
+  long unsigned int                                 m_NumberOfParametersPerdimension;
+
+  mutable std::vector< WeightPartialResultType >    m_TotalWeightBSamplePartialResult;
+  mutable WeightIteratorContainerType               m_TotalWeightPhase3StartIterators;
+  mutable WeightIteratorContainerType               m_TotalWeightPhase3EndIterators;
+
+  mutable unsigned int                              m_NumberOfParameters;
+
+  ParametersType                                    m_Indexes; // Holds nonzeros indexes of Bspline derivatives
+
+  mutable TransformPointer*                         m_TransformArray;
+
+  mutable DerivativeMapType                         m_DerivativeMap;
+  mutable SparseDerivativeMapType                   m_SparseDerivativeMap;
+  mutable DerivativePartialResultsType              m_ThreadDerivatives;
+
+  /** Size of derivative cache in bytes. */
+  unsigned long                                     m_DerivativeCacheSize;
+
+  mutable ThreadSampleIteratorContainerType         m_SampleBPhase3StartIterators;
+  mutable ThreadSampleIteratorContainerType         m_SampleBPhase3EndIterators;
+
+  //------------------- Functions -----------------------------
+
+  MeasureType GetValueDefault( const ParametersType& parameters ) const; // previous implementation
+  MeasureType GetValueMultiThreaded( const ParametersType& parameters ) const;
+  void GetValueMultiThreadedInternal( unsigned int threadID ) const;
+  void GetValueThreadedInitiate( void ) const;
+  double CombineASampleResults();
+
+  void ClearPartialResults() const;
+
+  void GetValueAndDerivativePhase1ThreadedInitiate( void ) const;  
+  void GetValueAndDerivativePhase2ThreadedInitiate( void ) const;  
+  void GetValueAndDerivativePhase3ThreadedInitiate( void ) const;  
+
+  static ITK_THREAD_RETURN_TYPE GetValueThreadCallback( void * arg );
+  static ITK_THREAD_RETURN_TYPE GetValueAndDerivativePhase1ThreadCallback( void * arg );
+  static ITK_THREAD_RETURN_TYPE GetValueAndDerivativePhase2ThreadCallback( void * arg );
+  static ITK_THREAD_RETURN_TYPE GetValueAndDerivativePhase3ThreadCallback( void * arg );
+
+  void GetValueAndDerivativeDefault( const ParametersType& parameters, 
+                                     MeasureType& Value, DerivativeType& Derivative ) const;
+
+  void GetValueAndDerivativeThreaded2( const ParametersType& parameters, 
+                                     MeasureType& Value, DerivativeType& Derivative ) const;
+
+  void CalculateDerivativesThreaded( const FixedImagePointType& ,
+                                     const MovingImagePointType& mappedPoint,
+                                     DerivativeType& derivative,
+                                     unsigned int threadID ) const;
+
+
+  void SetupSampleThreadIterators() const;
+  void SetupDerivativePartialResults() const;
+  void SetupPhase3BSampleIterators() const;
+  bool ValidatePartialResultSizes() const;
+  void SetupThreadTransforms() const;
+  void SynchronizeTransforms() const;
+
+  void GetValueAndDerivativeMultiThreadedInternalPhase1( unsigned int threadID ) const;
+  void GetValueAndDerivativeMultiThreadedInternalPhase1Combine( MeasureType& measure ) const;
+  void GetValueAndDerivativeMultiThreadedInternalPhase2( unsigned int threadID ) const;
+  void GetValueAndDerivativeMultiThreadedInternalPhase2Combine( DerivativeType& derivative ) const;
+  void GetValueAndDerivativeMultiThreadedInternalPhase3(unsigned int thread) const;
+  void GetValueAndDerivativeMultiThreadedInternalPhase3Combine( DerivativeType& derivative ) const;
+
+  /** Cache derivatives for the A samples used in the 
+   *  inner loop calculations. */
   void CacheSampleADerivatives() const;
-
   void CacheSparseSampleADerivatives() const;
 
+  /** Calculate a sparse derivative */
   void CalculateDerivativesThreadedSparse( const FixedImagePointType& ,
                                            const MovingImagePointType& mappedPoint,
                                            SparseDerivativeType& derivative,
                                            unsigned int threadID ) const;
 
+  /** Update threadDerivative with the derivative at sample. */
+  inline void UpdateDerivative( DerivativeType& threadDerivative, 
+                                const SpatialSample& sample, 
+                                double weight, 
+                                unsigned int threadID ) const;
 
-  // Size of derivative cache in bytes.
-  unsigned long m_DerivativeCacheSize;
+  /** Update threadDerivative with a sparse derivative at sample. */
+  inline void UpdateDerivativeSparse( DerivativeType& threadDerivative,
+                                      const SpatialSample& sample,
+                                      double weight,
+                                      unsigned int threadID ) const;
 
-  inline void UpdateDerivative( DerivativeType& threadDerivative, const SpatialSample& sample, double weight, unsigned int threadID ) const;
-  inline void UpdateDerivativeSparse( DerivativeType& threadDerivative, const SpatialSample& sample, double weight, unsigned int threadID ) const;
-
-  inline void FastDerivativeSubtractWithWeight( DerivativeType& in, const DerivativeType& subtrahend, const double subtractWeight ) const
+  inline void FastDerivativeSubtractWithWeight( DerivativeType& in, 
+                                                const DerivativeType& subtrahend, 
+                                                const double subtractWeight ) const
     {
-    //data, num_elmts
     double* inData = in.data_block();
     const double* subtrahendData = subtrahend.data_block();
+    const unsigned int inSize = in.size();
 
-    for (unsigned int i = 0; i < in.size(); i++ )
+    for (unsigned int i = 0; i < inSize; i++ )
       {
       inData[i] -= (subtrahendData[i] * subtractWeight);
-      /*
-      *inData = *inData - (*subtrahendData * subtractWeight);
-      inData++;
-      subtrahendData++;
-      */
       }
     }
 
-  inline void FastDerivativeAddWithWeight( DerivativeType& in, const DerivativeType& subtrahend, const double subtractWeight ) const
+  inline void FastDerivativeAddWithWeight( DerivativeType& in, 
+                                           const DerivativeType& addend, 
+                                           const double addWeight ) const
     {
-    //data, num_elmts
     double* inData = in.data_block();
-    const double* subtrahendData = subtrahend.data_block();
+    const double* addendData = addend.data_block();
+    const unsigned int inSize = in.size();
 
-    for (unsigned int i = 0; i < in.size(); i++ )
+    for (unsigned int i = 0; i < inSize; i++ )
       {
-      inData[i] += (subtrahendData[i] * subtractWeight);
-      /*
-      *inData = *inData + (*subtrahendData * subtractWeight);
-      inData++;
-      subtrahendData++;
-      */
+      inData[i] += (addendData[i] * addWeight);
       }
     }
 
-  inline void FastSparseDerivativeSubtractWithWeight( DerivativeType& in, const SparseDerivativeType& subtrahend, const double subtractWeight ) const
+  inline void FastSparseDerivativeSubtractWithWeight( DerivativeType& in, 
+                                                      const SparseDerivativeType& subtrahend, 
+                                                      const double subtractWeight ) const
     {
     double* inData = in.data_block();
  
-    typedef typename SparseDerivativeType::const_iterator SparseDerivativeIterator;
-
     for ( SparseDerivativeIterator siter = subtrahend.begin();
                                    siter != subtrahend.end();
                                    ++siter )
@@ -470,23 +458,25 @@ private:
       }
     }
 
-  inline void FastDerivativeAdd( DerivativeType& in, const DerivativeType& addend ) const
+  inline void FastDerivativeAdd( DerivativeType& in, 
+                                 const DerivativeType& addend ) const
     {
     double* inData = in.data_block();
     const double* addendData = addend.data_block();
+    const unsigned int inSize = in.size();
 
-    for (unsigned int i = 0; i < in.size(); i++ )
+    for (unsigned int i = 0; i < inSize; i++ )
       {
       inData[i] += addendData[i];
       }
     }
 
-  inline void FastSparseDerivativeAddWithWeight( DerivativeType& in, const SparseDerivativeType& addend, const double weight ) const
+  inline void FastSparseDerivativeAddWithWeight( DerivativeType& in, 
+                                                 const SparseDerivativeType& addend, 
+                                                 const double weight ) const
     {
     double* inData = in.data_block();
  
-    typedef typename SparseDerivativeType::const_iterator SparseDerivativeIterator;
-
     for ( SparseDerivativeIterator siter = addend.begin();
                                    siter != addend.end();
                                    ++siter )
@@ -494,10 +484,6 @@ private:
       inData[ (*siter).first ] += ( (*siter).second * weight );
       }
     }
-
-
-public:
-  bool CompareDerivatives( ParametersType& parameters );
 
 };
 
