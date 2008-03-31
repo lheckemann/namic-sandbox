@@ -24,7 +24,7 @@
 #include "itkIndex.h"
 #include "itkKernelFunction.h"
 #include "itkCentralDifferenceImageFunction.h"
-#include "itkBSplineDeformableTransform2.h"
+#include "itkBSplineDeformableTransform.h"
 
 #include "itk_hash_map.h"
 
@@ -293,7 +293,7 @@ private:
   typedef std::vector< DerivativeType > DerivativePartialResultsType; 
 
   /** FIXME -- hardcoded spline order*/
-  typedef BSplineDeformableTransform2< 
+  typedef BSplineDeformableTransform< 
                             CoordinateRepresentationType,
                             ::itk::GetImageDimension<FixedImageType>::ImageDimension,
                             3 >                                                       BSplineTransformType;
