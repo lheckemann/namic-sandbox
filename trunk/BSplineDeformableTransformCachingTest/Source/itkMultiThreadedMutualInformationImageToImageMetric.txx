@@ -25,14 +25,17 @@
 #include "itkBSplineDeformableTransform2.h"
 #include <fstream>
 
-// For debugging.
-// This allows us to turn off the execution
+// This #define is for debugging.
+// It allows us to turn off the execution
 // of multiple threads and instead call the thread
 // callback functions for each threadID, one after
 // the other.
 // #define SYNCHRONOUS_COMPUTATION
 
-// Turn on or off derivative caching
+// The following #defines turn on or off
+// various implementation features. Once
+// we've settled on the implementation, they
+// should go away.
 #define USE_CACHED_DERIVATIVES
 #define USE_SPARSE_CACHED_DERIVATIVES
 #define USE_SPARSE_BSAMPLE_DERIVATIVES
@@ -68,17 +71,15 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     m_DerivativeCalculator->UseImageDirectionOn();
 #endif
 
-  // FIXME: Should this go to initialize?
   this->m_Threader = MultiThreaderType::New();
   this->m_NumberOfThreads = this->m_Threader->GetNumberOfThreads();
   this->m_ThreaderParameter.metric = this;
   this->m_TransformIsBSpline = false;
   this->m_TransformArray = NULL;
 
-  // One GB derivative cache.
+  // 1 GB derivative cache.
   this->m_DerivativeCacheSize = 1024UL * 1024UL * 1024UL;//2048UL * 1024UL * 1024UL;
-  this->m_DerivativeCacheSize += 600UL * 1024UL * 1024UL; // Add 600 more MB
-  //m_DerivativeCacheSize = 0;
+  // this->m_DerivativeCacheSize += 600UL * 1024UL * 1024UL; // Add 600 more MB
 }
 
 
@@ -96,6 +97,14 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   os << m_MovingImageStandardDeviation << std::endl;
   os << indent << "KernelFunction: ";
   os << m_KernelFunction.GetPointer() << std::endl;
+  os << indent << "DerivativeCacheSize (bytes) : ";
+  os << m_DerivativeCacheSize << std::endl;
+  os << indent << "Threader: ";
+  os << m_Threader.GetPointer() << std::endl;
+  os << indent << "NumberOfThreads: ";
+  os << m_NumberOfThreads << std::endl;
+  os << indent << "TransformIsBSPline: ";
+  os << m_TransformIsBSpline << std::endl;
 }
 
 
@@ -166,7 +175,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     FixedImageIndexType index = randIter.GetIndex();
     // Get sampled fixed image value
     (*iter).FixedImageValue = randIter.Get();
-    //(*iter).FixedImageIndex = index;
+    // Get sampled fixed image linear offset into the volume
     (*iter).FixedImageLinearOffset = this->m_FixedImage->ComputeOffset( index );
     // Translate index to point
     this->m_FixedImage->TransformIndexToPhysicalPoint( index,
@@ -238,7 +247,6 @@ typename MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingIma
 MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::GetValue( const ParametersType& parameters ) const
 {
-  //return this->GetValueDefault( parameters );
   return this->GetValueMultiThreaded( parameters );
 }
 
@@ -273,8 +281,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   unsigned long totalSamples = 0;
 
-  // std::ofstream output("default.txt");
-
   for( biter = m_SampleB.begin() ; biter != bend; ++biter )
     {
     double dSumFixed  = m_MinProbability;
@@ -303,15 +309,12 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       totalSamples++;
       } // end of sample A loop
 
-    // output << dSumFixed << " , " << dSumMoving << " , " << dSumJoint << std::endl;
-
     dLogSumFixed  -= ( dSumFixed > 0.0 ) ? vcl_log(dSumFixed  ) : 0.0;
     dLogSumMoving -= ( dSumMoving> 0.0 ) ? vcl_log(dSumMoving ) : 0.0;
     dLogSumJoint  -= ( dSumJoint > 0.0 ) ? vcl_log(dSumJoint  ) : 0.0;
 
     } // end of sample B loop
 
-  // std::cout << "totalSamples : " << totalSamples << std::endl;
   double nsamp   = double( m_NumberOfSpatialSamples );
 
   double threshold = -0.5 * nsamp * vcl_log(m_MinProbability );
@@ -337,20 +340,15 @@ typename MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingIma
 MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::GetValueMultiThreaded( const ParametersType& parameters ) const
 {
-  // FIXME: Partial results containers need to be cleaned up.
-  // FIXME: This probably could be done in each thread...
-  // NOW WE WRITE OVER THE RESULTS...
-  // this->ClearPartialResults();
-
   // Before multithreading make sure the transform has the current parameters
   this->m_Transform->SetParameters( parameters );
 
-  // Do this before multithreading, or sample over a fixed region
-  // collect sample set A
+  // Do this before multithreading
+  // Sample over a fixed region to collect sample set A
   this->SampleFixedImageDomain( m_SampleA );
 
-  // Do this before multithreading, or sample over a fixed region
-  // collect sample set B
+  // Do this before multithreading
+  // Sample over a fixed region to collect sample set B
   this->SampleFixedImageDomain( m_SampleB );
 
   // Setup the sample iterators for each thread.
@@ -407,7 +405,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 #endif
   // END THREADING
 
-  // THREAD
   // ASSUME : Every thread uses the same B samples.
   //
   // Partial results are for A samples split across threads. 
@@ -418,7 +415,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   unsigned int numBSampleResults = m_SumFixedPartialAResults[0].size();
 
-  // As Stephen suggested, we could split this summation over threads, with each thread
+  // TODO: We could split this summation over threads, with each thread
   // taking part of the bsamples.
   for (unsigned int bSample = 0; 
         bSample < numBSampleResults;
@@ -443,39 +440,33 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   double dLogSumMoving    = 0.0;
   double dLogSumJoint  = 0.0;
 
-  PartialResultsType::iterator fixedIter  = m_SumFixedPartialAResults[0].begin();
-  PartialResultsType::iterator movingIter = m_SumMovingPartialAResults[0].begin();
-  PartialResultsType::iterator jointIter  = m_SumJointPartialAResults[0].begin();
+  // FIXME: Can these be const_iterators?
+  PartialResultsType::const_iterator fixedIter  = m_SumFixedPartialAResults[0].begin();
+  PartialResultsType::const_iterator movingIter = m_SumMovingPartialAResults[0].begin();
+  PartialResultsType::const_iterator jointIter  = m_SumJointPartialAResults[0].begin();
 
-  //std::ofstream output("threaded.txt", std::ios::app);
 
   for (   ;
-
          fixedIter     != m_SumFixedPartialAResults[0].end() 
          && movingIter != m_SumMovingPartialAResults[0].end()
-         && jointIter  != m_SumJointPartialAResults[0].end(); 
-       
+         && jointIter  != m_SumJointPartialAResults[0].end();        
          ++fixedIter, ++movingIter, ++jointIter )
     {
+    // FIXME: 
     // We subtract off the extra m_MinProbability used for initialization in each thread.
+    // We should fix the initialization in each thread.
     double dSumFixed  = *fixedIter - (m_NumberOfThreads - 1) * m_MinProbability;
     double dSumMoving = *movingIter - (m_NumberOfThreads - 1) * m_MinProbability;
     double dSumJoint  = *jointIter - (m_NumberOfThreads - 1) * m_MinProbability;
-
-    // output << dSumFixed << " , " << dSumMoving << " , " << dSumJoint << std::endl;
 
     dLogSumFixed  -= ( dSumFixed > 0.0 ) ? vcl_log(dSumFixed  ) : 0.0;
     dLogSumMoving -= ( dSumMoving> 0.0 ) ? vcl_log(dSumMoving ) : 0.0;
     dLogSumJoint  -= ( dSumJoint > 0.0 ) ? vcl_log(dSumJoint  ) : 0.0;
     } 
 
-  // std::cout << "dLogSumFixed  : " << dLogSumFixed  << std::endl;
-  // std::cout << "dLogSumMoving : " << dLogSumMoving << std::endl;
-  // std::cout << "dLogSumJoint  : " << dLogSumJoint  << std::endl;
-
   double nsamp   = double( m_NumberOfSpatialSamples );
 
-  // Do this after threading.
+  // After threading.
   double threshold = -0.5 * nsamp * vcl_log(m_MinProbability );
   if( dLogSumMoving > threshold || dLogSumFixed > threshold ||
       dLogSumJoint > threshold  )
@@ -497,12 +488,11 @@ void
 MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::GetValueMultiThreadedInternal( unsigned int threadID ) const
 {
-  // calculate the mutual information
   double dLogSumFixed = 0.0;
   double dLogSumMoving    = 0.0;
   double dLogSumJoint  = 0.0;
 
-  // These need to point to our samples....
+  // These point to the samples for our thread.
   SamplesConstIterator aiter;
   SamplesConstIterator astart = m_SampleAStartIterators[threadID];
   SamplesConstIterator aend   = m_SampleAEndIterators[threadID];
@@ -514,8 +504,8 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   for( biter = bstart ; biter != bend; ++biter,++bSampleCount )
     {
-    double dSumFixed  = m_MinProbability;
-    double dSumMoving     = m_MinProbability;
+    double dSumFixed   = m_MinProbability;
+    double dSumMoving  = m_MinProbability;
     double dSumJoint   = m_MinProbability;
 
     for( aiter = astart ; aiter != aend ; ++aiter )
@@ -526,13 +516,13 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       valueFixed = ( (*biter).FixedImageValue - (*aiter).FixedImageValue ) /
         m_FixedImageStandardDeviation;
      
-      // We need a reentrant kernel function or our own kernelfunction.
+      // ASSUME: Kernel function is thread safe.
       valueFixed = m_KernelFunction->Evaluate( valueFixed );
 
       valueMoving = ( (*biter).MovingImageValue - (*aiter).MovingImageValue ) /
         m_MovingImageStandardDeviation;
 
-      // We need a reentrant kernel function or our own kernelfunction.
+      // ASSUME: Kernel function is thread safe.
       valueMoving = m_KernelFunction->Evaluate( valueMoving );
 
       dSumFixed  += valueFixed;
@@ -541,18 +531,11 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
       } // end of sample A loop
 
-    // Log must be done later since log(A + B) neq log(A) + log(B).
-#if 0
-    std::cout << " FIX PUSH_BACK in GetValueMultiThreadedInternal " << std::endl;
-    m_SumFixedPartialAResults[threadID].push_back( dSumFixed );
-    m_SumMovingPartialAResults[threadID].push_back( dSumMoving );
-    m_SumJointPartialAResults[threadID].push_back( dSumJoint );
-#else
-    // std::cout << " Make sure partial results are pre allocated in GetValueMultiThreadedInternal " << std::endl;
+    // Log must be done later across threads, 
+    // since log(A + B) neq log(A) + log(B).
     m_SumFixedPartialAResults[threadID][bSampleCount] = dSumFixed ;
     m_SumMovingPartialAResults[threadID][bSampleCount] = dSumMoving;
     m_SumJointPartialAResults[threadID][bSampleCount] = dSumJoint;
-#endif
     } // end of sample B loop
 
   return;
@@ -570,7 +553,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   DerivativeType& derivative) const
 {
   //this->GetValueAndDerivativeDefault( parameters, value, derivative );
-  //this->GetValueAndDerivativeThreaded( parameters, value, derivative );
   this->GetValueAndDerivativeThreaded2( parameters, value, derivative );
 }
 
@@ -611,9 +593,10 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   double dLogSumMoving    = 0.0;
   double dLogSumJoint  = 0.0;
 
-  SamplesIterator aiter;
+  // FIXME: Can these all be const?
+  SamplesConstIterator aiter;
   SamplesConstIterator aend = m_SampleA.end();
-  SamplesIterator biter;
+  SamplesConstIterator biter;
   SamplesConstIterator bend = m_SampleB.end();
 
   // precalculate all the image derivatives for sample A
@@ -631,9 +614,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     this->CalculateDerivatives( (*aiter).FixedImagePointValue, tempDeriv );
     (*aditer) = tempDeriv;
     }
-
-  // std::ofstream output("default_weights.txt", std::ios::app);
-  // output << "---------" << std::endl;
 
   DerivativeType derivB(numberOfParameters);
 
@@ -705,8 +685,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       weight = ( weightMoving - weightJoint );
       weight *= (*biter).MovingImageValue - (*aiter).MovingImageValue;
 
-      // output << weight << std::endl;
-
       totalWeight += weight;
       derivative -= (*aditer) * weight;
 
@@ -737,248 +715,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   derivative  /= vnl_math_sqr( m_MovingImageStandardDeviation );
 
 }
-
-/*
- * Get the both Value and Derivative Measure
- */
-template < class TFixedImage, class TMovingImage  >
-void
-MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
-::GetValueAndDerivativeThreaded(
-  const ParametersType& parameters,
-  MeasureType& value,
-  DerivativeType& derivative) const
-{
-  // THREAD STRATEGY
-  // Rework the GetValue threading implementation to return
-  // dDenominatorMoving and dDenominatorJoint.
-  // Then, split the A samples across threads again.
-  // Accumulate the derivatives for each A sample in each thread.
-  // Join the thread results at the end.
-  // Need to cache one A derivative per thread to add when 
-  // back to one thread.
-  // Need to cache one "totalWeight" per B Sample per thread 
-  // so that we can accumulate B sample weights across threads
-  // and then use them to weight the B sample derivatives.
-
-
-  // Check for b-spline transform...
-  /** FIXME -- hardcoded spline order*/
-  typedef BSplineDeformableTransform2< CoordinateRepresentationType,
-                      ::itk::GetImageDimension<FixedImageType>::ImageDimension,
-                                      3 >             BSplineTransformType;
-
-  BSplineTransformType* bSplineTransformPtr = dynamic_cast<BSplineTransformType *>(
-                                               this->m_Transform.GetPointer() );
-  if (bSplineTransformPtr != NULL)
-    {
-    m_TransformIsBSpline = true;
-    }
-
-  value = NumericTraits< MeasureType >::Zero;
-  unsigned int numberOfParameters = this->m_Transform->GetNumberOfParameters();
-  DerivativeType temp( numberOfParameters );
-  // temp.Fill( 0 );
-  memset( temp.data_block(),
-          0,
-          this->m_NumberOfParameters * sizeof(double) );
-
-  derivative = temp;
-
-  // FIXME: Partial results containers need to be cleaned up.
-  // FIXME: This probably could be done in each thread...
-  this->ClearPartialResults();
-
-  // make sure the transform has the current parameters
-  this->m_Transform->SetParameters( parameters );
-
-  // set the DerivativeCalculator
-  m_DerivativeCalculator->SetInputImage( this->m_MovingImage );
-
-  // collect sample set A
-  this->SampleFixedImageDomain( m_SampleA );
-
-  // collect sample set B
-  this->SampleFixedImageDomain( m_SampleB );
-
-
-  // calculate the mutual information
-  double dLogSumFixed = 0.0;
-  double dLogSumMoving    = 0.0;
-  double dLogSumJoint  = 0.0;
-
-  typename SpatialSampleContainer::iterator aiter;
-  typename SpatialSampleContainer::const_iterator aend = m_SampleA.end();
-  typename SpatialSampleContainer::iterator biter;
-  typename SpatialSampleContainer::const_iterator bend = m_SampleB.end();
-
-  // precalculate all the image derivatives for sample A
-#if 0
-  typedef SparseVector< double > SparseDerivativeType;
-
-  // typedef std::vector<DerivativeType> DerivativeContainer;
-  typedef std::vector<SparseDerivativeType> DerivativeContainer;
-  DerivativeContainer sampleADerivatives;
-  sampleADerivatives.resize( m_NumberOfSpatialSamples );
-
-  typename DerivativeContainer::iterator aditer;
-  // SparseDerivativeType tempDeriv; //( numberOfParameters );
-
-  // THREAD: This could be done in separate threads if CalculateDerivative is thread safe
-  for( aiter = m_SampleA.begin(), aditer = sampleADerivatives.begin();
-       aiter != aend; ++aiter, ++aditer )
-    {
-    // THREAD: CalculateDerivatives is NOT THREAD SAFE
-    //SparseDerivativeType tempDeriv;
-
-    (*aditer).Fill( 0.0 );
-    /*** FIXME: is there a way to avoid the extra copying step? *****/
-    this->CalculateDerivativesThreadedBSplineSparse( (*aiter).FixedImagePointValue, 
-                                                     (*aiter).MovingImagePointValue,
-                                                     (*aditer) ) ; //tempDeriv );
-    // (*aditer) = tempDeriv;
-    }
-#endif
-
-  DerivativeType derivB(numberOfParameters);
-  DerivativeType aTempDeriv( numberOfParameters );
-
-  // THREAD: Use all B samples in each thread, as in GetValue
-  for( biter = m_SampleB.begin(); biter != bend; ++biter )
-    {
-    double dDenominatorMoving = m_MinProbability;
-    double dDenominatorJoint = m_MinProbability;
-
-    double dSumFixed = m_MinProbability;
-
-    // THREAD: Split A samples across threads.
-    // THREAD: This looks like GetValue...
-    for( aiter = m_SampleA.begin(); aiter != aend; ++aiter )
-      {
-      double valueFixed;
-      double valueMoving;
-
-      valueFixed = ( (*biter).FixedImageValue - (*aiter).FixedImageValue )
-        / m_FixedImageStandardDeviation;
-      valueFixed = m_KernelFunction->Evaluate( valueFixed );
-
-      valueMoving = ( (*biter).MovingImageValue - (*aiter).MovingImageValue )
-        / m_MovingImageStandardDeviation;
-      valueMoving = m_KernelFunction->Evaluate( valueMoving );
-
-      dDenominatorMoving += valueMoving;
-      dDenominatorJoint += valueMoving * valueFixed;
-
-      dSumFixed += valueFixed;
-
-      } // end of sample A loop
-
-    if( dSumFixed > 0.0 )
-      {
-      dLogSumFixed -= vcl_log(dSumFixed );
-      }
-    if( dDenominatorMoving > 0.0 )
-      {
-      dLogSumMoving    -= vcl_log(dDenominatorMoving );
-      }
-    if( dDenominatorJoint > 0.0 )
-      {
-      dLogSumJoint  -= vcl_log(dDenominatorJoint );
-      }
-
-    // THREAD: See if up to here matches GetValue.
-
-    // THREAD: Calculate derivatives is NOT THREAD SAFE
-    // get the image derivative for this B sample
-    this->CalculateDerivativesThreaded( (*biter).FixedImagePointValue, 
-                                        (*biter).MovingImagePointValue, 
-                                        derivB );
-
-    double totalWeight = 0.0;
-
-    // THREAD: This is the second pass through the A samples, 
-    // THREAD: inside a bsample loop.
-    /*
-    for( aiter = m_SampleA.begin(), aditer = sampleADerivatives.begin();
-         aiter != aend; ++aiter, ++aditer )
-    */
-    for( aiter = m_SampleA.begin();
-         aiter != aend; ++aiter)
-      {
-      double valueFixed;
-      double valueMoving;
-      double weightMoving;
-      double weightJoint;
-      double weight;
-
-      // THREAD: valueFixed and valueMoving look the same as GetValue?
-      valueFixed = ( (*biter).FixedImageValue - (*aiter).FixedImageValue ) /
-        m_FixedImageStandardDeviation;
-      valueFixed = m_KernelFunction->Evaluate( valueFixed );
-
-      valueMoving = ( (*biter).MovingImageValue - (*aiter).MovingImageValue ) /
-        m_MovingImageStandardDeviation;
-      valueMoving = m_KernelFunction->Evaluate( valueMoving );
-
-      // THREAD: weightMoving, weightJoint new to GetValueAndDerivative
-      // dDenomiatorMoving and dDenominatorJoint need a pass through
-      // all the A samples to compute
-      weightMoving = valueMoving / dDenominatorMoving;
-      weightJoint = valueMoving * valueFixed / dDenominatorJoint;
-
-      // THREAD: weight is new to GetValueAndDerivative
-      // weight = valueMoving / dDenomiatorMoving - (valueMoving * valueFixed) / dDenominatorJoint;
-      // weight = (valueMoving * dDenominatorJoint - (valueMoving * valueFixed) * dDenominatorMoving)/( dDenominatorMoving * dDenominatorJoint )
-      weight = ( weightMoving - weightJoint );
-      weight *= (*biter).MovingImageValue - (*aiter).MovingImageValue;
-
-      totalWeight += weight;
-
-      // THREAD: EXPENSIVE!!!      
-      // No caching
-      this->CalculateDerivativesThreaded( (*aiter).FixedImagePointValue, 
-                                          (*aiter).MovingImagePointValue,
-                                          aTempDeriv );
-      derivative -= aTempDeriv * weight;
-
-      // Sparse caching
-      /*
-      (*aditer) *= weight;
-      (*aditer).SubtractFromNonSparse( derivative );
-      */
-
-      // Default: 
-      //derivative -= (*aditer) * weight;
-      } // end of sample A loop
-
-    // THREAD: Derivative could be accumulated across B samples
-    // THREAD: Or across A samples.
-    derivative += derivB * totalWeight;
-
-    } // end of sample B loop
-
-
-  double nsamp    = double( m_NumberOfSpatialSamples );
-
-  double threshold = -0.5 * nsamp * vcl_log(m_MinProbability );
-  if( dLogSumMoving > threshold || dLogSumFixed > threshold ||
-      dLogSumJoint > threshold  )
-    {
-    // at least half the samples in B did not occur within
-    // the Parzen window width of samples in A
-    itkExceptionMacro(<<"Standard deviation is too small" );
-    }
-
-
-  value  = dLogSumFixed + dLogSumMoving - dLogSumJoint;
-  value /= nsamp;
-  value += vcl_log(nsamp );
-
-  derivative  /= nsamp;
-  derivative  /= vnl_math_sqr( m_MovingImageStandardDeviation );
-
-}
-
 
 /*
  * Get the match measure derivative
@@ -1021,7 +757,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     }
   else
     {
-    //derivatives.Fill( 0.0 );
     memset( derivatives.data_block(),
             0,
             this->m_NumberOfParameters * sizeof(double) );
@@ -1054,23 +789,14 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   DerivativeType& derivatives,
   unsigned int threadID ) const
 {
-  // THREAD: To be thread safe
-  // THREAD: m_Transform->TransformPoint needs to be thread safe (NOT OK)
-  //            BSpline transform point may not be thread safe
-  //              Non-caching BSpline may be thread safe.
-  // THREAD: m_Transform->GetJacobian( point ) needs to be thread safe. (???)
-  // THREAD: m_Transform->GetNumberOfParameters() needs to be thread safe.
-  // THREAD: that m_DerivativeCalculator->IsInsideBuffer needs to be thread safe (LOOKS OK)
-  // THREAD: that m_DerivativeCalculator->Evaluate needs to be thread safe (LOOKS OK).
-  //            ConvertPointToNearestIndex - Look ok
-  //            EvaluateAtIndex - Look ok
-  // THREAD: Is mappedPoint already available somewhere else?
-  //            Computed during sampling, but thrown out.
-
-
-  // THREAD: We will keep the mapping from when the samples are drawn, so 
-  // we don't need to recompute it here.
-  // MovingImagePointType mappedPoint = this->m_Transform->TransformPoint( point );
+  // Thread safety issues.
+  //  m_Transform->TransformPoint needs to be thread safe. (Solved via transform replication.)
+  //  m_Transform->GetJacobian( point ) needs to be thread safe. (Solved via transform replication.)
+  //  m_Transform->GetNumberOfParameters() needs to be thread safe. (LOOKS OK)
+  //  m_DerivativeCalculator->IsInsideBuffer needs to be thread safe. (LOOKS OK)
+  //  m_DerivativeCalculator->Evaluate needs to be thread safe. (LOOKS OK)
+  //                              ConvertPointToNearestIndex - Looks ok
+  //                              EvaluateAtIndex - Looks ok
   
   CovariantVector<double,MovingImageDimension> imageDerivatives;
 
@@ -1080,8 +806,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     }
   else
     {
-    // THREAD: Do memcopy -- faster
-    //derivatives.Fill( 0.0 );
+    // memset -- faster than Fill
     memset( derivatives.data_block(),
             0,
             this->m_NumberOfParameters * sizeof(double) );
@@ -1093,27 +818,18 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   if ( true == m_TransformIsBSpline )
     {
-    /** FIXME -- hardcoded spline order*/
-    typedef BSplineDeformableTransform2< CoordinateRepresentationType,
-                        ::itk::GetImageDimension<FixedImageType>::ImageDimension,
-                                        3 >             BSplineTransformType;
-
     BSplineTransformType* bSplineTransformPtr = dynamic_cast<BSplineTransformType *>(
                                                                m_TransformArray[threadID].GetPointer() );
-    //                                                         m_Transform.GetPointer() );
 
     int numberOfContributions = bSplineTransformPtr->GetNumberOfAffectedWeights();
     int numberOfParametersPerDimension = bSplineTransformPtr->GetNumberOfParametersPerDimension();
 
-    // THREAD: Need thread safe GetJacobian( point )
     typedef typename BSplineTransformType::WeightsType JacobianValueArrayType;
     JacobianValueArrayType jacobianValues(numberOfContributions);
     
     typedef typename BSplineTransformType::ParameterIndexArrayType JacobianIndexType;
     JacobianIndexType jacobianIndices(numberOfContributions);
-    //jacobianIndices.set_size(numberOfContributions);
 
-    // FIXME -- Need to duplicate transforms for GetJacobian to be thread safe
     bSplineTransformPtr->GetJacobian( point, 
                                       jacobianValues,
                                       jacobianIndices 
@@ -1123,26 +839,17 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
             0,
             this->m_NumberOfParameters * sizeof(double) );
 
-
     for ( unsigned int k = 0; k < numberOfContributions; k++ )
       {
       for ( unsigned int j = 0; j < MovingImageDimension; j++ )
         {
-        // Need contribution indices to be a map into the derivative index...
-        // Derivatives here is NOT sparse...
-        // derivatives[ jacobianIndices[ k ] ] += jacobianValues[k][j] * imageDerivatives[j];
-
-        // Serdar: 
+        // Serdar computed the derivative index as below 
         derivatives[j*numberOfParametersPerDimension + jacobianIndices[k]] += jacobianValues[k] * imageDerivatives[j];
         }
       }
-
     }
   else // Default implementation
     {
-    // THREAD: Need thread safe GetJacobian( point )
-    // FIXME -- Need to duplicate transforms for GetJacobian to be thread safe
-    // const JacobianType& jacobian = this->m_Transform->GetJacobian( point );
     const JacobianType& jacobian = this->m_TransformArray[threadID]->GetJacobian( point );
 
     unsigned int numberOfParameters = this->m_Transform->GetNumberOfParameters();
@@ -1168,26 +875,19 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   SparseDerivativeType& derivatives,
   unsigned int threadID ) const
 {
-  // THREAD: To be thread safe
-  // THREAD: m_Transform->TransformPoint needs to be thread safe (NOT OK)
-  //            BSpline transform point may not be thread safe
-  //              Non-caching BSpline may be thread safe.
-  // THREAD: m_Transform->GetJacobian( point ) needs to be thread safe. (???)
-  // THREAD: m_Transform->GetNumberOfParameters() needs to be thread safe.
-  // THREAD: that m_DerivativeCalculator->IsInsideBuffer needs to be thread safe (LOOKS OK)
-  // THREAD: that m_DerivativeCalculator->Evaluate needs to be thread safe (LOOKS OK).
-  //            ConvertPointToNearestIndex - Look ok
-  //            EvaluateAtIndex - Look ok
-  // THREAD: Is mappedPoint already available somewhere else?
-  //            Computed during sampling, but thrown out.
+  // Thread safety issues.
+  //  m_Transform->TransformPoint needs to be thread safe. (Solved via transform replication.)
+  //  m_Transform->GetJacobian( point ) needs to be thread safe. (Solved via transform replication.)
+  //  m_Transform->GetNumberOfParameters() needs to be thread safe. (LOOKS OK)
+  //  m_DerivativeCalculator->IsInsideBuffer needs to be thread safe. (LOOKS OK)
+  //  m_DerivativeCalculator->Evaluate needs to be thread safe. (LOOKS OK)
+  //                              ConvertPointToNearestIndex - Looks ok
+  //                              EvaluateAtIndex - Looks ok
 
-
-  // THREAD: We will keep the mapping from when the samples are drawn, so 
-  // we don't need to recompute it here.
-  // MovingImagePointType mappedPoint = this->m_Transform->TransformPoint( point );
   
-  // FIXME: does input derivative need to be cleared?
-  // FIXME: derivatives.clear();
+  // FIXME: does input derivative need to be cleared? Or should it 
+  // be done outside this function?
+  // derivatives.clear();
 
   CovariantVector<double,MovingImageDimension> imageDerivatives;
 
@@ -1205,27 +905,18 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   if ( true == m_TransformIsBSpline )
     {
-    /** FIXME -- hardcoded spline order*/
-    typedef BSplineDeformableTransform2< CoordinateRepresentationType,
-                        ::itk::GetImageDimension<FixedImageType>::ImageDimension,
-                                        3 >             BSplineTransformType;
-
     BSplineTransformType* bSplineTransformPtr = dynamic_cast<BSplineTransformType *>(
                                                                m_TransformArray[threadID].GetPointer() );
-    //                                                         m_Transform.GetPointer() );
 
     int numberOfContributions = bSplineTransformPtr->GetNumberOfAffectedWeights();
     int numberOfParametersPerDimension = bSplineTransformPtr->GetNumberOfParametersPerDimension();
 
-    // THREAD: Need thread safe GetJacobian( point )
     typedef typename BSplineTransformType::WeightsType JacobianValueArrayType;
     JacobianValueArrayType jacobianValues(numberOfContributions);
     
     typedef typename BSplineTransformType::ParameterIndexArrayType JacobianIndexType;
     JacobianIndexType jacobianIndices(numberOfContributions);
-    //jacobianIndices.set_size(numberOfContributions);
 
-    // FIXME -- Need to duplicate transforms for GetJacobian to be thread safe
     bSplineTransformPtr->GetJacobian( point, 
                                       jacobianValues,
                                       jacobianIndices 
@@ -1242,25 +933,22 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     }
   else // Default implementation
     {
-    // THREAD: Need thread safe GetJacobian( point )
-    // FIXME -- Need to duplicate transforms for GetJacobian to be thread safe
-    // const JacobianType& jacobian = this->m_Transform->GetJacobian( point );
     const JacobianType& jacobian = this->m_TransformArray[threadID]->GetJacobian( point );
 
     unsigned int numberOfParameters = this->m_Transform->GetNumberOfParameters();
 
     for ( unsigned int k = 0; k < numberOfParameters; k++ )
       {
-      // derivatives[k] = 0.0;
       for ( unsigned int j = 0; j < MovingImageDimension; j++ )
         {
-        // This will consume a lot of memory if the derivative is large...
+        // This will consume a lot of memory if the derivative is large, i.e. not sparse.
+        // Size of non-sparse derivative = derivLen * sizeof(double)
+        // Size of sparse derivative ~= numEntries * (sizeof(double) + sizeof(unsigned long))
         SparseDerivativeIndexType derivativeIndex = k;
         derivatives.push_back( SparseDerivativeEntryType( derivativeIndex, jacobian[j][k] * imageDerivatives[j] ) );
         }
       } 
     }
-
 }
 
 /*
@@ -1327,22 +1015,11 @@ void
 MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::MultiThreadingInitialize( void ) throw ( ExceptionObject )
 {
-  /*
-  for (unsigned int t = 0; t < m_NumberOfThreads; t++)
-    {
-    PartialResultsType fresult;
-    this->m_SumFixedPartialAResults.push_back( fresult );
-    PartialResultsType mresult;
-    this->m_SumMovingPartialAResults.push_back( mresult );
-    PartialResultsType jresult;
-    this->m_SumJointPartialAResults.push_back( jresult );
-    }
-  */
   this->m_SumFixedPartialAResults.resize( m_NumberOfThreads );
   this->m_SumMovingPartialAResults.resize( m_NumberOfThreads );
   this->m_SumJointPartialAResults.resize( m_NumberOfThreads );
 
-  /** Move to each thread? */
+  /** FIXME: Move to each thread? */
   for (unsigned int t = 0; t < m_NumberOfThreads; t++)
     {
     this->m_SumFixedPartialAResults[t].resize( this->m_NumberOfSpatialSamples );
@@ -1350,7 +1027,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     this->m_SumJointPartialAResults[t].resize( this->m_NumberOfSpatialSamples );    
     }
 
-  // These itertators point to the start/end A & B samples for each thread.
+  // These itertators will point to the start/end A & B samples for each thread.
   this->m_SampleAStartIterators = new SamplesConstIterator[this->m_NumberOfThreads];
   this->m_SampleBStartIterators = new SamplesConstIterator[this->m_NumberOfThreads];
   this->m_SampleAEndIterators   = new SamplesConstIterator[this->m_NumberOfThreads];
@@ -1371,154 +1048,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     }
 }
 
-#if 0
-template < class TFixedImage, class TMovingImage  >
-void
-MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
-::CalculateDerivativesThreadedBSplineSparse(
-  const FixedImagePointType& point,
-  const MovingImagePointType& mappedPoint,
-  SparseVector<double>& derivatives ) const
-{
-  // THREAD: To be thread safe
-  // THREAD: m_Transform->TransformPoint needs to be thread safe (NOT OK)
-  //            BSpline transform point may not be thread safe
-  //              Non-caching BSpline may be thread safe.
-  // THREAD: m_Transform->GetJacobian( point ) needs to be thread safe. (???)
-  // THREAD: m_Transform->GetNumberOfParameters() needs to be thread safe.
-  // THREAD: that m_DerivativeCalculator->IsInsideBuffer needs to be thread safe (LOOKS OK)
-  // THREAD: that m_DerivativeCalculator->Evaluate needs to be thread safe (LOOKS OK).
-  //            ConvertPointToNearestIndex - Look ok
-  //            EvaluateAtIndex - Look ok
-  // THREAD: Is mappedPoint already available somewhere else?
-  //            Computed during sampling, but thrown out.
-
-
-  // THREAD: We will keep the mapping from when the samples are drawn, so 
-  // we don't need to recompute it here.
-  // MovingImagePointType mappedPoint = this->m_Transform->TransformPoint( point );
-  
-  CovariantVector<double,MovingImageDimension> imageDerivatives;
-
-  if ( m_DerivativeCalculator->IsInsideBuffer( mappedPoint ) )
-    {
-    imageDerivatives = m_DerivativeCalculator->Evaluate( mappedPoint );
-    }
-  else
-    {
-    memset( derivatives.data_block(),
-            0,
-            this->m_NumberOfParameters * sizeof(double) );
-
-    return;
-    }
-
-  typedef typename TransformType::JacobianType JacobianType;
-
-  /** FIXME -- hardcoded spline order*/
-  typedef BSplineDeformableTransform2< CoordinateRepresentationType,
-                      ::itk::GetImageDimension<FixedImageType>::ImageDimension,
-                                      3 >             BSplineTransformType;
-
-  // THREAD: We know before calling this method that the transform is a b-spline
-  BSplineTransformType* bSplineTransformPtr = dynamic_cast<BSplineTransformType *>(
-                                                           this->m_Transform.GetPointer() );
-
-  int numberOfContributions = bSplineTransformPtr->GetNumberOfAffectedWeights();
-  int numberOfParametersPerDimension = bSplineTransformPtr->GetNumberOfParametersPerDimension();
-
-  // THREAD: Need thread safe GetJacobian( point )
-  typedef typename BSplineTransformType::WeightsType JacobianValueArrayType;
-  JacobianValueArrayType jacobianValues(numberOfContributions);
-  
-  typedef typename BSplineTransformType::ParameterIndexArrayType JacobianIndexType;
-  JacobianIndexType jacobianIndices(numberOfContributions);
-
-  bSplineTransformPtr->GetJacobian( point, 
-                                    jacobianValues,
-                                    jacobianIndices 
-                                    );
-
-  memset( derivatives.data_block(),
-          0,
-          this->m_NumberOfParameters * sizeof(double) );
-
-  for ( unsigned int k = 0; k < numberOfContributions; k++ )
-    {
-    for ( unsigned int j = 0; j < MovingImageDimension; j++ )
-      {
-      // Need contribution indices to be a map into the derivative index...
-
-      // From Serdar's code 
-      unsigned int derivativeIndex = j*numberOfParametersPerDimension + jacobianIndices[k];
-      derivatives[derivativeIndex] += jacobianValues[k] * imageDerivatives[j];
-      }
-    }
-
-}
-#endif 
-
-template < class TFixedImage, class TMovingImage  >
-void
-MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
-::CalculateDerivativesThreadedDefaultTransform(
-  const FixedImagePointType&  point,
-  const MovingImagePointType& mappedPoint,
-  DerivativeType&             derivatives ) const
-{
-  // THREAD: To be thread safe
-  // THREAD: m_Transform->TransformPoint needs to be thread safe (NOT OK)
-  //            BSpline transform point may not be thread safe
-  //              Non-caching BSpline may be thread safe.
-  // THREAD: m_Transform->GetJacobian( point ) needs to be thread safe. (**LOOK AT**)
-  // THREAD: m_Transform->GetNumberOfParameters() needs to be thread safe.
-  // THREAD: that m_DerivativeCalculator->IsInsideBuffer needs to be thread safe (LOOKS OK)
-  // THREAD: that m_DerivativeCalculator->Evaluate needs to be thread safe (LOOKS OK).
-  //            ConvertPointToNearestIndex - Look ok
-  //            EvaluateAtIndex - Look ok
-  // THREAD: Is mappedPoint already available somewhere else?
-  //            Computed during sampling, but thrown out.
-
-
-  // THREAD: We will keep the mapping from when the samples are drawn, so 
-  // we don't need to recompute it here.
-  // MovingImagePointType mappedPoint = this->m_Transform->TransformPoint( point );
-  
-  CovariantVector<double,MovingImageDimension> imageDerivatives;
-
-  if ( m_DerivativeCalculator->IsInsideBuffer( mappedPoint ) )
-    {
-    imageDerivatives = m_DerivativeCalculator->Evaluate( mappedPoint );
-    }
-  else
-    {
-    // THREAD: Do memcopy -- faster
-    // derivatives.Fill( 0.0 );
-    memset( derivatives.data_block(),
-            0,
-            this->m_NumberOfParameters * sizeof(double) );
-
-    return;
-    }
-
-  typedef typename TransformType::JacobianType JacobianType;
-
-  // THREAD: Need thread safe GetJacobian( point )
-  const JacobianType& jacobian = this->m_Transform->GetJacobian( point );
-
-  unsigned int numberOfParameters = this->m_Transform->GetNumberOfParameters();
-
-  for ( unsigned int k = 0; k < numberOfParameters; k++ )
-    {
-    derivatives[k] = 0.0;
-    for ( unsigned int j = 0; j < MovingImageDimension; j++ )
-      {
-      derivatives[k] += jacobian[j][k] * imageDerivatives[j];
-      }
-    } 
-
-}
-
 template < class TFixedImage, class TMovingImage  >
 void
 MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
@@ -1527,6 +1056,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   MeasureType& value,
   DerivativeType& derivative) const
 {
+  // FIXME: Update this comment to reflect the implementation
   // THREAD STRATEGY
   // Rework the GetValue threading implementation to return
   // dDenominatorMoving and dDenominatorJoint.
@@ -1541,7 +1071,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   value = NumericTraits< MeasureType >::Zero;
   m_NumberOfParameters = this->m_Transform->GetNumberOfParameters();
   DerivativeType temp( m_NumberOfParameters );
-  //temp.Fill( 0 );
   memset( temp.data_block(),
           0,
           this->m_NumberOfParameters * sizeof(double) );
@@ -1550,11 +1079,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
 
   // Check for b-spline transform...
-  /** FIXME -- hardcoded spline order*/
-  typedef BSplineDeformableTransform2< CoordinateRepresentationType,
-                      ::itk::GetImageDimension<FixedImageType>::ImageDimension,
-                                      3 >             BSplineTransformType;
-
   BSplineTransformType* bSplineTransformPtr = dynamic_cast<BSplineTransformType *>(
                                                this->m_Transform.GetPointer() );
   if (bSplineTransformPtr != NULL)
@@ -1562,13 +1086,13 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     m_TransformIsBSpline = true;
     }
 
-  // make sure the transform has the current parameters
+  // Make sure the transform has the current parameters and that
+  // they are propagated to the transform copies.
   this->m_Transform->SetParameters( parameters );
-  //this->SetTransformParameters( parameters );
-  this->SetupThreadTransforms( );
+  this->SetupThreadTransforms();
   this->SynchronizeTransforms();
 
-  // set the DerivativeCalculator
+  // Set the DerivativeCalculator
   m_DerivativeCalculator->SetInputImage( this->m_MovingImage );
 
   // collect sample set A
@@ -1580,7 +1104,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   // Setup the thread iterators for the A samples.
   this->SetupSampleThreadIterators();
 
-  // DEBUG
+  // FIXME: Can move to later?
   this->SetupDerivativePartialResults();
 
 #ifdef USE_CACHED_DERIVATIVES
@@ -1626,6 +1150,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   this->GetValueAndDerivativeMultiThreadedInternalPhase2Combine( derivative );
 
+  // FIXME: DEBUG
   if (false == this->ValidatePartialResultSizes())
     {
     std::cerr << "Partial result size error after phase 2" << std::endl;
@@ -1714,15 +1239,14 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   msg << "Phase 1 - thread " << threadID << "\n";
   std::cout << msg.str();
 
-  // THREAD: FIXME iterators need to use samples based on threads.
   SamplesConstIterator aiter;
-  SamplesConstIterator astart    = m_SampleAStartIterators[threadID];
-  SamplesConstIterator aend = m_SampleAEndIterators[threadID];
+  SamplesConstIterator astart     = m_SampleAStartIterators[threadID];
+  SamplesConstIterator aend       = m_SampleAEndIterators[threadID];
   SamplesConstIterator biter;
-  SamplesConstIterator bstart    = m_SampleBStartIterators[threadID];
-  SamplesConstIterator bend = m_SampleBEndIterators[threadID];
+  SamplesConstIterator bstart     = m_SampleBStartIterators[threadID];
+  SamplesConstIterator bend       = m_SampleBEndIterators[threadID];
 
-  // precalculate all the image derivatives for sample A
+  // Precalculate all the image derivatives for sample A
   typedef std::vector<DerivativeType> DerivativeContainer;
   DerivativeContainer sampleADerivatives;
   sampleADerivatives.resize( m_NumberOfSpatialSamples );
@@ -1797,18 +1321,15 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   double dLogSumMoving    = 0.0;
   double dLogSumJoint  = 0.0;
 
-  PartialResultsType::iterator fixedIter  = m_SumFixedPartialAResults[0].begin();
-  PartialResultsType::iterator movingIter = m_SumMovingPartialAResults[0].begin();
-  PartialResultsType::iterator jointIter  = m_SumJointPartialAResults[0].begin();
-
-  //std::ofstream output("threaded.txt", std::ios::app);
+  // FIXME: Can these all be const iterators?
+  PartialResultsType::const_iterator fixedIter  = m_SumFixedPartialAResults[0].begin();
+  PartialResultsType::const_iterator movingIter = m_SumMovingPartialAResults[0].begin();
+  PartialResultsType::const_iterator jointIter  = m_SumJointPartialAResults[0].begin();
 
   for (   ;
-
          fixedIter     != m_SumFixedPartialAResults[0].end() 
          && movingIter != m_SumMovingPartialAResults[0].end()
          && jointIter  != m_SumJointPartialAResults[0].end(); 
-       
          ++fixedIter, ++movingIter, ++jointIter )
     {
     // We subtract off the extra m_MinProbability used for initialization in each thread.
@@ -1816,16 +1337,10 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     double dSumMoving = *movingIter - (m_NumberOfThreads - 1) * m_MinProbability;
     double dSumJoint  = *jointIter - (m_NumberOfThreads - 1) * m_MinProbability;
 
-    // output << dSumFixed << " , " << dSumMoving << " , " << dSumJoint << std::endl;
-
     dLogSumFixed  -= ( dSumFixed > 0.0 ) ? vcl_log(dSumFixed  ) : 0.0;
     dLogSumMoving -= ( dSumMoving> 0.0 ) ? vcl_log(dSumMoving ) : 0.0;
     dLogSumJoint  -= ( dSumJoint > 0.0 ) ? vcl_log(dSumJoint  ) : 0.0;
     } 
-
-  // std::cout << "dLogSumFixed  : " << dLogSumFixed  << std::endl;
-  // std::cout << "dLogSumMoving : " << dLogSumMoving << std::endl;
-  // std::cout << "dLogSumJoint  : " << dLogSumJoint  << std::endl;
 
   double nsamp   = double( m_NumberOfSpatialSamples );
 
@@ -1839,7 +1354,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     itkExceptionMacro(<<"Standard deviation is too small" );
     }
 
-  //MeasureType measure = dLogSumFixed + dLogSumMoving - dLogSumJoint;
   measure = dLogSumFixed + dLogSumMoving - dLogSumJoint;
   measure /= nsamp;
   measure += vcl_log(nsamp );
@@ -1851,7 +1365,6 @@ double
 MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::CombineASampleResults()
 {
-  // THREAD
   // ASSUME : Every thread uses the same B samples.
   //
   // Partial results are for A samples split across threads. 
@@ -1862,7 +1375,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   unsigned int numBSampleResults = m_SumFixedPartialAResults[0].size();
 
-  // As Stephen suggested, we could split this summation over threads, with each thread
+  // FIXME: We could split this summation over threads, with each thread
   // taking part of the bsamples.
   for (unsigned int bSample = 0; 
         bSample < numBSampleResults;
@@ -1887,18 +1400,15 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   double dLogSumMoving    = 0.0;
   double dLogSumJoint  = 0.0;
 
-  PartialResultsType::iterator fixedIter  = m_SumFixedPartialAResults[0].begin();
-  PartialResultsType::iterator movingIter = m_SumMovingPartialAResults[0].begin();
-  PartialResultsType::iterator jointIter  = m_SumJointPartialAResults[0].begin();
-
-  //std::ofstream output("threaded.txt", std::ios::app);
+  // FIXME: Can these all be const iterators?
+  PartialResultsType::const_iterator fixedIter  = m_SumFixedPartialAResults[0].begin();
+  PartialResultsType::const_iterator movingIter = m_SumMovingPartialAResults[0].begin();
+  PartialResultsType::const_iterator jointIter  = m_SumJointPartialAResults[0].begin();
 
   for (   ;
-
          fixedIter     != m_SumFixedPartialAResults[0].end() 
          && movingIter != m_SumMovingPartialAResults[0].end()
          && jointIter  != m_SumJointPartialAResults[0].end(); 
-       
          ++fixedIter, ++movingIter, ++jointIter )
     {
     // We subtract off the extra m_MinProbability used for initialization in each thread.
@@ -1906,16 +1416,10 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     double dSumMoving = *movingIter - (m_NumberOfThreads - 1) * m_MinProbability;
     double dSumJoint  = *jointIter - (m_NumberOfThreads - 1) * m_MinProbability;
 
-    // output << dSumFixed << " , " << dSumMoving << " , " << dSumJoint << std::endl;
-
     dLogSumFixed  -= ( dSumFixed > 0.0 ) ? vcl_log(dSumFixed  ) : 0.0;
     dLogSumMoving -= ( dSumMoving> 0.0 ) ? vcl_log(dSumMoving ) : 0.0;
     dLogSumJoint  -= ( dSumJoint > 0.0 ) ? vcl_log(dSumJoint  ) : 0.0;
     } 
-
-  // std::cout << "dLogSumFixed  : " << dLogSumFixed  << std::endl;
-  // std::cout << "dLogSumMoving : " << dLogSumMoving << std::endl;
-  // std::cout << "dLogSumJoint  : " << dLogSumJoint  << std::endl;
 
   double nsamp   = double( m_NumberOfSpatialSamples );
 
@@ -1947,12 +1451,12 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   DerivativeType derivA( this->m_NumberOfParameters );
 
-  // THREAD: Set derivative for this thread to 0.
+  // Set derivative for this thread to 0.
   memset( this->m_ThreadDerivatives[threadID].data_block(),
           0,
           this->m_NumberOfParameters * sizeof(double) );
 
-  // THREAD: Iterators use samples based on thread ID.
+  // Iterators use samples based on thread ID.
   SamplesConstIterator aiter;
   SamplesConstIterator astart    = m_SampleAStartIterators[threadID];
   SamplesConstIterator aend      = m_SampleAEndIterators[threadID];
@@ -1960,16 +1464,14 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   SamplesConstIterator bstart    = m_SampleBStartIterators[threadID];
   SamplesConstIterator bend      = m_SampleBEndIterators[threadID];
 
-  // THREAD: Results combined across previous threads are in threadID 0.
-  PartialResultsType::iterator miter = m_SumMovingPartialAResults[ 0 ].begin();
-  PartialResultsType::iterator jiter = m_SumJointPartialAResults[ 0 ].begin();
+  // Results combined across previous threads are in threadID 0.
+  // FIXME: Can these be const iterators?
+  PartialResultsType::const_iterator miter = m_SumMovingPartialAResults[ 0 ].begin();
+  PartialResultsType::const_iterator jiter = m_SumJointPartialAResults[ 0 ].begin();
 
   // Alias the thread derivative so that we don't have to 
   // alway dereference.
   DerivativeType& threadDerivative = this->m_ThreadDerivatives[ threadID ];
-
-  // std::ofstream output("thread_weights.txt", std::ios::app);
-  // output << "----" << threadID << "-----" << std::endl;
 
   unsigned int bSampleCount = 0;
   for( biter = bstart; 
@@ -1978,7 +1480,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     {
     double totalWeight = 0.0;
 
-    // THREAD: Get these from partial results...
+    // Get these from partial results...
     double dDenominatorMoving = *miter;
     double dDenominatorJoint  = *jiter;
 
@@ -2000,15 +1502,13 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
         m_MovingImageStandardDeviation;
       valueMoving = m_KernelFunction->Evaluate( valueMoving );
 
-      // THREAD: Denominators are functions of each b sample and all a samples.
+      // Denominators are functions of each b sample and all a samples.
       // The denominators were precomputed and cached.
       weightMoving = valueMoving / dDenominatorMoving;
       weightJoint = valueMoving * valueFixed / dDenominatorJoint;
 
       weight = ( weightMoving - weightJoint );
       weight *= (*biter).MovingImageValue - (*aiter).MovingImageValue;
-
-      // output << weight << std::endl;
 
       totalWeight += weight;
 
@@ -2027,8 +1527,9 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       // THREAD: Just need to make sure that weight is correct and that the 
       // thread derivative is initialized correctly. We will combine them
       // later.
-      //derivative -= derivA * weight;
-      //this->m_ThreadDerivatives[ threadID ] -= derivA * weight;
+
+      // FIXME: The sideffect of this computation is to create another derivative
+      // on the heap
       threadDerivative -= derivA * weight;
 #endif
       } // end of sample A loop
@@ -2051,16 +1552,16 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
           0,
           this->m_NumberOfParameters * sizeof(double) );
 
-  // THREAD: Combine derivatives across threads.
+  // Combine derivatives across threads.
   for (unsigned int t = 0; t < this->m_NumberOfThreads; t++)
     {
     derivative += this->m_ThreadDerivatives[ t ];
     }
 
-  // THREAD: Different start index than previous loop
+  // Different start index than previous loop
   for (unsigned int t = 1; t < this->m_NumberOfThreads; t++)
     {
-    // THREAD: Combine totalWeight across threads for each B sample.
+    // Combine totalWeight across threads for each B sample.
     for (unsigned int bSample = 0; 
           bSample < this->m_NumberOfSpatialSamples;
           bSample++)
@@ -2158,22 +1659,21 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   SamplesConstIterator bstart = this->m_SampleBPhase3StartIterators[threadID];
   SamplesConstIterator bend   = this->m_SampleBPhase3EndIterators[threadID];
 
-  WeightPartialResultIterator twiter;
-  WeightPartialResultIterator twstart = this->m_TotalWeightPhase3StartIterators[threadID];
-  WeightPartialResultIterator twend   = this->m_TotalWeightPhase3EndIterators[threadID];
+  // FIXME: Can these be const iterators
+  WeightPartialResultConstIterator twiter;
+  WeightPartialResultConstIterator twstart = this->m_TotalWeightPhase3StartIterators[threadID];
+  WeightPartialResultConstIterator twend   = this->m_TotalWeightPhase3EndIterators[threadID];
 
   // All totalWeights per bsample are combined into the partial result at thread 0.
   // std::vector<double>::iterator twiter = this->m_TotalWeightBSamplePartialResult[ 0 ].begin();
 
-  // !!!!! FIXME - totalWeight needs to match where we are in the bSample array, not start from 
-  // the beginning !!!!
+  // totalWeight needs to match where we are in the bSample array.
   twiter = twstart;
   biter = bstart;
 
   for( ; biter != bend && twiter != twend; ++biter, ++twiter )
     {
     // get the image derivative for this B sample
-    // FIXME: SPARSIFY
 #ifdef USE_SPARSE_BSAMPLE_DERIVATIVES
     derivB.clear();
     this->CalculateDerivativesThreadedSparse( (*biter).FixedImagePointValue, 
@@ -2190,7 +1690,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     
     double totalWeight = *twiter;
 
-    // threadDerivatives += derivB * totalWeight;
 #ifdef USE_SPARSE_BSAMPLE_DERIVATIVES
     this->FastSparseDerivativeAddWithWeight( threadDerivatives, derivB, totalWeight );
 #else
@@ -2209,7 +1708,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   for (unsigned int t = 0; t < m_NumberOfThreads; t++)
     {
-    //derivative += this->m_ThreadDerivatives[ t ];
     this->FastDerivativeAdd( derivative, this->m_ThreadDerivatives[t] );
     }
 }
@@ -2372,110 +1870,14 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 }
 
 template < class TFixedImage, class TMovingImage  >
-bool
-MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
-::CompareDerivatives( ParametersType& parameters )
-{
-  // make sure the transform has the current parameters
-  this->m_Transform->SetParameters( parameters );
-  this->SetupThreadTransforms();
-  this->SynchronizeTransforms();
-
-  // set the DerivativeCalculator
-  m_DerivativeCalculator->SetInputImage( this->m_MovingImage );
-
-  // collect sample set A
-  this->SampleFixedImageDomain( m_SampleA );
-
-  // collect sample set B
-  this->SampleFixedImageDomain( m_SampleB );
-
-  unsigned int numberOfParameters = this->m_Transform->GetNumberOfParameters();
-
-  DerivativeType derivA( numberOfParameters );
-  DerivativeType derivB( numberOfParameters );
-  DerivativeType derivAThread( numberOfParameters );
-  DerivativeType derivBThread( numberOfParameters );
-
-  SamplesConstIterator aiter;
-  SamplesConstIterator aend = m_SampleA.end();
-  SamplesConstIterator biter;
-  SamplesConstIterator bend = m_SampleB.end();
-
-  for( biter = m_SampleB.begin(); biter != bend; ++biter )
-    {
-    this->CalculateDerivatives( (*biter).FixedImagePointValue, derivB );
-    this->CalculateDerivativesThreaded( (*biter).FixedImagePointValue, 
-                                        (*biter).MovingImagePointValue, 
-                                        derivBThread,
-                                        1 );
-    if ( derivB != derivBThread )
-      {
-      return false;
-      }
-    } // B samples
-
-  for ( aiter = m_SampleA.begin(); aiter != aend; ++aiter )
-    {
-    this->CalculateDerivatives( (*aiter).FixedImagePointValue, derivA );
-    this->CalculateDerivativesThreaded( (*aiter).FixedImagePointValue, 
-                                        (*aiter).MovingImagePointValue, 
-                                        derivAThread,
-                                        1 );
-
-    if ( derivA != derivAThread )
-      {
-      return false;
-      }
-    } // A samples
-
-  return true;
-}
-
-template < class TFixedImage, class TMovingImage  >
-bool
-MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
-::IsDerivativeCached( const SpatialSample& sample ) const
-{
-  //long sampleLinearOffset = this->m_FixedImage->ComputeOffset( sample.FixedImageIndex );
-  
-  typename DerivativeMapType::const_iterator iter = this->m_DerivativeMap.find( sample.FixedImageLinearOffset );
-  if ( iter == this->m_DerivativeMap.end() )
-    {
-    return false;
-    }
-  else
-    {
-    return true;
-    }
-}
-
-template < class TFixedImage, class TMovingImage  >
-bool
-MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
-::RetreiveCachedDerivative( const SpatialSample& sample, DerivativeType& deriv ) const
-{
-  //FixedImageLinearOffsetType sampleLinearOffset = this->m_FixedImage->ComputeOffset( sample.FixedImageIndex );
-  
-  typename DerivativeMapType::const_iterator iter = this->m_DerivativeMap.find( sample.FixedImageLinearOffset );
-  if ( iter == this->m_DerivativeMap.end() )
-    {
-    return false;
-    }
-  else
-    {
-    deriv = (*iter).second;
-    return true;
-    }  
-}
-
-template < class TFixedImage, class TMovingImage  >
 void
 MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::CacheSampleADerivatives() const
 {
   /** This method assumes that the samples have been generated already and 
       that the transform has been set. **/
+
+  // Clear the cached derivatives.
   this->m_DerivativeMap.clear();
 
   // Derivative size in bytes
@@ -2523,6 +1925,8 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 {
   /** This method assumes that the samples have been generated already and 
       that the transform has been set. **/
+
+  // Clear the cached derivatives.
   this->m_SparseDerivativeMap.clear();
 
   unsigned long currentCacheSize = 0;
@@ -2537,7 +1941,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     
     derivA.clear();
 
-    // THIS NEEDS TO BE SPARSIFIED
     this->CalculateDerivativesThreadedSparse( (*aiter).FixedImagePointValue, 
                                               (*aiter).MovingImagePointValue, 
                                               derivA,
@@ -2560,8 +1963,10 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   // Equality is for debug message
   if ( numberOfCachedDerivatives >= this->m_SampleA.size() )
     {
-    numberOfCachedDerivatives = this->m_SampleA.size();
     std::cout << "**** All sparse derivatives fit in cache. ****" << std::endl;
+    std::cout << "**** Used derivative cache size (MB): ";
+    std::cout << static_cast<double>(currentCacheSize)/(1024.0*1024.0) << " ****" << std::endl;
+    numberOfCachedDerivatives = this->m_SampleA.size();
     }
   else
     {
@@ -2585,13 +1990,10 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
                                         derivA,
                                         threadID );
 
-    // threadDerivative -= derivA * weight;
     this->FastDerivativeSubtractWithWeight( threadDerivative, derivA, weight );
     }
   else
     {
-    // FIXME: Is this making a temporary derivative?
-    // threadDerivative -= (*iter).second * weight;
     this->FastDerivativeSubtractWithWeight( threadDerivative, (*iter).second, weight );
     }  
 }
@@ -2610,13 +2012,10 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
                                         derivA,
                                         threadID );
 
-    // threadDerivative -= derivA * weight;
     this->FastDerivativeSubtractWithWeight( threadDerivative, derivA, weight );
     }
   else
     {
-    // FIXME: Is this making a temporary derivative?
-    // threadDerivative -= (*iter).second * weight;
     this->FastSparseDerivativeSubtractWithWeight( threadDerivative, (*iter).second, weight );
     }  
 }
