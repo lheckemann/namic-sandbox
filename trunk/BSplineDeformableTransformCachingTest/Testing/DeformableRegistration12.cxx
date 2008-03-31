@@ -55,7 +55,7 @@
 //  Software Guide : EndLatex 
 
 // Software Guide : BeginCodeSnippet
-#include "itkBSplineDeformableTransform2.h"
+#include "itkBSplineDeformableTransform.h"
 #include "itkLBFGSBOptimizer.h"
 // Software Guide : EndCodeSnippet
 
@@ -154,7 +154,7 @@ int main( int argc, char *argv[] )
   const unsigned int SplineOrder = 3;
   typedef double CoordinateRepType;
 
-  typedef itk::BSplineDeformableTransform2<
+  typedef itk::BSplineDeformableTransform<
                             CoordinateRepType,
                             SpaceDimension,
                             SplineOrder >     TransformType;
@@ -219,7 +219,7 @@ int main( int argc, char *argv[] )
 
   FixedImageType::RegionType fixedRegion = fixedImage->GetBufferedRegion();
   
- registration->SetFixedImageRegion( fixedRegion );
+  registration->SetFixedImageRegion( fixedRegion );
 
   //  Software Guide : BeginLatex
   //
