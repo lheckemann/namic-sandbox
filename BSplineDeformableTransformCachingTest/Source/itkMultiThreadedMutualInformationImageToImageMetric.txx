@@ -22,7 +22,7 @@
 #include "itkImageRandomConstIteratorWithIndex.h"
 #include "vnl/vnl_math.h"
 #include "itkGaussianKernelFunction.h"
-#include "itkBSplineDeformableTransform2.h"
+#include "itkBSplineDeformableTransform.h"
 #include <fstream>
 
 // This #define is for debugging.
@@ -1084,6 +1084,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   if (bSplineTransformPtr != NULL)
     {
     m_TransformIsBSpline = true;
+    std::cout << "Transform is bspline." << std::endl;
     }
 
   // Make sure the transform has the current parameters and that

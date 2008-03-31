@@ -12,7 +12,7 @@
 
 #include "itkMattesMutualInformationImageToImageMetric.h"
 
-#include "itkBSplineDeformableTransform2.h"
+//#include "itkBSplineDeformableTransform2.h"
 
 #include <fstream>
 #include <string>
@@ -57,7 +57,7 @@ MultiThreadMIMetricTestImplementation<Dimension>
   const unsigned int SpaceDimension = ImageDimension;
   const unsigned int SplineOrder = 3;
 
-  typedef itk::BSplineDeformableTransform2<
+  typedef itk::BSplineDeformableTransform<
                             CoordinateRepType,
                             SpaceDimension,
                             SplineOrder >     TransformType;
@@ -501,7 +501,7 @@ MultiThreadMIMetricTestImplementation<Dimension>
   const unsigned int SpaceDimension = ImageDimension;
   const unsigned int SplineOrder = 3;
 
-  typedef itk::BSplineDeformableTransform2<
+  typedef itk::BSplineDeformableTransform<
                             CoordinateRepType,
                             SpaceDimension,
                             SplineOrder >     TransformType;
