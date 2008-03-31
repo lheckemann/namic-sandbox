@@ -629,6 +629,8 @@ MultiThreadMIMetricTestImplementation<Dimension>
   defaultMetric->ReinitializeSeed( seed );
   mattesMetric->SetNumberOfSpatialSamples( numberOfSamples );
   mattesMetric->SetNumberOfHistogramBins( 50 );
+  mattesMetric->UseExplicitPDFDerivativesOff();
+  mattesMetric->UseCachingOfBSplineWeightsOff();
 
   std::cout << std::endl << "Starting Benchmark" << std::endl;
   std::cout << "Number of Samples " << numberOfSamples << std::endl;
