@@ -24,12 +24,6 @@
 #include <ace/Synch.h>
 #include <ace/Thread_Mutex.h>
 
-#include <ace/INET_Addr.h>
-#include <ace/Time_Value.h>
-#include <ace/SOCK_Stream.h>
-#include <ace/SOCK_Connector.h>
-#include <ace/Log_Msg.h>
-
 
 #include "igtl_header.h"
 #include "igtl_transform.h"
@@ -47,16 +41,7 @@ int TransferOpenIGTLink::Init()
 
 int TransferOpenIGTLink::Connect()
 {
-  address.set(this->Port, this->Hostname.c_str());
   this->CheckAndConnect();
-  /*
-  stop = 0;
-  thread = new ACE_thread_t;
-  ACE_Thread::spawn((ACE_THR_FUNC)thread_func, 
-                    NULL, 
-                    THR_NEW_LWP | THR_JOINABLE,
-                    (ACE_thread_t *)thread );
-  */
   return 1;
 }
 
@@ -66,7 +51,9 @@ int TransferOpenIGTLink::Disconnect()
   if (connected)
     {
       connected = false;
-      sock.close();
+      //sock.close();
+      this->ClientSocket->CloseSocket();
+      this->ClientSocket->Delete();
     }
   //mutex->release();  //unlock
 
@@ -90,14 +77,17 @@ bool TransferOpenIGTLink::CheckAndConnect()
       //mutex->acquire();  //lock
       if (!connected)
         {
-          ret = connector.connect(sock, address, &timeOut);
-          if(ret == -1 && errno != ETIME && errno != 0 )
+          
+          this->ClientSocket = igtl::ClientSocket::New();
+          ret = this->ClientSocket->ConnectToServer(this->Hostname.c_str(), this->Port);
+          if (ret == 0)
             {
-              ACE_DEBUG((LM_ERROR, ACE_TEXT("Error %d : Cannot connect to Slicer Daemon!\n"), errno));
+              connected = true;
             }
           else
             {
-              connected = true;
+              ACE_DEBUG((LM_ERROR, ACE_TEXT("Error %d : Cannot connect to Slicer Daemon!\n"), errno));
+              this->ClientSocket->Delete();
             }
         }
       //mutex->release();  //unlock
@@ -136,7 +126,13 @@ void TransferOpenIGTLink::ReceiveProcess()
       // igtl_header should be wrapped by C++ class in future.
       igtl_header header;
 
-      if((retval = this->sock.recv_n((char*)&header, IGTL_HEADER_SIZE, &timeOut,(size_t*)&trans_bytes )) == -1)
+      retval = this->ClientSocket->Receive(&header, IGTL_HEADER_SIZE);
+      if (retval != IGTL_HEADER_SIZE)
+        {
+          std::cerr << "Irregluar size." << std::endl;
+        }
+
+      /*
         {
           if( errno != ETIME && errno != 0 )
             {
@@ -144,8 +140,8 @@ void TransferOpenIGTLink::ReceiveProcess()
               this->Disconnect();
               return;
             }
+      */
           
-        }
       igtl_header_convert_byte_order(&header);
       if (header.version != IGTL_HEADER_VERSION)
         {
@@ -158,15 +154,12 @@ void TransferOpenIGTLink::ReceiveProcess()
       if (strcmp("TRANSFORM", deviceType))
         {
           float matrix[12];
-          if((retval = sock.recv_n((char*)matrix, IGTL_TRANSFORM_SIZE, &timeOut,(size_t*)&trans_bytes )) == -1)
+          retval = this->ClientSocket->Receive((char*)matrix, IGTL_TRANSFORM_SIZE);
+          if (retval != IGTL_TRANSFORM_SIZE)
             {
-              if( errno != ETIME && errno != 0 )
-                {
-                  ACE_DEBUG((LM_ERROR, ACE_TEXT("ot:Error %d receiving header data !\n"), errno));
-                  this->Disconnect();
-                  return;
-                }
-              
+              ACE_DEBUG((LM_ERROR, ACE_TEXT("ot:Error %d receiving header data !\n"), errno));
+              this->Disconnect();
+              return;
             }
 
           // J. Tokuda 02/26/2008
@@ -185,7 +178,8 @@ void TransferOpenIGTLink::ReceiveProcess()
 
 void TransferOpenIGTLink::Process()
 {
-  igtl::ImageMessage::Pointer frame;
+  //igtl::ImageMessage::Pointer frame;
+  igtl::MessageBase::Pointer frame;
 
   this->ResetTriggerCounter();
   this->EnableTrigger();
@@ -202,17 +196,20 @@ void TransferOpenIGTLink::Process()
           if (connected)
             {
               int ret;
-              ACE_Time_Value timeOut(1,0);
+              //ACE_Time_Value timeOut(1,0);
 
               std::cerr << "PackSize:  " << frame->GetPackSize() << std::endl;
 
-              ret = sock.send_n(frame->GetPackPointer(), frame->GetPackSize(), &timeOut);
-              if (ret < frame->GetPackSize()) {
-                Disconnect();
-                ACE_DEBUG((LM_ERROR, ACE_TEXT("Error %d : Connection Lost!\n"), errno));
-              }
+              ret = this->ClientSocket->Send(frame->GetPackPointer(), frame->GetPackSize());
+              if (ret == 0)
+                {
+                  Disconnect();
+                  ACE_DEBUG((LM_ERROR, ACE_TEXT("Error %d : Connection Lost!\n"), errno));
+                }
             }
         } 
     }
 }
+
+
 

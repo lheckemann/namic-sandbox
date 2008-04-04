@@ -21,9 +21,9 @@
 
 #include "igtlMath.h"
 #include "igtlImageMessage.h"
-#include "Thread2.h"
+#include "Thread.h"
 
-class AcquisitionBase : public Thread2
+class AcquisitionBase : public Thread
 {
 public:
   
@@ -37,7 +37,7 @@ public:
   virtual void Process() {};
   virtual int  SetMatrix(float* matrix){};
 
-  void SetPostProcessThread(Thread2* thread);
+  void SetPostProcessThread(Thread* thread);
   igtl::ImageMessage::Pointer GetFrameFromBuffer(int id);
 
 protected:
@@ -52,7 +52,7 @@ protected:
 
 protected:
 
-  Thread2* PostProcessThread;
+  Thread* PostProcessThread;
 
   // Circular Buffer manipulation
   std::vector<igtl::ImageMessage::Pointer> CircularFrameBuffer;

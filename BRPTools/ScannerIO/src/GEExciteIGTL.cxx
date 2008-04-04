@@ -70,7 +70,7 @@ int main(int argc, char **argv)
   //acquisition->SetValidate(bool s);
   //acquisition->SetDataOrder();
   acquisition->SetLineOrder("out_in"); // or "down_up"
-  acquisition->SetPostProcessThread(dynamic_cast<Thread2*>(transfer));
+  acquisition->SetPostProcessThread(dynamic_cast<Thread*>(transfer));
 
   transfer->SetServer("localhost", 18944);
   transfer->SetAcquisitionThread(acquisition);

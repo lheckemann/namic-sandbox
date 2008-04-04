@@ -20,9 +20,9 @@
 #include "igtlMath.h"
 #include "igtlImageMessage.h"
 #include "AcquisitionBase.h"
-#include "Thread2.h"
+#include "Thread.h"
 
-class TransferBase : public Thread2
+class TransferBase : public Thread
 {
 public:
   

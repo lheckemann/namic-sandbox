@@ -29,11 +29,18 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "igtlMultiThreader.h"
+#include "igtlMutexLock.h"
+#include "igtlConditionVariable.h"
+
+
 // ACE Thread
+/*
 #include <ace/Thread.h>
 #include <ace/Synch.h>
 #include <ace/Thread_Mutex.h>
 #include <ace/Condition_T.h>
+*/
 
 class Thread {
 
@@ -81,18 +88,24 @@ class Thread {
   inline void     DisableTrigger()        { fTrigger = 0; };
 
  protected:
-  //pthread_t       thread;
-  ACE_thread_t    thread;
-  ACE_hthread_t   hthread;
+  //ACE_thread_t    thread;
+  //ACE_hthread_t   hthread;
 
+  igtl::MultiThreader::Pointer m_Thread;
+  int ThreadID;
+
+
+  //ACE_Thread_Mutex mtxStatus;
+  //ACE_Thread_Mutex mtxTriggerCnt;
+  igtl::MutexLock::Pointer     MutexStatus;
+  igtl::MutexLock::Pointer     MutexTriggerCnt;
+  igtl::SimpleMutexLock*       SMutexTrigger;
+
+  //ACE_Thread_Condition<ACE_Thread_Mutex> trigger;       // Condition variable to keep waiting.
+  igtl::ConditionVariable::Pointer Trigger;
+  
   int             runStatus;
-  //pthread_mutex_t mtxStatus;     // Critical section in status changinging.
-  ACE_Thread_Mutex mtxStatus;
   int             fTrigger;      // Use trigger or not.
-  //pthread_cond_t  trigger;       // Condition variable to keep waiting.
-  ACE_Thread_Condition<ACE_Thread_Mutex> trigger;       // Condition variable to keep waiting.
-  //pthread_mutex_t mtxTriggerCnt; // Mutex for trigger.
-  ACE_Thread_Mutex mtxTriggerCnt;
   int             triggerMode;   // Trigger mode. See enum declaration above.
   int             triggerCnt;    // Trigger counter
 
