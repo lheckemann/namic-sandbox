@@ -86,7 +86,7 @@ void AcquisitionSignaSPSimulator::Process()
       GetCurrentFrame(frame);
       if (this->PostProcessThread)
         {
-          int id = this->PutFrameToBuffer(frame);
+          int id = this->PutFrameToBuffer(static_cast<igtl::MessageBase::Pointer>(frame));
           std::cerr << "AcquisitionSignaSPSimulator::Process(): frame in bffer #" <<  id << std::endl;
           this->PostProcessThread->PullTrigger((void*)id);
         }

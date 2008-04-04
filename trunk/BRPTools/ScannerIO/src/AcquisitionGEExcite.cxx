@@ -609,7 +609,7 @@ void AcquisitionGEExcite::Process()
                   GetScanPlane(matrix);
                   this->CurrentFrame->SetMatrix(matrix);
                   this->CurrentFrame->Pack();
-                  int id = this->PutFrameToBuffer(this->CurrentFrame);
+                  int id = this->PutFrameToBuffer(static_cast<igtl::MessageBase::Pointer>(this->CurrentFrame));
                   std::cerr << "Process(): frame in bffer #" <<  id << std::endl;
                   this->PostProcessThread->PullTrigger((void*)id);
                 }

@@ -82,7 +82,7 @@ void AcquisitionSimulator::Process()
       GetCurrentFrame(frame);
       if (this->PostProcessThread)
         {
-          int id = this->PutFrameToBuffer(frame);
+          int id = this->PutFrameToBuffer(static_cast<igtl::MessageBase::Pointer>(frame));
           std::cerr << "AcquisitionSimulator::Process(): frame in buffer #" <<  id << std::endl;
           this->PostProcessThread->PullTrigger((void*)id);
         }
