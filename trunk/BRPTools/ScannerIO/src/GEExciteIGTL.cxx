@@ -40,6 +40,7 @@
 #include "igtl_image.h"
 
 #include "igtlMath.h"
+#include "igtlOSUtil.h"
 //#include "ScannerSim.h"
 
 #include "AcquisitionSimulator.h"
@@ -83,7 +84,8 @@ int main(int argc, char **argv)
   transfer->Run();
 
   while (1) {
-    sleep(10);
+    //sleep(10);
+    igtl::Sleep(1000);
   }
 
   acquisition->Stop();

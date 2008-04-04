@@ -50,6 +50,7 @@
 #include <iostream>
 
 #include "igtlMath.h"
+#include "igtlOSUtil.h"
 #include "igtlTransformMessage.h"
 
 
@@ -132,8 +133,11 @@ void serverMonitor()
     }
     else // wait for a while
       {
+        /*
         ACE_Time_Value timeVal(0, (int)(1000)*1000 );
         ACE_OS::sleep( timeVal );
+        */
+        igtl::Sleep(1000); // sleep 1000 ms
       }
   }
 }
@@ -233,8 +237,11 @@ int session(int intv_ms)
       }
     }
 
+    /*
     ACE_Time_Value timeVal(0, (int)(intv_ms)*1000 );
     ACE_OS::sleep( timeVal );
+    */
+    igtl::Sleep(intv_ms);
   }
 }
 

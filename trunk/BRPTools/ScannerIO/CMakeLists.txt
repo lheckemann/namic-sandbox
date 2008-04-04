@@ -64,6 +64,7 @@ src/io_signa5.c
 src/igtlImageMessage.cxx
 src/igtlTransformMessage.cxx
 src/igtlMath.cxx
+src/igtlOSUtil.cxx
 src/igtlMessageBase.cxx
 src/igtlObject.cxx
 src/igtlLightObject.cxx

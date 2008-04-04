@@ -20,9 +20,7 @@
 
 #include <math.h>
 
-#include <ace/OS.h>
-#include <ace/Time_Value.h>
-
+#include "igtlOSUtil.h"
 #include "igtlImageMessage.h"
 #include "AcquisitionSimulator.h"
 
@@ -89,8 +87,7 @@ void AcquisitionSimulator::Process()
           this->PostProcessThread->PullTrigger((void*)id);
         }
 
-      ACE_Time_Value timeVal(0, (int)(1000*this->Interval_ms));
-      ACE_OS::sleep( timeVal );
+      igtl::Sleep(this->Interval_ms);
     }
 }
 
