@@ -23,6 +23,8 @@
 #include "igtlImageMessage.h"
 #include "TransferBase.h"
 
+#include "igtlClientSocket.h"
+
 #include <ace/INET_Addr.h>
 #include <ace/SOCK_Stream.h>
 #include <ace/SOCK_Connector.h>
@@ -57,10 +59,7 @@ protected:
 
   // for TCP/IP connection
 
-  ACE_INET_Addr   address;
-  ACE_SOCK_Stream sock;
-  ACE_SOCK_Connector connector;
-
+  igtl::ClientSocket::Pointer ClientSocket;
 
   bool connected;
 
@@ -73,8 +72,6 @@ protected:
 };
 
 
-#endif// __TRANSFER_OPENIGTLINK_H
-
-
+#endif// __TRANSFER_OPENIGTLINK2_H
 
 

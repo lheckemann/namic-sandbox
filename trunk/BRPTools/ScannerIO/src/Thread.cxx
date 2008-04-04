@@ -18,47 +18,65 @@
 #include <stdio.h>
 #include "Thread.h"
 
+#include "igtlConditionVariable.h"
+
 using namespace std;
 
 // Constructor:
 Thread::Thread()
-  : mtxStatus(), mtxTriggerCnt(), trigger(mtxTriggerCnt)
+//: mtxStatus(), mtxTriggerCnt(), trigger(mtxTriggerCnt)
 {
   //pthread_mutex_init(&mtxStatus, NULL);
 
   ResetTriggerCounter();
-  runStatus   = Thread::STOP;
-  triggerMode = Thread::NORMAL;
-  fTrigger    = 0;
+  this->runStatus   = Thread::STOP;
+  this->triggerMode = Thread::NORMAL;
+  this->fTrigger    = 0;
+  this->queue = NULL;
 
-  queue = NULL;
+  this->ThreadID = -1;
+  this->m_Thread = igtl::MultiThreader::New();
+  this->MutexStatus = igtl::MutexLock::New();
+  this->MutexTriggerCnt = igtl::MutexLock::New();
+  this->SMutexTrigger = igtl::SimpleMutexLock::New();
+  this->Trigger = igtl::ConditionVariable::New();
+
   //InitFifo(256);  // -> move to run()
 }
 
 
 Thread::~Thread()
 {
-  //pthread_mutex_lock(&mtxStatus);
-  mtxStatus.acquire();
+  //mtxStatus.acquire();
+  this->MutexStatus->Lock();
   if (runStatus == Thread::RUN ||
       runStatus == Thread::SLEEP ||
       runStatus == Thread::RUN) {
-    //pthread_cancel(thread);
-    ACE_Thread::cancel((ACE_thread_t)thread);
+    //ACE_Thread::cancel((ACE_thread_t)thread);
+    if (this->ThreadID > 0)
+      {
+        this->m_Thread->TerminateThread(this->ThreadID);  /// Does it work???
+        this->ThreadID = -1;
+      }
   }
 #ifdef _DEBUG_THREAD
   else {
     cerr << "Thread::~Thread(): ERROR: Cannot cancel thread." << endl;
   }
 #endif // _DEBUG_THREAD
-  //pthread_mutex_unlock(&mtxStatus);
-  mtxStatus.release();
+  //mtxStatus.release();
+  this->MutexStatus->Unlock();
+
 }
 
 
 void* Thread::CallProcess(void* ptr)
 {
-  Thread* pRT = reinterpret_cast<Thread*>(ptr);
+  //Thread* pRT = reinterpret_cast<Thread*>(ptr);
+  igtl::MultiThreader::ThreadInfo* vinfo = 
+    static_cast<igtl::MultiThreader::ThreadInfo*>(ptr);
+  Thread* pRT = static_cast<Thread*>(vinfo->UserData);
+
   pRT->Process();
   pRT->runStatus = Thread::STOP;
   return (void*) 0;
@@ -68,17 +86,19 @@ void* Thread::CallProcess(void* ptr)
 void Thread::Exit()
 {
   if (this->runStatus == Thread::RUN) {
-    //pthread_mutex_lock(&mtxStatus);
-    mtxStatus.acquire();
+    //mtxStatus.acquire();
+    this->MutexStatus->Lock();
     this->runStatus = Thread::STOP;
-    //pthread_mutex_unlock(&mtxStatus);
-    mtxStatus.release();
+    //mtxStatus.release();
+    this->MutexStatus->Unlock();
 
-    //pthread_mutex_destroy(&mtxTriggerCnt);
-    //pthread_cond_destroy(&trigger);
-
-    //pthread_exit(NULL);
-    ACE_Thread::exit(NULL);
+    //ACE_Thread::exit(NULL);
+    if (this->ThreadID >= 0)
+      {
+        this->m_Thread->TerminateThread(this->ThreadID);  /// Does it work???
+        this->ThreadID = -1;
+      }
+    
   }
 }
 
@@ -87,33 +107,29 @@ int Thread::Run()
   // returns run status. (returns RUN if succeed)
 {
   if (runStatus != Thread::RUN && runStatus != Thread::WAIT) {
-    //pthread_mutex_lock(&mtxStatus);
-    mtxStatus.acquire();
-
+    //mtxStatus.acquire();
+    this->MutexStatus->Lock();
+    
     // initialize trigger
     DeleteFifo();
     InitFifo(256);
 
-    //pthread_cond_init(&trigger, NULL);
-    //pthread_mutex_init(&mtxTriggerCnt, NULL);
-    //mtxTriggerCnt = new ACE_Thread_Mutex;
-    //trigger = new ACE_Thread_Condition<ACE_Thread_Mutex*>(mtxTriggerCnt);
-
     this->runStatus = Thread::RUN;
-    //pthread_create(&thread, NULL, CallProcess, (void*) this);
-    //pthread_detach(thread);
+    /*
     ACE_Thread::spawn((ACE_THR_FUNC)CallProcess, 
                       (void*)this, 
                       THR_NEW_LWP | THR_JOINABLE,
                       &thread, &hthread);
+    */
+    this->ThreadID = this->m_Thread->SpawnThread(Thread::CallProcess, this);
 
 #ifdef _DEBUG_THREAD
     cerr << "Thread::run(): the thread is detached." << endl;
 #endif
-    //pthread_mutex_unlock(&mtxStatus);
-    mtxStatus.release();
-    //pthread_cond_signal(&trigger);
-    trigger.signal();
+    //mtxStatus.release();
+    this->MutexStatus->Unlock();
+    //trigger.signal();
+    this->Trigger->Signal();
 
   }
   return runStatus;
@@ -124,18 +140,19 @@ int Thread::Stop()
   // returns run status. (returns STOP if succeed)
 {
   if (runStatus == Thread::RUN||runStatus == Thread::WAIT) {
-    //pthread_mutex_lock(&mtxStatus);
-    mtxStatus.acquire();    
+
+    //mtxStatus.acquire();    
+    this->MutexStatus->Lock();
     this->runStatus = Thread::STOP;
-    //pthread_cancel(thread);
-    ACE_Thread::cancel(thread);
+    //ACE_Thread::cancel(thread);
+    if (this->ThreadID >= 0)
+      {
+        this->m_Thread->TerminateThread(this->ThreadID);  /// Does it work???
+        this->ThreadID = -1;
+      }
 
-    //pthread_mutex_unlock(&mtxTriggerCnt); <- not work since the mutex is ownd by other thread
-
-    //pthread_mutex_destroy(&mtxTriggerCnt);
-    //pthread_cond_destroy(&trigger);
-    //pthread_mutex_unlock(&mtxStatus);
-    mtxStatus.release();
+    //mtxStatus.release();
+    this->MutexStatus->Unlock();
     
 #ifdef _DEBUG_THREAD
     cerr << "Thread::stop(): the thread is stopped" << endl;
@@ -190,47 +207,41 @@ void* Thread::Pull()
 }
 
 
-
-
 int Thread::Sleep()
 {
-  //pthread_mutex_lock(&mtxStatus);
-  mtxStatus.acquire();
-  //pthread_kill(thread, SIGSTOP);
-  ACE_Thread::kill(thread, SIGSTOP);
+  //mtxStatus.acquire();
+  this->MutexStatus->Lock();
+  //ACE_Thread::kill(thread, SIGSTOP);
   runStatus = Thread::SLEEP;
-  //pthread_mutex_unlock(&mtxStatus);
-  mtxStatus.release();
+  //mtxStatus.release();
+  this->MutexStatus->Unlock();
   return 0;
 }
-
 
 int Thread::Resume()
 {
-  //pthread_mutex_lock(&mtxStatus);
-  mtxStatus.acquire();
-  //pthread_kill(thread, SIGCONT);
-  ACE_Thread::kill(thread, SIGCONT);  
+  //mtxStatus.acquire();
+  this->MutexStatus->Lock();
+  //ACE_Thread::kill(thread, SIGCONT);  
   runStatus = Thread::RUN;
-  //pthread_mutex_lock(&mtxStatus);
-  mtxStatus.release();
+  //mtxStatus.release();
+  this->MutexStatus->Unlock();
   return 0;
 }
-
 
 void Thread::PullTrigger()
 {
   if (triggerMode != Thread::COUNT_WITH_ARG &&
       (runStatus == Thread::WAIT || runStatus == Thread::RUN)) {
-    //pthread_mutex_lock(&mtxTriggerCnt);
-    mtxTriggerCnt.acquire();
+    //mtxTriggerCnt.acquire();
+    this->MutexTriggerCnt->Lock();
     if (triggerMode == Thread::COUNT) {
       triggerCnt ++;
     }
-    //pthread_cond_signal(&trigger);
-    trigger.signal();
-    //pthread_mutex_unlock(&mtxTriggerCnt);
-    mtxTriggerCnt.release();
+    //trigger.signal();
+    this->Trigger->Signal();
+    //mtxTriggerCnt.release();
+    this->MutexTriggerCnt->Unlock();
   }
 }
 
@@ -240,16 +251,17 @@ int Thread::PullTrigger(void* ptr)
   int r = 0;
   if (triggerMode == Thread::COUNT_WITH_ARG &&
       (runStatus == Thread::WAIT || runStatus == Thread::RUN)) {
-    //pthread_mutex_lock(&mtxTriggerCnt);
-    mtxTriggerCnt.acquire();
+    //mtxTriggerCnt.acquire();
+    cerr << "int Thread::PullTrigger(void* ptr): Signal" << endl;
+    this->MutexTriggerCnt->Lock();
     if (Push(ptr)) {
       triggerCnt ++;
       r = 1;
     }
-    //pthread_cond_signal(&trigger);
-    trigger.signal();
-    //pthread_mutex_unlock(&mtxTriggerCnt);
-    mtxTriggerCnt.release();
+    //trigger.signal();
+    this->Trigger->Signal();
+    //mtxTriggerCnt.release();
+    this->MutexTriggerCnt->Unlock();
   }
   return r;
 }
@@ -263,14 +275,17 @@ void* Thread::WaitForTrigger()
 #endif // _DEBUG_THREAD
 
   if (fTrigger) {
-    //pthread_mutex_lock(&mtxTriggerCnt);
-    mtxTriggerCnt.acquire();
+    //mtxTriggerCnt.acquire();
     if (triggerMode == NORMAL || triggerCnt == 0) {
       runStatus = Thread::WAIT;
-      //pthread_cond_wait(&trigger, &mtxTriggerCnt);
-      trigger.wait();
+      //trigger.wait();
+      cerr << "Thread::WaitForTrigger: Wait" << endl;
+      this->SMutexTrigger->Lock();
+      this->Trigger->Wait(this->SMutexTrigger);
+      this->SMutexTrigger->Unlock();
       runStatus = Thread::RUN;
     }
+    this->MutexTriggerCnt->Lock();
 #ifdef _DEBUG_THREAD
     cerr << "Thread::WaitForTrigger: trigger pulled." << endl;
 #endif // _DEBUG_THREAD
@@ -282,8 +297,8 @@ void* Thread::WaitForTrigger()
       r = Pull();
     } else {
     }
-    //pthread_mutex_unlock(&mtxTriggerCnt);
-    mtxTriggerCnt.release();
+    //mtxTriggerCnt.release();
+    this->MutexTriggerCnt->Unlock();
   }
   return r;
 }

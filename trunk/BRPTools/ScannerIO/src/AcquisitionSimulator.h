@@ -60,8 +60,8 @@ protected:
 
   int SubVolumeDimension[3];
 
-  Thread2* AcquisitionThread;
-  Thread2* TransferThread;
+  Thread* AcquisitionThread;
+  Thread* TransferThread;
 
   int Interval_ms;
 
