@@ -17,33 +17,35 @@
 #include "TransferOpenIGTLink.h"
 
 // for TCP/IP connection
-#include <ace/ACE.h>
-#include <ace/OS.h>
-#include <ace/FILE.h>
-#include <ace/Thread.h>
-#include <ace/Synch.h>
-#include <ace/Thread_Mutex.h>
-
 
 #include "igtl_header.h"
 #include "igtl_transform.h"
+
+#include "igtlMacro.h"
+#include "igtlMultiThreader.h"
 
 
 TransferOpenIGTLink::TransferOpenIGTLink()
 {
   this->Hostname = "";
   this->Port = -1;
+
+  this->ReceiveThreadID = -1;
+  this->ReceiveThread = igtl::MultiThreader::New();
 }
+
 
 int TransferOpenIGTLink::Init()
 {
 }
+
 
 int TransferOpenIGTLink::Connect()
 {
   this->CheckAndConnect();
   return 1;
 }
+
 
 int TransferOpenIGTLink::Disconnect()
 {
@@ -71,7 +73,6 @@ bool TransferOpenIGTLink::CheckAndConnect()
 {
   if (this->Port > 0)
     {
-      ACE_Time_Value timeOut(5,0);
       int ret;
       
       //mutex->acquire();  //lock
@@ -86,17 +87,14 @@ bool TransferOpenIGTLink::CheckAndConnect()
             }
           else
             {
-              ACE_DEBUG((LM_ERROR, ACE_TEXT("Error %d : Cannot connect to Slicer Daemon!\n"), errno));
+              std::cerr << "Error " << errno << " : Cannot connect to Slicer Daemon!\n";
               this->ClientSocket->Delete();
             }
         }
       //mutex->release();  //unlock
       // launch receive thread
-      ACE_Thread::spawn((ACE_THR_FUNC)CallReceiveProcess, 
-                        (void*)this, 
-                        THR_NEW_LWP | THR_JOINABLE,
-                        &ReceiveThread, &ReceiveHthread);
-
+      this->ReceiveThreadID = this->ReceiveThread->SpawnThread(TransferOpenIGTLink::CallReceiveProcess, this);
+      
       return connected;
     }
 
@@ -107,7 +105,10 @@ bool TransferOpenIGTLink::CheckAndConnect()
 
 void* TransferOpenIGTLink::CallReceiveProcess(void*ptr)
 {
-  TransferOpenIGTLink* pRT = reinterpret_cast<TransferOpenIGTLink*>(ptr);
+  igtl::MultiThreader::ThreadInfo* vinfo = 
+    static_cast<igtl::MultiThreader::ThreadInfo*>(ptr);
+  TransferOpenIGTLink* pRT = reinterpret_cast<TransferOpenIGTLink*>(vinfo->UserData);
+
   pRT->StopReceiveThread = false;
   pRT->ReceiveProcess();
   return (void*) 0;
@@ -117,7 +118,6 @@ void* TransferOpenIGTLink::CallReceiveProcess(void*ptr)
 void TransferOpenIGTLink::ReceiveProcess()
 {
   int retval;
-  ACE_Time_Value timeOut( 10, 0 );
   unsigned int trans_bytes = 0;
 
   while (!this->StopReceiveThread)
@@ -132,16 +132,6 @@ void TransferOpenIGTLink::ReceiveProcess()
           std::cerr << "Irregluar size." << std::endl;
         }
 
-      /*
-        {
-          if( errno != ETIME && errno != 0 )
-            {
-              ACE_DEBUG((LM_ERROR, ACE_TEXT("ot:Error %d receiving header data !\n"), errno));
-              this->Disconnect();
-              return;
-            }
-      */
-          
       igtl_header_convert_byte_order(&header);
       if (header.version != IGTL_HEADER_VERSION)
         {
@@ -157,7 +147,7 @@ void TransferOpenIGTLink::ReceiveProcess()
           retval = this->ClientSocket->Receive((char*)matrix, IGTL_TRANSFORM_SIZE);
           if (retval != IGTL_TRANSFORM_SIZE)
             {
-              ACE_DEBUG((LM_ERROR, ACE_TEXT("ot:Error %d receiving header data !\n"), errno));
+              std::cerr << "Error " << errno << " : receiving header data!\n";
               this->Disconnect();
               return;
             }
@@ -196,7 +186,6 @@ void TransferOpenIGTLink::Process()
           if (connected)
             {
               int ret;
-              //ACE_Time_Value timeOut(1,0);
 
               std::cerr << "PackSize:  " << frame->GetPackSize() << std::endl;
 
@@ -204,7 +193,7 @@ void TransferOpenIGTLink::Process()
               if (ret == 0)
                 {
                   Disconnect();
-                  ACE_DEBUG((LM_ERROR, ACE_TEXT("Error %d : Connection Lost!\n"), errno));
+                  std::cerr << "Error " << errno << " : Connection Lost!\n";
                 }
             }
         } 

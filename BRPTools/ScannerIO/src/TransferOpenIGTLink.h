@@ -24,10 +24,7 @@
 #include "TransferBase.h"
 
 #include "igtlClientSocket.h"
-
-#include <ace/INET_Addr.h>
-#include <ace/SOCK_Stream.h>
-#include <ace/SOCK_Connector.h>
+#include "igtlMultiThreader.h"
 
 class TransferOpenIGTLink : public TransferBase
 {
@@ -64,10 +61,9 @@ protected:
   bool connected;
 
   // for Receive Thread
-  ACE_thread_t    ReceiveThread;
-  ACE_hthread_t   ReceiveHthread;
   bool            StopReceiveThread;
-  
+  int ReceiveThreadID;
+  igtl::MultiThreader::Pointer ReceiveThread;
 
 };
 

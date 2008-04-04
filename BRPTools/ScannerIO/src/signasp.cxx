@@ -38,6 +38,7 @@
 #include "igtl_header.h"
 #include "igtl_image.h"
 
+#include "igtlOSUtil.h"
 #include "igtlMath.h"
 //#include "ScannerSim.h"
 
@@ -101,7 +102,8 @@ int main(int argc, char **argv)
   transfer->Run();
 
   // run 100 sec
-  sleep(100);
+  //sleep(100);
+  igtl::Sleep(100*10000);
 
   acquisition->Stop();
   transfer->Stop();

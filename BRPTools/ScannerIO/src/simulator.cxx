@@ -39,6 +39,7 @@
 #include "igtl_image.h"
 
 #include "igtlMath.h"
+#include "igtlOSUtil.h"
 //#include "ScannerSim.h"
 
 #include "AcquisitionSimulator.h"
@@ -53,7 +54,7 @@ int main(int argc, char **argv)
               << " <fname_temp> <bindex> <eindex> <fps> <hostname>"
               << std::endl;
     std::cerr << "    <x>, <y>, <z>   : Number of pixels in x, y and z direction." << std::endl;
-    std::cerr << "    <type>          : Type (2:int8 3:int8 4:int16 5:uint16 6:int32 7:uint32" << std::endl;
+    std::cerr << "    <type>          : Type (2:int8 3:uint8 4:int16 5:uint16 6:int32 7:uint32" << std::endl;
     std::cerr << "    <rx>, <ry>, <rz>: resolution (pixel size) in x, y and z direction" << std::endl;
     std::cerr << "    <fname_temp>    : File name template (e.g. \"RawImage_\%04d.raw\")." << std::endl;
     std::cerr << "    <bindex>        : Begin index." << std::endl;
@@ -126,7 +127,8 @@ int main(int argc, char **argv)
   transfer->Run();
 
   // run 100 sec
-  sleep(100);
+  //sleep(100);
+  igtl::Sleep(100*1000);
 
   acquisition->Stop();
   transfer->Stop();
