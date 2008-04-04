@@ -33,10 +33,10 @@ void igtl_transform_convert_byte_order(float* transform)
   }
 }
 
-unsigned long igtl_transform_get_crc(float* transform)
+unsigned long long igtl_transform_get_crc(float* transform)
 {
-  unsigned long crc = crc32(0L, Z_NULL, 0);
-  crc = crc32(crc, (unsigned char*)transform, sizeof(float)*12);
+  unsigned long long crc = crc64(0, 0, 0);
+  crc = crc64((unsigned char*)transform, sizeof(float)*12, crc);
 
   return crc;
 }
