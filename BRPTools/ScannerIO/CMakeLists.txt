@@ -75,13 +75,16 @@ src/igtlClientSocket.cxx
 src/igtlServerSocket.cxx
 src/igtlMultiThreader.cxx
 src/igtlMutexLock.cxx
+src/igtlConditionVariable.cxx
 src/Thread.cxx
+src/Thread2.cxx
 src/AcquisitionBase.cxx
 src/AcquisitionSimulator.cxx
 src/AcquisitionSignaSPSimulator.cxx
 src/AcquisitionGEExcite.cxx
 src/TransferBase.cxx
 src/TransferOpenIGTLink.cxx
+src/TransferOpenIGTLink2.cxx
 src/ScannerBase.cxx
 )
 

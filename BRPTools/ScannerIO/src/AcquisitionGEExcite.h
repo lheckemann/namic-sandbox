@@ -24,6 +24,10 @@
 #include <ace/SOCK_Stream.h>
 #include <ace/SOCK_Connector.h>
 
+#include <ace/Thread.h>
+#include <ace/Synch.h>
+#include <ace/Thread_Mutex.h>
+
 #include "igtlImageMessage.h"
 #include "AcquisitionBase.h"
 
@@ -138,8 +142,8 @@ protected:
 
   int SubVolumeDimension[3];
 
-  Thread* AcquisitionThread;
-  Thread* TransferThread;
+  Thread2* AcquisitionThread;
+  Thread2* TransferThread;
 
   int Interval_ms;
 

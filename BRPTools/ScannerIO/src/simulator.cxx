@@ -42,7 +42,7 @@
 //#include "ScannerSim.h"
 
 #include "AcquisitionSimulator.h"
-#include "TransferOpenIGTLink.h"
+#include "TransferOpenIGTLink2.h"
 
 int main(int argc, char **argv)
 {
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
   */
 
   AcquisitionSimulator* acquisition = new AcquisitionSimulator;
-  TransferOpenIGTLink*  transfer  = new TransferOpenIGTLink;
+  TransferOpenIGTLink2*  transfer  = new TransferOpenIGTLink2;
 
   int r = acquisition->LoadImageData(filenameTemp, bindex, eindex,
                                  type, size, spacing);
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 
   size[2] = 10;
   acquisition->SetSubVolumeDimension(size);
-  acquisition->SetPostProcessThread(dynamic_cast<Thread*>(transfer));
+  acquisition->SetPostProcessThread(dynamic_cast<Thread2*>(transfer));
   acquisition->SetFrameRate(fps);
   transfer->SetServer(host, 18944);
   transfer->SetAcquisitionThread(acquisition);

@@ -89,7 +89,7 @@ int main(int argc, char **argv)
     exit(-1);
   }
 
-  acquisition->SetPostProcessThread(dynamic_cast<Thread*>(transfer));
+  acquisition->SetPostProcessThread(dynamic_cast<Thread2*>(transfer));
   acquisition->SetFrameRate(fps);
   transfer->SetServer(host, 18944);
   transfer->SetAcquisitionThread(acquisition);

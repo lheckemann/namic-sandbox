@@ -24,7 +24,7 @@ AcquisitionBase::AcquisitionBase()
   this->CurrentFrameId = -1;
 }
 
-void AcquisitionBase::SetPostProcessThread(Thread* thread)
+void AcquisitionBase::SetPostProcessThread(Thread2* thread)
 {
   this->PostProcessThread = thread;
 }
