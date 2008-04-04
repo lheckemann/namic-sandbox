@@ -39,7 +39,8 @@ int AcquisitionBase::SetCircularFrameBufferSize(int s)
   if (this->CircularFrameBuffer.size() != s)
     {
       // To resize, erase all elements in the buffer
-      std::vector<igtl::ImageMessage::Pointer>::iterator iter;
+      //std::vector<igtl::ImageMessage::Pointer>::iterator iter;
+      std::vector<igtl::MessageBase::Pointer>::iterator iter;
       for (iter = this->CircularFrameBuffer.begin();
            iter != this->CircularFrameBuffer.end(); iter ++)
         {
@@ -49,7 +50,8 @@ int AcquisitionBase::SetCircularFrameBufferSize(int s)
 
       // Allocate new elements
       for (int i = 0; i < s; i ++) {
-        this->CircularFrameBuffer.push_back(igtl::ImageMessage::New());
+        //this->CircularFrameBuffer.push_back(igtl::ImageMessage::New());
+        this->CircularFrameBuffer.push_back(igtl::MessageBase::New());
       }
     }
   this->CurrentFrameId = -1;
@@ -61,7 +63,8 @@ int AcquisitionBase::GetCircularFrameBufferSize()
   return this->CircularFrameBuffer.size();
 }
 
-int AcquisitionBase::PutFrameToBuffer(igtl::ImageMessage::Pointer frame)
+//int AcquisitionBase::PutFrameToBuffer(igtl::ImageMessage::Pointer frame)
+int AcquisitionBase::PutFrameToBuffer(igtl::MessageBase::Pointer frame)
 {
   std::cerr << "GetCircularFrameBufferSize() = " << this->GetCircularFrameBufferSize() << std::endl;
   std::cerr << "CircularFrameId = " << this->CurrentFrameId<< std::endl;
@@ -72,7 +75,8 @@ int AcquisitionBase::PutFrameToBuffer(igtl::ImageMessage::Pointer frame)
   return nextId;
 }
 
-int AcquisitionBase::PutFrameToBuffer(int id, igtl::ImageMessage::Pointer frame)
+//int AcquisitionBase::PutFrameToBuffer(int id, igtl::ImageMessage::Pointer frame)
+int AcquisitionBase::PutFrameToBuffer(int id, igtl::MessageBase::Pointer frame)
 {
   if (id >= 0 && id < this->GetCircularFrameBufferSize())
     {
@@ -85,7 +89,8 @@ int AcquisitionBase::PutFrameToBuffer(int id, igtl::ImageMessage::Pointer frame)
 }
 
 
-igtl::ImageMessage::Pointer AcquisitionBase::GetFrameFromBuffer(int id)
+//igtl::ImageMessage::Pointer AcquisitionBase::GetFrameFromBuffer(int id)
+igtl::MessageBase::Pointer AcquisitionBase::GetFrameFromBuffer(int id)
 {
   if (id >= 0 && id < this->GetCircularFrameBufferSize())
     {
