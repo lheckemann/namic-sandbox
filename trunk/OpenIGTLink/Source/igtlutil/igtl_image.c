@@ -154,7 +154,7 @@ void igtl_image_convert_byte_order(igtl_image_header * header)
 unsigned long long igtl_image_get_crc(igtl_image_header * header, void* image)
 {
   unsigned long long crc = crc64(0, 0, 0);
-  unsigned int  img_size =  igtl_image_get_data_size(header);
+  unsigned int  img_size =  (int) igtl_image_get_data_size(header);
 
   crc = crc64((unsigned char*) image, img_size, crc);
 
