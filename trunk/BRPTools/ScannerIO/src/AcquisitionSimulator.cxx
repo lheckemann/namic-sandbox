@@ -85,7 +85,7 @@ void AcquisitionSimulator::Process()
       if (this->PostProcessThread)
         {
           int id = this->PutFrameToBuffer(frame);
-          std::cerr << "AcquisitionSimulator::Process(): frame in bffer #" <<  id << std::endl;
+          std::cerr << "AcquisitionSimulator::Process(): frame in buffer #" <<  id << std::endl;
           this->PostProcessThread->PullTrigger((void*)id);
         }
 

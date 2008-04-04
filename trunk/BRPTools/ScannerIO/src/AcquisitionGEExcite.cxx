@@ -28,6 +28,7 @@
 #include "AcquisitionGEExcite.h"
 #include "igtlMath.h"
 
+
 #define FLOWCOMP_REALTIME 0x01
 #define SPGR_REALTIME 0x2
 #define FATSAT_REALTIME 0x4
