@@ -129,7 +129,7 @@ void igtl_image_convert_byte_order(igtl_image_header * header);
  *
  */
 
-unsigned long igtl_image_get_crc(igtl_image_header * header, void* image);
+unsigned long long igtl_image_get_crc(igtl_image_header * header, void* image);
 
 #ifdef __cplusplus
 }
