@@ -17,7 +17,6 @@
 #include <string.h>
 #include "igtl_transform.h"
 #include "igtl_util.h"
-#include "crc32.h"
 
 void igtl_transform_convert_byte_order(float* transform)
 {

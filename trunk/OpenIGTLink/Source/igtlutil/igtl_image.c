@@ -19,7 +19,6 @@
 
 #include "igtl_image.h"
 #include "igtl_util.h"
-#include "crc32.h"
 
 long long igtl_image_get_data_size(igtl_image_header * header)
 {
