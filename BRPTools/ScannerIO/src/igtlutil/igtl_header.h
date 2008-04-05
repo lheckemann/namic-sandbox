@@ -20,6 +20,8 @@
 #define IGTL_HEADER_VERSION   1
 #define IGTL_HEADER_SIZE      58
 
+#include "igtl_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,12 +38,12 @@ extern "C" {
  */
 
 typedef struct {
-  unsigned short version;          /* protocol version number */
+  igtl_uint16    version;          /* protocol version number */
   char           name[12];          /* data type name          */
   char           device_name[20];  /* device name             */
-  long long      timestamp;        /* time stamp message      */
-  long long      body_size;        /* size of the body        */
-  long long      crc;              /* CRC                     */
+  igtl_uint64    timestamp;        /* time stamp message      */
+  igtl_uint64    body_size;        /* size of the body        */
+  igtl_uint64    crc;              /* CRC                     */
 } igtl_header;
 
 #pragma pack()

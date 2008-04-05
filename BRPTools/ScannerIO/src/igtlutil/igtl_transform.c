@@ -17,26 +17,29 @@
 #include <string.h>
 #include "igtl_transform.h"
 #include "igtl_util.h"
-#include "crc32.h"
+//#include "crc32.h"
 
-void igtl_transform_convert_byte_order(float* transform)
+#include <stdio.h>
+
+void igtl_transform_convert_byte_order(igtl_float32* transform)
 {
-  int i = 0;
-  long tmp[12];
+  int i;
+  igtl_uint32* tmp = (igtl_uint32*) transform;
 
   if (igtl_is_little_endian()) {
-    memcpy((void*)tmp, (void*)transform, sizeof(float)*12);
     for (i = 0; i < 12; i ++) {
       tmp[i] = BYTE_SWAP_INT32(tmp[i]);
     }
-    memcpy((void*)transform, (void*)tmp, sizeof(float)*12);
   }
 }
 
-unsigned long igtl_transform_get_crc(float* transform)
+
+igtl_uint64 igtl_transform_get_crc(igtl_float32* transform)
 {
-  unsigned long crc = crc32(0L, Z_NULL, 0);
-  crc = crc32(crc, (unsigned char*)transform, sizeof(float)*12);
+
+  igtl_uint64 crc = crc64(0, 0, 0);
+
+  crc = crc64((unsigned char*)transform, sizeof(igtl_uint64)*12, crc);
 
   return crc;
 }

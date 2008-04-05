@@ -26,7 +26,7 @@ extern "C" {
 #endif
 
 /*
-typedef float[12] transform;
+typedef igtl_float32[12] transform;
 */
 
 /*
@@ -37,7 +37,7 @@ typedef float[12] transform;
  * or vice versa.
  */
 
-void igtl_transform_convert_byte_order(float* transform);
+void igtl_transform_convert_byte_order(igtl_float32* transform);
 
 
 /*
@@ -47,7 +47,7 @@ void igtl_transform_convert_byte_order(float* transform);
  *
  */
 
-unsigned long igtl_transform_get_crc(float* transform);
+unsigned long igtl_transform_get_crc(igtl_float32* transform);
 
 #ifdef __cplusplus
 }

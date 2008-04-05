@@ -16,9 +16,8 @@
 
 #include <string.h>
 #include "igtlMessageBase.h"
+#include "igtl_util.h"
 #include "igtl_header.h"
-#define PROTOTYPES
-#include "crc32.h"
 
 namespace igtl {
 
@@ -48,14 +47,15 @@ void MessageBase::Pack()
   // pack header
   igtl_header* h = (igtl_header*) m_Header;
 
-  int crc = crc32(0L, Z_NULL, 0); // initial crc
+  igtl_uint64 crc = crc64(0, 0, 0LL); // initial crc
 
-  h->version = IGTL_HEADER_VERSION;
+  h->version   = IGTL_HEADER_VERSION;
   h->timestamp = 0;
   h->body_size = GetBodyPackSize();
-  h->crc       = crc32(crc, m_Body, GetBodyPackSize());  // calculate crc
+  h->crc       = crc64((unsigned char*)m_Body, GetBodyPackSize(), crc);
+  
 
-  strncpy(h->name, m_BodyType.c_str(), 8);
+  strncpy(h->name, m_BodyType.c_str(), 12);
   strncpy(h->device_name, m_DeviceName.c_str(), 20);
 
   igtl_header_convert_byte_order(h);

@@ -140,7 +140,7 @@ void TransferOpenIGTLink::ReceiveProcess()
 
       char deviceType[13];
       deviceType[12] = 0;
-      memcpy((void*)deviceType, header.name, 8);
+      memcpy((void*)deviceType, header.name, 12);
       if (strcmp("TRANSFORM", deviceType))
         {
           float matrix[12];
@@ -188,6 +188,7 @@ void TransferOpenIGTLink::Process()
               int ret;
 
               std::cerr << "PackSize:  " << frame->GetPackSize() << std::endl;
+              std::cerr << "BodyType:  " << frame->GetBodyType() << std::endl;
 
               ret = this->ClientSocket->Send(frame->GetPackPointer(), frame->GetPackSize());
               if (ret == 0)
