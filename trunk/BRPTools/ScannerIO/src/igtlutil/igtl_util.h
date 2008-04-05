@@ -17,6 +17,8 @@
 #ifndef __IGTL_UTIL_H
 #define __IGTL_UTIL_H
 
+#include "igtl_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -37,6 +39,7 @@ extern "C" {
  * Test endian of the host
  */
 int igtl_is_little_endian();
+igtl_uint64 crc64(unsigned char *data, int len, igtl_uint64 crc);
 
 #ifdef __cplusplus
 }

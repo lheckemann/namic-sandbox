@@ -20,7 +20,6 @@
 #include <vector>
 
 #include "igtlMath.h"
-//#include "igtlImageMessage.h"
 #include "igtlMessageBase.h"
 #include "Thread.h"
 
@@ -39,7 +38,6 @@ public:
   virtual int  SetMatrix(float* matrix){};
 
   void SetPostProcessThread(Thread* thread);
-  //igtl::ImageMessage::Pointer GetFrameFromBuffer(int id);
   igtl::MessageBase::Pointer GetFrameFromBuffer(int id);
 
 protected:
@@ -49,9 +47,7 @@ protected:
   // Circular Buffer manipulation
   int SetCircularFrameBufferSize(int s);
   int GetCircularFrameBufferSize();
-  //int PutFrameToBuffer(igtl::ImageMessage::Pointer frame);
   int PutFrameToBuffer(igtl::MessageBase::Pointer frame);
-  //int PutFrameToBuffer(int id, igtl::ImageMessage::Pointer frame);
   int PutFrameToBuffer(int id, igtl::MessageBase::Pointer frame);
 
 protected:
@@ -59,7 +55,6 @@ protected:
   Thread* PostProcessThread;
 
   // Circular Buffer manipulation
-  //std::vector<igtl::ImageMessage::Pointer> CircularFrameBuffer;
   std::vector<igtl::MessageBase::Pointer> CircularFrameBuffer;
   int CurrentFrameId;
 

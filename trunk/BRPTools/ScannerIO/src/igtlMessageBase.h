@@ -46,6 +46,8 @@ public:
   void* GetPackPointer();
   int   GetPackSize();
 
+  const char* GetBodyType() { return this->m_BodyType.c_str(); };
+
 protected:
   MessageBase();
   ~MessageBase();

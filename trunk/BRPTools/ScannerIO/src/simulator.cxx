@@ -35,9 +35,6 @@
 
 #include <iostream>
 
-#include "igtl_header.h"
-#include "igtl_image.h"
-
 #include "igtlMath.h"
 #include "igtlOSUtil.h"
 //#include "ScannerSim.h"

@@ -169,9 +169,11 @@ void AcquisitionSimulator::GetRandomTestMatrix(igtl::Matrix4x4& matrix)
   position[2] = 0;
   phi = phi + 0.2;
 
+  /*
   position[0] = 0;
   position[1] = 0;
   position[2] = 0;
+  */
   
   // random orientation
   static float theta = 0.0;
@@ -181,10 +183,12 @@ void AcquisitionSimulator::GetRandomTestMatrix(igtl::Matrix4x4& matrix)
   orientation[3]=0.6666666666*sin(theta);
   theta = theta + 0.1;
 
+  /*
   orientation[0]=0.0;
   orientation[1]=0.0;
   orientation[2]=0.0;
   orientation[3]=1.0;
+  */
   
   //igtl::Matrix4x4 matrix;
   igtl::QuaternionToMatrix(orientation, matrix);

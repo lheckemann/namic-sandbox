@@ -18,6 +18,7 @@
 #define __IGTL_IMAGE_H
 
 #include "igtl_util.h"
+#include "igtl_types.h"
 
 #define IGTL_IMAGE_HEADER_VERSION       1
 #define IGTL_IMAGE_HEADER_SIZE          72
@@ -63,13 +64,13 @@ extern "C" {
  */
 
 typedef struct {
-  unsigned short version;          /* data format version number      */
-  unsigned char  data_type;        /* data type (scalar or vector)    */
-  unsigned char  scalar_type;      /* scalar type                     */
-  unsigned char  endian;           /* endian type of image data       */
-  unsigned char  coord;            /* coordinate system (LPS or RAS)  */
-  unsigned short size[3];          /* entire image volume size        */
-  float          matrix[12];       /* orientation / origin of image   */
+  igtl_uint16    version;          /* data format version number      */
+  igtl_uint8     data_type;        /* data type (scalar or vector)    */
+  igtl_uint8     scalar_type;      /* scalar type                     */
+  igtl_uint8     endian;           /* endian type of image data       */
+  igtl_uint8     coord;            /* coordinate system (LPS or RAS)  */
+  igtl_uint16    size[3];          /* entire image volume size        */
+  igtl_float32   matrix[12];       /* orientation / origin of image   */
                                    /*  - matrix[0-2]: norm_i * pix_i  */
                                    /*  - matrix[3-5]: norm_j * pix_j  */
                                    /*  - matrix[6-8]: norm_k * pix_k  */
@@ -78,8 +79,8 @@ typedef struct {
                                    /* along each index, and pix_* are */
                                    /* pixel size in each direction    */
 
-  unsigned short subvol_offset[3]; /* sub volume offset               */
-  unsigned short subvol_size[3];   /* sub volume size                 */
+  igtl_uint16    subvol_offset[3]; /* sub volume offset               */
+  igtl_uint16    subvol_size[3];   /* sub volume size                 */
 } igtl_image_header;
 
 #pragma pack()
@@ -92,7 +93,7 @@ typedef struct {
  * transferred with the specified header.
  */
 
-long long igtl_image_get_data_size(igtl_image_header * header);
+igtl_uint64 igtl_image_get_data_size(igtl_image_header * header);
 
 
 /*
@@ -129,7 +130,7 @@ void igtl_image_convert_byte_order(igtl_image_header * header);
  *
  */
 
-unsigned long igtl_image_get_crc(igtl_image_header * header, void* image);
+igtl_uint64 igtl_image_get_crc(igtl_image_header * header, void* image);
 
 #ifdef __cplusplus
 }

@@ -96,17 +96,17 @@ int TransformMessage::GetBodyPackSize()
 
 void TransformMessage::PackBody()
 {
-  float* transform = (float*)m_Transform;
+  igtl_float32* transform = (igtl_float32*)this->m_Transform;
 
   for (int i = 0; i < 3; i ++) {
-    transform[i] = matrix[i][0];
+    transform[i]   = matrix[i][0];
     transform[i+3] = matrix[i][1];
     transform[i+6] = matrix[i][2];
     transform[i+9] = matrix[i][3];
   }
-
+  
   igtl_transform_convert_byte_order(transform);
-
+  
 }
 
 
