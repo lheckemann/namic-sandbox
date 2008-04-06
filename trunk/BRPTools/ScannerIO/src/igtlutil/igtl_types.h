@@ -52,12 +52,18 @@
 #if defined(IGTL_TYPE_USE_LONG_LONG) && IGTL_SIZEOF_LONG_LONG == 8
   typedef unsigned long long igtl_uint64;
   typedef signed long long   igtl_int64;
+#elif IGTL_SIZEOF_INT == 8
+  typedef unsigned int       igtl_uint64;
+  typedef signed int         igtl_int64;
 #elif IGTL_SIZEOF_LONG == 8
   typedef unsigned long      igtl_uint64;
   typedef signed long        igtl_64;
 #elif defined(IGTL_TYPE_USE___INT64) && IGTL_SIZEOF___INT64 == 8
   typedef unsigned __int64   igtl_uint64;
   typedef signed __int64     igtl_int64;
+#elif defined(IGTL_TYPE_USE_INT64_T) && IGTL_SIZEOF_INT64_T == 8
+  typedef unsigned int64_t   igtl_uint64;
+  typedef signed int64_t     igtl_int64;
 #else
   # error "No native data type can represent a 64-bit integer."
 #endif
