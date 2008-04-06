@@ -47,7 +47,7 @@ void igtl_transform_convert_byte_order(igtl_float32* transform);
  *
  */
 
-unsigned long igtl_transform_get_crc(igtl_float32* transform);
+igtl_uint64 igtl_transform_get_crc(igtl_float32* transform);
 
 #ifdef __cplusplus
 }
