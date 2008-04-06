@@ -92,12 +92,12 @@ ${RSP_FILES}/GEMS_Include_11.03/
 ${RSP_FILES}/./
 )
 
-ADD_DEFINITIONS(-DACE_AS_STATIC_LIBS)
+#ADD_DEFINITIONS(-DACE_AS_STATIC_LIBS)
 
 OPTION(BUILD_SHARED "Build Shared Libraries" ON)
 
 LINK_DIRECTORIES(
-libs/ace
+#libs/ace
 libs/newmat
 ${RSP_FILES}/GEMS_Libs_11.03
 ${RSP_FILES}
@@ -178,14 +178,14 @@ ENDIF(BUILD_SHARED)
 
 
 SUBDIRS(
-libs/ace
+#libs/ace
 libs/newmat
 )
 
 
 SET(LIBS
 ${LIBS}
-ACE
+#ACE
 newmat
 )
 

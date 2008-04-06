@@ -20,14 +20,18 @@
 #include <vector>
 #include <fstream>
 #include <map>
-
+/*
 #include <ace/SOCK_Stream.h>
 #include <ace/SOCK_Connector.h>
+*/
 
+/*
 #include <ace/Thread.h>
 #include <ace/Synch.h>
 #include <ace/Thread_Mutex.h>
+*/
 
+#include "igtlClientSocket.h"
 #include "igtlImageMessage.h"
 #include "AcquisitionBase.h"
 
@@ -104,9 +108,14 @@ protected:
   // for RDS
   int  m_Stop;
 
+  /*
   ACE_INET_Addr address;
   ACE_SOCK_Stream socket;
   ACE_SOCK_Connector connector;
+  */
+  std::string Address;
+  int         Port;
+  igtl::ClientSocket::Pointer ClientSocket;
   
   //NodeVector sources;
 
@@ -125,7 +134,6 @@ protected:
 
   std::string raw_file;
   std::ofstream filehandle;
-
 
   // for image reconstrucntion
   MatrixMap R;
@@ -147,7 +155,8 @@ protected:
 
   int Interval_ms;
 
-  ACE_Thread_Mutex* gemutex;
+  //ACE_Thread_Mutex* gemutex;
+  igtl::MutexLock::Pointer Mutex;
 
 
 };
