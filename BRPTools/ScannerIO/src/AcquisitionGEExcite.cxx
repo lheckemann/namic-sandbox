@@ -21,8 +21,10 @@
 #include <math.h>
 #include <newmat/newmatap.h>
 
+/*
 #include <ace/OS.h>
 #include <ace/Time_Value.h>
+*/
 
 #include "igtlImageMessage.h"
 #include "AcquisitionGEExcite.h"
@@ -67,16 +69,21 @@ AcquisitionGEExcite::AcquisitionGEExcite()
   this->imageArray.clear();
   this->Interval_ms = 100;  // default
   this->CurrentFrame = igtl::ImageMessage::New();
-  this->gemutex = new ACE_Thread_Mutex;
+  //this->gemutex = new ACE_Thread_Mutex;
+  this->Mutex = igtl::MutexLock::New();
   this->channels = 1;
   this->viewsxfer = 1;
   this->validate = false;
+
+  this->Address = "";
+  this->Port    = -1;
+
 }
 
 
 AcquisitionGEExcite::~AcquisitionGEExcite()
 {
-  delete gemutex;
+  this->Mutex->Delete();
 }
 
 
@@ -292,7 +299,9 @@ int AcquisitionGEExcite::SetMatrix(float* rmatrix)
 
 void AcquisitionGEExcite::SetRdsHost(std::string host, int port)
 {
-  this->address.set(port, host.c_str());
+  //this->address.set(port, host.c_str());
+  this->Address = host;
+  this->Port = port;
 }
 
 void AcquisitionGEExcite::SetConsolHost(std::string address)
@@ -339,10 +348,10 @@ void AcquisitionGEExcite::Process()
   igtl::ImageMessage::Pointer frame;
   this->SetCircularFrameBufferSize(3);
 
-
-  ACE_DEBUG((LM_INFO, ACE_TEXT("ot:starting Raw Data Server module thread - tt\n")));
+  //ACE_DEBUG((LM_INFO, ACE_TEXT("ot:starting Raw Data Server module thread - tt\n")));
+  std::cerr << "starting Raw Data Server module thread" << std::endl;
   
-  ACE_Time_Value timeOut( 100, 0 );
+  //ACE_Time_Value timeOut( 100, 0 );
   int retval;
   int server_ready=0;
   RDS_MSG_HDR header;
@@ -391,10 +400,12 @@ void AcquisitionGEExcite::Process()
 
   this->m_Stop = 0;
 
-  ACE_DEBUG((LM_INFO, ACE_TEXT("Start looping....\n")));
+  //ACE_DEBUG((LM_INFO, ACE_TEXT("Start looping....\n")));
+  std::cerr << "Start looping..." << std::endl;
   while (!this->m_Stop)
     {
       // Get header
+      /*
       if((retval = socket.recv_n( &header, sizeof(RDS_MSG_HDR), &timeOut,(size_t*)&trans_bytes )) == -1 )
         {
           if( errno != ETIME && errno != 0 )
@@ -403,6 +414,13 @@ void AcquisitionGEExcite::Process()
               exit( -1 );
             }
         }
+      */
+      if (this->ClientSocket->Receive(&header, sizeof(RDS_MSG_HDR)) != sizeof(RDS_MSG_HDR))
+        {
+          std::cerr << "Irregluar size." << std::endl;
+          exit(-1);
+        }
+
       if(bigendian)
         {
           packet_len=ntohl(header.pktlen);
@@ -421,6 +439,7 @@ void AcquisitionGEExcite::Process()
       if(opcode==OP_RDS_RAW_READY)
         {
           // Get Packet
+          /*
           if((retval = socket.recv_n( &packet, sizeof(RDS_RAW_READY_PKT), &timeOut, (size_t*)&trans_bytes )) == -1 )
             {
               if( errno != ETIME && errno != 0 )
@@ -429,6 +448,13 @@ void AcquisitionGEExcite::Process()
                   exit( -1 );
                 }
             }
+          */
+          if (this->ClientSocket->Receive(&packet, sizeof(RDS_RAW_READY_PKT)) != sizeof(RDS_RAW_READY_PKT))
+            {
+              std::cerr << "Error: receiving packet data." << std::endl;
+              exit(-1);
+            }
+
           //                      std::cout << " revieved aa; " << retval << std::endl;
           /* ...and then convert to host byte order. */
           if(bigendian)
@@ -465,6 +491,12 @@ void AcquisitionGEExcite::Process()
           if(totalSize>0)
             {
               this->pByteArray=(byte*)malloc((size_t)totalSize);
+              if (this->ClientSocket->Receive(this->pByteArray, totalSize) != totalSize)
+                {
+                  std::cerr << "Error: receiving packet data!" << std::endl;
+                  exit(-1);
+                }
+              /*
               if((retval = socket.recv_n( this->pByteArray, totalSize, &timeOut, (size_t*)&trans_bytes )) == -1 )
                 {
                   if( errno != ETIME && errno != 0 )
@@ -473,6 +505,7 @@ void AcquisitionGEExcite::Process()
                       exit( -1 );
                     }
                 }
+              */
             }
           
           if(this->validate)
@@ -497,7 +530,8 @@ void AcquisitionGEExcite::Process()
             {
               if(this->write_raw_data)
                 this->filehandle.write(this->pByteArray,packet.raw_size);
-              gemutex->acquire();
+              //gemutex->acquire();
+              this->Mutex->Lock();
               xsize = packet.raw_size / (sizeof(short)*2*channels*this->viewsxfer);
               for(int c=0;c<channels;c++)
                 {
@@ -506,7 +540,8 @@ void AcquisitionGEExcite::Process()
                   for(int k=0;k<this->viewsxfer;k++)
                     memcpy(raw_data[c]+(k+row)*xsize*2,this->pByteArray+(c+k*channels)*xsize*sizeof(short)*2,xsize*sizeof(short)*2);
                 }
-              gemutex->release();
+              //gemutex->release();
+              this->Mutex->Unlock();
               free(this->pByteArray);
               row+=this->viewsxfer;
 
@@ -569,9 +604,11 @@ void AcquisitionGEExcite::Process()
                 }
               */
               pass++;
-              gemutex->acquire();
+              //gemutex->acquire();
+              this->Mutex->Lock();
               ysize=row;
-              gemutex->release();
+              //gemutex->release();
+              this->Mutex->Unlock();
               row=0;
 
               std::cerr << "have PostProcessThread?" << std::endl;
@@ -626,8 +663,11 @@ void AcquisitionGEExcite::Process()
 
   if(this->write_raw_data)
     this->filehandle.close();
-  socket.close();
-  ACE_DEBUG((LM_INFO, ACE_TEXT("ot:Stopping thread\n")));
+  //socket.close();
+  this->ClientSocket->CloseSocket();
+  this->ClientSocket->Delete();
+  //ACE_DEBUG((LM_INFO, ACE_TEXT("ot:Stopping thread\n")));
+  std::cerr << "Stopping thread" << std::endl;
 
 }
 
@@ -656,11 +696,33 @@ int AcquisitionGEExcite::Connect()
     }
   
   int retval;
-  ACE_Time_Value timeOut(1,0);
+  //ACE_Time_Value timeOut(1,0);
   
   std::cout << "ready to connect" << std::endl;
   
-  retval = connector.connect(socket, address, &timeOut);
+  //retval = connector.connect(socket, address, &timeOut);
+  if (this->Port > 0)
+    {
+      this->ClientSocket = igtl::ClientSocket::New();
+      retval = this->ClientSocket->ConnectToServer(this->Address.c_str(), this->Port);
+      if (retval == 0)
+        {
+          std::cerr << "Connected" << std::endl;;
+        }
+      else
+        {
+          std::cerr << "Error " << errno << " : connection failed." << std::endl;
+          this->ClientSocket->Delete();
+          return -1;
+        }
+    }
+  else
+    {
+      return -1;
+    }
+
+  
+  /*
   if(retval == -1 && errno != ETIME && errno != 0 )
     {
       ACE_DEBUG((LM_ERROR, ACE_TEXT("ot:Error %d connection failed for socket nr.: %d\n"), errno));
@@ -670,13 +732,23 @@ int AcquisitionGEExcite::Connect()
     {
       ACE_DEBUG((LM_INFO, ACE_TEXT("ot:connected to socket nr.: %d - sending GO command\n")));
     }
+  */
   
-  retval = socket.send_n(&init_package,sizeof(INIT_MSG),&timeOut);
+  //retval = socket.send_n(&init_package,sizeof(INIT_MSG),&timeOut);
+  retval = this->ClientSocket->Send(&init_package, sizeof(INIT_MSG));
+  /*
   if(retval == -1 && errno != ETIME && errno != 0 )
     {
       ACE_DEBUG((LM_ERROR, ACE_TEXT("Error %d sending data!\n"), errno));
       exit(-1);
     }
+  */
+  if (retval == 0)
+    {
+      std::cerr << "Error " << errno << " : Connection Lost!\n";
+      exit(-1);
+    }
+
   
   return 0;
 }
