@@ -42,24 +42,36 @@
 #include "AcquisitionSimulator.h"
 #include "TransferOpenIGTLink.h"
 
+void PrintUsage(const char* name)
+{
+
+  std::cerr << "Invalid arguments!" << std::endl;
+  std::cerr << "Usage: " << name << " <x> <y> <z> <type> <rx> <ry> <rz>"
+            << " <fname_temp> <bindex> <eindex> <fps> s [port]" << std::endl;
+  std::cerr << "       " << name << " <x> <y> <z> <type> <rx> <ry> <rz>"
+            << " <fname_temp> <bindex> <eindex> <fps> c <hostname> [port]" << std::endl;
+  
+  std::cerr << "    <x>, <y>, <z>   : Number of pixels in x, y and z direction." << std::endl;
+  std::cerr << "    <type>          : Type (2:int8 3:uint8 4:int16 5:uint16 6:int32 7:uint32" << std::endl;
+  std::cerr << "    <rx>, <ry>, <rz>: resolution (pixel size) in x, y and z direction" << std::endl;
+  std::cerr << "    <fname_temp>    : File name template (e.g. \"RawImage_\%04d.raw\")." << std::endl;
+  std::cerr << "    <bindex>        : Begin index." << std::endl;
+  std::cerr << "    <eindex>        : End  index." << std::endl;
+  std::cerr << "    <fps>           : Frame rate (frames per second)." << std::endl;
+  std::cerr << "    <hostname>      : (Client mode only) hostname." << std::endl;
+  std::cerr << "    [port]          : Port # (default is 18944)" << std::endl;
+
+}
+
+
 int main(int argc, char **argv)
 {
 
-  if (argc < 8) {
-    std::cerr << "Invalid arguments!" << std::endl;
-    std::cerr << "Usage: " << argv[0] << " <x> <y> <z> <type> <rx> <ry> <rz>"
-              << " <fname_temp> <bindex> <eindex> <fps> <hostname>"
-              << std::endl;
-    std::cerr << "    <x>, <y>, <z>   : Number of pixels in x, y and z direction." << std::endl;
-    std::cerr << "    <type>          : Type (2:int8 3:uint8 4:int16 5:uint16 6:int32 7:uint32" << std::endl;
-    std::cerr << "    <rx>, <ry>, <rz>: resolution (pixel size) in x, y and z direction" << std::endl;
-    std::cerr << "    <fname_temp>    : File name template (e.g. \"RawImage_\%04d.raw\")." << std::endl;
-    std::cerr << "    <bindex>        : Begin index." << std::endl;
-    std::cerr << "    <eindex>        : End  index." << std::endl;
-    std::cerr << "    <fps>           : Frame rate (frames per second)." << std::endl;
-    std::cerr << "    <hostname>      : hostname (port# is fixed to 18944)" << std::endl;
+  if (argc < 8)
+    {
+    PrintUsage(argv[0]);
     exit(-1);
-  }
+    }
 
   int size[3];
   size[0] = atoi(argv[1]);
@@ -76,7 +88,53 @@ int main(int argc, char **argv)
   int bindex = atoi(argv[9]);
   int eindex = atoi(argv[10]);
   float fps  = atof(argv[11]);
-  char* host = argv[12];
+
+  bool  server;
+  char* hostname;
+  int   port = 18944;
+
+  // mode: server or client?
+  if (strcmp(argv[12], "s") == 0)
+    {
+    server = true;
+    }
+  else if (strcmp(argv[12], "c") == 0)
+    {
+    server = false;
+    }
+  else
+    {
+    PrintUsage(argv[0]);
+    exit(-1);
+    }
+
+  // hostname and port number
+  if (server)
+    {
+    if (argc < 13 || argc > 14) // illegal number of arguments
+      {
+      PrintUsage(argv[0]);
+      exit(-1);
+      }
+    if (argc == 14)
+      {
+      port = atoi(argv[3]);
+      }
+    }
+  else // client mode
+    {
+    if (argc < 14 || argc > 15) // illegal number of arguments
+      {
+      PrintUsage(argv[0]);
+      exit(-1);
+      }
+    hostname = argv[13];
+    if (argc == 15)
+      {
+      port = atoi(argv[14]);
+      }
+    }
+
 
   int nframe = eindex - bindex + 1;
   int psize = 0;
@@ -92,13 +150,7 @@ int main(int argc, char **argv)
   //int interval_ms = (int) (1000 / fps);
 
   std::cerr << "Creating new Scanner..." << std::endl;
-
-  //ScannerSim* scanner = new ScannerSim();
   std::cerr << "Loading data..." << std::endl;
-  /*
-  scanner->Init();
-  scanner->Start();
-  */
 
   AcquisitionSimulator* acquisition = new AcquisitionSimulator;
   TransferOpenIGTLink*  transfer  = new TransferOpenIGTLink;
@@ -114,11 +166,15 @@ int main(int argc, char **argv)
   acquisition->SetSubVolumeDimension(size);
   acquisition->SetPostProcessThread(dynamic_cast<Thread*>(transfer));
   acquisition->SetFrameRate(fps);
-  transfer->SetServer(host, 18944);
+  if (server)
+    {
+    transfer->SetServerMode(port);
+    }
+  else
+    {
+    transfer->SetClientMode(hostname, port);
+    }
   transfer->SetAcquisitionThread(acquisition);
-
-
-  transfer->Connect();
 
   acquisition->Run();
   transfer->Run();
