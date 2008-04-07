@@ -97,9 +97,9 @@ public:
 
   /** Standard class typedefs. */
   typedef MultiThreadedMutualInformationImageToImageMetric  Self;
-  typedef ImageToImageMetric< TFixedImage, TMovingImage > Superclass;
-  typedef SmartPointer<Self>  Pointer;
-  typedef SmartPointer<const Self>  ConstPointer;
+  typedef ImageToImageMetric< TFixedImage, TMovingImage >   Superclass;
+  typedef SmartPointer<Self>                                Pointer;
+  typedef SmartPointer<const Self>                          ConstPointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -203,13 +203,14 @@ private:
   MultiThreadedMutualInformationImageToImageMetric(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  /** A spatial sample consists of the fixed domain point, the fixed image value
+  /** \class SpatialSample - private class to store sample information.
+   *   A spatial sample consists of the fixed domain point, the fixed image value
    *   at that point, and the corresponding moving image value. */
   class SpatialSample
-  {
-  public:
+    {
+    public:
     SpatialSample():FixedImageValue(0.0),MovingImageValue(0.0)
-    { FixedImagePointValue.Fill( 0.0 ); MovingImagePointValue.Fill( 0.0 ); FixedImageLinearOffset = 0;}//FixedImageIndex.Fill( 0 ); }
+    { FixedImagePointValue.Fill( 0.0 ); MovingImagePointValue.Fill( 0.0 ); FixedImageLinearOffset = 0;}
     ~SpatialSample(){};
     // FIXME -- Check offset type
     long                             FixedImageLinearOffset;
@@ -217,10 +218,10 @@ private:
     double                           FixedImageValue;
     double                           MovingImageValue;
     MovingImagePointType             MovingImagePointValue;
-  };
+    };
 
   /** SpatialSampleContainer typedef support. */
-  typedef std::vector<SpatialSample>  SpatialSampleContainer;
+  typedef std::vector<SpatialSample>                        SpatialSampleContainer;
   typedef typename SpatialSampleContainer::iterator         SamplesIterator;
   typedef typename SpatialSampleContainer::const_iterator   SamplesConstIterator;
 
@@ -273,10 +274,10 @@ private:
   typedef std::vector< WeightPartialResultIterator > WeightIteratorContainerType;
 
   // Sparse derivative
-  typedef unsigned long SparseDerivativeIndexType;
-  typedef typename DerivativeType::ValueType SparseDerivativeValueType;
+  typedef unsigned long                                                     SparseDerivativeIndexType;
+  typedef typename DerivativeType::ValueType                                SparseDerivativeValueType;
   typedef std::pair< SparseDerivativeIndexType, SparseDerivativeValueType > SparseDerivativeEntryType;
-  typedef std::vector< SparseDerivativeEntryType > SparseDerivativeType;
+  typedef std::vector< SparseDerivativeEntryType >                          SparseDerivativeType;
 
   // FIXME - Should this be unsigned, what type is the linear offset for itk::Image?
   typedef long FixedImageLinearOffsetType; 
@@ -302,9 +303,9 @@ private:
   typedef std::vector< SamplesConstIterator > ThreadSampleIteratorContainerType;
 
   struct MultiThreaderParameterType
-    {
-    Self                   * metric;
-    };
+  {
+  Self                   * metric;
+  };
 
   // --------------- Class Variables --------------------------------------
 
@@ -494,5 +495,3 @@ private:
 #endif
 
 #endif
-
-
