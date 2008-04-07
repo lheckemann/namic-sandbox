@@ -35,12 +35,11 @@
 #define __igtlServerSocket_h
 
 #include "igtlSocket.h"
+#include "igtlClientSocket.h"
 #include "igtlWin32Header.h"
 
 namespace igtl
 {
-
-class ClientSocket;
 
 class IGTLCommon_EXPORT ServerSocket : public Socket
 {
@@ -64,7 +63,8 @@ public:
   // Waits for a connection. When a connection is received
   // a new ClientSocket object is created and returned.
   // Returns NULL on timeout. 
-  ClientSocket* WaitForConnection(unsigned long msec=0);
+  //ClientSocket* WaitForConnection(unsigned long msec=0);
+  ClientSocket::Pointer WaitForConnection(unsigned long msec=0);
 
   // Description:
   // Returns the port on which the server is running.

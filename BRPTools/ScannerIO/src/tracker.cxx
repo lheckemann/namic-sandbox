@@ -42,21 +42,77 @@
 #include "AcquisitionTrackingSimulator.h"
 #include "TransferOpenIGTLink.h"
 
+
+void PrintUsage(const char* name)
+{
+    std::cerr << "Invalid arguments!" << std::endl;
+    std::cerr << "Usage: " << name << "<fps> s [port]" << std::endl;
+    std::cerr << "Usage: " << name << "<fps> c <hostname> [port]" << std::endl;
+    std::cerr << "    <fps>           : Frame rate (frames per second)." << std::endl;
+    std::cerr << "    <type>          : 's': server mode / 'c': client mode" << std::endl;
+    std::cerr << "    <hostname>      : <Client mode only> hostname" << std::endl;
+    std::cerr << "    <port>          : Port # (default: 18944)" << std::endl;
+}
+
+
 int main(int argc, char **argv)
 {
 
-  if (argc < 3) {
-    std::cerr << "Invalid arguments!" << std::endl;
-    std::cerr << "Usage: " << argv[0] << "<fps> <hostname>"
-              << std::endl;
-    std::cerr << "    <fps>           : Frame rate (frames per second)." << std::endl;
-    std::cerr << "    <hostname>      : hostname (port# is fixed to 18944)" << std::endl;
+  float fps;
+  bool  server;
+  char* hostname;
+  int   port = 18944;
+
+  if (argc < 3)
+    {
+    PrintUsage(argv[0]);
     exit(-1);
-  }
+    }
 
-  float fps  = atof(argv[1]);
-  char* host = argv[2];
+  // frame rate
+  fps  = atof(argv[1]);
 
+  // mode: server or client?
+  if (strcmp(argv[2], "s") == 0)
+    {
+    server = true;
+    }
+  else if (strcmp(argv[2], "c") == 0)
+    {
+    server = false;
+    }
+  else
+    {
+    PrintUsage(argv[0]);
+    exit(-1);
+    }
+
+  // hostname and port number
+  if (server)
+    {
+    if (argc < 3 || argc > 4) // illegal number of arguments
+      {
+      PrintUsage(argv[0]);
+      exit(-1);
+      }
+    if (argc == 4)
+      {
+      port = atoi(argv[3]);
+      }
+    }
+  else // client mode
+    {
+    if (argc < 4 || argc > 5) // illegal number of arguments
+      {
+      PrintUsage(argv[0]);
+      exit(-1);
+      }
+    hostname = argv[3];
+    if (argc == 5)
+      {
+      port = atoi(argv[4]);
+      }
+    }
 
   std::cerr << "Creating new Tracker..." << std::endl;
 
@@ -65,15 +121,21 @@ int main(int argc, char **argv)
 
   acquisition->SetPostProcessThread(dynamic_cast<Thread*>(transfer));
   acquisition->SetFrameRate(fps);
-  transfer->SetServer(host, 18944);
-  transfer->SetAcquisitionThread(acquisition);
 
-  transfer->Connect();
+  if (server)
+    {
+    transfer->SetServerMode(port);
+    }
+  else
+    {
+    transfer->SetClientMode(hostname, port);
+    }
+
+  transfer->SetAcquisitionThread(acquisition);
   acquisition->Run();
   transfer->Run();
 
   // run 100 sec
-  //sleep(100);
   igtl::Sleep(100*1000);
 
   acquisition->Stop();
