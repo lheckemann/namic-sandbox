@@ -29,6 +29,7 @@
 #include "igtlImageMessage.h"
 #include "AcquisitionGEExcite.h"
 #include "igtlMath.h"
+#include "igtlutil/igtl_util.h"
 
 
 #define FLOWCOMP_REALTIME 0x01
@@ -423,8 +424,12 @@ void AcquisitionGEExcite::Process()
 
       if(bigendian)
         {
+          /*
           packet_len=ntohl(header.pktlen);
           opcode = ntohl(header.opcode);
+          */
+          packet_len=BYTE_SWAP_INT32(header.pktlen);
+          opcode = BYTE_SWAP_INT32(header.opcode);
         }
       else
         {
@@ -459,6 +464,7 @@ void AcquisitionGEExcite::Process()
           /* ...and then convert to host byte order. */
           if(bigendian)
             {
+              /*
               packet.id = ntohl(packet.id);
               packet.timestamp = ntohl(packet.timestamp);
               packet.seq_num = ntohl(packet.seq_num);
@@ -470,6 +476,18 @@ void AcquisitionGEExcite::Process()
               packet.aps_buff_size = ntohl(packet.aps_buff_size);
               packet.start_offset = ntohl(packet.start_offset);
               packet.control_flags = ntohl(packet.control_flags);
+              */
+              packet.id = BYTE_SWAP_INT32(packet.id);
+              packet.timestamp = BYTE_SWAP_INT32(packet.timestamp);
+              packet.seq_num = BYTE_SWAP_INT32(packet.seq_num);
+              packet.raw_cs = BYTE_SWAP_INT32(packet.raw_cs);
+              packet.msg_cs = BYTE_SWAP_INT32(packet.msg_cs);
+              packet.raw_size = BYTE_SWAP_INT32(packet.raw_size);
+              packet.msg_size = BYTE_SWAP_INT32(packet.msg_size);
+              packet.aps_buff_addr = BYTE_SWAP_INT32(packet.aps_buff_addr);
+              packet.aps_buff_size = BYTE_SWAP_INT32(packet.aps_buff_size);
+              packet.start_offset = BYTE_SWAP_INT32(packet.start_offset);
+              packet.control_flags = BYTE_SWAP_INT32(packet.control_flags);
             }
 
           totalSize = packet.raw_size + packet.msg_size;
@@ -520,7 +538,8 @@ void AcquisitionGEExcite::Process()
               if(bigendian)
                 
                 for(int i = 0; i < numShortPoints; i++) {
-                  sip[i] = ntohs(sip[i]);
+                  //sip[i] = ntohs(sip[i]);
+                  sip[i] = BYTE_SWAP_INT16(sip[i]);
                 }
               
             }
@@ -686,6 +705,7 @@ int AcquisitionGEExcite::Connect()
   if(bigendian)
     {
       std::cout << " swap the bytes " << std::endl;
+      /*
       init_package.rds_init_pkt.views_per_xfer = htonl(init_package.rds_init_pkt.views_per_xfer);
       init_package.rds_init_pkt.aqs_pkt_flags = htonl(init_package.rds_init_pkt.aqs_pkt_flags);
       init_package.rds_init_pkt.xfer_mode = htonl(init_package.rds_init_pkt.xfer_mode);
@@ -693,6 +713,14 @@ int AcquisitionGEExcite::Connect()
       init_package.rds_init_pkt.host_buff_size = htonl(init_package.rds_init_pkt.host_buff_size);
       init_package.rds_msg_hdr.opcode = htonl(init_package.rds_msg_hdr.opcode);
       init_package.rds_msg_hdr.pktlen = htonl(init_package.rds_msg_hdr.pktlen);
+      */
+      init_package.rds_init_pkt.views_per_xfer = BYTE_SWAP_INT32(init_package.rds_init_pkt.views_per_xfer);
+      init_package.rds_init_pkt.aqs_pkt_flags = BYTE_SWAP_INT32(init_package.rds_init_pkt.aqs_pkt_flags);
+      init_package.rds_init_pkt.xfer_mode = BYTE_SWAP_INT32(init_package.rds_init_pkt.xfer_mode);
+      init_package.rds_init_pkt.host_buff_addr = BYTE_SWAP_INT32(init_package.rds_init_pkt.host_buff_addr);
+      init_package.rds_init_pkt.host_buff_size = BYTE_SWAP_INT32(init_package.rds_init_pkt.host_buff_size);
+      init_package.rds_msg_hdr.opcode = BYTE_SWAP_INT32(init_package.rds_msg_hdr.opcode);
+      init_package.rds_msg_hdr.pktlen = BYTE_SWAP_INT32(init_package.rds_msg_hdr.pktlen);
     }
   
   int retval;
@@ -785,10 +813,12 @@ int AcquisitionGEExcite::validateData(RDS_RAW_READY_PKT * rdsRawReadyPkt)
   /* Step through the array and calculate the checksum. */
   uip = (unsigned int *) pByteArray;
   for(i = 0; i < numIntPoints; i++) {
-    if(bigendian)
-      checksum += ntohl(uip[i]);
-    else
+    if(bigendian) {
+      /*checksum += ntohl(uip[i]);*/
+      checksum += BYTE_SWAP_INT32(uip[i]);
+    } else {
       checksum +=uip[i];
+    }
   }
   
   if(checksum != rdsRawReadyPkt->raw_cs) {
@@ -807,10 +837,12 @@ int AcquisitionGEExcite::validateData(RDS_RAW_READY_PKT * rdsRawReadyPkt)
   
   /* Calculate the checksum.  Don't forget the offset! */
   for(i = 0; i < numIntPoints; i++) {
-    if(bigendian)
-      checksum += ntohl(uip[offset + i]);
-    else
+    if(bigendian) {
+      //checksum += ntohl(uip[offset + i]);
+      checksum += BYTE_SWAP_INT32(uip[offset + i]);
+    } else {
       checksum += uip[offset+i];
+    }
   }
   
   if(checksum != rdsRawReadyPkt->msg_cs) {
@@ -828,7 +860,8 @@ int AcquisitionGEExcite::validateData(RDS_RAW_READY_PKT * rdsRawReadyPkt)
   sip = (short *) pByteArray;
   if(bigendian)
     for(i = 0; i < numShortPoints; i++) {
-      sip[i] = ntohs(sip[i]);
+      //sip[i] = ntohs(sip[i]);
+      sip[i] = BYTE_SWAP_INT16(sip[i]);
     }
   
   return(0);  /* All done! */
