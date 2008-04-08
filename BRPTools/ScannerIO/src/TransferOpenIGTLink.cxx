@@ -44,6 +44,7 @@ TransferOpenIGTLink::TransferOpenIGTLink()
 
 int TransferOpenIGTLink::Init()
 {
+  return 1;
 }
 
 
@@ -64,6 +65,7 @@ int TransferOpenIGTLink::Disconnect()
     this->Socket->Delete();
     }
   //mutex->release();  //unlock
+  return 1;
 
 }
 

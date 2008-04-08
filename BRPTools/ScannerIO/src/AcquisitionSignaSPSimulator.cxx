@@ -263,7 +263,7 @@ void AcquisitionSignaSPSimulator::GetCurrentFrame(igtl::ImageMessage::Pointer& c
 
   cf = imageArray[this->CurrentFrameIndex];
   this->CurrentFrameIndex ++;
-  if (this->CurrentFrameIndex >= imageArray.size())
+  if (this->CurrentFrameIndex >= (int)imageArray.size())
     {
       this->CurrentFrameIndex = 0;
     }

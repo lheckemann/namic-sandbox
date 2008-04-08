@@ -38,6 +38,7 @@ MessageBase::~MessageBase()
 int MessageBase::SetDeviceName(std::string name)
 {
   m_DeviceName = name;
+  return 1;
 }
 
 void MessageBase::Pack()

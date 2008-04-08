@@ -41,7 +41,9 @@
 #ifdef IGTL_USE_WIN32_THREADS
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0400
+#include "igtlWindows.h"
 #endif
+
 
 #include "igtlMutexLock.h"
 #include "igtlLightObject.h"

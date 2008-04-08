@@ -353,7 +353,7 @@ void AcquisitionGEExcite::Process()
   std::cerr << "starting Raw Data Server module thread" << std::endl;
   
   //ACE_Time_Value timeOut( 100, 0 );
-  int retval;
+  //int retval;
   int server_ready=0;
   RDS_MSG_HDR header;
   RDS_RAW_READY_PKT packet;
@@ -363,6 +363,7 @@ void AcquisitionGEExcite::Process()
   byte datakey_waitfornext = 0;
   unsigned long datakey = 0;
 
+  /*
   float tx;
   float ty;
   float tz;
@@ -375,7 +376,7 @@ void AcquisitionGEExcite::Process()
   float px;
   float py;
   float pz;
-  
+  */
   
 #ifdef USE_64_BIT
   unsigned long trans_bytes = 0;

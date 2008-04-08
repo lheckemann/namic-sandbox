@@ -284,7 +284,7 @@ void AcquisitionSimulator::GetCurrentFrame(igtl::ImageMessage::Pointer& cf)
       this->CurrentFrameSliceIndex = 0;
     }
   
-  if (this->CurrentFrameIndex >= imageArray.size())
+  if (this->CurrentFrameIndex >= (int)imageArray.size())
     {
       this->CurrentFrameIndex = 0;
     }

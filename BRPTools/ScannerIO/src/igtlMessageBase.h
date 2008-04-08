@@ -55,7 +55,7 @@ protected:
 protected:
 
   // Pack body (must be implemented in a child class)
-  virtual int GetBodyPackSize() {};
+  virtual int GetBodyPackSize() { return 0; };
   virtual void PackBody()       {};
 
   // Allocate memory for packing

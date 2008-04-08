@@ -29,9 +29,9 @@ public:
 //  static TransferBase* New();
 //  static void Delete();
 
-  virtual int  Init()      {};
-  virtual int  Connect()   {};
-  virtual int  Disconnect(){};
+  virtual int  Init()      { return 0; };
+  virtual int  Connect()   { return 0; };
+  virtual int  Disconnect(){ return 0; };
 
   int SetAcquisitionThread(AcquisitionBase*);
 
