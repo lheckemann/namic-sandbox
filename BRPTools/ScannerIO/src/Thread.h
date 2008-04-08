@@ -21,6 +21,7 @@
 #define _DEBUG_THREAD
 #endif //_DEBUG
 
+/*
 #include <sys/time.h>
 #include <sys/ioctl.h>
 #include <sys/errno.h>
@@ -28,6 +29,7 @@
 
 #include <unistd.h>
 #include <string.h>
+*/
 
 #include "igtlMultiThreader.h"
 #include "igtlMutexLock.h"

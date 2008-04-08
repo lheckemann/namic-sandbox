@@ -739,7 +739,7 @@ int AcquisitionGEExcite::Connect()
         }
       else
         {
-          std::cerr << "Error " << errno << " : connection failed." << std::endl;
+          std::cerr << "Error : connection failed." << std::endl;
           this->ClientSocket->Delete();
           return -1;
         }
@@ -773,7 +773,7 @@ int AcquisitionGEExcite::Connect()
   */
   if (retval == 0)
     {
-      std::cerr << "Error " << errno << " : Connection Lost!\n";
+      std::cerr << "Error : Connection Lost!\n";
       exit(-1);
     }
 

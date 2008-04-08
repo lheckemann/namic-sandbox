@@ -215,7 +215,7 @@ void TransferOpenIGTLink::ReceiveController()
       if (ret == 0)
         {
         Disconnect();
-        std::cerr << "Error " << errno << " : Connection Lost!\n";
+        std::cerr << "Error : Connection Lost!\n";
         }
       }
     }
@@ -267,7 +267,7 @@ void TransferOpenIGTLink::ReceiveProcess()
       retval = this->Socket->Receive((char*)matrix, IGTL_TRANSFORM_SIZE);
       if (retval != IGTL_TRANSFORM_SIZE)
         {
-        std::cerr << "Error " << errno << " : receiving header data!\n";
+        std::cerr << "Error : receiving header data!\n";
         this->Disconnect();
         return;
         }
