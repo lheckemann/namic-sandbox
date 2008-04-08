@@ -80,7 +80,7 @@ class Thread {
  protected:
 
   virtual void    Process() = 0;
-  static void*    CallProcess(void*);
+  static void*    CallProcess(igtl::MultiThreader::ThreadInfo* vinfo);
   void            Exit();  // called from thread itself
 
   void*           WaitForTrigger();

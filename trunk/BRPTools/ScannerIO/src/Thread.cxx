@@ -70,11 +70,9 @@ Thread::~Thread()
 }
 
 
-void* Thread::CallProcess(void* ptr)
+void* Thread::CallProcess(igtl::MultiThreader::ThreadInfo* vinfo)
 {
   //Thread* pRT = reinterpret_cast<Thread*>(ptr);
-  igtl::MultiThreader::ThreadInfo* vinfo = 
-    static_cast<igtl::MultiThreader::ThreadInfo*>(ptr);
   Thread* pRT = static_cast<Thread*>(vinfo->UserData);
 
   pRT->Process();
@@ -121,7 +119,7 @@ int Thread::Run()
                       THR_NEW_LWP | THR_JOINABLE,
                       &thread, &hthread);
     */
-    this->ThreadID = this->m_Thread->SpawnThread(Thread::CallProcess, this);
+    this->ThreadID = this->m_Thread->SpawnThread((igtl::igtlThreadFunctionType)Thread::CallProcess, this);
 
 #ifdef _DEBUG_THREAD
     cerr << "Thread::run(): the thread is detached." << endl;
