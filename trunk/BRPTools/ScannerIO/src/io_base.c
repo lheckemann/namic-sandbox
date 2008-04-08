@@ -34,23 +34,23 @@ int readHostChar(FILE *fp, char *dest)
   return 1;
 }
 
-int readHostInt(FILE *fp, int32_t *dest)
+int readHostInt(FILE *fp, igtl_int32 *dest)
 {
-  uint32_t tmp;
+  igtl_uint32 tmp;
   
-  if (fread(&tmp, sizeof(uint32_t), 1, fp) != 1) {
+  if (fread(&tmp, sizeof(igtl_uint32), 1, fp) != 1) {
     return 0;
   }
   tmp = ntohl(tmp);
-  memcpy(dest, &tmp, sizeof(uint32_t));
+  memcpy(dest, &tmp, sizeof(igtl_uint32));
   return 1;
 }
 
 
-int readHostUShort(FILE *fp, uint16_t * dest)
+int readHostUShort(FILE *fp, igtl_uint16 * dest)
 {
-  uint16_t tmp;
-  if (fread(&tmp, sizeof(uint16_t), 1, fp) != 1) {
+  igtl_uint16 tmp;
+  if (fread(&tmp, sizeof(igtl_uint16), 1, fp) != 1) {
     return 0;
   }
   tmp = ntohs(tmp);
@@ -59,27 +59,27 @@ int readHostUShort(FILE *fp, uint16_t * dest)
 }
 
 
-int readHostShort(FILE *fp, uint16_t * dest)
+int readHostShort(FILE *fp, igtl_int16 * dest)
 {
-  uint16_t tmp;
-  if (fread(&tmp, sizeof(uint16_t), 1, fp) != 1) {
+  igtl_uint16 tmp;
+  if (fread(&tmp, sizeof(igtl_uint16), 1, fp) != 1) {
     return 0;
   }
   tmp = ntohs(tmp);
-  memcpy(dest, &tmp, sizeof(uint16_t));
+  memcpy(dest, &tmp, sizeof(igtl_uint16));
   return 1;
 }
 
 
-int readHostFloat(FILE *fp, float32_t *dest)
+int readHostFloat(FILE *fp, igtl_float32 *dest)
 {
-  uint32_t tmp;
+  igtl_uint32 tmp;
 
-  if (fread(&tmp, sizeof(uint32_t), 1, fp) != 1) {
+  if (fread(&tmp, sizeof(igtl_uint32), 1, fp) != 1) {
     return 0;
   }
   tmp = ntohl(tmp);
-  memcpy(dest, &tmp, sizeof(uint32_t));
+  memcpy(dest, &tmp, sizeof(igtl_uint32));
   return 1;
 
 }

@@ -25,12 +25,14 @@
  *
  */
 
-#include <stdint.h>
+/*#include <stdint.h>*/
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "io_signa5.h"
 #include "io_base.h"
+
 
 #undef _DBG_PRINT
 
@@ -51,8 +53,8 @@
 
 int readControlHeader(FILE *fp, ControlHeader *header, int baseOffset)
 {
-  int32_t  tmp32;
-  uint16_t tmp16u;
+  igtl_int32  tmp32;
+  igtl_uint16 tmp16u;
 
   if (fp == NULL) {
     DBG_PRINT("Cannot read input file.\n");
@@ -239,8 +241,8 @@ int readControlHeader(FILE *fp, ControlHeader *header, int baseOffset)
 
 int readExamHeader(FILE *fp, ExamHeader *header, int baseOffset)
 {
-  uint16_t tmp16u;
-  int16_t  tmp16;
+  igtl_uint16 tmp16u;
+  igtl_int16  tmp16;
   
   if (fp == NULL) {
     DBG_PRINT("Cannot read input file.\n");
@@ -294,7 +296,7 @@ int readExamHeader(FILE *fp, ExamHeader *header, int baseOffset)
 
 int readSeriesHeader(FILE *fp, SeriesHeader *header, int baseOffset)
 {
-  int16_t tmp16;
+  igtl_int16 tmp16;
 
   if (fp == NULL) {
     DBG_PRINT("Cannot read input file.\n");
@@ -326,9 +328,9 @@ int readSeriesHeader(FILE *fp, SeriesHeader *header, int baseOffset)
 
 int readImageHeader(FILE *fp,ImageHeader *header, int baseOffset)
 {
-  int16_t     tmp16;
-  int32_t     tmp32;
-  float32_t   tmp32f;
+  igtl_int16     tmp16;
+  igtl_int32     tmp32;
+  igtl_float32   tmp32f;
 
   if (fp == NULL) {
     DBG_PRINT("Cannot read input file.\n");
@@ -588,7 +590,7 @@ void printGenesisImageInfo(GenesisImageInfo* imageInfo)
   printf("Image depth:          %d\n\n",   imageInfo->depth);
 
   printf("----- Exam Info -----\n");
-  strncpy(buf, imageInfo->eh.suiteId, 4);
+  strncpy(buf, (char*)imageInfo->eh.suiteId, 4);
   buf[4] = '\0';
   printf("Suite ID:             %s\n",     buf);
   printf("Exam Type:            %s\n",     imageInfo->eh.examType);
@@ -652,17 +654,17 @@ void printGenesisImageInfo(GenesisImageInfo* imageInfo)
 int convertByteOrder(GenesisImageInfo *imageInfo)
 {
   int imsize;
-  uint16_t *imp16;
-  uint16_t *end16;
+  igtl_uint16 *imp16;
+  igtl_uint16 *end16;
 
-  uint32_t *imp32;
-  uint32_t *end32;
+  igtl_uint32 *imp32;
+  igtl_uint32 *end32;
     
 
   imsize = imageInfo->width * imageInfo->height;
   if (imageInfo->depth == 16) {
     /*DBG_PRINT("Start converting byte order. The image depth is 16 bit.\n");*/
-    imp16 = (uint16_t*)imageInfo->imageData;
+    imp16 = (igtl_uint16*)imageInfo->imageData;
     end16 = imp16 + imsize;
     while (imp16 < end16) {
       *imp16 = ntohs(*imp16);
@@ -670,7 +672,7 @@ int convertByteOrder(GenesisImageInfo *imageInfo)
     }
   } else if (imageInfo->depth == 32) {
     /*DBG_PRINT("Start converting byte order. The image depth is 32 bit.\n");*/
-    imp32 = (uint32_t*)imageInfo->imageData;
+    imp32 = (igtl_uint32*)imageInfo->imageData;
     end16 = imp16 + imsize;
     while (imp16 < end16) {
       *imp16 = ntohs(*imp16);

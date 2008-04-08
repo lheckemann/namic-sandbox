@@ -28,21 +28,21 @@
 
 /*#define _DEBUG_IO_ANALYZE*/
 
-#include <stdint.h>
+/*#include <stdint.h>*/
 #include <stdio.h>
+
+#include "igtl_types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 
-typedef float     float32_t;
-
 int readHostChar(FILE *fp, char *dest);
-int readHostInt(FILE *fp, int32_t *dest);
-int readHostUShort(FILE *fp, uint16_t * dest);
-int readHostShort(FILE *fp, uint16_t * dest);
-int readHostFloat(FILE *fp, float32_t *dest);
+int readHostInt(FILE *fp, igtl_int32 *dest);
+int readHostUShort(FILE *fp, igtl_uint16 * dest);
+int readHostShort(FILE *fp, igtl_int16 * dest);
+int readHostFloat(FILE *fp, igtl_float32 *dest);
 
 
 #ifdef __cplusplus
