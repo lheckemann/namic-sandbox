@@ -167,7 +167,7 @@ void TransferOpenIGTLink::Process()
       {
       this->State = STATE_CONNECTED;
       std::cerr << "TransferOpenIGTLink::Process(): Client Connected." << std::endl;
-      this->ReceiveThreadID = this->ReceiveThread->SpawnThread(TransferOpenIGTLink::CallReceiveProcess, this);
+      this->ReceiveThreadID = this->ReceiveThread->SpawnThread((igtl::igtlThreadFunctionType)TransferOpenIGTLink::CallReceiveProcess, this);
       this->ReceiveController();
       this->State = STATE_WAIT_CONNECTION;
       }
@@ -222,11 +222,8 @@ void TransferOpenIGTLink::ReceiveController()
 }
 
 
-
-void* TransferOpenIGTLink::CallReceiveProcess(void*ptr)
+void* TransferOpenIGTLink::CallReceiveProcess(igtl::MultiThreader::ThreadInfo* vinfo)
 {
-  igtl::MultiThreader::ThreadInfo* vinfo = 
-    static_cast<igtl::MultiThreader::ThreadInfo*>(ptr);
   TransferOpenIGTLink* pRT = reinterpret_cast<TransferOpenIGTLink*>(vinfo->UserData);
 
   pRT->StopReceiveThread = false;

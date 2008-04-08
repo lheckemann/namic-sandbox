@@ -63,7 +63,7 @@ protected:
 
   virtual void Process();
   void         ReceiveController();
-  static void* CallReceiveProcess(void*);
+  static void* CallReceiveProcess(igtl::MultiThreader::ThreadInfo* vinfo);
   void         ReceiveProcess();
 
   
