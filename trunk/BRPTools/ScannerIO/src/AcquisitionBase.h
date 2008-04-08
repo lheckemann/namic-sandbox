@@ -30,12 +30,12 @@ public:
 //  static AcquisitionBase* New();
 //  static void Delete();
 
-  virtual int  Init()      {};
-  virtual int  StartScan() {};
-  virtual int  PauseScan() {};
-  virtual int  StopScan() {};
-  virtual void Process() {};
-  virtual int  SetMatrix(float* matrix){};
+  virtual int  Init()      { return 0; };
+  virtual int  StartScan() { return 0; };
+  virtual int  PauseScan() { return 0; };
+  virtual int  StopScan()  { return 0; };
+  virtual void Process()   {};
+  virtual int  SetMatrix(float* matrix){ return 0; };
 
   void SetPostProcessThread(Thread* thread);
   igtl::MessageBase::Pointer GetFrameFromBuffer(int id);

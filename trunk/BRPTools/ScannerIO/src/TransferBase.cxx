@@ -24,6 +24,7 @@ TransferBase::TransferBase()
 int TransferBase::SetAcquisitionThread(AcquisitionBase* acquisition)
 {
   this->AcquisitionThread = acquisition;
+  return 1;
 }
 /*
 virtual int  Init()      {};

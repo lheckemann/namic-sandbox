@@ -77,6 +77,7 @@ int AcquisitionBase::PutFrameToBuffer(int id, igtl::MessageBase::Pointer frame)
   if (id >= 0 && id < this->GetCircularFrameBufferSize())
     {
       this->CircularFrameBuffer[id] = frame;
+      return 1;
     }
   else
     {
