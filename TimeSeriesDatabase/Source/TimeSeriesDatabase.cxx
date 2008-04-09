@@ -10,13 +10,19 @@
 
 int main ( int argc, char* argv[] ) {
 
+  if ( argc != 3 ) {
+    std::cerr << "Usage: TimeSeriesDatabase <DatabaseFile> <ArchetypeFile>" << std::endl;
+    exit ( EXIT_FAILURE );
+  }
+  
+  
   typedef itk::TimeSeriesDatabase<signed short> DBType;
   DBType::Pointer db = DBType::New();
-  db->CreateFromFileArchetype ( "TSD.tsd", "/Users/blezek/Source/TimeSeriesDatabase/Data/CTHeadAxial-01.nhdr" );
+  db->CreateFromFileArchetype ( argv[1], argv[2] );
   db->Print ( std::cout );
 
   std::cout << "Wrote db" << std::endl;
-  db->Connect ( "TSD.tsd" );
+  db->Connect ( argv[1] );
   
   db->SetCurrentImage ( 3 );
   db->Update();
