@@ -17,13 +17,14 @@
 #ifndef __igltOSUtil_h
 #define __igltOSUtil_h
 
+#include "igtlWin32Header.h"
 namespace igtl
 {
 
   /** Stop the program for the duration specified in millisecond
    *  The maximum dulation is 
    * */
-  void Sleep(int millisecond);
+  void IGTLCommon_EXPORT Sleep(int millisecond);
 
 }
 

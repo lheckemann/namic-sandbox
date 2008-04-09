@@ -31,6 +31,7 @@
 =========================================================================*/
 #include "igtlConditionVariable.h"
 
+
 namespace igtl {
   
 ConditionVariable::ConditionVariable()

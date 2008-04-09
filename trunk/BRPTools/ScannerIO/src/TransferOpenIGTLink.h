@@ -20,6 +20,7 @@
 #include <string>
 
 #include "igtlMath.h"
+#include "igtlWin32Header.h"
 #include "igtlImageMessage.h"
 #include "TransferBase.h"
 
@@ -27,7 +28,7 @@
 #include "igtlClientSocket.h"
 #include "igtlMultiThreader.h"
 
-class TransferOpenIGTLink : public TransferBase
+class IGTLCommon_EXPORT TransferOpenIGTLink : public TransferBase
 {
 public:
   enum {

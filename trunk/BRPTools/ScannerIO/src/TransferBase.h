@@ -17,12 +17,13 @@
 #ifndef __TRANSFER_BASE_H
 #define __TRANSFER_BASE_H
 
+#include "igtlWin32Header.h"
 #include "igtlMath.h"
 #include "igtlImageMessage.h"
 #include "AcquisitionBase.h"
 #include "Thread.h"
 
-class TransferBase : public Thread
+class IGTLCommon_EXPORT TransferBase : public Thread
 {
 public:
   

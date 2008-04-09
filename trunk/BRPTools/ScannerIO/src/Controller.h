@@ -17,11 +17,12 @@
 #ifndef __Controller_h
 #define __Controller_h
 
+#include "igtlWin32Header.h"
 #include "igtlMath.h"
 #include "igtlImageMessage.h"
 #include "Thread.h"
 
-class Controller
+class IGTLCommon_EXPORT Controller
 {
 public:
 

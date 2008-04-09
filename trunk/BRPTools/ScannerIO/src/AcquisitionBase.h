@@ -21,9 +21,11 @@
 
 #include "igtlMath.h"
 #include "igtlMessageBase.h"
+#include "igtlWin32Header.h"
+
 #include "Thread.h"
 
-class AcquisitionBase : public Thread
+class IGTLCommon_EXPORT AcquisitionBase : public Thread
 {
 public:
   

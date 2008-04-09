@@ -33,13 +33,18 @@
  * Also it removes a few annoying #define's in windows.h. */
 #ifndef __igtlWindows_h
 #define __igtlWindows_h
+
 #ifndef NOMINMAX
-#define NOMINMAX
+ #define NOMINMAX
 #endif
+
 #ifdef WIN32_LEAN_AND_MEAN
-#undef WIN32_LEAN_AND_MEAN
+ #undef WIN32_LEAN_AND_MEAN
 #endif
+
 #define WIN32_LEAN_AND_MEAN
+
 #include <windows.h>
 #include <winbase.h>
+
 #endif

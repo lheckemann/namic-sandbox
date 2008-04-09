@@ -19,10 +19,11 @@
 
 #include <vector>
 
+#include "igtlWin32Header.h"
 #include "igtlImageMessage.h"
 #include "AcquisitionBase.h"
 
-class AcquisitionSimulator: public AcquisitionBase
+class IGTLCommon_EXPORT AcquisitionSimulator: public AcquisitionBase
 {
 public:
 

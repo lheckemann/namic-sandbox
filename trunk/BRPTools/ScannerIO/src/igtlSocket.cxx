@@ -47,6 +47,7 @@
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
   #include <windows.h>
+  #include <winsock2.h> 
 #else
   #include <sys/types.h>
   #include <sys/socket.h>
