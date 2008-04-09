@@ -27,16 +27,17 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-#include "igtlMultiThreader.h"
-
-#include "igtlMutexLock.h"
-#include "igtlObjectFactory.h"
 
 #ifdef _WIN32
 #pragma warning ( disable : 4786 )
 #include "igtlWindows.h"
 #include <process.h>
 #endif
+
+
+#include "igtlMultiThreader.h"
+#include "igtlMutexLock.h"
+#include "igtlObjectFactory.h"
 
 // These are the includes necessary for multithreaded rendering on an SGI
 // using the sproc() call
@@ -55,7 +56,7 @@
 #include <pthread.h>
 extern "C" { typedef void *(*igtlExternCThreadFunctionType)(void *); }
 #else
-typedef igtlThreadFunctionType igtlExternCThreadFunctionType;
+//typedef igtlThreadFunctionType igtlExternCThreadFunctionType;
 #endif
 
 #ifdef __APPLE__

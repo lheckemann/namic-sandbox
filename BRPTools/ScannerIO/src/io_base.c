@@ -23,6 +23,7 @@
  *
  */
 
+#include "igtl_util.h"
 #include "io_base.h"
 #include <string.h>
 
@@ -41,7 +42,10 @@ int readHostInt(FILE *fp, igtl_int32 *dest)
   if (fread(&tmp, sizeof(igtl_uint32), 1, fp) != 1) {
     return 0;
   }
-  tmp = ntohl(tmp);
+  /*tmp = ntohl(tmp);*/
+  if (igtl_is_little_endian()) {
+    tmp = BYTE_SWAP_INT32(tmp);
+  }
   memcpy(dest, &tmp, sizeof(igtl_uint32));
   return 1;
 }
@@ -53,7 +57,11 @@ int readHostUShort(FILE *fp, igtl_uint16 * dest)
   if (fread(&tmp, sizeof(igtl_uint16), 1, fp) != 1) {
     return 0;
   }
-  tmp = ntohs(tmp);
+  /*tmp = ntohs(tmp);*/
+  if (igtl_is_little_endian()) {
+    tmp = BYTE_SWAP_INT16(tmp);
+  }
+
   *dest = tmp;
   return 1;
 }
@@ -65,7 +73,10 @@ int readHostShort(FILE *fp, igtl_int16 * dest)
   if (fread(&tmp, sizeof(igtl_uint16), 1, fp) != 1) {
     return 0;
   }
-  tmp = ntohs(tmp);
+  /*tmp = ntohs(tmp);*/
+  if (igtl_is_little_endian()) {
+    tmp = BYTE_SWAP_INT16(tmp);
+  }
   memcpy(dest, &tmp, sizeof(igtl_uint16));
   return 1;
 }
@@ -78,7 +89,10 @@ int readHostFloat(FILE *fp, igtl_float32 *dest)
   if (fread(&tmp, sizeof(igtl_uint32), 1, fp) != 1) {
     return 0;
   }
-  tmp = ntohl(tmp);
+  /*tmp = ntohl(tmp);*/
+  if (igtl_is_little_endian()) {
+    tmp = BYTE_SWAP_INT32(tmp);
+  }
   memcpy(dest, &tmp, sizeof(igtl_uint32));
   return 1;
 

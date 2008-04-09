@@ -249,6 +249,7 @@ LightObject
 
   os << std::endl;
 #else
+  char* indent = "    ";  
   os << indent << "RTTI typeinfo:   " << typeid( *this ).name() << std::endl;
 #endif
   os << indent << "Reference Count: " << m_ReferenceCount << std::endl;

@@ -31,6 +31,7 @@
 #include <string.h>
 */
 
+#include "igtlWin32Header.h"
 #include "igtlMultiThreader.h"
 #include "igtlMutexLock.h"
 #include "igtlConditionVariable.h"
@@ -44,7 +45,7 @@
 #include <ace/Condition_T.h>
 */
 
-class Thread {
+class IGTLCommon_EXPORT Thread {
 
  public:
   // thread status

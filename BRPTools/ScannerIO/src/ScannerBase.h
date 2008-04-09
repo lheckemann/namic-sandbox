@@ -2,9 +2,10 @@
 #define __SCANNER_BASE_H
 
 #include "igtlMath.h"
+#include "igtlWin32Header.h"
 #include "igtlImageMessage.h"
 
-class ScannerBase
+class IGTLCommon_EXPORT ScannerBase
 {
 public:
 //  static ScannerBase* New();

@@ -30,11 +30,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "igtl_util.h"
 #include "io_signa5.h"
 #include "io_base.h"
 
-
-#undef _DBG_PRINT
+#ifdef _DBG_PRINT
+  #undef _DBG_PRINT
+#endif
 
 #if (__GNUC__ >= 3)  // in case of GCC 3.x
   #ifdef _DEBUG_GENRDR
@@ -48,6 +50,10 @@
   #else
     #define DBG_PRINT(s...)   
   #endif
+#elif defined(WIN32) // windows
+  #define DBG_PRINT(s)   
+#else
+  #define DBG_PRINT(s)   
 #endif
 
 
@@ -666,17 +672,23 @@ int convertByteOrder(GenesisImageInfo *imageInfo)
     /*DBG_PRINT("Start converting byte order. The image depth is 16 bit.\n");*/
     imp16 = (igtl_uint16*)imageInfo->imageData;
     end16 = imp16 + imsize;
-    while (imp16 < end16) {
-      *imp16 = ntohs(*imp16);
-      imp16 ++;
+    if (igtl_is_little_endian()) {
+      while (imp16 < end16) {
+        *imp16 = BYTE_SWAP_INT16(*imp16);
+        /**imp16 = ntohs(*imp16);*/
+        imp16 ++;
+      }
     }
   } else if (imageInfo->depth == 32) {
     /*DBG_PRINT("Start converting byte order. The image depth is 32 bit.\n");*/
     imp32 = (igtl_uint32*)imageInfo->imageData;
     end16 = imp16 + imsize;
-    while (imp16 < end16) {
-      *imp16 = ntohs(*imp16);
-      imp16 ++;
+    if (igtl_is_little_endian()) {
+      while (imp16 < end16) {
+        *imp16 = BYTE_SWAP_INT16(*imp16);
+        /**imp16 = ntohs(*imp16);*/
+        imp16 ++;
+      }
     }
   }
   return 1;

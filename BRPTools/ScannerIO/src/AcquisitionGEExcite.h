@@ -31,6 +31,7 @@
 #include <ace/Thread_Mutex.h>
 */
 
+#include "igtlWin32Header.h"
 #include "igtlClientSocket.h"
 #include "igtlImageMessage.h"
 #include "AcquisitionBase.h"
@@ -64,7 +65,7 @@ typedef struct
 
 
 
-class AcquisitionGEExcite: public AcquisitionBase
+class IGTLCommon_EXPORT AcquisitionGEExcite: public AcquisitionBase
 {
 public:
   enum {

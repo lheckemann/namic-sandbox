@@ -19,9 +19,10 @@
 
 #include <vector>
 
+#include "igtlWin32Header.h"
 #include "AcquisitionBase.h"
 
-class AcquisitionTrackingSimulator: public AcquisitionBase
+class IGTLCommon_EXPORT AcquisitionTrackingSimulator: public AcquisitionBase
 {
 public:
 
