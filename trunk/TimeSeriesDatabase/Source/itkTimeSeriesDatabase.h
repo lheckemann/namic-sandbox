@@ -79,10 +79,11 @@ namespace itk {
     std::streampos CalculatePosition ( Size<3> Position, int ImageCount );
     streampos CalculatePosition ( unsigned long p );
     unsigned long CalculateIndex ( Size<3> Position, int ImageCount );
-    void CalculateIntersection ( Size<3> BlockIndex, typename OutputImageType::RegionType RequestedRegion, 
+    // Return true if this is a full block, false otherwise.  Assumes there is overlap!
+    bool CalculateIntersection ( Size<3> BlockIndex, typename OutputImageType::RegionType RequestedRegion, 
                                  typename OutputImageType::RegionType& BlockRegion,
                                  typename OutputImageType::RegionType& ImageRegion );
-    bool IsOpen();
+    bool IsOpen() const;
 
     // How many pixels are in the last block?
     Array<unsigned int> m_PixelRemainder;
