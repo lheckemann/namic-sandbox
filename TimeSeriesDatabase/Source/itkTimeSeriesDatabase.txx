@@ -18,33 +18,47 @@ namespace itk {
 
   
 template <class TPixel>
-void TimeSeriesDatabase<TPixel>::CalculateIntersection ( Size<3> BlockIndex, 
+bool TimeSeriesDatabase<TPixel>::CalculateIntersection ( Size<3> BlockIndex, 
                                                          typename OutputImageType::RegionType RequestedRegion, 
                                                          typename OutputImageType::RegionType& BlockRegion,
                                                          typename OutputImageType::RegionType& ImageRegion )
 {
 
   // Calculate the intersection between the block at BlockIndex and the Requested Region
+  bool IsFullBlock = true;
   for ( unsigned int i = 0; i < 3; i++ )
   {
     ImageRegion.SetIndex ( i, TSD_MAX ( (long unsigned int) RequestedRegion.GetIndex ( i ), TimeSeriesBlockSize * BlockIndex[i] ) );
     BlockRegion.SetIndex ( i, ImageRegion.GetIndex(i) % TimeSeriesBlockSize );
 
-    ImageRegion.SetSize ( i, TSD_MIN ( (long int) RequestedRegion.GetSize ( i ), TimeSeriesBlockSize - BlockRegion.GetIndex ( i ) ) );
-    BlockRegion.SetSize ( i, ImageRegion.GetSize(i)  );
+    // This is the end index
+    long unsigned int Tmp = RequestedRegion.GetIndex ( i ) + RequestedRegion.GetSize ( i );
+    Tmp = TSD_MIN ( (long unsigned int) Tmp, TimeSeriesBlockSize * (BlockIndex[i]+1) );
+    Tmp = Tmp - ImageRegion.GetIndex(i);
+
+    ImageRegion.SetSize ( i, Tmp );
+    BlockRegion.SetSize ( i, Tmp );
+    IsFullBlock = IsFullBlock & ( Tmp == TimeSeriesBlockSize );
   }
-        std::cout << "Found Block Region: " << BlockRegion << std::endl;
-        std::cout << "Found Image Region: " << ImageRegion << std::endl; 
+  std::cout << "Found Block Region: " << BlockRegion << std::endl;
+  std::cout << "Found Image Region: " << ImageRegion << std::endl;
+  if ( IsFullBlock ) {
+    std::cout << "Is Full Block" << std::endl;
+  } else {
+    std::cout << "Not Full Block" << std::endl;
+  }
+    
 
 }
 
 
   
 template <class TPixel>
-bool TimeSeriesDatabase<TPixel>::IsOpen ()
+bool TimeSeriesDatabase<TPixel>::IsOpen () const
 {
   return this->m_File.is_open();
 }
+
 template <class TPixel>
 void TimeSeriesDatabase<TPixel>::Disconnect ()
 {
@@ -206,25 +220,70 @@ void TimeSeriesDatabase<TPixel>::GenerateData()
   Size<3> BlockStart, BlockCount;
   for ( unsigned int i = 0; i < 3; i++ ) {
     BlockStart[i] = (int) floor ( Region.GetIndex(i) / TimeSeriesBlockSize );
-    BlockCount[i] = (int) TSD_MAX ( 1.0, ceil ( (Region.GetIndex(i)+Region.GetSize(i)) / TimeSeriesBlockSize ) );
+    BlockCount[i] = (int) TSD_MAX ( 1.0, ceil ( (Region.GetIndex(i)+Region.GetSize(i)) / (double)TimeSeriesBlockSize ) );
   }
   std::cout << "Block Start: " << BlockStart << endl;
   std::cout << "Block Count: " << BlockCount << endl;
 
-  
-  // Now, read our data, caching as we go, in future, make this thread safe
+
   Size<3> CurrentBlock;
+  // Now, read our data, caching as we go, in future, make this thread safe
   Size<3> BlockSize = { TimeSeriesBlockSize, TimeSeriesBlockSize, TimeSeriesBlockSize };
   ImageRegion<3> BlockRegion;
   BlockRegion.SetSize ( BlockSize );
-
+  // Fetch only the blocks we need
+  for ( CurrentBlock[2] = BlockStart[2]; CurrentBlock[2] < BlockStart[2] + BlockCount[2]; CurrentBlock[2]++ ) {
+    for ( CurrentBlock[1] = BlockStart[1]; CurrentBlock[1] < BlockStart[1] + BlockCount[1]; CurrentBlock[1]++ ) {
+      for ( CurrentBlock[0] = BlockStart[0]; CurrentBlock[0] < BlockStart[0] + BlockCount[0]; CurrentBlock[0]++ ) {
+        typename OutputImageType::RegionType BR, IR;
+        std::cout << "For Block Index: " << CurrentBlock << std::endl;
+        unsigned long index = this->CalculateIndex ( CurrentBlock, this->m_CurrentImage );
+        CacheBlock* Buffer = this->GetCacheBlock ( index );
+        if ( this->CalculateIntersection ( CurrentBlock, Region, BR, IR ) ) {
+          // Just iterate over whole block
+          // Good we can use an iterator!
+          Index<3> BlockIndex = { CurrentBlock[0] * TimeSeriesBlockSize,  CurrentBlock[1] * TimeSeriesBlockSize,  CurrentBlock[2] * TimeSeriesBlockSize };
+          BlockRegion.SetIndex ( BlockIndex );
+          ImageRegionIterator<OutputImageType> it ( output, IR );
+          it.GoToBegin();
+          TPixel* ptr = Buffer->data;
+          while ( !it.IsAtEnd() ) {
+            it.Set ( *ptr );
+            ++it;
+            ++ptr;
+          }
+        } else {
+          // cout << "The Hard way" << std::endl;
+          // Now we do it the hard way...
+          Index<3> ImageIndex;
+          Size<3> StartIndex, EndIndex;
+          for ( int i = 0; i < 3; i++ ) {
+            StartIndex[i] = BR.GetIndex(i);
+            EndIndex[i] = BR.GetIndex(i) + BR.GetSize(i);
+          }
+          std::cout << "Start Index: " << StartIndex << std::endl;
+          std::cout << "End Index: " << EndIndex << std::endl;
+          for ( int bz = StartIndex[2]; bz < EndIndex[2]; bz++ ) {
+            ImageIndex[2] = IR.GetIndex(2) + bz;
+            for ( int by = StartIndex[1]; by < EndIndex[1]; by++ ) {
+              ImageIndex[1] = IR.GetIndex(1) + by;
+              for ( int bx = StartIndex[0]; bx < EndIndex[0]; bx++ ) {
+                // Put bx,by,bz into bx-xoff,by-yoff,bz-zoff
+                ImageIndex[0] = IR.GetIndex(0) + bx;
+                output->SetPixel ( ImageIndex, Buffer->data[bx + TimeSeriesBlockSize*by + TimeSeriesBlockSize*TimeSeriesBlockSize*bz] );
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  
+#if 0
   for ( CurrentBlock[2] = 0; CurrentBlock[2] < this->m_BlocksPerImage[2]; CurrentBlock[2]++ ) {
     for ( CurrentBlock[1] = 0; CurrentBlock[1] < this->m_BlocksPerImage[1]; CurrentBlock[1]++ ) {
       for ( CurrentBlock[0] = 0; CurrentBlock[0] < this->m_BlocksPerImage[0]; CurrentBlock[0]++ ) {
 
-        typename OutputImageType::RegionType BR, IR;
-        std::cout << "For Block Index: " << CurrentBlock << std::endl;
-        this->CalculateIntersection ( CurrentBlock, Region, BR, IR );
 
         // Seek to the block we need
         unsigned long index = this->CalculateIndex ( CurrentBlock, this->m_CurrentImage );
@@ -263,14 +322,14 @@ void TimeSeriesDatabase<TPixel>::GenerateData()
                 // Put bx,by,bz into bx-xoff,by-yoff,bz-zoff
                 BlockIndex[0] = bx;
                 output->SetPixel ( BlockIndex, Buffer->data[bx-StartIndex[0] + TimeSeriesBlockSize*(by-StartIndex[1]) + TimeSeriesBlockSize*TimeSeriesBlockSize*(bz-StartIndex[2])]  );
-                }
               }
             }
           }
         }
       }
     }
-  this->m_File.close();
+  }
+#endif  
   return;
 }
   
@@ -443,7 +502,17 @@ TimeSeriesDatabase<TPixel>
   Superclass::PrintSelf(os, indent);
 
   os << indent << "Dimensions: " << m_Dimensions << "\n";
-  os << indent << "Archetype: " << m_Filename << "\n";
+  os << indent << "Database: " << m_Filename << "\n";
+  os << indent << "BlocksPerImage: " << m_BlocksPerImage << "\n";
+  os << indent << "OutputSpacing: " << m_OutputSpacing << "\n";
+  os << indent << "OutputRegion: " << m_OutputRegion;
+  os << indent << "OutputOrigin: " << m_OutputOrigin << "\n";
+  os << indent << "OutputDirection: " << m_OutputDirection << "\n";
+  if ( this->IsOpen() ) {
+    os << indent << "Database is open." << "\n";
+  } else {
+    os << indent << "Database is closed." << "\n";
+  }
 }
 
 
