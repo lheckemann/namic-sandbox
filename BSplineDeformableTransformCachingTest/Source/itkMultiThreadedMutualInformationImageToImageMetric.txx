@@ -20,6 +20,7 @@
 #include "itkMultiThreadedMutualInformationImageToImageMetric.h"
 #include "itkCovariantVector.h"
 #include "itkImageRandomConstIteratorWithIndex.h"
+#include "itkImageRandomNonRepeatingConstIteratorWithIndex.h"
 #include "vnl/vnl_math.h"
 #include "itkGaussianKernelFunction.h"
 #include "itkBSplineDeformableTransform.h"
@@ -39,6 +40,9 @@
 #define USE_CACHED_DERIVATIVES
 #define USE_SPARSE_CACHED_DERIVATIVES
 #define USE_SPARSE_BSAMPLE_DERIVATIVES
+
+//#define DEBUG_OFFSET
+#include <set>
 
 namespace itk
 {
@@ -82,6 +86,31 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   // this->m_DerivativeCacheSize += 600UL * 1024UL * 1024UL; // Add 600 more MB
 }
 
+template < class TFixedImage, class TMovingImage  >
+MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+::~MultiThreadedMutualInformationImageToImageMetric()
+{
+  if ( this->m_SampleAStartIterators )
+    {
+    delete[] this->m_SampleAStartIterators;
+    } 
+  if ( this->m_SampleBStartIterators )
+    {
+    delete[] this->m_SampleBStartIterators;
+    }
+  if ( this->m_SampleAEndIterators )
+    {
+    delete[] this->m_SampleAEndIterators;
+    }
+  if ( this->m_SampleBEndIterators )
+    {
+    delete[] this->m_SampleBEndIterators;
+    }
+  if ( this->m_TransformArray )
+    {
+    delete[] this->m_TransformArray;
+    }
+}
 
 template < class TFixedImage, class TMovingImage  >
 void
@@ -150,6 +179,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 {
 
   typedef ImageRandomConstIteratorWithIndex<FixedImageType> RandomIterator;
+  //typedef ImageRandomNonRepeatingConstIteratorWithIndex<FixedImageType> RandomIterator;
   RandomIterator randIter( this->m_FixedImage, this->GetFixedImageRegion() );
 
   randIter.SetNumberOfSamples( m_NumberOfSpatialSamples );
@@ -1020,6 +1050,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   this->m_SumJointPartialAResults.resize( m_NumberOfThreads );
 
   /** FIXME: Move to each thread? */
+  std::cout << "Resizing partial results to accommodate sample size : " << this->m_NumberOfSpatialSamples << std::endl;
   for (unsigned int t = 0; t < m_NumberOfThreads; t++)
     {
     this->m_SumFixedPartialAResults[t].resize( this->m_NumberOfSpatialSamples );
@@ -1070,12 +1101,18 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   // and then use them to weight the B sample derivatives.
   value = NumericTraits< MeasureType >::Zero;
   m_NumberOfParameters = this->m_Transform->GetNumberOfParameters();
+/*
   DerivativeType temp( m_NumberOfParameters );
   memset( temp.data_block(),
           0,
           this->m_NumberOfParameters * sizeof(double) );
 
   derivative = temp;
+*/
+  derivative.SetSize( m_NumberOfParameters);
+  memset( derivative.data_block(),
+          0,
+          this->m_NumberOfParameters * sizeof(double) );
 
 
   // Check for b-spline transform...
@@ -1097,10 +1134,14 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   m_DerivativeCalculator->SetInputImage( this->m_MovingImage );
 
   // collect sample set A
+  std::cout << "Collecting A samples..." << std::endl;
   this->SampleFixedImageDomain( m_SampleA );
 
   // collect sample set B
+  std::cout << "Collecting B samples..." << std::endl;
   this->SampleFixedImageDomain( m_SampleB );
+
+  // this->ValidateSamples();
 
   // Setup the thread iterators for the A samples.
   this->SetupSampleThreadIterators();
@@ -1115,6 +1156,8 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   this->CacheSampleADerivatives();
 #endif
 #endif
+
+  // this->ValidateSparseDerivativeMap();
 
   if (false == this->ValidatePartialResultSizes())
     {
@@ -1131,7 +1174,11 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   this->GetValueAndDerivativePhase1ThreadedInitiate();
 #endif
 
+  // this->ValidateSparseDerivativeMap();
+
   this->GetValueAndDerivativeMultiThreadedInternalPhase1Combine( value );
+
+  // this->ValidateSparseDerivativeMap();
 
   if (false == this->ValidatePartialResultSizes())
     {
@@ -1149,7 +1196,11 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   this->GetValueAndDerivativePhase2ThreadedInitiate();
 #endif
 
+  // this->ValidateSparseDerivativeMap();
+
   this->GetValueAndDerivativeMultiThreadedInternalPhase2Combine( derivative );
+
+  // this->ValidateSparseDerivativeMap();
 
   // FIXME: DEBUG
   if (false == this->ValidatePartialResultSizes())
@@ -1168,7 +1219,11 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   this->GetValueAndDerivativePhase3ThreadedInitiate();
 #endif
 
+  // this->ValidateSparseDerivativeMap();
+
   this->GetValueAndDerivativeMultiThreadedInternalPhase3Combine( derivative );
+
+  // this->ValidateSparseDerivativeMap();
 
   if (false == this->ValidatePartialResultSizes())
     {
@@ -1450,7 +1505,9 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   msg << "Phase 2 - thread " << threadID << "\n";
   std::cout << msg.str();
 
+#ifndef USE_CACHED_DERIVATIVES
   DerivativeType derivA( this->m_NumberOfParameters );
+#endif
 
   // Set derivative for this thread to 0.
   memset( this->m_ThreadDerivatives[threadID].data_block(),
@@ -1554,19 +1611,25 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
           this->m_NumberOfParameters * sizeof(double) );
 
   // Combine derivatives across threads.
+  std::cout << "Derivative size : " << derivative.size() << std::endl;
+  std::cout << "m_ThreadDerivatives size : " << m_ThreadDerivatives[0].size() << std::endl;
+
   for (unsigned int t = 0; t < this->m_NumberOfThreads; t++)
     {
-    derivative += this->m_ThreadDerivatives[ t ];
+    // FIXME: 4-9-08, 8:44 pm
+    // derivative += this->m_ThreadDerivatives[ t ];
+    this->FastDerivativeAdd( derivative, this->m_ThreadDerivatives[ t ] );
     }
 
   // Different start index than previous loop
-  for (unsigned int t = 1; t < this->m_NumberOfThreads; t++)
-    {
+  // FIXME: 4-9-08, 8:55 pm 
     // Combine totalWeight across threads for each B sample.
     for (unsigned int bSample = 0; 
           bSample < this->m_NumberOfSpatialSamples;
           bSample++)
       {
+  for (unsigned int t = 1; t < this->m_NumberOfThreads; t++)
+    {
       m_TotalWeightBSamplePartialResult[0][bSample]  += m_TotalWeightBSamplePartialResult[t][bSample];
       }
 
@@ -1586,8 +1649,15 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     this->m_TotalWeightBSamplePartialResult[ t ].resize( this->m_NumberOfSpatialSamples );
     }
 
+  std::cout << "Number of parameters : " << this->m_NumberOfParameters << std::endl;
   this->m_ThreadDerivatives.resize( this->m_NumberOfThreads, 
                                     DerivativeType( this->m_NumberOfParameters ) );
+  for (unsigned int t = 0; t < this->m_NumberOfThreads; t++) 
+    {
+    this->m_ThreadDerivatives[ t ].SetSize( this->m_NumberOfParameters );
+    }
+  std::cout << "~~~~ Thread derivative size : " << this->m_ThreadDerivatives[0].size() << std::endl;
+
 }
 
 template < class TFixedImage, class TMovingImage  >
@@ -1926,6 +1996,19 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 {
   /** This method assumes that the samples have been generated already and 
       that the transform has been set. **/
+  std::cout << "m_SparseDerivativeMap size : " << this->m_SparseDerivativeMap.size() << std::endl;
+
+  { // start extra scope
+  std::ofstream derivativeMapOutput("derivativeMapOutput.txt");
+
+  for (typename SparseDerivativeMapType::iterator miter = m_SparseDerivativeMap.begin();
+        miter != m_SparseDerivativeMap.end();
+        ++miter)
+  {
+  derivativeMapOutput << (*miter).first << std::endl;
+  }
+  derivativeMapOutput.close();
+  }// end extra scope
 
   // Clear the cached derivatives.
   this->m_SparseDerivativeMap.clear();
@@ -1952,6 +2035,18 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     if (currentCacheSize <= m_DerivativeCacheSize)
       {
       // COPY of derivative!
+#ifdef DEBUG_OFFSET
+      FixedImageLinearOffsetType maxOffset = 0;
+      typename FixedImageType::SizeType fixSize = this->m_FixedImage->GetLargestPossibleRegion().GetSize();
+      maxOffset = fixSize[0] * fixSize[1] * fixSize[2];
+
+      if ( (*aiter).FixedImageLinearOffset > maxOffset-1 ||
+           (*aiter).FixedImageLinearOffset < 0 )
+        {
+        std::cerr << "Offset error!" << std::endl;
+        std::cerr << "Offset : " << (*aiter).FixedImageLinearOffset << std::endl;
+        }
+#endif
       this->m_SparseDerivativeMap[ (*aiter).FixedImageLinearOffset ] = derivA;
       numberOfCachedDerivatives++;
       }
@@ -2019,6 +2114,114 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     {
     this->FastSparseDerivativeSubtractWithWeight( threadDerivative, (*iter).second, weight );
     }  
+}
+
+template < class TFixedImage, class TMovingImage  >
+bool
+MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+::ValidateSamples() const
+{
+  std::set< long > sampleIndexHashSet;
+  std::set< long > sampleIndexSet;
+  itk::hash< long > hashFunc;
+
+  bool result = true;
+
+  typedef std::vector< SamplesIterator > DuplicateContainer;
+  DuplicateContainer dups;
+
+  for ( SamplesIterator siter = m_SampleA.begin();
+        siter != m_SampleA.end();
+        ++siter)
+    {
+    long value = hashFunc( (*siter).FixedImageLinearOffset );
+    if ( sampleIndexHashSet.find( value ) != sampleIndexHashSet.end() )
+      {
+      std::cerr << "Hash function collision for : " << (*siter).FixedImageLinearOffset << " with hash " << value << std::endl;
+      if ( sampleIndexSet.find( (*siter).FixedImageLinearOffset ) != sampleIndexSet.end() )
+        {
+        std::cerr << "Sample set already has linear index : " << (*siter).FixedImageLinearOffset << std::endl;
+        }
+      FixedImageIndexType fixedIndex = this->m_FixedImage->ComputeIndex( (*siter).FixedImageLinearOffset );
+      std::cerr << "Sample is at index : " << fixedIndex << std::endl;
+      std::cerr << "Fixed image size : " << this->m_FixedImage->GetLargestPossibleRegion() << std::endl;
+      dups.push_back( siter );
+      result = false;
+      }
+    else
+      {
+      sampleIndexHashSet.insert( value );
+      sampleIndexSet.insert( (*siter).FixedImageLinearOffset );
+      } 
+    }
+
+  /*
+  Self* thisNonConst = const_cast<Self*> (this);
+
+  for ( typename DuplicateContainer::iterator diter = dups.begin();
+  diter != dups.end();
+  ++diter)
+    {
+    m_SampleA.erase( *diter );
+    thisNonConst->m_NumberOfSpatialSamples--;
+    }
+  */
+
+  return result;
+}
+
+template < class TFixedImage, class TMovingImage  >
+bool
+MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
+::ValidateSparseDerivativeMap() const
+{
+  this->ValidateSamples();
+
+  if ( this->m_SparseDerivativeMap.size() != this->m_SampleA.size() ) //||
+  //this->m_SparseDerivativeMap.size() != this->m_SampleB.size() )
+    {
+    std::cerr << "Sparse derivative map is not the right size!" << std::endl;
+    std::cerr << "Expected (A): " << this->m_SampleA.size() << std::endl;
+    std::cerr << "Expected (B): " << this->m_SampleB.size() << std::endl;
+    std::cerr << "Got: " << this->m_SparseDerivativeMap.size() << std::endl;
+
+  for ( SamplesConstIterator siter = m_SampleA.begin();
+        siter != m_SampleA.end();
+        ++siter)
+    {
+    if ( this->m_SparseDerivativeMap.count( (*siter).FixedImageLinearOffset ) > 1 )
+      {
+      std::cerr << "More than one entry at : " << (*siter).FixedImageLinearOffset << std::endl;
+      }
+    }
+
+    // char* ptr = 0;
+    // *ptr = 10; // crash me
+    return false;
+    }
+
+  long long sum = 0;
+
+  for ( SamplesConstIterator siter = m_SampleA.begin();
+        siter != m_SampleA.end();
+        ++siter)
+    {
+    FixedImageLinearOffsetType linearIndex = (*siter).FixedImageLinearOffset;
+    typename SparseDerivativeMapType::const_iterator iter = this->m_SparseDerivativeMap.find( linearIndex );
+    sum += (*iter).first;
+
+    // If not inside the fixed mask, ignore the point
+    FixedImageIndexType index;
+    this->m_FixedImage->TransformPhysicalPointToIndex( (*siter).FixedImagePointValue, index);
+
+    if( !this->m_FixedImage->GetBufferedRegion().IsInside( index ) )
+      {
+      std::cerr << "Hash map error!" << std::endl;
+      return false;
+      }
+    }
+
+  return true;
 }
 
 } // end namespace itk

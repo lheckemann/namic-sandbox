@@ -26,7 +26,11 @@
 #include "itkCentralDifferenceImageFunction.h"
 #include "itkBSplineDeformableTransform.h"
 
+#ifdef WIN32
+#include <hash_map>
+#else
 #include "itk_hash_map.h"
+#endif
 
 namespace itk
 {
@@ -196,7 +200,7 @@ public:
 
 protected:
   MultiThreadedMutualInformationImageToImageMetric();
-  virtual ~MultiThreadedMutualInformationImageToImageMetric() {};
+  virtual ~MultiThreadedMutualInformationImageToImageMetric();
   void PrintSelf(std::ostream& os, Indent indent) const;
 
 private:
@@ -283,6 +287,14 @@ private:
   typedef long FixedImageLinearOffsetType; 
 
   // Hash map -- element access is fast. Stored in no particular order.
+#ifdef WIN32
+  typedef stdext::hash_map< FixedImageLinearOffsetType, 
+                           DerivativeType > DerivativeMapType;
+
+  typedef stdext::hash_map< FixedImageLinearOffsetType,
+                           SparseDerivativeType > SparseDerivativeMapType;
+
+#else
   typedef itk::hash_map< FixedImageLinearOffsetType, 
                          DerivativeType,
                          itk::hash< FixedImageLinearOffsetType > > DerivativeMapType;
@@ -290,6 +302,7 @@ private:
   typedef itk::hash_map< FixedImageLinearOffsetType,
                          SparseDerivativeType, 
                          itk::hash< FixedImageLinearOffsetType > > SparseDerivativeMapType;
+#endif
 
   typedef std::vector< DerivativeType > DerivativePartialResultsType; 
 
@@ -424,6 +437,10 @@ private:
     double* inData = in.data_block();
     const double* subtrahendData = subtrahend.data_block();
     const unsigned int inSize = in.size();
+    if (inSize != subtrahend.size() )
+      {
+      std::cerr << "FastDerivativeSubtractWithWeight -- sizes don't match!" << std::endl;
+      }
 
     for (unsigned int i = 0; i < inSize; i++ )
       {
@@ -438,6 +455,10 @@ private:
     double* inData = in.data_block();
     const double* addendData = addend.data_block();
     const unsigned int inSize = in.size();
+    if (inSize != addend.size() )
+      {
+      std::cerr << "FastDerivativeAddWithWeight -- sizes don't match!" << std::endl;
+      }
 
     for (unsigned int i = 0; i < inSize; i++ )
       {
@@ -465,6 +486,10 @@ private:
     double* inData = in.data_block();
     const double* addendData = addend.data_block();
     const unsigned int inSize = in.size();
+    if (inSize != addend.size() )
+      {
+      std::cerr << "FastDerivativeAdd -- sizes don't match!" << std::endl;
+      }
 
     for (unsigned int i = 0; i < inSize; i++ )
       {
@@ -486,6 +511,8 @@ private:
       }
     }
 
+  bool ValidateSparseDerivativeMap() const;
+  bool ValidateSamples() const;
 };
 
 } // end namespace itk
