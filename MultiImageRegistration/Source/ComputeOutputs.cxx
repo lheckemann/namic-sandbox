@@ -494,7 +494,7 @@ int main( int argc, char * argv[] )
       itksys::SystemTools::MakeDirectory( (currentFolderName+"Slices/").c_str() );
       ostringstream sliceStream;
       sliceStream << j;
-      string sliceName = currentFolderName+"Slices/x"+sliceStream.str()+".jpg";
+      string sliceName = currentFolderName+"Slices/x"+sliceStream.str()+".tiff";
       sliceWriter->SetFileName( sliceName.c_str() );
       
       cout << "Writing " << sliceName.c_str() << endl; 
@@ -509,7 +509,7 @@ int main( int argc, char * argv[] )
       extractRegion.SetSize(  size  );
       extractRegion.SetIndex( start );
       sliceExtractFilter->SetExtractionRegion( extractRegion );
-      sliceName = currentFolderName+"Slices/z"+sliceStream.str()+".jpg";
+      sliceName = currentFolderName+"Slices/z"+sliceStream.str()+".tiff";
       sliceWriter->SetFileName( sliceName.c_str() );
       sliceWriter->Update();     
 
@@ -522,7 +522,7 @@ int main( int argc, char * argv[] )
       extractRegion.SetSize(  size  );
       extractRegion.SetIndex( start );
       sliceExtractFilter->SetExtractionRegion( extractRegion );
-      sliceName = currentFolderName+"Slices/y"+sliceStream.str()+".jpg";
+      sliceName = currentFolderName+"Slices/y"+sliceStream.str()+".tiff";
       sliceWriter->SetFileName( sliceName.c_str() );
       sliceWriter->Update();     
 
@@ -570,7 +570,7 @@ int main( int argc, char * argv[] )
         sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
         ostringstream sliceStream;
         sliceStream << j;
-        string sliceName = currentFolderName+"DeformationSlices/"+sliceStream.str()+".jpg";
+        string sliceName = currentFolderName+"DeformationSlices/"+sliceStream.str()+".tiff";
         sliceWriter->SetFileName( sliceName.c_str() );
         cout << "Writing " << sliceName << endl;
         sliceWriter->Update();
@@ -639,8 +639,8 @@ int main( int argc, char * argv[] )
     sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
 
     // write mean image
-    cout << "Writing " << (meanFolder+"MeanSliceX.jpg").c_str() << endl;
-    sliceWriter->SetFileName( (meanFolder+"MeanSliceX.jpg").c_str() );
+    cout << "Writing " << (meanFolder+"MeanSliceX.tiff").c_str() << endl;
+    sliceWriter->SetFileName( (meanFolder+"MeanSliceX.tiff").c_str() );
     sliceWriter->Update();     
 
     // Do the same for other slices
@@ -651,7 +651,7 @@ int main( int argc, char * argv[] )
     extractRegion.SetSize(  size  );
     extractRegion.SetIndex( start );
     sliceExtractFilter->SetExtractionRegion( extractRegion );
-    sliceWriter->SetFileName( (meanFolder+"MeanSliceY.jpg").c_str() );
+    sliceWriter->SetFileName( (meanFolder+"MeanSliceY.tiff").c_str() );
     sliceWriter->Update();     
 
     // Do the same for other slices
@@ -662,7 +662,7 @@ int main( int argc, char * argv[] )
     extractRegion.SetSize(  size  );
     extractRegion.SetIndex( start );
     sliceExtractFilter->SetExtractionRegion( extractRegion );
-    sliceWriter->SetFileName( (meanFolder+"MeanSliceZ.jpg").c_str() );
+    sliceWriter->SetFileName( (meanFolder+"MeanSliceZ.tiff").c_str() );
     sliceWriter->Update();     
 
 
@@ -677,7 +677,7 @@ int main( int argc, char * argv[] )
     sliceExtractFilter->SetInput( narySTDImageFilter->GetOutput() );
     sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
 
-    cout << "Writing " << (stdFolder+"STDSlice.jpg").c_str() << endl;
+    cout << "Writing " << (stdFolder+"STDSlice.tiff").c_str() << endl;
     size = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetSize();
     start = imageReaderArray[0]->GetOutput()->GetLargestPossibleRegion().GetIndex();
     start[0] = size[0]/2;
@@ -685,7 +685,7 @@ int main( int argc, char * argv[] )
     extractRegion.SetSize(  size  );
     extractRegion.SetIndex( start );
     sliceExtractFilter->SetExtractionRegion( extractRegion );
-    sliceWriter->SetFileName( (stdFolder+"STDSliceX.jpg").c_str() );
+    sliceWriter->SetFileName( (stdFolder+"STDSliceX.tiff").c_str() );
     sliceWriter->Update();
 
     // Do the same for other slices
@@ -696,7 +696,7 @@ int main( int argc, char * argv[] )
     extractRegion.SetSize(  size  );
     extractRegion.SetIndex( start );
     sliceExtractFilter->SetExtractionRegion( extractRegion );
-    sliceWriter->SetFileName( (stdFolder+"STDSliceY.jpg").c_str() );
+    sliceWriter->SetFileName( (stdFolder+"STDSliceY.tiff").c_str() );
     sliceWriter->Update();     
 
     // Do the same for other slices
@@ -707,7 +707,7 @@ int main( int argc, char * argv[] )
     extractRegion.SetSize(  size  );
     extractRegion.SetIndex( start );
     sliceExtractFilter->SetExtractionRegion( extractRegion );
-    sliceWriter->SetFileName( (stdFolder+"STDSliceZ.jpg").c_str() );
+    sliceWriter->SetFileName( (stdFolder+"STDSliceZ.tiff").c_str() );
     sliceWriter->Update();         
     
   } // End of transform levels

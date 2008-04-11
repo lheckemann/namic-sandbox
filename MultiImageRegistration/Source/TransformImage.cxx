@@ -31,7 +31,7 @@
 #include <fstream>
 
 //Define the global types for image type
-#define PixelType unsigned short
+#define PixelType float
 #define InternalPixelType float
 #define Dimension 3
 

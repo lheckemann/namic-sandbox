@@ -8,6 +8,8 @@ SET(Groupwise_SRCS
   MultiResolutionMultiImageRegistrationMethod.h
   VarianceMultiImageMetric.txx 
   VarianceMultiImageMetric.h 
+  FixedTemplateVarianceMultiImageMetric.txx 
+  FixedTemplateVarianceMultiImageMetric.h 
   UnivariateEntropyMultiImageMetric.h
   UnivariateEntropyMultiImageMetric.txx
   GradientDescentLineSearchOptimizer.h

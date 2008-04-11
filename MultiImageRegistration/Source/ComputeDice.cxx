@@ -20,6 +20,7 @@
 #include "itkExtractImageFilter.h"
 #include "itkResampleImageFilter.h"
 
+#include "itkIdentityTransform.h"
 #include "itkAffineTransform.h"
 #include "BSplineDeformableTransformOpt.h"
 #include "itkBSplineDeformableTransform.h"
@@ -127,7 +128,7 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
 class AND
 {
 public:
-  AND() {m_Number=0;};
+  AND() {m_Number=0;m_Number2=0;};
   ~AND() {};
   bool operator!=( const AND & ) const
   {
@@ -142,7 +143,7 @@ public:
     PixelType count = 0;
     for(unsigned int i=0; i<pixelStack.size(); i++)
     {
-      if( pixelStack[i] == m_Number)
+      if( pixelStack[i] == m_Number || pixelStack[i] == m_Number2 )
       {
         count++;
       }
@@ -151,6 +152,8 @@ public:
   }
 
   PixelType m_Number;
+  PixelType m_Number2;
+
 };
 
 int main( int argc, char * argv[] )
@@ -284,7 +287,7 @@ int main( int argc, char * argv[] )
   }
   // Resample the images
   // Read the input transforms and compute the dice measure
-  for(int i=0; i<transformLevels; i++)
+  for(int i=-1; i<transformLevels; i++)
   {
     // typedef for transformation types
     typedef itk::Transform< double, Dimension,Dimension >  TransformType;
@@ -315,7 +318,10 @@ int main( int argc, char * argv[] )
       typedef TransformFileReader::TransformListType   TransformListType;
       
 
-      cout << "Reading Transform" << transformFileNames[i][j] << endl;
+      if( i > -1)
+      {
+        cout << "Reading Transform" << transformFileNames[i][j] << endl;
+      }
 
       // Create reader factories
       itk::TransformFactoryBase::Pointer f = itk::TransformFactoryBase::GetFactory();
@@ -333,7 +339,14 @@ int main( int argc, char * argv[] )
                            1,
                            itk::CreateObjectFunction<BSplineTransformType>::New());
       
-      if( i == 0)
+            // Inpute image, apply identity tranform
+      if( i == -1)
+      {
+        typedef itk::IdentityTransform< double, Dimension >  IdentityTransformType;
+        
+        transformArray[j] = IdentityTransformType::New();
+      }
+      else if( i == 0)
       {
         TransformFileReader::Pointer        transformFileReader = TransformFileReader::New();
         transformFileReader->SetFileName(transformFileNames[i][j].c_str());
@@ -401,7 +414,7 @@ int main( int argc, char * argv[] )
 
       WriterType::Pointer writer = WriterType::New();
       writer->SetFileName("temp3.hdr");
-      writer->SetImageIO(labelReaderArray[i]->GetImageIO());
+      writer->SetImageIO(labelReaderArray[0]->GetImageIO());
       writer->SetInput(resampleArray[j]->GetOutput());
       
     }
@@ -416,7 +429,6 @@ int main( int argc, char * argv[] )
     }
 
     cout << "Computing dice measure " << endl;
-    //output << transformNames[i] << "\t";
     if(labelType == "ICC")
     {
       for(int j=0; j<3 ; j++)
@@ -426,26 +438,34 @@ int main( int argc, char * argv[] )
         
         // Set the labels
         int currentNumber;
+        int currentNumber2;
+
         if(j ==0)
         {
           // White Matter
           naryANDImageFilter->GetFunctor().m_Number = 23;
+          naryANDImageFilter->GetFunctor().m_Number2 = 159;
           naryANDImageFilter->Modified();
           currentNumber = 23;
+          currentNumber2 = 159;
         }
         else if(j==1)
         {
           // White Matter
           naryANDImageFilter->GetFunctor().m_Number = 25;
+          naryANDImageFilter->GetFunctor().m_Number2 = 255;
           naryANDImageFilter->Modified();
           currentNumber = 25;
+          currentNumber2 = 255;
         }
         else
         {
           // White Matter
           naryANDImageFilter->GetFunctor().m_Number = 30;
+          naryANDImageFilter->GetFunctor().m_Number2 = 127;
           naryANDImageFilter->Modified();
           currentNumber = 30;
+          currentNumber2 = 127;
         }
         naryANDImageFilter->Update();
 
@@ -459,7 +479,15 @@ int main( int argc, char * argv[] )
         // Set the file name
         string fname = outputFolder;
 
-        if(i==0)
+        if(i==-1)
+        {
+          ostringstream affine;
+          affine << j << ".hdr";
+          fname += "Labels/InputImage/";
+          itksys::SystemTools::MakeDirectory( fname.c_str() );
+          fname += affine.str();
+        }
+        else if(i==0)
         {
           ostringstream affine;
           affine << j << ".hdr";
@@ -506,7 +534,7 @@ int main( int argc, char * argv[] )
         sliceWriter->SetInput( sliceExtractFilter->GetOutput() );
 
         string sliceName = fname;
-        sliceName.replace(sliceName.size()-4, 4, "_X.jpg" );
+        sliceName.replace(sliceName.size()-4, 4, "_X.tiff" );
 
         sliceWriter->SetFileName( sliceName.c_str() );
         sliceWriter->Update(); 
@@ -520,7 +548,7 @@ int main( int argc, char * argv[] )
         extractRegion.SetIndex( start );
         sliceExtractFilter->SetExtractionRegion( extractRegion );
         sliceName = fname;
-        sliceName.replace(sliceName.size()-4, 4, "_Y.jpg" );
+        sliceName.replace(sliceName.size()-4, 4, "_Y.tiff" );
         sliceWriter->SetFileName( sliceName.c_str() );
         sliceWriter->Update(); 
                 
@@ -533,7 +561,7 @@ int main( int argc, char * argv[] )
         extractRegion.SetIndex( start );
         sliceExtractFilter->SetExtractionRegion( extractRegion );
         sliceName = fname;
-        sliceName.replace(sliceName.size()-4, 4, "_Z.jpg" );
+        sliceName.replace(sliceName.size()-4, 4, "_Z.tiff" );
         sliceWriter->SetFileName( sliceName.c_str() );
         sliceWriter->Update(); 
 
@@ -553,7 +581,7 @@ int main( int argc, char * argv[] )
           for ( predIt.GoToBegin(); !predIt.IsAtEnd(); ++predIt)
           {
             int currentLabel;
-            if(imageIt.Get() == currentNumber)
+            if(imageIt.Get() == currentNumber || imageIt.Get() == currentNumber2)
             {
               currentLabel = 1;
             }
@@ -562,7 +590,8 @@ int main( int argc, char * argv[] )
               currentLabel = 0;
             }
 
-            if( predIt.Get() - currentLabel > (N-1)*0.5  && imageIt.Get() == currentNumber)
+            if( predIt.Get() - currentLabel > (N-1)*0.5  
+                && (imageIt.Get() == currentNumber || imageIt.Get() == currentNumber2) )
             {
               predIntersection += 2.0;
             }
@@ -571,7 +600,7 @@ int main( int argc, char * argv[] )
             {
               predUnion += 1.0;
             }
-            if( imageIt.Get() == currentNumber)
+            if( imageIt.Get() == currentNumber || imageIt.Get() == currentNumber2)
             {
               predUnion += 1.0;
             }
@@ -606,7 +635,15 @@ int main( int argc, char * argv[] )
 
         // Set the file name
         string fname = outputFolder;
-        if(i==0)
+        if(i==-1)
+        {
+          ostringstream affine;
+          affine << j << ".hdr";
+          fname += "HandLabels/InputImage/";
+          itksys::SystemTools::MakeDirectory( fname.c_str() );
+          fname += affine.str();
+        }
+        else if(i==0)
         {
           ostringstream affine;
           affine << j << ".hdr";

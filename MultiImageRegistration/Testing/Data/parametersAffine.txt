@@ -10,6 +10,7 @@
 #   entropy: congealing with entropy
 #   variance: registering to the mean template image using 
 #             sum of square differences
+#   fixedTemplateVariance: registering to the subject with the given index
     
 -metricType entropy
 
@@ -217,3 +218,7 @@
 #    
     -maximumLineIteration 6
     
+    
+# index number of the template to be used with  FixedTemplateVarianceMultiImageMetric
+
+-fixedTemplateIndex 0
