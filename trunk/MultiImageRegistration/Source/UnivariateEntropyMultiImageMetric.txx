@@ -568,7 +568,7 @@ void UnivariateEntropyMultiImageMetric < TFixedImage >
     typedef itk::DiscreteGaussianImageFilter<ParametersImageType,ParametersImageType> GaussianFilterType;
     typename GaussianFilterType::Pointer gaussianFilter = GaussianFilterType::New();
     gaussianFilter->SetInput(parametersImage);
-    gaussianFilter->SetUseImageSpacingOff();
+    gaussianFilter->SetUseImageSpacingOn(); // on: spacing changes between levels
     gaussianFilter->SetVariance(m_GaussianFilterKernelWidth);
     gaussianFilter->Update();
 

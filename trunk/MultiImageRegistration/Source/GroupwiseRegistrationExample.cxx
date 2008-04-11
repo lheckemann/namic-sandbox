@@ -31,6 +31,8 @@
 #include "MultiResolutionMultiImageRegistrationMethod.h"
 #include "VarianceMultiImageMetric.h"
 #include "UnivariateEntropyMultiImageMetric.h"
+#include "FixedTemplateVarianceMultiImageMetric.h"
+
 
 
 // Transform headers
@@ -500,7 +502,8 @@ int getCommandLine(int argc, char *initFname, vector<string>& fileNames, string&
                    string &writeMean3DImages, string& metricPrint, unsigned int& printInterval,
                    double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation,
                    unsigned int& StartLevel,
-                   string& useNormalizeFilter, double& gaussianFilterKernelWidth );
+                   string& useNormalizeFilter, double& gaussianFilterKernelWidth,
+                   unsigned int& fixedTemplateIndex);
 
 
 int main( int argc, char *argv[] )
@@ -577,6 +580,8 @@ int main( int argc, char *argv[] )
   double SPSAgamma = 0.101;
   double SPSAcRel = 0.0001;
   int    SPSAnumberOfPerturbation = 1;
+  
+  unsigned int fixedTemplateIndex = 0;
 
 
   //Get the command line arguments
@@ -600,7 +605,8 @@ int main( int argc, char *argv[] )
         writeMean3DImages, metricPrint, printInterval,
         SPSAalpha , SPSAgamma, SPSAcRel, SPSAnumberOfPerturbation,
         startLevel,
-        useNormalizeFilter, gaussianFilterKernelWidth ) )
+        useNormalizeFilter, gaussianFilterKernelWidth,
+        fixedTemplateIndex ) )
     {
       std:: cout << "Error reading parameter file " << std::endl;
       return EXIT_FAILURE;
@@ -630,6 +636,8 @@ int main( int argc, char *argv[] )
   // Metric typedefs
   typedef itk::MultiImageMetric< ImageType>                        MetricType;
   typedef itk::VarianceMultiImageMetric< ImageType>                VarianceMetricType;
+  typedef itk::FixedTemplateVarianceMultiImageMetric< ImageType>                
+                                                                   FixedTemplateVarianceMetricType;  
   typedef itk::UnivariateEntropyMultiImageMetric< ImageType>       EntropyMetricType;
 
 
@@ -762,7 +770,24 @@ int main( int argc, char *argv[] )
   MetricType::Pointer                 metric;
   if(metricType == "variance")
   {
-    metric        = VarianceMetricType::New();
+    VarianceMetricType::Pointer varianceMetric        = VarianceMetricType::New();
+    varianceMetric->SetGaussianFilterKernelWidth(gaussianFilterKernelWidth);
+    if( BSplineRegularizationFlag == "on" )
+    {
+      varianceMetric->SetBSplineRegularizationFlag(true);
+    }
+    metric = varianceMetric;
+  }
+  else if(metricType == "fixedTemplateVariance")
+  {
+    FixedTemplateVarianceMetricType::Pointer fixedTemplateMetric = FixedTemplateVarianceMetricType::New();
+    fixedTemplateMetric->SetFixedTemplateIndex(fixedTemplateIndex);
+    fixedTemplateMetric->SetGaussianFilterKernelWidth(gaussianFilterKernelWidth);
+    if( BSplineRegularizationFlag == "on" )
+    {
+      fixedTemplateMetric->SetBSplineRegularizationFlag(true);
+    }
+    metric = fixedTemplateMetric;    
   }
   else
   {
@@ -1664,7 +1689,8 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
                           double& SPSAalpha , double& SPSAgamma, double& SPSAcRel, int&    SPSAnumberOfPerturbation,
                           unsigned int& StartLevel,
                           string& useNormalizeFilter,
-                          double& gaussianFilterKernelWidth)
+                          double& gaussianFilterKernelWidth,
+                          unsigned int& fixedTemplateIndex)
 {
 
 
@@ -1970,6 +1996,12 @@ int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, 
     {
       initFile >> dummy;
       StartLevel = atoi(dummy.c_str());
+    }
+    
+    else if( dummy == "-fixedTemplateIndex" )
+    {
+      initFile >> dummy;
+      fixedTemplateIndex = atoi(dummy.c_str());
     }
 
     else if (dummy == "-f")
