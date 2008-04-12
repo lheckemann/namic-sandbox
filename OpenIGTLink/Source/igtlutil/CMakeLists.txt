@@ -1,6 +1,5 @@
 SET(IGTL_UTIL_PROTOCOL_VERSION "1")
 
-
 SET(IGTLUTIL_HEADS
   igtl_header.h
   igtl_image.h

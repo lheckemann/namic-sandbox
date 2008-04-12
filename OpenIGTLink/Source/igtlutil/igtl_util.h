@@ -17,6 +17,8 @@
 #ifndef __IGTL_UTIL_H
 #define __IGTL_UTIL_H
 
+#include "igtl_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -33,14 +35,11 @@ extern "C" {
 #define BYTE_SWAP_INT64(LL) ((BYTE_SWAP_INT32 ((LL) & 0xFFFFFFFF) << 32) \
                              | BYTE_SWAP_INT32 (((LL) >> 32) & 0xFFFFFFFF))
 
-// Define the required data types // -- 
-typedef unsigned long long crc64_t;
-
 /*
  * Test endian of the host
  */
 int igtl_is_little_endian();
-crc64_t crc64(unsigned char *data, int len, crc64_t crc);
+igtl_uint64 crc64(unsigned char *data, int len, igtl_uint64 crc);
 
 #ifdef __cplusplus
 }
