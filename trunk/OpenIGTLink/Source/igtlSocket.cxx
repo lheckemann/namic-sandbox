@@ -1,5 +1,20 @@
 /*=========================================================================
 
+  Program:   Open IGT Link Library
+  Module:    $RCSfile: $
+  Language:  C++
+  Date:      $Date: $
+  Version:   $Revision: $
+
+  Copyright (c) Insight Software Consortium. All rights reserved.
+
+  This software is distributed WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+  PURPOSE.  See the above copyright notices for more information.
+
+=========================================================================*/
+/*=========================================================================
+
   Program:   Visualization Toolkit
   Module:    $RCSfile: igtlSocket.cxx,v $
 
@@ -32,6 +47,7 @@
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
   #include <windows.h>
+  #include <winsock2.h> 
 #else
   #include <sys/types.h>
   #include <sys/socket.h>
@@ -339,6 +355,12 @@ int Socket::Receive(void* data, int length, int readFully/*=1*/)
     total += n;
     } while(readFully && total < length);
   return total;
+}
+
+//-----------------------------------------------------------------------------
+void Socket::PrintSelf(std::ostream& os)
+{
+  this->Superclass::PrintSelf(os);
 }
 
 

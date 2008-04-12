@@ -22,9 +22,11 @@ int igtl_is_little_endian()
   return ((char*)&a)[0];
 }
 
-crc64_t crc64(unsigned char *data, int len, crc64_t crc)
+
+igtl_uint64 crc64(unsigned char *data, int len, igtl_uint64 crc)
 {
-    static const crc64_t table[256] = {
+
+    static const igtl_uint64 table[256] = {
     0x0000000000000000ULL,0x42F0E1EBA9EA3693ULL,
     0x85E1C3D753D46D26ULL,0xC711223CFA3E5BB5ULL,
     0x493366450E42ECDFULL,0x0BC387AEA7A8DA4CULL,

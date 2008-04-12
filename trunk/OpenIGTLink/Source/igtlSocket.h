@@ -1,5 +1,20 @@
 /*=========================================================================
 
+  Program:   Open IGT Link Library
+  Module:    $RCSfile: $
+  Language:  C++
+  Date:      $Date: $
+  Version:   $Revision: $
+
+  Copyright (c) Insight Software Consortium. All rights reserved.
+
+  This software is distributed WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+  PURPOSE.  See the above copyright notices for more information.
+
+=========================================================================*/
+/*=========================================================================
+
   Program:   Visualization Toolkit
   Module:    $RCSfile: igtlSocket.h,v $
 
@@ -42,8 +57,10 @@
 #ifndef __igtlSocket_h
 #define __igtlSocket_h
 
-#include "igtlMacros.h"
-#include <iostream>
+#include "igtlObject.h"
+#include "igtlObjectFactory.h"
+#include "igtlMacro.h"
+#include "igtlWin32Header.h"
 
 namespace igtl
 {
@@ -51,8 +68,19 @@ namespace igtl
 class SocketCollection;
 
 // class IGTL_EXPORT Socket
-class Socket
+class IGTLCommon_EXPORT Socket : public Object
 {
+ public:
+  typedef Socket              Self;
+  typedef Object  Superclass;
+  typedef SmartPointer<Self>        Pointer;
+  typedef SmartPointer<const Self>  ConstPointer;
+
+  igtlTypeMacro(igtl::Socket, igtl::Object)
+  igtlNewMacro(igtl::Socket);
+
+  void PrintSelf(std::ostream& os);
+
 public:
 
   // ----- Status API ----
