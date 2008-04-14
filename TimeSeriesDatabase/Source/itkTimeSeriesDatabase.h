@@ -54,14 +54,15 @@ namespace itk {
     itkSetMacro ( CurrentImage, unsigned int );
     itkGetMacro ( CurrentImage, unsigned int );
 
-    // int GetNumberOfVolumes();
+    int GetNumberOfVolumes() { return this->m_Dimensions[3]; };
     virtual void GenerateOutputInformation(void);
     virtual void GenerateData(void);
 
-    // OutputSliceTypePointer GetSlice ( unsigned int slice, unsigned int timepoint );
-    // OutputSliceTypePointer GetSlice ( unsigned int slice, unsigned int timepoint, SliceOrientationType orient );
-
     void GetVoxelTimeSeries ( typename OutputImageType::IndexType idx, ArrayType& array );
+    itkGetMacro ( OutputSpacing, typename OutputImageType::SpacingType );
+    itkGetMacro ( OutputRegion, typename OutputImageType::RegionType );
+    itkGetMacro ( OutputOrigin, typename OutputImageType::PointType );
+    itkGetMacro ( OutputDirection, typename OutputImageType::DirectionType );
 
   protected:
     TimeSeriesDatabase();
@@ -75,9 +76,8 @@ namespace itk {
     typename OutputImageType::PointType m_OutputOrigin;
     typename OutputImageType::DirectionType m_OutputDirection;
 
-    std::streampos CalculatePosition ( Array<unsigned int> Position );
     std::streampos CalculatePosition ( Size<3> Position, int ImageCount );
-    streampos CalculatePosition ( unsigned long p );
+    std::streampos CalculatePosition ( unsigned long index );
     unsigned long CalculateIndex ( Size<3> Position, int ImageCount );
     // Return true if this is a full block, false otherwise.  Assumes there is overlap!
     bool CalculateIntersection ( Size<3> BlockIndex, typename OutputImageType::RegionType RequestedRegion, 

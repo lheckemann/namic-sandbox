@@ -204,7 +204,7 @@ template <typename key_type, typename value_type>
   ///
   /// Only in debug mode (NDEBUG not defined).
   ///
-  void statistics(ostream& ostr = cerr)
+  void statistics(ostream& ostr = cerr) const
   {
 #ifndef NDEBUG
     ostr << "LRUCache statistics\n";
@@ -212,7 +212,7 @@ template <typename key_type, typename value_type>
     ostr << format_str("Max size: %ld, cur size %ld. Cache is %5.2lf%% full\n\n",
                        maxsize, lru_list.size(), 100.0 * lru_list.size() / maxsize);
     ostr << format_str("Lookups:  %7ld\nHits:     %7ld\nHit rate: %7.2lf%%\n\n",
-                       stats.finds, stats.finds_hit, 100.0 * stats.finds_hit / stats.finds);
+                       stats.finds, stats.finds_hit, 100.0 * stats.finds_hit / (stats.finds+1e-15));
     ostr << format_str("Items removed by LRU: %ld\n\n", stats.removed);
 #endif // NDEBUG
   }
