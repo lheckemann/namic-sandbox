@@ -104,29 +104,8 @@ ${RSP_FILES}
 )
 
 SET(SOURCES
-src/igtlutil/igtl_util.c
-src/igtlutil/igtl_header.c
-src/igtlutil/igtl_image.c
-src/igtlutil/igtl_transform.c
-src/igtlutil/crc32.c
 src/io_base.c
 src/io_signa5.c
-src/igtlImageMessage.cxx
-src/igtlTransformMessage.cxx
-src/igtlMath.cxx
-src/igtlOSUtil.cxx
-src/igtlMessageBase.cxx
-src/igtlObject.cxx
-src/igtlLightObject.cxx
-src/igtlObjectFactoryBase.cxx
-src/igtlSimpleFastMutexLock.cxx
-src/igtlFastMutexLock.cxx
-src/igtlSocket.cxx
-src/igtlClientSocket.cxx
-src/igtlServerSocket.cxx
-src/igtlMultiThreader.cxx
-src/igtlMutexLock.cxx
-src/igtlConditionVariable.cxx
 src/Thread.cxx
 src/AcquisitionBase.cxx
 src/AcquisitionSimulator.cxx
@@ -174,17 +153,15 @@ ${SOURCES}
 )
 ENDIF(BUILD_SHARED)
 
-
-
-
 SUBDIRS(
 libs/newmat
+libs/igtl
 )
-
 
 SET(LIBS
 ${LIBS}
 newmat
+OpenIGTLink
 )
 
 IF(WIN32)
