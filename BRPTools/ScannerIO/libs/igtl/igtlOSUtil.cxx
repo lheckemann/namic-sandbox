@@ -29,7 +29,8 @@ void Sleep(int milliseconds)
 {
 #if defined(_WIN32) && !defined(__CYGWIN__)
 
-  Sleep(milliseconds);
+  // Call Windows Native Sleep() function
+  ::Sleep(milliseconds);
   
 #else
   
