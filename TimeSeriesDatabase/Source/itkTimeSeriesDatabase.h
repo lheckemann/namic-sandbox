@@ -46,23 +46,59 @@ namespace itk {
     typedef typename OutputSliceType::Pointer OutputSliceTypePointer;
     typedef Array<TPixel> ArrayType;
 
-    enum SliceOrientationType { ITK_TSD_XY_PLANE, ITK_TSD_YZ_PLANE, ITK_TSD_XZ_PLANE };
- 
+    /** Connect to an existing TimeSeriesDatabase file on disk
+     * The idea behind the Connect method is to associate this
+     * class with a pre-existing self-describing file containing
+     * a 4-dimensional dataset that is indexed for rapid retrieval.
+     */
     void Connect ( const char* filename );
+
+    /** Disconnect from a TimeSeriesDatabase file
+     * Essentially closes the file and returns the object to its
+     * original state.
+     */
     void Disconnect();
-    void CreateFromFileArchetype ( const char* filename, const char* archetype );
+
+    /** Create a new TimeSeriesDatabase from an Archetype filename
+     * Find all the volumes matching the archetype pattern, loading
+     * and checking that they are all the same size.  Write the data
+     * into one big file (and later, series of files).
+     * A call to Connect in required to open the newly created TimeSeriesDatabase.
+     */
+    static void CreateFromFileArchetype ( const char* filename, const char* archetype );
+
+    /** Set the image to be read when GenerateData is called.
+     * This method selects the image to be returned by an Update
+     * call.  By changing the CurrentImage, a pipeline can process
+     * each image in the series one after another. 
+     */
     itkSetMacro ( CurrentImage, unsigned int );
     itkGetMacro ( CurrentImage, unsigned int );
 
+    /** Return information about the TimeSeriesDatabase file */    
     int GetNumberOfVolumes() { return this->m_Dimensions[3]; };
-    virtual void GenerateOutputInformation(void);
-    virtual void GenerateData(void);
-
-    void GetVoxelTimeSeries ( typename OutputImageType::IndexType idx, ArrayType& array );
     itkGetMacro ( OutputSpacing, typename OutputImageType::SpacingType );
     itkGetMacro ( OutputRegion, typename OutputImageType::RegionType );
     itkGetMacro ( OutputOrigin, typename OutputImageType::PointType );
     itkGetMacro ( OutputDirection, typename OutputImageType::DirectionType );
+
+    /** Standard method for a ImageSource object */
+    virtual void GenerateOutputInformation(void);
+    virtual void GenerateData(void);
+
+    /** A convience method for reading a voxel's time course
+     * Subsequent calls to voxels in the immediate region of this will be
+     * cached for quick access
+     */ 
+    void GetVoxelTimeSeries ( typename OutputImageType::IndexType idx, ArrayType& array );
+
+    /** Set the size of the cache in MiB (1 MiB = 2^20 bytes)
+     */
+    void SetCacheSizeInMiB ( float sz ); 
+    /** Get the size of the cache in MiB (1 MiB = 2^20 bytes)
+     */
+    float GetCacheSizeInMiB ();
+
 
   protected:
     TimeSeriesDatabase();

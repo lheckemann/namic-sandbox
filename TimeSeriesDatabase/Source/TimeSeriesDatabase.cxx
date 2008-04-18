@@ -10,22 +10,21 @@
 
 template<class ImageType>
 bool CompareImage ( typename ImageType::Pointer a, typename ImageType::Pointer b, typename ImageType::RegionType region ) {
-  itk::ImageRegionIteratorWithIndex<ImageType> SliceIterator ( a, region );
-  itk::ImageRegionIterator<ImageType> VolumeIterator ( b, region );
+  itk::ImageRegionIteratorWithIndex<ImageType> ait ( a, region );
+  itk::ImageRegionIterator<ImageType> bit ( b, region );
       
   // std::cout << "Comparing region:\n" << region << std::endl;
-  while ( !SliceIterator.IsAtEnd() ) {
-    if ( SliceIterator.Get() != VolumeIterator.Get() ) {
+  while ( !ait.IsAtEnd() ) {
+    if ( ait.Get() != bit.Get() ) {
       std::cerr << "\nRegion is: " << region << std::endl;
       std::cerr << "Requsted Region is: " << a->GetRequestedRegion() << std::endl;
-      std::cerr << "Error: not the same at index: " << SliceIterator.GetIndex() << std::endl;
-      std::cerr << "Error: not the same at index: " << VolumeIterator.GetIndex() << std::endl;
-      std::cerr << "Slice is: " << SliceIterator.Get() << std::endl;
-      std::cerr << "Volume is: " << VolumeIterator.Get() << std::endl;
+      std::cerr << "Error: not the same at index: " << ait.GetIndex() << std::endl;
+      std::cerr << "Ground truth is: " << ait.Get() << std::endl;
+      std::cerr << "But found: " << bit.Get() << std::endl;
       return false;
     }
-    ++SliceIterator;
-    ++VolumeIterator;
+    ++ait;
+    ++bit;
   }
   return true;
 }
@@ -42,11 +41,11 @@ int main ( int argc, char* argv[] ) {
   }
   
   typedef itk::TimeSeriesDatabase<signed short> DBType;
-  DBType::Pointer db = DBType::New();
-  db->CreateFromFileArchetype ( argv[1], argv[2] );
-  db->Print ( std::cout );
-
+  DBType::CreateFromFileArchetype ( argv[1], argv[2] );
   std::cout << "Wrote db" << std::endl;
+
+  DBType::Pointer db = DBType::New();
+
   db->Connect ( argv[1] );
   
   db->SetCurrentImage ( 0 );
@@ -66,6 +65,14 @@ int main ( int argc, char* argv[] ) {
   for ( int idx = 0; idx < db->GetNumberOfVolumes(); idx++ ) {
     db->SetCurrentImage ( idx );
 
+    db->GetOutput()->SetRequestedRegion ( FullImage->GetLargestPossibleRegion() );
+    db->Modified();
+    db->Update();
+    if ( !CompareImage<DBType::OutputImageType> ( FullImage, db->GetOutput(), FullImage->GetLargestPossibleRegion() ) ) {
+      std::cerr << "Failed to compare whole volume " << idx << std::endl;
+      exit ( EXIT_FAILURE );
+    }
+
     // Test out all the slices
     int x;
     sz = db->GetOutputRegion().GetSize();
@@ -79,7 +86,8 @@ int main ( int argc, char* argv[] ) {
       db->GetOutput()->SetRequestedRegion ( region );
       db->Modified();
       db->Update();
-      if ( !CompareImage<DBType::OutputImageType> ( db->GetOutput(), FullImage, region ) ) {
+      if ( !CompareImage<DBType::OutputImageType> ( FullImage, db->GetOutput(), region ) ) {
+        std::cerr << "Failed to compare axial slice " << index[2] << " of volume " << idx << std::endl;
         exit ( EXIT_FAILURE );
       }
     }
@@ -95,7 +103,8 @@ int main ( int argc, char* argv[] ) {
       db->GetOutput()->SetRequestedRegion ( region );
       db->Modified();
       db->Update();
-      if ( !CompareImage<DBType::OutputImageType> ( db->GetOutput(), FullImage, region ) ) {
+      if ( !CompareImage<DBType::OutputImageType> ( FullImage, db->GetOutput(), region ) ) {
+        std::cerr << "Failed to compare coronal slice " << index[1] << " of volume " << idx << std::endl;
         exit ( EXIT_FAILURE );
       }
     }
@@ -105,13 +114,14 @@ int main ( int argc, char* argv[] ) {
     sz[0] = 1;
     region.SetSize ( sz );
 
-    // Get all the coronals
+    // Get all the sagittal
     for ( index[0] = 0; index[0] < OutputSize[0]; index[0]++ ) {
       region.SetIndex ( index );
       db->GetOutput()->SetRequestedRegion ( region );
       db->Modified();
       db->Update();
-      if ( !CompareImage<DBType::OutputImageType> ( db->GetOutput(), FullImage, region ) ) {
+      if ( !CompareImage<DBType::OutputImageType> ( FullImage, db->GetOutput(), region ) ) {
+        std::cerr << "Failed to compare sagittal slice " << index[0] << " of volume " << idx << std::endl;
         exit ( EXIT_FAILURE );
       }
     }
@@ -131,11 +141,13 @@ int main ( int argc, char* argv[] ) {
       db->Modified();
       db->Update();
       // Compare
-      if ( !CompareImage<DBType::OutputImageType> ( db->GetOutput(), FullImage, region ) ) {
+      if ( !CompareImage<DBType::OutputImageType> ( FullImage, db->GetOutput(), region ) ) {
+        std::cerr << "Failed to compare random region of volume " << idx << std::endl;
         exit ( EXIT_FAILURE );
       }
     }
   }
+  db->Print ( std::cout );
   std::cout << "Sucessfully completed " << NumberOfTests << " tests per volume" << std::endl;
 
 
@@ -145,8 +157,9 @@ int main ( int argc, char* argv[] ) {
   db->GetOutput()->SetRequestedRegion ( db->GetOutputRegion() );
   Writer->SetInput ( db->GetOutput() );
   Writer->Update();
+
+
   db->Disconnect();
 
-  db->Print ( std::cout );
   exit ( EXIT_SUCCESS );
 }
