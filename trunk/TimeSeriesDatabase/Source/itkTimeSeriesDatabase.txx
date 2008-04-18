@@ -91,11 +91,12 @@ void TimeSeriesDatabase<TPixel>::Connect ( const char* filename )
   o >> foo >> foo >> version;
   if ( version != 1.0 )
   {
-    itkGenericExceptionMacro ( "TimeSeriesDatabase::Connect: Version string does not match.  Expecting 1.0, found " << version );
+    itkExceptionMacro ( "TimeSeriesDatabase::Connect: Version string does not match.  Expecting 1.0, found " << version );
   }
   // Start reading our data
   std::string dummy;
   Size<3> sz;
+  o >> dummy >> m_Dimensions[0] >> m_Dimensions[1] >> m_Dimensions[2] >> m_Dimensions[3];
   o >> dummy >> sz[0] >> sz[1] >> sz[2];
   m_OutputRegion.SetSize ( sz );
   o >> dummy >> m_OutputOrigin[0] >> m_OutputOrigin[1] >> m_OutputOrigin[2];
@@ -108,6 +109,9 @@ void TimeSeriesDatabase<TPixel>::Connect ( const char* filename )
       o >> m_OutputDirection[i][j];
     }
   }
+    for ( int idx = 0; idx < 3; idx++ ) {
+      m_BlocksPerImage[idx] = (unsigned int) ceil ( m_Dimensions[idx] / (float)TimeSeriesBlockSize );
+    }
   /*
   std::cout << "ImageSize: " << m_OutputRegion.GetSize() << endl;
   std::cout << "ImageOrigin: " << m_OutputOrigin << endl;
@@ -213,8 +217,13 @@ void TimeSeriesDatabase<TPixel>::GenerateData()
     BlockStart[i] = (int) floor ( Region.GetIndex(i) / TimeSeriesBlockSize );
     BlockCount[i] = (int) TSD_MAX ( 1.0, ceil ( (Region.GetIndex(i)+Region.GetSize(i)) / (double)TimeSeriesBlockSize ) - BlockStart[i] );
   }
-  // std::cout << "GenerateData for " << output->GetRequestedRegion() << std::endl;
-  // output->Print ( std::cout );
+
+  bool print = Region.GetIndex(0) == 0 && Region.GetIndex(1) == 0 && Region.GetIndex(2) == 80;
+  print = false;
+  if ( print ) {
+    std::cout << "GenerateData for " << output->GetRequestedRegion() << std::endl;
+    output->Print ( std::cout );
+  }
 
   Size<3> CurrentBlock;
   // Now, read our data, caching as we go, in future, make this thread safe
@@ -226,12 +235,17 @@ void TimeSeriesDatabase<TPixel>::GenerateData()
     for ( CurrentBlock[1] = BlockStart[1]; CurrentBlock[1] < BlockStart[1] + BlockCount[1]; CurrentBlock[1]++ ) {
       for ( CurrentBlock[0] = BlockStart[0]; CurrentBlock[0] < BlockStart[0] + BlockCount[0]; CurrentBlock[0]++ ) {
         typename OutputImageType::RegionType BR, IR;
-        // std::cout << "For Block Index: " << CurrentBlock << std::endl;
+        if ( print ) {  std::cout << "For Block Index: " << CurrentBlock << std::endl; }
         unsigned long index = this->CalculateIndex ( CurrentBlock, this->m_CurrentImage );
         CacheBlock* Buffer = this->GetCacheBlock ( index );
         if ( this->CalculateIntersection ( CurrentBlock, Region, BR, IR ) ) {
           // Just iterate over whole block
           // Good we can use an iterator!
+          if ( print ) {
+            std::cout << "The easy way! " << std::endl;
+            std::cout << "Block Region: " << BR;
+            std::cout << "Image Region: " << IR;
+          }
           Index<3> BlockIndex = { CurrentBlock[0] * TimeSeriesBlockSize,  CurrentBlock[1] * TimeSeriesBlockSize,  CurrentBlock[2] * TimeSeriesBlockSize };
           BlockRegion.SetIndex ( BlockIndex );
           ImageRegionIterator<OutputImageType> it ( output, IR );
@@ -243,15 +257,16 @@ void TimeSeriesDatabase<TPixel>::GenerateData()
             ++ptr;
           }
         } else {
-          // cout << "The Hard way" << std::endl;
           // Now we do it the hard way...
           Index<3> ImageIndex;
           Size<3> Count = BR.GetSize();
-          /*
-          std::cout << "Count: " << Count << std::endl;
-          std::cout << "Block Region: " << BR;
-          std::cout << "Image Region: " << IR;
-          */
+          if ( print ) {
+            std::cout << "The Hard way" << std::endl;
+            std::cout << "Count: " << Count << std::endl;
+            std::cout << "Block Region: " << BR;
+            std::cout << "Image Region: " << IR;
+            std::cout << "First voxel: " << Buffer->data[0] << std::endl;
+          }
           int bx, by, bz, x, y, z;
           for ( z = 0; z < Count[2]; z++ ) {
             ImageIndex[2] = IR.GetIndex(2) + z;
@@ -279,57 +294,6 @@ void TimeSeriesDatabase<TPixel>::GenerateData()
       }
     }
   
-#if 0
-  for ( CurrentBlock[2] = 0; CurrentBlock[2] < this->m_BlocksPerImage[2]; CurrentBlock[2]++ ) {
-    for ( CurrentBlock[1] = 0; CurrentBlock[1] < this->m_BlocksPerImage[1]; CurrentBlock[1]++ ) {
-      for ( CurrentBlock[0] = 0; CurrentBlock[0] < this->m_BlocksPerImage[0]; CurrentBlock[0]++ ) {
-
-
-        // Seek to the block we need
-        unsigned long index = this->CalculateIndex ( CurrentBlock, this->m_CurrentImage );
-        CacheBlock* Buffer = this->GetCacheBlock ( index );
-        // Write into the output
-        // Load up the block, and save it at the proper index
-        // Is this block fully within the image?
-        if ( ( ( CurrentBlock[0] * TimeSeriesBlockSize + TimeSeriesBlockSize ) < this->m_OutputRegion.GetSize()[0] )
-             && ( ( CurrentBlock[1] * TimeSeriesBlockSize + TimeSeriesBlockSize ) < this->m_OutputRegion.GetSize()[1] )
-             && ( ( CurrentBlock[2] * TimeSeriesBlockSize + TimeSeriesBlockSize ) < this->m_OutputRegion.GetSize()[2] ) ) {
-          // Good we can use an iterator!
-          Index<3> BlockIndex = { CurrentBlock[0] * TimeSeriesBlockSize,  CurrentBlock[1] * TimeSeriesBlockSize,  CurrentBlock[2] * TimeSeriesBlockSize };
-          BlockRegion.SetIndex ( BlockIndex );
-          ImageRegionIterator<OutputImageType> it ( output, BlockRegion );
-          it.GoToBegin();
-          TPixel* ptr = Buffer->data;
-          while ( !it.IsAtEnd() ) {
-            it.Set ( *ptr );
-            ++it;
-            ++ptr;
-          }
-        } else {
-          // cout << "The Hard way" << std::endl;
-          // Now we do it the hard way...
-          Index<3> BlockIndex;
-          Size<3> StartIndex, EndIndex;
-          for ( int i = 0; i < 3; i++ ) {
-            StartIndex[i] = CurrentBlock[i]*TimeSeriesBlockSize;
-            EndIndex[i] = TSD_MIN ( StartIndex[i] + TimeSeriesBlockSize, this->m_OutputRegion.GetSize()[i] );
-          }            
-          for ( int bz = StartIndex[2]; bz < EndIndex[2]; bz++ ) {
-            BlockIndex[2] = bz;
-            for ( int by = StartIndex[1]; by < EndIndex[1]; by++ ) {
-              BlockIndex[1] = by;
-              for ( int bx = StartIndex[0]; bx < EndIndex[0]; bx++ ) {
-                // Put bx,by,bz into bx-xoff,by-yoff,bz-zoff
-                BlockIndex[0] = bx;
-                output->SetPixel ( BlockIndex, Buffer->data[bx-StartIndex[0] + TimeSeriesBlockSize*(by-StartIndex[1]) + TimeSeriesBlockSize*TimeSeriesBlockSize*(bz-StartIndex[2])]  );
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-#endif  
   return;
 }
   
@@ -358,20 +322,26 @@ void TimeSeriesDatabase<TPixel>::CreateFromFileArchetype ( const char* filename,
   reader->SetFileName ( fileNameCollapsed );
   reader->UpdateOutputInformation();
   region = reader->GetOutput()->GetLargestPossibleRegion();
-  this->m_Dimensions[0] = region.GetSize()[0];
-  this->m_Dimensions[1] = region.GetSize()[1];
-  this->m_Dimensions[2] = region.GetSize()[2];
-  this->m_Dimensions[3] = candidateFiles.size();
+  Array<unsigned int> m_Dimensions ( 4 );
 
-  this->m_OutputRegion = reader->GetOutput()->GetLargestPossibleRegion();
-  this->m_OutputSpacing = reader->GetOutput()->GetSpacing();
-  this->m_OutputOrigin = reader->GetOutput()->GetOrigin();
-  this->m_OutputDirection = reader->GetOutput()->GetDirection();
+  m_Dimensions[0] = region.GetSize()[0];
+  m_Dimensions[1] = region.GetSize()[1];
+  m_Dimensions[2] = region.GetSize()[2];
+  m_Dimensions[3] = candidateFiles.size();
+
+  typename OutputImageType::SpacingType m_OutputSpacing;
+  typename OutputImageType::RegionType m_OutputRegion;
+  typename OutputImageType::PointType m_OutputOrigin;
+  typename OutputImageType::DirectionType m_OutputDirection;
+
+  m_OutputRegion = reader->GetOutput()->GetLargestPossibleRegion();
+  m_OutputSpacing = reader->GetOutput()->GetSpacing();
+  m_OutputOrigin = reader->GetOutput()->GetOrigin();
+  m_OutputDirection = reader->GetOutput()->GetDirection();
 
   fstream db;
   // std::cout << "Opening " << filename << std::endl;
   db.open ( filename, ios::out | ios::binary );
-  this->m_Filename = filename;
 
   // Start reading and writing out the images, 16x16x16 blocks at a time.
   for ( unsigned int i = 0; i < candidateFiles.size(); i++ ) {
@@ -379,36 +349,38 @@ void TimeSeriesDatabase<TPixel>::CreateFromFileArchetype ( const char* filename,
     try {
       reader->Update();
     } catch ( ExceptionObject& e ) {
-      itkExceptionMacro ( << "Failed to read " << candidateFiles[i] << " caught " << e );
+      itkGenericExceptionMacro ( << "Failed to read " << candidateFiles[i] << " caught " << e );
     }
     // Verify that we have the same size as expected
     region = reader->GetOutput()->GetLargestPossibleRegion();
-    if ( this->m_Dimensions[0] != region.GetSize()[0]
-         || this->m_Dimensions[1] != region.GetSize()[1]
-         || this->m_Dimensions[2] != region.GetSize()[2] ) {
+    if ( m_Dimensions[0] != region.GetSize()[0]
+         || m_Dimensions[1] != region.GetSize()[1]
+         || m_Dimensions[2] != region.GetSize()[2] ) {
       db.close();
-      itkExceptionMacro ( << " size of the data in " << candidateFiles[i] << " is (" 
-                          << region.GetSize()[0] << ", "
-                          << region.GetSize()[1] << ", "
-                          << region.GetSize()[2] << ") "
-                          << " and does not match the expectected size ("
-                          << this->m_Dimensions[0] << ", "
-                          << this->m_Dimensions[1] << ", "
-                          << this->m_Dimensions[2] << ")" );
+      itkGenericExceptionMacro ( << " size of the data in " << candidateFiles[i] << " is (" 
+                                 << region.GetSize()[0] << ", "
+                                 << region.GetSize()[1] << ", "
+                                 << region.GetSize()[2] << ") "
+                                 << " and does not match the expectected size ("
+                                 << m_Dimensions[0] << ", "
+                                 << m_Dimensions[1] << ", "
+                                 << m_Dimensions[2] << ")" );
     }
 
     // Build and write our blocks
     TPixel buffer[TimeSeriesBlockSize*TimeSeriesBlockSize*TimeSeriesBlockSize];
     Size<3> BlockSize = { TimeSeriesBlockSize, TimeSeriesBlockSize, TimeSeriesBlockSize };
     ImageRegion<3> BlockRegion;
+    Array<unsigned int> m_BlocksPerImage(3);
+    
     BlockRegion.SetSize ( BlockSize );
     for ( int idx = 0; idx < 3; idx++ ) {
-      this->m_BlocksPerImage[idx] = (unsigned int) ceil ( this->m_Dimensions[idx] / (float)TimeSeriesBlockSize );
+      m_BlocksPerImage[idx] = (unsigned int) ceil ( m_Dimensions[idx] / (float)TimeSeriesBlockSize );
     }
     Size<3> CurrentBlock;
-    for ( CurrentBlock[2] = 0; CurrentBlock[2] < this->m_BlocksPerImage[2]; CurrentBlock[2]++ ) {
-      for ( CurrentBlock[1] = 0; CurrentBlock[1] < this->m_BlocksPerImage[1]; CurrentBlock[1]++ ) {
-        for ( CurrentBlock[0] = 0; CurrentBlock[0] < this->m_BlocksPerImage[0]; CurrentBlock[0]++ ) {
+    for ( CurrentBlock[2] = 0; CurrentBlock[2] < m_BlocksPerImage[2]; CurrentBlock[2]++ ) {
+      for ( CurrentBlock[1] = 0; CurrentBlock[1] < m_BlocksPerImage[1]; CurrentBlock[1]++ ) {
+        for ( CurrentBlock[0] = 0; CurrentBlock[0] < m_BlocksPerImage[0]; CurrentBlock[0]++ ) {
           /*
           std::cout << "Reading/Writing Block: " << CurrentBlock[0] << ", " << CurrentBlock[1] << ", " << CurrentBlock[2] << endl;
           std::cout << "Debug: " << ( ( CurrentBlock[2] * TimeSeriesBlockSize + TimeSeriesBlockSize ) < region.GetSize()[2] ) << endl;
@@ -428,11 +400,6 @@ void TimeSeriesDatabase<TPixel>::CreateFromFileArchetype ( const char* filename,
             TPixel* ptr = buffer;
             while ( !it.IsAtEnd() ) {
               *ptr = it.Value();
-              /*
-              if ( it.GetIndex()[0] == 12 && it.GetIndex()[1] == 1 && it.GetIndex()[2] == 0 ) {
-                std::cout << "Index: " << it.GetIndex() << " Volume Value: " << it.Value() << " buffer: " << *ptr << std::endl;
-              }
-              */
               ++it;
               ++ptr;
             }
@@ -455,12 +422,19 @@ void TimeSeriesDatabase<TPixel>::CreateFromFileArchetype ( const char* filename,
                   BlockIndex[0] = bx;
                   TPixel value = reader->GetOutput()->GetPixel ( BlockIndex );
                   buffer[bx-StartIndex[0] + TimeSeriesBlockSize*(by-StartIndex[1]) + TimeSeriesBlockSize*TimeSeriesBlockSize*(bz-StartIndex[2])] = value;
-                  // std::cout << "Reading pixel index: " << BlockIndex << " into " << bx-StartIndex[0] << ", " << by-StartIndex[1] << ", " << bz-StartIndex[2] << endl;
                 }
               }
             }
           }
-          db.seekp ( this->CalculatePosition ( CurrentBlock, i ) );
+
+          // Calculate where to write...  This code is copied from CalculatePosition and CalculateIndex
+          unsigned long index = 1 + CurrentBlock[0] 
+            + CurrentBlock[1] * m_BlocksPerImage[0]
+            + CurrentBlock[2] * m_BlocksPerImage[0] * m_BlocksPerImage[1]
+            + i * m_BlocksPerImage[0] * m_BlocksPerImage[1] * m_BlocksPerImage[2];
+          streampos position = index  * sizeof ( TPixel ) * TimeSeriesVolumeBlockSize;
+
+          db.seekp ( position );
           db.write ( reinterpret_cast<char*> ( buffer ), TimeSeriesBlockSize*TimeSeriesBlockSize*TimeSeriesBlockSize*sizeof(TPixel) );
         }
       }
@@ -471,6 +445,7 @@ void TimeSeriesDatabase<TPixel>::CreateFromFileArchetype ( const char* filename,
   std::ostringstream b;
   b << "TimeSeriesDatabase" << endl;
   b << "Version 1.0" << endl;
+  b << "Dimensions: " << m_Dimensions[0] << " " << m_Dimensions[1] << " " << m_Dimensions[2] << " " << m_Dimensions[3] << std::endl;
   b << "ImageSize: " << m_OutputRegion.GetSize()[0] << " "<< m_OutputRegion.GetSize()[1] << " " << m_OutputRegion.GetSize()[2] << std::endl;
   b << "ImageOrigin: " << m_OutputOrigin[0] << " " << m_OutputOrigin[1] << " " << m_OutputOrigin[2] << std::endl;
   b << "ImageSpacing: " << m_OutputSpacing[0] << " " << m_OutputSpacing[1] << " " << m_OutputSpacing[2] << std::endl;
@@ -489,7 +464,24 @@ void TimeSeriesDatabase<TPixel>::CreateFromFileArchetype ( const char* filename,
 }
 
 template <class TPixel>
-TimeSeriesDatabase<TPixel>::TimeSeriesDatabase () : m_Cache ( 10 ){
+float TimeSeriesDatabase<TPixel>::GetCacheSizeInMiB() {
+  unsigned cachesize = this->m_Cache.get_maxsize();
+  return (float) cachesize * sizeof ( TPixel ) * TimeSeriesVolumeBlockSize / ( 1024*1024.);
+}
+
+template <class TPixel>
+void TimeSeriesDatabase<TPixel>::SetCacheSizeInMiB ( float sz )
+{
+  // How many blocks is this?
+  double BlockSizeInMiB = sizeof ( TPixel ) * TimeSeriesVolumeBlockSize / ( 1024*1024.);
+  unsigned long int blocks = (unsigned long int) ceil ( sz * BlockSizeInMiB );
+  this->m_Cache.set_maxsize ( blocks );
+}
+
+
+
+template <class TPixel>
+TimeSeriesDatabase<TPixel>::TimeSeriesDatabase () : m_Cache ( 1024 ){
   this->m_Dimensions.SetSize ( 4 );
   this->m_BlocksPerImage.SetSize ( 4 );
 }

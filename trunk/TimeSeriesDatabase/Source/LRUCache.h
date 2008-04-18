@@ -72,6 +72,10 @@ template <typename key_type, typename value_type>
     maxsize = maxsize_;
   }
 
+  unsigned get_maxsize () {
+    return maxsize;
+  }
+
   ~LRUCache() 
     {
       clear();
