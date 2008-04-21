@@ -6,14 +6,14 @@ IF(NOT PDFLATEX_COMPILER)
   MESSAGE("pdflatex compiler was not found. Please pass to advanced mode and provide its full path")
 ENDIF(NOT PDFLATEX_COMPILER)
 
-FIND_PACKAGE(Gnuplot)
-
 #
-# Set some directories that we use below.
+# Convert the output images of the test to pdf.
 #
-SET(PLOT_DIR ${BSplineDeformableTransformInitializerReport_BINARY_DIR})
-
-
+ADD_CUSTOM_COMMAND(
+   OUTPUT ${BSplineDeformableTransformInitializer_BINARY_DIR}/Testing/Temporary/BrainProtonDensitySliceBorder20.png 
+   COMMAND ${CMAKE_COMMAND} -E copy ${BSplineDeformableTransformInitializer_SOURCE_DIR}/Data/BrainProtonDensitySliceBorder20.png ${BSplineDeformableTransformInitializer_BINARY_DIR}/Testing/Temporary/BrainProtonDensitySliceBorder20.png 
+)
+ 
 #
 # These are source files needed for the report generation.
 #
@@ -51,6 +51,7 @@ ENDFOREACH(SOURCE_FILE ${REPORT_SRCS})
 
 
 SET(REPORT_ELEMENTS 
+  ${BSplineDeformableTransformInitializer_BINARY_DIR}/Testing/Temporary/BrainProtonDensitySliceBorder20.png 
   )
 
 #
