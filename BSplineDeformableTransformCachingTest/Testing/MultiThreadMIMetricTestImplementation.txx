@@ -82,11 +82,13 @@ MultiThreadMIMetricTestImplementation<Dimension>
     threadingString = "Multithreaded";
     metric = threadMetric;
     }
-  else if ( 2 == useThreading )
+/*
+  else if ( 0 == useThreading )
     {
     threadingString = "Mattes";
     metric = mattesMetric;
     }
+*/
   else
     {
     threadingString = "Default";
@@ -188,6 +190,8 @@ MultiThreadMIMetricTestImplementation<Dimension>
   defaultMetric->ReinitializeSeed( seed );
   mattesMetric->SetNumberOfSpatialSamples( numberOfSamples );
   mattesMetric->SetNumberOfHistogramBins( 50 );
+  mattesMetric->UseExplicitPDFDerivativesOff();
+  mattesMetric->UseCachingOfBSplineWeightsOff();
 
   itk::ExperimentTimeProbesCollector        timeCollector;
 
