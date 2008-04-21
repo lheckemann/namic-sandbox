@@ -177,9 +177,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 ::SampleFixedImageDomain(
   SpatialSampleContainer& samples ) const
 {
-
   typedef ImageRandomConstIteratorWithIndex<FixedImageType> RandomIterator;
-  //typedef ImageRandomNonRepeatingConstIteratorWithIndex<FixedImageType> RandomIterator;
   RandomIterator randIter( this->m_FixedImage, this->GetFixedImageRegion() );
 
   randIter.SetNumberOfSamples( m_NumberOfSpatialSamples );
@@ -314,8 +312,8 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   for( biter = m_SampleB.begin() ; biter != bend; ++biter )
     {
     double dSumFixed  = m_MinProbability;
-    double dSumMoving     = m_MinProbability;
-    double dSumJoint   = m_MinProbability;
+    double dSumMoving = m_MinProbability;
+    double dSumJoint  = m_MinProbability;
 
     for( aiter = m_SampleA.begin() ; aiter != aend; ++aiter )
       {
@@ -1101,14 +1099,7 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   // and then use them to weight the B sample derivatives.
   value = NumericTraits< MeasureType >::Zero;
   m_NumberOfParameters = this->m_Transform->GetNumberOfParameters();
-/*
-  DerivativeType temp( m_NumberOfParameters );
-  memset( temp.data_block(),
-          0,
-          this->m_NumberOfParameters * sizeof(double) );
 
-  derivative = temp;
-*/
   derivative.SetSize( m_NumberOfParameters);
   memset( derivative.data_block(),
           0,
@@ -1140,8 +1131,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
   // collect sample set B
   std::cout << "Collecting B samples..." << std::endl;
   this->SampleFixedImageDomain( m_SampleB );
-
-  // this->ValidateSamples();
 
   // Setup the thread iterators for the A samples.
   this->SetupSampleThreadIterators();
@@ -1616,23 +1605,20 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 
   for (unsigned int t = 0; t < this->m_NumberOfThreads; t++)
     {
-    // FIXME: 4-9-08, 8:44 pm
     // derivative += this->m_ThreadDerivatives[ t ];
     this->FastDerivativeAdd( derivative, this->m_ThreadDerivatives[ t ] );
     }
 
   // Different start index than previous loop
-  // FIXME: 4-9-08, 8:55 pm 
-    // Combine totalWeight across threads for each B sample.
+  // Combine totalWeight across threads for each B sample.
+  for (unsigned int t = 1; t < this->m_NumberOfThreads; t++)
+    {
     for (unsigned int bSample = 0; 
           bSample < this->m_NumberOfSpatialSamples;
           bSample++)
       {
-  for (unsigned int t = 1; t < this->m_NumberOfThreads; t++)
-    {
       m_TotalWeightBSamplePartialResult[0][bSample]  += m_TotalWeightBSamplePartialResult[t][bSample];
       }
-
     }
 
 }
@@ -1982,8 +1968,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
                                         derivA,
                                         0 );
 
-    //long sampleLinearOffset = this->m_FixedImage->ComputeOffset( (*aiter).FixedImageIndex );
-
     // COPY of derivative!
     this->m_DerivativeMap[ (*aiter).FixedImageLinearOffset ] = derivA;
     }
@@ -1996,19 +1980,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 {
   /** This method assumes that the samples have been generated already and 
       that the transform has been set. **/
-  std::cout << "m_SparseDerivativeMap size : " << this->m_SparseDerivativeMap.size() << std::endl;
-
-  { // start extra scope
-  std::ofstream derivativeMapOutput("derivativeMapOutput.txt");
-
-  for (typename SparseDerivativeMapType::iterator miter = m_SparseDerivativeMap.begin();
-        miter != m_SparseDerivativeMap.end();
-        ++miter)
-  {
-  derivativeMapOutput << (*miter).first << std::endl;
-  }
-  derivativeMapOutput.close();
-  }// end extra scope
 
   // Clear the cached derivatives.
   this->m_SparseDerivativeMap.clear();
@@ -2035,18 +2006,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
     if (currentCacheSize <= m_DerivativeCacheSize)
       {
       // COPY of derivative!
-#ifdef DEBUG_OFFSET
-      FixedImageLinearOffsetType maxOffset = 0;
-      typename FixedImageType::SizeType fixSize = this->m_FixedImage->GetLargestPossibleRegion().GetSize();
-      maxOffset = fixSize[0] * fixSize[1] * fixSize[2];
-
-      if ( (*aiter).FixedImageLinearOffset > maxOffset-1 ||
-           (*aiter).FixedImageLinearOffset < 0 )
-        {
-        std::cerr << "Offset error!" << std::endl;
-        std::cerr << "Offset : " << (*aiter).FixedImageLinearOffset << std::endl;
-        }
-#endif
       this->m_SparseDerivativeMap[ (*aiter).FixedImageLinearOffset ] = derivA;
       numberOfCachedDerivatives++;
       }
@@ -2177,8 +2136,8 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
 {
   this->ValidateSamples();
 
-  if ( this->m_SparseDerivativeMap.size() != this->m_SampleA.size() ) //||
-  //this->m_SparseDerivativeMap.size() != this->m_SampleB.size() )
+  // Map contains derivatives for A samples.
+  if ( this->m_SparseDerivativeMap.size() != this->m_SampleA.size() ) 
     {
     std::cerr << "Sparse derivative map is not the right size!" << std::endl;
     std::cerr << "Expected (A): " << this->m_SampleA.size() << std::endl;
@@ -2195,8 +2154,6 @@ MultiThreadedMutualInformationImageToImageMetric<TFixedImage,TMovingImage>
       }
     }
 
-    // char* ptr = 0;
-    // *ptr = 10; // crash me
     return false;
     }
 
