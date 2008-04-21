@@ -180,6 +180,8 @@ int main( int argc, char * argv[] )
   size.Fill( numberOfGridNodesInsideTheImageSupport );
 
   transformInitilizer->SetGridSizeInsideTheImage( size );
+
+  transformInitilizer->InitializeTransform();
  
   typedef TransformType::ParametersType     ParametersType;
 
