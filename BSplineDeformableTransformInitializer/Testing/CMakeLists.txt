@@ -19,4 +19,20 @@ ADD_TEST(BSplineWarping1Test
         ${TEMP}/BSplineWarping1TestDeformationField.mhd
 )
 
+ADD_EXECUTABLE(BSplineDeformableTransformInitializerTest2 
+    itkBSplineDeformableTransformInitializerTest2.cxx )
+
+TARGET_LINK_LIBRARIES(BSplineDeformableTransformInitializerTest2
+   ITKIO ITKNumerics)
+
+
+ADD_TEST(BSplineWarping2Test 
+        ${CXX_TEST_PATH}/BSplineDeformableTransformInitializerTest2 
+        ${TEST_DATA_ROOT}/Data/BSplineDisplacements1.txt
+        ${TEST_DATA_ROOT}/Data/BrainProtonDensitySliceBorder20.png
+        ${TEST_DATA_ROOT}/Data/BrainProtonDensitySliceBorder20.png
+        ${TEMP}/BSplineWarping2Test.png
+        ${TEMP}/BSplineWarping2TestDeformationField.mhd
+)
+
 
