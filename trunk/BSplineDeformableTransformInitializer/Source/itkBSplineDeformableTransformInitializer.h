@@ -78,9 +78,22 @@ public:
   /** Set the fixed image used in the registration process */
   itkSetConstObjectMacro( Image,  ImageType  );
 
-  /** Set the number of grid node that we want to place inside the
-   * image. */
+  /** Set the number of grid nodes that we want to place inside the image. This
+   * method will override the settings of any previous call to
+   * SetNumberOfGridNodesInsideTheImage().*/
   itkSetMacro( GridSizeInsideTheImage,  TransformSizeType  );
+
+  /** Set the number of grid nodes that we want to place inside the image. This
+   * number of node is used along one dimension of the image.  Therefore, if
+   * you pass the number 5 as argument of this method, in a 3D space, then the
+   * total number of grid nodes inside the image will be \$ 5 x 5 x 5 \$ .
+   * This method will override the settings of any previous call to
+   * SetGridSizeInsideTheImage().*/
+  void SetNumberOfGridNodesInsideTheImage( unsigned int numberOfNodes )
+    {
+    this->m_GridSizeInsideTheImage.Fill( numberOfNodes );
+    this->Modified();
+    }
 
   /** Initialize the transform using data from the images */
   virtual void InitializeTransform() const;
@@ -100,6 +113,8 @@ private:
   ImagePointer        m_Image;
 
   TransformSizeType   m_GridSizeInsideTheImage;
+
+  unsigned int        m_NumberOfGridNodesInsideTheImage;
 
 }; //class BSplineDeformableTransformInitializer
 
