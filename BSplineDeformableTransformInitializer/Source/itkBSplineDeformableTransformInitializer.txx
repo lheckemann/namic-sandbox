@@ -28,6 +28,7 @@ template < class TTransform, class TImage >
 BSplineDeformableTransformInitializer<TTransform, TImage >
 ::BSplineDeformableTransformInitializer() 
 {
+  this->m_GridSizeInsideTheImage.Fill( 5 );
 }
 
 
@@ -37,66 +38,66 @@ BSplineDeformableTransformInitializer<TTransform, TImage >
 ::InitializeTransform() const
 {
   // Sanity check
-  if( !m_Image )
+  if( ! this->m_Image )
     {
     itkExceptionMacro( "Reference Image has not been set" );
     return;
     }
 
-  if( !m_Transform )
+  if( ! this->m_Transform )
     {
     itkExceptionMacro( "Transform has not been set" );
     return;
     }
 
   // If the image come from a filter, then update that filter.
-  if( m_Image->GetSource() )
+  if( this->m_Image->GetSource() )
     { 
-    m_Image->GetSource()->Update();
+    this->m_Image->GetSource()->Update();
     }
 
-  unsigned int numberOfGridNodesInOneDimensionCoarse = 5;
+  typedef typename TransformType::RegionType RegionType;
 
-  typedef DeformableTransformType::RegionType RegionType;
-  RegionType bsplineRegion;
+  typename RegionType::SizeType   gridBorderSize;
+  typename RegionType::SizeType   totalGridSize;
 
-  RegionType::SizeType   gridSizeOnImage;
-  RegionType::SizeType   gridBorderSize;
-  RegionType::SizeType   totalGridSize;
+  gridBorderSize.Fill( TransformType::SplineOrder );
 
-  gridSizeOnImage.Fill( numberOfGridNodesInOneDimensionCoarse );
-  gridBorderSize.Fill( SplineOrder );
+  totalGridSize = this->m_GridSizeInsideTheImage;
+  totalGridSize += gridBorderSize;
 
-  totalGridSize = gridSizeOnImage + gridBorderSize;
+  RegionType gridRegion;
+  gridRegion.SetSize( totalGridSize );
 
-  bsplineRegion.SetSize( totalGridSize );
+  typedef typename TransformType::SpacingType SpacingType;
+  const SpacingType & imageSpacing = this->m_Image->GetSpacing();
 
-  typedef TransformType::SpacingType SpacingType;
-  const SpacingType & spacing = m_Image->GetSpacing();
+  typedef typename TransformType::OriginType OriginType;
+  const OriginType & imageOrigin = this->m_Image->GetOrigin();;
 
-  typedef DeformableTransformType::OriginType OriginType;
-  OriginType origin = fixedImage->GetOrigin();;
+  const typename TransformType::RegionType & imageRegion = 
+    this->m_Image->GetLargestPossibleRegion();
 
-  FixedImageType::SizeType fixedImageSize = fixedRegion.GetSize();
+  typename ImageType::SizeType fixedImageSize = imageRegion.GetSize();
 
   SpacingType gridSpacing;
 
-  for(unsigned int r=0; r<ImageDimension; r++)
+  for( unsigned int r = 0; r < SpaceDimension; r++ )
     {
-    gridSpacing[r] = spacing[r] * 
+    gridSpacing[r] = imageSpacing[r] * 
       static_cast<double>(fixedImageSize[r]  - 1)  / 
-      static_cast<double>(gridSizeOnImage[r] - 1);
+      static_cast<double>(this->m_GridSizeInsideTheImage[r] - 1);
     }
 
-  FixedImageType::DirectionType gridDirection = fixedImage->GetDirection();
+  typename ImageType::DirectionType gridDirection = this->m_Image->GetDirection();
   SpacingType gridOriginOffset = gridDirection * gridSpacing;
 
-  OriginType gridOrigin = origin - gridOriginOffset; 
+  OriginType gridOrigin = imageOrigin - gridOriginOffset; 
 
-  m_Transform->SetGridSpacing( gridSpacing );
-  m_Transform->SetGridOrigin( gridOrigin );
-  m_Transform->SetGridDirection( gridDirection );
-  m_Transform->SetGridRegion( bsplineRegion );
+  this->m_Transform->SetGridRegion( gridRegion );
+  this->m_Transform->SetGridOrigin( gridOrigin );
+  this->m_Transform->SetGridSpacing( gridSpacing );
+  this->m_Transform->SetGridDirection( gridDirection );
  
 }
   
@@ -109,9 +110,9 @@ BSplineDeformableTransformInitializer<TTransform, TImage >
   Superclass::PrintSelf(os,indent);
      
   os << indent << "Transform   = " << std::endl;
-  if (m_Transform)
+  if( this->m_Transform )
     { 
-    os << indent << m_Transform  << std::endl;
+    os << indent << this->m_Transform  << std::endl;
     }
   else
     {
@@ -119,9 +120,9 @@ BSplineDeformableTransformInitializer<TTransform, TImage >
     }
 
   os << indent << "Image   = " << std::endl;
-  if (m_Image)
+  if( this->m_Image )
     { 
-    os << indent << m_Image  << std::endl;
+    os << indent << this->m_Image  << std::endl;
     }
   else
     {

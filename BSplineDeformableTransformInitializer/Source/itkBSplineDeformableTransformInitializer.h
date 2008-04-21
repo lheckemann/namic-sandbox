@@ -55,8 +55,13 @@ public:
   itkTypeMacro( BSplineDeformableTransformInitializer, Object );
 
   /** Type of the transform to initialize */
-  typedef TTransform                        TransformType;
-  typedef typename TransformType::Pointer   TransformPointer;
+  typedef TTransform                                TransformType;
+
+  /** Types defined from transform traits */
+  typedef typename TransformType::Pointer           TransformPointer;
+  typedef typename TransformType::RegionType        TransformRegionType;
+  typedef typename TransformRegionType::SizeType    TransformSizeType;
+
 
   /** Dimension of parameters. */
   itkStaticConstMacro(SpaceDimension, unsigned int, 
@@ -73,6 +78,9 @@ public:
   /** Set the fixed image used in the registration process */
   itkSetConstObjectMacro( Image,  ImageType  );
 
+  /** Set the number of grid node that we want to place inside the
+   * image. */
+  itkSetMacro( GridSizeInsideTheImage,  TransformSizeType  );
 
   /** Initialize the transform using data from the images */
   virtual void InitializeTransform() const;
@@ -90,6 +98,8 @@ private:
   TransformPointer    m_Transform;
 
   ImagePointer        m_Image;
+
+  TransformSizeType   m_GridSizeInsideTheImage;
 
 }; //class BSplineDeformableTransformInitializer
 
