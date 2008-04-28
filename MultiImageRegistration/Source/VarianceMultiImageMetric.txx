@@ -135,7 +135,7 @@ VarianceMultiImageMetric < TImage >
     }
     mean /= (double) this->m_NumberOfImages;
     sumOfSquares /= (double) this->m_NumberOfImages;
-    this->m_value[threadId] += sumOfSquares - mean*mean;
+    this->m_value[threadId] += (sumOfSquares - mean*mean) * (double) this->m_NumberOfImages;
 
   } // End of sample Loop  
 
@@ -249,13 +249,13 @@ VarianceMultiImageMetric < TImage >
     }
     mean /= (double) this->m_NumberOfImages;
     sumOfSquares /= (double) this->m_NumberOfImages;
-    this->m_value[threadId] += sumOfSquares - mean*mean;
+    this->m_value[threadId] += (sumOfSquares - mean*mean) * (double) this->m_NumberOfImages;
 
     // Calculate derivative
     for (int i = 0; i < this->m_NumberOfImages; i++)
     {
       //calculate the derivative weight
-      const double weight = 2.0 / (double) this->m_NumberOfImages * 
+      const double weight = 2.0 * 
                       (this->m_Sample[a].imageValueArray[i] - mean);
       
       // Get the derivative for this sample
@@ -278,43 +278,7 @@ void VarianceMultiImageMetric < TImage >
                            DerivativeType & derivative) const
 {
 
-  value = NumericTraits< RealType >::Zero;
-
-  derivative.set_size(this->m_NumberOfParameters * this->m_NumberOfImages);
-  derivative.Fill (0.0);
-
-  // Sum over the values returned by threads
-  for( int i=0; i < this->m_NumberOfThreads; i++ )
-  {
-    value += this->m_value[i];
-    for(unsigned int j=0; j<this->m_NumberOfImages; j++)
-    {
-      for(unsigned int k=0; k<this->m_NumberOfParameters; k++)
-      {
-        derivative[j * this->m_NumberOfParameters + k] += this->m_DerivativesArray[i][j][k]; 
-      }
-    }
-  }
-  value /= (double) this->m_NumberOfSpatialSamples * this->m_NumberOfImages;
-  derivative /= (double) this->m_NumberOfSpatialSamples * this->m_NumberOfImages;
-
-  //Set the mean to zero
-  //Remove mean
-  DerivativeType sum (this->m_NumberOfParameters);
-  sum.Fill(0.0);
-  for (unsigned int i = 0; i < this->m_NumberOfImages; i++)
-  {
-    for (unsigned int j = 0; j < this->m_NumberOfParameters; j++)
-    {
-      sum[j] += derivative[i * this->m_NumberOfParameters + j];
-    }
-  }
-
-  
-  for (unsigned int i = 0; i < this->m_NumberOfImages * this->m_NumberOfParameters; i++)
-  {
-    derivative[i] -= sum[i % this->m_NumberOfParameters] / (double) this->m_NumberOfImages;
-  }
+  Superclass::AfterGetThreadedValueAndDerivative(value, derivative);
 
 }
 
