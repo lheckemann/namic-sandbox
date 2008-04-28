@@ -140,7 +140,7 @@ public:
       }
 
       // only print results every ten iterations
-      if(m_CumulativeIterationIndex % 5 != 0 )
+      if(m_CumulativeIterationIndex % 1 != 0 )
       {
         m_CumulativeIterationIndex++;
         return;

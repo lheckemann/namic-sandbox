@@ -429,7 +429,7 @@ int main( int argc, char * argv[] )
       imageResampleArray[j]->SetTransform( transformArray[j] );
            
       ImageType::Pointer imagePointer = imageReaderArray[j]->GetOutput();
-      ResampleFilterType::OriginPointType  origin = imageReaderArray[j]->GetOutput()->GetOrigin();
+      ResampleFilterType::OriginPointType  origin = imageReaderArray[0]->GetOutput()->GetOrigin();
       imagePointer->SetOrigin(origin);
 
       imageResampleArray[j]->SetInput( imagePointer );

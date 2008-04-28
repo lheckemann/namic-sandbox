@@ -549,13 +549,13 @@ void UnivariateEntropyMultiImageMetric < TFixedImage >
       }
     }
   } 
-  value /= (double) ( -1.0 * this->m_NumberOfSpatialSamples * this->m_NumberOfImages );
-  derivative /= (double) (this->m_NumberOfSpatialSamples * this->m_NumberOfImages *
-                     m_ImageStandardDeviation * m_ImageStandardDeviation );
+  value /= (double) ( this->m_NumberOfSpatialSamples * this->m_NumberOfImages );
+  derivative /= (double) (this->m_NumberOfSpatialSamples * this->m_NumberOfImages );
   
   // BSpline regularization
   if(this->m_UserBsplineDefined && m_BSplineRegularizationFlag)
   {
+
     // Smooth the deformation field
     typedef typename BSplineTransformType::ImageType ParametersImageType;
 
@@ -655,7 +655,7 @@ UnivariateEntropyMultiImageMetric < TFixedImage >
             m_ImageStandardDeviation );
 
       }
-      m_value[threadId]  += vcl_log( W_j[j] / (double) (this->m_NumberOfImages ) );
+      m_value[threadId]  += -1.0 * vcl_log( W_j[j] / (double) (this->m_NumberOfImages ) );
       
     }
 
@@ -674,6 +674,8 @@ UnivariateEntropyMultiImageMetric < TFixedImage >
         weight += (1.0/W_j[l] + 1.0/W_j[j]) * g * diff;
       }
       
+      weight = weight / (m_ImageStandardDeviation * m_ImageStandardDeviation);
+
       // Get the derivative for this sample
       UpdateSingleImageParameters( m_DerivativesArray[threadId][l], 
                                    this->m_Sample[x], 
