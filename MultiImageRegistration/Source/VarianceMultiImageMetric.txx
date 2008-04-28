@@ -135,7 +135,7 @@ VarianceMultiImageMetric < TImage >
     }
     mean /= (double) this->m_NumberOfImages;
     sumOfSquares /= (double) this->m_NumberOfImages;
-    this->m_value[threadId] += (sumOfSquares - mean*mean) * (double) this->m_NumberOfImages;
+    this->m_value[threadId] += sumOfSquares - mean*mean;
 
   } // End of sample Loop  
 
@@ -154,7 +154,7 @@ VarianceMultiImageMetric < TImage >
   {
     value += this->m_value[i];
   }
-  value /= (double) this->m_NumberOfSpatialSamples * this->m_NumberOfImages;
+  value /= (double) this->m_NumberOfSpatialSamples;
   
   return value;
 }
@@ -249,13 +249,13 @@ VarianceMultiImageMetric < TImage >
     }
     mean /= (double) this->m_NumberOfImages;
     sumOfSquares /= (double) this->m_NumberOfImages;
-    this->m_value[threadId] += (sumOfSquares - mean*mean) * (double) this->m_NumberOfImages;
+    this->m_value[threadId] += sumOfSquares - mean*mean;
 
     // Calculate derivative
     for (int i = 0; i < this->m_NumberOfImages; i++)
     {
       //calculate the derivative weight
-      const double weight = 2.0 * 
+      const double weight = 2.0  * 
                       (this->m_Sample[a].imageValueArray[i] - mean);
       
       // Get the derivative for this sample
@@ -278,7 +278,89 @@ void VarianceMultiImageMetric < TImage >
                            DerivativeType & derivative) const
 {
 
-  Superclass::AfterGetThreadedValueAndDerivative(value, derivative);
+  value = NumericTraits< RealType >::Zero;
+
+  derivative.set_size(this->m_NumberOfParameters * this->m_NumberOfImages);
+  derivative.Fill (0.0);
+
+  // Sum over the values returned by threads
+  for( int i=0; i < this->m_NumberOfThreads; i++ )
+  {
+    value += this->m_value[i];
+    for(unsigned int j=0; j<this->m_NumberOfImages; j++)
+    {
+      for(unsigned int k=0; k<this->m_NumberOfParameters; k++)
+      {
+        derivative[j * this->m_NumberOfParameters + k] += this->m_DerivativesArray[i][j][k]; 
+      }
+    }
+  }
+  value /= (double) this->m_NumberOfSpatialSamples;
+  derivative /= (double) this->m_NumberOfSpatialSamples * this->m_NumberOfImages;
+
+  // BSpline regularization
+  if(this->m_UserBsplineDefined && this->m_BSplineRegularizationFlag)
+  {
+
+    // Smooth the deformation field
+    typedef typename Superclass::BSplineTransformType::ImageType ParametersImageType;
+
+    typename ParametersImageType::Pointer parametersImage = ParametersImageType::New();
+    parametersImage->SetRegions( this->m_BSplineTransformArray[0]->GetGridRegion() );
+    parametersImage->CopyInformation( this->m_BSplineTransformArray[0]->GetCoefficientImage()[0] );
+    parametersImage->Allocate();
+    
+    //gaussian filter
+    typedef itk::DiscreteGaussianImageFilter<ParametersImageType,ParametersImageType> GaussianFilterType;
+    typename GaussianFilterType::Pointer gaussianFilter = GaussianFilterType::New();
+    gaussianFilter->SetInput(parametersImage);
+    gaussianFilter->SetUseImageSpacingOn(); // on: spacing changes between levels
+    gaussianFilter->SetVariance(this->m_GaussianFilterKernelWidth);
+    gaussianFilter->Update();
+
+    typedef itk::ImageRegionIterator<ParametersImageType> ParametersImageIteratorType;
+    ParametersImageIteratorType parametersIt(parametersImage, parametersImage->GetLargestPossibleRegion() );
+    ParametersImageIteratorType filterIt(gaussianFilter->GetOutput(), gaussianFilter->GetOutput()->GetLargestPossibleRegion() );
+    
+    //Set the parametersImage to current Image
+    unsigned int count = 0;
+    for(int i=0; i<this->m_NumberOfImages*itkGetStaticConstMacro(ImageDimension); i++)
+    {
+      for( parametersIt.GoToBegin(); !parametersIt.IsAtEnd(); ++parametersIt)
+      {
+        parametersIt.Set(derivative[count]);
+        count++; 
+      }
+      count -= this->m_NumberOfParameters/itkGetStaticConstMacro(ImageDimension);
+      gaussianFilter->Modified();
+      gaussianFilter->Update();
+      for( filterIt.GoToBegin(); !filterIt.IsAtEnd(); ++filterIt)
+      {
+        derivative[count] = filterIt.Get();
+        count++; 
+      } 
+
+    }
+    
+  }
+
+  //Set the mean to zero
+  //Remove mean
+  DerivativeType sum (this->m_NumberOfParameters);
+  sum.Fill(0.0);
+  for (unsigned int i = 0; i < this->m_NumberOfImages; i++)
+  {
+    for (unsigned int j = 0; j < this->m_NumberOfParameters; j++)
+    {
+      sum[j] += derivative[i * this->m_NumberOfParameters + j];
+    }
+  }
+
+  
+  for (unsigned int i = 0; i < this->m_NumberOfImages * this->m_NumberOfParameters; i++)
+  {
+    derivative[i] -= sum[i % this->m_NumberOfParameters] / (double) this->m_NumberOfImages;
+  }
 
 }
 
