@@ -35,13 +35,28 @@ int main ( int argc, char* argv[] ) {
     std::cerr << "Usage: TimeSeriesDatabase <DatabaseFile> <ArchetypeFile> [NumberOfTests]" << std::endl;
     exit ( EXIT_FAILURE );
   }
+
+  std::fstream f ( "/tmp/Test.txt" );
+
+  typedef itk::TimeSeriesDatabaseHelper::counted_ptr<std::fstream> fstreamPtr;
+
+  std::vector<fstreamPtr> sv;
+
+  sv.push_back ( fstreamPtr ( new std::fstream ( "/tmp/Test.txt", ::std::ios::out | ::std::ios::binary ) ) );
+
+  *sv[0] << "Foo bar" << std::endl;
+  sv[0]->close();
+  sv.pop_back();
+
   int NumberOfTests = 1000;
   if ( argc > 3 ) {
     NumberOfTests = atoi ( argv[3] );
   }
   
   typedef itk::TimeSeriesDatabase<signed short> DBType;
-  DBType::CreateFromFileArchetype ( argv[1], argv[2] );
+  // Create a series of 1MiB files
+  // 1048576 is 1 MiB
+  DBType::CreateFromFileArchetype ( argv[1], argv[2], 1048576 );
   std::cout << "Wrote db" << std::endl;
 
   DBType::Pointer db = DBType::New();
@@ -50,9 +65,11 @@ int main ( int argc, char* argv[] ) {
   
   db->SetCurrentImage ( 0 );
   db->Update();
+
+  db->Print ( std::cout );
+
   DBType::OutputImageType::Pointer FullImage = db->GetOutput();
   FullImage->DisconnectPipeline();
-  
 
   DBType::OutputImageType::RegionType region;
   itk::Size<3> sz;
