@@ -589,20 +589,23 @@ int main(int, char* [] )
     QuaternionType v6 = v4.Exponential( 0.5 );
     QuaternionType v7 = v5.Exponential( 2.0 );
     
-    if( fabs(v6.GetX() - v5.GetX() ) > epsilon ||
-        fabs(v6.GetY() - v5.GetY() ) > epsilon ||
-        fabs(v6.GetZ() - v5.GetZ() ) > epsilon ||
-        fabs(v6.GetW() - v5.GetW() ) > epsilon )
+    // We use here a relaxed tolerance.
+    const double tolerance = 1e-6;
+
+    if( fabs(v6.GetX() - v5.GetX() ) > tolerance ||
+        fabs(v6.GetY() - v5.GetY() ) > tolerance ||
+        fabs(v6.GetZ() - v5.GetZ() ) > tolerance ||
+        fabs(v6.GetW() - v5.GetW() ) > tolerance )
       {
       std::cout << "Error in SquareRoot() and/or Exponential ! " << std::endl;
       std::cout << "v5 = " << v5 << std::endl;
       std::cout << "v6 = " << v6 << std::endl;
       return EXIT_FAILURE;
       } 
-    if( fabs(v7.GetX() - v4.GetX() ) > epsilon ||
-        fabs(v7.GetY() - v4.GetY() ) > epsilon ||
-        fabs(v7.GetZ() - v4.GetZ() ) > epsilon ||
-        fabs(v7.GetW() - v4.GetW() ) > epsilon )
+    if( fabs(v7.GetX() - v4.GetX() ) > tolerance ||
+        fabs(v7.GetY() - v4.GetY() ) > tolerance ||
+        fabs(v7.GetZ() - v4.GetZ() ) > tolerance ||
+        fabs(v7.GetW() - v4.GetW() ) > tolerance )
       {
       std::cout << "Error in SquareRoot() and/or Exponential ! " << std::endl;
       std::cout << "v4 = " << v4 << std::endl;
