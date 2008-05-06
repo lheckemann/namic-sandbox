@@ -30,6 +30,21 @@ int main( int argc, char * argv[] )
     return EXIT_FAILURE;
     }
 
+  typedef itk::QuadraticQuaternionPolynomial<double> PolynomialType;
+
+  PolynomialType::Pointer polynomial = PolynomialType::New();
+
+  typedef PolynomialType::QuaternionType  QuaternionType;
+
+  QuaternionType q0;
+  QuaternionType q1;
+  QuaternionType q2;
+
+  polynomial->SetQuaternion0( q0 ); 
+  polynomial->SetQuaternion1( q1 ); 
+  polynomial->SetQuaternion2( q2 ); 
+
+  QuaternionType Q = polynomial->Evaluate( 0.5 );
 
   return EXIT_SUCCESS;
 }
