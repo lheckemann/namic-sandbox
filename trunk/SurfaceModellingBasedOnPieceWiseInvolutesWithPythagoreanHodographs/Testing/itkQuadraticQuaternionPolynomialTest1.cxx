@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkVersorQuadraticInterpolator.txx,v $
+  Module:    $RCSfile: BSplineWarping1.cxx,v $
   Language:  C++
-  Date:      $Date: 2007/12/20 19:19:18 $
-  Version:   $Revision: 1.28 $
+  Date:      $Date: 2008-04-21 17:40:10 $
+  Version:   $Revision: 1.22 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -14,32 +14,23 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkVersorQuadraticInterpolator_txx
-#define __itkVersorQuadraticInterpolator_txx
-
-#include "itkVersorQuadraticInterpolator.h"
-#include "itkNumericTraits.h" 
-#include "itkExceptionObject.h"
-
-
-namespace itk
-{
-
-/** Constructor */
-template<class T>
-VersorQuadraticInterpolator<T>
-::VersorQuadraticInterpolator()
-{
-}
-
-/** Destructor */
-template<class T>
-VersorQuadraticInterpolator<T>
-::~VersorQuadraticInterpolator()
-{
-}
-
-
-} // end namespace itk
-
+#if defined(_MSC_VER)
+#pragma warning ( disable : 4786 )
 #endif
+
+#include "itkQuadraticQuaternionPolynomial.h"
+
+int main( int argc, char * argv[] )
+{
+
+  if( argc < 2 )
+    {
+    std::cerr << "Missing Parameters " << std::endl;
+    std::cerr << "Usage: " << argv[0];
+    return EXIT_FAILURE;
+    }
+
+
+  return EXIT_SUCCESS;
+}
+
