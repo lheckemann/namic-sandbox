@@ -35,11 +35,11 @@ namespace itk
  * can represent rotations and scale changes while versors are limited
  * to rotations.
  *
- * This class only implements the operations that maintain versors as
- * a group, that is, any operations between versors result in another
- * versor. For this reason, addition is not defined in this class, even
- * though it is a valid operation between quaternions.
- *
+ * This class only implements the operations that maintain quaternions as a
+ * group, that is, any operations between quaternions result in another
+ * quaternion. This includes multiplication with scalars and quaternion
+ * addition.
+ * 
  * \ingroup Geometry
  * \ingroup DataRepresentation
  * 
@@ -47,6 +47,7 @@ namespace itk
  * \sa Point
  * \sa CovariantVector
  * \sa Matrix
+ * \sa Versor
  */
 template<class T> 
 class Quaternion 
@@ -59,7 +60,7 @@ public:
    * as a data element held in a Quaternion.   */
   typedef T ValueType;
 
-  /** Type used for computations on the versor components */
+  /** Type used for computations on the quaternion components */
   typedef typename NumericTraits<ValueType>::RealType    RealType;
   
   /** Vector type used to represent the axis. */
@@ -88,80 +89,66 @@ public:
             be normalized in order to get a consistent Quaternion.  */
   void Set( const VnlQuaternionType & ); 
 
-  /** Set the Quaternion from Quaternion components.
-   \warning After assignment, the corresponding quaternion will be normalized
-   in order to get a consistent Quaternion.  Also, if the "w" component is
-   negative, the four components will be negated in order to produce a
-   quaternion where "w" is positive, since this is implicitly assumed in other
-   sections of the code, in particular when "w" is computed from (x,y,z) via
-   normalization. The reason why it is valid to negate all the components is
-   that the rotation by angle \theta, is represented by \sin(\frac{\theta}{2})
-   in the (x,y,z) components and by \cos(\frac{\theta}{2}) in the "w"
-   component. The rotation by any \theta should be equivalent to a rotation by
-   \theta + n \times \pi, therefore we should be able to replace
-   \sin(\frac{\theta}{2}) with \sin(\frac{\theta}{2} + n \times \pi ) and
-   \cos(\frac{\theta}{2}) with \cos(\frac{\theta}{2} + n \times \pi ). 
-   Considering that \cos( n \times \pi ) = (-1)^{n} we can conclude that if we 
-   simultaneously change the signs of all the Quaternion components, the rotation
-   that it represents remains unchanged.
-   */
+  /** Set the Quaternion from Quaternion components. */
   void Set( T x, T y, T z, T w );  
 
 
-  /** Default constructor creates a null versor 
+  /** Default constructor creates an identity quaternion 
    * (representing 0 degrees  rotation). */
   Quaternion();
 
   /** Copy constructor.  */
   Quaternion(const Self & v);
 
-  /** Assignment operator =.  Copy the versor argument. */
+  /** Assignment operator =.  Copy the quaternion argument. */
   const Self& operator=(const Self & v);
  
-  /** Composition operator *=.  Compose the current versor
+  /** Composition operator *=.  Compose the current quaternion
    * with the operand and store the result in the current
-   * versor. */
+   * quaternion. */
   const Self& operator*=(const Self & v);
 
-  /** Division operator /=.  Divide the current versor
+  /** Division operator /=.  Divide the current quaternion
    * with the operand and store the result in the current
-   * versor. This is equivalent to compose the Quaternion with
+   * quaternion. This is equivalent to compose the Quaternion with
    * the reciprocal of the operand \sa GetReciprocal */
   const Self& operator/=(const Self & v);
 
 
-  /** Get Tensor part of the Quaternion. 
-   * Given that Quaternions are normalized quaternions this value
-   * is expected to be 1.0 always  */
+  /** Get Tensor part of the Quaternion.  Note that the term "Tensor" in
+   * Hamilton's description of Quaternions is different from the notion of
+   * Tensor as a higher rank representation of vectors. Tensor in the context
+   * of Quaternions refers to the Scaling factor that the Quaternion applies to
+   * a Vector. The Tensor of a Quaternion is a Scalar value. */
   ValueType GetTensor(void) const;
 
   /** Normalize the Quaternion.
-   * Given that Quaternions are normalized quaternions this method
-   * is provided only for convinience when it is suspected that
-   * a versor could be out of the unit sphere.   */
+   *  Reduces a Quaternion to a Versor. */
   void Normalize(void);
 
-  /** Get Conjugate versor.  Returns the versor that produce
-   * a rotation by the same angle but in opposite direction. */
+  /** Get Conjugate quaternion.  Returns the quaternion that produce a rotation
+   * by the same angle but in opposite direction. The Tensor (scalar) part of
+   * the Quaternion is conserved.  The conjugate of the quaternion 
+   * Q= w + xi + * yj + zk is the quaternion Q' = w - xi - yj - zk */
   Self GetConjugate(void) const;
 
-  /** Get Reciprocal versor.  Returns the versor that composed
+  /** Get Reciprocal quaternion.  Returns the quaternion that composed
    * with this one will result in a scalar operator equals to 1.
    * It is also equivalent to 1/this. */
   Self GetReciprocal(void) const;
 
-  /** Quaternion operator*.  Performs the composition of two versors.
+  /** Quaternion operator*.  Performs the composition of two quaternions.
    * this operation is NOT commutative. */
   Self operator*(const Self &vec) const;
 
-  /** Quaternion operator/.  Performs the division of two versors. */
+  /** Quaternion operator/.  Performs the division of two quaternions. */
   Self operator/(const Self &vec) const;
 
-  /** Quaternion operator==  Performs the comparison between two versors.
+  /** Quaternion operator==  Performs the comparison between two quaternions.
    * this operation uses an arbitrary threshold for the comparison.  */
   bool operator==(const Self &vec) const;
 
-  /** Quaternion operator!=  Performs the comparison between two versors.
+  /** Quaternion operator!=  Performs the comparison between two quaternions.
    * this operation uses an arbitrary threshold for the comparison.  */
   bool operator!=(const Self &vec) const;
 
@@ -197,19 +184,24 @@ public:
    * a right angle rotation. */
   VectorType GetRight( void ) const;
    
-  /** Set the versor using a vector and angle
+  /** Set the quaternion using a vector and angle
    * the unit vector parallel to the given vector 
    * will be used. The angle is expected in radians. */
   void Set( const VectorType & axis, ValueType angle );
   
-  /** Set the versor using an orthogonal matrix.
+  /** Set the quaternion using a vector, angle and tensor.
+   * The unit vector parallel to the given vector 
+   * will be used. The angle is expected in radians. */
+  void Set( const VectorType & axis, ValueType angle, ValueType tensor );
+ 
+  /** Set the quaternion using an orthogonal matrix.
    *  Based on code from:
    *  http://www.euclideanspace.com/maths/geometry/rotations/
    *  conversions/matrixToQuaternion/index.htm
    */
   void Set( const MatrixType & m );
 
-  /** Set the versor using the right part.
+  /** Set the quaternion using the right part.
    * the magnitude of the vector given is assumed to 
    * be equal to vcl_sin(angle/2).
    * This method will compute internally the scalar
@@ -240,7 +232,7 @@ public:
    * \sa Set \sa SetRotationAroundX \sa SetRotationAroundY */
   void SetRotationAroundZ( ValueType angle );
 
-  /** Reset the values so the versor is equivalent to an identity 
+  /** Reset the values so the quaternion is equivalent to an identity 
    *  transformation. This is equivalent to set a zero angle */
   void SetIdentity();
   
@@ -264,8 +256,8 @@ public:
    
   /** Compute the Exponential of the unit quaternion
    * Exponentiation by a factor is equivalent to 
-   * multiplication of the rotaion angle of the quaternion. */
-  Self Exponential( ValueType exponent ) const;
+   * multiplication of the rotation angle of the quaternion. */
+  Self Exponential( RealType exponent ) const;
 
 private: 
   /** Component parallel to x axis.  */

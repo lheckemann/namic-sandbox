@@ -412,10 +412,10 @@ int main(int, char* [] )
     v2.Set( x, y, z, w );
 
     // Compare both versors
-    if( fabs(v1.GetX() - v2.GetX() ) > epsilon ||
-        fabs(v1.GetY() - v2.GetY() ) > epsilon ||
-        fabs(v1.GetZ() - v2.GetZ() ) > epsilon ||
-        fabs(v1.GetW() - v2.GetW() ) > epsilon )
+    if( fabs( v1.GetX() * scale - v2.GetX() ) > epsilon ||
+        fabs( v1.GetY() * scale - v2.GetY() ) > epsilon ||
+        fabs( v1.GetZ() * scale - v2.GetZ() ) > epsilon ||
+        fabs( v1.GetW() * scale - v2.GetW() ) > epsilon )
       {
       std::cout << "Error in Quaternion Set(x,y,z,w) ! " << std::endl;
       std::cout << "v1  = " << v1 << std::endl;
@@ -424,6 +424,15 @@ int main(int, char* [] )
       } 
     std::cout << " PASSED !" << std::endl;
 
+    std::cout << "Test for Tensor... ";
+    if( fabs( v2.GetTensor() - scale ) > epsilon )
+      {
+      std::cout << "Failed !" << std::endl;
+      std::cout << "Expected Tensor = " << scale << std::endl;
+      std::cout << "Computed Tensor = " << v2.GetTensor() << std::endl;
+      return EXIT_FAILURE;
+      }
+    std::cout << " PASSED !" << std::endl;
 
     std::cout << "Test for Set quaternion ...";
     // Get a vnl_quaternion
@@ -434,10 +443,10 @@ int main(int, char* [] )
     v2.Set( vnlq );
 
     // Compare both versors
-    if( fabs(v1.GetX() - v2.GetX() ) > epsilon ||
-        fabs(v1.GetY() - v2.GetY() ) > epsilon ||
-        fabs(v1.GetZ() - v2.GetZ() ) > epsilon ||
-        fabs(v1.GetW() - v2.GetW() ) > epsilon )
+    if( fabs(v1.GetX() * scale - v2.GetX() ) > epsilon ||
+        fabs(v1.GetY() * scale - v2.GetY() ) > epsilon ||
+        fabs(v1.GetZ() * scale - v2.GetZ() ) > epsilon ||
+        fabs(v1.GetW() * scale - v2.GetW() ) > epsilon )
       {
       std::cout << "Error in Quaternion Set( vnl_quaternion ) ! " << std::endl;
       std::cout << "v1  = " << v1 << std::endl;
@@ -575,6 +584,35 @@ int main(int, char* [] )
     std::cout << " PASSED !" << std::endl;
 
 
+    std::cout << "Testing Sqrt() and Exponential()...";
+    QuaternionType v5 = v4.SquareRoot();
+    QuaternionType v6 = v4.Exponential( 0.5 );
+    QuaternionType v7 = v5.Exponential( 2.0 );
+    
+    if( fabs(v6.GetX() - v5.GetX() ) > epsilon ||
+        fabs(v6.GetY() - v5.GetY() ) > epsilon ||
+        fabs(v6.GetZ() - v5.GetZ() ) > epsilon ||
+        fabs(v6.GetW() - v5.GetW() ) > epsilon )
+      {
+      std::cout << "Error in SquareRoot() and/or Exponential ! " << std::endl;
+      std::cout << "v5 = " << v5 << std::endl;
+      std::cout << "v6 = " << v6 << std::endl;
+      return EXIT_FAILURE;
+      } 
+    if( fabs(v7.GetX() - v4.GetX() ) > epsilon ||
+        fabs(v7.GetY() - v4.GetY() ) > epsilon ||
+        fabs(v7.GetZ() - v4.GetZ() ) > epsilon ||
+        fabs(v7.GetW() - v4.GetW() ) > epsilon )
+      {
+      std::cout << "Error in SquareRoot() and/or Exponential ! " << std::endl;
+      std::cout << "v4 = " << v4 << std::endl;
+      std::cout << "v7 = " << v7 << std::endl;
+      return EXIT_FAILURE;
+      } 
+
+    std::cout << " PASSED !" << std::endl;
+
+
   }
 
 
@@ -599,6 +637,7 @@ int main(int, char* [] )
     mm[2][2] =  1.0;
 
     vv.Set( mm );
+    vv.Normalize();
 
     const double halfSqrtOfTwo = vcl_sqrt( 2.0 ) / 2.0;
 

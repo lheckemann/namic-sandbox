@@ -325,7 +325,7 @@ Quaternion<T>
   return angle;
 }
  
-/** Get the Square root of the unit quaternion */
+/** Get the Square root of a quaternion */
 template<class T>
 Quaternion<T>
 Quaternion<T>
@@ -350,12 +350,16 @@ Quaternion<T>
 template<class T>
 Quaternion<T>
 Quaternion<T>
-::Exponential( ValueType exponent ) const
+::Exponential( RealType exponent ) const
 {
   Self result;
-  
-  result.Set( this->GetAxis(), 
-              this->GetAngle() * exponent );
+  RealType currentTensor = this->GetTensor();
+  RealType newTensor = vcl_pow( currentTensor, exponent );
+
+  RealType currentAngle = this->GetAngle();
+  RealType newAngle = currentAngle * exponent;
+
+  result.Set( this->GetAxis(), newAngle, newTensor );
 
   return result;
 }
@@ -379,7 +383,28 @@ Quaternion<T>
   
   m_W = cosangle2;
 }
+  
+/** Set Axis,  Angle (in radians) and Tensor */
+template<class T>
+void
+Quaternion<T>
+::Set( const VectorType & axis, ValueType angle, ValueType tensor )
+{
+  const RealType vectorNorm = axis.GetNorm();
+
+  const RealType cosangle2 = vcl_cos(angle / 2.0 );
+  const RealType sinangle2 = vcl_sin(angle / 2.0 );
+  
+  const RealType factor = sinangle2 * tensor / vectorNorm;
+  
+  m_X = axis[0] * factor;
+  m_Y = axis[1] * factor;
+  m_Z = axis[2] * factor;
+  
+  m_W = cosangle2 * tensor;
+}
  
+
 /**  Set using an orthogonal matrix. */
 template<class T>
 void
@@ -430,7 +455,6 @@ Quaternion<T>
         }
       }
     }
-  this->Normalize();
 }
 
 
@@ -490,7 +514,6 @@ Quaternion<T>
     m_Z = z;
     m_W = w;
     }
-  this->Normalize();
 }
 
 /** Set from a vnl_quaternion
@@ -505,7 +528,6 @@ Quaternion<T>
   m_Y = quaternion.y();
   m_Z = quaternion.z();
   m_W = quaternion.r();
-  this->Normalize();
 }
 
 /** Set rotation around X axis */
