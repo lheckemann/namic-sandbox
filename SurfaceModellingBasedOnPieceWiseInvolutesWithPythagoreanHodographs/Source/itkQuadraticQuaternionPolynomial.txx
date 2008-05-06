@@ -39,6 +39,16 @@ QuadraticQuaternionPolynomial<T>
 {
 }
 
+/** Evaluate the quadratic polynomial */
+template<class T>
+typename QuadraticQuaternionPolynomial<T>::OutputType
+QuadraticQuaternionPolynomial<T>
+::Evaluate( const RealType & t ) const
+{
+  QuaternionType Q;
+  return Q;
+}
+
 
 } // end namespace itk
 
