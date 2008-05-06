@@ -1,0 +1,18 @@
+PROJECT(SurfaceModelling)
+
+FIND_PACKAGE(ITK REQUIRED)
+INCLUDE(${ITK_USE_FILE})
+
+SET(EXECUTABLE_OUTPUT_PATH ${SurfaceModelling_BINARY_DIR}/bin CACHE INTERNAL "Where to put the executables") 
+SET(LIBRARY_OUTPUT_PATH ${SurfaceModelling_BINARY_DIR}/bin CACHE INTERNAL "Where to put the libraries") 
+
+ENABLE_TESTING()
+
+INCLUDE_DIRECTORIES(
+  ${SurfaceModelling_SOURCE_DIR}/Source
+  )
+
+ADD_SUBDIRECTORY( Source )
+ADD_SUBDIRECTORY( Testing )
+ADD_SUBDIRECTORY( Paper )
+
