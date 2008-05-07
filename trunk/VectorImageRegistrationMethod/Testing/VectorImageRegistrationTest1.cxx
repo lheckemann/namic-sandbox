@@ -18,17 +18,20 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkImageRegistrationMethod.h"
-#include "itkTranslationTransform.h"
-#include "itkMeanSquaresImageToImageMetric.h"
-#include "itkLinearInterpolateImageFunction.h"
-#include "itkRegularStepGradientDescentOptimizer.h"
+#include "itkVectorImageRegistrationMethod.h"
+#include "itkVectorMeanSquaresImageToImageMetric.h"
+#include "itkVectorLinearInterpolateImageFunction.h"
+// #include "itkVectorImage.h"
 #include "itkImage.h"
+#include "itkNumericTraitsFixedArrayPixel.h"
+
+#include "itkTranslationTransform.h"
+#include "itkRegularStepGradientDescentOptimizer.h"
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 
-#include "itkResampleImageFilter.h"
+#include "itkVectorResampleImageFilter.h"
 #include "itkCastImageFilter.h"
 
 
@@ -89,7 +92,8 @@ int main( int argc, char *argv[] )
     }
   
   const    unsigned int    Dimension = 2;
-  typedef  unsigned short  PixelType;
+  typedef  unsigned short  PixelComponentType;
+  typedef  itk::FixedArray< PixelComponentType, 2 >   PixelType;
   
   typedef itk::Image< PixelType, Dimension >  FixedImageType;
   typedef itk::Image< PixelType, Dimension >  MovingImageType;
@@ -98,15 +102,15 @@ int main( int argc, char *argv[] )
 
   typedef itk::RegularStepGradientDescentOptimizer       OptimizerType;
 
-  typedef itk::LinearInterpolateImageFunction< 
+  typedef itk::VectorLinearInterpolateImageFunction< 
                                     MovingImageType,
                                     double             > InterpolatorType;
 
-  typedef itk::ImageRegistrationMethod< 
+  typedef itk::VectorImageRegistrationMethod< 
                                     FixedImageType, 
                                     MovingImageType   >  RegistrationType;
 
-  typedef itk::MeanSquaresImageToImageMetric< 
+  typedef itk::VectorMeanSquaresImageToImageMetric< 
                                       FixedImageType, 
                                       MovingImageType >  MetricType;
 
@@ -185,9 +189,10 @@ int main( int argc, char *argv[] )
   std::cout << "Optimal metric value = " << bestValue << std::endl;
 
 
+#if RESAMPLING_SOLVED
   // Prepare the resampling filter in order to map the moving image.
   //
-  typedef itk::ResampleImageFilter< 
+  typedef itk::VectorResampleImageFilter< 
                             MovingImageType, 
                             FixedImageType >    ResampleFilterType;
 
@@ -228,6 +233,7 @@ int main( int argc, char *argv[] )
   writer->SetInput( caster->GetOutput()   );
   writer->Update();
 
+#endif
 
   return EXIT_SUCCESS;
 }

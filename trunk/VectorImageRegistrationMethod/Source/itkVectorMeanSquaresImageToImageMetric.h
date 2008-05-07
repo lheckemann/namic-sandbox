@@ -22,10 +22,6 @@
 // gets integrated into the main directories.
 #include "itkConfigure.h"
 
-#ifdef ITK_USE_OPTIMIZED_REGISTRATION_METHODS
-#include "itkOptVectorMeanSquaresImageToImageMetric.h"
-#else
-
 #include "itkImageToImageMetric.h"
 #include "itkCovariantVector.h"
 #include "itkPoint.h"
@@ -50,13 +46,13 @@ namespace itk
  */
 template < class TFixedImage, class TMovingImage > 
 class ITK_EXPORT VectorMeanSquaresImageToImageMetric : 
-    public ImageToImageMetric< TFixedImage, TMovingImage>
+    public VectorImageToImageMetric< TFixedImage, TMovingImage>
 {
 public:
 
   /** Standard class typedefs. */
   typedef VectorMeanSquaresImageToImageMetric    Self;
-  typedef ImageToImageMetric<TFixedImage, TMovingImage >  Superclass;
+  typedef VectorImageToImageMetric<TFixedImage, TMovingImage >  Superclass;
 
   typedef SmartPointer<Self>         Pointer;
   typedef SmartPointer<const Self>   ConstPointer;
@@ -65,7 +61,7 @@ public:
   itkNewMacro(Self);
  
   /** Run-time type information (and related methods). */
-  itkTypeMacro(VectorMeanSquaresImageToImageMetric, ImageToImageMetric);
+  itkTypeMacro(VectorMeanSquaresImageToImageMetric, VectorImageToImageMetric);
 
  
   /** Types transferred from the base class */
@@ -74,8 +70,6 @@ public:
   typedef typename Superclass::TransformPointer         TransformPointer;
   typedef typename Superclass::TransformParametersType  TransformParametersType;
   typedef typename Superclass::TransformJacobianType    TransformJacobianType;
-  typedef typename Superclass::GradientPixelType        GradientPixelType;
-  typedef typename Superclass::GradientImageType        GradientImageType;
   typedef typename Superclass::InputPointType           InputPointType;
   typedef typename Superclass::OutputPointType          OutputPointType;
 
@@ -100,14 +94,14 @@ public:
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
-  itkConceptMacro(MovingPixelTypeHasNumericTraitsCheck,
-    (Concept::HasNumericTraits<typename TMovingImage::PixelType>));
-  itkConceptMacro(MovingRealTypeAdditivieOperatorsCheck,
-    (Concept::AdditiveOperators<
-     typename NumericTraits<typename TMovingImage::PixelType>::RealType>));
-  itkConceptMacro(MovingRealTypeMultiplyOperatorCheck,
-    (Concept::MultiplyOperator<
-     typename NumericTraits<typename TMovingImage::PixelType>::RealType>));
+// FIXME itkConceptMacro(MovingPixelTypeHasNumericTraitsCheck,
+//    (Concept::HasNumericTraits<typename TMovingImage::PixelType>));
+// FIXME  itkConceptMacro(MovingRealTypeAdditivieOperatorsCheck,
+//    (Concept::AdditiveOperators<
+// FIXME     typename NumericTraits<typename TMovingImage::PixelType>::RealType>));
+//   itkConceptMacro(MovingRealTypeMultiplyOperatorCheck,
+//    (Concept::MultiplyOperator<
+//     typename NumericTraits<typename TMovingImage::PixelType>::RealType>));
 
   /** End concept checking */
 #endif
@@ -129,7 +123,4 @@ private:
 #endif
 
 #endif
-
-#endif
-
 

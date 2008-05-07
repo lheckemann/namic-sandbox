@@ -22,10 +22,6 @@
 // gets integrated into the main directories.
 #include "itkConfigure.h"
 
-#ifdef ITK_USE_OPTIMIZED_REGISTRATION_METHODS
-#include "itkOptVectorMeanSquaresImageToImageMetric.txx"
-#else
-
 #include "itkVectorMeanSquaresImageToImageMetric.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 
@@ -73,6 +69,8 @@ VectorMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
 
   this->SetTransformParameters( parameters );
 
+  const unsigned int numberOfComponents = fixedImage->GetNumberOfComponentsPerPixel();
+
   while(!ti.IsAtEnd())
     {
 
@@ -100,8 +98,18 @@ VectorMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
       const RealType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
       const RealType fixedValue   = ti.Get();
       this->m_NumberOfPixelsCounted++;
-      const RealType diff = movingValue - fixedValue; 
-      measure += diff * diff; 
+
+      typedef typename NumericTraits< MeasureType >::RealType  MeasureRealType;
+
+      MeasureRealType sum = NumericTraits< MeasureRealType >::Zero;
+
+      for( unsigned int c = 0; c < numberOfComponents; c++ )
+        {
+        const MeasureRealType diff = movingValue[c] - fixedValue[c];
+        sum += diff * diff; 
+        }
+
+      measure += sum;
       }
 
     ++ti;
@@ -136,11 +144,6 @@ VectorMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
 
   itkDebugMacro("GetDerivative( " << parameters << " ) ");
   
-  if( !this->GetGradientImage() )
-    {
-    itkExceptionMacro(<<"The gradient image is null, maybe you forgot to call Initialize()");
-    }
-
   FixedImageConstPointer fixedImage = this->m_FixedImage;
 
   if( !fixedImage ) 
@@ -153,9 +156,6 @@ VectorMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
 
   typedef  itk::ImageRegionConstIteratorWithIndex<
     FixedImageType> FixedIteratorType;
-
-  typedef  itk::ImageRegionConstIteratorWithIndex<GradientImageType> GradientIteratorType;
-
 
   FixedIteratorType ti( fixedImage, this->GetFixedImageRegion() );
 
@@ -197,37 +197,35 @@ VectorMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
       {
       const RealType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
 
-      const TransformJacobianType & jacobian =
-        this->m_Transform->GetJacobian( inputPoint ); 
+      const TransformJacobianType & jacobian = this->m_Transform->GetJacobian( inputPoint ); 
 
       
       const RealType fixedValue     = ti.Value();
       this->m_NumberOfPixelsCounted++;
-      const RealType diff = movingValue - fixedValue; 
 
-      // Get the gradient by NearestNeighboorInterpolation: 
-      // which is equivalent to round up the point components.
-      typedef typename OutputPointType::CoordRepType CoordRepType;
-      typedef ContinuousIndex<CoordRepType,MovingImageType::ImageDimension>
-        MovingImageContinuousIndexType;
+      typedef typename FixedImageType::PixelType   FixedImagePixelType;
 
-      MovingImageContinuousIndexType tempIndex;
-      this->m_MovingImage->TransformPhysicalPointToContinuousIndex( transformedPoint, tempIndex );
+      typedef typename NumericTraits< FixedImagePixelType >::RealType  PixelRealType;
 
-      typename MovingImageType::IndexType mappedIndex; 
-      mappedIndex.CopyWithRound( tempIndex );
+      PixelRealType diff;
 
-      const GradientPixelType gradient = 
-        this->GetGradientImage()->GetPixel( mappedIndex );
+      const unsigned int numberOfComponents = fixedImage->GetNumberOfComponentsPerPixel();
+      for( unsigned int c = 0; c < numberOfComponents; c++ )
+        {
+        diff[c] = movingValue[c] - fixedValue[c];
+        }
+
+
+// FIXME      const GradientPixelType gradient = ComputeGradient at transformedPoint;
 
       for(unsigned int par=0; par<ParametersDimension; par++)
         {
-        RealType sum = NumericTraits< RealType >::Zero;
+// FIXME        RealType sum = NumericTraits< RealType >::Zero;
         for(unsigned int dim=0; dim<ImageDimension; dim++)
           {
-          sum += 2.0 * diff * jacobian( dim, par ) * gradient[dim];
+// FIXME          sum += 2.0 * diff * jacobian( dim, par ) * gradient[dim];
           }
-        derivative[par] += sum;
+// FIXME        derivative[par] += sum;
         }
       }
 
@@ -261,11 +259,6 @@ VectorMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
 
   itkDebugMacro("GetValueAndDerivative( " << parameters << " ) ");
 
-  if( !this->GetGradientImage() )
-    {
-    itkExceptionMacro(<<"The gradient image is null, maybe you forgot to call Initialize()");
-    }
-
   FixedImageConstPointer fixedImage = this->m_FixedImage;
 
   if( !fixedImage ) 
@@ -278,14 +271,13 @@ VectorMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
   typedef  itk::ImageRegionConstIteratorWithIndex<
     FixedImageType> FixedIteratorType;
 
-  typedef  itk::ImageRegionConstIteratorWithIndex<GradientImageType> GradientIteratorType;
-
-
   FixedIteratorType ti( fixedImage, this->GetFixedImageRegion() );
 
   typename FixedImageType::IndexType index;
 
   MeasureType measure = NumericTraits< MeasureType >::Zero;
+
+  const unsigned int numberOfComponents = fixedImage->GetNumberOfComponentsPerPixel();
 
   this->m_NumberOfPixelsCounted = 0;
 
@@ -323,40 +315,34 @@ VectorMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
       {
       const RealType movingValue  = this->m_Interpolator->Evaluate( transformedPoint );
 
-      const TransformJacobianType & jacobian =
-        this->m_Transform->GetJacobian( inputPoint ); 
+      const TransformJacobianType & jacobian = this->m_Transform->GetJacobian( inputPoint ); 
 
       
       const RealType fixedValue     = ti.Value();
       this->m_NumberOfPixelsCounted++;
 
-      const RealType diff = movingValue - fixedValue; 
-  
-      measure += diff * diff;
+      typedef typename NumericTraits< MeasureType >::RealType  MeasureRealType;
 
-      // Get the gradient by NearestNeighboorInterpolation: 
-      // which is equivalent to round up the point components.
-      typedef typename OutputPointType::CoordRepType CoordRepType;
-      typedef ContinuousIndex<CoordRepType,MovingImageType::ImageDimension>
-        MovingImageContinuousIndexType;
+      MeasureRealType sum = NumericTraits< MeasureRealType >::Zero;
 
-      MovingImageContinuousIndexType tempIndex;
-      this->m_MovingImage->TransformPhysicalPointToContinuousIndex( transformedPoint, tempIndex );
+      for( unsigned int c = 0; c < numberOfComponents; c++ )
+        {
+        const MeasureRealType diff = movingValue[c] - fixedValue[c];
+        sum += diff * diff; 
+        }
 
-      typename MovingImageType::IndexType mappedIndex; 
-      mappedIndex.CopyWithRound( tempIndex );
+      measure += sum;
 
-      const GradientPixelType gradient = 
-        this->GetGradientImage()->GetPixel( mappedIndex );
+// FIXME      const GradientPixelType gradient = ComputeGradient at transformedPoint;
 
       for(unsigned int par=0; par<ParametersDimension; par++)
         {
-        RealType sum = NumericTraits< RealType >::Zero;
+// FIXME        RealType sum = NumericTraits< RealType >::Zero;
         for(unsigned int dim=0; dim<ImageDimension; dim++)
           {
-          sum += 2.0 * diff * jacobian( dim, par ) * gradient[dim];
+//          sum += 2.0 * diff * jacobian( dim, par ) * gradient[dim];
           }
-        derivative[par] += sum;
+// FIXME        derivative[par] += sum;
         }
       }
 
@@ -382,8 +368,6 @@ VectorMeanSquaresImageToImageMetric<TFixedImage,TMovingImage>
 
 } // end namespace itk
 
-
-#endif
 
 #endif
 

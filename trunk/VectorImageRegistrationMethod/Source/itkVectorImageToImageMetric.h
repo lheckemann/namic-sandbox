@@ -22,16 +22,11 @@
 // gets integrated into the main directories.
 #include "itkConfigure.h"
 
-#ifdef ITK_USE_OPTIMIZED_REGISTRATION_METHODS
-#include "itkOptVectorImageToImageMetric.h"
-#else
-
 #include "itkImageBase.h"
 #include "itkTransform.h"
-#include "itkInterpolateImageFunction.h"
+#include "itkVectorInterpolateImageFunction.h"
 #include "itkSingleValuedCostFunction.h"
 #include "itkExceptionObject.h"
-#include "itkGradientRecursiveGaussianImageFilter.h"
 #include "itkSpatialObject.h"
 
 namespace itk
@@ -103,7 +98,7 @@ public:
   typedef typename TransformType::JacobianType       TransformJacobianType;
 
   /**  Type of the Interpolator Base class */
-  typedef InterpolateImageFunction<
+  typedef VectorInterpolateImageFunction<
     MovingImageType,
     CoordinateRepresentationType > InterpolatorType;
 
@@ -111,18 +106,6 @@ public:
   /** Gaussian filter to compute the gradient of the Moving Image */
   typedef typename NumericTraits<MovingImagePixelType>::RealType 
                                                      RealType;
-  typedef CovariantVector<RealType,
-                          itkGetStaticConstMacro(MovingImageDimension)>
-                                                     GradientPixelType;
-  typedef Image<GradientPixelType,
-                itkGetStaticConstMacro(MovingImageDimension)> 
-                                                     GradientImageType;
-  typedef SmartPointer<GradientImageType>            GradientImagePointer;
-  typedef GradientRecursiveGaussianImageFilter< MovingImageType,
-                                                GradientImageType >
-                                                     GradientImageFilterType;  
-  typedef typename GradientImageFilterType::Pointer  GradientImageFilterPointer;
-
 
   typedef typename InterpolatorType::Pointer         InterpolatorPointer;
 
@@ -190,17 +173,6 @@ public:
   itkSetObjectMacro( FixedImageMask, FixedImageMaskType );
   itkGetConstObjectMacro( FixedImageMask, FixedImageMaskType );
 
-  /** Set/Get gradient computation. */
-  itkSetMacro( ComputeGradient, bool);
-  itkGetConstReferenceMacro( ComputeGradient, bool);
-  itkBooleanMacro(ComputeGradient);
-
-  /** Computes the gradient image and assigns it to m_GradientImage */
-  virtual void ComputeGradient();
-
-  /** Get Gradient Image. */
-  itkGetConstObjectMacro( GradientImage, GradientImageType );
-
   /** Set the parameters defining the Transform. */
   void SetTransformParameters( const ParametersType & parameters ) const;
 
@@ -225,9 +197,6 @@ protected:
   mutable TransformPointer    m_Transform;
   InterpolatorPointer         m_Interpolator;
 
-  bool                        m_ComputeGradient;
-  GradientImagePointer        m_GradientImage;
-
   mutable FixedImageMaskPointer   m_FixedImageMask;
   mutable MovingImageMaskPointer  m_MovingImageMask;
 
@@ -243,8 +212,6 @@ private:
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #include "itkVectorImageToImageMetric.txx"
-#endif
-
 #endif
 
 #endif

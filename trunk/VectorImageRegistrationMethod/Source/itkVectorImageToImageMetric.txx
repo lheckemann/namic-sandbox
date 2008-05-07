@@ -22,11 +22,6 @@
 // integrated into ITK.
 #include "itkConfigure.h"
 
-// Second, redirect to the optimized version if necessary
-#ifdef ITK_USE_OPTIMIZED_REGISTRATION_METHODS
-#include "itkOptVectorImageToImageMetric.txx"
-#else
-
 #include "itkVectorImageToImageMetric.h"
 
 
@@ -44,10 +39,7 @@ VectorImageToImageMetric<TFixedImage,TMovingImage>
   m_MovingImage   = 0; // has to be provided by the user.
   m_Transform     = 0; // has to be provided by the user.
   m_Interpolator  = 0; // has to be provided by the user.
-  m_GradientImage = 0; // will receive the output of the filter;
-  m_ComputeGradient = true; // metric computes gradient by default
   m_NumberOfPixelsCounted = 0; // initialize to zero
-  m_GradientImage = NULL; // computed at initialization
 }
 
 /**
@@ -132,51 +124,12 @@ VectorImageToImageMetric<TFixedImage,TMovingImage>
 
   m_Interpolator->SetInputImage( m_MovingImage );
  
-  if ( m_ComputeGradient )
-    {
-    this->ComputeGradient();
-    }
-
   // If there are any observers on the metric, call them to give the
   // user code a chance to set parameters on the metric
   this->InvokeEvent( InitializeEvent() );
 }
 
 
-/*
- * Compute the gradient image and assign it to m_GradientImage.
- */
-template <class TFixedImage, class TMovingImage> 
-void
-VectorImageToImageMetric<TFixedImage,TMovingImage>
-::ComputeGradient() 
-{
-  GradientImageFilterPointer gradientFilter
-    = GradientImageFilterType::New();
-
-  gradientFilter->SetInput( m_MovingImage );
-
-  const typename MovingImageType::SpacingType&
-    spacing = m_MovingImage->GetSpacing();
-  double maximumSpacing=0.0;
-  for(unsigned int i=0; i<MovingImageDimension; i++)
-    {
-    if( spacing[i] > maximumSpacing )
-      {
-      maximumSpacing = spacing[i];
-      }
-    }
-  gradientFilter->SetSigma( maximumSpacing );
-  gradientFilter->SetNormalizeAcrossScale( true );
-
-#ifdef ITK_USE_ORIENTED_IMAGE_DIRECTION
-  gradientFilter->SetUseImageDirection( true );
-#endif
-  
-  gradientFilter->Update();
-  
-  m_GradientImage = gradientFilter->GetOutput();
-}
 
 
 /**
@@ -188,13 +141,8 @@ VectorImageToImageMetric<TFixedImage,TMovingImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf( os, indent );
-  os << indent << "ComputeGradient: "
-     << static_cast<typename NumericTraits<bool>::PrintType>(m_ComputeGradient)
-     << std::endl;
   os << indent << "Moving Image: " << m_MovingImage.GetPointer()  << std::endl;
   os << indent << "Fixed  Image: " << m_FixedImage.GetPointer()   << std::endl;
-  os << indent << "Gradient Image: " << m_GradientImage.GetPointer() 
-     << std::endl;
   os << indent << "Transform:    " << m_Transform.GetPointer()    << std::endl;
   os << indent << "Interpolator: " << m_Interpolator.GetPointer() << std::endl;
   os << indent << "FixedImageRegion: " << m_FixedImageRegion << std::endl;
@@ -209,7 +157,5 @@ VectorImageToImageMetric<TFixedImage,TMovingImage>
 
 
 } // end namespace itk
-
-#endif
 
 #endif
