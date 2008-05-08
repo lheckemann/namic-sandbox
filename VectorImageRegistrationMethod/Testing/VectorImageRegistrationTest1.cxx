@@ -21,9 +21,7 @@
 #include "itkVectorImageRegistrationMethod.h"
 #include "itkVectorMeanSquaresImageToImageMetric.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
-// #include "itkVectorImage.h"
 #include "itkImage.h"
-#include "itkNumericTraitsFixedArrayPixel.h"
 
 #include "itkTranslationTransform.h"
 #include "itkRegularStepGradientDescentOptimizer.h"
@@ -93,7 +91,7 @@ int main( int argc, char *argv[] )
   
   const    unsigned int    Dimension = 2;
   typedef  unsigned short  PixelComponentType;
-  typedef  itk::FixedArray< PixelComponentType, 2 >   PixelType;
+  typedef  itk::Vector< PixelComponentType, 2 >   PixelType;
   
   typedef itk::Image< PixelType, Dimension >  FixedImageType;
   typedef itk::Image< PixelType, Dimension >  MovingImageType;
@@ -189,7 +187,6 @@ int main( int argc, char *argv[] )
   std::cout << "Optimal metric value = " << bestValue << std::endl;
 
 
-#if RESAMPLING_SOLVED
   // Prepare the resampling filter in order to map the moving image.
   //
   typedef itk::VectorResampleImageFilter< 
@@ -213,27 +210,14 @@ int main( int argc, char *argv[] )
   resample->SetOutputDirection( fixedImage->GetDirection() );
   resample->SetDefaultPixelValue( 100 );
 
-  typedef  unsigned char  OutputPixelType;
-
-  typedef itk::Image< OutputPixelType, Dimension > OutputImageType;
-  
-  typedef itk::CastImageFilter< 
-                        FixedImageType,
-                        OutputImageType > CastFilterType;
-                    
-  typedef itk::ImageFileWriter< OutputImageType >  WriterType;
+  typedef itk::ImageFileWriter< FixedImageType >  WriterType;
 
   WriterType::Pointer      writer =  WriterType::New();
-  CastFilterType::Pointer  caster =  CastFilterType::New();
-
 
   writer->SetFileName( argv[3] );
   
-  caster->SetInput( resample->GetOutput() );
-  writer->SetInput( caster->GetOutput()   );
+  writer->SetInput( resample->GetOutput() );
   writer->Update();
-
-#endif
 
   return EXIT_SUCCESS;
 }
