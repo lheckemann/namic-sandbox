@@ -29,6 +29,9 @@ void AcquisitionBase::SetPostProcessThread(Thread* thread)
   this->PostProcessThread = thread;
 }
 
+
+// tokuda
+
 int AcquisitionBase::SetCircularFrameBufferSize(int s)
 {
   if (s <= 0)
