@@ -623,6 +623,7 @@ int main( int argc, char * argv[] )
         std::cout << "Computing label " << j << std::endl;
             
         naryANDImageFilter->GetFunctor().m_Number = j;
+        naryANDImageFilter->GetFunctor().m_Number2 = 255;
         naryANDImageFilter->Modified();
         naryANDImageFilter->Update();
 
