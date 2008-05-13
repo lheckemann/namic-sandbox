@@ -1,6 +1,6 @@
 # CMake generated Testfile for 
-# Source directory: /csail/vision-polina2/serdar/MultiImageRegistration/Source
-# Build directory: /csail/vision-polina2/serdar/MultiImageRegistration/Source
+# Source directory: /csail/vision-polina2/ltian/MultiImageRegistration/Source
+# Build directory: /csail/vision-polina2/ltian/MultiImageRegistration/Source
 # 
 # This file replicates the SUBDIRS() and ADD_TEST() commands from the source
 # tree CMakeLists.txt file, skipping any SUBDIRS() or ADD_TEST() commands
