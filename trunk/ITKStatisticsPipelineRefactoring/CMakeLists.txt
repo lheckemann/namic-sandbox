@@ -1,9 +1,22 @@
 PROJECT(StatisticsRefactoring)
 
+CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
+
+IF(COMMAND CMAKE_POLICY)
+  CMAKE_POLICY(SET CMP0003 NEW)
+ENDIF(COMMAND CMAKE_POLICY)
+
+
 FIND_PACKAGE(ITK REQUIRED)
-IF(ITK_FOUND)
-  INCLUDE(${ITK_USE_FILE})
-ENDIF(ITK_FOUND)
+INCLUDE(${ITK_USE_FILE})
+
+IF(NOT EXECUTABLE_OUTPUT_PATH)
+  SET (EXECUTABLE_OUTPUT_PATH ${StatisticsRefactoring_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all executables.")
+ENDIF(NOT EXECUTABLE_OUTPUT_PATH)
+
+
+ENABLE_TESTING()
+INCLUDE(CTest)
 
 # The "BEFORE" modified ensures that our Source directory will 
 # be visited before the ITK Code/Numerics/Statistics directory.
@@ -13,23 +26,11 @@ INCLUDE_DIRECTORIES( BEFORE
   ${StatisticsRefactoring_SOURCE_DIR}/Testing
   )
 
-IF(NOT EXECUTABLE_OUTPUT_PATH)
-  SET (EXECUTABLE_OUTPUT_PATH ${StatisticsRefactoring_BINARY_DIR}/bin CACHE INTERNAL "Single output directory for building all executables.")
-ENDIF(NOT EXECUTABLE_OUTPUT_PATH)
 
-CONFIGURE_FILE(
-  DartConfiguration.tcl.in
-  ${PROJECT_BINARY_DIR}/CTestConfiguration.ini )
+ADD_SUBDIRECTORY( Source )
+ADD_SUBDIRECTORY( Testing )
+ADD_SUBDIRECTORY( Examples )
 
-ENABLE_TESTING()
-
-INCLUDE (${CMAKE_ROOT}/Modules/Dart.cmake)
-
-SUBDIRS(
-  Source
-  Testing
-  Examples
-  )
 
 OPTION(KWSTYLE_USE_VIM_FORMAT "Set KWStyle to generate errors with a VIM-compatible format." OFF)
 OPTION(KWSTYLE_USE_MSVC_FORMAT "Set KWStyle to generate errors with a VisualStudio-compatible format." OFF)
