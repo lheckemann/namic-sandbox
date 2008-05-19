@@ -1,0 +1,4 @@
+#!/bin/bash
+clear
+cd /pub/cisst-ire/rtai
+make
