@@ -43,7 +43,11 @@ igtl_uint64 igtl_image_get_data_size(igtl_image_header * header)
     break;
   case IGTL_IMAGE_STYPE_TYPE_INT32:
   case IGTL_IMAGE_STYPE_TYPE_UINT32:
+  case IGTL_IMAGE_STYPE_TYPE_FLOAT32:
     sp = 4;
+    break;
+  case IGTL_IMAGE_STYPE_TYPE_FLOAT64:
+    sp = 8;
     break;
   default:
     sp = 0;
