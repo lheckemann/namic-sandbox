@@ -416,6 +416,12 @@ void vtkOpenIGTLinkLogic::UpdateMRMLScalarVolumeNode(const char* nodeName, int s
       case IGTL_IMAGE_STYPE_TYPE_UINT32:
         imageData->SetScalarTypeToUnsignedLong();
         break;
+      case IGTL_IMAGE_STYPE_TYPE_FLOAT32:
+        imageData->SetScalarTypeToFloat();
+        break;
+      case IGTL_IMAGE_STYPE_TYPE_FLOAT64:
+        imageData->SetScalarTypeToDouble();
+        break;
       default:
         //vtkErrorMacro ("Invalid Scalar Type\n");
         break;
@@ -477,7 +483,11 @@ void vtkOpenIGTLinkLogic::UpdateMRMLScalarVolumeNode(const char* nodeName, int s
         break;
       case IGTL_IMAGE_STYPE_TYPE_INT32:
       case IGTL_IMAGE_STYPE_TYPE_UINT32:
+      case IGTL_IMAGE_STYPE_TYPE_FLOAT32:
         scalarSize = 4;
+        break;
+      case IGTL_IMAGE_STYPE_TYPE_FLOAT64:
+        scalarSize = 8;
         break;
       default:
         scalarSize = 0;
