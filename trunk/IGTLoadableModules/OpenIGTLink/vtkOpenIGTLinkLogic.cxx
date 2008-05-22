@@ -371,11 +371,11 @@ void vtkOpenIGTLinkLogic::UpdateMRMLScalarVolumeNode(const char* nodeName, int s
   float py = imgheader->matrix[10];
   float pz = imgheader->matrix[11];
 
-  //vtkErrorMacro("matrix = ");
-  //vtkErrorMacro( << tx << ", " << ty << ", " << tz);
-  //vtkErrorMacro( << sx << ", " << sy << ", " << sz);
-  //vtkErrorMacro( << nx << ", " << ny << ", " << nz);
-  //vtkErrorMacro( << px << ", " << py << ", " << pz);
+  vtkErrorMacro("matrix = ");
+  vtkErrorMacro( << tx << ", " << ty << ", " << tz);
+  vtkErrorMacro( << sx << ", " << sy << ", " << sz);
+  vtkErrorMacro( << nx << ", " << ny << ", " << nz);
+  vtkErrorMacro( << px << ", " << py << ", " << pz);
 
   vtkMRMLScalarVolumeNode* volumeNode;
   vtkImageData* imageData;
@@ -589,9 +589,21 @@ void vtkOpenIGTLinkLogic::UpdateMRMLScalarVolumeNode(const char* nodeName, int s
 
   //volumeNode->SetAndObserveImageData(imageData);
   volumeNode->Modified();
-  vtkMRMLSliceNode* slnode = 
+  vtkMRMLSliceNode* slnode1 = 
     vtkMRMLSliceNode::SafeDownCast(scene->GetNodeByID("vtkMRMLSliceNode1"));
-  slnode->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
+  /*
+  vtkMRMLSliceNode* slnode2 = 
+    vtkMRMLSliceNode::SafeDownCast(scene->GetNodeByID("vtkMRMLSliceNode2"));
+  vtkMRMLSliceNode* slnode3 = 
+    vtkMRMLSliceNode::SafeDownCast(scene->GetNodeByID("vtkMRMLSliceNode2"));
+  */
+
+  slnode1->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
+  slnode1->Modified();
+  /*
+  slnode2->Modified();
+  slnode3->Modified();
+  */
 
 }
 
