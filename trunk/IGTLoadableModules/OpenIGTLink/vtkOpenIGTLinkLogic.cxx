@@ -519,7 +519,8 @@ void vtkOpenIGTLinkLogic::UpdateMRMLScalarVolumeNode(const char* nodeName, int s
 
   float hfovi = psi * imgheader->size[0] / 2.0;
   float hfovj = psj * imgheader->size[1] / 2.0;
-  float hfovk = psk * imgheader->size[2] / 2.0;
+  //float hfovk = psk * imgheader->size[2] / 2.0;
+  float hfovk = 0;
 
   float cx = ntx * hfovi + nsx * hfovj + nnx * hfovk;
   float cy = nty * hfovi + nsy * hfovj + nny * hfovk;
@@ -578,7 +579,9 @@ void vtkOpenIGTLinkLogic::UpdateMRMLScalarVolumeNode(const char* nodeName, int s
   */
 
   slnode1->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
-  slnode1->Modified();
+  slnode1->UpdateMatrices();
+  //slnode1->Modified();
+  //appGUI->GetSlicesControlGUI()->RequestFOVEntriesUpdate();      
   /*
   slnode2->Modified();
   slnode3->Modified();
