@@ -66,20 +66,11 @@ vtkOpenIGTLinkLogic::vtkOpenIGTLinkLogic()
 
   this->ImagingControl = 0;
 
-#ifdef USE_NAVITRACK
-  this->OpenTrackerStream   = vtkOpenIGTLinkDataStream::New();
-  this->RealtimeVolumeNode = NULL;
-#endif
-
   // Timer Handling
 
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   this->DataCallbackCommand->SetCallback(vtkOpenIGTLinkLogic::DataCallback);
-
-#ifdef USE_NAVITRACK
-  this->OpenTrackerStream->AddObserver(vtkCommand::ModifiedEvent, this->DataCallbackCommand);
-#endif 
 
   this->ConnectorList.clear();
   this->ConnectorPrevStateList.clear();
@@ -95,14 +86,6 @@ vtkOpenIGTLinkLogic::~vtkOpenIGTLinkLogic()
     {
     this->DataCallbackCommand->Delete();
     }
-
-#ifdef USE_NAVITRACK
-  if (this->OpenTrackerStream)
-    {
-    this->OpenTrackerStream->RemoveObservers( vtkCommand::ModifiedEvent, this->DataCallbackCommand );
-    this->OpenTrackerStream->Delete();
-    }
-#endif
 
 }
 
@@ -217,7 +200,7 @@ vtkMRMLVolumeNode* vtkOpenIGTLinkLogic::AddVolumeNode(const char* volumeNodeName
     vtkMRMLScalarVolumeNode *scalarNode = vtkMRMLScalarVolumeNode::New();
     vtkImageData* image = vtkImageData::New();
 
-    float fov = 300.0;
+    float fov = 256.0;
     image->SetDimensions(256, 256, 1);
     image->SetExtent(0, 255, 0, 255, 0, 0 );
     image->SetSpacing( fov/256, fov/256, 10 );
@@ -524,30 +507,27 @@ void vtkOpenIGTLinkLogic::UpdateMRMLScalarVolumeNode(const char* nodeName, int s
   float psi = sqrt(tx*tx + ty*ty + tz*tz);
   float psj = sqrt(sx*sx + sy*sy + sz*sz);
   float psk = sqrt(nx*nx + ny*ny + nz*nz);
-
-  tx = tx / psi;
-  ty = ty / psi;
-  tz = tz / psi;
-  sx = sx / psj;
-  sy = sy / psj;
-  sz = sz / psj;
-  nx = nx / psk;
-  ny = ny / psk;
-  nz = nz / psk;
-
+  float ntx = tx / psi;
+  float nty = ty / psi;
+  float ntz = tz / psi;
+  float nsx = sx / psj;
+  float nsy = sy / psj;
+  float nsz = sz / psj;
+  float nnx = nx / psk;
+  float nny = ny / psk;
+  float nnz = nz / psk;
 
   float hfovi = psi * imgheader->size[0] / 2.0;
   float hfovj = psj * imgheader->size[1] / 2.0;
   float hfovk = psk * imgheader->size[2] / 2.0;
 
-  float cx = tx * hfovi + sx * hfovj + nx * hfovk;
-  float cy = ty * hfovi + sy * hfovj + ny * hfovk;
-  float cz = tz * hfovi + sz * hfovj + nz * hfovk;
+  float cx = ntx * hfovi + nsx * hfovj + nnx * hfovk;
+  float cy = nty * hfovi + nsy * hfovj + nny * hfovk;
+  float cz = ntz * hfovi + nsz * hfovj + nnz * hfovk;
 
   px = px - cx;
   py = py - cy;
   pz = pz - cz;
-
 
   // set volume orientation
   vtkMatrix4x4* rtimgTransform = vtkMatrix4x4::New();
@@ -571,6 +551,7 @@ void vtkOpenIGTLinkLogic::UpdateMRMLScalarVolumeNode(const char* nodeName, int s
 
   rtimgTransform->Invert();
   volumeNode->SetRASToIJKMatrix(rtimgTransform);
+  volumeNode->Modified();
 
 //  if (lps) { // LPS coordinate
 //    vtkMatrix4x4* lpsToRas = vtkMatrix4x4::New();
@@ -581,14 +562,12 @@ void vtkOpenIGTLinkLogic::UpdateMRMLScalarVolumeNode(const char* nodeName, int s
 //    lpsToRas->Delete();
 //  }
 
-
   px = px + cx;
   py = py + cy;
   pz = pz + cz;
 
 
   //volumeNode->SetAndObserveImageData(imageData);
-  volumeNode->Modified();
   vtkMRMLSliceNode* slnode1 = 
     vtkMRMLSliceNode::SafeDownCast(scene->GetNodeByID("vtkMRMLSliceNode1"));
   /*
