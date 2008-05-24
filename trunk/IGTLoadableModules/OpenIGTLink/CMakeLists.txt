@@ -137,22 +137,3 @@ install(TARGETS ${lib_name}
   )
 
   
-#  MRML
-#  vtkITK
-#  vtkCommonTCL
-#  vtkImagingTCL
-#  vtkFilteringTCL
-#  vtkIOTCL
-#  ITKAlgorithms
-#  ITKNumerics 
-#  ITKCommon
-#  ITKBasicFilters
-#  ITKNumerics
-#  ITKStatistics
-#  ITKBasicFilters
-#  ITKIO
-#  ITKDICOMParser
-#  ${KWWidgets_LIBRARIES} 
-#  vtkHybridTCL
-#  IGT
-#  )
