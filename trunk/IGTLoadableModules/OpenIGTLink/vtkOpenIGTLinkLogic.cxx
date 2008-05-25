@@ -443,7 +443,7 @@ void vtkOpenIGTLinkLogic::UpdateMRMLScalarVolumeNode(const char* nodeName, int s
     // In case that volume size == sub-volume size,
     // image is read directly to the memory area of vtkImageData
     // for better performance. 
-    memcpy(imageData->GetScalarPointer(), data, bytes);
+    memcpy(imageData->GetScalarPointer(), imgdata, bytes);
 
     }
   else
@@ -479,7 +479,7 @@ void vtkOpenIGTLinkLogic::UpdateMRMLScalarVolumeNode(const char* nodeName, int s
       }
         
     char* imgPtr = (char*) imageData->GetScalarPointer();
-    char* bufPtr = (char*) data;
+    char* bufPtr = (char*) imgdata;
     int sizei = imgheader->size[0];
     int sizej = imgheader->size[1];
     int sizek = imgheader->size[2];
