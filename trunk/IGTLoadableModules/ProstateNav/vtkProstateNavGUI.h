@@ -87,7 +87,7 @@ class VTK_PROSTATENAV_EXPORT vtkProstateNavGUI : public vtkSlicerModuleGUI
   // Description:
   // API for setting VolumeNode, VolumeLogic and
   // for both setting and observing them.
-  void SetModuleLogic ( vtkProstateNavLogic *logic )
+  void SetModuleLogic ( vtkSlicerLogic *logic )
   { this->SetLogic ( vtkObjectPointer (&this->Logic), logic ); }
   void SetAndObserveModuleLogic ( vtkProstateNavLogic *logic )
   { this->SetAndObserveLogic ( vtkObjectPointer (&this->Logic), logic ); }

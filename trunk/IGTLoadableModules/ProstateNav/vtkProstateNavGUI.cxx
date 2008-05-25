@@ -839,13 +839,6 @@ void vtkProstateNavGUI::Enter()
   this->SliceNode0 = appGUI->GetMainSliceGUI0()->GetLogic()->GetSliceNode();
   this->SliceNode1 = appGUI->GetMainSliceGUI1()->GetLogic()->GetSliceNode();
   this->SliceNode2 = appGUI->GetMainSliceGUI2()->GetLogic()->GetSliceNode();
-  /*
-  this->Control0 = appGUI->GetMainSliceGUI0()->GetSliceController();
-  this->Control1 = appGUI->GetMainSliceGUI1()->GetSliceController();
-  this->Control2 = appGUI->GetMainSliceGUI2()->GetSliceController();
-  */
-  
-  this->GetLogic()->AddRealtimeVolumeNode("Realtime");
   
   ChangeWorkPhase(vtkProstateNavLogic::StartUp, 1);
   
@@ -855,7 +848,7 @@ void vtkProstateNavGUI::Enter()
   //----------------------------------------------------------------
   // Target Fiducials
   // Junichi Tokuda 11/27/2007: Should it be in the Logic class ?
-  
+
   if (!this->FiducialListNodeID)
     {
     vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
