@@ -19,7 +19,7 @@
 #endif
 
 
-#include "itkSlicedBasedImage.h"
+#include "itkSliceBasedImage.h"
 #include "itkImageRegionIterator.h"
 
 
@@ -30,7 +30,7 @@ int main(int argc, char * argv [])
 
   typedef itk::Index< Dimension >       PixelType;
 
-  typedef itk::SliceBasedImage< PixelType, Dimension > ImageType;
+  typedef itk::SliceBaseImage< PixelType, Dimension > ImageType;
 
   typedef itk::ImageRegionIterator< ImageType >  IteratorType;
 
