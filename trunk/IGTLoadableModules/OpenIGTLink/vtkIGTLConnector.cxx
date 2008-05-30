@@ -105,7 +105,7 @@ int vtkIGTLConnector::Start()
     }
 
   this->ServerStopFlag = false;
-  this->ThreadID = this->Thread->SpawnThread(vtkIGTLConnector::ThreadFunction, this);
+  this->ThreadID = this->Thread->SpawnThread((vtkThreadFunctionType) &vtkIGTLConnector::ThreadFunction, this);
 
   // Following line is necessary in some Linux environment,
   // since it takes for a while for the thread to update
@@ -189,6 +189,8 @@ void* vtkIGTLConnector::ThreadFunction(void* ptr)
     }
   igtlcon->ThreadID = -1;
   igtlcon->State = STATE_OFF;
+
+  return NULL;
 
 }
 
