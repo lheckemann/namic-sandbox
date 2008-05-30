@@ -150,6 +150,8 @@ igtl::ClientSocket::Pointer TransferOpenIGTLink::WaitForConnection()
 void TransferOpenIGTLink::Process()
 {
   
+  this->ServerStopFlag = false;
+
   this->State = STATE_WAIT_CONNECTION;
   
   if (this->Mode == MODE_SERVER)
