@@ -162,7 +162,7 @@ int main(int argc, char **argv)
     exit(-1);
   }
 
-  size[2] = 10;
+  size[2] = 1;
   acquisition->SetSubVolumeDimension(size);
   acquisition->SetPostProcessThread(dynamic_cast<Thread*>(transfer));
   acquisition->SetFrameRate(fps);
