@@ -286,6 +286,7 @@ vtkOpenIGTLinkGUI::~vtkOpenIGTLinkGUI ( )
     this->GreenSliceMenu->Delete ( );
     }
 
+  /*
   if (this->StartScanButton)
     {
     this->StartScanButton->SetParent(NULL);
@@ -303,6 +304,7 @@ vtkOpenIGTLinkGUI::~vtkOpenIGTLinkGUI ( )
     this->ImagingMenu->SetParent(NULL);
     this->ImagingMenu->Delete();
     }
+  */
 
 
   //----------------------------------------------------------------
@@ -510,7 +512,16 @@ void vtkOpenIGTLinkGUI::AddGUIObservers ( )
   // Visualization Control Frame
 
 
-  /*
+  this->LocatorCheckButton
+    ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+
+  this->RedSliceMenu->GetMenu()
+    ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->YellowSliceMenu->GetMenu()
+    ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->GreenSliceMenu->GetMenu()
+    ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->FreezeImageCheckButton
     ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
 
@@ -518,25 +529,16 @@ void vtkOpenIGTLinkGUI::AddGUIObservers ( )
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->SetUserModeButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  /*
   this->StartScanButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->StopScanButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  */
-
-  this->LocatorCheckButton
-    ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-
-  /*
-  this->RedSliceMenu->GetMenu()
-    ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
-  this->YellowSliceMenu->GetMenu()
-    ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
-  this->GreenSliceMenu->GetMenu()
-    ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->ImagingMenu->GetMenu()
     ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   */
+
 
 
   //----------------------------------------------------------------
@@ -845,7 +847,6 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
 
     }
 
-  /*
   else if (this->RedSliceMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
            && event == vtkKWMenu::MenuItemInvokedEvent)
     {
@@ -898,6 +899,7 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
       this->FreezeOrientationUpdate = 0;
       }
     }
+  /*
   else if (this->ImagingMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
            && event == vtkKWMenu::MenuItemInvokedEvent )
     {
@@ -925,7 +927,9 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
       }
     
     }
+  */
 
+  /*
   else if (this->StartScanButton == vtkKWPushButton::SafeDownCast(caller) 
            && event == vtkKWPushButton::InvokedEvent)
     {
@@ -936,7 +940,6 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
     {
     //this->Logic->ScanStop();
     }
-  
   */
 
   //----------------------------------------------------------------
@@ -1349,8 +1352,6 @@ void vtkOpenIGTLinkGUI::BuildGUIForVisualizationControlFrame ()
                this->LocatorCheckButton->GetWidgetName());
   
 
-  /*
-  
   // -----------------------------------------
   // Driver frame: Locator can drive slices 
 
@@ -1411,10 +1412,7 @@ void vtkOpenIGTLinkGUI::BuildGUIForVisualizationControlFrame ()
                this->RedSliceMenu->GetWidgetName(),
                this->YellowSliceMenu->GetWidgetName(),
                this->GreenSliceMenu->GetWidgetName());
-  */
   
-  
-  /*
   // Mode frame
   vtkKWFrame *modeFrame = vtkKWFrame::New();
   modeFrame->SetParent ( driverFrame->GetFrame() );
@@ -1448,12 +1446,11 @@ void vtkOpenIGTLinkGUI::BuildGUIForVisualizationControlFrame ()
                this->SetLocatorModeButton->GetWidgetName(),
                this->SetUserModeButton->GetWidgetName(),
                this->FreezeImageCheckButton->GetWidgetName());
-  */
   
   // -----------------------------------------
   // Real-time imaging: Scanner controled
 
-/*
+  /*
   vtkKWFrameWithLabel *rtImageFrame = vtkKWFrameWithLabel::New ( );
   rtImageFrame->SetParent(visCtrlFrame->GetFrame());
   rtImageFrame->Create();
@@ -1495,12 +1492,12 @@ void vtkOpenIGTLinkGUI::BuildGUIForVisualizationControlFrame ()
                StartScanButton->GetWidgetName(),
                StopScanButton->GetWidgetName(),
                ImagingMenu->GetWidgetName());
-*/
 
+  */
   displayFrame->Delete();
-  //driverFrame->Delete();
-  //modeFrame->Delete();
-  //sliceFrame->Delete();
+  driverFrame->Delete();
+  modeFrame->Delete();
+  sliceFrame->Delete();
   visCtrlFrame->Delete();
 
 }
