@@ -63,6 +63,8 @@
 #include "vtkSlicerColorLogic.h"
 
 #include "vtkCylinderSource.h"
+#include "vtkSphereSource.h"
+#include "vtkAppendPolyData.h"
 #include "vtkMRMLLinearTransformNode.h"
 
 #include "vtkIGTLConnector.h"
@@ -198,6 +200,12 @@ vtkOpenIGTLinkGUI::vtkOpenIGTLinkGUI ( )
     this->SliceDriver2 = 0;
   */
   
+
+  //----------------------------------------------------------------
+  // Locator Model
+  this->LocatorModel        = NULL;
+  this->LocatorDisp         = NULL;
+  this->LocatorTransform    = NULL;
 
   //----------------------------------------------------------------
   // Target Fiducials List (MRML)
@@ -501,8 +509,11 @@ void vtkOpenIGTLinkGUI::AddGUIObservers ( )
   //----------------------------------------------------------------
   // Visualization Control Frame
 
+
+  /*
   this->FreezeImageCheckButton
     ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+
   this->SetLocatorModeButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->SetUserModeButton
@@ -511,9 +522,12 @@ void vtkOpenIGTLinkGUI::AddGUIObservers ( )
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->StopScanButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  */
+
   this->LocatorCheckButton
     ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
 
+  /*
   this->RedSliceMenu->GetMenu()
     ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->YellowSliceMenu->GetMenu()
@@ -522,6 +536,7 @@ void vtkOpenIGTLinkGUI::AddGUIObservers ( )
     ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->ImagingMenu->GetMenu()
     ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  */
 
 
   //----------------------------------------------------------------
@@ -766,20 +781,71 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
            && event == vtkKWCheckButton::SelectedStateChangedEvent )
     {
     int checked = this->LocatorCheckButton->GetSelectedState(); 
-    vtkMRMLModelNode *model = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID("vtkMRMLModelNode1")); 
-    if (model != NULL)
+
+    if (!this->LocatorModel)
       {
-      vtkMRMLModelDisplayNode *disp = model->GetModelDisplayNode();
-        
-      if (disp != NULL)
-        {
-        vtkSlicerApplication *app = (vtkSlicerApplication *)this->GetApplication();
-        vtkSlicerColor *color = app->GetSlicerTheme()->GetSlicerColors ( );
-        disp->SetColor(color->SliceGUIGreen);
-        disp->SetVisibility(checked);
-        }
+      //vtkMRMLModelNode *modelNode = vtkMRMLModelNode::New();
+      this->LocatorModel = vtkMRMLModelNode::New();
+      //vtkMRMLModelDisplayNode *dispNode = vtkMRMLModelDisplayNode::New();
+      this->LocatorDisp = vtkMRMLModelDisplayNode::New();
+      //vtkMRMLLinearTransformNode *transform = vtkMRMLLinearTransformNode::New();
+      //this->LocatorTransform = vtkMRMLLinearTransformNode::New();
+      //transform->SetName("IGTDataManagerTransform");
+      
+      this->GetMRMLScene()->SaveStateForUndo();
+      this->GetMRMLScene()->AddNode(this->LocatorDisp);
+      //this->GetMRMLScene()->AddNode(this->LocatorTransform);
+      this->GetMRMLScene()->AddNode(this->LocatorModel);  
+      
+      this->LocatorDisp->SetScene(this->GetMRMLScene());
+      
+      this->LocatorModel->SetName("IGTLocator");
+      this->LocatorModel->SetScene(this->GetMRMLScene());
+      this->LocatorModel->SetAndObserveDisplayNodeID(this->LocatorDisp->GetID());
+      this->LocatorModel->SetHideFromEditors(0);
+      //this->LocatorModel->SetAndObserveTransformNodeID(this->LocatorTransform->GetID());  
+      //this->StreamID = std::string(this->LocatorModel->GetID());
+      
+      // Cylinder represents the locator stick
+      vtkCylinderSource *cylinder = vtkCylinderSource::New();
+      cylinder->SetRadius(1.5);
+      cylinder->SetHeight(100);
+      cylinder->Update();
+      // Sphere represents the locator tip 
+      vtkSphereSource *sphere = vtkSphereSource::New();
+      sphere->SetRadius(3.0);
+      sphere->SetCenter(0, -50, 0);
+      sphere->Update();
+      
+      vtkAppendPolyData *apd = vtkAppendPolyData::New();
+      apd->AddInput(sphere->GetOutput());
+      apd->AddInput(cylinder->GetOutput());
+      apd->Update();
+      
+      this->LocatorModel->SetAndObservePolyData(apd->GetOutput());
+      this->LocatorDisp->SetPolyData(this->LocatorModel->GetPolyData());
+      
+      cylinder->Delete();
+      sphere->Delete();
+      apd->Delete();
       }
+
+    if (checked)
+      {
+      this->LocatorDisp->SetVisibility(1);
+      }
+    else
+      {
+      this->LocatorDisp->SetVisibility(0);
+      }
+
+      this->LocatorModel->Modified();
+      this->Modified();  
+      this->GetMRMLScene()->Modified();
+
     }
+
+  /*
   else if (this->RedSliceMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
            && event == vtkKWMenu::MenuItemInvokedEvent)
     {
@@ -871,6 +937,7 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
     //this->Logic->ScanStop();
     }
   
+  */
 
   //----------------------------------------------------------------
   // Etc Frame
@@ -1281,9 +1348,12 @@ void vtkOpenIGTLinkGUI::BuildGUIForVisualizationControlFrame ()
   this->Script("pack %s -side left -anchor w -padx 2 -pady 2", 
                this->LocatorCheckButton->GetWidgetName());
   
+
+  /*
   
   // -----------------------------------------
   // Driver frame: Locator can drive slices 
+
 
   vtkKWFrameWithLabel *driverFrame = vtkKWFrameWithLabel::New();
   driverFrame->SetParent(visCtrlFrame->GetFrame());
@@ -1300,7 +1370,7 @@ void vtkOpenIGTLinkGUI::BuildGUIForVisualizationControlFrame ()
               sliceFrame->GetWidgetName(),
               driverFrame->GetFrame()->GetWidgetName());
   
-  
+
   // Contents in slice frame 
   vtkSlicerColor *color = app->GetSlicerTheme()->GetSlicerColors ( );
   
@@ -1341,8 +1411,10 @@ void vtkOpenIGTLinkGUI::BuildGUIForVisualizationControlFrame ()
                this->RedSliceMenu->GetWidgetName(),
                this->YellowSliceMenu->GetWidgetName(),
                this->GreenSliceMenu->GetWidgetName());
+  */
   
   
+  /*
   // Mode frame
   vtkKWFrame *modeFrame = vtkKWFrame::New();
   modeFrame->SetParent ( driverFrame->GetFrame() );
@@ -1376,11 +1448,12 @@ void vtkOpenIGTLinkGUI::BuildGUIForVisualizationControlFrame ()
                this->SetLocatorModeButton->GetWidgetName(),
                this->SetUserModeButton->GetWidgetName(),
                this->FreezeImageCheckButton->GetWidgetName());
-  
+  */
   
   // -----------------------------------------
   // Real-time imaging: Scanner controled
 
+/*
   vtkKWFrameWithLabel *rtImageFrame = vtkKWFrameWithLabel::New ( );
   rtImageFrame->SetParent(visCtrlFrame->GetFrame());
   rtImageFrame->Create();
@@ -1422,13 +1495,14 @@ void vtkOpenIGTLinkGUI::BuildGUIForVisualizationControlFrame ()
                StartScanButton->GetWidgetName(),
                StopScanButton->GetWidgetName(),
                ImagingMenu->GetWidgetName());
-
+*/
 
   displayFrame->Delete();
-  driverFrame->Delete();
-  modeFrame->Delete();
-  sliceFrame->Delete();
+  //driverFrame->Delete();
+  //modeFrame->Delete();
+  //sliceFrame->Delete();
   visCtrlFrame->Delete();
+
 }
 
 
