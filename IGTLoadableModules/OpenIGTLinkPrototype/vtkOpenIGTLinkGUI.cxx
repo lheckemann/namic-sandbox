@@ -79,47 +79,7 @@ vtkCxxRevisionMacro ( vtkOpenIGTLinkGUI, "$Revision: 1.0 $");
 
 
 //---------------------------------------------------------------------------
-// Button Colors and Labels for Work Phase Control
-const double vtkOpenIGTLinkGUI::WorkPhaseColor[vtkOpenIGTLinkLogic::NumPhases][3] =
-{
-  /* St */ { 1.0, 0.6, 1.0 },
-  /* Pl */ { 0.6, 1.0, 0.6 },
-  /* Cl */ { 1.0, 1.0, 0.6 },
-  /* Tg */ { 0.6, 0.6, 1.0 },
-  /* Mn */ { 0.6, 1.0, 1.0 },
-  /* Em */ { 1.0, 0.0, 0.0 },
-};
-
-const double vtkOpenIGTLinkGUI::WorkPhaseColorActive[vtkOpenIGTLinkLogic::NumPhases][3] =
-{
-  /* St */ { 1.0, 0.4, 1.0 },
-  /* Pl */ { 0.4, 1.0, 0.4 },
-  /* Cl */ { 1.0, 1.0, 0.4 },
-  /* Tg */ { 0.4, 0.4, 1.0 },
-  /* Mn */ { 0.4, 1.0, 1.0 },
-  /* Em */ { 1.0, 0.0, 0.0 },
-};
-
-const double vtkOpenIGTLinkGUI::WorkPhaseColorDisabled[vtkOpenIGTLinkLogic::NumPhases][3] =
-{
-  /* St */ { 1.0, 0.95, 1.0 },
-  /* Pl */ { 0.95, 1.0, 0.95 },
-  /* Cl */ { 1.0, 1.0, 0.95 },
-  /* Tg */ { 0.95, 0.95, 1.0 },
-  /* Mn */ { 0.95, 1.0, 1.0 },
-  /* Em */ { 1.0, 0.0, 0.0 },
-};
-
-const char *vtkOpenIGTLinkGUI::WorkPhaseStr[vtkOpenIGTLinkLogic::NumPhases] =
-{
-  /* Su */ "Start Up",
-  /* Pl */ "Planning",
-  /* Cl */ "Calibration",
-  /* Tg */ "Targeting",
-  /* Mn */ "Manual",
-  /* Em */ "Emergency",
-};
-
+// Labels
 const char *vtkOpenIGTLinkGUI::ConnectorTypeStr[vtkIGTLConnector::NUM_TYPE] = 
 {
   "?", // TYPE_NOT_DEFINED
@@ -153,11 +113,6 @@ vtkOpenIGTLinkGUI::vtkOpenIGTLinkGUI ( )
   this->SliceNode1 = NULL; 
   this->SliceNode2 = NULL; 
   
-  this->NeedOrientationUpdate0 = 0;
-  this->NeedOrientationUpdate1 = 0;
-  this->NeedOrientationUpdate2 = 0;
-  
-  //this->NeedRealtimeImageUpdate = 0;
   this->FreezeOrientationUpdate = 0;
   
   
@@ -194,12 +149,6 @@ vtkOpenIGTLinkGUI::vtkOpenIGTLinkGUI ( )
 
   this->ImagingMenu            = NULL;
 
-  /*
-    this->SliceDriver0 = 0;
-    this->SliceDriver1 = 0;
-    this->SliceDriver2 = 0;
-  */
-  
 
   //----------------------------------------------------------------
   // Locator Model
@@ -812,11 +761,13 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
       vtkCylinderSource *cylinder = vtkCylinderSource::New();
       cylinder->SetRadius(1.5);
       cylinder->SetHeight(100);
+      cylinder->SetCenter(0, 50, 0);
       cylinder->Update();
       // Sphere represents the locator tip 
       vtkSphereSource *sphere = vtkSphereSource::New();
       sphere->SetRadius(3.0);
-      sphere->SetCenter(0, -50, 0);
+      //sphere->SetCenter(0, -50, 0);
+      sphere->SetCenter(0, 0, 0);
       sphere->Update();
       
       vtkAppendPolyData *apd = vtkAppendPolyData::New();
@@ -1509,11 +1460,9 @@ void vtkOpenIGTLinkGUI::UpdateAll()
 
   if (this->LocatorCheckButton->GetSelectedState())
     {
-    //this->UpdateLocator();
     }
   if (!this->FreezeOrientationUpdate)
     {
-    //this->UpdateSliceDisplay(nx, ny, nz, tx, ty, tz, px, py, pz);
     }
 
 }

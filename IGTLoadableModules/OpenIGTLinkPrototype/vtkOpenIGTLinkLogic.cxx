@@ -39,25 +39,14 @@ vtkStandardNewMacro(vtkOpenIGTLinkLogic);
 vtkOpenIGTLinkLogic::vtkOpenIGTLinkLogic()
 {
 
-  /*
-  this->SliceDriver0 = vtkOpenIGTLinkLogic::SLICE_DRIVER_USER;
-  this->SliceDriver1 = vtkOpenIGTLinkLogic::SLICE_DRIVER_USER;
-  this->SliceDriver2 = vtkOpenIGTLinkLogic::SLICE_DRIVER_USER;
-  */
   this->SliceDriver[0] = vtkOpenIGTLinkLogic::SLICE_DRIVER_USER;
   this->SliceDriver[1] = vtkOpenIGTLinkLogic::SLICE_DRIVER_USER;
   this->SliceDriver[2] = vtkOpenIGTLinkLogic::SLICE_DRIVER_USER;
 
   // If the following code doesn't work, slice nodes should be obtained from application GUI
-  /*
-  this->SliceNode0 = NULL;
-  this->SliceNode1 = NULL;
-  this->SliceNode2 = NULL;
-  */
   this->SliceNode[0] = NULL;
   this->SliceNode[1] = NULL;
   this->SliceNode[2] = NULL;
-
 
   this->NeedRealtimeImageUpdate0 = 0;
   this->NeedRealtimeImageUpdate1 = 0;
@@ -689,10 +678,27 @@ void vtkOpenIGTLinkLogic::UpdateSliceNode(int sliceNodeNumber,
 
   CheckSliceNode();
 
-  this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
+  if (strcmp(this->SliceNode[sliceNodeNumber]->GetOrientationString(), "Axial") == 0)
+    {
+    // Perpendicular
+    this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
+    }
+  else if (strcmp(this->SliceNode[sliceNodeNumber]->GetOrientationString(), "Sagittal") == 0)
+    {
+    // In-Plane 0
+    this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
+    }
+  else //if (this->SliceNode[sliceNodeNumber]->GetOrientationString() == "Coronal")
+    //else if (this->SliceNode[sliceNodeNumber]->GetOrientationString() == "Reformat")
+    {
+    // In-Plane 90
+    this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
+    }
+  
   this->SliceNode[sliceNodeNumber]->UpdateMatrices();
 
 }
+
 
 //---------------------------------------------------------------------------
 int vtkOpenIGTLinkLogic::UpdateSliceNodeByTransformNode(int sliceNodeNumber, const char* nodeName)
@@ -730,10 +736,8 @@ int vtkOpenIGTLinkLogic::UpdateSliceNodeByTransformNode(int sliceNodeNumber, con
     float py = transform->GetElement(1, 3);
     float pz = transform->GetElement(2, 3);
 
-    CheckSliceNode();
+    UpdateSliceNode(sliceNodeNumber, nx, ny, nz, tx, ty, tz, px, py, pz);
 
-    this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
-    this->SliceNode[sliceNodeNumber]->UpdateMatrices();
     }
 
   return 1;
