@@ -88,6 +88,22 @@ Socket::~Socket()
 //-----------------------------------------------------------------------------
 int Socket::CreateSocket()
 {
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  // Declare variables
+  WSADATA wsaData;
+  SOCKET ListenSocket;
+  sockaddr_in service;
+
+  //---------------------------------------
+  // Initialize Winsock
+  int iResult = WSAStartup( MAKEWORD(2,2), &wsaData );
+  if( iResult != NO_ERROR )
+    {
+    std::cerr << "Error at WSAStartup" << std::endl;
+    return -1;
+    }
+#endif
+
   int sock = socket(AF_INET, SOCK_STREAM, 0);
   // Elimate windows 0.2 second delay sending (buffering) data.
   int on = 1;
@@ -242,7 +258,7 @@ int Socket::Connect(int socketdescriptor, const char* hostName, int port)
     unsigned long addr = inet_addr(hostName);
     hp = gethostbyaddr((char *)&addr, sizeof(addr), AF_INET);
     }
-
+ 
   if (!hp)
     {
     // vtkErrorMacro("Unknown host: " << hostName);
