@@ -88,14 +88,6 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
   vtkSetMacro ( NeedUpdateLocator,       bool );
   vtkGetMacro ( NeedUpdateLocator,       bool );
 
-  /*
-  vtkSetMacro ( SliceDriver0, int );
-  vtkGetMacro ( SliceDriver0, int );
-  vtkSetMacro ( SliceDriver1, int );
-  vtkGetMacro ( SliceDriver1, int );
-  vtkSetMacro ( SliceDriver2, int );
-  vtkGetMacro ( SliceDriver2, int );
-  */
   void SetSliceDriver0(int v) { this->SliceDriver[0] = v; };
   void SetSliceDriver1(int v) { this->SliceDriver[1] = v; };
   void SetSliceDriver2(int v) { this->SliceDriver[2] = v; };
@@ -187,18 +179,8 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
   int   NeedRealtimeImageUpdate1;
   int   NeedRealtimeImageUpdate2;
 
-  /*
-  vtkMRMLSliceNode *SliceNode0;
-  vtkMRMLSliceNode *SliceNode1;
-  vtkMRMLSliceNode *SliceNode2;
-  */
   vtkMRMLSliceNode *SliceNode[3];
 
-  /*
-  int   SliceDriver0;
-  int   SliceDriver1;
-  int   SliceDriver2;
-  */
   int   SliceDriver[3];
   
   bool  ImagingControl;
