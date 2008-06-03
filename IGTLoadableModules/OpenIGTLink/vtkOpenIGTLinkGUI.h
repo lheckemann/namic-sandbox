@@ -236,6 +236,13 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkGUI : public vtkSlicerModuleGUI
   int RealtimeImageOrient;
 
   //----------------------------------------------------------------
+  // Locator Model
+  //----------------------------------------------------------------
+  vtkMRMLModelNode           *LocatorModel;
+  vtkMRMLModelDisplayNode    *LocatorDisp;
+  vtkMRMLLinearTransformNode *LocatorTransform;
+
+  //----------------------------------------------------------------
   // Target Fiducials
   //----------------------------------------------------------------
 
