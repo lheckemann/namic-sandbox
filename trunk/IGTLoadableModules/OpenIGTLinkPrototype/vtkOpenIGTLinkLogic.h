@@ -98,6 +98,11 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
 
   vtkGetMacro ( Connection,              bool );
 
+  vtkSetMacro ( EnableOblique,           bool );
+  vtkGetMacro ( EnableOblique,           bool );
+  vtkSetMacro ( FreezePlane,             bool );
+  vtkGetMacro ( FreezePlane,              bool );
+
   vtkGetObjectMacro ( LocatorTransform, vtkTransform );
   vtkGetObjectMacro ( LocatorMatrix,    vtkMatrix4x4 );
 
@@ -185,6 +190,9 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
   
   bool  ImagingControl;
   bool  NeedUpdateLocator;
+
+  bool  EnableOblique;
+  bool  FreezePlane;
 
   long  RealtimeImageTimeStamp;
   //int   RealtimeImageSerial;

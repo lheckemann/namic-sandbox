@@ -179,6 +179,7 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkGUI : public vtkSlicerModuleGUI
   // Visualization Control Frame
 
   vtkKWCheckButton *FreezeImageCheckButton;
+  vtkKWCheckButton *ObliqueCheckButton;
   vtkKWPushButton  *SetLocatorModeButton;
   vtkKWPushButton  *SetUserModeButton;
 
@@ -192,6 +193,9 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkGUI : public vtkSlicerModuleGUI
   vtkKWPushButton  *StopScanButton;
 
   vtkKWCheckButton *LocatorCheckButton;
+
+  bool              IsSliceOrientationAdded;
+
   
   // Module logic and mrml pointers
 
@@ -223,10 +227,7 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkGUI : public vtkSlicerModuleGUI
   std::string LocatorModelID_new;
   //ETX
   
-  //int NeedRealtimeImageUpdate;
-  int FreezeOrientationUpdate;
-
-  int RealtimeImageOrient;
+  //int RealtimeImageOrient;
 
   //----------------------------------------------------------------
   // Locator Model
