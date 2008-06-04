@@ -45,13 +45,16 @@
 
 void PrintUsage(const char* name)
 {
+
     std::cerr << "Invalid arguments!" << std::endl;
-    std::cerr << "Usage: " << name << "<fps> s [port]" << std::endl;
-    std::cerr << "Usage: " << name << "<fps> c <hostname> [port]" << std::endl;
+    std::cerr << "Usage: " << name << " <fps> s <port> [device name]" << std::endl;
+    std::cerr << "Usage: " << name << " <fps> c <hostname> <port> [device name]" << std::endl;
     std::cerr << "    <fps>           : Frame rate (frames per second)." << std::endl;
     std::cerr << "    <type>          : 's': server mode / 'c': client mode" << std::endl;
     std::cerr << "    <hostname>      : <Client mode only> hostname" << std::endl;
-    std::cerr << "    <port>          : Port # (default: 18944)" << std::endl;
+    std::cerr << "    <port>          : Port # (default is 18944 in Slicer)" << std::endl;
+    std::cerr << "    [device name]   : Device Name (less than 20 charactors)" << std::endl;
+
 }
 
 
@@ -62,6 +65,9 @@ int main(int argc, char **argv)
   bool  server;
   char* hostname;
   int   port = 18944;
+  char* devicename;
+
+  devicename = "Tracker";  // default device name;
 
   if (argc < 3)
     {
@@ -90,27 +96,29 @@ int main(int argc, char **argv)
   // hostname and port number
   if (server)
     {
-    if (argc < 3 || argc > 4) // illegal number of arguments
-      {
-      PrintUsage(argv[0]);
-      exit(-1);
-      }
-    if (argc == 4)
-      {
-      port = atoi(argv[3]);
-      }
-    }
-  else // client mode
-    {
     if (argc < 4 || argc > 5) // illegal number of arguments
       {
       PrintUsage(argv[0]);
       exit(-1);
       }
-    hostname = argv[3];
+    port = atoi(argv[3]);
     if (argc == 5)
       {
-      port = atoi(argv[4]);
+      devicename = argv[4];
+      }
+    }
+  else // client mode
+    {
+    if (argc < 5 || argc > 6) // illegal number of arguments
+      {
+      PrintUsage(argv[0]);
+      exit(-1);
+      }
+    hostname = argv[3];
+    port = atoi(argv[4]);
+    if (argc == 6)
+      {
+      devicename = argv[5];
       }
     }
 
@@ -120,6 +128,7 @@ int main(int argc, char **argv)
   TransferOpenIGTLink*  transfer  = new TransferOpenIGTLink;
 
   acquisition->SetPostProcessThread(dynamic_cast<Thread*>(transfer));
+  acquisition->SetDeviceName(devicename);
   acquisition->SetFrameRate(fps);
 
   if (server)

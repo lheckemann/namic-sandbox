@@ -27,6 +27,7 @@
 AcquisitionTrackingSimulator::AcquisitionTrackingSimulator()
 {
   this->Interval_ms = 100;  // default
+  this->DeviceName = "Tracker";  // default name
 }
 
 AcquisitionTrackingSimulator::~AcquisitionTrackingSimulator()
@@ -74,7 +75,7 @@ void AcquisitionTrackingSimulator::Process()
   igtl::Matrix4x4 matrix;
   this->SetCircularFrameBufferSize(3);
 
-  frame->SetDeviceName("Tracker");
+  frame->SetDeviceName(this->DeviceName.c_str());
 
   while (1)
     {
@@ -96,6 +97,13 @@ void AcquisitionTrackingSimulator::SetFrameRate(float fps)
 {
   this->Interval_ms = (int) (1000 / fps);
 }
+
+
+int AcquisitionTrackingSimulator::SetDeviceName(const char* name)
+{
+  this->DeviceName = name;
+}
+
 
 void AcquisitionTrackingSimulator::GetRandomTestMatrix(igtl::Matrix4x4& matrix)
 {
