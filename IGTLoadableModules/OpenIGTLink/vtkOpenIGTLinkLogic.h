@@ -88,14 +88,20 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
   vtkSetMacro ( NeedUpdateLocator,       bool );
   vtkGetMacro ( NeedUpdateLocator,       bool );
 
-  vtkSetMacro ( SliceDriver0, int );
-  vtkGetMacro ( SliceDriver0, int );
-  vtkSetMacro ( SliceDriver1, int );
-  vtkGetMacro ( SliceDriver1, int );
-  vtkSetMacro ( SliceDriver2, int );
-  vtkGetMacro ( SliceDriver2, int );
+  void SetSliceDriver0(int v) { this->SliceDriver[0] = v; };
+  void SetSliceDriver1(int v) { this->SliceDriver[1] = v; };
+  void SetSliceDriver2(int v) { this->SliceDriver[2] = v; };
+  int  SetSliceDriver0() { return this->SliceDriver[0]; };
+  int  SetSliceDriver1() { return this->SliceDriver[1]; };
+  int  SetSliceDriver2() { return this->SliceDriver[2]; };
+
 
   vtkGetMacro ( Connection,              bool );
+
+  vtkSetMacro ( EnableOblique,           bool );
+  vtkGetMacro ( EnableOblique,           bool );
+  vtkSetMacro ( FreezePlane,             bool );
+  vtkGetMacro ( FreezePlane,              bool );
 
   vtkGetObjectMacro ( LocatorTransform, vtkTransform );
   vtkGetObjectMacro ( LocatorMatrix,    vtkMatrix4x4 );
@@ -122,6 +128,12 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
 
   void UpdateMRMLScalarVolumeNode(const char* nodeName, int size, unsigned char* data);
   void UpdateMRMLLinearTransformNode(const char* nodeName, int size, unsigned char* data);
+  void UpdateSliceNode(int sliceNodeNumber,
+                       float nx, float ny, float nz,
+                       float tx, float ty, float tz,
+                       float px, float py, float pz);
+  int  UpdateSliceNodeByTransformNode(int sliceNodeNumber, const char* nodeName);
+  void CheckSliceNode();
   void ProcCommand(const char* nodeName, int size, unsigned char* data);
 
  protected:
@@ -172,16 +184,15 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
   int   NeedRealtimeImageUpdate1;
   int   NeedRealtimeImageUpdate2;
 
-  vtkMRMLSliceNode *SliceNode0;
-  vtkMRMLSliceNode *SliceNode1;
-  vtkMRMLSliceNode *SliceNode2;
+  vtkMRMLSliceNode *SliceNode[3];
 
-  int   SliceDriver0;
-  int   SliceDriver1;
-  int   SliceDriver2;
+  int   SliceDriver[3];
   
   bool  ImagingControl;
   bool  NeedUpdateLocator;
+
+  bool  EnableOblique;
+  bool  FreezePlane;
 
   long  RealtimeImageTimeStamp;
   //int   RealtimeImageSerial;

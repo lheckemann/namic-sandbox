@@ -19,6 +19,9 @@
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerModuleCollapsibleFrame.h"
 #include "vtkSlicerSliceControllerWidget.h"
+#include "vtkSlicerSliceGUI.h"
+#include "vtkSlicerSlicesGUI.h"
+
 #include "vtkSlicerColor.h"
 #include "vtkSlicerTheme.h"
 
@@ -79,47 +82,7 @@ vtkCxxRevisionMacro ( vtkOpenIGTLinkGUI, "$Revision: 1.0 $");
 
 
 //---------------------------------------------------------------------------
-// Button Colors and Labels for Work Phase Control
-const double vtkOpenIGTLinkGUI::WorkPhaseColor[vtkOpenIGTLinkLogic::NumPhases][3] =
-{
-  /* St */ { 1.0, 0.6, 1.0 },
-  /* Pl */ { 0.6, 1.0, 0.6 },
-  /* Cl */ { 1.0, 1.0, 0.6 },
-  /* Tg */ { 0.6, 0.6, 1.0 },
-  /* Mn */ { 0.6, 1.0, 1.0 },
-  /* Em */ { 1.0, 0.0, 0.0 },
-};
-
-const double vtkOpenIGTLinkGUI::WorkPhaseColorActive[vtkOpenIGTLinkLogic::NumPhases][3] =
-{
-  /* St */ { 1.0, 0.4, 1.0 },
-  /* Pl */ { 0.4, 1.0, 0.4 },
-  /* Cl */ { 1.0, 1.0, 0.4 },
-  /* Tg */ { 0.4, 0.4, 1.0 },
-  /* Mn */ { 0.4, 1.0, 1.0 },
-  /* Em */ { 1.0, 0.0, 0.0 },
-};
-
-const double vtkOpenIGTLinkGUI::WorkPhaseColorDisabled[vtkOpenIGTLinkLogic::NumPhases][3] =
-{
-  /* St */ { 1.0, 0.95, 1.0 },
-  /* Pl */ { 0.95, 1.0, 0.95 },
-  /* Cl */ { 1.0, 1.0, 0.95 },
-  /* Tg */ { 0.95, 0.95, 1.0 },
-  /* Mn */ { 0.95, 1.0, 1.0 },
-  /* Em */ { 1.0, 0.0, 0.0 },
-};
-
-const char *vtkOpenIGTLinkGUI::WorkPhaseStr[vtkOpenIGTLinkLogic::NumPhases] =
-{
-  /* Su */ "Start Up",
-  /* Pl */ "Planning",
-  /* Cl */ "Calibration",
-  /* Tg */ "Targeting",
-  /* Mn */ "Manual",
-  /* Em */ "Emergency",
-};
-
+// Labels
 const char *vtkOpenIGTLinkGUI::ConnectorTypeStr[vtkIGTLConnector::NUM_TYPE] = 
 {
   "?", // TYPE_NOT_DEFINED
@@ -153,14 +116,6 @@ vtkOpenIGTLinkGUI::vtkOpenIGTLinkGUI ( )
   this->SliceNode1 = NULL; 
   this->SliceNode2 = NULL; 
   
-  this->NeedOrientationUpdate0 = 0;
-  this->NeedOrientationUpdate1 = 0;
-  this->NeedOrientationUpdate2 = 0;
-  
-  //this->NeedRealtimeImageUpdate = 0;
-  this->FreezeOrientationUpdate = 0;
-  
-  
   //----------------------------------------------------------------
   // Workphase Frame
   
@@ -180,6 +135,7 @@ vtkOpenIGTLinkGUI::vtkOpenIGTLinkGUI ( )
   // Visualization Control Frame
   
   this->FreezeImageCheckButton = NULL;
+  this->ObliqueCheckButton     = NULL;
   this->SetLocatorModeButton   = NULL;
   this->SetUserModeButton      = NULL;
   this->RedSliceMenu           = NULL;
@@ -194,12 +150,6 @@ vtkOpenIGTLinkGUI::vtkOpenIGTLinkGUI ( )
 
   this->ImagingMenu            = NULL;
 
-  /*
-    this->SliceDriver0 = 0;
-    this->SliceDriver1 = 0;
-    this->SliceDriver2 = 0;
-  */
-  
 
   //----------------------------------------------------------------
   // Locator Model
@@ -214,7 +164,6 @@ vtkOpenIGTLinkGUI::vtkOpenIGTLinkGUI ( )
   this->FiducialListNode   = NULL;
   
   this->TimerFlag = 0;
-
 
 }
 
@@ -255,6 +204,12 @@ vtkOpenIGTLinkGUI::~vtkOpenIGTLinkGUI ( )
     this->FreezeImageCheckButton->SetParent(NULL );
     this->FreezeImageCheckButton->Delete ( );
     }
+  if (this->ObliqueCheckButton)
+    {
+    this->ObliqueCheckButton->SetParent(NULL );
+    this->ObliqueCheckButton->Delete ( );
+    }
+
 
   if (this->SetLocatorModeButton)
     {
@@ -286,6 +241,7 @@ vtkOpenIGTLinkGUI::~vtkOpenIGTLinkGUI ( )
     this->GreenSliceMenu->Delete ( );
     }
 
+  /*
   if (this->StartScanButton)
     {
     this->StartScanButton->SetParent(NULL);
@@ -303,6 +259,9 @@ vtkOpenIGTLinkGUI::~vtkOpenIGTLinkGUI ( )
     this->ImagingMenu->SetParent(NULL);
     this->ImagingMenu->Delete();
     }
+  */
+
+  this->IsSliceOrientationAdded = false;
 
 
   //----------------------------------------------------------------
@@ -405,6 +364,11 @@ void vtkOpenIGTLinkGUI::RemoveGUIObservers ( )
     {
     this->FreezeImageCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand );
     }
+  if (this->ObliqueCheckButton)
+    {
+    this->ObliqueCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand );
+    }
+
 
   if (this->SetLocatorModeButton)
     {
@@ -510,33 +474,35 @@ void vtkOpenIGTLinkGUI::AddGUIObservers ( )
   // Visualization Control Frame
 
 
-  /*
-  this->FreezeImageCheckButton
-    ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
-
-  this->SetLocatorModeButton
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->SetUserModeButton
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->StartScanButton
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  this->StopScanButton
-    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
-  */
-
   this->LocatorCheckButton
     ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
 
-  /*
+
   this->RedSliceMenu->GetMenu()
     ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->YellowSliceMenu->GetMenu()
     ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
   this->GreenSliceMenu->GetMenu()
     ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->FreezeImageCheckButton
+    ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+  this->ObliqueCheckButton
+    ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+
+  this->SetLocatorModeButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->SetUserModeButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  /*
+  this->StartScanButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->StopScanButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->ImagingMenu->GetMenu()
     ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   */
+
 
 
   //----------------------------------------------------------------
@@ -776,7 +742,8 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
 
   //----------------------------------------------------------------
   // Visualization Control Frame
-  
+
+  // -- this should be moved to Logic?
   else if (this->LocatorCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
            && event == vtkKWCheckButton::SelectedStateChangedEvent )
     {
@@ -784,17 +751,11 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
 
     if (!this->LocatorModel)
       {
-      //vtkMRMLModelNode *modelNode = vtkMRMLModelNode::New();
       this->LocatorModel = vtkMRMLModelNode::New();
-      //vtkMRMLModelDisplayNode *dispNode = vtkMRMLModelDisplayNode::New();
       this->LocatorDisp = vtkMRMLModelDisplayNode::New();
-      //vtkMRMLLinearTransformNode *transform = vtkMRMLLinearTransformNode::New();
-      //this->LocatorTransform = vtkMRMLLinearTransformNode::New();
-      //transform->SetName("IGTDataManagerTransform");
       
       this->GetMRMLScene()->SaveStateForUndo();
       this->GetMRMLScene()->AddNode(this->LocatorDisp);
-      //this->GetMRMLScene()->AddNode(this->LocatorTransform);
       this->GetMRMLScene()->AddNode(this->LocatorModel);  
       
       this->LocatorDisp->SetScene(this->GetMRMLScene());
@@ -803,18 +764,18 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
       this->LocatorModel->SetScene(this->GetMRMLScene());
       this->LocatorModel->SetAndObserveDisplayNodeID(this->LocatorDisp->GetID());
       this->LocatorModel->SetHideFromEditors(0);
-      //this->LocatorModel->SetAndObserveTransformNodeID(this->LocatorTransform->GetID());  
-      //this->StreamID = std::string(this->LocatorModel->GetID());
-      
+
       // Cylinder represents the locator stick
       vtkCylinderSource *cylinder = vtkCylinderSource::New();
       cylinder->SetRadius(1.5);
       cylinder->SetHeight(100);
+      cylinder->SetCenter(0, 50, 0);
       cylinder->Update();
+
       // Sphere represents the locator tip 
       vtkSphereSource *sphere = vtkSphereSource::New();
       sphere->SetRadius(3.0);
-      sphere->SetCenter(0, -50, 0);
+      sphere->SetCenter(0, 0, 0);
       sphere->Update();
       
       vtkAppendPolyData *apd = vtkAppendPolyData::New();
@@ -845,7 +806,6 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
 
     }
 
-  /*
   else if (this->RedSliceMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
            && event == vtkKWMenu::MenuItemInvokedEvent)
     {
@@ -891,13 +851,27 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
     {
     if (this->FreezeImageCheckButton->GetSelectedState() == 1)
       {
-      this->FreezeOrientationUpdate = 1;
+      this->GetLogic()->SetFreezePlane(true);
       }
     else
       {
-      this->FreezeOrientationUpdate = 0;
+      this->GetLogic()->SetFreezePlane(false);
       }
     }
+  else if (this->ObliqueCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
+           && event == vtkKWCheckButton::SelectedStateChangedEvent )
+    {
+    if (this->ObliqueCheckButton->GetSelectedState() == 1)
+      {
+      this->GetLogic()->SetEnableOblique(true);
+      }
+    else
+      {
+      this->GetLogic()->SetEnableOblique(false);
+      }
+    }
+
+  /*
   else if (this->ImagingMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
            && event == vtkKWMenu::MenuItemInvokedEvent )
     {
@@ -925,7 +899,9 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
       }
     
     }
+  */
 
+  /*
   else if (this->StartScanButton == vtkKWPushButton::SafeDownCast(caller) 
            && event == vtkKWPushButton::InvokedEvent)
     {
@@ -936,7 +912,6 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
     {
     //this->Logic->ScanStop();
     }
-  
   */
 
   //----------------------------------------------------------------
@@ -1038,6 +1013,38 @@ void vtkOpenIGTLinkGUI::Enter()
     this->TimerInterval = 100;  // 100 ms
     ProcessTimerEvents();
     }
+
+
+  /*
+  //----------------------------------------------------------------
+  // Hack SlicerSlicesControlGUI -- Add "InPlane", "InPlane90", "Perp"
+
+  if (this->IsSliceOrientationAdded == false && this->GetApplication() )
+    {
+    vtkSlicerSliceGUI* sgui;
+    vtkSlicerSlicesGUI* ssgui;
+    vtkSlicerApplication* app = vtkSlicerApplication::SafeDownCast (this->GetApplication());
+    ssgui = vtkSlicerSlicesGUI::SafeDownCast(app->GetModuleGUIByName ("Slices") );
+
+    if (ssgui != NULL)
+      {
+      ssgui->GetSliceGUICollection()->InitTraversal();
+      sgui = vtkSlicerSliceGUI::SafeDownCast(ssgui->GetSliceGUICollection()->GetNextItemAsObject());
+      while ( sgui != NULL )
+        {
+        vtkSlicerSliceControllerWidget* sscw = sgui->GetSliceController();
+        vtkKWMenuButtonWithSpinButtonsWithLabel* oriSel = sscw->GetOrientationSelector();
+        vtkKWMenuButton *mb = oriSel->GetWidget()->GetWidget();
+        mb->GetMenu()->AddRadioButton("InPlane");
+        mb->GetMenu()->AddRadioButton("InPlane90");
+        mb->GetMenu()->AddRadioButton("Perp");
+        sgui = vtkSlicerSliceGUI::SafeDownCast ( ssgui->GetSliceGUICollection()->GetNextItemAsObject() );
+        }
+      }
+    this->IsSliceOrientationAdded = true;
+    }
+  */
+
 }
 
 
@@ -1075,9 +1082,9 @@ void vtkOpenIGTLinkGUI::BuildGUIForHelpFrame ()
   // Define your help text here.
   const char *help = 
     "The **OpenIGTLink Module** helps you to manage OpenIGTLink connections:"
-    " OpenIGTLink is an open network protocol to provide software / hardware connectivity"
+    " OpenIGTLink is an open network protocol for communication among software / hardware "
     " for image-guided therapy, e.g. robot-navigation and imager-viewer connections."
-    " The latest information of the OpenIGTLink protocol can be found at http://wiki.na-mic.org/Wiki/index.php/OpenIGTLink ."
+    " The information of the OpenIGTLink protocol can be found at http://wiki.na-mic.org/Wiki/index.php/OpenIGTLink ."
     " The module is designed and implemented by Junichi Tokuda for Brigham and Women's Hospital."
     " This work is supported by NCIGT, NA-MIC and BRP Prostate robot project.";
 
@@ -1324,7 +1331,7 @@ void vtkOpenIGTLinkGUI::BuildGUIForVisualizationControlFrame ()
   vtkSlicerModuleCollapsibleFrame *visCtrlFrame = vtkSlicerModuleCollapsibleFrame::New();
   visCtrlFrame->SetParent(page);
   visCtrlFrame->Create();
-  visCtrlFrame->SetLabelText("Visualization / Scanner Control");
+  visCtrlFrame->SetLabelText("Visualization / Slice Control");
   visCtrlFrame->CollapseFrame();
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                visCtrlFrame->GetWidgetName(), page->GetWidgetName());
@@ -1349,8 +1356,6 @@ void vtkOpenIGTLinkGUI::BuildGUIForVisualizationControlFrame ()
                this->LocatorCheckButton->GetWidgetName());
   
 
-  /*
-  
   // -----------------------------------------
   // Driver frame: Locator can drive slices 
 
@@ -1411,10 +1416,7 @@ void vtkOpenIGTLinkGUI::BuildGUIForVisualizationControlFrame ()
                this->RedSliceMenu->GetWidgetName(),
                this->YellowSliceMenu->GetWidgetName(),
                this->GreenSliceMenu->GetWidgetName());
-  */
   
-  
-  /*
   // Mode frame
   vtkKWFrame *modeFrame = vtkKWFrame::New();
   modeFrame->SetParent ( driverFrame->GetFrame() );
@@ -1443,17 +1445,25 @@ void vtkOpenIGTLinkGUI::BuildGUIForVisualizationControlFrame ()
   this->FreezeImageCheckButton->SetParent(modeFrame);
   this->FreezeImageCheckButton->Create();
   this->FreezeImageCheckButton->SelectedStateOff();
-  this->FreezeImageCheckButton->SetText("Freeze Image Position");
-  this->Script("pack %s %s %s -side left -anchor w -padx 2 -pady 2", 
+  this->FreezeImageCheckButton->SetText("Freeze");
+  
+  this->ObliqueCheckButton = vtkKWCheckButton::New();
+  this->ObliqueCheckButton->SetParent(modeFrame);
+  this->ObliqueCheckButton->Create();
+  this->ObliqueCheckButton->SelectedStateOff();
+  this->ObliqueCheckButton->SetText("Oblique");
+
+  this->Script("pack %s %s %s %s -side left -anchor w -padx 2 -pady 2", 
                this->SetLocatorModeButton->GetWidgetName(),
                this->SetUserModeButton->GetWidgetName(),
-               this->FreezeImageCheckButton->GetWidgetName());
-  */
-  
+               this->FreezeImageCheckButton->GetWidgetName(),
+               this->ObliqueCheckButton->GetWidgetName());
+
+
   // -----------------------------------------
   // Real-time imaging: Scanner controled
 
-/*
+  /*
   vtkKWFrameWithLabel *rtImageFrame = vtkKWFrameWithLabel::New ( );
   rtImageFrame->SetParent(visCtrlFrame->GetFrame());
   rtImageFrame->Create();
@@ -1495,12 +1505,12 @@ void vtkOpenIGTLinkGUI::BuildGUIForVisualizationControlFrame ()
                StartScanButton->GetWidgetName(),
                StopScanButton->GetWidgetName(),
                ImagingMenu->GetWidgetName());
-*/
 
+  */
   displayFrame->Delete();
-  //driverFrame->Delete();
-  //modeFrame->Delete();
-  //sliceFrame->Delete();
+  driverFrame->Delete();
+  modeFrame->Delete();
+  sliceFrame->Delete();
   visCtrlFrame->Delete();
 
 }
@@ -1512,11 +1522,6 @@ void vtkOpenIGTLinkGUI::UpdateAll()
 
   if (this->LocatorCheckButton->GetSelectedState())
     {
-    //this->UpdateLocator();
-    }
-  if (!this->FreezeOrientationUpdate)
-    {
-    //this->UpdateSliceDisplay(nx, ny, nz, tx, ty, tz, px, py, pz);
     }
 
 }

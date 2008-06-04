@@ -39,31 +39,18 @@ vtkStandardNewMacro(vtkOpenIGTLinkLogic);
 vtkOpenIGTLinkLogic::vtkOpenIGTLinkLogic()
 {
 
-  this->SliceDriver0 = vtkOpenIGTLinkLogic::SLICE_DRIVER_USER;
-  this->SliceDriver1 = vtkOpenIGTLinkLogic::SLICE_DRIVER_USER;
-  this->SliceDriver2 = vtkOpenIGTLinkLogic::SLICE_DRIVER_USER;
-
+  this->SliceDriver[0] = vtkOpenIGTLinkLogic::SLICE_DRIVER_USER;
+  this->SliceDriver[1] = vtkOpenIGTLinkLogic::SLICE_DRIVER_USER;
+  this->SliceDriver[2] = vtkOpenIGTLinkLogic::SLICE_DRIVER_USER;
 
   // If the following code doesn't work, slice nodes should be obtained from application GUI
-  this->SliceNode0 = NULL;
-  this->SliceNode1 = NULL;
-  this->SliceNode2 = NULL;
+  this->SliceNode[0] = NULL;
+  this->SliceNode[1] = NULL;
+  this->SliceNode[2] = NULL;
 
-  /*
-    this->SliceNode0 = this->GetApplication()->GetApplicationGUI()->GetMainSliceLogic0()->GetSliceNode();
-    this->SliceNode1 = this->GetApplication()->GetApplicationGUI()->GetMainSliceLogic1()->GetSliceNode();
-    this->SliceNode2 = this->GetApplication()->GetApplicationGUI()->GetMainSliceLogic2()->GetSliceNode();
-  */
-  /*
-    this->Logic0 = appGUI->GetMainSliceGUI0()->GetLogic();
-    this->Logic1 = appGUI->GetMainSliceGUI1()->GetLogic();
-    this->Logic2 = appGUI->GetMainSliceGUI2()->GetLogic();
-  */
-                                         
   this->NeedRealtimeImageUpdate0 = 0;
   this->NeedRealtimeImageUpdate1 = 0;
   this->NeedRealtimeImageUpdate2 = 0;
-
   this->ImagingControl = 0;
 
   // Timer Handling
@@ -74,6 +61,9 @@ vtkOpenIGTLinkLogic::vtkOpenIGTLinkLogic()
 
   this->ConnectorList.clear();
   this->ConnectorPrevStateList.clear();
+
+  this->EnableOblique = false;
+  this->FreezePlane   = false;
 
 }
 
@@ -567,25 +557,23 @@ void vtkOpenIGTLinkLogic::UpdateMRMLScalarVolumeNode(const char* nodeName, int s
   py = py + cy;
   pz = pz + cz;
 
-
   //volumeNode->SetAndObserveImageData(imageData);
-  vtkMRMLSliceNode* slnode1 = 
-    vtkMRMLSliceNode::SafeDownCast(scene->GetNodeByID("vtkMRMLSliceNode1"));
-  /*
-  vtkMRMLSliceNode* slnode2 = 
-    vtkMRMLSliceNode::SafeDownCast(scene->GetNodeByID("vtkMRMLSliceNode2"));
-  vtkMRMLSliceNode* slnode3 = 
-    vtkMRMLSliceNode::SafeDownCast(scene->GetNodeByID("vtkMRMLSliceNode2"));
-  */
 
-  slnode1->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
-  slnode1->UpdateMatrices();
-  //slnode1->Modified();
-  //appGUI->GetSlicesControlGUI()->RequestFOVEntriesUpdate();      
-  /*
-  slnode2->Modified();
-  slnode3->Modified();
-  */
+  //----------------------------------------------------------------
+  // Slice Orientation
+  //----------------------------------------------------------------
+
+  for (int i = 0; i < 3; i ++)
+    {
+    if (this->SliceDriver[i] == SLICE_DRIVER_RTIMAGE)
+      {
+      UpdateSliceNode(i, nx, ny, nz, tx, ty, tz, px, py, pz);
+      }
+    else if (this->SliceDriver[i] == SLICE_DRIVER_LOCATOR)
+      {
+      UpdateSliceNodeByTransformNode(i, "Tracker");
+      }
+    }
 
 }
 
@@ -670,6 +658,144 @@ void vtkOpenIGTLinkLogic::UpdateMRMLLinearTransformNode(const char* nodeName, in
   transformToParent->DeepCopy(transform);
   transform->Delete();
 
+  if (strcmp(nodeName, "Tracker") == 0)
+    {
+    for (int i = 0; i < 3; i ++)
+      {
+      if (this->SliceDriver[i] == SLICE_DRIVER_LOCATOR)
+        {
+        UpdateSliceNodeByTransformNode(i, "Tracker");
+        }
+      }
+    }
+
+}
+
+
+//---------------------------------------------------------------------------
+void vtkOpenIGTLinkLogic::UpdateSliceNode(int sliceNodeNumber,
+                                         float nx, float ny, float nz,
+                                         float tx, float ty, float tz,
+                                         float px, float py, float pz)
+{
+
+  if (this->FreezePlane)
+    {
+    return;
+    }
+
+  CheckSliceNode();
+
+  if (strcmp(this->SliceNode[sliceNodeNumber]->GetOrientationString(), "Axial") == 0)
+    {
+    if (this->EnableOblique) // perpendicular
+      {
+      this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
+      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
+      }
+    else
+      {
+      this->SliceNode[sliceNodeNumber]->SetOrientationToAxial();
+      this->SliceNode[sliceNodeNumber]->JumpSlice(px, py, pz);
+      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
+      }
+    }
+  else if (strcmp(this->SliceNode[sliceNodeNumber]->GetOrientationString(), "Sagittal") == 0)
+    {
+    if (this->EnableOblique) // In-Plane
+      {
+      this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
+      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
+      }
+    else
+      {
+      this->SliceNode[sliceNodeNumber]->SetOrientationToSagittal();
+      this->SliceNode[sliceNodeNumber]->JumpSlice(px, py, pz);
+      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
+      }
+    }
+  else if (strcmp(this->SliceNode[sliceNodeNumber]->GetOrientationString(), "Coronal") == 0)
+    {
+    if (this->EnableOblique)  // In-Plane 90
+      {
+      this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
+      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
+      }
+    else
+      {
+      this->SliceNode[sliceNodeNumber]->SetOrientationToCoronal();
+      this->SliceNode[sliceNodeNumber]->JumpSlice(px, py, pz);
+      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
+      }
+    }
+
+}
+
+
+//---------------------------------------------------------------------------
+int vtkOpenIGTLinkLogic::UpdateSliceNodeByTransformNode(int sliceNodeNumber, const char* nodeName)
+{
+
+  if (this->FreezePlane)
+    {
+    return 1;
+    }
+
+  vtkMRMLLinearTransformNode* transformNode;
+  vtkMRMLScene* scene = this->GetApplicationLogic()->GetMRMLScene();
+  vtkCollection* collection = scene->GetNodesByName(nodeName);
+
+  if (collection != NULL && collection->GetNumberOfItems() == 0)
+    {
+    // the node name does not exist in the MRML tree
+    return 0;
+    }
+
+  transformNode = vtkMRMLLinearTransformNode::SafeDownCast(collection->GetItemAsObject(0));
+
+  vtkMatrix4x4* transform;
+  //transform = transformNode->GetMatrixTransformToParent();
+  transform = transformNode->GetMatrixTransformToParent();
+
+  if (transform)
+    {
+    // set volume orientation
+    float tx = transform->GetElement(0, 0);
+    float ty = transform->GetElement(1, 0);
+    float tz = transform->GetElement(2, 0);
+    float sx = transform->GetElement(0, 1);
+    float sy = transform->GetElement(1, 1);
+    float sz = transform->GetElement(2, 1);
+    float nx = transform->GetElement(0, 2);
+    float ny = transform->GetElement(1, 2);
+    float nz = transform->GetElement(2, 2);
+    float px = transform->GetElement(0, 3);
+    float py = transform->GetElement(1, 3);
+    float pz = transform->GetElement(2, 3);
+
+    UpdateSliceNode(sliceNodeNumber, nx, ny, nz, tx, ty, tz, px, py, pz);
+
+    }
+
+  return 1;
+
+}
+
+
+//---------------------------------------------------------------------------
+void vtkOpenIGTLinkLogic::CheckSliceNode()
+{
+
+  for (int i = 0; i < 3; i ++)
+    {
+    if (this->SliceNode[i] == NULL)
+      {
+      char nodename[36];
+      sprintf(nodename, "vtkMRMLSliceNode%d", i+1);
+      this->SliceNode[i] = vtkMRMLSliceNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(nodename));
+      }
+    }
+  
 }
 
 
