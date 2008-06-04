@@ -18,9 +18,11 @@
 #define __AcquisitionTrackingSimulator_H
 
 #include <vector>
+#include <string>
 
 #include "igtlWin32Header.h"
 #include "AcquisitionBase.h"
+
 
 class IGTLCommon_EXPORT AcquisitionTrackingSimulator: public AcquisitionBase
 {
@@ -34,6 +36,8 @@ public:
 
   // Simulator specific functions
   void SetFrameRate(float fps);
+  int  SetDeviceName(const char* name);
+
 
 public:
   AcquisitionTrackingSimulator();
@@ -50,6 +54,7 @@ protected:
   Thread* TransferThread;
 
   int Interval_ms;
+  std::string DeviceName;
 
 };
 
