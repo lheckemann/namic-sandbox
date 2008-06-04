@@ -232,9 +232,10 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkGUI : public vtkSlicerModuleGUI
   //----------------------------------------------------------------
   // Locator Model
   //----------------------------------------------------------------
-  vtkMRMLModelNode           *LocatorModel;
-  vtkMRMLModelDisplayNode    *LocatorDisp;
-  vtkMRMLLinearTransformNode *LocatorTransform;
+
+  //vtkMRMLModelNode           *LocatorModel;
+  int                        CloseScene;
+
 
   //----------------------------------------------------------------
   // Target Fiducials

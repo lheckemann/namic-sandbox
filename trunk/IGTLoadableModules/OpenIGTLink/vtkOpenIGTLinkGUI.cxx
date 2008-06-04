@@ -55,19 +55,13 @@
 
 #include "vtkKWTkUtilities.h"
 #include "vtkMRMLModelDisplayNode.h"
-#include "vtkCylinderSource.h"
 #include "vtkTransformPolyDataFilter.h"
-#include "vtkActor.h"
-#include "vtkProperty.h"
 #include "vtkCornerAnnotation.h"
 
 // for Realtime Image
 #include "vtkImageChangeInformation.h"
 #include "vtkSlicerColorLogic.h"
 
-#include "vtkCylinderSource.h"
-#include "vtkSphereSource.h"
-#include "vtkAppendPolyData.h"
 #include "vtkMRMLLinearTransformNode.h"
 
 #include "vtkIGTLConnector.h"
@@ -152,17 +146,9 @@ vtkOpenIGTLinkGUI::vtkOpenIGTLinkGUI ( )
 
 
   //----------------------------------------------------------------
-  // Locator Model
-  this->LocatorModel        = NULL;
-  this->LocatorDisp         = NULL;
-  this->LocatorTransform    = NULL;
+  // Locator  (MRML)
+  this->CloseScene             = false;
 
-  //----------------------------------------------------------------
-  // Target Fiducials List (MRML)
-
-  this->FiducialListNodeID = NULL;
-  this->FiducialListNode   = NULL;
-  
   this->TimerFlag = 0;
 
 }
@@ -429,9 +415,27 @@ void vtkOpenIGTLinkGUI::AddGUIObservers ( )
 
   // make a user interactor style to process our events
   // look at the InteractorStyle to get our events
-  
+
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+
+  //----------------------------------------------------------------
+  // MRML
+
+  vtkIntArray* events = vtkIntArray::New();
+  //events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
+  //events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
+  events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
   
+  if (this->GetMRMLScene() != NULL)
+    {
+    this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
+    }
+  events->Delete();
+
+  
+  //----------------------------------------------------------------
+  // Main Slice GUI
+
   appGUI->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()
     ->GetRenderWindowInteractor()->GetInteractorStyle()
     ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -748,62 +752,21 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
            && event == vtkKWCheckButton::SelectedStateChangedEvent )
     {
     int checked = this->LocatorCheckButton->GetSelectedState(); 
-
-    if (!this->LocatorModel)
+    if (!this->CloseScene)
       {
-      this->LocatorModel = vtkMRMLModelNode::New();
-      this->LocatorDisp = vtkMRMLModelDisplayNode::New();
-      
-      this->GetMRMLScene()->SaveStateForUndo();
-      this->GetMRMLScene()->AddNode(this->LocatorDisp);
-      this->GetMRMLScene()->AddNode(this->LocatorModel);  
-      
-      this->LocatorDisp->SetScene(this->GetMRMLScene());
-      
-      this->LocatorModel->SetName("IGTLocator");
-      this->LocatorModel->SetScene(this->GetMRMLScene());
-      this->LocatorModel->SetAndObserveDisplayNodeID(this->LocatorDisp->GetID());
-      this->LocatorModel->SetHideFromEditors(0);
-
-      // Cylinder represents the locator stick
-      vtkCylinderSource *cylinder = vtkCylinderSource::New();
-      cylinder->SetRadius(1.5);
-      cylinder->SetHeight(100);
-      cylinder->SetCenter(0, 50, 0);
-      cylinder->Update();
-
-      // Sphere represents the locator tip 
-      vtkSphereSource *sphere = vtkSphereSource::New();
-      sphere->SetRadius(3.0);
-      sphere->SetCenter(0, 0, 0);
-      sphere->Update();
-      
-      vtkAppendPolyData *apd = vtkAppendPolyData::New();
-      apd->AddInput(sphere->GetOutput());
-      apd->AddInput(cylinder->GetOutput());
-      apd->Update();
-      
-      this->LocatorModel->SetAndObservePolyData(apd->GetOutput());
-      this->LocatorDisp->SetPolyData(this->LocatorModel->GetPolyData());
-      
-      cylinder->Delete();
-      sphere->Delete();
-      apd->Delete();
-      }
-
-    if (checked)
-      {
-      this->LocatorDisp->SetVisibility(1);
+      if (checked)
+        {
+        this->GetLogic()->SetVisibilityOfLocatorModel("IGTLocator", 1);
+        }
+      else
+        {
+        this->GetLogic()->SetVisibilityOfLocatorModel("IGTLocator", 0);
+        }
       }
     else
       {
-      this->LocatorDisp->SetVisibility(0);
+      this->CloseScene = false;
       }
-
-      this->LocatorModel->Modified();
-      this->Modified();  
-      this->GetMRMLScene()->Modified();
-
     }
 
   else if (this->RedSliceMenu->GetMenu() == vtkKWMenu::SafeDownCast(caller)
@@ -925,9 +888,6 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
 void vtkOpenIGTLinkGUI::Init()
 {
   this->DataManager->SetMRMLScene(this->GetMRMLScene());
-  //   this->LocatorModelID = std::string(this->DataManager->RegisterStream(0));
-  //this->LocatorModelID_new = std::string(this->DataManager->RegisterStream_new(0));
-    
 }
 
 
@@ -962,6 +922,15 @@ void vtkOpenIGTLinkGUI::ProcessMRMLEvents ( vtkObject *caller,
                                             unsigned long event, void *callData )
 {
   // Fill in
+
+  if (event == vtkMRMLScene::SceneCloseEvent)
+    {
+    if (this->LocatorCheckButton != NULL && this->LocatorCheckButton->GetSelectedState())
+      {
+      this->CloseScene = true;
+      this->LocatorCheckButton->SelectedStateOff();
+      }
+    }
 }
 
 
@@ -1127,7 +1096,7 @@ void vtkOpenIGTLinkGUI::BuildGUIForConnectorBrowserFrame ()
 
   conBrowsFrame->SetParent(page);
   conBrowsFrame->Create();
-  conBrowsFrame->SetLabelText("Connector Borowser");
+  conBrowsFrame->SetLabelText("Connector Browser");
   conBrowsFrame->CollapseFrame();
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
@@ -1451,7 +1420,7 @@ void vtkOpenIGTLinkGUI::BuildGUIForVisualizationControlFrame ()
   this->ObliqueCheckButton->SetParent(modeFrame);
   this->ObliqueCheckButton->Create();
   this->ObliqueCheckButton->SelectedStateOff();
-  this->ObliqueCheckButton->SetText("Oblique");
+  this->ObliqueCheckButton->SetText("Orient");
 
   this->Script("pack %s %s %s %s -side left -anchor w -padx 2 -pady 2", 
                this->SetLocatorModeButton->GetWidgetName(),
@@ -1520,9 +1489,11 @@ void vtkOpenIGTLinkGUI::BuildGUIForVisualizationControlFrame ()
 void vtkOpenIGTLinkGUI::UpdateAll()
 {
 
+  /*
   if (this->LocatorCheckButton->GetSelectedState())
     {
     }
+  */
 
 }
 

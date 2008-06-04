@@ -134,6 +134,10 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
                        float px, float py, float pz);
   int  UpdateSliceNodeByTransformNode(int sliceNodeNumber, const char* nodeName);
   void CheckSliceNode();
+
+  vtkMRMLModelNode* SetVisibilityOfLocatorModel(const char* nodeName, int v);
+  vtkMRMLModelNode* AddLocatorModel(const char* nodeName, double r, double g, double b);
+
   void ProcCommand(const char* nodeName, int size, unsigned char* data);
 
  protected:
