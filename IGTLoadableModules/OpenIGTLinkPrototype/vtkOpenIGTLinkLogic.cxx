@@ -62,6 +62,9 @@ vtkOpenIGTLinkLogic::vtkOpenIGTLinkLogic()
   this->ConnectorList.clear();
   this->ConnectorPrevStateList.clear();
 
+  this->EnableOblique = false;
+  this->FreezePlane   = false;
+
 }
 
 
@@ -676,26 +679,55 @@ void vtkOpenIGTLinkLogic::UpdateSliceNode(int sliceNodeNumber,
                                          float px, float py, float pz)
 {
 
+  if (this->FreezePlane)
+    {
+    return;
+    }
+
   CheckSliceNode();
 
   if (strcmp(this->SliceNode[sliceNodeNumber]->GetOrientationString(), "Axial") == 0)
     {
-    // Perpendicular
-    this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
+    if (this->EnableOblique) // perpendicular
+      {
+      this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
+      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
+      }
+    else
+      {
+      this->SliceNode[sliceNodeNumber]->SetOrientationToAxial();
+      this->SliceNode[sliceNodeNumber]->JumpSlice(px, py, pz);
+      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
+      }
     }
   else if (strcmp(this->SliceNode[sliceNodeNumber]->GetOrientationString(), "Sagittal") == 0)
     {
-    // In-Plane 0
-    this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
+    if (this->EnableOblique) // In-Plane
+      {
+      this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
+      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
+      }
+    else
+      {
+      this->SliceNode[sliceNodeNumber]->SetOrientationToSagittal();
+      this->SliceNode[sliceNodeNumber]->JumpSlice(px, py, pz);
+      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
+      }
     }
-  else //if (this->SliceNode[sliceNodeNumber]->GetOrientationString() == "Coronal")
-    //else if (this->SliceNode[sliceNodeNumber]->GetOrientationString() == "Reformat")
+  else if (strcmp(this->SliceNode[sliceNodeNumber]->GetOrientationString(), "Coronal") == 0)
     {
-    // In-Plane 90
-    this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
+    if (this->EnableOblique)  // In-Plane 90
+      {
+      this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
+      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
+      }
+    else
+      {
+      this->SliceNode[sliceNodeNumber]->SetOrientationToCoronal();
+      this->SliceNode[sliceNodeNumber]->JumpSlice(px, py, pz);
+      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
+      }
     }
-  
-  this->SliceNode[sliceNodeNumber]->UpdateMatrices();
 
 }
 
@@ -703,6 +735,11 @@ void vtkOpenIGTLinkLogic::UpdateSliceNode(int sliceNodeNumber,
 //---------------------------------------------------------------------------
 int vtkOpenIGTLinkLogic::UpdateSliceNodeByTransformNode(int sliceNodeNumber, const char* nodeName)
 {
+
+  if (this->FreezePlane)
+    {
+    return 1;
+    }
 
   vtkMRMLLinearTransformNode* transformNode;
   vtkMRMLScene* scene = this->GetApplicationLogic()->GetMRMLScene();
