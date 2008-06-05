@@ -99,7 +99,7 @@ void AcquisitionTrackingSimulator::SetFrameRate(float fps)
 }
 
 
-int AcquisitionTrackingSimulator::SetDeviceName(const char* name)
+void AcquisitionTrackingSimulator::SetDeviceName(const char* name)
 {
   this->DeviceName = name;
 }

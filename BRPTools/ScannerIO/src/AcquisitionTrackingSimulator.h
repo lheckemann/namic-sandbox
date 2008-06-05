@@ -36,7 +36,7 @@ public:
 
   // Simulator specific functions
   void SetFrameRate(float fps);
-  int  SetDeviceName(const char* name);
+  void  SetDeviceName(const char* name);
 
 
 public:
