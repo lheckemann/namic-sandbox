@@ -1,11 +1,14 @@
 /***************************************************************************
- * FileName      : robot.h
- * Created       : 2007/09/14
- * LastModified  : 2007/09/1
- * Author        : Hiroaki KOZUKA
+ * FileName      : main.cpp
+ * Created       : 2007/09/10
+ * LastModified  : 2007/09/20
+ * Author        : Hiroaki KOZUKA Jumpei Arata
  * Aim           : Main program for a Robot Control
-                   robot class
  * OS            : VxWorks 5.5.1
  ***************************************************************************/
-#include <iostream>
+#include "main.h"
 
+void Main(){
+    slaveRobot  = new ROBOT();
+    delete slaveRobot;
+}
