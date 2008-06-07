@@ -34,8 +34,9 @@ class RestController {
       // get data needed
       if (params.id && Subject.exists(params.id)) {
         results = Subject.get( params.id )
-      } else {
-        results = Subject.list()
+      } else  if ( params.name ) {
+        results = Subject.findByNameLike ( '%' + params.name + '%' )
+        // results = Subject.list()
       }
       switch (params.output) {
       case ~/(?i)html/:
