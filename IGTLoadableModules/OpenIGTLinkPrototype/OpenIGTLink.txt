@@ -1,2 +1,2 @@
 Name: OpenIGTLink
-GUIName: OpenIGTLink
+GUIName: OpenIGTLink Prototype
