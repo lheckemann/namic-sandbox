@@ -125,6 +125,10 @@ vtkOpenIGTLinkGUI::vtkOpenIGTLinkGUI ( )
   this->ConnectorAddressEntry = NULL;
   this->ConnectorPortEntry = NULL;
 
+  this->EnableAdvancedSettingButton = NULL;
+
+  this->CurrentMrmlNodeListID = -1;
+
   //----------------------------------------------------------------
   // Visualization Control Frame
   
@@ -342,6 +346,13 @@ void vtkOpenIGTLinkGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->EnableAdvancedSettingButton)
+    {
+    this->EnableAdvancedSettingButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+
   
   //----------------------------------------------------------------
   // Visualization Control Frame
@@ -469,10 +480,14 @@ void vtkOpenIGTLinkGUI::AddGUIObservers ( )
 
   this->ConnectorStatusCheckButton
     ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
+
   this->ConnectorAddressEntry
     ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->ConnectorPortEntry
     ->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->GUICallbackCommand);
+  
+  this->EnableAdvancedSettingButton
+    ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
 
   //----------------------------------------------------------------
   // Visualization Control Frame
@@ -627,6 +642,7 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
     {
     int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
     UpdateConnectorPropertyFrame(selected);
+    UpdateMrmlNodeListFrame(selected);
     }
 
   else if (this->AddConnectorButton == vtkKWPushButton::SafeDownCast(caller)
@@ -637,6 +653,7 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
     int select = this->ConnectorList->GetWidget()->GetNumberOfRows() - 1;
     this->ConnectorList->GetWidget()->SelectSingleRow(select);
     UpdateConnectorPropertyFrame(select);
+    UpdateMrmlNodeListFrame(select);
     }
 
   else if (this->DeleteConnectorButton == vtkKWPushButton::SafeDownCast(caller)
@@ -653,6 +670,7 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
     this->ConnectorList->GetWidget()->SelectSingleRow(selected);
     UpdateConnectorList(UPDATE_ALL);
     UpdateConnectorPropertyFrame(selected);
+    UpdateMrmlNodeListFrame(selected);
     }
   
   else if (this->ConnectorNameEntry == vtkKWEntry::SafeDownCast(caller)
@@ -678,6 +696,7 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
       connector->SetType(vtkIGTLConnector::TYPE_SERVER);
       UpdateConnectorList(UPDATE_SELECTED_ONLY);
       UpdateConnectorPropertyFrame(selected);
+      UpdateMrmlNodeListFrame(selected);
       }
     }
 
@@ -692,6 +711,7 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
       connector->SetType(vtkIGTLConnector::TYPE_CLIENT);
       UpdateConnectorList(UPDATE_SELECTED_ONLY);
       UpdateConnectorPropertyFrame(selected);
+      UpdateMrmlNodeListFrame(selected);
       }
     }
 
@@ -708,6 +728,7 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
         connector->Start();
         UpdateConnectorList(UPDATE_SELECTED_ONLY);
         UpdateConnectorPropertyFrame(selected);
+        UpdateMrmlNodeListFrame(selected);
         }
       else  // Deactivated
         {
@@ -715,6 +736,7 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
         //vtkErrorMacro("Connector Stopped...........");
         UpdateConnectorList(UPDATE_SELECTED_ONLY);
         UpdateConnectorPropertyFrame(selected);
+        UpdateMrmlNodeListFrame(selected);
         }
       }
     }
@@ -741,6 +763,19 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
       connector->SetServerPort(this->ConnectorPortEntry->GetValueAsInt());
       }
     UpdateConnectorList(UPDATE_SELECTED_ONLY);
+    }
+
+  else if (this->EnableAdvancedSettingButton == vtkKWCheckButton::SafeDownCast(caller)
+           && event == vtkKWCheckButton::SelectedStateChangedEvent )
+    {
+    if (this->EnableAdvancedSettingButton->GetSelectedState())
+      {
+      this->GetLogic()->SetRestrictDeviceName(1);
+      }
+    else
+      {
+      this->GetLogic()->SetRestrictDeviceName(0);
+      }
     }
 
 
@@ -947,6 +982,7 @@ void vtkOpenIGTLinkGUI::ProcessTimerEvents()
       int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
       UpdateConnectorList(UPDATE_STATUS_ALL);
       UpdateConnectorPropertyFrame(selected);
+      UpdateMrmlNodeListFrame(selected);
       }
 
 
@@ -954,7 +990,6 @@ void vtkOpenIGTLinkGUI::ProcessTimerEvents()
     // Check incomming new data
 
     this->GetLogic()->ImportFromCircularBuffers();
-
 
     vtkKWTkUtilities::CreateTimerHandler(vtkKWApplication::GetMainInterp(), 
                                          this->TimerInterval,
@@ -983,6 +1018,7 @@ void vtkOpenIGTLinkGUI::Enter()
     ProcessTimerEvents();
     }
 
+  this->GetLogic()->Initialize();
 
   /*
   //----------------------------------------------------------------
@@ -1038,6 +1074,7 @@ void vtkOpenIGTLinkGUI::BuildGUI ( )
   BuildGUIForVisualizationControlFrame();
 
   UpdateConnectorPropertyFrame(-1);
+  UpdateMrmlNodeListFrame(-1);
 }
 
 
@@ -1101,6 +1138,9 @@ void vtkOpenIGTLinkGUI::BuildGUIForConnectorBrowserFrame ()
   app->Script ("pack %s -side top -anchor nw -fill x -padx 2 -pady 2 -in %s",
                conBrowsFrame->GetWidgetName(), page->GetWidgetName());
 
+  // -----------------------------------------
+  // Connector List Frame
+  
   vtkKWFrameWithLabel *listFrame = vtkKWFrameWithLabel::New();
   listFrame->SetParent(conBrowsFrame->GetFrame());
   listFrame->Create();
@@ -1108,8 +1148,6 @@ void vtkOpenIGTLinkGUI::BuildGUIForConnectorBrowserFrame ()
   app->Script ( "pack %s -fill both -expand true",  
                 listFrame->GetWidgetName());
 
-  // Connector List Frame
-  
   this->ConnectorList = vtkKWMultiColumnListWithScrollbars::New();
   this->ConnectorList->SetParent(listFrame->GetFrame());
   this->ConnectorList->Create();
@@ -1285,10 +1323,78 @@ void vtkOpenIGTLinkGUI::BuildGUIForConnectorBrowserFrame ()
 
   app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
               portLabel->GetWidgetName() , this->ConnectorPortEntry->GetWidgetName());
+
+
+  // -----------------------------------------
+  // Advanced Setting Frame
+
+  vtkKWFrameWithLabel *advancedSettingFrame = vtkKWFrameWithLabel::New();
+  advancedSettingFrame->SetParent(conBrowsFrame->GetFrame());
+  advancedSettingFrame->Create();
+  advancedSettingFrame->SetLabelText ("Advanced Settings");
+  app->Script ( "pack %s -fill both -expand true",  
+                advancedSettingFrame->GetWidgetName());
+
+  vtkKWFrame *enableASFrame = vtkKWFrame::New();
+  enableASFrame->SetParent(advancedSettingFrame->GetFrame());
+  enableASFrame->Create();
+  app->Script ( "pack %s -fill both -expand true",  
+                enableASFrame->GetWidgetName());
   
+  vtkKWLabel *enableASLabel = vtkKWLabel::New();
+  enableASLabel->SetParent(enableASFrame);
+  enableASLabel->Create();
+  enableASLabel->SetWidth(20);
+  enableASLabel->SetText("Restrict Device Name: ");
+
+  this->EnableAdvancedSettingButton = vtkKWCheckButton::New();
+  this->EnableAdvancedSettingButton->SetParent(enableASFrame);
+  this->EnableAdvancedSettingButton->Create();
+  this->EnableAdvancedSettingButton->SelectedStateOff();
+  this->EnableAdvancedSettingButton->SetText("Enabled");
+  
+  app->Script("pack %s %s -side left -anchor w -fill x -padx 2 -pady 2", 
+              enableASLabel->GetWidgetName() , this->EnableAdvancedSettingButton->GetWidgetName());
+
+  this->MrmlNodeList = vtkKWMultiColumnListWithScrollbars::New();
+  this->MrmlNodeList->SetParent(advancedSettingFrame->GetFrame());
+  this->MrmlNodeList->Create();
+  this->MrmlNodeList->SetHeight(1);
+  this->MrmlNodeList->GetWidget()->SetSelectionTypeToRow();
+  this->MrmlNodeList->GetWidget()->SetSelectionModeToSingle();
+  this->MrmlNodeList->GetWidget()->MovableRowsOff();
+  this->MrmlNodeList->GetWidget()->MovableColumnsOff();
+
+  const char* mrmllistlabels[] =
+    { "Name", "Type", "IO", "Option"};
+  const int mrmllistwidths[] = 
+    { 12, 12, 5, 10 };
+
+  for (int col = 0; col < 4; col ++)
+    {
+    this->MrmlNodeList->GetWidget()->AddColumn(mrmllistlabels[col]);
+    this->MrmlNodeList->GetWidget()->SetColumnWidth(col, mrmllistwidths[col]);
+    this->MrmlNodeList->GetWidget()->SetColumnAlignmentToLeft(col);
+    this->MrmlNodeList->GetWidget()->ColumnEditableOff(col);
+    //this->ConnectorList->GetWidget()->ColumnEditableOn(col);
+    this->MrmlNodeList->GetWidget()->SetColumnEditWindowToSpinBox(col);
+    }
+  this->ConnectorList->GetWidget()->SetColumnEditWindowToCheckButton(0);
+  //this->ConnectorList->GetWidget()->SetCellUpdatedCommand(this, "OnConnectorListUpdate");
+  //this->ConnectorList->GetWidget()->SetSelectionChangedCommand(this, "OnConnectorListSelectionChanged");
+  
+//  vtkKWFrame *listButtonsFrame = vtkKWFrame::New();
+//  listButtonsFrame->SetParent(listFrame->GetFrame());
+//  listButtonsFrame->Create();
+//
+//  app->Script ("pack %s %s -fill both -expand true",  
+//               //app->Script( "pack %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
+//               this->ConnectorList->GetWidgetName(), listButtonsFrame->GetWidgetName());
+  app->Script ("pack %s %s -fill both -expand true",  
+               //app->Script( "pack %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
+               enableASFrame->GetWidgetName(), this->MrmlNodeList->GetWidgetName());
 
 }
-
 
 
 //---------------------------------------------------------------------------
@@ -1677,14 +1783,12 @@ void vtkOpenIGTLinkGUI::UpdateConnectorPropertyFrame(int i)
 {
 
   // if i < 0, all fields are deactivated.
-
   int numRows = this->ConnectorList->GetWidget()->GetNumberOfRows();
   
   if (i >= 0 && i >= numRows)
     {
     return;
     }
-
 
   //----------------------------------------------------------------
   // No connector is registered
@@ -1820,6 +1924,71 @@ void vtkOpenIGTLinkGUI::UpdateConnectorPropertyFrame(int i)
     this->ConnectorPortEntry->EnabledOn();
     }
   this->ConnectorPortEntry->UpdateEnableState();
+
+}
+
+//---------------------------------------------------------------------------
+void vtkOpenIGTLinkGUI::UpdateMrmlNodeListFrame(int con)
+{
+  // if the connector has already chosen
+  if (con == this->CurrentMrmlNodeListID)
+    {
+    // nothing to do
+    }
+  else
+    {
+    this->MrmlNodeList->GetWidget()->DeleteAllRows();
+    }
+
+  vtkIGTLConnector* connector = this->GetLogic()->GetConnector(con);
+  if (connector == NULL)
+    {
+    // failed to get connector class
+    return;
+    }
+
+  // Get Device List for incoming data
+  vtkIGTLConnector::DeviceNameList* incoming = connector->GetIncomingDeviceList();
+  vtkIGTLConnector::DeviceNameList* outgoing = connector->GetOutgoingDeviceList();
+  vtkIGTLConnector::DeviceNameList::iterator iter;
+
+  // Set number of rows in the table
+  int totalrows = incoming->size() + outgoing->size();
+  int numRows = this->ConnectorList->GetWidget()->GetNumberOfRows();
+
+  this->MrmlNodeList->GetWidget()->AddRows(totalrows);
+
+  int row = 0;
+  for (iter = incoming->begin(); iter != incoming->end(); iter ++)
+    {
+    std::string deviceName = iter->first;
+    std::string deviceType = iter->second;
+    this->MrmlNodeList->GetWidget()->SetCellText(row, 0, deviceName.c_str());
+    this->MrmlNodeList->GetWidget()->SetCellText(row, 1, deviceType.c_str());
+    this->MrmlNodeList->GetWidget()->SetCellText(row, 2, "IN");
+    this->MrmlNodeList->GetWidget()->SetRowForegroundColor(row, 1.0, 0.0, 0.0);
+
+    // Put option in the "Option" columns
+    if (deviceType == "TRANSFORM")
+      {
+      this->MrmlNodeList->GetWidget()->SetCellText(row, 2, "Show");
+      }
+    else if (deviceType == "IMAGE")
+      {
+      }
+    row ++;
+    }
+
+  for (iter = outgoing->begin(); iter != outgoing->end(); iter ++)
+    {
+    std::string deviceName = iter->first;
+    std::string deviceType = iter->second;
+    this->MrmlNodeList->GetWidget()->SetCellText(row,0, deviceName.c_str());
+    this->MrmlNodeList->GetWidget()->SetCellText(row,1, deviceType.c_str());
+    this->MrmlNodeList->GetWidget()->SetCellText(row,2, "OUT");
+    this->MrmlNodeList->GetWidget()->SetRowForegroundColor(row, 0.0, 0.0, 1.0);
+    row ++;
+    }
 
 }
 

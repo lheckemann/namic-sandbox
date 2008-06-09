@@ -70,6 +70,8 @@ vtkOpenIGTLinkLogic::vtkOpenIGTLinkLogic()
   this->EnableOblique = false;
   this->FreezePlane   = false;
 
+  this->Initialized   = 0;
+  this->RestrictDeviceName = 0;
 }
 
 
@@ -91,6 +93,31 @@ void vtkOpenIGTLinkLogic::PrintSelf(ostream& os, vtkIndent indent)
   this->vtkObject::PrintSelf(os, indent);
 
   os << indent << "vtkOpenIGTLinkLogic:             " << this->GetClassName() << "\n";
+
+}
+
+
+//---------------------------------------------------------------------------
+int vtkOpenIGTLinkLogic::Initialize()
+{
+
+  // -----------------------------------------
+  // Register MRML event handler
+  
+  if (this->Initialized == 0)
+    {
+    // MRML Event Handling
+    vtkIntArray* events = vtkIntArray::New();
+    //events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
+    //events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
+    //events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
+    if (this->GetMRMLScene() != NULL)
+      {
+      this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
+      }
+    events->Delete();
+    this->Initialized = 1;
+    }
 
 }
 
@@ -144,6 +171,7 @@ void vtkOpenIGTLinkLogic::AddConnector()
   connector->SetName("connector");
   this->ConnectorList.push_back(connector);
   this->ConnectorPrevStateList.push_back(-1);
+  connector->SetRestrictDeviceName(this->RestrictDeviceName);
 
   //vtkErrorMacro("Number of Connectors: " << this->ConnectorList.size());
 }
@@ -303,6 +331,31 @@ void vtkOpenIGTLinkLogic::ImportFromCircularBuffers()
       
     }
 }
+
+
+//---------------------------------------------------------------------------
+int vtkOpenIGTLinkLogic::SetRestrictDeviceName(int f)
+{
+
+  if (f != 0) f = 1; // make sure that f is either 0 or 1.
+  this->RestrictDeviceName = f;
+
+  ConnectorListType::iterator iter;
+  for (iter = this->ConnectorList.begin(); iter < this->ConnectorList.end(); iter ++)
+    {
+    (*iter)->SetRestrictDeviceName(f);
+    }
+
+  return this->RestrictDeviceName;
+}
+
+
+//---------------------------------------------------------------------------
+void vtkOpenIGTLinkLogic::ProcessMRMLEvents(vtkObject * caller, unsigned long event, void * callData)
+{
+  std::cerr << "void vtkOpenIGTLinkLogic::ProcessMRMLEvents() is called" << std::endl;
+}
+
 
 
 //---------------------------------------------------------------------------

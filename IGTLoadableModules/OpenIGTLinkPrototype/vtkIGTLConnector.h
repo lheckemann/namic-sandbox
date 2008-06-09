@@ -58,6 +58,10 @@ class VTK_OPENIGTLINK_EXPORT vtkIGTLConnector : public vtkObject
   };
   //ETX
   
+  //BTX
+  typedef std::map<std::string, std::string> DeviceNameList; 
+  //ETX
+
  public:
   
   static vtkIGTLConnector *New();
@@ -70,6 +74,9 @@ class VTK_OPENIGTLINK_EXPORT vtkIGTLConnector : public vtkObject
   vtkSetMacro( Type, int );
   vtkGetMacro( State, int );
   //vtkSetMacro( State, int );
+
+  vtkSetMacro( RestrictDeviceName, int );
+  vtkGetMacro( RestrictDeviceName, int );
 
   //BTX
   void SetName (const char* str) { this->Name = str; }
@@ -122,6 +129,13 @@ class VTK_OPENIGTLINK_EXPORT vtkIGTLConnector : public vtkObject
   vtkIGTLCircularBuffer* GetCircularBuffer(std::string& key);
   //ETX
 
+  //----------------------------------------------------------------
+  // Device Lists
+  //----------------------------------------------------------------
+
+  DeviceNameList* GetIncomingDeviceList() { return &IncomingDeviceList; };
+  DeviceNameList* GetOutgoingDeviceList() { return &OutgoingDeviceList; };
+
  private:
   //----------------------------------------------------------------
   // Connector configuration 
@@ -143,10 +157,10 @@ class VTK_OPENIGTLINK_EXPORT vtkIGTLConnector : public vtkObject
   int               ThreadID;
   int               ServerPort;
   int               ServerStopFlag;
+
   //BTX
   std::string       ServerHostname;
   //ETX
-
 
   //----------------------------------------------------------------
   // Data
@@ -158,9 +172,14 @@ class VTK_OPENIGTLINK_EXPORT vtkIGTLConnector : public vtkObject
   //ETX
 
   vtkMutexLock* CircularBufferMutex;
+  
+  int     RestrictDeviceName;  // Flag to restrict incoming and outgoing data by device names
+  //BTX
+  // -- Device Name (same as MRML node) and data type (data type string defined in OpenIGTLink)
+  DeviceNameList IncomingDeviceList;
+  DeviceNameList OutgoingDeviceList;
+  //ETX
 
 };
 
 #endif // __vtkIGTLConnector_h
-
-
