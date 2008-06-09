@@ -174,6 +174,8 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkGUI : public vtkSlicerModuleGUI
   vtkKWEntry*          ConnectorAddressEntry;
   vtkKWEntry*          ConnectorPortEntry;
 
+  vtkKWCheckButton*    EnableAdvancedSettingButton;
+  vtkKWMultiColumnListWithScrollbars* MrmlNodeList;
   
   //----------------------------------------------------------------
   // Visualization Control Frame
@@ -229,6 +231,13 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkGUI : public vtkSlicerModuleGUI
   
   //int RealtimeImageOrient;
 
+
+  //----------------------------------------------------------------
+  // Connector and MRML Node list management
+  //----------------------------------------------------------------
+
+  int   CurrentMrmlNodeListID;  // raw number
+
   //----------------------------------------------------------------
   // Locator Model
   //----------------------------------------------------------------
@@ -267,8 +276,7 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkGUI : public vtkSlicerModuleGUI
 
   void UpdateConnectorList(int updateLevel);
   void UpdateConnectorPropertyFrame(int i);
-
- 
+  void UpdateMrmlNodeListFrame(int con);
 };
 
 

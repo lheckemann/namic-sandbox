@@ -95,7 +95,6 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
   int  SetSliceDriver1() { return this->SliceDriver[1]; };
   int  SetSliceDriver2() { return this->SliceDriver[2]; };
 
-
   vtkGetMacro ( Connection,              bool );
 
   vtkSetMacro ( EnableOblique,           bool );
@@ -110,6 +109,12 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
   //void AddRealtimeVolumeNode(const char* name);
 
   //----------------------------------------------------------------
+  // Start up the class
+  //----------------------------------------------------------------
+
+  int Initialize();
+
+  //----------------------------------------------------------------
   // Connector Management
   //----------------------------------------------------------------
 
@@ -122,9 +127,13 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
 
   void ImportFromCircularBuffers();
 
+  int  SetRestrictDeviceName(int f);
+
   //----------------------------------------------------------------
   // MRML Management
   //----------------------------------------------------------------
+
+  void ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData);
 
   void UpdateMRMLScalarVolumeNode(const char* nodeName, int size, unsigned char* data);
   void UpdateMRMLLinearTransformNode(const char* nodeName, int size, unsigned char* data);
@@ -140,8 +149,13 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
 
   void ProcCommand(const char* nodeName, int size, unsigned char* data);
 
+
  protected:
   
+  //----------------------------------------------------------------
+  // Constructor, destructor etc.
+  //----------------------------------------------------------------
+
   vtkOpenIGTLinkLogic();
   ~vtkOpenIGTLinkLogic();
   vtkOpenIGTLinkLogic(const vtkOpenIGTLinkLogic&);
@@ -160,15 +174,19 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
 
  private:
 
+  int Initialized;
+
   //----------------------------------------------------------------
   // Connector Management
   //----------------------------------------------------------------
 
   //BTX
   typedef std::vector<vtkIGTLConnector*> ConnectorListType;
-  ConnectorListType ConnectorList;
+  ConnectorListType              ConnectorList;
   std::vector<int>               ConnectorPrevStateList;
   //ETX
+
+  int RestrictDeviceName;
 
   //----------------------------------------------------------------
   // Monitor Timer

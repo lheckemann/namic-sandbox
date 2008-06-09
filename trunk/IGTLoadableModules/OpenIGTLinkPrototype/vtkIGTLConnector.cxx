@@ -49,6 +49,9 @@ vtkIGTLConnector::vtkIGTLConnector()
   this->ServerPort = 18944;
   this->Mutex = vtkMutexLock::New();
   this->CircularBufferMutex = vtkMutexLock::New();
+  this->RestrictDeviceName = 0;
+  this->IncomingDeviceList.clear();
+  this->OutgoingDeviceList.clear();
 }
 
 //---------------------------------------------------------------------------
@@ -141,6 +144,7 @@ int vtkIGTLConnector::Stop()
     return 0;
     }
 }
+
 
 //---------------------------------------------------------------------------
 void* vtkIGTLConnector::ThreadFunction(void* ptr)
@@ -295,6 +299,43 @@ int vtkIGTLConnector::ReceiveController()
 
 
     //----------------------------------------------------------------
+    // Check Device Name if device name is restricted
+    if (this->RestrictDeviceName)
+      {
+      std::cerr << "RESTRICTED." << std::endl;
+      if (this->IncomingDeviceList[std::string(deviceName)] != deviceType)
+        {
+        // The conbination of device name and type doesn't exist on the list
+        // just read and discad
+        char buf[128];
+        int remain = header.body_size;
+        int toread = 0;
+        while (remain > 0)
+          {
+          if (remain > 128)
+            toread = 128;
+          else
+            toread = remain;
+          int read = this->Socket->Receive(buf, toread);
+          if (read != toread)
+            {
+            vtkErrorMacro ("Only read " << read << " but expected to read " << toread << "\n");
+            }
+          remain -= read;
+          }
+        continue;
+        }
+      std::cerr << "PASSED." << std::endl;
+      }
+    else
+      {
+      std::cerr << "UNRESTRICTED." << std::endl;
+      // if device name is not restricted:
+      if (this->IncomingDeviceList[std::string(deviceName)] != deviceType)
+        this->IncomingDeviceList[std::string(deviceName)] = deviceType;
+      }
+
+    //----------------------------------------------------------------
     // Search Circular Buffer
 
     std::string key = deviceName;
@@ -305,7 +346,6 @@ int vtkIGTLConnector::ReceiveController()
       this->Buffer[key] = vtkIGTLCircularBuffer::New();
       this->CircularBufferMutex->Unlock();
       }
-
 
     //----------------------------------------------------------------
     // Load to the circular buffer
@@ -321,7 +361,8 @@ int vtkIGTLConnector::ReceiveController()
       int read = this->Socket->Receive(dataPtr, header.body_size);
       if (read != header.body_size)
         {
-        //vtkErrorMacro ("Only read " << read << " but expected to read " << IGTL_IMAGE_HEADER_SIZE << "\n");
+        vtkErrorMacro ("Only read " << read << " but expected to read "
+                       << IGTL_IMAGE_HEADER_SIZE << "\n");
         continue;
         }
 
