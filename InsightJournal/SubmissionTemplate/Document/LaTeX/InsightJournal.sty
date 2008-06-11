@@ -1105,4 +1105,14 @@
 \hyphenation{Base-HTTP-Re-quest-Hand-ler}
 
 
+%
+%  Commands for adding the link reference to the URL in the Insight Journal
+%
+\newcommand{\urlhandle}[1]{
+\url{http://hdl.handle.net/1926/#1}}  
+
+\newcommand{\IJhandlefooter}[1]{
+\fancyfoot[CO,CE]{
+Latest version available at the \href{http://www.insight-journal.org}{Insight Journal} [\urlhandle{#1}]\\
+Distributed under \href{http://creativecommons.org/licenses/by/3.0/us/}{Creative Commons Attribution License}}}
 
