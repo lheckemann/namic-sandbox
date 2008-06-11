@@ -43,7 +43,7 @@ file(GLOB headers
 
 # --------------------------------------------------------------------------
 # Sources
-set(OpenIGTLink_SRCS 
+set(NeuroNav_SRCS
   vtkNeuroNavLogic.cxx
   vtkNeuroNavGUI.cxx
 )
