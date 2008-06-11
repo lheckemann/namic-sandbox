@@ -30,6 +30,14 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 % the relevant document. 
 \title{The Importance of Open Access in Scientific Publications}
 
+% 
+% NOTE: This is the last number of the "handle" URL that 
+% The Insight Journal assigns to your paper as part of the
+% submission process. Please replace the number "1338" with
+% the actual handle number that you get assigned.
+%
+\newcommand{\IJhandlerIDnumber}{1338}
+
 % Increment the release number whenever significant changes are made.
 % The author and/or editor can define 'significant' however they like.
 \release{0.00}
@@ -48,12 +56,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 % The argument of this command is the handler identifier given
 % by the Insight Journal to this paper.
 % 
-% NOTE: This is the last number of the "handle" URL that 
-% The Insight Journal assigns to your paper as part of the
-% submission process. Please replace the number "1338" with
-% the actual handle number that you get assigned.
-%
-\IJhandlefooter{1338}
+\IJhandlefooter{\IJhandlerIDnumber}
 
 
 \ifpdf
@@ -92,7 +95,10 @@ This paper is accompanied with the source code, input data, parameters and
 output data that the authors used for validating the algorithm described in
 this paper. This adheres to the fundamental principle that scientific
 publications must facilitate reproducibility of the reported results.
+
 \end{abstract}
+
+\IJhandlenote{\IJhandlerIDnumber}
 
 \tableofcontents
 
