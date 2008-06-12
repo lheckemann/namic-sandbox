@@ -45,11 +45,22 @@
 
 
 //---------------------------------------------------------------------------
-vtkStandardNewMacro (vtkNeuroNavGUI );
-vtkCxxRevisionMacro ( vtkNeuroNavGUI, "$Revision: 1.0 $");
+// vtkStandardNewMacro (vtkNeuroNavGUI );
+// vtkCxxRevisionMacro ( vtkNeuroNavGUI, "$Revision: 1.0 $");
 
+//------------------------------------------------------------------------------
+vtkNeuroNavGUI* vtkNeuroNavGUI::New()
+{
+  // First try to create the object from the vtkObjectFactory
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkNeuroNavGUI");
+  if(ret)
+    {
+      return (vtkNeuroNavGUI*)ret;
+    }
+  // If the factory was unable to create the object, then create it here.
+  return new vtkNeuroNavGUI;
+}
 
-/* go redsox */
 
 
 //---------------------------------------------------------------------------
@@ -471,6 +482,13 @@ vtkNeuroNavGUI::~vtkNeuroNavGUI ( )
     {
         this->ExtraFrame->Delete ( );
     }
+}
+
+
+//----------------------------------------------------------------------------
+void vtkNeuroNavGUI::SetModuleLogic(vtkSlicerLogic *logic)
+{
+  this->SetLogic( dynamic_cast<vtkNeuroNavLogic*> (logic) );
 }
 
 

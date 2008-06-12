@@ -57,19 +57,23 @@ class VTK_NEURONAV_EXPORT vtkNeuroNavGUI : public vtkSlicerModuleGUI
     vtkTypeRevisionMacro ( vtkNeuroNavGUI, vtkSlicerModuleGUI );
     void PrintSelf (ostream& os, vtkIndent indent );
     
-    // Description:    
-    // Get methods on class members (no Set methods required)
-    vtkGetObjectMacro ( Logic, vtkNeuroNavLogic );
+    // Description: Get/Set MRML node
+    vtkGetObjectMacro (Logic, vtkNeuroNavLogic);
+    vtkSetObjectMacro (Logic, vtkNeuroNavLogic);
+
+    // Description: implement setter method for logic class's parent
+    virtual void SetModuleLogic(vtkSlicerLogic*);
 
     // Description:
     // API for setting VolumeNode, VolumeLogic and
     // for both setting and observing them.
-    virtual void SetModuleLogic ( vtkSlicerLogic *logic )
-    { this->SetLogic ( vtkObjectPointer (&this->Logic), 
-                       dynamic_cast<vtkNeuroNavLogic*> (logic) ); }
-    virtual void SetAndObserveModuleLogic ( vtkSlicerLogic *logic )
-    { this->SetAndObserveLogic ( vtkObjectPointer (&this->Logic), 
-                                 dynamic_cast<vtkNeuroNavLogic*>(logic));}
+
+    // virtual void SetModuleLogic ( vtkSlicerLogic *logic )
+    // { this->SetLogic ( vtkObjectPointer (&this->Logic), 
+    //                   dynamic_cast<vtkNeuroNavLogic*> (logic) ); }
+    // virtual void SetAndObserveModuleLogic ( vtkSlicerLogic *logic )
+    // { this->SetAndObserveLogic ( vtkObjectPointer (&this->Logic), 
+    //                          dynamic_cast<vtkNeuroNavLogic*>(logic));}
     
     // Description:    
     // This method builds the IGTDemo module GUI
