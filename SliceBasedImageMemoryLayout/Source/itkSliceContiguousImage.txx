@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkSliceBasedImage.txx,v $
+  Module:    $RCSfile: itkSliceContiguousImage.txx,v $
   Language:  C++
-  Date:      $Date: 2006/05/10 20:27:16 $
-  Version:   $Revision: 1.97 $
+  Date:      $Date$
+  Version:   $Revision$
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -17,10 +17,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkSliceBasedImage_txx
-#define _itkSliceBasedImage_txx
+#ifndef _itkSliceContiguousImage_txx
+#define _itkSliceContiguousImage_txx
 
-#include "itkSliceBasedImage.h"
+#include "itkSliceContiguousImage.h"
 #include "itkProcessObject.h"
 
 namespace itk
@@ -30,30 +30,29 @@ namespace itk
  *
  */
 template<class TPixel, unsigned int VImageDimension>
-SliceBasedImage<TPixel, VImageDimension>
-::SliceBasedImage()
+SliceContiguousImage<TPixel, VImageDimension>
+::SliceContiguousImage()
 {
-  m_Buffer = PixelContainer::New();
+  // TODO: m_Buffer = PixelContainer::New();
+  m_Buffer = 0;
 }
 
 
 //----------------------------------------------------------------------------
 template<class TPixel, unsigned int VImageDimension>
-void 
-SliceBasedImage<TPixel, VImageDimension>
+void
+SliceContiguousImage<TPixel, VImageDimension>
 ::Allocate()
 {
   unsigned long num;
-
   this->ComputeOffsetTable();
   num = this->GetOffsetTable()[VImageDimension];
-  
-  m_Buffer->Reserve(num);
+  //m_Buffer->Reserve(num);
 }
 
 template<class TPixel, unsigned int VImageDimension>
 void 
-SliceBasedImage<TPixel, VImageDimension>
+SliceContiguousImage<TPixel, VImageDimension>
 ::Initialize()
 {
   //
@@ -67,40 +66,45 @@ SliceBasedImage<TPixel, VImageDimension>
   // Replace the handle to the buffer. This is the safest thing to do,
   // since the same container can be shared by multiple images (e.g.
   // Grafted outputs and in place filters).
-  m_Buffer = PixelContainer::New();
+  // TODO: m_Buffer = PixelContainer::New();
 }
 
 
 template<class TPixel, unsigned int VImageDimension>
 void 
-SliceBasedImage<TPixel, VImageDimension>
-::FillBuffer (const TPixel& value)
+SliceContiguousImage<TPixel, VImageDimension>
+::FillBuffer(const PixelType& value)
 {
   const unsigned long numberOfPixels =
     this->GetBufferedRegion().GetNumberOfPixels();
 
+  unsigned long ctr = 0;
   for(unsigned int i=0; i<numberOfPixels; i++) 
     {
-    (*m_Buffer)[i] = value;
+// TODO:      
+//     for( VectorLengthType j=0; j<m_VectorLength; j++ )
+//       {
+//       (*m_Buffer)[ctr++] = value[j];
+//       }
     }
 }
 
 template<class TPixel, unsigned int VImageDimension>
-void 
-SliceBasedImage<TPixel, VImageDimension>
+void
+SliceContiguousImage<TPixel, VImageDimension>
 ::SetPixelContainer(PixelContainer *container)
 {
-  if (m_Buffer != container)
-    {
-    m_Buffer = container;
-    this->Modified();
-    }
+   if (m_Buffer != container)
+     {
+     m_Buffer = container;
+     this->Modified();
+     }
 }
     
 //----------------------------------------------------------------------------
 template<class TPixel, unsigned int VImageDimension>
 void 
-SliceBasedImage<TPixel, VImageDimension>
+SliceContiguousImage<TPixel, VImageDimension>
 ::Graft(const DataObject *data)
 {
   // call the superclass' implementation
@@ -109,47 +113,45 @@ SliceBasedImage<TPixel, VImageDimension>
   if ( data )
     {
     // Attempt to cast data to an Image
-    const Self * imgData;
+    const Self *imgData;
 
     try
       {
-      imgData = dynamic_cast<const Self *>( data );
+      imgData = dynamic_cast< const Self *>( data );
       }
     catch( ... )
       {
       return;
       }
 
-
+    // Copy from VectorImage< TPixel, dim >
     if ( imgData )
       {
       // Now copy anything remaining that is needed
-      this->SetPixelContainer( const_cast< PixelContainer * >
-                                  (imgData->GetPixelContainer()) );
+      this->SetPixelContainer( const_cast< PixelContainer *>
+                                    (imgData->GetPixelContainer()) );
       }
-    else
+    else 
       {
       // pointer could not be cast back down
-      itkExceptionMacro( << "itk::SliceBasedImage::Graft() cannot cast "
+      itkExceptionMacro( << "itk::SliceContiguousImage::Graft() cannot cast "
                          << typeid(data).name() << " to "
                          << typeid(const Self *).name() );
       }
     }
 }
 
-
 /**
  *
  */
 template<class TPixel, unsigned int VImageDimension>
 void 
-SliceBasedImage<TPixel, VImageDimension>
+SliceContiguousImage<TPixel, VImageDimension>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
-  
   os << indent << "PixelContainer: " << std::endl;
-  m_Buffer->Print(os, indent.GetNextIndent());
+  // TODO: m_Buffer->Print(os, indent.GetNextIndent());
 
 // m_Origin and m_Spacing are printed in the Superclass
 }

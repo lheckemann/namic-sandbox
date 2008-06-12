@@ -1,21 +1,21 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkSliceImageContainer.h,v $
+  Module:    $RCSfile: itkImportSliceContiguousImageContainer,v $
   Language:  C++
-  Date:      $Date: 2006/04/20 14:54:10 $
-  Version:   $Revision: 1.18 $
+  Date:      $Date: 2007-12-10 17:11:27 $
+  Version:   $Revision: 1.20 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even 
+     This software is distributed WITHOUT ANY WARRANTY; without even
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkSliceImageContainer_h
-#define __itkSliceImageContainer_h
+#ifndef __itkImportSliceContiguousImageContainer_h
+#define __itkImportSliceContiguousImageContainer_h
 
 #include "itkObject.h"
 #include "itkObjectFactory.h"
@@ -24,54 +24,56 @@
 namespace itk
 {
 
-/** \class SliceImageContainer
- * Defines an itk::Image front-end to a standard C-array. This container
- * conforms to the ImageContainerInterface. This is a full-fleged Object,
- * so there is modification time, debug, and reference count information.
- *
- * Template parameters for SliceImageContainer:
- *
- * TElementIdentifier =
- *     An INTEGRAL type for use in indexing the imported buffer.
- *
- * TElement =
- *    The element type stored in the container.
+/** \class ImportSliceContiguousImageContainer
+ *  TODO:
  *
  * \ingroup ImageObjects
  * \ingroup IOFilters
  */
   
 template <typename TElementIdentifier, typename TElement>
-class SliceImageContainer:  public Object
+class ImportSliceContiguousImageContainer:  public Object
 {
 public:
   /** Standard class typedefs. */
-  typedef SliceImageContainer     Self;
-  typedef Object  Superclass;
-  typedef SmartPointer<Self>  Pointer;
-  typedef SmartPointer<const Self>  ConstPointer;
+  typedef ImportSliceContiguousImageContainer Self;
+  typedef Object Superclass;
+  typedef SmartPointer<Self> Pointer;
+  typedef SmartPointer<const Self> ConstPointer;
     
   /** Save the template parameters. */
   typedef TElementIdentifier  ElementIdentifier;
   typedef TElement            Element;
+  typedef std::vector< TElement * > SliceArrayType;
     
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
   
   /** Standard part of every itk Object. */
-  itkTypeMacro(SliceImageContainer, Object);
+  itkTypeMacro(ImportSliceContiguousImageContainer, Object);
 
-  /** Get the pointer from which the image data is imported. */
-  TElement *GetImportPointer() {return m_ImportPointer;};
+  /** Slice contiguous images do not have a buffer. This method returns 0. */
+  TElement *GetImportPointer() { return 0; };
 
-  /** Set the pointer from which the image data is imported.  "num" is
-   * the number of pixels in the block of memory. If
-   * "LetContainerManageMemory" is false, then the application retains
-   * the responsibility of freeing the memory for this image data.  If
-   * "LetContainerManageMemory" is true, then this class will free the
-   * memory when this object is destroyed. */
+  /** Slice contiguous images do not have a buffer. This method does nothing. */
   void SetImportPointer(TElement *ptr, TElementIdentifier num,
-                        bool LetContainerManageMemory = false);
+                        bool LetContainerManageMemory = false) {}
+
+  /** Set the slice pointers from which the image is imported.
+   *  If "LetContainerManageMemory" is false, then the application retains
+   *  the responsibility of freeing the memory for this image data.
+   *  If "LetContainerManageMemory" is true, then this class will free
+   *  the memory when this object is destroyed.*/
+  void SetImportPointersForSlices(SliceArrayType& slices,
+                                  TElementIdentifier numPerSlice,
+                                  TElementIdentifier numSlices,
+                                  bool LetContainerManageMemory = false);
+
+  /** Get the  */
+  SliceArrayType* GetSlices()
+  {
+    return &m_SlicesArray;
+  }
 
   /** Index operator. This version can be an lvalue. */
   TElement & operator[](const ElementIdentifier id)
@@ -81,11 +83,14 @@ public:
   const TElement & operator[](const ElementIdentifier id) const
     { return m_ImportPointer[id]; };
 
-  /** Return a pointer to the beginning of the buffer.  This is used by
-   * the image iterator class. */
+  /** Slice contiguous images do not have a buffer. This method returns 0. */
   TElement *GetBufferPointer()
-    { return m_ImportPointer; };
+    { return 0; };
   
+  /** Get the capacity of the container. */
+  unsigned long Capacity(void) const
+    { return (unsigned long) m_Capacity; };
+
   /** Get the number of elements currently stored in the container. */
   unsigned long Size(void) const
     { return (unsigned long) m_Size; };
@@ -111,7 +116,6 @@ public:
   /** Tell the container to release any of its allocated memory. */
   void Initialize(void);
 
-
   /** These methods allow to define whether upon destruction of this class
    *  the memory buffer should be released or not.  Setting it to true
    *  (or ON) makes that this class will take care of memory release.
@@ -125,45 +129,42 @@ public:
   itkGetMacro(ContainerManageMemory,bool);
   itkBooleanMacro(ContainerManageMemory);
 
-
 protected:
-  SliceImageContainer();
-  virtual ~SliceImageContainer();
+  ImportSliceContiguousImageContainer();
+  virtual ~ImportSliceContiguousImageContainer();
 
   /** PrintSelf routine. Normally this is a protected internal method. It is
    * made public here so that Image can call this method.  Users should not
    * call this method but should call Print() instead. */
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-  TElement* AllocateElements(ElementIdentifier size) const;
+  virtual TElement* AllocateElements(ElementIdentifier size) const;
 private:
-  SliceImageContainer(const Self&); //purposely not implemented
+  ImportSliceContiguousImageContainer(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
+  SliceArrayType       m_SlicesArray;
   TElement            *m_ImportPointer;
   TElementIdentifier   m_Size;
   TElementIdentifier   m_Capacity;
   bool                 m_ContainerManageMemory;
-
-  typedef std::vector< TElement * >  SliceArrayType;
-  SliceArrayType                     m_SlicesArray;
 
 };
 
 } // end namespace itk
 
 // Define instantiation macro for this template.
-#define ITK_TEMPLATE_SliceImageContainer(_, EXPORT, x, y) namespace itk { \
-  _(2(class EXPORT SliceImageContainer< ITK_TEMPLATE_2 x >)) \
-  namespace Templates { typedef SliceImageContainer< ITK_TEMPLATE_2 x > SliceImageContainer##y; } \
+#define ITK_TEMPLATE_ImportSliceContiguousImageContainer(_, EXPORT, x, y) namespace itk { \
+  _(2(class EXPORT ImportSliceContiguousImageContainer< ITK_TEMPLATE_2 x >)) \
+  namespace Templates { typedef ImportSliceContiguousImageContainer< ITK_TEMPLATE_2 x > ImportSliceContiguousImageContainer##y; } \
   }
 
 #if ITK_TEMPLATE_EXPLICIT
-# include "Templates/itkSliceImageContainer+-.h"
+# include "Templates/ImportSliceContiguousImageContainer+-.h"
 #endif
 
 #if ITK_TEMPLATE_TXX
-# include "itkSliceImageContainer.txx"
+# include "itkImportSliceContiguousImageContainer.txx"
 #endif
 
 #endif
