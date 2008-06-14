@@ -176,7 +176,10 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkGUI : public vtkSlicerModuleGUI
 
   vtkKWCheckButton*    EnableAdvancedSettingButton;
   vtkKWMultiColumnListWithScrollbars* MrmlNodeList;
-  
+
+  vtkKWPushButton* AddDeviceNameButton;
+  vtkKWPushButton* DeleteDeviceNameButton;  
+
   //----------------------------------------------------------------
   // Visualization Control Frame
 

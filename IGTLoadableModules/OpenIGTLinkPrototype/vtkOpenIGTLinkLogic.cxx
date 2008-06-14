@@ -351,6 +351,48 @@ int vtkOpenIGTLinkLogic::SetRestrictDeviceName(int f)
 
 
 //---------------------------------------------------------------------------
+int  vtkOpenIGTLinkLogic::AddDeviceToConnector(int id, const char* deviceName, const char* deviceType, int io)
+// io -- 0: incoming, 1: outgoing
+{
+
+  vtkIGTLConnector* connector = GetConnector(id);
+  if (connector)
+    {
+    vtkIGTLConnector::DeviceNameList* devList;
+
+    if (io == 0)      // unspecified
+      {
+      devList = connector->GetUnspecifiedDeviceList();
+      }
+    else if (io == 1) // incoming
+      {
+      devList = connector->GetIncomingDeviceList();
+      }
+    else              // outgoing
+      {
+      devList = connector->GetOutgoingDeviceList();
+      }
+
+    if ((*devList)[std::string(deviceName)] != deviceType)
+      {
+      (*devList)[std::string(deviceName)] = std::string(deviceType);
+      return 1;
+      }
+    else
+      {
+      return 0;
+      }
+    }
+
+}
+
+//---------------------------------------------------------------------------
+int  vtkOpenIGTLinkLogic::DeleteDeviceToConnector(int id, const char* deviceName, const char* deviceType, int io)
+{
+}
+
+
+//---------------------------------------------------------------------------
 void vtkOpenIGTLinkLogic::ProcessMRMLEvents(vtkObject * caller, unsigned long event, void * callData)
 {
   std::cerr << "void vtkOpenIGTLinkLogic::ProcessMRMLEvents() is called" << std::endl;

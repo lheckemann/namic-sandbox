@@ -135,6 +135,7 @@ class VTK_OPENIGTLINK_EXPORT vtkIGTLConnector : public vtkObject
 
   DeviceNameList* GetIncomingDeviceList() { return &IncomingDeviceList; };
   DeviceNameList* GetOutgoingDeviceList() { return &OutgoingDeviceList; };
+  DeviceNameList* GetUnspecifiedDeviceList() { return &UnspecifiedDeviceList; };
 
  private:
   //----------------------------------------------------------------
@@ -178,6 +179,7 @@ class VTK_OPENIGTLINK_EXPORT vtkIGTLConnector : public vtkObject
   // -- Device Name (same as MRML node) and data type (data type string defined in OpenIGTLink)
   DeviceNameList IncomingDeviceList;
   DeviceNameList OutgoingDeviceList;
+  DeviceNameList UnspecifiedDeviceList;
   //ETX
 
 };

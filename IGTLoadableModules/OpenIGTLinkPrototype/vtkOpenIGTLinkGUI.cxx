@@ -126,6 +126,8 @@ vtkOpenIGTLinkGUI::vtkOpenIGTLinkGUI ( )
   this->ConnectorPortEntry = NULL;
 
   this->EnableAdvancedSettingButton = NULL;
+  this->AddDeviceNameButton = NULL;
+  this->DeleteDeviceNameButton = NULL;
 
   this->CurrentMrmlNodeListID = -1;
 
@@ -352,6 +354,17 @@ void vtkOpenIGTLinkGUI::RemoveGUIObservers ( )
       ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 
+  if (this->AddDeviceNameButton)
+    {
+    this->AddDeviceNameButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+  if (this->DeleteDeviceNameButton)
+    {
+    this->DeleteDeviceNameButton
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
 
   
   //----------------------------------------------------------------
@@ -365,7 +378,6 @@ void vtkOpenIGTLinkGUI::RemoveGUIObservers ( )
     {
     this->ObliqueCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand );
     }
-
 
   if (this->SetLocatorModeButton)
     {
@@ -489,13 +501,18 @@ void vtkOpenIGTLinkGUI::AddGUIObservers ( )
   this->EnableAdvancedSettingButton
     ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand*)this->GUICallbackCommand);
 
+  this->AddDeviceNameButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+  this->DeleteDeviceNameButton
+    ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+
   //----------------------------------------------------------------
   // Visualization Control Frame
 
 
   this->LocatorCheckButton
     ->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand);
-
 
   this->RedSliceMenu->GetMenu()
     ->AddObserver(vtkKWMenu::MenuItemInvokedEvent, (vtkCommand*)this->GUICallbackCommand);
@@ -776,6 +793,25 @@ void vtkOpenIGTLinkGUI::ProcessGUIEvents(vtkObject *caller,
       {
       this->GetLogic()->SetRestrictDeviceName(0);
       }
+    }
+
+  else if (this->AddDeviceNameButton == vtkKWPushButton::SafeDownCast(caller)
+           && event == vtkKWPushButton::InvokedEvent)
+    {
+    int selected = this->ConnectorList->GetWidget()->GetIndexOfFirstSelectedRow();
+    this->GetLogic()->AddDeviceToConnector(selected, "Unspecified", "Unspecified", 0);
+    //UpdateConnectorPropertyFrame(selected);
+    UpdateMrmlNodeListFrame(selected);
+    }
+
+  else if (this->DeleteDeviceNameButton == vtkKWPushButton::SafeDownCast(caller)
+           && event == vtkKWPushButton::InvokedEvent)
+    {
+    //this->GetLogic()->AddConnector();
+    //int select = this->ConnectorList->GetWidget()->GetNumberOfRows() - 1;
+    //this->ConnectorList->GetWidget()->SelectSingleRow(select);
+    //UpdateConnectorPropertyFrame(select);
+    //UpdateMrmlNodeListFrame(select);
     }
 
 
@@ -1379,7 +1415,8 @@ void vtkOpenIGTLinkGUI::BuildGUIForConnectorBrowserFrame ()
     //this->ConnectorList->GetWidget()->ColumnEditableOn(col);
     this->MrmlNodeList->GetWidget()->SetColumnEditWindowToSpinBox(col);
     }
-  this->ConnectorList->GetWidget()->SetColumnEditWindowToCheckButton(0);
+  //this->MrmlNodeList->GetWidget()->SetColumnEditWindowToCheckButton(0);
+
   //this->ConnectorList->GetWidget()->SetCellUpdatedCommand(this, "OnConnectorListUpdate");
   //this->ConnectorList->GetWidget()->SetSelectionChangedCommand(this, "OnConnectorListSelectionChanged");
   
@@ -1390,9 +1427,32 @@ void vtkOpenIGTLinkGUI::BuildGUIForConnectorBrowserFrame ()
 //  app->Script ("pack %s %s -fill both -expand true",  
 //               //app->Script( "pack %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
 //               this->ConnectorList->GetWidgetName(), listButtonsFrame->GetWidgetName());
-  app->Script ("pack %s %s -fill both -expand true",  
+
+
+  vtkKWFrame *deviceNameListButtonsFrame = vtkKWFrame::New();
+  deviceNameListButtonsFrame->SetParent(advancedSettingFrame->GetFrame());
+  deviceNameListButtonsFrame->Create();
+
+  app->Script ("pack %s %s %s -fill both -expand true",  
                //app->Script( "pack %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
-               enableASFrame->GetWidgetName(), this->MrmlNodeList->GetWidgetName());
+               enableASFrame->GetWidgetName(),
+               this->MrmlNodeList->GetWidgetName(), 
+               deviceNameListButtonsFrame->GetWidgetName());
+
+  this->AddDeviceNameButton = vtkKWPushButton::New();
+  this->AddDeviceNameButton->SetParent(deviceNameListButtonsFrame);
+  this->AddDeviceNameButton->Create();
+  this->AddDeviceNameButton->SetText( "Add" );
+  this->AddDeviceNameButton->SetWidth (6);
+
+  this->DeleteDeviceNameButton = vtkKWPushButton::New();
+  this->DeleteDeviceNameButton->SetParent(deviceNameListButtonsFrame);
+  this->DeleteDeviceNameButton->Create();
+  this->DeleteDeviceNameButton->SetText( "Delete" );
+  this->DeleteDeviceNameButton->SetWidth (6);
+
+  app->Script( "pack %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
+               this->AddDeviceNameButton->GetWidgetName(), this->DeleteDeviceNameButton->GetWidgetName());
 
 }
 
@@ -1950,10 +2010,11 @@ void vtkOpenIGTLinkGUI::UpdateMrmlNodeListFrame(int con)
   // Get Device List for incoming data
   vtkIGTLConnector::DeviceNameList* incoming = connector->GetIncomingDeviceList();
   vtkIGTLConnector::DeviceNameList* outgoing = connector->GetOutgoingDeviceList();
+  vtkIGTLConnector::DeviceNameList* unspecified = connector->GetUnspecifiedDeviceList();
   vtkIGTLConnector::DeviceNameList::iterator iter;
 
   // Set number of rows in the table
-  int totalrows = incoming->size() + outgoing->size();
+  int totalrows = incoming->size() + outgoing->size() + unspecified->size();
   int numRows = this->ConnectorList->GetWidget()->GetNumberOfRows();
 
   this->MrmlNodeList->GetWidget()->AddRows(totalrows);
@@ -1966,7 +2027,7 @@ void vtkOpenIGTLinkGUI::UpdateMrmlNodeListFrame(int con)
     this->MrmlNodeList->GetWidget()->SetCellText(row, 0, deviceName.c_str());
     this->MrmlNodeList->GetWidget()->SetCellText(row, 1, deviceType.c_str());
     this->MrmlNodeList->GetWidget()->SetCellText(row, 2, "IN");
-    this->MrmlNodeList->GetWidget()->SetRowForegroundColor(row, 1.0, 0.0, 0.0);
+    this->MrmlNodeList->GetWidget()->SetRowForegroundColor(row, 37.0/255.0, 86.0/255.0, 57.0/255.0); // DarkGreen
 
     // Put option in the "Option" columns
     if (deviceType == "TRANSFORM")
@@ -1986,9 +2047,25 @@ void vtkOpenIGTLinkGUI::UpdateMrmlNodeListFrame(int con)
     this->MrmlNodeList->GetWidget()->SetCellText(row,0, deviceName.c_str());
     this->MrmlNodeList->GetWidget()->SetCellText(row,1, deviceType.c_str());
     this->MrmlNodeList->GetWidget()->SetCellText(row,2, "OUT");
-    this->MrmlNodeList->GetWidget()->SetRowForegroundColor(row, 0.0, 0.0, 1.0);
+    this->MrmlNodeList->GetWidget()->SetRowForegroundColor(row, 38.0/255.0, 59.0/255.0, 139.0/255.0); // DarkBlue
     row ++;
     }
+
+  for (iter = unspecified->begin(); iter != unspecified->end(); iter ++)
+    {
+    std::string deviceName = iter->first;
+    std::string deviceType = iter->second;
+    this->MrmlNodeList->GetWidget()->SetCellText(row,0, deviceName.c_str());
+    this->MrmlNodeList->GetWidget()->SetCellText(row,1, deviceType.c_str());
+    //this->MrmlNodeList->GetWidget()->SetCellText(row,2, "--");
+    this->MrmlNodeList->GetWidget()->SetCellWindowCommandToComboBox(row, 2);
+
+    this->MrmlNodeList->GetWidget()->SetRowForegroundColor(row, 195.0/255.0, 46.0/255.0, 16.0/255.0); // DarkRed
+    row ++;
+    }
+
+  this->MrmlNodeList->GetWidget()->SetColumnEditable(0, 1);
+  this->MrmlNodeList->GetWidget()->SetColumnEditable(1, 1);
 
 }
 
