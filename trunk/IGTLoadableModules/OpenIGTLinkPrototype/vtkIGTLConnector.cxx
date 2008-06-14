@@ -52,6 +52,7 @@ vtkIGTLConnector::vtkIGTLConnector()
   this->RestrictDeviceName = 0;
   this->IncomingDeviceList.clear();
   this->OutgoingDeviceList.clear();
+  this->UnspecifiedDeviceList.clear();
 }
 
 //---------------------------------------------------------------------------
@@ -399,6 +400,7 @@ int vtkIGTLConnector::GetUpdatedBuffersList(NameListType& nameList)
   return nameList.size();
 }
 
+
 //---------------------------------------------------------------------------
 vtkIGTLCircularBuffer* vtkIGTLConnector::GetCircularBuffer(std::string& key)
 {
@@ -412,6 +414,5 @@ vtkIGTLCircularBuffer* vtkIGTLConnector::GetCircularBuffer(std::string& key)
     return NULL;  // nothing found
     }
 }
-
 
 

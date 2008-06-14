@@ -127,7 +127,11 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
 
   void ImportFromCircularBuffers();
 
+  // Device Name management          // io -- 0: unspecified, 1: incoming, 2: outgoing
   int  SetRestrictDeviceName(int f);
+  int  AddDeviceToConnector(int id, const char* deviceName, const char* deviceType, int io);
+  int  DeleteDeviceToConnector(int id, const char* deviceName, const char* deviceType, int io);
+
 
   //----------------------------------------------------------------
   // MRML Management
