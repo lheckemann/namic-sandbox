@@ -52,6 +52,7 @@
 #include "vtkKWMultiColumnListWithScrollbars.h"
 #include "vtkKWEvent.h"
 #include "vtkKWOptions.h"
+#include "vtkKWComboBox.h"
 
 #include "vtkKWTkUtilities.h"
 #include "vtkMRMLModelDisplayNode.h"
@@ -1397,6 +1398,7 @@ void vtkOpenIGTLinkGUI::BuildGUIForConnectorBrowserFrame ()
   this->MrmlNodeList->Create();
   this->MrmlNodeList->SetHeight(1);
   this->MrmlNodeList->GetWidget()->SetSelectionTypeToRow();
+  //this->MrmlNodeList->GetWidget()->SetSelectionTypeToCell();
   this->MrmlNodeList->GetWidget()->SetSelectionModeToSingle();
   this->MrmlNodeList->GetWidget()->MovableRowsOff();
   this->MrmlNodeList->GetWidget()->MovableColumnsOff();
@@ -1411,15 +1413,16 @@ void vtkOpenIGTLinkGUI::BuildGUIForConnectorBrowserFrame ()
     this->MrmlNodeList->GetWidget()->AddColumn(mrmllistlabels[col]);
     this->MrmlNodeList->GetWidget()->SetColumnWidth(col, mrmllistwidths[col]);
     this->MrmlNodeList->GetWidget()->SetColumnAlignmentToLeft(col);
-    this->MrmlNodeList->GetWidget()->ColumnEditableOff(col);
-    //this->ConnectorList->GetWidget()->ColumnEditableOn(col);
-    this->MrmlNodeList->GetWidget()->SetColumnEditWindowToSpinBox(col);
+    //this->MrmlNodeList->GetWidget()->ColumnEditableOff(col);
+    this->ConnectorList->GetWidget()->ColumnEditableOn(col);
     }
   //this->MrmlNodeList->GetWidget()->SetColumnEditWindowToCheckButton(0);
+  //this->MrmlNodeList->GetWidget()->SetColumnEditable(0, 1);
+  //this->MrmlNodeList->GetWidget()->SetColumnEditWindowToEntry(0);
+  //this->MrmlNodeList->GetWidget()->SetColumnEditable(1, 1);
+  //this->MrmlNodeList->GetWidget()->SetColumnEditWindowToEntry(1);
 
-  //this->ConnectorList->GetWidget()->SetCellUpdatedCommand(this, "OnConnectorListUpdate");
-  //this->ConnectorList->GetWidget()->SetSelectionChangedCommand(this, "OnConnectorListSelectionChanged");
-  
+
 //  vtkKWFrame *listButtonsFrame = vtkKWFrame::New();
 //  listButtonsFrame->SetParent(listFrame->GetFrame());
 //  listButtonsFrame->Create();
@@ -2032,7 +2035,8 @@ void vtkOpenIGTLinkGUI::UpdateMrmlNodeListFrame(int con)
     // Put option in the "Option" columns
     if (deviceType == "TRANSFORM")
       {
-      this->MrmlNodeList->GetWidget()->SetCellText(row, 2, "Show");
+      this->MrmlNodeList->GetWidget()->SetCellText(row, 3, "Show");
+      this->MrmlNodeList->GetWidget()->SetCellText(row, 3, "Show");
       }
     else if (deviceType == "IMAGE")
       {
@@ -2050,22 +2054,26 @@ void vtkOpenIGTLinkGUI::UpdateMrmlNodeListFrame(int con)
     this->MrmlNodeList->GetWidget()->SetRowForegroundColor(row, 38.0/255.0, 59.0/255.0, 139.0/255.0); // DarkBlue
     row ++;
     }
-
+  
   for (iter = unspecified->begin(); iter != unspecified->end(); iter ++)
     {
     std::string deviceName = iter->first;
     std::string deviceType = iter->second;
     this->MrmlNodeList->GetWidget()->SetCellText(row,0, deviceName.c_str());
+    this->MrmlNodeList->GetWidget()->SetCellEditWindowToCheckButton (row,0);
+    this->MrmlNodeList->GetWidget()->SetCellEditable(row, 0, 1);
+    this->MrmlNodeList->GetWidget()->SetCellText(row,0, deviceName.c_str());
+    this->MrmlNodeList->GetWidget()->SetCellEditWindowToEntry(row,1);
     this->MrmlNodeList->GetWidget()->SetCellText(row,1, deviceType.c_str());
     //this->MrmlNodeList->GetWidget()->SetCellText(row,2, "--");
-    this->MrmlNodeList->GetWidget()->SetCellWindowCommandToComboBox(row, 2);
+    const char* strs[] = {"IN", "OUT"};
+    this->MrmlNodeList->GetWidget()->SetCellWindowCommandToComboBoxWithValues(row, 2, 2, strs);
+    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 2)->SetListboxWidth(100);
 
     this->MrmlNodeList->GetWidget()->SetRowForegroundColor(row, 195.0/255.0, 46.0/255.0, 16.0/255.0); // DarkRed
     row ++;
     }
 
-  this->MrmlNodeList->GetWidget()->SetColumnEditable(0, 1);
-  this->MrmlNodeList->GetWidget()->SetColumnEditable(1, 1);
 
 }
 
