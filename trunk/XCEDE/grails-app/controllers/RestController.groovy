@@ -2,6 +2,7 @@
 import grails.converters.*
 
 class RestController {
+
   def project = {
     def results = null
     // get data needed

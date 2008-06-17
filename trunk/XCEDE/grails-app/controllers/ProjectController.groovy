@@ -1,6 +1,79 @@
+
+import grails.converters.*
+
 class ProjectController {
   def scaffold = Project
 
+    def retrieve = {
+      def results = null
+      if (params.id && Project.exists(params.id)) {
+        results = Project.get( params.id )
+      } else {
+        results = Project.list()
+      }
+      switch ( params.output ) {
+      case ~/(?i)json/:
+      render results as JSON
+      break
+      default:        
+      render results as XML
+      break
+      }
+    } 
+    // Create a new object     
+    def create = {
+      // render params.keySet() as XML
+      // render params.entrySet() as XML
+
+      def p = new Project ( params['project'] )
+      if ( p.save() ) {
+        render p as XML
+      } else {
+        def errors = p.errors.allErrors.collect { g.message(error:it) }
+        render ( contentType:"text/xml" ) {
+          error {
+            for ( err in errors ) {
+              message ( error:err )
+            }
+          }
+        }
+      }
+    }
+
+      def delete = {
+        def p = Project.get(params.id)
+        if ( p && p.delete() ) {
+            response.setStatus ( 200 )
+            render "${product.id} deleted"
+          }
+      }
+
+      def update = {
+        if (params["id"]) {
+          // So cool!  Just grab the project indexed by id, update it's contents and save
+          def p = Project.get(params["id"])
+          p.properties = params["project"]
+          // def p = new Project ( params['project'] )
+          if ( p.save() ) {
+            render p as XML
+          } else {
+            /*
+              render ( "Update no id\n" )
+              params.keySet().each() { render ( "${it}\n" )  }
+              params.entrySet().each() { render ( "${it}\n" ) }
+            */
+            def errors = p.errors.allErrors.collect { p.message(error:it) }
+            render ( contentType:"text/xml" ) {
+              error {
+                for ( err in errors ) {
+                  message ( error:err )
+                }
+              }
+            }
+          }
+        }
+      }
+      
     /*
     def showXML = {
       if ( params.id && Project.exists ( params.id ) ) {
