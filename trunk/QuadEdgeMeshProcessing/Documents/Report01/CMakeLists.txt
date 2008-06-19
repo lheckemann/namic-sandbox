@@ -51,7 +51,7 @@ ENDFOREACH(SOURCE_FILE ${REPORT_SRCS})
 
 
 SET(REPORT_ELEMENTS 
-  ${QuadEdgeMeshProcessing_BINARY_DIR}/Testing/Temporary/BrainProtonDensitySliceBorder20.png 
+#  ${QuadEdgeMeshProcessing_BINARY_DIR}/Testing/Temporary/BrainProtonDensitySliceBorder20.png 
   )
 
 #
