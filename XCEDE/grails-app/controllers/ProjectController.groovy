@@ -21,7 +21,7 @@ class ProjectController {
       }
     } 
     // Create a new object     
-    def create = {
+    def newProject = {
       // render params.keySet() as XML
       // render params.entrySet() as XML
 
