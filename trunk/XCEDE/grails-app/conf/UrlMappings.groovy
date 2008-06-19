@@ -6,7 +6,7 @@ class UrlMappings {
       "/project/$action?/$id?" (controller: "project" )
       // Our REST implementation
       "/rest/v1/project/$id?" (controller: "project" ) {
-        action = [GET:"retrieve", PUT:"update", DELETE:"delete", POST:"create" ]
+        action = [GET:"retrieve", PUT:"update", DELETE:"delete", POST:"newProject" ]
       }
 
       "/$controller/$action?/$id?"{
