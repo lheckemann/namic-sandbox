@@ -5,6 +5,9 @@ if(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
 endif(COMMAND cmake_policy)
 
+INCLUDE(${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
+TEST_BIG_ENDIAN(CMAKE_WORDS_BIGENDIAN)
+
 # --------------------------------------------------------------------------
 # Find Slicer3
 
@@ -33,16 +36,13 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/vtkNeuroNavConfigure.h
   )
 
-file(GLOB headers "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
-install(FILES 
-  ${headers} 
-  "${CMAKE_CURRENT_BINARY_DIR}/vtkNeuroNavConfigure.h"
-  DESTINATION ${Slicer3_INSTALL_MODULES_INCLUDE_DIR}/${PROJECT_NAME} COMPONENT Development
+file(GLOB headers 
+  "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
   )
 
 # --------------------------------------------------------------------------
 # Sources
-set(NeuroNav_SRCS
+set(NeuroNav_SRCS 
   vtkNeuroNavLogic.cxx
   vtkNeuroNavGUI.cxx
 )
@@ -69,8 +69,6 @@ add_library(${lib_name}
   ${NeuroNav_SRCS} 
   ${NeuroNav_TCL_SRCS}
   )
-slicer3_set_modules_output_path(${lib_name})
-
 
 target_link_libraries(${lib_name}
   ${Slicer3_Libs_LIBRARIES}
@@ -78,11 +76,11 @@ target_link_libraries(${lib_name}
   ${KWWidgets_LIBRARIES}
   ${ITK_LIBRARIES}
   )
-slicer3_install_modules(${lib_name})
 
-# install(TARGETS ${lib_name}
-#  RUNTIME DESTINATION ${Slicer3_INSTALL_MODULES_BIN_DIR} COMPONENT RuntimeLibraries 
-#  LIBRARY DESTINATION ${Slicer3_INSTALL_MODULES_LIB_DIR} COMPONENT RuntimeLibraries
-#  ARCHIVE DESTINATION ${Slicer3_INSTALL_MODULES_LIB_DIR} COMPONENT Development
-#  )
+install(TARGETS ${lib_name}
+  RUNTIME DESTINATION ${Slicer3_INSTALL_MODULES_BIN_DIR} COMPONENT RuntimeLibraries 
+  LIBRARY DESTINATION ${Slicer3_INSTALL_MODULES_LIB_DIR} COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION ${Slicer3_INSTALL_MODULES_LIB_DIR} COMPONENT Development
+  )
 
+  
