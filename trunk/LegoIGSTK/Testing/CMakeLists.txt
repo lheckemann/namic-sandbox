@@ -110,5 +110,7 @@ ADD_TEST(igstkLegoSoundSensorTest01 ${CXX_TEST_PATH}/igstkLegoSoundSensorTest ${
 
 IF(IGSTK_FOUND)
 
+ADD_TEST(igstkLegoSimulatedTrackerTest01 ${CXX_TEST_PATH}/igstkLegoSimulatedTrackerTest)
+
 ENDIF(IGSTK_FOUND)
 
