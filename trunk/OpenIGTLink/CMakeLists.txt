@@ -1,5 +1,7 @@
 PROJECT( OpenIGTLink )
 
+cmake_minimum_required(VERSION 2.4)
+
 ENABLE_TESTING()
 INCLUDE (${CMAKE_ROOT}/Modules/Dart.cmake)
 
