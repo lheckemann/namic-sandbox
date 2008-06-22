@@ -26,6 +26,12 @@ TARGET_LINK_LIBRARIES(igstkLegoUSSensorTest LegoIGSTK IGSTK)
 ADD_EXECUTABLE(igstkLegoTouchSensorTest igstkLegoTouchSensorTest.cxx )
 TARGET_LINK_LIBRARIES(igstkLegoTouchSensorTest LegoIGSTK IGSTK)
 
+ADD_EXECUTABLE(igstkLegoSoundSensorTest igstkLegoSoundSensorTest.cxx )
+TARGET_LINK_LIBRARIES(igstkLegoSoundSensorTest LegoIGSTK IGSTK)
+
+ADD_EXECUTABLE(igstkLegoLightSensorTest igstkLegoLightSensorTest.cxx )
+TARGET_LINK_LIBRARIES(igstkLegoLightSensorTest LegoIGSTK IGSTK)
+
 
 
 ###################
@@ -50,9 +56,15 @@ ADD_TEST(igstkLegoMotorTest06 ${CXX_TEST_PATH}/igstkLegoMotorTest  C -50  10 )
 ADD_TEST(igstkLegoPlayToneTest01 ${CXX_TEST_PATH}/igstkLegoPlayToneTest  1000  1 )
 
 SET(US_SENSOR_PORT 4)
-ADD_TEST(igstkLegoUSSensorTest ${CXX_TEST_PATH}/igstkLegoUSSensorTest ${US_SENSOR_PORT})
+ADD_TEST(igstkLegoUSSensorTest01 ${CXX_TEST_PATH}/igstkLegoUSSensorTest ${US_SENSOR_PORT})
 
 SET(TOUCH_SENSOR_PORT 3)
-ADD_TEST(igstkLegoTouchSensorTest ${CXX_TEST_PATH}/igstkLegoTouchSensorTest ${TOUCH_SENSOR_PORT})
+ADD_TEST(igstkLegoTouchSensorTest01 ${CXX_TEST_PATH}/igstkLegoTouchSensorTest ${TOUCH_SENSOR_PORT})
+
+SET(LIGHT_SENSOR_PORT 1)
+ADD_TEST(igstkLegoLightSensorTest01 ${CXX_TEST_PATH}/igstkLegoLightSensorTest ${LIGHT_SENSOR_PORT})
+
+SET(SOUND_SENSOR_PORT 2)
+ADD_TEST(igstkLegoSoundSensorTest01 ${CXX_TEST_PATH}/igstkLegoSoundSensorTest ${SOUND_SENSOR_PORT})
 
 
