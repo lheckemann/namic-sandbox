@@ -385,6 +385,26 @@ int vtkIGTLConnector::ReceiveController()
 
 
 //---------------------------------------------------------------------------
+int vtkIGTLConnector::SendData(int size, unsigned char* data)
+{
+  
+  if (!this->Socket)
+    {
+    return 0;
+    }
+  
+  // check if connection is alive
+  if (!this->Socket->GetConnected())
+    {
+    return 0;
+    }
+
+  return this->Socket->Send(data, size);  // return 1 on success, otherwise 0.
+
+}
+
+
+//---------------------------------------------------------------------------
 int vtkIGTLConnector::GetUpdatedBuffersList(NameListType& nameList)
 {
   nameList.clear();

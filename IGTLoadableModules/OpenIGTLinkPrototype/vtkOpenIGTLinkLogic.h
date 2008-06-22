@@ -35,7 +35,11 @@
 
 #include "vtkMultiThreader.h"
 
+// switch to activate testing code for development  -- J.T. 06.17.2008
+#define BRP_DEVELOPMENT      1
+
 class vtkIGTLConnector;
+
 
 class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic 
 {
@@ -56,16 +60,24 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
     SLICE_DRIVER_LOCATOR = 1,
     SLICE_DRIVER_RTIMAGE = 2
   };
+
   enum ImageOrient{
     SLICE_RTIMAGE_NONE      = 0,
     SLICE_RTIMAGE_PERP      = 1,
     SLICE_RTIMAGE_INPLANE90 = 2,
     SLICE_RTIMAGE_INPLANE   = 3
   };
+
   enum {  // Events
     LocatorUpdateEvent      = 50000,
     StatusUpdateEvent       = 50001,
     //SliceUpdateEvent        = 50002,
+  };
+
+  enum {    // Device IO
+    DEVICE_UNSPEC           = 0,  // unspecified
+    DEVICE_IN               = 1,  // incoming
+    DEVICE_OUT              = 2   // outgoing
   };
 
   //ETX
@@ -118,8 +130,15 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
   // Connector Management
   //----------------------------------------------------------------
 
+  // Add connector
   void AddConnector();
+  void AddConnector(const char* name);
+  void AddServerConnector(const char* name, int port);
+  void AddClientConnector(const char* name, const char* svrHostName, int port);
+
+  // Delete connector
   void DeleteConnector(int id);
+
   int  GetNumberOfConnectors();
   vtkIGTLConnector* GetConnector(int id);
   int  CheckConnectorsStatusUpdates();
@@ -172,7 +191,11 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
   void UpdateSliceDisplay();
   void UpdateLocator();
 
-  vtkMRMLVolumeNode* AddVolumeNode(const char*);
+  vtkMRMLVolumeNode*          AddVolumeNode(const char*);
+  vtkMRMLLinearTransformNode* AddTransformNode(const char*);
+  void                        RegisterDeviceEvent(vtkIGTLConnector* con,
+                                                  const char* deviceName,
+                                                  const char* deviceType);
   vtkCallbackCommand *DataCallbackCommand;
 
 
@@ -188,6 +211,10 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
   typedef std::vector<vtkIGTLConnector*> ConnectorListType;
   ConnectorListType              ConnectorList;
   std::vector<int>               ConnectorPrevStateList;
+
+  typedef std::map<vtkMRMLNode*, ConnectorListType> MRMLNodeAndConnectorTable;
+  MRMLNodeAndConnectorTable      MRMLEventConnectorTable;
+
   //ETX
 
   int RestrictDeviceName;

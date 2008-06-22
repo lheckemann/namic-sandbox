@@ -33,6 +33,7 @@ class vtkImageData;
 class vtkMatrix4x4;
 
 class vtkIGTLCircularBuffer;
+class vtkMRMLNode;
 
 
 class VTK_OPENIGTLINK_EXPORT vtkIGTLConnector : public vtkObject
@@ -60,6 +61,7 @@ class VTK_OPENIGTLINK_EXPORT vtkIGTLConnector : public vtkObject
   
   //BTX
   typedef std::map<std::string, std::string> DeviceNameList; 
+  typedef std::map<std::string, vtkMRMLNode*> MRMLNodeList;
   //ETX
 
  public:
@@ -117,6 +119,7 @@ class VTK_OPENIGTLINK_EXPORT vtkIGTLConnector : public vtkObject
   //----------------------------------------------------------------
   vtkClientSocket* WaitForConnection();
   int ReceiveController();
+  int SendData(int size, unsigned char* data);
 
 
   //----------------------------------------------------------------
@@ -135,7 +138,12 @@ class VTK_OPENIGTLINK_EXPORT vtkIGTLConnector : public vtkObject
 
   DeviceNameList* GetIncomingDeviceList() { return &IncomingDeviceList; };
   DeviceNameList* GetOutgoingDeviceList() { return &OutgoingDeviceList; };
+
+  MRMLNodeList*   GetIncomingMRMLNodeList() { return &IncomingMRMLNodeList; };
+  MRMLNodeList*   GetOutgoingMRMLNodeList() { return &OutgoingMRMLNodeList; };
+
   DeviceNameList* GetUnspecifiedDeviceList() { return &UnspecifiedDeviceList; };
+
 
  private:
   //----------------------------------------------------------------
@@ -180,6 +188,9 @@ class VTK_OPENIGTLINK_EXPORT vtkIGTLConnector : public vtkObject
   DeviceNameList IncomingDeviceList;
   DeviceNameList OutgoingDeviceList;
   DeviceNameList UnspecifiedDeviceList;
+
+  MRMLNodeList   IncomingMRMLNodeList;
+  MRMLNodeList   OutgoingMRMLNodeList;
   //ETX
 
 };
