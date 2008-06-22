@@ -77,16 +77,16 @@ int main( int , char* [] )
   int motorCDistanceUp = 5;
 
   std::cout << "MoveMotor( OUT_A, powerA, motorADistanceUp)" << std::endl;
-  nxtUSB.MoveMotor( OUT_A, powerA,  motorADistanceUp );
-  nxtUSB.MoveMotor( OUT_A, powerA, -motorADistanceUp );
+  nxtUSB.MoveMotor( OUT_A,  powerA, motorADistanceUp );
+  nxtUSB.MoveMotor( OUT_A, -powerA, motorADistanceUp );
 
   std::cout << "MoveMotor( OUT_B, powerB, motorBDistanceUp)" << std::endl;
-  nxtUSB.MoveMotor( OUT_B, powerB,  motorBDistanceUp );
-  nxtUSB.MoveMotor( OUT_B, powerB, -motorBDistanceUp );
+  nxtUSB.MoveMotor( OUT_B,  powerB, motorBDistanceUp );
+  nxtUSB.MoveMotor( OUT_B, -powerB, motorBDistanceUp );
 
   std::cout << "MoveMotor( OUT_C, powerC, motorCDistanceUp)" << std::endl;
-  nxtUSB.MoveMotor( OUT_C, powerC,  motorCDistanceUp );
-  nxtUSB.MoveMotor( OUT_C, powerC, -motorCDistanceUp );
+  nxtUSB.MoveMotor( OUT_C,  powerC, motorCDistanceUp );
+  nxtUSB.MoveMotor( OUT_C, -powerC, motorCDistanceUp );
 
   std::cout << "CloseLegoUSB()" << std::endl;
   nxtUSB.CloseLegoUSB();
