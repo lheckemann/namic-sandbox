@@ -29,8 +29,8 @@ int main( int argc, char * argv [] )
     std::cerr << "Error: missing arguments" << std::endl;
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0] << "frequency  duration" << std::endl;
-    std::cerr << "frequency values range: " << std::endl;
-    std::cerr << "duration  values range: " << std::endl;
+    std::cerr << "frequency values range in Hz: 200 ~ 14000" << std::endl;
+    std::cerr << "duration  values range in ms:   0 ~ 65535" << std::endl;
     return EXIT_FAILURE;
     }
 
