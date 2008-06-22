@@ -19,9 +19,15 @@
 #endif
 
 #include <iostream>
+#include "NXT_USB.h"
 
 int main( int , char* [] )
 {
+  NXT_USB nxtUSB;
+
+  nxtUSB.OpenLegoUSB();
+  nxtUSB.CloseLegoUSB();
+
   std::cout << "Test passed" << std::endl;
   return EXIT_SUCCESS;
 }

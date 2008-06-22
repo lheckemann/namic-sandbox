@@ -6,14 +6,6 @@ SET(CMAKE_CXX_FLAGS
 )
 
 #
-# Include dirs
-#
-INCLUDE_DIRECTORIES(
-  ${LegoIGSTK_SOURCE_DIR}
-  ${LegoIGSTK_SOURCE_DIR}/../../LegoTutorial
-  )
-
-#
 # Build the library
 #
 ADD_LIBRARY(LegoIGSTK
@@ -21,10 +13,8 @@ ADD_LIBRARY(LegoIGSTK
   ../../LegoTutorial/NXT_USB_linux.cxx
   )
 
-INCLUDE(FindUSB.cmake)
-
 TARGET_LINK_LIBRARIES(LegoIGSTK
-  ${LIBUSB_LIB}
+  ${USB_LIBRARIES}
   )
 
 
