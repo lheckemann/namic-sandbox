@@ -25,7 +25,27 @@ int main( int , char* [] )
 {
   NXT_USB nxtUSB;
 
+  std::cout << "OpenLegoUSB()" << std::endl;
   nxtUSB.OpenLegoUSB();
+
+  std::cout << "GetDeviceFilename() = " 
+            << nxtUSB.GetDeviceFilename()
+            << std::endl;
+
+  std::cout << "GetIDVendor() = " << nxtUSB.GetIDVendor() << std::endl;
+  std::cout << "GetIDProduct() = " << nxtUSB.GetIDProduct() << std::endl;
+
+  std::cout << "GetStatus() = " 
+            << nxtUSB.GetStatus()
+            << std::endl;
+
+  std::cout << "PlayTone(440,2)" << std::endl;
+  nxtUSB.PlayTone(440,2);
+
+  std::cout << "PlayTone(880,2)" << std::endl;
+  nxtUSB.PlayTone(880,2);
+
+  std::cout << "CloseLegoUSB()" << std::endl;
   nxtUSB.CloseLegoUSB();
 
   std::cout << "Test passed" << std::endl;
