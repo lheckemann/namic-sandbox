@@ -42,6 +42,12 @@ int main( int , char* [] )
     {
     std::cerr << "Failed opening" << std::endl;
     std::cerr << nxtUSB.GetStatus() << std::endl;
+    std::cerr << std::endl << std::endl;
+    std::cerr << std::endl << std::endl;
+    std::cerr << "IMPORTANT!: Did you remember to run it as ROOT (or sudo)?";
+    std::cerr << std::endl << std::endl;
+    std::cerr << "IMPORTANT!: Did you turned the LEGO NXT controller ON ?";
+    std::cerr << std::endl << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -71,13 +77,16 @@ int main( int , char* [] )
   int motorCDistanceUp = 5;
 
   std::cout << "MoveMotor( OUT_A, powerA, motorADistanceUp)" << std::endl;
-  nxtUSB.MoveMotor( OUT_A, powerA, motorADistanceUp );
+  nxtUSB.MoveMotor( OUT_A, powerA,  motorADistanceUp );
+  nxtUSB.MoveMotor( OUT_A, powerA, -motorADistanceUp );
 
   std::cout << "MoveMotor( OUT_B, powerB, motorBDistanceUp)" << std::endl;
-  nxtUSB.MoveMotor( OUT_B, powerB, motorBDistanceUp );
+  nxtUSB.MoveMotor( OUT_B, powerB,  motorBDistanceUp );
+  nxtUSB.MoveMotor( OUT_B, powerB, -motorBDistanceUp );
 
   std::cout << "MoveMotor( OUT_C, powerC, motorCDistanceUp)" << std::endl;
-  nxtUSB.MoveMotor( OUT_C, powerC, motorCDistanceUp );
+  nxtUSB.MoveMotor( OUT_C, powerC,  motorCDistanceUp );
+  nxtUSB.MoveMotor( OUT_C, powerC, -motorCDistanceUp );
 
   std::cout << "CloseLegoUSB()" << std::endl;
   nxtUSB.CloseLegoUSB();
