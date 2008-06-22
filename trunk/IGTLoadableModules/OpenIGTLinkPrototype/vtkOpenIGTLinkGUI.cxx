@@ -1056,6 +1056,7 @@ void vtkOpenIGTLinkGUI::Enter()
     }
 
   this->GetLogic()->Initialize();
+  this->UpdateConnectorList(UPDATE_ALL);
 
   /*
   //----------------------------------------------------------------
