@@ -37,11 +37,6 @@ int main( int argc, char * argv [] )
 
   NXT_USB nxtUSB;
 
-  // in and out ports
-  const int OUT_A = 0;
-  const int OUT_B = 1;
-  const int OUT_C = 2;
-
   const int motor     = (int)( argv[1][0] - 'A' );
   const int power     = atoi( argv[2] );
   const int distance  = atoi( argv[3] );
