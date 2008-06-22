@@ -23,10 +23,27 @@
 
 int main( int , char* [] )
 {
+
   NXT_USB nxtUSB;
 
+  // in and out ports
+  const int IN_1 = 0;
+  const int IN_2 = 1;
+  const int IN_3 = 2;
+  const int IN_4 = 3;
+  const int OUT_A = 0;
+  const int OUT_B = 1;
+  const int OUT_C = 2;
+
+
   std::cout << "OpenLegoUSB()" << std::endl;
-  nxtUSB.OpenLegoUSB();
+  int open = nxtUSB.OpenLegoUSB();
+  if( open == 0 )
+    {
+    std::cerr << "Failed opening" << std::endl;
+    std::cerr << nxtUSB.GetStatus() << std::endl;
+    return EXIT_FAILURE;
+    }
 
   std::cout << "GetDeviceFilename() = " 
             << nxtUSB.GetDeviceFilename()
@@ -44,6 +61,23 @@ int main( int , char* [] )
 
   std::cout << "PlayTone(880,2)" << std::endl;
   nxtUSB.PlayTone(880,2);
+
+  int powerA = 5; 
+  int powerB = 5; 
+  int powerC = 5; 
+
+  int motorADistanceUp = 5;
+  int motorBDistanceUp = 5;
+  int motorCDistanceUp = 5;
+
+  std::cout << "MoveMotor( OUT_A, powerA, motorADistanceUp)" << std::endl;
+  nxtUSB.MoveMotor( OUT_A, powerA, motorADistanceUp );
+
+  std::cout << "MoveMotor( OUT_B, powerB, motorBDistanceUp)" << std::endl;
+  nxtUSB.MoveMotor( OUT_B, powerB, motorBDistanceUp );
+
+  std::cout << "MoveMotor( OUT_C, powerC, motorCDistanceUp)" << std::endl;
+  nxtUSB.MoveMotor( OUT_C, powerC, motorCDistanceUp );
 
   std::cout << "CloseLegoUSB()" << std::endl;
   nxtUSB.CloseLegoUSB();
