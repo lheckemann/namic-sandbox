@@ -8,15 +8,34 @@ PROJECT(LegoIGSTK)
 FIND_PACKAGE(IGSTK REQUIRED)
 INCLUDE(${IGSTK_USE_FILE})
 
+#
+# Find the USB library
+#
+INCLUDE(Source/FindUSB.cmake)
+IF(NOT USB_FOUND)
+MESSAGE("This project requires the libusb library")
+ENDIF(NOT USB_FOUND)
+
+
 SET(EXECUTABLE_OUTPUT_PATH ${LegoIGSTK_BINARY_DIR}/bin CACHE INTERNAL "Where to put the executables") 
 SET(LIBRARY_OUTPUT_PATH ${LegoIGSTK_BINARY_DIR}/bin CACHE INTERNAL "Where to put the libraries") 
 
 ENABLE_TESTING()
 INCLUDE(CTest)
 
+#
+# Include dirs
+# 
+# Note that we assume that the LegoIGSTK directory is a sibling of the
+# LegoTutorial directory.
+#
 INCLUDE_DIRECTORIES(
+  ${LegoIGSTK_SOURCE_DIR}
   ${LegoIGSTK_SOURCE_DIR}/Source
+  ${LegoIGSTK_SOURCE_DIR}/../LegoTutorial
+  ${USB_INCLUDE_DIRS}
   )
+
 
 ADD_SUBDIRECTORY( Source )
 ADD_SUBDIRECTORY( Testing )
