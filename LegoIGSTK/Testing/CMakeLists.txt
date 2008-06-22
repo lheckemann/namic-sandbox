@@ -20,6 +20,9 @@ TARGET_LINK_LIBRARIES(igstkLegoMotorTest LegoIGSTK IGSTK)
 ADD_EXECUTABLE(igstkLegoPlayToneTest igstkLegoPlayToneTest.cxx )
 TARGET_LINK_LIBRARIES(igstkLegoPlayToneTest LegoIGSTK IGSTK)
 
+ADD_EXECUTABLE(igstkLegoUSSensorTest igstkLegoUSSensorTest.cxx )
+TARGET_LINK_LIBRARIES(igstkLegoUSSensorTest LegoIGSTK IGSTK)
+
 
 
 ###################
@@ -42,3 +45,6 @@ ADD_TEST(igstkLegoMotorTest05 ${CXX_TEST_PATH}/igstkLegoMotorTest  C  50  10 )
 ADD_TEST(igstkLegoMotorTest06 ${CXX_TEST_PATH}/igstkLegoMotorTest  C -50  10 )
 
 ADD_TEST(igstkLegoPlayToneTest01 ${CXX_TEST_PATH}/igstkLegoPlayToneTest  1000  1 )
+
+SET(US_SENSOR_PORT 4)
+ADD_TEST(igstkLegoUSSensorTest ${CXX_TEST_PATH}/igstkLegoUSSensorTest ${US_SENSOR_PORT})
