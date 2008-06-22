@@ -68,9 +68,9 @@ int main( int , char* [] )
   std::cout << "PlayTone(880,2)" << std::endl;
   nxtUSB.PlayTone(880,2);
 
-  int powerA = 5; 
-  int powerB = 5; 
-  int powerC = 5; 
+  int powerA = 50; 
+  int powerB = 50; 
+  int powerC = 50; 
 
   int motorADistanceUp = 5;
   int motorBDistanceUp = 5;
