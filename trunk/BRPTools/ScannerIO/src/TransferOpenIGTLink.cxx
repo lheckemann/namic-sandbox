@@ -23,6 +23,7 @@
 
 #include "igtlMacro.h"
 #include "igtlMultiThreader.h"
+#include "igtlOSUtil.h"
 
 
 TransferOpenIGTLink::TransferOpenIGTLink()
@@ -238,51 +239,71 @@ void* TransferOpenIGTLink::CallReceiveProcess(igtl::MultiThreader::ThreadInfo* v
 
 void TransferOpenIGTLink::ReceiveProcess()
 {
+
   int retval;
   unsigned int trans_bytes = 0;
 
   while (!this->StopReceiveThread)
     {
-    // J. Tokuda 02/26/2007
-    // igtl_header should be wrapped by C++ class in future.
-    igtl_header header;
 
-    retval = this->Socket->Receive(&header, IGTL_HEADER_SIZE);
-    if (retval != IGTL_HEADER_SIZE)
+    if (this->Socket)
       {
-      std::cerr << "Irregluar size." << std::endl;
-      }
+      // J. Tokuda 02/26/2007
+      // igtl_header should be wrapped by C++ class in future.
+      igtl_header header;
+      
+      retval = this->Socket->Receive(&header, IGTL_HEADER_SIZE);
 
-    igtl_header_convert_byte_order(&header);
-    if (header.version != IGTL_HEADER_VERSION)
-      {
-      std::cerr << "Unsupported OpenIGTLink version." << std::endl;
-      }
-
-    char deviceType[13];
-    deviceType[12] = 0;
-    memcpy((void*)deviceType, header.name, 12);
-    if (strcmp("TRANSFORM", deviceType))
-      {
-      float matrix[12];
-      retval = this->Socket->Receive((char*)matrix, IGTL_TRANSFORM_SIZE);
-      if (retval != IGTL_TRANSFORM_SIZE)
+      if (retval != IGTL_HEADER_SIZE)
         {
-        std::cerr << "Error : receiving header data!\n";
-        this->Disconnect();
-        return;
+        std::cerr << "Irregluar size." << std::endl;
         }
-
-      // J. Tokuda 02/26/2008
-      // CRC should be checked here...
-
-      if (this->AcquisitionThread)
+      
+      igtl_header_convert_byte_order(&header);
+      if (header.version != IGTL_HEADER_VERSION)
         {
-        this->AcquisitionThread->SetMatrix(matrix);
+        std::cerr << "Unsupported OpenIGTLink version." << header.version << std::endl;
+        }
+      
+      char deviceType[13];
+      char deviceName[21];
+      deviceType[12] = 0;
+      deviceType[20] = 0;
+      memcpy((void*)deviceType, header.name, 12);
+      //memcpy((void*)deviceName, header.device_name, 20);
+      
+      if (strcmp("TRANSFORM", deviceType) == 0)
+        {
+        std::cerr << "Receiving TRANSFORM." << std::endl;
+        //std::cerr << "Device Name : " << deviceName << std::endl;
+
+        float matrix[12];
+
+        retval = this->Socket->Receive((char*)matrix, IGTL_TRANSFORM_SIZE);
+
+        if (retval != IGTL_TRANSFORM_SIZE)
+          {
+          std::cerr << "Error : receiving header data!\n";
+          this->Disconnect();
+          return;
+          }
+        
+        // J. Tokuda 02/26/2008
+        // CRC should be checked here...
+        
+        if (this->AcquisitionThread)
+          {
+          igtl_transform_convert_byte_order(matrix);
+          this->AcquisitionThread->SetMatrix(matrix);
+          }
         }
           
       }
-        
+    else
+      {
+      std::cerr << "Error : Socket does not exist!" << std::endl;
+      igtl::Sleep(1000);
+      }
     }
 }
 
