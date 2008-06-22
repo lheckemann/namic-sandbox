@@ -23,6 +23,9 @@ TARGET_LINK_LIBRARIES(igstkLegoPlayToneTest LegoIGSTK IGSTK)
 ADD_EXECUTABLE(igstkLegoUSSensorTest igstkLegoUSSensorTest.cxx )
 TARGET_LINK_LIBRARIES(igstkLegoUSSensorTest LegoIGSTK IGSTK)
 
+ADD_EXECUTABLE(igstkLegoTouchSensorTest igstkLegoTouchSensorTest.cxx )
+TARGET_LINK_LIBRARIES(igstkLegoTouchSensorTest LegoIGSTK IGSTK)
+
 
 
 ###################
@@ -48,3 +51,8 @@ ADD_TEST(igstkLegoPlayToneTest01 ${CXX_TEST_PATH}/igstkLegoPlayToneTest  1000  1
 
 SET(US_SENSOR_PORT 4)
 ADD_TEST(igstkLegoUSSensorTest ${CXX_TEST_PATH}/igstkLegoUSSensorTest ${US_SENSOR_PORT})
+
+SET(TOUCH_SENSOR_PORT 3)
+ADD_TEST(igstkLegoTouchSensorTest ${CXX_TEST_PATH}/igstkLegoTouchSensorTest ${TOUCH_SENSOR_PORT})
+
+
