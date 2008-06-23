@@ -10,7 +10,11 @@ INCLUDE(${OpenIGTLink_SOURCE_DIR}/igtlCheckMacros.cmake)
 igtl_platform_check()
 igtl_type_check()
 
-ADD_EXECUTABLE(Tracker   Tracker.cxx)
 INCLUDE_DIRECTORIES( ${OpenIGTLink_SOURCE_DIR} )
-TARGET_LINK_LIBRARIES(Tracker OpenIGTLink)
+
+ADD_EXECUTABLE(TrackerClient   TrackerClient.cxx)
+TARGET_LINK_LIBRARIES(TrackerClient OpenIGTLink)
+
+ADD_EXECUTABLE(TrackerServer   TrackerServer.cxx)
+TARGET_LINK_LIBRARIES(TrackerServer OpenIGTLink)
 
