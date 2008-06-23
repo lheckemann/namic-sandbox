@@ -7,13 +7,11 @@ igtl_type_check()
 
 IF(WIN32)
   SET(LINK_LIBS
-    ${LIBS}
     ws2_32
     wsock32
   )
 ELSE(WIN32)
   SET(LINK_LIBS
-    ${LIBS}
     pthread
     m
   )
