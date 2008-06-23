@@ -49,7 +49,7 @@ int main( int argc, char *argv[] )
 
   typedef itk::ImageFileReader< FeatureImageType > FeatureReaderType;
   typedef itk::ImageFileReader< MaskImageType >    MaskReaderType;
-  typedef itk::ImageFileWriter< LabelImageType >   LabelReaderType;
+  typedef itk::ImageFileWriter< LabelImageType >   LabelWriterType;
 
   FilterType::Pointer   segmenter = FilterType::New();
 
@@ -69,7 +69,7 @@ int main( int argc, char *argv[] )
     {
     labelWriter->Update();
     }
-  catch( itk::Exception & excp )
+  catch( itk::ExceptionObject & excp )
     {
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;
