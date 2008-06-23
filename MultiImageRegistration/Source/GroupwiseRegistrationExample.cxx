@@ -481,6 +481,11 @@ public:
     std::vector< itk::Transform< double, Dimension,Dimension >* > transformArray;
 };
 
+std::string replaceExtension(const std::string oldname, const std::string extension)
+{
+  return oldname.substr(0, oldname.rfind(".")) + "." + extension;
+}
+
 
 // Get the command line arguments
 int getCommandLine(int argc, char *initFname, vector<string>& fileNames, string& inputFolder, string& outputFolder, string& optimizerType,
@@ -1103,7 +1108,7 @@ int main( int argc, char *argv[] )
     for(int i=0; i<N;i++)
     {
       string fileName = outputFolder + "Affine/TransformFiles/" + fileNames[i];
-      fileName.replace(fileName.size()-3, 3, "txt" );
+      fileName = replaceExtension(fileName, "txt");
       transformFileWriter->SetFileName(fileName.c_str());
       transformFileWriter->SetPrecision(12);
       transformFileWriter->SetInput(affineTransformArray[i]);
@@ -1189,7 +1194,7 @@ int main( int argc, char *argv[] )
         TransformFileReader::Pointer        transformFileReader = TransformFileReader::New();
         string fileName = outputFolder + "Affine/TransformFiles/" + fileNames[i];
         std::cout << "message: Reading " << fileName << endl;
-        fileName.replace(fileName.size()-3, 3, "txt" );
+        fileName = replaceExtension(fileName, "txt");
         transformFileReader->SetFileName(fileName.c_str());
         
         // Create the transforms
@@ -1362,7 +1367,7 @@ int main( int argc, char *argv[] )
       for(int i=0; i<N;i++)
       {
         string fileName = outputFolder + bsplineFolderName.str() + "TransformFiles/" + fileNames[i];
-        fileName.replace(fileName.size()-3, 3, "txt" );
+        fileName = replaceExtension(fileName, "txt");
         transformFileWriter->SetFileName(fileName.c_str());
         transformFileWriter->SetPrecision(12);
         transformFileWriter->SetInput(bsplineTransformArrayLow[i]);
@@ -1423,7 +1428,7 @@ int main( int argc, char *argv[] )
             ostringstream bsplineFolderName;
             bsplineFolderName << "Bspline_Grid_" << bsplineInitialGridSize << "/";
             string fileName = outputFolder + bsplineFolderName.str() + "TransformFiles/" + fileNames[i];
-            fileName.replace(fileName.size()-3, 3, "txt" );
+            fileName = replaceExtension(fileName, "txt");
             transformFileReader->SetFileName(fileName.c_str());
             transformFileReader->Update();
             TransformListType*   transformList = transformFileReader->GetTransformList();
@@ -1631,7 +1636,7 @@ int main( int argc, char *argv[] )
         for(int i=0; i<N;i++)
         {
           string fileName = outputFolder + bsplineFolderName.str() + "TransformFiles/" + fileNames[i];
-          fileName.replace(fileName.size()-3, 3, "txt" );
+          fileName = replaceExtension(fileName, "txt");
           transformFileWriter->SetFileName(fileName.c_str());
           transformFileWriter->SetPrecision(12);
           transformFileWriter->SetInput(bsplineTransformArrayHigh[i]);
