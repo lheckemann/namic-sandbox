@@ -76,8 +76,11 @@ int main( int argc, char *argv[] )
   for(int i=0;i<sample->GetTotalFrequency();i++){
     IndexVectorType seedPos = sample->GetMeasurementVector(i);
     InternalImageType::IndexType seedLoc;
+
     for (int j=0;j<Dimension;j++)
+      {
       seedLoc[j] = seedPos[j];
+      }
 
     // Check if the seed is in a novel cell location
     if (cumMask->GetPixel(seedLoc) == 0) {
