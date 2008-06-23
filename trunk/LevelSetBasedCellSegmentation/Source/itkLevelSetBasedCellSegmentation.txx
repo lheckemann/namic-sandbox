@@ -26,6 +26,7 @@ template <class TFeatureImage, class TMaskImage, class TOutputLabelImage>
 LevelSetBasedCellSegmentation<TFeatureImage, TMaskImage, TOutputLabelImage>
 ::LevelSetBasedCellSegmentation()
 {
+  this->SetNumberOfRequiredInputs( 2 );
 }
  
 template <class TFeatureImage, class TMaskImage, class TOutputLabelImage>
@@ -33,7 +34,23 @@ LevelSetBasedCellSegmentation<TFeatureImage, TMaskImage, TOutputLabelImage>
 ::~LevelSetBasedCellSegmentation()
 {
 }
- 
+  
+template <class TFeatureImage, class TMaskImage, class TOutputLabelImage>
+void
+LevelSetBasedCellSegmentation<TFeatureImage, TMaskImage, TOutputLabelImage>
+::SetFeatureImage( const TFeatureImage * featureImage )
+{
+}
+
+  
+template <class TFeatureImage, class TMaskImage, class TOutputLabelImage>
+void
+LevelSetBasedCellSegmentation<TFeatureImage, TMaskImage, TOutputLabelImage>
+::SetMaskImage( const TMaskImage * maskImage )
+{
+}
+
+
 template <class TFeatureImage, class TMaskImage, class TOutputLabelImage>
 void
 LevelSetBasedCellSegmentation<TFeatureImage, TMaskImage, TOutputLabelImage>
