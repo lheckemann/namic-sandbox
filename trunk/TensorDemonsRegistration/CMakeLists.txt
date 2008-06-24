@@ -3,18 +3,21 @@ IF(COMMAND CMAKE_POLICY)
 CMAKE_POLICY(SET CMP0003 NEW)
 ENDIF(COMMAND CMAKE_POLICY)
 
-PROJECT(LevelSetBasedCellSegmentation)
+PROJECT(TensorDemonsRegistration)
 
 FIND_PACKAGE(ITK REQUIRED)
 INCLUDE(${ITK_USE_FILE})
 
-SET(EXECUTABLE_OUTPUT_PATH ${LevelSetBasedCellSegmentation_BINARY_DIR}/bin CACHE INTERNAL "Where to put the executables") 
-SET(LIBRARY_OUTPUT_PATH ${LevelSetBasedCellSegmentation_BINARY_DIR}/bin CACHE INTERNAL "Where to put the libraries") 
+FIND_PACKAGE(VTK REQUIRED)
+INCLUDE(${VTK_USE_FILE})
+
+SET(EXECUTABLE_OUTPUT_PATH ${TensorDemonsRegistration_BINARY_DIR}/bin CACHE INTERNAL "Where to put the executables") 
+SET(LIBRARY_OUTPUT_PATH ${TensorDemonsRegistration_BINARY_DIR}/bin CACHE INTERNAL "Where to put the libraries") 
 
 ENABLE_TESTING()
 
 INCLUDE_DIRECTORIES(
-  ${LevelSetBasedCellSegmentation_SOURCE_DIR}/Source
+  ${TensorDemonsRegistration_SOURCE_DIR}/Source
   )
 
 ADD_SUBDIRECTORY( Original )
