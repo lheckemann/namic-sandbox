@@ -50,6 +50,12 @@
 #include <itksys/SystemTools.hxx>
 
 using namespace std;
+
+std::string replaceExtension(const std::string oldname, const std::string extension)
+{
+  return oldname.substr(0, oldname.rfind(".")) + "." + extension;
+}
+
 int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, string& inputFolder, string& outputFolder,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
                           string& useBspline, string& useBsplineHigh,
@@ -272,7 +278,7 @@ int main( int argc, char * argv[] )
       for( int j=0; j<N; j++)
       {
         transformFileNames[i][j] = outputFolder + "Affine/TransformFiles/" + fileNames[j];
-        transformFileNames[i][j].replace(transformFileNames[i][j].size()-3, 3, "txt" );
+        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "txt" );
       }
       transformNames[i] = "Affine";
     }
@@ -284,7 +290,7 @@ int main( int argc, char * argv[] )
       for( int j=0; j<N; j++)
       {
         transformFileNames[i][j] = outputFolder + bsplineFolderName.str() + "/TransformFiles/" + fileNames[j];
-        transformFileNames[i][j].replace(transformFileNames[i][j].size()-3, 3, "txt" );
+        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "txt" );
 
       }
     }
