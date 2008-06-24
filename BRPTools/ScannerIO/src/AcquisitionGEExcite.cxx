@@ -98,6 +98,7 @@ int AcquisitionGEExcite::Init()
   
   /* Init rsp_modifier proxy */
 
+#ifdef _RSP_CONTROL
   if(rsp_init(&argc,argv)==-1) {
     std::cout << "ERROR: No luck initializing the RSP modifier proxy\n" << std::endl;
     return 0;
@@ -105,9 +106,9 @@ int AcquisitionGEExcite::Init()
   else
   printf("rsp_init successful\n");
 
-  
   /* Init SVAT interface */
   /*svat_driver_init((char*)console_host.c_str());*/
+#endif // _RSP_CONTROL
 
   return 1;
 }
