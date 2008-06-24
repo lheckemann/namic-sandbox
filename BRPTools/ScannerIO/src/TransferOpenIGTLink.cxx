@@ -268,7 +268,7 @@ void TransferOpenIGTLink::ReceiveProcess()
       char deviceType[13];
       char deviceName[21];
       deviceType[12] = 0;
-      deviceType[20] = 0;
+      deviceName[20] = 0;
       memcpy((void*)deviceType, header.name, 12);
       //memcpy((void*)deviceName, header.device_name, 20);
       

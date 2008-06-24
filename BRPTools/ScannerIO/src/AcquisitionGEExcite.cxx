@@ -53,6 +53,7 @@
 
 #ifdef _RSP_CONTROL
 extern "C" {
+  int rsp_init(int*,char**);
   int read_rsp_s(char*,int*);
   int read_rsp_i(char*,int*);
   int read_rsp_f(char*,float*);
@@ -90,21 +91,23 @@ AcquisitionGEExcite::~AcquisitionGEExcite()
 
 int AcquisitionGEExcite::Init()
 {
+  int argc = 1;
+  char* argv[] = {"GEExciteIGTL"};
 
   this->raw_data=(short**)malloc(this->channels*sizeof(short*));
   
   /* Init rsp_modifier proxy */
-  /*
+
   if(rsp_init(&argc,argv)==-1) {
     std::cout << "ERROR: No luck initializing the RSP modifier proxy\n" << std::endl;
-    return;
+    return 0;
   }
   else
   printf("rsp_init successful\n");
-  */
+
   
   /* Init SVAT interface */
-  /*  svat_driver_init((char*)console_host.c_str());*/
+  /*svat_driver_init((char*)console_host.c_str());*/
 
   return 1;
 }
@@ -592,7 +595,6 @@ void AcquisitionGEExcite::Process()
               read_rsp_f("cont_image_p2x", &imgInfo.image_p2x);
               read_rsp_f("cont_image_p2y", &imgInfo.image_p2y);
               read_rsp_f("cont_image_p2z", &imgInfo.image_p2z);
-              */
 
               float tx;
               float ty;
@@ -606,7 +608,7 @@ void AcquisitionGEExcite::Process()
               float px;
               float py;
               float pz;
-              
+              */
 
 #endif // _RSP_CONTROL
 
