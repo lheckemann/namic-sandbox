@@ -15,6 +15,7 @@ SET(EXECUTABLE_OUTPUT_PATH ${TensorDemonsRegistration_BINARY_DIR}/bin CACHE INTE
 SET(LIBRARY_OUTPUT_PATH ${TensorDemonsRegistration_BINARY_DIR}/bin CACHE INTERNAL "Where to put the libraries") 
 
 ENABLE_TESTING()
+INCLUDE(CTEST)
 
 INCLUDE_DIRECTORIES(
   ${TensorDemonsRegistration_SOURCE_DIR}/Source
