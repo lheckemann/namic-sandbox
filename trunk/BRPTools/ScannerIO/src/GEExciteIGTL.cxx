@@ -70,7 +70,8 @@ int main(int argc, char **argv)
   acquisition->SetLineOrder("out_in"); // or "down_up"
   acquisition->SetPostProcessThread(dynamic_cast<Thread*>(transfer));
 
-  transfer->SetServer("localhost", 18944);
+  //transfer->SetServer("localhost", 18944);
+  transfer->SetServer("10.121.1.31", 18944);
   transfer->SetAcquisitionThread(acquisition);
 
 
