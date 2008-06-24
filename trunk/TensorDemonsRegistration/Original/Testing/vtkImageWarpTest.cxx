@@ -19,7 +19,6 @@
 #endif
 
 #include "vtkImageWarp.h"
-#include "vtkNrrdReader.h"
 
 
 int main( int argc, char *argv[] )
@@ -32,6 +31,14 @@ int main( int argc, char *argv[] )
     return EXIT_FAILURE;
     }
   
+   vtkImageWarp * demonsRegistrator = vtkImageWarp::New();
+
+
+
+
+
+   demonsRegistrator->Delete();
+
    return EXIT_SUCCESS;
 }
 
