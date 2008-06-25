@@ -40,6 +40,11 @@ int main(int argc, char *argv[])
    while (OpenTracker.IsThereNewCommand()) {
      //printf("New command received!\n");
      OpenTracker.ProcessNextCommand(&RobotControl);
+
+   // for simulation purposes we do TargetRobotPosition -> ActualRobotPosition
+   // which means the robot just moved where it supposed to go:
+   RobotControl.LoadTargetRobotCoordinates(position, orientation);
+   RobotControl.SaveActualRobotPosition(position, orientation, depthv);
    }
 
    //pthread_yield();
