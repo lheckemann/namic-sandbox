@@ -88,7 +88,7 @@ static const char BOOLEANMODE = 0x20;
 static const char PCTFULLSCALEMODE = 0x80;
 
 // some enumerations for "Mode"
-static const char FLOAT = 0x00; // not an official enumation
+static const char MFLOAT = 0x00; // not an official enumation
 static const char MOTORON = 0x01;
 static const char BRAKE = 0x02;
 static const char REGULATED = 0x04;
@@ -396,7 +396,7 @@ void NXT_USB::StopMotor(int port, bool brake)
   }
   else
   {
-    outbuf[4] = FLOAT;
+    outbuf[4] = MFLOAT;
     outbuf[5] = REGULATION_MODE_IDLE;
     outbuf[7] = MOTOR_RUN_STATE_IDLE;
   } 

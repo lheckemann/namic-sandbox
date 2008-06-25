@@ -129,6 +129,8 @@ int NXT_USB_linux::OpenLegoUSB()
     return 0;
   }
 
+// libusb-win32 looses everythin after reset (not needed)
+#ifndef WIN32
   usb_reset(this->pUSBHandleLego);
   this->pUSBHandleLego = usb_open(this->devLego);
 
@@ -137,6 +139,11 @@ int NXT_USB_linux::OpenLegoUSB()
     this->status = NOT_CLAIMED_AFTER_RESET;
     return 0;
   }
+#endif
+
+#ifdef WIN32
+  usb_set_configuration(this->pUSBHandleLego,1);
+#endif
 
   int interfaceReturn = -1;
   if (this->devLego->config)
@@ -145,7 +152,7 @@ int NXT_USB_linux::OpenLegoUSB()
     {
       if (this->devLego->config->interface->altsetting)
       {
-        interfaceReturn = usb_claim_interface(this->pUSBHandleLego, this->devLego->config->interface->altsetting->bInterfaceNumber);
+      interfaceReturn = usb_claim_interface(this->pUSBHandleLego, this->devLego->config->interface->altsetting->bInterfaceNumber);
       }
     }
   }
