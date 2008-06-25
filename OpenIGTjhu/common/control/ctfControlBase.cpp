@@ -174,7 +174,9 @@ void ctfControlBase::ZFrame(float position[3], float orientation[4])
 {
   FLOAT_COPY3(position,this->ZFramePosition);
   FLOAT_COPY4(orientation,this->ZFrameOrientation);
-  DEBUG_MESSAGE << "ctfControlBase::ZFrame " << this->ZFramePosition << " x " << this->ZFrameOrientation << "\n";
+  DEBUG_MESSAGE << "ctfControlBase::ZFrame "
+    << "(" << this->ZFramePosition[0] << ", " << this->ZFramePosition[1] << ", " << this->ZFramePosition[2] << ") "
+    << "(" << this->ZFrameOrientation[0] << ", " << this->ZFrameOrientation[1] << ", " << this->ZFrameOrientation[2] << ", " << this->ZFrameOrientation[3] << ")\n";
 
   this->lZFrameInitialized = true;
 
