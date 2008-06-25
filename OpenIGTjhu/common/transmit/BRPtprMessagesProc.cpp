@@ -8,9 +8,53 @@ BRPtprMessageProc::~BRPtprMessageProc(void)
 {
 }
 
+#include "igtl_util.h"
+float jhu_get_float32(igtlMessage & msg, int index)
+{
+ long bit32=0; /// TODO Not Safe!
+ memcpy((void*)(&bit32), (void *)(msg.body()+index), 4);
+ if (igtl_is_little_endian()) {
+   bit32 = BYTE_SWAP_INT32(bit32);
+  }
+ float f;
+ memcpy((void*)(&f), (void*)(&bit32), sizeof(float));
+ return f; 
+}
+
 void BRPtprMessageProc::PacketReceived(igtlMessage * msg)
 {
   std::cout << "Packet received: " << msg->get_header()->name << " body size: " << msg->get_header()->body_size << "\n";
+  
+  char cmdstr[IGTL_HEADER_NAMESIZE+1];
+  strncpy(cmdstr, msg->get_header()->name, IGTL_HEADER_NAMESIZE); // Max 20
+  cmdstr[IGTL_HEADER_NAMESIZE]='\0'; // 21st is always 0
+
+  BRPtprMessageCommandType cmd=BRPtprInvalidCommand;
+
+  BRPtprMessageCommandType i=COMM_BRPTPR_START_UP;
+  while (i<BRPtprMessageCommandLastCommand) {
+   assert(BRPCommands[i].length()<=12);
+   if ( strcmp(cmdstr, BRPCommands[i].c_str()) == 0 ) {
+     cmd=i;
+     break;
+   }
+   i=(BRPtprMessageCommandType)((int)i+1);
+  }
+
+  switch (cmd) {
+    case COMM_BRPTPR_RESPONSE_POSITION:
+      float position[3];
+      float orientation[4];
+      position[0]=jhu_get_float32(*msg, 0*4);
+      position[1]=jhu_get_float32(*msg, 1*4);
+      position[2]=jhu_get_float32(*msg, 2*4);
+      orientation[0]=jhu_get_float32(*msg, 3*4);
+      orientation[1]=jhu_get_float32(*msg, 4*4);
+      orientation[2]=jhu_get_float32(*msg, 5*4);
+      orientation[3]= 1;  /// TODO get from packet!
+      std::cout << "(" << position[0] << ", " << position[1] << ", " << position[2] << ") "
+        << "(" << orientation[0] << ", " << orientation[1] << ", " << orientation[2] << ", " << orientation[3] << ")\n";
+  }
 }
 
 void BRPtprMessageProc::SetUpHeader(igtlMessage & msg,BRPtprMessageCommandType cmd)
