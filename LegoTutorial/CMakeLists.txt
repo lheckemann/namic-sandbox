@@ -13,9 +13,11 @@ SET(Lego_SRCS
   vtkLegoGUI.cxx
 )
 
+IF(UNIX)
 SET(CMAKE_CXX_FLAGS
   "-funsigned-char"
 )
+ENDIF(UNIX)
 
 #
 # Include dirs
