@@ -370,8 +370,8 @@ int add_Char(igtlMessage & msg, const char *ch, int index, int pad_to_length)
 
 void calc_crc(igtlMessage & msg)
 {
-  unsigned long crc = crc32(0L, Z_NULL, 0);
-  crc = crc32(crc, (unsigned char*)( msg.body() ), msg.body_length() );
+  igtl_uint64 crc = crc64(0L, Z_NULL, 0);
+  crc64((unsigned char*)( msg.body() ), msg.body_length(), crc );
   msg.get_header()->crc = crc; 
 }
 

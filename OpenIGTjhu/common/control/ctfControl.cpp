@@ -5,14 +5,12 @@
 //#include <algorithm>
 
 
-//GSF
-#include <cisstVector/vctFixedSizeMatrix.h>
-#include <cisstVector/vctFixedSizeVector.h>
-#include <cisstVector/vctTypes.h>
-
-
-//CMN_IMPLEMENT_SERVICES_TEMPLATED(ddiVecGain16);
-//CMN_IMPLEMENT_SERVICES(ctfControl);
+ //GSF
+ #include <cisstVector/vctFixedSizeMatrix.h>
+ #include <cisstVector/vctFixedSizeVector.h>
+ #include <cisstVector/vctTypes.h>
+ //CMN_IMPLEMENT_SERVICES_TEMPLATED(ddiVecGain16);
+ //CMN_IMPLEMENT_SERVICES(ctfControl);
 
 
 // Object initialization -------------------------------------
