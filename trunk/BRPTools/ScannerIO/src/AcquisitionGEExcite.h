@@ -63,7 +63,34 @@ typedef struct
   RDS_INIT_PKT rds_init_pkt;
 } INIT_MSG;
 
-
+typedef struct
+{
+  float    xoffset;
+  float    yoffset;
+  float    zoffset;
+  float    alpha;
+  float    beta;
+  float    gamma;
+  float    slthick;
+  int      time_sec;
+  int      time_usec;
+  int      rtia_mode;
+  int      fov;
+  int      tr;
+  int      ti;
+  int      te;
+  int      rotate;
+  int      transpose;
+  float    image_p0x;
+  float    image_p0y;
+  float    image_p0z;
+  float    image_p1x;
+  float    image_p1y;
+  float    image_p1z;
+  float    image_p2x;
+  float    image_p2y;
+  float    image_p2z;
+} IMAGE_INFO;
 
 class IGTLCommon_EXPORT AcquisitionGEExcite: public AcquisitionBase
 {
@@ -158,7 +185,9 @@ protected:
 
   //ACE_Thread_Mutex* gemutex;
   igtl::MutexLock::Pointer Mutex;
-
+  
+  igtl::Matrix4x4          RetMatrix;
+  igtl::MutexLock::Pointer RetMatrixMutex;
 
 };
 

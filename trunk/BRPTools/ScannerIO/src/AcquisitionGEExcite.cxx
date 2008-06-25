@@ -73,6 +73,7 @@ AcquisitionGEExcite::AcquisitionGEExcite()
   this->CurrentFrame = igtl::ImageMessage::New();
   //this->gemutex = new ACE_Thread_Mutex;
   this->Mutex = igtl::MutexLock::New();
+  this->RetMatrixMutex = igtl::MutexLock::New();
   this->channels = 1;
   this->viewsxfer = 1;
   this->validate = false;
@@ -80,12 +81,31 @@ AcquisitionGEExcite::AcquisitionGEExcite()
   this->Address = "";
   this->Port    = -1;
 
+  RetMatrixMutex->Lock();
+  RetMatrix[0][0] = 1.0;
+  RetMatrix[1][0] = 0.0;
+  RetMatrix[2][0] = 0.0;
+
+  RetMatrix[0][1] = 0.0;
+  RetMatrix[1][1] = 1.0;
+  RetMatrix[2][1] = 0.0;
+
+  RetMatrix[0][2] = 0.0;
+  RetMatrix[1][2] = 0.0;
+  RetMatrix[2][2] = 1.0;
+
+  RetMatrix[0][3] = 0.0;
+  RetMatrix[1][3] = 0.0;
+  RetMatrix[2][3] = 0.0;
+  RetMatrixMutex->Unlock();
+
 }
 
 
 AcquisitionGEExcite::~AcquisitionGEExcite()
 {
   this->Mutex->Delete();
+  this->RetMatrixMutex->Delete();
 }
 
 
@@ -149,6 +169,21 @@ int AcquisitionGEExcite::SetMatrix(float* rmatrix)
 
 #ifdef _RSP_CONTROL
 
+  RetMatrixMutex->Lock();
+  RetMatrix[0][0] = rmatrix[0];
+  RetMatrix[1][0] = rmatrix[1];
+  RetMatrix[2][0] = rmatrix[2];
+  RetMatrix[0][1] = rmatrix[3];
+  RetMatrix[1][1] = rmatrix[4];
+  RetMatrix[2][1] = rmatrix[5];
+  RetMatrix[0][2] = rmatrix[6];
+  RetMatrix[1][2] = rmatrix[7];
+  RetMatrix[2][2] = rmatrix[8];
+  RetMatrix[0][3] = rmatrix[9];
+  RetMatrix[1][3] = rmatrix[10];
+  RetMatrix[2][3] = rmatrix[11];
+  RetMatrixMutex->Unlock();
+
   float tx = rmatrix[0];
   float ty = rmatrix[1];
   float tz = rmatrix[2];
@@ -161,7 +196,6 @@ int AcquisitionGEExcite::SetMatrix(float* rmatrix)
   float px = rmatrix[9];
   float py = rmatrix[10];
   float pz = rmatrix[11];
-  
 
   igtl::Matrix4x4 matrix;
   float position[3];
@@ -204,7 +238,6 @@ int AcquisitionGEExcite::SetMatrix(float* rmatrix)
   Ix=lrintf(Px);
   Iy=lrintf(Py);
   Iz=lrintf(Pz);
-  
 
   int feature_available;
   // Check which feature is available for  real-time RSP updaate
@@ -236,7 +269,6 @@ int AcquisitionGEExcite::SetMatrix(float* rmatrix)
       set_rsp_f("cont_image_p0y",&value);
       value = matrix[2][0]*fov/2+matrix[2][1]*fov/2+position[2];
       set_rsp_f("cont_image_p0z",&value);
-      
       
       value = matrix[0][0]*(-fov/2)+matrix[0][1]*fov/2+position[0];
       set_rsp_f("cont_image_p1x",&value);
@@ -366,6 +398,11 @@ void AcquisitionGEExcite::Process()
   unsigned int totalSize;
   byte datakey_waitfornext = 0;
   unsigned long datakey = 0;
+
+#ifdef _RSP_CONTROL
+  IMAGE_INFO imgInfo;
+#endif
+
 
   /*
   float tx;
@@ -570,7 +607,6 @@ void AcquisitionGEExcite::Process()
               row+=this->viewsxfer;
 
 #ifdef _RSP_CONTROL
-              /*
               read_rsp_f("cont_xoffset",   &imgInfo.xoffset  );
               read_rsp_f("cont_yoffset",   &imgInfo.yoffset  );
               read_rsp_f("cont_zoffset",   &imgInfo.zoffset  );
@@ -596,20 +632,6 @@ void AcquisitionGEExcite::Process()
               read_rsp_f("cont_image_p2x", &imgInfo.image_p2x);
               read_rsp_f("cont_image_p2y", &imgInfo.image_p2y);
               read_rsp_f("cont_image_p2z", &imgInfo.image_p2z);
-
-              float tx;
-              float ty;
-              float tz;
-              float sx;
-              float sy;
-              float sz;
-              float nx;
-              float ny;
-              float nz;
-              float px;
-              float py;
-              float pz;
-              */
 
 #endif // _RSP_CONTROL
 
@@ -643,9 +665,16 @@ void AcquisitionGEExcite::Process()
                   dim[1] = ysize;
                   dim[2] = 1;
                   float spacing[3];
+#ifdef _RSP_CONTROL
+                  spacing[0] = imgInfo.fov/xsize;
+                  spacing[1] = imgInfo.fov/ysize;
+                  spacing[2] = imgInfo.slthick;
+#else
                   spacing[0] = 1.0;
                   spacing[1] = 1.0;
                   spacing[2] = 5.0;
+#endif
+
                   int off[3];
                   off[0] = 0;
                   off[1] = 0;
@@ -666,8 +695,12 @@ void AcquisitionGEExcite::Process()
 
                   int scalarSize = this->CurrentFrame->GetScalarSize();
                   igtl::Matrix4x4 matrix;
-                  GetScanPlane(matrix);
-                  this->CurrentFrame->SetMatrix(matrix);
+                  //GetScanPlane(matrix);
+
+                  RetMatrixMutex->Lock();
+                  this->CurrentFrame->SetMatrix(RetMatrix);
+                  RetMatrixMutex->Unlock();
+
                   this->CurrentFrame->Pack();
                   int id = this->PutFrameToBuffer(static_cast<igtl::MessageBase::Pointer>(this->CurrentFrame));
                   std::cerr << "Process(): frame in bffer #" <<  id << std::endl;
