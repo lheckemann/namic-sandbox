@@ -53,8 +53,8 @@ int main(int argc, char **argv)
         case '6': simulator.SendCommand(COMM_BRPTPR_EMERGENCY); break;
         case 'c': simulator.SendCommand(COMM_BRPTPR_GET_POSITION); break;
         case 's': simulator.SendCommand(COMM_BRPTPR_GET_STATUS); break;
-        case 'z': simulator.SendZFrame(3.2,2.2,1.2, 5.2,6.2,7.2);break;
-        case 'p': simulator.SendMoveTo(30.3,20.3,10.3, 50.3,60.3,70.3);break;
+        case 'z': simulator.SendZFrame(3.2f, 2.2f, 1.2f,      5.2f,6.2f,7.2f);break;
+        case 'p': simulator.SendMoveTo(30.3f, 20.3f, 10.3f,   50.3f,60.3f,70.3f);break;
         case 'q': lEnd=true;break;
 
         default: std::cout << "(unknown key)\n";

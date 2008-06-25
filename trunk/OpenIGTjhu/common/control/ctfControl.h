@@ -12,10 +12,11 @@
 #include "ctfControlBase.h"
 
 
-#include <cisstCommon/cmnDataObject.h>
-#include <cisstRealTime/rtsTask.h>
-#include <cisstRealTime/rtsCommand1.h>
-#include <cisstDeviceInterface/ddiTypes.h>
+ #include <cisstCommon/cmnDataObject.h>
+ #include <cisstRealTime/rtsTask.h>
+ #include <cisstRealTime/rtsCommand1.h>
+ #include <cisstDeviceInterface/ddiTypes.h>
+
 
 //Defined Offsets
 #define P_Offset_X 0
