@@ -105,7 +105,7 @@ bool BRPtprOpenTracker::SendZFrameToRobot(BRPtprControl *robotControl, igtlMessa
  orientation[0]=jhu_get_float32(msg, 3*4);
  orientation[1]=jhu_get_float32(msg, 4*4);
  orientation[2]=jhu_get_float32(msg, 5*4);
- orientation[3]= 1;  /// TODO Is this OK???
+ orientation[3]= 1;  /// TODO get from packet, if it's there!
  
  robotControl->ZFrame(position, orientation); 
  return true;
