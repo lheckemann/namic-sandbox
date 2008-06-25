@@ -4,8 +4,8 @@
 #include "BRPtprMessages.h"
 #include "BRPplatform.h"
 
-//#define HOST "127.0.0.1"
-#define HOST "10.162.34.239"
+#define HOST "127.0.0.1"
+//#define HOST "10.162.34.239"
 #define PORT  "5678"
 
 int main(int argc, char **argv)
