@@ -120,7 +120,7 @@ int main( int argc, char * argv [] )
   // Verify the number of parameters in the command line
   if( argc != 5 )
     {
-    std::clog << "usage: " << std::endl 
+    std::clog << "usage: " << std::endl;
     std::clog << argv[0] << " target source output deformation" << std::endl;
     return EXIT_FAILURE;
     }
