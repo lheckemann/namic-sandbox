@@ -1,0 +1,4 @@
+
+ADD_EXECUTABLE(MultiResolutionDemonsRegistration MultiResolutionDemonsRegistration.cxx )
+
+TARGET_LINK_LIBRARIES(MultiResolutionDemonsRegistration ITKIO ITKCommon)
