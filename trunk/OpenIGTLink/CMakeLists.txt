@@ -9,6 +9,12 @@ if(COMMAND cmake_policy)
 ENABLE_TESTING()
 INCLUDE (${CMAKE_ROOT}/Modules/Dart.cmake)
 
+# Copy the UseITK.cmake file to the binary tree for backward compatability.
+CONFIGURE_FILE(${OpenIGTLink_SOURCE_DIR}/UseOpenIGTLink.cmake.in
+${OpenIGTLink_BINARY_DIR}/UseOpenIGTLink.cmake COPYONLY IMMEDIATE)
+
+# Create the OpenIGTLinkConfig.cmake file containing the OpenIGTLink configuration.
+INCLUDE (${OpenIGTLink_SOURCE_DIR}/GenerateOpenIGTLinkConfig.cmake)
 
 #
 #  There should be only one INCLUDE_DIRECTORIES command 
