@@ -278,14 +278,14 @@ public:
   typedef   TRegistration                              RegistrationType;
   typedef   RegistrationType *                         RegistrationPointer;
   
-  typedef   itk::SingleValuedNonLinearOptimizer   OptimizerType;
+  typedef   itk::SingleValuedNonLinearOptimizer        OptimizerType;
   typedef   OptimizerType *                            OptimizerPointer;
-  typedef   itk::GradientDescentOptimizer       GradientOptimizerType;
-  typedef   GradientOptimizerType *             GradientOptimizerPointer;
-  typedef   itk::GradientDescentLineSearchOptimizer LineSearchOptimizerType;
-  typedef   LineSearchOptimizerType  *          LineSearchOptimizerPointer;
-  typedef   itk::SPSAOptimizer                  SPSAOptimizerType;
-  typedef   SPSAOptimizerType  *                SPSAOptimizerPointerType;
+  typedef   itk::GradientDescentOptimizer              GradientOptimizerType;
+  typedef   GradientOptimizerType *                    GradientOptimizerPointer;
+  typedef   itk::GradientDescentLineSearchOptimizer    LineSearchOptimizerType;
+  typedef   LineSearchOptimizerType  *                 LineSearchOptimizerPointer;
+  typedef   itk::SPSAOptimizer                         SPSAOptimizerType;
+  typedef   SPSAOptimizerType  *                       SPSAOptimizerPointerType;
   
   typedef   itk::Image< InternalPixelType, Dimension >   ImageType;
   typedef   itk::MultiImageMetric< ImageType>    MetricType;
@@ -304,11 +304,19 @@ public:
                                          (registration->GetMetric());
 
     // Output message about registration
-    std::cout << "message: Registration using " << metric->GetNameOfClass() << std::endl;
-    std::cout << "message: Transform Type " << registration->GetTransformArray(0)->GetNameOfClass() << std::endl;
-    std::cout << "message: Multiresolution level : " << registration->GetCurrentLevel() << std::endl;
-    std::cout << "message: Number of total parameters : " << registration->GetTransformParametersLength() << std::endl;
-    std::cout << "message: Optimizertype : " << optimizer->GetNameOfClass() << std::endl;
+    std::cout << "message: metric type: " << metric->GetNameOfClass() << std::endl;
+    std::cout << "message: Transform Type: " << registration->GetTransformArray(0)->GetNameOfClass();
+    if( !strcmp(registration->GetTransformArray(0)->GetNameOfClass(), "BSplineDeformableTransformOpt") )
+    {
+      std::cout << " (" << bsplineGridSize << "x" << bsplineGridSize << "x" << bsplineGridSize << ")";
+    }    
+    std::cout << std::endl;
+    std::cout << "message: Image Resolution: " <<
+        registration->GetImagePyramidArray(0)->
+        GetOutput(registration->GetCurrentLevel())->GetLargestPossibleRegion().GetSize() << std::endl;
+    std::cout << "message: Number of Images: " << metric->GetNumberOfImages() << std::endl;
+    std::cout << "message: Number of total parameters: " << registration->GetTransformParametersLength() << std::endl;
+    std::cout << "message: Optimizertype: " << optimizer->GetNameOfClass() << std::endl;
 
     if ( registration->GetCurrentLevel() == 0 )
     {
@@ -436,8 +444,8 @@ public:
 
     }
 
-    std::cout << "message: Number of total pixels : " << metric->GetFixedImageRegion().GetNumberOfPixels() << std::endl;
-    std::cout << "message: Number of used pixels : " << metric->GetNumberOfSpatialSamples() << std::endl;
+    std::cout << "message: Sample Percentage : " << 
+        metric->GetNumberOfSpatialSamples() / (double)metric->GetFixedImageRegion().GetNumberOfPixels() << std::endl;
 
 
 
@@ -461,6 +469,8 @@ public:
     transformArray.resize(fileNames.size());
 
   }
+  int bsplineGridSize;
+  
   protected:
     //Constructor initialize the variables
     RegistrationInterfaceCommand()
@@ -937,6 +947,7 @@ int main( int argc, char *argv[] )
   // Create the Command interface observer and register it with the optimizer.
   typedef RegistrationInterfaceCommand<RegistrationType> CommandType;
   CommandType::Pointer command = CommandType::New();
+  command->bsplineGridSize = bsplineInitialGridSize;
 
   registration->AddObserver( itk::IterationEvent(), command );
 
@@ -1441,6 +1452,7 @@ int main( int argc, char *argv[] )
         
         // Increase the grid size by a factor of two
         bsplineInitialGridSize = 2*bsplineInitialGridSize;
+        command->bsplineGridSize = bsplineInitialGridSize;
         
         registration->SetTransformParametersLength( static_cast<int>(
             pow( static_cast<double>(bsplineInitialGridSize+SplineOrder),

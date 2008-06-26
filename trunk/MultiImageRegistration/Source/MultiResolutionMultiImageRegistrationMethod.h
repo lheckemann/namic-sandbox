@@ -110,8 +110,8 @@ public:
   /** Type of the Fixed image multiresolution pyramid. */
   typedef MultiResolutionPyramidImageFilter< ImageType,
                                              ImageType >
-  ImagePyramidType;
-  typedef typename ImagePyramidType::Pointer  ImagePyramidPointer;
+                                                      ImagePyramidType;
+  typedef typename ImagePyramidType::Pointer          ImagePyramidPointer;
   typedef  vector<ImagePyramidPointer>                ImagePyramidPointerArray;
 
   /** Typedef for image masks */
@@ -172,7 +172,7 @@ public:
   /** Set/Get the length of the parameters vector. The length of the parameters
       array should be set before assigning individual parameters */
   virtual void SetTransformParametersLength( int N );
-  virtual int GetTransformParametersLength( );
+  virtual int  GetTransformParametersLength( );
   
   /** Set/Get the initial transformation parameters. */
   //itkSetMacro( InitialTransformParameters, ParametersType );
@@ -235,13 +235,13 @@ private:
   ImageRegionType                  m_FixedImageRegion;
   std::vector<ImageRegionType>     m_FixedImageRegionPyramid;
 
-  ImageMaskPointerArray  m_ImageMaskArray;
+  ImageMaskPointerArray            m_ImageMaskArray;
   unsigned long                    m_NumberOfLevels;
   unsigned long                    m_CurrentLevel;
 
   bool                             m_Stop;
 
-  int            m_NumberOfImages;
+  int                              m_NumberOfImages;
 
   
 };
