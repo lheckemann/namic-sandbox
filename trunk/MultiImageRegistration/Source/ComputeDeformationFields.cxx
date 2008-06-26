@@ -290,8 +290,7 @@ int main( int argc, char * argv[] )
       for( int j=0; j<N; j++)
       {
         transformFileNames[i][j] = outputFolder + bsplineFolderName.str() + "/TransformFiles/" + fileNames[j];
-        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "txt" );
-
+        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "txt");
       }
     }
 

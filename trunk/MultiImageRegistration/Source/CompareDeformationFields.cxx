@@ -44,6 +44,11 @@
 
 #include <itksys/SystemTools.hxx>
 
+std::string replaceExtension(const std::string oldname, const std::string extension)
+{
+  return oldname.substr(0, oldname.rfind(".")) + "." + extension;
+}
+
 using namespace std;
 int getCommandLine(       int argc, char *initFname, vector<string>& fileNames, string& inputFolder, string& outputFolder,
                           int& bsplineInitialGridSize,  int& numberOfBsplineLevel,
@@ -210,7 +215,7 @@ int main( int argc, char * argv[] )
   for(int i=0; i<N;i++)
   {
     syntheticTransformFileNames[i] = syntheticFolderName + "TransformFiles/" + fileNames[i];
-    syntheticTransformFileNames[i].replace(syntheticTransformFileNames[i].size()-3, 3, "txt" );
+    syntheticTransformFileNames[i] = replaceExtension(syntheticTransformFileNames[i], "txt");
   }
   
   // Generate the transform filenames
@@ -222,7 +227,7 @@ int main( int argc, char * argv[] )
       for( int j=0; j<N; j++)
       {
         transformFileNames[i][j] = outputFolder + "Affine/TransformFiles/" + fileNames[j];
-        transformFileNames[i][j].replace(transformFileNames[i][j].size()-3, 3, "txt" );
+        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "txt");
       }
     }
     else // generate bspline names
@@ -233,7 +238,7 @@ int main( int argc, char * argv[] )
       for( int j=0; j<N; j++)
       {
         transformFileNames[i][j] = outputFolder + bsplineFolderName.str() + "/TransformFiles/" + fileNames[j];
-        transformFileNames[i][j].replace(transformFileNames[i][j].size()-3, 3, "txt" );
+        transformFileNames[i][j] = replaceExtension(transformFileNames[i][j], "txt");
       }
     }
 
