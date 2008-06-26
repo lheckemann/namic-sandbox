@@ -1193,8 +1193,8 @@ int main( int argc, char *argv[] )
        
         TransformFileReader::Pointer        transformFileReader = TransformFileReader::New();
         string fileName = outputFolder + "Affine/TransformFiles/" + fileNames[i];
-        std::cout << "message: Reading " << fileName << endl;
         fileName = replaceExtension(fileName, "txt");
+        std::cout << "message: Reading " << fileName << endl;        
         transformFileReader->SetFileName(fileName.c_str());
         
         // Create the transforms
