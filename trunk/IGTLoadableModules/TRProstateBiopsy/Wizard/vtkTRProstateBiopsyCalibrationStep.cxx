@@ -3,7 +3,6 @@
 #include "vtkTRProstateBiopsyGUI.h"
 #include "vtkTRProstateBiopsyLogic.h"
 #include "vtkMRMLScalarVolumeNode.h"
-#include "vtkSlicerVolumesGUI.h"
 #include "vtkSlicerVolumesLogic.h"
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerApplicationLogic.h"
@@ -279,8 +278,6 @@ void vtkTRProstateBiopsyCalibrationStep::PrintSelf(ostream& os, vtkIndent indent
 void vtkTRProstateBiopsyCalibrationStep::ProcessGUIEvents(vtkObject *caller,
         unsigned long event, void *callData)
 {
-  slicerCerr("vtkTRProstateBiopsyCalibrationStep::ProcessGUIEvents");
-
   const char *eventName = vtkCommand::GetStringFromEventId(event);
   if (strcmp(eventName, "LeftButtonPressEvent") == 0)
     {
@@ -314,45 +311,8 @@ void vtkTRProstateBiopsyCalibrationStep::ProcessGUIEvents(vtkObject *caller,
           fileString[i] = '/';
           }
         }
-      vtkSlicerApplication *app =
-              (vtkSlicerApplication *)this->GetApplication();
-      vtkSlicerVolumesGUI *volGui =
-              (vtkSlicerVolumesGUI*)app->GetModuleGUIByName("Volumes");
-      vtkSlicerVolumesLogic *volumeLogic =
-              (vtkSlicerVolumesLogic*)(volGui->GetLogic());
-
-      //volumeLogic->AddObserver(vtkCommand::ProgressEvent,
-        //              this->LogicCallbackCommand);
-
-      vtkMRMLVolumeNode *volumeNode = NULL;
-      std::string archetype( fileName );
-      volumeNode = volumeLogic->AddArchetypeVolume( fileString.c_str(),
-                                                    archetype.c_str(),
-                                                    (labelMap << 0) |
-                                                    (centered << 1));
-
-      slicerCerr("Added Volume");
-
-      if ( volumeNode == NULL )
-        {
-        vtkKWMessageDialog *dialog = vtkKWMessageDialog::New();
-        dialog->SetParent (this->ButtonFrame);
-        dialog->SetStyleToMessage();
-        std::string msg = std::string("Unable to read volume file ")
-                + std::string(fileName);
-        dialog->SetText(msg.c_str());
-        dialog->Create();
-        dialog->Invoke();
-        dialog->Delete();
-        }
       this->LoadCalibrationImageButton->GetWidget()->GetLoadSaveDialog()
               ->SaveLastPathToRegistry("OpenPath");
-      if (volumeNode)
-        {
-        volGui->GetApplicationLogic()->GetSelectionNode()->SetActiveVolumeID(
-                        volumeNode->GetID());
-        volGui->GetApplicationLogic()->PropagateVolumeSelection();
-        }
       //volumeLogic->RemoveObservers(vtkCommand::ProgressEvent,  this->GUICallbackCommand);
       }
     }
@@ -364,128 +324,7 @@ vtkMRMLVolumeNode* vtkTRProstateBiopsyCalibrationStep::AddVolumeNode(
 
   std::cerr << "AddVolumeNode(): called." << std::endl;
 
-  vtkMRMLVolumeNode *volumeNode = NULL;
-
-  if (volumeNode == NULL)  // if real-time volume node has not been created
-    {
-
-      vtkMRMLVolumeDisplayNode *displayNode = NULL;
-      vtkMRMLScalarVolumeNode *scalarNode = vtkMRMLScalarVolumeNode::New();
-
-      vtkImageData* image = vtkImageData::New();
-
-      //image->SetDimensions(RealtimeXsize, RealtimeYsize, 1);
-      image->SetDimensions(256, 256, 1);
-      //image->SetExtent( xmin, xmax, ymin, ymax, zmin, zmax );
-      image->SetExtent(0, 255, 0, 255, 0, 0 );
-      image->SetNumberOfScalarComponents( 1 );
-      image->SetOrigin( 0, 0, 0 );
-      image->SetSpacing( 1, 1, 0 );
-      image->SetScalarTypeToShort();
-      image->AllocateScalars();
-
-      short* dest = (short*) image->GetScalarPointer();
-      if (dest) {
-       memset(dest, 0x01, 256*100*sizeof(short));
-       image->Update();
-      
-      }
-  
-      /*
-      vtkMRMLSliceNode *sliceorient = vtkMRMLSliceNode::New();
-      sliceorient->SetSliceToRAS(LocatorMatrix);
-      sliceorient->UpdateMatrices();
-      */
-
-      vtkSlicerSliceLayerLogic *reslice = vtkSlicerSliceLayerLogic::New();
-      reslice->SetUseReslice(0);
-
-      vtkImageChangeInformation *ici = vtkImageChangeInformation::New();
-      ici->SetInput (image);
-      ici->SetOutputSpacing( 1, 1, 1 );
-      ici->SetOutputOrigin( 0, 0, 0 );
-      ici->Update();
-      scalarNode->SetAndObserveImageData (ici->GetOutput());
-
-      vtkMatrix4x4* mat = vtkMatrix4x4::New();
-      double space[3];
-      int dim[3];
-      space[0] = 1;
-      space[1] = 1;
-      space[2] = 10;
-      dim[0]   = 256;
-      dim[1]   = 256;
-      dim[2]   = 1;
-      scalarNode->ComputeIJKToRASFromScanOrder("IS",
-                                               // possible is IS, PA, LR
-                                              //image->GetSpacing(),
-                                              space,
-                                              //image->GetDimensions(),
-                                              dim,
-                                              true, mat);
-      scalarNode->SetIJKToRASMatrix(mat);
-      mat->Delete();
-      image->Delete();
-
-      ici->Delete();
-
-
-      /* Based on the code in vtkSlicerVolumeLogic::AddHeaderVolume() */
-
-      displayNode = vtkMRMLVolumeDisplayNode::New();
-      scalarNode->SetLabelMap(0);
-      volumeNode = scalarNode;
-
-      if (volumeNode != NULL)
-        {
-          volumeNode->SetName(volumeNodeName);
-          volLogic->GetMRMLScene()->SaveStateForUndo();
-
-          vtkDebugMacro("Setting scene info");
-          volumeNode->SetScene(volLogic->GetMRMLScene());
-          displayNode->SetScene(volLogic->GetMRMLScene());
-
-          //should we give the user the chance to modify this?.
-          double range[2];
-          vtkDebugMacro("Set basic display info");
-          volumeNode->GetImageData()->GetScalarRange(range);
-           range[0] = 0.0;
-           range[1] = 256.0;
-          // These methods aren't defined
-          //displayNode->SetLowerThreshold(range[0]);
-          //displayNode->SetUpperThreshold(range[1]);
-          //displayNode->SetWindow(range[1] - range[0]);
-          //displayNode->SetLevel(0.5 * (range[1] - range[0]) );
-
-          vtkDebugMacro("Adding node..");
-          volLogic->GetMRMLScene()->AddNode(displayNode);
-
-          //displayNode->SetDefaultColorMap();
-          vtkSlicerColorLogic *colorLogic = vtkSlicerColorLogic::New();
-          displayNode->SetAndObserveColorNodeID(colorLogic->GetDefaultVolumeColorNodeID());
-          colorLogic->Delete();
-
-          volumeNode->SetAndObserveDisplayNodeID(displayNode->GetID());
-
-          vtkDebugMacro("Name vol node "<<volumeNode->GetClassName());
-          vtkDebugMacro("Display node "<<displayNode->GetClassName());
-
-          volLogic->GetMRMLScene()->AddNode(volumeNode);
-          vtkDebugMacro("Node added to scene");
-
-          volLogic->SetActiveVolumeNode(volumeNode);
-          volLogic->Modified();
-        }
-
-      scalarNode->Delete();
-
-      if (displayNode)
-        {
-          displayNode->Delete();
-        }
-    }
-
-  return volumeNode;
+  return NULL;
 
 }
 
