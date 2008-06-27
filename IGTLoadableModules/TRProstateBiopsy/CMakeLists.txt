@@ -1,5 +1,13 @@
 PROJECT(TRProstateBiopsy)
 
+cmake_minimum_required(VERSION 2.4)
+if(COMMAND cmake_policy)
+  cmake_policy(SET CMP0003 NEW)
+endif(COMMAND cmake_policy)
+
+INCLUDE(${CMAKE_ROOT}/Modules/TestBigEndian.cmake)
+TEST_BIG_ENDIAN(CMAKE_WORDS_BIGENDIAN)
+
 IF(NOT USE_IGSTK)
  ADD_DEFINITIONS(-DIGSTK_OFF)
 ENDIF(NOT USE_IGSTK)
@@ -24,8 +32,6 @@ INCLUDE_DIRECTORIES(
   ${TRProstateBiopsy_SOURCE_DIR}/Wizard
   ${Slicer3_Libs_INCLUDE_DIRS}
   ${Slicer3_Base_INCLUDE_DIRS}
-  ${Volumes_SOURCE_DIR}
-  ${Volumes_BINARY_DIR}
   ${SlicerBase_SOURCE_DIR}
   ${SlicerBase_BINARY_DIR}
   ${SlicerBaseLogic_SOURCE_DIR}
@@ -91,7 +97,6 @@ TARGET_LINK_LIBRARIES(TRProstateBiopsy
   vtkImagingTCL
   vtkFilteringTCL
   vtkIOTCL
-  Volumes
   vtkHybridTCL
   IGT
   ${IGSTK_LIB}

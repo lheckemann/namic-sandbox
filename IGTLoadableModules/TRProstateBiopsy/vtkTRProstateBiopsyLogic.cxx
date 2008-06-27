@@ -21,7 +21,6 @@
 #include "vtkMRMLScalarVolumeNode.h"
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkSlicerApplication.h"
-#include "vtkSlicerVolumesGUI.h"
 #include "vtkSlicerVolumesLogic.h"
 #include "vtkSlicerColorLogic.h"
 
@@ -164,14 +163,6 @@ void vtkTRProstateBiopsyLogic::UpdateAll()
 //---------------------------------------------------------------------------
 void vtkTRProstateBiopsyLogic::AddRealtimeVolumeNode(vtkSlicerApplication* app, const char* name)
 {
-  vtkSlicerVolumesGUI   *volGui   = (vtkSlicerVolumesGUI*)app->GetModuleGUIByName("Volumes");
-  vtkSlicerVolumesLogic* volLogic = (vtkSlicerVolumesLogic*)(volGui->GetLogic());
-
-  if (this->VolumeNode == NULL)
-    {
-    this->VolumesLogic = volLogic;
-    this->VolumeNode = AddVolumeNode(volLogic, name);
-    }
 }
 
 //---------------------------------------------------------------------------

@@ -68,7 +68,6 @@
 
 // for images
 #include "vtkSlicerColorLogic.h"
-#include "vtkSlicerVolumesGUI.h"
 
 // for 3D object display
 #include "vtkCylinderSource.h"
@@ -426,10 +425,6 @@ void vtkTRProstateBiopsyGUI::ProcessGUIEvents(vtkObject *caller,
 
   const char *eventName = vtkCommand::GetStringFromEventId(event);
 
-  slicerCerr("vtkTRProstateBiopsyGUI::ProcessGUIEvents");
-  
-
-
   if (strcmp(eventName, "LeftButtonPressEvent") == 0)
     {
     vtkSlicerInteractorStyle *style =
@@ -609,10 +604,22 @@ void vtkTRProstateBiopsyGUI::BuildGUI ( )
   // ---
   // MODULE GUI FRAME 
   // create a page
+
+  const char *help = "**Trans-Rectal Prostate Biopsy Module:** "
+                     "**Under Construction** "
+                     "This module provides an interface for using MRI "
+                     "to localize prostate biopsy targets and to perform "
+                     "the biopsies with an intra-rectal robot.";
+  const char *about = "This module was developed at Queen's University, Canada "
+                      "and is supported by NA-MIC and the Slicer Community. "
+                      "                 ";
+
   this->UIPanel->AddPage ( "TRProstateBiopsy", "TRProstateBiopsy", NULL );
 
-  this->BuildGUIForHelpFrame();
-  this->BuildGUIForWorkPhaseFrame ();
+  vtkKWWidget *page = this->UIPanel->GetPageWidget( "TRProstateBiopsy" );
+
+  this->BuildHelpAndAboutFrame( page, help, about );
+  this->BuildGUIForWorkPhaseFrame();
   this->BuildGUIForWizardFrame();
 }
 
