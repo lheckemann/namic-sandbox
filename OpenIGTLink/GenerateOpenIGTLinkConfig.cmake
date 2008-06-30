@@ -9,6 +9,14 @@
 # We want this to happen only in the OpenIGTLinkConfig.cmake of the build dir, not in the
 # installed or relocatable one.
 SET(OpenIGTLink_CONFIG_CODE "
+# The OpenIGTLink source tree.
+# For backward compatibility issues we still need to define this variable, although
+# it is highly probable that it will cause more harm than being useful. 
+# Use OpenIGTLink_INCLUDE_DIRS instead, since OpenIGTLink_SOURCE_DIR may point to non-existent directory
+IF(NOT OpenIGTLink_LEGACY_REMOVE)
+  SET(OpenIGTLink_SOURCE_DIR \"${OpenIGTLink_SOURCE_DIR}\")
+ENDIF(NOT OpenIGTLink_LEGACY_REMOVE)"
+)
 
 # The "use" file.
 SET(OpenIGTLink_USE_FILE ${OpenIGTLink_BINARY_DIR}/UseOpenIGTLink.cmake)
