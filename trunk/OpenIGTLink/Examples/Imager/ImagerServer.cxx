@@ -19,6 +19,7 @@
 
 #include "igtlOSUtil.h"
 #include "igtlTransformMessage.h"
+#include "igtlServerSocket.h"
 #include "igtlClientSocket.h"
 
 void GetRandomTestMatrix(igtl::Matrix4x4& matrix);
@@ -28,64 +29,60 @@ int main(int argc, char* argv[])
   //------------------------------------------------------------
   // Parse Arguments
 
-  if (argc != 4) // check number of arguments
+  if (argc != 3) // check number of arguments
     {
     // If not correct, print usage
-    std::cerr << "Usage: " << argv[0] << " <hostname> <port> <fps>"    << std::endl;
-    std::cerr << "    <hostname> : IP or host name"                    << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <port> <fps>"    << std::endl;
     std::cerr << "    <port>     : Port # (18944 in Slicer default)"   << std::endl;
     std::cerr << "    <fps>      : Frequency (fps) to send coordinate" << std::endl;
     exit(0);
     }
 
-  char*  hostname = argv[1];
-  int    port     = atoi(argv[2]);
-  double fps      = atof(argv[3]);
+  int    port     = atoi(argv[1]);
+  double fps      = atof(argv[2]);
   int    interval = (int) (1000.0 / fps);
-
-  //------------------------------------------------------------
-  // Establish Connection
-
-  igtl::ClientSocket::Pointer socket;
-  socket = igtl::ClientSocket::New();
-  int r = socket->ConnectToServer(hostname, port);
-
-  if (r != 0)
-    {
-    std::cerr << "Cannot connect to the server." << std::endl;
-    exit(0);
-    }
-
-  //------------------------------------------------------------
-  // Allocate Transform Message Class
 
   igtl::TransformMessage::Pointer transMsg;
   transMsg = igtl::TransformMessage::New();
   transMsg->SetDeviceName("Tracker");
 
-  //------------------------------------------------------------
-  // loop
-  for (int i = 0; i < 100; i ++)
+  igtl::ServerSocket::Pointer serverSocket;
+  serverSocket = igtl::ServerSocket::New();
+  serverSocket->CreateServer(port);
+
+  igtl::ClientSocket::Pointer socket;
+  
+  while (1)
     {
-    igtl::Matrix4x4 matrix;
-    GetRandomTestMatrix(matrix);
-    transMsg->SetMatrix(matrix);
-    transMsg->Pack();
-    socket->Send(transMsg->GetPackPointer(), transMsg->GetPackSize());
-    igtl::Sleep(interval); // wait
+    //------------------------------------------------------------
+    // Waiting for Connection
+    socket = serverSocket->WaitForConnection(1000);
+    
+    if (socket.IsNotNull()) // if client connected
+      {
+      //------------------------------------------------------------
+      // loop
+      for (int i = 0; i < 100; i ++)
+        {
+        igtl::Matrix4x4 matrix;
+        GetRandomTestMatrix(matrix);
+        transMsg->SetMatrix(matrix);
+        transMsg->Pack();
+        socket->Send(transMsg->GetPackPointer(), transMsg->GetPackSize());
+        igtl::Sleep(interval); // wait
+        }
+      }
     }
-
+    
   //------------------------------------------------------------
-  // Close connection
-
+  // Close connection (The example code never reachs to this section ...)
+  
   transMsg->Delete();
   socket->CloseSocket();
   socket->Delete();
 
 }
 
-//------------------------------------------------------------
-// Function to generate random matrix.
 
 void GetRandomTestMatrix(igtl::Matrix4x4& matrix)
 {

@@ -1,6 +1,6 @@
 /*=========================================================================
 
-  Program:   Open IGT Link -- Example for Tracker Client Program
+  Program:   Open IGT Link -- Example for Tracker Server Program
   Module:    $RCSfile: $
   Language:  C++
   Date:      $Date: $
