@@ -41,6 +41,12 @@ int MessageBase::SetDeviceName(std::string name)
   return 1;
 }
 
+int MessageBase::SetTimeStamp(unsigned int sec, unsigned int frac)
+{
+  m_TimeStampSec         = sec;
+  m_TimeStampSecFraction = frac;
+}
+
 void MessageBase::Pack()
 {
   PackBody();
@@ -51,10 +57,13 @@ void MessageBase::Pack()
   igtl_uint64 crc = crc64(0, 0, 0LL); // initial crc
 
   h->version   = IGTL_HEADER_VERSION;
-  h->timestamp = 0;
+
+  igtl_uint64 ts  =  m_TimeStampSec & 0xFFFFFFFF;
+  ts = ts << 32 || m_TimeStampSecFraction & 0xFFFFFFFF;
+
+  h->timestamp = ts;
   h->body_size = GetBodyPackSize();
   h->crc       = crc64((unsigned char*)m_Body, GetBodyPackSize(), crc);
-  
 
   strncpy(h->name, m_BodyType.c_str(), 12);
   strncpy(h->device_name, m_DeviceName.c_str(), 20);

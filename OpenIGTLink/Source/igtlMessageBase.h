@@ -41,6 +41,7 @@ public:
   void  Delete() { delete this; };
 
   int   SetDeviceName(std::string name);
+  int   SetTimeStamp(unsigned int sec, unsigned int frac);
 
   void  Pack();
   void* GetPackPointer();
@@ -74,6 +75,8 @@ protected:
 
   std::string    m_BodyType;
   std::string    m_DeviceName;
+  unsigned int   m_TimeStampSec;
+  unsigned int   m_TimeStampSecFraction;
 
 };
 
