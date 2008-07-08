@@ -10,6 +10,31 @@ ENABLE_TESTING()
 INCLUDE (${CMAKE_ROOT}/Modules/Dart.cmake)
 
 
+#-----------------------------------------------------------------------------
+# Include directories from the build tree.
+SET(OpenIGTLink_INCLUDE_DIRS_BUILD_TREE ${OpenIGTLink_BINARY_DIR})
+
+# These directories are always needed.
+SET(OpenIGTLink_INCLUDE_DIRS_BUILD_TREE ${OpenIGTLink_INCLUDE_DIRS_BUILD_TREE}
+  ${OpenIGTLink_SOURCE_DIR}/Source
+  ${OpenIGTLink_SOURCE_DIR}/Source/igtlutil
+)
+
+
+#-----------------------------------------------------------------------------
+#  There should be only one INCLUDE_DIRECTORIES command 
+#  in the entire tree in order to enforce a particular
+#  order for the search.
+#
+INCLUDE_DIRECTORIES(
+  ${OpenIGTLink_INCLUDE_DIRS_BUILD_TREE}
+  )
+
+SET(OpenIGTLink_LIBRARY_PATH  ${OpenIGTLink_LIBRARY_PATH}
+  ${OpenIGTLink_BINARY_DIR}/Source
+  ${OpenIGTLink_BINARY_DIR}/Source/igtlutil
+  )
+
 
 #-----------------------------------------------------------------------------
 # Help other projects use OpenIGTLink.
@@ -39,17 +64,8 @@ EXPORT_LIBRARY_DEPENDENCIES(${OpenIGTLink_BINARY_DIR}/OpenIGTLinkLibraryDepends.
 #ENDIF(NOT OpenIGTLink_INSTALL_NO_DEVELOPMENT)
 
 
-
 #-----------------------------------------------------------------------------
-#  There should be only one INCLUDE_DIRECTORIES command 
-#  in the entire tree in order to enforce a particular
-#  order for the search.
-#
-INCLUDE_DIRECTORIES(
-  ${OpenIGTLink_SOURCE_DIR}/Source 
-  ${OpenIGTLink_SOURCE_DIR}/Source/igtlutil 
-  ${OpenIGTLink_SOURCE_DIR}/Tools 
-  )
+# Configure Subdirectories
 
 ADD_SUBDIRECTORY( Source    )
 ADD_SUBDIRECTORY( Testing   )
