@@ -1,0 +1,35 @@
+/*=========================================================================
+
+  Program:   Open IGT Link Library
+  Module:    $RCSfile: $
+  Language:  C
+  Date:      $Date: $
+  Version:   $Revision: $
+
+  Copyright (c) Insight Software Consortium. All rights reserved.
+
+  This software is distributed WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+  PURPOSE.  See the above copyright notices for more information.
+
+=========================================================================*/
+
+#ifndef __IGTL_TYPECONFIG_H
+#define __IGTL_TYPECONFIG_H
+
+
+#cmakedefine CMAKE_SIZEOF_INT
+#cmakedefine CMAKE_SIZEOF_LONG
+#cmakedefine CMAKE_SIZEOF_VOID_P
+#cmakedefine CMAKE_SIZEOF_CHAR
+#cmakedefine CMAKE_SIZEOF_SHORT
+#cmakedefine CMAKE_SIZEOF_FLOAT
+#cmakedefine CMAKE_SIZEOF_DOUBLE
+#cmakedefine CMAKE_SIZEOF_LONG_LONG
+#cmakedefine CMAKE_SIZEOF___INT64
+#cmakedefine CMAKE_SIZEOF_INT64_T
+  
+#endif /*__IGTL_TYPECONFIG_H*/
+
+
+

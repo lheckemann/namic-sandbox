@@ -1,4 +1,3 @@
-
 INCLUDE(${OpenIGTLink_SOURCE_DIR}/Source/igtlCheckMacros.cmake)
 
 igtl_platform_check()
@@ -35,10 +34,6 @@ SET(OpenIGTLink_SOURCES
   igtlTransformMessage.cxx
   )
 
-INCLUDE_DIRECTORIES(
-  ${OpenIGTLink_SOURCE_DIR}/Source/igtlutil
-)
-
 ADD_SUBDIRECTORY( igtlutil )
 
 ADD_LIBRARY(OpenIGTLink
@@ -49,3 +44,18 @@ TARGET_LINK_LIBRARIES(OpenIGTLink
   igtlutil
   ${LINK_LIBS}
   )
+
+FILE(GLOB __files1 "${CMAKE_CURRENT_SOURCE_DIR}/*.h")
+INSTALL(FILES ${__files1}
+  DESTINATION ${OpenIGTLink_INSTALL_INCLUDE_DIR}
+  COMPONENT Development)
+
+FILE(GLOB __files2 "${CMAKE_CURRENT_SOURCE_DIR}/igtlutil/*.h")
+INSTALL(FILES ${__files2}
+  DESTINATION ${OpenIGTLink_INSTALL_INCLUDE_DIR}/igtlutil
+  COMPONENT Development)
+
+INSTALL(TARGETS OpenIGTLink
+  RUNTIME DESTINATION ${OpenIGTLink_INSTALL_BIN_DIR} COMPONENT RuntimeLibraries
+  LIBRARY DESTINATION ${OpenIGTLink_INSTALL_LIB_DIR} COMPONENT RuntimeLibraries
+  ARCHIVE DESTINATION ${OpenIGTLink_INSTALL_LIB_DIR} COMPONENT Development)

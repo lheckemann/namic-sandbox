@@ -1,0 +1,30 @@
+/*=========================================================================
+
+  Program:   Open IGT Link Library
+  Module:    $RCSfile: $
+  Language:  C
+  Date:      $Date: $
+  Version:   $Revision: $
+
+  Copyright (c) Insight Software Consortium. All rights reserved.
+
+  This software is distributed WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+  PURPOSE.  See the above copyright notices for more information.
+
+=========================================================================*/
+
+#ifndef __IGTL_CONFIGURE_H
+#define __IGTL_CONFIGURE_H
+
+#cmakedefine OpenIGTLink_PLATFORM_MACOSX
+#cmakedefine OpenIGTLink_PLATFORM_LINUX 
+#cmakedefine OpenIGTLink_PLATFORM_WIN32
+
+#cmakedefine OpenIGTLink_USE_PTHREAD
+#cmakedefine OpenIGTLink_USE_WIN32_THREAD
+
+#endif /*__IGTL_CONFIGURE_H*/
+
+
+
