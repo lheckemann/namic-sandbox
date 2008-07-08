@@ -1,5 +1,6 @@
 PROJECT(Tracker)
 
+
 cmake_minimum_required(VERSION 2.4)
 if(COMMAND cmake_policy)
   cmake_policy(SET CMP0003 NEW)
@@ -19,10 +20,11 @@ endif(COMMAND cmake_policy)
 #TARGET_LINK_LIBRARIES(TrackerServer OpenIGTLink)
 
 
-find_package(OpenIGTLink REQUIRED)
-if(NOT OpenIGTLink_FOUND)
-  message(FATAL_ERROR "Need OpenIGTLink to build")
-endif(NOT OpenIGTLink_FOUND)
+#IF(NOT OpenIGTLink_BINARY_DIR)
+#  find_path(OpenIGTLink_BINARY_DIR OpenIGTLinkConfig.cmake)
+#ENDIF(NOT OpenIGTLink_BINARY_DIR)
+
+include(${OpenIGTLink_BINARY_DIR}/OpenIGTLinkConfig.cmake)
 
 include(${OpenIGTLink_USE_FILE})
 

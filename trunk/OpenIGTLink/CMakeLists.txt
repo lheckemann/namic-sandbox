@@ -28,15 +28,15 @@ CMAKE_EXPORT_BUILD_SETTINGS(${OpenIGTLink_BINARY_DIR}/OpenIGTLinkBuildSettings.c
 # Save library dependencies.
 EXPORT_LIBRARY_DEPENDENCIES(${OpenIGTLink_BINARY_DIR}/OpenIGTLinkLibraryDepends.cmake)
 
-IF(NOT OpenIGTLink_INSTALL_NO_DEVELOPMENT)
-  INSTALL(FILES
-    ${OpenIGTLink_BINARY_DIR}/OpenIGTLinkBuildSettings.cmake
-    ${OpenIGTLink_BINARY_DIR}/OpenIGTLinkLibraryDepends.cmake
-    ${OpenIGTLink_BINARY_DIR}/UseOpenIGTLink.cmake
-    DESTINATION ${OpenIGTLink_INSTALL_PACKAGE_DIR_CM24}
-    COMPONENT Development
-    )
-ENDIF(NOT OpenIGTLink_INSTALL_NO_DEVELOPMENT)
+#IF(NOT OpenIGTLink_INSTALL_NO_DEVELOPMENT)
+#  INSTALL(FILES
+#    ${OpenIGTLink_BINARY_DIR}/OpenIGTLinkBuildSettings.cmake
+#    ${OpenIGTLink_BINARY_DIR}/OpenIGTLinkLibraryDepends.cmake
+#    ${OpenIGTLink_BINARY_DIR}/UseOpenIGTLink.cmake
+#    DESTINATION ${OpenIGTLink_INSTALL_PACKAGE_DIR_CM24}
+#    COMPONENT Development
+#    )
+#ENDIF(NOT OpenIGTLink_INSTALL_NO_DEVELOPMENT)
 
 
 
@@ -56,5 +56,6 @@ ADD_SUBDIRECTORY( Testing   )
 ADD_SUBDIRECTORY( Tools     )
 #ADD_SUBDIRECTORY( Documents )
 ADD_SUBDIRECTORY( Examples )
+
 
 
