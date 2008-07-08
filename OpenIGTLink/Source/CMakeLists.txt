@@ -1,6 +1,5 @@
-PROJECT( OpenIGTLink )
 
-INCLUDE(${OpenIGTLink_SOURCE_DIR}/igtlCheckMacros.cmake)
+INCLUDE(${OpenIGTLink_SOURCE_DIR}/Source/igtlCheckMacros.cmake)
 
 igtl_platform_check()
 igtl_type_check()
@@ -37,7 +36,7 @@ SET(OpenIGTLink_SOURCES
   )
 
 INCLUDE_DIRECTORIES(
-  ${CMAKE_CURRENT_SOURCE_DIR}/igtlutil
+  ${OpenIGTLink_SOURCE_DIR}/Source/igtlutil
 )
 
 ADD_SUBDIRECTORY( igtlutil )

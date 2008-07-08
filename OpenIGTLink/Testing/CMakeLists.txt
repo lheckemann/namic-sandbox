@@ -1,5 +1,5 @@
 
-INCLUDE(${OpenIGTLink_SOURCE_DIR}/igtlCheckMacros.cmake)
+INCLUDE(${OpenIGTLink_SOURCE_DIR}/Source/igtlCheckMacros.cmake)
 
 igtl_platform_check()
 igtl_type_check()
