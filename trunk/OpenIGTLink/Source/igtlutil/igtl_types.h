@@ -17,6 +17,7 @@
 #ifndef __IGTL_TYPES_H
 #define __IGTL_TYPES_H
 
+#include "igtl_typeconfig.h"
 
 /* 8-bit integer type */
 #if IGTL_SIZEOF_CHAR == 1

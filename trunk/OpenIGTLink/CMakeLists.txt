@@ -62,11 +62,11 @@ ENDIF(NOT OpenIGTLink_INSTALL_NO_DOCUMENTATION)
 
 SET(OpenIGTLink_DIR "${CMAKE_BINARY_DIR}" CACHE INTERNAL "OpenIGTLink dir to be used by subprojects")
 
-
 #-----------------------------------------------------------------------------
 # Include directories
 
 SET(OpenIGTLink_INCLUDE_DIRS_BUILD_TREE ${OpenIGTLink_INCLUDE_DIRS_BUILD_TREE}
+  ${OpenIGTLink_BINARY_DIR}
   ${OpenIGTLink_SOURCE_DIR}/Source
   ${OpenIGTLink_SOURCE_DIR}/Source/igtlutil
 )
@@ -79,6 +79,17 @@ INCLUDE_DIRECTORIES(
 #  ${OpenIGTLink_BINARY_DIR}/Source
 #  ${OpenIGTLink_BINARY_DIR}/Source/igtlutil
 #  )
+
+#-----------------------------------------------------------------------------
+# Generate Configuration Header files.
+
+include (${OpenIGTLink_SOURCE_DIR}/OpenIGTLinkConfigPlatform.cmake)
+
+CONFIGURE_FILE(${OpenIGTLink_SOURCE_DIR}/igtlConfigure.h.in 
+  ${OpenIGTLink_BINARY_DIR}/igtlConfigure.h)
+
+CONFIGURE_FILE(${OpenIGTLink_SOURCE_DIR}/igtl_typeconfig.h.in 
+  ${OpenIGTLink_BINARY_DIR}/igtl_typeconfig.h)
 
 #-----------------------------------------------------------------------------
 # Help other projects use OpenIGTLink.
@@ -105,6 +116,17 @@ INSTALL(FILES
   COMPONENT Development
   )
 
+INSTALL(FILES
+  ${OpenIGTLink_BINARY_DIR}/igtlConfigure.h
+  DESTINATION ${OpenIGTLink_INSTALL_INCLUDE_DIR}
+  COMPONENT Development
+  )
+
+INSTALL(FILES
+  ${OpenIGTLink_BINARY_DIR}/igtl_typeconfig.h
+  DESTINATION ${OpenIGTLink_INSTALL_INCLUDE_DIR}/igtlutil
+  COMPONENT Development
+  )
 
 #-----------------------------------------------------------------------------
 # Configure Subdirectories
