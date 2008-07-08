@@ -1,19 +1,19 @@
-INCLUDE(${OpenIGTLink_SOURCE_DIR}/Source/igtlCheckMacros.cmake)
+#INCLUDE(${OpenIGTLink_SOURCE_DIR}/Source/igtlCheckMacros.cmake)
+#
+#igtl_platform_check()
+#igtl_type_check()
 
-igtl_platform_check()
-igtl_type_check()
-
-IF(WIN32)
+IF(OpenIGTLink_PLATFORM_WIN32)
   SET(LINK_LIBS
     ws2_32
     wsock32
   )
-ELSE(WIN32)
+ELSE(OpenIGTLink_PLATFORM_WIN32)
   SET(LINK_LIBS
     pthread
     m
   )
-ENDIF(WIN32)
+ENDIF(OpenIGTLink_PLATFORM_WIN32)
 
 SET(OpenIGTLink_SOURCES
   igtlClientSocket.cxx
