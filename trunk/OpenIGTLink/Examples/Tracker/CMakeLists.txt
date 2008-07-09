@@ -10,6 +10,6 @@ include(${OpenIGTLink_BINARY_DIR}/OpenIGTLinkConfig.cmake)
 include(${OpenIGTLink_USE_FILE})
 
 ADD_EXECUTABLE(TrackerClient   TrackerClient.cxx)
-TARGET_LINK_LIBRARIES(TrackerClient OpenIGTLink igtlutil)
+TARGET_LINK_LIBRARIES(TrackerClient OpenIGTLink)
 ADD_EXECUTABLE(TrackerServer   TrackerServer.cxx)
-TARGET_LINK_LIBRARIES(TrackerServer OpenIGTLink igtlutil)
+TARGET_LINK_LIBRARIES(TrackerServer OpenIGTLink)
