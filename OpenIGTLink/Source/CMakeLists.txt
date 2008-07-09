@@ -1,8 +1,3 @@
-#INCLUDE(${OpenIGTLink_SOURCE_DIR}/Source/igtlCheckMacros.cmake)
-#
-#igtl_platform_check()
-#igtl_type_check()
-
 IF(OpenIGTLink_PLATFORM_WIN32)
   SET(LINK_LIBS
     ws2_32
@@ -15,7 +10,13 @@ ELSE(OpenIGTLink_PLATFORM_WIN32)
   )
 ENDIF(OpenIGTLink_PLATFORM_WIN32)
 
+ADD_SUBDIRECTORY( igtlutil )
+
 SET(OpenIGTLink_SOURCES
+  igtlutil/igtl_header.c
+  igtlutil/igtl_image.c
+  igtlutil/igtl_transform.c
+  igtlutil/igtl_util.c
   igtlClientSocket.cxx
   igtlConditionVariable.cxx
   igtlFastMutexLock.cxx
@@ -34,14 +35,11 @@ SET(OpenIGTLink_SOURCES
   igtlTransformMessage.cxx
   )
 
-ADD_SUBDIRECTORY( igtlutil )
-
 ADD_LIBRARY(OpenIGTLink
   ${OpenIGTLink_SOURCES}
   )
 
 TARGET_LINK_LIBRARIES(OpenIGTLink
-  igtlutil
   ${LINK_LIBS}
   )
 

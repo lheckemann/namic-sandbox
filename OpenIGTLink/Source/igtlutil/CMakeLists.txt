@@ -1,5 +1,3 @@
-SET(IGTL_UTIL_PROTOCOL_VERSION "1")
-
 SET(IGTLUTIL_HEADS
   igtl_header.h
   igtl_image.h
@@ -16,13 +14,11 @@ SET(IGTLUTIL_SRCS
   )       
 
 ADD_LIBRARY(igtlutil
-  ${IGTLUTIL_HEADS}
   ${IGTLUTIL_SRCS}
   )
 
-#TARGET_LINK_LIBRARIES(igtlutil
-#  ${LIBS}
-#  )
+TARGET_LINK_LIBRARIES(igtlutil
+  )
 
 INSTALL(TARGETS igtlutil
   RUNTIME DESTINATION ${OpenIGTLink_INSTALL_BIN_DIR} COMPONENT RuntimeLibraries
