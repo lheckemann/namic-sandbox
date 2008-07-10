@@ -40,14 +40,26 @@ public:
 
   void  Delete() { delete this; };
 
-  int   SetDeviceName(std::string name);
+  int   SetDeviceName(const char* name);
+  const char* GetDeviceName();
+  const char* GetDeviceType();
+  
   int   SetTimeStamp(unsigned int sec, unsigned int frac);
+  int   GetTimeStamp(unsigned int* sec, unsigned int* frac);
 
   void  Pack();
+  void  Unpack();
   void* GetPackPointer();
   int   GetPackSize();
 
   const char* GetBodyType() { return this->m_BodyType.c_str(); };
+
+  // Allocate memory for packing / receiving buffer
+  void AllocatePack();
+  
+  // The '=' operator is defined to substitute base class to
+  // a child message class, after receiving the general header.
+  MessageBase& operator=(const MessageBase &mb);
 
 protected:
   MessageBase();
@@ -56,11 +68,8 @@ protected:
 protected:
 
   // Pack body (must be implemented in a child class)
-  virtual int GetBodyPackSize() { return 0; };
-  virtual void PackBody()       {};
-
-  // Allocate memory for packing
-  void AllocatePack();
+  virtual int  GetBodyPackSize() { return 0; };
+  virtual void PackBody()        {};
 
   // Pointers to header and image
   //  To prevent large copy of byte array in Pack() function,
@@ -73,8 +82,10 @@ protected:
   unsigned char* m_Header;
   unsigned char* m_Body;
 
+  //BTX
   std::string    m_BodyType;
   std::string    m_DeviceName;
+  //ETX
   unsigned int   m_TimeStampSec;
   unsigned int   m_TimeStampSecFraction;
 
