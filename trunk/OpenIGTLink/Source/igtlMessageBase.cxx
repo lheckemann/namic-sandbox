@@ -35,10 +35,19 @@ MessageBase::~MessageBase()
   // TBD
 }
 
-int MessageBase::SetDeviceName(std::string name)
+int MessageBase::SetDeviceName(const char* name)
 {
-  m_DeviceName = name;
-  return 1;
+  m_DeviceName = std::string(name);
+}
+
+const char* MessageBase::GetDeviceName()
+{
+  return m_DeviceName.c_str();
+}
+
+const char* MessageBase::GetDeviceType()
+{
+  return m_BodyType.c_str();
 }
 
 int MessageBase::SetTimeStamp(unsigned int sec, unsigned int frac)
@@ -72,6 +81,31 @@ void MessageBase::Pack()
 
 }
 
+
+void MessageBase::Unpack()
+{
+  // pack exists?
+  if (m_Header != NULL && m_PackSize > IGTL_HEADER_SIZE)
+    {
+      igtl_header* h = (igtl_header*) m_Header;
+      igtl_header_convert_byte_order(h);
+      m_TimeStampSecFraction = h->timestamp & 0xFFFFFFFF;
+      m_TimeStampSec = (h->timestamp >> 32 ) & 0xFFFFFFFF;
+      m_PackSize     = h->body_size + IGTL_HEADER_SIZE;
+
+      char bodyType[13];
+      char deviceName[21];
+      bodyType[12]   = '\0';
+      deviceName[20] = '\0';
+      strncpy(bodyType, h->name, 12);
+      strncpy(deviceName, h->device_name, 20);
+
+      m_BodyType = std::string(bodyType);
+      m_DeviceName = std::string(deviceName);
+    }
+}
+
+
 void* MessageBase::GetPackPointer()
 {
   return (void*) m_Header;
@@ -82,21 +116,34 @@ int MessageBase::GetPackSize()
   return m_PackSize;
 }
 
+
 void MessageBase::AllocatePack()
 {
   int s = IGTL_HEADER_SIZE + GetBodyPackSize();
-  if (m_PackSize != s)
+  if (m_PackSize == 0 || m_Header == NULL)      // for the first time
     {
-      if (m_Header != NULL)
-        {
-          delete m_Header;
-        }
       m_Header = new unsigned char [s];
-      m_Body   = &m_Header[IGTL_HEADER_SIZE];
-      m_PackSize = s;
     }
+  else if (m_PackSize != s)  // if the pack area exists but needs to be reallocated
+    {
+      unsigned char* old = m_Header;
+      m_Header = new unsigned char [s];
+      memcpy(m_Header, old, IGTL_HEADER_SIZE);
+      delete m_Header;
+    }
+  m_Body   = &m_Header[IGTL_HEADER_SIZE];
+  m_PackSize = s;
 }
+
   
+MessageBase& MessageBase::operator=(const MessageBase &mb)
+{
+  if (this == &mb)
+    {
+      return *this;
+    }
+  this->AllocatePack();
+}
 
 
 }
