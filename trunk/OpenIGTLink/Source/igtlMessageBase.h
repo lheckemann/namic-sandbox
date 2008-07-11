@@ -23,6 +23,68 @@
 #include "igtlMacro.h"
 #include "igtlMath.h"
 
+//-------------------------------------------------------------------------
+// The MessageBase class is the base class of all message type classes
+// used in the Open IGT Link Library. The message classes can be used
+// both for serializing (packing) Open IGT Link message byte streams and
+// deserializing (unpacking) Open IGT Link.
+// 
+// The typical packing/unpacking procedures using sub-classes of
+// MessageBase look like the followings
+//
+//  a) Packing (ex. TransformMessage class)
+//
+//     // Create instance and set Device Name
+//     igtl::TransformMessage::Pointer transMsg;
+//     transMsg = igtl::TransformMessage::New();
+//     transMsg->SetDeviceName("Tracker");
+//
+//     // Create matrix and substitute values
+//     igtl::Matrix4x4 matrix;
+//     GetRandomTestMatrix(matrix);
+//
+//     // Set matrix data, serialize, and send it.
+//     transMsg->SetMatrix(matrix);
+//     transMsg->Pack();
+//     socket->Send(transMsg->GetPackPointer(), transMsg->GetPackSize());
+//
+//  b) Unpacking
+//
+//     // Create instance and set Device Name
+//     igtl::MessageBase::Pointer headerMsg;
+//     headerMsg = igtl::MessageBase::New();
+//
+//     // Set up memory area to and receive the general header and unpack
+//     headerMsg->AllocatePack();
+//     socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
+//     headerMsg->Unpack();
+//
+//     // Check data type string
+//     if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM"))
+//       {
+//         igtl::TransformMessage::Pointer transMsg;
+//         transMsg = igtl::TransformMessage::New();
+//         transMsg = headerMsg;
+//         transMsg->AllocatePack();
+//         socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackSize());
+//         transMsg->Unpack();
+//       }
+//     else if (strcmp(headerMsg->GetDeviceType(), "IMAGE"))
+//       {
+//         igtl::ImageMessage::Pointer imageMsg;
+//         imageMsg = igtl::ImageMessage::New();
+//         imageMsg = headerMsg;
+//         imageMsg->AllocatePack();
+//         socket->Receive(imageMsg->GetPackBodyPointer(), imageMsg->GetPackSize());
+//         imageMsg->Unpack();
+//       }
+//     else if (...)
+//       {
+//          ...
+//       }
+//
+//-------------------------------------------------------------------------
+
 namespace igtl
 {
 
@@ -50,6 +112,7 @@ public:
   void  Pack();
   void  Unpack();
   void* GetPackPointer();
+  void* GetPackBodyPointer();
   int   GetPackSize();
 
   const char* GetBodyType() { return this->m_BodyType.c_str(); };
@@ -71,6 +134,14 @@ protected:
   virtual int  GetBodyPackSize() { return 0; };
   virtual void PackBody()        {};
 
+  // Allocate memory specifying the body size
+  // (used when create a brank package to receive data)
+  void AllocatePack(int bodySize);
+
+  // Copy data (used for operator=)
+  int CopyHeader(const MessageBase &mb);
+  virtual int CopyBody(const MessageBase &mb) { return 0; };
+
   // Pointers to header and image
   //  To prevent large copy of byte array in Pack() function,
   //  header byte array is concatinated to that of image.
@@ -81,6 +152,8 @@ protected:
   int            m_PackSize;
   unsigned char* m_Header;
   unsigned char* m_Body;
+
+  int            m_BodySizeToRead;
 
   //BTX
   std::string    m_BodyType;
