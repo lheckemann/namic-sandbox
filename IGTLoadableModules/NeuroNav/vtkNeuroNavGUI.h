@@ -40,134 +40,144 @@ class vtkKWMultiColumnListWithScrollbars;
 //
 class VTK_NEURONAV_EXPORT vtkNeuroNavGUI : public vtkSlicerModuleGUI
 {
- public:
-    // Description:    
-    // Usual vtk class functions
-    static vtkNeuroNavGUI* New (  );
-    vtkTypeRevisionMacro ( vtkNeuroNavGUI, vtkSlicerModuleGUI );
-    void PrintSelf (ostream& os, vtkIndent indent );
-    
-    // Description:    
-    // Get methods on class members (no Set methods required)
-    vtkGetObjectMacro ( Logic, vtkNeuroNavLogic );
+public:
 
-    // Description:
-    // API for setting VolumeNode, VolumeLogic and
-    // for both setting and observing them.
-    void SetModuleLogic ( vtkSlicerLogic *logic )
-        { this->SetLogic ( vtkObjectPointer (&this->Logic), logic ); }
-    //void SetAndObserveModuleLogic ( vtkNeuroNavLogic *logic )
-    //    { this->SetAndObserveLogic ( vtkObjectPointer (&this->Logic), logic ); }
+  // Description:    
+  // Usual vtk class functions
+  static vtkNeuroNavGUI* New (  );
+  vtkTypeRevisionMacro ( vtkNeuroNavGUI, vtkSlicerModuleGUI );
+  void PrintSelf (ostream& os, vtkIndent indent );
 
-    // Description:    
-    // This method builds the IGTDemo module GUI
-    virtual void BuildGUI ( );
+  // Description:    
+  // Get methods on class members (no Set methods required)
+  vtkGetObjectMacro ( Logic, vtkNeuroNavLogic );
 
-    // Description:
-    // Add/Remove observers on widgets in the GUI
-    virtual void AddGUIObservers ( );
-    virtual void RemoveGUIObservers ( );
+  // Description:
+  // API for setting VolumeNode, VolumeLogic and
+  // for both setting and observing them.
+  void SetModuleLogic ( vtkSlicerLogic *logic )
+    { this->SetLogic ( vtkObjectPointer (&this->Logic), logic ); }
+  //void SetAndObserveModuleLogic ( vtkNeuroNavLogic *logic )
+  //    { this->SetAndObserveLogic ( vtkObjectPointer (&this->Logic), logic ); }
+
+  // Description:    
+  // This method builds the IGTDemo module GUI
+  virtual void BuildGUI ( );
+
+  // Description:
+  // Add/Remove observers on widgets in the GUI
+  virtual void AddGUIObservers ( );
+  virtual void RemoveGUIObservers ( );
 
 
-    // Description:
-    // Class's mediator methods for processing events invoked by
-    // either the Logic, MRML or GUI.    
-    virtual void ProcessLogicEvents ( vtkObject *caller, unsigned long event, void *callData );
-    virtual void ProcessGUIEvents ( vtkObject *caller, unsigned long event, void *callData );
-    virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
+  // Description:
+  // Class's mediator methods for processing events invoked by
+  // either the Logic, MRML or GUI.    
+  virtual void ProcessLogicEvents ( vtkObject *caller, unsigned long event, void *callData );
+  virtual void ProcessGUIEvents ( vtkObject *caller, unsigned long event, void *callData );
+  virtual void ProcessMRMLEvents ( vtkObject *caller, unsigned long event, void *callData );
+  void ProcessTimerEvents();
 
-    void HandleMouseEvent(vtkSlicerInteractorStyle *style);
+  void HandleMouseEvent(vtkSlicerInteractorStyle *style);
 
-    
-    // Description:
-    // Describe behavior at module startup and exit.
-    virtual void Enter ( );
-    virtual void Exit ( );
 
-    void Init();
+  // Description:
+  // Describe behavior at module startup and exit.
+  virtual void Enter ( );
+  virtual void Exit ( );
+
+  void Init();
 
   //BTX
   static void DataCallback(vtkObject *caller, 
-                unsigned long eid, void *clientData, void *callData);
+                           unsigned long eid, void *clientData, void *callData);
 
   //ETX
 
- protected:
-    vtkNeuroNavGUI ( );
-    virtual ~vtkNeuroNavGUI ( );
+protected:
+  vtkNeuroNavGUI ( );
+  virtual ~vtkNeuroNavGUI ( );
 
-    vtkKWCheckButton *LocatorCheckButton;
-    vtkKWCheckButton *HandleCheckButton;
-    vtkKWCheckButton *GuideCheckButton;
+  vtkKWCheckButton *LocatorCheckButton;
+  vtkKWCheckButton *HandleCheckButton;
+  vtkKWCheckButton *GuideCheckButton;
 
-    vtkKWCheckButton *LocatorModeCheckButton;
-    vtkKWCheckButton *UserModeCheckButton;
+  vtkKWCheckButton *LocatorModeCheckButton;
+  vtkKWCheckButton *UserModeCheckButton;
+  vtkKWCheckButton *FreezeCheckButton;
+  vtkKWCheckButton *ObliqueCheckButton;
 
-    vtkKWMenuButton *RedSliceMenu;
-    vtkKWMenuButton *YellowSliceMenu;
-    vtkKWMenuButton *GreenSliceMenu;
+  vtkKWMenuButton *RedSliceMenu;
+  vtkKWMenuButton *YellowSliceMenu;
+  vtkKWMenuButton *GreenSliceMenu;
 
-    vtkKWEntryWithLabel *PatCoordinatesEntry;
-    vtkKWEntryWithLabel *SlicerCoordinatesEntry;
-    vtkKWPushButton *GetPatCoordinatesPushButton;
-    vtkKWPushButton *AddPointPairPushButton;
+  vtkKWEntryWithLabel *TransformNodeNameEntry;
 
-    vtkKWMultiColumnListWithScrollbars *PointPairMultiColumnList;
+  vtkKWEntryWithLabel *PatCoordinatesEntry;
+  vtkKWEntryWithLabel *SlicerCoordinatesEntry;
+  vtkKWPushButton *GetPatCoordinatesPushButton;
+  vtkKWPushButton *AddPointPairPushButton;
 
-//    vtkKWPushButton *LoadPointPairPushButton;
-//    vtkKWPushButton *SavePointPairPushButton;
-    vtkKWPushButton *DeletePointPairPushButton;
-    vtkKWPushButton *DeleteAllPointPairPushButton;    
-    vtkKWPushButton *RegisterPushButton;
-    vtkKWPushButton *ResetPushButton;
+  vtkKWMultiColumnListWithScrollbars *PointPairMultiColumnList;
+
+  //    vtkKWPushButton *LoadPointPairPushButton;
+  //    vtkKWPushButton *SavePointPairPushButton;
+  vtkKWPushButton *DeletePointPairPushButton;
+  vtkKWPushButton *DeleteAllPointPairPushButton;    
+  vtkKWPushButton *RegisterPushButton;
+  vtkKWPushButton *ResetPushButton;
 
 
-    // Module logic and mrml pointers
-    vtkNeuroNavLogic *Logic;
+  // Module logic and mrml pointers
+  vtkNeuroNavLogic *Logic;
 
-    // int StopTimer;
-    vtkMatrix4x4 *LocatorMatrix;
+  // int StopTimer;
+  vtkMatrix4x4 *LocatorMatrix;
 
-    vtkMRMLModelNode *LocatorModelNode;
-    vtkMRMLModelDisplayNode *LocatorModelDisplayNode;
+  vtkMRMLModelNode *LocatorModelNode;
+  vtkMRMLModelDisplayNode *LocatorModelDisplayNode;
 
-    //BTX
-    std::string LocatorModelID;
-    //ETX
-    vtkIGTDataManager *DataManager;
-    vtkIGTPat2ImgRegistration *Pat2ImgReg;
+  //BTX
+  std::string LocatorModelID;
+  //ETX
+  vtkIGTDataManager *DataManager;
+  vtkIGTPat2ImgRegistration *Pat2ImgReg;
 
-    vtkCallbackCommand *DataCallbackCommand;
+  vtkCallbackCommand *DataCallbackCommand;
 
-    // Access the slice windows
-    vtkSlicerSliceLogic *Logic0;
-    vtkSlicerSliceLogic *Logic1;
-    vtkSlicerSliceLogic *Logic2;
-    vtkMRMLSliceNode *SliceNode0;
-    vtkMRMLSliceNode *SliceNode1;
-    vtkMRMLSliceNode *SliceNode2;
-    vtkSlicerSliceControllerWidget *Control0;
-    vtkSlicerSliceControllerWidget *Control1;
-    vtkSlicerSliceControllerWidget *Control2;
+  // Access the slice windows
+  vtkSlicerSliceLogic *Logic0;
+  vtkSlicerSliceLogic *Logic1;
+  vtkSlicerSliceLogic *Logic2;
+  vtkMRMLSliceNode *SliceNode0;
+  vtkMRMLSliceNode *SliceNode1;
+  vtkMRMLSliceNode *SliceNode2;
+  vtkSlicerSliceControllerWidget *Control0;
+  vtkSlicerSliceControllerWidget *Control1;
+  vtkSlicerSliceControllerWidget *Control2;
 
-    int NeedOrientationUpdate0;
-    int NeedOrientationUpdate1;
-    int NeedOrientationUpdate2;
+  int NeedOrientationUpdate0;
+  int NeedOrientationUpdate1;
+  int NeedOrientationUpdate2;
 
-    void UpdateAll();
-    void UpdateLocator();
-    void UpdateSliceDisplay(float nx, float ny, float nz, 
-                            float tx, float ty, float tz, 
-                            float px, float py, float pz);
+  void UpdateAll();
+  void UpdateLocator();
+  void UpdateSliceDisplay(float nx, float ny, float nz, 
+                          float tx, float ty, float tz, 
+                          float px, float py, float pz);
 
- private:
-    vtkNeuroNavGUI ( const vtkNeuroNavGUI& ); // Not implemented.
-    void operator = ( const vtkNeuroNavGUI& ); //Not implemented.
+private:
+  vtkNeuroNavGUI ( const vtkNeuroNavGUI& ); // Not implemented.
+  void operator = ( const vtkNeuroNavGUI& ); //Not implemented.
 
-    void BuildGUIForTrackingFrame ();
-    void BuildGUIForRegistrationFrame ();
+  void BuildGUIForTrackingFrame ();
+  void BuildGUIForRegistrationFrame ();
 
-    void TrackerLoop();
+  void TrackerLoop();
+
+  bool CloseScene;
+  int TimerFlag;
+  int TimerInterval;
 
 };
 
