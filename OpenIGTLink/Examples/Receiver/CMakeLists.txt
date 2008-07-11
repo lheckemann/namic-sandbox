@@ -1,4 +1,4 @@
-PROJECT(Tracker)
+PROJECT(Receiver)
 
 cmake_minimum_required(VERSION 2.4)
 if(COMMAND cmake_policy)
@@ -9,7 +9,5 @@ find_path(OpenIGTLink_BINARY_DIR OpenIGTLinkConfig.cmake)
 include(${OpenIGTLink_BINARY_DIR}/OpenIGTLinkConfig.cmake)
 include(${OpenIGTLink_USE_FILE})
 
-ADD_EXECUTABLE(TrackerClient   TrackerClient.cxx)
-TARGET_LINK_LIBRARIES(TrackerClient OpenIGTLink)
-ADD_EXECUTABLE(TrackerServer   TrackerServer.cxx)
-TARGET_LINK_LIBRARIES(TrackerServer OpenIGTLink)
+ADD_EXECUTABLE(ReceiveServer  ReceiveServer.cxx)
+TARGET_LINK_LIBRARIES(ReceiveServer OpenIGTLink)

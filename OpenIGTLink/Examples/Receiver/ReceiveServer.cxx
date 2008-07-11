@@ -29,18 +29,15 @@ int main(int argc, char* argv[])
   //------------------------------------------------------------
   // Parse Arguments
 
-  if (argc != 3) // check number of arguments
+  if (argc != 2) // check number of arguments
     {
     // If not correct, print usage
-    std::cerr << "Usage: " << argv[0] << " <port> <fps>"    << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <port>"    << std::endl;
     std::cerr << "    <port>     : Port # (18944 in Slicer default)"   << std::endl;
-    std::cerr << "    <fps>      : Frequency (fps) to send coordinate" << std::endl;
     exit(0);
     }
 
   int    port     = atoi(argv[1]);
-  double fps      = atof(argv[2]);
-  int    interval = (int) (1000.0 / fps);
 
   igtl::TransformMessage::Pointer transMsg;
   transMsg = igtl::TransformMessage::New();
@@ -60,16 +57,59 @@ int main(int argc, char* argv[])
     
     if (socket.IsNotNull()) // if client connected
       {
+      // Create a message buffer to receive header
+      igtl::MessageBase::Pointer headerMsg;
+      headerMsg = igtl::MessageBase::New();
+      headerMsg->AllocatePack();
+
       //------------------------------------------------------------
       // loop
       for (int i = 0; i < 100; i ++)
         {
-        igtl::Matrix4x4 matrix;
-        GetRandomTestMatrix(matrix);
-        transMsg->SetMatrix(matrix);
-        transMsg->Pack();
-        socket->Send(transMsg->GetPackPointer(), transMsg->GetPackSize());
-        igtl::Sleep(interval); // wait
+
+        // Initialize receive buffer
+        headerMsg->InitPack();
+
+        // Receive generic header from the socket
+        int r = socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
+        if (r != headerMsg->GetPackSize())
+          {
+          std::cerr << "Error: receiving data." << std::endl;
+          }
+
+        // Deserialize the header
+        headerMsg->Unpack();
+
+        // Check data type and receive data body
+        if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM"))
+          {
+          // Create a message buffer to receive transform data
+          igtl::TransformMessage::Pointer transMsg;
+          transMsg = igtl::TransformMessage::New();
+          transMsg->Copy(headerMsg);
+          transMsg->AllocatePack();
+
+          // Receive transform data from the socket
+          socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
+
+          // Deserialize the transform data
+          transMsg->Unpack();
+
+          // Retrive the transform data
+          igtl::Matrix4x4 matrix;
+          transMsg->GetMatrix(matrix);
+          igtl::PrintMatrix(matrix);
+
+          // Delete message class
+          //transMsg->Delete();
+          }
+        else if (strcmp(headerMsg->GetDeviceType(), "IMAGE"))
+          {
+          }
+        else
+          {
+          }
+
         }
       }
     }
@@ -83,34 +123,4 @@ int main(int argc, char* argv[])
 
 }
 
-
-void GetRandomTestMatrix(igtl::Matrix4x4& matrix)
-{
-  float position[3];
-  float orientation[4];
-
-  // random position
-  static float phi = 0.0;
-  position[0] = 50.0 * cos(phi);
-  position[1] = 50.0 * sin(phi);
-  position[2] = 0;
-  phi = phi + 0.2;
-
-  // random orientation
-  static float theta = 0.0;
-  orientation[0]=0.0;
-  orientation[1]=0.6666666666*cos(theta);
-  orientation[2]=0.577350269189626;
-  orientation[3]=0.6666666666*sin(theta);
-  theta = theta + 0.1;
-
-  //igtl::Matrix4x4 matrix;
-  igtl::QuaternionToMatrix(orientation, matrix);
-
-  matrix[0][3] = position[0];
-  matrix[1][3] = position[1];
-  matrix[2][3] = position[2];
-  
-  igtl::PrintMatrix(matrix);
-}
 
