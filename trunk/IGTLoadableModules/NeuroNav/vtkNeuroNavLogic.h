@@ -5,10 +5,10 @@
   See Doc/copyright/copyright.txt
   or http://www.slicer.org/copyright/copyright.txt for details.
 
-  Program:   3D Slicer
-  Module:    $HeadURL: $
-  Date:      $Date: $
-  Version:   $Revision: $
+Program:   3D Slicer
+Module:    $HeadURL: $
+Date:      $Date: $
+Version:   $Revision: $
 
 ==========================================================================*/
 
@@ -37,7 +37,7 @@
 
 class VTK_NEURONAV_EXPORT vtkNeuroNavLogic : public vtkSlicerModuleLogic 
 {
- public:
+public:
   //BTX
   enum WorkPhase {
     StartUp = 0,
@@ -67,13 +67,13 @@ class VTK_NEURONAV_EXPORT vtkNeuroNavLogic : public vtkSlicerModuleLogic
   };
 
   //ETX
-  
+
   // Work phase keywords used in NaviTrack (defined in BRPTPRInterface.h)
 
- public:
-  
+public:
+
   static vtkNeuroNavLogic *New();
-  
+
   vtkTypeRevisionMacro(vtkNeuroNavLogic,vtkObject);
 
   vtkSetMacro ( NeedRealtimeImageUpdate0, int );
@@ -104,20 +104,29 @@ class VTK_NEURONAV_EXPORT vtkNeuroNavLogic : public vtkSlicerModuleLogic
   vtkGetObjectMacro ( LocatorTransform, vtkTransform );
   vtkGetObjectMacro ( LocatorMatrix,    vtkMatrix4x4 );
 
+  vtkSetStringMacro(TransformNodeName); 
+  vtkGetStringMacro(TransformNodeName);
+
   void PrintSelf(ostream&, vtkIndent);
   //void AddRealtimeVolumeNode(const char* name);
 
 
- protected:
-  
+  vtkMRMLModelNode* SetVisibilityOfLocatorModel(const char* nodeName, int v);
+  vtkMRMLModelNode* AddLocatorModel(const char* nodeName, double r, double g, double b);
+
+  void UpdateDisplay(int sliceNo1, int sliceNo2, int sliceNo3);
+
+
+protected:
+
   vtkNeuroNavLogic();
   ~vtkNeuroNavLogic();
   vtkNeuroNavLogic(const vtkNeuroNavLogic&);
   void operator=(const vtkNeuroNavLogic&);
 
-  
 
- private:
+
+private:
 
   //----------------------------------------------------------------
   // Monitor Timer
@@ -125,12 +134,19 @@ class VTK_NEURONAV_EXPORT vtkNeuroNavLogic : public vtkSlicerModuleLogic
 
   int MonitorFlag;
   int MonitorInterval;
-  
+
+  void UpdateSliceNode(int sliceNodeNumber,
+                       float nx, float ny, float nz,
+                       float tx, float ty, float tz,
+                       float px, float py, float pz);
+
+  void CheckSliceNodes();
+
 
   //----------------------------------------------------------------
   // Real-time image
   //----------------------------------------------------------------
-  
+
   vtkMRMLVolumeNode     *RealtimeVolumeNode;
 
   int   NeedRealtimeImageUpdate0;
@@ -140,7 +156,7 @@ class VTK_NEURONAV_EXPORT vtkNeuroNavLogic : public vtkSlicerModuleLogic
   vtkMRMLSliceNode *SliceNode[3];
 
   int   SliceDriver[3];
-  
+
   bool  ImagingControl;
   bool  NeedUpdateLocator;
 
@@ -161,7 +177,9 @@ class VTK_NEURONAV_EXPORT vtkNeuroNavLogic : public vtkSlicerModuleLogic
   vtkTransform*         LocatorTransform;
 
   bool  Connection;  
-  
+
+  char *TransformNodeName;
+
 };
 
 #endif
