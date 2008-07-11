@@ -42,10 +42,20 @@ public:
   void Delete() { delete this; };
   
   void SetPosition(float p[3]);
+  void GetPosition(float p[3]);
+
   void SetPosition(float px, float py, float pz);
+  void GetPosition(float* px, float* py, float* pz);
+
   void SetNormals(float o[3][3]);
+  void GetNormals(float o[3][3]);
+
   void SetNormals(float t[3], float s[3], float n[3]);
+  void GetNormals(float t[3], float s[3], float n[3]);
+
   void SetMatrix(Matrix4x4& mat);
+  void GetMatrix(Matrix4x4& mat);
+
 
 protected:
   TransformMessage();
@@ -55,6 +65,7 @@ protected:
 
   virtual int GetBodyPackSize();
   virtual void PackBody();
+  virtual void UnpackBody();
   
   Matrix4x4 matrix;
 

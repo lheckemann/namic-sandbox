@@ -64,18 +64,18 @@
 //       {
 //         igtl::TransformMessage::Pointer transMsg;
 //         transMsg = igtl::TransformMessage::New();
-//         transMsg = headerMsg;
+//         transMsg->Copy(headerMsg);
 //         transMsg->AllocatePack();
-//         socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackSize());
+//         socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
 //         transMsg->Unpack();
 //       }
 //     else if (strcmp(headerMsg->GetDeviceType(), "IMAGE"))
 //       {
 //         igtl::ImageMessage::Pointer imageMsg;
 //         imageMsg = igtl::ImageMessage::New();
-//         imageMsg = headerMsg;
+//         imageMsg->Copy(headerMsg);
 //         imageMsg->AllocatePack();
-//         socket->Receive(imageMsg->GetPackBodyPointer(), imageMsg->GetPackSize());
+//         socket->Receive(imageMsg->GetPackBodyPointer(), imageMsg->GetPackBodySize());
 //         imageMsg->Unpack();
 //       }
 //     else if (...)
@@ -111,18 +111,24 @@ public:
 
   void  Pack();
   void  Unpack();
+
   void* GetPackPointer();
   void* GetPackBodyPointer();
   int   GetPackSize();
+  int   GetPackBodySize();
 
   const char* GetBodyType() { return this->m_BodyType.c_str(); };
 
   // Allocate memory for packing / receiving buffer
   void AllocatePack();
-  
-  // The '=' operator is defined to substitute base class to
-  // a child message class, after receiving the general header.
-  MessageBase& operator=(const MessageBase &mb);
+  // Call InitPack() before receive header. 
+  // This function simply reset the Unpacked flag for both
+  // the hearder and body pack.
+  void InitPack();
+
+  // Function to substitute base class to the subclasses
+  // after receiving the general header.
+  int Copy(const MessageBase* mb);
 
 protected:
   MessageBase();
@@ -133,14 +139,16 @@ protected:
   // Pack body (must be implemented in a child class)
   virtual int  GetBodyPackSize() { return 0; };
   virtual void PackBody()        {};
+  virtual void UnpackBody()      {};
 
   // Allocate memory specifying the body size
   // (used when create a brank package to receive data)
   void AllocatePack(int bodySize);
 
-  // Copy data (used for operator=)
-  int CopyHeader(const MessageBase &mb);
-  virtual int CopyBody(const MessageBase &mb) { return 0; };
+  // Copy data 
+  int CopyHeader(const MessageBase *mb);
+  virtual int CopyBody(const MessageBase *mb) { return 0; };
+
 
   // Pointers to header and image
   //  To prevent large copy of byte array in Pack() function,
@@ -161,6 +169,10 @@ protected:
   //ETX
   unsigned int   m_TimeStampSec;
   unsigned int   m_TimeStampSecFraction;
+
+  // Unpacking status (0: --   1: unpacked)
+  int            m_IsHeaderUnpacked;
+  int            m_IsBodyUnpacked;
 
 };
 

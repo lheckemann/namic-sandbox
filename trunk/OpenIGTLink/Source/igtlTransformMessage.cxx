@@ -27,6 +27,26 @@ TransformMessage::TransformMessage()
 
   AllocatePack();
   m_Transform = m_Body;
+
+  matrix[0][0] = 1.0;
+  matrix[1][0] = 0.0;
+  matrix[2][0] = 0.0;
+  matrix[3][0] = 0.0;
+
+  matrix[0][1] = 0.0;
+  matrix[1][1] = 1.0;
+  matrix[2][1] = 0.0;
+  matrix[3][1] = 0.0;
+
+  matrix[0][2] = 0.0;
+  matrix[1][2] = 0.0;
+  matrix[2][2] = 1.0;
+  matrix[3][2] = 0.0;
+
+  matrix[0][3] = 0.0;
+  matrix[1][3] = 0.0;
+  matrix[2][3] = 0.0;
+  matrix[3][3] = 1.0;
 }
 
 TransformMessage::~TransformMessage()
@@ -40,11 +60,26 @@ void TransformMessage::SetPosition(float p[3])
   matrix[2][3] = p[2];
 }
 
+void TransformMessage::GetPosition(float p[3])
+{
+  p[0] = matrix[0][3];
+  p[1] = matrix[1][3];
+  p[2] = matrix[2][3];
+}
+
+
 void TransformMessage::SetPosition(float px, float py, float pz)
 {
   matrix[0][3] = px;
   matrix[1][3] = py;
   matrix[2][3] = pz;
+}
+
+void TransformMessage::GetPosition(float* px, float* py, float* pz)
+{
+  *px = matrix[0][3];
+  *py = matrix[1][3];
+  *pz = matrix[2][3];
 }
 
 void TransformMessage::SetNormals(float o[3][3])
@@ -60,6 +95,19 @@ void TransformMessage::SetNormals(float o[3][3])
   matrix[2][2] = o[2][2];
 }
 
+void TransformMessage::GetNormals(float o[3][3])
+{
+  o[0][0] = matrix[0][0];
+  o[0][1] = matrix[0][1];
+  o[0][2] = matrix[0][2];
+  o[1][0] = matrix[1][0];
+  o[1][1] = matrix[1][1];
+  o[1][2] = matrix[1][2];
+  o[2][0] = matrix[2][0];
+  o[2][1] = matrix[2][1];
+  o[2][2] = matrix[2][2];
+}
+
 void TransformMessage::SetNormals(float t[3], float s[3], float n[3])
 {
   matrix[0][0] = t[0];
@@ -73,20 +121,63 @@ void TransformMessage::SetNormals(float t[3], float s[3], float n[3])
   matrix[2][2] = n[2];
 }
 
+void TransformMessage::GetNormals(float t[3], float s[3], float n[3])
+{
+  t[0] = matrix[0][0];
+  t[1] = matrix[1][0];
+  t[2] = matrix[2][0];
+  s[0] = matrix[0][1];
+  s[1] = matrix[1][1];
+  s[2] = matrix[2][1];
+  n[0] = matrix[0][2];
+  n[1] = matrix[1][2];
+  n[2] = matrix[2][2];
+}
+
 void TransformMessage::SetMatrix(Matrix4x4& mat)
 {
   matrix[0][0] = mat[0][0];
   matrix[1][0] = mat[1][0];
   matrix[2][0] = mat[2][0];
+  matrix[3][0] = mat[3][0];
+
   matrix[0][1] = mat[0][1];
   matrix[1][1] = mat[1][1];
   matrix[2][1] = mat[2][1];
+  matrix[3][1] = mat[3][1];
+
   matrix[0][2] = mat[0][2];
   matrix[1][2] = mat[1][2];
   matrix[2][2] = mat[2][2];
+  matrix[3][2] = mat[3][2];
+
   matrix[0][3] = mat[0][3];
   matrix[1][3] = mat[1][3];
   matrix[2][3] = mat[2][3];
+  matrix[3][3] = mat[3][3];
+}
+
+void TransformMessage::GetMatrix(Matrix4x4& mat)
+{
+  mat[0][0] = matrix[0][0];
+  mat[1][0] = matrix[1][0];
+  mat[2][0] = matrix[2][0];
+  mat[3][0] = matrix[3][0];
+
+  mat[0][1] = matrix[0][1];
+  mat[1][1] = matrix[1][1];
+  mat[2][1] = matrix[2][1];
+  mat[3][1] = matrix[3][1];
+
+  mat[0][2] = matrix[0][2];
+  mat[1][2] = matrix[1][2];
+  mat[2][2] = matrix[2][2];
+  mat[3][2] = matrix[3][2];
+
+  mat[0][3] = matrix[0][3];
+  mat[1][3] = matrix[1][3];
+  mat[2][3] = matrix[2][3];
+  mat[3][3] = matrix[3][3];
 }
 
 int TransformMessage::GetBodyPackSize()
@@ -109,6 +200,26 @@ void TransformMessage::PackBody()
   
 }
 
+void TransformMessage::UnpackBody()
+{
+  m_Transform = m_Body;
+
+  igtl_float32* transform = (igtl_float32*)this->m_Transform;
+  igtl_transform_convert_byte_order(transform);
+
+  for (int i = 0; i < 3; i ++) {
+    matrix[i][0] = transform[i]  ;
+    matrix[i][1] = transform[i+3];
+    matrix[i][2] = transform[i+6];
+    matrix[i][3] = transform[i+9];
+  }
+
+  matrix[3][0] = 0.0;
+  matrix[3][1] = 0.0;
+  matrix[3][2] = 0.0;
+  matrix[3][3] = 1.0;
+
+}
 
 } // namespace igtl
 
