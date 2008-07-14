@@ -18,6 +18,7 @@
 #include <math.h>
 
 #include "igtlOSUtil.h"
+#include "igtlMessageHeader.h"
 #include "igtlTransformMessage.h"
 #include "igtlServerSocket.h"
 #include "igtlClientSocket.h"
