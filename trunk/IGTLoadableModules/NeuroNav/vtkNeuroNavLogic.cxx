@@ -53,9 +53,11 @@ vtkNeuroNavLogic::vtkNeuroNavLogic()
   this->NeedRealtimeImageUpdate2 = 0;
   this->ImagingControl = 0;
 
-  this->EnableOblique = true;
+  this->EnableOblique = false;
   this->TransformNodeName = NULL;
-
+  this->SliceNo1Last = 1;
+  this->SliceNo2Last = 1;
+  this->SliceNo3Last = 1;
 }
 
 
@@ -169,14 +171,6 @@ vtkMRMLModelNode* vtkNeuroNavLogic::AddLocatorModel(const char* nodeName, double
 
 void vtkNeuroNavLogic::UpdateDisplay(int sliceNo1, int sliceNo2, int sliceNo3)
 {
-  // if all user driven; does nothing
-  if (sliceNo1 == 1 &&
-      sliceNo2 == 1 &&
-      sliceNo3 == 1)
-    {
-    return;
-    }
-
   vtkMRMLLinearTransformNode* transformNode;
   vtkMRMLScene* scene = this->GetApplicationLogic()->GetMRMLScene();
   vtkCollection* collection = scene->GetNodesByName(this->TransformNodeName);
@@ -209,73 +203,101 @@ void vtkNeuroNavLogic::UpdateDisplay(int sliceNo1, int sliceNo2, int sliceNo3)
     float py = transform->GetElement(1, 3);
     float pz = transform->GetElement(2, 3);
 
-    if (!sliceNo1) // axial driven by Locator
-      {
-      UpdateSliceNode(0, nx, ny, nz, tx, ty, tz, px, py, pz);
-      }
-    if (!sliceNo2) // sagittal driven by Locator
-      {
-      UpdateSliceNode(1, nx, ny, nz, tx, ty, tz, px, py, pz);
-      }
-    if (!sliceNo3) // coronal driven by Locator
-      {
-      UpdateSliceNode(2, nx, ny, nz, tx, ty, tz, px, py, pz);
-      }
+    UpdateSliceNode(sliceNo1, sliceNo2, sliceNo3, 
+                    nx, ny, nz, 
+                    tx, ty, tz, 
+                    px, py, pz);
     }
 }
 
 
-
-void vtkNeuroNavLogic::UpdateSliceNode(int sliceNodeNumber,
+void vtkNeuroNavLogic::UpdateSliceNode(int sliceNo1, int sliceNo2, int sliceNo3,
                                        float nx, float ny, float nz,
                                        float tx, float ty, float tz,
                                        float px, float py, float pz)
 {
   CheckSliceNodes();
 
-  if (strcmp(this->SliceNode[sliceNodeNumber]->GetOrientationString(), "Axial") == 0)
+  if (sliceNo1) // axial driven by User 
     {
+    if (sliceNo1 != this->SliceNo1Last)
+      {
+      this->SliceNode[0]->SetOrientationToAxial();
+      this->SliceNode[0]->JumpSlice(0, 0, 0);
+      this->SliceNode[0]->UpdateMatrices();
+      this->SliceNo1Last = sliceNo1;
+      }
+    }
+  else
+    {
+    this->SliceNo1Last = sliceNo1;
     if (this->EnableOblique) // perpendicular
       {
-      this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
-      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
+      this->SliceNode[0]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
+      this->SliceNode[0]->UpdateMatrices();
       }
     else
       {
-      this->SliceNode[sliceNodeNumber]->SetOrientationToAxial();
-      this->SliceNode[sliceNodeNumber]->JumpSlice(px, py, pz);
-      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
+      this->SliceNode[0]->SetOrientationToAxial();
+      this->SliceNode[0]->JumpSlice(px, py, pz);
+      this->SliceNode[0]->UpdateMatrices();
       }
     }
-  else if (strcmp(this->SliceNode[sliceNodeNumber]->GetOrientationString(), "Sagittal") == 0)
+
+  if (sliceNo2) // sagittal driven by User 
     {
+    if (sliceNo2 != this->SliceNo2Last)
+      {
+      this->SliceNode[1]->SetOrientationToSagittal();
+      this->SliceNode[1]->JumpSlice(0, 0, 0);
+      this->SliceNode[1]->UpdateMatrices();
+      this->SliceNo2Last = sliceNo2;
+      }
+    }
+  else
+    {
+    this->SliceNo2Last = sliceNo2;
     if (this->EnableOblique) // In-Plane
       {
-      this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
-      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
+      this->SliceNode[1]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
+      this->SliceNode[1]->UpdateMatrices();
       }
     else
       {
-      this->SliceNode[sliceNodeNumber]->SetOrientationToSagittal();
-      this->SliceNode[sliceNodeNumber]->JumpSlice(px, py, pz);
-      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
+      this->SliceNode[1]->SetOrientationToSagittal();
+      this->SliceNode[1]->JumpSlice(px, py, pz);
+      this->SliceNode[1]->UpdateMatrices();
       }
     }
-  else if (strcmp(this->SliceNode[sliceNodeNumber]->GetOrientationString(), "Coronal") == 0)
+
+
+  if (sliceNo3) // coronal driven by User 
     {
+    if (sliceNo3 != this->SliceNo3Last)
+      {
+      this->SliceNode[2]->SetOrientationToCoronal();
+      this->SliceNode[2]->JumpSlice(0, 0, 0);
+      this->SliceNode[2]->UpdateMatrices();
+      this->SliceNo3Last = sliceNo3;
+      }
+    }
+  else
+    {
+    this->SliceNo3Last = sliceNo3;
     if (this->EnableOblique)  // In-Plane 90
       {
-      this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
-      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
+      this->SliceNode[2]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
+      this->SliceNode[2]->UpdateMatrices();
       }
     else
       {
-      this->SliceNode[sliceNodeNumber]->SetOrientationToCoronal();
-      this->SliceNode[sliceNodeNumber]->JumpSlice(px, py, pz);
-      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
+      this->SliceNode[2]->SetOrientationToCoronal();
+      this->SliceNode[2]->JumpSlice(px, py, pz);
+      this->SliceNode[2]->UpdateMatrices();
       }
     }
 }
+
 
 
 void vtkNeuroNavLogic::CheckSliceNodes()

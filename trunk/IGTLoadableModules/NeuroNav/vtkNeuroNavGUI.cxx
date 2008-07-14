@@ -631,8 +631,8 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
     else if (this->ObliqueCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
              && event == vtkKWCheckButton::SelectedStateChangedEvent )
       {
-      // int checked = this->ObliqueCheckButton->GetSelectedState(); 
-      // cout << "ObliqueCheckButton = " << checked << endl;
+      int checked = this->ObliqueCheckButton->GetSelectedState(); 
+      this->GetLogic()->SetEnableOblique(checked);
       }
     }
 } 
@@ -723,26 +723,24 @@ void vtkNeuroNavGUI::ProcessTimerEvents()
 
     const char *nodeName = this->TransformNodeNameEntry->GetWidget()->GetValue();
     this->GetLogic()->SetTransformNodeName(nodeName);
-    int checked = this->ObliqueCheckButton->GetSelectedState(); 
-    this->GetLogic()->SetEnableOblique(checked);
 
-    checked = this->FreezeCheckButton->GetSelectedState(); 
+    int checked = this->FreezeCheckButton->GetSelectedState(); 
     if (!checked)
       {
-      int sn1 = 1;  // 0 = Locator; 1 = User
-      int sn2 = 1;
-      int sn3 = 1;
+      int sn1 = 0;  // 0 = Locator; 1 = User
+      int sn2 = 0;
+      int sn3 = 0;
       if (strcmp(this->RedSliceMenu->GetValue(), "Locator"))
         {
-        sn1 = 0;
+        sn1 = 1;
         }
       if (strcmp(this->YellowSliceMenu->GetValue(), "Locator"))
         {
-        sn2 = 0;
+        sn2 = 1;
         }
       if (strcmp(this->GreenSliceMenu->GetValue(), "Locator"))
         {
-        sn3 = 0;
+        sn3 = 1;
         }
 
       this->GetLogic()->UpdateDisplay(sn1, sn2, sn3);
@@ -1117,13 +1115,13 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
   this->LocatorModeCheckButton = vtkKWCheckButton::New();
   this->LocatorModeCheckButton->SetParent(modeFrame);
   this->LocatorModeCheckButton->Create();
-  this->LocatorModeCheckButton->SelectedStateOn();
+  this->LocatorModeCheckButton->SelectedStateOff();
   this->LocatorModeCheckButton->SetText("Locator");
 
   this->UserModeCheckButton = vtkKWCheckButton::New();
   this->UserModeCheckButton->SetParent(modeFrame);
   this->UserModeCheckButton->Create();
-  this->UserModeCheckButton->SelectedStateOff();
+  this->UserModeCheckButton->SelectedStateOn();
   this->UserModeCheckButton->SetText("User");
 
   this->FreezeCheckButton = vtkKWCheckButton::New();
