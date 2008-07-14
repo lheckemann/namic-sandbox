@@ -23,16 +23,17 @@
 #include "igtlMacro.h"
 #include "igtlMath.h"
 
+#include "igtlMessageHeader.h"
+
 //-------------------------------------------------------------------------
 // The MessageBase class is the base class of all message type classes
 // used in the Open IGT Link Library. The message classes can be used
-// both for serializing (packing) Open IGT Link message byte streams and
-// deserializing (unpacking) Open IGT Link.
+// both for serializing (packing) Open IGT Link message byte streams.
+// The class can also deserializing (unpacking) Open IGT Link.
+// For the deserialization example, please refer igtlMessageHeader.h.
 // 
-// The typical packing/unpacking procedures using sub-classes of
+// The typical packing procedures using sub-classes of
 // MessageBase look like the followings
-//
-//  a) Packing (ex. TransformMessage class)
 //
 //     // Create instance and set Device Name
 //     igtl::TransformMessage::Pointer transMsg;
@@ -47,41 +48,6 @@
 //     transMsg->SetMatrix(matrix);
 //     transMsg->Pack();
 //     socket->Send(transMsg->GetPackPointer(), transMsg->GetPackSize());
-//
-//  b) Unpacking
-//
-//     // Create instance and set Device Name
-//     igtl::MessageBase::Pointer headerMsg;
-//     headerMsg = igtl::MessageBase::New();
-//
-//     // Set up memory area to and receive the general header and unpack
-//     headerMsg->AllocatePack();
-//     socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
-//     headerMsg->Unpack();
-//
-//     // Check data type string
-//     if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM"))
-//       {
-//         igtl::TransformMessage::Pointer transMsg;
-//         transMsg = igtl::TransformMessage::New();
-//         transMsg->Copy(headerMsg);
-//         transMsg->AllocatePack();
-//         socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
-//         transMsg->Unpack();
-//       }
-//     else if (strcmp(headerMsg->GetDeviceType(), "IMAGE"))
-//       {
-//         igtl::ImageMessage::Pointer imageMsg;
-//         imageMsg = igtl::ImageMessage::New();
-//         imageMsg->Copy(headerMsg);
-//         imageMsg->AllocatePack();
-//         socket->Receive(imageMsg->GetPackBodyPointer(), imageMsg->GetPackBodySize());
-//         imageMsg->Unpack();
-//       }
-//     else if (...)
-//       {
-//          ...
-//       }
 //
 //-------------------------------------------------------------------------
 
@@ -121,15 +87,20 @@ public:
 
   // Allocate memory for packing / receiving buffer
   void AllocatePack();
+
   // Call InitPack() before receive header. 
   // This function simply reset the Unpacked flag for both
   // the hearder and body pack.
   void InitPack();
 
-  // Function to substitute base class to the subclasses
-  // after receiving the general header.
+  // Copy contents from the specified Massage class.
+  // If the type of the specified class is same as this class,
+  // both general header and body are copied. Otherwise, only
+  // general header is copied.
   int Copy(const MessageBase* mb);
 
+  int SetMessageHeader(const MessageHeader* mb) { Copy(mb); };
+  
 protected:
   MessageBase();
   ~MessageBase();
