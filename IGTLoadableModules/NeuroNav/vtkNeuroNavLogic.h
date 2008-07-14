@@ -135,7 +135,7 @@ private:
   int MonitorFlag;
   int MonitorInterval;
 
-  void UpdateSliceNode(int sliceNodeNumber,
+  void UpdateSliceNode(int sliceNo1, int sliceNo2, int sliceNo3,
                        float nx, float ny, float nz,
                        float tx, float ty, float tz,
                        float px, float py, float pz);
@@ -179,7 +179,9 @@ private:
   bool  Connection;  
 
   char *TransformNodeName;
-
+  int SliceNo1Last;
+  int SliceNo2Last;
+  int SliceNo3Last;
 };
 
 #endif
