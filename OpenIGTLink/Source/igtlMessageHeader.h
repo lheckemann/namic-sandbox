@@ -17,13 +17,6 @@
 #ifndef __igtlMessageHeader_h
 #define __igtlMessageHeader_h
 
-#include "igtlObject.h"
-#include "igtlObjectFactory.h"
-//#include "igtlMacros.h"
-#include "igtlMacro.h"
-#include "igtlMath.h"
-#include "igtlMessageBase.h"
-
 //-------------------------------------------------------------------------
 // The MessageHeader class is used to receive and parse general headers
 // to prepare for recieving body data. The class is currently just the alias
@@ -68,14 +61,15 @@
 //
 
 
-
-
 namespace igtl
 {
 
+  class MessageBase;
   typedef class MessageBase MessageHeader;
 
 };
+
+#include "igtlMessageBase.h"
 
 
 #endif //__igtlMessageHeader_h
