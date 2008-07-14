@@ -90,11 +90,10 @@ void MessageBase::Pack()
 
 void MessageBase::Unpack()
 {
- // Check if the pack exists and if it has not been unpacked.
+  // Check if the pack exists and if it has not been unpacked.
   if (m_Header != NULL && m_PackSize > IGTL_HEADER_SIZE &&
       m_IsHeaderUnpacked == 0)
     {
-
       // Unpack (deserialize) the header
       igtl_header* h = (igtl_header*) m_Header;
       igtl_header_convert_byte_order(h);
@@ -116,7 +115,8 @@ void MessageBase::Unpack()
       m_IsHeaderUnpacked == 1;
     }
 
-  if (m_IsBodyUnpacked == 0)
+  // Check if the body exists and it has not been unpacked
+  if (GetPackBodySize() > 0 && m_IsBodyUnpacked == 0)
     {
       // Unpack (deserialize) the Body
       UnpackBody();
@@ -148,10 +148,12 @@ void MessageBase::AllocatePack()
 {
   if (m_BodySizeToRead > 0)
     {
+      // called after receiving general header
       AllocatePack(m_BodySizeToRead);
     }
   else
     {
+      // called for creating pack to send
       AllocatePack(GetBodyPackSize());
     }
 }
@@ -161,6 +163,9 @@ void MessageBase::InitPack()
   m_IsHeaderUnpacked = 0;
   m_IsBodyUnpacked   = 0;
   m_BodySizeToRead   = 0;
+
+  // Re-allocate header area
+  AllocatePack(0);
 }
 
 void MessageBase::AllocatePack(int bodySize)
@@ -173,6 +178,7 @@ void MessageBase::AllocatePack(int bodySize)
     }
 
   int s = IGTL_HEADER_SIZE + bodySize;
+
   if (m_PackSize == 0 || m_Header == NULL)
     {
       // For the first time

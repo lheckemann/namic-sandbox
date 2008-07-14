@@ -58,9 +58,8 @@ int main(int argc, char* argv[])
     if (socket.IsNotNull()) // if client connected
       {
       // Create a message buffer to receive header
-      igtl::MessageBase::Pointer headerMsg;
-      headerMsg = igtl::MessageBase::New();
-      headerMsg->AllocatePack();
+      igtl::MessageHeader::Pointer headerMsg;
+      headerMsg = igtl::MessageHeader::New();
 
       //------------------------------------------------------------
       // loop
@@ -86,7 +85,7 @@ int main(int argc, char* argv[])
           // Create a message buffer to receive transform data
           igtl::TransformMessage::Pointer transMsg;
           transMsg = igtl::TransformMessage::New();
-          transMsg->Copy(headerMsg);
+          transMsg->SetMessageHeader(headerMsg);
           transMsg->AllocatePack();
 
           // Receive transform data from the socket
