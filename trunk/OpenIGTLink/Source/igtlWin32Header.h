@@ -35,7 +35,7 @@
 #ifndef __igtlWin32Header_h
 #define __igtlWin32Header_h
 
-//#include "igtlConfigure.h"
+#include "igtlConfigure.h"
 
 // add in the Windows variants
 

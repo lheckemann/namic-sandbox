@@ -76,7 +76,7 @@ public:
 
 public:
 
-  int   SetDeviceName(const char* name);
+  void  SetDeviceName(const char* name);
   const char* GetDeviceName();
   const char* GetDeviceType();
   
@@ -123,7 +123,7 @@ public:
   // general header is copied.
   int Copy(const MessageBase* mb);
 
-  int SetMessageHeader(const MessageHeader* mb) { Copy(mb); };
+  int SetMessageHeader(const MessageHeader* mb) { return Copy(mb); };
   
 protected:
   MessageBase();

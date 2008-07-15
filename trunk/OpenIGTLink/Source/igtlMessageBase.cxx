@@ -48,7 +48,7 @@ MessageBase::~MessageBase()
     }
 }
 
-int MessageBase::SetDeviceName(const char* name)
+void MessageBase::SetDeviceName(const char* name)
 {
   m_DeviceName = std::string(name);
 }
@@ -67,6 +67,14 @@ int MessageBase::SetTimeStamp(unsigned int sec, unsigned int frac)
 {
   m_TimeStampSec         = sec;
   m_TimeStampSecFraction = frac;
+  return 1;
+}
+
+int MessageBase::GetTimeStamp(unsigned int* sec, unsigned int* frac)
+{
+  *sec  = m_TimeStampSec;
+  *frac = m_TimeStampSecFraction;
+  return 1;
 }
 
 void MessageBase::Pack()
