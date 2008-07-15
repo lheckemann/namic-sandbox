@@ -89,13 +89,16 @@ int main(int argc, char* argv[])
           socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
           
           // Deserialize the transform data
-          transMsg->Unpack();
-          
-          // Retrive the transform data
-          igtl::Matrix4x4 matrix;
-          transMsg->GetMatrix(matrix);
-          igtl::PrintMatrix(matrix);
-          
+          // If you want to skip CRC check, call Unpack() without argument.
+          int c = transMsg->Unpack(1);
+
+          if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+            {
+              // Retrive the transform data
+              igtl::Matrix4x4 matrix;
+              transMsg->GetMatrix(matrix);
+              igtl::PrintMatrix(matrix);
+            }
           }
         else if (strcmp(headerMsg->GetDeviceType(), "IMAGE"))
           {

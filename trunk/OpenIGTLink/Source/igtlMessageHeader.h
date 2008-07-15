@@ -30,8 +30,10 @@
 //     igtl::MessageBase::Pointer headerMsg;
 //     headerMsg = igtl::MessageBase::New();
 //
+//     // Initialize receive buffer
 //     // Set up memory area to and receive the general header and unpack
-//     headerMsg->AllocatePack();
+//     headerMsg->InitPack();
+//
 //     socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
 //     headerMsg->Unpack();
 //
@@ -40,16 +42,27 @@
 //       {
 //         igtl::TransformMessage::Pointer transMsg;
 //         transMsg = igtl::TransformMessage::New();
-//         transMsg->Copy(headerMsg);
+//         transMsg->SetMessageHeader(headerMsg);
 //         transMsg->AllocatePack();
+//
+//         // Receive transform data from the socket//
 //         socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
+//
+//         // Deserialize the transform data
 //         transMsg->Unpack();
+//
+//         // Retrive the transform data
+//         igtl::Matrix4x4 matrix;
+//         transMsg->GetMatrix(matrix);
+//
+//         ....
+//
 //       }
 //     else if (strcmp(headerMsg->GetDeviceType(), "IMAGE"))
 //       {
 //         igtl::ImageMessage::Pointer imageMsg;
 //         imageMsg = igtl::ImageMessage::New();
-//         imageMsg->Copy(headerMsg);
+//         transMsg->SetMessageHeader(headerMsg);
 //         imageMsg->AllocatePack();
 //         socket->Receive(imageMsg->GetPackBodyPointer(), imageMsg->GetPackBodySize());
 //         imageMsg->Unpack();

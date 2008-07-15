@@ -68,6 +68,12 @@ public:
   igtlTypeMacro(igtl::MessageBase, igtl::Object)
   igtlNewMacro(igtl::MessageBase);
 
+  enum {
+    UNPACK_UNDEF   = 0x0000,
+    UNPACK_HEADER  = 0x0001,
+    UNPACK_BODY    = 0x0002
+  };
+
 public:
 
   int   SetDeviceName(const char* name);
@@ -77,8 +83,24 @@ public:
   int   SetTimeStamp(unsigned int sec, unsigned int frac);
   int   GetTimeStamp(unsigned int* sec, unsigned int* frac);
 
+  // Pack() serializes the header and body based on the member varilables.
+  // PackBody() must be implemented in the child class.
   void  Pack();
-  void  Unpack();
+
+  // Unpack() deserializes the header and/or body, extracting data from
+  // the byte stream. If the header has already been deserilized, Unpack()
+  // deserializes only the body part. UnpackBody() must be implemented to
+  // deserialize the body part. Unpack() performs 64-bit CRC check,
+  // when crccheck = 1. It returns:
+  //      UNPACK_UNDEF             : Nothing deserialized
+  //      UNPACK_HEADER            : The header has been deserialized.
+  //      UNPACK_BODY              : The body has been deserialized.
+  //                                 If CRC check fails, Unpack() doesn't
+  //                                 deserialize the body, thus it doesn't
+  //                                 return UNPACK_BODY flag.
+  //      UNPACK_HEADER|UNPACK_BODY: Both the header and body have been
+  //                                 deserialized
+  int   Unpack(int crccheck = 0);
 
   void* GetPackPointer();
   void* GetPackBodyPointer();
