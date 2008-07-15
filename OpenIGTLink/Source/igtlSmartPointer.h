@@ -157,7 +157,7 @@ private:
     { 
     if(m_Pointer) { m_Pointer->Register(); }
     }
-  
+
   void UnRegister()
     {
     if(m_Pointer) { m_Pointer->UnRegister(); }

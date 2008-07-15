@@ -62,7 +62,7 @@ class IGTLCommon_EXPORT Object: public LightObject
 public:
   /** Smart pointer typedef support. */
   typedef Object              Self;
-  typedef LightObject  Superclass;
+  typedef LightObject         Superclass;
   typedef SmartPointer<Self>  Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
 

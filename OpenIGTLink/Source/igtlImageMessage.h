@@ -30,10 +30,11 @@ class ImageMessage: public MessageBase
 {
 public:
   typedef ImageMessage              Self;
+  typedef MessageBase               Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
 
-  igtlTypeMacro(igtl::ImageMessage, igtl::Object)
+  igtlTypeMacro(igtl::ImageMessage, igtl::MessageBase)
   igtlNewMacro(igtl::ImageMessage);
 
 public:
@@ -66,8 +67,6 @@ public:
 
 public:
 
-  void Delete() { delete this; };
-  
   void SetDimensions(int s[3]);
   void SetDimensions(int i, int j, int k);
   int  SetSubVolume(int dim[3], int off[3]);

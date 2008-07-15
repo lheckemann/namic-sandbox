@@ -29,17 +29,18 @@ class TransformMessage: public MessageBase
 {
 public:
   typedef TransformMessage               Self;
-  typedef SmartPointer<Self>  Pointer;
-  typedef SmartPointer<const Self>  ConstPointer;
+  typedef MessageBase                    Superclass;
+  typedef SmartPointer<Self>             Pointer;
+  typedef SmartPointer<const Self>       ConstPointer;
 
-  igtlTypeMacro(igtl::TransformMessage, igtl::Object)
+  igtlTypeMacro(igtl::TransformMessage, igtl::MessageBase);
   igtlNewMacro(igtl::TransformMessage);
 
 public:
 
 public:
 
-  void Delete() { delete this; };
+  //void Delete() { delete this; };
   
   void SetPosition(float p[3]);
   void GetPosition(float p[3]);
