@@ -32,7 +32,7 @@
 #ifndef  __igtlConditionVariable_h
 #define  __igtlConditionVariable_h
 
-//#include "igtlConfigure.h"
+#include "igtlConfigure.h"
 
 // This implementation uses a routine called SignalObjectAndWait()
 // which is only defined on WinNT 4.0 or greater systems.  We need to
