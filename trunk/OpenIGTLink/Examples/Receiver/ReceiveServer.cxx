@@ -80,25 +80,22 @@ int main(int argc, char* argv[])
           {
           // Create a message buffer to receive transform data
           igtl::TransformMessage::Pointer transMsg;
-          //igtl::TransformMessage* transMsg;
           transMsg = igtl::TransformMessage::New();
 
           transMsg->SetMessageHeader(headerMsg);
           transMsg->AllocatePack();
-
+          
           // Receive transform data from the socket
           socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
-
+          
           // Deserialize the transform data
           transMsg->Unpack();
-
+          
           // Retrive the transform data
           igtl::Matrix4x4 matrix;
           transMsg->GetMatrix(matrix);
           igtl::PrintMatrix(matrix);
-
-          // Delete message class
-          transMsg->Delete();
+          
           }
         else if (strcmp(headerMsg->GetDeviceType(), "IMAGE"))
           {
@@ -106,7 +103,6 @@ int main(int argc, char* argv[])
         else
           {
           }
-
         }
       }
     }
@@ -115,7 +111,6 @@ int main(int argc, char* argv[])
   // Close connection (The example code never reachs to this section ...)
   
   socket->CloseSocket();
-  socket->Delete();
 
 }
 

@@ -78,9 +78,7 @@ int main(int argc, char* argv[])
   //------------------------------------------------------------
   // Close connection
 
-  transMsg->Delete();
   socket->CloseSocket();
-  socket->Delete();
 
 }
 
