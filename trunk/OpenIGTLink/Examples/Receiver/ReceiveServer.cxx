@@ -23,7 +23,6 @@
 #include "igtlServerSocket.h"
 #include "igtlClientSocket.h"
 
-void GetRandomTestMatrix(igtl::Matrix4x4& matrix);
 
 int main(int argc, char* argv[])
 {
@@ -39,10 +38,6 @@ int main(int argc, char* argv[])
     }
 
   int    port     = atoi(argv[1]);
-
-  igtl::TransformMessage::Pointer transMsg;
-  transMsg = igtl::TransformMessage::New();
-  transMsg->SetDeviceName("Tracker");
 
   igtl::ServerSocket::Pointer serverSocket;
   serverSocket = igtl::ServerSocket::New();
@@ -81,11 +76,13 @@ int main(int argc, char* argv[])
         headerMsg->Unpack();
 
         // Check data type and receive data body
-        if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM"))
+        if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
           {
           // Create a message buffer to receive transform data
           igtl::TransformMessage::Pointer transMsg;
+          //igtl::TransformMessage* transMsg;
           transMsg = igtl::TransformMessage::New();
+
           transMsg->SetMessageHeader(headerMsg);
           transMsg->AllocatePack();
 
@@ -101,7 +98,7 @@ int main(int argc, char* argv[])
           igtl::PrintMatrix(matrix);
 
           // Delete message class
-          //transMsg->Delete();
+          transMsg->Delete();
           }
         else if (strcmp(headerMsg->GetDeviceType(), "IMAGE"))
           {
@@ -117,7 +114,6 @@ int main(int argc, char* argv[])
   //------------------------------------------------------------
   // Close connection (The example code never reachs to this section ...)
   
-  transMsg->Delete();
   socket->CloseSocket();
   socket->Delete();
 

@@ -25,6 +25,8 @@
 
 #include "igtlMessageHeader.h"
 
+#include <string>
+
 //-------------------------------------------------------------------------
 // The MessageBase class is the base class of all message type classes
 // used in the Open IGT Link Library. The message classes can be used
@@ -57,16 +59,16 @@ namespace igtl
 class MessageBase: public Object
 {
 public:
+
   typedef MessageBase               Self;
-  typedef SmartPointer<Self>  Pointer;
+  typedef Object                    Superclass;
+  typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
 
   igtlTypeMacro(igtl::MessageBase, igtl::Object)
   igtlNewMacro(igtl::MessageBase);
 
 public:
-
-  void  Delete() { delete this; };
 
   int   SetDeviceName(const char* name);
   const char* GetDeviceName();

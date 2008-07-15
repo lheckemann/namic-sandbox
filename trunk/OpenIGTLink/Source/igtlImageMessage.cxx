@@ -30,7 +30,8 @@ const int ImageMessage::ScalarSizeTable[] =
   };
 
 
-ImageMessage::ImageMessage()
+ImageMessage::ImageMessage():
+  MessageBase()
 {
   m_BodyType = "IMAGE";
 

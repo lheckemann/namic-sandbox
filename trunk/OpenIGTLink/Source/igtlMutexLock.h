@@ -94,7 +94,7 @@ public:
   
   /** Methods for creation and destruction through the object factory. */
   static SimpleMutexLock *New();
-  void Delete() {delete this;}
+  //void Delete() {delete this;}
   
   /** Used for debugging and other run-time purposes. */
   virtual const char *GetNameOfClass() {return "igtlSimpleMutexLock";};

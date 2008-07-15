@@ -21,8 +21,10 @@
 
 namespace igtl {
 
-TransformMessage::TransformMessage()
+TransformMessage::TransformMessage():
+  MessageBase()
 {
+
   m_BodyType = "TRANSFORM";
 
   AllocatePack();
@@ -47,6 +49,7 @@ TransformMessage::TransformMessage()
   matrix[1][3] = 0.0;
   matrix[2][3] = 0.0;
   matrix[3][3] = 1.0;
+
 }
 
 TransformMessage::~TransformMessage()
