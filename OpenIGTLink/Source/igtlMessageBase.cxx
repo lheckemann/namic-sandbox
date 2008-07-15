@@ -97,8 +97,10 @@ void MessageBase::Pack()
 
 }
 
-void MessageBase::Unpack()
+int MessageBase::Unpack(int crccheck)
 {
+  int r = UNPACK_UNDEF;
+
   // Check if the pack exists and if it has not been unpacked.
   if (m_Header != NULL && m_PackSize >= IGTL_HEADER_SIZE &&
       m_IsHeaderUnpacked == 0)
@@ -112,6 +114,7 @@ void MessageBase::Unpack()
 
       char bodyType[13];
       char deviceName[21];
+
       bodyType[12]   = '\0';
       deviceName[20] = '\0';
       strncpy(bodyType, h->name, 12);
@@ -122,15 +125,39 @@ void MessageBase::Unpack()
 
       // Mark as unpacked.
       m_IsHeaderUnpacked = 1;
+      r |= UNPACK_HEADER;
     }
 
   // Check if the body exists and it has not been unpacked
   if (GetPackBodySize() > 0 && m_IsBodyUnpacked == 0)
     {
-      // Unpack (deserialize) the Body
-      UnpackBody();
-      m_IsBodyUnpacked = 1;
+      igtl_header* h   = (igtl_header*) m_Header;
+      igtl_uint64  crc = crc64(0, 0, 0LL); // initial crc
+
+      if (crccheck)
+        {
+          // Calculate CRC of the body
+          crc = crc64((unsigned char*)m_Body, GetBodyPackSize(), crc);
+        }
+      else
+        {
+          crc = h->crc;
+        }
+
+      if (crc == h->crc)
+        {
+          // Unpack (deserialize) the Body
+          UnpackBody();
+          m_IsBodyUnpacked = 1;
+          r |= UNPACK_BODY;
+        }
+      else
+        {
+          m_IsBodyUnpacked = 0;
+        }
     }
+
+  return r;
 }
 
 void* MessageBase::GetPackPointer()
