@@ -49,7 +49,8 @@ int itkPointSetToListSampleAdaptorTest(int argc, char* argv[] )
   //Test if the methods throw exceptions if invoked before setting the pointset
   try
     {
-    unsigned long size = listSample->Size();
+    // Purposely calling the Size() method in order to trigger an exception.
+    listSample->Size();
     std::cerr << "Exception should have been thrown since the input point set  \
                   is not set yet" << std::endl;
     }
@@ -59,7 +60,8 @@ int itkPointSetToListSampleAdaptorTest(int argc, char* argv[] )
     }
   try
     {
-    PointSetToListSampleAdaptorType::AbsoluteFrequencyType totalFrequency = listSample->GetTotalFrequency();
+    // Purposely calling the GetTotalFrequency() method in order to trigger an exception.
+    listSample->GetTotalFrequency();
     std::cerr << "Exception should have been thrown since the input point set  \
                   is not set yet" << std::endl;
     }
@@ -81,7 +83,8 @@ int itkPointSetToListSampleAdaptorTest(int argc, char* argv[] )
 
   try
     {
-    const PointSetToListSampleAdaptorType::PointSetType * set = listSample->GetPointSet( );
+    // Purposely calling the GetPointSet() method in order to trigger an exception.
+    listSample->GetPointSet();
     std::cerr << "Exception should have been thrown since the input point set  \
                   is not set yet" << std::endl;
     }
@@ -92,7 +95,8 @@ int itkPointSetToListSampleAdaptorTest(int argc, char* argv[] )
  
   try
     {
-    PointSetToListSampleAdaptorType::AbsoluteFrequencyType frequency = listSample->GetFrequency(0 );
+    // Purposely calling the GetFrequency() method in order to trigger an exception.
+    listSample->GetFrequency(0 );
     std::cerr << "Exception should have been thrown since the input point set  \
                   is not set yet" << std::endl;
     }
@@ -106,7 +110,14 @@ int itkPointSetToListSampleAdaptorTest(int argc, char* argv[] )
 
   //exercise returned pointset
   const PointSetToListSampleAdaptorType::PointSetType * pointSetReturned = listSample->GetPointSet( );
-   
+    
+  //check for NULL
+  if( pointSetReturned == NULL )
+    {
+    std::cerr << "GetPointSet() returned a NULL pointer"<< std::endl;
+    return EXIT_FAILURE;
+    }
+  
   //check size
   if (numberOfPoints != listSample->Size())
     {
