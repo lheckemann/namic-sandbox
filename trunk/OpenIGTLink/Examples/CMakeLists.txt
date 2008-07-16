@@ -4,6 +4,7 @@
 SUBDIRS(
     Tracker
     Receiver
+    Imager
     )
 
 
