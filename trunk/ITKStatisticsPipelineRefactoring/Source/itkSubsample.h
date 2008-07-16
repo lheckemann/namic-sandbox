@@ -97,7 +97,7 @@ public:
   /** returns the total frequency for the 'd' dimension */
   TotalAbsoluteFrequencyType GetTotalFrequency() const;
   
-  void Swap(int index1, int index2);
+  void Swap(unsigned int index1, unsigned int index2);
   
 
   class ConstIterator

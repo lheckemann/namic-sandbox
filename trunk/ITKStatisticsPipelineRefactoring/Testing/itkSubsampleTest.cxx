@@ -140,7 +140,8 @@ int itkSubsampleTest(int, char* [] )
 
   try
     {
-    AbsoluteFrequencyType frequency = subsample->GetFrequency( idOutisdeRange ); 
+    // Purposely calling GetFrequency() method prematurely in order to trigger an exception.
+    subsample->GetFrequency( idOutisdeRange ); 
     std::cerr << "Exception should have been thrown since \
       the id specified is outside the range of the sample container" << std::endl;
     return EXIT_FAILURE;

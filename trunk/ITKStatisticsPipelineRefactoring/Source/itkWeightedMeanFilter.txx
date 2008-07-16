@@ -102,11 +102,13 @@ WeightedMeanFilter< TSample >
   typename TSample::ConstIterator end =  input->End();
   double totalWeight = 0.0;
   double weight;
-  int measurementVectorIndex = 0;
+
   typename TSample::MeasurementVectorType measurements;
 
   const  InputWeightArrayObjectType * weightArrayObject = this->GetWeightsInput();
   const  WeightArrayType weightArray = weightArrayObject->Get();
+
+  int measurementVectorIndex = 0;
 
   while (iter != end)
     {
@@ -160,7 +162,7 @@ WeightedMeanFilter< TSample >
   typename TSample::ConstIterator end =  input->End();
   double totalWeight = 0.0;
   double weight;
-  int measurementVectorIndex = 0;
+
   typename TSample::MeasurementVectorType measurements;
 
   // if weighting function is specifed, use it to compute the mean

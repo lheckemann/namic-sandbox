@@ -168,7 +168,7 @@ Subsample< TSample >
 template< class TSample >
 inline void
 Subsample< TSample >
-::Swap(int index1, int index2)
+::Swap(unsigned int index1, unsigned int index2)
 {
   if ( index1 >= m_IdHolder.size() ||
        index2 >= m_IdHolder.size() ) 
