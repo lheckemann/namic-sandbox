@@ -54,7 +54,7 @@ public:
   itkTypeMacro(SampleToSubsampleFilter, ProcessObject);
   
   /** Typedefs for Measurement vector, measurement, Instance Identifier, 
-   * frequency, size, size element value from the template argument TSample*/
+   * frequency, size, size element value from the template argument TSample */
   typedef TSample                                    SampleType;
   typedef typename SampleType::MeasurementVectorType MeasurementVectorType;
   typedef typename SampleType::MeasurementType       MeasurementType;

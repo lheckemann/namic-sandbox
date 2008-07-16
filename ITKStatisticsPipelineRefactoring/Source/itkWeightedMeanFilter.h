@@ -34,9 +34,8 @@ namespace Statistics {
  *. Then call the Update method to run the alogithm.
  * 
  * \sa MeanFilter 
- 
-*/
-
+ *
+ */
 template< class TSample >
 class ITK_EXPORT WeightedMeanFilter : public MeanFilter< TSample >
 {

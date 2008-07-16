@@ -59,7 +59,7 @@ class ITK_EXPORT SampleClassifierFilter :
       public ProcessObject
 {
 public:
-  /** Standard class typedef*/
+  /** Standard class typedef */
   typedef SampleClassifierFilter         Self;
   typedef ProcessObject                  Superclass;
   typedef SmartPointer< Self >           Pointer;

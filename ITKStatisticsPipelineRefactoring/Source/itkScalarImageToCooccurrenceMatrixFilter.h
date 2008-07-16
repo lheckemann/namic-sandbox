@@ -85,9 +85,9 @@ namespace Statistics {
 * \sa HistogramToTextureFeaturesFilter
 * \sa ScalarImageTextureCalculator
 *
-* Authors: Zachary Pincus and Glenn Pierce
+* \author  Zachary Pincus and Glenn Pierce
+*
 */
-    
 template< class TImageType,
           class THistogramFrequencyContainer = DenseFrequencyContainer2 >
 class ScalarImageToCooccurrenceMatrixFilter : public ProcessObject

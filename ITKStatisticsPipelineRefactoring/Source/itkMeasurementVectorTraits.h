@@ -33,14 +33,14 @@
 
 
 /** THIS DECLARATION OF NUMERICTRAITS IS HERE TEMPORARILY 
-* 
-* It should be moved to the Insight/Code/Common/itkNumericTraits.h file
-* when the new framework is integrated into ITK
-*
-**/
+ * 
+ * It should be moved to the Insight/Code/Common/itkNumericTraits.h file
+ * when the new framework is integrated into ITK
+ *
+ */
 #ifdef _WIN64
 
- namespace itk { 
+namespace itk { 
 
 /** \class NumericTraits<unsigned long>
  * \brief Define traits for type unsigned long.

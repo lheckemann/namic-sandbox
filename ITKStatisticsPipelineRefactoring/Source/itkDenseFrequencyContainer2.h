@@ -60,13 +60,13 @@ public:
   /** Absoluate Frequency type alias */
   typedef MeasurementVectorTraits::AbsoluteFrequencyType      AbsoluteFrequencyType;
   
-  /** Absolute Total frequency type*/
+  /** Absolute Total frequency type */
   typedef MeasurementVectorTraits::TotalAbsoluteFrequencyType TotalAbsoluteFrequencyType;
 
   /** Relative Frequency type alias */
   typedef MeasurementVectorTraits::RelativeFrequencyType      RelativeFrequencyType;
   
-  /** Relative Total frequency type*/
+  /** Relative Total frequency type */
   typedef MeasurementVectorTraits::TotalRelativeFrequencyType TotalRelativeFrequencyType;
 
 

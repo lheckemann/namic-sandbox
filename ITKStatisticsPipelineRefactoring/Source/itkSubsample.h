@@ -45,7 +45,7 @@ public:
   typedef SmartPointer< Self >                              Pointer;
   typedef SmartPointer<const Self>                          ConstPointer;
 
-  /** Run-time type information (and related methods).*/
+  /** Run-time type information (and related methods). */
   itkTypeMacro(Subsample, Sample);
 
   /** standard New() method support */
@@ -55,7 +55,7 @@ public:
   typedef typename TSample::Pointer SamplePointer;
   
   /** Typedefs for Measurement vector, measurement, Instance Identifier, 
-   * frequency, size, size element value from the template argument TSample*/
+   * frequency, size, size element value from the template argument TSample */
   typedef typename TSample::MeasurementVectorType MeasurementVectorType;
   typedef typename TSample::MeasurementType       MeasurementType;
   typedef typename TSample::InstanceIdentifier    InstanceIdentifier;

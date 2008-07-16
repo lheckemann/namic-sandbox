@@ -160,7 +160,7 @@ public:
   /** Method to get the image */
   const TImage* GetImage() const;
 
-  /** returns the number of measurement vectors in this container*/
+  /** returns the number of measurement vectors in this container */
   InstanceIdentifier Size() const;
 
   /** Get frequency */

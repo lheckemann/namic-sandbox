@@ -52,7 +52,7 @@ public:
   itkNewMacro(Self);
   
   /** Typedefs for Measurement vector, measurement, Instance Identifier, 
-   * frequency, size, size element value from the template argument TSample*/
+   * frequency, size, size element value from the template argument TSample */
   itkSuperclassTraitMacro( SampleType );
   itkSuperclassTraitMacro( MeasurementVectorType );
   itkSuperclassTraitMacro( MeasurementType );
@@ -63,7 +63,7 @@ public:
   /** Type of the distance radius. */ 
   typedef double RadiusType;
 
-  /** Type of DataObjects to use for distance radius input.*/
+  /** Type of DataObjects to use for distance radius input. */
   typedef SimpleDataObjectDecorator< RadiusType > InputRadiusObjectType;
 
 
