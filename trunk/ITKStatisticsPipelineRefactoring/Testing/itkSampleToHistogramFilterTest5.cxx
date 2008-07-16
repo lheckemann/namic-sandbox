@@ -150,13 +150,6 @@ int itkSampleToHistogramFilterTest5(int argc, char *argv[] )
       std::cout << static_cast< PrintType >( measurementVector[2] ) << "  ";
       std::cout << histogramItr.GetFrequency() << std::endl;
       }
-//    if( histogramItr.GetFrequency() != expectedFrequency1 )
-//      {
-//      std::cerr << "Histogram bin error for measure " << std::endl;
-//      std::cerr << histogramItr.GetMeasurementVector() << std::endl;
-//      std::cerr << "Expected frequency = " << expectedFrequency1 << std::endl;
-//      std::cerr << "Computed frequency = " << histogramItr.GetFrequency() << std::endl;
-//      }
     ++histogramItr;
     }
 
