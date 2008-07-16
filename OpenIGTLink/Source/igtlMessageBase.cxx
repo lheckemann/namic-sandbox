@@ -77,7 +77,7 @@ int MessageBase::GetTimeStamp(unsigned int* sec, unsigned int* frac)
   return 1;
 }
 
-void MessageBase::Pack()
+int MessageBase::Pack()
 {
   PackBody();
   m_IsBodyUnpacked   = 0;
@@ -103,6 +103,7 @@ void MessageBase::Pack()
 
   m_IsHeaderUnpacked = 0;
 
+  return 1;
 }
 
 int MessageBase::Unpack(int crccheck)
