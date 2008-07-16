@@ -34,15 +34,24 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
   typedef itk::Image< PixelType, ImageDimension > ImageType;
 
   ImageType::Pointer image = ImageType::New();
-  ImageType::IndexType start = {0,0,0};
-  ImageType::SizeType  size = {10,10,10};
+
+  ImageType::IndexType start;
+  ImageType::SizeType  size;
+
+  start.Fill(0);
+  size.Fill(10);
+
   unsigned long totalSize = size[0] * size[1] * size[2] ;
   ImageType::RegionType region( start, size );
   image->SetRegions( region );
   image->Allocate();
+
   typedef itk::ImageRegionIteratorWithIndex< ImageType > IteratorType;
+
   IteratorType it( image, region );
+
   it.GoToBegin();
+
   while (!it.IsAtEnd())
     {
     PixelType value;
@@ -62,7 +71,8 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
  //Test if the methods throw exceptions if invoked before setting the image
   try
     {
-    unsigned long size = adaptor->Size();
+    // calling Size() method prematurely in order to trigger an exception.
+    adaptor->Size();
     std::cerr << "Exception should have been thrown since the input image \
                   is not set yet" << std::endl;
     }
@@ -72,18 +82,8 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
     }
   try
     {
-    JointDomainImageToListSampleAdaptorType::AbsoluteFrequencyType totalFrequency = adaptor->GetTotalFrequency();
-    std::cerr << "Exception should have been thrown since the input image \
-                  is not set yet" << std::endl;
-    }
-  catch ( itk::ExceptionObject & excp )
-    {
-    std::cerr << "Caught expected exception: " << excp << std::endl;
-    }
- 
-  try
-    {
-    JointDomainImageToListSampleAdaptorType::MeasurementVectorType m = adaptor->GetMeasurementVector( 0 );
+    // calling GetTotalFrequency() method prematurely in order to trigger an exception.
+    adaptor->GetTotalFrequency();
     std::cerr << "Exception should have been thrown since the input image \
                   is not set yet" << std::endl;
     }
@@ -94,7 +94,8 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
  
   try
     {
-    JointDomainImageToListSampleAdaptorType::ImageConstPointer image = adaptor->GetImage( );
+    // calling GetMeasurementVector() method prematurely in order to trigger an exception.
+    adaptor->GetMeasurementVector( 0 );
     std::cerr << "Exception should have been thrown since the input image \
                   is not set yet" << std::endl;
     }
@@ -105,7 +106,20 @@ int itkJointDomainImageToListSampleAdaptorTest(int, char* [] )
  
   try
     {
-    JointDomainImageToListSampleAdaptorType::AbsoluteFrequencyType frequency = adaptor->GetFrequency(0 );
+    // calling GetImage() method prematurely in order to trigger an exception.
+    adaptor->GetImage( );
+    std::cerr << "Exception should have been thrown since the input image \
+                  is not set yet" << std::endl;
+    }
+  catch ( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Caught expected exception: " << excp << std::endl;
+    }
+ 
+  try
+    {
+    // calling GetFrequency() method prematurely in order to trigger an exception.
+    adaptor->GetFrequency(0 );
     std::cerr << "Exception should have been thrown since the input image \
                   is not set yet" << std::endl;
     }

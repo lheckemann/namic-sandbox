@@ -26,7 +26,7 @@
 int itkImageToListSampleAdaptorTest(int, char* [] ) 
 {
   std::cout << "ImageToListSampleAdaptor Test \n \n"; 
-  bool pass = true;
+
   std::string whereFail = "" ;
 
   typedef itk::Image< float, 3 > FloatImage ;
@@ -54,7 +54,8 @@ int itkImageToListSampleAdaptorTest(int, char* [] )
   //Test if the methods throw exceptions if invoked before setting the image
   try
     {
-    unsigned long size = sample->Size();
+    // purposely call Size() method prematurely in order to trigger an exception.
+    sample->Size();
     std::cerr << "Exception should have been thrown since the input image \
                   is not set yet" << std::endl;
     }
@@ -64,7 +65,8 @@ int itkImageToListSampleAdaptorTest(int, char* [] )
     }
   try
     {
-    ImageToListSampleAdaptorType::AbsoluteFrequencyType totalFrequency = sample->GetTotalFrequency();
+    // purposely call GetTotalFrequency() method prematurely in order to trigger an exception.
+    sample->GetTotalFrequency();
     std::cerr << "Exception should have been thrown since the input image \
                   is not set yet" << std::endl;
     }
@@ -97,7 +99,8 @@ int itkImageToListSampleAdaptorTest(int, char* [] )
  
   try
     {
-    ImageToListSampleAdaptorType::AbsoluteFrequencyType frequency = sample->GetFrequency(0 );
+    // purposely call GetFrequency() method prematurely in order to trigger an exception.
+    sample->GetFrequency(0 );
     std::cerr << "Exception should have been thrown since the input image \
                   is not set yet" << std::endl;
     }
