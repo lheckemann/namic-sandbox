@@ -18,7 +18,8 @@
 #include <math.h>
 
 #include "igtlOSUtil.h"
-#include "igtlTransformMessage.h"
+//#include "igtlTransformMessage.h"
+#include "igtlImageMessage.h"
 #include "igtlServerSocket.h"
 #include "igtlClientSocket.h"
 
@@ -64,7 +65,7 @@ int main(int argc, char* argv[])
       // loop
       for (int i = 0; i < 100; i ++)
         {
-        igtl::Matrix4x4 matrix;
+        igtl::ImageMessage::Pointer imgMsg = igtl::ImageMessage::New();
         GetRandomTestMatrix(matrix);
         transMsg->SetMatrix(matrix);
         transMsg->Pack();

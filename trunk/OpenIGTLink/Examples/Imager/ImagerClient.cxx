@@ -18,9 +18,11 @@
 #include <math.h>
 
 #include "igtlOSUtil.h"
-#include "igtlTransformMessage.h"
+//#include "igtlTransformMessage.h"
+#include "igtlImageMessage.h"
 #include "igtlClientSocket.h"
 
+void GetTestImage(igtl::ImageMessage::Pointer, int i);
 void GetRandomTestMatrix(igtl::Matrix4x4& matrix);
 
 int main(int argc, char* argv[])
@@ -83,6 +85,16 @@ int main(int argc, char* argv[])
   socket->Delete();
 
 }
+
+
+//------------------------------------------------------------
+// Function to read test image data
+void GetTestImage(igtl::ImageMessage::Pointer, int i)
+{
+  
+}
+
+
 
 //------------------------------------------------------------
 // Function to generate random matrix.
