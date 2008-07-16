@@ -26,7 +26,6 @@
 int itkSubsampleTest3(int, char* [] ) 
 {
   std::cout << "MeanFilter test \n \n";
-  bool pass = true;
   std::string failureMeassage= "";
 
   const unsigned int                  MeasurementVectorSize = 2;
