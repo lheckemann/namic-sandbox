@@ -18,7 +18,6 @@
 #include <math.h>
 
 #include "igtlOSUtil.h"
-//#include "igtlTransformMessage.h"
 #include "igtlImageMessage.h"
 #include "igtlClientSocket.h"
 
@@ -37,7 +36,7 @@ int main(int argc, char* argv[])
     std::cerr << "    <hostname> : IP or host name"                    << std::endl;
     std::cerr << "    <port>     : Port # (18944 in Slicer default)"   << std::endl;
     std::cerr << "    <fps>      : Frequency (fps) to send coordinate" << std::endl;
-    std::cerr << "    <imgdir>   : file directory, where files \"igtlTestImage?.raw\" are placed." << std::endl;
+    std::cerr << "    <imgdir>   : file directory, where \"igtlTestImage[1-5].raw\" are placed." << std::endl;
     std::cerr << "                 (usually, in the Examples/Imager/img directory.)" << std::endl;
     exit(0);
     }
@@ -68,7 +67,7 @@ int main(int argc, char* argv[])
     //------------------------------------------------------------
     // size parameters
     int   size[] = {256, 256, 1};         // image dimension
-    float spacing[] = {1.0, 1.0, 1.0};    // spacing (mm/pixel)
+    float spacing[] = {1.0, 1.0, 5.0};    // spacing (mm/pixel)
     int   svsize[] = {256, 256, 1};       // sub-volume size
     int   svoffset[] = {0, 0, 0};         // sub-volume offset
     int   scalarType = igtl::ImageMessage::TYPE_UINT8;// scalar type
@@ -146,16 +145,14 @@ int GetTestImage(igtl::ImageMessage::Pointer& msg, const char* dir, int i)
   return 1;
 }
 
-
-
 //------------------------------------------------------------
 // Function to generate random matrix.
-
 void GetRandomTestMatrix(igtl::Matrix4x4& matrix)
 {
   float position[3];
   float orientation[4];
 
+  /*
   // random position
   static float phi = 0.0;
   position[0] = 50.0 * cos(phi);
@@ -171,12 +168,18 @@ void GetRandomTestMatrix(igtl::Matrix4x4& matrix)
   orientation[3]=0.6666666666*sin(theta);
   theta = theta + 0.1;
 
-  //igtl::Matrix4x4 matrix;
+  igtl::Matrix4x4 matrix;
   igtl::QuaternionToMatrix(orientation, matrix);
 
   matrix[0][3] = position[0];
   matrix[1][3] = position[1];
   matrix[2][3] = position[2];
+  */
+
+  matrix[0][0] = 1.0;  matrix[1][0] = 0.0;  matrix[2][0] = 0.0; matrix[3][0] = 0.0;
+  matrix[0][1] = 0.0;  matrix[1][1] = 1.0;  matrix[2][1] = 0.0; matrix[3][1] = 0.0;
+  matrix[0][2] = 0.0;  matrix[1][2] = 0.0;  matrix[2][2] = 1.0; matrix[3][2] = 0.0;
+  matrix[0][3] = 0.0;  matrix[1][3] = 0.0;  matrix[2][3] = 0.0; matrix[3][3] = 1.0;
   
   igtl::PrintMatrix(matrix);
 }
