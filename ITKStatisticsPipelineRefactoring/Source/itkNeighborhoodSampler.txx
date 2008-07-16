@@ -54,7 +54,10 @@ NeighborhoodSampler< TSample >
     itkExceptionMacro("Radius input is missing");
     }
 
-  const RadiusType radius = radiusObject->Get();
+  // FIXME : What should follow here ?
+  //
+  // const RadiusType radius = radiusObject->Get();
+  //
 
 }
 

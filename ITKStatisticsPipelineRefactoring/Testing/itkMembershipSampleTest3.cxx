@@ -31,7 +31,7 @@ int itkMembershipSampleTest3(int, char* [] )
 
   MeasurementVectorType vector;
 
-  vector.SetSize( MeasurementVectorType );
+  vector.SetSize( MeasurementVectorSize );
 
   if( vector.GetSize() != MeasurementVectorSize )
     {
