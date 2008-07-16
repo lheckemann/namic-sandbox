@@ -89,7 +89,7 @@ public:
   /** Method to get the point set */
   const TPointSet* GetPointSet();
 
-  /** returns the number of measurement vectors in this container*/
+  /** returns the number of measurement vectors in this container */
   InstanceIdentifier Size() const;
 
   /** returns the measurement vector that is specified by the instance

@@ -75,7 +75,7 @@ public:
                   ConstantBoundaryCondition<TImage> 
                                        > ShapedNeighborhoodIteratorType;
 
-  /** Offset type used for Neighborhoods **/
+  /** Offset type used for Neighborhoods */
   typedef typename ShapedNeighborhoodIteratorType::OffsetType OffsetType;
   typedef std::vector<OffsetType>                             OffsetTable;
   
