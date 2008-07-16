@@ -53,13 +53,10 @@ class MyCovarianceFilter : public CovarianceFilter< TSample >
 int itkCovarianceFilterTest3(int, char* [] ) 
 {
   std::cout << "CovarianceFilter test \n \n";
-  bool pass = true;
   std::string failureMeassage= "";
 
   typedef double                      MeasurementType;
   const unsigned int                  MeasurementVectorSize = 3;
-  const unsigned int                  numberOfMeasurementVectors = 100;
-  unsigned int                        counter = 0;
 
   typedef itk::FixedArray< 
     MeasurementType, MeasurementVectorSize >   MeasurementVectorType;

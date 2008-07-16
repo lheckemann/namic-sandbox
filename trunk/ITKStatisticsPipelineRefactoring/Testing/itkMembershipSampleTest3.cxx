@@ -29,6 +29,15 @@ int itkMembershipSampleTest3(int, char* [] )
 
   typedef itk::VariableLengthVector< float >  MeasurementVectorType;
 
+  MeasurementVectorType vector;
+
+  vector.SetSize( MeasurementVectorType );
+
+  if( vector.GetSize() != MeasurementVectorSize )
+    {
+    std::cerr << "Error in GetSize()/SetSize() " << std::endl;
+    return EXIT_FAILURE;
+    }
 
   return EXIT_SUCCESS;
 }

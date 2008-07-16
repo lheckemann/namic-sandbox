@@ -138,8 +138,6 @@ int itkSampleToHistogramFilterTest5(int argc, char *argv[] )
   HistogramType::ConstIterator histogramItr = histogram->Begin();
   HistogramType::ConstIterator histogramEnd = histogram->End();
 
-  unsigned int expectedFrequency;
-
   typedef itk::NumericTraits< VMeasurementType >::PrintType    PrintType;
 
   while( histogramItr != histogramEnd )
