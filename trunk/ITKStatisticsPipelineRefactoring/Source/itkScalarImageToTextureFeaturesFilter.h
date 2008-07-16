@@ -131,11 +131,14 @@ public:
   typedef typename OffsetVector::Pointer              OffsetVectorPointer;
   typedef typename OffsetVector::ConstPointer         OffsetVectorConstPointer;
 
-  typedef ScalarImageToCooccurrenceMatrixFilter< ImageType,
-    FrequencyContainerType > CooccurrenceMatrixFilterType;
+  typedef ScalarImageToCooccurrenceMatrixFilter< 
+    ImageType, FrequencyContainerType >               CooccurrenceMatrixFilterType;
 
-  typedef HistogramToTextureFeaturesFilter< typename
-  CooccurrenceMatrixFilterType::HistogramType >                TextureFeaturesFilterType;
+  typedef typename CooccurrenceMatrixFilterType::HistogramType 
+                                                      HistogramType;
+
+  typedef HistogramToTextureFeaturesFilter< HistogramType >
+                                                      TextureFeaturesFilterType;
 
   typedef typename TextureFeaturesFilterType::TextureFeatureName  TextureFeatureName;
   typedef VectorContainer<unsigned char, TextureFeatureName>      FeatureNameVector;
