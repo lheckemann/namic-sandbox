@@ -67,19 +67,41 @@ public:
 
 public:
 
+  // Image dimensions
   void SetDimensions(int s[3]);
   void SetDimensions(int i, int j, int k);
+  void GetDimensions(int s[3]);
+  void GetDimensions(int &i, int &j, int &k);
+
+  // Sub-volume dimensions and offset
   int  SetSubVolume(int dim[3], int off[3]);
   int  SetSubVolume(int dimi, int dimj, int dimk, int offi, int offj, int offk);
+  void GetSubVolume(int dim[3], int off[3]);
+  void GetSubVolume(int &dimi, int &dimj, int &dimk, int &offi, int &offj, int &offk);
 
+  // Spacings
   void SetSpacing(float s[3]);
   void SetSpacing(float si, float sj, float sk);
+  void GetSpacing(float s[3]);
+  void GetSpacing(float &si, float &sj, float &sk);
+
+  // Origin coordinate
   void SetOrigin(float p[3]);
   void SetOrigin(float px, float py, float pz);
+  void GetOrigin(float p[3]);
+  void GetOrigin(float &px, float &py, float &pz);
+
+  // Image orientation
   void SetNormals(float o[3][3]);
   void SetNormals(float t[3], float s[3], float n[3]);
-  void SetMatrix(Matrix4x4& mat);
+  void GetNormals(float o[3][3]);
+  void GetNormals(float t[3], float s[3], float n[3]);
 
+  // Origin/orientation matrix
+  void SetMatrix(Matrix4x4& mat);
+  void GetMatrix(Matrix4x4& mat);
+
+  // Image scalar type
   void SetScalarType(int t)    { scalarType = t; };
   void SetScalarTypeToInt8()   { scalarType = TYPE_INT8; };
   void SetScalarTypeToUint8()  { scalarType = TYPE_UINT8; };
@@ -87,16 +109,7 @@ public:
   void SetScalarTypeToUint16() { scalarType = TYPE_UINT16; };
   void SetScalarTypeToInt32()  { scalarType = TYPE_INT32; };
   void SetScalarTypeToUint32() { scalarType = TYPE_UINT32; };
-
-  void GetDimensions(int s[3]);
-  void GetDimensions(int &i, int &j, int &k);
-  void GetSpacing(float s[3]);
-  void GetSpacing(float &si, float &sj, float &sk);
   int  GetScalarType()         { return scalarType; };
-
-  void GetSubVolume(int dim[3], int off[3]);
-  void GetSubVolume(int &dimi, int &dimj, int &dimk, int &offi, int &offj, int &offk);
-
   int  GetScalarSize()         { return ScalarSizeTable[scalarType]; };
   int  GetScalarSize(int type) { return ScalarSizeTable[type]; };
 
@@ -121,7 +134,8 @@ protected:
 protected:
 
   virtual int  GetBodyPackSize();
-  virtual void PackBody();
+  virtual int  PackBody();
+  virtual int  UnpackBody();
   
   int    dimensions[3];
   float  spacing[3];

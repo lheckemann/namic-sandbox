@@ -64,9 +64,9 @@ protected:
   
 protected:
 
-  virtual int GetBodyPackSize();
-  virtual void PackBody();
-  virtual void UnpackBody();
+  virtual int  GetBodyPackSize();
+  virtual int  PackBody();
+  virtual int  UnpackBody();
   
   Matrix4x4 matrix;
 

@@ -188,7 +188,7 @@ int TransformMessage::GetBodyPackSize()
   return IGTL_TRANSFORM_SIZE;
 }
 
-void TransformMessage::PackBody()
+int TransformMessage::PackBody()
 {
   igtl_float32* transform = (igtl_float32*)this->m_Transform;
 
@@ -200,10 +200,11 @@ void TransformMessage::PackBody()
   }
   
   igtl_transform_convert_byte_order(transform);
-  
+
+  return 1;
 }
 
-void TransformMessage::UnpackBody()
+int TransformMessage::UnpackBody()
 {
   m_Transform = m_Body;
 
@@ -222,6 +223,7 @@ void TransformMessage::UnpackBody()
   matrix[3][2] = 0.0;
   matrix[3][3] = 1.0;
 
+  return 1;
 }
 
 } // namespace igtl
