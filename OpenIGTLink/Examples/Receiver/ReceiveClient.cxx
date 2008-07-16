@@ -1,0 +1,122 @@
+/*=========================================================================
+
+  Program:   Open IGT Link -- Example for Data Receiving Client Program
+  Module:    $RCSfile: $
+  Language:  C++
+  Date:      $Date: $
+  Version:   $Revision: $
+
+  Copyright (c) Insight Software Consortium. All rights reserved.
+
+  This software is distributed WITHOUT ANY WARRANTY; without even
+  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+  PURPOSE.  See the above copyright notices for more information.
+
+=========================================================================*/
+
+#include <iostream>
+#include <math.h>
+
+#include "igtlOSUtil.h"
+#include "igtlMessageHeader.h"
+#include "igtlTransformMessage.h"
+#include "igtlServerSocket.h"
+#include "igtlClientSocket.h"
+
+
+int main(int argc, char* argv[])
+{
+  //------------------------------------------------------------
+  // Parse Arguments
+
+  if (argc != 3) // check number of arguments
+    {
+    // If not correct, print usage
+    std::cerr << "    <hostname> : IP or host name"                    << std::endl;
+    std::cerr << "    <port>     : Port # (18944 in Slicer default)"   << std::endl;
+    exit(0);
+    }
+
+  char*  hostname = argv[1];
+  int    port     = atoi(argv[2]);
+
+  //------------------------------------------------------------
+  // Establish Connection
+
+  igtl::ClientSocket::Pointer socket;
+  socket = igtl::ClientSocket::New();
+  int r = socket->ConnectToServer(hostname, port);
+
+  if (r != 0)
+    {
+    std::cerr << "Cannot connect to the server." << std::endl;
+    exit(0);
+    }
+
+  //------------------------------------------------------------
+  // Create a message buffer to receive header
+  igtl::MessageHeader::Pointer headerMsg;
+  headerMsg = igtl::MessageHeader::New();
+  
+  while (1)
+    {
+    //------------------------------------------------------------
+    // loop
+    for (int i = 0; i < 100; i ++)
+      {
+      
+      // Initialize receive buffer
+      headerMsg->InitPack();
+      
+      // Receive generic header from the socket
+      int r = socket->Receive(headerMsg->GetPackPointer(), headerMsg->GetPackSize());
+      if (r != headerMsg->GetPackSize())
+        {
+        std::cerr << "Error: receiving data." << std::endl;
+        }
+      
+      // Deserialize the header
+      headerMsg->Unpack();
+      
+      // Check data type and receive data body
+      if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
+        {
+        // Create a message buffer to receive transform data
+        igtl::TransformMessage::Pointer transMsg;
+        transMsg = igtl::TransformMessage::New();
+        
+        transMsg->SetMessageHeader(headerMsg);
+        transMsg->AllocatePack();
+        
+        // Receive transform data from the socket
+        socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
+        
+        // Deserialize the transform data
+        // If you want to skip CRC check, call Unpack() without argument.
+        int c = transMsg->Unpack(1);
+        
+        if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+          {
+          // Retrive the transform data
+          igtl::Matrix4x4 matrix;
+          transMsg->GetMatrix(matrix);
+          igtl::PrintMatrix(matrix);
+          }
+        }
+      else if (strcmp(headerMsg->GetDeviceType(), "IMAGE"))
+        {
+        }
+      else
+        {
+        }
+      }
+    }
+
+  //------------------------------------------------------------
+  // Close connection (The example code never reachs to this section ...)
+  
+  socket->CloseSocket();
+
+}
+
+

@@ -11,3 +11,6 @@ include(${OpenIGTLink_USE_FILE})
 
 ADD_EXECUTABLE(ReceiveServer  ReceiveServer.cxx)
 TARGET_LINK_LIBRARIES(ReceiveServer OpenIGTLink)
+
+ADD_EXECUTABLE(ReceiveClient  ReceiveClient.cxx)
+TARGET_LINK_LIBRARIES(ReceiveClient OpenIGTLink)
