@@ -98,8 +98,6 @@ WeightedCovarianceFilter< TSample >
   MeasurementVectorType mean;
   mean.Fill(0.0);
 
-  double totalFrequency = 0.0;
-
   typename TSample::ConstIterator iter = input->Begin();
   typename TSample::ConstIterator end = input->End();
 
@@ -204,8 +202,6 @@ WeightedCovarianceFilter< TSample >
 
   MeasurementVectorType mean;
   mean.Fill(0.0);
-
-  double totalFrequency = 0.0;
 
   typename TSample::ConstIterator iter = input->Begin();
   typename TSample::ConstIterator end = input->End();
