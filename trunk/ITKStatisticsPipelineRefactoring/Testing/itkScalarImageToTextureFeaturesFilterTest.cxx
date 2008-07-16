@@ -327,14 +327,14 @@ int itkScalarImageToTextureFeaturesFilterTest(int, char* [] )
   TextureFilterType::FeatureNameVector::ConstIterator fIt;
 
   fIt = requestedFeatures2->Begin();
-  if ( ! fIt.Value() == TextureFeaturesFilterType::Inertia )
+  if ( fIt.Value() != TextureFeaturesFilterType::Inertia )
     {
     std::cerr << "Requested feature name not correctly set" << std::endl;
     passed = false;
     }
   fIt++;
 
-  if ( ! fIt.Value() == TextureFeaturesFilterType::ClusterShade )
+  if ( fIt.Value() != TextureFeaturesFilterType::ClusterShade )
     {
     std::cerr << "Requested feature name not correctly set" << std::endl;
     passed = false;
