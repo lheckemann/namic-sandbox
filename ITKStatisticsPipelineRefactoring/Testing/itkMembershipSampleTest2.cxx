@@ -25,7 +25,7 @@
 int itkMembershipSampleTest2(int, char* [] )
 {
 
-  const unsigned int MeasurementVectorSize = 17;
+  // FIXME: Include test for both Fixed Size and Variable Size vectors 
 
   typedef itk::Array< float >  MeasurementVectorType;
 

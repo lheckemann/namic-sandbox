@@ -35,15 +35,22 @@ typedef itk::Image< unsigned char, 2 > MaskImageType;
 static ImageType::Pointer CreateImage()
 {
   ImageType::Pointer image = ImageType::New();
-  ImageType::IndexType start = {0,0};
-  ImageType::SizeType  size = {10,10};
+
+  ImageType::IndexType start;
+  ImageType::SizeType  size;
+  
+  start.Fill( 0 );
+
+  size[0] = 10;
+  size[1] = 10;
+
   ImageType::RegionType region( start, size );
   image->SetRegions( region );
   image->Allocate();
   typedef itk::ImageRegionIteratorWithIndex< ImageType > IteratorType;
   IteratorType it( image, region );
   it.GoToBegin();
-  while (!it.IsAtEnd())
+  while( !it.IsAtEnd() )
     {
     it.Set( it.GetIndex()[1] * 10 + it.GetIndex()[0]);
     ++it; 
@@ -57,14 +64,26 @@ static ImageType::Pointer CreateImage()
 static MaskImageType::Pointer CreateMaskImage()
 {
   MaskImageType::Pointer image = MaskImageType::New();
-  MaskImageType::IndexType start = {0,0};
-  MaskImageType::SizeType  size = {10, 10};
+  MaskImageType::IndexType start;
+  MaskImageType::SizeType  size;
+
+  start.Fill(0);
+  size.Fill(10);
+
   MaskImageType::RegionType region( start, size );
   image->SetRegions( region );
   image->Allocate();
   image->FillBuffer(0);
-  MaskImageType::IndexType startMask = {2,3};
-  MaskImageType::SizeType sizeMask = {7, 3};
+
+  MaskImageType::IndexType startMask;
+  MaskImageType::SizeType  sizeMask;
+
+  startMask[0] = 2;
+  startMask[1] = 3;
+
+  sizeMask[0] = 7;
+  sizeMask[1] = 3;
+
   MaskImageType::RegionType regionMask( startMask, sizeMask);
   typedef itk::ImageRegionIteratorWithIndex< MaskImageType > IteratorType;
   IteratorType it( image, regionMask );
@@ -82,8 +101,16 @@ static MaskImageType::Pointer CreateMaskImage()
 static MaskImageType::Pointer CreateLargerMaskImage()
 {
   MaskImageType::Pointer image = MaskImageType::New();
-  MaskImageType::IndexType start = {0,0};
-  MaskImageType::SizeType  size = {13, 17};
+
+  MaskImageType::IndexType start;
+  MaskImageType::SizeType  size;
+
+  start[0] = 0;
+  start[1] = 0;
+
+  size[0] = 13;
+  size[1] = 17;
+
   MaskImageType::RegionType region( start, size );
   image->SetRegions( region );
   image->Allocate();
@@ -152,6 +179,12 @@ int itkImageToListSampleFilterTest(int, char* [] )
 
  
   ImageToListSampleFilterType::MaskPixelType pixelType = filter->GetMaskValue();
+
+  if( pixelType != 255 )
+    {
+    std::cerr << "Problem in SetMaskValue() GetMaskValue() " << std::endl;
+    return EXIT_FAILURE;
+    }
  
   typedef ImageToListSampleFilterType::ListSampleType ListSampleType;
   const ListSampleType * list = filter->GetOutput();
