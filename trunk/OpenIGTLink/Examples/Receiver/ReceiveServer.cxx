@@ -20,9 +20,11 @@
 #include "igtlOSUtil.h"
 #include "igtlMessageHeader.h"
 #include "igtlTransformMessage.h"
+#include "igtlImageMessage.h"
 #include "igtlServerSocket.h"
-#include "igtlClientSocket.h"
 
+int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 
 int main(int argc, char* argv[])
 {
@@ -43,7 +45,7 @@ int main(int argc, char* argv[])
   serverSocket = igtl::ServerSocket::New();
   serverSocket->CreateServer(port);
 
-  igtl::ClientSocket::Pointer socket;
+  igtl::Socket::Pointer socket;
   
   while (1)
     {
@@ -78,33 +80,16 @@ int main(int argc, char* argv[])
         // Check data type and receive data body
         if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
           {
-          // Create a message buffer to receive transform data
-          igtl::TransformMessage::Pointer transMsg;
-          transMsg = igtl::TransformMessage::New();
-
-          transMsg->SetMessageHeader(headerMsg);
-          transMsg->AllocatePack();
-          
-          // Receive transform data from the socket
-          socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
-          
-          // Deserialize the transform data
-          // If you want to skip CRC check, call Unpack() without argument.
-          int c = transMsg->Unpack(1);
-
-          if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
-            {
-              // Retrive the transform data
-              igtl::Matrix4x4 matrix;
-              transMsg->GetMatrix(matrix);
-              igtl::PrintMatrix(matrix);
-            }
+          ReceiveTransform(socket, headerMsg);
           }
-        else if (strcmp(headerMsg->GetDeviceType(), "IMAGE"))
+        else if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
           {
+          ReceiveImage(socket, headerMsg);
           }
         else
           {
+          // if the data type is unknown, skip reading.
+          socket->Skip(headerMsg->GetBodySizeToRead(), 0);
           }
         }
       }
@@ -118,3 +103,74 @@ int main(int argc, char* argv[])
 }
 
 
+int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+{
+  std::cerr << "Receiving TRANSFORM data type." << std::endl;
+  
+  // Create a message buffer to receive transform data
+  igtl::TransformMessage::Pointer transMsg;
+  transMsg = igtl::TransformMessage::New();
+  transMsg->SetMessageHeader(header);
+  transMsg->AllocatePack();
+  
+  // Receive transform data from the socket
+  socket->Receive(transMsg->GetPackBodyPointer(), transMsg->GetPackBodySize());
+  
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = transMsg->Unpack(1);
+  
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    // Retrive the transform data
+    igtl::Matrix4x4 matrix;
+    transMsg->GetMatrix(matrix);
+    igtl::PrintMatrix(matrix);
+    }
+}
+
+
+int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+{
+  std::cerr << "Receiving IMAGE data type." << std::endl;
+
+  // Create a message buffer to receive transform data
+  igtl::ImageMessage::Pointer imgMsg;
+  imgMsg = igtl::ImageMessage::New();
+  imgMsg->SetMessageHeader(header);
+  imgMsg->AllocatePack();
+  
+  // Receive transform data from the socket
+  socket->Receive(imgMsg->GetPackBodyPointer(), imgMsg->GetPackBodySize());
+  
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = imgMsg->Unpack(1);
+  
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    // Retrive the image data
+    int   size[3];          // image dimension
+    float spacing[3];       // spacing (mm/pixel)
+    int   svsize[3];        // sub-volume size
+    int   svoffset[3];      // sub-volume offset
+    int   scalarType;       // scalar type
+
+    scalarType = imgMsg->GetScalarType();
+    imgMsg->GetDimensions(size);
+    imgMsg->GetSpacing(spacing);
+    imgMsg->GetSubVolume(svsize, svoffset);
+
+    std::cerr << "Device Name           : " << imgMsg->GetDeviceName() << std::endl;
+    std::cerr << "Scalar Type           : " << scalarType << std::endl;
+    std::cerr << "Dimensions            : ("
+              << size[0] << ", " << size[1] << ", " << size[2] << ")" << std::endl;
+    std::cerr << "Spacing               : ("
+              << spacing[0] << ", " << spacing[1] << ", " << spacing[2] << ")" << std::endl;
+    std::cerr << "Sub-Volume dimensions : ("
+              << svsize[0] << ", " << svsize[1] << ", " << svsize[2] << ")" << std::endl;
+    std::cerr << "Sub-Volume offset     : ("
+              << svoffset[0] << ", " << svoffset[1] << ", " << svoffset[2] << ")" << std::endl;
+    }
+
+}

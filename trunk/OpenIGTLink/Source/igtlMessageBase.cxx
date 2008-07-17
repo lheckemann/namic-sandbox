@@ -146,7 +146,7 @@ int MessageBase::Unpack(int crccheck)
       if (crccheck)
         {
           // Calculate CRC of the body
-          crc = crc64((unsigned char*)m_Body, GetBodyPackSize(), crc);
+          crc = crc64((unsigned char*)m_Body, m_BodySizeToRead, crc);
         }
       else
         {

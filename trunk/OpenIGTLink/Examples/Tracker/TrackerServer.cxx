@@ -20,7 +20,6 @@
 #include "igtlOSUtil.h"
 #include "igtlTransformMessage.h"
 #include "igtlServerSocket.h"
-#include "igtlClientSocket.h"
 
 void GetRandomTestMatrix(igtl::Matrix4x4& matrix);
 
@@ -50,7 +49,7 @@ int main(int argc, char* argv[])
   serverSocket = igtl::ServerSocket::New();
   serverSocket->CreateServer(port);
 
-  igtl::ClientSocket::Pointer socket;
+  igtl::Socket::Pointer socket;
   
   while (1)
     {
