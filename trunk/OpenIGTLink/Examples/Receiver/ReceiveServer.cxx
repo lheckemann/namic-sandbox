@@ -126,7 +126,11 @@ int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer
     igtl::Matrix4x4 matrix;
     transMsg->GetMatrix(matrix);
     igtl::PrintMatrix(matrix);
+    return 1;
     }
+
+  return 0;
+
 }
 
 
@@ -171,6 +175,9 @@ int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& he
               << svsize[0] << ", " << svsize[1] << ", " << svsize[2] << ")" << std::endl;
     std::cerr << "Sub-Volume offset     : ("
               << svoffset[0] << ", " << svoffset[1] << ", " << svoffset[2] << ")" << std::endl;
+    return 1;
     }
+
+  return 0;
 
 }
