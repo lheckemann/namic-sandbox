@@ -21,13 +21,23 @@
 #include <iostream>
 #include "itkMembershipSample.h"
 #include "itkArray.h"
+#include "itkListSample.h"
 
 int itkMembershipSampleTest2(int, char* [] )
 {
 
-  // FIXME: Include test for both Fixed Size and Variable Size vectors 
+  const unsigned int MeasurementVectorSize = 29;
 
   typedef itk::Array< float >  MeasurementVectorType;
+
+  typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
+
+  typedef itk::Statistics::MembershipSample< SampleType >   MembershipSampleType;
+
+
+  MeasurementVectorType vector;
+
+  vector.SetSize( MeasurementVectorSize );
 
 
   return EXIT_SUCCESS;
