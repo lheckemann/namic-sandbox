@@ -1,4 +1,4 @@
-PROJECT(OpenIGTLink)
+PROJECT(OpenIGTLinkIF)
 
 cmake_minimum_required(VERSION 2.4)
 if(COMMAND cmake_policy)
@@ -16,6 +16,14 @@ if(NOT Slicer3_SOURCE_DIR)
   include(${Slicer3_USE_FILE})
   slicer3_set_default_install_prefix_for_external_projects()
 endif(NOT Slicer3_SOURCE_DIR)
+
+# --------------------------------------------------------------------------
+# Find Open IGT Link
+
+if(NOT OpenIGTLink_SOURCE_DIR)
+  find_package(OpenIGTLink REQUIRED)
+  include(${OpenIGTLink_USE_FILE})
+endif(NOT OpenIGTLink_SOURCE_DIR)
 
 
 # --------------------------------------------------------------------------
