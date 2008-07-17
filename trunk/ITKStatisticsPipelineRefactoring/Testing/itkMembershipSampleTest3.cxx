@@ -21,6 +21,7 @@
 #include <iostream>
 #include "itkMembershipSample.h"
 #include "itkVariableLengthVector.h"
+#include "itkListSample.h"
 
 int itkMembershipSampleTest3(int, char* [] )
 {
@@ -28,6 +29,11 @@ int itkMembershipSampleTest3(int, char* [] )
   const unsigned int MeasurementVectorSize = 17;
 
   typedef itk::VariableLengthVector< float >  MeasurementVectorType;
+
+  typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
+
+  typedef itk::Statistics::MembershipSample< SampleType >   MembershipSampleType;
+
 
   MeasurementVectorType vector;
 
