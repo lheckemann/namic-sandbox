@@ -124,10 +124,10 @@ int vtkOpenIGTLinkIFLogic::Initialize()
 #ifdef BRP_DEVELOPMENT
 
     this->AddServerConnector("Robot", 18945);
-    AddDeviceToConnector(GetNumberOfConnectors()-1, "Robot", "TRANSFORM", DEVICE_IN);
+    AddDeviceToConnector(GetNumberOfConnectors()-1, "Robot",   "TRANSFORM", DEVICE_IN);
 
     this->AddServerConnector("Scanner", 18944);
-    AddDeviceToConnector(GetNumberOfConnectors()-1, "Robot", "TRANSFORM", DEVICE_OUT);
+    AddDeviceToConnector(GetNumberOfConnectors()-1, "Robot",   "TRANSFORM", DEVICE_OUT);
     AddDeviceToConnector(GetNumberOfConnectors()-1, "Scanner", "IMAGE", DEVICE_IN);
 
 #endif //BRP_DEVELOPMENT
