@@ -123,11 +123,12 @@ int vtkOpenIGTLinkLogic::Initialize()
 
 #ifdef BRP_DEVELOPMENT
 
-    this->AddServerConnector("Robot", 18944);
+    this->AddServerConnector("Robot", 18945);
     AddDeviceToConnector(GetNumberOfConnectors()-1, "Robot", "TRANSFORM", DEVICE_IN);
 
-    this->AddServerConnector("Scanner", 18945);
+    this->AddServerConnector("Scanner", 18944);
     AddDeviceToConnector(GetNumberOfConnectors()-1, "Robot", "TRANSFORM", DEVICE_OUT);
+    AddDeviceToConnector(GetNumberOfConnectors()-1, "Scanner", "IMAGE", DEVICE_IN);
 
 #endif //BRP_DEVELOPMENT
 
@@ -612,7 +613,7 @@ void vtkOpenIGTLinkLogic::ProcessMRMLEvents(vtkObject * caller, unsigned long ev
 
         int r; 
         r = connector->SendData(IGTL_HEADER_SIZE, (unsigned char*) &header);
-        r = connector->SendData(IGTL_TRANSFORM_SIZE, (unsigned char*) &transform);
+        r = connector->SendData(IGTL_TRANSFORM_SIZE, (unsigned char*) transform);
         
         }
       else if (strcmp(node->GetNodeTagName(), "Volume") == 0)

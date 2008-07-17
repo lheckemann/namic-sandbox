@@ -117,7 +117,6 @@ int vtkIGTLConnector::Start()
   // after calling vtkIGTLConnector::Start() in ProcessGUIEvent()
   // in vtkOpenIGTLinkGUI class.
   this->State = STATE_WAIT_CONNECTION;
-  
 
   return 1;
 }
