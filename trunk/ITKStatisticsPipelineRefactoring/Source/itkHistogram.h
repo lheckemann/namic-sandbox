@@ -64,9 +64,12 @@ struct GetHistogramDimension
  * bins, use the SetBinMin()/SetBinMax() methods.
  *
  * If you do not know the length of the measurement vector at compile time, you
- * can set the second template parameter to 0. This can conveniently be obtained
- * from MeasurementVectorTraits. For instance, instantiate a histogram as
- * below:
+ * should use the VariableDimensionHistogram class, instead of the Histogram
+ * class.
+ *
+ * If you know the length of the measuremen vector at compile time, you can
+ * conveniently be obtained from MeasurementVectorTraits. For instance,
+ * instantiate a histogram as below:
  *
  * \code
  * typedef Histogram< THistogramMeasurement, typename
@@ -74,7 +77,7 @@ struct GetHistogramDimension
  *      TFrequencyContainer > HistogramType;
  * \endcode
  *
- * \sa Sample, DenseFrequencyContainer, SparseFrequencyContainer
+ * \sa Sample, DenseFrequencyContainer, SparseFrequencyContainer, VariableDimensionHistogram
  */
 
 template < class TMeasurement = float, unsigned int VMeasurementVectorSize = 1,
