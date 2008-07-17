@@ -24,6 +24,12 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkHistogram.h"
 #include "itkSampleClassifierFilter.h"
 
+// ADD DistanceToCentroidMembershipFunction (with the added SetDistanceMetric() method
+// ADD EuclideanDistanceMetri
+// Create two classes with their respective DistanceToCentroidMembershipFunction and two separate centroids
+// ADD MinimumDecisionRule
+// Run that classification.  
+
 int itkSampleClassifierFilterTest1(int argc, char *argv[] )
 {
 
