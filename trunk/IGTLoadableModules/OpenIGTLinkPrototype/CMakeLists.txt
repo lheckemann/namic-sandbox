@@ -41,8 +41,8 @@ include_directories(
 # Configure include file
 #
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/vtkOpenIGTLinkConfigure.h.in 
-  ${CMAKE_CURRENT_BINARY_DIR}/vtkOpenIGTLinkConfigure.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/vtkOpenIGTLinkIFConfigure.h.in 
+  ${CMAKE_CURRENT_BINARY_DIR}/vtkOpenIGTLinkIFConfigure.h
   )
 
 file(GLOB headers 
@@ -92,14 +92,14 @@ ENDIF(CMAKE_SIZEOF_LONG_LONG)
 # --------------------------------------------------------------------------
 # Sources
 
-set(OpenIGTLink_SRCS 
-  vtkOpenIGTLinkLogic.cxx
-  vtkOpenIGTLinkGUI.cxx
+set(OpenIGTLinkIF_SRCS 
+  vtkOpenIGTLinkIFLogic.cxx
+  vtkOpenIGTLinkIFGUI.cxx
   vtkIGTLConnector.cxx
   vtkIGTLCircularBuffer.cxx
 )
 
-set(OpenIGTLinkUtil_SRCS
+set(OpenIGTLinkIFUtil_SRCS
   igtlutil/igtl_header.c
   igtlutil/igtl_image.c
   igtlutil/igtl_transform.c
@@ -111,23 +111,23 @@ set(OpenIGTLinkUtil_SRCS
 # Wrapping
 
 include("${VTK_CMAKE_DIR}/vtkWrapTcl.cmake")
-vtk_wrap_tcl3(OpenIGTLink OpenIGTLink_TCL_SRCS "${OpenIGTLink_SRCS}" "")
+vtk_wrap_tcl3(OpenIGTLinkIF OpenIGTLinkIF_TCL_SRCS "${OpenIGTLinkIF_SRCS}" "")
 
 
 
 #---------------------------------------------------------------------------
 # Add Loadable Module support
 
-generatelm(OpenIGTLink_SRCS OpenIGTLink.txt)
+generatelm(OpenIGTLinkIF_SRCS OpenIGTLinkIF.txt)
 
 # --------------------------------------------------------------------------
 # Build and install the library
 
-set(lib_name OpenIGTLink)
+set(lib_name OpenIGTLinkIF)
 add_library(${lib_name}
-  ${OpenIGTLink_SRCS} 
-  ${OpenIGTLink_TCL_SRCS}
-  ${OpenIGTLinkUtil_SRCS}
+  ${OpenIGTLinkIF_SRCS} 
+  ${OpenIGTLinkIF_TCL_SRCS}
+  ${OpenIGTLinkIFUtil_SRCS}
   )
 
 target_link_libraries(${lib_name}

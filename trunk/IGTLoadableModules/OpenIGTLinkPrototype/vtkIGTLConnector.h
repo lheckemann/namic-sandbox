@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "vtkObject.h"
-#include "vtkOpenIGTLinkWin32Header.h" 
+#include "vtkOpenIGTLinkIFWin32Header.h" 
 
 
 //class vtkSocketCommunicator;
@@ -36,7 +36,7 @@ class vtkIGTLCircularBuffer;
 class vtkMRMLNode;
 
 
-class VTK_OPENIGTLINK_EXPORT vtkIGTLConnector : public vtkObject
+class VTK_OPENIGTLINKIF_EXPORT vtkIGTLConnector : public vtkObject
 {
  public:  
   //----------------------------------------------------------------

@@ -115,7 +115,7 @@ int vtkIGTLConnector::Start()
   // since it takes for a while for the thread to update
   // this->State to non STATE_OFF value. This causes error
   // after calling vtkIGTLConnector::Start() in ProcessGUIEvent()
-  // in vtkOpenIGTLinkGUI class.
+  // in vtkOpenIGTLinkIFGUI class.
   this->State = STATE_WAIT_CONNECTION;
 
   return 1;
@@ -166,14 +166,14 @@ void* vtkIGTLConnector::ThreadFunction(void* ptr)
   // Communication -- common to both Server and Client
   while (!igtlcon->ServerStopFlag)
     {
-    //vtkErrorMacro("vtkOpenIGTLinkLogic::ThreadFunction(): alive.");
+    //vtkErrorMacro("vtkOpenIGTLinkIFLogic::ThreadFunction(): alive.");
     igtlcon->Mutex->Lock();
     igtlcon->Socket = igtlcon->WaitForConnection();
     igtlcon->Mutex->Unlock();
     if (igtlcon->Socket != NULL)
       {
       igtlcon->State = STATE_CONNECTED;
-      //vtkErrorMacro("vtkOpenIGTLinkLogic::ThreadFunction(): Client Connected.");
+      //vtkErrorMacro("vtkOpenIGTLinkIFLogic::ThreadFunction(): Client Connected.");
       igtlcon->ReceiveController();
       igtlcon->State = STATE_WAIT_CONNECTION;
       }

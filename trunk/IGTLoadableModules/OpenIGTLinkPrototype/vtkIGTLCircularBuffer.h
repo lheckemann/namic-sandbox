@@ -16,7 +16,7 @@
 #define __vtkIGTLCircularBuffer_h
 
 #include "vtkObject.h"
-#include "vtkOpenIGTLinkWin32Header.h" 
+#include "vtkOpenIGTLinkIFWin32Header.h" 
 
 #include <string>
 
@@ -25,7 +25,7 @@
 
 class vtkMutexLock;
 
-class VTK_OPENIGTLINK_EXPORT vtkIGTLCircularBuffer : public vtkObject
+class VTK_OPENIGTLINKIF_EXPORT vtkIGTLCircularBuffer : public vtkObject
 {
  public:
 
