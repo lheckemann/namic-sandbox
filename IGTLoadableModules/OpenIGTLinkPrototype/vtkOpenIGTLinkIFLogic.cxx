@@ -15,7 +15,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkCallbackCommand.h"
 
-#include "vtkOpenIGTLinkLogic.h"
+#include "vtkOpenIGTLinkIFLogic.h"
 
 #include "vtkMRMLModelDisplayNode.h"
 #include "vtkMRMLScalarVolumeNode.h"
@@ -38,16 +38,16 @@
 #include "igtl_image.h"
 #include "igtl_transform.h"
 
-vtkCxxRevisionMacro(vtkOpenIGTLinkLogic, "$Revision: 1.9.12.1 $");
-vtkStandardNewMacro(vtkOpenIGTLinkLogic);
+vtkCxxRevisionMacro(vtkOpenIGTLinkIFLogic, "$Revision: 1.9.12.1 $");
+vtkStandardNewMacro(vtkOpenIGTLinkIFLogic);
 
 //---------------------------------------------------------------------------
-vtkOpenIGTLinkLogic::vtkOpenIGTLinkLogic()
+vtkOpenIGTLinkIFLogic::vtkOpenIGTLinkIFLogic()
 {
 
-  this->SliceDriver[0] = vtkOpenIGTLinkLogic::SLICE_DRIVER_USER;
-  this->SliceDriver[1] = vtkOpenIGTLinkLogic::SLICE_DRIVER_USER;
-  this->SliceDriver[2] = vtkOpenIGTLinkLogic::SLICE_DRIVER_USER;
+  this->SliceDriver[0] = vtkOpenIGTLinkIFLogic::SLICE_DRIVER_USER;
+  this->SliceDriver[1] = vtkOpenIGTLinkIFLogic::SLICE_DRIVER_USER;
+  this->SliceDriver[2] = vtkOpenIGTLinkIFLogic::SLICE_DRIVER_USER;
 
   // If the following code doesn't work, slice nodes should be obtained from application GUI
   this->SliceNode[0] = NULL;
@@ -63,7 +63,7 @@ vtkOpenIGTLinkLogic::vtkOpenIGTLinkLogic()
 
   this->DataCallbackCommand = vtkCallbackCommand::New();
   this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
-  this->DataCallbackCommand->SetCallback(vtkOpenIGTLinkLogic::DataCallback);
+  this->DataCallbackCommand->SetCallback(vtkOpenIGTLinkIFLogic::DataCallback);
 
   this->ConnectorList.clear();
   this->ConnectorPrevStateList.clear();
@@ -77,7 +77,7 @@ vtkOpenIGTLinkLogic::vtkOpenIGTLinkLogic()
 
 
 //---------------------------------------------------------------------------
-vtkOpenIGTLinkLogic::~vtkOpenIGTLinkLogic()
+vtkOpenIGTLinkIFLogic::~vtkOpenIGTLinkIFLogic()
 {
 
   if (this->DataCallbackCommand)
@@ -89,17 +89,17 @@ vtkOpenIGTLinkLogic::~vtkOpenIGTLinkLogic()
 
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkLogic::PrintSelf(ostream& os, vtkIndent indent)
+void vtkOpenIGTLinkIFLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->vtkObject::PrintSelf(os, indent);
 
-  os << indent << "vtkOpenIGTLinkLogic:             " << this->GetClassName() << "\n";
+  os << indent << "vtkOpenIGTLinkIFLogic:             " << this->GetClassName() << "\n";
 
 }
 
 
 //---------------------------------------------------------------------------
-int vtkOpenIGTLinkLogic::Initialize()
+int vtkOpenIGTLinkIFLogic::Initialize()
 {
 
   // -----------------------------------------
@@ -138,24 +138,24 @@ int vtkOpenIGTLinkLogic::Initialize()
 
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkLogic::DataCallback(vtkObject *caller, 
+void vtkOpenIGTLinkIFLogic::DataCallback(vtkObject *caller, 
                                        unsigned long eid, void *clientData, void *callData)
 {
-  vtkOpenIGTLinkLogic *self = reinterpret_cast<vtkOpenIGTLinkLogic *>(clientData);
-  vtkDebugWithObjectMacro(self, "In vtkOpenIGTLinkLogic DataCallback");
+  vtkOpenIGTLinkIFLogic *self = reinterpret_cast<vtkOpenIGTLinkIFLogic *>(clientData);
+  vtkDebugWithObjectMacro(self, "In vtkOpenIGTLinkIFLogic DataCallback");
   self->UpdateAll();
 }
 
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkLogic::UpdateAll()
+void vtkOpenIGTLinkIFLogic::UpdateAll()
 {
 
 }
 
 
 //---------------------------------------------------------------------------
-int vtkOpenIGTLinkLogic::CheckConnectorsStatusUpdates()
+int vtkOpenIGTLinkIFLogic::CheckConnectorsStatusUpdates()
 {
 
   //----------------------------------------------------------------
@@ -180,14 +180,14 @@ int vtkOpenIGTLinkLogic::CheckConnectorsStatusUpdates()
 
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkLogic::AddConnector()
+void vtkOpenIGTLinkIFLogic::AddConnector()
 {
   this->AddConnector("connector");
 }
 
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkLogic::AddConnector(const char* name)
+void vtkOpenIGTLinkIFLogic::AddConnector(const char* name)
 {
   vtkIGTLConnector* connector = vtkIGTLConnector::New();
   connector->SetName(name);
@@ -198,7 +198,7 @@ void vtkOpenIGTLinkLogic::AddConnector(const char* name)
 
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkLogic::AddServerConnector(const char* name, int port)
+void vtkOpenIGTLinkIFLogic::AddServerConnector(const char* name, int port)
 {
   vtkIGTLConnector* connector = vtkIGTLConnector::New();
   connector->SetName(name);
@@ -211,7 +211,7 @@ void vtkOpenIGTLinkLogic::AddServerConnector(const char* name, int port)
 
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkLogic::AddClientConnector(const char* name, const char* svrHostName, int port)
+void vtkOpenIGTLinkIFLogic::AddClientConnector(const char* name, const char* svrHostName, int port)
 {
   vtkIGTLConnector* connector = vtkIGTLConnector::New();
   connector->SetName(name);
@@ -225,7 +225,7 @@ void vtkOpenIGTLinkLogic::AddClientConnector(const char* name, const char* svrHo
 
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkLogic::DeleteConnector(int id)
+void vtkOpenIGTLinkIFLogic::DeleteConnector(int id)
 {
   if (id >= 0 && id < this->ConnectorList.size())
     {
@@ -237,12 +237,12 @@ void vtkOpenIGTLinkLogic::DeleteConnector(int id)
 }
 
 //---------------------------------------------------------------------------
-int vtkOpenIGTLinkLogic::GetNumberOfConnectors()
+int vtkOpenIGTLinkIFLogic::GetNumberOfConnectors()
 {
   return this->ConnectorList.size();
 }
 
-vtkIGTLConnector* vtkOpenIGTLinkLogic::GetConnector(int id)
+vtkIGTLConnector* vtkOpenIGTLinkIFLogic::GetConnector(int id)
 {
   if (id >= 0 && id < GetNumberOfConnectors())
     {
@@ -256,7 +256,7 @@ vtkIGTLConnector* vtkOpenIGTLinkLogic::GetConnector(int id)
 
 
 //---------------------------------------------------------------------------
-vtkMRMLVolumeNode* vtkOpenIGTLinkLogic::AddVolumeNode(const char* volumeNodeName)
+vtkMRMLVolumeNode* vtkOpenIGTLinkIFLogic::AddVolumeNode(const char* volumeNodeName)
 {
 
   //vtkErrorMacro("AddVolumeNode(): called.");
@@ -350,7 +350,7 @@ vtkMRMLVolumeNode* vtkOpenIGTLinkLogic::AddVolumeNode(const char* volumeNodeName
 
 
 //---------------------------------------------------------------------------
-vtkMRMLLinearTransformNode* vtkOpenIGTLinkLogic::AddTransformNode(const char* nodeName)
+vtkMRMLLinearTransformNode* vtkOpenIGTLinkIFLogic::AddTransformNode(const char* nodeName)
 {
   
   vtkMRMLLinearTransformNode *transformNode = vtkMRMLLinearTransformNode::New();
@@ -370,7 +370,7 @@ vtkMRMLLinearTransformNode* vtkOpenIGTLinkLogic::AddTransformNode(const char* no
 
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkLogic::RegisterDeviceEvent(vtkIGTLConnector* con, const char* deviceName, const char* deviceType)
+void vtkOpenIGTLinkIFLogic::RegisterDeviceEvent(vtkIGTLConnector* con, const char* deviceName, const char* deviceType)
 {
 
   // check if the device name exists in the MRML tree
@@ -460,7 +460,7 @@ void vtkOpenIGTLinkLogic::RegisterDeviceEvent(vtkIGTLConnector* con, const char*
 
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkLogic::ImportFromCircularBuffers()
+void vtkOpenIGTLinkIFLogic::ImportFromCircularBuffers()
 {
   ConnectorListType::iterator iter;
 
@@ -471,11 +471,11 @@ void vtkOpenIGTLinkLogic::ImportFromCircularBuffers()
     vtkIGTLConnector::NameListType::iterator nameIter;
     for (nameIter = nameList.begin(); nameIter != nameList.end(); nameIter ++)
       {
-      //vtkErrorMacro("vtkOpenIGTLinkLogic::ImportFromCircularBuffers(): Import Image from : " << *nameIter);
+      //vtkErrorMacro("vtkOpenIGTLinkIFLogic::ImportFromCircularBuffers(): Import Image from : " << *nameIter);
       vtkIGTLCircularBuffer* buffer = (*iter)->GetCircularBuffer(*nameIter);
       buffer->StartPull();
       const char* type = buffer->PullDeviceType();
-      //vtkErrorMacro("vtkOpenIGTLinkLogic::ImportFromCircularBuffers(): TYPE = " << type);
+      //vtkErrorMacro("vtkOpenIGTLinkIFLogic::ImportFromCircularBuffers(): TYPE = " << type);
       if (strcmp(type, "IMAGE") == 0)
         {
         UpdateMRMLScalarVolumeNode((*nameIter).c_str(), buffer->PullSize(), buffer->PullData());
@@ -492,7 +492,7 @@ void vtkOpenIGTLinkLogic::ImportFromCircularBuffers()
 
 
 //---------------------------------------------------------------------------
-int vtkOpenIGTLinkLogic::SetRestrictDeviceName(int f)
+int vtkOpenIGTLinkIFLogic::SetRestrictDeviceName(int f)
 {
 
   if (f != 0) f = 1; // make sure that f is either 0 or 1.
@@ -509,7 +509,7 @@ int vtkOpenIGTLinkLogic::SetRestrictDeviceName(int f)
 
 
 //---------------------------------------------------------------------------
-int  vtkOpenIGTLinkLogic::AddDeviceToConnector(int id, const char* deviceName, const char* deviceType, int io)
+int  vtkOpenIGTLinkIFLogic::AddDeviceToConnector(int id, const char* deviceName, const char* deviceType, int io)
 // io -- DEVICE_IN : incoming, DEVICE_OUT: outgoing
 {
 
@@ -551,15 +551,15 @@ int  vtkOpenIGTLinkLogic::AddDeviceToConnector(int id, const char* deviceName, c
 }
 
 //---------------------------------------------------------------------------
-int  vtkOpenIGTLinkLogic::DeleteDeviceToConnector(int id, const char* deviceName, const char* deviceType, int io)
+int  vtkOpenIGTLinkIFLogic::DeleteDeviceToConnector(int id, const char* deviceName, const char* deviceType, int io)
 {
 }
 
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkLogic::ProcessMRMLEvents(vtkObject * caller, unsigned long event, void * callData)
+void vtkOpenIGTLinkIFLogic::ProcessMRMLEvents(vtkObject * caller, unsigned long event, void * callData)
 {
-  std::cerr << "void vtkOpenIGTLinkLogic::ProcessMRMLEvents() is called" << std::endl;
+  std::cerr << "void vtkOpenIGTLinkIFLogic::ProcessMRMLEvents() is called" << std::endl;
 
   if (caller != NULL)
     {
@@ -571,7 +571,7 @@ void vtkOpenIGTLinkLogic::ProcessMRMLEvents(vtkObject * caller, unsigned long ev
       {
       vtkIGTLConnector* connector = *iter;
 
-      std::cerr << "void vtkOpenIGTLinkLogic::ProcessMRMLEvents() Connector: "
+      std::cerr << "void vtkOpenIGTLinkIFLogic::ProcessMRMLEvents() Connector: "
                 << connector->GetName() << std::endl;
 
       // NOTE: should add more strict device name and device type check here.
@@ -630,7 +630,7 @@ void vtkOpenIGTLinkLogic::ProcessMRMLEvents(vtkObject * caller, unsigned long ev
 
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkLogic::UpdateMRMLScalarVolumeNode(const char* nodeName, int size, unsigned char* data)
+void vtkOpenIGTLinkIFLogic::UpdateMRMLScalarVolumeNode(const char* nodeName, int size, unsigned char* data)
 {
   //vtkErrorMacro("vtkIGTLConnector::UpdateMRMLScalarVolumeNode()  is called  ");
 
@@ -908,7 +908,7 @@ void vtkOpenIGTLinkLogic::UpdateMRMLScalarVolumeNode(const char* nodeName, int s
 
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkLogic::UpdateMRMLLinearTransformNode(const char* nodeName, int size, unsigned char* data)
+void vtkOpenIGTLinkIFLogic::UpdateMRMLLinearTransformNode(const char* nodeName, int size, unsigned char* data)
 {
   //vtkErrorMacro("vtkIGTLConnector::UpdateMRMLLinearTransformNode()  is called  ");
 
@@ -1002,7 +1002,7 @@ void vtkOpenIGTLinkLogic::UpdateMRMLLinearTransformNode(const char* nodeName, in
 
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkLogic::UpdateSliceNode(int sliceNodeNumber,
+void vtkOpenIGTLinkIFLogic::UpdateSliceNode(int sliceNodeNumber,
                                          float nx, float ny, float nz,
                                          float tx, float ty, float tz,
                                          float px, float py, float pz)
@@ -1062,7 +1062,7 @@ void vtkOpenIGTLinkLogic::UpdateSliceNode(int sliceNodeNumber,
 
 
 //---------------------------------------------------------------------------
-int vtkOpenIGTLinkLogic::UpdateSliceNodeByTransformNode(int sliceNodeNumber, const char* nodeName)
+int vtkOpenIGTLinkIFLogic::UpdateSliceNodeByTransformNode(int sliceNodeNumber, const char* nodeName)
 {
 
   if (this->FreezePlane)
@@ -1112,7 +1112,7 @@ int vtkOpenIGTLinkLogic::UpdateSliceNodeByTransformNode(int sliceNodeNumber, con
 
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkLogic::CheckSliceNode()
+void vtkOpenIGTLinkIFLogic::CheckSliceNode()
 {
 
   for (int i = 0; i < 3; i ++)
@@ -1129,7 +1129,7 @@ void vtkOpenIGTLinkLogic::CheckSliceNode()
 
 
 //---------------------------------------------------------------------------
-vtkMRMLModelNode* vtkOpenIGTLinkLogic::SetVisibilityOfLocatorModel(const char* nodeName, int v)
+vtkMRMLModelNode* vtkOpenIGTLinkIFLogic::SetVisibilityOfLocatorModel(const char* nodeName, int v)
 {
   vtkMRMLModelNode*   locatorModel;
   vtkMRMLDisplayNode* locatorDisp;
@@ -1161,7 +1161,7 @@ vtkMRMLModelNode* vtkOpenIGTLinkLogic::SetVisibilityOfLocatorModel(const char* n
 
 
 //---------------------------------------------------------------------------
-vtkMRMLModelNode* vtkOpenIGTLinkLogic::AddLocatorModel(const char* nodeName, double r, double g, double b)
+vtkMRMLModelNode* vtkOpenIGTLinkIFLogic::AddLocatorModel(const char* nodeName, double r, double g, double b)
 {
 
   vtkMRMLModelNode           *locatorModel;
@@ -1220,7 +1220,7 @@ vtkMRMLModelNode* vtkOpenIGTLinkLogic::AddLocatorModel(const char* nodeName, dou
 
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkLogic::ProcCommand(const char* nodeName, int size, unsigned char* data)
+void vtkOpenIGTLinkIFLogic::ProcCommand(const char* nodeName, int size, unsigned char* data)
 {
 }
 

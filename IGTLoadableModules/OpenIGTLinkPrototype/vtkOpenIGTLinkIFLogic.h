@@ -12,18 +12,18 @@
 
 ==========================================================================*/
 
-// .NAME vtkOpenIGTLinkLogic - slicer logic class for Locator module 
+// .NAME vtkOpenIGTLinkIFLogic - slicer logic class for Locator module 
 // .SECTION Description
 // This class manages the logic associated with tracking device for
 // IGT. 
 
 
-#ifndef __vtkOpenIGTLinkLogic_h
-#define __vtkOpenIGTLinkLogic_h
+#ifndef __vtkOpenIGTLinkIFLogic_h
+#define __vtkOpenIGTLinkIFLogic_h
 
 #include <vector>
 
-#include "vtkOpenIGTLinkWin32Header.h"
+#include "vtkOpenIGTLinkIFWin32Header.h"
 
 #include "vtkSlicerBaseLogic.h"
 #include "vtkSlicerModuleLogic.h"
@@ -41,7 +41,7 @@
 class vtkIGTLConnector;
 
 
-class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic 
+class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLogic 
 {
  public:
   //BTX
@@ -86,9 +86,9 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
 
  public:
   
-  static vtkOpenIGTLinkLogic *New();
+  static vtkOpenIGTLinkIFLogic *New();
   
-  vtkTypeRevisionMacro(vtkOpenIGTLinkLogic,vtkObject);
+  vtkTypeRevisionMacro(vtkOpenIGTLinkIFLogic,vtkObject);
 
   vtkSetMacro ( NeedRealtimeImageUpdate0, int );
   vtkGetMacro ( NeedRealtimeImageUpdate0, int );
@@ -179,10 +179,10 @@ class VTK_OPENIGTLINK_EXPORT vtkOpenIGTLinkLogic : public vtkSlicerModuleLogic
   // Constructor, destructor etc.
   //----------------------------------------------------------------
 
-  vtkOpenIGTLinkLogic();
-  ~vtkOpenIGTLinkLogic();
-  vtkOpenIGTLinkLogic(const vtkOpenIGTLinkLogic&);
-  void operator=(const vtkOpenIGTLinkLogic&);
+  vtkOpenIGTLinkIFLogic();
+  ~vtkOpenIGTLinkIFLogic();
+  vtkOpenIGTLinkIFLogic(const vtkOpenIGTLinkIFLogic&);
+  void operator=(const vtkOpenIGTLinkIFLogic&);
 
   
   static void DataCallback(vtkObject*, unsigned long, void *, void *);
