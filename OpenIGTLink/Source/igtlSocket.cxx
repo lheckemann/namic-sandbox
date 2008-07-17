@@ -374,6 +374,30 @@ int Socket::Receive(void* data, int length, int readFully/*=1*/)
 }
 
 //-----------------------------------------------------------------------------
+int Socket::Skip(int length, int skipFully/*=1*/)
+{
+  unsigned char dummy[256];
+  int block  = 256;
+  int n      = 0;
+  int remain = length;
+
+  do
+    {
+    if (remain < block)
+      {
+      block = remain;
+      }
+    
+    n = this->Receive(dummy, block, skipFully);
+    remain -= n;
+    }
+  while (remain > 0 || (skipFully && n < block));
+
+  return (length - remain);
+
+}
+
+//-----------------------------------------------------------------------------
 void Socket::PrintSelf(std::ostream& os)
 {
   this->Superclass::PrintSelf(os);

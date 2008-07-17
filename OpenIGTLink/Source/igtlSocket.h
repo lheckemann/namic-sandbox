@@ -107,6 +107,13 @@ public:
   // vtkCommand::ErrorEvent is raised.
   int Receive(void* data, int length, int readFully=1);
 
+  // Description:
+  // Skip reading data from the socket.
+  // The Skip() call has been newly introduced to the igtlSocket,
+  // after the class is imported from VTK, thus the call is
+  // not available in vtkSocket class.
+  int Skip(int length, int skipFully=1);
+
 protected:
   Socket();
   ~Socket();

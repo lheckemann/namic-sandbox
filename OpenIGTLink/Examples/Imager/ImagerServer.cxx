@@ -20,7 +20,6 @@
 #include "igtlOSUtil.h"
 #include "igtlImageMessage.h"
 #include "igtlServerSocket.h"
-#include "igtlClientSocket.h"
 
 int GetTestImage(igtl::ImageMessage::Pointer& msg, const char* dir, int i);
 void GetRandomTestMatrix(igtl::Matrix4x4& matrix);
@@ -52,7 +51,7 @@ int main(int argc, char* argv[])
   serverSocket = igtl::ServerSocket::New();
   serverSocket->CreateServer(port);
 
-  igtl::ClientSocket::Pointer socket;
+  igtl::Socket::Pointer socket;
   
   while (1)
     {
@@ -68,10 +67,10 @@ int main(int argc, char* argv[])
         {
         //------------------------------------------------------------
         // size parameters
-        int   size[] = {256, 256, 1};         // image dimension
-        float spacing[] = {1.0, 1.0, 5.0};    // spacing (mm/pixel)
-        int   svsize[] = {256, 256, 1};       // sub-volume size
-        int   svoffset[] = {0, 0, 0};         // sub-volume offset
+        int   size[]     = {256, 256, 1};       // image dimension
+        float spacing[]  = {1.0, 1.0, 5.0};     // spacing (mm/pixel)
+        int   svsize[]   = {256, 256, 1};       // sub-volume size
+        int   svoffset[] = {0, 0, 0};           // sub-volume offset
         int   scalarType = igtl::ImageMessage::TYPE_UINT8;// scalar type
         
         //------------------------------------------------------------
