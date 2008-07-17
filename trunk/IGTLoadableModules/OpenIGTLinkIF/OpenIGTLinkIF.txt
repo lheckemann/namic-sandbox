@@ -1,2 +1,2 @@
 Name: OpenIGTLinkIF
-GUIName: OpenIGTLink Prototype
+GUIName: OpenIGTLink IF
