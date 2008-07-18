@@ -132,9 +132,6 @@ protected:
 
 protected:
 
-  // Default DeviceType
-  virtual const char* GetDefaultDeviceType() { return ""; };
-
   // Pack body (must be implemented in a child class)
   virtual int  GetBodyPackSize() { return 0; };
   virtual int  PackBody()        { return 0; };
@@ -162,6 +159,7 @@ protected:
   int            m_BodySizeToRead;
 
   //BTX
+  std::string    m_DefaultBodyType;
   std::string    m_BodyType;
   std::string    m_DeviceName;
   //ETX

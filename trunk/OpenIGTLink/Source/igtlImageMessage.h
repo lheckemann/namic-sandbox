@@ -135,8 +135,6 @@ protected:
   
 protected:
 
-  virtual const char* GetDefaultDeviceType() { return "IMAGE"; };
-
   virtual int  GetBodyPackSize();
   virtual int  PackBody();
   virtual int  UnpackBody();

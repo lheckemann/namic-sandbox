@@ -48,6 +48,8 @@ TransformMessage::TransformMessage():
   matrix[2][3] = 0.0;
   matrix[3][3] = 1.0;
 
+  m_DefaultBodyType  = "TRANSFORM";
+
 }
 
 TransformMessage::~TransformMessage()
