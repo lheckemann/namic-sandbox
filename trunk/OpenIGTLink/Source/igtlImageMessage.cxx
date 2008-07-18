@@ -420,6 +420,9 @@ int ImageMessage::UnpackBody()
       matrix[3][1] = 0.0;
       matrix[3][2] = 0.0;
       matrix[3][3] = 1.0;
+
+      m_ImageHeader = m_Body;
+      m_Image       = &m_ImageHeader[IGTL_IMAGE_HEADER_SIZE];
       
       return 1;
     }
