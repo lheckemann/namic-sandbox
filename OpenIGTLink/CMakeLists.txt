@@ -11,8 +11,14 @@ INCLUDE (${CMAKE_ROOT}/Modules/Dart.cmake)
 
 #-----------------------------------------------------------------------------
 # OpenIGTLink build configuration options.
+
 OPTION(BUILD_SHARED_LIBS "Build OpenIGTLink with shared libraries." OFF)
 SET(OpenIGTLink_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+
+if(NOT OpenIGTLink_BUILD_SHARED_LIBS)
+  OPTION(BUILD_GENERATE_PIC "Generate position independent code (for static)." ON)
+  SET(OpenIGTLink_BUILD_GENERATE_PIC ${BUILD_GENERATE_PIC})
+endif(NOT OpenIGTLink_BUILD_SHARED_LIBS)
 
 
 #-----------------------------------------------------------------------------
@@ -87,6 +93,57 @@ INCLUDE_DIRECTORIES(
 #  )
 
 #-----------------------------------------------------------------------------
+# OpenIGTLink requires special compiler flags on some platforms.
+
+IF(CMAKE_COMPILER_IS_GNUCXX)
+  SET(OpenIGTLink_REQUIRED_C_FLAGS "${OpenIGTLink_REQUIRED_C_FLAGS} -w")
+  SET(OpenIGTLink_REQUIRED_CXX_FLAGS "${OpenIGTLink_REQUIRED_CXX_FLAGS} -ftemplate-depth-50")
+
+  # If the library is built as a static library, pass -fPIC option to the compiler
+  IF(OpenIGTLink_BUILD_GENERATE_PIC)
+    SET(OpenIGTLink_REQUIRED_C_FLAGS "${OpenIGTLink_REQUIRED_C_FLAGS} -fPIC")
+    SET(OpenIGTLink_REQUIRED_CXX_FLAGS "${OpenIGTLink_REQUIRED_CXX_FLAGS} -fPIC")
+  ENDIF(OpenIGTLink_BUILD_GENERATE_PIC)
+
+  IF(APPLE)
+    # -no-cpp-precomp and -Wno-long-double were compiler flags present
+    # only in Apple's gcc and not in the FSF gcc. The flags are obsolete
+    # and totally removed in gcc 4.2 and later. I believe they are only
+    # needed with gcc 3.3 and earlier.
+    INCLUDE(${OpenIGTLink_SOURCE_DIR}/CMake/itkCheckCXXAcceptsFlags.cmake)
+    itkCHECK_CXX_ACCEPTS_FLAGS("-no-cpp-precomp" CXX_HAS_CPP_PRECOMP_FLAG)
+    IF(CXX_HAS_CPP_PRECOMP_FLAG)    
+      SET(OpenIGTLink_REQUIRED_C_FLAGS "${OpenIGTLink_REQUIRED_C_FLAGS} -no-cpp-precomp")
+      SET(OpenIGTLink_REQUIRED_CXX_FLAGS "${OpenIGTLink_REQUIRED_CXX_FLAGS} -no-cpp-precomp")
+    ENDIF(CXX_HAS_CPP_PRECOMP_FLAG)    
+    itkCHECK_CXX_ACCEPTS_FLAGS("-Wno-long-double" CXX_HAS_LONGDOUBLE_FLAG)
+    IF(CXX_HAS_LONGDOUBLE_FLAG)    
+      SET(OpenIGTLink_REQUIRED_C_FLAGS "${OpenIGTLink_REQUIRED_C_FLAGS} -Wno-long-double")
+      SET(OpenIGTLink_REQUIRED_CXX_FLAGS "${OpenIGTLink_REQUIRED_CXX_FLAGS} -Wno-long-double")
+    ENDIF(CXX_HAS_LONGDOUBLE_FLAG)    
+
+    OPTION(OpenIGTLink_USE_64BITS_APPLE_TRUNCATION_WARNING "Turn on warnings on 64bits to 32bits truncations." OFF)
+    MARK_AS_ADVANCED(OpenIGTLink_USE_64BITS_APPLE_TRUNCATION_WARNING)
+
+  ENDIF(APPLE)
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+
+
+# for the gnu compiler a -D_PTHREADS is needed on sun
+# for the native compiler a -mt flag is needed on the sun
+IF(CMAKE_USE_PTHREADS)
+  IF(CMAKE_SYSTEM MATCHES "SunOS.*")
+    IF(CMAKE_COMPILER_IS_GNUCXX)
+      SET(OpenIGTLink_REQUIRED_CXX_FLAGS "${OpenIGTLink_REQUIRED_CXX_FLAGS} -D_PTHREADS")
+    ELSE(CMAKE_COMPILER_IS_GNUCXX)
+      SET(OpenIGTLink_REQUIRED_CXX_FLAGS "${OpenIGTLink_REQUIRED_CXX_FLAGS} -mt")
+      SET(OpenIGTLink_REQUIRED_C_FLAGS "${OpenIGTLink_REQUIRED_C_FLAGS} -mt")
+    ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+  ENDIF(CMAKE_SYSTEM MATCHES "SunOS.*")
+ENDIF(CMAKE_USE_PTHREADS)
+
+
+#-----------------------------------------------------------------------------
 # Generate Configuration Header files.
 
 include (${OpenIGTLink_SOURCE_DIR}/OpenIGTLinkConfigPlatform.cmake)
@@ -96,6 +153,7 @@ CONFIGURE_FILE(${OpenIGTLink_SOURCE_DIR}/igtlConfigure.h.in
 
 CONFIGURE_FILE(${OpenIGTLink_SOURCE_DIR}/igtl_typeconfig.h.in 
   ${OpenIGTLink_BINARY_DIR}/igtl_typeconfig.h)
+
 
 #-----------------------------------------------------------------------------
 # Help other projects use OpenIGTLink.
@@ -133,6 +191,17 @@ INSTALL(FILES
   DESTINATION ${OpenIGTLink_INSTALL_INCLUDE_DIR}/igtlutil
   COMPONENT Development
   )
+
+#-----------------------------------------------------------------------------
+# Add compiler flags OpenIGTLink needs to work on this platform.  This must be
+# done AFTER the call to CMAKE_EXPORT_BUILD_SETTINGS.
+
+SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenIGTLink_REQUIRED_C_FLAGS}")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenIGTLink_REQUIRED_CXX_FLAGS}")
+SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenIGTLink_REQUIRED_LINK_FLAGS}")
+SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${OpenIGTLink_REQUIRED_LINK_FLAGS}")
+SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} ${OpenIGTLink_REQUIRED_LINK_FLAGS}")
+
 
 #-----------------------------------------------------------------------------
 # Configure Subdirectories
