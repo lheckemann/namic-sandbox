@@ -64,6 +64,8 @@ protected:
   
 protected:
 
+  virtual const char* GetDefaultDeviceType() { return "TRANSFORM"; };
+
   virtual int  GetBodyPackSize();
   virtual int  PackBody();
   virtual int  UnpackBody();

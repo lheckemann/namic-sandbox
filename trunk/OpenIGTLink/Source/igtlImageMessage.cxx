@@ -33,8 +33,6 @@ const int ImageMessage::ScalarSizeTable[] =
 ImageMessage::ImageMessage():
   MessageBase()
 {
-  m_BodyType = "IMAGE";
-
   for (int i = 0; i < 3; i ++)
     {
       dimensions[i] = 0;

@@ -25,8 +25,6 @@ TransformMessage::TransformMessage():
   MessageBase()
 {
 
-  m_BodyType = "TRANSFORM";
-
   AllocatePack();
   m_Transform = m_Body;
 
