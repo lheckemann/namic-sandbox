@@ -55,12 +55,14 @@ public:
   };
 
   enum {
-    TYPE_INT8   = 2,
-    TYPE_UINT8  = 3,
-    TYPE_INT16  = 4,
-    TYPE_UINT16 = 5,
-    TYPE_INT32  = 6,
-    TYPE_UINT32 = 7
+    TYPE_INT8    = 2,
+    TYPE_UINT8   = 3,
+    TYPE_INT16   = 4,
+    TYPE_UINT16  = 5,
+    TYPE_INT32   = 6,
+    TYPE_UINT32  = 7,
+    TYPE_FLOAT32 = 10,
+    TYPE_FLOAT64 = 11
   };
 
   static const int ScalarSizeTable[];
@@ -132,6 +134,8 @@ protected:
   ~ImageMessage();
   
 protected:
+
+  virtual const char* GetDefaultDeviceType() { return "IMAGE"; };
 
   virtual int  GetBodyPackSize();
   virtual int  PackBody();

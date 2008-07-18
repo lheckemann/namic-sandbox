@@ -35,6 +35,8 @@ MessageBase::MessageBase():
 
   m_IsHeaderUnpacked = 0;
   m_IsBodyUnpacked   = 0;
+
+  m_BodyType       = std::string(GetDefaultDeviceType());
 }
 
 MessageBase::~MessageBase()
@@ -129,7 +131,7 @@ int MessageBase::Unpack(int crccheck)
       strncpy(bodyType, h->name, 12);
       strncpy(deviceName, h->device_name, 20);
 
-      m_BodyType   = bodyType;
+      m_BodyType   = bodyType;  // TODO: should check if the class is MessageBase...
       m_DeviceName = deviceName;
 
       // Mark as unpacked.
@@ -216,6 +218,7 @@ void MessageBase::InitPack()
 void MessageBase::AllocatePack(int bodySize)
 {
 
+  std::cerr << "void MessageBase::AllocatePack() body size = " << bodySize << std::endl;
   if (bodySize <= 0)
     {
       bodySize = 0;
@@ -243,6 +246,7 @@ void MessageBase::AllocatePack(int bodySize)
     }
   m_Body   = &m_Header[IGTL_HEADER_SIZE];
   m_PackSize = s;
+  std::cerr << "void MessageBase::AllocatePack() m_PackSize = " << m_PackSize << std::endl;
 }
 
 int MessageBase::CopyHeader(const MessageBase* mb)
@@ -264,7 +268,7 @@ int MessageBase::CopyHeader(const MessageBase* mb)
   m_IsHeaderUnpacked     = mb->m_IsHeaderUnpacked;
   m_IsBodyUnpacked       = mb->m_IsBodyUnpacked;
 
-  m_BodySizeToRead = mb->m_BodySizeToRead;
+  m_BodySizeToRead       = mb->m_BodySizeToRead;
 
   return 1;
 }
@@ -276,9 +280,11 @@ int MessageBase::Copy(const MessageBase* mb)
       return 0;
     }
 
-  // check if source and destination class have the same type
-  // and the pack size is larger than the header size.
-  if (m_BodyType == mb->m_BodyType && mb->m_PackSize >= IGTL_HEADER_SIZE)
+  // Check if the destination (this class) is MessageBase or
+  // the source and destination class arethe same type.
+  // The pack size is also checked if it is larger than the header size.
+  if ((strlen(GetDefaultDeviceType()) == 0 || m_BodyType == mb->m_BodyType)
+      && mb->m_PackSize >= IGTL_HEADER_SIZE)
     {
       int bodySize = mb->m_PackSize - IGTL_HEADER_SIZE;
       AllocatePack(bodySize);

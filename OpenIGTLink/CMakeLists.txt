@@ -10,6 +10,12 @@ ENABLE_TESTING()
 INCLUDE (${CMAKE_ROOT}/Modules/Dart.cmake)
 
 #-----------------------------------------------------------------------------
+# OpenIGTLink build configuration options.
+OPTION(BUILD_SHARED_LIBS "Build OpenIGTLink with shared libraries." OFF)
+SET(OpenIGTLink_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+
+
+#-----------------------------------------------------------------------------
 # Output directories.
 
 IF(NOT LIBRARY_OUTPUT_PATH)
@@ -136,6 +142,4 @@ ADD_SUBDIRECTORY( Testing   )
 ADD_SUBDIRECTORY( Tools     )
 #ADD_SUBDIRECTORY( Documents )
 ADD_SUBDIRECTORY( Examples )
-
-
 
