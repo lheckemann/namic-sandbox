@@ -120,7 +120,7 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLConnector : public vtkObject
   vtkClientSocket* WaitForConnection();
   int ReceiveController();
   int SendData(int size, unsigned char* data);
-
+  int Skip(int length, int skipFully=1);
 
   //----------------------------------------------------------------
   // Circular Buffer

@@ -32,8 +32,10 @@
 
 #include "vtkMRMLFiducialListNode.h"
 #include "vtkMRMLSliceNode.h"
-
 #include "vtkMultiThreader.h"
+
+#include "igtlImageMessage.h"
+#include "igtlTransformMessage.h"
 
 // switch to activate testing code for development  -- J.T. 06.17.2008
 #define BRP_DEVELOPMENT      1
@@ -158,8 +160,13 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
 
   void ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData);
 
-  void UpdateMRMLScalarVolumeNode(const char* nodeName, int size, unsigned char* data);
-  void UpdateMRMLLinearTransformNode(const char* nodeName, int size, unsigned char* data);
+  //void UpdateMRMLScalarVolumeNode(const char* nodeName, int size, unsigned char* data);
+  //void UpdateMRMLLinearTransformNode(const char* nodeName, int size, unsigned char* data);
+  //BTX
+  void UpdateMRMLScalarVolumeNode(igtl::MessageBase::Pointer ptr);
+  void UpdateMRMLLinearTransformNode(igtl::MessageBase::Pointer ptr);
+  //ETX
+  
   void UpdateSliceNode(int sliceNodeNumber,
                        float nx, float ny, float nz,
                        float tx, float ty, float tz,
