@@ -20,6 +20,8 @@
 
 #include <string>
 
+#include "igtlMessageBase.h"
+
 #define IGTLCB_CIRC_BUFFER_SIZE    3
 
 
@@ -39,9 +41,19 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLCircularBuffer : public vtkObject
   int            StartPush();
   void           PushDeviceType(const char* deviceType);
   void           PushData(int size, unsigned char* data);
+
+  //BTX
+  igtl::MessageBase::Pointer GetPushBuffer();
+  //ETX
+
   unsigned char* GetPushDataArea(int size);
+
   void           EndPush();
+
   int            StartPull();
+  //BTX
+  igtl::MessageBase::Pointer GetPullBuffer();
+  //ETX
   const char*    PullDeviceType();
   int            PullSize();
   unsigned char* PullData();
@@ -66,6 +78,10 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLCircularBuffer : public vtkObject
   //ETX
   long long          Size[IGTLCB_CIRC_BUFFER_SIZE];
   unsigned char*     Data[IGTLCB_CIRC_BUFFER_SIZE];
+
+  //BTX
+  igtl::MessageBase::Pointer Messages[IGTLCB_CIRC_BUFFER_SIZE];
+  //ETX
   
 };
 

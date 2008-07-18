@@ -20,6 +20,8 @@
 
 #include <string.h>
 
+#include "igtlMessageBase.h"
+
 vtkStandardNewMacro(vtkIGTLCircularBuffer);
 vtkCxxRevisionMacro(vtkIGTLCircularBuffer, "$Revision: 1.0 $");
 
@@ -38,7 +40,13 @@ vtkIGTLCircularBuffer::vtkIGTLCircularBuffer()
     this->DeviceType[i] = "";
     this->Size[i]       = 0;
     this->Data[i]       = NULL;
+
+    
+    this->Messages[i] = igtl::MessageBase::New();
+    this->Messages[i]->InitPack();
+
     }
+
   this->UpdateFlag = 0;
   this->Mutex->Unlock();
 
@@ -125,6 +133,11 @@ void vtkIGTLCircularBuffer::PushData(int size, unsigned char* data)
   memcpy(this->Data[this->InPush], data, size);
 }
 
+//---------------------------------------------------------------------------
+igtl::MessageBase::Pointer vtkIGTLCircularBuffer::GetPushBuffer()
+{
+  return this->Messages[this->InPush];
+}
 
 //---------------------------------------------------------------------------
 unsigned char* vtkIGTLCircularBuffer::GetPushDataArea(int size)
@@ -165,7 +178,6 @@ void vtkIGTLCircularBuffer::EndPush()
 //
 //---------------------------------------------------------------------------
 
-
 //---------------------------------------------------------------------------
 int vtkIGTLCircularBuffer::StartPull()
 {
@@ -174,6 +186,13 @@ int vtkIGTLCircularBuffer::StartPull()
   this->UpdateFlag = 0;
   this->Mutex->Unlock();
   return this->Last;   // return -1 if it is not available
+}
+
+
+//---------------------------------------------------------------------------
+igtl::MessageBase::Pointer vtkIGTLCircularBuffer::GetPullBuffer()
+{
+  return this->Messages[this->InUse];
 }
 
 
