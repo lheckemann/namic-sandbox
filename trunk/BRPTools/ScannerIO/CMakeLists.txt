@@ -7,231 +7,184 @@ endif(COMMAND cmake_policy)
 
 INCLUDE (CheckIncludeFiles)
 
-#
-# PLATFORMS
-#
+# --------------------------------------------------------------------------
+# Find Open IGT Link
 
-IF(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-  ADD_DEFINITIONS(-DPLATFORM_OSX)
-  ADD_DEFINITIONS(-DIGTL_USE_PTHREADS)
-  IF(CMAKE_SYSTEM_VERSION MATCHES "9\\.[0-9]*\\.[0-9]*")
-    ADD_DEFINITIONS(-DPLATFORM_OSX_LEOPARD)
-  ENDIF(CMAKE_SYSTEM_VERSION MATCHES "9\\.[0-9]*\\.[0-9]*")
-ENDIF(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-
-IF(CMAKE_SYSTEM_NAME MATCHES Linux)
-ADD_DEFINITIONS(-DPLATFORM_LINUX)
-ADD_DEFINITIONS(-DIGTL_USE_PTHREADS)
-SET(LINUX 1)
-SET(CMAKE_C_FLAGS -fPIC)
-SET(CMAKE_CXX_FLAGS -fPIC)
-ENDIF(CMAKE_SYSTEM_NAME MATCHES Linux)
-
-IF(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-ADD_DEFINITIONS(-DPLATFORM_WIN32
-  -D_WIN32
-  -DIGTLCommon_EXPORTS
-  -DIGTL_USE_WIN32_THREADS
-  )
-SET(WIN32 1)
-ENDIF(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if(NOT OpenIGTLink_SOURCE_DIR)
+  find_package(OpenIGTLink REQUIRED)
+  include(${OpenIGTLink_USE_FILE})
+endif(NOT OpenIGTLink_SOURCE_DIR)
 
 
-#
-# TYPE SIZES
-#
+# --------------------------------------------------------------------------
+# External Libraries
 
-INCLUDE (CheckTypeSize)
-CHECK_TYPE_SIZE(int         CMAKE_SIZEOF_INT)
-CHECK_TYPE_SIZE(long        CMAKE_SIZEOF_LONG)
-CHECK_TYPE_SIZE("void*"     CMAKE_SIZEOF_VOID_P)
-CHECK_TYPE_SIZE(char        CMAKE_SIZEOF_CHAR)
-CHECK_TYPE_SIZE(short       CMAKE_SIZEOF_SHORT)
-CHECK_TYPE_SIZE(float       CMAKE_SIZEOF_FLOAT)
-CHECK_TYPE_SIZE(double      CMAKE_SIZEOF_DOUBLE)
-CHECK_TYPE_SIZE("long long" CMAKE_SIZEOF_LONG_LONG)
-CHECK_TYPE_SIZE("__int64"   CMAKE_SIZEOF___INT64)
-CHECK_TYPE_SIZE("int64_t"   CMAKE_SIZEOF_INT64_T)
-
-ADD_DEFINITIONS(-DIGTL_SIZEOF_CHAR=${CMAKE_SIZEOF_CHAR})
-ADD_DEFINITIONS(-DIGTL_SIZEOF_DOUBLE=${CMAKE_SIZEOF_DOUBLE})
-ADD_DEFINITIONS(-DIGTL_SIZEOF_FLOAT=${CMAKE_SIZEOF_FLOAT})
-ADD_DEFINITIONS(-DIGTL_SIZEOF_INT=${CMAKE_SIZEOF_INT})
-ADD_DEFINITIONS(-DIGTL_SIZEOF_LONG=${CMAKE_SIZEOF_LONG})
-ADD_DEFINITIONS(-DIGTL_SIZEOF_SHORT=${CMAKE_SIZEOF_SHORT})
-ADD_DEFINITIONS(-DIGTL_SIZEOF_FLOAT=${CMAKE_SIZEOF_FLOAT})
-ADD_DEFINITIONS(-DIGTL_SIZEOF_DOUBLE=${CMAKE_SIZEOF_DOUBLE})
-
-IF(CMAKE_SIZEOF_LONG_LONG)
-  ADD_DEFINITIONS(-DIGTL_TYPE_USE_LONG_LONG=1)
-  ADD_DEFINITIONS(-DIGTL_SIZEOF_LONG_LONG=${CMAKE_SIZEOF_LONG_LONG})
-ELSE(CMAKE_SIZEOF_LONG_LONG)
-IF(CMAKE_SIZEOF___INT64)
-  ADD_DEFINITIONS(-DIGTL_TYPE_USE___INT64=1)
-  ADD_DEFINITIONS(-DIGTL_SIZEOF___INT64=${CMAKE_SIZEOF___INT64})
-ELSE(CMAKE_SIZEOF___INT64)
-IF(CMAKE_SIZEOF_INT64_T)
-  ADD_DEFINITIONS(-DIGTL_TYPE_USE_INT64_T=1)
-  ADD_DEFINITIONS(-DIGTL_SIZEOF_INT64_T=${CMAKE_SIZEOF_INT64_T})
-ENDIF(CMAKE_SIZEOF_INT64_T)
-ENDIF(CMAKE_SIZEOF___INT64)
-ENDIF(CMAKE_SIZEOF_LONG_LONG)
-
-
-#
-# EXTERNAL LIBRARIES
-#
-
-FIND_PATH(RSP_FILES
+find_path(RSP_FILES
    NAMES rspProxyUtils.o
    PATH  ${ROOT_DIR}/../GEFiles/GE_Excite_v14
 )
 
-IF(RSP_FILES)
-ADD_DEFINITIONS(-D_RSP_CONTROL)
-ENDIF(RSP_FILES)
+if(RSP_FILES)
+  ADD_DEFINITIONS(-D_RSP_CONTROL)
+endif(RSP_FILES)
 
 
-INCLUDE_DIRECTORIES(
-${CMAKE_CURRENT_SOURCE_DIR}/src/
-${CMAKE_CURRENT_SOURCE_DIR}/libs/
-${CMAKE_CURRENT_SOURCE_DIR}/libs/igtl/
-${CMAKE_CURRENT_SOURCE_DIR}/libs/igtl/igtlutil
-${RSP_FILES}/GEMS_Include_11.03/
-${RSP_FILES}/./
-)
+# --------------------------------------------------------------------------
+# Include dirs
 
-OPTION(BUILD_SHARED "Build Shared Libraries" ON)
-
-LINK_DIRECTORIES(
-libs/newmat
-${RSP_FILES}/GEMS_Libs_11.03
-${RSP_FILES}
-)
-
-SET(SOURCES
-src/io_base.c
-src/io_signa5.c
-src/Thread.cxx
-src/AcquisitionBase.cxx
-src/AcquisitionSimulator.cxx
-src/AcquisitionTrackingSimulator.cxx
-src/AcquisitionSignaSPSimulator.cxx
-src/AcquisitionGEExcite.cxx
-src/TransferBase.cxx
-src/TransferOpenIGTLink.cxx
-src/ScannerBase.cxx
+include_directories(
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/
+  ${CMAKE_CURRENT_SOURCE_DIR}/libs/
+  ${OpenIGTLink_INCLUDE_DIRS}  
+  ${RSP_FILES}/GEMS_Include_11.03/
+  ${RSP_FILES}/./
 )
 
 
-IF(RSP_FILES)
-SET(LIBS
-${LIBS}
-mrmailc
-CnvEndianBase
-eventmgr
-cupfound
-cupipc
-msghand
-gemshid
-readableString
-)
-IF(EXISTS ${RSP_FILES}/GEMS_Include_11.03)
-SET(SOURCES
-${SOURCES}
-${RSP_FILES}/rsp_ops.c
-${RSP_FILES}/rspProxyUtil.c
-)
-ELSE(EXISTS ${RSP_FILES}/GEMS_Include_11.03)
-SET(LINK_W_O_FILES TRUE)
-ENDIF(EXISTS ${RSP_FILES}/GEMS_Include_11.03)
+# --------------------------------------------------------------------------
+# Build options
 
-ENDIF(RSP_FILES)
+option(BUILD_SHARED "Build Shared Libraries" ON)
+
+# generate pisition independent code to link newmat static library
+# to shared object
+IF(CMAKE_COMPILER_IS_GNUCXX)
+  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 
-IF(BUILD_SHARED)
-ADD_LIBRARY(ScannerIOLib SHARED
-${SOURCES}
-)
-ELSE(BUILD_SHARED)
-ADD_LIBRARY(ScannerIOLib
-${SOURCES}
-)
-ENDIF(BUILD_SHARED)
+# --------------------------------------------------------------------------
+# Sources
 
-SUBDIRS(
-libs/newmat
-libs/igtl
+set(SOURCES
+  src/io_base.c
+  src/io_signa5.c
+  src/Thread.cxx
+  src/AcquisitionBase.cxx
+  src/AcquisitionSimulator.cxx
+  src/AcquisitionTrackingSimulator.cxx
+  src/AcquisitionSignaSPSimulator.cxx
+  src/AcquisitionGEExcite.cxx
+  src/TransferBase.cxx
+  src/TransferOpenIGTLink.cxx
+  src/ScannerBase.cxx
 )
 
-SET(LIBS
-${LIBS}
-newmat
-OpenIGTLink
+# --------------------------------------------------------------------------
+# Link settings
+
+link_directories(
+  libs/newmat
+  ${RSP_FILES}/GEMS_Libs_11.03
+  ${RSP_FILES}
 )
 
-IF(WIN32)
-SET(LIBS
-${LIBS}
-ws2_32
-wsock32
-)
-ELSE(WIN32)
-SET(LIBS
-${LIBS}
-ncurses
-pthread
-dl
-)
-IF(LINUX)
-SET(EXTRA_LIBS
-rt
-)
-ENDIF(LINUX)
-ENDIF(WIN32)
+if(RSP_FILES)
+  set(LIBS
+    ${LIBS}
+    mrmailc
+    CnvEndianBase
+    eventmgr
+    cupfound
+    cupipc
+    msghand
+    gemshid
+    readableString
+  )
+  if(EXISTS ${RSP_FILES}/GEMS_Include_11.03)
+    set(SOURCES
+      ${SOURCES}
+      ${RSP_FILES}/rsp_ops.c
+      ${RSP_FILES}/rspProxyUtil.c
+    )
+  else(EXISTS ${RSP_FILES}/GEMS_Include_11.03)
+    set(LINK_W_O_FILES TRUE)
+  endif(EXISTS ${RSP_FILES}/GEMS_Include_11.03)
+endif(RSP_FILES)
 
+if(BUILD_SHARED)
+  add_library(ScannerIOLib SHARED
+    ${SOURCES}
+  )
+else(BUILD_SHARED)
+  add_library(ScannerIOLib
+    ${SOURCES}
+  )
+endif(BUILD_SHARED)
 
-TARGET_LINK_LIBRARIES(ScannerIOLib
-${LIBS}
-)
-
-IF(LINK_W_O_FILES)
-#SET_TARGET_PROPERTIES(ScannerSim
-#PROPERTIES LINK_FLAGS "${RSP_FILES}/rspProxyUtil.o ${RSP_FILES}/rsp_ops.o"
-#)
-#SET_TARGET_PROPERTIES(TrackerSim
-#PROPERTIES LINK_FLAGS "${RSP_FILES}/rspProxyUtil.o ${RSP_FILES}/rsp_ops.o"
-#)
-SET_TARGET_PROPERTIES(GEExciteIGTL
-PROPERTIES LINK_FLAGS "${RSP_FILES}/rspProxyUtil.o ${RSP_FILES}/rsp_ops.o"
-)
-ENDIF(LINK_W_O_FILES)
-
-
-
-ADD_EXECUTABLE(ScannerSim src/simulator.cxx)
-ADD_EXECUTABLE(SignaSPSim src/signasp.cxx)
-ADD_EXECUTABLE(TrackerSim src/tracker.cxx)
-ADD_EXECUTABLE(GEExciteIGTL src/GEExciteIGTL.cxx)
-
-TARGET_LINK_LIBRARIES(ScannerSim
-${EXTRA_LIBS}
-ScannerIOLib
+set(LIBS
+  ${LIBS}
+  newmat
+  ${OpenIGTLink_LIBRARIES}
 )
 
-TARGET_LINK_LIBRARIES(SignaSPSim
-${EXTRA_LIBS}
-ScannerIOLib
+if(WIN32)
+  set(LIBS
+    ${LIBS}
+    ws2_32
+    wsock32
+  )
+else(WIN32)
+  set(LIBS
+    ${LIBS}
+    ncurses
+    pthread
+    dl
+  )
+  if(LINUX)
+    set(EXTRA_LIBS
+      rt
+    )
+  endif(LINUX)
+endif(WIN32)
+
+
+target_link_libraries(ScannerIOLib
+  ${LIBS}
 )
 
-TARGET_LINK_LIBRARIES(TrackerSim
-${EXTRA_LIBS}
-ScannerIOLib
+if(LINK_W_O_FILES)
+  set_target_properties(GEExciteIGTL
+    PROPERTIES LINK_FLAGS "${RSP_FILES}/rspProxyUtil.o ${RSP_FILES}/rsp_ops.o"
+  )
+endif(LINK_W_O_FILES)
+
+
+# --------------------------------------------------------------------------
+# Sub directories
+
+subdirs(
+  libs/newmat
 )
 
-TARGET_LINK_LIBRARIES(GEExciteIGTL
-${EXTRA_LIBS}
-ScannerIOLib
+
+# --------------------------------------------------------------------------
+# Build
+
+add_executable(ScannerSim src/simulator.cxx)
+add_executable(SignaSPSim src/signasp.cxx)
+add_executable(TrackerSim src/tracker.cxx)
+add_executable(GEExciteIGTL src/GEExciteIGTL.cxx)
+
+target_link_libraries(ScannerSim
+  ${EXTRA_LIBS}
+  ScannerIOLib
+)
+
+target_link_libraries(SignaSPSim
+  ${EXTRA_LIBS}
+  ScannerIOLib
+)
+
+target_link_libraries(TrackerSim
+  ${EXTRA_LIBS}
+  ScannerIOLib
+)
+
+target_link_libraries(GEExciteIGTL
+  ${EXTRA_LIBS}
+  ScannerIOLib
 )
 
 SET(EXECUTABLE_OUTPUT_PATH
