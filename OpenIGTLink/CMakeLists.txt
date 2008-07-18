@@ -105,27 +105,27 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
     SET(OpenIGTLink_REQUIRED_CXX_FLAGS "${OpenIGTLink_REQUIRED_CXX_FLAGS} -fPIC")
   ENDIF(OpenIGTLink_BUILD_GENERATE_PIC)
 
-  IF(APPLE)
-    # -no-cpp-precomp and -Wno-long-double were compiler flags present
-    # only in Apple's gcc and not in the FSF gcc. The flags are obsolete
-    # and totally removed in gcc 4.2 and later. I believe they are only
-    # needed with gcc 3.3 and earlier.
-    INCLUDE(${OpenIGTLink_SOURCE_DIR}/CMake/itkCheckCXXAcceptsFlags.cmake)
-    itkCHECK_CXX_ACCEPTS_FLAGS("-no-cpp-precomp" CXX_HAS_CPP_PRECOMP_FLAG)
-    IF(CXX_HAS_CPP_PRECOMP_FLAG)    
-      SET(OpenIGTLink_REQUIRED_C_FLAGS "${OpenIGTLink_REQUIRED_C_FLAGS} -no-cpp-precomp")
-      SET(OpenIGTLink_REQUIRED_CXX_FLAGS "${OpenIGTLink_REQUIRED_CXX_FLAGS} -no-cpp-precomp")
-    ENDIF(CXX_HAS_CPP_PRECOMP_FLAG)    
-    itkCHECK_CXX_ACCEPTS_FLAGS("-Wno-long-double" CXX_HAS_LONGDOUBLE_FLAG)
-    IF(CXX_HAS_LONGDOUBLE_FLAG)    
-      SET(OpenIGTLink_REQUIRED_C_FLAGS "${OpenIGTLink_REQUIRED_C_FLAGS} -Wno-long-double")
-      SET(OpenIGTLink_REQUIRED_CXX_FLAGS "${OpenIGTLink_REQUIRED_CXX_FLAGS} -Wno-long-double")
-    ENDIF(CXX_HAS_LONGDOUBLE_FLAG)    
-
-    OPTION(OpenIGTLink_USE_64BITS_APPLE_TRUNCATION_WARNING "Turn on warnings on 64bits to 32bits truncations." OFF)
-    MARK_AS_ADVANCED(OpenIGTLink_USE_64BITS_APPLE_TRUNCATION_WARNING)
-
-  ENDIF(APPLE)
+#  IF(APPLE)
+#    # -no-cpp-precomp and -Wno-long-double were compiler flags present
+#    # only in Apple's gcc and not in the FSF gcc. The flags are obsolete
+#    # and totally removed in gcc 4.2 and later. I believe they are only
+#    # needed with gcc 3.3 and earlier.
+#    INCLUDE(${OpenIGTLink_SOURCE_DIR}/CMake/itkCheckCXXAcceptsFlags.cmake)
+#    itkCHECK_CXX_ACCEPTS_FLAGS("-no-cpp-precomp" CXX_HAS_CPP_PRECOMP_FLAG)
+#    IF(CXX_HAS_CPP_PRECOMP_FLAG)    
+#      SET(OpenIGTLink_REQUIRED_C_FLAGS "${OpenIGTLink_REQUIRED_C_FLAGS} -no-cpp-precomp")
+#      SET(OpenIGTLink_REQUIRED_CXX_FLAGS "${OpenIGTLink_REQUIRED_CXX_FLAGS} -no-cpp-precomp")
+#    ENDIF(CXX_HAS_CPP_PRECOMP_FLAG)    
+#    itkCHECK_CXX_ACCEPTS_FLAGS("-Wno-long-double" CXX_HAS_LONGDOUBLE_FLAG)
+#    IF(CXX_HAS_LONGDOUBLE_FLAG)    
+#      SET(OpenIGTLink_REQUIRED_C_FLAGS "${OpenIGTLink_REQUIRED_C_FLAGS} -Wno-long-double")
+#      SET(OpenIGTLink_REQUIRED_CXX_FLAGS "${OpenIGTLink_REQUIRED_CXX_FLAGS} -Wno-long-double")
+#    ENDIF(CXX_HAS_LONGDOUBLE_FLAG)    
+#
+#    OPTION(OpenIGTLink_USE_64BITS_APPLE_TRUNCATION_WARNING "Turn on warnings on 64bits to 32bits truncations." OFF)
+#    MARK_AS_ADVANCED(OpenIGTLink_USE_64BITS_APPLE_TRUNCATION_WARNING)
+#
+#  ENDIF(APPLE)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 
