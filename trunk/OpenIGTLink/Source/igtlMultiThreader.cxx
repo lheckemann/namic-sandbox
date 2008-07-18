@@ -41,7 +41,7 @@
 
 // These are the includes necessary for multithreaded rendering on an SGI
 // using the sproc() call
-#ifdef IGTL_USE_SPROC
+#ifdef OpenIGTLink_USE_SPROC
 #include <sys/resource.h>
 #include <sys/prctl.h>
 #include <wait.h>
@@ -52,7 +52,7 @@
 // platforms about passing function pointer to an argument expecting an
 // extern "C" function.  Placing the typedef of the function pointer type
 // inside an extern "C" block solves this problem.
-#if defined(IGTL_USE_PTHREADS) || defined(IGTL_HP_PTHREADS)
+#if defined(OpenIGTLink_USE_PTHREADS) || defined(OpenIGTLink_HP_PTHREADS)
 #include <pthread.h>
 extern "C" { typedef void *(*igtlExternCThreadFunctionType)(void *); }
 #else
@@ -100,13 +100,13 @@ int MultiThreader::GetGlobalDefaultNumberOfThreads()
   if (MultiThreaderGlobalDefaultNumberOfThreads == 0)
     {
     int num = 1; // default is 1
-#ifdef IGTL_USE_SPROC
+#ifdef OpenIGTLink_USE_SPROC
     // Default the number of threads to be the number of available
     // processors if we are using sproc()
     num = prctl( PR_MAXPPROCS );
 #endif
 
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
     // Default the number of threads to be the number of available
     // processors if we are using pthreads()
 #ifdef _SC_NPROCESSORS_ONLN
@@ -140,9 +140,9 @@ int MultiThreader::GetGlobalDefaultNumberOfThreads()
     }
 #endif
 
-#ifndef IGTL_USE_WIN32_THREADS
-#ifndef IGTL_USE_SPROC
-#ifndef IGTL_USE_PTHREADS
+#ifndef OpenIGTLink_USE_WIN32_THREADS
+#ifndef OpenIGTLink_USE_SPROC
+#ifndef OpenIGTLink_USE_PTHREADS
     // If we are not multithreading, the number of threads should
     // always be 1
     num = 1;
@@ -238,17 +238,17 @@ void MultiThreader::SingleMethodExecute()
 {
   int                thread_loop = 0;
 
-#ifdef IGTL_USE_WIN32_THREADS
+#ifdef OpenIGTLink_USE_WIN32_THREADS
   DWORD              threadId;
   HANDLE             process_id[IGTL_MAX_THREADS];
 #endif
 
-#ifdef IGTL_USE_SPROC
+#ifdef OpenIGTLink_USE_SPROC
   siginfo_t          info_ptr;
   int                process_id[IGTL_MAX_THREADS];
 #endif
 
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
   pthread_t          process_id[IGTL_MAX_THREADS];
 #endif
 
@@ -269,7 +269,7 @@ void MultiThreader::SingleMethodExecute()
   // We are using sproc (on SGIs), pthreads(on Suns), or a single thread
   // (the default)  
 
-#ifdef IGTL_USE_WIN32_THREADS
+#ifdef OpenIGTLink_USE_WIN32_THREADS
   // Using CreateThread on a PC
   //
   // We want to use CreateThread to start this->m_NumberOfThreads - 1 
@@ -311,7 +311,7 @@ void MultiThreader::SingleMethodExecute()
     }
 #endif
 
-#ifdef IGTL_USE_SPROC
+#ifdef OpenIGTLink_USE_SPROC
   // Using sproc() on an SGI
   //
   // We want to use sproc to start this->m_NumberOfThreads - 1 additional
@@ -348,7 +348,7 @@ void MultiThreader::SingleMethodExecute()
     }
 #endif
 
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
   // Using POSIX threads
   //
   // We want to use pthread_create to start this->m_NumberOfThreads-1 additional
@@ -361,7 +361,7 @@ void MultiThreader::SingleMethodExecute()
 
   pthread_attr_t attr;
 
-#ifdef IGTL_HP_PTHREADS
+#ifdef OpenIGTLink_HP_PTHREADS
   pthread_attr_create( &attr );
 #else  
   pthread_attr_init(&attr);
@@ -375,7 +375,7 @@ void MultiThreader::SingleMethodExecute()
     this->m_ThreadInfoArray[thread_loop].UserData        = this->m_SingleData;
     this->m_ThreadInfoArray[thread_loop].NumberOfThreads = this->m_NumberOfThreads;
 
-#ifdef IGTL_HP_PTHREADS
+#ifdef OpenIGTLink_HP_PTHREADS
     pthread_create( &(process_id[thread_loop]),
                     attr, this->m_SingleMethod,  
                     ( (void *)(&this->m_ThreadInfoArray[thread_loop]) ) );
@@ -407,9 +407,9 @@ void MultiThreader::SingleMethodExecute()
     }
 #endif
 
-#ifndef IGTL_USE_WIN32_THREADS
-#ifndef IGTL_USE_SPROC
-#ifndef IGTL_USE_PTHREADS
+#ifndef OpenIGTLink_USE_WIN32_THREADS
+#ifndef OpenIGTLink_USE_SPROC
+#ifndef OpenIGTLink_USE_PTHREADS
   // There is no multi threading, so there is only one thread.
   this->m_ThreadInfoArray[0].UserData        = this->m_SingleData;
   this->m_ThreadInfoArray[0].NumberOfThreads = this->m_NumberOfThreads;
@@ -423,17 +423,17 @@ void MultiThreader::MultipleMethodExecute()
 {
   int                thread_loop;
 
-#ifdef IGTL_USE_WIN32_THREADS
+#ifdef OpenIGTLink_USE_WIN32_THREADS
   DWORD              threadId;
   HANDLE             process_id[IGTL_MAX_THREADS];
 #endif
 
-#ifdef IGTL_USE_SPROC
+#ifdef OpenIGTLink_USE_SPROC
   siginfo_t          info_ptr;
   int                process_id[IGTL_MAX_THREADS];
 #endif
 
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
   pthread_t          process_id[IGTL_MAX_THREADS];
 #endif
 
@@ -457,7 +457,7 @@ void MultiThreader::MultipleMethodExecute()
   // We are using sproc (on SGIs), pthreads(on Suns), CreateThread
   // on a PC or a single thread (the default)  
 
-#ifdef IGTL_USE_WIN32_THREADS
+#ifdef OpenIGTLink_USE_WIN32_THREADS
   // Using CreateThread on a PC
   //
   // We want to use CreateThread to start this->m_NumberOfThreads - 1 
@@ -502,7 +502,7 @@ void MultiThreader::MultipleMethodExecute()
     }
 #endif
 
-#ifdef IGTL_USE_SPROC
+#ifdef OpenIGTLink_USE_SPROC
   // Using sproc() on an SGI
   //
   // We want to use sproc to start this->m_NumberOfThreads - 1 additional
@@ -537,7 +537,7 @@ void MultiThreader::MultipleMethodExecute()
     }
 #endif
 
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
   // Using POSIX threads
   //
   // We want to use pthread_create to start this->m_NumberOfThreads - 1 
@@ -552,7 +552,7 @@ void MultiThreader::MultipleMethodExecute()
 
   pthread_attr_t attr;
 
-#ifdef IGTL_HP_PTHREADS
+#ifdef OpenIGTLink_HP_PTHREADS
   pthread_attr_create( &attr );
 #else  
   pthread_attr_init(&attr);
@@ -566,7 +566,7 @@ void MultiThreader::MultipleMethodExecute()
     this->m_ThreadInfoArray[thread_loop].UserData = 
       this->m_MultipleData[thread_loop];
     this->m_ThreadInfoArray[thread_loop].NumberOfThreads = this->m_NumberOfThreads;
-#ifdef IGTL_HP_PTHREADS
+#ifdef OpenIGTLink_HP_PTHREADS
     pthread_create( &(process_id[thread_loop]),
                     attr, this->m_MultipleMethod[thread_loop],  
                     ( (void *)(&this->m_ThreadInfoArray[thread_loop]) ) );
@@ -592,9 +592,9 @@ void MultiThreader::MultipleMethodExecute()
     }
 #endif
 
-#ifndef IGTL_USE_WIN32_THREADS
-#ifndef IGTL_USE_SPROC
-#ifndef IGTL_USE_PTHREADS
+#ifndef OpenIGTLink_USE_WIN32_THREADS
+#ifndef OpenIGTLink_USE_SPROC
+#ifndef OpenIGTLink_USE_PTHREADS
   // There is no multi threading, so there is only one thread.
   this->m_ThreadInfoArray[0].UserData        = this->m_MultipleData[0];
   this->m_ThreadInfoArray[0].NumberOfThreads = this->m_NumberOfThreads;
@@ -608,7 +608,7 @@ int MultiThreader::SpawnThread( igtlThreadFunctionType f, void *userdata )
 {
   int id;
 
-#ifdef IGTL_USE_WIN32_THREADS
+#ifdef OpenIGTLink_USE_WIN32_THREADS
   DWORD              threadId;
 #endif
 
@@ -645,7 +645,7 @@ int MultiThreader::SpawnThread( igtlThreadFunctionType f, void *userdata )
   // We are using sproc (on SGIs), pthreads(on Suns or HPs), 
   // CreateThread (on win32), or generating an error  
 
-#ifdef IGTL_USE_WIN32_THREADS
+#ifdef OpenIGTLink_USE_WIN32_THREADS
   // Using CreateThread on a PC
   //
   this->m_SpawnedThreadProcessID[id] = 
@@ -657,7 +657,7 @@ int MultiThreader::SpawnThread( igtlThreadFunctionType f, void *userdata )
     } 
 #endif
 
-#ifdef IGTL_USE_SPROC
+#ifdef OpenIGTLink_USE_SPROC
   // Using sproc() on an SGI
   //
   this->m_SpawnedThreadProcessID[id] = 
@@ -665,12 +665,12 @@ int MultiThreader::SpawnThread( igtlThreadFunctionType f, void *userdata )
 
 #endif
 
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
   // Using POSIX threads
   //
   pthread_attr_t attr;
 
-#ifdef IGTL_HP_PTHREADS
+#ifdef OpenIGTLink_HP_PTHREADS
   pthread_attr_create( &attr );
 #else  
   pthread_attr_init(&attr);
@@ -679,11 +679,12 @@ int MultiThreader::SpawnThread( igtlThreadFunctionType f, void *userdata )
 #endif
 #endif
   
-#ifdef IGTL_HP_PTHREADS
+#ifdef OpenIGTLink_HP_PTHREADS
   pthread_create( &(this->m_SpawnedThreadProcessID[id]),
                   attr, f,  
                   ( (void *)(&this->m_SpawnedThreadInfoArray[id]) ) );
 #else
+
   pthread_create( &(this->m_SpawnedThreadProcessID[id]),
                   &attr,
                   reinterpret_cast<igtlExternCThreadFunctionType>(f),  
@@ -692,9 +693,9 @@ int MultiThreader::SpawnThread( igtlThreadFunctionType f, void *userdata )
 
 #endif
 
-#ifndef IGTL_USE_WIN32_THREADS
-#ifndef IGTL_USE_SPROC
-#ifndef IGTL_USE_PTHREADS
+#ifndef OpenIGTLink_USE_WIN32_THREADS
+#ifndef OpenIGTLink_USE_SPROC
+#ifndef OpenIGTLink_USE_PTHREADS
   // There is no multi threading, so there is only one thread.
   // This won't work - so give an error message.
   igtlErrorMacro( << "Cannot spawn thread in a single threaded environment!" );
@@ -719,25 +720,25 @@ void MultiThreader::TerminateThread( int threadID )
   this->m_SpawnedThreadActiveFlag[threadID] = 0;
   this->m_SpawnedThreadActiveFlagLock[threadID]->Unlock();
 
-#ifdef IGTL_USE_WIN32_THREADS
+#ifdef OpenIGTLink_USE_WIN32_THREADS
   WaitForSingleObject(this->m_SpawnedThreadProcessID[threadID], INFINITE);
   CloseHandle(this->m_SpawnedThreadProcessID[threadID]);
 #endif
 
-#ifdef IGTL_USE_SPROC
+#ifdef OpenIGTLink_USE_SPROC
   siginfo_t info_ptr;
 
   waitid( P_PID, (id_t) this->m_SpawnedThreadProcessID[threadID], 
           &info_ptr, WEXITED );
 #endif
 
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
   pthread_join( this->m_SpawnedThreadProcessID[threadID], NULL );
 #endif
 
-#ifndef IGTL_USE_WIN32_THREADS
-#ifndef IGTL_USE_SPROC
-#ifndef IGTL_USE_PTHREADS
+#ifndef OpenIGTLink_USE_WIN32_THREADS
+#ifndef OpenIGTLink_USE_SPROC
+#ifndef OpenIGTLink_USE_PTHREADS
   // There is no multi threading, so there is only one thread.
   // This won't work - so give an error message.
   igtlErrorMacro(<< "Cannot terminate thread in single threaded environment!");
@@ -753,11 +754,11 @@ void MultiThreader::TerminateThread( int threadID )
 //----------------------------------------------------------------------------
 MultiThreaderIDType MultiThreader::GetCurrentThreadID()
 {
-#if defined(IGTL_USE_PTHREADS)
+#if defined(OpenIGTLink_USE_PTHREADS)
   return pthread_self();
-#elif defined(IGTL_USE_WIN32_THREADS)
+#elif defined(OpenIGTLink_USE_WIN32_THREADS)
   return GetCurrentThreadId();
-#elif defined(IGTL_USE_SPROC)
+#elif defined(OpenIGTLink_USE_SPROC)
   return getpid();
 #else
   // No threading implementation.  Assume all callers are in the same
@@ -770,11 +771,11 @@ MultiThreaderIDType MultiThreader::GetCurrentThreadID()
 int MultiThreader::ThreadsEqual(MultiThreaderIDType t1,
                                    MultiThreaderIDType t2)
 {
-#if defined(IGTL_USE_PTHREADS)
+#if defined(OpenIGTLink_USE_PTHREADS)
   return pthread_equal(t1, t2) != 0;
-#elif defined(IGTL_USE_WIN32_THREADS)
+#elif defined(OpenIGTLink_USE_WIN32_THREADS)
   return t1 == t2;
-#elif defined(IGTL_USE_SPROC)
+#elif defined(OpenIGTLink_USE_SPROC)
   return t1 == t2;
 #else
   // No threading implementation.  Assume all callers are in the same
@@ -793,13 +794,13 @@ void MultiThreader::PrintSelf(std::ostream& os)
   os << indent << "Global Maximum Number Of Threads: " << 
     MultiThreaderGlobalMaximumNumberOfThreads << std::endl;
   os << "Thread system used: " <<
-#ifdef IGTL_USE_PTHREADS  
+#ifdef OpenIGTLink_USE_PTHREADS  
    "PTHREADS"
-#elif defined IGTL_USE_SPROC
+#elif defined OpenIGTLink_USE_SPROC
     "SPROC"
-#elif defined IGTL_USE_WIN32_THREADS
+#elif defined OpenIGTLink_USE_WIN32_THREADS
     "WIN32 Threads"
-#elif defined IGTL_HP_PTHREADS
+#elif defined OpenIGTLink_HP_PTHREADS
     "HP PThreads"
 #else
     "NO THREADS SUPPORT"

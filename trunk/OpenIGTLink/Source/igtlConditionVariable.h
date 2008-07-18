@@ -38,7 +38,7 @@
 // which is only defined on WinNT 4.0 or greater systems.  We need to
 // define this symbol in order to get the prototype for the
 // routine. This needs to be done before we load any system headers.
-#ifdef IGTL_USE_WIN32_THREADS
+#ifdef OpenIGTLink_USE_WIN32_THREADS
 #undef _WIN32_WINNT
 #define _WIN32_WINNT 0x0400
 #include "igtlWindows.h"
@@ -114,7 +114,7 @@ protected:
 private:
   ConditionVariable(const Self & other);
   const Self & operator=( const Self & );
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
   pthread_cond_t m_ConditionVariable;
   MutexType      m_Mutex;
 #else

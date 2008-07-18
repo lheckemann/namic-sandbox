@@ -42,12 +42,12 @@
 #include "igtlMacro.h"
 
 
-#ifdef IGTL_USE_SPROC
+#ifdef OpenIGTLink_USE_SPROC
 #include <sys/types.h> // Needed for unix implementation of sproc
 #include <unistd.h> // Needed for unix implementation of sproc
 #endif
 
-#if defined(IGTL_USE_PTHREADS) || defined(IGTL_HP_PTHREADS)
+#if defined(OpenIGTLink_USE_PTHREAD) || defined(OpenIGTLink_HP_PTHREAD)
 #include <pthread.h> // Needed for PTHREAD implementation of mutex
 #include <sys/types.h> // Needed for unix implementation of pthreads
 #include <unistd.h> // Needed for unix implementation of pthreads
@@ -56,30 +56,30 @@
 namespace igtl
 {
 
-// If IGTL_USE_SPROC is defined, then sproc() will be used to create
-// multiple threads on an SGI. If IGTL_USE_PTHREADS is defined, then
+// If OpenIGTLink_USE_SPROC is defined, then sproc() will be used to create
+// multiple threads on an SGI. If OpenIGTLink_USE_PTHREAD is defined, then
 // pthread_create() will be used to create multiple threads (on
 // a sun, for example)
 
 // Defined in igtlSystemIncludes.h:
 //   IGTL_MAX_THREADS
 
-// If IGTL_USE_PTHREADS is defined, then the multithreaded
+// If OpenIGTLink_USE_PTHREADS is defined, then the multithreaded
 // function is of type void *, and returns NULL
 // Otherwise the type is void which is correct for WIN32
 // and SPROC
 //BTX
 
 // The maximum number of threads allowed
-#ifdef IGTL_USE_SPROC
+#ifdef OpenIGTLink_USE_SPROC
 #define IGTL_MAX_THREADS              128
 #endif
 
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
 #define IGTL_MAX_THREADS              128
 #endif
 
-#ifdef IGTL_USE_WIN32_THREADS
+#ifdef OpenIGTLink_USE_WIN32_THREADS
 #define IGTL_MAX_THREADS              128
 #endif
 
@@ -105,24 +105,24 @@ namespace igtl
 #define IGTL_MAX_THREADS 1
 #endif
 
-#ifdef IGTL_USE_SPROC
+#ifdef OpenIGTLink_USE_SPROC
 typedef int igtlThreadProcessIDType;
 typedef int MultiThreaderIDType;
 #endif
 
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
 typedef void *(*igtlThreadFunctionType)(void *);
 typedef pthread_t igtlThreadProcessIDType;
 typedef pthread_t MultiThreaderIDType;
 #endif
 
-#ifdef IGTL_USE_WIN32_THREADS
+#ifdef OpenIGTLink_USE_WIN32_THREADS
 typedef igtlWindowsLPTHREAD_START_ROUTINE igtlThreadFunctionType;
 typedef igtlWindowsHANDLE igtlThreadProcessIDType;
 typedef igtlWindowsDWORD MultiThreaderIDType;
 #endif
 
-#if !defined(IGTL_USE_PTHREADS) && !defined(IGTL_USE_WIN32_THREADS)
+#if !defined(OpenIGTLink_USE_PTHREADS) && !defined(OpenIGTLink_USE_WIN32_THREADS)
 typedef void (*igtlThreadFunctionType)(void *);
 typedef int igtlThreadProcessIDType;
 typedef int MultiThreaderIDType;

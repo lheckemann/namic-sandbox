@@ -36,7 +36,7 @@ namespace igtl {
   
 ConditionVariable::ConditionVariable()
 {
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
   pthread_mutex_init(&m_Mutex, NULL);
   pthread_cond_init(&m_ConditionVariable, NULL);
 #else
@@ -58,7 +58,7 @@ ConditionVariable::ConditionVariable()
 
 ConditionVariable::~ConditionVariable()
 {
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
   pthread_mutex_destroy(&m_Mutex);
   pthread_cond_destroy(&m_ConditionVariable);
 #else
@@ -73,7 +73,7 @@ ConditionVariable::~ConditionVariable()
 
 void ConditionVariable::Signal()  
 {
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
   pthread_cond_signal(&m_ConditionVariable);
 #else
 #ifdef WIN32
@@ -92,7 +92,7 @@ void ConditionVariable::Signal()
 
 void ConditionVariable::Broadcast()
 {
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
   pthread_cond_broadcast(&m_ConditionVariable);
 #else
 #ifdef WIN32
@@ -134,7 +134,7 @@ void ConditionVariable::Broadcast()
 
 void ConditionVariable::Wait(SimpleMutexLock *mutex)
 {
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
   pthread_cond_wait(&m_ConditionVariable, &mutex->GetMutexLock() );
 #else
 #ifdef WIN32

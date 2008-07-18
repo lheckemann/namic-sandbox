@@ -37,38 +37,38 @@
 
 #include "igtlMacro.h"
 
-#ifdef IGTL_USE_SPROC
+#ifdef OpenIGTLink_USE_SPROC
 #include <abi_mutex.h>
 #endif
 
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
 #include <pthread.h>
 #endif
  
-#if defined(_WIN32) && !defined(IGTL_USE_PTHREADS)
+#if defined(_WIN32) && !defined(OpenIGTLink_USE_PTHREADS)
 #include "igtlWindows.h"
 #endif
 
 namespace igtl
 {
 
-#ifdef IGTL_USE_SPROC
+#ifdef OpenIGTLink_USE_SPROC
 #include <abi_mutex.h>
 typedef abilock_t FastMutexType;
 #endif
 
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
 #include <pthread.h>
 typedef pthread_mutex_t FastMutexType;
 #endif
  
-#if defined(_WIN32) && !defined(IGTL_USE_PTHREADS)
+#if defined(_WIN32) && !defined(OpenIGTLink_USE_PTHREADS)
 #include <winbase.h>
 typedef CRITICAL_SECTION FastMutexType;
 #endif
 
-#ifndef IGTL_USE_SPROC
-#ifndef IGTL_USE_PTHREADS
+#ifndef OpenIGTLink_USE_SPROC
+#ifndef OpenIGTLink_USE_PTHREADS
 #ifndef _WIN32
 typedef int FastMutexType;
 #endif
