@@ -286,7 +286,10 @@ int MessageBase::CopyBody(const MessageBase *mb)
   if (m_Body != NULL && mb->m_Body != NULL && s > 0)
     {
     memcpy(m_Body, mb->m_Body, s);
+    return 1;
     }
+
+  return 0;
 }
 
 int MessageBase::Copy(const MessageBase* mb)
