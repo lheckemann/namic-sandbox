@@ -160,8 +160,6 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
 
   void ProcessMRMLEvents(vtkObject* caller, unsigned long event, void* callData);
 
-  //void UpdateMRMLScalarVolumeNode(const char* nodeName, int size, unsigned char* data);
-  //void UpdateMRMLLinearTransformNode(const char* nodeName, int size, unsigned char* data);
   //BTX
   void UpdateMRMLScalarVolumeNode(igtl::MessageBase::Pointer ptr);
   void UpdateMRMLLinearTransformNode(igtl::MessageBase::Pointer ptr);

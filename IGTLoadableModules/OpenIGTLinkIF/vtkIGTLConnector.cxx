@@ -265,7 +265,7 @@ int vtkIGTLConnector::ReceiveController()
     {
     return 0;
     }
-
+  
   while (!this->ServerStopFlag)
     {
     
@@ -283,6 +283,7 @@ int vtkIGTLConnector::ReceiveController()
     if (r != headerMsg->GetPackSize())
       {
       vtkErrorMacro("Irregluar size.");
+      break;
       }
 
     // Deserialize the header
@@ -292,7 +293,6 @@ int vtkIGTLConnector::ReceiveController()
     // Check Device Name if device name is restricted
     if (this->RestrictDeviceName)
       {
-      std::cerr << "RESTRICTED." << std::endl;
       if (this->IncomingDeviceList[std::string(headerMsg->GetDeviceName())] != headerMsg->GetDeviceType())
         {
         // The conbination of device name and type doesn't exist on the list
@@ -301,11 +301,9 @@ int vtkIGTLConnector::ReceiveController()
         continue;
         
         }
-      std::cerr << "PASSED." << std::endl;
       }
     else
       {
-      std::cerr << "NOT RESTRICTED." << std::endl;
       // if device name is not restricted:
       if (this->IncomingDeviceList[std::string(headerMsg->GetDeviceName())] != headerMsg->GetDeviceType())
         this->IncomingDeviceList[std::string(headerMsg->GetDeviceName())] = headerMsg->GetDeviceType();
@@ -331,8 +329,6 @@ int vtkIGTLConnector::ReceiveController()
     if (circBuffer && circBuffer->StartPush() != -1)
       {
       circBuffer->StartPush();
-      //buffer->PushDeviceType(deviceType);
-      //unsigned char* dataPtr = buffer->GetPushDataArea(header.body_size);
       
       igtl::MessageBase::Pointer buffer = circBuffer->GetPushBuffer();
       buffer->SetMessageHeader(headerMsg);
