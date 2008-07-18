@@ -38,10 +38,6 @@ public:
 
 public:
 
-public:
-
-  //void Delete() { delete this; };
-  
   void SetPosition(float p[3]);
   void GetPosition(float p[3]);
 
@@ -63,8 +59,6 @@ protected:
   ~TransformMessage();
   
 protected:
-
-  virtual const char* GetDefaultDeviceType() { return "TRANSFORM"; };
 
   virtual int  GetBodyPackSize();
   virtual int  PackBody();

@@ -54,6 +54,8 @@ ImageMessage::ImageMessage():
   scalarType    = TYPE_UINT8;
   m_ImageHeader = NULL;
   m_Image       = NULL;
+
+  m_DefaultBodyType  = "IMAGE";
 }
 
 ImageMessage::~ImageMessage()

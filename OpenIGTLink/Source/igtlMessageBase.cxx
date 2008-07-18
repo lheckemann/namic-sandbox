@@ -31,12 +31,14 @@ MessageBase::MessageBase():
   m_Body           = NULL;
 
   m_BodySizeToRead = 0;
-  m_DeviceName     = std::string("");
+  m_DeviceName     = "";
 
   m_IsHeaderUnpacked = 0;
   m_IsBodyUnpacked   = 0;
 
-  m_BodyType       = std::string(GetDefaultDeviceType());
+  m_BodyType         = "";
+  m_DefaultBodyType  = "";
+
 }
 
 MessageBase::~MessageBase()
@@ -62,7 +64,14 @@ const char* MessageBase::GetDeviceName()
 
 const char* MessageBase::GetDeviceType()
 {
-  return m_BodyType.c_str();
+  if (m_DefaultBodyType.length() > 0)
+    {
+    return m_DefaultBodyType.c_str();
+    }
+  else
+    {
+    return m_BodyType.c_str();
+    }
 }
 
 int MessageBase::SetTimeStamp(unsigned int sec, unsigned int frac)
@@ -98,7 +107,10 @@ int MessageBase::Pack()
   h->body_size = GetBodyPackSize();
   h->crc       = crc64((unsigned char*)m_Body, GetBodyPackSize(), crc);
 
-  strncpy(h->name, m_BodyType.c_str(), 12);
+
+  strncpy(h->name, m_DefaultBodyType.c_str(), 12);
+  // TODO: this does not allow creating pack with MessageBase class...
+
   strncpy(h->device_name, m_DeviceName.c_str(), 20);
 
   igtl_header_convert_byte_order(h);
@@ -218,7 +230,6 @@ void MessageBase::InitPack()
 void MessageBase::AllocatePack(int bodySize)
 {
 
-  std::cerr << "void MessageBase::AllocatePack() body size = " << bodySize << std::endl;
   if (bodySize <= 0)
     {
       bodySize = 0;
@@ -246,7 +257,6 @@ void MessageBase::AllocatePack(int bodySize)
     }
   m_Body   = &m_Header[IGTL_HEADER_SIZE];
   m_PackSize = s;
-  std::cerr << "void MessageBase::AllocatePack() m_PackSize = " << m_PackSize << std::endl;
 }
 
 int MessageBase::CopyHeader(const MessageBase* mb)
@@ -257,11 +267,8 @@ int MessageBase::CopyHeader(const MessageBase* mb)
     memcpy(m_Header, mb->m_Header, IGTL_HEADER_SIZE);
     m_Body           = &m_Header[IGTL_HEADER_SIZE];
     }
-  m_PackSize       = mb->m_PackSize;
-  if (m_BodyType.length() == 0)
-    {
-    m_BodyType           = mb->m_BodyType;
-    }
+  m_PackSize             = mb->m_PackSize;
+  m_BodyType             = mb->m_BodyType;
   m_DeviceName           = mb->m_DeviceName;
   m_TimeStampSec         = mb->m_TimeStampSec;
   m_TimeStampSecFraction = mb->m_TimeStampSecFraction;
@@ -283,7 +290,7 @@ int MessageBase::Copy(const MessageBase* mb)
   // Check if the destination (this class) is MessageBase or
   // the source and destination class arethe same type.
   // The pack size is also checked if it is larger than the header size.
-  if ((strlen(GetDefaultDeviceType()) == 0 || m_BodyType == mb->m_BodyType)
+  if ((m_DefaultBodyType.length() == 0 || m_DefaultBodyType == mb->m_BodyType)
       && mb->m_PackSize >= IGTL_HEADER_SIZE)
     {
       int bodySize = mb->m_PackSize - IGTL_HEADER_SIZE;
