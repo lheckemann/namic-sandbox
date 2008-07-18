@@ -38,36 +38,36 @@
 #include "igtlObject.h"
 #include "igtlObjectFactory.h"
 
-#ifdef IGTL_USE_SPROC
+#ifdef OpenIGTLink_USE_SPROC
 #include <abi_mutex.h>
 #endif
 
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
 #include <pthread.h>
 #endif
  
-#ifdef IGTL_USE_WIN32_THREADS
+#ifdef OpenIGTLink_USE_WIN32_THREADS
 #include "igtlWindows.h"
 #endif
 
 namespace igtl
 {
 
-#ifdef IGTL_USE_SPROC
+#ifdef OpenIGTLink_USE_SPROC
 typedef abilock_t MutexType;
 #endif
 
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
 typedef pthread_mutex_t MutexType;
 #endif
  
-#ifdef IGTL_USE_WIN32_THREADS
+#ifdef OpenIGTLink_USE_WIN32_THREADS
 typedef HANDLE MutexType;
 #endif
 
-#ifndef IGTL_USE_SPROC
-#ifndef IGTL_USE_PTHREADS
-#ifndef IGTL_USE_WIN32_THREADS
+#ifndef OpenIGTLink_USE_SPROC
+#ifndef OpenIGTLink_USE_PTHREADS
+#ifndef OpenIGTLink_USE_WIN32_THREADS
 typedef int MutexType;
 #endif
 #endif

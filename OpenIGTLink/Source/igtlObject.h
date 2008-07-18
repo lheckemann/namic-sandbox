@@ -40,6 +40,8 @@
 //#include "igtlEventObject.h"
 //#include "igtlMetaDataDictionary.h"
 
+#include "igtlConfigure.h"
+
 namespace igtl
 {
   //class SubjectImplementation;

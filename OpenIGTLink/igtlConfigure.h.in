@@ -30,11 +30,8 @@
   #define IGTLCommon_EXPORTS
 #endif
 
-#cmakedefine OpenIGTLink_USE_PTHREAD
-#cmakedefine OpenIGTLink_USE_WIN32_THREAD
-#ifdef OpenIGTLink_USE_WIN32_THREAD
-  #define IGTL_USE_WIN32_THREADS
-#endif
+#cmakedefine OpenIGTLink_USE_PTHREADS
+#cmakedefine OpenIGTLink_USE_WIN32_THREADS
 
 #endif /*__IGTL_CONFIGURE_H*/
 

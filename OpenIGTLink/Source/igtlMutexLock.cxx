@@ -47,16 +47,16 @@ SimpleMutexLock *SimpleMutexLock::New()
 // Construct a new MutexLock 
 SimpleMutexLock::SimpleMutexLock()
 {
-#ifdef IGTL_USE_SPROC
+#ifdef OpenIGTLink_USE_SPROC
   init_lock( &m_MutexLock );
 #endif
 
-#ifdef IGTL_USE_WIN32_THREADS
+#ifdef OpenIGTLink_USE_WIN32_THREADS
   m_MutexLock = CreateMutex( NULL, FALSE, NULL ); 
 #endif
 
-#ifdef IGTL_USE_PTHREADS
-#ifdef IGTL_HP_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
+#ifdef OpenIGTLink_HP_PTHREADS
   pthread_mutex_init(&m_MutexLock, pthread_mutexattr_default);
 #else
   pthread_mutex_init(&m_MutexLock, NULL);
@@ -68,11 +68,11 @@ SimpleMutexLock::SimpleMutexLock()
 // Destruct the MutexVariable
 SimpleMutexLock::~SimpleMutexLock()
 {
-#ifdef IGTL_USE_WIN32_THREADS
+#ifdef OpenIGTLink_USE_WIN32_THREADS
   CloseHandle(m_MutexLock);
 #endif
 
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
   pthread_mutex_destroy( &m_MutexLock);
 #endif
 }
@@ -80,15 +80,15 @@ SimpleMutexLock::~SimpleMutexLock()
 // Lock the MutexLock
 void SimpleMutexLock::Lock()
 {
-#ifdef IGTL_USE_SPROC
+#ifdef OpenIGTLink_USE_SPROC
   spin_lock( &m_MutexLock );
 #endif
 
-#ifdef IGTL_USE_WIN32_THREADS
+#ifdef OpenIGTLink_USE_WIN32_THREADS
   WaitForSingleObject( m_MutexLock, INFINITE );
 #endif
 
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
   pthread_mutex_lock( &m_MutexLock);
 #endif
 }
@@ -96,15 +96,15 @@ void SimpleMutexLock::Lock()
 // Unlock the MutexLock
 void SimpleMutexLock::Unlock()
 {
-#ifdef IGTL_USE_SPROC
+#ifdef OpenIGTLink_USE_SPROC
   release_lock( &m_MutexLock );
 #endif
 
-#ifdef IGTL_USE_WIN32_THREADS
+#ifdef OpenIGTLink_USE_WIN32_THREADS
   ReleaseMutex( m_MutexLock );
 #endif
 
-#ifdef IGTL_USE_PTHREADS
+#ifdef OpenIGTLink_USE_PTHREADS
   pthread_mutex_unlock( &m_MutexLock);
 #endif
 }
