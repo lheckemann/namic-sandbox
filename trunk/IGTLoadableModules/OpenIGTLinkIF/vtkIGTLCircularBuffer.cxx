@@ -82,10 +82,7 @@ void vtkIGTLCircularBuffer::PrintSelf(ostream& os, vtkIndent indent)
 // Functions to push data into the circular buffer (for receiving thread)
 // 
 //   StartPush() :     Prepare to push data
-//   PushDeviceType(): Put device type name
-//   PushData() :      Put data itself
-//   GetPushDataArea : Get pointer to data area
-//                      (alternative way to put data to the buffer)
+//   GetPushBuffer():  Get MessageBase buffer from the circular buffer
 //   EndPush() :       Finish pushing data. The data becomes ready to
 //                     be read by monitor thread.
 //
@@ -106,56 +103,10 @@ int vtkIGTLCircularBuffer::StartPush()
 }
 
 //---------------------------------------------------------------------------
-void vtkIGTLCircularBuffer::PushDeviceType(const char* deviceType)
-{
-
-  if (this->DeviceType[this->InPush] != deviceType)
-    {
-    this->DeviceType[this->InPush] = deviceType;
-    }
-
-}
-
-//---------------------------------------------------------------------------
-void vtkIGTLCircularBuffer::PushData(int size, unsigned char* data)
-{
-  // Data and its size
-  if (this->Size[this->InPush] != size)
-    {
-    if (this->Data[this->InPush] != NULL)
-      {
-      delete this->Data[this->InPush];
-      }
-    this->Data[this->InPush] = new unsigned char[size];
-    this->Size[this->InPush] = size;
-    }
-  
-  memcpy(this->Data[this->InPush], data, size);
-}
-
-//---------------------------------------------------------------------------
 igtl::MessageBase::Pointer vtkIGTLCircularBuffer::GetPushBuffer()
 {
   return this->Messages[this->InPush];
 }
-
-//---------------------------------------------------------------------------
-unsigned char* vtkIGTLCircularBuffer::GetPushDataArea(int size)
-{
-  // Data and its size
-  if (this->Size[this->InPush] != size)
-    {
-    if (this->Data[this->InPush] != NULL)
-      {
-      delete this->Data[this->InPush];
-      }
-    this->Data[this->InPush] = new unsigned char[size];
-    this->Size[this->InPush] = size;
-    }
-  
-  return this->Data[this->InPush];
-}
-
 
 //---------------------------------------------------------------------------
 void vtkIGTLCircularBuffer::EndPush()
@@ -171,9 +122,7 @@ void vtkIGTLCircularBuffer::EndPush()
 // Functions to pull data into the circular buffer (for monitor thread)
 // 
 //   StartPull() :     Prepare to pull data
-//   PullDeviceType(): Get device type
-//   PullSize() :      Get data size
-//   PullData() :      Get data content
+//   GetPullBuffer():  Get MessageBase buffer from the circular buffer
 //   EndPull() :       Finish pulling data
 //
 //---------------------------------------------------------------------------
@@ -193,26 +142,6 @@ int vtkIGTLCircularBuffer::StartPull()
 igtl::MessageBase::Pointer vtkIGTLCircularBuffer::GetPullBuffer()
 {
   return this->Messages[this->InUse];
-}
-
-
-//---------------------------------------------------------------------------
-const char* vtkIGTLCircularBuffer::PullDeviceType()
-{
-  return this->DeviceType[this->InUse].c_str();
-}
-
-
-//---------------------------------------------------------------------------
-int vtkIGTLCircularBuffer::PullSize()
-{
-  return this->Size[this->InUse];
-}
-
-//---------------------------------------------------------------------------
-unsigned char* vtkIGTLCircularBuffer::PullData()
-{
-  return this->Data[this->InUse];
 }
 
 

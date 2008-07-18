@@ -39,25 +39,17 @@ class VTK_OPENIGTLINKIF_EXPORT vtkIGTLCircularBuffer : public vtkObject
   int GetNumberOfBuffer() { return IGTLCB_CIRC_BUFFER_SIZE; }
 
   int            StartPush();
-  void           PushDeviceType(const char* deviceType);
-  void           PushData(int size, unsigned char* data);
-
+  void           EndPush();
   //BTX
   igtl::MessageBase::Pointer GetPushBuffer();
   //ETX
 
-  unsigned char* GetPushDataArea(int size);
-
-  void           EndPush();
-
   int            StartPull();
+  void           EndPull();
   //BTX
   igtl::MessageBase::Pointer GetPullBuffer();
   //ETX
-  const char*    PullDeviceType();
-  int            PullSize();
-  unsigned char* PullData();
-  void           EndPull();
+
   int            IsUpdated() { return this->UpdateFlag; };
 
  protected:
