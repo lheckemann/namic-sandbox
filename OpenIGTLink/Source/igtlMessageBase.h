@@ -143,7 +143,7 @@ protected:
 
   // Copy data 
   int CopyHeader(const MessageBase *mb);
-  virtual int CopyBody(const MessageBase *mb) { return 0; };
+  int CopyBody(const MessageBase *mb);
 
   // Pointers to header and image
   //  To prevent large copy of byte array in Pack() function,

@@ -280,6 +280,15 @@ int MessageBase::CopyHeader(const MessageBase* mb)
   return 1;
 }
 
+int MessageBase::CopyBody(const MessageBase *mb)
+{
+  int s = m_PackSize - IGTL_HEADER_SIZE;
+  if (m_Body != NULL && mb->m_Body != NULL && s > 0)
+    {
+    memcpy(m_Body, mb->m_Body, s);
+    }
+}
+
 int MessageBase::Copy(const MessageBase* mb)
 {
   if (this == mb)
