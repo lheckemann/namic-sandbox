@@ -19,8 +19,8 @@
 
 #include "itkDistanceMetric.h"
 
-namespace itk{ 
-namespace Statistics{
+namespace itk  { 
+namespace Statistics  {
 
 template< class TVector >
 DistanceMetric< TVector >
@@ -42,31 +42,10 @@ DistanceMetric< TVector >
           << " each measurement vector.");
       }
     }
-  m_Origin = x ;
+  m_Origin = x;
   this->m_MeasurementVectorSize = x.Size();
   this->Modified();
 }
-
-
-template< class TVector >
-void 
-DistanceMetric< TVector >
-::SetMeasurementVectorSize( const MeasurementVectorSizeType s )
-{
-  if( s == this->m_MeasurementVectorSize )
-    {
-    return;
-    }
-  
-  if( this->m_MeasurementVectorSize != 0 )
-    {  
-    itkWarningMacro( << "Destructively resizing paramters of the DistanceMetric." );
-    }
-  this->m_MeasurementVectorSize = s;
-  m_Origin.SetSize( s );
-  this->Modified();
-}  
-
 
 template< class TVector >
 void 
@@ -81,10 +60,3 @@ DistanceMetric< TVector >
 } // end of namespace itk
 
 #endif
-
-
-
-
-
-
-
