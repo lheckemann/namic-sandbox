@@ -15,7 +15,6 @@
 #include "vtkNeuroNavLogic.h"
 
 #include "vtkIGTDataManager.h"
-#include "vtkIGTPat2ImgRegistration.h"
 #include "vtkCallbackCommand.h"
 #include "vtkSlicerInteractorStyle.h"
 
@@ -131,20 +130,6 @@ protected:
   // Module logic and mrml pointers
   vtkNeuroNavLogic *Logic;
 
-  // int StopTimer;
-  vtkMatrix4x4 *LocatorMatrix;
-
-  vtkMRMLModelNode *LocatorModelNode;
-  vtkMRMLModelDisplayNode *LocatorModelDisplayNode;
-
-  //BTX
-  std::string LocatorModelID;
-  //ETX
-  vtkIGTDataManager *DataManager;
-  vtkIGTPat2ImgRegistration *Pat2ImgReg;
-
-  vtkCallbackCommand *DataCallbackCommand;
-
   // Access the slice windows
   vtkSlicerSliceLogic *Logic0;
   vtkSlicerSliceLogic *Logic1;
@@ -160,8 +145,6 @@ protected:
   int NeedOrientationUpdate1;
   int NeedOrientationUpdate2;
 
-  void UpdateAll();
-  void UpdateLocator();
   void UpdateSliceDisplay(float nx, float ny, float nz, 
                           float tx, float ty, float tz, 
                           float px, float py, float pz);
