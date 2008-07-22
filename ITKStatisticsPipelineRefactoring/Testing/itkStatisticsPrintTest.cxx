@@ -45,6 +45,9 @@
 #include "itkJointDomainImageToListSampleAdaptor.h"
 #include "itkDenseFrequencyContainer2.h"
 #include "itkSparseFrequencyContainer2.h"
+#include "itkMembershipFunctionBase.h"
+#include "itkDistanceMetric.h"
+#include "itkEuclideanDistance.h"
 
 int itkStatisticsPrintTest(int , char* [])
 {
@@ -89,6 +92,16 @@ int itkStatisticsPrintTest(int , char* [])
 
   typedef itk::Statistics::MembershipSample< SampleType >
     MembershipSampleType;
+
+  typedef itk::Statistics::MembershipFunctionBase< TMeasurementVectorType >
+    MembershipFunctionBaseType;
+ 
+  typedef itk::Statistics::DistanceMetric< TMeasurementVectorType >
+    DistanceType;
+
+  typedef itk::Statistics::EuclideanDistance< TMeasurementVectorType >
+    EuclideanDistanceType;
+
 
   typedef itk::Statistics::HistogramToTextureFeaturesFilter<
     HistogramType > HistogramToTextureFeaturesFilterType;
@@ -199,7 +212,9 @@ int itkStatisticsPrintTest(int , char* [])
     SparseFrequencyContainer2Type::New();
   std::cout << "----------SparseFrequencyContainer2 " << SparseFrequencyContainer2Obj;
 
-
+  EuclideanDistanceType::Pointer euclideanDistance=
+    EuclideanDistanceType::New();
+  std::cout << "----------EuclideanDistanceType " << euclideanDistance ;
  
   return EXIT_SUCCESS;
 }

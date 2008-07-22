@@ -47,6 +47,8 @@
 #include "itkSparseFrequencyContainer.h"
 #include "itkScalarImageToTextureFeaturesFilter.h"
 #include "itkMembershipFunctionBase.h"
+#include "itkDistanceMetric.h"
+#include "itkEuclideanDistance.h"
 
 int main ( int , char*  )
 {
