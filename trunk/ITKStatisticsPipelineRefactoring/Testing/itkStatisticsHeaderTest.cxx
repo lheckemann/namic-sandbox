@@ -46,6 +46,7 @@
 #include "itkDenseFrequencyContainer.h"
 #include "itkSparseFrequencyContainer.h"
 #include "itkScalarImageToTextureFeaturesFilter.h"
+#include "itkMembershipFunctionBase.h"
 
 int main ( int , char*  )
 {

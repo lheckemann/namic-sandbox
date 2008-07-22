@@ -73,5 +73,7 @@ void RegisterTests()
   REGISTER_TEST(itkDenseFrequencyContainer2Test); 
   REGISTER_TEST(itkSparseFrequencyContainer2Test); 
   REGISTER_TEST(itkScalarImageToTextureFeaturesFilterTest); 
+
+  REGISTER_TEST(itkMembershipFunctionBaseTest);
 }
 
