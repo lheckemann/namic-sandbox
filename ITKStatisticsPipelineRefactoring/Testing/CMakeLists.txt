@@ -67,6 +67,8 @@ ADD_TEST(itkSparseFrequencyContainer2Test ${STATISTICS_TESTS} itkSparseFrequency
 ADD_TEST(itkScalarImageToTextureFeaturesFilterTest ${STATISTICS_TESTS} itkScalarImageToTextureFeaturesFilterTest)
 
 
+ADD_TEST(itkMembershipFunctionBaseTest ${STATISTICS_TESTS} itkMembershipFunctionBaseTest)
+
 SET(Statistics_SRCS
   itkCovarianceFilterTest.cxx
   itkCovarianceFilterTest2.cxx
@@ -113,6 +115,9 @@ SET(Statistics_SRCS
   itkDenseFrequencyContainer2Test.cxx
   itkSparseFrequencyContainer2Test.cxx
   itkScalarImageToTextureFeaturesFilterTest.cxx
+
+
+  itkMembershipFunctionBaseTest.cxx
   )
 
 ADD_EXECUTABLE(itkStatisticsTests itkStatisticsTests.cxx ${Statistics_SRCS})
