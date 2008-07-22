@@ -32,7 +32,8 @@ Version:   $Revision: $
 
 #include "vtkMRMLFiducialListNode.h"
 #include "vtkMRMLSliceNode.h"
-
+#include "vtkMRMLLinearTransformNode.h"
+#include "vtkIGTPat2ImgRegistration.h"
 
 
 class VTK_NEURONAV_EXPORT vtkNeuroNavLogic : public vtkSlicerModuleLogic 
@@ -103,6 +104,9 @@ public:
 
   vtkGetObjectMacro ( LocatorTransform, vtkTransform );
   vtkGetObjectMacro ( LocatorMatrix,    vtkMatrix4x4 );
+  vtkGetObjectMacro ( CurrentTransformNode, vtkMRMLLinearTransformNode );
+  vtkGetObjectMacro ( Pat2ImgReg, vtkIGTPat2ImgRegistration );
+
 
   vtkSetStringMacro(TransformNodeName); 
   vtkGetStringMacro(TransformNodeName);
@@ -115,6 +119,8 @@ public:
   vtkMRMLModelNode* AddLocatorModel(const char* nodeName, double r, double g, double b);
 
   void UpdateDisplay(int sliceNo1, int sliceNo2, int sliceNo3);
+  void GetCurrentPosition( float *px, float *py, float *pz);
+  void UpdateTransformNodeByName(const char *name);
 
 
 protected:
@@ -141,7 +147,6 @@ private:
                        float px, float py, float pz);
 
   void CheckSliceNodes();
-
 
   //----------------------------------------------------------------
   // Real-time image
@@ -182,6 +187,9 @@ private:
   int SliceNo1Last;
   int SliceNo2Last;
   int SliceNo3Last;
+  vtkMRMLLinearTransformNode *CurrentTransformNode;
+  vtkIGTPat2ImgRegistration *Pat2ImgReg;
+
 };
 
 #endif

@@ -19,7 +19,6 @@ Version:   $Revision: $
 
 #include "vtkMRMLModelDisplayNode.h"
 #include "vtkMRMLScalarVolumeNode.h"
-#include "vtkMRMLLinearTransformNode.h"
 #include "vtkSlicerApplication.h"
 #include "vtkSlicerApplicationGUI.h"
 #include "vtkSlicerColorLogic.h"
@@ -58,14 +57,20 @@ vtkNeuroNavLogic::vtkNeuroNavLogic()
   this->SliceNo1Last = 1;
   this->SliceNo2Last = 1;
   this->SliceNo3Last = 1;
+  this->CurrentTransformNode = NULL;
+
+  this->Pat2ImgReg = vtkIGTPat2ImgRegistration::New();
 }
 
 
 //---------------------------------------------------------------------------
 vtkNeuroNavLogic::~vtkNeuroNavLogic()
 {
-
-
+  if (this->Pat2ImgReg)
+    {
+    this->Pat2ImgReg->Delete();
+    this->Pat2ImgReg = NULL;
+    }
 }
 
 
@@ -169,23 +174,65 @@ vtkMRMLModelNode* vtkNeuroNavLogic::AddLocatorModel(const char* nodeName, double
   return locatorModel;
 }
 
-void vtkNeuroNavLogic::UpdateDisplay(int sliceNo1, int sliceNo2, int sliceNo3)
-{
-  vtkMRMLLinearTransformNode* transformNode;
-  vtkMRMLScene* scene = this->GetApplicationLogic()->GetMRMLScene();
-  vtkCollection* collection = scene->GetNodesByName(this->TransformNodeName);
 
-  if (collection != NULL && collection->GetNumberOfItems() == 0)
+
+void vtkNeuroNavLogic::GetCurrentPosition(float *px, float *py, float *pz)
+{
+  *px = 0.0;
+  *py = 0.0;
+  *pz = 0.0;
+
+  if (! this->CurrentTransformNode)
     {
-    // the node name does not exist in the MRML tree
     return;
     }
 
-  transformNode = vtkMRMLLinearTransformNode::SafeDownCast(collection->GetItemAsObject(0));
+  vtkMatrix4x4* transform;
+  //transform = transformNode->GetMatrixTransformToParent();
+  transform = this->CurrentTransformNode->GetMatrixTransformToParent();
+
+  if (transform)
+    {
+    // set volume orientation
+    *px = transform->GetElement(0, 3);
+    *py = transform->GetElement(1, 3);
+    *pz = transform->GetElement(2, 3);
+    }
+}
+
+
+
+void vtkNeuroNavLogic::UpdateTransformNodeByName(const char *name)
+{
+  if (name)
+    {
+    this->SetTransformNodeName(name);
+
+    vtkMRMLLinearTransformNode* transformNode;
+    vtkMRMLScene* scene = this->GetApplicationLogic()->GetMRMLScene();
+    vtkCollection* collection = scene->GetNodesByName(this->TransformNodeName);
+
+    if (collection != NULL && collection->GetNumberOfItems() == 0)
+      {
+      // the node name does not exist in the MRML tree
+      return;
+      }
+
+    this->CurrentTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(collection->GetItemAsObject(0));
+    }
+}
+
+
+void vtkNeuroNavLogic::UpdateDisplay(int sliceNo1, int sliceNo2, int sliceNo3)
+{
+  if (! this->CurrentTransformNode)
+    {
+    return;
+    }
 
   vtkMatrix4x4* transform;
   //transform = transformNode->GetMatrixTransformToParent();
-  transform = transformNode->GetMatrixTransformToParent();
+  transform = this->CurrentTransformNode->GetMatrixTransformToParent();
 
   if (transform)
     {

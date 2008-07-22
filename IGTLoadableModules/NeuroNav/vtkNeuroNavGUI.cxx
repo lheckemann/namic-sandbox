@@ -97,16 +97,6 @@ vtkNeuroNavGUI::vtkNeuroNavGUI ( )
   this->RegisterPushButton = NULL;
   this->ResetPushButton = NULL;
 
-  this->LocatorMatrix = NULL;
-
-  this->LocatorModelDisplayNode = NULL;
-
-  this->DataManager = vtkIGTDataManager::New();
-  this->Pat2ImgReg = vtkIGTPat2ImgRegistration::New();
-
-  this->DataCallbackCommand = vtkCallbackCommand::New();
-  this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
-  this->DataCallbackCommand->SetCallback(vtkNeuroNavGUI::DataCallback);
 
   this->Logic0 = NULL; 
   this->Logic1 = NULL; 
@@ -130,24 +120,7 @@ vtkNeuroNavGUI::vtkNeuroNavGUI ( )
 //---------------------------------------------------------------------------
 vtkNeuroNavGUI::~vtkNeuroNavGUI ( )
 {
-  if (this->DataManager)
-    {
-    // If we don't set the scence to NULL for DataManager,
-    // Slicer will report a lot leak when it is closed.
-    this->DataManager->SetMRMLScene(NULL);
-    this->DataManager->Delete();
-    }
-  if (this->Pat2ImgReg)
-    {
-    this->Pat2ImgReg->Delete();
-    }
-  if (this->DataCallbackCommand)
-    {
-    this->DataCallbackCommand->Delete();
-    }
-
   this->RemoveGUIObservers();
-
 
   if (this->LocatorCheckButton)
     {
@@ -445,36 +418,27 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
     }
   else
     {
-
     if (this->GetPatCoordinatesPushButton == vtkKWPushButton::SafeDownCast(caller) 
         && event == vtkKWPushButton::InvokedEvent)
       {
-      float position[3];
-      position[0] = position[1] = position[2] = 0.0;
+      float px, py, pz;
       char value[50];
-      if (this->LocatorMatrix)
-        {
-        for (int j = 0; j < 3; j++) 
-          {
-          position[j] = this->LocatorMatrix->GetElement(j,0);
-          // position[j] = j / 1.0;
-          }
-        }
-      sprintf(value, "%6.2f  %6.2f  %6.2f", position[0], position[1], position[2]);
+      this->GetLogic()->GetCurrentPosition(&px, &py, &pz);
+      sprintf(value, "%6.2f  %6.2f  %6.2f", px, py, pz);
       this->PatCoordinatesEntry->GetWidget()->SetValue(value);
       }
-    else if (this->AddPointPairPushButton == vtkKWPushButton::SafeDownCast(caller) 
-             && event == vtkKWPushButton::InvokedEvent)
-      {
-      int scSize = 0;
-      int pcSize = 0;
-      const char *pc = this->PatCoordinatesEntry->GetWidget()->GetValue();
-      const char *sc = this->SlicerCoordinatesEntry->GetWidget()->GetValue();
-
-      if (pc) 
+      else if (this->AddPointPairPushButton == vtkKWPushButton::SafeDownCast(caller) 
+               && event == vtkKWPushButton::InvokedEvent)
         {
-        const vtksys_stl::string pcCor(pc);
-        pcSize = pcCor.size();
+        int scSize = 0;
+        int pcSize = 0;
+        const char *pc = this->PatCoordinatesEntry->GetWidget()->GetValue();
+        const char *sc = this->SlicerCoordinatesEntry->GetWidget()->GetValue();
+
+        if (pc) 
+          {
+          const vtksys_stl::string pcCor(pc);
+          pcSize = pcCor.size();
         }
       if (sc) 
         {
@@ -520,7 +484,7 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
         }
       else
         {
-        this->Pat2ImgReg->SetNumberOfPoints(row);
+        this->GetLogic()->GetPat2ImgReg()->SetNumberOfPoints(row);
         float pc1 = 0.0, pc2 = 0.0, pc3 = 0.0, sc1 = 0.0, sc2 = 0.0, sc3 = 0.0;
         for (int r = 0; r < row; r++)
           {
@@ -536,10 +500,10 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
               sscanf(val, "%f %f %f", &sc1, &sc2, &sc3);
               }
             }
-          this->Pat2ImgReg->AddPoint(r, sc1, sc2, sc3, pc1, pc2, pc3);
+          this->GetLogic()->GetPat2ImgReg()->AddPoint(r, sc1, sc2, sc3, pc1, pc2, pc3);
           }
 
-        int error = this->Pat2ImgReg->DoRegistration();
+        int error = this->GetLogic()->GetPat2ImgReg()->DoRegistration();
         if (error)
           {
           vtkSlicerApplication::GetInstance()->ErrorMessage("Error registration between patient and image land marks.");
@@ -639,24 +603,6 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
 
 
 
-void vtkNeuroNavGUI::Init()
-{
-  this->DataManager->SetMRMLScene(this->GetMRMLScene());
-  this->LocatorModelID = std::string(this->DataManager->RegisterStream(0));
-}
-
-
-
-void vtkNeuroNavGUI::DataCallback(vtkObject *caller, 
-                                  unsigned long eid, void *clientData, void *callData)
-{
-  vtkNeuroNavGUI *self = reinterpret_cast<vtkNeuroNavGUI *>(clientData);
-  vtkDebugWithObjectMacro(self, "In vtkNeuroNavGUI DataCallback");
-
-  self->UpdateAll();
-}
-
-
 //---------------------------------------------------------------------------
 void vtkNeuroNavGUI::ProcessLogicEvents ( vtkObject *caller,
                                           unsigned long event, void *callData )
@@ -722,7 +668,8 @@ void vtkNeuroNavGUI::ProcessTimerEvents()
     // this->GetLogic()->ImportFromCircularBuffers();
 
     const char *nodeName = this->TransformNodeNameEntry->GetWidget()->GetValue();
-    this->GetLogic()->SetTransformNodeName(nodeName);
+    this->GetLogic()->UpdateTransformNodeByName(nodeName);
+
 
     int checked = this->FreezeCheckButton->GetSelectedState(); 
     if (!checked)
@@ -1195,51 +1142,6 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
   driverFrame->Delete();
   modeFrame->Delete();
   sliceFrame->Delete();
-}
-
-
-
-void vtkNeuroNavGUI::UpdateAll()
-{
-  this->LocatorMatrix = NULL;
-  if (this->LocatorMatrix)
-    {
-    char Val[10];
-
-    float px = this->LocatorMatrix->GetElement(0, 0);
-    float py = this->LocatorMatrix->GetElement(1, 0);
-    float pz = this->LocatorMatrix->GetElement(2, 0);
-    float nx = this->LocatorMatrix->GetElement(0, 1);
-    float ny = this->LocatorMatrix->GetElement(1, 1);
-    float nz = this->LocatorMatrix->GetElement(2, 1);
-    float tx = this->LocatorMatrix->GetElement(0, 2);
-    float ty = this->LocatorMatrix->GetElement(1, 2);
-    float tz = this->LocatorMatrix->GetElement(2, 2);
-
-    // update the display of locator
-    if (this->LocatorModeCheckButton->GetSelectedState()) this->UpdateLocator();
-
-    //this->UpdateSliceDisplay(px, py, pz);  // RSierra 3/9/07: This line is redundant. If you remove it the slice views are still updated.
-    this->UpdateSliceDisplay(nx, ny, nz, tx, ty, tz, px, py, pz);
-    }
-}
-
-
-void vtkNeuroNavGUI::UpdateLocator()
-{
-  vtkTransform *transform = NULL;
-
-  //vtkMRMLModelNode *model = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(this->LocatorModelID.c_str())); 
-  vtkMRMLModelNode *model = vtkMRMLModelNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID("vtkMRMLModelNode1")); 
-  if (model != NULL)
-    {
-    if (transform)
-      {
-      vtkMRMLLinearTransformNode *lnode = (vtkMRMLLinearTransformNode *)model->GetParentTransformNode();
-      lnode->SetAndObserveMatrixTransformToParent(transform->GetMatrix());
-      this->GetMRMLScene()->Modified();
-      }
-    }
 }
 
 
