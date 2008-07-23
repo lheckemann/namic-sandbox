@@ -63,13 +63,18 @@ public:
 int itkDistanceMetricTest(int, char* [] )
 {
 
-  const unsigned int MeasurementVectorSize = 17;
+  typedef unsigned int MeasurementVectorSizeType;
+
+  const MeasurementVectorSizeType MeasurementVectorSize = 17;
 
   typedef itk::FixedArray< 
     float, MeasurementVectorSize >  MeasurementVectorType;
 
+
   typedef itk::Statistics::DistanceMetricTest::MyDistanceMetric< 
     MeasurementVectorType >   DistanceMetricType;
+
+  typedef DistanceMetricType::MeasurementVectorSizeType MeasurementVectorSizeType;
 
   DistanceMetricType::Pointer distance = DistanceMetricType::New();
 
@@ -78,12 +83,20 @@ int itkDistanceMetricTest(int, char* [] )
 
   distance->Print(std::cout);
 
-  distance->SetMeasurementVectorSize( MeasurementVectorSize ); // for code coverage
+  //try changing the measurment vector size, it should throw an exception
 
-  if( distance->GetMeasurementVectorSize() != MeasurementVectorSize )
+  try
     {
-    std::cerr << "GetMeasurementVectorSize() Failed !" << std::endl;
+    MeasurementVectorSizeType newSize = 20;
+    distance->SetMeasurementVectorSize( newSize ); 
+
+    std::cerr << "Changing measurement vector size is not allowed for a fixed array vector\n"
+              << "an exception should have been thrown" << std::endl;
     return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excpt )
+    {
+    std::cerr << "Exception thrown: " << excpt << std::endl;
     }
 
   return EXIT_SUCCESS;
