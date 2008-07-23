@@ -281,11 +281,11 @@ void vtkOpenIGTLinkGUI::RemoveGUIObservers ( )
 {
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   
-  appGUI->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()
+  appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()
     ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-  appGUI->GetMainSliceGUI1()->GetSliceViewer()->GetRenderWidget()
+  appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()
     ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-  appGUI->GetMainSliceGUI2()->GetSliceViewer()->GetRenderWidget()
+  appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()
     ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
 
   //----------------------------------------------------------------
@@ -436,13 +436,13 @@ void vtkOpenIGTLinkGUI::AddGUIObservers ( )
   //----------------------------------------------------------------
   // Main Slice GUI
 
-  appGUI->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()
+  appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()
     ->GetRenderWindowInteractor()->GetInteractorStyle()
     ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
-  appGUI->GetMainSliceGUI1()->GetSliceViewer()->GetRenderWidget()
+  appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()
     ->GetRenderWindowInteractor()->GetInteractorStyle()
     ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
-  appGUI->GetMainSliceGUI2()->GetSliceViewer()->GetRenderWidget()
+  appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()
     ->GetRenderWindowInteractor()->GetInteractorStyle()
     ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
   
@@ -546,27 +546,27 @@ void vtkOpenIGTLinkGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   vtkSlicerInteractorStyle *istyle0 
-    = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI0()->GetSliceViewer()
+    = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Red")->GetSliceViewer()
                                              ->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
   vtkSlicerInteractorStyle *istyle1 
-    = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI1()->GetSliceViewer()
+    = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()
                                              ->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
   vtkSlicerInteractorStyle *istyle2 
-    = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI2()->GetSliceViewer()
+    = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Green")->GetSliceViewer()
                                              ->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
   
   vtkCornerAnnotation *anno = NULL;
   if (style == istyle0)
     {
-    anno = appGUI->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
+    anno = appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
     }
   else if (style == istyle1)
     {
-    anno = appGUI->GetMainSliceGUI1()->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
+    anno = appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
     }
   else if (style == istyle2)
     {
-    anno = appGUI->GetMainSliceGUI2()->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
+    anno = appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()->GetCornerAnnotation();
     }
   if (anno)
     {
@@ -969,9 +969,9 @@ void vtkOpenIGTLinkGUI::Enter()
   // Fill in
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
   
-  this->SliceNode0 = appGUI->GetMainSliceGUI0()->GetLogic()->GetSliceNode();
-  this->SliceNode1 = appGUI->GetMainSliceGUI1()->GetLogic()->GetSliceNode();
-  this->SliceNode2 = appGUI->GetMainSliceGUI2()->GetLogic()->GetSliceNode();
+  this->SliceNode0 = appGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceNode();
+  this->SliceNode1 = appGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceNode();
+  this->SliceNode2 = appGUI->GetMainSliceGUI("Green")->GetLogic()->GetSliceNode();
   
   //this->GetLogic()->AddRealtimeVolumeNode("Realtime");
   //this->Logic0->GetForegroundLayer()->SetUseReslice(0);
