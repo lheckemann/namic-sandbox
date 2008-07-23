@@ -32,7 +32,7 @@ EuclideanDistance< TVector >
     itkExceptionMacro( << "Vector lengths must be equal." );
     }
   
-  double temp = NumericTraits< doble > ::Zero;
+  double temp = NumericTraits< double > ::Zero;
   double distance = temp;
   
   for(unsigned int i = 0; i < x1.Size(); i++)
