@@ -28,7 +28,6 @@ PURPOSE.  See the above copyright notices for more information.
 int itkSampleToHistogramFilterTest5(int argc, char *argv[] )
 {
 
-  const unsigned int numberOfComponents = 3;
   const unsigned int imageDimension = 2;
 
   if( argc < 2 )
@@ -60,7 +59,6 @@ int itkSampleToHistogramFilterTest5(int argc, char *argv[] )
   typedef ImageToListSampleFilterType::ListSampleType  SampleType;
 
   typedef itk::Statistics::Histogram< HMeasurementType,
-          numberOfComponents,
           itk::Statistics::DenseFrequencyContainer2 > HistogramType;
 
   typedef itk::Statistics::SampleToHistogramFilter<

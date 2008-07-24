@@ -34,8 +34,11 @@ int itkHistogramToTextureFeaturesFilterTest(int, char* [] )
   // symmetric and normalized.
   //------------------------------------------------------
   typedef float MeasurementType;
-  typedef itk::Statistics::Histogram< MeasurementType, 2 > HistogramType ;
+  typedef itk::Statistics::Histogram< MeasurementType > HistogramType ;
   HistogramType::Pointer histogram = HistogramType::New() ;
+
+  histogram->SetMeasurementVectorSize( 2 );
+
   HistogramType::SizeType size ;
   size.Fill(HISTOGRAM_AXIS_LEN) ;
   HistogramType::MeasurementVectorType lowerBound ;

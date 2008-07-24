@@ -32,9 +32,10 @@ int itkHistogramTest(int, char* [] )
 
   // creats a histogram with 3 components measurement vectors
   typedef itk::Statistics::Histogram< MeasurementType, 
-          numberOfComponents, 
           itk::Statistics::DenseFrequencyContainer2 > HistogramType;
   HistogramType::Pointer histogram = HistogramType::New();
+
+  histogram->SetMeasurementVectorSize( numberOfComponents );
 
   typedef HistogramType::MeasurementVectorType MeasurementVectorType;
   typedef HistogramType::InstanceIdentifier    InstanceIdentifier; 
@@ -180,9 +181,11 @@ int itkHistogramTest(int, char* [] )
 
 
   // Histogram with SparseFrequencyContainer2
-  typedef itk::Statistics::Histogram< MeasurementType, 3, 
+  typedef itk::Statistics::Histogram< MeasurementType,
     itk::Statistics::SparseFrequencyContainer2 > SparseHistogramType;
   SparseHistogramType::Pointer sparseHistogram = SparseHistogramType::New();
+
+  sparseHistogram->SetMeasurementVectorSize( numberOfComponents );
 
   // initializes a 64 x 64 x 64 histogram with equal size interval
   sparseHistogram->Initialize(size, lowerBound, upperBound );

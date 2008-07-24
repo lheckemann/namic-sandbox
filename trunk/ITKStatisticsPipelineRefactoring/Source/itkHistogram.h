@@ -19,9 +19,7 @@
 
 #include <vector>
 
-#include "itkIndex.h"
-#include "itkSize.h"
-#include "itkFixedArray.h"
+#include "itkArray.h"
 #include "itkSample.h"
 #include "itkDenseFrequencyContainer2.h"
 #include "itkSparseFrequencyContainer2.h"
@@ -72,27 +70,25 @@ struct GetHistogramDimension
  * instantiate a histogram as below:
  *
  * \code
- * typedef Histogram< THistogramMeasurement, typename
- *      MeasurementVectorTraits< MeasurementVectorType >::MeasurementVectorLength,
- *      TFrequencyContainer > HistogramType;
+ * typedef Histogram< THistogramMeasurement, typename TFrequencyContainer > HistogramType;
  * \endcode
  *
  * \sa Sample, DenseFrequencyContainer, SparseFrequencyContainer, VariableDimensionHistogram
  */
 
-template < class TMeasurement = float, unsigned int VMeasurementVectorSize = 1,
+template < class TMeasurement = float,
            class TFrequencyContainer = DenseFrequencyContainer2 >
 class ITK_EXPORT Histogram
-  : public Sample < FixedArray< TMeasurement, VMeasurementVectorSize > >
+  : public Sample < Array< TMeasurement > >
 {
 public:
 
   // This type serves as the indirect definition of MeasurementVectorType
-  typedef FixedArray< TMeasurement, VMeasurementVectorSize >  FixedArrayType;
+  typedef Array< TMeasurement >        ArrayType;
 
   /** Standard typedefs */
   typedef Histogram                    Self;
-  typedef Sample< FixedArrayType  >    Superclass;
+  typedef Sample< ArrayType  >         Superclass;
   typedef SmartPointer<Self>           Pointer;
   typedef SmartPointer<const Self>     ConstPointer;
 
@@ -101,11 +97,6 @@ public:
 
   /** standard New() method support */
   itkNewMacro(Self);
-
-  /** Dimension of a measurement vector */
-  itkStaticConstMacro(MeasurementVectorSize, unsigned int,
-                      VMeasurementVectorSize);
-
 
   /** type of an element of a measurement vector */
   typedef TMeasurement MeasurementType;
@@ -126,21 +117,20 @@ public:
   typedef typename FrequencyContainerType::RelativeFrequencyType      RelativeFrequencyType;
   typedef typename FrequencyContainerType::TotalRelativeFrequencyType TotalRelativeFrequencyType;
   
-
-
   /** Index typedef support. An index is used to access pixel values. */
-  typedef itk::Index< VMeasurementVectorSize >  IndexType;
-  typedef typename IndexType::IndexValueType    IndexValueType;
+  typedef itk::Array< long >                IndexType;
+  typedef typename IndexType::ValueType     IndexValueType;
 
   /** size array type */
-  typedef itk::Size< VMeasurementVectorSize >  SizeType;
-  typedef typename SizeType::SizeValueType     SizeValueType;
+  typedef itk::Array< unsigned long >       SizeType ;
+  typedef typename SizeType::ValueType      SizeValueType ;
 
   /** bin min max value storage types */
   typedef std::vector< MeasurementType >    BinMinVectorType;
   typedef std::vector< MeasurementType >    BinMaxVectorType;
   typedef std::vector< BinMinVectorType >   BinMinContainerType;
   typedef std::vector< BinMaxVectorType >   BinMaxContainerType;
+
 
   /** Initialize the histogram, generating the offset table and
    * preparing the frequency container. Subclasses should call this
@@ -448,7 +438,7 @@ public:
 
   Iterator  End()
     {
-    return Iterator(m_OffsetTable[VMeasurementVectorSize], this);
+    return Iterator(m_OffsetTable[this->GetMeasurementVectorSize()], this);
     }
 
   ConstIterator  Begin() const
@@ -459,23 +449,8 @@ public:
 
   ConstIterator End() const
     {
-    return ConstIterator(m_OffsetTable[VMeasurementVectorSize], this);
+    return ConstIterator(m_OffsetTable[this->GetMeasurementVectorSize()], this);
     }
-
-  virtual void SetMeasurementVectorSize( MeasurementVectorSizeType s )
-    {
-    if( s!= VMeasurementVectorSize )
-      {
-      itkExceptionMacro( << "This Histogram class is meant to be used only for "
-        << "fixed length vectors of length " << VMeasurementVectorSize  <<
-        ". Cannot set this to " << s);
-      }
-    }
-  MeasurementVectorSizeType GetMeasurementVectorSize() const
-    {
-    return VMeasurementVectorSize;
-    }
-
 
 protected:
   Histogram();
@@ -488,7 +463,8 @@ private:
   Histogram(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  InstanceIdentifier          m_OffsetTable[VMeasurementVectorSize + 1];
+  typedef Array< InstanceIdentifier >   OffsetTableType;
+  OffsetTableType             m_OffsetTable;
   FrequencyContainerPointer   m_FrequencyContainer;
   unsigned int                m_NumberOfInstances;
 
@@ -502,7 +478,6 @@ private:
   mutable IndexType               m_TempIndex;
 
   bool                            m_ClipBinsAtEnds;
-
 };
 
 } // end of namespace Statistics

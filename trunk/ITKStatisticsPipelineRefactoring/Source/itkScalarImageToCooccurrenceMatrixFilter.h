@@ -119,7 +119,7 @@ public:
 
   typedef typename NumericTraits<PixelType>::RealType     MeasurementType;
 
-  typedef Histogram< MeasurementType, 2, THistogramFrequencyContainer >
+  typedef Histogram< MeasurementType, THistogramFrequencyContainer >
                                                           HistogramType;
   typedef typename HistogramType::Pointer                 HistogramPointer;
   typedef typename HistogramType::ConstPointer            HistogramConstPointer;

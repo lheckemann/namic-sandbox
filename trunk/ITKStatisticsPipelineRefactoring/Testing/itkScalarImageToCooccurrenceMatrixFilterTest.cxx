@@ -66,7 +66,7 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
 
   // setup the iterator
   InputImageIterator imageIt( image, image->GetBufferedRegion() );
-
+  imageIt.GoToBegin();
   for(int i = 0; i < 5; i++)
     for(int j = 0; j < 5; j++, ++imageIt)
       {
@@ -188,7 +188,23 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
   
   // Now make sure the contents of the bins are correct:
   typedef FilterType::HistogramType::IndexType IndexType;
-  IndexType one_one = {{1, 1}}, one_two= {{1, 2}}, two_one= {{2, 1}}, two_two= {{2, 2}};
+  IndexType one_one;
+  IndexType one_two;
+  IndexType two_one;
+  IndexType two_two;
+
+  one_one[0] = 1;
+  one_one[1] = 1;
+
+  one_two[0] = 1;
+  one_two[1] = 2;
+
+  two_one[0] = 2;
+  two_one[1] = 1;
+
+  two_two[0] = 2;
+  two_two[1] = 2;
+
   float ooF, otF, toF, ttF, totalF;
   ooF = hist->GetFrequency(one_one);
   otF = hist->GetFrequency(one_two);
@@ -263,7 +279,10 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
   filter2->Update();
   const FilterType::HistogramType * hist2 = filter2->GetOutput();
   
-  IndexType zero_zero = {{0, 0}};
+  IndexType zero_zero;
+  zero_zero[0] = 0;
+  zero_zero[0] = 0;
+ 
   float zzF;
   zzF = hist2->GetFrequency(zero_zero);
   totalF = hist2->GetTotalFrequency();
@@ -307,7 +326,12 @@ int itkScalarImageToCooccurrenceMatrixFilterTest(int, char* [] )
   filter3->Update();
   const FilterType::HistogramType * hist3 = filter3->GetOutput();
 
-  IndexType zero_one = {{0, 1}}, one_zero= {{1, 0}};
+  IndexType zero_one;
+  IndexType one_zero;
+
+  zero_one[0] = 0;
+  zero_one[1] = 1;
+
   float zoF, ozF;
   zzF = hist3->GetFrequency(zero_zero);
   zoF = hist3->GetFrequency(zero_one);

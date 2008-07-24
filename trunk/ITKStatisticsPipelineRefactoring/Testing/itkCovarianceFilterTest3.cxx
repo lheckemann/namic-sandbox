@@ -21,7 +21,7 @@
 #include "itkCovarianceFilter.h"
 #include "itkFixedArray.h"
 #include "itkHistogram.h"
-#include "itkMahalanobisDistanceMembershipFunction.h"
+#include "itkMahalanobisDistanceMetric.h"
 
 namespace itk {
 namespace Statistics {
@@ -61,20 +61,16 @@ int itkCovarianceFilterTest3(int, char* [] )
   typedef itk::FixedArray< 
     MeasurementType, MeasurementVectorSize >   MeasurementVectorType;
 
-  typedef itk::Statistics::MahalanobisDistanceMembershipFunction< 
-    MeasurementVectorType >                    MembershipFunctionType;
-
   typedef itk::Statistics::Histogram< MeasurementType, 
-          MeasurementVectorSize, 
           itk::Statistics::DenseFrequencyContainer2 > HistogramType;
 
   typedef HistogramType    SampleType; 
 
   HistogramType::Pointer histogram = HistogramType::New();
 
-  HistogramType::SizeType size;
-  MeasurementVectorType lowerBound;
-  MeasurementVectorType upperBound;
+  HistogramType::SizeType                 size;
+  HistogramType::MeasurementVectorType    lowerBound;
+  HistogramType::MeasurementVectorType    upperBound;
 
   size.Fill(50);
   lowerBound.Fill(-350);
@@ -82,6 +78,9 @@ int itkCovarianceFilterTest3(int, char* [] )
 
   histogram->Initialize( size, lowerBound, upperBound );
   histogram->SetToZero();
+
+  typedef itk::Statistics::MahalanobisDistanceMetric< 
+    HistogramType::MeasurementVectorType >                    MembershipFunctionType;
 
   MembershipFunctionType::Pointer memberFunction = MembershipFunctionType::New();
 

@@ -254,7 +254,7 @@ SampleToHistogramFilter< TSample, THistogram >
   while (iter != last)
     {
     lvector = iter.GetMeasurementVector();
-    for ( i = 0; i < HistogramType::MeasurementVectorSize; i++)
+    for ( i = 0; i < inputSample->GetMeasurementVectorSize(); i++)
       {
       hvector[i] = static_cast< HistogramMeasurementType >( lvector[i] );
       }

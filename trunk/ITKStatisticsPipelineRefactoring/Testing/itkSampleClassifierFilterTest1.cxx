@@ -21,7 +21,6 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkArray.h"
 #include "itkVariableLengthVector.h"
 #include "itkListSample.h"
-#include "itkHistogram.h"
 #include "itkSampleClassifierFilter.h"
 
 // ADD DistanceToCentroidMembershipFunction (with the added SetDistanceMetric() method
