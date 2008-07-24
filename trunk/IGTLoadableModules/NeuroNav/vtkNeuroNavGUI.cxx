@@ -97,21 +97,6 @@ vtkNeuroNavGUI::vtkNeuroNavGUI ( )
   this->RegisterPushButton = NULL;
   this->ResetPushButton = NULL;
 
-
-  this->Logic0 = NULL; 
-  this->Logic1 = NULL; 
-  this->Logic2 = NULL; 
-  this->SliceNode0 = NULL; 
-  this->SliceNode1 = NULL; 
-  this->SliceNode2 = NULL; 
-  this->Control0 = NULL; 
-  this->Control1 = NULL; 
-  this->Control2 = NULL; 
-
-  this->NeedOrientationUpdate0 = 0;
-  this->NeedOrientationUpdate1 = 0;
-  this->NeedOrientationUpdate2 = 0;
-
   this->CloseScene = false;
   this->TimerFlag = 0;
 }
@@ -321,6 +306,7 @@ void vtkNeuroNavGUI::AddGUIObservers ( )
   // make a user interactor style to process our events
   // look at the InteractorStyle to get our events
 
+
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
   appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
@@ -342,7 +328,6 @@ void vtkNeuroNavGUI::AddGUIObservers ( )
   this->UserModeCheckButton->AddObserver ( vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
   this->FreezeCheckButton->AddObserver ( vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
   this->ObliqueCheckButton->AddObserver ( vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->GUICallbackCommand );
-
 }
 
 
@@ -548,12 +533,6 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
       else
         {
         this->UserModeCheckButton->SelectedStateOn();
-//        this->SliceNode0->SetOrientationToAxial();
-//        this->SliceNode1->SetOrientationToSagittal();
-//        this->SliceNode2->SetOrientationToCoronal();
-//        this->NeedOrientationUpdate0 = 0;
-//        this->NeedOrientationUpdate1 = 0;
-//        this->NeedOrientationUpdate2 = 0;
 
         val = "User";
         }
@@ -570,12 +549,6 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
       if (checked)
         {
         this->LocatorModeCheckButton->SelectedStateOff();
-//        this->SliceNode0->SetOrientationToAxial();
-//        this->SliceNode1->SetOrientationToSagittal();
-//        this->SliceNode2->SetOrientationToCoronal();
-//        this->NeedOrientationUpdate0 = 0;
-//        this->NeedOrientationUpdate1 = 0;
-//        this->NeedOrientationUpdate2 = 0;
         }
       else
         {
@@ -634,16 +607,6 @@ void vtkNeuroNavGUI::Enter ( )
 {
   // Fill in
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-
-  this->Logic0 = appGUI->GetMainSliceGUI("Red")->GetLogic();
-  this->Logic1 = appGUI->GetMainSliceGUI("Yellow")->GetLogic();
-  this->Logic2 = appGUI->GetMainSliceGUI("Blue")->GetLogic();
-  this->SliceNode0 = appGUI->GetMainSliceGUI("Red")->GetLogic()->GetSliceNode();
-  this->SliceNode1 = appGUI->GetMainSliceGUI("Yellow")->GetLogic()->GetSliceNode();
-  this->SliceNode2 = appGUI->GetMainSliceGUI("Blue")->GetLogic()->GetSliceNode();
-  this->Control0 = appGUI->GetMainSliceGUI("Red")->GetSliceController();
-  this->Control1 = appGUI->GetMainSliceGUI("Yellow")->GetSliceController();
-  this->Control2 = appGUI->GetMainSliceGUI("Blue")->GetSliceController();
 
 
   if (this->TimerFlag == 0)
@@ -1142,63 +1105,5 @@ void vtkNeuroNavGUI::BuildGUIForTrackingFrame ()
   driverFrame->Delete();
   modeFrame->Delete();
   sliceFrame->Delete();
-}
-
-
-
-void vtkNeuroNavGUI::UpdateSliceDisplay(float nx, float ny, float nz, 
-                                        float tx, float ty, float tz, 
-                                        float px, float py, float pz)
-{
-  // Axial
-  if (strcmp(this->RedSliceMenu->GetValue(), "Locator"))
-    {
-    if (this->NeedOrientationUpdate0) 
-      {
-      this->SliceNode0->SetOrientationToAxial();
-      this->NeedOrientationUpdate0 = 0;
-      }
-    }
-  else
-    {
-    this->SliceNode0->SetSliceToRASByNTP( nx, ny, nz, tx, ty, tz, px, py, pz, 0);
-    this->Control0->GetOffsetScale()->SetValue(pz);
-    this->Logic0->SetSliceOffset(pz);
-    this->NeedOrientationUpdate0 = 1;
-    }
-
-  // Sagittal
-  if (strcmp(this->YellowSliceMenu->GetValue(), "Locator"))
-    {
-    if (this->NeedOrientationUpdate1) 
-      {
-      this->SliceNode1->SetOrientationToSagittal();
-      this->NeedOrientationUpdate1 = 0;
-      }
-    }
-  else
-    {
-    this->SliceNode1->SetSliceToRASByNTP( nx, ny, nz, tx, ty, tz, px, py, pz, 1);
-    this->Control1->GetOffsetScale()->SetValue(px);
-    this->Logic1->SetSliceOffset(px);
-    this->NeedOrientationUpdate1 = 1;
-    }
-
-  // Coronal
-  if (strcmp(this->GreenSliceMenu->GetValue(), "Locator"))
-    {
-    if (this->NeedOrientationUpdate2) 
-      {
-      this->SliceNode2->SetOrientationToCoronal();
-      this->NeedOrientationUpdate2 = 0;
-      }
-    }
-  else
-    {
-    this->SliceNode2->SetSliceToRASByNTP( nx, ny, nz, tx, ty, tz, px, py, pz, 2);
-    this->Control2->GetOffsetScale()->SetValue(py);
-    this->Logic2->SetSliceOffset(py);
-    this->NeedOrientationUpdate2 = 1;
-    }
 }
 
