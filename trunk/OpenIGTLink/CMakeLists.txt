@@ -212,3 +212,20 @@ ADD_SUBDIRECTORY( Tools     )
 #ADD_SUBDIRECTORY( Documents )
 ADD_SUBDIRECTORY( Examples )
 
+
+#-----------------------------------------------------------------------------
+# Doxygen 
+
+OPTION(BUILD_DOCUMENTATION "Build OpenIGTLink Documentation" OFF)
+
+IF(BUILD_DOCUMENTATION)
+  #SUBDIRS(Utilities/Doxygen)
+  ADD_SUBDIRECTORY( Documents/Doxygen )
+  CONFIGURE_FILE(${OpenIGTLink_SOURCE_DIR}/Utilities/Doxygen/doxygen.config.in
+               ${OpenIGTLink_BINARY_DIR}/doxygen.config)
+
+  CONFIGURE_FILE(${OpenIGTLink_SOURCE_DIR}/Utilities/Doxygen/igtldoxygen.pl.in
+               ${OpenIGTLink_BINARY_DIR}/igtldoxygen.pl)
+ENDIF(BUILD_DOCUMENTATION)
+
+
