@@ -118,12 +118,12 @@ public:
   typedef typename FrequencyContainerType::TotalRelativeFrequencyType TotalRelativeFrequencyType;
   
   /** Index typedef support. An index is used to access pixel values. */
-  typedef itk::Array< long >                IndexType;
+  typedef Array< long >                     IndexType;
   typedef typename IndexType::ValueType     IndexValueType;
 
   /** size array type */
-  typedef itk::Array< unsigned long >       SizeType ;
-  typedef typename SizeType::ValueType      SizeValueType ;
+  typedef Array< unsigned long >            SizeType;
+  typedef typename SizeType::ValueType      SizeValueType;
 
   /** bin min max value storage types */
   typedef std::vector< MeasurementType >    BinMinVectorType;
