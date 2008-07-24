@@ -19,6 +19,7 @@
 
 #include "itkFunctionBase.h"
 #include "itkMeasurementVectorTraits.h"
+#include "itkDistanceMetric.h"
 
 namespace itk  { 
 namespace Statistics  {
@@ -49,10 +50,13 @@ public:
   itkTypeMacro(MembershipFunctionBase, FunctionBase);
 
   /** MeasurementVector typedef support */ 
-  typedef TVector MeasurementVectorType;
+  typedef TVector                       MeasurementVectorType;
+
+  /** Type of the DistanceMetric to use */
+  typedef DistanceMetric< TVector >     DistanceMetricType;
 
   /** Typedef for the length of each measurement vector */
-  typedef unsigned int  MeasurementVectorSizeType;
+  typedef unsigned int                  MeasurementVectorSizeType;
 
   /** Method to get membership score (discriminant score) of an entity. */
   virtual double Evaluate(const TVector &x) const = 0;
@@ -110,7 +114,10 @@ protected:
     os << indent << "Length of measurement vectors: " 
                 << m_MeasurementVectorSize << std::endl;
     }
-  MeasurementVectorSizeType m_MeasurementVectorSize;
+  MeasurementVectorSizeType     m_MeasurementVectorSize;
+
+  DistanceMetricType            m_DistanceMetric;
+
 }; // end of class
 
 } // end of namespace Statistics
