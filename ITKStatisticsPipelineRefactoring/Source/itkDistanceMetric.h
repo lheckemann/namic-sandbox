@@ -60,6 +60,9 @@ public:
   typedef DistanceMetric                    Self;
   typedef FunctionBase< TVector, double >   Superclass;
 
+  /** declare the MeasurementVector type */
+  typedef TVector                           MeasurementVectorType;
+
   /** Type used to represent the number of components oft he MeasurementVectorType */
   typedef unsigned int                      MeasurementVectorSizeType;
 
@@ -76,11 +79,48 @@ public:
 
   /** Gets the distance between the origin point and x. This function
    * work with SetOrigin() function*/
-  virtual double Evaluate(const TVector &x) const = 0;
+  virtual double Evaluate(const MeasurementVectorType &x) const = 0;
   
   /** Gets the distance between x1 and x2 points */
-  virtual double Evaluate(const TVector &x1, const TVector &x2) const = 0;
+  virtual double Evaluate(const MeasurementVectorType &x1, const MeasurementVectorType &x2) const = 0;
   
+  /** Set method for the length of the measurement vector */
+  virtual void SetMeasurementVectorSize( MeasurementVectorSizeType s )
+    {
+    // Test whether the vector type is resizable or not
+    MeasurementVectorType m;
+    if( MeasurementVectorTraits::IsResizable( m ) )
+      {
+      // then this is a resizable vector type
+      //
+      // if the new size is the same as the previou size, just return
+      if( s == this->m_MeasurementVectorSize )
+        {
+        return;
+        }
+      else
+        {
+        this->m_MeasurementVectorSize = s;
+        this->Modified();
+        }
+      }
+    else
+      {
+      // If this is a non-resizable vector type
+      MeasurementVectorType m3;
+      MeasurementVectorSizeType defaultLength = MeasurementVectorTraits::GetLength( m3 );
+      // and the new length is different from the default one, then throw an exception
+      if( defaultLength != s )
+        {
+        itkExceptionMacro("Attempting to change the measurement \
+                           vector size of a non-resizable vector type");
+        }
+      }
+    }
+
+  /** Get method for the length of the measurement vector */
+  itkGetConstMacro( MeasurementVectorSize, MeasurementVectorSizeType ); 
+ 
 protected:
   DistanceMetric();
   virtual ~DistanceMetric() {}
