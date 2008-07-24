@@ -463,10 +463,10 @@ private:
   Histogram(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  typedef Array< InstanceIdentifier >   OffsetTableType;
-  OffsetTableType             m_OffsetTable;
-  FrequencyContainerPointer   m_FrequencyContainer;
-  unsigned int                m_NumberOfInstances;
+  typedef std::vector< InstanceIdentifier >   OffsetTableType;
+  OffsetTableType                             m_OffsetTable;
+  FrequencyContainerPointer                   m_FrequencyContainer;
+  unsigned int                                m_NumberOfInstances;
 
   // lower bound of each bin
   std::vector< std::vector<MeasurementType> > m_Min;
