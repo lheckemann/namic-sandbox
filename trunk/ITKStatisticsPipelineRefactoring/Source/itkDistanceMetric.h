@@ -17,8 +17,8 @@
 #ifndef __itkDistanceMetric_h
 #define __itkDistanceMetric_h
 
-#include "itkMembershipFunctionBase.h"
 #include "itkArray.h"
+#include "itkFunctionBase.h"
 
 namespace itk  { 
 namespace Statistics  {
@@ -27,13 +27,12 @@ namespace Statistics  {
  * \brief this class declares common interfaces 
  * for distance functions.
  *
- * As a function derived from MembershipFunctionBase, 
- * users use Evaluate method to get result.
+ * As a function derived from FunctionBase, users use Evaluate method to get
+ * result.
  * 
- * To use this function in the context of MembershipFunction,
- * users should first set the origin by calling SetOrigin() function,
- * then call Evaluate() method with a point to get the distance between
- * the origin point and the evaluation point.
+ * To use this function users should first set the origin by calling
+ * SetOrigin() function, then call Evaluate() method with a point to get the
+ * distance between the origin point and the evaluation point.
  * 
  * If users want to the distance between two points without setting
  * the origin point. Use two argument version of Evaluate() function.
@@ -54,23 +53,24 @@ namespace Statistics  {
  */
 
 template< class TVector >
-class ITK_EXPORT DistanceMetric : public MembershipFunctionBase< TVector >
+class ITK_EXPORT DistanceMetric : public FunctionBase< TVector, double  >
 {
 public:
   /** Standard typedefs */
   typedef DistanceMetric                    Self;
-  typedef MembershipFunctionBase< TVector > Superclass;
+  typedef FunctionBase< TVector, double >   Superclass;
 
-  typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
+  /** Type used to represent the number of components oft he MeasurementVectorType */
+  typedef unsigned int                      MeasurementVectorSizeType;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(DistanceMetric, MembershipFunctionBase);
+  itkTypeMacro(DistanceMetric, FunctionBase);
 
   typedef Array< double > OriginType;
 
-  /** Sets the origin point that will be used for the single point 
-   * version Evaluate() function. This function is necessary part of
-   * implementing MembershipFunctionBase's Evaluate() interface */ 
+  /** Sets the origin point that will be used for the single point version
+   * Evaluate() function. This function is necessary part of implementing the
+   * Evaluate() interface */ 
   void SetOrigin(const OriginType& x);
   itkGetConstReferenceMacro(Origin, OriginType);
 
@@ -87,6 +87,9 @@ protected:
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   OriginType m_Origin;
+
+  /** Number of components in the MeasurementVectorType */
+  MeasurementVectorSizeType       m_MeasurementVectorSize;
 }; // end of class
 
 } // end of namespace Statistics 
