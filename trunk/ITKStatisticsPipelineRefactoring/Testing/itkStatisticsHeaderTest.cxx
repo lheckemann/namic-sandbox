@@ -24,9 +24,9 @@
 // Test to include each header file for Insight
 
 #include "itkListSample.h"
+#include "itkHistogram.h"
 #include "itkListSampleToHistogramFilter.h"
 #include "itkHistogramToTextureFeaturesFilter.h"
-#include "itkHistogram.h"
 #include "itkSample.h"
 #include "itkSampleClassifierFilter.h"
 #include "itkSampleToSubsampleFilter.h"
