@@ -9,8 +9,8 @@
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
@@ -28,7 +28,7 @@
 #include "itkDistanceMetric.h"
 
 
-namespace itk{ 
+namespace itk {
 namespace Statistics{
 
 /** \class MahalanobisDistanceMetric
@@ -50,16 +50,16 @@ class ITK_EXPORT MahalanobisDistanceMetric :
 public:
   /** Standard class typedefs */
   typedef MahalanobisDistanceMetric                 Self;
-  typedef DistanceMetric< TVector >                 Superclass ;
+  typedef DistanceMetric< TVector >                 Superclass;
   typedef SmartPointer<Self>                        Pointer;
   typedef SmartPointer<const Self>                  ConstPointer;
 
   /** Strandard macros */
   itkTypeMacro(MahalanobisDistanceMetric, DistanceMetric);
   itkNewMacro(Self);
-  
+
   /** Typedef alias for the measurement vectors */
-  typedef TVector MeasurementVectorType ;
+  typedef TVector MeasurementVectorType;
 
   /** Typedef to represent the length of measurement vectors */
   typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
@@ -72,29 +72,29 @@ public:
 
   /**  Set the length of each measurement vector. */
   virtual void SetMeasurementVectorSize( const MeasurementVectorSizeType );
-  
+
   /** Method to set mean */
-  void SetMean(const MeanVectorType &mean) ;
-  void SetMean(const Array< double > &mean) ;
-  
+  void SetMean(const MeanVectorType &mean);
+  void SetMean(const Array< double > &mean);
+
   /** Method to get mean */
   const MeanVectorType & GetMean() const;
 
   /**
    * Method to set covariance matrix
-   * Also, this function calculates inverse covariance and pre factor of 
+   * Also, this function calculates inverse covariance and pre factor of
    * MahalanobisDistance Distribution to speed up GetProbability */
-  void SetCovariance(const CovarianceMatrixType &cov); 
-  
+  void SetCovariance(const CovarianceMatrixType &cov);
+
   /** Method to get covariance matrix */
   itkGetConstReferenceMacro( Covariance, CovarianceMatrixType );
 
   /**
    * Method to set covariance matrix
-   * Also, this function calculates inverse covariance and pre factor of 
+   * Also, this function calculates inverse covariance and pre factor of
    * MahalanobisDistance Distribution to speed up GetProbability */
-  void SetInverseCovariance(const CovarianceMatrixType &invcov); 
-  
+  void SetInverseCovariance(const CovarianceMatrixType &invcov);
+
   /** Method to get covariance matrix */
   itkGetConstReferenceMacro( InverseCovariance, CovarianceMatrixType );
 
@@ -108,9 +108,9 @@ public:
    * Method to get probability of an instance. The return value is the
    * value of the density function, not probability. */
   double Evaluate(const MeasurementVectorType &measurement) const;
-  
+
 protected:
-  MahalanobisDistanceMetric(void) ;
+  MahalanobisDistanceMetric(void);
   virtual ~MahalanobisDistanceMetric(void) {}
   void PrintSelf(std::ostream& os, Indent indent) const;
 
@@ -118,30 +118,30 @@ private:
   MeanVectorType        m_Mean;              // mean
   CovarianceMatrixType  m_Covariance;        // covariance matrix
 
-  // inverse covariance matrix which is automatically calculated 
+  // inverse covariance matrix which is automatically calculated
   // when covariace matirx is set.  This speed up the GetProbability()
-  CovarianceMatrixType  m_InverseCovariance; 
+  CovarianceMatrixType  m_InverseCovariance;
 
   // Number of samples defining this density
   double m_NumberOfSamples;
-  // pre_factor which is automatically calculated 
-  // when covariace matirx is set.  This speeds up the GetProbability()  
+  // pre_factor which is automatically calculated
+  // when covariace matirx is set.  This speeds up the GetProbability()
   double       m_PreFactor;
   double       m_Epsilon;
   double       m_DoubleMax;
- 
+
   mutable vnl_matrix< double > m_TempVec;
   mutable vnl_matrix< double > m_TempMat;
 
-  void CalculateInverseCovariance(); 
+  void CalculateInverseCovariance();
 
   /** Gets the distance between x1 and x2 points This concept does not apply to
    * the MahalanobisDistance, therefore the method is declared private and
    * purposely implemented as returning zero. */
   virtual double Evaluate(
-    const MeasurementVectorType &x1, const MeasurementVectorType &x2) const 
+    const MeasurementVectorType &x1, const MeasurementVectorType &x2) const
       { return 0.0; } // purposely implemented as returning zero
-  
+
 };
 
 } // end of namespace Statistics
