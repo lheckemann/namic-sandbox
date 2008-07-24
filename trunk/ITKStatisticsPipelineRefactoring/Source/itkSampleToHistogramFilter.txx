@@ -152,9 +152,9 @@ SampleToHistogramFilter< TSample, THistogram >
 
   MeasurementVectorTraits::SetLength( lower, measurementVectorSize );
   MeasurementVectorTraits::SetLength( upper, measurementVectorSize );
-
-  typename HistogramType::MeasurementVectorType h_upper;
-  typename HistogramType::MeasurementVectorType h_lower;
+ 
+  HistogramMeasurementVectorType h_upper;
+  HistogramMeasurementVectorType h_lower;
 
   MeasurementVectorTraits::SetLength( h_lower, measurementVectorSize );
   MeasurementVectorTraits::SetLength( h_upper, measurementVectorSize );
@@ -174,22 +174,22 @@ SampleToHistogramFilter< TSample, THistogram >
         if( !NumericTraits< HistogramMeasurementType >::is_integer )
           {
           const double margin = 
-              ( (HistogramMeasurementType )(upper[i] - lower[i]) / 
-                (HistogramMeasurementType ) histogramSize[i] ) / 
-              (HistogramMeasurementType ) marginalScale;
+              ( static_cast< HistogramMeasurementType >( upper[i] - lower[i] ) / 
+                static_cast< HistogramMeasurementType >( histogramSize[i] ) ) / 
+              static_cast< HistogramMeasurementType >( marginalScale );
 
           // Now we check if the upper[i] value can be increased by 
           // the margin value without saturating the capacity of the 
           // HistogramMeasurementType
           if( ( maximumPossibleValue - upper[i] ) > margin )
             {
-            h_upper[i] = (HistogramMeasurementType ) (upper[i] + margin);
+            h_upper[i] = static_cast< HistogramMeasurementType > (upper[i] + margin);
             }
           else
             { 
             // an overflow would occur if we add 'margin' to the upper 
             // therefore we just compromise in setting h_upper = upper.
-            h_upper[i] = upper[i];
+            h_upper[i] = static_cast< HistogramMeasurementType >( upper[i] );
             // Histogram measurement type would force the clipping the max value.
             // Therefore we must call the following to include the max value:
             outputHistogram->SetClipBinsAtEnds(false);
@@ -199,12 +199,13 @@ SampleToHistogramFilter< TSample, THistogram >
           }
         else
           {
-          h_upper[i] = ((HistogramMeasurementType ) upper[i]) + 
+          h_upper[i] = (static_cast< HistogramMeasurementType >( upper[i] ) ) + 
             NumericTraits< HistogramMeasurementType  >::One;
+
           if( h_upper[i] <= upper[i] )
             { 
             // an overflow has occurred therefore set upper to upper
-            h_upper[i] = upper[i];
+            h_upper[i] = static_cast< HistogramMeasurementType >( upper[i] );
             // Histogram measurement type would force the clipping the max value.
             // Therefore we must call the following to include the max value:
             outputHistogram->SetClipBinsAtEnds(false);
@@ -212,15 +213,15 @@ SampleToHistogramFilter< TSample, THistogram >
             // computation and clearly the user intended to include min and max.
             }
           }
-        h_lower[i] = ( HistogramMeasurementType ) lower[i];
+        h_lower[i] = static_cast< HistogramMeasurementType >( lower[i] );
         }
       }
     else
       {
       for( unsigned int i = 0; i < measurementVectorSize; i++ )
         {
-        h_lower[i] = ( HistogramMeasurementType ) lower[i];
-        h_upper[i] = ( HistogramMeasurementType ) upper[i];
+        h_lower[i] = static_cast< HistogramMeasurementType >( lower[i] );
+        h_upper[i] = static_cast< HistogramMeasurementType >( upper[i] );
         }
       }
     }
@@ -255,7 +256,7 @@ SampleToHistogramFilter< TSample, THistogram >
     lvector = iter.GetMeasurementVector();
     for ( i = 0; i < HistogramType::MeasurementVectorSize; i++)
       {
-      hvector[i] = (HistogramMeasurementType) lvector[i];
+      hvector[i] = static_cast< HistogramMeasurementType >( lvector[i] );
       }
 
     outputHistogram->GetIndex( hvector, index );
