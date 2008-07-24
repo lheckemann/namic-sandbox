@@ -19,6 +19,7 @@
 
 #include "itkArray.h"
 #include "itkFunctionBase.h"
+#include "itkMeasurementVectorTraits.h"
 
 namespace itk  { 
 namespace Statistics  {
