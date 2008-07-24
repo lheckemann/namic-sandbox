@@ -143,7 +143,23 @@ int itkScalarImageToCooccurrenceMatrixFilterTest2(int, char* [] )
   bool passed = true;
 
   typedef FilterType::HistogramType::IndexType IndexType;
-  IndexType one_one = {{1, 1}}, one_two= {{1, 2}}, two_one= {{2, 1}}, two_two= {{2, 2}};
+  IndexType one_one;
+  IndexType one_two;
+  IndexType two_one;
+  IndexType two_two;
+
+  one_one[0] = 1;
+  one_one[1] = 1;
+
+  one_two[0] = 1;
+  one_two[1] = 2;
+
+  two_one[0] = 2;
+  two_one[1] = 1;
+
+  two_two[0] = 2;
+  two_two[1] = 2;
+
   float ooF, otF, toF, ttF, totalF;
   ooF = hist->GetFrequency(one_one);
   otF = hist->GetFrequency(one_two);

@@ -64,7 +64,7 @@ int itkStatisticsPrintTest(int , char* [])
   typedef itk::Statistics::Subsample< SampleType >
     SubSampleType;
 
-  typedef itk::Statistics::Histogram< TMeasurementType, 2 > HistogramType ;
+  typedef itk::Statistics::Histogram< TMeasurementType > HistogramType ;
 
   typedef itk::Statistics::SampleToHistogramFilter< 
     SampleType, HistogramType > SampleToHistogramFilterType;
