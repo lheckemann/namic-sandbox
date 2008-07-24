@@ -53,13 +53,13 @@ public:
   typedef TVector                       MeasurementVectorType;
 
   /** Type of the DistanceMetric to use */
-  typedef DistanceMetric< TVector >     DistanceMetricType;
+  typedef DistanceMetric< MeasurementVectorType >     DistanceMetricType;
 
   /** Typedef for the length of each measurement vector */
   typedef unsigned int                  MeasurementVectorSizeType;
 
   /** Method to get membership score (discriminant score) of an entity. */
-  virtual double Evaluate(const TVector &x) const = 0;
+  virtual double Evaluate(const MeasurementVectorType &x) const = 0;
 
   /** Set method for the length of the measurement vector */
   virtual void SetMeasurementVectorSize( MeasurementVectorSizeType s )
@@ -116,7 +116,7 @@ protected:
     }
   MeasurementVectorSizeType     m_MeasurementVectorSize;
 
-  DistanceMetricType            m_DistanceMetric;
+  DistanceMetricType            * m_DistanceMetric;
 
 }; // end of class
 
