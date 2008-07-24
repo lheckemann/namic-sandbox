@@ -42,6 +42,10 @@ Histogram<TMeasurement, TFrequencyContainer >::InstanceIdentifier
 Histogram<TMeasurement, TFrequencyContainer >
 ::Size() const
 {
+  if( this->GetMeasurementVectorSize() == 0 )
+    {
+    return itk::NumericTraits< InstanceIdentifier >::Zero;
+    }
   InstanceIdentifier size = 1;
   for (unsigned int i = 0; i < this->GetMeasurementVectorSize(); i++)
     {
