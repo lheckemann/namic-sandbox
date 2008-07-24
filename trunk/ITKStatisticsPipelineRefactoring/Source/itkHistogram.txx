@@ -30,7 +30,10 @@ Histogram<TMeasurement, TFrequencyContainer >
   m_ClipBinsAtEnds = true;
   m_FrequencyContainer = FrequencyContainerType::New();
   m_OffsetTable = OffsetTableType( this->GetMeasurementVectorSize() + 1 );
-  m_OffsetTable.Fill( itk::NumericTraits< InstanceIdentifier >::Zero ); // FIXME do this also when MeasurementVectorSize changes...
+  for( unsigned int i = 0; i < this->GetMeasurementVectorSize() + 1; i++ )
+    {
+    m_OffsetTable[i] = itk::NumericTraits< InstanceIdentifier >::Zero; // FIXME do this also when MeasurementVectorSize changes...
+    }
 }
 
 template< class TMeasurement, class TFrequencyContainer >
@@ -671,7 +674,12 @@ Histogram< TMeasurement, TFrequencyContainer >
 {
   Superclass::PrintSelf(os,indent);
 
-  os << indent << "OffsetTable: " << this->m_OffsetTable << std::endl;
+  os << indent << "OffsetTable: " <<  std::endl;
+  for(unsigned int i=0; i < this->m_OffsetTable.size(); i++)
+    {
+    os << this->m_OffsetTable[i] << "  ";
+    }
+  os << std::endl;
   os << indent << "ClipBinsAtEnds: " <<  
     itk::NumericTraits<bool>::PrintType( m_ClipBinsAtEnds ) << std::endl;
   os << indent << "FrequencyContainerPointer: " << m_FrequencyContainer
