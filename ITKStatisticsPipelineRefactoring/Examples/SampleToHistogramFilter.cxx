@@ -27,7 +27,6 @@ PURPOSE.  See the above copyright notices for more information.
 int main(int argc, char *argv[] ) 
 {
     
-  const unsigned int numberOfComponents = 3;
   typedef float      MeasurementType;
 
   typedef itk::Array< MeasurementType > MeasurementVectorType;
