@@ -30,34 +30,46 @@ int itkHistogramTest(int, char* [] )
   typedef float MeasurementType;
   const unsigned int numberOfComponents = 3;
 
-  // creats a histogram with 3 components measurement vectors
+  // create a histogram with 3 components measurement vectors
   typedef itk::Statistics::Histogram< MeasurementType, 
           itk::Statistics::DenseFrequencyContainer2 > HistogramType;
   HistogramType::Pointer histogram = HistogramType::New();
 
   histogram->SetMeasurementVectorSize( numberOfComponents );
 
+  if( histogram->GetMeasurementVectorSize() != numberOfComponents )
+    {
+    std::cerr << "Error in Get/SetMeasurementVectorSize() " << std::endl;
+    return EXIT_FAILURE;
+    }
+
   typedef HistogramType::MeasurementVectorType MeasurementVectorType;
   typedef HistogramType::InstanceIdentifier    InstanceIdentifier; 
   typedef HistogramType::IndexType             IndexType; 
 
   // initializes a 64 x 64 x 64 histogram with equal size interval
-  HistogramType::SizeType size;
+  HistogramType::SizeType size = histogram->GetSize();
   size.Fill(64);
   unsigned long totalSize = size[0] * size[1] * size[2];
-  MeasurementVectorType lowerBound;
-  MeasurementVectorType upperBound;
+
+  MeasurementVectorType lowerBound( numberOfComponents );
+  MeasurementVectorType upperBound( numberOfComponents );
+
   lowerBound.Fill(0);
   upperBound.Fill(1024);
+
   histogram->Initialize(size, lowerBound, upperBound );
+
   histogram->SetToZero();
+
   double interval = 
     (upperBound[0] - lowerBound[0]) / 
     static_cast< HistogramType::MeasurementType >(size[0]);
 
   // tests begin
-  MeasurementVectorType measurements;
+  MeasurementVectorType measurements( numberOfComponents );
   measurements.Fill(512);
+
   IndexType index;
   IndexType ind;
   index.Fill(32);
