@@ -27,12 +27,12 @@ template< class TMeasurement, class TFrequencyContainer >
 Histogram<TMeasurement, TFrequencyContainer >
 ::Histogram()
 {
-  m_ClipBinsAtEnds = true;
-  m_FrequencyContainer = FrequencyContainerType::New();
-  m_OffsetTable = OffsetTableType( this->GetMeasurementVectorSize() + 1 );
+  this->m_ClipBinsAtEnds = true;
+  this->m_FrequencyContainer = FrequencyContainerType::New();
+  this->m_OffsetTable = OffsetTableType( this->GetMeasurementVectorSize() + 1 );
   for( unsigned int i = 0; i < this->GetMeasurementVectorSize() + 1; i++ )
     {
-    m_OffsetTable[i] = itk::NumericTraits< InstanceIdentifier >::Zero; // FIXME do this also when MeasurementVectorSize changes...
+    this->m_OffsetTable[i] = itk::NumericTraits< InstanceIdentifier >::Zero;
     }
 }
 
@@ -176,17 +176,20 @@ void
 Histogram<TMeasurement, TFrequencyContainer >
 ::Initialize(const SizeType &size)
 {
-  m_Size = size;
+
+  this->m_Size = size;
   
   // creates offset table which will be used for generation of
   // instance identifiers.
   InstanceIdentifier num = 1;
   
-  m_OffsetTable[0] = num;
+  this->m_OffsetTable.resize( this->GetMeasurementVectorSize() + 1 );
+
+  this->m_OffsetTable[0] = num;
   for (unsigned int i = 0; i < this->GetMeasurementVectorSize(); i++)
     {
     num *= m_Size[i];
-    m_OffsetTable[i + 1] = num;
+    this->m_OffsetTable[i + 1] = num;
     }
 
   m_NumberOfInstances = num;
@@ -206,7 +209,7 @@ Histogram<TMeasurement, TFrequencyContainer >
     } 
 
   // initialize the frequency container
-  m_FrequencyContainer->Initialize(m_OffsetTable[this->GetMeasurementVectorSize()]);
+  m_FrequencyContainer->Initialize(this->m_OffsetTable[this->GetMeasurementVectorSize()]);
   this->SetToZero();
 }
 
@@ -270,6 +273,11 @@ bool Histogram<TMeasurement, TFrequencyContainer >
   // now using something similar to binary search to find
   // index.
   unsigned int dim;
+
+  if( index.Size() != this->GetMeasurementVectorSize() )
+    {
+    index.SetSize( this->GetMeasurementVectorSize() );
+    }
   
   int begin;
   int mid;
@@ -359,8 +367,8 @@ Histogram<TMeasurement, TFrequencyContainer >
 
   for (int i = this->GetMeasurementVectorSize() - 1; i > 0; i--)
     {
-    m_TempIndex[i] = static_cast<IndexValueType>(id2 / m_OffsetTable[i]);
-    id2 -= (m_TempIndex[i] * m_OffsetTable[i]);
+    m_TempIndex[i] = static_cast<IndexValueType>(id2 / this->m_OffsetTable[i]);
+    id2 -= (m_TempIndex[i] * this->m_OffsetTable[i]);
     }
   m_TempIndex[0] = static_cast<IndexValueType>(id2);
   
@@ -391,7 +399,7 @@ Histogram<TMeasurement, TFrequencyContainer >
   InstanceIdentifier id = 0;
   for (int i= this->GetMeasurementVectorSize() - 1; i > 0; i-- )
     {
-    id += index[i] * m_OffsetTable[i];
+    id += index[i] * this->m_OffsetTable[i];
     }
   
   id += index[0];
@@ -581,12 +589,12 @@ Histogram< TMeasurement, TFrequencyContainer >::AbsoluteFrequencyType
 Histogram< TMeasurement, TFrequencyContainer >
 ::GetFrequency( InstanceIdentifier n, unsigned int dimension) const
 {
-  InstanceIdentifier nextOffset = m_OffsetTable[dimension + 1];
-  InstanceIdentifier current = m_OffsetTable[dimension] * n;
-  InstanceIdentifier includeLength = m_OffsetTable[dimension];
+  InstanceIdentifier nextOffset = this->m_OffsetTable[dimension + 1];
+  InstanceIdentifier current = this->m_OffsetTable[dimension] * n;
+  InstanceIdentifier includeLength = this->m_OffsetTable[dimension];
   InstanceIdentifier include;
   InstanceIdentifier includeEnd;
-  InstanceIdentifier last = m_OffsetTable[this->GetMeasurementVectorSize()];
+  InstanceIdentifier last = this->m_OffsetTable[this->GetMeasurementVectorSize()];
 
   AbsoluteFrequencyType frequency = 0;
   while (current < last)

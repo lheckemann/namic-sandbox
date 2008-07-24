@@ -48,7 +48,7 @@ int itkHistogramTest(int, char* [] )
   typedef HistogramType::IndexType             IndexType; 
 
   // initializes a 64 x 64 x 64 histogram with equal size interval
-  HistogramType::SizeType size = histogram->GetSize();
+  HistogramType::SizeType size( numberOfComponents );
   size.Fill(64);
   unsigned long totalSize = size[0] * size[1] * size[2];
 
@@ -70,8 +70,8 @@ int itkHistogramTest(int, char* [] )
   MeasurementVectorType measurements( numberOfComponents );
   measurements.Fill(512);
 
-  IndexType index;
-  IndexType ind;
+  IndexType index( numberOfComponents );
+  IndexType ind( numberOfComponents );
   index.Fill(32);
   if(histogram->GetIndex(measurements,ind))
     {
@@ -382,7 +382,7 @@ int itkHistogramTest(int, char* [] )
 
   histogram->SetClipBinsAtEnds( false );
 
-  IndexType index1;
+  IndexType index1( numberOfComponents );
   bool getindex1 = histogram->GetIndex( outOfLowerRange, index1 );
 
   std::cout << "GetIndex() with SetClipBinsAtEnds() = false " << std::endl;
@@ -419,7 +419,7 @@ int itkHistogramTest(int, char* [] )
 
   histogram->SetClipBinsAtEnds( false );
 
-  IndexType index2;
+  IndexType index2( numberOfComponents );
   bool getindex2 = histogram->GetIndex( outOfUpperRange, index2 );
 
   std::cout << "GetIndex() with SetClipBinsAtEnds() = false " << std::endl;
@@ -456,7 +456,7 @@ int itkHistogramTest(int, char* [] )
 
 
   // Testing GetIndex() for values that are above the median value of the Bin.
-  IndexType pindex;
+  IndexType pindex( numberOfComponents );
   pindex.Fill( 32 );
   MeasurementVectorType measurementVector =
     histogram->GetMeasurementVector( pindex );
@@ -499,14 +499,14 @@ int itkHistogramTest(int, char* [] )
     }
 
   // Testing GetIndex on the upper and lower bounds
-  IndexType upperIndex;
+  IndexType upperIndex( numberOfComponents );
   bool upperIndexBool = histogram->GetIndex( upperBound, upperIndex );
   if( upperIndexBool )
     {
     std::cout << "Upper bound index = " << upperIndex << std::endl;
     }
 
-  IndexType lowerIndex;
+  IndexType lowerIndex( numberOfComponents );
   bool lowerIndexBool = histogram->GetIndex( lowerBound, lowerIndex );
   if( lowerIndexBool )
     {
@@ -521,7 +521,7 @@ int itkHistogramTest(int, char* [] )
     measurementVectorAbove[gupk1] = 129.9;
     }
 
-  IndexType aboveUpperIndex;
+  IndexType aboveUpperIndex( numberOfComponents );
   bool aboveUpperIndexBool =
     histogram->GetIndex( measurementVectorAbove, aboveUpperIndex );
   if( !aboveUpperIndexBool )
