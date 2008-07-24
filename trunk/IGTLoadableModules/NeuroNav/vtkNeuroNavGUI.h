@@ -85,8 +85,6 @@ public:
   virtual void Enter ( );
   virtual void Exit ( );
 
-  void Init();
-
   //BTX
   static void DataCallback(vtkObject *caller, 
                            unsigned long eid, void *clientData, void *callData);
@@ -131,23 +129,6 @@ protected:
   vtkNeuroNavLogic *Logic;
 
   // Access the slice windows
-  vtkSlicerSliceLogic *Logic0;
-  vtkSlicerSliceLogic *Logic1;
-  vtkSlicerSliceLogic *Logic2;
-  vtkMRMLSliceNode *SliceNode0;
-  vtkMRMLSliceNode *SliceNode1;
-  vtkMRMLSliceNode *SliceNode2;
-  vtkSlicerSliceControllerWidget *Control0;
-  vtkSlicerSliceControllerWidget *Control1;
-  vtkSlicerSliceControllerWidget *Control2;
-
-  int NeedOrientationUpdate0;
-  int NeedOrientationUpdate1;
-  int NeedOrientationUpdate2;
-
-  void UpdateSliceDisplay(float nx, float ny, float nz, 
-                          float tx, float ty, float tz, 
-                          float px, float py, float pz);
 
 private:
   vtkNeuroNavGUI ( const vtkNeuroNavGUI& ); // Not implemented.
