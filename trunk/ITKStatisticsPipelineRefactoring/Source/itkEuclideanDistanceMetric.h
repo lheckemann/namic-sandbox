@@ -54,7 +54,7 @@ class ITK_EXPORT EuclideanDistanceMetric :
 {
 public:
   /** Standard "Self" typedef. */
-  typedef EuclideanDistanceMetric             Self;
+  typedef EuclideanDistanceMetric       Self;
   typedef DistanceMetric< TVector >     Superclass;
   typedef SmartPointer< Self >          Pointer; 
   typedef SmartPointer<const Self>      ConstPointer;

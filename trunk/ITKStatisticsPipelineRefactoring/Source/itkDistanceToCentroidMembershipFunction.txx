@@ -80,7 +80,4 @@ DistanceToCentroidMembershipFunction< TVector >
 
 } // end namespace Statistics
 } // end of namespace itk
-
-
-
 #endif
