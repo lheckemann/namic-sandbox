@@ -245,55 +245,55 @@ void vtkNeuroNavGUI::PrintSelf ( ostream& os, vtkIndent indent )
 //---------------------------------------------------------------------------
 void vtkNeuroNavGUI::RemoveGUIObservers ( )
 {
-  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+//  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
-  appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-  appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
-  appGUI->GetMainSliceGUI("Blue")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+//  appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+//  appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+//  appGUI->GetMainSliceGUI("Blue")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
 
   if (this->GetPatCoordinatesPushButton)
     {
-    this->GetPatCoordinatesPushButton->RemoveObservers ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->GetPatCoordinatesPushButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->AddPointPairPushButton)
     {
-    this->AddPointPairPushButton->RemoveObservers ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->AddPointPairPushButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->DeletePointPairPushButton)
     {
-    this->DeletePointPairPushButton->RemoveObservers ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->DeletePointPairPushButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->DeleteAllPointPairPushButton)
     {
-    this->DeleteAllPointPairPushButton->RemoveObservers ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->DeleteAllPointPairPushButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->RegisterPushButton)
     {
-    this->RegisterPushButton->RemoveObservers ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->RegisterPushButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->ResetPushButton)
     {
-    this->ResetPushButton->RemoveObservers ( vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand );
+    this->ResetPushButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->LocatorCheckButton)
     {
-    this->LocatorCheckButton->RemoveObservers ( vtkKWCheckButton::SelectedStateChangedEvent,  (vtkCommand *)this->GUICallbackCommand );
+    this->LocatorCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->LocatorModeCheckButton)
     {
-    this->LocatorModeCheckButton->RemoveObservers ( vtkKWCheckButton::SelectedStateChangedEvent,  (vtkCommand *)this->GUICallbackCommand );
+    this->LocatorModeCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->UserModeCheckButton)
     {
-    this->UserModeCheckButton->RemoveObservers ( vtkKWCheckButton::SelectedStateChangedEvent,  (vtkCommand *)this->GUICallbackCommand );
+    this->UserModeCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->FreezeCheckButton)
     {
-    this->FreezeCheckButton->RemoveObservers ( vtkKWCheckButton::SelectedStateChangedEvent,  (vtkCommand *)this->GUICallbackCommand );
+    this->FreezeCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
   if (this->ObliqueCheckButton)
     {
-    this->ObliqueCheckButton->RemoveObservers ( vtkKWCheckButton::SelectedStateChangedEvent,  (vtkCommand *)this->GUICallbackCommand );
+    this->ObliqueCheckButton->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
     }
 }
 
@@ -307,11 +307,11 @@ void vtkNeuroNavGUI::AddGUIObservers ( )
   // look at the InteractorStyle to get our events
 
 
-  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+//  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
-  appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
-  appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
-  appGUI->GetMainSliceGUI("Blue")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
+//  appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
+//  appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
+//  appGUI->GetMainSliceGUI("Blue")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
 
 
   // Fill in
