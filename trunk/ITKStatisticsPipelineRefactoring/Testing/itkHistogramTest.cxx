@@ -371,8 +371,8 @@ int itkHistogramTest(int, char* [] )
     }
  
   // Test GetIndex with different settings of SetClipBinsAtEnds
-  MeasurementVectorType outOfLowerRange;
-  MeasurementVectorType outOfUpperRange;
+  MeasurementVectorType outOfLowerRange( numberOfComponents );
+  MeasurementVectorType outOfUpperRange( numberOfComponents );
 
   for(unsigned int k = 0; k < numberOfComponents; k++)
     {
@@ -515,7 +515,7 @@ int itkHistogramTest(int, char* [] )
 
   // Testing GetIndex above the upper bound of a bin
   histogram->SetClipBinsAtEnds( false );
-  MeasurementVectorType measurementVectorAbove;
+  MeasurementVectorType measurementVectorAbove( numberOfComponents );
   for( unsigned int gupk1 = 0; gupk1<numberOfComponents; gupk1++)
     {
     measurementVectorAbove[gupk1] = 129.9;
