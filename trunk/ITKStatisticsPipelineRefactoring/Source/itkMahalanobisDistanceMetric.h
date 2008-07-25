@@ -135,13 +135,6 @@ private:
 
   void CalculateInverseCovariance();
 
-  /** Gets the distance between x1 and x2 points This concept does not apply to
-   * the MahalanobisDistance, therefore the method is declared private and
-   * purposely implemented as returning zero. */
-  virtual double Evaluate(
-    const MeasurementVectorType &x1, const MeasurementVectorType &x2) const
-      { return 0.0; } // purposely implemented as returning zero
-
 };
 
 } // end of namespace Statistics

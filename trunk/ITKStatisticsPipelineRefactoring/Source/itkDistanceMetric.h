@@ -74,16 +74,16 @@ public:
 
   /** Sets the origin point that will be used for the single point version
    * Evaluate() function. This function is necessary part of implementing the
-   * Evaluate() interface */ 
+   * Evaluate() interface. The argument of SetOrigin() must be of type
+   * DistanceMetric::OriginType, which in most cases will be different from the
+   * TVector type. This is necessary because often times the origin would be a
+   * mean, or a vector representative of a collection of vectors. */ 
   void SetOrigin(const OriginType& x);
   itkGetConstReferenceMacro(Origin, OriginType);
 
   /** Gets the distance between the origin point and x. This function
    * work with SetOrigin() function*/
   virtual double Evaluate(const MeasurementVectorType &x) const = 0;
-  
-  /** Gets the distance between x1 and x2 points */
-  virtual double Evaluate(const MeasurementVectorType &x1, const MeasurementVectorType &x2) const = 0;
   
   /** Set method for the length of the measurement vector */
   virtual void SetMeasurementVectorSize( MeasurementVectorSizeType s )
