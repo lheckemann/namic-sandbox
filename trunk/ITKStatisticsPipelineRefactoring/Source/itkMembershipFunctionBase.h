@@ -19,7 +19,6 @@
 
 #include "itkFunctionBase.h"
 #include "itkMeasurementVectorTraits.h"
-#include "itkDistanceMetric.h"
 
 namespace itk  { 
 namespace Statistics  {
@@ -51,9 +50,6 @@ public:
 
   /** MeasurementVector typedef support */ 
   typedef TVector                       MeasurementVectorType;
-
-  /** Type of the DistanceMetric to use */
-  typedef DistanceMetric< MeasurementVectorType >     DistanceMetricType;
 
   /** Typedef for the length of each measurement vector */
   typedef unsigned int                  MeasurementVectorSizeType;
@@ -115,8 +111,6 @@ protected:
                 << m_MeasurementVectorSize << std::endl;
     }
   MeasurementVectorSizeType     m_MeasurementVectorSize;
-
-  DistanceMetricType            * m_DistanceMetric;
 
 }; // end of class
 

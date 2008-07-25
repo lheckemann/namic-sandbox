@@ -46,8 +46,9 @@
 #include "itkDenseFrequencyContainer2.h"
 #include "itkSparseFrequencyContainer2.h"
 #include "itkMembershipFunctionBase.h"
+#include "itkDistanceToCentroidMembershipFunction.h"
 #include "itkDistanceMetric.h"
-#include "itkEuclideanDistance.h"
+#include "itkEuclideanDistanceMetric.h"
 
 int itkStatisticsPrintTest(int , char* [])
 {
@@ -96,11 +97,14 @@ int itkStatisticsPrintTest(int , char* [])
   typedef itk::Statistics::MembershipFunctionBase< TMeasurementVectorType >
     MembershipFunctionBaseType;
  
+  typedef itk::Statistics::DistanceToCentroidMembershipFunction< TMeasurementVectorType >
+    DistanceToCentroidMembershipFunctionType;
+ 
   typedef itk::Statistics::DistanceMetric< TMeasurementVectorType >
     DistanceType;
 
-  typedef itk::Statistics::EuclideanDistance< TMeasurementVectorType >
-    EuclideanDistanceType;
+  typedef itk::Statistics::EuclideanDistanceMetric< TMeasurementVectorType >
+    EuclideanDistanceMetricType;
 
 
   typedef itk::Statistics::HistogramToTextureFeaturesFilter<
@@ -184,6 +188,10 @@ int itkStatisticsPrintTest(int , char* [])
     MembershipSampleType::New();
   std::cout << "----------MembershipSample " << MembershipSampleObj;
 
+  DistanceToCentroidMembershipFunctionType::Pointer DistanceToCentroidMembershipFunctionObj = 
+    DistanceToCentroidMembershipFunctionType::New();
+  std::cout << "----------DistanceToCentroidMembershipFunction " << DistanceToCentroidMembershipFunctionObj;
+
   MeanFilterType::Pointer meanFilterObj = 
     MeanFilterType::New();
   std::cout << "----------Mean filter " << meanFilterObj;
@@ -212,9 +220,9 @@ int itkStatisticsPrintTest(int , char* [])
     SparseFrequencyContainer2Type::New();
   std::cout << "----------SparseFrequencyContainer2 " << SparseFrequencyContainer2Obj;
 
-  EuclideanDistanceType::Pointer euclideanDistance=
-    EuclideanDistanceType::New();
-  std::cout << "----------EuclideanDistanceType " << euclideanDistance ;
+  EuclideanDistanceMetricType::Pointer euclideanDistance=
+    EuclideanDistanceMetricType::New();
+  std::cout << "----------EuclideanDistanceMetricType " << euclideanDistance ;
  
   return EXIT_SUCCESS;
 }

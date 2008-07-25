@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkEuclideanDistance.txx,v $
+  Module:    $RCSfile: itkEuclideanDistanceMetric.txx,v $
   Language:  C++
   Date:      $Date: 2006/03/19 04:37:20 $
   Version:   $Revision: 1.12 $
@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkEuclideanDistance_txx
-#define __itkEuclideanDistance_txx
+#ifndef __itkEuclideanDistanceMetric_txx
+#define __itkEuclideanDistanceMetric_txx
 
 
 namespace itk  { 
@@ -23,7 +23,7 @@ namespace Statistics  {
 
 template< class TVector >
 inline double
-EuclideanDistance< TVector >
+EuclideanDistanceMetric< TVector >
 ::Evaluate(const TVector &x1, const TVector &x2) const
 {
   if( MeasurementVectorTraits::GetLength( x1 ) != 
@@ -47,7 +47,7 @@ EuclideanDistance< TVector >
 
 template< class TVector >
 inline double
-EuclideanDistance< TVector >
+EuclideanDistanceMetric< TVector >
 ::Evaluate(const TVector &x) const
 {
   MeasurementVectorSizeType 
@@ -57,7 +57,7 @@ EuclideanDistance< TVector >
     itkExceptionMacro( << "Please set the MeasurementVectorSize first" );
     }
   MeasurementVectorTraits::Assert( this->m_Origin, measurementVectorSize, 
-    "EuclideanDistance::Evaluate Origin and input vector have different lengths");
+    "EuclideanDistanceMetric::Evaluate Origin and input vector have different lengths");
   
   double temp, distance = NumericTraits< double >::Zero;
   
@@ -72,7 +72,7 @@ EuclideanDistance< TVector >
 
 template< class TVector >
 inline double
-EuclideanDistance< TVector >
+EuclideanDistanceMetric< TVector >
 ::Evaluate(const ValueType &a, const ValueType &b) const
 {
   double temp = a - b;
@@ -81,7 +81,7 @@ EuclideanDistance< TVector >
 
 template< class TVector >
 inline bool
-EuclideanDistance< TVector >
+EuclideanDistanceMetric< TVector >
 ::IsWithinRange(const TVector &x, const double radius) const 
 {
   MeasurementVectorSizeType 
@@ -91,7 +91,7 @@ EuclideanDistance< TVector >
     itkExceptionMacro( << "Please set the MeasurementVectorSize first" );
     }
   MeasurementVectorTraits::Assert( this->m_Origin, measurementVectorSize, 
-    "EuclideanDistance::IsWithinRange Origin and input vector have different lengths");
+    "EuclideanDistanceMetric::IsWithinRange Origin and input vector have different lengths");
   
   double squaredRadius = radius * radius;
   double sum = NumericTraits< double >::Zero;

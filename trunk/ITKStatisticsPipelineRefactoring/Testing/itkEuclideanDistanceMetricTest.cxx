@@ -18,15 +18,15 @@
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkEuclideanDistance.h"
+#include "itkEuclideanDistanceMetric.h"
 
-int itkEuclideanDistanceTest(int, char* [] )
+int itkEuclideanDistanceMetricTest(int, char* [] )
 {
   const unsigned int MeasurementVectorSize = 3;
 
   typedef itk::Array< float  >  MeasurementVectorType;
 
-  typedef itk::Statistics::EuclideanDistance< MeasurementVectorType >   DistanceMetricType;
+  typedef itk::Statistics::EuclideanDistanceMetric< MeasurementVectorType >   DistanceMetricType;
 
   DistanceMetricType::Pointer distance = DistanceMetricType::New();
 
