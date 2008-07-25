@@ -20,8 +20,8 @@
 #include "itkMembershipFunctionBase.h"
 #include "itkDistanceMetric.h"
 
-namespace itk{ 
-  namespace Statistics{
+namespace itk  { 
+namespace Statistics  {
 
 /** \class DistanceToCentroidMembershipFunction
  * \brief class represents DistanceToCentroid Density Function.
@@ -38,10 +38,10 @@ class ITK_EXPORT DistanceToCentroidMembershipFunction :
 {
 public:
   /** Standard class typedefs */
-  typedef DistanceToCentroidMembershipFunction Self;
-  typedef MembershipFunctionBase< TVector > Superclass;
-  typedef SmartPointer<Self> Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
+  typedef DistanceToCentroidMembershipFunction        Self;
+  typedef MembershipFunctionBase< TVector >           Superclass;
+  typedef SmartPointer<Self>                          Pointer;
+  typedef SmartPointer<const Self>                    ConstPointer;
 
   /** Strandard macros */
   itkTypeMacro(DistanceToCentroidMembershipFunction,
@@ -90,7 +90,7 @@ private:
 
 };
 
-  } // end of namespace Statistics
+} // end of namespace Statistics
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
