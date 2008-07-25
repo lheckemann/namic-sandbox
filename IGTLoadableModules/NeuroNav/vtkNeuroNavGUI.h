@@ -65,8 +65,8 @@ public:
 
   // Description:
   // Add/Remove observers on widgets in the GUI
-  virtual void AddGUIObservers ( );
-  virtual void RemoveGUIObservers ( );
+  virtual void AddGUIObservers();
+  virtual void RemoveGUIObservers();
 
 
   // Description:
