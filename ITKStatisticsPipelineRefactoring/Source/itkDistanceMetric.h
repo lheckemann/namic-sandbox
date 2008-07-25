@@ -60,6 +60,8 @@ public:
   /** Standard typedefs */
   typedef DistanceMetric                    Self;
   typedef FunctionBase< TVector, double >   Superclass;
+  typedef SmartPointer< Self >              Pointer;
+  typedef SmartPointer<const Self>          ConstPointer;
 
   /** declare the MeasurementVector type */
   typedef TVector                           MeasurementVectorType;
