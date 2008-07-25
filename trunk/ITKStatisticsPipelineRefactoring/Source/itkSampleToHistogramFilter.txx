@@ -147,6 +147,11 @@ SampleToHistogramFilter< TSample, THistogram >
   const typename SampleType::InstanceIdentifier measurementVectorSize =
     inputSample->GetMeasurementVectorSize();
 
+  if( measurementVectorSize == 0 )
+    {
+    itkExceptionMacro("Input sample MeasurementVectorSize is zero");
+    }
+
   typename SampleType::MeasurementVectorType lower;
   typename SampleType::MeasurementVectorType upper;
 
