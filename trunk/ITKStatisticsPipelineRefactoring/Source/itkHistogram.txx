@@ -208,6 +208,10 @@ Histogram<TMeasurement, TFrequencyContainer >
     m_Max[dim].resize(m_Size[dim]);
     } 
 
+  // initialize auxiliary variables
+  this->m_TempIndex.SetSize( this->GetMeasurementVectorSize() );
+  this->m_TempMeasurementVector.SetSize( this->GetMeasurementVectorSize() );
+
   // initialize the frequency container
   m_FrequencyContainer->Initialize(this->m_OffsetTable[this->GetMeasurementVectorSize()]);
   this->SetToZero();
