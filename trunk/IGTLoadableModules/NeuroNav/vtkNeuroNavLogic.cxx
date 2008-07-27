@@ -58,6 +58,7 @@ vtkNeuroNavLogic::vtkNeuroNavLogic()
   this->SliceNo2Last = 1;
   this->SliceNo3Last = 1;
   this->CurrentTransformNode = NULL;
+  this->UseRegistration = false;
 
   this->Pat2ImgReg = vtkIGTPat2ImgRegistration::New();
 }
@@ -219,6 +220,10 @@ void vtkNeuroNavLogic::UpdateTransformNodeByName(const char *name)
       }
 
     this->CurrentTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(collection->GetItemAsObject(0));
+    if (this->Pat2ImgReg && this->UseRegistration)
+      {
+      this->CurrentTransformNode->ApplyTransform(this->Pat2ImgReg->GetLandmarkTransformMatrix());
+      }
     }
 }
 
