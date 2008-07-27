@@ -245,11 +245,20 @@ void vtkNeuroNavGUI::PrintSelf ( ostream& os, vtkIndent indent )
 //---------------------------------------------------------------------------
 void vtkNeuroNavGUI::RemoveGUIObservers ( )
 {
-//  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+  
+  appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()
+    ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+  appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()
+    ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+  appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()
+    ->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
 
+//  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 //  appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
 //  appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
 //  appGUI->GetMainSliceGUI("Blue")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+
 
   if (this->GetPatCoordinatesPushButton)
     {
@@ -306,13 +315,36 @@ void vtkNeuroNavGUI::AddGUIObservers ( )
   // make a user interactor style to process our events
   // look at the InteractorStyle to get our events
 
+  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
-//  vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
+  //----------------------------------------------------------------
+  // MRML
 
-//  appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
-//  appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
-//  appGUI->GetMainSliceGUI("Blue")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
+  vtkIntArray* events = vtkIntArray::New();
+  //events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
+  //events->InsertNextValue(vtkMRMLScene::NodeRemovedEvent);
+  events->InsertNextValue(vtkMRMLScene::SceneCloseEvent);
+  
+  if (this->GetMRMLScene() != NULL)
+    {
+    this->SetAndObserveMRMLSceneEvents(this->GetMRMLScene(), events);
+    }
+  events->Delete();
 
+  
+  //----------------------------------------------------------------
+  // Main Slice GUI
+
+  appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()
+    ->GetRenderWindowInteractor()->GetInteractorStyle()
+    ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
+  appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()
+    ->GetRenderWindowInteractor()->GetInteractorStyle()
+    ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
+  appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()
+    ->GetRenderWindowInteractor()->GetInteractorStyle()
+    ->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
+  
 
   // Fill in
   // observer load volume button
@@ -335,9 +367,30 @@ void vtkNeuroNavGUI::AddGUIObservers ( )
 void vtkNeuroNavGUI::HandleMouseEvent(vtkSlicerInteractorStyle *style)
 {
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
-  vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-  vtkSlicerInteractorStyle *istyle1 = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-  vtkSlicerInteractorStyle *istyle2 = vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Blue")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
+
+  vtkSlicerInteractorStyle *istyle0 = 
+    vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()
+                                           ->GetRenderWindowInteractor()->GetInteractorStyle());
+
+  vtkSlicerInteractorStyle *istyle1 = 
+    vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()->GetRenderWidget()
+                                           ->GetRenderWindowInteractor()->GetInteractorStyle());
+
+  vtkSlicerInteractorStyle *istyle2 = 
+    vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Green")->GetSliceViewer()->GetRenderWidget()
+                                           ->GetRenderWindowInteractor()->GetInteractorStyle());
+
+
+/*
+    vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Red")->GetSliceViewer()
+                                           ->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
+  vtkSlicerInteractorStyle *istyle1 = 
+    vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Yellow")->GetSliceViewer()
+                                           ->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
+  vtkSlicerInteractorStyle *istyle2 = 
+    vtkSlicerInteractorStyle::SafeDownCast(appGUI->GetMainSliceGUI("Blue")->GetSliceViewer()
+                                           ->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
+*/
 
   vtkCornerAnnotation *anno = NULL;
   if (style == istyle0)
@@ -396,6 +449,7 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
                                         unsigned long event, void *callData )
 {
   const char *eventName = vtkCommand::GetStringFromEventId(event);
+
   if (strcmp(eventName, "LeftButtonPressEvent") == 0)
     {
     vtkSlicerInteractorStyle *style = vtkSlicerInteractorStyle::SafeDownCast(caller);
@@ -492,13 +546,16 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
         if (error)
           {
           vtkSlicerApplication::GetInstance()->ErrorMessage("Error registration between patient and image land marks.");
+          this->GetLogic()->SetUseRegistration(0);
           return;
           }
+        this->GetLogic()->SetUseRegistration(1);
         }
       }
     else if (this->ResetPushButton == vtkKWPushButton::SafeDownCast(caller) 
              && event == vtkKWPushButton::InvokedEvent)
       {
+      this->GetLogic()->SetUseRegistration(0);
       }
     else if (this->LocatorCheckButton == vtkKWCheckButton::SafeDownCast(caller) 
              && event == vtkKWCheckButton::SelectedStateChangedEvent )
