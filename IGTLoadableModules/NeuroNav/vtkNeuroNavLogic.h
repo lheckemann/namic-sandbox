@@ -111,6 +111,9 @@ public:
   vtkSetStringMacro(TransformNodeName); 
   vtkGetStringMacro(TransformNodeName);
 
+  vtkSetMacro (UseRegistration, bool);
+  vtkGetMacro (UseRegistration, bool);
+
   void PrintSelf(ostream&, vtkIndent);
   //void AddRealtimeVolumeNode(const char* name);
 
@@ -183,6 +186,7 @@ private:
 
   bool  Connection;  
 
+  bool UseRegistration;
   char *TransformNodeName;
   int SliceNo1Last;
   int SliceNo2Last;
