@@ -51,6 +51,7 @@
 #include "itkEuclideanDistanceMetric.h"
 #include "itkEuclideanSquareDistanceMetric.h"
 #include "itkMahalanobisDistanceMetric.h"
+#include "itkManhattanDistanceMetric.h"
 
 int itkStatisticsPrintTest(int , char* [])
 {
@@ -113,6 +114,11 @@ int itkStatisticsPrintTest(int , char* [])
 
   typedef itk::Statistics::MahalanobisDistanceMetric< TMeasurementVectorType >
     MahalanobisDistanceMetricType;
+
+  typedef itk::Statistics::ManhattanDistanceMetric< TMeasurementVectorType >
+    ManhattanDistanceMetricType;
+
+
 
 
 
@@ -241,6 +247,10 @@ int itkStatisticsPrintTest(int , char* [])
   MahalanobisDistanceMetricType::Pointer mahalanobisDistance=
     MahalanobisDistanceMetricType::New();
   std::cout << "----------MahalanobisDistanceMetricType " << mahalanobisDistance ;
+
+  ManhattanDistanceMetricType::Pointer manhattanDistance=
+    ManhattanDistanceMetricType::New();
+  std::cout << "----------ManhattanDistanceMetricType " << manhattanDistance ;
  
   return EXIT_SUCCESS;
 }

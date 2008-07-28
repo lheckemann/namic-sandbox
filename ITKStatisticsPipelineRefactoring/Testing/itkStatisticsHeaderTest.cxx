@@ -51,6 +51,7 @@
 #include "itkEuclideanDistanceMetric.h"
 #include "itkEuclideanSquareDistanceMetric.h"
 #include "itkMahalanobisDistanceMetric.h"
+#include "itkManhattanDistanceMetric.h"
 
 int main ( int , char*  )
 {
