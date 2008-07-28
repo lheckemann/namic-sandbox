@@ -25,34 +25,12 @@ namespace Statistics {
 template < class TVector >
 MahalanobisDistanceMetric< TVector >
 ::MahalanobisDistanceMetric():
-  m_NumberOfSamples(0),
   m_PreFactor(0),
   m_Epsilon( 1e-100 ),
   m_DoubleMax( 1e+20 )
 {
-  m_Mean.fill( 0.0f );
   m_Covariance.set_identity();
   m_InverseCovariance.set_identity();
-  this->m_MeasurementVectorSize = 0;
-}
-
-template< class TVector >
-void
-MahalanobisDistanceMetric< TVector >
-::SetMeasurementVectorSize( const MeasurementVectorSizeType s )
-{
-  if( s == this->m_MeasurementVectorSize )
-    {
-    return;
-    }
-
-  if( this->m_MeasurementVectorSize != 0 )
-    {
-    itkWarningMacro( << "Destructively resizing paramters of the DistanceToCentroidMembershipFunction." );
-    }
-  this->m_MeasurementVectorSize = s;
-  m_Mean.set_size( s );
-  this->Modified();
 }
 
 template < class TVector >
@@ -60,44 +38,8 @@ void
 MahalanobisDistanceMetric< TVector >
 ::SetMean(const MeanVectorType & mean)
 {
-  if( this->m_MeasurementVectorSize != 0 )
-    {
-    if( mean.size() != this->m_MeasurementVectorSize )
-      {
-      itkExceptionMacro( << "Size of the centroid must be same as the length of"
-          << " each measurement vector.");
-      }
-    }
-  else
-    {
-    this->m_MeasurementVectorSize = mean.size();
-    }
-
-  m_Mean = mean;
+  Superclass::SetOrigin( mean );
 }
-
-
-template < class TVector >
-void
-MahalanobisDistanceMetric< TVector >
-::SetMean(const Array< double > & mean)
-{
-  if( this->m_MeasurementVectorSize != 0 )
-    {
-    if( mean.Size() != this->m_MeasurementVectorSize )
-      {
-      itkExceptionMacro( << "Size of the centroid must be same as the length of"
-          << " each measurement vector.");
-      }
-    }
-  else
-    {
-    this->m_MeasurementVectorSize = mean.Size();
-    }
-
-  m_Mean = dynamic_cast< MeanVectorType & >(const_cast< Array< double >& >(mean));
-}
-
 
 template < class TVector >
 const typename
@@ -105,7 +47,7 @@ MahalanobisDistanceMetric< TVector >::MeanVectorType &
 MahalanobisDistanceMetric< TVector >
 ::GetMean() const
 {
-  return m_Mean;
+  return Superclass::GetOrigin();
 }
 
 template < class TVector >
@@ -113,18 +55,14 @@ void
 MahalanobisDistanceMetric< TVector >
 ::SetCovariance(const CovarianceMatrixType &cov)
 {
-  if( this->m_MeasurementVectorSize != 0 )
+  if( this->GetMeasurementVectorSize() != 0 )
     {
-    if( cov.rows() != this->m_MeasurementVectorSize ||
-        cov.cols() != this->m_MeasurementVectorSize )
+    if( cov.rows() != this->GetMeasurementVectorSize() ||
+        cov.cols() != this->GetMeasurementVectorSize())
       {
-      itkExceptionMacro( << "Size of the centroid must be same as the length of"
+      itkExceptionMacro( << "Size of the covariance matrix must be same as the length of"
           << " each measurement vector.");
       }
-    }
-  else
-    {
-    this->m_MeasurementVectorSize = cov.rows();
     }
 
   m_Covariance = cov;
@@ -137,18 +75,14 @@ void
 MahalanobisDistanceMetric< TVector >
 ::SetInverseCovariance(const CovarianceMatrixType &invcov)
 {
-  if( this->m_MeasurementVectorSize != 0 )
+  if( this->GetMeasurementVectorSize() != 0 )
     {
-    if( invcov.rows() != this->m_MeasurementVectorSize ||
-        invcov.cols() != this->m_MeasurementVectorSize )
+    if( invcov.rows() != this->GetMeasurementVectorSize() ||
+        invcov.cols() != this->GetMeasurementVectorSize() )
       {
-      itkExceptionMacro( << "Size of the centroid must be same as the length of"
+      itkExceptionMacro( << "Size of the covariance matrix xcmust be same as the length of"
           << " each measurement vector.");
       }
-    }
-  else
-    {
-    this->m_MeasurementVectorSize = invcov.rows();
     }
 
   // use the inverse computation
@@ -206,13 +140,13 @@ MahalanobisDistanceMetric< TVector >
 {
 
   double temp;
-  m_TempVec.set_size( 1, this->m_MeasurementVectorSize);
-  m_TempMat.set_size( 1, this->m_MeasurementVectorSize);
+  m_TempVec.set_size( 1, this->GetMeasurementVectorSize());
+  m_TempMat.set_size( 1, this->GetMeasurementVectorSize());
 
   // Compute |y - mean |
-  for ( unsigned int i = 0; i < this->m_MeasurementVectorSize; i++ )
+  for ( unsigned int i = 0; i < this->GetMeasurementVectorSize(); i++ )
     {
-    m_TempVec[0][i] = measurement[i] - m_Mean[i];
+    m_TempVec[0][i] = measurement[i] - this->GetOrigin()[i];
     }
 
   // Compute |y - mean | * inverse(cov)
@@ -229,25 +163,8 @@ void
 MahalanobisDistanceMetric< TVector >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
-  unsigned int i;
   Superclass::PrintSelf(os,indent);
 
-  if ( this->m_MeasurementVectorSize &&
-       m_Mean.size() == this->m_MeasurementVectorSize )
-    {
-    os << indent << "Mean: [";
-    for (i=0; (i + 1) < this->m_MeasurementVectorSize; i++)
-      {
-      os << m_Mean[i] << ", ";
-      }
-    os << m_Mean[i] << "]" << std::endl;
-    }
-  else
-    {
-    os << indent << "Mean: not set or size does not match" << std::endl;
-    }
-
-  os << indent << "Number of Samples: " << m_NumberOfSamples << std::endl;
   os << indent << "Covariance:        " << std::endl;
   os << m_Covariance << std::endl;
   os << indent << "Inverse covariance:        " << std::endl;

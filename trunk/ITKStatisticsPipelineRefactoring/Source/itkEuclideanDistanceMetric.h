@@ -27,13 +27,6 @@ namespace Statistics  {
 /** \class EuclideanDistanceMetric
  * \brief Euclidean distance function.
  *
- * This class is derived from DistanceMetric class. In addition to the
- * two Evaluate methods in the base class, this class has a method
- * (Evaluate) to compute the coordinate distance between two vector
- * component (not vectors), and a method to tell if a measurement
- * vector is whithin the range (defined by a radius value) from the
- * origin (set by SetOrigin mehtod).
- *
  * The class can be templated over any container that holds data elements. The 
  * containter is expected to provide access to its elements with the [] operator.
  * It must also implement a Size() that returns the length of the container.

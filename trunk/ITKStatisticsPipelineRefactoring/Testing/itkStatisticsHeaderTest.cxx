@@ -49,6 +49,7 @@
 #include "itkMembershipFunctionBase.h"
 #include "itkDistanceMetric.h"
 #include "itkEuclideanDistance.h"
+#include "itkMahalanobisDistanceMetric.h"
 
 int main ( int , char*  )
 {
