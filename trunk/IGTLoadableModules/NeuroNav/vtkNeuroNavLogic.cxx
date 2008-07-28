@@ -26,9 +26,9 @@ Version:   $Revision: $
 #include "vtkCylinderSource.h"
 #include "vtkSphereSource.h"
 #include "vtkAppendPolyData.h"
-
-
 #include "vtkMultiThreader.h"
+
+#include "vnl/vnl_float_3.h"
 
 
 vtkCxxRevisionMacro(vtkNeuroNavLogic, "$Revision: 1.9.12.1 $");
@@ -222,7 +222,7 @@ void vtkNeuroNavLogic::UpdateTransformNodeByName(const char *name)
     this->CurrentTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(collection->GetItemAsObject(0));
     if (this->Pat2ImgReg && this->UseRegistration)
       {
-      this->CurrentTransformNode->ApplyTransform(this->Pat2ImgReg->GetLandmarkTransformMatrix());
+      this->UpdateLocatorTransform();
       }
     }
 }
@@ -364,3 +364,142 @@ void vtkNeuroNavLogic::CheckSliceNodes()
       }
     }
 }
+
+
+
+void vtkNeuroNavLogic::UpdateLocatorTransform()
+{
+  this->CurrentTransformNode->ApplyTransform(this->Pat2ImgReg->GetLandmarkTransformMatrix());
+
+  if (! this->CurrentTransformNode)
+    {
+    return;
+    }
+
+  vtkMatrix4x4* transform;
+  transform = this->CurrentTransformNode->GetMatrixTransformToParent();
+
+  if (transform)
+    {
+    // Get locator matrix
+    vnl_float_3 p, n, t, c;
+
+    // set volume orientation
+    t[0] = transform->GetElement(0, 0);
+    t[1] = transform->GetElement(1, 0);
+    t[2] = transform->GetElement(2, 0);
+    n[0] = transform->GetElement(0, 1);
+    n[1] = transform->GetElement(1, 1);
+    n[2] = transform->GetElement(2, 1);
+    p[0] = transform->GetElement(0, 3);
+    p[1] = transform->GetElement(1, 3);
+    p[2] = transform->GetElement(2, 3);
+
+    // Ensure N, T orthogonal:
+    //    C = N x T
+    //    T = C x N
+    c = vnl_cross_3d(n, t);
+    t = vnl_cross_3d(c, n);
+
+    // Ensure vectors are normalized
+    n.normalize();
+    t.normalize();
+    c.normalize(); 
+
+    /*
+# Find transform, N, that brings the locator coordinate frame 
+# into the scanner frame.  Then invert N to M and set it to the locator's
+# userMatrix to position the locator within the world space.
+#
+# 1.) Concatenate a translation, T, TO the origin which is (-x,-y,-z)
+#     where the locator's position is (x,y,z).
+# 2.) Concatenate the R matrix.  If the locator's reference frame has
+#     axis Ux, Uy, Uz, then Ux is the TOP ROW of R, Uy is the second, etc.
+# 3.) Translate the cylinder so its tip is at the origin instead
+#     of the center of its tube.  Call this matrix C.
+# Then: N = C*R*T, M = Inv(N)
+#
+# (See page 419 and 429 of "Computer Graphics", Hearn & Baker, 1997,
+#  ISBN 0-13-530924-7)
+# 
+# The alternative approach used here is to find the transform, M, that
+# moves the scanner coordinate frame to the locator's.  
+# 
+# 1.) Translate the cylinder so its tip is at the origin instead
+#     of the center of its tube.  Call this matrix C.
+# 2.) Concatenate the R matrix.  If the locator's reference frame has
+#     axis Ux, Uy, Uz, then Ux is the LEFT COL of R, Uy is the second,etc.
+# 3.) Concatenate a translation, T, FROM the origin which is (x,y,z)
+#     where the locator's position is (x,y,z).
+# Then: M = T*R*C
+*/
+    vtkMatrix4x4 *locator_matrix = vtkMatrix4x4::New();
+    vtkTransform *locator_transform = vtkTransform::New();
+
+    // Locator's offset: p[0], p[1], p[2]
+    float x0 = p[0];
+    float y0 = p[1];
+    float z0 = p[2];
+
+
+    // Locator's coordinate axis:
+    // Ux = T
+    float Uxx = t[0];
+    float Uxy = t[1];
+    float Uxz = t[2];
+
+    // Uy = -N
+    float Uyx = -n[0];
+    float Uyy = -n[1];
+    float Uyz = -n[2];
+
+    // Uz = Ux x Uy
+    float Uzx = Uxy*Uyz - Uyy*Uxz;
+    float Uzy = Uyx*Uxz - Uxx*Uyz;
+    float Uzz = Uxx*Uyy - Uyx*Uxy;
+
+    // Ux
+    locator_matrix->SetElement(0, 0, Uxx);
+    locator_matrix->SetElement(1, 0, Uxy);
+    locator_matrix->SetElement(2, 0, Uxz);
+    locator_matrix->SetElement(3, 0, 0);
+    // Uy
+    locator_matrix->SetElement(0, 1, Uyx);
+    locator_matrix->SetElement(1, 1, Uyy);
+    locator_matrix->SetElement(2, 1, Uyz);
+    locator_matrix->SetElement(3, 1, 0);
+    // Uz
+    locator_matrix->SetElement(0, 2, Uzx);
+    locator_matrix->SetElement(1, 2, Uzy);
+    locator_matrix->SetElement(2, 2, Uzz);
+    locator_matrix->SetElement(3, 2, 0);
+    // Bottom row
+    locator_matrix->SetElement(0, 3, 0);
+    locator_matrix->SetElement(1, 3, 0);
+    locator_matrix->SetElement(2, 3, 0);
+    locator_matrix->SetElement(3, 3, 1);
+
+    // Set the vtkTransform to PostMultiply so a concatenated matrix, C,
+    // is multiplied by the existing matrix, M: C*M (not M*C)
+    locator_transform->PostMultiply();
+    // M = T*R*C
+
+
+    // NORMAL PART
+
+    locator_transform->Identity();
+    // C:
+    locator_transform->Translate(0, (100 / 2.0), 0);
+    // R:
+    locator_transform->Concatenate(locator_matrix);
+    // T:
+    locator_transform->Translate(x0, y0, z0);
+
+    //  this->LocatorNormalTransform->DeepCopy(locator_transform);
+    this->CurrentTransformNode->ApplyTransform(locator_transform);
+
+    locator_matrix->Delete();
+    locator_transform->Delete();
+    }
+}
+
