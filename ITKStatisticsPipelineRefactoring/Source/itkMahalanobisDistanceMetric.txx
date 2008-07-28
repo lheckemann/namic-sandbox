@@ -25,10 +25,15 @@ namespace Statistics {
 template < class TVector >
 MahalanobisDistanceMetric< TVector >
 ::MahalanobisDistanceMetric():
-  m_PreFactor(0),
   m_Epsilon( 1e-100 ),
   m_DoubleMax( 1e+20 )
 {
+  MeasurementVectorSizeType size;
+  size = this->GetMeasurementVectorSize();
+
+  this->m_Covariance.set_size( size,size );
+  this->m_InverseCovariance.set_size( size,size );
+
   m_Covariance.set_identity();
   m_InverseCovariance.set_identity();
 }
@@ -50,6 +55,21 @@ MahalanobisDistanceMetric< TVector >
   return Superclass::GetOrigin();
 }
 
+template< class TVector >
+void 
+MahalanobisDistanceMetric< TVector >
+::SetMeasurementVectorSize( const MeasurementVectorSizeType size )
+{
+  this->Superclass::SetMeasurementVectorSize( size );
+  this->m_Covariance.set_size( size,size );
+  this->m_InverseCovariance.set_size( size,size );
+
+  this->m_Covariance.set_identity();
+  this->m_InverseCovariance.set_identity();
+  this->Modified();
+}
+
+
 template < class TVector >
 void
 MahalanobisDistanceMetric< TVector >
@@ -61,7 +81,7 @@ MahalanobisDistanceMetric< TVector >
         cov.cols() != this->GetMeasurementVectorSize())
       {
       itkExceptionMacro( << "Size of the covariance matrix must be same as the length of"
-          << " each measurement vector.");
+          << " the measurement vector.");
       }
     }
 
@@ -98,7 +118,6 @@ void
 MahalanobisDistanceMetric< TVector >
 ::CalculateInverseCovariance()
 {
-
   // pack the cov matrix from in_model to tmp_cov_mat
   double cov_sum = 0;
   for(unsigned int band_x = 0; band_x < m_Covariance.cols(); band_x++)
@@ -131,7 +150,7 @@ MahalanobisDistanceMetric< TVector >
       }
     }// end inverse calculations
 
-}// CalculateInverseCovariance()
+}
 
 template < class TVector >
 double
@@ -139,21 +158,24 @@ MahalanobisDistanceMetric< TVector >
 ::Evaluate(const MeasurementVectorType &measurement) const
 {
 
-  double temp;
-  m_TempVec.set_size( 1, this->GetMeasurementVectorSize());
-  m_TempMat.set_size( 1, this->GetMeasurementVectorSize());
+  vnl_matrix < double >  tempVec;
+  vnl_matrix < double >  tempMat;
+
+  tempVec.set_size( 1, this->GetMeasurementVectorSize());
+  tempMat.set_size( 1, this->GetMeasurementVectorSize());
 
   // Compute |y - mean |
   for ( unsigned int i = 0; i < this->GetMeasurementVectorSize(); i++ )
     {
-    m_TempVec[0][i] = measurement[i] - this->GetOrigin()[i];
+    tempVec[0][i] = measurement[i] - this->GetOrigin()[i];
     }
 
   // Compute |y - mean | * inverse(cov)
-  m_TempMat= m_TempVec * m_InverseCovariance;
+  tempMat= tempVec * m_InverseCovariance;
 
   // Compute |y - mean | * inverse(cov) * |y - mean|^T
-  temp = dot_product( m_TempMat.as_ref(), m_TempVec.as_ref() );
+  double temp;
+  temp = vcl_sqrt( dot_product( tempMat.as_ref(), tempVec.as_ref()) );
 
   return temp;
 }
