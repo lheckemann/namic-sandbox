@@ -61,12 +61,19 @@ public:
   /** Typedef alias for the measurement vectors */
   typedef TVector MeasurementVectorType;
 
+  /** Typedef to represent the length of measurement vectors */
+  typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
+
+
   /** Type used for representing the mean vector */
   typedef typename Superclass::OriginType MeanVectorType;
 
   /** Type used for representing the covariance matrix */
   typedef vnl_matrix<double>  CovarianceMatrixType;
 
+  /**  Set the length of each measurement vector. */
+  virtual void SetMeasurementVectorSize( const MeasurementVectorSizeType );
+ 
   /** Method to set mean */
   void SetMean(const MeanVectorType &mean) ;
  
@@ -94,6 +101,10 @@ public:
    * value of the density function, not probability. */
   double Evaluate(const MeasurementVectorType &measurement) const;
 
+  /** Set tolerance values */
+  itkSetMacro( Epsilon, double );
+  itkSetMacro( DoubleMax, double );
+
 protected:
   MahalanobisDistanceMetric(void);
   virtual ~MahalanobisDistanceMetric(void) {}
@@ -107,15 +118,9 @@ private:
   // when covariace matirx is set.  This speed up the GetProbability()
   CovarianceMatrixType  m_InverseCovariance;
 
-  // pre_factor which is automatically calculated
-  // when covariace matirx is set.  This speeds up the GetProbability()
-  double       m_PreFactor;
   double       m_Epsilon;
   double       m_DoubleMax;
-
-  mutable vnl_matrix< double > m_TempVec;
-  mutable vnl_matrix< double > m_TempMat;
-
+ 
   void CalculateInverseCovariance();
 
 };

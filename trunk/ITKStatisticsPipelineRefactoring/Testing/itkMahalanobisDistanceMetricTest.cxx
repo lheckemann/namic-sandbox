@@ -67,5 +67,35 @@ int itkMahalanobisDistanceMetricTest(int, char* [] )
     return EXIT_FAILURE;
     }
 
+  //Test if we get the same result with identity covariance matrix set
+  DistanceMetricType::CovarianceMatrixType   covarianceMatrix;
+  covarianceMatrix.set_size( MeasurementVectorSize, MeasurementVectorSize );
+  distance->SetCovariance( covarianceMatrix );
+ 
+  if( fabs( distanceComputed - trueValue) > tolerance )
+    {
+    std::cerr << "Distance computed not correct: " << "truevalue= " << trueValue
+              << "ComputedValue=" << distanceComputed << std::endl;
+    return EXIT_FAILURE;
+    }
+ 
+  
+  //Test if an exception is thrown if a covariance matrix is set with different
+  //size
+  DistanceMetricType::CovarianceMatrixType   covarianceMatrix2;
+  DistanceMetricType::MeasurementVectorSizeType  measurementSize2 = 4;
+  covarianceMatrix2.set_size( measurementSize2, measurementSize2 );
+
+  try
+    {
+    distance->SetCovariance( covarianceMatrix2 );
+    std::cerr << "Exception should have been thrown: " << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excpt )
+    {
+    std::cerr << "Exception caught: " << excpt << std::endl;
+    }
+
   return EXIT_SUCCESS;
 }
