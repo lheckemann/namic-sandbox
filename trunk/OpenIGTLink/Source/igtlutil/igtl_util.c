@@ -165,3 +165,46 @@ igtl_uint64 crc64(unsigned char *data, int len, igtl_uint64 crc)
     }
     return crc;
 }
+
+
+igtl_uint32 igtl_nanosec_to_frac(igtl_uint32 nanosec)
+{
+
+  igtl_uint32 base = 1000000000; /*10^9*/
+
+  igtl_uint32 mask = 0x80000000;
+  igtl_uint32 r    = 0x00000000;
+
+  do
+    {
+      base >>= 1;
+      if (nanosec > base)
+        {
+          r |= mask;
+          nanosec -= base;
+        }
+      mask >>= 1;
+    }
+  while (mask);
+
+  return r;
+}
+
+
+igtl_uint32 igtl_frac_to_nanosec(igtl_uint32 frac)
+{
+  igtl_uint32 base = 1000000000; /*10^9*/
+
+  igtl_uint32 mask = 0x80000000;
+  igtl_uint32 r    = 0x00000000;
+
+  do
+    {
+      base >>= 1;
+      r += (frac & mask)? base : 0;
+      mask >>= 1;
+    } while (mask);
+
+  return r;
+}
+

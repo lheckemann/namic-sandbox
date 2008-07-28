@@ -74,6 +74,7 @@ const char* MessageBase::GetDeviceType()
     }
 }
 
+
 int MessageBase::SetTimeStamp(unsigned int sec, unsigned int frac)
 {
   m_TimeStampSec         = sec;
@@ -88,6 +89,19 @@ int MessageBase::GetTimeStamp(unsigned int* sec, unsigned int* frac)
   return 1;
 }
 
+void MessageBase::SetTimeStamp(igtl::TimeStamp::Pointer& ts)
+{
+  m_TimeStampSec = ts->GetSecond();
+  m_TimeStampSecFraction = igtl_nanosec_to_frac(ts->GetNanosecond());
+
+}
+
+void MessageBase::GetTimeStamp(igtl::TimeStamp::Pointer& ts)
+{
+  ts->SetTime(m_TimeStampSec, igtl_frac_to_nanosec(m_TimeStampSecFraction));
+}
+
+
 int MessageBase::Pack()
 {
   PackBody();
@@ -101,7 +115,7 @@ int MessageBase::Pack()
   h->version   = IGTL_HEADER_VERSION;
 
   igtl_uint64 ts  =  m_TimeStampSec & 0xFFFFFFFF;
-  ts = ts << 32 || m_TimeStampSecFraction & 0xFFFFFFFF;
+  ts = (ts << 32) | (m_TimeStampSecFraction & 0xFFFFFFFF);
 
   h->timestamp = ts;
   h->body_size = GetBodyPackSize();
@@ -133,6 +147,7 @@ int MessageBase::Unpack(int crccheck)
       igtl_header_convert_byte_order(h);
       m_TimeStampSecFraction = h->timestamp & 0xFFFFFFFF;
       m_TimeStampSec = (h->timestamp >> 32 ) & 0xFFFFFFFF;
+
       m_BodySizeToRead = h->body_size;
 
       char bodyType[13];
