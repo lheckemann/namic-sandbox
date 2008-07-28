@@ -150,7 +150,7 @@ private:
                        float px, float py, float pz);
 
   void CheckSliceNodes();
-
+  void ApplyTransform(float *position, float *norm, float *transnorm);
   void UpdateLocatorTransform();
 
   //----------------------------------------------------------------
