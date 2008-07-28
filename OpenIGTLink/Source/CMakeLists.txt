@@ -32,7 +32,7 @@ SET(OpenIGTLink_SOURCES
   igtlServerSocket.cxx
   igtlSimpleFastMutexLock.cxx
   igtlSocket.cxx
-  igtlRealTimeClock.cxx
+  igtlTimeStamp.cxx
   igtlTransformMessage.cxx
   )
 

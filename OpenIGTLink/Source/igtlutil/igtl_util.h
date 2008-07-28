@@ -41,6 +41,14 @@ extern "C" {
 int igtl_is_little_endian();
 igtl_uint64 crc64(unsigned char *data, int len, igtl_uint64 crc);
 
+
+/*
+ * Convert nanosecond to fraction / fraction to nanosec
+ */
+
+igtl_uint32 igtl_nanosec_to_frac(igtl_uint32 nanosec);
+igtl_uint32 igtl_frac_to_nanosec(igtl_uint32 frac);
+
 #ifdef __cplusplus
 }
 #endif

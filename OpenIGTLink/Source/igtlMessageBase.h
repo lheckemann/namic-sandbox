@@ -22,6 +22,7 @@
 //#include "igtlMacros.h"
 #include "igtlMacro.h"
 #include "igtlMath.h"
+#include "igtlTimeStamp.h"
 
 #include "igtlMessageHeader.h"
 
@@ -82,6 +83,9 @@ public:
   
   int   SetTimeStamp(unsigned int sec, unsigned int frac);
   int   GetTimeStamp(unsigned int* sec, unsigned int* frac);
+
+  void  SetTimeStamp(igtl::TimeStamp::Pointer& ts);
+  void  GetTimeStamp(igtl::TimeStamp::Pointer& ts);
 
   // Pack() serializes the header and body based on the member varilables.
   // PackBody() must be implemented in the child class.

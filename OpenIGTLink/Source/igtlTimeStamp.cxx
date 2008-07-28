@@ -14,7 +14,12 @@
 
 =========================================================================*/
 
+
 /*=========================================================================
+
+  Part of the code is copied from itk::RealTimeClock class in
+  Insight Segmentation & Registration Toolkit:
+
 
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkRealTimeClock.cxx,v $
@@ -31,32 +36,29 @@
 
 =========================================================================*/
 
-#include <iostream>
-#include "igtlRealTimeClock.h"
+#include "igtlTimeStamp.h"
+
+#include <math.h>
 
 #if defined(WIN32) || defined(_WIN32)
-
-#include <windows.h>
-
+  #include <windows.h>
 #else
-
-#include <sys/time.h>
-
+  #include <sys/time.h>
 #endif  // defined(WIN32) || defined(_WIN32)
 
 
 namespace igtl
 {
 
-/** Constructor */
-RealTimeClock::RealTimeClock():m_Frequency(1)
+TimeStamp::TimeStamp():
+  m_Frequency(1),Object()
 {
 #if defined(WIN32) || defined(_WIN32)
 
   LARGE_INTEGER frequency;
   ::QueryPerformanceFrequency(&frequency);
 
-  this->m_Frequency = 
+  this->m_WinFrequency = 
     static_cast< FrequencyType >( (__int64)frequency.QuadPart );
 
   SYSTEMTIME st1;
@@ -84,7 +86,7 @@ RealTimeClock::RealTimeClock():m_Frequency(1)
   memcpy( &ui1, &ft1, sizeof( ui1 ) );
   memcpy( &ui2, &ft2, sizeof( ui2 ) );
   
-  this->m_Difference = 
+  this->m_WinDifference = 
     static_cast< TimeStampType >( ui2.QuadPart - ui1.QuadPart) / 
     static_cast< TimeStampType >( 1e7 );
 
@@ -97,32 +99,32 @@ RealTimeClock::RealTimeClock():m_Frequency(1)
 
   memcpy( &intTime, &currentTime, sizeof( intTime ) );
 
-  this->m_Origin = 
+  this->m_WinOrigin = 
     static_cast< TimeStampType >( intTime.QuadPart ) / 
     static_cast< TimeStampType >( 1e7 );
 
-  this->m_Origin -= 
+  this->m_WinOrigin -= 
     static_cast< TimeStampType >( (__int64)tick.QuadPart ) / 
-    this->m_Frequency;
+    this->m_WinFrequency;
     
-  this->m_Origin +=  this->m_Difference;
+  this->m_WinOrigin +=  this->m_WinDifference;
 
+  this-m_Frequency = static_cast<igtlInt32>( m_WinFrequency );
 
 #else
 
-  this->m_Frequency = 1e6;;
+  this->m_Frequency = 1000000;
 
 #endif  // defined(WIN32) || defined(_WIN32)
 }
 
-/** Destructor */
-RealTimeClock::~RealTimeClock()
+
+TimeStamp::~TimeStamp()
 {
 }
 
-/** Returns a timestamp in seconds */
-RealTimeClock::TimeStampType
-RealTimeClock::GetTimeStamp() const
+
+void TimeStamp::GetTime()
 {
 #if defined(WIN32) || defined(_WIN32)
 
@@ -136,7 +138,9 @@ RealTimeClock::GetTimeStamp() const
 
   value += this->m_Origin;
 
-  return value;
+  double second = floor(value);
+  this->m_Second = static_cast<igtlInt32>(second);
+  this->m_Nanosecond = static_cast<igtlInt32>((value - second)*1e9);
 
 #else
 
@@ -144,18 +148,46 @@ RealTimeClock::GetTimeStamp() const
 
   ::gettimeofday( &tval, 0 );
 
-  TimeStampType value = 
-    static_cast< TimeStampType >( tval.tv_sec ) +
-    static_cast< TimeStampType >( tval.tv_usec ) / this->m_Frequency;
-
-  return value;
+  this->m_Second     = tval.tv_sec;
+  this->m_Nanosecond = tval.tv_usec * 1000; /* convert from micro to nano */
 
 #endif  // defined(WIN32) || defined(_WIN32)
+  
+}
+
+void TimeStamp::SetTime(double tm)
+{
+  double second = floor(tm);
+  this->m_Second = static_cast<igtlInt32>(second);
+  this->m_Nanosecond = static_cast<igtlInt32>((tm - second)*1e9);
+}
+
+void TimeStamp::SetTime(igtlUint32 second, igtlUint32 nanosecond)
+{
+  if (nanosecond < 1e9)
+    {
+    this->m_Second = second;
+    this->m_Nanosecond = nanosecond;
+    }
+}
+
+double TimeStamp::GetTimeStamp()
+{
+  double tm;
+  tm = static_cast<double>(this->m_Second) +
+       static_cast<double>(this->m_Nanosecond) / 1e9;
+
+  return tm;
+}
+
+void TimeStamp::GetTimeStamp(igtlUint32* second, igtlUint32* nanosecond)
+{
+  *second     = this->m_Second;
+  *nanosecond = this->m_Nanosecond;
 }
 
 
-/** Print the object */
-void RealTimeClock::PrintSelf( std::ostream& os) const
+void TimeStamp::PrintSelf( std::ostream& os) const
 {
   Superclass::PrintSelf(os);
 
@@ -163,10 +195,12 @@ void RealTimeClock::PrintSelf( std::ostream& os) const
 
   os << indent << "Frequency of the clock: "
     << this->m_Frequency << std::endl;
-  os << indent << "Difference : "
-    << this->m_Difference << std::endl;
-  os << indent << "Origin : "
-    << this->m_Origin << std::endl;
+  os << indent << "Second : "
+    << this->m_Second << std::endl;
+  os << indent << "Nanosecond : "
+    << this->m_Nanosecond << std::endl;
 }
 
 }
+
+
