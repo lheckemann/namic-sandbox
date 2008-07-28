@@ -27,6 +27,9 @@ namespace Statistics  {
 /** \class ManhattanDistanceMetric
  * \brief Euclidean distance function.
  *
+ * \sa DistanceMetric
+ * \sa EuclideanSquareDistanceMetric
+ * \sa EuclideanDistanceMetric
  *
  */
 template< class TVector >

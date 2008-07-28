@@ -25,21 +25,11 @@ namespace itk  {
 namespace Statistics  {
 
 /** \class EuclideanSquareDistanceMetric
- * \brief Euclidean distance function.
+ * \brief Computes Euclidean distance between origin and given measurement vector.
  *
- * The class can be templated over any container that holds data elements. The 
- * containter is expected to provide access to its elements with the [] operator.
- * It must also implement a Size() that returns the length of the container.
- * It must also contain a typedef "ValueType" that defines the data-type held
- * by the container.
- * (In other words it will support itk::Vector, FixedArray, Array ).
- * 
- * <b>Recent API changes:</b>
- * The static const macro to get the length of a measurement vector,
- * \c VectorLength  has been removed to allow the length of a measurement
- * vector to be specified at run time. Please use the function 
- * GetMeasurementVectorSize() instead.
- *
+ * \sa DistanceMetric
+ * \sa EuclideanDistanceMetric
+ * \sa ManhattanDistanceMetric
  */
 template< class TVector >
 class ITK_EXPORT EuclideanSquareDistanceMetric : 
