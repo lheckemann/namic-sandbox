@@ -72,7 +72,7 @@ public:
   virtual void SetMeasurementVectorSize( const MeasurementVectorSizeType );
  
   /** Method to set mean */
-  void SetMean(const MeanVectorType &mean) ;
+  void SetMean(const MeanVectorType &mean);
  
   /** Method to get mean */
   const MeanVectorType & GetMean() const;
