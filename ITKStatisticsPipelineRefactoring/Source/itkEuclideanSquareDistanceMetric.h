@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkEuclideanDistanceMetric.h,v $
+  Module:    $RCSfile: itkEuclideanSquareDistanceMetric.h,v $
   Language:  C++
   Date:      $Date: 2005/07/26 15:54:55 $
   Version:   $Revision: 1.10 $
@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkEuclideanDistanceMetric_h
-#define __itkEuclideanDistanceMetric_h
+#ifndef __itkEuclideanSquareDistanceMetric_h
+#define __itkEuclideanSquareDistanceMetric_h
 
 #include "itkNumericTraits.h"
 #include "itkDistanceMetric.h"
@@ -24,7 +24,7 @@
 namespace itk  { 
 namespace Statistics  {
 
-/** \class EuclideanDistanceMetric
+/** \class EuclideanSquareDistanceMetric
  * \brief Euclidean distance function.
  *
  * The class can be templated over any container that holds data elements. The 
@@ -42,12 +42,12 @@ namespace Statistics  {
  *
  */
 template< class TVector >
-class ITK_EXPORT EuclideanDistanceMetric : 
+class ITK_EXPORT EuclideanSquareDistanceMetric : 
     public DistanceMetric< TVector >
 {
 public:
   /** Standard "Self" typedef. */
-  typedef EuclideanDistanceMetric       Self;
+  typedef EuclideanSquareDistanceMetric       Self;
   typedef DistanceMetric< TVector >     Superclass;
   typedef SmartPointer< Self >          Pointer; 
   typedef SmartPointer<const Self>      ConstPointer;
@@ -55,7 +55,7 @@ public:
   typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(EuclideanDistanceMetric, DistanceMetric);
+  itkTypeMacro(EuclideanSquareDistanceMetric, DistanceMetric);
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -67,15 +67,15 @@ public:
   double Evaluate(const TVector &x) const;
 
 protected:
-  EuclideanDistanceMetric() {}
-  virtual ~EuclideanDistanceMetric() {} 
+  EuclideanSquareDistanceMetric() {}
+  virtual ~EuclideanSquareDistanceMetric() {} 
 }; // end of class
 
 } // end of namespace Statistics 
 } // end of namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkEuclideanDistanceMetric.txx"
+#include "itkEuclideanSquareDistanceMetric.txx"
 #endif
 
 #endif
