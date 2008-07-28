@@ -42,5 +42,30 @@ int itkEuclideanDistanceMetricTest(int, char* [] )
     return EXIT_FAILURE;
     }
 
+  //Test if the distance computed is correct
+  DistanceMetricType::OriginType origin;
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( origin, 3);
+  origin[0] = 1.5;
+  origin[1] = 2.3;
+  origin[2] = 1.0;
+  distance->SetOrigin( origin );
+
+  MeasurementVectorType measurement;
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( measurement, 3);
+  measurement[0] = 2.5;
+  measurement[1] = 3.3;
+  measurement[2] = 4.0;
+
+  double trueValue = 3.31662;
+  double distanceComputed = distance->Evaluate( measurement );
+  const double tolerance = 0.001;
+
+  if( fabs( distanceComputed - trueValue) > tolerance )
+    {
+    std::cerr << "Distance computed not correct: " << "truevalue= " << trueValue
+              << "ComputedValue=" << distanceComputed << std::endl;
+    return EXIT_FAILURE;
+    }
+
   return EXIT_SUCCESS;
 }
