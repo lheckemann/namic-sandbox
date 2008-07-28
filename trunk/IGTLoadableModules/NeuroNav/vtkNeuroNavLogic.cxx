@@ -367,14 +367,46 @@ void vtkNeuroNavLogic::CheckSliceNodes()
 
 
 
+void vtkNeuroNavLogic::ApplyTransform(float *position, float *norm, float *transnorm)
+{
+    // Transform position, norm and transnorm
+    // ---------------------------------------------------------
+    float p[4];
+    float n[4];
+    float tn[4];
+
+    for (int i = 0; i < 3; i++)
+    {
+        p[i] = position[i];
+        n[i] = norm[i];
+        tn[i] = transnorm[i];
+    }
+    p[3] = 1;     // translation affects a poistion
+    n[3] = 0;     // translation doesn't affect an orientation
+    tn[3] = 0;    // translation doesn't affect an orientation
+
+    this->Pat2ImgReg->GetLandmarkTransformMatrix()->MultiplyPoint(p, p);    // transform a position
+    this->Pat2ImgReg->GetLandmarkTransformMatrix()->MultiplyPoint(n, n);    // transform an orientation
+    this->Pat2ImgReg->GetLandmarkTransformMatrix()->MultiplyPoint(tn, tn);  // transform an orientation
+
+    for (int i = 0; i < 3; i++)
+    {
+        position[i] = p[i];
+        norm[i] = n[i];
+        transnorm[i] = tn[i];
+    }
+}
+
+
+
 void vtkNeuroNavLogic::UpdateLocatorTransform()
 {
-  this->CurrentTransformNode->ApplyTransform(this->Pat2ImgReg->GetLandmarkTransformMatrix());
 
   if (! this->CurrentTransformNode)
     {
     return;
     }
+
 
   vtkMatrix4x4* transform;
   transform = this->CurrentTransformNode->GetMatrixTransformToParent();
@@ -383,17 +415,26 @@ void vtkNeuroNavLogic::UpdateLocatorTransform()
     {
     // Get locator matrix
     vnl_float_3 p, n, t, c;
+    float tt[3], nn[3], pp[3];
 
     // set volume orientation
-    t[0] = transform->GetElement(0, 0);
-    t[1] = transform->GetElement(1, 0);
-    t[2] = transform->GetElement(2, 0);
-    n[0] = transform->GetElement(0, 1);
-    n[1] = transform->GetElement(1, 1);
-    n[2] = transform->GetElement(2, 1);
-    p[0] = transform->GetElement(0, 3);
-    p[1] = transform->GetElement(1, 3);
-    p[2] = transform->GetElement(2, 3);
+    tt[0] = transform->GetElement(0, 0);
+    tt[1] = transform->GetElement(1, 0);
+    tt[2] = transform->GetElement(2, 0);
+    nn[0] = transform->GetElement(0, 2);
+    nn[1] = transform->GetElement(1, 2);
+    nn[2] = transform->GetElement(2, 2);
+    pp[0] = transform->GetElement(0, 3);
+    pp[1] = transform->GetElement(1, 3);
+    pp[2] = transform->GetElement(2, 3);
+
+    this->ApplyTransform(pp, nn, tt);
+    for (int i = 0; i < 3; i++)
+      {
+      t[i] = tt[i];
+      n[i] = nn[i];
+      p[i] = pp[i];
+      }
 
     // Ensure N, T orthogonal:
     //    C = N x T
@@ -496,7 +537,7 @@ void vtkNeuroNavLogic::UpdateLocatorTransform()
     locator_transform->Translate(x0, y0, z0);
 
     //  this->LocatorNormalTransform->DeepCopy(locator_transform);
-    this->CurrentTransformNode->ApplyTransform(locator_transform);
+    this->CurrentTransformNode->GetMatrixTransformToParent()->DeepCopy(locator_transform->GetMatrix());
 
     locator_matrix->Delete();
     locator_transform->Delete();
