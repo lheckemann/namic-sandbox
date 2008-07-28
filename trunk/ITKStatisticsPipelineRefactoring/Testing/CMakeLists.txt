@@ -72,6 +72,7 @@ ADD_TEST(itkMembershipFunctionBaseTest ${STATISTICS_TESTS} itkMembershipFunction
 ADD_TEST(itkDistanceToCentroidMembershipFunctionTest ${STATISTICS_TESTS} itkDistanceToCentroidMembershipFunctionTest)
 ADD_TEST(itkDistanceMetricTest ${STATISTICS_TESTS} itkDistanceMetricTest)
 ADD_TEST(itkEuclideanDistanceMetricTest ${STATISTICS_TESTS} itkEuclideanDistanceMetricTest)
+ADD_TEST(itkEuclideanSquareDistanceMetricTest ${STATISTICS_TESTS} itkEuclideanSquareDistanceMetricTest)
 ADD_TEST(itkMahalanobisDistanceMetricTest ${STATISTICS_TESTS} itkMahalanobisDistanceMetricTest)
 
 SET(Statistics_SRCS
@@ -127,6 +128,7 @@ SET(Statistics_SRCS
   itkDistanceToCentroidMembershipFunctionTest.cxx
   itkDistanceMetricTest.cxx
   itkEuclideanDistanceMetricTest.cxx
+  itkEuclideanSquareDistanceMetricTest.cxx
   itkMahalanobisDistanceMetricTest.cxx
   )
 

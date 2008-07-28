@@ -48,7 +48,8 @@
 #include "itkScalarImageToTextureFeaturesFilter.h"
 #include "itkMembershipFunctionBase.h"
 #include "itkDistanceMetric.h"
-#include "itkEuclideanDistance.h"
+#include "itkEuclideanDistanceMetric.h"
+#include "itkEuclideanSquareDistanceMetric.h"
 #include "itkMahalanobisDistanceMetric.h"
 
 int main ( int , char*  )
