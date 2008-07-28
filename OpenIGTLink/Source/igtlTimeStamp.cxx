@@ -109,7 +109,7 @@ TimeStamp::TimeStamp():
     
   this->m_WinOrigin +=  this->m_WinDifference;
 
-  this-m_Frequency = static_cast<igtlInt32>( m_WinFrequency );
+  this->m_Frequency = static_cast<igtlInt32>( m_WinFrequency );
 
 #else
 
@@ -134,9 +134,9 @@ void TimeStamp::GetTime()
 
   TimeStampType value = 
       static_cast< TimeStampType >( (__int64)tick.QuadPart ) / 
-      this->m_Frequency;
+      this->m_WinFrequency;
 
-  value += this->m_Origin;
+  value += this->m_WinOrigin;
 
   double second = floor(value);
   this->m_Second = static_cast<igtlInt32>(second);
