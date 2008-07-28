@@ -35,22 +35,10 @@ namespace Statistics  {
  * SetOrigin() function, then call Evaluate() method with a point to get the
  * distance between the origin point and the evaluation point.
  * 
- * If users want to the distance between two points without setting
- * the origin point. Use two argument version of Evaluate() function.
+ * \sa EuclideanSquareDistanceMetric
+ * \sa EuclideanDistanceMetric
+ * \sa ManhattanDistanceMetric
  * 
- * The class can be templated over any container that holds data elements. The 
- * containter is expected to provide access to its elements with the [] operator.
- * It must also implement a Size() that returns the length of the container.
- * It must also contain a typedef "ValueType" that defines the data-type held
- * by the container.
- * (In other words it will support itk::Vector, FixedArray, Array ).
- *
- * <b>Recent API changes:</b>
- * The static const macro to get the length of a measurement vector,
- * \c MeasurementVectorSize  has been removed to allow the length of a measurement
- * vector to be specified at run time. Please use the function 
- * GetMeasurementVectorSize() instead. \c OriginType typedef has been changed 
- * from Vector to Array.
  */
 
 template< class TVector >

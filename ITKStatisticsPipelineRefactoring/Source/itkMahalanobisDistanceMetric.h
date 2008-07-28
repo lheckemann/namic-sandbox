@@ -35,12 +35,9 @@ namespace Statistics{
  * \brief MahalanobisDistanceMetric class computes a Mahalanobis 
  *  distance given a mean and covariance.
  *
- * This class keeps parameter to define MahalanobisDistance Density Function
- * and has method to return the probability density of an instance.
- * The computed  distance is returned in a double type.
- *
  * \sa DistanceMetric
- *
+ * \sa EuclideanDistanceMetric
+ * \sa EuclideanSquareDistanceMetric
  */
 
 template< class TVector >
