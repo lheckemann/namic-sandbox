@@ -49,6 +49,7 @@
 #include "itkDistanceToCentroidMembershipFunction.h"
 #include "itkDistanceMetric.h"
 #include "itkEuclideanDistanceMetric.h"
+#include "itkMahalanobisDistanceMetric.h"
 
 int itkStatisticsPrintTest(int , char* [])
 {
@@ -105,6 +106,11 @@ int itkStatisticsPrintTest(int , char* [])
 
   typedef itk::Statistics::EuclideanDistanceMetric< TMeasurementVectorType >
     EuclideanDistanceMetricType;
+
+  typedef itk::Statistics::MahalanobisDistanceMetric< TMeasurementVectorType >
+    MahalanobisDistanceMetricType;
+
+
 
 
   typedef itk::Statistics::HistogramToTextureFeaturesFilter<
@@ -223,6 +229,10 @@ int itkStatisticsPrintTest(int , char* [])
   EuclideanDistanceMetricType::Pointer euclideanDistance=
     EuclideanDistanceMetricType::New();
   std::cout << "----------EuclideanDistanceMetricType " << euclideanDistance ;
+ 
+  MahalanobisDistanceMetricType::Pointer mahalanobisDistance=
+    MahalanobisDistanceMetricType::New();
+  std::cout << "----------MahalanobisDistanceMetricType " << mahalanobisDistance ;
  
   return EXIT_SUCCESS;
 }

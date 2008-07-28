@@ -32,12 +32,12 @@ namespace itk {
 namespace Statistics{
 
 /** \class MahalanobisDistanceMetric
- * \brief MahalanobisDistanceMetric class computes a Mahalanobis distance given a mean and covariance.
+ * \brief MahalanobisDistanceMetric class computes a Mahalanobis 
+ *  distance given a mean and covariance.
  *
  * This class keeps parameter to define MahalanobisDistance Density Function
  * and has method to return the probability density of an instance.
- * MeasurementVectorSize is the dimension of measurement space. The computed
- * distance is returned in a double type.
+ * The computed  distance is returned in a double type.
  *
  * \sa DistanceMetric
  *
@@ -61,22 +61,15 @@ public:
   /** Typedef alias for the measurement vectors */
   typedef TVector MeasurementVectorType;
 
-  /** Typedef to represent the length of measurement vectors */
-  typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
-
   /** Type used for representing the mean vector */
-  typedef vnl_vector<double>  MeanVectorType;
+  typedef typename Superclass::OriginType MeanVectorType;
 
   /** Type used for representing the covariance matrix */
   typedef vnl_matrix<double>  CovarianceMatrixType;
 
-  /**  Set the length of each measurement vector. */
-  virtual void SetMeasurementVectorSize( const MeasurementVectorSizeType );
-
   /** Method to set mean */
-  void SetMean(const MeanVectorType &mean);
-  void SetMean(const Array< double > &mean);
-
+  void SetMean(const MeanVectorType &mean) ;
+ 
   /** Method to get mean */
   const MeanVectorType & GetMean() const;
 
@@ -90,19 +83,11 @@ public:
   itkGetConstReferenceMacro( Covariance, CovarianceMatrixType );
 
   /**
-   * Method to set covariance matrix
-   * Also, this function calculates inverse covariance and pre factor of
-   * MahalanobisDistance Distribution to speed up GetProbability */
+   * Method to set inverse covariance matrix */
   void SetInverseCovariance(const CovarianceMatrixType &invcov);
 
   /** Method to get covariance matrix */
   itkGetConstReferenceMacro( InverseCovariance, CovarianceMatrixType );
-
-  /** Method to set the number of samples */
-  itkSetMacro( NumberOfSamples, double );
-
-  /** Method to get the number of samples */
-  itkGetMacro( NumberOfSamples, double );
 
   /**
    * Method to get probability of an instance. The return value is the
@@ -122,8 +107,6 @@ private:
   // when covariace matirx is set.  This speed up the GetProbability()
   CovarianceMatrixType  m_InverseCovariance;
 
-  // Number of samples defining this density
-  double m_NumberOfSamples;
   // pre_factor which is automatically calculated
   // when covariace matirx is set.  This speeds up the GetProbability()
   double       m_PreFactor;
