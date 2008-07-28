@@ -23,55 +23,22 @@
 #include "itkObjectFactory.h"
 #include "itkEuclideanDistanceMetric.h"
 
-namespace itk {
-namespace Statistics {
-namespace DistanceToCentroidMembershipFunctionTest {
-
-template <class TMeasurementVector>
-class MyDistanceToCentroidMembershipFunction : public DistanceToCentroidMembershipFunction< TMeasurementVector >
-{
-public:
-  /** Standard class typedef. */
-  typedef MyDistanceToCentroidMembershipFunction  Self;
-  typedef DistanceToCentroidMembershipFunction< TMeasurementVector > Superclass;
-  typedef SmartPointer< Self > Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
-
-  /** Standard macros */
-  itkTypeMacro(MyDistanceToCentroidMembershipFunction, DistanceToCentroidMembershipFunction);
-
-  /** Method for creation through the object factory. */
-  itkNewMacro(Self) ;
- 
-  /** Evaluate membership score */
-  double Evaluate(const TMeasurementVector &x) const
-    {
-    double score;
-    score = 1;
-    return score;
-    } 
-};
-
-}
-}
-}
 int itkDistanceToCentroidMembershipFunctionTest(int, char* [] )
 {
 
-  const unsigned int MeasurementVectorSize = 17;
+  const unsigned int MeasurementVectorSize = 3;
 
   typedef itk::FixedArray< 
     float, MeasurementVectorSize >  MeasurementVectorType;
 
-  typedef itk::Statistics::DistanceToCentroidMembershipFunctionTest::MyDistanceToCentroidMembershipFunction< 
-    MeasurementVectorType >   DistanceToCentroidMembershipFunctionType;
+  typedef itk::Statistics::DistanceToCentroidMembershipFunction< 
+    MeasurementVectorType >   MembershipFunctionType;
 
-  DistanceToCentroidMembershipFunctionType::Pointer function = DistanceToCentroidMembershipFunctionType::New();
-
+  MembershipFunctionType::Pointer function = MembershipFunctionType::New();
   std::cout << function->GetNameOfClass() << std::endl;
-  std::cout << function->DistanceToCentroidMembershipFunctionType::Superclass::GetNameOfClass() << std::endl;
 
   typedef itk::Statistics::EuclideanDistanceMetric< MeasurementVectorType >  DistanceMetricType;
+  typedef DistanceMetricType::MeasurementVectorSizeType MeasurementVectorSizeType;
 
   DistanceMetricType::Pointer distanceMetric = DistanceMetricType::New();
 
@@ -91,7 +58,8 @@ int itkDistanceToCentroidMembershipFunctionTest(int, char* [] )
   //size
   try
     {
-    function->SetMeasurementVectorSize( MeasurementVectorSize + 1 ); 
+    MeasurementVectorSizeType measurementVector2 = MeasurementVectorSize + 1;
+    function->SetMeasurementVectorSize( measurementVector2 ); 
     std::cerr << "Exception should have been thrown since we are trying to resize\
                   non-resizeable measurement vector type " << std::endl;
     return EXIT_FAILURE; 
@@ -100,6 +68,42 @@ int itkDistanceToCentroidMembershipFunctionTest(int, char* [] )
     {
     std::cerr << "Caughted expected exception: " << excp << std::endl;
     }
+
+  
+  //Test if the distance computed is correct
+  MembershipFunctionType::CentroidType origin;
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( origin, 3);
+  origin[0] = 1.5;
+  origin[1] = 2.3;
+  origin[2] = 1.0;
+  function->SetCentroid( origin );
+ 
+  const double tolerance = 0.001;
+
+  if( fabs( function->GetCentroid()[0] - origin[0]) > tolerance ||
+      fabs( function->GetCentroid()[1] - origin[1]) > tolerance ||
+      fabs( function->GetCentroid()[2] - origin[2]) > tolerance ) 
+    {
+    std::cerr << "Error in GetCentroid() method" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  MeasurementVectorType measurement;
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( measurement, 3);
+  measurement[0] = 2.5;
+  measurement[1] = 3.3;
+  measurement[2] = 4.0;
+
+  double trueValue = 3.31662;
+  double distanceComputed = function->Evaluate( measurement );
+
+  if( fabs( distanceComputed - trueValue) > tolerance )
+    {
+    std::cerr << "Distance computed not correct: " << "truevalue= " << trueValue
+              << "ComputedValue=" << distanceComputed << std::endl;
+    return EXIT_FAILURE;
+    }
+
 
   return EXIT_SUCCESS;
 }
