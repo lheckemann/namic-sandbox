@@ -33,9 +33,9 @@
 #ifndef __igtlRealTimeClock_h
 #define __igtlRealTimeClock_h
 
-#include <igtlMacro.h>
-#include <igtlObject.h>
-#include <igtlObjectFactory.h>
+#include "igtlMacro.h"
+#include "igtlObject.h"
+#include "igtlObjectFactory.h"
 
 namespace igtl
 {
