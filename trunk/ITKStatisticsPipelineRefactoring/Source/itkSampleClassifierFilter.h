@@ -52,11 +52,10 @@ public:
   /** Type of the input Sample */
   typedef TSample                        SampleType;
 
-  /** Output type for GetClassSample method */
-  typedef MembershipSample< SampleType > MembershipSampleType;
-  typedef MembershipSampleType           OutputType;
+  /** typedefs Output type */
+  typedef MembershipSample< SampleType >                     MembershipSampleType;
   typedef SimpleDataObjectDecorator< MembershipSampleType >  MembershipSampleObjectType;
-  typedef typename MembershipSampleObjectType::Pointer  MembershipSampleObjectPointer; 
+  typedef typename MembershipSampleObjectType::Pointer       MembershipSampleObjectPointer; 
 
 
   /** typedefs from SampleType object */
