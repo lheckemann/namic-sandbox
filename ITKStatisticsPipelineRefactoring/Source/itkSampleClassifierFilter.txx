@@ -75,21 +75,22 @@ SampleClassifierFilter< TSample >
   return static_cast<DataObject*>( OutputType::New().GetPointer() );
 }
 
-/*
-template< class TSample >
-void
-SampleClassifierFilter< TSample >
-::SetMembershipFunctionClassLabels(ClassLabelVectorType& labels)
-{
-  m_ClassLabels = labels ;
-}
-*/
-
 template< class TSample >
 void
 SampleClassifierFilter< TSample >
 ::GenerateData()
 {
+  // Check number of Labels and MembershipSamples against the number of classes */
+  if( this->m_MembershipFunctions.size() != this->m_NumberOfClasses )
+    {
+    itkExceptionMacro("Number of Membership functions does not match the number of classes");
+    }
+
+  if( this->m_ClassLabels.size() != this->m_NumberOfClasses )
+    {
+    itkExceptionMacro("Number of class labels does not match the number of classes");
+    }
+
   /*
   unsigned int i ;
   typename TSample::ConstIterator iter = this->GetSample()->Begin() ;

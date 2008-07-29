@@ -20,6 +20,8 @@
 #include <vector>
 
 #include "itkMembershipSample.h"
+#include "itkMembershipFunctionBase.h"
+#include "itkDecisionRule.h"
 #include "itkProcessObject.h"
 
 namespace itk {
@@ -28,29 +30,6 @@ namespace Statistics {
 /** \class SampleClassifierFilter 
  *  \brief This filter takes as input a Sample and produces as output a
  *  classification in the form of a MembershipSample object.
- *
- * This filter is templated over the type of sample thas is intended to
- * classify. This type will be used for the input to the filter.
- *
- * This classifier filter will assign a class label for each measurement 
- * vector. 
- *
- * Before you call the Update() method to start the classification process, you
- * should plug in all necessary parts, they include one or more membership
- * calculators, a decision rule, and the input sample data. To plug in the
- * decision rule, you use SetDecisionRule() method, for the input sample data,
- * SetInput() method, and for the membership calculators, use
- * FIXME:("AddMembershipCalculator") method.
- *
- * You can have more than one membership calculator. One for each one of the
- * classes. The order you put the membership calculator becomes the class label
- * for the class that is represented by the membership calculator.
- *
- * The classification result is stored in a vector of Subsample object.  Each
- * class has its own class sample (Subsample object) that has
- * InstanceIdentifiers for all measurement vectors belong to the class.  The
- * InstanceIdentifiers come from the target sample data. Therefore, the
- * Subsample objects act as separate class masks. 
  *
  */
 
@@ -77,8 +56,13 @@ public:
   typedef MembershipSampleType           OutputType;
 
   /** typedefs from SampleType object */
-  typedef typename SampleType::MeasurementType        MeasurementType;
-  typedef typename SampleType::MeasurementVectorType  MeasurementVectorType;
+  typedef typename SampleType::MeasurementType            MeasurementType;
+  typedef typename SampleType::MeasurementVectorType      MeasurementVectorType;
+
+  /** typedef for the MembershipFunction */
+  typedef MembershipFunctionBase< MeasurementVectorType > MembershipFunctionType;
+  typedef typename MembershipFunctionType::ConstPointer   MembershipFunctionPointer;
+  typedef std::vector< MembershipFunctionPointer >        MembershipFunctionVectorType;
 
   /** Types required for the pipeline infrastructure */
   typedef typename DataObject::Pointer                DataObjectPointer;
@@ -86,25 +70,47 @@ public:
   typedef unsigned long                               ClassLabelType;
   typedef std::vector< ClassLabelType >               ClassLabelVectorType;
 
+  /** type of the decision rule */
+  typedef DecisionRule                                DecisionRuleType;
+  typedef DecisionRuleType::Pointer                   DecisionRulePointer;
+
   /** Sets the input sample that will be classified by this filter. */
-  void SetInput(const SampleType* sample);
+  void SetInput(const SampleType * sample);
 
   /** Returns the input sample data */
   const SampleType * GetInput() const;
 
-  /** Sets the user given class labels for membership functions.
-   * If users do not provide class labels for membership functions by calling
-   * this function, then the index of the membership function vector for a
-   * membership function will be used as class label of measurement vectors
-   * belong to the membership function */ 
-  // FIXME: this should be an Input  void SetMembershipFunctionClassLabels( ClassLabelVectorType& labels);
-
-  /** Gets the user given class labels */
-  // FIXME: This shouldn't exist at all:  ClassLabelVectorType& GetMembershipFunctionClassLabels() 
-  // { return m_ClassLabels; }
-
   /** Returns the classification result */
   const OutputType * GetOutput() const;
+
+  /** Number of classes. This must match the number of labels and membership
+   * functions provided by the user, otherwise an exception will be thrown at
+   * run time */
+  itkSetMacro( NumberOfClasses, unsigned int );
+  itkGetMacro( NumberOfClasses, unsigned int );
+
+  /** Set/Get the vector of membership functions. The number of membership
+   * functions in this vector must match the number of classes set in the
+   * classifier, otherwise and exception will be thrown at run time. */
+  // FIXME: This probably should be decorated as a DataObject and be the input
+  // to the filter, presumably it will also be the output of the Estimator
+  // filters 
+  itkSetMacro( MembershipFunctions, MembershipFunctionVectorType );
+  itkGetMacro( MembershipFunctions, MembershipFunctionVectorType );
+
+  /** Set/Get the vector of membership class labels. The number of membership
+   * labels in this vector must match the number of classes set in the
+   * classifier, otherwise and exception will be thrown at run time. */
+  // FIXME: This probably should be decorated as a DataObject and be the input
+  // to the filter, presumably it will also be the output of the Estimator
+  // filters 
+  itkSetMacro( ClassLabels, ClassLabelVectorType );
+  itkGetMacro( ClassLabels, ClassLabelVectorType );
+
+  /** Set/Get the decision rule. */
+  itkSetConstObjectMacro( DecisionRule, DecisionRuleType );
+  itkGetConstObjectMacro( DecisionRule, DecisionRuleType );
+
 
 protected:
   SampleClassifierFilter();
@@ -127,14 +133,17 @@ protected:
   virtual DataObjectPointer MakeOutput(unsigned int idx);
  
 private:
-  /** Target data sample pointer*/
-  // MUST be stored in the Input  const SampleType* m_Sample;
-
-  /** Output pointer (MembershipSample) */
-  // MUST be stored in the Output  typename OutputType::Pointer m_Output;
+ 
+  unsigned int                      m_NumberOfClasses;
 
   /** User given class labels for membership functions */
-  // Must be stored in the input  ClassLabelVectorType m_ClassLabels;
+  ClassLabelVectorType              m_ClassLabels;
+
+  /** Container of membership functions */
+  MembershipFunctionVectorType      m_MembershipFunctions;
+
+  /** Decision Rule */
+  DecisionRulePointer              m_DecisionRule;
 
 }; // end of class
 
