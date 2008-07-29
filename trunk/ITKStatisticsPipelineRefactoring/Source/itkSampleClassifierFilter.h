@@ -23,6 +23,7 @@
 #include "itkMembershipFunctionBase.h"
 #include "itkDecisionRule.h"
 #include "itkProcessObject.h"
+#include "itkSimpleDataObjectDecorator.h"
 
 namespace itk {
 namespace Statistics {
@@ -63,16 +64,24 @@ public:
   typedef MembershipFunctionBase< MeasurementVectorType > MembershipFunctionType;
   typedef typename MembershipFunctionType::ConstPointer   MembershipFunctionPointer;
   typedef std::vector< MembershipFunctionPointer >        MembershipFunctionVectorType;
+  typedef SimpleDataObjectDecorator<
+    MembershipFunctionVectorType >                        MembershipFunctionVectorObjectType;
+  typedef typename 
+    MembershipFunctionVectorObjectType::Pointer           MembershipFunctionVectorObjectPointer;
 
   /** Types required for the pipeline infrastructure */
   typedef typename DataObject::Pointer                DataObjectPointer;
   
   typedef unsigned long                               ClassLabelType;
   typedef std::vector< ClassLabelType >               ClassLabelVectorType;
+  typedef SimpleDataObjectDecorator<
+    ClassLabelVectorType >                            ClassLabelVectorObjectType;
+  typedef ClassLabelVectorObjectType::Pointer         ClassLabelVectorObjectPointer;
+
 
   /** type of the decision rule */
   typedef DecisionRule                                DecisionRuleType;
-  typedef DecisionRuleType::Pointer                   DecisionRulePointer;
+  typedef DecisionRuleType::ConstPointer              DecisionRulePointer;
 
   /** Sets the input sample that will be classified by this filter. */
   void SetInput(const SampleType * sample);
@@ -89,28 +98,19 @@ public:
   itkSetMacro( NumberOfClasses, unsigned int );
   itkGetMacro( NumberOfClasses, unsigned int );
 
-  /** Set/Get the vector of membership functions. The number of membership
-   * functions in this vector must match the number of classes set in the
-   * classifier, otherwise and exception will be thrown at run time. */
-  // FIXME: This probably should be decorated as a DataObject and be the input
-  // to the filter, presumably it will also be the output of the Estimator
-  // filters 
-  itkSetMacro( MembershipFunctions, MembershipFunctionVectorType );
-  itkGetMacro( MembershipFunctions, MembershipFunctionVectorType );
-
-  /** Set/Get the vector of membership class labels. The number of membership
-   * labels in this vector must match the number of classes set in the
-   * classifier, otherwise and exception will be thrown at run time. */
-  // FIXME: This probably should be decorated as a DataObject and be the input
-  // to the filter, presumably it will also be the output of the Estimator
-  // filters 
-  itkSetMacro( ClassLabels, ClassLabelVectorType );
-  itkGetMacro( ClassLabels, ClassLabelVectorType );
-
   /** Set/Get the decision rule. */
   itkSetConstObjectMacro( DecisionRule, DecisionRuleType );
   itkGetConstObjectMacro( DecisionRule, DecisionRuleType );
 
+  /** Sets input vector of class labels. The length of this vector must match
+   * the number of classes, otherwise an exception will be thrown at run time.
+   * */
+  void SetClassLabels(const ClassLabelVectorObjectType * classLabels );
+
+  /** Sets input vector of membership functions. The length of this vector must match
+   * the number of classes, otherwise an exception will be thrown at run time.
+   * */
+  void SetMembershipFunctions(const MembershipFunctionVectorObjectType * membershipFunctions );
 
 protected:
   SampleClassifierFilter();
@@ -134,13 +134,7 @@ protected:
  
 private:
  
-  unsigned int                      m_NumberOfClasses;
-
-  /** User given class labels for membership functions */
-  ClassLabelVectorType              m_ClassLabels;
-
-  /** Container of membership functions */
-  MembershipFunctionVectorType      m_MembershipFunctions;
+  unsigned int                     m_NumberOfClasses;
 
   /** Decision Rule */
   DecisionRulePointer              m_DecisionRule;

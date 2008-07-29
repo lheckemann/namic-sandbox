@@ -35,6 +35,8 @@ int itkSampleClassifierFilterTest1(int argc, char *argv[] )
   const unsigned int numberOfComponents = 3;
   typedef float      MeasurementType;
 
+  const unsigned int numberOfClasses = 2;
+
   typedef itk::Array< MeasurementType > MeasurementVectorType;
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
 
@@ -65,6 +67,25 @@ int itkSampleClassifierFilterTest1(int argc, char *argv[] )
     std::cerr << "GetInput() didn't matched SetInput()" << std::endl;
     return EXIT_FAILURE;
     }
+
+  filter->SetNumberOfClasses( numberOfClasses );
+
+  if( filter->GetNumberOfClasses() != numberOfClasses )
+    {
+    std::cerr << "GetNumberOfClasses() didn't matched SetNumberOfClasses()" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  typedef FilterType::ClassLabelVectorObjectType               ClassLabelVectorType;
+  typedef FilterType::MembershipFunctionVectorObjectType       MembershipFunctionVectorType;
+
+  ClassLabelVectorType::Pointer  classLabels = ClassLabelVectorType::New();
+
+  MembershipFunctionVectorType::Pointer  membershipFunctions = MembershipFunctionVectorType::New();
+
+  filter->SetClassLabels( classLabels );
+
+  filter->SetMembershipFunctions( membershipFunctions );
 
   // Exercise the Print method.
   filter->Print( std::cout );
