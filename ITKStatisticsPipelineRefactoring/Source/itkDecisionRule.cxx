@@ -37,4 +37,3 @@ DecisionRule
 }// end PrintSelf
 
 } // namespace itk
-
