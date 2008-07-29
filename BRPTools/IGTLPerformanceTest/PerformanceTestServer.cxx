@@ -45,7 +45,12 @@ int main(int argc, char* argv[])
   serverSocket = igtl::ServerSocket::New();
   serverSocket->CreateServer(port);
 
+  // socket for receiving data
   igtl::Socket::Pointer socket;
+
+  // time stamps
+  igtl::TimeStamp::Pointer dataTimeStamp = igtl::TimeStamp::New();
+  igtl::TimeStamp::Pointer currentTimeStamp = igtl::TimeStamp::New();
   
   while (1)
     {
@@ -76,15 +81,23 @@ int main(int argc, char* argv[])
 
         // Deserialize the header
         headerMsg->Unpack();
+        headerMsg->GetTimeStamp(dataTimeStamp);
 
         // Check data type and receive data body
         if (strcmp(headerMsg->GetDeviceType(), "TRANSFORM") == 0)
           {
           ReceiveTransform(socket, headerMsg);
+          // Retrive the timestamp
+          currentTimeStamp->GetTime();
+          double delay = currentTimeStamp->GetTimeStamp() - dataTimeStamp->GetTimeStamp();
+          std::cout << "Delay: " << delay << " s " << std::endl;
           }
         else if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
           {
           ReceiveImage(socket, headerMsg);
+          currentTimeStamp->GetTime();
+          double delay = currentTimeStamp->GetTimeStamp() - dataTimeStamp->GetTimeStamp();
+          std::cout << "Delay: " << delay << " s " << std::endl;
           }
         else
           {
@@ -127,12 +140,6 @@ int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer
     igtl::Matrix4x4 matrix;
     transMsg->GetMatrix(matrix);
     //igtl::PrintMatrix(matrix);
-    
-    // Retrive the timestamp
-    igtl::TimeStamp::Pointer timeStamp = igtl::TimeStamp::New();
-    transMsg->GetTimeStamp(timeStamp);
-    std::cerr << "Data timestamp: " << timeStamp->GetTimeStamp() << " s " << std::endl;
-
     return 1;
     }
 
