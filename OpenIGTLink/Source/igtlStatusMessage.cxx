@@ -17,38 +17,21 @@
 #include "igtlStatusMessage.h"
 
 #include "igtl_header.h"
-#include "igtl_transform.h"
+#include "igtl_status.h"
+
+#include <string.h>
 
 namespace igtl {
 
 StatusMessage::StatusMessage():
   MessageBase()
 {
+  m_StatusHeader = NULL;
+  m_StatusMessage = NULL;
 
-  AllocatePack();
-  m_Transform = m_Body;
-
-  matrix[0][0] = 1.0;
-  matrix[1][0] = 0.0;
-  matrix[2][0] = 0.0;
-  matrix[3][0] = 0.0;
-
-  matrix[0][1] = 0.0;
-  matrix[1][1] = 1.0;
-  matrix[2][1] = 0.0;
-  matrix[3][1] = 0.0;
-
-  matrix[0][2] = 0.0;
-  matrix[1][2] = 0.0;
-  matrix[2][2] = 1.0;
-  matrix[3][2] = 0.0;
-
-  matrix[0][3] = 0.0;
-  matrix[1][3] = 0.0;
-  matrix[2][3] = 0.0;
-  matrix[3][3] = 1.0;
-
-  m_DefaultBodyType  = "TRANSFORM";
+  m_ErrorName[0]        = '\n';
+  m_DefaultBodyType     = "STATUS";
+  m_StatusMessageString = "";
 
 }
 
@@ -56,172 +39,104 @@ StatusMessage::~StatusMessage()
 {
 }
 
-void StatusMessage::SetPosition(float p[3])
+void StatusMessage::SetCode(int code)
 {
-  matrix[0][3] = p[0];
-  matrix[1][3] = p[1];
-  matrix[2][3] = p[2];
+
+  if (code >= 0 && code < STATUS_NUM_TYPES)
+    {
+    this->m_Code = code;
+    }
+  else
+    {
+    this->m_Code = 0;
+    }
 }
 
-void StatusMessage::GetPosition(float p[3])
+int StatusMessage::GetCode()
 {
-  p[0] = matrix[0][3];
-  p[1] = matrix[1][3];
-  p[2] = matrix[2][3];
+  return this->m_Code;
 }
 
-
-void StatusMessage::SetPosition(float px, float py, float pz)
+void StatusMessage::SetSubCode(igtlInt64 subcode)
 {
-  matrix[0][3] = px;
-  matrix[1][3] = py;
-  matrix[2][3] = pz;
+  this->m_SubCode = subcode;
 }
 
-void StatusMessage::GetPosition(float* px, float* py, float* pz)
+igtlInt64 StatusMessage::GetSubCode()
 {
-  *px = matrix[0][3];
-  *py = matrix[1][3];
-  *pz = matrix[2][3];
+  return this->m_SubCode;
 }
 
-void StatusMessage::SetNormals(float o[3][3])
+void StatusMessage::SetErrorName(const char* name)
 {
-  matrix[0][0] = o[0][0];
-  matrix[0][1] = o[0][1];
-  matrix[0][2] = o[0][2];
-  matrix[1][0] = o[1][0];
-  matrix[1][1] = o[1][1];
-  matrix[1][2] = o[1][2];
-  matrix[2][0] = o[2][0];
-  matrix[2][1] = o[2][1];
-  matrix[2][2] = o[2][2];
+  this->m_ErrorName[IGTL_STATUS_ERROR_NAME_LENGTH] = '\0';
+  strncpy(this->m_ErrorName, name, IGTL_STATUS_ERROR_NAME_LENGTH);
 }
 
-void StatusMessage::GetNormals(float o[3][3])
+const char* StatusMessage::GetErrorName()
 {
-  o[0][0] = matrix[0][0];
-  o[0][1] = matrix[0][1];
-  o[0][2] = matrix[0][2];
-  o[1][0] = matrix[1][0];
-  o[1][1] = matrix[1][1];
-  o[1][2] = matrix[1][2];
-  o[2][0] = matrix[2][0];
-  o[2][1] = matrix[2][1];
-  o[2][2] = matrix[2][2];
+  return this->m_ErrorName;
 }
 
-void StatusMessage::SetNormals(float t[3], float s[3], float n[3])
+void StatusMessage::SetStatusString(const char* str)
 {
-  matrix[0][0] = t[0];
-  matrix[1][0] = t[1];
-  matrix[2][0] = t[2];
-  matrix[0][1] = s[0];
-  matrix[1][1] = s[1];
-  matrix[2][1] = s[2];
-  matrix[0][2] = n[0];
-  matrix[1][2] = n[1];
-  matrix[2][2] = n[2];
+  this->m_StatusMessageString = str;
 }
 
-void StatusMessage::GetNormals(float t[3], float s[3], float n[3])
+const char* StatusMessage::GetStatusString()
 {
-  t[0] = matrix[0][0];
-  t[1] = matrix[1][0];
-  t[2] = matrix[2][0];
-  s[0] = matrix[0][1];
-  s[1] = matrix[1][1];
-  s[2] = matrix[2][1];
-  n[0] = matrix[0][2];
-  n[1] = matrix[1][2];
-  n[2] = matrix[2][2];
+  return this->m_StatusMessageString.c_str();
 }
 
-void StatusMessage::SetMatrix(Matrix4x4& mat)
-{
-  matrix[0][0] = mat[0][0];
-  matrix[1][0] = mat[1][0];
-  matrix[2][0] = mat[2][0];
-  matrix[3][0] = mat[3][0];
-
-  matrix[0][1] = mat[0][1];
-  matrix[1][1] = mat[1][1];
-  matrix[2][1] = mat[2][1];
-  matrix[3][1] = mat[3][1];
-
-  matrix[0][2] = mat[0][2];
-  matrix[1][2] = mat[1][2];
-  matrix[2][2] = mat[2][2];
-  matrix[3][2] = mat[3][2];
-
-  matrix[0][3] = mat[0][3];
-  matrix[1][3] = mat[1][3];
-  matrix[2][3] = mat[2][3];
-  matrix[3][3] = mat[3][3];
-}
-
-void StatusMessage::GetMatrix(Matrix4x4& mat)
-{
-  mat[0][0] = matrix[0][0];
-  mat[1][0] = matrix[1][0];
-  mat[2][0] = matrix[2][0];
-  mat[3][0] = matrix[3][0];
-
-  mat[0][1] = matrix[0][1];
-  mat[1][1] = matrix[1][1];
-  mat[2][1] = matrix[2][1];
-  mat[3][1] = matrix[3][1];
-
-  mat[0][2] = matrix[0][2];
-  mat[1][2] = matrix[1][2];
-  mat[2][2] = matrix[2][2];
-  mat[3][2] = matrix[3][2];
-
-  mat[0][3] = matrix[0][3];
-  mat[1][3] = matrix[1][3];
-  mat[2][3] = matrix[2][3];
-  mat[3][3] = matrix[3][3];
-}
 
 int StatusMessage::GetBodyPackSize()
 {
-  return IGTL_TRANSFORM_SIZE;
+  // The body size sum of the header size and status message size.
+  // Note that the status message ends with '\0'
+  return IGTL_STATUS_HEADER_SIZE + m_StatusMessageString.size() + 1;
 }
 
 int StatusMessage::PackBody()
 {
-  igtl_float32* transform = (igtl_float32*)this->m_Transform;
+  // allocate pack
+  AllocatePack();
+  m_StatusHeader = this->m_Body;
+  m_StatusMessage = (char*)&m_StatusHeader[IGTL_STATUS_HEADER_SIZE];
 
-  for (int i = 0; i < 3; i ++) {
-    transform[i]   = matrix[i][0];
-    transform[i+3] = matrix[i][1];
-    transform[i+6] = matrix[i][2];
-    transform[i+9] = matrix[i][3];
-  }
+  igtl_status_header* status_header = (igtl_status_header*)this->m_StatusHeader;
+
+  status_header->code    = static_cast<igtlUint16>(this->m_Code);
+  status_header->subcode = this->m_SubCode;
+  strncpy(status_header->error_name, this->m_ErrorName, IGTL_STATUS_ERROR_NAME_LENGTH);
+  strcpy(this->m_StatusMessage, this->m_StatusMessageString.c_str());
   
-  igtl_transform_convert_byte_order(transform);
+  igtl_status_convert_byte_order(status_header);
 
   return 1;
 }
 
 int StatusMessage::UnpackBody()
 {
-  m_Transform = m_Body;
+  m_StatusHeader = this->m_Body;
+  m_StatusMessage = (char*)&m_StatusHeader[IGTL_STATUS_HEADER_SIZE];
 
-  igtl_float32* transform = (igtl_float32*)this->m_Transform;
-  igtl_transform_convert_byte_order(transform);
+  igtl_status_header* status_header = (igtl_status_header*)this->m_StatusHeader;
+  igtl_status_convert_byte_order(status_header);
 
-  for (int i = 0; i < 3; i ++) {
-    matrix[i][0] = transform[i]  ;
-    matrix[i][1] = transform[i+3];
-    matrix[i][2] = transform[i+6];
-    matrix[i][3] = transform[i+9];
-  }
+  this->m_Code    = status_header->code;
+  this->m_SubCode = status_header->subcode;
+  this->m_ErrorName[IGTL_STATUS_ERROR_NAME_LENGTH] = '\0';
+  strncpy(this->m_ErrorName, status_header->error_name, IGTL_STATUS_ERROR_NAME_LENGTH);
 
-  matrix[3][0] = 0.0;
-  matrix[3][1] = 0.0;
-  matrix[3][2] = 0.0;
-  matrix[3][3] = 1.0;
+  // make sure that the status message in the pack ends with '\0'
+  if (m_StatusMessage[this->m_BodySizeToRead-IGTL_STATUS_HEADER_SIZE-1] == '\0')
+    {
+    this->m_StatusMessageString = m_StatusMessage;
+    }
+  else
+    {
+    //std::cerr << "status message in the pack does not end with '\0'" << std::endl;
+    }
 
   return 1;
 }

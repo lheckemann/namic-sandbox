@@ -3,8 +3,9 @@
 #
 SUBDIRS(
     Tracker
-    Receiver
     Imager
+    Status
+    Receiver
     )
 
 
