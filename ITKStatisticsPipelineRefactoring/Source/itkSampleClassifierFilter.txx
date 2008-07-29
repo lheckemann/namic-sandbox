@@ -26,7 +26,7 @@ template< class TSample >
 SampleClassifierFilter< TSample >
 ::SampleClassifierFilter()
 {
-  this->SetNumberOfRequiredInputs( 1 );
+  this->SetNumberOfRequiredInputs( 3 );
   this->SetNumberOfRequiredOutputs( 1 );
 
   // Create the output. We use static_cast<> here because we know the default
@@ -58,6 +58,27 @@ SampleClassifierFilter< TSample >
 }
 
 template< class TSample >
+void
+SampleClassifierFilter< TSample >
+::SetClassLabels( const ClassLabelVectorObjectType * classLabels )
+{
+  // Process object is not const-correct so the const_cast is required here
+  this->ProcessObject::SetNthInput(1,
+                                   const_cast< ClassLabelVectorObjectType * >( classLabels ) );
+}
+
+template< class TSample >
+void
+SampleClassifierFilter< TSample >
+::SetMembershipFunctions( const MembershipFunctionVectorObjectType * membershipFunctions )
+{
+  // Process object is not const-correct so the const_cast is required here
+  this->ProcessObject::SetNthInput(2,
+                                   const_cast< MembershipFunctionVectorObjectType * >( membershipFunctions ) );
+}
+
+
+template< class TSample >
 const TSample*
 SampleClassifierFilter< TSample >
 ::GetInput() const
@@ -80,13 +101,33 @@ void
 SampleClassifierFilter< TSample >
 ::GenerateData()
 {
+  const ClassLabelVectorObjectType * classLabelsDecorated = 
+    static_cast< const ClassLabelVectorObjectType * >( this->ProcessObject::GetInput( 1 ) );
+
+  const MembershipFunctionVectorObjectType * membershipFunctionsDecorated = 
+    static_cast< const MembershipFunctionVectorObjectType * >( this->ProcessObject::GetInput( 2 ) );
+
+  if( classLabelsDecorated == NULL )
+    {
+    itkExceptionMacro("Input of class labels decorated is NULL");
+    }
+
+  if( membershipFunctionsDecorated == NULL )
+    {
+    itkExceptionMacro("Input of membership samples decorated is NULL");
+    }
+
+  const ClassLabelVectorType & classLabels = classLabelsDecorated->Get();
+
+  const MembershipFunctionVectorType & membershipFunctions = membershipFunctionsDecorated->Get();
+
   // Check number of Labels and MembershipSamples against the number of classes */
-  if( this->m_MembershipFunctions.size() != this->m_NumberOfClasses )
+  if( membershipFunctions.size() != this->m_NumberOfClasses )
     {
     itkExceptionMacro("Number of Membership functions does not match the number of classes");
     }
 
-  if( this->m_ClassLabels.size() != this->m_NumberOfClasses )
+  if( classLabels.size() != this->m_NumberOfClasses )
     {
     itkExceptionMacro("Number of class labels does not match the number of classes");
     }
