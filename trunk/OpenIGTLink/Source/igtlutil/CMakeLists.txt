@@ -2,6 +2,7 @@ SET(IGTLUTIL_HEADS
   igtl_header.h
   igtl_image.h
   igtl_transform.h
+  igtl_status.h
   igtl_util.h
   igtl_types.h
   )

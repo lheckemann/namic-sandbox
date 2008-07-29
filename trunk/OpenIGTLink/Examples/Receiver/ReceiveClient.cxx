@@ -22,9 +22,11 @@
 #include "igtlTransformMessage.h"
 #include "igtlImageMessage.h"
 #include "igtlClientSocket.h"
+#include "igtlStatusMessage.h"
 
 int ReceiveTransform(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveImage(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+int ReceiveStatus(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 
 int main(int argc, char* argv[])
 {
@@ -88,6 +90,10 @@ int main(int argc, char* argv[])
       else if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
         {
         ReceiveImage(socket, headerMsg);
+        }
+      else if (strcmp(headerMsg->GetDeviceType(), "STATUS") == 0)
+        {
+        ReceiveStatus(socket, headerMsg);
         }
       else
         {
@@ -176,6 +182,39 @@ int ReceiveImage(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Point
     std::cerr << "Sub-Volume offset     : ("
               << svoffset[0] << ", " << svoffset[1] << ", " << svoffset[2] << ")" << std::endl;
     return 1;
+    }
+
+  return 0;
+
+}
+
+
+int ReceiveStatus(igtl::ClientSocket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+{
+
+  std::cerr << "Receiving STATUS data type." << std::endl;
+
+  // Create a message buffer to receive transform data
+  igtl::StatusMessage::Pointer statusMsg;
+  statusMsg = igtl::StatusMessage::New();
+  statusMsg->SetMessageHeader(header);
+  statusMsg->AllocatePack();
+  
+  // Receive transform data from the socket
+  socket->Receive(statusMsg->GetPackBodyPointer(), statusMsg->GetPackBodySize());
+  
+  // Deserialize the transform data
+  // If you want to skip CRC check, call Unpack() without argument.
+  int c = statusMsg->Unpack(1);
+  
+  if (c & igtl::MessageHeader::UNPACK_BODY) // if CRC check is OK
+    {
+    std::cerr << "========== STATUS ==========" << std::endl;
+    std::cerr << " Code      : " << statusMsg->GetCode() << std::endl;
+    std::cerr << " SubCode   : " << statusMsg->GetSubCode() << std::endl;
+    std::cerr << " Error Name: " << statusMsg->GetErrorName() << std::endl;
+    std::cerr << " Status    : " << statusMsg->GetStatusString() << std::endl;
+    std::cerr << "============================" << std::endl;
     }
 
   return 0;

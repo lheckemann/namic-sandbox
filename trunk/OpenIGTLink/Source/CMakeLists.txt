@@ -16,6 +16,7 @@ SET(OpenIGTLink_SOURCES
   igtlutil/igtl_header.c
   igtlutil/igtl_image.c
   igtlutil/igtl_transform.c
+  igtlutil/igtl_status.c
   igtlutil/igtl_util.c
   igtlClientSocket.cxx
   igtlConditionVariable.cxx
@@ -32,6 +33,7 @@ SET(OpenIGTLink_SOURCES
   igtlServerSocket.cxx
   igtlSimpleFastMutexLock.cxx
   igtlSocket.cxx
+  igtlStatusMessage.cxx
   igtlTimeStamp.cxx
   igtlTransformMessage.cxx
   )
