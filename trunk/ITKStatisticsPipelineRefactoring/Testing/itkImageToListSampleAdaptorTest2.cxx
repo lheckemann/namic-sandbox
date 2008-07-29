@@ -97,8 +97,6 @@ int itkImageToListSampleAdaptorTest2(int, char* [] )
 
   const unsigned int vMeasurementVectorSize = 4;
 
-  //VariableLengthPixelType value(vMeasurementVectorSize);
-
   VariableLengthImageType::Pointer vImage = VariableLengthImageType::New();
 
   VariableLengthImageType::IndexType vStart;
@@ -117,7 +115,7 @@ int itkImageToListSampleAdaptorTest2(int, char* [] )
 
   ivt.GoToBegin();
 
-  while (!ivt.IsAtEnd())
+  while( !ivt.IsAtEnd() )
     {
     VariableLengthPixelType value(vMeasurementVectorSize);
 
