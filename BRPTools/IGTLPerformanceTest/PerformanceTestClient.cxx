@@ -20,6 +20,7 @@
 #include "igtlOSUtil.h"
 #include "igtlTransformMessage.h"
 #include "igtlClientSocket.h"
+#include "igtlStatusMessage.h"
 
 void GetRandomTestMatrix(igtl::Matrix4x4& matrix);
 
@@ -28,18 +29,24 @@ int main(int argc, char* argv[])
   //------------------------------------------------------------
   // Parse Arguments
 
-  if (argc != 3) // check number of arguments
+  if (argc != 6) // check number of arguments
     {
     // If not correct, print usage
-    std::cerr << "Usage: " << argv[0] << " <hostname> <port>"    << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <hostname> <port> <fps> <test name> <ndata>"    << std::endl;
     std::cerr << "    <hostname> : IP or host name"                    << std::endl;
     std::cerr << "    <port>     : Port # (18944 in Slicer default)"   << std::endl;
+    std::cerr << "    <fps>      : Frequency (fps) to send coordinate" << std::endl;
+    std::cerr << "    <test name>: Test name string, which will be used as a filename in the server." << std::endl;
+    std::cerr << "    <ndata>    : Number of data to be sent." << std::endl;
     exit(0);
     }
 
   char*  hostname = argv[1];
   int    port     = atoi(argv[2]);
-  int    interval = 100; /* millisecond */
+  double fps      = atof(argv[3]);
+  int    interval = (int) (1000.0 / fps);
+  char*  testName = argv[4];
+  int    ndata    = atoi(argv[5]);
 
   //------------------------------------------------------------
   // Establish Connection
@@ -54,12 +61,32 @@ int main(int argc, char* argv[])
     exit(0);
     }
 
+
+  //------------------------------------------------------------
+  // Send Status, test name and number of data
+  // The test name and number of data are implemented as
+  // status message and sub-code.
+
+  std::cerr << "Sending Status information...";
+  igtl::StatusMessage::Pointer statusMsg;
+  statusMsg = igtl::StatusMessage::New();
+  statusMsg->SetDeviceName("TestDevice");
+
+  statusMsg->SetCode(igtl::StatusMessage::STATUS_OK);
+  statusMsg->SetSubCode(ndata);
+  statusMsg->SetErrorName("OK");
+  statusMsg->SetStatusString(testName);
+  statusMsg->Pack();
+  socket->Send(statusMsg->GetPackPointer(), statusMsg->GetPackSize());
+  igtl::Sleep(400); // wait for 400 ms
+  std::cerr << "done." << std::endl;
+
   //------------------------------------------------------------
   // Allocate Transform Message Class
 
   igtl::TransformMessage::Pointer transMsg;
   transMsg = igtl::TransformMessage::New();
-  transMsg->SetDeviceName("Tracker");
+  transMsg->SetDeviceName("TestDevice");
 
   //------------------------------------------------------------
   // Prepare Timestamp
@@ -67,7 +94,7 @@ int main(int argc, char* argv[])
 
   //------------------------------------------------------------
   // loop
-  for (int i = 0; i < 100; i ++)
+  for (int i = 0; i < ndata; i ++)
     {
     igtl::Matrix4x4 matrix;
     GetRandomTestMatrix(matrix);
