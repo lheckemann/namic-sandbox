@@ -55,6 +55,9 @@ public:
   /** Output type for GetClassSample method */
   typedef MembershipSample< SampleType > MembershipSampleType;
   typedef MembershipSampleType           OutputType;
+  typedef SimpleDataObjectDecorator< MembershipSampleType >  MembershipSampleObjectType;
+  typedef typename MembershipSampleObjectType::Pointer  MembershipSampleObjectPointer; 
+
 
   /** typedefs from SampleType object */
   typedef typename SampleType::MeasurementType            MeasurementType;
@@ -85,16 +88,14 @@ public:
 
   /** Sets the input sample that will be classified by this filter. */
   void SetInput(const SampleType * sample);
-
-  /** Returns the input sample data */
-  const SampleType * GetInput() const;
+  const SampleType *  GetInput() const;
 
   /** Returns the classification result */
-  const OutputType * GetOutput() const;
+  const MembershipSampleObjectType * GetOutput() const;
 
   /** Number of classes. This must match the number of labels and membership
    * functions provided by the user, otherwise an exception will be thrown at
-   * run time */
+   */
   itkSetMacro( NumberOfClasses, unsigned int );
   itkGetMacro( NumberOfClasses, unsigned int );
 
