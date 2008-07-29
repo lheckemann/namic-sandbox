@@ -38,10 +38,10 @@ class ITKCommon_EXPORT DecisionRule : public Object
 {
 public:
   /** Standard class typedefs */ 
-  typedef DecisionRule Self ;
-  typedef Object Superclass;
-  typedef SmartPointer<Self> Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
+  typedef DecisionRule                  Self;
+  typedef Object                        Superclass;
+  typedef SmartPointer<Self>            Pointer;
+  typedef SmartPointer<const Self>      ConstPointer;
   
   /** Run-time type information (and related methods) */
   itkTypeMacro(DecisionRule, Object);
@@ -63,15 +63,8 @@ protected:
 private:
   DecisionRule(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
-} ; // end of class
+}; // end of class
 
 } // namespace itk
 
 #endif
-
-
-
-
-
-
-

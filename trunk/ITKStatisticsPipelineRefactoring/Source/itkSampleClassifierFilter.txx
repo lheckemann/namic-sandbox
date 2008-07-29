@@ -133,49 +133,49 @@ SampleClassifierFilter< TSample >
     }
 
   /*
-  unsigned int i ;
-  typename TSample::ConstIterator iter = this->GetSample()->Begin() ;
-  typename TSample::ConstIterator end  = this->GetSample()->End() ;
-  typename TSample::MeasurementVectorType measurements ;
+  unsigned int i;
+  typename TSample::ConstIterator iter = this->GetSample()->Begin();
+  typename TSample::ConstIterator end  = this->GetSample()->End();
+  typename TSample::MeasurementVectorType measurements;
 
-  m_Output->Resize( this->GetSample()->Size() ) ;
-  std::vector< double > discriminantScores ;
-  unsigned int numberOfClasses = this->GetNumberOfClasses() ;
-  discriminantScores.resize(numberOfClasses) ;
-  unsigned int classLabel ;
-  m_Output->SetNumberOfClasses(numberOfClasses) ;
+  m_Output->Resize( this->GetSample()->Size() );
+  std::vector< double > discriminantScores;
+  unsigned int numberOfClasses = this->GetNumberOfClasses();
+  discriminantScores.resize(numberOfClasses);
+  unsigned int classLabel;
+  m_Output->SetNumberOfClasses(numberOfClasses);
   typename Superclass::DecisionRuleType::Pointer rule =
-    this->GetDecisionRule() ;
+    this->GetDecisionRule();
 
   if ( m_ClassLabels.size() != this->GetNumberOfMembershipFunctions() )
     {
     while (iter != end)
       {
-      measurements = iter.GetMeasurementVector() ;
-      for (i = 0 ; i < numberOfClasses ; i++)
+      measurements = iter.GetMeasurementVector();
+      for (i = 0; i < numberOfClasses; i++)
         {
         discriminantScores[i] =
-          (this->GetMembershipFunction(i))->Evaluate(measurements) ;
+          (this->GetMembershipFunction(i))->Evaluate(measurements);
         }
-      classLabel = rule->Evaluate(discriminantScores) ;
-      m_Output->AddInstance(classLabel, iter.GetInstanceIdentifier()) ;
-      ++iter ;
+      classLabel = rule->Evaluate(discriminantScores);
+      m_Output->AddInstance(classLabel, iter.GetInstanceIdentifier());
+      ++iter;
       }
     }
   else
     {
     while (iter != end)
       {
-      measurements = iter.GetMeasurementVector() ;
-      for (i = 0 ; i < numberOfClasses ; i++)
+      measurements = iter.GetMeasurementVector();
+      for (i = 0; i < numberOfClasses; i++)
         {
         discriminantScores[i] =
-          (this->GetMembershipFunction(i))->Evaluate(measurements) ;
+          (this->GetMembershipFunction(i))->Evaluate(measurements);
         }
-      classLabel = rule->Evaluate(discriminantScores) ;
+      classLabel = rule->Evaluate(discriminantScores);
       m_Output->AddInstance(m_ClassLabels[classLabel],
-                            iter.GetInstanceIdentifier()) ;
-      ++iter ;
+                            iter.GetInstanceIdentifier());
+      ++iter;
       }
     }
     */
