@@ -54,9 +54,7 @@ public:
 
   /** typedefs Output type */
   typedef MembershipSample< SampleType >                     MembershipSampleType;
-  typedef SimpleDataObjectDecorator< MembershipSampleType >  MembershipSampleObjectType;
-  typedef typename MembershipSampleObjectType::Pointer       MembershipSampleObjectPointer; 
-
+  typedef typename MembershipSampleType::Pointer             MembershipSampleObjectPointer; 
 
   /** typedefs from SampleType object */
   typedef typename SampleType::MeasurementType            MeasurementType;
@@ -90,7 +88,7 @@ public:
   const SampleType *  GetInput() const;
 
   /** Returns the classification result */
-  const MembershipSampleObjectType * GetOutput() const;
+  const MembershipSampleType * GetOutput() const;
 
   /** Number of classes. This must match the number of labels and membership
    * functions provided by the user, otherwise an exception will be thrown at
