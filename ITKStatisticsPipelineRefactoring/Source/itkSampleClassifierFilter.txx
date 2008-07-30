@@ -31,14 +31,14 @@ SampleClassifierFilter< TSample >
 
   // Create the output. We use static_cast<> here because we know the default
   // output must be of type MembershipSampleType
-  typename MembershipSampleObjectType::Pointer membershipSampleDecorator
-    = static_cast<MembershipSampleObjectType*>(this->MakeOutput(0).GetPointer()); 
+  MembershipSampleObjectPointer membershipSample
+    = dynamic_cast<MembershipSampleType*>(this->MakeOutput(0).GetPointer()); 
 
-  this->ProcessObject::SetNthOutput(0, membershipSampleDecorator.GetPointer());
+  this->ProcessObject::SetNthOutput(0, membershipSample.GetPointer());
 
+  /** Set sample in the output */
+  /** FIXME
   const MembershipSampleType & output = membershipSampleDecorator->Get();
-
-  /** Set sample in the output 
   output.SetSample( this->GetInput() ); */
 }
 
@@ -100,7 +100,7 @@ typename SampleClassifierFilter< TSample >::DataObjectPointer
 SampleClassifierFilter< TSample >
 ::MakeOutput(unsigned int)
 {
-  return static_cast<DataObject*>( OutputType::New().GetPointer() );
+  return static_cast<DataObject*>( MembershipSampleType::New().GetPointer() );
 }
 
 template< class TSample >
@@ -142,20 +142,17 @@ SampleClassifierFilter< TSample >
   const SampleType * sample =
     static_cast< const SampleType * >( this->ProcessObject::GetInput( 0 ) );
 
-  MembershipSampleObjectType * decoratedOutput =
-            static_cast< MembershipSampleObjectType * >(
-              this->ProcessObject::GetOutput(0));
-
-  const MembershipSampleType & output = decoratedOutput->Get();
+  MembershipSampleType * output =
+            dynamic_cast< MembershipSampleType * >( this->ProcessObject::GetOutput(0));
 
   /* MembershpSample class: Set the size depending on the size of the sample 
-  output.Resize( sample->Size() ); */
+  output->Resize( sample->Size() ); */
 
   std::vector< double > discriminantScores;
   discriminantScores.resize( this->m_NumberOfClasses );
 
   /** FIXME: set the number of classes 
-  output.SetNumberOfClasses( this->m_NumberOfClasses ); */
+  output->SetNumberOfClasses( this->m_NumberOfClasses ); */
 
   typename TSample::ConstIterator iter = sample->Begin();
   typename TSample::ConstIterator end  = sample->End();
@@ -182,11 +179,11 @@ SampleClassifierFilter< TSample >
 }
 
 template< class TSample >
-const typename SampleClassifierFilter< TSample >::MembershipSampleObjectType *
+const typename SampleClassifierFilter< TSample >::MembershipSampleType *
 SampleClassifierFilter< TSample >
 ::GetOutput() const
 {
-  return static_cast< const MembershipSampleObjectType * >(this->ProcessObject::GetOutput(0));
+  return static_cast< const MembershipSampleType * >(this->ProcessObject::GetOutput(0));
 }
 
 } // end of namespace Statistics

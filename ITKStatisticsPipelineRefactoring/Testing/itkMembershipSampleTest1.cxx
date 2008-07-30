@@ -25,10 +25,10 @@
 int itkMembershipSampleTest1(int, char* [] )
 {
 
-  const unsigned int MeasurementVectorSize = 17;
+  const unsigned int MeasurementVectorSize = 3;
 
-  const unsigned int numberOfClasses1 = 5;
-  const unsigned int numberOfClasses2 = 19;
+  const unsigned int numberOfClasses1 = 2;
+  const unsigned int numberOfClasses2 = 333;
 
   typedef itk::FixedArray< 
     float, MeasurementVectorSize >  MeasurementVectorType;

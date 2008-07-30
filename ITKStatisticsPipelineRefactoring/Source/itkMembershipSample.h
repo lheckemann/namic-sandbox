@@ -91,12 +91,48 @@ public:
   itkGetConstObjectMacro( Sample, SampleType );
 
   /** Sets the number of classes (class labels) */
-  void SetNumberOfClasses(unsigned int numberOfClasses);
-  
+  void SetNumberOfClasses( unsigned int numberOfClasses );
+
   /** Gets the number of classes (class labels) */
   itkGetMacro( NumberOfClasses, unsigned int );
 
- 
+  /** Adds an instance from the source sample to this container. The
+   * first argument is the class label for that instance. The second
+   * argument is the instance identifier from the source identifier that
+   * is going to be included this container. */
+  void AddInstance(const unsigned int &classLabel, const InstanceIdentifier &id) ;
+
+  /** Gets the class label for the instance that has the instance
+   *   identifier, id. */
+  unsigned int GetClassLabel(const InstanceIdentifier &id) const ;
+
+  /** Gets the number of instances that belong to the class label in
+   *   this container */
+  unsigned int GetClassSampleSize(const unsigned int &classLabel) const ;
+
+  /** Gets the Subsample that includes only the instances that belongs
+   *   to the classLabel */
+  const ClassSampleType* GetClassSample(const unsigned int &classLabel) const ;
+  
+  /** Gets the class labels that corresponding to the each instance in
+   *   this container. */
+  const ClassLabelHolderType GetClassLabelHolder() const;
+
+  /** retunrs the measurement of the instance which is identified 
+   * by the 'id' */
+  const MeasurementVectorType & GetMeasurementVector(const InstanceIdentifier &id) const;
+  
+  /** returns the measurement element which is the 'n'-th element 
+   * in the 'd' dimension of the measurement vector */
+  MeasurementType GetMeasurement(const InstanceIdentifier &id, 
+                                  const unsigned int &dimension) ;
+
+  /** returns the frequency of the instance which is identified by the 'id' */
+  AbsoluteFrequencyType GetFrequency(const InstanceIdentifier &id) const ;
+  
+  /** returns the total frequency for the 'd' dimension */
+  TotalAbsoluteFrequencyType GetTotalFrequency() const ;
+
 protected:
   MembershipSample();
   virtual ~MembershipSample() {}
@@ -105,6 +141,16 @@ protected:
 private:
   MembershipSample(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
+
+  /** Gets the internal continuous class label from the class labels that
+   *   are used for AddInstance method. */ 
+  int GetInternalClassLabel(const unsigned int classLabel ) const ;
+
+
+  UniqueClassLabelsType           m_UniqueClassLabels ;
+  ClassLabelHolderType            m_ClassLabelHolder ;
+  std::vector< unsigned int >     m_ClassSampleSizes ;
+  std::vector< ClassSamplePointer > m_ClassSamples ;
 
   SampleConstPointer              m_Sample;
   unsigned int                    m_NumberOfClasses;
