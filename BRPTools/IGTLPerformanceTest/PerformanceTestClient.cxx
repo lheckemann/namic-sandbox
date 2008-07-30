@@ -22,7 +22,10 @@
 #include "igtlClientSocket.h"
 #include "igtlStatusMessage.h"
 
+#include "igtlLoopController.h"
+
 void GetRandomTestMatrix(igtl::Matrix4x4& matrix);
+
 
 int main(int argc, char* argv[])
 {
@@ -44,7 +47,8 @@ int main(int argc, char* argv[])
   char*  hostname = argv[1];
   int    port     = atoi(argv[2]);
   double fps      = atof(argv[3]);
-  int    interval = (int) (1000.0 / fps);
+  //int    interval = (int) (1000.0 / fps);
+  double interval = 1.0 / fps;
   char*  testName = argv[4];
   int    ndata    = atoi(argv[5]);
 
@@ -60,7 +64,6 @@ int main(int argc, char* argv[])
     std::cerr << "Cannot connect to the server." << std::endl;
     exit(0);
     }
-
 
   //------------------------------------------------------------
   // Send Status, test name and number of data
@@ -94,19 +97,36 @@ int main(int argc, char* argv[])
 
   //------------------------------------------------------------
   // loop
+
+  igtl::LoopController::Pointer loop = igtl::LoopController::New();
+  loop->InitLoop(interval);
+  
   for (int i = 0; i < ndata; i ++)
     {
+    loop->StartLoop();
+
     igtl::Matrix4x4 matrix;
     GetRandomTestMatrix(matrix);
     timeStamp->GetTime();
-    std::cerr << "time stamp = " << timeStamp->GetTimeStamp() << std::endl;
-
+    //std::cerr << "time stamp = " << timeStamp->GetTimeStamp() << std::endl;
     transMsg->SetMatrix(matrix);
     transMsg->SetTimeStamp(timeStamp);
     transMsg->Pack();
+
+    //std::cerr << "loop delay = " << loop->GetTimerDelay() << std::endl;
     socket->Send(transMsg->GetPackPointer(), transMsg->GetPackSize());
-    igtl::Sleep(interval); // wait
     }
+
+
+  //------------------------------------------------------------
+  // Send Status to request the server to write the data to the file.
+
+  std::cerr << "Request the server to output the data..." << std::endl;
+  statusMsg->SetCode(igtl::StatusMessage::STATUS_OK);
+  statusMsg->SetSubCode(0);
+  statusMsg->SetErrorName("OK");
+  statusMsg->Pack();
+  socket->Send(statusMsg->GetPackPointer(), statusMsg->GetPackSize());
 
   //------------------------------------------------------------
   // Close connection
@@ -114,6 +134,8 @@ int main(int argc, char* argv[])
   socket->CloseSocket();
 
 }
+
+
 
 //------------------------------------------------------------
 // Function to generate random matrix.
@@ -145,6 +167,6 @@ void GetRandomTestMatrix(igtl::Matrix4x4& matrix)
   matrix[1][3] = position[1];
   matrix[2][3] = position[2];
   
-  igtl::PrintMatrix(matrix);
+  //igtl::PrintMatrix(matrix);
 }
 
