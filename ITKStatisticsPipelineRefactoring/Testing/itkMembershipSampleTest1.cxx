@@ -28,7 +28,6 @@ int itkMembershipSampleTest1(int, char* [] )
   const unsigned int MeasurementVectorSize = 3;
 
   const unsigned int numberOfClasses1 = 2;
-  const unsigned int numberOfClasses2 = 333;
 
   typedef itk::FixedArray< 
     float, MeasurementVectorSize >  MeasurementVectorType;
@@ -57,20 +56,40 @@ int itkMembershipSampleTest1(int, char* [] )
     return EXIT_FAILURE;
     }
 
-  // Check that it can be changed...
-  membershipSample->SetNumberOfClasses( numberOfClasses2 );
-  if( membershipSample->GetNumberOfClasses() != numberOfClasses2 )
-    {
-    std::cerr << "SetNumberOfClasses() / GetNumberOfClasses() 2 failed " << std::endl;
-    return EXIT_FAILURE;
-    }
- 
-
-  //
   // Exercise the Print() method
-  //
   membershipSample->Print( std::cout );
 
+  // Add measurmement vectors to the list sample
+  unsigned int sampleSize = 25;
+  MeasurementVectorType mv;
+
+  std::cout << "Sample length = " << sample->GetMeasurementVectorSize() << std::endl;
+  std::cout << "Vector length = " << itk::Statistics::MeasurementVectorTraits::GetLength( mv ) << std::endl;
+
+  for ( unsigned int i = 0; i < sampleSize; i++ )
+    {
+    for (unsigned int j = 0; j < MeasurementVectorSize; j++ )
+      {
+      mv[j] = rand() / (RAND_MAX+1.0) ;
+      }
+    sample->PushBack(mv);
+    }
+
+  // Add instances to the membership sample
+  SampleType::ConstIterator   begin = sample->Begin();
+  SampleType::ConstIterator   end   = sample->End();
+
+  SampleType::ConstIterator iter= begin;
+
+  MembershipSampleType::ClassLabelType classLabel = 1;
+  
+  while( iter != end ) 
+    {
+    SampleType::InstanceIdentifier id = iter.GetInstanceIdentifier();  
+    membershipSample->AddInstance( classLabel, id );
+    ++iter;
+    }
+    
   std::cout << "Test Passed !" << std::endl;
   return EXIT_SUCCESS;
 }

@@ -142,8 +142,10 @@ SampleClassifierFilter< TSample >
   const SampleType * sample =
     static_cast< const SampleType * >( this->ProcessObject::GetInput( 0 ) );
 
+  /*
   MembershipSampleType * output =
-            dynamic_cast< MembershipSampleType * >( this->ProcessObject::GetOutput(0));
+            dynamic_cast< MembershipSampleType * >(
+this->ProcessObject::GetOutput(0)); */
 
   /* MembershpSample class: Set the size depending on the size of the sample 
   output->Resize( sample->Size() ); */

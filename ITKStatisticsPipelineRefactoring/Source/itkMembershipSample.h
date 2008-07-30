@@ -71,14 +71,15 @@ public:
   typedef typename SampleType::AbsoluteFrequencyType         AbsoluteFrequencyType;
   typedef typename SampleType::TotalAbsoluteFrequencyType    TotalAbsoluteFrequencyType;
   
-  
+
+  typedef unsigned long              ClassLabelType;  
   /** vector of unique class labels that will be used for mapping internal
    * continuous class label with real class labels */
-  typedef std::vector< unsigned int > UniqueClassLabelsType;
+  typedef std::vector< ClassLabelType > UniqueClassLabelsType;
 
   /** Typedef for the storage that holds a class label for each instance.
    * The relationship between instances and class label is one-to-one */
-  typedef itk::hash_map< InstanceIdentifier, unsigned int> ClassLabelHolderType;
+  typedef itk::hash_map< InstanceIdentifier, ClassLabelType > ClassLabelHolderType;
   
   /** Typedef for each subsample that stores instance identifers of instances
    * that belong to a class */
@@ -100,7 +101,7 @@ public:
    * first argument is the class label for that instance. The second
    * argument is the instance identifier from the source identifier that
    * is going to be included this container. */
-  void AddInstance(const unsigned int &classLabel, const InstanceIdentifier &id) ;
+  void AddInstance(const ClassLabelType &classLabel, const InstanceIdentifier &id) ;
 
   /** Gets the class label for the instance that has the instance
    *   identifier, id. */
@@ -108,11 +109,11 @@ public:
 
   /** Gets the number of instances that belong to the class label in
    *   this container */
-  unsigned int GetClassSampleSize(const unsigned int &classLabel) const ;
+  unsigned int GetClassSampleSize(const ClassLabelType &classLabel) const ;
 
   /** Gets the Subsample that includes only the instances that belongs
    *   to the classLabel */
-  const ClassSampleType* GetClassSample(const unsigned int &classLabel) const ;
+  const ClassSampleType* GetClassSample(const  ClassLabelType &classLabel) const ;
   
   /** Gets the class labels that corresponding to the each instance in
    *   this container. */
@@ -144,7 +145,7 @@ private:
 
   /** Gets the internal continuous class label from the class labels that
    *   are used for AddInstance method. */ 
-  int GetInternalClassLabel(const unsigned int classLabel ) const ;
+  int GetInternalClassLabel(const ClassLabelType classLabel ) const ;
 
 
   UniqueClassLabelsType           m_UniqueClassLabels ;
