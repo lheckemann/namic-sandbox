@@ -107,10 +107,6 @@ public:
    *   identifier, id. */
   unsigned int GetClassLabel(const InstanceIdentifier &id) const ;
 
-  /** Gets the number of instances that belong to the class label in
-   *   this container */
-  unsigned int GetClassSampleSize(const ClassLabelType &classLabel) const ;
-
   /** Gets the Subsample that includes only the instances that belongs
    *   to the classLabel */
   const ClassSampleType* GetClassSample(const  ClassLabelType &classLabel) const ;
@@ -150,7 +146,6 @@ private:
 
   UniqueClassLabelsType           m_UniqueClassLabels ;
   ClassLabelHolderType            m_ClassLabelHolder ;
-  std::vector< unsigned int >     m_ClassSampleSizes ;
   std::vector< ClassSamplePointer > m_ClassSamples ;
 
   SampleConstPointer              m_Sample;
