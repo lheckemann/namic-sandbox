@@ -238,6 +238,9 @@ void MessageBase::InitPack()
   m_IsBodyUnpacked   = 0;
   m_BodySizeToRead   = 0;
 
+  m_DeviceName       = "";
+  m_BodyType         = "";
+
   // Re-allocate header area
   AllocatePack(0);
 }
