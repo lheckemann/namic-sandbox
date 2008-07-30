@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
 int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
 {
 
-  std::cerr << "Receiving TRANSFORM data type." << std::endl;
+  //std::cerr << "Receiving TRANSFORM data type." << std::endl;
   
   // Create a message buffer to receive transform data
   igtl::TransformMessage::Pointer transMsg;
@@ -175,7 +175,7 @@ int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer
 
 int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
 {
-  std::cerr << "Receiving IMAGE data type." << std::endl;
+  //std::cerr << "Receiving IMAGE data type." << std::endl;
 
   // Create a message buffer to receive transform data
   igtl::ImageMessage::Pointer imgMsg;
@@ -204,6 +204,7 @@ int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& he
     imgMsg->GetSpacing(spacing);
     imgMsg->GetSubVolume(svsize, svoffset);
 
+
     std::cerr << "Device Name           : " << imgMsg->GetDeviceName() << std::endl;
     std::cerr << "Scalar Type           : " << scalarType << std::endl;
     std::cerr << "Dimensions            : ("
@@ -214,6 +215,7 @@ int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& he
               << svsize[0] << ", " << svsize[1] << ", " << svsize[2] << ")" << std::endl;
     std::cerr << "Sub-Volume offset     : ("
               << svoffset[0] << ", " << svoffset[1] << ", " << svoffset[2] << ")" << std::endl;
+
     return 1;
     }
 
@@ -225,7 +227,7 @@ int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& he
 int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header, igtl::Logger::Pointer& logger)
 {
 
-  std::cerr << "Receiving STATUS data type." << std::endl;
+  //std::cerr << "Receiving STATUS data type." << std::endl;
 
   // Create a message buffer to receive transform data
   igtl::StatusMessage::Pointer statusMsg;
