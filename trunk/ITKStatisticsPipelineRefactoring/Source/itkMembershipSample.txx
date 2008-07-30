@@ -31,12 +31,12 @@ void
 MembershipSample< TSample >
 ::SetNumberOfClasses(unsigned int numberOfClasses)
 {
-  m_NumberOfClasses = numberOfClasses ;
-  m_ClassSamples.resize(m_NumberOfClasses) ;
-  for ( unsigned int i = 0 ; i < m_NumberOfClasses ; i++ )
+  m_NumberOfClasses = numberOfClasses;
+  m_ClassSamples.resize(m_NumberOfClasses);
+  for ( unsigned int i = 0; i < m_NumberOfClasses; i++ )
     {
-    m_ClassSamples[i] = ClassSampleType::New() ;
-    (m_ClassSamples[i])->SetSample(this->GetSample()) ;
+    m_ClassSamples[i] = ClassSampleType::New();
+    (m_ClassSamples[i])->SetSample(this->GetSample());
     }
 }
 
@@ -45,15 +45,15 @@ inline void
 MembershipSample< TSample >
 ::AddInstance(const ClassLabelType &classLabel, const InstanceIdentifier &id) 
 { 
-  m_ClassLabelHolder[id] = classLabel ; 
-  int classIndex = this->GetInternalClassLabel(classLabel) ;
+  m_ClassLabelHolder[id] = classLabel; 
+  int classIndex = this->GetInternalClassLabel(classLabel);
   if ( classIndex == -1 )
     {
-    m_UniqueClassLabels.push_back(classLabel) ;
-    classIndex = m_UniqueClassLabels.size() - 1 ;
+    m_UniqueClassLabels.push_back(classLabel);
+    classIndex = m_UniqueClassLabels.size() - 1;
     }
 
-  (m_ClassSamples[classIndex])->AddInstance(id) ;
+  (m_ClassSamples[classIndex])->AddInstance(id);
 }
 
 template< class TSample >
@@ -61,7 +61,7 @@ inline unsigned int
 MembershipSample< TSample >
 ::GetClassLabel(const InstanceIdentifier &id) const
 {
-  return (*(m_ClassLabelHolder.find(id))).second ;
+  return (*(m_ClassLabelHolder.find(id))).second;
 }
 
 template< class TSample >
@@ -69,15 +69,15 @@ inline int
 MembershipSample< TSample >
 ::GetInternalClassLabel(const ClassLabelType classLabel) const
 {
-  for ( unsigned int i = 0 ; i < m_UniqueClassLabels.size() ; i++ )
+  for ( unsigned int i = 0; i < m_UniqueClassLabels.size(); i++ )
     {
     if ( m_UniqueClassLabels[i] == classLabel )
       {
-      return i ;
+      return i;
       }
     }
 
-  return -1 ;
+  return -1;
 }
 
 template< class TSample >
@@ -88,15 +88,13 @@ MembershipSample< TSample >
   return m_ClassLabelHolder;
 }
 
-
-
 template< class TSample >
 const typename MembershipSample< TSample >::ClassSampleType*
 MembershipSample< TSample >
 ::GetClassSample(const ClassLabelType &classLabel) const
 {
-  int classIndex = this->GetInternalClassLabel(classLabel) ;
-  return m_ClassSamples[classIndex] ; 
+  int classIndex = this->GetInternalClassLabel(classLabel);
+  return m_ClassSamples[classIndex]; 
 }
 
 template< class TSample >
@@ -104,7 +102,7 @@ inline const typename MembershipSample< TSample >::MeasurementVectorType &
 MembershipSample< TSample >
 ::GetMeasurementVector(const InstanceIdentifier &id) const
 {
-  return m_Sample->GetMeasurementVector(id) ; 
+  return m_Sample->GetMeasurementVector(id); 
 }
 
 template< class TSample >
@@ -113,7 +111,7 @@ MembershipSample< TSample >
 ::GetMeasurement(const InstanceIdentifier &id,
                  const unsigned int &dimension)
 { 
-  return m_Sample->GetMeasurement(id, dimension) ;
+  return m_Sample->GetMeasurement(id, dimension);
 }
 
 template< class TSample >
@@ -121,7 +119,7 @@ inline typename MembershipSample< TSample >::AbsoluteFrequencyType
 MembershipSample< TSample >
 ::GetFrequency(const InstanceIdentifier &id) const
 {
-  return m_Sample->GetFrequency(id) ; 
+  return m_Sample->GetFrequency(id); 
 }
   
 template< class TSample >
@@ -129,7 +127,7 @@ inline typename MembershipSample< TSample >::TotalAbsoluteFrequencyType
 MembershipSample< TSample >
 ::GetTotalFrequency() const
 {
-  return m_Sample->GetTotalFrequency() ;
+  return m_Sample->GetTotalFrequency();
 }
 
 
