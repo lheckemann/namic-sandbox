@@ -101,15 +101,15 @@ public:
    * first argument is the class label for that instance. The second
    * argument is the instance identifier from the source identifier that
    * is going to be included this container. */
-  void AddInstance(const ClassLabelType &classLabel, const InstanceIdentifier &id) ;
+  void AddInstance(const ClassLabelType &classLabel, const InstanceIdentifier &id);
 
   /** Gets the class label for the instance that has the instance
    *   identifier, id. */
-  unsigned int GetClassLabel(const InstanceIdentifier &id) const ;
+  unsigned int GetClassLabel(const InstanceIdentifier &id) const;
 
   /** Gets the Subsample that includes only the instances that belongs
    *   to the classLabel */
-  const ClassSampleType* GetClassSample(const  ClassLabelType &classLabel) const ;
+  const ClassSampleType* GetClassSample(const  ClassLabelType &classLabel) const;
   
   /** Gets the class labels that corresponding to the each instance in
    *   this container. */
@@ -122,13 +122,13 @@ public:
   /** returns the measurement element which is the 'n'-th element 
    * in the 'd' dimension of the measurement vector */
   MeasurementType GetMeasurement(const InstanceIdentifier &id, 
-                                  const unsigned int &dimension) ;
+                                  const unsigned int &dimension);
 
   /** returns the frequency of the instance which is identified by the 'id' */
-  AbsoluteFrequencyType GetFrequency(const InstanceIdentifier &id) const ;
+  AbsoluteFrequencyType GetFrequency(const InstanceIdentifier &id) const;
   
   /** returns the total frequency for the 'd' dimension */
-  TotalAbsoluteFrequencyType GetTotalFrequency() const ;
+  TotalAbsoluteFrequencyType GetTotalFrequency() const;
 
 protected:
   MembershipSample();
@@ -141,12 +141,12 @@ private:
 
   /** Gets the internal continuous class label from the class labels that
    *   are used for AddInstance method. */ 
-  int GetInternalClassLabel(const ClassLabelType classLabel ) const ;
+  int GetInternalClassLabel(const ClassLabelType classLabel ) const;
 
 
-  UniqueClassLabelsType           m_UniqueClassLabels ;
-  ClassLabelHolderType            m_ClassLabelHolder ;
-  std::vector< ClassSamplePointer > m_ClassSamples ;
+  UniqueClassLabelsType                 m_UniqueClassLabels;
+  ClassLabelHolderType                  m_ClassLabelHolder;
+  std::vector< ClassSamplePointer >     m_ClassSamples;
 
   SampleConstPointer              m_Sample;
   unsigned int                    m_NumberOfClasses;
