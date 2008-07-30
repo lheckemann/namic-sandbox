@@ -45,7 +45,7 @@ MembershipSample< TSample >
 template< class TSample >
 inline void 
 MembershipSample< TSample >
-::AddInstance(const unsigned int &classLabel, const InstanceIdentifier &id) 
+::AddInstance(const ClassLabelType &classLabel, const InstanceIdentifier &id) 
 { 
   m_ClassLabelHolder[id] = classLabel ; 
   int classIndex = this->GetInternalClassLabel(classLabel) ;
@@ -71,7 +71,7 @@ MembershipSample< TSample >
 template< class TSample >
 inline int 
 MembershipSample< TSample >
-::GetInternalClassLabel(const unsigned int classLabel) const
+::GetInternalClassLabel(const ClassLabelType classLabel) const
 {
   for ( unsigned int i = 0 ; i < m_UniqueClassLabels.size() ; i++ )
     {
@@ -87,7 +87,7 @@ MembershipSample< TSample >
 template< class TSample >
 unsigned int
 MembershipSample< TSample >
-::GetClassSampleSize(const unsigned int &classLabel) const
+::GetClassSampleSize(const ClassLabelType &classLabel) const
 {
   int classIndex = this->GetInternalClassLabel(classLabel) ;
   return m_ClassSampleSizes[classIndex] ;
@@ -106,7 +106,7 @@ MembershipSample< TSample >
 template< class TSample >
 const typename MembershipSample< TSample >::ClassSampleType*
 MembershipSample< TSample >
-::GetClassSample(const unsigned int &classLabel) const
+::GetClassSample(const ClassLabelType &classLabel) const
 {
   int classIndex = this->GetInternalClassLabel(classLabel) ;
   return m_ClassSamples[classIndex] ; 
