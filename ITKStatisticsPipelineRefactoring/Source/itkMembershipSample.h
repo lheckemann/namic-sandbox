@@ -130,6 +130,143 @@ public:
   /** returns the total frequency for the 'd' dimension */
   TotalAbsoluteFrequencyType GetTotalFrequency() const;
 
+  class ConstIterator
+    {
+    friend class MembershipSample;
+    public:
+
+    ConstIterator( const Self * sample )
+      {
+      *this = sample->Begin();
+      }
+
+    ConstIterator(const ConstIterator& iter)
+      {
+      m_Iter = iter.m_Iter;
+      m_Sample = iter.m_Sample;
+      m_InstanceIdentifier = iter.m_InstanceIdentifier;
+      }
+
+    ConstIterator& operator=(const ConstIterator& iter)
+      {
+      m_Iter = iter.m_Iter;
+      m_Sample = iter.m_Sample;
+      m_InstanceIdentifier = iter.m_InstanceIdentifier;
+      return *this;
+      }
+
+    bool operator!=(const ConstIterator& it) 
+      {
+      return (m_Iter != it.m_Iter);
+      }
+    
+    bool operator==(const ConstIterator& it) 
+      { 
+      return (m_Iter == it.m_Iter);
+      }
+
+    ConstIterator& operator++() 
+      { 
+      ++m_Iter;
+      ++m_InstanceIdentifier;
+      return *this;
+      }
+ 
+    AbsoluteFrequencyType GetFrequency() const
+      {
+      return  m_Sample->GetFrequency(m_InstanceIdentifier);
+      }
+    
+    const MeasurementVectorType & GetMeasurementVector() const
+      {
+      return m_Sample->GetMeasurementVector(m_InstanceIdentifier);
+      } 
+    
+    InstanceIdentifier GetInstanceIdentifier() const   
+      {
+      return m_InstanceIdentifier; 
+      }
+    
+    protected:
+    // Purposely not implemented
+    ConstIterator();
+
+    // Only to be called from the MembershipSample
+    ConstIterator(typename SampleType::ConstIterator iter, 
+             const Self* memberSample, InstanceIdentifier iid)
+      :m_Iter(iter), m_Sample(memberSample->m_Sample), m_InstanceIdentifier(iid)
+    {}
+
+    typename SampleType::ConstIterator m_Iter; 
+    const TSample*        m_Sample;
+    InstanceIdentifier    m_InstanceIdentifier;
+  };
+
+  class Iterator: public ConstIterator
+    {
+    friend class MembershipSample;
+
+    public:
+    
+    Iterator(Self * sample):ConstIterator( sample )
+      {
+      }
+
+    Iterator(const Iterator &iter):ConstIterator( iter )
+      {
+      }
+
+    Iterator& operator =(const Iterator & iter)
+      {
+      this->ConstIterator::operator=( iter );
+      return *this;
+      }
+
+    protected:
+    // To ensure const-correctness these method must not be in the public API.
+    // The are purposly not implemented, since they should never be called.
+    Iterator();
+    Iterator(const Self * sample);
+    Iterator(const ConstIterator & it);
+    ConstIterator& operator=(const ConstIterator& it);
+
+    // Only to be called from the MembershipSample
+    Iterator(typename SampleType::ConstIterator iter,  Self * memberSample,
+             InstanceIdentifier iid)
+      :ConstIterator( iter, memberSample, iid )
+      {}
+
+    private:
+    };
+
+  /** This method returns an iterator to the beginning of the
+      measurement vectors */
+  Iterator Begin()
+    { 
+    Iterator iter(m_Sample->Begin(), this, 0);
+    return iter; 
+    }
+
+  /** This method returns an iterator to the beginning of the
+      measurement vectors */
+  Iterator  End()
+    {
+    Iterator iter(m_Sample->End(), this, m_Sample->Size()); 
+    return iter; 
+    }
+
+  ConstIterator Begin() const
+    { 
+    ConstIterator iter(m_Sample->Begin(),this,  0);
+    return iter; 
+    }
+  
+  ConstIterator  End()  const
+    {
+    ConstIterator iter(m_Sample->End(), this, m_Sample->Size()); 
+    return iter; 
+    }
+ 
 protected:
   MembershipSample();
   virtual ~MembershipSample() {}
