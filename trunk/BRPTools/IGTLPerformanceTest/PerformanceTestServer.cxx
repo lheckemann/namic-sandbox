@@ -1,6 +1,6 @@
 /*=========================================================================
 
-  Program:   Open IGT Link -- Example for Data Receiving Server Program
+  Program:   Open IGT Link -- Performance Test Prgram
   Module:    $RCSfile: $
   Language:  C++
   Date:      $Date: $
@@ -24,10 +24,12 @@
 #include "igtlStatusMessage.h"
 #include "igtlServerSocket.h"
 
+#include "igtlLogger.h"
+
 
 int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
-int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
+int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header, igtl::Logger::Pointer& logger);
 
 int main(int argc, char* argv[])
 {
@@ -54,6 +56,7 @@ int main(int argc, char* argv[])
   // time stamps
   igtl::TimeStamp::Pointer dataTimeStamp = igtl::TimeStamp::New();
   igtl::TimeStamp::Pointer currentTimeStamp = igtl::TimeStamp::New();
+  igtl::TimeStamp::Pointer baseTimeStamp    = igtl::TimeStamp::New();
   
   while (1)
     {
@@ -67,9 +70,15 @@ int main(int argc, char* argv[])
       igtl::MessageHeader::Pointer headerMsg;
       headerMsg = igtl::MessageHeader::New();
 
+      // Prepare Logging class
+      igtl::Logger::Pointer logger;
+      logger = igtl::Logger::New();
+
+      baseTimeStamp->GetTime();
+
       //------------------------------------------------------------
       // loop
-      for (int i = 0; i < 100; i ++)
+      while(1)
         {
 
         // Initialize receive buffer
@@ -80,6 +89,7 @@ int main(int argc, char* argv[])
         if (r != headerMsg->GetPackSize())
           {
           std::cerr << "Error: receiving data." << std::endl;
+          break;
           }
 
         // Deserialize the header
@@ -93,25 +103,33 @@ int main(int argc, char* argv[])
           // Retrive the timestamp
           currentTimeStamp->GetTime();
           double delay = currentTimeStamp->GetTimeStamp() - dataTimeStamp->GetTimeStamp();
-          std::cout << "Delay: " << delay << " s " << std::endl;
+          double data[2];
+          data[0] = currentTimeStamp->GetTimeStamp()-baseTimeStamp->GetTimeStamp();
+          data[1] = delay;
+          logger->PushData(data);
           }
         else if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
           {
           ReceiveImage(socket, headerMsg);
           currentTimeStamp->GetTime();
           double delay = currentTimeStamp->GetTimeStamp() - dataTimeStamp->GetTimeStamp();
-          std::cout << "Delay: " << delay << " s " << std::endl;
+          double data[2];
+          data[0] = currentTimeStamp->GetTimeStamp()-baseTimeStamp->GetTimeStamp();
+          data[1] = delay;
+          logger->PushData(data);
+
           }
         else if (strcmp(headerMsg->GetDeviceType(), "STATUS") == 0)
           {
-          ReceiveStatus(socket, headerMsg);
+          ReceiveStatus(socket, headerMsg, logger);
           }
         else
           {
           // if the data type is unknown, skip reading.
-          socket->Skip(headerMsg->GetBodySizeToRead(), 0);
+          socket->Skip(headerMsg->GetBodySizeToRead());
           }
         }
+      socket->CloseSocket();
       }
     }
     
@@ -203,7 +221,8 @@ int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& he
 
 }
 
-int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
+
+int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header, igtl::Logger::Pointer& logger)
 {
 
   std::cerr << "Receiving STATUS data type." << std::endl;
@@ -229,6 +248,19 @@ int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& h
     std::cerr << " Error Name: " << statusMsg->GetErrorName() << std::endl;
     std::cerr << " Status    : " << statusMsg->GetStatusString() << std::endl;
     std::cerr << "============================" << std::endl;
+    }
+
+  if ((int)statusMsg->GetSubCode() > 0) // new log session
+    {
+    // Set Logger
+    logger->SetFileName(statusMsg->GetStatusString());
+    logger->SetSize((int)statusMsg->GetSubCode(), 2);
+    std::cerr << "The logger is ready." << std::endl;
+    }
+  else if (strcmp(logger->GetFileName(), statusMsg->GetStatusString()) == 0)
+    {
+    std::cerr << "Writing Log file: " << logger->GetFileName() << std::endl;
+    logger->Flush();
     }
 
   return 0;
