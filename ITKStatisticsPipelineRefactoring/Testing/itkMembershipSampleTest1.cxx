@@ -60,7 +60,7 @@ int itkMembershipSampleTest1(int, char* [] )
   membershipSample->Print( std::cout );
 
   // Add measurmement vectors to the list sample
-  unsigned int sampleSize = 25;
+  unsigned int sampleSize = 10;
   MeasurementVectorType mv;
 
   std::cout << "Sample length = " << sample->GetMeasurementVectorSize() << std::endl;
@@ -81,13 +81,20 @@ int itkMembershipSampleTest1(int, char* [] )
 
   SampleType::ConstIterator iter= begin;
 
-  MembershipSampleType::ClassLabelType classLabel = 1;
+  MembershipSampleType::ClassLabelType classLabel = 0;
+
+  unsigned int sampleCounter = 0;
   
   while( iter != end ) 
     {
+    if( sampleCounter < 5 ) 
+      {
+      classLabel = 1;
+      }
     SampleType::InstanceIdentifier id = iter.GetInstanceIdentifier();  
     membershipSample->AddInstance( classLabel, id );
     ++iter;
+    ++sampleCounter;
     }
     
   std::cout << "Test Passed !" << std::endl;

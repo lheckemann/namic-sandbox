@@ -32,13 +32,11 @@ MembershipSample< TSample >
 ::SetNumberOfClasses(unsigned int numberOfClasses)
 {
   m_NumberOfClasses = numberOfClasses ;
-  m_ClassSampleSizes.resize(m_NumberOfClasses) ;
   m_ClassSamples.resize(m_NumberOfClasses) ;
   for ( unsigned int i = 0 ; i < m_NumberOfClasses ; i++ )
     {
     m_ClassSamples[i] = ClassSampleType::New() ;
     (m_ClassSamples[i])->SetSample(this->GetSample()) ;
-    m_ClassSampleSizes[i] = 0 ;
     }
 }
 
@@ -54,8 +52,6 @@ MembershipSample< TSample >
     m_UniqueClassLabels.push_back(classLabel) ;
     classIndex = m_UniqueClassLabels.size() - 1 ;
     }
-
-  m_ClassSampleSizes[classIndex] += 1 ;
 
   (m_ClassSamples[classIndex])->AddInstance(id) ;
 }
@@ -82,15 +78,6 @@ MembershipSample< TSample >
     }
 
   return -1 ;
-}
-
-template< class TSample >
-unsigned int
-MembershipSample< TSample >
-::GetClassSampleSize(const ClassLabelType &classLabel) const
-{
-  int classIndex = this->GetInternalClassLabel(classLabel) ;
-  return m_ClassSampleSizes[classIndex] ;
 }
 
 template< class TSample >
