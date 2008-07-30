@@ -37,9 +37,7 @@ SampleClassifierFilter< TSample >
   this->ProcessObject::SetNthOutput(0, membershipSample.GetPointer());
 
   /** Set sample in the output */
-  /** FIXME
-  const MembershipSampleType & output = membershipSampleDecorator->Get();
-  output.SetSample( this->GetInput() ); */
+  membershipSample->SetSample( this->GetInput() ); 
 }
 
 template< class TSample >
@@ -142,19 +140,13 @@ SampleClassifierFilter< TSample >
   const SampleType * sample =
     static_cast< const SampleType * >( this->ProcessObject::GetInput( 0 ) );
 
-  /*
-  MembershipSampleType * output =
-            dynamic_cast< MembershipSampleType * >(
-this->ProcessObject::GetOutput(0)); */
-
-  /* MembershpSample class: Set the size depending on the size of the sample 
-  output->Resize( sample->Size() ); */
-
   std::vector< double > discriminantScores;
   discriminantScores.resize( this->m_NumberOfClasses );
 
-  /** FIXME: set the number of classes 
-  output->SetNumberOfClasses( this->m_NumberOfClasses ); */
+  MembershipSampleType * output = dynamic_cast< MembershipSampleType * >(
+                      this->ProcessObject::GetOutput(0)); 
+
+  output->SetNumberOfClasses( this->m_NumberOfClasses ); 
 
   typename TSample::ConstIterator iter = sample->Begin();
   typename TSample::ConstIterator end  = sample->End();
@@ -172,10 +164,7 @@ this->ProcessObject::GetOutput(0)); */
     unsigned int classLabel;
     classLabel = m_DecisionRule->Evaluate(discriminantScores);
   
-    /** FIXME...MembershipSample class is not ready to take instances
-    output->AddInstance(m_ClassLabels[classLabel],
-                          iter.GetInstanceIdentifier());
-    */
+    output->AddInstance(classLabels[classLabel], iter.GetInstanceIdentifier());
     ++iter;
     }
 }
