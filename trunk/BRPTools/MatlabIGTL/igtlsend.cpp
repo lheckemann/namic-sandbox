@@ -79,10 +79,10 @@ void mexFunction (int nlhs, mxArray *plhs[],
   double*     trans    = mxGetPr(prhs[ARG_ID_TRANS]);
 
   igtl::Matrix4x4 mat;
-  mat[0][0] = trans[0];  mat[0][1] = trans[1];  mat[0][2] = trans[2];  mat[0][3] = trans[3];
-  mat[1][0] = trans[4];  mat[1][1] = trans[5];  mat[1][2] = trans[6];  mat[1][3] = trans[7];
-  mat[2][0] = trans[8];  mat[2][1] = trans[9];  mat[2][2] = trans[10]; mat[2][3] = trans[11];
-  mat[3][0] = trans[12]; mat[3][1] = trans[13]; mat[3][2] = trans[14]; mat[3][3] = trans[15];
+  mat[0][0] = trans[0];  mat[0][1] = trans[4];  mat[0][2] = trans[8];  mat[0][3] = trans[12];
+  mat[1][0] = trans[1];  mat[1][1] = trans[5];  mat[1][2] = trans[9];  mat[1][3] = trans[13];
+  mat[2][0] = trans[2];  mat[2][1] = trans[6];  mat[2][2] = trans[10]; mat[2][3] = trans[14];
+  mat[3][0] = trans[3];  mat[3][1] = trans[7];  mat[3][2] = trans[11]; mat[3][3] = trans[15];
 
   float norm_i[] = {mat[0][0], mat[1][0], mat[2][0]};
   float norm_j[] = {mat[0][1], mat[1][1], mat[2][1]};
@@ -142,11 +142,19 @@ void mexFunction (int nlhs, mxArray *plhs[],
   imgMsg->SetSubVolume(size, svoffset);
   imgMsg->AllocateScalars();
 
-  int npixel = size[0]*size[1]*size[2];
+  //int npixel = size[0]*size[1]*size[2];
+  int ni = size[0]; int nj = size[1]; int nk = size[2];
   igtlUint16* dest = (igtlUint16*)imgMsg->GetScalarPointer();
-  for (int i = 0; i < npixel; i ++)
+  for (int k = 0; k < nk; k ++)
     {
-    dest[i] = (igtlUint16)rdata[i];
+    int koff = k*ni*nj;
+    for (int j = 0; j < nj; j ++)
+      {
+      for (int i = 0; i < ni; i ++)
+        {
+        dest[koff + j*ni + i] = (igtlUint16)rdata[koff + i*nj + j];
+        }
+      }
     }
 
   // ---------------------------------------------------------------
