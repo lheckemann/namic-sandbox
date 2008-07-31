@@ -113,7 +113,7 @@ void RobinIF::dataRead(){
         }
         if(data1.compare("DATA1")==0){
           setPosition1(x1,y1,z1);
-          setOrientation0(q1_0,q1_1,q1_2,q1_3);
+          setOrientation1(q1_0,q1_1,q1_2,q1_3);
         }
     bzero(buffer,256);
 }
