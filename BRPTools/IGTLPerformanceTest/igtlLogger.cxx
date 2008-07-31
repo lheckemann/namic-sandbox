@@ -172,7 +172,8 @@ void Logger::Flush()
 
   if (this->m_FileName.size() > 0)
     {
-    std::ofstream fout(this->m_FileName.c_str(), std::ios::app);
+    //std::ofstream fout(this->m_FileName.c_str(), std::ios::app);
+    std::ofstream fout(this->m_FileName.c_str());
     //fout.precision(9);
 
     int rows       = this->m_Rows;
