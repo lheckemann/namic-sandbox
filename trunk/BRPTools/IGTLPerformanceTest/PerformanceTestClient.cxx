@@ -27,9 +27,9 @@
 #include "igtlLoopController.h"
 
 
-unsigned char* GenerateDummyImage(int x, int y, int z);
+unsigned short* GenerateDummyImage(int x, int y, int z);
 void GetRandomTestMatrix(igtl::Matrix4x4& matrix);
-int GetDummyImage(igtl::ImageMessage::Pointer& msg, unsigned char *dummy, int index);
+int GetDummyImage(igtl::ImageMessage::Pointer& msg, unsigned short *dummy, int index);
 
 enum {
   TYPE_TRANSFORM,
@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
   statusMsg->SetErrorName("OK");
   statusMsg->SetStatusString(testName);
   statusMsg->Pack();
-  //socket->Send(statusMsg->GetPackPointer(), statusMsg->GetPackSize());
+  socket->Send(statusMsg->GetPackPointer(), statusMsg->GetPackSize());
   igtl::Sleep(400); // wait for 400 ms
   std::cerr << "done." << std::endl;
 
@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
 
   igtl::TransformMessage::Pointer transMsg;
   igtl::ImageMessage::Pointer imgMsg;
-  unsigned char *dummyImage = NULL;
+  unsigned short *dummyImage = NULL;
 
   if (type == TYPE_TRANSFORM)
     {
@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
     float spacing[]  = {1.0, 1.0, 1.0};     // spacing (mm/pixel)
     int   svsize[]   = {x, y, z};           // sub-volume size
     int   svoffset[] = {0, 0, 0};           // sub-volume offset
-    int   scalarType = igtl::ImageMessage::TYPE_UINT8;// scalar type
+    int   scalarType = igtl::ImageMessage::TYPE_UINT16;// scalar type
 
     //------------------------------------------------------------
     // Create a new IMAGE type message
@@ -165,7 +165,8 @@ int main(int argc, char* argv[])
     imgMsg->SetDeviceName("TestImager");
     imgMsg->SetSubVolume(svsize, svoffset);
     igtl::Matrix4x4 matrix;
-    GetRandomTestMatrix(matrix);
+    //GetRandomTestMatrix(matrix);
+    igtl::IdentityMatrix(matrix);
     imgMsg->SetMatrix(matrix);
 
     imgMsg->AllocateScalars();
@@ -204,7 +205,9 @@ int main(int argc, char* argv[])
       }
     else if (type == TYPE_IMAGE)
       {
+      timeStamp->GetTime();
       GetDummyImage(imgMsg, dummyImage, i % 2);
+      imgMsg->SetTimeStamp(timeStamp);
       //GetRandomTestMatrix(matrix);
       //imgMsg->SetMatrix(matrix);
       imgMsg->Pack();
@@ -222,7 +225,7 @@ int main(int argc, char* argv[])
   statusMsg->SetSubCode(0);
   statusMsg->SetErrorName("OK");
   statusMsg->Pack();
-  //socket->Send(statusMsg->GetPackPointer(), statusMsg->GetPackSize());
+  socket->Send(statusMsg->GetPackPointer(), statusMsg->GetPackSize());
 
   //------------------------------------------------------------
   // Close connection
@@ -276,11 +279,11 @@ void GetRandomTestMatrix(igtl::Matrix4x4& matrix)
 
 #define BLOCK_SIZE 16
 
-unsigned char* GenerateDummyImage(int x, int y, int z)
+unsigned short* GenerateDummyImage(int x, int y, int z)
 {
-  unsigned char* ptr;
+  unsigned short* ptr;
 
-  ptr = new unsigned char[x*y*z*sizeof(unsigned char)*2];
+  ptr = new unsigned short[x*y*z*sizeof(unsigned short)*2];
 
   for (int n = 0; n < 2; n ++)
     {
@@ -293,7 +296,8 @@ unsigned char* GenerateDummyImage(int x, int y, int z)
         for (int i = 0; i < x; i ++)
           {
           int rx = i / BLOCK_SIZE;
-          ptr[n*z*y*x + k*y*x + j*x + i] = ((rz+ry+rx+n)%2)? 512:0;
+          int idx = rz+ry+rx+n;
+          ptr[n*z*y*x + k*y*x + j*x + i] = (idx%2)? 16*idx:0;
           }
         }
       }
@@ -304,10 +308,9 @@ unsigned char* GenerateDummyImage(int x, int y, int z)
 }
 
 
-
 //------------------------------------------------------------
 // Function to read test image data
-int GetDummyImage(igtl::ImageMessage::Pointer& msg, unsigned char *dummy, int index)
+int GetDummyImage(igtl::ImageMessage::Pointer& msg, unsigned short *dummy, int index)
 {
 
   //------------------------------------------------------------

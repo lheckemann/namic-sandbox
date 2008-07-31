@@ -104,20 +104,20 @@ int main(int argc, char* argv[])
           currentTimeStamp->GetTime();
           double delay = currentTimeStamp->GetTimeStamp() - dataTimeStamp->GetTimeStamp();
           double data[2];
-          data[0] = currentTimeStamp->GetTimeStamp()-baseTimeStamp->GetTimeStamp();
+          data[0] = currentTimeStamp->GetTimeStamp() - baseTimeStamp->GetTimeStamp();
           data[1] = delay;
           logger->PushData(data);
           }
         else if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
           {
           ReceiveImage(socket, headerMsg);
+          // Retrive the timestamp
           currentTimeStamp->GetTime();
           double delay = currentTimeStamp->GetTimeStamp() - dataTimeStamp->GetTimeStamp();
           double data[2];
-          data[0] = currentTimeStamp->GetTimeStamp()-baseTimeStamp->GetTimeStamp();
+          data[0] = currentTimeStamp->GetTimeStamp() - baseTimeStamp->GetTimeStamp();
           data[1] = delay;
           logger->PushData(data);
-
           }
         else if (strcmp(headerMsg->GetDeviceType(), "STATUS") == 0)
           {
@@ -204,7 +204,7 @@ int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& he
     imgMsg->GetSpacing(spacing);
     imgMsg->GetSubVolume(svsize, svoffset);
 
-
+    /*
     std::cerr << "Device Name           : " << imgMsg->GetDeviceName() << std::endl;
     std::cerr << "Scalar Type           : " << scalarType << std::endl;
     std::cerr << "Dimensions            : ("
@@ -215,6 +215,7 @@ int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& he
               << svsize[0] << ", " << svsize[1] << ", " << svsize[2] << ")" << std::endl;
     std::cerr << "Sub-Volume offset     : ("
               << svoffset[0] << ", " << svoffset[1] << ", " << svoffset[2] << ")" << std::endl;
+    */
 
     return 1;
     }
