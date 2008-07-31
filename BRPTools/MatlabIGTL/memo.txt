@@ -1,0 +1,4 @@
+To use the MEX in the SPL environment,
+use the matlab in:
+ /local/os-exact/pkg/Matlab71-64/bin/
+
