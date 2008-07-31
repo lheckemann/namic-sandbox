@@ -44,7 +44,7 @@ DistanceToCentroidMembershipFunction< TVector >
 template< class TVector >
 void 
 DistanceToCentroidMembershipFunction< TVector >
-::SetMeasurementVectorSize( const MeasurementVectorSizeType s )
+::SetMeasurementVectorSize( MeasurementVectorSizeType s )
 {
   this->Superclass::SetMeasurementVectorSize( s );
   this->m_DistanceMetric->SetMeasurementVectorSize( s );

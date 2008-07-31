@@ -99,7 +99,7 @@ int itkMembershipSampleTest1(int, char* [] )
 
   // iterator tests
   //
-  /*
+  
   std::cerr << "Iterators..." << std::endl;
   {
   typedef MembershipSampleType::Iterator IteratorType;
@@ -157,8 +157,83 @@ int itkMembershipSampleTest1(int, char* [] )
     return EXIT_FAILURE;    
     }
   }
-  */
-   
+ 
+  // ConstIterator test
+  std::cerr << "Const Iterators..." << std::endl;
+  {
+  // forward iterator
+  typedef MembershipSampleType::ConstIterator  ConstIteratorType;
+  ConstIteratorType s_iter = membershipSample->Begin();
+  
+  // copy constructor
+  ConstIteratorType bs_iter(s_iter);
+  if (bs_iter != s_iter)
+    {
+    std::cerr << "Iterator::Copy Constructor (from const) failed" 
+              << std::endl;
+    return EXIT_FAILURE;    
+    }
+
+  // assignment operator
+  ConstIteratorType assignment_iter( bs_iter );
+  assignment_iter = s_iter;
+  if (assignment_iter != s_iter)
+    {
+    std::cerr << "Const Iterator::operator= () failed" 
+              << std::endl;
+    return EXIT_FAILURE;    
+    }
+
+  // copy from non-const iterator
+  MembershipSampleType::Iterator nonconst_iter = membershipSample->Begin();
+  MembershipSampleType::ConstIterator s2_iter(nonconst_iter);
+  if (s2_iter != s_iter)
+    {
+    std::cerr << "Iterator::Copy Constructor (from non-const) failed" 
+              << std::endl;
+    return EXIT_FAILURE;    
+    }
+  // assignment from non-const iterator
+  s2_iter = nonconst_iter;
+  if (s2_iter != s_iter)
+    {
+    std::cerr << "Iterator::assignment (from non-const) failed" << std::endl;
+    return EXIT_FAILURE;    
+    }
+  
+  MembershipSampleType::InstanceIdentifier id = 0;
+  while (s_iter != membershipSample->End())
+    {
+    if (membershipSample->GetMeasurementVector(id) != 
+        s_iter.GetMeasurementVector())
+      {
+      std::cerr << "Iterator::GetMeasurementVector (forward) failed" 
+                << std::endl;
+      return EXIT_FAILURE;
+      }
+    if (id != s_iter.GetInstanceIdentifier())
+      {
+      std::cerr << "Iterator::GetInstanceIdentifier (forward) failed" 
+                << std::endl;
+      return EXIT_FAILURE;
+      }
+    if (s_iter.GetFrequency() != 1)
+      {
+      std::cerr << "Iterator::GetFrequency (forward) failed" << std::endl;
+      return EXIT_FAILURE;
+      }
+    ++id;
+    ++s_iter;
+    }
+  
+  if (s_iter != membershipSample->End())
+    {
+    std::cerr << "Iterator::End (forward) failed" << std::endl;
+    return EXIT_FAILURE;    
+    }
+  
+  } 
+
   std::cout << "Test Passed !" << std::endl;
   return EXIT_SUCCESS;
 }
