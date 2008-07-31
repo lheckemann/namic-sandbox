@@ -53,7 +53,7 @@ public:
     STATUS_CHECKSUM_ERROR      = 9,  /* Checksum error */
     STATUS_CONFIG_ERROR        = 10, /* Configuration error */
     STATUS_RESOURCE_ERROR      = 11, /* Not enough resource (memory, storage etc) */
-    STATUS_ILLEGAL_INSTRUCTION = 12, /* Illegal/Unknown instruction */
+    STATUS_UNKNOWN_INSTRUCTION = 12, /* Illegal/Unknown instruction */
     STATUS_NOT_READY           = 13, /* Device not ready (starting up)*/
     STATUS_MANUAL_MODE         = 14, /* Manual mode (device does not accept commands) */
     STATUS_DISABLED            = 15, /* Device disabled */
