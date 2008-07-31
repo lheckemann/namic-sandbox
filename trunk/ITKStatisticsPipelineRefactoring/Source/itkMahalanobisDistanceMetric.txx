@@ -58,7 +58,7 @@ MahalanobisDistanceMetric< TVector >
 template< class TVector >
 void 
 MahalanobisDistanceMetric< TVector >
-::SetMeasurementVectorSize( const MeasurementVectorSizeType size )
+::SetMeasurementVectorSize( MeasurementVectorSizeType size )
 {
   this->Superclass::SetMeasurementVectorSize( size );
   this->m_Covariance.set_size( size,size );

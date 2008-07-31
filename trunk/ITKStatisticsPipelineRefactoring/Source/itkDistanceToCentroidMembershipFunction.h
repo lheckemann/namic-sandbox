@@ -56,7 +56,7 @@ public:
                                                   MeasurementVectorSizeType;
 
   /**  Set the length of each measurement vector. */
-  virtual void SetMeasurementVectorSize( const MeasurementVectorSizeType );
+  virtual void SetMeasurementVectorSize( MeasurementVectorSizeType );
 
   /** Type of the DistanceMetric to use */
   typedef DistanceMetric< MeasurementVectorType >     DistanceMetricType;

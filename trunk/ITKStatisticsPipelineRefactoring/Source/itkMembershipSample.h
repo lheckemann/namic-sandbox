@@ -142,14 +142,12 @@ public:
 
     ConstIterator(const ConstIterator& iter)
       {
-      m_Iter = iter.m_Iter;
       m_Sample = iter.m_Sample;
       m_InstanceIdentifier = iter.m_InstanceIdentifier;
       }
 
     ConstIterator& operator=(const ConstIterator& iter)
       {
-      m_Iter = iter.m_Iter;
       m_Sample = iter.m_Sample;
       m_InstanceIdentifier = iter.m_InstanceIdentifier;
       return *this;
@@ -157,17 +155,17 @@ public:
 
     bool operator!=(const ConstIterator& it) 
       {
-      return (m_Iter != it.m_Iter);
+      return (m_InstanceIdentifier != it.m_InstanceIdentifier);
       }
     
     bool operator==(const ConstIterator& it) 
       { 
-      return (m_Iter == it.m_Iter);
+      return (m_InstanceIdentifier == it.m_InstanceIdentifier);
       }
 
     ConstIterator& operator++() 
       { 
-      ++m_Iter;
+      //++m_Iter;
       ++m_InstanceIdentifier;
       return *this;
       }
@@ -192,12 +190,13 @@ public:
     ConstIterator();
 
     // Only to be called from the MembershipSample
-    ConstIterator(typename SampleType::ConstIterator iter, 
+    ConstIterator(
              const Self* memberSample, InstanceIdentifier iid)
-      :m_Iter(iter), m_Sample(memberSample->m_Sample), m_InstanceIdentifier(iid)
+      :m_Sample(memberSample->m_Sample), m_InstanceIdentifier(iid)
     {}
 
-    typename SampleType::ConstIterator m_Iter; 
+
+    //typename SampleType::ConstIterator m_Iter; 
     const TSample*        m_Sample;
     InstanceIdentifier    m_InstanceIdentifier;
   };
@@ -231,11 +230,11 @@ public:
     ConstIterator& operator=(const ConstIterator& it);
 
     // Only to be called from the MembershipSample
-    Iterator(typename SampleType::ConstIterator iter,  Self * memberSample,
+    Iterator(Self * memberSample,
              InstanceIdentifier iid)
-      :ConstIterator( iter, memberSample, iid )
-      {}
-
+      :ConstIterator( memberSample, iid )
+      {} 
+     
     private:
     };
 
@@ -243,7 +242,7 @@ public:
       measurement vectors */
   Iterator Begin()
     { 
-    Iterator iter(m_Sample->Begin(), this, 0);
+    Iterator iter(this, 0);
     return iter; 
     }
 
@@ -251,19 +250,19 @@ public:
       measurement vectors */
   Iterator  End()
     {
-    Iterator iter(m_Sample->End(), this, m_Sample->Size()); 
+    Iterator iter(this, m_Sample->Size()); 
     return iter; 
     }
 
   ConstIterator Begin() const
     { 
-    ConstIterator iter(m_Sample->Begin(),this,  0);
+    ConstIterator iter(this,  0);
     return iter; 
     }
   
   ConstIterator  End()  const
     {
-    ConstIterator iter(m_Sample->End(), this, m_Sample->Size()); 
+    ConstIterator iter(this, m_Sample->Size()); 
     return iter; 
     }
  
