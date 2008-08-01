@@ -84,7 +84,6 @@ int itkDistanceMetricTest(int, char* [] )
   distance->Print(std::cout);
 
   //try changing the measurment vector size, it should throw an exception
-
   try
     {
     MeasurementVectorSizeType newSize = 20;
@@ -98,6 +97,40 @@ int itkDistanceMetricTest(int, char* [] )
     {
     std::cerr << "Exception thrown: " << excpt << std::endl;
     }
+
+  //try re-setting the measurment vector size to the same value, no exceptins should be
+  //thrown 
+  try
+    {
+    MeasurementVectorSizeType sameSize = 17;
+    distance->SetMeasurementVectorSize( sameSize ); 
+   return EXIT_SUCCESS;
+    }
+  catch( itk::ExceptionObject & excpt )
+    {
+    std::cerr << "Exception thrown: " << excpt << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
+  //try setting an origin vector with a different size it should throw an exception
+  try
+    {
+    DistanceMetricType::OriginType origin;
+    MeasurementVectorSizeType newSize = 25;
+    origin.SetSize( newSize );
+    distance->SetOrigin( origin ); 
+
+    std::cerr << "Attempting to set an origin vector with a different size,"
+              << "should result in an exception" << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excpt )
+    {
+    std::cerr << "Exception thrown: " << excpt << std::endl;
+    }
+
+
 
   return EXIT_SUCCESS;
 }
