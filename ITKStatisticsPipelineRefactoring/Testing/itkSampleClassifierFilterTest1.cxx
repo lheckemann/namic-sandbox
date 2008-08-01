@@ -64,22 +64,22 @@ int itkSampleClassifierFilterTest1(int argc, char *argv[] )
     }
 
   //Add measurement vectors 
-  MeasurementVectorType v1;
+  MeasurementVectorType v1(numberOfComponents);
   v1[0] = 0;
-  v1[0] = 0;
-  v1[0] = 0;
+  v1[1] = 0;
+  v1[2] = 0;
   sample->PushBack( v1 );
 
-  MeasurementVectorType v2;
-  v2[0] = 0;
-  v2[0] = 0;
-  v2[0] = 0;
+  MeasurementVectorType v2(numberOfComponents);
+  v2[0] = 1;
+  v2[1] = 1;
+  v2[2] = 1;
   sample->PushBack( v2 );
 
-  MeasurementVectorType v3;
-  v3[0] = 0;
-  v3[0] = 0;
-  v3[0] = 0;
+  MeasurementVectorType v3(numberOfComponents);
+  v3[0] = 2;
+  v3[1] = 2;
+  v3[2] = 2;
   sample->PushBack( v3 );
 
 
@@ -138,12 +138,24 @@ int itkSampleClassifierFilterTest1(int argc, char *argv[] )
   MembershipFunctionVectorType &  membershipFunctionsVector = membershipFunctionsObject->Get();
 
   MembershipFunctionPointer membershipFunction1 = MembershipFunctionType::New(); 
+  membershipFunction1->SetMeasurementVectorSize( numberOfComponents );
+  MembershipFunctionType::CentroidType    centroid1;
+  centroid1.SetSize( numberOfComponents );
+  membershipFunction1->SetCentroid( centroid1 );
   membershipFunctionsVector.push_back( membershipFunction1.GetPointer() );
 
   MembershipFunctionPointer membershipFunction2 = MembershipFunctionType::New(); 
+  membershipFunction1->SetMeasurementVectorSize( numberOfComponents );
+  MembershipFunctionType::CentroidType    centroid2;
+  centroid2.SetSize( numberOfComponents );
+  membershipFunction2->SetCentroid( centroid2 );
   membershipFunctionsVector.push_back( membershipFunction2.GetPointer() );
 
   MembershipFunctionPointer membershipFunction3 = MembershipFunctionType::New(); 
+  membershipFunction3->SetMeasurementVectorSize( numberOfComponents );
+  MembershipFunctionType::CentroidType    centroid3;
+  centroid3.SetSize( numberOfComponents );
+  membershipFunction3->SetCentroid( centroid3 );
   membershipFunctionsVector.push_back( membershipFunction3.GetPointer() );
 
   try
