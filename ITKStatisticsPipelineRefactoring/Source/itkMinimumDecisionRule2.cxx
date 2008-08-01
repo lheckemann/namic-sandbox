@@ -22,32 +22,25 @@ namespace Statistics {
 void 
 MinimumDecisionRule2::PrintSelf(std::ostream& os, Indent indent) const 
 { 
-  Superclass::PrintSelf(os, indent) ; 
+  Superclass::PrintSelf(os, indent); 
 }
  
 unsigned int 
 MinimumDecisionRule2::Evaluate(const MembershipVectorType &discriminantScores) const
 {
-  double min = discriminantScores[0] ;
-  unsigned int minIndex = 0 ;
-  unsigned int i ;
-  for (i = 1 ; i < discriminantScores.size() ; i++)
+  double min = discriminantScores[0];
+  unsigned int minIndex = 0;
+  unsigned int i;
+  for (i = 1; i < discriminantScores.size(); i++)
     {
     if (discriminantScores[i] < min) 
       {
-      min = discriminantScores[i] ;
-      minIndex = i ;
+      min = discriminantScores[i];
+      minIndex = i;
       }
     }
-  return minIndex ;
+  return minIndex;
 }
 
 } // end of namespace itk
 } // end of namespace Statistics
-
-
-
-
-
-
-
