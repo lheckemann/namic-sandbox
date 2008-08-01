@@ -52,6 +52,7 @@
 #include "itkEuclideanSquareDistanceMetric.h"
 #include "itkMahalanobisDistanceMetric.h"
 #include "itkManhattanDistanceMetric.h"
+#include "itkDecisionRule.h"
 
 int main ( int , char*  )
 {

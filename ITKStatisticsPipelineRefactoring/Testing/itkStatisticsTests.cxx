@@ -84,5 +84,8 @@ void RegisterTests()
   REGISTER_TEST(itkEuclideanSquareDistanceMetricTest);
   REGISTER_TEST(itkMahalanobisDistanceMetricTest);
   REGISTER_TEST(itkManhattanDistanceMetricTest);
+
+  REGISTER_TEST(itkDecisionRuleTest);
+  
 }
 

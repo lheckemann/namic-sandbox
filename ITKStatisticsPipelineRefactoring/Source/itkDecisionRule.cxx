@@ -16,8 +16,8 @@
 =========================================================================*/
 #include "itkDecisionRule.h"
 
-namespace itk
-{
+namespace itk {
+namespace Statistics {
 
 DecisionRule
 ::DecisionRule() 
@@ -36,4 +36,5 @@ DecisionRule
   Superclass::PrintSelf(os,indent);
 }// end PrintSelf
 
-} // namespace itk
+} // end of namespace Statistics
+} // end of namespace itk
