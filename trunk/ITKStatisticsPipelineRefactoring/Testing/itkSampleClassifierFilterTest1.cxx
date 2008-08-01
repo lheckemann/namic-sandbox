@@ -22,6 +22,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkVariableLengthVector.h"
 #include "itkListSample.h"
 #include "itkSampleClassifierFilter.h"
+#include "itkMaximumDecisionRule2.h"
 #include "itkDistanceToCentroidMembershipFunction.h"
 
 
@@ -99,7 +100,6 @@ int itkSampleClassifierFilterTest1(int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
-  
   typedef FilterType::ClassLabelVectorObjectType               ClassLabelVectorObjectType;
   typedef FilterType::ClassLabelVectorType                     ClassLabelVectorType;
   typedef FilterType::MembershipFunctionVectorObjectType       MembershipFunctionVectorObjectType;
@@ -186,6 +186,13 @@ int itkSampleClassifierFilterTest1(int argc, char *argv[] )
   ClassLabelType  class3 = 2;
   classLabelVector.push_back( class3 );
  
+
+  //Set a decision rule type
+  typedef itk::Statistics::MaximumDecisionRule2  DecisionRuleType;
+
+  DecisionRuleType::Pointer    decisionRule = DecisionRuleType::New();
+  filter->SetDecisionRule( decisionRule );
+  
   try
     {
     filter->Update();
