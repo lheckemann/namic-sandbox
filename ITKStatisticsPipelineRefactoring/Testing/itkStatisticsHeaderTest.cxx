@@ -53,6 +53,8 @@
 #include "itkMahalanobisDistanceMetric.h"
 #include "itkManhattanDistanceMetric.h"
 #include "itkDecisionRule.h"
+#include "itkMaximumDecisionRule2.h"
+#include "itkMinimumDecisionRule2.h"
 
 int main ( int , char*  )
 {

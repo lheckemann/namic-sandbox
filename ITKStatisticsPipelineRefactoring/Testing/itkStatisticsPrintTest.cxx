@@ -48,6 +48,8 @@
 #include "itkMembershipFunctionBase.h"
 #include "itkDistanceToCentroidMembershipFunction.h"
 #include "itkDistanceMetric.h"
+#include "itkMaximumDecisionRule2.h"
+#include "itkMinimumDecisionRule2.h"
 #include "itkEuclideanDistanceMetric.h"
 #include "itkEuclideanSquareDistanceMetric.h"
 #include "itkMahalanobisDistanceMetric.h"
@@ -117,6 +119,9 @@ int itkStatisticsPrintTest(int , char* [])
 
   typedef itk::Statistics::ManhattanDistanceMetric< TMeasurementVectorType >
     ManhattanDistanceMetricType;
+
+  typedef itk::Statistics::MaximumDecisionRule2 MaximumDecisionRuleType;
+  typedef itk::Statistics::MinimumDecisionRule2 MinimumDecisionRuleType;
 
 
   typedef itk::Statistics::HistogramToTextureFeaturesFilter<
@@ -247,6 +252,14 @@ int itkStatisticsPrintTest(int , char* [])
   ManhattanDistanceMetricType::Pointer manhattanDistance=
     ManhattanDistanceMetricType::New();
   std::cout << "----------ManhattanDistanceMetricType " << manhattanDistance ;
+
+  MaximumDecisionRuleType::Pointer maximumDecsion=
+    MaximumDecisionRuleType::New();
+  std::cout << "----------MaximumDecisionRuleType " << maximumDecsion ;
+
+  MaximumDecisionRuleType::Pointer minimumDecsion=
+    MaximumDecisionRuleType::New();
+  std::cout << "----------MaximumDecisionRuleType " << minimumDecsion ;
  
   return EXIT_SUCCESS;
 }
