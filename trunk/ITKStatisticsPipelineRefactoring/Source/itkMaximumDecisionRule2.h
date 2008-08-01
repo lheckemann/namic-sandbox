@@ -32,16 +32,16 @@ class ITKCommon_EXPORT MaximumDecisionRule2 : public DecisionRule
 {
 public:
   /** Standard class typedefs */ 
-  typedef MaximumDecisionRule2 Self ;
-  typedef DecisionRule       Superclass;
-  typedef SmartPointer<Self> Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
+  typedef MaximumDecisionRule2                      Self;
+  typedef DecisionRule                              Superclass;
+  typedef SmartPointer<Self>                        Pointer;
+  typedef SmartPointer<const Self>                  ConstPointer;
 
   /** Run-time type information (and related methods) */
   itkTypeMacro(MaximumDecisionRule2, DecisionRuleBase);
 
   /** Standard New() method support */
-  itkNewMacro(Self) ;
+  itkNewMacro(Self);
 
   typedef Superclass::MembershipVectorType  MembershipVectorType;
  
@@ -56,17 +56,10 @@ public:
 protected:
   MaximumDecisionRule2() {}
   virtual ~MaximumDecisionRule2() {}
-  void PrintSelf(std::ostream& os, Indent indent) const ;
-} ; // end of class
+  void PrintSelf(std::ostream& os, Indent indent) const;
+}; // end of class
 
 } // end of namespace itk
 } // end of namespace Statistics
 
 #endif
-
-
-
-
-
-
-
