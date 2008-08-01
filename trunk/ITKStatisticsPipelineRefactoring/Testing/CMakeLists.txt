@@ -69,6 +69,7 @@ ADD_TEST(itkScalarImageToTextureFeaturesFilterTest ${STATISTICS_TESTS} itkScalar
 
 
 ADD_TEST(itkMembershipFunctionBaseTest ${STATISTICS_TESTS} itkMembershipFunctionBaseTest)
+ADD_TEST(itkMembershipFunctionBaseTest2 ${STATISTICS_TESTS} itkMembershipFunctionBaseTest2)
 ADD_TEST(itkDistanceToCentroidMembershipFunctionTest ${STATISTICS_TESTS} itkDistanceToCentroidMembershipFunctionTest)
 ADD_TEST(itkDistanceMetricTest ${STATISTICS_TESTS} itkDistanceMetricTest)
 ADD_TEST(itkEuclideanDistanceMetricTest ${STATISTICS_TESTS} itkEuclideanDistanceMetricTest)
@@ -126,6 +127,7 @@ SET(Statistics_SRCS
 
 
   itkMembershipFunctionBaseTest.cxx
+  itkMembershipFunctionBaseTest2.cxx
   itkDistanceToCentroidMembershipFunctionTest.cxx
   itkDistanceMetricTest.cxx
   itkEuclideanDistanceMetricTest.cxx

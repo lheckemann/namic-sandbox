@@ -75,6 +75,8 @@ void RegisterTests()
   REGISTER_TEST(itkScalarImageToTextureFeaturesFilterTest); 
 
   REGISTER_TEST(itkMembershipFunctionBaseTest);
+  REGISTER_TEST(itkMembershipFunctionBaseTest2);
+
   REGISTER_TEST(itkDistanceToCentroidMembershipFunctionTest);
   REGISTER_TEST(itkDistanceMetricTest);
   REGISTER_TEST(itkEuclideanDistanceMetricTest);
