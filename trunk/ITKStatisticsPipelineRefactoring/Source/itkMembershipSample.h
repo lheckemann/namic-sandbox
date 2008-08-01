@@ -193,13 +193,15 @@ public:
     ConstIterator(
              const Self* memberSample, InstanceIdentifier iid)
       :m_Sample(memberSample->m_Sample), m_InstanceIdentifier(iid)
-    {}
+      {
+
+      }
 
 
     //typename SampleType::ConstIterator m_Iter; 
     const TSample*        m_Sample;
     InstanceIdentifier    m_InstanceIdentifier;
-  };
+    };
 
   class Iterator: public ConstIterator
     {
