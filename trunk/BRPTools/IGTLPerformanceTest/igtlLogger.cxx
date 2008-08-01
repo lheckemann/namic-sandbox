@@ -31,6 +31,7 @@ Logger::Logger() :
   this->m_Data    = NULL;
 
   this->m_Counter = 0;
+  this->m_Append  = 0;
 }
 
 
@@ -172,8 +173,15 @@ void Logger::Flush()
 
   if (this->m_FileName.size() > 0)
     {
-    //std::ofstream fout(this->m_FileName.c_str(), std::ios::app);
-    std::ofstream fout(this->m_FileName.c_str());
+    std::ofstream fout;
+    if (this->m_Append)
+      {
+      fout.open(this->m_FileName.c_str(), std::ios::app);
+      }
+    else
+      {
+      fout.open(this->m_FileName.c_str());
+      }
     //fout.precision(9);
 
     int rows       = this->m_Rows;
