@@ -18,6 +18,9 @@
 #include <math.h>
 #include <string.h>
 
+#include <sys/times.h>
+
+
 #include "igtlOSUtil.h"
 #include "igtlTransformMessage.h"
 #include "igtlImageMessage.h"
@@ -25,6 +28,7 @@
 #include "igtlStatusMessage.h"
 
 #include "igtlLoopController.h"
+
 
 
 unsigned short* GenerateDummyImage(int x, int y, int z);
@@ -181,12 +185,25 @@ int main(int argc, char* argv[])
   // Prepare Timestamp
   igtl::TimeStamp::Pointer timeStamp = igtl::TimeStamp::New();
 
+
   //------------------------------------------------------------
   // loop
-
   igtl::LoopController::Pointer loop = igtl::LoopController::New();
   loop->InitLoop(interval);
-  
+
+  double  userTime;
+  double  systemTime;
+  double  actualTime;
+
+  struct tms tms_start;
+  struct tms tms_end;
+
+  // acquire starting time
+  timeStamp->GetTime();
+  actualTime = timeStamp->GetTimeStamp();
+  //cpuTimeStart = clock();
+  times(&tms_start);
+
   for (int i = 0; i < ndata; i ++)
     {
     loop->StartLoop();
@@ -216,10 +233,15 @@ int main(int argc, char* argv[])
 
     }
 
+  // acquire ending time
+  times(&tms_end);
+  timeStamp->GetTime();
+  actualTime  = timeStamp->GetTimeStamp() - actualTime;
+  systemTime  = ((double)(tms_end.tms_stime - tms_start.tms_stime)) / (double)sysconf(_SC_CLK_TCK);
+  userTime    = ((double)(tms_end.tms_utime - tms_start.tms_utime)) / (double)sysconf(_SC_CLK_TCK);
 
   //------------------------------------------------------------
   // Send Status to request the server to write the data to the file.
-
   std::cerr << "Request the server to output the data..." << std::endl;
   statusMsg->SetCode(igtl::StatusMessage::STATUS_OK);
   statusMsg->SetSubCode(0);
@@ -229,13 +251,30 @@ int main(int argc, char* argv[])
 
   //------------------------------------------------------------
   // Close connection
-
   if (type == TYPE_IMAGE && dummyImage != NULL)
     {
     delete [] dummyImage;
     }
 
   socket->CloseSocket();
+
+
+  //------------------------------------------------------------
+  // Output log
+  fprintf(stderr, "Outputing time data...\n");
+  printf("%s, %f, %f, %f\n", testName, actualTime, userTime, systemTime);
+
+  /*
+  igtl::Logger::Pointer logger;
+  logger = igtl::Logger::New();
+  logger->SetFileName("ClientLog.csv");
+  logger->SetSize(1, 3);
+  logger->SetAppendMode(1);
+  double data[] =  {actualTime, userTime, systemTime}
+
+  logger->PushData();
+  logger->Flash();
+  */
 
 }
 

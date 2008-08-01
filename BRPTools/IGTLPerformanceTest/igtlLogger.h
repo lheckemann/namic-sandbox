@@ -42,6 +42,8 @@ public:
   igtlNewMacro(Self);
   igtlTypeMacro(FastMutexLock,Object);
 
+  void        SetAppendMode(int s) { this->m_Append = s; };
+
   void        ClearData();
   
   void        SetFileName(const char* name);
@@ -72,6 +74,7 @@ private:
   int         m_Rows;
   double**    m_Data;
   int         m_Counter;
+  int         m_Append;
 };
 
 }
