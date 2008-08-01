@@ -146,6 +146,7 @@ SampleClassifierFilter< TSample >
   MembershipSampleType * output = dynamic_cast< MembershipSampleType * >(
                       this->ProcessObject::GetOutput(0)); 
 
+  output->SetSample( this->GetInput() );
   output->SetNumberOfClasses( this->m_NumberOfClasses ); 
 
   typename TSample::ConstIterator iter = sample->Begin();
