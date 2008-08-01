@@ -37,12 +37,19 @@ int itkDistanceToCentroidMembershipFunctionTest(int, char* [] )
   MembershipFunctionType::Pointer function = MembershipFunctionType::New();
   std::cout << function->GetNameOfClass() << std::endl;
 
+
+  //set the distance metric type
   typedef itk::Statistics::EuclideanDistanceMetric< MeasurementVectorType >  DistanceMetricType;
   typedef DistanceMetricType::MeasurementVectorSizeType MeasurementVectorSizeType;
 
   DistanceMetricType::Pointer distanceMetric = DistanceMetricType::New();
-
   function->SetDistanceMetric( distanceMetric );
+
+  if( function->GetDistanceMetric() != distanceMetric )
+    {
+    std::cerr << "Error in GetDistanceMetric() " << std::endl;
+    return EXIT_FAILURE;
+    }
 
   function->Print(std::cout);
 
