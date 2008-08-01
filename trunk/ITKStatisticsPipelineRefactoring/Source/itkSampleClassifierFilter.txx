@@ -38,6 +38,9 @@ SampleClassifierFilter< TSample >
 
   /** Set sample in the output */
   membershipSample->SetSample( this->GetInput() ); 
+
+  /** Initialize decision rule */
+  m_DecisionRule = NULL;
 }
 
 template< class TSample >
@@ -135,6 +138,11 @@ SampleClassifierFilter< TSample >
   if( classLabels.size() != this->m_NumberOfClasses )
     {
     itkExceptionMacro("Number of class labels does not match the number of classes");
+    }
+
+  if( m_DecisionRule.IsNull())
+    {
+    itkExceptionMacro("Decision rule is not set");
     }
 
   const SampleType * sample =
