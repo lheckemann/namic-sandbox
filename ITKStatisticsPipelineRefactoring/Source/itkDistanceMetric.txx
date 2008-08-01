@@ -26,7 +26,21 @@ template< class TVector >
 DistanceMetric< TVector >
 ::DistanceMetric() 
 {
-  this->m_MeasurementVectorSize = 0;
+  //If the measurment vector type is non-resizable type,
+  //initialize the vector size to it.
+  MeasurementVectorType vector;
+  if( ! MeasurementVectorTraits::IsResizable( vector ) )
+    {
+    MeasurementVectorSizeType defaultLength = 
+                  MeasurementVectorTraits::GetLength( vector );
+
+    this->m_MeasurementVectorSize = defaultLength;
+    }
+  else
+    {
+    //otherwise initialize it to zero
+    this->m_MeasurementVectorSize = 0;
+    }
 }
 
 template< class TVector >
