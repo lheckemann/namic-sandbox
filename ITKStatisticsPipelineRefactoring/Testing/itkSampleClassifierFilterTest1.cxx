@@ -22,6 +22,8 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkVariableLengthVector.h"
 #include "itkListSample.h"
 #include "itkSampleClassifierFilter.h"
+#include "itkDistanceToCentroidMembershipFunction.h"
+
 
 // ADD DistanceToCentroidMembershipFunction (with the added SetDistanceMetric() method
 // ADD EuclideanDistanceMetri
@@ -35,7 +37,7 @@ int itkSampleClassifierFilterTest1(int argc, char *argv[] )
   const unsigned int numberOfComponents = 3;
   typedef float      MeasurementType;
 
-  const unsigned int numberOfClasses = 2;
+  const unsigned int numberOfClasses = 3;
 
   typedef itk::Array< MeasurementType > MeasurementVectorType;
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
@@ -45,6 +47,7 @@ int itkSampleClassifierFilterTest1(int argc, char *argv[] )
   FilterType::Pointer filter = FilterType::New();
 
   SampleType::Pointer sample = SampleType::New();
+  sample->SetMeasurementVectorSize( numberOfComponents );
 
   // Test GetInput() before setting the input
   if( filter->GetInput() != NULL )
@@ -59,6 +62,26 @@ int itkSampleClassifierFilterTest1(int argc, char *argv[] )
     std::cerr << "GetOutput() should have returned NON-NULL" << std::endl;
     return EXIT_FAILURE;
     }
+
+  //Add measurement vectors 
+  MeasurementVectorType v1;
+  v1[0] = 0;
+  v1[0] = 0;
+  v1[0] = 0;
+  sample->PushBack( v1 );
+
+  MeasurementVectorType v2;
+  v2[0] = 0;
+  v2[0] = 0;
+  v2[0] = 0;
+  sample->PushBack( v2 );
+
+  MeasurementVectorType v3;
+  v3[0] = 0;
+  v3[0] = 0;
+  v3[0] = 0;
+  sample->PushBack( v3 );
+
 
   filter->SetInput( sample );
 
@@ -76,23 +99,81 @@ int itkSampleClassifierFilterTest1(int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
-  typedef FilterType::ClassLabelVectorObjectType               ClassLabelVectorType;
-  typedef FilterType::MembershipFunctionVectorObjectType       MembershipFunctionVectorType;
+  
+  typedef FilterType::ClassLabelVectorObjectType               ClassLabelVectorObjectType;
+  typedef FilterType::ClassLabelVectorType                     ClassLabelVectorType;
+  typedef FilterType::MembershipFunctionVectorObjectType       MembershipFunctionVectorObjectType;
+  typedef FilterType::MembershipFunctionVectorType             MembershipFunctionVectorType;
 
-  ClassLabelVectorType::Pointer  classLabels = ClassLabelVectorType::New();
+  typedef itk::Statistics::DistanceToCentroidMembershipFunction< MeasurementVectorType > 
+                                                               MembershipFunctionType;
 
-  MembershipFunctionVectorType::Pointer  membershipFunctions = MembershipFunctionVectorType::New();
+  typedef MembershipFunctionType::Pointer                      MembershipFunctionPointer;
 
-  filter->SetClassLabels( classLabels );
+  ClassLabelVectorObjectType::Pointer  classLabelsObject = ClassLabelVectorObjectType::New();
+  filter->SetClassLabels( classLabelsObject );
 
-  filter->SetMembershipFunctions( membershipFunctions );
+  MembershipFunctionVectorObjectType::Pointer membershipFunctionsObject =
+                                        MembershipFunctionVectorObjectType::New();
+  filter->SetMembershipFunctions( membershipFunctionsObject );
 
-  // Exercise the Print method.
-  filter->Print( std::cout );
+  //Run the filter without specifiying any membership functions. An exception
+  //should be thrown since there will be a mismatch between the number of classes
+  //and membership functions
+  try
+    {
+    filter->Update();
+    std::cerr << "Attempting to run a classification with unequal"
+              << " number of membership functions and number of classes,"
+              << " should throw an exception" << std::endl; 
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    }
 
-  sample->SetMeasurementVectorSize( numberOfComponents );
+
+  // Add three membership functions and rerun the filter
+  MembershipFunctionVectorType &  membershipFunctionsVector = membershipFunctionsObject->Get();
+
+  MembershipFunctionPointer membershipFunction1 = MembershipFunctionType::New(); 
+  membershipFunctionsVector.push_back( membershipFunction1.GetPointer() );
+
+  MembershipFunctionPointer membershipFunction2 = MembershipFunctionType::New(); 
+  membershipFunctionsVector.push_back( membershipFunction2.GetPointer() );
+
+  MembershipFunctionPointer membershipFunction3 = MembershipFunctionType::New(); 
+  membershipFunctionsVector.push_back( membershipFunction3.GetPointer() );
+
+  try
+    {
+    filter->Update();
+    std::cerr << "Attempting to run a classification with unequal"
+              << " number of class labels and number of classes,"
+              << " should throw an exception" << std::endl; 
+    return EXIT_FAILURE; 
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    }
 
 
+  // Add three class labels and rerun the filter
+  ClassLabelVectorType & classLabelVector  = classLabelsObject->Get();
+
+  typedef FilterType::ClassLabelType        ClassLabelType;
+
+  ClassLabelType  class1 = 0;
+  classLabelVector.push_back( class1 );
+
+  ClassLabelType  class2 = 1;
+  classLabelVector.push_back( class2 );
+
+  ClassLabelType  class3 = 2;
+  classLabelVector.push_back( class3 );
+ 
   try
     {
     filter->Update();
@@ -100,10 +181,11 @@ int itkSampleClassifierFilterTest1(int argc, char *argv[] )
   catch( itk::ExceptionObject & excp )
     {
     std::cerr << excp << std::endl;
-    return EXIT_FAILURE;
+    return EXIT_FAILURE; 
     }
 
 
+ 
   // Test GetOutput() after creating the output
   if( filter->GetOutput() == NULL )
     {
