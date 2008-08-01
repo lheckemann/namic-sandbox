@@ -60,15 +60,12 @@ public:
 }
 }
 }
-int itkDistanceMetricTest(int, char* [] )
+
+//test DistanceMetric using resizable measurement vector type
+int itkDistanceMetricTest2(int, char* [] )
 {
 
-  typedef unsigned int MeasurementVectorSizeType;
-
-  const MeasurementVectorSizeType MeasurementVectorSize = 17;
-
-  typedef itk::FixedArray< 
-    float, MeasurementVectorSize >  MeasurementVectorType;
+  typedef itk::Array< float>  MeasurementVectorType;
 
 
   typedef itk::Statistics::DistanceMetricTest::MyDistanceMetric< 
@@ -83,26 +80,20 @@ int itkDistanceMetricTest(int, char* [] )
 
   distance->Print(std::cout);
 
-  //try changing the measurment vector size, it should throw an exception
-  try
-    {
-    MeasurementVectorSizeType newSize = 20;
-    distance->SetMeasurementVectorSize( newSize ); 
+  MeasurementVectorSizeType measurementVectorSize = 3;
+  distance->SetMeasurementVectorSize( measurementVectorSize ); 
 
-    std::cerr << "Changing measurement vector size is not allowed for a fixed array vector\n"
-              << "an exception should have been thrown" << std::endl;
-    return EXIT_FAILURE;
-    }
-  catch( itk::ExceptionObject & excpt )
+  if( distance->GetMeasurementVectorSize() != measurementVectorSize )
     {
-    std::cerr << "Exception thrown: " << excpt << std::endl;
+    std::cerr << "Error in Set/GetMeasurementVectorSize()" << std::endl;
+    return EXIT_FAILURE; 
     }
 
   //try re-setting the measurment vector size to the same value, no exceptins should be
   //thrown 
   try
     {
-    MeasurementVectorSizeType sameSize = 17;
+    MeasurementVectorSizeType sameSize = 3;
     distance->SetMeasurementVectorSize( sameSize ); 
     }
   catch( itk::ExceptionObject & excpt )
@@ -116,7 +107,7 @@ int itkDistanceMetricTest(int, char* [] )
   try
     {
     DistanceMetricType::OriginType origin;
-    MeasurementVectorSizeType newSize = 25;
+    MeasurementVectorSizeType newSize = 4;
     origin.SetSize( newSize );
     distance->SetOrigin( origin ); 
 
