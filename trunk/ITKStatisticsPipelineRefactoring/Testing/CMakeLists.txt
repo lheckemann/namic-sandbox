@@ -77,6 +77,7 @@ ADD_TEST(itkEuclideanDistanceMetricTest ${STATISTICS_TESTS} itkEuclideanDistance
 ADD_TEST(itkEuclideanSquareDistanceMetricTest ${STATISTICS_TESTS} itkEuclideanSquareDistanceMetricTest)
 ADD_TEST(itkMahalanobisDistanceMetricTest ${STATISTICS_TESTS} itkMahalanobisDistanceMetricTest)
 ADD_TEST(itkManhattanDistanceMetricTest ${STATISTICS_TESTS} itkManhattanDistanceMetricTest)
+ADD_TEST(itkDecisionRuleTest ${STATISTICS_TESTS} itkDecisionRuleTest)
 
 SET(Statistics_SRCS
   itkCovarianceFilterTest.cxx
@@ -136,6 +137,7 @@ SET(Statistics_SRCS
   itkEuclideanSquareDistanceMetricTest.cxx
   itkMahalanobisDistanceMetricTest.cxx
   itkManhattanDistanceMetricTest.cxx
+  itkDecisionRuleTest.cxx
   )
 
 ADD_EXECUTABLE(itkStatisticsTests itkStatisticsTests.cxx ${Statistics_SRCS})

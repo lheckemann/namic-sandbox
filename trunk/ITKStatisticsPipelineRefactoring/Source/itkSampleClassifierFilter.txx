@@ -162,10 +162,10 @@ SampleClassifierFilter< TSample >
         membershipFunctions[i]->Evaluate(measurements);
       }
 
-    unsigned int classLabel;
-    classLabel = m_DecisionRule->Evaluate(discriminantScores);
+    unsigned int classIndex;
+    classIndex = m_DecisionRule->Evaluate(discriminantScores);
   
-    output->AddInstance(classLabels[classLabel], iter.GetInstanceIdentifier());
+    output->AddInstance(classLabels[classIndex], iter.GetInstanceIdentifier());
     ++iter;
     }
 }

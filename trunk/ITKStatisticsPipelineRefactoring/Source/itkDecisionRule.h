@@ -24,8 +24,8 @@
 #include "itkArray.h"
 #include "itkVariableLengthVector.h"
 
-namespace itk
-{
+namespace itk {
+namespace Statistics {
 
 /** \class DecisionRule
  *  \brief Base class that allows the setting of usage of different
@@ -64,7 +64,7 @@ private:
   DecisionRule(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 }; // end of class
-
-} // namespace itk
+} // end of namespace Statistics
+} // end of namespace itk
 
 #endif

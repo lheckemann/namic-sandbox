@@ -119,10 +119,6 @@ int itkStatisticsPrintTest(int , char* [])
     ManhattanDistanceMetricType;
 
 
-
-
-
-
   typedef itk::Statistics::HistogramToTextureFeaturesFilter<
     HistogramType > HistogramToTextureFeaturesFilterType;
 
