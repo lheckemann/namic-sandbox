@@ -34,6 +34,26 @@ int itkEuclideanDistanceMetricTest(int, char* [] )
 
   distance->Print(std::cout);
 
+  MeasurementVectorType measurementNew;
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( measurementNew, 3);
+  measurementNew[0] = 2.5;
+  measurementNew[1] = 3.3;
+  measurementNew[2] = 4.0;
+
+  //Attempting to compute distance before setting a measurment vector should
+  //throw an excpetion
+  
+  try
+    {
+    distance->Evaluate( measurementNew );
+    std::cerr << "Attempting to compute distance w/o setting measurement vector"
+                 "size, Exception should have been thrown" << std::endl;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception: " << excp << std::endl;
+    }
+
   distance->SetMeasurementVectorSize( MeasurementVectorSize ); 
 
   if( distance->GetMeasurementVectorSize() != MeasurementVectorSize )
