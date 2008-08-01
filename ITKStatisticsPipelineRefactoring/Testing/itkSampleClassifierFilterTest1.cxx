@@ -187,12 +187,25 @@ int itkSampleClassifierFilterTest1(int argc, char *argv[] )
   classLabelVector.push_back( class3 );
  
 
+  //Run the filter without setting a decision rule. An exception should be
+  //thrown
+  try
+    {
+    filter->Update();
+    std::cerr << "Attempting to run a classification without setting"
+              << "decision rule, should throw an exception" << std::endl; 
+    return EXIT_FAILURE; 
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    }
+
   //Set a decision rule type
   typedef itk::Statistics::MaximumDecisionRule2  DecisionRuleType;
 
   DecisionRuleType::Pointer    decisionRule = DecisionRuleType::New();
   filter->SetDecisionRule( decisionRule );
-  
   try
     {
     filter->Update();
@@ -202,8 +215,6 @@ int itkSampleClassifierFilterTest1(int argc, char *argv[] )
     std::cerr << excp << std::endl;
     return EXIT_FAILURE; 
     }
-
-
  
   // Test GetOutput() after creating the output
   if( filter->GetOutput() == NULL )
