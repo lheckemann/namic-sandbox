@@ -25,11 +25,11 @@
 #include "igtlServerSocket.h"
 
 #include "igtlLogger.h"
-
+#include "igtlTimeMeasure.h"
 
 int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
-int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header, igtl::Logger::Pointer& logger);
+int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header, igtl::Logger::Pointer& logger, igtl::TimeMeasure::Pointer& time);
 
 int main(int argc, char* argv[])
 {
@@ -57,6 +57,7 @@ int main(int argc, char* argv[])
   igtl::TimeStamp::Pointer dataTimeStamp = igtl::TimeStamp::New();
   igtl::TimeStamp::Pointer currentTimeStamp = igtl::TimeStamp::New();
   igtl::TimeStamp::Pointer baseTimeStamp    = igtl::TimeStamp::New();
+
   
   while (1)
     {
@@ -73,6 +74,8 @@ int main(int argc, char* argv[])
       // Prepare Logging class
       igtl::Logger::Pointer logger;
       logger = igtl::Logger::New();
+
+      igtl::TimeMeasure::Pointer time = igtl::TimeMeasure::New();
 
       baseTimeStamp->GetTime();
 
@@ -121,7 +124,7 @@ int main(int argc, char* argv[])
           }
         else if (strcmp(headerMsg->GetDeviceType(), "STATUS") == 0)
           {
-          ReceiveStatus(socket, headerMsg, logger);
+          ReceiveStatus(socket, headerMsg, logger, time);
           }
         else
           {
@@ -225,7 +228,8 @@ int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& he
 }
 
 
-int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header, igtl::Logger::Pointer& logger)
+int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header, 
+                  igtl::Logger::Pointer& logger, igtl::TimeMeasure::Pointer& time)
 {
 
   //std::cerr << "Receiving STATUS data type." << std::endl;
@@ -259,9 +263,13 @@ int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& h
     logger->SetFileName(statusMsg->GetStatusString());
     logger->SetSize((int)statusMsg->GetSubCode(), 2);
     std::cerr << "The logger is ready." << std::endl;
+    time->SetName(statusMsg->GetStatusString());
+    time->Start();
     }
   else if (strcmp(logger->GetFileName(), statusMsg->GetStatusString()) == 0)
     {
+    time->End();
+    time->PrintResult();
     std::cerr << "Writing Log file: " << logger->GetFileName() << std::endl;
     logger->Flush();
     }
