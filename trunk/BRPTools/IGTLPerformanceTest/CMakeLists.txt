@@ -9,9 +9,9 @@ find_package(OpenIGTLink REQUIRED)
 
 include(${OpenIGTLink_USE_FILE})
 
-ADD_EXECUTABLE(PerformanceTestClient   PerformanceTestClient.cxx igtlLoopController.cxx)
+ADD_EXECUTABLE(PerformanceTestClient  PerformanceTestClient.cxx igtlLoopController.cxx igtlTimeMeasure.cxx)
 TARGET_LINK_LIBRARIES(PerformanceTestClient OpenIGTLink)
 
-ADD_EXECUTABLE(PerformanceTestServer   PerformanceTestServer.cxx igtlLogger.cxx)
+ADD_EXECUTABLE(PerformanceTestServer   PerformanceTestServer.cxx igtlLogger.cxx igtlTimeMeasure.cxx)
 TARGET_LINK_LIBRARIES(PerformanceTestServer OpenIGTLink)
 

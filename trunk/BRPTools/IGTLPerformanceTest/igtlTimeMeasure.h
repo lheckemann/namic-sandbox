@@ -14,69 +14,70 @@
 
 =========================================================================*/
 
+// -- NOTE
+// Currently this class can be used only on POSIX environment
+//
 
-#ifndef __igtlLogger_h
-#define __igtlLogger_h
+#ifndef __igtlTimeMeasure_h
+#define __igtlTimeMeasure_h
 
 #include "igtlObject.h"
 #include "igtlObjectFactory.h"
 #include "igtlMacro.h"
 
+#include "igtlTimeStamp.h"
+
 #include <string>
+#include <sys/times.h>
 
 namespace igtl
 {
 
-#define MAX_ROWS      10000
-#define MAX_COLUMNS   20
-
-class Logger : public Object
+class TimeMeasure : public Object
 {
 public:
   /** Standard class typedefs. */
-  typedef Logger                    Self;
+  typedef TimeMeasure               Self;
   typedef Object                    Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
 
   igtlNewMacro(Self);
-  igtlTypeMacro(Logger,Object);
+  igtlTypeMacro(TimeMeasure,Object);
 
-  void        SetAppendMode(int s) { this->m_Append = s; };
+  void Start();
+  void End();
 
-  void        ClearData();
-  
-  void        SetFileName(const char* name);
-  const char* GetFileName();
+  void PrintResult();
 
-  int         SetSize(int rows, int columns);
-  void        GetSize(int* rows, int* columns);
+  double GetUserTime()   {return m_UserTime; };
+  double GetSystemTime() {return m_SystemTime; };
+  double GetActualTime() {return m_ActualTime; };
 
-  int         SetData(int row, int column, double data);
-  int         GetData(int row, int column, double* data);
-
-  int         PushData(double* data);
-
-  void        Flush();
+  void SetName(const char* name);
+  const char* GetName()  {return m_Name.c_str(); };
 
 protected:
-  Logger();
-  ~Logger();
+  TimeMeasure();
+  ~TimeMeasure();
 
 private:
 
-  void        DeleteData();
+  double  m_UserTime;
+  double  m_SystemTime;
+  double  m_ActualTime;
+
+  igtl::TimeStamp::Pointer m_TimeStamp;
+
+  struct tms m_TmsStart;
+  struct tms m_TmsEnd;
 
   //BTX
-  std::string m_FileName;
+  std::string m_Name;
   //ETX
-  int         m_Columns;
-  int         m_Rows;
-  double**    m_Data;
-  int         m_Counter;
-  int         m_Append;
+
 };
 
 }
 
-#endif //__igtlLogger_h
+#endif //__igtlTimeMeasure_h
