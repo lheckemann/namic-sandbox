@@ -98,9 +98,12 @@ public:
    * value of the density function, not probability. */
   double Evaluate(const MeasurementVectorType &measurement) const;
 
-  /** Set tolerance values */
+  /** Set/Get tolerance values */
   itkSetMacro( Epsilon, double );
+  itkGetMacro( Epsilon, double );
+
   itkSetMacro( DoubleMax, double );
+  itkGetMacro( DoubleMax, double );
 
 protected:
   MahalanobisDistanceMetric(void);
