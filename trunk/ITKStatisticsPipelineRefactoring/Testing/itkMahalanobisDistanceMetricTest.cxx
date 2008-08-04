@@ -185,5 +185,39 @@ int itkMahalanobisDistanceMetricTest(int, char* [] )
     return EXIT_FAILURE;
     }
 
+  //Run the distance metric with a single component measurement vector size
+  DistanceMetricType::MeasurementVectorSizeType 
+                    singleComponentMeasurementVectorSize = 1;
+
+  distance->SetMeasurementVectorSize( singleComponentMeasurementVectorSize ); 
+ 
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( origin, 1);
+  origin[0] = 1.5;
+  distance->SetMean( origin );
+
+  if( fabs(distance->GetMean()[0] - origin[0]) > tolerance )
+    {
+    std::cerr << " Set/Get Origin error " << std::endl;
+    return EXIT_FAILURE;
+    }
+  covarianceMatrix.set_size( singleComponentMeasurementVectorSize,
+                             singleComponentMeasurementVectorSize );
+  covarianceMatrix[0][0] = 1.0;
+  distance->SetCovariance( covarianceMatrix );
+
+  MeasurementVectorType measurementSingleComponent;
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( measurementSingleComponent, 1);
+  measurementSingleComponent[0] = 2.5;
+
+  trueValue = 1.0;
+  distanceComputed = distance->Evaluate( measurementSingleComponent );
+
+  if( fabs( distanceComputed - trueValue) > tolerance )
+    {
+    std::cerr << "Distance computed not correct: " << "truevalue= " << trueValue
+              << "ComputedValue=" << distanceComputed << std::endl;
+    return EXIT_FAILURE;
+    }
+
   return EXIT_SUCCESS;
 }
