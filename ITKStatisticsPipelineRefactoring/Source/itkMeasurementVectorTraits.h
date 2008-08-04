@@ -94,7 +94,8 @@ public:
       precision). Using double type will also ultimately fall into the same problem.
       Hence in the new statistics framework, InstanceIdentifier/FrequencyTypes are 
       set to the the largest possible integer on the machine */  
-  typedef std::vector<int>::size_type   InstanceIdentifier;
+  //typedef typename std::vector<int>::size_type   InstanceIdentifier;
+  typedef unsigned long  InstanceIdentifier;
 
   /** Type defined for representing the frequency of measurement vectors */
   typedef InstanceIdentifier                                      AbsoluteFrequencyType;
