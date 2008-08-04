@@ -30,6 +30,14 @@ namespace igtl
 class LoopController : public Object
 {
 public:
+  typedef struct {
+    int     type;
+    double  time;
+  } TimeTableElement;
+
+  typedef std::vector<TimeTableElement> TimeTableType;
+
+public:
   /** Standard class typedefs. */
   typedef LoopController            Self;
   typedef Object                    Superclass;
@@ -40,8 +48,11 @@ public:
   igtlTypeMacro(LoopController,Object);
 
   // InitLoop() initialize the member variables and
-  // set the interval (second)
-  void   InitLoop(double interval_s);
+  // set the interval (second) and number of loops.
+  // if n is set at 0, the loop becomes eternal loop.
+  void   InitLoop(double interval_s, int n=0);
+
+  void   InitLoop(TimeTableType& timeTable);
   
   // StartLoop() and function is palced at the begining
   // of the loop section. The function sleeps to adjust
@@ -69,6 +80,14 @@ public:
   // calling the StartLoop() function.
   double GetEllapsedTime();
 
+  // GetScheduledTime() returns time written on the time table.
+  double GetScheduledTime();
+
+  // Check if the scheduled time is same as the previous loop.
+  int    IsSimultaneous()  { return this->m_SimultaneousFlag; };
+
+  int    GetCount()  { return this->m_Count-1; };
+
 protected:
   LoopController();
   ~LoopController();
@@ -82,6 +101,15 @@ private:
   double m_Delay;
 
   double m_StartTime;
+  double m_OriginTime;
+  double m_PrevStartTime;
+  int    m_SimultaneousFlag;
+  int    m_MaxCount;
+  int    m_Count;
+
+  TimeTableType m_TimeTable;
+
+
 
 };
 

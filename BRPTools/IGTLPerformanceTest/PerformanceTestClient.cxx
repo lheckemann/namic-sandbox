@@ -17,6 +17,7 @@
 #include <iostream>
 #include <math.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "igtlOSUtil.h"
 #include "igtlTransformMessage.h"
@@ -26,7 +27,6 @@
 
 #include "igtlLoopController.h"
 #include "igtlTimeMeasure.h"
-
 
 unsigned short* GenerateDummyImage(int x, int y, int z);
 void GetRandomTestMatrix(igtl::Matrix4x4& matrix);
@@ -39,68 +39,156 @@ enum {
 
 void PrintUsage(const char *program)
 {
-  std::cerr << "Usage: " << program << " <hostname> <port> <fps> <test name> <ndata> <type> [<x> <y> <z>]"    << std::endl;
-  std::cerr << "    <hostname> : IP or host name"                    << std::endl;
-  std::cerr << "    <port>     : Port # (18944 in Slicer default)"   << std::endl;
-  std::cerr << "    <fps>      : Frequency (fps) to send coordinate" << std::endl;
-  std::cerr << "    <test name>: Test name string, which will be used as a filename in the server." << std::endl;
-  std::cerr << "    <ndata>    : Number of data to be sent."         << std::endl;
-  std::cerr << "    <type>     : Data type (TRANSFORM or IMAGE)"     << std::endl;
+
+  std::cerr << "Usage: " << program << " [OPTIONS]" << std::endl;
+  std::cerr << std::endl;
+  std::cerr << "    -h HOSTNAME    IP or host name" << std::endl;
+  std::cerr << "    -p PORT        Port # (18944 in Slicer default" << std::endl;
+  std::cerr << "    -t FILENAME    Test name string, which will be used as a filename in the server." << std::endl;
+  std::cerr << "    -d NUMBER      Duration in seconds" << std::endl;  
+  std::cerr << "    -f NUMBER      Frequency (fps) to send coordinate" << std::endl;
+  std::cerr << "    -c NUMBER      Number of channels for coordinates" << std::endl;
+  std::cerr << "    -F NUMBER      Frequency (fps) to send image" << std::endl;
+  std::cerr << "    -C NUMBER      Number of channels for image" << std::endl;
+  std::cerr << "    -x NUMBER      Number of pixels in x direction" << std::endl;
+  std::cerr << "    -y NUMBER      Number of pixels in y direction" << std::endl;
+  std::cerr << "    -z NUMBER      Number of pixels in z direction" << std::endl;
+  std::cerr << std::endl;
 }
+
 
 int main(int argc, char* argv[])
 {
-  //------------------------------------------------------------
-  // Parse Arguments
 
-  if (argc != 7 && argc != 10) // check number of arguments
-    {
-    // If not correct, print usage
-    PrintUsage(argv[0]);
-    exit(0);
-    }
-
-  char*  hostname = argv[1];
-  int    port     = atoi(argv[2]);
-  double fps      = atof(argv[3]);
-  //int    interval = (int) (1000.0 / fps);
-  double interval = 1.0 / fps;
-  char*  testName = argv[4];
-  int    ndata    = atoi(argv[5]);
-
-  int    type = -1;
+  std::string hostname;
+  std::string testName;
+  int    port     = -1;
+  double duration = 0.0;
+  double trackFps = 0.0;
+  int    trackChannels = 1;
+  double imageFps = 0.0;
+  int    imageChannels = 1;
   int    x = 0;
   int    y = 0;
   int    z = 0;
-  if (strcmp(argv[6], "TRANSFORM") == 0)
-    {
-    type = TYPE_TRANSFORM;
-    }
-  else if (strcmp(argv[6], "IMAGE") == 0)
-    {
-    type = TYPE_IMAGE;
-    }
-  else
-    {
-    std::cerr << "Illegal type name." << std::endl; 
-    type = -1;
-    }
 
-  if (type == TYPE_IMAGE)
+  //------------------------------------------------------------
+  // Parse Arguments
+
+  int c;
+  while ((c = getopt(argc, argv, "?h:p:t:d:f:c:F:C:x:y:z:")) != -1)
     {
-    if (argc != 10)
+    switch(c)
       {
-      type = -1;
+      case '?':   // proint help
+        PrintUsage(argv[0]);
+        exit(0);
+        break;
+      case 'h':   // hostname or IIP address
+        hostname = optarg;
+        break;
+      case 'p':   // port number
+        port = atoi(optarg);
+        break;
+      case 't':   // test data name
+        testName = optarg;
+        break;
+      case 'd':   // duration
+        duration = atof(optarg);
+        break;
+      case 'f':   // frame rate for tracking
+        trackFps = atof(optarg);
+        break;
+      case 'c':   // number of channels for tracking
+        trackChannels = atoi(optarg);
+        break;
+      case 'F':   // frame rate for imaging
+        imageFps = atof(optarg);
+        break;
+      case 'C':   // number of channels for imaging
+        imageChannels = atoi(optarg);
+        break;
+      case 'x':   // image resolution -- x
+        x = atoi(optarg);
+        break;
+      case 'y':   // image resolution -- y
+        y = atoi(optarg);
+        break;
+      case 'z':   // image resolution -- z
+        z = atoi(optarg);
+        break;
+      case ':':
+        PrintUsage(argv[0]);
+        exit(0);
+        break;
       }
-    x = atoi(argv[7]);
-    y = atoi(argv[8]);
-    z = atoi(argv[9]);
     }
 
-  if (type < 0)
+  if (hostname.size() == 0 || 
+      testName.size() == 0 ||
+      port <= 0            ||
+      duration <= 0.0      ||
+      trackChannels < 1    ||
+      imageChannels < 1)
     {
     PrintUsage(argv[0]);
     exit(0);
+    }
+
+
+  //------------------------------------------------------------
+  // Generate Time Table
+
+  igtl::LoopController::TimeTableType timeTable;
+
+  int nTrackData = 0;
+  int nImageData = 0;
+  double tTrack  = duration + 1.0;
+  double tImage  = duration + 1.0; 
+  double trackInterval = 0.0;
+  double imageInterval = 0.0;
+
+  if (trackFps > 0)
+    {
+    nTrackData = static_cast<int>(floor(duration * trackFps) + 1);
+    tTrack = 0.0;
+    trackInterval = 1.0 / trackFps;
+    }
+  if (imageFps > 0)
+    {
+    nImageData = static_cast<int>(floor(duration * imageFps) + 1);
+    tImage = 0.0;
+    imageInterval = 1.0 / imageFps;
+    }
+
+  int nData = nTrackData + nImageData;
+  //TimeTableElem* timeTable = new TimeTableElem[nData];
+
+  int i = 0;
+  double t = 0.0;
+
+  while (i < nData)
+    {
+    if (tTrack <= tImage)
+      {
+      igtl::LoopController::TimeTableElement tme;
+      tme.time = tTrack;
+      tme.type = TYPE_TRANSFORM;
+      timeTable.push_back(tme);
+      tTrack += trackInterval;
+      }
+    else
+      {
+      igtl::LoopController::TimeTableElement tme;
+      tme.time = tImage;
+      tme.type = TYPE_IMAGE;
+      timeTable.push_back(tme);
+      tImage += imageInterval;
+      }
+
+    //std::cerr << "timeTable[" << i << "] = {" << timeTable[i].type << ", " << timeTable[i].time << "}" << std::endl;
+    i ++;
+
     }
 
   //------------------------------------------------------------
@@ -108,7 +196,7 @@ int main(int argc, char* argv[])
 
   igtl::ClientSocket::Pointer socket;
   socket = igtl::ClientSocket::New();
-  int r = socket->ConnectToServer(hostname, port);
+  int r = socket->ConnectToServer(hostname.c_str(), port);
 
   if (r != 0)
     {
@@ -127,56 +215,69 @@ int main(int argc, char* argv[])
   statusMsg->SetDeviceName("TestDevice");
 
   statusMsg->SetCode(igtl::StatusMessage::STATUS_OK);
-  statusMsg->SetSubCode(ndata);
+  statusMsg->SetSubCode(nData);
   statusMsg->SetErrorName("OK");
-  statusMsg->SetStatusString(testName);
+  statusMsg->SetStatusString(testName.c_str());
   statusMsg->Pack();
   socket->Send(statusMsg->GetPackPointer(), statusMsg->GetPackSize());
   igtl::Sleep(400); // wait for 400 ms
   std::cerr << "done." << std::endl;
 
   //------------------------------------------------------------
-  // Allocate Message Class
+  // Allocate Transform Message Class
+
+  igtl::Matrix4x4 matrix;
+  igtl::IdentityMatrix(matrix);
 
   igtl::TransformMessage::Pointer transMsg;
+
+  transMsg = igtl::TransformMessage::New();
+  //transMsg->SetDeviceName("TestDevice");
+
+  char** trackDeviceName;
+  trackDeviceName = new char*[trackChannels];
+  for (int c = 0; c < trackChannels; c ++)
+    {
+    trackDeviceName[c] = new char[20];
+    sprintf(trackDeviceName[c], "Tracker%03d", c);
+    }
+
+  //------------------------------------------------------------
+  // Allocate Image Message Class
+
   igtl::ImageMessage::Pointer imgMsg;
   unsigned short *dummyImage = NULL;
 
-  if (type == TYPE_TRANSFORM)
+  // size parameters for image
+  int   size[]     = {x, y, z};           // image dimension
+  float spacing[]  = {1.0, 1.0, 1.0};     // spacing (mm/pixel)
+  int   svsize[]   = {x, y, z};           // sub-volume size
+  int   svoffset[] = {0, 0, 0};           // sub-volume offset
+  int   scalarType = igtl::ImageMessage::TYPE_UINT16;// scalar type
+  
+  // Create a new IMAGE type message
+  imgMsg = igtl::ImageMessage::New();
+  imgMsg->SetDimensions(size);
+  imgMsg->SetSpacing(spacing);
+  imgMsg->SetScalarType(scalarType);
+  //imgMsg->SetDeviceName("TestImager");
+  imgMsg->SetSubVolume(svsize, svoffset);
+  imgMsg->SetMatrix(matrix);
+  
+  imgMsg->AllocateScalars();
+  
+  // Generate Dummy image
+  dummyImage = GenerateDummyImage(x, y, z);
+
+  char** imageDeviceName;
+
+  imageDeviceName = new char*[imageChannels];
+  for (int c = 0; c < imageChannels; c ++)
     {
-    transMsg = igtl::TransformMessage::New();
-    transMsg->SetDeviceName("TestDevice");
+    imageDeviceName[c] = new char[20];
+    sprintf(imageDeviceName[c], "Imager%03d", c);
     }
-  else //if (type == TYPE_IMAGE)
-    {
-    //------------------------------------------------------------
-    // size parameters
-    int   size[]     = {x, y, z};           // image dimension
-    float spacing[]  = {1.0, 1.0, 1.0};     // spacing (mm/pixel)
-    int   svsize[]   = {x, y, z};           // sub-volume size
-    int   svoffset[] = {0, 0, 0};           // sub-volume offset
-    int   scalarType = igtl::ImageMessage::TYPE_UINT16;// scalar type
 
-    //------------------------------------------------------------
-    // Create a new IMAGE type message
-    imgMsg = igtl::ImageMessage::New();
-    imgMsg->SetDimensions(size);
-    imgMsg->SetSpacing(spacing);
-    imgMsg->SetScalarType(scalarType);
-    imgMsg->SetDeviceName("TestImager");
-    imgMsg->SetSubVolume(svsize, svoffset);
-    igtl::Matrix4x4 matrix;
-    //GetRandomTestMatrix(matrix);
-    igtl::IdentityMatrix(matrix);
-    imgMsg->SetMatrix(matrix);
-
-    imgMsg->AllocateScalars();
-
-    //------------------------------------------------------------
-    // Generate Dummy image
-    dummyImage = GenerateDummyImage(x, y, z);
-
-    }
 
   //------------------------------------------------------------
   // Prepare Timestamp
@@ -186,50 +287,49 @@ int main(int argc, char* argv[])
   //------------------------------------------------------------
   // loop
   igtl::LoopController::Pointer loop = igtl::LoopController::New();
-  loop->InitLoop(interval);
 
   igtl::TimeMeasure::Pointer tm = igtl::TimeMeasure::New();
-  /*
-  double  userTime;
-  double  systemTime;
-  double  actualTime;
-  struct tms tms_start;
-  struct tms tms_end;
-  // acquire starting time
-  timeStamp->GetTime();
-  actualTime = timeStamp->GetTimeStamp();
-  times(&tms_start);
-  */
+
+  GetRandomTestMatrix(matrix);
+
   timeStamp->GetTime();
   tm->Start();
 
-  for (int i = 0; i < ndata; i ++)
+  for (loop->InitLoop(timeTable); loop->StartLoop(); )
     {
-    loop->StartLoop();
-
-    if (type == TYPE_TRANSFORM)
-      {
-      igtl::Matrix4x4 matrix;
-      GetRandomTestMatrix(matrix);
-      timeStamp->GetTime();
-      //std::cerr << "time stamp = " << timeStamp->GetTimeStamp() << std::endl;
-      transMsg->SetMatrix(matrix);
-      transMsg->SetTimeStamp(timeStamp);
-      transMsg->Pack();
-      socket->Send(transMsg->GetPackPointer(), transMsg->GetPackSize());
-
-      }
-    else if (type == TYPE_IMAGE)
+    int i = loop->GetCount();
+    //timeStamp->SetTime(loop->GetTargetTime());
+    if (!loop->IsSimultaneous()) // if this turn is not scheduled at the same time as the previous one
       {
       timeStamp->GetTime();
-      GetDummyImage(imgMsg, dummyImage, i % 2);
-      imgMsg->SetTimeStamp(timeStamp);
-      //GetRandomTestMatrix(matrix);
-      //imgMsg->SetMatrix(matrix);
-      imgMsg->Pack();
-      socket->Send(imgMsg->GetPackPointer(), imgMsg->GetPackSize());
       }
 
+    if (timeTable[i].type == TYPE_TRANSFORM)
+      {
+      for (int c = 0; c < trackChannels; c ++)
+        {
+        transMsg->SetDeviceName(trackDeviceName[c]);
+        transMsg->SetMatrix(matrix);
+        transMsg->SetTimeStamp(timeStamp);
+        transMsg->Pack();
+        socket->Send(transMsg->GetPackPointer(), transMsg->GetPackSize());
+        }
+      }
+    else if (timeTable[i].type == TYPE_IMAGE)
+      {
+      for (int c = 0; c < trackChannels; c ++)
+        {
+        imgMsg->SetDeviceName(imageDeviceName[c]);
+        GetDummyImage(imgMsg, dummyImage, i % 2);
+        imgMsg->SetTimeStamp(timeStamp);
+        //GetRandomTestMatrix(matrix);
+        //imgMsg->SetMatrix(matrix);
+        imgMsg->Pack();
+        socket->Send(imgMsg->GetPackPointer(), imgMsg->GetPackSize());
+        }
+      }
+    
+    GetRandomTestMatrix(matrix);
     }
 
   // acquire ending time
@@ -253,10 +353,7 @@ int main(int argc, char* argv[])
 
   //------------------------------------------------------------
   // Close connection
-  if (type == TYPE_IMAGE && dummyImage != NULL)
-    {
-    delete [] dummyImage;
-    }
+  delete [] dummyImage;
 
   socket->CloseSocket();
 
@@ -265,7 +362,7 @@ int main(int argc, char* argv[])
   // Output log
   fprintf(stderr, "Outputing time data...\n");
   //printf("%s, %f, %f, %f\n", testName, actualTime, userTime, systemTime);
-  tm->SetName(testName);
+  tm->SetName(testName.c_str());
   tm->PrintResult();
 
   /*

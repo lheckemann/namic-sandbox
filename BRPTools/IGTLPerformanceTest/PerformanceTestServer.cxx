@@ -29,7 +29,8 @@
 
 int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
 int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header);
-int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header, igtl::Logger::Pointer& logger, igtl::TimeMeasure::Pointer& time);
+int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header,
+                  igtl::Logger::Pointer& transLogger, igtl::Logger::Pointer& imageLogger, igtl::TimeMeasure::Pointer& time);
 
 int main(int argc, char* argv[])
 {
@@ -72,8 +73,10 @@ int main(int argc, char* argv[])
       headerMsg = igtl::MessageHeader::New();
 
       // Prepare Logging class
-      igtl::Logger::Pointer logger;
-      logger = igtl::Logger::New();
+      igtl::Logger::Pointer transLogger;
+      igtl::Logger::Pointer imageLogger;
+      transLogger = igtl::Logger::New();
+      imageLogger = igtl::Logger::New();
 
       igtl::TimeMeasure::Pointer time = igtl::TimeMeasure::New();
 
@@ -109,7 +112,8 @@ int main(int argc, char* argv[])
           double data[2];
           data[0] = currentTimeStamp->GetTimeStamp() - baseTimeStamp->GetTimeStamp();
           data[1] = delay;
-          logger->PushData(data);
+          transLogger->PushData(data);
+          //std::cerr << "TRANSFORM received." << std::endl;
           }
         else if (strcmp(headerMsg->GetDeviceType(), "IMAGE") == 0)
           {
@@ -120,11 +124,12 @@ int main(int argc, char* argv[])
           double data[2];
           data[0] = currentTimeStamp->GetTimeStamp() - baseTimeStamp->GetTimeStamp();
           data[1] = delay;
-          logger->PushData(data);
+          imageLogger->PushData(data);
+          //std::cerr << "IMAGE received." << std::endl;
           }
         else if (strcmp(headerMsg->GetDeviceType(), "STATUS") == 0)
           {
-          ReceiveStatus(socket, headerMsg, logger, time);
+          ReceiveStatus(socket, headerMsg, transLogger, imageLogger, time);
           }
         else
           {
@@ -147,8 +152,6 @@ int main(int argc, char* argv[])
 int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
 {
 
-  //std::cerr << "Receiving TRANSFORM data type." << std::endl;
-  
   // Create a message buffer to receive transform data
   igtl::TransformMessage::Pointer transMsg;
   transMsg = igtl::TransformMessage::New();
@@ -178,8 +181,6 @@ int ReceiveTransform(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer
 
 int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header)
 {
-  //std::cerr << "Receiving IMAGE data type." << std::endl;
-
   // Create a message buffer to receive transform data
   igtl::ImageMessage::Pointer imgMsg;
   imgMsg = igtl::ImageMessage::New();
@@ -229,7 +230,7 @@ int ReceiveImage(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& he
 
 
 int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& header, 
-                  igtl::Logger::Pointer& logger, igtl::TimeMeasure::Pointer& time)
+                  igtl::Logger::Pointer& transLogger, igtl::Logger::Pointer& imageLogger, igtl::TimeMeasure::Pointer& time)
 {
 
   //std::cerr << "Receiving STATUS data type." << std::endl;
@@ -259,19 +260,35 @@ int ReceiveStatus(igtl::Socket::Pointer& socket, igtl::MessageHeader::Pointer& h
 
   if ((int)statusMsg->GetSubCode() > 0) // new log session
     {
-    // Set Logger
-    logger->SetFileName(statusMsg->GetStatusString());
-    logger->SetSize((int)statusMsg->GetSubCode(), 2);
-    std::cerr << "The logger is ready." << std::endl;
+    std::string filename;
+
+    // Set logger for transform
+    filename = statusMsg->GetStatusString();
+    filename.append("_trans");
+    transLogger->SetFileName(filename.c_str());
+    transLogger->SetSize((int)statusMsg->GetSubCode(), 2);
+    std::cerr << "The logger for transform is ready." << std::endl;
+
+    // Set logger for image
+    filename = statusMsg->GetStatusString();
+    filename.append("_image");
+    imageLogger->SetFileName(filename.c_str());
+    imageLogger->SetSize((int)statusMsg->GetSubCode(), 2);
+    std::cerr << "The logger for image is ready." << std::endl;
+
+    // Start time measurement
     time->SetName(statusMsg->GetStatusString());
     time->Start();
     }
-  else if (strcmp(logger->GetFileName(), statusMsg->GetStatusString()) == 0)
+  else if (strncmp(statusMsg->GetStatusString(), transLogger->GetFileName(), strlen(statusMsg->GetStatusString())) == 0)
     {
+    // Stop time measurement
     time->End();
     time->PrintResult();
-    std::cerr << "Writing Log file: " << logger->GetFileName() << std::endl;
-    logger->Flush();
+    std::cerr << "Writing transform log file: " << transLogger->GetFileName() << std::endl;
+    std::cerr << "Writing image log file: " << imageLogger->GetFileName() << std::endl;
+    transLogger->Flush();
+    imageLogger->Flush();
     }
 
   return 0;
