@@ -115,16 +115,6 @@ SampleClassifierFilter< TSample >
   const MembershipFunctionVectorObjectType * membershipFunctionsDecorated = 
     static_cast< const MembershipFunctionVectorObjectType * >( this->ProcessObject::GetInput( 2 ) );
 
-  if( classLabelsDecorated == NULL )
-    {
-    itkExceptionMacro("Input of class labels decorated is NULL");
-    }
-
-  if( membershipFunctionsDecorated == NULL )
-    {
-    itkExceptionMacro("Input of membership samples decorated is NULL");
-    }
-
   const ClassLabelVectorType & classLabels = classLabelsDecorated->Get();
 
   const MembershipFunctionVectorType & membershipFunctions = membershipFunctionsDecorated->Get();
