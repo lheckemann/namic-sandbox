@@ -78,6 +78,8 @@ void RegisterTests()
   REGISTER_TEST(itkMembershipFunctionBaseTest2);
 
   REGISTER_TEST(itkDistanceToCentroidMembershipFunctionTest);
+  REGISTER_TEST(itkGaussianMembershipFunctionTest);
+
   REGISTER_TEST(itkDistanceMetricTest);
   REGISTER_TEST(itkDistanceMetricTest2);
   REGISTER_TEST(itkEuclideanDistanceMetricTest);

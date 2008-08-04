@@ -47,6 +47,7 @@
 #include "itkSparseFrequencyContainer2.h"
 #include "itkMembershipFunctionBase.h"
 #include "itkDistanceToCentroidMembershipFunction.h"
+#include "itkGaussianMembershipFunction.h"
 #include "itkDistanceMetric.h"
 #include "itkMaximumDecisionRule2.h"
 #include "itkMinimumDecisionRule2.h"
