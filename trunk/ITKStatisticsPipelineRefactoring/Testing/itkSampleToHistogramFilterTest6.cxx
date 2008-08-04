@@ -61,8 +61,8 @@ int itkSampleToHistogramFilterTest6(int argc, char *argv[] )
   SampleType::Pointer sample = SampleType::New();
 
   
-  HistogramMeasurementVectorType minimum;
-  HistogramMeasurementVectorType maximum;
+  HistogramMeasurementVectorType minimum( numberOfComponents );
+  HistogramMeasurementVectorType maximum( numberOfComponents );
 
   minimum[0] = -17.5;
   minimum[1] = -19.5;
@@ -72,7 +72,7 @@ int itkSampleToHistogramFilterTest6(int argc, char *argv[] )
   maximum[1] =  19.5;
   maximum[2] =  24.5;
 
-  HistogramSizeType histogramSize;
+  HistogramSizeType histogramSize( numberOfComponents );
 
   histogramSize[0] = 36;
   histogramSize[1] = 40;

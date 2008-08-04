@@ -51,6 +51,8 @@ int itkSampleToHistogramFilterTest5(int argc, char *argv[] )
 
   typedef itk::RGBPixel< VMeasurementType > PixelType;
 
+  const unsigned int numberOfComponents = 3;
+
   typedef itk::Image< PixelType, imageDimension >   ImageType;
 
   typedef itk::Statistics::ImageToListSampleFilter< 
@@ -102,7 +104,7 @@ int itkSampleToHistogramFilterTest5(int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
-  HistogramSizeType histogramSize;
+  HistogramSizeType histogramSize( numberOfComponents );
 
   histogramSize[0] = 256;
   histogramSize[1] = 256;
