@@ -206,6 +206,14 @@ int itkSampleClassifierFilterTest1(int argc, char *argv[] )
 
   DecisionRuleType::Pointer    decisionRule = DecisionRuleType::New();
   filter->SetDecisionRule( decisionRule );
+
+  if( filter->GetDecisionRule() != decisionRule )
+    {
+    std::cerr << "Get/Set Decision rule error! " << std::endl;
+    return EXIT_FAILURE;
+    }
+
+
   try
     {
     filter->Update();
