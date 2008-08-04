@@ -37,7 +37,7 @@ int itkMinimumDecisionRuleTest(int, char* [] )
   MembershipVectorType membershipScoreVector;
   
   double membershipScore1;
-  membershipScore1 = 0.1;
+  membershipScore1 = 1.1;
   membershipScoreVector.push_back( membershipScore1 );  
 
   double membershipScore2;
@@ -50,7 +50,7 @@ int itkMinimumDecisionRuleTest(int, char* [] )
 
   // the minimum score is the third component. The decision rule should
   // return index ( 2) 
-  if( decisionRule->Evaluate( membershipScoreVector ) != 0 )
+  if( decisionRule->Evaluate( membershipScoreVector ) != 1 )
     {
       std::cerr << "Decision rule computation is incorrect!" << std::endl;
       return EXIT_FAILURE;
