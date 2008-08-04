@@ -55,6 +55,9 @@
 #include "itkDecisionRule.h"
 #include "itkMaximumDecisionRule2.h"
 #include "itkMinimumDecisionRule2.h"
+#include "itkDistanceToCentroidMembershipFunction.h"
+#include "itkGaussianMembershipFunction.h"
+
 
 int main ( int , char*  )
 {
