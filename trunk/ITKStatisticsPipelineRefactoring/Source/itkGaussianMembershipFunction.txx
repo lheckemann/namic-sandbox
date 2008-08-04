@@ -19,14 +19,14 @@
 
 #include "itkGaussianMembershipFunction.h"
 
-namespace itk{ 
-namespace Statistics{
+namespace itk { 
+namespace Statistics  {
 
 template < class TMeasurementVector >
 GaussianMembershipFunction< TMeasurementVector >
 ::GaussianMembershipFunction()
 {
-  m_PreFactor = 0.0 ;
+  m_PreFactor = 0.0;
   m_Covariance.SetIdentity();
 }
 
@@ -37,11 +37,11 @@ GaussianMembershipFunction< TMeasurementVector >
 {
   Superclass::PrintSelf(os,indent);
 
-  os << indent << "Mean: " << m_Mean << std::endl ;
-  os << indent << "Covariance: " << std::endl ;
-  os << m_Covariance.GetVnlMatrix() ;
-  os << indent << "InverseCovariance: " << std::endl ;
-  os << indent << m_InverseCovariance.GetVnlMatrix() ;
+  os << indent << "Mean: " << m_Mean << std::endl;
+  os << indent << "Covariance: " << std::endl;
+  os << m_Covariance.GetVnlMatrix();
+  os << indent << "InverseCovariance: " << std::endl;
+  os << indent << m_InverseCovariance.GetVnlMatrix();
   os << indent << "Prefactor: " << m_PreFactor << std::endl;
 
 }
@@ -64,8 +64,8 @@ GaussianMembershipFunction< TMeasurementVector >
 
   if ( m_Mean != mean) 
     {
-    m_Mean = mean ;
-    this->Modified() ;
+    m_Mean = mean;
+    this->Modified();
     }
 }
 
@@ -94,7 +94,7 @@ GaussianMembershipFunction< TMeasurementVector >
 
   m_Covariance = cov;
 
-  m_IsCovarianceZero = m_Covariance.GetVnlMatrix().is_zero() ;
+  m_IsCovarianceZero = m_Covariance.GetVnlMatrix().is_zero();
 
   if ( !m_IsCovarianceZero )
     {
@@ -107,7 +107,7 @@ GaussianMembershipFunction< TMeasurementVector >
       
     // calculate coefficient C of multivariate gaussian
     m_PreFactor = 1.0 / (sqrt(det) * 
-                         vcl_pow(sqrt(2.0 * vnl_math::pi), double(this->GetMeasurementVectorSize()))) ;
+                         vcl_pow(sqrt(2.0 * vnl_math::pi), double(this->GetMeasurementVectorSize())));
     }
 }
 
@@ -117,7 +117,7 @@ GaussianMembershipFunction< TMeasurementVector >
 ::Evaluate(const MeasurementVectorType &measurement) const
 { 
 
-  double temp ;
+  double temp;
 
   const MeasurementVectorSizeType measurementVectorSize = 
                           this->GetMeasurementVectorSize();
@@ -129,43 +129,43 @@ GaussianMembershipFunction< TMeasurementVector >
   if ( !m_IsCovarianceZero )
     {
     // Compute |y - mean | 
-    for ( unsigned int i = 0 ; i < measurementVectorSize ; i++)
+    for ( unsigned int i = 0; i < measurementVectorSize; i++)
       {
-      tempVector[i] = measurement[i] - m_Mean[i] ;
+      tempVector[i] = measurement[i] - m_Mean[i];
       }
       
       
     // Compute |y - mean | * inverse(cov) 
-    for (unsigned int i = 0 ; i < measurementVectorSize ; i++)
+    for (unsigned int i = 0; i < measurementVectorSize; i++)
       {
-      temp = 0 ;
-      for (unsigned int j = 0 ; j < measurementVectorSize ; j++)
+      temp = 0;
+      for (unsigned int j = 0; j < measurementVectorSize; j++)
         {
-        temp += tempVector[j] * m_InverseCovariance.GetVnlMatrix().get(j, i) ;
+        temp += tempVector[j] * m_InverseCovariance.GetVnlMatrix().get(j, i);
         }
-      tempVector2[i] = temp ;
+      tempVector2[i] = temp;
       }
 
 
     // Compute |y - mean | * inverse(cov) * |y - mean|^T 
-    temp = 0 ;
-    for (unsigned int i = 0 ; i < measurementVectorSize ; i++)
+    temp = 0;
+    for (unsigned int i = 0; i < measurementVectorSize; i++)
       {
-      temp += tempVector2[i] * tempVector[i] ;
+      temp += tempVector2[i] * tempVector[i];
       }
       
-    return  m_PreFactor * vcl_exp(-0.5 * temp ) ;
+    return  m_PreFactor * vcl_exp(-0.5 * temp );
     }
   else
     {
-    for ( unsigned int i = 0 ; i < measurementVectorSize ; i++)
+    for ( unsigned int i = 0; i < measurementVectorSize; i++)
       {
       if ( m_Mean[i] != (double) measurement[i] )
         {
-        return 0 ;
+        return 0;
         }
       }
-    return NumericTraits< double >::max() ;
+    return NumericTraits< double >::max();
     }
 }
   

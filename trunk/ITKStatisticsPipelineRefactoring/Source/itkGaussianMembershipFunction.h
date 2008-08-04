@@ -21,8 +21,8 @@
 #include "itkMatrix.h"
 #include "itkMembershipFunctionBase.h"
 
-namespace itk{ 
-namespace Statistics{
+namespace itk { 
+namespace Statistics {
 
 /** \class GaussianMembershipFunction
  * \brief GaussianMembershipFunction class represents Gaussian function.
@@ -43,17 +43,17 @@ class ITK_EXPORT GaussianMembershipFunction :
 {
 public:
   /** Standard class typedefs */
-  typedef GaussianMembershipFunction Self;
-  typedef MembershipFunctionBase< TMeasurementVector > Superclass ;
-  typedef SmartPointer<Self> Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
+  typedef GaussianMembershipFunction                    Self;
+  typedef MembershipFunctionBase< TMeasurementVector >  Superclass;
+  typedef SmartPointer<Self>                            Pointer;
+  typedef SmartPointer<const Self>                      ConstPointer;
 
   /** Strandard macros */
   itkTypeMacro(GaussianMembershipFunction, MembershipFunction);
   itkNewMacro(Self);
   
   /** Typedef alias for the measurement vectors */
-  typedef TMeasurementVector MeasurementVectorType ;
+  typedef TMeasurementVector MeasurementVectorType;
 
   /** Length of each measurement vector */
   typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
@@ -75,10 +75,10 @@ public:
   itkGetConstMacro( Covariance, CovarianceType ); 
 
   /** Gets the probability density of a measurement vector. */
-  double Evaluate(const MeasurementVectorType &measurement) const ;
+  double Evaluate(const MeasurementVectorType &measurement) const;
   
 protected:
-  GaussianMembershipFunction(void) ;
+  GaussianMembershipFunction(void);
   virtual ~GaussianMembershipFunction(void) {}
   void PrintSelf(std::ostream& os, Indent indent) const;
 
@@ -96,7 +96,7 @@ private:
 
   /** if the all element of the given covarinace is zero, then this
    * value set to true */
-  bool m_IsCovarianceZero ;
+  bool m_IsCovarianceZero;
 };
 
 } // end of namespace Statistics
