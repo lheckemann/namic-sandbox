@@ -92,23 +92,6 @@ int itkSampleToHistogramFilterTest(int argc, char *argv[] )
 
   sample->SetMeasurementVectorSize( numberOfComponents );
 
-  // Set a bad number of samples on purpose
-  sample->SetMeasurementVectorSize( numberOfComponents + 5 );
-
-  try
-    {
-    filter->Update();
-    std::cerr << "Failure to throw expected exception due to lack";
-    std::cerr << " of calling SetMeasurementVectorSize() in bin maximum ";
-    return EXIT_FAILURE;
-    }
-  catch( itk::ExceptionObject & )
-    {
-    std::cout << "Expected exception received" << std::endl;
-    }
-
-  sample->SetMeasurementVectorSize( numberOfComponents );
-
   try
     {
     filter->Update();
@@ -120,12 +103,12 @@ int itkSampleToHistogramFilterTest(int argc, char *argv[] )
     }
 
 
-  HistogramSizeType histogramSize1;
+  HistogramSizeType histogramSize1( numberOfComponents );
   histogramSize1[0] = 256;
   histogramSize1[1] = 256;
   histogramSize1[2] = 256;
 
-  HistogramSizeType histogramSize2;
+  HistogramSizeType histogramSize2( numberOfComponents );
   histogramSize2[0] = 128;
   histogramSize2[1] = 128;
   histogramSize2[2] = 128;
@@ -340,12 +323,12 @@ int itkSampleToHistogramFilterTest(int argc, char *argv[] )
 
 
   // Testing the settings of the BinMaximum and BinMinimum methods.
-  HistogramMeasurementVectorType histogramBinMinimum1;
+  HistogramMeasurementVectorType histogramBinMinimum1( numberOfComponents );
   histogramBinMinimum1[0] = 0;
   histogramBinMinimum1[1] = 0;
   histogramBinMinimum1[2] = 0;
 
-  HistogramMeasurementVectorType histogramBinMinimum2;
+  HistogramMeasurementVectorType histogramBinMinimum2( numberOfComponents );
   histogramBinMinimum2[0] = 17;
   histogramBinMinimum2[1] = 17;
   histogramBinMinimum2[2] = 17;
@@ -461,12 +444,12 @@ int itkSampleToHistogramFilterTest(int argc, char *argv[] )
     }
 
 
-  HistogramMeasurementVectorType histogramBinMaximum1;
+  HistogramMeasurementVectorType histogramBinMaximum1( numberOfComponents );
   histogramBinMaximum1[0] = 0;
   histogramBinMaximum1[1] = 0;
   histogramBinMaximum1[2] = 0;
 
-  HistogramMeasurementVectorType histogramBinMaximum2;
+  HistogramMeasurementVectorType histogramBinMaximum2( numberOfComponents );
   histogramBinMaximum2[0] = 17;
   histogramBinMaximum2[1] = 17;
   histogramBinMaximum2[2] = 17;
