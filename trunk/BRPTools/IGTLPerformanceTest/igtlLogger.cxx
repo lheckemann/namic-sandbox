@@ -176,7 +176,9 @@ void Logger::Flush()
     std::ofstream fout;
     if (this->m_Append)
       {
-      fout.open(this->m_FileName.c_str(), std::ios::app);
+      std::string filename = this->m_FileName;
+      filename.append(".csv");
+      fout.open(filename.c_str(), std::ios::app);
       }
     else
       {
