@@ -63,7 +63,7 @@ int itkGaussianMembershipFunctionTest(int, char* [] )
   
   //Test if the membership function value computed is correct
   MembershipFunctionType::MeanType mean;
-  ::itk::Statistics::MeasurementVectorTraits::SetLength( mean, 1);
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( mean, MeasurementVectorSize);
   mean[0] = 1.5;
   function->SetMean( mean );
  
@@ -75,19 +75,14 @@ int itkGaussianMembershipFunctionTest(int, char* [] )
     return EXIT_FAILURE;
     }
 
-  MembershipFunctionType::CovarianceType cov;
-  mean[0] = 1.5;
-  function->SetMean( mean );
+  MembershipFunctionType::CovarianceType covariance;
+  covariance.SetSize(MeasurementVectorSize,MeasurementVectorSize);
+  covariance.SetIdentity();
+  function->SetCovariance( covariance );
  
-  if( fabs( function->GetMean()[0] - mean[0]) > tolerance ) 
-    {
-    std::cerr << "Error in GetMean() method" << std::endl;
-    return EXIT_FAILURE;
-    }
-
   MeasurementVectorType measurement;
-  ::itk::Statistics::MeasurementVectorTraits::SetLength( measurement, 1);
-  measurement[0] = 2.5;
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( measurement, MeasurementVectorSize);
+  measurement[0] = 1.5;
 
   double trueValue = 3.31662;
   double distanceComputed = function->Evaluate( measurement );
