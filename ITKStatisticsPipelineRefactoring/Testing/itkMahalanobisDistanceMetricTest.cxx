@@ -48,7 +48,17 @@ int itkMahalanobisDistanceMetricTest(int, char* [] )
   origin[0] = 1.5;
   origin[1] = 2.3;
   origin[2] = 1.0;
-  distance->SetOrigin( origin );
+  distance->SetMean( origin );
+
+  //double value comparision tolerance
+  const double tolerance = 0.001;
+  if( fabs(distance->GetMean()[0] - origin[0]) > tolerance ||
+      fabs(distance->GetMean()[1] - origin[1]) > tolerance ||
+      fabs(distance->GetMean()[2] - origin[2]) > tolerance )
+    {
+    std::cerr << " Set/Get Origin error " << std::endl;
+    return EXIT_FAILURE;
+    }
 
   MeasurementVectorType measurement;
   ::itk::Statistics::MeasurementVectorTraits::SetLength( measurement, 3);
@@ -58,7 +68,6 @@ int itkMahalanobisDistanceMetricTest(int, char* [] )
 
   double trueValue = 3.31662;
   double distanceComputed = distance->Evaluate( measurement );
-  const double tolerance = 0.001;
 
   if( fabs( distanceComputed - trueValue) > tolerance )
     {
