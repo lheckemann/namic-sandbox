@@ -88,7 +88,7 @@ public:
 
   /** InstanceIdentifier typedef. This identifier is a unique
    * sequential id for each measurement vector in a Sample subclass. */ 
-  typedef MeasurementVectorTraits::InstanceIdentifier  InstanceIdentifier;
+  typedef typename MeasurementVectorTraits::InstanceIdentifier  InstanceIdentifier;
 
   /** Typedef for the length of each measurement vector */
   typedef unsigned int  MeasurementVectorSizeType;
