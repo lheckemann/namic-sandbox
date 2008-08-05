@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __MaximumRatioDecisionRule2_h
-#define __MaximumRatioDecisionRule2_h
+#ifndef __itkMaximumRatioDecisionRule2_h
+#define __itkMaximumRatioDecisionRule2_h
 
 #include <vector>
 #include "vnl/vnl_matrix.h"
@@ -46,7 +46,7 @@ class ITKCommon_EXPORT MaximumRatioDecisionRule2 :
 {
 public:
   /** Standard class typedefs */ 
-  typedef MaximumRatioDecisionRule2         Self ;
+  typedef MaximumRatioDecisionRule2         Self;
   typedef DecisionRule                      Superclass;
   typedef SmartPointer<Self>                Pointer;
   
@@ -54,11 +54,11 @@ public:
   itkTypeMacro(MaximumRatioDecisionRule2, DecisionRule);
   
   /** Standard New() method support */
-  itkNewMacro(Self) ;
+  itkNewMacro(Self);
   
-  typedef float APrioriValueType ;
-  typedef std::vector< APrioriValueType > APrioriVectorType ;
-  typedef APrioriVectorType::size_type APrioriVectorSizeType ;
+  typedef float                               APrioriValueType;
+  typedef std::vector< APrioriValueType >     APrioriVectorType;
+  typedef APrioriVectorType::size_type        APrioriVectorSizeType;
 
   typedef Superclass::MembershipVectorType   MembershipVectorType;
  
@@ -70,10 +70,10 @@ public:
 
 
   /** Sets the a priori probabilities */
-  void SetAPriori(APrioriVectorType& values) ;
+  void SetAPriori(APrioriVectorType& values);
 
 protected:
-  MaximumRatioDecisionRule2() ;
+  MaximumRatioDecisionRule2();
   virtual ~MaximumRatioDecisionRule2() {}
   
 private:
@@ -81,16 +81,12 @@ private:
   void operator=(const Self&); //purposely not implemented
 
   /** Number of classes */
-  APrioriVectorSizeType m_NumberOfClasses ;
+  APrioriVectorSizeType m_NumberOfClasses;
 
   /** a priori probability ratio matrix: internal use */
-  vnl_matrix< double > m_APrioriRatioMatrix ;
-} ; // end of class
+  vnl_matrix< double > m_APrioriRatioMatrix;
+}; // end of class
 
 } // end of Statistics namespace
 } // end of ITK namespace
 #endif
-
-
-
-
