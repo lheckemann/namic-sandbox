@@ -542,14 +542,12 @@ void vtkNeuroNavGUI::ProcessGUIEvents ( vtkObject *caller,
           this->GetLogic()->GetPat2ImgReg()->AddPoint(r, sc1, sc2, sc3, pc1, pc2, pc3);
           }
 
-        int error = this->GetLogic()->GetPat2ImgReg()->DoRegistration();
+        int error = this->GetLogic()->PerformPatientToImageRegistration();
         if (error)
           {
           vtkSlicerApplication::GetInstance()->ErrorMessage("Error registration between patient and image land marks.");
-          this->GetLogic()->SetUseRegistration(0);
           return;
           }
-        this->GetLogic()->SetUseRegistration(1);
         }
       }
     else if (this->ResetPushButton == vtkKWPushButton::SafeDownCast(caller) 

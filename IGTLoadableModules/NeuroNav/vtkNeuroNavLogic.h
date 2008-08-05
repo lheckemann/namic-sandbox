@@ -124,6 +124,7 @@ public:
   void UpdateDisplay(int sliceNo1, int sliceNo2, int sliceNo3);
   void GetCurrentPosition( float *px, float *py, float *pz);
   void UpdateTransformNodeByName(const char *name);
+  int PerformPatientToImageRegistration();
 
 
 protected:
@@ -195,7 +196,7 @@ private:
   int SliceNo3Last;
   vtkMRMLLinearTransformNode *CurrentTransformNode;
   vtkIGTPat2ImgRegistration *Pat2ImgReg;
-
+  vtkMRMLLinearTransformNode *RegistrationNode;
 };
 
 #endif
