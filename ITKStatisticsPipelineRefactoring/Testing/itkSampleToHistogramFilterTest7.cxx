@@ -104,9 +104,9 @@ int itkSampleToHistogramFilterTest7(int argc, char *argv[] )
 
   const HistogramType * histogram = filter->GetOutput();
 
-  if( histogram->Size() != 1 )
+  if( histogram->Size() != 0 )
     {
-    std::cerr << "Histogram Size should have been one" << std::endl;
+    std::cerr << "Histogram Size should have been zero" << std::endl;
     return EXIT_FAILURE;
     }
 
