@@ -84,7 +84,7 @@ int itkGaussianMembershipFunctionTest(int, char* [] )
   ::itk::Statistics::MeasurementVectorTraits::SetLength( measurement, MeasurementVectorSize);
   measurement[0] = 1.5;
 
-  double trueValue = 3.31662;
+  double trueValue = 0.3989;
   double distanceComputed = function->Evaluate( measurement );
 
   if( fabs( distanceComputed - trueValue) > tolerance )
