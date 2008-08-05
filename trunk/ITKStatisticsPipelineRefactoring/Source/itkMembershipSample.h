@@ -143,12 +143,14 @@ public:
     ConstIterator(const ConstIterator& iter)
       {
       m_Sample = iter.m_Sample;
+      m_MembershipSample = iter.m_MembershipSample;
       m_InstanceIdentifier = iter.m_InstanceIdentifier;
       }
 
     ConstIterator& operator=(const ConstIterator& iter)
       {
       m_Sample = iter.m_Sample;
+      m_MembershipSample = iter.m_MembershipSample;
       m_InstanceIdentifier = iter.m_InstanceIdentifier;
       return *this;
       }
@@ -165,7 +167,6 @@ public:
 
     ConstIterator& operator++() 
       { 
-      //++m_Iter;
       ++m_InstanceIdentifier;
       return *this;
       }
@@ -184,7 +185,12 @@ public:
       {
       return m_InstanceIdentifier; 
       }
-    
+
+    unsigned int   GetClassLabel() const
+      {
+      return m_MembershipSample->GetClassLabel( m_InstanceIdentifier );
+      }
+ 
     protected:
     // Purposely not implemented
     ConstIterator();
@@ -192,15 +198,16 @@ public:
     // Only to be called from the MembershipSample
     ConstIterator(
              const Self* memberSample, InstanceIdentifier iid)
-      :m_Sample(memberSample->m_Sample), m_InstanceIdentifier(iid)
+      :m_Sample(memberSample->m_Sample), m_MembershipSample( memberSample), m_InstanceIdentifier(iid)
       {
 
       }
 
 
     //typename SampleType::ConstIterator m_Iter; 
-    const TSample*        m_Sample;
-    InstanceIdentifier    m_InstanceIdentifier;
+    const TSample*                 m_Sample;
+    const MembershipSample*        m_MembershipSample;
+    InstanceIdentifier             m_InstanceIdentifier;
     };
 
   class Iterator: public ConstIterator
