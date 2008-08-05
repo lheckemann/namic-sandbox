@@ -95,5 +95,11 @@ void RegisterTests()
   REGISTER_TEST(itkMaximumRatioDecisionRuleTest);
   REGISTER_TEST(itkMinimumDecisionRuleTest);
   
+  REGISTER_TEST(itkKdTreeBasedKmeansEstimatorTest);
+  REGISTER_TEST(itkKdTreeGeneratorTest);
+  REGISTER_TEST(itkKdTreeTest1);
+  REGISTER_TEST(itkKdTreeTest2);
+  REGISTER_TEST(itkWeightedCentroidKdTreeGeneratorTest1);
+
 }
 
