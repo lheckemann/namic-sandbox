@@ -48,13 +48,77 @@ int itkMaximumRatioDecisionRuleTest(int, char* [] )
   membershipScore3 = 1.9;
   membershipScoreVector.push_back( membershipScore3 );  
 
-  // the maximum score is the third component. The decision rule should
-  // return index ( 2) 
-  if( decisionRule->Evaluate( membershipScoreVector ) != 2 )
+  unsigned int  decisionValue;
+  try
+    {
+    decisionValue = decisionRule->Evaluate( membershipScoreVector);
+    std::cerr << "An exception should have been thrown since a priori"
+              << " probability is not set yet " << std::endl;
+    return EXIT_FAILURE;
+    } 
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception= " << excp << std::endl;
+    }
+
+  //Set aprior probablity 
+  typedef MaximumRatioDecisionRuleType::APrioriVectorType APrioriVectorType; 
+  typedef MaximumRatioDecisionRuleType::APrioriValueType APrioriValueType; 
+  
+  APrioriVectorType aprioriProbabilityVector;
+
+  //first class
+  APrioriValueType value1 = 0.4;
+  aprioriProbabilityVector.push_back( value1 ); 
+
+  //second class
+  APrioriValueType value2 = 0.2;
+  aprioriProbabilityVector.push_back( value2 ); 
+  decisionRule->SetAPriori( aprioriProbabilityVector );
+
+  //Evalue the membershipScore vector instantiated above ( 3 classes )
+  try
+    {
+    decisionValue = decisionRule->Evaluate( membershipScoreVector);
+    std::cerr << "An exception should have been thrown since the membership" 
+              << " score vector size doesn't match with the apriori vector" << std::endl;
+    return EXIT_FAILURE;
+    } 
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception= " << excp << std::endl;
+    }
+
+  APrioriVectorType aprioriProbabilityVector2;
+
+  value1 = 0.3;
+  aprioriProbabilityVector2.push_back( value1 ); 
+
+  value2 = 0.3;
+  aprioriProbabilityVector2.push_back( value2 ); 
+
+  //Add a third class
+  APrioriValueType value3 = 0.3;
+  aprioriProbabilityVector2.push_back( value3 ); 
+
+  decisionRule->SetAPriori( aprioriProbabilityVector2 );
+  try
+    {
+    decisionValue = decisionRule->Evaluate( membershipScoreVector);
+    } 
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Exception= " << excp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  //Check if the computed decision value is correct 
+  if( decisionValue != 2 )
     {
       std::cerr << "Decision rule computation is incorrect!" << std::endl;
       return EXIT_FAILURE;
     } 
 
+ 
   return EXIT_SUCCESS;
 }
