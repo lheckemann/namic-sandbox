@@ -61,6 +61,8 @@ vtkNeuroNavLogic::vtkNeuroNavLogic()
   this->UseRegistration = false;
 
   this->Pat2ImgReg = vtkIGTPat2ImgRegistration::New();
+  this->RegistrationNode = NULL;
+
 }
 
 
@@ -71,6 +73,12 @@ vtkNeuroNavLogic::~vtkNeuroNavLogic()
     {
     this->Pat2ImgReg->Delete();
     this->Pat2ImgReg = NULL;
+    }
+
+  if (this->RegistrationNode)
+    {
+    this->RegistrationNode->Delete();
+    this->RegistrationNode = NULL;
     }
 }
 
@@ -222,7 +230,7 @@ void vtkNeuroNavLogic::UpdateTransformNodeByName(const char *name)
     this->CurrentTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(collection->GetItemAsObject(0));
     if (this->Pat2ImgReg && this->UseRegistration)
       {
-      this->UpdateLocatorTransform();
+      // this->UpdateLocatorTransform();
       }
     }
 }
@@ -543,4 +551,33 @@ void vtkNeuroNavLogic::UpdateLocatorTransform()
     locator_transform->Delete();
     }
 }
+
+int vtkNeuroNavLogic::PerformPatientToImageRegistration()
+{
+  int error = this->GetPat2ImgReg()->DoRegistration();
+  if (error)
+    {
+    this->SetUseRegistration(0);
+    return error;
+    }
+
+  this->SetUseRegistration(1);
+
+  // Create a MRML node to hold the registration transform
+  if (this->RegistrationNode)
+    {
+    this->RegistrationNode->Delete();
+    GetMRMLScene()->Modified();
+    }
+
+  this->RegistrationNode = vtkMRMLLinearTransformNode::New();
+  this->RegistrationNode->SetName("Pat2ImagReg");
+  this->RegistrationNode->SetDescription("Patient to image registration.");
+
+  this->RegistrationNode->ApplyTransform(this->Pat2ImgReg->GetLandmarkTransformMatrix());
+  GetMRMLScene()->AddNode(this->RegistrationNode);
+
+  return (!error);
+}
+
 
