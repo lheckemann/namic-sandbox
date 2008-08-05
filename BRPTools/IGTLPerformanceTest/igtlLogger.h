@@ -27,7 +27,7 @@
 namespace igtl
 {
 
-#define MAX_ROWS      10000
+#define MAX_ROWS      1000000
 #define MAX_COLUMNS   20
 
 class Logger : public Object
