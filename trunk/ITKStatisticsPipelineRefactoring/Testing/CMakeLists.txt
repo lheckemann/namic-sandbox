@@ -85,6 +85,44 @@ ADD_TEST(itkMaximumDecisionRuleTest ${STATISTICS_TESTS} itkMaximumDecisionRuleTe
 ADD_TEST(itkMaximumRatioDecisionRuleTest ${STATISTICS_TESTS} itkMaximumRatioDecisionRuleTest)
 ADD_TEST(itkMinimumDecisionRuleTest ${STATISTICS_TESTS} itkMinimumDecisionRuleTest)
 
+ADD_TEST(itkKdTreeBasedKmeansEstimatorTest ${STATISTICS_TESTS} 
+         itkKdTreeBasedKmeansEstimatorTest 
+         ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat 
+         1 28.54746 0.07)
+ADD_TEST(itkKdTreeGeneratorTest ${STATISTICS_TESTS} 
+         itkKdTreeGeneratorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
+ADD_TEST(itkKdTreeTest1 ${STATISTICS_TESTS} itkKdTreeTest1 100 100 1 ${TEMP}/itkKdTreeTest1_100.dot)
+ADD_TEST(itkKdTreeTest2 ${STATISTICS_TESTS} itkKdTreeTest2
+         ${ITK_DATA_ROOT}/Input/pointsForKdTree.txt 1 ${TEMP}/itkKdTreeTest2.dot)
+ADD_TEST(itkKdTreeTest3 ${STATISTICS_TESTS} itkKdTreeTest2
+         ${ITK_DATA_ROOT}/Input/pointsForKdTree2.txt 1 ${TEMP}/itkKdTreeTest3.dot)
+IF(DOXYGEN_DOT_EXECUTABLE)
+ADD_TEST(itkKdTreeTest1Plot ${DOXYGEN_DOT_EXECUTABLE} -Tpng -o  ${TEMP}/itkKdTreeTest1_100.png ${TEMP}/itkKdTreeTest1_100.dot) 
+ADD_TEST(itkKdTreeTest2Plot ${DOXYGEN_DOT_EXECUTABLE} -Tpng -o  ${TEMP}/itkKdTreeTest2.png ${TEMP}/itkKdTreeTest2.dot) 
+ADD_TEST(itkKdTreeTest3Plot ${DOXYGEN_DOT_EXECUTABLE} -Tpng -o  ${TEMP}/itkKdTreeTest3.png ${TEMP}/itkKdTreeTest3.dot) 
+ENDIF(DOXYGEN_DOT_EXECUTABLE)
+ADD_TEST(itkKdTreeTest4 ${STATISTICS_TESTS} itkKdTreeTest1 1000 1000 1 )
+ADD_TEST(itkKdTreeTest5 ${STATISTICS_TESTS} itkKdTreeTest1 1000 1000 2 )
+ADD_TEST(itkKdTreeTest6 ${STATISTICS_TESTS} itkKdTreeTest1 1000 1000 3 )
+ADD_TEST(itkKdTreeTest7 ${STATISTICS_TESTS} itkKdTreeTest1 1000 1000 5 )
+ADD_TEST(itkKdTreeTest7 ${STATISTICS_TESTS} itkKdTreeTest1 1000 1000 10 )
+ADD_TEST(itkKdTreeTest8 ${STATISTICS_TESTS} itkKdTreeTest1 1000 1000 20 )
+ADD_TEST(itkKdTreeTest9 ${STATISTICS_TESTS} itkKdTreeTest1 1000 1000 100 )
+ADD_TEST(itkWeightedCentroidKdTreeGeneratorTest1 ${STATISTICS_TESTS} 
+  itkWeightedCentroidKdTreeGeneratorTest1 1000 1000 1 )
+ADD_TEST(itkWeightedCentroidKdTreeGeneratorTest2 ${STATISTICS_TESTS} 
+  itkWeightedCentroidKdTreeGeneratorTest1 1000 1000 2 )
+ADD_TEST(itkWeightedCentroidKdTreeGeneratorTest3 ${STATISTICS_TESTS} 
+  itkWeightedCentroidKdTreeGeneratorTest1 1000 1000 3 )
+ADD_TEST(itkWeightedCentroidKdTreeGeneratorTest4 ${STATISTICS_TESTS} 
+  itkWeightedCentroidKdTreeGeneratorTest1 1000 1000 5 )
+ADD_TEST(itkWeightedCentroidKdTreeGeneratorTest5 ${STATISTICS_TESTS} 
+  itkWeightedCentroidKdTreeGeneratorTest1 1000 1000 10 )
+ADD_TEST(itkWeightedCentroidKdTreeGeneratorTest6 ${STATISTICS_TESTS} 
+  itkWeightedCentroidKdTreeGeneratorTest1 1000 1000 20 )
+ADD_TEST(itkWeightedCentroidKdTreeGeneratorTest7 ${STATISTICS_TESTS} 
+  itkWeightedCentroidKdTreeGeneratorTest1 1000 1000 100 )
+
 SET(Statistics_SRCS
   itkCovarianceFilterTest.cxx
   itkCovarianceFilterTest2.cxx
@@ -149,6 +187,13 @@ SET(Statistics_SRCS
   itkMaximumDecisionRuleTest.cxx
   itkMaximumRatioDecisionRuleTest.cxx
   itkMinimumDecisionRuleTest.cxx
+
+  itkKdTreeBasedKmeansEstimatorTest.cxx
+  itkKdTreeGeneratorTest.cxx
+  itkKdTreeTest1.cxx
+  itkKdTreeTest2.cxx
+  itkWeightedCentroidKdTreeGeneratorTest1.cxx
+
   )
 
 ADD_EXECUTABLE(itkStatisticsTests itkStatisticsTests.cxx ${Statistics_SRCS})

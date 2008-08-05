@@ -182,6 +182,45 @@ Subsample< TSample >
   this->Modified();
 }
 
+template< class TSample >
+inline typename Subsample< TSample >::MeasurementVectorType
+Subsample< TSample >
+::GetMeasurementVectorByIndex(unsigned int index) const
+{
+  if ( index >= m_IdHolder.size() ) 
+    {
+    itkExceptionMacro("Index out of range");
+    }
+  return m_Sample->GetMeasurementVector(m_IdHolder[index]) ;
+}
+
+template< class TSample >
+inline typename Subsample< TSample >::AbsoluteFrequencyType
+Subsample< TSample >
+::GetFrequencyByIndex(unsigned int index) const
+{
+  if ( index >= m_IdHolder.size() ) 
+    {
+    itkExceptionMacro("Index out of range");
+    }
+ 
+  return m_Sample->GetFrequency(m_IdHolder[index]) ;
+}
+
+
+template< class TSample >
+typename Subsample< TSample >::InstanceIdentifier
+Subsample< TSample >
+::GetInstanceIdentifier(unsigned int index)
+{
+  if ( index >= m_IdHolder.size() ) 
+    {
+    itkExceptionMacro("Index out of range");
+    }
+  return m_IdHolder[index];
+}
+ 
+
 } // end of namespace Statistics 
 } // end of namespace itk
 

@@ -99,6 +99,12 @@ public:
   
   void Swap(unsigned int index1, unsigned int index2);
   
+  InstanceIdentifier GetInstanceIdentifier( unsigned int index );
+  
+  MeasurementVectorType GetMeasurementVectorByIndex(unsigned int index) const ;
+
+  AbsoluteFrequencyType GetFrequencyByIndex(unsigned int index) const;
+
 
   class ConstIterator
     {
