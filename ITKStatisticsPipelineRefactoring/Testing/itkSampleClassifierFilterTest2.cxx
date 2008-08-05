@@ -24,13 +24,14 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkSampleClassifierFilter.h"
 #include "itkMaximumDecisionRule2.h"
 #include "itkGaussianMembershipFunction.h"
+#include "itkNormalVariateGenerator.h"
 
 
 //Test if the SampleClassifier filter labels observations correctly
 int itkSampleClassifierFilterTest2(int argc, char *argv[] )
 {
 
-  const unsigned int numberOfComponents = 3;
+  const unsigned int numberOfComponents = 1;
   typedef float      MeasurementType;
 
   const unsigned int numberOfClasses = 2;
@@ -60,6 +61,8 @@ int itkSampleClassifierFilterTest2(int argc, char *argv[] )
 
   typedef itk::Statistics::GaussianMembershipFunction< MeasurementVectorType > 
                                                                MembershipFunctionType;
+  typedef MembershipFunctionType::MeanType                     MeanType;
+  typedef MembershipFunctionType::CovarianceType               CovarianceType;
 
   typedef MembershipFunctionType::Pointer                      MembershipFunctionPointer;
 
@@ -74,13 +77,34 @@ int itkSampleClassifierFilterTest2(int argc, char *argv[] )
 
   MembershipFunctionPointer membershipFunction1 = MembershipFunctionType::New(); 
   membershipFunction1->SetMeasurementVectorSize( numberOfComponents );
+  MeanType  mean1;
+  mean1.SetSize( numberOfComponents );
+  mean1[0] = 10.5;
+
+  membershipFunction1->SetMean( mean1 );
+  CovarianceType covariance1;
+  covariance1.SetSize( numberOfComponents, numberOfComponents );
+  covariance1.SetIdentity();
+  covariance1[0][0] = 0.5;
+  membershipFunction1->SetCovariance( covariance1 );
   membershipFunctionsVector.push_back( membershipFunction1.GetPointer() );
 
   MembershipFunctionPointer membershipFunction2 = MembershipFunctionType::New(); 
   membershipFunction1->SetMeasurementVectorSize( numberOfComponents );
+
+  MeanType  mean2;
+  mean2.SetSize( numberOfComponents );
+  mean2[0] = 200.5;
+  membershipFunction1->SetMean( mean2 );
+
+  CovarianceType covariance2;
+  covariance2.SetSize( numberOfComponents, numberOfComponents );
+  covariance2.SetIdentity();
+  covariance2[0][0] = 0.5;
+  membershipFunction1->SetCovariance( covariance2 );
   membershipFunctionsVector.push_back( membershipFunction2.GetPointer() );
 
-  // Add three class labels and rerun the filter
+  // Add class labels
   ClassLabelVectorType & classLabelVector  = classLabelsObject->Get();
 
   typedef FilterType::ClassLabelType        ClassLabelType;
@@ -97,6 +121,27 @@ int itkSampleClassifierFilterTest2(int argc, char *argv[] )
   DecisionRuleType::Pointer    decisionRule = DecisionRuleType::New();
   filter->SetDecisionRule( decisionRule );
 
+
+  //Generate samples from a Gaussian distribution with mean and 
+  //covariance parameter as the first membership function. 
+  //All the samples should be labeled by the classifier as
+  //the first class
+
+  typedef itk::Statistics::NormalVariateGenerator NormalGeneratorType;
+  NormalGeneratorType::Pointer normalGenerator = NormalGeneratorType::New();
+
+  normalGenerator->Initialize( 101 );
+
+  MeasurementVectorType mv;
+  double mean = mean1[0];
+  double standardDeviation = vcl_sqrt(covariance1[0][0]);
+  for ( unsigned int i = 0 ; i < 100 ; ++i )
+    {
+    mv.Fill( (normalGenerator->GetVariate() * standardDeviation ) + mean);
+    sample->PushBack( mv );
+    }
+
+  filter->SetInput( sample );
   try
     {
     filter->Update();
@@ -108,6 +153,15 @@ int itkSampleClassifierFilterTest2(int argc, char *argv[] )
     }
 
   //Check if the measurement vectors are correctly labelled. 
+  const FilterType::MembershipSampleType* membershipSample = filter->GetOutput();
+  FilterType::MembershipSampleType::ConstIterator iter = membershipSample->Begin();
+
+  while ( iter != membershipSample->End() )
+    {
+    std::cout << "measurement vector = " << iter.GetMeasurementVector()
+              << "class label = " << iter.GetClassLabel() << std::endl;
+    ++iter;
+    }
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;

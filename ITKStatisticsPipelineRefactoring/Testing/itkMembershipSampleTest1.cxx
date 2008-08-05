@@ -87,7 +87,7 @@ int itkMembershipSampleTest1(int, char* [] )
   
   while( iter != end ) 
     {
-    if( sampleCounter < 5 ) 
+    if( sampleCounter >= 5 ) 
       {
       classLabel = 1;
       }
@@ -101,6 +101,7 @@ int itkMembershipSampleTest1(int, char* [] )
   //
   
   std::cerr << "Iterators..." << std::endl;
+  sampleCounter = 0;
   {
   typedef MembershipSampleType::Iterator IteratorType;
   
@@ -147,8 +148,26 @@ int itkMembershipSampleTest1(int, char* [] )
       std::cerr << "GetFrequency (forward) failed" << std::endl;
       return EXIT_FAILURE;
       }
+    if( sampleCounter < 5 ) 
+      {
+      if (s_iter.GetClassLabel() != 0)
+        {
+        std::cerr << "GetClassLabel failed:" << s_iter.GetClassLabel() << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
+    else
+      {
+      if (s_iter.GetClassLabel() != 1)
+        {
+        std::cerr << "GetClassLabel failed:" << s_iter.GetClassLabel() << std::endl;
+        return EXIT_FAILURE;
+        }
+      } 
+      
     ++id;
     ++s_iter;
+    ++sampleCounter;
     }
   
   if (s_iter != membershipSample->End())
