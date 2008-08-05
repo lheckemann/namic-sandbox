@@ -36,9 +36,11 @@ SampleToHistogramFilter< TSample, THistogram >
   this->ProcessObject::SetNumberOfRequiredOutputs(1);
   this->ProcessObject::SetNthOutput(0, output.GetPointer());
 
+  const unsigned int minimumNumberOfComponents = 1;
+
   // Set some default inputs 
-  HistogramSizeType histogramSize;
-  histogramSize.Fill(1);
+  HistogramSizeType histogramSize( minimumNumberOfComponents );
+  histogramSize.Fill(0);
   this->SetHistogramSize( histogramSize );
 
   this->SetMarginalScale( 100 );
