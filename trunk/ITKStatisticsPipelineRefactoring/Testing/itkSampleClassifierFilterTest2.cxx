@@ -71,7 +71,7 @@ int itkSampleClassifierFilterTest2(int argc, char *argv[] )
 
   MembershipFunctionVectorObjectType::Pointer membershipFunctionsObject =
                                         MembershipFunctionVectorObjectType::New();
-
+  filter->SetMembershipFunctions( membershipFunctionsObject ); 
   // Add three membership functions and rerun the filter
   MembershipFunctionVectorType &  membershipFunctionsVector = membershipFunctionsObject->Get();
 
@@ -95,13 +95,13 @@ int itkSampleClassifierFilterTest2(int argc, char *argv[] )
   MeanType  mean2;
   mean2.SetSize( numberOfComponents );
   mean2[0] = 200.5;
-  membershipFunction1->SetMean( mean2 );
+  membershipFunction2->SetMean( mean2 );
 
   CovarianceType covariance2;
   covariance2.SetSize( numberOfComponents, numberOfComponents );
   covariance2.SetIdentity();
   covariance2[0][0] = 0.5;
-  membershipFunction1->SetCovariance( covariance2 );
+  membershipFunction2->SetCovariance( covariance2 );
   membershipFunctionsVector.push_back( membershipFunction2.GetPointer() );
 
   // Add class labels
@@ -121,7 +121,6 @@ int itkSampleClassifierFilterTest2(int argc, char *argv[] )
   DecisionRuleType::Pointer    decisionRule = DecisionRuleType::New();
   filter->SetDecisionRule( decisionRule );
 
-
   //Generate samples from a Gaussian distribution with mean and 
   //covariance parameter as the first membership function. 
   //All the samples should be labeled by the classifier as
@@ -133,15 +132,27 @@ int itkSampleClassifierFilterTest2(int argc, char *argv[] )
   normalGenerator->Initialize( 101 );
 
   MeasurementVectorType mv;
+  mv.SetSize( numberOfComponents );
   double mean = mean1[0];
   double standardDeviation = vcl_sqrt(covariance1[0][0]);
-  for ( unsigned int i = 0 ; i < 100 ; ++i )
+  unsigned int numberOfSampleEachClass = 10;
+  for ( unsigned int i = 0 ; i < numberOfSampleEachClass ; ++i )
     {
-    mv.Fill( (normalGenerator->GetVariate() * standardDeviation ) + mean);
+    mv[0] = (normalGenerator->GetVariate() * standardDeviation ) + mean;
+    sample->PushBack( mv );
+    }
+
+  //Add samples for the second gaussian
+  mean = mean2[0];
+  standardDeviation = vcl_sqrt(covariance1[0][0]);
+  for ( unsigned int i = 0 ; i < numberOfSampleEachClass ; ++i )
+    {
+    mv[0] = (normalGenerator->GetVariate() * standardDeviation ) + mean;
     sample->PushBack( mv );
     }
 
   filter->SetInput( sample );
+
   try
     {
     filter->Update();
@@ -156,11 +167,31 @@ int itkSampleClassifierFilterTest2(int argc, char *argv[] )
   const FilterType::MembershipSampleType* membershipSample = filter->GetOutput();
   FilterType::MembershipSampleType::ConstIterator iter = membershipSample->Begin();
 
+  unsigned int sampleCounter = 0;
   while ( iter != membershipSample->End() )
     {
-    std::cout << "measurement vector = " << iter.GetMeasurementVector()
-              << "class label = " << iter.GetClassLabel() << std::endl;
+    if( sampleCounter < numberOfSampleEachClass )
+      {
+      if( iter.GetClassLabel() != class1 )
+        {
+        std::cerr << "Classification error: " << sampleCounter
+                  << "\t" << iter.GetClassLabel() 
+                  << "\tclass1=" << class1 << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
+    else
+      {
+      if( iter.GetClassLabel() != class2 )
+        {
+        std::cerr << "Classification error: " << sampleCounter
+                  << "\t" << iter.GetClassLabel() 
+                  << "\tclass2=" << class2 << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
     ++iter;
+    ++sampleCounter;
     }
 
   std::cout << "Test passed." << std::endl;
