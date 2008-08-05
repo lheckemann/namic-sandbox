@@ -79,6 +79,12 @@ int itkGaussianMembershipFunctionTest(int, char* [] )
   covariance.SetSize(MeasurementVectorSize,MeasurementVectorSize);
   covariance.SetIdentity();
   function->SetCovariance( covariance );
+
+  if( function->GetCovariance() != covariance )
+    {
+    std::cerr<< "Get/SetCovariance() failure \n" << std::endl;
+    return EXIT_FAILURE;
+    }
  
   MeasurementVectorType measurement;
   ::itk::Statistics::MeasurementVectorTraits::SetLength( measurement, MeasurementVectorSize);
