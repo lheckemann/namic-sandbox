@@ -54,6 +54,7 @@
 #include "itkManhattanDistanceMetric.h"
 #include "itkDecisionRule.h"
 #include "itkMaximumDecisionRule2.h"
+#include "itkMaximumRatioDecisionRule2.h"
 #include "itkMinimumDecisionRule2.h"
 #include "itkDistanceToCentroidMembershipFunction.h"
 #include "itkGaussianMembershipFunction.h"

@@ -81,6 +81,7 @@ ADD_TEST(itkMahalanobisDistanceMetricTest ${STATISTICS_TESTS} itkMahalanobisDist
 ADD_TEST(itkManhattanDistanceMetricTest ${STATISTICS_TESTS} itkManhattanDistanceMetricTest)
 ADD_TEST(itkDecisionRuleTest ${STATISTICS_TESTS} itkDecisionRuleTest)
 ADD_TEST(itkMaximumDecisionRuleTest ${STATISTICS_TESTS} itkMaximumDecisionRuleTest)
+ADD_TEST(itkMaximumRatioDecisionRuleTest ${STATISTICS_TESTS} itkMaximumRatioDecisionRuleTest)
 ADD_TEST(itkMinimumDecisionRuleTest ${STATISTICS_TESTS} itkMinimumDecisionRuleTest)
 
 SET(Statistics_SRCS
@@ -144,6 +145,7 @@ SET(Statistics_SRCS
   itkManhattanDistanceMetricTest.cxx
   itkDecisionRuleTest.cxx
   itkMaximumDecisionRuleTest.cxx
+  itkMaximumRatioDecisionRuleTest.cxx
   itkMinimumDecisionRuleTest.cxx
   )
 

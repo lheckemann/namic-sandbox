@@ -5,6 +5,7 @@ ADD_LIBRARY(ITKStatisticsNew
   itkSparseFrequencyContainer2.cxx
   itkDecisionRule.cxx
   itkMaximumDecisionRule2.cxx
+  itkMaximumRatioDecisionRule2.cxx
   itkMinimumDecisionRule2.cxx
  )
 

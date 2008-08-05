@@ -89,6 +89,7 @@ void RegisterTests()
 
   REGISTER_TEST(itkDecisionRuleTest);
   REGISTER_TEST(itkMaximumDecisionRuleTest);
+  REGISTER_TEST(itkMaximumRatioDecisionRuleTest);
   REGISTER_TEST(itkMinimumDecisionRuleTest);
   
 }
