@@ -90,14 +90,19 @@ int itkSampleToHistogramFilterTest3(int argc, char *argv[] )
 
   filter->SetInput( sample );
 
+
+  // Test exception when calling Update() without having
+  // defined the size of the histogram in the filter.
   try
     {
     filter->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    std::cerr << excp << std::endl;
+    std::cerr << "Failure to throw expected exception due to lack";
+    std::cerr << " of calling SetHistogramSize() in the filter ";
     return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & )
+    {
+    std::cout << "Expected exception received" << std::endl;
     }
 
 
