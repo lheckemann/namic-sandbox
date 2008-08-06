@@ -5,13 +5,13 @@ INCDIR = -I/Users/junichi/igtdev/igtl/OpenIGTLink-build\
 LIBDIR = -L/Users/junichi/igtdev/igtl/OpenIGTLink-build/bin
 LIB    = -lOpenIGTLink
 
-all: igtlsend.mex #igtlget.mex
+all: igtlsend.mex igtlopen.mex
 
-igtlsend.mex: igtlsend.o igtlMexClientSocket.o
-	${MEX} ${MEXOPT} ${INCDIR} ${LIBDIR} ${LIB} -o $@ $^
+igtlopen.mex: igtlopen.cpp igtlMexClientSocket.o
+	${MEX} ${MEXOPT} ${INCDIR} ${LIBDIR} ${LIB} $^
 
-igtlsend.o: igtlsend.cpp
-	${MEX} ${MEXOPT} ${INCDIR} -c $<
+igtlsend.mex: igtlsend.cpp igtlMexClientSocket.o
+	${MEX} ${MEXOPT} ${INCDIR} ${LIBDIR} ${LIB} $^
 
 igtlMexClientSocket.o: igtlMexClientSocket.cpp
 	${MEX} ${MEXOPT} ${INCDIR} -c $<
