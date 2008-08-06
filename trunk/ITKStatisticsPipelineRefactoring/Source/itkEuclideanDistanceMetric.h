@@ -54,6 +54,8 @@ public:
 
   typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
 
+  typedef typename Superclass::OriginType OriginType;
+
   /** Run-time type information (and related methods). */
   itkTypeMacro(EuclideanDistanceMetric, DistanceMetric);
 
