@@ -45,7 +45,6 @@ using namespace std;
 // Function declarations.
 double& createMatlabScalar (mxArray*& ptr);
 
-
 // -----------------------------------------------------------------
 // Function definitions.
 void mexFunction (int nlhs, mxArray *plhs[],
@@ -90,6 +89,7 @@ void mexFunction (int nlhs, mxArray *plhs[],
   // Set up OpenIGTLink Connection
   igtl::MexClientSocket::Pointer socket;
   socket = igtl::MexClientSocket::New();
+
   int result = socket->ConnectToServer(hostname, port);
 
   sleep(2);
