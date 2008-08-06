@@ -29,7 +29,7 @@
 
 #include "igtlOSUtil.h"
 #include "igtlImageMessage.h"
-#include "igtlClientSocket.h"
+#include "igtlMexClientSocket.h"
 
 using namespace std;
 
@@ -118,8 +118,8 @@ void mexFunction (int nlhs, mxArray *plhs[],
 
   // ---------------------------------------------------------------
   // Set up OpenIGTLink Connection
-  igtl::ClientSocket::Pointer socket;
-  socket = igtl::ClientSocket::New();
+  igtl::MexClientSocket::Pointer socket;
+  socket = igtl::MexClientSocket::New();
   int r = socket->ConnectToServer(hostname, port);
 
   if (r != 0)

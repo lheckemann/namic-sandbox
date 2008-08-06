@@ -1,0 +1,20 @@
+MEX    = /Applications/Octave.app/Contents/Resources/bin/mkoctfile
+MEXOPT = --mex
+INCDIR = -I/Users/junichi/igtdev/igtl/OpenIGTLink-build\
+	 -I/Users/junichi/igtdev/igtl/OpenIGTLink/Source 
+LIBDIR = -L/Users/junichi/igtdev/igtl/OpenIGTLink-build/bin
+LIB    = -lOpenIGTLink
+
+all: igtlsend.mex #igtlget.mex
+
+igtlsend.mex: igtlsend.o igtlMexClientSocket.o
+	${MEX} ${MEXOPT} ${INCDIR} ${LIBDIR} ${LIB} -o $@ $^
+
+igtlsend.o: igtlsend.cpp
+	${MEX} ${MEXOPT} ${INCDIR} -c $<
+
+igtlMexClientSocket.o: igtlMexClientSocket.cpp
+	${MEX} ${MEXOPT} ${INCDIR} -c $<
+
+#igtlget.mex: igtlget.cpp
+#	${MEX} ${INCDIR} ${LIBDIR} ${LIB} $<

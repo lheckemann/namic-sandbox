@@ -8,6 +8,7 @@ LIB    = -lOpenIGTLink
 
 all: igtlsend.mex #igtlget.mex
 
+
 igtlsend.mex: igtlsend.cpp
 	${MEX} ${INCDIR} ${LIBDIR} ${LIB} $<
 
