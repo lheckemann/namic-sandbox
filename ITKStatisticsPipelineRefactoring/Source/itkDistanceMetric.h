@@ -117,6 +117,8 @@ protected:
   virtual ~DistanceMetric() {}
   void PrintSelf(std::ostream& os, Indent indent) const;
 
+private:
+
   OriginType m_Origin;
 
   /** Number of components in the MeasurementVectorType */
