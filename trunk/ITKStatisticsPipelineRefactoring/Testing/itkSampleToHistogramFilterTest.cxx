@@ -77,7 +77,7 @@ int itkSampleToHistogramFilterTest(int argc, char *argv[] )
 
 
   // Test exception when calling Update() without having
-  // defined the size of the sample
+  // defined the number of components in the sample
   try
     {
     filter->Update();
@@ -92,6 +92,25 @@ int itkSampleToHistogramFilterTest(int argc, char *argv[] )
 
   sample->SetMeasurementVectorSize( numberOfComponents );
 
+  // Test exception when calling Update() without having
+  // defined the size of the histogram in the filter.
+  try
+    {
+    filter->Update();
+    std::cerr << "Failure to throw expected exception due to lack";
+    std::cerr << " of calling SetHistogramSize() in the filter ";
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & )
+    {
+    std::cout << "Expected exception received" << std::endl;
+    }
+
+
+  HistogramSizeType histogramSize0( numberOfComponents );
+  histogramSize0.Fill(1);
+  filter->SetHistogramSize( histogramSize0 );
+
   try
     {
     filter->Update();
@@ -101,7 +120,6 @@ int itkSampleToHistogramFilterTest(int argc, char *argv[] )
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;
     }
-
 
   HistogramSizeType histogramSize1( numberOfComponents );
   histogramSize1[0] = 256;
