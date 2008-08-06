@@ -101,7 +101,7 @@ public:
   
   InstanceIdentifier GetInstanceIdentifier( unsigned int index );
   
-  MeasurementVectorType GetMeasurementVectorByIndex(unsigned int index) const ;
+  MeasurementVectorType GetMeasurementVectorByIndex(unsigned int index) const;
 
   AbsoluteFrequencyType GetFrequencyByIndex(unsigned int index) const;
 

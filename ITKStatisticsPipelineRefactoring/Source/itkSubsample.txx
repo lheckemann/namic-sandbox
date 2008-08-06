@@ -191,7 +191,7 @@ Subsample< TSample >
     {
     itkExceptionMacro("Index out of range");
     }
-  return m_Sample->GetMeasurementVector(m_IdHolder[index]) ;
+  return m_Sample->GetMeasurementVector(m_IdHolder[index]);
 }
 
 template< class TSample >
@@ -204,7 +204,7 @@ Subsample< TSample >
     itkExceptionMacro("Index out of range");
     }
  
-  return m_Sample->GetFrequency(m_IdHolder[index]) ;
+  return m_Sample->GetFrequency(m_IdHolder[index]);
 }
 
 
