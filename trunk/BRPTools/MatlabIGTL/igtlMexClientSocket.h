@@ -56,6 +56,8 @@ public:
   // Description:
   // Connects to host. Returns 0 on success, -1 on error.
   int ConnectToServer(const char* hostname, int port); 
+
+  int GetDescriptor() {return this->m_SocketDescriptor; };
   
 protected:
   MexClientSocket();
