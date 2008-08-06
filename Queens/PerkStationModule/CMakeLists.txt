@@ -49,6 +49,7 @@ SET(PerkStationModule_SRCS
   vtkPerkStationModuleLogic.cxx
   vtkPerkStationModuleGUI.cxx
   vtkMRMLPerkStationModuleNode.cxx
+  vtkPerkStationSecondaryMonitor.cxx
    # wizard
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkPerkStationCalibrateStep.cxx

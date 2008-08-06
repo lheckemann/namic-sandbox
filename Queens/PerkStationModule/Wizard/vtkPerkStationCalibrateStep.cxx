@@ -2,6 +2,7 @@
 
 #include "vtkPerkStationModuleGUI.h"
 #include "vtkMRMLPerkStationModuleNode.h"
+#include "vtkPerkStationSecondaryMonitor.h"
 
 #include "vtkKWFrame.h"
 #include "vtkKWFrameWithLabel.h"
@@ -1076,7 +1077,7 @@ void vtkPerkStationCalibrateStep::PopulateControls()
 
   // 2. monitor spacing
   double monSpacing[2];
-  mrmlNode->GetSecondaryMonitorSpacing(monSpacing[0], monSpacing[1]);
+  this->GetGUI()->GetSecondaryMonitor()->GetMonitorSpacing(monSpacing[0], monSpacing[1]);
   this->MonSpacing->GetWidget(0)->SetValueAsDouble(monSpacing[0]);
   this->MonSpacing->GetWidget(1)->SetValueAsDouble(monSpacing[1]);
 
@@ -1179,7 +1180,7 @@ void vtkPerkStationCalibrateStep::ImageRotationEntryCallback(double value)
     this->ImageRotationDone = true;
     // diable all
     this->CurrentSubState = -1;
-    this->EnableDisableControls();    
+    this->EnableDisableControls(); 
 }
 
 //----------------------------------------------------------------------------
@@ -1199,9 +1200,9 @@ void vtkPerkStationCalibrateStep::ProcessImageClickEvents(vtkObject *caller, uns
 
   vtkSlicerInteractorStyle *s = vtkSlicerInteractorStyle::SafeDownCast(caller);
   vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-
+  vtkSlicerInteractorStyle *istyleSecondary = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor()->GetInteractorStyle());
   
-  if ((s == istyle0) && (event == vtkCommand::LeftButtonPressEvent) )
+  if (((s == istyle0)|| (s == istyleSecondary)) && (event == vtkCommand::LeftButtonPressEvent) )
     {
     // hear clicks only if the current sub state is Translate or Rotate
     if (! ((this->CurrentSubState == 2) || (this->CurrentSubState == 3)))
@@ -1211,16 +1212,32 @@ void vtkPerkStationCalibrateStep::ProcessImageClickEvents(vtkObject *caller, uns
     ++clickNum;
 
     // capture the point
-    vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI0();
-    vtkRenderWindowInteractor *rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
+
+    vtkRenderWindowInteractor *rwi;
+    vtkMatrix4x4 *matrix;
+    
+    
+    if (s == istyle0)
+      {
+      // coming from main gui viewer of SLICER
+      vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI0();
+      rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
+      matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();    
+      }
+    else if ( s == istyleSecondary)
+      {
+      // coming from click on secondary monitor
+      rwi = this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor();
+      matrix = this->GetGUI()->GetSecondaryMonitor()->GetXYToRAS();  
+      //matrix1 = this->GetGUI()->GetSecondaryMonitor()->GetXYToIJK();
+      }
+
     int point[2];
     rwi->GetLastEventPosition(point);
     double inPt[4] = {point[0], point[1], 0, 1};
-    double outPt[4];
-    vtkMatrix4x4 *matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
+    double outPt[4];    
     matrix->MultiplyPoint(inPt, outPt); 
     double ras[3] = {outPt[0], outPt[1], outPt[2]};
-
     this->RecordClick(point, ras, clickNum);
     }
 }
@@ -1413,7 +1430,8 @@ void vtkPerkStationCalibrateStep::TranslateImage()
     node->Modified();
     }
 
-  // update the center of rotation, since there has been a translation
+
+    // update the center of rotation, since there has been a translation
   // center of rotation
   
   vtkSlicerSliceLogic *sliceLogic = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI0()->GetLogic();
@@ -1424,10 +1442,12 @@ void vtkPerkStationCalibrateStep::TranslateImage()
   sliceLogic->GetVolumeSliceDimensions(inVolume, rasDimensions, sliceCenter);
   rasCenter[2] = sliceCenter[2];
   this->GetGUI()->GetMRMLNode()->SetCenterOfRotation(rasCenter);
-  /* translate by SliceLogic and SliceNode way
+  
+  /*
+  // translate by SliceLogic and SliceNode way
 
   // get the slice node and slice logic
-  vtkSlicerSliceLogic *sliceLogic = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetLogic();
+//  vtkSlicerSliceLogic *sliceLogic = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetLogic();
   vtkMRMLSliceNode *sliceNode = sliceLogic->GetSliceNode();
   
 
@@ -1435,7 +1455,7 @@ void vtkPerkStationCalibrateStep::TranslateImage()
   //
   // translation 
   //
-  double translationRAS[4];
+  //double translationRAS[4];
   translationRAS[3] = 0;
   double translationSlice[4];
   this->GetGUI()->GetMRMLNode()->GetUserTranslation(translationRAS[0], translationRAS[1], translationRAS[2]);
@@ -1455,10 +1475,13 @@ void vtkPerkStationCalibrateStep::TranslateImage()
   sliceToRAS->SetElement(1, 3, sa + translationSlice[1]);
   sliceToRAS->SetElement(2, 3, ss + translationSlice[2]);
   sliceNode->GetSliceToRAS()->DeepCopy(sliceToRAS);
+  vtkMatrix4x4 *xyslice = sliceNode->GetXYToSlice();
+  vtkMatrix4x4 *sliceRas = sliceNode->GetSliceToRAS();
+  vtkMatrix4x4 *xyRas = sliceNode->GetXYToRAS();
   sliceNode->UpdateMatrices( );
   this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->RequestRender();
-  sliceToRAS->Delete(); */
-
+  sliceToRAS->Delete(); 
+*/
 
 }
 //-----------------------------------------------------------------------------
@@ -1486,6 +1509,7 @@ void vtkPerkStationCalibrateStep::RotateImage()
   double cor[3];  
   this->GetGUI()->GetMRMLNode()->GetCenterOfRotation(cor);
   
+  /*
   vtkTransform* transform = vtkTransform::New();
   transform->Identity();
   transform->PostMultiply();
@@ -1513,6 +1537,38 @@ void vtkPerkStationCalibrateStep::RotateImage()
     node->GetMatrixTransformToParent()->SetElement(2,2, sz * transform->GetMatrix()->GetElement(2,2)) ; 
     node->Modified();
     }
+*/
+ // translate by SliceLogic and SliceNode way
+
+  // get the slice node and slice logic
+  vtkSlicerSliceLogic *sliceLogic = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetLogic();
+  vtkMRMLSliceNode *sliceNode = sliceLogic->GetSliceNode();
+  
+
+
+  //
+  // rotation 
+  //
+  //double translationRAS[4];
+
+  vtkMatrix4x4 *xyslice = sliceNode->GetXYToSlice();
+  vtkMatrix4x4 *sliceRas = sliceNode->GetSliceToRAS();
+  vtkMatrix4x4 *xyRas = sliceNode->GetXYToRAS();
+  
+  vtkMatrix4x4 *sliceToRAS = vtkMatrix4x4::New();
+  sliceToRAS->DeepCopy(sliceNode->GetSliceToRAS());    
+  
+  double insAngleRad = -double(vtkMath::Pi()/180)*rotationRAS;
+  sliceToRAS->SetElement(0,0, cos(insAngleRad));
+  sliceToRAS->SetElement(0,1, -sin(insAngleRad));  
+  sliceToRAS->SetElement(1,0, sin(insAngleRad));
+  sliceToRAS->SetElement(1,1, cos(insAngleRad));  
+
+  sliceNode->GetSliceToRAS()->DeepCopy(sliceToRAS);
+  sliceNode->UpdateMatrices( );
+  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->RequestRender();
+  sliceToRAS->Delete(); 
+
 }
 //----------------------------------------------------------------------------
 /*void vtkPerkStationCalibrateStep::DisplaySelectedNodeSpatialPriorsCallback()

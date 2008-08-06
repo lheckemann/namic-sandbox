@@ -24,11 +24,18 @@ Version:   $Revision: 1.2 $
 
 #include "vtkSlicerApplicationLogic.h"
 #include "vtkSlicerApplication.h"
-#include "vtkSlicerGUILayout.h"
+#include "vtkMRMLLayoutNode.h"
 #include "vtkSlicerNodeSelectorWidget.h"
 #include "vtkSlicerModuleCollapsibleFrame.h"
 
 #include "vtkCommand.h"
+#include "vtkRenderer.h"
+#include "vtkImageActor.h"
+#include "vtkWin32OpenGLRenderWindow.h"
+#include "vtkDICOMImageReader.h"
+#include "vtkImageChangeInformation.h"
+#include "vtkImageReslice.h"
+#include "vtkMatrixToHomogeneousTransform.h"
 
 #include "vtkKWApplication.h"
 #include "vtkKWLabel.h"
@@ -47,6 +54,7 @@ Version:   $Revision: 1.2 $
 #include "vtkPerkStationValidateStep.h"
 #include "vtkPerkStationEvaluateStep.h"
 
+#include "vtkPerkStationSecondaryMonitor.h"
 // define modes
 #define MODE_CLINICAL 1
 #define MODE_TRAINING 2
@@ -95,6 +103,13 @@ vtkPerkStationModuleGUI::vtkPerkStationModuleGUI()
   this->InsertStep = NULL;
   this->ValidateStep = NULL;
   this->EvaluateStep = NULL;
+
+  // secondary monitor
+  this->SecondaryMonitor = NULL;
+
+  this->SecondaryMonitor = vtkPerkStationSecondaryMonitor::New();
+  this->SecondaryMonitor->SetGUI(this);
+  this->SecondaryMonitor->Initialize();
 
   // state descriptors
   this->ModeBox = NULL;
@@ -188,7 +203,14 @@ void vtkPerkStationModuleGUI::Enter()
   if ( this->GetApplicationGUI() != NULL )
     {
     vtkSlicerApplicationGUI *p = vtkSlicerApplicationGUI::SafeDownCast( this->GetApplicationGUI ( ));
-    p->RepackMainViewer ( vtkSlicerGUILayout::SlicerLayoutOneUpSliceView, "Red");
+    p->RepackMainViewer ( vtkMRMLLayoutNode::SlicerLayoutOneUpSliceView, "Red");
+
+    // to make sure the slice gets displayed without any scaling
+    vtkSlicerSliceLogic *sliceLogic = this->GetApplicationGUI()->GetMainSliceGUI0()->GetLogic();
+    vtkMRMLSliceNode *sliceNode = sliceLogic->GetSliceNode();
+    //sliceNode->SetFieldOfView()
+
+    //this->RenderSecondaryMonitor();
     }
   
 }
@@ -197,8 +219,13 @@ void vtkPerkStationModuleGUI::AddGUIObservers ( )
 {
   vtkSlicerApplicationGUI *appGUI = this->GetApplicationGUI();
 
+  // add listener to main slicer's red slice view
   appGUI->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
    
+  
+  // add listener to own render window created for secondary monitor
+  this->SecondaryMonitor->GetRenderWindowInteractor()->GetInteractorStyle()->AddObserver(vtkCommand::LeftButtonPressEvent, (vtkCommand *)this->GUICallbackCommand);
+
   this->VolumeSelector->AddObserver (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );
 
   this->PSNodeSelector->AddObserver (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );    
@@ -301,7 +328,8 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
       this->WizardWidget->GetWizardWorkflow()->AttemptToGoToPreviousStep();
       }
     this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
-
+    this->SecondaryMonitor->SetupImageData();
+    this->RenderSecondaryMonitor();
     }
 
   
@@ -626,3 +654,90 @@ void vtkPerkStationModuleGUI::TearDownGUI()
     }
 }
 
+
+//---------------------------------------------------------------------------
+void vtkPerkStationModuleGUI::RenderSecondaryMonitor()
+{
+  if (this->SecondaryMonitor->IsSecondaryMonitorActive())
+    {
+    vtkRenderer *ren1 = vtkRenderer::New();
+    vtkWin32OpenGLRenderWindow *renWin = vtkWin32OpenGLRenderWindow::New();
+    renWin->AddRenderer(ren1);
+    renWin->SetBorders(0);
+    
+    // positioning window
+    int virtualScreenPos[2];
+    this->SecondaryMonitor->GetVirtualScreenCoord(virtualScreenPos[0], virtualScreenPos[1]);
+    renWin->SetPosition(virtualScreenPos[0], virtualScreenPos[1]);
+
+    // window size
+    unsigned int winSize[2];
+    this->SecondaryMonitor->GetScreenDimensions(winSize[0], winSize[1]);
+    renWin->SetSize(winSize[0], winSize[1]);
+    vtkRenderWindowInteractor *iren = vtkRenderWindowInteractor::New();
+    iren->SetRenderWindow(renWin);
+
+    vtkImageMapper *imageMapper = vtkImageMapper::New();
+    imageMapper->SetColorWindow(255);
+    imageMapper->SetColorLevel(127.5);
+    
+    vtkDICOMImageReader *reader = vtkDICOMImageReader::New();
+    reader->SetFileName("C:\\Work\\SliceVolReg\\Data\\Pt1\\SR301\\I0022_1");
+    reader->Update();
+    
+    int extent[6];
+    double spacing[3];
+    double origin[3];
+    reader->GetOutput()->GetWholeExtent(extent);
+    reader->GetOutput()->GetSpacing(spacing);
+    reader->GetOutput()->GetOrigin(origin);
+
+    /*
+    vtkImageData *image = this->GetApplicationGUI()->GetMainSliceGUI0()->GetLogic()->GetImageData();
+    imageMapper->SetInput(image);
+    */
+
+    vtkImageData *image = reader->GetOutput();
+    
+
+    
+    double center[3];
+    center[0] = origin[0] + spacing[0] * 0.5 * (extent[0] + extent[1]); 
+    center[1] = origin[1] + spacing[1] * 0.5 * (extent[2] + extent[3]); 
+    center[2] = origin[2] + spacing[2] * 0.5 * (extent[4] + extent[5]); 
+
+    vtkImageReslice *reslice = vtkImageReslice::New();
+    reslice->SetInput(image);
+    reslice->SetOutputDimensionality(2);
+    reslice->SetOutputExtent(0, winSize[0]-1, 0, winSize[1]-1,0,0);
+    //reslice->SetOutputSpacing(spacing);
+    //reslice->SetOutputOrigin(center[0], center[1],0);
+
+    //reslice->SetResliceTransform(transform);
+    reslice->SetInterpolationModeToLinear();
+
+    reslice->Update();
+
+    
+
+
+
+    imageMapper->SetInput(reslice->GetOutput());
+
+    
+    vtkActor2D *imageActor = vtkActor2D::New();
+    imageActor->SetMapper(imageMapper);
+    //imageActor->SetPosition(winSize[0]/2, winSize[1]/2, 0);
+
+    ren1->AddActor(imageActor);
+    renWin->Render();
+
+    //iren->Start();
+    }
+  else
+    {
+    vtkErrorMacro("No secondary monitor detected");
+    }
+
+  
+}
