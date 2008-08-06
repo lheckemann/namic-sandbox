@@ -34,6 +34,8 @@ class vtkPerkStationInsertStep;
 class vtkPerkStationValidateStep;
 class vtkPerkStationEvaluateStep;
 
+class vtkPerkStationSecondaryMonitor;
+
 class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationModuleGUI : public vtkSlicerModuleGUI
 {
   public:
@@ -58,7 +60,10 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationModuleGUI : public vtkSlicerMod
   vtkGetObjectMacro (MRMLNode, vtkMRMLPerkStationModuleNode);
   vtkSetObjectMacro (MRMLNode, vtkMRMLPerkStationModuleNode);
 
-   // Description: 
+  // Description: Get Secondary monitor
+  vtkGetObjectMacro (SecondaryMonitor, vtkPerkStationSecondaryMonitor);
+
+  // Description: 
   // Get wizard widget
   vtkGetObjectMacro(WizardWidget, vtkKWWizardWidget);
 
@@ -88,7 +93,9 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationModuleGUI : public vtkSlicerMod
   virtual void ProcessGUIEvents ( vtkObject *caller, unsigned long event,
                                   void *callData );
 
-  
+  // Description:
+  // Create render window in the secondary monitor
+  virtual void RenderSecondaryMonitor ( );
 
 protected:
   vtkPerkStationModuleGUI();
@@ -122,7 +129,9 @@ protected:
   // logic and mrml nodes
   vtkPerkStationModuleLogic *Logic;
   vtkMRMLPerkStationModuleNode *MRMLNode;
-
+  
+  // secondary monitor
+  vtkPerkStationSecondaryMonitor *SecondaryMonitor;
 private:
    // Description:
   // The wizard widget and steps
@@ -134,6 +143,7 @@ private:
   vtkPerkStationEvaluateStep *EvaluateStep;
   
 
+  
   // gui state variables
   int Mode; // clinical mode or training mode
   vtkKWComboBoxWithLabel *ModeBox;
