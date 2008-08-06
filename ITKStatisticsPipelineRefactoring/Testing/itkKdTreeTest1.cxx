@@ -78,7 +78,6 @@ int itkKdTreeTest1(int argc , char * argv [] )
   TreeType::Pointer tree = treeGenerator->GetOutput() ;
 
   MeasurementVectorType queryPoint( measurementVectorSize ) ;
-  MeasurementVectorType origin( measurementVectorSize ) ;
 
   unsigned int numberOfNeighbors = 1 ;
   TreeType::InstanceIdentifierVectorType neighbors ;
@@ -95,8 +94,11 @@ int itkKdTreeTest1(int argc , char * argv [] )
   //  Check that for every point in the sample, its closest point is itself.
   //
   typedef itk::Statistics::EuclideanDistance< MeasurementVectorType > DistanceMetricType;
+  typedef DistanceMetricType::OriginType OriginType;
+
   DistanceMetricType::Pointer distanceMetric = DistanceMetricType::New();
 
+  OriginType origin( measurementVectorSize ) ;
   for( unsigned int k = 0; k < sample->Size(); k++ )
     {
     
