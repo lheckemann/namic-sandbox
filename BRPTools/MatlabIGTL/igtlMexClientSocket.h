@@ -32,7 +32,7 @@
 #ifndef __igtlMexClientSocket_h
 #define __igtlMexClientSocket_h
 
-#include "igtlSocket.h"
+#include "igtlMexSocket.h"
 #include "igtlWin32Header.h"
 
 namespace igtl
@@ -40,15 +40,15 @@ namespace igtl
 
 class ServerSocket;
 
-class IGTLCommon_EXPORT MexClientSocket : public Socket
+class IGTLCommon_EXPORT MexClientSocket : public MexSocket
 {
 public:
   typedef MexClientSocket              Self;
-  typedef Socket                    Superclass;
+  typedef MexSocket                    Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
 
-  igtlTypeMacro(igtl::MexClientSocket, igtl::Socket)
+  igtlTypeMacro(igtl::MexClientSocket, igtl::MexSocket)
   igtlNewMacro(igtl::MexClientSocket);
 
   void PrintSelf(std::ostream& os);

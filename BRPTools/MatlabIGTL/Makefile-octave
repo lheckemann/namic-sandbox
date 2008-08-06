@@ -7,13 +7,16 @@ LIB    = -lOpenIGTLink
 
 all: igtlsend.mex igtlopen.mex
 
-igtlopen.mex: igtlopen.cpp igtlMexClientSocket.o
+igtlopen.mex: igtlopen.cpp igtlMexClientSocket.o igtlMexSocket.o
 	${MEX} ${MEXOPT} ${INCDIR} ${LIBDIR} ${LIB} $^
 
-igtlsend.mex: igtlsend.cpp igtlMexClientSocket.o
+igtlsend.mex: igtlsend.cpp igtlMexClientSocket.o igtlMexSocket.o
 	${MEX} ${MEXOPT} ${INCDIR} ${LIBDIR} ${LIB} $^
 
 igtlMexClientSocket.o: igtlMexClientSocket.cpp
+	${MEX} ${MEXOPT} ${INCDIR} -c $<
+
+igtlMexSocket.o: igtlMexSocket.cpp
 	${MEX} ${MEXOPT} ${INCDIR} -c $<
 
 #igtlget.mex: igtlget.cpp
