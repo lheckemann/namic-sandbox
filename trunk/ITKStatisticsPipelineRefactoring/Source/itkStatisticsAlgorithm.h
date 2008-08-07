@@ -20,24 +20,24 @@
 #include "itkSample.h"
 #include "itkSubsample.h"
 
-namespace itk{
-namespace Statistics{
-namespace Algorithm{
+namespace itk {
+namespace Statistics {
+namespace Algorithm {
 
 #if !defined(_MSC_VER)
 
 template< class TSize >
-TSize FloorLog(TSize size) ;
+TSize FloorLog(TSize size);
 
 template< class TValue >
-TValue MedianOfThree(const TValue a, const TValue b, const TValue c) ;
+TValue MedianOfThree(const TValue a, const TValue b, const TValue c);
 
 template< class TSample >
 void FindSampleBound(const TSample* sample,
                      typename TSample::ConstIterator begin,
                      typename TSample::ConstIterator end,
                      typename TSample::MeasurementVectorType &min,
-                     typename TSample::MeasurementVectorType &max) ;
+                     typename TSample::MeasurementVectorType &max);
   
 template< class TSubsample >
 void FindSampleBoundAndMean(const TSubsample* sample,
@@ -45,7 +45,7 @@ void FindSampleBoundAndMean(const TSubsample* sample,
                             int endIndex,
                             typename TSubsample::MeasurementVectorType &min,
                             typename TSubsample::MeasurementVectorType &max,
-                            typename TSubsample::MeasurementVectorType &mean) ;
+                            typename TSubsample::MeasurementVectorType &mean);
 
 /** The Partition algorithm performs partial sorting in a sample. Given a
  * partitionValue, the algorithm moves to the beginning of the sample all
@@ -63,7 +63,7 @@ template< class TSubsample >
 int Partition(TSubsample* sample,
               unsigned int activeDimension,
               int beginIndex, int endIndex,
-              const typename TSubsample::MeasurementType partitionValue) ;
+              const typename TSubsample::MeasurementType partitionValue);
 
 /** QuickSelect is an algorithm for finding the k-th largest element of a list.
  * In this case, only of the components of the measurement vectors is
@@ -79,7 +79,7 @@ QuickSelect(TSubsample* sample,
             unsigned int activeDimension,
             int beginIndex, int endIndex,
             int kth,
-            typename TSubsample::MeasurementType medianGuess) ;
+            typename TSubsample::MeasurementType medianGuess);
 
 /** QuickSelect is an algorithm for finding the k-th largest element of a list.
  * In this case, only of the components of the measurement vectors is
@@ -92,7 +92,7 @@ typename TSubsample::MeasurementType
 QuickSelect(TSubsample* sample,
             unsigned int activeDimension,
             int beginIndex, int endIndex,
-            int kth) ;
+            int kth);
 
 /** NthElement is an algorithm for finding the n-th largest element of a list.
  * In this case, only of the components of the measurement vectors is
@@ -110,17 +110,17 @@ NthElement(TSubsample* sample,
 template< class TSubsample >
 void InsertSort(TSubsample* sample, 
                 unsigned int activeDimension,
-                int beginIndex, int endIndex) ;
+                int beginIndex, int endIndex);
 
 template< class TSubsample >
 void DownHeap(TSubsample* sample,
               unsigned int activeDimension,
-              int beginIndex, int endIndex, int node) ;
+              int beginIndex, int endIndex, int node);
 
 template< class TSubsample >
 void HeapSort(TSubsample* sample, 
                 unsigned int activeDimension,
-                int beginIndex, int endIndex) ;
+                int beginIndex, int endIndex);
 
 
 template< class TSubsample >
@@ -129,13 +129,13 @@ void IntrospectiveSortLoop(TSubsample* sample,
                                   int beginIndex,
                                   int endIndex,
                                   int depthLimit, 
-                                  int sizeThreshold) ;
+                                  int sizeThreshold);
 
 template< class TSubsample >
 void IntrospectiveSort(TSubsample* sample,
                        unsigned int activeDimension,
                        int beginIndex, int endIndex,
-                       int sizeThreshold) ;
+                       int sizeThreshold);
 
 #endif // #if defined(_MSC_VER)
 } // end of namespace Algorithm
@@ -147,6 +147,3 @@ void IntrospectiveSort(TSubsample* sample,
 #endif
 
 #endif // #ifndef __itkStatisticsAlgorithm_h
-
-
-
