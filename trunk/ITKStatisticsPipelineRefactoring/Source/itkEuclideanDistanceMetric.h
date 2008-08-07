@@ -27,18 +27,6 @@ namespace Statistics  {
 /** \class EuclideanDistanceMetric
  * \brief Euclidean distance function.
  *
- * The class can be templated over any container that holds data elements. The 
- * containter is expected to provide access to its elements with the [] operator.
- * It must also implement a Size() that returns the length of the container.
- * It must also contain a typedef "ValueType" that defines the data-type held
- * by the container.
- * (In other words it will support itk::Vector, FixedArray, Array ).
- * 
- * <b>Recent API changes:</b>
- * The static const macro to get the length of a measurement vector,
- * \c VectorLength  has been removed to allow the length of a measurement
- * vector to be specified at run time. Please use the function 
- * GetMeasurementVectorSize() instead.
  *
  */
 template< class TVector >
@@ -52,6 +40,9 @@ public:
   typedef SmartPointer< Self >          Pointer; 
   typedef SmartPointer<const Self>      ConstPointer;
 
+  typedef typename Superclass::MeasurementVectorType  MeasurementVectorType;
+
+  typedef typename MeasurementVectorType::ValueType   ValueType;
   typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
 
   typedef typename Superclass::OriginType OriginType;
@@ -62,11 +53,17 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Type of the component of a vector */
-  typedef typename TVector::ValueType ValueType;
-
   /** Gets the distance between the origin and x */
-  double Evaluate(const TVector &x) const;
+  double Evaluate(const MeasurementVectorType &x) const;
+
+  /** Gets the distance between x1 and x2 */
+  double Evaluate(const MeasurementVectorType &x1, const MeasurementVectorType &x2) const;
+ 
+  /** Gets the cooridnate distance between a and b. NOTE: a and b
+   * should be type of component. This method is used by
+    * KdTreeKMeans estimators. When the estimator is refactored,
+    * this method should be removed. */
+  double Evaluate(const ValueType &a, const ValueType &b) const ;
 
 protected:
   EuclideanDistanceMetric() {}

@@ -24,7 +24,7 @@ namespace Statistics  {
 template< class TVector >
 inline double
 ManhattanDistanceMetric< TVector >
-::Evaluate(const TVector &x) const
+::Evaluate(const MeasurementVectorType &x) const
 {
   MeasurementVectorSizeType 
     measurementVectorSize = this->GetMeasurementVectorSize();
@@ -45,6 +45,26 @@ ManhattanDistanceMetric< TVector >
   return distance;
 }
 
+template< class TVector >
+inline double
+ManhattanDistanceMetric< TVector >
+::Evaluate(const MeasurementVectorType &x1, const MeasurementVectorType &x2) const
+{
+  MeasurementVectorTraits::Assert( x1, x2, 
+    "ManhattanDistanceMetric:: The two measurement vectors have unequal size");
+  
+  MeasurementVectorSizeType measurementVectorSize = MeasurementVectorTraits::GetLength( x1 ); 
+
+  double temp, distance = NumericTraits< double >::Zero;
+  for(unsigned int i = 0; i < measurementVectorSize; i++)
+    {
+    temp = fabs( x1[i] - x2[i] );
+    distance += temp;
+    }
+  return distance;
+}
+
+ 
 } // end of namespace Statistics 
 } // end of namespace itk
 

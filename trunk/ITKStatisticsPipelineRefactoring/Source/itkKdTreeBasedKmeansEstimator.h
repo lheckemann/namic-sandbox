@@ -22,6 +22,7 @@
 
 #include "itkObject.h"
 #include "itkMeasurementVectorTraits.h"
+#include "itkEuclideanDistanceMetric.h"
 
 namespace itk {
 namespace Statistics {
@@ -313,7 +314,7 @@ private:
   /** pointer to the k-d tree */
   typename TKdTree::Pointer m_KdTree;
   /** pointer to the euclidean distance funtion */
-  typename EuclideanDistance< ParameterType >::Pointer m_DistanceMetric;
+  typename EuclideanDistanceMetric< ParameterType >::Pointer m_DistanceMetric;
 
   /** k-means */
   ParametersType m_Parameters;

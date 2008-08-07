@@ -23,7 +23,7 @@
 #include "itkListSample.h"
 #include "itkKdTree.h"
 #include "itkWeightedCentroidKdTreeGenerator.h"
-#include "itkEuclideanDistance.h"
+#include "itkEuclideanDistanceMetric.h"
 #include <fstream>
 
 int itkWeightedCentroidKdTreeGeneratorTest1(int argc , char * argv [] )
@@ -94,7 +94,7 @@ int itkWeightedCentroidKdTreeGeneratorTest1(int argc , char * argv [] )
   //
   //  Check that for every point in the sample, its closest point is itself.
   //
-  typedef itk::Statistics::EuclideanDistance< MeasurementVectorType > DistanceMetricType;
+  typedef itk::Statistics::EuclideanDistanceMetric< MeasurementVectorType > DistanceMetricType;
   DistanceMetricType::Pointer distanceMetric = DistanceMetricType::New();
   bool testFailed = false;
 

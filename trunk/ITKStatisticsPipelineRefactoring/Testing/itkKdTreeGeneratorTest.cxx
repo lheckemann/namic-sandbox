@@ -21,7 +21,7 @@
 #include "itkListSample.h"
 #include "itkKdTree.h"
 #include "itkKdTreeGenerator.h"
-#include "itkEuclideanDistance.h"
+#include "itkEuclideanDistanceMetric.h"
 
 int itkKdTreeGeneratorTest(int, char* [])
 {
@@ -86,7 +86,7 @@ int itkKdTreeGeneratorTest(int, char* [])
   queryPoint[0] = 10.0 ;
   queryPoint[1] = 7.0 ;
 
-  typedef itk::Statistics::EuclideanDistance< MeasurementVectorType > DistanceMetricType ;
+  typedef itk::Statistics::EuclideanDistanceMetric< MeasurementVectorType > DistanceMetricType ;
   DistanceMetricType::Pointer distanceMetric = DistanceMetricType::New() ;
   DistanceMetricType::OriginType origin( measurementVectorSize );
   for ( unsigned int i = 0 ; i < measurementVectorSize; ++i )
@@ -184,7 +184,7 @@ int itkKdTreeGeneratorTest(int, char* [])
   queryPoint[0] = 10.0 ;
   queryPoint[1] = 7.0 ;
 
-  typedef itk::Statistics::EuclideanDistance< MeasurementVectorType > DistanceMetricType ;
+  typedef itk::Statistics::EuclideanDistanceMetric< MeasurementVectorType > DistanceMetricType ;
   DistanceMetricType::Pointer distanceMetric = DistanceMetricType::New() ;
   DistanceMetricType::OriginType origin( 2 ) ;
   for ( unsigned int i = 0 ; i < MeasurementVectorType::Length ; ++i )

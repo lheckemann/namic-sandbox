@@ -31,7 +31,7 @@ KdTreeBasedKmeansEstimator< TKdTree >
   m_KdTree = 0;
   m_UseClusterLabels = false;
   m_MaximumIteration = 100;
-  m_DistanceMetric = EuclideanDistance< ParameterType >::New();
+  m_DistanceMetric = EuclideanDistanceMetric< ParameterType >::New();
 
   m_CentroidPositionChanges = 0.0;
   m_TempVertex.Fill( 0.0 );

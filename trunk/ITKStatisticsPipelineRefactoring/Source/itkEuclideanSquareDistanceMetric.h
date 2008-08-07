@@ -43,6 +43,7 @@ public:
   typedef SmartPointer<const Self>            ConstPointer;
 
   typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
+  typedef typename Superclass::MeasurementVectorType     MeasurementVectorType;
 
   /** Run-time type information (and related methods). */
   itkTypeMacro(EuclideanSquareDistanceMetric, DistanceMetric);
@@ -50,12 +51,12 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  /** Type of the component of a vector */
-  typedef typename TVector::ValueType ValueType;
-
   /** Gets the distance between the origin and x */
-  double Evaluate(const TVector &x) const;
+  double Evaluate(const MeasurementVectorType &x) const;
 
+  /** Gets the distance between x1 and x2 */
+  double Evaluate(const MeasurementVectorType &x1, const MeasurementVectorType &x2) const;
+ 
 protected:
   EuclideanSquareDistanceMetric() {}
   virtual ~EuclideanSquareDistanceMetric() {} 
