@@ -40,9 +40,8 @@ public:
   typedef SmartPointer< Self >          Pointer; 
   typedef SmartPointer<const Self>      ConstPointer;
 
-  typedef typename Superclass::MeasurementVectorType  MeasurementVectorType;
-
-  typedef typename MeasurementVectorType::ValueType   ValueType;
+  typedef typename Superclass::MeasurementVectorType     MeasurementVectorType;
+  typedef typename MeasurementVectorType::ValueType      ValueType;
   typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
 
   typedef typename Superclass::OriginType OriginType;
@@ -63,7 +62,7 @@ public:
    * should be type of component. This method is used by
     * KdTreeKMeans estimators. When the estimator is refactored,
     * this method should be removed. */
-  double Evaluate(const ValueType &a, const ValueType &b) const ;
+  double Evaluate(const ValueType &a, const ValueType &b) const;
 
 protected:
   EuclideanDistanceMetric() {}
