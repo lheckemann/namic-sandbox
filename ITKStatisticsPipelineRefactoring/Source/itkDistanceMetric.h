@@ -81,7 +81,8 @@ public:
     * this method should be removed. Distance between two measurement
     * vectors can be computed by setting one of them as an origin of 
     * the distane and using the Evaluate method with a single argument */
-  virtual double Evaluate(const MeasurementVectorType &x1, const MeasurementVectorType &x2) const = 0 ;
+  virtual double Evaluate(const MeasurementVectorType &x1, 
+                          const MeasurementVectorType &x2) const = 0;
 
   /** Set method for the length of the measurement vector */
   virtual void SetMeasurementVectorSize( MeasurementVectorSizeType s )

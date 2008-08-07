@@ -51,7 +51,7 @@ inline double
 EuclideanDistanceMetric< TVector >
 ::Evaluate(const MeasurementVectorType &x1, const MeasurementVectorType &x2) const
 {
-   MeasurementVectorTraits::Assert( x1, x2, 
+  MeasurementVectorTraits::Assert( x1, x2, 
     "ManhattanDistanceMetric:: The two measurement vectors have unequal size");
   
   MeasurementVectorSizeType measurementVectorSize = MeasurementVectorTraits::GetLength( x1 ); 
@@ -71,8 +71,8 @@ inline double
 EuclideanDistanceMetric< TVector >
 ::Evaluate(const ValueType &a, const ValueType &b) const
 {
-  double temp = a - b ;
-  return vcl_sqrt(temp * temp) ;
+  double temp = a - b;
+  return vcl_sqrt(temp * temp);
 }
 
 } // end of namespace Statistics 
