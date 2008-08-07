@@ -92,6 +92,7 @@ ADD_TEST(itkKdTreeBasedKmeansEstimatorTest ${STATISTICS_TESTS}
 ADD_TEST(itkKdTreeGeneratorTest ${STATISTICS_TESTS} 
          itkKdTreeGeneratorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
 ADD_TEST(itkKdTreeTest1 ${STATISTICS_TESTS} itkKdTreeTest1 100 100 1 ${TEMP}/itkKdTreeTest1_100.dot)
+ADD_TEST(itkKdTreeTestSamplePoints ${STATISTICS_TESTS} itkKdTreeTestSamplePoints )
 ADD_TEST(itkKdTreeTest2 ${STATISTICS_TESTS} itkKdTreeTest2
          ${ITK_DATA_ROOT}/Input/pointsForKdTree.txt 1 ${TEMP}/itkKdTreeTest2.dot)
 ADD_TEST(itkKdTreeTest3 ${STATISTICS_TESTS} itkKdTreeTest2
@@ -191,6 +192,7 @@ SET(Statistics_SRCS
   itkKdTreeBasedKmeansEstimatorTest.cxx
   itkKdTreeGeneratorTest.cxx
   itkKdTreeTest1.cxx
+  itkKdTreeTestSamplePoints.cxx
   itkKdTreeTest2.cxx
   itkWeightedCentroidKdTreeGeneratorTest1.cxx
 
