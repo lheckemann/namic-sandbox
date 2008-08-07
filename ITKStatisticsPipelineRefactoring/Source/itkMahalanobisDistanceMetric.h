@@ -55,8 +55,9 @@ public:
   itkTypeMacro(MahalanobisDistanceMetric, DistanceMetric);
   itkNewMacro(Self);
 
-  /** Typedef alias for the measurement vectors */
-  typedef TVector MeasurementVectorType;
+
+  /** Typedef to represent the measurement vector type */
+  typedef typename Superclass::MeasurementVectorType  MeasurementVectorType;
 
   /** Typedef to represent the length of measurement vectors */
   typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
@@ -98,6 +99,10 @@ public:
    * value of the density function, not probability. */
   double Evaluate(const MeasurementVectorType &measurement) const;
 
+  /** Gets the distance between x1 and x2. It is not applicable for 
+ *  Mahalanobis distance */
+  double Evaluate(const MeasurementVectorType &x1, const MeasurementVectorType &x2) const; 
+ 
   /** Set/Get tolerance values */
   itkSetMacro( Epsilon, double );
   itkGetMacro( Epsilon, double );

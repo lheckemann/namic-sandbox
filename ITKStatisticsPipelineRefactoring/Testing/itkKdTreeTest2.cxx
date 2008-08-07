@@ -23,7 +23,7 @@
 #include "itkListSample.h"
 #include "itkKdTree.h"
 #include "itkKdTreeGenerator.h"
-#include "itkEuclideanDistance.h"
+#include "itkEuclideanDistanceMetric.h"
 
 #include <iostream>
 #include <fstream>
@@ -84,7 +84,7 @@ int itkKdTreeTest2( int argc, char * argv [] )
 
   TreeType::Pointer tree = treeGenerator->GetOutput();
     
-  typedef itk::Statistics::EuclideanDistance< MeasurementVectorType > 
+  typedef itk::Statistics::EuclideanDistanceMetric< MeasurementVectorType > 
     DistanceMetricType;
   DistanceMetricType::Pointer distanceMetric = DistanceMetricType::New();
 

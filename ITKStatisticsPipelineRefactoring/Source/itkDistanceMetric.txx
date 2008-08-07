@@ -35,6 +35,7 @@ DistanceMetric< TVector >
                   MeasurementVectorTraits::GetLength( vector );
 
     this->m_MeasurementVectorSize = defaultLength;
+    this->m_Origin.SetSize( this->m_MeasurementVectorSize );
     }
   else
     {
@@ -56,8 +57,10 @@ DistanceMetric< TVector >
           << " each measurement vector.");
       }
     }
-  m_Origin = x;
+
   this->m_MeasurementVectorSize = x.Size();
+  m_Origin.SetSize( this->m_MeasurementVectorSize );
+  m_Origin = x;
   this->Modified();
 }
 

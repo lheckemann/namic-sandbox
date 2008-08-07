@@ -31,7 +31,7 @@
 #include "itkPointSetToListSampleAdaptor.h"
 #include "itkSubsample.h"
 #include "itkKdTree.h"
-#include "itkEuclideanDistance.h"
+#include "itkEuclideanDistanceMetric.h"
 #include "itkWeightedCentroidKdTreeGenerator.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
 

@@ -179,7 +179,17 @@ MahalanobisDistanceMetric< TVector >
 
   return temp;
 }
+template< class TVector >
+inline double
+MahalanobisDistanceMetric< TVector >
+::Evaluate(const MeasurementVectorType &x1, const MeasurementVectorType &x2) const
+{
+  itkExceptionMacro( << "Mahalanobis distance is not defined between two measurement vectors " );
 
+  double distance = 0.0;
+
+  return distance;
+} 
 template < class TVector >
 void
 MahalanobisDistanceMetric< TVector >

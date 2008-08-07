@@ -30,7 +30,7 @@
 #include "itkSample.h"
 #include "itkSubsample.h"
 
-#include "itkEuclideanDistance.h"
+#include "itkEuclideanDistanceMetric.h"
 
 namespace itk {
 namespace Statistics  {
@@ -447,7 +447,7 @@ public:
   itkGetConstMacro( MeasurementVectorSize, MeasurementVectorSizeType );
 
   /** DistanceMetric type for the distance calculation and comparison */
-  typedef EuclideanDistance< MeasurementVectorType > DistanceMetricType;
+  typedef EuclideanDistanceMetric< MeasurementVectorType > DistanceMetricType;
 
   /** Node type of the KdTree */
   typedef KdTreeNode< TSample > KdTreeNodeType;
