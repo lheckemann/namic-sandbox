@@ -26,22 +26,8 @@
 #include "itkEuclideanDistanceMetric.h"
 #include <fstream>
 
-int itkKdTreeTest1(int argc , char * argv [] )
+int itkKdTreeTestSamplePoints(int argc , char * argv [] )
 {
-  if( argc < 4 )
-    {
-    std::cerr << "Missing parameters" << std::endl;
-    std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << " numberOfDataPoints numberOfTestPoints bucketSize [graphvizDotOutputFile]" << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  // Random number generator
-  typedef itk::Statistics::MersenneTwisterRandomVariateGenerator NumberGeneratorType;
-
-  NumberGeneratorType::Pointer randomNumberGenerator = NumberGeneratorType::New();
-  randomNumberGenerator->Initialize();
-  
   typedef itk::Array< double > MeasurementVectorType ;
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType ;
 
@@ -50,23 +36,36 @@ int itkKdTreeTest1(int argc , char * argv [] )
   SampleType::Pointer sample = SampleType::New() ;
   sample->SetMeasurementVectorSize( measurementVectorSize );
 
-  // 
-  // Generate a sample of random points
-  //
-  const unsigned int numberOfDataPoints = atoi( argv[1] );
+  const unsigned int numberOfDataPoints = 5; 
   MeasurementVectorType mv( measurementVectorSize ) ;
-  for (unsigned int i = 0 ; i < numberOfDataPoints ; ++i )
-    {
-    mv[0] = randomNumberGenerator->GetNormalVariate( 0.0, 1.0 );
-    mv[1] = randomNumberGenerator->GetNormalVariate( 0.0, 1.0 );
-    sample->PushBack( mv ) ;
-    std::cout << "Add measurement vector: " << mv << std::endl;
-    }
+  mv[0] = 0.0342;
+  mv[1] = 0.5175;
+  sample->PushBack( mv ) ;
+
+  MeasurementVectorType mv2( measurementVectorSize ) ;
+  mv2[0] = 0.9650;
+  mv2[1] = -0.9379;
+  sample->PushBack( mv2 ) ;
+
+  MeasurementVectorType mv3( measurementVectorSize ) ;
+  mv3[0] = -0.0471;
+  mv3[1] = 0.8177;
+  sample->PushBack( mv3 ) ;
+
+  MeasurementVectorType mv4( measurementVectorSize ) ;
+  mv4[0] = 0.4737;
+  mv4[1] = -1.0447;
+  sample->PushBack( mv4 ) ;
+
+  MeasurementVectorType mv5( measurementVectorSize ) ;
+  mv5[0] = -0.6307;
+  mv5[1] = -2.7600;
+  sample->PushBack( mv5 ) ;
 
   typedef itk::Statistics::KdTreeGenerator< SampleType > TreeGeneratorType ;
   TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New() ;
 
-  const unsigned int bucketSize = atoi( argv[3] );
+  const unsigned int bucketSize = 1; 
 
   treeGenerator->SetSample( sample ) ;
   treeGenerator->SetBucketSize( bucketSize );
@@ -88,8 +87,6 @@ int itkKdTreeTest1(int argc , char * argv [] )
   MeasurementVectorType min_point( measurementVectorSize ) ;
 
   unsigned int numberOfFailedPoints1 = 0;
-
-  const unsigned int numberOfTestPoints = atoi( argv[2] );
 
   //
   //  Check that for every point in the sample, its closest point is itself.
@@ -133,19 +130,21 @@ int itkKdTreeTest1(int argc , char * argv [] )
       }
     }
 
-  unsigned int numberOfFailedPoints2 = 0;
-
-  //
-  // Generate a second sample of random points
-  // and use them to query the tree
-  //
-  for (unsigned int j = 0 ; j < numberOfTestPoints ; ++j )
-    {
-
     double min_dist = itk::NumericTraits< double >::max();
 
-    queryPoint[0] = randomNumberGenerator->GetNormalVariate( 0.0, 1.0 );
-    queryPoint[1] = randomNumberGenerator->GetNormalVariate( 0.0, 1.0 );
+    /*
+    queryPoint[0] = 1.16651; 
+    queryPoint[1] = 0.16395;
+    */
+
+    /*
+    queryPoint[0] = 1.0; 
+    queryPoint[1] = 0.12;
+    */
+
+    queryPoint[0] = 1.0; 
+    queryPoint[1] = 0.1;
+
 
     tree->Search( queryPoint, numberOfNeighbors, neighbors ) ;
 
@@ -172,12 +171,16 @@ int itkKdTreeTest1(int argc , char * argv [] )
       {
       test_point = tree->GetMeasurementVector( i );
 
+      std::cout << "Compute distance with: " << test_point;
+
       const double dist = sqrt(
           (test_point[0] - queryPoint[0]) *
           (test_point[0] - queryPoint[0]) +
           (test_point[1] - queryPoint[1]) *
           (test_point[1] - queryPoint[1])
           );
+
+      std::cout << "\t" << dist << std::endl; 
 
       if( dist < min_dist )
         {
@@ -196,43 +199,15 @@ int itkKdTreeTest1(int argc , char * argv [] )
                 << " distance " << min_dist << std::endl;
       std::cerr << std::endl;
       std::cerr << "Test FAILED." << std::endl;
-      numberOfFailedPoints2++;
       }
 
-    }
+  //
+  // Plot out the tree structure to the console in the format used by Graphviz dot
+  //
+  std::ofstream plotFile;
+  plotFile.open( "plot.dot" );
+  tree->PlotTree( plotFile );
+  plotFile.close();
 
-
-  if( argc > 4 )
-    {
-    //
-    // Plot out the tree structure to the console in the format used by Graphviz dot
-    //
-    std::ofstream plotFile;
-    plotFile.open( argv[4] );
-    tree->PlotTree( plotFile );
-    plotFile.close();
-    }
-
-
-  if( numberOfFailedPoints1 )
-    {
-    std::cerr << numberOfFailedPoints1 << " out of " << sample->Size();
-    std::cerr << " points failed to find themselves as closest-point" << std::endl;
-    }
-
-  if( numberOfFailedPoints2 )
-    {
-    std::cerr << numberOfFailedPoints2 << " out of " << numberOfTestPoints;
-    std::cerr << " points failed to find the correct closest point." << std::endl;
-    }
-
-
-  if( numberOfFailedPoints1 || numberOfFailedPoints2 )
-    {
-    return EXIT_FAILURE;
-    }
-
-
-  std::cout << "Test PASSED." << std::endl;
   return EXIT_SUCCESS;
 }
