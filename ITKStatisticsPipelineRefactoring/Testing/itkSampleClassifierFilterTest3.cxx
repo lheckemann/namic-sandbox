@@ -22,7 +22,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkVariableLengthVector.h"
 #include "itkListSample.h"
 #include "itkSampleClassifierFilter.h"
-#include "itkMaximumDecisionRule2.h"
+#include "itkMinimumDecisionRule2.h"
 #include "itkNormalVariateGenerator.h"
 #include "itkKdTree.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
@@ -124,7 +124,7 @@ int itkSampleClassifierFilterTest3(int argc, char *argv[] )
   classLabelVector.push_back( class2 );
 
   //Set a decision rule type
-  typedef itk::Statistics::MaximumDecisionRule2  DecisionRuleType;
+  typedef itk::Statistics::MinimumDecisionRule2  DecisionRuleType;
 
   DecisionRuleType::Pointer    decisionRule = DecisionRuleType::New();
 
@@ -191,7 +191,7 @@ int itkSampleClassifierFilterTest3(int argc, char *argv[] )
       if( iter.GetClassLabel() != class1 )
         {
         std::cerr << "Classification error: " << sampleCounter
-                  << "\t" << iter.GetClassLabel() 
+                  << "\t" << iter.GetMeasurementVector() << iter.GetClassLabel() 
                   << "\tclass1=" << class1 << std::endl;
         return EXIT_FAILURE;
         }
@@ -201,7 +201,7 @@ int itkSampleClassifierFilterTest3(int argc, char *argv[] )
       if( iter.GetClassLabel() != class2 )
         {
         std::cerr << "Classification error: " << sampleCounter
-                  << "\t" << iter.GetClassLabel() 
+                  << "\t" << iter.GetMeasurementVector() << iter.GetClassLabel() 
                   << "\tclass2=" << class2 << std::endl;
         return EXIT_FAILURE;
         }
