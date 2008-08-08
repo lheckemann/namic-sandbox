@@ -23,6 +23,8 @@
 #include "itkObject.h"
 #include "itkMeasurementVectorTraits.h"
 #include "itkEuclideanDistanceMetric.h"
+#include "itkDistanceToCentroidMembershipFunction.h"
+#include "itkSimpleDataObjectDecorator.h"
 
 namespace itk {
 namespace Statistics {
@@ -98,6 +100,27 @@ public:
   typedef Array< double >              ParameterType;
   typedef std::vector< ParameterType > InternalParametersType;
   typedef Array< double >              ParametersType;
+
+
+   /** Typedef requried to generate dataobject decorated output that can
+    * be plugged into SampleClassifierFilter */ 
+  typedef DistanceToCentroidMembershipFunction< MeasurementVectorType > 
+                                                   DistanceToCentroidMembershipFunction;
+
+  typedef typename DistanceToCentroidMembershipFunction::Pointer 
+                                                   DistanceToCentroidMembershipFunctionPointer;
+
+  typedef MembershipFunctionBase< MeasurementVectorType > MembershipFunctionType;
+  typedef typename MembershipFunctionType::ConstPointer   MembershipFunctionPointer;
+  typedef std::vector< MembershipFunctionPointer >        MembershipFunctionVectorType;
+  typedef SimpleDataObjectDecorator<
+    MembershipFunctionVectorType >                        MembershipFunctionVectorObjectType;
+  typedef typename 
+    MembershipFunctionVectorObjectType::Pointer           MembershipFunctionVectorObjectPointer;
+
+  /** Output Membership function vector containing the membership functions with
+    * the final optimized paramters */
+  const MembershipFunctionVectorObjectType * GetOutput() const; 
 
   /**  Set the position to initialize the optimization. */
   void SetParameters(ParametersType& params)
