@@ -128,14 +128,6 @@ int itkSampleClassifierFilterTest3(int argc, char *argv[] )
 
   DecisionRuleType::Pointer    decisionRule = DecisionRuleType::New();
 
-  //Instantiate and pass all the required inputs to the filter
-  FilterType::Pointer filter = FilterType::New();
-
-  filter->SetInput( sample );
-  filter->SetNumberOfClasses( numberOfClasses );
-  filter->SetClassLabels( classLabelsObject );
-  filter->SetDecisionRule( decisionRule );
-
   const FilterType::MembershipFunctionVectorObjectType *
                 membershipFunctionsObject = estimator->GetOutput();
  
@@ -160,14 +152,21 @@ int itkSampleClassifierFilterTest3(int argc, char *argv[] )
     {
     FilterType::MembershipFunctionPointer membershipFunction = *functionIter;
     const EstimatorType::DistanceToCentroidMembershipFunction * 
-          distanceMemberShpFunction = dynamic_cast<const EstimatorType::DistanceToCentroidMembershipFunction*>(membershipFunction.GetPointer());
+          distanceMemberShpFunction = 
+        dynamic_cast<const EstimatorType::DistanceToCentroidMembershipFunction*>(membershipFunction.GetPointer());
     std::cout << "Centroid of the " << counter << " membership function " 
               << distanceMemberShpFunction->GetCentroid() << std::endl;
     functionIter++;
     counter++;
     }
 
-  
+  //Instantiate and pass all the required inputs to the filter
+  FilterType::Pointer filter = FilterType::New();
+
+  filter->SetInput( sample );
+  filter->SetNumberOfClasses( numberOfClasses );
+  filter->SetClassLabels( classLabelsObject );
+  filter->SetDecisionRule( decisionRule );
   filter->SetMembershipFunctions( membershipFunctionsObject );
 
   try

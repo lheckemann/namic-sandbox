@@ -346,10 +346,11 @@ private:
   
   ParameterType m_TempVertex;
 
-  bool m_UseClusterLabels;
-  bool m_GenerateClusterLabels;
-  ClusterLabelsType m_ClusterLabels;
-  MeasurementVectorSizeType m_MeasurementVectorSize;
+  bool                                    m_UseClusterLabels;
+  bool                                    m_GenerateClusterLabels;
+  ClusterLabelsType                       m_ClusterLabels;
+  MeasurementVectorSizeType               m_MeasurementVectorSize;
+  MembershipFunctionVectorObjectPointer   m_MembershipFunctionsObject;
 }; // end of class
 
 } // end of namespace Statistics
