@@ -33,6 +33,8 @@ KdTreeBasedKmeansEstimator< TKdTree >
   m_MaximumIteration = 100;
   m_DistanceMetric = EuclideanDistanceMetric< ParameterType >::New();
 
+  m_MembershipFunctionsObject = MembershipFunctionVectorObjectType::New();
+
   m_CentroidPositionChanges = 0.0;
   m_TempVertex.Fill( 0.0 );
   m_CurrentIteration = 0;
@@ -430,8 +432,7 @@ KdTreeBasedKmeansEstimator< TKdTree >
 {
   //INSERT CHECKS if all the required inputs are set and optmization has been run.
   unsigned int numberOfClasses = m_Parameters.size() / m_MeasurementVectorSize;
-  typename MembershipFunctionVectorObjectType::Pointer membershipFunctionsObject = MembershipFunctionVectorObjectType::New();
-  MembershipFunctionVectorType &  membershipFunctionsVector = membershipFunctionsObject->Get();
+  MembershipFunctionVectorType &  membershipFunctionsVector = m_MembershipFunctionsObject->Get();
 
   for( unsigned int i=0; i < numberOfClasses; i++ )
     {
@@ -449,7 +450,7 @@ KdTreeBasedKmeansEstimator< TKdTree >
     membershipFunctionsVector.push_back( membershipFunction.GetPointer() );
     }
 
-  return membershipFunctionsObject;
+  return static_cast< const MembershipFunctionVectorObjectType*>(m_MembershipFunctionsObject);
 }
 
 
