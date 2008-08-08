@@ -54,6 +54,7 @@ ADD_TEST(itkSampleTest3 ${STATISTICS_TESTS} itkSampleTest3)
 ADD_TEST(itkSampleTest4 ${STATISTICS_TESTS} itkSampleTest4)
 ADD_TEST(itkSampleClassifierFilterTest1 ${STATISTICS_TESTS} itkSampleClassifierFilterTest1)
 ADD_TEST(itkSampleClassifierFilterTest2 ${STATISTICS_TESTS} itkSampleClassifierFilterTest2)
+ADD_TEST(itkSampleClassifierFilterTest3 ${STATISTICS_TESTS} itkSampleClassifierFilterTest3)
 ADD_TEST(itkSampleToSubsampleFilterTest1 ${STATISTICS_TESTS} itkSampleToSubsampleFilterTest1)
 ADD_TEST(itkSubsampleTest ${STATISTICS_TESTS} itkSubsampleTest)
 ADD_TEST(itkSubsampleTest2 ${STATISTICS_TESTS} itkSubsampleTest2)
@@ -160,6 +161,7 @@ SET(Statistics_SRCS
   itkSampleTest4.cxx
   itkSampleClassifierFilterTest1.cxx
   itkSampleClassifierFilterTest2.cxx
+  itkSampleClassifierFilterTest3.cxx
   itkSampleToSubsampleFilterTest1.cxx
   itkSubsampleTest.cxx
   itkSubsampleTest2.cxx

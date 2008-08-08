@@ -423,6 +423,36 @@ KdTreeBasedKmeansEstimator< TKdTree >
   this->CopyParameters(currentPosition, m_Parameters);
 }
 
+template< class TKdTree >
+const typename KdTreeBasedKmeansEstimator< TKdTree >::MembershipFunctionVectorObjectType * 
+KdTreeBasedKmeansEstimator< TKdTree > 
+::GetOutput() const
+{
+  //INSERT CHECKS if all the required inputs are set and optmization has been run.
+  unsigned int numberOfClasses = m_Parameters.size() / m_MeasurementVectorSize;
+  typename MembershipFunctionVectorObjectType::Pointer membershipFunctionsObject = MembershipFunctionVectorObjectType::New();
+  MembershipFunctionVectorType &  membershipFunctionsVector = membershipFunctionsObject->Get();
+
+  for( unsigned int i=0; i < numberOfClasses; i++ )
+    {
+    DistanceToCentroidMembershipFunctionPointer membershipFunction =
+                DistanceToCentroidMembershipFunction::New(); 
+    membershipFunction->SetMeasurementVectorSize( m_MeasurementVectorSize );
+    typename DistanceToCentroidMembershipFunction::CentroidType    centroid;
+    centroid.SetSize( m_MeasurementVectorSize );
+    for(unsigned int j=0; j < m_MeasurementVectorSize; j++)
+      {
+      unsigned int parameterIndex = i*m_MeasurementVectorSize+j; 
+      centroid[j] = m_Parameters[parameterIndex];
+      }
+    membershipFunction->SetCentroid( centroid );
+    membershipFunctionsVector.push_back( membershipFunction.GetPointer() );
+    }
+
+  return membershipFunctionsObject;
+}
+
+
 } // end of namespace Statistics
 } // end namespace itk
 

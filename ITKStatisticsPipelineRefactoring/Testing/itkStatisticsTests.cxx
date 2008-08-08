@@ -62,6 +62,7 @@ void RegisterTests()
 
   REGISTER_TEST(itkSampleClassifierFilterTest1);
   REGISTER_TEST(itkSampleClassifierFilterTest2);
+  REGISTER_TEST(itkSampleClassifierFilterTest3);
 
   REGISTER_TEST(itkSampleToSubsampleFilterTest1);
   REGISTER_TEST(itkSubsampleTest);
