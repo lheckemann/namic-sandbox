@@ -47,6 +47,8 @@ int itkKdTreeGeneratorTest(int, char* [])
   typedef itk::Statistics::KdTreeGenerator< SampleType > TreeGeneratorType ;
   TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New() ;
 
+  std::cout << "KdTreeGenerator class name: " << treeGenerator->GetNameOfClass() << std::endl;
+
   treeGenerator->SetSample( sample ) ;
   treeGenerator->SetBucketSize( 16 ) ;
   treeGenerator->Update() ;

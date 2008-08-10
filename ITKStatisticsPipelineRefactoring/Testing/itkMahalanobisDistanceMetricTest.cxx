@@ -219,5 +219,42 @@ int itkMahalanobisDistanceMetricTest(int, char* [] )
     return EXIT_FAILURE;
     }
 
+  //Compute distance between two measurement vectors
+  MeasurementVectorType measurementSingleComponent2;
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( measurementSingleComponent2, 1);
+  measurementSingleComponent2[0] = 1.5;
+
+  trueValue = 1.0;
+  distanceComputed = distance->Evaluate( measurementSingleComponent, measurementSingleComponent2 );
+
+  if( fabs( distanceComputed - trueValue) > tolerance )
+    {
+    std::cerr << "Distance computed not correct: " << "truevalue= " << trueValue
+              << "ComputedValue=" << distanceComputed << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  //Attempt to compute distance between two unequal size measurement vectors
+  MeasurementVectorType measurementSingleComponent3;
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( measurementSingleComponent3, 2);
+  measurementSingleComponent3[0] = 1.5;
+  measurementSingleComponent3[1] = 2.5;
+
+  trueValue = 1.0;
+  distanceComputed = distance->Evaluate( measurementSingleComponent, measurementSingleComponent2 );
+
+  try
+    {
+    distanceComputed = distance->Evaluate( measurementSingleComponent, measurementSingleComponent3 );
+    std::cerr << "Attempting to compute distance between unequal size measurement vectors" 
+              << "Exception should have been thrown: " << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excpt )
+    {
+    std::cerr << "Exception caught: " << excpt << std::endl;
+    }
+
+
   return EXIT_SUCCESS;
 }

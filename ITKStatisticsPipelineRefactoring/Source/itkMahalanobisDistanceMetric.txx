@@ -184,11 +184,33 @@ inline double
 MahalanobisDistanceMetric< TVector >
 ::Evaluate(const MeasurementVectorType &x1, const MeasurementVectorType &x2) const
 {
-  itkExceptionMacro( << "Mahalanobis distance is not defined between two measurement vectors " );
+  if( MeasurementVectorTraits::GetLength( x1 ) != this->GetMeasurementVectorSize() ||
+        MeasurementVectorTraits::GetLength( x2 ) != this->GetMeasurementVectorSize())
+    {
+    itkExceptionMacro( << "Size of the measurement vectors is not the same as the length of"
+        << " the measurement vector set in the distance metric.");
+    }
 
-  double distance = 0.0;
+  vnl_matrix < double >  tempVec;
+  vnl_matrix < double >  tempMat;
 
-  return distance;
+  tempVec.set_size( 1, this->GetMeasurementVectorSize());
+  tempMat.set_size( 1, this->GetMeasurementVectorSize());
+
+  // Compute |x1 - x2 |
+  for ( unsigned int i = 0; i < this->GetMeasurementVectorSize(); i++ )
+    {
+    tempVec[0][i] = x1[i] - x2[i];
+    }
+
+  // Compute |x1 - x2 | * inverse(cov)
+  tempMat= tempVec * m_InverseCovariance;
+
+  // Compute |x1 - x2 | * inverse(cov) * |x1 - x2|^T
+  double temp;
+  temp = vcl_sqrt( dot_product( tempMat.as_ref(), tempVec.as_ref()) );
+
+  return temp;
 } 
 template < class TVector >
 void

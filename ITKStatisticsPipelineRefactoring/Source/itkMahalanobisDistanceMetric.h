@@ -99,8 +99,7 @@ public:
    * value of the density function, not probability. */
   double Evaluate(const MeasurementVectorType &measurement) const;
 
-  /** Gets the distance between x1 and x2. It is not applicable for 
- *  Mahalanobis distance */
+  /** Gets the distance between x1 and x2. */
   double Evaluate(const MeasurementVectorType &x1, const MeasurementVectorType &x2) const; 
  
   /** Set/Get tolerance values */
