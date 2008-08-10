@@ -155,13 +155,10 @@ int itkMeasurementVectorTraitsTest(int, char* [] )
   itkAssertLengthExceptionMacro( measure3b, measure3bb );
   itkAssertLengthExceptionMacro( measure4b, measure4bb );
 
-  itkAssertSameLengthTest( &measure1b, &measure1b );
-  itkAssertSameLengthTest( &measure2b, &measure2b );
-  itkAssertSameLengthTest( &measure3b, &measure3b );
-  itkAssertSameLengthTest( &measure4b, &measure4b );
-
-
-
+  itkAssertLengthExceptionMacro( &measure1b, &measure1bb );
+  itkAssertLengthExceptionMacro( &measure2b, &measure2bb );
+  itkAssertLengthExceptionMacro( &measure3b, &measure3bb );
+  itkAssertLengthExceptionMacro( &measure4b, &measure4bb );
 
  
   // against other arrays
