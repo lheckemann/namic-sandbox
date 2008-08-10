@@ -165,6 +165,41 @@ int itkSubsampleTest(int, char* [] )
     std::cerr << "Expected Exception caught: " << excp << std::endl;
     }
 
+  // try accessing a measurement vector by index that is out of range 
+  try
+    {
+    unsigned int index = listSample->Size() + 2 ;
+    MeasurementVectorType measurementVector = 
+            subsample->GetMeasurementVectorByIndex( index ); 
+    std::cerr << "Exception should have been thrown since \
+      the index specified is outside the range of the sample container" << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Expected Exception caught: " << excp << std::endl;
+    }
+
+  // try accessing a measurement vector frequency by index that is out of range 
+  try
+    {
+    unsigned int index = listSample->Size() + 2 ;
+    SubsampleType::AbsoluteFrequencyType frequency = 
+            subsample->GetFrequencyByIndex( index ); 
+    std::cout << "Frequency: " << frequency << std::endl;
+    std::cerr << "Exception should have been thrown since \
+      the index specified is outside the range\
+      of the sample container" << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Expected Exception caught: " << excp << std::endl;
+    }
+
+
+
+
 
   if ((totalSize / 2) != subsample->Size())
     {
