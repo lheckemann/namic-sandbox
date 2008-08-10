@@ -137,6 +137,32 @@ int itkMeasurementVectorTraitsTest(int, char* [] )
   itkAssertSameLengthTest( &measure2b, &measure2b );
   itkAssertSameLengthTest( &measure3b, &measure3b );
   itkAssertSameLengthTest( &measure4b, &measure4b );
+
+  // against same type with different length
+  MeasurementVectorType1  measure1bb;
+  MeasurementVectorType2b measure2bb;
+  MeasurementVectorType3b measure3bb;
+  MeasurementVectorType4b measure4bb;
+
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( measure1bb, length1 );
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( measure2bb, length1 );
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( measure3bb, length1 );
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( measure4bb, length1 );
+
+  // against each other 
+  itkAssertLengthExceptionMacro( measure1b, measure1bb );
+  itkAssertLengthExceptionMacro( measure2b, measure2bb );
+  itkAssertLengthExceptionMacro( measure3b, measure3bb );
+  itkAssertLengthExceptionMacro( measure4b, measure4bb );
+
+  itkAssertSameLengthTest( &measure1b, &measure1b );
+  itkAssertSameLengthTest( &measure2b, &measure2b );
+  itkAssertSameLengthTest( &measure3b, &measure3b );
+  itkAssertSameLengthTest( &measure4b, &measure4b );
+
+
+
+
  
   // against other arrays
   itkAssertSameLengthTest( measure1b, measure2b );
