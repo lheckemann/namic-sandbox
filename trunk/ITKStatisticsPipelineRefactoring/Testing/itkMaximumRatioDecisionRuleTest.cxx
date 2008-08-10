@@ -48,6 +48,12 @@ int itkMaximumRatioDecisionRuleTest(int, char* [] )
   membershipScore3 = 1.9;
   membershipScoreVector.push_back( membershipScore3 );  
 
+  //add discriminantscore with a value of zero
+  double membershipScore4;
+  membershipScore4 = 0.0;
+  membershipScoreVector.push_back( membershipScore4 );  
+
+
   unsigned int  decisionValue;
   try
     {
@@ -97,9 +103,13 @@ int itkMaximumRatioDecisionRuleTest(int, char* [] )
   value2 = 0.3;
   aprioriProbabilityVector2.push_back( value2 ); 
 
-  //Add a third class
+  //Add a third and a fourth class 
   APrioriValueType value3 = 0.3;
   aprioriProbabilityVector2.push_back( value3 ); 
+
+  //Zero priori probability
+  APrioriValueType value4 = 0.0;
+  aprioriProbabilityVector2.push_back( value4 ); 
 
   decisionRule->SetAPriori( aprioriProbabilityVector2 );
   try
