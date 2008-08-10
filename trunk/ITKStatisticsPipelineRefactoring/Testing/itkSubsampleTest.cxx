@@ -197,9 +197,21 @@ int itkSubsampleTest(int, char* [] )
     std::cerr << "Expected Exception caught: " << excp << std::endl;
     }
 
-
-
-
+  // try accessing a instance identifier of a measurement vector 
+  // using an index that is out of range 
+  try
+    {
+    unsigned int index = listSample->Size() + 2 ;
+    ListSampleType::InstanceIdentifier id = subsample->GetInstanceIdentifier( index ); 
+    std::cerr << "Exception should have been thrown since \
+      the index specified is outside the range of the sample container" << std::endl;
+    std::cout << "Instance identifier: " << id << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << "Expected Exception caught: " << excp << std::endl;
+    }
 
   if ((totalSize / 2) != subsample->Size())
     {
