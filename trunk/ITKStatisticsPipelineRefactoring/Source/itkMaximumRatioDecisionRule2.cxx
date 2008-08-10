@@ -88,11 +88,11 @@ MaximumRatioDecisionRule2::Evaluate(const MembershipVectorType &discriminantScor
         }
 
       ++j;
+      }
 
-      if ( j == m_NumberOfClasses )
-        {
-        return i;
-        }
+    if ( j == m_NumberOfClasses )
+      {
+      break;
       }
     }
 
