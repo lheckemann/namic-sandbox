@@ -24,6 +24,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkSampleClassifierFilter.h"
 #include "itkMaximumDecisionRule2.h"
 #include "itkDistanceToCentroidMembershipFunction.h"
+#include "itkMeasurementVectorTraits.h"
 
 
 // ADD DistanceToCentroidMembershipFunction (with the added SetDistanceMetric() method
@@ -140,21 +141,21 @@ int itkSampleClassifierFilterTest1(int argc, char *argv[] )
   MembershipFunctionPointer membershipFunction1 = MembershipFunctionType::New(); 
   membershipFunction1->SetMeasurementVectorSize( numberOfComponents );
   MembershipFunctionType::CentroidType    centroid1;
-  centroid1.SetSize( numberOfComponents );
+  itk::Statistics::MeasurementVectorTraits::SetLength( centroid1, numberOfComponents );
   membershipFunction1->SetCentroid( centroid1 );
   membershipFunctionsVector.push_back( membershipFunction1.GetPointer() );
 
   MembershipFunctionPointer membershipFunction2 = MembershipFunctionType::New(); 
   membershipFunction1->SetMeasurementVectorSize( numberOfComponents );
   MembershipFunctionType::CentroidType    centroid2;
-  centroid2.SetSize( numberOfComponents );
+  itk::Statistics::MeasurementVectorTraits::SetLength( centroid2, numberOfComponents );
   membershipFunction2->SetCentroid( centroid2 );
   membershipFunctionsVector.push_back( membershipFunction2.GetPointer() );
 
   MembershipFunctionPointer membershipFunction3 = MembershipFunctionType::New(); 
   membershipFunction3->SetMeasurementVectorSize( numberOfComponents );
   MembershipFunctionType::CentroidType    centroid3;
-  centroid3.SetSize( numberOfComponents );
+  itk::Statistics::MeasurementVectorTraits::SetLength( centroid3, numberOfComponents );
   membershipFunction3->SetCentroid( centroid3 );
   membershipFunctionsVector.push_back( membershipFunction3.GetPointer() );
 

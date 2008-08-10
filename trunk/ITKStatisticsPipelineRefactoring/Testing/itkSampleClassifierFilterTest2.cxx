@@ -78,7 +78,7 @@ int itkSampleClassifierFilterTest2(int argc, char *argv[] )
   MembershipFunctionPointer membershipFunction1 = MembershipFunctionType::New(); 
   membershipFunction1->SetMeasurementVectorSize( numberOfComponents );
   MeanType  mean1;
-  mean1.SetSize( numberOfComponents );
+  itk::Statistics::MeasurementVectorTraits::SetLength( mean1, numberOfComponents );
   mean1[0] = 10.5;
 
   membershipFunction1->SetMean( mean1 );
@@ -93,7 +93,7 @@ int itkSampleClassifierFilterTest2(int argc, char *argv[] )
   membershipFunction1->SetMeasurementVectorSize( numberOfComponents );
 
   MeanType  mean2;
-  mean2.SetSize( numberOfComponents );
+  itk::Statistics::MeasurementVectorTraits::SetLength( mean2, numberOfComponents );
   mean2[0] = 200.5;
   membershipFunction2->SetMean( mean2 );
 
@@ -132,7 +132,7 @@ int itkSampleClassifierFilterTest2(int argc, char *argv[] )
   normalGenerator->Initialize( 101 );
 
   MeasurementVectorType mv;
-  mv.SetSize( numberOfComponents );
+  itk::Statistics::MeasurementVectorTraits::SetLength( mv, numberOfComponents );
   double mean = mean1[0];
   double standardDeviation = vcl_sqrt(covariance1[0][0]);
   unsigned int numberOfSampleEachClass = 10;
