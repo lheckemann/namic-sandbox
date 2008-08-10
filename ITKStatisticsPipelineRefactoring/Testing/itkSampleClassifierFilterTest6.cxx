@@ -18,7 +18,7 @@ PURPOSE.  See the above copyright notices for more information.
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkArray.h"
+#include <vector> 
 #include "itkVariableLengthVector.h"
 #include "itkListSample.h"
 #include "itkSampleClassifierFilter.h"
@@ -29,8 +29,8 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkWeightedCentroidKdTreeGenerator.h"
 
 
-//run sample classifer using itk::Array type measurment vector
-int itkSampleClassifierFilterTest3(int argc, char *argv[] )
+//run sample classifer using std::vector type measurment vector
+int itkSampleClassifierFilterTest6(int argc, char *argv[] )
 {
 
   const unsigned int numberOfComponents = 1;
@@ -38,7 +38,7 @@ int itkSampleClassifierFilterTest3(int argc, char *argv[] )
 
   const unsigned int numberOfClasses = 2;
 
-  typedef itk::Array< MeasurementType > MeasurementVectorType;
+  typedef std::vector< MeasurementType > MeasurementVectorType;
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
 
   typedef itk::Statistics::SampleClassifierFilter< SampleType > FilterType;
@@ -57,7 +57,6 @@ int itkSampleClassifierFilterTest3(int argc, char *argv[] )
   //Populate the list with samples from two normal distributions
 
   EstimatorType::DistanceToCentroidMembershipFunction::CentroidType  mean1;
-
   itk::Statistics::MeasurementVectorTraits::SetLength( mean1, numberOfComponents );
   mean1[0] = 10.5;
 
@@ -66,7 +65,7 @@ int itkSampleClassifierFilterTest3(int argc, char *argv[] )
   mean2[0] = 200.5;
 
   MeasurementVectorType mv;
-  itk::Statistics::MeasurementVectorTraits::SetLength( mv, numberOfComponents );
+  mv.set_size( numberOfComponents );
   double mean = mean1[0];
   double standardDeviation = 0.1; 
   unsigned int numberOfSampleEachClass = 10;

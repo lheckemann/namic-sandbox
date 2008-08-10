@@ -18,7 +18,7 @@ PURPOSE.  See the above copyright notices for more information.
 #pragma warning ( disable : 4786 )
 #endif
 
-#include "itkArray.h"
+#include "itkVariableLengthVector.h"
 #include "itkVariableLengthVector.h"
 #include "itkListSample.h"
 #include "itkSampleClassifierFilter.h"
@@ -29,8 +29,8 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkWeightedCentroidKdTreeGenerator.h"
 
 
-//run sample classifer using itk::Array type measurment vector
-int itkSampleClassifierFilterTest3(int argc, char *argv[] )
+//run sample classifer using itk::VariableLengthVector type measurment vector
+int itkSampleClassifierFilterTest5(int argc, char *argv[] )
 {
 
   const unsigned int numberOfComponents = 1;
@@ -38,7 +38,7 @@ int itkSampleClassifierFilterTest3(int argc, char *argv[] )
 
   const unsigned int numberOfClasses = 2;
 
-  typedef itk::Array< MeasurementType > MeasurementVectorType;
+  typedef itk::VariableLengthVector< MeasurementType > MeasurementVectorType;
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
 
   typedef itk::Statistics::SampleClassifierFilter< SampleType > FilterType;
