@@ -48,6 +48,7 @@ int itkEuclideanSquareDistanceMetricTest(int, char* [] )
     distance->Evaluate( measurementNew );
     std::cerr << "Attempting to compute distance w/o setting measurement vector"
                  "size, Exception should have been thrown" << std::endl;
+    return EXIT_FAILURE;
     }
   catch( itk::ExceptionObject & excp )
     {
@@ -87,6 +88,24 @@ int itkEuclideanSquareDistanceMetricTest(int, char* [] )
               << "ComputedValue=" << distanceComputed << std::endl;
     return EXIT_FAILURE;
     }
+
+  //Compute distance between two measurement vectors
+  MeasurementVectorType measurement2;
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( measurement2, 3);
+  measurement2[0] = 1.5;
+  measurement2[1] = 3.5;
+  measurement2[2] = 3.5;
+
+  double trueValue2 = 1.29;
+  double distanceComputed2 = distance->Evaluate( measurement, measurement2 );
+
+  if( fabs( distanceComputed2 - trueValue2) > tolerance )
+    {
+    std::cerr << "Distance computed not correct: " << "truevalue= " << trueValue2
+              << "ComputedValue=" << distanceComputed2 << std::endl;
+    return EXIT_FAILURE;
+    }
+  
 
   return EXIT_SUCCESS;
 }

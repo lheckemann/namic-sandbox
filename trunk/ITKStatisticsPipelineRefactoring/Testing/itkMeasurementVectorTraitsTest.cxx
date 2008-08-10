@@ -127,6 +127,17 @@ int itkMeasurementVectorTraitsTest(int, char* [] )
   ::itk::Statistics::MeasurementVectorTraits::SetLength( measure3b, length2 );
   ::itk::Statistics::MeasurementVectorTraits::SetLength( measure4b, length2 );
 
+  // against each other 
+  itkAssertSameLengthTest( measure1b, measure1b );
+  itkAssertSameLengthTest( measure2b, measure2b );
+  itkAssertSameLengthTest( measure3b, measure3b );
+  itkAssertSameLengthTest( measure4b, measure4b );
+
+  itkAssertSameLengthTest( &measure1b, &measure1b );
+  itkAssertSameLengthTest( &measure2b, &measure2b );
+  itkAssertSameLengthTest( &measure3b, &measure3b );
+  itkAssertSameLengthTest( &measure4b, &measure4b );
+ 
   // against other arrays
   itkAssertSameLengthTest( measure1b, measure2b );
   itkAssertSameLengthTest( measure1b, measure3b );
