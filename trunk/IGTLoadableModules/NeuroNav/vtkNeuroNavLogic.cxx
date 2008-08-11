@@ -57,12 +57,11 @@ vtkNeuroNavLogic::vtkNeuroNavLogic()
   this->SliceNo1Last = 1;
   this->SliceNo2Last = 1;
   this->SliceNo3Last = 1;
-  this->CurrentTransformNode = NULL;
+  this->OriginalTrackerNode = NULL;
   this->UseRegistration = false;
 
   this->Pat2ImgReg = vtkIGTPat2ImgRegistration::New();
-  this->RegistrationNode = NULL;
-
+  this->UpdatedTrackerNode = NULL;
 }
 
 
@@ -75,10 +74,10 @@ vtkNeuroNavLogic::~vtkNeuroNavLogic()
     this->Pat2ImgReg = NULL;
     }
 
-  if (this->RegistrationNode)
+  if (this->UpdatedTrackerNode)
     {
-    this->RegistrationNode->Delete();
-    this->RegistrationNode = NULL;
+    this->UpdatedTrackerNode->Delete();
+    this->UpdatedTrackerNode = NULL;
     }
 }
 
@@ -191,14 +190,14 @@ void vtkNeuroNavLogic::GetCurrentPosition(float *px, float *py, float *pz)
   *py = 0.0;
   *pz = 0.0;
 
-  if (! this->CurrentTransformNode)
+  if (! this->OriginalTrackerNode)
     {
     return;
     }
 
   vtkMatrix4x4* transform;
   //transform = transformNode->GetMatrixTransformToParent();
-  transform = this->CurrentTransformNode->GetMatrixTransformToParent();
+  transform = this->OriginalTrackerNode->GetMatrixTransformToParent();
 
   if (transform)
     {
@@ -227,10 +226,10 @@ void vtkNeuroNavLogic::UpdateTransformNodeByName(const char *name)
       return;
       }
 
-    this->CurrentTransformNode = vtkMRMLLinearTransformNode::SafeDownCast(collection->GetItemAsObject(0));
+    this->OriginalTrackerNode = vtkMRMLLinearTransformNode::SafeDownCast(collection->GetItemAsObject(0));
     if (this->Pat2ImgReg && this->UseRegistration)
       {
-      // this->UpdateLocatorTransform();
+      this->UpdateLocatorTransform();
       }
     }
 }
@@ -238,14 +237,14 @@ void vtkNeuroNavLogic::UpdateTransformNodeByName(const char *name)
 
 void vtkNeuroNavLogic::UpdateDisplay(int sliceNo1, int sliceNo2, int sliceNo3)
 {
-  if (! this->CurrentTransformNode)
+  if (! this->OriginalTrackerNode)
     {
     return;
     }
 
   vtkMatrix4x4* transform;
   //transform = transformNode->GetMatrixTransformToParent();
-  transform = this->CurrentTransformNode->GetMatrixTransformToParent();
+  transform = this->OriginalTrackerNode->GetMatrixTransformToParent();
 
   if (transform)
     {
@@ -410,15 +409,14 @@ void vtkNeuroNavLogic::ApplyTransform(float *position, float *norm, float *trans
 void vtkNeuroNavLogic::UpdateLocatorTransform()
 {
 
-  if (! this->CurrentTransformNode)
+  if (! this->OriginalTrackerNode)
     {
     return;
     }
 
 
   vtkMatrix4x4* transform;
-  transform = this->CurrentTransformNode->GetMatrixTransformToParent();
-
+  transform = this->OriginalTrackerNode->GetMatrixTransformToParent();
   if (transform)
     {
     // Get locator matrix
@@ -544,8 +542,17 @@ void vtkNeuroNavLogic::UpdateLocatorTransform()
     // T:
     locator_transform->Translate(x0, y0, z0);
 
-    //  this->LocatorNormalTransform->DeepCopy(locator_transform);
-    this->CurrentTransformNode->GetMatrixTransformToParent()->DeepCopy(locator_transform->GetMatrix());
+    if (! this->UpdatedTrackerNode)
+      {
+      this->UpdatedTrackerNode = vtkMRMLLinearTransformNode::New();
+      this->UpdatedTrackerNode->SetName("NeuroNavTracker");
+      this->UpdatedTrackerNode->SetDescription("Tracker after patient to image registration.");
+      GetMRMLScene()->AddNode(this->UpdatedTrackerNode);
+      }
+
+    vtkMatrix4x4 *matrix = this->UpdatedTrackerNode->GetMatrixTransformToParent();
+    matrix->DeepCopy(locator_transform->GetMatrix());
+    this->UpdatedTrackerNode->Modified();
 
     locator_matrix->Delete();
     locator_transform->Delete();
@@ -562,22 +569,7 @@ int vtkNeuroNavLogic::PerformPatientToImageRegistration()
     }
 
   this->SetUseRegistration(1);
-
-  // Create a MRML node to hold the registration transform
-  if (this->RegistrationNode)
-    {
-    this->RegistrationNode->Delete();
-    GetMRMLScene()->Modified();
-    }
-
-  this->RegistrationNode = vtkMRMLLinearTransformNode::New();
-  this->RegistrationNode->SetName("Pat2ImagReg");
-  this->RegistrationNode->SetDescription("Patient to image registration.");
-
-  this->RegistrationNode->ApplyTransform(this->Pat2ImgReg->GetLandmarkTransformMatrix());
-  GetMRMLScene()->AddNode(this->RegistrationNode);
-
-  return (!error);
+  return 0;
 }
 
 
