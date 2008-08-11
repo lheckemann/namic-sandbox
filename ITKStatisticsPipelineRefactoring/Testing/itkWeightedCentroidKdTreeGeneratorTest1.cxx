@@ -64,6 +64,8 @@ int itkWeightedCentroidKdTreeGeneratorTest1(int argc , char * argv [] )
 
   typedef itk::Statistics::WeightedCentroidKdTreeGenerator< SampleType > TreeGeneratorType ;
   TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New() ;
+  std::cout << treeGenerator->GetNameOfClass() << std::endl;
+  treeGenerator->Print( std::cout );
 
   const unsigned int bucketSize = atoi( argv[3] );
 
