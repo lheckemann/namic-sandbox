@@ -60,9 +60,11 @@ int itkStatisticsAlgorithmTest(int argc, char *argv[] )
 
   // Now set the correct measurement vector size
   sample->SetMeasurementVectorSize( measurementVectorSize );
-
+  
   // Testing the equivalent of an empty sample by passing 
   // the Begin() iterator inlieu of the End() iterator.
+  //
+
   try
     {
     itk::Statistics::Algorithm::FindSampleBound( 
@@ -70,11 +72,13 @@ int itkStatisticsAlgorithmTest(int argc, char *argv[] )
       constSample->Begin(), constSample->Begin(), 
       lower, upper
       );
+    std::cerr << "Failure to throw expected exception when " << std::endl;
+    std::cerr << " attempting to compute bound of an empty sample list" << std::endl;
+    return EXIT_FAILURE;
     }
   catch( itk::ExceptionObject & excp )
     {
     std::cout << excp << std::endl;
-    return EXIT_FAILURE;
     }
 
 
