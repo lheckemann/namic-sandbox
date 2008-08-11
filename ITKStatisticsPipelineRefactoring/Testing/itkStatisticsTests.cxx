@@ -47,6 +47,7 @@ void RegisterTests()
   REGISTER_TEST(itkMembershipSampleTest1);
   REGISTER_TEST(itkMembershipSampleTest2);
   REGISTER_TEST(itkMembershipSampleTest3);
+  REGISTER_TEST(itkMembershipSampleTest4);
   REGISTER_TEST(itkNeighborhoodSamplerTest1);
   REGISTER_TEST(itkCovarianceFilterTest);
   REGISTER_TEST(itkCovarianceFilterTest2);
@@ -65,7 +66,7 @@ void RegisterTests()
   REGISTER_TEST(itkSampleClassifierFilterTest3);
   REGISTER_TEST(itkSampleClassifierFilterTest4);
   REGISTER_TEST(itkSampleClassifierFilterTest5);
-//  REGISTER_TEST(itkSampleClassifierFilterTest6);
+  REGISTER_TEST(itkSampleClassifierFilterTest6);
 
   REGISTER_TEST(itkSampleToSubsampleFilterTest1);
   REGISTER_TEST(itkSubsampleTest);

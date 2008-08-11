@@ -19,19 +19,19 @@
 #endif
 
 #include <iostream>
-#include "itkListSample.h"
 #include "itkMembershipSample.h"
+#include <vector>
+#include "itkListSample.h"
 
-// MembershipSample test using FixedArray type measurement vector
-int itkMembershipSampleTest1(int, char* [] )
+// MembershipSample test using std::vector type measurement vector
+int itkMembershipSampleTest4(int, char* [] )
 {
 
   const unsigned int MeasurementVectorSize = 3;
 
   const unsigned int numberOfClasses1 = 2;
 
-  typedef itk::FixedArray< 
-    float, MeasurementVectorSize >  MeasurementVectorType;
+  typedef std::vector< float >  MeasurementVectorType;
 
   typedef itk::Statistics::ListSample< MeasurementVectorType > SampleType;
 
@@ -39,6 +39,7 @@ int itkMembershipSampleTest1(int, char* [] )
 
   SampleType::Pointer sample = SampleType::New();
 
+  sample->SetMeasurementVectorSize( MeasurementVectorSize );
 
   MembershipSampleType::Pointer membershipSample = MembershipSampleType::New();
 
@@ -63,6 +64,7 @@ int itkMembershipSampleTest1(int, char* [] )
   // Add measurmement vectors to the list sample
   unsigned int sampleSize = 10;
   MeasurementVectorType mv;
+  itk::Statistics::MeasurementVectorTraits::SetLength( mv, MeasurementVectorSize );
 
   std::cout << "Sample length = " << sample->GetMeasurementVectorSize() << std::endl;
   std::cout << "Vector length = " << itk::Statistics::MeasurementVectorTraits::GetLength( mv ) << std::endl;
@@ -255,5 +257,7 @@ int itkMembershipSampleTest1(int, char* [] )
   } 
 
   std::cout << "Test Passed !" << std::endl;
+ 
+
   return EXIT_SUCCESS;
 }

@@ -44,6 +44,7 @@ ADD_TEST(itkMeasurementVectorTraitsTest ${STATISTICS_TESTS} itkMeasurementVector
 ADD_TEST(itkMembershipSampleTest1 ${STATISTICS_TESTS} itkMembershipSampleTest1)
 ADD_TEST(itkMembershipSampleTest2 ${STATISTICS_TESTS} itkMembershipSampleTest2)
 ADD_TEST(itkMembershipSampleTest3 ${STATISTICS_TESTS} itkMembershipSampleTest3)
+ADD_TEST(itkMembershipSampleTest4 ${STATISTICS_TESTS} itkMembershipSampleTest4)
 ADD_TEST(itkNeighborhoodSamplerTest1 ${STATISTICS_TESTS} itkNeighborhoodSamplerTest1)
 ADD_TEST(itkScalarImageToCooccurrenceMatrixFilterTest ${STATISTICS_TESTS} itkScalarImageToCooccurrenceMatrixFilterTest)
 ADD_TEST(itkScalarImageToCooccurrenceMatrixFilterTest2 ${STATISTICS_TESTS} itkScalarImageToCooccurrenceMatrixFilterTest2)
@@ -57,7 +58,7 @@ ADD_TEST(itkSampleClassifierFilterTest2 ${STATISTICS_TESTS} itkSampleClassifierF
 ADD_TEST(itkSampleClassifierFilterTest3 ${STATISTICS_TESTS} itkSampleClassifierFilterTest3)
 ADD_TEST(itkSampleClassifierFilterTest4 ${STATISTICS_TESTS} itkSampleClassifierFilterTest4)
 ADD_TEST(itkSampleClassifierFilterTest5 ${STATISTICS_TESTS} itkSampleClassifierFilterTest5)
-#ADD_TEST(itkSampleClassifierFilterTest6 ${STATISTICS_TESTS} itkSampleClassifierFilterTest6)
+ADD_TEST(itkSampleClassifierFilterTest6 ${STATISTICS_TESTS} itkSampleClassifierFilterTest6)
 
 ADD_TEST(itkSampleToSubsampleFilterTest1 ${STATISTICS_TESTS} itkSampleToSubsampleFilterTest1)
 ADD_TEST(itkSubsampleTest ${STATISTICS_TESTS} itkSubsampleTest)
@@ -153,6 +154,7 @@ SET(Statistics_SRCS
   itkMembershipSampleTest1.cxx
   itkMembershipSampleTest2.cxx
   itkMembershipSampleTest3.cxx
+  itkMembershipSampleTest4.cxx
   itkNeighborhoodSamplerTest1.cxx
   itkScalarImageToCooccurrenceMatrixFilterTest.cxx
   itkScalarImageToCooccurrenceMatrixFilterTest2.cxx
@@ -170,7 +172,7 @@ SET(Statistics_SRCS
   itkSampleClassifierFilterTest3.cxx
   itkSampleClassifierFilterTest4.cxx
   itkSampleClassifierFilterTest5.cxx
-#  itkSampleClassifierFilterTest6.cxx
+  itkSampleClassifierFilterTest6.cxx
   itkSampleToSubsampleFilterTest1.cxx
   itkSubsampleTest.cxx
   itkSubsampleTest2.cxx
