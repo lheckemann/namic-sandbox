@@ -113,11 +113,33 @@ int itkKdTreeBasedKmeansEstimatorTest(int argc, char* argv[] )
   /* Searching kmeans */
   typedef stat::KdTreeBasedKmeansEstimator< Generator::KdTreeType > Estimator ;
   Estimator::Pointer estimator = Estimator::New() ;
+  std::cout << estimator->GetNameOfClass() << std::endl;
+  estimator->Print( std::cout );
 
+
+  //Set the initial means
   estimator->SetParameters(initialMeans) ;
+
+  //Set the maximum iteration
   estimator->SetMaximumIteration(maximumIteration) ;
+  if ( estimator->GetMaximumIteration() != maximumIteration )
+    {
+    std::cerr << "Error in Set/GetMaximum Iteration" << std::endl;
+    return EXIT_FAILURE;
+    }
+
   estimator->SetKdTree(generator->GetOutput()) ;
+
+  //Set the centroid position change threshold
   estimator->SetCentroidPositionChangesThreshold(0.0) ;
+  const double tolerance = 0.1;
+  if( fabs(estimator->GetCentroidPositionChangesThreshold() - 0.0) > tolerance )
+    {
+    std::cerr << "Set/GetCentroidPositionChangesThreshold() " << std::endl;
+    return EXIT_FAILURE;
+    }
+  
+
   estimator->StartOptimization() ;
   Estimator::ParametersType estimatedMeans = estimator->GetParameters() ;
 
