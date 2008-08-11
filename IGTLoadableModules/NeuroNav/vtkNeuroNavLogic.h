@@ -104,7 +104,6 @@ public:
 
   vtkGetObjectMacro ( LocatorTransform, vtkTransform );
   vtkGetObjectMacro ( LocatorMatrix,    vtkMatrix4x4 );
-  vtkGetObjectMacro ( CurrentTransformNode, vtkMRMLLinearTransformNode );
   vtkGetObjectMacro ( Pat2ImgReg, vtkIGTPat2ImgRegistration );
 
 
@@ -194,9 +193,14 @@ private:
   int SliceNo1Last;
   int SliceNo2Last;
   int SliceNo3Last;
-  vtkMRMLLinearTransformNode *CurrentTransformNode;
+
   vtkIGTPat2ImgRegistration *Pat2ImgReg;
-  vtkMRMLLinearTransformNode *RegistrationNode;
+
+  // holds transform from tracking device
+  vtkMRMLLinearTransformNode *OriginalTrackerNode;
+
+  // updated transform after patient to image registration
+  vtkMRMLLinearTransformNode *UpdatedTrackerNode;
 };
 
 #endif
