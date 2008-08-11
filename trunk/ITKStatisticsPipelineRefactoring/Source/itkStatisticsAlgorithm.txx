@@ -253,6 +253,13 @@ inline void FindSampleBound(const TSample* sample,
   MeasurementVectorTraits::Assert( min, Dimension, 
           "Length mismatch StatisticsAlgorithm::FindSampleBound");
 
+  if( sample->Size() == 0 )
+    {
+    itkGenericExceptionMacro( 
+    << "Attempting to compute bounds of a sample list containing no\
+       measurement vectors" );
+    }
+
   unsigned int dimension;
   typename TSample::MeasurementVectorType temp;
 
