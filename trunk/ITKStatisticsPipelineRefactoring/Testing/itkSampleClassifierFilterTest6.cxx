@@ -65,7 +65,7 @@ int itkSampleClassifierFilterTest6(int argc, char *argv[] )
   mean2[0] = 200.5;
 
   MeasurementVectorType mv;
-  mv.set_size( numberOfComponents );
+  itk::Statistics::MeasurementVectorTraits::SetLength( mv, numberOfComponents );
   double mean = mean1[0];
   double standardDeviation = 0.1; 
   unsigned int numberOfSampleEachClass = 10;
@@ -184,6 +184,7 @@ int itkSampleClassifierFilterTest6(int argc, char *argv[] )
   const FilterType::MembershipSampleType* membershipSample = filter->GetOutput();
   FilterType::MembershipSampleType::ConstIterator iter = membershipSample->Begin();
 
+  /*
   unsigned int sampleCounter = 0;
   while ( iter != membershipSample->End() )
     {
@@ -210,6 +211,7 @@ int itkSampleClassifierFilterTest6(int argc, char *argv[] )
     ++iter;
     ++sampleCounter;
     }
+  */
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;

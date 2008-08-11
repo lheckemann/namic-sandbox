@@ -41,7 +41,7 @@ public:
   typedef SmartPointer<const Self>      ConstPointer;
 
   typedef typename Superclass::MeasurementVectorType     MeasurementVectorType;
-  typedef typename MeasurementVectorType::ValueType      ValueType;
+  typedef typename MeasurementVectorTraitsTypes<MeasurementVectorType>::ValueType      ValueType;
   typedef typename Superclass::MeasurementVectorSizeType MeasurementVectorSizeType;
 
   typedef typename Superclass::OriginType OriginType;
