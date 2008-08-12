@@ -68,14 +68,15 @@ int itkCovarianceFilterTest3(int, char* [] )
 
   HistogramType::Pointer histogram = HistogramType::New();
 
-  HistogramType::SizeType                 size;
-  HistogramType::MeasurementVectorType    lowerBound;
-  HistogramType::MeasurementVectorType    upperBound;
+  HistogramType::SizeType                 size( MeasurementVectorSize );
+  HistogramType::MeasurementVectorType    lowerBound( MeasurementVectorSize );
+  HistogramType::MeasurementVectorType    upperBound( MeasurementVectorSize );
 
   size.Fill(50);
   lowerBound.Fill(-350);
   upperBound.Fill(450);
 
+  histogram->SetMeasurementVectorSize( MeasurementVectorSize );
   histogram->Initialize( size, lowerBound, upperBound );
   histogram->SetToZero();
 
