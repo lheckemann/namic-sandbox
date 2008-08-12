@@ -37,20 +37,28 @@ int itkHistogramToTextureFeaturesFilterTest(int, char* [] )
   typedef itk::Statistics::Histogram< MeasurementType > HistogramType ;
   HistogramType::Pointer histogram = HistogramType::New() ;
 
-  histogram->SetMeasurementVectorSize( 2 );
+  const unsigned int measurementVectorSize = 2;
 
-  HistogramType::SizeType size ;
+  histogram->SetMeasurementVectorSize( measurementVectorSize );
+
+  HistogramType::SizeType size( measurementVectorSize );
+
   size.Fill(HISTOGRAM_AXIS_LEN) ;
-  HistogramType::MeasurementVectorType lowerBound ;
-  HistogramType::MeasurementVectorType upperBound ;
+
+  HistogramType::MeasurementVectorType lowerBound( measurementVectorSize );
+  HistogramType::MeasurementVectorType upperBound( measurementVectorSize );
+
   lowerBound[0] = 0 ;
   lowerBound[1] = 0 ;
+
   upperBound[0] = HISTOGRAM_AXIS_LEN + 1 ;
   upperBound[1] = HISTOGRAM_AXIS_LEN + 1 ;
+
   histogram->Initialize(size, lowerBound, upperBound ) ; 
 
-  HistogramType::IndexType                  index ;
-  HistogramType::AbsoluteFrequencyType              frequency;
+  HistogramType::IndexType                  index( measurementVectorSize );
+
+  HistogramType::AbsoluteFrequencyType      frequency;
   HistogramType::InstanceIdentifier         identifier;
   
   index[0] = 0 ;
