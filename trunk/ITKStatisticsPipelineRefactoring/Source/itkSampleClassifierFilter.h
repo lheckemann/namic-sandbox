@@ -69,6 +69,14 @@ public:
   typedef typename 
     MembershipFunctionVectorObjectType::Pointer           MembershipFunctionVectorObjectPointer;
 
+  /** typedef for membership functions weight proprtion */
+  typedef Array< double >                                MembershipFunctionsWeightsArrayType;
+
+  typedef SimpleDataObjectDecorator<
+   MembershipFunctionsWeightsArrayType >                 MembershipFunctionsWeightsArrayObjectType;
+  typedef typename 
+    MembershipFunctionsWeightsArrayObjectType::Pointer   MembershipFunctionsWeightsArrayPointer;
+
   /** Types required for the pipeline infrastructure */
   typedef typename DataObject::Pointer                DataObjectPointer;
   
@@ -109,6 +117,11 @@ public:
    * the number of classes, otherwise an exception will be thrown at run time.
    * */
   void SetMembershipFunctions(const MembershipFunctionVectorObjectType * membershipFunctions );
+
+  /** Sets array of weights for the membership functions */
+  void SetMembershipFunctionsWeightsArray(const MembershipFunctionsWeightsArrayObjectType * weightsArray );
+
+
 
 protected:
   SampleClassifierFilter();
