@@ -17,6 +17,8 @@
 #ifndef __itkCovarianceFilter_txx
 #define __itkCovarianceFilter_txx
 
+#include "itkMeasurementVectorTraits.h"
+
 namespace itk { 
 namespace Statistics {
 
@@ -114,6 +116,9 @@ CovarianceFilter< TSample >
   output.Fill(0.0);
 
   MeasurementVectorType mean;
+
+  MeasurementVectorTraits::SetLength( mean, measurementVectorSize );
+
   mean.Fill(0.0);
 
   double frequency;
@@ -124,6 +129,9 @@ CovarianceFilter< TSample >
 
   MeasurementVectorType diff;
   MeasurementVectorType measurements;
+
+  MeasurementVectorTraits::SetLength( diff, measurementVectorSize );
+  MeasurementVectorTraits::SetLength( measurements, measurementVectorSize );
 
   //Compute the mean first
   while (iter != end)
