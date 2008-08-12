@@ -125,7 +125,11 @@ int itkCovarianceFilterTest3(int, char* [] )
     {
     const double MahalanobisDistance =
       memberFunction->Evaluate( itr.GetMeasurementVector() );
-    AbsoluteFrequencyType frequency = (AbsoluteFrequencyType) vcl_floor( 1e5 * vcl_exp( -0.5 * MahalanobisDistance ) );
+
+    const double MahalanobisDistance2 = MahalanobisDistance * MahalanobisDistance;
+
+    AbsoluteFrequencyType frequency = (AbsoluteFrequencyType) vcl_floor( 1e5 * vcl_exp( -0.5 * MahalanobisDistance2 ) );
+
     itr.SetFrequency( frequency );
     ++itr;
     }
@@ -175,7 +179,7 @@ int itkCovarianceFilterTest3(int, char* [] )
     {
     if ( fabs( meanOutput[i] - mean[i] ) > epsilon )
       {
-      std::cerr << "The computed mean value is incorrrect" << std::endl;
+      std::cerr << "The computed mean value is incorrect" << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -183,7 +187,7 @@ int itkCovarianceFilterTest3(int, char* [] )
   epsilon = 35;
 
   for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
-  {
+    {
     for ( unsigned int j = 0; j < MeasurementVectorSize; j++ )
       {
       if ( fabs( covariance[i][j] - covarianceOutput[i][j] ) > epsilon )
@@ -194,7 +198,7 @@ int itkCovarianceFilterTest3(int, char* [] )
         return EXIT_FAILURE;
         }
       }
-  }
+    }
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
