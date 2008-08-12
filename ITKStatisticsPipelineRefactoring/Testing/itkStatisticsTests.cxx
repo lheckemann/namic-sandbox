@@ -109,5 +109,8 @@ void RegisterTests()
   REGISTER_TEST(itkKdTreeTest2);
   REGISTER_TEST(itkWeightedCentroidKdTreeGeneratorTest1);
 
+  REGISTER_TEST(itkGaussianMixtureModelComponentTest);
+  REGISTER_TEST(itkExpectationMaximizationMixtureModelEstimatorTest);
+
 }
 
