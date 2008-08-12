@@ -97,6 +97,19 @@ SampleClassifierFilter< TSample >
 }
 
 template< class TSample >
+void
+SampleClassifierFilter< TSample >
+::SetMembershipFunctionsWeightsArray( const
+MembershipFunctionsWeightsArrayObjectType * weightsArray )
+{
+ // Process object is not const-correct so the const_cast is required here
+  this->ProcessObject::SetNthInput(3,
+                                   const_cast<
+  MembershipFunctionsWeightsArrayObjectType * >( weightsArray ) );
+}
+
+
+template< class TSample >
 typename SampleClassifierFilter< TSample >::DataObjectPointer
 SampleClassifierFilter< TSample >
 ::MakeOutput(unsigned int)
@@ -114,6 +127,10 @@ SampleClassifierFilter< TSample >
 
   const MembershipFunctionVectorObjectType * membershipFunctionsDecorated = 
     static_cast< const MembershipFunctionVectorObjectType * >( this->ProcessObject::GetInput( 2 ) );
+
+  const MembershipFunctionsWeightsArrayObjectType *
+                membershipFunctionsWeightsArrayDecorated = 
+    static_cast< const MembershipFunctionsWeightsArrayObjectType * >( this->ProcessObject::GetInput( 3 ) );
 
   const ClassLabelVectorType & classLabels = classLabelsDecorated->Get();
 
@@ -135,6 +152,18 @@ SampleClassifierFilter< TSample >
     itkExceptionMacro("Decision rule is not set");
     }
 
+  MembershipFunctionsWeightsArrayType membershipFunctionsWeightsArray;
+  if( membershipFunctionsWeightsArrayDecorated == NULL )
+    {
+    // no weights array is set and hence all membership functions will have equal
+    // weight
+    membershipFunctionsWeightsArray.SetSize( this->m_NumberOfClasses );
+    membershipFunctionsWeightsArray.Fill(1.0);
+    }
+  else
+    {
+    membershipFunctionsWeightsArray = membershipFunctionsWeightsArrayDecorated->Get();
+    }
   const SampleType * sample =
     static_cast< const SampleType * >( this->ProcessObject::GetInput( 0 ) );
 
@@ -156,7 +185,7 @@ SampleClassifierFilter< TSample >
     measurements = iter.GetMeasurementVector();
     for (unsigned int i = 0; i < this->m_NumberOfClasses; i++)
       {
-      discriminantScores[i] =
+      discriminantScores[i] = membershipFunctionsWeightsArray[i] * 
         membershipFunctions[i]->Evaluate(measurements);
       }
 
