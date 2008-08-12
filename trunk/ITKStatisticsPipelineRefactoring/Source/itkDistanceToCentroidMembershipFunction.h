@@ -79,6 +79,9 @@ public:
    * value of the density function, not probability. */
   double Evaluate(const MeasurementVectorType &measurement) const;
   
+  /** Return a copy of the current membership function */
+  typename Superclass::Pointer Clone(); 
+ 
 protected:
   DistanceToCentroidMembershipFunction(void);
   virtual ~DistanceToCentroidMembershipFunction(void) {}

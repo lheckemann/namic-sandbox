@@ -71,6 +71,8 @@ public:
    * a ProcessObject's pipeline */
   typedef  SimpleDataObjectDecorator< MeasurementVectorType >  MeasurementVectorDecoratedType;
 
+  typedef MeasurementVectorDecoratedType OutputType;
+  
   /** Get the mean measurement vector */
   const MeasurementVectorDecoratedType * GetOutput() const;
   const MeasurementVectorType            GetMean() const;
