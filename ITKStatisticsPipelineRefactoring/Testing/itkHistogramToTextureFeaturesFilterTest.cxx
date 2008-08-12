@@ -34,8 +34,8 @@ int itkHistogramToTextureFeaturesFilterTest(int, char* [] )
   // symmetric and normalized.
   //------------------------------------------------------
   typedef float MeasurementType;
-  typedef itk::Statistics::Histogram< MeasurementType > HistogramType ;
-  HistogramType::Pointer histogram = HistogramType::New() ;
+  typedef itk::Statistics::Histogram< MeasurementType > HistogramType;
+  HistogramType::Pointer histogram = HistogramType::New();
 
   const unsigned int measurementVectorSize = 2;
 
@@ -43,62 +43,62 @@ int itkHistogramToTextureFeaturesFilterTest(int, char* [] )
 
   HistogramType::SizeType size( measurementVectorSize );
 
-  size.Fill(HISTOGRAM_AXIS_LEN) ;
+  size.Fill(HISTOGRAM_AXIS_LEN);
 
   HistogramType::MeasurementVectorType lowerBound( measurementVectorSize );
   HistogramType::MeasurementVectorType upperBound( measurementVectorSize );
 
-  lowerBound[0] = 0 ;
-  lowerBound[1] = 0 ;
+  lowerBound[0] = 0;
+  lowerBound[1] = 0;
 
-  upperBound[0] = HISTOGRAM_AXIS_LEN + 1 ;
-  upperBound[1] = HISTOGRAM_AXIS_LEN + 1 ;
+  upperBound[0] = HISTOGRAM_AXIS_LEN + 1;
+  upperBound[1] = HISTOGRAM_AXIS_LEN + 1;
 
-  histogram->Initialize(size, lowerBound, upperBound ) ; 
+  histogram->Initialize(size, lowerBound, upperBound ); 
 
   HistogramType::IndexType                  index( measurementVectorSize );
 
   HistogramType::AbsoluteFrequencyType      frequency;
   HistogramType::InstanceIdentifier         identifier;
   
-  index[0] = 0 ;
-  index[1] = 0 ;
+  index[0] = 0;
+  index[1] = 0;
   frequency = 10; 
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 
-  index[0] = 3 ;
-  index[1] = 3 ;
+  index[0] = 3;
+  index[1] = 3;
   frequency = 50; 
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 
-  index[0] = 2 ;
-  index[1] = 1 ;
+  index[0] = 2;
+  index[1] = 1;
   frequency= 5;
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 
-  index[0] = 1 ;
-  index[1] = 2 ;
+  index[0] = 1;
+  index[1] = 2;
   frequency = 5;
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 
-  index[0] = 7 ;
-  index[1] = 6 ;
+  index[0] = 7;
+  index[1] = 6;
   frequency = 10;
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 
-  index[0] = 6 ;
-  index[1] = 7 ;
+  index[0] = 6;
+  index[1] = 7;
   frequency = 10;
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
 
-  index[0] = 10 ;
-  index[1] = 10 ;
+  index[0] = 10;
+  index[1] = 10;
   frequency = 10;
   identifier = histogram->GetInstanceIdentifier ( index );
   histogram->SetFrequency(identifier, frequency);
