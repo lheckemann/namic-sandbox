@@ -418,10 +418,32 @@ int main( int argc, char * argv[] )
       resampleArray[j]->SetDefaultPixelValue( 0 );
       resampleArray[j]->Update();
 
+      // write out the resampled label files
       WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName("temp3.hdr");
+      string fname = outputFolder;
+      if(i==-1)
+      {
+        fname += "LabelsResampled/InputImage/";
+        itksys::SystemTools::MakeDirectory( fname.c_str() );
+        fname += labelFileNames[j];
+      }
+      else if(i==0)
+      {
+        fname += "LabelsResampled/Affine/";
+        itksys::SystemTools::MakeDirectory( fname.c_str() );
+        fname += labelFileNames[j];
+      }
+      else
+      {
+        ostringstream bsplineFolderName;
+        bsplineFolderName << "LabelsResampled/Bspline_Grid_" << (int) bsplineInitialGridSize * pow(2.0,i-1) << "/";
+        itksys::SystemTools::MakeDirectory( (fname+bsplineFolderName.str()).c_str() );
+        fname += bsplineFolderName.str() + labelFileNames[j];
+      }
+      writer->SetFileName(fname.c_str());
       writer->SetImageIO(labelReaderArray[0]->GetImageIO());
       writer->SetInput(resampleArray[j]->GetOutput());
+      writer->Update();
       
     }
 
