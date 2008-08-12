@@ -76,6 +76,9 @@ public:
 
   /** Gets the probability density of a measurement vector. */
   double Evaluate(const MeasurementVectorType &measurement) const;
+ 
+  /** Return a copy of the current membership function */
+  typename Superclass::Pointer Clone(); 
   
 protected:
   GaussianMembershipFunction(void);

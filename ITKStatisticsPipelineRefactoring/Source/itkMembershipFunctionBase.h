@@ -93,7 +93,10 @@ public:
 
   /** Get method for the length of the measurement vector */
   itkGetConstMacro( MeasurementVectorSize, MeasurementVectorSizeType ); 
- 
+
+  /** Return a copy of the current membership function */
+  virtual Pointer Clone() = 0; 
+  
 protected:
   MembershipFunctionBase()  
     {

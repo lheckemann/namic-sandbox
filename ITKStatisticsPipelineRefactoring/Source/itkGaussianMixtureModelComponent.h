@@ -19,9 +19,9 @@
 #define __itkGaussianMixtureModelComponent_h
 
 #include "itkMixtureModelComponentBase.h"
-#include "itkGaussianDensityFunction.h"
-#include "itkWeightedMeanCalculator.h"
-#include "itkWeightedCovarianceCalculator.h"
+#include "itkGaussianMembershipFunction.h"
+#include "itkWeightedMeanFilter.h"
+#include "itkWeightedCovarianceFilter.h"
 
 namespace itk { 
 namespace Statistics {
@@ -68,13 +68,13 @@ public:
   typedef typename Superclass::ParametersType                   ParametersType;
 
   /** Type of the membership function. Gaussian density function */
-  typedef GaussianDensityFunction< MeasurementVectorType > 
+  typedef GaussianMembershipFunction< MeasurementVectorType > 
   NativeMembershipFunctionType;
   
   /** Types of the mean and the covariance calculator that will update
    *  this component's distribution parameters */
-  typedef WeightedMeanCalculator< TSample >       MeanEstimatorType;
-  typedef WeightedCovarianceCalculator< TSample > CovarianceEstimatorType;
+  typedef WeightedMeanFilter< TSample >       MeanEstimatorType;
+  typedef WeightedCovarianceFilter< TSample > CovarianceEstimatorType;
 
   /** Type of the mean vector */
   typedef typename MeanEstimatorType::OutputType MeanType;
@@ -101,12 +101,12 @@ protected:
   void GenerateData();
 
 private:
-  typename NativeMembershipFunctionType::Pointer m_GaussianDensityFunction;
+  typename NativeMembershipFunctionType::Pointer m_GaussianMembershipFunction;
 
-  MeanType                                        m_Mean;
-  CovarianceType                                  m_Covariance;
-  typename MeanEstimatorType::Pointer             m_MeanEstimator;
-  typename CovarianceEstimatorType::Pointer       m_CovarianceEstimator;
+  typename MeanEstimatorType::MeasurementVectorType    m_Mean;
+  typename CovarianceEstimatorType::MatrixType         m_Covariance;
+  typename MeanEstimatorType::Pointer                  m_MeanEstimator;
+  typename CovarianceEstimatorType::Pointer            m_CovarianceEstimator;
 }; // end of class
     
 } // end of namespace Statistics 

@@ -49,6 +49,12 @@ public:
     score = 1;
     return score;
     } 
+
+   typename MembershipFunctionBase< TMeasurementVector >::Pointer Clone() 
+    {
+    Pointer memberFunction = MyMembershipFunctionBase< TMeasurementVector >::New();
+    return memberFunction.GetPointer();
+    }
 };
 
 }

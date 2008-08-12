@@ -169,7 +169,19 @@ GaussianMembershipFunction< TMeasurementVector >
     }
 }
   
-
+template < class TVector >
+typename MembershipFunctionBase< TVector >::Pointer 
+GaussianMembershipFunction< TVector >
+::Clone() 
+{ 
+  Pointer  membershipFunction = GaussianMembershipFunction< TVector >::New();
+  membershipFunction->SetMeasurementVectorSize( this->GetMeasurementVectorSize() );
+  membershipFunction->SetMean( this->GetMean() );
+  membershipFunction->SetCovariance( this->GetCovariance() );
+ 
+  return membershipFunction.GetPointer(); 
+}
+ 
 } // end namespace Statistics
 } // end of namespace itk
 

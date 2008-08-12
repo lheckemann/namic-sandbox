@@ -80,6 +80,8 @@ public:
    * a ProcessObject's pipeline */
   typedef  SimpleDataObjectDecorator< MeasurementVectorType >  MeasurementVectorDecoratedType;
 
+  typedef MeasurementVectorDecoratedType OutputType;
+  
   /** Return the covariance matrix */
   const MatrixType GetCovarianceMatrix() const;
   const MatrixDecoratedType* GetCovarianceMatrixOutput() const;

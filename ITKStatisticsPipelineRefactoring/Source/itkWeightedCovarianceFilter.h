@@ -57,6 +57,7 @@ public:
   itkSuperclassTraitMacro( MeasurementVectorType );
   itkSuperclassTraitMacro( MeasurementVectorSizeType );
   itkSuperclassTraitMacro( MeasurementVectorDecoratedType );
+  itkSuperclassTraitMacro( OutputType );
   
   /** Typedef for WeightedCovariance output */
   typedef VariableSizeMatrix< double >               MatrixType;

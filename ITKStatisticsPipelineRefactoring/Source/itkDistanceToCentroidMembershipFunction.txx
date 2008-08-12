@@ -66,6 +66,20 @@ DistanceToCentroidMembershipFunction< TVector >
 { 
   return this->m_DistanceMetric->Evaluate( measurement );
 }
+
+template < class TVector >
+typename MembershipFunctionBase< TVector >::Pointer 
+DistanceToCentroidMembershipFunction< TVector >
+::Clone() 
+{ 
+  Pointer  membershipFunction = 
+          DistanceToCentroidMembershipFunction<TVector>::New();
+  membershipFunction->SetMeasurementVectorSize( this->GetMeasurementVectorSize() );
+  membershipFunction->SetCentroid( this->GetCentroid() );
+ 
+  return membershipFunction.GetPointer(); 
+}
+ 
   
 template < class TVector >
 void  

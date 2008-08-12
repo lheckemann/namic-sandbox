@@ -56,6 +56,7 @@ public:
   itkSuperclassTraitMacro( MeasurementVectorType );
   itkSuperclassTraitMacro( MeasurementVectorSizeType );
   itkSuperclassTraitMacro( MeasurementVectorDecoratedType );
+  itkSuperclassTraitMacro( OutputType );
 
   /** Array typedef for weights */
   typedef Array< double > WeightArrayType;
