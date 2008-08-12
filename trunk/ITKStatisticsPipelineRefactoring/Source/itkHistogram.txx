@@ -177,6 +177,11 @@ Histogram<TMeasurement, TFrequencyContainer >
 ::Initialize(const SizeType &size)
 {
 
+  if( this->GetMeasurementVectorSize() == 0 )
+    {
+    itkExceptionMacro("MeasurementVectorSize is Zero. It should be set to a non-zero value before calling Initialize");
+    }
+
   this->m_Size = size;
   
   // creates offset table which will be used for generation of
@@ -191,6 +196,8 @@ Histogram<TMeasurement, TFrequencyContainer >
     num *= m_Size[i];
     this->m_OffsetTable[i + 1] = num;
     }
+
+  this->m_TempIndex.SetSize( this->GetMeasurementVectorSize() );
 
   m_NumberOfInstances = num;
 
