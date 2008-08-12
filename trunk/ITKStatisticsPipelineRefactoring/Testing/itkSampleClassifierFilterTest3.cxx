@@ -162,6 +162,17 @@ int itkSampleClassifierFilterTest3(int argc, char *argv[] )
     counter++;
     }
 
+  //Set membership functions weight array
+  FilterType::MembershipFunctionsWeightsArrayPointer weightArrayObjects =
+                      FilterType::MembershipFunctionsWeightsArrayObjectType::New();
+
+  FilterType::MembershipFunctionsWeightsArrayType weightsArray;
+ 
+  // set array size different from the number of classes 
+  unsigned int numberOfClasses2 = 3;  
+  weightsArray.SetSize( numberOfClasses2 );
+  weightArrayObjects->Set( weightsArray );
+
   //Instantiate and pass all the required inputs to the filter
   FilterType::Pointer filter = FilterType::New();
 
@@ -170,6 +181,28 @@ int itkSampleClassifierFilterTest3(int argc, char *argv[] )
   filter->SetClassLabels( classLabelsObject );
   filter->SetDecisionRule( decisionRule );
   filter->SetMembershipFunctions( membershipFunctionsObject );
+  filter->SetMembershipFunctionsWeightsArray( weightArrayObjects );
+
+  try
+    {
+    filter->Update();
+    std::cerr << "Exception should be thrown since weight array has size different"
+              << "from the number of classes set" << std::endl;
+    return EXIT_FAILURE;
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    }
+  
+  filter->ResetPipeline();
+
+  FilterType::MembershipFunctionsWeightsArrayType weightsArray2;
+ 
+  // set correct size
+  weightsArray2.SetSize( numberOfClasses );
+  weightsArray2.Fill( 1.0 );
+  weightArrayObjects->Set( weightsArray2 );
 
   try
     {
@@ -178,8 +211,9 @@ int itkSampleClassifierFilterTest3(int argc, char *argv[] )
   catch( itk::ExceptionObject & excp )
     {
     std::cerr << excp << std::endl;
-    return EXIT_FAILURE; 
+    return EXIT_FAILURE;
     }
+
 
   //Check if the measurement vectors are correctly labelled. 
   const FilterType::MembershipSampleType* membershipSample = filter->GetOutput();

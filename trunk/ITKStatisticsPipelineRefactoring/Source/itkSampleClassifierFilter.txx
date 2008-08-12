@@ -164,6 +164,14 @@ SampleClassifierFilter< TSample >
     {
     membershipFunctionsWeightsArray = membershipFunctionsWeightsArrayDecorated->Get();
     }
+
+  if ( membershipFunctionsWeightsArray.Size() != this->m_NumberOfClasses
+)
+    {
+    itkExceptionMacro("Membership functions weight array size does not match the\
+                      number of classes "); 
+    }
+  
   const SampleType * sample =
     static_cast< const SampleType * >( this->ProcessObject::GetInput( 0 ) );
 
