@@ -122,7 +122,6 @@ public:
   void SetMembershipFunctionsWeightsArray(const MembershipFunctionsWeightsArrayObjectType * weightsArray );
 
 
-
 protected:
   SampleClassifierFilter();
   virtual ~SampleClassifierFilter() {}
