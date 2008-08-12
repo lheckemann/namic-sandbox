@@ -132,6 +132,14 @@ ADD_TEST(itkWeightedCentroidKdTreeGeneratorTest6 ${STATISTICS_TESTS}
 ADD_TEST(itkWeightedCentroidKdTreeGeneratorTest7 ${STATISTICS_TESTS} 
   itkWeightedCentroidKdTreeGeneratorTest1 1000 1000 100 )
 
+ADD_TEST(itkGaussianMixtureModelComponentTest 
+         ${STATISTICS_TESTS} 
+         itkGaussianMixtureModelComponentTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
+
+ADD_TEST(itkExpectationMaximizationMixtureModelEstimatorTest 
+         ${STATISTICS_TESTS} 
+         itkExpectationMaximizationMixtureModelEstimatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
+
 SET(Statistics_SRCS
   itkCovarianceFilterTest.cxx
   itkCovarianceFilterTest2.cxx
@@ -209,6 +217,9 @@ SET(Statistics_SRCS
   itkKdTreeTestSamplePoints.cxx
   itkKdTreeTest2.cxx
   itkWeightedCentroidKdTreeGeneratorTest1.cxx
+
+  itkGaussianMixtureModelComponentTest.cxx
+  itkExpectationMaximizationMixtureModelEstimatorTest.cxx
 
   )
 
