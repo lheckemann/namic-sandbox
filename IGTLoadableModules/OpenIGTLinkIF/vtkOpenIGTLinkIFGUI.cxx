@@ -368,6 +368,13 @@ void vtkOpenIGTLinkIFGUI::RemoveGUIObservers ( )
     }
 
   
+  if (this->MrmlNodeList->GetWidget())
+    {
+    this->MrmlNodeList->GetWidget()
+      ->RemoveObserver((vtkCommand *)this->GUICallbackCommand);
+    }
+
+
   //----------------------------------------------------------------
   // Visualization Control Frame
 
@@ -506,6 +513,10 @@ void vtkOpenIGTLinkIFGUI::AddGUIObservers ( )
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
   this->DeleteDeviceNameButton
     ->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  // Advanced Settings
+  this->MrmlNodeList->GetWidget()->
+    AddObserver(vtkKWMultiColumnList::SelectionChangedEvent, (vtkCommand *)this->GUICallbackCommand);
 
 
   //----------------------------------------------------------------
@@ -813,6 +824,23 @@ void vtkOpenIGTLinkIFGUI::ProcessGUIEvents(vtkObject *caller,
     //this->ConnectorList->GetWidget()->SelectSingleRow(select);
     //UpdateConnectorPropertyFrame(select);
     //UpdateMrmlNodeListFrame(select);
+    }
+
+
+  else if (this->MrmlNodeList->GetWidget() == vtkKWMultiColumnList::SafeDownCast(caller)
+           && event == vtkKWMultiColumnList::SelectionChangedEvent)
+    {
+    /*
+      int col;
+      int row;
+      this->MrmlNodeList->GetWidget()->GetSelectedCells(&row, &col);
+      this->MrmlNodeList->GetWidget()->GetSelectedCells(&row, &col);
+
+      std::cerr << "SELECTED: row = " << row << ", column = " << col << std::endl;
+      this->MrmlNodeList->GetWidget()->SetCellEditWindowToEntry(0,0);
+      this->MrmlNodeList->GetWidget()->SetCellEditable(0, 0, 1);
+      this->MrmlNodeList->GetWidget()->EditCell(0, 0);
+    */
     }
 
 
@@ -1407,30 +1435,32 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
   const char* mrmllistlabels[] =
     { "Name", "Type", "IO", "Option"};
   const int mrmllistwidths[] = 
-    { 12, 12, 5, 10 };
+    { 12, 12, 8, 10 };
 
   for (int col = 0; col < 4; col ++)
     {
     this->MrmlNodeList->GetWidget()->AddColumn(mrmllistlabels[col]);
     this->MrmlNodeList->GetWidget()->SetColumnWidth(col, mrmllistwidths[col]);
     this->MrmlNodeList->GetWidget()->SetColumnAlignmentToLeft(col);
+
+    this->MrmlNodeList->GetWidget()->SetColumnLabelAlignmentToLeft(col);
+    this->MrmlNodeList->GetWidget()->SetColumnFormatCommandToEmptyOutput(col);
+    this->MrmlNodeList->GetWidget()->SetColumnAlignmentToCenter(col);
     //this->MrmlNodeList->GetWidget()->ColumnEditableOff(col);
-    this->ConnectorList->GetWidget()->ColumnEditableOn(col);
+    //this->ConnectorList->GetWidget()->SetColumnEditWindowToEntry(col);
+    //this->ConnectorList->GetWidget()->ColumnEditableOn(col);
     }
+
   //this->MrmlNodeList->GetWidget()->SetColumnEditWindowToCheckButton(0);
-  //this->MrmlNodeList->GetWidget()->SetColumnEditable(0, 1);
-  //this->MrmlNodeList->GetWidget()->SetColumnEditWindowToEntry(0);
-  //this->MrmlNodeList->GetWidget()->SetColumnEditable(1, 1);
-  //this->MrmlNodeList->GetWidget()->SetColumnEditWindowToEntry(1);
 
-
-//  vtkKWFrame *listButtonsFrame = vtkKWFrame::New();
-//  listButtonsFrame->SetParent(listFrame->GetFrame());
-//  listButtonsFrame->Create();
-//
-//  app->Script ("pack %s %s -fill both -expand true",  
-//               //app->Script( "pack %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
-//               this->ConnectorList->GetWidgetName(), listButtonsFrame->GetWidgetName());
+  
+  //  vtkKWFrame *listButtonsFrame = vtkKWFrame::New();
+  //  listButtonsFrame->SetParent(listFrame->GetFrame());
+  //  listButtonsFrame->Create();
+  //
+  //  app->Script ("pack %s %s -fill both -expand true",  
+  //               //app->Script( "pack %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
+  //               this->ConnectorList->GetWidgetName(), listButtonsFrame->GetWidgetName());
 
 
   vtkKWFrame *deviceNameListButtonsFrame = vtkKWFrame::New();
@@ -1454,6 +1484,14 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
   this->DeleteDeviceNameButton->Create();
   this->DeleteDeviceNameButton->SetText( "Delete" );
   this->DeleteDeviceNameButton->SetWidth (6);
+
+  /*
+  this->EditDeviceNameButton = vtkKWPushButton::New();
+  this->EditDeviceNameButton->SetParent(deviceNameListButtonsFrame);
+  this->EditDeviceNameButton->Create();
+  this->EditDeviceNameButton->SetText( "Edit" );
+  this->EditDeviceNameButton->SetWidth (6);
+  */
 
   app->Script( "pack %s %s -side left -anchor nw -expand n -padx 2 -pady 2",
                this->AddDeviceNameButton->GetWidgetName(), this->DeleteDeviceNameButton->GetWidgetName());
@@ -2024,8 +2062,29 @@ void vtkOpenIGTLinkIFGUI::UpdateMrmlNodeListFrame(int con)
   this->MrmlNodeList->GetWidget()->AddRows(totalrows);
 
   int row = 0;
+  for (row = 0; row < totalrows; row ++) // First create unspecified rows
+    {
+    const char* nameStrs[] = {"Unspecified", "Robot", "Tracker"};     // the strings should be obtained from MRML tree
+    const char* typeStrs[] = {"Unspecified", "TRANSFORM", "IMAGE", "POSITION"};
+    const char* ioStrs[]   = {"IN", "OUT"};
+    const char* visStrs[]  = {"Show", "Hide"};
+
+    this->MrmlNodeList->GetWidget()->SetCellWindowCommandToComboBoxWithValues(row, 0, 3, nameStrs);
+    this->MrmlNodeList->GetWidget()->SetCellWindowCommandToComboBoxWithValues(row, 1, 4, typeStrs);
+    this->MrmlNodeList->GetWidget()->SetCellWindowCommandToComboBoxWithValues(row, 2, 2, ioStrs);
+    this->MrmlNodeList->GetWidget()->SetCellWindowCommandToComboBoxWithValues(row, 3, 2, visStrs);
+    this->MrmlNodeList->GetWidget()->SetCellEditable(row, 0, 1);
+    //this->MrmlNodeList->GetWidget()->SetCellEditWindowToEntry(row, 2);
+    //this->MrmlNodeList->GetWidget()->SetCellText(row,0, deviceName.c_str());
+    //this->MrmlNodeList->GetWidget()->SetCellText(row,1, deviceType.c_str());
+    //this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 2)->ReadOnlyOff();
+    }
+
+
+  row = 0;
   for (iter = incoming->begin(); iter != incoming->end(); iter ++)
     {
+    /*
     std::string deviceName = iter->first;
     std::string deviceType = iter->second;
     this->MrmlNodeList->GetWidget()->SetCellText(row, 0, deviceName.c_str());
@@ -2042,39 +2101,23 @@ void vtkOpenIGTLinkIFGUI::UpdateMrmlNodeListFrame(int con)
     else if (deviceType == "IMAGE")
       {
       }
+    */
     row ++;
     }
 
   for (iter = outgoing->begin(); iter != outgoing->end(); iter ++)
     {
+    /*
     std::string deviceName = iter->first;
     std::string deviceType = iter->second;
     this->MrmlNodeList->GetWidget()->SetCellText(row,0, deviceName.c_str());
     this->MrmlNodeList->GetWidget()->SetCellText(row,1, deviceType.c_str());
     this->MrmlNodeList->GetWidget()->SetCellText(row,2, "OUT");
     this->MrmlNodeList->GetWidget()->SetRowForegroundColor(row, 38.0/255.0, 59.0/255.0, 139.0/255.0); // DarkBlue
+    */
     row ++;
     }
   
-  for (iter = unspecified->begin(); iter != unspecified->end(); iter ++)
-    {
-    std::string deviceName = iter->first;
-    std::string deviceType = iter->second;
-    this->MrmlNodeList->GetWidget()->SetCellText(row,0, deviceName.c_str());
-    this->MrmlNodeList->GetWidget()->SetCellEditWindowToCheckButton (row,0);
-    this->MrmlNodeList->GetWidget()->SetCellEditable(row, 0, 1);
-    this->MrmlNodeList->GetWidget()->SetCellText(row,0, deviceName.c_str());
-    this->MrmlNodeList->GetWidget()->SetCellEditWindowToEntry(row,1);
-    this->MrmlNodeList->GetWidget()->SetCellText(row,1, deviceType.c_str());
-    //this->MrmlNodeList->GetWidget()->SetCellText(row,2, "--");
-    const char* strs[] = {"IN", "OUT"};
-    this->MrmlNodeList->GetWidget()->SetCellWindowCommandToComboBoxWithValues(row, 2, 2, strs);
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 2)->SetListboxWidth(100);
-
-    this->MrmlNodeList->GetWidget()->SetRowForegroundColor(row, 195.0/255.0, 46.0/255.0, 16.0/255.0); // DarkRed
-    row ++;
-    }
-
 
 }
 
