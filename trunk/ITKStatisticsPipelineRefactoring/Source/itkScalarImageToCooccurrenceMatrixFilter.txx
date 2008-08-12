@@ -36,17 +36,28 @@ ScalarImageToCooccurrenceMatrixFilter()
 
   this->ProcessObject::SetNthOutput(0, this->MakeOutput(0).GetPointer() );
 
+  // constant for a coocurrence matrix.
+  const unsigned int measurementVectorSize = 2;
+
+  HistogramType * output = const_cast< HistogramType * >( this->GetOutput() );
+  
+  output->SetMeasurementVectorSize( measurementVectorSize ); 
+
   //initialize parameters
-  m_LowerBound.Fill(NumericTraits<PixelType>::NonpositiveMin());
-  m_UpperBound.Fill(NumericTraits<PixelType>::max() + 1);
-  m_Min = NumericTraits<PixelType>::NonpositiveMin();
-  m_Max = NumericTraits<PixelType>::max();
+  this->m_LowerBound.SetSize( measurementVectorSize );
+  this->m_UpperBound.SetSize( measurementVectorSize );
+
+  this->m_LowerBound.Fill(NumericTraits<PixelType>::NonpositiveMin());
+  this->m_UpperBound.Fill(NumericTraits<PixelType>::max() + 1);
+
+  this->m_Min = NumericTraits<PixelType>::NonpositiveMin();
+  this->m_Max = NumericTraits<PixelType>::max();
 
   //mask inside pixel value
-  m_InsidePixelValue = NumericTraits<PixelType>::One;
+  this->m_InsidePixelValue = NumericTraits<PixelType>::One;
 
-  m_NumberOfBinsPerAxis = DefaultBinsPerAxis; 
-  m_Normalize = false;
+  this->m_NumberOfBinsPerAxis = DefaultBinsPerAxis; 
+  this->m_Normalize = false;
 }
 
 template< class TImageType, class THistogramFrequencyContainer >
@@ -152,7 +163,7 @@ GenerateData( void )
 
   // First, create an appropriate histogram with the right number of bins
   // and mins and maxes correct for the image type.
-  typename HistogramType::SizeType size;
+  typename HistogramType::SizeType size( output->GetMeasurementVectorSize() );
   size.Fill(m_NumberOfBinsPerAxis);
   output->Initialize(size, m_LowerBound, m_UpperBound);
   
@@ -220,6 +231,8 @@ FillHistogram(RadiusType radius, RegionType region)
   NeighborhoodIteratorType neighborIt;
   neighborIt = NeighborhoodIteratorType(radius, input, region);
 
+  MeasurementVectorType cooccur( output->GetMeasurementVectorSize() );
+
   for (neighborIt.GoToBegin(); !neighborIt.IsAtEnd(); ++neighborIt) 
     {
     const PixelType centerPixelIntensity = neighborIt.GetCenterPixel();
@@ -251,10 +264,11 @@ FillHistogram(RadiusType radius, RegionType region)
       
       // Now make both possible co-occurrence combinations and increment the
       // histogram with them.
-      MeasurementVectorType cooccur;
+
       cooccur[0] = centerPixelIntensity;
       cooccur[1] = pixelIntensity;
       output->IncreaseFrequency(cooccur, 1);
+      
       cooccur[1] = centerPixelIntensity;
       cooccur[0] = pixelIntensity;
       output->IncreaseFrequency(cooccur, 1);
@@ -283,6 +297,8 @@ FillHistogramWithMask(RadiusType radius, RegionType region, const ImageType * ma
   NeighborhoodIteratorType neighborIt, maskNeighborIt;
   neighborIt = NeighborhoodIteratorType(radius, input, region);
   maskNeighborIt = NeighborhoodIteratorType(radius, maskImage, region);
+  
+  MeasurementVectorType cooccur( output->GetMeasurementVectorSize() );
   
   for (neighborIt.GoToBegin(), maskNeighborIt.GoToBegin();
        !neighborIt.IsAtEnd(); ++neighborIt, ++maskNeighborIt) 
@@ -329,10 +345,11 @@ FillHistogramWithMask(RadiusType radius, RegionType region, const ImageType * ma
       
       // Now make both possible co-occurrence combinations and increment the
       // histogram with them.
-      MeasurementVectorType cooccur;
+      
       cooccur[0] = centerPixelIntensity;
       cooccur[1] = pixelIntensity;
       output->IncreaseFrequency(cooccur, 1);
+      
       cooccur[1] = centerPixelIntensity;
       cooccur[0] = pixelIntensity;
       output->IncreaseFrequency(cooccur, 1);

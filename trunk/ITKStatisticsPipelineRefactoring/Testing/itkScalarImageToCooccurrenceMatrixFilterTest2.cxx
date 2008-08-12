@@ -9,8 +9,8 @@
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even 
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR 
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
@@ -27,7 +27,7 @@
 int itkScalarImageToCooccurrenceMatrixFilterTest2(int, char* [] )
 {
 
-  //Data definitions 
+  //Data definitions
   const unsigned int  IMGWIDTH         =  5;
   const unsigned int  IMGHEIGHT        =  5;
   const unsigned int  NDIMENSION       =  2;
@@ -40,11 +40,11 @@ int itkScalarImageToCooccurrenceMatrixFilterTest2(int, char* [] )
 
   typedef itk::ImageRegionIterator< InputImageType > InputImageIterator;
 
-   
+
   InputImageType::Pointer image = InputImageType::New();
   InputImageType::Pointer mask = InputImageType::New();
 
-  
+
   InputImageType::SizeType inputImageSize = {{ IMGWIDTH, IMGHEIGHT }};
 
   InputImageType::IndexType index;
@@ -68,12 +68,16 @@ int itkScalarImageToCooccurrenceMatrixFilterTest2(int, char* [] )
 
   // setup the iterator
   InputImageIterator imageIt( image, image->GetBufferedRegion() );
+
   imageIt.GoToBegin();
-  for(int i = 0; i < 5; i++)
-    for(int j = 0; j < 5; j++, ++imageIt)
+
+  for(unsigned int i = 0; i < 5; i++)
+    {
+    for(unsigned int j = 0; j < 5; j++, ++imageIt)
       {
       imageIt.Set(j % 2 + 1);
       }
+    }
 
   //--------------------------------------------------------------------------
   // Set up the mask next. It looks like:
@@ -83,10 +87,10 @@ int itkScalarImageToCooccurrenceMatrixFilterTest2(int, char* [] )
   //  0 0 1 0 0
   //  0 0 0 0 0
   //--------------------------------------------------------------------------
-      
+
   mask->SetRegions( region );
   mask->Allocate();
-  
+
   // setup the iterator
   InputImageIterator maskIt( mask, mask->GetBufferedRegion() );
   maskIt.GoToBegin();
@@ -102,10 +106,10 @@ int itkScalarImageToCooccurrenceMatrixFilterTest2(int, char* [] )
         maskIt.Set(0);
         }
       }
-  
+
   //--------------------------------------------------------------------------
   // Generate the histogram. It should look like this:
-  // 
+  //
   //     0 1 2 ...
   //     -----
   //  0 |0 0 0
@@ -116,37 +120,38 @@ int itkScalarImageToCooccurrenceMatrixFilterTest2(int, char* [] )
   //  .
   // with zeroes elsewhere.
   //--------------------------------------------------------------------------
-  
+
   try {
-  
-  typedef itk::Statistics::ScalarImageToCooccurrenceMatrixFilter< 
+
+  typedef itk::Statistics::ScalarImageToCooccurrenceMatrixFilter<
     InputImageType> FilterType;
-  
+
   FilterType::Pointer filter = FilterType::New();
-  
+
   filter->SetInput(image);
+
   InputImageType::OffsetType offset1 = {{0, 1}};
   InputImageType::OffsetType offset2 = {{1, 0}};
-  FilterType::OffsetVectorPointer offsetV = 
+  FilterType::OffsetVectorPointer offsetV =
   FilterType::OffsetVector::New();
   offsetV->push_back(offset1);
   offsetV->push_back(offset2);
-  
+
   filter->SetOffsets(offsetV);
   filter->SetMaskImage(mask);
   filter->Update();
   const FilterType::HistogramType * hist = filter->GetOutput();
-  
+
   //--------------------------------------------------------------------------
   // Test the histogram.
   //--------------------------------------------------------------------------
   bool passed = true;
 
   typedef FilterType::HistogramType::IndexType IndexType;
-  IndexType one_one;
-  IndexType one_two;
-  IndexType two_one;
-  IndexType two_two;
+  IndexType one_one( hist->GetMeasurementVectorSize() );
+  IndexType one_two( hist->GetMeasurementVectorSize() );
+  IndexType two_one( hist->GetMeasurementVectorSize() );
+  IndexType two_two( hist->GetMeasurementVectorSize() );
 
   one_one[0] = 1;
   one_one[1] = 1;
@@ -166,7 +171,7 @@ int itkScalarImageToCooccurrenceMatrixFilterTest2(int, char* [] )
   toF = hist->GetFrequency(two_one);
   ttF = hist->GetFrequency(two_two);
   totalF = hist->GetTotalFrequency();
-  
+
   if( ooF != 4 || ttF != 0 || otF != 0 || toF != 0 || ooF != totalF)
     {
     std::cerr << "Error:" << std::endl;
@@ -175,11 +180,11 @@ int itkScalarImageToCooccurrenceMatrixFilterTest2(int, char* [] )
     otF  << ", " << toF  << ", " << totalF << std::endl << std::endl;
     passed = false;
     }
-  
+
   //--------------------------------------------------------------------------
   // Test the histogram with "0" as the "inside" value instead of "1"
   // It should look like this:
-  // 
+  //
   //     0 1  2 ...
   //     ------
   //  0 |0 0  0
@@ -191,20 +196,20 @@ int itkScalarImageToCooccurrenceMatrixFilterTest2(int, char* [] )
   // with zeroes elsewhere.
   //--------------------------------------------------------------------------
   filter = FilterType::New();
-  
-  filter->SetInput(image);  
+
+  filter->SetInput(image);
   filter->SetOffsets(offsetV);
   filter->SetMaskImage(mask);
   filter->SetInsidePixelValue(0);
   filter->Update();
   hist = filter->GetOutput();
-  
+
   ooF = hist->GetFrequency(one_one);
   otF = hist->GetFrequency(one_two);
   toF = hist->GetFrequency(two_one);
   ttF = hist->GetFrequency(two_two);
   totalF = hist->GetTotalFrequency();
-  
+
   if( ooF != 16 || ttF != 16 || otF != 14 || toF != 14 || ooF + ttF + otF + toF != totalF)
     {
     std::cerr << "Error:" << std::endl;
@@ -213,18 +218,18 @@ int itkScalarImageToCooccurrenceMatrixFilterTest2(int, char* [] )
     otF  << ", " << toF  << ", " << totalF << std::endl << std::endl;
     passed = false;
     }
- 
+
   if ( filter->GetInsidePixelValue() != 0 )
     {
     std::cerr << "Error: " << std::endl;
     std::cerr << "GetInsidePixelValue() is not returning the expected value" << std::endl;
     passed = false;
-    } 
-  
+    }
+
   //--------------------------------------------------------------------------
   // Generate the histogram with no mask. The un-normalized, un-masked histogram
   // should look like this:
-  // 
+  //
   //     0 1  2 ...
   //     ------
   //  0 |0 0  0
@@ -234,22 +239,22 @@ int itkScalarImageToCooccurrenceMatrixFilterTest2(int, char* [] )
   //  .
   //  .
   // with zeroes elsewhere.
-  //-------------------------------------------------------------------------- 
-  
+  //--------------------------------------------------------------------------
+
   filter = FilterType::New();
-  
-  filter->SetInput(image);  
+
+  filter->SetInput(image);
   filter->SetOffsets(offsetV);
   filter->Update();
   hist = filter->GetOutput();
-  
+
   ooF = hist->GetFrequency(one_one);
   otF = hist->GetFrequency(one_two);
   toF = hist->GetFrequency(two_one);
   ttF = hist->GetFrequency(two_two);
   totalF = hist->GetTotalFrequency();
-  
-  
+
+
   if( ooF != 24 || ttF != 16 || otF != 20 || toF != 20 || ooF + ttF + otF + toF != totalF)
     {
     std::cerr << "Error:" << std::endl;
@@ -258,22 +263,22 @@ int itkScalarImageToCooccurrenceMatrixFilterTest2(int, char* [] )
     otF  << ", " << toF  << ", " << totalF << std::endl << std::endl;
     passed = false;
     }
- 
+
   FilterType::Pointer filter2 = FilterType::New();
-  
-  filter2->SetInput(image);  
+
+  filter2->SetInput(image);
   filter2->SetMaskImage(mask);
   filter2->SetPixelValueMinMax(0,1);
   filter2->SetOffsets(offsetV);
   filter2->Update();
   hist = filter2->GetOutput();
-  
+
   ooF = hist->GetFrequency(one_one);
   otF = hist->GetFrequency(one_two);
   toF = hist->GetFrequency(two_one);
   ttF = hist->GetFrequency(two_two);
   totalF = hist->GetTotalFrequency();
- 
+
   if( ooF != 0 || ttF != 0 || otF != 0 || toF != 0 || totalF != 4)
     {
     std::cerr << "Error:" << std::endl;
@@ -283,18 +288,18 @@ int itkScalarImageToCooccurrenceMatrixFilterTest2(int, char* [] )
     passed = false;
     }
 
-  // fill the mask buffer to one 
-  mask->FillBuffer( 1 );  
+  // fill the mask buffer to one
+  mask->FillBuffer( 1 );
   filter2->SetInsidePixelValue( 1 );
   filter2->SetPixelValueMinMax(0,1);
   filter2->Update();
-  
+
   ooF = hist->GetFrequency(one_one);
   otF = hist->GetFrequency(one_two);
   toF = hist->GetFrequency(two_one);
   ttF = hist->GetFrequency(two_two);
   totalF = hist->GetTotalFrequency();
- 
+
   if( ooF != 0 || ttF != 0 || otF != 0 || toF != 0 || totalF != 24)
     {
     std::cerr << "Error:" << std::endl;
@@ -303,6 +308,7 @@ int itkScalarImageToCooccurrenceMatrixFilterTest2(int, char* [] )
     otF  << ", " << toF  << ", " << totalF << std::endl << std::endl;
     passed = false;
     }
+
 
   if (!passed)
     {
@@ -314,10 +320,10 @@ int itkScalarImageToCooccurrenceMatrixFilterTest2(int, char* [] )
     std::cerr << "Test succeeded" << std::endl;
     return EXIT_SUCCESS;
     }
-  
-  } catch( itk::ExceptionObject & err ) { 
-    std::cerr << "ExceptionObject caught !" << std::endl; 
-    std::cerr << err << std::endl; 
+
+  } catch( itk::ExceptionObject & err ) {
+    std::cerr << "ExceptionObject caught !" << std::endl;
+    std::cerr << err << std::endl;
     std::cerr << "Test failed" << std::endl;
     return EXIT_FAILURE;
   }
