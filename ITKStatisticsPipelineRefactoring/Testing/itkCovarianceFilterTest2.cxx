@@ -94,7 +94,7 @@ int itkCovarianceFilterTest2(int, char* [] )
     {
     if ( fabs( meanExpected[i] - mean[i] ) > epsilon )
       {
-      std::cerr << "The computed mean value is incorrrect" << std::endl;
+      std::cerr << "The computed mean value is incorrect" << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -113,15 +113,17 @@ int itkCovarianceFilterTest2(int, char* [] )
   matrixExpected[2][1] = 1.0;
   matrixExpected[2][2] = 1.0;
 
-  for ( unsigned int i = 0; i < MeasurementVectorSize; i++ )
-  {
-  for ( unsigned int j = 0; j < MeasurementVectorSize; j++ )
-  if ( fabs( matrixExpected[i][j] - covarianceOutput[i][j] ) > epsilon )
+  for( unsigned int i = 0; i < MeasurementVectorSize; i++ )
     {
-    std::cerr << "Computed covariance matrix value is incorrrect" << std::endl;
-    return EXIT_FAILURE;
+    for( unsigned int j = 0; j < MeasurementVectorSize; j++ )
+      {
+      if( fabs( matrixExpected[i][j] - covarianceOutput[i][j] ) > epsilon )
+        {
+        std::cerr << "Computed covariance matrix value is incorrect" << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
     }
-  }
 
 
   // use orthogonal meausrment vectors 
@@ -177,7 +179,7 @@ int itkCovarianceFilterTest2(int, char* [] )
     {
     if ( fabs( meanExpected2[i] - mean[i] ) > epsilon )
       {
-      std::cerr << "The computed mean value is incorrrect" << std::endl;
+      std::cerr << "The computed mean value is incorrect" << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -201,7 +203,7 @@ int itkCovarianceFilterTest2(int, char* [] )
   for ( unsigned int j = 0; j < MeasurementVectorSize; j++ )
   if ( fabs( matrixExpected2[i][j] - matrix[i][j] ) > epsilon )
     {
-    std::cerr << "Computed covariance matrix value is incorrrect" << std::endl;
+    std::cerr << "Computed covariance matrix value is incorrect" << std::endl;
     return EXIT_FAILURE;
     }
   }
@@ -267,7 +269,7 @@ int itkCovarianceFilterTest2(int, char* [] )
     {
     if ( fabs( meanExpected3[i] - mean[i] ) > epsilon )
       {
-      std::cerr << "The computed mean value is incorrrect" << std::endl;
+      std::cerr << "The computed mean value is incorrect" << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -291,7 +293,7 @@ int itkCovarianceFilterTest2(int, char* [] )
   for ( unsigned int j = 0; j < MeasurementVectorSize; j++ )
     if ( fabs( matrixExpected3[i][j] - matrix[i][j] ) > epsilon )
       {
-      std::cerr << "Computed covariance matrix value is incorrrect" << std::endl;
+      std::cerr << "Computed covariance matrix value is incorrect" << std::endl;
       return EXIT_FAILURE;
       }
     }
