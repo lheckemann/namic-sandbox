@@ -146,7 +146,7 @@ int itkCovarianceFilterTest3(int, char* [] )
     }
   catch ( itk::ExceptionObject & excp )
     {
-    std::cerr << "Exception caught: " << excp << std::endl;
+    std::cerr << "Expected Exception caught: " << excp << std::endl;
     }
   
   filter->ResetPipeline();
