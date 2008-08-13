@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkImageToHistogramFilter_txx
-#define _itkImageToHistogramFilter_txx
+#ifndef __itkImageToHistogramFilter_txx
+#define __itkImageToHistogramFilter_txx
 
 #include "itkImageToHistogramFilter.h"
 
@@ -40,7 +40,6 @@ ImageToHistogramFilter< TImage >
 }
 
 
-
 template < class TImage >
 void
 ImageToHistogramFilter< TImage >
@@ -59,7 +58,6 @@ ImageToHistogramFilter< TImage >
 }
 
 
-
 template < class TImage >
 void
 ImageToHistogramFilter< TImage >
@@ -69,7 +67,6 @@ ImageToHistogramFilter< TImage >
 }
 
 
-
 template < class TImage >
 void
 ImageToHistogramFilter< TImage >
@@ -77,7 +74,6 @@ ImageToHistogramFilter< TImage >
 {
   m_HistogramGenerator->SetNumberOfBins( size );
 }
-
 
 
 template < class TImage >
@@ -127,10 +123,7 @@ ImageToHistogramFilter< TImage >
 }
 
 
-
 } // end of namespace Statistics 
 } // end of namespace itk
 
 #endif
-
-
