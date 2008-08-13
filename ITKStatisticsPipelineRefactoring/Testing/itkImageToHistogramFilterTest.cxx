@@ -36,6 +36,7 @@ int itkImageToHistogramFilterTest( int , char * [] )
 
   typedef itk::Image< RGBPixelType, Dimension > RGBImageType;
 
+  const unsigned int MeasurementVectorSize = 3; // RGB
 
   RGBImageType::Pointer image = RGBImageType::New();
 
@@ -80,9 +81,9 @@ int itkImageToHistogramFilterTest( int , char * [] )
 
   typedef itk::Statistics::ImageToHistogramFilter< RGBImageType >   HistogramGeneratorType;
 
-  typedef HistogramGeneratorType::SizeType   HistogramSizeType;
+  typedef HistogramGeneratorType::HistogramSizeType   HistogramSizeType;
 
-  HistogramSizeType hsize;
+  HistogramSizeType hsize( MeasurementVectorSize );
 
   hsize[0] = 127;  // number of bins for the Red   channel
   hsize[1] =   1;  // number of bins for the Green channel
@@ -95,9 +96,9 @@ int itkImageToHistogramFilterTest( int , char * [] )
 
 
 
-  histogramGenerator->SetNumberOfBins( hsize );
+  histogramGenerator->SetHistogramSize( hsize );
   histogramGenerator->SetMarginalScale( 10.0 );
-  histogramGenerator->Compute();
+  histogramGenerator->Update();
 
   typedef HistogramGeneratorType::HistogramType  HistogramType;
 
@@ -129,9 +130,9 @@ int itkImageToHistogramFilterTest( int , char * [] )
   hsize[1] = 127;  // number of bins for the Green channel
   hsize[2] =   1;  // number of bins for the Blue  channel
 
-  histogramGenerator->SetNumberOfBins( hsize );
+  histogramGenerator->SetHistogramSize( hsize );
   histogramGenerator->SetMarginalScale( 10.0 );
-  histogramGenerator->Compute();
+  histogramGenerator->Update();
 
   channel = 1;  // green channel
 
@@ -145,13 +146,13 @@ int itkImageToHistogramFilterTest( int , char * [] )
 
 
   // Now compute the histogram for the Blue component
-  size[0] =   1;  // number of bins for the Red   channel
-  size[1] =   1;  // number of bins for the Green channel
-  size[2] = 127;  // number of bins for the Blue  channel
+  hsize[0] =   1;  // number of bins for the Red   channel
+  hsize[1] =   1;  // number of bins for the Green channel
+  hsize[2] = 127;  // number of bins for the Blue  channel
 
-  histogramGenerator->SetNumberOfBins( size );
+  histogramGenerator->SetHistogramSize( hsize );
   histogramGenerator->SetMarginalScale( 10.0 );
-  histogramGenerator->Compute();
+  histogramGenerator->Update();
 
   channel = 2;  // blue channel
 
@@ -169,9 +170,9 @@ int itkImageToHistogramFilterTest( int , char * [] )
   hsize[1] = 127;  // number of bins for the Green channel
   hsize[2] = 127;  // number of bins for the Blue  channel
 
-  histogramGenerator->SetNumberOfBins( hsize );
+  histogramGenerator->SetHistogramSize( hsize );
   histogramGenerator->SetMarginalScale( 10.0 );
-  histogramGenerator->Compute();
+  histogramGenerator->Update();
 
   return EXIT_SUCCESS;
   
