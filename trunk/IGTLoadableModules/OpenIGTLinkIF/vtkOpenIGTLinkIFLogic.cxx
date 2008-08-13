@@ -885,8 +885,9 @@ void vtkOpenIGTLinkIFLogic::UpdateMRMLScalarVolumeNode(igtl::MessageBase::Pointe
 //  if (lps) { // LPS coordinate
 //    vtkMatrix4x4* lpsToRas = vtkMatrix4x4::New();
 //    lpsToRas->Identity();
-//    lpsToRas->SetElement(0, 0, -1);
-//    lpsToRas->SetElement(1, 1, -1);
+//    lpsToRas->SetElement(-1, 0,  0);
+//    lpsToRas->SetElement(0, -1,  0);
+//    lpsToRas->SetElement(0,  0,  1);
 //    lpsToRas->Multiply4x4(lpsToRas, rtimgTransform, rtimgTransform);
 //    lpsToRas->Delete();
 //  }

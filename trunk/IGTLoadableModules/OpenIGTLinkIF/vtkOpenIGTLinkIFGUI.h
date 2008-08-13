@@ -278,6 +278,8 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
   void UpdateConnectorList(int updateLevel);
   void UpdateConnectorPropertyFrame(int i);
   void UpdateMrmlNodeListFrame(int con);
+ public:
+  virtual int OnMrmlNodeListChanged(int row, int col, const char* item);
 };
 
 
