@@ -67,17 +67,23 @@ GaussianMixtureModelComponent< TSample >
             sample->GetMeasurementVectorSize();
   m_GaussianMembershipFunction->SetMeasurementVectorSize( 
                                     measurementVectorLength );
+                                    
   MeasurementVectorTraits::SetLength( m_Mean, measurementVectorLength );
   m_Covariance.SetSize( measurementVectorLength, measurementVectorLength );
-  m_Mean.Fill(NumericTraits< double >::NonpositiveMin());
-  m_Covariance.Fill(NumericTraits< double >::NonpositiveMin());
+  
+  m_Mean.Fill( NumericTraits< double >::Zero );
+  
+  m_Covariance.Fill( NumericTraits< double >::Zero );
+  
   typename NativeMembershipFunctionType::MeanType mean;
-  ::itk::Statistics::MeasurementVectorTraits::SetLength( mean,
-measurementVectorLength);
-  for( unsigned int i; i < measurementVectorLength; ++i )
+  
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( mean, measurementVectorLength);
+  
+  for( unsigned int i=0; i < measurementVectorLength; ++i )
     {
     mean[i] = m_Mean[i];
     }
+    
   m_GaussianMembershipFunction->SetMean(mean);
 }
 
