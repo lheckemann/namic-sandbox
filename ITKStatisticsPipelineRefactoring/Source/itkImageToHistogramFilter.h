@@ -85,9 +85,6 @@ public:
 
 public:
 
-  /** Triggers the Computation of the histogram */
-  void Compute( void );
-
   /** Connects the input image for which the histogram is going to be computed */
   void SetInput( const ImageType * );
   
@@ -97,25 +94,45 @@ public:
   const HistogramType * GetOutput() const;
   
   /** Set number of histogram bins */
-  void SetNumberOfBins( const SizeType & size );
+  itkSetMacro( NumberOfBins, SizeType );
+  itkGetMacro( NumberOfBins, SizeType );
  
   /** Set marginal scale value to be passed to the histogram generator */
-  void SetMarginalScale( double marginalScale );
+  itkSetMacro( MarginalScale, double );
+  itkGetMacro( MarginalScale, double );
+
+  /** Set/Get the min and max bounds to the histogram */
   void SetHistogramMin(const MeasurementVectorType & histogramMin);
   void SetHistogramMax(const MeasurementVectorType & histogramMax);
-  void SetAutoMinMax(bool autoMinMax);
+
+  /** Set/Get whether the filter will compute the min and max values of the
+   * histogram automatically. */
+  itkSetMacro( AutoMinMax, bool );
+  itkGetMacro( AutoMinMax, bool );
 
 protected:
   ImageToHistogramFilter();
   virtual ~ImageToHistogramFilter() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
 
+  /** Triggers the Computation of the histogram */
+  void GenerateData( void );
+
 
 private:
 
-  AdaptorPointer      m_ImageToListAdaptor;
+  AdaptorPointer          m_ImageToListAdaptor;
 
-  GeneratorPointer    m_HistogramGenerator;
+  GeneratorPointer        m_HistogramGenerator;
+
+  MeasurementVectorType   m_HistogramMin;
+  MeasurementVectorType   m_HistogramMax;
+
+  SizeType                m_NumberOfBins;
+
+  double                  m_MarginalScale;
+
+  bool                    m_AutoMinMax;
 
 };
 

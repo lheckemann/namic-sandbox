@@ -28,15 +28,14 @@ template < class TImage >
 ImageToHistogramFilter< TImage >
 ::ImageToHistogramFilter() 
 {
-  m_ImageToListAdaptor = AdaptorType::New();
-  m_HistogramGenerator = GeneratorType::New();
-  m_HistogramGenerator->SetListSample( m_ImageToListAdaptor );
+  this->SetNumberOfRequiredInputs(1);
+  this->SetNumberOfRequiredOutputs(1);
 
-  // set a usable default value
-  SizeType size;
-  size.Fill( 128 );
-  this->SetNumberOfBins( size );
+  this->ProcessObject::SetNthOutput(0, this->MakeOutput(0).GetPointer() );
 
+  this->m_ImageToListAdaptor = AdaptorType::New();
+  this->m_HistogramGenerator = GeneratorType::New();
+  this->m_HistogramGenerator->SetListSample( this->m_ImageToListAdaptor );
 }
 
 
@@ -45,7 +44,31 @@ void
 ImageToHistogramFilter< TImage >
 ::SetInput( const ImageType * image ) 
 {
-  m_ImageToListAdaptor->SetImage( image );
+  this->ProcessObject::SetNthInput(0, const_cast< ImageType * >( image ) );
+}
+
+
+template< class TImage >
+const TImage *
+ImageToHistogramFilter< TImage >
+::GetInput( ) const
+{
+  if (this->GetNumberOfInputs() < 1)
+    {
+    return 0;
+    }
+
+  return static_cast<const ImageType * >(this->ProcessObject::GetInput(0) );
+}
+
+
+template < class TImage >
+const typename ImageToHistogramFilter< TImage >::HistogramType *
+ImageToHistogramFilter< TImage >
+::MakeOutput(unsigned int itkNotUsed(idx))
+{
+  typename HistogramType::Pointer output = HistogramType::New();
+  return static_cast< DataObject * >( output );
 }
 
 
@@ -54,61 +77,32 @@ const typename ImageToHistogramFilter< TImage >::HistogramType *
 ImageToHistogramFilter< TImage >
 ::GetOutput() const
 {
-  return m_HistogramGenerator->GetOutput();
+  const HistogramType * output = 
+    static_cast< const HistogramType * >( this->ProcessObject::GetOutput(0));
+  return output;
 }
 
 
 template < class TImage >
 void
 ImageToHistogramFilter< TImage >
-::Compute() 
+::GenerateData() 
 {
-  m_HistogramGenerator->Update();
-}
+  this->m_ImageToListAdaptor->SetImage( this->GetInput( ) );
 
+  this->m_HistogramGenerator->SetNumberOfBins( this->m_HistogramSize );
+  this->m_HistogramGenerator->SetMarginalScale( this->m_MarginalScale );
+  this->m_HistogramGenerator->SetAutoMinMax( this->m_AutoMinMax );
+  this->m_HistogramGenerator->SetHistogramMin( this->m_HistogramMin );
+  this->m_HistogramGenerator->SetHistogramMax( this->m_HistogramMax );
 
-template < class TImage >
-void
-ImageToHistogramFilter< TImage >
-::SetNumberOfBins( const SizeType & size ) 
-{
-  m_HistogramGenerator->SetNumberOfBins( size );
-}
+  this->m_HistogramGenerator->GraftOutput( 
+    static_cast< ListSampleType * >( this->ProcessObject::GetOutput(0)) );
 
+  this->m_HistogramGenerator->Update();
 
-template < class TImage >
-void
-ImageToHistogramFilter< TImage >
-::SetMarginalScale( double marginalScale )
-{
-  m_HistogramGenerator->SetMarginalScale( marginalScale );
-}
-
-
-template < class TImage >
-void
-ImageToHistogramFilter< TImage >
-::SetHistogramMin(const MeasurementVectorType & histogramMin)
-{
-  m_HistogramGenerator->SetHistogramMin(histogramMin);
-}
-
-
-template < class TImage >
-void
-ImageToHistogramFilter< TImage >
-::SetHistogramMax(const MeasurementVectorType & histogramMax)
-{
-  m_HistogramGenerator->SetHistogramMax(histogramMax);
-}
-
-
-template < class TImage >
-void
-ImageToHistogramFilter< TImage >
-::SetAutoMinMax(bool autoMinMax)
-{
-  m_HistogramGenerator->SetAutoMinMax(autoMinMax);
+  /** graft the minipipeline output back into this filter's output */
+  this->GraftOutput( this->m_HistogramGenerator->GetOutput() );
 }
 
 
@@ -118,8 +112,8 @@ ImageToHistogramFilter< TImage >
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
-  os << "ImageToListSample adaptor = " << m_ImageToListAdaptor << std::endl;
-  os << "HistogramGenerator = " << m_HistogramGenerator << std::endl;
+  os << "ImageToListSample adaptor = " << this->m_ImageToListAdaptor << std::endl;
+  os << "HistogramGenerator = " << this->m_HistogramGenerator << std::endl;
 }
 
 
