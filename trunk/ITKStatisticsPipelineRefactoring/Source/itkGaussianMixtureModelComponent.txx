@@ -103,8 +103,19 @@ GaussianMixtureModelComponent< TSample >
       m_Mean[i] = parameters[paramIndex];
       changed = true;
       }
+
     ++paramIndex;
     }
+
+  typename NativeMembershipFunctionType::MeanType mean;
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( mean,
+   measurementVectorSize);
+
+  for( unsigned int i=0; i < measurementVectorSize; ++i )
+    {
+    mean[i] = m_Mean[i];
+    }
+  m_GaussianMembershipFunction->SetMean(mean);
 
   for ( i = 0; i < measurementVectorSize; i++ )
     {
@@ -120,6 +131,7 @@ GaussianMixtureModelComponent< TSample >
       }
     }
   m_GaussianMembershipFunction->SetCovariance(m_Covariance);
+
   this->AreParametersModified(changed);
 }
 
@@ -172,7 +184,26 @@ GaussianMixtureModelComponent< TSample >
   
   this->AreParametersModified(false);
 
+  //THIS IS NEEDED to update the weights...REVISE THIS LATER
+  //
+  WeightArrayType* weights = this->GetWeights();
+
+  typename TSample::ConstIterator iter = this->GetSample()->Begin();
+  typename TSample::ConstIterator end =  this->GetSample()->End();
+
+  int measurementVectorIndex = 0;
+  typename TSample::MeasurementVectorType measurements;
+
+  while (iter != end)
+    {
+    measurements = iter.GetMeasurementVector(); 
+    ++measurementVectorIndex;
+    ++iter;
+    }
+
+  m_MeanEstimator->SetWeights(*weights);
   m_MeanEstimator->Update();
+  //-----------------------
 
   unsigned int i, j;
   double temp;
@@ -209,9 +240,12 @@ GaussianMixtureModelComponent< TSample >
     paramIndex = measurementVectorSize;
     }
 
+  //Setting the weight should not be needed..REVISE
+  m_CovarianceEstimator->SetWeights(*weights);
   m_CovarianceEstimator->Update();
   typename CovarianceEstimatorType::MatrixType covEstimate =
-m_CovarianceEstimator->GetCovarianceMatrix(); 
+                      m_CovarianceEstimator->GetCovarianceMatrix(); 
+
   changed = false;
   for ( i = 0; i < measurementVectorSize; i++ )
     {
@@ -241,6 +275,34 @@ m_CovarianceEstimator->GetCovarianceMatrix();
       }
     this->AreParametersModified(true);
     }
+
+  //THIS IS NEEDED TO update m_Mean and m_Covariance.SHOULD BE REMOVED 
+  paramIndex = 0;
+  for ( unsigned int i = 0; i < measurementVectorSize; i++)
+    {
+    m_Mean[i] = parameters[paramIndex];
+    ++paramIndex;
+    }
+
+  typename NativeMembershipFunctionType::MeanType mean;
+  ::itk::Statistics::MeasurementVectorTraits::SetLength( mean,
+   measurementVectorSize);
+
+  for( unsigned int i=0; i < measurementVectorSize; ++i )
+    {
+    mean[i] = m_Mean[i];
+    }
+  m_GaussianMembershipFunction->SetMean(mean);
+
+  for ( unsigned int i = 0; i < measurementVectorSize; i++ )
+    {
+    for ( unsigned int j = 0; j < measurementVectorSize; j++ )
+      {
+      m_Covariance.GetVnlMatrix().put(i, j, parameters[paramIndex]);
+      ++paramIndex;
+      }
+    }
+  m_GaussianMembershipFunction->SetCovariance(m_Covariance);
 
   Superclass::SetParameters(parameters);
 }

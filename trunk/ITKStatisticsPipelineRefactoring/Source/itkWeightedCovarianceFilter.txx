@@ -217,7 +217,6 @@ WeightedCovarianceFilter< TSample >
   const  WeightArrayType weightArray = weightArrayObject->Get();
  
   //Compute the mean first
-
   unsigned int measurementVectorIndex = 0;
   while (iter != end)
     {
@@ -231,6 +230,7 @@ WeightedCovarianceFilter< TSample >
       mean[i] += weight * measurements[i];
       }
     ++iter;
+    ++measurementVectorIndex;
     }
 
   for( unsigned int i = 0; i < measurementVectorSize; ++i )
@@ -243,10 +243,12 @@ WeightedCovarianceFilter< TSample >
   //reset iterator
   iter = input->Begin();
   // fills the lower triangle and the diagonal cells in the covariance matrix
+  measurementVectorIndex = 0;
   while (iter != end)
     {
     weight = iter.GetFrequency() * (weightArray)[measurementVectorIndex];
     measurements = iter.GetMeasurementVector();
+ 
     for ( unsigned int i = 0; i < measurementVectorSize; ++i )
       {
       diff[i] = measurements[i] - mean[i];
