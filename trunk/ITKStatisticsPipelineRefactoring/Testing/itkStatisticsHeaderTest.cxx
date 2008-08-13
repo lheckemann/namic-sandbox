@@ -25,7 +25,7 @@
 
 #include "itkListSample.h"
 #include "itkHistogram.h"
-#include "itkListSampleToHistogramFilter.h"
+#include "itkSampleToHistogramFilter.h"
 #include "itkHistogramToTextureFeaturesFilter.h"
 #include "itkSample.h"
 #include "itkSampleClassifierFilter.h"
