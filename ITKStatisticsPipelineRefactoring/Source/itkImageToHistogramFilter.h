@@ -18,19 +18,16 @@
 #define __itkImageToHistogramFilter_h
 
 
-#include "itkImageToListAdaptor.h"
-#include "itkListSampleToHistogramGenerator.h"
+#include "itkImageToListSampleAdaptor.h"
+#include "itkSampleToHistogramFilter.h"
+#include "itkDenseFrequencyContainer2.h"
+#include "itkHistogram.h"
 #include "itkObject.h"
 
 
 namespace itk {
 namespace Statistics {
 
-template <typename TAdaptor >
-struct GetAdaptorMeasurementVectorLength
-{
-  itkStaticConstMacro( MeasurementVectorLength, unsigned int, TAdaptor::MeasurementVectorSize );
-};
 
 /** \class ImageToHistogramFilter
  *  \brief This class generates an histogram from an image.
@@ -38,7 +35,7 @@ struct GetAdaptorMeasurementVectorLength
  *  The concept of Histogram in ITK is quite generic. It has been designed to
  *  manage multiple components data. This class facilitates the computation of
  *  an histogram from an image. Internally it creates a List that is feed into
- *  the ListSampleToHistogramGenerator.
+ *  the SampleToHistogramFilter.
  *
  */
   
@@ -59,56 +56,76 @@ public:
   /** standard New() method support */
   itkNewMacro(Self);
 
-  typedef TImageType                                      ImageType;
-  typedef ImageToListAdaptor< ImageType >                 AdaptorType;
-  typedef typename AdaptorType::Pointer                   AdaptorPointer;
-  typedef typename ImageType::PixelType                   PixelType;
-  typedef typename PixelType::ValueType                   ValueType;
-  typedef typename NumericTraits< ValueType >::RealType   ValueRealType;
-  typedef DenseFrequencyContainer                         FrequencyContainerType;
+  typedef TImageType                                        ImageType;
+  typedef ImageToListSampleAdaptor< ImageType >             AdaptorType;
+  typedef typename AdaptorType::Pointer                     AdaptorPointer;
+  typedef typename ImageType::PixelType                     PixelType;
+  typedef typename PixelType::ValueType                     ValueType;
+  typedef typename NumericTraits< ValueType >::RealType     ValueRealType;
+  typedef DenseFrequencyContainer2                          FrequencyContainerType;
 
-  typedef ListSampleToHistogramGenerator< 
-                         AdaptorType, 
-                         ValueRealType,
-                         FrequencyContainerType,
-                         ::itk::Statistics::GetAdaptorMeasurementVectorLength< 
-                                          AdaptorType >::MeasurementVectorLength
-                           > GeneratorType;
-
-  typedef typename GeneratorType::Pointer                   GeneratorPointer;
-
-  typedef typename GeneratorType::HistogramType             HistogramType;
+  typedef Histogram< ValueType >                            HistogramType;
   typedef typename HistogramType::Pointer                   HistogramPointer;
   typedef typename HistogramType::ConstPointer              HistogramConstPointer;
-  typedef typename HistogramType::SizeType                  SizeType;
-  typedef typename HistogramType::MeasurementVectorType     MeasurementVectorType;
+  typedef typename HistogramType::SizeType                  HistogramSizeType;
+  typedef typename HistogramType::MeasurementType           HistogramMeasurementType;
+  typedef typename HistogramType::MeasurementVectorType     HistogramMeasurementVectorType;
+
+  typedef SampleToHistogramFilter< 
+    AdaptorType, HistogramType >                            GeneratorType;
+
+  typedef typename GeneratorType::Pointer                   GeneratorPointer;
 
 public:
 
   /** Connects the input image for which the histogram is going to be computed */
   void SetInput( const ImageType * );
+  const ImageType * GetInput() const;
   
   /** Return the output histogram.
    \warning This output is only valid after the Compute() method has been invoked 
    \sa Compute */
   const HistogramType * GetOutput() const;
   
-  /** Set number of histogram bins */
-  itkSetMacro( NumberOfBins, SizeType );
-  itkGetMacro( NumberOfBins, SizeType );
- 
-  /** Set marginal scale value to be passed to the histogram generator */
-  itkSetMacro( MarginalScale, double );
-  itkGetMacro( MarginalScale, double );
+  /** Type of DataObjects to use for Size inputs */
+  typedef SimpleDataObjectDecorator<
+    HistogramSizeType > InputHistogramSizeObjectType;
 
-  /** Set/Get the min and max bounds to the histogram */
-  void SetHistogramMin(const MeasurementVectorType & histogramMin);
-  void SetHistogramMax(const MeasurementVectorType & histogramMax);
+  /** Type of DataObjects to use for Marginal Scale inputs */
+  typedef SimpleDataObjectDecorator<
+    HistogramMeasurementType > InputHistogramMeasurementObjectType;
 
-  /** Set/Get whether the filter will compute the min and max values of the
-   * histogram automatically. */
-  itkSetMacro( AutoMinMax, bool );
-  itkGetMacro( AutoMinMax, bool );
+  /** Type of DataObjects to use for Minimum and Maximums values of the
+   * histogram bins. */
+  typedef SimpleDataObjectDecorator<
+    HistogramMeasurementVectorType > InputHistogramMeasurementVectorObjectType;
+
+  /** Type of DataObjects to use for AutoMinimumMaximum input */
+  typedef SimpleDataObjectDecorator< bool > InputBooleanObjectType;
+
+  /** Methods for setting and getting the histogram size.  The histogram size
+   * is encapsulated inside a decorator class. For this reason, it is possible
+   * to set and get the decorator class, but it is only possible to set the
+   * histogram size by value. This macro declares the methods
+   * SetHistogramSize(), SetHistogramSizeInput(), GetHistogramSizeInput().
+   */
+  itkSetDecoratedInputMacro( HistogramSize, HistogramSizeType, 1 );
+
+  /** Methods for setting and getting the Marginal scale value.  The marginal
+   * scale is used when the type of the measurement vector componets are of
+   * integer type. */
+  itkSetDecoratedInputMacro( MarginalScale, HistogramMeasurementType, 2 );
+
+  /** Methods for setting and getting the Minimum and Maximum values of the
+   * histogram bins. */
+  itkSetDecoratedInputMacro( HistogramBinMinimum, HistogramMeasurementVectorType, 3 );
+  itkSetDecoratedInputMacro( HistogramBinMaximum, HistogramMeasurementVectorType, 4 );
+
+  /** Methods for setting and getting the boolean flag that defines whether the
+   * minimum and maximum of the histogram are going to be computed
+   * automatically from the values of the sample */
+  itkSetDecoratedInputMacro( AutoMinimumMaximum, bool, 5 );
+
 
 protected:
   ImageToHistogramFilter();
@@ -118,21 +135,14 @@ protected:
   /** Triggers the Computation of the histogram */
   void GenerateData( void );
 
+  /** Method that construct the outputs */
+  DataObject::Pointer  MakeOutput( unsigned int );
 
 private:
 
   AdaptorPointer          m_ImageToListAdaptor;
 
   GeneratorPointer        m_HistogramGenerator;
-
-  MeasurementVectorType   m_HistogramMin;
-  MeasurementVectorType   m_HistogramMax;
-
-  SizeType                m_NumberOfBins;
-
-  double                  m_MarginalScale;
-
-  bool                    m_AutoMinMax;
 
 };
 

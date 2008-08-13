@@ -35,7 +35,7 @@ ImageToHistogramFilter< TImage >
 
   this->m_ImageToListAdaptor = AdaptorType::New();
   this->m_HistogramGenerator = GeneratorType::New();
-  this->m_HistogramGenerator->SetListSample( this->m_ImageToListAdaptor );
+  this->m_HistogramGenerator->SetInput( this->m_ImageToListAdaptor );
 }
 
 
@@ -63,7 +63,7 @@ ImageToHistogramFilter< TImage >
 
 
 template < class TImage >
-const typename ImageToHistogramFilter< TImage >::HistogramType *
+DataObject::Pointer
 ImageToHistogramFilter< TImage >
 ::MakeOutput(unsigned int itkNotUsed(idx))
 {
@@ -90,19 +90,19 @@ ImageToHistogramFilter< TImage >
 {
   this->m_ImageToListAdaptor->SetImage( this->GetInput( ) );
 
-  this->m_HistogramGenerator->SetNumberOfBins( this->m_HistogramSize );
-  this->m_HistogramGenerator->SetMarginalScale( this->m_MarginalScale );
-  this->m_HistogramGenerator->SetAutoMinMax( this->m_AutoMinMax );
-  this->m_HistogramGenerator->SetHistogramMin( this->m_HistogramMin );
-  this->m_HistogramGenerator->SetHistogramMax( this->m_HistogramMax );
+  this->m_HistogramGenerator->SetHistogramSizeInput( this->GetHistogramSizeInput() );
+  this->m_HistogramGenerator->SetMarginalScaleInput( this->GetMarginalScaleInput() );
+  this->m_HistogramGenerator->SetAutoMinimumMaximumInput( this->GetAutoMinimumMaximumInput() );
+  this->m_HistogramGenerator->SetHistogramBinMinimumInput( this->GetHistogramBinMinimumInput() );
+  this->m_HistogramGenerator->SetHistogramBinMaximumInput( this->GetHistogramBinMaximumInput() );
 
-  this->m_HistogramGenerator->GraftOutput( 
-    static_cast< ListSampleType * >( this->ProcessObject::GetOutput(0)) );
+// FIXME  this->m_HistogramGenerator->GraftOutput( 
+//    static_cast< ListSampleType * >( this->ProcessObject::GetOutput(0)) );
 
   this->m_HistogramGenerator->Update();
 
-  /** graft the minipipeline output back into this filter's output */
-  this->GraftOutput( this->m_HistogramGenerator->GetOutput() );
+//  /** graft the minipipeline output back into this filter's output */
+//  this->GraftOutput( this->m_HistogramGenerator->GetOutput() );
 }
 
 
