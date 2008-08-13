@@ -73,6 +73,7 @@ vtkOpenIGTLinkIFLogic::vtkOpenIGTLinkIFLogic()
 
   this->Initialized   = 0;
   this->RestrictDeviceName = 0;
+
 }
 
 
@@ -1236,6 +1237,46 @@ vtkMRMLModelNode* vtkOpenIGTLinkIFLogic::AddLocatorModel(const char* nodeName, d
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFLogic::ProcCommand(const char* nodeName, int size, unsigned char* data)
 {
+}
+
+//---------------------------------------------------------------------------
+void vtkOpenIGTLinkIFLogic::GetDeviceNamesFromMrml(std::vector<char*> &list)
+{
+  list.clear();
+
+  char* classNames[] = 
+    {
+      "vtkMRMLLinearTransformNode",
+      "vtkMRMLVolumeNode"
+    };
+
+  for (int i = 0; i < 2; i ++)
+    {
+    std::vector<vtkMRMLNode*> nodes;
+    this->GetMRMLScene()->GetNodesByClass(classNames[i], nodes);
+    std::vector<vtkMRMLNode*>::iterator iter;
+    for (iter = nodes.begin(); iter != nodes.end(); iter ++)
+      {
+      list.push_back((*iter)->GetName());
+      }
+    }
+  
+}
+
+//---------------------------------------------------------------------------
+void vtkOpenIGTLinkIFLogic::GetDeviceTypes(std::vector<char*> &list)
+{
+  char* deviceTypes[] = {
+    "TRANSFORM",
+    "IMAGE",
+  };
+
+  list.clear();
+  
+  for (int i = 0; i < 2; i ++)
+    {
+    list.push_back(deviceTypes[i]);
+    }
 }
 
 

@@ -59,6 +59,9 @@
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkCornerAnnotation.h"
 
+#include "vtkStringArray.h"
+
+
 // for Realtime Image
 #include "vtkImageChangeInformation.h"
 #include "vtkSlicerColorLogic.h"
@@ -2064,21 +2067,35 @@ void vtkOpenIGTLinkIFGUI::UpdateMrmlNodeListFrame(int con)
 
   this->MrmlNodeList->GetWidget()->AddRows(totalrows);
   
+  //char** deviceNames;     // the strings should be obtained from MRML tree
+  int    nDeviceNames;
+  std::vector<char*> list;
+  this->GetLogic()->GetDeviceNamesFromMrml(list);
+  //deviceNames = new char*[list.size()];
+  nDeviceNames = list.size();
+  int i;
+  vtkStringArray* deviceNames = vtkStringArray::New();
+
+  for (int i = 0; i < nDeviceNames; i ++)
+    {
+    deviceNames->InsertValue(i, list[i]);
+    //deviceNames[i] = list[i];
+    }
+  
   int row = 0;
   for (row = 0; row < totalrows; row ++) // First create unspecified rows
     {
-    const char* nameStrs[] = {"Unspecified", "Robot", "Tracker"};     // the strings should be obtained from MRML tree
     const char* typeStrs[] = {"TRANSFORM", "IMAGE", "POSITION"};
     const char* ioStrs[]   = {"IN", "OUT"};
     const char* visStrs[]  = {"Show", "Hide"};
 
     char command[256];
 
-    this->MrmlNodeList->GetWidget()->SetCellWindowCommandToComboBoxWithValues(row, 0, 3, nameStrs);
+    this->MrmlNodeList->GetWidget()->SetCellWindowCommandToComboBoxWithValuesAsArray(row, 0, deviceNames);
     sprintf(command, "OnMrmlNodeListChanged %d 0", row);
     this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 0)->SetCommand(this, command);
 
-    this->MrmlNodeList->GetWidget()->SetCellWindowCommandToComboBoxWithValues(row, 1, 4, typeStrs);
+    this->MrmlNodeList->GetWidget()->SetCellWindowCommandToComboBoxWithValues(row, 1, 3, typeStrs);
     sprintf(command, "OnMrmlNodeListChanged %d 1", row);
     this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 1)->SetCommand(this, command);
 
@@ -2096,6 +2113,9 @@ void vtkOpenIGTLinkIFGUI::UpdateMrmlNodeListFrame(int con)
     //this->MrmlNodeList->GetWidget()->SetCellText(row,1, deviceType.c_str());
     //this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 2)->ReadOnlyOff();
     }
+  
+  //delete [] deviceNames;
+  deviceNames->Delete();
 
   row = 0;
   for (iter = incoming->begin(); iter != incoming->end(); iter ++)
