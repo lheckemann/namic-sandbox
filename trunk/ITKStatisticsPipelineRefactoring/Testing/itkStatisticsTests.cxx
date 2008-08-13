@@ -32,7 +32,8 @@ void RegisterTests()
   REGISTER_TEST(itkStatisticsTypesTest);
   REGISTER_TEST(itkHistogramTest);
   REGISTER_TEST(itkHistogramToTextureFeaturesFilterTest);
-  REGISTER_TEST(itkImageToHistogramFilterTest);
+//  REGISTER_TEST(itkImageToHistogramFilterTest);
+//  REGISTER_TEST(itkImageToHistogramFilterTest2);
   REGISTER_TEST(itkImageToListSampleFilterTest);
   REGISTER_TEST(itkImageToListSampleFilterTest2);
   REGISTER_TEST(itkImageToListSampleFilterTest3);
