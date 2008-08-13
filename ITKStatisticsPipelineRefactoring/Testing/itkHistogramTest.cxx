@@ -35,14 +35,6 @@ int itkHistogramTest(int, char* [] )
           itk::Statistics::DenseFrequencyContainer2 > HistogramType;
   HistogramType::Pointer histogram = HistogramType::New();
 
-  histogram->SetMeasurementVectorSize( numberOfComponents );
-
-  if( histogram->GetMeasurementVectorSize() != numberOfComponents )
-    {
-    std::cerr << "Error in Get/SetMeasurementVectorSize() " << std::endl;
-    return EXIT_FAILURE;
-    }
-
   typedef HistogramType::MeasurementVectorType MeasurementVectorType;
   typedef HistogramType::InstanceIdentifier    InstanceIdentifier; 
   typedef HistogramType::IndexType             IndexType; 
@@ -58,6 +50,38 @@ int itkHistogramTest(int, char* [] )
   lowerBound.Fill(0);
   upperBound.Fill(1024);
 
+  //
+  // Exercise exception case
+  //
+  try
+    {
+    // purposely calling Initialize() before calling SetMeasurementVectorSize()
+    // in order to trigger an expected exception.
+    histogram->Initialize(size);
+    pass = false;
+    whereFail = "Initialize(size) before SetMeasurementVectorSize() didn't throw expected exception";
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cout << "Expected exception ";
+    std::cout << excp << std::endl;
+    }
+
+
+  //
+  // Now call SetMeasurementVectorSize() correctly
+  //
+  histogram->SetMeasurementVectorSize( numberOfComponents );
+
+  if( histogram->GetMeasurementVectorSize() != numberOfComponents )
+    {
+    std::cerr << "Error in Get/SetMeasurementVectorSize() " << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  //
+  //  Exercise Initialize with size and bounds
+  //
   histogram->Initialize(size, lowerBound, upperBound );
 
   histogram->SetToZero();
@@ -315,6 +339,7 @@ int itkHistogramTest(int, char* [] )
     }
 
   const unsigned int measurementVectorSize = 17;
+
   try
     {
     histogram->SetMeasurementVectorSize( measurementVectorSize );
