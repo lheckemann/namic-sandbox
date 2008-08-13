@@ -23,6 +23,7 @@
 #include "itkImageToListSampleAdaptor.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkVariableLengthVector.h"
+#include "itkRGBPixel.h"
 
 int itkImageToListSampleAdaptorTest2(int, char* [] ) 
 {
@@ -165,6 +166,85 @@ int itkImageToListSampleAdaptorTest2(int, char* [] )
       }
     }
  
+
+  //
+  // Test an RGB image
+  //
+  typedef itk::RGBPixel< unsigned char > RGBPixelType;
+
+  unsigned int rgbMeasurementVectorSize = 3;
+
+  typedef itk::Image< RGBPixelType, ImageDimension > RGBImageType;
+
+  RGBImageType::Pointer rgbImage = RGBImageType::New();
+
+  RGBImageType::IndexType rgbStart;
+  RGBImageType::SizeType  rgbSize;
+
+  rgbStart.Fill(0);
+  rgbSize.Fill(10);
+
+  RGBImageType::RegionType rgbRegion( rgbStart, rgbSize );
+  rgbImage->SetRegions( rgbRegion );
+  rgbImage->Allocate();
+
+  typedef itk::ImageRegionIteratorWithIndex< RGBImageType > RGBIteratorType;
+
+  RGBIteratorType rgbt( rgbImage, rgbRegion );
+
+  rgbt.GoToBegin();
+
+  while( !rgbt.IsAtEnd() )
+    {
+    RGBPixelType value;
+
+    for( unsigned int i=0; i< rgbMeasurementVectorSize; i++ )
+      {
+      value[i] = i + rgbt.GetIndex()[0];
+      }
+    rgbt.Set( value );
+    ++rgbt; 
+    }
+
+  //define an adaptor for the image with variable length vector type 
+  typedef itk::Statistics::ImageToListSampleAdaptor< 
+    RGBImageType > RGBImageToListSampleAdaptorType;
+
+  RGBImageToListSampleAdaptorType::Pointer rgbAdaptor 
+                              = RGBImageToListSampleAdaptorType::New();
+
+  rgbAdaptor->SetImage( rgbImage );
+
+  RGBImageType::IndexType rgbIndex;
+  RGBImageType::PixelType rgbPixel;
+
+  RGBImageToListSampleAdaptorType::InstanceIdentifier rgbId;
+
+  for ( unsigned int i=0 ; i < size[2] ; i++ )
+    {
+    for ( unsigned int j=0; j < size[1]; j++ )
+      {
+      for ( unsigned int k=0; k < size[0]; k++ )  
+        {
+        rgbIndex[0]=k;
+        rgbIndex[1]=j;
+        rgbIndex[2]=i;
+
+        rgbPixel = rgbImage->GetPixel( rgbIndex );
+        rgbId = rgbImage->ComputeOffset( rgbIndex );
+        for ( unsigned int m=0; m < rgbAdaptor->GetMeasurementVectorSize(); m++ )
+          {
+          if ( rgbAdaptor->GetMeasurementVector(rgbId)[m] != rgbPixel[m] )
+            {
+            std::cerr << "Error in rgbPixel value accessed using the rgbAdaptor" << std::endl;  
+            return EXIT_FAILURE;
+            }
+          }
+        }
+      }
+    }
+ 
+
 
   std::cerr << "[PASSED]" << std::endl;
   return EXIT_SUCCESS;
