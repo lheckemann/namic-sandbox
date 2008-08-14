@@ -71,6 +71,28 @@ int MexClientSocket::ConnectToServer(const char* hostName, int port)
 }
 
 //-----------------------------------------------------------------------------
+int MexClientSocket::SetDescriptor(int sd)
+{
+  if (!sd)
+    {
+    igtlErrorMacro("Failed to create socket.");
+    return -1;
+    }
+
+  if (this->m_SocketDescriptor != -1)
+    {
+    igtlWarningMacro("Client connection already exists. Closing it.");
+    this->CloseSocket(this->m_SocketDescriptor);
+    this->m_SocketDescriptor = -1;
+    }
+  
+  this->m_SocketDescriptor = sd;
+
+  return 0;
+}
+
+
+//-----------------------------------------------------------------------------
 void MexClientSocket::PrintSelf(std::ostream& os)
 {
   this->Superclass::PrintSelf(os);
