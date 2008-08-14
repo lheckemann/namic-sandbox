@@ -426,6 +426,26 @@ KdTreeBasedKmeansEstimator< TKdTree >
 }
 
 template< class TKdTree >
+void
+KdTreeBasedKmeansEstimator< TKdTree > 
+::SetKdTree(TKdTree* tree)
+{ 
+  m_KdTree = tree; 
+  m_MeasurementVectorSize = tree->GetMeasurementVectorSize();
+  m_DistanceMetric->SetMeasurementVectorSize( m_MeasurementVectorSize );
+  MeasurementVectorTraits::SetLength( m_TempVertex, m_MeasurementVectorSize );
+  this->Modified();
+}
+
+template< class TKdTree >
+const TKdTree *
+KdTreeBasedKmeansEstimator< TKdTree > 
+::GetKdTree() const
+{ 
+  return m_KdTree.GetPointer();
+}
+
+template< class TKdTree >
 const typename KdTreeBasedKmeansEstimator< TKdTree >::MembershipFunctionVectorObjectType * 
 KdTreeBasedKmeansEstimator< TKdTree > 
 ::GetOutput() const
@@ -451,6 +471,33 @@ KdTreeBasedKmeansEstimator< TKdTree >
     }
 
   return static_cast< const MembershipFunctionVectorObjectType*>(m_MembershipFunctionsObject);
+}
+
+template< class TKdTree >
+void
+KdTreeBasedKmeansEstimator< TKdTree > 
+::
+GetPoint(ParameterType &point, 
+                MeasurementVectorType measurements)
+{
+  for (unsigned int i = 0; i < m_MeasurementVectorSize; i++)
+    {
+    point[i] = measurements[i];
+    }
+}
+
+template< class TKdTree >
+void
+KdTreeBasedKmeansEstimator< TKdTree > 
+::
+PrintPoint(ParameterType &point)
+{
+  std::cout << "[ ";
+  for (unsigned int i = 0; i < m_MeasurementVectorSize; i++)
+    {
+    std::cout << point[i] << " ";
+    }
+  std::cout << "]";
 }
 
 

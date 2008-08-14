@@ -123,16 +123,8 @@ public:
   const MembershipFunctionVectorObjectType * GetOutput() const; 
 
   /**  Set the position to initialize the optimization. */
-  void SetParameters(ParametersType& params)
-    {
-    m_Parameters = params;
-    }
-
-  /** Get current position of the optimization. */
-  ParametersType& GetParameters() 
-    {
-    return m_Parameters;
-    }
+  itkSetMacro( Parameters, ParametersType );
+  itkGetConstMacro( Parameters, ParametersType );
 
   /** Set/Get maximum iteration limit. */
   itkSetMacro( MaximumIteration, int );
@@ -142,20 +134,9 @@ public:
    * of changes in centroid postions after one iteration */
   itkSetMacro( CentroidPositionChangesThreshold, double );   
   itkGetConstReferenceMacro( CentroidPositionChangesThreshold, double );   
-
   /** Set/Get the pointer to the KdTree */
-  void SetKdTree(TKdTree* tree) 
-    { 
-    m_KdTree = tree; 
-    m_MeasurementVectorSize = tree->GetMeasurementVectorSize();
-    m_DistanceMetric->SetMeasurementVectorSize( m_MeasurementVectorSize );
-    MeasurementVectorTraits::SetLength( m_TempVertex, m_MeasurementVectorSize );
-    }
-
-  TKdTree* GetKdTree() 
-    { 
-    return m_KdTree.GetPointer(); 
-    }
+  void SetKdTree(TKdTree* tree);
+  const TKdTree* GetKdTree() const;
 
   /** Get the length of measurement vectors in the KdTree */
   itkGetConstReferenceMacro( MeasurementVectorSize, MeasurementVectorSizeType );
@@ -171,15 +152,8 @@ public:
 
   typedef itk::hash_map< InstanceIdentifier, unsigned int > ClusterLabelsType;
 
-  void SetUseClusterLabels(bool flag)
-    {
-    m_UseClusterLabels = flag; 
-    }
-
-  ClusterLabelsType* GetClusterLabels() 
-    { 
-    return &m_ClusterLabels; 
-    }
+  itkSetMacro( UseClusterLabels, bool );
+  itkGetConstReferenceMacro( UseClusterLabels, bool );
 
 protected:
   KdTreeBasedKmeansEstimator();
@@ -267,7 +241,7 @@ protected:
 
     /** Length of each measurement vector */
     MeasurementVectorSizeType m_MeasurementVectorSize;
-  }; // end of class
+    };// end of class
 
   /** gets the sum of squared difference between the previous position
    * and current postion of all centroid. This is the primary termination
@@ -305,24 +279,9 @@ protected:
   void CopyParameters(InternalParametersType &source, ParametersType &target);
 
   /** imports the "measurements" measurement vector data to the "point" */ 
-  void GetPoint(ParameterType &point, 
-                MeasurementVectorType measurements)
-  {
-  for (unsigned int i = 0; i < m_MeasurementVectorSize; i++)
-    {
-    point[i] = measurements[i];
-    }
-  }
+  void GetPoint(ParameterType &point, MeasurementVectorType measurements);
 
-  void PrintPoint(ParameterType &point)
-  {
-  std::cout << "[ ";
-  for (unsigned int i = 0; i < m_MeasurementVectorSize; i++)
-    {
-    std::cout << point[i] << " ";
-    }
-  std::cout << "]";
-  }
+  void PrintPoint(ParameterType &point);
 
 private:
   /** current number of iteration */
