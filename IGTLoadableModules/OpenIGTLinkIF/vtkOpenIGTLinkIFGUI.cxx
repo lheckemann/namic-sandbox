@@ -134,7 +134,9 @@ vtkOpenIGTLinkIFGUI::vtkOpenIGTLinkIFGUI ( )
   this->DeleteDeviceNameButton = NULL;
 
   this->CurrentMrmlNodeListID = -1;
-  this->CurrentMrmlNodeList.clear();
+  this->CurrentNodeListAvailable.clear();
+  this->CurrentNodeListSelected.clear();
+
 
   //----------------------------------------------------------------
   // Visualization Control Frame
@@ -1438,11 +1440,11 @@ void vtkOpenIGTLinkIFGUI::BuildGUIForConnectorBrowserFrame ()
   //this->MrmlNodeList->GetWidget()->SetReliefToFlat();
 
   const char* mrmllistlabels[] =
-    { "Name", "Type", "IO"};
+    { "Name (Type)", "IO"};
   const int mrmllistwidths[] = 
-    { 15, 15, 10};
+    { 30, 10};
 
-  for (int col = 0; col < 3; col ++)
+  for (int col = 0; col < 2; col ++)
     {
     this->MrmlNodeList->GetWidget()->AddColumn(mrmllistlabels[col]);
     this->MrmlNodeList->GetWidget()->SetColumnWidth(col, mrmllistwidths[col]);
@@ -2057,7 +2059,7 @@ void vtkOpenIGTLinkIFGUI::UpdateMrmlNodeListFrame(int con)
     return;
     }
 
-  this->CurrentMrmlNodeList.clear();
+  this->CurrentNodeListSelected.clear();
 
   // Get Device List for incoming data
   vtkIGTLConnector::DeviceNameList* incoming = connector->GetIncomingDeviceList();
@@ -2070,22 +2072,20 @@ void vtkOpenIGTLinkIFGUI::UpdateMrmlNodeListFrame(int con)
   int numRows = this->ConnectorList->GetWidget()->GetNumberOfRows();
 
   this->MrmlNodeList->GetWidget()->AddRows(totalrows);
-  
-  //char** deviceNames;     // the strings should be obtained from MRML tree
-  int    nDeviceNames;
-  std::vector<char*> list;
-  this->GetLogic()->GetDeviceNamesFromMrml(list);
-  //deviceNames = new char*[list.size()];
-  nDeviceNames = list.size();
-  int i;
+
+
+  // Get list of node names from MRML scene
+  this->GetLogic()->GetDeviceNamesFromMrml(this->CurrentNodeListAvailable);
   vtkStringArray* deviceNames = vtkStringArray::New();
 
-  for (int i = 0; i < nDeviceNames; i ++)
+  for (int i = 0; i < this->CurrentNodeListAvailable.size(); i ++)
     {
-    deviceNames->InsertValue(i, list[i]);
-    //deviceNames[i] = list[i];
+    char str[256];
+    sprintf(str, "%s (%s)", this->CurrentNodeListAvailable[i].name.c_str(), this->CurrentNodeListAvailable[i].type.c_str());
+    deviceNames->InsertValue(i, str);
     }
   
+  // Add rows to the node list table.
   int row = 0;
   for (row = 0; row < totalrows; row ++) // First create unspecified rows
     {
@@ -2098,13 +2098,9 @@ void vtkOpenIGTLinkIFGUI::UpdateMrmlNodeListFrame(int con)
     sprintf(command, "OnMrmlNodeListChanged %d 0", row);
     this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 0)->SetCommand(this, command);
 
-    this->MrmlNodeList->GetWidget()->SetCellWindowCommandToComboBoxWithValues(row, 1, 3, typeStrs);
+    this->MrmlNodeList->GetWidget()->SetCellWindowCommandToComboBoxWithValues(row, 1, 3, ioStrs);
     sprintf(command, "OnMrmlNodeListChanged %d 1", row);
     this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 1)->SetCommand(this, command);
-
-    this->MrmlNodeList->GetWidget()->SetCellWindowCommandToComboBoxWithValues(row, 2, 3, ioStrs);
-    sprintf(command, "OnMrmlNodeListChanged %d 2", row);
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 2)->SetCommand(this, command);
 
     //this->MrmlNodeList->GetWidget()->SetCellEditable(row, 0, 1);
 
@@ -2112,44 +2108,49 @@ void vtkOpenIGTLinkIFGUI::UpdateMrmlNodeListFrame(int con)
   
   deviceNames->Delete();
 
-  this->CurrentMrmlNodeList.resize(nDeviceNames);
+  this->CurrentNodeListSelected.resize(totalrows);
 
   row = 0;
+  char item[256];
   for (iter = incoming->begin(); iter != incoming->end(); iter ++)
     {
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 0)->SetValue(iter->first.c_str());
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 1)->SetValue(iter->second.c_str());
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 2)->SetValue("IN");
+    sprintf(item, "%s (%s)", iter->first.c_str(), iter->second.c_str());
 
-    this->CurrentMrmlNodeList[row].name = std::string(iter->first.c_str());
-    this->CurrentMrmlNodeList[row].type = std::string(iter->second.c_str());
-    this->CurrentMrmlNodeList[row].io   = vtkOpenIGTLinkIFLogic::DEVICE_IN;//std::string("IN");
+    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 0)->SetValue(item);
+    //this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 1)->SetValue(iter->second.c_str());
+    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 1)->SetValue("IN");
+
+    this->CurrentNodeListSelected[row].name = std::string(iter->first.c_str());
+    this->CurrentNodeListSelected[row].type = std::string(iter->second.c_str());
+    this->CurrentNodeListSelected[row].io   = vtkOpenIGTLinkIFLogic::DEVICE_IN;//std::string("IN");
 
     row ++;
     }
 
   for (iter = outgoing->begin(); iter != outgoing->end(); iter ++)
     {
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 0)->SetValue(iter->first.c_str());
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 1)->SetValue(iter->second.c_str());
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 2)->SetValue("OUT");
+    sprintf(item, "%s (%s)", iter->first.c_str(), iter->second.c_str());
+    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 0)->SetValue(item);
+    //this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 1)->SetValue(iter->second.c_str());
+    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 1)->SetValue("OUT");
 
-    this->CurrentMrmlNodeList[row].name = std::string(iter->first.c_str());
-    this->CurrentMrmlNodeList[row].type = std::string(iter->second.c_str());
-    this->CurrentMrmlNodeList[row].io   = vtkOpenIGTLinkIFLogic::DEVICE_OUT; //std::string("OUT");
+    this->CurrentNodeListSelected[row].name = std::string(iter->first.c_str());
+    this->CurrentNodeListSelected[row].type = std::string(iter->second.c_str());
+    this->CurrentNodeListSelected[row].io   = vtkOpenIGTLinkIFLogic::DEVICE_OUT; //std::string("OUT");
 
     row ++;
     }
 
   for (iter = unspecified->begin(); iter != unspecified->end(); iter ++)
     {
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 0)->SetValue(iter->first.c_str());
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 1)->SetValue(iter->second.c_str());
-    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 2)->SetValue("--");
+    sprintf(item, "%s (%s)", iter->first.c_str(), iter->second.c_str());
+    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 0)->SetValue(item);
+    //this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 1)->SetValue(iter->second.c_str());
+    this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 1)->SetValue("--");
 
-    this->CurrentMrmlNodeList[row].name = std::string(iter->first.c_str());
-    this->CurrentMrmlNodeList[row].type = std::string(iter->first.c_str());
-    this->CurrentMrmlNodeList[row].io   = vtkOpenIGTLinkIFLogic::DEVICE_UNSPEC; //std::string("--");
+    this->CurrentNodeListSelected[row].name = std::string(iter->first.c_str());
+    this->CurrentNodeListSelected[row].type = std::string(iter->first.c_str());
+    this->CurrentNodeListSelected[row].io   = vtkOpenIGTLinkIFLogic::DEVICE_UNSPEC; //std::string("--");
 
     row ++;
     }
@@ -2168,42 +2169,59 @@ int vtkOpenIGTLinkIFGUI::OnMrmlNodeListChanged(int row, int col, const char* ite
     return 0;
     }
 
-  vtkIGTLConnector::DeviceNameList* list;
-  const char* name = this->CurrentMrmlNodeList[row].name.c_str();
-  const char* type = this->CurrentMrmlNodeList[row].type.c_str();
-  int io           = this->CurrentMrmlNodeList[row].io;
+  // -----------------------------------------
+  // Get original node info at (row, col)
 
-  if (col == 0 && strcmp(item, name) != 0) // if node name is changed
+  vtkIGTLConnector::DeviceNameList* list;
+  std::string& origName = this->CurrentNodeListSelected[row].name;
+  std::string& origType = this->CurrentNodeListSelected[row].type;
+  int origIo            = this->CurrentNodeListSelected[row].io;
+
+  // -----------------------------------------
+  // Update the outgoing / incoming node list
+
+  if (col == 0) // Name (Type) column has been interacted
     {
-    std::cerr << "node name is changed" << std::endl;
-    this->GetLogic()->DeleteDeviceFromConnector(this->CurrentMrmlNodeListID, name, type, io);
-    this->GetLogic()->AddDeviceToConnector(this->CurrentMrmlNodeListID, item, type, io);
-    this->CurrentMrmlNodeList[row].name = std::string(item);
-    }
-  if (col == 1 && strcmp(item, type) != 0) // if type is changed
-    {
-    this->GetLogic()->SetDeviceType(this->CurrentMrmlNodeListID, name, type, io);
-    this->CurrentMrmlNodeList[row].type = std::string(item);
-    }
-  else if (col == 2)// if IO is interacted
-    {
-    const char* iostr[] = {"--", "IN", "OUT"}; // refer vtkOpenIGTLinkIFLogic::DEVICE_* 
-    if (strcmp(item, iostr[io]) != 0) // if IO is changed
+    // Get current node info at (row, col)
+    int index = this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 0)->GetValueIndex(item);
+    std::cerr << "INDEX == " << index << std::endl;
+    if (index < 0 || index >= this->CurrentNodeListAvailable.size())
       {
-      int newio;
-      for (newio = 0; newio < 3; newio ++)
-        {
-        if (strcmp(item, iostr[newio]) == 0)
-          break;
-        }
-      if (newio < 3)
-        {
-        this->GetLogic()->DeleteDeviceFromConnector(this->CurrentMrmlNodeListID, name, type, io);
-        this->GetLogic()->AddDeviceToConnector(this->CurrentMrmlNodeListID, name, type, newio);
-        this->CurrentMrmlNodeList[row].type = std::string(item);
-        }
+      // invalid index
+      return 0;
+      }
+    std::string& currName = this->CurrentNodeListAvailable[row].name;
+    std::string& currType = this->CurrentNodeListAvailable[row].type;
+    
+    if (origName != currName || origType != currType)
+      {
+      std::cerr << "node name or type is changed" << std::endl;
+      this->GetLogic()->DeleteDeviceFromConnector(this->CurrentMrmlNodeListID, origName.c_str(), origType.c_str(), origIo);
+      this->GetLogic()->AddDeviceToConnector(this->CurrentMrmlNodeListID, currName.c_str(), currType.c_str(), origIo);
+      this->CurrentNodeListSelected[row].name = currName;
+      this->CurrentNodeListSelected[row].type = currType;
       }
     }
-  
+  else // IO column has been interacted
+    {
+    // Get curretn IO (in integer)
+    const char* iostr[] = {"--", "IN", "OUT"}; // refer vtkOpenIGTLinkIFLogic::DEVICE_* 
+    int currIo;
+    for (currIo = 0; currIo < 3; currIo ++)
+      {
+      if (strcmp(item, iostr[currIo]) == 0)
+        break;
+      }
+
+    if (currIo != origIo)
+      {
+      this->GetLogic()->DeleteDeviceFromConnector(this->CurrentMrmlNodeListID,
+                                                  origName.c_str(), origType.c_str(), origIo);
+      this->GetLogic()->AddDeviceToConnector(this->CurrentMrmlNodeListID,
+                                             origName.c_str(), origType.c_str(), currIo);
+      this->CurrentNodeListSelected[row].io = currIo;
+      }
+    }
+    
   return 1;
 }
