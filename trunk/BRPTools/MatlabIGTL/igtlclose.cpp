@@ -15,11 +15,9 @@
 =========================================================================*/
 
 //
-//  SD = igtlopen(HOST, PORT);
+//  igtlclose(SD);
 //
 //    SD  : (integer)    Socket descriptor (-1 if failed to connect)
-//    HOST: (string)     Hostname or IP address
-//    PORT: (int)        Port #
 //
 
 #include "mex.h"
@@ -33,9 +31,8 @@ using namespace std;
 
 //#define pi (3.141592653589793)
 
-#define ARG_ID_HOST    0  // host
-#define ARG_ID_PORT    1  // port
-#define ARG_ID_NUM     2  // total number of arguments
+#define ARG_ID_SD      0  // socket descriptor
+#define ARG_ID_NUM     1  // total number of arguments
 
 #define MAX_STRING_LEN 256
 
@@ -57,58 +54,33 @@ void mexFunction (int nlhs, mxArray *plhs[],
     mexErrMsgTxt("Incorrect number of input arguments");
     }
 
-  if (nlhs != 1)
-    {
-    mexErrMsgTxt("Incorrect number of output arguments");
-    }
+  //if (nlhs != 1)
+  //  {
+  //  mexErrMsgTxt("Incorrect number of output arguments");
+  //  }
 
   // ---------------------------------------------------------------
   // Check types of arguments
 
-  // HOST
-  if (!mxIsChar(prhs[ARG_ID_HOST]))
-    {
-    mexErrMsgTxt("HOST argument must be string.");
-    }
-
-  // PORT
-  if (!mxIsNumeric(prhs[ARG_ID_PORT]))
+  if (!mxIsNumeric(prhs[ARG_ID_SD]))
     {
     mexErrMsgTxt("PORT argument must be integer.");
     }
 
   // ---------------------------------------------------------------
-  // Set variables
+  // Set variable
 
-  char hostname[MAX_STRING_LEN];
-  
-  mxGetString(prhs[ARG_ID_HOST], hostname, MAX_STRING_LEN);
-  int         port     = (int)*mxGetPr(prhs[ARG_ID_PORT]);
+  int sd = (int)*mxGetPr(prhs[ARG_ID_SD]);
 
   // ---------------------------------------------------------------
   // Set up OpenIGTLink Connection
   igtl::MexClientSocket::Pointer socket;
   socket = igtl::MexClientSocket::New();
 
-  int result = socket->ConnectToServer(hostname, port);
+  int r = socket->SetDescriptor(sd);
 
-  //sleep(2);
-  double& p = createMatlabScalar(plhs[0]);
+  socket->CloseSocket();
 
-  if (result != 0)
-    {
-    p = -1;
-    }
-  else
-    {
-    p = socket->GetDescriptor();
-    }
-
-}
-
-double& createMatlabScalar (mxArray*& ptr) { 
-  ptr = mxCreateDoubleMatrix(1,1,mxREAL);
-  return *mxGetPr(ptr);
 }
 
 

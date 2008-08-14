@@ -29,6 +29,19 @@
 =========================================================================*/
 // .NAME igtlClientSocket - Encapsulates a client socket.
 
+
+
+/*=========================================================================
+
+  igtlMexClientSocket class
+
+  This is a modified version of igtlClientSocket class; the difference
+  from original igtlClientSocket is that it allows to get and set socket
+  descrptor. This allows opening, sending/receiving and closing socket
+  in different MEX files.
+=========================================================================*/
+
+
 #ifndef __igtlMexClientSocket_h
 #define __igtlMexClientSocket_h
 
@@ -58,6 +71,8 @@ public:
   int ConnectToServer(const char* hostname, int port); 
 
   int GetDescriptor() {return this->m_SocketDescriptor; };
+
+  int SetDescriptor(int sd);
   
 protected:
   MexClientSocket();

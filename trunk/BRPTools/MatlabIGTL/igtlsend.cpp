@@ -15,10 +15,9 @@
 =========================================================================*/
 
 //
-//  r = igtlsend(HOST, PORT, NAME, SIZE, DATA, TRANSFORM);
+//  r = igtlsend(SD, NAME, SIZE, DATA, TRANSFORM);
 //
-//    HOST: (string)     Hostname or IP address
-//    PORT: (int)        Port #
+//    SD  : (integer)    Socket descriptor (-1 if failed to connect)
 //    NAME: (string)     Data name (DEVICE_NAME in OpenIGTLink)
 //    DATA: (uint16[][]) Image data
 //    TRANS:(real[4][4]) Affine transform matrix (4x4)
@@ -35,12 +34,13 @@ using namespace std;
 
 //#define pi (3.141592653589793)
 
-#define ARG_ID_HOST    0  // host
-#define ARG_ID_PORT    1  // port
-#define ARG_ID_NAME    2  // name
-#define ARG_ID_DATA    3  // data
-#define ARG_ID_TRANS   4  // transform
-#define ARG_ID_NUM     5  // total number of arguments
+//#define ARG_ID_HOST    0  // host
+//#define ARG_ID_PORT    1  // port
+#define ARG_ID_SD      0
+#define ARG_ID_NAME    1  // name
+#define ARG_ID_DATA    2  // data
+#define ARG_ID_TRANS   3  // transform
+#define ARG_ID_NUM     4  // total number of arguments
 
 #define MAX_STRING_LEN 256
 
@@ -67,10 +67,11 @@ void mexFunction (int nlhs, mxArray *plhs[],
   char hostname[MAX_STRING_LEN];
   char name[MAX_STRING_LEN];
   
-  mxGetString(prhs[ARG_ID_HOST], hostname, MAX_STRING_LEN);
+  //mxGetString(prhs[ARG_ID_HOST], hostname, MAX_STRING_LEN);
   mxGetString(prhs[ARG_ID_NAME], name, MAX_STRING_LEN);
 
-  int         port     = (int)*mxGetPr(prhs[ARG_ID_PORT]);
+  //int         port     = (int)*mxGetPr(prhs[ARG_ID_PORT]);
+  int         sd       = (int)*mxGetPr(prhs[ARG_ID_SD]);
   double*     rdata    = mxGetPr(prhs[ARG_ID_DATA]);
   int ndim             = mxGetNumberOfDimensions(prhs[ARG_ID_DATA]);
   const int*  s        = mxGetDimensions(prhs[ARG_ID_DATA]);
@@ -105,8 +106,8 @@ void mexFunction (int nlhs, mxArray *plhs[],
     }
 
   // print variables
-  mexPrintf("Hostname   : %s\n", hostname);
-  mexPrintf("Port #     : %d\n", port);
+  //mexPrintf("Hostname   : %s\n", hostname);
+  //mexPrintf("Port #     : %d\n", port);
   mexPrintf("Data Name  : %s\n", name);
   mexPrintf("Size       : (%d, %d, %d)\n", size[0], size[1], size[2]);
   mexPrintf("Spacing    : (%f, %f, %f)\n", spacing[0], spacing[1], spacing[2]);
@@ -120,15 +121,14 @@ void mexFunction (int nlhs, mxArray *plhs[],
   // Set up OpenIGTLink Connection
   igtl::MexClientSocket::Pointer socket;
   socket = igtl::MexClientSocket::New();
-  int r = socket->ConnectToServer(hostname, port);
 
+  int r = socket->SetDescriptor(sd);
+
+//  int r = socket->ConnectToServer(hostname, port);
+//
   if (r != 0)
     {
-    mexErrMsgTxt("Failed to connect to the server");
-    }
-  else
-    {
-    mexPrintf("Connected to the server\n");
+    mexErrMsgTxt("Invalid socket descriptor.");
     }
 
   // ---------------------------------------------------------------
@@ -191,16 +191,22 @@ int checkArguments(int nlhs, mxArray *plhs[],
   // ---------------------------------------------------------------
   // Check types of arguments
 
-  // HOST
-  if (!mxIsChar(prhs[ARG_ID_HOST]))
-    {
-    mexErrMsgTxt("HOST argument must be string.");
-    }
+//  // HOST
+//  if (!mxIsChar(prhs[ARG_ID_HOST]))
+//    {
+//    mexErrMsgTxt("HOST argument must be string.");
+//    }
+//
+//  // PORT
+//  if (!mxIsNumeric(prhs[ARG_ID_PORT]))
+//    {
+//    mexErrMsgTxt("PORT argument must be integer.");
+//    }
 
-  // PORT
-  if (!mxIsNumeric(prhs[ARG_ID_PORT]))
+  // SD -- socket descriptor
+  if (!mxIsNumeric(prhs[ARG_ID_SD]))
     {
-    mexErrMsgTxt("PORT argument must be integer.");
+    mexErrMsgTxt("SD argument must be integer.");
     }
 
   // NAME

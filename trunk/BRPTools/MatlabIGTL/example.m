@@ -14,7 +14,14 @@ M = [1.0, 0.0, 0.0, 0.0;
      0.0, 0.0, 1.0, 0.0;
      0.0, 0.0, 0.0, 1.0];
 
-r = igtlsend('localhost', 18944, 'MatlabImage', I, M);
 
+disp('opening socket');
+%sd = igtlopen('localhost', 18944);
+sleep(2);
+disp('sending data');
+r = igtlsend(sd, 'MatlabImage', I, M);
+sleep(2);
+disp('closing socket');
+igtlclose(sd);
 
 
