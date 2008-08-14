@@ -2190,8 +2190,8 @@ int vtkOpenIGTLinkIFGUI::OnMrmlNodeListChanged(int row, int col, const char* ite
       // invalid index
       return 0;
       }
-    std::string& currName = this->CurrentNodeListAvailable[row].name;
-    std::string& currType = this->CurrentNodeListAvailable[row].type;
+    std::string& currName = this->CurrentNodeListAvailable[index].name;
+    std::string& currType = this->CurrentNodeListAvailable[index].type;
     
     if (origName != currName || origType != currType)
       {
