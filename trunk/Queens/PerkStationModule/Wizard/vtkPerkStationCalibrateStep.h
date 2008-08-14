@@ -8,6 +8,7 @@ class vtkKWLabel;
 class vtkKWEntrySet;
 class vtkKWEntryWithLabel;
 class vtkKWFrameWithLabel;
+class vtkKWCheckButtonWithLabel;
 
 class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationCalibrateStep : public vtkPerkStationStep
 {
@@ -45,11 +46,15 @@ public:
   // Callback on value entered in the Image rotation angle entry
   virtual void ImageRotationEntryCallback(double value);
   
+  virtual void VerticalFlipCallback(int value);
+
+  virtual void HorizontalFlipCallback(int value);
 
 protected:
   vtkPerkStationCalibrateStep();
   ~vtkPerkStationCalibrateStep(); 
 
+  void ShowFlipComponents();
   void ShowScaleComponents();
   void ShowTranslateComponents();
   void ShowRotateComponents();
@@ -58,6 +63,7 @@ protected:
   void PopulateControls();
 
   void EnableDisableControls();
+  void EnableDisableFlipComponents(bool enable);
   void EnableDisableScaleComponents(bool enable);
   void EnableDisableTranslateComponents(bool enable);
   void EnableDisableRotateComponents(bool enable);
@@ -66,9 +72,20 @@ protected:
 
   void CalculateImageRotation(double & rotationAngle);
 
+  void FlipImage();
   void ScaleImage();
   void TranslateImage();
   void RotateImage();
+  
+  // for monitor associated flip
+  vtkKWFrameWithLabel *FlipFrame;
+  // information from the user
+  vtkKWCheckButtonWithLabel *VerticalFlipCheckButton;
+  vtkKWCheckButtonWithLabel *HorizontalFlipCheckButton;
+  bool ImageFlipDone;
+
+  
+  
   // for scaling step
 
   // TO DO: Question: other controls in two different modes (CLINICAL or TRANING)

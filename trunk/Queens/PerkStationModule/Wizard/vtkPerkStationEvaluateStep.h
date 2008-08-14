@@ -3,6 +3,11 @@
 
 #include "vtkPerkStationStep.h"
 
+class vtkKWFrame;
+class vtkKWFrameWithLabel;
+class vtkKWLabel;
+class vtkKWEntrySet;
+class vtkKWEntryWithLabel;
 
 class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationEvaluateStep : public vtkPerkStationStep
 {
@@ -38,6 +43,33 @@ protected:
   virtual void PopulateControls();
   virtual void InstallCallbacks();
 
+
+  // for calibrate step
+  vtkKWFrameWithLabel *CalibrateErrorsFrame;
+  // information for the user
+  vtkKWFrame *CalibrateScaleErrorFrame;
+  vtkKWLabel *CalibrateScaleErrorLabel;
+  vtkKWEntrySet      *CalibrateScaleError; // read only
+
+  // information for the user
+  vtkKWFrame *CalibrateTranslationErrorFrame;
+  vtkKWLabel *CalibrateTranslationErrorLabel;
+  vtkKWEntrySet      *CalibrateTranslationError; // read only  
+  
+  vtkKWEntryWithLabel      *CalibrateRotationError; // read only  
+  
+
+  // for plan step
+  vtkKWFrameWithLabel *PlanErrorsFrame;
+  vtkKWEntryWithLabel      *PlanInsertionAngleError; // read only
+  vtkKWEntryWithLabel      *PlanInsertionDepthError; // read only
+  
+   
+  // for insertion/validation
+  vtkKWFrameWithLabel *InsertionValidationErrorsFrame;
+  vtkKWEntryWithLabel      *EntryPointError; // read only  
+  vtkKWEntryWithLabel      *TargetPointError; // read only
+   
 
 private:
   vtkPerkStationEvaluateStep(const vtkPerkStationEvaluateStep&);

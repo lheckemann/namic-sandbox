@@ -61,8 +61,8 @@ protected:
   vtkKWEntryWithLabel *InsertionAngle;
   vtkKWEntryWithLabel *InsertionDepth;
 
-  double XYEntryPoint[3];
-  double XYTargetPoint[3];
+  double WCEntryPoint[3];
+  double WCTargetPoint[3];
 
 private:
   vtkPerkStationPlanStep(const vtkPerkStationPlanStep&);

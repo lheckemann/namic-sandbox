@@ -6,6 +6,8 @@
 
 #include "vtkKWFrame.h"
 #include "vtkKWFrameWithLabel.h"
+#include "vtkKWCheckButton.h"
+#include "vtkKWCheckButtonWithLabel.h"
 #include "vtkKWLabel.h"
 #include "vtkKWEntry.h"
 #include "vtkKWEntrySet.h"
@@ -27,6 +29,12 @@ vtkPerkStationCalibrateStep::vtkPerkStationCalibrateStep()
 {
   this->SetName("1/5. Calibrate");
   this->SetDescription("Do image overlay system calibration");
+
+  // flip
+  this->FlipFrame = NULL;
+  this->VerticalFlipCheckButton = NULL;
+  this->HorizontalFlipCheckButton = NULL;
+  this->ImageFlipDone = false;
 
   // scale step
   this->ScaleFrame = NULL;
@@ -68,13 +76,29 @@ vtkPerkStationCalibrateStep::vtkPerkStationCalibrateStep()
   this->RotationAngle = NULL;
   this->ImageRotationDone = false;
 
-  this->CurrentSubState = 1; // indicates scale
+  this->CurrentSubState = -1; // indicates invalid state, state will be valid only once volume is loaded
 
 }
 
 //----------------------------------------------------------------------------
 vtkPerkStationCalibrateStep::~vtkPerkStationCalibrateStep()
 {
+  // flip step
+  if (this->FlipFrame)
+    {
+    this->FlipFrame->Delete();
+    this->FlipFrame = NULL;
+    }
+  if (this->VerticalFlipCheckButton)
+    {
+    this->VerticalFlipCheckButton->Delete();
+    this->VerticalFlipCheckButton = NULL;
+    }
+  if (this->HorizontalFlipCheckButton)
+    {
+    this->HorizontalFlipCheckButton->Delete();
+    this->HorizontalFlipCheckButton = NULL;
+    }
   // scale step
   if (this->ScaleFrame)
     {
@@ -256,9 +280,15 @@ vtkPerkStationCalibrateStep::~vtkPerkStationCalibrateStep()
 
   this->ImageRotationDone = false;
   
-  this->CurrentSubState = 1;
+  this->CurrentSubState = -1;
 }
-
+//----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::EnableDisableFlipComponents(bool enable)
+{
+  this->FlipFrame->GetFrame()->SetEnabled(enable);
+  this->VerticalFlipCheckButton->GetWidget()->SetEnabled(enable);
+  this->HorizontalFlipCheckButton->GetWidget()->SetEnabled(enable);
+}
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::EnableDisableScaleComponents(bool enable)
 {
@@ -302,23 +332,33 @@ void vtkPerkStationCalibrateStep::EnableDisableControls()
 {
   switch (this->CurrentSubState)
     {
+    case 0: // indicates flip state
+        EnableDisableFlipComponents(true);
+        EnableDisableScaleComponents(false);
+        EnableDisableTranslateComponents(false);
+        EnableDisableRotateComponents(false);
+        break;
     case 1: //indicates Scale state; enable only scale, disable translate and rotate components
+        EnableDisableFlipComponents(false);
         EnableDisableScaleComponents(true);
         EnableDisableTranslateComponents(false);
         EnableDisableRotateComponents(false);
         break;
     case 2: //indicates Translate state; enable only translate state, disable other two
+        EnableDisableFlipComponents(false);
         EnableDisableScaleComponents(false);
         EnableDisableTranslateComponents(true);
         EnableDisableRotateComponents(false);
         break;
     case 3: //indicates Rotate state; enable only Rotate state, disable other two
+        EnableDisableFlipComponents(false);
         EnableDisableScaleComponents(false);
         EnableDisableTranslateComponents(false);
         EnableDisableRotateComponents(true);
         break;
 
     default:
+        EnableDisableFlipComponents(false);
         EnableDisableScaleComponents(false);
         EnableDisableTranslateComponents(false);
         EnableDisableRotateComponents(false);
@@ -365,7 +405,9 @@ void vtkPerkStationCalibrateStep::ShowUserInterface()
 
   vtkKWWidget *parent = wizard_widget->GetClientArea();
 
-  
+  //flip components
+  this->ShowFlipComponents();
+
   // scale step components
   this->ShowScaleComponents();
   
@@ -392,6 +434,62 @@ void vtkPerkStationCalibrateStep::ShowUserInterface()
 
   
 
+}
+
+//----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::ShowFlipComponents()
+{
+  vtkKWWidget *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
+  
+  // Create the frame
+  if (!this->FlipFrame)
+    {
+    this->FlipFrame = vtkKWFrameWithLabel::New();
+    }
+  if (!this->FlipFrame->IsCreated())
+    {
+    this->FlipFrame->SetParent(parent);
+    this->FlipFrame->Create();
+    this->FlipFrame->SetLabelText("Flip");
+    this->FlipFrame->SetBalloonHelpString("Check whether vertical flip or horizontal flip required");   
+    }
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                this->FlipFrame->GetWidgetName());
+
+  // individual components
+  if (!this->VerticalFlipCheckButton)
+    {
+    this->VerticalFlipCheckButton = vtkKWCheckButtonWithLabel::New();
+    }
+  if (!this->VerticalFlipCheckButton->IsCreated())
+    {
+    this->VerticalFlipCheckButton->SetParent(this->FlipFrame->GetFrame());
+    this->VerticalFlipCheckButton->Create();
+    this->VerticalFlipCheckButton->GetLabel()->SetBackgroundColor(0.7,0.7,0.7);
+    this->VerticalFlipCheckButton->SetLabelText("Vertical Flip:");
+    this->VerticalFlipCheckButton->SetHeight(4);
+    this->VerticalFlipCheckButton->GetWidget()->SetIndicatorVisibility(0);
+    }
+ 
+  this->Script("pack %s -side left -anchor nw -padx 8 -pady 2", 
+                this->VerticalFlipCheckButton->GetWidgetName());
+
+  // individual components
+  if (!this->HorizontalFlipCheckButton)
+    {
+    this->HorizontalFlipCheckButton = vtkKWCheckButtonWithLabel::New();
+    }
+  if (!this->HorizontalFlipCheckButton->IsCreated())
+    {
+    this->HorizontalFlipCheckButton->SetParent(this->FlipFrame->GetFrame());
+    this->HorizontalFlipCheckButton->Create();
+    this->HorizontalFlipCheckButton->GetLabel()->SetBackgroundColor(0.7,0.7,0.7);
+    this->HorizontalFlipCheckButton->SetLabelText("Horizontal Flip:");
+    this->HorizontalFlipCheckButton->SetHeight(4);
+    }
+ 
+  this->Script("pack %s -side top -anchor nw -padx 8 -pady 2", 
+                this->HorizontalFlipCheckButton->GetWidgetName());
 }
 
 //----------------------------------------------------------------------------
@@ -1021,6 +1119,12 @@ void vtkPerkStationCalibrateStep::ShowRotateComponents()
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::InstallCallbacks()
 {
+  // flip components
+  this->VerticalFlipCheckButton->GetWidget()->SetCommand(this, "VerticalFlipCallback");
+  this->AddCallbackCommandObserver(this->VerticalFlipCheckButton->GetWidget(), vtkKWCheckButton::SelectedStateChangedEvent);
+  this->HorizontalFlipCheckButton->GetWidget()->SetCommand(this, "HorizontalFlipCallback");
+  this->AddCallbackCommandObserver(this->HorizontalFlipCheckButton->GetWidget(), vtkKWCheckButton::SelectedStateChangedEvent);
+
   char buffer[256]= "";
   // callback on image scaling entry
   for (int id = 0; id < 2; id++)
@@ -1068,6 +1172,11 @@ void vtkPerkStationCalibrateStep::PopulateControls()
     return;
     }
  
+  // populate flip frame components
+  this->VerticalFlipCheckButton->GetWidget()->SetSelectedState(0);
+  this->HorizontalFlipCheckButton->GetWidget()->SetSelectedState(0);
+
+
   // populate scale frame controls
   // 1. image spacing
   double imgSpacing[3];
@@ -1098,6 +1207,31 @@ void vtkPerkStationCalibrateStep::PopulateControls()
   rasCenter[2] = sliceCenter[2];
   mrmlNode->SetCenterOfRotation(rasCenter);
 
+  this->CurrentSubState = 0;
+
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::HorizontalFlipCallback(int value)
+{
+  this->GetGUI()->GetMRMLNode()->SetHorizontalFlip(value);
+  this->FlipImage();
+  this->ImageFlipDone = true;
+  this->CurrentSubState = 1;
+  this->EnableDisableControls();
+
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::VerticalFlipCallback(int value)
+{
+  // set user scaling in mrml node
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if (mrmlNode)
+    this->GetGUI()->GetMRMLNode()->SetVerticalFlip(value);
+  this->FlipImage();
+  this->ImageFlipDone = true;
+  this->CurrentSubState = 1;
+  this->EnableDisableControls();
+
 }
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::ImageScalingEntryCallback(int widgetIndex, double value)
@@ -1120,7 +1254,10 @@ void vtkPerkStationCalibrateStep::ImageScalingEntryCallback(int widgetIndex, dou
     // set user scaling in mrml node
     vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
     if (mrmlNode)
-        mrmlNode->SetUserScaling(xScaling, yScaling,1);
+      {
+      mrmlNode->SetUserScaling(xScaling, yScaling,1);
+      mrmlNode->CalculateCalibrateScaleError();
+      }
 
     // actually scale the image
     // TO DO:
@@ -1158,6 +1295,7 @@ void vtkPerkStationCalibrateStep::ImageTranslationEntryCallback(int widgetIndex,
     {
     // record user input in mrml node
     this->GetGUI()->GetMRMLNode()->SetUserTranslation(xTranslation, yTranslation, 0);
+    this->GetGUI()->GetMRMLNode()->CalculateCalibrateTranslationError();
     // actually translate the image
     // TO DO:
     this->TranslateImage();
@@ -1174,6 +1312,7 @@ void vtkPerkStationCalibrateStep::ImageRotationEntryCallback(double value)
 {
     // TO DO: check if its a valid input i.e. between 0 to 360
     this->GetGUI()->GetMRMLNode()->SetUserRotation(value);
+    this->GetGUI()->GetMRMLNode()->CalculateCalibrateRotationError();
     // actually rotate the image
     // TO DO:
     this->RotateImage();
@@ -1199,10 +1338,11 @@ void vtkPerkStationCalibrateStep::ProcessImageClickEvents(vtkObject *caller, uns
     }
 
   vtkSlicerInteractorStyle *s = vtkSlicerInteractorStyle::SafeDownCast(caller);
-  vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
+  //vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
   vtkSlicerInteractorStyle *istyleSecondary = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor()->GetInteractorStyle());
   
-  if (((s == istyle0)|| (s == istyleSecondary)) && (event == vtkCommand::LeftButtonPressEvent) )
+  // listen to click only when they come from secondary monitor's window
+  if ((s == istyleSecondary) && (event == vtkCommand::LeftButtonPressEvent) )
     {
     // hear clicks only if the current sub state is Translate or Rotate
     if (! ((this->CurrentSubState == 2) || (this->CurrentSubState == 3)))
@@ -1214,17 +1354,16 @@ void vtkPerkStationCalibrateStep::ProcessImageClickEvents(vtkObject *caller, uns
     // capture the point
 
     vtkRenderWindowInteractor *rwi;
-    vtkMatrix4x4 *matrix;
+    vtkMatrix4x4 *matrix;    
     
-    
-    if (s == istyle0)
+    /*if (s == istyle0)
       {
       // coming from main gui viewer of SLICER
       vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI0();
       rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
       matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();    
       }
-    else if ( s == istyleSecondary)
+    else if ( s == istyleSecondary)*/
       {
       // coming from click on secondary monitor
       rwi = this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor();
@@ -1322,11 +1461,40 @@ void vtkPerkStationCalibrateStep::CalculateImageRotation(double & rotationAngle)
 }
 
 //----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::FlipImage()
+{
+  if(this->ImageFlipDone)
+      return;
+
+  bool verticalFlip = false;
+  bool horizontalFlip = false;
+
+  verticalFlip = this->GetGUI()->GetMRMLNode()->GetVerticalFlip();
+  horizontalFlip = this->GetGUI()->GetMRMLNode()->GetHorizontalFlip();
+
+  if (verticalFlip)
+    this->GetGUI()->GetSecondaryMonitor()->FlipVertical();
+
+  if (horizontalFlip)
+    this->GetGUI()->GetSecondaryMonitor()->FlipHorizontal(); 
+
+}
+//----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::ScaleImage()
 {
   if (this->ImageScalingDone)
       return;
 
+  double scale[3];
+  scale[0] = 1;
+  scale[1] = 1;
+  scale[2] = 1;
+  this->GetGUI()->GetMRMLNode()->GetUserScaling(scale);
+
+  // scaling only required in secondary monitor
+  this->GetGUI()->GetSecondaryMonitor()->Scale(scale[0], scale[1], scale[2]);
+
+  /*
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   if (!mrmlNode)
     {
@@ -1376,7 +1544,7 @@ void vtkPerkStationCalibrateStep::ScaleImage()
     node->GetMatrixTransformToParent()->SetElement(2,2, transform->GetMatrix()->GetElement(2,2)) ;
     node->Modified();
     }
-
+*/
 
 }
 //-----------------------------------------------------------------------------
@@ -1385,6 +1553,12 @@ void vtkPerkStationCalibrateStep::TranslateImage()
   if (this->ImageTranslationDone)
       return;
 
+  double translationRAS[3];  
+  this->GetGUI()->GetMRMLNode()->GetUserTranslation(translationRAS[0], translationRAS[1], translationRAS[2]);
+
+  this->GetGUI()->GetSecondaryMonitor()->Translate(translationRAS[0], translationRAS[1], translationRAS[2]);
+
+  /*
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   if (!mrmlNode)
     {
@@ -1441,7 +1615,7 @@ void vtkPerkStationCalibrateStep::TranslateImage()
   this->COR->GetWidget(1)->SetValueAsDouble(rasCenter[1]);
   sliceLogic->GetVolumeSliceDimensions(inVolume, rasDimensions, sliceCenter);
   rasCenter[2] = sliceCenter[2];
-  this->GetGUI()->GetMRMLNode()->SetCenterOfRotation(rasCenter);
+  this->GetGUI()->GetMRMLNode()->SetCenterOfRotation(rasCenter);*/
   
   /*
   // translate by SliceLogic and SliceNode way
@@ -1488,8 +1662,13 @@ void vtkPerkStationCalibrateStep::TranslateImage()
 void vtkPerkStationCalibrateStep::RotateImage()
 {
   if (this->ImageRotationDone)
-      return;
+     return;
 
+  double rotationRAS = this->GetGUI()->GetMRMLNode()->GetUserRotation();
+
+  this->GetGUI()->GetSecondaryMonitor()->Rotate(rotationRAS);
+
+   /*
    vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   if (!mrmlNode)
     {
@@ -1509,7 +1688,7 @@ void vtkPerkStationCalibrateStep::RotateImage()
   double cor[3];  
   this->GetGUI()->GetMRMLNode()->GetCenterOfRotation(cor);
   
-  /*
+  
   vtkTransform* transform = vtkTransform::New();
   transform->Identity();
   transform->PostMultiply();
@@ -1538,6 +1717,8 @@ void vtkPerkStationCalibrateStep::RotateImage()
     node->Modified();
     }
 */
+
+   /*
  // translate by SliceLogic and SliceNode way
 
   // get the slice node and slice logic
@@ -1568,7 +1749,7 @@ void vtkPerkStationCalibrateStep::RotateImage()
   sliceNode->UpdateMatrices( );
   this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->RequestRender();
   sliceToRAS->Delete(); 
-
+*/
 }
 //----------------------------------------------------------------------------
 /*void vtkPerkStationCalibrateStep::DisplaySelectedNodeSpatialPriorsCallback()

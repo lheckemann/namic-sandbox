@@ -101,6 +101,10 @@ public:
   // Translate (translation units mm, so must be converted to pixels inside function)
   void Translate(double tx, double ty, double tz);
 
+  // Description
+  // Overlay needle guide
+  void OverlayNeedleGuide();
+
 protected:
   vtkPerkStationSecondaryMonitor();
   ~vtkPerkStationSecondaryMonitor();  
