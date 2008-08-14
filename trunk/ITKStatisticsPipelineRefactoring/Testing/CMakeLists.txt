@@ -24,7 +24,6 @@ ADD_TEST(itkCovarianceFilterTest3 ${STATISTICS_TESTS} itkCovarianceFilterTest3)
 ADD_TEST(itkHistogramToTextureFeaturesFilterTest ${STATISTICS_TESTS} itkHistogramToTextureFeaturesFilterTest)
 ADD_TEST(itkHistogramTest ${STATISTICS_TESTS} itkHistogramTest)
 ADD_TEST(itkImageToHistogramFilterTest ${STATISTICS_TESTS} itkImageToHistogramFilterTest)
-#ADD_TEST(itkImageToHistogramFilterTest2 ${STATISTICS_TESTS} itkImageToHistogramFilterTest2)
 ADD_TEST(itkImageToListSampleFilterTest ${STATISTICS_TESTS} itkImageToListSampleFilterTest)
 ADD_TEST(itkImageToListSampleFilterTest2 ${STATISTICS_TESTS} itkImageToListSampleFilterTest2)
 ADD_TEST(itkImageToListSampleFilterTest3 ${STATISTICS_TESTS} itkImageToListSampleFilterTest3)
@@ -149,7 +148,6 @@ SET(Statistics_SRCS
   itkHistogramTest.cxx
   itkHistogramToTextureFeaturesFilterTest.cxx
   itkImageToHistogramFilterTest.cxx
-#  itkImageToHistogramFilterTest2.cxx
   itkImageToListSampleFilterTest.cxx
   itkImageToListSampleFilterTest2.cxx
   itkImageToListSampleFilterTest3.cxx
