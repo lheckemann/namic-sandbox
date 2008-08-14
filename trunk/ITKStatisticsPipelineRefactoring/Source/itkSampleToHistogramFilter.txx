@@ -88,6 +88,18 @@ SampleToHistogramFilter< TSample, THistogram >
   return output;
 }
 
+template < class TSample, class THistogram >
+void
+SampleToHistogramFilter< TSample, THistogram >
+::GraftOutput(DataObject *graft)
+{
+  DataObject * output = 
+   const_cast< HistogramType * >( this->GetOutput() );
+
+  // Call Histogram to copy meta-information, and the container
+  output->Graft( graft );
+}
+
 
 template < class TSample, class THistogram >
 typename SampleToHistogramFilter< TSample, THistogram >::DataObjectPointer

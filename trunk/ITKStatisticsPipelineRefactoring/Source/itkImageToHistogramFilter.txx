@@ -96,8 +96,8 @@ ImageToHistogramFilter< TImage >
   this->m_HistogramGenerator->SetHistogramBinMinimumInput( this->GetHistogramBinMinimumInput() );
   this->m_HistogramGenerator->SetHistogramBinMaximumInput( this->GetHistogramBinMaximumInput() );
 
-// FIXME  this->m_HistogramGenerator->GraftOutput( 
-//    static_cast< ListSampleType * >( this->ProcessObject::GetOutput(0)) );
+  this->m_HistogramGenerator->GraftOutput( 
+    static_cast< HistogramType * >( this->ProcessObject::GetOutput(0)) );
 
   this->m_HistogramGenerator->Update();
 
