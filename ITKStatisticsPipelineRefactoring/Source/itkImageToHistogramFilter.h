@@ -143,6 +143,8 @@ protected:
   DataObject::Pointer  MakeOutput( unsigned int );
 
 private:
+  ImageToHistogramFilter(const Self&); //purposely not implemented
+  void operator=(const Self&); //purposely not implemented
 
   AdaptorPointer          m_ImageToListAdaptor;
 
