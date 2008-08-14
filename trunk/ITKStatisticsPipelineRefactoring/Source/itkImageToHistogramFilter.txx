@@ -86,6 +86,19 @@ ImageToHistogramFilter< TImage >
 template < class TImage >
 void
 ImageToHistogramFilter< TImage >
+::GraftOutput(DataObject *graft)
+{
+  DataObject * output = 
+   const_cast< HistogramType * >( this->GetOutput() );
+
+  // Call Histogram to copy meta-information, and the container
+  output->Graft( graft );
+}
+
+
+template < class TImage >
+void
+ImageToHistogramFilter< TImage >
 ::GenerateData() 
 {
   this->m_ImageToListAdaptor->SetImage( this->GetInput( ) );
@@ -101,8 +114,9 @@ ImageToHistogramFilter< TImage >
 
   this->m_HistogramGenerator->Update();
 
-//  /** graft the minipipeline output back into this filter's output */
-//  this->GraftOutput( this->m_HistogramGenerator->GetOutput() );
+  /** graft the minipipeline output back into this filter's output */
+  this->GraftOutput( 
+    const_cast< HistogramType * >( this->m_HistogramGenerator->GetOutput() ) );
 }
 
 
