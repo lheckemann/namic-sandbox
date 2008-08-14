@@ -459,6 +459,52 @@ void vtkOpenIGTLinkIFLogic::RegisterDeviceEvent(vtkIGTLConnector* con, const cha
 
 }
 
+//---------------------------------------------------------------------------
+void vtkOpenIGTLinkIFLogic::UnRegisterDeviceEvent(vtkIGTLConnector* con, const char* deviceName, const char* deviceType)
+{
+
+  // check if the device name exists in the MRML tree
+  vtkCollection* collection = this->GetMRMLScene()->GetNodesByName(deviceName);
+  int nItems = collection->GetNumberOfItems();
+
+  vtkMRMLNode* srcNode = NULL;   // Event Source MRML node 
+
+  if (nItems > 0) // if nodes with the same name as the device name are found in the MRML tree
+    {
+    if (strcmp(deviceType, "TRANSFORM") == 0)
+      {
+      for (int i = 0; i < nItems; i ++)
+        {
+        vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(collection->GetItemAsObject(i));
+        if (strcmp(node->GetNodeTagName(), "LinearTransform") == 0)
+          {
+          srcNode = node;
+          }
+        }
+      }
+    if (strcmp(deviceType, "IMAGE") == 0)
+      {
+      for (int i = 0; i < nItems; i ++)
+        {
+        vtkMRMLNode* node = vtkMRMLNode::SafeDownCast(collection->GetItemAsObject(i));
+        if (strcmp(node->GetNodeTagName(), "Volume") == 0)
+          {
+          srcNode = node;
+          }
+        }
+      }
+    }
+
+  if (nItems == 0 || srcNode == NULL) // not found
+    {
+    return;
+    }
+
+  this->MRMLObserverManager->RemoveObjectEvents(srcNode);
+
+}
+
+
 
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFLogic::ImportFromCircularBuffers()
@@ -557,8 +603,81 @@ int  vtkOpenIGTLinkIFLogic::AddDeviceToConnector(int id, const char* deviceName,
 }
 
 //---------------------------------------------------------------------------
-int  vtkOpenIGTLinkIFLogic::DeleteDeviceToConnector(int id, const char* deviceName, const char* deviceType, int io)
+int  vtkOpenIGTLinkIFLogic::DeleteDeviceFromConnector(int id, const char* deviceName, const char* deviceType, int io)
 {
+  vtkIGTLConnector* connector = GetConnector(id);
+
+  if (connector)
+    {
+    vtkIGTLConnector::DeviceNameList* devList;
+    
+    if (io == DEVICE_IN)             // incoming
+      {
+      devList = connector->GetIncomingDeviceList();
+      }
+    else if (io == DEVICE_OUT)       // outgoing
+      {
+      devList = connector->GetOutgoingDeviceList();
+      }
+    else //if (io == DEVICE_UNSPEC)  // unspecified
+      {
+      devList = connector->GetUnspecifiedDeviceList();
+      }
+
+    // find the device name from the list
+    vtkIGTLConnector::DeviceNameList::iterator iter; 
+    iter = devList->find(std::string(deviceName));
+    if (iter != devList->end()) // TODO: check device type here 
+      {
+      UnRegisterDeviceEvent(connector, deviceName, deviceType);
+      devList->erase(iter);
+      }
+    }
+
+}
+
+//---------------------------------------------------------------------------
+int  vtkOpenIGTLinkIFLogic::SetDeviceType(int id, const char* deviceName, const char* deviceType, int io)
+{
+  vtkIGTLConnector* connector = GetConnector(id);
+
+  if (connector)
+    {
+    vtkIGTLConnector::DeviceNameList* devList;
+    
+    if (io == DEVICE_IN)             // incoming
+      {
+      devList = connector->GetIncomingDeviceList();
+      }
+    else if (io == DEVICE_OUT)       // outgoing
+      {
+      devList = connector->GetOutgoingDeviceList();
+      }
+    else //if (io == DEVICE_UNSPEC)  // unspecified
+      {
+      devList = connector->GetUnspecifiedDeviceList();
+      }
+
+    // find the device name from the list
+    vtkIGTLConnector::DeviceNameList::iterator iter; 
+    iter = devList->find(std::string(deviceName));
+    if (iter != devList->end()) // TODO: check device type here 
+      {
+      const char* origDeviceType = iter->second.c_str();
+      if (io == DEVICE_OUT)
+        {
+        UnRegisterDeviceEvent(connector, deviceName, origDeviceType); 
+        }
+      
+      iter->second = std::string(deviceType);
+
+      if (io == DEVICE_OUT)
+        {
+        RegisterDeviceEvent(connector, deviceName, deviceType);
+        }
+      }
+    }
+
 }
 
 
