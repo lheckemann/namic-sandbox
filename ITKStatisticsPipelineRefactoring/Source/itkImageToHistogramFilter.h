@@ -127,6 +127,10 @@ public:
   itkSetDecoratedInputMacro( AutoMinimumMaximum, bool, 5 );
 
 
+  /** Method that facilitates the use of this filter in the internal
+   * pipeline of another filter. */
+  virtual void GraftOutput(DataObject *output);
+
 protected:
   ImageToHistogramFilter();
   virtual ~ImageToHistogramFilter() {};
