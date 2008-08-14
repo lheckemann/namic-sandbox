@@ -132,6 +132,11 @@ ADD_TEST(itkWeightedCentroidKdTreeGeneratorTest6 ${STATISTICS_TESTS}
   itkWeightedCentroidKdTreeGeneratorTest1 1000 1000 20 )
 ADD_TEST(itkWeightedCentroidKdTreeGeneratorTest7 ${STATISTICS_TESTS} 
   itkWeightedCentroidKdTreeGeneratorTest1 1000 1000 100 )
+ADD_TEST(itkWeightedCentroidKdTreeGeneratorTest8 ${STATISTICS_TESTS} 
+  itkWeightedCentroidKdTreeGeneratorTest8 1000 1000 1 )
+ADD_TEST(itkWeightedCentroidKdTreeGeneratorTest9 ${STATISTICS_TESTS} 
+  itkWeightedCentroidKdTreeGeneratorTest9 1000 1000 1 )
+
 
 ADD_TEST(itkGaussianMixtureModelComponentTest 
          ${STATISTICS_TESTS} 
@@ -219,6 +224,8 @@ SET(Statistics_SRCS
   itkKdTreeTestSamplePoints.cxx
   itkKdTreeTest2.cxx
   itkWeightedCentroidKdTreeGeneratorTest1.cxx
+  itkWeightedCentroidKdTreeGeneratorTest8.cxx
+  itkWeightedCentroidKdTreeGeneratorTest9.cxx
 
   itkGaussianMixtureModelComponentTest.cxx
   itkExpectationMaximizationMixtureModelEstimatorTest.cxx

@@ -184,7 +184,6 @@ int itkSampleClassifierFilterTest6(int argc, char *argv[] )
   const FilterType::MembershipSampleType* membershipSample = filter->GetOutput();
   FilterType::MembershipSampleType::ConstIterator iter = membershipSample->Begin();
 
-  /*
   unsigned int sampleCounter = 0;
   while ( iter != membershipSample->End() )
     {
@@ -193,7 +192,7 @@ int itkSampleClassifierFilterTest6(int argc, char *argv[] )
       if( iter.GetClassLabel() != class1 )
         {
         std::cerr << "Classification error: " << sampleCounter
-                  << "\t" << iter.GetMeasurementVector() << iter.GetClassLabel() 
+                  << "\t" << iter.GetClassLabel() 
                   << "\tclass1=" << class1 << std::endl;
         return EXIT_FAILURE;
         }
@@ -203,7 +202,7 @@ int itkSampleClassifierFilterTest6(int argc, char *argv[] )
       if( iter.GetClassLabel() != class2 )
         {
         std::cerr << "Classification error: " << sampleCounter
-                  << "\t" << iter.GetMeasurementVector() << iter.GetClassLabel() 
+                  << "\t" << iter.GetClassLabel() 
                   << "\tclass2=" << class2 << std::endl;
         return EXIT_FAILURE;
         }
@@ -211,7 +210,6 @@ int itkSampleClassifierFilterTest6(int argc, char *argv[] )
     ++iter;
     ++sampleCounter;
     }
-  */
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
