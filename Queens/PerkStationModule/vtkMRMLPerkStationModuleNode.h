@@ -57,6 +57,17 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRML
   // calibrate parameters:
   
   // Description:
+  // Get/Set  VerticalFlip(module parameter)
+  vtkGetMacro(VerticalFlip, bool);
+  vtkSetMacro(VerticalFlip, bool);
+
+  // Description:
+  // Get/Set  HorizontalFlip(module parameter)
+  vtkGetMacro(HorizontalFlip, bool);
+  vtkSetMacro(HorizontalFlip, bool);
+
+
+  // Description:
   // Get/Set  UserScaling(module parameter)
   vtkGetVector3Macro(UserScaling, double);
   vtkSetVector3Macro(UserScaling, double);
@@ -145,7 +156,13 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRML
 
 
   // evaluate parameters:
-
+  vtkGetVector2Macro(CalibrateTranslationError, double);  
+  vtkGetMacro(CalibrateRotationError, double);
+  vtkGetVector2Macro(CalibrateScaleError, double);
+  vtkGetMacro(PlanInsertionAngleError, double);
+  vtkGetMacro(PlanInsertionDepthError, double);
+  vtkGetMacro(EntryPointError, double);
+  vtkGetMacro(TargetPointError, double);
 
 
   // common:
@@ -162,6 +179,19 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRML
   // Description:
   // Get information about secondary/image overlay monitors spacing.
   int GetSecondaryMonitorSpacing(double & xSpacing, double & ySpacing);
+
+
+  void CalculateCalibrateScaleError();
+  void CalculateCalibrateTranslationError();
+  void CalculateCalibrateRotationError();
+
+  void CalculatePlanInsertionAngleError();
+  void CalculatePlanInsertionDepthError();
+
+  void CalculateEntryPointError();
+  void CalculateTargetPointError();
+
+
 protected:
   vtkMRMLPerkStationModuleNode();
   ~vtkMRMLPerkStationModuleNode();
@@ -174,6 +204,10 @@ protected:
 
   // the slicer's volume transform node
   vtkMRMLLinearTransformNode *CalibrationMRMLTransformNode;
+
+  // flip parameters
+  bool VerticalFlip;
+  bool HorizontalFlip;
 
   // scale parameters
   double UserScaling[3];
@@ -205,6 +239,16 @@ protected:
   double ValidateTargetPoint[3];
 
   // evaluate parameters
+
+  double CalibrateTranslationError[2]; // error in mm
+  double CalibrateScaleError[2]; // expressed in %ge
+  double CalibrateRotationError; // in degrees
+
+  double PlanInsertionAngleError; // in degrees
+  double PlanInsertionDepthError; // in mm
+
+  double EntryPointError; // error in mm
+  double TargetPointError; //error in mm
 
 
   // common parameters  

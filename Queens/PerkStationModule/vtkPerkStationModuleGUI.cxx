@@ -329,7 +329,7 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
       }
     this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
     this->SecondaryMonitor->SetupImageData();
-    this->RenderSecondaryMonitor();
+    //this->RenderSecondaryMonitor();
     }
 
   
@@ -685,6 +685,8 @@ void vtkPerkStationModuleGUI::RenderSecondaryMonitor()
     reader->SetFileName("C:\\Work\\SliceVolReg\\Data\\Pt1\\SR301\\I0022_1");
     reader->Update();
     
+    float *direction = reader->GetImageOrientationPatient();
+
     int extent[6];
     double spacing[3];
     double origin[3];

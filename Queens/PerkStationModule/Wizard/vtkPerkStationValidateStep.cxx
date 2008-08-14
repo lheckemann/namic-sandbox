@@ -381,8 +381,10 @@ void vtkPerkStationValidateStep::PopulateControls()
 //-----------------------------------------------------------------------------
 void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData)
 {
-   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
+  static unsigned int clickNum = 0;
+  vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
 
+  // first identify if the step is pertinent, i.e. current step of wizard workflow is actually calibration step
   if (!wizard_widget ||
       wizard_widget->GetWizardWorkflow()->GetCurrentStep() != 
       this)
@@ -392,12 +394,13 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
 
   vtkSlicerInteractorStyle *s = vtkSlicerInteractorStyle::SafeDownCast(caller);
   vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
+  vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
 
   if ((s == istyle0) && (event == vtkCommand::LeftButtonPressEvent))
     {
+    ++clickNum;
     // mouse click happened in the axial slice view
-    // first identify if the step is pertinent, i.e. current step of wizard workflow is actually calibration step
-
+    
     // capture the point
     vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI0();
     vtkRenderWindowInteractor *rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
@@ -406,8 +409,35 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
     double inPt[4] = {point[0], point[1], 0, 1};
     double outPt[4];
     vtkMatrix4x4 *matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
-    matrix->MultiplyPoint(inPt, outPt);
+    matrix->MultiplyPoint(inPt, outPt); 
     double ras[3] = {outPt[0], outPt[1], outPt[2]};
+
+    // depending on click number, it is either Entry point or target point
+    if (clickNum ==1)
+      {
+      // entry point specification by user
+      this->EntryPoint->GetWidget(0)->SetValueAsDouble(ras[0]);
+      this->EntryPoint->GetWidget(1)->SetValueAsDouble(ras[1]);
+      this->EntryPoint->GetWidget(2)->SetValueAsDouble(ras[2]);
+
+      // record value in mrml node
+      this->GetGUI()->GetMRMLNode()->SetValidateEntryPoint(ras);
+      this->GetGUI()->GetMRMLNode()->CalculateEntryPointError();
+      
+      }
+    else if (clickNum == 2)
+      {
+      this->TargetPoint->GetWidget(0)->SetValueAsDouble(ras[0]);
+      this->TargetPoint->GetWidget(1)->SetValueAsDouble(ras[1]);
+      this->TargetPoint->GetWidget(2)->SetValueAsDouble(ras[2]);
+      
+      // record value in the MRML node
+      this->GetGUI()->GetMRMLNode()->SetPlanTargetPoint(ras);      
+      this->GetGUI()->GetMRMLNode()->CalculateTargetPointError();
+
+      clickNum = 0;
+      }
+
 
     }
 

@@ -55,7 +55,72 @@ vtkMRMLNode* vtkMRMLPerkStationModuleNode::CreateNodeInstance()
 vtkMRMLPerkStationModuleNode::vtkMRMLPerkStationModuleNode()
 {
    this->InputVolumeRef = NULL;
-   this->HideFromEditors = true;   
+   this->HideFromEditors = true;
+
+   // member variables
+   this->VerticalFlip = false;
+   this->HorizontalFlip = false;
+
+   this->UserScaling[0] = 1.0;
+   this->UserScaling[1] = 1.0;
+   this->UserScaling[2] = 1.0;
+
+   this->ActualScaling[0] = 1.0;
+   this->ActualScaling[1] = 1.0;
+   this->ActualScaling[2] = 1.0;
+
+   this->UserTranslation[0] = 0;
+   this->UserTranslation[1] = 0;
+   this->UserTranslation[2] = 0;
+
+   this->ActualTranslation[0] = 0;
+   this->ActualTranslation[1] = 0;
+   this->ActualTranslation[2] = 0;
+
+   this->UserRotation = 0;
+   this->ActualRotation = 0;
+   this->CenterOfRotation[0] = 0.0;
+   this->CenterOfRotation[1] = 0.0;
+   this->CenterOfRotation[2] = 0.0;
+
+   this->PlanEntryPoint[0] = 0.0;
+   this->PlanEntryPoint[1] = 0.0;
+   this->PlanEntryPoint[2] = 0.0;
+
+   this->PlanTargetPoint[0] = 0.0;
+   this->PlanTargetPoint[1] = 0.0;
+   this->PlanTargetPoint[2] = 0.0;
+
+   this->UserPlanInsertionAngle = 0;
+   this->ActualPlanInsertionAngle = 0;
+
+   this->UserPlanInsertionDepth = 0;
+   this->ActualPlanInsertionDepth = 0;
+
+   this->ValidateEntryPoint[0] = 0.0;
+   this->ValidateEntryPoint[1] = 0.0;
+   this->ValidateEntryPoint[2] = 0.0;
+
+   this->ValidateTargetPoint[0] = 0.0;
+   this->ValidateTargetPoint[1] = 0.0;
+   this->ValidateTargetPoint[2] = 0.0;
+
+   this->CalibrateTranslationError[0] = 0;
+   this->CalibrateTranslationError[1] = 0;
+
+   this->CalibrateScaleError[0] = 0.0;
+   this->CalibrateScaleError[1] = 0.0;
+
+   this->CalibrateRotationError = 0;
+
+   this->PlanInsertionAngleError = 0;
+   this->PlanInsertionDepthError = 0;
+
+   this->EntryPointError = 0;
+   this->TargetPointError = 0;
+
+
+
    this->InitializeTransform();
 }
 
@@ -186,6 +251,44 @@ int vtkMRMLPerkStationModuleNode::GetSecondaryMonitorSpacing(double & xSpacing, 
   return retValue;  
 
 }
+//------------------------------------------------------------------------------
+void vtkMRMLPerkStationModuleNode::CalculateCalibrateScaleError()
+{
+  this->CalibrateScaleError[0] = 100*(this->ActualScaling[0]-this->UserScaling[0])/this->ActualScaling[0];
+  this->CalibrateScaleError[1] = 100*(this->ActualScaling[1]-this->UserScaling[1])/this->ActualScaling[1];
+}
+//------------------------------------------------------------------------------
+void vtkMRMLPerkStationModuleNode::CalculateCalibrateTranslationError()
+{
+  this->CalibrateTranslationError[0] = this->ActualTranslation[0] - this->UserTranslation[0];
+  this->CalibrateTranslationError[1] = this->ActualTranslation[1] - this->UserTranslation[1];
+}
+//------------------------------------------------------------------------------
+void vtkMRMLPerkStationModuleNode::CalculateCalibrateRotationError()
+{
+  this->CalibrateRotationError = this->ActualRotation - this->UserRotation;
+}
+//------------------------------------------------------------------------------
+void vtkMRMLPerkStationModuleNode::CalculatePlanInsertionAngleError()
+{
+  this->PlanInsertionAngleError = this->ActualPlanInsertionAngle - this->UserPlanInsertionAngle;
+}
+//-------------------------------------------------------------------------------
+void vtkMRMLPerkStationModuleNode::CalculatePlanInsertionDepthError()
+{ 
+  this->PlanInsertionDepthError = this->ActualPlanInsertionDepth - this->UserPlanInsertionDepth;
+}
+//-------------------------------------------------------------------------------
+void vtkMRMLPerkStationModuleNode::CalculateEntryPointError()
+{
+  this->EntryPointError = sqrt( (this->PlanEntryPoint[0]-this->ValidateEntryPoint[0])*(this->PlanEntryPoint[0]-this->ValidateEntryPoint[0]) + (this->PlanEntryPoint[1]-this->ValidateEntryPoint[1])*(this->PlanEntryPoint[1]-this->ValidateEntryPoint[1]));
+}
+//-------------------------------------------------------------------------------
+void vtkMRMLPerkStationModuleNode::CalculateTargetPointError()
+{
+  this->TargetPointError = sqrt( (this->PlanTargetPoint[0]-this->ValidateTargetPoint[0])*(this->PlanTargetPoint[0]-this->ValidateTargetPoint[0]) + (this->PlanTargetPoint[1]-this->ValidateTargetPoint[1])*(this->PlanTargetPoint[1]-this->ValidateTargetPoint[1]));
+}
+
 //-------------------------------------------------------------------------------
 void vtkMRMLPerkStationModuleNode::InitializeTransform()
 {

@@ -3,7 +3,13 @@
 #include "vtkMRMLPerkStationModuleNode.h"
 
 #include "vtkRenderer.h"
+#include "vtkCamera.h"
 #include "vtkWin32OpenGLRenderWindow.h"
+#include "vtkCylinderSource.h"
+#include "vtkMath.h"
+#include "vtkMatrixToHomogeneousTransform.h"
+#include "vtkTransformPolyDataFilter.h"
+#include "vtkProperty2D.h"
 //----------------------------------------------------------------------------
 vtkPerkStationSecondaryMonitor* vtkPerkStationSecondaryMonitor::New()
 {
@@ -57,6 +63,10 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
  this->RenderWindow->AddRenderer(this->Renderer);
  this->RenderWindow->SetBorders(0);
  
+ vtkCamera *camera = vtkCamera::New();
+ camera->SetParallelProjection(1);
+
+ this->Renderer->SetActiveCamera(camera);
  
  // interator
  this->Interator = vtkRenderWindowInteractor::New();
@@ -73,6 +83,7 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
  // actor
  this->ImageActor = vtkActor2D::New();
  this->ImageActor->SetMapper(this->ImageMapper);
+ this->ImageActor->GetProperty()->SetDisplayLocationToBackground();
 
 }
 
@@ -82,42 +93,6 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
 {
   this->SetGUI(NULL);
 }
-
-
-//----------------------------------------------------------------------------
-/*void vtkPerkStationSecondaryMonitor::UpdateTransforms()
-{
-  vtkMatrix4x4 *xyToIJK = vtkMatrix4x4::New();
-  xyToIJK->Identity();
-
-  //vtkMatrix4x4::Multiply4x4(this->XYToRAS, xyToIJK, xyToIJK);
-  
-  vtkMatrix4x4 *rasToIJK = vtkMatrix4x4::New();
-  this->VolumeNode->GetRASToIJKMatrix(rasToIJK);
-  
-  vtkMatrix4x4::Multiply4x4(rasToIJK, xyToIJK, xyToIJK); 
-  rasToIJK->Delete();
-
-  vtkMatrix4x4 *ijkToRAS = vtkMatrix4x4::New();
-  this->VolumeNode->GetIJKToRASMatrix(ijkToRAS);
-
-  vtkMatrix4x4 *tmpMatrix = vtkMatrix4x4::New();
-  tmpMatrix->SetElement(1,1, -1.0);
-  tmpMatrix->SetElement(1,3, 255);
-  vtkMatrix4x4::Multiply4x4(tmpMatrix, this->XYToSlice, this->XYToSlice); 
-  vtkMatrix4x4::Multiply4x4(ijkToRAS, this->XYToSlice, this->XYToRAS); 
-
-  
-  xyToIJK->SetElement(1,1,-1.0);
-  xyToIJK->SetElement(1,3,255);
-  this->XYToIJKTransform->SetMatrix( xyToIJK );
-  xyToIJK->Delete();
-  
-  this->UpdateImageDisplay();
-
-  
-}*/
-
 //----------------------------------------------------------------------------
  void vtkPerkStationSecondaryMonitor::SetupImageData()
 {
@@ -167,24 +142,22 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
   xyToIJK->SetElement(2,3,0.);
   this->XYToIJK->DeepCopy(xyToIJK);
 
-  // to have consistent display i.e. same display as in SLICER's slice viewer, and own render window
- // figure out whether a horizontal flip required or a vertical flip or both
+  // to have consistent display i.e. same display as in SLICER's slice viewer, and own render window in secondary monitor
+  // figure out whether a horizontal flip required or a vertical flip or both
+  // Note: this does not counter the flip that will be required due to secondary monitors orientation/mounting
+  // It only makes sure that two displays have same view if they are physically in same orientation
   vtkMatrix4x4 *directionMatrix = vtkMatrix4x4::New();
   this->VolumeNode->GetIJKToRASDirectionMatrix(directionMatrix);
 
   vtkMatrix4x4 *flipMatrix = vtkMatrix4x4::New();
-
   bool verticalFlip = false;
   bool horizontalFlip = false;
 
   flipMatrix = this->GetFlipMatrixFromDirectionCosines(directionMatrix,verticalFlip,horizontalFlip);
   this->CurrentTransformMatrix->DeepCopy(flipMatrix);
 
-  this->UpdateMatrices(); 
-  
-  this->Scale(6.1047,6.1217,1);
-
-  this->Translate(0, 26, 0);
+  this->UpdateMatrices();  
+ 
 }
 //----------------------------------------------------------------------------
 vtkMatrix4x4 *vtkPerkStationSecondaryMonitor::GetFlipMatrixFromDirectionCosines (vtkMatrix4x4 *directionMatrix, bool & verticalFlip, bool & horizontalFlip)
@@ -432,4 +405,130 @@ void vtkPerkStationSecondaryMonitor::Translate(double tx, double ty, double tz)
   this->CurrentTransformMatrix->DeepCopy(translateMatrix);
 
   this->UpdateMatrices();
+}
+
+//------------------------------------------------------------------------------
+void vtkPerkStationSecondaryMonitor::OverlayNeedleGuide()
+{
+  if (!this->DeviceActive)
+    return;
+
+  // get the world coordinates
+  int point[2];
+  double worldCoordinate[4];
+  double wcEntryPoint[3];
+  double wcTargetPoint[3];
+  
+  vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
+  vtkMatrix4x4::Invert(this->XYToRAS, rasToXY);
+
+  // entry point
+  double rasEntry[3];
+  this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint(rasEntry);
+  double inPt[4] = {rasEntry[0], rasEntry[1], rasEntry[2], 1};
+  double outPt[4];  
+  rasToXY->MultiplyPoint(inPt, outPt);
+  point[0] = outPt[0];
+  point[1] = outPt[1];
+
+  this->Renderer->SetDisplayPoint(point[0],point[1], 0);
+  this->Renderer->DisplayToWorld();
+  this->Renderer->GetWorldPoint(worldCoordinate);
+  wcEntryPoint[0] = worldCoordinate[0];
+  wcEntryPoint[1] = worldCoordinate[1];
+  wcEntryPoint[2] = worldCoordinate[2];
+
+  double rasTarget[3];
+  this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint(rasTarget);
+  inPt[0] = rasTarget[0];
+  inPt[1] = rasTarget[1];
+  inPt[2] = rasTarget[2];
+  rasToXY->MultiplyPoint(inPt, outPt);
+  point[0] = outPt[0];
+  point[1] = outPt[1];
+  this->Renderer->SetDisplayPoint(point[0],point[1], 0);
+  this->Renderer->DisplayToWorld();
+  this->Renderer->GetWorldPoint(worldCoordinate);
+  wcTargetPoint[0] = worldCoordinate[0];
+  wcTargetPoint[1] = worldCoordinate[1];
+  wcTargetPoint[2] = worldCoordinate[2];
+
+
+  double halfNeedleLength = sqrt( (wcTargetPoint[0]-wcEntryPoint[0])*(wcTargetPoint[0]-wcEntryPoint[0]) + (wcTargetPoint[1]-wcEntryPoint[1])*(wcTargetPoint[1]-wcEntryPoint[1]));
+
+
+  // steps
+  // get the cylinder source, create the cylinder, whose height is equal to calculated insertion depth
+  // apply transform on the cylinder to world coordinates, using the information of entry and target point
+  // i.e. using the insertion angle
+  // add it to slice viewer's renderer
+
+  vtkCylinderSource *needleGuide = vtkCylinderSource::New();
+  // TO DO: how to relate this to actual depth???
+  needleGuide->SetHeight(2*halfNeedleLength );
+  //needleGuide->SetHeight(0.75);
+  needleGuide->SetRadius( 0.015 );  
+  needleGuide->SetResolution( 20 );
+
+  //int *windowSize = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindow()->GetSize();
+  // because cylinder is positioned at the window center
+  double needleCenter[3];  
+  needleCenter[0] = wcEntryPoint[0];// - windowSize[0]/2;
+  needleCenter[1] = wcEntryPoint[1];// - windowSize[1]/2;
+  //needleCenter[2] = wcEntryPoint[2];
+  //needleGuide->SetCenter(needleCenter[0], needleCenter[1], needleCenter[2]);
+  
+  // TO DO: transfrom needle mapper using vtkTransformPolyData
+  vtkMatrix4x4 *transformMatrix = vtkMatrix4x4::New();
+  transformMatrix->Identity();
+  double angle = this->GetGUI()->GetMRMLNode()->GetActualPlanInsertionAngle();
+  if (this->HorizontalFlipped || this->VerticalFlipped)
+      angle = -angle;
+  double insAngleRad = vtkMath::Pi()/2 - double(vtkMath::Pi()/180)*angle;
+  transformMatrix->SetElement(0,0, cos(insAngleRad));
+  transformMatrix->SetElement(0,1, -sin(insAngleRad));
+  transformMatrix->SetElement(0,2, 0);
+  transformMatrix->SetElement(0,3, 0);
+  transformMatrix->SetElement(0,3, needleCenter[0]);
+
+  transformMatrix->SetElement(1,0, sin(insAngleRad));
+  transformMatrix->SetElement(1,1, cos(insAngleRad));
+  transformMatrix->SetElement(1,2, 0);
+  transformMatrix->SetElement(1,3, 0);
+  transformMatrix->SetElement(1,3, needleCenter[1]);
+
+  transformMatrix->SetElement(2,0, 0);
+  transformMatrix->SetElement(2,1, 0);
+  transformMatrix->SetElement(2,2, 1);
+  transformMatrix->SetElement(2,3, 0);
+
+  transformMatrix->SetElement(3,0, 0);
+  transformMatrix->SetElement(3,1, 0);
+  transformMatrix->SetElement(3,2, 0);
+  transformMatrix->SetElement(3,3, 1);
+
+  vtkMatrixToHomogeneousTransform *transform = vtkMatrixToHomogeneousTransform::New();
+  transform->SetInput(transformMatrix);
+  vtkTransformPolyDataFilter *filter = vtkTransformPolyDataFilter::New();
+  filter->SetInputConnection(needleGuide->GetOutputPort()); 
+  filter->SetTransform(transform);
+
+  // map
+  vtkPolyDataMapper *needleMapper = vtkPolyDataMapper::New();
+  needleMapper->SetInputConnection( filter->GetOutputPort() );
+  //needleMapper->SetInputConnection(needleGuide->GetOutputPort());
+
+  // after transfrom, set up actor
+  vtkActor *needleActor = vtkActor::New();  
+  needleActor->SetMapper(needleMapper );  
+  
+  //needleActor->SetPosition(needleCenter[0], needleCenter[1],0);  
+  //needleActor->RotateZ(90-angle);
+  
+ 
+  // add to renderer of the Axial slice viewer
+  this->Renderer->AddActor(needleActor);  
+  this->RenderWindow->Render(); 
+ 
+  
 }

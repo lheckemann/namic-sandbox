@@ -2,6 +2,7 @@
 
 #include "vtkPerkStationModuleGUI.h"
 #include "vtkPerkStationModuleLogic.h"
+#include "vtkPerkStationSecondaryMonitor.h"
 
 #include "vtkKWFrame.h"
 #include "vtkKWLabel.h"
@@ -436,21 +437,34 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned
 
   vtkSlicerInteractorStyle *s = vtkSlicerInteractorStyle::SafeDownCast(caller);
   vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-  vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
+  vtkSlicerInteractorStyle *istyleSecondary = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor()->GetInteractorStyle());
+  
+  vtkRenderWindowInteractor *rwi;
+  vtkMatrix4x4 *matrix;
 
-  if ((s == istyle0) && (event == vtkCommand::LeftButtonPressEvent))
+  if (((s == istyle0)||(s == istyleSecondary)) && (event == vtkCommand::LeftButtonPressEvent))
     {
     ++clickNum;
     // mouse click happened in the axial slice view
+
+    if (s == istyle0)
+      {
+          
+      vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI0();
+      rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();    
+      matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
+      }
+    else if (s == istyleSecondary)
+      {   
+      rwi = this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor();
+      matrix = this->GetGUI()->GetSecondaryMonitor()->GetXYToRAS(); 
+      }
+
     
-    // capture the point
-    vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI0();
-    vtkRenderWindowInteractor *rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
     int point[2];
     rwi->GetLastEventPosition(point);
     double inPt[4] = {point[0], point[1], 0, 1};
-    double outPt[4];
-    vtkMatrix4x4 *matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
+    double outPt[4];    
     matrix->MultiplyPoint(inPt, outPt); 
     double ras[3] = {outPt[0], outPt[1], outPt[2]};
 
@@ -464,14 +478,7 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned
 
       // record value in mrml node
       this->GetGUI()->GetMRMLNode()->SetPlanEntryPoint(ras);
-      // get the world coordinates
-      double worldCoordinate[4];
-      renderer->SetDisplayPoint(point[0],point[1], 0);
-      renderer->DisplayToWorld();
-      renderer->GetWorldPoint(worldCoordinate);
-      this->XYEntryPoint[0] = worldCoordinate[0];
-      this->XYEntryPoint[1] = worldCoordinate[1];
-      this->XYEntryPoint[2] = worldCoordinate[2];
+      
       }
     else if (clickNum == 2)
       {
@@ -481,20 +488,14 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned
       
       // record value in the MRML node
       this->GetGUI()->GetMRMLNode()->SetPlanTargetPoint(ras);
-      // get the world coordinates
-      double worldCoordinate[4];
-      renderer->SetDisplayPoint(point[0],point[1], 0);
-      renderer->DisplayToWorld();
-      renderer->GetWorldPoint(worldCoordinate);
-      this->XYTargetPoint[0] = worldCoordinate[0];
-      this->XYTargetPoint[1] = worldCoordinate[1];
-      this->XYTargetPoint[2] = worldCoordinate[2];
+      
       // calculate insertion angle and insertion depth
       this->CalculatePlanInsertionAngleAndDepth();
       // record those values too in the mrml node
 
       // do an image overlay of a cylinder!!
       this->OverlayNeedleGuide();
+      this->GetGUI()->GetSecondaryMonitor()->OverlayNeedleGuide();
       clickNum = 0;
       }
 
@@ -508,10 +509,8 @@ void vtkPerkStationPlanStep::InsertionDepthEntryCallback(double value)
     // TO DO: check if its a valid input i.e. non-negative  
     
     // set the value in the mrml node
-    //this->GetGUI()->GetMRMLNode()->SetUserInsertionDepth(value);
-    //this->ImageRotationDone = true;
-    
-    
+    this->GetGUI()->GetMRMLNode()->SetUserPlanInsertionDepth(value); 
+    this->GetGUI()->GetMRMLNode()->CalculatePlanInsertionDepthError();
 }
 
 
@@ -521,15 +520,56 @@ void vtkPerkStationPlanStep::InsertionAngleEntryCallback(double value)
     // TO DO: check if its a valid input i.e. 0-360 
     
     // set the value in the mrml node
-    //this->GetGUI()->GetMRMLNode()->SetUserInsertionAngle(value);
-    //this->ImageRotationDone = true;
-    
+    this->GetGUI()->GetMRMLNode()->SetUserPlanInsertionAngle(value);  
+    this->GetGUI()->GetMRMLNode()->CalculatePlanInsertionAngleError();
     
 }
 
 //------------------------------------------------------------------------------
 void vtkPerkStationPlanStep::OverlayNeedleGuide()
 {
+  vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
+
+  // get the world coordinates
+  int point[2];
+  double worldCoordinate[4];
+  vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI0();
+  vtkMatrix4x4 *xyToRAS = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
+  vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
+  vtkMatrix4x4::Invert(xyToRAS, rasToXY);
+
+  // entry point
+  double rasEntry[3];
+  this->GetGUI()->GetMRMLNode()->GetPlanEntryPoint(rasEntry);
+  double inPt[4] = {rasEntry[0], rasEntry[1], rasEntry[2], 1};
+  double outPt[4];  
+  rasToXY->MultiplyPoint(inPt, outPt);
+  point[0] = outPt[0];
+  point[1] = outPt[1];
+
+  renderer->SetDisplayPoint(point[0],point[1], 0);
+  renderer->DisplayToWorld();
+  renderer->GetWorldPoint(worldCoordinate);
+  this->WCEntryPoint[0] = worldCoordinate[0];
+  this->WCEntryPoint[1] = worldCoordinate[1];
+  this->WCEntryPoint[2] = worldCoordinate[2];
+
+  double rasTarget[3];
+  this->GetGUI()->GetMRMLNode()->GetPlanTargetPoint(rasTarget);
+  inPt[0] = rasTarget[0];
+  inPt[1] = rasTarget[1];
+  inPt[2] = rasTarget[2];
+  rasToXY->MultiplyPoint(inPt, outPt);
+  point[0] = outPt[0];
+  point[1] = outPt[1];
+  renderer->SetDisplayPoint(point[0],point[1], 0);
+  renderer->DisplayToWorld();
+  renderer->GetWorldPoint(worldCoordinate);
+  this->WCTargetPoint[0] = worldCoordinate[0];
+  this->WCTargetPoint[1] = worldCoordinate[1];
+  this->WCTargetPoint[2] = worldCoordinate[2];
+
+
   // steps
   // get the cylinder source, create the cylinder, whose height is equal to calculated insertion depth
   // apply transform on the cylinder to world coordinates, using the information of entry and target point
@@ -538,7 +578,9 @@ void vtkPerkStationPlanStep::OverlayNeedleGuide()
 
   vtkCylinderSource *needleGuide = vtkCylinderSource::New();
   // TO DO: how to relate this to actual depth???
-  needleGuide->SetHeight(0.75 );
+  double halfNeedleLength = sqrt( (this->WCTargetPoint[0]-this->WCEntryPoint[0])*(this->WCTargetPoint[0]-this->WCEntryPoint[0]) + (this->WCTargetPoint[1]-this->WCEntryPoint[1])*(this->WCTargetPoint[1]-this->WCEntryPoint[1]));
+  needleGuide->SetHeight(2*halfNeedleLength);
+  //needleGuide->SetHeight(0.75 );
   needleGuide->SetRadius( 0.02 );
   //needleGuide->SetCenter((this->XYTargetPoint[0]+this->XYPlanPoint[0])/2, (this->XYTargetPoint[1]+this->XYPlanPoint[1])/2, 0);
   needleGuide->SetResolution( 10 );
@@ -546,8 +588,10 @@ void vtkPerkStationPlanStep::OverlayNeedleGuide()
   //int *windowSize = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindow()->GetSize();
   // because cylinder is positioned at the window center
   double needleCenter[3];  
-  needleCenter[0] = (this->XYTargetPoint[0]+this->XYEntryPoint[0])/2;// - windowSize[0]/2;
-  needleCenter[1] = (this->XYTargetPoint[1]+this->XYEntryPoint[1])/2;// - windowSize[1]/2;
+  //needleCenter[0] = (this->WCTargetPoint[0]+this->WCEntryPoint[0])/2;// - windowSize[0]/2;
+  //needleCenter[1] = (this->WCTargetPoint[1]+this->WCEntryPoint[1])/2;// - windowSize[1]/2;
+  needleCenter[0] = this->WCEntryPoint[0];// - windowSize[0]/2;
+  needleCenter[1] = this->WCEntryPoint[1];// - windowSize[1]/2;
   //needleGuide->SetCenter(needleCenter[0], needleCenter[1], needleCenter[2]);
   
   // TO DO: transfrom needle mapper using vtkTransformPolyData
