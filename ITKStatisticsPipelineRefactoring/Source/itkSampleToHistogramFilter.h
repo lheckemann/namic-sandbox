@@ -110,6 +110,10 @@ public:
    * minimum and maximum of the histogram are going to be computed
    * automatically from the values of the sample */
   itkSetDecoratedInputMacro( AutoMinimumMaximum, bool, 5 );
+  
+  /** Method that facilitates the use of this filter in the internal
+   * pipeline of another filter. */
+  virtual void GraftOutput(DataObject *output);
 
 protected:
   SampleToHistogramFilter();
