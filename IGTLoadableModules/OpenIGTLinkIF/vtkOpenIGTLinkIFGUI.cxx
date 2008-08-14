@@ -2122,7 +2122,7 @@ void vtkOpenIGTLinkIFGUI::UpdateMrmlNodeListFrame(int con)
     this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 2)->SetValue("IN");
 
     this->CurrentMrmlNodeList[row].name = std::string(iter->first.c_str());
-    this->CurrentMrmlNodeList[row].type = std::string(iter->first.c_str());
+    this->CurrentMrmlNodeList[row].type = std::string(iter->second.c_str());
     this->CurrentMrmlNodeList[row].io   = vtkOpenIGTLinkIFLogic::DEVICE_IN;//std::string("IN");
 
     row ++;
@@ -2135,7 +2135,7 @@ void vtkOpenIGTLinkIFGUI::UpdateMrmlNodeListFrame(int con)
     this->MrmlNodeList->GetWidget()->GetCellWindowAsComboBox(row, 2)->SetValue("OUT");
 
     this->CurrentMrmlNodeList[row].name = std::string(iter->first.c_str());
-    this->CurrentMrmlNodeList[row].type = std::string(iter->first.c_str());
+    this->CurrentMrmlNodeList[row].type = std::string(iter->second.c_str());
     this->CurrentMrmlNodeList[row].io   = vtkOpenIGTLinkIFLogic::DEVICE_OUT; //std::string("OUT");
 
     row ++;
@@ -2175,7 +2175,9 @@ int vtkOpenIGTLinkIFGUI::OnMrmlNodeListChanged(int row, int col, const char* ite
 
   if (col == 0 && strcmp(item, name) != 0) // if node name is changed
     {
+    std::cerr << "node name is changed" << std::endl;
     this->GetLogic()->DeleteDeviceFromConnector(this->CurrentMrmlNodeListID, name, type, io);
+    this->GetLogic()->AddDeviceToConnector(this->CurrentMrmlNodeListID, item, type, io);
     this->CurrentMrmlNodeList[row].name = std::string(item);
     }
   if (col == 1 && strcmp(item, type) != 0) // if type is changed
@@ -2188,9 +2190,18 @@ int vtkOpenIGTLinkIFGUI::OnMrmlNodeListChanged(int row, int col, const char* ite
     const char* iostr[] = {"--", "IN", "OUT"}; // refer vtkOpenIGTLinkIFLogic::DEVICE_* 
     if (strcmp(item, iostr[io]) != 0) // if IO is changed
       {
-      this->GetLogic()->DeleteDeviceFromConnector(this->CurrentMrmlNodeListID, name, type, io);
-      this->GetLogic()->AddDeviceToConnector(this->CurrentMrmlNodeListID, name, type, io);
-      this->CurrentMrmlNodeList[row].type = std::string(item);
+      int newio;
+      for (newio = 0; newio < 3; newio ++)
+        {
+        if (strcmp(item, iostr[newio]) == 0)
+          break;
+        }
+      if (newio < 3)
+        {
+        this->GetLogic()->DeleteDeviceFromConnector(this->CurrentMrmlNodeListID, name, type, io);
+        this->GetLogic()->AddDeviceToConnector(this->CurrentMrmlNodeListID, name, type, newio);
+        this->CurrentMrmlNodeList[row].type = std::string(item);
+        }
       }
     }
   

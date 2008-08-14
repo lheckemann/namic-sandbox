@@ -38,7 +38,7 @@
 #include "igtlTransformMessage.h"
 
 // switch to activate testing code for development  -- J.T. 06.17.2008
-#define BRP_DEVELOPMENT      1
+//#define BRP_DEVELOPMENT      1
 
 class vtkIGTLConnector;
 
