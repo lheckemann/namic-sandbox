@@ -151,7 +151,8 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
   // Device Name management          // io -- 0: unspecified, 1: incoming, 2: outgoing
   int  SetRestrictDeviceName(int f);
   int  AddDeviceToConnector(int id, const char* deviceName, const char* deviceType, int io);
-  int  DeleteDeviceToConnector(int id, const char* deviceName, const char* deviceType, int io);
+  int  DeleteDeviceFromConnector(int id, const char* deviceName, const char* deviceType, int io);
+  int  SetDeviceType(int id, const char* deviceName, const char* deviceType, int io);
 
 
   //----------------------------------------------------------------
@@ -205,6 +206,9 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
   void                        RegisterDeviceEvent(vtkIGTLConnector* con,
                                                   const char* deviceName,
                                                   const char* deviceType);
+  void                        UnRegisterDeviceEvent(vtkIGTLConnector* con,
+                                                    const char* deviceName,
+                                                    const char* deviceType);
   vtkCallbackCommand *DataCallbackCommand;
 
 
