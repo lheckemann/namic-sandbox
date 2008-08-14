@@ -78,10 +78,237 @@ int itkImageToHistogramFilterTest( int , char * [] )
     ++it;
     }
 
+  typedef itk::Statistics::ImageToHistogramFilter< RGBImageType >   HistogramFilterType;
 
-  typedef itk::Statistics::ImageToHistogramFilter< RGBImageType >   HistogramGeneratorType;
+  HistogramFilterType::Pointer filter = HistogramFilterType::New();
 
-  typedef HistogramGeneratorType::HistogramSizeType   HistogramSizeType;
+
+  typedef HistogramFilterType::HistogramMeasurementVectorType             HistogramMeasurementVectorType;
+  typedef HistogramFilterType::InputHistogramMeasurementVectorObjectType  InputHistogramMeasurementVectorObjectType;
+
+  // Testing the settings of the BinMaximum and BinMinimum methods.
+  HistogramMeasurementVectorType histogramBinMinimum1( MeasurementVectorSize );
+  histogramBinMinimum1[0] = 0;
+  histogramBinMinimum1[1] = 0;
+  histogramBinMinimum1[2] = 0;
+
+  HistogramMeasurementVectorType histogramBinMinimum2( MeasurementVectorSize );
+  histogramBinMinimum2[0] = 17;
+  histogramBinMinimum2[1] = 17;
+  histogramBinMinimum2[2] = 17;
+
+  filter->SetHistogramBinMinimum( histogramBinMinimum1 );
+
+  const InputHistogramMeasurementVectorObjectType * returnedHistogramBinMinimumObject =
+    filter->GetHistogramBinMinimumInput();
+
+  if( returnedHistogramBinMinimumObject == NULL )
+    {
+    std::cerr << "SetHistogramSize() failed pointer consistency test" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  HistogramMeasurementVectorType returnedHistogramBinMinimum =
+    returnedHistogramBinMinimumObject->Get();
+
+  for( unsigned int k1 = 0; k1 < MeasurementVectorSize; k1++ )
+    {
+    if( returnedHistogramBinMinimum[k1] != histogramBinMinimum1[k1] )
+      {
+      std::cerr << "Get/Set HistogramBinMinimum() failed value consistency test" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+
+  filter->SetHistogramBinMinimum( histogramBinMinimum2 );
+
+  returnedHistogramBinMinimumObject = filter->GetHistogramBinMinimumInput();
+
+  returnedHistogramBinMinimum = returnedHistogramBinMinimumObject->Get();
+
+  for( unsigned int k2 = 0; k2 < MeasurementVectorSize; k2++ )
+    {
+    if( returnedHistogramBinMinimum[k2] != histogramBinMinimum2[k2] )
+      {
+      std::cerr << "Get/Set HistogramSize() failed value consistency test" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+
+  InputHistogramMeasurementVectorObjectType::Pointer histogramBinMinimumObject =
+    InputHistogramMeasurementVectorObjectType::New();
+
+  histogramBinMinimumObject->Set( histogramBinMinimum1 );
+
+  filter->SetHistogramBinMinimumInput( histogramBinMinimumObject );
+
+  returnedHistogramBinMinimumObject = filter->GetHistogramBinMinimumInput();
+
+  if( returnedHistogramBinMinimumObject != histogramBinMinimumObject )
+    {
+    std::cerr << "Get/Set HistogramBinMinimum() failed pointer consistency test" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  returnedHistogramBinMinimum = returnedHistogramBinMinimumObject->Get();
+
+  for( unsigned int k3 = 0; k3 < MeasurementVectorSize; k3++ )
+    {
+    if( returnedHistogramBinMinimum[k3] != histogramBinMinimum1[k3] )
+      {
+      std::cerr << "Get/Set HistogramBinMinimum() failed value consistency test" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+  histogramBinMinimumObject->Set( histogramBinMinimum2 );
+
+  filter->SetInput3( histogramBinMinimumObject );
+
+  returnedHistogramBinMinimumObject = filter->GetInput3();
+
+  if( returnedHistogramBinMinimumObject != histogramBinMinimumObject )
+    {
+    std::cerr << "Get/Set HistogramBinMinimum() failed pointer consistency test" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  returnedHistogramBinMinimum = returnedHistogramBinMinimumObject->Get();
+
+  for( unsigned int k4 = 0; k4 < MeasurementVectorSize; k4++ )
+    {
+    if( returnedHistogramBinMinimum[k4] != histogramBinMinimum2[k4] )
+      {
+      std::cerr << "Get/Set HistogramBinMinimum() failed value consistency test" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+
+  filter->SetHistogramBinMinimum( histogramBinMinimum1 );
+
+  HistogramMeasurementVectorType histogramBinMaximum1( MeasurementVectorSize );
+  histogramBinMaximum1[0] = 0;
+  histogramBinMaximum1[1] = 0;
+  histogramBinMaximum1[2] = 0;
+
+  HistogramMeasurementVectorType histogramBinMaximum2( MeasurementVectorSize );
+  histogramBinMaximum2[0] = 17;
+  histogramBinMaximum2[1] = 17;
+  histogramBinMaximum2[2] = 17;
+
+
+  filter->SetHistogramBinMaximum( histogramBinMaximum1 );
+
+  const InputHistogramMeasurementVectorObjectType * returnedHistogramBinMaximumObject =
+    filter->GetHistogramBinMaximumInput();
+
+  if( returnedHistogramBinMaximumObject == NULL )
+    {
+    std::cerr << "SetHistogramSize() failed pointer consistency test" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  HistogramMeasurementVectorType returnedHistogramBinMaximum =
+    returnedHistogramBinMaximumObject->Get();
+
+  for( unsigned int k1 = 0; k1 < MeasurementVectorSize; k1++ )
+    {
+    if( returnedHistogramBinMaximum[k1] != histogramBinMaximum1[k1] )
+      {
+      std::cerr << "Get/Set HistogramBinMaximum() failed value consistency test" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+
+  filter->SetHistogramBinMaximum( histogramBinMaximum2 );
+
+  returnedHistogramBinMaximumObject = filter->GetHistogramBinMaximumInput();
+
+  returnedHistogramBinMaximum = returnedHistogramBinMaximumObject->Get();
+
+  for( unsigned int k2 = 0; k2 < MeasurementVectorSize; k2++ )
+    {
+    if( returnedHistogramBinMaximum[k2] != histogramBinMaximum2[k2] )
+      {
+      std::cerr << "Get/Set HistogramSize() failed value consistency test" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+
+  InputHistogramMeasurementVectorObjectType::Pointer histogramBinMaximumObject =
+    InputHistogramMeasurementVectorObjectType::New();
+
+  histogramBinMaximumObject->Set( histogramBinMaximum1 );
+
+  filter->SetHistogramBinMaximumInput( histogramBinMaximumObject );
+
+  returnedHistogramBinMaximumObject = filter->GetHistogramBinMaximumInput();
+
+  if( returnedHistogramBinMaximumObject != histogramBinMaximumObject )
+    {
+    std::cerr << "Get/Set HistogramBinMaximum() failed pointer consistency test" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  returnedHistogramBinMaximum = returnedHistogramBinMaximumObject->Get();
+
+  for( unsigned int k3 = 0; k3 < MeasurementVectorSize; k3++ )
+    {
+    if( returnedHistogramBinMaximum[k3] != histogramBinMaximum1[k3] )
+      {
+      std::cerr << "Get/Set HistogramBinMaximum() failed value consistency test" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+  histogramBinMaximumObject->Set( histogramBinMaximum2 );
+
+  filter->SetInput3( histogramBinMaximumObject );
+
+  returnedHistogramBinMaximumObject = filter->GetInput3();
+
+  if( returnedHistogramBinMaximumObject != histogramBinMaximumObject )
+    {
+    std::cerr << "Get/Set HistogramBinMaximum() failed pointer consistency test" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  returnedHistogramBinMaximum = returnedHistogramBinMaximumObject->Get();
+
+  for( unsigned int k4 = 0; k4 < MeasurementVectorSize; k4++ )
+    {
+    if( returnedHistogramBinMaximum[k4] != histogramBinMaximum2[k4] )
+      {
+      std::cerr << "Get/Set HistogramBinMaximum() failed value consistency test" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+
+  filter->SetHistogramBinMaximum( histogramBinMaximum1 );
+  filter->Update();
+  unsigned long modifiedTime = filter->GetMTime();
+  filter->SetHistogramBinMaximum( histogramBinMaximum1 );
+
+  if( filter->GetMTime() != modifiedTime )
+    {
+    std::cerr << "SetHistogramBinMaximum() failed modified Test 1" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  filter->SetHistogramBinMaximum( histogramBinMaximum2 );
+
+  if( filter->GetMTime() == modifiedTime )
+    {
+    std::cerr << "SetHistogramBinMaximum() failed modified Test 2" << std::endl;
+    return EXIT_FAILURE;
+    }
+  typedef HistogramFilterType::HistogramSizeType   HistogramSizeType;
 
   HistogramSizeType hsize( MeasurementVectorSize );
 
@@ -90,19 +317,17 @@ int itkImageToHistogramFilterTest( int , char * [] )
   hsize[2] =   1;  // number of bins for the Blue  channel
 
 
-  HistogramGeneratorType::Pointer histogramGenerator = HistogramGeneratorType::New();
-
-  histogramGenerator->SetInput(  image  );
+  filter->SetInput(  image  );
 
 
 
-  histogramGenerator->SetHistogramSize( hsize );
-  histogramGenerator->SetMarginalScale( 10.0 );
-  histogramGenerator->Update();
+  filter->SetHistogramSize( hsize );
+  filter->SetMarginalScale( 10.0 );
+  filter->Update();
 
-  typedef HistogramGeneratorType::HistogramType  HistogramType;
+  typedef HistogramFilterType::HistogramType  HistogramType;
 
-  const HistogramType * histogram = histogramGenerator->GetOutput();
+  const HistogramType * histogram = filter->GetOutput();
 
   const unsigned int histogramSize = histogram->Size();
 
@@ -130,9 +355,9 @@ int itkImageToHistogramFilterTest( int , char * [] )
   hsize[1] = 127;  // number of bins for the Green channel
   hsize[2] =   1;  // number of bins for the Blue  channel
 
-  histogramGenerator->SetHistogramSize( hsize );
-  histogramGenerator->SetMarginalScale( 10.0 );
-  histogramGenerator->Update();
+  filter->SetHistogramSize( hsize );
+  filter->SetMarginalScale( 10.0 );
+  filter->Update();
 
   channel = 1;  // green channel
 
@@ -150,9 +375,9 @@ int itkImageToHistogramFilterTest( int , char * [] )
   hsize[1] =   1;  // number of bins for the Green channel
   hsize[2] = 127;  // number of bins for the Blue  channel
 
-  histogramGenerator->SetHistogramSize( hsize );
-  histogramGenerator->SetMarginalScale( 10.0 );
-  histogramGenerator->Update();
+  filter->SetHistogramSize( hsize );
+  filter->SetMarginalScale( 10.0 );
+  filter->Update();
 
   channel = 2;  // blue channel
 
@@ -170,9 +395,9 @@ int itkImageToHistogramFilterTest( int , char * [] )
   hsize[1] = 127;  // number of bins for the Green channel
   hsize[2] = 127;  // number of bins for the Blue  channel
 
-  histogramGenerator->SetHistogramSize( hsize );
-  histogramGenerator->SetMarginalScale( 10.0 );
-  histogramGenerator->Update();
+  filter->SetHistogramSize( hsize );
+  filter->SetMarginalScale( 10.0 );
+  filter->Update();
 
   return EXIT_SUCCESS;
   
