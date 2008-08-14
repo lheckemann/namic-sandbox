@@ -179,8 +179,16 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
   void ProcCommand(const char* nodeName, int size, unsigned char* data);
 
   //BTX
-  void GetDeviceNamesFromMrml(std::vector<char*> &list);
-  void GetDeviceTypes(std::vector<char*> &list);
+  typedef struct {
+    std::string name;
+    std::string type;
+    int io;
+  } IGTLMrmlNodeInfoType;
+
+  typedef std::vector<IGTLMrmlNodeInfoType> IGTLMrmlNodeListType;
+  
+  void GetDeviceNamesFromMrml(IGTLMrmlNodeListType &list);
+  //void GetDeviceTypes(std::vector<char*> &list);
   //ETX
 
  protected:

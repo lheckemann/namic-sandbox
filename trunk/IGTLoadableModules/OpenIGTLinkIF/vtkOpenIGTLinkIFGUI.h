@@ -239,14 +239,8 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFGUI : public vtkSlicerModuleGUI
 
   int   CurrentMrmlNodeListID;  // raw number
   //BTX
-  typedef struct {
-    std::string name;
-    std::string type;
-    int io;
-  } MrmlNodeInfoType;
-
-  typedef std::vector<MrmlNodeInfoType> MrmlNodeListType;
-  MrmlNodeListType CurrentMrmlNodeList;
+  vtkOpenIGTLinkIFLogic::IGTLMrmlNodeListType CurrentNodeListAvailable;
+  vtkOpenIGTLinkIFLogic::IGTLMrmlNodeListType CurrentNodeListSelected;
   //ETX
 
   //----------------------------------------------------------------

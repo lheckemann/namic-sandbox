@@ -1366,9 +1366,15 @@ void vtkOpenIGTLinkIFLogic::ProcCommand(const char* nodeName, int size, unsigned
 }
 
 //---------------------------------------------------------------------------
-void vtkOpenIGTLinkIFLogic::GetDeviceNamesFromMrml(std::vector<char*> &list)
+//void vtkOpenIGTLinkIFLogic::GetDeviceNamesFromMrml(std::vector<char*> &list)
+void vtkOpenIGTLinkIFLogic::GetDeviceNamesFromMrml(IGTLMrmlNodeListType &list)
 {
   list.clear();
+
+  char* deviceTypeNames[] = {
+    "TRANSFORM",
+    "IMAGE",
+  };
 
   char* classNames[] = 
     {
@@ -1383,12 +1389,17 @@ void vtkOpenIGTLinkIFLogic::GetDeviceNamesFromMrml(std::vector<char*> &list)
     std::vector<vtkMRMLNode*>::iterator iter;
     for (iter = nodes.begin(); iter != nodes.end(); iter ++)
       {
-      list.push_back((*iter)->GetName());
+      IGTLMrmlNodeInfoType nodeInfo;
+      nodeInfo.name = (*iter)->GetName();
+      nodeInfo.type = deviceTypeNames[i];
+      nodeInfo.io   = DEVICE_UNSPEC;
+      list.push_back(nodeInfo);
       }
     }
   
 }
 
+/*
 //---------------------------------------------------------------------------
 void vtkOpenIGTLinkIFLogic::GetDeviceTypes(std::vector<char*> &list)
 {
@@ -1405,7 +1416,7 @@ void vtkOpenIGTLinkIFLogic::GetDeviceTypes(std::vector<char*> &list)
     }
 }
 
-
+*/
 
 
 
