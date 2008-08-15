@@ -63,7 +63,10 @@ ADD_TEST(itkSampleClassifierFilterTest3 ${STATISTICS_TESTS} itkSampleClassifierF
 ADD_TEST(itkSampleClassifierFilterTest4 ${STATISTICS_TESTS} itkSampleClassifierFilterTest4)
 ADD_TEST(itkSampleClassifierFilterTest5 ${STATISTICS_TESTS} itkSampleClassifierFilterTest5)
 ADD_TEST(itkSampleClassifierFilterTest6 ${STATISTICS_TESTS} itkSampleClassifierFilterTest6)
-ADD_TEST(itkSampleClassifierFilterTest7 ${STATISTICS_TESTS} itkSampleClassifierFilterTest6)
+ADD_TEST(itkSampleClassifierFilterTest7 ${STATISTICS_TESTS} 
+        itkSampleClassifierFilterTest7 
+        ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat 
+        ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussianTesting.dat )
 
 ADD_TEST(itkSampleToSubsampleFilterTest1 ${STATISTICS_TESTS} itkSampleToSubsampleFilterTest1)
 ADD_TEST(itkSubsampleTest ${STATISTICS_TESTS} itkSubsampleTest)
