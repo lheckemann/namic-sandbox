@@ -28,6 +28,8 @@ ExpectationMaximizationMixtureModelEstimator< TSample >
 ::ExpectationMaximizationMixtureModelEstimator()
 {
   m_TerminationCode = NOT_CONVERGED;
+
+  m_MembershipFunctionsObject = MembershipFunctionVectorObjectType::New();
 }
  
 template< class TSample >
@@ -321,6 +323,55 @@ ExpectationMaximizationMixtureModelEstimator< TSample >
   m_TerminationCode = NOT_CONVERGED;
 }
 
+template< class TSample >
+const typename ExpectationMaximizationMixtureModelEstimator< TSample >::MembershipFunctionVectorObjectType * 
+ExpectationMaximizationMixtureModelEstimator< TSample > 
+::GetOutput() const
+{
+
+  unsigned int numberOfComponents = m_ComponentVector.size(); 
+  MembershipFunctionVectorType &  membershipFunctionsVector = m_MembershipFunctionsObject->Get();
+
+  typename SampleType::MeasurementVectorSize measurementVectorSize =
+                                m_Sample->GetMeasurementVectorSize();
+
+  typename GaussianMembershipFunction::MeanType    mean;
+  MeasurementVectorTraits::SetLength( mean, measurementVectorSize);
+
+  typename GaussianMembershipFunction::CovarianceType  covariance;
+  covariance.SetSize(measurementVectorSize,measurementVectorSize);
+
+  typename ComponentType::ParameterType                parameters;
+
+  for( unsigned int i=0; i < numberOfComponents; i++ )
+    {
+    parameters = m_ComponentVector[i]->GetFullParameters(); 
+    GaussianMembershipFunction membershipFunction =
+                GaussianMembershipFunction::New(); 
+    membershipFunction->SetMeasurementVectorSize( measurementVectorSize );
+    unsigned int parameterIndex = 0;
+    for(unsigned int j=0; j < measurementVectorSize; j++)
+      {
+      mean[j] = parameters[j];
+      ++parameterIndex;
+      }
+
+    for ( unsigned int i = 0; i < measurementVectorSize; i++ )
+      {
+      for ( unsigned int j = 0; j < measurementVectorSize; j++ )
+        {
+        covariance.GetVnlMatrix().put(i, j, parameters[parameterIndex]);
+        ++parameterIndex;
+        }
+      }
+
+    membershipFunction->SetMean( mean );
+    membershipFunction->SetCovariance( covariance );
+    membershipFunctionsVector.push_back( membershipFunction.GetPointer() );
+    }
+
+  return static_cast< const MembershipFunctionVectorObjectType*>(m_MembershipFunctionsObject);
+}
 template< class TSample >
 void 
 ExpectationMaximizationMixtureModelEstimator< TSample >
