@@ -64,7 +64,7 @@ public:
   typedef typename NumericTraits< ValueType >::RealType     ValueRealType;
   typedef DenseFrequencyContainer2                          FrequencyContainerType;
 
-  typedef Histogram< ValueType >                            HistogramType;
+  typedef Histogram< ValueRealType >                        HistogramType;
   typedef typename HistogramType::Pointer                   HistogramPointer;
   typedef typename HistogramType::ConstPointer              HistogramConstPointer;
   typedef typename HistogramType::SizeType                  HistogramSizeType;
