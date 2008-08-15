@@ -290,8 +290,11 @@ int itkImageToHistogramFilterTest( int , char * [] )
     }
 
 
+  filter->SetInput(  image  );
+
+
   filter->SetHistogramBinMaximum( histogramBinMaximum1 );
-  filter->Update();
+  
   unsigned long modifiedTime = filter->GetMTime();
   filter->SetHistogramBinMaximum( histogramBinMaximum1 );
 
@@ -315,9 +318,6 @@ int itkImageToHistogramFilterTest( int , char * [] )
   hsize[0] = 127;  // number of bins for the Red   channel
   hsize[1] =   1;  // number of bins for the Green channel
   hsize[2] =   1;  // number of bins for the Blue  channel
-
-
-  filter->SetInput(  image  );
 
 
 
