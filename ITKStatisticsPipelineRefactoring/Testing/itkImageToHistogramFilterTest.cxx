@@ -83,6 +83,10 @@ int itkImageToHistogramFilterTest( int , char * [] )
   HistogramFilterType::Pointer filter = HistogramFilterType::New();
 
 
+  // Exercise the method NameOfClass();
+  std::cout << filter->GetNameOfClass() << std::endl;
+
+
   typedef HistogramFilterType::HistogramMeasurementVectorType             HistogramMeasurementVectorType;
   typedef HistogramFilterType::InputHistogramMeasurementVectorObjectType  InputHistogramMeasurementVectorObjectType;
 
