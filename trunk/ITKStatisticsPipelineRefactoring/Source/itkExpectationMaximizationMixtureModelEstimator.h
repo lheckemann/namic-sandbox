@@ -121,7 +121,7 @@ public:
     MembershipFunctionsWeightsArrayObjectType::Pointer   MembershipFunctionsWeightsArrayPointer;
 
   /** Get method for data decorated Membership functions weights array */
-  MembershipFunctionsWeightsArrayObjectType * GetMembershipFunctionsWeightsArray();
+  const MembershipFunctionsWeightsArrayObjectType * GetMembershipFunctionsWeightsArray() const;
  
   /** Set/Gets the maximum number of iterations. When the optimization
    * process reaches the maximum number of interations, even if the
@@ -185,6 +185,7 @@ private:
   ProportionVectorType        m_Proportions;
 
   MembershipFunctionVectorObjectPointer   m_MembershipFunctionsObject;
+  MembershipFunctionsWeightsArrayPointer  m_MembershipFunctionsWeightArrayObject;
 }; // end of class
 
 
