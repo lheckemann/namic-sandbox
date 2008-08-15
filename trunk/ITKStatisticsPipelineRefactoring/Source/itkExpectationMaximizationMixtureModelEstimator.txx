@@ -334,7 +334,7 @@ ExpectationMaximizationMixtureModelEstimator< TSample >
   unsigned int numberOfComponents = m_ComponentVector.size(); 
   MembershipFunctionVectorType &  membershipFunctionsVector = m_MembershipFunctionsObject->Get();
 
-  typename SampleType::MeasurementVectorSize measurementVectorSize =
+  typename SampleType::MeasurementVectorSizeType measurementVectorSize =
                                 m_Sample->GetMeasurementVectorSize();
 
   typename GaussianMembershipFunction::MeanType    mean;
@@ -343,12 +343,12 @@ ExpectationMaximizationMixtureModelEstimator< TSample >
   typename GaussianMembershipFunction::CovarianceType  covariance;
   covariance.SetSize(measurementVectorSize,measurementVectorSize);
 
-  typename ComponentType::ParameterType                parameters;
+  typename ComponentType::ParametersType                parameters;
 
   for( unsigned int i=0; i < numberOfComponents; i++ )
     {
     parameters = m_ComponentVector[i]->GetFullParameters(); 
-    GaussianMembershipFunction membershipFunction =
+    typename GaussianMembershipFunction::Pointer membershipFunction =
                 GaussianMembershipFunction::New(); 
     membershipFunction->SetMeasurementVectorSize( measurementVectorSize );
     unsigned int parameterIndex = 0;
