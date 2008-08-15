@@ -28,7 +28,7 @@ PURPOSE.  See the above copyright notices for more information.
 #include "itkPointSetToListSampleAdaptor.h"
 #include "itkSubsample.h"
 #include "itkSampleClassifierFilter.h"
-#include "itkMinimumDecisionRule2.h"
+#include "itkMaximumDecisionRule2.h"
 
 #include "itkGaussianMixtureModelComponent.h"
 #include "itkExpectationMaximizationMixtureModelEstimator.h"
@@ -45,16 +45,17 @@ int itkSampleClassifierFilterTest7(int argc, char* argv[] )
   typedef stat::GaussianMixtureModelComponent< DataSampleType > 
     ComponentType ;
 
-  if (argc < 2)
+  if (argc < 3)
     {
-      std::cout << "ERROR: data file name argument missing." 
+      std::cout << "ERROR: Missing arguments.\t"  << argv[0]
+                << "Input_data_sample" << "\t" 
+                << "Target_data_sample"
                 << std::endl ;
       return EXIT_FAILURE;
     }
 
 
   unsigned int i, j ;
-  char* dataFileName = argv[1] ;
   int dataSize = 2000 ;
   int maximumIteration = 200 ;
   typedef itk::Array< double > ParametersType ;
@@ -113,8 +114,10 @@ int itkSampleClassifierFilterTest7(int argc, char* argv[] )
 
   PointSetType::PointsContainerIterator p_iter = pointsContainer->Begin() ;
   PointSetType::PointType point ;
-  double temp ;
-  std::ifstream dataStream(dataFileName) ;
+  double temp;
+
+  char* dataFileName = argv[1] ;
+  std::ifstream dataStream(dataFileName);
   if ( !dataStream )
     {
       std::cout << "ERROR: fail to open the data file." << std::endl ;
@@ -214,7 +217,7 @@ int itkSampleClassifierFilterTest7(int argc, char* argv[] )
   classLabelVector.push_back( class2 );
 
   //Set a decision rule type
-  typedef itk::Statistics::MinimumDecisionRule2  DecisionRuleType;
+  typedef itk::Statistics::MaximumDecisionRule2  DecisionRuleType;
 
   DecisionRuleType::Pointer    decisionRule = DecisionRuleType::New();
 
@@ -237,31 +240,74 @@ int itkSampleClassifierFilterTest7(int argc, char* argv[] )
   functionIter=begin;
   
   unsigned int counter=1;
+  std::cout << "Estimator membership function output " << std::endl;
   while( functionIter != end )
     {
     FilterType::MembershipFunctionPointer membershipFunction = *functionIter;
     const EstimatorType::GaussianMembershipFunction * 
           gaussianMemberShpFunction = 
         dynamic_cast<const EstimatorType::GaussianMembershipFunction*>(membershipFunction.GetPointer());
-    std::cout << "Membership function:\t " << counter << std::endl;
-    std::cout << "Mean="<< gaussianMemberShpFunction->GetMean() << std::endl;
-    std::cout << "Covariane matrix=" << gaussianMemberShpFunction->GetCovariance() << std::endl;
+    std::cout << "\tMembership function:\t " << counter << std::endl;
+    std::cout << "\t\tMean="<< gaussianMemberShpFunction->GetMean() << std::endl;
+    std::cout << "\t\tCovariance matrix=" << gaussianMemberShpFunction->GetCovariance() << std::endl;
     functionIter++;
     counter++;
     }
 
   //Set membership functions weight array
- /* const FilterType::MembershipFunctionsWeightsArrayPointer 
-            weightArrayObjects = estimator->GetMembershipFunctionsWeightsArray(); */
+  const FilterType::MembershipFunctionsWeightsArrayObjectType * 
+            weightArrayObjects = estimator->GetMembershipFunctionsWeightsArray(); 
+  const FilterType::MembershipFunctionsWeightsArrayType  weightsArray = weightArrayObjects->Get();
 
-  FilterType::MembershipFunctionsWeightsArrayType weightsArray;
- 
+  std::cout << "Estimator membership function Weight/proporation output: " << std::endl;
+  for(unsigned int i=0; i < weightsArray.Size(); i++ )
+    {
+    std::cout << "Membership function: \t" << i << "\t" << weightsArray[i] << std::endl;
+    }
+
+  char * targetFileName = argv[2];
+  std::ifstream dataTargetStream(targetFileName) ;
+  if ( !dataTargetStream )
+    {
+      std::cout << "ERROR: fail to open the target data file." << std::endl ;
+      return EXIT_FAILURE ;
+    }
+
+  
+  PointSetType::Pointer pointSet2 = PointSetType::New() ;
+  PointSetType::PointsContainerPointer pointsContainer2 = 
+    PointSetType::PointsContainer::New() ;
+  dataSize=200;
+  pointsContainer2->Reserve(dataSize) ;
+  pointSet2->SetPoints(pointsContainer2.GetPointer()) ;
+
+  p_iter = pointsContainer2->Begin() ;
+
+  while (p_iter != pointsContainer2->End())
+    {
+      for ( i = 0 ; i < PointSetType::PointDimension ; i++)
+        {
+          dataTargetStream >> temp ;
+          point[i] = temp ;
+        }
+      p_iter.Value() = point ;
+      ++p_iter ;
+    }
+
+  dataTargetStream.close() ;
+  
+  /* Importing the point set to the sample */
+  DataSampleType::Pointer sampleTarget =
+    DataSampleType::New() ;
+  
+  sampleTarget->SetPointSet(pointSet2.GetPointer());
+
   filter->SetInput( sample );
   filter->SetNumberOfClasses( numberOfClasses );
   filter->SetClassLabels( classLabelsObject );
   filter->SetDecisionRule( decisionRule );
   filter->SetMembershipFunctions( membershipFunctionsObject );
-//  filter->SetMembershipFunctionsWeightsArray( weightArrayObjects );
+  filter->SetMembershipFunctionsWeightsArray( weightArrayObjects );
 
   try
     {
@@ -279,15 +325,36 @@ int itkSampleClassifierFilterTest7(int argc, char* argv[] )
   FilterType::MembershipSampleType::ConstIterator iter = membershipSample->Begin();
 
   unsigned int sampleCounter = 0;
-  while ( iter != membershipSample->End() )
-    {
+  
+  unsigned int numberOfSamplesPerClass = 100;
+  if( sampleCounter > numberOfSamplesPerClass )
+   {
+    if( iter.GetClassLabel() != class1 )
+      {
+      std::cerr << "Classification error: " << sampleCounter
+                << "\t" << iter.GetMeasurementVector()
+                << "\t" << "Class label= " << iter.GetClassLabel() 
+                << "\tTrue label=" << class1 << std::endl;
+      return EXIT_FAILURE;
+      }
     ++iter;
     ++sampleCounter;
     }
 
+   if( sampleCounter > numberOfSamplesPerClass )
+   {
+    if( iter.GetClassLabel() != class1 )
+      {
+      std::cerr << "Classification error: " << sampleCounter
+                << "\t" << iter.GetMeasurementVector()
+                << "\t" << "Class label= " << iter.GetClassLabel() 
+                << "\tTrue label=" << class1 << std::endl;
+      return EXIT_FAILURE;
+      }
+    ++iter;
+    ++sampleCounter;
+    }
 
-
-  
   if( !passed )
     {
       std::cout << "Test failed." << std::endl;
