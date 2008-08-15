@@ -9,7 +9,7 @@ ENDIF(ITK_BINARY_DIR)
 
 SET(ITK_DATA_ROOT ${StatisticsRefactoring_SOURCE_DIR}/Testing/Data)
 SET(BASELINE ${ITK_DATA_ROOT}/Baseline/Statistics)
-SET(TEMP ${ITKTesting_BINARY_DIR}/Temporary)
+SET(TEMP ${StatisticsRefactoring_BINARY_DIR}/Testing/Temporary)
 
 SET(STATISTICS_TESTS ${EXECUTABLE_OUTPUT_PATH}/itkStatisticsTests)
 SET(STATISTICS_HEADER_TESTS ${EXECUTABLE_OUTPUT_PATH}/itkStatisticsHeaderTest)
@@ -25,7 +25,8 @@ ADD_TEST(itkHistogramToTextureFeaturesFilterTest ${STATISTICS_TESTS} itkHistogra
 ADD_TEST(itkHistogramTest ${STATISTICS_TESTS} itkHistogramTest)
 ADD_TEST(itkImageToHistogramFilterTest ${STATISTICS_TESTS} itkImageToHistogramFilterTest)
 ADD_TEST(itkImageToHistogramFilterTest2 ${STATISTICS_TESTS} itkImageToHistogramFilterTest2
-   ${ITK_SOURCE_DIR}/Testing/Data/Input/VisibleWomanEyeSlice.png)
+   ${ITK_SOURCE_DIR}/Testing/Data/Input/VisibleWomanEyeSlice.png
+   ${TEMP}/itkImageToHistogramFilterTest2.txt)
 ADD_TEST(itkImageToListSampleFilterTest ${STATISTICS_TESTS} itkImageToListSampleFilterTest)
 ADD_TEST(itkImageToListSampleFilterTest2 ${STATISTICS_TESTS} itkImageToListSampleFilterTest2)
 ADD_TEST(itkImageToListSampleFilterTest3 ${STATISTICS_TESTS} itkImageToListSampleFilterTest3)

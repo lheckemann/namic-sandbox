@@ -27,10 +27,10 @@
 int itkImageToHistogramFilterTest2( int argc, char * argv [] )
 {
 
-  if( argc < 2 )
+  if( argc < 3 )
     {
     std::cerr << "Missing command line arguments" << std::endl;
-    std::cerr << "Usage :  ImageHistogram1  inputRGBImageFileName " << std::endl;
+    std::cerr << "Usage :  " << argv[0] << " inputRGBImageFileName outputHistogramFile.txt" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -71,14 +71,14 @@ int itkImageToHistogramFilterTest2( int argc, char * argv [] )
 
   // Setting bin mins and max
   HistogramMeasurementVectorType histogramBinMinimum( MeasurementVectorSize );
-  histogramBinMinimum[0] = 0;
-  histogramBinMinimum[1] = 0;
-  histogramBinMinimum[2] = 0;
+  histogramBinMinimum[0] = -0.5;
+  histogramBinMinimum[1] = -0.5;
+  histogramBinMinimum[2] = -0.5;
 
   HistogramMeasurementVectorType histogramBinMaximum( MeasurementVectorSize );
-  histogramBinMaximum[0] = 0;
-  histogramBinMaximum[1] = 0;
-  histogramBinMaximum[2] = 0;
+  histogramBinMaximum[0] = 255.5;
+  histogramBinMaximum[1] = 255.5;
+  histogramBinMaximum[2] = 255.5;
 
   histogramFilter->SetHistogramBinMinimum( histogramBinMinimum );
   histogramFilter->SetHistogramBinMaximum( histogramBinMaximum );
@@ -117,19 +117,21 @@ int itkImageToHistogramFilterTest2( int argc, char * argv [] )
   typedef HistogramFilterType::HistogramType  HistogramType;
   const HistogramType * histogram = histogramFilter->GetOutput();
 
+  std::ofstream outputFile;
+  outputFile.open( argv[2] );
 
   const unsigned int histogramSize = histogram->Size();
-  std::cout << "Histogram size " << histogramSize << std::endl;
+  outputFile << "Histogram size " << histogramSize << std::endl;
 
 
   unsigned int channel = 0;  // red channel
 
-  std::cout << "Histogram of the red component" << std::endl;
+  outputFile << "Histogram of the red component" << std::endl;
 
   for( unsigned int bin=0; bin < histogramSize; bin++ )
     {
-    std::cout << "bin = " << bin << " frequency = ";
-    std::cout << histogram->GetFrequency( bin, channel ) << std::endl;
+    outputFile << "bin = " << bin << " frequency = ";
+    outputFile << histogram->GetFrequency( bin, channel ) << std::endl;
     }
 
 
@@ -152,12 +154,12 @@ int itkImageToHistogramFilterTest2( int argc, char * argv [] )
 
   channel = 1;  // green channel
 
-  std::cout << "Histogram of the green component" << std::endl;
+  outputFile << "Histogram of the green component" << std::endl;
 
   for( unsigned int bin=0; bin < histogramSize; bin++ )
     {
-    std::cout << "bin = " << bin << " frequency = ";
-    std::cout << histogram->GetFrequency( bin, channel ) << std::endl;
+    outputFile << "bin = " << bin << " frequency = ";
+    outputFile << histogram->GetFrequency( bin, channel ) << std::endl;
     }
 
 
@@ -180,13 +182,15 @@ int itkImageToHistogramFilterTest2( int argc, char * argv [] )
 
   channel = 2;  // blue channel
 
-  std::cout << "Histogram of the blue component" << std::endl;
+  outputFile << "Histogram of the blue component" << std::endl;
 
   for( unsigned int bin=0; bin < histogramSize; bin++ )
     {
-    std::cout << "bin = " << bin << " frequency = ";
-    std::cout << histogram->GetFrequency( bin, channel ) << std::endl;
+    outputFile << "bin = " << bin << " frequency = ";
+    outputFile << histogram->GetFrequency( bin, channel ) << std::endl;
     }
+
+  outputFile.close();
 
   return EXIT_SUCCESS;
 }
