@@ -29,7 +29,9 @@ ExpectationMaximizationMixtureModelEstimator< TSample >
 {
   m_TerminationCode = NOT_CONVERGED;
 
-  m_MembershipFunctionsObject = MembershipFunctionVectorObjectType::New();
+  m_MembershipFunctionsObject            = MembershipFunctionVectorObjectType::New();
+  m_MembershipFunctionsWeightArrayObject =
+                        MembershipFunctionsWeightsArrayObjectType::New();
 }
  
 template< class TSample >
@@ -372,6 +374,26 @@ ExpectationMaximizationMixtureModelEstimator< TSample >
 
   return static_cast< const MembershipFunctionVectorObjectType*>(m_MembershipFunctionsObject);
 }
+
+template< class TSample >
+const typename ExpectationMaximizationMixtureModelEstimator< TSample
+>::MembershipFunctionsWeightsArrayObjectType * 
+ExpectationMaximizationMixtureModelEstimator< TSample > 
+::GetMembershipFunctionsWeightsArray() const
+{
+
+  unsigned int numberOfComponents = m_ComponentVector.size(); 
+  ProportionVectorType &  membershipFunctionsWeightVector =
+                                      m_MembershipFunctionsWeightArrayObject->Get();
+  membershipFunctionsWeightVector.SetSize( numberOfComponents );
+  for( unsigned int i=0; i < numberOfComponents; i++ )
+    {
+    membershipFunctionsWeightVector[i] = m_Proportions[i];
+    }
+
+  return static_cast< const MembershipFunctionsWeightsArrayObjectType*>(m_MembershipFunctionsWeightArrayObject);
+}
+
 template< class TSample >
 void 
 ExpectationMaximizationMixtureModelEstimator< TSample >
