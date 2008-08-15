@@ -19,6 +19,7 @@
 
 #include "itkMembershipFunctionBase.h"
 #include "itkMixtureModelComponentBase.h"
+#include "itkGaussianMembershipFunction.h"
 
 namespace itk { 
 namespace Statistics {
@@ -65,8 +66,26 @@ public:
   itkNewMacro(Self);
 
   /** TSample template argument related typedefs */
+  typedef TSample                                 SampleType;
   typedef typename TSample::MeasurementType       MeasurementType;
   typedef typename TSample::MeasurementVectorType MeasurementVectorType;
+
+
+  /** Typedef requried to generate dataobject decorated output that can
+    * be plugged into SampleClassifierFilter */ 
+  typedef GaussianMembershipFunction< MeasurementVectorType > 
+                                                   GaussianMembershipFunction;
+
+  typedef typename GaussianMembershipFunction::Pointer 
+                                                   GaussianMembershipFunctionPointer;
+
+  typedef MembershipFunctionBase< MeasurementVectorType > MembershipFunctionType;
+  typedef typename MembershipFunctionType::ConstPointer   MembershipFunctionPointer;
+  typedef std::vector< MembershipFunctionPointer >        MembershipFunctionVectorType;
+  typedef SimpleDataObjectDecorator<
+    MembershipFunctionVectorType >                        MembershipFunctionVectorObjectType;
+  typedef typename 
+    MembershipFunctionVectorObjectType::Pointer           MembershipFunctionVectorObjectPointer;
 
   /** Type of the mixture model component base class*/
   typedef MixtureModelComponentBase< TSample > ComponentType;
@@ -95,6 +114,15 @@ public:
   /** Gets the result proportion values */
   ProportionVectorType* GetProportions();
 
+  /** typedef for decorated array of proportion*/
+  typedef SimpleDataObjectDecorator<
+  ProportionVectorType>                 MembershipFunctionsWeightsArrayObjectType;
+  typedef typename 
+    MembershipFunctionsWeightsArrayObjectType::Pointer   MembershipFunctionsWeightsArrayPointer;
+
+  /** Get method for data decorated Membership functions weights array */
+  MembershipFunctionsWeightsArrayObjectType * GetMembershipFunctionsWeightsArray();
+ 
   /** Set/Gets the maximum number of iterations. When the optimization
    * process reaches the maximum number of interations, even if the
    * class parameters aren't converged, the optimization process
@@ -127,6 +155,10 @@ public:
   argument. */
   ComponentMembershipFunctionType* GetComponentMembershipFunction(int componentIndex);
 
+  /** Output Membership function vector containing the membership functions with
+    * the final optimized paramters */
+  const MembershipFunctionVectorObjectType * GetOutput() const; 
+
 protected:
   ExpectationMaximizationMixtureModelEstimator();
   virtual ~ExpectationMaximizationMixtureModelEstimator() {}
@@ -151,6 +183,8 @@ private:
   ComponentVectorType         m_ComponentVector;
   ProportionVectorType        m_InitialProportions;
   ProportionVectorType        m_Proportions;
+
+  MembershipFunctionVectorObjectPointer   m_MembershipFunctionsObject;
 }; // end of class
 
 
