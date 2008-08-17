@@ -105,6 +105,8 @@ protected:
 
   void GenerateData();
 
+  MeasurementVectorSizeType GetMeasurementVectorSize() const;
+
 private:
 }; // end of class
     

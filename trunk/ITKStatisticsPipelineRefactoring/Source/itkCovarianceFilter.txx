@@ -80,17 +80,56 @@ typename CovarianceFilter< TSample>::DataObjectPointer
 CovarianceFilter< TSample >
 ::MakeOutput(unsigned int index )
 {
+  MeasurementVectorSizeType measurementVectorSize = this->GetMeasurementVectorSize();
+
   if ( index == 0 )
     {
-    return static_cast< DataObject * >(MatrixDecoratedType::New().GetPointer());
+    MatrixType covarianceMatrix( measurementVectorSize, measurementVectorSize );
+    covarianceMatrix.SetIdentity();
+    MatrixDecoratedType::Pointer decoratedCovarianceMatrix = MatrixDecoratedType::New();
+    decoratedCovarianceMatrix->Set( covarianceMatrix );
+    return static_cast< DataObject * >(decoratedCovarianceMatrix.GetPointer());
     }
 
   if ( index == 1 )
     {
-    return static_cast< DataObject * >(MeasurementVectorDecoratedType::New().GetPointer());
+    typedef typename MeasurementVectorTraitsTypes< MeasurementVectorType >::ValueType   ValueType;
+    MeasurementVectorType mean;
+    MeasurementVectorTraits::SetLength( mean,  this->GetMeasurementVectorSize() );
+    mean.Fill( NumericTraits< ValueType >::Zero );
+    MeasurementVectorDecoratedType::Pointer decoratedMean = MeasurementVectorDecoratedType::New();
+    decoratedMean->Set( mean ); 
+    return static_cast< DataObject * >( decoratedMean.GetPointer() );
     }
   itkExceptionMacro("Trying to create output of index " << index << " larger than the number of output");
 }
+
+template< class TSample >
+typename CovarianceFilter< TSample >::MeasurementVectorSizeType 
+CovarianceFilter< TSample >
+::GetMeasurementVectorSize() const
+{
+  const SampleType *input = this->GetInput();
+
+  if( input )
+    {
+    return input->GetMeasurementVectorSize();
+    }
+
+  // Test if the Vector type knows its length
+  MeasurementVectorType vector;
+  MeasurementVectorSizeType measurementVectorSize = MeasurementVectorTraits::GetLength( vector );
+
+  if( measurementVectorSize )
+    {
+    return measurementVectorSize;
+    }
+
+  measurementVectorSize = 1; // Otherwise set it to an innocuous value
+
+  return measurementVectorSize;
+}
+ 
 
 template< class TSample >
 inline void
@@ -99,8 +138,7 @@ CovarianceFilter< TSample >
 {
   const SampleType *input = this->GetInput();
 
-  MeasurementVectorSizeType measurementVectorSize = 
-                             input->GetMeasurementVectorSize();
+  MeasurementVectorSizeType measurementVectorSize = input->GetMeasurementVectorSize();
  
   MatrixDecoratedType * decoratedOutput =
             static_cast< MatrixDecoratedType * >(
