@@ -97,7 +97,7 @@ CovarianceFilter< TSample >
     MeasurementVectorType mean;
     MeasurementVectorTraits::SetLength( mean,  this->GetMeasurementVectorSize() );
     mean.Fill( NumericTraits< ValueType >::Zero );
-    MeasurementVectorDecoratedType::Pointer decoratedMean = MeasurementVectorDecoratedType::New();
+    typename MeasurementVectorDecoratedType::Pointer decoratedMean = MeasurementVectorDecoratedType::New();
     decoratedMean->Set( mean ); 
     return static_cast< DataObject * >( decoratedMean.GetPointer() );
     }

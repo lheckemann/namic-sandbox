@@ -40,7 +40,7 @@ class ITK_EXPORT ImageClassifierFilter :
 {
 public:
   /** Standard class typedef */
-  typedef ImageClassifierFilter         Self;
+  typedef ImageClassifierFilter          Self;
   typedef ProcessObject                  Superclass;
   typedef SmartPointer< Self >           Pointer;
   typedef SmartPointer<const Self>       ConstPointer;

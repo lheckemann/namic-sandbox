@@ -68,7 +68,7 @@ DistanceToCentroidMembershipFunction< TVector >
 }
 
 template < class TVector >
-typename MembershipFunctionBase< TVector >::Pointer 
+typename DistanceToCentroidMembershipFunction< TVector >::Pointer 
 DistanceToCentroidMembershipFunction< TVector >
 ::Clone() 
 { 
@@ -77,7 +77,7 @@ DistanceToCentroidMembershipFunction< TVector >
   membershipFunction->SetMeasurementVectorSize( this->GetMeasurementVectorSize() );
   membershipFunction->SetCentroid( this->GetCentroid() );
  
-  return membershipFunction.GetPointer(); 
+  return membershipFunction;
 }
  
   

@@ -80,7 +80,7 @@ public:
   double Evaluate(const MeasurementVectorType &measurement) const;
   
   /** Return a copy of the current membership function */
-  typename Superclass::Pointer Clone(); 
+  Pointer Clone(); 
  
 protected:
   DistanceToCentroidMembershipFunction(void);
