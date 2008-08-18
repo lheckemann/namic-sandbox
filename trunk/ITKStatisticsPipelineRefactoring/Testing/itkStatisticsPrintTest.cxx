@@ -55,6 +55,12 @@
 #include "itkEuclideanSquareDistanceMetric.h"
 #include "itkMahalanobisDistanceMetric.h"
 #include "itkManhattanDistanceMetric.h"
+#include "itkImageClassifierFilter.h"
+#include "itkImageClassifierFilter.h"
+#include "itkKdTreeBasedKmeansEstimator.h"
+#include "itkExpectationMaximizationMixtureModelEstimator.h"
+#include "itkWeightedCentroidKdTreeGenerator.h"
+#include "itkKdTree.h"
 
 int itkStatisticsPrintTest(int , char* [])
 {
@@ -78,6 +84,9 @@ int itkStatisticsPrintTest(int , char* [])
 
   typedef itk::Statistics::SampleClassifierFilter< 
     SampleType > SampleClassifierFilterType;
+
+  typedef itk::Statistics::ImageClassifierFilter< 
+    SampleType, ImageType, ImageType > ImageClassifierFilterType;
 
   typedef itk::Statistics::ImageToListSampleFilter< 
     ImageType, ImageType > ImageToListSampleFilterType;
@@ -140,8 +149,12 @@ int itkStatisticsPrintTest(int , char* [])
 
   typedef itk::Statistics::DenseFrequencyContainer2 DenseFrequencyContainer2Type;
   typedef itk::Statistics::SparseFrequencyContainer2 SparseFrequencyContainer2Type;
+
+  typedef itk::Statistics::ExpectationMaximizationMixtureModelEstimator< SampleType > EMEstimatorType;
+
+  typedef itk::Statistics::WeightedCentroidKdTreeGenerator< SampleType >  TreeGeneratorType;
+  typedef itk::Statistics::KdTreeBasedKmeansEstimator< TreeGeneratorType::KdTreeType >  KdTreeBasedKMeansEstimatorType;
   
- 
   SampleType::Pointer sampleObj = SampleType::New();
   std::cout << "----------ListSample " << sampleObj;
 
@@ -258,9 +271,21 @@ int itkStatisticsPrintTest(int , char* [])
     MaximumDecisionRuleType::New();
   std::cout << "----------MaximumDecisionRuleType " << maximumDecsion ;
 
-  MaximumDecisionRuleType::Pointer minimumDecsion=
-    MaximumDecisionRuleType::New();
-  std::cout << "----------MaximumDecisionRuleType " << minimumDecsion ;
+  MinimumDecisionRuleType::Pointer minimumDecsion=
+    MinimumDecisionRuleType::New();
+  std::cout << "----------MinimumDecisionRuleType " << minimumDecsion ;
+
+  ImageClassifierFilterType::Pointer classifierFilter=
+   ImageClassifierFilterType::New();
+  std::cout << "----------ImageClassifierFilterType " << classifierFilter ;
+ 
+  EMEstimatorType::Pointer emEstimator=
+   EMEstimatorType::New();
+  std::cout << "----------EMEstimatorType " << emEstimator ;
+
+  KdTreeBasedKMeansEstimatorType::Pointer kdTreeBasedEstimator=
+   KdTreeBasedKMeansEstimatorType::New();
+  std::cout << "----------KdTreeBasedKMeansEstimatorType " << kdTreeBasedEstimator;
  
   return EXIT_SUCCESS;
 }
