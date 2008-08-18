@@ -170,7 +170,7 @@ GaussianMembershipFunction< TMeasurementVector >
 }
   
 template < class TVector >
-typename MembershipFunctionBase< TVector >::Pointer 
+typename GaussianMembershipFunction<TVector>::Pointer 
 GaussianMembershipFunction< TVector >
 ::Clone() 
 { 
@@ -179,7 +179,7 @@ GaussianMembershipFunction< TVector >
   membershipFunction->SetMean( this->GetMean() );
   membershipFunction->SetCovariance( this->GetCovariance() );
  
-  return membershipFunction.GetPointer(); 
+  return membershipFunction;
 }
  
 } // end namespace Statistics
