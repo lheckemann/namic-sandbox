@@ -22,33 +22,58 @@
 #include "itkMembershipSample.h"
 #include "itkMembershipFunctionBase.h"
 #include "itkDecisionRule.h"
-#include "itkProcessObject.h"
+#include "itkImageToImageFilter.h"
 #include "itkSimpleDataObjectDecorator.h"
 
 namespace itk {
 namespace Statistics {
 
 /** \class ImageClassifierFilter 
- *  \brief This filter takes as input a Sample and produces as output a
- *  classification in the form of a MembershipSample object.
+ *
+ *  \brief This filter takes as input image, membership functions
+ *  and produces as output image with each pixel 
+ *  labeled according to the classification result.
  *
  */
 
-template< class TSample >
+template< class TSample, class TInputImage, class TOutputImage >
 class ITK_EXPORT ImageClassifierFilter : 
-      public ProcessObject
+      public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedef */
-  typedef ImageClassifierFilter          Self;
-  typedef ProcessObject                  Superclass;
-  typedef SmartPointer< Self >           Pointer;
-  typedef SmartPointer<const Self>       ConstPointer;
+  typedef ImageClassifierFilter                           Self;
+  typedef ImageToImageFilter<TInputImage,TOutputImage>    Superclass;
+  typedef SmartPointer< Self >                            Pointer;
+  typedef SmartPointer<const Self>                        ConstPointer;
 
   /** Standard macros */
   itkTypeMacro(ImageClassifierFilter, ProcessObject);
   itkNewMacro(Self);
 
+  /** Image pixel value typedef. */
+  typedef           TInputImage             InputImageType;
+  typedef           TOutputImage            OutputImageType;
+  typedef typename TInputImage::PixelType   InputPixelType;
+  typedef typename TOutputImage::PixelType  OutputPixelType;
+  
+  /** Image related typedefs. */
+  typedef typename TInputImage::Pointer   InputImagePointer;
+  typedef typename TOutputImage::Pointer  OutputImagePointer;
+
+  typedef typename TInputImage::SizeType    InputSizeType;
+  typedef typename TInputImage::IndexType   InputIndexType;
+  typedef typename TInputImage::RegionType  InputImageRegionType;
+  typedef typename TOutputImage::SizeType   OutputSizeType;
+  typedef typename TOutputImage::IndexType  OutputIndexType;
+  typedef typename TOutputImage::RegionType OutputImageRegionType;
+
+  /** Image related typedefs. */
+  itkStaticConstMacro(InputImageDimension, unsigned int,
+                      TInputImage::ImageDimension );
+  itkStaticConstMacro(OutputImageDimension, unsigned int,
+                      TOutputImage::ImageDimension );
+ 
   /** Type of the input Sample */
   typedef TSample                        SampleType;
 

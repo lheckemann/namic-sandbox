@@ -117,5 +117,7 @@ void RegisterTests()
   REGISTER_TEST(itkGaussianMixtureModelComponentTest);
   REGISTER_TEST(itkExpectationMaximizationMixtureModelEstimatorTest);
 
+  REGISTER_TEST(itkImageClassifierFilterTest);
+
 }
 

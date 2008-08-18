@@ -153,6 +153,10 @@ ADD_TEST(itkExpectationMaximizationMixtureModelEstimatorTest
          ${STATISTICS_TESTS} 
          itkExpectationMaximizationMixtureModelEstimatorTest ${ITK_DATA_ROOT}/Input/Statistics/TwoDimensionTwoGaussian.dat)
 
+ADD_TEST(itkImageClassifierFilterTest 
+         ${STATISTICS_TESTS} 
+         itkImageClassifierFilterTest)
+
 SET(Statistics_SRCS
   itkCovarianceFilterTest.cxx
   itkCovarianceFilterTest2.cxx
@@ -238,6 +242,8 @@ SET(Statistics_SRCS
 
   itkGaussianMixtureModelComponentTest.cxx
   itkExpectationMaximizationMixtureModelEstimatorTest.cxx
+
+  itkImageClassifierFilterTest.cxx
 
   )
 

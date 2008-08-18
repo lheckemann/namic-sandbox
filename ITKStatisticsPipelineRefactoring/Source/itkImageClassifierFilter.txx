@@ -22,8 +22,8 @@
 namespace itk {
 namespace Statistics {
 
-template< class TSample >
-ImageClassifierFilter< TSample >
+template< class TSample, class TInputImage, class TOutputImage >
+ImageClassifierFilter<TSample,TInputImage,TOutputImage>
 ::ImageClassifierFilter()
 {
   this->SetNumberOfRequiredInputs( 3 );
@@ -43,17 +43,17 @@ ImageClassifierFilter< TSample >
   m_DecisionRule = NULL;
 }
 
-template< class TSample >
+template< class TSample, class TInputImage, class TOutputImage >
 void
-ImageClassifierFilter< TSample >
+ImageClassifierFilter<TSample,TInputImage,TOutputImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os,indent);
 }
 
-template< class TSample >
+template< class TSample, class TInputImage, class TOutputImage >
 void
-ImageClassifierFilter< TSample >
+ImageClassifierFilter<TSample,TInputImage,TOutputImage>
 ::SetInput( const TSample* sample )
 {
   // Process object is not const-correct so the const_cast is required here
@@ -61,9 +61,9 @@ ImageClassifierFilter< TSample >
                                    const_cast< SampleType * >( sample ) );
 }
 
-template< class TSample >
+template< class TSample, class TInputImage, class TOutputImage >
 const TSample *
-ImageClassifierFilter< TSample >
+ImageClassifierFilter<TSample,TInputImage,TOutputImage>
 ::GetInput( ) const
 {
   if (this->GetNumberOfInputs() < 1)
@@ -76,9 +76,9 @@ ImageClassifierFilter< TSample >
 }
 
 
-template< class TSample >
+template< class TSample, class TInputImage, class TOutputImage >
 void
-ImageClassifierFilter< TSample >
+ImageClassifierFilter<TSample,TInputImage,TOutputImage>
 ::SetClassLabels( const ClassLabelVectorObjectType * classLabels )
 {
   // Process object is not const-correct so the const_cast is required here
@@ -86,9 +86,9 @@ ImageClassifierFilter< TSample >
                                    const_cast< ClassLabelVectorObjectType * >( classLabels ) );
 }
 
-template< class TSample >
+template< class TSample, class TInputImage, class TOutputImage >
 void
-ImageClassifierFilter< TSample >
+ImageClassifierFilter<TSample,TInputImage,TOutputImage>
 ::SetMembershipFunctions( const MembershipFunctionVectorObjectType * membershipFunctions )
 {
   // Process object is not const-correct so the const_cast is required here
@@ -96,9 +96,9 @@ ImageClassifierFilter< TSample >
                                    const_cast< MembershipFunctionVectorObjectType * >( membershipFunctions ) );
 }
 
-template< class TSample >
+template< class TSample, class TInputImage, class TOutputImage >
 void
-ImageClassifierFilter< TSample >
+ImageClassifierFilter<TSample,TInputImage,TOutputImage>
 ::SetMembershipFunctionsWeightsArray( const
 MembershipFunctionsWeightsArrayObjectType * weightsArray )
 {
@@ -109,17 +109,17 @@ MembershipFunctionsWeightsArrayObjectType * weightsArray )
 }
 
 
-template< class TSample >
-typename ImageClassifierFilter< TSample >::DataObjectPointer
-ImageClassifierFilter< TSample >
+template< class TSample, class TInputImage, class TOutputImage >
+typename ImageClassifierFilter< TSample,TInputImage,TOutputImage >::DataObjectPointer
+ImageClassifierFilter<TSample,TInputImage,TOutputImage>
 ::MakeOutput(unsigned int)
 {
   return static_cast<DataObject*>( MembershipSampleType::New().GetPointer() );
 }
 
-template< class TSample >
+template< class TSample, class TInputImage, class TOutputImage >
 void
-ImageClassifierFilter< TSample >
+ImageClassifierFilter<TSample,TInputImage,TOutputImage>
 ::GenerateData()
 {
   const ClassLabelVectorObjectType * classLabelsDecorated = 
@@ -172,8 +172,8 @@ ImageClassifierFilter< TSample >
                       number of classes "); 
     }
   
-  const ImageType * inputImage =
-    static_cast< const ImageType * >( this->ProcessObject::GetInput( 0 ) );
+  const InputImageType * inputImage =
+    static_cast< const InputImageType * >( this->ProcessObject::GetInput( 0 ) );
 
   std::vector< double > discriminantScores;
   discriminantScores.resize( this->m_NumberOfClasses );
@@ -191,9 +191,9 @@ ImageClassifierFilter< TSample >
   inpItr.GoToBegin();
   outItr.GoToBegin();
 
-  while( !inpItr.IsNotEnd() )
+  while( !inpItr.IsAtEnd() )
     {
-    typename MeasurementVectorType measurements;
+    MeasurementVectorType measurements;
 
     MeasurementVectorTraits::Assign( measurements, inpItr.Get() ); 
 
@@ -206,16 +206,16 @@ ImageClassifierFilter< TSample >
     unsigned int classIndex;
     classIndex = m_DecisionRule->Evaluate(discriminantScores);
   
-    outItr.Set(classLabels[classIndex] );
+    //outItr.Set(classLabels[classIndex] );
 
     ++inpItr;
     ++outItr;
     }
 }
 
-template< class TSample >
-const typename ImageClassifierFilter< TSample >::MembershipSampleType *
-ImageClassifierFilter< TSample >
+template< class TSample, class TInputImage, class TOutputImage >
+const typename ImageClassifierFilter< TSample,TInputImage,TOutputImage >::MembershipSampleType *
+ImageClassifierFilter<TSample,TInputImage,TOutputImage>
 ::GetOutput() const
 {
   return static_cast< const MembershipSampleType * >(this->ProcessObject::GetOutput(0));

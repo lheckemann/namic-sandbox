@@ -58,6 +58,9 @@
 #include "itkMinimumDecisionRule2.h"
 #include "itkDistanceToCentroidMembershipFunction.h"
 #include "itkGaussianMembershipFunction.h"
+#include "itkSampleClassifierFilter.h"
+#include "itkExpectationMaximizationMixtureModelEstimator.h"
+#include "itkKdTreeBasedKmeansEstimator.h"
 
 
 int main ( int , char*  )
