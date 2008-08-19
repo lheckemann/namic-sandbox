@@ -155,7 +155,8 @@ ADD_TEST(itkExpectationMaximizationMixtureModelEstimatorTest
 
 ADD_TEST(itkImageClassifierFilterTest 
          ${STATISTICS_TESTS} 
-         itkImageClassifierFilterTest)
+         itkImageClassifierFilterTest
+         ${TEMP}/ImageClassifierFilterTestClassifiedImage.png)
 
 SET(Statistics_SRCS
   itkCovarianceFilterTest.cxx

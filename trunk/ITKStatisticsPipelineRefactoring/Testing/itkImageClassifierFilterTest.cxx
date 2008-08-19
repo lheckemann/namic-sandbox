@@ -29,9 +29,16 @@
 #include "itkMaximumDecisionRule2.h"
 #include "itkImageToListSampleAdaptor.h"
 #include "itkNormalVariateGenerator.h"
+#include "itkImageFileWriter.h"
 
-int itkImageClassifierFilterTest(int, char* [] ) 
+int itkImageClassifierFilterTest(int argc, char* argv[] ) 
 {
+  if( argc < 2 )
+    {
+    std::cerr << "Missing command line arguments: " 
+              << argv[0] << "\t" << "ClassifiedOutputImage name" << std::endl;
+    return EXIT_FAILURE;
+    }
   const unsigned int MeasurementVectorSize = 1;
   typedef double MeasurementComponentType;
   const unsigned int numberOfClasses = 2;
@@ -40,7 +47,7 @@ int itkImageClassifierFilterTest(int, char* [] )
   const unsigned int ImageDimension = 2;
   typedef itk::Image< InputPixelType, ImageDimension > InputImageType;
 
-  typedef unsigned int OutputPixelType;
+  typedef unsigned char OutputPixelType;
   typedef itk::Image< OutputPixelType, ImageDimension > OutputImageType;
   
   //Generate an image with pixel intensities generated from two normal
@@ -60,32 +67,40 @@ int itkImageClassifierFilterTest(int, char* [] )
   InputImageType::RegionType region( start, size );
   image->SetRegions( region );
   image->Allocate();
-  typedef itk::ImageRegionIteratorWithIndex< InputImageType > IteratorType;
-  IteratorType it( image, region );
-  it.GoToBegin();
 
-  //Pixel intensities generated from the first normal distribution
+  //Fill the first half of the input image with pixel intensities
+  //gnerated from a normal distribution defined by the following parameters
   double mean = 10.5; 
   double standardDeviation = 0.1; 
 
-  while (!it.IsAtEnd())
+  InputImageType::IndexType index;
+
+  for(unsigned int y = 0; y < size[1]/2; y++ )
     {
-    InputPixelType value;
-    value[0] = (normalGenerator->GetVariate() * standardDeviation ) + mean;
-    it.Set( value );
-    ++it; 
+    index[1] = y;
+    for(unsigned int x = 0; x < size[0]; x++ )
+      {
+      index[0] = x;
+      InputPixelType value;
+      value[0] = (normalGenerator->GetVariate() * standardDeviation ) + mean;
+      image->SetPixel(index, value);
+      }
     }
 
   //Pixel intensities generated from the second normal distribution
   double mean2 = 200.5; 
   double standardDeviation2 = 0.1; 
 
-  while (!it.IsAtEnd())
+  for(unsigned int y = size[1]/2; y < size[1]; y++ )
     {
-    InputPixelType value;
-    value[0] = (normalGenerator->GetVariate() * standardDeviation2 ) + mean2;
-    it.Set( value );
-    ++it; 
+    index[1] = y;
+    for(unsigned int x = 0; x < size[0]; x++ )
+      {
+      index[0] = x;
+      InputPixelType value;
+      value[0] = (normalGenerator->GetVariate() * standardDeviation2 ) + mean2;
+      image->SetPixel(index, value);
+      }
     }
 
   //Instantiate an image to list sample adaptor to pass the sample list
@@ -166,7 +181,7 @@ int itkImageClassifierFilterTest(int, char* [] )
   ClassLabelType  class1 = 0;
   classLabelVector.push_back( class1 );
 
-  ClassLabelType  class2 = 1;
+  ClassLabelType  class2 = 255;
   classLabelVector.push_back( class2 );
 
   //Set a decision rule type
@@ -234,6 +249,13 @@ int itkImageClassifierFilterTest(int, char* [] )
     std::cerr << excp << std::endl;
     return EXIT_FAILURE;
     }
+
+  //Write out the classified image
+  typedef itk::ImageFileWriter< OutputImageType > OutputImageWriterType;
+  OutputImageWriterType::Pointer outputImageWriter = OutputImageWriterType::New();
+  outputImageWriter->SetFileName( argv[1] );
+  outputImageWriter->SetInput( filter->GetOutput() );
+  outputImageWriter->Update();
 
   //Check if the measurement vectors are correctly labelled. 
   //TODO
