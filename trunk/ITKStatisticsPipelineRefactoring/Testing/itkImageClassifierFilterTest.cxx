@@ -62,7 +62,7 @@ int itkImageClassifierFilterTest(int argc, char* argv[] )
   InputImageType::SizeType  size;
 
   start.Fill( 0 );
-  size.Fill( 10 );
+  size.Fill( 512 );
 
   InputImageType::RegionType region( start, size );
   image->SetRegions( region );
@@ -71,11 +71,12 @@ int itkImageClassifierFilterTest(int argc, char* argv[] )
   //Fill the first half of the input image with pixel intensities
   //gnerated from a normal distribution defined by the following parameters
   double mean = 10.5; 
-  double standardDeviation = 0.1; 
+  double standardDeviation = 5.0; 
 
   InputImageType::IndexType index;
+  unsigned int halfSize = size[1]/2;
 
-  for(unsigned int y = 0; y < size[1]/2; y++ )
+  for(unsigned int y = 0; y < halfSize ; y++ )
     {
     index[1] = y;
     for(unsigned int x = 0; x < size[0]; x++ )
@@ -83,15 +84,16 @@ int itkImageClassifierFilterTest(int argc, char* argv[] )
       index[0] = x;
       InputPixelType value;
       value[0] = (normalGenerator->GetVariate() * standardDeviation ) + mean;
+      //std::cout << "Index = \t" << index << "\t" << value << std::endl;
       image->SetPixel(index, value);
       }
     }
 
   //Pixel intensities generated from the second normal distribution
   double mean2 = 200.5; 
-  double standardDeviation2 = 0.1; 
+  double standardDeviation2 = 20.0; 
 
-  for(unsigned int y = size[1]/2; y < size[1]; y++ )
+  for(unsigned int y = halfSize; y < size[1]; y++ )
     {
     index[1] = y;
     for(unsigned int x = 0; x < size[0]; x++ )
@@ -99,6 +101,7 @@ int itkImageClassifierFilterTest(int argc, char* argv[] )
       index[0] = x;
       InputPixelType value;
       value[0] = (normalGenerator->GetVariate() * standardDeviation2 ) + mean2;
+      //std::cout << "Index = \t" << index << "\t" << value << std::endl;
       image->SetPixel(index, value);
       }
     }
@@ -109,27 +112,25 @@ int itkImageClassifierFilterTest(int argc, char* argv[] )
     ImageToListSampleAdaptorType ;
 
   ImageToListSampleAdaptorType::Pointer sample = ImageToListSampleAdaptorType::New() ;
-
   sample->SetImage( image );
 
   //Use EM estimator to estimate gaussian membership functions
-  typedef itk::Statistics::ListSample< InputPixelType > SampleType;
-  typedef itk::Statistics::ExpectationMaximizationMixtureModelEstimator< SampleType >
+  typedef itk::Statistics::ExpectationMaximizationMixtureModelEstimator< ImageToListSampleAdaptorType >
     EstimatorType ;
-  typedef itk::Statistics::GaussianMixtureModelComponent< SampleType > 
+  typedef itk::Statistics::GaussianMixtureModelComponent< ImageToListSampleAdaptorType > 
     ComponentType ;
 
   /* Preparing the gaussian mixture components */
   typedef itk::Array < double > ParametersType;
   std::vector< ParametersType > initialParameters(numberOfClasses);
   ParametersType params(2);
-  params[0] = 5;
-  params[1] = 0.1;
+  params[0] = 8.0;
+  params[1] = 2.1;
   initialParameters[0] = params;
 
-  params[0] = 150;
-  params[1] = 0.1;
-  initialParameters[0] = params;
+  params[0] = 170.0;
+  params[1] = 10.0;
+  initialParameters[1] = params;
 
   typedef ComponentType::Pointer ComponentPointer ;
   std::vector< ComponentPointer > components ;
@@ -161,9 +162,17 @@ int itkImageClassifierFilterTest(int argc, char* argv[] )
 
   estimator->Update() ;
 
+  for (unsigned int i = 0 ; i < numberOfClasses ; i++)
+    {
+      std::cout << "Cluster[" << i << "]" << std::endl ;
+      std::cout << "    Parameters:" << std::endl ;
+      std::cout << "         " << (components[i])->GetFullParameters() << std::endl ;
+      std::cout << "    Proportion: " ;
+      std::cout << "         " << (*estimator->GetProportions())[i] << std::endl ;
+    }
 
 
-  typedef itk::Statistics::ImageClassifierFilter< SampleType, 
+  typedef itk::Statistics::ImageClassifierFilter< ImageToListSampleAdaptorType, 
   InputImageType,OutputImageType > ImageClassifierFilterType;
   ImageClassifierFilterType::Pointer filter 
                               = ImageClassifierFilterType::New();

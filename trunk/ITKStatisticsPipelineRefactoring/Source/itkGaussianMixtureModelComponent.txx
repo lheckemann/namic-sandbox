@@ -121,6 +121,7 @@ GaussianMixtureModelComponent< TSample >
     {
     mean[i] = m_Mean[i];
     }
+
   m_GaussianMembershipFunction->SetMean(mean);
 
   for ( i = 0; i < measurementVectorSize; i++ )

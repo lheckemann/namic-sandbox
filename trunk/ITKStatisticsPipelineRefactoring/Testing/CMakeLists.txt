@@ -8,7 +8,7 @@ IF(ITK_BINARY_DIR)
 ENDIF(ITK_BINARY_DIR)
 
 SET(ITK_DATA_ROOT ${StatisticsRefactoring_SOURCE_DIR}/Testing/Data)
-SET(BASELINE ${ITK_DATA_ROOT}/Baseline/Statistics)
+SET(BASELINE ${StatisticsRefactoring_SOURCE_DIR}/Testing/Data/Baseline)
 SET(TEMP ${StatisticsRefactoring_BINARY_DIR}/Testing/Temporary)
 
 SET(STATISTICS_TESTS ${EXECUTABLE_OUTPUT_PATH}/itkStatisticsTests)
@@ -155,6 +155,8 @@ ADD_TEST(itkExpectationMaximizationMixtureModelEstimatorTest
 
 ADD_TEST(itkImageClassifierFilterTest 
          ${STATISTICS_TESTS} 
+        --compare ${BASELINE}/ImageClassifierFilterTestClassifiedImageTest.png
+         ${TEMP}/ImageClassifierFilterTestClassifiedImage.png
          itkImageClassifierFilterTest
          ${TEMP}/ImageClassifierFilterTestClassifiedImage.png)
 

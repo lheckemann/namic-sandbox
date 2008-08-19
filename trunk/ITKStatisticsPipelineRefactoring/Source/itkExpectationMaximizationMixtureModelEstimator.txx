@@ -172,6 +172,7 @@ ExpectationMaximizationMixtureModelEstimator< TSample >
   double minDouble = NumericTraits< double >::NonpositiveMin();
 
   long measurementVectorIndex = 0;
+  
   while (iter != last)
     {
     mvector = iter.GetMeasurementVector();
