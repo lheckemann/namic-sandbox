@@ -70,6 +70,7 @@ int itkStatisticsPrintTest(int , char* [])
   typedef itk::Image< TMeasurementVectorType, 3 > ImageType;
   typedef itk::Image< unsigned char, 3>           ScalarImageType;
   typedef itk::PointSet< TMeasurementType, 2 >    PointSetType;
+  typedef itk::Image< unsigned long , 3 >         OutputImageType;
 
   typedef itk::Statistics::ListSample< TMeasurementVectorType >
     SampleType;
@@ -86,7 +87,7 @@ int itkStatisticsPrintTest(int , char* [])
     SampleType > SampleClassifierFilterType;
 
   typedef itk::Statistics::ImageClassifierFilter< 
-    SampleType, ImageType, ImageType > ImageClassifierFilterType;
+    SampleType, ImageType, OutputImageType > ImageClassifierFilterType;
 
   typedef itk::Statistics::ImageToListSampleFilter< 
     ImageType, ImageType > ImageToListSampleFilterType;
