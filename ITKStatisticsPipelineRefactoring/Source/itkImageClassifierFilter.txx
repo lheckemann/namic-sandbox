@@ -29,16 +29,6 @@ ImageClassifierFilter<TSample,TInputImage,TOutputImage>
   this->SetNumberOfRequiredInputs( 3 );
   this->SetNumberOfRequiredOutputs( 1 );
 
-  // Create the output. We use static_cast<> here because we know the default
-  // output must be of type MembershipSampleType
-  MembershipSampleObjectPointer membershipSample
-    = dynamic_cast<MembershipSampleType*>(this->MakeOutput(0).GetPointer()); 
-
-  this->ProcessObject::SetNthOutput(0, membershipSample.GetPointer());
-
-  /** Set sample in the output */
-  membershipSample->SetSample( this->GetInput() ); 
-
   /** Initialize decision rule */
   m_DecisionRule = NULL;
 }
@@ -54,24 +44,24 @@ ImageClassifierFilter<TSample,TInputImage,TOutputImage>
 template< class TSample, class TInputImage, class TOutputImage >
 void
 ImageClassifierFilter<TSample,TInputImage,TOutputImage>
-::SetInput( const TSample* sample )
+::SetImage( const InputImageType * image )
 {
   // Process object is not const-correct so the const_cast is required here
   this->ProcessObject::SetNthInput(0,
-                                   const_cast< SampleType * >( sample ) );
+                                   const_cast< InputImageType * >( image ) );
 }
 
 template< class TSample, class TInputImage, class TOutputImage >
-const TSample *
+const TInputImage *
 ImageClassifierFilter<TSample,TInputImage,TOutputImage>
-::GetInput( ) const
+::GetImage( ) const
 {
   if (this->GetNumberOfInputs() < 1)
     {
     return 0;
     }
 
-  return static_cast<const SampleType * >
+  return static_cast<const TInputImage * >
   (this->ProcessObject::GetInput(0) );
 }
 
@@ -106,15 +96,6 @@ MembershipFunctionsWeightsArrayObjectType * weightsArray )
   this->ProcessObject::SetNthInput(3,
                                    const_cast<
   MembershipFunctionsWeightsArrayObjectType * >( weightsArray ) );
-}
-
-
-template< class TSample, class TInputImage, class TOutputImage >
-typename ImageClassifierFilter< TSample,TInputImage,TOutputImage >::DataObjectPointer
-ImageClassifierFilter<TSample,TInputImage,TOutputImage>
-::MakeOutput(unsigned int)
-{
-  return static_cast<DataObject*>( MembershipSampleType::New().GetPointer() );
 }
 
 template< class TSample, class TInputImage, class TOutputImage >
@@ -200,25 +181,19 @@ ImageClassifierFilter<TSample,TInputImage,TOutputImage>
     for (unsigned int i = 0; i < this->m_NumberOfClasses; i++)
       {
       discriminantScores[i] = membershipFunctionsWeightsArray[i] * 
-        membershipFunctions[i]->Evaluate(measurements);
+        membershipFunctions[i]->Evaluate(measurements); 
       }
+    
 
     unsigned int classIndex;
     classIndex = m_DecisionRule->Evaluate(discriminantScores);
-  
-    //outItr.Set(classLabels[classIndex] );
+
+    OutputPixelType value = static_cast< OutputPixelType >(classLabels[classIndex]);
+    outItr.Set(value);
 
     ++inpItr;
     ++outItr;
     }
-}
-
-template< class TSample, class TInputImage, class TOutputImage >
-const typename ImageClassifierFilter< TSample,TInputImage,TOutputImage >::MembershipSampleType *
-ImageClassifierFilter<TSample,TInputImage,TOutputImage>
-::GetOutput() const
-{
-  return static_cast< const MembershipSampleType * >(this->ProcessObject::GetOutput(0));
 }
 
 } // end of namespace Statistics

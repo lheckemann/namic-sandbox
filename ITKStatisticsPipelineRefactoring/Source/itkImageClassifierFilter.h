@@ -19,7 +19,6 @@
 
 #include <vector>
 
-#include "itkMembershipSample.h"
 #include "itkMembershipFunctionBase.h"
 #include "itkDecisionRule.h"
 #include "itkImageToImageFilter.h"
@@ -77,10 +76,6 @@ public:
   /** Type of the input Sample */
   typedef TSample                        SampleType;
 
-  /** typedefs Output type */
-  typedef MembershipSample< SampleType >                     MembershipSampleType;
-  typedef typename MembershipSampleType::Pointer             MembershipSampleObjectPointer; 
-
   /** typedefs from SampleType object */
   typedef typename SampleType::MeasurementType            MeasurementType;
   typedef typename SampleType::MeasurementVectorType      MeasurementVectorType;
@@ -116,12 +111,9 @@ public:
   typedef DecisionRule                                DecisionRuleType;
   typedef DecisionRuleType::ConstPointer              DecisionRulePointer;
 
-  /** Sets the input sample that will be classified by this filter. */
-  void SetInput(const SampleType * sample);
-  const SampleType *  GetInput() const;
-
-  /** Returns the classification result */
-  const MembershipSampleType * GetOutput() const;
+  /** Sets the input image */
+  void SetImage(const InputImageType * image);
+  const InputImageType *  GetImage() const;
 
   /** Number of classes. This must match the number of labels and membership
    * functions provided by the user, otherwise an exception will be thrown at
@@ -159,14 +151,6 @@ protected:
   /** Starts the classification process */
   void GenerateData();
 
-  /** Make a DataObject of the correct type to used as the specified
-   * output. This method
-   * is automatically called when DataObject::DisconnectPipeline() is
-   * called.  
-   * \sa ProcessObject
-   */
-  virtual DataObjectPointer MakeOutput(unsigned int idx);
- 
 private:
  
   unsigned int                     m_NumberOfClasses;
