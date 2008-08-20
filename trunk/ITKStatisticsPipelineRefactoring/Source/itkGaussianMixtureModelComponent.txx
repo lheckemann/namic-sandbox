@@ -191,8 +191,6 @@ GaussianMixtureModelComponent< TSample >
   
   this->AreParametersModified(false);
 
-  //THIS IS NEEDED to update the weights...REVISE THIS LATER
-  //
   WeightArrayType* weights = this->GetWeights();
 
   typename TSample::ConstIterator iter = this->GetSample()->Begin();
@@ -247,7 +245,6 @@ GaussianMixtureModelComponent< TSample >
     paramIndex = measurementVectorSize;
     }
 
-  //Setting the weight should not be needed..REVISE
   m_CovarianceEstimator->SetWeights(*weights);
   m_CovarianceEstimator->Update();
   typename CovarianceEstimatorType::MatrixType covEstimate =
