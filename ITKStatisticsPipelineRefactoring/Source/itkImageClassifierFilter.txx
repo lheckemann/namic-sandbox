@@ -183,7 +183,6 @@ ImageClassifierFilter<TSample,TInputImage,TOutputImage>
       discriminantScores[i] = membershipFunctionsWeightsArray[i] * 
         membershipFunctions[i]->Evaluate(measurements); 
       }
-    
 
     unsigned int classIndex;
     classIndex = m_DecisionRule->Evaluate(discriminantScores);

@@ -29,7 +29,10 @@ namespace itk {
 namespace Statistics {
 
 /** \class SampleClassifierFilter 
- *  \brief This filter takes as input a Sample and produces as output a
+ *  
+ *  \brief Sample classification class
+ *
+ *  This filter takes as input a Sample and produces as output a
  *  classification in the form of a MembershipSample object.
  *
  */
@@ -77,9 +80,6 @@ public:
   typedef typename 
     MembershipFunctionsWeightsArrayObjectType::Pointer   MembershipFunctionsWeightsArrayPointer;
 
-  /** Types required for the pipeline infrastructure */
-  typedef typename DataObject::Pointer                DataObjectPointer;
-  
   typedef unsigned long                               ClassLabelType;
   typedef std::vector< ClassLabelType >               ClassLabelVectorType;
   typedef SimpleDataObjectDecorator<

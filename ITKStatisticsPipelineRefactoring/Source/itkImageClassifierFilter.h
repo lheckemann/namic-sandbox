@@ -28,11 +28,17 @@ namespace itk {
 namespace Statistics {
 
 /** \class ImageClassifierFilter 
+ *  
+ *  \brief Image classification class
  *
- *  \brief This filter takes as input image, membership functions
- *  and produces as output image with each pixel 
- *  labeled according to the classification result.
+ *  This filter takes input image, membership functions,
+ *  decision rule and produces as output image with each pixel labeled 
+ *  according to the classification result.
  *
+ *  This class is templated over the type of input and output image and 
+ *  sample type.
+ *
+ * \sa SampleClassifierFilter
  */
 
 template< class TSample, class TInputImage, class TOutputImage >
@@ -97,9 +103,7 @@ public:
   typedef typename 
     MembershipFunctionsWeightsArrayObjectType::Pointer   MembershipFunctionsWeightsArrayPointer;
 
-  /** Types required for the pipeline infrastructure */
-  typedef typename DataObject::Pointer                DataObjectPointer;
-  
+  /** typedef for class label type */
   typedef unsigned long                               ClassLabelType;
   typedef std::vector< ClassLabelType >               ClassLabelVectorType;
   typedef SimpleDataObjectDecorator<
