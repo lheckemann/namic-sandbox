@@ -14,7 +14,6 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-// The example tests the class itk::Statistics::ImageToListSampleAdaptor.
 
 #if defined(_MSC_VER)
 #pragma warning ( disable : 4786 )
@@ -31,6 +30,9 @@
 #include "itkNormalVariateGenerator.h"
 #include "itkImageFileWriter.h"
 
+//This program tests the ImageClassifierFilter. The test uses the
+//ExpectationMaximizationMixtureModelEstimator to estimaete membership
+//function parameters.
 int itkImageClassifierFilterTest(int argc, char* argv[] ) 
 {
   if( argc < 2 )
