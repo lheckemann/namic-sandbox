@@ -243,11 +243,42 @@ int itkImageClassifierFilterTest(int argc, char* argv[] )
     }
 
   filter->SetImage( image );
+
   filter->SetNumberOfClasses( numberOfClasses );
+
+  if( filter->GetNumberOfClasses() != numberOfClasses )
+    {
+    std::cerr << "Get/SetNumberOfClasses error" << std::endl;
+    return EXIT_FAILURE;
+    }
+
   filter->SetClassLabels( classLabelsObject );
-  filter->SetDecisionRule( decisionRule );
   filter->SetMembershipFunctions( membershipFunctionsObject );
   filter->SetMembershipFunctionsWeightsArray( weightArrayObjects );
+
+  //Run the filter without setting a decision rule. An exception should be
+  //thrown
+  try
+    {
+    filter->Update();
+    std::cerr << "Attempting to run a classification without setting"
+              << "decision rule, should throw an exception" << std::endl; 
+    return EXIT_FAILURE; 
+    }
+  catch( itk::ExceptionObject & excp )
+    {
+    std::cerr << excp << std::endl;
+    }
+
+ 
+  filter->SetDecisionRule( decisionRule );
+ 
+  //Test Set/GetDecisionRule method 
+  if( filter->GetDecisionRule() != decisionRule )
+    {
+    std::cerr << "Set/GetDecisionRule method error \n" << std::endl;
+    return EXIT_FAILURE;
+    }
 
   try
     {
