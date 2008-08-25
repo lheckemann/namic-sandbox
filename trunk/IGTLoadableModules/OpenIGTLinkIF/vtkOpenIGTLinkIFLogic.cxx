@@ -73,6 +73,10 @@ vtkOpenIGTLinkIFLogic::vtkOpenIGTLinkIFLogic()
 
   this->Initialized   = 0;
   this->RestrictDeviceName = 0;
+  
+  this->SliceOrientation[0] = SLICE_RTIMAGE_PERP;
+  this->SliceOrientation[1] = SLICE_RTIMAGE_INPLANE90;
+  this->SliceOrientation[2] = SLICE_RTIMAGE_INPLANE;
 
 }
 
@@ -1149,6 +1153,12 @@ void vtkOpenIGTLinkIFLogic::UpdateSliceNode(int sliceNodeNumber,
                                          float px, float py, float pz)
 {
 
+  // NOTES: In Slicer3 ver. 3.2 and higher, a slice orientation information in
+  // a slice nodes classes are automaticall set to "Reformat", whenever
+  // SetSliceToRASByNTP() function is called.
+  // The OpenIGTLinkIF module saves the slice orientations in SliceOrientation[]
+  // before the slice nodes update slice orientation information.
+
   if (this->FreezePlane)
     {
     return;
@@ -1160,45 +1170,79 @@ void vtkOpenIGTLinkIFLogic::UpdateSliceNode(int sliceNodeNumber,
     {
     if (this->EnableOblique) // perpendicular
       {
+      this->SliceOrientation[sliceNodeNumber] = SLICE_RTIMAGE_PERP;
       this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
-      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
       }
     else
       {
       this->SliceNode[sliceNodeNumber]->SetOrientationToAxial();
       this->SliceNode[sliceNodeNumber]->JumpSlice(px, py, pz);
-      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
       }
     }
   else if (strcmp(this->SliceNode[sliceNodeNumber]->GetOrientationString(), "Sagittal") == 0)
     {
     if (this->EnableOblique) // In-Plane
       {
+      this->SliceOrientation[sliceNodeNumber] = SLICE_RTIMAGE_INPLANE;
       this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
-      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
       }
     else
       {
       this->SliceNode[sliceNodeNumber]->SetOrientationToSagittal();
       this->SliceNode[sliceNodeNumber]->JumpSlice(px, py, pz);
-      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
       }
     }
   else if (strcmp(this->SliceNode[sliceNodeNumber]->GetOrientationString(), "Coronal") == 0)
     {
     if (this->EnableOblique)  // In-Plane 90
       {
+      this->SliceOrientation[sliceNodeNumber] = SLICE_RTIMAGE_INPLANE90;
       this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
-      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
       }
     else
       {
       this->SliceNode[sliceNodeNumber]->SetOrientationToCoronal();
       this->SliceNode[sliceNodeNumber]->JumpSlice(px, py, pz);
-      this->SliceNode[sliceNodeNumber]->UpdateMatrices();
       }
     }
 
+  else if (strcmp(this->SliceNode[sliceNodeNumber]->GetOrientationString(), "Reformat") == 0)
+    {
+    if (this->EnableOblique)  // In-Plane 90
+      {
+      if (this->SliceOrientation[sliceNodeNumber] == SLICE_RTIMAGE_PERP)
+        {
+        this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 2);
+        }
+      else if (this->SliceOrientation[sliceNodeNumber] == SLICE_RTIMAGE_INPLANE)
+        {
+        this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 0);
+        }
+      else if (this->SliceOrientation[sliceNodeNumber] == SLICE_RTIMAGE_INPLANE90)
+        {
+        this->SliceNode[sliceNodeNumber]->SetSliceToRASByNTP(nx, ny, nz, tx, ty, tz, px, py, pz, 1);
+        }
+      }
+    else
+      {
+      if (this->SliceOrientation[sliceNodeNumber] == SLICE_RTIMAGE_PERP)
+        {
+        this->SliceNode[sliceNodeNumber]->SetOrientationToAxial();
+        }
+      else if (this->SliceOrientation[sliceNodeNumber] == SLICE_RTIMAGE_INPLANE)
+        {
+        this->SliceNode[sliceNodeNumber]->SetOrientationToCoronal();
+        }
+      else if (this->SliceOrientation[sliceNodeNumber] == SLICE_RTIMAGE_INPLANE90)
+        {
+        this->SliceNode[sliceNodeNumber]->SetOrientationToSagittal();
+        }
+
+      this->SliceNode[sliceNodeNumber]->JumpSlice(px, py, pz);
+      }
+    }
+
+  this->SliceNode[sliceNodeNumber]->UpdateMatrices();
 }
 
 
