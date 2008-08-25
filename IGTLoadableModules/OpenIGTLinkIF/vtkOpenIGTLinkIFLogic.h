@@ -270,7 +270,10 @@ class VTK_OPENIGTLINKIF_EXPORT vtkOpenIGTLinkIFLogic : public vtkSlicerModuleLog
 
   long  RealtimeImageTimeStamp;
   //int   RealtimeImageSerial;
-  int   RealtimeImageOrient;
+  //int   RealtimeImageOrient;
+
+  int   SliceOrientation[3];
+  
 
 
   //----------------------------------------------------------------
