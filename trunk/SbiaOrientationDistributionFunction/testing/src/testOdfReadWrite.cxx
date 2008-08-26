@@ -80,6 +80,7 @@ int testOdfReadWrite(int, char*[])
     std::cout << "\n";   
   }
   
+  return EXIT_SUCCESS;
 }
 
 int main( int argc, char * argv[])

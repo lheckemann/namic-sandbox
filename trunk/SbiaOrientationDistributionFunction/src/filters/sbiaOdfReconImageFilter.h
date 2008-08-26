@@ -144,7 +144,8 @@ public:
     (Concept::OStreamWritable<ReferencePixelType>));
   itkConceptMacro(TensorOStreamWritableCheck,
     (Concept::OStreamWritable<TensorPixelType>));
-  /** End concept checking */
+
+   End concept checking */
 #endif
 
 protected:
