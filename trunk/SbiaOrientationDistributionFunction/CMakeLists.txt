@@ -1,3 +1,9 @@
+# This is the root ITK CMakeLists file.
+CMAKE_MINIMUM_REQUIRED(VERSION 2.4)
+IF(COMMAND CMAKE_POLICY)
+  CMAKE_POLICY(SET CMP0003 NEW)
+ENDIF(COMMAND CMAKE_POLICY)
+
 # This project is designed to be built outside the Insight source tree.
 PROJECT(SBIAITK)
 # setup output directories
