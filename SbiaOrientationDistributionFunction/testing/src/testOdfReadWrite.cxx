@@ -10,7 +10,9 @@
 int testOdfReadWrite(int, char*[])
 {
   typedef double                                                        OdfPrecisionType;
-  typedef itk::OrientationDistributionFunction<OdfPrecisionType,4>      OdfPixelType;
+  const unsigned int InternalDimension = 4;
+
+  typedef itk::OrientationDistributionFunction<OdfPrecisionType,InternalDimension>      OdfPixelType;
   typedef itk::Image<OdfPixelType,3>                                    OdfImageType;
   typedef OdfImageType::RegionType                                      OdfRegionType;
   typedef OdfImageType::IndexType                                       OdfIndexType;
@@ -35,10 +37,11 @@ int testOdfReadWrite(int, char*[])
 
   OdfPrecisionType counter = 0.5;
   for ( it.GoToBegin(); !it.IsAtEnd(); ++it, ++counter )
-  {
-    OdfPixelType inpOdf(counter);
+    {
+    // OdfPixelType inpOdf(counter);
+    OdfPixelType inpOdf;
     it.Set(inpOdf);
-  }
+    }
   
   bool passed = true;
   ///---------------------------------------------------------------------------------------
@@ -65,20 +68,22 @@ int testOdfReadWrite(int, char*[])
   ConstIteratorType it_read( readOdfIm , odfImage->GetLargestPossibleRegion() );
   
   for ( it_orig.GoToBegin(), it_read.GoToBegin(); !it_orig.IsAtEnd(); ++it_read,++it_orig )
-  {
+    {
     std::cout << "Pixel : " << it_orig.GetIndex() << std::endl;
 
-    for (unsigned int i=0;i<OdfPixelType::InternalDimension;i++)
-    {
+    for (unsigned int i=0;i<InternalDimension;i++)
+      {
       std::cout << "index " << i << " : " << (it_orig.Get())[i] << " - " <<
           (it_read.Get())[i] << " = " << 
           ((it_orig.Get())[i] - (it_read.Get())[i]) << std::endl;
       
       if (fabs((it_orig.Get())[i] - (it_read.Get())[i]) > precision)
+        {
         passed = false;
-    }
+        }
+      }
     std::cout << "\n";   
-  }
+    }
   
   return EXIT_SUCCESS;
 }
