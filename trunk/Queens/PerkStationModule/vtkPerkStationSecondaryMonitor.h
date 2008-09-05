@@ -14,10 +14,12 @@ class vtkTransform;
 class vtkMRMLScalarVolumeNode;
 class vtkKWFrame;
 class vtkWin32OpenGLRenderWindow;
+class vtkImageMapToWindowLevelColors;
 class vtkRenderer;
 class vtkRenderWindowInteractor;
 class vtkImageMapper;
 class vtkActor2D;
+class vtkActor;
 class vtkKWRenderWidget;
 
 class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationSecondaryMonitor
@@ -105,6 +107,14 @@ public:
   // Overlay needle guide
   void OverlayNeedleGuide();
 
+  // Description
+  // reset calibration
+  void ResetCalibration();
+
+  // Description
+  // remove overlay guide needle actor
+  void RemoveOverlayNeedleGuide();
+
 protected:
   vtkPerkStationSecondaryMonitor();
   ~vtkPerkStationSecondaryMonitor();  
@@ -117,6 +127,8 @@ protected:
   vtkRenderWindowInteractor *Interator;
   vtkImageMapper *ImageMapper;
   vtkActor2D *ImageActor;
+  vtkActor *NeedleActor;  
+  vtkImageMapToWindowLevelColors *MapToWindowLevelColors;
   
   vtkImageReslice *Reslice; // reslice/resample filter
   // matrices   
@@ -134,6 +146,7 @@ protected:
   
   // about the monitor
   bool DeviceActive;
+  bool DisplayInitialized;
   int MonitorPixelResolution[2];
   double MonitorPhysicalSizeMM[2];
   double MonitorSpacing[2];
@@ -142,6 +155,7 @@ protected:
   int ImageSize[3];
   bool VerticalFlipped;
   bool HorizontalFlipped;
+
 private:
   vtkPerkStationSecondaryMonitor(const vtkPerkStationSecondaryMonitor&);
   void operator=(const vtkPerkStationSecondaryMonitor&);

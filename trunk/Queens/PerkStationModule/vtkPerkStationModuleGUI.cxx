@@ -15,12 +15,17 @@ Version:   $Revision: 1.2 $
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <ctime>
+#include <io.h>
+#include <sys/types.h>  // For stat().
+#include <sys/stat.h>   // For stat().
 
 #include "vtkObjectFactory.h"
 
 #include "vtkPerkStationModuleGUI.h"
 #include "vtkPerkStationModuleLogic.h"
 #include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLFiducialListNode.h"
 
 #include "vtkSlicerApplicationLogic.h"
 #include "vtkSlicerApplication.h"
@@ -296,12 +301,18 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
     vtkSetAndObserveMRMLNodeMacro(this->MRMLNode, n);
 
     // add the transform of mrml node to the MRML scene
+    this->GetLogic()->GetMRMLScene()->SaveStateForUndo();
     this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetCalibrationMRMLTransformNode());
     vtkMRMLLinearTransformNode *node = NULL;
     vtkIntArray* nodeEvents = vtkIntArray::New();
     nodeEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
     vtkSetAndObserveMRMLNodeMacro(node, this->MRMLNode->GetCalibrationMRMLTransformNode());
     vtkSetAndObserveMRMLNodeEventsMacro(node,this->MRMLNode->GetCalibrationMRMLTransformNode(),nodeEvents);
+    // add MRMLFiducialListNode to the scene
+    this->GetLogic()->GetMRMLScene()->SaveStateForUndo();
+    this->GetLogic()->GetMRMLScene()->AddNode(this->MRMLNode->GetPlanMRMLFiducialListNode());
+
+
     }
 
   // save node parameters for Undo
@@ -742,4 +753,86 @@ void vtkPerkStationModuleGUI::RenderSecondaryMonitor()
     }
 
   
+}
+
+//---------------------------------------------------------------------------
+void vtkPerkStationModuleGUI::ResetAndStartNewExperiment()
+{
+  // objectives:
+  // 1) Save the useful data/parameters from the current experiment
+  // 2) Reset individual work phase steps to bring to fresh state, who are in turn, responsible for reseting MRML node parameters
+  // 3) Go back to the first step in GUI in workflow widget
+
+  // 1) Save the useful data/parameters from the current experiment
+  this->SaveExperiment();
+
+  // 2) Reset individual work phase steps to bring to fresh state, who are in turn, responsible for reseting MRML node parameters
+  this->CalibrateStep->Reset();
+  this->PlanStep->Reset();
+  this->InsertStep->Reset();
+  this->ValidateStep->Reset();
+  this->EvaluateStep->Reset();
+
+  // 3)Go back to the first step in GUI in workflow widget
+  while (this->WizardWidget->GetWizardWorkflow()->GetCurrentState()!= this->WizardWidget->GetWizardWorkflow()->GetInitialState())
+    {
+    this->WizardWidget->GetWizardWorkflow()->AttemptToGoToPreviousStep();
+    }
+  this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
+
+
+
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationModuleGUI::SaveExperiment()
+{
+  
+  // write the xml file
+  ofstream file("Test.xml");
+
+  this->GetMRMLNode()->WriteXML(file,1);
+}
+
+//-----------------------------------------------------------------------------------
+char *vtkPerkStationModuleGUI::CreateFileName()
+{
+    // create a folder for current date, if not already created
+    // get the system calendar time
+    std::time_t tt = std::time(0);
+    // convert it into tm struct
+    std::tm ttm = *std::localtime(&tt);
+    // extract the values for day, month, year
+    char dirName[9] = "";
+    sprintf(dirName, "%4d%2d%2d", ttm.tm_year, ttm.tm_mon+1, ttm.tm_mday);
+    if (access(dirName,0) ==0)
+        {
+        struct stat status;
+        stat( dirName, &status );
+        if ( status.st_mode & S_IFDIR )
+        {
+        // directory exists
+        }
+        else
+        {
+        //create directory
+        }
+        }
+    else
+        {
+        //create directory
+            ::CreateDirectory(dirName,NULL);
+        }
+
+    // after directory has been created
+    // create the file name
+    // extract time in hrs, mins, secs  
+
+
+    // generate the unique file name
+    // to take into account
+    // 1) student/trainee name
+    // 2) current time of experiment
+    // 3) trial number
+    //
+  return dirName;
 }

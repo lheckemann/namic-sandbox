@@ -27,7 +27,9 @@ public:
   /*virtual void IntensityImagesTargetSelectionChangedCallback();
   virtual void AlignTargetImagesCallback(int state);*/
 
+  void StartOverNewExperiment();
 
+  void Reset();
   // Description:
   // Observers.
   /*virtual void AddRunRegistrationOutputGUIObservers();
@@ -42,7 +44,8 @@ protected:
   // virtual void PopulateIntensityImagesTargetVolumeSelector();
   virtual void PopulateControls();
   virtual void InstallCallbacks();
-
+  
+  void ResetControls();
 
   // for calibrate step
   vtkKWFrameWithLabel *CalibrateErrorsFrame;

@@ -39,6 +39,7 @@ public:
   virtual void NormalizationRelativeMaxVoxelNumCallback(
     vtkIdType VolId, double dValue);*/
 
+  void Reset();
 protected:
   vtkPerkStationInsertStep();
   ~vtkPerkStationInsertStep();
@@ -46,7 +47,7 @@ protected:
    // virtual void PopulateIntensityImagesTargetVolumeSelector();
   virtual void PopulateControls();
   virtual void InstallCallbacks();
-
+  void ResetControls();
 /*  virtual void PopulateNormalizationTargetVolumeSelector();
   virtual void ResetDefaultParameters(vtkIdType target_vol_id);*/
 
