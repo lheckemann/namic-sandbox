@@ -3,6 +3,7 @@
 #include "vtkPerkStationModuleGUI.h"
 #include "vtkPerkStationModuleLogic.h"
 #include "vtkPerkStationSecondaryMonitor.h"
+#include "vtkMRMLFiducialListNode.h"
 
 #include "vtkKWFrame.h"
 #include "vtkKWLabel.h"
@@ -37,6 +38,13 @@ vtkPerkStationPlanStep::vtkPerkStationPlanStep()
   this->TargetPoint = NULL;
   this->InsertionAngle = NULL;
   this->InsertionDepth = NULL;
+  this->WCEntryPoint[0] = 0.0;
+  this->WCEntryPoint[1] = 0.0;
+  this->WCEntryPoint[2] = 0.0;
+  this->WCTargetPoint[0] = 0.0;
+  this->WCTargetPoint[1] = 0.0;
+  this->WCTargetPoint[2] = 0.0;
+  this->NeedleActor = NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -427,10 +435,15 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned
   static unsigned int clickNum = 0;
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
 
+  
+  if (!this->GetGUI()->GetMRMLNode())
+    {
+    // TO DO: what to do on failure
+    return;
+    }
+
   // first identify if the step is pertinent, i.e. current step of wizard workflow is actually calibration step
-  if (!wizard_widget ||
-      wizard_widget->GetWizardWorkflow()->GetCurrentStep() != 
-      this)
+  if (!wizard_widget ||   wizard_widget->GetWizardWorkflow()->GetCurrentStep() != this)
     {
     return;
     }
@@ -478,7 +491,12 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned
 
       // record value in mrml node
       this->GetGUI()->GetMRMLNode()->SetPlanEntryPoint(ras);
+
+      // record value in mrml fiducial list node      
+      int index = this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->AddFiducialWithXYZ(ras[0], ras[1], ras[2], false);
+      this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->SetNthFiducialLabelText(index, "Entry");
       
+
       }
     else if (clickNum == 2)
       {
@@ -633,14 +651,14 @@ void vtkPerkStationPlanStep::OverlayNeedleGuide()
   //needleMapper->SetInputConnection(needleGuide->GetOutputPort());
 
   // after transfrom, set up actor
-  vtkActor *needleActor = vtkActor::New();  
-  needleActor->SetMapper(needleMapper );  
+  this->NeedleActor = vtkActor::New(); 
+  this->NeedleActor->SetMapper(needleMapper );  
   //needleActor->SetPosition(needleCenter[0], needleCenter[1],0);  
   //needleActor->RotateZ(90-angle);
   
  
   // add to renderer of the Axial slice viewer
-  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->AddActor(needleActor);
+  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->AddActor(this->NeedleActor);
   this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->RequestRender(); 
  
   
@@ -660,4 +678,65 @@ void vtkPerkStationPlanStep::CalculatePlanInsertionAngleAndDepth()
   double insAngle = double(180/vtkMath::Pi()) * atan(double((rasEntry[1] - rasTarget[1])/(rasEntry[0] - rasTarget[0])));
   this->GetGUI()->GetMRMLNode()->SetActualPlanInsertionAngle(insAngle);
   
+}
+
+//------------------------------------------------------------------------------
+void vtkPerkStationPlanStep::Reset()
+{
+  // reset the overlay needle guide both in sliceviewer and in secondary monitor
+  this->GetGUI()->GetSecondaryMonitor()->RemoveOverlayNeedleGuide();
+  this->RemoveOverlayNeedleGuide();
+
+  // reset parameters of mrml node
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if (!mrmlNode)
+    {
+    // TO DO: what to do on failure
+    return;
+    }
+
+  double ras[3] = {0.0,0.0,0.0};
+  mrmlNode->SetPlanEntryPoint(ras);
+  mrmlNode->SetPlanTargetPoint(ras);
+  mrmlNode->SetUserPlanInsertionAngle(0.0);
+  mrmlNode->SetActualPlanInsertionAngle(0.0);
+  mrmlNode->SetUserPlanInsertionDepth(0.0);
+  mrmlNode->SetActualPlanInsertionDepth(0.0);
+  mrmlNode->CalculatePlanInsertionAngleError();
+  mrmlNode->CalculatePlanInsertionDepthError();
+
+  // reset local member variables to defaults
+  this->WCEntryPoint[0] = 0.0;
+  this->WCEntryPoint[1] = 0.0;
+  this->WCEntryPoint[2] = 0.0;
+  this->WCTargetPoint[0] = 0.0;
+  this->WCTargetPoint[1] = 0.0;
+  this->WCTargetPoint[2] = 0.0;
+
+  // reset gui controls
+  this->ResetControls();
+  
+}
+//------------------------------------------------------------------------------
+void vtkPerkStationPlanStep::ResetControls()
+{
+  this->EntryPoint->GetWidget(0)->SetValue("");
+  this->EntryPoint->GetWidget(1)->SetValue("");
+  this->EntryPoint->GetWidget(2)->SetValue("");
+  this->TargetPoint->GetWidget(0)->SetValue("");
+  this->TargetPoint->GetWidget(1)->SetValue("");
+  this->TargetPoint->GetWidget(2)->SetValue("");
+  this->InsertionAngle->GetWidget()->SetValue("");
+  this->InsertionDepth->GetWidget()->SetValue("");
+}
+//------------------------------------------------------------------------------
+void vtkPerkStationPlanStep::RemoveOverlayNeedleGuide()
+{
+  // should remove the overlay needle guide
+  vtkActorCollection *collection = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->GetActors();
+  if (collection->IsItemPresent(this->NeedleActor))
+    {
+    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->RemoveActor(this->NeedleActor);
+    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->RequestRender();     
+    }
 }

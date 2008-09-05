@@ -26,6 +26,12 @@ public:
   virtual void AlignTargetImagesCallback(int state);*/
   void ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData);
 
+  // Description
+  // reset
+  virtual void Reset();
+
+
+
 protected:
   vtkPerkStationValidateStep();
   ~vtkPerkStationValidateStep();
@@ -33,6 +39,8 @@ protected:
   // virtual void PopulateIntensityImagesTargetVolumeSelector();
   virtual void PopulateControls();
   virtual void InstallCallbacks();
+
+  void ResetControls();
 
   // entry point RAS
   // information to be had from the user

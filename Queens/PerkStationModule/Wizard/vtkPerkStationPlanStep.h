@@ -7,6 +7,7 @@ class vtkKWLabel;
 class vtkKWFrame;
 class vtkKWEntryWithLabel;
 class vtkKWEntrySet;
+class vtkActor;
 
 class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationPlanStep : public vtkPerkStationStep
 {
@@ -40,7 +41,11 @@ public:
 
   virtual void OverlayNeedleGuide();
 
+  // Description:
+  // reset
+  virtual void Reset();
   
+  void RemoveOverlayNeedleGuide();
 protected:
   vtkPerkStationPlanStep();
   ~vtkPerkStationPlanStep();
@@ -48,6 +53,8 @@ protected:
   // virtual void PopulateIntensityImagesTargetVolumeSelector();
   virtual void PopulateControls();
   virtual void InstallCallbacks();
+
+  void ResetControls();
 
   virtual void CalculatePlanInsertionAngleAndDepth();
   // entry point RAS
@@ -64,6 +71,7 @@ protected:
   double WCEntryPoint[3];
   double WCTargetPoint[3];
 
+  vtkActor *NeedleActor;
 private:
   vtkPerkStationPlanStep(const vtkPerkStationPlanStep&);
   void operator=(const vtkPerkStationPlanStep&);

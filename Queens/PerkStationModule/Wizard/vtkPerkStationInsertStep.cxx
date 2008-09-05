@@ -480,3 +480,13 @@ void vtkPerkStationInsertStep::PopulateControls()
 {
 
 }
+
+//----------------------------------------------------------------------------
+void vtkPerkStationInsertStep::ResetControls()
+{
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationInsertStep::Reset()
+{
+  this->ResetControls();
+}

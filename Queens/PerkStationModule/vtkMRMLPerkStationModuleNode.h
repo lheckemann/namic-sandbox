@@ -26,6 +26,7 @@
 
 class vtkImageData;
 class vtkMRMLLinearTransformNode;
+class vtkMRMLFiducialListNode;
 
 class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRMLNode
 {
@@ -52,7 +53,7 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRML
 
   // Description:
   // Get unique node XML tag name (like Volume, Model)
-  virtual const char* GetNodeTagName() {return "CADParameters";};
+  virtual const char* GetNodeTagName() {return "PS";};
 
   // calibrate parameters:
   
@@ -69,13 +70,13 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRML
 
   // Description:
   // Get/Set  UserScaling(module parameter)
-  vtkGetVector3Macro(UserScaling, double);
-  vtkSetVector3Macro(UserScaling, double);
+  vtkGetVector2Macro(UserScaling, double);
+  vtkSetVector2Macro(UserScaling, double);
 
   // Description:
   // Get/Set ActualScaling (module parameter)
-  vtkGetVector3Macro(ActualScaling, double);
-  vtkSetVector3Macro(ActualScaling, double);
+  vtkGetVector2Macro(ActualScaling, double);
+  vtkSetVector2Macro(ActualScaling, double);
 
 
   // Description:
@@ -107,9 +108,14 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRML
   // Get/Set the Transform Node that encapsulates translation, rotation, scaling
   vtkGetObjectMacro(CalibrationMRMLTransformNode, vtkMRMLLinearTransformNode);
   //void SetTransformNodeMatrix(vtkMatrix4x4 *matrix);
-
+  
   // plan parameters:
   
+  // Description:
+  // Get/Set the Fiducial list node that contains entry point and target point
+  vtkGetObjectMacro(PlanMRMLFiducialListNode, vtkMRMLFiducialListNode);
+
+
   // Description:
   // Get/Set  PlanEntryPoint(module parameter)
   vtkGetVector3Macro(PlanEntryPoint, double);
@@ -198,20 +204,25 @@ protected:
   vtkMRMLPerkStationModuleNode(const vtkMRMLPerkStationModuleNode&);
   void operator=(const vtkMRMLPerkStationModuleNode&);
 
-  void InitializeTransform();
-  
-  // calibrate parameters:
-
-  // the slicer's volume transform node
+   // the slicer's volume transform node
   vtkMRMLLinearTransformNode *CalibrationMRMLTransformNode;
+
+  void InitializeTransform();
+
+  // slicer's fiducial list node for marking entry and target points
+  vtkMRMLFiducialListNode *PlanMRMLFiducialListNode;
+  
+  void InitializeFiducialListNode();
+
+  // calibrate parameters:
 
   // flip parameters
   bool VerticalFlip;
   bool HorizontalFlip;
 
   // scale parameters
-  double UserScaling[3];
-  double ActualScaling[3];
+  double UserScaling[2];
+  double ActualScaling[2];
 
   // translate parameters
   double UserTranslation[3];

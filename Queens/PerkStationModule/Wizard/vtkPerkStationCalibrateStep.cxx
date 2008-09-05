@@ -398,7 +398,7 @@ void vtkPerkStationCalibrateStep::ShowUserInterface()
   
   */
 
-  // guid building/showing
+  // gui building/showing
 
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
   wizard_widget->GetCancelButton()->SetEnabled(0);
@@ -1190,11 +1190,13 @@ void vtkPerkStationCalibrateStep::PopulateControls()
   this->MonSpacing->GetWidget(0)->SetValueAsDouble(monSpacing[0]);
   this->MonSpacing->GetWidget(1)->SetValueAsDouble(monSpacing[1]);
 
+  
   // set the actual scaling (image/mon) in mrml node
-  mrmlNode->SetActualScaling(double(imgSpacing[0]/monSpacing[0]), double(imgSpacing[1]/monSpacing[1]), 1);
+  mrmlNode->SetActualScaling(double(imgSpacing[0]/monSpacing[0]), double(imgSpacing[1]/monSpacing[1]));
 
   // populate translate frame controls
   // the information will come in a callback that handles the mouse click
+
 
   // populate rotation frame controls
   // center of rotation
@@ -1213,7 +1215,13 @@ void vtkPerkStationCalibrateStep::PopulateControls()
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::HorizontalFlipCallback(int value)
 {
-  this->GetGUI()->GetMRMLNode()->SetHorizontalFlip(value);
+  
+  if(!value)
+    return;
+  // set user scaling in mrml node
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if (mrmlNode)
+    this->GetGUI()->GetMRMLNode()->SetHorizontalFlip((bool)value);
   this->FlipImage();
   this->ImageFlipDone = true;
   this->CurrentSubState = 1;
@@ -1223,10 +1231,12 @@ void vtkPerkStationCalibrateStep::HorizontalFlipCallback(int value)
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::VerticalFlipCallback(int value)
 {
+  if(!value)
+    return;
   // set user scaling in mrml node
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   if (mrmlNode)
-    this->GetGUI()->GetMRMLNode()->SetVerticalFlip(value);
+    this->GetGUI()->GetMRMLNode()->SetVerticalFlip((bool)value);
   this->FlipImage();
   this->ImageFlipDone = true;
   this->CurrentSubState = 1;
@@ -1255,7 +1265,7 @@ void vtkPerkStationCalibrateStep::ImageScalingEntryCallback(int widgetIndex, dou
     vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
     if (mrmlNode)
       {
-      mrmlNode->SetUserScaling(xScaling, yScaling,1);
+      mrmlNode->SetUserScaling(xScaling, yScaling);
       mrmlNode->CalculateCalibrateScaleError();
       }
 
@@ -1750,6 +1760,83 @@ void vtkPerkStationCalibrateStep::RotateImage()
   this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->RequestRender();
   sliceToRAS->Delete(); 
 */
+}
+//-----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::Reset()
+{
+  // reset flip/scale/rotate/translate on secondary display
+  this->GetGUI()->GetSecondaryMonitor()->ResetCalibration();
+
+  // reset parameters at MRML node
+   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if (!mrmlNode)
+    {
+    // TO DO: what to do on failure
+    return;
+    }
+
+  vtkMRMLScalarVolumeNode *inVolume = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetGUI()->GetMRMLScene()->GetNodeByID(mrmlNode->GetInputVolumeRef()));
+  if (!inVolume)
+    {
+    // TO DO: what to do on failure
+    return;
+    }
+
+  // flip
+  mrmlNode->SetHorizontalFlip(false);
+  mrmlNode->SetVerticalFlip(false);
+  // scale
+  mrmlNode->SetUserScaling(1.0,1.0);
+  mrmlNode->SetActualScaling(1.0,1.0);
+  mrmlNode->CalculateCalibrateScaleError();
+  // translate
+  mrmlNode->SetUserTranslation(0.0,0.0,0.0);
+  mrmlNode->SetActualTranslation(0.0,0.0,0.0);
+  mrmlNode->CalculateCalibrateTranslationError();
+  // rotate
+  mrmlNode->SetUserRotation(0.0);
+  mrmlNode->SetActualRotation(0.0);
+  mrmlNode->CalculateCalibrateRotationError();
+
+  // reset member variables to defaults
+  this->ImageFlipDone = false;
+  this->ImageScalingDone = false;
+  this->ImageTranslationDone = false;
+  this->ImageRotationDone = false;
+
+  // reset individual gui components to default values
+  this->ResetControls();
+
+  // reset gui state; enable disable
+  this->CurrentSubState = 0;
+  this->EnableDisableControls();
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::ResetControls()
+{
+  // do what PopulateControls() does, in addition, reset the values that have been input by user
+  this->PopulateControls();
+
+  // image scaling
+  this->ImgScaling->GetWidget(0)->SetValue("");
+  this->ImgScaling->GetWidget(1)->SetValue("");
+
+  // image translation, clear the previos entries
+  this->TransImgFid->GetWidget(0)->SetValue("");
+  this->TransImgFid->GetWidget(1)->SetValue("");
+  this->TransPhyFid->GetWidget(0)->SetValue("");
+  this->TransPhyFid->GetWidget(1)->SetValue("");
+  this->Translation->GetWidget(0)->SetValue("");
+  this->Translation->GetWidget(1)->SetValue("");
+
+  // image rotation
+  this->RotImgFid->GetWidget(0)->SetValue("");
+  this->RotImgFid->GetWidget(1)->SetValue("");
+  this->RotPhyFid->GetWidget(0)->SetValue("");
+  this->RotPhyFid->GetWidget(1)->SetValue("");
+  this->RotationAngle->GetWidget()->SetValue("");
+  
+
 }
 //----------------------------------------------------------------------------
 /*void vtkPerkStationCalibrateStep::DisplaySelectedNodeSpatialPriorsCallback()

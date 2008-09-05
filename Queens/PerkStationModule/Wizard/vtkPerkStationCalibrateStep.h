@@ -46,10 +46,17 @@ public:
   // Callback on value entered in the Image rotation angle entry
   virtual void ImageRotationEntryCallback(double value);
   
+  // Description:
+  // Callback on check button of vertical flip
   virtual void VerticalFlipCallback(int value);
 
+  // Description:
+  // Callback on check button of horizontal flip
   virtual void HorizontalFlipCallback(int value);
 
+  // Description
+  // Reset
+  virtual void Reset();
 protected:
   vtkPerkStationCalibrateStep();
   ~vtkPerkStationCalibrateStep(); 
@@ -77,6 +84,7 @@ protected:
   void TranslateImage();
   void RotateImage();
   
+  void ResetControls();
   // for monitor associated flip
   vtkKWFrameWithLabel *FlipFrame;
   // information from the user

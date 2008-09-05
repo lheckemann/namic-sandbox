@@ -97,6 +97,12 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationModuleGUI : public vtkSlicerMod
   // Create render window in the secondary monitor
   virtual void RenderSecondaryMonitor ( );
 
+  // Description
+  // Reset and Start afresh
+  virtual void ResetAndStartNewExperiment();
+
+  //
+  void SaveExperiment();
 protected:
   vtkPerkStationModuleGUI();
   virtual ~vtkPerkStationModuleGUI();
@@ -120,7 +126,8 @@ protected:
   // Description:
   // Updates parameters values in MRML node based on GUI widgets 
   void UpdateMRML();
- 
+
+  char  *CreateFileName();
 
   // standard: for volume selection and for parameters
   vtkSlicerNodeSelectorWidget* VolumeSelector; 

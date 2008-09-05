@@ -685,6 +685,25 @@ void vtkPerkStationEvaluateStep::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkPerkStationEvaluateStep::InstallCallbacks()
 {
+  vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
+
+  // Configure the OK button to start
+
+  if (wizard_widget->GetOKButton())
+    {
+    wizard_widget->GetOKButton()->SetText("Start over");
+    wizard_widget->GetOKButton()->SetCommand(
+      this, "StartOverNewExperiment");
+    wizard_widget->GetOKButton()->SetBalloonHelpString(
+      "Do another experiment");
+    }
+
+ 
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationEvaluateStep::StartOverNewExperiment()
+{
+  this->GetGUI()->ResetAndStartNewExperiment();
 }
 //----------------------------------------------------------------------------
 void vtkPerkStationEvaluateStep::PopulateControls()
@@ -727,4 +746,14 @@ void vtkPerkStationEvaluateStep::PopulateControls()
   this->TargetPointError->GetWidget()->SetValueAsDouble(mrmlNode->GetTargetPointError());
 
 
+}
+
+//----------------------------------------------------------------------------
+void vtkPerkStationEvaluateStep::ResetControls()
+{
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationEvaluateStep::Reset()
+{
+  this->ResetControls();
 }

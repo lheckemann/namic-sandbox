@@ -21,6 +21,7 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLPerkStationModuleNode.h"
 #include "vtkMRMLScene.h"
 #include "vtkMRMLLinearTransformNode.h"
+#include "vtkMRMLFiducialListNode.h"
 
 // for getting display device information
 #include "Windows.h"
@@ -119,9 +120,9 @@ vtkMRMLPerkStationModuleNode::vtkMRMLPerkStationModuleNode()
    this->EntryPointError = 0;
    this->TargetPointError = 0;
 
-
-
    this->InitializeTransform();
+
+   this->InitializeFiducialListNode();
 }
 
 //----------------------------------------------------------------------------
@@ -132,26 +133,131 @@ vtkMRMLPerkStationModuleNode::~vtkMRMLPerkStationModuleNode()
 
 //----------------------------------------------------------------------------
 void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
-{
+{  
   Superclass::WriteXML(of, nIndent);
 
   // Write all MRML node attributes into output stream
 
   vtkIndent indent(nIndent);
 
-  /*{
-    std::stringstream ss;
-    ss << this->Conductance;
-    of << indent << " Conductance=\"" << ss.str() << "\"";
-  }*/
-  {
-    std::stringstream ss;
-    if ( this->InputVolumeRef )
-      {
-      ss << this->InputVolumeRef;
-      of << indent << " InputVolumeRef=\"" << ss.str() << "\"";
-     }
-  }
+  of << indent << " InputVolumeRef=\"" 
+     << (this->InputVolumeRef ? this->InputVolumeRef: "NULL")
+     << "\" \n";
+  
+
+  // Calibration step parameters
+
+  // flip parameters
+  of << indent << " VerticalFlip=\"" << this->VerticalFlip   
+     << "\" \n";
+  
+  of << indent << " HorizontalFlip=\"" << this->HorizontalFlip   
+     << "\" \n";
+
+  // scale parameters
+  of << indent << " UserScaling=\"";
+  for(int i = 0; i < 2; i++)
+      of << this->UserScaling[i] << " ";
+  of << "\" \n";
+
+  of << indent << " ActualScaling=\"";
+  for(int i = 0; i < 2; i++)
+      of << this->ActualScaling[i] << " ";
+  of << "\" \n";
+
+  // translation parameters
+  of << indent << " UserTranslation=\"";
+  for(int i = 0; i < 3; i++)
+      of << this->UserTranslation[i] << " ";
+  of << "\" \n";
+
+  of << indent << " ActualTranslation=\"";
+  for(int i = 0; i < 3; i++)
+      of << this->ActualTranslation[i] << " ";
+  of << "\" \n";
+
+  // rotation parameters
+  of << indent << " UserRotation=\"" << this->UserRotation
+     << "\" \n";
+
+  of << indent << " ActualRotation=\"" << this->ActualRotation
+     << "\" \n";
+
+  of << indent << " CenterOfRotation=\"";
+  for(int i = 0; i < 3; i++)
+      of << this->CenterOfRotation[i] << " ";
+  of << "\" \n";
+
+
+  // PLAN step parameters
+
+
+  of << indent << " PlanEntryPoint=\"";
+  for(int i = 0; i < 3; i++)
+      of << this->PlanEntryPoint[i] << " ";
+  of << "\" \n";
+
+  of << indent << " PlanTargetPoint=\"";
+  for(int i = 0; i < 3; i++)
+      of << this->PlanTargetPoint[i] << " ";
+  of << "\" \n";
+
+  of << indent << " UserPlanInsertionAngle=\"" << this->UserPlanInsertionAngle
+     << "\" \n";
+
+  of << indent << " ActualPlanInsertionAngle=\"" << this->ActualPlanInsertionAngle
+     << "\" \n";
+
+  of << indent << " UserPlanInsertionDepth=\"" << this->UserPlanInsertionDepth
+     << "\" \n";
+
+  of << indent << " ActualPlanInsertionDepth=\"" << this->ActualPlanInsertionDepth
+     << "\" \n";
+
+
+
+  // Validate step parameters
+
+  of << indent << " ValidateEntryPoint=\"";
+  for(int i = 0; i < 3; i++)
+      of << this->ValidateEntryPoint[i] << " ";
+  of << "\" \n";
+
+  of << indent << " ValidateTargetPoint=\"";
+  for(int i = 0; i < 3; i++)
+      of << this->ValidateTargetPoint[i] << " ";
+  of << "\" \n";
+
+
+  // Evaluate step parameters
+
+  of << indent << " CalibrateScaleError=\"";
+  for(int i = 0; i < 2; i++)
+      of << this->CalibrateScaleError[i] << " ";
+  of << "\" \n";
+
+  of << indent << " CalibrateTranslationError=\"";
+  for(int i = 0; i < 2; i++)
+      of << this->CalibrateTranslationError[i] << " ";
+  of << "\" \n";
+
+  of << indent << " CalibrateRotationError=\"" << this->CalibrateRotationError
+     << "\" \n";
+
+  of << indent << " PlanInsertionAngleError=\"" << this->PlanInsertionAngleError
+     << "\" \n";
+
+  of << indent << " PlanInsertionDepthError=\"" << this->PlanInsertionDepthError
+     << "\" \n";
+
+  of << indent << " EntryPointError=\"" << this->EntryPointError
+     << "\" \n";
+
+  of << indent << " TargetPointError=\"" << this->TargetPointError
+     << "\" \n";
+
+
+
 }
 
 //----------------------------------------------------------------------------
@@ -166,18 +272,336 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
     {
     attName = *(atts++);
     attValue = *(atts++);
-    /*if (!strcmp(attName, "Conductance")) 
-      {
-      std::stringstream ss;
-      ss << attValue;
-      ss >> this->Conductance;
-      }
-    else*/ if (!strcmp(attName, "InputVolumeRef"))
+    if (!strcmp(attName, "InputVolumeRef"))
       {
       this->SetInputVolumeRef(attValue);
       this->Scene->AddReferencedNodeID(this->InputVolumeRef, this);
       }
-    
+    else if (!strcmp(attName, "VerticalFlip"))
+      {
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      bool val;
+      ss >> val;
+      this->SetVerticalFlip(val);
+      }
+    else if (!strcmp(attName, "HorizontalFlip"))
+      {
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      bool val;
+      ss >> val;
+      this->SetHorizontalFlip(val);
+      }
+    else if (!strcmp(attName, "UserScaling"))
+      {
+       // read data into a temporary vector
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double d;
+      vtksys_stl::vector<double> tmpVec;
+      while (ss >> d)
+        {
+        tmpVec.push_back(d);
+        }
+      if (tmpVec.size()!=2)
+        {
+        // error in file?
+        }
+
+      for (unsigned int i = 0; i < tmpVec.size(); i++)
+           this->UserScaling[i] = tmpVec[i];
+      }
+    else if (!strcmp(attName, "ActualScaling"))
+      {
+       // read data into a temporary vector
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double d;
+      vtksys_stl::vector<double> tmpVec;
+      while (ss >> d)
+        {
+        tmpVec.push_back(d);
+        }
+
+      if (tmpVec.size()!=2)
+        {
+        // error in file?
+        }
+
+      for (unsigned int i = 0; i < tmpVec.size(); i++)
+           this->ActualScaling[i] = tmpVec[i];
+      }
+    else if (!strcmp(attName, "UserTranslation"))
+      {
+       // read data into a temporary vector
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double d;
+      vtksys_stl::vector<double> tmpVec;
+      while (ss >> d)
+        {
+        tmpVec.push_back(d);
+        }
+ 
+      if (tmpVec.size()!=3)
+        {
+        // error in file?
+        }
+
+      for (unsigned int i = 0; i < tmpVec.size(); i++)
+           this->UserTranslation[i] = tmpVec[i];
+      }
+    else if (!strcmp(attName, "ActualTranslation"))
+      {
+       // read data into a temporary vector
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double d;
+      vtksys_stl::vector<double> tmpVec;
+      while (ss >> d)
+        {
+        tmpVec.push_back(d);
+        }
+      
+      if (tmpVec.size()!=3)
+        {
+        // error in file?
+        }
+
+      for (unsigned int i = 0; i < tmpVec.size(); i++)
+           this->ActualScaling[i] = tmpVec[i];
+      }
+
+
+
+    else if (!strcmp(attName, "UserRotation"))
+      {
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double val;
+      ss >> val;
+      this->SetUserRotation(val);
+      }
+    else if (!strcmp(attName, "ActualRotation"))
+      {
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double val;
+      ss >> val;
+      this->SetActualRotation(val);
+      }
+    else if (!strcmp(attName, "CenterOfRotation"))
+      {
+       // read data into a temporary vector
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double d;
+      vtksys_stl::vector<double> tmpVec;
+      while (ss >> d)
+        {
+        tmpVec.push_back(d);
+        }
+ 
+      if (tmpVec.size()!=3)
+        {
+        // error in file?
+        }
+
+      for (unsigned int i = 0; i < tmpVec.size(); i++)
+           this->CenterOfRotation[i] = tmpVec[i];
+      }
+    else if (!strcmp(attName, "PlanEntryPoint"))
+      {
+       // read data into a temporary vector
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double d;
+      vtksys_stl::vector<double> tmpVec;
+      while (ss >> d)
+        {
+        tmpVec.push_back(d);
+        }
+ 
+      if (tmpVec.size()!=3)
+        {
+        // error in file?
+        }
+
+      for (unsigned int i = 0; i < tmpVec.size(); i++)
+           this->PlanEntryPoint[i] = tmpVec[i];
+      }
+    else if (!strcmp(attName, "PlanTargetPoint"))
+      {
+       // read data into a temporary vector
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double d;
+      vtksys_stl::vector<double> tmpVec;
+      while (ss >> d)
+        {
+        tmpVec.push_back(d);
+        }
+ 
+      if (tmpVec.size()!=3)
+        {
+        // error in file?
+        }
+
+      for (unsigned int i = 0; i < tmpVec.size(); i++)
+           this->PlanTargetPoint[i] = tmpVec[i];
+      }
+    else if (!strcmp(attName, "UserPlanInsertionAngle"))
+      {
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double val;
+      ss >> val;
+      this->SetUserPlanInsertionAngle(val);
+      }
+    else if (!strcmp(attName, "ActualPlanInsertionAngle"))
+      {
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double val;
+      ss >> val;
+      this->SetActualPlanInsertionAngle(val);
+      }
+    else if (!strcmp(attName, "UserPlanInsertionDepth"))
+      {
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double val;
+      ss >> val;
+      this->SetUserPlanInsertionDepth(val);
+      }
+    else if (!strcmp(attName, "ActualPlanInsertionDepth"))
+      {
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double val;
+      ss >> val;
+      this->SetActualPlanInsertionDepth(val);
+      }
+    else if (!strcmp(attName, "ValidateEntryPoint"))
+      {
+       // read data into a temporary vector
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double d;
+      vtksys_stl::vector<double> tmpVec;
+      while (ss >> d)
+        {
+        tmpVec.push_back(d);
+        }
+ 
+      if (tmpVec.size()!=3)
+        {
+        // error in file?
+        }
+
+      for (unsigned int i = 0; i < tmpVec.size(); i++)
+           this->ValidateEntryPoint[i] = tmpVec[i];
+      }
+    else if (!strcmp(attName, "ValidateTargetPoint"))
+      {
+       // read data into a temporary vector
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double d;
+      vtksys_stl::vector<double> tmpVec;
+      while (ss >> d)
+        {
+        tmpVec.push_back(d);
+        }
+ 
+      if (tmpVec.size()!=3)
+        {
+        // error in file?
+        }
+
+      for (unsigned int i = 0; i < tmpVec.size(); i++)
+           this->ValidateTargetPoint[i] = tmpVec[i];
+      }
+    else if (!strcmp(attName, "CalibrateScaleError"))
+      {
+       // read data into a temporary vector
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double d;
+      vtksys_stl::vector<double> tmpVec;
+      while (ss >> d)
+        {
+        tmpVec.push_back(d);
+        }
+      if (tmpVec.size()!=2)
+        {
+        // error in file?
+        }
+
+      for (unsigned int i = 0; i < tmpVec.size(); i++)
+           this->CalibrateScaleError[i] = tmpVec[i];
+      }
+    else if (!strcmp(attName, "CalibrateTranslationError"))
+      {
+       // read data into a temporary vector
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double d;
+      vtksys_stl::vector<double> tmpVec;
+      while (ss >> d)
+        {
+        tmpVec.push_back(d);
+        }
+      if (tmpVec.size()!=2)
+        {
+        // error in file?
+        }
+
+      for (unsigned int i = 0; i < tmpVec.size(); i++)
+           this->CalibrateTranslationError[i] = tmpVec[i];
+      }
+
+    else if (!strcmp(attName, "CalibrateRotationError"))
+      {
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double val;
+      ss >> val;
+      this->CalibrateRotationError = val;
+      }
+    else if (!strcmp(attName, "PlanInsertionAngleError"))
+      {
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double val;
+      ss >> val;
+      this->PlanInsertionAngleError = val;
+      }
+    else if (!strcmp(attName, "PlanInsertionDepthError"))
+      {
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double val;
+      ss >> val;
+      this->PlanInsertionDepthError = val;
+      }
+    else if (!strcmp(attName, "EntryPointError"))
+      {
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double val;
+      ss >> val;
+      this->EntryPointError = val;
+      }
+    else if (!strcmp(attName, "TargetPointError"))
+      {
+      vtksys_stl::stringstream ss;
+      ss << attValue;
+      double val;
+      ss >> val;
+      this->TargetPointError = val;
+      } 
     }
 }
 
@@ -194,6 +618,7 @@ void vtkMRMLPerkStationModuleNode::Copy(vtkMRMLNode *anode)
   this->SetTimeStep(node->TimeStep);
   this->SetUseImageSpacing(node->UseImageSpacing);*/
   this->SetInputVolumeRef(node->InputVolumeRef);
+
 }
 
 //----------------------------------------------------------------------------
@@ -301,7 +726,29 @@ void vtkMRMLPerkStationModuleNode::InitializeTransform()
     this->CalibrationMRMLTransformNode->ApplyTransform(matrix);
     //matrix->Delete();      
 }
+//-------------------------------------------------------------------------------
+void vtkMRMLPerkStationModuleNode::InitializeFiducialListNode()
+{
+    // create node
+    this->PlanMRMLFiducialListNode = vtkMRMLFiducialListNode::New();
+    if (this->PlanMRMLFiducialListNode == NULL)
+        {
+        // error macro      
+        }   
+
+    this->PlanMRMLFiducialListNode->SetName("PerkStationFiducialList");
+    this->PlanMRMLFiducialListNode->SetDescription("Created by PERK Station Module; marks entry point and target point");
+    this->PlanMRMLFiducialListNode->SetColor(0.5,0.5,0.5);
+    this->PlanMRMLFiducialListNode->SetGlyphType(vtkMRMLFiducialListNode::Diamond3D);
+    this->PlanMRMLFiducialListNode->SetOpacity(0.7);
+    this->PlanMRMLFiducialListNode->SetAllFiducialsVisibility(true);
+    this->PlanMRMLFiducialListNode->SetSymbolScale(20);
+    this->PlanMRMLFiducialListNode->SetTextScale(10);
+}
+
 /*
+
+
 void vtkMRMLPerkStationModuleNode::SetTransformNodeMatrix(vtkMatrix4x4 *matrix)
 {
   this->CalibrationMRMLTransformNode->ApplyTransform(matrix);

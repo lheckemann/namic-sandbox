@@ -432,7 +432,7 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
       this->TargetPoint->GetWidget(2)->SetValueAsDouble(ras[2]);
       
       // record value in the MRML node
-      this->GetGUI()->GetMRMLNode()->SetPlanTargetPoint(ras);      
+      this->GetGUI()->GetMRMLNode()->SetValidateTargetPoint(ras);      
       this->GetGUI()->GetMRMLNode()->CalculateTargetPointError();
 
       clickNum = 0;
@@ -441,4 +441,39 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
 
     }
 
+}
+//------------------------------------------------------------------------------
+void vtkPerkStationValidateStep::Reset()
+{
+ 
+  // reset parameters of mrml node
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if (!mrmlNode)
+    {
+    // TO DO: what to do on failure
+    return;
+    }
+
+  double ras[3] = {0.0,0.0,0.0};
+  mrmlNode->SetValidateEntryPoint(ras);
+  mrmlNode->SetValidateTargetPoint(ras);
+  mrmlNode->CalculateEntryPointError();
+  mrmlNode->CalculateTargetPointError();
+
+  // reset local member variables to defaults
+ 
+  // reset gui controls
+  this->ResetControls();
+  
+}
+//------------------------------------------------------------------------------
+void vtkPerkStationValidateStep::ResetControls()
+{
+  this->EntryPoint->GetWidget(0)->SetValue("");
+  this->EntryPoint->GetWidget(1)->SetValue("");
+  this->EntryPoint->GetWidget(2)->SetValue("");
+  this->TargetPoint->GetWidget(0)->SetValue("");
+  this->TargetPoint->GetWidget(1)->SetValue("");
+  this->TargetPoint->GetWidget(2)->SetValue(""); 
+  this->InsertionDepth->GetWidget()->SetValue("");
 }

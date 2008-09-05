@@ -4,12 +4,14 @@
 
 #include "vtkRenderer.h"
 #include "vtkCamera.h"
+#include "vtkImageMapToWindowLevelColors.h"
 #include "vtkWin32OpenGLRenderWindow.h"
 #include "vtkCylinderSource.h"
 #include "vtkMath.h"
 #include "vtkMatrixToHomogeneousTransform.h"
 #include "vtkTransformPolyDataFilter.h"
 #include "vtkProperty2D.h"
+#include "vtkActorCollection.h"
 //----------------------------------------------------------------------------
 vtkPerkStationSecondaryMonitor* vtkPerkStationSecondaryMonitor::New()
 {
@@ -29,6 +31,7 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
 
   // monitor info related
   this->DeviceActive = false; 
+  this->DisplayInitialized = false;
   this->MonitorSpacing[0] = 1;
   this->MonitorSpacing[1] = 1;
   this->VirtualScreenCoord[0] = 0;
@@ -75,6 +78,10 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
  vtkSlicerInteractorStyle *iStyle = vtkSlicerInteractorStyle::New();
  this->Interator->SetInteractorStyle (iStyle);
 
+ // window level mapping
+ this->MapToWindowLevelColors = vtkImageMapToWindowLevelColors::New();
+ this->MapToWindowLevelColors->SetOutputFormatToLuminance();
+
  // mapper
  this->ImageMapper = vtkImageMapper::New();
  this->ImageMapper->SetColorWindow(255);
@@ -85,6 +92,7 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
  this->ImageActor->SetMapper(this->ImageMapper);
  this->ImageActor->GetProperty()->SetDisplayLocationToBackground();
 
+ this->NeedleActor = vtkActor::New();  
 }
 
 
@@ -92,6 +100,68 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
 vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
 {
   this->SetGUI(NULL);
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationSecondaryMonitor::ResetCalibration()
+{
+  if (!this->DisplayInitialized)
+      return;
+
+  // should reset the matrices
+  // matrices
+  this->XYToIJK->Identity();
+  this->XYToRAS->Identity();
+  this->CurrentTransformMatrix->Identity();
+  this->ResliceTransform->Identity();;
+  
+  this->HorizontalFlipped = false;
+  this->VerticalFlipped = false;
+
+  // calculate initial xytoijk matrix
+  vtkMatrix4x4 *xyToIJK = vtkMatrix4x4::New();
+  xyToIJK->Identity();
+
+  for (int i = 0; i < 3; i++)
+   {
+   xyToIJK->SetElement(i, i, 1.0);
+   xyToIJK->SetElement(i, 3, -(this->ScreenSize[i]-this->ImageSize[i])/ 2.); //translation assuming both image & display have origins at bottom left respectively
+   }
+ 
+  xyToIJK->SetElement(2,3,0.);
+  this->XYToIJK->DeepCopy(xyToIJK);
+
+  // to have consistent display i.e. same display as in SLICER's slice viewer, and own render window in secondary monitor
+  // figure out whether a horizontal flip required or a vertical flip or both
+  // Note: this does not counter the flip that will be required due to secondary monitors orientation/mounting
+  // It only makes sure that two displays have same view if they are physically in same orientation
+  vtkMatrix4x4 *directionMatrix = vtkMatrix4x4::New();
+  this->VolumeNode->GetIJKToRASDirectionMatrix(directionMatrix);
+
+  vtkMatrix4x4 *flipMatrix = vtkMatrix4x4::New();
+  bool verticalFlip = false;
+  bool horizontalFlip = false;
+
+  flipMatrix = this->GetFlipMatrixFromDirectionCosines(directionMatrix,verticalFlip,horizontalFlip);
+  this->CurrentTransformMatrix->DeepCopy(flipMatrix);
+
+  this->UpdateMatrices();  
+  
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationSecondaryMonitor::RemoveOverlayNeedleGuide()
+{
+  if (!this->DisplayInitialized)
+      return;
+
+  // should remove the overlay needle guide
+  vtkActorCollection *collection = this->Renderer->GetActors();
+  if (collection->IsItemPresent(this->NeedleActor))
+    {
+    this->Renderer->RemoveActor(this->NeedleActor);
+    if (this->DeviceActive)
+        this->RenderWindow->Render();
+    }
+
 }
 //----------------------------------------------------------------------------
  void vtkPerkStationSecondaryMonitor::SetupImageData()
@@ -123,12 +193,17 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
   this->RenderWindow->SetPosition(this->VirtualScreenCoord[0], this->VirtualScreenCoord[1]);
   // window size
   this->RenderWindow->SetSize(this->ScreenSize[0], this->ScreenSize[1]);
+  //window/level
+  this->MapToWindowLevelColors->SetWindow(this->VolumeNode->GetScalarVolumeDisplayNode()->GetWindow());
+  this->MapToWindowLevelColors->SetLevel(this->VolumeNode->GetScalarVolumeDisplayNode()->GetLevel());
+  this->MapToWindowLevelColors->SetInput( this->Reslice->GetOutput() );
   // mapper
-  this->ImageMapper->SetInput(this->Reslice->GetOutput());
+  this->ImageMapper->SetInput(this->MapToWindowLevelColors->GetOutput());
   // actor
   this->Renderer->AddActor(this->ImageActor);
 
-  // matrix stuff
+  // matrix stuff  
+
  // calculate initial xytoijk matrix
   vtkMatrix4x4 *xyToIJK = vtkMatrix4x4::New();
   xyToIJK->Identity();
@@ -158,6 +233,7 @@ vtkPerkStationSecondaryMonitor::~vtkPerkStationSecondaryMonitor()
 
   this->UpdateMatrices();  
  
+  this->DisplayInitialized = true;
 }
 //----------------------------------------------------------------------------
 vtkMatrix4x4 *vtkPerkStationSecondaryMonitor::GetFlipMatrixFromDirectionCosines (vtkMatrix4x4 *directionMatrix, bool & verticalFlip, bool & horizontalFlip)
@@ -415,6 +491,9 @@ void vtkPerkStationSecondaryMonitor::OverlayNeedleGuide()
 
   // get the world coordinates
   int point[2];
+  double xyEntry[2];
+  double xyTarget[2];
+
   double worldCoordinate[4];
   double wcEntryPoint[3];
   double wcTargetPoint[3];
@@ -430,6 +509,8 @@ void vtkPerkStationSecondaryMonitor::OverlayNeedleGuide()
   rasToXY->MultiplyPoint(inPt, outPt);
   point[0] = outPt[0];
   point[1] = outPt[1];
+  xyEntry[0] = point[0];
+  xyEntry[1] = point[1];
 
   this->Renderer->SetDisplayPoint(point[0],point[1], 0);
   this->Renderer->DisplayToWorld();
@@ -446,6 +527,9 @@ void vtkPerkStationSecondaryMonitor::OverlayNeedleGuide()
   rasToXY->MultiplyPoint(inPt, outPt);
   point[0] = outPt[0];
   point[1] = outPt[1];
+  xyTarget[0] = point[0];
+  xyTarget[1] = point[1];
+
   this->Renderer->SetDisplayPoint(point[0],point[1], 0);
   this->Renderer->DisplayToWorld();
   this->Renderer->GetWorldPoint(worldCoordinate);
@@ -477,14 +561,29 @@ void vtkPerkStationSecondaryMonitor::OverlayNeedleGuide()
   needleCenter[1] = wcEntryPoint[1];// - windowSize[1]/2;
   //needleCenter[2] = wcEntryPoint[2];
   //needleGuide->SetCenter(needleCenter[0], needleCenter[1], needleCenter[2]);
-  
+
+  // angle as calculated from xy coordinates
+  double insAngle = -double(180/vtkMath::Pi()) * atan(double((xyEntry[1] - xyTarget[1])/(xyEntry[0] - xyTarget[0])));
+
+/*  
+  double angleNeedle = this->GetGUI()->GetMRMLNode()->GetActualPlanInsertionAngle();
+  if (this->HorizontalFlipped || this->VerticalFlipped)
+      angleNeedle = -angleNeedle;
+
+  // account for image rotation
+  double rotationRAS = this->GetGUI()->GetMRMLNode()->GetUserRotation();
+  angleNeedle = angleNeedle + rotationRAS;
+
+  double insAngleRad = vtkMath::Pi()/2 - double(vtkMath::Pi()/180)*angleNeedle;
+*/
+
   // TO DO: transfrom needle mapper using vtkTransformPolyData
   vtkMatrix4x4 *transformMatrix = vtkMatrix4x4::New();
   transformMatrix->Identity();
-  double angle = this->GetGUI()->GetMRMLNode()->GetActualPlanInsertionAngle();
-  if (this->HorizontalFlipped || this->VerticalFlipped)
-      angle = -angle;
-  double insAngleRad = vtkMath::Pi()/2 - double(vtkMath::Pi()/180)*angle;
+
+
+  
+  double insAngleRad = vtkMath::Pi()/2 - double(vtkMath::Pi()/180)*insAngle;
   transformMatrix->SetElement(0,0, cos(insAngleRad));
   transformMatrix->SetElement(0,1, -sin(insAngleRad));
   transformMatrix->SetElement(0,2, 0);
@@ -518,16 +617,15 @@ void vtkPerkStationSecondaryMonitor::OverlayNeedleGuide()
   needleMapper->SetInputConnection( filter->GetOutputPort() );
   //needleMapper->SetInputConnection(needleGuide->GetOutputPort());
 
-  // after transfrom, set up actor
-  vtkActor *needleActor = vtkActor::New();  
-  needleActor->SetMapper(needleMapper );  
+  // after transfrom, set up actor 
+  this->NeedleActor->SetMapper(needleMapper );  
   
   //needleActor->SetPosition(needleCenter[0], needleCenter[1],0);  
   //needleActor->RotateZ(90-angle);
   
  
   // add to renderer of the Axial slice viewer
-  this->Renderer->AddActor(needleActor);  
+  this->Renderer->AddActor(this->NeedleActor);  
   this->RenderWindow->Render(); 
  
   
