@@ -15,7 +15,7 @@
 =========================================================================*/
 
 //
-//  r = igtlsend(SD, NAME, SIZE, DATA, TRANSFORM);
+//  r = igtlsend(SD, NAME, DATA, TRANSFORM);
 //
 //    SD  : (integer)    Socket descriptor (-1 if failed to connect)
 //    NAME: (string)     Data name (DEVICE_NAME in OpenIGTLink)
