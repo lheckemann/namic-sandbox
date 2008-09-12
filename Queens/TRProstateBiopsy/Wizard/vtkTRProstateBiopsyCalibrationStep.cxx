@@ -39,8 +39,8 @@ vtkTRProstateBiopsyCalibrationStep::vtkTRProstateBiopsyCalibrationStep()
   this->GUICallbackCommand->SetCallback(
     &vtkTRProstateBiopsyCalibrationStep::GUICallback);
 
-  this->MRMLCallbackCommand->SetCallback(
-    &vtkTRProstateBiopsyCalibrationStep::MRMLCallback);
+  //this->MRMLCallbackCommand->SetCallback(
+    //&vtkTRProstateBiopsyCalibrationStep::MRMLCallback);
 
   this->ButtonFrame  = NULL;
   this->LoadCalibrationImageButton = NULL;

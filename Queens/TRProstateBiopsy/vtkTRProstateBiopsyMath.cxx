@@ -11,10 +11,16 @@
   Version:   $Revision: $
 
 =========================================================================auto=*/
-
+#include "vtkObjectFactory.h"
 #include "vtkTRProstateBiopsyMath.h"
 #include "vtkMatrix4x4.h"
 #include "vtkMath.h"
+
+//----------------------------------------------------------------------------
+vtkStandardNewMacro(vtkTRProstateBiopsyMath);
+vtkCxxRevisionMacro(vtkTRProstateBiopsyMath, "$Revision: 1.0 $");
+//------------------------------------------------------------------------------
+
 
 //----------------------------------------------------------------------------
 void vtkTRProstateBiopsyMath::PrintSelf(ostream& os, vtkIndent indent)
@@ -138,4 +144,53 @@ void vtkTRProstateBiopsyMath::ComputePermutationFromOrientation(
   flip[xidx] = kmax;
   flip[yidx] = lmax;
   flip[zidx] = (jmax ^ kmax ^ lmax ^ oddPermutation);
+}
+
+//-------------------------------------------------------------------------
+double vtkTRProstateBiopsyMath::ComputeDistanceLinePoint(double x[3],
+                                                   double y[3],
+                                                   double z[3])
+{
+  double u[3];
+  double v[3];
+  double w[3];
+
+  u[0] = y[0] - x[0];
+  u[1] = y[1] - x[1];
+  u[2] = y[2] - x[2];
+  
+  vtkMath::Normalize(u);
+  
+  v[0] = z[0] - x[0];
+  v[1] = z[1] - x[1];
+  v[2] = z[2] - x[2];
+  
+  double dot = vtkMath::Dot(u,v);
+  
+  w[0] = v[0] - dot*u[0];
+  w[1] = v[1] - dot*u[1];
+  w[2] = v[2] - dot*u[2];
+
+  // actual distance calculation ends here
+
+  // additional code below is from Axel's MATLAB code
+  double e[3];
+  e[0] = -w[0];
+  e[1] = -w[1];
+  e[2] = -w[2];
+
+  double r[3];
+  double s[3];
+  double temp[3] = {0,1,0};
+  vtkMath::Cross(temp,u,r);
+  vtkMath::Normalize(r);
+  double cre = vtkMath::Dot(e,r);
+
+  vtkMath::Cross(r,u,s);
+  vtkMath::Normalize(s);
+  double cse = vtkMath::Dot(e,s);
+
+  // additional code ends here
+
+  return sqrt(vtkMath::Dot(w,w));
 }
