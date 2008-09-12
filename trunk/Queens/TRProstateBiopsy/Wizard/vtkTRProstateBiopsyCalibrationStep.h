@@ -40,10 +40,10 @@ public:
   virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event,
                                 void *callData);
 
-  static void MRMLCallback(vtkObject *caller, unsigned long event,
+  /*static void MRMLCallback(vtkObject *caller, unsigned long event,
                            void *clientData, void *callData);
   virtual void ProcessMRMLEvents(vtkObject *caller, unsigned long event,
-                                 void *callData);
+                                 void *callData);*/
 
 protected:
   vtkTRProstateBiopsyCalibrationStep();

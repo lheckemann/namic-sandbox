@@ -36,6 +36,11 @@ public:
                                                 int permutation[3],
                                                 int flip[3]);
 
+  // Description
+  // Calculate distance between a line (defined by two points) and a point
+  double ComputeDistanceLinePoint(double LinePoint1[3], double LinePoint2[3], double TargetPoint[3]);
+
+
 protected:
   vtkTRProstateBiopsyMath() {};
   ~vtkTRProstateBiopsyMath() {};
