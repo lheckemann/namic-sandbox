@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.5)
 include(SlicerSetGetModule)
 
 # ---------------------------------------------------------------------------
-# slicer_parse_module: parse a module.
+# slicer_parse_module: parse a module description from a string (XML).
 #
 # This function parses a module and creates the corresponding key/value pairs.
 #
@@ -13,7 +13,7 @@ include(SlicerSetGetModule)
 # in:
 #   module_contents (string): contents of the module
 # in/out:
-#   module_varname (string): variable name to use to store the module values
+#   module_varname (string): variable name to use to store all module values
 # 
 # Example:
 #   set(module_contents "<Name>TestModule</Name><Group>Segmentation</Group>")
@@ -72,11 +72,11 @@ function(slicer_parse_module module_contents module_varname)
   endforeach(elem)
 
   # If the module is unknown at this point, this content was invalid
-
+  
   slicer_is_module_unknown(${module_varname} unknown)
   if(unknown)
     message(SEND_ERROR 
-      "Unable to parse module ${module_varname}, invalid content?\n\n${module_contents}")
+      "Incomplete module ${module_varname}! Invalid content?\n\n${module_contents}")
     foreach(elem ${elems})
       slicer_unset_module_value(${module_varname} ${elem})
     endforeach(elem)
@@ -93,13 +93,13 @@ function(slicer_parse_module module_contents module_varname)
 endfunction(slicer_parse_module)
 
 # ---------------------------------------------------------------------------
-# slicer_parse_module_file: parse a module from a file.
+# slicer_parse_module_file: parse a module description from a file (XML).
 #
-# This function loads a module file into a variable and parse its contents by
-# calling the slicer_parse_module function.
+# This function loads a module description file into a variable and parse its
+# contents by calling the slicer_parse_module function.
 #
 # The name of the file (without extension) will be used if the variable name
-# to use to store the module values is omitted.
+# to use to store all module values is omitted.
 #
 # Note: the file name can be a directory, say /home/foo/module1, in that case
 # this function will try to read /home/foo/module1/module1.xml and exit
@@ -112,7 +112,7 @@ endfunction(slicer_parse_module)
 # in:
 #   module_filename (filename): full path (filename) to the module
 # optional in/out:
-#   module_varname (string): variable name to use to store the module values
+#   module_varname (string): variable name to use to store all module values
 # 
 # Example:
 #   slicer_parse_module_file("C:/foo/TestModule/TestModule.xml" TestModule)
@@ -167,13 +167,13 @@ function(slicer_parse_module_file module_filename)
 endfunction(slicer_parse_module_file)
 
 # ---------------------------------------------------------------------------
-# slicer_parse_module_url: parse a module from a remote file.
+# slicer_parse_module_url: parse a module description from a remote file.
 #
 # This function loads a remote module file into a variable and parse its
 # contents by calling the slicer_parse_module function.
 #
 # The last component of the url (without extension) will be used if the
-# variable name to use to store the module values is omitted.
+# variable name to use to store all module values is omitted.
 #
 # Note: the remote file is first downloaded to a local file that will be
 # stored in the local module's cache directory (as retrieved by
@@ -186,7 +186,7 @@ endfunction(slicer_parse_module_file)
 # in:
 #   module_url (string): URL to the module file
 # optional in/out:
-#   module_varname (string): variable name to use to store the module values
+#   module_varname (string): variable name to use to store all module values
 # 
 # Example:
 #   slicer_parse_module_url("http://www.na-mic.org/modules/test/test.xml" TestModule)
@@ -297,7 +297,7 @@ endfunction(slicer_parse_modules_directory)
 #
 # Arguments:
 # out:
-#   list_varname (string): variable name to use to store the modules list
+#   list_varname (string): variable name to use to store all modules list
 # 
 # Example:
 #   slicer_parse_module_file("TestModule.xml" TestModule)
