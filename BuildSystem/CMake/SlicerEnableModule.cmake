@@ -9,7 +9,7 @@ include(SlicerSetGetModule)
 #
 # Arguments:
 # in:
-#   module_varname (string): variable name used to store the module keys/values
+#   module_varname (string): variable name used to store all module keys/values
 #   option_name (string): name to use to for the option
 # 
 # Example:

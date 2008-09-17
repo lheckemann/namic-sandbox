@@ -15,7 +15,7 @@ find_package(CVS)
 #
 # Arguments:
 # in:
-#   module_varname (string): variable name used to store the module values
+#   module_varname (string): variable name used to store all module values
 #   target_name (string): name of the target
 #   dir (string): where the module should be downloaded
 # 
@@ -204,7 +204,7 @@ endfunction(slicer_create_download_module_target)
 #
 # Arguments:
 # in:
-#   module_varname (string): variable name used to store the module values
+#   module_varname (string): variable name used to store all module values
 # out:
 #   target_varname (string): variable name to use to store the target name
 # 
@@ -248,7 +248,7 @@ endfunction(slicer_get_download_module_target)
 #
 # Arguments:
 # in:
-#   module_varname (string): variable name used to store the module values
+#   module_varname (string): variable name used to store all module values
 #   target_name (string): name of the target
 #   dir (string): where the module has been downloaded/checked out
 # 
@@ -333,7 +333,7 @@ endfunction(slicer_create_update_module_target)
 #
 # Arguments:
 # in:
-#   module_varname (string): variable name used to store the module values
+#   module_varname (string): variable name used to store all module values
 # out:
 #   target_varname (string): variable name to use to store the target name
 # 

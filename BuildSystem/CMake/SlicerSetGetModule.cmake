@@ -12,7 +12,7 @@ cmake_minimum_required(VERSION 2.5)
 #   key (string): key (no spaces, should be similar to a variable name)
 #   value (string): value (or list of values)
 # in/out:
-#   module_varname (string): variable name to use to store the module value
+#   module_varname (string): var name to be used to store all module values
 # 
 # Example:
 #   slicer_set_module_value(TestModule Author "John Doe")
@@ -35,14 +35,15 @@ endfunction(slicer_set_module_value)
 # This function can be used to retrieve a module value without worrying too much
 # about the underlying data structure. 
 # Implementation: values are stored as key/value pairs at the moment.
-# If the module has no value for that key, the resulting variable is unset.
+# If the module has no value for that key, the resulting variable 
+# (value_varname) will be unset.
 #
 # Arguments:
 # in:
-#   module_varname (string): variable name used to store the module values
+#   module_varname (string): var name used to store all module values
 #   key (string): key
 # in/out:
-#   value_varname (string): variable name to use to store the specific value
+#   value_varname (string): var name to use to store the specific value
 # 
 # Example:
 #   slicer_get_module_value(TestModule Author authors)
@@ -55,14 +56,14 @@ endfunction(slicer_set_module_value)
 
 function(slicer_get_module_value module_varname key value_varname)
 
-  get_property(defined GLOBAL PROPERTY "_${module_varname}_${key}" DEFINED)
+  get_property(is_set GLOBAL PROPERTY "_${module_varname}_${key}" SET)
 
-  if(defined)
+  if(is_set)
     get_property(value GLOBAL PROPERTY "_${module_varname}_${key}")
     set(${value_varname} ${value} PARENT_SCOPE)
-  else(defined)
+  else(is_set)
     set(${value_varname} PARENT_SCOPE)
-  endif(defined)
+  endif(is_set)
 
 endfunction(slicer_get_module_value)
 
@@ -77,7 +78,7 @@ endfunction(slicer_get_module_value)
 # in:
 #   key (string): key
 # in/out:
-#   module_varname (string): variable name used to store the module values
+#   module_varname (string): var name used to store all module values
 # 
 # Example:
 #   slicer_unset_module_value(TestModule "Author")
@@ -105,14 +106,14 @@ endfunction(slicer_unset_module_value)
 #
 # Arguments:
 # in:
-#   module_varname (string): variable name used to store the module values
+#   module_varname (string): var name used to store all module values
 # out:
-#   bool_varname (string): variable name to store if module is unknown
+#   bool_varname (string): var name to use to store if module is unknown
 # optional in:
 #   error_msg (string): optional error message
 # 
 # Example:
-#   slicer_is_module_unknown(TestModule unknown "Can't do that!")
+#   slicer_is_module_unknown(TestModule unknown "Unknown module TestModule!")
 #
 # See also:
 #   slicer_get_module_value
@@ -136,13 +137,14 @@ endfunction(slicer_is_module_unknown)
 # ---------------------------------------------------------------------------
 # slicer_get_module_short_description: get a module short description.
 #
-# This function uses the module variables to create a short module description.
+# This function uses the current module variables (key/values) to create a 
+# short module description.
 #
 # Arguments:
 # in:
-#   module_varname (string): variable name used to store the module keys/values
+#   module_varname (string): var name used to store all module keys/values
 # out:
-#   desc_varname (string): variable name to use to store the short description
+#   desc_varname (string): var name to use to store the short description
 # 
 # Example:
 #   slicer_get_module_short_description(TestModule desc)
@@ -200,9 +202,9 @@ endfunction(slicer_get_module_short_description)
 #
 # Arguments:
 # in:
-#   module_varname (string): variable name used to store the module keys/values
+#   module_varname (string): var name used to store all module keys/values
 # out:
-#   type_varname (string): variable name to use to store the type
+#   type_varname (string): var name to use to store the type
 # 
 # Example:
 #   slicer_get_module_source_repository_type(TestModule type)
@@ -253,15 +255,11 @@ endfunction(slicer_get_module_source_repository_type)
 #
 # Arguments:
 # in:
-#   module_varname (string): variable name used to store the module keys/values
+#   module_varname (string): var name used to store all module keys/values
 # out:
-#   tag_varname (string): variable name to use to store the type
+#   tag_varname (string): var name to use to store the type
 # 
 # Example:
-#   slicer_get_module_source_repository_type(TestModule type)
-#   if(type STREQUAL "svn")
-#     ...
-#   endif(type STREQUAL "svn")
 #
 # See also:
 #   slicer_get_module_value
@@ -318,9 +316,9 @@ endfunction(slicer_get_module_source_tag)
 #
 # Arguments:
 # in:
-#   module_varname (string): variable name used to store the module keys/values
+#   module_varname (string): var name used to store all module keys/values
 # out:
-#   dir_varname (string): variable name to use to store the module car dir
+#   dir_varname (string): var name to use to store the module car dir
 # 
 # Example:
 #   slicer_get_module_cache_directory(TestModule dir)
@@ -332,14 +330,6 @@ endfunction(slicer_get_module_source_tag)
 # ---------------------------------------------------------------------------
 
 function(slicer_get_module_cache_directory module_varname dir_varname)
-
-  # Unknown module? Bail.
-
-  slicer_is_module_unknown(
-    ${module_varname} unknown "Unable to get cache directory!")
-  if(unknown)
-    return()
-  endif(unknown)
 
   set(${dir_varname} 
     "${PROJECT_BINARY_DIR}/ModuleCache/${module_varname}" PARENT_SCOPE)
