@@ -45,15 +45,21 @@ endif(NOT unknown)
 
 slicer_parse_module_file("${SLICER_LOCAL_MODULES_PATH}/TestModule2/")
 
-# Create all download/update targets
-# "make update_modules" will download and update everything
+# Create USE_FOOBAR options for all modules
 
 slicer_get_parsed_modules(modules)
 slicer_create_use_modules_options("${modules}")
 slicer_get_used_modules("${modules}" used_modules)
+
+# Find the unresolved dependencies, and the resolved modules
+
 slicer_get_unresolved_modules_dependencies(
   "${used_modules}" unresolved_dependencies)
-slicer_get_resolved_modules("${used_modules}" resolved_modules)
+slicer_get_resolved_modules(
+  "${used_modules}" resolved_modules)
+
+# Create all download/update targets for the resolved modules
+
 slicer_create_download_and_update_modules_targets(
   "${resolved_modules}" "${SLICER_DOWNLOADED_SOURCES_DIRECTORY}")
 
