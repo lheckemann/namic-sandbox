@@ -35,15 +35,6 @@
 #include <vtksys/stl/string>
 #include <vtksys/SystemTools.hxx>
 
-// for DICOM read
-/*#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkImage.h"
-#include "itkMetaDataDictionary.h"
-#include "itkMetaDataObject.h"
-#include "itkGDCMImageIO.h"
-#include "itkSpatialOrientationAdapter.h"*/
-
 vtkCxxRevisionMacro(vtkTRProstateBiopsyLogic, "$Revision: 1.9.12.1 $");
 vtkStandardNewMacro(vtkTRProstateBiopsyLogic);
 
@@ -215,20 +206,21 @@ void vtkTRProstateBiopsyLogic::SetSliceViewFromVolume(
   permutationMatrix->Invert();
   vtkMatrix4x4::Multiply4x4(matrix, permutationMatrix, rotationMatrix); 
 
-/*  vtkSlicerApplicationLogic *appLogic =
-    app->GetApplicationGUI()->GetApplicationLogic();*/
+  vtkSlicerApplicationLogic *appLogic =
+    app->GetApplicationGUI()->GetApplicationLogic();
 
   
   // Set the slice views to match the volume slice orientation
-  //for (int i = 0; i < 3; i++)
-    //{
-   // static const char *panes[3] = { "Red", "Yellow", "Green" };
+  for (int i = 0; i < 3; i++)
+    {
+    static const char *panes[3] = { "Red", "Yellow", "Green" };
 
     vtkMatrix4x4 *newMatrix = vtkMatrix4x4::New();
 
-    /*vtkSlicerSliceLogic *slice = appLogic->GetSliceLogic(
-      const_cast<char *>(panes[i]));*/
+    vtkSlicerSliceLogic *slice = appLogic->GetSliceLogic(
+      const_cast<char *>(panes[i]));
     
+    vtkMRMLSliceNode *sliceNode = slice->GetSliceNode();
 
     // Need to find window center and rotate around that
 
@@ -236,7 +228,7 @@ void vtkTRProstateBiopsyLogic::SetSliceViewFromVolume(
     newMatrix->SetElement(0, 0, 0.0);
     newMatrix->SetElement(1, 1, 0.0);
     newMatrix->SetElement(2, 2, 0.0);
-    /*if (i == 0)
+    if (i == 0)
       {
       newMatrix->SetElement(0, 0, -1.0);
       newMatrix->SetElement(1, 1, 1.0);
@@ -253,8 +245,9 @@ void vtkTRProstateBiopsyLogic::SetSliceViewFromVolume(
       newMatrix->SetElement(0, 0, -1.0);
       newMatrix->SetElement(2, 1, 1.0);
       newMatrix->SetElement(1, 2, 1.0);
-      }*/
+      }
 
+    /*  Code for Slicer 3.2
     // do this for each slice node  
 
     vtkMRMLSliceNode *sliceNode = app->GetApplicationGUI()->GetMainSliceLogic0()->GetSliceNode();
@@ -290,6 +283,7 @@ void vtkTRProstateBiopsyLogic::SetSliceViewFromVolume(
     newMatrix->SetElement(0, 0, -1.0);
     newMatrix->SetElement(2, 1, 1.0);
     newMatrix->SetElement(1, 2, 1.0);
+    */
     // Next, set the orientation to match the volume
     sliceNode->SetOrientationToReformat();
     vtkMatrix4x4::Multiply4x4(rotationMatrix, newMatrix, newMatrix);
@@ -298,7 +292,7 @@ void vtkTRProstateBiopsyLogic::SetSliceViewFromVolume(
 
 
     newMatrix->Delete();
-    //}
+    }
 
   matrix->Delete();
   permutationMatrix->Delete();
@@ -385,7 +379,7 @@ vtkMRMLScalarVolumeNode *vtkTRProstateBiopsyLogic::AddArchetypeVolume(
     }
   storageNode->SetCenterImage(false);
   storageNode->SetSingleFile(false);
-  //storageNode->SetUseOrientationFromFile(true);
+  storageNode->SetUseOrientationFromFile(true);
   storageNode->AddObserver(vtkCommand::ProgressEvent,
                            this->LogicCallbackCommand);
 
