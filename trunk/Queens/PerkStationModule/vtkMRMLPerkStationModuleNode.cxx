@@ -279,7 +279,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "VerticalFlip"))
       {
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       bool val;
       ss >> val;
@@ -287,7 +287,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "HorizontalFlip"))
       {
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       bool val;
       ss >> val;
@@ -296,10 +296,10 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "UserScaling"))
       {
        // read data into a temporary vector
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double d;
-      vtksys_stl::vector<double> tmpVec;
+      std::vector<double> tmpVec;
       while (ss >> d)
         {
         tmpVec.push_back(d);
@@ -315,10 +315,10 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "ActualScaling"))
       {
        // read data into a temporary vector
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double d;
-      vtksys_stl::vector<double> tmpVec;
+      std::vector<double> tmpVec;
       while (ss >> d)
         {
         tmpVec.push_back(d);
@@ -335,10 +335,10 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "UserTranslation"))
       {
        // read data into a temporary vector
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double d;
-      vtksys_stl::vector<double> tmpVec;
+      std::vector<double> tmpVec;
       while (ss >> d)
         {
         tmpVec.push_back(d);
@@ -355,10 +355,10 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "ActualTranslation"))
       {
        // read data into a temporary vector
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double d;
-      vtksys_stl::vector<double> tmpVec;
+      std::vector<double> tmpVec;
       while (ss >> d)
         {
         tmpVec.push_back(d);
@@ -377,7 +377,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
 
     else if (!strcmp(attName, "UserRotation"))
       {
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double val;
       ss >> val;
@@ -385,7 +385,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "ActualRotation"))
       {
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double val;
       ss >> val;
@@ -394,10 +394,10 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "CenterOfRotation"))
       {
        // read data into a temporary vector
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double d;
-      vtksys_stl::vector<double> tmpVec;
+      std::vector<double> tmpVec;
       while (ss >> d)
         {
         tmpVec.push_back(d);
@@ -414,10 +414,10 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "PlanEntryPoint"))
       {
        // read data into a temporary vector
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double d;
-      vtksys_stl::vector<double> tmpVec;
+      std::vector<double> tmpVec;
       while (ss >> d)
         {
         tmpVec.push_back(d);
@@ -434,10 +434,10 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "PlanTargetPoint"))
       {
        // read data into a temporary vector
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double d;
-      vtksys_stl::vector<double> tmpVec;
+      std::vector<double> tmpVec;
       while (ss >> d)
         {
         tmpVec.push_back(d);
@@ -453,7 +453,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "UserPlanInsertionAngle"))
       {
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double val;
       ss >> val;
@@ -461,7 +461,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "ActualPlanInsertionAngle"))
       {
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double val;
       ss >> val;
@@ -469,7 +469,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "UserPlanInsertionDepth"))
       {
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double val;
       ss >> val;
@@ -477,7 +477,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "ActualPlanInsertionDepth"))
       {
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double val;
       ss >> val;
@@ -486,10 +486,10 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "ValidateEntryPoint"))
       {
        // read data into a temporary vector
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double d;
-      vtksys_stl::vector<double> tmpVec;
+      std::vector<double> tmpVec;
       while (ss >> d)
         {
         tmpVec.push_back(d);
@@ -506,10 +506,10 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "ValidateTargetPoint"))
       {
        // read data into a temporary vector
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double d;
-      vtksys_stl::vector<double> tmpVec;
+      std::vector<double> tmpVec;
       while (ss >> d)
         {
         tmpVec.push_back(d);
@@ -526,10 +526,10 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "CalibrateScaleError"))
       {
        // read data into a temporary vector
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double d;
-      vtksys_stl::vector<double> tmpVec;
+      std::vector<double> tmpVec;
       while (ss >> d)
         {
         tmpVec.push_back(d);
@@ -545,10 +545,10 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
     else if (!strcmp(attName, "CalibrateTranslationError"))
       {
        // read data into a temporary vector
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double d;
-      vtksys_stl::vector<double> tmpVec;
+      std::vector<double> tmpVec;
       while (ss >> d)
         {
         tmpVec.push_back(d);
@@ -564,7 +564,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
 
     else if (!strcmp(attName, "CalibrateRotationError"))
       {
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double val;
       ss >> val;
@@ -572,7 +572,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "PlanInsertionAngleError"))
       {
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double val;
       ss >> val;
@@ -580,7 +580,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "PlanInsertionDepthError"))
       {
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double val;
       ss >> val;
@@ -588,7 +588,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "EntryPointError"))
       {
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double val;
       ss >> val;
@@ -596,7 +596,7 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
       }
     else if (!strcmp(attName, "TargetPointError"))
       {
-      vtksys_stl::stringstream ss;
+      std::stringstream ss;
       ss << attValue;
       double val;
       ss >> val;
@@ -735,7 +735,7 @@ void vtkMRMLPerkStationModuleNode::InitializeFiducialListNode()
         {
         // error macro      
         }   
-
+    this->PlanMRMLFiducialListNode->SetLocked(true);
     this->PlanMRMLFiducialListNode->SetName("PerkStationFiducialList");
     this->PlanMRMLFiducialListNode->SetDescription("Created by PERK Station Module; marks entry point and target point");
     this->PlanMRMLFiducialListNode->SetColor(0.5,0.5,0.5);

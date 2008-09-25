@@ -21,8 +21,8 @@ vtkCxxRevisionMacro(vtkPerkStationValidateStep, "$Revision: 1.0 $");
 vtkPerkStationValidateStep::vtkPerkStationValidateStep()
 {
   this->SetName("4/5. Validate");
-  this->SetDescription("Mark actual entry point and target hit");
-  
+  this->SetDescription("Mark actual entry point and target hit");  
+
   this->EntryPointFrame = NULL;
   this->EntryPointLabel = NULL;
   this->EntryPoint = NULL;
@@ -80,6 +80,23 @@ vtkPerkStationValidateStep::~vtkPerkStationValidateStep()
 void vtkPerkStationValidateStep::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
+
+  switch (this->GetGUI()->GetMode())      
+    {
+
+    case vtkPerkStationModuleGUI::ModeId::Training:
+
+      this->SetName("4/5. Validate");
+      break;
+
+    case vtkPerkStationModuleGUI::ModeId::Clinical:
+       
+      // in clinical mode
+      this->SetName("4/4. Validate");
+      break;
+    }
+  
+  this->SetDescription("Mark actual entry point and target hit");  
 
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
 
@@ -393,8 +410,8 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
     }
 
   vtkSlicerInteractorStyle *s = vtkSlicerInteractorStyle::SafeDownCast(caller);
-  vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
-  vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
+  vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
+  vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
 
   if ((s == istyle0) && (event == vtkCommand::LeftButtonPressEvent))
     {
@@ -402,7 +419,7 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
     // mouse click happened in the axial slice view
     
     // capture the point
-    vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI0();
+    vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red");
     vtkRenderWindowInteractor *rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
     int point[2];
     rwi->GetLastEventPosition(point);
@@ -434,8 +451,21 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
       // record value in the MRML node
       this->GetGUI()->GetMRMLNode()->SetValidateTargetPoint(ras);      
       this->GetGUI()->GetMRMLNode()->CalculateTargetPointError();
-
+      
       clickNum = 0;
+
+      // if in clinical mode, the insertion depth should be automatically calculated & displayed
+      if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
+        {   
+        double rasEntry[3];
+        double rasTarget[3];
+        this->GetGUI()->GetMRMLNode()->GetValidateEntryPoint(rasEntry);
+        this->GetGUI()->GetMRMLNode()->GetValidateTargetPoint(rasTarget);
+        double insDepth = sqrt( (rasTarget[0] - rasEntry[0])*(rasTarget[0] - rasEntry[0]) + (rasTarget[1] - rasEntry[1])*(rasTarget[1] - rasEntry[1]) + (rasTarget[2] - rasEntry[2])*(rasTarget[2] - rasEntry[2]) );
+        this->InsertionDepth->GetWidget()->SetValueAsDouble(insDepth);
+        }       
+
+
       }
 
 

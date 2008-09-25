@@ -32,8 +32,6 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
   // monitor info related
   this->DeviceActive = false; 
   this->DisplayInitialized = false;
-  this->MonitorSpacing[0] = 1;
-  this->MonitorSpacing[1] = 1;
   this->VirtualScreenCoord[0] = 0;
   this->VirtualScreenCoord[1] = 0;
   this->ScreenSize[0] = 800;
@@ -112,7 +110,7 @@ void vtkPerkStationSecondaryMonitor::ResetCalibration()
   this->XYToIJK->Identity();
   this->XYToRAS->Identity();
   this->CurrentTransformMatrix->Identity();
-  this->ResliceTransform->Identity();;
+  this->ResliceTransform->Identity();
   
   this->HorizontalFlipped = false;
   this->VerticalFlipped = false;
@@ -370,18 +368,18 @@ void vtkPerkStationSecondaryMonitor::Initialize()
         HDC hdc = CreateDC("DISPLAY", lpDisplayDevice.DeviceName, NULL, NULL);    
           
         // now the device context can be used in many functions to retrieve information about the monitor
-        int width_mm = GetDeviceCaps(hdc, HORZSIZE);
-        int height_mm = GetDeviceCaps(hdc, VERTSIZE);
+        double width_mm = GetDeviceCaps(hdc, HORZSIZE);
+        double height_mm = GetDeviceCaps(hdc, VERTSIZE);
          
-        int width_pix = GetDeviceCaps(hdc, HORZRES);
-        int height_pix = GetDeviceCaps(hdc, VERTRES);
-        double xSpacing = double(width_mm)/double(width_pix);
-        double ySpacing = double(height_mm)/double(height_pix);
-
+        double width_pix = GetDeviceCaps(hdc, HORZRES);
+        double height_pix = GetDeviceCaps(hdc, VERTRES);
+        
         if (!(lpDisplayDevice.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE))
           {
-          this->MonitorSpacing[0] = xSpacing;
-          this->MonitorSpacing[1] = ySpacing;
+          this->MonitorPhysicalSizeMM[0] = width_mm;
+          this->MonitorPhysicalSizeMM[1] = height_mm;
+          this->MonitorPixelResolution[0] = width_pix;
+          this->MonitorPixelResolution[1] = height_pix;
           this->DeviceActive = true;
           this->ScreenSize[0] = width_pix;
           this->ScreenSize[1] = height_pix;

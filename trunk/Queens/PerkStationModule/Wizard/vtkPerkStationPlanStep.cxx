@@ -100,6 +100,22 @@ vtkPerkStationPlanStep::~vtkPerkStationPlanStep()
 void vtkPerkStationPlanStep::ShowUserInterface()
 {
   this->Superclass::ShowUserInterface();
+  switch (this->GetGUI()->GetMode())      
+    {
+
+    case vtkPerkStationModuleGUI::ModeId::Training:
+
+      this->SetName("2/5. Plan");
+      break;
+
+    case vtkPerkStationModuleGUI::ModeId::Clinical:
+       
+      // in clinical mode
+      this->SetName("2/4. Plan");
+      break;
+    }
+  
+  this->SetDescription("Plan the needle insertion");
 
   /*vtkPerkStationtMRMLManager *mrmlManager = this->GetGUI()->GetMRMLManager();
   
@@ -428,6 +444,7 @@ void vtkPerkStationPlanStep::InstallCallbacks()
 //----------------------------------------------------------------------------
 void vtkPerkStationPlanStep::PopulateControls()
 {
+
 }
 //----------------------------------------------------------------------------
 void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData)
@@ -449,7 +466,7 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned
     }
 
   vtkSlicerInteractorStyle *s = vtkSlicerInteractorStyle::SafeDownCast(caller);
-  vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
+  vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
   vtkSlicerInteractorStyle *istyleSecondary = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor()->GetInteractorStyle());
   
   vtkRenderWindowInteractor *rwi;
@@ -463,7 +480,7 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned
     if (s == istyle0)
       {
           
-      vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI0();
+      vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red");
       rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();    
       matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
       }
@@ -506,11 +523,15 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned
       
       // record value in the MRML node
       this->GetGUI()->GetMRMLNode()->SetPlanTargetPoint(ras);
+    
+      // record value in mrml fiducial list node      
+      int index = this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->AddFiducialWithXYZ(ras[0], ras[1], ras[2], false);
+      this->GetGUI()->GetMRMLNode()->GetPlanMRMLFiducialListNode()->SetNthFiducialLabelText(index, "Target");
       
       // calculate insertion angle and insertion depth
       this->CalculatePlanInsertionAngleAndDepth();
       // record those values too in the mrml node
-
+    
       // do an image overlay of a cylinder!!
       this->OverlayNeedleGuide();
       this->GetGUI()->GetSecondaryMonitor()->OverlayNeedleGuide();
@@ -546,12 +567,12 @@ void vtkPerkStationPlanStep::InsertionAngleEntryCallback(double value)
 //------------------------------------------------------------------------------
 void vtkPerkStationPlanStep::OverlayNeedleGuide()
 {
-  vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
+  vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
 
   // get the world coordinates
   int point[2];
   double worldCoordinate[4];
-  vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI0();
+  vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red");
   vtkMatrix4x4 *xyToRAS = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
   vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
   vtkMatrix4x4::Invert(xyToRAS, rasToXY);
@@ -658,8 +679,8 @@ void vtkPerkStationPlanStep::OverlayNeedleGuide()
   
  
   // add to renderer of the Axial slice viewer
-  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->AddActor(this->NeedleActor);
-  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->RequestRender(); 
+  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->AddActor(this->NeedleActor);
+  this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->RequestRender(); 
  
   
 }
@@ -674,10 +695,16 @@ void vtkPerkStationPlanStep::CalculatePlanInsertionAngleAndDepth()
   double insDepth = sqrt( (rasTarget[0] - rasEntry[0])*(rasTarget[0] - rasEntry[0]) + (rasTarget[1] - rasEntry[1])*(rasTarget[1] - rasEntry[1]) + (rasTarget[2] - rasEntry[2])*(rasTarget[2] - rasEntry[2]) );
   this->GetGUI()->GetMRMLNode()->SetActualPlanInsertionDepth(insDepth);
   
+  
   //insertion angle is the angle with x-axis of the line which has entry and target as its end points;
   double insAngle = double(180/vtkMath::Pi()) * atan(double((rasEntry[1] - rasTarget[1])/(rasEntry[0] - rasTarget[0])));
   this->GetGUI()->GetMRMLNode()->SetActualPlanInsertionAngle(insAngle);
   
+  if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
+    {
+    this->InsertionDepth->GetWidget()->SetValueAsDouble(insDepth);
+    this->InsertionAngle->GetWidget()->SetValueAsDouble(insAngle);
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -733,10 +760,10 @@ void vtkPerkStationPlanStep::ResetControls()
 void vtkPerkStationPlanStep::RemoveOverlayNeedleGuide()
 {
   // should remove the overlay needle guide
-  vtkActorCollection *collection = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->GetActors();
+  vtkActorCollection *collection = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->GetActors();
   if (collection->IsItemPresent(this->NeedleActor))
     {
-    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->RemoveActor(this->NeedleActor);
-    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI0()->GetSliceViewer()->RequestRender();     
+    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->RemoveActor(this->NeedleActor);
+    this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->RequestRender();     
     }
 }

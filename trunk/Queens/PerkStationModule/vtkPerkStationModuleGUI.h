@@ -27,6 +27,7 @@ class vtkKWPushButton;
 class vtkSlicerNodeSelectorWidget;
 class vtkKWComboBoxWithLabel;
 class vtkKWRadioButtonSet;
+class vtkKWMenuButtonWithLabel;
 
 class vtkPerkStationCalibrateStep;
 class vtkPerkStationPlanStep;
@@ -68,6 +69,15 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationModuleGUI : public vtkSlicerMod
   vtkGetObjectMacro(WizardWidget, vtkKWWizardWidget);
 
   // Description:
+  // Get modelist menu
+  vtkGetObjectMacro(ModeListMenu, vtkKWMenuButtonWithLabel);
+
+  // Description
+  // Get/set mode of Perk station (clinical or training)
+  vtkGetMacro(Mode,int);
+  vtkSetMacro(Mode,int);
+
+  // Description:
   // Create widgets
   virtual void BuildGUI ( );
 
@@ -103,6 +113,32 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationModuleGUI : public vtkSlicerMod
 
   //
   void SaveExperiment();
+
+
+  //BTX
+    // Description:
+    // Mode identifier
+    enum ModeId
+      {
+        Clinical = 1,
+        Training = 2,
+      };
+    //ETX
+
+    //BTX
+    // Description:
+    // State identifier
+    enum StateId
+      {
+        Calibrate = 0,
+        Plan,
+        Insert,
+        Validate,
+        Evaluate
+      };
+    //ETX
+
+
 protected:
   vtkPerkStationModuleGUI();
   virtual ~vtkPerkStationModuleGUI();
@@ -118,8 +154,7 @@ protected:
   virtual void Enter ( );
   virtual void Exit ( ){};
 
-
-  // Description:
+// Description:
   // Updates GUI widgets based on parameters values in MRML node
   void UpdateGUI();
 
@@ -127,8 +162,17 @@ protected:
   // Updates parameters values in MRML node based on GUI widgets 
   void UpdateMRML();
 
+  // Description
+  // For creating a unique filename, to save the experiment
   char  *CreateFileName();
 
+  // Description
+  // To set up environment depending upon the mode
+  void SetUpPerkStationMode();
+
+  void SetUpPerkStationWizardWorkflow();
+
+  vtkSlicerModuleCollapsibleFrame *WizardFrame;
   // standard: for volume selection and for parameters
   vtkSlicerNodeSelectorWidget* VolumeSelector; 
   vtkSlicerNodeSelectorWidget* PSNodeSelector;
@@ -139,6 +183,11 @@ protected:
   
   // secondary monitor
   vtkPerkStationSecondaryMonitor *SecondaryMonitor;
+
+  // mode selector menu
+  vtkKWMenuButtonWithLabel *ModeListMenu;
+   
+
 private:
    // Description:
   // The wizard widget and steps
@@ -149,16 +198,12 @@ private:
   vtkPerkStationValidateStep *ValidateStep;
   vtkPerkStationEvaluateStep *EvaluateStep;
   
-
-  
   // gui state variables
   int Mode; // clinical mode or training mode
-  vtkKWComboBoxWithLabel *ModeBox;
+  
 
   int State; // whether in calibration mode, insert, validation , or
-  vtkKWRadioButtonSet *StateButtonSet;
-
-  int SubState; //whether scaling, rotation, measurement, or within individual state
+  vtkKWRadioButtonSet *StateButtonSet;  
 
 };
 

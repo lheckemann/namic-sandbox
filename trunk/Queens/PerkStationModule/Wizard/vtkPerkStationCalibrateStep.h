@@ -5,6 +5,7 @@
 
 class vtkKWFrame;
 class vtkKWLabel;
+class vtkKWText;
 class vtkKWEntrySet;
 class vtkKWEntryWithLabel;
 class vtkKWFrameWithLabel;
@@ -31,6 +32,10 @@ public:
   // TO DO:
   
   // Description:
+  // Callbacks to capture keyboard events which will do translation/rotation depending on key pressed only in clinical mode
+  virtual void ProcessKeyboardEvents(vtkObject *caller, unsigned long event, void *callData);
+
+  // Description:
   // Callbacks to capture mouse click on image
   virtual void ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData);
 
@@ -38,6 +43,14 @@ public:
   // Callback on value entered in the Image scaling entry set
   virtual void ImageScalingEntryCallback(int widgetIndex, double value);
   
+  // Description:
+  // Callback on value entered in the Monitor physical size entry set
+  virtual void MonitorPhysicalSizeEntryCallback(int widgetIndex, double value);
+  
+  // Description:
+  // Callback on value entered in the Monitor physical size entry set
+  virtual void MonitorPixelResolutionEntryCallback(int widgetIndex, double value);
+
   // Description:
   // Callback on value entered in the Image translation entry set
   virtual void ImageTranslationEntryCallback(int widgetIndex, double value);
@@ -66,6 +79,12 @@ protected:
   void ShowTranslateComponents();
   void ShowRotateComponents();
 
+  void ClearFlipComponents();
+  void ClearScaleComponents();
+  void ClearTranslateComponents();
+  void ClearRotateComponents();
+
+
   void InstallCallbacks();
   void PopulateControls();
 
@@ -85,21 +104,44 @@ protected:
   void RotateImage();
   
   void ResetControls();
+
+
+  // TO DO: Question: other controls in two different modes (CLINICAL or TRANING)
+
+
+  // for flip, the controls remain same for both modes
   // for monitor associated flip
   vtkKWFrameWithLabel *FlipFrame;
   // information from the user
   vtkKWCheckButtonWithLabel *VerticalFlipCheckButton;
   vtkKWCheckButtonWithLabel *HorizontalFlipCheckButton;
   bool ImageFlipDone;
-
   
   
-  // for scaling step
-
-  // TO DO: Question: other controls in two different modes (CLINICAL or TRANING)
+  // for scaling, 
   // frame
   vtkKWFrameWithLabel *ScaleFrame;
+
+  // for clinical mode
+  // no need to display/use the text entry of scale, 
+  // just display the monitor's physical size/resolution & if they are changed, 
+  // the image should be scaled new
+
+  // for clinical mode, the scale frame still is common
+  // we would have additionally, monitor's physical size text boxes
+  // and monitor's resolution boxes
   // information for the user
+  vtkKWFrame *MonPhySizeFrame;
+  vtkKWLabel *MonPhySizeLabel;
+  vtkKWEntrySet      *MonPhySize; 
+  
+  vtkKWFrame  *MonPixResFrame;
+  vtkKWLabel    *MonPixResLabel;  
+  vtkKWEntrySet      *MonPixRes; 
+
+  // training mode
+  // for scaling step  
+   // information for the user
   vtkKWFrame *ImgPixSizeFrame;
   vtkKWLabel *ImgPixSizeLabel;
   vtkKWEntrySet      *ImgSpacing; // read only
@@ -115,10 +157,17 @@ protected:
   bool ImageScalingDone; // for state management, enable/disable frames within
   
   // for translation step
-
-  // TO DO: Question: other controls in two different modes (CLINICAL or TRANING)
   // frame
   vtkKWFrameWithLabel *TranslateFrame;  
+  
+
+  // Question: other controls in two different modes (CLINICAL or TRANING)
+  // In clinical mode, the frame is shared
+  // in addtion only a static text message will be there, of informing user on how to translate
+  vtkKWText *TransMessage;
+
+  // in training mode:
+
   // information to/from the user  
   // image fiducial click RAS location(will be populated on click)
   vtkKWFrame  *TransImgFidFrame;
@@ -140,11 +189,18 @@ protected:
   // TO DO: Question: other controls in two different modes (CLINICAL or TRANING)
   // frame
   vtkKWFrameWithLabel *RotateFrame;  
-  // information to/from the user  
   // center of rotation (COR) : could be input by user, or could be marked as 
   vtkKWFrame  *CORFrame;
   vtkKWLabel    *CORLabel;    
   vtkKWEntrySet *COR;
+
+  // In clinical mode, the frame, COR is shared
+  // in addtion only a static text message will be there, of informing user on how to rotate
+  vtkKWText *RotMessage;
+
+
+  // information to/from the user  
+  
   // image fiducial click RAS location(will be populated on click)
   vtkKWFrame  *RotImgFidFrame;
   vtkKWLabel    *RotImgFidLabel;    
