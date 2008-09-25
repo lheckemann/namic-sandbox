@@ -703,6 +703,7 @@ void vtkPerkStationEvaluateStep::InstallCallbacks()
 //----------------------------------------------------------------------------
 void vtkPerkStationEvaluateStep::StartOverNewExperiment()
 {
+  this->GetGUI()->SaveExperiment();
   this->GetGUI()->ResetAndStartNewExperiment();
 }
 //----------------------------------------------------------------------------

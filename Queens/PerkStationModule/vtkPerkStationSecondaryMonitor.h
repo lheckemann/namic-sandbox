@@ -44,12 +44,22 @@ public:
 
   // Description:
   // Get Spacing
-  void GetMonitorSpacing(double & xSpacing, double & ySpacing){xSpacing = MonitorSpacing[0]; ySpacing = MonitorSpacing[1];};
+  void GetMonitorSpacing(double & xSpacing, double & ySpacing){xSpacing = this->MonitorPhysicalSizeMM[0]/this->MonitorPixelResolution[0]; ySpacing = this->MonitorPhysicalSizeMM[1]/this->MonitorPixelResolution[1];};
 
   // Description:
   // Get/Set VirtialScreenCoord
   void GetVirtualScreenCoord( int & left, int & top){left = this->VirtualScreenCoord[0]; top = this->VirtualScreenCoord[1];};
   void SetVirtualScreenCoord( int left, int top){this->VirtualScreenCoord[0] = left; this->VirtualScreenCoord[1] = top;};
+
+  // Description:
+  // get/set physical size of monitor
+  void GetPhysicalSize(double & mmX, double & mmY){mmX = this->MonitorPhysicalSizeMM[0]; mmY = this->MonitorPhysicalSizeMM[1];};
+  void SetPhysicalSize(double mmX, double mmY){this->MonitorPhysicalSizeMM[0] = mmX; this->MonitorPhysicalSizeMM[1] = mmY;};
+
+  // Description:
+  // get/set physical size of monitor
+  void GetPixelResolution(double & pixX, double & pixY){pixX = this->MonitorPixelResolution[0]; pixY = this->MonitorPixelResolution[1];};
+  void SetPixelResolution(double pixX, double pixY){this->MonitorPixelResolution[0] = pixX; this->MonitorPixelResolution[1] = pixY;};
 
   // Description:
   // Get/Set ScreenSize
@@ -147,9 +157,8 @@ protected:
   // about the monitor
   bool DeviceActive;
   bool DisplayInitialized;
-  int MonitorPixelResolution[2];
-  double MonitorPhysicalSizeMM[2];
-  double MonitorSpacing[2];
+  double MonitorPixelResolution[2];
+  double MonitorPhysicalSizeMM[2];  
   int VirtualScreenCoord[2];
   int ScreenSize[3];
   int ImageSize[3];
