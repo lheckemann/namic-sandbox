@@ -29,6 +29,8 @@ class vtkSlicerBaseLogic;
 class vtkMRMLFiducialListNode;
 class vtkScalarVolumeNode;
 
+class vtkTRProstateBiopsyUSBOpticalEncoder;
+
 //BTX
 #define TRPB_CALIBRATION "CALIBRATION"
 #define TRPB_TARGETING "TARGETING"
@@ -106,6 +108,7 @@ public:
   vtkGetObjectMacro(VerificationVolumeNode, vtkMRMLScalarVolumeNode);
   void SetVerificationVolumeNode(vtkMRMLScalarVolumeNode *);
 
+
   // State of the MRML slice nodes for calibration.
   //vtkGetStringMacro(CalibrationSliceNodeXML);
   //vtkSetStringMacro(CalibrationSliceNodeXML);
@@ -136,6 +139,22 @@ public:
   void SetSliceViewFromVolume(vtkSlicerApplication *app,
                               vtkMRMLVolumeNode *volumeNode);
 
+  // Description:
+  // Get USB optical encoder
+  vtkGetObjectMacro(USBEncoder, vtkTRProstateBiopsyUSBOpticalEncoder);
+
+  vtkGetMacro(DeviceRotation, int);
+  vtkSetMacro(DeviceRotation, int);
+
+  vtkGetMacro(NeedleAngle, int);
+  vtkSetMacro(NeedleAngle, int);
+
+  void InitializeOpticalEncoder();
+  void ResetOpticalEncoder();
+
+  bool IsOpticalEncoderInitialized(){return this->OpticalEncoderInitialized;};
+
+
  private:
   
   static const int PhaseTransitionMatrix[NumPhases][NumPhases];
@@ -159,6 +178,15 @@ public:
 
   bool  Connection;  
   
+  // optical encoder related
+  vtkTRProstateBiopsyUSBOpticalEncoder *USBEncoder;
+  int DeviceRotation;
+  int NeedleAngle;  
+  bool OpticalEncoderInitialized;
+
+  
+  
+
  protected:
   
   vtkTRProstateBiopsyLogic();

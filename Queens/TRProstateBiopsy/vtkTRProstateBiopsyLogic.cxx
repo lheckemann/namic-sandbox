@@ -31,6 +31,7 @@
 #include "vtkSlicerColorLogic.h"
 #include "vtkSlicerFiducialsGUI.h"
 #include "vtkSlicerFiducialsLogic.h"
+#include "vtkTRProstateBiopsyUSBOpticalEncoder.h"
 
 #include <vtksys/stl/string>
 #include <vtksys/SystemTools.hxx>
@@ -92,6 +93,9 @@ vtkTRProstateBiopsyLogic::vtkTRProstateBiopsyLogic()
   //this->DataCallbackCommand = vtkCallbackCommand::New();
   //this->DataCallbackCommand->SetClientData( reinterpret_cast<void *> (this) );
   //this->DataCallbackCommand->SetCallback(vtkTRProstateBiopsyLogic::DataCallback);
+
+  
+
 
 }
 
@@ -247,50 +251,11 @@ void vtkTRProstateBiopsyLogic::SetSliceViewFromVolume(
       newMatrix->SetElement(1, 2, 1.0);
       }
 
-    /*  Code for Slicer 3.2
-    // do this for each slice node  
-
-    vtkMRMLSliceNode *sliceNode = app->GetApplicationGUI()->GetMainSliceLogic0()->GetSliceNode();
-    newMatrix->SetElement(0, 0, 0.0);
-    newMatrix->SetElement(1, 1, 0.0);
-    newMatrix->SetElement(2, 2, 0.0);         
-    newMatrix->SetElement(0, 0, -1.0);
-    newMatrix->SetElement(1, 1, 1.0);
-    newMatrix->SetElement(2, 2, 1.0);    
     // Next, set the orientation to match the volume
     sliceNode->SetOrientationToReformat();
     vtkMatrix4x4::Multiply4x4(rotationMatrix, newMatrix, newMatrix);
     sliceNode->SetSliceToRAS(newMatrix);
     sliceNode->UpdateMatrices();
-
-    sliceNode = app->GetApplicationGUI()->GetMainSliceLogic1()->GetSliceNode();
-    newMatrix->SetElement(0, 0, 0.0);
-    newMatrix->SetElement(1, 1, 0.0);
-    newMatrix->SetElement(2, 2, 0.0);         
-    newMatrix->SetElement(1, 0, -1.0);
-    newMatrix->SetElement(2, 1, 1.0);
-    newMatrix->SetElement(0, 2, 1.0);
-    // Next, set the orientation to match the volume
-    sliceNode->SetOrientationToReformat();
-    vtkMatrix4x4::Multiply4x4(rotationMatrix, newMatrix, newMatrix);
-    sliceNode->SetSliceToRAS(newMatrix);
-    sliceNode->UpdateMatrices();
-
-    sliceNode = app->GetApplicationGUI()->GetMainSliceLogic2()->GetSliceNode();
-    newMatrix->SetElement(0, 0, 0.0);
-    newMatrix->SetElement(1, 1, 0.0);
-    newMatrix->SetElement(2, 2, 0.0);         
-    newMatrix->SetElement(0, 0, -1.0);
-    newMatrix->SetElement(2, 1, 1.0);
-    newMatrix->SetElement(1, 2, 1.0);
-    */
-    // Next, set the orientation to match the volume
-    sliceNode->SetOrientationToReformat();
-    vtkMatrix4x4::Multiply4x4(rotationMatrix, newMatrix, newMatrix);
-    sliceNode->SetSliceToRAS(newMatrix);
-    sliceNode->UpdateMatrices();
-
-
     newMatrix->Delete();
     }
 
@@ -483,6 +448,47 @@ int vtkTRProstateBiopsyLogic::WorkPhaseStringToID(const char* string)
   return -1; // Nothing found.
 }
 
+//---------------------------------------------------------------------------
+void vtkTRProstateBiopsyLogic::InitializeOpticalEncoder()
+{
+ 
+  // Question, how to stop the timer, started by 'after' command ??
+  //USBencoderTimer.Stop();
+  if (this->USBEncoder)
+    {
+    this->USBEncoder->CloseUSBdevice();
+    }
 
+  // update text actors
+  //Text_DeviceRotation->SetLabel("Opening encoder...");
+  //Text_NeedleAngle->SetLabel("");
+  
+  this->USBEncoder = vtkTRProstateBiopsyUSBOpticalEncoder::New();
 
+  if ( this->USBEncoder->OpenUSBdevice() ) 
+    {
+    // USB device exists, start the timer
+    this->DeviceRotation = -1;
+    this->NeedleAngle = -1;
+    this->OpticalEncoderInitialized = true;
+        
+    } 
+  else 
+    {
+    // No USB device, say so
+    // update text actors
+    //Text_DeviceRotation->SetLabel("No optical encoder found!");
+    //Text_NeedleAngle->SetLabel("");
+    }
+}
 
+//---------------------------------------------------------------------------
+void vtkTRProstateBiopsyLogic::ResetOpticalEncoder()
+{
+    this->USBEncoder->SetChannelValueToZero(1);
+    this->USBEncoder->SetChannelValueToZero(0);
+
+    // Update it now
+/*  wxTimerEvent event;
+    this->OnTimer(event);*/
+}
