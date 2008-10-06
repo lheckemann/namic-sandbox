@@ -87,6 +87,8 @@ vtkTRProstateBiopsyLogic::vtkTRProstateBiopsyLogic()
   this->TargetingVolumeNode = NULL;
   this->VerificationVolumeNode = NULL;
 
+  this->USBEncoder = NULL;
+
   //this->CalibrationSliceNodeXML = NULL;
 
   // Timer Handling
@@ -476,6 +478,7 @@ void vtkTRProstateBiopsyLogic::InitializeOpticalEncoder()
   else 
     {
     // No USB device, say so
+    this->OpticalEncoderInitialized = false;
     // update text actors
     //Text_DeviceRotation->SetLabel("No optical encoder found!");
     //Text_NeedleAngle->SetLabel("");
