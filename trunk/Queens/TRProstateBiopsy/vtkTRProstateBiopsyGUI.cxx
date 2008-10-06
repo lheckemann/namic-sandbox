@@ -30,6 +30,8 @@
 #include "vtkTRProstateBiopsyCalibrationStep.h"
 #include "vtkTRProstateBiopsyTargetingStep.h"
 #include "vtkTRProstateBiopsyVerificationStep.h"
+#include "vtkTRProstateBiopsyUSBOpticalEncoder.h"
+#include "vtkMath.h"
 
 #include "vtkSlicerInteractorStyle.h"
 #include "vtkIGTDataManager.h"
@@ -459,16 +461,166 @@ void vtkTRProstateBiopsyGUI::Enter()
       {
       fidGUI->SetFiducialListNodeID(logic->GetCalibrationFiducialListNodeID());
       }
+
+    
+    // first try to open up communication at usb port with optical encoder for readout
+    this->Logic->InitializeOpticalEncoder();
+
+    if (this->Logic->IsOpticalEncoderInitialized())
+      {
+      // start the timer event for connecting to and reading optical encoders
+      this->Script("after idle \"%s OpticalEncoderTimerEvent \"", this->GetTclName());
+    
+      // Note: the above call will call the OpticalEncoderTimerEvent function only once,
+      // to maintain timer event, after 'delay' has to be called inside the function to make it recursive call
+      }
+
     }
 }
-
 
 //---------------------------------------------------------------------------
 void vtkTRProstateBiopsyGUI::Exit()
 {
 }
 
+//---------------------------------------------------------------------------
+void vtkTRProstateBiopsyGUI::OpticalEncoderTimerEvent()
+{
+  if (this->TimerProcessing)
+      return;
+  
+  // sort of locking mechanism
+  this->TimerProcessing = true;
 
+  // If you change the next values, you'll need to re-calculate all the indexes!
+  static char sDevRotation[]  = "Device Rotation: Something"; // don't change this!
+  static char sNeedleAngle[]  = "Needle Angle: Something"; // don't change this!
+
+  // Device Rotation
+  int devRotationValue = this->Logic->GetUSBEncoder()->GetChannelValue(0);
+
+  if (devRotationValue<0) 
+    { // Encoder off?
+    // how to stop timer??
+    //USBencoderTimer.Stop();
+    this->Logic->GetUSBEncoder()->CloseUSBdevice();
+    
+    // to update text actors here
+    //Text_DeviceRotation->SetLabel("No optical encoder found!");
+    //Text_NeedleAngle->SetLabel("");
+    // to upate secondary monitor window!
+    /*if (ProjectionWindow) 
+      {
+      ProjectionWindow->SetDisplayDev("");
+      ProjectionWindow->SetDisplayAngle("0");
+      }*/
+    this->TimerProcessing = false;
+    return;
+    }
+  
+  if (this->Logic->GetDeviceRotation() != devRotationValue) 
+    {// value changed from last read out
+    this->Logic->SetDeviceRotation (devRotationValue);
+    int devRotationMaxValue = this->Logic->GetUSBEncoder()->GetChannelMaxValue(0); // wrap around value
+    for (int i=17;i<25;i++) 
+        sDevRotation[i]=0;
+    if (devRotationValue>=0 && devRotationMaxValue>=0) 
+      {
+      // DevRotationValue: -180..180, 0=0
+      int devRotationConverted = devRotationValue;
+      if (devRotationConverted> (4*360) ) 
+        { // I don't like this
+        devRotationConverted=devRotationConverted-devRotationMaxValue;
+        }
+            //_itoa(DevRotationConverted/4, sDevRotation+17, 10);
+      sprintf(sDevRotation+17,"%0.1f",devRotationConverted/4.0);
+      }
+    
+    // update text actor
+    //Text_DeviceRotation->SetLabel(sDevRotation);
+
+    // update on secondary window
+    /*if (ProjectionWindow) 
+      {
+      ProjectionWindow->SetDisplayDev(sDevRotation);
+      }*/
+    }
+
+    
+    
+  // Needle Angle
+
+  int needleAngleValue = this->Logic->GetUSBEncoder()->GetChannelValue(1);
+
+  if (needleAngleValue<0) 
+    { // Encoder off?
+    // how to stop timer??
+    //USBencoderTimer.Stop();
+    this->Logic->GetUSBEncoder()->CloseUSBdevice();
+    // update text actors for gui display
+    //Text_DeviceRotation->SetLabel("No optical encoder found!");
+    //Text_NeedleAngle->SetLabel("");
+    this->TimerProcessing = false;
+    return;
+    }
+
+  
+  if (this->Logic->GetNeedleAngle() != needleAngleValue) 
+    {
+    this->Logic->SetNeedleAngle(needleAngleValue);
+    int needleAngleMaxValue = this->Logic->GetUSBEncoder()->GetChannelMaxValue(1); // wrap around value
+
+    for (int i=14;i<22;i++) 
+        sNeedleAngle[i]=0;
+    
+    if (needleAngleValue>=0 && needleAngleMaxValue>=0) 
+      {
+      // NeedleAngleValue: 17.5..40 -- calculations from Axel
+      double usb_y=14.5; // device specific
+                
+      // Cheat or not to cheat?
+      double alpha_ini_degree = 37; // where the counter is 0
+
+      // get the angle calculated from registration
+      /*if (RegistrationAngle>0) 
+        {
+        alpha_ini_degree = RegistrationAngle; // where the counter is 0
+        }
+      */
+      double resolution = 0.125; // depends on optical encoder
+      double alpha_ini = alpha_ini_degree/180.0*vtkMath::Pi();
+      double x_ini = usb_y/tan(alpha_ini);
+
+      int needleAngleConverted = needleAngleValue;
+
+      if (needleAngleConverted> (needleAngleMaxValue/2)) 
+        { // I don't like this
+        needleAngleConverted = needleAngleConverted-needleAngleMaxValue;
+        }
+      
+      double x_delta = needleAngleConverted*resolution;
+      double usb_x = x_ini-x_delta;
+      double needle_angle_rad = atan2(usb_y,usb_x);
+      double needle_angle = needle_angle_rad*180.0/vtkMath::Pi();
+            //_itoa((int)needle_angle, sNeedleAngle+14, 10);
+            //_itoa(NeedleAngleValue, sNeedleAngle+14, 10);
+      sprintf(sNeedleAngle+14,"%0.1f",needle_angle);
+      }
+    
+    // to update text actors on gui
+    //Text_NeedleAngle->SetLabel(sNeedleAngle);
+      
+    // update on secondary monitor window
+    /*if (ProjectionWindow) 
+        {
+        ProjectionWindow->SetDisplayAngle(sNeedleAngle);
+        }*/
+    }
+
+  this->TimerProcessing = false;
+  // 500 msec timer call
+  this->Script ( "after 500 \"%s OpticalEncoderTimerEvent \"",  this->GetTclName() );
+}
 //---------------------------------------------------------------------------
 void vtkTRProstateBiopsyGUI::BuildGUI()
 {

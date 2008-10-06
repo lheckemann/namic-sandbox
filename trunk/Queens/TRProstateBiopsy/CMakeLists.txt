@@ -48,6 +48,7 @@ set(TRProstateBiopsy_SRCS
   vtkTRProstateBiopsyLogic.cxx
   vtkTRProstateBiopsyGUI.cxx
   vtkTRProstateBiopsyMath.cxx
+  vtkTRProstateBiopsySecondaryMonitor.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkTRProstateBiopsyStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkTRProstateBiopsyCalibrationStep.cxx
   ${CMAKE_CURRENT_SOURCE_DIR}/Wizard/vtkTRProstateBiopsyTargetingStep.cxx

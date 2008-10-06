@@ -41,11 +41,16 @@ class vtkIGTDataManager;
 class vtkIGTPat2ImgRegistration;
 class vtkSlicerInteractorStyle;
 
+
+
 #include "vtkTRProstateBiopsyLogic.h"
 
 // Description:    
 // This class implements Slicer's Volumes GUI
 //
+
+
+
 class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyGUI :
   public vtkSlicerModuleGUI
 {
@@ -160,7 +165,13 @@ class VTK_TRPROSTATEBIOPSY_EXPORT vtkTRProstateBiopsyGUI :
   vtkCallbackCommand *DataCallbackCommand;
 
   void UpdateAll();
-  
+
+ protected:
+ 
+  // optical encoder timer related
+  bool TimerProcessing;
+  void OpticalEncoderTimerEvent();
+
  private:
 
   vtkTRProstateBiopsyGUI(const vtkTRProstateBiopsyGUI&); // Not implemented.
