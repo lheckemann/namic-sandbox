@@ -24,6 +24,7 @@ include_directories(
   ${Slicer3_Base_INCLUDE_DIRS}
   ${CMAKE_CURRENT_SOURCE_DIR}/VolumeRenderingReplacements
   ${CMAKE_CURRENT_BINARY_DIR}/VolumeRenderingReplacements
+  ${CMAKE_CURRENT_SOURCE_DIR}/MISTVolumeRendering
   )
 
 configure_file(
@@ -50,6 +51,7 @@ set(VolumeRendering_SRCS
   vtkSlicerVRHelper.cxx
   vtkSlicerVRGrayscaleHelper.cxx
   vtkSlicerVRMenuButtonColorMode.cxx
+  vtkMISTVolumeRayCastMapper.cxx
   #LabelmapPart
   #vtkSlicerVRLabelmapHelper.cxx
   #vtkLabelMapColorTransferFunction.cxx
