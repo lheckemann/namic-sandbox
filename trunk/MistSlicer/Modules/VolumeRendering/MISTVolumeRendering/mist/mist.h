@@ -207,7 +207,6 @@ public:
         }
     }
 
-! 
     void clear( )
     {
         allocator_.deallocate_objects( data_, size_ );
@@ -1133,7 +1132,7 @@ public:
             return( false );
         }
     }
-! 
+
     bool trim( size_type x, size_type y, size_type z, difference_type w = -1, difference_type h = -1, difference_type d = -1 )
     {
         difference_type w_ = width( );

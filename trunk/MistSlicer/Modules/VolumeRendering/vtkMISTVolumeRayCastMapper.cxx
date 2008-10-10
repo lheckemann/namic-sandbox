@@ -263,7 +263,7 @@ void vtkMISTVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
 
     // Create depth map
     //printf("Create Depth Map\n");
-    mist::array3< double > depthMap;
+    //mist::array3< double > depthMap;
     //mist::generate_depth_map( mistArray, depthMap, volrTable );
 
     // Set some parameter for mist VolR

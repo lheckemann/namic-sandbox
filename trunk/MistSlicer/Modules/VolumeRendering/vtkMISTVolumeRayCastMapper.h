@@ -180,10 +180,11 @@ protected:
   // the zbuffer image coordinates. Nearest neighbor value is returned.
   double         GetZBufferValue( int x, int y );
 
-
+//BTX
     //mist
     //mist::array3< unsigned short > mistArray;
     mist::array3< double > depth_map;
+//ETX
 
 private:
   vtkMISTVolumeRayCastMapper(const vtkMISTVolumeRayCastMapper&);  // Not implemented.
