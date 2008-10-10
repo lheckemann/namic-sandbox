@@ -1498,7 +1498,7 @@ namespace __volumerendering_specialized__
 
         vector_type eZ = -param.dir.unit( );
         vector_type eY = param.up.unit( );  
-        vector_type eX = ( eY * eZ ).unit( )
+        vector_type eX = ( eY * eZ ).unit( );
 
         if( param.mirror_view )
         {
@@ -1568,7 +1568,7 @@ namespace __volumerendering_specialized__
                     vector_type spos = casting_start;
                     vector_type ray = ( casting_end - casting_start ).unit( );
 
-k
+
                     double dlen = vector_type( ray.x * ax, ray.y * ay, ray.z * az ).length( );
 
 
