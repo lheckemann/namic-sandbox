@@ -2464,7 +2464,7 @@ namespace __volumerendering_controller__
 
         vector_type eZ = -param.dir.unit( );
         vector_type eY = param.up.unit( );  
-        vector_type eX = ( eY * eZ ).unit( )
+        vector_type eX = ( eY * eZ ).unit( );
 
         if( param.mirror_view )
         {
