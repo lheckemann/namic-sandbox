@@ -8,7 +8,6 @@ class UrlMappings {
       "/rest/v1/project/$id?" (controller: "project" ) {
         action = [GET:"retrieve", PUT:"update", DELETE:"delete", POST:"newProject" ]
       }
-
       "/$controller/$action?/$id?"{
 	      constraints {
 			 // apply constraints here
