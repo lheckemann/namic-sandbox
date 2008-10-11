@@ -1,0 +1,46 @@
+/* Class generated from a template */
+
+
+class ${cl.name} <% if ( cl.derivedFrom != '' ) { print "extends ${cl.derivedFrom}" } %> {
+  // Print out the fields
+
+<%
+    cl.simpleFields.each { 
+      println ( '  ' + it.value + ' ' + it.key )
+    }
+    if ( cl.arrayFields.size() ) {
+      print ( '  static hasMany = [' )
+      cl.arrayFields.each { 
+        print ( it.key + ':' + it.value + ', ')
+      }
+      println ( ']' );
+    }
+    
+    print ( '  static fieldList = [' )
+    cl.fields.each { print ( "'" + it + "',"  ); }
+    println ( '];' );
+      
+    print ( '  static attributesList = [' )
+    cl.attributes.each { print ( "'" + it + "',"  ); }
+    println ( '];' );
+%>
+
+  def renderXML( xml ) {
+    xml.${cl.name} ( <%
+                       // print the attributes
+                       cl.attributes.each { print ( it + ':' + it + ', ' ) }
+                     %> ) {
+<% cl.simpleFields.each { 
+            print ( '      ' )
+            if ( cl.isSimple ( it.value ) ) { 
+              println ( it.value + ' ( ' + it.key + ' ) ' )
+            } else {
+              println ( it.key + '.renderXML ( xml )' )
+            }
+         } 
+%>    }
+  }
+
+
+}
+
