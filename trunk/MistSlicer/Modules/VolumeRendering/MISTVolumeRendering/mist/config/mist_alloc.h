@@ -27,7 +27,6 @@
 // 
 
 
-
 #ifndef __INCLUDE_MIST_ALLOC_H__
 #define __INCLUDE_MIST_ALLOC_H__
 
@@ -42,16 +41,14 @@
 #endif
 
 
-
 _MIST_BEGIN
-
 
 
 
 template < bool b >
 struct mist_memory_operator
 {
-
+ 
     template < class Allocator >
     static typename Allocator::pointer allocate_objects1( Allocator &allocator, typename Allocator::size_type num )
     {
@@ -65,7 +62,7 @@ struct mist_memory_operator
     }
 
 
-
+ 
     template < class Allocator >
     static typename Allocator::pointer allocate_objects2( Allocator &allocator, typename Allocator::size_type num, typename Allocator::const_reference obj )
     {
@@ -78,7 +75,7 @@ struct mist_memory_operator
     }
 
 
-
+ 
     template < class Allocator >
     static typename Allocator::pointer allocate_objects3( Allocator &allocator, typename Allocator::const_pointer s, typename Allocator::const_pointer e )
     {
@@ -89,6 +86,7 @@ struct mist_memory_operator
         for( typename Allocator::pointer p = ptr ; s != e ; p++, s++ ) allocator.construct( p, *s );
         return( ptr );
     }
+
 
 
     template < class Allocator >
@@ -119,6 +117,7 @@ struct mist_memory_operator
     }
 
 
+
     template < class Allocator >
     static typename Allocator::pointer copy_objects2( Allocator &allocator, typename Allocator::const_pointer ptr, typename Allocator::size_type num, typename Allocator::pointer to )
     {
@@ -129,7 +128,7 @@ struct mist_memory_operator
         return( to + num );
     }
 
-
+ 
     template < class Allocator >
     static void fill_objects1( Allocator &allocator, typename Allocator::pointer ptr, typename Allocator::size_type num, typename Allocator::const_reference obj )
     {
@@ -139,8 +138,7 @@ struct mist_memory_operator
         for( typename Allocator::size_type i = 0 ; i < num ; i++ ) ptr[i] = obj;
     }
 
-
-
+ 
     template < class Allocator >
     static void fill_objects2( Allocator &allocator, typename Allocator::pointer ptr, typename Allocator::size_type num )
     {
@@ -155,11 +153,10 @@ struct mist_memory_operator
 
 
 
-
 template <>
 struct mist_memory_operator< true >
 {
-
+ 
     template < class Allocator >
     static typename Allocator::pointer allocate_objects1( Allocator &allocator, typename Allocator::size_type num )
     {
@@ -185,6 +182,7 @@ struct mist_memory_operator< true >
     }
 
 
+
     template < class Allocator >
     static typename Allocator::pointer allocate_objects3( Allocator &allocator, typename Allocator::const_pointer s, typename Allocator::const_pointer e )
     {
@@ -196,7 +194,7 @@ struct mist_memory_operator< true >
         return( ptr );
     }
 
-
+ 
     template < class Allocator >
     static void deallocate_objects( Allocator &allocator, typename Allocator::pointer ptr, typename Allocator::size_type num )
     {
@@ -206,8 +204,7 @@ struct mist_memory_operator< true >
         allocator.deallocate( ptr, num );
     }
 
-
-
+ 
     template < class Allocator >
     static typename Allocator::pointer copy_objects1( Allocator &allocator, typename Allocator::const_pointer s, typename Allocator::const_pointer e, typename Allocator::pointer x )
     {
@@ -217,7 +214,6 @@ struct mist_memory_operator< true >
         memcpy( x, s, ( e - s ) * sizeof( typename Allocator::value_type ) );
         return( x + ( e - s ) );
     }
-
 
 
     template < class Allocator >
@@ -230,7 +226,7 @@ struct mist_memory_operator< true >
         return( to + num );
     }
 
-
+ 
     template < class Allocator >
     static void fill_objects1( Allocator &allocator, typename Allocator::pointer ptr, typename Allocator::size_type num, typename Allocator::const_reference obj )
     {
@@ -240,8 +236,7 @@ struct mist_memory_operator< true >
         memset( ptr, obj, num * sizeof( typename Allocator::value_type ) );
     }
 
-
-
+ 
     template < class Allocator >
     static void fill_objects2( Allocator &allocator, typename Allocator::pointer ptr, typename Allocator::size_type num )
     {
@@ -253,22 +248,23 @@ struct mist_memory_operator< true >
 };
 
 
+
 template < class T, class Allocator >
 class mist_allocator : public Allocator
 {
 public:
-    typedef Allocator base;                                         
-    typedef typename Allocator::reference reference;                
-    typedef typename Allocator::const_reference const_reference;    
-    typedef typename Allocator::value_type value_type;              
-    typedef typename Allocator::size_type size_type;                
-    typedef typename Allocator::difference_type difference_type;    
-    typedef typename Allocator::pointer pointer;                    
-    typedef typename Allocator::const_pointer const_pointer;        
+    typedef Allocator base;                                     
+    typedef typename Allocator::reference reference;            
+    typedef typename Allocator::const_reference const_reference;
+    typedef typename Allocator::value_type value_type;          
+    typedef typename Allocator::size_type size_type;            
+    typedef typename Allocator::difference_type difference_type;
+    typedef typename Allocator::pointer pointer;                
+    typedef typename Allocator::const_pointer const_pointer;    
 
 protected:
-    pointer   shared_pointer;   
-    size_type shared_memory;    
+    pointer   shared_pointer;       
+    size_type shared_memory;        
 
 
 public:
@@ -281,17 +277,17 @@ public:
         }
         else if( !is_memory_shared( ) )
         {
-
-            return( mist_memory_operator< is_arithmetic< T >::value >::allocate_objects1( *this, num ) );
+            
+            return( mist_memory_operator< is_builtin< T >::value >::allocate_objects1( *this, num ) );
         }
         else
         {
-
+            
             return( shared_pointer );
         }
     }
 
-
+    
     pointer allocate_objects( size_type num, const_reference obj )
     {
         if( num == 0 || num > max_size( ) )
@@ -300,18 +296,18 @@ public:
         }
         else if( !is_memory_shared( ) )
         {
-
-            return( mist_memory_operator< is_arithmetic< T >::value >::allocate_objects2( *this, num, obj ) );
+            
+            return( mist_memory_operator< is_builtin< T >::value >::allocate_objects2( *this, num, obj ) );
         }
         else
         {
-
-            mist_memory_operator< is_char< T >::value >::fill_objects1( *this, shared_pointer, num, obj );
+            
+            mist_memory_operator< type_and< is_char< T >::value, is_builtin< T >::value >::value >::fill_objects1( *this, shared_pointer, num, obj );
             return( shared_pointer );
         }
     }
 
-
+    
     pointer allocate_objects( const_pointer s, const_pointer e )
     {
         if( s >= e || e - s > max_size( ) )
@@ -320,55 +316,56 @@ public:
         }
         else if( !is_memory_shared( ) )
         {
-
-            return( mist_memory_operator< is_arithmetic< T >::value >::allocate_objects3( *this, s, e ) );
+            
+            return( mist_memory_operator< is_builtin< T >::value >::allocate_objects3( *this, s, e ) );
         }
         else
         {
-
-            mist_memory_operator< is_char< T >::value >::copy_objects2( *this, s, e - s, shared_pointer );
+            
+            mist_memory_operator< type_and< is_char< T >::value, is_builtin< T >::value >::value >::copy_objects2( *this, s, e - s, shared_pointer );
             return( shared_pointer );
         }
     }
 
-
+    
     void deallocate_objects( pointer ptr, size_type num )
     {
         if( !is_memory_shared( ) )
         {
-
+            
             if( num <= 0 ) return;
-            mist_memory_operator< is_arithmetic< T >::value >::deallocate_objects( *this, ptr, num );
+            mist_memory_operator< is_builtin< T >::value >::deallocate_objects( *this, ptr, num );
         }
     }
 
-
+    
     pointer copy_objects( const_pointer s, const_pointer e, pointer x )
     {
         if( s >= e ) return( x );
-        return( mist_memory_operator< is_arithmetic< T >::value >::copy_objects1( *this, s, e, x ) );
+        return( mist_memory_operator< is_builtin< T >::value >::copy_objects1( *this, s, e, x ) );
     }
 
-
+    
     pointer copy_objects( const_pointer ptr, size_type num, pointer to )
     {
         if( num <= 0 ) return( to );
-        return( mist_memory_operator< is_arithmetic< T >::value >::copy_objects2( *this, ptr, num, to ) );
+        return( mist_memory_operator< is_builtin< T >::value >::copy_objects2( *this, ptr, num, to ) );
     }
 
-
+    
     void fill_objects( pointer ptr, size_type num, const_reference obj )
     {
         if( num <= 0 ) return;
-        mist_memory_operator< is_char< T >::value >::fill_objects1( *this, ptr, num, obj );
+        mist_memory_operator< type_and< is_char< T >::value, is_builtin< T >::value >::value >::fill_objects1( *this, ptr, num, obj );
     }
 
-
+    
     void fill_objects( pointer ptr, size_type num )
     {
         if( num <= 0 ) return;
-        mist_memory_operator< is_arithmetic< T >::value >::fill_objects2( *this, ptr, num );
+        mist_memory_operator< is_builtin< T >::value >::fill_objects2( *this, ptr, num );
     }
+
 
     pointer trim_objects( pointer ptr, size_type num, size_type dest_num )
     {
@@ -379,7 +376,7 @@ public:
 
         if( !is_memory_shared( ) )
         {
-
+        
 #if _MIST_ALLOCATOR_MEMORY_TRIM_ != 0
             deallocate_objects( ptr + dest_num, num - dest_num );
             fill_objects( ptr, dest_num );
@@ -450,7 +447,6 @@ public:
 
 
     mist_allocator( ) : base( ), shared_pointer( NULL ), shared_memory( 0 ){}
-
 
 
 
