@@ -401,6 +401,7 @@ bool vtkSynchroGrabPipeline::CloseServerConnection()
 bool vtkSynchroGrabPipeline::SendImages()
 {
   char*  filedir  = "/projects/mrrobot/gumprecht/slicer/tmp/OpenIGTLink/Examples/Imager/img";
+
 /*
   igtl::ClientSocket::Pointer socket;
   socket = igtl::ClientSocket::New();
@@ -503,11 +504,16 @@ bool vtkSynchroGrabPipeline::SendImages()
 
     //------------------------------------------------------------
     // size parameters
-    int   size[]     = {256, 256, 1};       // image dimension
-    float spacing[]  = {1.0, 1.0, 5.0};     // spacing (mm/pixel)
-    int   svsize[]   = {256, 256, 1};       // sub-volume size
+    int   size[]     = {256, 256, 256};       // image dimension
+    float spacing[]  = {1, 1, 1};     // spacing (mm/pixel)
+    int   svsize[]   = {256, 256, 256};       // sub-volume size
     int   svoffset[] = {0, 0, 0};           // sub-volume offset
     int   scalarType = igtl::ImageMessage::TYPE_UINT8;// scalar type
+/*    int   size[]     = {256, 256, 124};       // image dimension
+    float spacing[]  = {-1.5, 0.9375, -0.9375};     // spacing (mm/pixel)
+    int   svsize[]   = {256, 256, 1};       // sub-volume size
+    int   svoffset[] = {0, 0, 0};           // sub-volume offset
+    int   scalarType = igtl::ImageMessage::TYPE_UINT8;// scalar type*/
 
     //------------------------------------------------------------
     // Create a new IMAGE type message
@@ -534,9 +540,9 @@ bool vtkSynchroGrabPipeline::SendImages()
     imgMsg->Pack();
     socket->Send(imgMsg->GetPackPointer(), imgMsg->GetPackSize());
 
-//  int  interval = (int) (1000.0 / 5.0);
+    int  interval = (int) (10000.0);
 
-//    igtl::Sleep(interval); // wait
+    igtl::Sleep(interval); // wait
 
     }
 
@@ -564,11 +570,15 @@ int vtkSynchroGrabPipeline::vtkGetTestImage(igtl::ImageMessage::Pointer& msg, co
   // Generate path to the raw image file
   char filename[128];
   sprintf(filename, "%s/igtlTestImage%d.raw", dir, i+1);
-  std::cerr << "Reading " << filename << "...";
+//  std::cerr << "Reading " << filename << "...";
+  std::cerr << "Reading spgr.nhdr  ...";
 
   //------------------------------------------------------------
   // Load raw data from the file
-  FILE *fp = fopen(filename, "rb");
+//  FILE *fp = fopen(filename, "rb");
+  FILE *fp = fopen("/projects/mrrobot/gumprecht/tutorials/na-mic/CUDA/heart/Heart256.raw", "rb");
+//  FILE *fp = fopen("/projects/mrrobot/gumprecht/tutorials/na-mic/data_loading_and_visualization/SlicerSampleVisualization/nrrd/spgr.nhdr", "rb");
+
   if (fp == NULL)
     {
     std::cerr << "File opeining error: " << filename << std::endl;
