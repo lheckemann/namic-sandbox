@@ -1,0 +1,5 @@
+SUBDIRS(
+  igtl
+  ndicapi
+)
+
