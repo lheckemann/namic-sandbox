@@ -14,15 +14,15 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkVotingHoleFillingFloodingImageFilter_h
-#define __itkVotingHoleFillingFloodingImageFilter_h
+#ifndef __itkVotingBinaryHoleFillFloodingImageFilter_h
+#define __itkVotingBinaryHoleFillFloodingImageFilter_h
 
 #include "itkImage.h"
 #include "itkImageToImageFilter.h"
 
 namespace itk{
 
-/** /class VotingHoleFillingFloodingImageFilter 
+/** /class VotingBinaryHoleFillFloodingImageFilter 
  *
  * \brief Perform front-propagation under a quorum sensing (voting) algorithm
  * for filling holes in a binary mask.
@@ -33,12 +33,12 @@ namespace itk{
  * \ingroup RegionGrowingSegmentation 
  */
 template <class TInputImage, class TOutputImage>
-class ITK_EXPORT VotingHoleFillingFloodingImageFilter:
+class ITK_EXPORT VotingBinaryHoleFillFloodingImageFilter:
     public VotingBinaryImageFilter<TInputImage,TOutputImage>
 {
 public:
   /** Standard class typedefs. */
-  typedef VotingHoleFillingFloodingImageFilter                 Self;
+  typedef VotingBinaryHoleFillFloodingImageFilter                 Self;
   typedef VotingBinaryImageFilter<TInputImage,TOutputImage>    Superclass;
   typedef SmartPointer<Self>                                   Pointer;
   typedef SmartPointer<const Self>                             ConstPointer;
@@ -47,7 +47,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods).  */
-  itkTypeMacro(VotingHoleFillingFloodingImageFilter, VotingBinaryImageFilter);
+  itkTypeMacro(VotingBinaryHoleFillFloodingImageFilter, VotingBinaryImageFilter);
 
   typedef typename Superclass::InputImageType             InputImageType;
   typedef typename InputImageType::Pointer                InputImagePointer;
@@ -87,8 +87,8 @@ public:
 #endif
 
 protected:
-  VotingHoleFillingFloodingImageFilter();
-  ~VotingHoleFillingFloodingImageFilter(){};
+  VotingBinaryHoleFillFloodingImageFilter();
+  ~VotingBinaryHoleFillFloodingImageFilter(){};
 
   typedef std::vector<IndexType>    SeedListType;
 
@@ -106,7 +106,7 @@ protected:
   void PrintSelf ( std::ostream& os, Indent indent ) const;
 
 private:
-  VotingHoleFillingFloodingImageFilter(const Self&); //purposely not implemented
+  VotingBinaryHoleFillFloodingImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
 };
@@ -114,7 +114,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkVotingHoleFillingFloodingImageFilter.txx"
+#include "itkVotingBinaryHoleFillFloodingImageFilter.txx"
 #endif
 
 #endif
