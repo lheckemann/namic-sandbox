@@ -1,8 +1,7 @@
-/*=========================================================================
-
-Module:  $RCSfile: SynchroGrab.cxx,v $
+/*========================================================================= 
+Module:  $RCSfile: SynchroGrab.cxx,v $ 
 Author:  Jonathan Boisvert, Queens School Of Computing
-
+ 
 Copyright (c) 2008, Queen's University, Kingston, Ontario, Canada
 All rights reserved.
 
@@ -151,33 +150,46 @@ bool parseCommandLineArguments(int argc, char **argv, vtkSynchroGrabPipeline *pi
 
 int main(int argc, char **argv)
 {
-    vtkSynchroGrabPipeline *pipeline = vtkSynchroGrabPipeline::New();
 
+  cout << "SynchroGrab started " << endl;
+
+////    vtkSynchroGrabPipeline *pipeline = vtkSynchroGrabPipeline::New();
+    vtkSynchroGrabPipeline *pipeline = new vtkSynchroGrabPipeline;
+    
+  cout << "Pipline created " << endl;
+
+/*
     bool successParsingCommandLine = parseCommandLineArguments(argc,argv,pipeline);
     if(!successParsingCommandLine)
         return -1;
+*/
 
     // redirect vtk errors to a file
-    vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
+    /*vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
     errOut->SetFileName("vtkError.txt");
     vtkOutputWindow::SetInstance(errOut);
 
-    pipeline->ConfigurePipeline();
+  cout << "VTK Error File handled " << endl;
+*/
+////    pipeline->ConfigurePipeline();
 
-    if(pipeline->GetTransfertImages())
-        {
-        if(!pipeline->ConnectToServer())
-            return -1;
+////    if(pipeline->GetTransfertImages())
+////        {
+////        if(!pipeline->ConnectToServer())
+////            return -1;
         if(!pipeline->SendImages())
             return -1;
-        if(!pipeline->CloseServerConnection())
-            return -1;
-        }
-
+  cout << "Images successfull send " << endl;
+        
+////        if(!pipeline->CloseServerConnection())
+////            return -1;
+////        }
+/*
     if(pipeline->GetVolumeReconstructionEnabled())
         {
         if(!pipeline->ReconstructVolume())
             return -1;
         }
+*/
     pipeline->Delete();
 }
