@@ -2,6 +2,11 @@
 # Add tests here
 #
 
+ADD_EXECUTABLE(itkBinaryThresholdImageFilterTest1 
+  itkBinaryThresholdImageFilterTest1.cxx)
+
+TARGET_LINK_LIBRARIES(itkBinaryThresholdImageFilterTest1 ITKIO)
+
 ADD_EXECUTABLE(itkVotingBinaryHoleFillFloodingImageFilterTest1 
   itkVotingBinaryHoleFillFloodingImageFilterTest1.cxx)
 
@@ -12,11 +17,27 @@ ADD_EXECUTABLE(itkVotingBinaryIterativeHoleFillingImageFilterTest1
 
 TARGET_LINK_LIBRARIES(itkVotingBinaryIterativeHoleFillingImageFilterTest1 ITKIO)
 
+ADD_TEST(itkThresholdTest1
+  ${EXECUTABLE_OUTPUT_PATH}/itkBinaryThresholdImageFilterTest1
+  ${PROJECT_SOURCE_DIR}/Data/BrainProtonDensitySlice.png
+  ${TEMP}/BrainProtonDensitySliceThresholded1.png
+  180 255
+  0 255
+  )
+
 ADD_TEST(itkVotingTest1 
   ${EXECUTABLE_OUTPUT_PATH}/itkVotingBinaryHoleFillFloodingImageFilterTest1
+  ${TEMP}/BrainProtonDensitySliceThresholded1.png
+  ${TEMP}/BrainProtonDensitySliceThresholded1Filled1.png
+  2 2 
+  1
   )
 
 ADD_TEST(itkVotingTest2 
   ${EXECUTABLE_OUTPUT_PATH}/itkVotingBinaryIterativeHoleFillingImageFilterTest1
+  ${TEMP}/BrainProtonDensitySliceThresholded1.png
+  ${TEMP}/BrainProtonDensitySliceThresholded1Filled2.png
+  2 2
+  50
   )
 
