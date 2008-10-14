@@ -27,6 +27,7 @@
 // 
 
 
+
 #ifndef __INCLUDE_MIST_TYPE_TRAIT_H__
 #define __INCLUDE_MIST_TYPE_TRAIT_H__
 
@@ -37,8 +38,7 @@
 
 _MIST_BEGIN
 
-
-
+ 
 template< class T > struct is_char        { _MIST_CONST( bool, value, false ); };
 template<> struct is_char< unsigned char >{ _MIST_CONST( bool, value, true  ); };
 template<> struct is_char< signed char >  { _MIST_CONST( bool, value, true  ); };
@@ -50,7 +50,6 @@ template< class T > struct is_float       { _MIST_CONST( bool, value, false ); }
 template<> struct is_float< float >       { _MIST_CONST( bool, value, true  ); };
 template<> struct is_float< double >      { _MIST_CONST( bool, value, true  ); };
 template<> struct is_float< long double > { _MIST_CONST( bool, value, true  ); };
-
 
 
 
@@ -66,10 +65,10 @@ template<>          struct is_integer< signed long >   { _MIST_CONST( bool, valu
 template<>          struct is_integer< bool >          { _MIST_CONST( bool, value, true  ); };
 template<>          struct is_integer< char >          { _MIST_CONST( bool, value, true  ); };
 
-//#if defined( __MIST64__ ) && __MIST64__ != 0
-//template<>          struct is_integer< size_t >        { _MIST_CONST( bool, value, true  ); };
-//template<>          struct is_integer< ptrdiff_t >     { _MIST_CONST( bool, value, true  ); };
-//#endif
+#if defined( __MIST64__ ) && __MIST64__ != 0 && !( defined( __APPLE__ ) && defined( __ICC ) )
+template<>          struct is_integer< size_t >        { _MIST_CONST( bool, value, true  ); };
+template<>          struct is_integer< ptrdiff_t >     { _MIST_CONST( bool, value, true  ); };
+#endif
 
 
 
@@ -89,17 +88,36 @@ template<>          struct is_arithmetic< float >         { _MIST_CONST( bool, v
 template<>          struct is_arithmetic< double >        { _MIST_CONST( bool, value, true  ); };
 template<>          struct is_arithmetic< long double >   { _MIST_CONST( bool, value, true  ); };
 
-//#if defined( __MIST64__ ) && __MIST64__ != 0
-//template<>          struct is_arithmetic< size_t >        { _MIST_CONST( bool, value, true  ); };
-//template<>          struct is_arithmetic< ptrdiff_t >     { _MIST_CONST( bool, value, true  ); };
-//#endif
+#if defined( __MIST64__ ) && __MIST64__ != 0 && !( defined( __APPLE__ ) && defined( __ICC ) )
+template<>          struct is_arithmetic< size_t >        { _MIST_CONST( bool, value, true  ); };
+template<>          struct is_arithmetic< ptrdiff_t >     { _MIST_CONST( bool, value, true  ); };
+#endif
 
+ 
+template< class T > struct is_builtin                  { _MIST_CONST( bool, value, false ); };
+template<>          struct is_builtin< unsigned char > { _MIST_CONST( bool, value, true  ); };
+template<>          struct is_builtin< unsigned short >{ _MIST_CONST( bool, value, true  ); };
+template<>          struct is_builtin< unsigned int >  { _MIST_CONST( bool, value, true  ); };
+template<>          struct is_builtin< unsigned long > { _MIST_CONST( bool, value, true  ); };
+template<>          struct is_builtin< signed char >   { _MIST_CONST( bool, value, true  ); };
+template<>          struct is_builtin< signed short >  { _MIST_CONST( bool, value, true  ); };
+template<>          struct is_builtin< signed int >    { _MIST_CONST( bool, value, true  ); };
+template<>          struct is_builtin< signed long >   { _MIST_CONST( bool, value, true  ); };
+template<>          struct is_builtin< bool >          { _MIST_CONST( bool, value, true  ); };
+template<>          struct is_builtin< char >          { _MIST_CONST( bool, value, true  ); };
+template<>          struct is_builtin< float >         { _MIST_CONST( bool, value, true  ); };
+template<>          struct is_builtin< double >        { _MIST_CONST( bool, value, true  ); };
+template<>          struct is_builtin< long double >   { _MIST_CONST( bool, value, true  ); };
 
+#if defined( __MIST64__ ) && __MIST64__ != 0 && !( defined( __APPLE__ ) && defined( __ICC ) )
+template<>          struct is_builtin< size_t >        { _MIST_CONST( bool, value, true  ); };
+template<>          struct is_builtin< ptrdiff_t >     { _MIST_CONST( bool, value, true  ); };
+#endif
 
+ 
 template< class T > struct float_type       { typedef double value_type; };
 template<> struct float_type< float >       { typedef float value_type; };
 template<> struct float_type< long double > { typedef long double value_type; };
-
 
 
 
@@ -193,37 +211,38 @@ PROMOTE_TRAIT(         double,    long double,    long double )
 
 #if defined( __MIST_MSVC__ ) && __MIST_MSVC__ < 7
 
-
     #define DEFINE_PROMOTE_BIND_OPERATOR1( TYPE, OPERATOR )                                         \
         template < class T1, class T2 >                                                             \
-        inline TYPE< promote_trait< T1, T2 >::value_type >                                  \
+        inline TYPE< promote_trait< T1, T2 >::value_type >                                          \
                     operator OPERATOR( const TYPE< T1 > &t1, const TYPE< T2 > &t2 )                 \
         {                                                                                           \
-            return( TYPE< promote_trait< T1, T2 >::value_type >( t1 ) OPERATOR ## = t2 );   \
+            return( TYPE< promote_trait< T1, T2 >::value_type >( t1 ) OPERATOR ## = t2 );           \
         }
 
     #define DEFINE_PROMOTE_BIND_OPERATOR2( TYPE, OPERATOR )                                             \
         template < class T >                                                                            \
-        inline TYPE< promote_trait< T, double >::value_type >                                   \
+        inline TYPE< promote_trait< T, double >::value_type >                                           \
                     operator OPERATOR( const TYPE< T > &t1, const double &t2 )                          \
         {                                                                                               \
-            return( TYPE< promote_trait< T, double >::value_type >( t1 ) OPERATOR ## = t2 );    \
+            return( TYPE< promote_trait< T, double >::value_type >( t1 ) OPERATOR ## = t2 );            \
         }
+
 
     #define DEFINE_PROMOTE_BIND_OPERATOR3( TYPE, OPERATOR )                                             \
         template < class T >                                                                            \
-        inline TYPE< promote_trait< T, double >::value_type >                                   \
+        inline TYPE< promote_trait< T, double >::value_type >                                           \
                     operator OPERATOR( const double &t1, const TYPE< T > &t2 )                          \
         {                                                                                               \
-            return( TYPE< promote_trait< T, double >::value_type >( t2 ) OPERATOR ## = t1 );    \
+            return( TYPE< promote_trait< T, double >::value_type >( t2 ) OPERATOR ## = t1 );            \
         }
+
 
     #define DEFINE_PROMOTE_BIND_OPERATOR4( TYPE, OPERATOR )                                             \
         template < class T >                                                                            \
-        inline TYPE< promote_trait< T, double >::value_type >                                   \
+        inline TYPE< promote_trait< T, double >::value_type >                                           \
                     operator OPERATOR( const double &t1, const TYPE< T > &t2 )                          \
         {                                                                                               \
-            return( TYPE< promote_trait< T, double >::value_type >( t1 ) OPERATOR ## = t2 );    \
+            return( TYPE< promote_trait< T, double >::value_type >( t1 ) OPERATOR ## = t2 );            \
     }
 
 #else
@@ -237,6 +256,7 @@ PROMOTE_TRAIT(         double,    long double,    long double )
             return( TYPE< typename promote_trait< T1, T2 >::value_type >( t1 ) OPERATOR ## = t2 );  \
         }
 
+
     #define DEFINE_PROMOTE_BIND_OPERATOR2( TYPE, OPERATOR )                                         \
         template < class T1, class T2 >                                                             \
         inline TYPE< typename promote_trait< T1, T2 >::value_type >                                 \
@@ -244,6 +264,7 @@ PROMOTE_TRAIT(         double,    long double,    long double )
         {                                                                                           \
             return( TYPE< typename promote_trait< T1, T2 >::value_type >( t1 ) OPERATOR ## = t2 );  \
         }
+
 
     #define DEFINE_PROMOTE_BIND_OPERATOR3( TYPE, OPERATOR )                                         \
         template < class T1, class T2 >                                                             \
@@ -265,10 +286,9 @@ PROMOTE_TRAIT(         double,    long double,    long double )
 #endif
 
 
-
+ 
 template< class T >
 struct type_trait{ typedef T value_type; };
-
 
 
 template < bool b >
@@ -281,7 +301,6 @@ struct __half_adjust__
 };
 
 
-
 template < >
 struct __half_adjust__< false >
 {
@@ -292,7 +311,7 @@ struct __half_adjust__< false >
 };
 
 
-
+ 
 template < class T >
 struct half_adjust
 {
@@ -304,8 +323,7 @@ struct half_adjust
     }
 };
 
-
-
+ 
 template < bool b1, bool b2, bool b3 = true, bool b4 = true, bool b5 = true, bool b6 = true, bool b7 = true >
 struct type_and
 {
@@ -320,7 +338,6 @@ struct type_and< true, true, true, true, true, true, true >
 
 
 
- 
 template < bool b1, bool b2, bool b3 = false, bool b4 = false, bool b5 = false, bool b6 = false, bool b7 = false >
 struct type_or
 {
@@ -336,7 +353,6 @@ struct type_or< false, false, false, false, false, false, false >
 
 
 
-
 template < bool b1 >
 struct type_not
 {
@@ -348,7 +364,6 @@ struct type_not< true >
 {
     _MIST_CONST( bool, value, false );
 };
-
 
 
 
@@ -370,8 +385,6 @@ struct type_equal< false, false >
 {
     _MIST_CONST( bool, value, true  );
 };
-
-
 
 
 
