@@ -38,7 +38,7 @@ SET(QUEENSOPENIGT_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 
 SUBDIRS (
   Utilities
-  VTKLibs
+#  VTKLibs
   Applications
 #  ITKLibs
 )
@@ -63,5 +63,16 @@ CONFIGURE_FILE(
   ${QUEENSOPENIGT_SOURCE_DIR}/QueensOpenIGTLibsConfigure.h.in
   ${QUEENSOPENIGT_BINARY_DIR}/QueensOpenIGTLibsConfigure.h
 )
+
+
+##################
+
+CONFIGURE_FILE(${QUEENSOPENIGT_SOURCE_DIR}/igtlConfigure.h.in 
+  ${QUEENSOPENIGT_BINARY_DIR}/igtlConfigure.h)
+
+CONFIGURE_FILE(${QUEENSOPENIGT_SOURCE_DIR}/igtl_typeconfig.h.in 
+  ${QUEENSOPENIGT_BINARY_DIR}/igtl_typeconfig.h)
+  
+###########
 
 INCLUDE_DIRECTORIES(${QUEENSOPENIGT_BINARY_DIR})
