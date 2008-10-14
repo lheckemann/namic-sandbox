@@ -29,9 +29,6 @@ SET(REPORT_SRCS
 SET(PROJECT_REPORT_SOURCE_DIR "${PROJECT_SOURCE_DIR}")
 SET(PROJECT_REPORT_BINARY_DIR "${PROJECT_BINARY_DIR}")
 
-MESSAGE(${PROJECT_REPORT_BINARY_DIR})
-MESSAGE(${PROJECT_REPORT_SOURCE_DIR})
-
 #
 # This adds a custom command for each source file in REPORT_SRCS
 # that copies the file from the source directory to the binary
