@@ -24,14 +24,14 @@
 #include "itkImageFileWriter.h"
 
 
-#include "itkVotingBinaryIterativeHoleFillingImageFilter.h"
+#include "itkVotingBinaryHoleFillFloodingImageFilter.h"
 
 int main( int argc, char * argv[] )
 {
-  if( argc < 5 )
+  if( argc < 6 )
     {
     std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << "  inputImageFile outputImageFile radiusX radiusY iterations" << std::endl;
+    std::cerr << argv[0] << " inputImageFile outputImageFile radiusX radiusY majority" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -50,8 +50,7 @@ int main( int argc, char * argv[] )
   reader->SetFileName( argv[1] );
   writer->SetFileName( argv[2] );
 
-  typedef itk::VotingBinaryIterativeHoleFillingImageFilter<
-                                          ImageType >  FilterType;
+  typedef itk::VotingBinaryHoleFillFloodingImageFilter< ImageType, ImageType >  FilterType;
 
   FilterType::Pointer filter = FilterType::New();
 
@@ -69,24 +68,13 @@ int main( int argc, char * argv[] )
   filter->SetBackgroundValue(   0 );
   filter->SetForegroundValue( 255 );
 
+  const unsigned int majorityThreshold = atoi( argv[5] );
 
-  filter->SetMajorityThreshold( 2 );
-
-  const unsigned int numberOfIterations = atoi( argv[5] );
-
-  filter->SetMaximumNumberOfIterations( numberOfIterations );
+  filter->SetMajorityThreshold( majorityThreshold  );
 
   filter->SetInput( reader->GetOutput() );
   writer->SetInput( filter->GetOutput() );
   writer->Update();
-
-  const unsigned int iterationsUsed = filter->GetCurrentNumberOfIterations();
-
-  std::cout << "The filter used " << iterationsUsed << " iterations " << std::endl;
-  
-  const unsigned int numberOfPixelsChanged = filter->GetNumberOfPixelsChanged();
-
-  std::cout << "and changed a total of " << numberOfPixelsChanged << " pixels" << std::endl;
 
   return EXIT_SUCCESS;
 }

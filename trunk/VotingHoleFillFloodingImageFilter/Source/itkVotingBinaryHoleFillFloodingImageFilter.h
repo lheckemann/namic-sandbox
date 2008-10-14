@@ -18,7 +18,7 @@
 #define __itkVotingBinaryHoleFillFloodingImageFilter_h
 
 #include "itkImage.h"
-#include "itkImageToImageFilter.h"
+#include "itkVotingBinaryImageFilter.h"
 
 namespace itk{
 
@@ -64,42 +64,33 @@ public:
   
   
   /** Image dimension constants */
-  itkStaticConstMacro(InputImageDimension, unsigned int,
-                      TInputImage::ImageDimension);
-  itkStaticConstMacro(OutputImageDimension, unsigned int,
-                      TOutputImage::ImageDimension);
+  itkStaticConstMacro(InputImageDimension,  unsigned int, TInputImage::ImageDimension);
+  itkStaticConstMacro(OutputImageDimension, unsigned int, TOutputImage::ImageDimension);
+
+  /** Majority threshold. It is the number of pixels over 50% that will decide
+   * whether an OFF pixel will become ON or not. For example, if the
+   * neighborhood of a pixel has 124 pixels (excluding itself), the 50% will be
+   * 62, and if you set upd a Majority threshold of 5, that means that the
+   * filter will require 67 or more neighbor pixels to be ON in order to switch
+   * the current OFF pixel to ON. The default value is 1. */ 
+  itkGetConstReferenceMacro( MajorityThreshold, unsigned int );
+  itkSetMacro( MajorityThreshold, unsigned int );
+
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
-  itkConceptMacro(OutputEqualityComparableCheck,
-    (Concept::EqualityComparable<OutputImagePixelType>));
-  itkConceptMacro(InputEqualityComparableCheck,
-    (Concept::EqualityComparable<InputImagePixelType>));
-  itkConceptMacro(InputConvertibleToOutputCheck,
-    (Concept::Convertible<InputImagePixelType, OutputImagePixelType>));
-  itkConceptMacro(SameDimensionCheck,
-    (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
-  itkConceptMacro(IntConvertibleToInputCheck,
-    (Concept::Convertible<int, InputImagePixelType>));
-  itkConceptMacro(OutputOStreamWritableCheck,
-    (Concept::OStreamWritable<OutputImagePixelType>));
+  itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<OutputImagePixelType>));
+  itkConceptMacro(InputEqualityComparableCheck, (Concept::EqualityComparable<InputImagePixelType>));
+  itkConceptMacro(InputConvertibleToOutputCheck, (Concept::Convertible<InputImagePixelType, OutputImagePixelType>));
+  itkConceptMacro(SameDimensionCheck, (Concept::SameDimension<InputImageDimension, OutputImageDimension>));
+  itkConceptMacro(IntConvertibleToInputCheck, (Concept::Convertible<int, InputImagePixelType>));
+  itkConceptMacro(OutputOStreamWritableCheck, (Concept::OStreamWritable<OutputImagePixelType>));
   /** End concept checking */
 #endif
 
 protected:
   VotingBinaryHoleFillFloodingImageFilter();
   ~VotingBinaryHoleFillFloodingImageFilter(){};
-
-  typedef std::vector<IndexType>    SeedListType;
-
-  SeedListType                      m_SeedList;
-
-  
-  // Override since the filter needs all the data for the algorithm
-  void GenerateInputRequestedRegion();
-
-  // Override since the filter produces the entire dataset
-  void EnlargeOutputRequestedRegion(DataObject *output);
 
   void GenerateData();
   
@@ -108,6 +99,14 @@ protected:
 private:
   VotingBinaryHoleFillFloodingImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
+
+
+  unsigned int                      m_MajorityThreshold;
+
+  typedef std::vector<IndexType>    SeedListType;
+
+  SeedListType                      m_SeedList;
+
 
 };
 
