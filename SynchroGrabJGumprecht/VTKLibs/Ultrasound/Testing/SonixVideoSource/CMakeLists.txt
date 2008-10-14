@@ -1,3 +1,0 @@
-ADD_EXECUTABLE(SonixVideoSourceTest SonixVideoSourceTest.cxx)
-TARGET_LINK_LIBRARIES(SonixVideoSourceTest vtkOpenIGTUltrasound)
-

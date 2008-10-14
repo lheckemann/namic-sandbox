@@ -1,2 +1,0 @@
-/usr/bin/ar cr ../../../bin/libigtlutil.a  CMakeFiles/igtlutil.dir/igtl_header.o CMakeFiles/igtlutil.dir/igtl_image.o CMakeFiles/igtlutil.dir/igtl_transform.o CMakeFiles/igtlutil.dir/igtl_util.o
-/usr/bin/ranlib ../../../bin/libigtlutil.a

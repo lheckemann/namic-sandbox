@@ -1,2 +1,0 @@
-/usr/bin/ar cr ../../bin/libndicapi.a  CMakeFiles/ndicapi.dir/ndicapi.o CMakeFiles/ndicapi.dir/ndicapi_math.o CMakeFiles/ndicapi.dir/ndicapi_serial.o CMakeFiles/ndicapi.dir/ndicapi_thread.o
-/usr/bin/ranlib ../../bin/libndicapi.a
