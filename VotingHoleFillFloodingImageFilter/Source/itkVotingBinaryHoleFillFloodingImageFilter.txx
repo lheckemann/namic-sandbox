@@ -20,6 +20,11 @@
 #include "itkVotingBinaryHoleFillFloodingImageFilter.h"
 #include "itkFloodFilledImageFunctionConditionalIterator.h"
 #include "itkVotingBinaryImageFunction.h"
+#include "itkConstNeighborhoodIterator.h"
+#include "itkImageRegionIterator.h"
+#include "itkNeighborhoodAlgorithm.h"
+#include "itkZeroFluxNeumannBoundaryCondition.h"
+#include "itkOffset.h"
 #include "itkProgressReporter.h"
 
 namespace itk
@@ -79,6 +84,69 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
     it.Set( foregroundValue );
     ++it;
     progress.CompletedPixel();  // potential exception thrown here
+    }
+}
+
+template <class TInputImage, class TOutputImage>
+void 
+VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
+::AddSeed( const IndexType & seedIndex )
+{
+}
+
+template <class TInputImage, class TOutputImage>
+void 
+VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
+::FindAllPixelsInTheBoundaryAndAddThemAsSeeds()
+{
+  InputImageConstPointer  inputImage  = this->GetInput();
+  OutputImagePointer      outputImage = this->GetOutput();
+
+  OutputImageRegionType region =  outputImage->GetRequestedRegion();
+
+  ZeroFluxNeumannBoundaryCondition< InputImageType > nbc;
+
+  ConstNeighborhoodIterator< InputImageType >   bit;
+  ImageRegionIterator< OutputImageType >        it;
+  
+  InputSizeType radius = this->GetRadius();
+
+  // Find the data-set boundary "faces"
+  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType faceList;
+  NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType> bC;
+  faceList = bC(inputImage, region, radius);
+
+  typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType::iterator fit;
+
+  ProgressReporter progress(this, 0, region.GetNumberOfPixels());
+  
+  // Process only the internal face
+  fit = faceList.begin();
+  
+  bit = ConstNeighborhoodIterator<InputImageType>(radius, inputImage, *fit);
+  it  = ImageRegionIterator<OutputImageType>(outputImage, *fit);
+  bit.OverrideBoundaryCondition(&nbc);
+  bit.GoToBegin();
+  
+  unsigned int neighborhoodSize = bit.Size();
+
+  const InputImagePixelType foregroundValue = this->GetForegroundValue();
+  
+  while ( ! bit.IsAtEnd() )
+    {
+    // count the pixels in the neighborhood
+    for (unsigned int i = 0; i < neighborhoodSize; ++i)
+      {
+      InputImagePixelType value = bit.GetPixel(i);
+      if( value == foregroundValue )
+        {
+        this->AddSeed( bit.GetIndex() );
+        }
+      }
+     
+    ++bit;
+    ++it;
+    progress.CompletedPixel();
     }
 }
 

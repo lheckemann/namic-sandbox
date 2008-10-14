@@ -38,7 +38,7 @@ class ITK_EXPORT VotingBinaryHoleFillFloodingImageFilter:
 {
 public:
   /** Standard class typedefs. */
-  typedef VotingBinaryHoleFillFloodingImageFilter                 Self;
+  typedef VotingBinaryHoleFillFloodingImageFilter              Self;
   typedef VotingBinaryImageFilter<TInputImage,TOutputImage>    Superclass;
   typedef SmartPointer<Self>                                   Pointer;
   typedef SmartPointer<const Self>                             ConstPointer;
@@ -55,13 +55,13 @@ public:
   typedef typename InputImageType::RegionType             InputImageRegionType; 
   typedef typename InputImageType::PixelType              InputImagePixelType; 
   typedef typename InputImageType::IndexType              IndexType;
-  typedef typename InputImageType::SizeType               SizeType;
   
   typedef typename Superclass::OutputImageType            OutputImageType;
   typedef typename OutputImageType::Pointer               OutputImagePointer;
   typedef typename OutputImageType::RegionType            OutputImageRegionType; 
   typedef typename OutputImageType::PixelType             OutputImagePixelType; 
   
+  typedef typename Superclass::InputSizeType              InputSizeType;
   
   /** Image dimension constants */
   itkStaticConstMacro(InputImageDimension,  unsigned int, TInputImage::ImageDimension);
@@ -95,6 +95,10 @@ protected:
   void GenerateData();
   
   void PrintSelf ( std::ostream& os, Indent indent ) const;
+
+  void FindAllPixelsInTheBoundaryAndAddThemAsSeeds();
+
+  void AddSeed( const IndexType & seedIndex );
 
 private:
   VotingBinaryHoleFillFloodingImageFilter(const Self&); //purposely not implemented
