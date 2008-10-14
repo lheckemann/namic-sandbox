@@ -49,12 +49,16 @@ POSSIBILITY OF SUCH DAMAGE.
 #define __vtkSynchroGrabPipeline_h
 
 #include "vtkObject.h"
-#include "igtlclientsocket.h"
+#include "igtlClientSocket.h"
 
+#include "igtlImageMessage.h"
+
+/*
 class vtkUltrasoundCalibFileReader;
 class vtkSonixVideoSource;
 class vtkTaggedImageFilter;
 class vtkNDICertusTracker;
+*/
 
 class vtkSynchroGrabPipeline : public vtkObject
 {
@@ -103,10 +107,15 @@ public:
   bool CloseServerConnection();
 
   bool SendImages();
+  
+  void vtkGetRandomTestMatrix(igtl::Matrix4x4& matrix);
+  int vtkGetTestImage(igtl::ImageMessage::Pointer& msg, const char* dir, int i);
 
-protected:
   vtkSynchroGrabPipeline();
   ~vtkSynchroGrabPipeline();
+protected:
+//  vtkSynchroGrabPipeline();
+//  ~vtkSynchroGrabPipeline();
 
   int ServerPort;
   int NbFrames;
@@ -122,11 +131,12 @@ protected:
 
   double FrameRate;
 
+/*
   vtkUltrasoundCalibFileReader *calibReader;
   vtkSonixVideoSource *sonixGrabber;
   vtkTaggedImageFilter *tagger;
   vtkNDICertusTracker *tracker;
-  
+*/  
   igtl::ClientSocket::Pointer socket;
 
 private:
