@@ -26,6 +26,14 @@ ADD_TEST(itkThresholdTest1
   )
 
 ADD_TEST(itkVotingTest1 
+  ${EXECUTABLE_OUTPUT_PATH}/itkVotingBinaryIterativeHoleFillingImageFilterTest1
+  ${TEMP}/BrainProtonDensitySliceThresholded1.png
+  ${TEMP}/BrainProtonDensitySliceThresholded1Filled2.png
+  2 2
+  50
+  )
+
+ADD_TEST(itkVotingTest2 
   ${EXECUTABLE_OUTPUT_PATH}/itkVotingBinaryHoleFillFloodingImageFilterTest1
   ${TEMP}/BrainProtonDensitySliceThresholded1.png
   ${TEMP}/BrainProtonDensitySliceThresholded1Filled1.png
@@ -33,11 +41,7 @@ ADD_TEST(itkVotingTest1
   1
   )
 
-ADD_TEST(itkVotingTest2 
-  ${EXECUTABLE_OUTPUT_PATH}/itkVotingBinaryIterativeHoleFillingImageFilterTest1
-  ${TEMP}/BrainProtonDensitySliceThresholded1.png
-  ${TEMP}/BrainProtonDensitySliceThresholded1Filled2.png
-  2 2
-  50
-  )
+SET_TESTS_PROPERTIES( itkVotingTest1 PROPERTIES DEPENDS itkThresholdTest1)
+SET_TESTS_PROPERTIES( itkVotingTest2 PROPERTIES DEPENDS itkThresholdTest1)
+SET_TESTS_PROPERTIES( itkVotingTest2 PROPERTIES DEPENDS itkVotingTest1)
 
