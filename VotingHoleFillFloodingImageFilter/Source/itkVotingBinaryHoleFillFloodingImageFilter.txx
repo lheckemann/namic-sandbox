@@ -17,8 +17,9 @@
 #ifndef __itkVotingHoleFillingFloodingImageFilter_txx_
 #define __itkVotingHoleFillingFloodingImageFilter_txx_
 
-#include "itkVotingHoleFillingFloodingImageFilter.h"
+#include "itkVotingBinaryHoleFillFloodingImageFilter.h"
 #include "itkFloodFilledImageFunctionConditionalIterator.h"
+#include "itkVotingBinaryImageFunction.h"
 #include "itkProgressReporter.h"
 
 namespace itk
@@ -28,8 +29,8 @@ namespace itk
  * Constructor
  */
 template <class TInputImage, class TOutputImage>
-VotingHoleFillingFloodingImageFilter<TInputImage, TOutputImage>
-::VotingHoleFillingFloodingImageFilter()
+VotingBinaryHoleFillFloodingImageFilter<TInputImage, TOutputImage>
+::VotingBinaryHoleFillFloodingImageFilter()
 {
   this->m_SeedList.clear();
 }
@@ -39,7 +40,7 @@ VotingHoleFillingFloodingImageFilter<TInputImage, TOutputImage>
  */
 template <class TInputImage, class TOutputImage>
 void
-VotingHoleFillingFloodingImageFilter<TInputImage, TOutputImage>
+VotingBinaryHoleFillFloodingImageFilter<TInputImage, TOutputImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   this->Superclass::PrintSelf(os, indent);
@@ -48,7 +49,7 @@ VotingHoleFillingFloodingImageFilter<TInputImage, TOutputImage>
 
 template <class TInputImage, class TOutputImage>
 void 
-VotingHoleFillingFloodingImageFilter<TInputImage,TOutputImage>
+VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 ::GenerateData()
 {
   InputImageConstPointer  inputImage  = this->GetInput();
@@ -71,9 +72,11 @@ VotingHoleFillingFloodingImageFilter<TInputImage,TOutputImage>
   IteratorType it ( outputImage, function, m_SeedList );
   it.GoToBegin();
 
+  const InputImagePixelType foregroundValue = this->GetForegroundValue();
+
   while( !it.IsAtEnd())
     {
-    it.Set(m_ForegroundValue);
+    it.Set( foregroundValue );
     ++it;
     progress.CompletedPixel();  // potential exception thrown here
     }
