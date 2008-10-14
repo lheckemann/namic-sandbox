@@ -5,8 +5,8 @@ TARGET_LINK_LIBRARIES(SynchroGrab
 OpenIGTLink 
 ws2_32
 wsock32
-vtkOpenIGTUltrasound 
+#vtkOpenIGTUltrasound 
 vtkIO 
-ndicapi
-${NDIOAPI_LIBRARY} 
+#ndicapi
+#${NDIOAPI_LIBRARY} 
 )
