@@ -208,6 +208,23 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 ::VisitAllSeedsAndTransitionTheirState()
 {
   this->SwapSeedArrays();
+
+  typedef typename SeedArrayType::const_iterator   SeedIterator;
+
+  SeedIterator seedItr = this->m_SeedArray1->begin();
+
+  this->m_NumberOfPixelsChangedInLastIteration = 0;
+
+  while (seedItr != this->m_SeedArray2->end() )
+    {
+    if (this->TestForQuorumAtThisPixel( *seedItr ) )
+      {
+      this->m_SeedArray2->push_back( *seedItr );
+      this->m_NumberOfPixelsChangedInLastIteration++;
+      }
+    ++seedItr;
+    }
+
   this->m_TotalNumberOfPixelsChanged += this->m_NumberOfPixelsChangedInLastIteration;
 }
 
@@ -221,6 +238,16 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
   this->m_SeedArray1 = this->m_SeedArray2;
   this->m_SeedArray2 = temporary;
 }
+
+
+template <class TInputImage, class TOutputImage>
+bool 
+VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
+::TestForQuorumAtThisPixel( const IndexType & index ) const
+{
+   return false;
+}
+
 
 } // end namespace itk
 
