@@ -208,6 +208,7 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 ::VisitAllSeedsAndTransitionTheirState()
 {
   this->SwapSeedArrays();
+  this->ClearSecondSeedArray();
 
   typedef typename SeedArrayType::const_iterator   SeedIterator;
 
@@ -217,11 +218,13 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 
   while (seedItr != this->m_SeedArray2->end() )
     {
-    if (this->TestForQuorumAtThisPixel( *seedItr ) )
+    this->SetCurrentPixelIndex( *seedItr );
+
+    if (this->TestForQuorumAtCurrentPixel() )
       {
-      this->m_SeedArray2->push_back( *seedItr );
-      this->m_NumberOfPixelsChangedInLastIteration++;
+      this->ConvertCurrentPixelAndPutNeighborsIntoSeedArray();
       }
+
     ++seedItr;
     }
 
@@ -241,11 +244,31 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 
 
 template <class TInputImage, class TOutputImage>
+void 
+VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
+::ClearSecondSeedArray()
+{
+  delete this->m_SeedArray2;
+  this->m_SeedArray2 = new SeedArrayType;
+}
+
+
+template <class TInputImage, class TOutputImage>
 bool 
 VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
-::TestForQuorumAtThisPixel( const IndexType & index ) const
+::TestForQuorumAtCurrentPixel() const
 {
    return false;
+}
+
+
+template <class TInputImage, class TOutputImage>
+void 
+VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
+::ConvertCurrentPixelAndPutNeighborsIntoSeedArray()
+{
+  this->m_SeedArray2->push_back( this->GetCurrentPixelIndex() );
+  this->m_NumberOfPixelsChangedInLastIteration++;
 }
 
 

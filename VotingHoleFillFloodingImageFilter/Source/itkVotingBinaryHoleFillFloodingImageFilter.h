@@ -113,8 +113,14 @@ private:
 
   void SwapSeedArrays();
 
-  bool TestForQuorumAtThisPixel( const IndexType & index ) const;
+  void ClearSecondSeedArray();
 
+  bool TestForQuorumAtCurrentPixel() const;
+ 
+  void ConvertCurrentPixelAndPutNeighborsIntoSeedArray();
+
+  itkSetMacro( CurrentPixelIndex, IndexType );
+  itkGetConstReferenceMacro( CurrentPixelIndex, IndexType );
 
   unsigned int                      m_MajorityThreshold;
 
@@ -127,6 +133,8 @@ private:
   unsigned int                      m_MaximumNumberOfIterations;
   unsigned int                      m_NumberOfPixelsChangedInLastIteration;
   unsigned int                      m_TotalNumberOfPixelsChanged;
+  
+  IndexType                         m_CurrentPixelIndex;
 };
 
 } // end namespace itk
