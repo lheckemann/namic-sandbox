@@ -91,7 +91,12 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
   this->m_TotalNumberOfPixelsChanged = 0;
   this->m_NumberOfPixelsChangedInLastIteration = 0;
 
-  this->ComputeArrayOfNeighborhoodOffsets();
+  // Initialize the neighborhood.
+  this->m_Neighborhood.SetRadius( this->GetRadius() );
+
+  this->ComputeBirthThreshold();
+  this->ComputeArrayOfNeighborhoodBufferOffsets();
+
   this->FindAllPixelsInTheBoundaryAndAddThemAsSeeds();
 
   while ( (this->m_CurrentIterationNumber < this->m_MaximumNumberOfIterations) 
@@ -236,6 +241,9 @@ bool
 VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 ::TestForQuorumAtCurrentPixel() const
 {
+  //
+  // Find the location of the current pixel in the image memory buffer
+  //
   const OffsetValueType offset = this->m_InputImage->ComputeOffset( this->m_CurrentPixelIndex );
 
   const InputImagePixelType * buffer = this->m_InputImage->GetBufferPointer();
@@ -244,23 +252,31 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 
   unsigned int numberOfNeighborsAtForegroundValue = 0;
 
+  //
+  // From that buffer position, visit all other neighbor pixels 
+  // and check if they are set to the foreground value.
+  //
   typedef typename NeighborOffsetArrayType::const_iterator   NeigborOffsetIterator;
 
-  NeigborOffsetIterator neighborItr = this->m_NeighborOffset.begin();
+  NeigborOffsetIterator neighborItr = this->m_NeighborBufferOffset.begin();
 
   const InputImagePixelType foregroundValue = this->GetForegroundValue();
 
-  while( neighborItr != this->m_NeighborOffset.end() )
+  while( neighborItr != this->m_NeighborBufferOffset.end() )
     {
     const InputImagePixelType * neighborPixelPointer = currentPixelPointer + *neighborItr;
+
     if( *neighborPixelPointer == foregroundValue )
       {
       numberOfNeighborsAtForegroundValue++;
       }
+
     ++neighborItr;
     }
 
-  return false;
+  bool quorum = (numberOfNeighborsAtForegroundValue > this->GetBirthThreshold() );
+
+  return quorum;
 }
 
 
@@ -277,7 +293,7 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 template <class TInputImage, class TOutputImage>
 void 
 VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
-::ComputeArrayOfNeighborhoodOffsets()
+::ComputeArrayOfNeighborhoodBufferOffsets()
 {
   //
   // Copy the offsets from the Input image.
@@ -289,15 +305,11 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 
 
   //
-  // Instantiate a helper Neighborhood object
+  // Allocate the proper amount of buffer offsets.
   //
-  typedef itk::Neighborhood< InputImagePixelType, InputImageDimension >  NeighborhoodType;
+  const unsigned int neighborhoodSize = this->m_Neighborhood.Size();
 
-  NeighborhoodType neighborhood;
-
-  neighborhood.SetRadius( this->GetRadius() );
-
-  this->m_NeighborOffset.resize( neighborhood.Size() );
+  this->m_NeighborBufferOffset.resize( neighborhoodSize );
 
 
   //
@@ -306,13 +318,9 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
   //
   typedef typename NeighborhoodType::OffsetType    NeighborOffsetType;
 
-  std::cout << "Neighborhood helper size = " << neighborhood.Size() << std::endl;
-
-  for( unsigned int i = 0; i < neighborhood.Size(); i++ )
+  for( unsigned int i = 0; i < neighborhoodSize; i++ )
     {
-    NeighborOffsetType offset = neighborhood.GetOffset(i);
-
-    std::cout << "Offset[" << i << "] = " << offset << " ";
+    NeighborOffsetType offset = this->m_Neighborhood.GetOffset(i);
 
     signed int bufferOffset = 0; // must be a signed number
 
@@ -320,9 +328,25 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
       {
       bufferOffset += offset[d] * this->m_OffsetTable[d];
       }
-    this->m_NeighborOffset[i] = bufferOffset;
-    std::cout << bufferOffset << std::endl;
+    this->m_NeighborBufferOffset[i] = bufferOffset;
     }
+}
+
+template <class TInputImage, class TOutputImage>
+void 
+VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
+::ComputeBirthThreshold()
+{
+  const unsigned int neighborhoodSize = this->m_Neighborhood.Size();
+
+  // Take the number of neighbors, discount the central pixel, and take half of them.
+  unsigned int threshold = static_cast<unsigned int>( (neighborhoodSize - 1 ) / 2.0 ); 
+
+  // add the majority threshold.
+  threshold += this->GetMajorityThreshold();
+
+  // Set that number as the Birth Threshold
+  this->SetBirthThreshold( threshold );
 }
 
 

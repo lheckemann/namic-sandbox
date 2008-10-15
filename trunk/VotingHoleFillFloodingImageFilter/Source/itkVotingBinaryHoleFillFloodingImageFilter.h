@@ -120,7 +120,9 @@ private:
  
   void ConvertCurrentPixelAndPutNeighborsIntoSeedArray();
 
-  void ComputeArrayOfNeighborhoodOffsets();
+  void ComputeArrayOfNeighborhoodBufferOffsets();
+
+  void ComputeBirthThreshold();
 
   itkSetMacro( CurrentPixelIndex, IndexType );
   itkGetConstReferenceMacro( CurrentPixelIndex, IndexType );
@@ -147,13 +149,18 @@ private:
   
   typedef std::vector< OffsetValueType >   NeighborOffsetArrayType;
 
-  NeighborOffsetArrayType           m_NeighborOffset;
-  
+  NeighborOffsetArrayType           m_NeighborBufferOffset;
+
+
   //
   // Helper cache variables 
   //
   const InputImageType *            m_InputImage;
   OutputImageType *                 m_OutputImage;
+
+  typedef itk::Neighborhood< InputImagePixelType, InputImageDimension >  NeighborhoodType;
+
+  NeighborhoodType                  m_Neighborhood;
 };
 
 } // end namespace itk
