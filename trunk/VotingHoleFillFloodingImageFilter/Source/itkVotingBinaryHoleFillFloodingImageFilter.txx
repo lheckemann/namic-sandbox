@@ -45,6 +45,8 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage, TOutputImage>
 
   this->m_SeedArray1 = new SeedArrayType;
   this->m_SeedArray1 = new SeedArrayType;
+
+  this->m_InputImage = NULL;
 }
 
 /**
@@ -76,19 +78,20 @@ void
 VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 ::GenerateData()
 {
-  InputImageConstPointer  inputImage  = this->GetInput();
-  OutputImagePointer      outputImage = this->GetOutput();
+  this->m_InputImage   = this->GetInput();
+  this->m_OutputImage  = this->GetOutput();
 
   // Zero the output
-  OutputImageRegionType region =  outputImage->GetRequestedRegion();
-  outputImage->SetBufferedRegion( region );
-  outputImage->Allocate();
-  outputImage->FillBuffer ( NumericTraits<OutputImagePixelType>::Zero );
+  OutputImageRegionType region =  this->m_OutputImage->GetRequestedRegion();
+  this->m_OutputImage->SetBufferedRegion( region );
+  this->m_OutputImage->Allocate();
+  this->m_OutputImage->FillBuffer ( NumericTraits<OutputImagePixelType>::Zero );
   
   this->m_CurrentIterationNumber = 0;
   this->m_TotalNumberOfPixelsChanged = 0;
   this->m_NumberOfPixelsChangedInLastIteration = 0;
 
+  this->ComputeArrayOfNeighborhoodOffsets();
   this->FindAllPixelsInTheBoundaryAndAddThemAsSeeds();
 
   while ( (this->m_CurrentIterationNumber < this->m_MaximumNumberOfIterations) 
@@ -96,28 +99,6 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
     {
     this->VisitAllSeedsAndTransitionTheirState();
     }
-
-#ifdef SUGAR
-  typedef VotingBinaryImageFunction<InputImageType, double> FunctionType;
-  typedef FloodFilledImageFunctionConditionalIterator<OutputImageType, FunctionType> IteratorType;
-
-  typename FunctionType::Pointer function = FunctionType::New();
-  function->SetInputImage ( inputImage );
-
-  ProgressReporter progress(this, 0, region.GetNumberOfPixels());
-
-  IteratorType it ( outputImage, function, m_SeedList );
-  it.GoToBegin();
-
-  const InputImagePixelType foregroundValue = this->GetForegroundValue();
-
-  while( !it.IsAtEnd())
-    {
-    it.Set( foregroundValue );
-    ++it;
-    progress.CompletedPixel();  // potential exception thrown here
-    }
-#endif
 }
 
 
@@ -126,22 +107,19 @@ void
 VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 ::FindAllPixelsInTheBoundaryAndAddThemAsSeeds()
 {
-  InputImageConstPointer  inputImage  = this->GetInput();
-  OutputImagePointer      outputImage = this->GetOutput();
-
-  OutputImageRegionType region =  outputImage->GetRequestedRegion();
+  OutputImageRegionType region =  this->m_OutputImage->GetRequestedRegion();
 
   ZeroFluxNeumannBoundaryCondition< InputImageType > nbc;
 
   ConstNeighborhoodIterator< InputImageType >   bit;
   ImageRegionIterator< OutputImageType >        it;
   
-  InputSizeType radius = this->GetRadius();
+  const InputSizeType & radius = this->GetRadius();
 
   // Find the data-set boundary "faces"
   typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType faceList;
   NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType> bC;
-  faceList = bC(inputImage, region, radius);
+  faceList = bC(this->m_InputImage, region, radius);
 
   typename NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>::FaceListType::iterator fit;
 
@@ -150,8 +128,8 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
   // Process only the internal face
   fit = faceList.begin();
   
-  bit = ConstNeighborhoodIterator<InputImageType>( radius, inputImage, *fit );
-  it  = ImageRegionIterator<OutputImageType>(outputImage, *fit);
+  bit = ConstNeighborhoodIterator<InputImageType>( radius, this->m_InputImage, *fit );
+  it  = ImageRegionIterator<OutputImageType>(this->m_OutputImage, *fit);
   bit.OverrideBoundaryCondition(&nbc);
   bit.GoToBegin();
   
@@ -220,7 +198,7 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
     {
     this->SetCurrentPixelIndex( *seedItr );
 
-    if (this->TestForQuorumAtCurrentPixel() )
+    if( this->TestForQuorumAtCurrentPixel() )
       {
       this->ConvertCurrentPixelAndPutNeighborsIntoSeedArray();
       }
@@ -258,7 +236,31 @@ bool
 VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 ::TestForQuorumAtCurrentPixel() const
 {
-   return false;
+  const OffsetValueType offset = this->m_InputImage->ComputeOffset( this->m_CurrentPixelIndex );
+
+  const InputImagePixelType * buffer = this->m_InputImage->GetBufferPointer();
+
+  const InputImagePixelType * currentPixelPointer = buffer + offset;
+
+  unsigned int numberOfNeighborsAtForegroundValue = 0;
+
+  typedef typename NeighborOffsetArrayType::const_iterator   NeigborOffsetIterator;
+
+  NeigborOffsetIterator neighborItr = this->m_NeighborOffset.begin();
+
+  const InputImagePixelType foregroundValue = this->GetForegroundValue();
+
+  while( neighborItr != this->m_NeighborOffset.end() )
+    {
+    const InputImagePixelType * neighborPixelPointer = currentPixelPointer + *neighborItr;
+    if( *neighborPixelPointer == foregroundValue )
+      {
+      numberOfNeighborsAtForegroundValue++;
+      }
+    ++neighborItr;
+    }
+
+  return false;
 }
 
 
@@ -269,6 +271,42 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 {
   this->m_SeedArray2->push_back( this->GetCurrentPixelIndex() );
   this->m_NumberOfPixelsChangedInLastIteration++;
+}
+
+
+template <class TInputImage, class TOutputImage>
+void 
+VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
+::ComputeArrayOfNeighborhoodOffsets()
+{
+  //
+  // Copy the offsets from the Input image.
+  // We assume that they are the same for the output image.
+  //
+  const size_t sizeOfOffsetTableInBytes = (InputImageDimension+1)*sizeof(unsigned long);
+
+  memcpy( this->m_OffsetTable, this->m_InputImage->GetOffsetTable(), sizeOfOffsetTableInBytes );
+
+
+  //
+  // Compute number of neighbors and allocate memory for their offsets
+  //
+  const InputSizeType & radius = this->GetRadius();
+
+  unsigned int numberOfNeighbors = 1;
+  for( unsigned int k = 0; k < InputImageDimension; k++ )
+    {
+    numberOfNeighbors *= ( 2 * radius[k] + 1 );
+    } 
+
+  this->m_NeighborOffset.resize( numberOfNeighbors );
+
+  std::cout << "Number of neighbors = " << numberOfNeighbors << std::endl;
+
+  //
+  // Visit the offset of each neighbor in Index space and convert it to linear
+  // buffer offsets
+  //
 }
 
 
