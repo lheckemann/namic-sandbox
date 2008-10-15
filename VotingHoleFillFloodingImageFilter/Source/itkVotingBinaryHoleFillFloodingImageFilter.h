@@ -139,16 +139,19 @@ private:
   
   IndexType                         m_CurrentPixelIndex;
 
+  //
   // Variables used for addressing the Neighbors.
   // This could be factorized into a helper class.
+  //
   OffsetValueType                   m_OffsetTable[ InputImageDimension + 1 ]; 
   
-  unsigned int                      m_NumberOfNeighbors;
-
   typedef std::vector< OffsetValueType >   NeighborOffsetArrayType;
 
   NeighborOffsetArrayType           m_NeighborOffset;
   
+  //
+  // Helper cache variables 
+  //
   const InputImageType *            m_InputImage;
   OutputImageType *                 m_OutputImage;
 };

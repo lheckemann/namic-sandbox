@@ -289,24 +289,40 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 
 
   //
-  // Compute number of neighbors and allocate memory for their offsets
+  // Instantiate a helper Neighborhood object
   //
-  const InputSizeType & radius = this->GetRadius();
+  typedef itk::Neighborhood< InputImagePixelType, InputImageDimension >  NeighborhoodType;
 
-  unsigned int numberOfNeighbors = 1;
-  for( unsigned int k = 0; k < InputImageDimension; k++ )
-    {
-    numberOfNeighbors *= ( 2 * radius[k] + 1 );
-    } 
+  NeighborhoodType neighborhood;
 
-  this->m_NeighborOffset.resize( numberOfNeighbors );
+  neighborhood.SetRadius( this->GetRadius() );
 
-  std::cout << "Number of neighbors = " << numberOfNeighbors << std::endl;
+  this->m_NeighborOffset.resize( neighborhood.Size() );
+
 
   //
   // Visit the offset of each neighbor in Index space and convert it to linear
-  // buffer offsets
+  // buffer offsets that can be used for pixel access
   //
+  typedef typename NeighborhoodType::OffsetType    NeighborOffsetType;
+
+  std::cout << "Neighborhood helper size = " << neighborhood.Size() << std::endl;
+
+  for( unsigned int i = 0; i < neighborhood.Size(); i++ )
+    {
+    NeighborOffsetType offset = neighborhood.GetOffset(i);
+
+    std::cout << "Offset[" << i << "] = " << offset << " ";
+
+    signed int bufferOffset = 0; // must be a signed number
+
+    for( unsigned int d = 0; d < InputImageDimension; d++ )
+      {
+      bufferOffset += offset[d] * this->m_OffsetTable[d];
+      }
+    this->m_NeighborOffset[i] = bufferOffset;
+    std::cout << bufferOffset << std::endl;
+    }
 }
 
 
