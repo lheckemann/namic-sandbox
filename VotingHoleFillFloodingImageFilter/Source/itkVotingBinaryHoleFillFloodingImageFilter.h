@@ -116,21 +116,15 @@ private:
 
   void SwapSeedArrays();
 
-  void SwapOutputImageWorkingMemory();
-
   void ClearSecondSeedArray();
 
   bool TestForQuorumAtCurrentPixel() const;
  
-  void ConvertCurrentPixelAndPutNeighborsIntoSeedArray();
+  void PutCurrentPixelNeighborsIntoSeedArray();
 
   void ComputeArrayOfNeighborhoodBufferOffsets();
 
   void ComputeBirthThreshold();
-
-  void CopyImageWorkingMemoryToOutputImage();
-
-  void DeallocateOutputImageWorkingMemory();
 
   itkSetMacro( CurrentPixelIndex, IndexType );
   itkGetConstReferenceMacro( CurrentPixelIndex, IndexType );
@@ -141,6 +135,10 @@ private:
 
   SeedArrayType *                   m_SeedArray1;
   SeedArrayType *                   m_SeedArray2;
+  
+  typedef std::vector<OutputImagePixelType>   SeedNewValuesArrayType;
+
+  SeedNewValuesArrayType            m_SeedsNewValues;
 
   unsigned int                      m_CurrentIterationNumber;
   unsigned int                      m_MaximumNumberOfIterations;
@@ -164,8 +162,7 @@ private:
   // Helper cache variables 
   //
   const InputImageType *            m_InputImage;
-  OutputImagePointer                m_OutputImage1;
-  OutputImagePointer                m_OutputImage2;
+  OutputImageType *                 m_OutputImage;
 
   typedef itk::Neighborhood< InputImagePixelType, InputImageDimension >  NeighborhoodType;
 
