@@ -37,8 +37,27 @@ template <class TInputImage, class TOutputImage>
 VotingBinaryHoleFillFloodingImageFilter<TInputImage, TOutputImage>
 ::VotingBinaryHoleFillFloodingImageFilter()
 {
-  this->m_SeedList.clear();
+  this->m_MaximumNumberOfIterations = 10;
+  this->m_CurrentIterationNumber = 0;
+
+  this->m_NumberOfPixelsChangedInLastIteration = 0;
+  this->m_TotalNumberOfPixelsChanged = 0;
+
+  this->m_SeedArray1 = new SeedArrayType;
+  this->m_SeedArray1 = new SeedArrayType;
 }
+
+/**
+ * Destructor
+ */
+template <class TInputImage, class TOutputImage>
+VotingBinaryHoleFillFloodingImageFilter<TInputImage, TOutputImage>
+::~VotingBinaryHoleFillFloodingImageFilter()
+{
+  delete this->m_SeedArray1;
+  delete this->m_SeedArray2;
+}
+
 
 /**
  * Standard PrintSelf method.
@@ -66,6 +85,19 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
   outputImage->Allocate();
   outputImage->FillBuffer ( NumericTraits<OutputImagePixelType>::Zero );
   
+  this->m_CurrentIterationNumber = 0;
+  this->m_TotalNumberOfPixelsChanged = 0;
+  this->m_NumberOfPixelsChangedInLastIteration = 0;
+
+  this->FindAllPixelsInTheBoundaryAndAddThemAsSeeds();
+
+  while ( (this->m_CurrentIterationNumber < this->m_MaximumNumberOfIterations) 
+    && ( this->m_NumberOfPixelsChangedInLastIteration > 0 ) )
+    {
+    this->VisitAllSeedsAndTransitionTheirState();
+    }
+
+#ifdef SUGAR
   typedef VotingBinaryImageFunction<InputImageType, double> FunctionType;
   typedef FloodFilledImageFunctionConditionalIterator<OutputImageType, FunctionType> IteratorType;
 
@@ -85,14 +117,9 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
     ++it;
     progress.CompletedPixel();  // potential exception thrown here
     }
+#endif
 }
 
-template <class TInputImage, class TOutputImage>
-void 
-VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
-::AddSeed( const IndexType & seedIndex )
-{
-}
 
 template <class TInputImage, class TOutputImage>
 void 
@@ -123,7 +150,7 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
   // Process only the internal face
   fit = faceList.begin();
   
-  bit = ConstNeighborhoodIterator<InputImageType>(radius, inputImage, *fit);
+  bit = ConstNeighborhoodIterator<InputImageType>( radius, inputImage, *fit );
   it  = ImageRegionIterator<OutputImageType>(outputImage, *fit);
   bit.OverrideBoundaryCondition(&nbc);
   bit.GoToBegin();
@@ -131,25 +158,69 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
   unsigned int neighborhoodSize = bit.Size();
 
   const InputImagePixelType foregroundValue = this->GetForegroundValue();
+  const InputImagePixelType backgroundValue = this->GetBackgroundValue();
   
+  SeedArrayType * seedArray = this->m_SeedArray1;
+
+  seedArray->clear();
+
   while ( ! bit.IsAtEnd() )
     {
-    // count the pixels in the neighborhood
-    for (unsigned int i = 0; i < neighborhoodSize; ++i)
+    if( bit.GetCenterPixel() == foregroundValue )
       {
-      InputImagePixelType value = bit.GetPixel(i);
-      if( value == foregroundValue )
-        {
-        this->AddSeed( bit.GetIndex() );
-        }
+      // it.Set( foregroundValue );
+      it.Set( backgroundValue ); // FIXME: this is just for testing
       }
-     
+    else
+      {
+      // Search for foreground pixels in the neighborhood
+      bool foundNeighbordSetAtForegroundValue = false;
+      for (unsigned int i = 0; i < neighborhoodSize; ++i)
+        {
+        InputImagePixelType value = bit.GetPixel(i);
+        if( value == foregroundValue )
+          {
+          seedArray->push_back( bit.GetIndex() );
+          foundNeighbordSetAtForegroundValue = true;
+          break;
+          }
+        }
+      if (foundNeighbordSetAtForegroundValue)
+        {
+        it.Set( foregroundValue );
+        }
+      else
+        {
+        it.Set( backgroundValue );
+        }
+      }   
     ++bit;
     ++it;
     progress.CompletedPixel();
     }
+  std::cout << "Seed array size = " << seedArray->size() << std::endl;
 }
 
+
+template <class TInputImage, class TOutputImage>
+void 
+VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
+::VisitAllSeedsAndTransitionTheirState()
+{
+  this->SwapSeedArrays();
+  this->m_TotalNumberOfPixelsChanged += this->m_NumberOfPixelsChangedInLastIteration;
+}
+
+
+template <class TInputImage, class TOutputImage>
+void 
+VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
+::SwapSeedArrays()
+{
+  SeedArrayType * temporary = this->m_SeedArray1;
+  this->m_SeedArray1 = this->m_SeedArray2;
+  this->m_SeedArray2 = temporary;
+}
 
 } // end namespace itk
 
