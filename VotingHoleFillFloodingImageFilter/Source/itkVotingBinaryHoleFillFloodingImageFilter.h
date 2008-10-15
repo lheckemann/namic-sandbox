@@ -57,6 +57,7 @@ public:
   typedef typename InputImageType::RegionType             InputImageRegionType; 
   typedef typename InputImageType::PixelType              InputImagePixelType; 
   typedef typename InputImageType::IndexType              IndexType;
+  typedef typename InputImageType::OffsetValueType        OffsetValueType;
   
   typedef typename Superclass::OutputImageType            OutputImageType;
   typedef typename OutputImageType::Pointer               OutputImagePointer;
@@ -119,6 +120,8 @@ private:
  
   void ConvertCurrentPixelAndPutNeighborsIntoSeedArray();
 
+  void ComputeArrayOfNeighborhoodOffsets();
+
   itkSetMacro( CurrentPixelIndex, IndexType );
   itkGetConstReferenceMacro( CurrentPixelIndex, IndexType );
 
@@ -135,6 +138,19 @@ private:
   unsigned int                      m_TotalNumberOfPixelsChanged;
   
   IndexType                         m_CurrentPixelIndex;
+
+  // Variables used for addressing the Neighbors.
+  // This could be factorized into a helper class.
+  OffsetValueType                   m_OffsetTable[ InputImageDimension + 1 ]; 
+  
+  unsigned int                      m_NumberOfNeighbors;
+
+  typedef std::vector< OffsetValueType >   NeighborOffsetArrayType;
+
+  NeighborOffsetArrayType           m_NeighborOffset;
+  
+  const InputImageType *            m_InputImage;
+  OutputImageType *                 m_OutputImage;
 };
 
 } // end namespace itk
