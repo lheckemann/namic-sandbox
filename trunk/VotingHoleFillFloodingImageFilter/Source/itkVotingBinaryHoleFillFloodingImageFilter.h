@@ -102,15 +102,18 @@ protected:
   
   void PrintSelf ( std::ostream& os, Indent indent ) const;
 
+private:
+  VotingBinaryHoleFillFloodingImageFilter(const Self&); //purposely not implemented
+  void operator=(const Self&); //purposely not implemented
+
+
   void FindAllPixelsInTheBoundaryAndAddThemAsSeeds();
 
   void VisitAllSeedsAndTransitionTheirState();
 
   void SwapSeedArrays();
 
-private:
-  VotingBinaryHoleFillFloodingImageFilter(const Self&); //purposely not implemented
-  void operator=(const Self&); //purposely not implemented
+  bool TestForQuorumAtThisPixel( const IndexType & index ) const;
 
 
   unsigned int                      m_MajorityThreshold;
