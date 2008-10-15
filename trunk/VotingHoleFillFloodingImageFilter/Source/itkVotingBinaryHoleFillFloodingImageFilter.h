@@ -20,6 +20,8 @@
 #include "itkImage.h"
 #include "itkVotingBinaryImageFilter.h"
 
+#include <vector>
+
 namespace itk{
 
 /** /class VotingBinaryHoleFillFloodingImageFilter 
@@ -76,6 +78,10 @@ public:
   itkGetConstReferenceMacro( MajorityThreshold, unsigned int );
   itkSetMacro( MajorityThreshold, unsigned int );
 
+  /** Set/Get the maximum number of iterations that will be applied to the
+   * propagating front */
+  itkSetMacro( MaximumNumberOfIterations, unsigned int );
+  itkGetMacro( MaximumNumberOfIterations, unsigned int );
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -90,7 +96,7 @@ public:
 
 protected:
   VotingBinaryHoleFillFloodingImageFilter();
-  ~VotingBinaryHoleFillFloodingImageFilter(){};
+  ~VotingBinaryHoleFillFloodingImageFilter();
 
   void GenerateData();
   
@@ -98,7 +104,9 @@ protected:
 
   void FindAllPixelsInTheBoundaryAndAddThemAsSeeds();
 
-  void AddSeed( const IndexType & seedIndex );
+  void VisitAllSeedsAndTransitionTheirState();
+
+  void SwapSeedArrays();
 
 private:
   VotingBinaryHoleFillFloodingImageFilter(const Self&); //purposely not implemented
@@ -107,11 +115,15 @@ private:
 
   unsigned int                      m_MajorityThreshold;
 
-  typedef std::vector<IndexType>    SeedListType;
+  typedef std::vector<IndexType>    SeedArrayType;
 
-  SeedListType                      m_SeedList;
+  SeedArrayType *                   m_SeedArray1;
+  SeedArrayType *                   m_SeedArray2;
 
-
+  unsigned int                      m_CurrentIterationNumber;
+  unsigned int                      m_MaximumNumberOfIterations;
+  unsigned int                      m_NumberOfPixelsChangedInLastIteration;
+  unsigned int                      m_TotalNumberOfPixelsChanged;
 };
 
 } // end namespace itk
