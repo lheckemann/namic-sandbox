@@ -28,10 +28,10 @@
 
 int main( int argc, char * argv[] )
 {
-  if( argc < 6 )
+  if( argc < 7 )
     {
     std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0] << " inputImageFile outputImageFile radiusX radiusY majority" << std::endl;
+    std::cerr << argv[0] << " inputImageFile outputImageFile radiusX radiusY majority maxNumberOfIterations" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -71,6 +71,11 @@ int main( int argc, char * argv[] )
   const unsigned int majorityThreshold = atoi( argv[5] );
 
   filter->SetMajorityThreshold( majorityThreshold  );
+
+  const unsigned int maximumNumberOfIterations = atoi( argv[6] );
+
+  filter->SetMaximumNumberOfIterations( maximumNumberOfIterations  );
+
 
   filter->SetInput( reader->GetOutput() );
   writer->SetInput( filter->GetOutput() );
