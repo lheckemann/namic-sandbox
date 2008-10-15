@@ -108,11 +108,15 @@ private:
   void operator=(const Self&); //purposely not implemented
 
 
+  void AllocateOutputImageWorkingMemory();
+
   void FindAllPixelsInTheBoundaryAndAddThemAsSeeds();
 
   void VisitAllSeedsAndTransitionTheirState();
 
   void SwapSeedArrays();
+
+  void SwapOutputImageWorkingMemory();
 
   void ClearSecondSeedArray();
 
@@ -123,6 +127,10 @@ private:
   void ComputeArrayOfNeighborhoodBufferOffsets();
 
   void ComputeBirthThreshold();
+
+  void CopyImageWorkingMemoryToOutputImage();
+
+  void DeallocateOutputImageWorkingMemory();
 
   itkSetMacro( CurrentPixelIndex, IndexType );
   itkGetConstReferenceMacro( CurrentPixelIndex, IndexType );
@@ -156,7 +164,8 @@ private:
   // Helper cache variables 
   //
   const InputImageType *            m_InputImage;
-  OutputImageType *                 m_OutputImage;
+  OutputImagePointer                m_OutputImage1;
+  OutputImagePointer                m_OutputImage2;
 
   typedef itk::Neighborhood< InputImagePixelType, InputImageDimension >  NeighborhoodType;
 
