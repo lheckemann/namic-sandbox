@@ -44,7 +44,7 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage, TOutputImage>
   this->m_TotalNumberOfPixelsChanged = 0;
 
   this->m_SeedArray1 = new SeedArrayType;
-  this->m_SeedArray1 = new SeedArrayType;
+  this->m_SeedArray2 = new SeedArrayType;
 
   this->m_InputImage = NULL;
 }
@@ -99,10 +99,15 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 
   this->FindAllPixelsInTheBoundaryAndAddThemAsSeeds();
 
-  while ( (this->m_CurrentIterationNumber < this->m_MaximumNumberOfIterations) 
-    && ( this->m_NumberOfPixelsChangedInLastIteration > 0 ) )
+  while( this->m_CurrentIterationNumber < this->m_MaximumNumberOfIterations ) 
     {
+    std::cout << "Iteration " << this->m_CurrentIterationNumber << std::endl;
     this->VisitAllSeedsAndTransitionTheirState();
+    this->m_CurrentIterationNumber++;
+    if( this->m_NumberOfPixelsChangedInLastIteration ==  0 )
+      {
+      break;
+      }
     }
 }
 
@@ -151,37 +156,27 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
     {
     if( bit.GetCenterPixel() == foregroundValue )
       {
-      // it.Set( foregroundValue );
-      it.Set( backgroundValue ); // FIXME: this is just for testing
+      it.Set( foregroundValue );
       }
     else
       {
+      it.Set( backgroundValue );
+      
       // Search for foreground pixels in the neighborhood
-      bool foundNeighbordSetAtForegroundValue = false;
       for (unsigned int i = 0; i < neighborhoodSize; ++i)
         {
         InputImagePixelType value = bit.GetPixel(i);
         if( value == foregroundValue )
           {
           seedArray->push_back( bit.GetIndex() );
-          foundNeighbordSetAtForegroundValue = true;
           break;
           }
-        }
-      if (foundNeighbordSetAtForegroundValue)
-        {
-        it.Set( foregroundValue );
-        }
-      else
-        {
-        it.Set( backgroundValue );
         }
       }   
     ++bit;
     ++it;
     progress.CompletedPixel();
     }
-  std::cout << "Seed array size = " << seedArray->size() << std::endl;
 }
 
 
@@ -190,16 +185,13 @@ void
 VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 ::VisitAllSeedsAndTransitionTheirState()
 {
-  this->SwapSeedArrays();
-  this->ClearSecondSeedArray();
-
   typedef typename SeedArrayType::const_iterator   SeedIterator;
 
   SeedIterator seedItr = this->m_SeedArray1->begin();
 
   this->m_NumberOfPixelsChangedInLastIteration = 0;
 
-  while (seedItr != this->m_SeedArray2->end() )
+  while (seedItr != this->m_SeedArray1->end() )
     {
     this->SetCurrentPixelIndex( *seedItr );
 
@@ -212,6 +204,9 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
     }
 
   this->m_TotalNumberOfPixelsChanged += this->m_NumberOfPixelsChangedInLastIteration;
+
+  this->SwapSeedArrays();
+  this->ClearSecondSeedArray();
 }
 
 
@@ -244,7 +239,7 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
   //
   // Find the location of the current pixel in the image memory buffer
   //
-  const OffsetValueType offset = this->m_InputImage->ComputeOffset( this->m_CurrentPixelIndex );
+  const OffsetValueType offset = this->m_InputImage->ComputeOffset( this->GetCurrentPixelIndex() );
 
   const InputImagePixelType * buffer = this->m_InputImage->GetBufferPointer();
 
@@ -274,6 +269,8 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
     ++neighborItr;
     }
 
+  std::cout << "Testing Quorum at pixel " << this->GetCurrentPixelIndex() << " ";
+  std::cout << "found " << numberOfNeighborsAtForegroundValue << " foregrounds" << std::endl;
   bool quorum = (numberOfNeighborsAtForegroundValue > this->GetBirthThreshold() );
 
   return quorum;
@@ -285,6 +282,7 @@ void
 VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 ::ConvertCurrentPixelAndPutNeighborsIntoSeedArray()
 {
+  this->m_OutputImage->SetPixel( this->GetCurrentPixelIndex(), this->GetForegroundValue() );
   this->m_SeedArray2->push_back( this->GetCurrentPixelIndex() );
   this->m_NumberOfPixelsChangedInLastIteration++;
 }
