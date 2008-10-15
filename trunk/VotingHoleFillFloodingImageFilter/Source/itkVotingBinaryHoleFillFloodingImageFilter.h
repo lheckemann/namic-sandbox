@@ -114,6 +114,8 @@ private:
 
   void VisitAllSeedsAndTransitionTheirState();
 
+  void PasteNewSeedValuesToOutputImage();
+
   void SwapSeedArrays();
 
   void ClearSecondSeedArray();
@@ -163,6 +165,11 @@ private:
   //
   const InputImageType *            m_InputImage;
   OutputImageType *                 m_OutputImage;
+
+  typedef itk::Image< unsigned char, InputImageDimension >  SeedMaskImageType;
+  typedef typename SeedMaskImageType::Pointer               SeedMaskImagePointer;
+
+  SeedMaskImagePointer              m_SeedsMask;
 
   typedef itk::Neighborhood< InputImagePixelType, InputImageDimension >  NeighborhoodType;
 

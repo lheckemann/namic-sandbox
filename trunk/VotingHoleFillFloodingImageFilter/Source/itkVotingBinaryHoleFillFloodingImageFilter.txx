@@ -116,6 +116,11 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
   // Allocate memory for the output image itself.
   this->m_OutputImage->SetBufferedRegion( region );
   this->m_OutputImage->Allocate();
+
+  this->m_SeedsMask = SeedMaskImageType::New();
+  this->m_SeedsMask->SetRegions( region );
+  this->m_SeedsMask->Allocate();
+  this->m_SeedsMask->FillBuffer( 0 );
 }
 
  
@@ -183,9 +188,6 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
     ++it;
     }
   this->m_SeedsNewValues.reserve( this->m_SeedArray1->size() ); 
-
-std::cout << "Number of seeds indices = " << this->m_SeedArray1->size() << std::endl;
-std::cout << "Number of seeds values  = " << this->m_SeedsNewValues.size() << std::endl;
 }
 
 
@@ -200,6 +202,9 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 
   this->m_NumberOfPixelsChangedInLastIteration = 0;
 
+  // Clear the array of new values
+  this->m_SeedsNewValues.clear();
+
   while( seedItr != this->m_SeedArray1->end() )
     {
     this->SetCurrentPixelIndex( *seedItr );
@@ -213,19 +218,37 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
     else
       {
       this->m_SeedsNewValues.push_back( this->GetBackgroundValue() );
+      // Keep the seed to try again in the next iteration.
+      this->m_SeedArray2->push_back( this->GetCurrentPixelIndex() );
       }
 
     ++seedItr;
     }
 
-std::cout << "Number of seeds indices 1= " << this->m_SeedArray1->size() << std::endl;
-std::cout << "Number of seeds values   = " << this->m_SeedsNewValues.size() << std::endl;
-std::cout << "Number of seeds indices 2= " << this->m_SeedArray2->size() << std::endl;
+  this->PasteNewSeedValuesToOutputImage();
+   
+  this->m_TotalNumberOfPixelsChanged += this->m_NumberOfPixelsChangedInLastIteration;
 
+  // Now that the values have been copied to the output image, we can empty the
+  // array in preparation for the next iteration
+  this->m_SeedsNewValues.clear();
+
+  this->SwapSeedArrays();
+  this->ClearSecondSeedArray();
+}
+
+
+template <class TInputImage, class TOutputImage>
+void 
+VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
+::PasteNewSeedValuesToOutputImage()
+{
   //
-  //  Paste new values into the output image // FIXME: MOve to its own function
+  //  Paste new values into the output image
   //
-  seedItr = this->m_SeedArray1->begin();
+  typedef typename SeedArrayType::const_iterator   SeedIterator;
+
+  SeedIterator seedItr = this->m_SeedArray1->begin();
 
   typedef typename SeedNewValuesArrayType::const_iterator   SeedsNewValuesIterator;
 
@@ -237,23 +260,7 @@ std::cout << "Number of seeds indices 2= " << this->m_SeedArray2->size() << std:
     ++seedItr;
     ++newValueItr;
     }
-
-   
-  // Now that the values have been copied to the output image, we can empty the
-  // array in preparation for the next iteration
-  this->m_SeedsNewValues.clear();
-
-  this->m_TotalNumberOfPixelsChanged += this->m_NumberOfPixelsChangedInLastIteration;
-
-  this->SwapSeedArrays();
-  this->ClearSecondSeedArray();
-
-std::cout << "AFTER ClearSecondSeedArray() " << std::endl;
-std::cout << "Number of seeds indices 1= " << this->m_SeedArray1->size() << std::endl;
-std::cout << "Number of seeds values   = " << this->m_SeedsNewValues.size() << std::endl;
-std::cout << "Number of seeds indices 2= " << this->m_SeedArray2->size() << std::endl;
 }
-
 
 template <class TInputImage, class TOutputImage>
 void 
@@ -359,7 +366,11 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
       {
       NeighborOffsetType offset = this->m_Neighborhood.GetOffset(i);
       IndexType neighborIndex = this->GetCurrentPixelIndex() + offset;
-      this->m_SeedArray2->push_back( neighborIndex );
+      if( this->m_SeedsMask->GetPixel( neighborIndex ) == 0 )
+        {
+        this->m_SeedArray2->push_back( neighborIndex );
+        this->m_SeedsMask->SetPixel( neighborIndex, 255 );
+        }
       }
     }
 
