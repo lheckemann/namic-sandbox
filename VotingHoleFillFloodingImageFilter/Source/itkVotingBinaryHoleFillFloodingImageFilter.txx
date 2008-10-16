@@ -18,14 +18,10 @@
 #define __itkVotingHoleFillingFloodingImageFilter_txx_
 
 #include "itkVotingBinaryHoleFillFloodingImageFilter.h"
-#include "itkFloodFilledImageFunctionConditionalIterator.h"
-#include "itkVotingBinaryImageFunction.h"
 #include "itkConstNeighborhoodIterator.h"
 #include "itkImageRegionIterator.h"
 #include "itkNeighborhoodAlgorithm.h"
-#include "itkZeroFluxNeumannBoundaryCondition.h"
 #include "itkOffset.h"
-#include "itkProgressReporter.h"
 
 namespace itk
 {
@@ -79,22 +75,25 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 ::GenerateData()
 {
   this->AllocateOutputImageWorkingMemory();
- 
-  // Initialize the neighborhood.
-  this->m_Neighborhood.SetRadius( this->GetRadius() );
-
+  this->InitializeNeighborhood();
   this->ComputeBirthThreshold();
   this->ComputeArrayOfNeighborhoodBufferOffsets();
-
   this->FindAllPixelsInTheBoundaryAndAddThemAsSeeds();
+  this->IterateFrontPropagations();
+}
 
+
+template <class TInputImage, class TOutputImage>
+void 
+VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
+::IterateFrontPropagations()
+{
   this->m_CurrentIterationNumber = 0;
   this->m_TotalNumberOfPixelsChanged = 0;
   this->m_NumberOfPixelsChangedInLastIteration = 0;
 
   while( this->m_CurrentIterationNumber < this->m_MaximumNumberOfIterations ) 
     {
-    std::cout << "Iteration " << this->m_CurrentIterationNumber << std::endl;
     this->VisitAllSeedsAndTransitionTheirState();
     this->m_CurrentIterationNumber++;
     if( this->m_NumberOfPixelsChangedInLastIteration ==  0 )
@@ -116,6 +115,7 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
   // Allocate memory for the output image itself.
   this->m_OutputImage->SetBufferedRegion( region );
   this->m_OutputImage->Allocate();
+  this->m_OutputImage->FillBuffer( 0 );
 
   this->m_SeedsMask = SeedMaskImageType::New();
   this->m_SeedsMask->SetRegions( region );
@@ -127,13 +127,20 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 template <class TInputImage, class TOutputImage>
 void 
 VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
+::InitializeNeighborhood()
+{
+  this->m_Neighborhood.SetRadius( this->GetRadius() );
+}
+
+
+template <class TInputImage, class TOutputImage>
+void 
+VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
 ::FindAllPixelsInTheBoundaryAndAddThemAsSeeds()
 {
   const InputImageType * inputImage = this->GetInput();
 
   OutputImageRegionType region =  inputImage->GetRequestedRegion();
-
-  ZeroFluxNeumannBoundaryCondition< InputImageType > nbc;
 
   ConstNeighborhoodIterator< InputImageType >   bit;
   ImageRegionIterator< OutputImageType >        it;
@@ -152,7 +159,6 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
   
   bit = ConstNeighborhoodIterator<InputImageType>( radius, inputImage, *fit );
   it  = ImageRegionIterator<OutputImageType>(this->m_OutputImage, *fit);
-  bit.OverrideBoundaryCondition(&nbc);
   bit.GoToBegin();
   
   unsigned int neighborhoodSize = bit.Size();
@@ -321,8 +327,6 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
     ++neighborItr;
     }
 
-//  std::cout << "Testing Quorum at pixel " << this->GetCurrentPixelIndex() << " ";
-//  std::cout << "found " << numberOfNeighborsAtForegroundValue << " foregrounds" << std::endl;
   bool quorum = (numberOfNeighborsAtForegroundValue > this->GetBirthThreshold() );
 
   return quorum;
