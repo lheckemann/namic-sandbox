@@ -30,7 +30,7 @@ ADD_TEST(itkVotingTest1
   ${TEMP}/BrainProtonDensitySliceThresholded1.png
   ${TEMP}/BrainProtonDensitySliceThresholded1Filled1.png
   2 2
-  50
+  100
   )
 
 ADD_TEST(itkVotingTest2 
