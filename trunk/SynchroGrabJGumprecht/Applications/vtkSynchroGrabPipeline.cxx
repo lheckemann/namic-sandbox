@@ -89,9 +89,9 @@ vtkStandardNewMacro(vtkSynchroGrabPipeline);
 //----------------------------------------------------------------------------
 vtkSynchroGrabPipeline::vtkSynchroGrabPipeline()
 {
- /* this->ServerPort = 18944;
+  this->ServerPort = 18944;
   this->NbFrames = 150;
-  this->FrameRate = 5;
+  this->FrameRate = 0.1;
 
   this->VolumeOutputFile = NULL;
   this->SonixAddr=NULL;
@@ -99,21 +99,21 @@ vtkSynchroGrabPipeline::vtkSynchroGrabPipeline()
   this->OIGTLServer = NULL; 
   this->SetVolumeOutputFile("outputVol.vtk");
   this->SetSonixAddr("127.0.0.1");
-  this->SetOIGTLServer("127.0.0.1");
+  this->SetOIGTLServer("localhost");
 
 
   this->TransfertImages = false; 
   this->VolumeReconstructionEnabled = false;
   this->UseTrackerTransforms = false;
-*/
+
 /*
   this->calibReader = vtkUltrasoundCalibFileReader::New();
   this->sonixGrabber = vtkSonixVideoSource::New();
   this->tagger = vtkTaggedImageFilter::New();
   this->tracker = vtkNDICertusTracker::New();
 */
-//  this->socket = NULL;
-//  this->socket = igtl::ClientSocket::New();
+  this->socket = NULL;
+  this->socket = igtl::ClientSocket::New();
 }
 
 //----------------------------------------------------------------------------
@@ -190,14 +190,14 @@ bool vtkSynchroGrabPipeline::StartTracker()
   this->tagger->SetTrackerTool(tool);
   this->tagger->SetCalibrationMatrix(this->calibReader->GetCalibrationMatrix());
 }
-
+*/
 bool vtkSynchroGrabPipeline::ReconstructVolume()
 {
   this->sonixGrabber->Record();  //start recording frame from the video
 
   // wait for the images (delay in milliseconds)
   Sleep(this->NbFrames / this->FrameRate * 1000);
-
+ 
   this->sonixGrabber->Stop();
 
   this->tracker->StopTracking();
@@ -302,7 +302,7 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
   panoramaReconstructor->Delete();
   return true;
 }
-*/
+
 
 bool vtkSynchroGrabPipeline::ConnectToServer()
 {
@@ -400,35 +400,30 @@ bool vtkSynchroGrabPipeline::CloseServerConnection()
 
 bool vtkSynchroGrabPipeline::SendImages()
 {
+//  cout << "vtkSynchroGrabPipeline::SendImages: Start" << endl;
+  
   char*  filedir  = "/projects/mrrobot/gumprecht/slicer/tmp/OpenIGTLink/Examples/Imager/img";
-
-/*
-  igtl::ClientSocket::Pointer socket;
-  socket = igtl::ClientSocket::New();
-  int r = socket->ConnectToServer(OIGTLServer, ServerPort);  
-
-  if (r != 0)
-    {
-    std::cerr << "vtkSynchroGrabPipeline::SendImages: Cannot connect to the server." << std::endl;
-    exit(0);
-    }
-
 
   //------------------------------------------------------------
   // loop
-  cout << "vtkSynchroGrabPipeline::SendImages: Start SendImages loop " << endl;
+//  cout << "vtkSynchroGrabPipeline::SendImages: Start SendImages loop " << endl;
   for (int i = 0; i < 100; i ++)
     {
-    cout << "vtkSynchroGrabPipeline::SendImages: SendImages loop i: "<< i << endl;  
+//    cout << "vtkSynchroGrabPipeline::SendImages: SendImages loop i: "<< i << endl;  
 
     //------------------------------------------------------------
-    // size parameters
-    int   size[]     = {256, 256, 1};       // image dimension
-    float spacing[]  = {1.0, 1.0, 5.0};     // spacing (mm/pixel)
-    int   svsize[]   = {256, 256, 1};       // sub-volume size
+    // size parameters    
+     int   size[]     = {256, 256, 256};       // image dimension
+    float spacing[]  = {1, 1, 1};     // spacing (mm/pixel)
+    int   svsize[]   = {256, 256, 256};       // sub-volume size
     int   svoffset[] = {0, 0, 0};           // sub-volume offset
     int   scalarType = igtl::ImageMessage::TYPE_UINT8;// scalar type
-    cout << "vtkSynchroGrabPipeline::SendImages: Size parameters set" << endl;  
+//    int   size[]     = {256, 256, 1};       // image dimension
+//    float spacing[]  = {1.0, 1.0, 5.0};     // spacing (mm/pixel)
+//    int   svsize[]   = {256, 256, 1};       // sub-volume size
+//    int   svoffset[] = {0, 0, 0};           // sub-volume offset
+//    int   scalarType = igtl::ImageMessage::TYPE_UINT8;// scalar type
+//    cout << "vtkSynchroGrabPipeline::SendImages: Size parameters set" << endl;  
 
     //------------------------------------------------------------
     // Create a new IMAGE type message
@@ -439,26 +434,25 @@ bool vtkSynchroGrabPipeline::SendImages()
     imgMsg->SetDeviceName("ImagerClient");
     imgMsg->SetSubVolume(svsize, svoffset);
     imgMsg->AllocateScalars();
-    cout << "vtkSynchroGrabPipeline::SendImages: New image type message created" << endl;  
+//    cout << "vtkSynchroGrabPipeline::SendImages: New image type message created" << endl;  
 
     //------------------------------------------------------------
     // Set image data (See GetTestImage() bellow for the details)
     vtkGetTestImage(imgMsg, filedir, i % 5);
-    cout << "vtkSynchroGrabPipeline::SendImages: Image data set" << endl;  
+//    cout << "vtkSynchroGrabPipeline::SendImages: Image data set" << endl;  
 
     //------------------------------------------------------------
     // Get randome orientation matrix and set it.
     igtl::Matrix4x4 matrix;
     vtkGetRandomTestMatrix(matrix);
     imgMsg->SetMatrix(matrix);
-    cout << "vtkSynchroGrabPipeline::SendImages: Receives ramdom orientation matrix" << endl;
+//    cout << "vtkSynchroGrabPipeline::SendImages: Receives ramdom orientation matrix" << endl;
 
     //------------------------------------------------------------
     // Pack (serialize) and send
     imgMsg->Pack();
-    socket->Send(imgMsg->GetPackPointer(), imgMsg->GetPackSize());
     
-    /*int ret = socket->Send(imgMsg->GetPackPointer(), imgMsg->GetPackSize());
+    int ret = this->socket->Send(imgMsg->GetPackPointer(), imgMsg->GetPackSize());
     if (ret == 0)
       {
       std::cerr << "vtkSynchroGrabPipeline::SendImages: Error : Connection Lost!\n";
@@ -468,13 +462,13 @@ bool vtkSynchroGrabPipeline::SendImages()
       {
       cout << "vtkSynchroGrabPipeline::SendImages: image frame send successfully" << endl;
       }
-*//*        
-    cout << "vtkSynchroGrabPipeline::SendImages: Message sent" << endl;
+     
+//    cout << "vtkSynchroGrabPipeline::SendImages: Message sent" << endl;
     
     int sleeptime = (int) (1000.0 / this->FrameRate); 
 
     igtl::Sleep(sleeptime); // wait    
-    cout << "vtkSynchroGrabPipeline::SendImages: After Sleep" << endl;
+//    cout << "vtkSynchroGrabPipeline::SendImages: After Sleep" << endl;
 
     }
     
@@ -483,11 +477,11 @@ bool vtkSynchroGrabPipeline::SendImages()
     // Close connection
     socket->CloseSocket();
     return true;
-*/
+
 
   //------------------------------------------------------------
   // Establish Connection
-  igtl::ClientSocket::Pointer socket;
+  /*igtl::ClientSocket::Pointer socket;
   socket = igtl::ClientSocket::New();
   int r = socket->ConnectToServer("localhost", 18944);
 
@@ -514,7 +508,7 @@ bool vtkSynchroGrabPipeline::SendImages()
     int   svsize[]   = {256, 256, 1};       // sub-volume size
     int   svoffset[] = {0, 0, 0};           // sub-volume offset
     int   scalarType = igtl::ImageMessage::TYPE_UINT8;// scalar type*/
-
+/*
     //------------------------------------------------------------
     // Create a new IMAGE type message
     igtl::ImageMessage::Pointer imgMsg = igtl::ImageMessage::New();
@@ -549,7 +543,7 @@ bool vtkSynchroGrabPipeline::SendImages()
   //------------------------------------------------------------
   // Close connection
   socket->CloseSocket();
-
+*/
 }
 
 
