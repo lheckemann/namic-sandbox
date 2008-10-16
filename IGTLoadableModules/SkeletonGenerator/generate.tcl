@@ -4,7 +4,7 @@
 
 
 ## default configurations
-set ::GENERATOR(NAME) "Skelton"
+set ::GENERATOR(NAME) "Skeleton"
 set ::GENERATOR(TYPE) "default"
 set ::GENERATOR(WDIR)  "."
 
@@ -69,9 +69,9 @@ if { ![file exists $::GENERATOR(WDIR)] } {
 
 ### check if the generator configuration exists
 #if { [file exists "$template/SGConfig.txt"] } {
-#    puts "Found a Skelton Generator configuration in $template..."
+#    puts "Found a Skeleton Generator configuration in $template..."
 #} else {
-#    puts "ERROR: Could not find a Skelton Generator configuration (SGConfig.txt) in $template."
+#    puts "ERROR: Could not find a Skeleton Generator configuration (SGConfig.txt) in $template."
 #    exit 1
 #}
 
@@ -83,7 +83,7 @@ foreach f $files {
 }
 
 ## create target directory
-puts "Creating a skelton directory..."
+puts "Creating a skeleton directory..."
 set targetdir "$::GENERATOR(WDIR)/$::GENERATOR(NAME)"
 file mkdir $targetdir
 
