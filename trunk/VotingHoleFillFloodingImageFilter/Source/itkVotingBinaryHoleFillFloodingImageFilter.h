@@ -110,7 +110,11 @@ private:
 
   void AllocateOutputImageWorkingMemory();
 
+  void InitializeNeighborhood();
+
   void FindAllPixelsInTheBoundaryAndAddThemAsSeeds();
+
+  void IterateFrontPropagations();
 
   void VisitAllSeedsAndTransitionTheirState();
 
