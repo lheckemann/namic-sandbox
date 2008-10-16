@@ -100,7 +100,6 @@ foreach src $files {
 
     #set srcfilename [string trimright $srcfilename ".in"]
     set srcfilename [string range $srcfilename 0 [expr [string length $srcfilename] - 4]]
-    puts $srcfilename
 
     if { $srcfilename == "CMakeLists.txt" } {
         set dst "$targetdir/$srcfilename"
