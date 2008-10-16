@@ -84,6 +84,13 @@ public:
   itkSetMacro( MaximumNumberOfIterations, unsigned int );
   itkGetMacro( MaximumNumberOfIterations, unsigned int );
 
+  /** Returned the number of iterations used so far. */
+  itkGetMacro( CurrentIterationNumber, unsigned int );
+
+  /** Returned the number of pixels changed in total. */
+  itkGetMacro( TotalNumberOfPixelsChanged, unsigned int );
+
+
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(OutputEqualityComparableCheck, (Concept::EqualityComparable<OutputImagePixelType>));

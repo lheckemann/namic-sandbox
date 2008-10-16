@@ -81,6 +81,9 @@ int main( int argc, char * argv[] )
   writer->SetInput( filter->GetOutput() );
   writer->Update();
 
+  std::cout << "Iteration used = " << filter->GetCurrentIterationNumber()     << std::endl;
+  std::cout << "Pixels changes = " << filter->GetTotalNumberOfPixelsChanged() << std::endl;
+
   return EXIT_SUCCESS;
 }
 
