@@ -151,12 +151,12 @@ bool parseCommandLineArguments(int argc, char **argv, vtkSynchroGrabPipeline *pi
 int main(int argc, char **argv)
 {
 
-  cout << "SynchroGrab started " << endl;
+//  cout << "SynchroGrab started " << endl;
 
 ////    vtkSynchroGrabPipeline *pipeline = vtkSynchroGrabPipeline::New();
     vtkSynchroGrabPipeline *pipeline = new vtkSynchroGrabPipeline;
     
-  cout << "Pipline created " << endl;
+//  cout << "Pipline created " << endl;
 
 /*
     bool successParsingCommandLine = parseCommandLineArguments(argc,argv,pipeline);
@@ -164,26 +164,26 @@ int main(int argc, char **argv)
         return -1;
 */
 
-    // redirect vtk errors to a file
-    /*vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
+//     redirect vtk errors to a file
+    vtkFileOutputWindow *errOut = vtkFileOutputWindow::New();
     errOut->SetFileName("vtkError.txt");
     vtkOutputWindow::SetInstance(errOut);
 
-  cout << "VTK Error File handled " << endl;
-*/
+//  cout << "VTK Error File handled " << endl;
+
 ////    pipeline->ConfigurePipeline();
 
-////    if(pipeline->GetTransfertImages())
-////        {
-////        if(!pipeline->ConnectToServer())
-////            return -1;
+//    if(pipeline->GetTransfertImages())
+//        {
+        if(!pipeline->ConnectToServer())
+            return -1;
         if(!pipeline->SendImages())
             return -1;
-  cout << "Images successfull send " << endl;
+        cout << "Images successfull send " << endl;
         
-////        if(!pipeline->CloseServerConnection())
-////            return -1;
-////        }
+        if(!pipeline->CloseServerConnection())
+            return -1;
+//        }
 /*
     if(pipeline->GetVolumeReconstructionEnabled())
         {
@@ -191,5 +191,5 @@ int main(int argc, char **argv)
             return -1;
         }
 */
-    pipeline->Delete();
+//    pipeline->Delete();
 }
