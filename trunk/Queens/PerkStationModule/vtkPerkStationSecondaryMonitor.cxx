@@ -447,10 +447,23 @@ void vtkPerkStationSecondaryMonitor::Rotate(double angle)
   vtkTransform *transform = vtkTransform::New();
   transform->PostMultiply();
   
-  // scale about center
-  transform->Translate(-this->ImageSize[0]/2., -this->ImageSize[1]/2., 0);
+  vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
+  vtkMatrix4x4::Invert(this->XYToRAS, rasToXY);
+
+  
+  // center of rotation
+  double rasCOR[3];
+  this->GetGUI()->GetMRMLNode()->GetCenterOfRotation(rasCOR);
+  double rasPoint[4] = {rasCOR[0], rasCOR[1], 0, 1};
+  double xyPoint[4];  // point in xy space
+  double ijkPoint[4]; // point in image ijk space
+  rasToXY->MultiplyPoint(rasPoint, xyPoint);  
+  this->XYToIJK->MultiplyPoint(xyPoint,ijkPoint);
+
+  // rotate about center of rotation
+  transform->Translate(-ijkPoint[0], -ijkPoint[1], 0);
   transform->RotateZ(angle);
-  transform->Translate(this->ImageSize[0]/2., this->ImageSize[1]/2., 0);
+  transform->Translate(ijkPoint[0], ijkPoint[1], 0);
 
   vtkMatrix4x4 *rotateMatrix = vtkMatrix4x4::New();
   rotateMatrix->DeepCopy(transform->GetMatrix());
@@ -627,4 +640,10 @@ void vtkPerkStationSecondaryMonitor::OverlayNeedleGuide()
   this->RenderWindow->Render(); 
  
   
+}
+
+//------------------------------------------------------------------------------
+vtkMatrix4x4 *vtkPerkStationSecondaryMonitor::GetResliceTransformMatrix()
+{
+    return this->ResliceTransform->GetMatrix();
 }

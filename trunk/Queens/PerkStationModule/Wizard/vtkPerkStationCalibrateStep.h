@@ -2,14 +2,17 @@
 #define __vtkPerkStationCalibrateStep_h
 
 #include "vtkPerkStationStep.h"
-
+#include <string>
 class vtkKWFrame;
 class vtkKWLabel;
 class vtkKWText;
 class vtkKWEntrySet;
+class vtkKWPushButton;
 class vtkKWEntryWithLabel;
 class vtkKWFrameWithLabel;
 class vtkKWCheckButtonWithLabel;
+class vtkKWLoadSaveButton;
+
 
 class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationCalibrateStep : public vtkPerkStationStep
 {
@@ -28,9 +31,9 @@ public:
   //virtual void Validate();
 
   // Description:
-  // Callbacks
-  // TO DO:
-  
+  // Process GUI events
+  virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData);
+
   // Description:
   // Callbacks to capture keyboard events which will do translation/rotation depending on key pressed only in clinical mode
   virtual void ProcessKeyboardEvents(vtkObject *caller, unsigned long event, void *callData);
@@ -41,60 +44,88 @@ public:
 
   // Description:
   // Callback on value entered in the Image scaling entry set
-  virtual void ImageScalingEntryCallback(int widgetIndex, double value);
+  virtual void ImageScalingEntryCallback(int widgetIndex);
+  
+  // Description:
+  // Callback on value entered in COR entry set
+  virtual void COREntryCallback(int widgetIndex);
+
+  // Description:
+  // Callback on update button in scale frame in clinical mode
+  virtual void UpdateAutoScaleCallback();
   
   // Description:
   // Callback on value entered in the Monitor physical size entry set
-  virtual void MonitorPhysicalSizeEntryCallback(int widgetIndex, double value);
-  
-  // Description:
-  // Callback on value entered in the Monitor physical size entry set
-  virtual void MonitorPixelResolutionEntryCallback(int widgetIndex, double value);
+  //virtual void MonitorPixelResolutionEntryCallback(int widgetIndex, double value);
 
   // Description:
   // Callback on value entered in the Image translation entry set
-  virtual void ImageTranslationEntryCallback(int widgetIndex, double value);
+  virtual void ImageTranslationEntryCallback(int widgetIndex);
   
   // Description:
   // Callback on value entered in the Image rotation angle entry
-  virtual void ImageRotationEntryCallback(double value);
+  virtual void ImageRotationEntryCallback();
   
   // Description:
   // Callback on check button of vertical flip
-  virtual void VerticalFlipCallback(int value);
+  virtual void VerticalFlipCallback(bool value);
 
   // Description:
   // Callback on check button of horizontal flip
-  virtual void HorizontalFlipCallback(int value);
+  virtual void HorizontalFlipCallback(bool value);
 
   // Description
   // Reset
   virtual void Reset();
+
+  // Description
+  // Callback on the save calibration button
+  void SaveCalibrationButtonCallback();
+
+  // Description
+  // Save calibration
+  virtual void SaveCalibration(ostream& of);
+
+  // Description
+  // Save calibration  
+  virtual void SuggestFileName();
+
 protected:
   vtkPerkStationCalibrateStep();
   ~vtkPerkStationCalibrateStep(); 
-
+  
+  void ShowLoadResetControls();
   void ShowFlipComponents();
   void ShowScaleComponents();
   void ShowTranslateComponents();
   void ShowRotateComponents();
+  void ShowSaveControls();
 
+  void ClearLoadResetControls();
+  void ClearSaveControls();
   void ClearFlipComponents();
   void ClearScaleComponents();
   void ClearTranslateComponents();
   void ClearRotateComponents();
 
-
+  void AddGUIObservers();
+  void RemoveGUIObservers();
+  // Description:
+  // GUI callback  
+  static void WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData);
+  bool ProcessingCallback;
   void InstallCallbacks();
   void PopulateControls();
 
   void EnableDisableControls();
+  void EnableDisableLoadResetControls(bool enable);
+  void EnableDisableSaveControls(bool enable);
   void EnableDisableFlipComponents(bool enable);
   void EnableDisableScaleComponents(bool enable);
   void EnableDisableTranslateComponents(bool enable);
   void EnableDisableRotateComponents(bool enable);
 
-  void RecordClick(int xyPoint[2], double rasPoint[3], unsigned int & clickNum);
+  void RecordClick(int xyPoint[2], double rasPoint[3]);
 
   void CalculateImageRotation(double & rotationAngle);
 
@@ -107,6 +138,19 @@ protected:
 
 
   // TO DO: Question: other controls in two different modes (CLINICAL or TRANING)
+
+  // in clinical mode, additional buttons
+  // 1)  button: open file dialog box
+  vtkKWLoadSaveButton *LoadCalibrationFileButton;
+  // 2) button: save calib file dialog box
+  vtkKWLoadSaveButton *SaveCalibrationFileButton;
+  // also display save path??
+  // 3) reset push button
+  vtkKWPushButton *ResetCalibrationButton;
+  // also associated frames
+  vtkKWFrame *LoadResetFrame;
+  vtkKWFrame *SaveFrame;
+
 
 
   // for flip, the controls remain same for both modes
@@ -138,6 +182,10 @@ protected:
   vtkKWFrame  *MonPixResFrame;
   vtkKWLabel    *MonPixResLabel;  
   vtkKWEntrySet      *MonPixRes; 
+
+  // update button, so that any changes made to these two can be updated
+  vtkKWPushButton *UpdateAutoScale;
+
 
   // training mode
   // for scaling step  
@@ -211,11 +259,23 @@ protected:
   vtkKWEntrySet *RotPhyFid;
   // angle of rotation
   vtkKWEntryWithLabel *RotationAngle;
-
+  bool CORSpecified;
   bool ImageRotationDone;
   
+
+  bool TrainingModeControlsPopulated;
+  bool ClinicalModeControlsPopulated;
+  int ObserverCount;
+  unsigned int ClickNumber;
+
+  //BTX
+  std::string CalibFileName;
+  std::string CalibFilePath;
+  //ETX
+
 private:
-  int CurrentSubState;
+  bool DoubleEqual(double val1, double val2);
+  int CurrentSubState; // only used in 'training' mode
   vtkPerkStationCalibrateStep(const vtkPerkStationCalibrateStep&);
   void operator=(const vtkPerkStationCalibrateStep&);
 };

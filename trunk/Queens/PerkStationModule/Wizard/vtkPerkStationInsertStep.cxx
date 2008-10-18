@@ -68,12 +68,14 @@ void vtkPerkStationInsertStep::ShowUserInterface()
     case vtkPerkStationModuleGUI::ModeId::Training:
 
       this->SetName("3/5. Insert");
+      this->GetGUI()->GetWizardWidget()->Update();
       break;
 
     case vtkPerkStationModuleGUI::ModeId::Clinical:
        
       // in clinical mode
       this->SetName("3/4. Insert");
+      this->GetGUI()->GetWizardWidget()->Update();
       break;
     }
 

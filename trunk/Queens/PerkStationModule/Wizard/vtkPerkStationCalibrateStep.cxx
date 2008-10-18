@@ -1,5 +1,6 @@
 #include "vtkPerkStationCalibrateStep.h"
 
+
 #include "vtkPerkStationModuleGUI.h"
 #include "vtkMRMLPerkStationModuleNode.h"
 #include "vtkPerkStationSecondaryMonitor.h"
@@ -17,7 +18,8 @@
 #include "vtkKWWizardWorkflow.h"
 #include "vtkKWMenuButton.h"
 #include "vtkKWMenuButtonWithLabel.h"
-
+#include "vtkKWPushButton.h"
+#include "vtkKWLoadSaveButton.h"
 
 #include "vtkMath.h"
 #include "vtkMatrixToHomogeneousTransform.h"
@@ -34,7 +36,16 @@ vtkPerkStationCalibrateStep::vtkPerkStationCalibrateStep()
   this->SetName("1/5. Calibrate");
   this->SetDescription("Do image overlay system calibration");
 
-  
+  this->WizardGUICallbackCommand->SetCallback(vtkPerkStationCalibrateStep::WizardGUICallback);
+
+  // load/reset controls
+  this->LoadResetFrame = NULL;
+  this->LoadCalibrationFileButton = NULL;
+  this->ResetCalibrationButton = NULL;
+  // save controls
+  this->SaveFrame = NULL;
+  this->SaveCalibrationFileButton = NULL;
+
   // flip
   this->FlipFrame = NULL;
   this->VerticalFlipCheckButton = NULL;
@@ -49,6 +60,7 @@ vtkPerkStationCalibrateStep::vtkPerkStationCalibrateStep()
   this->MonPixResFrame = NULL;
   this->MonPixResLabel = NULL;
   this->MonPixRes = NULL;
+  this->UpdateAutoScale = NULL;
   this->ImgPixSizeFrame = NULL;
   this->ImgPixSizeLabel = NULL;
   this->ImgSpacing = NULL;
@@ -80,6 +92,7 @@ vtkPerkStationCalibrateStep::vtkPerkStationCalibrateStep()
   this->CORFrame = NULL;
   this->CORLabel = NULL;
   this->COR = NULL;
+  this->CORSpecified = false;
   this->RotImgFidFrame = NULL;
   this->RotImgFidLabel = NULL;
   this->RotImgFid = NULL;
@@ -89,13 +102,49 @@ vtkPerkStationCalibrateStep::vtkPerkStationCalibrateStep()
   this->RotationAngle = NULL;
   this->ImageRotationDone = false;
 
+  this->TrainingModeControlsPopulated = false;
+  this->ClinicalModeControlsPopulated = false;
+
   this->CurrentSubState = -1; // indicates invalid state, state will be valid only once volume is loaded
+
+  this->ObserverCount = 0;
+  this->ProcessingCallback = false;
+  this->ClickNumber = 0;
 
 }
 
 //----------------------------------------------------------------------------
 vtkPerkStationCalibrateStep::~vtkPerkStationCalibrateStep()
 {
+  // load/reset controls
+  if (this->LoadResetFrame)
+    {
+    this->LoadResetFrame->Delete();
+    this->LoadResetFrame = NULL;
+    }
+  if (this->LoadCalibrationFileButton)
+    {
+    this->LoadCalibrationFileButton->Delete();
+    this->LoadCalibrationFileButton = NULL;
+    }
+
+  if (this->ResetCalibrationButton)
+    {
+    this->ResetCalibrationButton->Delete();
+    this->ResetCalibrationButton = NULL;
+    }
+
+  // save controls
+  if (this->SaveFrame)
+    {
+    this->SaveFrame->Delete();
+    this->SaveFrame = NULL;
+    }
+  if (this->SaveCalibrationFileButton)
+    {
+    this->SaveCalibrationFileButton->Delete();
+    this->SaveCalibrationFileButton = NULL;
+    }
   // flip step
   if (this->FlipFrame)
     {
@@ -132,6 +181,11 @@ vtkPerkStationCalibrateStep::~vtkPerkStationCalibrateStep()
     {
     this->MonPhySize->DeleteAllWidgets();
     this->MonPhySize = NULL;
+    }
+  if (this->UpdateAutoScale)
+    {
+    this->UpdateAutoScale->Delete();
+    this->UpdateAutoScale = NULL;
     }
   if (this->MonPixResFrame)
     {
@@ -337,6 +391,43 @@ vtkPerkStationCalibrateStep::~vtkPerkStationCalibrateStep()
   this->CurrentSubState = -1;
 }
 //----------------------------------------------------------------------------
+bool vtkPerkStationCalibrateStep::DoubleEqual(double val1, double val2)
+{
+  bool result = false;
+    
+  if(fabs(val2-val1) < 0.0001)
+      result = true;
+
+  return result;
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::EnableDisableLoadResetControls(bool enable)
+{
+  switch (this->GetGUI()->GetMode())
+    {
+    case vtkPerkStationModuleGUI::ModeId::Training:
+      break;
+
+    case vtkPerkStationModuleGUI::ModeId::Clinical:
+      this->LoadCalibrationFileButton->SetEnabled(enable);
+      this->ResetCalibrationButton->SetEnabled(enable);
+      break;
+    }
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::EnableDisableSaveControls(bool enable)
+{
+  switch (this->GetGUI()->GetMode())
+    {
+    case vtkPerkStationModuleGUI::ModeId::Training:
+      break;
+
+    case vtkPerkStationModuleGUI::ModeId::Clinical:
+      this->SaveCalibrationFileButton->SetEnabled(enable);
+      break;
+    }
+}
+//----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::EnableDisableFlipComponents(bool enable)
 {
   this->FlipFrame->GetFrame()->SetEnabled(enable);
@@ -363,6 +454,7 @@ void vtkPerkStationCalibrateStep::EnableDisableScaleComponents(bool enable)
       this->MonPhySize->GetWidget(1)->SetEnabled(enable);
       this->MonPixRes->GetWidget(0)->SetEnabled(enable);
       this->MonPixRes->GetWidget(1)->SetEnabled(enable);
+      this->UpdateAutoScale->SetEnabled(enable);
       break;
     }
   
@@ -398,7 +490,7 @@ void vtkPerkStationCalibrateStep::EnableDisableRotateComponents(bool enable)
     {
     case vtkPerkStationModuleGUI::ModeId::Training:
       this->COR->GetWidget(0)->SetEnabled(enable);
-      this->COR->GetWidget(1)->SetEnabled(enable);
+      this->COR->GetWidget(1)->SetEnabled(enable);    
       this->RotImgFid->GetWidget(0)->SetEnabled(enable);
       this->RotImgFid->GetWidget(1)->SetEnabled(enable);
       this->RotPhyFid->GetWidget(0)->SetEnabled(enable);
@@ -419,6 +511,8 @@ void vtkPerkStationCalibrateStep::EnableDisableRotateComponents(bool enable)
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::EnableDisableControls()
 {
+  if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Training)
+  {
   switch (this->CurrentSubState)
     {
     case 0: // indicates flip state
@@ -454,6 +548,31 @@ void vtkPerkStationCalibrateStep::EnableDisableControls()
         
         break;
     }
+  }
+  else
+  {
+    switch (this->CurrentSubState)
+    {
+        case -1:
+        EnableDisableLoadResetControls(false);
+        EnableDisableFlipComponents(false);
+        EnableDisableScaleComponents(false);
+        EnableDisableTranslateComponents(false);
+        EnableDisableRotateComponents(false);
+        EnableDisableSaveControls(false);
+        break;
+
+        default:
+        EnableDisableLoadResetControls(true);
+        EnableDisableFlipComponents(true);
+        EnableDisableScaleComponents(true);
+        EnableDisableTranslateComponents(true);
+        EnableDisableRotateComponents(true);
+        EnableDisableSaveControls(true);
+        break;
+    }
+        
+  }
 
 }
 //----------------------------------------------------------------------------
@@ -468,7 +587,7 @@ void vtkPerkStationCalibrateStep::ShowUserInterface()
 
       this->SetName("1/5. Calibrate");
       this->GetGUI()->GetWizardWidget()->SetErrorText( "Please note that the order of the click (first image fiducial, then physical fiducial) is important.");
-
+      this->GetGUI()->GetWizardWidget()->Update();  
       break;
 
     case vtkPerkStationModuleGUI::ModeId::Clinical:
@@ -476,6 +595,7 @@ void vtkPerkStationCalibrateStep::ShowUserInterface()
       // in clinical mode
       this->SetName("1/4. Calibrate");
       this->GetGUI()->GetWizardWidget()->SetErrorText( "");
+      this->GetGUI()->GetWizardWidget()->Update();
       break;
     }
 
@@ -486,6 +606,10 @@ void vtkPerkStationCalibrateStep::ShowUserInterface()
 
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
   wizard_widget->GetCancelButton()->SetEnabled(0);
+
+  
+  // load/reset controls, if needed
+  this->ShowLoadResetControls();
 
   //flip components
   this->ShowFlipComponents();
@@ -498,27 +622,174 @@ void vtkPerkStationCalibrateStep::ShowUserInterface()
 
   // rotate components
   this->ShowRotateComponents();
-  
-  // TO DO: install callbacks
-  this->InstallCallbacks();
 
+  // save calibration controls if needed
+  this->ShowSaveControls();
+  
   // TO DO: populate controls wherever needed
   this->PopulateControls();
 
-  // enable disable controls
+   // enable disable controls  
   this->EnableDisableControls();
-  
-  
-  
+    
+  // TO DO: install callbacks
+  this->InstallCallbacks();
+
 
 }
 
+//----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::ShowLoadResetControls()
+{
+ vtkKWWidget *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
+  
+  // first clear the components if they created before for other mode
+  this->ClearLoadResetControls();
+
+  
+  switch (this->GetGUI()->GetMode())      
+    {
+
+    case vtkPerkStationModuleGUI::ModeId::Training:
+      // no controls to show at the moment
+
+      break;
+
+    case vtkPerkStationModuleGUI::ModeId::Clinical:
+       
+      // in clinical mode
+      {
+      // show load dialog box, and reset push button
+      
+      // Create the frame
+      if (!this->LoadResetFrame)
+        {
+        this->LoadResetFrame = vtkKWFrame::New();
+        }
+      if (!this->LoadResetFrame->IsCreated())
+        {
+        this->LoadResetFrame->SetParent(parent);
+        this->LoadResetFrame->Create();     
+        }
+      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                        this->LoadResetFrame->GetWidgetName());
+
+      // create the load file dialog button
+      if (!this->LoadCalibrationFileButton)
+        {
+        this->LoadCalibrationFileButton = vtkKWLoadSaveButton::New();
+        }
+      if (!this->LoadCalibrationFileButton->IsCreated())
+        {
+        this->LoadCalibrationFileButton->SetParent(this->LoadResetFrame);
+        this->LoadCalibrationFileButton->Create();
+        this->LoadCalibrationFileButton->SetBorderWidth(2);
+        this->LoadCalibrationFileButton->SetReliefToRaised();       
+        this->LoadCalibrationFileButton->SetHighlightThickness(2);
+        this->LoadCalibrationFileButton->SetBackgroundColor(0.85,0.85,0.85);
+        this->LoadCalibrationFileButton->SetActiveBackgroundColor(1,1,1);
+        this->LoadCalibrationFileButton->SetText("Load calibration");
+        this->LoadCalibrationFileButton->SetImageToPredefinedIcon(vtkKWIcon::IconPresetLoad);
+        this->LoadCalibrationFileButton->SetBalloonHelpString("Click to load a previous calibration file");
+        this->LoadCalibrationFileButton->GetLoadSaveDialog()->SaveDialogOff(); // load mode
+        this->LoadCalibrationFileButton->GetLoadSaveDialog()->SetFileTypes("{{XML File} {.xml}} {{All Files} {*.*}}");      
+        }
+      this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
+                            this->LoadCalibrationFileButton->GetWidgetName());
+
+      // create the reset calib button
+       if (!this->ResetCalibrationButton)
+        {
+        this->ResetCalibrationButton = vtkKWPushButton::New();
+        }
+      if(!this->ResetCalibrationButton->IsCreated())
+        {
+        this->ResetCalibrationButton->SetParent(this->LoadResetFrame);
+        this->ResetCalibrationButton->SetText("Reset calibration");
+        this->ResetCalibrationButton->SetBorderWidth(2);
+        this->ResetCalibrationButton->SetReliefToRaised();      
+        this->ResetCalibrationButton->SetHighlightThickness(2);
+        this->ResetCalibrationButton->SetBackgroundColor(0.85,0.85,0.85);
+        this->ResetCalibrationButton->SetActiveBackgroundColor(1,1,1);      
+        this->ResetCalibrationButton->SetImageToPredefinedIcon(vtkKWIcon::IconTrashcan);
+        this->ResetCalibrationButton->Create();
+        }
+      
+      this->Script("pack %s -side top -anchor ne -padx 2 -pady 4", 
+                        this->ResetCalibrationButton->GetWidgetName());
+      }
+      break;
+    }
+
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::ShowSaveControls()
+{
+  vtkKWWidget *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
+  
+  // first clear the components if they created before for other mode
+  this->ClearSaveControls();
+
+  
+  switch (this->GetGUI()->GetMode())      
+    {
+
+    case vtkPerkStationModuleGUI::ModeId::Training:
+
+      break;
+
+    case vtkPerkStationModuleGUI::ModeId::Clinical:
+       
+      // in clinical mode
+      {
+      // Create the frame
+      if (!this->SaveFrame)
+        {
+        this->SaveFrame = vtkKWFrame::New();
+        }
+      if (!this->SaveFrame->IsCreated())
+        {
+        this->SaveFrame->SetParent(parent);
+        this->SaveFrame->Create();
+        }
+      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                        this->SaveFrame->GetWidgetName());
+
+      // create the load file dialog button
+      if (!this->SaveCalibrationFileButton)
+        {
+        this->SaveCalibrationFileButton = vtkKWLoadSaveButton::New();
+        }
+      if (!this->SaveCalibrationFileButton->IsCreated())
+        {
+        this->SaveCalibrationFileButton->SetParent(this->SaveFrame);
+        this->SaveCalibrationFileButton->Create();
+        this->SaveCalibrationFileButton->SetText("Save calibration");
+        this->SaveCalibrationFileButton->SetBorderWidth(2);
+        this->SaveCalibrationFileButton->SetReliefToRaised();       
+        this->SaveCalibrationFileButton->SetHighlightThickness(2);
+        this->SaveCalibrationFileButton->SetBackgroundColor(0.85,0.85,0.85);
+        this->SaveCalibrationFileButton->SetActiveBackgroundColor(1,1,1);               
+        this->SaveCalibrationFileButton->SetImageToPredefinedIcon(vtkKWIcon::IconFloppy);
+        this->SaveCalibrationFileButton->SetBalloonHelpString("Click to save calibration in a file");
+        this->SaveCalibrationFileButton->GetLoadSaveDialog()->SaveDialogOn(); // save mode
+        this->SaveCalibrationFileButton->GetLoadSaveDialog()->SetFileTypes("{{XML File} {.xml}} {{All Files} {*.*}}");      
+        this->SaveCalibrationFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
+        }
+      this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
+                            this->SaveCalibrationFileButton->GetWidgetName());
+      }
+      break;
+    }
+}
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::ShowFlipComponents()
 {
   
   vtkKWWidget *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
   
+  this->ClearFlipComponents();
+
   // gui same for flip components irrespective of the current perk station mode
   if (    (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Training)
        || (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
@@ -585,26 +856,27 @@ void vtkPerkStationCalibrateStep::ShowScaleComponents()
   // first clear the components if they created before for other mode
   this->ClearScaleComponents();
 
-  // Create the frame
-  if (!this->ScaleFrame)
-    {
-    this->ScaleFrame = vtkKWFrameWithLabel::New();
-    }
-  if (!this->ScaleFrame->IsCreated())
-    {
-    this->ScaleFrame->SetParent(parent);
-    this->ScaleFrame->Create();
-    this->ScaleFrame->SetLabelText("Scale");
-    this->ScaleFrame->SetBalloonHelpString("Enter the image scaling require to map image from dicom space to monitor's physical space");
-    }
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->ScaleFrame->GetWidgetName());
-
+  
   switch (this->GetGUI()->GetMode())      
     {
 
     case vtkPerkStationModuleGUI::ModeId::Training:
       {
+      // Create the frame
+        if (!this->ScaleFrame)
+            {
+            this->ScaleFrame = vtkKWFrameWithLabel::New();
+            }
+        if (!this->ScaleFrame->IsCreated())
+            {
+            this->ScaleFrame->SetParent(parent);
+            this->ScaleFrame->Create();
+            this->ScaleFrame->SetLabelText("Scale");
+            this->ScaleFrame->SetBalloonHelpString("Enter the image scaling require to map image from dicom space to monitor's physical space");
+            }
+        this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                        this->ScaleFrame->GetWidgetName());
+
       // create the invidual components within the scale frame
       
       // frame
@@ -788,7 +1060,21 @@ void vtkPerkStationCalibrateStep::ShowScaleComponents()
       // in clinical mode
 
       {
-      
+          // Create the frame
+        if (!this->ScaleFrame)
+            {
+            this->ScaleFrame = vtkKWFrameWithLabel::New();
+            }
+        if (!this->ScaleFrame->IsCreated())
+            {
+            this->ScaleFrame->SetParent(parent);
+            this->ScaleFrame->Create();
+            this->ScaleFrame->SetLabelText("Scale");
+            this->ScaleFrame->SetBalloonHelpString("Verify, correct if needed, physical dimensions of secondary monitor, and pixel resolution");
+            }
+        this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                        this->ScaleFrame->GetWidgetName());
+
       // monitor physical size
 
       if (!this->MonPhySizeFrame)
@@ -912,6 +1198,21 @@ void vtkPerkStationCalibrateStep::ShowScaleComponents()
 
       this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
                         this->MonPixRes->GetWidgetName());
+
+
+      if (!this->UpdateAutoScale)
+        {
+        this->UpdateAutoScale = vtkKWPushButton::New();
+        }
+      if(!this->UpdateAutoScale->IsCreated())
+        {
+        this->UpdateAutoScale->SetParent(this->MonPixResFrame);
+        this->UpdateAutoScale->SetText("Update");
+        this->UpdateAutoScale->Create();
+        }
+      
+      this->Script("pack %s -side top -anchor ne -padx 2 -pady 4", 
+                        this->UpdateAutoScale->GetWidgetName());
       }
       break;
     }
@@ -927,27 +1228,28 @@ void vtkPerkStationCalibrateStep::ShowTranslateComponents()
   // first clear the translate components if they were created by previous mode
   this->ClearTranslateComponents();
 
-  // Create the frame
-  if (!this->TranslateFrame)
-    {
-    this->TranslateFrame = vtkKWFrameWithLabel::New();
-    }
-  if (!this->TranslateFrame->IsCreated())
-    {
-    this->TranslateFrame->SetParent(parent);
-    this->TranslateFrame->Create();
-    this->TranslateFrame->SetLabelText("Translate");
-    this->TranslateFrame->SetBalloonHelpString("Click on the image fiducial first, followed by click on the corresponding physical fiducial you see through mirror, then enter the required translation here");
-    }
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->TranslateFrame->GetWidgetName());
-
+  
 
   switch (this->GetGUI()->GetMode())
     {
 
     case vtkPerkStationModuleGUI::ModeId::Training:
       {
+      // Create the frame
+      if (!this->TranslateFrame)
+        {
+        this->TranslateFrame = vtkKWFrameWithLabel::New();
+        }
+      if (!this->TranslateFrame->IsCreated())
+        {
+        this->TranslateFrame->SetParent(parent);
+        this->TranslateFrame->Create();
+        this->TranslateFrame->SetLabelText("Translate");
+        this->TranslateFrame->SetBalloonHelpString("Click on the image fiducial first, followed by click on the corresponding physical fiducial you see through mirror, then enter the required translation here");
+        }
+      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                        this->TranslateFrame->GetWidgetName());
+
       // translation individual components
 
       // image fiducial click
@@ -1123,7 +1425,20 @@ void vtkPerkStationCalibrateStep::ShowTranslateComponents()
 
     case vtkPerkStationModuleGUI::ModeId::Clinical:
       {
-
+      // Create the frame
+      if (!this->TranslateFrame)
+        {
+        this->TranslateFrame = vtkKWFrameWithLabel::New();
+        }
+      if (!this->TranslateFrame->IsCreated())
+        {
+        this->TranslateFrame->SetParent(parent);
+        this->TranslateFrame->Create();
+        this->TranslateFrame->SetLabelText("Translate");
+        this->TranslateFrame->SetBalloonHelpString("Click on the image fiducial first, followed by click on the corresponding physical fiducial you see through mirror, then enter the required translation here");
+        }
+      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                    this->TranslateFrame->GetWidgetName());
       if(!this->TransMessage)
         {
         this->TransMessage = vtkKWText::New();
@@ -1155,87 +1470,85 @@ void vtkPerkStationCalibrateStep::ShowRotateComponents()
   vtkKWWidget *parent = this->GetGUI()->GetWizardWidget()->GetClientArea();
   
   this->ClearRotateComponents();
-
-  { // common components
-  // Create the frame
-  if (!this->RotateFrame)
-    {
-    this->RotateFrame = vtkKWFrameWithLabel::New();
-    }
-  if (!this->RotateFrame->IsCreated())
-    {
-    this->RotateFrame->SetParent(parent);
-    this->RotateFrame->Create();
-    this->RotateFrame->SetLabelText("Rotate");
-    this->RotateFrame->SetBalloonHelpString("Click on the image fiducial first, followed by click on the corresponding physical fiducial you see through mirror, then enter the required rotation angle here");
-    }
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                this->RotateFrame->GetWidgetName());
-
-  // center of rotation   
-  if (!this->CORFrame)
-        {
-        this->CORFrame = vtkKWFrame::New();
-        }
-  if (!this->CORFrame->IsCreated())
-    {
-    this->CORFrame->SetParent(this->RotateFrame->GetFrame());
-    this->CORFrame->Create();
-    }
-
-  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
-                    this->CORFrame->GetWidgetName());
-
-
-  // label
-  if (!this->CORLabel)
-    { 
-    this->CORLabel = vtkKWLabel::New();
-    }
-  if (!this->CORLabel->IsCreated())
-    {
-    this->CORLabel->SetParent(this->CORFrame);
-    this->CORLabel->Create();
-    this->CORLabel->SetText("Center of rotation: ");
-    this->CORLabel->SetBackgroundColor(0.7, 0.7, 0.7);
-    }
-        
-  this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
-                    this->CORLabel->GetWidgetName());
-        
-
-  if (!this->COR)
-    {
-    this->COR =  vtkKWEntrySet::New();  
-    }
-  if (!this->COR->IsCreated())
-    {
-    this->COR->SetParent(this->CORFrame);
-    this->COR->Create();
-    this->COR->SetBorderWidth(2);
-    this->COR->SetReliefToGroove();
-    this->COR->SetPackHorizontally(1);
-    this->COR->SetMaximumNumberOfWidgetsInPackingDirection(2);
-    // two entries of monitor spacing (x, y)
-    for (int id = 0; id < 2; id++)
-        {
-        vtkKWEntry *entry = this->COR->AddWidget(id);
-        entry->SetWidth(7);
-        entry->SetDisabledBackgroundColor(0.9,0.9,0.9);
-        //entry->ReadOnlyOn(); 
-        }
-    }
   
-  this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
-                    this->COR->GetWidgetName());
-  }
   switch (this->GetGUI()->GetMode())
     {
 
     case vtkPerkStationModuleGUI::ModeId::Training:
       {
-      // rotation individual components
 
+      // rotation individual components
+      // Create the frame
+      if (!this->RotateFrame)
+        {
+        this->RotateFrame = vtkKWFrameWithLabel::New();
+        }
+      if (!this->RotateFrame->IsCreated())
+        {
+        this->RotateFrame->SetParent(parent);
+        this->RotateFrame->Create();
+        this->RotateFrame->SetLabelText("Rotate");
+        this->RotateFrame->SetBalloonHelpString("Click on the image fiducial first, followed by click on the corresponding physical fiducial you see through mirror, then enter the required rotation angle here");
+        }
+      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                    this->RotateFrame->GetWidgetName());
+
+      // center of rotation   
+      if (!this->CORFrame)
+        {
+        this->CORFrame = vtkKWFrame::New();
+        }
+      if (!this->CORFrame->IsCreated())
+        {
+        this->CORFrame->SetParent(this->RotateFrame->GetFrame());
+        this->CORFrame->Create();
+        }
+
+      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                        this->CORFrame->GetWidgetName());
+
+
+      // label
+      if (!this->CORLabel)
+        { 
+        this->CORLabel = vtkKWLabel::New();
+        }
+      if (!this->CORLabel->IsCreated())
+        {
+        this->CORLabel->SetParent(this->CORFrame);
+        this->CORLabel->Create();
+        this->CORLabel->SetText("Center of rotation: ");
+        this->CORLabel->SetBackgroundColor(0.7, 0.7, 0.7);
+        }
+            
+      this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
+                        this->CORLabel->GetWidgetName());
+            
+
+      if (!this->COR)
+        {
+        this->COR =  vtkKWEntrySet::New();  
+        }
+      if (!this->COR->IsCreated())
+        {
+        this->COR->SetParent(this->CORFrame);
+        this->COR->Create();
+        this->COR->SetBorderWidth(2);
+        this->COR->SetReliefToGroove();
+        this->COR->SetPackHorizontally(1);
+        this->COR->SetMaximumNumberOfWidgetsInPackingDirection(2);
+        // two entries of monitor spacing (x, y)
+        for (int id = 0; id < 2; id++)
+          {
+          vtkKWEntry *entry = this->COR->AddWidget(id);
+          entry->SetWidth(7);
+          entry->SetDisabledBackgroundColor(0.9,0.9,0.9);
+          //entry->ReadOnlyOn(); 
+          }
+        }
+        
+      this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
+                        this->COR->GetWidgetName());
       
       // image fiducial click
       if (!this->RotImgFidFrame)
@@ -1362,7 +1675,7 @@ void vtkPerkStationCalibrateStep::ShowRotateComponents()
         this->RotationAngle->GetWidget()->SetRestrictValueToDouble();
         this->RotationAngle->GetLabel()->SetBackgroundColor(0.7, 0.7, 0.7);
         this->RotationAngle->SetLabelText("Rotation (in degrees):");
-        this->RotationAngle->SetWidth(7);
+        this->RotationAngle->GetWidget()->SetWidth(7);
         this->RotationAngle->GetWidget()->SetDisabledBackgroundColor(0.9,0.9,0.9);
         }
 
@@ -1373,7 +1686,77 @@ void vtkPerkStationCalibrateStep::ShowRotateComponents()
 
     case vtkPerkStationModuleGUI::ModeId::Clinical:
       {
+      // Create the frame
+      if (!this->RotateFrame)
+        {
+        this->RotateFrame = vtkKWFrameWithLabel::New();
+        }
+      if (!this->RotateFrame->IsCreated())
+        {
+        this->RotateFrame->SetParent(parent);
+        this->RotateFrame->Create();
+        this->RotateFrame->SetLabelText("Rotate");
+        this->RotateFrame->SetBalloonHelpString("Click on the image fiducial first, followed by click on the corresponding physical fiducial you see through mirror, then enter the required rotation angle here");
+        }
+      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                    this->RotateFrame->GetWidgetName());
 
+      // center of rotation   
+      if (!this->CORFrame)
+        {
+        this->CORFrame = vtkKWFrame::New();
+        }
+      if (!this->CORFrame->IsCreated())
+        {
+        this->CORFrame->SetParent(this->RotateFrame->GetFrame());
+        this->CORFrame->Create();
+        }
+
+      this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                        this->CORFrame->GetWidgetName());
+
+
+      // label
+      if (!this->CORLabel)
+        { 
+        this->CORLabel = vtkKWLabel::New();
+        }
+      if (!this->CORLabel->IsCreated())
+        {
+        this->CORLabel->SetParent(this->CORFrame);
+        this->CORLabel->Create();
+        this->CORLabel->SetText("Center of rotation: ");
+        this->CORLabel->SetBackgroundColor(0.7, 0.7, 0.7);
+        }
+            
+      this->Script( "pack %s -side left -anchor nw -padx 2 -pady 2", 
+                        this->CORLabel->GetWidgetName());
+            
+
+      if (!this->COR)
+        {
+        this->COR =  vtkKWEntrySet::New();  
+        }
+      if (!this->COR->IsCreated())
+        {
+        this->COR->SetParent(this->CORFrame);
+        this->COR->Create();
+        this->COR->SetBorderWidth(2);
+        this->COR->SetReliefToGroove();
+        this->COR->SetPackHorizontally(1);
+        this->COR->SetMaximumNumberOfWidgetsInPackingDirection(2);
+        // two entries of monitor spacing (x, y)
+        for (int id = 0; id < 2; id++)
+            {
+            vtkKWEntry *entry = this->COR->AddWidget(id);
+            entry->SetWidth(7);
+            entry->SetDisabledBackgroundColor(0.9,0.9,0.9);
+            //entry->ReadOnlyOn(); 
+            }
+        }
+        
+      this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
+                        this->COR->GetWidgetName());
       if(!this->RotMessage)
         {
         this->RotMessage = vtkKWText::New();
@@ -1406,8 +1789,9 @@ void vtkPerkStationCalibrateStep::ShowRotateComponents()
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::InstallCallbacks()
 {
-  
-  switch (this->GetGUI()->GetMode())
+  this->AddGUIObservers();
+
+/*  switch (this->GetGUI()->GetMode())
     {
     case vtkPerkStationModuleGUI::ModeId::Training:
       {
@@ -1480,7 +1864,7 @@ void vtkPerkStationCalibrateStep::InstallCallbacks()
       // no callbacks for translate or rotation components, as those are just static message boxes
       }
       break;
-    } 
+    } */
   
 }
 //----------------------------------------------------------------------------
@@ -1508,24 +1892,39 @@ void vtkPerkStationCalibrateStep::PopulateControls()
   switch (this->GetGUI()->GetMode())
     {
     case vtkPerkStationModuleGUI::ModeId::Training:
+    if(!this->TrainingModeControlsPopulated)
       {
       // populate flip frame components
-      this->VerticalFlipCheckButton->GetWidget()->SetSelectedState(0);
-      this->HorizontalFlipCheckButton->GetWidget()->SetSelectedState(0);
+      if (this->VerticalFlipCheckButton)
+        {
+        this->VerticalFlipCheckButton->GetWidget()->SetSelectedState(0);
+        }
+      if(this->HorizontalFlipCheckButton)
+        {
+        this->HorizontalFlipCheckButton->GetWidget()->SetSelectedState(0);
+        }
 
 
       // populate scale frame controls
       // 1. image spacing
       double imgSpacing[3];
       inVolume->GetSpacing(imgSpacing);
-      this->ImgSpacing->GetWidget(0)->SetValueAsDouble(imgSpacing[0]);
-      this->ImgSpacing->GetWidget(1)->SetValueAsDouble(imgSpacing[1]);
+
+      if (this->ImgSpacing)
+        {
+        this->ImgSpacing->GetWidget(0)->SetValueAsDouble(imgSpacing[0]);
+        this->ImgSpacing->GetWidget(1)->SetValueAsDouble(imgSpacing[1]);
+        }
 
       // 2. monitor spacing
       double monSpacing[2];
       this->GetGUI()->GetSecondaryMonitor()->GetMonitorSpacing(monSpacing[0], monSpacing[1]);
-      this->MonSpacing->GetWidget(0)->SetValueAsDouble(monSpacing[0]);
-      this->MonSpacing->GetWidget(1)->SetValueAsDouble(monSpacing[1]);
+
+      if (this->MonSpacing)
+        {
+        this->MonSpacing->GetWidget(0)->SetValueAsDouble(monSpacing[0]);
+        this->MonSpacing->GetWidget(1)->SetValueAsDouble(monSpacing[1]);
+        }
 
           
       // set the actual scaling (image/mon) in mrml node
@@ -1536,18 +1935,20 @@ void vtkPerkStationCalibrateStep::PopulateControls()
 
       // populate rotation frame controls
       // center of rotation
-      vtkSlicerSliceLogic *sliceLogic = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red")->GetLogic();
+      /*vtkSlicerSliceLogic *sliceLogic = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red")->GetLogic();
       double rasDimensions[3], rasCenter[3], sliceCenter[3];
       sliceLogic->GetVolumeRASBox (inVolume, rasDimensions, rasCenter);
       this->COR->GetWidget(0)->SetValueAsDouble(rasCenter[0]);
       this->COR->GetWidget(1)->SetValueAsDouble(rasCenter[1]);
       sliceLogic->GetVolumeSliceDimensions(inVolume, rasDimensions, sliceCenter);
       rasCenter[2] = sliceCenter[2];
-      mrmlNode->SetCenterOfRotation(rasCenter);
+      mrmlNode->SetCenterOfRotation(rasCenter);*/
+      this->TrainingModeControlsPopulated = true;
       }
       break;
 
     case vtkPerkStationModuleGUI::ModeId::Clinical:
+    if(!this->ClinicalModeControlsPopulated)
       {
       // populate flip frame components
       this->VerticalFlipCheckButton->GetWidget()->SetSelectedState(0);
@@ -1578,6 +1979,7 @@ void vtkPerkStationCalibrateStep::PopulateControls()
 
       this->ImageScalingDone = true;
 
+      this->ClinicalModeControlsPopulated = true;
       }
       break;
     } 
@@ -1588,17 +1990,17 @@ void vtkPerkStationCalibrateStep::PopulateControls()
 
 }
 //----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::HorizontalFlipCallback(int value)
+void vtkPerkStationCalibrateStep::HorizontalFlipCallback(bool value)
 {
-  
-  if(!value)
-    return;
-  if (this->ImageFlipDone)
+    if (this->ImageFlipDone || this->CurrentSubState != 0)
       return;
+  
   // set user scaling in mrml node
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+
   if (mrmlNode)
     this->GetGUI()->GetMRMLNode()->SetHorizontalFlip((bool)value);
+
   this->FlipImage();
   this->ImageFlipDone = true;
   this->CurrentSubState = 1;
@@ -1608,16 +2010,17 @@ void vtkPerkStationCalibrateStep::HorizontalFlipCallback(int value)
    this->GetGUI()->GetModeListMenu()->GetWidget()->SetEnabled(0);
 }
 //----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::VerticalFlipCallback(int value)
+void vtkPerkStationCalibrateStep::VerticalFlipCallback(bool value)
 {
-  if(!value)
-    return;
-  if (this->ImageFlipDone)
+ 
+  if (this->ImageFlipDone || this->CurrentSubState != 0)
       return;
+ 
   // set user scaling in mrml node
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   if (mrmlNode)
     this->GetGUI()->GetMRMLNode()->SetVerticalFlip((bool)value);
+
   this->FlipImage();
   this->ImageFlipDone = true;
   this->CurrentSubState = 1;
@@ -1628,38 +2031,74 @@ void vtkPerkStationCalibrateStep::VerticalFlipCallback(int value)
 
 }
 //----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::ImageScalingEntryCallback(int widgetIndex, double value)
+void vtkPerkStationCalibrateStep::ImageScalingEntryCallback(int widgetIndex)
 {
-  if (this->ImageScalingDone)
+  if (this->ImageScalingDone || this->CurrentSubState != 1)
       return;
-  static double xScaling = 0;
-  static double yScaling = 0;
+  
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+
+  double mrmlScale[2];
+  mrmlNode->GetUserScaling(mrmlScale[0], mrmlScale[1]);
+
+  static bool xValChanged = false;
+  static bool yValChanged = false;
+
   if (widgetIndex == 0)
     {
     // x scaling entered
-    xScaling = value;
+    if (strcmpi(this->ImgScaling->GetWidget(0)->GetValue(), "")!=0)
+      {
+      if(!this->DoubleEqual(mrmlScale[0],this->ImgScaling->GetWidget(0)->GetValueAsDouble()))
+        {
+        xValChanged = true;
+        }
+      // counter the case when the user enters the same value in entry, which is equal to the initial value set in MRML node
+      // in this case above code, won't detect change, but actually user has entered a change
+      // for scale, initial value is 1
+      if( (mrmlScale[0] == 1) && (this->ImgScaling->GetWidget(0)->GetValueAsDouble() == 1))
+        {
+        xValChanged = true;
+        }
+      }
+    
     }
   else if(widgetIndex == 1)
     { 
-    // y scaling entered
-    yScaling = value;
+    // y scaling entered    
+    if (strcmpi(this->ImgScaling->GetWidget(1)->GetValue(), "")!=0)
+      {
+      if(!this->DoubleEqual(mrmlScale[1],this->ImgScaling->GetWidget(1)->GetValueAsDouble()))
+        {
+        yValChanged = true;
+        }
+      // counter the case when the user enters the same value in entry, which is equal to the initial value set in MRML node
+      // in this case above code, won't detect change, but actually user has entered a change
+      // for scale, initial value is 1
+      if( (mrmlScale[1] == 1) && (this->ImgScaling->GetWidget(1)->GetValueAsDouble() == 1))
+        {
+        yValChanged = true;
+        }
+      }
     }
   
-  if (xScaling > 0 && yScaling > 0)
+  if (xValChanged && yValChanged)
     {
+    double xScaling = this->ImgScaling->GetWidget(0)->GetValueAsDouble();
+    double yScaling = this->ImgScaling->GetWidget(1)->GetValueAsDouble();
     // set user scaling in mrml node
-    vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-    if (mrmlNode)
-      {
-      mrmlNode->SetUserScaling(xScaling, yScaling);
-      mrmlNode->CalculateCalibrateScaleError();
-      }
+    mrmlNode->SetUserScaling(xScaling, yScaling);
+    mrmlNode->CalculateCalibrateScaleError();
+    
 
     // actually scale the image
     // TO DO:
     this->ScaleImage();
 
     this->ImageScalingDone = true;
+
+    xValChanged = false;
+    yValChanged = false;
 
     // go to translation state
     this->CurrentSubState = 2;
@@ -1668,72 +2107,61 @@ void vtkPerkStationCalibrateStep::ImageScalingEntryCallback(int widgetIndex, dou
     
 }
 //----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::MonitorPhysicalSizeEntryCallback(int widgetIndex, double value)
+void vtkPerkStationCalibrateStep::UpdateAutoScaleCallback()
 {
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+
+  vtkMRMLScalarVolumeNode *inVolume = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetGUI()->GetMRMLScene()->GetNodeByID(mrmlNode->GetInputVolumeRef()));
+  if (!inVolume)
+    {
+    // TO DO: what to do on failure
+    return;
+    }
+
+ 
   
   double mmX = this->MonPhySize->GetWidget(0)->GetValueAsDouble();
   double mmY = this->MonPhySize->GetWidget(1)->GetValueAsDouble();
-  
-  double deviceCallMonPhySize[2];  
-  this->GetGUI()->GetSecondaryMonitor()->GetPhysicalSize(deviceCallMonPhySize[0],deviceCallMonPhySize[1]);
 
-  if (widgetIndex == 0)
-    {
-    // x size in mm
-    mmX = value;
-    }
-  else if(widgetIndex == 1)
-    { 
-    // y size in mm
-    mmY = value;
-    }
-  
-  if (mmX > 0 && mmY > 0 && ( mmX!= deviceCallMonPhySize[0] || mmY != deviceCallMonPhySize[1] ))
-    {
-    // disable controls so that they dont generate any more events
-    this->MonPhySize->GetWidget(0)->SetEnabled(0);
-    this->MonPhySize->GetWidget(1)->SetEnabled(0);
-    // set the values in secondary monitor
-    this->GetGUI()->GetSecondaryMonitor()->SetPhysicalSize(mmX,mmY);
-    // calculate new scaling
-    double monSpacing[2];
-    this->GetGUI()->GetSecondaryMonitor()->GetMonitorSpacing(monSpacing[0], monSpacing[1]);
-    // set scaling in mrml node
-    vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
-    if (!mrmlNode)
-      {
-      return;
-      }
-    vtkMRMLScalarVolumeNode *inVolume = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetGUI()->GetMRMLScene()->GetNodeByID(mrmlNode->GetInputVolumeRef()));
-    if (!inVolume)
-      {
-      // TO DO: what to do on failure
-      return;
-      }
+  double pixX = this->MonPixRes->GetWidget(0)->GetValueAsDouble();
+  double pixY = this->MonPixRes->GetWidget(1)->GetValueAsDouble();
 
-    double imgSpacing[3];
-    inVolume->GetSpacing(imgSpacing);
-      
-    // set the actual scaling (image/mon) in mrml node
-    mrmlNode->SetActualScaling(double(imgSpacing[0]/monSpacing[0]), double(imgSpacing[1]/monSpacing[1]));
+  // set the values in secondary monitor
+  this->GetGUI()->GetSecondaryMonitor()->SetPhysicalSize(mmX,mmY);
+  this->GetGUI()->GetSecondaryMonitor()->SetPixelResolution(pixX, pixY);
 
-    this->ImageScalingDone = false;
-    // reset current & rescale to new scaling
-    // reset flip/scale/rotate/translate on secondary display
-    this->GetGUI()->GetSecondaryMonitor()->ResetCalibration();
-    // flip the image
-    this->FlipImage();
-    // rescale image
-    this->ScaleImage();
+  // calculate new scaling
+  // note updating monitor physical size in previous lines of code, will automatically update correct monitor spacing
+  double monSpacing[2];
+  this->GetGUI()->GetSecondaryMonitor()->GetMonitorSpacing(monSpacing[0], monSpacing[1]);
     
-    this->ImageScalingDone = true;
+  double imgSpacing[3];
+  inVolume->GetSpacing(imgSpacing);
+      
+  // set the actual scaling (image/mon) in mrml node
+  mrmlNode->SetActualScaling(double(imgSpacing[0]/monSpacing[0]), double(imgSpacing[1]/monSpacing[1]));
 
-    }
+    
+  // reset current & rescale to new scaling
+  // reset flip/scale/rotate/translate on secondary display
+  this->GetGUI()->GetSecondaryMonitor()->ResetCalibration();
+    
+  this->ImageFlipDone = false;
+  this->ImageScalingDone = false;
+  
+  // flip the image
+  this->FlipImage();
+  this->ImageFlipDone = true;
+  
+  // rescale image
+  this->ScaleImage();    
+  this->ImageScalingDone = true;
+
     
 }
 
 //----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::MonitorPixelResolutionEntryCallback(int widgetIndex, double value)
+/*void vtkPerkStationCalibrateStep::MonitorPixelResolutionEntryCallback(int widgetIndex, double value)
 {
   
   double pixX = this->MonPixRes->GetWidget(0)->GetValueAsDouble();
@@ -1801,40 +2229,77 @@ void vtkPerkStationCalibrateStep::MonitorPixelResolutionEntryCallback(int widget
     }
     
 }
-
+*/
 //----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::ImageTranslationEntryCallback(int widgetIndex, double value)
+void vtkPerkStationCalibrateStep::ImageTranslationEntryCallback(int widgetIndex)
 {
-  if (this->ImageTranslationDone)
+  if (this->ImageTranslationDone || this->CurrentSubState != 2)
       return;
 
-  static double xTranslation;
-  static double yTranslation;
-  static bool xTransChanged = false;
-  static bool yTransChanged = false;
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+
+  double mrmlTranslation[3];
+  mrmlNode->GetUserTranslation(mrmlTranslation[0], mrmlTranslation[1], mrmlTranslation[2]);
+
+  static bool xValChanged = false;
+  static bool yValChanged = false;
+
   if (widgetIndex == 0)
     {
-    // x translation entered
-    xTranslation = value;
-    xTransChanged = true;
+    // x scaling entered
+    if (strcmpi(this->Translation->GetWidget(0)->GetValue(), "")!=0)
+      {
+      if(!this->DoubleEqual(mrmlTranslation[0],this->Translation->GetWidget(0)->GetValueAsDouble()))
+        {
+        xValChanged = true;
+        }
+      // counter the case when the user enters the same value in entry, which is equal to the initial value set in MRML node
+      // in this case above code, won't detect change, but actually user has entered a change
+      // for translation, initial value is 0
+      if( (mrmlTranslation[0] == 0) && (this->Translation->GetWidget(0)->GetValueAsDouble() == 0))
+        {
+        xValChanged = true;
+        }
+      
+      }
+    
     }
   else if(widgetIndex == 1)
     { 
-    // y translation entered
-    yTranslation = value;
-    yTransChanged = true;
+    // y scaling entered    
+    if (strcmpi(this->Translation->GetWidget(1)->GetValue(), "")!=0)
+      {
+      if(!this->DoubleEqual(mrmlTranslation[1],this->Translation->GetWidget(1)->GetValueAsDouble()))
+        {
+        yValChanged = true;
+        }
+      // counter the case when the user enters the same value in entry, which is equal to the initial value set in MRML node
+      // in this case above code, won't detect change, but actually user has entered a change
+      // for translation, initial value is 0
+      if( (mrmlTranslation[1] == 0) && (this->Translation->GetWidget(1)->GetValueAsDouble() == 0))
+        {
+        yValChanged = true;
+        }
+      }
     }
   
-  if (xTransChanged && yTransChanged)
+  if (xValChanged && yValChanged)
     {
+    double xTranslation = this->Translation->GetWidget(0)->GetValueAsDouble();
+    double yTranslation = this->Translation->GetWidget(1)->GetValueAsDouble();
+
     // record user input in mrml node
     this->GetGUI()->GetMRMLNode()->SetUserTranslation(xTranslation, yTranslation, 0);
     this->GetGUI()->GetMRMLNode()->CalculateCalibrateTranslationError();
-    // actually translate the image
-    // TO DO:
+    
+    // actually translate the image    
     this->TranslateImage();
 
     this->ImageTranslationDone = true;
+    
+    xValChanged = false;
+    yValChanged = false;
+
     // go to rotation state
     this->CurrentSubState = 3;
     this->EnableDisableControls();
@@ -1842,27 +2307,112 @@ void vtkPerkStationCalibrateStep::ImageTranslationEntryCallback(int widgetIndex,
     
 }
 //----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::ImageRotationEntryCallback(double value)
+void vtkPerkStationCalibrateStep::COREntryCallback(int widgetIndex)
 {
-    if (this->ImageRotationDone)
+  if (this->CurrentSubState != 3 && this->GetGUI()->GetMode() != vtkPerkStationModuleGUI::ModeId::Clinical)
+      return;
+  
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+
+  double mrmlCOR[3];
+  mrmlNode->GetCenterOfRotation(mrmlCOR[0], mrmlCOR[1], mrmlCOR[2]);
+
+  static bool xValChanged = false;
+  static bool yValChanged = false;
+
+  if (widgetIndex == 0)
+    {
+    // x scaling entered
+    if (strcmpi(this->COR->GetWidget(0)->GetValue(), "")!=0)
+      {
+      if(!this->DoubleEqual(mrmlCOR[0],this->COR->GetWidget(0)->GetValueAsDouble()))
+        {
+        xValChanged = true;
+        }
+      // counter the case when the user enters the same value in entry, which is equal to the initial value set in MRML node
+      // in this case above code, won't detect change, but actually user has entered a change
+      // for COR, initial value is 0
+      if( (mrmlCOR[0] == 0) && (this->COR->GetWidget(0)->GetValueAsDouble() == 0))
+        {
+        xValChanged = true;
+        }
+      }
+    
+    }
+  else if(widgetIndex == 1)
+    { 
+    // y scaling entered    
+    if (strcmpi(this->COR->GetWidget(1)->GetValue(), "")!=0)
+      {
+      if(!this->DoubleEqual(mrmlCOR[1],this->COR->GetWidget(1)->GetValueAsDouble()))
+        {
+        yValChanged = true;
+        }
+      // counter the case when the user enters the same value in entry, which is equal to the initial value set in MRML node
+      // in this case above code, won't detect change, but actually user has entered a change
+      // for COR, initial value is 0
+      if( (mrmlCOR[1] == 0) && (this->COR->GetWidget(1)->GetValueAsDouble() == 0))
+        {
+        yValChanged = true;
+        }
+      }
+    }
+  
+  if (xValChanged && yValChanged)
+    {
+    double xCOR = this->COR->GetWidget(0)->GetValueAsDouble();
+    double yCOR = this->COR->GetWidget(1)->GetValueAsDouble();
+    // set user scaling in mrml node
+    mrmlNode->SetCenterOfRotation(xCOR, yCOR, mrmlCOR[2]);    
+    this->CORSpecified = true;
+    xValChanged = false;
+    yValChanged = false;
+    if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
+      {
+      this->GetGUI()->GetWizardWidget()->SetErrorText( "");
+      this->GetGUI()->GetWizardWidget()->Update();      
+      }
+    }
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::ImageRotationEntryCallback()
+{
+  if (this->ImageRotationDone || this->CurrentSubState != 3)
         return;
 
-    // TO DO: check if its a valid input i.e. between 0 to 360
-    this->GetGUI()->GetMRMLNode()->SetUserRotation(value);
-    this->GetGUI()->GetMRMLNode()->CalculateCalibrateRotationError();
-    // actually rotate the image
-    // TO DO:
-    this->RotateImage();
-    this->ImageRotationDone = true;
-    // diable all
-    this->CurrentSubState = -1;
-    this->EnableDisableControls(); 
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+
+  double mrmlRotation;
+  mrmlRotation = mrmlNode->GetUserRotation();
+
+  
+  if (strcmpi(this->RotationAngle->GetWidget()->GetValue(), "")!=0)
+    {
+    // counter the case when the user enters the same value in entry, which is equal to the initial value set in MRML node
+    // in this case above code, won't detect change, but actually user has entered a change
+    // for rotation, initial value is 0
+    if(     ( (mrmlRotation == 0) && (this->RotationAngle->GetWidget()->GetValueAsDouble() == 0))
+        || (!this->DoubleEqual(mrmlRotation,this->RotationAngle->GetWidget()->GetValueAsDouble()))
+        )
+      {
+      // TO DO: check if its a valid input i.e. between 0 to 360
+      this->GetGUI()->GetMRMLNode()->SetUserRotation(this->RotationAngle->GetWidget()->GetValueAsDouble());
+      this->GetGUI()->GetMRMLNode()->CalculateCalibrateRotationError();
+      // actually rotate the image
+      // TO DO:
+      this->RotateImage();
+      this->ImageRotationDone = true;
+      // diable all
+      this->CurrentSubState = -1;
+      this->EnableDisableControls();
+      }
+    }
 }
 
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData)
 {
-  static unsigned int clickNum = 0;
+  
   // first identify if the step is pertinent, i.e. current step of wizard workflow is actually calibration step
 
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
@@ -1885,14 +2435,21 @@ void vtkPerkStationCalibrateStep::ProcessImageClickEvents(vtkObject *caller, uns
     if (! ((this->CurrentSubState == 2) || (this->CurrentSubState == 3)))
         return;
 
-    // mouse click happened in the axial slice view
-    ++clickNum;
+    if (this->ProcessingCallback)
+    {
+    return;
+    }
 
-    // capture the point
+    this->ProcessingCallback = true;
+
+    ++this->ClickNumber;
 
     vtkRenderWindowInteractor *rwi;
     vtkMatrix4x4 *matrix;    
     
+    // Note: at the moment, in calibrate step, listening only to clicks done in secondary monitor
+    // because looking through secondary monitor mirror only can do calibration
+
     /*if (s == istyle0)
       {
       // coming from main gui viewer of SLICER
@@ -1908,22 +2465,29 @@ void vtkPerkStationCalibrateStep::ProcessImageClickEvents(vtkObject *caller, uns
       //matrix1 = this->GetGUI()->GetSecondaryMonitor()->GetXYToIJK();
       }
 
+    // capture the point
     int point[2];
     rwi->GetLastEventPosition(point);
     double inPt[4] = {point[0], point[1], 0, 1};
     double outPt[4];    
     matrix->MultiplyPoint(inPt, outPt); 
     double ras[3] = {outPt[0], outPt[1], outPt[2]};
-    this->RecordClick(point, ras, clickNum);
+    this->RecordClick(point, ras);
+
+    this->ProcessingCallback = false;
     }
 }
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::ProcessKeyboardEvents(vtkObject *caller, unsigned long event, void *callData)
 {
+  if(!this->GetGUI()->GetMRMLNode())
+      return;
+  
   // has to be in clinical mode
   if (this->GetGUI()->GetMode()!= vtkPerkStationModuleGUI::ModeId::Clinical)
     return;
 
+  
   // has to be when it is in 
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
 
@@ -1932,6 +2496,13 @@ void vtkPerkStationCalibrateStep::ProcessKeyboardEvents(vtkObject *caller, unsig
     return;
     }
 
+  if (this->ProcessingCallback)
+    {
+    return;
+    }
+
+  this->ProcessingCallback = true;
+
   vtkSlicerInteractorStyle *style = vtkSlicerInteractorStyle::SafeDownCast(caller);
   vtkSlicerInteractorStyle *istyleSecondary = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor()->GetInteractorStyle());
 
@@ -1939,6 +2510,21 @@ void vtkPerkStationCalibrateStep::ProcessKeyboardEvents(vtkObject *caller, unsig
     {
     // capture the key
     char  *key = style->GetKeySym();    
+
+    double translationVertical = 5; // in mm
+    double translationHorizontal = 5; // in mm
+    double rotation = 2; // in degrees
+
+    bool verticalFlip = this->GetGUI()->GetMRMLNode()->GetVerticalFlip();
+    bool horizontalFlip = this->GetGUI()->GetMRMLNode()->GetHorizontalFlip();
+
+    if(verticalFlip)
+    {
+    }
+
+    if(horizontalFlip)
+    {
+    }
 
     // for translation
     // how about using the usual arrow keys for gross translation 10 mm increments
@@ -1949,33 +2535,106 @@ void vtkPerkStationCalibrateStep::ProcessKeyboardEvents(vtkObject *caller, unsig
 
     if (!strcmp(key, "Up") || !strcmp(key, "8"))
       {
-      // up arrow, for y translation
-      this->GetGUI()->GetSecondaryMonitor()->Translate(0, 5, 0);
+      if (!strcmp(key,"8"))
+        {
+        //numeric keypad, finer translation
+        this->GetGUI()->GetSecondaryMonitor()->Translate(0, translationVertical/2, 0);
+        }
+      else
+        {
+        // up arrow, for y translation
+        this->GetGUI()->GetSecondaryMonitor()->Translate(0, translationVertical, 0);
+        }      
       }
     else if (!strcmp(key, "Down") || !strcmp(key, "2"))
       {
-      // down arrow for y translation
-      this->GetGUI()->GetSecondaryMonitor()->Translate(0, -5, 0);
+      if (!strcmp(key,"2"))
+        {
+        //numeric keypad, finer translation
+        this->GetGUI()->GetSecondaryMonitor()->Translate(0, -translationVertical/2, 0);
+        }
+      else
+        {
+        // down arrow for y translation
+        this->GetGUI()->GetSecondaryMonitor()->Translate(0, -translationVertical, 0);
+        }
+      
       }
     else if (!strcmp(key, "Right") || !strcmp(key, "6"))
       {
-      // right arrow for x translation
-      this->GetGUI()->GetSecondaryMonitor()->Translate(-5, 0, 0);
+      if (!strcmp(key,"6"))
+        {
+        // numeric keypad for finer translation
+        this->GetGUI()->GetSecondaryMonitor()->Translate(-translationHorizontal/2, 0, 0);
+        }
+      else
+        {
+        // right arrow for x translation
+        this->GetGUI()->GetSecondaryMonitor()->Translate(-translationHorizontal, 0, 0);
+        }
+      
       }
     else if (!strcmp(key, "Left") || !strcmp(key, "4"))
       {
-      // left arrow for x translation
-      this->GetGUI()->GetSecondaryMonitor()->Translate(5, 0, 0);
+      if (!strcmp(key,"4"))
+        {
+        // numeric keypad for finer translation
+        this->GetGUI()->GetSecondaryMonitor()->Translate(translationHorizontal/2, 0, 0);
+        }
+      else
+        {
+        // left arrow for x translation
+        this->GetGUI()->GetSecondaryMonitor()->Translate(translationHorizontal, 0, 0);
+        }
+      
       }
     else if (!strcmp(key, "Prior") || !strcmp(key, "9"))
       {
-      // clockwise rotation
+      //first check if cor has been specified
+      if (this->CORSpecified)
+        {
+        // clockwise rotation
+        if (!strcmp(key,"9"))
+        {
+        // numeric keypad for finer rotation
+        this->GetGUI()->GetSecondaryMonitor()->Rotate(rotation/2);
+        }
+        else
+          {
+          // Prior key for rotation
+          this->GetGUI()->GetSecondaryMonitor()->Rotate(rotation);
+          }
+        }
+      else
+        {
+        //pop-up modal box asking to input center of rotation
+        this->GetGUI()->GetWizardWidget()->SetErrorText( "Please ensure that you enter Center of Rotation first, before performing rotation.");
+        this->GetGUI()->GetWizardWidget()->Update();
+        }
     
       }
     else if (!strcmp(key, "Home") || !strcmp(key, "7"))
       {
-      // anti-clockwise rotation
-    
+      if (this->CORSpecified)
+        {
+        // anti-clockwise rotation
+        if (!strcmp(key,"7"))
+        {
+        // numeric keypad for finer rotation
+        this->GetGUI()->GetSecondaryMonitor()->Rotate(-rotation/2);
+        }
+        else
+        {
+        // Prior key for rotation
+        this->GetGUI()->GetSecondaryMonitor()->Rotate(-rotation);
+        }
+        }
+      else
+        {
+        //pop-up modal box asking to input center of rotation
+        this->GetGUI()->GetWizardWidget()->SetErrorText( "Please ensure that you enter Center of Rotation first, before performing rotation.");
+        this->GetGUI()->GetWizardWidget()->Update();
+        }
       }
     else if (!strcmp(key, "Clear") || !strcmp(key, "5"))
       {
@@ -1984,19 +2643,21 @@ void vtkPerkStationCalibrateStep::ProcessKeyboardEvents(vtkObject *caller, unsig
       }
 
     }
+
+  this->ProcessingCallback = false;
 }
 //----------------------------------------------------------------------------
-void vtkPerkStationCalibrateStep::RecordClick(int xyPoint[2], double rasPoint[3], unsigned int & clickNum)
+void vtkPerkStationCalibrateStep::RecordClick(int xyPoint[2], double rasPoint[3])
 {
   switch (this->CurrentSubState)
     {
     case 2: // click happened while in Translate state, depending on click number, it is either image fiducial click or physical fiducial click
-        if (clickNum ==1)
+        if (this->ClickNumber ==1)
           {
           this->TransImgFid->GetWidget(0)->SetValueAsDouble(rasPoint[0]);
           this->TransImgFid->GetWidget(1)->SetValueAsDouble(rasPoint[1]);
           }
-        else if (clickNum == 2)
+        else if (this->ClickNumber == 2)
           {
           this->TransPhyFid->GetWidget(0)->SetValueAsDouble(rasPoint[0]);
           this->TransPhyFid->GetWidget(1)->SetValueAsDouble(rasPoint[1]);
@@ -2006,18 +2667,20 @@ void vtkPerkStationCalibrateStep::RecordClick(int xyPoint[2], double rasPoint[3]
           translation[1] = (this->TransPhyFid->GetWidget(1)->GetValueAsDouble() - this->TransImgFid->GetWidget(1)->GetValueAsDouble());
           translation[2] = 0;
           this->GetGUI()->GetMRMLNode()->SetActualTranslation(translation);
-          clickNum = 0;
+          this->ClickNumber = 0;
           }
 
         break;
     case 3:
         // click happened while in Rotate state, depending on click number, it is either image fiducial click or physical fiducial click
-        if (clickNum ==1)
+        if (this->CORSpecified)
+        {
+        if (this->ClickNumber ==1)
           {
           this->RotImgFid->GetWidget(0)->SetValueAsDouble(rasPoint[0]);
           this->RotImgFid->GetWidget(1)->SetValueAsDouble(rasPoint[1]);
           }
-        else if (clickNum == 2)
+        else if (this->ClickNumber == 2)
           {
           this->RotPhyFid->GetWidget(0)->SetValueAsDouble(rasPoint[0]);
           this->RotPhyFid->GetWidget(1)->SetValueAsDouble(rasPoint[1]);       
@@ -2027,11 +2690,26 @@ void vtkPerkStationCalibrateStep::RecordClick(int xyPoint[2], double rasPoint[3]
           this->CalculateImageRotation(actualRotation);
           // and set the value in the MRML node
           this->GetGUI()->GetMRMLNode()->SetActualRotation(actualRotation);
-          clickNum = 0;
+          this->ClickNumber = 0;
           }
+        }
+        else
+        {
+        // in this case, take the first click as the click for COR
+        if (this->ClickNumber ==1)
+          {
+          this->COR->GetWidget(0)->SetValueAsDouble(rasPoint[0]);
+          this->COR->GetWidget(1)->SetValueAsDouble(rasPoint[1]);
+          // set cneter of rotation in mrml node
+          this->GetGUI()->GetMRMLNode()->SetCenterOfRotation(rasPoint[0], rasPoint[1], rasPoint[2]);    
+          this->CORSpecified = true;
+          }
+        // reset the click number to start from 0 again
+        this->ClickNumber = 0;
+        }
         break;
     default:
-        clickNum = 0;
+        this->ClickNumber = 0;
         break;
 
     }
@@ -2367,6 +3045,158 @@ void vtkPerkStationCalibrateStep::RotateImage()
 */
 }
 //-----------------------------------------------------------------------------
+/*void vtkPerkStationCalibrateStep::LoadCalibrationButtonCallback()
+{
+    if (this->CalibFileName.empty() || this->CalibFilePath.empty())
+      return;
+
+    std::string fileNameWithPath = this->CalibFilePath+"/"+this->CalibFileName;
+    ofstream file(fileNameWithPath.c_str());
+
+    this->LoadCalibration(file);
+
+}
+*/
+//-----------------------------------------------------------------------------
+/*void vtkPerkStationCalibrateStep::LoadCalibration(ostream of)
+{
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if (!mrmlNode)
+    {
+    // TO DO: what to do on failure
+    return;
+    }  
+
+  of << " Monitor Calibration parameters\""
+     << "\" \n";
+  // flip parameters
+  of << " VerticalFlip=\"" << mrmlNode->GetVerticalFlip()
+     << "\" \n";
+  
+  of << " HorizontalFlip=\"" << mrmlNode->GetHorizontalFlip()
+     << "\" \n";
+
+  double monPhySize[2];
+  this->GetGUI()->GetSecondaryMonitor()->GetPhysicalSize(monPhySize[0],monPhySize[1]);
+  // monitor physical size
+  of << " Physical size in millimeters=\"";
+  for(int i = 0; i < 2; i++)
+      of << monPhySize[i] << " ";
+  of << "\" \n";
+
+  double monPixResolution[2];
+  this->GetGUI()->GetSecondaryMonitor()->GetPixelResolution(monPixResolution[0],monPixResolution[1]);
+  // monitor pixel resolution
+  of << " Pixel resolution=\"";
+  for(int i = 0; i < 2; i++)
+      of << monPixResolution[i] << " ";
+  of << "\" \n";
+
+
+  of << " Image Transformation parameters\""
+     << "\" \n";
+  
+  of << " CenterOfRotation=\"";
+  for(int i = 0; i < 3; i++)
+      of << mrmlNode->GetCenterOfRotation()[i] << " ";
+  of << "\" \n";
+
+  of << " Transform matrix(4x4)=\"";
+  vtkMatrix4x4 *transformMatrix = this->GetGUI()->GetSecondaryMonitor()->GetResliceTransformMatrix();
+  for(int i = 0; i < 4; i++)
+  {
+    for(int j = 0; j < 4; i++)
+    {
+    of << mrmlNode->GetCenterOfRotation()[i] << " ";
+    }   
+    of << "\" \n";
+  }
+  of << "\" \n";
+  
+  
+
+}*/
+
+//-----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::SaveCalibrationButtonCallback()
+{
+    if (this->CalibFileName.empty() || this->CalibFilePath.empty())
+      return;
+
+    std::string fileNameWithPath = this->CalibFilePath+"/"+this->CalibFileName;
+    ofstream file(fileNameWithPath.c_str());
+
+    this->SaveCalibration(file);
+
+}
+
+//-----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::SaveCalibration(ostream& of)
+{
+  
+
+  // reset parameters at MRML node
+   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if (!mrmlNode)
+    {
+    // TO DO: what to do on failure
+    return;
+    }  
+
+  of << " Monitor Calibration parameters\""
+     << "\" \n";
+  // flip parameters
+  of << " VerticalFlip=\"" << mrmlNode->GetVerticalFlip()
+     << "\" \n";
+  
+  of << " HorizontalFlip=\"" << mrmlNode->GetHorizontalFlip()
+     << "\" \n";
+
+  double monPhySize[2];
+  this->GetGUI()->GetSecondaryMonitor()->GetPhysicalSize(monPhySize[0],monPhySize[1]);
+  // monitor physical size
+  of << " Physical size in millimeters=\"";
+  for(int i = 0; i < 2; i++)
+      of << monPhySize[i] << " ";
+  of << "\" \n";
+
+  double monPixResolution[2];
+  this->GetGUI()->GetSecondaryMonitor()->GetPixelResolution(monPixResolution[0],monPixResolution[1]);
+  // monitor pixel resolution
+  of << " Pixel resolution=\"";
+  for(int i = 0; i < 2; i++)
+      of << monPixResolution[i] << " ";
+  of << "\" \n";
+
+
+  of << " Image Transformation parameters\""
+     << "\" \n";
+  
+  of << " CenterOfRotation=\"";
+  for(int i = 0; i < 3; i++)
+      of << mrmlNode->GetCenterOfRotation()[i] << " ";
+  of << "\" \n";
+
+  of << " Transform matrix(4x4)=\"";
+  vtkMatrix4x4 *transformMatrix = this->GetGUI()->GetSecondaryMonitor()->GetResliceTransformMatrix();
+  for(int i = 0; i < 4; i++)
+  {
+    for(int j = 0; j < 4; i++)
+    {
+    of << mrmlNode->GetCenterOfRotation()[i] << " ";
+    }   
+    of << "\" \n";
+  }
+  of << "\" \n";
+  
+  
+
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::SuggestFileName()
+{
+}
+//-----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::Reset()
 {
   // reset flip/scale/rotate/translate on secondary display
@@ -2399,6 +3229,7 @@ void vtkPerkStationCalibrateStep::Reset()
   mrmlNode->SetActualTranslation(0.0,0.0,0.0);
   mrmlNode->CalculateCalibrateTranslationError();
   // rotate
+  mrmlNode->SetCenterOfRotation(0.0,0.0,0.0);
   mrmlNode->SetUserRotation(0.0);
   mrmlNode->SetActualRotation(0.0);
   mrmlNode->CalculateCalibrateRotationError();
@@ -2408,7 +3239,8 @@ void vtkPerkStationCalibrateStep::Reset()
   this->ImageScalingDone = false;
   this->ImageTranslationDone = false;
   this->ImageRotationDone = false;
-
+  this->CORSpecified = false;
+  this->ClickNumber = 0;
   // reset individual gui components to default values
   this->ResetControls();
 
@@ -2419,41 +3251,170 @@ void vtkPerkStationCalibrateStep::Reset()
 //----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::ResetControls()
 {
+  this->TrainingModeControlsPopulated = false;
+  this->ClinicalModeControlsPopulated = false;
+
   // do what PopulateControls() does, in addition, reset the values that have been input by user
   this->PopulateControls();
 
    switch (this->GetGUI()->GetMode())
     {
     case vtkPerkStationModuleGUI::ModeId::Training:
-      // image scaling
-        this->ImgScaling->GetWidget(0)->SetValue("");
-        this->ImgScaling->GetWidget(1)->SetValue("");
+        if (this->ImgScaling)
+          {
+          // image scaling
+          this->ImgScaling->GetWidget(0)->SetValue("");
+          this->ImgScaling->GetWidget(1)->SetValue("");
+          }
 
-        // image translation, clear the previos entries
-        this->TransImgFid->GetWidget(0)->SetValue("");
-        this->TransImgFid->GetWidget(1)->SetValue("");
-        this->TransPhyFid->GetWidget(0)->SetValue("");
-        this->TransPhyFid->GetWidget(1)->SetValue("");
-        this->Translation->GetWidget(0)->SetValue("");
-        this->Translation->GetWidget(1)->SetValue("");
+        if(this->TransImgFid)
+          {
+          // image translation, clear the previos entries
+          this->TransImgFid->GetWidget(0)->SetValue("");
+          this->TransImgFid->GetWidget(1)->SetValue("");
+          }
 
-        // image rotation
-        this->RotImgFid->GetWidget(0)->SetValue("");
-        this->RotImgFid->GetWidget(1)->SetValue("");
-        this->RotPhyFid->GetWidget(0)->SetValue("");
-        this->RotPhyFid->GetWidget(1)->SetValue("");
-        this->RotationAngle->GetWidget()->SetValue("");
+        if (this->TransPhyFid)
+          {
+          this->TransPhyFid->GetWidget(0)->SetValue("");
+          this->TransPhyFid->GetWidget(1)->SetValue("");
+          }
+
+        if (this->Translation)
+          {
+          this->Translation->GetWidget(0)->SetValue("");
+          this->Translation->GetWidget(1)->SetValue("");
+          }
+
+        if (this->RotImgFid)
+          {
+          // image rotation
+          this->RotImgFid->GetWidget(0)->SetValue("");
+          this->RotImgFid->GetWidget(1)->SetValue("");
+          }
+
+        if (this->RotPhyFid)
+          {
+          this->RotPhyFid->GetWidget(0)->SetValue("");
+          this->RotPhyFid->GetWidget(1)->SetValue("");
+          }
+
+        if (this->RotationAngle)
+          {
+          this->RotationAngle->GetWidget()->SetValue("");
+          }
+        if (this->COR)
+          {
+          this->COR->GetWidget(0)->SetValue("");
+          this->COR->GetWidget(1)->SetValue("");
+          }
         break;
 
     case vtkPerkStationModuleGUI::ModeId::Clinical:
-        this->COR->GetWidget(0)->SetValue("");
-        this->COR->GetWidget(1)->SetValue("");
+        if (this->COR)
+          {
+          this->COR->GetWidget(0)->SetValue("");
+          this->COR->GetWidget(1)->SetValue("");
+          }
       
         break;
     }
   
   
 
+}
+
+//----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::ClearLoadResetControls()
+{
+    switch (this->GetGUI()->GetMode())      
+    {
+
+    case vtkPerkStationModuleGUI::ModeId::Training:
+      // now the mode is Training, so clear the controls created for clinical mode
+      {
+      if (this->LoadResetFrame)
+        {
+        this->Script("pack forget %s", 
+                        this->LoadResetFrame->GetWidgetName());
+        }
+      if (this->LoadCalibrationFileButton)
+        {
+        this->Script("pack forget %s", 
+                        this->LoadCalibrationFileButton->GetWidgetName());
+        }
+      if (this->ResetCalibrationButton)
+        {
+        this->Script("pack forget %s", 
+                        this->ResetCalibrationButton->GetWidgetName());
+        }
+      }
+      break;
+
+    case vtkPerkStationModuleGUI::ModeId::Clinical:
+      // now the mode is clinical, so clear the controls created for training mode 
+      {
+      if (this->LoadResetFrame)
+        {
+        this->Script("pack forget %s", 
+                        this->LoadResetFrame->GetWidgetName());
+        }
+      if (this->LoadCalibrationFileButton)
+        {
+        this->Script("pack forget %s", 
+                        this->LoadCalibrationFileButton->GetWidgetName());
+        }
+      if (this->ResetCalibrationButton)
+        {
+        this->Script("pack forget %s", 
+                        this->ResetCalibrationButton->GetWidgetName());
+        }
+      
+      }
+      break;
+    }
+     
+}
+//-----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::ClearSaveControls()
+{
+    switch (this->GetGUI()->GetMode())      
+    {
+
+    case vtkPerkStationModuleGUI::ModeId::Training:
+      // now the mode is Training, so clear the controls created for clinical mode
+      {
+      if (this->SaveFrame)
+        {
+        this->Script("pack forget %s", 
+                        this->SaveFrame->GetWidgetName());
+        }
+      if (this->SaveCalibrationFileButton)
+        {
+        this->Script("pack forget %s", 
+                        this->SaveCalibrationFileButton->GetWidgetName());
+        }
+    
+      }
+      break;
+
+    case vtkPerkStationModuleGUI::ModeId::Clinical:
+      // now the mode is clinical, so clear the controls created for training mode 
+      {
+      if (this->SaveFrame)
+        {
+        this->Script("pack forget %s", 
+                        this->SaveFrame->GetWidgetName());
+        }
+      if (this->SaveCalibrationFileButton)
+        {
+        this->Script("pack forget %s", 
+                        this->SaveCalibrationFileButton->GetWidgetName());
+        }
+    
+      }
+      break;
+    }
 }
 //-----------------------------------------------------------------------------
 void vtkPerkStationCalibrateStep::ClearFlipComponents()
@@ -2464,12 +3425,40 @@ void vtkPerkStationCalibrateStep::ClearFlipComponents()
 
     case vtkPerkStationModuleGUI::ModeId::Training:
       // now the mode is Training, so clear the controls created for clinical mode
-      
+      if (this->FlipFrame)
+        {
+        this->Script("pack forget %s", 
+                        this->FlipFrame->GetWidgetName());
+        }
+      if (this->VerticalFlipCheckButton)
+        {
+        this->Script("pack forget %s", 
+                        this->VerticalFlipCheckButton->GetWidgetName());
+        }
+      if (this->HorizontalFlipCheckButton)
+        {
+        this->Script("pack forget %s", 
+                        this->HorizontalFlipCheckButton->GetWidgetName());
+        }
       break;
 
     case vtkPerkStationModuleGUI::ModeId::Clinical:
       // now the mode is clinical, so clear the controls created for training mode
-      
+      if (this->FlipFrame)
+        {
+        this->Script("pack forget %s", 
+                        this->FlipFrame->GetWidgetName());
+        }
+      if (this->VerticalFlipCheckButton)
+        {
+        this->Script("pack forget %s", 
+                        this->VerticalFlipCheckButton->GetWidgetName());
+        }
+      if (this->HorizontalFlipCheckButton)
+        {
+        this->Script("pack forget %s", 
+                        this->HorizontalFlipCheckButton->GetWidgetName());
+        }
 
       break;
     }
@@ -2483,6 +3472,11 @@ void vtkPerkStationCalibrateStep::ClearScaleComponents()
     case vtkPerkStationModuleGUI::ModeId::Training:
       // now the mode is Training, so clear the controls created for clinical mode
       {
+      if (this->ScaleFrame)
+        {
+        this->Script("pack forget %s", 
+                        this->ScaleFrame->GetWidgetName());
+        }
       if (this->MonPhySizeFrame)
         {
         this->Script("pack forget %s", 
@@ -2513,12 +3507,22 @@ void vtkPerkStationCalibrateStep::ClearScaleComponents()
         this->Script("pack forget %s", 
                         this->MonPixRes->GetWidgetName());
         }
+      if (this->UpdateAutoScale)
+        {
+        this->Script("pack forget %s", 
+                        this->UpdateAutoScale->GetWidgetName());
+        }
       }
       break;
 
     case vtkPerkStationModuleGUI::ModeId::Clinical:
       // now the mode is clinical, so clear the controls created for training mode 
       {
+      if (this->ScaleFrame)
+        {
+        this->Script("pack forget %s", 
+                        this->ScaleFrame->GetWidgetName());
+        }
       if (this->ImgPixSizeFrame)
         {
         this->Script("pack forget %s", 
@@ -2584,6 +3588,11 @@ void vtkPerkStationCalibrateStep::ClearTranslateComponents()
     case vtkPerkStationModuleGUI::ModeId::Training:
       // now the mode is Training, so clear the controls created for clinical mode
       {
+      if (this->TranslateFrame)
+        {
+        this->Script("pack forget %s", 
+                    this->TranslateFrame->GetWidgetName());
+        }
       if (this->TransMessage)
         {
         this->Script("pack forget %s", 
@@ -2595,6 +3604,11 @@ void vtkPerkStationCalibrateStep::ClearTranslateComponents()
     case vtkPerkStationModuleGUI::ModeId::Clinical:
       // now the mode is clinical, so clear the controls created for training mode 
       {
+      if (this->TranslateFrame)
+        {
+        this->Script("pack forget %s", 
+                    this->TranslateFrame->GetWidgetName());
+        }
       if (this->TransImgFidFrame)
         {
         this->Script("pack forget %s", 
@@ -2653,6 +3667,26 @@ void vtkPerkStationCalibrateStep::ClearRotateComponents()
     case vtkPerkStationModuleGUI::ModeId::Training:
       // now the mode is Training, so clear the controls created for clinical mode
       {
+      if (this->RotateFrame)
+        {
+        this->Script("pack forget %s", 
+                    this->RotateFrame->GetWidgetName());
+        }
+      if (this->CORFrame)
+        {
+        this->Script("pack forget %s", 
+                    this->CORFrame->GetWidgetName());
+        }
+      if (this->CORLabel)
+        {
+        this->Script("pack forget %s", 
+                    this->CORLabel->GetWidgetName());
+        }
+      if (this->COR)
+        {
+        this->Script("pack forget %s", 
+                    this->COR->GetWidgetName());
+        }
       if (this->RotMessage)
         {
         this->Script("pack forget %s", 
@@ -2664,6 +3698,26 @@ void vtkPerkStationCalibrateStep::ClearRotateComponents()
     case vtkPerkStationModuleGUI::ModeId::Clinical:
       // now the mode is clinical, so clear the controls created for training mode 
       {
+      if (this->RotateFrame)
+        {
+        this->Script("pack forget %s", 
+                    this->RotateFrame->GetWidgetName());
+        }
+      if (this->CORFrame)
+        {
+        this->Script("pack forget %s", 
+                    this->CORFrame->GetWidgetName());
+        }
+      if (this->CORLabel)
+        {
+        this->Script("pack forget %s", 
+                    this->CORLabel->GetWidgetName());
+        }
+      if (this->COR)
+        {
+        this->Script("pack forget %s", 
+                    this->COR->GetWidgetName());
+        }
       if (this->RotImgFidFrame)
         {
         this->Script("pack forget %s", 
@@ -2766,8 +3820,343 @@ void vtkPerkStationCalibrateStep::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
+//-----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::AddGUIObservers()
+{
+  this->RemoveGUIObservers();
+  // add event handling callbacks for each control
+  switch (this->GetGUI()->GetMode())
+    {
+    case vtkPerkStationModuleGUI::ModeId::Training:
+      {
+      
+      // flip controls
+      if (this->VerticalFlipCheckButton)
+        {
+        this->VerticalFlipCheckButton->GetWidget()->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        }
+      if (this->HorizontalFlipCheckButton)
+        {
+        this->HorizontalFlipCheckButton->GetWidget()->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        }
 
+      // scale controls     
+      if(this->ImgScaling)
+        {
+        this->ImgScaling->GetWidget(0)->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        this->ImgScaling->GetWidget(1)->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        }
+
+      // translation controls
+      if (this->Translation)
+        {
+        this->Translation->GetWidget(0)->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        this->Translation->GetWidget(1)->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        }
+    
+      // rotation controls
+      if (this->COR)
+        {
+        this->COR->GetWidget(0)->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        this->COR->GetWidget(1)->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        }
+   
+      // rotation angle
+      if(this->RotationAngle)
+        {
+        this->RotationAngle->GetWidget()->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        }
+
+      }
+    
+      break;
+
+    case vtkPerkStationModuleGUI::ModeId::Clinical:
+      {
+       // load reset components
+      if (this->LoadCalibrationFileButton)
+        {
+        this->LoadCalibrationFileButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+        }
+      if (this->ResetCalibrationButton)
+        {
+        this->ResetCalibrationButton->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+        }
+      // flip controls
+      if (this->VerticalFlipCheckButton)
+        {
+        this->VerticalFlipCheckButton->GetWidget()->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        }
+      if (this->HorizontalFlipCheckButton)
+        {
+        this->HorizontalFlipCheckButton->GetWidget()->AddObserver(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        }
+
+      // change in monitor physical size/ res, therefore update button
+      if (this->UpdateAutoScale)
+        {
+        this->UpdateAutoScale->AddObserver(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand);        
+        }
+
+      // rotation controls
+      if (this->COR)
+        {
+        this->COR->GetWidget(0)->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        this->COR->GetWidget(1)->AddObserver(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        }
+      
+      // save controls
+      if (this->SaveCalibrationFileButton)
+        {
+        this->SaveCalibrationFileButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+        }
+      }
+      
+      break;
+
+
+    }
+    this->ObserverCount++;
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::RemoveGUIObservers()
+{
+  // add event handling callbacks for each control
+  switch (this->GetGUI()->GetMode())
+    {
+    case vtkPerkStationModuleGUI::ModeId::Training:
+      {
+      
+      // flip controls
+      if (this->VerticalFlipCheckButton)
+        {
+        this->VerticalFlipCheckButton->GetWidget()->RemoveObservers(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        }
+      if (this->HorizontalFlipCheckButton)
+        {
+        this->HorizontalFlipCheckButton->GetWidget()->RemoveObservers(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        }
+
+      // scale controls     
+      if(this->ImgScaling)
+        {
+        this->ImgScaling->GetWidget(0)->RemoveObservers(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        this->ImgScaling->GetWidget(1)->RemoveObservers(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        }
+
+      // translation controls
+      if (this->Translation)
+        {
+        this->Translation->GetWidget(0)->RemoveObservers(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        this->Translation->GetWidget(1)->RemoveObservers(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        }
+    
+      // rotation controls
+      if (this->COR)
+        {
+        this->COR->GetWidget(0)->RemoveObservers(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        this->COR->GetWidget(1)->RemoveObservers(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        }
+   
+      // rotation angle
+      if(this->RotationAngle)
+        {
+        this->RotationAngle->RemoveObservers(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        }
+
+      }
+
+      break;
+
+    case vtkPerkStationModuleGUI::ModeId::Clinical:
+      {
+      // load reset components
+      if (this->LoadCalibrationFileButton)
+        {
+        this->LoadCalibrationFileButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+        }
+      if (this->ResetCalibrationButton)
+        {
+        this->ResetCalibrationButton->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+        }
+      // flip controls
+      if (this->VerticalFlipCheckButton)
+        {
+        this->VerticalFlipCheckButton->GetWidget()->RemoveObservers(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        }
+      if (this->HorizontalFlipCheckButton)
+        {
+        this->HorizontalFlipCheckButton->GetWidget()->RemoveObservers(vtkKWCheckButton::SelectedStateChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        }
+
+       // change in monitor physical size/ res, therefore update button
+      if (this->UpdateAutoScale)
+        {
+        this->UpdateAutoScale->RemoveObservers(vtkKWPushButton::InvokedEvent, (vtkCommand *)this->WizardGUICallbackCommand);        
+        }
+
+       // rotation controls
+      if (this->COR)
+        {
+        this->COR->GetWidget(0)->RemoveObservers(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        this->COR->GetWidget(1)->RemoveObservers(vtkKWEntry::EntryValueChangedEvent, (vtkCommand *)this->WizardGUICallbackCommand);
+        }
+
+      // save controls    
+      if (this->SaveCalibrationFileButton)
+        {
+        this->SaveCalibrationFileButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->WizardGUICallbackCommand );
+        }
+      
+      }
+      
+      break;
+
+
+    }
+
+  this->ObserverCount--;
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::WizardGUICallback(vtkObject *caller, unsigned long event, void *clientData, void *callData )
+{
+    vtkPerkStationCalibrateStep *self = reinterpret_cast<vtkPerkStationCalibrateStep *>(clientData);
+    if (self) { self->ProcessGUIEvents(caller, event, callData); }
+}
+
+//----------------------------------------------------------------------------
+void vtkPerkStationCalibrateStep::ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData)
+{
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+
+  if(!mrmlNode)
+      return;
+
+
+  if (this->ProcessingCallback)
+    {
+    return;
+    }
+
+  this->ProcessingCallback = true;
+
+  // load calib dialog button
+  if (this->LoadCalibrationFileButton && this->LoadCalibrationFileButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
+    {
+    const char *fileName = this->LoadCalibrationFileButton->GetFileName();
+    if ( fileName ) 
+      {
+      // indicates ok has been pressed with a file name
+      int h = 0;
+    
+      }
+    
+    // reset the file browse button text
+    this->LoadCalibrationFileButton->SetText ("Load calibration");
+   
+    }
+  
+  // save calib dialog button
+  if (this->SaveCalibrationFileButton && this->SaveCalibrationFileButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
+    {
+    const char *fileName = this->SaveCalibrationFileButton->GetFileName();
+    if ( fileName ) 
+      {
+      // indicates ok has been pressed with a file name
+      int h = 0;
+
+      // get the file name and file path
+        
+      // call the callback function
+      this->SaveCalibrationButtonCallback();
+
+    
+      }
+    
+    // reset the file browse button text
+    this->SaveCalibrationFileButton->SetText ("Save calibration");
+   
+    }
+  // reset calib button
+  if (this->ResetCalibrationButton && this->ResetCalibrationButton == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
+    {
+    this->Reset();
+    }
+
+  // update auto scale button
+  if (this->UpdateAutoScale && this->UpdateAutoScale == vtkKWPushButton::SafeDownCast(caller) && (event == vtkKWPushButton::InvokedEvent))
+    {
+    this->UpdateAutoScaleCallback();
+    }
+  // check button
+  if (this->VerticalFlipCheckButton && this->VerticalFlipCheckButton->GetWidget()== vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+    {
+    // vertical flip button selected state changed
+    this->VerticalFlipCallback(bool(this->VerticalFlipCheckButton->GetWidget()->GetSelectedState()));
+    }
+
+  if (this->HorizontalFlipCheckButton && this->HorizontalFlipCheckButton->GetWidget() == vtkKWCheckButton::SafeDownCast(caller) && (event == vtkKWCheckButton::SelectedStateChangedEvent))
+    {
+    // horizontal flip button selected state changed
+    this->HorizontalFlipCallback(bool(this->HorizontalFlipCheckButton->GetWidget()->GetSelectedState()));
+    }
+
+  // entry
+
+
+  // image scaling entry x
+  if (this->ImgScaling && this->ImgScaling->GetWidget(0) == vtkKWEntry::SafeDownCast(caller) && (event == vtkKWEntry::EntryValueChangedEvent))
+    {
+    // x-entry of image scaling
+    this->ImageScalingEntryCallback(0);
+    }
+  // image scaling entry y
+  if (this->ImgScaling && this->ImgScaling->GetWidget(1)== vtkKWEntry::SafeDownCast(caller) && (event == vtkKWEntry::EntryValueChangedEvent))
+    {
+    // y-entry of image scaling
+    this->ImageScalingEntryCallback(1);
+    }
+
+  // translation entry x
+  if (this->Translation && this->Translation->GetWidget(0)== vtkKWEntry::SafeDownCast(caller) && (event == vtkKWEntry::EntryValueChangedEvent))
+    {
+    // x-entry of translation
+    this->ImageTranslationEntryCallback(0);
+    }
+  // translation entry y
+  if (this->Translation && this->Translation->GetWidget(1)== vtkKWEntry::SafeDownCast(caller) && (event == vtkKWEntry::EntryValueChangedEvent))
+    {
+    // y-entry of translation
+    this->ImageTranslationEntryCallback(1);
+    }
+
+  // COR x
+  if (this->COR && this->COR->GetWidget(0)== vtkKWEntry::SafeDownCast(caller) && (event == vtkKWEntry::EntryValueChangedEvent))
+    {
+    // x-entry of COR
+    this->COREntryCallback(0);
+    }
+  // COR y
+  if (this->COR && this->COR->GetWidget(1)== vtkKWEntry::SafeDownCast(caller) && (event == vtkKWEntry::EntryValueChangedEvent))
+    {
+    // y-entry of COR
+    this->COREntryCallback(1);
+    }
+
+  // rotation angle
+  if (this->RotationAngle && this->RotationAngle->GetWidget()== vtkKWEntry::SafeDownCast(caller) && (event == vtkKWEntry::EntryValueChangedEvent))
+    {
+    // rotation angle
+    this->ImageRotationEntryCallback();
+    
+    }
+  
+
+  this->ProcessingCallback = false;
+}
 //----------------------------------------------------------------------------
 /*void vtkPerkStationCalibrateStep::Validate()
 {
 }*/
+
+

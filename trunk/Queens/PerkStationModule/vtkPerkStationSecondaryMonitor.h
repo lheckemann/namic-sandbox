@@ -94,6 +94,11 @@ public:
   vtkMatrix4x4 *GetXYToIJK(){ return this->XYToIJK;};
 
   // Description
+  // Get ResliceTranform matrix
+  vtkMatrix4x4 *GetResliceTransformMatrix();
+
+
+  // Description
   // Flip vertically, i.e., about x-axis (left stays left)
   void FlipVertical();
 

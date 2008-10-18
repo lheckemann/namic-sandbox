@@ -14,12 +14,19 @@ vtkCxxSetObjectMacro(vtkPerkStationStep,GUI,vtkPerkStationModuleGUI);
 vtkPerkStationStep::vtkPerkStationStep()
 {
   this->GUI = NULL;
+  this->WizardGUICallbackCommand = vtkCallbackCommand::New();
+  this->WizardGUICallbackCommand->SetClientData(reinterpret_cast<void *>(this));
 }
 
 //----------------------------------------------------------------------------
 vtkPerkStationStep::~vtkPerkStationStep()
 {
   this->SetGUI(NULL);
+  if(this->WizardGUICallbackCommand) 
+  {
+        this->WizardGUICallbackCommand->Delete();
+        this->WizardGUICallbackCommand=NULL;
+  }
 }
 
 //----------------------------------------------------------------------------

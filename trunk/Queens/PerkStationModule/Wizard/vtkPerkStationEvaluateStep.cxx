@@ -752,6 +752,7 @@ void vtkPerkStationEvaluateStep::PopulateControls()
 //----------------------------------------------------------------------------
 void vtkPerkStationEvaluateStep::ResetControls()
 {
+  
 }
 //----------------------------------------------------------------------------
 void vtkPerkStationEvaluateStep::Reset()
