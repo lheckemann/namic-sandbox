@@ -28,12 +28,16 @@ public:
   virtual void Validate();
   virtual int CanGoToSelf();
 
+  void AddGUIObservers() { }
+  virtual void RemoveGUIObservers() { }
+  virtual void ProcessGUIEvents(vtkObject *caller, unsigned long event, void *callData) { }
+
 protected:
   vtkPerkStationStep();
   ~vtkPerkStationStep();
 
   vtkPerkStationModuleGUI *GUI;
-
+  vtkCallbackCommand *WizardGUICallbackCommand;
 private:
   vtkPerkStationStep(const vtkPerkStationStep&);
   void operator=(const vtkPerkStationStep&);

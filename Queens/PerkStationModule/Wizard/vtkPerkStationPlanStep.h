@@ -55,7 +55,7 @@ protected:
   virtual void InstallCallbacks();
 
   void ResetControls();
-
+  bool DoubleEqual(double val1, double val2);
   virtual void CalculatePlanInsertionAngleAndDepth();
   // entry point RAS
   // information to be had from the user
@@ -71,8 +71,12 @@ protected:
   double WCEntryPoint[3];
   double WCTargetPoint[3];
 
+  bool EntryTargetAcquired;
+  unsigned int ClickNumber;
   vtkActor *NeedleActor;
 private:
+
+
   vtkPerkStationPlanStep(const vtkPerkStationPlanStep&);
   void operator=(const vtkPerkStationPlanStep&);
 };

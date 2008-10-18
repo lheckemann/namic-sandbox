@@ -44,6 +44,9 @@ vtkPerkStationPlanStep::vtkPerkStationPlanStep()
   this->WCTargetPoint[0] = 0.0;
   this->WCTargetPoint[1] = 0.0;
   this->WCTargetPoint[2] = 0.0;
+
+  this->EntryTargetAcquired = false;
+  this->ClickNumber = 0;
   this->NeedleActor = NULL;
 }
 
@@ -106,12 +109,14 @@ void vtkPerkStationPlanStep::ShowUserInterface()
     case vtkPerkStationModuleGUI::ModeId::Training:
 
       this->SetName("2/5. Plan");
+      this->GetGUI()->GetWizardWidget()->Update();
       break;
 
     case vtkPerkStationModuleGUI::ModeId::Clinical:
        
       // in clinical mode
       this->SetName("2/4. Plan");
+      this->GetGUI()->GetWizardWidget()->Update();
       break;
     }
   
@@ -291,137 +296,6 @@ void vtkPerkStationPlanStep::ShowUserInterface()
 }
 
 //----------------------------------------------------------------------------
-/*void vtkPerkStationPlanStep::PopulateIntensityImagesTargetVolumeSelector()
-{  
-  vtkIdType vol_id, target_vol_id;
-  char buffer[256];
-  bool found = false;
-
-  vtkPerkStationtMRMLManager *mrmlManager = this->GetGUI()->GetMRMLManager();
-  if (!mrmlManager)
-    {
-    return;
-    }
-  int nb_of_volumes = mrmlManager->GetVolumeNumberOfChoices();
-  int nb_of_target_volumes = mrmlManager->GetTargetNumberOfSelectedVolumes();
-  
-  // clear the lists 
-  this->IntensityImagesTargetVolumeSelector->RemoveItemsFromSourceList();
-  this->IntensityImagesTargetVolumeSelector->RemoveItemsFromFinalList();
-
-  // Update the source volume list 
-  for (int index = 0; index < nb_of_volumes; index++)
-    {
-    vol_id = mrmlManager->GetVolumeNthID(index);
-    found = false;
-    for(int i = 0; i < nb_of_target_volumes; i++)
-      {
-      target_vol_id = mrmlManager->GetTargetSelectedVolumeNthID(i);
-      if (vol_id == target_vol_id)
-        {
-        found = true;
-        break;
-        }
-      }
-    if (!found)
-      {
-      const char *name = mrmlManager->GetVolumeName(vol_id);
-      if (name)
-        {
-        sprintf(buffer, "%s (%d)", name, static_cast<int>(vol_id));
-        this->IntensityImagesTargetVolumeSelector->AddSourceElement(buffer);
-        }
-      }
-    }
-
-  // Update the target volume list
-  for(int i = 0; i < nb_of_target_volumes; i++)
-    {
-    target_vol_id = mrmlManager->GetTargetSelectedVolumeNthID(i);
-    const char *name = mrmlManager->GetVolumeName(target_vol_id);
-    if (name)
-      {
-      sprintf(buffer, "%s (%d)", name, static_cast<int>(target_vol_id));
-      this->IntensityImagesTargetVolumeSelector->AddFinalElement(buffer);
-      }
-    }
-}
-*/
-//----------------------------------------------------------------------------
-/*void vtkPerkStationPlanStep::IntensityImagesTargetSelectionChangedCallback()
-{
-  // nothing for now; changes are made on transitions
-  // (see svn revisions)
-}
-*/
-//----------------------------------------------------------------------------
-/*void vtkPerkStationPlanStep::AlignTargetImagesCallback(int state)
-{
-  // The align target images checkbutton has changed because of user
-  // interaction
-  
-  vtkPerkStationtMRMLManager *mrmlManager = this->GetGUI()->GetMRMLManager();
-  if (mrmlManager)
-    {
-    mrmlManager->SetEnableTargetToTargetRegistration(state);
-    }
-}
-*/
-//----------------------------------------------------------------------------
-/*void vtkPerkStationPlanStep::Validate()
-{/*
-  vtkKWWizardWorkflow *wizard_workflow = 
-    this->GetGUI()->GetWizardWidget()->GetWizardWorkflow();
-  vtkPerkStationtMRMLManager *mrmlManager = this->GetGUI()->GetMRMLManager();
-  
-  if (mrmlManager && mrmlManager->GetTargetInputNode() != NULL)
-    {
-    // decide if the number of target volumes changed
-    unsigned int nb_of_parameter_target_volumes = 
-      mrmlManager->GetTargetNumberOfSelectedVolumes();
-    unsigned int nb_of_currently_selected_target_volumes = 
-      this->IntensityImagesTargetVolumeSelector->
-      GetNumberOfElementsOnFinalList();
-    bool number_of_target_images_changed = 
-      nb_of_parameter_target_volumes != nb_of_currently_selected_target_volumes;
-    
-    if (number_of_target_images_changed &&
-        !vtkKWMessageDialog::PopupYesNo
-        (this->GetApplication(), 
-         NULL, 
-         "Change the number of target images?",
-         "Are you sure you want to change the number of target images?",
-         vtkKWMessageDialog::WarningIcon | vtkKWMessageDialog::InvokeAtPointer))
-      {
-      // don't change number of volumes; stay on this step
-      wizard_workflow->PushInput(vtkKWWizardStep::GetValidationFailedInput());
-      wizard_workflow->ProcessInputs();
-      }
-    else
-      {
-      // record indices of currently selected volumes
-      std::vector<vtkIdType> selectedIDs;
-      for(unsigned int i = 0; i < nb_of_currently_selected_target_volumes; ++i) 
-        {
-        std::string targettext = 
-          this->IntensityImagesTargetVolumeSelector->GetElementFromFinalList(i);
-        std::string::size_type pos1 = targettext.rfind("(");
-        std::string::size_type pos2 = targettext.rfind(")");
-        if (pos1 != vtksys_stl::string::npos && pos2 != vtksys_stl::string::npos)
-          {
-          vtkIdType vol_id = atoi(targettext.substr(pos1+1, pos2-pos1-1).c_str());
-          selectedIDs.push_back(vol_id);
-          }
-        }
-      mrmlManager->ResetTargetSelectedVolumes(selectedIDs);
-      }
-    }
-    
-  this->Superclass::Validate();
-}
-
-*/
-//----------------------------------------------------------------------------
 void vtkPerkStationPlanStep::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
@@ -449,7 +323,7 @@ void vtkPerkStationPlanStep::PopulateControls()
 //----------------------------------------------------------------------------
 void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned long event, void *callData)
 {
-  static unsigned int clickNum = 0;
+  
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
 
   
@@ -465,6 +339,11 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned
     return;
     }
 
+  // see if the entry and target have already been acquired
+  if(this->EntryTargetAcquired)
+    {
+    return;
+    }
   vtkSlicerInteractorStyle *s = vtkSlicerInteractorStyle::SafeDownCast(caller);
   vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
   vtkSlicerInteractorStyle *istyleSecondary = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor()->GetInteractorStyle());
@@ -474,7 +353,7 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned
 
   if (((s == istyle0)||(s == istyleSecondary)) && (event == vtkCommand::LeftButtonPressEvent))
     {
-    ++clickNum;
+    ++this->ClickNumber;
     // mouse click happened in the axial slice view
 
     if (s == istyle0)
@@ -499,7 +378,7 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned
     double ras[3] = {outPt[0], outPt[1], outPt[2]};
 
     // depending on click number, it is either Entry point or target point
-    if (clickNum ==1)
+    if (this->ClickNumber ==1)
       {
       // entry point specification by user
       this->EntryPoint->GetWidget(0)->SetValueAsDouble(ras[0]);
@@ -515,7 +394,7 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned
       
 
       }
-    else if (clickNum == 2)
+    else if (this->ClickNumber == 2)
       {
       this->TargetPoint->GetWidget(0)->SetValueAsDouble(ras[0]);
       this->TargetPoint->GetWidget(1)->SetValueAsDouble(ras[1]);
@@ -535,7 +414,9 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned
       // do an image overlay of a cylinder!!
       this->OverlayNeedleGuide();
       this->GetGUI()->GetSecondaryMonitor()->OverlayNeedleGuide();
-      clickNum = 0;
+      this->ClickNumber = 0;
+
+      this->EntryTargetAcquired = true;
       }
 
 
@@ -543,13 +424,35 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned
 }
 
 //----------------------------------------------------------------------------
+bool vtkPerkStationPlanStep::DoubleEqual(double val1, double val2)
+{
+  bool result = false;
+    
+  if(fabs(val2-val1) < 0.0001)
+      result = true;
+
+  return result;
+}
+
+//----------------------------------------------------------------------------
 void vtkPerkStationPlanStep::InsertionDepthEntryCallback(double value)
 {
+    if (!this->GetGUI()->GetMRMLNode())
+        return;
+
     // TO DO: check if its a valid input i.e. non-negative  
+    double mrmlVal = this->GetGUI()->GetMRMLNode()->GetUserPlanInsertionDepth();
     
-    // set the value in the mrml node
-    this->GetGUI()->GetMRMLNode()->SetUserPlanInsertionDepth(value); 
-    this->GetGUI()->GetMRMLNode()->CalculatePlanInsertionDepthError();
+    if (strcmpi(this->InsertionDepth->GetWidget()->GetValue(), "")!=0)
+      {
+      if(!this->DoubleEqual(mrmlVal,value))
+        {
+        // set the value in the mrml node
+        this->GetGUI()->GetMRMLNode()->SetUserPlanInsertionDepth(value); 
+        this->GetGUI()->GetMRMLNode()->CalculatePlanInsertionDepthError();  
+        }
+      }
+    
 }
 
 
@@ -557,10 +460,21 @@ void vtkPerkStationPlanStep::InsertionDepthEntryCallback(double value)
 void vtkPerkStationPlanStep::InsertionAngleEntryCallback(double value)
 {
     // TO DO: check if its a valid input i.e. 0-360 
+    if (!this->GetGUI()->GetMRMLNode())
+        return;
+
+    // TO DO: check if its a valid input i.e. non-negative  
+    double mrmlVal = this->GetGUI()->GetMRMLNode()->GetUserPlanInsertionAngle();
     
-    // set the value in the mrml node
-    this->GetGUI()->GetMRMLNode()->SetUserPlanInsertionAngle(value);  
-    this->GetGUI()->GetMRMLNode()->CalculatePlanInsertionAngleError();
+    if (strcmpi(this->InsertionAngle->GetWidget()->GetValue(), "")!=0)
+      {
+      if(!this->DoubleEqual(mrmlVal,value))
+        {
+        // set the value in the mrml node
+        this->GetGUI()->GetMRMLNode()->SetUserPlanInsertionAngle(value);  
+        this->GetGUI()->GetMRMLNode()->CalculatePlanInsertionAngleError();
+        }
+      }
     
 }
 
@@ -731,6 +645,9 @@ void vtkPerkStationPlanStep::Reset()
   mrmlNode->SetActualPlanInsertionDepth(0.0);
   mrmlNode->CalculatePlanInsertionAngleError();
   mrmlNode->CalculatePlanInsertionDepthError();
+  // the fiducial list node
+  mrmlNode->GetPlanMRMLFiducialListNode()->RemoveAllFiducials();
+
 
   // reset local member variables to defaults
   this->WCEntryPoint[0] = 0.0;
@@ -739,7 +656,8 @@ void vtkPerkStationPlanStep::Reset()
   this->WCTargetPoint[0] = 0.0;
   this->WCTargetPoint[1] = 0.0;
   this->WCTargetPoint[2] = 0.0;
-
+  this->EntryTargetAcquired = false;
+  this->ClickNumber = 0;
   // reset gui controls
   this->ResetControls();
   
@@ -747,14 +665,28 @@ void vtkPerkStationPlanStep::Reset()
 //------------------------------------------------------------------------------
 void vtkPerkStationPlanStep::ResetControls()
 {
-  this->EntryPoint->GetWidget(0)->SetValue("");
-  this->EntryPoint->GetWidget(1)->SetValue("");
-  this->EntryPoint->GetWidget(2)->SetValue("");
-  this->TargetPoint->GetWidget(0)->SetValue("");
-  this->TargetPoint->GetWidget(1)->SetValue("");
-  this->TargetPoint->GetWidget(2)->SetValue("");
-  this->InsertionAngle->GetWidget()->SetValue("");
-  this->InsertionDepth->GetWidget()->SetValue("");
+  if(this->EntryPoint)
+    {
+    this->EntryPoint->GetWidget(0)->SetValue("");
+    this->EntryPoint->GetWidget(1)->SetValue("");
+    this->EntryPoint->GetWidget(2)->SetValue("");
+    }
+  if (this->TargetPoint)
+    {
+    this->TargetPoint->GetWidget(0)->SetValue("");
+    this->TargetPoint->GetWidget(1)->SetValue("");
+    this->TargetPoint->GetWidget(2)->SetValue("");
+    }
+
+  if (this->InsertionAngle)
+    {
+    this->InsertionAngle->GetWidget()->SetValue("");
+    }
+  
+  if (this->InsertionDepth)
+    {
+    this->InsertionDepth->GetWidget()->SetValue("");
+    }
 }
 //------------------------------------------------------------------------------
 void vtkPerkStationPlanStep::RemoveOverlayNeedleGuide()

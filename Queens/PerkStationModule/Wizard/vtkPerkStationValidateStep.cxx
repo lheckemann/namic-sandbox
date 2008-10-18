@@ -2,6 +2,7 @@
 
 #include "vtkPerkStationModuleGUI.h"
 #include "vtkMRMLPerkStationModuleNode.h"
+#include "vtkPerkStationSecondaryMonitor.h"
 
 #include "vtkKWFrame.h"
 #include "vtkKWLabel.h"
@@ -87,12 +88,14 @@ void vtkPerkStationValidateStep::ShowUserInterface()
     case vtkPerkStationModuleGUI::ModeId::Training:
 
       this->SetName("4/5. Validate");
+      this->GetGUI()->GetWizardWidget()->Update();
       break;
 
     case vtkPerkStationModuleGUI::ModeId::Clinical:
        
       // in clinical mode
       this->SetName("4/4. Validate");
+      this->GetGUI()->GetWizardWidget()->Update();
       break;
     }
   
@@ -411,21 +414,35 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
 
   vtkSlicerInteractorStyle *s = vtkSlicerInteractorStyle::SafeDownCast(caller);
   vtkSlicerInteractorStyle *istyle0 = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor()->GetInteractorStyle());
+  vtkSlicerInteractorStyle *istyleSecondary = vtkSlicerInteractorStyle::SafeDownCast(this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor()->GetInteractorStyle());
+
+  vtkRenderWindowInteractor *rwi;
+  vtkMatrix4x4 *matrix;
   vtkRenderer *renderer = this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer();
 
-  if ((s == istyle0) && (event == vtkCommand::LeftButtonPressEvent))
+  if ((s == istyleSecondary) && (event == vtkCommand::LeftButtonPressEvent))
     {
     ++clickNum;
-    // mouse click happened in the axial slice view
+    if (s == istyle0)
+      {
+      // mouse click happened in the axial slice view      
+      vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red");
+      rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();    
+      matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
+      }
+    else if (s == istyleSecondary)
+      {   
+      rwi = this->GetGUI()->GetSecondaryMonitor()->GetRenderWindowInteractor();
+      matrix = this->GetGUI()->GetSecondaryMonitor()->GetXYToRAS(); 
+      }
+    
     
     // capture the point
-    vtkSlicerSliceGUI *sliceGUI = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI("Red");
-    vtkRenderWindowInteractor *rwi = sliceGUI->GetSliceViewer()->GetRenderWidget()->GetRenderWindowInteractor();
     int point[2];
     rwi->GetLastEventPosition(point);
     double inPt[4] = {point[0], point[1], 0, 1};
     double outPt[4];
-    vtkMatrix4x4 *matrix = sliceGUI->GetLogic()->GetSliceNode()->GetXYToRAS();
+    
     matrix->MultiplyPoint(inPt, outPt); 
     double ras[3] = {outPt[0], outPt[1], outPt[2]};
 
@@ -499,11 +516,22 @@ void vtkPerkStationValidateStep::Reset()
 //------------------------------------------------------------------------------
 void vtkPerkStationValidateStep::ResetControls()
 {
-  this->EntryPoint->GetWidget(0)->SetValue("");
-  this->EntryPoint->GetWidget(1)->SetValue("");
-  this->EntryPoint->GetWidget(2)->SetValue("");
-  this->TargetPoint->GetWidget(0)->SetValue("");
-  this->TargetPoint->GetWidget(1)->SetValue("");
-  this->TargetPoint->GetWidget(2)->SetValue(""); 
-  this->InsertionDepth->GetWidget()->SetValue("");
+  if (this->EntryPoint)
+    {
+    this->EntryPoint->GetWidget(0)->SetValue("");
+    this->EntryPoint->GetWidget(1)->SetValue("");
+    this->EntryPoint->GetWidget(2)->SetValue("");
+    }
+
+  if (this->TargetPoint)
+    {  
+    this->TargetPoint->GetWidget(0)->SetValue("");
+    this->TargetPoint->GetWidget(1)->SetValue("");
+    this->TargetPoint->GetWidget(2)->SetValue(""); 
+    }
+
+  if (this->InsertionDepth)
+    {  
+    this->InsertionDepth->GetWidget()->SetValue("");
+    }
 }

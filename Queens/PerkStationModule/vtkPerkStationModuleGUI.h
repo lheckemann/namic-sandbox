@@ -186,7 +186,10 @@ protected:
 
   // mode selector menu
   vtkKWMenuButtonWithLabel *ModeListMenu;
-   
+
+  // Description:
+  // Describes whether the GUI has been built or not
+  bool Built;
 
 private:
    // Description:
