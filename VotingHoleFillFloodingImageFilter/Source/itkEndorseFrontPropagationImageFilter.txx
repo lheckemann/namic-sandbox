@@ -45,6 +45,8 @@ EndorseFrontPropagationImageFilter<TInputImage1, TInputImage2, TOutputImage>
   this->m_SeedArray2 = new SeedArrayType;
 
   this->m_OutputImage = NULL;
+  this->m_CreditInputImage = NULL;
+  this->m_EndorsementThreshold = 1.0;
 }
 
 /**
@@ -123,6 +125,7 @@ EndorseFrontPropagationImageFilter<TInputImage1, TInputImage2, TOutputImage>
 ::AllocateOutputImageWorkingMemory()
 {
   this->m_OutputImage  = this->GetOutput();
+
   OutputImageRegionType region =  this->m_OutputImage->GetRequestedRegion();
 
   // Allocate memory for the output image itself.
@@ -134,6 +137,8 @@ EndorseFrontPropagationImageFilter<TInputImage1, TInputImage2, TOutputImage>
   this->m_SeedsMask->SetRegions( region );
   this->m_SeedsMask->Allocate();
   this->m_SeedsMask->FillBuffer( 0 );
+
+  this->m_CreditInputImage = dynamic_cast< const TInputImage2 * >( ProcessObject::GetInput(1) );
 }
 
  
@@ -236,7 +241,7 @@ EndorseFrontPropagationImageFilter<TInputImage1, TInputImage2, TOutputImage>
     {
     this->SetCurrentPixelIndex( *seedItr );
 
-    if( this->TestForQuorumAtCurrentPixel() )
+    if( this->TestForEndorsementAtCurrentPixel() )
       {
       this->m_SeedsNewValues.push_back( this->GetForegroundValue() );
       this->PutCurrentPixelNeighborsIntoSeedArray();
@@ -313,16 +318,19 @@ EndorseFrontPropagationImageFilter<TInputImage1, TInputImage2, TOutputImage>
 template <class TInputImage1, class TInputImage2, class TOutputImage>
 bool 
 EndorseFrontPropagationImageFilter<TInputImage1, TInputImage2, TOutputImage>
-::TestForQuorumAtCurrentPixel() const
+::TestForEndorsementAtCurrentPixel() const
 {
   //
   // Find the location of the current pixel in the image memory buffer
   //
-  const OffsetValueType offset = this->m_OutputImage->ComputeOffset( this->GetCurrentPixelIndex() );
+  const OffsetValueType maskOffset   = this->m_OutputImage->ComputeOffset( this->GetCurrentPixelIndex() );
+  const OffsetValueType creditOffset = this->m_CreditInputImage->ComputeOffset( this->GetCurrentPixelIndex() );
 
-  const InputImagePixelType * buffer = this->m_OutputImage->GetBufferPointer();
+  const InputImagePixelType * maskBuffer   = this->m_OutputImage->GetBufferPointer();
+  const InputImagePixelType * maskCurrentPixelPointer   = maskBuffer   + maskOffset;
 
-  const InputImagePixelType * currentPixelPointer = buffer + offset;
+  const CreditInputImagePixelType * creditBuffer = this->m_CreditInputImage->GetBufferPointer();
+  const CreditInputImagePixelType * creditCurrentPixelPointer = creditBuffer + creditOffset;
 
   unsigned int numberOfNeighborsAtForegroundValue = 0;
 
@@ -336,21 +344,29 @@ EndorseFrontPropagationImageFilter<TInputImage1, TInputImage2, TOutputImage>
 
   const InputImagePixelType foregroundValue = this->GetForegroundValue();
 
+  const double currentCreditPixelValue = *creditCurrentPixelPointer;
+
+  double totalEndorsement = 0.0;
+
   while( neighborItr != this->m_NeighborBufferOffset.end() )
     {
-    const InputImagePixelType * neighborPixelPointer = currentPixelPointer + *neighborItr;
+    const InputImagePixelType * neighborPixelPointer = maskCurrentPixelPointer + *neighborItr;
 
     if( *neighborPixelPointer == foregroundValue )
       {
+      const CreditInputImagePixelType * neighborCreditPixelPointer = creditCurrentPixelPointer + *neighborItr;
+      const double intensityDistance = currentCreditPixelValue - static_cast< double >( *neighborCreditPixelPointer );
+      const double neighborEndorsement = 1.0 / ( 1.0 + intensityDistance * intensityDistance );
+      totalEndorsement += neighborEndorsement;
       numberOfNeighborsAtForegroundValue++;
       }
 
     ++neighborItr;
     }
 
-  bool quorum = (numberOfNeighborsAtForegroundValue > this->GetBirthThreshold() );
+  bool endorsement = (totalEndorsement > this->GetEndorsementThreshold() );
 
-  return quorum;
+  return endorsement;
 }
 
 
