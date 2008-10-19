@@ -59,6 +59,9 @@ public:
   typedef typename InputImageType::IndexType              IndexType;
   typedef typename InputImageType::OffsetValueType        OffsetValueType;
   
+  typedef TInputImage2                                    CreditInputImageType;
+  typedef typename CreditInputImageType::PixelType        CreditInputImagePixelType; 
+
   typedef typename Superclass::OutputImageType            OutputImageType;
   typedef typename OutputImageType::Pointer               OutputImagePointer;
   typedef typename OutputImageType::RegionType            OutputImageRegionType; 
@@ -78,6 +81,14 @@ public:
    * the current OFF pixel to ON. The default value is 1. */ 
   itkGetConstReferenceMacro( MajorityThreshold, unsigned int );
   itkSetMacro( MajorityThreshold, unsigned int );
+
+  /** Endorsement Threshold. At every candidate pixel an endorsement from its
+   * neighbors is computed based on their difference in intensity values. The
+   * endorsements from all neighbors are added, and when the sum is larger that
+   * this EndorsementThreshold then the pixel is included in the propagating
+   * front. */
+  itkGetConstReferenceMacro( EndorsementThreshold, double );
+  itkSetMacro( EndorsementThreshold, double );
 
   /** Set/Get the maximum number of iterations that will be applied to the
    * propagating front */
@@ -134,7 +145,7 @@ private:
 
   void ClearSecondSeedArray();
 
-  bool TestForQuorumAtCurrentPixel() const;
+  bool TestForEndorsementAtCurrentPixel() const;
  
   void PutCurrentPixelNeighborsIntoSeedArray();
 
@@ -177,7 +188,8 @@ private:
   //
   // Helper cache variables 
   //
-  const InputImageType *            m_InputImage;
+  const InputImageType *            m_MaskInputImage;
+  const CreditInputImageType *      m_CreditInputImage;
   OutputImageType *                 m_OutputImage;
 
   typedef itk::Image< unsigned char, InputImageDimension >  SeedMaskImageType;
@@ -188,6 +200,9 @@ private:
   typedef itk::Neighborhood< InputImagePixelType, InputImageDimension >  NeighborhoodType;
 
   NeighborhoodType                  m_Neighborhood;
+
+  double                            m_EndorsementThreshold;
+
 };
 
 } // end namespace itk

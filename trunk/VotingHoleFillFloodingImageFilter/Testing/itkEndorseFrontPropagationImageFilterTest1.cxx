@@ -76,9 +76,9 @@ int main( int argc, char * argv[] )
   filter->SetBackgroundValue(   0 );
   filter->SetForegroundValue( 255 );
 
-  const unsigned int majorityThreshold = atoi( argv[6] );
+  const double endorsementThreshold = atof( argv[6] );
 
-  filter->SetMajorityThreshold( majorityThreshold  );
+  filter->SetEndorsementThreshold( endorsementThreshold );
 
   const unsigned int maximumNumberOfIterations = atoi( argv[7] );
 

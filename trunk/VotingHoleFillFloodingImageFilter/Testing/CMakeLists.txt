@@ -53,7 +53,7 @@ ADD_TEST(itkEndorseTest1
   ${PROJECT_SOURCE_DIR}/Data/BrainProtonDensitySlice.png
   ${TEMP}/BrainProtonDensitySliceThresholded1Endorsed1.png
   2 2 
-  1
+  120.0
   100
   )
 
