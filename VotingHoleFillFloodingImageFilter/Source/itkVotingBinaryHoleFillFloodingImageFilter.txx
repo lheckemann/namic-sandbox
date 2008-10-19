@@ -143,7 +143,8 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
   OutputImageRegionType region =  inputImage->GetRequestedRegion();
 
   ConstNeighborhoodIterator< InputImageType >   bit;
-  ImageRegionIterator< OutputImageType >        it;
+  ImageRegionIterator< OutputImageType >        itr;
+  ImageRegionIterator< SeedMaskImageType >      mtr;
   
   const InputSizeType & radius = this->GetRadius();
 
@@ -158,8 +159,12 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
   fit = faceList.begin();
   
   bit = ConstNeighborhoodIterator<InputImageType>( radius, inputImage, *fit );
-  it  = ImageRegionIterator<OutputImageType>(this->m_OutputImage, *fit);
+  itr  = ImageRegionIterator<OutputImageType>(this->m_OutputImage, *fit);
+  mtr  = ImageRegionIterator<SeedMaskImageType>(this->m_SeedsMask, *fit);
+
   bit.GoToBegin();
+  itr.GoToBegin();
+  mtr.GoToBegin();
   
   unsigned int neighborhoodSize = bit.Size();
 
@@ -173,11 +178,13 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
     {
     if( bit.GetCenterPixel() == foregroundValue )
       {
-      it.Set( foregroundValue );
+      itr.Set( foregroundValue );
+      mtr.Set( 255 );
       }
     else
       {
-      it.Set( backgroundValue );
+      itr.Set( backgroundValue );
+      mtr.Set( 0 );
       
       // Search for foreground pixels in the neighborhood
       for (unsigned int i = 0; i < neighborhoodSize; ++i)
@@ -191,7 +198,8 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage,TOutputImage>
         }
       }   
     ++bit;
-    ++it;
+    ++itr;
+    ++mtr;
     }
   this->m_SeedsNewValues.reserve( this->m_SeedArray1->size() ); 
 }
