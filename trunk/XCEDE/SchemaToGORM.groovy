@@ -6,17 +6,28 @@ import groovy.text.*;
 class Field {
   String name = ''
   String type = ''
-  boolean isSimple = false;
+  Integer minOccurs = 1
+  Integer maxOccurs = 1
+  String toString() { return type; }
+  boolean allowNull() { return minOccurs == 0; }
 }
   
 
 class SchemaClass {
   def derivedFrom = '';
+  def useDerived = false;
+  def isArray = false;
+  def xmlTag = ''
   def name = '';
+  // Name is key, type is value
   def simpleFields = new HashMap()
+  // Name is key, type is value
   def arrayFields = new HashMap()
   def fields = []
   def attributes = []
+  def getClassName() {
+    if ( !isArray && useDerived ) { return derivedFrom; } else { return name; }
+  }
   def isSimple ( t ) {
     switch ( t ) {
       case 'String': case 'Float': case 'Integer': case 'Boolean': case 'Date': return true;
@@ -67,19 +78,27 @@ path.simpleType.each() { cb.processSimpleType ( it, cb.transformClassname ( it.@
 path.complexType.each() { cb.processComplexType ( it ) }
 
 System.out.println ( '\n\n =====  Starting to print ====' );
-cb.printAllClasses()
+cb.printAllClasses ( OutputDir )
 
 class ClassBuilder {
   def ClassTemplate = new File ( 'ClassTemplate.template' )
   def ClassList = [:]
 
-  def printAllClasses () {
+  def printAllClasses ( OutputDir ) {
     /* First remap all simple classes */
+    /*
     ClassList.each() { clentry ->
       def cl = clentry.value
+      println ( 'PrintAllClasses: ' + cl.name )
+      if ( cl.isSimple ( cl.derivedFrom ) ) {
+        cl.useDerived = true
+      }
+    }
+    */
+      /*
       cl.arrayFields.each() { entry ->
-        println ( "PrintAllClasses: " + entry.key + ': ' + entry.value )
-        /* Does the class derive from a simple type? */
+        println ( "\t" + entry.key + ': ' + entry.value )
+        // Does the class derive from a simple type?
         if ( !cl.isSimple ( entry.value ) ) {
           def DerivedClass = ClassList[entry.value]?.derivedFrom
           println ( "\tDerived class: ${DerivedClass}" )
@@ -87,40 +106,45 @@ class ClassBuilder {
             println ( "\t\tChanging ${entry.value} to ${DerivedClass}" )
             entry.value = DerivedClass
           }
-        }
-      }
-    }
-      
-    ClassList.each() { printClass ( it.value ) }
+        } 
+      } */ 
+
+    // Now add the simple classes
+    /*
+    ClassList["String"] = new SchemaClass ( name: "String" )
+    ClassList["Integer"] = new SchemaClass ( name: "Integer" )
+    ClassList["Boolean"] = new SchemaClass ( name: "Boolean" )
+    ClassList["Date"] = new SchemaClass ( name: "Date" )
+    ClassList["Float"] = new SchemaClass ( name: "Float" )
+    */  
+    ClassList.each() { printClass ( OutputDir, it.value ) }
   }
 
 
-  def printClass ( cl ) {
+  def printClass ( File OutputDir, cl ) {
 
     /* don't bother to write out simple classes */
-    if ( cl.isSimple ( cl.derivedFrom ) ) { return }
+    // if ( cl.isSimple ( cl.derivedFrom ) ) { return }
 
     /* Should write to a file... */
-    def o = System.out
+    def o = new FileWriter ( new File ( OutputDir, cl.name + '.groovy' ) )
 
-
-
-    o.println ( '\n ==== Writing class: ' + cl.name )
-    def binding = [ "cl" : cl ];
+    println ( ' ==== Writing class: ' + cl.name )
+    def binding = [ "cl" : cl, "cb" : this ];
     def engine = new SimpleTemplateEngine()
     def template = engine.createTemplate ( ClassTemplate ).make ( binding )
-    println ( template.toString() )
+    o.print ( template.toString() )
   }
 
   def transformClassname ( cn ) {
     switch ( cn.toString() ) {
+      case 'xs:anyURI': return "String";
       case 'xs:string': return "String";
       case 'xs:float': return "Float";
       case 'xs:integer': 
-        case 'xs:int': return "Integer";
+      case 'xs:int': return "Integer";
       case 'xs:boolean': return "Boolean";
       case 'xs:dateTime': return "Date";
-      
     }
     def ClassName = ''
     cn.toString().split ( '_' ).each { 
@@ -135,6 +159,7 @@ class ClassBuilder {
   def processSimpleType ( t, ClassName ) {
     def c = new SchemaClass()
     c.name = ClassName
+    c.xmlTag = t.@name - '_t'
     System.out.println ( 'ClassList: ' + ClassList.toString() )
     ClassList[ClassName] = c
     System.out.println ( 'SimpleType: ' + ClassName )
@@ -158,6 +183,7 @@ class ClassBuilder {
     }
     def c = new SchemaClass()
     c.name = ClassName
+    c.xmlTag = t.@type - '_t'
     ClassList[ClassName] = c
     System.out.println ( 'Class Name: ' + ClassName )
     if ( t.complexContent.extension.size() ) {
@@ -206,15 +232,45 @@ class ClassBuilder {
       processComplexType ( t.complexType, transformClassname ( t.@name ) )
     } else {
       if ( isArray ) {
-        type = transformClassname ( t.@name )
+        type = transformClassname ( t.@type )
         System.out.println ( '\tMaking simple class of type: ' + type );
+        if ( c.isSimple ( type ) ) {
+          type = transformClassname ( t.@name )
+          def cc = new SchemaClass ()
+          cc.name = type
+          cc.xmlTag = t.@type - '_t'
+          cc.useDerived = false
+          cc.isArray = true
+          cc.derivedFrom = transformClassname ( t.@type )
+          ClassList[cc.name] = cc
+        } else {
+          def cc = new SchemaClass()
+          System.out.println ( '\tMade simple class of ' + type )
+          cc.name = type
+          cc.xmlTag = t.@type - '_t'
+          cc.useDerived = false
+          cc.isArray = true
+          ClassList[cc.name] = cc
+        }
       }
     }
+    def f = new Field()
+    f.name = t.@name.toString()
+    f.type = type
+    
+    f.minOccurs = Integer.valueOf ( t.@minOccurs.toString() ? t.@minOccurs.toString() : '1' )
+    println ( '\t' + f.name + ' has ' + f.minOccurs + ' occurrances' )
+    if ( f.minOccurs == 0 ) { println ( '\tFound optional ' + f.name ) }
+    switch ( t.@maxOccurs.toString() ) {
+      case 'unbounded': f.maxOccurs = 1000000; break;
+      case '': f.maxOccurs = 1; break;
+      default: f.maxOccurs = t.@maxOccurs.toString()
+    }
     if ( isArray ) {
-      c.arrayFields[t.@name.toString()] = type
+      c.arrayFields[t.@name.toString()] = f
       System.out.println ( '\thasMany[' + type + ':' + t.@name + ']' )
     } else {
-      c.simpleFields[t.@name.toString()] = type
+      c.simpleFields[t.@name.toString()] = f
       System.out.println ( '\t' + type + ' ' + t.@name )
     }
 
