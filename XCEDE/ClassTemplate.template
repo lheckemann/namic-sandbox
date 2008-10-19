@@ -1,46 +1,88 @@
 /* Class generated from a template */
 
 
-class ${cl.name} <% if ( cl.derivedFrom != '' ) { print "extends ${cl.derivedFrom}" } %> {
+class ${cl.name} <% if ( !cl.isSimple ( cl.derivedFrom ) && cl.derivedFrom != '' ) { print "extends ${cl.derivedFrom}" } %> {
   // Print out the fields
 
 <%
-    cl.simpleFields.each { 
-      println ( '  ' + it.value + ' ' + it.key )
+  if ( cl.isSimple ( cl.derivedFrom ) ) {
+    println ( '  ' + cl.derivedFrom + ' value_' )
+  } else {
+    def f = [:]
+    f.putAll ( cl.simpleFields )
+    f.putAll ( cl.arrayFields )
+    f.each {
+      def c2 = cb.ClassList[it.value.name]
+      if ( c2 == null ) { println ( '  ' +  it.value.type + ' ' + it.value.name + '_' ) } else {
+        println ( '  ' + c2.getClassName() + ' ' + it.value.name + '_' )
+      }
     }
     if ( cl.arrayFields.size() ) {
       print ( '  static hasMany = [' )
-      cl.arrayFields.each { 
-        print ( it.key + ':' + it.value + ', ')
-      }
+      print ( cl.arrayFields.collect { it.value.name + '_:' + cb.ClassList[it.value.type]?.getClassName() }.join ( ', ' ) )
       println ( ']' );
     }
-    
-    print ( '  static fieldList = [' )
-    cl.fields.each { print ( "'" + it + "',"  ); }
+
+    // Form the list of optional fields
+    def nullable = cl.simpleFields.findAll { it.value.minOccurs == 0 }
+    nullable.putAll ( cl.arrayFields.findAll { it.value.minOccurs == 0 } )
+    if ( nullable.size() ) {
+      print ( '  static constraints = {' )
+      print ( nullable.collect { it.value.name + "_ ( nullable: true )" }.join ( '; ' ) )
+      println ( '}' )
+    }
+
+    print ( '  static schemaFields_ = [' )
+    // cl.fields.each { print ( "'" + it + "',"  ); }
+    print ( cl.fields.collect { "'" + it + "'" }.join ( ', ' ) )
     println ( '];' );
       
-    print ( '  static attributesList = [' )
-    cl.attributes.each { print ( "'" + it + "',"  ); }
+    print ( '  static schemaAttributes_ = [' )
+    print ( cl.attributes.collect { "'" + it + "'" }.join ( ', ' ) )
+    // cl.attributes.each { print ( "'" + it + "',"  ); }
     println ( '];' );
+  }
 %>
 
-  def renderXML( xml ) {
-    xml.${cl.name} ( <%
-                       // print the attributes
-                       cl.attributes.each { print ( it + ':' + it + ', ' ) }
-                     %> ) {
-<% cl.simpleFields.each { 
-            print ( '      ' )
-            if ( cl.isSimple ( it.value ) ) { 
-              println ( it.value + ' ( ' + it.key + ' ) ' )
-            } else {
-              println ( it.key + '.renderXML ( xml )' )
-            }
-         } 
-%>    }
+  def renderAttributesXML() {
+    def attr = [:]
+<% cl.attributes.each { println ( "    attr['" + it + "'] = " + it + "_"  ) } 
+   if ( cl.derivedFrom ) { println ( "    attr.putAll ( super.renderAttributesXML() )" ) } %>
+    return attr;
   }
 
+  def renderXML( xml ) {
+    xml.${cl.name} ( renderAttributesXML() ) {
+      renderContentsXML ( xml )
+    }
+  }
+
+  def renderContentsXML ( xml ) {
+    <% if ( cl.derivedFrom ) { print ( 'super.renderContentsXML ( xml )' ) } %>
+<% 
+          cl.arrayFields.each {
+            print ( "      ${it.key}_.list.each { " )
+            if ( cl.isSimple ( it.value ) ) {
+              print ( 'xml.' + it.key + ' ( ' + it.key + '_ ) ' )
+            } else {
+              print ( 'it.renderXML ( xml )' )
+            }
+            println ( ' }' )
+          }
+            
+
+          cl.simpleFields.each {
+            if ( !cl.attributes.contains ( it.key ) ) {
+              println ( '      if ( ' + it.key + '_ ) {'  )
+              if ( cl.isSimple ( it.value ) ) {
+                println ( 'xml.' + it.key + ' ( ' + it.key + '_ ) ' )
+              } else {
+                println ( it.key + '_.renderXML ( xml )' )
+              }
+              println ( '      }' );
+           }
+        }
+%>    }
 
 }
 
