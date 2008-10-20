@@ -43,6 +43,8 @@ VotingBinaryHoleFillFloodingImageFilter<TInputImage, TOutputImage>
   this->m_SeedArray2 = new SeedArrayType;
 
   this->m_OutputImage = NULL;
+
+  this->m_MajorityThreshold = 1;
 }
 
 /**
