@@ -47,6 +47,8 @@ EndorseFrontPropagationImageFilter<TInputImage1, TInputImage2, TOutputImage>
   this->m_OutputImage = NULL;
   this->m_CreditInputImage = NULL;
   this->m_EndorsementThreshold = 1.0;
+
+  this->m_MajorityThreshold = 1;
 }
 
 /**
@@ -78,6 +80,7 @@ void
 EndorseFrontPropagationImageFilter<TInputImage1, TInputImage2, TOutputImage>
 ::GenerateData()
 {
+std::cout << "Endorsement threshold = " << this->GetEndorsementThreshold() << std::endl;
   this->AllocateOutputImageWorkingMemory();
   this->InitializeNeighborhood();
   this->ComputeBirthThreshold();
@@ -111,6 +114,7 @@ EndorseFrontPropagationImageFilter<TInputImage1, TInputImage2, TOutputImage>
     {
     this->VisitAllSeedsAndTransitionTheirState();
     this->m_CurrentIterationNumber++;
+std::cout << "Iteration " << this->m_CurrentIterationNumber << " changed  " << this->m_NumberOfPixelsChangedInLastIteration << std::endl;
     if( this->m_NumberOfPixelsChangedInLastIteration ==  0 )
       {
       break;
@@ -131,7 +135,7 @@ EndorseFrontPropagationImageFilter<TInputImage1, TInputImage2, TOutputImage>
   // Allocate memory for the output image itself.
   this->m_OutputImage->SetBufferedRegion( region );
   this->m_OutputImage->Allocate();
-  this->m_OutputImage->FillBuffer( 0 );
+  this->m_OutputImage->FillBuffer( this->GetBackgroundValue() );
 
   this->m_SeedsMask = SeedMaskImageType::New();
   this->m_SeedsMask->SetRegions( region );
@@ -243,7 +247,8 @@ EndorseFrontPropagationImageFilter<TInputImage1, TInputImage2, TOutputImage>
 
     if( this->TestForEndorsementAtCurrentPixel() )
       {
-      this->m_SeedsNewValues.push_back( this->GetForegroundValue() );
+      const OutputImagePixelType seedValue = this->GetForegroundValue() - this->m_CurrentIterationNumber;
+      this->m_SeedsNewValues.push_back( seedValue );
       this->PutCurrentPixelNeighborsIntoSeedArray();
       this->m_NumberOfPixelsChangedInLastIteration++;
       }
@@ -323,8 +328,10 @@ EndorseFrontPropagationImageFilter<TInputImage1, TInputImage2, TOutputImage>
   //
   // Find the location of the current pixel in the image memory buffer
   //
-  const OffsetValueType maskOffset   = this->m_OutputImage->ComputeOffset( this->GetCurrentPixelIndex() );
-  const OffsetValueType creditOffset = this->m_CreditInputImage->ComputeOffset( this->GetCurrentPixelIndex() );
+  const IndexType & currentIndex = this->GetCurrentPixelIndex();
+
+  const OffsetValueType maskOffset   = this->m_OutputImage->ComputeOffset( currentIndex );
+  const OffsetValueType creditOffset = this->m_CreditInputImage->ComputeOffset( currentIndex );
 
   const InputImagePixelType * maskBuffer   = this->m_OutputImage->GetBufferPointer();
   const InputImagePixelType * maskCurrentPixelPointer   = maskBuffer   + maskOffset;
@@ -342,7 +349,7 @@ EndorseFrontPropagationImageFilter<TInputImage1, TInputImage2, TOutputImage>
 
   NeigborOffsetIterator neighborItr = this->m_NeighborBufferOffset.begin();
 
-  const InputImagePixelType foregroundValue = this->GetForegroundValue();
+  const InputImagePixelType backgroundValue = this->GetBackgroundValue();
 
   const double currentCreditPixelValue = *creditCurrentPixelPointer;
 
@@ -352,7 +359,7 @@ EndorseFrontPropagationImageFilter<TInputImage1, TInputImage2, TOutputImage>
     {
     const InputImagePixelType * neighborPixelPointer = maskCurrentPixelPointer + *neighborItr;
 
-    if( *neighborPixelPointer == foregroundValue )
+    if( *neighborPixelPointer != backgroundValue )
       {
       const CreditInputImagePixelType * neighborCreditPixelPointer = creditCurrentPixelPointer + *neighborItr;
       const double intensityDistance = currentCreditPixelValue - static_cast< double >( *neighborCreditPixelPointer );
@@ -363,8 +370,16 @@ EndorseFrontPropagationImageFilter<TInputImage1, TInputImage2, TOutputImage>
 
     ++neighborItr;
     }
+  // std::cout << this->GetCurrentPixelIndex() << " " << numberOfNeighborsAtForegroundValue << " " << totalEndorsement << std::endl;
 
   bool endorsement = (totalEndorsement > this->GetEndorsementThreshold() );
+
+  bool quorum = (numberOfNeighborsAtForegroundValue > this->GetBirthThreshold() );
+
+  if ( quorum ) 
+    {
+    std::cout << numberOfNeighborsAtForegroundValue << " : " << totalEndorsement << std::endl;
+    }
 
   return endorsement;
 }
