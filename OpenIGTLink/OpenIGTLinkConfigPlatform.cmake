@@ -34,6 +34,15 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 #    SET(WIN32 1)
 endif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
+if(CMAKE_SYSTEM_NAME STREQUAL "QNX")
+  SET(OpenIGTLink_USE_PTHREADS 1)
+  SET(OpenIGTLink_PLATFORM_QNX 1)
+#  ADD_DEFINITIONS(
+#    -DIGTL_USE_PTHREADS
+#    -DPLATFORM_OSX_LEOPARD
+#    )
+endif(CMAKE_SYSTEM_NAME STREQUAL "QNX")
+
 
 #-----------------------------------------------------------------------------
 # Type Check 

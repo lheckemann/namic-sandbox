@@ -4,10 +4,18 @@ IF(OpenIGTLink_PLATFORM_WIN32)
     wsock32
   )
 ELSE(OpenIGTLink_PLATFORM_WIN32)
-  SET(LINK_LIBS
-    pthread
-    m
-  )
+  IF(OpenIGTLink_PLATFORM_QNX)
+    SET(LINK_LIBS
+      c
+      socket
+      m
+    )
+  ELSE(OpenIGTLink_PLATFORM_QNX)
+    SET(LINK_LIBS
+      pthread
+      m
+    )
+  ENDIF(OpenIGTLink_PLATFORM_QNX)
 ENDIF(OpenIGTLink_PLATFORM_WIN32)
 
 ADD_SUBDIRECTORY( igtlutil )
