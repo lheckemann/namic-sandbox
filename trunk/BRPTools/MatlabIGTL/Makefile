@@ -1,18 +1,39 @@
+#=========================================================================
+#
+#  Program:   Matlab OpenIGTLink Interface Makefile
+#  Module:    $RCSfile: $
+#  Language:  C++
+#  Date:      $Date: $
+#  Version:   $Revision: $
+#
+#  Copyright (c) Insight Software Consortium. All rights reserved.
+#
+#  This software is distributed WITHOUT ANY WARRANTY; without even
+#  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+#  PURPOSE.  See the above copyright notices for more information.
+#
+#=========================================================================
+
+
+### OpenIGTLink Library
+IGTLSRC= /projects/igtdev/tokuda/igtl/OpenIGTLink
+IGTLBLD= /projects/igtdev/tokuda/igtl/OpenIGTLink-build
+
+
 ### for Matlab
 MEX    = /local/os-exact/pkg/Matlab71-64/bin/mex
 MEXOPT = 
-INCDIR = -I/projects/igtdev/tokuda/igtl/OpenIGTLink-build\
-	 -I/projects/igtdev/tokuda/igtl/OpenIGTLink/Source 
-LIBDIR = -L/projects/igtdev/tokuda/igtl/OpenIGTLink-build/bin
-LIB    = -lOpenIGTLink
 
-#### for Octave
+### for Octave
 #MEX    = /Applications/Octave.app/Contents/Resources/bin/mkoctfile
 #MEXOPT = --mex
-#INCDIR = -I/Users/junichi/igtdev/igtl/OpenIGTLink-build\
-#	 -I/Users/junichi/igtdev/igtl/OpenIGTLink/Source 
-#LIBDIR = -L/Users/junichi/igtdev/igtl/OpenIGTLink-build/bin
-#LIB    = -lOpenIGTLink
+
+
+### Headers and libraries
+INCDIR = -I${IGTLBLD} -I${IGTLSRC}/Source
+LIBDIR = -L${IGTLBLD}/bin
+LIB    = -lOpenIGTLink
+
 
 all: igtlsend.mex igtlopen.mex igtlclose.mex
 
