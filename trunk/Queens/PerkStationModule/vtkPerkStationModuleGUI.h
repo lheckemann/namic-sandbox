@@ -28,6 +28,7 @@ class vtkSlicerNodeSelectorWidget;
 class vtkKWComboBoxWithLabel;
 class vtkKWRadioButtonSet;
 class vtkKWMenuButtonWithLabel;
+class vtkKWLoadSaveButton;
 
 class vtkPerkStationCalibrateStep;
 class vtkPerkStationPlanStep;
@@ -111,8 +112,21 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationModuleGUI : public vtkSlicerMod
   // Reset and Start afresh
   virtual void ResetAndStartNewExperiment();
 
-  //
-  void SaveExperiment(char *fileName);
+  // Description
+  // Callback on the load experiment button
+  void LoadExperimentButtonCallback(const char *fileName);
+
+  // Description
+  // Callback on the save calibration button
+  void SaveExperimentButtonCallback(const char *fileName);
+
+  // Description
+  // Save experiment
+  virtual void SaveExperiment(ostream& of);
+
+  // Description
+  // Load experiment
+  virtual void LoadExperiment(istream &file);
 
 
   //BTX
@@ -186,6 +200,13 @@ protected:
 
   // mode selector menu
   vtkKWMenuButtonWithLabel *ModeListMenu;
+
+  // 1)  button: open file dialog box
+  vtkKWLoadSaveButton *LoadExperimentFileButton;
+  // 2) button: save calib file dialog box
+  vtkKWLoadSaveButton *SaveExperimentFileButton;
+
+ 
 
   // Description:
   // Describes whether the GUI has been built or not

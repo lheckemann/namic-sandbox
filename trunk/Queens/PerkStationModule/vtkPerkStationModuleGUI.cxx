@@ -54,6 +54,7 @@ Version:   $Revision: 1.2 $
 #include "vtkKWRadioButtonSet.h"
 #include "vtkKWWizardWidget.h"
 #include "vtkKWWizardWorkflow.h"
+#include "vtkKWLoadSaveButton.h"
 
 #include "vtkPerkStationCalibrateStep.h"
 #include "vtkPerkStationPlanStep.h"
@@ -86,6 +87,10 @@ vtkPerkStationModuleGUI::vtkPerkStationModuleGUI()
   // gui elements
   this->VolumeSelector = vtkSlicerNodeSelectorWidget::New();
   this->PSNodeSelector = vtkSlicerNodeSelectorWidget::New();
+
+  
+  this->LoadExperimentFileButton = NULL;
+  this->SaveExperimentFileButton = NULL;
 
   //logic and mrml nodes
   this->Logic = NULL;
@@ -129,7 +134,18 @@ vtkPerkStationModuleGUI::~vtkPerkStationModuleGUI()
     this->ModeListMenu->Delete();
     this->ModeListMenu = NULL;
     }
-    
+  if (this->LoadExperimentFileButton)
+    {
+    this->LoadExperimentFileButton->SetParent(NULL);
+    this->LoadExperimentFileButton->Delete();
+    this->LoadExperimentFileButton = NULL;
+    }
+  if (this->SaveExperimentFileButton)
+    {
+    this->SaveExperimentFileButton->SetParent(NULL);
+    this->SaveExperimentFileButton->Delete();
+    this->SaveExperimentFileButton = NULL;
+    }
   if (this->StateButtonSet)
     {
     this->StateButtonSet->SetParent(NULL);
@@ -227,6 +243,15 @@ void vtkPerkStationModuleGUI::AddGUIObservers ( )
   this->PSNodeSelector->AddObserver (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );    
 
   this->ModeListMenu->GetWidget()->GetMenu()->AddObserver ( vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  if (this->LoadExperimentFileButton)
+    {
+    this->LoadExperimentFileButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    }
+  if (this->SaveExperimentFileButton)
+    {
+    this->SaveExperimentFileButton->GetLoadSaveDialog()->AddObserver(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    }
 }
 
 
@@ -247,6 +272,15 @@ void vtkPerkStationModuleGUI::RemoveGUIObservers ( )
   this->PSNodeSelector->RemoveObservers (vtkSlicerNodeSelectorWidget::NodeSelectedEvent, (vtkCommand *)this->GUICallbackCommand );    
 
   this->ModeListMenu->GetWidget()->GetMenu()->RemoveObservers ( vtkKWMenu::MenuItemInvokedEvent, (vtkCommand *)this->GUICallbackCommand);
+
+  if (this->LoadExperimentFileButton)
+    {
+    this->LoadExperimentFileButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    }
+  if (this->SaveExperimentFileButton)
+    {
+    this->SaveExperimentFileButton->GetLoadSaveDialog()->RemoveObservers(vtkKWTopLevel::WithdrawEvent, (vtkCommand *)this->GUICallbackCommand );
+    }
 }
 
 
@@ -294,6 +328,48 @@ void vtkPerkStationModuleGUI::ProcessGUIEvents ( vtkObject *caller,
     this->StateButtonSet->GetWidget(this->State)->SetSelectedState(1);
 
     }
+  else if (this->LoadExperimentFileButton && this->LoadExperimentFileButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
+    {
+    // load calib dialog button
+    const char *fileName = this->LoadExperimentFileButton->GetLoadSaveDialog()->GetFileName();
+    if ( fileName ) 
+      {
+      //this->CalibFilePath = std::string(this->LoadCalibrationFileButton->GetLoadSaveDialog()->GetLastPath());
+      // indicates ok has been pressed with a file name
+      //this->CalibFileName = std::string(fileName);
+
+      // call the callback function
+      this->LoadExperimentButtonCallback(fileName);
+    
+      }
+    
+    // reset the file browse button text
+    this->LoadExperimentFileButton->SetText ("Load experiment");
+   
+    }  
+  else if (this->SaveExperimentFileButton && this->SaveExperimentFileButton->GetLoadSaveDialog() == vtkKWLoadSaveDialog::SafeDownCast(caller) && (event == vtkKWTopLevel::WithdrawEvent))
+    {
+    
+  // save calib dialog button
+    const char *fileName = this->SaveExperimentFileButton->GetLoadSaveDialog()->GetFileName();
+    if ( fileName ) 
+      {
+    
+      std::string fullFileName = std::string(fileName) + ".xml";
+      // get the file name and file path
+      this->SaveExperimentFileButton->GetLoadSaveDialog()->SaveLastPathToRegistry("OpenPath");
+        
+      // call the callback function
+      this->SaveExperimentButtonCallback(fullFileName.c_str());
+
+    
+      }
+    
+    // reset the file browse button text
+    this->SaveExperimentFileButton->SetText ("Save experiment");
+   
+    }
+  
   else
     {  
      
@@ -648,12 +724,19 @@ void vtkPerkStationModuleGUI::BuildGUI ( )
               loadSaveExptFrame->GetWidgetName(), modulePage->GetWidgetName());
   
 
+  // Create the frame
+  vtkKWFrame *volSelFrame = vtkKWFrame::New();
+  volSelFrame->SetParent(loadSaveExptFrame->GetFrame());
+  volSelFrame->Create();     
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                    volSelFrame->GetWidgetName());
+
   //MRML node
   this->PSNodeSelector->SetNodeClass("vtkMRMLPerkStationModuleNode", NULL, NULL, "PS Parameters");
   this->PSNodeSelector->SetNewNodeEnabled(1);
   this->PSNodeSelector->NoneEnabledOn();
   this->PSNodeSelector->SetShowHidden(1);
-  this->PSNodeSelector->SetParent( loadSaveExptFrame->GetFrame() );
+  this->PSNodeSelector->SetParent( volSelFrame );
   this->PSNodeSelector->Create();
   this->PSNodeSelector->SetMRMLScene(this->Logic->GetMRMLScene());
   this->PSNodeSelector->UpdateMenu();
@@ -666,7 +749,7 @@ void vtkPerkStationModuleGUI::BuildGUI ( )
 
   //input volume selector
   this->VolumeSelector->SetNodeClass("vtkMRMLScalarVolumeNode", NULL, NULL, NULL);
-  this->VolumeSelector->SetParent( loadSaveExptFrame->GetFrame() );
+  this->VolumeSelector->SetParent( volSelFrame );
   this->VolumeSelector->Create();
   this->VolumeSelector->SetMRMLScene(this->Logic->GetMRMLScene());
   this->VolumeSelector->UpdateMenu();
@@ -674,17 +757,72 @@ void vtkPerkStationModuleGUI::BuildGUI ( )
   this->VolumeSelector->SetBorderWidth(2);
   this->VolumeSelector->SetLabelText( "Input Volume: ");
   this->VolumeSelector->SetBalloonHelpString("select an input volume from the current mrml scene.");
-  app->Script("pack %s -side left -anchor e -padx 2 -pady 4", 
+  app->Script("pack %s -side top -anchor e -padx 2 -pady 4", 
                 this->VolumeSelector->GetWidgetName());
 
 
+  // Create the frame
+  vtkKWFrame *loadSaveFrame = vtkKWFrame::New();
+  loadSaveFrame->SetParent(loadSaveExptFrame->GetFrame());
+  loadSaveFrame->Create();     
+  this->Script("pack %s -side top -anchor nw -fill x -padx 0 -pady 2", 
+                    loadSaveFrame->GetWidgetName());
+
+    // create the load file dialog button
+    if (!this->LoadExperimentFileButton)
+    {
+    this->LoadExperimentFileButton = vtkKWLoadSaveButton::New();
+    }
+    if (!this->LoadExperimentFileButton->IsCreated())
+    {
+    this->LoadExperimentFileButton->SetParent(loadSaveFrame);
+    this->LoadExperimentFileButton->Create();
+    this->LoadExperimentFileButton->SetBorderWidth(2);
+    this->LoadExperimentFileButton->SetReliefToRaised();       
+    this->LoadExperimentFileButton->SetHighlightThickness(2);
+    this->LoadExperimentFileButton->SetBackgroundColor(0.85,0.85,0.85);
+    this->LoadExperimentFileButton->SetActiveBackgroundColor(1,1,1);
+    this->LoadExperimentFileButton->SetText("Load experiment");
+    this->LoadExperimentFileButton->SetImageToPredefinedIcon(vtkKWIcon::IconPresetLoad);
+    this->LoadExperimentFileButton->SetBalloonHelpString("Click to load a previous experiment file");
+    this->LoadExperimentFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
+    this->LoadExperimentFileButton->TrimPathFromFileNameOff();
+    this->LoadExperimentFileButton->SetMaximumFileNameLength(256);
+    this->LoadExperimentFileButton->GetLoadSaveDialog()->SaveDialogOff(); // load mode
+    this->LoadExperimentFileButton->GetLoadSaveDialog()->SetFileTypes("{{XML File} {.xml}} {{All Files} {*.*}}");      
+    }
+    this->Script("pack %s -side left -anchor nw -padx 2 -pady 2", 
+                        this->LoadExperimentFileButton->GetWidgetName());
+
+    // create the load file dialog button
+    if (!this->SaveExperimentFileButton)
+    {
+    this->SaveExperimentFileButton = vtkKWLoadSaveButton::New();
+    }
+    if (!this->SaveExperimentFileButton->IsCreated())
+    {
+    this->SaveExperimentFileButton->SetParent(loadSaveFrame);
+    this->SaveExperimentFileButton->Create();
+    this->SaveExperimentFileButton->SetText("Save experiment");
+    this->SaveExperimentFileButton->SetBorderWidth(2);
+    this->SaveExperimentFileButton->SetReliefToRaised();       
+    this->SaveExperimentFileButton->SetHighlightThickness(2);
+    this->SaveExperimentFileButton->SetBackgroundColor(0.85,0.85,0.85);
+    this->SaveExperimentFileButton->SetActiveBackgroundColor(1,1,1);               
+    this->SaveExperimentFileButton->SetImageToPredefinedIcon(vtkKWIcon::IconFloppy);
+    this->SaveExperimentFileButton->SetBalloonHelpString("Click to save experiment in a file");
+    this->SaveExperimentFileButton->GetLoadSaveDialog()->SaveDialogOn(); // save mode
+    this->SaveExperimentFileButton->TrimPathFromFileNameOff();
+    this->SaveExperimentFileButton->SetMaximumFileNameLength(256);
+    this->SaveExperimentFileButton->GetLoadSaveDialog()->SetFileTypes("{{XML File} {.xml}} {{All Files} {*.*}}");      
+    this->SaveExperimentFileButton->GetLoadSaveDialog()->RetrieveLastPathFromRegistry("OpenPath");
+    }
+    this->Script("pack %s -side top -anchor ne -padx 2 -pady 2", 
+                        this->SaveExperimentFileButton->GetWidgetName());
 
 
-
-
-
-
-
+  volSelFrame->Delete();
+  loadSaveFrame->Delete();
   loadSaveExptFrame->Delete();
 
   // Wizard collapsible frame with individual steps inside
@@ -977,29 +1115,54 @@ void vtkPerkStationModuleGUI::ResetAndStartNewExperiment()
 
 }
 //----------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::SaveExperiment(char *fileName)
+void vtkPerkStationModuleGUI::SaveExperiment(ostream& of)
 {
   if (!this->GetMRMLNode())
       return;
 
-  ofstream experimentFile(fileName);
+ 
 
   switch(this->Mode)
     {
     case vtkPerkStationModuleGUI::ModeId::Training:
-        this->GetMRMLNode()->WriteXML(experimentFile, 0);
+        this->GetMRMLNode()->WriteXML(of, 0);
         break;
     
     case vtkPerkStationModuleGUI::ModeId::Clinical:
         // save information about image volumes used
         // save information about calibration
+        this->CalibrateStep->SaveCalibration(of);
         // save information about planning
+        this->PlanStep->SavePlanning(of);
         // save information about insertion
+        this->InsertStep->SaveInsertion(of);
         // save information about validation 
-
+        this->ValidateStep->SaveValidation(of);
         break;
     }
   
+}
+
+//----------------------------------------------------------------------------
+void vtkPerkStationModuleGUI::LoadExperiment(istream &file)
+{
+}
+//---------------------------------------------------------------------------
+void vtkPerkStationModuleGUI::SaveExperimentButtonCallback(const char *fileName)
+{
+    ofstream file(fileName);
+
+    this->SaveExperiment(file);
+    
+    file.close();
+}
+
+//-----------------------------------------------------------------------------
+void vtkPerkStationModuleGUI::LoadExperimentButtonCallback(const char *fileName)
+{
+    ifstream file(fileName);    
+    this->LoadExperiment(file);
+    file.close();
 }
 
 //-----------------------------------------------------------------------------------

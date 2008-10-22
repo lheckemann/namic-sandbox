@@ -841,7 +841,7 @@ void vtkPerkStationPlanStep::SavePlanning(ostream& of)
 
   
   // entry point
-  of << " EntryPoint=\"" ;
+  of << " PlanEntryPoint=\"" ;
   double entryPoint[3];
   mrmlNode->GetPlanEntryPoint(entryPoint);
   for(int i = 0; i < 3; i++)
@@ -849,7 +849,7 @@ void vtkPerkStationPlanStep::SavePlanning(ostream& of)
   of << "\" \n";
      
   // target point
-  of << " TargetPoint=\""; 
+  of << " PlanTargetPoint=\""; 
   double targetPoint[3];
   mrmlNode->GetPlanTargetPoint(targetPoint);
   for(int i = 0; i < 3; i++)
