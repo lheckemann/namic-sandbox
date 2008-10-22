@@ -52,6 +52,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #include "vtkFileOutputWindow.h"
 #include "vtkMultiThreader.h"
 #include "vtkSynchroGrabPipeline.h"
+#include "vtkMINCImageReader.h"
+#include "vtkImageData.h"
 
 using namespace std;
 
@@ -153,6 +155,44 @@ int main(int argc, char **argv)
 
 //  cout << "SynchroGrab started " << endl;
 
+//  vtkMINCImageReader* pDICOMReader = vtkMINCImageReader::New();
+//
+//  pDICOMReader->SetFileName("/projects/mrrobot/gumprecht/images/mnc/volume.mnc");
+//  pDICOMReader->Update();
+//  
+//  vtkImageData* imageData = vtkImageData::New();
+//  imageData->DeepCopy(pDICOMReader->GetOutput());
+//  imageData->SetOrigin(-160, -120, -120);
+//  imageData->AllocateScalars();
+//  
+////  Get Origin
+//  double origin[3];
+//  imageData->GetOrigin(origin);
+//  cout << "Origin: x/y/z: "<< origin[0] << "/" << origin[1] << "/" << origin[2]<<endl;
+//  cout << endl;
+//
+////  Get Spacing
+//    double spacing[3];
+//    imageData->GetSpacing(spacing[0], spacing[1], spacing[2]);
+//    cout << "Spacing: x/y/z: " << spacing[0] << "/" << spacing[1] <<"/" <<  spacing[2] <<endl;
+//    cout << endl;
+//    
+////  Get Extent
+//  int extent[6];
+//  imageData->GetExtent(extent[0], extent[1], extent[2], extent[3], extent[4], extent[5]);
+//  cout << "Extent: x1/x2 y1/y2 z1/z2: " << extent[0] << "/" << extent[1] << "/" << extent[2] << "/" << extent[3] << "/" << extent[4] << "/"<< extent[5] << endl;
+//  cout << endl;
+//  
+////  Get Dimensions
+//  int dims[3];
+//  imageData->GetDimensions(dims);
+//  cout << "Dimensions: x/y/z " << dims[0]<< "/" <<dims[1] << "/" << dims[2] << endl;
+//  cout << endl;
+//  cout << endl;
+//  
+//  exit(0);
+
+
 ////    vtkSynchroGrabPipeline *pipeline = vtkSynchroGrabPipeline::New();
     vtkSynchroGrabPipeline *pipeline = new vtkSynchroGrabPipeline;
     
@@ -175,21 +215,21 @@ int main(int argc, char **argv)
 
 //    if(pipeline->GetTransfertImages())
 //        {
-        if(!pipeline->ConnectToServer())
-            return -1;
-        if(!pipeline->SendImages())
-            return -1;
-        cout << "Images successfull send " << endl;
-        
-        if(!pipeline->CloseServerConnection())
-            return -1;
+////        if(!pipeline->ConnectToServer())
+////            return -1;
+////        if(!pipeline->SendImages())
+////            return -1;
+////        cout << "Images successfull send " << endl;
+////        
+////        if(!pipeline->CloseServerConnection())
+////            return -1;
 //        }
-/*
-    if(pipeline->GetVolumeReconstructionEnabled())
-        {
+
+//    if(pipeline->GetVolumeReconstructionEnabled())
+//        {
         if(!pipeline->ReconstructVolume())
             return -1;
-        }
-*/
+//        }
+
 //    pipeline->Delete();
 }

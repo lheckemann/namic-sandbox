@@ -44,36 +44,34 @@ POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 
 #define NOMINMAX
-/* 
-#include <windows.h>
+ 
+//#include <windows.h>
 
 #include "vtkDataSetWriter.h"
 #include "vtkImageCast.h"
 #include "vtkImageExtractComponents.h"
 #include "vtkImageData.h"
 #include "vtkJPEGWriter.h"
-*/
+
 #include "vtkObjectFactory.h"
-/*
-#include "vtkSonixVideoSource.h"
-*/
+//#include "vtkSonixVideoSource.h"
 #include "vtkSynchroGrabPipeline.h"
-/*
-#include "vtkTaggedImageFilter.h"
+
+//#include "vtkTaggedImageFilter.h"
 #include "vtkTransform.h"
-#include "vtkUltrasoundCalibFileReader.h"
+//#include "vtkUltrasoundCalibFileReader.h"
 #include "vtk3DPanoramicVolumeReconstructor.h"
 
-#include "vtkTrackerTool.h"
-#include "vtkTrackerBuffer.h"
-#include "vtkNDICertusTracker.h"
+//#include "vtkTrackerTool.h"
+//#include "vtkTrackerBuffer.h"
+//#include "vtkNDICertusTracker.h"
 
-#include "utx_imaging_modes.h"
-#include "ulterius_def.h"
+//#include "utx_imaging_modes.h"
+//#include "ulterius_def.h"
 
-#include "igtlclientsocket.h"
+//#include "igtlclientsocket.h"
 #include "igtlImageMessage.h"
-*/
+
 #include "igtlMath.h"
 
 #include "igtlOSUtil.h"
@@ -97,7 +95,7 @@ vtkSynchroGrabPipeline::vtkSynchroGrabPipeline()
   this->SonixAddr=NULL;
   this->CalibrationFileName = NULL;
   this->OIGTLServer = NULL; 
-  this->SetVolumeOutputFile("outputVol.vtk");
+  this->SetVolumeOutputFile("./outputVol.vtk");
   this->SetSonixAddr("127.0.0.1");
   this->SetOIGTLServer("localhost");
 
@@ -193,16 +191,20 @@ bool vtkSynchroGrabPipeline::StartTracker()
 */
 bool vtkSynchroGrabPipeline::ReconstructVolume()
 {
-  this->sonixGrabber->Record();  //start recording frame from the video
+  int volumeExtent[6] = {0, 319, 0, 239, 0, 239};
+  int origin[3] = {-160, -120, -120};
+  double spacing [3] = {1, 1, 1}; 
+  
+//  this->sonixGrabber->Record();  //start recording frame from the video
 
   // wait for the images (delay in milliseconds)
-  Sleep(this->NbFrames / this->FrameRate * 1000);
+//  Sleep(this->NbFrames / this->FrameRate * 1000);
  
-  this->sonixGrabber->Stop();
+//  this->sonixGrabber->Stop();
 
-  this->tracker->StopTracking();
+//  this->tracker->StopTracking();
 
-  cout << "Recorded synchronized transforms and ultrasound images for " << this->NbFrames / this->FrameRate * 1000 << "ms" << endl;
+//  cout << "Recorded synchronized transforms and ultrasound images for " << this->NbFrames / this->FrameRate * 1000 << "ms" << endl;
 
   // set up the panoramic reconstruction class
   vtk3DPanoramicVolumeReconstructor *panoramaReconstructor = vtk3DPanoramicVolumeReconstructor::New();
@@ -212,8 +214,14 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
 
   // Determine the extent of the volume that needs to be reconstructed by 
   // iterating throught all the acquired frames
+//TODO: create clip rectangle data
   double clipRectangle[4];
-  this->calibReader->GetClipRectangle(clipRectangle);
+  clipRectangle[0] = volumeExtent[0];
+  clipRectangle[1] = volumeExtent[1];
+  clipRectangle[2] = volumeExtent[2];
+  clipRectangle[3] = volumeExtent[3];
+  
+//  this->calibReader->GetClipRectangle(clipRectangle);
   panoramaReconstructor->SetClipRectangle(clipRectangle);
   double xmin = clipRectangle[0], ymin = clipRectangle[1], 
          xmax = clipRectangle[2], ymax = clipRectangle[3];
@@ -231,54 +239,63 @@ bool vtkSynchroGrabPipeline::ReconstructVolume()
   double minX, minY, minZ;
   minX = minY = minZ = numeric_limits<double>::max();
 
-  int nbFramesGrabbed = sonixGrabber->GetFrameCount();
+//  int nbFramesGrabbed = sonixGrabber->GetFrameCount();
+  int nbFramesGrabbed = 10; //Randomly selected
 
-  this->sonixGrabber->Rewind();
-  for(int i=0; i < nbFramesGrabbed; i++)
-    {
+//  this->sonixGrabber->Rewind();
+//  for(int i=0; i < nbFramesGrabbed; i++)
+//    {
     // get those transforms... and computer the bounding box
-    this->tagger->Update();
+//    this->tagger->Update();
 
     // determine the bounding box occupied by the reconstructed volume
-    for(int j=0; j < 4; j++)
-      {
-      this->tagger->GetTransform()->MultiplyPoint(imCorners[j],transformedPt);
-      minX = min(transformedPt[0], minX);
-      minY = min(transformedPt[1], minY);
-      minZ = min(transformedPt[2], minZ);
-      maxX = max(transformedPt[0], maxX);
-      maxY = max(transformedPt[1], maxY);
-      maxZ = max(transformedPt[2], maxZ);
-      }
-    this->sonixGrabber->Seek(1);
-    }
+//    for(int j=0; j < 4; j++)
+//      {
+//      this->tagger->GetTransform()->MultiplyPoint(imCorners[j],transformedPt);
+//      minX = min(transformedPt[0], minX);
+//      minY = min(transformedPt[1], minY);
+//      minZ = min(transformedPt[2], minZ);
+//      maxX = max(transformedPt[0], maxX);
+//      maxY = max(transformedPt[1], maxY);
+//      maxZ = max(transformedPt[2], maxZ);
+//      }
+//    this->sonixGrabber->Seek(1);
+//    }
 
-  double spacing[3] = {0.5,0.5,0.5};
-  int volumeExtent[6] = { 0, (int)( (maxX - minX) / spacing[0] ), 
-                          0, (int)( (maxY - minY) / spacing[1] ), 
-                          0, (int)( (maxZ - minZ) / spacing[2] ) };
+//  double spacing[3] = {0.5,0.5,0.5};
+//  int volumeExtent[6] = { 0, (int)( (maxX - minX) / spacing[0] ), 
+//                          0, (int)( (maxY - minY) / spacing[1] ), 
+//                          0, (int)( (maxZ - minZ) / spacing[2] ) };
 
   panoramaReconstructor->SetOutputExtent(volumeExtent);
   panoramaReconstructor->SetOutputSpacing(spacing);
-  panoramaReconstructor->SetOutputOrigin(minX, minY, minZ);
+//  panoramaReconstructor->SetOutputOrigin(minX, minY, minZ);
+  panoramaReconstructor->SetOutputOrigin(origin[0], origin[1], origin[2]);
 
   // rewind and add the slices the panoramaReconstructor
-  panoramaReconstructor->SetSlice(tagger->GetOutput());
+  vtkImageData* outputImage = vtkImageData::New();
+//  panoramaReconstructor->SetSlice(tagger->GetOutput());
+  panoramaReconstructor->SetSlice(outputImage);
   panoramaReconstructor->GetOutput()->Update();
-  this->sonixGrabber->Rewind();
-  this->tagger->Update();
+//  this->sonixGrabber->Rewind();
+//  this->tagger->Update();
 
   vtkMatrix4x4 *sliceAxes = vtkMatrix4x4::New();
-  this->tagger->GetTransform()->GetMatrix(sliceAxes);
+  sliceAxes->Zero();
+  sliceAxes->Element[0][0] = 1; 
+  sliceAxes->Element[1][1] = 1; 
+  sliceAxes->Element[2][2] = 1; 
+  sliceAxes->Element[3][3] = 1; 
+////  this->tagger->GetTransform()->GetMatrix(sliceAxes);
   panoramaReconstructor->SetSliceAxes(sliceAxes);
 
   for(int i=0; i < nbFramesGrabbed; i++)
     {
-    this->tagger->Update();
-    this->tagger->GetTransform()->GetMatrix(sliceAxes);
+////    this->tagger->Update();
+////    this->tagger->GetTransform()->GetMatrix(sliceAxes);
     panoramaReconstructor->SetSliceAxes(sliceAxes);
     panoramaReconstructor->InsertSlice();
-    this->sonixGrabber->Seek(1);
+//    this->sonixGrabber->Seek(1);
     }
 
   cout << "Inserted " << panoramaReconstructor->GetPixelCount() << " pixels into the output volume" << endl;
