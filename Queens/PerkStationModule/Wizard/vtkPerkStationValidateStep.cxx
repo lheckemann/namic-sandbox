@@ -697,7 +697,7 @@ void vtkPerkStationValidateStep::SaveValidation(ostream& of)
 
   
   // entry point
-  of << " EntryPoint=\"" ;
+  of << " ValidateEntryPoint=\"" ;
   double entryPoint[3];
   mrmlNode->GetValidateEntryPoint(entryPoint);
   for(int i = 0; i < 3; i++)
@@ -705,7 +705,7 @@ void vtkPerkStationValidateStep::SaveValidation(ostream& of)
   of << "\" \n";
      
   // target point
-  of << " TargetPoint=\""; 
+  of << " ValidateTargetPoint=\""; 
   double targetPoint[3];
   mrmlNode->GetValidateTargetPoint(targetPoint);
   for(int i = 0; i < 3; i++)

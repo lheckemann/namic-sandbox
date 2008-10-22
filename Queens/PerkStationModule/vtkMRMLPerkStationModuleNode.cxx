@@ -157,7 +157,8 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
   // Write all MRML node attributes into output stream
 
   vtkIndent indent(nIndent);
-
+  
+  of << "\" \n";
   of << indent << " PlanningVolumeRef=\"" 
      << (this->PlanningVolumeRef ? this->PlanningVolumeRef: "NULL")
      << "\" \n";
