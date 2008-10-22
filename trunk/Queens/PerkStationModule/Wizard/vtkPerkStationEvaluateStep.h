@@ -30,12 +30,10 @@ public:
   void StartOverNewExperiment();
 
   void Reset();
-  // Description:
-  // Observers.
-  /*virtual void AddRunRegistrationOutputGUIObservers();
-  virtual void RemoveRunRegistrationOutputGUIObservers();
-  virtual void ProcessRunRegistrationOutputGUIEvents(
-    vtkObject *caller, unsigned long event, void *callData);*/
+  
+  void LoadEvaluation(istream &file);
+  void SaveEvaluation(ostream& of);
+  
 
 protected:
   vtkPerkStationEvaluateStep();

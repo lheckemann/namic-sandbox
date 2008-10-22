@@ -37,7 +37,17 @@ vtkPerkStationSecondaryMonitor::vtkPerkStationSecondaryMonitor()
   this->ScreenSize[0] = 800;
   this->ScreenSize[1] = 600;
   this->ScreenSize[2] = 1;
-  
+  this->CurrentRotation = 0.0;
+  this->CurrentTranslation[0] = 0.0;
+  this->CurrentTranslation[1] = 0.0;
+  this->CalibrationFromFileLoaded = false;
+
+  // these values should be read in from a config file
+  // the values below have been measure for 
+  // Viewsonic monitor VA503b
+  this->MonitorPhysicalSizeMM[0] = 304.8;
+  this->MonitorPhysicalSizeMM[1] = 228.6;
+
 
   // display/view related
   this->ImageData = NULL;
@@ -115,6 +125,10 @@ void vtkPerkStationSecondaryMonitor::ResetCalibration()
   this->HorizontalFlipped = false;
   this->VerticalFlipped = false;
 
+  this->CurrentRotation = 0.0;
+  this->CurrentTranslation[0] = 0.0;
+  this->CurrentTranslation[1] = 0.0;
+
   // calculate initial xytoijk matrix
   vtkMatrix4x4 *xyToIJK = vtkMatrix4x4::New();
   xyToIJK->Identity();
@@ -162,7 +176,7 @@ void vtkPerkStationSecondaryMonitor::RemoveOverlayNeedleGuide()
 
 }
 //----------------------------------------------------------------------------
- void vtkPerkStationSecondaryMonitor::SetupImageData()
+void vtkPerkStationSecondaryMonitor::SetupImageData()
 {
   vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
   if (!mrmlNode)
@@ -171,7 +185,7 @@ void vtkPerkStationSecondaryMonitor::RemoveOverlayNeedleGuide()
     return;
     }
 
-  this->VolumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetGUI()->GetMRMLScene()->GetNodeByID(mrmlNode->GetInputVolumeRef()));
+  this->VolumeNode = mrmlNode->GetPlanningVolumeNode();
   if (!this->VolumeNode)
     {
     // TO DO: what to do on failure
@@ -229,9 +243,95 @@ void vtkPerkStationSecondaryMonitor::RemoveOverlayNeedleGuide()
   flipMatrix = this->GetFlipMatrixFromDirectionCosines(directionMatrix,verticalFlip,horizontalFlip);
   this->CurrentTransformMatrix->DeepCopy(flipMatrix);
 
+  this->DisplayInitialized = true;
+
   this->UpdateMatrices();  
  
-  this->DisplayInitialized = true;
+  
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationSecondaryMonitor::LoadCalibration()
+{
+  // note that this is under the assumption that
+  // 1) this happens in Clinical mode only
+  // 2) xml file has been read
+  // 3) Vertical/horizontal flip has to be read in from mrml node, which was set while reading from the file
+  // 4) translation, rotation has to be used from the variables CurrentRotation, CurrentTranslation
+  // 5) Center of rotation is to be read from mrml node
+  // 6) The monitor's physical size, and pixel resolution is also set to this class member variables while reading from the file, this defines
+  // the monitor pixel size, and hence the scaling that is required
+  // It is to be done in following order:
+  // first reset the current calibration
+  // 1) First perform the scaling, based on image pixel size and monitor pixel size
+  // 2) Vertical/Horizonal flip
+  // 3) Translation
+  // 4) Rotation
+
+  if (this->GetGUI()->GetMode()!= vtkPerkStationModuleGUI::ModeId::Clinical)
+    {
+    return;
+    }
+
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if (!mrmlNode)
+    {
+    // TO DO: what to do on failure
+    return;
+    }
+
+ 
+  if (!this->VolumeNode)
+    {
+    // TO DO: what to do on failure
+    // volume node not initialized
+    return;
+    }
+
+
+  // It is to be done in following order:
+  // first reset the current calibration
+  this->ResetCalibration();
+
+  // 1) First perform the scaling, based on image pixel size and monitor pixel size
+  double monSpacing[2];
+  this->GetMonitorSpacing(monSpacing[0], monSpacing[1]);
+      
+  double imgSpacing[3];
+  this->VolumeNode->GetSpacing(imgSpacing);
+      
+  // set the actual scaling (image/mon) in mrml node
+  mrmlNode->SetActualScaling(double(imgSpacing[0]/monSpacing[0]), double(imgSpacing[1]/monSpacing[1]));
+  double scale[2];
+  mrmlNode->GetActualScaling(scale);
+  
+  // actually scale the image
+  this->Scale(scale[0], scale[1], 1.0);
+
+  // 2) Vertical/Horizonal flip
+  bool verticalFlip = false;
+  bool horizontalFlip = false;
+
+  verticalFlip = this->GetGUI()->GetMRMLNode()->GetVerticalFlip();
+  horizontalFlip = this->GetGUI()->GetMRMLNode()->GetHorizontalFlip();
+
+  if (verticalFlip)
+    this->GetGUI()->GetSecondaryMonitor()->FlipVertical();
+
+  if (horizontalFlip)
+    this->GetGUI()->GetSecondaryMonitor()->FlipHorizontal(); 
+
+  // 3) Translation
+  double trans[2];
+  mrmlNode->GetClinicalModeTranslation(trans);
+  this->Translate(trans[0], trans[1], 0);
+
+  // 4) Rotation
+  // note that center of rotation will be automatically read inside the rotate function from the mrml node
+  double rot = 0;
+  rot = mrmlNode->GetClinicalModeRotation();  
+  this->Rotate(rot);
+
+  this->CalibrationFromFileLoaded = true;
 }
 //----------------------------------------------------------------------------
 vtkMatrix4x4 *vtkPerkStationSecondaryMonitor::GetFlipMatrixFromDirectionCosines (vtkMatrix4x4 *directionMatrix, bool & verticalFlip, bool & horizontalFlip)
@@ -296,15 +396,19 @@ void vtkPerkStationSecondaryMonitor::UpdateMatrices()
 //----------------------------------------------------------------------------
 void vtkPerkStationSecondaryMonitor::UpdateImageDisplay()
 {
-  this->Reslice->SetOutputExtent(0,this->ScreenSize[0]-1,0,this->ScreenSize[1]-1,0,0);
-  this->Reslice->SetInput( this->ImageData);
-  this->Reslice->SetResliceTransform( this->ResliceTransform );
-  this->Reslice->Update();
-  if (this->DeviceActive)
+  if(this->DisplayInitialized)
     {
-    this->RenderWindow->Render();  
+    this->MapToWindowLevelColors->SetWindow(this->VolumeNode->GetScalarVolumeDisplayNode()->GetWindow());
+    this->MapToWindowLevelColors->SetLevel(this->VolumeNode->GetScalarVolumeDisplayNode()->GetLevel());
+    this->Reslice->SetOutputExtent(0,this->ScreenSize[0]-1,0,this->ScreenSize[1]-1,0,0);
+    this->Reslice->SetInput( this->ImageData);
+    this->Reslice->SetResliceTransform( this->ResliceTransform );
+    this->Reslice->Update();
+    if (this->DeviceActive)
+        {
+        this->RenderWindow->Render();  
+        }
     }
-  
 
   /*vtkSlicerSliceLogic *sliceLogic = vtkSlicerApplicationGUI::SafeDownCast(this->GetGUI()->GetApplicationGUI())->GetMainSliceGUI0()->GetLogic();
   vtkMRMLSliceNode *sliceNode = sliceLogic->GetSliceNode();
@@ -450,7 +554,8 @@ void vtkPerkStationSecondaryMonitor::Rotate(double angle)
   vtkMatrix4x4 *rasToXY = vtkMatrix4x4::New();
   vtkMatrix4x4::Invert(this->XYToRAS, rasToXY);
 
-  
+  this->CurrentRotation += angle;
+
   // center of rotation
   double rasCOR[3];
   this->GetGUI()->GetMRMLNode()->GetCenterOfRotation(rasCOR);
@@ -477,6 +582,9 @@ void vtkPerkStationSecondaryMonitor::Translate(double tx, double ty, double tz)
 {
   // translation components come in here as mm
   // convert into pixels with original spacing
+
+  this->CurrentTranslation[0] += tx;
+  this->CurrentTranslation[1] += ty;
 
   double spacing[3];
   spacing[0] = this->VolumeNode->GetSpacing()[0];

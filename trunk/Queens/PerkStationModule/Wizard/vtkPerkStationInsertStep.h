@@ -22,24 +22,11 @@ public:
   // Description:
   // Callbacks.
   // TO DO:
-  /*virtual void NormalizationTargetSelectionChangedCallback(
-    vtkIdType VolId);
-  virtual void NormalizationEnableCallback(
-    vtkIdType VolId, int state);
-  virtual void NormalizationNormTypeCallback(
-    vtkIdType VolId, int enumType);
-  virtual void NormalizationPrintInfoCallback(
-    vtkIdType VolId, int checked);
-  virtual void NormalizationNormValueCallback(
-    vtkIdType VolId, double dValue);
-  virtual void NormalizationSmoothingWidthCallback(
-    vtkIdType VolId, int iValue);
-  virtual void NormalizationMaxSmoothingWidthCallback(
-    vtkIdType VolId, int iValue);
-  virtual void NormalizationRelativeMaxVoxelNumCallback(
-    vtkIdType VolId, double dValue);*/
-
   void Reset();
+
+  void LoadInsertion(istream &file);
+  void SaveInsertion(ostream& of);
+
 protected:
   vtkPerkStationInsertStep();
   ~vtkPerkStationInsertStep();

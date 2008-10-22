@@ -112,7 +112,7 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkPerkStationModuleGUI : public vtkSlicerMod
   virtual void ResetAndStartNewExperiment();
 
   //
-  void SaveExperiment();
+  void SaveExperiment(char *fileName);
 
 
   //BTX

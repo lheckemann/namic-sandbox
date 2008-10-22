@@ -22,9 +22,11 @@ Version:   $Revision: 1.2 $
 #include "vtkMRMLScene.h"
 #include "vtkMRMLLinearTransformNode.h"
 #include "vtkMRMLFiducialListNode.h"
+#include "vtkMRMLScalarVolumeNode.h"
 
-// for getting display device information
-#include "Windows.h"
+#include "vtkSlicerLogic.h"
+
+
 //------------------------------------------------------------------------------
 vtkMRMLPerkStationModuleNode* vtkMRMLPerkStationModuleNode::New()
 {
@@ -39,7 +41,6 @@ vtkMRMLPerkStationModuleNode* vtkMRMLPerkStationModuleNode::New()
 }
 
 //----------------------------------------------------------------------------
-
 vtkMRMLNode* vtkMRMLPerkStationModuleNode::CreateNodeInstance()
 {
   // First try to create the object from the vtkObjectFactory
@@ -55,12 +56,21 @@ vtkMRMLNode* vtkMRMLPerkStationModuleNode::CreateNodeInstance()
 //----------------------------------------------------------------------------
 vtkMRMLPerkStationModuleNode::vtkMRMLPerkStationModuleNode()
 {
-   this->InputVolumeRef = NULL;
+   this->PlanningVolumeRef = NULL;
+   this->ValidationVolumeRef = NULL;
+   this->PlanningVolumeNode = NULL;
+   this->ValidationVolumeNode = NULL;
+   this->VolumeInUse = NULL;
+
    this->HideFromEditors = true;
 
    // member variables
    this->VerticalFlip = false;
    this->HorizontalFlip = false;
+
+   this->ClinicalModeRotation = 0.0;
+   this->ClinicalModeTranslation[0] = 0.0;
+   this->ClinicalModeTranslation[1] = 0.0;
 
    this->UserScaling[0] = 1.0;
    this->UserScaling[1] = 1.0;
@@ -106,6 +116,9 @@ vtkMRMLPerkStationModuleNode::vtkMRMLPerkStationModuleNode()
    this->ValidateTargetPoint[1] = 0.0;
    this->ValidateTargetPoint[2] = 0.0;
 
+   this->ValidateInsertionDepth = 0.0;
+
+
    this->CalibrateTranslationError[0] = 0;
    this->CalibrateTranslationError[1] = 0;
 
@@ -128,7 +141,12 @@ vtkMRMLPerkStationModuleNode::vtkMRMLPerkStationModuleNode()
 //----------------------------------------------------------------------------
 vtkMRMLPerkStationModuleNode::~vtkMRMLPerkStationModuleNode()
 {
-   this->SetInputVolumeRef( NULL );
+   this->SetPlanningVolumeRef(NULL);
+   this->SetValidationVolumeRef(NULL);
+   this->SetPlanningVolumeNode(NULL);
+   this->SetValidationVolumeNode(NULL);
+   this->SetVolumeInUse(NULL);
+
 }
 
 //----------------------------------------------------------------------------
@@ -140,10 +158,13 @@ void vtkMRMLPerkStationModuleNode::WriteXML(ostream& of, int nIndent)
 
   vtkIndent indent(nIndent);
 
-  of << indent << " InputVolumeRef=\"" 
-     << (this->InputVolumeRef ? this->InputVolumeRef: "NULL")
+  of << indent << " PlanningVolumeRef=\"" 
+     << (this->PlanningVolumeRef ? this->PlanningVolumeRef: "NULL")
      << "\" \n";
   
+  of << indent << " ValidationVolumeRef=\"" 
+     << (this->ValidationVolumeRef ? this->ValidationVolumeRef: "NULL")
+     << "\" \n";
 
   // Calibration step parameters
 
@@ -272,10 +293,15 @@ void vtkMRMLPerkStationModuleNode::ReadXMLAttributes(const char** atts)
     {
     attName = *(atts++);
     attValue = *(atts++);
-    if (!strcmp(attName, "InputVolumeRef"))
+    if (!strcmp(attName, "PlanningVolumeRef"))
       {
-      this->SetInputVolumeRef(attValue);
-      this->Scene->AddReferencedNodeID(this->InputVolumeRef, this);
+      this->SetPlanningVolumeRef(attValue);
+      this->Scene->AddReferencedNodeID(this->PlanningVolumeRef, this);
+      }
+    else if (!strcmp(attName, "ValidationVolumeRef"))
+      {
+      this->SetValidationVolumeRef(attValue);
+      this->Scene->AddReferencedNodeID(this->ValidationVolumeRef, this);
       }
     else if (!strcmp(attName, "VerticalFlip"))
       {
@@ -617,7 +643,11 @@ void vtkMRMLPerkStationModuleNode::Copy(vtkMRMLNode *anode)
   this->SetNumberOfIterations(node->NumberOfIterations);
   this->SetTimeStep(node->TimeStep);
   this->SetUseImageSpacing(node->UseImageSpacing);*/
-  this->SetInputVolumeRef(node->InputVolumeRef);
+  
+  this->SetPlanningVolumeRef(node->PlanningVolumeRef);
+  this->SetValidationVolumeRef(node->ValidationVolumeRef);
+  this->SetPlanningVolumeNode(node->GetPlanningVolumeNode());
+  this->SetValidationVolumeNode(node->GetValidationVolumeNode());
 
 }
 
@@ -627,54 +657,18 @@ void vtkMRMLPerkStationModuleNode::PrintSelf(ostream& os, vtkIndent indent)
   
   vtkMRMLNode::PrintSelf(os,indent);
 
-  os << indent << "InputVolumeRef:   " << 
-   (this->InputVolumeRef ? this->InputVolumeRef : "(none)") << "\n";
+  os << indent << "PlanningVolumeRef:   " << 
+   (this->PlanningVolumeRef ? this->PlanningVolumeRef : "(none)") << "\n";
  
 }
 
 //----------------------------------------------------------------------------
 void vtkMRMLPerkStationModuleNode::UpdateReferenceID(const char *oldID, const char *newID)
 {
-  if (!strcmp(oldID, this->InputVolumeRef))
+  /*if (!strcmp(oldID, this->InputVolumeRef))
     {
     this->SetInputVolumeRef(newID);
-    }
-}
-//-----------------------------------------------------------------------------
-int vtkMRMLPerkStationModuleNode::GetSecondaryMonitorSpacing(double & xSpacing, double & ySpacing)
-{
-  int retValue = -1; // indicates no secondary monitor connected
-  DISPLAY_DEVICE lpDisplayDevice;
-  lpDisplayDevice.cb = sizeof(lpDisplayDevice);
-  lpDisplayDevice.StateFlags = DISPLAY_DEVICE_ATTACHED_TO_DESKTOP;
-  int iDevNum = 0;
-  int iPhyDevNum = 0;
-  DWORD dwFlags = 0;
-  while(EnumDisplayDevices(NULL, iDevNum, &lpDisplayDevice, dwFlags))
-    {
-    iDevNum++;
-    if( (lpDisplayDevice.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP) == 1)
-      {
-      iPhyDevNum++;
-      // get the device context for the monitor
-      HDC hdc = CreateDC(NULL, lpDisplayDevice.DeviceName, NULL, NULL);
-      // now the device context can be used in many functions to retrieve information about the monitor
-      int width_mm = GetDeviceCaps(hdc, HORZSIZE);
-      int height_mm = GetDeviceCaps(hdc, VERTSIZE);
-     
-      int width_pix = GetDeviceCaps(hdc, HORZRES);
-      int height_pix = GetDeviceCaps(hdc, VERTRES);
-      xSpacing = double(width_mm)/double(width_pix);
-      ySpacing = double(height_mm)/double(height_pix);
-
-      if (iPhyDevNum == 2)
-        retValue = 1;
-      }
-    }
-
-  
-  return retValue;  
-
+    }*/
 }
 //------------------------------------------------------------------------------
 void vtkMRMLPerkStationModuleNode::CalculateCalibrateScaleError()
@@ -744,6 +738,17 @@ void vtkMRMLPerkStationModuleNode::InitializeFiducialListNode()
     this->PlanMRMLFiducialListNode->SetAllFiducialsVisibility(true);
     this->PlanMRMLFiducialListNode->SetSymbolScale(20);
     this->PlanMRMLFiducialListNode->SetTextScale(10);
+}
+//-------------------------------------------------------------------------------
+void vtkMRMLPerkStationModuleNode::SetPlanningVolumeNode(vtkMRMLScalarVolumeNode *planVolNode)
+{
+  vtkSetMRMLNodeMacro(this->PlanningVolumeNode, planVolNode);  
+}
+
+//-------------------------------------------------------------------------------
+void vtkMRMLPerkStationModuleNode::SetValidationVolumeNode(vtkMRMLScalarVolumeNode *validationVolNode)
+{
+  vtkSetMRMLNodeMacro(this->ValidationVolumeNode, validationVolNode);
 }
 
 /*

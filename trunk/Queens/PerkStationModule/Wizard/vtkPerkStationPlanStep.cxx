@@ -326,18 +326,18 @@ void vtkPerkStationPlanStep::ProcessImageClickEvents(vtkObject *caller, unsigned
   
   vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
 
-  
-  if (!this->GetGUI()->GetMRMLNode())
-    {
-    // TO DO: what to do on failure
-    return;
-    }
-
   // first identify if the step is pertinent, i.e. current step of wizard workflow is actually calibration step
   if (!wizard_widget ||   wizard_widget->GetWizardWorkflow()->GetCurrentStep() != this)
     {
     return;
     }
+
+  if (!this->GetGUI()->GetMRMLNode() || !this->GetGUI()->GetMRMLNode()->GetPlanningVolumeNode() || strcmp(this->GetGUI()->GetMRMLNode()->GetVolumeInUse(), "Planning")!=0)
+    {
+    // TO DO: what to do on failure
+    return;
+    }
+
 
   // see if the entry and target have already been acquired
   if(this->EntryTargetAcquired)
@@ -698,4 +698,179 @@ void vtkPerkStationPlanStep::RemoveOverlayNeedleGuide()
     this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->GetRenderWidget()->GetOverlayRenderer()->RemoveActor(this->NeedleActor);
     this->GetGUI()->GetApplicationGUI()->GetMainSliceGUI("Red")->GetSliceViewer()->RequestRender();     
     }
+}
+
+//-----------------------------------------------------------------------------
+void vtkPerkStationPlanStep::LoadPlanning(istream &file)
+{
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if (!mrmlNode)
+    {
+    // TO DO: what to do on failure
+    return;
+    }  
+
+  char currentLine[256];  
+  char* attName = "";
+  char* attValue = "";
+  char* pdest;
+  int nCharCount = 0;
+  unsigned int indexEndOfAttribute = 0;
+  unsigned int indexStartOfValue = 0;
+  unsigned int indexEndOfValue = 0;
+
+  int paramSetCount = 0;
+  while(!file.eof())
+    {
+    // first get each line,
+    // then parse each line on basis of attName, and attValue
+    // this can be done as delimiters '='[]' is used to separate out name from value
+    file.getline(&currentLine[0], 256, '\n');   
+    nCharCount = strlen(currentLine);
+    indexEndOfAttribute = strcspn(currentLine,"=");
+    if(indexEndOfAttribute >0)
+      {
+      attName = new char[indexEndOfAttribute+1];
+      strncpy(attName, currentLine,indexEndOfAttribute);
+      attName[indexEndOfAttribute] = '\0';
+      pdest = strchr(currentLine, '"');   
+      indexStartOfValue = (int)(pdest - currentLine + 1);
+      pdest = strrchr(currentLine, '"');
+      indexEndOfValue = (int)(pdest - currentLine + 1);
+      attValue = new char[indexEndOfValue-indexStartOfValue+1];
+      strncpy(attValue, &currentLine[indexStartOfValue], indexEndOfValue-indexStartOfValue-1);
+      attValue[indexEndOfValue-indexStartOfValue-1] = '\0';
+
+      // at this point, we have line separated into, attributeName, and attributeValue
+      // now we need to do string matching on attributeName, and further parse attributeValue as it may have more than one value
+      if (!strcmp(attName, " PlanInsertionAngle"))
+        {
+        std::stringstream ss;
+        ss << attValue;
+        double val;
+        ss >> val;
+        mrmlNode->SetActualPlanInsertionAngle(val);
+        paramSetCount++;
+        }     
+      else if (!strcmp(attName, " PlanInsertionDepth"))
+        {
+        std::stringstream ss;
+        ss << attValue;
+        double val;
+        ss >> val;
+        mrmlNode->SetActualPlanInsertionDepth(val);     
+        paramSetCount++;
+        }     
+      else if (!strcmp(attName, " PlanEntryPoint"))
+        {
+        // read data into a temporary vector
+        std::stringstream ss;
+        ss << attValue;
+        double d;
+        std::vector<double> tmpVec;
+        while (ss >> d)
+          {
+          tmpVec.push_back(d);
+          }
+        if (tmpVec.size()==3)
+          {
+          double point[3];
+          for (unsigned int i = 0; i < tmpVec.size(); i++)
+            point[i] = tmpVec[i];
+          mrmlNode->SetPlanEntryPoint(point[0], point[1], point[2]);
+          paramSetCount++;
+          }
+        else
+          {
+          // error in file?
+          }     
+        }
+      else if (!strcmp(attName, " PlanTargetPoint"))
+        {
+        // read data into a temporary vector
+        std::stringstream ss;
+        ss << attValue;
+        double d;
+        std::vector<double> tmpVec;
+        while (ss >> d)
+          {
+          tmpVec.push_back(d);
+          }
+        if (tmpVec.size()==3)
+          {
+          double point[3];
+          for (unsigned int i = 0; i < tmpVec.size(); i++)
+            point[i] = tmpVec[i];
+          mrmlNode->SetPlanTargetPoint(point[0], point[1], point[2]);
+          paramSetCount++;
+          }
+        else
+          {
+          // error in file?
+          }     
+        }
+      
+      }// end if testing for it is a valid attName
+
+    } // end while going through the file
+  
+  if (paramSetCount == 4)
+    {
+    // all params correctly read from file
+    
+    // reflect the values of params in GUI controls
+    // this->PopulateControlsOnLoadCalibration();
+    // set any state variables required to be set
+    }
+  else
+    {
+    // error reading file, not all values set
+    int error = -1;
+    }
+}
+
+//-----------------------------------------------------------------------------
+void vtkPerkStationPlanStep::SavePlanning(ostream& of)
+{
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if (!mrmlNode)
+    {
+    // TO DO: what to do on failure
+    return;
+    }  
+
+  
+  // entry point
+  of << " EntryPoint=\"" ;
+  double entryPoint[3];
+  mrmlNode->GetPlanEntryPoint(entryPoint);
+  for(int i = 0; i < 3; i++)
+      of << entryPoint[i] << " ";
+  of << "\" \n";
+     
+  // target point
+  of << " TargetPoint=\""; 
+  double targetPoint[3];
+  mrmlNode->GetPlanTargetPoint(targetPoint);
+  for(int i = 0; i < 3; i++)
+      of << targetPoint[i] << " ";
+  of << "\" \n";
+
+  // insertion depth
+  of << " PlanInsertionDepth=\"";
+  double depth = mrmlNode->GetActualPlanInsertionDepth();  
+  of << depth << " ";
+  of << "\" \n";
+
+  
+  // insertion angle
+  of << " PlanInsertionAngle=\"";
+  double angle = mrmlNode->GetActualPlanInsertionAngle();  
+  of << angle << " ";
+  of << "\" \n";
+
+  
+
+  
+
 }
