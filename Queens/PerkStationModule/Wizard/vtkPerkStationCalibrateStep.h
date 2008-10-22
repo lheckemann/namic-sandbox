@@ -79,12 +79,20 @@ public:
   virtual void Reset();
 
   // Description
+  // Callback on the load calibration button
+  void LoadCalibrationButtonCallback();
+
+  // Description
   // Callback on the save calibration button
   void SaveCalibrationButtonCallback();
 
   // Description
   // Save calibration
   virtual void SaveCalibration(ostream& of);
+
+  // Description
+  // Save calibration
+  virtual void LoadCalibration(istream &file);
 
   // Description
   // Save calibration  
@@ -116,6 +124,7 @@ protected:
   bool ProcessingCallback;
   void InstallCallbacks();
   void PopulateControls();
+  void PopulateControlsOnLoadCalibration();
 
   void EnableDisableControls();
   void EnableDisableLoadResetControls(bool enable);

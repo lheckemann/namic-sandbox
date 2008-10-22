@@ -30,8 +30,11 @@ public:
   // reset
   virtual void Reset();
 
+  void LoadValidation(istream &file);
 
+  void SaveValidation(ostream& of);
 
+  void StartOverNewExperiment();
 protected:
   vtkPerkStationValidateStep();
   ~vtkPerkStationValidateStep();

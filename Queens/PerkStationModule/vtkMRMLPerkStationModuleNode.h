@@ -18,6 +18,8 @@
 #include "vtkMRMLNode.h"
 #include "vtkMRMLStorageNode.h"
 
+
+
 #include "vtkMatrix4x4.h"
 #include "vtkTransform.h"
 #include "vtkImageData.h"
@@ -27,6 +29,7 @@
 class vtkImageData;
 class vtkMRMLLinearTransformNode;
 class vtkMRMLFiducialListNode;
+class vtkMRMLScalarVolumeNode;
 
 class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRMLNode
 {
@@ -78,6 +81,10 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRML
   vtkGetVector2Macro(ActualScaling, double);
   vtkSetVector2Macro(ActualScaling, double);
 
+  // Description:
+  // Get/Set  UserTranslation(module parameter)
+  vtkGetVector2Macro(ClinicalModeTranslation, double);
+  vtkSetVector2Macro(ClinicalModeTranslation, double);
 
   // Description:
   // Get/Set  UserTranslation(module parameter)
@@ -93,6 +100,11 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRML
   // Get/Set  CenterOfRotation(module parameter)
   vtkGetVector3Macro(CenterOfRotation, double);
   vtkSetVector3Macro(CenterOfRotation, double);
+
+  // Description:
+  // Get/Set ActualRotation (module parameter)
+  vtkGetMacro(ClinicalModeRotation, double);
+  vtkSetMacro(ClinicalModeRotation, double);
 
   // Description:
   // Get/Set  UserRotation(module parameter)
@@ -160,6 +172,11 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRML
   vtkGetVector3Macro(ValidateTargetPoint, double);
   vtkSetVector3Macro(ValidateTargetPoint, double);
 
+  // Description:
+  // Get/Set ValidateInsertionDepth (module parameter)
+  vtkGetMacro(ValidateInsertionDepth, double);
+  vtkSetMacro(ValidateInsertionDepth, double);
+
 
   // evaluate parameters:
   vtkGetVector2Macro(CalibrateTranslationError, double);  
@@ -174,18 +191,31 @@ class VTK_PERKSTATIONMODULE_EXPORT vtkMRMLPerkStationModuleNode : public vtkMRML
   // common:
 
   // Description:
+
+  // Get/Set volume in use
+  vtkGetStringMacro(VolumeInUse);
+  vtkSetStringMacro(VolumeInUse);
+
   // Get/Set input volume MRML Id
-  vtkGetStringMacro(InputVolumeRef);
-  vtkSetStringMacro(InputVolumeRef);
+  vtkGetStringMacro(PlanningVolumeRef);
+  vtkSetStringMacro(PlanningVolumeRef);
+
+  vtkGetStringMacro(ValidationVolumeRef);
+  vtkSetStringMacro(ValidationVolumeRef);
+
+  // calibration/planning volume node
+  vtkMRMLScalarVolumeNode *GetPlanningVolumeNode(){return this->PlanningVolumeNode;};
+  void SetPlanningVolumeNode(vtkMRMLScalarVolumeNode *planVolNode);
   
+  // validation volume node
+  vtkMRMLScalarVolumeNode *GetValidationVolumeNode(){return this->ValidationVolumeNode;};
+  void SetValidationVolumeNode(vtkMRMLScalarVolumeNode *validationVolNode);
+
   // Description:
   // Update the stored reference to another node in the scene
   virtual void UpdateReferenceID(const char *oldID, const char *newID);
 
-  // Description:
-  // Get information about secondary/image overlay monitors spacing.
-  int GetSecondaryMonitorSpacing(double & xSpacing, double & ySpacing);
-
+  
 
   void CalculateCalibrateScaleError();
   void CalculateCalibrateTranslationError();
@@ -216,6 +246,11 @@ protected:
 
   // calibrate parameters:
 
+  // "Clinical mode"
+  double ClinicalModeRotation;
+  double ClinicalModeTranslation[2];
+  
+  // "Training mode"
   // flip parameters
   bool VerticalFlip;
   bool HorizontalFlip;
@@ -249,6 +284,7 @@ protected:
   double ValidateEntryPoint[3];
   double ValidateTargetPoint[3];
 
+  double ValidateInsertionDepth;
   // evaluate parameters
 
   double CalibrateTranslationError[2]; // error in mm
@@ -263,7 +299,13 @@ protected:
 
 
   // common parameters  
-  char* InputVolumeRef;
+  char* PlanningVolumeRef;
+  char* ValidationVolumeRef;
+  char* VolumeInUse; 
+
+  // scalar volume node
+  vtkMRMLScalarVolumeNode *PlanningVolumeNode;
+  vtkMRMLScalarVolumeNode *ValidationVolumeNode;
 
 };
 

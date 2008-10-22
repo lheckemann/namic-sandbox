@@ -46,6 +46,11 @@ public:
   virtual void Reset();
   
   void RemoveOverlayNeedleGuide();
+
+  void LoadPlanning(istream &file);
+
+  void SavePlanning(ostream& of);
+
 protected:
   vtkPerkStationPlanStep();
   ~vtkPerkStationPlanStep();

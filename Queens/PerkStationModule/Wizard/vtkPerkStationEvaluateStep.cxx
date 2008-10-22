@@ -703,7 +703,7 @@ void vtkPerkStationEvaluateStep::InstallCallbacks()
 //----------------------------------------------------------------------------
 void vtkPerkStationEvaluateStep::StartOverNewExperiment()
 {
-  this->GetGUI()->SaveExperiment();
+  
   this->GetGUI()->ResetAndStartNewExperiment();
 }
 //----------------------------------------------------------------------------
@@ -721,7 +721,8 @@ void vtkPerkStationEvaluateStep::PopulateControls()
     return;
     }
 
-  vtkMRMLScalarVolumeNode *inVolume = vtkMRMLScalarVolumeNode::SafeDownCast(this->GetGUI()->GetMRMLScene()->GetNodeByID(mrmlNode->GetInputVolumeRef()));
+  vtkMRMLScalarVolumeNode *inVolume = mrmlNode->GetPlanningVolumeNode();
+
   if (!inVolume)
     {
     // TO DO: what to do on failure
@@ -758,4 +759,34 @@ void vtkPerkStationEvaluateStep::ResetControls()
 void vtkPerkStationEvaluateStep::Reset()
 {
   this->ResetControls();
+}
+
+//-----------------------------------------------------------------------------
+void vtkPerkStationEvaluateStep::LoadEvaluation(istream &file)
+{
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+
+  if (!mrmlNode)
+      return;
+
+  if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Training)
+    {
+    // indicates all user parameters read are valid so do the calculations now
+    mrmlNode->CalculateCalibrateScaleError();
+    mrmlNode->CalculateCalibrateTranslationError();
+    mrmlNode->CalculateCalibrateRotationError();
+    mrmlNode->CalculatePlanInsertionAngleError();
+    mrmlNode->CalculatePlanInsertionDepthError();
+    mrmlNode->CalculateEntryPointError();
+    mrmlNode->CalculateTargetPointError();
+
+    // populate controls
+    }
+
+}
+
+//-----------------------------------------------------------------------------
+void vtkPerkStationEvaluateStep::SaveEvaluation(ostream& of)
+{
+ 
 }

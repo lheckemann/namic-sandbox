@@ -378,24 +378,92 @@ void vtkPerkStationModuleGUI::UpdateMRML ()
   n->SetUseImageSpacing(this->UseImageSpacing->GetState());*/
   
   if (this->VolumeSelector->GetSelected() != NULL)
-    {
-    if (n->GetInputVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
-        if (strcmpi(n->GetInputVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
-            return;
-    n->SetInputVolumeRef(this->VolumeSelector->GetSelected()->GetID());
+    {    
     
-    // set up the image on secondary monitor
-    //this->SecondaryMonitor->ResetCalibration();
-    this->SecondaryMonitor->SetupImageData();
-
-    // the volume selection has changed/added, so make sure that the wizard is in the intial calibration state!
-    while (this->WizardWidget->GetWizardWorkflow()->GetCurrentState()!= this->WizardWidget->GetWizardWorkflow()->GetInitialState())
+    // see in what state wizard gui is, act accordingly
+    if (this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->CalibrateStep)
       {
-      this->WizardWidget->GetWizardWorkflow()->AttemptToGoToPreviousStep();
+
+      if (n->GetPlanningVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
+        {
+        if (strcmpi(n->GetPlanningVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
+          {
+          n->SetVolumeInUse("Planning");          
+          }
+        return;
+        }
+
+      // calibrate/planning volume set
+      n->SetPlanningVolumeRef(this->VolumeSelector->GetSelected()->GetID());
+      n->SetPlanningVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(n->GetPlanningVolumeRef())));
+      n->SetVolumeInUse("Planning");
+      
+
+      vtkMRMLScalarVolumeDisplayNode *node = NULL;
+      vtkSetAndObserveMRMLNodeMacro(node, n->GetPlanningVolumeNode()->GetScalarVolumeDisplayNode());
+
+      // set up the image on secondary monitor    
+      this->SecondaryMonitor->SetupImageData();
+      
+      // repopulate/enable/disable controls now that volume has been loaded
+      this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
+
       }
-    this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
-        
-    //this->RenderSecondaryMonitor();
+    else if (this->WizardWidget->GetWizardWorkflow()->GetCurrentStep() == this->ValidateStep)
+      {
+      if (n->GetValidationVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
+        {
+        if (strcmpi(n->GetValidationVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
+          {
+          n->SetVolumeInUse("Validation");          
+          }
+        return;
+        }
+           
+
+      // validate volume set
+      n->SetValidationVolumeRef(this->VolumeSelector->GetSelected()->GetID());    
+      n->SetValidationVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(n->GetValidationVolumeRef())));
+      n->SetVolumeInUse("Validation");
+
+      }
+    else
+      {
+    
+      // situation, when the user in neither calibration step, nor validation step
+      // he could be fiddling around with GUI, and be in either planning or insertion step or evaluation step
+
+      // only to handle case when planning volume has not been set so far, in which case we set the planning volume
+
+      if (n->GetPlanningVolumeRef()!=NULL && this->VolumeSelector->GetSelected()->GetID()!=NULL)
+        {
+        if (strcmpi(n->GetPlanningVolumeRef(),this->VolumeSelector->GetSelected()->GetID()) == 0)
+          {
+          n->SetVolumeInUse("Planning");          
+          }
+        return;
+        }
+
+      // calibrate/planning volume set
+      n->SetPlanningVolumeRef(this->VolumeSelector->GetSelected()->GetID());
+      n->SetPlanningVolumeNode(vtkMRMLScalarVolumeNode::SafeDownCast(this->GetMRMLScene()->GetNodeByID(n->GetPlanningVolumeRef())));
+      n->SetVolumeInUse("Planning");
+     
+      vtkMRMLScalarVolumeDisplayNode *node = NULL;
+      vtkSetAndObserveMRMLNodeMacro(node, n->GetPlanningVolumeNode()->GetScalarVolumeDisplayNode());
+
+       // set up the image on secondary monitor    
+      this->SecondaryMonitor->SetupImageData();
+
+      // bring the wizard GUI back to Calibrate step
+      // the volume selection has changed/added, so make sure that the wizard is in the intial calibration state!
+      while (this->WizardWidget->GetWizardWorkflow()->GetCurrentState()!= this->WizardWidget->GetWizardWorkflow()->GetInitialState())
+        {
+        this->WizardWidget->GetWizardWorkflow()->AttemptToGoToPreviousStep();
+        }
+      this->WizardWidget->GetWizardWorkflow()->GetCurrentStep()->ShowUserInterface();
+      }    
+    
     }
 
   
@@ -433,12 +501,17 @@ void vtkPerkStationModuleGUI::ProcessMRMLEvents ( vtkObject *caller,
   // if parameter node has been changed externally, update GUI widgets with new values
   vtkMRMLPerkStationModuleNode* node = vtkMRMLPerkStationModuleNode::SafeDownCast(caller);
   vtkMRMLLinearTransformNode *transformNode = vtkMRMLLinearTransformNode::SafeDownCast(caller);
+  vtkMRMLScalarVolumeDisplayNode *displayNode = vtkMRMLScalarVolumeDisplayNode::SafeDownCast(caller);
 
   if (node != NULL && this->GetMRMLNode() == node ) 
   {
     this->UpdateGUI();
   }
-  
+
+  if (displayNode != NULL && this->GetMRMLNode()->GetPlanningVolumeNode()->GetScalarVolumeDisplayNode() == displayNode && event == vtkCommand::ModifiedEvent)
+    {
+    this->GetSecondaryMonitor()->UpdateImageDisplay();
+    }
   /*if (transformNode == this->GetMRMLNode()->GetCalibrationMRMLTransformNode() && event == vtkMRMLTransformableNode::TransformModifiedEvent)
     {
     // this is when the user modifies the calibration transform matrix from "Transforms" module
@@ -566,13 +639,13 @@ void vtkPerkStationModuleGUI::BuildGUI ( )
   workPhaseFrame->Delete();
   
   // collapsible? frame for volume node selection, and parameters selection?
-  vtkSlicerModuleCollapsibleFrame *volumeSelFrame = vtkSlicerModuleCollapsibleFrame::New ( );
-  volumeSelFrame->SetParent(modulePage);
-  volumeSelFrame->Create();
-  volumeSelFrame->SetLabelText("Volume selection frame");
-  volumeSelFrame->ExpandFrame();  
+  vtkSlicerModuleCollapsibleFrame *loadSaveExptFrame = vtkSlicerModuleCollapsibleFrame::New ( );
+  loadSaveExptFrame->SetParent(modulePage);
+  loadSaveExptFrame->Create();
+  loadSaveExptFrame->SetLabelText("Experiment frame");
+  loadSaveExptFrame->ExpandFrame();  
   app->Script("pack %s -side top -fill x -expand y -anchor w -padx 2 -pady 2",
-              volumeSelFrame->GetWidgetName(), modulePage->GetWidgetName());
+              loadSaveExptFrame->GetWidgetName(), modulePage->GetWidgetName());
   
 
   //MRML node
@@ -580,7 +653,7 @@ void vtkPerkStationModuleGUI::BuildGUI ( )
   this->PSNodeSelector->SetNewNodeEnabled(1);
   this->PSNodeSelector->NoneEnabledOn();
   this->PSNodeSelector->SetShowHidden(1);
-  this->PSNodeSelector->SetParent( volumeSelFrame->GetFrame() );
+  this->PSNodeSelector->SetParent( loadSaveExptFrame->GetFrame() );
   this->PSNodeSelector->Create();
   this->PSNodeSelector->SetMRMLScene(this->Logic->GetMRMLScene());
   this->PSNodeSelector->UpdateMenu();
@@ -593,7 +666,7 @@ void vtkPerkStationModuleGUI::BuildGUI ( )
 
   //input volume selector
   this->VolumeSelector->SetNodeClass("vtkMRMLScalarVolumeNode", NULL, NULL, NULL);
-  this->VolumeSelector->SetParent( volumeSelFrame->GetFrame() );
+  this->VolumeSelector->SetParent( loadSaveExptFrame->GetFrame() );
   this->VolumeSelector->Create();
   this->VolumeSelector->SetMRMLScene(this->Logic->GetMRMLScene());
   this->VolumeSelector->UpdateMenu();
@@ -604,7 +677,15 @@ void vtkPerkStationModuleGUI::BuildGUI ( )
   app->Script("pack %s -side left -anchor e -padx 2 -pady 4", 
                 this->VolumeSelector->GetWidgetName());
 
-  volumeSelFrame->Delete();
+
+
+
+
+
+
+
+
+  loadSaveExptFrame->Delete();
 
   // Wizard collapsible frame with individual steps inside
   this->WizardFrame = vtkSlicerModuleCollapsibleFrame::New();
@@ -896,14 +977,29 @@ void vtkPerkStationModuleGUI::ResetAndStartNewExperiment()
 
 }
 //----------------------------------------------------------------------------
-void vtkPerkStationModuleGUI::SaveExperiment()
+void vtkPerkStationModuleGUI::SaveExperiment(char *fileName)
 {
-  // 1) Save the useful data/parameters from the current experiment
+  if (!this->GetMRMLNode())
+      return;
 
-  // write the xml file
-  ofstream file("Test.xml");
+  ofstream experimentFile(fileName);
 
-  this->GetMRMLNode()->WriteXML(file,1);
+  switch(this->Mode)
+    {
+    case vtkPerkStationModuleGUI::ModeId::Training:
+        this->GetMRMLNode()->WriteXML(experimentFile, 0);
+        break;
+    
+    case vtkPerkStationModuleGUI::ModeId::Clinical:
+        // save information about image volumes used
+        // save information about calibration
+        // save information about planning
+        // save information about insertion
+        // save information about validation 
+
+        break;
+    }
+  
 }
 
 //-----------------------------------------------------------------------------------

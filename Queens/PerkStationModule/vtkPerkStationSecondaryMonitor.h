@@ -70,8 +70,19 @@ public:
   void SetupImageData();
 
   // Description
+  // load calibration, which has been read in from a file already
+  void LoadCalibration();
+
+
+  // Description
   // update matrices
+  // please note that this function calls UpdateImageDisplay at end of recomputing matrices
   void UpdateMatrices();
+
+  // Description
+  // update display
+  // reads the window/level from scalar display node, and updates the rendering the image
+  void UpdateImageDisplay();
 
   // Description
   // get render window
@@ -97,6 +108,10 @@ public:
   // Get ResliceTranform matrix
   vtkMatrix4x4 *GetResliceTransformMatrix();
 
+  void GetTranslation(double & translationX, double & translationY){translationX = this->CurrentTranslation[0]; translationY = this->CurrentTranslation[1];};
+
+  void GetRotation(double & rotation){rotation = this->CurrentRotation;};
+  
 
   // Description
   // Flip vertically, i.e., about x-axis (left stays left)
@@ -157,7 +172,7 @@ protected:
   vtkImageData *ImageData; // the image data to be displayed
 
   vtkMatrix4x4 *GetFlipMatrixFromDirectionCosines (vtkMatrix4x4 *directionMatrix, bool & verticalFlip, bool & horizontalFlip);
-  void UpdateImageDisplay();
+ 
   
   // about the monitor
   bool DeviceActive;
@@ -170,6 +185,9 @@ protected:
   bool VerticalFlipped;
   bool HorizontalFlipped;
 
+  double CurrentTranslation[2];
+  double CurrentRotation;
+  bool CalibrationFromFileLoaded;
 private:
   vtkPerkStationSecondaryMonitor(const vtkPerkStationSecondaryMonitor&);
   void operator=(const vtkPerkStationSecondaryMonitor&);

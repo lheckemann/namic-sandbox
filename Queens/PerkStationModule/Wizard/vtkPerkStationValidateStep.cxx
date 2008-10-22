@@ -393,6 +393,28 @@ void vtkPerkStationValidateStep::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkPerkStationValidateStep::InstallCallbacks()
 {
+    // Configure the OK button to start
+  if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
+    {
+    vtkKWWizardWidget *wizard_widget = this->GetGUI()->GetWizardWidget();
+
+    if (wizard_widget->GetOKButton())
+      {
+      wizard_widget->GetOKButton()->SetText("Start over");
+      wizard_widget->GetOKButton()->SetCommand(
+      this, "StartOverNewExperiment");
+      wizard_widget->GetOKButton()->SetBalloonHelpString(
+      "Save and do another experiment");
+      }
+
+    }
+
+ 
+}
+//----------------------------------------------------------------------------
+void vtkPerkStationValidateStep::StartOverNewExperiment()
+{
+ this->GetGUI()->ResetAndStartNewExperiment();
 }
 //----------------------------------------------------------------------------
 void vtkPerkStationValidateStep::PopulateControls()
@@ -409,6 +431,12 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
       wizard_widget->GetWizardWorkflow()->GetCurrentStep() != 
       this)
     {
+    return;
+    }
+
+  if (!this->GetGUI()->GetMRMLNode() || !this->GetGUI()->GetMRMLNode()->GetValidationVolumeNode() || strcmp(this->GetGUI()->GetMRMLNode()->GetVolumeInUse(), "Validation")!=0)
+    {
+    // TO DO: what to do on failure
     return;
     }
 
@@ -471,14 +499,15 @@ void vtkPerkStationValidateStep::ProcessImageClickEvents(vtkObject *caller, unsi
       
       clickNum = 0;
 
+      double rasEntry[3];
+      double rasTarget[3];
+      this->GetGUI()->GetMRMLNode()->GetValidateEntryPoint(rasEntry);
+      this->GetGUI()->GetMRMLNode()->GetValidateTargetPoint(rasTarget);
+      double insDepth = sqrt( (rasTarget[0] - rasEntry[0])*(rasTarget[0] - rasEntry[0]) + (rasTarget[1] - rasEntry[1])*(rasTarget[1] - rasEntry[1]) + (rasTarget[2] - rasEntry[2])*(rasTarget[2] - rasEntry[2]) );
+      this->GetGUI()->GetMRMLNode()->SetValidateInsertionDepth(insDepth);  
       // if in clinical mode, the insertion depth should be automatically calculated & displayed
       if (this->GetGUI()->GetMode() == vtkPerkStationModuleGUI::ModeId::Clinical)
         {   
-        double rasEntry[3];
-        double rasTarget[3];
-        this->GetGUI()->GetMRMLNode()->GetValidateEntryPoint(rasEntry);
-        this->GetGUI()->GetMRMLNode()->GetValidateTargetPoint(rasTarget);
-        double insDepth = sqrt( (rasTarget[0] - rasEntry[0])*(rasTarget[0] - rasEntry[0]) + (rasTarget[1] - rasEntry[1])*(rasTarget[1] - rasEntry[1]) + (rasTarget[2] - rasEntry[2])*(rasTarget[2] - rasEntry[2]) );
         this->InsertionDepth->GetWidget()->SetValueAsDouble(insDepth);
         }       
 
@@ -535,3 +564,165 @@ void vtkPerkStationValidateStep::ResetControls()
     this->InsertionDepth->GetWidget()->SetValue("");
     }
 }
+
+//-----------------------------------------------------------------------------
+void vtkPerkStationValidateStep::LoadValidation(istream &file)
+{
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if (!mrmlNode)
+    {
+    // TO DO: what to do on failure
+    return;
+    }  
+
+  char currentLine[256];  
+  char* attName = "";
+  char* attValue = "";
+  char* pdest;
+  int nCharCount = 0;
+  unsigned int indexEndOfAttribute = 0;
+  unsigned int indexStartOfValue = 0;
+  unsigned int indexEndOfValue = 0;
+
+  int paramSetCount = 0;
+  while(!file.eof())
+    {
+    // first get each line,
+    // then parse each line on basis of attName, and attValue
+    // this can be done as delimiters '='[]' is used to separate out name from value
+    file.getline(&currentLine[0], 256, '\n');   
+    nCharCount = strlen(currentLine);
+    indexEndOfAttribute = strcspn(currentLine,"=");
+    if(indexEndOfAttribute >0)
+      {
+      attName = new char[indexEndOfAttribute+1];
+      strncpy(attName, currentLine,indexEndOfAttribute);
+      attName[indexEndOfAttribute] = '\0';
+      pdest = strchr(currentLine, '"');   
+      indexStartOfValue = (int)(pdest - currentLine + 1);
+      pdest = strrchr(currentLine, '"');
+      indexEndOfValue = (int)(pdest - currentLine + 1);
+      attValue = new char[indexEndOfValue-indexStartOfValue+1];
+      strncpy(attValue, &currentLine[indexStartOfValue], indexEndOfValue-indexStartOfValue-1);
+      attValue[indexEndOfValue-indexStartOfValue-1] = '\0';
+
+      // at this point, we have line separated into, attributeName, and attributeValue
+      // now we need to do string matching on attributeName, and further parse attributeValue as it may have more than one value
+      if (!strcmp(attName, " ValidateInsertionDepth"))
+        {
+        std::stringstream ss;
+        ss << attValue;
+        double val;
+        ss >> val;
+        mrmlNode->SetValidateInsertionDepth(val);       
+        paramSetCount++;
+        }
+      else if (!strcmp(attName, " ValidateEntryPoint"))
+        {
+        // read data into a temporary vector
+        std::stringstream ss;
+        ss << attValue;
+        double d;
+        std::vector<double> tmpVec;
+        while (ss >> d)
+          {
+          tmpVec.push_back(d);
+          }
+        if (tmpVec.size()==3)
+          {
+          double point[3];
+          for (unsigned int i = 0; i < tmpVec.size(); i++)
+            point[i] = tmpVec[i];
+          mrmlNode->SetValidateEntryPoint(point[0], point[1], point[2]);
+          paramSetCount++;
+          }
+        else
+          {
+          // error in file?
+          }     
+        }
+      else if (!strcmp(attName, " ValidateTargetPoint"))
+        {
+        // read data into a temporary vector
+        std::stringstream ss;
+        ss << attValue;
+        double d;
+        std::vector<double> tmpVec;
+        while (ss >> d)
+          {
+          tmpVec.push_back(d);
+          }
+        if (tmpVec.size()==3)
+          {
+          double point[3];
+          for (unsigned int i = 0; i < tmpVec.size(); i++)
+            point[i] = tmpVec[i];
+          mrmlNode->SetValidateTargetPoint(point[0], point[1], point[2]);
+          paramSetCount++;
+          }
+        else
+          {
+          // error in file?
+          }     
+        }
+      
+      }// end if testing for it is a valid attName
+
+    } // end while going through the file
+  
+  if (paramSetCount == 3)
+    {
+    // all params correctly read from file
+    
+    // reflect the values of params in GUI controls
+//  this->PopulateControlsOnLoadCalibration();
+    // set any state variables required to be set
+    }
+  else
+    {
+    // error reading file, not all values set
+    int error = -1;
+    }
+}
+
+//-----------------------------------------------------------------------------
+void vtkPerkStationValidateStep::SaveValidation(ostream& of)
+{
+  vtkMRMLPerkStationModuleNode *mrmlNode = this->GetGUI()->GetMRMLNode();
+  if (!mrmlNode)
+    {
+    // TO DO: what to do on failure
+    return;
+    }  
+
+  
+  // entry point
+  of << " EntryPoint=\"" ;
+  double entryPoint[3];
+  mrmlNode->GetValidateEntryPoint(entryPoint);
+  for(int i = 0; i < 3; i++)
+      of << entryPoint[i] << " ";
+  of << "\" \n";
+     
+  // target point
+  of << " TargetPoint=\""; 
+  double targetPoint[3];
+  mrmlNode->GetValidateTargetPoint(targetPoint);
+  for(int i = 0; i < 3; i++)
+      of << targetPoint[i] << " ";
+  of << "\" \n";
+
+  // insertion depth
+  of << " ValidateInsertionDepth=\"";
+  double depth = mrmlNode->GetValidateInsertionDepth();  
+  of << depth << " ";
+  of << "\" \n";
+
+
+  
+
+}
+
+
+
+//----------------------------------------------------------------------------
